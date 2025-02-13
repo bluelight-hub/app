@@ -1,0 +1,5 @@
+---
+description: when you change dtos or controllers (backend code)
+globs: 
+---
+You must run `pnpm generate-client` in `shared` in order to recreate backend api code and dtos in the frontend.

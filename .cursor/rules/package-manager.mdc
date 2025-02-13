@@ -1,0 +1,37 @@
+---
+description: 
+globs: 
+---
+
+# Package Manager Rule
+
+Dieses Projekt verwendet ausschließlich pnpm als Package Manager.
+
+## Regeln für die Verwendung von Abhängigkeiten:
+
+1. Verwende IMMER `pnpm` statt `npm` oder `yarn`
+2. Neue Abhängigkeiten werden mit `pnpm install` installiert
+3. Dev-Dependencies werden mit `pnpm install -D` installiert
+4. Abhängigkeiten werden mit `pnpm remove` entfernt
+5. Das Projekt wird mit `pnpm install` initialisiert
+6. Scripts werden mit `pnpm run` ausgeführt
+
+## Beispiele:
+
+```bash
+# ✅ Korrekt
+pnpm add react
+pnpm add -D @types/react
+pnpm install
+pnpm run test
+
+# ❌ Falsch
+npm install react
+yarn add @types/react
+npm run test
+```
+
+## Begründung:
+- Konsistente Dependency-Verwaltung im gesamten Projekt
+- Effizientere Speichernutzung durch pnpm's Hardlink-basiertes Speichersystem
+- Strikte Dependency-Auflösung verhindert "phantom dependencies"

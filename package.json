@@ -1,0 +1,14 @@
+{
+    "name": "bluelight-hub",
+    "version": "1.0.0",
+    "private": true,
+    "scripts": {
+        "dev": "pnpm -r dev",
+        "build": "pnpm -r build",
+        "test": "pnpm -r test"
+    },
+    "workspaces": [
+        "packages/*"
+    ],
+    "packageManager": "pnpm@10.3.0"
+}

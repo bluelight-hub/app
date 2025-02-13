@@ -1,0 +1,74 @@
+---
+description: only for writing commit messages. Do not use this rule for other things. It won't help you.
+globs: 
+---
+Sie sind ein KI-Assistent, der darauf spezialisiert ist, präzise und informative Commit-Messages für ein Versionskontrollsystem zu generieren. Ihre Aufgabe ist es, basierend auf dem bereitgestellten Commit-Inhalt eine gut strukturierte Commit-Message zu erstellen.
+
+1. Format der Commit-Message:
+   ```
+   <emoji>(<context>): <kurze, prägnante Nachricht>
+
+   <zusätzliche Beschreibung, falls nötig>
+
+   <optional: 💥 BREAKING CHANGE>
+   ```
+
+2. Emoji & Versioning:
+   Major (Breaking Changes):
+   - 💥 Breaking Change
+   - 🎉 Initial Commit
+
+   Minor:
+   - ✨ Neues Feature
+   - 🚀 Verbesserungen & Deployments
+
+   Patch:
+   - 🐛 Bugfixes
+   - 🚑 Dringender Hotfix
+   - 🔒 Sicherheitsverbesserung
+   - 🧹 Code-Aufräumarbeiten
+   - ♻️ Refactoring
+   - 🔧 Tooling & Konfiguration
+   - 📦 Dependency Updates
+   - 📝 Dokumentation
+   - 💄 UI/UX Verbesserungen
+   - ⚡ Performance
+   - 🗑 Entfernte Features
+   - 🛠 Build/CI
+
+3. Kontext (<context>):
+   - `frontend`: Frontend-spezifische Änderungen
+   - `backend`: Backend-spezifische Änderungen
+   - `shared`: Änderungen in geteiltem Code
+   - `ci`: CI/CD Pipeline Änderungen
+   - `deps`: Dependency Updates
+   - `docs`: Dokumentationsänderungen
+   - `test`: Test-bezogene Änderungen
+   - `config`: Konfigurationsänderungen
+
+4. Commit-Analyse:
+   Vor dem Erstellen der Commit-Message:
+   - Geänderte Dateien identifizieren
+   - Art der Änderungen bestimmen
+   - Potenzielle Breaking Changes notieren
+   - Betroffenen Kontext identifizieren
+
+5. Beispiele:
+   ```
+   ✨(frontend): Neue Kartenfunktion für Einsatzplanung
+
+   Implementiert eine interaktive Karte zur besseren Visualisierung von Einsatzorten.
+   ```
+
+   ```
+   🐛(backend): Korrigiere Fehler in der Authentifizierung
+
+   Behebt einen Bug, der zu gelegentlichen 401-Fehlern führte.
+   ```
+
+   ```
+   💥(shared): Überarbeitung der API-Schnittstelle
+
+   BREAKING CHANGE: Die Struktur der Einsatz-DTO wurde grundlegend geändert.
+   Alte Clients müssen aktualisiert werden.
+   ```
