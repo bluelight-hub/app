@@ -1,1 +1,40 @@
-@import 'tailwindcss'
+@import 'tailwindcss';
+
+@custom-variant dark (&:where(.dark, .dark *));
+
+@theme {
+    --color-current: currentColor;
+
+    /* TODO: change to color variables (colors-sky) */
+    --color-primary-50: var(--color-sky-50);
+    --color-primary-100: var(--color-sky-100);
+    --color-primary-200: var(--color-sky-200);
+    --color-primary-300: var(--color-sky-300);
+    --color-primary-400: var(--color-sky-400);
+    --color-primary-500: var(--color-sky-500);
+    --color-primary-600: var(--color-sky-600);
+    --color-primary-700: var(--color-sky-700);
+    --color-primary-800: var(--color-sky-800);
+    --color-primary-900: var(--color-sky-900);
+    --color-primary-950: var(--color-sky-950);
+}
+
+html,
+body,
+#root {
+    min-height: 100%;
+    width: 100%;
+}
+
+html.dark {
+    background-color: rgb(17 24 39);
+}
+
+html.dark body {
+    background-color: rgb(17 24 39);
+}
+
+body {
+    font-family: 'Nunito Variable', 'Inter Variable', sans-serif;
+    /*font-family: 'DepartureMono', 'sans-serif';*/
+}

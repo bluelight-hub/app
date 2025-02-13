@@ -2,12 +2,12 @@
   "$schema": "../node_modules/@tauri-apps/cli/config.schema.json",
   "productName": "bluelight-hub",
   "version": "0.1.0",
-  "identifier": "com.tauri.dev",
+  "identifier": "dev.rubeen.bluelight-hub",
   "build": {
-    "frontendDist": "..",
-    "devUrl": "http://localhost:5173",
-    "beforeDevCommand": "pnpm run dev",
-    "beforeBuildCommand": "pnpm run build"
+    "beforeDevCommand": "pnpm dev:vite",
+    "beforeBuildCommand": "pnpm build",
+    "devUrl": "http://localhost:3001",
+    "frontendDist": "../dist"
   },
   "app": {
     "windows": [

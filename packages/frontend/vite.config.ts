@@ -5,12 +5,12 @@ import { defineConfig } from "vite";
 const host = process.env.TAURI_DEV_HOST;
 
 export default defineConfig({
-  plugins: [react(), tailwindcss()],
+  plugins: [tailwindcss(), react()],
   clearScreen: false,
   server: {
     strictPort: true,
     host: host || false,
-    port: 5173,
+    port: 3001,
   },
   envPrefix: ['VITE_', 'TAURI_ENV_*'],
   build: {
