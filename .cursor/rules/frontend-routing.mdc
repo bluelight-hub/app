@@ -1,0 +1,62 @@
+---
+description: Standards for organizing routes in a Vite React application
+globs: packages/frontend/src/routes/.*\\.(tsx?|jsx?)$
+---
+
+# Frontend Routing Standards
+
+This document outlines the standards for organizing routes in our Vite React application.
+
+## Directory Structure
+
+```
+src/
+  router/
+    index.tsx       # Main router configuration
+    layouts/        # Layout components
+    pages/          # Page components
+```
+
+## Guidelines
+
+1. **Router Configuration**
+   - All routes should be defined in `src/router/index.tsx`
+   - Use named exports for the router component
+   - Group routes logically using nested routes where appropriate
+
+2. **Components Organization**
+   - Layout components should be placed in `router/layouts/`
+   - Page components should be placed in `router/pages/`
+   - Each page component should be in its own file
+   - Use lazy loading for routes when appropriate
+
+3. **Naming Conventions**
+   - Layout components: `*Layout.tsx` (e.g., `AppLayout.tsx`)
+   - Page components: `*Page.tsx` (e.g., `HomePage.tsx`)
+   - Route paths should use kebab-case for multiple words
+
+4. **Type Safety**
+   - Use TypeScript for route parameters and query strings
+   - Define route parameter types explicitly
+
+5. **Code Organization**
+   - Keep route definitions separate from page components
+   - Use constants for route paths
+   - Document complex routing logic with comments
+
+## Example Usage
+
+```tsx
+// router/index.tsx
+import { Routes, Route } from 'react-router-dom';
+import { AppLayout } from './layouts/AppLayout';
+import { HomePage } from './pages/HomePage';
+
+export const Router = () => (
+  <Routes>
+    <Route element={<AppLayout />}>
+      <Route path="/" element={<HomePage />} />
+    </Route>
+  </Routes>
+);
+```

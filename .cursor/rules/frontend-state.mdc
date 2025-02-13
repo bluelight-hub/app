@@ -1,0 +1,112 @@
+---
+description: Standards for managing application state with Zustand
+globs: packages/frontend/src/stores/.*\\.ts$
+---
+# Frontend State Management
+
+This rule defines the state management approach using Zustand.
+
+<rule>
+name: frontend_state
+description: Standards for managing application state with Zustand
+filters:
+  - type: file_path
+    pattern: "packages/frontend/src/stores/.*\\.ts$"
+  - type: event
+    pattern: "file_create"
+
+actions:
+  - type: suggest
+    message: |
+      When managing state with Zustand:
+
+      1. Store Organization:
+         ```
+         src/stores/
+         ├── index.ts              # Re-exports all stores
+         ├── useAuthStore.ts       # Authentication state
+         ├── useSettingsStore.ts   # App settings
+         └── useDataStore.ts       # Domain data
+         ```
+
+      2. Store Structure:
+         - One store per domain concept
+         - Keep stores small and focused
+         - Use TypeScript interfaces for state types
+         - Implement selectors for derived state
+         ```tsx
+         // stores/useAuthStore.ts
+         import { create } from 'zustand';
+         import { devtools } from 'zustand/middleware';
+
+         interface AuthState {
+           user: User | null;
+           isAuthenticated: boolean;
+           login: (credentials: Credentials) => Promise<void>;
+           logout: () => void;
+         }
+
+         export const useAuthStore = create<AuthState>()(
+           devtools(
+             (set) => ({
+               user: null,
+               isAuthenticated: false,
+               login: async (credentials) => {
+                 // Implementation
+                 set({ user, isAuthenticated: true });
+               },
+               logout: () => set({ user: null, isAuthenticated: false }),
+             }),
+             { name: 'auth-store' }
+           )
+         );
+         ```
+
+      3. State Usage in Components:
+         - Use selective state subscription
+         - Implement middleware for side effects
+         - Use devtools in development
+         ```tsx
+         const UserProfile = () => {
+           const user = useAuthStore((state) => state.user);
+           const logout = useAuthStore((state) => state.logout);
+           
+           return (
+             <div>
+               <h2>{user?.name}</h2>
+               <Button onClick={logout}>Logout</Button>
+             </div>
+           );
+         };
+         ```
+
+      4. Best Practices:
+         - Keep state normalized
+         - Use middleware for persistence
+         - Implement proper error handling
+         - Use computed values with selectors
+         - Document store interfaces and actions
+
+examples:
+  - input: |
+      // Bad: Multiple stores for related state
+      const useUserStore = create(() => ({ user: null }));
+      const useUserSettingsStore = create(() => ({ settings: {} }));
+
+      // Good: Combined related state in one store
+      const useUserStore = create((set) => ({
+        user: null,
+        settings: {},
+        updateSettings: (newSettings) => 
+          set((state) => ({ settings: { ...state.settings, ...newSettings } }))
+      }));
+    output: "Properly organized state management"
+
+metadata:
+  priority: high
+  version: 1.0
+  tags:
+    - frontend
+    - state-management
+    - zustand
+</rule> 
