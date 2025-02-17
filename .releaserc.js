@@ -2,7 +2,7 @@
  * @type {import('semantic-release').GlobalConfig}
  */
 module.exports = {
-    repositoryUrl: 'https://github.com/rubenvitt/bluelight-hub',
+    repositoryUrl: 'https://github.com/bluelight-hub/app',
     plugins: [
         [
             'semantic-release-gitmoji',

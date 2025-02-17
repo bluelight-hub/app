@@ -1,26 +1,5 @@
-🔧(config): Docker-Konfiguration für Monorepo mit SQLite
-🔧(config): Docker Compose Konfiguration hinzugefügt
-🔧(ci): Implementiere Semantic Release Workflow
+🔧(config): Update repository URL in release configuration
 
-Implementiert eine Multi-Stage Dockerfile für das Frontend/Backend Monorepo:
-- Optimierte Build-Stages für Frontend und Backend
-- Korrekte Handhabung von pnpm Workspace-Dependencies
-- SQLite-Integration mit nativen Bindings
-- Sicherheitsoptimierungen (non-root user, minimale Dependencies)
-- Konfigurierbare Datenbankpfade via Umgebungsvariablen
-- .dockerignore für optimierte Build-Performance
-
-Fügt docker-compose.yml für einfaches Deployment hinzu:
-- Konfiguriertes Datenbank-Volume für Persistenz
-- Umgebungsvariablen für Produktion
-- Healthcheck für Anwendungsüberwachung
-- Ressourcenlimits für Container
-- Automatischer Neustart bei Fehlern
-
-Fügt Semantic Release mit Gitmoji-Unterstützung und deutschem Release Notes Template hinzu.
-
-- Konfiguriert Release-Workflow für automatische Versionierung
-- Integriert Docker-Build in den Release-Prozess
-- Fügt deutsche Release Notes Templates hinzu
-- Konfiguriert automatische Changelog-Generierung
-- Setzt initiale Version auf 0.0.0 für ersten Release 
+Update repository URL in .releaserc.js to reflect new organization structure:
+- Change from rubenvitt/bluelight-hub to bluelight-hub/app
+- Ensure correct release asset handling
