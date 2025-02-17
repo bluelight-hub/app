@@ -13,6 +13,7 @@
     "packageManager": "pnpm@10.3.0",
     "pnpm": {
         "onlyBuiltDependencies": [
+            "@nestjs/core",
             "@swc/core",
             "esbuild"
         ]

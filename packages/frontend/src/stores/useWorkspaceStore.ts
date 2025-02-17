@@ -4,7 +4,7 @@ import { devtools } from 'zustand/middleware';
 export interface WorkspaceTab {
     id: string;
     title: string;
-    type: 'empty' | 'project' | 'settings';
+    type: 'workspace' | 'dashboard' | 'administration';
     active: boolean;
 }
 
@@ -14,6 +14,7 @@ interface WorkspaceState {
     addTab: (type: WorkspaceTab['type'], title?: string) => void;
     removeTab: (id: string) => void;
     setActiveTab: (id: string) => void;
+    updateTabTitle: (id: string, title: string) => void;
 }
 
 type WorkspaceStore = StateCreator<
@@ -23,11 +24,15 @@ type WorkspaceStore = StateCreator<
     WorkspaceState
 >;
 
+const initialTabs: WorkspaceTab[] = [
+    { id: crypto.randomUUID(), title: 'Workspace', type: 'workspace', active: true },
+];
+
 export const useWorkspaceStore = create<WorkspaceState>()(
     devtools(
         ((set) => ({
-            tabs: [],
-            activeTabId: null,
+            tabs: initialTabs,
+            activeTabId: initialTabs[0].id,
             addTab: (type: WorkspaceTab['type'], title?: string) => set((state: WorkspaceState) => {
                 const newTab: WorkspaceTab = {
                     id: crypto.randomUUID(),
@@ -47,6 +52,14 @@ export const useWorkspaceStore = create<WorkspaceState>()(
                     ? newTabs[newTabs.length - 1]?.id || null
                     : state.activeTabId;
 
+                const newId = crypto.randomUUID();
+                if (newTabs.length === 0) {
+                    return {
+                        tabs: [{ id: newId, title: 'Workspace', type: 'workspace', active: true }],
+                        activeTabId: newId,
+                    };
+                }
+
                 return {
                     tabs: newTabs,
                     activeTabId: newActiveTabId,
@@ -58,6 +71,11 @@ export const useWorkspaceStore = create<WorkspaceState>()(
                     active: tab.id === id,
                 })),
                 activeTabId: id,
+            })),
+            updateTabTitle: (id: string, title: string) => set((state: WorkspaceState) => ({
+                tabs: state.tabs.map(tab =>
+                    tab.id === id ? { ...tab, title } : tab
+                ),
             })),
         })) as WorkspaceStore,
         { name: 'workspace-store' }

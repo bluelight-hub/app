@@ -58,3 +58,11 @@ pnpm-lock.yaml
 
 # Typescript
 *.tsbuildinfo 
+
+
+# Python (Dev Tools)
+setup-ai-dev-tools.sh
+venv
+
+# Data
+data/*
