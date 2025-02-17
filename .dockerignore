@@ -1,0 +1,49 @@
+# Dependencies
+node_modules
+**/node_modules
+.pnpm-store
+**/dist
+
+# Environment
+.env
+.env.*
+!.env.example
+
+# Development
+.git
+.gitignore
+.github
+.vscode
+.idea
+*.log
+*.md
+!README.md
+
+# Testing
+coverage
+**/*.spec.ts
+**/*.test.ts
+**/test
+**/tests
+
+# Data
+data
+**/data/*.sqlite
+**/data/*.db
+
+# Docker
+Dockerfile
+.dockerignore
+docker-compose*
+
+# Build artifacts
+.cursor
+.DS_Store
+**/.DS_Store
+**/tsconfig.tsbuildinfo
+**/.tsbuildinfo
+
+# Python virtual environment (falls später benötigt)
+venv
+**/__pycache__
+*.pyc 
