@@ -76,9 +76,104 @@ jobs:
           name: backend-image-tags
           path: backend-image-tags.txt
 
+  build-frontend:
+    name: Build Frontend on ${{ matrix.platform }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - platform: 'macos-latest'
+            args: '--target aarch64-apple-darwin'
+            artifact_suffix: 'macos-arm64'
+          - platform: 'macos-latest'
+            args: '--target x86_64-apple-darwin'
+            artifact_suffix: 'macos-x64'
+          - platform: 'ubuntu-22.04'
+            args: ''
+            artifact_suffix: 'ubuntu'
+          - platform: 'windows-latest'
+            args: ''
+            artifact_suffix: 'windows'
+    runs-on: ${{ matrix.platform }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "lts/*"
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v2
+        with:
+          version: '10.3.0'
+
+      - name: Get pnpm store directory
+        shell: bash
+        run: |
+          echo "STORE_PATH=$(pnpm store path --silent)" >> $GITHUB_ENV
+
+      - uses: actions/cache@v3
+        name: Setup pnpm cache
+        with:
+          path: ${{ env.STORE_PATH }}
+          key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
+          restore-keys: |
+            ${{ runner.os }}-pnpm-store-
+
+      - name: Install Rust stable
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: ${{ matrix.platform == 'macos-latest' && 'aarch64-apple-darwin,x86_64-apple-darwin' || '' }}
+
+      - name: Install dependencies (ubuntu only)
+        if: matrix.platform == 'ubuntu-22.04'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libwebkit2gtk-4.0-dev libwebkit2gtk-4.1-dev libappindicator3-dev librsvg2-dev patchelf
+
+      - name: Install frontend dependencies
+        run: cd packages/frontend && pnpm install
+
+      - name: Prepare Windows Version (Windows only)
+        if: matrix.platform == 'windows-latest'
+        shell: pwsh
+        run: |
+          # Function to get only major.minor.patch
+          function Get-BaseVersion {
+              param($version)
+              if ($version -match '(\d+\.\d+\.\d+)') {
+                  return $matches[1]
+              }
+              return $version
+          }
+
+          # Update package.json
+          $packageContent = Get-Content packages/frontend/package.json -Raw
+          $packageJson = $packageContent | ConvertFrom-Json
+          $packageJson.version = Get-BaseVersion $packageJson.version
+          $packageJson | ConvertTo-Json -Depth 32 | Set-Content packages/frontend/package.json
+
+      - name: Build Tauri
+        uses: tauri-apps/tauri-action@v0
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          projectPath: packages/frontend
+          args: ${{ matrix.args }}
+
+      - name: Upload Frontend Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: frontend-artifact-${{ matrix.artifact_suffix }}
+          path: packages/frontend/src-tauri/target/release/bundle
+
   release:
     name: Create Release
-    needs: [ build-backend ]
+    needs: [ build-backend, build-frontend ]
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -117,11 +212,22 @@ jobs:
         with:
           name: backend-image-tags
 
+      - name: Download Frontend Artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: frontend-artifacts
+          pattern: frontend-artifact-*
+
       - name: Prepare Release Notes
         run: |
           echo "## Docker Image Tags" >> RELEASE_NOTES.md
           echo '```' >> RELEASE_NOTES.md
           cat backend-image-tags.txt >> RELEASE_NOTES.md
+          echo '```' >> RELEASE_NOTES.md
+          echo "" >> RELEASE_NOTES.md
+          echo "## Frontend Artifacts" >> RELEASE_NOTES.md
+          echo '```' >> RELEASE_NOTES.md
+          ls -R frontend-artifacts/frontend-artifact-* >> RELEASE_NOTES.md
           echo '```' >> RELEASE_NOTES.md
 
       - name: Release

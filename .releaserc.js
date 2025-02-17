@@ -160,6 +160,12 @@ WIP Änderungen:
             {
                 assets: [
                     'CHANGELOG.md',
+                    'frontend-artifacts/**/*.dmg',
+                    'frontend-artifacts/**/*.AppImage',
+                    'frontend-artifacts/**/*.msi',
+                    'frontend-artifacts/**/*.app',
+                    'frontend-artifacts/**/*.exe',
+                    'frontend-artifacts/**/*.deb'
                 ],
                 releaseAssets: true,
                 releaseNotesFile: 'RELEASE.md'
