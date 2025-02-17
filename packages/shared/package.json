@@ -1,5 +1,5 @@
 {
-    "name": "@bluelight-hub/shared",
-    "version": "1.0.0",
-    "private": true
+  "name": "@bluelight-hub/shared",
+  "version": "1.0.0-alpha.1",
+  "private": true
 }

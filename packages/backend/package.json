@@ -1,67 +1,67 @@
 {
-    "name": "@bluelight-hub/backend",
-    "version": "1.0.0",
-    "private": true,
-    "scripts": {
-        "dev": "nest start --watch",
-        "build": "nest build",
-        "format": "prettier --write \"src/**/*.ts\"",
-        "start": "nest start",
-        "start:dev": "nest start --watch",
-        "start:debug": "nest start --debug --watch",
-        "start:prod": "node dist/main",
-        "lint": "eslint \"{src,apps,libs,test}/**/*.ts\"",
-        "test": "jest",
-        "test:watch": "jest --watch",
-        "test:cov": "jest --coverage",
-        "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand",
-        "test:e2e": "jest --config ./test/jest-e2e.json"
+  "name": "@bluelight-hub/backend",
+  "version": "1.0.0-alpha.1",
+  "private": true,
+  "scripts": {
+    "dev": "nest start --watch",
+    "build": "nest build",
+    "format": "prettier --write \"src/**/*.ts\"",
+    "start": "nest start",
+    "start:dev": "nest start --watch",
+    "start:debug": "nest start --debug --watch",
+    "start:prod": "node dist/main",
+    "lint": "eslint \"{src,apps,libs,test}/**/*.ts\"",
+    "test": "jest",
+    "test:watch": "jest --watch",
+    "test:cov": "jest --coverage",
+    "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand",
+    "test:e2e": "jest --config ./test/jest-e2e.json"
+  },
+  "dependencies": {
+    "@bluelight-hub/shared": "workspace:*",
+    "@nestjs/common": "11.0.10",
+    "@nestjs/config": "^4.0.0",
+    "@nestjs/core": "11.0.10",
+    "@nestjs/platform-express": "11.0.10",
+    "@nestjs/platform-socket.io": "11.0.10",
+    "@nestjs/terminus": "^11.0.0",
+    "@nestjs/typeorm": "11.0.0",
+    "@nestjs/websockets": "11.0.10",
+    "better-sqlite3": "^11.8.1",
+    "class-transformer": "^0.5.1",
+    "class-validator": "^0.14.1",
+    "reflect-metadata": "^0.2.2",
+    "typeorm": "^0.3.20"
+  },
+  "devDependencies": {
+    "@nestjs/cli": "11.0.3",
+    "@nestjs/testing": "11.0.10",
+    "@types/better-sqlite3": "7.6.12",
+    "@types/express": "^5.0.0",
+    "@types/jest": "^29.5.14",
+    "@types/node": "22.13.4",
+    "@types/socket.io": "^3.0.2",
+    "jest": "^29.7.0",
+    "ts-jest": "^29.2.5",
+    "ts-node": "^10.9.2",
+    "ts-node-dev": "^2.0.0",
+    "typescript": "~5.7.3"
+  },
+  "jest": {
+    "moduleFileExtensions": [
+      "js",
+      "json",
+      "ts"
+    ],
+    "rootDir": "src",
+    "testRegex": ".*\\.spec\\.ts$",
+    "transform": {
+      "^.+\\.(t|j)s$": "ts-jest"
     },
-    "dependencies": {
-        "@bluelight-hub/shared": "workspace:*",
-        "@nestjs/common": "11.0.10",
-        "@nestjs/config": "^4.0.0",
-        "@nestjs/core": "11.0.10",
-        "@nestjs/platform-express": "11.0.10",
-        "@nestjs/platform-socket.io": "11.0.10",
-        "@nestjs/terminus": "^11.0.0",
-        "@nestjs/typeorm": "11.0.0",
-        "@nestjs/websockets": "11.0.10",
-        "better-sqlite3": "^11.8.1",
-        "class-transformer": "^0.5.1",
-        "class-validator": "^0.14.1",
-        "reflect-metadata": "^0.2.2",
-        "typeorm": "^0.3.20"
-    },
-    "devDependencies": {
-        "@nestjs/cli": "11.0.3",
-        "@nestjs/testing": "11.0.10",
-        "@types/better-sqlite3": "7.6.12",
-        "@types/express": "^5.0.0",
-        "@types/jest": "^29.5.14",
-        "@types/node": "22.13.4",
-        "@types/socket.io": "^3.0.2",
-        "jest": "^29.7.0",
-        "ts-jest": "^29.2.5",
-        "ts-node": "^10.9.2",
-        "ts-node-dev": "^2.0.0",
-        "typescript": "~5.7.3"
-    },
-    "jest": {
-        "moduleFileExtensions": [
-            "js",
-            "json",
-            "ts"
-        ],
-        "rootDir": "src",
-        "testRegex": ".*\\.spec\\.ts$",
-        "transform": {
-            "^.+\\.(t|j)s$": "ts-jest"
-        },
-        "collectCoverageFrom": [
-            "**/*.(t|j)s"
-        ],
-        "coverageDirectory": "../coverage",
-        "testEnvironment": "node"
-    }
+    "collectCoverageFrom": [
+      "**/*.(t|j)s"
+    ],
+    "coverageDirectory": "../coverage",
+    "testEnvironment": "node"
+  }
 }
