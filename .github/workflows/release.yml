@@ -1,0 +1,131 @@
+name: Release
+run-name: Release ${{ github.ref_name }}#${{ github.run_number }}
+on:
+  push:
+    branches:
+      - main
+      - alpha
+      - beta
+      - next
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ${{ github.repository }}
+
+permissions:
+  contents: write
+  issues: write
+  pull-requests: write
+  id-token: write
+  packages: write
+
+jobs:
+  build-backend:
+    name: Build Backend
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+        with:
+          install: true
+
+      - name: Log in to the Container registry
+        if: github.event_name != 'pull_request'
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Set tags for main branch
+        if: github.ref == 'refs/heads/main'
+        run: echo "TAGS=latest,main,main:${GITHUB_RUN_NUMBER}" >> $GITHUB_ENV
+
+      - name: Set tags for other branches
+        if: github.ref != 'refs/heads/main'
+        run: echo "TAGS=${GITHUB_REF#refs/heads/},${GITHUB_REF#refs/heads/}:${GITHUB_RUN_NUMBER}" >> $GITHUB_ENV
+
+      - name: Extract metadata (tags, labels) for Docker
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+          tags: ${{ env.TAGS }}
+
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: ./Dockerfile
+          platforms: linux/amd64,linux/arm64
+          push: ${{ github.event_name != 'pull_request' }}
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: Save Docker image tags
+        run: echo "${{ steps.meta.outputs.tags }}" > backend-image-tags.txt
+
+      - name: Upload Backend Image Tags
+        uses: actions/upload-artifact@v4
+        with:
+          name: backend-image-tags
+          path: backend-image-tags.txt
+
+  release:
+    name: Create Release
+    needs: [ build-backend ]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "lts/*"
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v2
+        with:
+          version: '10.3.0'
+
+      - name: Get pnpm store directory
+        shell: bash
+        run: |
+          echo "STORE_PATH=$(pnpm store path --silent)" >> $GITHUB_ENV
+
+      - uses: actions/cache@v3
+        name: Setup pnpm cache
+        with:
+          path: ${{ env.STORE_PATH }}
+          key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
+          restore-keys: |
+            ${{ runner.os }}-pnpm-store-
+
+      - name: Install dependencies
+        run: pnpm install
+
+      - name: Download Backend Image Tags
+        uses: actions/download-artifact@v4
+        with:
+          name: backend-image-tags
+
+      - name: Prepare Release Notes
+        run: |
+          echo "## Docker Image Tags" >> RELEASE_NOTES.md
+          echo '```' >> RELEASE_NOTES.md
+          cat backend-image-tags.txt >> RELEASE_NOTES.md
+          echo '```' >> RELEASE_NOTES.md
+
+      - name: Release
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          RELEASE_NOTES: ${{ github.workspace }}/RELEASE_NOTES.md
+        run: npx semantic-release 

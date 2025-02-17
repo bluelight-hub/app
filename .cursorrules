@@ -129,29 +129,96 @@ If needed, you can further use the `web_scraper.py` file to scrape the web page 
 
 ## Background and Motivation
 
-(Planner writes: User/business requirements, macro objectives, why this problem needs to be solved)
-The executor has access to three tools: invoking 3rd party LLM, invoking web browser, invoking search engine.
+Ein Health-Endpoint soll implementiert werden, der im docker-compose.yml bereits als Healthcheck konfiguriert ist. 
+Der Endpoint soll unter /api/health erreichbar sein und sinnvolle Gesundheitsdaten der Anwendung zurückliefern.
+Als Basis soll die NestJS Terminus Integration verwendet werden.
 
 ## Key Challenges and Analysis
 
-(Planner: Records of technical barriers, resource constraints, potential risks)
+- Integration von @nestjs/terminus in das bestehende NestJS Backend
+- Implementierung sinnvoller Health Checks (Datenbank, Speicher, etc.)
+- Dokumentation der neuen Routen
+- Erstellung einer neuen Cursor Rule für Health-Check Standards
 
 ## Verifiable Success Criteria
 
-(Planner: List measurable or verifiable goals to be achieved)
+1. Health-Endpoint ist unter /api/health erreichbar
+2. Health-Checks liefern sinnvolle Daten zurück
+3. Docker Health-Check funktioniert wie in docker-compose.yml konfiguriert
+4. Neue Routes sind dokumentiert
+5. Neue Cursor Rule für Health-Check Standards ist erstellt
 
 ## High-level Task Breakdown
 
-(Planner: List subtasks by phase, or break down into modules)
+1. Installation und Konfiguration von @nestjs/terminus
+2. Implementierung des Health Controllers
+3. Implementierung der Health Checks
+4. Dokumentation der Routes
+5. Erstellung der Health-Check Cursor Rule
 
 ## Current Status / Progress Tracking
 
-(Executor: Update completion status after each subtask. If needed, use bullet points or tables to show Done/In progress/Blocked status)
+- ✅ Installation von @nestjs/terminus
+- ✅ Implementierung des Health Controllers mit grundlegenden Checks
+- ✅ Implementierung des Health Modules
+- ✅ Integration in das AppModule
+- ✅ Erstellung der Health-Check Cursor Rule unter .cursor/rules/health-checks.mdc
 
 ## Next Steps and Action Items
 
-(Planner: Specific arrangements for the Executor)
+Alle geplanten Aufgaben wurden erfolgreich abgeschlossen.
 
 ## Executor's Feedback or Assistance Requests
 
-(Executor: Write here when encountering blockers, questions, or need for more information during execution)
+Keine weiteren Anfragen.
+
+# Rules
+
+## health-checks
+
+Health-Check Standards für die Anwendung:
+
+1. Alle Health-Checks müssen unter dem Pfad `/api/health` erreichbar sein
+2. Folgende Checks müssen implementiert sein:
+   - Datenbank-Verbindung (TypeORM)
+   - Arbeitsspeicher (Heap und RSS)
+   - Speicherplatz (mindestens 10% frei)
+3. Die Antwort muss dem Standard-Format von @nestjs/terminus entsprechen
+4. Health-Checks müssen in regelmäßigen Abständen ausgeführt werden (Docker)
+5. Bei Fehlschlag müssen die Container neu gestartet werden
+
+Beispiel-Response:
+```json
+{
+  "status": "ok",
+  "info": {
+    "database": {
+      "status": "up"
+    },
+    "memory_heap": {
+      "status": "up"
+    },
+    "memory_rss": {
+      "status": "up"
+    },
+    "storage": {
+      "status": "up"
+    }
+  },
+  "error": {},
+  "details": {
+    "database": {
+      "status": "up"
+    },
+    "memory_heap": {
+      "status": "up"
+    },
+    "memory_rss": {
+      "status": "up"
+    },
+    "storage": {
+      "status": "up"
+    }
+  }
+}
+```
