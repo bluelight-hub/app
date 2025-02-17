@@ -1,0 +1,1 @@
+feat: update cursor rules and tauri config\n\n- Update all cursor rules with German descriptions\n- Add health-checks rule for application monitoring\n- Update tauri configuration\n- Remove temporary commit message file

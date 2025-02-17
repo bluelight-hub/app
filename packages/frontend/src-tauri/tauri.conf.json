@@ -12,7 +12,7 @@
   "app": {
     "windows": [
       {
-        "title": "Bluelight Hub",
+        "title": "[DEV] Bluelight Hub",
         "width": 800,
         "height": 600,
         "resizable": true,

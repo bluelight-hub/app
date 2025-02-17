@@ -1,144 +1,77 @@
 ---
-description: Standards for organizing and developing React components using Atomic Design
-globs: packages/frontend/src/components/.*\\.tsx?$
+description: Regeln zur Organisation und Entwicklung von React-Komponenten (Atomic Design)
+globs: ["packages/frontend/src/components/**/*.tsx"]
 ---
-# Frontend Component Structure and Best Practices
-
-This rule defines the organization and best practices for React components following Atomic Design principles.
-
 <rule>
-name: frontend_components
-description: Standards for organizing and developing React components using Atomic Design
-filters:
-  - type: file_path
-    pattern: "packages/frontend/src/components/.*\\.tsx?$"
-  - type: event
-    pattern: "file_create"
+  name: frontend_components
+  description: Standards zur Organisation und Entwicklung von React-Komponenten basierend auf Atomic Design.
+  filters:
+    - type: file_path
+      pattern: "packages/frontend/src/components/.*\\.tsx?$"
+    - type: event
+      pattern: "file_create"
+  actions:
+    - type: suggest
+      message: |
+        **Richtlinien für neue React-Komponenten:**
 
-actions:
-  - type: suggest
-    message: |
-      When creating React components:
+        1. **Component Location Structure:**
+           ```
+           src/components/
+           ├── atoms/        # Grundbausteine (Buttons, Inputs, Labels etc.)
+           ├── molecules/    # Gruppen von Atomen (Formulare, Suchleisten etc.)
+           ├── organisms/    # Komplexe UI-Sektionen (Header, Formulare etc.)
+           ├── templates/    # Seitenlayouts und -strukturen
+           └── pages/        # Vollständige Seiten, die andere Komponenten kombinieren
+           ```
 
-      1. Component Location Structure:
-         ```
-         src/components/
-         ├── atoms/        # Basic building blocks (buttons, inputs, labels, etc.)
-         ├── molecules/    # Groups of atoms (form fields, search bars, etc.)
-         ├── organisms/    # Complex UI sections (headers, forms, etc.)
-         ├── templates/    # Page layouts and structures
-         └── pages/        # Complete pages combining other components
-         ```
+        2. **Component File Structure:**
+           - Eine Komponente pro Datei.
+           - Dateiname entspricht dem Komponentennamen (PascalCase).
+           - Interface für Props einbinden.
+           - Komponente als Default exportieren.
+           - Dokumentation der Komponente hinzufügen.
 
-      2. Component File Structure:
-         - One component per file
-         - File name should match component name (PascalCase)
-         - Include component props interface
-         - Export component as default
-         - Include component documentation
-         
-      3. Testing Requirements:
-         - Each component must have a test file (ComponentName.test.tsx)
-         - Test file should be in the same directory as the component
-         - Minimum test coverage requirements:
-           * Unit tests for all props and states
-           * Integration tests for complex interactions
-           * Snapshot tests for UI consistency
+        3. **Test-Anforderungen:**
+           - Jede Komponente muss eine Testdatei (ComponentName.test.tsx) haben.
+           - Testdatei im selben Verzeichnis wie die Komponente ablegen.
+           - Mindestanforderungen: Unit-, Integrations- und Snapshot-Tests.
 
-      4. Component Best Practices:
-         - Keep components small and focused (max ~150 lines)
-         - Use TypeScript for type safety
-         - Implement proper prop validation
-         - Follow the Single Responsibility Principle
-         - Use composition over inheritance
-         - Implement error boundaries where necessary
-         - Use React hooks effectively
-         - Document props and component behavior
+        4. **Best Practices:**
+           - Komponenten klein und fokussiert halten (~max 150 Zeilen).
+           - TypeScript für Typensicherheit nutzen.
+           - Prop-Validierung implementieren.
+           - Single Responsibility Principle einhalten.
+           - Komposition statt Vererbung verwenden.
+           - Error Boundaries implementieren, wo nötig.
+           - React Hooks effizient einsetzen.
+           - Props und Verhalten dokumentieren.
 
-      5. Example Component Structure:
-         ```tsx
-         interface ButtonProps {
-           label: string;
-           onClick: () => void;
-           variant?: 'primary' | 'secondary';
-         }
+        **Beispiel:**
+        ```tsx
+        interface ButtonProps {
+          label: string;
+          onClick: () => void;
+          variant?: 'primary' | 'secondary';
+        }
 
-         /**
-          * Primary UI component for user interaction
-          */
-         const Button: React.FC<ButtonProps> = ({
-           label,
-           onClick,
-           variant = 'primary'
-         }) => {
-           return (
-             <button
-               className={`btn btn-${variant}`}
-               onClick={onClick}
-             >
-               {label}
-             </button>
-           );
-         };
+        /**
+         * Primäre UI-Komponente für Benutzereingaben
+         */
+        const Button: React.FC<ButtonProps> = ({ label, onClick, variant = 'primary' }) => (
+          <button className={`btn btn-${variant}`} onClick={onClick}>
+            {label}
+          </button>
+        );
 
-         export default Button;
-         ```
-
-      6. Example Test Structure:
-         ```tsx
-         import { render, fireEvent } from '@testing-library/react';
-         import Button from './Button';
-
-         describe('Button', () => {
-           it('renders with correct label', () => {
-             const { getByText } = render(
-               <Button label="Click me" onClick={() => {}} />
-             );
-             expect(getByText('Click me')).toBeInTheDocument();
-           });
-
-           it('handles click events', () => {
-             const handleClick = jest.fn();
-             const { getByText } = render(
-               <Button label="Click me" onClick={handleClick} />
-             );
-             fireEvent.click(getByText('Click me'));
-             expect(handleClick).toHaveBeenCalled();
-           });
-         });
-         ```
-
-examples:
-  - input: |
-      // Bad: Component too large and unfocused
-      src/components/organisms/Dashboard.tsx with 500+ lines
-
-      // Good: Component split into smaller, focused parts
-      src/components/organisms/Dashboard/
-      ├── Dashboard.tsx
-      ├── DashboardHeader.tsx
-      ├── DashboardContent.tsx
-      └── DashboardFooter.tsx
-    output: "Properly organized and sized components"
-
-  - input: |
-      // Bad: Missing tests and documentation
-      src/components/atoms/Button.tsx without Button.test.tsx
-
-      // Good: Complete component structure
-      src/components/atoms/
-      ├── Button.tsx
-      ├── Button.test.tsx
-      └── Button.stories.tsx
-    output: "Properly tested and documented component"
-
-metadata:
-  priority: high
-  version: 1.0
-  tags:
-    - frontend
-    - react
-    - components
-    - testing
-    - atomic-design
-</rule> 
+        export default Button;
+        ```
+  metadata:
+    priority: high
+    version: 1.0
+    tags:
+      - frontend
+      - react
+      - components
+      - atomic-design
+</rule>

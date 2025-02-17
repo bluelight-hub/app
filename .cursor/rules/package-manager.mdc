@@ -1,37 +1,44 @@
 ---
-description: 
-globs: 
+description: Regeln zur Verwendung des Package Managers pnpm
+globs: ["**/package.json"]
 ---
+<rule>
+  name: package_manager
+  description: Dieses Projekt verwendet ausschließlich pnpm.
+  filters:
+    - type: event
+      pattern: "dependency_change"
+  actions:
+    - type: suggest
+      message: |
+        **Wichtige Hinweise zur Dependency-Verwaltung:**
 
-# Package Manager Rule
+        1. Verwende IMMER `pnpm` statt `npm` oder `yarn`.
+        2. Neue Abhängigkeiten werden mit `pnpm install` installiert.
+        3. Dev-Dependencies mit `pnpm install -D` installieren.
+        4. Abhängigkeiten mit `pnpm remove` entfernen.
+        5. Das Projekt wird mit `pnpm install` initialisiert.
+        6. Scripts werden mit `pnpm run` ausgeführt.
 
-Dieses Projekt verwendet ausschließlich pnpm als Package Manager.
+        **Beispiele:**
+        ```bash
+        # ✅ Korrekt:
+        pnpm add react
+        pnpm add -D @types/react
+        pnpm install
+        pnpm run test
 
-## Regeln für die Verwendung von Abhängigkeiten:
+        # ❌ Falsch:
+        npm install react
+        yarn add @types/react
+        npm run test
+        ```
 
-1. Verwende IMMER `pnpm` statt `npm` oder `yarn`
-2. Neue Abhängigkeiten werden mit `pnpm install` installiert
-3. Dev-Dependencies werden mit `pnpm install -D` installiert
-4. Abhängigkeiten werden mit `pnpm remove` entfernt
-5. Das Projekt wird mit `pnpm install` initialisiert
-6. Scripts werden mit `pnpm run` ausgeführt
-
-## Beispiele:
-
-```bash
-# ✅ Korrekt
-pnpm add react
-pnpm add -D @types/react
-pnpm install
-pnpm run test
-
-# ❌ Falsch
-npm install react
-yarn add @types/react
-npm run test
-```
-
-## Begründung:
-- Konsistente Dependency-Verwaltung im gesamten Projekt
-- Effizientere Speichernutzung durch pnpm's Hardlink-basiertes Speichersystem
-- Strikte Dependency-Auflösung verhindert "phantom dependencies"
+        **Begründung:**
+        - Konsistente Dependency-Verwaltung im gesamten Projekt.
+        - Effizientere Speichernutzung dank pnpm's Hardlink-basiertem Speichersystem.
+        - Strikte Dependency-Auflösung verhindert "phantom dependencies".
+  metadata:
+    priority: high
+    version: 1.0
+</rule>

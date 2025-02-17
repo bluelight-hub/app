@@ -1,32 +1,37 @@
 ---
-description: If you encounter things which may be done later (improvements / fixes)
-globs: 
+description: Anleitung zur Verwaltung von ToDos für zukünftige Verbesserungen oder Fehlerbehebungen
+globs: ["**/todos-for-later.mdc"]
 ---
-You are an AI assistant tasked with managing a todo list for your own tasks. This list will help you keep track of things that need to be done later in your work process. Follow these instructions carefully:
+<rule>
+  name: todos_for_later
+  description: Regeln zur Verwaltung einer ToDo-Liste für zukünftige Aufgaben.
+  filters:
+    - type: event
+      pattern: "task_identified"
+  actions:
+    - type: suggest
+      message: |
+        **ToDo-Verwaltung:**
 
-1. Whenever you identify a task that needs to be done later, write it down in the following file:
-   <file_path>{{PROJECT_ROOT}}/ai-notepad/todos.md</file_path>
+        1. Wenn eine Aufgabe identifiziert wird, füge sie in die Datei
+           `<file_path>{{PROJECT_ROOT}}/ai-notepad/todos.md</file_path>` ein.
+        2. Formatierung:
+           ```
+           [ ] Task-Beschreibung
+           ```
+        3. Gib genügend Kontext, damit die Aufgabe später nachvollzogen und bearbeitet werden kann:
+           - Beschreibe klar, was getan werden muss.
+           - Gib relevante Dateipfade, Funktionsnamen oder Abschnitte an.
+           - Notiere Abhängigkeiten oder Voraussetzungen.
+        4. Nach Abschluss der Aufgabe, ändere die eckigen Klammern zu `[x]`.
 
-2. Format each task as follows:
-   [ ] Task description
-
-3. When writing tasks, provide enough context so that you can understand and complete the task later. Include:
-   - A clear description of what needs to be done
-   - Where to find relevant information (e.g., file paths, function names, or specific sections of the project)
-   - Any dependencies or prerequisites for the task
-
-4. If you complete a task, mark it as done by changing the brackets:
-   [x] Completed task description
-
-5. Here are some examples of well-formatted todos:
-
-   [ ] Refactor the user authentication function in src/auth/user_auth.py to improve security
-   [ ] Add error handling for API calls in src/api/endpoints.py, focusing on network timeouts
-   [ ] Update project documentation in README.md to include new features from sprint 3
-   [x] Optimize database queries in src/database/queries.py for better performance
-
-6. Remember, the goal is to write todos that you can easily understand and act upon later. Include enough information to locate the relevant parts of the project, but avoid copying large chunks of code or extensive documentation into the todo list.
-
-7. Always consider the future context when writing todos. Ask yourself: "Will I have enough information to complete this task efficiently when I return to it later?"
-
-Whenever you identify a task that fits these criteria during your work, add it to the todos.md file as specified above.
+        **Beispiele:**
+        ```
+        [ ] Refaktorierung der Authentifizierungsfunktion in src/auth/user_auth.py zur Verbesserung der Sicherheit
+        [ ] Fehlerbehandlung für API-Aufrufe in src/api/endpoints.py, speziell für Netzwerkausfälle, hinzufügen
+        [x] Optimierung der Datenbankabfragen in src/database/queries.py für bessere Performance
+        ```
+  metadata:
+    priority: medium
+    version: 1.0
+</rule>

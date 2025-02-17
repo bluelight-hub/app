@@ -1,5 +1,0 @@
-🔧(config): Update repository URL in release configuration
-
-Update repository URL in .releaserc.js to reflect new organization structure:
-- Change from rubenvitt/bluelight-hub to bluelight-hub/app
-- Ensure correct release asset handling

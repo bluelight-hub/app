@@ -1,5 +1,26 @@
 ---
-description: when you change dtos or controllers (backend code)
-globs: 
+description: Anleitung zur Aktualisierung von Backend-API Code und DTOs im Frontend
+globs: ["shared/**/*"]
 ---
-You must run `pnpm generate-client` in `shared` in order to recreate backend api code and dtos in the frontend.
+<rule>
+  name: generate_client
+  description: Bei Änderungen an DTOs oder Controllern (Backend) soll `pnpm generate-client` im `shared` Verzeichnis ausgeführt werden.
+  filters:
+    - type: event
+      pattern: "file_change"
+    - type: file_path
+      pattern: "shared/(dtos|controllers)/.*"
+  actions:
+    - type: execute
+      command: "pnpm generate-client"
+    - type: suggest
+      message: |
+        **Wichtig:** Nach Änderungen am DTO- oder Controller-Code im Backend, führe folgenden Befehl im `shared` Verzeichnis aus:
+        ```
+        pnpm generate-client
+        ```
+        So werden der Backend-API Code und die DTOs im Frontend aktuell gehalten.
+  metadata:
+    priority: high
+    version: 1.0
+</rule>

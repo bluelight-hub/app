@@ -1,1 +1,116 @@
- 
+ ---
+description: Regeln für Health-Checks des Systems
+globs: ["**/health-checks.*"]
+---
+# Health-Check Standards
+
+Standards für die Health-Check Implementierung in der Anwendung.
+
+## Endpoint-Konfiguration
+
+- **Basis-URL**: `/api/health`
+- **HTTP-Methode**: GET
+- **Framework**: NestJS mit @nestjs/terminus
+
+## Implementierte Checks
+
+1. **Datenbank-Verbindung (TypeORM)**
+   ```typescript
+   @InjectConnection() private defaultConnection: Connection
+   // Überprüfung via
+   this.db.pingCheck('database', { connection: this.defaultConnection })
+   ```
+
+2. **Arbeitsspeicher**
+   ```typescript
+   // Heap-Speicher (max. 150MB)
+   this.memory.checkHeap('memory_heap', 150 * 1024 * 1024)
+   // RSS-Speicher (max. 150MB)
+   this.memory.checkRSS('memory_rss', 150 * 1024 * 1024)
+   ```
+
+3. **Speicherplatz**
+   ```typescript
+   // Mindestens 10% freier Speicherplatz
+   this.disk.checkStorage('storage', {
+     thresholdPercent: 0.9,
+     path: '/',
+   })
+   ```
+
+## Docker Integration
+
+```yaml
+healthcheck:
+  test: ["CMD", "wget", "--spider", "-q", "http://localhost:3000/api/health"]
+  interval: 30s
+  timeout: 10s
+  retries: 3
+  start_period: 40s
+```
+
+## Response Format
+
+```typescript
+interface HealthCheckResponse {
+  status: 'up' | 'down';
+  info: {
+    [key: string]: {
+      status: 'up' | 'down';
+    };
+  };
+  error?: {
+    [key: string]: {
+      status: 'up' | 'down';
+      message?: string;
+    };
+  };
+  details: {
+    [key: string]: {
+      status: 'up' | 'down';
+    };
+  };
+}
+```
+
+## Test-Abdeckung
+
+1. **Erfolgsfall**: Alle Services sind verfügbar
+2. **Fehlerfälle**:
+   - Datenbank nicht erreichbar
+   - Arbeitsspeicher-Limit überschritten
+   - Speicherplatz unter Schwellenwert
+
+## Best Practices
+
+1. **Fehlerbehandlung**:
+   - Klare Fehlermeldungen im `error`-Objekt
+   - Status 'down' nur bei kritischen Fehlern
+
+2. **Performance**:
+   - Kurze Timeout-Zeiten (10s)
+   - Parallele Ausführung der Checks
+
+3. **Monitoring**:
+   - Regelmäßige Überprüfung (30s Intervall)
+   - Automatischer Neustart bei Fehlern
+
+## Module-Integration
+
+```typescript
+@Module({
+  imports: [TerminusModule],
+  controllers: [HealthController],
+})
+export class HealthModule {}
+```
+
+```typescript
+@Module({
+  imports: [
+    // ... andere Module
+    HealthModule,
+  ],
+})
+export class AppModule {}
+```
