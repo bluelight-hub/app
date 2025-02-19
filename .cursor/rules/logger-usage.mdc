@@ -1,0 +1,62 @@
+---
+description: Definiert Standards für die Verwendung des Loggers in der Anwendung.
+globs: *
+---
+Logger-Standards für die Anwendung:
+
+1. Alle Log-Aufrufe müssen über den `logger` erfolgen
+   - Kein direkter Zugriff auf `console.*` Methoden
+   - Import des Loggers aus den entsprechenden Utilities
+   - Verwendung der korrekten Log-Level
+
+2. Frontend-Logging:
+   ```typescript
+   import { logger } from '@/utils/logger';
+   
+   logger.info('Eine Info-Nachricht');
+   logger.error('Ein Fehler ist aufgetreten', error);
+   logger.warn('Eine Warnung');
+   logger.debug('Debug-Information');
+   ```
+
+3. Backend-Logging:
+   - Via Dependency Injection (bevorzugt):
+     ```typescript
+     @Injectable()
+     export class YourService {
+       constructor(@Inject('Logger') private logger: LoggerService) {}
+       
+       method() {
+         this.logger.log('Eine Nachricht');
+         this.logger.error('Ein Fehler');
+       }
+     }
+     ```
+   - Via direktem Import:
+     ```typescript
+     import { logger } from '@/logger/consola.logger';
+     
+     logger.info('Eine Info-Nachricht');
+     logger.error('Ein Fehler ist aufgetreten');
+     ```
+
+4. Log-Level Verwendung:
+   - `error`: Kritische Fehler, die das System beeinträchtigen
+   - `warn`: Warnungen, die beachtet werden sollten
+   - `info`: Wichtige Informationen zum Systemzustand
+   - `debug`: Detaillierte Debug-Informationen (nur Development)
+   - `trace`: Sehr detaillierte Ablaufverfolgung (nur Development)
+
+5. Log-Level Konfiguration:
+   - Produktion: Level 3 (info und höher)
+   - Entwicklung: Level 4-5 (debug/trace)
+   - Konfiguration erfolgt automatisch basierend auf der Umgebung
+
+Beispiel-Response eines Log-Aufrufs:
+```bash
+[12:34:56] INFO  Eine Info-Nachricht
+[12:34:57] ERROR Ein Fehler ist aufgetreten
+  Error: Details zum Fehler
+    at YourService.method (your-service.ts:42:12)
+[12:34:58] WARN  Eine Warnung
+```

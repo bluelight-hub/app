@@ -1,5 +1,6 @@
 import { create, StateCreator } from 'zustand';
 import { devtools } from 'zustand/middleware';
+import { logger } from '../utils/logger';
 
 export interface WorkspaceTab {
     id: string;
@@ -40,7 +41,7 @@ export const useWorkspaceStore = create<WorkspaceState>()(
                     type,
                     active: true,
                 };
-
+                logger.debug('creating new tab', newTab);
                 return {
                     tabs: [...state.tabs.map(tab => ({ ...tab, active: false })), newTab],
                     activeTabId: newTab.id,

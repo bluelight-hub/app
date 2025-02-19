@@ -3,6 +3,7 @@ import { ConfigModule } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { join } from 'path';
 import { HealthModule } from './health/health.module';
+import { ConsolaLogger } from './logger/consola.logger';
 
 @Module({
     imports: [
@@ -19,10 +20,13 @@ import { HealthModule } from './health/health.module';
             autoLoadEntities: true,
         }),
         HealthModule,
-        // TypeORM configuration will be added later
-        // Import other modules here
     ],
     controllers: [],
-    providers: [],
+    providers: [
+        {
+            provide: 'Logger',
+            useClass: ConsolaLogger,
+        },
+    ],
 })
 export class AppModule { } 

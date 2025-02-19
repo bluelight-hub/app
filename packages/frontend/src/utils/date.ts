@@ -1,6 +1,7 @@
 import dayjs, { Dayjs } from 'dayjs';
 import 'dayjs/locale/de';
 import customParseFormat from 'dayjs/plugin/customParseFormat';
+import { logger } from './logger';
 
 // Konfiguriere dayjs
 dayjs.extend(customParseFormat);
@@ -41,7 +42,7 @@ export function formatNatoDateTime(
 
         return date.format(DATE_FORMATS[formatType]);
     } catch (error) {
-        console.error('Fehler beim Formatieren des Datums:', error);
+        logger.warn('Fehler beim Formatieren des Datums:', error);
         return undefined;
     }
 }
@@ -79,7 +80,7 @@ export function parseNatoDateTime(input: string | undefined): Dayjs {
 
         throw new Error('Datum konnte nicht geparst werden');
     } catch (error) {
-        console.error('Fehler beim Parsen des Datums:', error);
+        logger.warn('Fehler beim Parsen des Datums:', error);
         throw new Error(`Ungültiges Datumsformat: ${input}`);
     }
 }

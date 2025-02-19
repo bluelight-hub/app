@@ -1,6 +1,6 @@
 ---
 description: Richtlinien zum Styling von React-Komponenten mit Ant Design und Tailwind CSS
-globs: ["packages/frontend/src/**/*.{tsx,css}"]
+globs: packages/frontend/src/**/*.{tsx,css}
 ---
 <rule>
   name: frontend_styling

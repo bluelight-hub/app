@@ -1,6 +1,6 @@
 ---
 description: Anleitung zur Verwaltung von ToDos für zukünftige Verbesserungen oder Fehlerbehebungen
-globs: ["**/todos-for-later.mdc"]
+globs: 
 ---
 <rule>
   name: todos_for_later

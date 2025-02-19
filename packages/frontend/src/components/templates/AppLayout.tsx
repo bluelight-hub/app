@@ -1,6 +1,6 @@
 import { PicnicTable, Plus, Trash, X } from "@phosphor-icons/react";
 import type { MenuProps } from 'antd';
-import { Breadcrumb, Button, Dropdown, Empty, Input, Layout, Menu, theme } from 'antd';
+import { Breadcrumb, Button, Dropdown, Empty, Input, Layout, Menu, theme, Tooltip } from 'antd';
 import React, { useState } from 'react';
 import mobileLogo from "../../assets/brandbook/mobile-logo.png";
 import mobileLogoWhite from "../../assets/brandbook/mobile-white.png";
@@ -129,12 +129,15 @@ const AppLayout: React.FC = () => {
                         )}
                     </div>
                 ))}
-                <Dropdown menu={{ items: tabItems, onClick: handleNewTab }} placement="bottomLeft">
-                    <Button
-                        type="text"
+                {/* TODO: Implementierung noch nicht ganz klar: Kommt vielleicht. */}
+                <Tooltip title="Implementierung noch nicht ganz klar: Kommt vielleicht.">
+                    <Dropdown disabled menu={{ items: tabItems, onClick: handleNewTab }} placement="bottomLeft">
+                        <Button
+                            type="text"
                         icon={<Plus weight="bold" />}
-                    />
-                </Dropdown>
+                        />
+                    </Dropdown>
+                </Tooltip>
             </Header>
             <Layout>
                 <Sider width={200} style={{ background: colorBgContainer }}>

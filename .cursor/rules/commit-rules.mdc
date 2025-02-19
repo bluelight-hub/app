@@ -1,6 +1,6 @@
 ---
 description: Generierung von präzisen Commit-Messages basierend auf Änderungen
-globs: ["*"]
+globs: *
 ---
 <rule>
   name: commit_rules

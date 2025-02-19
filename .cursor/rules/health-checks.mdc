@@ -1,6 +1,6 @@
- ---
+---
 description: Regeln für Health-Checks des Systems
-globs: ["**/health-checks.*"]
+globs: 
 ---
 # Health-Check Standards
 

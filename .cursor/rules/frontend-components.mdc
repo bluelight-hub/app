@@ -1,6 +1,6 @@
 ---
 description: Regeln zur Organisation und Entwicklung von React-Komponenten (Atomic Design)
-globs: ["packages/frontend/src/components/**/*.tsx"]
+globs: packages/frontend/src/components/**/*.tsx
 ---
 <rule>
   name: frontend_components

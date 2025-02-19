@@ -1,6 +1,6 @@
 ---
 description: Richtlinien zur Organisation von Routen in einer Vite React Anwendung
-globs: ["packages/frontend/src/routes/**/*.{tsx,jsx}"]
+globs: packages/frontend/src/routes/**/*.{tsx,jsx}
 ---
 <rule>
   name: frontend_routing

@@ -1,6 +1,6 @@
 ---
 description: Richtlinien für das Management des Application State mit Zustand
-globs: ["packages/frontend/src/stores/**/*.ts"]
+globs: packages/frontend/src/stores/**/*.ts
 ---
 <rule>
   name: frontend_state

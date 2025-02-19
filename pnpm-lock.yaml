@@ -7,6 +7,10 @@ settings:
 importers:
 
   .:
+    dependencies:
+      consola:
+        specifier: ^3.4.0
+        version: 3.4.0
     devDependencies:
       '@semantic-release/changelog':
         specifier: ^6.0.3
