@@ -1,5 +1,5 @@
 ---
-description: Richtlinien zur Organisation von Routen in einer Vite React Anwendung
+description: 
 globs: packages/frontend/src/routes/**/*.{tsx,jsx}
 ---
 <rule>
@@ -38,7 +38,52 @@ globs: packages/frontend/src/routes/**/*.{tsx,jsx}
            - Konstanten für Routenpfade nutzen.
            - Komplexe Logik mit Kommentaren dokumentieren.
 
-        **Beispiel:**
+        6. **Navigation:**
+           - Navigationsstruktur in `src/config/navigation.ts` definieren
+           - Typisierte Interfaces für Navigationsitems verwenden
+           - Icons und Labels in der Konfiguration definieren
+           - Aktive Route durch Vergleich mit aktuellem Pfad markieren
+           - Verschachtelte Navigation für komplexe Menüstrukturen unterstützen
+
+        7. **Navigationstypen:**
+           - Hauptnavigation (Sidebar)
+           - Unternavigation (Tabs, Breadcrumbs)
+           - Mobile Navigation (Burger-Menü)
+           - Kontextnavigation (Dropdown-Menüs)
+
+        **Beispiel Navigation:**
+        ```tsx
+        // config/navigation.ts
+        import { IconType } from 'react-icons';
+        import { PiHouse, PiMapPinLine, PiDrone } from 'react-icons/pi';
+
+        export interface NavigationItem {
+          path: string;
+          label: string;
+          icon?: IconType;
+          children?: NavigationItem[];
+        }
+
+        export const mainNavigation: NavigationItem[] = [
+          {
+            path: '/',
+            label: 'Dashboard',
+            icon: PiHouse,
+          },
+          {
+            path: '/map',
+            label: 'Lageplan',
+            icon: PiMapPinLine,
+          },
+          {
+            path: '/uav',
+            label: 'UAV',
+            icon: PiDrone,
+          },
+        ];
+        ```
+
+        **Beispiel Router:**
         ```tsx
         // router/index.tsx
         import { Routes, Route } from 'react-router-dom';
