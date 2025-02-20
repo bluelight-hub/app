@@ -1,3 +1,18 @@
+## Version [v1.0.0-alpha.2](https://github.com/bluelight-hub/app/compare/v1.0.0-alpha.1...v1.0.0-alpha.2) – Veröffentlicht am 2025-02-20
+
+## ♻ Refactoring
+Struktur- oder Code-Verbesserungen:
+- [`3156258`](https://github.com/bluelight-hub/app/commit/3156258) (frontend): Überarbeitung des App Layouts und Navigation 
+
+
+
+# [1.0.0-alpha.2](https://github.com/bluelight-hub/app/compare/v1.0.0-alpha.1...v1.0.0-alpha.2) (2025-02-20)
+
+
+### Features
+
+* implement logger and update cursor rules ([9f1d576](https://github.com/bluelight-hub/app/commit/9f1d5763c450a24e742a9c24fd73dae94a0b453b))
+
 ## Version v1.0.0-alpha.1 – Veröffentlicht am 2025-02-17
 
 ## ✨ Neue Funktionen
