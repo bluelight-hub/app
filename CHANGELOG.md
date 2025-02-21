@@ -1,3 +1,13 @@
+## Version [v1.0.0-alpha.3](https://github.com/bluelight-hub/app/compare/v1.0.0-alpha.2...v1.0.0-alpha.3) – Veröffentlicht am 2025-02-21
+
+## ♻ Refactoring
+Struktur- oder Code-Verbesserungen:
+- [`d59bfc8`](https://github.com/bluelight-hub/app/commit/d59bfc8) (frontend): Vereinfache Theme-Handling und erweitere Navigation\n\n- Vereinfache Theme-Handling in der Sidebar durch direkte Nutzung des theme-Props\n- Füge neue Navigationspunkte hinzu (Checklisten, Wecker, MANV, Kommunikation)\n- Verbessere Bezeichnungen in der Navigation für bessere Konsistenz 
+
+
+
+# [1.0.0-alpha.3](https://github.com/bluelight-hub/app/compare/v1.0.0-alpha.2...v1.0.0-alpha.3) (2025-02-21)
+
 ## Version [v1.0.0-alpha.2](https://github.com/bluelight-hub/app/compare/v1.0.0-alpha.1...v1.0.0-alpha.2) – Veröffentlicht am 2025-02-20
 
 ## ♻ Refactoring
