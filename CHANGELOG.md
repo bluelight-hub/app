@@ -1,3 +1,13 @@
+## Version [v1.0.0-alpha.6](https://github.com/bluelight-hub/app/compare/v1.0.0-alpha.5...v1.0.0-alpha.6) – Veröffentlicht am 2025-02-21
+
+## ♻ Refactoring
+Struktur- oder Code-Verbesserungen:
+- [`85371dd`](https://github.com/bluelight-hub/app/commit/85371dd) (frontend): Refactor sidebar and einsatztagebuch components 
+
+
+
+# [1.0.0-alpha.6](https://github.com/bluelight-hub/app/compare/v1.0.0-alpha.5...v1.0.0-alpha.6) (2025-02-21)
+
 ## Version [v1.0.0-alpha.5](https://github.com/bluelight-hub/app/compare/v1.0.0-alpha.4...v1.0.0-alpha.5) – Veröffentlicht am 2025-02-21
 
 ## ✨ Neue Funktionen
