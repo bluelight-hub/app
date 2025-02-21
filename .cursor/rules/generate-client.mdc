@@ -1,6 +1,6 @@
 ---
 description: Anleitung zur Aktualisierung von Backend-API Code und DTOs im Frontendf
-globs: shared/**/*
+globs: 
 ---
 <rule>
   name: generate_client

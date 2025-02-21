@@ -33,7 +33,7 @@ const AppLayout: React.FC<{ children?: React.ReactNode }> = () => {
     const title = findRouteTitle(location.pathname);
 
     return (
-        <div className="min-h-screen bg-white dark:bg-gray-900">
+        <div className="min-h-screen bg-white dark:bg-gray-900 text-black dark:text-white">
             {/* Mobile Sidebar */}
             <Sidebar
                 isOpen={isMobileMenuOpen}

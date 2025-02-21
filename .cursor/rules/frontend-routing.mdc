@@ -1,6 +1,6 @@
 ---
-description: 
-globs: packages/frontend/src/routes/**/*.{tsx,jsx}
+description: Informationen zum Routing. Wichtig für neue Pages oder bei Änderungen von Pages oder beim Anlegen von neuen Routen
+globs: 
 ---
 <rule>
   name: frontend_routing

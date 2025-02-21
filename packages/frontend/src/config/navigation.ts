@@ -1,9 +1,11 @@
 import { IconType } from 'react-icons';
 import {
     PiAmbulance,
+    PiBell,
     PiBookOpen,
     PiChartPie,
     PiChecks,
+    PiCheckSquareBold,
     PiClipboardBold,
     PiClipboardText,
     PiClock,
@@ -81,13 +83,15 @@ export const mainNavigation: NavigationItem[] = [
                 type: 'item',
                 key: '/app/checklisten',
                 path: '/app/checklisten',
-                label: 'Checklisten'
+                label: 'Checklisten',
+                icon: PiCheckSquareBold,
             },
             {
                 type: 'item',
                 key: '/app/reminders',
                 path: '/app/reminders',
-                label: 'Wecker & Erinnerungen'
+                label: 'Wecker & Erinnerungen',
+                icon: PiBell,
             },
             {
                 type: 'submenu',

@@ -1,6 +1,6 @@
 ---
 description: Definiert Standards für die Verwendung des Loggers in der Anwendung.
-globs: *
+globs: 
 ---
 Logger-Standards für die Anwendung:
 

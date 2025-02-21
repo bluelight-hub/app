@@ -1,9 +1,10 @@
-import { Button, Divider, Menu, MenuProps } from 'antd';
+import { Button, Menu, MenuProps } from 'antd';
 import React from 'react';
 import { PiTextOutdent } from 'react-icons/pi';
 import { useNavigate } from 'react-router';
 import { NavigationItem, workspaces } from '../../config/navigation';
 import { useThemeInternal } from '../../hooks/useTheme';
+import Divider from '../atoms/Divider';
 import Logo from '../atoms/Logo';
 import UserProfile from '../atoms/UserProfile';
 
@@ -97,6 +98,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose, isMobile = false, na
                 <Logo className="h-8 w-auto" />
                 <span className="text-xl font-semibold text-gray-900 dark:text-white">Bluelight Hub</span>
             </div>
+            <Divider className="-mt-3 mb-3" />
             <nav className="flex flex-1 flex-col">
                 <div className="h-[calc(100vh-9.5rem)] overflow-y-auto">
                     <Menu

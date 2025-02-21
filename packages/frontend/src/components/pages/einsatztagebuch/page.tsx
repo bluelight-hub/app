@@ -1,10 +1,9 @@
 import React from 'react';
+import { EinsatztagebuchComponent } from '../../organisms/EinsatztagebuchComponent';
 
 export const EinsatztagebuchPage: React.FC = () => {
   return (
-    <div>
-      <h1>Einsatztagebuch</h1>
-    </div>
+    <EinsatztagebuchComponent />
   );
 };
 

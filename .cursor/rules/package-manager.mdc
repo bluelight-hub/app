@@ -1,6 +1,6 @@
 ---
-description: Regeln zur Verwendung des Package Managers pnpm
-globs: **/package.json
+description: Regeln zur Verwendung des Package Managers, installieren von dependencies etc.
+globs: 
 ---
 <rule>
   name: package_manager

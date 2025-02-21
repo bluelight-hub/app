@@ -1,6 +1,6 @@
 ---
 description: Regeln zur korrekten Platzierung von Cursor Rule Dateien
-globs: *.mdc
+globs: 
 ---
 <rule>
   name: rules_location
