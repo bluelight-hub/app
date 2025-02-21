@@ -57,7 +57,7 @@ const { Text } = Typography;
 
 const DashboardContent = () => {
     return (
-        <div className="p-4 min-h-screen bg-gray-50">
+        <div className="p-4 min-h-screen">
             <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
                 {/* Kachel 1: Einsatzabschnitte */}
                 <div className="grid gap-4">
