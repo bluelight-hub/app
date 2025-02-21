@@ -5,10 +5,10 @@ import { Link, NavLink } from "react-router";
  */
 const AppIndexPage: React.FC = () => {
     return (
-        <div>
+        <div className="flex flex-col gap-4">
             Index
-            <NavLink to="test">Test</NavLink>
-            <Link to="/test">AppTest</Link>
+            <NavLink to="einsatztagebuch">Einsatztagebuch</NavLink>
+            <Link to="einsatztagebuch">AppTest</Link>
         </div>
     );
 };

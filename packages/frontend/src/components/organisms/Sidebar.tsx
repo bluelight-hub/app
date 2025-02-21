@@ -1,7 +1,8 @@
 import { Button, Divider, Menu, MenuProps } from 'antd';
 import React from 'react';
 import { PiTextOutdent } from 'react-icons/pi';
-import { NavigationItem, mainNavigation, workspaces } from '../../config/navigation';
+import { useNavigate } from 'react-router';
+import { NavigationItem, workspaces } from '../../config/navigation';
 import { useThemeInternal } from '../../hooks/useTheme';
 import Logo from '../atoms/Logo';
 import UserProfile from '../atoms/UserProfile';
@@ -10,6 +11,7 @@ interface SidebarProps {
     isOpen?: boolean;
     onClose?: () => void;
     isMobile?: boolean;
+    navigation: NavigationItem[];
 }
 
 type MenuItem = Required<MenuProps>['items'][number];
@@ -76,15 +78,18 @@ const convertNavigationToMenuItems = (items: NavigationItem[]): MenuItem[] => {
 /**
  * Main sidebar component containing navigation and user profile
  */
-const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose, isMobile = false }) => {
+const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose, isMobile = false, navigation }) => {
+    const navigate = useNavigate();
+
     const handleMenuClick: MenuProps['onClick'] = (info) => {
-        // Hier später die Navigation implementieren
-        console.log('Menu clicked:', info);
+        navigate(info.key);
+        if (isMobile && onClose) {
+            onClose();
+        }
     };
 
     // Prüfen ob Dark Mode aktiv ist
     const themeUtils = useThemeInternal();
-
 
     const sidebarContent = (
         <div className="flex h-screen flex-col gap-y-5 border-r border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900">
@@ -94,19 +99,21 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose, isMobile = false }) 
             </div>
             <nav className="flex flex-1 flex-col">
                 <div className="h-[calc(100vh-9.5rem)] overflow-y-auto">
-                    <Menu theme={themeUtils.isDark ? 'dark' : 'light'}
-                            mode="inline"
-                            defaultSelectedKeys={['/app/einsatztagebuch']}
-                            onClick={handleMenuClick}
-                            items={convertNavigationToMenuItems(mainNavigation)}
-                            className="border-none bg-transparent"
-                        />
-                        <Divider />
-                    <Menu theme={themeUtils.isDark ? 'dark' : 'light'}
-                            mode="inline"
-                            defaultSelectedKeys={['#']}
-                            onClick={handleMenuClick}
-                            items={convertNavigationToMenuItems(workspaces)}
+                    <Menu
+                        theme={themeUtils.isDark ? 'dark' : 'light'}
+                        mode="inline"
+                        defaultSelectedKeys={['/app/einsatztagebuch']}
+                        onClick={handleMenuClick}
+                        items={convertNavigationToMenuItems(navigation)}
+                        className="border-none bg-transparent"
+                    />
+                    <Divider />
+                    <Menu
+                        theme={themeUtils.isDark ? 'dark' : 'light'}
+                        mode="inline"
+                        defaultSelectedKeys={['#']}
+                        onClick={handleMenuClick}
+                        items={convertNavigationToMenuItems(workspaces)}
                         className="border-none bg-transparent"
                     />
                 </div>
