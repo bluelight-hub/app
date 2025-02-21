@@ -1,3 +1,13 @@
+## Version [v1.0.0-alpha.5](https://github.com/bluelight-hub/app/compare/v1.0.0-alpha.4...v1.0.0-alpha.5) – Veröffentlicht am 2025-02-21
+
+## ✨ Neue Funktionen
+Die folgenden neuen Features wurden hinzugefügt:
+- [`e2052a6`](https://github.com/bluelight-hub/app/commit/e2052a6) (frontend): Implementiere neues Dashboard mit Mock-Daten 
+
+
+
+# [1.0.0-alpha.5](https://github.com/bluelight-hub/app/compare/v1.0.0-alpha.4...v1.0.0-alpha.5) (2025-02-21)
+
 ## Version [v1.0.0-alpha.4](https://github.com/bluelight-hub/app/compare/v1.0.0-alpha.3...v1.0.0-alpha.4) – Veröffentlicht am 2025-02-21
 
 ## ✨ Neue Funktionen
