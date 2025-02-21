@@ -1,3 +1,13 @@
+## Version [v1.0.0-alpha.4](https://github.com/bluelight-hub/app/compare/v1.0.0-alpha.3...v1.0.0-alpha.4) – Veröffentlicht am 2025-02-21
+
+## ✨ Neue Funktionen
+Die folgenden neuen Features wurden hinzugefügt:
+- [`a12efe2`](https://github.com/bluelight-hub/app/commit/a12efe2) (frontend): Implementiere Routing und Pages 
+
+
+
+# [1.0.0-alpha.4](https://github.com/bluelight-hub/app/compare/v1.0.0-alpha.3...v1.0.0-alpha.4) (2025-02-21)
+
 ## Version [v1.0.0-alpha.3](https://github.com/bluelight-hub/app/compare/v1.0.0-alpha.2...v1.0.0-alpha.3) – Veröffentlicht am 2025-02-21
 
 ## ♻ Refactoring
