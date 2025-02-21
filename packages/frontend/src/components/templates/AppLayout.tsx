@@ -27,7 +27,7 @@ const findRouteTitle = (pathname: string): string => {
 /**
  * AppLayout template - Defines the main layout structure for the app section
  */
-const AppLayout: React.FC<{ children?: React.ReactNode }> = ({ }) => {
+const AppLayout: React.FC<{ children?: React.ReactNode }> = () => {
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
     const location = useLocation();
     const title = findRouteTitle(location.pathname);

@@ -2,7 +2,7 @@ import { Route, Routes } from "react-router";
 import NeuPage from "../components/pages/anforderungen/neu/page";
 import AnforderungenPage from "../components/pages/anforderungen/page";
 import VerlaufPage from "../components/pages/anforderungen/verlauf/page";
-import AppIndexPage from "../components/pages/AppIndexPage";
+import AppIndexPage from "../components/pages/dashboard/page";
 import AufnehmenPage from "../components/pages/betroffene/aufnehmen/page";
 import ManvPage from "../components/pages/betroffene/manv/page";
 import BetroffenePage from "../components/pages/betroffene/page";
