@@ -1,4 +1,4 @@
-import { Button, ConfigProvider, Divider, Menu, MenuProps, theme } from 'antd';
+import { Button, Divider, Menu, MenuProps } from 'antd';
 import React from 'react';
 import { PiTextOutdent } from 'react-icons/pi';
 import { NavigationItem, mainNavigation, workspaces } from '../../config/navigation';
@@ -85,10 +85,6 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose, isMobile = false }) 
     // Prüfen ob Dark Mode aktiv ist
     const themeUtils = useThemeInternal();
 
-    const menuTheme = {
-        algorithm: themeUtils.isDark ? theme.darkAlgorithm : theme.defaultAlgorithm,
-        
-    };
 
     const sidebarContent = (
         <div className="flex h-screen flex-col gap-y-5 border-r border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900">
@@ -98,8 +94,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose, isMobile = false }) 
             </div>
             <nav className="flex flex-1 flex-col">
                 <div className="h-[calc(100vh-9.5rem)] overflow-y-auto">
-                    <ConfigProvider theme={menuTheme}>
-                        <Menu
+                    <Menu theme={themeUtils.isDark ? 'dark' : 'light'}
                             mode="inline"
                             defaultSelectedKeys={['/app/einsatztagebuch']}
                             onClick={handleMenuClick}
@@ -107,15 +102,13 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose, isMobile = false }) 
                             className="border-none bg-transparent"
                         />
                         <Divider />
-                        <Menu
+                    <Menu theme={themeUtils.isDark ? 'dark' : 'light'}
                             mode="inline"
                             defaultSelectedKeys={['#']}
                             onClick={handleMenuClick}
                             items={convertNavigationToMenuItems(workspaces)}
-                            className="border-none bg-transparent"
-                            theme="light"
-                        />
-                    </ConfigProvider>
+                        className="border-none bg-transparent"
+                    />
                 </div>
                 <div className="mt-auto w-full shrink-0 overflow-hidden">
                     <UserProfile href="#" />

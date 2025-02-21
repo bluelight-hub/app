@@ -1,6 +1,7 @@
 import { IconType } from 'react-icons';
 import {
     PiAmbulance,
+    PiBookOpen,
     PiChartPie,
     PiChecks,
     PiClipboardBold,
@@ -13,6 +14,7 @@ import {
     PiGauge,
     PiGaugeBold,
     PiInfo,
+    PiList,
     PiMapPinLineBold,
     PiMapTrifold,
     PiNavigationArrowBold,
@@ -76,6 +78,18 @@ export const mainNavigation: NavigationItem[] = [
                 icon: PiNotebook,
             },
             {
+                type: 'item',
+                key: '/app/checklisten',
+                path: '#',
+                label: 'Checklisten'
+            },
+            {
+                type: 'item',
+                key: '/app/reminders',
+                path: '#',
+                label: 'Wecker & Erinnerungen'
+            },
+            {
                 type: 'submenu',
                 key: 'kräfte',
                 label: 'Kräfte',
@@ -85,7 +99,7 @@ export const mainNavigation: NavigationItem[] = [
                         type: 'item',
                         key: '/app/kräfte',
                         path: '#',
-                        label: 'Kräfte Übersicht',
+                        label: 'Kräfteübersicht',
                         icon: PiSquaresFour,
                     },
                     {
@@ -121,7 +135,7 @@ export const mainNavigation: NavigationItem[] = [
                         type: 'item',
                         key: '/app/betroffene',
                         path: '#',
-                        label: 'Betroffene Übersicht',
+                        label: 'Betroffenenübersicht',
                         icon: PiSquaresFour,
                     },
                     {
@@ -138,6 +152,13 @@ export const mainNavigation: NavigationItem[] = [
                         label: 'Verwalten',
                         icon: PiUsers,
                     },
+                    {
+                        type: 'item',
+                        key: '/app/betroffene/manv',
+                        path: '#',
+                        label: 'MANV',
+                        icon: PiAmbulance,
+                    },
                 ],
             },
             {
@@ -150,7 +171,7 @@ export const mainNavigation: NavigationItem[] = [
                         type: 'item',
                         key: '/app/anforderungen',
                         path: '#',
-                        label: 'Anforderungen Übersicht',
+                        label: 'Anforderungsübersicht',
                         icon: PiSquaresFour,
                     },
                     {
@@ -186,7 +207,7 @@ export const mainNavigation: NavigationItem[] = [
                         type: 'item',
                         key: '/app/lagekarte',
                         path: '#',
-                        label: 'Lagekarte Übersicht',
+                        label: 'Übersicht Lagekarte',
                         icon: PiSquaresFour,
                     },
                     {
@@ -280,6 +301,34 @@ export const mainNavigation: NavigationItem[] = [
     },
     {
         type: 'group',
+        key: 'kommunikation-funk',
+        label: 'Kommunikation & Funk',
+        children: [
+            {
+                type: 'item',
+                key: '/app/kanalliste',
+                path: '#',
+                label: 'Kanallisten',
+                icon: PiList
+            },
+            {
+                type: 'item',
+                key: '/app/kommunikationsverzeichnis',
+                path: '#',
+                label: 'Kommunikationsverzeichnis',
+                icon: PiBookOpen
+            },
+            {
+                type: 'item',
+                key: '/app/fms',
+                path: '#',
+                label: 'FMS',
+                icon: PiGaugeBold
+            }
+        ]
+    },
+    {
+        type: 'group',
         key: 'einsatzinformationen',
         label: 'Einsatzinformationen',
         children: [
@@ -307,7 +356,7 @@ export const mainNavigation: NavigationItem[] = [
                         type: 'item',
                         key: '/app/schaden',
                         path: '#',
-                        label: 'Schäden Übersicht',
+                        label: 'Schadensübersicht',
                         icon: PiSquaresFour,
                     },
                     {
@@ -339,7 +388,7 @@ export const mainNavigation: NavigationItem[] = [
         type: 'item',
         key: '/app/notizen',
         path: '#',
-        label: 'Notizen & Erinnerungen',
+        label: 'Notizen',
         icon: PiChecks,
     },
 ];
