@@ -1,3 +1,13 @@
+## Version [v1.0.0-alpha.7](https://github.com/bluelight-hub/app/compare/v1.0.0-alpha.6...v1.0.0-alpha.7) – Veröffentlicht am 2025-02-22
+
+## ✨ Neue Funktionen
+Die folgenden neuen Features wurden hinzugefügt:
+- [`a44a8f8`](https://github.com/bluelight-hub/app/commit/a44a8f8) (test): Implementiere Vitest Setup mit Testing Library 
+
+
+
+# [1.0.0-alpha.7](https://github.com/bluelight-hub/app/compare/v1.0.0-alpha.6...v1.0.0-alpha.7) (2025-02-22)
+
 ## Version [v1.0.0-alpha.6](https://github.com/bluelight-hub/app/compare/v1.0.0-alpha.5...v1.0.0-alpha.6) – Veröffentlicht am 2025-02-21
 
 ## ♻ Refactoring
