@@ -1,3 +1,17 @@
+## Version [v1.0.0-alpha.8](https://github.com/bluelight-hub/app/compare/v1.0.0-alpha.7...v1.0.0-alpha.8) – Veröffentlicht am 2025-02-22
+
+## ♻ Refactoring
+Struktur- oder Code-Verbesserungen:
+- [`c49a080`](https://github.com/bluelight-hub/app/commit/c49a080) (frontend): Restrukturierung der Dashboard-Komponenten und Commit-Rules 
+
+## 🔧 Tool Verbesserungen
+Verbesserungen an den Werkzeugen:
+- [`eeffd4e`](https://github.com/bluelight-hub/app/commit/eeffd4e) (config): Verbessere Commit-Message Handling 
+
+
+
+# [1.0.0-alpha.8](https://github.com/bluelight-hub/app/compare/v1.0.0-alpha.7...v1.0.0-alpha.8) (2025-02-22)
+
 ## Version [v1.0.0-alpha.7](https://github.com/bluelight-hub/app/compare/v1.0.0-alpha.6...v1.0.0-alpha.7) – Veröffentlicht am 2025-02-22
 
 ## ✨ Neue Funktionen
