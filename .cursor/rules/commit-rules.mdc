@@ -33,7 +33,7 @@ globs:
 
         ## Mehrzeilige Commit Messages
 
-        Für mehrzeilige Commit-Messages printf verwenden:
+        Für mehrzeilige Commit-Messages printf verwenden und immer die Datei `commit-message.txt` nutzen:
 
         ```bash
         # Erstelle temporäre Datei mit der Commit Message
@@ -41,13 +41,15 @@ globs:
           "✨(frontend): Neue Feature Implementierung" \
           "- Punkt 1" \
           "- Punkt 2" \
-          "- Punkt 3" > commit_msg
+          "- Punkt 3" > commit-message.txt
 
         # Commit mit der Datei
         git add .
-        git commit -F commit_msg
-        rm commit_msg
+        git commit -F commit-message.txt
+        rm commit-message.txt
         ```
+
+        WICHTIG: Die Datei `commit-message.txt` muss nach jedem Commit gelöscht werden und sollte in der `.gitignore` stehen.
 
         ## Emoji & Versioning
 

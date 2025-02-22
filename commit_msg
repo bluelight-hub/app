@@ -1,6 +1,0 @@
-♻️(frontend): Restrukturierung der Dashboard-Komponenten und Commit-Rules
-
-- Verschiebe Mock-Komponenten in eigenen Ordner
-- Füge DnD-Kit Abhängigkeiten für Drag & Drop Funktionalität hinzu
-- Aktualisiere Dashboard und Checklisten Pages
-- Verbessere Commit-Rules Format und füge git --no-pager diff Hinweis hinzu
