@@ -1,7 +1,7 @@
 import { Button, Menu, MenuProps } from 'antd';
 import React from 'react';
 import { PiTextOutdent } from 'react-icons/pi';
-import { useNavigate } from 'react-router';
+import { useLocation, useNavigate } from 'react-router';
 import { NavigationItem, workspaces } from '../../config/navigation';
 import { useThemeInternal } from '../../hooks/useTheme';
 import Divider from '../atoms/Divider';
@@ -81,6 +81,7 @@ const convertNavigationToMenuItems = (items: NavigationItem[]): MenuItem[] => {
  */
 const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose, isMobile = false, navigation }) => {
     const navigate = useNavigate();
+    const location = useLocation();
 
     const handleMenuClick: MenuProps['onClick'] = (info) => {
         navigate(info.key);
@@ -104,7 +105,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose, isMobile = false, na
                     <Menu
                         theme={themeUtils.isDark ? 'dark' : 'light'}
                         mode="inline"
-                        defaultSelectedKeys={['/app/einsatztagebuch']}
+                        selectedKeys={[location.pathname]}
                         onClick={handleMenuClick}
                         items={convertNavigationToMenuItems(navigation)}
                         className="border-none bg-transparent"
@@ -113,7 +114,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose, isMobile = false, na
                     <Menu
                         theme={themeUtils.isDark ? 'dark' : 'light'}
                         mode="inline"
-                        defaultSelectedKeys={['#']}
+                        selectedKeys={[location.pathname]}
                         onClick={handleMenuClick}
                         items={convertNavigationToMenuItems(workspaces)}
                         className="border-none bg-transparent"

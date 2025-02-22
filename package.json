@@ -5,7 +5,8 @@
     "scripts": {
         "dev": "pnpm -r dev",
         "build": "pnpm -r build",
-        "test": "pnpm -r test"
+        "test": "pnpm -r test",
+        "test:cov": "pnpm -r test:cov"
     },
     "workspaces": [
         "packages/*"

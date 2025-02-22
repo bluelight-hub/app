@@ -409,3 +409,25 @@ export const workspaces: NavigationItem[] = [
         ]
     },
 ];
+
+/**
+ * Findet den Titel für die aktuelle Route in der Navigation
+ * @param pathname Der aktuelle Pfad aus dem Router
+ * @returns Den gefundenen Titel oder 'Dashboard' als Fallback
+ */
+export const findRouteTitle = (pathname: string): string => {
+    const findInItems = (items: NavigationItem[]): string => {
+        for (const item of items) {
+            if (item.key === pathname) {
+                return item.label;
+            }
+            if ('children' in item && item.children) {
+                const found = findInItems(item.children);
+                if (found) return found;
+            }
+        }
+        return '';
+    };
+
+    return findInItems(mainNavigation) || 'Dashboard';
+};
