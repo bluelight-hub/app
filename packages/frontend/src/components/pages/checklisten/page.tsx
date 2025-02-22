@@ -1,10 +1,8 @@
 import React from 'react';
-
+import MockChecklisten from '../../organisms/mocks/MockChecklisten';
 export const ChecklistenPage: React.FC = () => {
   return (
-    <div>
-      <h1>Checklisten</h1>
-    </div>
+    <MockChecklisten />
   );
 };
 

@@ -11,7 +11,17 @@ globs:
   actions:
     - type: suggest
       message: |
-        **Commit Message Format:**
+        # Commit Message Standards
+
+        ## Änderungen analysieren
+
+        Verwende `git --no-pager diff` um die Änderungen ohne Pager anzuzeigen:
+        ```bash
+        git --no-pager diff  # Zeigt uncommittete Änderungen
+        git --no-pager diff --staged  # Zeigt bereits gestagete Änderungen
+        ```
+
+        ## Format
 
         ```
         <emoji>(<context>): <kurze, prägnante Nachricht>
@@ -21,28 +31,49 @@ globs:
         <optional: 💥 BREAKING CHANGE>
         ```
 
-        **Emoji & Versioning:**
-        - **Major (Breaking Changes):**
-          - 💥 Breaking Change
-          - 🎉 Initial Commit
-        - **Minor:**
-          - ✨ Neues Feature
-          - 🚀 Verbesserungen & Deployments
-        - **Patch:**
-          - 🐛 Bugfixes
-          - 🚑 Dringender Hotfix
-          - 🔒 Sicherheitsverbesserung
-          - 🧹 Code-Aufräumarbeiten
-          - ♻️ Refactoring
-          - 🔧 Tooling & Konfiguration
-          - 📦 Dependency Updates
-          - 📝 Dokumentation
-          - 💄 UI/UX Verbesserungen
-          - ⚡ Performance
-          - 🗑 Entfernte Features
-          - 🛠 Build/CI
+        ## Mehrzeilige Commit Messages
 
-        **Kontext (<context>):**
+        Für mehrzeilige Commit-Messages printf verwenden:
+
+        ```bash
+        # Erstelle temporäre Datei mit der Commit Message
+        printf "%s\n\n%s\n%s\n%s\n" \
+          "✨(frontend): Neue Feature Implementierung" \
+          "- Punkt 1" \
+          "- Punkt 2" \
+          "- Punkt 3" > commit_msg
+
+        # Commit mit der Datei
+        git add .
+        git commit -F commit_msg
+        rm commit_msg
+        ```
+
+        ## Emoji & Versioning
+
+        ### Major (Breaking Changes)
+        - 💥 Breaking Change
+        - 🎉 Initial Commit
+
+        ### Minor
+        - ✨ Neues Feature
+        - 🚀 Verbesserungen & Deployments
+
+        ### Patch
+        - 🐛 Bugfixes
+        - 🚑 Dringender Hotfix
+        - 🔒 Sicherheitsverbesserung
+        - 🧹 Code-Aufräumarbeiten
+        - ♻️ Refactoring
+        - 🔧 Tooling & Konfiguration
+        - 📦 Dependency Updates
+        - 📝 Dokumentation
+        - 💄 UI/UX Verbesserungen
+        - ⚡ Performance
+        - 🗑 Entfernte Features
+        - 🛠 Build/CI
+
+        ## Kontext (<context>)
         - `frontend`: Frontend-spezifische Änderungen
         - `backend`: Backend-spezifische Änderungen
         - `shared`: Änderungen in geteiltem Code
@@ -52,13 +83,14 @@ globs:
         - `test`: Test-bezogene Änderungen
         - `config`: Konfigurationsänderungen
 
-        **Commit-Analyse:**
-        - Geänderte Dateien identifizieren
-        - Art der Änderungen bestimmen
-        - Potenzielle Breaking Changes notieren
-        - Betroffenen Kontext identifizieren
+        ## Commit-Analyse
+        1. Geänderte Dateien identifizieren
+        2. Art der Änderungen bestimmen
+        3. Potenzielle Breaking Changes notieren
+        4. Betroffenen Kontext identifizieren
 
-        **Beispiele:**
+        ## Beispiele
+
         ```
         ✨(frontend): Neue Kartenfunktion für Einsatzplanung
 

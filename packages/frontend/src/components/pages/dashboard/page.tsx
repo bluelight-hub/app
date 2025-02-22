@@ -1,4 +1,4 @@
-import MockDashboard from "../../organisms/MockDashboard";
+import MockDashboard from "../../organisms/mocks/MockDashboard";
 
 /**
  * Dashboard - Main page for the app section
