@@ -1,10 +1,9 @@
 import React from 'react';
+import MockEinsatzdaten from '../../organisms/mocks/MockEinsatzdaten';
 
 export const EinsatzdatenPage: React.FC = () => {
   return (
-    <div>
-      <h1>Einsatzdaten</h1>
-    </div>
+    <MockEinsatzdaten />
   );
 };
 

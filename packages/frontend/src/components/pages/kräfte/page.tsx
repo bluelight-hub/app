@@ -1,10 +1,9 @@
 import React from 'react';
+import MockKraefteDashboard from '../../organisms/mocks/MockKraefteDashboard';
 
 export const KräftePage: React.FC = () => {
   return (
-    <div>
-      <h1>Kräfte</h1>
-    </div>
+    <MockKraefteDashboard />
   );
 };
 

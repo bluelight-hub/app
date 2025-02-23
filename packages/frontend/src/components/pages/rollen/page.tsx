@@ -1,10 +1,9 @@
 import React from 'react';
+import MockRollen from '../../organisms/mocks/MockRollen';
 
 export const RollenPage: React.FC = () => {
   return (
-    <div>
-      <h1>Rollen</h1>
-    </div>
+    <MockRollen />
   );
 };
 

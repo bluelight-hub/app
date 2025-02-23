@@ -52,6 +52,7 @@ const WorkspaceTab: React.FC<WorkspaceTabProps> = ({
                     onBlur={onTitleSubmit}
                     onClick={(e) => e.stopPropagation()}
                     autoFocus
+                    autoComplete="off" spellCheck="false"
                     className="w-32"
                     style={{
                         color: 'var(--primary-950)',

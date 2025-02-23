@@ -1,3 +1,4 @@
+import '@mdxeditor/editor/style.css';
 import { ThemeProvider } from "./providers/ThemeProvider";
 import { Router } from "./router";
 

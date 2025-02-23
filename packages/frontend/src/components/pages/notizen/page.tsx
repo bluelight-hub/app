@@ -1,10 +1,9 @@
 import React from 'react';
+import MockNotizen from '../../organisms/mocks/MockNotizen';
 
 export const NotizenPage: React.FC = () => {
   return (
-    <div>
-      <h1>Notizen</h1>
-    </div>
+    <MockNotizen />
   );
 };
 

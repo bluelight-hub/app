@@ -1,10 +1,8 @@
 import React from 'react';
-
+import MockFMS from '../../organisms/mocks/MockFMS';
 export const FmsPage: React.FC = () => {
   return (
-    <div>
-      <h1>Fms</h1>
-    </div>
+    <MockFMS />
   );
 };
 

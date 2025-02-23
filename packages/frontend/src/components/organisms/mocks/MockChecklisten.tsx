@@ -319,6 +319,7 @@ const ChecklistsManager: React.FC = () => {
                         allowClear
                         onChange={(e) => setSearchTerm(e.target.value)}
                         className="mb-4"
+                        autoComplete="off" spellCheck="false"
                     />
                     {/* TABS nach Kategorie */}
                     <Tabs defaultActiveKey="1">

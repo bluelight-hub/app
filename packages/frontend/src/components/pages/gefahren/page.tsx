@@ -1,10 +1,8 @@
 import React from 'react';
-
+import MockGefahren from '../../organisms/mocks/MockGefahren';
 export const GefahrenPage: React.FC = () => {
   return (
-    <div>
-      <h1>Gefahren</h1>
-    </div>
+    <MockGefahren />
   );
 };
 

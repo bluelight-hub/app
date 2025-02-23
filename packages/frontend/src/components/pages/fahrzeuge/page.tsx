@@ -1,10 +1,9 @@
 import React from 'react';
+import MockFahrzeuge from '../../organisms/mocks/MockFahrzeuge';
 
 export const FahrzeugePage: React.FC = () => {
   return (
-    <div>
-      <h1>Fahrzeuge</h1>
-    </div>
+    <MockFahrzeuge />
   );
 };
 

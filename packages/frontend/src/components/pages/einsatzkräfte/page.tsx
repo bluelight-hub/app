@@ -1,10 +1,9 @@
 import React from 'react';
+import MockEinsatzkräfte from '../../organisms/mocks/MockEinsatzkräfte';
 
 export const EinsatzkräftePage: React.FC = () => {
   return (
-    <div>
-      <h1>Einsatzkräfte</h1>
-    </div>
+    <MockEinsatzkräfte />
   );
 };
 

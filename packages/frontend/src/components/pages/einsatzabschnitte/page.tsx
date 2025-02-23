@@ -1,10 +1,9 @@
 import React from 'react';
+import MockEinsatzabschnitte from '../../organisms/mocks/MockEinsatzabschnitte';
 
 export const EinsatzabschnittePage: React.FC = () => {
   return (
-    <div>
-      <h1>Einsatzabschnitte</h1>
-    </div>
+    <MockEinsatzabschnitte />
   );
 };
 

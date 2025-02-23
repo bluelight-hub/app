@@ -1,10 +1,9 @@
 import React from 'react';
+import MockSchadenDashboard from '../../organisms/mocks/MockSchadenDashboard';
 
 export const SchadenPage: React.FC = () => {
   return (
-    <div>
-      <h1>Schaden</h1>
-    </div>
+    <MockSchadenDashboard />
   );
 };
 

@@ -1,13 +1,11 @@
 import { Route, Routes } from "react-router";
-import NeuPage from "../components/pages/anforderungen/neu/page";
 import AnforderungenPage from "../components/pages/anforderungen/page";
-import VerlaufPage from "../components/pages/anforderungen/verlauf/page";
-import AppIndexPage from "../components/pages/dashboard/page";
 import AufnehmenPage from "../components/pages/betroffene/aufnehmen/page";
 import ManvPage from "../components/pages/betroffene/manv/page";
 import BetroffenePage from "../components/pages/betroffene/page";
 import VerwaltenPage from "../components/pages/betroffene/verwalten/page";
 import ChecklistenPage from "../components/pages/checklisten/page";
+import AppIndexPage from "../components/pages/dashboard/page";
 import EinsatzabschnittePage from "../components/pages/einsatzabschnitte/page";
 import EinsatzdatenPage from "../components/pages/einsatzdaten/page";
 import EinsatzkräftePage from "../components/pages/einsatzkräfte/page";
@@ -26,8 +24,6 @@ import NotizenPage from "../components/pages/notizen/page";
 import RemindersPage from "../components/pages/reminders/page";
 import RollenPage from "../components/pages/rollen/page";
 import SchadenPage from "../components/pages/schaden/page";
-import PersonenschadenPage from "../components/pages/schaden/personenschaden/page";
-import SachschadenPage from "../components/pages/schaden/sachschaden/page";
 import BerichtPage from "../components/pages/uav/bericht/page";
 import FlugaufträgePage from "../components/pages/uav/flugaufträge/page";
 import FlugzonenPage from "../components/pages/uav/flugzonen/page";
@@ -65,11 +61,7 @@ export const Router = () => {
                 </Route>
 
                 {/* Anforderungen */}
-                <Route path="anforderungen">
-                    <Route index element={<AnforderungenPage />} />
-                    <Route path="neu" element={<NeuPage />} />
-                    <Route path="verlauf" element={<VerlaufPage />} />
-                </Route>
+                <Route path="anforderungen" element={<AnforderungenPage />} />
 
                 {/* Lagekarte */}
                 <Route path="lagekarte">
@@ -99,11 +91,7 @@ export const Router = () => {
                 {/* Einsatzinformationen */}
                 <Route path="einsatzdaten" element={<EinsatzdatenPage />} />
                 <Route path="einsatzabschnitte" element={<EinsatzabschnittePage />} />
-                <Route path="schaden">
-                    <Route index element={<SchadenPage />} />
-                    <Route path="personenschaden" element={<PersonenschadenPage />} />
-                    <Route path="sachschaden" element={<SachschadenPage />} />
-                </Route>
+                <Route path="schaden" element={<SchadenPage />} />
                 <Route path="gefahren" element={<GefahrenPage />} />
                 <Route path="notizen" element={<NotizenPage />} />
             </Route>

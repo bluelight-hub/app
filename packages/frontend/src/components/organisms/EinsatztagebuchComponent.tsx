@@ -316,7 +316,7 @@ export function EinsatztagebuchFormWrapperComponent({
                     name="content"
                     rules={[{ required: true, message: 'Bitte Inhalt eingeben' }]}
                 >
-                    <AntInput.TextArea rows={4} />
+                    <AntInput.TextArea rows={4} autoComplete="off" spellCheck="false" />
                 </Form.Item>
 
                 <Form.Item>
@@ -374,6 +374,8 @@ export function EinsatztagebuchComponent() {
                     onChange={(e) => setSelectedKeys(e.target.value ? [e.target.value] : [])}
                     onPressEnter={() => confirm()}
                     style={{ marginBottom: 8, display: 'block' }}
+                    autoComplete="off"
+                    spellCheck="false"
                 />
                 <Space>
                     <Button
@@ -734,7 +736,7 @@ function EditForm({
             </Form.Item>
 
             <Form.Item label="Inhalt" name="content">
-                <AntInput.TextArea rows={5} />
+                <AntInput.TextArea rows={5} autoComplete="off" spellCheck="false" />
             </Form.Item>
 
             <Form.Item>

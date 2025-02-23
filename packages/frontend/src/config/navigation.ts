@@ -9,7 +9,6 @@ import {
     PiClipboardBold,
     PiClipboardText,
     PiClock,
-    PiClockClockwise,
     PiCloud,
     PiDrone,
     PiFirstAid,
@@ -30,7 +29,7 @@ import {
     PiUsers,
     PiVideoCameraBold,
     PiWarningDiamond,
-    PiWrench,
+    PiWrench
 } from 'react-icons/pi';
 
 export type NavigationType = 'item' | 'group' | 'submenu';
@@ -166,33 +165,11 @@ export const mainNavigation: NavigationItem[] = [
                 ],
             },
             {
-                type: 'submenu',
+                type: 'item',
                 key: 'anforderungen',
                 label: 'Anforderungen',
                 icon: PiClipboardText,
-                children: [
-                    {
-                        type: 'item',
-                        key: '/app/anforderungen',
-                        path: '/app/anforderungen',
-                        label: 'Anforderungsübersicht',
-                        icon: PiSquaresFour,
-                    },
-                    {
-                        type: 'item',
-                        key: '/app/anforderungen/neu',
-                        path: '/app/anforderungen/neu',
-                        label: 'Neue Anforderung',
-                        icon: PiPlus,
-                    },
-                    {
-                        type: 'item',
-                        key: '/app/anforderungen/verlauf',
-                        path: '/app/anforderungen/verlauf',
-                        label: 'Anforderungsverlauf',
-                        icon: PiClockClockwise,
-                    },
-                ],
+                path: '/app/anforderungen',
             },
         ],
     },
@@ -351,33 +328,11 @@ export const mainNavigation: NavigationItem[] = [
                 icon: PiChartPie,
             },
             {
-                type: 'submenu',
+                type: 'item',
                 key: 'schaden',
                 label: 'Schäden',
                 icon: PiWrench,
-                children: [
-                    {
-                        type: 'item',
-                        key: '/app/schaden',
-                        path: '/app/schaden',
-                        label: 'Schadensübersicht',
-                        icon: PiSquaresFour,
-                    },
-                    {
-                        type: 'item',
-                        key: '/app/schaden/personenschaden',
-                        path: '/app/schaden/personenschaden',
-                        label: 'Personenschaden',
-                        icon: PiPlus,
-                    },
-                    {
-                        type: 'item',
-                        key: '/app/schaden/sachschaden',
-                        path: '/app/schaden/sachschaden',
-                        label: 'Sachschaden',
-                        icon: PiUsers,
-                    },
-                ],
+                path: '/app/schaden',
             },
             {
                 type: 'item',
@@ -397,15 +352,13 @@ export const mainNavigation: NavigationItem[] = [
     },
 ];
 
+// TODO: [FEATURE] Workspaces - vielleicht unnötig?
 export const workspaces: NavigationItem[] = [
     {
         type: 'group',
         key: 'workspaces',
         label: 'Workspaces',
         children: [
-            { path: '#', label: 'Dashboard', type: 'item', key: 'dashboard' },
-            { path: '#', label: 'Lageplan', type: 'item', key: 'lageplan' },
-            { path: '#', label: 'UAV', type: 'item', key: 'uav' },
         ]
     },
 ];

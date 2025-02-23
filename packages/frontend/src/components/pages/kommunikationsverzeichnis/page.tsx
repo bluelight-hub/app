@@ -1,10 +1,8 @@
 import React from 'react';
-
+import MockKommunikationsverzeichnis from '../../organisms/mocks/MockKommunikationsverzeichnis';
 export const KommunikationsverzeichnisPage: React.FC = () => {
   return (
-    <div>
-      <h1>Kommunikationsverzeichnis</h1>
-    </div>
+    <MockKommunikationsverzeichnis />
   );
 };
 

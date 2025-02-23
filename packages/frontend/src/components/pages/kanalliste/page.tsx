@@ -1,11 +1,8 @@
 import React from 'react';
+import MockKanalliste from '../../organisms/mocks/MockKanalliste';
 
 export const KanallistePage: React.FC = () => {
-  return (
-    <div>
-      <h1>Kanalliste</h1>
-    </div>
-  );
+  return <MockKanalliste />;
 };
 
 export default KanallistePage;

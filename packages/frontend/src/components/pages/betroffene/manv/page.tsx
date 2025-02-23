@@ -1,10 +1,9 @@
 import React from 'react';
+import MockMANV from '../../../organisms/mocks/MockMANV';
 
 export const ManvPage: React.FC = () => {
   return (
-    <div>
-      <h1>Manv</h1>
-    </div>
+    <MockMANV />
   );
 };
 

@@ -23,6 +23,7 @@
     "@fontsource-variable/inter": "^5.1.1",
     "@fontsource-variable/montserrat": "^5.1.1",
     "@fontsource-variable/nunito": "^5.1.1",
+    "@mdxeditor/editor": "^3.24.0",
     "@tailwindcss/vite": "^4.0.8",
     "antd": "  ^5.24.1",
     "date-fns": "^4.1.0",
