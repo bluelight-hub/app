@@ -1,3 +1,13 @@
+## Version [v1.0.0-alpha.9](https://github.com/bluelight-hub/app/compare/v1.0.0-alpha.8...v1.0.0-alpha.9) – Veröffentlicht am 2025-02-23
+
+## ✨ Neue Funktionen
+Die folgenden neuen Features wurden hinzugefügt:
+- [`3ce93f6`](https://github.com/bluelight-hub/app/commit/3ce93f6) (frontend): Implementiere Mock-Komponenten und vereinfache Routing 
+
+
+
+# [1.0.0-alpha.9](https://github.com/bluelight-hub/app/compare/v1.0.0-alpha.8...v1.0.0-alpha.9) (2025-02-23)
+
 ## Version [v1.0.0-alpha.8](https://github.com/bluelight-hub/app/compare/v1.0.0-alpha.7...v1.0.0-alpha.8) – Veröffentlicht am 2025-02-22
 
 ## ♻ Refactoring
