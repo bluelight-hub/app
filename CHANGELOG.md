@@ -1,3 +1,15 @@
+## Version [v1.0.0-alpha.10](https://github.com/bluelight-hub/app/compare/v1.0.0-alpha.9...v1.0.0-alpha.10) – Veröffentlicht am 2025-02-24
+
+## 🔧 Tool Verbesserungen
+Verbesserungen an den Werkzeugen:
+- [`1e8fbee`](https://github.com/bluelight-hub/app/commit/1e8fbee) (rules): Reorganize cursor rules and add backend architecture docs 
+
+- [`b17aedc`](https://github.com/bluelight-hub/app/commit/b17aedc) (cleanup): Update MockChecklisten and remove unused tools, add new cursor rules 
+
+
+
+# [1.0.0-alpha.10](https://github.com/bluelight-hub/app/compare/v1.0.0-alpha.9...v1.0.0-alpha.10) (2025-02-24)
+
 ## Version [v1.0.0-alpha.9](https://github.com/bluelight-hub/app/compare/v1.0.0-alpha.8...v1.0.0-alpha.9) – Veröffentlicht am 2025-02-23
 
 ## ✨ Neue Funktionen
