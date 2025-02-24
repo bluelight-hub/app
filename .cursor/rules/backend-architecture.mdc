@@ -1,0 +1,60 @@
+---
+description: When working with the backend
+globs: 
+---
+# Backend-Architektur
+
+## Beschreibung
+Diese Regel definiert die grundlegende Architektur und Best Practices für das Backend. Das vollständige Konzept ist in `docs/003-backend-architektur.md` dokumentiert.
+
+## Anwendung
+Diese Regel gilt für alle Arbeiten im Backend-Bereich (`packages/backend/**`). Bei der Entwicklung neuer Features oder Änderungen am Backend müssen die definierten Strukturen und Best Practices eingehalten werden.
+
+## Wichtige Aspekte
+
+1. **Modulare Struktur**
+   - Neue Features als eigenständige Module unter `src/modules/` anlegen
+   - Entity-Definitionen im jeweiligen Feature-Modul unter `entities/`
+   - Klare Trennung von Zuständigkeiten (Controller, Service, Repository)
+
+2. **Code-Standards**
+   - TypeScript strict mode
+   - Dependency Injection nutzen
+   - Einheitliche Fehlerbehandlung
+   - Validierung mit class-validator
+   - Tests für neue Funktionalität
+
+3. **Dokumentation**
+   - JSDoc für neue Funktionen und Klassen
+   - OpenAPI/Swagger Annotations für API-Endpunkte
+   - README Updates bei strukturellen Änderungen
+
+## Entity-Management
+Entities sollten nach dem modulbasierten Ansatz organisiert werden:
+```
+modules/
+└── feature-name/
+    ├── entities/
+    │   ├── feature.entity.ts
+    │   └── related.entity.ts
+    └── ...
+```
+
+Detaillierte Informationen zur Entity-Struktur und Best Practices finden sich im Hauptkonzept.
+
+## Erweiterung
+Wenn während der Entwicklung neue Patterns oder Best Practices identifiziert werden:
+1. Dokumentiere diese im Hauptkonzept (`docs/003-backend-architektur.md`)
+2. Aktualisiere relevante Code-Beispiele
+3. Informiere das Team über die Erweiterungen
+
+## Technologie-Stack
+- NestJS als Framework
+- SQLite mit TypeORM für Datenbankzugriff
+- Jest für Tests
+- consolas für Logging
+
+## Verwandte Dokumente
+- [003-backend-architektur.md](mdc:docs/003-backend-architektur.md)
+- NestJS Dokuementation
+- TypeORM Dokumentation

@@ -1,0 +1,62 @@
+---
+description: ALWAYS use when asked to CREATE or UPDATE a rule or taught a lesson from the user. Ensures best-practice format for new rules.
+globs: .cursor/rules/*.mdc
+---
+
+# Cursor Rules Format
+
+## Context
+- Gilt für alle Fälle, in denen neue Rules angelegt oder bestehende Rules aktualisiert werden.
+- Nutze es auch, wenn der User neue “Lessons” mitgibt, die als neue Rule festgehalten werden sollen.
+
+## Requirements
+
+1. **Dateiname & Ort**
+   - Ablegen unter `.cursor/rules/`
+   - Endung `.mdc`
+   - Nutze das Schema `PREFIX-name.mdc` (z. B. `000-rule-creation-standards.mdc`)
+
+2. **Frontmatter**
+   - Muss Felder `description` und `globs` enthalten
+   - `description`: Im Format `ACTION TRIGGER OUTCOME`
+   - `globs`: Glob-Muster für die Zuordnung dieser Rule zu bestimmten Dateien
+
+3. **Body-Struktur**
+   - **# Haupttitel** (z. B. Name der Rule)
+   - **## Context** (Wann/warum gilt die Rule?)
+   - **## Requirements** (Anforderungen, Richtlinien, Checkliste)
+   - **## Examples** (mindestens ein gültiges und evtl. ein ungültiges Beispiel)
+
+4. **Weitere Format-Hinweise**
+   - Möglichst kurze und präzise Formulierungen
+   - Nicht mehr XML-Tags als nötig nutzen
+   - Für längere Erklärungen: Markdown-Absätze
+   - Wenn sinnvoll, kurze Code-Beispiele als ``` code blocks ``` einbinden
+   - Bei umfangreichen Darstellungen ggf. Mermaid-Diagramme nutzen
+
+5. **Token-Effizienz**
+   - Vermeide überflüssige Erklärungen
+   - Behalte nur, was für den AI-Agenten relevant ist
+   - Nutze das “ACTION TRIGGER OUTCOME”-Prinzip in `description` und in den Requirements
+
+## Examples
+
+<example>
+description: ALWAYS use for rules creation or update
+globs: .cursor/rules/*.mdc
+
+# Example Rule
+
+## Context
+- Used whenever a new rule is needed
+
+## Requirements
+- Title must reflect the rule's scope
+- Use the short frontmatter format
+</example>
+
+<example type="invalid">
+description: This is a very long explanation that is not needed, so it's not token-efficient
+globs: "**/*.mdc"
+<!-- Missing sections and overly verbose text -->
+</example>

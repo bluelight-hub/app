@@ -1,0 +1,47 @@
+---
+description: ENFORCE standard NestJS Terminus health checks at /api/health
+globs: "*"
+---
+
+# Health Check Standards
+
+## Context
+- Health Endpoints unter `/api/health`
+- NestJS + @nestjs/terminus
+
+## Requirements
+1. **Endpunkt**
+   - GET `/api/health`
+   - Verwende TerminusModule in NestJS
+2. **Checks**
+   - Datenbank (TypeORM)
+   - Arbeitsspeicher (Heap + RSS)
+   - Speicherplatz (mind. 10 % frei)
+3. **Docker-Integration**
+   ```yaml
+   healthcheck:
+     test: ["CMD", "wget", "--spider", "-q", "http://localhost:3000/api/health"]
+     interval: 30s
+     timeout: 10s
+     retries: 3
+     start_period: 40s
+    ```
+
+4. **Response Format**
+    `@nestjs/terminus Standard (JSON-Objekt mit status, info, details, error)`
+5. **Tests**
+  - Erfolgsfall (status=ok)
+  - Fehlerfälle (Datenbank down, Speichermangel etc.)
+6. **Best Practices**
+  - Rasche Timeouts, parallele Checks, klares Error-Handling
+
+## Examples
+<example>
+  # Beispiel-Response
+  {
+    "status": "ok",
+    "info": { "database": { "status": "up" } },
+    "error": {},
+    "details": { "database": { "status": "up" } }
+  }
+</example>

@@ -1,0 +1,32 @@
+---
+description: REJECT .mdc files outside .cursor/rules and SUGGEST moving them there
+globs: "*"
+---
+
+# Rule Location Enforcement
+
+## Context
+- Alle `.mdc`-Dateien müssen im Verzeichnis `.cursor/rules/` liegen
+- Gilt beim Anlegen neuer Rule-Dateien und beim Verschieben vorhandener
+
+## Requirements
+1. **Pflichtverzeichnis**
+   - `.mdc`-Dateien **nur** unter `.cursor/rules/` ablegen
+2. **Naming**
+   - `PREFIX-name.mdc` (z. B. `000-rule-creation-standards.mdc`)
+3. **Verstöße**
+   - Automatisch zurückweisen (REJECT), wenn `.mdc`-Datei außerhalb `.cursor/rules/` angelegt wird
+4. **Konflikte**
+   - Falls existierende `.mdc`-Datei nicht in `.cursor/rules/` liegt, umgehend verschieben
+
+## Examples
+
+<example>
+description: REJECT .mdc files that are not in .cursor/rules
+globs: "*"
+
+# Rule Location Enforcement
+
+## Context
+- Must place new rules inside .cursor/rules
+</example>

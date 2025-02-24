@@ -1,0 +1,48 @@
+---
+description: ENFORCE Atomic Design for React components in src/components/**.tsx
+globs: packages/frontend/src/components/**/*.tsx
+---
+
+# Frontend Components (Atomic Design)
+
+## Context
+- React-Komponenten (Atomic Design)
+- Gilt für `packages/frontend/src/components/**/*.tsx`
+
+## Requirements
+1. **Ordnerstruktur**
+```
+src/components/
+    ├── atoms/
+    ├── molecules/
+    ├── organisms/
+    ├── templates/
+    └── pages/
+```
+
+2. **Ein-Komponente-Pro-Datei**
+- Dateiname = Komponentennamen (PascalCase)
+- Props-Interface definieren
+- Default export
+3. **Testing**
+- Zu jeder Komponente eine Testdatei (Name.test.tsx)
+- Mindestens Unit-, Integrations- und Snapshot-Test
+4. **Best Practices**
+- Komponenten < 150 Zeilen
+- TypeScript strict
+- Single Responsibility Principle
+- Dokumentation per JSDoc
+
+## Examples
+
+<example>
+# Beispielkomponente
+interface ButtonProps {
+label: string;
+onClick: () => void;
+}
+
+export default function Button({ label, onClick }: ButtonProps) {
+return <button onClick={onClick}>{label}</button>;
+}
+</example>

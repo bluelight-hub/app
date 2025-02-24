@@ -1,0 +1,51 @@
+---
+description: SUGGEST best-practice commit messages with EMOJI(context): short desc
+globs: "*"
+---
+
+# Commit Message Standards
+
+## Context
+- Erstellung und Pflege von Git-Commit-Nachrichten
+- Einheitliches Format mit Emojis, Kontext, Titel
+
+## Requirements
+1. **Format**
+```
+<emoji>(<context>): <kurze, prägnante Nachricht>
+
+<zusätzliche Beschreibung, falls nötig>
+
+<optional: 💥 BREAKING CHANGE>
+```
+
+2. **Mehrzeilige Messages**
+- Verwende eine temporäre Datei (z. B. `commit-message.txt`)
+- Lösche sie nach dem Commit
+3. **Emojis & Versioning**
+- Major (Breaking): 💥, 🎉
+- Minor: ✨, 🚀
+- Patch: 🐛, 🚑, 🔒, 🧹, ♻️, 🔧, 📦, 📝, 💄, ⚡, 🗑, 🛠
+4. **Kontext**
+- z. B. `frontend`, `backend`, `shared`, `deps`, `docs` usw.
+5. **Analyse**
+- Prüfe geänderte Dateien
+- Identifiziere Art der Änderung (Feature, Bugfix etc.)
+- Beachte Breaking Changes
+6. **Beispiele**
+- `✨(frontend): Neue Kartenfunktion`
+- `🐛(backend): Korrigiere Auth-Fehler`
+
+## Examples
+
+<example>
+# Richtig
+✨(frontend): Neue Kartenfunktion für Einsatzplanung
+
+Implementiert eine interaktive Karte zur besseren Visualisierung.
+</example>
+
+<example type="invalid">
+# Falsch
+Commit: add stuff
+</example>
