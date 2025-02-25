@@ -1,11 +1,11 @@
 import { Button, Card, DatePicker, Form, Input, message, Select } from 'antd';
-import dayjs, { Dayjs } from 'dayjs';
+import { Dayjs } from 'dayjs';
 import React, { useState } from 'react';
+import { formatNatoDateTime, parseNatoDateTime } from '../../../utils/date';
 
 interface Einsatzdaten {
     einsatzstichwort: string;
-    datum: string;   // "2025-03-15"
-    uhrzeit: string; // "08:30"
+    zeitpunkt: string;   // NATO-Format: "230800jan23"
     einsatzleiter: string;
     einsatzort: string;
     rettungsmittel: string;
@@ -14,8 +14,7 @@ interface Einsatzdaten {
 
 interface EinsatzdatenFormValues {
     einsatzstichwort: string;
-    datum: Dayjs;
-    uhrzeit: Dayjs;
+    zeitpunkt: Dayjs;   // Combined DateTime
     einsatzleiter: string;
     einsatzort: string;
     rettungsmittel: string;
@@ -25,8 +24,7 @@ interface EinsatzdatenFormValues {
 // Beispielhafter Initialwert (Mock)
 const initialEinsatz: Einsatzdaten = {
     einsatzstichwort: 'Verkehrsunfall',
-    datum: '2025-03-15',
-    uhrzeit: '08:30',
+    zeitpunkt: '150830jan25',  // NATO-Format
     einsatzleiter: 'Max Mustermann',
     einsatzort: 'A5, Abfahrt Musterstadt',
     rettungsmittel: 'RTW 1',
@@ -43,14 +41,13 @@ const EinsatzdatenPage: React.FC = () => {
         // Initialisiere das Formular mit den Anfangswerten
         form.setFieldsValue({
             einsatzstichwort: einsatz.einsatzstichwort,
-            datum: dayjs(einsatz.datum, 'YYYY-MM-DD'),
-            uhrzeit: dayjs(einsatz.uhrzeit, 'HH:mm'),
+            zeitpunkt: parseNatoDateTime(einsatz.zeitpunkt),
             einsatzleiter: einsatz.einsatzleiter,
             einsatzort: einsatz.einsatzort,
             rettungsmittel: einsatz.rettungsmittel,
             bemerkungen: einsatz.bemerkungen,
         });
-    }, [form, einsatz.einsatzstichwort, einsatz.datum, einsatz.uhrzeit, einsatz.einsatzleiter, einsatz.einsatzort, einsatz.rettungsmittel, einsatz.bemerkungen]);
+    }, [form, einsatz]);
 
     /**
      * Änderungen aus dem Formular speichern
@@ -59,8 +56,7 @@ const EinsatzdatenPage: React.FC = () => {
         const updated: Einsatzdaten = {
             ...einsatz,
             einsatzstichwort: values.einsatzstichwort,
-            datum: values.datum.format('YYYY-MM-DD'),
-            uhrzeit: values.uhrzeit.format('HH:mm'),
+            zeitpunkt: formatNatoDateTime(values.zeitpunkt, 'NATO') || '',
             einsatzleiter: values.einsatzleiter,
             einsatzort: values.einsatzort,
             rettungsmittel: values.rettungsmittel,
@@ -81,15 +77,16 @@ const EinsatzdatenPage: React.FC = () => {
                     <Input placeholder="z.B. Brand, VU, MANV" />
                 </Form.Item>
 
-                <div className="flex gap-4 flex-wrap">
-                    <Form.Item
-                        label="Datum und Uhrzeit"
-                        name="datetime"
-                        rules={[{ required: true, message: 'Bitte ein Datum und eine Uhrzeit wählen' }]}
-                    >
-                        <DatePicker showTime format="YYYY-MM-DD HH:mm" />
-                    </Form.Item>
-                </div>
+                <Form.Item
+                    label="Datum und Uhrzeit"
+                    name="zeitpunkt"
+                    rules={[{ required: true, message: 'Bitte ein Datum und eine Uhrzeit wählen' }]}
+                >
+                    <DatePicker
+                        showTime
+                        placeholder="Datum und Uhrzeit wählen"
+                    />
+                </Form.Item>
 
                 <Form.Item
                     label="Einsatzleiter"

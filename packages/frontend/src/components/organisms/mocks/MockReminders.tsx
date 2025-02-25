@@ -1,9 +1,10 @@
-import { Button, Card, DatePicker, Form, Input, InputNumber, Modal, Radio, Select, Table, Tag } from 'antd';
+import { Button, Card, DatePicker, Form, Input, InputNumber, message, Modal, Radio, Select, Table, Tag } from 'antd';
 import type { ColumnType } from 'antd/es/table';
 import { Key } from 'antd/es/table/interface';
 import dayjs, { Dayjs } from 'dayjs';
 import 'dayjs/locale/de';
 import { useState } from 'react';
+import { DATE_FORMATS, parseNatoDateTime } from '../../../utils/date';
 
 interface RepeatConfig {
     intervalType: 'Minuten' | 'Stunden';
@@ -87,12 +88,38 @@ const WeckerUndErinnerungen = () => {
     const [reminders, setReminders] = useState(initialReminders);
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [form] = Form.useForm();
+    const [editingReminder, setEditingReminder] = useState<Reminder | null>(null);
 
     // Suchfeld-State
     const [searchText, setSearchText] = useState('');
 
     // Modus: relative oder absolute Zeit?
     const [timeMode, setTimeMode] = useState('absolute');
+
+    // Farbe je nach Priorität
+    const getPriorityColor = (priority: string) => {
+        switch (priority) {
+            case 'hoch':
+                return 'red';
+            case 'mittel':
+                return 'orange';
+            case 'niedrig':
+                return 'green';
+            default:
+                return 'blue';
+        }
+    };
+
+    // Formatiert Datum für die Anzeige
+    const formatDate = (natoDate: string) => {
+        try {
+            const date = parseNatoDateTime(natoDate);
+            return date.format('DD.MM.YYYY HH:mm');
+        } catch {
+            console.warn('Ungültiges Datumsformat:', natoDate);
+            return natoDate;
+        }
+    };
 
     // Tabellen-Spalten
     const columns: ColumnType<Reminder>[] = [
@@ -113,7 +140,7 @@ const WeckerUndErinnerungen = () => {
             key: 'due',
             width: 180,
             sorter: (a, b) => a.due.unix() - b.due.unix(),
-            render: (due: Dayjs) => dayjs(due).format('DD.MM.YYYY HH:mm'),
+            render: (due: Dayjs) => formatDate(due.format(DATE_FORMATS.NATO_ANT)),
         },
         {
             title: 'Priorität',
@@ -127,12 +154,8 @@ const WeckerUndErinnerungen = () => {
                 return priorityOrder[a.priority] - priorityOrder[b.priority];
             },
             render: (priorityValue: Reminder['priority']) => {
-                let color = 'blue';
-                if (priorityValue === 'hoch') color = 'red';
-                if (priorityValue === 'mittel') color = 'orange';
-                if (priorityValue === 'niedrig') color = 'green';
                 const label = priorities.find((p) => p.value === priorityValue)?.label || priorityValue;
-                return <Tag color={color}>{label}</Tag>;
+                return <Tag color={getPriorityColor(priorityValue)}>{label}</Tag>;
             },
         },
         {
@@ -198,6 +221,13 @@ const WeckerUndErinnerungen = () => {
                     >
                         Löschen
                     </Button>
+                    <Button
+                        type="link"
+                        size="small"
+                        onClick={() => handleEdit(record)}
+                    >
+                        Bearbeiten
+                    </Button>
                 </div>
             ),
         },
@@ -216,7 +246,43 @@ const WeckerUndErinnerungen = () => {
     };
 
     // Neues Reminder anlegen
-    const handleAddReminder = (values: FormValues) => {
+
+    // Reminders filtern basierend auf Suchtext
+    const filteredReminders = reminders.filter((r) =>
+        r.title.toLowerCase().includes(searchText.toLowerCase()) ||
+        r.note.toLowerCase().includes(searchText.toLowerCase())
+    );
+
+    // Modal öffnen und Formular zurücksetzen
+    const showAddModal = () => {
+        form.resetFields();
+        setEditingReminder(null);
+        setIsModalOpen(true);
+    };
+
+    // Bearbeitung starten
+    const handleEdit = (reminder: Reminder) => {
+        setEditingReminder(reminder);
+        form.setFieldsValue({
+            title: reminder.title,
+            note: reminder.note,
+            due: reminder.due,
+            priority: reminder.priority,
+            repeatActive: reminder.repeat !== null,
+            intervalType: reminder.repeat?.intervalType,
+            intervalValue: reminder.repeat?.intervalValue,
+            endAfter: reminder.repeat?.endAfter,
+        });
+        setIsModalOpen(true);
+    };
+
+    // Modal schließen
+    const handleCancel = () => {
+        setIsModalOpen(false);
+    };
+
+    // Formular speichern
+    const handleSave = (values: FormValues) => {
         // Zeitpunkt bestimmen: abhängig von "timeMode"
         let dueTime: Dayjs;
         if (timeMode === 'absolute' && values.absoluteTime) {
@@ -231,7 +297,7 @@ const WeckerUndErinnerungen = () => {
 
         // Eintrag generieren
         const newItem: Reminder = {
-            id: `R-${Math.floor(Math.random() * 10000)}`,
+            id: editingReminder ? editingReminder.id : `R-${Math.floor(Math.random() * 10000)}`,
             title: values.title,
             due: dueTime,
             priority: values.priority,
@@ -246,17 +312,33 @@ const WeckerUndErinnerungen = () => {
                 : null,
         };
 
-        setReminders([...reminders, newItem]);
+        if (editingReminder) {
+            // Bestehende Erinnerung aktualisieren
+            const updatedReminders = reminders.map((reminder) =>
+                reminder.id === editingReminder.id
+                    ? {
+                        ...reminder,
+                        title: newItem.title,
+                        due: newItem.due,
+                        priority: newItem.priority,
+                        note: newItem.note,
+                        done: newItem.done,
+                        repeat: newItem.repeat,
+                    }
+                    : reminder
+            );
+            setReminders(updatedReminders);
+            message.success('Erinnerung aktualisiert');
+        } else {
+        // Neue Erinnerung hinzufügen
+            setReminders([...reminders, newItem]);
+            message.success('Erinnerung hinzugefügt');
+        }
+
         setIsModalOpen(false);
         form.resetFields();
         setTimeMode('absolute');
     };
-
-    // Reminders filtern basierend auf Suchtext
-    const filteredReminders = reminders.filter((r) =>
-        r.title.toLowerCase().includes(searchText.toLowerCase()) ||
-        r.note.toLowerCase().includes(searchText.toLowerCase())
-    );
 
     return (
         <div className="p-4">
@@ -264,7 +346,7 @@ const WeckerUndErinnerungen = () => {
                 title="Wecker & Erinnerungen"
                 className="shadow-md max-w-7xl mx-auto"
                 extra={
-                    <Button type="primary" onClick={() => setIsModalOpen(true)}>
+                    <Button type="primary" onClick={showAddModal}>
                         + Neu
                     </Button>
                 }
@@ -297,9 +379,9 @@ const WeckerUndErinnerungen = () => {
             </Card>
 
             <Modal
-                title="Neue Erinnerung"
+                title={editingReminder ? 'Erinnerung bearbeiten' : 'Neue Erinnerung'}
                 visible={isModalOpen}
-                onCancel={() => setIsModalOpen(false)}
+                onCancel={handleCancel}
                 onOk={() => form.submit()}
                 okText="Speichern"
                 cancelText="Abbrechen"
@@ -307,7 +389,7 @@ const WeckerUndErinnerungen = () => {
                 <Form
                     form={form}
                     layout="vertical"
-                    onFinish={handleAddReminder}
+                    onFinish={handleSave}
                     initialValues={{ priority: 'mittel', repeatActive: false }}
                 >
                     <Form.Item
@@ -339,7 +421,10 @@ const WeckerUndErinnerungen = () => {
                                 message: 'Bitte ein Datum/Uhrzeit angeben!'
                             }]}
                         >
-                            <DatePicker showTime format="DD.MM.YYYY HH:mm" />
+                            <DatePicker
+                                showTime
+                                placeholder="Datum und Uhrzeit wählen"
+                            />
                         </Form.Item>
                     )}
 

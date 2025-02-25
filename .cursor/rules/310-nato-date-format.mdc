@@ -1,0 +1,67 @@
+---
+description: ENFORCE consistent NATO date format usage across the application
+globs: ["**/date.ts", "**/*.tsx"]
+---
+
+# NATO Date Format Guidelines
+
+## Context
+- Gilt für alle Datums- und Zeitdarstellungen im Projekt
+- Betrifft die Formatierung und Anzeige von Datumsangaben
+- Reguliert die Verwendung von NATO- und ANT-Format
+
+## Requirements
+
+1. **Format Spezifikationen**
+   - **NATO-Format**: `ddHHmmLLLyy` (Beispiel: `230800jan23`)
+     - Tag, Stunde, Minute, Monat (klein, 3 Buchstaben), Jahr (2-stellig)
+     - Verwende dies für interne Darstellungen und APIs
+   
+   - **ANT-Format**: `ddHHmmLLLyy` (Beispiel: `230800jan23`)
+     - Exakt wie NATO-Format, aber für Ant Design Komponenten
+     - Monat immer kleingeschrieben, keine Punkte
+
+   - **Benutzerformat**: `DD.MM.YYYY HH:mm` (Beispiel: `23.01.2023 08:00`)
+     - Verwende dies für alle benutzerorientierte Anzeigen
+
+2. **Anwendungs-Regeln**
+   - **NATO-Format verwenden für**:
+     - Interne Datenübertragung (APIs)
+     - Log-Dateien
+     - Technische Berichte
+   
+   - **ANT-Format verwenden für**:
+     - Ant Design DatePicker-Komponenten (ConfigProvider)
+     - ThemeProvider-Konfiguration
+     - Internes Format bei Ant Design Datums-Widgets
+   
+   - **Benutzerformat verwenden für**:
+     - Alle benutzerorientierten Anzeigen in der UI
+     - Exportierte Berichte und Dokumente
+     - Datumseingabefelder (als Placeholder)
+
+3. **Funktionen und Verwendung**
+   - Nutze immer `formatNatoDateTime` und `parseNatoDateTime` für Konvertierungen
+   - Bei null/undefined soll `formatNatoDateTime` `null` zurückgeben
+   - Monatsnamen immer klein schreiben und ohne Punkt
+   - Verwende für Fehlerbehandlung den Logger
+
+## Examples
+
+```typescript
+// Korrekte Verwendung
+// Internes NATO-Format
+const natoDate = formatNatoDateTime(new Date(), 'NATO'); // "230800jan23"
+
+// In Komponenten für DatePicker
+<DatePicker format={DATE_FORMATS.NATO_ANT} />
+
+// Für Benutzeranzeige
+<div>Datum: {date.format('DD.MM.YYYY HH:mm')}</div>
+```
+
+<example type="invalid">
+// Fehlerhafte Verwendung
+const natoDate = formatNatoDateTime(date, 'NATO_ANT'); // Für API-Calls
+<DatePicker format="YYYY-MM-DD" /> // Falsches Format für DatePicker
+</example> 

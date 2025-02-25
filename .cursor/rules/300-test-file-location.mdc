@@ -1,0 +1,59 @@
+---
+description: ENFORCE placing test files in same directory as implementation with .test.ts extension
+globs: "**/*.test.ts"
+---
+
+# Test File Organization
+
+## Context
+- Gilt für alle Test-Dateien im Projekt
+- Betrifft die strukturelle Organisation von Tests
+- Fördert die enge Kopplung von Tests und Implementierung
+
+## Requirements
+
+1. **Test-Datei Position**
+   - Platziere Tests im gleichen Verzeichnis wie die zu testende Datei
+   - NICHT in separaten `__tests__`-Ordnern strukturieren
+
+2. **Dateinamenskonvention**
+   - Verwende `.test.ts` als Suffix für Testdateien
+   - Name der Testdatei sollte dem Namen der zu testenden Datei entsprechen
+   - Beispiel: `date.ts` → `date.test.ts`
+
+3. **Importe**
+   - Importiere die zu testenden Funktionen mit relativen Pfaden
+   - Beispiel: `import { myFunction } from './myFile'`
+
+4. **Teststruktur**
+   - Verwende `describe` für die Gruppierung von zusammengehörigen Tests
+   - Verwende beschreibende `it` Statements für jeden Testfall
+   - Folge dem AAA-Prinzip (Arrange, Act, Assert) für jeden Test
+
+## Examples
+
+```typescript
+// date.test.ts im gleichen Verzeichnis wie date.ts
+import { formatNatoDateTime } from './date';
+
+describe('Date Utilities', () => {
+  describe('formatNatoDateTime', () => {
+    it('formats a date in NATO format correctly', () => {
+      // Arrange
+      const testDate = new Date(2023, 0, 23, 8, 0);
+      
+      // Act
+      const result = formatNatoDateTime(testDate, 'NATO');
+      
+      // Assert
+      expect(result).toBe('230800jan23');
+    });
+  });
+});
+```
+
+<example type="invalid">
+// In __tests__/date.test.ts
+import { formatNatoDateTime } from '../date';
+// Tests in separatem Ordner sind nicht mehr konform
+</example> 

@@ -166,7 +166,7 @@ export const mainNavigation: NavigationItem[] = [
             },
             {
                 type: 'item',
-                key: 'anforderungen',
+                key: '/app/anforderungen',
                 label: 'Anforderungen',
                 icon: PiClipboardText,
                 path: '/app/anforderungen',
@@ -329,7 +329,7 @@ export const mainNavigation: NavigationItem[] = [
             },
             {
                 type: 'item',
-                key: 'schaden',
+                key: '/app/schaden',
                 label: 'Schäden',
                 icon: PiWrench,
                 path: '/app/schaden',

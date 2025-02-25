@@ -1,5 +1,5 @@
 import React from 'react';
-import { EinsatztagebuchComponent } from '../../organisms/EinsatztagebuchComponent';
+import EinsatztagebuchComponent from '../../organisms/EinsatztagebuchComponent';
 
 export const EinsatztagebuchPage: React.FC = () => {
   return (

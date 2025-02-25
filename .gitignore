@@ -186,3 +186,6 @@ data/*
 # Commit Messages
 commit-message.txt
 commit_msg
+
+# RepoMix
+repomix-output.xml
