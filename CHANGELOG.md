@@ -1,3 +1,13 @@
+## Version [v1.0.0-alpha.11](https://github.com/bluelight-hub/app/compare/v1.0.0-alpha.10...v1.0.0-alpha.11) – Veröffentlicht am 2025-02-25
+
+## ✨ Neue Funktionen
+Die folgenden neuen Features wurden hinzugefügt:
+- [`6cc4d10`](https://github.com/bluelight-hub/app/commit/6cc4d10) (frontend): Verbessere Einsatztagebuch und Datums-Funktionen 
+
+
+
+# [1.0.0-alpha.11](https://github.com/bluelight-hub/app/compare/v1.0.0-alpha.10...v1.0.0-alpha.11) (2025-02-25)
+
 ## Version [v1.0.0-alpha.10](https://github.com/bluelight-hub/app/compare/v1.0.0-alpha.9...v1.0.0-alpha.10) – Veröffentlicht am 2025-02-24
 
 ## 🔧 Tool Verbesserungen
