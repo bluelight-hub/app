@@ -1,65 +1,55 @@
-import dayjs, { Dayjs } from 'dayjs';
-import 'dayjs/locale/de';
+import dayjs, { Dayjs, isDayjs } from 'dayjs';
 import customParseFormat from 'dayjs/plugin/customParseFormat';
-import utcPlugin from 'dayjs/plugin/utc';
-import { logger } from './logger';
+import localizedFormat from 'dayjs/plugin/localizedFormat';
+import updateLocale from 'dayjs/plugin/updateLocale';
 
-// Konfiguriere dayjs
+// Plugin für benutzerdefiniertes Parsing registrieren
 dayjs.extend(customParseFormat);
-dayjs.extend(utcPlugin);
+dayjs.extend(localizedFormat);
+dayjs.extend(updateLocale);
+dayjs.updateLocale('de', {
+    formats: { L: 'DDHHmm[Z]MMMYY' }
+});
 dayjs.locale('de');
 
-/**
- * NATO-Datumsformate
- * NATO: ddHHmmLLLyy (Tag, Stunde, Minute, Monat abgekürzt klein, Jahr)
- * ANT: DDHHmmMMMYY (Ant Design spezifisches Format, ebenfalls mit kleingeschriebenem Monat)
- * 
- * Beispiel NATO: 230800jan23 (23. Januar 2023, 08:00 Uhr)
- * Beispiel ANT: 230800jan23 (23. Januar 2023, 08:00 Uhr)
- */
-export const DATE_FORMATS = {
-    NATO: 'ddHHmmLLLYY', // wird durch custom Formatierung überschrieben
-    NATO_ANT: 'DDHHmmMMMYY', // wird durch custom Formatierung überschrieben
-} as const;
+// Formatstrings für NATO-Datum
+export const natoDateTime = 'DDHHmm[Z]MMMYY'
+export const natoDateTimeAnt = 'DDHHmm[Z]MMMYY'
 
-/**
- * Formatiert ein Datum in das NATO-Format mit kleingeschriebenem Monat
- * 
- * @param dateTime - Das zu formatierende Datum
- * @param __formatType - Formattyp (NATO oder NATO_ANT, beides verwendet kleingeschriebene Monate)
- * @returns Formatierter String oder null wenn kein Datum übergeben wurde
- */
-export function formatNatoDateTime(
-    dateTime: Date | Dayjs | number | string | undefined,
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    __formatType: keyof typeof DATE_FORMATS = 'NATO'
-): string | null {
+export function formatNatoDateTime<DateType extends Date>(dateTime: DateType | Dayjs | number | string | undefined): string | null {
     if (!dateTime) {
         return null;
     }
 
     try {
-        // Konvertiere zu Dayjs wenn nötig
-        const date = dayjs.isDayjs(dateTime) ? dateTime : dayjs(dateTime);
-
-        if (!date.isValid()) {
-            throw new Error('Ungültiges Datum');
+        // Konvertiere jede Eingabe zu einem JavaScript Date Objekt
+        let date: Date;
+        if (isDayjs(dateTime)) {
+            date = dateTime.toDate();
+        } else if (typeof dateTime === 'string' || typeof dateTime === 'number') {
+            date = new Date(dateTime);
+            if (isNaN(date.getTime())) {
+                return null;
+            }
+        } else {
+            date = dateTime;
         }
 
-        // Formatierung mit dem entsprechenden Format
-        const day = date.format('DD');
-        const hour = date.format('HH');
-        const minute = date.format('mm');
+        // Manuell formatieren für NATO-Format
+        const day = String(date.getDate()).padStart(2, '0');
+        const hour = String(date.getHours()).padStart(2, '0');
+        const minute = String(date.getMinutes()).padStart(2, '0');
 
-        // Monat anders behandeln - wir brauchen die standardisierten 3-Buchstaben-Abkürzungen
-        const monthNum = date.month(); // 0-basierter Index (0 = Januar)
+        // Monatsnamen für NATO-Format (immer kleingeschrieben)
         const monthNames = ['jan', 'feb', 'mar', 'apr', 'mai', 'jun', 'jul', 'aug', 'sep', 'okt', 'nov', 'dez'];
-        const month = monthNames[monthNum];
+        const month = monthNames[date.getMonth()];
 
-        const year = date.format('YY');
+        // Jahr (2-stellig)
+        const year = String(date.getFullYear()).slice(-2);
+
         return `${day}${hour}${minute}${month}${year}`;
     } catch (error) {
-        logger.warn('Fehler beim Formatieren des Datums:', error);
+        console.error('Fehler beim Formatieren des Datums:', error);
         return null;
     }
 }
@@ -68,7 +58,7 @@ export function formatNatoDateTime(
  * Parst ein Datum im NATO-Format oder Standard-Format in ein Dayjs-Objekt
  *
  * @param input - Das zu parsende Datum als String
- * @returns Dayjs Objekt
+ * @returns Dayjs Objekt wenn das Parsing erfolgreich war
  * @throws Error wenn das Datum nicht geparst werden konnte
  */
 export function parseNatoDateTime(input: string | undefined): Dayjs {
@@ -77,77 +67,43 @@ export function parseNatoDateTime(input: string | undefined): Dayjs {
     }
 
     try {
-        // Versuche als NATO-Format zu parsen (mit manueller Regex)
-        // Format: ddHHmmMMMYY (z.B. 230800jan23)
-        const natoRegex = /^(\d{2})(\d{2})(\d{2})([a-z]{3})(\d{2})$/i;
+        // Prüfe, ob das Format dem NATO-Format entspricht: ddHHmmMMMYY
+        const natoRegex = /^(\d{2})(\d{2})(\d{2})([a-zA-Z]{3})(\d{2})$/;
         if (natoRegex.test(input)) {
-            const [, day, hour, minute, month, year] = natoRegex.exec(input) || [];
-            // Normalisiere den Monat (immer klein)
-            const monthLower = month.toLowerCase();
-            // Format für dayjs
-            const dateStr = `20${year}-${getMonthNumber(monthLower)}-${day}T${hour}:${minute}:00`;
-            const parsedDate = dayjs(dateStr);
-            if (parsedDate.isValid()) {
-                return parsedDate;
+            const matches = input.match(natoRegex);
+            if (matches) {
+                // eslint-disable-next-line @typescript-eslint/no-unused-vars
+                const [_, dayStr, hourStr, minuteStr, monthStr, yearStr] = matches;
+
+                const day = parseInt(dayStr, 10);
+                const hour = parseInt(hourStr, 10);
+                const minute = parseInt(minuteStr, 10);
+                const monthLower = monthStr.toLowerCase();
+                const year = 2000 + parseInt(yearStr, 10);
+
+                // Konvertiere Monatsabkürzungen in Monatszahlen (0-11)
+                const monthMap: Record<string, number> = {
+                    'jan': 0, 'feb': 1, 'mar': 2, 'apr': 3, 'mai': 4, 'jun': 5,
+                    'jul': 6, 'aug': 7, 'sep': 8, 'okt': 9, 'nov': 10, 'dez': 11
+                };
+
+                const month = monthMap[monthLower];
+                if (month !== undefined) {
+                    return dayjs(new Date(year, month, day, hour, minute));
+                }
             }
         }
 
-        // Versuche als ISO-Format zu parsen
-        const isoDate = dayjs(input, 'YYYY-MM-DD HH:mm', true);
-        if (isoDate.isValid()) {
-            return isoDate;
-        }
-
-        // Versuche als normales Datum zu parsen
+        // Wenn das nicht klappt, versuche es als normales Datum zu parsen
         const fallbackDate = dayjs(input);
         if (fallbackDate.isValid()) {
             return fallbackDate;
         }
 
+        // Wenn beide Versuche fehlschlagen, wirf einen Fehler
         throw new Error('Datum konnte nicht geparst werden');
     } catch (error) {
-        logger.warn('Fehler beim Parsen des Datums:', error);
+        console.error('Fehler beim Parsen des Datums:', error);
         throw new Error(`Ungültiges Datumsformat: ${input}`);
     }
 }
-
-/**
- * Hilfsfunktion: Konvertiert einen Monatsnamen (3 Buchstaben) in einen Monatsnummer (01-12)
- * @param monthName - Monatsname (3 Buchstaben, z.B. "jan")
- * @returns Monatsnummer als String mit Nullfüllung (z.B. "01")
- */
-function getMonthNumber(monthName: string): string {
-    const months: Record<string, string> = {
-        'jan': '01', 'feb': '02', 'mar': '03', 'apr': '04',
-        'mai': '05', 'jun': '06', 'jul': '07', 'aug': '08',
-        'sep': '09', 'okt': '10', 'nov': '11', 'dez': '12',
-        // Englische Monate für Kompatibilität
-        'may': '05', 'oct': '10', 'dec': '12'
-    };
-
-    return months[monthName] || '01';
-}
-
-/**
- * Kombiniert ein Datum und eine Zeit in ein einziges Dayjs-Objekt
- * 
- * @param date - Das Datum
- * @param time - Die Zeit
- * @returns Kombiniertes Dayjs-Objekt oder null wenn date null ist
- */
-export function combineDateAndTime(date: Dayjs | null, time: Dayjs | null): Dayjs | null {
-    if (!date) {
-        return null;
-    }
-
-    if (!time) {
-        // Wenn keine Zeit angegeben, verwende 00:00 Uhr
-        return date.hour(0).minute(0).second(0);
-    }
-
-    return date
-        .hour(time.hour())
-        .minute(time.minute())
-        .second(time.second());
-}
-

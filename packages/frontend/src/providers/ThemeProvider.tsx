@@ -2,7 +2,7 @@ import { ConfigProvider, theme } from 'antd';
 import deDE from 'antd/locale/de_DE.js';
 import { ReactNode } from 'react';
 import { useThemeInternal } from '../hooks/useTheme';
-import { DATE_FORMATS } from '../utils/date';
+import { natoDateTimeAnt } from '../utils/date';
 import { ThemeContext } from './ThemeContext';
 
 export function ThemeProvider({ children }: { children: ReactNode }) {
@@ -15,15 +15,14 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
                     ...deDE,
                     Calendar: {
                         ...deDE.Calendar,
-                        dateTimeFormat: DATE_FORMATS.NATO_ANT,
-                        fieldDateTimeFormat: DATE_FORMATS.NATO_ANT,
+                        fieldDateTimeFormat: natoDateTimeAnt,
                     },
                     DatePicker: {
                         ...deDE.DatePicker!,
                         lang: {
                             ...deDE.DatePicker!.lang,
-                            dateTimeFormat: DATE_FORMATS.NATO_ANT,
-                            fieldDateTimeFormat: DATE_FORMATS.NATO_ANT,
+                            locale: 'en',
+                            fieldDateTimeFormat: natoDateTimeAnt,
                         },
                     },
                 }}

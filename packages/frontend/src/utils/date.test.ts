@@ -1,8 +1,5 @@
-import dayjs from 'dayjs';
 import { describe, expect, it } from 'vitest';
 import {
-    combineDateAndTime,
-    DATE_FORMATS,
     formatNatoDateTime,
     parseNatoDateTime
 } from './date';
@@ -14,7 +11,7 @@ describe('Date Utilities', () => {
             const testDate = new Date(2023, 0, 23, 8, 0);
 
             // Act - NATO Format mit kleingeschriebenem Monat
-            const formattedNato = formatNatoDateTime(testDate, 'NATO');
+            const formattedNato = formatNatoDateTime(testDate);
 
             // Assert
             expect(formattedNato).toBe('230800jan23');
@@ -25,7 +22,7 @@ describe('Date Utilities', () => {
             const testDate = new Date(2023, 0, 23, 8, 0);
 
             // Act - ANT Format ebenfalls mit kleingeschriebenem Monat
-            const formattedAnt = formatNatoDateTime(testDate, 'NATO_ANT');
+            const formattedAnt = formatNatoDateTime(testDate);
 
             // Assert
             expect(formattedAnt).toBe('230800jan23');
@@ -57,7 +54,7 @@ describe('Date Utilities', () => {
             // Act & Assert
             months.forEach(({ month, expected }) => {
                 const date = new Date(2023, month, 15, 10, 0);
-                const formatted = formatNatoDateTime(date, 'NATO');
+                const formatted = formatNatoDateTime(date);
                 expect(formatted).toContain(expected);
             });
         });
@@ -136,62 +133,6 @@ describe('Date Utilities', () => {
                 expect(parsed.date()).toBe(15);
                 expect(parsed.year()).toBe(2023);
             });
-        });
-    });
-
-    describe('combineDateAndTime', () => {
-        it('combines date and time correctly', () => {
-            // Arrange
-            const date = dayjs('2023-01-23');
-            const time = dayjs('2000-01-01 08:00');
-
-            // Act
-            const combined = combineDateAndTime(date, time);
-
-            // Assert
-            expect(combined).not.toBeNull();
-            if (combined) {
-                expect(combined.year()).toBe(2023);
-                expect(combined.month()).toBe(0);
-                expect(combined.date()).toBe(23);
-                expect(combined.hour()).toBe(8);
-                expect(combined.minute()).toBe(0);
-            }
-        });
-
-        it('handles null time by using 00:00', () => {
-            // Arrange
-            const date = dayjs('2023-01-23');
-            const time = null;
-
-            // Act
-            const combined = combineDateAndTime(date, time);
-
-            // Assert
-            expect(combined).not.toBeNull();
-            if (combined) {
-                expect(combined.format('YYYY-MM-DD HH:mm')).toBe('2023-01-23 00:00');
-            }
-        });
-
-        it('returns null if date is null', () => {
-            // Arrange
-            const date = null;
-            const time = dayjs('2000-01-01 08:00');
-
-            // Act
-            const combined = combineDateAndTime(date, time);
-
-            // Assert
-            expect(combined).toBeNull();
-        });
-    });
-
-    describe('DATE_FORMATS constants', () => {
-        it('contains required NATO format constants', () => {
-            // Assert
-            expect(DATE_FORMATS).toHaveProperty('NATO');
-            expect(DATE_FORMATS).toHaveProperty('NATO_ANT');
         });
     });
 }); 

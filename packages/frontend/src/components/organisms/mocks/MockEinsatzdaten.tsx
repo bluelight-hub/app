@@ -56,7 +56,7 @@ const EinsatzdatenPage: React.FC = () => {
         const updated: Einsatzdaten = {
             ...einsatz,
             einsatzstichwort: values.einsatzstichwort,
-            zeitpunkt: formatNatoDateTime(values.zeitpunkt, 'NATO') || '',
+            zeitpunkt: formatNatoDateTime(values.zeitpunkt) || '',
             einsatzleiter: values.einsatzleiter,
             einsatzort: values.einsatzort,
             rettungsmittel: values.rettungsmittel,

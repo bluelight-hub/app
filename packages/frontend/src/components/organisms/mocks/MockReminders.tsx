@@ -4,7 +4,7 @@ import { Key } from 'antd/es/table/interface';
 import dayjs, { Dayjs } from 'dayjs';
 import 'dayjs/locale/de';
 import { useState } from 'react';
-import { DATE_FORMATS, parseNatoDateTime } from '../../../utils/date';
+import { natoDateTime, parseNatoDateTime } from '../../../utils/date';
 
 interface RepeatConfig {
     intervalType: 'Minuten' | 'Stunden';
@@ -140,7 +140,7 @@ const WeckerUndErinnerungen = () => {
             key: 'due',
             width: 180,
             sorter: (a, b) => a.due.unix() - b.due.unix(),
-            render: (due: Dayjs) => formatDate(due.format(DATE_FORMATS.NATO_ANT)),
+            render: (due: Dayjs) => formatDate(due.format(natoDateTime)),
         },
         {
             title: 'Priorität',

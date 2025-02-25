@@ -6,6 +6,7 @@
         "dev": "pnpm -r dev",
         "build": "pnpm -r build",
         "test": "pnpm -r test",
+        "test:ui": "pnpm -r test:ui",
         "test:cov": "pnpm -r test:cov"
     },
     "workspaces": [
