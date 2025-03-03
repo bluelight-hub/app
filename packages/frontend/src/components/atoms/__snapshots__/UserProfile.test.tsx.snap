@@ -1,0 +1,48 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`UserProfile > should match snapshot 1`] = `
+<div>
+  <a
+    class="flex w-full h-12 items-center gap-x-4 px-6 py-2 text-sm/6 font-semibold text-gray-900 dark:text-gray-100 hover:bg-gray-50 dark:hover:bg-gray-800"
+    data-testid="user-profile"
+    href="/profile"
+  >
+    <img
+      alt="Test User"
+      class="size-8 rounded-full bg-gray-50 dark:bg-gray-800"
+      src="test-image-url"
+    />
+    <span
+      class="sr-only"
+    >
+      Dein Profil
+    </span>
+    <span
+      aria-hidden="true"
+    >
+      Test User
+    </span>
+  </a>
+</div>
+`;
+
+exports[`UserProfile > should match snapshot with hidden text 1`] = `
+<div>
+  <a
+    class="flex w-full h-12 items-center gap-x-4 px-6 py-2 text-sm/6 font-semibold text-gray-900 dark:text-gray-100 hover:bg-gray-50 dark:hover:bg-gray-800"
+    data-testid="user-profile"
+    href="/profile"
+  >
+    <img
+      alt="Test User"
+      class="size-8 rounded-full bg-gray-50 dark:bg-gray-800"
+      src="test-image-url"
+    />
+    <span
+      class="sr-only"
+    >
+      Dein Profil
+    </span>
+  </a>
+</div>
+`;

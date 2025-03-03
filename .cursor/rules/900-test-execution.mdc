@@ -1,0 +1,58 @@
+---
+description: "ENFORCE test execution after code or test changes to prevent regressions and ensure quality
+globs: **/*.{tsx,ts}
+alwaysApply: false
+---
+# Ausführung von Tests nach Code- oder Teständerungen
+
+## Context
+- Gilt für alle Tests im Projekt (Frontend und Backend)
+- Sicherstellt, dass Tests bei Änderungen am Code ausgeführt werden, um Regressionen zu vermeiden
+
+## Requirements
+
+1. **Testausführung bei Codeänderungen**
+   - Tests müssen nach Änderungen an jeder Komponente oder ihrem zugehörigen Test ausgeführt werden
+   - Bei Frontend-Komponenten: `pnpm test`
+   - Bei Backend-Komponenten: `pnpm test:backend`
+   - Bei spezifischen Komponenten kann auch der spezifische Test ausgeführt werden: 
+     `pnpm test -- -t "KomponentenName"`
+
+2. **Testabdeckung überprüfen**
+   - Nach größeren Änderungen sollte die Testabdeckung überprüft werden:
+     `pnpm test:coverage`
+   - Ziel ist eine Mindestabdeckung von 80% für alle neuen oder geänderten Komponenten
+
+3. **Snapshot-Updates**
+   - Wenn UI-Komponenten geändert werden, müssen möglicherweise Snapshots aktualisiert werden:
+     `pnpm test:update`
+   - Überprüfe, ob die Änderungen an den Snapshots den Erwartungen entsprechen
+
+4. **Fehlgeschlagene Tests**
+   - Fehlgeschlagene Tests müssen sofort behoben werden
+   - Keine Commits mit fehlgeschlagenen Tests
+   - Bei komplexen Problemen: Issue erstellen und Tests als "skipped" markieren
+
+5. **UI-Tests**
+   - Bei visuellen Änderungen sollten auch Storybook-Stories überprüft werden:
+     `pnpm storybook:dev`
+
+## Examples
+
+<example>
+// Nach Änderung an einer Komponente
+$ pnpm test -- -t "ButtonComponent"
+
+// Nach einer größeren Änderung
+$ pnpm test:coverage
+
+// Wenn UI-Tests fehlschlagen
+$ pnpm test:update
+
+// Kontinuierliche Testausführung während der Entwicklung
+$ pnpm test:watch
+</example>
+
+## Automation
+
+Dieses Repository ist so konfiguriert, dass Tests automatisch bei Pull Requests ausgeführt werden. Lokale Tests sollten jedoch immer vor dem Commit ausgeführt werden, um Zeit zu sparen und Probleme frühzeitig zu erkennen. 

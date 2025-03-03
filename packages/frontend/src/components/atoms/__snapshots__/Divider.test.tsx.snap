@@ -1,0 +1,19 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`Divider > should match snapshot 1`] = `
+<div>
+  <div
+    class="border-t border-gray-800/10 dark:border-gray-200/10 my-3"
+    data-testid="divider"
+  />
+</div>
+`;
+
+exports[`Divider > should match snapshot with custom className 1`] = `
+<div>
+  <div
+    class="border-t border-gray-800/10 dark:border-gray-200/10 my-3 custom-class"
+    data-testid="divider"
+  />
+</div>
+`;

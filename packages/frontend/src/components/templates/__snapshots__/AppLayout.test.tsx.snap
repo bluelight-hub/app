@@ -1,0 +1,49 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`AppLayout > matches snapshot 1`] = `
+<div>
+  <div
+    class="min-h-screen bg-white dark:bg-gray-900"
+    data-testid="app-layout"
+  >
+    <div
+      data-is-open="false"
+      data-nav-items="1"
+      data-testid="sidebar"
+    >
+      <button
+        data-testid="close-sidebar-button"
+      >
+        Close Sidebar
+      </button>
+    </div>
+    <header
+      data-testid="mobile-header"
+    >
+      <span
+        data-testid="page-title"
+      >
+        Dashboard
+      </span>
+      <button
+        data-testid="open-sidebar-button"
+      >
+        Open Sidebar
+      </button>
+    </header>
+    <main
+      class="py-10 lg:pl-72"
+    >
+      <div
+        class="px-4 sm:px-6 lg:px-8"
+      >
+        <div
+          data-testid="outlet-content"
+        >
+          Page Content
+        </div>
+      </div>
+    </main>
+  </div>
+</div>
+`;

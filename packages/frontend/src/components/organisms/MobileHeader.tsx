@@ -1,7 +1,9 @@
 import { Button } from 'antd';
 import React from 'react';
 import { PiTextIndent } from 'react-icons/pi';
+import useMediaQuery from '../../hooks/useMediaQuery';
 import { useUserProfileStore } from '../../stores/useUserProfileStore';
+import UserProfile from '../atoms/UserProfile';
 
 interface MobileHeaderProps {
     title: string;
@@ -16,6 +18,7 @@ const MobileHeader: React.FC<MobileHeaderProps> = ({
     onOpenSidebar,
 }) => {
     const profile = useUserProfileStore((state) => state.profile);
+    const isSmallerScreen = useMediaQuery('(max-width: 480px)');
 
     if (!profile) return null;
 
@@ -26,18 +29,13 @@ const MobileHeader: React.FC<MobileHeaderProps> = ({
                 className="-m-2.5 p-2.5 text-gray-700 dark:text-gray-300 lg:hidden"
                 onClick={onOpenSidebar}
             >
-                <span className="sr-only">Open sidebar</span>
+                <span className="sr-only">Sidebar öffnen</span>
                 <PiTextIndent size={24} />
             </Button>
             <div className="flex-1 text-sm/6 font-semibold text-gray-900 dark:text-gray-100">{title}</div>
-            <a href="#">
-                <span className="sr-only">Your profile</span>
-                <img
-                    className="size-8 rounded-full bg-gray-50 dark:bg-gray-800"
-                    src={profile.imageUrl}
-                    alt={profile.name}
-                />
-            </a>
+            <div>
+                <UserProfile href="#" hideText={isSmallerScreen} />
+            </div>
         </div>
     );
 };

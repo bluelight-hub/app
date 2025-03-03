@@ -14,16 +14,12 @@ const AppLayout: React.FC<{ children?: React.ReactNode }> = () => {
 
     return (
         <div className="min-h-screen bg-white dark:bg-gray-900 text-black dark:text-white">
-            {/* Mobile Sidebar */}
+            {/* Unified Sidebar - entscheidet intern zwischen Mobile und Desktop */}
             <Sidebar
                 isOpen={isMobileMenuOpen}
                 onClose={() => setIsMobileMenuOpen(false)}
-                isMobile
                 navigation={mainNavigation}
             />
-
-            {/* Desktop Sidebar */}
-            <Sidebar navigation={mainNavigation} />
 
             {/* Mobile Header */}
             <MobileHeader

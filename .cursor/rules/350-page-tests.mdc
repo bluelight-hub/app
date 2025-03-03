@@ -1,0 +1,341 @@
+---
+description: ENFORCE spezifische Teststandards für Page-Komponenten
+globs: packages/frontend/src/components/pages/**/*.test.tsx
+alwaysApply: false
+---
+# Page Component Tests
+
+## Context
+- Gilt für alle Page-Komponenten im Frontend
+- Pages sind die höchste Ebene der Atomic Design-Struktur und repräsentieren komplette Ansichten
+- Folgt den Grundsätzen aus der 300-atomic-design-tests.mdc
+
+## Requirements
+
+1. **Testdateinamenskonvention**
+   - Namensschema: `KomponentenName.test.tsx`
+   - Platzierung im gleichen Verzeichnis wie die Komponente (`components/pages/`)
+
+2. **Testart und -umfang**
+   - **End-to-End-Flows** (mindestens 3):
+     - Testen kompletter Benutzerszenarien innerhalb der Seite
+     - Validieren von Datenflüssen durch die gesamte Komponente
+     - Überprüfung von Multi-Step-Prozessen
+   
+   - **Integrationstests** (mindestens 4):
+     - Testen der Interaktion zwischen Templates und Organismen
+     - Validieren der Integration mit dem Routing-System
+     - Überprüfen der Datenanbindung (API, Store, Context)
+     - Testen von Navigation zwischen Seitenzuständen
+   
+   - **State-Management-Tests** (mindestens 3):
+     - Überprüfen der Zustandsänderungen auf Seitenebene
+     - Validieren von Redux/Zustand-Integrationen
+     - Testen der Persistenz von Zuständen
+   
+   - **Snapshot-Tests** (mindestens 2):
+     - Standardansicht der Seite
+     - Spezifische Ansichten (Fehlerzustände, Ladezeiten, etc.)
+
+3. **Mocking**
+   - Umfassendes Mocking von APIs und Datendiensten
+   - Mocking von Complex Templates oder Organismen bei Bedarf
+   - Simulieren unterschiedlicher Netzwerkzustände
+
+4. **Routing und Navigation**
+   - Testen der Integration mit dem Router-System
+   - Überprüfen von URL-Parametern und Query-Strings
+   - Validieren von Redirects und Navigation
+
+5. **Fehlerbehandlung und Randszenarien**
+   - Testen verschiedener Fehlerzustände (API-Fehler, Validierungsfehler)
+   - Überprüfen von Ladezeiten und Ladezuständen
+   - Testen mit leeren oder ungültigen Daten
+
+6. **Performance und UX**
+   - Testen der Ladezeiten und Rendering-Performance
+   - Überprüfen der Reaktionsfähigkeit bei Benutzerinteraktionen
+   - Validieren der Zugänglichkeit (A11y) auf Seitenebene
+
+7. **Test Coverage**
+   - Mindestens 90% Testabdeckung für Page-Komponenten anstreben
+   - Umfassende Tests für kritische Benutzerflows
+   - Vollständige Abdeckung aller Geschäftslogik
+
+## Examples
+
+<example>
+// ProductDetailPage.test.tsx
+import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import ProductDetailPage from './ProductDetailPage';
+import { ProductContext } from '../../context/ProductContext';
+import { CartContext } from '../../context/CartContext';
+import * as productApi from '../../api/productApi';
+
+// Mock der API-Aufrufe
+vi.mock('../../api/productApi', () => ({
+  getProductById: vi.fn(),
+  getRelatedProducts: vi.fn()
+}));
+
+// Mock der Template-Komponente
+vi.mock('../../templates/ProductTemplate', () => ({
+  default: ({ children, productContent, relatedProducts }) => (
+    <div data-testid="product-template-mock">
+      <div data-testid="product-content">{productContent}</div>
+      <div data-testid="related-products">{relatedProducts}</div>
+      <div>{children}</div>
+    </div>
+  )
+}));
+
+describe('ProductDetailPage', () => {
+  const mockProduct = {
+    id: '123',
+    name: 'Test Product',
+    price: 99.99,
+    description: 'This is a test product',
+    images: ['image1.jpg', 'image2.jpg'],
+    stock: 10
+  };
+
+  const mockRelatedProducts = [
+    { id: '456', name: 'Related Product 1', price: 49.99, image: 'related1.jpg' },
+    { id: '789', name: 'Related Product 2', price: 69.99, image: 'related2.jpg' }
+  ];
+
+  const mockCartContext = {
+    cart: [],
+    addToCart: vi.fn(),
+    removeFromCart: vi.fn(),
+    updateQuantity: vi.fn()
+  };
+
+  beforeEach(() => {
+    vi.clearAllMocks();
+    productApi.getProductById.mockResolvedValue(mockProduct);
+    productApi.getRelatedProducts.mockResolvedValue(mockRelatedProducts);
+  });
+
+  const renderWithRouter = (id = '123') => {
+    return render(
+      <BrowserRouter>
+        <Routes>
+          <Route 
+            path="*" 
+            element={
+              <CartContext.Provider value={mockCartContext}>
+                <ProductDetailPage productId={id} data-testid="product-page" />
+              </CartContext.Provider>
+            } 
+          />
+        </Routes>
+      </BrowserRouter>
+    );
+  };
+
+  // End-to-End Flow Tests
+  it('should load and display product information', async () => {
+    renderWithRouter();
+
+    // Prüfen des Ladezustands
+    expect(screen.getByTestId('loading-indicator')).toBeInTheDocument();
+
+    // Warten auf das Laden der Daten
+    await waitFor(() => {
+      expect(productApi.getProductById).toHaveBeenCalledWith('123');
+    });
+
+    // Prüfen, ob die Produktdetails angezeigt werden
+    await waitFor(() => {
+      expect(screen.getByText('Test Product')).toBeInTheDocument();
+      expect(screen.getByText('$99.99')).toBeInTheDocument();
+      expect(screen.getByText('This is a test product')).toBeInTheDocument();
+    });
+  });
+
+  it('should add product to cart and show confirmation', async () => {
+    renderWithRouter();
+
+    // Warten, bis der Produktinhalt geladen ist
+    await waitFor(() => {
+      expect(screen.getByText('Test Product')).toBeInTheDocument();
+    });
+
+    // "In den Warenkorb" Button drücken
+    const addToCartButton = screen.getByText('Add to Cart');
+    fireEvent.click(addToCartButton);
+
+    // Prüfen, ob die addToCart-Funktion aufgerufen wurde
+    expect(mockCartContext.addToCart).toHaveBeenCalledWith(mockProduct, 1);
+
+    // Prüfen, ob eine Bestätigungsmeldung angezeigt wird
+    await waitFor(() => {
+      expect(screen.getByText('Product added to cart')).toBeInTheDocument();
+    });
+  });
+
+  it('should navigate to related product when clicked', async () => {
+    const mockNavigate = vi.fn();
+    vi.mock('react-router-dom', async () => {
+      const actual = await vi.importActual('react-router-dom');
+      return {
+        ...actual,
+        useNavigate: () => mockNavigate
+      };
+    });
+
+    renderWithRouter();
+
+    // Warten, bis verwandte Produkte geladen sind
+    await waitFor(() => {
+      expect(screen.getByText('Related Product 1')).toBeInTheDocument();
+    });
+
+    // Klick auf ein verwandtes Produkt
+    const relatedProduct = screen.getByText('Related Product 1');
+    fireEvent.click(relatedProduct);
+
+    // Prüfen der Navigation
+    expect(mockNavigate).toHaveBeenCalledWith('/product/456');
+  });
+
+  // Integration Tests
+  it('should display error message when API call fails', async () => {
+    productApi.getProductById.mockRejectedValue(new Error('Failed to fetch product'));
+    
+    renderWithRouter();
+
+    await waitFor(() => {
+      expect(screen.getByText('Error: Failed to fetch product')).toBeInTheDocument();
+    });
+  });
+
+  it('should integrate with cart context correctly', async () => {
+    renderWithRouter();
+    
+    await waitFor(() => {
+      expect(screen.getByText('Test Product')).toBeInTheDocument();
+    });
+
+    // Anzahl um 1 erhöhen
+    const incrementButton = screen.getByLabelText('Increase quantity');
+    fireEvent.click(incrementButton);
+    
+    // In den Warenkorb legen
+    const addToCartButton = screen.getByText('Add to Cart');
+    fireEvent.click(addToCartButton);
+    
+    // Prüfen der Cart-Context-Integration
+    expect(mockCartContext.addToCart).toHaveBeenCalledWith(mockProduct, 2);
+  });
+
+  it('should render breadcrumb navigation correctly', async () => {
+    renderWithRouter();
+    
+    await waitFor(() => {
+      expect(screen.getByText('Test Product')).toBeInTheDocument();
+    });
+    
+    const breadcrumb = screen.getByTestId('breadcrumb');
+    expect(breadcrumb).toBeInTheDocument();
+    expect(breadcrumb).toHaveTextContent('Home');
+    expect(breadcrumb).toHaveTextContent('Products');
+    expect(breadcrumb).toHaveTextContent('Test Product');
+  });
+
+  it('should update URL when changing product variants', async () => {
+    const mockUseLocation = vi.fn();
+    vi.mock('react-router-dom', async () => {
+      const actual = await vi.importActual('react-router-dom');
+      return {
+        ...actual,
+        useLocation: () => mockUseLocation,
+        useNavigate: () => vi.fn()
+      };
+    });
+    
+    renderWithRouter();
+    
+    await waitFor(() => {
+      expect(screen.getByText('Test Product')).toBeInTheDocument();
+    });
+    
+    // Größenvariante auswählen
+    const sizeOption = screen.getByText('M');
+    fireEvent.click(sizeOption);
+    
+    // URL-Parameter sollte aktualisiert werden
+    expect(mockUseLocation).toHaveBeenCalledWith(expect.objectContaining({
+      search: expect.stringContaining('size=M')
+    }));
+  });
+
+  // State Management Tests
+  it('should update product quantity when changing quantity input', async () => {
+    renderWithRouter();
+    
+    await waitFor(() => {
+      expect(screen.getByText('Test Product')).toBeInTheDocument();
+    });
+    
+    const quantityInput = screen.getByLabelText('Quantity');
+    fireEvent.change(quantityInput, { target: { value: '5' } });
+    
+    expect(quantityInput).toHaveValue('5');
+  });
+
+  it('should disable add to cart button when product is out of stock', async () => {
+    const outOfStockProduct = { ...mockProduct, stock: 0 };
+    productApi.getProductById.mockResolvedValue(outOfStockProduct);
+    
+    renderWithRouter();
+    
+    await waitFor(() => {
+      expect(screen.getByText('Test Product')).toBeInTheDocument();
+      expect(screen.getByText('Out of Stock')).toBeInTheDocument();
+    });
+    
+    const addToCartButton = screen.getByText('Add to Cart');
+    expect(addToCartButton).toBeDisabled();
+  });
+
+  it('should show quantity error when exceeding available stock', async () => {
+    renderWithRouter();
+    
+    await waitFor(() => {
+      expect(screen.getByText('Test Product')).toBeInTheDocument();
+    });
+    
+    const quantityInput = screen.getByLabelText('Quantity');
+    fireEvent.change(quantityInput, { target: { value: '15' } });
+    
+    expect(screen.getByText('Exceeds available stock (10 items)')).toBeInTheDocument();
+  });
+
+  // Snapshot Tests
+  it('should match snapshot with product data', async () => {
+    const { container } = renderWithRouter();
+    
+    await waitFor(() => {
+      expect(screen.getByText('Test Product')).toBeInTheDocument();
+    });
+    
+    expect(container).toMatchSnapshot();
+  });
+
+  it('should match snapshot with error state', async () => {
+    productApi.getProductById.mockRejectedValue(new Error('Failed to fetch product'));
+    
+    const { container } = renderWithRouter();
+    
+    await waitFor(() => {
+      expect(screen.getByText('Error: Failed to fetch product')).toBeInTheDocument();
+    });
+    
+    expect(container).toMatchSnapshot();
+  });
+});
+</example> 

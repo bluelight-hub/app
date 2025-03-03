@@ -1,0 +1,132 @@
+---
+description: ENFORCE spezifische Teststandards für Molecule-Komponenten
+globs: packages/frontend/src/components/molecules/**/*.test.tsx
+alwaysApply: false
+---
+# Molecule Component Tests
+
+## Context
+- Gilt für alle Molecule-Komponenten im Frontend
+- Moleküle kombinieren mehrere Atome zu einer funktionalen Einheit
+- Folgt den Grundsätzen aus der 300-atomic-design-tests.mdc
+
+## Requirements
+
+1. **Testdateinamenskonvention**
+   - Namensschema: `KomponentenName.test.tsx`
+   - Platzierung im gleichen Verzeichnis wie die Komponente (`components/molecules/`)
+
+2. **Testart und -umfang**
+   - **Unit Tests** (mindestens 3):
+     - Rendering ohne Fehler
+     - Überprüfung aller Atom-Komponenten innerhalb der Molecule-Komponente
+     - Überprüfung der Properties/Props-Weiterleitung an untergeordnete Komponenten
+     - Überprüfung von CSS-Klassen und Styling
+   
+   - **Interaktions-Tests** (mindestens 2):
+     - Testen aller benutzerinteraktiven Elemente (Klicks, Hover, Input, etc.)
+     - Validierung interner State-Änderungen
+     - Überprüfung der Callbacks an übergeordnete Komponenten
+   
+   - **Integration Tests** (mindestens 2):
+     - Verhalten der Komponente in einem Container/Layout
+     - Interaktion mit anderen Komponenten
+     - Überprüfung der Datenübergabe zwischen Komponenten
+   
+   - **Snapshot Tests** (mindestens 1-2):
+     - Grundversion der Komponente
+     - Varianten mit unterschiedlichen Props/States
+
+3. **Mocking**
+   - Mock aller verwendeten Atom-Komponenten, wenn nötig
+   - Klare Dokumentation der Mocks
+   - Teste mit echten und gemockten Atom-Komponenten
+
+4. **Komponentenspezifische Tests**
+   - Teste die Integration der enthaltenen Atom-Komponenten
+   - Validiere die Konsistenz der Datenübergabe zwischen Komponenten
+   - Überprüfe konditionales Rendering (wenn-dann-Logik)
+   - Teste Responsive-Verhalten, wenn relevant
+
+5. **Test Coverage**
+   - Mindestens 85% Testabdeckung für Molecule-Komponenten anstreben
+   - Alle Public Props und Events testen
+   - Edge Cases und Fehlerbehandlung explizit testen
+
+6. **Accessibility**
+   - Teste semantisch korrekte Verwendung von HTML-Elementen
+   - Überprüfe ARIA-Attribute, wenn vorhanden
+   - Teste Keyboard-Navigation, wenn relevant
+
+## Examples
+
+<example>
+// SearchBar.test.tsx
+import { render, screen, fireEvent } from '@testing-library/react';
+import { describe, it, expect, vi } from 'vitest';
+import SearchBar from './SearchBar';
+
+describe('SearchBar', () => {
+  // Unit Test - Rendering
+  it('should render all child components correctly', () => {
+    render(<SearchBar placeholder="Search..." onSearch={() => {}} data-testid="search-bar" />);
+    
+    // Überprüfe, ob alle Atom-Komponenten gerendert wurden
+    const inputElement = screen.getByPlaceholderText('Search...');
+    const buttonElement = screen.getByRole('button');
+    
+    expect(inputElement).toBeInTheDocument();
+    expect(buttonElement).toBeInTheDocument();
+  });
+
+  // Interaktions-Test
+  it('should call onSearch with input value when search button is clicked', () => {
+    const handleSearch = vi.fn();
+    render(<SearchBar placeholder="Search..." onSearch={handleSearch} data-testid="search-bar" />);
+    
+    const inputElement = screen.getByPlaceholderText('Search...');
+    const buttonElement = screen.getByRole('button');
+    
+    fireEvent.change(inputElement, { target: { value: 'Test Query' } });
+    fireEvent.click(buttonElement);
+    
+    expect(handleSearch).toHaveBeenCalledWith('Test Query');
+  });
+
+  // Interaktions-Test - Enter-Taste
+  it('should trigger search on Enter key press', () => {
+    const handleSearch = vi.fn();
+    render(<SearchBar placeholder="Search..." onSearch={handleSearch} data-testid="search-bar" />);
+    
+    const inputElement = screen.getByPlaceholderText('Search...');
+    
+    fireEvent.change(inputElement, { target: { value: 'Test Query' } });
+    fireEvent.keyDown(inputElement, { key: 'Enter', code: 'Enter' });
+    
+    expect(handleSearch).toHaveBeenCalledWith('Test Query');
+  });
+
+  // Integration Test
+  it('should work in a navbar context', () => {
+    const handleSearch = vi.fn();
+    render(
+      <nav data-testid="navbar">
+        <div className="navbar-content">
+          <SearchBar placeholder="Search..." onSearch={handleSearch} data-testid="search-bar" />
+        </div>
+      </nav>
+    );
+    
+    const navbar = screen.getByTestId('navbar');
+    const searchBar = screen.getByTestId('search-bar');
+    
+    expect(navbar).toContainElement(searchBar);
+  });
+
+  // Snapshot Test
+  it('should match snapshot', () => {
+    const { container } = render(<SearchBar placeholder="Search..." onSearch={() => {}} data-testid="search-bar" />);
+    expect(container).toMatchSnapshot();
+  });
+});
+</example> 

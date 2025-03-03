@@ -1,0 +1,82 @@
+---
+description: ENFORCE consistent context organization in the src/contexts directory
+globs: ["packages/frontend/src/contexts/**/*.tsx", "packages/frontend/src/hooks/use*.tsx"]
+---
+# ENFORCE consistent context organization in the src/contexts directory
+
+## Context
+
+Context APIs sind ein zentraler Bestandteil moderner React-Anwendungen. Um eine konsistente und wartbare Codestruktur zu gewährleisten, ist es wichtig, dass Contexts an einem zentralen Ort gespeichert werden und nach einheitlichen Muster strukturiert sind.
+
+## Rule
+
+- Alle Context-Definitionen MÜSSEN im Verzeichnis `src/contexts/` platziert werden.
+- Context-Definitionen MÜSSEN NICHT unter `src/router/` platziert werden.
+- Jeder Context muss in einer separaten Datei mit dem Namen `<Name>Context.tsx` definiert werden.
+- Context-Hooks MÜSSEN in separaten Dateien im `src/hooks/` Verzeichnis definiert werden, benannt als `use<Name>.tsx`.
+- Context-Provider MÜSSEN im jeweiligen Context definiert und exportiert werden.
+- Ein Context-Interface MUSS die Eigenschaften und Methoden definieren, die der Context bereitstellt.
+
+## Examples
+
+### Gutes Beispiel für einen Context:
+
+```tsx
+// src/contexts/AuthContext.tsx
+import React, { createContext, ReactNode, useState } from 'react';
+
+export interface AuthContextType {
+  user: User | null;
+  isAuthenticated: boolean;
+  login: (email: string, password: string) => Promise<boolean>;
+  logout: () => void;
+}
+
+export const AuthContext = createContext<AuthContextType | null>(null);
+
+interface AuthProviderProps {
+  children: ReactNode;
+}
+
+export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
+  // Implementierung...
+};
+
+export default AuthContext;
+```
+
+### Gutes Beispiel für einen Context-Hook:
+
+```tsx
+// src/hooks/useAuth.tsx
+import { useContext } from 'react';
+import { AuthContext, AuthContextType } from '../contexts/AuthContext';
+
+export const useAuth = (): AuthContextType => {
+  const context = useContext(AuthContext);
+  if (!context) {
+    throw new Error('useAuth must be used within an AuthProvider');
+  }
+  return context;
+};
+```
+
+### Schlechtes Beispiel - Context an falschem Ort:
+
+```tsx
+// ❌ BAD: src/router/auth/AuthContext.tsx
+import React, { createContext } from 'react';
+
+// Dies verstößt gegen die Regel, die besagt, dass Contexts im contexts/ Verzeichnis sein sollten
+```
+
+## Reasoning
+
+Eine konsistente Platzierung und Struktur für Contexts:
+
+1. Verbessert die Auffindbarkeit und Wartbarkeit des Codes
+2. Verhindert, dass Logik in falsche Schichten (z.B. Router) eingebaut wird 
+3. Trennt Kontext-Definition von Kontext-Verwendung
+4. Fördert die Wiederverwendbarkeit von Hooks
+
+Die Trennung von Context-Definition und Hook verbessert die Testbarkeit und Modularität des Codes. 

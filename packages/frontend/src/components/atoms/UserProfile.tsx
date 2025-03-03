@@ -1,9 +1,11 @@
 import React from 'react';
 import { useUserProfileStore } from '../../stores/useUserProfileStore';
+import { BaseAtomProps } from '../../utils/types';
 
-interface UserProfileProps {
+interface UserProfileProps extends BaseAtomProps {
     href: string;
     onClick?: () => void;
+    hideText?: boolean;
 }
 
 /**
@@ -12,6 +14,8 @@ interface UserProfileProps {
 const UserProfile: React.FC<UserProfileProps> = ({
     href,
     onClick,
+    hideText = false,
+    'data-testid': dataTestId = 'user-profile'
 }) => {
     const profile = useUserProfileStore((state) => state.profile);
 
@@ -21,6 +25,7 @@ const UserProfile: React.FC<UserProfileProps> = ({
         <a
             href={href}
             onClick={onClick}
+            data-testid={dataTestId}
             className="flex w-full h-12 items-center gap-x-4 px-6 py-2 text-sm/6 font-semibold text-gray-900 dark:text-gray-100 hover:bg-gray-50 dark:hover:bg-gray-800"
         >
             <img
@@ -28,8 +33,8 @@ const UserProfile: React.FC<UserProfileProps> = ({
                 src={profile.imageUrl}
                 alt={profile.name}
             />
-            <span className="sr-only">Your profile</span>
-            <span aria-hidden="true">{profile.name}</span>
+            <span className="sr-only">Dein Profil</span>
+            {!hideText && <span aria-hidden="true">{profile.name}</span>}
         </a>
     );
 };

@@ -1,0 +1,18 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`IndexPage > matches snapshot 1`] = `
+<div>
+  <div
+    class="flex flex-col items-center justify-center h-screen w-screen"
+  >
+    <button
+      class="ant-btn css-dev-only-do-not-override-19lec04 ant-btn-default ant-btn-color-default ant-btn-variant-outlined"
+      type="button"
+    >
+      <span>
+        Anmelden
+      </span>
+    </button>
+  </div>
+</div>
+`;
