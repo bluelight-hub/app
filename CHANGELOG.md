@@ -1,3 +1,37 @@
+## Version [v1.0.0-alpha.12](https://github.com/bluelight-hub/app/compare/v1.0.0-alpha.11...v1.0.0-alpha.12) – Veröffentlicht am 2025-03-03
+
+## ✨ Neue Funktionen
+Die folgenden neuen Features wurden hinzugefügt:
+- [`b792b8d`](https://github.com/bluelight-hub/app/commit/b792b8d) (frontend): wip 
+
+- [`1f2660f`](https://github.com/bluelight-hub/app/commit/1f2660f) (frontend): Reorganize component structure and implement tests 
+
+## 🔧 Tool Verbesserungen
+Verbesserungen an den Werkzeugen:
+- [`a52d1d7`](https://github.com/bluelight-hub/app/commit/a52d1d7) (ci): Release-Workflow von Tests abhängig machen 
+
+- [`cbf1cfc`](https://github.com/bluelight-hub/app/commit/cbf1cfc) (ci): Coverage-Reports als GitHub Pages veröffentlichen 
+
+- [`9b16037`](https://github.com/bluelight-hub/app/commit/9b16037) (ci): experiment getting the pipeline green 
+
+- [`caf28ed`](https://github.com/bluelight-hub/app/commit/caf28ed) (ci): GitHub Pages Deployment auf v3 aktualisieren 
+
+- [`ac2cd50`](https://github.com/bluelight-hub/app/commit/ac2cd50) (ci): GitHub Pages Deployment auf v3 aktualisieren 
+
+- [`96d9cab`](https://github.com/bluelight-hub/app/commit/96d9cab) (ci): Try to fix ci build 
+
+- [`b2eb23f`](https://github.com/bluelight-hub/app/commit/b2eb23f) (build): Verbessere Test-Setup und Docker-Konfiguration 
+
+- [`cd038bd`](https://github.com/bluelight-hub/app/commit/cd038bd) (ci): Revert coverage reports back to Codecov 
+
+- [`f206f9d`](https://github.com/bluelight-hub/app/commit/f206f9d) (ci): Revert coverage reports back to Codecov 
+
+- [`e59da98`](https://github.com/bluelight-hub/app/commit/e59da98) (frontend): Rename test:coverage script to test:cov for consistency 
+
+
+
+# [1.0.0-alpha.12](https://github.com/bluelight-hub/app/compare/v1.0.0-alpha.11...v1.0.0-alpha.12) (2025-03-03)
+
 ## Version [v1.0.0-alpha.11](https://github.com/bluelight-hub/app/compare/v1.0.0-alpha.10...v1.0.0-alpha.11) – Veröffentlicht am 2025-02-25
 
 ## ✨ Neue Funktionen
