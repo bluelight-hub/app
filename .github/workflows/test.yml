@@ -75,7 +75,7 @@ jobs:
         uses: actions/upload-pages-artifact@v3
         with:
           path: coverage-report/
-          name: coverage-report
+          name: github-pages
           
   deploy:
     # nur ausführen, wenn auf main gemergt wurde oder ggf. auf andere permanente Branches
@@ -88,4 +88,4 @@ jobs:
         uses: actions/deploy-pages@v4
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
-          artifact_name: coverage-report
+          artifact_name: github-pages
