@@ -11,12 +11,6 @@ concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
-# Erforderliche Berechtigungen für GitHub Pages
-permissions:
-  contents: read
-  pages: write
-  id-token: write
-
 jobs:
   test:
     runs-on: ubuntu-latest
@@ -52,40 +46,12 @@ jobs:
       - name: Run coverage tests
         run: pnpm test:cov
         
-      - name: Create merged coverage report
-        run: |
-          mkdir -p coverage-report
-          cp -r packages/*/coverage/lcov-report/* coverage-report/
-          # Create an index page that links to each package's coverage
-          echo "<html><head><title>Coverage Reports</title></head><body>" > coverage-report/index.html
-          echo "<h1>Coverage Reports</h1><ul>" >> coverage-report/index.html
-          for dir in packages/*/coverage/lcov-report; do
-            pkgname=$(echo $dir | cut -d/ -f2)
-            echo "<li><a href='./$pkgname/'>$pkgname</a></li>" >> coverage-report/index.html
-          done
-          echo "</ul></body></html>" >> coverage-report/index.html
-      
-      - name: Upload coverage artifact
-        uses: actions/upload-artifact@v4
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v3
         with:
-          name: coverage-report
-          path: coverage-report/
-      
-      - name: Upload Pages artifact
-        uses: actions/upload-pages-artifact@v3
-        with:
-          path: coverage-report/
-          name: github-pages
+          token: ${{ secrets.CODECOV_TOKEN }}
+          files: packages/*/coverage/coverage-final.json
+          flags: unittests
+          name: codecov-umbrella
+          fail_ci_if_error: true 
           
-  deploy:
-    # nur ausführen, wenn auf main gemergt wurde oder ggf. auf andere permanente Branches
-    if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/alpha')
-    runs-on: ubuntu-latest
-    needs: test
-    steps:
-      - name: Deploy to GitHub Pages
-        id: deployment
-        uses: actions/deploy-pages@v4
-        with:
-          token: ${{ secrets.GITHUB_TOKEN }}
-          artifact_name: github-pages
