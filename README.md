@@ -2,6 +2,10 @@
 
 [![codecov](https://codecov.io/gh/bluelight-hub/app/graph/badge.svg?token=I5Z3C0FSLL)](https://codecov.io/gh/bluelight-hub/app)
 
+## Charts
+
+![Coverage](https://codecov.io/gh/bluelight-hub/app/graphs/sunburst.svg?token=I5Z3C0FSLL)
+
 ## Übersicht
 
 BlueLight Hub ist eine moderne Anwendung, die mit einer Monorepo-Struktur entwickelt wurde. Die Anwendung besteht aus einem Frontend (Vite/React mit Tauri-Integration) und einem Backend (NestJS), die über ein gemeinsames Modul kommunizieren.
