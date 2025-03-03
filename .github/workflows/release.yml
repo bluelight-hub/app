@@ -1,12 +1,11 @@
 name: Release
 run-name: Release ${{ github.ref_name }}#${{ github.run_number }}
 on:
-  push:
-    branches:
-      - main
-      - alpha
-      - beta
-      - next
+  workflow_run:
+    workflows: ["Tests"]
+    branches: [main, alpha, beta, next]
+    types: 
+      - completed
 
 env:
   REGISTRY: ghcr.io
@@ -20,8 +19,17 @@ permissions:
   packages: write
 
 jobs:
+  check-test-success:
+    name: Check Test Success
+    runs-on: ubuntu-latest
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+    steps:
+      - name: Test success confirmed
+        run: echo "Tests were successful, proceeding with release"
+
   build-backend:
     name: Build Backend
+    needs: [check-test-success]
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository

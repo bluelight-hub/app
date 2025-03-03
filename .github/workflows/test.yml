@@ -6,6 +6,11 @@ on:
   pull_request:
     branches: [ main, develop, feature/*, alpha, beta, release/* ]
 
+# Konfiguration für Abbruch laufender Tests bei neuem Push
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   test:
     runs-on: ubuntu-latest
