@@ -14,6 +14,9 @@ WORKDIR /app
 RUN pnpm install --frozen-lockfile
 COPY packages/shared/ ./packages/shared/
 COPY packages/frontend/ ./packages/frontend/
+# Set environment variables to skip tests during build
+ENV NODE_ENV=production
+ENV SKIP_TESTS=true
 RUN cd packages/frontend && pnpm build
 
 # Backend build stage

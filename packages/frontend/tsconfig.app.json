@@ -44,5 +44,8 @@
       ]
     }
   },
-  "include": ["src"]
+  "include": [
+    "src",
+    "src/test/jest-dom.d.ts"
+  ]
 }

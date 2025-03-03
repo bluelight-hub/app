@@ -47,3 +47,13 @@ docker-compose*
 venv
 **/__pycache__
 *.pyc 
+
+packages/frontend/src-tauri/target
+**/*.test.ts
+**/*.spec.ts
+**/*.test.tsx
+**/*.spec.tsx
+**/*.test.jsx
+**/*.spec.jsx
+**/*.test.js
+**/*.spec.js
