@@ -1,6 +1,7 @@
 ---
 description: ENFORCE consistent floating button usage across mobile views
-globs: ["packages/frontend/src/components/**/*.tsx"]
+globs:
+- packages/frontend/src/components/**/*.tsx
 alwaysApply: false
 ---
 

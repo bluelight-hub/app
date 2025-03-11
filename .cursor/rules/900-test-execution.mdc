@@ -1,6 +1,6 @@
 ---
-description: "ENFORCE test execution after code or test changes to prevent regressions and ensure quality
-globs: **/*.{tsx,ts}
+description: ENFORCE test execution after code or test changes to prevent regressions and ensure quality
+globs: 
 alwaysApply: false
 ---
 # Ausführung von Tests nach Code- oder Teständerungen

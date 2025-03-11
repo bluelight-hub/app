@@ -1,28 +1,32 @@
 ---
 description: ALWAYS use when asked to CREATE or UPDATE a rule or taught a lesson from the user. Ensures best-practice format for new rules.
 globs: .cursor/rules/*.mdc
+alwaysApply: false
 ---
 
 # Cursor Rules Format
 
 ## Context
 - Gilt für alle Fälle, in denen neue Rules angelegt oder bestehende Rules aktualisiert werden.
-- Nutze es auch, wenn der User neue “Lessons” mitgibt, die als neue Rule festgehalten werden sollen.
+- Nutze es auch, wenn der User neue "Lessons" mitgibt, die als neue Rule festgehalten werden sollen.
 
 ## Requirements
 
 1. **Dateiname & Ort**
    - Ablegen unter `.cursor/rules/`
    - Endung `.mdc`
-   - Nutze das Schema `PREFIX-name.mdc` (z. B. `000-rule-creation-standards.mdc`)
+   - Nutze das Schema `PREFIX-name.mdc` (z. B. `000-rule-creation-standards.mdc`)
 
 2. **Frontmatter**
    - Muss Felder `description` und `globs` enthalten
    - `description`: Im Format `ACTION TRIGGER OUTCOME`
    - `globs`: Glob-Muster für die Zuordnung dieser Rule zu bestimmten Dateien
+     - KEINE Anführungszeichen um Glob-Muster verwenden
+     - Mehrere Globs als Array mit `-` Listen-Format
+     - Glob-Muster müssen valide sein und dem Standard-Glob-Format folgen
 
 3. **Body-Struktur**
-   - **# Haupttitel** (z. B. Name der Rule)
+   - **# Haupttitel** (z. B. Name der Rule)
    - **## Context** (Wann/warum gilt die Rule?)
    - **## Requirements** (Anforderungen, Richtlinien, Checkliste)
    - **## Examples** (mindestens ein gültiges und evtl. ein ungültiges Beispiel)
@@ -37,13 +41,15 @@ globs: .cursor/rules/*.mdc
 5. **Token-Effizienz**
    - Vermeide überflüssige Erklärungen
    - Behalte nur, was für den AI-Agenten relevant ist
-   - Nutze das “ACTION TRIGGER OUTCOME”-Prinzip in `description` und in den Requirements
+   - Nutze das "ACTION TRIGGER OUTCOME"-Prinzip in `description` und in den Requirements
 
 ## Examples
 
 <example>
 description: ALWAYS use for rules creation or update
-globs: .cursor/rules/*.mdc
+globs:
+- .cursor/rules/*.mdc
+- .cursor/rules/**/*.mdc
 
 # Example Rule
 
@@ -57,6 +63,21 @@ globs: .cursor/rules/*.mdc
 
 <example type="invalid">
 description: This is a very long explanation that is not needed, so it's not token-efficient
-globs: "**/*.mdc"
-<!-- Missing sections and overly verbose text -->
+globs: "**/*.mdc"  # FALSCH: Keine Anführungszeichen verwenden!
+
+# Ungültiges Beispiel
+- Glob-Muster in Anführungszeichen
+- Fehlende Struktur
+- Zu ausführliche Beschreibung
+</example>
+
+<example>
+description: ENFORCE consistent file structure
+globs:
+- src/**/*.ts
+- src/**/*.tsx
+- test/**/*.test.ts
+
+# Gültiges Beispiel mit mehreren Globs
+Zeigt die korrekte Verwendung mehrerer Glob-Muster im Array-Format
 </example>

@@ -1,6 +1,7 @@
 ---
 description: REJECT .mdc files outside .cursor/rules and SUGGEST moving them there
-globs: "*"
+globs: *.mdc
+alwaysApply: false
 ---
 
 # Rule Location Enforcement

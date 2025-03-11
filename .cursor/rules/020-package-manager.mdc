@@ -1,8 +1,8 @@
 ---
 description: REQUIRE using pnpm for dependency management across all packages
-globs: "*"
+globs: 
+alwaysApply: false
 ---
-
 # Package Manager Usage
 
 ## Context

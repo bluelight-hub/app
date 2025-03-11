@@ -1,6 +1,8 @@
 ---
 description: ENFORCE consistent context organization in the src/contexts directory
-globs: ["packages/frontend/src/contexts/**/*.tsx", "packages/frontend/src/hooks/use*.tsx"]
+globs:
+- packages/frontend/src/contexts/**/*.tsx
+- packages/frontend/src/hooks/use*.tsx
 ---
 # ENFORCE consistent context organization in the src/contexts directory
 

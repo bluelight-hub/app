@@ -1,6 +1,7 @@
 ---
 description: ENFORCE standard React Router structure in packages/frontend/src/routes
-globs: packages/frontend/src/routes/**/*.{ts,tsx,jsx,js}
+globs: packages/frontend/src/router/*
+alwaysApply: false
 ---
 
 # Frontend Routing

@@ -1,6 +1,7 @@
 ---
 description: ENFORCE standard NestJS Terminus health checks at /api/health
-globs: "*"
+globs:
+- *
 ---
 
 # Health Check Standards

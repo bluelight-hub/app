@@ -1,6 +1,7 @@
 ---
 description: ALWAYS use for writing or updating Markdown documentation
-globs: **/*.{md,mdx}
+globs: *.md,*.mdx
+alwaysApply: false
 ---
 
 # Markdown Documentation Standards
@@ -11,7 +12,7 @@ globs: **/*.{md,mdx}
 
 ## Requirements
 1. **Allgemeines**
-   - Offizielle Markdown-Syntax einhalten ([Markdown Guide](mdc:https://www.markdownguide.org))
+   - Offizielle Markdown-Syntax einhalten ([Markdown Guide](mdc:https:/www.markdownguide.org))
    - Klare Dokumentstruktur
 2. **Heading-Stil**
    - ATX-Headings mit Leerzeichen (z. B. `# Titel`)

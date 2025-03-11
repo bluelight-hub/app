@@ -1,6 +1,12 @@
 ---
 description: ENFORCE systematische Analyse und Verbesserung der Test-Coverage bei ungetesteten Codeteilen
-globs: ["**/*.spec.ts", "**/*.test.ts", "**/*.spec.tsx", "**/*.test.tsx", "**/jest.config.js", "**/jest.config.ts"]
+globs:
+- **/*.spec.ts
+- **/*.test.ts
+- **/*.spec.tsx
+- **/*.test.tsx
+- **/jest.config.js
+- **/jest.config.ts
 alwaysApply: false
 ---
 

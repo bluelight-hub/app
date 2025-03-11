@@ -1,6 +1,7 @@
 ---
-description: ENFORCE best practices for writing and maintaining code comments
-globs: ["**/*.ts", "**/*.tsx", "**/*.js", "**/*.jsx"]
+description: 
+globs: 
+alwaysApply: true
 ---
 
 # Richtlinien für effektive Code-Kommentare

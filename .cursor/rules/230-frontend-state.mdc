@@ -1,6 +1,7 @@
 ---
 description: ENFORCE Zustand-based store for global or domain-specific states
-globs: packages/frontend/src/stores/**/*.ts
+globs: 
+alwaysApply: false
 ---
 
 # Frontend State Management

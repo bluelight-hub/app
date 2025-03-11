@@ -1,6 +1,7 @@
 ---
-description: When working with the backend
-globs: 
+description: 
+globs: packages/backend/*
+alwaysApply: false
 ---
 # Backend-Architektur
 

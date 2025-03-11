@@ -1,6 +1,7 @@
 ---
-description: RUN pnpm generate-client whenever DTOs or Controllers in 'shared' change
-globs: shared/(dtos|controllers)/**/*.ts
+description: RUN pnpm generate-client whenever DTOs or Controllers in 'backend' change
+globs: 
+alwaysApply: false
 ---
 
 # Generate Client Workflow
@@ -11,7 +12,7 @@ globs: shared/(dtos|controllers)/**/*.ts
 
 ## Requirements
 1. **Trigger**
-   - Jede Änderung unter `shared/dtos/` oder `shared/controllers/`
+   - Jede Änderung unter `backend/dtos/` oder `backend/controllers/`
 2. **Befehl**
    - `pnpm generate-client` (aus dem `shared` Ordner heraus)
 3. **Automatisierung**

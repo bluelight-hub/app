@@ -1,6 +1,7 @@
 ---
 description: ENFORCE usage of Ant Design and Tailwind for React styling
-globs: packages/frontend/src/**/*.{ts,tsx,css}
+globs: packages/frontend/src/**/*.ts,packages/frontend/src/**/*.tsx,packages/frontend/src/**/*.css
+alwaysApply: false
 ---
 
 # Frontend Styling Standards

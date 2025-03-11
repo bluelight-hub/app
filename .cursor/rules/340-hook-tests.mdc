@@ -1,6 +1,7 @@
 ---
 description: ENFORCE standardisierte Testpraktiken für alle Custom React Hooks
-globs: packages/frontend/src/hooks/*.test.ts{,x}
+globs: packages/frontend/src/hooks/*.test.ts,packages/frontend/src/hooks/*.test.tsx
+alwaysApply: false
 ---
 
 # React Hook Tests

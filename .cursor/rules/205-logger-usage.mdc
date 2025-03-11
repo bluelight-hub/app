@@ -1,6 +1,7 @@
 ---
 description: ENFORCE standard logger usage in both frontend and backend
-globs: "*"
+globs:
+- *
 ---
 
 # Logger Usage Standards

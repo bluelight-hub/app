@@ -1,6 +1,7 @@
 ---
-description: SUGGEST best-practice commit messages with EMOJI(context): short desc
-globs: "*"
+description: SUGGEST best-practice commit messages with EMOJI(context): short description
+globs: 
+alwaysApply: false
 ---
 
 # Commit Message Standards

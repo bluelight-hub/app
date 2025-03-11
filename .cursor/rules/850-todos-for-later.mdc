@@ -1,6 +1,7 @@
 ---
-description: SUGGEST adding identified tasks to ai-notepad/todos.md for future reference
-globs: "*"
+description: 
+globs: 
+alwaysApply: true
 ---
 
 # ToDos for Later

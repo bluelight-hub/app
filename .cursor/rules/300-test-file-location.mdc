@@ -1,6 +1,7 @@
 ---
-description: ENFORCE placing test files in same directory as implementation with .test.ts extension
-globs: "**/*.test.ts"
+description: 
+globs: 
+alwaysApply: false
 ---
 
 # Test File Organization
