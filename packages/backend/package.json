@@ -6,6 +6,7 @@
     "dev": "nest start --watch",
     "docs": "compodoc -p tsconfig.json -d docs",
     "docs:serve": "compodoc -p tsconfig.json -d docs --serve",
+    "docs:cov": "pnpm compodoc --coverageTest -p tsconfig.json",
     "build": "nest build",
     "format": "prettier --write \"src/**/*.ts\"",
     "start": "nest start",
@@ -15,7 +16,7 @@
     "lint": "eslint \"{src,apps,libs,test}/**/*.ts\"",
     "test": "jest",
     "test:watch": "jest --watch",
-    "test:cov": "jest --coverage",
+    "test:cov": "jest --coverage && pnpm docs:cov",
     "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand",
     "test:e2e": "jest --config ./test/jest-e2e.json"
   },

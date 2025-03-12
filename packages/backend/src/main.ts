@@ -6,6 +6,12 @@ import packageJson from '../package.json';
 import { AppModule } from './app.module';
 import { logger } from './logger/consola.logger';
 
+/**
+ * Bootstrap-Funktion zum Initialisieren und Starten der NestJS-Anwendung.
+ * Konfiguriert API-Versionierung, Swagger-Dokumentation, CORS und Validierungs-Pipes.
+ * 
+ * @returns {Promise<void>} Promise, das aufgelöst wird, wenn die Anwendung gestartet ist
+ */
 async function bootstrap() {
     const app = await NestFactory.create(AppModule);
 

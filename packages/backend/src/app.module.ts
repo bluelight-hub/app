@@ -5,6 +5,12 @@ import { join } from 'path';
 import { HealthModule } from './health/health.module';
 import { ConsolaLogger } from './logger/consola.logger';
 
+/**
+ * Haupt-Anwendungsmodul, das die Abhängigkeiten und Provider der Anwendung konfiguriert.
+ * Richtet Umgebungskonfiguration, Datenbankverbindung und Gesundheitschecks ein.
+ * 
+ * @class AppModule
+ */
 @Module({
     imports: [
         ConfigModule.forRoot({

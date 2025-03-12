@@ -40,7 +40,8 @@ alwaysApply: true
 
 6. **Einheitlicher Stil**
    - Konsistente Formatierung
-   - Einheitliche Sprache (Deutsch für Kommentare)
+   - Einheitliche Sprache (Deutsch für Kommentare und JSDoc-Dokumentation)
+   - Code, Variablen- und Funktionsnamen bleiben auf Englisch
    - Gleichbleibender Ton im ganzen Projekt
 
 7. **Kontext liefern**
@@ -57,6 +58,15 @@ alwaysApply: true
    - Kommentare nahe am zugehörigen Code platzieren
    - Block-Kommentare über dem zu erklärenden Code
    - Inline-Kommentare nur für kurze Hinweise
+
+10. **JSDoc für alle Klassen und Methoden**
+   - Jede Klasse muss mit JSDoc-Kommentar dokumentiert werden
+   - Jede Methode muss mit JSDoc-Kommentar dokumentiert werden
+   - Parameter, Rückgabewerte und mögliche Fehler dokumentieren
+   - Bei komplexen Methoden Beispiele hinzufügen
+   - JSDoc-Kommentare bei Änderungen aktualisieren
+   - JSDoc-Beschreibungen und Erklärungen MÜSSEN auf Deutsch sein
+   - Technische Bezeichner in @param, @returns etc. bleiben auf Englisch
 
 ## Examples
 
@@ -95,5 +105,64 @@ function calcRoute(a, b, c) {
   
   // Gebe das Ergebnis zurück
   return result;
+}
+```
+
+## JSDoc-Beispiele
+
+```tsx
+/**
+ * Verwaltet die Benutzerauthentifizierung und -autorisierung.
+ * Verantwortlich für Login, Logout und Berechtigungsprüfungen.
+ * 
+ * @class AuthenticationManager
+ * @see UserService für Benutzeroperationen
+ */
+class AuthenticationManager {
+  /**
+   * Authentifiziert einen Benutzer mit seinen Anmeldedaten.
+   * Validiert die Eingaben und generiert ein JWT-Token bei erfolgreicher Anmeldung.
+   * 
+   * @param {string} username - Der Benutzername oder die E-Mail-Adresse
+   * @param {string} password - Das unverschlüsselte Passwort
+   * @returns {Promise<AuthResult>} Authentifizierungsergebnis mit Token bei Erfolg
+   * @throws {AuthenticationError} Bei ungültigen Anmeldedaten oder gesperrtem Konto
+   * @example
+   * const authResult = await authManager.login('user@example.com', 'password123');
+   * if (authResult.success) {
+   *   console.log('Login successful:', authResult.token);
+   * }
+   */
+  async login(username, password) {
+    // Implementierung...
+  }
+}
+```
+
+```tsx
+/**
+ * Definiert die Struktur eines Authentifizierungsergebnisses.
+ * Wird von AuthenticationManager.login() zurückgegeben.
+ * 
+ * @interface AuthResult
+ */
+interface AuthResult {
+  /**
+   * Gibt an, ob die Authentifizierung erfolgreich war
+   * @type {boolean}
+   */
+  success: boolean;
+  
+  /**
+   * Das JWT-Token bei erfolgreicher Anmeldung, sonst undefined
+   * @type {string|undefined}
+   */
+  token?: string;
+  
+  /**
+   * Fehlermeldung bei nicht erfolgreicher Anmeldung, sonst undefined
+   * @type {string|undefined}
+   */
+  errorMessage?: string;
 }
 ``` 
