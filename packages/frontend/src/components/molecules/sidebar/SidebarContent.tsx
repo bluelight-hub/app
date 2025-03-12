@@ -6,6 +6,7 @@ import { useThemeInternal } from '../../../hooks/useTheme';
 import { convertNavigationToMenuItems } from '../../../utils/navigationConverter';
 import Divider from '../../atoms/Divider';
 import Logo from '../../atoms/Logo';
+import { StatusIndicator } from '../../atoms/StatusIndicator';
 import UserProfile from '../../atoms/UserProfile';
 
 interface SidebarContentProps {
@@ -40,7 +41,7 @@ const SidebarContent: React.FC<SidebarContentProps> = ({ navigation, onNavigate 
 
             {/* Navigation Menus */}
             <nav className="flex flex-1 flex-col">
-                <div className="h-[calc(100vh-9.5rem)] overflow-y-auto">
+                <div className="h-[calc(100vh-12rem)] overflow-y-auto">
                     {/* Main Navigation */}
                     <Menu
                         theme={themeUtils.isDark ? 'dark' : 'light'}
@@ -66,6 +67,9 @@ const SidebarContent: React.FC<SidebarContentProps> = ({ navigation, onNavigate 
 
                 {/* User Profile (Footer) */}
                 <div className="mt-auto w-full shrink-0 overflow-hidden">
+                    <div className="px-6 py-2 flex items-center gap-2">
+                        <StatusIndicator withText />
+                    </div>
                     <UserProfile href="#" />
                 </div>
             </nav>

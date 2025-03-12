@@ -42,3 +42,7 @@ lerna-debug.log*
 # Database
 /data/*.db
 /data/*.db-journal 
+
+# generated docs
+docs
+docs/*

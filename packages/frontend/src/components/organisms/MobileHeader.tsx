@@ -3,6 +3,7 @@ import React from 'react';
 import { PiTextIndent } from 'react-icons/pi';
 import useMediaQuery from '../../hooks/useMediaQuery';
 import { useUserProfileStore } from '../../stores/useUserProfileStore';
+import { StatusIndicator } from '../atoms/StatusIndicator';
 import UserProfile from '../atoms/UserProfile';
 
 interface MobileHeaderProps {
@@ -32,7 +33,12 @@ const MobileHeader: React.FC<MobileHeaderProps> = ({
                 <span className="sr-only">Sidebar öffnen</span>
                 <PiTextIndent size={24} />
             </Button>
-            <div className="flex-1 text-sm/6 font-semibold text-gray-900 dark:text-gray-100">{title}</div>
+            <div className="flex-1 text-sm/6 font-semibold text-gray-900 dark:text-gray-100">
+                <div className="flex items-center gap-2">
+                    {title}
+                    <StatusIndicator />
+                </div>
+            </div>
             <div>
                 <UserProfile href="#" hideText={isSmallerScreen} />
             </div>

@@ -1,4 +1,4 @@
-import { Controller, Get } from '@nestjs/common';
+import { Controller, Get, VERSION_NEUTRAL } from '@nestjs/common';
 import {
     DiskHealthIndicator,
     HealthCheck,
@@ -9,7 +9,7 @@ import { InjectDataSource } from '@nestjs/typeorm';
 import * as os from 'os';
 import { DataSource } from 'typeorm';
 
-@Controller('api/health')
+@Controller({ path: 'api/health', version: VERSION_NEUTRAL })
 export class HealthController {
     constructor(
         private health: HealthCheckService,

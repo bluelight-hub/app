@@ -1,7 +1,7 @@
 ---
-description: ENFORCE standard logger usage in both frontend and backend
-globs:
-- *
+description: 
+globs: *
+alwaysApply: false
 ---
 
 # Logger Usage Standards

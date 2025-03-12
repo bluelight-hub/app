@@ -1,8 +1,7 @@
 ---
-description: ENFORCE consistent NATO date format usage across the application
-globs:
-- **/date.ts
-- **/*.tsx
+description: ENFORCE consistent date format usage across the application
+globs: 
+alwaysApply: false
 ---
 
 # NATO Date Format Guidelines

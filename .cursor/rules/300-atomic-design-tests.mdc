@@ -1,7 +1,6 @@
 ---
-description: ENFORCE standardized testing practices for all Atomic Design components to ensure consistent quality and maintainability
-globs:
-- packages/frontend/src/components/**/*.test.tsx
+description: 
+globs: packages/frontend/src/components/*
 alwaysApply: false
 ---
 # Atomic Design Component Tests

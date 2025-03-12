@@ -1,9 +1,8 @@
 ---
-description: ALWAYS use when asked to CREATE or UPDATE a rule or taught a lesson from the user. Ensures best-practice format for new rules.
-globs: .cursor/rules/*.mdc
+description: 
+globs: *.mdc
 alwaysApply: false
 ---
-
 # Cursor Rules Format
 
 ## Context
@@ -19,11 +18,23 @@ alwaysApply: false
 
 2. **Frontmatter**
    - Muss Felder `description` und `globs` enthalten
-   - `description`: Im Format `ACTION TRIGGER OUTCOME`
-   - `globs`: Glob-Muster für die Zuordnung dieser Rule zu bestimmten Dateien
-     - KEINE Anführungszeichen um Glob-Muster verwenden
-     - Mehrere Globs als Array mit `-` Listen-Format
-     - Glob-Muster müssen valide sein und dem Standard-Glob-Format folgen
+   - `description`: 
+     - Im Format `ACTION TRIGGER OUTCOME`
+     - ACTION: Verben wie ENFORCE, REQUIRE, REJECT, SUGGEST
+     - TRIGGER: Beschreibung des Anwendungsfalls
+     - OUTCOME: (optional) erwartetes Ergebnis nach "to" oder "for"
+     - IMMER in Englisch verfassen
+     - Beispiel: "ENFORCE standardized testing practices for all components to ensure quality"
+   - `globs`: 
+     - MUSS als YAML-Array mit `-` formatiert sein
+     - KEINE Anführungszeichen um Glob-Muster
+     - Korrekte Einrückung beachten
+     - Beispiel:
+       ```yaml
+       globs:
+       - src/**/*.ts
+       - test/**/*.test.ts
+       ```
 
 3. **Body-Struktur**
    - **# Haupttitel** (z. B. Name der Rule)
@@ -46,10 +57,10 @@ alwaysApply: false
 ## Examples
 
 <example>
-description: ALWAYS use for rules creation or update
+description: ENFORCE consistent code style to ensure maintainability
 globs:
-- .cursor/rules/*.mdc
-- .cursor/rules/**/*.mdc
+- src/**/*.ts
+- src/**/*.tsx
 
 # Example Rule
 
@@ -62,7 +73,7 @@ globs:
 </example>
 
 <example type="invalid">
-description: This is a very long explanation that is not needed, so it's not token-efficient
+description: This is a very long explanation that is not needed
 globs: "**/*.mdc"  # FALSCH: Keine Anführungszeichen verwenden!
 
 # Ungültiges Beispiel
@@ -72,12 +83,15 @@ globs: "**/*.mdc"  # FALSCH: Keine Anführungszeichen verwenden!
 </example>
 
 <example>
-description: ENFORCE consistent file structure
+description: ENFORCE consistent file structure for better organization
 globs:
 - src/**/*.ts
 - src/**/*.tsx
 - test/**/*.test.ts
 
 # Gültiges Beispiel mit mehreren Globs
-Zeigt die korrekte Verwendung mehrerer Glob-Muster im Array-Format
+Zeigt die korrekte Verwendung mehrerer Glob-Muster im Array-Format mit:
+- Korrekter YAML-Syntax
+- Ohne Anführungszeichen
+- Klare Einrückung
 </example>

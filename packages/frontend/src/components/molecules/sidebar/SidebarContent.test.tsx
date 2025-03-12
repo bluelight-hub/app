@@ -1,3 +1,4 @@
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { fireEvent, render, screen } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
@@ -41,16 +42,31 @@ vi.mock('../../../hooks/useTheme', async () => {
 });
 
 describe('SidebarContent', () => {
+    let queryClient: QueryClient;
+
     beforeEach(() => {
         vi.clearAllMocks();
+        queryClient = new QueryClient({
+            defaultOptions: {
+                queries: {
+                    retry: false
+                }
+            }
+        });
     });
 
-    it('renders successfully with navigation items', () => {
-        render(
-            <MemoryRouter>
-                <SidebarContent navigation={mockNavigation} />
-            </MemoryRouter>
+    const renderComponent = (props: { navigation: NavigationItem[], onNavigate?: () => void }) => {
+        return render(
+            <QueryClientProvider client={queryClient}>
+                <MemoryRouter>
+                    <SidebarContent {...props} />
+                </MemoryRouter>
+            </QueryClientProvider>
         );
+    };
+
+    it('renders successfully with navigation items', () => {
+        renderComponent({ navigation: mockNavigation });
 
         // Check if the logo and title are rendered
         expect(screen.getByText('Bluelight Hub')).toBeInTheDocument();
@@ -62,14 +78,10 @@ describe('SidebarContent', () => {
     it('calls onNavigate when a menu item is clicked', () => {
         const mockOnNavigate = vi.fn();
 
-        render(
-            <MemoryRouter>
-                <SidebarContent
-                    navigation={mockNavigation}
-                    onNavigate={mockOnNavigate}
-                />
-            </MemoryRouter>
-        );
+        renderComponent({
+            navigation: mockNavigation,
+            onNavigate: mockOnNavigate
+        });
 
         // Click on the menu item
         fireEvent.click(screen.getByText('Test Item'));
@@ -90,11 +102,7 @@ describe('SidebarContent', () => {
             toggleTheme: vi.fn(),
         });
 
-        render(
-            <MemoryRouter>
-                <SidebarContent navigation={mockNavigation} />
-            </MemoryRouter>
-        );
+        renderComponent({ navigation: mockNavigation });
 
         // Check if dark mode classes are applied
         const container = screen.getByText('Bluelight Hub').closest('div');

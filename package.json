@@ -5,6 +5,7 @@
     "scripts": {
         "dev": "pnpm -r dev",
         "build": "pnpm -r build",
+        "generate-api": "pnpm -r generate-api",
         "test": "pnpm -r test",
         "test:ui": "pnpm -r test:ui",
         "test:cov": "pnpm -r test:cov"
@@ -16,6 +17,7 @@
     "pnpm": {
         "onlyBuiltDependencies": [
             "@nestjs/core",
+            "@openapitools/openapi-generator-cli",
             "@swc/core",
             "esbuild"
         ]

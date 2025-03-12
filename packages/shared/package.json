@@ -1,5 +1,14 @@
 {
   "name": "@bluelight-hub/shared",
   "version": "1.0.0-alpha.13",
-  "private": true
+  "private": true,
+  "scripts": {
+    "format": "prettier --write .",
+    "generate-api": "openapi-generator-cli generate -g=typescript-fetch -i http://localhost:3000/api-json -o ./client && pnpm format"
+  },
+  "devDependencies": {
+    "@openapitools/openapi-generator-cli": "^2.17.0",
+    "prettier": "^3.5.3",
+    "typescript": "^5.7.3"
+  }
 }
