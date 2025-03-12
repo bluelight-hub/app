@@ -1,3 +1,15 @@
+## Version [v1.0.0-alpha.13](https://github.com/bluelight-hub/app/compare/v1.0.0-alpha.12...v1.0.0-alpha.13) – Veröffentlicht am 2025-03-12
+
+## 🔧 Tool Verbesserungen
+Verbesserungen an den Werkzeugen:
+- [`81ea2f5`](https://github.com/bluelight-hub/app/commit/81ea2f5) (backend): enhance health checks and fix TypeORM connection status 
+
+- [`ba7c481`](https://github.com/bluelight-hub/app/commit/ba7c481) (rules): improve glob patterns and descriptions format - Remove quotes from glob patterns - Convert inline globs to proper YAML array format - Enhance description format documentation in 000-rule - Add detailed examples for proper formatting 
+
+
+
+# [1.0.0-alpha.13](https://github.com/bluelight-hub/app/compare/v1.0.0-alpha.12...v1.0.0-alpha.13) (2025-03-12)
+
 ## Version [v1.0.0-alpha.12](https://github.com/bluelight-hub/app/compare/v1.0.0-alpha.11...v1.0.0-alpha.12) – Veröffentlicht am 2025-03-03
 
 ## ✨ Neue Funktionen
