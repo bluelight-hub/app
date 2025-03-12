@@ -2,6 +2,7 @@
 
 [![codecov](https://codecov.io/gh/bluelight-hub/app/graph/badge.svg?token=I5Z3C0FSLL)](https://codecov.io/gh/bluelight-hub/app)
 [![GitHub Actions](https://github.com/bluelight-hub/app/actions/workflows/test.yml/badge.svg)](https://github.com/bluelight-hub/app/actions/workflows/test.yml)
+[![doccov](https://backend-docs.bluelight-hub.rubeen.dev/images/coverage-badge-documentation.svg)](https://backend-docs.bluelight-hub.rubeen.dev)
 
 ## Übersicht
 
