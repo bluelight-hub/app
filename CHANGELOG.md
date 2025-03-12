@@ -1,3 +1,13 @@
+## Version [v1.0.0-alpha.14](https://github.com/bluelight-hub/app/compare/v1.0.0-alpha.13...v1.0.0-alpha.14) – Veröffentlicht am 2025-03-12
+
+## ✨ Neue Funktionen
+Die folgenden neuen Features wurden hinzugefügt:
+- [`bd5f226`](https://github.com/bluelight-hub/app/commit/bd5f226) (api/health): Implementiere API-Client-Generierung und Health-Monitoring-System 
+
+
+
+# [1.0.0-alpha.14](https://github.com/bluelight-hub/app/compare/v1.0.0-alpha.13...v1.0.0-alpha.14) (2025-03-12)
+
 ## Version [v1.0.0-alpha.13](https://github.com/bluelight-hub/app/compare/v1.0.0-alpha.12...v1.0.0-alpha.13) – Veröffentlicht am 2025-03-12
 
 ## 🔧 Tool Verbesserungen
