@@ -1,0 +1,516 @@
+= 8. Übergreifende Konzepte
+:author: Bluelight-Hub Team
+:revnumber: 1.0.0
+:revdate: 2025-03-23
+:sectnums!
+
+
+== Übersicht
+Dieser Abschnitt beschreibt übergreifende Konzepte und Prinzipien, die in der Architektur des Bluelight-Hub-Systems verankert sind. Diese Konzepte bilden die Grundlage für Entwurfsentscheidungen und erstrecken sich über mehrere Bausteine des Systems.
+
+== Inhalt
+
+=== 8.1 Domänenmodell
+
+Das Domänenmodell des Bluelight-Hub-Systems basiert auf dem "Einsatz" als zentraler Entität und den damit verbundenen Templates für wiederverwendbare Elemente. In der aktuellen Konzeption ist die Anwendung primär für die Verwaltung eines konkreten Einsatzes zuständig, wobei in den meisten Anwendungsfällen nicht mehr als ein Einsatz gleichzeitig aktiv ist.
+
+Das grundlegende Konzept besteht darin, dass Templates für wiederverwendbare Elemente wie Personal, Fahrzeuge und Material existieren. Ein Einsatz wandelt diese Templates in konkrete Instanzen um und persistiert diese. Dadurch wird eine effiziente Erstellung und Verwaltung von Einsätzen ermöglicht, ohne jedes Mal alle Daten neu eingeben zu müssen.
+
+[dbml]
+....
+// Einsatzverwaltung
+Table einsatz {
+  einsatzID varchar [primary key]
+  bezeichnung varchar
+  einsatzart_id varchar
+  status varchar
+  startzeit timestamp
+  endzeit timestamp
+}
+
+Table einsatz_abschnitt {
+  id varchar [primary key]
+  einsatz_id varchar
+  bezeichnung varchar
+  verantwortlicher_id varchar
+}
+
+Table einsatz_art {
+  code varchar [primary key]
+  bezeichnung varchar
+  prioritaet integer
+}
+
+// Templates
+Table personal_template {
+  id varchar [primary key]
+  funktion varchar
+  qualifikationen varchar
+}
+
+Table fahrzeug_template {
+  id varchar [primary key]
+  typ varchar
+  kennzeichen varchar
+  kapazitaet integer
+}
+
+Table material_template {
+  id varchar [primary key]
+  bezeichnung varchar
+  kategorie varchar
+}
+
+// Ressourcenverwaltung
+Table einheit {
+  einheitID varchar [primary key]
+  bezeichnung varchar
+  typ varchar
+  staerke integer
+  status varchar
+  einsatz_id varchar
+  abschnitt_id varchar
+}
+
+Table personal {
+  id varchar [primary key]
+  template_id varchar
+  name varchar
+  status varchar
+  einheit_id varchar
+}
+
+Table fahrzeug {
+  id varchar [primary key]
+  template_id varchar
+  status varchar
+  einheit_id varchar
+}
+
+Table fahrzeug_besatzung {
+  fahrzeug_id varchar
+  personal_id varchar
+  
+  indexes {
+    (fahrzeug_id, personal_id) [pk]
+  }
+}
+
+Table material {
+  id varchar [primary key]
+  template_id varchar
+  anzahl integer
+  status varchar
+  einheit_id varchar
+}
+
+Table einsatzort {
+  id varchar [primary key]
+  einsatz_id varchar
+  bezeichnung varchar
+  lat float
+  lng float
+}
+
+// Beziehungen
+Ref: einsatz.einsatzart_id > einsatz_art.code
+Ref: einsatz_abschnitt.einsatz_id > einsatz.einsatzID
+Ref: einsatz_abschnitt.verantwortlicher_id > personal.id
+Ref: einheit.einsatz_id > einsatz.einsatzID
+Ref: einheit.abschnitt_id > einsatz_abschnitt.id
+Ref: personal.template_id > personal_template.id
+Ref: personal.einheit_id > einheit.einheitID
+Ref: fahrzeug.template_id > fahrzeug_template.id
+Ref: fahrzeug.einheit_id > einheit.einheitID
+Ref: fahrzeug_besatzung.fahrzeug_id > fahrzeug.id
+Ref: fahrzeug_besatzung.personal_id > personal.id
+Ref: material.template_id > material_template.id
+Ref: material.einheit_id > einheit.einheitID
+Ref: einsatzort.einsatz_id > einsatz.einsatzID
+....
+
+==== 8.1.1 Zentrale Entitäten
+
+* *Einsatz*: Zentrale Entität, die einen konkreten Einsatzfall mit allen zugehörigen Informationen repräsentiert
+* *EinsatzAbschnitt*: Unterbereich eines Einsatzes mit spezifischen Aufgaben und verantwortlichen Personen
+* *Templates*: Wiederverwendbare Vorlagen für Personal, Fahrzeuge und Material
+* *Instanzen*: Konkrete Ausprägungen von Templates im Kontext eines Einsatzes (Personal, Fahrzeuge, Material)
+* *Einheit*: Organisatorische Einheit (z.B. Löschzug, Sanitätsgruppe), die Personal und Material umfasst
+
+==== 8.1.2 Beziehungen und Abhängigkeiten
+
+* Ein Einsatz ist die zentrale Entität und kann in mehrere Einsatzabschnitte unterteilt werden
+* Einsatzabschnitten können Einheiten zugeordnet werden
+* Einem Einsatz sind mehrere Einheiten, Einsatzorte und eine Einsatzart zugeordnet
+* Einheiten bestehen aus Personal, Fahrzeugen und Material
+* Personal, Fahrzeuge und Material basieren auf Templates, die wiederverwendbare Informationen enthalten
+* Bei Zuweisung zu einem Einsatz werden aus Templates konkrete Instanzen erstellt
+
+==== 8.1.3 Template-Konzept
+
+Das Template-Konzept ist ein zentrales Merkmal des Domänenmodells:
+
+* Templates dienen als wiederverwendbare Vorlagen für häufig genutzte Elemente
+* Bei Einsatzerstellung werden aus Templates konkrete Instanzen erzeugt
+* Änderungen an Templates wirken sich nicht rückwirkend auf bestehende Instanzen aus
+* Templates ermöglichen die schnelle Konfiguration neuer Einsätze
+
+=== 8.2 Architektur- und Entwurfsmuster
+
+==== 8.2.1 Vereinfachte Schichtenarchitektur
+
+Die Architektur folgt einem pragmatischen Schichtenmodell, das die Trennung von Zuständigkeiten gewährleistet, ohne unnötige Komplexität einzuführen. Statt einer vollständigen hexagonalen Architektur, die derzeit als zu komplex für die Anforderungen des Systems betrachtet wird, nutzt das System eine klare Trennung der Verantwortlichkeiten mit definierten Schichten.
+
+[mermaid]
+....
+flowchart TD
+    subgraph BluelightHub["Bluelight-Hub-System"]
+        subgraph Praesentationsschicht["Präsentationsschicht"]
+            UI["UI-Komponenten"]
+            State["State Management"]
+        end
+        
+        subgraph Anwendungsschicht["Anwendungsschicht"]
+            Services["Services"]
+            Controller["Controller"]
+        end
+        
+        subgraph Datenhaltungsschicht["Datenhaltungsschicht"]
+            Repositories["Repositories"]
+            Datenmodelle["Datenmodelle"]
+        end
+    end
+    
+    UI --> State
+    State --> Services
+    Services --> Controller
+    Controller --> Repositories
+    Repositories --> Datenmodelle
+    
+    classDef presentation fill:#42A5F5,stroke:#1976D2,color:white
+    classDef application fill:#66BB6A,stroke:#43A047,color:white
+    classDef data fill:#FFA726,stroke:#FB8C00,color:white
+    
+    class UI,State presentation
+    class Services,Controller application
+    class Repositories,Datenmodelle data
+    class Praesentationsschicht presentation
+    class Anwendungsschicht application
+    class Datenhaltungsschicht data
+....
+
+==== 8.2.2 Optimierte Service-Struktur
+
+Anstelle einer vollständigen CQRS-Implementierung, die für die aktuelle Anwendungsgröße und Komplexität als möglicherweise überdimensioniert betrachtet wird, verwendet das System eine optimierte Service-Struktur, die die Vorteile der Trennung von Lese- und Schreiboperationen bietet, ohne die Komplexität einer vollständigen CQRS-Architektur.
+
+* *Services*: Kapseln die Geschäftslogik und Anwendungsfälle
+* *Controller*: Bieten die REST-API-Schnittstellen nach außen
+* *Repositories*: Abstrahieren den Datenzugriff und ermöglichen eine klare Trennung der Datenpersistenz
+
+Diese vereinfachte Struktur ermöglicht:
+* Einfachere Implementierung und Wartung
+* Bessere Verständlichkeit für neue Entwickler
+* Ausreichende Trennung der Zuständigkeiten
+* Skalierbarkeit für die aktuelle Anwendungsgröße
+
+==== 8.2.3 Eventbasierte Kommunikation
+
+Für die Kommunikation zwischen Modulen wird ein eventbasierter Ansatz verwendet:
+
+* Klare Entkopplung der Komponenten
+* Asynchrone Verarbeitung von Ereignissen
+* Einfache Erweiterbarkeit durch neue Event-Handler
+* Unterstützung des Verbindungskonzepts mit verschiedenen Konnektivitätsszenarien
+
+=== 8.3 Technische Konzepte
+
+==== 8.3.1 Verbindungskonzept
+
+Das System ist in verschiedenen Konnektivitätsszenarien nutzbar:
+
+* *Lokale Verbindung*: Der Client ist mit dem FüKW verbunden ("FüKW-verbunden")
+* *Vollständige Verbindung*: Der FüKW ist mit dem Internet verbunden ("Online")
+* *Autonomes Szenario*: Der Client hat keine Verbindung zum FüKW ("Offline")
+
+Die aktuelle Implementierung fokussiert sich auf die ersten beiden Szenarien, wobei der lokale Verbindungsmodus die Verbindung zum FüKW beschreibt, nicht die vollständige Unabhängigkeit des Clients.
+
+==== 8.3.2 Testkonzept
+
+Das Testkonzept des Bluelight-Hub-Systems adressiert die besonderen Herausforderungen einer Anwendung mit verschiedenen Verbindungsszenarien und hohen Anforderungen an Zuverlässigkeit und Benutzerfreundlichkeit.
+
+===== 8.3.2.1 Teststrategie für Verbindungsszenarien
+
+Die Teststrategie berücksichtigt die drei Verbindungsszenarien:
+
+* *Lokale Verbindung (FüKW-verbunden)*:
+** Integration Tests für Client-FüKW-Kommunikation
+** Simulation von Netzwerkbedingungen im lokalen Netzwerk
+** Validierung der Datenübertragung und -synchronisation
+
+* *Vollständige Verbindung (Online)*:
+** End-to-End Tests mit externer Backend-Anbindung
+** Lasttests für Skalierbarkeit und Performance
+** Sicherheitstests für externe Schnittstellen
+
+* *Autonomes Szenario (Offline)*:
+** Unit Tests für lokale Datenverwaltung
+** Simulation von Verbindungsabbrüchen und -wiederherstellungen
+** Validierung der Datenintegritäts- und Konfliktlösungsmechanismen
+
+===== 8.3.2.2 Testbarkeit der Architektur
+
+Die vereinfachte Schichtenarchitektur wurde mit Blick auf Testbarkeit entworfen:
+
+* *Präsentationsschicht*:
+** Komponententests für UI-Elemente
+** Snapshot-Tests für visuelle Konsistenz
+** Zustandstests für State Management
+
+* *Anwendungsschicht*:
+** Unit Tests für Services mit Mock-Repositories
+** Integrationstests für Controller
+** Verhaltensspezifikationstests für komplexe Geschäftslogik
+
+* *Datenhaltungsschicht*:
+** Unit Tests für Repository-Implementierungen
+** Integrationstests mit In-Memory-Datenbank
+** Persistenztests für Datenmigration und -integrität
+
+===== 8.3.2.3 Automatisierte Testprozesse
+
+Das System nutzt mehrstufige automatisierte Testprozesse:
+
+. *Kontinuierliche Integration*:
+** Automatisierte Ausführung von Unit- und Integrationstests bei jedem Commit
+** Statische Codeanalyse und Abdeckungsmessung
+** Validierung der API-Kompatibilität
+
+. *Release-Qualifikation*:
+** Ausführung aller Testsuiten auf Produktionsumgebung
+** Usability-Tests mit realen Nutzern
+** Feldtests unter realistischen Einsatzbedingungen
+
+===== 8.3.2.4 Testdaten und -umgebungen
+
+* *Testdaten*:
+** Realistische Datensätze aus anonymisierten Einsatzszenarien
+** Grenzfall-Testdaten für Extremsituationen
+** Generierte Massendaten für Performancetests
+
+===== 8.3.2.5 Spezielle Testfokusgebiete
+
+* *Synchronisationstests*:
+** Validierung der Datensynchronisation zwischen Client und FüKW
+** Behandlung von Konflikten bei gleichzeitigen Änderungen
+** Wiederherstellung nach Verbindungsabbrüchen
+
+* *Degradationstests*:
+** Überprüfung der eingeschränkten Funktionalität bei Verbindungsverlust
+** Validierung der Benutzerbenachrichtigungen und -führung
+** Funktionsumfang in verschiedenen Verbindungsszenarien
+
+* *Usability-Tests*:
+** Benutzerfreundlichkeit in Stresssituationen
+** Zugänglichkeit und Bedienbarkeit
+** Effektivität unter realistischen Einsatzbedingungen
+
+Diese umfassende Teststrategie stellt sicher, dass das Bluelight-Hub-System unter allen Einsatzbedingungen zuverlässig und effektiv funktioniert und die hohen Anforderungen an Qualität und Benutzerfreundlichkeit erfüllt.
+
+==== 8.3.3 Daten-Synchronisation
+
+[mermaid]
+....
+sequenceDiagram
+    participant Mobile as Mobile Client
+    participant Server as FüKW-Server
+    participant Other as Anderer Client
+
+    Mobile->>Mobile: Lokale Änderung
+    Mobile->>Mobile: Speichere Änderung + Timestamp
+    
+    alt Bei bestehender Verbindung
+        Mobile->>Server: Sende Änderung
+        Server->>Server: Validiere & Speichere
+        Server->>Other: Propagiere Änderung
+    else Bei Offline-Modus
+        Mobile->>Mobile: Markiere zur Synchronisation
+    end
+    
+    Note over Mobile,Server: Spätere Verbindungswiederherstellung
+    
+    Mobile->>Server: Sende ausstehende Änderungen
+    Server->>Mobile: Sende verpasste Änderungen
+    
+    alt Bei Konflikt
+        Server->>Server: Identifiziere Konflikt
+        Server->>Mobile: Konfliktinformation
+        Mobile->>Mobile: Zeige Konfliktlösung-UI
+        Mobile->>Server: Sende aufgelösten Konflikt
+    end
+....
+
+* Konfliktauflösung basierend auf Timestamps und Domänenregeln
+* Selektive Synchronisation nach Priorität der Daten
+* Bidirektionaler Synch-Mechanismus zwischen FüKW-Server und Mobilgeräten
+
+==== 8.3.4 Security-Konzept
+
+* *Authentifizierung*: Rollenbasiertes Zugriffsmodell mit verschiedenen Berechtigungsstufen
+* *Datenschutz*: Verschlüsselung sensibler Daten in Rest und während der Übertragung
+* *Auditierung*: Logging aller sicherheitsrelevanten Ereignisse für spätere Analyse
+
+==== 8.3.5 Fehlerbehandlung und Resilience
+
+* Graceful Degradation bei Teilausfällen
+* Circuit Breaker Pattern für externe Integrationen
+* Automatische Wiederherstellung nach Systemfehlern
+
+=== 8.4 UI-Konzepte
+
+==== 8.4.1 Responsive Design
+
+* Adaptives Layout für verschiedene Bildschirmgrößen
+* Touch-optimierte Bedienung für Tablet-Nutzung im Einsatz
+* Barrierefreiheit für verschiedene Nutzergruppen
+
+==== 8.4.2 Kontextbezogene Benutzeroberfläche
+
+* Anpassung der UI basierend auf Einsatzrolle und -phase
+* Priorisierung relevanter Informationen im aktuellen Kontext
+* Reduktion kognitiver Belastung durch fokussierte Ansichten
+
+=== 8.5 Persistenzkonzept
+
+* SQLite als lokale Datenbank auf allen Endgeräten
+* Versionierung von Datensätzen für Konfliktauflösung
+* Inkrementelle Backups auf FüKW-Server
+
+=== 8.6 Integrations- und Schnittstellenkonzept
+
+* RESTful APIs für synchrone Kommunikation
+* WebSockets für Echtzeitkommunikation
+* Standardisierte Schnittstellen zu Leitstellen-Systemen
+* Adapter für Digitalfunk-Integration
+
+=== 8.2 Backend-Architektur
+
+Die Backend-Architektur des Bluelight-Hub-Systems basiert auf NestJS und folgt dem Domain-Driven Design (DDD) Ansatz. Die Anwendung ist modular aufgebaut und verwendet eine klare Schichtenarchitektur.
+
+==== 8.2.1 Architektur-Prinzipien
+
+[cols="1,3", options="header"]
+|===
+|Prinzip |Beschreibung
+|Modularer Aufbau |Jedes Feature ist ein eigenständiges Modul; Module sind lose gekoppelt und stark kohäsiv; klare Trennung von Zuständigkeiten
+|Schichtenarchitektur |Jedes Modul folgt einer klaren Schichtenarchitektur: Controller (HTTP-Endpunkte), Services (Geschäftslogik), Repositories (Datenbankzugriff), DTOs (Datentransfer-Objekte), Entities (Datenbank-Modelle)
+|Dependency Injection |Nutzung des NestJS DI-Containers; Interfaces für bessere Testbarkeit; Inversion of Control Prinzip
+|Fehlerbehandlung |Zentrale Fehlerbehandlung durch Exception Filter; einheitliche Fehlerformate; aussagekräftige Fehlermeldungen
+|Validierung |DTO-Validierung mit class-validator; Request-Validierung durch Pipes; Geschäftsregeln-Validierung in Services
+|Sicherheit |JWT-basierte Authentifizierung; rollenbasierte Autorisierung; Rate Limiting; CORS-Konfiguration
+|Logging und Monitoring |Strukturiertes Logging; Performance Monitoring; Health Checks
+|===
+
+==== 8.2.2 Ordnerstruktur
+
+[source]
+----
+packages/backend/
+├── src/
+│   ├── app.module.ts              # Haupt-Modul der Anwendung
+│   ├── main.ts                    # Einstiegspunkt der Anwendung
+│   ├── common/                    # Gemeinsam genutzte Funktionalitäten
+│   │   ├── constants/            # Konstanten und Enums
+│   │   ├── decorators/          # Custom Decorators
+│   │   ├── filters/             # Exception Filter
+│   │   ├── guards/              # Authentication Guards
+│   │   ├── interceptors/        # Custom Interceptors
+│   │   ├── interfaces/          # Gemeinsame Interfaces
+│   │   └── utils/               # Hilfsfunktionen
+│   │
+│   ├── config/                   # Konfigurationsmodule
+│   │   ├── database.config.ts
+│   │   ├── jwt.config.ts
+│   │   └── app.config.ts
+│   │
+│   ├── modules/                  # Feature Module
+│   │   ├── auth/                # Authentifizierung
+│   │   │   ├── controllers/
+│   │   │   ├── services/
+│   │   │   ├── dto/
+│   │   │   ├── entities/
+│   │   │   └── auth.module.ts
+│   │   │
+│   │   └── users/              # Benutzer-Modul (als Beispiel)
+│   │       ├── controllers/
+│   │       ├── services/
+│   │       ├── dto/
+│   │       ├── entities/
+│   │       └── users.module.ts
+│   │
+│   └── health/                  # Health Check Module
+│       ├── health.controller.ts
+│       └── health.module.ts
+│
+├── test/                        # Tests
+│   ├── e2e/                    # End-to-End Tests
+│   └── unit/                   # Unit Tests
+----
+
+==== 8.2.3 Best Practices
+
+[cols="1,3", options="header"]
+|===
+|Bereich |Best Practices
+|Naming Conventions |Klare, beschreibende Namen; konsistente Namensgebung; Suffix-Konventionen für verschiedene Typen (z.B. Service, Controller)
+|Code Organisation |Ein Feature pro Modul; maximale Kohäsion innerhalb der Module; minimale Kopplung zwischen Modulen
+|Testing |Unit Tests für Services; Integration Tests für Controller; E2E Tests für kritische Pfade; Test Coverage > 80%
+|Dokumentation |OpenAPI/Swagger für API-Dokumentation; JSDoc für Funktionen und Klassen; README für Module
+|Performance |Caching wo sinnvoll; Pagination für Listen; Query Optimierung; Lazy Loading von Modulen
+|===
+
+==== 8.2.4 Technologie-Stack
+
+* **Framework**: NestJS
+* **Datenbank**: SQLite mit TypeORM
+* **Authentication**: JWT
+* **API Docs**: Swagger/OpenAPI
+* **Testing**: Jest
+* **Logging**: consolas
+
+== Offene Punkte und Entscheidungen
+
+* Detaillierte Spezifikation der Konfliktlösungsstrategien bei Daten-Synchronisation
+* Definition von Performance-Benchmarks für Offline-Operationen
+* Auswahl spezifischer Verschlüsselungsstandards für sensible Daten
+
+[mermaid]
+....
+flowchart TD
+    ConnectionCheck{Verbindung?}
+    ConnectionCheck -->|Verbunden zum FüKW| LOCAL[Lokale Verbindung]
+    ConnectionCheck -->|Keine Verbindung| OFFLINE[Autonomer Offline-Modus]
+    LOCAL --> InternetCheck{Internet verfügbar?}
+    InternetCheck -->|Ja| ONLINE[Online-Modus mit erweiterten Funktionen]
+    InternetCheck -->|Nein| LOCALONLY[Nur lokale FüKW-Funktionalität]
+....
+
+[mermaid]
+....
+graph TD
+    A[Client App] --> B{Verbindungszustand?}
+    B -->|FüKW-verbunden| C[Lokale Verbindung]
+    B -->|Online| D[Vollständige Verbindung]
+    B -->|Offline| E[Autonomer Modus]
+    
+    C --> F[Vollständige lokale Funktionalität]
+    D --> G[Erweiterte Funktionen]
+    E --> H[Eingeschränkte Funktionalität]
+    
+    C -.-> I[Synchronisation nur mit lokalen Clients]
+    D -.-> J[Volle Synchronisation]
+    E -.-> K[Lokales Speichern, spätere Sync]
+    
+    style C fill:#B3E5FC,stroke:#0288D1
+    style D fill:#BBDEFB,stroke:#1976D2
+    style E fill:#FFECB3,stroke:#FF8C00
+....

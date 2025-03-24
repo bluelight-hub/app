@@ -1,0 +1,278 @@
+= Architecture Communication Canvas
+:author: Bluelight-Hub Team
+:revnumber: 1.0.0
+:revdate: 2025-03-23
+:sectnums!
+
+
+== Übersicht
+Der Architecture Communication Canvas ist eine einseitige visuelle Zusammenfassung der gesamten Architektur des Bluelight-Hub-Systems. Er dient als Schnellreferenz für Entwickler, Stakeholder und neue Teammitglieder.
+
+== Systemkontext
+
+[mermaid]
+....
+flowchart TD
+    style FüKW fill:#42A5F5,stroke:#1976D2,color:white
+    style Clients fill:#81C784,stroke:#388E3C,color:black
+    style FUEKW fill:#BBDEFB,stroke:#1976D2,color:black,stroke-dasharray: 5 5
+
+    subgraph FüKW[Führungskraftwagen (Hauptsystem)]
+        Backend[Backend\nNestJS]
+        DB[(Lokale Datenbank\nSQLite)]
+        Backend <--> DB
+    end
+
+    subgraph Clients[Einsatzkräfte]
+        Client1[Tablet 1]
+        Client2[Tablet 2]
+        Client3[Laptop]
+    end
+    
+    subgraph FUEKW[Führungskraftwagen (optional)]
+        Internet((Internet))
+    end
+    
+    Clients <--> FüKW
+    FüKW <-.-> FUEKW
+    FUEKW <-.-> Internet
+    
+    Leitung[Einsatzleitung] --> FüKW
+....
+
+== Hauptbausteine
+
+[mermaid]
+....
+flowchart TB
+    style Frontend fill:#81C784,stroke:#388E3C,color:black
+    style Backend fill:#42A5F5,stroke:#1976D2,color:white
+    style Infrastructure fill:#FFD54F,stroke:#FFA000,color:black
+
+    subgraph Frontend[Frontend-Schicht]
+        UI[UI-Komponenten]
+        State[State Management]
+        SyncClient[Sync-Client]
+    end
+
+    subgraph Backend[Backend-Schicht]
+        API[REST API]
+        Services[Services]
+        SyncServer[Sync-Server]
+        AuthService[Authentifizierung]
+    end
+
+    subgraph Infrastructure[Infrastruktur-Schicht]
+        DB[(SQLite-DB)]
+        Logger[Logging]
+        Messaging[Event-Bus]
+    end
+
+    UI <--> State
+    State <--> SyncClient
+    SyncClient <--> API
+    API <--> Services
+    API <--> AuthService
+    Services <--> SyncServer
+    SyncServer <--> Messaging
+    Services <--> DB
+    Logger <-..-> Frontend
+    Logger <-..-> Backend
+....
+
+== Qualitätsziele
+
+[mermaid]
+....
+%%{init: {"pie": {"textPosition": 0.5}, "themeVariables": {"pieOuterStrokeWidth": "5px"}}}%%
+pie showData
+    "Konnektivitätsresilienz" : 25
+    "Zuverlässigkeit" : 25
+    "Benutzerfreundlichkeit" : 20
+    "Echtzeit-Kommunikation" : 15
+    "Erweiterbarkeit" : 5
+    "Performance" : 5
+    "Sicherheit" : 5
+....
+
+[cols="1,3", options="header"]
+|===
+|Qualitätsziel |Bedeutung
+|Konnektivitätsresilienz |Funktionalität in verschiedenen Verbindungsszenarien (lokal, vollständig, autonom)
+|Zuverlässigkeit |Robustes System auch unter widrigen Bedingungen (schlechte Netzabdeckung, Extremwetter)
+|Benutzerfreundlichkeit |Intuitive Bedienung auch in Stresssituationen
+|Echtzeit-Kommunikation |Schneller Informationsaustausch zwischen allen Einheiten
+|===
+
+== Verbindungskonzept
+
+[mermaid]
+....
+stateDiagram-v2
+    [*] --> Lokal
+    
+    Lokal --> Vollständig : Internet verfügbar
+    Vollständig --> Lokal : Internet nicht verfügbar
+    
+    Lokal --> Autonom : Verbindung zum FüKW verloren
+    Autonom --> Lokal : Verbindung zum FüKW wiederhergestellt
+    
+    state Lokal {
+        [*] --> Aktiv
+        Aktiv --> Synchronisierend : Änderungen vorhanden
+        Synchronisierend --> Aktiv : Synchronisation abgeschlossen
+    }
+    
+    state Vollständig {
+        [*] --> OnlineAktiv
+        OnlineAktiv --> OnlineSynchronisierend : Änderungen vorhanden
+        OnlineSynchronisierend --> OnlineAktiv : Synchronisation abgeschlossen
+    }
+    
+    state Autonom {
+        [*] --> AutonomAktiv
+        AutonomAktiv --> AutonomSynchronisierend : Verbindung wiederhergestellt
+        AutonomSynchronisierend --> AutonomAktiv : Synchronisation abgeschlossen
+    }
+....
+
+Das Verbindungskonzept unterstützt drei Konnektivitätsszenarien:
+
+* *Lokale Verbindung*: Client mit FüKW verbunden (lokales Verbindungsszenario)
+* *Vollständige Verbindung*: FüKW mit Internet verbunden (vollständiges Verbindungsszenario)
+* *Autonomer Modus*: Client ohne Verbindung zum FüKW (Offline-Verbindungsszenario)
+
+== Technologie-Stack
+
+[mermaid]
+....
+flowchart TB
+    Frontend --> React & TypeScript & AntDesign
+    Backend --> NestJS & Node.js
+    Daten --> SQLite & CRDTs
+    API --> REST & JWT
+    Mobile --> Tauri & WebView
+....
+
+[cols="1,1,3", options="header"]
+|===
+|Bereich |Technologie |Begründung
+|Frontend |React, TypeScript, Ant Design |Moderne, typsichere Entwicklung mit etabliertem UI-Framework
+|Mobile App |Tauri v2 mit TypeScript |Plattformübergreifende Entwicklung, nativer Zugriff auf Systemfunktionen
+|Backend |NestJS |Strukturiertes, modulares Framework mit TypeScript
+|Datenbank |SQLite |Einfache, leichtgewichtige SQL-Datenbank mit lokaler Speicherung
+|API |REST |Standardisierte, ressourcenorientierte Schnittstellen
+|Authentifizierung |JWT |Industrie-Standard für sichere Authentifizierung
+|===
+
+== Wichtige Architekturentscheidungen
+
+[cols="1,4", options="header"]
+|===
+|ADR |Beschreibung
+|ADR-001 |Verbindungskonzept-Architektur: Unterstützung verschiedener Konnektivitätsszenarien
+|ADR-002 |SQLite für lokale Datenspeicherung: Einfache, zuverlässige lokale Datenbank ohne Serverkomponente
+|ADR-003 |Modulare Backend-Architektur mit NestJS: Klare Trennung von Zuständigkeiten und bessere Wartbarkeit
+|ADR-004 |Tauri für plattformübergreifende Desktop-App: Native Performance mit Webfrontend
+|ADR-005 |JWT für Authentifizierung: Statuslose, sichere Benutzerauthentifizierung
+|ADR-006 |Docker für Deployment: Konsistente Laufzeitumgebung unabhängig vom Host-System
+|===
+
+== Deployment-Modell
+
+[mermaid]
+....
+flowchart TB
+    style Dev fill:#BBDEFB,stroke:#1976D2,color:black
+    style Staging fill:#FFD54F,stroke:#FFA000,color:black
+    style Prod fill:#A5D6A7,stroke:#388E3C,color:black
+    
+    subgraph Dev[Entwicklungsumgebung]
+        GitActions1[GitHub Actions\nCI Pipeline]
+        DevEnv[Lokale Entwicklungsumgebung]
+        DevEnv --> GitActions1
+    end
+    
+    subgraph Staging[Staging-Umgebung]
+        GitActions2[GitHub Actions\nCI/CD Pipeline]
+        StagingEnv[Staging-Server]
+        GitActions1 --> GitActions2
+        GitActions2 --> StagingEnv
+    end
+    
+    subgraph Prod[Produktionsumgebung]
+        GitActions3[GitHub Actions\nRelease Pipeline]
+        dockerhub[(DockerHub)]
+        ghcr[(GitHub Container Registry)]
+        Computer[Führungskraftwagen]
+        
+        GitActions2 --> GitActions3
+        GitActions3 --> dockerhub
+        GitActions3 --> ghcr
+        dockerhub -.-> Computer
+        ghcr -.-> Computer
+    end
+....
+
+=== Deployment-Prozess
+
+[cols="1,3", options="header"]
+|===
+|Phase |Beschreibung
+|Entwicklung |Entwickler arbeiten in lokalen Umgebungen mit Hot-Reload; Pull Requests lösen CI-Tests aus
+|Staging |Merge in den main-Branch löst Deployment in die Staging-Umgebung aus; Automatisierte Tests werden ausgeführt
+|Release |Tag-basierte Releases erstellen Docker-Images und veröffentlichen sie in DockerHub und GitHub Container Registry
+|Produktion |Docker-Images werden auf dem Führungskraftwagen installiert und als Container ausgeführt
+|===
+
+== Risiken und technische Schulden
+
+[cols="1,1,3", options="header"]
+|===
+|Risiko |Kritikalität |Maßnahme
+|Instabile Netzwerkverbindung |Hoch |Robuste Offline-Funktionalität und Synchronisationsmechanismen implementieren
+|Datenkonflikte bei der Synchronisation |Mittel |Konfliktlösungsstrategien entwickeln und gründlich testen
+|Begrenzte Ressourcen auf mobilen Geräten |Mittel |Performance-Tests, Optimierungen und ressourcenschonende Implementierung
+|Sicherheitsrisiken |Hoch |Regelmäßige Sicherheitsaudits und Implementierung von Best Practices
+|Komplexität des Verbindungskonzepts |Mittel |Klare Dokumentation und umfassende Testabdeckung aller Szenarien
+|===
+
+== Kommunikationsmodell
+
+[mermaid]
+....
+sequenceDiagram
+    participant Client1 as Tablet 1
+    participant Server as FüKW-Server
+    participant Client2 as Tablet 2
+    
+    Client1->>Server: Einsatzdaten senden
+    Server->>Server: Daten validieren & speichern
+    Server->>Client2: Daten an alle Clients pushen
+    
+    Client2->>Client2: Lokale Änderungen
+    Client2--xServer: Verbindungsverlust
+    Client2->>Client2: Lokale Speicherung & Offline-Modus
+    
+    Client2->>Server: Verbindung wiederhergestellt
+    Client2->>Server: Änderungen senden
+    Server->>Server: Konfliktauflösung
+    Server->>Client1: Aktualisierte Daten pushen
+    Server->>Client2: Bestätigung & Synchronisation
+....
+
+Dieses Kommunikationsmodell zeigt die grundlegenden Datenflüsse im System, einschließlich der Offline-Fähigkeit und der Synchronisation nach Wiederherstellung der Verbindung.
+
+== Zusammenfassung
+
+Das Bluelight-Hub-System ist eine moderne, resiliente Anwendung für das Einsatzmanagement der Feuerwehr und anderer Hilfsorganisationen. Die Architektur ist darauf ausgelegt, auch unter schwierigen Bedingungen zuverlässig zu funktionieren und eine nahtlose Zusammenarbeit zwischen allen Einsatzkräften zu ermöglichen.
+
+Die wichtigsten Merkmale sind:
+
+* *Konnektivitätsresilienz:* Funktionalität in allen Verbindungsszenarien
+* *Modulare Architektur:* Klar getrennte Verantwortlichkeiten und einfache Erweiterbarkeit
+* *Echtzeit-Kommunikation:* Schneller Informationsaustausch zwischen allen Einheiten
+* *Benutzerfreundlichkeit:* Intuitive Bedienung auch unter Stress
+* *Moderne Technologien:* React, TypeScript, NestJS, SQLite, Docker
+
+Das Bluelight-Hub-System wird kontinuierlich weiterentwickelt, um den sich ändernden Anforderungen der Einsatzkräfte gerecht zu werden und die neuesten Technologien und Best Practices zu integrieren. 

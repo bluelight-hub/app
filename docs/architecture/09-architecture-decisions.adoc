@@ -1,0 +1,16 @@
+= Architekturentscheidungen
+:author: Bluelight-Hub Team
+:revnumber: 1.0.0
+:revdate: 2025-03-23
+:sectnums!:
+
+Diese Seite dokumentiert die wichtigsten Architekturentscheidungen für das Bluelight-Hub-System. Die Entscheidungen werden im Format von Architecture Decision Records (ADRs) dargestellt, um den Kontext, die Optionen, die getroffene Entscheidung und die Konsequenzen transparent zu machen.
+
+include::adr/001-verbindungskonzept.adoc[leveloffset=+1]
+include::adr/002-crdts-datensynchronisation.adoc[leveloffset=+1]
+include::adr/003-monolith-vs-microservice.adoc[leveloffset=+1]
+include::adr/004-tauri-desktop-app.adoc[leveloffset=+1]
+include::adr/005-event-sourcing-einsatztagebuch.adoc[leveloffset=+1]
+include::adr/006-docker-deployment.adoc[leveloffset=+1]
+include::adr/007-jwt-authentifizierung.adoc[leveloffset=+1]
+include::adr/008-offene-entscheidungen.adoc[leveloffset=+1] 

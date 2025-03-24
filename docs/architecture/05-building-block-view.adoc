@@ -1,0 +1,494 @@
+= 5. Bausteinsicht
+:author: Bluelight-Hub Team
+:revnumber: 1.0.0
+:revdate: 2025-03-23
+:sectnums!
+
+
+== Übersicht
+Die Bausteinsicht zeigt die statische Zerlegung des Systems in Bausteine (Module, Komponenten, Subsysteme, Klassen, Schnittstellen, Pakete, Bibliotheken, Frameworks, usw.) sowie deren Beziehungen untereinander. Diese Sicht ist hierarchisch aufgebaut und zeigt das System auf verschiedenen Detailebenen.
+
+== Inhalt
+
+=== 5.1 Ebene 1 - Gesamtsystem
+
+Die Ebene 1 zeigt die Hauptkomponenten des Bluelight-Hub-Systems und ihre Interaktionen.
+
+[mermaid]
+....
+flowchart TB
+    %% Hauptkomponenten
+    subgraph BluelightHub[Bluelight Hub]
+        Frontend[Frontend\nReact + TypeScript]:::frontend
+        Backend[Backend\nNestJS]:::backend
+        SharedPackage[Shared Package\nCommon Types & DTOs]:::shared
+    end
+    
+    %% Externe Systeme
+    DB[(SQLite\nDatenbank)]:::database
+    ExtDigitalfunk[Digitalfunk\nTETRA]:::external
+    
+    %% Beziehungen
+    Frontend <-->|REST API| Backend
+    Frontend -->|verwendet| SharedPackage
+    Backend -->|verwendet| SharedPackage
+    Backend <-->|Persistenz| DB
+    Backend <-->|Integration| ExtDigitalfunk
+    
+    %% Styling
+    classDef frontend fill:#42A5F5,stroke:#1976D2,color:white
+    classDef backend fill:#5C6BC0,stroke:#3949AB,color:white
+    classDef shared fill:#26A69A,stroke:#00897B,color:white
+    classDef database fill:#9C27B0,stroke:#7B1FA2,color:white
+    classDef external fill:#FF9800,stroke:#F57C00,color:white
+....
+
+==== 5.1.1 Hauptkomponenten
+
+[cols="1,3", options="header"]
+|===
+|Komponente |Verantwortlichkeit
+|Frontend |Benutzeroberfläche mit React und TypeScript, UI-Komponenten nach Atomic Design, Client-seitige Logik, State Management mit Zustand, Routing und API-Services für Backend-Kommunikation
+|Backend |Server-seitige Geschäftslogik mit NestJS, API-Endpunkte, Authentifizierung, Datenbankzugriff, Modul-basierte Architektur, Integration mit externen Systemen
+|Shared Package |Gemeinsam genutzte Typendefinitionen, DTOs für den Datenaustausch, Konstanten, Interfaces und Utilities, die sowohl vom Frontend als auch vom Backend verwendet werden. *Diese werden durch die OpenAPI-Definition des Backends automatisch generiert.*
+|===
+
+==== 5.1.2 Wichtige Schnittstellen
+
+[cols="1,3", options="header"]
+|===
+|Schnittstelle |Beschreibung
+|Frontend ↔ Backend |RESTful API für Datenaustausch und Aktionen, gruppiert nach Domänen und Funktionsbereichen
+|Backend ↔ Datenbank |ORM-basierter SQLite-Datenbankzugriff für zentrale Persistenz und Synchronisation
+|Frontend ↔ Datenbank |Lokale SQLite-Instanz für Offline-Funktionalität
+|Backend ↔ Externe Systeme |Integration von Digitalfunk und anderen externen Systemen über domänenspezifische Adapter
+|===
+
+=== 5.2 Ebene 2 - Frontend-Komponenten
+
+Das Frontend des Bluelight-Hub-Systems ist nach dem Atomic Design-Prinzip aufgebaut und verwendet React mit TypeScript. Es bietet eine intuitive Benutzeroberfläche für alle Einsatzsituationen.
+
+[mermaid]
+....
+flowchart TB
+    subgraph Frontend
+        subgraph Components[Komponenten]
+            Atoms[Atoms]
+            Molecules[Molecules]
+            Organisms[Organisms]
+            Templates[Templates]
+            Pages[Pages]
+        end
+        
+        subgraph State[State Management]
+            Zustand[Zustand Stores]
+            Contexts[Context Provider]
+            Hooks[Custom Hooks]
+        end
+        
+        subgraph Services[Services]
+            ApiClients[API Clients]
+            DomainServices[Domain Services]
+        end
+        
+        subgraph Routing[Routing]
+            Routes[Route Definitions]
+            Guards[Route Guards]
+        end
+        
+        subgraph Utils[Utilities]
+            Format[Formatierung]
+            Validation[Validierung]
+            DateTime[Datum/Zeit]
+            I18n[Lokalisierung]
+        end
+        
+        subgraph FunctionalAreas[Funktionsbereiche]
+            Auth[Authentifizierung]
+            IncidentMgmt[Einsatzmanagement]
+            MapView[Lagekarte]
+            Communication[Kommunikation]
+        end
+    end
+    
+    %% Beziehungen zwischen Komponenten
+    Atoms --> Molecules
+    Molecules --> Organisms
+    Organisms --> Templates
+    Templates --> Pages
+    
+    Pages --> FunctionalAreas
+    
+    State --> Pages
+    Services --> State
+    Utils --> Services
+    Utils --> Components
+    
+    ApiClients --> Backend
+    
+    classDef default fill:#42A5F5,stroke:#1976D2,color:white
+....
+
+==== 5.2.1 Atomic Design-Komponenten
+
+* *Atoms*: Grundlegende UI-Elemente wie Button, Input, Icon
+* *Molecules*: Kombinationen aus Atoms wie FormField, Card, Notification
+* *Organisms*: Komplexe UI-Komponenten wie Header, Sidebar, Modal
+* *Templates*: Seitenlayouts und -strukturen
+* *Pages*: Vollständige Ansichten für bestimmte Routen
+
+==== 5.2.2 State Management
+
+* *Zustand Stores*: Zentrale Zustandsverwaltung für globale Daten
+* *Context Provider*: Bereichsspezifische Zustandsverwaltung
+* *Custom Hooks*: Wiederverwendbare Logik für Zustandszugriff
+
+==== 5.2.3 Services
+
+* *API Clients*: Kommunikation mit dem Backend über REST
+* *Domain Services*: Domänenspezifische Geschäftslogik
+
+==== 5.2.4 Funktionsbereiche
+
+* *Authentifizierung*: Login/Logout, Benutzerprofil, Berechtigungsprüfung
+* *Einsatzmanagement*: Übersicht, Details, Ressourcenverwaltung
+* *Lagekarte*: Kartenkomponente (mapbox), Markierungen, Zeichenwerkzeuge
+* *Kommunikation*: Nachrichten, Benachrichtigungen, Statusupdates
+
+=== 5.3 Ebene 2 - Backend-Module
+
+Das Backend des Bluelight-Hub-Systems ist als modulare NestJS-Anwendung implementiert und folgt dem Domain-Driven Design Ansatz. Auf Ebene 2 betrachten wir die Hauptmodule und deren Verantwortlichkeiten.
+
+[mermaid]
+....
+flowchart TB
+    subgraph backend["Backend NestJS"]
+        direction TB
+        AppModule["App Module\n(Hauptmodul)"]
+        AuthModule["Auth Module\n(Authentifizierung)"]
+        EinsatzModule["Einsatz Module\n(Einsatzverwaltung)"]
+        RessourceModule["Ressource Module\n(Material, Fahrzeuge, Personal)"]
+        ETBModule["ETB Module\n(Einsatztagebuch)"]
+        HealthModule["Health Module\n(Health Checks)"]
+        CommonModule["Common Module\n(Gemeinsam genutzte Funktionalität)"]
+        ConfigModule["Config Module\n(Konfiguration)"]
+    end
+
+    subgraph external["Externe Systeme"]
+        DB[(SQLite\nDatenbank)]
+        DigitalfunkSystem["Digitalfunk\n(TETRA)"]
+    end
+
+    AppModule --> AuthModule & EinsatzModule & RessourceModule & ETBModule & HealthModule
+    
+    AuthModule & EinsatzModule & RessourceModule & ETBModule --> CommonModule
+    AuthModule & EinsatzModule & RessourceModule & ETBModule --> ConfigModule
+    
+    EinsatzModule <--> DB
+    RessourceModule <--> DB
+    ETBModule <--> DB
+    AuthModule <--> DB
+    EinsatzModule <--> DigitalfunkSystem
+
+    classDef module fill:#5C6BC0,stroke:#3949AB,color:white
+    classDef external fill:#FF9800,stroke:#F57C00,color:white
+    classDef database fill:#9C27B0,stroke:#7B1FA2,color:white
+
+    class AppModule,AuthModule,EinsatzModule,RessourceModule,ETBModule,HealthModule,CommonModule,ConfigModule module
+    class DigitalfunkSystem external
+    class DB database
+....
+
+==== 5.3.1 App Module
+
+Das App Module ist das Hauptmodul der Anwendung und für das Zusammenführen aller Teilmodule verantwortlich.
+
+[cols="1,3", options="header"]
+|===
+|Komponente |Verantwortlichkeit
+|app.module.ts |Importiert und konfiguriert alle anderen Module der Anwendung
+|main.ts |Einstiegspunkt der Anwendung, startet NestJS Server, konfiguriert Middleware, Swagger, etc.
+|===
+
+==== 5.3.2 Auth Module
+
+Das Auth Module ist für die Authentifizierung und Autorisierung der Benutzer zuständig.
+
+[cols="1,3", options="header"]
+|===
+|Komponente |Verantwortlichkeit
+|auth.controller.ts |Stellt Endpunkte für Login, Logout und Tokenvalidierung bereit
+|auth.service.ts |Authentifizierungslogik, JWT-Token-Erstellung und -Validierung
+|auth.guards.ts |Guards für geschützte Routen
+|user.entity.ts |Datenmodell für Benutzer
+|===
+
+==== 5.3.3 Einsatz Module
+
+Das Einsatz Module verwaltet alle einsatzbezogenen Daten und Prozesse.
+
+[cols="1,3", options="header"]
+|===
+|Komponente |Verantwortlichkeit
+|einsatz.controller.ts |REST API für Einsatzverwaltung
+|einsatz.service.ts |Geschäftslogik für Einsätze
+|einsatz.repository.ts |Datenbankoperationen für Einsätze
+|einsatz.entity.ts |Datenmodell für Einsätze
+|einsatz-abschnitt.entity.ts |Datenmodell für Einsatzabschnitte
+|einsatzort.entity.ts |Datenmodell für Einsatzorte
+|===
+
+==== 5.3.4 Ressource Module
+
+Das Ressource Module verwaltet Ressourcen wie Personal, Fahrzeuge und Material.
+
+[cols="1,3", options="header"]
+|===
+|Komponente |Verantwortlichkeit
+|personal.controller.ts |REST API für Personalverwaltung
+|fahrzeug.controller.ts |REST API für Fahrzeugverwaltung
+|material.controller.ts |REST API für Materialverwaltung
+|personal.service.ts |Geschäftslogik für Personal
+|fahrzeug.service.ts |Geschäftslogik für Fahrzeuge
+|material.service.ts |Geschäftslogik für Material
+|personal.entity.ts |Datenmodell für Personal
+|fahrzeug.entity.ts |Datenmodell für Fahrzeuge
+|material.entity.ts |Datenmodell für Material
+|===
+
+==== 5.3.5 ETB Module
+
+Das ETB (Einsatztagebuch) Module verwaltet alle Einträge und Aktivitäten im Einsatztagebuch.
+
+[cols="1,3", options="header"]
+|===
+|Komponente |Verantwortlichkeit
+|etb.controller.ts |REST API für Einsatztagebuchverwaltung
+|etb.service.ts |Geschäftslogik für ETB-Einträge
+|etb-eintrag.entity.ts |Datenmodell für ETB-Einträge
+|===
+
+==== 5.3.6 Health Module
+
+Das Health Module ist für die Überwachung des Systemzustands verantwortlich und bietet Endpoints für Health Checks.
+
+[cols="1,3", options="header"]
+|===
+|Komponente |Verantwortlichkeit
+|health.controller.ts |REST API Endpunkt für /api/health
+|health.service.ts |Implementiert Checks für verschiedene Systemkomponenten
+|===
+
+==== 5.3.7 Common Module
+
+Das Common Module enthält gemeinsam genutzte Funktionalitäten, die von mehreren Modulen verwendet werden.
+
+[cols="1,3", options="header"]
+|===
+|Komponente |Verantwortlichkeit
+|filters/ |Exception Filter für einheitliche Fehlerbehandlung
+|guards/ |Guards für Zugriffssteuerung
+|interceptors/ |Interceptors für Request/Response-Transformation
+|decorators/ |Custom Decorators für Controller und Methods
+|utils/ |Hilfsfunktionen und gemeinsame Utilities
+|===
+
+==== 5.3.8 Config Module
+
+Das Config Module enthält Konfigurationen für verschiedene Teile der Anwendung.
+
+[cols="1,3", options="header"]
+|===
+|Komponente |Verantwortlichkeit
+|database.config.ts |Konfiguration der Datenbankverbindung
+|jwt.config.ts |Konfiguration der JWT-Authentication
+|app.config.ts |Allgemeine Anwendungskonfiguration
+|===
+
+=== 5.3 Ebene 3 - Ausgewählte Module im Detail
+
+Auf Ebene 3 betrachten wir einige der wichtigsten Module im Detail, um die interne Struktur und Interaktionen zu verdeutlichen.
+
+==== 5.3.1 Einsatz Module im Detail
+
+Das Einsatz Module ist eines der Kernmodule der Anwendung und folgt der klassischen NestJS-Struktur mit klarer Trennung von Verantwortlichkeiten.
+
+[mermaid]
+....
+classDiagram
+    class EinsatzController {
+        +findAll()
+        +findOne(id: string)
+        +create(createEinsatzDto: CreateEinsatzDto)
+        +update(id: string, updateEinsatzDto: UpdateEinsatzDto)
+        +remove(id: string)
+        +addAbschnitt(id: string, abschnittDto: CreateAbschnittDto)
+        +updateStatus(id: string, statusDto: UpdateStatusDto)
+    }
+    
+    class EinsatzService {
+        -einsatzRepository: EinsatzRepository
+        +findAll()
+        +findOne(id: string)
+        +create(createEinsatzDto: CreateEinsatzDto)
+        +update(id: string, updateEinsatzDto: UpdateEinsatzDto)
+        +remove(id: string)
+        +addAbschnitt(id: string, abschnittDto: CreateAbschnittDto)
+        +updateStatus(id: string, statusDto: UpdateStatusDto)
+        -validateEinsatz(einsatz: Einsatz)
+    }
+    
+    class EinsatzRepository {
+        +findAll()
+        +findOne(id: string)
+        +create(einsatz: Einsatz)
+        +update(id: string, einsatz: Partial~Einsatz~)
+        +remove(id: string)
+    }
+    
+    class Einsatz {
+        +id: string
+        +bezeichnung: string
+        +einsatzart: EinsatzArt
+        +status: EinsatzStatus
+        +startzeit: Date
+        +endzeit?: Date
+        +abschnitte: EinsatzAbschnitt[]
+        +ressourcen: Ressource[]
+        +etbEintraege: ETBEintrag[]
+    }
+    
+    class EinsatzAbschnitt {
+        +id: string
+        +bezeichnung: string
+        +einsatzId: string
+        +verantwortlicherId?: string
+        +ressourcen: Ressource[]
+    }
+    
+    EinsatzController --> EinsatzService
+    EinsatzService --> EinsatzRepository
+    EinsatzRepository --> Einsatz
+    Einsatz "1" *-- "many" EinsatzAbschnitt
+....
+
+Das Einsatz Module verwendet folgende NestJS-Konzepte:
+
+* **Controller**: Definiert die REST API-Endpunkte und validiert eingehende Requests
+* **Service**: Enthält die Geschäftslogik und Validierungsregeln
+* **Repository**: Abstrahiert die Datenbankoperationen
+* **Entities**: Definieren die Datenbankstruktur und Beziehungen
+* **DTOs**: Definieren die Struktur der eingehenden und ausgehenden Daten
+
+==== 5.3.2 Auth Module im Detail
+
+Das Auth Module implementiert die Authentifizierung und Autorisierung der Anwendung.
+
+[mermaid]
+....
+classDiagram
+    class AuthController {
+        +login(loginDto: LoginDto)
+        +validate(token: string)
+        +logout()
+    }
+    
+    class AuthService {
+        -userService: UserService
+        -jwtService: JwtService
+        +validateUser(username: string, password: string)
+        +login(user: User)
+        +validateToken(token: string)
+    }
+    
+    class UserService {
+        -userRepository: UserRepository
+        +findByUsername(username: string)
+        +findById(id: string)
+        +create(createUserDto: CreateUserDto)
+    }
+    
+    class JwtStrategy {
+        -validate(payload: any)
+    }
+    
+    class User {
+        +id: string
+        +username: string
+        +passwordHash: string
+        +rolle: UserRolle
+        +lastLogin?: Date
+    }
+    
+    class JwtAuthGuard {
+        +canActivate(context: ExecutionContext)
+    }
+    
+    class RolesGuard {
+        +canActivate(context: ExecutionContext)
+    }
+    
+    AuthController --> AuthService
+    AuthService --> UserService
+    AuthService --> JwtStrategy
+    UserService --> User
+    JwtAuthGuard --> AuthService
+    RolesGuard --> JwtAuthGuard
+....
+
+Das Auth Module verwendet folgende Sicherheitskonzepte:
+
+* **JWT-basierte Authentifizierung**: Sichere, zustandslose Authentifizierung
+* **Passwort-Hashing**: Sichere Speicherung von Passwörtern
+* **Guards**: Schutz von Routen basierend auf Authentifizierung und Rollen
+* **Strategien**: Flexible Authentifizierungsstrategien
+
+== Offene Punkte
+* Detaillierte Spezifikation der API-Schnittstellen zwischen Frontend und Backend
+* Ausarbeitung des Event-basierten Kommunikationskonzepts für Echtzeitbenachrichtigungen
+* Erweiterung des Datenbankschemas für komplexere Einsatzszenarien
+
+=== 5.4 Entitätsmodell
+
+Das folgende Entity-Relationship-Diagramm zeigt die zentralen Entitäten des Bluelight-Hub-Systems und ihre Beziehungen zueinander. Dies ist die Grundlage für die Datenbankstrukturen und die Datenmodellierung im Backend.
+
+[mermaid]
+....
+erDiagram
+    User ||--o{ Einsatz : "verantwortlich für"
+    User ||--o{ EinsatzAbschnitt : "verantwortlich für"
+    
+    Einsatz ||--|{ EinsatzAbschnitt : "gliedert sich in"
+    Einsatz ||--|{ ETBEintrag : "hat"
+    Einsatz ||--o{ Ressource : "nutzt"
+    
+    EinsatzAbschnitt ||--o{ Ressource : "nutzt"
+    
+    Ressource ||--o{ Personal : "umfasst"
+    Ressource ||--o{ Fahrzeug : "umfasst"
+    Ressource ||--o{ Material : "umfasst"
+    
+    Einsatz ||--o{ Einsatzort : "findet statt an"
+    
+    ETBEintrag }o--|| User : "erstellt von"
+....
+
+Das Diagramm zeigt folgende Beziehungen:
+
+* Ein Benutzer (User) kann für mehrere Einsätze und Einsatzabschnitte verantwortlich sein
+* Ein Einsatz gliedert sich in mehrere Einsatzabschnitte
+* Sowohl Einsätze als auch Einsatzabschnitte können Ressourcen nutzen
+* Ressourcen umfassen Personal, Fahrzeuge und Material
+* Ein Einsatz findet an einem oder mehreren Einsatzorten statt
+* Ein Einsatz hat mehrere Einsatztagebuch-Einträge (ETBEintrag)
+* Einsatztagebuch-Einträge werden von Benutzern erstellt
+
+Dieses Entitätsmodell bildet die Grundlage für:
+
+1. Die Datenbankschema-Definition in TypeORM
+2. Die Entity-Klassen im Backend
+3. Die Geschäftslogik in den Service-Klassen
+4. Die API-Schnittstellen in den DTOs
+5. Die UI-Komponenten im Frontend
+
+Bei Änderungen an Entitätsbeziehungen oder beim Hinzufügen neuer Entitäten muss dieses Diagramm aktualisiert werden, um die Dokumentation aktuell zu halten.

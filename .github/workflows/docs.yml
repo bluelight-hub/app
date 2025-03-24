@@ -1,0 +1,169 @@
+name: Documentation Build
+
+on:
+  push:
+    branches: [ main ]
+    paths:
+      - 'docs/**'
+      - '.github/workflows/docs.yml'
+  pull_request:
+    branches: [ main ]
+    paths:
+      - 'docs/**'
+  workflow_dispatch:
+
+# Konfiguration für Abbruch laufender Builds bei neuem Push
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build-docs:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          
+      - name: Install pnpm
+        uses: pnpm/action-setup@v2
+        with:
+          version: '10.5.2'
+          
+      - name: Get pnpm store directory
+        shell: bash
+        run: |
+          echo "STORE_PATH=$(pnpm store path --silent)" >> $GITHUB_ENV
+
+      - uses: actions/cache@v3
+        name: Setup pnpm cache
+        with:
+          path: ${{ env.STORE_PATH }}
+          key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
+          restore-keys: |
+            ${{ runner.os }}-pnpm-store-
+
+      # Installiere Ruby für Asciidoctor-PDF
+      - name: Set up Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: '3.2'
+          bundler-cache: true
+
+      # Installiere Java für PlantUML
+      - name: Set up Java
+        uses: actions/setup-java@v3
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
+      # Installiere Graphviz für PlantUML
+      - name: Install Graphviz
+        run: sudo apt-get update && sudo apt-get install -y graphviz
+
+      # Installiere Asciidoctor und Diagramm-Tools
+      - name: Install Asciidoctor and diagram tools
+        run: |
+          gem install asciidoctor
+          gem install asciidoctor-diagram
+          gem install asciidoctor-pdf
+          
+          # PlantUML-spezifische Pakete
+          gem install asciidoctor-plantuml
+          
+          # Mermaid-spezifische Pakete
+          npm install -g @mermaid-js/mermaid-cli
+          
+          # BPMN-spezifische Pakete
+          npm install -g bpmn-js-cmd
+          echo "BPMN_JS=$(which bpmn-js-cmd)" >> $GITHUB_ENV
+          
+          # DBML-spezifische Pakete
+          npm install -g @dbml/cli
+          echo "DBML_RENDERER=$(which dbml2sql)" >> $GITHUB_ENV
+          
+          # Weitere Diagramm-Extensions
+          gem install asciidoctor-kroki
+
+      # Überprüfen der installierten Tools im PATH
+      - name: Verify installed diagram tools
+        run: |
+          echo "Node.js version: $(node --version)"
+          echo "NPM version: $(npm --version)"
+          echo "PNPM version: $(pnpm --version)"
+          echo "Ruby version: $(ruby --version)"
+          echo "Asciidoctor version: $(asciidoctor --version)"
+          echo "MMD (Mermaid CLI) path: $(which mmdc)"
+          echo "BPMN-JS path: $BPMN_JS"
+          echo "DBML tools path: $DBML_RENDERER"
+          
+          # Sicherstellen, dass alle Tools im PATH sind
+          mkdir -p ./bin
+          
+          # Bei Bedarf symbolische Links erstellen
+          if [ -f "$(npm bin -g)/mmdc" ] && [ ! -f "./bin/mmdc" ]; then
+            ln -s "$(npm bin -g)/mmdc" ./bin/mmdc
+          fi
+          
+          if [ -f "$(npm bin -g)/bpmn-js-cmd" ] && [ ! -f "./bin/bpmn-js" ]; then
+            ln -s "$(npm bin -g)/bpmn-js-cmd" ./bin/bpmn-js
+          fi
+          
+          if [ -f "$(npm bin -g)/dbml2sql" ] && [ ! -f "./bin/dbml-renderer" ]; then
+            ln -s "$(npm bin -g)/dbml2sql" ./bin/dbml-renderer
+          fi
+          
+          # Füge das bin-Verzeichnis zum PATH hinzu
+          echo "$(pwd)/bin" >> $GITHUB_PATH
+          
+          # Verzeichnisinhalt anzeigen
+          ls -la ./bin
+      
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+        
+      - name: Set diagram attributes for Asciidoctor
+        run: |
+          echo "Creating asciidoctor attributes file"
+          cat > ./docs/attributes.adoc << EOL
+          :bpmn-js: $(which bpmn-js-cmd)
+          :dbml-renderer: $(which dbml2sql)
+          :mmdc: $(which mmdc)
+          :diagram-svg-type: svg
+          EOL
+          
+          cat ./docs/attributes.adoc
+        
+      - name: Build documentation
+        run: |
+          # Füge die Attribute-Datei zur Hauptdatei hinzu
+          sed -i '/:source-highlighter: highlightjs/a :include: attributes.adoc' ./docs/index.adoc
+          
+          # Dokumentation bauen
+          pnpm docs:build
+      
+      - name: Upload documentation artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: documentation
+          path: dist/docs/
+          retention-days: 7
+
+  deploy-docs:
+    needs: build-docs
+    if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      deployments: write
+    steps:
+      - name: Download documentation artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: documentation
+          path: dist/docs/

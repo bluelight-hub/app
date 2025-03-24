@@ -1,0 +1,40 @@
+= ADR-003: Monolithische vs. Microservice-Architektur
+:author: Bluelight-Hub Team
+:revnumber: 1.0.0
+:revdate: 2025-03-23
+:sectnums!:
+
+== Status
+In Prüfung (Stand: 2025-03-23)
+
+== Kontext
+Die Skalierbarkeit und Modularität des Backends ist entscheidend für die langfristige Erweiterbarkeit des Systems.
+
+== Optionen
+. *Monolithische Architektur*: Einfacheres Deployment, geringerer operativer Aufwand.
+. *Microservice-Architektur*: Bessere Skalierbarkeit und Modularität.
+. *Modularer Monolith*: Monolith mit klaren internen Modulgrenzen.
+
+== Entscheidungsgrundlage
+Die Entscheidung zwischen diesen Optionen basiert auf folgenden Faktoren:
+
+* **Aktuelle Teamgröße**: Ein kleines Entwicklungsteam kann einen Monolithen effizienter verwalten
+* **Deployment-Komplexität**: Microservices erfordern komplexere Infrastruktur und CI/CD-Pipelines
+* **Projektgröße**: Die aktuelle Komplexität des Projekts rechtfertigt nicht zwingend eine Microservice-Architektur
+* **Zukünftige Skalierungsanforderungen**: Wie schnell und in welche Richtung wird das System wachsen?
+
+== Vorläufige Richtung
+Die vorläufige Tendenz geht in Richtung eines modularen Monolithen (Option 3), da:
+
+* Die aktuelle Anwendungskomplexität eine vollständige Microservice-Architektur nicht notwendig macht
+* Ein modularer Monolith bietet einen guten Kompromiss zwischen Wartbarkeit und Deployment-Einfachheit
+* Eine klare Modularisierung ermöglicht eine potenzielle spätere Migration zu Microservices
+
+Diese Richtung muss jedoch mit weiteren Stakeholdern diskutiert und finalisiert werden.
+
+== Konsequenzen
+Bei Entscheidung für einen modularen Monolith:
+* Einfacheres Deployment und Betrieb
+* Geringere initiale Infrastrukturkomplexität
+* Notwendigkeit klarer modularer Grenzen im Code
+* Sorgfältige Planung für mögliche spätere Aufteilung in Microservices 

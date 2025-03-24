@@ -1,0 +1,74 @@
+= Bluelight-Hub: arc42-Architekturdokumentation
+:author: Bluelight-Hub Team
+:revnumber: 1.0.0
+:revdate: 2025-03-23
+:revremark: Initiale Erstellung der Dokumentation
+:sectnums:
+:toc: left
+:toclevels: 3
+:doctype: book
+:imagesdir: architecture/images
+:source-highlighter: highlightjs
+:kroki-server-url: https://kroki.io
+
+== Dokumentenversionierung
+
+[cols="1,1,2,4", options="header"]
+|===
+|Version |Datum |Autor |Änderungen
+|1.0.0 |2025-03-23 |R |Initiale Erstellung der Dokumentation
+|===
+
+== Übersicht
+
+Diese Dokumentation beschreibt die Architektur des Bluelight-Hub-Systems nach dem arc42-Template. Sie bietet einen umfassenden Überblick über die Architekturentscheidungen, Strukturen und Konzepte des Systems.
+
+[IMPORTANT]
+====
+*Disclaimer:* Die vorliegende Dokumentation stellt eine architektonische Vision dar und spiegelt den angestrebten Zielzustand wider. Teile der beschriebenen Komponenten und Konzepte befinden sich noch in der Entwicklung und sind möglicherweise noch nicht vollständig implementiert. Bitte beachten Sie den Entwicklungsstand der einzelnen Module, der jeweils zu Beginn des entsprechenden Abschnitts gekennzeichnet ist.
+====
+
+include::architecture/01-introduction-goals.adoc[leveloffset=+1]
+
+include::architecture/02-constraints.adoc[leveloffset=+1]
+
+include::architecture/03-context.adoc[leveloffset=+1]
+
+include::architecture/04-solution-strategy.adoc[leveloffset=+1]
+
+include::architecture/05-building-block-view.adoc[leveloffset=+1]
+
+include::architecture/06-runtime-view.adoc[leveloffset=+1]
+
+include::architecture/07-deployment-view.adoc[leveloffset=+1]
+
+include::architecture/08-concepts.adoc[leveloffset=+1]
+
+include::architecture/09-architecture-decisions.adoc[leveloffset=+1]
+
+include::architecture/10-quality-requirements.adoc[leveloffset=+1]
+
+include::architecture/11-risks.adoc[leveloffset=+1]
+
+include::architecture/12-glossary.adoc[leveloffset=+1]
+
+include::architecture/90-documentation-lifecycle.adoc[leveloffset=+1]
+
+include::architecture/99-architecture-canvas.adoc[leveloffset=+1]
+
+== Nutzung der Dokumentation
+
+Diese Dokumentation richtet sich an folgende Zielgruppen:
+
+* *Entwicklungsteam*: Verständnis der Architektur und Implementierungsrichtlinien
+* *Neue Teammitglieder*: Einarbeitung in die Systemarchitektur
+* *Open Source Community*: Verständnis der Systemfunktionen und -grenzen
+
+== Verwaltung der Dokumentation
+
+Die Dokumentation wird gemäß dem in <<architecture/90-documentation-lifecycle.adoc#,Dokumentations-Lebenszyklus>> beschriebenen Prozess verwaltet. Änderungen werden über Pull Requests eingereicht, geprüft und in die Dokumentation integriert. Die Versionierung folgt dem Schema X.Y.Z (Major.Minor.Patch).
+
+[IMPORTANT]
+====
+Bitte beachten Sie bei der Bearbeitung der Dokumentation die in .cursor/rules/500-arc42-docs.mdc definierten Dokumentationsstandards.
+==== 

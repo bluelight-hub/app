@@ -1,0 +1,100 @@
+= 2. Randbedingungen
+:author: Bluelight-Hub Team
+:revnumber: 1.0.0
+:revdate: 2025-03-23
+:sectnums!
+
+
+== Übersicht
+Dieser Abschnitt beschreibt die Randbedingungen und Vorgaben, die bei der Entwicklung des Bluelight-Hub-Systems berücksichtigt werden müssen. Diese Einschränkungen und Vorgaben sind nicht verhandelbar und bilden einen festen Rahmen für die Architekturentscheidungen.
+
+== Inhalt
+
+=== 2.1 Technische Randbedingungen
+
+==== 2.1.1 Hardware-Vorgaben
+
+[cols="1,2,2", options="header"]
+|===
+|Hardware-Komponente |Vorgabe |Begründung
+|Mobile Endgeräte |Tablets und Smartphones mit iOS (aktuelle Version) und Android (aktuelle Version) |Gängige Geräte der Zielgruppe
+|Führungskraftwagen |Lokaler Server als zentrale Instanz |Verfügbarkeit ohne Internetverbindung
+|Netzwerk |WLAN, LTE/5G, lokales Netzwerk im FüKW |Flexible Konnektivität in verschiedenen Szenarien
+|Digitalfunk |TETRA-Standards |Anschluss an bestehende Infrastruktur
+|===
+
+==== 2.1.2 Software-Vorgaben
+
+[cols="1,2,2", options="header"]
+|===
+|Software-Komponente |Vorgabe |Begründung
+|Frontend |React auf Vite mit TypeScript |Moderne, typsichere Entwicklung
+|Mobile App |Tauri v2 |Plattformübergreifende Entwicklung
+|Backend |NestJS |Strukturiertes Framework mit TypeScript
+|Datenbank |SQLite (lokale Datenbank) |Offline-Fähigkeit
+|API |RESTful und WebSockets |Standardisierte Schnittstellen und Echtzeitkommunikation
+|Authentifizierung |Rollenbasierte Authentifizierung mit JWT-Tokens |Sichere, zustandslose Autorisierung
+|===
+
+==== 2.1.3 Vorgaben zur Kompatibilität
+
+* Unterstützung von Standard-Formaten für Einsatzdaten entsprechend DIN-Normen
+* Exportmöglichkeiten als PDF und CSV für Einsatzberichte
+* Schnittstellen zu gängigen Leitstellen-Systemen
+
+=== 2.2 Organisatorische Randbedingungen
+
+==== 2.2.1 Organisation und Struktur
+
+[cols="1,2,2", options="header"]
+|===
+|Aspekt |Vorgabe |Erläuterung
+|Entwicklungsteam |Einzelentwickler |Alleinige Implementierung
+|Projektmanagement |Keine formale Methodik |Flexibles Arbeiten ohne feste Sprints
+|Stakeholder-Einbeziehung |Keine regelmäßigen Reviews |Open-Source-Entwicklung ohne formale Reviews
+|===
+
+==== 2.2.2 Zeitliche Vorgaben
+
+Für das Projekt wurden keine festen zeitlichen Vorgaben definiert. Die Entwicklung erfolgt nach dem Prinzip "Release when ready" und orientiert sich an der Fertigstellung von Funktionalitäten statt an festen Terminen.
+
+==== 2.2.3 Budgetvorgaben
+
+* Entwicklungsbudget: begrenzt, Fokus auf Open-Source-Technologien
+* Infrastrukturkosten: Nutzung vorhandener Hardware in Führungskraftwagen
+* Wartungsbudget: langfristiger Support muss sichergestellt sein
+
+==== 2.2.4 Rechtliche Vorgaben
+
+* Datenschutz gemäß DSGVO für personenbezogene Daten
+* Compliance mit Anforderungen für Katastrophenschutz-Software
+* Berücksichtigung von Verschlusssachengraden bei sensiblen Einsatzdaten
+
+=== 2.3 Konventionen
+
+==== 2.3.1 Entwicklungsstandards
+
+* Einheitlicher Codestil durch ESLint
+* Dokumentation mit JSDoc und AsciiDoc
+* Testabdeckung von mindestens 80% für kritische Komponenten
+* Dokumentationsabdeckung von mindestens 80% für das gesamte Backend
+* Versionierung mit Semantic Versioning
+
+==== 2.3.2 Namenskonventionen
+
+* Einheitliche Terminologie gemäß Fachsprache im Katastrophenschutz
+* Englische Variablen- und Funktionsnamen im Code
+* Deutsche Benennung von UI-Elementen und Benutzerinteraktionen
+
+==== 2.3.3 Architekturprinzipien
+
+* Modularer Aufbau mit klaren Schnittstellen
+* Strikte Trennung von Frontend und Backend
+* Offline-First-Ansatz mit Daten-Synchronisation
+* Domain-Driven Design für die Geschäftslogik
+* Geteilter, generierter Code für Schnittstellen zwischen Frontend und Backend (OpenAPI)
+
+== Offene Punkte
+* Detaillierte Spezifikation der minimalen Hardware-Anforderungen für mobile Geräte
+* Exakte Definition der Kompatibilitätsanforderungen mit verschiedenen Leitstellen-Systemen
+* Festlegung der Schnittstellen zu Digitalfunk-Systemen verschiedener Hersteller

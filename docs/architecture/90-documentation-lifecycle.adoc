@@ -1,0 +1,195 @@
+= Dokumentations-Lebenszyklus
+:author: Bluelight-Hub Team
+:revnumber: 1.0.0
+:revdate: 2025-03-23
+:sectnums!
+
+
+== Übersicht
+Dieses Dokument beschreibt den Lebenszyklus der arc42-Dokumentation, einschließlich Versionierung, Änderungshistorie und Aktualisierungsprozesse. Es dient als Leitfaden für alle an der Dokumentation beteiligten Personen.
+
+== Inhalt
+
+=== Versionierungskonzept
+
+==== Versionsnummerierung
+
+Die Versionierung der Architekturdokumentation folgt einem einheitlichen Schema:
+
+[cols="1,4", options="header"]
+|===
+|Format |Bedeutung
+|X.Y.Z |Semantische Versionierung (Major.Minor.Patch)
+|===
+
+* *Major (X)*: Grundlegende Architekturänderungen, die das Gesamtkonzept betreffen
+* *Minor (Y)*: Erweiterungen oder Änderungen an einzelnen Architekturaspekten
+* *Patch (Z)*: Korrekturen, Präzisierungen oder redaktionelle Änderungen
+
+Beispiele:
+
+* 1.0.0: Erste vollständige Version der Architekturdokumentation
+* 1.1.0: Hinzufügen eines neuen Architekturkonzepts
+* 1.1.1: Korrektur von Fehlern oder Ungenauigkeiten
+
+==== Dokumentenhistorie
+
+Am Anfang jeder arc42-Hauptdokumentationsdatei wird eine Änderungshistorie geführt:
+
+[cols="1,1,2,4", options="header"]
+|===
+|Version |Datum |Autor |Änderungen
+|0.9.0 |2023-08-01 |Mustermann |Initiale Erstellung der Dokumentation
+|1.0.0 |2023-09-15 |Mustermann |Freigabeversion
+|1.0.1 |2023-10-03 |Musterfrau |Korrektur der Diagramme in Abschnitt 5.3
+|===
+
+Die Historientabelle sollte in die folgenden Dateien eingefügt werden:
+* 00-index.adoc (Hauptdokument)
+* Dateien mit signifikanten Änderungen
+
+==== Änderungskennzeichnung
+
+Änderungen an der Dokumentation werden wie folgt gekennzeichnet:
+
+* *Neue Inhalte*: Keine spezielle Kennzeichnung (sichtbar durch Versionierung)
+* *Geänderte Inhalte*: Bei größeren Änderungen Hinweis auf Änderung am betreffenden Abschnitt mit Versionsnummer
+* *Entfernte Inhalte*: Nicht im Text markieren, nur in der Versionshistorie dokumentieren
+
+=== Änderungsprozess
+
+==== Rollen und Verantwortlichkeiten
+
+[cols="1,3", options="header"]
+|===
+|Rolle |Verantwortlichkeiten
+|Autor |Erstellt und aktualisiert Dokumentationsinhalte
+|Reviewer |Prüft Dokumentation auf Korrektheit und Vollständigkeit
+|Dokumentationsverantwortlicher |Koordiniert Dokumentationsprozesse, pflegt Gesamtdokumentation
+|Architekturverantwortlicher |Bestätigt die Korrektheit der architektonischen Inhalte
+|===
+
+==== Workflow für Dokumentationsänderungen
+
+Der Dokumentationsprozess folgt einem definierten Workflow:
+
+[mermaid]
+....
+flowchart LR
+    A[Änderungsbedarf identifizieren] --> B[Branch erstellen]
+    B --> C[Änderungen vornehmen]
+    C --> D[Selbstprüfung]
+    D --> E[Pull Request]
+    E --> F[Review]
+    F --> G{Genehmigt?}
+    G -- Ja --> H[Merge]
+    G -- Nein --> C
+    H --> I[Version aktualisieren]
+    I --> J[Änderungshistorie aktualisieren]
+....
+
+1. *Änderungsbedarf identifizieren*: Erfassung von Änderungsanforderungen (z.B. durch Bugtracking, neue Funktionen, etc.)
+2. *Branch erstellen*: Feature-Branch für Dokumentationsänderungen erstellen
+3. *Änderungen vornehmen*: Durchführen der erforderlichen Dokumentationsänderungen
+4. *Selbstprüfung*: Überprüfung auf Vollständigkeit, Formatierung und Korrektheit
+5. *Pull Request*: Einreichen des PRs mit Beschreibung der Änderungen
+6. *Review*: Prüfung durch mindestens einen Reviewer
+7. *Genehmigung/Ablehnung*: Bei Bedarf Überarbeitung und erneutes Review
+8. *Merge*: Zusammenführen der Änderungen in den Hauptentwicklungszweig
+9. *Version aktualisieren*: Anpassung der Versionsnummer nach oben beschriebenem Schema
+10. *Änderungshistorie aktualisieren*: Dokumentation der Änderungen in der Historientabelle
+
+==== Regelmäßige Überprüfung
+
+Die Dokumentation wird in folgenden Abständen und Anlässen überprüft:
+
+[cols="1,3", options="header"]
+|===
+|Überprüfungsanlass |Beschreibung
+|Nach Meilensteinen |Überprüfung und Aktualisierung nach Erreichen wichtiger Projektmeilensteine
+|Bei größeren Architekturänderungen |Sofortige Aktualisierung bei signifikanten Änderungen an der Architektur
+|===
+
+[IMPORTANT]
+====
+Die Dokumentation soll stets mit dem aktuellen Systemzustand übereinstimmen. Bei signifikanten Änderungen an der Architektur muss die Dokumentation zeitnah aktualisiert werden.
+====
+
+=== Dokumentationsfreigabe
+
+==== Freigabeprozess
+
+[mermaid]
+....
+flowchart TD
+    A[Dokumentation vollständig] --> B[Finale Review]
+    B --> C[Korrekturen]
+    C --> D{Genehmigt?}
+    D -- Nein --> B
+    D -- Ja --> E[Version erhöhen]
+    E --> F[Änderungshistorie aktualisieren]
+    F --> G[Freigabe durch Architekturverantwortlichen]
+    G --> H[Kommunikation der Änderungen]
+....
+
+==== Freigabekriterien
+
+Für die Freigabe einer neuen Dokumentationsversion müssen folgende Kriterien erfüllt sein:
+
+* Alle Abschnitte sind vollständig und aktuell
+* Diagramme entsprechen dem aktuellen Stand der Architektur
+* Konsistente Terminologie in allen Abschnitten
+* Erfüllung der definierten Qualitätsstandards
+* Erfolgreiche Validierung durch Stakeholder
+* Korrekte Formatierung und Rechtschreibung
+
+=== Werkzeuge und Hilfsmittel
+
+==== Dokumentationssystem
+
+* AsciiDoc als Dokumentationsformat
+* Git für Versionskontrolle
+* GitHub für Kollaboration und Reviews
+* GitHub Actions für automatisierte Dokumentationsprüfung
+
+==== Automatisierte Qualitätsprüfungen
+
+* Rechtschreibprüfung
+* Broken-Link-Checker
+* Konsistenzprüfung der Terminologie
+* Validierung der AsciiDoc-Syntax
+* Prüfung auf nicht aktualisierte Kommentare
+
+=== Kommunikation von Dokumentationsänderungen
+
+==== Kommunikationskanäle
+
+[cols="1,3", options="header"]
+|===
+|Kanal |Verwendung
+|Release Notes |Zusammenfassung aller Änderungen bei Major- und Minor-Releases
+|===
+
+==== Zielgruppengerechte Kommunikation
+
+* *Entwicklungsteam*: Detaillierte Änderungen, technische Details
+* *Management*: Zusammenfassung der wichtigsten Änderungen, Auswirkungen auf die Projektplanung
+* *Externe Stakeholder*: Hauptänderungen und deren Auswirkungen auf Schnittstellen
+
+== Anwendung des Konzepts
+
+=== Versionierung der Gesamtdokumentation
+
+Die arc42-Dokumentation als Ganzes erhält eine übergreifende Versionsnummer. Bei der Aktualisierung einzelner Abschnitte wird die Patch-Version erhöht, bei größeren Änderungen die Minor-Version.
+
+=== Erste Schritte
+
+1. Initiale Versionierung der bestehenden Dokumentation (z.B. mit 1.0.0)
+2. Einfügen der Historientabelle in die Hauptdokumente
+
+== Offene Punkte
+
+* Einrichtung der automatisierten Qualitätsprüfungen
+* Integration mit bestehenden CI/CD-Prozessen
+* Definition spezifischer Rollen und Verantwortlicher
+* Erstellung von Templates für Dokumentationsänderungen

@@ -1,0 +1,12 @@
+graph TD
+    A[Client] --> B[Load Balancer]
+    B --> C[Server 1]
+    B --> D[Server 2]
+    C --> E[(Datenbank)]
+    D --> E
+    
+    style A fill:#f9d77e,stroke:#333,stroke-width:2px
+    style B fill:#a3c9a8,stroke:#333,stroke-width:2px
+    style C fill:#add8e6,stroke:#333,stroke-width:2px
+    style D fill:#add8e6,stroke:#333,stroke-width:2px
+    style E fill:#d8bfd8,stroke:#333,stroke-width:2px 

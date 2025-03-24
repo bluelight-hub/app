@@ -1,0 +1,172 @@
+= 10. Qualitätsanforderungen
+:author: Bluelight-Hub Team
+:revnumber: 1.0.0
+:revdate: 2025-03-23
+:sectnums!
+
+
+== Übersicht
+Dieser Abschnitt beschreibt die Qualitätsanforderungen und Qualitätsszenarien für das Bluelight-Hub-System. Die Qualitätsanforderungen sind entscheidend für den Erfolg des Systems, insbesondere in Anbetracht des Einsatzkontextes im Katastrophenschutz, wo Zuverlässigkeit und Benutzerfreundlichkeit kritisch sind.
+
+== Inhalt
+
+=== 10.1 Qualitätsbaum
+
+Der Qualitätsbaum zeigt die hierarchische Struktur der wichtigsten Qualitätsattribute für das Bluelight-Hub-System.
+
+[mermaid]
+....
+mindmap
+  root((Qualität))
+    (Zuverlässigkeit)
+      (Ausfallsicherheit)
+      (Robustheit)
+      (Wiederherstellbarkeit)
+    (Benutzerfreundlichkeit)
+      (Erlernbarkeit)
+      (Bedienbarkeit)
+      (Barrierefreiheit)
+    (Effizienz)
+      (Antwortzeiten)
+      (Ressourcenverbrauch)
+      (Skalierbarkeit)
+    (Wartbarkeit)
+      (Modularität)
+      (Testbarkeit)
+      (Erweiterbarkeit)
+    (Sicherheit)
+      (Datenschutz)
+      (Zugriffsschutz)
+      (Datenintegrität)
+    (Portabilität)
+      (Geräteunabhängigkeit)
+      (Plattformunabhängigkeit)
+....
+
+=== 10.2 Qualitätsszenarien
+
+Die folgenden Qualitätsszenarien konkretisieren die abstrakten Qualitätsanforderungen und machen sie messbar. Jedes Szenario beschreibt ein konkretes Ereignis, die Systemreaktion und den Maßstab für die Erfüllung der Anforderung.
+
+==== 10.2.1 Zuverlässigkeit
+
+[cols="1,3,2,1,2", options="header"]
+|===
+|ID |Szenario |Reaktion |Priorität |Messgrößen
+|Z-1 |Das System verliert die Netzwerkverbindung während eines aktiven Einsatzes. |Alle Funktionen bleiben ohne Beeinträchtigung auf lokalen Geräten verfügbar. Daten werden lokal gespeichert und automatisch synchronisiert, sobald die Verbindung wiederhergestellt ist. |Hoch |100% der Kernfunktionen bleiben verfügbar; Synchronisation erfolgt automatisch innerhalb von 30 Sekunden nach Wiederverbindung; max. 5 Sekunden Verzögerung bei der lokalen Speicherung.
+|Z-2 |Ein Tablet-Client stürzt während der Einsatzdokumentation ab. |Nach dem Neustart werden alle Daten bis zum letzten Stand vor dem Absturz wiederhergestellt. Keine Datenverluste treten auf. |Hoch |100% Datenwiederherstellung; automatischer Speicherungspunkt alle 60 Sekunden; Neustartzeit < 10 Sekunden.
+|Z-3 |Die Akkulaufzeit eines Tablets neigt sich dem Ende zu. |Das System warnt den Benutzer frühzeitig und führt automatische Datensicherungen durch. |Mittel |Warnung bei 20% und 10% Akkustand; Energiesparmodus aktiviert sich automatisch; Datenübertragung an andere Geräte innerhalb von 2 Minuten möglich.
+|===
+
+==== 10.2.2 Benutzerfreundlichkeit
+
+[cols="1,3,2,1,2", options="header"]
+|===
+|ID |Szenario |Reaktion |Priorität |Messgrößen
+|B-1 |Ein neuer Benutzer verwendet das System zum ersten Mal während eines Einsatzes. |Der Benutzer kann ohne Schulung oder Anleitung grundlegende Aufgaben wie die Eingabe von Einsatzdaten oder das Abfragen von Ressourcen durchführen. |Hoch |Erfolgreiche Durchführung von 90% der Basisaufgaben ohne Hilfestellung; Zeit für erste erfolgreiche Aktion < 2 Minuten; max. 1 Bedienfehler pro Aufgabe.
+|B-2 |Ein Benutzer verwendet das System unter Stressbedingungen (z.B. hoher Lärmpegel, schlechte Lichtverhältnisse). |Das System bleibt intuitiv bedienbar und fehlertolerant. |Hoch |Fehlerrate < 5% unter Stressbedingungen; Erhöhung der Bearbeitungszeit < 20% im Vergleich zu normalen Bedingungen; 100% der kritischen Funktionen bleiben zugänglich.
+|B-3 |Ein Benutzer mit eingeschränktem Sehvermögen muss das System bedienen. |Das System bietet ausreichende Kontraste und Textgrößen, um auch unter suboptimalen Bedingungen lesbar zu bleiben. |Mittel |Kontrast entspricht WCAG AA-Standard; Text skalierbar um mind. 200%; Unterstützung von Bildschirmlesern implementiert.
+|===
+
+==== 10.2.3 Effizienz
+
+[cols="1,3,2,1,2", options="header"]
+|===
+|ID |Szenario |Reaktion |Priorität |Messgrößen
+|E-1 |Ein Benutzer lädt die Einsatzübersicht. |Die Übersicht wird schnell geladen und ist sofort bedienbar. |Hoch |Ladezeit < 1 Sekunde; Interaktive Bedienbarkeit < 0,5 Sekunden; Anzeige aller Daten < 2 Sekunden.
+|E-2 |Mehrere Benutzer arbeiten gleichzeitig im System. |Das System bleibt performant und reagiert ohne spürbare Verzögerung. |Mittel |Max. 10% Performanceverlust bei 10 gleichzeitigen Benutzern; Serverauslastung < 70% bei Volllast; Netzwerkbandbreite < 50% ausgelastet.
+|E-3 |Ein großer Einsatz mit vielen Ressourcen und Einträgen wird verwaltet. |Das System skaliert mit der Datenmenge ohne Leistungseinbußen. |Mittel |Lineare Skalierung bis 1000 Ressourcen und 5000 ETB-Einträge; Speicherverbrauch < 100MB auf Client-Geräten; Suchfunktionen reagieren in < 2 Sekunden.
+|===
+
+==== 10.2.4 Wartbarkeit
+
+[cols="1,3,2,1,2", options="header"]
+|===
+|ID |Szenario |Reaktion |Priorität |Messgrößen
+|W-1 |Eine neue Funktion soll dem System hinzugefügt werden. |Die modulare Architektur ermöglicht die einfache Erweiterung ohne bestehende Funktionen zu beeinträchtigen. |Hoch |Integration neuer Funktionen < 5 Arbeitstage; keine Regression bestehender Funktionen; max. 3 geänderte Module pro Funktion.
+|W-2 |Ein Fehler wird in der Produktionsumgebung entdeckt. |Der Fehler kann schnell lokalisiert, behoben und getestet werden. |Hoch |Lokalisierung < 4 Stunden; Behebung und Test < 8 Stunden; Deployment innerhalb von 24 Stunden nach Entdeckung.
+|W-3 |Ein neuer Entwickler kommt zum Projekt hinzu. |Der Entwickler kann sich schnell in die Codebasis einarbeiten und innerhalb weniger Tage produktiv werden. |Mittel |Onboarding-Zeit < 5 Arbeitstage; Dokumentationsabdeckung > 80%; Code-Verständnis ohne externe Hilfe möglich.
+|===
+
+==== 10.2.5 Sicherheit
+
+[cols="1,3,2,1,2", options="header"]
+|===
+|ID |Szenario |Reaktion |Priorität |Messgrößen
+|S-1 |Ein Benutzer versucht, auf Funktionen zuzugreifen, für die er keine Berechtigung hat. |Das System verweigert den Zugriff und protokolliert den Zugriffsversuch. |Hoch |100% Schutz kritischer Funktionen; Protokollierung aller unbefugten Zugriffsversuche; max. 3 Sekunden Verzögerung bei Berechtigungsprüfung.
+|S-2 |Sensible Daten müssen auf den mobilen Geräten gespeichert werden. |Die Daten werden verschlüsselt gespeichert und sind bei Verlust oder Diebstahl des Geräts geschützt. |Hoch |AES-256 Verschlüsselung für alle sensiblen Daten; automatische Sperrung nach 5 Minuten Inaktivität; Fernlöschungsoption implementiert.
+|S-3 |Das System wird einem Penetrationstest unterzogen. |Keine kritischen Sicherheitslücken werden gefunden. |Mittel |OWASP Top 10 Sicherheitsrisiken adressiert; automatisierte Sicherheitstests bestanden; 0 kritische Sicherheitslücken.
+|===
+
+==== 10.2.6 Portabilität
+
+[cols="1,3,2,1,2", options="header"]
+|===
+|ID |Szenario |Reaktion |Priorität |Messgrößen
+|P-1 |Das System soll auf verschiedenen Tablet-Modellen und Betriebssystemen laufen. |Die Anwendung funktioniert konsistent auf allen unterstützten Plattformen. |Hoch |Unterstützung für mind. 3 gängige Betriebssysteme (iOS, Android, Windows); 100% Funktionsidentität auf allen Plattformen; Anpassung an min. 5 verschiedene Bildschirmgrößen (7"-13").
+|P-2 |Das Backend soll in einer neuen Serverumgebung installiert werden. |Die Installation ist mit minimalen Anpassungen möglich. |Mittel |Containerisierte Lösung mit Docker; Konfiguration über Umgebungsvariablen; Installationszeit < 1 Stunde.
+|P-3 |Ein Upgrade des Betriebssystems auf den Client-Geräten wird durchgeführt. |Die Anwendung bleibt vollständig funktionsfähig. |Mittel |Kompatibilität mit mind. 2 Betriebssystemversionen (aktuell und Vorgänger); automatisierte Tests für neue OS-Versionen; klare Dokumentation von Mindestanforderungen.
+|===
+
+==== 10.2.7 Einsatzabwicklung
+
+[cols="1,3,2,1", options="header"]
+|===
+|ID |Szenario |Reaktion |Priorität
+|EA-1 |Ein neuer Einsatz wird manuell im FüKW angelegt. |Das System generiert automatisch eine strukturierte Einsatz-ID, legt alle erforderlichen Dokumente an und benachrichtigt relevante Einsatzkräfte. Die Anlage dauert weniger als 30 Sekunden. |Hoch
+|EA-2 |Eine Einsatzkraft wird einem Einsatzabschnitt zugewiesen. |Die Zuweisung wird in Echtzeit im System erfasst, auf allen relevanten Clients angezeigt und im Einsatztagebuch protokolliert. |Hoch
+|EA-3 |Ein Einsatzleiter ordnet einen kritischen Einsatz neu und strukturiert die Abschnitte um. |Das System unterstützt die Umstrukturierung durch intuitive UI-Elemente, aktualisiert alle Zuweisungen und informiert betroffene Einsatzkräfte. Die Änderungen sind innerhalb von 2 Sekunden auf allen Clients sichtbar. |Mittel
+|EA-4 |Die Einsatzlage ändert sich und erfordert zusätzliche Ressourcen. |Einsatzabschnittsleiter können selbstständig Ressourcenanforderungen im System erfassen. Diese erscheinen sofort in der Ressourcenübersicht des Einsatzleiters im FüKW. |Hoch
+|EA-5 |Ein Einsatz wird abgeschlossen und dokumentiert. |Das System unterstützt die strukturierte Abschlussdokumentation, generiert automatisch einen Einsatzbericht und archiviert alle relevanten Daten für spätere Auswertungen. |Mittel
+|===
+
+==== 10.2.8 Verbindungskonzept
+
+[cols="1,3,2,1", options="header"]
+|===
+|ID |Szenario |Reaktion |Priorität
+|VC-1 |Ein Client wechselt zwischen verschiedenen Konnektivitätsszenarien (lokal zum FüKW, vollständig mit Internet, autonom). |Das System erkennt automatisch die verfügbare Konnektivität, passt die Funktionalität entsprechend an und zeigt den aktuellen Status deutlich in der Benutzeroberfläche an. |Hoch
+|VC-2 |Ein autonom arbeitender Client kehrt in die Reichweite des FüKW-Servers zurück. |Das System erkennt den FüKW-Server, stellt automatisch die Verbindung her und initiiert eine bidirektionale Synchronisation. Konflikte werden nach definierten Regeln gelöst. |Hoch
+|VC-3 |Ein FüKW-Server erhält Internetverbindung nach längerer Offline-Phase. |Das System aktiviert automatisch erweiterte Online-Funktionen, synchronisiert Daten mit zentralen Diensten und informiert den Benutzer über den erweiterten Funktionsumfang. |Mittel
+|VC-4 |Mehrere autonome Clients müssen ohne FüKW-Server zusammenarbeiten. |In einem zukünftigen Release unterstützt das System die Ad-hoc-Vernetzung von Clients, wobei ein Client temporär als Koordinator fungiert und eine eingeschränkte FüKW-Funktionalität bietet. |Niedrig
+|===
+
+=== 10.3 Qualitätssicherung
+
+Die folgenden Maßnahmen werden zur Sicherstellung der Qualitätsanforderungen implementiert:
+
+[cols="1,2,2", options="header"]
+|===
+|Bereich |Maßnahmen |Erfolgskriterien
+|Zuverlässigkeit |• Umfassende automatisierte Tests
+• Chaos-Engineering-Tests für Ausfallszenarien
+• Regelmäßige Lasttests |• Testabdeckung > 80%
+• Maximal 1 kritischer Produktionsfehler pro Quartal
+• Verfügbarkeit > 99,9% während Einsätzen
+|Benutzerfreundlichkeit |• Usability-Tests mit Endbenutzern
+• Heuristische Evaluation durch UX-Experten
+• Feedback-Loop mit Einsatzkräften |• System Usability Scale (SUS) Score > 80
+• Mind. 10 Usability-Tests pro Release
+• Monatliche Analyse und Umsetzung von Feedback
+|Effizienz |• Kontinuierliche Performance-Überwachung
+• Benchmark-Tests für kritische Funktionen
+• Optimierung von Datenabfragen |• Alle Performance-KPIs innerhalb definierter Grenzen
+• Automatisches Alerting bei Performance-Degradation
+• Vierteljährliche Performance-Reviews
+|Wartbarkeit |• Statische Code-Analyse
+• Peer-Reviews für alle Code-Änderungen
+• Kontinuierliche Dokumentationsaktualisierung |• Keine kritischen Verstöße gegen Coding-Standards
+• 100% der Pull Requests werden reviewt
+• Dokumentation wird mit jeder Änderung aktualisiert
+|Sicherheit |• Regelmäßige Sicherheitsaudits
+• Automatisierte Schwachstellenanalyse
+• Sicherheitsschulungen für Entwickler |• Vierteljährliche Sicherheitsaudits
+• 0 kritische Sicherheitslücken
+• Jährliche Sicherheitsschulungen für alle Entwickler
+|===
+
+== Offene Punkte
+
+* Festlegung konkreter Metriken für Performance-Anforderungen
+* Definition eines umfassenden Lasttestkonzepts
+* Erstellung eines detaillierten Sicherheitskonzepts mit Bedrohungsanalyse
+* Entwicklung von spezifischen Usability-Guidelines für verschiedene Benutzerrollen 
