@@ -1,5 +1,8 @@
 name: Documentation Build
 
+# Standardberechtigungen für alle Jobs (Prinzip der geringsten Berechtigung)
+permissions: read-all
+
 on:
   push:
     branches: [ main ]
@@ -20,6 +23,9 @@ concurrency:
 jobs:
   build-docs:
     runs-on: ubuntu-latest
+    # Minimale Berechtigungen für build-docs
+    permissions:
+      contents: read
     steps:
       - uses: actions/checkout@v4
         with:
