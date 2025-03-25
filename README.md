@@ -11,7 +11,8 @@ BlueLight Hub ist eine moderne Anwendung, die mit einer Monorepo-Struktur entwic
 
 ## Charts
 
-Coverage:
+### Coverage
+
 ![Coverage](https://codecov.io/gh/bluelight-hub/app/graphs/sunburst.svg?token=I5Z3C0FSLL)
 
 ## Projektstruktur
