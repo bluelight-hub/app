@@ -1,0 +1,602 @@
+= 7. Verteilungssicht
+:author: Bluelight-Hub Team
+:revnumber: 1.0.0
+:revdate: 2025-03-23
+:sectnums!
+
+
+== Einführung und Ziele
+Die Verteilungssicht beschreibt:
+
+* die technische Infrastruktur, auf der das System ausgeführt wird
+* die Abbildung von Software-Bausteinen auf diese Infrastrukturelemente
+
+Im Fall von Bluelight-Hub ist die Infrastruktur bewusst einfach gehalten: Das Backend läuft auf dem Führungskraftwagen (FüKW), mit dem sich die Client-Geräte verbinden.
+
+== Infrastruktur Ebene 1
+
+[mermaid]
+....
+flowchart TB
+ subgraph Server["Server-Komponenten 🖥️"]
+    direction LR
+        DB[("SQLite DB 💾\n(Lokale Datenspeicherung)")]
+        Backend["Backend NestJS\n(API-Endpunkte, Geschäftslogik)"]
+        Frontend["Frontend React\n(Web-Interface)"]
+  end
+ subgraph Netzwerk["Lokales Netzwerk 🔄"]
+        WLAN["WLAN-Router\n(Lokales Netzwerk)"]
+  end
+ subgraph s1["Führungskraftwagen 📡"]
+    direction TB
+        Server
+        Netzwerk
+  end
+ subgraph Clients["Client-Geräte 📱💻"]
+    direction TB
+        WebClient1["Web Client 1\n(Tablet/Browser)"]
+        WebClient2["Web Client 2\n(Laptop/Browser)"]
+        TauriClient["Tauri Desktop App\n(Plattformübergreifend)"]
+  end
+    Backend <---> DB & Frontend
+    Server --- Netzwerk
+    Backend -. Optional\n(wenn verfügbar) .-> InternetAPIs["Internet APIs\n(Wetter, Karten, etc.)"]
+    Netzwerk <---> WebClient1 & WebClient2 & TauriClient
+
+     DB:::database
+     Backend:::server
+     Frontend:::server
+     WLAN:::network
+     Netzwerk:::network
+     WebClient1:::client
+     WebClient2:::client
+     TauriClient:::client
+     InternetAPIs:::optional
+    classDef server fill:#26A69A,stroke:#00796B,color:white,stroke-width:2px
+    classDef database fill:#5C6BC0,stroke:#3949AB,color:white,stroke-width:2px
+    classDef client fill:#78909C,stroke:#455A64,color:white,stroke-width:2px
+    classDef network fill:#42A5F5,stroke:#1976D2,color:white,stroke-width:2px
+    classDef optional fill:#BDBDBD,stroke:#9E9E9E,color:#424242,stroke-width:1px,stroke-dasharray: 5 5
+....
+
+=== Erläuterung der Infrastrukturelemente
+
+[cols="1,4"]
+|===
+|Element |Beschreibung
+
+|FüKW
+|Führungskraftwagen: Die primäre Einsatzumgebung, in der das Backend, die Datenbank und das Frontend gehostet werden. Der FüKW stellt die zentrale Infrastrukturkomponente dar.
+
+|Backend
+|NestJS-Anwendung, die im FüKW läuft und die Geschäftslogik bereitstellt. Kommuniziert mit der Datenbank, stellt API-Endpunkte bereit und kann optional Internet-APIs aufrufen.
+
+|Datenbank
+|SQLite-Datenbank für die lokale Datenspeicherung. Wird im FüKW gehostet und speichert alle Einsatzdaten.
+
+|Frontend
+|React-Anwendung, die als WebApp-Interface dient. Läuft im FüKW und stellt ein Web-Interface bereit, auf das Client-Geräte über den Browser zugreifen können.
+
+|Web Clients
+|Browser-basierte Clients auf Tablets und Laptops der Einsatzkräfte, die sich mit dem Frontend im FüKW verbinden.
+
+|Tauri Desktop App
+|Plattformübergreifende Desktop-Anwendung basierend auf Tauri, die direkt auf Client-Geräten installiert ist und direkt mit dem Backend im FüKW kommuniziert.
+
+|Internet APIs (optional)
+|Externe APIs, die vom Backend optional aufgerufen werden können, wenn eine Internetverbindung verfügbar ist.
+|===
+
+== Deployment-Prozess
+
+Der Deployment-Prozess umfasst:
+
+* **Backend-Deployment**: Die NestJS-Anwendung wird direkt auf dem FüKW-Server installiert
+* **Datenbank-Setup**: Die SQLite-Datenbank wird lokal auf dem FüKW eingerichtet
+* **Frontend-Deployment**: Die React-Anwendung wird auf dem FüKW-Server bereitgestellt 
+* **Web-Client-Zugriff**: Web-Clients greifen über einen Webbrowser auf das Frontend zu
+* **Tauri-Client-Deployment**: Die Tauri-Desktop-App wird direkt auf Client-Geräten installiert
+
+Alle Server-Komponenten laufen innerhalb des lokalen Netzwerks des FüKW, was die Kernfunktionalität auch ohne Internetverbindung gewährleistet.
+
+== Verteilungskonzepte
+
+=== Lokale Netzwerkumgebung
+
+* Das gesamte System ist für die lokale Ausführung im FüKW konzipiert
+* Kommunikation erfolgt über WLAN/LAN im FüKW-Netzwerk
+* Internetverbindung optional für erweiterte Funktionen
+
+=== Einfaches Backup-Konzept
+
+* Regelmäßige Sicherung der SQLite-Datenbank
+* Manuelle oder automatisierte Backups nach Einsatzende
+* Export- und Importfunktionen für Einsatzdaten
+
+=== Zukünftige Erweiterungen
+
+* Verbesserte Integration mit externen Diensten bei Internetverbindung
+* Erweitertes Konnektivitätskonzept für verschiedene Verbindungsszenarien
+* Optimierte Tauri-Client-Funktionalität
+
+== Detaillierte Infrastrukturdiagramme
+
+Folgende Diagramme zeigen detaillierte Ansichten verschiedener Aspekte der Deployment-Infrastruktur.
+
+=== Netzwerk-Topologie
+
+[mermaid]
+....
+flowchart TD
+    Internet((Internet)) --- |Optional| Router[FüKW Router]
+    
+    subgraph FüKW_Network["FüKW Lokales Netzwerk (10.0.0.0/24)"]
+        Router --- Server
+        Router --- |WiFi 5GHz| Mobile["Mobile Geräte (Tablets/Smartphones)"]
+        Router --- |LAN| Laptops["Einsatzkräfte Laptops"]
+        
+        subgraph Server["FüKW Server (10.0.0.2)"]
+            NginxProxy["Nginx Reverse Proxy (Port 80/443)"]
+            BackendService["Backend Service (Port 3000)"]
+            FrontendService["Frontend Service (Port 4000)"]
+            Database["SQLite Datenbank (lokal)"]
+            
+            NginxProxy --> BackendService
+            NginxProxy --> FrontendService
+            BackendService --> Database
+        end
+    end
+    
+    subgraph External["Externe Infrastruktur"]
+        Internet --- WeatherAPI["Wetter API"]
+        Internet --- MapsAPI["Karten API"]
+    end
+    
+    classDef primary fill:#42A5F5,stroke:#1976D2,color:white
+    classDef secondary fill:#78909C,stroke:#455A64,color:white
+    classDef server fill:#26A69A,stroke:#00796B,color:white
+    
+    class Router,Server primary
+    class Mobile,Laptops,External secondary
+    class NginxProxy,BackendService,FrontendService,Database server
+....
+
+=== Hardware-Anforderungen und Spezifikationen
+
+[cols="2,2,4"]
+|===
+|Komponente |Minimale Anforderungen |Empfohlene Anforderungen
+
+|FüKW Server
+|
+* Intel Core i5 (8. Gen.)
+* 8 GB RAM
+* 256 GB SSD
+* Linux oder Windows Server
+|
+* Intel Core i7/i9 (10. Gen. oder neuer)
+* 16 GB RAM
+* 512 GB SSD
+* Linux Server (Ubuntu 22.04 LTS)
+
+|FüKW Router
+|
+* Dual-Band WLAN (2.4/5 GHz)
+* 4x Gigabit LAN Ports
+* DHCP-Server
+|
+* Tri-Band WLAN (2.4/5/5 GHz)
+* 8x Gigabit LAN Ports
+* DHCP-Server
+* Failover-Funktion
+
+|Client Tablets
+|
+* 10" Display
+* 4 GB RAM
+* 32 GB Speicher
+* Android 10+ oder iOS 14+
+|
+* 12" Display
+* 8 GB RAM
+* 128 GB Speicher
+* Android 12+ oder iOS 15+
+* LTE-Modul
+
+|Client Laptops
+|
+* Intel Core i5
+* 8 GB RAM
+* 256 GB SSD
+* Windows 10
+|
+* Intel Core i7
+* 16 GB RAM
+* 512 GB SSD
+* Windows 11 Pro
+|===
+
+=== Software-Deployment-Diagramm
+
+[mermaid]
+....
+flowchart TB
+    subgraph deploymentProcess["Deployment-Prozess"]
+        direction TB
+        build["Build Phase ⚙️"] --> deploy["Deployment Phase 🚀"] --> config["Konfiguration 🔧"] --> startup["Systemstart 🔌"]
+    end
+    
+    subgraph buildDetails["Build Details"]
+        direction TB
+        frontendBuild["Frontend Build (React)"]
+        backendBuild["Backend Build (NestJS)"]
+        tauriBuild["Tauri App Build"]
+    end
+    
+    subgraph deployDetails["Deployment Details"]
+        direction TB
+        serverDeploy["Server Deployment"]
+        dbSetup["Datenbank Setup/Migration"]
+        clientDeploy["Client App Verteilung"]
+    end
+    
+    subgraph configDetails["Konfiguration"]
+        direction TB
+        envSetup["Environment Setup"]
+        networkConfig["Netzwerk Konfiguration"]
+        securityConfig["Sicherheitskonfiguration"]
+    end
+    
+    build --> buildDetails
+    deploy --> deployDetails
+    config --> configDetails
+    
+    classDef primary fill:#42A5F5,stroke:#1976D2,color:white
+    classDef secondary fill:#78909C,stroke:#455A64,color:white
+    classDef details fill:#26A69A,stroke:#00796B,color:white
+    
+    class deploymentProcess primary
+    class buildDetails,deployDetails,configDetails secondary
+    class frontendBuild,backendBuild,tauriBuild,serverDeploy,dbSetup,clientDeploy,envSetup,networkConfig,securityConfig details
+....
+
+=== Failover- und Backup-Strategie
+
+[mermaid]
+....
+flowchart TB
+    subgraph normalOperation["Normaler Betrieb"]
+        direction LR
+        primaryServer["Primärer FüKW Server"] --> backupScheduler["Automatischer Backup-Scheduler"]
+        backupScheduler --> backupStorage["Lokaler Backup-Speicher"]
+    end
+    
+    subgraph failoverScenario["Failover-Szenario"]
+        direction TB
+        serverFailure["Server-Ausfall ❌"] --> backupServer["Backup FüKW Server"]
+        backupServer --> restoreData["Datenwiederherstellung"]
+        restoreData --> backupStorage
+        backupServer --> resumeOperation["Betrieb wiederaufnehmen"]
+    end
+    
+    subgraph dataManagement["Datenmanagement"]
+        direction TB
+        eomBackup["Einsatzende-Backup"]
+        exportData["Datenexport für Einsatzdokumentation"]
+        archiveData["Langzeitarchivierung"]
+    end
+    
+    normalOperation --> failoverScenario
+    normalOperation --> dataManagement
+    
+    classDef primary fill:#42A5F5,stroke:#1976D2,color:white
+    classDef secondary fill:#78909C,stroke:#455A64,color:white
+    classDef critical fill:#EF5350,stroke:#D32F2F,color:white
+    
+    class normalOperation primary
+    class failoverScenario,dataManagement secondary
+    class serverFailure critical
+....
+
+=== Update- und Wartungsstrategie
+
+[mermaid]
+....
+flowchart LR
+    subgraph updateProcess["Update-Prozess"]
+        direction TB
+        releasePackage["Release-Paket erstellen"] --> testUpdate["Tests in Testumgebung"]
+        testUpdate --> |"Erfolgreich"| backupProd["Backup Produktionssystem"]
+        backupProd --> deployUpdate["Update ausrollen"]
+        deployUpdate --> verifyUpdate["Funktionsprüfung"]
+        verifyUpdate --> |"Erfolgreich"| updateComplete["Update abgeschlossen"]
+        verifyUpdate --> |"Fehlgeschlagen"| rollback["Rollback zum Backup"]
+        rollback --> troubleshoot["Fehleranalyse"]
+    end
+    
+    subgraph maintenanceProcess["Wartungsprozess"]
+        direction TB
+        scheduleMaint["Wartung planen"] --> notifyUsers["Benutzer informieren"]
+        notifyUsers --> performMaint["Wartung durchführen"]
+        performMaint --> verifyMaint["Systemprüfung"]
+        verifyMaint --> docMaint["Wartung dokumentieren"]
+    end
+    
+    updateProcess --- maintenanceProcess
+    
+    classDef primary fill:#42A5F5,stroke:#1976D2,color:white
+    classDef secondary fill:#78909C,stroke:#455A64,color:white
+    classDef success fill:#66BB6A,stroke:#388E3C,color:white
+    classDef critical fill:#EF5350,stroke:#D32F2F,color:white
+    
+    class updateProcess,maintenanceProcess primary
+    class releasePackage,testUpdate,backupProd,deployUpdate,verifyUpdate,scheduleMaint,notifyUsers,performMaint,verifyMaint,docMaint secondary
+    class updateComplete success
+    class rollback,troubleshoot critical
+....
+
+== Offene Punkte
+
+* Detaillierte Anforderungen für Client-Hardware
+* Spezifikation des Netzwerk-Setups im FüKW
+* Backup-Strategie für Einsatzdaten
+* Update-Strategie für die Tauri-Desktop-App auf Client-Geräten 
+
+=== 7.3 Deployment-Pipeline
+
+Die Deployment-Pipeline nutzt GitHub Actions und Docker, um das Bluelight-Hub-System zu bauen, zu testen und bereitzustellen.
+
+[mermaid]
+....
+flowchart TB
+    style Dev fill:#BBDEFB,stroke:#1976D2,color:black
+    style CI fill:#FFD54F,stroke:#FFA000,color:black
+    style CD fill:#A5D6A7,stroke:#388E3C,color:black
+    
+    subgraph Dev[Entwicklung]
+        direction TB
+        LocalDev["Lokale Entwicklung"]
+        GitPush["Git Push"]
+        PullRequest["Pull Request"]
+        
+        LocalDev --> GitPush
+        GitPush --> PullRequest
+    end
+    
+    subgraph CI[Continuous Integration]
+        direction TB
+        TestAction["test.yml\nAction"]
+        Build["Build & Test"]
+        Lint["Linting"]
+        UnitTests["Unit Tests"]
+        E2ETests["E2E Tests"]
+        
+        TestAction --> Build & Lint & UnitTests & E2ETests
+    end
+    
+    subgraph CD[Continuous Delivery]
+        direction TB
+        ReleaseAction["release.yml\nAction"]
+        DockerAction["docker-publish.yml\nAction"]
+        Release["Semantic Release"]
+        DockerBuild["Docker Build"]
+        DockerPush["Push to Registry"]
+        
+        ReleaseAction --> Release
+        DockerAction --> DockerBuild --> DockerPush
+        Release --> DockerAction
+    end
+    
+    PullRequest --> TestAction
+    TestAction --> CD
+    
+    classDef action fill:#E1BEE7,stroke:#8E24AA,color:black
+    class TestAction,ReleaseAction,DockerAction action
+....
+
+==== 7.3.1 GitHub Actions Workflows
+
+Das Bluelight-Hub-System verwendet drei Hauptworkflows, die in GitHub Actions definiert sind:
+
+[cols="1,3", options="header"]
+|===
+|Workflow |Beschreibung
+|test.yml |Führt Tests für jeden Pull Request und Push auf den main-Branch aus. Enthält Linting, Unit-Tests und End-to-End-Tests.
+|release.yml |Automatisiert den Release-Prozess mit semantic-release, erstellt Tags und Releases basierend auf Commit-Nachrichten.
+|docker-publish.yml |Baut Docker-Images und veröffentlicht sie in GitHub Container Registry (GHCR) als Teil des Release-Prozesses.
+|===
+
+Beispiel für den Docker-Publish-Workflow (docker-publish.yml):
+
+[source,yaml]
+----
+name: Docker
+
+on:
+  push:
+    branches: [ main ]
+    # Publish semver tags as releases.
+    tags: [ 'v*.*.*' ]
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ${{ github.repository }}
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+      
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+        
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+          
+      - name: Extract metadata (tags, labels) for Docker
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+          tags: |
+            type=semver,pattern={{version}}
+            type=semver,pattern={{major}}.{{minor}}
+            type=sha,format=long
+            type=ref,event=branch
+            type=raw,value=latest,enable={{is_default_branch}}
+            
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max 
+----
+
+==== 7.3.2 Docker Deployment
+
+Für die Produktion wird das Bluelight-Hub-System als Docker-Container bereitgestellt. Der Hauptbaustein ist ein Multi-Stage-Dockerfile, das die Frontend- und Backend-Komponenten in einem einzigen Container zusammenführt.
+
+Dockerfile-Auszüge:
+
+[source,dockerfile]
+----
+# Base stage for shared dependencies
+FROM node:20-alpine AS base
+RUN apk add --no-cache python3 make g++ sqlite
+RUN npm install -g pnpm
+WORKDIR /app
+COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
+COPY packages/shared/package.json ./packages/shared/
+COPY packages/frontend/package.json ./packages/frontend/
+COPY packages/backend/package.json ./packages/backend/
+
+# Frontend build stage
+FROM base AS frontend-builder
+WORKDIR /app
+RUN pnpm install --frozen-lockfile
+COPY packages/shared/ ./packages/shared/
+COPY packages/frontend/ ./packages/frontend/
+ENV NODE_ENV=production
+ENV SKIP_TESTS=true
+RUN cd packages/frontend && pnpm build
+
+# Backend build stage
+FROM base AS backend-builder
+WORKDIR /app
+RUN pnpm install --frozen-lockfile
+COPY packages/shared/ ./packages/shared/
+COPY packages/backend/ ./packages/backend/
+RUN cd packages/backend && pnpm build
+
+# Production stage
+FROM node:20-alpine AS production
+RUN apk add --no-cache sqlite python3 make g++
+RUN npm install -g pnpm
+WORKDIR /app
+
+# Copy built artifacts
+COPY --from=backend-builder /app/packages/backend/dist ./packages/backend/dist
+COPY --from=frontend-builder /app/packages/frontend/dist ./public
+
+# Persistent volume for database
+VOLUME /data/db
+----
+
+==== 7.3.3 Docker-Compose-Deployment
+
+Für lokale Entwicklung und einfache Bereitstellung wird Docker Compose verwendet, um alle Komponenten des Systems zu orchestrieren.
+
+Docker Compose-Definition (docker-compose.yml):
+
+[source,yaml]
+----
+version: '3.8'
+
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "3000:3000"
+    volumes:
+      - sqlite_data:/data/db
+    environment:
+      - NODE_ENV=production
+      - SQLITE_DB_PATH=/data/db/database.sqlite
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "--spider", "-q", "http://localhost:3000/api/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    deploy:
+      resources:
+        limits:
+          memory: 1G
+        reservations:
+          memory: 512M
+
+volumes:
+  sqlite_data:
+    name: bluelight-hub-db
+----
+
+==== 7.3.4 Deployment auf dem Führungskraftwagen
+
+Das finale Deployment auf dem Führungskraftwagen erfolgt als Docker-Container mit folgenden Schritten:
+
+1. Installation von Docker Engine auf dem Führungskraftwagen
+2. Herunterladen des neuesten Docker-Images von GitHub Container Registry
+3. Ausführen des Containers mit dem Docker-Compose-File
+4. Konfiguration des lokalen Netzwerks für den Zugriff auf die Anwendung
+5. Regelmäßiges Update des Containers bei Verfügbarkeit neuer Versionen
+
+[mermaid]
+....
+sequenceDiagram
+    participant Admin as FüKW Administrator
+    participant Docker as Docker Engine
+    participant Registry as GitHub Container Registry
+    participant Container as Bluelight-Hub Container
+    participant Network as Lokales WLAN-Netzwerk
+    
+    Admin->>Docker: docker-compose pull
+    Docker->>Registry: Abrufen des neuesten Images
+    Registry-->>Docker: Image heruntergeladen
+    
+    Admin->>Docker: docker-compose up -d
+    Docker->>Container: Container erstellen & starten
+    Container->>Docker: Container läuft
+    
+    Admin->>Network: Konfiguriere WLAN-Router
+    Network->>Container: Verbindung über Port 3000
+    
+    Note over Admin,Network: Bereit für Client-Verbindungen
+    
+    loop Periodisch
+        Admin->>Docker: docker-compose pull && docker-compose up -d
+        Docker->>Registry: Prüfen auf neue Version
+        alt Neue Version verfügbar
+            Registry-->>Docker: Neue Version herunterladen
+            Docker->>Container: Alten Container stoppen
+            Docker->>Container: Neuen Container starten
+        else Keine neue Version
+            Registry-->>Docker: Keine Änderung
+        end
+    end
+.... 

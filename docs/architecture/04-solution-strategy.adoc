@@ -1,0 +1,130 @@
+= 4. Lösungsstrategie
+:author: Bluelight-Hub Team
+:revnumber: 1.0.0
+:revdate: 2025-03-23
+:sectnums!
+
+
+== Übersicht
+Dieser Abschnitt fasst die grundlegenden Entscheidungen und Lösungsansätze zusammen, die für die Architektur des Bluelight-Hub-Systems prägend sind. Er zeigt, wie die wichtigsten Qualitätsanforderungen und technischen Randbedingungen durch die gewählte Lösungsstrategie adressiert werden.
+
+== Inhalt
+
+=== 4.1 Technologieentscheidungen
+
+Die folgenden Technologieentscheidungen bilden das Fundament der Architektur:
+
+[cols="1,2,3", options="header"]
+|===
+|Bereich |Technologie |Begründung
+|Frontend |React, TypeScript, Ant Design |Moderne, typsichere Entwicklung mit etabliertem UI-Framework
+|Mobile App |Tauri v2 mit TypeScript |Plattformübergreifende Entwicklung, nativer Zugriff auf Systemfunktionen
+|Backend |NestJS |Strukturiertes, modulares Framework mit TypeScript
+|Datenbank |SQLite (lokal und Server) |Einfache, leichtgewichtige SQL-Datenbank mit guter Offline-Unterstützung
+|API |REST |Standardisierte, ressourcenorientierte Schnittstellen
+|Verbindungskonzept |Custom-Lösung mit verschiedenen Konnektivitätsszenarien |Unterstützung von lokaler Verbindung (FüKW), vollständiger Verbindung (FüKW + Internet) und zukünftig autonomem Modus
+|Kartendarstellung |mapbox (Entscheidung noch nicht final) |Unterstützung für Offline-Karten, umfangreiche Features
+|Authentifizierung |JWT |Industrie-Standard für sichere Authentifizierung
+|Containerisierung |Docker |Reproduzierbare Entwicklungs- und Deployment-Umgebungen
+|CI/CD |GitHub Actions |Automatisierte Build- und Deployment-Pipelines
+|===
+
+=== 4.2 Architekturansätze zur Erfüllung der Qualitätsziele
+
+Die grundlegenden Architekturansätze zur Erfüllung der wichtigsten Qualitätsziele sind:
+
+[mermaid]
+....
+mindmap
+  root((Architekturansätze))
+    Zuverlässigkeit
+      Redundante Datenspeicherung
+      Robustes Error-Handling
+      Monitoring und Alerting
+    Konnektivitätsresilienz
+      Funktionalität bei lokaler Verbindung
+      Erweiterte Features bei Internetverbindung
+      Robuste Datensynchronisation
+      Autonome Funktionsfähigkeit (geplant)
+    Benutzerfreundlichkeit
+      Konsistentes UI-Design
+      Adaptive Layouts
+      Kontextsensitive Hilfe
+    Systemkommunikation
+      REST-APIs
+      Event-basierte Architektur
+      Optimistic Updates
+    Erweiterbarkeit
+      Modulare Struktur
+      Plugin-System
+      Feature Flags
+    Performance
+      Caching-Strategien
+      Lazy Loading
+      Optimierte Datensynchronisation
+    Sicherheit
+      Rollenbasierte Zugriffssteuerung
+      End-to-End-Verschlüsselung
+      Sicherheits-Audits
+....
+
+==== 4.2.1 Zuverlässigkeit
+
+* *Redundante Datenspeicherung*: Daten werden sowohl lokal als auch zentral gespeichert
+* *Robustes Error-Handling*: Umfassendes Fehlerbehandlungssystem mit Wiederherstellungsmechanismen
+* *Monitoring und Alerting*: Proaktive Überwachung kritischer Systemfunktionen
+
+==== 4.2.2 Konnektivitätsresilienz
+
+* *Funktionalität bei lokaler Verbindung*: Gewährleistung der Kernfunktionen bei reiner FüKW-Verbindung (lokales Verbindungsszenario)
+* *Erweiterte Features bei Internetverbindung*: Zusätzliche Features, wenn der FüKW mit dem Internet verbunden ist (vollständiges Verbindungsszenario)
+* *Robuste Datensynchronisation*: Zuverlässiger Datenaustausch zwischen verschiedenen Konnektivitätsszenarien
+* *Autonome Funktionsfähigkeit*: (geplant) Unabhängiges Arbeiten ohne FüKW-Verbindung
+
+==== 4.2.3 Benutzerfreundlichkeit
+
+* *Konsistentes UI-Design*: Einheitliche Bedienkonzepte in allen Anwendungsteilen
+* *Adaptive Layouts*: Optimierte Darstellung für verschiedene Geräte und Bildschirmgrößen
+* *Kontextsensitive Hilfe*: Integrierte Unterstützung an relevanten Stellen
+
+=== 4.3 Entwurfsentscheidungen
+
+==== 4.3.1 Architekturmuster
+
+* *Hexagonale Architektur*: Klare Trennung von Domäne, Anwendung und Infrastruktur
+* *CQRS (Command Query Responsibility Segregation)*: Trennung von Lese- und Schreiboperationen
+* *Event Sourcing*: Speicherung aller Änderungen als Ereignisse für Nachvollziehbarkeit
+* *Verbindungskonzept*: Unterstützung verschiedener Konnektivitätsszenarien zur Gewährleistung der Konnektivitätsresilienz
+
+==== 4.3.2 Persistenz
+
+* *SQLite für alle Datenhaltung*: Sowohl als lokale Datenbank als auch für den Server
+* *Daten-Synchronisationsschicht*: Verwaltet Konflikte und sorgt für konsistente Datenreplikation
+* *Versioning*: Versionierung aller Datenobjekte zur Konfliktlösung
+
+==== 4.3.3 Benutzerschnittstelle
+
+* *Component-basiertes UI*: Wiederverwendbare UI-Komponenten nach Atomic Design
+* *Responsive Design*: Anpassungsfähige Layouts für mobile und Desktop-Nutzung
+* *Offline-Indikatoren*: Klare Anzeige des Verbindungsstatus und der Synchronisationszustände
+
+=== 4.4 Mapping der Lösungsstrategie auf Qualitätsziele
+
+Die folgende Tabelle zeigt, wie die gewählten Architekturansätze die wichtigsten Qualitätsziele adressieren:
+
+[cols="1,2,2", options="header"]
+|===
+|Qualitätsziel |Architekturansatz |Erwarteter Effekt
+|Zuverlässigkeit |Redundante Datenspeicherung, Robustes Error-Handling |Hohe Systemverfügbarkeit auch bei Teilausfällen
+|Konnektivitätsresilienz |Verbindungskonzept mit verschiedenen Konnektivitätsszenarien |Funktionsfähigkeit in verschiedenen Netzwerksituationen
+|Benutzerfreundlichkeit |Konsistentes UI-Design, Adaptive Layouts |Intuitive Bedienung auf verschiedenen Geräten
+|Erweiterbarkeit |Modulare Struktur, Plugin-System |Einfache Integration neuer Funktionen
+|Performance |Caching-Strategien, Lazy Loading |Schnelle Reaktionszeiten auch auf älteren Geräten
+|Sicherheit |Rollenbasierte Zugriffssteuerung, Verschlüsselung |Schutz sensibler Einsatzdaten
+|===
+
+== Offene Punkte
+* Detaillierte Spezifikation des Synchronisationsansatzes für Konfliktlösung
+* Evaluierung von WebSockets für zukünftige Echtzeitkommunikation
+* Finale Entscheidung zur Kartendarstellung (mapbox vs. Alternativen)
+* Bewertung von Kubernetes für zukünftige Skalierung und Deployment 

@@ -1,0 +1,89 @@
+= 1. Einführung und Ziele
+:author: Bluelight-Hub Team
+:revnumber: 1.0.0
+:revdate: 2025-03-23
+:sectnums!
+
+
+== Übersicht
+Dieser Abschnitt führt in die Bluelight-Hub-Anwendung ein und beschreibt die grundlegenden Ziele und Anforderungen an das System. Er definiert den Zweck und Kontext des Projekts sowie die wesentlichen Qualitätsziele und Stakeholder.
+
+== Inhalt
+
+=== 1.1 Aufgabenstellung
+
+Bluelight-Hub ist eine moderne Einsatzunterstützungsanwendung für Blaulichtorganisationen, die verschiedene kritische Funktionen in einer einheitlichen, mobilen und offline-fähigen Plattform integriert.
+
+==== 1.1.1 Hintergrund und Motivation
+
+Bestehende Lösungen im Bereich der Einsatzunterstützung für Feuerwehren, Rettungsdienste und andere Hilfsorganisationen weisen häufig folgende Defizite auf:
+
+* Mangelnde Integration verschiedener Funktionalitäten in einer Anwendung
+* Unzureichende Offline-Fähigkeit in Bereichen mit schlechter Netzabdeckung
+* Komplexe, nicht auf mobile Nutzung optimierte Benutzeroberflächen
+* Schwierige Anbindung an bestehende Leitstellen-Systeme
+* Fehlende Echtzeitkommunikation zwischen Einsatzkräften
+
+Bluelight-Hub adressiert diese Probleme durch einen modernen, integrierten Ansatz.
+
+==== 1.1.2 Kernfunktionalitäten
+
+Die Anwendung umfasst folgende Kernfunktionalitäten:
+
+* *Einsatzmanagement*: Manuelle Anlage und Verwaltung von Einsätzen im FüKW, einschließlich dynamischer UI-Transformation zwischen Normalbetrieb und Einsatzmodus
+* *Einsatztagebuch (ETB)*: Dokumentation von Ereignissen, Maßnahmen und Entscheidungen im Einsatzverlauf
+* *Lagekarten*: Visualisierung der Einsatzlage mit taktischen Zeichen und Ressourcenpositionierung
+* *Ressourcenmanagement*: Verwaltung und Statusverfolgung von Personal, Fahrzeugen und Material basierend auf Templates
+* *Kommunikation*: Koordination zwischen FüKW und Einsatzkräften; Anbindung an Digitalfunk erfolgt manuell, nicht über automatische Schnittstellen
+* *Konnektivitätsresilienz*: Funktionalität in verschiedenen Verbindungsszenarien (lokal, vollständig, zukünftig autonom)
+
+=== 1.2 Qualitätsziele
+
+Die folgenden Qualitätsziele haben für die Bluelight-Hub-Anwendung höchste Priorität:
+
+[cols="1,3,1", options="header"]
+|===
+|Qualitätsziel |Beschreibung |Priorität
+|Zuverlässigkeit |Das System muss auch unter widrigen Bedingungen (schlechte Netzabdeckung, Extremwetter, Stress) zuverlässig funktionieren. |Sehr hoch
+|Konnektivitätsresilienz |Das System muss in verschiedenen Verbindungsszenarien funktionieren: bei lokaler Verbindung zum FüKW (lokales Verbindungsszenario), bei Internetverbindung (vollständiges Verbindungsszenario) und zukünftig im autonomen Modus (Offline-Verbindungsszenario). |Sehr hoch
+|Benutzerfreundlichkeit |Die Anwendung muss auch in Stresssituationen intuitiv bedienbar sein. |Hoch
+|Echtzeit-Kommunikation |Statusänderungen und wichtige Ereignisse müssen in Echtzeit an alle relevanten Akteure kommuniziert werden. |Hoch
+|Erweiterbarkeit |Das System muss modular sein und einfach um neue Funktionen erweitert werden können. |Mittel
+|Performance |Die Anwendung muss auf mobilen Geräten mit begrenzten Ressourcen flüssig laufen. |Mittel
+|Sicherheit |Sensible Einsatzdaten müssen angemessen geschützt werden. |Mittel
+|===
+
+[mermaid]
+....
+pie title Qualitätsziele nach Priorität
+    "Zuverlässigkeit" : 25
+    "Konnektivitätsresilienz" : 25
+    "Benutzerfreundlichkeit" : 20
+    "Echtzeit-Kommunikation" : 15
+    "Erweiterbarkeit" : 5
+    "Performance" : 5
+    "Sicherheit" : 5
+....
+
+=== 1.3 Stakeholder
+
+Die folgenden Stakeholder haben ein direktes oder indirektes Interesse am System:
+
+[cols="1,3,1", options="header"]
+|===
+|Rolle |Erwartungshaltung |Einfluss
+|Einsatzkräfte (Primärnutzer) |Intuitive Bedienung, Zuverlässigkeit, Funktionalität in allen Verbindungsszenarien, Aktualität der Daten |Sehr hoch
+|Einsatzleitung |Überblick über Ressourcen und Lage, Entscheidungsunterstützung, Protokollierung |Sehr hoch
+|IT-Verantwortliche der Organisationen |Einfache Wartung, Kompatibilität mit bestehenden Systemen, Sicherheit |Hoch
+|Leitstellen |Nahtlose Integration, zuverlässiger Datenaustausch |Hoch
+|Ausbilder |Unterstützung von Übungsszenarien, Auswertungsmöglichkeiten |Mittel
+|Entwicklungsteam |Wartbarkeit, Testbarkeit, Erweiterbarkeit |Mittel
+|Öffentlichkeit/Betroffene |Indirekt: Schnellere und bessere Hilfe in Notfällen |Niedrig
+|===
+
+Die wichtigsten Stakeholder sind die direkten Nutzer (Einsatzkräfte und Einsatzleitung), deren Anforderungen und Bedürfnisse bei der Entwicklung höchste Priorität haben.
+
+== Offene Punkte
+* Detaillierte Priorisierung von Funktionalitäten für die initiale MVP-Version
+* Spezifikation der genauen Integration mit verschiedenen Leitstellen-Systemen
+* Definition der minimalen Hardware-Anforderungen für mobile Geräte 

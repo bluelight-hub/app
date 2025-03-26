@@ -1,0 +1,298 @@
+/* 
+ * Benutzerdefiniertes CSS für Bluelight-Hub PDF-Dokumente
+ * Verwendet mit asciidoctor-web-pdf
+ */
+
+/* Grundlegende Farbdefinitionen */
+:root {
+    --primary-color: #42A5F5;
+    /* Blau - Primärfarbe */
+    --primary-dark: #1976D2;
+    /* Dunkelblau - Akzente */
+    --secondary-color: #5C6BC0;
+    /* Indigo - Sekundärfarbe */
+    --secondary-dark: #3949AB;
+    /* Dunkelindigo - Akzente */
+    --accent-color: #26A69A;
+    /* Türkis - Akzentfarbe */
+    --warning-color: #FF9800;
+    /* Orange - Warnungen */
+    --info-color: #29B6F6;
+    /* Hellblau - Info */
+    --success-color: #66BB6A;
+    /* Grün - Erfolg */
+    --error-color: #EF5350;
+    /* Rot - Fehler */
+    --text-color: #333333;
+    /* Dunkelgrau - Haupttext */
+    --light-text: #757575;
+    /* Hellgrau - Sekundärtext */
+    --code-bg: #F5F5F5;
+    /* Hellgrau - Code-Hintergrund */
+}
+
+/* Allgemeine Dokumenteinstellungen */
+body {
+    font-family: 'DepartureMono Nerd Font', 'Roboto', 'Helvetica Neue', Arial, sans-serif;
+    color: var(--text-color);
+    line-height: 1.6;
+    font-size: 10.5pt;
+    max-width: 100%;
+}
+
+/* Überschriften */
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+    font-family: 'Roboto', 'Helvetica Neue', Arial, sans-serif;
+    color: var(--primary-dark);
+    margin-top: 1.5em;
+    margin-bottom: 0.5em;
+}
+
+h1 {
+    font-size: 24pt;
+    color: var(--primary-dark);
+    border-bottom: 2px solid var(--primary-color);
+    padding-bottom: 0.25em;
+}
+
+h2 {
+    font-size: 18pt;
+    border-bottom: 1px solid var(--primary-color);
+    padding-bottom: 0.2em;
+}
+
+h3 {
+    font-size: 14pt;
+    color: var(--secondary-dark);
+}
+
+h4 {
+    font-size: 12pt;
+    color: var(--secondary-dark);
+}
+
+h5,
+h6 {
+    font-size: 11pt;
+}
+
+/* Titelseite */
+#cover h1 {
+    font-size: 28pt;
+    text-align: center;
+    border: none;
+    margin-top: 30%;
+    color: var(--primary-dark);
+}
+
+#cover h2 {
+    text-align: center;
+    font-size: 16pt;
+    border: none;
+    color: var(--secondary-dark);
+}
+
+#cover .details {
+    text-align: center;
+    margin-top: 5cm;
+    font-size: 12pt;
+    color: var(--light-text);
+}
+
+/* Inhaltsverzeichnis */
+#toc {
+    margin: 2em 0;
+    padding: 1em;
+    background-color: #F8F9FA;
+    border-left: 4px solid var(--primary-color);
+}
+
+#toc .toc-title {
+    color: var(--primary-dark);
+    font-size: 14pt;
+    margin-bottom: 1em;
+}
+
+#toc a {
+    color: var(--primary-color);
+    text-decoration: none;
+}
+
+#toc a:hover {
+    text-decoration: underline;
+}
+
+#toc ul {
+    margin-left: 1em;
+    padding-left: 0;
+}
+
+#toc ul li {
+    margin-bottom: 0.5em;
+}
+
+/* Links */
+a {
+    color: var(--primary-color);
+    text-decoration: none;
+}
+
+a:hover {
+    text-decoration: underline;
+}
+
+/* Tabellen */
+table {
+    border-collapse: collapse;
+    width: 100%;
+    margin: 1em 0;
+}
+
+table,
+th,
+td {
+    border: 1px solid #E0E0E0;
+}
+
+th {
+    background-color: var(--primary-color);
+    color: white;
+    padding: 0.75em;
+    text-align: left;
+}
+
+td {
+    padding: 0.75em;
+}
+
+tr:nth-child(even) {
+    background-color: #F9F9F9;
+}
+
+.tableblock {
+    margin: 1em 0;
+}
+
+/* Codeblöcke */
+pre {
+    background-color: var(--code-bg);
+    border-left: 4px solid var(--secondary-color);
+    padding: 1em;
+    overflow-x: auto;
+    margin: 1em 0;
+    font-family: 'Source Code Pro', 'Consolas', monospace;
+    font-size: 9pt;
+}
+
+code {
+    font-family: 'Source Code Pro', 'Consolas', monospace;
+    background-color: var(--code-bg);
+    padding: 0.2em 0.4em;
+    border-radius: 3px;
+    font-size: 9pt;
+}
+
+/* Warnungen und Hinweise */
+.admonitionblock {
+    margin: 1em 0;
+    padding: 1em;
+    border-left: 4px solid;
+    background-color: #F8F9FA;
+}
+
+.admonitionblock.note {
+    border-color: var(--info-color);
+}
+
+.admonitionblock.tip {
+    border-color: var(--success-color);
+}
+
+.admonitionblock.warning {
+    border-color: var(--warning-color);
+}
+
+.admonitionblock.caution,
+.admonitionblock.important {
+    border-color: var(--error-color);
+}
+
+.admonitionblock .icon {
+    font-weight: bold;
+    color: var(--primary-dark);
+}
+
+/* Listen */
+ul,
+ol {
+    padding-left: 1.5em;
+    margin: 1em 0;
+}
+
+ul li,
+ol li {
+    margin-bottom: 0.5em;
+}
+
+/* Fußnoten */
+.footnote {
+    font-size: 9pt;
+    color: var(--light-text);
+}
+
+/* Bilder und Diagramme */
+img,
+.imageblock img {
+    max-width: 100%;
+    height: auto;
+    margin: 1em auto;
+    display: block;
+}
+
+.imageblock .title {
+    text-align: center;
+    font-style: italic;
+    color: var(--light-text);
+    margin-top: 0.5em;
+}
+
+/* Seitenumbrüche */
+.page-break {
+    page-break-after: always;
+}
+
+h1,
+h2 {
+    page-break-after: avoid;
+}
+
+/* Fußzeile */
+#footer {
+    color: var(--light-text);
+    font-size: 9pt;
+    text-align: center;
+    margin-top: 2em;
+    border-top: 1px solid #E0E0E0;
+    padding-top: 0.5em;
+}
+
+/* Druckoptimierungen */
+@page {
+    margin: 2cm;
+}
+
+@media print {
+    a {
+        color: var(--primary-dark);
+    }
+
+    pre,
+    code {
+        background-color: #F8F8F8 !important;
+    }
+}

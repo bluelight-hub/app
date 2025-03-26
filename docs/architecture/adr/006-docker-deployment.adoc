@@ -1,0 +1,34 @@
+= ADR-006: Docker für Deployment
+:author: Bluelight-Hub Team
+:revnumber: 1.0.0
+:revdate: 2025-03-23
+:sectnums!:
+
+== Status
+Angenommen (Stand: 2025-03-23)
+
+== Kontext
+Das Bluelight-Hub-System muss zuverlässig und einfach in verschiedenen Umgebungen bereitgestellt werden können. Insbesondere der Einsatz auf dem Führungskraftwagen (FüKW) erfordert eine robuste und einfach zu installierende Lösung.
+
+== Optionen
+. *Manuelles Deployment*: Installation und Konfiguration direkt auf dem Host-System.
+. *Virtuelle Maschinen*: Bereitstellung als VM-Image.
+. *Docker-Container*: Containerisierte Anwendung mit Docker.
+. *Kubernetes*: Orchestrierung von Containern mit Kubernetes.
+
+== Entscheidung
+Wir haben uns für Option 3 (Docker-Container) entschieden.
+
+== Begründung
+* Konsistente Ausführungsumgebung unabhängig vom Host-System
+* Einfache Installation und Aktualisierung auch auf verschiedenen Linux-Distributionen
+* Isolation der Anwendung und ihrer Abhängigkeiten
+* Gute Balance zwischen Isolation und Ressourceneffizienz (wichtig für den FüKW mit begrenzten Ressourcen)
+* Einfacheres Deployment-Modell im Vergleich zu Kubernetes, das für die aktuelle Skalierungsanforderung überdimensioniert wäre
+
+== Konsequenzen
+* Docker muss auf dem FüKW-System installiert sein
+* Multi-stage Build-Prozess für optimierte Container-Größe notwendig
+* Persistente Daten müssen sorgfältig über Docker-Volumes verwaltet werden
+* CI/CD-Pipeline muss Docker-Builds und -Tests unterstützen
+* Regelmäßige Aktualisierung der Base-Images für Sicherheitspatches 

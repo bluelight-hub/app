@@ -1,0 +1,17 @@
+= ADR-002: Verwendung von CRDTs für Datensynchronisation
+:author: Bluelight-Hub Team
+:revnumber: 1.0.0
+:revdate: 2025-03-23
+:sectnums!:
+
+== Status
+In Prüfung (Stand: 2025-03-23)
+
+== Kontext
+Im Verbindungskonzept müssen Daten zwischen verschiedenen Clients und dem FüKW-Server synchronisiert werden. Dabei können Konflikte entstehen, wenn mehrere Benutzer dieselben Daten in unterschiedlichen Konnektivitätsszenarien ändern.
+
+== Optionen
+. *Last-Write-Wins*: Einfacher Ansatz, bei dem die letzte Änderung gewinnt.
+. *Manuelle Konfliktlösung*: Benutzer entscheiden bei Konflikten.
+. *CRDTs (Conflict-free Replicated Data Types)*: Spezielle Datenstrukturen für konfliktfreie Zusammenführung.
+. *OT (Operational Transformation)*: Transformationsalgorithmen für gleichzeitige Änderungen.

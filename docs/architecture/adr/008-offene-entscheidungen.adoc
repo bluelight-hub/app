@@ -1,0 +1,34 @@
+= ADR-008: Offene Architekturentscheidungen
+:author: Bluelight-Hub Team
+:revnumber: 1.0.0
+:revdate: 2025-03-23
+:sectnums!:
+
+== Status
+In Prüfung (Stand: 2025-03-23)
+
+== Kontext
+Es gibt verschiedene architektonische Entscheidungen, die noch evaluiert werden müssen oder für die noch keine endgültige Entscheidung getroffen wurde.
+
+== Offene Entscheidungen
+
+=== GraphQL vs. REST für Frontend-Backend-Kommunikation
+Die Entscheidung zwischen GraphQL und REST für die Kommunikation zwischen Frontend und Backend ist noch ausstehend.
+
+=== Auswahl einer spezifischen CRDT-Implementierung
+Für die Implementierung der Conflict-free Replicated Data Types muss noch eine konkrete Bibliothek oder ein Framework ausgewählt werden.
+
+=== Detaillierte Technologieauswahl für Service Mesh
+Falls ein Service Mesh benötigt wird, muss eine konkrete Technologie ausgewählt werden.
+
+=== Authentifizierungsmechanismen für Offline-Szenarien
+Die genauen Mechanismen für die Authentifizierung in Offline-Szenarien sind noch zu spezifizieren.
+
+=== Hexagonale Architektur vs. vereinfachte Schichtenarchitektur
+Die Anwendung könnte von einer einfacheren Architektur profitieren, die weniger Overhead erfordert.
+
+=== CQRS-Pattern
+Die Notwendigkeit dieses Patterns wird evaluiert. Eine direkte Implementierung könnte für die aktuelle Anwendung ausreichen.
+
+=== Vollständige Offline-Synchronisation
+Der Umfang und die Implementierung werden in späteren Phasen detailliert. 

@@ -1,0 +1,174 @@
+= 11. Risiken und technische Schulden
+:author: Bluelight-Hub Team
+:revnumber: 1.0.0
+:revdate: 2025-03-23
+:sectnums!
+
+
+== Übersicht
+Dieser Abschnitt beschreibt die bekannten Risiken und technischen Schulden des Bluelight-Hub-Systems. Die frühzeitige Identifikation und Bewertung dieser Faktoren ermöglicht ein proaktives Risikomanagement und eine bewusste Entscheidung über den Umgang mit technischen Schulden.
+
+== Inhalt
+
+=== 11.1 Risikomatrix
+
+Die folgende Matrix visualisiert die identifizierten Risiken nach ihrer Eintrittswahrscheinlichkeit und ihrem potenziellen Schaden.
+
+[mermaid]
+----
+%%{init: {"quadrantChart": {"chartWidth": 600, "chartHeight": 400}}}%%
+quadrantChart
+    title Risikomatrix
+    x-axis "Niedriges Risiko" --> "Hohes Risiko"
+    y-axis "geringer Schaden" --> "hoher Schaden"
+    "R-1: Synchronisationskonflikte in verschiedenen Verbindungsszenarien": [0.7, 0.8]
+    "R-2: Datenverlust bei gleichzeitigem Ausfall mehrerer Knoten": [0.3, 0.9]
+    "R-3: Überlastung des FüKW-Servers bei vielen Clients": [0.4, 0.7]
+    "R-4: Inkompatibilität mit künftigen OS-Versionen": [0.5, 0.4]
+    "R-5: Sicherheitslücken in Drittanbieter-Bibliotheken": [0.7, 0.55]
+    "R-6: Unzureichende Benutzerakzeptanz": [0.4, 0.7]
+    "R-7: Unvollständige Implementierung der Digitalfunk-Schnittstelle": [0.2, 0.2]
+    "R-8: Performanceprobleme bei großen Datenmengen": [0.6, 0.3]
+    "R-9: Unzuverlässige Verbindung zwischen Client und FüKW": [0.8, 0.7]
+    quadrant-1 "Hohe Priorität"
+    quadrant-2 "Mittlere Priorität"
+    quadrant-3 "Niedrige Priorität"
+    quadrant-4 "Mittlere Priorität"
+----
+
+=== 11.2 Risikotabelle
+
+[cols="1,3,1,1,2,2", options="header"]
+|===
+|ID |Risiko |Wahrsch. |Auswirkung |Maßnahmen |Verantwortlich
+|R-1 |Synchronisationskonflikte in verschiedenen Verbindungsszenarien |Hoch |Hoch |Implementierung robuster Konfliktlösungsstrategien; Timestamps und Versionierung für alle Datensätze; Automatische Konfliktauflösung wo möglich; Intuitive UI für manuelle Konfliktlösung |Entwicklungsteam
+|R-2 |Datenverlust bei gleichzeitigem Ausfall mehrerer Systemknoten |Niedrig |Hoch |Regelmäßige Backups; Redundante Datenspeicherung; Journaling für alle Operationen; Recovery-Mechanismen |Entwicklungsteam, Systemadministration
+|R-3 |Überlastung des FüKW-Servers bei vielen gleichzeitigen Clients |Mittel |Hoch |Lasttests durchführen; Ressourcenlimits implementieren; Priorisierung kritischer Anfragen; Skalierungskonzept erstellen |Entwicklungsteam
+|R-4 |Inkompatibilität mit künftigen Betriebssystem-Versionen |Mittel |Mittel |Verwendung stabiler APIs; Entkopplung betriebssystemspezifischer Funktionen; Automatisierte Tests auf verschiedenen Umgebungen |Entwicklungsteam
+|R-5 |Sicherheitslücken in Drittanbieter-Bibliotheken |Hoch |Mittel |Regelmäßige Dependency-Updates; Sicherheitsaudits; Monitoring von CVE-Datenbanken; Eingeschränkte Berechtigungen |Security-Team
+|R-6 |Unzureichende Benutzerakzeptanz durch komplexe Bedienung |Mittel |Hoch |Frühzeitige Einbindung der Endnutzer; Usability-Tests unter realistischen Bedingungen; Iteratives UI-Design |UX-Design-Team
+|R-7 |Unvollständige Implementierung der Digitalfunk-Schnittstelle |Hoch |Mittel |Frühzeitige Prototypen; Kooperation mit Digitalfunk-Herstellern; Fallback-Mechanismen |Integrationsverantwortlicher
+|R-8 |Performanceprobleme bei großen Datenmengen oder langandauernden Einsätzen |Mittel |Mittel |Performance-Tests mit realistischen Datenmengen; Optimierung kritischer Pfade; Monitoring-System |Entwicklungsteam
+|R-9 |Unzuverlässige Verbindung zwischen Client und FüKW |Hoch |Hoch |Robuste Netzwerktopologie mit Redundanzen; Automatische Wiederverbindungsversuche; Klare Benutzerhinweise bei Verbindungsproblemen; Regelmäßige Verbindungstests; Degradation der Funktionalität bei Verbindungsverlusten |Netzwerk-Team, Entwicklungsteam
+|===
+
+=== 11.3 Detaillierte Risikobeschreibungen
+
+==== 11.3.1 Synchronisationskonflikte in verschiedenen Verbindungsszenarien (R-1)
+
+*Beschreibung:*
+Bei der Nutzung mehrerer Geräte in unterschiedlichen Verbindungsszenarien (lokal zum FüKW, online, autonom) können parallel Änderungen an denselben Daten vorgenommen werden, die bei der späteren Synchronisation zu Konflikten führen.
+
+*Indikatoren:*
+- Mehrere Benutzer arbeiten gleichzeitig an denselben Datensätzen
+- Wechsel zwischen verschiedenen Verbindungsszenarien (lokal, vollständig, autonom)
+- Steigende Anzahl von Synchronisationskonflikten in Testumgebungen
+
+*Gegenmaßnahmen:*
+- Implementierung eines Conflict-Resolution-Frameworks
+- Event-Sourcing-Ansatz für kritische Daten
+- Klare Besitzrechte für Datensätze
+- Benutzerfreundliche Konfliktlösungs-UI
+- Automatische Auflösung von Standard-Konflikten nach definierten Regeln
+
+*Notfallplan:*
+Bei nicht auflösbaren Konflikten: Konservative Strategie mit Beibehaltung aller konfliktierenden Versionen und manueller Zusammenführung durch berechtigte Benutzer.
+
+==== 11.3.2 Datenverlust bei Systemausfall (R-2)
+
+*Beschreibung:*
+Bei einem gleichzeitigen Ausfall mehrerer Systemkomponenten besteht das Risiko eines dauerhaften Datenverlusts, insbesondere wenn sowohl der FüKW-Server als auch mehrere Clients betroffen sind.
+
+*Indikatoren:*
+- Fehlende Redundanz in der Datenspeicherung
+- Lückenhafte Backup-Strategie
+- Keine oder ungetestete Recovery-Prozeduren
+
+*Gegenmaßnahmen:*
+- Mehrfache redundante Datenspeicherung auf verschiedenen Geräten
+- Automatische Backups mit definierter Frequenz
+- Getestete Recovery-Prozeduren für verschiedene Ausfallszenarien
+- Journaling aller Änderungsoperationen
+
+*Notfallplan:*
+Manuelle Rekonstruktion kritischer Daten aus dem letzten verfügbaren Backup und ggf. aus papierbasierten Notizen oder alternativen Kommunikationskanälen.
+
+==== 11.3.3 Unzuverlässige Verbindung zwischen Client und FüKW (R-9)
+
+*Beschreibung:*
+In Einsatzszenarien kann die Verbindung zwischen Clients und dem FüKW unzuverlässig sein, z.B. durch Netzwerküberlastung, Störungen oder Reichweitenbegrenzungen. Dies kann zu unvollständiger Synchronisation, verzögerter Kommunikation oder temporären Verbindungsabbrüchen führen.
+
+*Indikatoren:*
+- Häufige Verbindungsabbrüche in Feldtests
+- Latenzprobleme bei der Datenübertragung
+- Überlastung des WLAN-Netzes im FüKW bei vielen Clients
+- Unvollständige Synchronisationen
+
+*Gegenmaßnahmen:*
+- Robustes Verbindungsmanagement mit automatischer Wiederverbindung
+- Priorisierung kritischer Daten bei begrenzter Bandbreite
+- Lokale Zwischenspeicherung aller Daten auf Clients
+- Klare UI-Indikatoren für den Verbindungsstatus
+- Redundante Netzwerktechnologien (WLAN + ggf. Bluetooth Mesh für Nahbereich)
+- Optimierte Datenübertragung (Kompression, Delta-Updates)
+- Implementierung des autonomen Verbindungsszenarios (vollständige Offline-Fähigkeit der Clients)
+
+*Notfallplan:*
+Bei anhaltenden Verbindungsproblemen: Fallback auf alternative Kommunikationswege (Funk, persönliche Kommunikation) mit definiertem Verfahren zur nachträglichen Dateneingabe. Klare Kennzeichnung von Daten, die noch nicht mit dem FüKW synchronisiert wurden.
+
+=== 11.4 Technische Schulden
+
+==== 11.4.1 Bekannte technische Schulden
+
+[cols="1,2,1,3", options="header"]
+|===
+|ID |Beschreibung |Priorität |Maßnahmen
+|TS-4 |Vorläufiger Authentifizierungsmechanismus ohne vollständige Unterstützung für Authentifizierung in allen Konnektivitätsszenarien |Hoch |Implementierung einer sicheren Authentifizierungslösung für lokale Verbindung, vollständige Verbindung und zukünftig autonomen Modus
+|===
+
+==== 11.4.2 Umgang mit technischen Schulden
+
+Für den Umgang mit technischen Schulden wird folgende Strategie verfolgt:
+
+* Hohe Priorität: Behebung vor dem nächsten Major Release
+* Mittlere Priorität: Schrittweise Behebung in kommenden Minor Releases
+* Niedrige Priorität: Behebung, wenn angrenzende Bereiche geändert werden oder wenn Ressourcen verfügbar sind
+
+=== 11.5 Risikominimierungsstrategie
+
+Um die identifizierten Risiken proaktiv zu adressieren, wird folgende Strategie verfolgt:
+
+==== 11.5.1 Risikomornitoring
+
+* Regelmäßige Review der Risikosituation im Entwicklungsteam
+* Definition und Überwachung von Risikoindikatoren
+* Aktualisierung der Risikobewertung bei neuen Erkenntnissen oder Änderungen
+
+==== 11.5.2 Testfokus
+
+* Priorisierung von Tests für Hochrisikobereiche
+* Simulation von Ausfallszenarien in Testumgebungen
+* Stresstests für kritische Komponenten
+* Feldtests unter realen Einsatzbedingungen
+* Systematische Tests aller Verbindungsszenarien
+
+==== 11.5.3 Inkrementelle Implementierung
+
+* Frühzeitige prototypische Umsetzung risikobehafteter Komponenten
+* Parallele Implementierung von Fallback-Mechanismen
+* Schrittweise Einführung neuer Funktionen mit ausreichender Testphase
+* Phasenweise Verbesserung der Verbindungszuverlässigkeit
+
+==== 11.5.4 Verbindungsrobustheit
+
+* Entwicklung von Szenarien für den Verlust der Verbindung
+* Implementierung einer graceful degradation bei Verbindungsverlust
+* Automatische Wiederverbindungsroutinen mit exponentiellen Backoff
+* Konfigurierbare Synchronisationspriorität für verschiedene Datentypen
+
+== Offene Punkte
+
+* Detaillierte Risikoanalyse für die Digitalfunk-Integration
+* Quantitative Bewertung der potenziellen Schäden für jedes Risiko
+* Erstellung eines detaillierten Notfallplans für kritische Risiken
+* Feldtests zur Validierung der Verbindungszuverlässigkeit in realen Einsatzumgebungen 

@@ -1,0 +1,33 @@
+= ADR-004: Desktop-App-Entwicklung mit Tauri
+:author: Bluelight-Hub Team
+:revnumber: 1.0.0
+:revdate: 2025-03-23
+:sectnums!:
+
+== Status
+Angenommen (Stand: 2025-03-23)
+
+== Kontext
+Die Desktop-Anwendung muss auf verschiedenen Plattformen (Windows, macOS, Linux) funktionieren und effizient entwickelt werden können.
+
+== Optionen
+. *Native Entwicklung*: Separate Codebases für jede Plattform.
+. *Electron*: Web-Technologien mit Chromium-Laufzeitumgebung.
+. *Tauri*: Web-Technologien mit nativer Systemumgebung.
+. *Flutter Desktop*: Google's UI-Toolkit für plattformübergreifende Anwendungen.
+
+== Entscheidung
+Wir haben uns für Option 3 (Tauri) entschieden.
+
+== Begründung
+* Signifikant kleinere Paketgröße im Vergleich zu Electron
+* Bessere Leistung durch Verwendung der nativen Webview statt Chromium
+* Sicherheitsvorteile durch Rust-Backend
+* Wiederverwendung von React-Komponenten zwischen Web- und Desktop-App
+* Zukunftssicherheit des Tauri-Projekts
+
+== Konsequenzen
+* Notwendigkeit von Rust-Kenntnissen für Native-Plugin-Entwicklung
+* Tauri ist weniger etabliert als Electron, was zu Engpässen bei spezifischen Anforderungen führen kann
+* Die Implementierung plattformspezifischer Funktionen erfordert zusätzlichen Entwicklungsaufwand
+* Bessere Leistung und geringerer Ressourcenverbrauch für Endbenutzer 

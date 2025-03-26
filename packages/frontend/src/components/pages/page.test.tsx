@@ -45,13 +45,21 @@ describe('IndexPage', () => {
         expect(mockNavigate).toHaveBeenCalledWith('/app');
     });
 
-    // Snapshot test
-    test('matches snapshot', () => {
-        const { container } = render(
+    // Layout and structure test
+    test('has correct layout and structure', () => {
+        render(
             <BrowserRouter>
                 <IndexPage />
             </BrowserRouter>
         );
-        expect(container).toMatchSnapshot();
+
+        // Check container layout
+        const container = screen.getByRole('button').parentElement;
+        expect(container).toHaveClass('flex', 'flex-col', 'items-center', 'justify-center', 'h-screen', 'w-screen');
+
+        // Check button properties
+        const button = screen.getByRole('button');
+        expect(button).toHaveTextContent('Anmelden');
+        expect(button).toHaveAttribute('type', 'button');
     });
 }); 

@@ -1,0 +1,1001 @@
+= 6. Laufzeitsicht
+:author: Bluelight-Hub Team
+:revnumber: 1.0.0
+:revdate: 2025-03-23
+:sectnums!
+
+
+== Übersicht
+Die Laufzeitsicht beschreibt das Verhalten und die Interaktionen der Systembausteine zur Laufzeit. Sie stellt dar, wie die Bausteine der Bausteinsicht im Kontext wichtiger Szenarien zusammenarbeiten.
+
+== Inhalt
+
+=== 6.1 Wichtige Szenarien
+
+==== 6.1.1 Einsatz anlegen und verfolgen
+
+Dieses Szenario beschreibt den Prozess der manuellen Anlage und Verfolgung eines Einsatzes im FüKW.
+
+[mermaid]
+....
+sequenceDiagram
+    participant User as Personal FüKW
+    participant UI as Frontend
+    participant Backend
+    participant DB as Datenbank
+    
+    User->>UI: Formular für neuen Einsatz öffnen
+    UI->>User: Einsatzformular anzeigen
+    User->>UI: Einsatzdaten eingeben und absenden
+    UI->>Backend: Einsatzdaten übermitteln
+    Backend->>DB: Einsatz speichern
+    DB-->>Backend: Bestätigung
+    Backend-->>UI: Bestätigung + Einsatz-ID
+    UI->>UI: UI auf Einsatzmodus umschalten
+    UI-->>User: Einsatzübersicht anzeigen
+    
+    Note over User,UI: Einsatzdurchführung
+    
+    User->>UI: Ressourcen zuweisen
+    UI->>Backend: Ressourcenzuweisung speichern
+    Backend->>DB: Einsatzdaten aktualisieren
+    DB-->>Backend: Bestätigung
+    Backend-->>UI: Aktualisierte Einsatzdaten
+    UI-->>User: Aktualisierte Ansicht
+    
+    User->>UI: ETB-Einträge erstellen
+    UI->>Backend: ETB-Daten übermitteln
+    Backend->>DB: ETB-Einträge speichern
+    
+    User->>UI: Status "Einsatz abgeschlossen" setzen
+    UI->>Backend: Status übermitteln
+    Backend->>DB: Einsatzstatus aktualisieren
+    DB-->>Backend: Bestätigung
+    Backend-->>UI: Bestätigung
+    UI-->>User: Abschlussübersicht anzeigen
+....
+
+==== 6.1.1.1 UI-Transformation bei Einsatzanlage
+
+Bei der Einsatzanlage erfolgt eine signifikante Transformation der Benutzeroberfläche, die mehrere Phasen umfasst:
+
+1. **Ausgangszustand**: 
+   * Übersichtsseite zeigt verfügbare Aktionen
+   * Prominente Schaltfläche "Neuen Einsatz anlegen"
+   * Zugriff auf Templates und Konfigurationen
+
+2. **Einsatzformular**:
+   * Eingabeformular mit den notwendigen Feldern für einen neuen Einsatz
+   * Auswahl von Einsatzart, Einsatzort, Priorität etc.
+   * Möglichkeit zur Auswahl vorkonfigurierter Templates
+
+3. **Transformation zum Einsatzmodus**:
+   * Nach Einsatzanlage wechselt die UI vollständig in den Einsatzmodus
+   * Navigation gliedert sich in Einsatz-spezifische Bereiche:
+     - Einsatzübersicht (Dashboard)
+     - Einsatztagebuch (ETB)
+     - Lagekarte
+     - Ressourcenverwaltung
+     - Kommunikation
+
+4. **Einsatzspezifische Funktionen**:
+   * Alle UI-Elemente sind nun im Kontext des aktiven Einsatzes
+   * Schnellzugriff auf häufig benötigte Funktionen
+   * Statusanzeige des Einsatzes prominent sichtbar
+   * Benachrichtigungen für wichtige Ereignisse
+
+5. **Abschlussphase**:
+   * Bei Statusänderung zu "abgeschlossen" erscheint Abschlussübersicht
+   * Option zur Erstellung eines Einsatzberichts
+   * Möglichkeit zur Archivierung des Einsatzes
+
+Die UI-Transformation folgt dem Prinzip der kontextbezogenen Anpassung, um in jeder Phase des Einsatzes die relevantesten Informationen und Aktionen anzuzeigen.
+
+Das UI-Design verwendet folgende Prinzipien:
+
+* **Progressive Disclosure**: Komplexität wird schrittweise enthüllt, beginnend mit den wesentlichsten Funktionen.
+* **Kontextbewusstsein**: UI passt sich dynamisch dem aktuellen Einsatzkontext an.
+* **Visuelle Hierarchie**: Kritische Informationen und Aktionen werden visuell hervorgehoben.
+* **Konsistenz**: Einheitliche Designsprache über alle Phasen hinweg.
+* **Zugänglichkeit**: Hohe Kontraste und ausreichende Schriftgrößen für den Einsatz unter schwierigen Bedingungen.
+
+[mermaid]
+....
+stateDiagram-v2
+    [*] --> Übersicht: App starten
+    Übersicht --> Einsatzformular: "Neuen Einsatz anlegen" klicken
+    Einsatzformular --> Einsatzdashboard: Einsatz erstellen
+    Einsatzdashboard --> Einsatztagebuch: Navigation ETB
+    Einsatzdashboard --> Ressourcenverwaltung: Navigation Ressourcen
+    Einsatzdashboard --> Lagekarte: Navigation Karte
+    Einsatztagebuch --> Einsatzdashboard: Zurück
+    Ressourcenverwaltung --> Einsatzdashboard: Zurück
+    Lagekarte --> Einsatzdashboard: Zurück
+    Einsatzdashboard --> Abschlussübersicht: Einsatz abschließen
+    Abschlussübersicht --> Übersicht: Zurück zur Übersicht
+....
+
+==== 6.1.1.2 UI-Mockups für Verbindungsszenarien
+
+Die Benutzeroberfläche passt sich dynamisch an die verschiedenen Verbindungsszenarien an. Hier sind die UI-Anpassungen für die drei Hauptszenarien dargestellt:
+
+1. **Lokales Verbindungsszenario (FüKW-verbunden)**
+   * Status-Indikator zeigt "FüKW-verbunden" in Grün
+   * Voller Funktionsumfang verfügbar
+   * Echtzeit-Synchronisation mit anderen Clients
+   * Dashboard zeigt Gesamtstatus aller verbundenen Geräte
+
+   [mermaid]
+   ....
+   graph TB
+     subgraph "Bluelight Hub - FüKW-verbunden"
+       A[Header mit grünem Verbindungsstatus] --> B[Einsatzübersicht]
+       B --> C[Vollständige Funktionsleiste]
+       B --> D[Live-Synchronisationsindikator]
+       B --> E[Alle verbundenen Geräte anzeigen]
+     end
+   ....
+
+2. **Vollständiges Verbindungsszenario (Online)**
+   * Status-Indikator zeigt "Online" in Blau
+   * Zusätzliche cloud-basierte Funktionen verfügbar
+   * Erweitertes Menü mit Online-Diensten
+   * Globale Synchronisationsoptionen
+
+   [mermaid]
+   ....
+   graph TB
+     subgraph "Bluelight Hub - Online"
+       A[Header mit blauem Verbindungsstatus] --> B[Einsatzübersicht mit Cloud-Extras]
+       B --> C[Erweiterte Funktionsleiste]
+       B --> D[Globaler Sync-Status]
+       B --> E[Erweiterte Kartendienste]
+       B --> F[Cloud-Backup-Anzeige]
+     end
+   ....
+
+3. **Autonomes Verbindungsszenario (Offline)**
+   * Status-Indikator zeigt "Autonom" in Orange
+   * Reduzierter Funktionsumfang mit klarer Kennzeichnung
+   * Hinweis auf ausstehende Synchronisation
+   * Fokus auf essenzielle Funktionen
+
+   [mermaid]
+   ....
+   graph TB
+     subgraph "Bluelight Hub - Autonom"
+       A[Header mit orangem Verbindungsstatus] --> B[Einsatzübersicht mit Offline-Hinweis]
+       B --> C[Reduzierte Funktionsleiste]
+       B --> D[Ausstehende Sync-Anzeige]
+       B --> E[Lokale Ressourcen]
+       style A fill:#FFA500,stroke:#FF8C00
+       style B fill:#FFECB3,stroke:#FF8C00
+       style D fill:#FFECB3,stroke:#FF8C00,stroke-width:2px
+     end
+   ....
+
+Zusätzlich gibt es UI-Elemente, die den Übergang zwischen den Verbindungsszenarien verdeutlichen:
+
+* **Verbindungswechsel-Benachrichtigung**: Popup-Benachrichtigung bei Änderung des Verbindungsstatus
+* **Synchronisationsfortschritt**: Fortschrittsanzeige bei Wiederherstellung der Verbindung
+* **Funktions-Badges**: Visuelle Kennzeichnung von Funktionen, die im aktuellen Verbindungsszenario nicht verfügbar sind
+
+[mermaid]
+....
+sequenceDiagram
+    participant User as Benutzer
+    participant UI as Benutzeroberfläche
+    participant Conn as Verbindungsmanager
+    
+    User->>UI: App öffnen
+    Conn->>UI: Verbindungsstatus: FüKW-verbunden
+    UI->>User: Zeige FüKW-verbundene UI
+    
+    Conn->>UI: Verbindungsverlust (→ Autonom)
+    UI->>User: Zeige Statuswechsel-Notification
+    UI->>User: Ändere UI zu autonomem Modus
+    Note over UI,User: Reduzierte Funktionalität, <br/>Offline-Indikatoren
+    
+    Conn->>UI: Verbindung wiederhergestellt (→ FüKW-verbunden)
+    UI->>User: Zeige Statuswechsel-Notification
+    UI->>User: Zeige Synchronisationsfortschritt
+    UI->>User: Ändere UI zurück zu FüKW-Modus
+....
+
+Diese anpassungsfähige UI stellt sicher, dass Benutzer in jedem Verbindungsszenario effektiv arbeiten können, während sie gleichzeitig über den aktuellen Status und verfügbare Funktionen informiert werden.
+
+==== 6.1.2 Offline-Synchronisation
+
+[NOTE]
+====
+Die vollständige Offline-Synchronisation ist für zukünftige Versionen geplant und noch nicht Teil der aktuellen Implementierung. Die aktuelle Version unterstützt zwei Konnektivitätsszenarien: lokale Verbindung (FüKW-verbunden) und vollständige Verbindung (Online). Die hier beschriebene autonome Betriebsweise ist Bestandteil der Architekturvision, aber noch nicht implementiert.
+====
+
+Dieses Szenario beschreibt den geplanten Prozess der Datensynchronisation, wenn ein Gerät zeitweise offline ist und später wieder eine Verbindung herstellt.
+
+[mermaid]
+....
+sequenceDiagram
+    participant C as Client (Offline)
+    participant LS as Local Storage
+    participant QL as Queue Layer
+    participant S as Server
+    participant DB as Datenbank
+
+    Note over C,LS: Offline-Phase
+    C->>LS: Daten lokal speichern
+    C->>QL: Änderungen in Queue einreihen
+    QL->>LS: Queue persistent speichern
+
+    Note over C,DB: Wiederverbindungsphase
+    C->>S: Verbindung wiederhergestellt (Heartbeat)
+    S->>C: Verbindung bestätigt
+    C->>S: Versionsstand abfragen
+    S->>C: Aktuelle Versionsinformationen
+
+    C->>QL: Queue-Status abfragen
+    QL->>C: Ausstehende Änderungen
+
+    Note over C,DB: Synchronisationsphase
+    C->>S: Batch-Upload ausstehender Änderungen
+    S->>DB: Änderungen validieren
+    S->>DB: Daten zusammenführen
+    S->>C: Synchronisationsergebnis (inkl. Konflikte)
+
+    alt Konflikte vorhanden
+        C->>C: Konfliktlösung UI anzeigen
+        C->>S: Manuell gelöste Konflikte übermitteln
+    else Keine Konflikte
+        C->>QL: Queue leeren
+        C->>LS: Lokalen Status aktualisieren
+    end
+
+    S->>C: Neue Daten von Server
+    C->>LS: Lokale Daten aktualisieren
+    C->>C: UI aktualisieren
+....
+
+Der Offline-Synchronisationsprozess folgt einem robusten Ablaufmuster, das in drei Hauptphasen unterteilt ist:
+
+1. *Offline-Phase*: Während der Client offline ist, werden alle Benutzeraktionen lokal gespeichert und in einer Änderungsqueue protokolliert. Diese Queue wird persistent im lokalen Speicher gesichert, um Datenverlust zu verhindern.
+
+2. *Wiederverbindungsphase*: Sobald die Netzwerkverbindung wiederhergestellt ist, sendet der Client einen Heartbeat an den Server und erhält eine Bestätigung zurück. Der Client fragt dann den aktuellen Versionsstand vom Server ab, um den Synchronisationsbedarf zu ermitteln.
+
+3. *Synchronisationsphase*: In dieser Phase werden alle ausstehenden Änderungen batchartig zum Server übertragen, wo sie validiert und in die zentrale Datenbank eingepflegt werden. Bei Konflikten (z.B. wenn ein anderer Benutzer dieselben Daten bearbeitet hat) wird ein Konfliktlösungsdialog angezeigt, der eine manuelle Auflösung ermöglicht.
+
+Der gesamte Prozess ist darauf ausgelegt, eine konsistente Datenhaltung bei minimaler Benutzerinteraktion zu gewährleisten. Das System priorisiert die Datensicherheit und Integrität, während es gleichzeitig eine unterbrechungsfreie Arbeitsweise auch unter schwierigen Netzwerkbedingungen ermöglicht.
+
+==== 6.1.3 Kommunikation über Digitalfunk
+
+Dieses Szenario beschreibt die Integration und Nutzung des Digitalfunks innerhalb der Bluelight-Hub-Anwendung. Der Digitalfunk (basierend auf dem TETRA-Standard) ist das primäre Kommunikationsmittel für Einsatzkräfte im Feld. Bluelight Hub dient als passive Empfangsstation, die Digitalfunk-Informationen verarbeitet und dokumentiert, ohne selbst Nachrichten zu senden.
+
+[mermaid]
+....
+sequenceDiagram
+    participant EK as Einsatzkraft
+    participant DF as Digitalfunkgerät
+    participant TA as TETRA-Adapter
+    participant BH as Bluelight-Hub
+    participant DB as Datenbank
+    
+    %% Statusmeldung von Einsatzkraft
+    EK->>DF: Statusmeldung senden (z.B. Status 3)
+    DF->>TA: Statusinformation über proprietäres API
+    TA->>BH: Statusmeldung in normalisiertem Format
+    BH->>DB: Status in Datenbank aktualisieren
+    BH->>BH: Benachrichtigung generieren
+    
+    %% Positionsübermittlung
+    DF->>TA: GPS-Position übermitteln
+    TA->>BH: Position in Standard-Format
+    BH->>DB: Position speichern
+    BH->>BH: Lagekarte aktualisieren
+    
+    %% Sprachnachrichtenerfassung
+    EK->>DF: Sprachnachricht über Funk senden
+    DF->>TA: Audio-Stream
+    TA->>BH: Sprachnachricht protokollieren
+    BH->>DB: Kommunikation dokumentieren
+    
+    %% Alarmierungserfassung
+    EK->>DF: Alarmierungssignal senden
+    DF->>TA: Alarmsignal über TETRA
+    TA->>BH: Alarmierung erkennen
+    BH->>DB: Alarmeintrag protokollieren
+....
+
+Der Digitalfunk-Kommunikationsprozess ist rein unidirektional und umfasst folgende Schlüsselszenarien:
+
+1. *Statusmeldungserfassung*: 
+   - Einsatzkräfte senden standardisierte Statusmeldungen (z.B. Status 1-9) über ihre Digitalfunkgeräte
+   - Der TETRA-Adapter empfängt diese über proprietäre APIs und normalisiert sie für die Bluelight-Hub-Anwendung
+   - Die Statusänderungen werden in der Datenbank gespeichert und in der Benutzeroberfläche angezeigt
+
+2. *Positionserfassung*:
+   - GPS-fähige Digitalfunkgeräte senden regelmäßig Positionsdaten
+   - Diese werden über den TETRA-Adapter in ein standardisiertes Format konvertiert
+   - Bluelight Hub verwendet diese Daten zur Aktualisierung der Lagekarte in Echtzeit
+
+3. *Kommunikationsdokumentation*:
+   - Alle über Digitalfunk getätigten Kommunikationsvorgänge werden automatisch protokolliert
+   - Diese Dokumentation dient sowohl der Echtzeit-Situationsübersicht als auch der nachträglichen Einsatzauswertung
+   - Kommunikationsinhalte werden kategorisiert und mit Zeitstempeln versehen
+
+4. *Alarmmeldungserfassung*:
+   - Alarmierungen, die über das Digitalfunksystem gesendet werden, werden erkannt und protokolliert
+   - Das System generiert entsprechende Benachrichtigungen in der Benutzeroberfläche
+   - Alarme werden mit hoher Priorität behandelt und hervorgehoben dargestellt
+
+Die Integration basiert auf einer Adapterschicht, die proprietäre APIs der Digitalfunksysteme in standardisierte Formate für Bluelight Hub übersetzt. Diese Architektur ermöglicht die Unterstützung verschiedener Digitalfunk-Hersteller und -Implementierungen durch Austausch des spezifischen Adapters.
+
+Wichtig: Bluelight Hub fungiert ausschließlich als passives System für die Verarbeitung von Digitalfunk-Kommunikation. Sämtliche Kommunikation und Koordination über Digitalfunk muss weiterhin über die standardisierten TETRA-Geräte und -Prozesse erfolgen.
+
+==== 6.1.4 Verbindungsszenarien
+
+=== 6.2 Anwendungsfälle
+
+==== 6.2.1 Einsatztagebuch (ETB) führen
+
+Das Einsatztagebuch (ETB) dient der chronologischen Dokumentation aller relevanten Ereignisse, Maßnahmen und Entscheidungen während eines Einsatzes. Es ist ein zentrales Werkzeug für die Einsatzleitung und ermöglicht sowohl die Echtzeitverfolgung des Einsatzgeschehens als auch die nachträgliche Rekonstruktion und Auswertung.
+
+[mermaid]
+....
+sequenceDiagram
+    participant B as Benutzer
+    participant UI as ETB-Interface
+    participant C as Client
+    participant ES as Event Store
+    participant Q as Query Store
+    participant S as Server
+    participant DB as Datenbank
+    
+    %% Einsatztagebuch öffnen
+    B->>UI: ETB öffnen
+    UI->>C: ETB-Daten anfordern
+    C->>Q: Aktuelle ETB-Ansicht laden
+    Q->>C: ETB-Einträge zurückgeben
+    C->>UI: ETB-Einträge anzeigen
+    
+    %% Neuen Eintrag erstellen
+    B->>UI: Neuen ETB-Eintrag erstellen
+    UI->>C: Eintrag verarbeiten
+    C->>ES: "EtbEntryCreated"-Event erzeugen
+    ES->>C: Event bestätigen
+    C->>Q: Query Store aktualisieren
+    Q->>C: Aktualisierung bestätigen
+    C->>UI: UI aktualisieren
+    
+    alt Online-Modus
+        C->>S: Event mit Server synchronisieren
+        S->>DB: Event speichern
+        DB->>S: Speicherung bestätigen
+        S->>C: Synchronisierung bestätigen
+    else Offline-Modus
+        C->>C: Event lokal speichern
+        Note over C,S: Spätere Synchronisierung bei Wiederverbindung
+    end
+    
+    %% Existierenden Eintrag aktualisieren
+    B->>UI: ETB-Eintrag aktualisieren
+    UI->>C: Aktualisierung verarbeiten
+    C->>ES: "EtbEntryUpdated"-Event erzeugen
+    ES->>C: Event bestätigen
+    C->>Q: Query Store aktualisieren
+    Q->>UI: UI aktualisieren
+    
+    %% ETB filtern
+    B->>UI: Nach Zeitraum filtern
+    UI->>Q: Gefilterte Ansicht anfordern
+    Q->>UI: Gefilterte Einträge zurückgeben
+    
+    %% ETB exportieren
+    B->>UI: ETB exportieren (PDF)
+    UI->>ES: Alle Events anfordern
+    ES->>UI: Vollständige Ereignishistorie
+    UI->>UI: PDF generieren
+    UI->>B: PDF bereitstellen
+....
+
+Die Führung des Einsatztagebuchs erfolgt nach dem Event-Sourcing-Prinzip (ADR-005), bei dem jede Aktion als unveränderliches Event gespeichert wird:
+
+1. *Ereigniserfassung*:
+   - Jeder ETB-Eintrag wird als Event ("EtbEntryCreated", "EtbEntryUpdated", "EtbEntryTagged", etc.) gespeichert
+   - Events enthalten den vollständigen Kontext (Zeitstempel, Benutzer, Inhalte, Kategorien, etc.)
+   - Die Ereignisse bilden eine unveränderliche chronologische Sequenz
+
+2. *Benutzerinteraktion*:
+   - Einsatzkräfte können Einträge über ein strukturiertes Formular oder Schnelleingabe erstellen
+   - Kategorisierung und Tagging ermöglichen eine systematische Sortierung und Filterung
+   - Bilder, Dokumente und Lagekartenbezüge können als Anhänge eingefügt werden
+   - Wichtige Einträge können markiert und priorisiert werden
+
+3. *Echtzeit-Aktualisierung*:
+   - Neue Einträge werden sofort allen verbundenen Clients angezeigt
+   - Bei Offline-Betrieb werden Einträge lokal gespeichert und bei Wiederverbindung synchronisiert
+   - Konfliktlösung erfolgt automatisch nach definierten Regeln (zeitbasierte Einordnung)
+
+4. *Auswertung und Export*:
+   - Das ETB kann nach verschiedenen Kriterien gefiltert werden (Zeitraum, Kategorie, Priorität, etc.)
+   - Die vollständige Ereignishistorie ermöglicht die Rekonstruktion des ETB zu jedem Zeitpunkt
+   - Export-Funktionen für PDF, CSV und andere Formate unterstützen die Nachbearbeitung und Dokumentation
+
+5. *Automatische Einträge*:
+   - Bestimmte Systemereignisse (Statusänderungen, Alarme, etc.) generieren automatisch ETB-Einträge
+   - Integrationen mit externen Systemen (z.B. Digitalfunk) fließen in das ETB ein
+   - Alle automatischen Einträge sind als solche gekennzeichnet
+
+Die Implementierung nach dem Event-Sourcing-Prinzip bietet folgende Vorteile:
+- Vollständige Nachvollziehbarkeit aller Änderungen
+- Zeitliche Rekonstruktion des ETB-Zustands zu jedem Zeitpunkt
+- Robuste Offline-Funktionalität mit zuverlässiger Synchronisation
+- Unterstützung regulatorischer Anforderungen durch lückenlose Dokumentation
+
+Der Query Store dient als optimierte Leseansicht, die aus den Events generiert wird und effiziente Abfragen ermöglicht, ohne die vollständige Ereignishistorie traversieren zu müssen.
+
+==== 6.2.2 Lagekarte verwalten
+
+Die Lagekarte ist ein zentrales visuelles Werkzeug zur Darstellung der Einsatzlage und ermöglicht die geografische Positionierung von Einheiten, Gefahrenstellen, Schadensbereichen und anderen relevanten Objekten. Sie dient sowohl der Einsatzplanung als auch der taktischen Führung während des Einsatzes.
+
+[mermaid]
+....
+sequenceDiagram
+    participant B as Benutzer
+    participant UI as Karten-Interface
+    participant C as Client
+    participant MS as Map Service
+    participant S as Server
+    participant DB as Datenbank
+    participant PS as Positionsdienst
+    
+    %% Lagekarte initialisieren
+    B->>UI: Lagekarte öffnen
+    UI->>C: Kartendaten anfordern
+    C->>MS: Basiskarte laden
+    MS->>C: Kartengrundlage bereitstellen
+    
+    alt Online-Modus
+        C->>S: Aktuelle Objekte abfragen
+        S->>DB: Objektdaten abrufen
+        DB->>S: Objektdaten zurückgeben
+        S->>C: Objekte übermitteln
+    else Offline-Modus
+        C->>C: Lokale Objektdaten laden
+    end
+    
+    C->>UI: Karte mit Objekten rendern
+    
+    %% Echtzeit-Positionsdaten
+    PS->>S: Positionsupdate (GPS)
+    S->>DB: Position speichern
+    S->>C: Position an Clients broadcasten
+    C->>UI: Positions-Marker aktualisieren
+    
+    %% Objekte platzieren
+    B->>UI: Taktisches Zeichen platzieren
+    UI->>C: Objektdaten verarbeiten
+    C->>C: Lokal speichern
+    C->>S: Objekt synchronisieren
+    S->>DB: Objekt persistent speichern
+    S->>S: An andere Clients broadcasten
+    
+    %% Zeichenwerkzeuge
+    B->>UI: Bereich einzeichnen
+    UI->>C: Geometriedaten verarbeiten
+    C->>C: Lokal speichern
+    C->>S: Geometrie synchronisieren
+    S->>DB: Geometrie speichern
+    
+    %% Layer-Verwaltung
+    B->>UI: Layer ein-/ausblenden
+    UI->>UI: Layer-Sichtbarkeit ändern
+    
+    %% Kartenexport
+    B->>UI: Karte exportieren
+    UI->>UI: Kartenansicht rendern
+    UI->>B: PDF/Bild bereitstellen
+....
+
+Die Lagekartenverwaltung umfasst folgende Kernfunktionalitäten:
+
+1. *Kartengrundlage*:
+   - Unterstützung verschiedener Kartentypen (OpenStreetMap, Satellit, Topografisch)
+   - Online-Modus mit dynamischer Kartenaktualisierung über Mapbox oder ähnliche Dienste
+   - Offline-Modus mit vorgeladenen Kartenkacheln für definierte Regionen
+   - Nahtloser Übergang zwischen Online- und Offline-Modus je nach Verfügbarkeit
+
+2. *Objektverwaltung*:
+   - Platzierung taktischer Zeichen nach Feuerwehr-Dienstvorschrift und Katastrophenschutz-Standards
+   - Positionierung von Einheiten, Fahrzeugen und Material auf der Karte
+   - Visualisierung von Einsatzabschnitten mit farblichen Markierungen
+   - Darstellung von Schadensbereichen, Gefahrenstellen und Absperrungen
+
+3. *Zeichenwerkzeuge*:
+   - Freihand-Zeichnen für flexible Markierungen
+   - Geometrische Formen (Linien, Polygone, Kreise) für definierte Bereiche
+   - Textannotationen für zusätzliche Informationen
+   - Entfernungs- und Flächenmessung
+
+4. *Echtzeit-Positionierung*:
+   - Automatische Aktualisierung von Einheitspositionen über GPS-Daten
+   - Verlaufsspuren zur Nachverfolgung von Bewegungen
+   - Gruppierung von Einheiten für übersichtliche Darstellung
+   - Filterung nach Einheitstypen oder Zugehörigkeit
+
+5. *Layer-Verwaltung*:
+   - Thematische Schichten für verschiedene Aspekte der Einsatzlage
+   - Individuelle Anpassung der Sichtbarkeit nach Benutzerrolle oder Aufgabe
+   - Zeitbasierte Layer zur Darstellung der Lageentwicklung
+   - Integration externer Geodaten (z.B. Hydranten, Gefahrgutdaten)
+
+6. *Integration und Export*:
+   - Verknüpfung von Lagekartenobjekten mit Einsatztagebuch-Einträgen
+   - Export der aktuellen Kartenansicht als Bild oder PDF
+   - Teilung spezifischer Kartenausschnitte mit anderen Einsatzkräften
+   - Dokumentation für Einsatzberichte und Nachbesprechungen
+
+Die Implementierung folgt dem Offline-First-Prinzip, wobei alle Änderungen zunächst lokal gespeichert und bei bestehender Verbindung mit dem Server synchronisiert werden. Konflikte werden durch Zeitstempel und definierte Regeln automatisch aufgelöst, mit der Möglichkeit manueller Intervention bei kritischen Überschneidungen.
+
+Die Lagekarte ist vollständig mit anderen Modulen der Anwendung integriert, insbesondere mit dem Einsatztagebuch und der Ressourcenverwaltung, wodurch eine konsistente Gesamtsicht auf die Einsatzlage gewährleistet wird.
+
+==== 6.2.3 Ressourcen verwalten
+
+Die Ressourcenverwaltung ermöglicht die Erfassung, Zuweisung und Statusverfolgung aller im Einsatz beteiligten Ressourcen, darunter Personal, Fahrzeuge und Material. Sie bildet die Grundlage für eine effektive Einsatzplanung und -durchführung sowie die transparente Verfolgung des Ressourceneinsatzes.
+
+[mermaid]
+....
+sequenceDiagram
+    participant B as Benutzer
+    participant UI as Ressourcen-UI
+    participant C as Client
+    participant TS as Template Store
+    participant S as Server
+    participant DB as Datenbank
+    
+    %% Ressourcenübersicht laden
+    B->>UI: Ressourcenübersicht öffnen
+    UI->>C: Ressourcendaten anfordern
+    
+    alt Online-Modus
+        C->>S: Aktuelle Ressourcen abfragen
+        S->>DB: Ressourcendaten abrufen
+        DB->>S: Daten zurückgeben
+        S->>C: Ressourcen übermitteln
+    else Offline-Modus
+        C->>C: Lokale Ressourcendaten laden
+    end
+    
+    C->>UI: Ressourcenübersicht anzeigen
+    
+    %% Ressource aus Template erstellen
+    B->>UI: Neue Ressource anlegen
+    UI->>C: Template-Liste anfordern
+    C->>TS: Verfügbare Templates abfragen
+    TS->>C: Templates zurückgeben
+    C->>UI: Templates anzeigen
+    B->>UI: Template auswählen
+    UI->>C: Ressource aus Template erstellen
+    C->>C: Ressource-Instanz generieren
+    C->>S: Ressource synchronisieren
+    S->>DB: Ressource speichern
+    
+    %% Statusänderung
+    B->>UI: Ressourcenstatus ändern
+    UI->>C: Statusänderung verarbeiten
+    C->>C: Lokalen Status aktualisieren
+    C->>S: Status synchronisieren
+    S->>DB: Status aktualisieren
+    S->>S: Statusänderung broadcasten
+    
+    %% Ressourcenzuweisung
+    B->>UI: Ressource zuweisen
+    UI->>C: Verfügbare Einsatzabschnitte laden
+    C->>C: Abschnittsliste bereitstellen
+    UI->>B: Abschnitte zur Auswahl anzeigen
+    B->>UI: Abschnitt auswählen
+    UI->>C: Zuweisung verarbeiten
+    C->>S: Zuweisung synchronisieren
+    S->>DB: Zuweisung speichern
+    
+    %% Ressourcenanforderung
+    B->>UI: Ressourcenanforderung erstellen
+    UI->>C: Anforderung verarbeiten
+    C->>S: Anforderung übermitteln
+    S->>DB: Anforderung speichern
+    S->>S: Anforderung an Einsatzleitung senden
+    
+    %% Berichtsgenerierung
+    B->>UI: Ressourcenbericht generieren
+    UI->>C: Berichtsdaten sammeln
+    C->>C: Bericht erstellen
+    C->>UI: Bericht anzeigen
+    UI->>B: PDF/Excel bereitstellen
+....
+
+Das Ressourcenmanagement umfasst folgende Kernfunktionalitäten:
+
+1. *Template-basierte Ressourcenerstellung*:
+   - Wiederverwendbare Templates für Personal, Fahrzeuge und Material
+   - Ressourcenerstellung aus Templates mit automatischer Übernahme von Grundattributen
+   - Individuelle Anpassung der Template-Instanzen für den spezifischen Einsatz
+   - Schnelle Einsatzbereitstellung durch Verwendung vordefinierter Einheitsstrukturen
+
+2. *Statusverwaltung*:
+   - Live-Tracking des Status aller Ressourcen (VERFÜGBAR, ANGEFORDERT, ALARMIERT, UNTERWEGS, IM_EINSATZ, ABGEZOGEN, etc.)
+   - Automatische Statusaktualisierung durch Integration mit dem Digitalfunk
+   - Manuelle Statusänderung mit Protokollierung im Einsatztagebuch
+   - Statushistorie zur Nachverfolgung des zeitlichen Verlaufs
+
+3. *Einsatzabschnittszuweisung*:
+   - Flexible Zuweisung von Ressourcen zu Einsatzabschnitten
+   - Hierarchische Darstellung der Einsatzstruktur mit zugewiesenen Ressourcen
+   - Umverteilung von Ressourcen während des Einsatzes mit Änderungsverfolgung
+   - Visualisierung der Ressourcenzuweisung auf der Lagekarte
+
+4. *Ressourcenanforderung*:
+   - Erstellung spezifischer Ressourcenanforderungen durch Einsatzabschnittsleiter
+   - Priorisierung von Anforderungen nach Dringlichkeit
+   - Workflow zur Genehmigung und Zuweisung durch die Einsatzleitung
+   - Nachverfolgung des Anforderungsstatus von der Erstellung bis zur Erfüllung
+
+5. *Verfügbarkeitsplanung*:
+   - Anzeige aktuell verfügbarer Ressourcen mit Qualifikationen und Eigenschaften
+   - Vorausplanung des Ressourcenbedarfs für verschiedene Einsatzphasen
+   - Frühwarnsystem bei kritischer Ressourcenknappheit
+   - Integration von Ruhe- und Einsatzzeiten zur Vermeidung von Überlastung
+
+6. *Berichterstattung und Auswertung*:
+   - Generierung von Ressourcenberichten für die Einsatzdokumentation
+   - Auswertung des Ressourceneinsatzes nach Abschluss von Einsätzen
+   - Export von Daten für externe Systeme und Abrechnungszwecke
+   - Statistische Auswertungen zur Einsatzplanung und -optimierung
+
+Die Implementierung der Ressourcenverwaltung unterstützt, wie alle anderen Module, den Offline-First-Ansatz mit lokaler Datenhaltung und asynchroner Synchronisation. Besonderer Wert wurde auf die Benutzererfahrung gelegt, um auch in stressigen Einsatzsituationen eine intuitive und schnelle Bedienung zu gewährleisten.
+
+Die Ressourcenverwaltung ist eng mit dem Einsatztagebuch und der Lagekarte verknüpft, wodurch alle ressourcenbezogenen Aktionen automatisch dokumentiert und geografisch dargestellt werden können. Die Integration mit dem Digitalfunk ermöglicht zudem die automatische Aktualisierung von Statusänderungen ohne manuelle Eingriffe.
+
+=== 6.3 Fehlerszenarien
+
+==== 6.3.1 Verbindungsabbruch
+
+[mermaid]
+....
+sequenceDiagram
+    participant U as Benutzer
+    participant UI as Benutzer-Interface
+    participant C as Client
+    participant NM as Netzwerk-Monitor
+    participant S as Server
+
+    Note over U,S: Normaler Betrieb
+    U->>UI: Interaktion
+    UI->>C: Anfrage verarbeiten
+    C->>S: Anfrage an Server
+    S->>C: Antwort
+    C->>UI: Aktualisierung
+    
+    Note over NM,S: Verbindungsabbruch
+    NM->>C: Verbindungsverlust erkannt
+    C->>UI: Offline-Modus aktivieren
+    C->>UI: Visuelles Feedback (Verbindungsstatus)
+    UI->>U: Offline-Benachrichtigung anzeigen
+    
+    Note over U,S: Offline-Betrieb
+    U->>UI: Weitere Interaktion
+    UI->>C: Anfrage verarbeiten
+    C->>C: Lokale Verarbeitung
+    C->>UI: Lokale Aktualisierung
+    C->>C: In Synchronisationsqueue einreihen
+    
+    Note over NM,S: Wiederverbindung
+    NM->>C: Verbindung wiederhergestellt
+    C->>UI: Online-Modus aktivieren
+    C->>UI: Visuelles Feedback (Verbindungsstatus)
+    UI->>U: Online-Benachrichtigung anzeigen
+    C->>S: Synchronisationsprozess starten
+....
+
+Das System ist darauf ausgelegt, Verbindungsabbrüche robust zu erkennen und zu behandeln, ohne dass der Benutzerarbeitsfluss unterbrochen wird. Der Prozess läuft in folgenden Phasen ab:
+
+1. *Verbindungsverlusterkennung*: Ein dedizierter Netzwerk-Monitor überwacht kontinuierlich die Verbindungsqualität zum Server. Bei einem Verbindungsabbruch wird sofort ein Ereignis ausgelöst.
+
+2. *Übergang in den Offline-Modus*:
+   - Das System schaltet automatisch in den Offline-Modus um
+   - Die Benutzeroberfläche zeigt einen deutlich sichtbaren Indikator für den Offline-Status an (z.B. rotes Verbindungssymbol)
+   - Eine kurze Benachrichtigung informiert den Benutzer über den Verbindungsverlust
+   - Nicht verfügbare Funktionen werden visuell als deaktiviert dargestellt
+
+3. *Offline-Betrieb*:
+   - Der Benutzer kann ohne Unterbrechung weiterarbeiten
+   - Alle Änderungen werden lokal gespeichert
+   - Der Client hält eine Synchronisationsqueue vor, die alle zu synchronisierenden Änderungen sammelt
+   - Regelmäßige Verbindungsversuche laufen im Hintergrund
+
+4. *Wiederverbindungsprozess*:
+   - Bei Wiederherstellung der Verbindung wird der Online-Modus aktiviert
+   - Der Benutzer erhält eine visuelle Bestätigung der Wiederverbindung
+   - Der automatische Synchronisationsprozess wird gestartet (siehe 6.1.2 Offline-Synchronisation)
+
+Diese Architektur gewährleistet, dass Verbindungsabbrüche die Produktivität der Anwender minimal beeinträchtigen und dass die Datenkonsistenz nach Wiederherstellung der Verbindung automatisch wiederhergestellt wird.
+
+==== 6.3.2 Konfliktlösung bei gleichzeitiger Bearbeitung
+
+[mermaid]
+....
+sequenceDiagram
+    participant U1 as Benutzer 1
+    participant C1 as Client 1
+    participant S as Server
+    participant C2 as Client 2
+    participant U2 as Benutzer 2
+    participant CR as Conflict Resolver
+
+    Note over U1,U2: Parallele Bearbeitung
+    U1->>C1: Ändere Datensatz X
+    U2->>C2: Ändere Datensatz X
+    
+    C1->>S: Speichere Änderungen an X (v1)
+    S->>S: Aktualisiere X auf v1
+    S->>C1: Bestätigung
+    
+    C2->>S: Speichere Änderungen an X (v2)
+    S->>S: Konflikt erkannt (v1 ≠ Basis von v2)
+    S->>C2: Konfliktmeldung
+    
+    C2->>CR: Übergebe Konfliktdaten
+    CR->>C2: Zeige Konfliktlösungs-UI
+    C2->>U2: Präsentiere Konfliktoptionen
+    
+    Note over U1,U2: Konfliktlösung
+    alt Automatische Zusammenführung möglich
+        CR->>CR: Wende Merging-Regeln an
+        CR->>C2: Schlage zusammengeführte Version vor
+        U2->>C2: Bestätige oder passe an
+    else Manuelle Lösung erforderlich
+        U2->>C2: Wähle zwischen Versionen oder erstelle neue
+    end
+    
+    C2->>S: Speichere gelöste Version (v3)
+    S->>S: Aktualisiere X auf v3
+    S->>C2: Bestätigung
+    S->>C1: Push-Benachrichtigung über v3
+    C1->>U1: Informiere über Aktualisierung
+....
+
+Bluelight-Hub implementiert eine robuste Strategie zur Erkennung und Auflösung von Konflikten, die auftreten können, wenn mehrere Benutzer dieselben Daten gleichzeitig bearbeiten. Der Prozess umfasst folgende Komponenten:
+
+1. *Konfliktdetektion*:
+   - Das System verwendet ein versioniertes Datenmodell, bei dem jede Änderung mit einer Versionsnummer und einem Zeitstempel versehen wird
+   - Bei jedem Speichervorgang wird geprüft, ob die Basisversion der Änderung mit der aktuellen Version im Server übereinstimmt
+   - Unterscheiden sich die Versionen, wird ein Konflikt erkannt und der normale Speicherprozess unterbrochen
+
+2. *Konfliktbenachrichtigung*:
+   - Der Benutzer, dessen Änderung den Konflikt verursacht hat, erhält eine klare visuelle Benachrichtigung
+   - Die Konfliktbenachrichtigung enthält Informationen über den Konflikt (betroffene Felder, Zeitpunkt, andere Benutzer)
+   - Die Anwendung wechselt in einen speziellen Konfliktlösungsmodus
+
+3. *Konfliktlösungsstrategien*:
+   - *Automatische Zusammenführung*: Wenn möglich, führt das System nicht-überlappende Änderungen automatisch zusammen
+   - *Feldbasierte Auswahl*: Bei überlappenden Änderungen kann der Benutzer für jedes Feld individuell entscheiden, welche Version übernommen werden soll
+   - *Vollständige Übernahme*: Der Benutzer kann wahlweise seine Version, die Serverversion oder eine komplett neue Version speichern
+
+4. *Konfliktlösung und Propagierung*:
+   - Nach der Lösung wird die bereinigte Version mit einer neuen Versionsnummer gespeichert
+   - Alle anderen Clients mit der betroffenen Entität werden über die Änderung informiert
+   - Die Änderungshistorie protokolliert Konflikte und deren Lösung für Audit-Zwecke
+
+Dieser Ansatz minimiert Datenverluste und stellt sicher, dass selbst in Umgebungen mit vielen gleichzeitigen Benutzern die Datenintegrität gewahrt bleibt, ohne den Arbeitsfluss unnötig zu behindern.
+
+=== 6.3 Backend-Schnittstellen
+
+Dieser Abschnitt dokumentiert die wichtigsten Backend-Schnittstellen und deren Interaktionen zur Laufzeit.
+
+==== 6.3.1 REST API-Schnittstellen
+
+Das Backend stellt eine RESTful API bereit, die vom Frontend genutzt wird. Hier sind die wichtigsten Endpunkte nach Domänen gruppiert:
+
+[cols="2,2,4", options="header"]
+|===
+|Endpoint |HTTP Methode |Beschreibung
+|`/api/auth/login` |POST |Authentifizierung eines Benutzers mit Benutzername und Passwort
+|`/api/auth/refresh` |POST |Erneuern eines JWT-Tokens
+|`/api/auth/me` |GET |Abrufen der Benutzerinformationen des aktuell authentifizierten Benutzers
+|`/api/einsatz` |GET |Abrufen aller Einsätze (mit Paginierung und Filteroptionen)
+|`/api/einsatz/:id` |GET |Abrufen eines bestimmten Einsatzes mit Details
+|`/api/einsatz` |POST |Erstellen eines neuen Einsatzes
+|`/api/einsatz/:id` |PUT |Aktualisieren eines bestehenden Einsatzes
+|`/api/einsatz/:id` |DELETE |Löschen eines Einsatzes
+|`/api/einsatz/:id/abschnitte` |GET |Abrufen aller Abschnitte eines Einsatzes
+|`/api/einsatz/:id/ressourcen` |GET |Abrufen aller Ressourcen eines Einsatzes
+|`/api/ressource/personal` |GET |Abrufen aller Personalressourcen
+|`/api/ressource/fahrzeug` |GET |Abrufen aller Fahrzeugressourcen
+|`/api/ressource/material` |GET |Abrufen aller Materialressourcen
+|`/api/etb/:einsatzId` |GET |Abrufen aller ETB-Einträge für einen Einsatz
+|`/api/etb` |POST |Erstellen eines neuen ETB-Eintrags
+|`/api/health` |GET |Abrufen des Systemstatus
+|===
+
+==== 6.3.2 Authentifizierungs-Flow
+
+[mermaid]
+....
+sequenceDiagram
+    participant Client as Frontend Client
+    participant API as Backend API
+    participant Auth as Auth Service
+    participant DB as Datenbank
+    
+    Client->>API: POST /api/auth/login {username, password}
+    API->>Auth: validateUser(username, password)
+    Auth->>DB: findUserByUsername(username)
+    DB-->>Auth: Benutzerdaten mit Hash
+    Auth->>Auth: vergleiche Passwort-Hash
+    Auth-->>API: Validierungsergebnis
+    
+    alt Erfolgreiche Authentifizierung
+        API->>API: Generiere JWT Token
+        API-->>Client: 200 OK {token, user}
+        Client->>Client: Speichere Token im Local Storage
+    else Fehlgeschlagene Authentifizierung
+        API-->>Client: 401 Unauthorized
+    end
+    
+    Note over Client,API: Bei weiteren Anfragen
+    
+    Client->>API: Request mit Authorization Header
+    API->>Auth: validateToken(token)
+    
+    alt Token gültig
+        Auth-->>API: Dekodierte User-Daten
+        API->>API: Berechtigungsprüfung
+        API-->>Client: 200 OK mit Daten
+    else Token ungültig/abgelaufen
+        Auth-->>API: Token ungültig
+        API-->>Client: 401 Unauthorized
+        Client->>Client: Redirect zur Login-Seite
+    end
+....
+
+==== 6.3.3 Einsatz-Erstellung und -Verwaltung
+
+[mermaid]
+....
+sequenceDiagram
+    participant Frontend
+    participant API as Backend API
+    participant EinsatzService
+    participant RessourceService
+    participant DB as Datenbank
+    
+    Frontend->>API: POST /api/einsatz (Einsatzdaten)
+    API->>EinsatzService: createEinsatz(einsatzData)
+    EinsatzService->>EinsatzService: validateEinsatzData()
+    EinsatzService->>DB: save(einsatz)
+    DB-->>EinsatzService: Gespeicherter Einsatz mit ID
+    EinsatzService-->>API: Einsatzdaten
+    API-->>Frontend: 201 Created (Einsatzdaten)
+    
+    Frontend->>API: POST /api/einsatz/:id/ressourcen (Ressourcen)
+    API->>EinsatzService: addRessourcen(einsatzId, ressourcen)
+    EinsatzService->>RessourceService: createRessourcen(ressourcen)
+    RessourceService->>DB: save(ressourcen)
+    DB-->>RessourceService: Gespeicherte Ressourcen
+    RessourceService-->>EinsatzService: Ressourcendaten
+    EinsatzService->>DB: update(einsatz)
+    DB-->>EinsatzService: Aktualisierter Einsatz
+    EinsatzService-->>API: Aktualisierte Einsatzdaten
+    API-->>Frontend: 200 OK (Aktualisierte Einsatzdaten)
+    
+    Note over Frontend,DB: Einsatzstatus-Änderung
+    
+    Frontend->>API: PUT /api/einsatz/:id/status (Neuer Status)
+    API->>EinsatzService: updateStatus(einsatzId, status)
+    EinsatzService->>DB: findEinsatz(einsatzId)
+    DB-->>EinsatzService: Einsatz
+    EinsatzService->>EinsatzService: validateStatusTransition()
+    EinsatzService->>DB: updateStatus(einsatzId, status)
+    DB-->>EinsatzService: Aktualisierter Einsatz
+    EinsatzService-->>API: Aktualisierte Einsatzdaten
+    API-->>Frontend: 200 OK (Aktualisierte Einsatzdaten)
+....
+
+==== 6.3.4 ETB (Einsatztagebuch) Kommunikation
+
+[mermaid]
+....
+sequenceDiagram
+    participant Frontend
+    participant API as Backend API
+    participant ETBService
+    participant EinsatzService
+    participant DB as Datenbank
+    
+    Frontend->>API: POST /api/etb (ETB Eintrag)
+    API->>ETBService: createEntry(etbData)
+    ETBService->>EinsatzService: validateEinsatz(einsatzId)
+    EinsatzService->>DB: findEinsatz(einsatzId)
+    DB-->>EinsatzService: Einsatz
+    EinsatzService-->>ETBService: Einsatz gültig
+    ETBService->>DB: save(etbEntry)
+    DB-->>ETBService: Gespeicherter ETB-Eintrag
+    ETBService-->>API: ETB-Eintragsdaten
+    API-->>Frontend: 201 Created (ETB-Eintragsdaten)
+    
+    Frontend->>API: GET /api/etb/:einsatzId
+    API->>ETBService: getEntriesByEinsatz(einsatzId)
+    ETBService->>DB: findEntriesByEinsatzId(einsatzId)
+    DB-->>ETBService: ETB-Einträge
+    ETBService-->>API: ETB-Einträge
+    API-->>Frontend: 200 OK (ETB-Einträge)
+....
+
+==== 6.3.5 Health Check Mechanismus
+
+[mermaid]
+....
+sequenceDiagram
+    participant Client as Client (Frontend/Monitoring)
+    participant API as Backend API
+    participant HealthService
+    participant DB as Datenbank
+    
+    Client->>API: GET /api/health
+    API->>HealthService: checkHealth()
+    
+    par Parallele Checks
+        HealthService->>HealthService: checkMemory()
+        HealthService->>DB: pingDatabase()
+        DB-->>HealthService: Datenbank-Status
+        HealthService->>HealthService: checkDiskSpace()
+    end
+    
+    HealthService-->>API: Gesamtstatus und Details
+    
+    alt Alle Checks erfolgreich
+        API-->>Client: 200 OK {status: "UP", checks: [...]}
+    else Ein Check fehlgeschlagen
+        API-->>Client: 503 Service Unavailable {status: "DOWN", checks: [...]}
+    end
+....
+
+==== 6.3.6 Datenbanktransaktionen und Fehlerbehandlung
+
+[mermaid]
+....
+sequenceDiagram
+    participant Frontend
+    participant API as Backend API
+    participant Service
+    participant TransactionMgr as Transaction Manager
+    participant DB as Datenbank
+    participant ErrorFilter as Exception Filter
+    
+    Frontend->>API: Request mit potenziellen Datenbankänderungen
+    API->>Service: Verarbeite Request
+    Service->>TransactionMgr: beginTransaction()
+    
+    alt Erfolgreicher Prozess
+        Service->>DB: Operation 1
+        DB-->>Service: Ergebnis 1
+        Service->>DB: Operation 2
+        DB-->>Service: Ergebnis 2
+        Service->>TransactionMgr: commitTransaction()
+        TransactionMgr->>DB: Commit
+        DB-->>TransactionMgr: Commit erfolgreich
+        Service-->>API: Erfolgsergebnis
+        API-->>Frontend: 200/201 Success Response
+    else Fehler während der Verarbeitung
+        Service->>DB: Operation 1
+        DB-->>Service: Ergebnis 1
+        Service-xDB: Operation 2 (Fehler)
+        DB--xService: Fehlermeldung
+        Service->>TransactionMgr: rollbackTransaction()
+        TransactionMgr->>DB: Rollback
+        DB-->>TransactionMgr: Rollback erfolgreich
+        Service-xAPI: Wirf Exception
+        API->>ErrorFilter: Exception abfangen
+        ErrorFilter->>ErrorFilter: Formatiere Fehlerantwort
+        ErrorFilter-->>Frontend: 4xx/5xx Fehlerantwort
+    end
+....
+
+== Offene Punkte

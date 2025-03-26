@@ -1,0 +1,204 @@
+= 3. Kontextabgrenzung
+:author: Bluelight-Hub Team
+:revnumber: 1.0.0
+:revdate: 2025-03-23
+:sectnums!
+
+
+== Übersicht
+Dieser Abschnitt beschreibt die Einbettung des Bluelight-Hub-Systems in seine Umgebung. Es werden sowohl die fachlichen als auch die technischen Schnittstellen zu externen Systemen und Benutzern definiert.
+
+== Inhalt
+
+=== 3.1 Fachlicher Kontext
+
+Der fachliche Kontext zeigt, welche externen Akteure mit dem System interagieren und welche fachlichen Schnittstellen bestehen.
+
+[mermaid]
+....
+flowchart TB
+    %% Externe Akteure
+    Einsatzleiter[Einsatzleiter]:::user
+    Einsatzkraft[Einsatzkraft]:::user
+    Administrator[Administrator]:::user
+    
+    %% Externe Systeme
+    Digitalfunk[Digitalfunk]:::external
+    Archiv[Archivspeicher]:::external
+    
+    %% Hauptsystem
+    subgraph BluelightHub[Bluelight Hub]
+        System[System]:::core
+    end
+    
+    %% Beziehungen - Benutzer
+    Einsatzleiter -->|verwaltet Einsatz| System
+    Einsatzkraft -->|erfasst Daten| System
+    Administrator -->|konfiguriert| System
+    
+    %% Beziehungen - Systeme
+    Digitalfunk -->|Statusmeldungen| System
+    System -->|Lageberichte| Archiv
+    
+    %% Styling
+    classDef core fill:#1976D2,stroke:#0D47A1,color:white
+    classDef user fill:#4CAF50,stroke:#2E7D32,color:white
+    classDef external fill:#FF9800,stroke:#EF6C00,color:white
+....
+
+==== 3.1.1 Benutzergruppen
+
+* *Einsatzleiter*: Verantwortlich für die Führung und Koordination des Einsatzes.
+* *FüKW-Personal*: Erhält eine vollständige Variante des Systems und unterstützt die Einsatzleitung direkt. Hat Zugriff auf alle Funktionen und kann alle Aspekte des Einsatzes verwalten.
+* *Einsatzkräfte*: Führen Aufgaben im Feld aus und erfassen Daten im System. Erhalten eine eingeschränkte Variante mit reduziertem Funktionsumfang, angepasst an ihre spezifischen Aufgaben.
+* *Administratoren*: Verantwortlich für die technische Konfiguration und Wartung.
+
+==== 3.1.2 Externe Systeme
+
+* *Digitalfunk*: Kommunikationssystem für Statusmeldungen und Alarmierungen.
+* *Archivspeicher*: Speicher für Lageberichte und andere Dokumente.
+
+==== 3.1.3 Abgrenzung manueller und automatischer Prozesse
+
+[cols="1,3,3", options="header"]
+|===
+|Prozess |Manuelle Komponenten |Automatisierte Komponenten
+|Einsatzanlage |Daten werden manuell durch Einsatzleiter oder beauftragte Einsatzkraft erfasst |Grundgerüst des Einsatzes wird automatisch erstellt, Basis-Templates werden vorausgefüllt
+|Ressourcenverwaltung |Manuelle Zuweisung von Ressourcen zu Einsatzabschnitten |Automatische Aktualisierung der Verfügbarkeit und Status-Tracking
+|Lageberichterstattung |Manuelle Erstellung und Freigabe von Lageberichten |Automatische Zusammenführung von Teilberichten und Verteilung
+|Kommunikation |Verbale Funkgespräche und manuelle Eingabe von Meldungen |Automatische Weiterleitung von Nachrichten an relevante Einheiten
+|Dateneingabe |Manuelle Erfassung von Beobachtungen und Maßnahmen |Automatische Plausibilitätsprüfungen und kontextbezogene Vorschläge
+|Einsatzabschluss |Manuelle Bestätigung des Einsatzendes durch Einsatzleiter |Automatische Erstellung von Einsatzberichten und Statistiken
+|===
+
+[NOTE]
+====
+Die klare Abgrenzung zwischen manuellen und automatischen Prozessen ist essenziell für eine korrekte mentale Modellbildung der Nutzer. Automatisierungen sollen die Einsatzkräfte unterstützen, nicht ersetzen. Jede Automatisierung kann bei Bedarf manuell übersteuert werden.
+====
+
+=== 3.2 Technischer Kontext
+
+Der technische Kontext beschreibt die technischen Schnittstellen (Protokolle, Hardware, externe Systeme) des Bluelight-Hub-Systems.
+
+[mermaid]
+....
+flowchart TB
+    %% Externe Schnittstellen
+    TETRA[TETRA Digitalfunk]:::hardware
+    Server[Cloud-Server]:::hardware
+    Mobile[Mobile Geräte]:::hardware
+    FüKW[FüKW-Netzwerk]:::network
+    
+    %% Hauptsystem mit Komponenten
+    subgraph BluelightHub[Bluelight Hub]
+        Frontend[Frontend]:::core
+        Backend[Backend]:::core
+        DB[(Lokale DB)]:::database
+    end
+    
+    %% Technische Verbindungen
+    TETRA <-->|JSON/REST API| Backend
+    Server <-->|HTTPS/WebSocket| Backend
+    Mobile <-->|HTTPS/WebSocket| Frontend
+    FüKW -->|LAN/WLAN| BluelightHub
+    
+    %% Styling
+    classDef core fill:#1976D2,stroke:#0D47A1,color:white
+    classDef hardware fill:#FF9800,stroke:#EF6C00,color:white
+    classDef network fill:#4CAF50,stroke:#2E7D32,color:white
+    classDef database fill:#9C27B0,stroke:#6A1B9A,color:white
+....
+
+==== 3.2.1 Technische Schnittstellen
+
+[cols="1,1,3", options="header"]
+|===
+|Schnittstelle |Protokoll |Beschreibung
+|Cloud-Server |HTTPS, WebSocket |Synchronisation von Daten bei Internetverfügbarkeit (noch nicht klar, ob das kommt)
+|TETRA Digitalfunk |Proprietäres API |Integration von Statusmeldungen und Alarmierungen
+|Mobile Geräte |HTTPS, WebSocket |Zugriff auf das System von mobilen Endgeräten im Feld
+|FüKW-Netzwerk |LAN/WLAN |Lokales Netzwerk im Führungskraftwagen
+|===
+
+==== 3.2.2 Datenaustauschformate
+
+* REST API mit JSON als primäres Datenaustauschformat
+* Exportformate: PDF, CSV, standardisierte Notfallprotokolle
+* Importformate: CSV, standardisierte Einsatzalarme
+
+==== 3.2.3 Detaillierte Schnittstellenbeschreibung Funk-/Kommunikationssysteme
+
+Die Integration mit Funk- und Kommunikationssystemen erfolgt über mehrere Schnittstellen:
+
+[cols="1,3,1,2", options="header"]
+|===
+|System |Funktionalität |Kopplung |Technische Details
+|TETRA Digitalfunk |Statusmeldungen, Alarmierungen |Lose |Proprietäres API über TCP/IP, eingeschränkter Funktionsumfang auf lesende Operationen
+|Funkmeldesystem (FMS) |Statusübermittlung von Fahrzeugen |Unidirektional |Standardisierte FMS-Schnittstelle, Status wird im System abgebildet, keine Rückkanal-Kommunikation
+|Sprechfunk |Mündliche Kommunikation |Manuell |Keine direkte technische Integration, manuelle Protokollierung durch Bediener
+|Meldeempfänger |Alarmierung |Unidirektional |Anbindung über Alarmierungsserver, nur ausgehende Kommunikation
+|Einsatzstellenfunk (DMO) |Lokale Kommunikation |Manuell |Keine direkte technische Integration, Protokollierung durch Bediener
+|===
+
+[IMPORTANT]
+====
+Die Integration mit Funk- und Kommunikationssystemen dient primär der Informationsgewinnung und -verteilung. Das Bluelight-Hub-System ersetzt nicht die bestehenden Kommunikationswege, sondern ergänzt diese durch digitale Dokumentation und Unterstützung.
+====
+
+==== 3.2.4 Informationsfluss und Systemabgrenzung
+
+[mermaid]
+....
+flowchart TD
+    %% Externe Systeme
+    Funk[Funksysteme]:::external
+    Alarm[Alarmierungssysteme]:::external
+    GIS[Geografische Informationssysteme]:::external
+    
+    %% Bluelight Hub
+    subgraph BluelightHub[Bluelight Hub System]
+        Interface[Schnittstellenmanager]:::interface
+        Core[Kernfunktionen]:::core
+        Documents[Dokumentenmanagement]:::core
+    end
+    
+    %% Nutzer
+    User[Benutzer]:::user
+    
+    %% Verbindungen
+    Funk -->|Status, Meldungen| Interface
+    Alarm -->|Einsatzinformationen| Interface
+    GIS -->|Kartendaten| Interface
+    
+    Interface -->|Aufbereitete Daten| Core
+    Core -->|Anzeige| User
+    User -->|Eingabe| Core
+    Core -->|Speicherung| Documents
+    Documents -->|Export| Funk
+    
+    %% Manuelle vs. automatische Prozesse
+    User -->| Manuelle Eingabe| Core
+    Interface -->| Automatische Verarbeitung| Core
+    Core -->| Vorschläge| User
+    User -->| Bestätigung/Korrektur| Core
+    
+    %% Styling
+    classDef core fill:#1976D2,stroke:#0D47A1,color:white
+    classDef interface fill:#9C27B0,stroke:#6A1B9A,color:white
+    classDef external fill:#FF9800,stroke:#EF6C00,color:white
+    classDef user fill:#4CAF50,stroke:#2E7D32,color:white
+....
+
+Die Abbildung verdeutlicht den Informationsfluss zwischen dem Bluelight-Hub-System und externen Kommunikationssystemen. Besonders wichtig ist die Unterscheidung zwischen:
+
+1. *Automatisierte Prozesse*: Datenimport aus Funksystemen, Vorverarbeitung von Meldungen, Statusaktualisierungen
+2. *Manuelle Prozesse*: Erfassung von Beobachtungen, Freigabe von Meldungen, Bestätigung von Aktionen
+
+Diese klare Trennung ermöglicht ein kontrolliertes Zusammenspiel zwischen technischen Systemen und menschlicher Entscheidungsfindung.
+
+== Offene Punkte
+* Detaillierte Spezifikation der Schnittstelle zum Digitalfunk
+* Festlegung der exakten Datenformate für den Austausch mit Behördensystemen
+* Ermittlung weiterer Schnittstellen zu externen Systemen
+* Entwicklung von Fallback-Szenarien bei Ausfall der Kommunikationsinfrastruktur
+* Regelung der Authentifizierung bei systemübergreifender Kommunikation

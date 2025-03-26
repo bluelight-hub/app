@@ -1,0 +1,17 @@
+= ADR-007: JWT für Authentifizierung
+:author: Bluelight-Hub Team
+:revnumber: 1.0.0
+:revdate: 2025-03-23
+:sectnums!:
+
+== Status
+In Prüfung (Stand: 2025-03-23)
+
+== Kontext
+Das Bluelight-Hub-System benötigt einen Authentifizierungsmechanismus, der sowohl in vollständig verbundenen als auch in lokalen Verbindungsszenarien funktioniert. Die Lösung muss sicher, skalierbar und mit dem Verbindungskonzept kompatibel sein.
+
+== Optionen
+. *Session-basierte Authentifizierung*: Server-seitige Sessions mit Cookies.
+. *Basic Authentication*: Einfache HTTP-Authentifizierung mit Benutzername und Passwort.
+. *OAuth 2.0 / OpenID Connect*: Standardisiertes Protokoll für Authentifizierung und Autorisierung.
+. *JWT (JSON Web Tokens)*: Statuslose, token-basierte Authentifizierung.

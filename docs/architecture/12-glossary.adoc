@@ -1,0 +1,218 @@
+= 12. Glossar
+:author: Bluelight-Hub Team
+:revnumber: 1.0.0
+:revdate: 2025-03-23
+:sectnums!
+
+
+== Übersicht
+Dieses Glossar definiert die wichtigsten Fachbegriffe, Abkürzungen und technischen Termini, die im Zusammenhang mit dem Bluelight-Hub-System verwendet werden. Es dient als gemeinsames Verständnis für alle Projektbeteiligten und Anwender.
+
+== Inhalt
+
+[cols="1,4", options="header"]
+|===
+|Begriff |Definition
+
+|API
+|Application Programming Interface; Schnittstelle, die von anderen Programmen oder Systemkomponenten genutzt werden kann, um mit dem Bluelight-Hub-System zu kommunizieren.
+
+|Backend
+|Serverseite des Bluelight-Hub-Systems, implementiert mit NestJS, die für die Geschäftslogik, Datenverwaltung und API-Bereitstellung verantwortlich ist.
+
+|CQRS
+|Command Query Responsibility Segregation; Architekturmuster, das die lesenden (Queries) von den schreibenden (Commands) Operationen trennt, um Komplexität zu reduzieren und Skalierbarkeit zu verbessern.
+
+|DDD
+|Domain-Driven Design; Ansatz zur Softwareentwicklung, der komplexe Systeme durch enge Zusammenarbeit von Fachexperten und Entwicklern modelliert und dabei den Fokus auf die Kerndomäne und -logik legt.
+
+|Digitalfunk
+|Digitales Funksystem für Behörden und Organisationen mit Sicherheitsaufgaben (BOS), in Deutschland typischerweise basierend auf dem TETRA-Standard.
+
+|DTOs
+|Data Transfer Objects; Objekte, die ausschließlich zum Datentransport zwischen Systemkomponenten dienen, insbesondere über APIs.
+
+|ELW
+|Einsatzleitwagen; Ältere, inzwischen nicht mehr gebräuchliche Bezeichnung für den Führungskraftwagen (FüKW). In der Dokumentation wurde dieser Begriff durch FüKW ersetzt.
+
+|Einsatz
+|Organisierter Einsatz von Kräften und Mitteln zur Bewältigung einer Gefahr oder eines Notfalls; zentrale Entität im Bluelight-Hub-System.
+
+|Einsatzabschnitt
+|Räumlich oder funktional definierter Teilbereich eines Einsatzes mit eigener Führung.
+
+|Einsatzleiter
+|Person, die die Gesamtverantwortung für einen Einsatz trägt und alle Einsatzmaßnahmen koordiniert.
+
+|Einheit
+|Organisatorisch zusammengehörige Gruppe von Einsatzkräften mit definierter Führungsstruktur und Aufgabe (z.B. Sanitätsgruppe, Betreuungszug).
+
+|Frontend
+|Benutzeroberfläche des Bluelight-Hub-Systems, implementiert mit React und TypeScript, mit der Benutzer interagieren.
+
+|FüKW
+|Führungskraftwagen; mobile Führungseinrichtung zur Koordination von Einsätzen, auf dem das Backend des Bluelight-Hub-Systems läuft. Der FüKW dient als lokaler Kommunikationsknoten für alle verbundenen Clients im Einsatzgebiet.
+
+|JWT
+|JSON Web Token; Standard zur sicheren Übertragung von Informationen zwischen Parteien als JSON-Objekt, verwendet für die Authentifizierung und Autorisierung im Bluelight-Hub-System.
+
+|KatS
+|Katastrophenschutz; Maßnahmen zur Vorbereitung auf und Bewältigung von Großschadensereignissen und Katastrophen.
+
+|Lagekarte
+|Grafische Darstellung eines Einsatzgeschehens mit Symbolen für Einheiten, Gefahrenstellen, Schadensbereiche etc.
+
+|Material
+|Ausrüstung, Fahrzeuge und sonstige Ressourcen, die im Einsatz zur Verfügung stehen.
+
+|NestJS
+|TypeScript-basiertes Node.js-Framework für serverseitige Anwendungen, das im Backend des Bluelight-Hub-Systems verwendet wird.
+
+|Lokales Verbindungsszenario
+|Konnektivitätszustand, bei dem ein Client mit dem FüKW-Server verbunden ist, aber keine Internetverbindung besteht. Dies ist der Standardmodus im Einsatz und wird auch als "FüKW-verbunden" bezeichnet. In diesem Modus ist die volle lokale Funktionalität verfügbar.
+
+|Offline
+|Im Kontext des Bluelight-Hub-Systems bezeichnet "Offline" den Zustand eines Clients, wenn keine Verbindung zum FüKW-Server besteht. In diesem autonomen Verbindungsszenario arbeitet der Client mit reduziertem Funktionsumfang und speichert Daten lokal, bis eine Verbindung wiederhergestellt werden kann.
+
+|Offline-First
+|Entwurfsprinzip, bei dem eine Anwendung primär für die Nutzung ohne ständige Serververbindung konzipiert wird. Im Bluelight-Hub bedeutet dies, dass Clients auch bei temporärem Verbindungsverlust zum FüKW weiterarbeiten können.
+
+|Online
+|Im Kontext des Bluelight-Hub-Systems bezeichnet "Online" den Zustand, wenn der FüKW-Server mit dem Internet verbunden ist und dadurch Zugriff auf erweiterte cloud-basierte Dienste hat. Dies wird auch als "vollständiges Verbindungsszenario" bezeichnet und ermöglicht zusätzliche Funktionen wie externe Kartendienste, Datenabruf aus übergeordneten Systemen und Cloud-Backup-Optionen.
+
+|Personal
+|Einsatzkräfte mit ihren Qualifikationen, Verfügbarkeiten und Zuständigkeiten.
+
+|React
+|JavaScript-Bibliothek zur Erstellung von Benutzeroberflächen, die im Frontend des Bluelight-Hub-Systems verwendet wird.
+
+|REST
+|Representational State Transfer; Architekturstil für verteilte Systeme, der für die API des Bluelight-Hub-Systems verwendet wird.
+
+|SQLite
+|Leichtgewichtige, dateibasierte relationale Datenbank, die im Bluelight-Hub-System für die lokale Datenspeicherung verwendet wird.
+
+|Tauri
+|Framework für die Entwicklung von Desktop-Anwendungen mit Webtechnologien, das für die Erstellung der plattformübergreifenden Client-Anwendung des Bluelight-Hub-Systems verwendet wird.
+
+|TETRA
+|Terrestrial Trunked Radio; Standard für digitalen Bündelfunk, der für den Digitalfunk der Behörden und Organisationen mit Sicherheitsaufgaben (BOS) verwendet wird.
+
+|TypeScript
+|Programmiersprache, die JavaScript um statische Typisierung erweitert und für die Entwicklung des Bluelight-Hub-Systems verwendet wird.
+
+|UI
+|User Interface; Benutzeroberfläche, über die Anwender mit dem Bluelight-Hub-System interagieren.
+
+|UX
+|User Experience; Gesamtheit der Erfahrungen, die ein Benutzer bei der Interaktion mit dem Bluelight-Hub-System macht.
+
+|Verbindungskonzept
+|Architekturkonzept des Bluelight-Hub-Systems, das drei Konnektivitätsszenarien definiert: lokales Verbindungsszenario (Client ist mit FüKW verbunden), vollständiges Verbindungsszenario (FüKW ist mit Internet verbunden) und autonomes Verbindungsszenario (Client hat keine Verbindung zum FüKW/Offline). Das Konzept beschreibt, wie die Anwendung in jedem dieser Szenarien funktioniert und Daten synchronisiert.
+
+|Vite
+|Build-Tool und Entwicklungsserver für moderne Webanwendungen, das im Frontend des Bluelight-Hub-Systems verwendet wird.
+
+|WebSockets
+|Kommunikationsprotokoll, das eine bidirektionale, vollwertige Kommunikationsverbindung über eine einzelne TCP-Verbindung ermöglicht; wird für Echtzeitkommunikation im Bluelight-Hub-System verwendet.
+
+|Zustand
+|State-Management-Bibliothek für React, die im Frontend des Bluelight-Hub-Systems für die Verwaltung des globalen Anwendungszustands verwendet wird.
+
+|Vollständiges Verbindungsszenario
+|Konnektivitätszustand, bei dem der FüKW-Server mit dem Internet verbunden ist und dadurch erweiterte Online-Funktionen zur Verfügung stehen. Wird auch als "Online-Modus" bezeichnet.
+|===
+
+== Fachspezifische Abkürzungen
+
+[cols="1,4", options="header"]
+|===
+|Abkürzung |Bedeutung
+
+|ABC
+|Atomar, Biologisch, Chemisch; Gefährdungsarten im Katastrophenschutz
+
+|BOS
+|Behörden und Organisationen mit Sicherheitsaufgaben
+
+|DRK
+|Deutsches Rotes Kreuz
+
+|FwDV
+|Feuerwehr-Dienstvorschrift
+
+|GSG
+|Gefahrstoffzug
+
+|JUH
+|Johanniter-Unfall-Hilfe
+
+|LSE
+|Leitstelle für Einsätze
+
+|MLS
+|Medical-Logistic-System
+
+|OPTA
+|Operativ-Taktische Adresse; eine eindeutige Kennung für Einheiten, Fahrzeuge oder Stellen im Digitalfunk BOS (Behörden und Organisationen mit Sicherheitsaufgaben). Sie wird für die Adressierung von Funkteilnehmern verwendet und ermöglicht eine klare Identifikation und Zuordnung in der Einsatzkommunikation. Eine OPTA folgt oft einem bestimmten Schema, das sich je nach Bundesland oder Organisation unterscheiden kann.
+
+|RTW
+|Rettungswagen
+
+|SEG
+|Schnell-Einsatz-Gruppe
+
+|THW
+|Technisches Hilfswerk
+
+|TEL
+|Technische Einsatzleitung
+
+|UHS
+|Unfallhilfsstelle
+|===
+
+== Diagrammsymbole (geplant)
+
+[NOTE]
+====
+Die hier aufgeführten Diagrammsymbole sind für zukünftige Implementierungen geplant und noch nicht Teil der aktuellen Dokumentation. Diese Sektion wird aktualisiert, sobald die entsprechenden Symbole definiert und erstellt wurden.
+====
+
+[cols="1,4", options="header"]
+|===
+|Symbol |Bedeutung
+|_Ausstehend_ |Einsatzleitung
+|_Ausstehend_ |Einheit
+|_Ausstehend_ |Verletztenablage
+|_Ausstehend_ |Gefahrstelle
+|_Ausstehend_ |Brandstelle
+|===
+
+== Datenschutz- und Sicherheitsbegriffe
+
+[cols="1,4", options="header"]
+|===
+|Begriff |Definition
+
+|DSGVO
+|Datenschutz-Grundverordnung; europäische Verordnung zum Schutz natürlicher Personen bei der Verarbeitung personenbezogener Daten.
+
+|Ende-zu-Ende-Verschlüsselung
+|Verschlüsselungsmethode, bei der nur die kommunizierenden Benutzer die Nachrichten lesen können, nicht aber Dritte, einschließlich der Anbieter des Kommunikationsdienstes.
+
+|Penetrationstest
+|Methode zur Überprüfung der Sicherheit eines Computersystems oder Netzwerks durch simulierte Angriffe.
+
+|Rollen-basierte Zugangskontrolle
+|Sicherheitsansatz, bei dem Benutzer basierend auf ihrer Rolle im System bestimmte Berechtigungen erhalten.
+
+|Zwei-Faktor-Authentifizierung
+|Sicherheitsverfahren, bei dem der Benutzer zwei verschiedene Authentifizierungsfaktoren vorlegen muss, um Zugang zu einem System zu erhalten.
+|===
+
+== Offene Punkte
+
+* Ergänzung fachspezifischer Symbole und Abkürzungen aus den relevanten Fachbereichen
+* Abstimmung der Terminologie mit aktuellen Standards im Katastrophenschutz
+* Integration von Bildmaterial für die Diagrammsymbole 

@@ -1,0 +1,16 @@
+= ADR-005: Event Sourcing für Einsatztagebuch
+:author: Bluelight-Hub Team
+:revnumber: 1.0.0
+:revdate: 2025-03-23
+:sectnums!:
+
+== Status
+In Prüfung (Stand: 2025-03-23)
+
+== Kontext
+Das Einsatztagebuch (ETB) ist eine kritische Komponente, bei der die Nachvollziehbarkeit und zeitliche Dokumentation aller Einträge essentiell ist.
+
+== Optionen
+. *CRUD-basierter Ansatz*: Direkte Speicherung des aktuellen Zustands.
+. *Event Sourcing*: Speicherung aller Ereignisse als unveränderliche Sequenz.
+. *Hybrid-Ansatz*: CRUD mit separatem Audit-Log.

@@ -17,15 +17,20 @@ alwaysApply: false
    - Nutze das Schema `PREFIX-name.mdc` (z. B. `000-rule-creation-standards.mdc`)
 
 2. **Frontmatter**
-   - Muss Felder `description` und `globs` enthalten
-   - `description`: 
+   - WICHTIG: Es darf nur EINE der folgenden Optionen verwendet werden:
+     - Option 1: `description` (ohne globs, ohne alwaysApply: true)
+     - Option 2: `globs` (ohne description, ohne alwaysApply: true)
+     - Option 3: `alwaysApply: true` (ohne description, ohne globs)
+   
+   - `description` (Wenn die Regel inhaltlich für bestimmte Situationen gilt): 
      - Im Format `ACTION TRIGGER OUTCOME`
      - ACTION: Verben wie ENFORCE, REQUIRE, REJECT, SUGGEST
      - TRIGGER: Beschreibung des Anwendungsfalls
      - OUTCOME: (optional) erwartetes Ergebnis nach "to" oder "for"
      - IMMER in Englisch verfassen
      - Beispiel: "ENFORCE standardized testing practices for all components to ensure quality"
-   - `globs`: 
+   
+   - `globs` (Wenn die Regel für bestimmte Dateitypen gilt): 
      - MUSS als YAML-Array mit `-` formatiert sein
      - KEINE Anführungszeichen um Glob-Muster
      - Korrekte Einrückung beachten
@@ -35,6 +40,10 @@ alwaysApply: false
        - src/**/*.ts
        - test/**/*.test.ts
        ```
+   
+   - `alwaysApply: true` (Wenn die Regel immer gelten soll):
+     - Keine weiteren Felder nötig
+     - Wird für grundlegende Regeln verwendet, die immer beachtet werden müssen
 
 3. **Body-Struktur**
    - **# Haupttitel** (z. B. Name der Rule)
@@ -58,11 +67,8 @@ alwaysApply: false
 
 <example>
 description: ENFORCE consistent code style to ensure maintainability
-globs:
-- src/**/*.ts
-- src/**/*.tsx
 
-# Example Rule
+# Example Rule mit nur description
 
 ## Context
 - Used whenever a new rule is needed
@@ -72,26 +78,38 @@ globs:
 - Use the short frontmatter format
 </example>
 
-<example type="invalid">
-description: This is a very long explanation that is not needed
-globs: "**/*.mdc"  # FALSCH: Keine Anführungszeichen verwenden!
-
-# Ungültiges Beispiel
-- Glob-Muster in Anführungszeichen
-- Fehlende Struktur
-- Zu ausführliche Beschreibung
-</example>
-
 <example>
-description: ENFORCE consistent file structure for better organization
 globs:
 - src/**/*.ts
 - src/**/*.tsx
-- test/**/*.test.ts
 
-# Gültiges Beispiel mit mehreren Globs
-Zeigt die korrekte Verwendung mehrerer Glob-Muster im Array-Format mit:
-- Korrekter YAML-Syntax
-- Ohne Anführungszeichen
-- Klare Einrückung
+# Example Rule mit nur globs
+
+## Context
+- Gilt für TypeScript und TSX Dateien
+- Hat keine description, da globs verwendet werden
+</example>
+
+<example>
+alwaysApply: true
+
+# Example Rule mit nur alwaysApply: true
+
+## Context
+- Diese Regel gilt immer, unabhängig von Datei oder Kontext
+- Wird für grundlegende Regeln verwendet
+
+## Requirements
+- Keine description oder globs nötig
+</example>
+
+<example type="invalid">
+description: This is a very long explanation that is not needed
+globs: "**/*.mdc"
+alwaysApply: true
+
+# Ungültiges Beispiel
+- Sowohl description als auch globs als auch alwaysApply gesetzt (nicht erlaubt)
+- Glob-Muster in Anführungszeichen (falsch)
+- Zu ausführliche Beschreibung
 </example>
