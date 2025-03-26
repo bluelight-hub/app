@@ -23,6 +23,7 @@
             "@nestjs/core",
             "@openapitools/openapi-generator-cli",
             "@swc/core",
+            "better-sqlite3",
             "esbuild"
         ]
     },
@@ -39,6 +40,6 @@
         "semantic-release-gitmoji": "^1.6.8"
     },
     "dependencies": {
-        "consola": "^3.4.0"
+        "consola": "^3.4.2"
     }
 }
