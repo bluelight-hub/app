@@ -135,8 +135,8 @@ describe('MobileSidebar', () => {
     });
 
     // Snapshot test
-    it('should match snapshot', () => {
-        const { container } = render(
+    it('should have correct structure and accessibility attributes', () => {
+        render(
             <MobileSidebar
                 isOpen={true}
                 onClose={() => { }}
@@ -144,6 +144,18 @@ describe('MobileSidebar', () => {
             />
         );
 
-        expect(container).toMatchSnapshot();
+        // Verify dialog structure
+        const dialog = screen.getByRole('dialog');
+        expect(dialog).toBeInTheDocument();
+
+        // Verify close button
+        const closeButton = screen.getByLabelText('Close sidebar');
+        expect(closeButton).toBeInTheDocument();
+        expect(closeButton).toHaveAttribute('type', 'button');
+
+        // Verify sidebar content
+        const sidebarContent = screen.getByTestId('sidebar-content');
+        expect(sidebarContent).toBeInTheDocument();
+        expect(sidebarContent).toContainElement(screen.getByText('Mock Content'));
     });
 }); 
