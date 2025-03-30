@@ -42,7 +42,7 @@
       "@pages/*": [
         "src/components/pages/*"
       ]
-    }
+    },
   },
   "include": [
     "src"

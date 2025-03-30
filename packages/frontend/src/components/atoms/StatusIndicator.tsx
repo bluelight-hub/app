@@ -1,123 +1,108 @@
-import { HealthControllerCheck200Response } from '@bluelight-hub/shared/client';
-import { useQuery } from '@tanstack/react-query';
 import { Badge, Button, Popover, message } from 'antd';
-import React, { useEffect } from 'react';
+import React from 'react';
 import { PiCopy } from 'react-icons/pi';
-import { getBaseUrl } from '../../utils/fetch';
-import { logger } from '../../utils/logger';
+import { ConnectionStatus, useBackendHealth } from '../../hooks/useBackendHealth';
 
+/**
+ * Props für die StatusIndicator-Komponente
+ */
 interface StatusIndicatorProps {
+    /**
+     * CSS-Klasse für Styling-Anpassungen
+     */
     className?: string;
     /**
      * Optional callback when status changes
      */
-    onStatusChange?: (isHealthy: boolean) => void;
+    onStatusChange?: (status: ConnectionStatus) => void;
     /**
      * Whether to show the text
      */
     withText?: boolean;
+    /**
+     * Test-ID für automatisierte Tests
+     */
+    "data-testid"?: string;
 }
 
+/**
+ * Einfache Komponente zur Anzeige des Backend-Verbindungsstatus
+ * 
+ * Zeigt den aktuellen Verbindungsstatus als farbigen Punkt an und bietet
+ * bei Hover detaillierte Informationen zum Systemstatus.
+ */
 export const StatusIndicator: React.FC<StatusIndicatorProps> = ({
     className,
     onStatusChange,
     withText = false,
+    "data-testid": dataTestId = "status-indicator",
 }) => {
-    const { data, isError, isLoading } = useQuery<HealthControllerCheck200Response>({
-        queryKey: ['backendHealth'],
-        queryFn: async () => {
-            try {
-                logger.debug('StatusIndicator checking health endpoint');
-                // Attempt to get response from backend
-                const response = await fetch(`${getBaseUrl()}/api/health`, {
-                    method: 'GET',
-                    headers: {
-                        'Accept': 'application/json'
-                    }
-                });
+    // Backend-Gesundheitsstatus vom Hook abrufen
+    const {
+        getConnectionStatus,
+        getSystemDetailsText,
+        getDebugInfo
+    } = useBackendHealth();
 
-                const data = await response.json() as HealthControllerCheck200Response;
-                if (!response.ok) {
-                    logger.warn('StatusIndicator received error response', {
-                        status: data.status,
-                        details: data.details
-                    });
-                } else {
-                    logger.info('StatusIndicator health check successful', {
-                        status: data.status,
-                        details: data.details
-                    });
-                }
-                return data;
-            } catch (error) {
-                logger.error('StatusIndicator unexpected error', {
-                    error: error instanceof Error ? error.message : String(error)
-                });
-                throw error;
-            }
-        },
-        refetchInterval: 30000, // Check every 30 seconds
-        retry: 3,
-        retryDelay: 1000
-    });
-
-    useEffect(() => {
+    // Status aktualisieren, wenn sich etwas ändert
+    React.useEffect(() => {
         if (onStatusChange) {
-            const isHealthy = data?.status === 'ok';
-            onStatusChange(isHealthy ?? false);
+            onStatusChange(getConnectionStatus());
         }
-    }, [data, onStatusChange]);
+    }, [getConnectionStatus, onStatusChange]);
 
-    const getStatus = () => {
-        if (isLoading) return { status: 'processing' as const, text: 'Prüfe Status...' };
-        if (isError) return { status: 'error' as const, text: 'Backend nicht erreichbar' };
-        if (!data) return { status: 'error' as const, text: 'Keine Daten verfügbar' };
+    // Status-Informationen basierend auf dem aktuellen Status erzeugen
+    const getStatusInfo = () => {
+        const status = getConnectionStatus();
+        const systemDetails = getSystemDetailsText();
 
-        // Sammle detaillierte Informationen über Systemzustände
-        const systemDetails = Object.entries(data.details || {})
-            .map(([system, info]) => `${system}: ${info.status === 'up' ? '✅' : '❌'}`)
-            .join('\n');
-
-        switch (data.status) {
-            case 'ok':
+        switch (status) {
+            case 'checking':
                 return {
-                    status: 'success' as const,
-                    text: 'Alle Systeme funktionieren',
-                    details: systemDetails
+                    badgeStatus: 'processing' as const,
+                    text: 'Prüfe Verbindung...',
+                    details: 'Verbindungsstatus wird geprüft'
                 };
-            case 'down':
+            case 'online':
                 return {
-                    status: 'error' as const,
-                    text: 'Systeme sind ausgefallen',
-                    details: systemDetails
+                    badgeStatus: 'success' as const,
+                    text: 'Vollständig verbunden',
+                    details: `Online-Modus (Internet + FüKW)\n${systemDetails}`
                 };
-            default:
+            case 'offline':
                 return {
-                    status: 'warning' as const,
-                    text: 'Einige Systeme eingeschränkt',
-                    details: systemDetails
+                    badgeStatus: 'warning' as const,
+                    text: 'Lokaler Modus',
+                    details: `Offline-Modus (Nur FüKW)\n${systemDetails}`
+                };
+            case 'error':
+                return {
+                    badgeStatus: 'error' as const,
+                    text: 'Keine Verbindung',
+                    details: `Keine Verbindung zum FüKW\n${systemDetails}`
                 };
         }
     };
 
-    const { status, text, details } = getStatus();
+    const { badgeStatus, text, details } = getStatusInfo();
 
+    // Debug-Informationen in die Zwischenablage kopieren
     const copyToClipboard = async () => {
-        if (!data) {
+        const debugInfo = getDebugInfo();
+        if (!debugInfo) {
             message.error('Keine Daten zum Kopieren verfügbar');
             return;
         }
 
-        const debugInfo = JSON.stringify(data, null, 2);
         try {
             await navigator.clipboard?.writeText?.(debugInfo);
             message.success('Debug-Informationen in Zwischenablage kopiert');
-        } catch (error) {
-            logger.error('Fehler beim Kopieren', { error });
+        } catch {
             message.error('Fehler beim Kopieren der Debug-Informationen');
         }
     };
 
+    // Inhalt des Popovers mit Details
     const popoverContent = (
         <div className="max-w-sm">
             <div className="whitespace-pre-line">
@@ -148,15 +133,15 @@ export const StatusIndicator: React.FC<StatusIndicatorProps> = ({
     return (
         <Popover
             content={popoverContent}
-            title="Systemstatus"
+            title="Verbindungsstatus"
             trigger="hover"
             placement="right"
         >
             <div className="flex items-center gap-x-2">
                 <Badge
-                    status={status}
+                    status={badgeStatus}
                     className={className}
-                    data-testid="status-indicator"
+                    data-testid={dataTestId}
                 />
                 <p className="text-sm text-gray-500 dark:text-gray-400">
                     {withText && text}

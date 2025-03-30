@@ -1,0 +1,376 @@
+---
+description: 
+globs: **/*.repository.ts
+alwaysApply: false
+---
+# NestJS Repository-Patterns
+
+## Context
+- Gilt für Repository-Klassen im Backend (`**/*.repository.ts`)
+- Standardisiert die Implementierung des Repository-Patterns
+- Verbessert Datenzugriff, Wartbarkeit und Testbarkeit
+
+## Requirements
+
+1. **Struktur und Benennung**
+   - Repository-Klassen mit Suffix `Repository` benennen
+   - Repository-Dateien mit Namensschema `*.repository.ts`
+   - Repository in der entsprechenden Domäne oder Entitätsmodul platzieren
+   - Eine Repository-Klasse pro Entität
+
+2. **Architektur**
+   - Repository als Abstraktion über die Datenquelle
+   - Geschäftslogik in Services, nicht in Repositories
+   - Repositories nur für Datenzugriff und -manipulation
+   - Custom Repository für komplexe Abfragen
+
+3. **Typische Operationen**
+   - CRUD-Operationen implementieren (Create, Read, Update, Delete)
+   - Paginierte Abfragen für Listen
+   - Filterung, Sortierung und Suche
+   - Transaktionsunterstützung
+
+4. **TypeORM Integration**
+   - TypeORM Repository mit `@EntityRepository` oder durch Injektion
+   - QueryBuilder für komplexe Abfragen
+   - Relations korrekt laden
+   - Raw Queries vermeiden oder isolieren
+
+5. **Fehlerbehandlung**
+   - Repository-spezifische Fehler definieren und werfen
+   - Datenbankfehler in anwendungsspezifische Fehler umwandeln
+   - Prüfung auf Existenz vor Update/Delete
+   - Null-Checks für Funktionen, die null zurückgeben können
+
+6. **Performance**
+   - Select only needed columns
+   - Joins statt mehrerer Abfragen verwenden
+   - Eager/Lazy Loading korrekt verwenden
+   - Caching für häufig abgefragte Daten
+
+7. **Testbarkeit**
+   - Repository-Interface für bessere Testbarkeit
+   - Mock-Repository für Unit-Tests
+   - Abhängigkeiten über Dependency Injection
+   - Klare Trennung von Verantwortlichkeiten
+
+8. **Erweiterbarkeit**
+   - Generische Basis-Repository für gemeinsame Funktionen
+   - Flexibles Query-Interface für dynamische Abfragen
+   - Repository Pattern konsequent anwenden
+   - Separation of Concerns einhalten
+
+## Examples
+
+```typescript
+// Gutes Beispiel: Basis-Repository Interface
+import { DeleteResult, FindOptionsWhere, UpdateResult } from 'typeorm';
+
+/**
+ * Generic Repository Interface für grundlegende CRUD-Operationen.
+ */
+export interface IBaseRepository<T> {
+  /**
+   * Findet alle Entitäten, optional mit Paginierung.
+   */
+  findAll(options?: {
+    page?: number;
+    limit?: number;
+    relations?: string[];
+    order?: Record<string, 'ASC' | 'DESC'>;
+  }): Promise<[T[], number]>;
+
+  /**
+   * Findet eine Entität anhand ihrer ID.
+   */
+  findById(id: string | number, relations?: string[]): Promise<T | null>;
+
+  /**
+   * Findet Entitäten anhand bestimmter Kriterien.
+   */
+  findByCondition(
+    condition: FindOptionsWhere<T>,
+    relations?: string[],
+  ): Promise<T[]>;
+
+  /**
+   * Findet eine einzelne Entität anhand bestimmter Kriterien.
+   */
+  findOneByCondition(
+    condition: FindOptionsWhere<T>,
+    relations?: string[],
+  ): Promise<T | null>;
+
+  /**
+   * Erstellt eine neue Entität.
+   */
+  create(data: Partial<T>): Promise<T>;
+
+  /**
+   * Erstellt mehrere Entitäten in einer Operation.
+   */
+  createMany(data: Partial<T>[]): Promise<T[]>;
+
+  /**
+   * Aktualisiert eine Entität anhand ihrer ID.
+   */
+  update(id: string | number, data: Partial<T>): Promise<UpdateResult>;
+
+  /**
+   * Aktualisiert Entitäten anhand bestimmter Kriterien.
+   */
+  updateByCondition(
+    condition: FindOptionsWhere<T>,
+    data: Partial<T>,
+  ): Promise<UpdateResult>;
+
+  /**
+   * Löscht eine Entität anhand ihrer ID.
+   */
+  delete(id: string | number): Promise<DeleteResult>;
+
+  /**
+   * Löscht Entitäten anhand bestimmter Kriterien.
+   */
+  deleteByCondition(condition: FindOptionsWhere<T>): Promise<DeleteResult>;
+
+  /**
+   * Prüft, ob eine Entität mit den angegebenen Kriterien existiert.
+   */
+  exists(condition: FindOptionsWhere<T>): Promise<boolean>;
+}
+```
+
+```typescript
+// Gutes Beispiel: Implementierung eines generischen Basis-Repositories
+import {
+  Repository,
+  EntityRepository,
+  FindOptionsWhere,
+  UpdateResult,
+  DeleteResult,
+} from 'typeorm';
+import { IBaseRepository } from './base-repository.interface';
+import { NotFoundException } from '@nestjs/common';
+
+/**
+ * Generische Implementierung des BaseRepository.
+ */
+export abstract class BaseRepository<T> implements IBaseRepository<T> {
+  constructor(private readonly repository: Repository<T>) {}
+
+  async findAll(options?: {
+    page?: number;
+    limit?: number;
+    relations?: string[];
+    order?: Record<string, 'ASC' | 'DESC'>;
+  }): Promise<[T[], number]> {
+    const page = options?.page || 1;
+    const limit = options?.limit || 10;
+    const skip = (page - 1) * limit;
+    const relations = options?.relations || [];
+    const order = options?.order || {};
+
+    return this.repository.findAndCount({
+      skip,
+      take: limit,
+      relations,
+      order,
+    });
+  }
+
+  async findById(id: string | number, relations: string[] = []): Promise<T | null> {
+    return this.repository.findOne({
+      where: { id } as unknown as FindOptionsWhere<T>,
+      relations,
+    });
+  }
+
+  async findByCondition(
+    condition: FindOptionsWhere<T>,
+    relations: string[] = [],
+  ): Promise<T[]> {
+    return this.repository.find({
+      where: condition,
+      relations,
+    });
+  }
+
+  async findOneByCondition(
+    condition: FindOptionsWhere<T>,
+    relations: string[] = [],
+  ): Promise<T | null> {
+    return this.repository.findOne({
+      where: condition,
+      relations,
+    });
+  }
+
+  async create(data: Partial<T>): Promise<T> {
+    const entity = this.repository.create(data as any);
+    return this.repository.save(entity);
+  }
+
+  async createMany(data: Partial<T>[]): Promise<T[]> {
+    const entities = this.repository.create(data as any[]);
+    return this.repository.save(entities);
+  }
+
+  async update(id: string | number, data: Partial<T>): Promise<UpdateResult> {
+    const entity = await this.findById(id);
+    if (!entity) {
+      throw new NotFoundException(`Entity mit ID ${id} nicht gefunden`);
+    }
+    return this.repository.update(id, data as any);
+  }
+
+  async updateByCondition(
+    condition: FindOptionsWhere<T>,
+    data: Partial<T>,
+  ): Promise<UpdateResult> {
+    return this.repository.update(condition, data as any);
+  }
+
+  async delete(id: string | number): Promise<DeleteResult> {
+    const entity = await this.findById(id);
+    if (!entity) {
+      throw new NotFoundException(`Entity mit ID ${id} nicht gefunden`);
+    }
+    return this.repository.delete(id);
+  }
+
+  async deleteByCondition(condition: FindOptionsWhere<T>): Promise<DeleteResult> {
+    return this.repository.delete(condition);
+  }
+
+  async exists(condition: FindOptionsWhere<T>): Promise<boolean> {
+    const count = await this.repository.count({ where: condition });
+    return count > 0;
+  }
+}
+```
+
+```typescript
+// Gutes Beispiel: Konkretes UserRepository
+import { Injectable } from '@nestjs/common';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
+import { UserEntity } from '../entities/user.entity';
+import { BaseRepository } from './base.repository';
+import { UserStatus } from '../enums/user-status.enum';
+
+/**
+ * Repository für Benutzer-spezifische Datenbankoperationen.
+ */
+@Injectable()
+export class UserRepository extends BaseRepository<UserEntity> {
+  constructor(
+    @InjectRepository(UserEntity)
+    private readonly userRepository: Repository<UserEntity>,
+  ) {
+    super(userRepository);
+  }
+
+  /**
+   * Findet einen Benutzer anhand seiner E-Mail-Adresse.
+   */
+  async findByEmail(email: string): Promise<UserEntity | null> {
+    return this.findOneByCondition({ email: email.toLowerCase() });
+  }
+
+  /**
+   * Findet alle aktiven Benutzer.
+   */
+  async findActiveUsers(page = 1, limit = 10): Promise<[UserEntity[], number]> {
+    const [users, total] = await this.userRepository.findAndCount({
+      where: { status: UserStatus.ACTIVE },
+      skip: (page - 1) * limit,
+      take: limit,
+      order: { name: 'ASC' },
+    });
+    
+    return [users, total];
+  }
+
+  /**
+   * Sucht Benutzer anhand eines Suchbegriffs (Name oder E-Mail).
+   */
+  async searchUsers(
+    term: string,
+    page = 1,
+    limit = 10,
+  ): Promise<[UserEntity[], number]> {
+    const queryBuilder = this.userRepository.createQueryBuilder('user');
+    
+    queryBuilder
+      .where('LOWER(user.name) LIKE LOWER(:term)', { term: `%${term}%` })
+      .orWhere('LOWER(user.email) LIKE LOWER(:term)', { term: `%${term}%` })
+      .skip((page - 1) * limit)
+      .take(limit)
+      .orderBy('user.name', 'ASC');
+    
+    const [users, total] = await queryBuilder.getManyAndCount();
+    
+    return [users, total];
+  }
+
+  /**
+   * Deaktiviert einen Benutzer.
+   */
+  async deactivateUser(id: string): Promise<void> {
+    await this.update(id, { status: UserStatus.INACTIVE });
+  }
+
+  /**
+   * Findet Benutzer, die einer bestimmten Abteilung zugeordnet sind.
+   */
+  async findByDepartmentId(
+    departmentId: string,
+    page = 1,
+    limit = 10,
+  ): Promise<[UserEntity[], number]> {
+    const queryBuilder = this.userRepository.createQueryBuilder('user');
+    
+    queryBuilder
+      .leftJoinAndSelect('user.department', 'department')
+      .where('department.id = :departmentId', { departmentId })
+      .skip((page - 1) * limit)
+      .take(limit)
+      .orderBy('user.name', 'ASC');
+    
+    const [users, total] = await queryBuilder.getManyAndCount();
+    
+    return [users, total];
+  }
+}
+```
+
+```typescript
+// Schlechtes Beispiel
+@Injectable()
+class UserRepo {
+  constructor(private readonly connection: Connection) {}
+
+  // Direkte Verwendung von SQL - schwer zu warten und anfällig für SQL-Injection
+  async getUsers() {
+    return this.connection.query('SELECT * FROM users');
+  }
+  
+  // Keine Typensicherheit
+  async addUser(data: any) {
+    const user = new UserEntity();
+    Object.assign(user, data);
+    return this.connection.manager.save(user);
+  }
+  
+  // Geschäftslogik im Repository - sollte im Service sein
+  async registerUser(email, password) {
+    // Passwort-Hashing sollte nicht hier stattfinden
+    const hashedPassword = await bcrypt.hash(password, 10);
+    const user = new UserEntity();
+    user.email = email;
+    user.password = hashedPassword;
+    user.status = 'active';
+    return this.connection.manager.save(user);
+  }
+} 

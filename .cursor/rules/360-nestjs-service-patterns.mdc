@@ -1,0 +1,137 @@
+---
+description: 
+globs: **/*.service.ts
+alwaysApply: false
+---
+ # NestJS Service Patterns
+
+## Context
+- Gilt für alle Service-Klassen im Backend (`**/*.service.ts`)
+- Standardisiert die Implementierung von Services in NestJS
+- Verbessert Konsistenz, Wartbarkeit und Testbarkeit
+
+## Requirements
+
+1. **Struktur und Benennung**
+   - Services als Klassenname mit Suffix `Service` benennen
+   - Injectable-Decorator immer verwenden
+   - Services in eigenen Dateien mit Namensschema `*.service.ts`
+   - Interfaces für komplexe Methodenparameter verwenden
+
+2. **Zuständigkeiten**
+   - Services enthalten die Geschäftslogik
+   - Keine Controller-spezifische Logik in Services
+   - Keine direkte HTTP-Anfragen in Services (außer bei Service-zu-Service-Kommunikation)
+   - Keine direkte Datenbankabfragen (Repository-Pattern verwenden)
+
+3. **Dependency Injection**
+   - Abhängigkeiten im Konstruktor injizieren
+   - Private readonly für injizierte Abhängigkeiten verwenden
+   - Zirkuläre Abhängigkeiten mit forwardRef() auflösen
+   - Injektion von Konfigurationen über ConfigService
+
+4. **Fehlerbehandlung**
+   - Anwendungsspezifische Exceptions verwenden
+   - Fehler früh abfangen und mit informativen Meldungen versehen
+   - Bei externen Diensten try-catch verwenden
+   - Logging bei kritischen Operationen und Fehlern
+
+5. **Asynchrone Operationen**
+   - Promise oder Observable für asynchrone Methoden verwenden
+   - Async/await für verbesserte Lesbarkeit nutzen
+   - Bei komplexen Streams RxJS Operatoren verwenden
+   - Promise.all für parallele unabhängige Operationen
+
+6. **Transaktionen**
+   - Bei zusammenhängenden Datenbankoperationen Transaktionen verwenden
+   - EntityManager für transaktionale Operationen verwenden
+   - Atomare Operationen sicherstellen
+
+7. **Logging und Überwachung**
+   - Logger-Service für strukturiertes Logging verwenden
+   - Wichtige Geschäftsprozesse protokollieren
+   - Performance-kritische Operationen überwachen
+   - Sensible Daten niemals loggen
+
+8. **Testbarkeit**
+   - Services modular und mit klaren Zuständigkeiten gestalten
+   - Externe Abhängigkeiten abstrahieren für einfachere Mocks
+   - Pure Functions bevorzugen wo möglich
+   - Side Effects dokumentieren
+
+## Examples
+
+```typescript
+// Gutes Beispiel
+import { Injectable, Logger } from '@nestjs/common';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
+import { ConfigService } from '@nestjs/config';
+import { UserEntity } from './entities/user.entity';
+import { UserNotFoundException } from '../exceptions/user-not-found.exception';
+import { CreateUserDto, UpdateUserDto } from './dto';
+
+/**
+ * Verwaltet alle Benutzer-bezogenen Geschäftsprozesse.
+ */
+@Injectable()
+export class UserService {
+  private readonly logger = new Logger(UserService.name);
+
+  constructor(
+    @InjectRepository(UserEntity)
+    private readonly userRepository: Repository<UserEntity>,
+    private readonly configService: ConfigService,
+  ) {}
+
+  /**
+   * Erstellt einen neuen Benutzer.
+   * 
+   * @param createUserDto Daten des zu erstellenden Benutzers
+   * @returns Der erstellte Benutzer
+   */
+  async createUser(createUserDto: CreateUserDto): Promise<UserEntity> {
+    this.logger.log(`Erstelle neuen Benutzer: ${createUserDto.email}`);
+    
+    const user = this.userRepository.create(createUserDto);
+    return this.userRepository.save(user);
+  }
+
+  /**
+   * Findet einen Benutzer anhand seiner ID.
+   * 
+   * @param id ID des zu findenden Benutzers
+   * @returns Der gefundene Benutzer
+   * @throws UserNotFoundException wenn kein Benutzer gefunden wurde
+   */
+  async findUserById(id: number): Promise<UserEntity> {
+    const user = await this.userRepository.findOne({ where: { id } });
+    
+    if (!user) {
+      this.logger.warn(`Benutzer mit ID ${id} nicht gefunden`);
+      throw new UserNotFoundException(id);
+    }
+    
+    return user;
+  }
+}
+```
+
+```typescript
+// Schlechtes Beispiel
+@Injectable()
+class UserServ {
+  constructor(private repo) {}
+
+  getUser(id) {
+    return this.repo.findOne(id);
+  }
+  
+  saveUser(userData) {
+    // Direkte HTTP-Anfrage in einem Service
+    axios.post('https://api.example.com/log', { action: 'user_created' });
+    
+    return this.repo.save(userData);
+  }
+}
+``` 

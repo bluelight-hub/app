@@ -1,8 +1,8 @@
-= 6. Laufzeitsicht
+= Laufzeitsicht
 :author: Bluelight-Hub Team
 :revnumber: 1.0.0
 :revdate: 2025-03-23
-:sectnums!
+
 
 
 == Übersicht
@@ -10,9 +10,9 @@ Die Laufzeitsicht beschreibt das Verhalten und die Interaktionen der Systembaust
 
 == Inhalt
 
-=== 6.1 Wichtige Szenarien
+=== Wichtige Szenarien
 
-==== 6.1.1 Einsatz anlegen und verfolgen
+==== Einsatz anlegen und verfolgen
 
 Dieses Szenario beschreibt den Prozess der manuellen Anlage und Verfolgung eines Einsatzes im FüKW.
 
@@ -55,7 +55,7 @@ sequenceDiagram
     UI-->>User: Abschlussübersicht anzeigen
 ....
 
-==== 6.1.1.1 UI-Transformation bei Einsatzanlage
+==== UI-Transformation bei Einsatzanlage
 
 Bei der Einsatzanlage erfolgt eine signifikante Transformation der Benutzeroberfläche, die mehrere Phasen umfasst:
 
@@ -115,7 +115,7 @@ stateDiagram-v2
     Abschlussübersicht --> Übersicht: Zurück zur Übersicht
 ....
 
-==== 6.1.1.2 UI-Mockups für Verbindungsszenarien
+==== UI-Mockups für Verbindungsszenarien
 
 Die Benutzeroberfläche passt sich dynamisch an die verschiedenen Verbindungsszenarien an. Hier sind die UI-Anpassungen für die drei Hauptszenarien dargestellt:
 
@@ -204,7 +204,7 @@ sequenceDiagram
 
 Diese anpassungsfähige UI stellt sicher, dass Benutzer in jedem Verbindungsszenario effektiv arbeiten können, während sie gleichzeitig über den aktuellen Status und verfügbare Funktionen informiert werden.
 
-==== 6.1.2 Offline-Synchronisation
+==== Offline-Synchronisation
 
 [NOTE]
 ====
@@ -265,7 +265,7 @@ Der Offline-Synchronisationsprozess folgt einem robusten Ablaufmuster, das in dr
 
 Der gesamte Prozess ist darauf ausgelegt, eine konsistente Datenhaltung bei minimaler Benutzerinteraktion zu gewährleisten. Das System priorisiert die Datensicherheit und Integrität, während es gleichzeitig eine unterbrechungsfreie Arbeitsweise auch unter schwierigen Netzwerkbedingungen ermöglicht.
 
-==== 6.1.3 Kommunikation über Digitalfunk
+==== Kommunikation über Digitalfunk
 
 Dieses Szenario beschreibt die Integration und Nutzung des Digitalfunks innerhalb der Bluelight-Hub-Anwendung. Der Digitalfunk (basierend auf dem TETRA-Standard) ist das primäre Kommunikationsmittel für Einsatzkräfte im Feld. Bluelight Hub dient als passive Empfangsstation, die Digitalfunk-Informationen verarbeitet und dokumentiert, ohne selbst Nachrichten zu senden.
 
@@ -330,11 +330,11 @@ Die Integration basiert auf einer Adapterschicht, die proprietäre APIs der Digi
 
 Wichtig: Bluelight Hub fungiert ausschließlich als passives System für die Verarbeitung von Digitalfunk-Kommunikation. Sämtliche Kommunikation und Koordination über Digitalfunk muss weiterhin über die standardisierten TETRA-Geräte und -Prozesse erfolgen.
 
-==== 6.1.4 Verbindungsszenarien
+==== Verbindungsszenarien
 
-=== 6.2 Anwendungsfälle
+=== Anwendungsfälle
 
-==== 6.2.1 Einsatztagebuch (ETB) führen
+==== Einsatztagebuch (ETB) führen
 
 Das Einsatztagebuch (ETB) dient der chronologischen Dokumentation aller relevanten Ereignisse, Maßnahmen und Entscheidungen während eines Einsatzes. Es ist ein zentrales Werkzeug für die Einsatzleitung und ermöglicht sowohl die Echtzeitverfolgung des Einsatzgeschehens als auch die nachträgliche Rekonstruktion und Auswertung.
 
@@ -432,7 +432,7 @@ Die Implementierung nach dem Event-Sourcing-Prinzip bietet folgende Vorteile:
 
 Der Query Store dient als optimierte Leseansicht, die aus den Events generiert wird und effiziente Abfragen ermöglicht, ohne die vollständige Ereignishistorie traversieren zu müssen.
 
-==== 6.2.2 Lagekarte verwalten
+==== Lagekarte verwalten
 
 Die Lagekarte ist ein zentrales visuelles Werkzeug zur Darstellung der Einsatzlage und ermöglicht die geografische Positionierung von Einheiten, Gefahrenstellen, Schadensbereichen und anderen relevanten Objekten. Sie dient sowohl der Einsatzplanung als auch der taktischen Führung während des Einsatzes.
 
@@ -537,7 +537,7 @@ Die Implementierung folgt dem Offline-First-Prinzip, wobei alle Änderungen zun�
 
 Die Lagekarte ist vollständig mit anderen Modulen der Anwendung integriert, insbesondere mit dem Einsatztagebuch und der Ressourcenverwaltung, wodurch eine konsistente Gesamtsicht auf die Einsatzlage gewährleistet wird.
 
-==== 6.2.3 Ressourcen verwalten
+==== Ressourcen verwalten
 
 Die Ressourcenverwaltung ermöglicht die Erfassung, Zuweisung und Statusverfolgung aller im Einsatz beteiligten Ressourcen, darunter Personal, Fahrzeuge und Material. Sie bildet die Grundlage für eine effektive Einsatzplanung und -durchführung sowie die transparente Verfolgung des Ressourceneinsatzes.
 
@@ -653,9 +653,9 @@ Die Implementierung der Ressourcenverwaltung unterstützt, wie alle anderen Modu
 
 Die Ressourcenverwaltung ist eng mit dem Einsatztagebuch und der Lagekarte verknüpft, wodurch alle ressourcenbezogenen Aktionen automatisch dokumentiert und geografisch dargestellt werden können. Die Integration mit dem Digitalfunk ermöglicht zudem die automatische Aktualisierung von Statusänderungen ohne manuelle Eingriffe.
 
-=== 6.3 Fehlerszenarien
+=== Fehlerszenarien
 
-==== 6.3.1 Verbindungsabbruch
+==== Verbindungsabbruch
 
 [mermaid]
 ....
@@ -717,7 +717,7 @@ Das System ist darauf ausgelegt, Verbindungsabbrüche robust zu erkennen und zu 
 
 Diese Architektur gewährleistet, dass Verbindungsabbrüche die Produktivität der Anwender minimal beeinträchtigen und dass die Datenkonsistenz nach Wiederherstellung der Verbindung automatisch wiederhergestellt wird.
 
-==== 6.3.2 Konfliktlösung bei gleichzeitiger Bearbeitung
+==== Konfliktlösung bei gleichzeitiger Bearbeitung
 
 [mermaid]
 ....
@@ -785,11 +785,11 @@ Bluelight-Hub implementiert eine robuste Strategie zur Erkennung und Auflösung 
 
 Dieser Ansatz minimiert Datenverluste und stellt sicher, dass selbst in Umgebungen mit vielen gleichzeitigen Benutzern die Datenintegrität gewahrt bleibt, ohne den Arbeitsfluss unnötig zu behindern.
 
-=== 6.3 Backend-Schnittstellen
+=== Backend-Schnittstellen
 
 Dieser Abschnitt dokumentiert die wichtigsten Backend-Schnittstellen und deren Interaktionen zur Laufzeit.
 
-==== 6.3.1 REST API-Schnittstellen
+==== REST API-Schnittstellen
 
 Das Backend stellt eine RESTful API bereit, die vom Frontend genutzt wird. Hier sind die wichtigsten Endpunkte nach Domänen gruppiert:
 
@@ -814,7 +814,7 @@ Das Backend stellt eine RESTful API bereit, die vom Frontend genutzt wird. Hier 
 |`/api/health` |GET |Abrufen des Systemstatus
 |===
 
-==== 6.3.2 Authentifizierungs-Flow
+==== Authentifizierungs-Flow
 
 [mermaid]
 ....
@@ -855,7 +855,7 @@ sequenceDiagram
     end
 ....
 
-==== 6.3.3 Einsatz-Erstellung und -Verwaltung
+==== Einsatz-Erstellung und -Verwaltung
 
 [mermaid]
 ....
@@ -898,7 +898,7 @@ sequenceDiagram
     API-->>Frontend: 200 OK (Aktualisierte Einsatzdaten)
 ....
 
-==== 6.3.4 ETB (Einsatztagebuch) Kommunikation
+==== ETB (Einsatztagebuch) Kommunikation
 
 [mermaid]
 ....
@@ -928,7 +928,7 @@ sequenceDiagram
     API-->>Frontend: 200 OK (ETB-Einträge)
 ....
 
-==== 6.3.5 Health Check Mechanismus
+==== Health Check Mechanismus
 
 [mermaid]
 ....
@@ -957,7 +957,7 @@ sequenceDiagram
     end
 ....
 
-==== 6.3.6 Datenbanktransaktionen und Fehlerbehandlung
+==== Datenbanktransaktionen und Fehlerbehandlung
 
 [mermaid]
 ....

@@ -1,8 +1,8 @@
-= 3. Kontextabgrenzung
+= Kontextabgrenzung
 :author: Bluelight-Hub Team
 :revnumber: 1.0.0
 :revdate: 2025-03-23
-:sectnums!
+
 
 
 == Übersicht
@@ -10,7 +10,7 @@ Dieser Abschnitt beschreibt die Einbettung des Bluelight-Hub-Systems in seine Um
 
 == Inhalt
 
-=== 3.1 Fachlicher Kontext
+=== Fachlicher Kontext
 
 Der fachliche Kontext zeigt, welche externen Akteure mit dem System interagieren und welche fachlichen Schnittstellen bestehen.
 
@@ -46,19 +46,19 @@ flowchart TB
     classDef external fill:#FF9800,stroke:#EF6C00,color:white
 ....
 
-==== 3.1.1 Benutzergruppen
+==== Benutzergruppen
 
 * *Einsatzleiter*: Verantwortlich für die Führung und Koordination des Einsatzes.
 * *FüKW-Personal*: Erhält eine vollständige Variante des Systems und unterstützt die Einsatzleitung direkt. Hat Zugriff auf alle Funktionen und kann alle Aspekte des Einsatzes verwalten.
 * *Einsatzkräfte*: Führen Aufgaben im Feld aus und erfassen Daten im System. Erhalten eine eingeschränkte Variante mit reduziertem Funktionsumfang, angepasst an ihre spezifischen Aufgaben.
 * *Administratoren*: Verantwortlich für die technische Konfiguration und Wartung.
 
-==== 3.1.2 Externe Systeme
+==== Externe Systeme
 
 * *Digitalfunk*: Kommunikationssystem für Statusmeldungen und Alarmierungen.
 * *Archivspeicher*: Speicher für Lageberichte und andere Dokumente.
 
-==== 3.1.3 Abgrenzung manueller und automatischer Prozesse
+==== Abgrenzung manueller und automatischer Prozesse
 
 [cols="1,3,3", options="header"]
 |===
@@ -76,7 +76,7 @@ flowchart TB
 Die klare Abgrenzung zwischen manuellen und automatischen Prozessen ist essenziell für eine korrekte mentale Modellbildung der Nutzer. Automatisierungen sollen die Einsatzkräfte unterstützen, nicht ersetzen. Jede Automatisierung kann bei Bedarf manuell übersteuert werden.
 ====
 
-=== 3.2 Technischer Kontext
+=== Technischer Kontext
 
 Der technische Kontext beschreibt die technischen Schnittstellen (Protokolle, Hardware, externe Systeme) des Bluelight-Hub-Systems.
 
@@ -109,7 +109,7 @@ flowchart TB
     classDef database fill:#9C27B0,stroke:#6A1B9A,color:white
 ....
 
-==== 3.2.1 Technische Schnittstellen
+==== Technische Schnittstellen
 
 [cols="1,1,3", options="header"]
 |===
@@ -120,13 +120,13 @@ flowchart TB
 |FüKW-Netzwerk |LAN/WLAN |Lokales Netzwerk im Führungskraftwagen
 |===
 
-==== 3.2.2 Datenaustauschformate
+==== Datenaustauschformate
 
 * REST API mit JSON als primäres Datenaustauschformat
 * Exportformate: PDF, CSV, standardisierte Notfallprotokolle
 * Importformate: CSV, standardisierte Einsatzalarme
 
-==== 3.2.3 Detaillierte Schnittstellenbeschreibung Funk-/Kommunikationssysteme
+==== Detaillierte Schnittstellenbeschreibung Funk-/Kommunikationssysteme
 
 Die Integration mit Funk- und Kommunikationssystemen erfolgt über mehrere Schnittstellen:
 
@@ -145,7 +145,7 @@ Die Integration mit Funk- und Kommunikationssystemen erfolgt über mehrere Schni
 Die Integration mit Funk- und Kommunikationssystemen dient primär der Informationsgewinnung und -verteilung. Das Bluelight-Hub-System ersetzt nicht die bestehenden Kommunikationswege, sondern ergänzt diese durch digitale Dokumentation und Unterstützung.
 ====
 
-==== 3.2.4 Informationsfluss und Systemabgrenzung
+==== Informationsfluss und Systemabgrenzung
 
 [mermaid]
 ....

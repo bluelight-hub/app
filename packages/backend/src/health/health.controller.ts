@@ -2,12 +2,38 @@ import { Controller, Get, VERSION_NEUTRAL } from '@nestjs/common';
 import {
     DiskHealthIndicator,
     HealthCheck,
-    HealthCheckService, MemoryHealthIndicator,
+    HealthCheckResult,
+    HealthCheckService,
+    HealthIndicatorResult,
+    MemoryHealthIndicator,
     TypeOrmHealthIndicator
 } from '@nestjs/terminus';
 import { InjectDataSource } from '@nestjs/typeorm';
+import * as net from 'net';
 import * as os from 'os';
 import { DataSource } from 'typeorm';
+
+/**
+ * Konstanten für Health-Checks
+ */
+const HEALTH_CHECK_CONFIG = {
+    MEMORY: {
+        HEAP_THRESHOLD: 150 * 1024 * 1024, // 150MB
+        RSS_THRESHOLD: 150 * 1024 * 1024,  // 150MB
+    },
+    DISK: {
+        THRESHOLD_PERCENT: 0.9, // 90%
+        PATH: '/',
+    },
+    CONNECTIVITY: {
+        TIMEOUT_MS: 2000, // 2 Sekunden
+    }
+};
+
+/**
+ * Typ-Definition für Verbindungsmodi
+ */
+type ConnectionMode = 'checking' | 'online' | 'offline' | 'error';
 
 /**
  * Controller für Gesundheitscheck-Endpunkte, die den Gesundheitsstatus der Anwendung überwachen.
@@ -17,6 +43,16 @@ import { DataSource } from 'typeorm';
  */
 @Controller({ path: 'api/health', version: VERSION_NEUTRAL })
 export class HealthController {
+    /**
+     * Liste von öffentlichen DNS-Servern für Internet-Erreichbarkeits-Tests
+     * Verwendet neutrale, öffentliche Server anstatt kommerzieller Dienste
+     */
+    private readonly CONNECTIVITY_CHECKS = [
+        { host: '1.1.1.1', port: 53 },   // Cloudflare DNS
+        { host: '8.8.8.8', port: 53 },   // Google DNS (Fallback)
+        { host: '9.9.9.9', port: 53 }    // Quad9 DNS (Fallback)
+    ];
+
     /**
      * Erstellt eine Instanz des HealthControllers.
      * 
@@ -38,46 +74,229 @@ export class HealthController {
     /**
      * Führt einen umfassenden Gesundheitscheck der Anwendung durch.
      * Überprüft Datenbankverbindung, Speichernutzung, Festplattenplatz und CPU-Status.
+     * Prüft zusätzlich den Internet- und FüKW-Verbindungsstatus für optimale Nutzerführung.
      * 
-     * @returns {Promise<object>} Gesundheitscheck-Ergebnisobjekt
+     * @returns {Promise<HealthCheckResult>} Gesundheitscheck-Ergebnisobjekt
      */
     @Get()
     @HealthCheck()
-    async check() {
+    async check(): Promise<HealthCheckResult> {
         return this.health.check([
             // Datenbank-Checks
             () => this.db.pingCheck('database', { connection: this.defaultConnection }),
 
             // Memory-Checks
-            () => this.memory.checkHeap('memory_heap', 150 * 1024 * 1024), // 150MB
-            () => this.memory.checkRSS('memory_rss', 150 * 1024 * 1024), // 150MB
+            () => this.memory.checkHeap('memory_heap', HEALTH_CHECK_CONFIG.MEMORY.HEAP_THRESHOLD),
+            () => this.memory.checkRSS('memory_rss', HEALTH_CHECK_CONFIG.MEMORY.RSS_THRESHOLD),
 
             // Disk-Checks
             () => this.disk.checkStorage('storage', {
-                thresholdPercent: 0.9, // 90%
-                path: '/',
+                thresholdPercent: HEALTH_CHECK_CONFIG.DISK.THRESHOLD_PERCENT,
+                path: HEALTH_CHECK_CONFIG.DISK.PATH,
             }),
 
             // CPU-Check
-            async () => ({
-                cpu: {
-                    status: 'up',
-                    loadAverage: os.loadavg(),
-                    usedCores: os.cpus().length,
-                }
-            }),
+            async () => this.checkCpuStatus(),
+
+            // Internet-Verbindung prüfen über TCP-Verbindung zu öffentlichen DNS-Servern
+            async () => this.checkInternetStatus(),
+
+            // FüKW-Verbindung prüfen
+            async () => this.checkFuekwStatus(),
+
+            // Gibt den Verbindungsstatus basierend auf den einzelnen Prüfungen zurück
+            async () => this.determineConnectionStatus(),
         ]);
+    }
+
+    /**
+     * Erstellt einen CPU-Status-Check.
+     * 
+     * @returns {Promise<HealthIndicatorResult>} CPU-Status
+     */
+    private async checkCpuStatus(): Promise<HealthIndicatorResult> {
+        return {
+            cpu: {
+                status: 'up',
+                loadAverage: os.loadavg(),
+                usedCores: os.cpus().length,
+            }
+        };
+    }
+
+    /**
+     * Erstellt einen Internet-Status-Check.
+     * 
+     * @returns {Promise<HealthIndicatorResult>} Internet-Status
+     */
+    private async checkInternetStatus(): Promise<HealthIndicatorResult> {
+        const isConnected = await this.checkInternetConnectivity();
+
+        return {
+            internet: {
+                status: isConnected ? 'up' : 'down',
+                message: isConnected
+                    ? 'Internet-Verbindung aktiv'
+                    : 'Keine Internet-Verbindung verfügbar'
+            }
+        };
+    }
+
+    /**
+     * Erstellt einen FüKW-Status-Check.
+     * 
+     * @returns {Promise<HealthIndicatorResult>} FüKW-Status
+     */
+    private async checkFuekwStatus(): Promise<HealthIndicatorResult> {
+        try {
+            // Prüfe, ob die Datenbank als lokaler Dienst erreichbar ist
+            const isConnected = this.defaultConnection.isInitialized;
+            const isPingable = await this.isFuekwPingable();
+
+            return {
+                fuekw: {
+                    status: isConnected && isPingable ? 'up' : 'down',
+                    message: isConnected && isPingable
+                        ? 'FüKW-Verbindung aktiv'
+                        : 'FüKW-Verbindung nicht verfügbar',
+                    details: {
+                        dbInitialized: isConnected,
+                        networkReachable: isPingable
+                    }
+                }
+            };
+        } catch (error) {
+            return {
+                fuekw: {
+                    status: 'down',
+                    message: 'Fehler bei FüKW-Verbindungsprüfung',
+                    error: error.message,
+                }
+            };
+        }
+    }
+
+    /**
+     * Ermittelt den Verbindungsstatus basierend auf Internet- und FüKW-Verbindungen.
+     * 
+     * @returns {Promise<HealthIndicatorResult>} Verbindungsstatus
+     */
+    private async determineConnectionStatus(): Promise<HealthIndicatorResult> {
+        const internetResult = await this.checkInternetConnectivity();
+        const fuekwResult = this.defaultConnection.isInitialized && await this.isFuekwPingable();
+
+        let connectionMode: ConnectionMode = 'error';
+        if (internetResult && fuekwResult) {
+            connectionMode = 'online';
+        } else if (!internetResult && fuekwResult) {
+            connectionMode = 'offline';
+        }
+
+        return {
+            connection_status: {
+                status: 'up',
+                details: {
+                    // Diese Werte werden in der Frontend-Komponente ausgewertet
+                    // - 'checking': Verbindungsprüfung läuft
+                    // - 'online': Vollständige Verbindung (Internet + FüKW)
+                    // - 'offline': Lokale Verbindung (nur FüKW)
+                    // - 'error': Keine Verbindung
+                    mode: connectionMode
+                }
+            }
+        };
+    }
+
+    /**
+     * Prüft die Internet-Konnektivität durch TCP-Verbindungsversuche zu mehreren 
+     * öffentlichen DNS-Servern. Sobald ein Server antworten kann, gilt die 
+     * Internet-Verbindung als hergestellt.
+     * 
+     * @returns {Promise<boolean>} True wenn Internet verfügbar ist, sonst false
+     */
+    private async checkInternetConnectivity(): Promise<boolean> {
+        for (const server of this.CONNECTIVITY_CHECKS) {
+            try {
+                await this.testTcpConnectionWithTimeout(
+                    server.host,
+                    server.port,
+                    HEALTH_CHECK_CONFIG.CONNECTIVITY.TIMEOUT_MS
+                );
+                return true; // Erfolgreich verbunden
+            } catch (error) {
+                // Versuche den nächsten Server
+                continue;
+            }
+        }
+
+        // Alle Verbindungsversuche gescheitert
+        return false;
+    }
+
+    /**
+     * Testet eine TCP-Verbindung zu einem bestimmten Host und Port mit Timeout
+     * 
+     * @param {string} host Host-Adresse
+     * @param {number} port Port-Nummer
+     * @param {number} timeout Timeout in Millisekunden
+     * @returns {Promise<void>} Promise, der bei erfolgreicher Verbindung erfüllt wird
+     */
+    private testTcpConnectionWithTimeout(host: string, port: number, timeout: number): Promise<void> {
+        return new Promise((resolve, reject) => {
+            const socket = new net.Socket();
+
+            // Timeout-Handler
+            socket.setTimeout(timeout);
+            socket.on('timeout', () => {
+                socket.destroy();
+                reject(new Error('Connection timeout'));
+            });
+
+            // Fehler-Handler
+            socket.on('error', (err) => {
+                socket.destroy();
+                reject(err);
+            });
+
+            // Verbindungs-Handler
+            socket.on('connect', () => {
+                socket.end();
+                resolve();
+            });
+
+            // Verbindung aufbauen
+            socket.connect(port, host);
+        });
+    }
+
+    /**
+     * Überprüft, ob das FüKW-System über das Netzwerk erreichbar ist.
+     * Diese Vereinfachte Implementierung prüft die Datenbankverfügbarkeit.
+     * 
+     * In einer vollständigen Implementierung würde hier ein spezifischer 
+     * Dienst des FüKW-Systems geprüft werden.
+     * 
+     * @returns {Promise<boolean>} True wenn FüKW erreichbar, sonst false
+     */
+    private async isFuekwPingable(): Promise<boolean> {
+        try {
+            // In einer realen Umgebung würde hier eine FüKW-spezifische
+            // Erreichbarkeitsprüfung durchgeführt werden
+            return this.defaultConnection.isInitialized;
+        } catch (error) {
+            return false;
+        }
     }
 
     /**
      * Führt einen Liveness-Check durch, um festzustellen, ob die Anwendung läuft.
      * Überprüft nur die Datenbankverbindung als primären Indikator.
      * 
-     * @returns {Promise<object>} Liveness-Check-Ergebnisobjekt
+     * @returns {Promise<HealthCheckResult>} Liveness-Check-Ergebnisobjekt
      */
     @Get('liveness')
     @HealthCheck()
-    async checkLiveness() {
+    async checkLiveness(): Promise<HealthCheckResult> {
         return this.health.check([
             () => this.db.pingCheck('database', { connection: this.defaultConnection }),
         ]);
@@ -87,16 +306,16 @@ export class HealthController {
      * Führt einen Readiness-Check durch, um festzustellen, ob die Anwendung bereit ist, Anfragen anzunehmen.
      * Überprüft Speicher- und Festplattenverfügbarkeit.
      * 
-     * @returns {Promise<object>} Readiness-Check-Ergebnisobjekt
+     * @returns {Promise<HealthCheckResult>} Readiness-Check-Ergebnisobjekt
      */
     @Get('readiness')
     @HealthCheck()
-    async checkReadiness() {
+    async checkReadiness(): Promise<HealthCheckResult> {
         return this.health.check([
-            () => this.memory.checkHeap('memory_heap', 150 * 1024 * 1024),
+            () => this.memory.checkHeap('memory_heap', HEALTH_CHECK_CONFIG.MEMORY.HEAP_THRESHOLD),
             () => this.disk.checkStorage('storage', {
-                thresholdPercent: 0.9,
-                path: '/',
+                thresholdPercent: HEALTH_CHECK_CONFIG.DISK.THRESHOLD_PERCENT,
+                path: HEALTH_CHECK_CONFIG.DISK.PATH,
             }),
         ]);
     }
@@ -105,11 +324,11 @@ export class HealthController {
      * Führt einen detaillierten Datenbank-Gesundheitscheck durch.
      * Überprüft Datenbankverbindung und Initialisierungsstatus.
      * 
-     * @returns {Promise<object>} Datenbank-Check-Ergebnisobjekt
+     * @returns {Promise<HealthCheckResult>} Datenbank-Check-Ergebnisobjekt
      */
     @Get('db')
     @HealthCheck()
-    async checkDatabase() {
+    async checkDatabase(): Promise<HealthCheckResult> {
         return this.health.check([
             () => this.db.pingCheck('database', { connection: this.defaultConnection }),
             async () => ({

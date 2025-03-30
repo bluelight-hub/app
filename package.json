@@ -9,8 +9,8 @@
         "test": "pnpm -r test",
         "test:ui": "pnpm -r test:ui",
         "test:cov": "pnpm -r test:cov",
-        "docs:html": "asciidoctor -r asciidoctor-diagram -a node_modules/.bin/mmdc docs/index.adoc -o dist/docs/index.html",
-        "docs:pdf": "asciidoctor-pdf -r asciidoctor-diagram -a node_modules/.bin/mmdc -s docs/styles/bluelight-pdf.css docs/index.adoc -o dist/docs/bluelight-hub-architecture.pdf",
+        "docs:html": "asciidoctor -r asciidoctor-diagram -a mmdc=node_modules/.bin/mmdc docs/index.adoc -o dist/docs/index.html",
+        "docs:pdf": "asciidoctor-pdf -r asciidoctor-diagram -a mmdc=node_modules/.bin/mmdc -s docs/styles/bluelight-pdf.css docs/index.adoc -o dist/docs/bluelight-hub-architecture.pdf",
         "docs:build": "mkdir -p dist/docs && pnpm docs:html && pnpm docs:pdf",
         "docs:deploy": "pnpm docs:build"
     },

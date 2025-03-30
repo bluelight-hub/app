@@ -1,0 +1,19 @@
+:toc-title: Inhaltsverzeichnis
+:toc:
+:toclevels: 3
+
+:doctype: book
+:imagesdir: architecture/images
+:source-highlighter: highlightjs
+:kroki-server-url: https://kroki.io
+
+:caution-caption: Achtung
+:important-caption: Wichtig
+:note-caption: Hinweis
+:tip-caption: Tip
+:warning-caption: Warnung
+
+:appendix-caption: Anhang
+:example-caption: Beispiel
+:figure-caption: Abbildung
+:table-caption: Tabelle
