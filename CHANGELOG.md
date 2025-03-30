@@ -1,3 +1,17 @@
+## Version [v1.0.0-alpha.15](https://github.com/bluelight-hub/app/compare/v1.0.0-alpha.14...v1.0.0-alpha.15) – Veröffentlicht am 2025-03-30
+
+## ✨ Neue Funktionen
+Die folgenden neuen Features wurden hinzugefügt:
+- [`25a7161`](https://github.com/bluelight-hub/app/commit/25a7161) (backend/frontend): Implementiere Health-Checks und StatusIndicator 
+
+## 🧹 Codebereinigungen
+Aufräumarbeiten und kleinere Verbesserungen:
+- [`ae69440`](https://github.com/bluelight-hub/app/commit/ae69440) (cleanup): remove old sequential-thinking file and update package.json 
+
+
+
+# [1.0.0-alpha.15](https://github.com/bluelight-hub/app/compare/v1.0.0-alpha.14...v1.0.0-alpha.15) (2025-03-30)
+
 ## Version [v1.0.0-alpha.14](https://github.com/bluelight-hub/app/compare/v1.0.0-alpha.13...v1.0.0-alpha.14) – Veröffentlicht am 2025-03-12
 
 ## ✨ Neue Funktionen
