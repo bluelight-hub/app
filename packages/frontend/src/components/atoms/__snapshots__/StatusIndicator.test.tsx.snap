@@ -13,3 +13,47 @@ exports[`StatusIndicator > should match snapshot 1`] = `
   </span>
 </div>
 `;
+
+exports[`StatusIndicator > sollte dem Snapshot entsprechen 1`] = `
+<div>
+  <div
+    aria-describedby="test-id"
+    class="flex items-center gap-x-2"
+  >
+    <span
+      class="ant-badge ant-badge-status ant-badge-not-a-wrapper css-dev-only-do-not-override-1a3rktk"
+      data-testid="status-indicator"
+    >
+      <span
+        class="ant-badge-status-dot ant-badge-status-success"
+      />
+    </span>
+    <p
+      class="text-sm text-gray-500 dark:text-gray-400"
+    />
+  </div>
+</div>
+`;
+
+exports[`StatusIndicator > sollte dem Snapshot mit Text entsprechen 1`] = `
+<div>
+  <div
+    aria-describedby="test-id"
+    class="flex items-center gap-x-2"
+  >
+    <span
+      class="ant-badge ant-badge-status ant-badge-not-a-wrapper css-dev-only-do-not-override-1a3rktk"
+      data-testid="status-indicator"
+    >
+      <span
+        class="ant-badge-status-dot ant-badge-status-success"
+      />
+    </span>
+    <p
+      class="text-sm text-gray-500 dark:text-gray-400"
+    >
+      Vollständig verbunden
+    </p>
+  </div>
+</div>
+`;
