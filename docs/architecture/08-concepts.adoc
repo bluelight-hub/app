@@ -1,8 +1,8 @@
-= 8. Übergreifende Konzepte
+= Übergreifende Konzepte
 :author: Bluelight-Hub Team
 :revnumber: 1.0.0
 :revdate: 2025-03-23
-:sectnums!
+
 
 
 == Übersicht
@@ -10,7 +10,7 @@ Dieser Abschnitt beschreibt übergreifende Konzepte und Prinzipien, die in der A
 
 == Inhalt
 
-=== 8.1 Domänenmodell
+=== Domänenmodell
 
 Das Domänenmodell des Bluelight-Hub-Systems basiert auf dem "Einsatz" als zentraler Entität und den damit verbundenen Templates für wiederverwendbare Elemente. In der aktuellen Konzeption ist die Anwendung primär für die Verwaltung eines konkreten Einsatzes zuständig, wobei in den meisten Anwendungsfällen nicht mehr als ein Einsatz gleichzeitig aktiv ist.
 
@@ -129,7 +129,7 @@ Ref: material.einheit_id > einheit.einheitID
 Ref: einsatzort.einsatz_id > einsatz.einsatzID
 ....
 
-==== 8.1.1 Zentrale Entitäten
+==== Zentrale Entitäten
 
 * *Einsatz*: Zentrale Entität, die einen konkreten Einsatzfall mit allen zugehörigen Informationen repräsentiert
 * *EinsatzAbschnitt*: Unterbereich eines Einsatzes mit spezifischen Aufgaben und verantwortlichen Personen
@@ -137,7 +137,7 @@ Ref: einsatzort.einsatz_id > einsatz.einsatzID
 * *Instanzen*: Konkrete Ausprägungen von Templates im Kontext eines Einsatzes (Personal, Fahrzeuge, Material)
 * *Einheit*: Organisatorische Einheit (z.B. Löschzug, Sanitätsgruppe), die Personal und Material umfasst
 
-==== 8.1.2 Beziehungen und Abhängigkeiten
+==== Beziehungen und Abhängigkeiten
 
 * Ein Einsatz ist die zentrale Entität und kann in mehrere Einsatzabschnitte unterteilt werden
 * Einsatzabschnitten können Einheiten zugeordnet werden
@@ -146,7 +146,7 @@ Ref: einsatzort.einsatz_id > einsatz.einsatzID
 * Personal, Fahrzeuge und Material basieren auf Templates, die wiederverwendbare Informationen enthalten
 * Bei Zuweisung zu einem Einsatz werden aus Templates konkrete Instanzen erstellt
 
-==== 8.1.3 Template-Konzept
+==== Template-Konzept
 
 Das Template-Konzept ist ein zentrales Merkmal des Domänenmodells:
 
@@ -155,9 +155,9 @@ Das Template-Konzept ist ein zentrales Merkmal des Domänenmodells:
 * Änderungen an Templates wirken sich nicht rückwirkend auf bestehende Instanzen aus
 * Templates ermöglichen die schnelle Konfiguration neuer Einsätze
 
-=== 8.2 Architektur- und Entwurfsmuster
+=== Architektur- und Entwurfsmuster
 
-==== 8.2.1 Vereinfachte Schichtenarchitektur
+==== Vereinfachte Schichtenarchitektur
 
 Die Architektur folgt einem pragmatischen Schichtenmodell, das die Trennung von Zuständigkeiten gewährleistet, ohne unnötige Komplexität einzuführen. Statt einer vollständigen hexagonalen Architektur, die derzeit als zu komplex für die Anforderungen des Systems betrachtet wird, nutzt das System eine klare Trennung der Verantwortlichkeiten mit definierten Schichten.
 
@@ -199,7 +199,7 @@ flowchart TD
     class Datenhaltungsschicht data
 ....
 
-==== 8.2.2 Optimierte Service-Struktur
+==== Optimierte Service-Struktur
 
 Anstelle einer vollständigen CQRS-Implementierung, die für die aktuelle Anwendungsgröße und Komplexität als möglicherweise überdimensioniert betrachtet wird, verwendet das System eine optimierte Service-Struktur, die die Vorteile der Trennung von Lese- und Schreiboperationen bietet, ohne die Komplexität einer vollständigen CQRS-Architektur.
 
@@ -213,7 +213,7 @@ Diese vereinfachte Struktur ermöglicht:
 * Ausreichende Trennung der Zuständigkeiten
 * Skalierbarkeit für die aktuelle Anwendungsgröße
 
-==== 8.2.3 Eventbasierte Kommunikation
+==== Eventbasierte Kommunikation
 
 Für die Kommunikation zwischen Modulen wird ein eventbasierter Ansatz verwendet:
 
@@ -222,9 +222,9 @@ Für die Kommunikation zwischen Modulen wird ein eventbasierter Ansatz verwendet
 * Einfache Erweiterbarkeit durch neue Event-Handler
 * Unterstützung des Verbindungskonzepts mit verschiedenen Konnektivitätsszenarien
 
-=== 8.3 Technische Konzepte
+=== Technische Konzepte
 
-==== 8.3.1 Verbindungskonzept
+==== Verbindungskonzept
 
 Das System ist in verschiedenen Konnektivitätsszenarien nutzbar:
 
@@ -234,11 +234,11 @@ Das System ist in verschiedenen Konnektivitätsszenarien nutzbar:
 
 Die aktuelle Implementierung fokussiert sich auf die ersten beiden Szenarien, wobei der lokale Verbindungsmodus die Verbindung zum FüKW beschreibt, nicht die vollständige Unabhängigkeit des Clients.
 
-==== 8.3.2 Testkonzept
+==== Testkonzept
 
 Das Testkonzept des Bluelight-Hub-Systems adressiert die besonderen Herausforderungen einer Anwendung mit verschiedenen Verbindungsszenarien und hohen Anforderungen an Zuverlässigkeit und Benutzerfreundlichkeit.
 
-===== 8.3.2.1 Teststrategie für Verbindungsszenarien
+===== Teststrategie für Verbindungsszenarien
 
 Die Teststrategie berücksichtigt die drei Verbindungsszenarien:
 
@@ -257,7 +257,7 @@ Die Teststrategie berücksichtigt die drei Verbindungsszenarien:
 ** Simulation von Verbindungsabbrüchen und -wiederherstellungen
 ** Validierung der Datenintegritäts- und Konfliktlösungsmechanismen
 
-===== 8.3.2.2 Testbarkeit der Architektur
+===== Testbarkeit der Architektur
 
 Die vereinfachte Schichtenarchitektur wurde mit Blick auf Testbarkeit entworfen:
 
@@ -276,7 +276,7 @@ Die vereinfachte Schichtenarchitektur wurde mit Blick auf Testbarkeit entworfen:
 ** Integrationstests mit In-Memory-Datenbank
 ** Persistenztests für Datenmigration und -integrität
 
-===== 8.3.2.3 Automatisierte Testprozesse
+===== Automatisierte Testprozesse
 
 Das System nutzt mehrstufige automatisierte Testprozesse:
 
@@ -290,14 +290,14 @@ Das System nutzt mehrstufige automatisierte Testprozesse:
 ** Usability-Tests mit realen Nutzern
 ** Feldtests unter realistischen Einsatzbedingungen
 
-===== 8.3.2.4 Testdaten und -umgebungen
+===== Testdaten und -umgebungen
 
 * *Testdaten*:
 ** Realistische Datensätze aus anonymisierten Einsatzszenarien
 ** Grenzfall-Testdaten für Extremsituationen
 ** Generierte Massendaten für Performancetests
 
-===== 8.3.2.5 Spezielle Testfokusgebiete
+===== Spezielle Testfokusgebiete
 
 * *Synchronisationstests*:
 ** Validierung der Datensynchronisation zwischen Client und FüKW
@@ -316,7 +316,7 @@ Das System nutzt mehrstufige automatisierte Testprozesse:
 
 Diese umfassende Teststrategie stellt sicher, dass das Bluelight-Hub-System unter allen Einsatzbedingungen zuverlässig und effektiv funktioniert und die hohen Anforderungen an Qualität und Benutzerfreundlichkeit erfüllt.
 
-==== 8.3.3 Daten-Synchronisation
+==== Daten-Synchronisation
 
 [mermaid]
 ....
@@ -353,129 +353,191 @@ sequenceDiagram
 * Selektive Synchronisation nach Priorität der Daten
 * Bidirektionaler Synch-Mechanismus zwischen FüKW-Server und Mobilgeräten
 
-==== 8.3.4 Security-Konzept
+==== Security-Konzept
 
 * *Authentifizierung*: Rollenbasiertes Zugriffsmodell mit verschiedenen Berechtigungsstufen
 * *Datenschutz*: Verschlüsselung sensibler Daten in Rest und während der Übertragung
 * *Auditierung*: Logging aller sicherheitsrelevanten Ereignisse für spätere Analyse
 
-==== 8.3.5 Fehlerbehandlung und Resilience
+==== Fehlerbehandlung und Resilience
 
 * Graceful Degradation bei Teilausfällen
 * Circuit Breaker Pattern für externe Integrationen
 * Automatische Wiederherstellung nach Systemfehlern
 
-=== 8.4 UI-Konzepte
+=== UI-Konzepte
 
-==== 8.4.1 Responsive Design
+==== Responsive Design
 
 * Adaptives Layout für verschiedene Bildschirmgrößen
 * Touch-optimierte Bedienung für Tablet-Nutzung im Einsatz
 * Barrierefreiheit für verschiedene Nutzergruppen
 
-==== 8.4.2 Kontextbezogene Benutzeroberfläche
+==== Kontextbezogene Benutzeroberfläche
 
 * Anpassung der UI basierend auf Einsatzrolle und -phase
 * Priorisierung relevanter Informationen im aktuellen Kontext
 * Reduktion kognitiver Belastung durch fokussierte Ansichten
 
-=== 8.5 Persistenzkonzept
+=== Persistenzkonzept
 
 * SQLite als lokale Datenbank auf allen Endgeräten
 * Versionierung von Datensätzen für Konfliktauflösung
 * Inkrementelle Backups auf FüKW-Server
 
-=== 8.6 Integrations- und Schnittstellenkonzept
+=== Integrations- und Schnittstellenkonzept
 
 * RESTful APIs für synchrone Kommunikation
 * WebSockets für Echtzeitkommunikation
 * Standardisierte Schnittstellen zu Leitstellen-Systemen
 * Adapter für Digitalfunk-Integration
 
-=== 8.2 Backend-Architektur
+=== NestJS Backend-Architekturkonzepte
 
-Die Backend-Architektur des Bluelight-Hub-Systems basiert auf NestJS und folgt dem Domain-Driven Design (DDD) Ansatz. Die Anwendung ist modular aufgebaut und verwendet eine klare Schichtenarchitektur.
+==== Übersicht und Prinzipien
 
-==== 8.2.1 Architektur-Prinzipien
+Das Backend des Bluelight-Hub-Systems basiert auf dem NestJS-Framework und folgt der modularen Architektur, die dieses Framework vorgibt. NestJS wurde gewählt, da es eine strukturierte, modulare und gut skalierbare Codebasis ermöglicht, die auf bewährten Konzepten wie Dependency Injection, AOP (Aspect-Oriented Programming) und dem SOLID-Prinzip basiert.
 
-[cols="1,3", options="header"]
-|===
-|Prinzip |Beschreibung
-|Modularer Aufbau |Jedes Feature ist ein eigenständiges Modul; Module sind lose gekoppelt und stark kohäsiv; klare Trennung von Zuständigkeiten
-|Schichtenarchitektur |Jedes Modul folgt einer klaren Schichtenarchitektur: Controller (HTTP-Endpunkte), Services (Geschäftslogik), Repositories (Datenbankzugriff), DTOs (Datentransfer-Objekte), Entities (Datenbank-Modelle)
-|Dependency Injection |Nutzung des NestJS DI-Containers; Interfaces für bessere Testbarkeit; Inversion of Control Prinzip
-|Fehlerbehandlung |Zentrale Fehlerbehandlung durch Exception Filter; einheitliche Fehlerformate; aussagekräftige Fehlermeldungen
-|Validierung |DTO-Validierung mit class-validator; Request-Validierung durch Pipes; Geschäftsregeln-Validierung in Services
-|Sicherheit |JWT-basierte Authentifizierung; rollenbasierte Autorisierung; Rate Limiting; CORS-Konfiguration
-|Logging und Monitoring |Strukturiertes Logging; Performance Monitoring; Health Checks
-|===
+Die Hauptprinzipien unserer Backend-Architektur sind:
 
-==== 8.2.2 Ordnerstruktur
+1. **Domänenorientierte Modularisierung**: Organisation des Codes nach Geschäftsdomänen statt nach technischen Aspekten
+2. **Klare Schichtenarchitektur**: Trennung von Kontrollebene (Controller), Geschäftslogik (Services) und Datenzugriff (Repositories)
+3. **Dependency Injection**: Verwendung des integrieren DI-Containers für lose Kopplung und verbesserte Testbarkeit
+4. **Consistent Error Handling**: Einheitliche Fehlerbehandlung durch Exception Filter
+5. **Typed Interfaces**: Konsequente Nutzung von TypeScript für Typsicherheit auf allen Ebenen
+6. **Cross-Cutting Concerns Separation**: Aspekte wie Logging, Validierung und Auth in spezialisierten Komponenten
+
+==== Modulare Struktur
+
+Die Backend-Codebasis ist in `packages/backend` organisiert und folgt dieser grundlegenden Struktur:
 
 [source]
 ----
 packages/backend/
-├── src/
-│   ├── app.module.ts              # Haupt-Modul der Anwendung
-│   ├── main.ts                    # Einstiegspunkt der Anwendung
-│   ├── common/                    # Gemeinsam genutzte Funktionalitäten
-│   │   ├── constants/            # Konstanten und Enums
-│   │   ├── decorators/          # Custom Decorators
-│   │   ├── filters/             # Exception Filter
-│   │   ├── guards/              # Authentication Guards
-│   │   ├── interceptors/        # Custom Interceptors
-│   │   ├── interfaces/          # Gemeinsame Interfaces
-│   │   └── utils/               # Hilfsfunktionen
-│   │
-│   ├── config/                   # Konfigurationsmodule
-│   │   ├── database.config.ts
-│   │   ├── jwt.config.ts
-│   │   └── app.config.ts
-│   │
-│   ├── modules/                  # Feature Module
-│   │   ├── auth/                # Authentifizierung
-│   │   │   ├── controllers/
-│   │   │   ├── services/
-│   │   │   ├── dto/
-│   │   │   ├── entities/
-│   │   │   └── auth.module.ts
-│   │   │
-│   │   └── users/              # Benutzer-Modul (als Beispiel)
-│   │       ├── controllers/
-│   │       ├── services/
-│   │       ├── dto/
-│   │       ├── entities/
-│   │       └── users.module.ts
-│   │
-│   └── health/                  # Health Check Module
-│       ├── health.controller.ts
-│       └── health.module.ts
-│
-├── test/                        # Tests
-│   ├── e2e/                    # End-to-End Tests
-│   └── unit/                   # Unit Tests
+├── common/           # Querschnittskomponenten
+│   ├── decorators/   # Custom-Decorators
+│   ├── filters/      # Exception Filter
+│   ├── guards/       # Auth Guards
+│   ├── interceptors/ # Interceptors
+│   └── pipes/        # Validierungs-Pipes
+├── config/           # Konfigurationen
+└── modules/          # Fachliche Module
+    ├── auth/         # Authentifizierungsmodul
+    ├── einsatz/      # Einsatzmodul
+    └── ...           # Weitere Fachmodule
 ----
 
-==== 8.2.3 Best Practices
+Jedes Fachmodul ist nach dieser Struktur organisiert:
 
-[cols="1,3", options="header"]
+[source]
+----
+modules/module-name/
+├── controllers/      # API-Endpoints
+├── services/         # Geschäftslogik
+├── repositories/     # Datenzugriff
+├── entities/         # Datenbankmodelle
+├── dto/              # Data Transfer Objects
+├── interfaces/       # TypeScript-Interfaces
+├── enums/            # Enumerationen
+├── constants/        # Konstanten
+├── utils/            # Hilfsfunktionen
+└── __tests__/        # Tests
+----
+
+==== Architekturmuster und Pattern
+
+===== Domain-Driven Design (DDD)
+
+Die Backend-Architektur orientiert sich an DDD-Prinzipien:
+
+* **Bounded Contexts**: Module repräsentieren abgegrenzte Fachdomänen
+* **Entities**: Objekte mit Identität über ihren Lebenszyklus
+* **Value Objects**: Unveränderliche Objekte ohne eigene Identität
+* **Domain Services**: Komplexe Geschäftslogik, die nicht zu einer einzelnen Entität gehört
+* **Repositories**: Abstraktion des Datenzugriffs
+
+===== CQRS-Grundsätze
+
+Für komplexere Domänen kann das CQRS-Muster (Command Query Responsibility Segregation) angewendet werden:
+
+* **Queries**: Leseoperationen werden in spezialisierten Query-Handlern implementiert
+* **Commands**: Schreiboperationen werden in Command-Handlern gekapselt
+* **Events**: Domänen-Events signalisieren wichtige Änderungen
+
+===== Repository Pattern
+
+Das Repository-Pattern abstrahiert den Datenbankzugriff:
+
+* **Generische Repositories**: Für gemeinsame CRUD-Operationen
+* **Domänenspezifische Repositories**: Für komplexe Abfragen
+* **Typsicherheit**: TypeORM-Integration mit vollständiger TypeScript-Unterstützung
+
+===== Dependency Injection
+
+NestJS bietet einen leistungsfähigen DI-Container:
+
+* **Constructor Injection**: Dependencies werden im Konstruktor injiziert
+* **Provider System**: Services, Repositories und andere Komponenten als Provider
+* **Scopes**: Singleton (Standard), Request-scoped oder Transient Instanzen
+* **Custom Providers**: Factory-Provider für komplexe Instanziierung
+
+==== Komponententypen
+
+Die Backend-Architektur umfasst folgende Hauptkomponententypen:
+
+[cols="1,3,2", options="header"]
 |===
-|Bereich |Best Practices
-|Naming Conventions |Klare, beschreibende Namen; konsistente Namensgebung; Suffix-Konventionen für verschiedene Typen (z.B. Service, Controller)
-|Code Organisation |Ein Feature pro Modul; maximale Kohäsion innerhalb der Module; minimale Kopplung zwischen Modulen
-|Testing |Unit Tests für Services; Integration Tests für Controller; E2E Tests für kritische Pfade; Test Coverage > 80%
-|Dokumentation |OpenAPI/Swagger für API-Dokumentation; JSDoc für Funktionen und Klassen; README für Module
-|Performance |Caching wo sinnvoll; Pagination für Listen; Query Optimierung; Lazy Loading von Modulen
+|Komponente |Verantwortlichkeit |Pattern/Prinzip
+|Controller |Definieren der HTTP-Endpunkte und Routing |MVC Controller
+|Service |Implementierung der Geschäftslogik |Domain Service
+|Repository |Datenbankoperationen und Abfragen |Repository Pattern
+|Entity |Datenbankmodelle und Beziehungen |Domain Entity
+|DTO |Datenstrukturen für API-Kommunikation |Data Transfer Object
+|Module |Komponenten-Bündelung und -Organisation |Modul Pattern
+|Guard |Zugriffskontrolle und Autorisierung |Intercepting Filter
+|Interceptor |Request/Response-Transformation |AOP/Decorator
+|Pipe |Eingabevalidierung und -transformation |Filter/Interceptor
+|Filter |Fehlerbehandlung und -formatierung |Exception Handler
+|Decorator |Metaprogrammierung und Annotationen |Decorator Pattern
 |===
 
-==== 8.2.4 Technologie-Stack
+==== Architekturentscheidungen
 
-* **Framework**: NestJS
-* **Datenbank**: SQLite mit TypeORM
-* **Authentication**: JWT
-* **API Docs**: Swagger/OpenAPI
-* **Testing**: Jest
-* **Logging**: consolas
+Bei der Entwicklung des Backends wurden folgende Architekturentscheidungen getroffen:
+
+1. **Monolithische Struktur mit modularer Organisation**: Trotz der Unterteilung in Module wird das Backend als Monolith deployed, aber mit klarer Trennung zwischen den Modulen für mögliche spätere Extraktion.
+
+2. **Shared Types mit Frontend**: DTOs und Entitäten werden durch OpenAPI/Swagger-Generierung mit dem Frontend geteilt, um Typkonsistenz zu gewährleisten.
+
+3. **SQLite als Primärdatenbank**: Verwendung von SQLite für einfache Bereitstellung und lokale Entwicklung mit der Möglichkeit, später auf andere RDBMS umzusteigen.
+
+4. **Repository Pattern über Active Record**: Bewusste Entscheidung für das Repository-Pattern statt Active Record für bessere Testbarkeit und Abstraktion.
+
+5. **Einheitliche Fehlerbehandlung**: Globale Exception Filter für konsistente API-Fehlerantworten.
+
+==== API-Design
+
+Das API-Design folgt den REST-Prinzipien mit folgenden Merkmalen:
+
+* **Ressourcenorientiert**: Endpunkte repräsentieren Ressourcen, nicht Aktionen
+* **HTTP-Verben**: Verwendung von GET, POST, PUT, DELETE für CRUD-Operationen
+* **Versionierung**: API-Versionen durch URI-Pfad (/api/v1/resource)
+* **Dokumentation**: OpenAPI/Swagger-Dokumentation für alle Endpunkte
+* **Validierung**: DTO-basierte Eingabevalidierung mit class-validator
+* **Fehlerformate**: Einheitliches Fehlerformat mit HTTP-Statuscodes
+
+==== Querschnittskonzepte
+
+Folgende Querschnittskonzepte ziehen sich durch die gesamte Backend-Architektur:
+
+* **Logging**: Strukturiertes Logging mit dem consola-Logger
+* **Authentifizierung**: JWT-basierte Authentifizierung mit Guards
+* **Autorisierung**: Rollenbasierte Zugriffssteuerung mit Guards und Decorators
+* **Validierung**: DTO-basierte Validierung mit ValidationPipe
+* **Fehlerbehandlung**: Globale Exception Filter für einheitliche Fehlerantworten
+* **Konfigurationsmanagement**: Umgebungsspezifische Konfiguration mit ConfigService
+
+Diese Architekturkonzepte bilden das Fundament für ein wartbares, erweiterbares und robustes Backend-System, das kontinuierlich weiterentwickelt werden kann.
 
 == Offene Punkte und Entscheidungen
 

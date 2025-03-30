@@ -1,8 +1,8 @@
-= 2. Randbedingungen
+= Randbedingungen
 :author: Bluelight-Hub Team
 :revnumber: 1.0.0
 :revdate: 2025-03-23
-:sectnums!
+
 
 
 == Übersicht
@@ -10,9 +10,9 @@ Dieser Abschnitt beschreibt die Randbedingungen und Vorgaben, die bei der Entwic
 
 == Inhalt
 
-=== 2.1 Technische Randbedingungen
+=== Technische Randbedingungen
 
-==== 2.1.1 Hardware-Vorgaben
+==== Hardware-Vorgaben
 
 [cols="1,2,2", options="header"]
 |===
@@ -23,7 +23,7 @@ Dieser Abschnitt beschreibt die Randbedingungen und Vorgaben, die bei der Entwic
 |Digitalfunk |TETRA-Standards |Anschluss an bestehende Infrastruktur
 |===
 
-==== 2.1.2 Software-Vorgaben
+==== Software-Vorgaben
 
 [cols="1,2,2", options="header"]
 |===
@@ -36,15 +36,15 @@ Dieser Abschnitt beschreibt die Randbedingungen und Vorgaben, die bei der Entwic
 |Authentifizierung |Rollenbasierte Authentifizierung mit JWT-Tokens |Sichere, zustandslose Autorisierung
 |===
 
-==== 2.1.3 Vorgaben zur Kompatibilität
+==== Vorgaben zur Kompatibilität
 
 * Unterstützung von Standard-Formaten für Einsatzdaten entsprechend DIN-Normen
 * Exportmöglichkeiten als PDF und CSV für Einsatzberichte
 * Schnittstellen zu gängigen Leitstellen-Systemen
 
-=== 2.2 Organisatorische Randbedingungen
+=== Organisatorische Randbedingungen
 
-==== 2.2.1 Organisation und Struktur
+==== Organisation und Struktur
 
 [cols="1,2,2", options="header"]
 |===
@@ -54,25 +54,25 @@ Dieser Abschnitt beschreibt die Randbedingungen und Vorgaben, die bei der Entwic
 |Stakeholder-Einbeziehung |Keine regelmäßigen Reviews |Open-Source-Entwicklung ohne formale Reviews
 |===
 
-==== 2.2.2 Zeitliche Vorgaben
+==== Zeitliche Vorgaben
 
 Für das Projekt wurden keine festen zeitlichen Vorgaben definiert. Die Entwicklung erfolgt nach dem Prinzip "Release when ready" und orientiert sich an der Fertigstellung von Funktionalitäten statt an festen Terminen.
 
-==== 2.2.3 Budgetvorgaben
+==== Budgetvorgaben
 
 * Entwicklungsbudget: begrenzt, Fokus auf Open-Source-Technologien
 * Infrastrukturkosten: Nutzung vorhandener Hardware in Führungskraftwagen
 * Wartungsbudget: langfristiger Support muss sichergestellt sein
 
-==== 2.2.4 Rechtliche Vorgaben
+==== Rechtliche Vorgaben
 
 * Datenschutz gemäß DSGVO für personenbezogene Daten
 * Compliance mit Anforderungen für Katastrophenschutz-Software
 * Berücksichtigung von Verschlusssachengraden bei sensiblen Einsatzdaten
 
-=== 2.3 Konventionen
+=== Konventionen
 
-==== 2.3.1 Entwicklungsstandards
+==== Entwicklungsstandards
 
 * Einheitlicher Codestil durch ESLint
 * Dokumentation mit JSDoc und AsciiDoc
@@ -80,13 +80,13 @@ Für das Projekt wurden keine festen zeitlichen Vorgaben definiert. Die Entwickl
 * Dokumentationsabdeckung von mindestens 80% für das gesamte Backend
 * Versionierung mit Semantic Versioning
 
-==== 2.3.2 Namenskonventionen
+==== Namenskonventionen
 
 * Einheitliche Terminologie gemäß Fachsprache im Katastrophenschutz
 * Englische Variablen- und Funktionsnamen im Code
 * Deutsche Benennung von UI-Elementen und Benutzerinteraktionen
 
-==== 2.3.3 Architekturprinzipien
+==== Architekturprinzipien
 
 * Modularer Aufbau mit klaren Schnittstellen
 * Strikte Trennung von Frontend und Backend

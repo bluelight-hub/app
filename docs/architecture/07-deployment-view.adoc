@@ -1,8 +1,8 @@
-= 7. Verteilungssicht
+= Verteilungssicht
 :author: Bluelight-Hub Team
 :revnumber: 1.0.0
 :revdate: 2025-03-23
-:sectnums!
+
 
 
 == Einführung und Ziele
@@ -342,7 +342,7 @@ flowchart LR
 * Backup-Strategie für Einsatzdaten
 * Update-Strategie für die Tauri-Desktop-App auf Client-Geräten 
 
-=== 7.3 Deployment-Pipeline
+=== Deployment-Pipeline
 
 Die Deployment-Pipeline nutzt GitHub Actions und Docker, um das Bluelight-Hub-System zu bauen, zu testen und bereitzustellen.
 

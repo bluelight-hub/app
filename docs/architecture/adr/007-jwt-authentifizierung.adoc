@@ -2,7 +2,7 @@
 :author: Bluelight-Hub Team
 :revnumber: 1.0.0
 :revdate: 2025-03-23
-:sectnums!:
+:
 
 == Status
 In Prüfung (Stand: 2025-03-23)

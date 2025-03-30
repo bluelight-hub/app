@@ -1,8 +1,8 @@
-= 4. Lösungsstrategie
+= Lösungsstrategie
 :author: Bluelight-Hub Team
 :revnumber: 1.0.0
 :revdate: 2025-03-23
-:sectnums!
+
 
 
 == Übersicht
@@ -10,7 +10,7 @@ Dieser Abschnitt fasst die grundlegenden Entscheidungen und Lösungsansätze zus
 
 == Inhalt
 
-=== 4.1 Technologieentscheidungen
+=== Technologieentscheidungen
 
 Die folgenden Technologieentscheidungen bilden das Fundament der Architektur:
 
@@ -29,7 +29,7 @@ Die folgenden Technologieentscheidungen bilden das Fundament der Architektur:
 |CI/CD |GitHub Actions |Automatisierte Build- und Deployment-Pipelines
 |===
 
-=== 4.2 Architekturansätze zur Erfüllung der Qualitätsziele
+=== Architekturansätze zur Erfüllung der Qualitätsziele
 
 Die grundlegenden Architekturansätze zur Erfüllung der wichtigsten Qualitätsziele sind:
 
@@ -68,47 +68,47 @@ mindmap
       Sicherheits-Audits
 ....
 
-==== 4.2.1 Zuverlässigkeit
+==== Zuverlässigkeit
 
 * *Redundante Datenspeicherung*: Daten werden sowohl lokal als auch zentral gespeichert
 * *Robustes Error-Handling*: Umfassendes Fehlerbehandlungssystem mit Wiederherstellungsmechanismen
 * *Monitoring und Alerting*: Proaktive Überwachung kritischer Systemfunktionen
 
-==== 4.2.2 Konnektivitätsresilienz
+==== Konnektivitätsresilienz
 
 * *Funktionalität bei lokaler Verbindung*: Gewährleistung der Kernfunktionen bei reiner FüKW-Verbindung (lokales Verbindungsszenario)
 * *Erweiterte Features bei Internetverbindung*: Zusätzliche Features, wenn der FüKW mit dem Internet verbunden ist (vollständiges Verbindungsszenario)
 * *Robuste Datensynchronisation*: Zuverlässiger Datenaustausch zwischen verschiedenen Konnektivitätsszenarien
 * *Autonome Funktionsfähigkeit*: (geplant) Unabhängiges Arbeiten ohne FüKW-Verbindung
 
-==== 4.2.3 Benutzerfreundlichkeit
+==== Benutzerfreundlichkeit
 
 * *Konsistentes UI-Design*: Einheitliche Bedienkonzepte in allen Anwendungsteilen
 * *Adaptive Layouts*: Optimierte Darstellung für verschiedene Geräte und Bildschirmgrößen
 * *Kontextsensitive Hilfe*: Integrierte Unterstützung an relevanten Stellen
 
-=== 4.3 Entwurfsentscheidungen
+=== Entwurfsentscheidungen
 
-==== 4.3.1 Architekturmuster
+==== Architekturmuster
 
 * *Hexagonale Architektur*: Klare Trennung von Domäne, Anwendung und Infrastruktur
 * *CQRS (Command Query Responsibility Segregation)*: Trennung von Lese- und Schreiboperationen
 * *Event Sourcing*: Speicherung aller Änderungen als Ereignisse für Nachvollziehbarkeit
 * *Verbindungskonzept*: Unterstützung verschiedener Konnektivitätsszenarien zur Gewährleistung der Konnektivitätsresilienz
 
-==== 4.3.2 Persistenz
+==== Persistenz
 
 * *SQLite für alle Datenhaltung*: Sowohl als lokale Datenbank als auch für den Server
 * *Daten-Synchronisationsschicht*: Verwaltet Konflikte und sorgt für konsistente Datenreplikation
 * *Versioning*: Versionierung aller Datenobjekte zur Konfliktlösung
 
-==== 4.3.3 Benutzerschnittstelle
+==== Benutzerschnittstelle
 
 * *Component-basiertes UI*: Wiederverwendbare UI-Komponenten nach Atomic Design
 * *Responsive Design*: Anpassungsfähige Layouts für mobile und Desktop-Nutzung
 * *Offline-Indikatoren*: Klare Anzeige des Verbindungsstatus und der Synchronisationszustände
 
-=== 4.4 Mapping der Lösungsstrategie auf Qualitätsziele
+=== Mapping der Lösungsstrategie auf Qualitätsziele
 
 Die folgende Tabelle zeigt, wie die gewählten Architekturansätze die wichtigsten Qualitätsziele adressieren:
 

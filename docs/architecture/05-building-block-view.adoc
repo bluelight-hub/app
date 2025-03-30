@@ -1,8 +1,8 @@
-= 5. Bausteinsicht
+= Bausteinsicht
 :author: Bluelight-Hub Team
 :revnumber: 1.0.0
 :revdate: 2025-03-23
-:sectnums!
+
 
 
 == Übersicht
@@ -10,7 +10,7 @@ Die Bausteinsicht zeigt die statische Zerlegung des Systems in Bausteine (Module
 
 == Inhalt
 
-=== 5.1 Ebene 1 - Gesamtsystem
+=== Ebene 1 - Gesamtsystem
 
 Die Ebene 1 zeigt die Hauptkomponenten des Bluelight-Hub-Systems und ihre Interaktionen.
 
@@ -43,7 +43,7 @@ flowchart TB
     classDef external fill:#FF9800,stroke:#F57C00,color:white
 ....
 
-==== 5.1.1 Hauptkomponenten
+==== Hauptkomponenten
 
 [cols="1,3", options="header"]
 |===
@@ -53,7 +53,7 @@ flowchart TB
 |Shared Package |Gemeinsam genutzte Typendefinitionen, DTOs für den Datenaustausch, Konstanten, Interfaces und Utilities, die sowohl vom Frontend als auch vom Backend verwendet werden. *Diese werden durch die OpenAPI-Definition des Backends automatisch generiert.*
 |===
 
-==== 5.1.2 Wichtige Schnittstellen
+==== Wichtige Schnittstellen
 
 [cols="1,3", options="header"]
 |===
@@ -64,7 +64,7 @@ flowchart TB
 |Backend ↔ Externe Systeme |Integration von Digitalfunk und anderen externen Systemen über domänenspezifische Adapter
 |===
 
-=== 5.2 Ebene 2 - Frontend-Komponenten
+=== Ebene 2 - Frontend-Komponenten
 
 Das Frontend des Bluelight-Hub-Systems ist nach dem Atomic Design-Prinzip aufgebaut und verwendet React mit TypeScript. Es bietet eine intuitive Benutzeroberfläche für alle Einsatzsituationen.
 
@@ -129,7 +129,7 @@ flowchart TB
     classDef default fill:#42A5F5,stroke:#1976D2,color:white
 ....
 
-==== 5.2.1 Atomic Design-Komponenten
+==== Atomic Design-Komponenten
 
 * *Atoms*: Grundlegende UI-Elemente wie Button, Input, Icon
 * *Molecules*: Kombinationen aus Atoms wie FormField, Card, Notification
@@ -137,25 +137,25 @@ flowchart TB
 * *Templates*: Seitenlayouts und -strukturen
 * *Pages*: Vollständige Ansichten für bestimmte Routen
 
-==== 5.2.2 State Management
+==== State Management
 
 * *Zustand Stores*: Zentrale Zustandsverwaltung für globale Daten
 * *Context Provider*: Bereichsspezifische Zustandsverwaltung
 * *Custom Hooks*: Wiederverwendbare Logik für Zustandszugriff
 
-==== 5.2.3 Services
+==== Services
 
 * *API Clients*: Kommunikation mit dem Backend über REST
 * *Domain Services*: Domänenspezifische Geschäftslogik
 
-==== 5.2.4 Funktionsbereiche
+==== Funktionsbereiche
 
 * *Authentifizierung*: Login/Logout, Benutzerprofil, Berechtigungsprüfung
 * *Einsatzmanagement*: Übersicht, Details, Ressourcenverwaltung
 * *Lagekarte*: Kartenkomponente (mapbox), Markierungen, Zeichenwerkzeuge
 * *Kommunikation*: Nachrichten, Benachrichtigungen, Statusupdates
 
-=== 5.3 Ebene 2 - Backend-Module
+=== Ebene 2 - Backend-Module
 
 Das Backend des Bluelight-Hub-Systems ist als modulare NestJS-Anwendung implementiert und folgt dem Domain-Driven Design Ansatz. Auf Ebene 2 betrachten wir die Hauptmodule und deren Verantwortlichkeiten.
 
@@ -199,7 +199,7 @@ flowchart TB
     class DB database
 ....
 
-==== 5.3.1 App Module
+==== App Module
 
 Das App Module ist das Hauptmodul der Anwendung und für das Zusammenführen aller Teilmodule verantwortlich.
 
@@ -210,7 +210,7 @@ Das App Module ist das Hauptmodul der Anwendung und für das Zusammenführen all
 |main.ts |Einstiegspunkt der Anwendung, startet NestJS Server, konfiguriert Middleware, Swagger, etc.
 |===
 
-==== 5.3.2 Auth Module
+==== Auth Module
 
 Das Auth Module ist für die Authentifizierung und Autorisierung der Benutzer zuständig.
 
@@ -223,7 +223,7 @@ Das Auth Module ist für die Authentifizierung und Autorisierung der Benutzer zu
 |user.entity.ts |Datenmodell für Benutzer
 |===
 
-==== 5.3.3 Einsatz Module
+==== Einsatz Module
 
 Das Einsatz Module verwaltet alle einsatzbezogenen Daten und Prozesse.
 
@@ -238,7 +238,7 @@ Das Einsatz Module verwaltet alle einsatzbezogenen Daten und Prozesse.
 |einsatzort.entity.ts |Datenmodell für Einsatzorte
 |===
 
-==== 5.3.4 Ressource Module
+==== Ressource Module
 
 Das Ressource Module verwaltet Ressourcen wie Personal, Fahrzeuge und Material.
 
@@ -256,7 +256,7 @@ Das Ressource Module verwaltet Ressourcen wie Personal, Fahrzeuge und Material.
 |material.entity.ts |Datenmodell für Material
 |===
 
-==== 5.3.5 ETB Module
+==== ETB Module
 
 Das ETB (Einsatztagebuch) Module verwaltet alle Einträge und Aktivitäten im Einsatztagebuch.
 
@@ -268,7 +268,7 @@ Das ETB (Einsatztagebuch) Module verwaltet alle Einträge und Aktivitäten im Ei
 |etb-eintrag.entity.ts |Datenmodell für ETB-Einträge
 |===
 
-==== 5.3.6 Health Module
+==== Health Module
 
 Das Health Module ist für die Überwachung des Systemzustands verantwortlich und bietet Endpoints für Health Checks.
 
@@ -279,7 +279,7 @@ Das Health Module ist für die Überwachung des Systemzustands verantwortlich un
 |health.service.ts |Implementiert Checks für verschiedene Systemkomponenten
 |===
 
-==== 5.3.7 Common Module
+==== Common Module
 
 Das Common Module enthält gemeinsam genutzte Funktionalitäten, die von mehreren Modulen verwendet werden.
 
@@ -293,7 +293,7 @@ Das Common Module enthält gemeinsam genutzte Funktionalitäten, die von mehrere
 |utils/ |Hilfsfunktionen und gemeinsame Utilities
 |===
 
-==== 5.3.8 Config Module
+==== Config Module
 
 Das Config Module enthält Konfigurationen für verschiedene Teile der Anwendung.
 
@@ -305,11 +305,139 @@ Das Config Module enthält Konfigurationen für verschiedene Teile der Anwendung
 |app.config.ts |Allgemeine Anwendungskonfiguration
 |===
 
-=== 5.3 Ebene 3 - Ausgewählte Module im Detail
+==== Backend-Komponententypen und Architekturmuster
+
+Das Backend folgt einer konsistenten Architektur mit klar definierten Komponententypen, die sich in allen Modulen widerspiegeln. Diese standardisierte Struktur erleichtert die Wartung, Erweiterbarkeit und Testbarkeit des Systems.
+
+[mermaid]
+....
+classDiagram
+    class Controller {
+        +@Controller()
+        +@Get(), @Post(), @Put(), @Delete()
+        +HTTP-Endpunkte definieren
+        +Requests empfangen und Responses zurückgeben
+        +DTOs validieren
+    }
+    
+    class Service {
+        +@Injectable()
+        +Geschäftslogik implementieren
+        +Daten verarbeiten und transformieren
+        +Validierungsregeln anwenden
+    }
+    
+    class Repository {
+        +@Injectable()
+        +Datenbankoperationen abstrahieren
+        +CRUD-Operationen implementieren
+        +Komplexe Abfragen ausführen
+    }
+    
+    class Entity {
+        +@Entity()
+        +Datenbankmodell definieren
+        +Relationen festlegen
+        +Spaltentypen und -eigenschaften definieren
+    }
+    
+    class DTO {
+        +Datentransferobjekte definieren
+        +Validierungsregeln mit @IsString(), @IsNumber() etc.
+        +Dokumentation mit @ApiProperty()
+    }
+    
+    class Module {
+        +@Module()
+        +Komponenten organisieren und verbinden
+        +Abhängigkeiten importieren
+        +Provider und Controller deklarieren
+    }
+    
+    class Guard {
+        +@Injectable()
+        +implements CanActivate
+        +Zugriffskontrolle implementieren
+        +Berechtigungen prüfen
+    }
+    
+    class Interceptor {
+        +@Injectable()
+        +implements NestInterceptor
+        +Requests/Responses transformieren
+        +Logging, Caching, Fehlerbehandlung
+    }
+    
+    class Filter {
+        +@Catch()
+        +implements ExceptionFilter
+        +Exceptions abfangen und verarbeiten
+        +Einheitliche Fehlerantworten erstellen
+    }
+    
+    class Pipe {
+        +@Injectable()
+        +implements PipeTransform
+        +Eingabedaten validieren oder transformieren
+        +Vor der Controller-Methode ausgeführt
+    }
+    
+    class Decorator {
+        +Metadaten für Klassen/Methoden/Parameter definieren
+        +Wiederverwendbare Annotations erstellen
+    }
+    
+    Controller --> Service
+    Service --> Repository
+    Repository --> Entity
+    Controller --> DTO
+    Controller --> Guard
+    Controller --> Interceptor
+    Controller --> Pipe
+    Controller --> Filter
+    Controller --> Decorator
+    Module --> Controller
+    Module --> Service
+    Module --> Repository
+....
+
+Die Kernkomponenten und ihre Namenskonventionen sind:
+
+[cols="1,1,3", options="header"]
+|===
+|Komponente |Namenskonvention |Beschreibung
+|Controller |`*.controller.ts` |Definiert API-Endpunkte und HTTP-Routen. Verantwortlich für die Annahme von Anfragen und das Senden von Antworten.
+|Service |`*.service.ts` |Enthält die Geschäftslogik der Anwendung. Services werden von Controllern verwendet und können andere Services oder Repositories injizieren.
+|Repository |`*.repository.ts` |Abstrahiert den Datenbankzugriff und stellt CRUD-Operationen sowie komplexe Abfragen bereit.
+|Entity |`*.entity.ts` |Definiert das Datenmodell für die Datenbank mit TypeORM-Dekoratoren. Beschreibt Tabellen, Spalten und Beziehungen.
+|DTO |`*.dto.ts` |Data Transfer Objects definieren die Struktur der Daten, die zwischen Client und Server ausgetauscht werden, inklusive Validierungsregeln.
+|Module |`*.module.ts` |Organisiert Komponenten wie Controller, Services und Repositories in logische Einheiten und definiert deren Abhängigkeiten.
+|Factory |`*.factory.ts` |Erzeugt komplexe Objekte oder konfiguriert Komponenten dynamisch.
+|===
+
+Zusätzlich werden folgende Cross-Cutting Concerns in gemeinsamen Verzeichnissen organisiert:
+
+[cols="1,1,3", options="header"]
+|===
+|Komponente |Namenskonvention |Beschreibung
+|Guard |`*.guard.ts` |Implementiert Zugriffskontrollen für Routes oder Controller. Typisch für Authentifizierung und Autorisierung.
+|Interceptor |`*.interceptor.ts` |Bearbeitet Request/Response-Zyklen für Logging, Transformation, Caching oder Fehlerbehandlung.
+|Pipe |`*.pipe.ts` |Validiert und transformiert Eingabedaten bevor sie den Controller erreichen.
+|Filter |`*.filter.ts` |Fängt Exceptions ab und formatiert sie zu konsistenten Fehlerantworten.
+|Decorator |`*.decorator.ts` |Erstellt wiederverwendbare Custom-Dekoratoren für Klassen, Methoden oder Parameter.
+|Config |`*.config.ts` |Konfigurationslogik für verschiedene Aspekte der Anwendung.
+|Interface |`*.interface.ts` |Definiert TypeScript-Interfaces für typsichere Implementierungen.
+|Enum |`*.enum.ts` |Definiert Aufzählungen für konstante Werte.
+|Type |`*.types.ts` |Enthält komplexe TypeScript-Typdefinitionen.
+|===
+
+Diese Struktur folgt den NestJS-Best-Practices und fördert ein modulares, wartbares System mit klarer Trennung der Verantwortlichkeiten. Die standardisierte Namenskonvention und Organisation erleichtert die Entwicklung und das Onboarding neuer Teammitglieder.
+
+=== Ebene 3 - Ausgewählte Module im Detail
 
 Auf Ebene 3 betrachten wir einige der wichtigsten Module im Detail, um die interne Struktur und Interaktionen zu verdeutlichen.
 
-==== 5.3.1 Einsatz Module im Detail
+==== Einsatz Module im Detail
 
 Das Einsatz Module ist eines der Kernmodule der Anwendung und folgt der klassischen NestJS-Struktur mit klarer Trennung von Verantwortlichkeiten.
 
@@ -380,7 +508,7 @@ Das Einsatz Module verwendet folgende NestJS-Konzepte:
 * **Entities**: Definieren die Datenbankstruktur und Beziehungen
 * **DTOs**: Definieren die Struktur der eingehenden und ausgehenden Daten
 
-==== 5.3.2 Auth Module im Detail
+==== Auth Module im Detail
 
 Das Auth Module implementiert die Authentifizierung und Autorisierung der Anwendung.
 
@@ -448,7 +576,7 @@ Das Auth Module verwendet folgende Sicherheitskonzepte:
 * Ausarbeitung des Event-basierten Kommunikationskonzepts für Echtzeitbenachrichtigungen
 * Erweiterung des Datenbankschemas für komplexere Einsatzszenarien
 
-=== 5.4 Entitätsmodell
+=== Entitätsmodell
 
 Das folgende Entity-Relationship-Diagramm zeigt die zentralen Entitäten des Bluelight-Hub-Systems und ihre Beziehungen zueinander. Dies ist die Grundlage für die Datenbankstrukturen und die Datenmodellierung im Backend.
 

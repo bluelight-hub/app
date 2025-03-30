@@ -1,8 +1,8 @@
-= 11. Risiken und technische Schulden
+= Risiken und technische Schulden
 :author: Bluelight-Hub Team
 :revnumber: 1.0.0
 :revdate: 2025-03-23
-:sectnums!
+
 
 
 == Übersicht
@@ -10,7 +10,7 @@ Dieser Abschnitt beschreibt die bekannten Risiken und technischen Schulden des B
 
 == Inhalt
 
-=== 11.1 Risikomatrix
+=== Risikomatrix
 
 Die folgende Matrix visualisiert die identifizierten Risiken nach ihrer Eintrittswahrscheinlichkeit und ihrem potenziellen Schaden.
 
@@ -36,7 +36,7 @@ quadrantChart
     quadrant-4 "Mittlere Priorität"
 ----
 
-=== 11.2 Risikotabelle
+=== Risikotabelle
 
 [cols="1,3,1,1,2,2", options="header"]
 |===
@@ -52,9 +52,9 @@ quadrantChart
 |R-9 |Unzuverlässige Verbindung zwischen Client und FüKW |Hoch |Hoch |Robuste Netzwerktopologie mit Redundanzen; Automatische Wiederverbindungsversuche; Klare Benutzerhinweise bei Verbindungsproblemen; Regelmäßige Verbindungstests; Degradation der Funktionalität bei Verbindungsverlusten |Netzwerk-Team, Entwicklungsteam
 |===
 
-=== 11.3 Detaillierte Risikobeschreibungen
+=== Detaillierte Risikobeschreibungen
 
-==== 11.3.1 Synchronisationskonflikte in verschiedenen Verbindungsszenarien (R-1)
+==== Synchronisationskonflikte in verschiedenen Verbindungsszenarien (R-1)
 
 *Beschreibung:*
 Bei der Nutzung mehrerer Geräte in unterschiedlichen Verbindungsszenarien (lokal zum FüKW, online, autonom) können parallel Änderungen an denselben Daten vorgenommen werden, die bei der späteren Synchronisation zu Konflikten führen.
@@ -74,7 +74,7 @@ Bei der Nutzung mehrerer Geräte in unterschiedlichen Verbindungsszenarien (loka
 *Notfallplan:*
 Bei nicht auflösbaren Konflikten: Konservative Strategie mit Beibehaltung aller konfliktierenden Versionen und manueller Zusammenführung durch berechtigte Benutzer.
 
-==== 11.3.2 Datenverlust bei Systemausfall (R-2)
+==== Datenverlust bei Systemausfall (R-2)
 
 *Beschreibung:*
 Bei einem gleichzeitigen Ausfall mehrerer Systemkomponenten besteht das Risiko eines dauerhaften Datenverlusts, insbesondere wenn sowohl der FüKW-Server als auch mehrere Clients betroffen sind.
@@ -93,7 +93,7 @@ Bei einem gleichzeitigen Ausfall mehrerer Systemkomponenten besteht das Risiko e
 *Notfallplan:*
 Manuelle Rekonstruktion kritischer Daten aus dem letzten verfügbaren Backup und ggf. aus papierbasierten Notizen oder alternativen Kommunikationskanälen.
 
-==== 11.3.3 Unzuverlässige Verbindung zwischen Client und FüKW (R-9)
+==== Unzuverlässige Verbindung zwischen Client und FüKW (R-9)
 
 *Beschreibung:*
 In Einsatzszenarien kann die Verbindung zwischen Clients und dem FüKW unzuverlässig sein, z.B. durch Netzwerküberlastung, Störungen oder Reichweitenbegrenzungen. Dies kann zu unvollständiger Synchronisation, verzögerter Kommunikation oder temporären Verbindungsabbrüchen führen.
@@ -116,9 +116,9 @@ In Einsatzszenarien kann die Verbindung zwischen Clients und dem FüKW unzuverl�
 *Notfallplan:*
 Bei anhaltenden Verbindungsproblemen: Fallback auf alternative Kommunikationswege (Funk, persönliche Kommunikation) mit definiertem Verfahren zur nachträglichen Dateneingabe. Klare Kennzeichnung von Daten, die noch nicht mit dem FüKW synchronisiert wurden.
 
-=== 11.4 Technische Schulden
+=== Technische Schulden
 
-==== 11.4.1 Bekannte technische Schulden
+==== Bekannte technische Schulden
 
 [cols="1,2,1,3", options="header"]
 |===
@@ -126,7 +126,7 @@ Bei anhaltenden Verbindungsproblemen: Fallback auf alternative Kommunikationsweg
 |TS-4 |Vorläufiger Authentifizierungsmechanismus ohne vollständige Unterstützung für Authentifizierung in allen Konnektivitätsszenarien |Hoch |Implementierung einer sicheren Authentifizierungslösung für lokale Verbindung, vollständige Verbindung und zukünftig autonomen Modus
 |===
 
-==== 11.4.2 Umgang mit technischen Schulden
+==== Umgang mit technischen Schulden
 
 Für den Umgang mit technischen Schulden wird folgende Strategie verfolgt:
 
@@ -134,17 +134,17 @@ Für den Umgang mit technischen Schulden wird folgende Strategie verfolgt:
 * Mittlere Priorität: Schrittweise Behebung in kommenden Minor Releases
 * Niedrige Priorität: Behebung, wenn angrenzende Bereiche geändert werden oder wenn Ressourcen verfügbar sind
 
-=== 11.5 Risikominimierungsstrategie
+=== Risikominimierungsstrategie
 
 Um die identifizierten Risiken proaktiv zu adressieren, wird folgende Strategie verfolgt:
 
-==== 11.5.1 Risikomornitoring
+==== Risikomornitoring
 
 * Regelmäßige Review der Risikosituation im Entwicklungsteam
 * Definition und Überwachung von Risikoindikatoren
 * Aktualisierung der Risikobewertung bei neuen Erkenntnissen oder Änderungen
 
-==== 11.5.2 Testfokus
+==== Testfokus
 
 * Priorisierung von Tests für Hochrisikobereiche
 * Simulation von Ausfallszenarien in Testumgebungen
@@ -152,14 +152,14 @@ Um die identifizierten Risiken proaktiv zu adressieren, wird folgende Strategie 
 * Feldtests unter realen Einsatzbedingungen
 * Systematische Tests aller Verbindungsszenarien
 
-==== 11.5.3 Inkrementelle Implementierung
+==== Inkrementelle Implementierung
 
 * Frühzeitige prototypische Umsetzung risikobehafteter Komponenten
 * Parallele Implementierung von Fallback-Mechanismen
 * Schrittweise Einführung neuer Funktionen mit ausreichender Testphase
 * Phasenweise Verbesserung der Verbindungszuverlässigkeit
 
-==== 11.5.4 Verbindungsrobustheit
+==== Verbindungsrobustheit
 
 * Entwicklung von Szenarien für den Verlust der Verbindung
 * Implementierung einer graceful degradation bei Verbindungsverlust
