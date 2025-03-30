@@ -1,5 +1,8 @@
 import {
+    Badge,
     Card,
+    Descriptions,
+    Input,
     List,
     Progress,
     Space,
@@ -9,9 +12,14 @@ import {
 } from "antd";
 
 import {
+    PiBookOpenTextBold,
     PiCheckSquareBold,
     PiClockClockwiseBold,
+    PiCloudSunBold,
     PiCubeFocusBold,
+    PiMapPinBold,
+    PiNotePencilBold,
+    PiRadioBold,
     PiSpeakerHighBold,
     PiUsersBold,
     PiUsersThreeBold
@@ -51,14 +59,95 @@ const mockData = {
         { kanal: 'Kanal 2', status: 'angefragt' },
         { kanal: 'Kanal 3', status: 'frei' },
     ],
+    // Neue Mock-Daten für zusätzliche Kacheln
+    einsatzTagebuch: [
+        { id: 'ETB-001', zeit: '08:15', text: 'Einsatzbeginn, Erkundung gestartet', ersteller: 'M. Müller' },
+        { id: 'ETB-002', zeit: '08:30', text: 'Kontakt mit Polizei hergestellt', ersteller: 'S. Schmidt' },
+        { id: 'ETB-003', zeit: '09:10', text: 'Wasserversorgung sichergestellt', ersteller: 'L. Lehmann' },
+    ],
+    wetter: {
+        aktuell: { temperatur: '22°C', beschreibung: 'Leicht bewölkt', wind: '10 km/h' },
+        prognose: [
+            { zeit: '10:00', temperatur: '24°C', beschreibung: 'Sonnig' },
+            { zeit: '14:00', temperatur: '26°C', beschreibung: 'Wolkig' },
+        ]
+    },
+    einsatzBasis: {
+        stichwort: 'H2 WASSER',
+        adresse: 'Hauptstraße 123, 12345 Musterstadt',
+        meldung: 'Wasserschaden im Keller, ca. 30cm Wasserstand',
+        gemeldetVon: 'Anwohner',
+        beginn: '02.09.2023 08:00'
+    },
+    funknamen: [
+        { rufname: 'Florian Musterstadt 11/1', kennung: '11/1', status: 'vor Ort' },
+        { rufname: 'Florian Musterstadt 40/1', kennung: '40/1', status: 'vor Ort' },
+        { rufname: 'Florian Musterstadt 1', kennung: 'ELW', status: 'angefordert' },
+    ],
+    notizen: 'Wichtige Kontakte:\n- Wasserwerk: 0123-456789\n- Bürgermeister: 9876-543210'
 };
 
-const { Text } = Typography;
+const { Text, Title } = Typography;
+const { TextArea } = Input;
 
 const DashboardContent = () => {
     return (
         <div className="p-4 min-h-screen">
             <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+                {/* Einsatzbasisdaten */}
+                <div className="grid gap-4 xl:col-span-2">
+                    <Card
+                        title={
+                            <Space>
+                                <PiMapPinBold />
+                                <span>Einsatzbasisdaten</span>
+                            </Space>
+                        }
+                        className="shadow-sm"
+                    >
+                        <Descriptions column={{ xs: 1, sm: 2 }} size="small">
+                            <Descriptions.Item label="Stichwort">
+                                <Badge status="processing" text={mockData.einsatzBasis.stichwort} />
+                            </Descriptions.Item>
+                            <Descriptions.Item label="Adresse">{mockData.einsatzBasis.adresse}</Descriptions.Item>
+                            <Descriptions.Item label="Meldung">{mockData.einsatzBasis.meldung}</Descriptions.Item>
+                            <Descriptions.Item label="Gemeldet von">{mockData.einsatzBasis.gemeldetVon}</Descriptions.Item>
+                            <Descriptions.Item label="Einsatzbeginn">{mockData.einsatzBasis.beginn}</Descriptions.Item>
+                        </Descriptions>
+                    </Card>
+                </div>
+
+                {/* Wetter */}
+                <div className="grid gap-4">
+                    <Card
+                        title={
+                            <Space>
+                                <PiCloudSunBold />
+                                <span>Wetter</span>
+                            </Space>
+                        }
+                        className="shadow-sm"
+                    >
+                        <div className="mb-3">
+                            <Title level={5}>Aktuell</Title>
+                            <p className="text-xl">{mockData.wetter.aktuell.temperatur} | {mockData.wetter.aktuell.beschreibung}</p>
+                            <Text type="secondary">Wind: {mockData.wetter.aktuell.wind}</Text>
+                        </div>
+                        <div>
+                            <Title level={5}>Prognose</Title>
+                            <List
+                                size="small"
+                                dataSource={mockData.wetter.prognose}
+                                renderItem={(item) => (
+                                    <List.Item>
+                                        <Text>{item.zeit}: {item.temperatur}, {item.beschreibung}</Text>
+                                    </List.Item>
+                                )}
+                            />
+                        </div>
+                    </Card>
+                </div>
+
                 {/* Kachel 1: Einsatzabschnitte */}
                 <div className="grid gap-4">
                     <Card
@@ -131,6 +220,63 @@ const DashboardContent = () => {
                         <div className="flex justify-around h-full items-center">
                             <p className="text-2xl">{mockData.stärke.el} / {mockData.stärke.gf} / {mockData.stärke.h} / {mockData.stärke.gesamt}</p>
                         </div>
+                    </Card>
+                </div>
+
+                {/* ETB Schnelleintrag */}
+                <div className="grid gap-4">
+                    <Card
+                        title={
+                            <Space>
+                                <PiNotePencilBold />
+                                <span>ETB-Schnelleintrag</span>
+                            </Space>
+                        }
+                        className="shadow-sm"
+                    >
+                        <TextArea
+                            placeholder="Neuen ETB-Eintrag verfassen..."
+                            autoSize={{ minRows: 2, maxRows: 3 }}
+                            className="mb-2"
+                        />
+                        <div className="text-right">
+                            <Tag color="blue" className="cursor-pointer mr-0">Eintrag speichern</Tag>
+                        </div>
+                    </Card>
+                </div>
+
+                {/* ETB letzte Einträge */}
+                <div className="grid gap-4">
+                    <Card
+                        title={
+                            <Space>
+                                <PiBookOpenTextBold />
+                                <span>ETB - Letzte Einträge</span>
+                            </Space>
+                        }
+                        extra={<Link to="/app/etb">Alle anzeigen</Link>}
+                        className="shadow-sm"
+                    >
+                        <List
+                            dataSource={mockData.einsatzTagebuch}
+                            renderItem={(eintrag) => (
+                                <List.Item>
+                                    <List.Item.Meta
+                                        title={
+                                            <Space>
+                                                <Badge color="blue" />
+                                                <span>{eintrag.text}</span>
+                                            </Space>
+                                        }
+                                        description={
+                                            <Text type="secondary" style={{ fontSize: '0.85rem' }}>
+                                                {eintrag.zeit} | {eintrag.ersteller}
+                                            </Text>
+                                        }
+                                    />
+                                </List.Item>
+                            )}
+                        />
                     </Card>
                 </div>
 
@@ -245,6 +391,62 @@ const DashboardContent = () => {
                                     />
                                 </List.Item>
                             )}
+                        />
+                    </Card>
+                </div>
+
+                {/* Relevante Funknamen */}
+                <div className="grid gap-4">
+                    <Card
+                        title={
+                            <Space>
+                                <PiRadioBold />
+                                <span>Relevante Funknamen</span>
+                            </Space>
+                        }
+                        className="shadow-sm"
+                    >
+                        <List
+                            dataSource={mockData.funknamen}
+                            renderItem={(funk) => (
+                                <List.Item>
+                                    <List.Item.Meta
+                                        title={funk.rufname}
+                                        description={
+                                            <Tag
+                                                color={
+                                                    funk.status === 'vor Ort'
+                                                        ? 'green'
+                                                        : funk.status === 'angefordert'
+                                                            ? 'orange'
+                                                            : 'blue'
+                                                }
+                                            >
+                                                {funk.status}
+                                            </Tag>
+                                        }
+                                    />
+                                </List.Item>
+                            )}
+                        />
+                    </Card>
+                </div>
+
+                {/* Notizen */}
+                <div className="grid gap-4">
+                    <Card
+                        title={
+                            <Space>
+                                <PiNotePencilBold />
+                                <span>Notizen</span>
+                            </Space>
+                        }
+                        className="shadow-sm"
+                    >
+                        <TextArea
+                            defaultValue={mockData.notizen}
+                            autoSize={{ minRows: 4, maxRows: 8 }}
+                            placeholder="Wichtige Informationen notieren..."
                         />
                     </Card>
                 </div>
