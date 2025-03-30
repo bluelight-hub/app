@@ -1,3 +1,13 @@
+## Version [v1.0.0-alpha.16](https://github.com/bluelight-hub/app/compare/v1.0.0-alpha.15...v1.0.0-alpha.16) – Veröffentlicht am 2025-03-30
+
+## ✨ Neue Funktionen
+Die folgenden neuen Features wurden hinzugefügt:
+- [`c777202`](https://github.com/bluelight-hub/app/commit/c777202) (frontend): Add additional dashboard cards for ETB, weather, notes and more 
+
+
+
+# [1.0.0-alpha.16](https://github.com/bluelight-hub/app/compare/v1.0.0-alpha.15...v1.0.0-alpha.16) (2025-03-30)
+
 ## Version [v1.0.0-alpha.15](https://github.com/bluelight-hub/app/compare/v1.0.0-alpha.14...v1.0.0-alpha.15) – Veröffentlicht am 2025-03-30
 
 ## ✨ Neue Funktionen
