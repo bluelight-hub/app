@@ -2,10 +2,10 @@
 include::architecture/config.adoc[]
 
 = Bluelight-Hub: arc42-Architekturdokumentation
-:revnumber: 1.0.1
-:revdate: 2025-03-28
-:author: Bluelight-Hub Team
-:revremark: Anpassen an Arc42-Template
+:revnumber: 1.0.2
+:revdate: 2025-03-30
+:author: Ruben
+:revremark: Angepasst an Arc42-Template
 
 == Dokumentenversionierung
 
