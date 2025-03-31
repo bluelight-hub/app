@@ -1,9 +1,12 @@
 import React from 'react';
-import { MockEinsatztagebuchComponent } from '@organisms/mocks/MockEinsatztagebuchComponent';
+import { ETBOverview } from './ETBOverview';
 
+/**
+ * Seite für das Einsatztagebuch
+ */
 export const EinsatztagebuchPage: React.FC = () => {
   return (
-    <MockEinsatztagebuchComponent />
+    <ETBOverview />
   );
 };
 
