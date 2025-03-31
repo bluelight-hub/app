@@ -4,6 +4,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { join } from 'path';
 import { HealthModule } from './health/health.module';
 import { ConsolaLogger } from './logger/consola.logger';
+import { EtbModule } from './modules/etb/etb.module';
 
 /**
  * Haupt-Anwendungsmodul, das die Abhängigkeiten und Provider der Anwendung konfiguriert.
@@ -26,6 +27,7 @@ import { ConsolaLogger } from './logger/consola.logger';
             autoLoadEntities: true,
         }),
         HealthModule,
+        EtbModule,
     ],
     controllers: [],
     providers: [
