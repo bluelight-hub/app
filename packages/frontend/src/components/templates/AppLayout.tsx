@@ -1,6 +1,7 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Outlet, useLocation } from 'react-router';
 import { findRouteTitle, mainNavigation } from '../../config/navigation';
+import useMediaQuery from '../../hooks/useMediaQuery';
 import MobileHeader from '../organisms/MobileHeader';
 import Sidebar from '../organisms/Sidebar';
 
@@ -11,6 +12,14 @@ const AppLayout: React.FC<{ children?: React.ReactNode }> = () => {
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
     const location = useLocation();
     const title = findRouteTitle(location.pathname);
+    const isMobile = useMediaQuery('(max-width: 1024px)'); // lg breakpoint in Tailwind
+
+    // Schließt die Sidebar automatisch, wenn der Viewport auf mobile Größe wechselt
+    useEffect(() => {
+        if (isMobile) {
+            setIsMobileMenuOpen(false);
+        }
+    }, [isMobile]);
 
     return (
         <div className="min-h-screen bg-white dark:bg-gray-900 text-black dark:text-white">
@@ -18,6 +27,7 @@ const AppLayout: React.FC<{ children?: React.ReactNode }> = () => {
             <Sidebar
                 isOpen={isMobileMenuOpen}
                 onClose={() => setIsMobileMenuOpen(false)}
+                isMobile={isMobile}
                 navigation={mainNavigation}
             />
 

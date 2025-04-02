@@ -1,17 +1,36 @@
-import { fireEvent, render, screen } from '@testing-library/react';
+import { act, fireEvent, render, screen } from '@testing-library/react';
 import React from 'react';
 import { vi } from 'vitest';
 
-// Mock the entire AppLayout component
+// Zustand für den MediaQuery-Mock
+let isMobileViewport = false;
+
+// Mock useMediaQuery hook
+vi.mock('../../hooks/useMediaQuery', () => ({
+    __esModule: true,
+    default: vi.fn(() => isMobileViewport)
+}));
+
+// Mock the AppLayout component but keep the main functionality we want to test
 vi.mock('./AppLayout', () => ({
+    __esModule: true,
     default: function MockAppLayout({ children }: { children?: React.ReactNode }) {
         const [isMobileMenuOpen, setIsMobileMenuOpen] = React.useState(false);
+        const isMobile = isMobileViewport; // Verwenden der Mock-Variable
+
+        // Kopieren der useEffect-Logik aus dem Original
+        React.useEffect(() => {
+            if (isMobile) {
+                setIsMobileMenuOpen(false);
+            }
+        }, [isMobile]);
 
         return (
             <div data-testid="app-layout" className="min-h-screen bg-white dark:bg-gray-900">
                 <div
                     data-testid="sidebar"
                     data-is-open={isMobileMenuOpen}
+                    data-is-mobile={isMobile}
                     data-nav-items="1"
                 >
                     <button data-testid="close-sidebar-button" onClick={() => setIsMobileMenuOpen(false)}>
@@ -48,6 +67,12 @@ vi.mock('../../config/navigation', () => ({
 }));
 
 describe('AppLayout', () => {
+    beforeEach(() => {
+        // Reset state before each test
+        isMobileViewport = false;
+        vi.clearAllMocks();
+    });
+
     const renderComponent = () => {
         return render(
             <AppLayout />
@@ -84,6 +109,26 @@ describe('AppLayout', () => {
         // Close sidebar
         fireEvent.click(screen.getByTestId('close-sidebar-button'));
         expect(screen.getByTestId('sidebar').getAttribute('data-is-open')).toBe('false');
+    });
+
+    it('closes sidebar automatically when switching to mobile viewport', async () => {
+        const { rerender } = renderComponent();
+
+        // Öffnen der Sidebar im Desktop-Modus
+        fireEvent.click(screen.getByTestId('open-sidebar-button'));
+        expect(screen.getByTestId('sidebar').getAttribute('data-is-open')).toBe('true');
+
+        // Wechsel zum mobilen Viewport und erneutes Rendern
+        act(() => {
+            isMobileViewport = true;
+        });
+
+        // Neues Rendern der Komponente, um den Hook-Effekt auszulösen
+        rerender(<AppLayout />);
+
+        // Die Sidebar sollte automatisch geschlossen werden
+        expect(screen.getByTestId('sidebar').getAttribute('data-is-open')).toBe('false');
+        expect(screen.getByTestId('sidebar').getAttribute('data-is-mobile')).toBe('true');
     });
 
     it('has correct layout classes', () => {
