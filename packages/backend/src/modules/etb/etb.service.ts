@@ -3,6 +3,7 @@ import { BadRequestException, Injectable, NotFoundException } from '@nestjs/comm
 import { InjectRepository } from '@nestjs/typeorm';
 import * as fs from 'fs';
 import * as path from 'path';
+import sanitize from 'sanitize-filename';
 import { Between, FindOptionsWhere, LessThanOrEqual, MoreThanOrEqual, Repository } from 'typeorm';
 import { CreateEtbDto } from './dto/create-etb.dto';
 import { FilterEtbDto } from './dto/filter-etb.dto';
@@ -296,9 +297,14 @@ export class EtbService {
             fs.mkdirSync(uploadDir, { recursive: true });
         }
 
+        // TODO: Dateien sollten nicht direkt hochgeladen werden, stattdessen über minio - und nur vielleicht.
+        //      -> ist eher ein Beispiel, als eine vernünftige Implementierung. || BLH-108
+        // Sanitize den Dateinamen, um Path Traversal Angriffe zu verhindern
+        const sanitizedFilename = sanitize(file.originalname);
+
         // Generiere einen eindeutigen Dateinamen
         const timestamp = Date.now();
-        const uniqueFilename = `${timestamp}-${file.originalname}`;
+        const uniqueFilename = `${timestamp}-${sanitizedFilename}`;
         const filePath = path.join(uploadDir, uniqueFilename);
 
         // Speichere die Datei
@@ -309,7 +315,7 @@ export class EtbService {
         // Erstelle den Datenbankeintrag für die Anlage
         const attachment = this.attachmentRepository.create({
             etbEntryId,
-            dateiname: file.originalname,
+            dateiname: sanitizedFilename,
             dateityp: file.mimetype,
             speicherOrt: `uploads/etb-attachments/${uniqueFilename}`,
             beschreibung,
