@@ -265,7 +265,7 @@ Das ETB (Einsatztagebuch) Module verwaltet alle Einträge und Aktivitäten im Ei
 |Komponente |Verantwortlichkeit
 |etb.controller.ts |REST API für Einsatztagebuchverwaltung
 |etb.service.ts |Geschäftslogik für ETB-Einträge
-|etb-eintrag.entity.ts |Datenmodell für ETB-Einträge
+|etb-eintrag.entity.ts |Datenmodell für ETB-Einträge mit eindeutiger ID, laufender Nummer, Zeitstempeln, Autor-Informationen, Kategorisierung, Beschreibung, Referenzen und Versionierung
 |===
 
 ==== Health Module
@@ -599,6 +599,27 @@ erDiagram
     Einsatz ||--o{ Einsatzort : "findet statt an"
     
     ETBEintrag }o--|| User : "erstellt von"
+    ETBEintrag ||--|{ ETBAnlage : "hat"
+    
+    ETBEintrag {
+        string id PK
+        number laufendeNummer
+        datetime timestampErstellung
+        datetime timestampEreignis
+        string autorId FK
+        string kategorie
+        string beschreibung
+        string referenzEinsatzId FK
+        boolean istAbgeschlossen
+    }
+    
+    ETBAnlage {
+        string id PK
+        string etbEntryId FK
+        string dateiname
+        string dateityp
+        string speicherOrt
+    }
 ....
 
 Das Diagramm zeigt folgende Beziehungen:
@@ -610,6 +631,8 @@ Das Diagramm zeigt folgende Beziehungen:
 * Ein Einsatz findet an einem oder mehreren Einsatzorten statt
 * Ein Einsatz hat mehrere Einsatztagebuch-Einträge (ETBEintrag)
 * Einsatztagebuch-Einträge werden von Benutzern erstellt
+* Einsatztagebuch-Einträge können mehrere Anlagen (ETBAnlage) haben
+* Einsatztagebuch-Einträge haben eine laufende Nummer für chronologische Sortierung und einfache Referenzierung
 
 Dieses Entitätsmodell bildet die Grundlage für:
 

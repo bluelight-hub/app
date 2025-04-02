@@ -1,121 +1,166 @@
-import { useState } from 'react';
-import { JournalEntryDto } from '../../components/organisms/etb/ETBEntryForm';
+import { EtbEntryDto } from '@bluelight-hub/shared/client';
+import { CreateEtbDto } from '@bluelight-hub/shared/client/models/CreateEtbDto';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { api } from '../../api';
+import { logger } from '../../utils/logger';
+
+/**
+ * Query keys für die Einsatztagebuch-Abfragen
+ */
+const ETB_KEYS = {
+    all: ['etb'] as const,
+    entries: () => [...ETB_KEYS.all, 'entries'] as const,
+    entry: (id: string) => [...ETB_KEYS.entries(), id] as const,
+};
 
 /**
  * Hook für die Verwaltung der Einsatztagebuch-Daten
- * Später kann dieser Hook durch einen API-Client ersetzt werden
+ * Verwendet React Query für die Kommunikation mit dem Backend
  */
 export const useEinsatztagebuch = () => {
-    // Mock-Daten als Ausgangspunkt
-    const [einsatztagebuchData, setEinsatztagebuchData] = useState<{
-        data: { items: JournalEntryDto[] };
-    }>({
-        data: {
-            items: [
-                {
-                    id: '1',
-                    nummer: 1,
-                    type: 'USER',
-                    timestamp: new Date(),
-                    sender: 'ELRD',
-                    receiver: 'RTW-1',
-                    content: 'Fahren Sie zum Einsatzort',
-                    archived: false,
-                },
-                {
-                    id: '2',
-                    nummer: 2,
-                    type: 'LAGEMELDUNG',
-                    timestamp: new Date(),
-                    sender: 'RTW-1',
-                    receiver: 'ELRD',
-                    content: 'Am Einsatzort eingetroffen',
-                    archived: false,
-                },
-                {
-                    id: '3',
-                    nummer: 3,
-                    type: 'RESSOURCEN',
-                    timestamp: new Date(),
-                    sender: 'ELRD',
-                    receiver: 'NEF-1',
-                    content: 'Nachforderung eines NEF',
-                    archived: false,
-                },
-            ],
+    const queryClient = useQueryClient();
+
+    /**
+     * Abfrage der Einsatztagebuch-Daten
+     */
+    const {
+        data: entriesData,
+        isLoading,
+        error,
+    } = useQuery({
+        queryKey: ETB_KEYS.entries(),
+        queryFn: async () => {
+            try {
+                const response = await api.etb.etbControllerFindAllV1({}, {
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                });
+                return response.data.entries || [];
+            } catch (err) {
+                logger.error('Fehler beim Abrufen der Einsatztagebuch-Daten:', err);
+                throw err;
+            }
+        },
+        staleTime: 1000 * 60 * 5, // 5 Minuten
+    });
+
+    /**
+     * Mutation zum Archivieren eines Einsatztagebucheintrags
+     */
+    const archiveEinsatztagebuchEintrag = useMutation({
+        mutationFn: async ({ nummer }: { nummer: number }) => {
+            // Finde den Eintrag
+            const entry = entriesData?.find(item => item.laufendeNummer === nummer);
+            if (!entry) {
+                throw new Error(`Eintrag mit Nummer ${nummer} nicht gefunden`);
+            }
+            return api.etb.etbControllerCloseEntryV1({ id: entry.id });
+        },
+        onMutate: async ({ nummer }) => {
+            // Optimistic Update
+            await queryClient.cancelQueries({ queryKey: ETB_KEYS.entries() });
+
+            // Snapshot des vorherigen Zustands
+            const previousEntries = queryClient.getQueryData<EtbEntryDto[]>(ETB_KEYS.entries());
+
+            // Optimistic update
+            queryClient.setQueryData<EtbEntryDto[]>(ETB_KEYS.entries(), old => {
+                if (!old) return [];
+                return old.map((item) =>
+                    item.laufendeNummer === nummer ? { ...item, istAbgeschlossen: true } : item
+                );
+            });
+
+            return { previousEntries };
+        },
+        onError: (err, _, context) => {
+            logger.error('Fehler beim Archivieren des Eintrags:', err);
+            // Zurücksetzen bei Fehler
+            if (context?.previousEntries) {
+                queryClient.setQueryData(ETB_KEYS.entries(), context.previousEntries);
+            }
+        },
+        onSettled: () => {
+            // Cache nach Abschluss aktualisieren
+            queryClient.invalidateQueries({ queryKey: ETB_KEYS.entries() });
         },
     });
 
     /**
-     * Archiviert einen Einsatztagebucheintrag
+     * Mutation zum Erstellen eines neuen Einsatztagebucheintrags
      */
-    const archiveEinsatztagebuchEintrag = {
-        mutate: ({ nummer }: { nummer: number }) => {
-            setEinsatztagebuchData((prev) => ({
-                data: {
-                    items: prev.data.items.map((item) =>
-                        item.nummer === nummer ? { ...item, archived: true } : item
-                    ),
-                },
-            }));
-        },
-        mutateAsync: ({ nummer }: { nummer: number }) =>
-            new Promise<void>((resolve) => {
-                setEinsatztagebuchData((prev) => ({
-                    data: {
-                        items: prev.data.items.map((item) =>
-                            item.nummer === nummer ? { ...item, archived: true } : item
-                        ),
-                    },
-                }));
-                resolve();
-            }),
-    };
+    const createEinsatztagebuchEintrag = useMutation({
+        mutationKey: ['createEinsatztagebuchEintrag'],
+        mutationFn: async (newEntry: Partial<EtbEntryDto>) => {
+            // API-Aufruf vorbereiten
+            const createDto: CreateEtbDto = {
+                timestampEreignis: new Date().toISOString(),
+                kategorie: newEntry.kategorie || 'USER',
+                beschreibung: newEntry.beschreibung || '',
+                titel: `${newEntry.autorName} -> ${newEntry.abgeschlossenVon}`,
+            };
 
-    /**
-     * Erstellt einen neuen Einsatztagebucheintrag
-     */
-    const createEinsatztagebuchEintrag = {
-        mutate: (newEntry: Partial<JournalEntryDto>) => {
-            setEinsatztagebuchData((prev) => ({
-                data: {
-                    items: [
-                        ...prev.data.items,
-                        {
-                            ...newEntry,
-                            id: Math.random().toString(),
-                            nummer: prev.data.items.length + 1,
-                            timestamp: new Date(),
-                            archived: false,
-                            type: newEntry.type || 'USER',
-                        } as JournalEntryDto,
-                    ],
-                },
-            }));
+            return api.etb.etbControllerCreateV1({ createEtbDto: createDto });
         },
-        mutateAsync: (newEntry: Partial<JournalEntryDto>) =>
-            new Promise<void>((resolve) => {
-                setEinsatztagebuchData((prev) => ({
-                    data: {
-                        items: [
-                            ...prev.data.items,
-                            {
-                                ...newEntry,
-                                id: Math.random().toString(),
-                                nummer: prev.data.items.length + 1,
-                                timestamp: new Date(),
-                                archived: false,
-                                type: newEntry.type || 'USER',
-                            } as JournalEntryDto,
-                        ],
-                    },
-                }));
-                resolve();
-            }),
-    };
+        onMutate: async (newEntry) => {
+            // Optimistic Update
+            await queryClient.cancelQueries({ queryKey: ETB_KEYS.entries() });
+
+            // Snapshot des vorherigen Zustands
+            const previousEntries = queryClient.getQueryData<EtbEntryDto[]>(ETB_KEYS.entries());
+
+            // Temporärer Eintrag für optimistic update
+            const tempId = `temp-${Math.random().toString(36).substring(2, 11)}`;
+            const tempEntry: EtbEntryDto = {
+                id: tempId,
+                laufendeNummer: (previousEntries?.length || 0) + 1,
+                timestampErstellung: new Date(),
+                timestampEreignis: new Date(),
+                autorId: newEntry.autorId || '',
+                kategorie: newEntry.kategorie || 'USER',
+                beschreibung: newEntry.beschreibung || '',
+                titel: `${newEntry.autorName} -> ${newEntry.abgeschlossenVon}`,
+                autorName: `${newEntry.autorName} -> ${newEntry.abgeschlossenVon}`,
+                autorRolle: null,
+                referenzEinsatzId: null,
+                referenzPatientId: null,
+                referenzEinsatzmittelId: null,
+                systemQuelle: null,
+                version: 0,
+                istAbgeschlossen: false,
+                timestampAbschluss: null,
+                abgeschlossenVon: null
+            };
+
+            // Optimistic update
+            queryClient.setQueryData<EtbEntryDto[]>(ETB_KEYS.entries(), old => {
+                if (!old) return [tempEntry];
+                return [...old, tempEntry];
+            });
+
+            return { previousEntries, tempId };
+        },
+        onError: (err, _, context) => {
+            logger.error('Fehler beim Erstellen des Eintrags:', err);
+            // Zurücksetzen bei Fehler
+            if (context?.previousEntries) {
+                queryClient.setQueryData(ETB_KEYS.entries(), context.previousEntries);
+            }
+        },
+        onSettled: () => {
+            // Cache nach Abschluss aktualisieren
+            queryClient.invalidateQueries({ queryKey: ETB_KEYS.entries() });
+        },
+    });
 
     return {
-        einsatztagebuch: einsatztagebuchData,
+        einsatztagebuch: {
+            data: { items: entriesData || [] },
+            isLoading,
+            error,
+            refetch: () => queryClient.invalidateQueries({ queryKey: ETB_KEYS.entries() }),
+        },
         archiveEinsatztagebuchEintrag,
         createEinsatztagebuchEintrag,
     };

@@ -1,9 +1,9 @@
+import { EtbEntryDto } from '@bluelight-hub/shared/client/models/EtbEntryDto';
 import { Button, Empty, Input, InputRef, Space, Table, TableColumnsType, TableColumnType, Tooltip } from 'antd';
 import { format } from 'date-fns';
 import dayjs from 'dayjs';
 import React, { useCallback, useMemo, useRef } from 'react';
 import { PiAmbulance, PiEmpty, PiMagnifyingGlass, PiPencil, PiPictureInPicture, PiPlus, PiSwap, PiTextStrikethrough, PiUser } from 'react-icons/pi';
-import { JournalEntryDto } from './ETBEntryForm';
 
 // Mock für natoDateTime
 const natoDateTime = 'dd.MM.yyyy HH:mm';
@@ -24,12 +24,12 @@ interface ETBTableProps {
     /**
      * Die anzuzeigenden Einsatztagebuch-Einträge
      */
-    entries: JournalEntryDto[];
+    entries: EtbEntryDto[];
 
     /**
      * Callback für das Bearbeiten eines Eintrags
      */
-    onEditEntry?: (entry: JournalEntryDto) => void;
+    onEditEntry?: (entry: EtbEntryDto) => void;
 
     /**
      * Callback für das Archivieren eines Eintrags
@@ -69,7 +69,7 @@ export const ETBTable: React.FC<ETBTableProps> = ({
     /**
      * Konfiguration für die Suchfunktion in Tabellenspalten
      */
-    const getColumnSearchProps = (dataIndex: keyof JournalEntryDto): TableColumnType<JournalEntryDto> => ({
+    const getColumnSearchProps = (dataIndex: keyof EtbEntryDto): TableColumnType<EtbEntryDto> => ({
         filterDropdown: ({ setSelectedKeys, selectedKeys, confirm, close }) => (
             <div style={{ padding: 8 }} onKeyDown={(e) => e.stopPropagation()}>
                 <Input
@@ -101,7 +101,7 @@ export const ETBTable: React.FC<ETBTableProps> = ({
     /**
      * Callback für das Bearbeiten eines Eintrags
      */
-    const modifyEntry = useCallback((entry: JournalEntryDto) => {
+    const modifyEntry = useCallback((entry: EtbEntryDto) => {
         if (onEditEntry) {
             onEditEntry(entry);
         }
@@ -110,7 +110,7 @@ export const ETBTable: React.FC<ETBTableProps> = ({
     /**
      * Definition der Tabellenspalten
      */
-    const columns = useMemo<TableColumnsType<JournalEntryDto>>(() => {
+    const columns = useMemo<TableColumnsType<EtbEntryDto>>(() => {
         // Beispiel: rufnahmeFilter
         const fahrzeugTypen = fahrzeugeImEinsatz.reduce(
             (acc: Record<string, { text: string; value: string }[]>, e: FahrzeugMock) => {
@@ -133,15 +133,15 @@ export const ETBTable: React.FC<ETBTableProps> = ({
         return [
             {
                 title: '#',
-                dataIndex: 'nummer',
-                key: 'nummer',
+                dataIndex: 'laufendeNummer',
+                key: 'laufendeNummer',
                 width: 80,
-                sorter: (a, b) => a.nummer - b.nummer,
+                sorter: (a, b) => a.laufendeNummer - b.laufendeNummer,
             },
             {
                 title: 'Typ',
-                dataIndex: 'type',
-                key: 'type',
+                dataIndex: 'kategorie',
+                key: 'kategorie',
                 width: 60,
                 filters: [
                     { text: 'Meldung', value: 'USER' },
@@ -166,53 +166,53 @@ export const ETBTable: React.FC<ETBTableProps> = ({
                             return value;
                     }
                 },
-                onFilter: (value, record) => record.type === value,
+                onFilter: (value, record) => record.kategorie === value,
             },
             {
                 title: 'Zeitpunkt',
-                key: 'timestamp',
+                key: 'timestampEreignis',
                 width: 200,
                 render: (_, record) => {
-                    const timestampAsNato = format(record.timestamp, natoDateTime);
+                    const timestampAsNato = format(record.timestampEreignis, natoDateTime);
                     return <span>{timestampAsNato}</span>;
                 },
-                sorter: (a, b) => dayjs(a.timestamp).diff(dayjs(b.timestamp)),
+                sorter: (a, b) => dayjs(a.timestampEreignis).diff(dayjs(b.timestampEreignis)),
                 sortDirections: ['ascend', 'descend'],
             },
             {
                 title: 'Absender',
-                dataIndex: 'sender',
-                key: 'sender',
+                dataIndex: 'autorName',
+                key: 'autorName',
                 width: 120,
                 filters: rufnahmeFilter,
-                onFilter: (value, record) => record.sender === value,
+                onFilter: (value, record) => record.autorName === value,
             },
             {
                 title: 'Empfänger',
-                dataIndex: 'receiver',
-                key: 'receiver',
+                dataIndex: 'abgeschlossenVon',
+                key: 'abgeschlossenVon',
                 width: 120,
                 filters: rufnahmeFilter,
-                onFilter: (value, record) => record.receiver === value,
+                onFilter: (value, record) => record.abgeschlossenVon === value,
             },
             {
                 title: 'Inhalt',
-                dataIndex: 'content',
-                key: 'content',
+                dataIndex: 'beschreibung',
+                key: 'beschreibung',
                 width: 500,
-                ...getColumnSearchProps('content'),
+                ...getColumnSearchProps('beschreibung'),
             },
             {
                 render: (_, record) => (
                     <div className="flex gap-2">
-                        {!record.archived && (
+                        {!record.istAbgeschlossen && (
                             <>
                                 <Tooltip title="Eintrag überschreiben">
                                     <Button onClick={() => !isEditing && modifyEntry(record)} type="dashed" shape="circle" icon={<PiSwap />} />
                                 </Tooltip>
                                 <Tooltip title="Eintrag streichen">
                                     <Button
-                                        onClick={() => onArchiveEntry && onArchiveEntry(record.nummer)}
+                                        onClick={() => onArchiveEntry && onArchiveEntry(record.laufendeNummer)}
                                         type="default"
                                         danger
                                         shape="circle"

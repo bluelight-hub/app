@@ -42,6 +42,20 @@ export class EtbService {
     ) { }
 
     /**
+     * Generiert die nächste verfügbare laufende Nummer für ETB-Einträge
+     * 
+     * @returns Die nächste verfügbare laufende Nummer
+     */
+    private async getNextLaufendeNummer(): Promise<number> {
+        const result = await this.etbRepository
+            .createQueryBuilder('etbEntry')
+            .select('MAX(etbEntry.laufendeNummer)', 'maxNumber')
+            .getRawOne();
+
+        return (result.maxNumber || 0) + 1;
+    }
+
+    /**
      * Erstellt einen neuen ETB-Eintrag
      * 
      * @param createEtbDto DTO mit den Daten für den neuen Eintrag
@@ -67,6 +81,7 @@ export class EtbService {
             autorRolle: userRole,
             version: 1,
             istAbgeschlossen: false,
+            laufendeNummer: await this.getNextLaufendeNummer(),
         });
 
         return this.etbRepository.save(etbEntry);
@@ -102,6 +117,7 @@ export class EtbService {
             systemQuelle,
             version: 1,
             istAbgeschlossen: false,
+            laufendeNummer: await this.getNextLaufendeNummer(),
         });
 
         return this.etbRepository.save(etbEntry);

@@ -1,6 +1,4 @@
 import { Configuration } from "@bluelight-hub/shared/client";
-import { isTauri } from "@tauri-apps/api/core";
-import { fetch as tauriFetch } from "@tauri-apps/plugin-http";
 import { logger } from "./logger";
 
 // Determine the base URL based on the environment
@@ -22,24 +20,14 @@ export const getBaseUrl = (): string => {
 };
 
 // Custom fetch implementation that handles Tauri specifics
-const customFetch = async (
-  url: string,
-  init: RequestInit
-): Promise<Response> => {
-  try {
-    if (isTauri()) {
-      return await tauriFetch(url, init);
-    } else {
-      // In browser, use standard fetch
-      return await fetch(url, init);
-    }
-  } catch (error) {
-    logger.error("Fetch error", { url, error });
-    throw error;
-  }
-};
+// const customFetch = async (
+//   url: string,
+//   init: RequestInit
+// ): Promise<Response> => {
+//   return await tauriFetch(url, init);
+// };
 
 export const apiConfiguration = new Configuration({
   basePath: getBaseUrl(),
-  fetchApi: customFetch,
+  fetchApi: fetch,
 });

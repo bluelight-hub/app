@@ -1,7 +1,7 @@
+import { EtbEntryDto } from '@bluelight-hub/shared/client/models/EtbEntryDto';
 import { Button, Input } from 'antd';
 import React, { useState } from 'react';
 import { PiPlus, PiSwap, PiX } from 'react-icons/pi';
-
 /**
  * Input-Wrapper-Komponente für Formular-Felder
  */
@@ -102,29 +102,11 @@ function FormLayout<T extends object>({
 }
 
 /**
- * Journal-Eintrag-Datentransfer-Objekt
+ * Datenstruktur für das ETB-Eintragsformular
+ * 
+ * Diese Schnittstelle enthält die Daten, die im Formular bearbeitet werden.
  */
-export interface JournalEntryDto {
-    /**
-     * Eindeutige ID des Eintrags
-     */
-    id: string;
-
-    /**
-     * Nummer des Eintrags
-     */
-    nummer: number;
-
-    /**
-     * Typ des Eintrags
-     */
-    type: 'USER' | 'LAGEMELDUNG' | 'RESSOURCEN' | 'BETROFFENE_PATIENTEN' | 'KORREKTUR';
-
-    /**
-     * Zeitstempel des Eintrags
-     */
-    timestamp: Date;
-
+export interface ETBEntryFormData {
     /**
      * Absender des Eintrags
      */
@@ -141,9 +123,9 @@ export interface JournalEntryDto {
     content: string;
 
     /**
-     * Gibt an, ob der Eintrag archiviert ist
+     * Eindeutige ID des Eintrags (optional)
      */
-    archived: boolean;
+    id?: string;
 }
 
 /**
@@ -153,12 +135,12 @@ interface ETBEntryFormProps {
     /**
      * Entry to edit, if in edit mode
      */
-    editingEntry?: JournalEntryDto | null;
+    editingEntry?: EtbEntryDto | null;
 
     /**
      * Callback für das erfolgreiche Absenden des Formulars
      */
-    onSubmitSuccess?: (data: Partial<JournalEntryDto>) => void;
+    onSubmitSuccess?: (data: Partial<ETBEntryFormData>) => void;
 
     /**
      * Callback für das Abbrechen des Formulars
@@ -180,16 +162,16 @@ export const ETBEntryForm: React.FC<ETBEntryFormProps> = ({
     onCancel,
     isEditMode = false,
 }) => {
-    const [formData, setFormData] = useState<Partial<JournalEntryDto>>({
-        sender: editingEntry?.sender || '',
-        receiver: editingEntry?.receiver || '',
-        content: editingEntry?.content || '',
+    const [formData, setFormData] = useState<Partial<ETBEntryFormData>>({
+        sender: editingEntry?.autorName || '',
+        receiver: editingEntry?.abgeschlossenVon || '',
+        content: editingEntry?.beschreibung || '',
     });
 
     /**
      * Aktualisiert die Formulardaten
      */
-    const handleChange = (field: keyof JournalEntryDto, value: string) => {
+    const handleChange = (field: keyof ETBEntryFormData, value: string) => {
         setFormData(prev => ({
             ...prev,
             [field]: value
@@ -206,7 +188,7 @@ export const ETBEntryForm: React.FC<ETBEntryFormProps> = ({
     };
 
     return (
-        <FormLayout<JournalEntryDto>
+        <FormLayout<ETBEntryFormData>
             form={{
                 initialValues: formData,
                 onFinish: handleFormSubmit,

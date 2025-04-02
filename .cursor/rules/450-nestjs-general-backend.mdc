@@ -84,6 +84,12 @@ alwaysApply: false
     - Deprecation-Hinweise vor Breaking Changes
     - Dokumentation von Breaking Changes
 
+13. **Entity-DTO-Konvertierung**
+    - Entities nie direkt in Responses zurückgeben
+    - Stets DTOs für API-Schnittstellen verwenden
+    - Mapper-Klassen für Entity-zu-DTO-Konvertierung implementieren
+    - Konvertierungslogik von Controller und Service trennen
+
 ## Examples
 
 ```typescript
@@ -291,6 +297,49 @@ export class UserController {
 ```
 
 ```typescript
+// Gutes Beispiel: Entity zu DTO Mapper
+// src/users/mappers/user.mapper.ts
+import { Injectable } from '@nestjs/common';
+import { UserEntity } from '../entities/user.entity';
+import { UserResponseDto } from '../dtos/user-response.dto';
+
+@Injectable()
+export class UserMapper {
+  /**
+   * Konvertiert eine UserEntity in ein UserResponseDto
+   * 
+   * @param entity Die zu konvertierende Entity
+   * @returns Das konvertierte DTO
+   */
+  toDto(entity: UserEntity): UserResponseDto {
+    const dto = new UserResponseDto();
+    dto.id = entity.id;
+    dto.email = entity.email;
+    dto.firstName = entity.firstName;
+    dto.lastName = entity.lastName;
+    dto.role = entity.role;
+    dto.createdAt = entity.createdAt;
+    dto.updatedAt = entity.updatedAt;
+    
+    // Sensible Daten ausschließen
+    // dto.password wird nicht kopiert
+    
+    return dto;
+  }
+
+  /**
+   * Konvertiert mehrere UserEntities in UserResponseDtos
+   * 
+   * @param entities Die zu konvertierenden Entities
+   * @returns Array von konvertierten DTOs
+   */
+  toDtoList(entities: UserEntity[]): UserResponseDto[] {
+    return entities.map(entity => this.toDto(entity));
+  }
+}
+```
+
+```typescript
 // Schlechtes Beispiel
 // Alles in einer Datei, keine Trennung von Zuständigkeiten
 import { Controller, Get, Post, Injectable } from '@nestjs/common';
@@ -316,5 +365,4 @@ export class AccountsCtrl {
     const account = { name: data.name, active: true };
     return this.connection.manager.save('Account', account);
   }
-}
-``` 
+} 

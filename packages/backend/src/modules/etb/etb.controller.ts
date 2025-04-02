@@ -1,3 +1,4 @@
+import { TransformInterceptor } from '@/common/interceptors/transform.interceptor';
 import { logger } from '@/logger/consola.logger';
 import {
     BadRequestException,
@@ -18,13 +19,23 @@ import {
     ApiBearerAuth,
     ApiBody,
     ApiConsumes,
+    ApiOkResponse,
     ApiOperation,
     ApiResponse,
     ApiTags,
 } from '@nestjs/swagger';
+import { plainToInstance } from 'class-transformer';
 import { Request } from 'express';
 import { AddAttachmentDto } from './dto/add-attachment.dto';
 import { CreateEtbDto } from './dto/create-etb.dto';
+import {
+    EtbAttachmentResponse,
+    EtbAttachmentsResponse,
+    EtbEntriesData,
+    EtbEntriesResponse,
+    EtbEntryDto,
+    EtbEntryResponse
+} from './dto/etb-entry-response.dto';
 import { FilterEtbDto } from './dto/filter-etb.dto';
 import { UpdateEtbDto } from './dto/update-etb.dto';
 import { EtbAttachment } from './entities/etb-attachment.entity';
@@ -47,6 +58,7 @@ interface RequestWithUser extends Request {
 @ApiTags('Einsatztagebuch')
 @ApiBearerAuth()
 @Controller('etb')
+    @UseInterceptors(TransformInterceptor)
 export class EtbController {
     /**
      * Konstruktor für den EtbController
@@ -66,7 +78,7 @@ export class EtbController {
      */
     @Post()
     @ApiOperation({ summary: 'Erstellt einen neuen ETB-Eintrag' })
-    @ApiResponse({ status: 201, description: 'ETB-Eintrag wurde erstellt', type: EtbEntry })
+    @ApiResponse({ status: 201, description: 'ETB-Eintrag wurde erstellt', type: EtbEntryResponse })
     @ApiResponse({ status: 400, description: 'Ungültige Eingabedaten' })
     async create(@Body() createEtbDto: CreateEtbDto, @Req() req: RequestWithUser): Promise<EtbEntry> {
         // Hier würden normalerweise Benutzerinformationen aus dem Token extrahiert
@@ -87,11 +99,18 @@ export class EtbController {
      */
     @Get()
     @ApiOperation({ summary: 'Findet alle ETB-Einträge mit optionaler Filterung' })
-    @ApiResponse({ status: 200, description: 'Liste von ETB-Einträgen', type: [EtbEntry] })
-    async findAll(@Query() filterDto: FilterEtbDto): Promise<{ entries: EtbEntry[]; total: number }> {
+    @ApiOkResponse({
+        description: 'Liste von ETB-Einträgen',
+        type: EtbEntriesResponse
+    })
+    async findAll(@Query() filterDto: FilterEtbDto): Promise<EtbEntriesData> {
         logger.info(`HTTP GET /etb - Abruf von ETB-Einträgen mit Filtern`);
         const [entries, total] = await this.etbService.findAll(filterDto);
-        return { entries, total };
+
+        // Mapping von EtbEntry zu EtbEntryDto
+        const mappedEntries = plainToInstance(EtbEntryDto, entries);
+
+        return { entries: mappedEntries, total };
     }
 
     /**
@@ -102,7 +121,10 @@ export class EtbController {
      */
     @Get(':id')
     @ApiOperation({ summary: 'Findet einen ETB-Eintrag anhand seiner ID' })
-    @ApiResponse({ status: 200, description: 'ETB-Eintrag gefunden', type: EtbEntry })
+    @ApiOkResponse({
+        description: 'ETB-Eintrag gefunden',
+        type: EtbEntryResponse
+    })
     @ApiResponse({ status: 404, description: 'ETB-Eintrag nicht gefunden' })
     async findOne(@Param('id', ParseUUIDPipe) id: string): Promise<EtbEntry> {
         logger.info(`HTTP GET /etb/${id} - Abruf eines spezifischen ETB-Eintrags`);
@@ -118,7 +140,10 @@ export class EtbController {
      */
     @Patch(':id')
     @ApiOperation({ summary: 'Aktualisiert einen ETB-Eintrag' })
-    @ApiResponse({ status: 200, description: 'ETB-Eintrag aktualisiert', type: EtbEntry })
+    @ApiOkResponse({
+        description: 'ETB-Eintrag aktualisiert',
+        type: EtbEntryResponse
+    })
     @ApiResponse({ status: 400, description: 'Ungültige Eingabedaten oder Eintrag bereits abgeschlossen' })
     @ApiResponse({ status: 404, description: 'ETB-Eintrag nicht gefunden' })
     async update(
@@ -138,7 +163,10 @@ export class EtbController {
      */
     @Patch(':id/schliessen')
     @ApiOperation({ summary: 'Schließt einen ETB-Eintrag ab' })
-    @ApiResponse({ status: 200, description: 'ETB-Eintrag abgeschlossen', type: EtbEntry })
+    @ApiOkResponse({
+        description: 'ETB-Eintrag abgeschlossen',
+        type: EtbEntryResponse
+    })
     @ApiResponse({ status: 400, description: 'Eintrag bereits abgeschlossen' })
     @ApiResponse({ status: 404, description: 'ETB-Eintrag nicht gefunden' })
     async closeEntry(
@@ -166,7 +194,11 @@ export class EtbController {
         description: 'Datei und optionale Beschreibung',
         type: AddAttachmentDto,
     })
-    @ApiResponse({ status: 201, description: 'Anlage hinzugefügt', type: EtbAttachment })
+    @ApiResponse({
+        status: 201,
+        description: 'Anlage hinzugefügt',
+        type: EtbAttachmentResponse
+    })
     @ApiResponse({ status: 400, description: 'Ungültige Eingabedaten oder Eintrag bereits abgeschlossen' })
     @ApiResponse({ status: 404, description: 'ETB-Eintrag nicht gefunden' })
     @UseInterceptors(FileInterceptor('file'))
@@ -192,7 +224,10 @@ export class EtbController {
      */
     @Get(':id/anlagen')
     @ApiOperation({ summary: 'Findet alle Anlagen zu einem ETB-Eintrag' })
-    @ApiResponse({ status: 200, description: 'Liste von Anlagen', type: [EtbAttachment] })
+    @ApiOkResponse({
+        description: 'Liste von Anlagen',
+        type: EtbAttachmentsResponse
+    })
     @ApiResponse({ status: 404, description: 'ETB-Eintrag nicht gefunden' })
     async findAttachments(@Param('id', ParseUUIDPipe) id: string): Promise<EtbAttachment[]> {
         // Prüfe, ob der ETB-Eintrag existiert
@@ -210,7 +245,10 @@ export class EtbController {
      */
     @Get('anlage/:id')
     @ApiOperation({ summary: 'Findet eine Anlage anhand ihrer ID' })
-    @ApiResponse({ status: 200, description: 'Anlage gefunden', type: EtbAttachment })
+    @ApiOkResponse({
+        description: 'Anlage gefunden',
+        type: EtbAttachmentResponse
+    })
     @ApiResponse({ status: 404, description: 'Anlage nicht gefunden' })
     async findAttachment(@Param('id', ParseUUIDPipe) id: string): Promise<EtbAttachment> {
         logger.info(`HTTP GET /etb/anlage/${id} - Abruf einer spezifischen Anlage`);

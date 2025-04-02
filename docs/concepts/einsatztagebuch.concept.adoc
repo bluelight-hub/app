@@ -43,6 +43,7 @@ Damit Du das Einsatztagebuch strukturiert abbilden kannst, solltest Du Dir ein D
 
 === Allgemeine Metadaten
 * ETB-Eintrag-ID (eindeutige Kennung, z. B. UUID)
+* Laufende Nummer (fortlaufende Nummerierung für chronologische Sortierung und einfache Referenzierung)
 * Erstelldatum/-uhrzeit (Timestamp)
 * Autor (Person, die den Eintrag macht: Name, ID, Rolle/Stabsfunktion)
 * Zugehörige Einheit (optional, z. B. Ortsverband, San-Gruppe o. ä.)
@@ -54,7 +55,7 @@ Damit Du das Einsatztagebuch strukturiert abbilden kannst, solltest Du Dir ein D
 === Kategorisierung
 * Eintragsart (z. B. Meldung, Befehl, Lageeinschätzung, Radiokommunikation, Patientenmaßnahme, Materialanfrage, sonstige Information usw.)
 * Dringlichkeit/Priorität (optional, wenn eine Priorisierung notwendig ist)
-* Status (nur relevant, solange das ETB noch offen ist, z. B. „Entwurf" → „Bestätigt" → „Gesperrt")
+* Status (nur relevant, solange das ETB noch offen ist, z. B. "Entwurf" → "Bestätigt" → "Gesperrt")
 
 === Inhalt
 * Kurzbeschreibung / Titel (optionaler kurzer Betreff, hilft bei der Übersicht)
@@ -64,14 +65,14 @@ Damit Du das Einsatztagebuch strukturiert abbilden kannst, solltest Du Dir ein D
 * Bezug zum Einsatz (Einsatz-ID oder Einsatzbezeichnung, falls mehrere Einsätze parallel laufen)
 
 === Verknüpfungen und Anhänge
-* Anlagen (Upload von Dokumenten, Bildern, PDF-Dateien etc. mit Verweis „Anlage zum ETB vom…")
-* Verweis auf andere Einträge (z. B. „Fortsetzung von Eintrag #45" oder Verweis auf Befehle, die diesen Eintrag ausgelöst haben)
+* Anlagen (Upload von Dokumenten, Bildern, PDF-Dateien etc. mit Verweis "Anlage zum ETB vom...")
+* Verweis auf andere Einträge (z. B. "Fortsetzung von Eintrag #45" oder Verweis auf Befehle, die diesen Eintrag ausgelöst haben)
 
 === Automatisierungsinformationen
 _Optional, wenn automatische Einträge erstellt werden_
 
 * Systemquelle (z. B. TMS, Einsatzleitsoftware, Funkbuch-Schnittstelle)
-* Automatisierter Prozess (z. B. „Patient angelegt", „Status Wechsel [RTW 1: Abfahrt]")
+* Automatisierter Prozess (z. B. "Patient angelegt", "Status Wechsel [RTW 1: Abfahrt]")
 * Zusätzliche Felder abhängig vom jeweiligen Ereignistyp (z. B. Sprechfunkkanal, GPS-Position, wer die Meldung abgesetzt hat, etc.)
 
 === Änderungs- und Abschlussinformationen
@@ -84,11 +85,11 @@ _Optional, wenn automatische Einträge erstellt werden_
 
 === Chronologische Liste vs. Kategorisierte Sichten
 * Chronologische Hauptansicht: Alle Einträge werden in zeitlicher Reihenfolge aufgelistet. Diese Ansicht ist der Kern des Einsatztagebuchs.
-* Filter-/Suchfunktionen: Nutzer können nach Kategorien (z. B. „Befehl", „Patient", „Funkverkehr"), Zeiträumen oder einzelnen Einsatzkräften filtern.
+* Filter-/Suchfunktionen: Nutzer können nach Kategorien (z. B. "Befehl", "Patient", "Funkverkehr"), Zeiträumen oder einzelnen Einsatzkräften filtern.
 * Detailansicht: Klickt man auf einen Eintrag, sieht man alle Felder (Beschreibung, Autor, Anhänge, beteiligte Personen etc.).
 
 === Automatische Einträge
-* Ereignisse wie „Einsatzmittel X ist ausgerückt", „Patient Y wurde angelegt", „Lagemeldung geändert" können direkt und automatisch als ETB-Eintrag erzeugt werden.
+* Ereignisse wie "Einsatzmittel X ist ausgerückt", "Patient Y wurde angelegt", "Lagemeldung geändert" können direkt und automatisch als ETB-Eintrag erzeugt werden.
 * Diese Einträge haben in der Regel ein Standardformat (z. B. feste Vorlagen, die nur dynamische Felder wie Zeit und Beteiligte füllen).
 
 === Manuelle Einträge
@@ -97,7 +98,7 @@ _Optional, wenn automatische Einträge erstellt werden_
 
 === Abschluss des Einsatztagebuches
 * Ist ein Einsatz beendet, werden alle offenen Einträge finalisiert.
-* Nachträgliche Änderungen sind technisch unterbunden. Ein Sperrvermerk („ETB abgeschlossen am…") wird angezeigt.
+* Nachträgliche Änderungen sind technisch unterbunden. Ein Sperrvermerk ("ETB abgeschlossen am...") wird angezeigt.
 * Für etwaige Korrekturen während eines laufenden Einsatzes kann man eine Versionierung oder ein revisionssicheres Änderungsprotokoll hinterlegen.
 * Anschließend kann ein PDF-Export generiert werden.
 
@@ -119,6 +120,7 @@ _Optional, wenn automatische Einträge erstellt werden_
 ----
 interface EinsatztagebuchEintrag {
   id: string;                // z. B. UUID
+  laufendeNummer: number;    // Fortlaufende Nummer für ETB-Einträge
   timestampErstellung: Date; // Zeitpunkt der Eintragserstellung
   timestampEreignis: Date;   // Zeitpunkt, an dem das Ereignis stattfand
   autor: {
@@ -157,7 +159,7 @@ interface Anlage {
 == Tipps für die Implementierung in Deiner Anwendung
 
 === UI/UX
-* Schnelleingabe-Funktion für manuelle Einträge: z. B. ein Button „Neuer Eintrag", der ein Modal öffnet.
+* Schnelleingabe-Funktion für manuelle Einträge: z. B. ein Button "Neuer Eintrag", der ein Modal öffnet.
 * Listen- und Detailansicht in einer übersichtlichen Oberfläche (z. B. React mit Ant Design oder Tailwind)
 * Mögliche Darstellung als Timeline (um den zeitlichen Ablauf optisch ansprechend zu zeigen).
 
@@ -179,7 +181,7 @@ interface Anlage {
 * Sperren der Daten in der Datenbank.
 
 === Revisionssicherheit
-* Wenn Du Änderungen im laufenden Betrieb zulassen musst (z. B. Korrektur eines Tippfehlers), dann versioniere den Eintrag oder erstelle automatisierte „Änderungshistorien".
+* Wenn Du Änderungen im laufenden Betrieb zulassen musst (z. B. Korrektur eines Tippfehlers), dann versioniere den Eintrag oder erstelle automatisierte "Änderungshistorien".
 * Nach Abschluss eines Einsatztagebuchs keine Änderungen mehr zulassen.
 
 === Langzeitarchivierung

@@ -124,6 +124,7 @@ Bei anhaltenden Verbindungsproblemen: Fallback auf alternative Kommunikationsweg
 |===
 |ID |Beschreibung |Priorität |Maßnahmen
 |TS-4 |Vorläufiger Authentifizierungsmechanismus ohne vollständige Unterstützung für Authentifizierung in allen Konnektivitätsszenarien |Hoch |Implementierung einer sicheren Authentifizierungslösung für lokale Verbindung, vollständige Verbindung und zukünftig autonomen Modus
+|TS-5 |Ersetzung von `tauriFetch` durch `fetch` in der Frontend-API-Konfiguration als temporäre Lösung |Mittel |Implementierung einer korrekten Tauri-spezifischen Fetch-Implementierung für die Desktop-App, die mit dem API-Client kompatibel ist
 |===
 
 ==== Umgang mit technischen Schulden

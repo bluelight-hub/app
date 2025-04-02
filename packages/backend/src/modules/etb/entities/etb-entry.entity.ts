@@ -13,6 +13,12 @@ export class EtbEntry {
     id: string;
 
     /**
+     * Fortlaufende Nummer des Eintrags
+     */
+    @Column({ nullable: false })
+    laufendeNummer: number;
+
+    /**
      * Zeitpunkt der Erstellung des Eintrags
      */
     @Column({ type: 'datetime' })

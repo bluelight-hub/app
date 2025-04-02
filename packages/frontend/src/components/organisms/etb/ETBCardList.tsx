@@ -1,11 +1,25 @@
+import { EtbEntryDto } from '@bluelight-hub/shared/client';
 import { Button, Empty, Tooltip } from 'antd';
 import { format } from 'date-fns';
 import React from 'react';
 import { PiEmpty, PiSwap, PiTextStrikethrough } from 'react-icons/pi';
-import { JournalEntryDto } from './ETBEntryForm';
 
 // Mock für natoDateTime
 const natoDateTime = 'dd.MM.yyyy HH:mm';
+
+/**
+ * Internes Hilfs-Interface für Typannotationen
+ * @private
+ */
+type ETBEntryFields = {
+    nummer?: number;
+    type?: string;
+    timestamp?: Date;
+    content?: string;
+    sender?: string;
+    receiver?: string;
+    archived?: boolean;
+};
 
 /**
  * Props für die ETBCardList-Komponente
@@ -14,12 +28,12 @@ interface ETBCardListProps {
     /**
      * Die anzuzeigenden Einsatztagebuch-Einträge
      */
-    entries: JournalEntryDto[];
+    entries: EtbEntryDto[];
 
     /**
      * Callback für das Bearbeiten eines Eintrags
      */
-    onEditEntry?: (entry: JournalEntryDto) => void;
+    onEditEntry?: (entry: EtbEntryDto) => void;
 
     /**
      * Callback für das Archivieren eines Eintrags
@@ -42,19 +56,38 @@ export const ETBCardList: React.FC<ETBCardListProps> = ({
     return (
         <div className="flex flex-col gap-4">
             {entries.map((item) => {
-                const timestampAsNato = format(item.timestamp, natoDateTime);
+                // Sichere Typzugriffe mit optionalem Chaining und Fallbacks
+                const entryWithFields = item as EtbEntryDto & ETBEntryFields;
+                const entryId = item.id || `entry-${Math.random()}`;
+                const entryNumber = entryWithFields.nummer ?? "-";
+                const entryType = entryWithFields.type ?? "Standard";
+                const entryContent = entryWithFields.content ?? "";
+                const entrySender = entryWithFields.sender ?? "";
+                const entryReceiver = entryWithFields.receiver ?? "";
+                const isArchived = entryWithFields.archived ?? false;
+
+                // Datum formatieren, falls vorhanden
+                let formattedDate = "-";
+                if (entryWithFields.timestamp) {
+                    try {
+                        formattedDate = format(entryWithFields.timestamp, natoDateTime);
+                    } catch (error) {
+                        console.error("Fehler beim Formatieren des Datums:", error);
+                    }
+                }
+
                 return (
-                    <div key={item.id} className="p-3 border rounded shadow-sm">
+                    <div key={entryId} className="p-3 border rounded shadow-sm">
                         <div className="font-semibold flex justify-between mb-1 text-primary-600 dark:text-primary-400">
-                            <span>#{item.nummer} | {item.type}</span>
-                            <span>{timestampAsNato}</span>
+                            <span>#{entryNumber} | {entryType}</span>
+                            <span>{formattedDate}</span>
                         </div>
-                        <p className="text-sm">{item.content}</p>
+                        <p className="text-sm">{entryContent}</p>
                         <div className="text-xs mt-1 text-gray-500 flex items-center justify-between">
-                            <span>Absender: {item.sender}</span>
-                            <span>Empfänger: {item.receiver}</span>
+                            <span>Absender: {entrySender}</span>
+                            <span>Empfänger: {entryReceiver}</span>
                         </div>
-                        {!item.archived && (
+                        {!isArchived && (
                             <div className="mt-2 flex gap-2 justify-end">
                                 <Tooltip title="Eintrag überschreiben">
                                     <Button
@@ -66,7 +99,11 @@ export const ETBCardList: React.FC<ETBCardListProps> = ({
                                 <Tooltip title="Eintrag streichen">
                                     <Button
                                         size="small"
-                                        onClick={() => onArchiveEntry && onArchiveEntry(item.nummer)}
+                                        onClick={() =>
+                                            onArchiveEntry &&
+                                            typeof entryNumber === 'number' &&
+                                            onArchiveEntry(entryNumber)
+                                        }
                                         danger
                                         icon={<PiTextStrikethrough />}
                                     />
