@@ -1,4 +1,5 @@
 import { formatNatoDateTime } from '@/utils/date';
+import { logger } from '@/utils/logger';
 import { EtbEntryDto } from '@bluelight-hub/shared/client';
 import { Button, Empty, Tag, Tooltip } from 'antd';
 import { PiEmpty, PiSwap, PiTextStrikethrough } from 'react-icons/pi';
@@ -76,7 +77,7 @@ export const ETBCardList: React.FC<ETBCardListProps> = ({
                     try {
                         formattedDate = formatNatoDateTime(entryWithFields.timestamp) ?? "-";
                     } catch (error) {
-                        console.error("Fehler beim Formatieren des Datums:", error);
+                        logger.error("Fehler beim Formatieren des Datums:", error);
                     }
                 }
 

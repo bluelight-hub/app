@@ -1,5 +1,6 @@
-import { EtbEntryDtoStatusEnum } from '@bluelight-hub/shared/client/models/EtbEntryDto';
-import { fireEvent, render, screen } from '@testing-library/react';
+import { EtbEntryDto, EtbEntryDtoStatusEnum } from '@bluelight-hub/shared/client/models/EtbEntryDto';
+import { QueryClient } from '@tanstack/react-query';
+import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { useEinsatztagebuch } from '../../../../hooks/etb/useEinsatztagebuch';
 import { useFahrzeuge } from '../../../../hooks/etb/useFahrzeuge';
@@ -63,49 +64,79 @@ vi.mock('@organisms/etb/ETBCardList', () => ({
 }));
 
 describe('ETBOverview Komponente', () => {
-    // Standard-Mock-Implementation für die Hooks
-    const mockEtbHook = {
+    // Test-Daten
+    const mockEntries: EtbEntryDto[] = [
+        {
+            id: '1',
+            laufendeNummer: 1,
+            autorId: 'user1',
+            autorName: 'Test User',
+            timestampErstellung: new Date().toISOString(),
+            timestampEreignis: new Date().toISOString(),
+            kategorie: 'USER',
+            beschreibung: 'Test Eintrag 1',
+            status: 'aktiv',
+            version: 1,
+            istAbgeschlossen: false,
+        },
+        {
+            id: '2',
+            laufendeNummer: 2,
+            autorId: 'user1',
+            autorName: 'Test User',
+            timestampErstellung: new Date().toISOString(),
+            timestampEreignis: new Date().toISOString(),
+            kategorie: 'USER',
+            beschreibung: 'Test Eintrag 2',
+            status: 'aktiv',
+            version: 1,
+            istAbgeschlossen: false,
+        },
+    ];
+
+    const mockFahrzeuge = {
+        fahrzeugeImEinsatz: [
+            { kennzeichen: 'TEST-123', typ: 'ELW', funkrufname: 'Florian 1' },
+        ],
+    };
+
+    // Mocks für die Hooks
+    const mockUseEinsatztagebuch = {
         einsatztagebuch: {
-            data: {
-                items: [mockEntryData]
-            },
+            data: { items: mockEntries },
             isLoading: false,
             error: null,
-            refetch: vi.fn()
+            refetch: vi.fn(),
         },
-        archiveEinsatztagebuchEintrag: {
-            mutate: vi.fn(),
-            mutateAsync: vi.fn()
-        },
-        createEinsatztagebuchEintrag: {
-            mutate: vi.fn(),
-            mutateAsync: vi.fn()
-        },
-        ueberschreibeEinsatztagebuchEintrag: {
-            mutate: vi.fn(),
-            mutateAsync: vi.fn()
-        }
+        createEinsatztagebuchEintrag: { mutate: vi.fn(), mutateAsync: vi.fn() },
+        archiveEinsatztagebuchEintrag: { mutate: vi.fn(), mutateAsync: vi.fn() },
+        ueberschreibeEinsatztagebuchEintrag: { mutate: vi.fn(), mutateAsync: vi.fn().mockResolvedValue({}) },
     };
 
-    const mockFahrzeugeHook = {
-        fahrzeuge: {
-            data: {
-                fahrzeugeImEinsatz: []
-            },
-            isLoading: false,
-            error: null
-        },
+    const mockUseFahrzeuge = {
+        fahrzeuge: { data: mockFahrzeuge, isLoading: false, error: null },
         error: null,
-        refreshFahrzeuge: vi.fn()
+        refreshFahrzeuge: vi.fn(),
     };
+
+    // QueryClient für React Query
+    let queryClient: QueryClient;
 
     beforeEach(() => {
-        // Mock-Implementierungen zurücksetzen
-        vi.clearAllMocks();
+        queryClient = new QueryClient({
+            defaultOptions: {
+                queries: {
+                    retry: false,
+                },
+            },
+        });
 
-        // Standard-Mock-Implementierungen setzen
-        (useEinsatztagebuch as unknown as ReturnType<typeof vi.fn>).mockReturnValue(mockEtbHook);
-        (useFahrzeuge as unknown as ReturnType<typeof vi.fn>).mockReturnValue(mockFahrzeugeHook);
+        // Mock-Implementierungen setzen
+        (useEinsatztagebuch as unknown as ReturnType<typeof vi.fn>).mockReturnValue(mockUseEinsatztagebuch);
+        (useFahrzeuge as unknown as ReturnType<typeof vi.fn>).mockReturnValue(mockUseFahrzeuge);
+
+        // Reset mocks between tests
+        vi.clearAllMocks();
 
         // Für den Mobile-Check einen festen Wert zurückgeben (Desktop)
         Object.defineProperty(window, 'innerWidth', {
@@ -115,43 +146,94 @@ describe('ETBOverview Komponente', () => {
         });
     });
 
-    it('sollte die Komponente korrekt rendern', () => {
-        render(<ETBOverview />);
+    it('sollte die Tabelle mit Einträgen rendern', () => {
+        render(
+            <QueryClientProvider client={queryClient}>
+                <ETBOverview />
+            </QueryClientProvider>
+        );
 
-        // Prüfen, ob die Hauptkomponenten gerendert werden
-        expect(screen.getByText('Überschriebene Einträge anzeigen:')).toBeInTheDocument();
-
-        // Der Switch für überschriebene Einträge sollte initial auf "aus" stehen
-        const toggleSwitch = screen.getByTestId('toggle-ueberschrieben-switch');
-        expect(toggleSwitch).toBeInTheDocument();
-        expect(toggleSwitch).toHaveAttribute('aria-checked', 'false');
+        // Prüfe, ob die Einträge angezeigt werden
+        expect(screen.getByText('Test Eintrag 1')).toBeInTheDocument();
+        expect(screen.getByText('Test Eintrag 2')).toBeInTheDocument();
     });
 
-    it('sollte den useEinsatztagebuch-Hook mit den korrekten Parametern aufrufen', () => {
-        render(<ETBOverview />);
+    it('sollte einen Ladeindikator anzeigen, wenn Daten geladen werden', () => {
+        // Setze isLoading auf true
+        (useEinsatztagebuch as unknown as ReturnType<typeof vi.fn>).mockReturnValue({
+            ...mockUseEinsatztagebuch,
+            einsatztagebuch: {
+                ...mockUseEinsatztagebuch.einsatztagebuch,
+                isLoading: true,
+            },
+        });
 
-        // Initial sollte der Hook ohne includeUeberschrieben aufgerufen werden
-        expect(useEinsatztagebuch).toHaveBeenCalledWith({ includeUeberschrieben: false });
+        render(
+            <QueryClientProvider client={queryClient}>
+                <ETBOverview />
+            </QueryClientProvider>
+        );
 
-        // Switch umschalten
+        // Prüfe, ob der Ladeindikator angezeigt wird
+        expect(screen.getByText('Lade Einsatztagebuch...')).toBeInTheDocument();
+    });
+
+    it('sollte eine Fehlermeldung anzeigen, wenn ein Fehler auftritt', () => {
+        // Setze einen Fehler
+        const errorMessage = 'Fehler beim Laden der Daten';
+        (useEinsatztagebuch as unknown as ReturnType<typeof vi.fn>).mockReturnValue({
+            ...mockUseEinsatztagebuch,
+            einsatztagebuch: {
+                ...mockUseEinsatztagebuch.einsatztagebuch,
+                error: new Error(errorMessage),
+            },
+        });
+
+        render(
+            <QueryClientProvider client={queryClient}>
+                <ETBOverview />
+            </QueryClientProvider>
+        );
+
+        // Prüfe, ob die Fehlermeldung angezeigt wird
+        expect(screen.getByText('Fehler beim Laden des Einsatztagebuchs')).toBeInTheDocument();
+        expect(screen.getByText(errorMessage)).toBeInTheDocument();
+    });
+
+    it('sollte den Überschreibe-Dialog korrekt anzeigen', async () => {
+        render(
+            <QueryClientProvider client={queryClient}>
+                <ETBOverview />
+            </QueryClientProvider>
+        );
+
+        // Finde den Bearbeiten-Button für den ersten Eintrag
+        const editButtons = screen.getAllByRole('button', { name: /überschreiben/i });
+        fireEvent.click(editButtons[0]);
+
+        // Warte auf das Öffnen des Dialogs
+        await waitFor(() => {
+            expect(screen.getByText(/Eintrag 1 von 10 JAN 2023 12:00Z überschreiben/i)).toBeInTheDocument();
+        });
+    });
+
+    it('sollte den Filter für überschriebene Einträge umschalten', () => {
+        render(
+            <QueryClientProvider client={queryClient}>
+                <ETBOverview />
+            </QueryClientProvider>
+        );
+
+        // Finde den Switch für überschriebene Einträge
         const toggleSwitch = screen.getByTestId('toggle-ueberschrieben-switch');
+
+        // Prüfe Anfangszustand
+        expect(toggleSwitch).not.toBeChecked();
+
+        // Schalte den Switch um
         fireEvent.click(toggleSwitch);
 
-        // Nach dem Umschalten sollte der Hook mit includeUeberschrieben=true aufgerufen werden
-        expect(useEinsatztagebuch).toHaveBeenCalledWith({ includeUeberschrieben: true });
-    });
-
-    it('sollte den Überschreibe-Dialog korrekt anzeigen', () => {
-        render(<ETBOverview />);
-
-        // Mock-ETBTable sollte angezeigt werden
-        expect(screen.getByTestId('mock-etb-table')).toBeInTheDocument();
-
-        // Überschreiben-Button drücken
-        const ueberschreibenButton = screen.getByTestId('ueberschreiben-button');
-        fireEvent.click(ueberschreibenButton);
-
-        // Dialog-Titel sollte korrekt angezeigt werden
-        expect(screen.getByText(/Eintrag 1 von 10 JAN 2023 12:00Z überschreiben/)).toBeInTheDocument();
+        // Prüfe, ob useEinsatztagebuch mit den richtigen Optionen aufgerufen wurde
+        expect(useEinsatztagebuch).toHaveBeenLastCalledWith({ includeUeberschrieben: true });
     });
 }); 

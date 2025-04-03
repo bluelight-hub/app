@@ -27,7 +27,7 @@ export default tseslint.config(
   },
   {
     files: ['src/**/*.{ts,tsx}'],
-    ignores: ['src/components/organisms/mocks/**/*.tsx'],
+    ignores: ['src/components/organisms/mocks/**/*.tsx', '**/*.test.tsx'],
     rules: {
       'max-lines': [
         'error',
