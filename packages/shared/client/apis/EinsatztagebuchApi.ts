@@ -19,6 +19,7 @@ import type {
   EtbAttachmentsResponse,
   EtbEntriesResponse,
   EtbEntryResponse,
+  UeberschreibeEtbDto,
   UpdateEtbDto,
 } from "../models/index";
 import {
@@ -32,6 +33,8 @@ import {
   EtbEntriesResponseToJSON,
   EtbEntryResponseFromJSON,
   EtbEntryResponseToJSON,
+  UeberschreibeEtbDtoFromJSON,
+  UeberschreibeEtbDtoToJSON,
   UpdateEtbDtoFromJSON,
   UpdateEtbDtoToJSON,
 } from "../models/index";
@@ -58,6 +61,8 @@ export interface EtbControllerFindAllV1Request {
   vonZeitstempel?: string;
   bisZeitstempel?: string;
   autorId?: string;
+  status?: EtbControllerFindAllV1StatusEnum;
+  includeUeberschrieben?: boolean;
   page?: number;
   limit?: number;
 }
@@ -72,6 +77,11 @@ export interface EtbControllerFindAttachmentsV1Request {
 
 export interface EtbControllerFindOneV1Request {
   id: string;
+}
+
+export interface EtbControllerUeberschreibeEintragV1Request {
+  id: string;
+  ueberschreibeEtbDto: UeberschreibeEtbDto;
 }
 
 export interface EtbControllerUpdateV1Request {
@@ -308,6 +318,15 @@ export class EinsatztagebuchApi extends runtime.BaseAPI {
       queryParameters["autorId"] = requestParameters["autorId"];
     }
 
+    if (requestParameters["status"] != null) {
+      queryParameters["status"] = requestParameters["status"];
+    }
+
+    if (requestParameters["includeUeberschrieben"] != null) {
+      queryParameters["includeUeberschrieben"] =
+        requestParameters["includeUeberschrieben"];
+    }
+
     if (requestParameters["page"] != null) {
       queryParameters["page"] = requestParameters["page"];
     }
@@ -498,6 +517,68 @@ export class EinsatztagebuchApi extends runtime.BaseAPI {
   }
 
   /**
+   * Überschreibt einen ETB-Eintrag
+   */
+  async etbControllerUeberschreibeEintragV1Raw(
+    requestParameters: EtbControllerUeberschreibeEintragV1Request,
+    initOverrides?: RequestInit | runtime.InitOverrideFunction,
+  ): Promise<runtime.ApiResponse<EtbEntryResponse>> {
+    if (requestParameters["id"] == null) {
+      throw new runtime.RequiredError(
+        "id",
+        'Required parameter "id" was null or undefined when calling etbControllerUeberschreibeEintragV1().',
+      );
+    }
+
+    if (requestParameters["ueberschreibeEtbDto"] == null) {
+      throw new runtime.RequiredError(
+        "ueberschreibeEtbDto",
+        'Required parameter "ueberschreibeEtbDto" was null or undefined when calling etbControllerUeberschreibeEintragV1().',
+      );
+    }
+
+    const queryParameters: any = {};
+
+    const headerParameters: runtime.HTTPHeaders = {};
+
+    headerParameters["Content-Type"] = "application/json";
+
+    const response = await this.request(
+      {
+        path: `/v1/etb/{id}/ueberschreiben`.replace(
+          `{${"id"}}`,
+          encodeURIComponent(String(requestParameters["id"])),
+        ),
+        method: "POST",
+        headers: headerParameters,
+        query: queryParameters,
+        body: UeberschreibeEtbDtoToJSON(
+          requestParameters["ueberschreibeEtbDto"],
+        ),
+      },
+      initOverrides,
+    );
+
+    return new runtime.JSONApiResponse(response, (jsonValue) =>
+      EtbEntryResponseFromJSON(jsonValue),
+    );
+  }
+
+  /**
+   * Überschreibt einen ETB-Eintrag
+   */
+  async etbControllerUeberschreibeEintragV1(
+    requestParameters: EtbControllerUeberschreibeEintragV1Request,
+    initOverrides?: RequestInit | runtime.InitOverrideFunction,
+  ): Promise<EtbEntryResponse> {
+    const response = await this.etbControllerUeberschreibeEintragV1Raw(
+      requestParameters,
+      initOverrides,
+    );
+    return await response.value();
+  }
+
+  /**
    * Aktualisiert einen ETB-Eintrag
    */
   async etbControllerUpdateV1Raw(
@@ -557,3 +638,13 @@ export class EinsatztagebuchApi extends runtime.BaseAPI {
     return await response.value();
   }
 }
+
+/**
+ * @export
+ */
+export const EtbControllerFindAllV1StatusEnum = {
+  Aktiv: "aktiv",
+  Ueberschrieben: "ueberschrieben",
+} as const;
+export type EtbControllerFindAllV1StatusEnum =
+  (typeof EtbControllerFindAllV1StatusEnum)[keyof typeof EtbControllerFindAllV1StatusEnum];

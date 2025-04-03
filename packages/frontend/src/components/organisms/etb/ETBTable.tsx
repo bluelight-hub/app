@@ -1,12 +1,9 @@
-import { EtbEntryDto } from '@bluelight-hub/shared/client/models/EtbEntryDto';
-import { Button, Empty, Input, InputRef, Space, Table, TableColumnsType, TableColumnType, Tooltip } from 'antd';
-import { format } from 'date-fns';
+import { formatNatoDateTime } from '@/utils/date';
+import { EtbEntryDto, EtbEntryDtoStatusEnum } from '@bluelight-hub/shared/client/models/EtbEntryDto';
+import { Button, Empty, Input, InputRef, Space, Table, TableColumnsType, TableColumnType, Tag, Tooltip } from 'antd';
 import dayjs from 'dayjs';
 import React, { useCallback, useMemo, useRef } from 'react';
-import { PiAmbulance, PiEmpty, PiMagnifyingGlass, PiPencil, PiPictureInPicture, PiPlus, PiSwap, PiTextStrikethrough, PiUser } from 'react-icons/pi';
-
-// Mock für natoDateTime
-const natoDateTime = 'dd.MM.yyyy HH:mm';
+import { PiAmbulance, PiArrowClockwiseBold, PiEmpty, PiMagnifyingGlass, PiPictureInPicture, PiPlus, PiTextStrikethrough, PiUser } from 'react-icons/pi';
 
 /**
  * Mock-Interface für Fahrzeug-Objekte
@@ -22,32 +19,31 @@ interface FahrzeugMock {
  */
 interface ETBTableProps {
     /**
-     * Die anzuzeigenden Einsatztagebuch-Einträge
+     * Liste der anzuzeigenden ETB-Einträge
      */
     entries: EtbEntryDto[];
-
     /**
-     * Callback für das Bearbeiten eines Eintrags
+     * Fahrzeuge im Einsatz für Filteroption
+     */
+    fahrzeugeImEinsatz?: FahrzeugMock[];
+    /**
+     * Callback für die Bearbeitung eines Eintrags
      */
     onEditEntry?: (entry: EtbEntryDto) => void;
-
     /**
      * Callback für das Archivieren eines Eintrags
      */
     onArchiveEntry?: (nummer: number) => void;
-
     /**
-     * Liste der verfügbaren Fahrzeuge im Einsatz
+     * Callback für das Überschreiben eines Eintrags
      */
-    fahrzeugeImEinsatz?: FahrzeugMock[];
-
+    onUeberschreibeEntry?: (entry: EtbEntryDto) => void;
     /**
-     * Gibt an, ob die Tabelle im Ladezustand ist
+     * Gibt an, ob die Daten gerade geladen werden
      */
     isLoading?: boolean;
-
     /**
-     * Gibt an, ob ein Eintrag gerade bearbeitet wird
+     * Gibt an, ob gerade ein Eintrag bearbeitet wird
      */
     isEditing?: boolean;
 }
@@ -56,15 +52,27 @@ interface ETBTableProps {
  * Tabellen-Komponente für die Desktop-Ansicht des Einsatztagebuchs
  */
 export const ETBTable: React.FC<ETBTableProps> = ({
-    entries,
-    onEditEntry,
-    onArchiveEntry,
+    entries = [],
     fahrzeugeImEinsatz = [],
+    onArchiveEntry,
+    onUeberschreibeEntry,
     isLoading = false,
     isEditing = false,
 }) => {
     // Referenz für das Sucheingabefeld
     const searchInput = useRef<InputRef>(null);
+
+    const kategorieFilter = useMemo(() => {
+        const existingFilter = [
+            { text: 'Meldung', value: 'USER' },
+            { text: 'Lagemeldung', value: 'LAGEMELDUNG' },
+            { text: 'Ressourcen', value: 'RESSOURCEN' },
+            { text: 'Betroffene | Patienten', value: 'BETROFFENE_PATIENTEN' },
+            { text: 'Korrektur', value: 'KORREKTUR' },
+        ].filter((filter) => entries.some((entry) => entry.kategorie === filter.value));
+
+        return existingFilter.length > 1 ? existingFilter : undefined;
+    }, [entries]);
 
     /**
      * Konfiguration für die Suchfunktion in Tabellenspalten
@@ -99,13 +107,20 @@ export const ETBTable: React.FC<ETBTableProps> = ({
     });
 
     /**
-     * Callback für das Bearbeiten eines Eintrags
+     * Callback für das Überschreiben eines Eintrags
      */
-    const modifyEntry = useCallback((entry: EtbEntryDto) => {
-        if (onEditEntry) {
-            onEditEntry(entry);
+    const ueberschreibeEntry = useCallback((entry: EtbEntryDto) => {
+        if (onUeberschreibeEntry) {
+            onUeberschreibeEntry(entry);
         }
-    }, [onEditEntry]);
+    }, [onUeberschreibeEntry]);
+
+    /**
+     * Prüft, ob ein Eintrag überschrieben ist
+     */
+    const isUeberschrieben = (entry: EtbEntryDto): boolean => {
+        return entry.status === EtbEntryDtoStatusEnum.Ueberschrieben;
+    };
 
     /**
      * Definition der Tabellenspalten
@@ -142,14 +157,10 @@ export const ETBTable: React.FC<ETBTableProps> = ({
                 title: 'Typ',
                 dataIndex: 'kategorie',
                 key: 'kategorie',
-                width: 60,
-                filters: [
-                    { text: 'Meldung', value: 'USER' },
-                    { text: 'Lagemeldung', value: 'LAGEMELDUNG' },
-                    { text: 'Ressourcen', value: 'RESSOURCEN' },
-                    { text: 'Betroffene | Patienten', value: 'BETROFFENE_PATIENTEN' },
-                    { text: 'Korrektur', value: 'KORREKTUR' },
-                ],
+                filterSearch: kategorieFilter && kategorieFilter.length > 3 ? true : false,
+                onFilter: (value, record) => record.kategorie?.toLowerCase().includes((value as string).toLowerCase()),
+                width: 80,
+                filters: kategorieFilter,
                 render: (value) => {
                     switch (value) {
                         case 'USER':
@@ -161,19 +172,35 @@ export const ETBTable: React.FC<ETBTableProps> = ({
                         case 'BETROFFENE_PATIENTEN':
                             return <Tooltip title="Betroffene"><PiPlus size={24} className="text-primary-500" /></Tooltip>;
                         case 'KORREKTUR':
-                            return <Tooltip title="Korrektur"><PiPencil size={24} className="text-orange-500" /></Tooltip>;
+                            return <Tooltip title="Korrektur"><PiArrowClockwiseBold size={24} className="text-orange-500" /></Tooltip>;
                         default:
                             return value;
                     }
                 },
-                onFilter: (value, record) => record.kategorie === value,
+            },
+            {
+                title: 'Status',
+                key: 'status',
+                width: 100,
+                filters: [
+                    { text: 'Aktiv', value: 'aktiv' },
+                    { text: 'Überschrieben', value: 'ueberschrieben' },
+                ],
+                onFilter: (value, record) => {
+                    return record.status === value;
+                },
+                render: (_, record) => (
+                    isUeberschrieben(record) ?
+                        <Tag color="warning">Überschrieben</Tag> :
+                        <Tag color="success">Aktiv</Tag>
+                ),
             },
             {
                 title: 'Zeitpunkt',
                 key: 'timestampEreignis',
                 width: 200,
                 render: (_, record) => {
-                    const timestampAsNato = format(record.timestampEreignis, natoDateTime);
+                    const timestampAsNato = formatNatoDateTime(record.timestampEreignis);
                     return <span>{timestampAsNato}</span>;
                 },
                 sorter: (a, b) => dayjs(a.timestampEreignis).diff(dayjs(b.timestampEreignis)),
@@ -185,7 +212,6 @@ export const ETBTable: React.FC<ETBTableProps> = ({
                 key: 'autorName',
                 width: 120,
                 filters: rufnahmeFilter,
-                onFilter: (value, record) => record.autorName === value,
             },
             {
                 title: 'Empfänger',
@@ -193,7 +219,6 @@ export const ETBTable: React.FC<ETBTableProps> = ({
                 key: 'abgeschlossenVon',
                 width: 120,
                 filters: rufnahmeFilter,
-                onFilter: (value, record) => record.abgeschlossenVon === value,
             },
             {
                 title: 'Inhalt',
@@ -201,14 +226,24 @@ export const ETBTable: React.FC<ETBTableProps> = ({
                 key: 'beschreibung',
                 width: 500,
                 ...getColumnSearchProps('beschreibung'),
+                render: (text, record) => (
+                    <div className={isUeberschrieben(record) ? 'line-through text-opacity-60' : ''}>
+                        {text}
+                    </div>
+                ),
             },
             {
                 render: (_, record) => (
                     <div className="flex gap-2">
-                        {!record.istAbgeschlossen && (
+                        {!record.istAbgeschlossen && !isUeberschrieben(record) && (
                             <>
                                 <Tooltip title="Eintrag überschreiben">
-                                    <Button onClick={() => !isEditing && modifyEntry(record)} type="dashed" shape="circle" icon={<PiSwap />} />
+                                    <Button
+                                        onClick={() => !isEditing && ueberschreibeEntry(record)}
+                                        type="dashed"
+                                        shape="circle"
+                                        icon={<PiArrowClockwiseBold />}
+                                    />
                                 </Tooltip>
                                 <Tooltip title="Eintrag streichen">
                                     <Button
@@ -227,7 +262,7 @@ export const ETBTable: React.FC<ETBTableProps> = ({
                 width: 150,
             },
         ];
-    }, [fahrzeugeImEinsatz, isEditing, modifyEntry, onArchiveEntry]);
+    }, [fahrzeugeImEinsatz, isEditing, onArchiveEntry, onUeberschreibeEntry]);
 
     return (
         <div className="-mx-4 sm:-mx-6 lg:-mx-8">
@@ -243,6 +278,7 @@ export const ETBTable: React.FC<ETBTableProps> = ({
                     locale={{
                         emptyText: <Empty image={<PiEmpty size={48} />} description="Keine Einträge verfügbar" />,
                     }}
+                    rowClassName={(record) => isUeberschrieben(record) ? 'opacity-60' : ''}
                 />
             </div>
         </div>

@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { logger } from '../../utils/logger';
 
 /**
@@ -11,69 +11,20 @@ export interface FahrzeugMock {
 }
 
 /**
- * Hook für die Verwaltung der Fahrzeug-Daten
- * 
- * Hinweis: Aktuell gibt es noch keine Fahrzeug-API im Backend.
- * Sobald diese implementiert ist, kann dieser Hook aktualisiert werden,
- * um echte API-Daten zu verwenden.
+ * Query keys für die Fahrzeug-Abfragen
  */
-export const useFahrzeuge = () => {
-    // States für Daten, Loading und Error
-    const [fahrzeugeData, setFahrzeugeData] = useState({
-        data: {
-            data: {
-                fahrzeugeImEinsatz: [] as FahrzeugMock[]
-            }
-        },
-        isLoading: true,
-        error: null as Error | null
-    });
+const FAHRZEUGE_KEYS = {
+    all: ['fahrzeuge'] as const,
+    list: () => [...FAHRZEUGE_KEYS.all, 'list'] as const,
+};
 
-    // Laden der Mock-Daten
-    useEffect(() => {
-        // Simuliere API-Aufruf mit Timeout
-        const loadMockData = () => {
-            setFahrzeugeData(prev => ({ ...prev, isLoading: true, error: null }));
-
-            // Simuliere Netzwerkverzögerung
-            setTimeout(() => {
-                try {
-                    // Mock-Daten
-                    const mockFahrzeuge: FahrzeugMock[] = [
-                        { optaFunktion: 'RTW', fullOpta: 'RTW-1', id: '1' },
-                        { optaFunktion: 'RTW', fullOpta: 'RTW-2', id: '2' },
-                        { optaFunktion: 'NEF', fullOpta: 'NEF-1', id: '3' },
-                        { optaFunktion: 'KTW', fullOpta: 'KTW-1', id: '4' },
-                    ];
-
-                    setFahrzeugeData({
-                        data: {
-                            data: {
-                                fahrzeugeImEinsatz: mockFahrzeuge
-                            }
-                        },
-                        isLoading: false,
-                        error: null
-                    });
-                } catch (error) {
-                    logger.error('Fehler beim Laden der Fahrzeug-Daten:', error);
-                    setFahrzeugeData(prev => ({
-                        ...prev,
-                        isLoading: false,
-                        error: error instanceof Error ? error : new Error('Unbekannter Fehler')
-                    }));
-                }
-            }, 300); // 300ms Verzögerung, um Loading-State zu simulieren
-        };
-
-        loadMockData();
-    }, []);
-
-    // Aktualisieren der Daten
-    const refreshFahrzeuge = () => {
-        // State zurücksetzen und Mock-Daten neu laden
-        setFahrzeugeData(prev => ({ ...prev, isLoading: true, error: null }));
-
+/**
+ * Mock-Funktion zum Abrufen der Fahrzeug-Daten
+ * 
+ * Simuliert einen API-Aufruf mit Zeitverzögerung
+ */
+const fetchFahrzeugeMock = (): Promise<{ fahrzeugeImEinsatz: FahrzeugMock[] }> => {
+    return new Promise((resolve, reject) => {
         // Simuliere Netzwerkverzögerung
         setTimeout(() => {
             try {
@@ -85,30 +36,51 @@ export const useFahrzeuge = () => {
                     { optaFunktion: 'KTW', fullOpta: 'KTW-1', id: '4' },
                 ];
 
-                setFahrzeugeData({
-                    data: {
-                        data: {
-                            fahrzeugeImEinsatz: mockFahrzeuge
-                        }
-                    },
-                    isLoading: false,
-                    error: null
-                });
+                resolve({ fahrzeugeImEinsatz: mockFahrzeuge });
             } catch (error) {
-                logger.error('Fehler beim Aktualisieren der Fahrzeug-Daten:', error);
-                setFahrzeugeData(prev => ({
-                    ...prev,
-                    isLoading: false,
-                    error: error instanceof Error ? error : new Error('Unbekannter Fehler')
-                }));
+                logger.error('Fehler beim Laden der Fahrzeug-Daten:', error);
+                reject(error instanceof Error ? error : new Error('Unbekannter Fehler'));
             }
         }, 300);
+    });
+};
+
+/**
+ * Hook für die Verwaltung der Fahrzeug-Daten
+ * 
+ * Hinweis: Aktuell gibt es noch keine Fahrzeug-API im Backend.
+ * Sobald diese implementiert ist, kann dieser Hook aktualisiert werden,
+ * um echte API-Daten zu verwenden.
+ */
+export const useFahrzeuge = () => {
+    const queryClient = useQueryClient();
+
+    const {
+        data,
+        isLoading,
+        error
+    } = useQuery({
+        queryKey: FAHRZEUGE_KEYS.list(),
+        queryFn: async () => {
+            try {
+                return await fetchFahrzeugeMock();
+            } catch (err) {
+                logger.error('Fehler beim Abrufen der Fahrzeug-Daten:', err);
+                throw err;
+            }
+        },
+        staleTime: 60000, // 1 Minute
+    });
+
+    // Aktualisieren der Daten
+    const refreshFahrzeuge = () => {
+        queryClient.invalidateQueries({ queryKey: FAHRZEUGE_KEYS.list() });
     };
 
     return {
-        fahrzeuge: fahrzeugeData.data,
-        isLoading: fahrzeugeData.isLoading,
-        error: fahrzeugeData.error,
+        fahrzeuge: { data: { fahrzeugeImEinsatz: data?.fahrzeugeImEinsatz || [] } },
+        isLoading,
+        error,
         refreshFahrzeuge
     };
 }; 

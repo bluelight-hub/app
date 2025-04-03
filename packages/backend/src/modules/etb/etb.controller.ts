@@ -37,6 +37,7 @@ import {
     EtbEntryResponse
 } from './dto/etb-entry-response.dto';
 import { FilterEtbDto } from './dto/filter-etb.dto';
+import { UeberschreibeEtbDto } from './dto/ueberschreibe-etb.dto';
 import { UpdateEtbDto } from './dto/update-etb.dto';
 import { EtbAttachment } from './entities/etb-attachment.entity';
 import { EtbEntry } from './entities/etb-entry.entity';
@@ -253,5 +254,36 @@ export class EtbController {
     async findAttachment(@Param('id', ParseUUIDPipe) id: string): Promise<EtbAttachment> {
         logger.info(`HTTP GET /etb/anlage/${id} - Abruf einer spezifischen Anlage`);
         return this.etbService.findAttachmentById(id);
+    }
+
+    /**
+     * Überschreibt einen ETB-Eintrag
+     * 
+     * @param id ID des zu überschreibenden ETB-Eintrags
+     * @param ueberschreibeEtbDto Daten für den neuen überschreibenden Eintrag
+     * @param req Express Request Objekt für Benutzerinformationen
+     * @returns Der neu erstellte überschreibende ETB-Eintrag
+     */
+    @Post(':id/ueberschreiben')
+    @ApiOperation({ summary: 'Überschreibt einen ETB-Eintrag' })
+    @ApiResponse({
+        status: 201,
+        description: 'ETB-Eintrag wurde überschrieben, neuer Eintrag erstellt',
+        type: EtbEntryResponse
+    })
+    @ApiResponse({ status: 400, description: 'Ungültige Eingabedaten' })
+    @ApiResponse({ status: 404, description: 'ETB-Eintrag nicht gefunden' })
+    async ueberschreibeEintrag(
+        @Param('id', ParseUUIDPipe) id: string,
+        @Body() ueberschreibeEtbDto: UeberschreibeEtbDto,
+        @Req() req: RequestWithUser,
+    ): Promise<EtbEntry> {
+        // Benutzerinformationen aus dem Token extrahieren
+        const userId = req.user?.id || 'mock-user-id';
+        const userName = req.user?.name || 'Mock User';
+        const userRole = req.user?.role || 'Einsatzleiter';
+
+        logger.info(`HTTP POST /etb/${id}/ueberschreiben - Überschreibe ETB-Eintrag`);
+        return this.etbService.ueberschreibeEintrag(id, ueberschreibeEtbDto, userId, userName, userRole);
     }
 } 

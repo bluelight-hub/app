@@ -18,6 +18,8 @@ beforeAll(() => {
             addEventListener: vi.fn(),
             removeEventListener: vi.fn(),
             dispatchEvent: vi.fn(),
+            addListener: vi.fn(),
+            removeListener: vi.fn(),
         })),
     });
 }); 

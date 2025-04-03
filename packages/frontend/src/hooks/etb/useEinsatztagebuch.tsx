@@ -1,4 +1,5 @@
 import { EtbEntryDto } from '@bluelight-hub/shared/client';
+import { EtbControllerFindAllV1StatusEnum } from '@bluelight-hub/shared/client/apis/EinsatztagebuchApi';
 import { CreateEtbDto } from '@bluelight-hub/shared/client/models/CreateEtbDto';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { api } from '../../api';
@@ -14,10 +15,24 @@ const ETB_KEYS = {
 };
 
 /**
+ * Interface für die Filter-Parameter der Einsatztagebuch-Abfrage
+ */
+export interface EtbFilterParams {
+    /**
+     * Gibt an, ob überschriebene Einträge eingeschlossen werden sollen
+     */
+    includeUeberschrieben?: boolean;
+    /**
+     * Filter für den Status der Einträge
+     */
+    status?: EtbControllerFindAllV1StatusEnum;
+}
+
+/**
  * Hook für die Verwaltung der Einsatztagebuch-Daten
  * Verwendet React Query für die Kommunikation mit dem Backend
  */
-export const useEinsatztagebuch = () => {
+export const useEinsatztagebuch = (filterParams: EtbFilterParams = {}) => {
     const queryClient = useQueryClient();
 
     /**
@@ -28,14 +43,20 @@ export const useEinsatztagebuch = () => {
         isLoading,
         error,
     } = useQuery({
-        queryKey: ETB_KEYS.entries(),
+        queryKey: [...ETB_KEYS.entries(), filterParams],
         queryFn: async () => {
             try {
-                const response = await api.etb.etbControllerFindAllV1({}, {
-                    headers: {
-                        'Content-Type': 'application/json',
+                const response = await api.etb.etbControllerFindAllV1(
+                    {
+                        includeUeberschrieben: filterParams.includeUeberschrieben,
+                        status: filterParams.status
                     },
-                });
+                    {
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                    }
+                );
                 return response.data.entries || [];
             } catch (err) {
                 logger.error('Fehler beim Abrufen der Einsatztagebuch-Daten:', err);
@@ -59,13 +80,13 @@ export const useEinsatztagebuch = () => {
         },
         onMutate: async ({ nummer }) => {
             // Optimistic Update
-            await queryClient.cancelQueries({ queryKey: ETB_KEYS.entries() });
+            await queryClient.cancelQueries({ queryKey: [...ETB_KEYS.entries(), filterParams] });
 
             // Snapshot des vorherigen Zustands
-            const previousEntries = queryClient.getQueryData<EtbEntryDto[]>(ETB_KEYS.entries());
+            const previousEntries = queryClient.getQueryData<EtbEntryDto[]>([...ETB_KEYS.entries(), filterParams]);
 
             // Optimistic update
-            queryClient.setQueryData<EtbEntryDto[]>(ETB_KEYS.entries(), old => {
+            queryClient.setQueryData<EtbEntryDto[]>([...ETB_KEYS.entries(), filterParams], old => {
                 if (!old) return [];
                 return old.map((item) =>
                     item.laufendeNummer === nummer ? { ...item, istAbgeschlossen: true } : item
@@ -78,13 +99,42 @@ export const useEinsatztagebuch = () => {
             logger.error('Fehler beim Archivieren des Eintrags:', err);
             // Zurücksetzen bei Fehler
             if (context?.previousEntries) {
-                queryClient.setQueryData(ETB_KEYS.entries(), context.previousEntries);
+                queryClient.setQueryData([...ETB_KEYS.entries(), filterParams], context.previousEntries);
             }
         },
         onSettled: () => {
             // Cache nach Abschluss aktualisieren
             queryClient.invalidateQueries({ queryKey: ETB_KEYS.entries() });
         },
+    });
+
+    /**
+     * Mutation zum Überschreiben eines Einsatztagebucheintrags
+     */
+    const ueberschreibeEinsatztagebuchEintrag = useMutation({
+        mutationFn: async ({
+            id,
+            beschreibung
+        }: {
+            id: string;
+            beschreibung: string;
+        }) => {
+            return api.etb.etbControllerUeberschreibeEintragV1({
+                id,
+                ueberschreibeEtbDto: {
+                    beschreibung,
+                    kategorie: 'KORREKTUR',
+                    timestampEreignis: new Date().toISOString()
+                }
+            });
+        },
+        onSuccess: () => {
+            // Cache nach Abschluss aktualisieren
+            queryClient.invalidateQueries({ queryKey: ETB_KEYS.entries() });
+        },
+        onError: (err) => {
+            logger.error('Fehler beim Überschreiben des Eintrags:', err);
+        }
     });
 
     /**
@@ -105,10 +155,10 @@ export const useEinsatztagebuch = () => {
         },
         onMutate: async (newEntry) => {
             // Optimistic Update
-            await queryClient.cancelQueries({ queryKey: ETB_KEYS.entries() });
+            await queryClient.cancelQueries({ queryKey: [...ETB_KEYS.entries(), filterParams] });
 
             // Snapshot des vorherigen Zustands
-            const previousEntries = queryClient.getQueryData<EtbEntryDto[]>(ETB_KEYS.entries());
+            const previousEntries = queryClient.getQueryData<EtbEntryDto[]>([...ETB_KEYS.entries(), filterParams]);
 
             // Temporärer Eintrag für optimistic update
             const tempId = `temp-${Math.random().toString(36).substring(2, 11)}`;
@@ -130,11 +180,12 @@ export const useEinsatztagebuch = () => {
                 version: 0,
                 istAbgeschlossen: false,
                 timestampAbschluss: null,
-                abgeschlossenVon: null
+                abgeschlossenVon: null,
+                status: EtbControllerFindAllV1StatusEnum.Aktiv
             };
 
             // Optimistic update
-            queryClient.setQueryData<EtbEntryDto[]>(ETB_KEYS.entries(), old => {
+            queryClient.setQueryData<EtbEntryDto[]>([...ETB_KEYS.entries(), filterParams], old => {
                 if (!old) return [tempEntry];
                 return [...old, tempEntry];
             });
@@ -145,7 +196,7 @@ export const useEinsatztagebuch = () => {
             logger.error('Fehler beim Erstellen des Eintrags:', err);
             // Zurücksetzen bei Fehler
             if (context?.previousEntries) {
-                queryClient.setQueryData(ETB_KEYS.entries(), context.previousEntries);
+                queryClient.setQueryData([...ETB_KEYS.entries(), filterParams], context.previousEntries);
             }
         },
         onSettled: () => {
@@ -159,9 +210,10 @@ export const useEinsatztagebuch = () => {
             data: { items: entriesData || [] },
             isLoading,
             error,
-            refetch: () => queryClient.invalidateQueries({ queryKey: ETB_KEYS.entries() }),
+            refetch: () => queryClient.invalidateQueries({ queryKey: [...ETB_KEYS.entries(), filterParams] }),
         },
         archiveEinsatztagebuchEintrag,
         createEinsatztagebuchEintrag,
+        ueberschreibeEinsatztagebuchEintrag
     };
 }; 

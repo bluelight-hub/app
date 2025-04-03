@@ -1,5 +1,7 @@
 import { ApiPropertyOptional } from '@nestjs/swagger';
-import { IsDateString, IsOptional, IsString, IsUUID } from 'class-validator';
+import { Transform } from 'class-transformer';
+import { IsDateString, IsEnum, IsOptional, IsString, IsUUID } from 'class-validator';
+import { EtbEntryStatus } from '../entities/etb-entry.entity';
 
 /**
  * DTO für das Filtern von Einsatztagebuch-Einträgen.
@@ -61,6 +63,35 @@ export class FilterEtbDto {
     @IsString()
     @IsOptional()
     autorId?: string;
+
+    /**
+     * Filter nach Status
+     * @deprecated Verwende stattdessen includeUeberschrieben
+     */
+    @ApiPropertyOptional({
+        description: 'Filter nach Status (deprecated, verwende includeUeberschrieben)',
+        enum: EtbEntryStatus,
+    })
+    @IsEnum(EtbEntryStatus)
+    @IsOptional()
+    status?: EtbEntryStatus;
+
+    /**
+     * Gibt an, ob überschriebene Einträge eingeschlossen werden sollen
+     */
+    @ApiPropertyOptional({
+        description: 'Gibt an, ob überschriebene Einträge eingeschlossen werden sollen',
+        default: false,
+        type: Boolean
+    })
+    @IsOptional()
+    @Transform(({ value }) => {
+        if (value === 'true' || value === true || value === '1' || value === 1) {
+            return true;
+        }
+        return false;
+    })
+    includeUeberschrieben?: boolean = false;
 
     /**
      * Seite für Paginierung (1-basiert)

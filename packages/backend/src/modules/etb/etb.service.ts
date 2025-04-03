@@ -7,9 +7,10 @@ import sanitize from 'sanitize-filename';
 import { Between, FindOptionsWhere, LessThanOrEqual, MoreThanOrEqual, Repository } from 'typeorm';
 import { CreateEtbDto } from './dto/create-etb.dto';
 import { FilterEtbDto } from './dto/filter-etb.dto';
+import { UeberschreibeEtbDto } from './dto/ueberschreibe-etb.dto';
 import { UpdateEtbDto } from './dto/update-etb.dto';
 import { EtbAttachment } from './entities/etb-attachment.entity';
-import { EtbEntry } from './entities/etb-entry.entity';
+import { EtbEntry, EtbEntryStatus } from './entities/etb-entry.entity';
 
 // Multer-Typ für Dateien
 interface MulterFile {
@@ -139,6 +140,7 @@ export class EtbService {
             vonZeitstempel,
             bisZeitstempel,
             autorId,
+            includeUeberschrieben,
             page = 1,
             limit = 10
         } = filterDto;
@@ -167,6 +169,13 @@ export class EtbService {
             where.autorId = autorId;
         }
 
+        // Vereinfachte Filter-Logik: 
+        // Nur den includeUeberschrieben-Parameter berücksichtigen
+        if (!includeUeberschrieben) {
+            // Standardmäßig nur aktive Einträge anzeigen
+            where.status = EtbEntryStatus.AKTIV;
+        }
+
         if (vonZeitstempel && bisZeitstempel) {
             where.timestampEreignis = Between(
                 new Date(vonZeitstempel),
@@ -178,12 +187,14 @@ export class EtbService {
             where.timestampEreignis = LessThanOrEqual(new Date(bisZeitstempel));
         }
 
+        logger.info(`Suche ETB-Einträge mit Filtern: ${JSON.stringify(filterDto)}`);
+
         return this.etbRepository.findAndCount({
             where,
             order: { timestampEreignis: 'DESC' },
             skip,
             take: limit,
-            relations: ['anlagen'],
+            relations: ['anlagen', 'ueberschriebenDurch', 'ueberschriebeneEintraege'],
         });
     }
 
@@ -354,5 +365,64 @@ export class EtbService {
         }
 
         return attachment;
+    }
+
+    /**
+     * Überschreibt einen ETB-Eintrag
+     * 
+     * @param id ID des zu überschreibenden ETB-Eintrags
+     * @param ueberschreibeEtbDto Daten für den neuen überschreibenden Eintrag
+     * @param userId ID des Benutzers, der den Eintrag überschreibt
+     * @param userName Name des Benutzers, der den Eintrag überschreibt
+     * @param userRole Rolle des Benutzers, der den Eintrag überschreibt
+     * @returns Der neu erstellte überschreibende ETB-Eintrag
+     */
+    async ueberschreibeEintrag(
+        id: string,
+        ueberschreibeEtbDto: UeberschreibeEtbDto,
+        userId: string,
+        userName?: string,
+        userRole?: string,
+    ): Promise<EtbEntry> {
+        // Finde den zu überschreibenden Eintrag
+        const originalEntry = await this.findOne(id);
+
+        // Markiere den ursprünglichen Eintrag als überschrieben
+        originalEntry.status = EtbEntryStatus.UEBERSCHRIEBEN;
+        originalEntry.timestampUeberschrieben = new Date();
+        originalEntry.ueberschriebenVon = userId;
+
+        // Speichere den aktualisierten ursprünglichen Eintrag
+        await this.etbRepository.save(originalEntry);
+
+        // Erstelle einen neuen Eintrag mit den aktualisierten Daten
+        const neuerEintrag = this.etbRepository.create({
+            // Übernehme die Daten des ursprünglichen Eintrags
+            timestampErstellung: new Date(),
+            timestampEreignis: ueberschreibeEtbDto.timestampEreignis ? new Date(ueberschreibeEtbDto.timestampEreignis) : originalEntry.timestampEreignis,
+            kategorie: ueberschreibeEtbDto.kategorie || originalEntry.kategorie,
+            titel: ueberschreibeEtbDto.titel !== undefined ? ueberschreibeEtbDto.titel : originalEntry.titel,
+            beschreibung: ueberschreibeEtbDto.beschreibung || originalEntry.beschreibung,
+            referenzEinsatzId: ueberschreibeEtbDto.referenzEinsatzId || originalEntry.referenzEinsatzId,
+            referenzPatientId: ueberschreibeEtbDto.referenzPatientId || originalEntry.referenzPatientId,
+            referenzEinsatzmittelId: ueberschreibeEtbDto.referenzEinsatzmittelId || originalEntry.referenzEinsatzmittelId,
+
+            // Neue Metadaten
+            autorId: userId,
+            autorName: userName,
+            autorRolle: userRole,
+            version: 1,
+            status: EtbEntryStatus.AKTIV,
+            istAbgeschlossen: false,
+            laufendeNummer: await this.getNextLaufendeNummer(),
+
+            // Beziehung zum ursprünglichen Eintrag
+            ueberschriebeneEintraege: [originalEntry]
+        });
+
+        logger.info(`ETB-Eintrag mit ID ${id} wird überschrieben von Benutzer ${userId}`);
+
+        // Speichere den neuen Eintrag
+        return this.etbRepository.save(neuerEintrag);
     }
 } 

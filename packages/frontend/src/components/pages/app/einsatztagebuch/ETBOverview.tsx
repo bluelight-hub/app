@@ -1,16 +1,14 @@
+import { formatNatoDateTime } from '@/utils/date';
 import { EtbEntryDto } from '@bluelight-hub/shared/client/models/EtbEntryDto';
 import { ETBFormWrapper } from '@molecules/etb/ETBFormWrapper';
 import { ETBHeader } from '@molecules/etb/ETBHeader';
 import { ETBCardList } from '@organisms/etb/ETBCardList';
-import { ETBEntryForm } from '@organisms/etb/ETBEntryForm';
+import { ETBEntryForm, ETBEntryFormData } from '@organisms/etb/ETBEntryForm';
 import { ETBTable } from '@organisms/etb/ETBTable';
-import { Alert, Drawer, Spin } from 'antd';
-import { format } from 'date-fns';
+import { Alert, Drawer, Space, Spin, Switch, Typography } from 'antd';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { useEinsatztagebuch } from '../../../../hooks/etb/useEinsatztagebuch';
 import { useFahrzeuge } from '../../../../hooks/etb/useFahrzeuge';
-// Mock für natoDateTime
-const natoDateTime = 'dd.MM.yyyy HH:mm';
 
 /**
  * Vereinfachter Mobile-Check
@@ -21,14 +19,25 @@ const isMobile = typeof window !== 'undefined' && window.innerWidth < 768;
  * Komponente zur Anzeige des Einsatztagebuchs
  */
 export const ETBOverview: React.FC = () => {
+    // State für Filter
+    const [includeUeberschrieben, setIncludeUeberschrieben] = useState(false);
+
     // Hooks für Daten
-    const { einsatztagebuch, archiveEinsatztagebuchEintrag, createEinsatztagebuchEintrag } = useEinsatztagebuch();
+    const {
+        einsatztagebuch,
+        archiveEinsatztagebuchEintrag,
+        createEinsatztagebuchEintrag,
+        ueberschreibeEinsatztagebuchEintrag
+    } = useEinsatztagebuch({
+        includeUeberschrieben
+    });
     const { fahrzeuge, error: fahrzeugeError, refreshFahrzeuge } = useFahrzeuge();
 
     // States für UI
     const [inputVisible, setInputVisible] = useState(false);
     const [isOpen, setIsOpen] = useState(false);
     const [editingEintrag, setEditingEintrag] = useState<EtbEntryDto | null>(null);
+    const [isUeberschreibeModus, setIsUeberschreibeModus] = useState(false);
     const parentRef = useRef<HTMLDivElement>(null);
 
     // Periodisches Aktualisieren der Daten
@@ -46,6 +55,7 @@ export const ETBOverview: React.FC = () => {
     const modifyEntry = useCallback((entry: EtbEntryDto) => {
         setIsOpen(true);
         setEditingEintrag(entry);
+        setIsUeberschreibeModus(true);
     }, []);
 
     /**
@@ -54,21 +64,22 @@ export const ETBOverview: React.FC = () => {
     const onDrawerClose = useCallback(() => {
         setEditingEintrag(null);
         setIsOpen(false);
+        setIsUeberschreibeModus(false);
     }, []);
 
     /**
-     * Submit-Handler für das Formular zur Bearbeitung eines Eintrags
+     * Submit-Handler für das Formular
      */
-    const handleEditFormSubmit = async (data: Partial<EtbEntryDto>) => {
-        if (editingEintrag) {
-            await createEinsatztagebuchEintrag.mutateAsync({
-                ...data,
-                kategorie: 'KORREKTUR',
-                timestampEreignis: editingEintrag.timestampEreignis,
+    const handleEditFormSubmit = async (data: Partial<ETBEntryFormData>) => {
+        if (editingEintrag && isUeberschreibeModus) {
+            // Überschreiben des Eintrags
+            await ueberschreibeEinsatztagebuchEintrag.mutateAsync({
+                id: editingEintrag.id,
+                beschreibung: data.content || ''
             });
-            await archiveEinsatztagebuchEintrag.mutateAsync({ nummer: editingEintrag.laufendeNummer });
             setIsOpen(false);
             setEditingEintrag(null);
+            setIsUeberschreibeModus(false);
         }
     };
 
@@ -117,6 +128,7 @@ export const ETBOverview: React.FC = () => {
                         entries={einsatztagebuch?.data.items || []}
                         onEditEntry={modifyEntry}
                         onArchiveEntry={(nummer) => archiveEinsatztagebuchEintrag.mutate({ nummer })}
+                        onUeberschreibeEntry={modifyEntry}
                     />
                 ) : (
                     // Desktop-Ansicht
@@ -124,6 +136,7 @@ export const ETBOverview: React.FC = () => {
                         entries={einsatztagebuch?.data.items || []}
                         onEditEntry={modifyEntry}
                         onArchiveEntry={(nummer) => archiveEinsatztagebuchEintrag.mutate({ nummer })}
+                            onUeberschreibeEntry={modifyEntry}
                             fahrzeugeImEinsatz={fahrzeuge.data?.fahrzeugeImEinsatz || []}
                             isLoading={einsatztagebuch.isLoading}
                         isEditing={isOpen}
@@ -150,12 +163,26 @@ export const ETBOverview: React.FC = () => {
                 />
             )}
 
+            {/* Filter-Optionen */}
+            <div className="mt-4 mb-2">
+                <Space align="center">
+                    <Typography.Text>Überschriebene Einträge anzeigen:</Typography.Text>
+                    <Switch
+                        checked={includeUeberschrieben}
+                        onChange={setIncludeUeberschrieben}
+                        data-testid="toggle-ueberschrieben-switch"
+                    />
+                </Space>
+            </div>
+
             {/* Formular für neuen Eintrag */}
             <ETBFormWrapper inputVisible={inputVisible} closeForm={() => setInputVisible(false)}>
                 <ETBEntryForm
                     onSubmitSuccess={(data) => {
                         createEinsatztagebuchEintrag.mutate({
-                            ...data,
+                            autorName: data.sender,
+                            abgeschlossenVon: data.receiver,
+                            beschreibung: data.content,
                             kategorie: 'USER',
                         });
                         setInputVisible(false);
@@ -167,13 +194,15 @@ export const ETBOverview: React.FC = () => {
             {/* Hauptinhalt */}
             {renderContent()}
 
-            {/* Drawer für Bearbeitung */}
+            {/* Drawer für Überschreiben */}
             <Drawer
                 open={isOpen}
                 onClose={onDrawerClose}
                 title={
-                    editingEintrag && `Eintrag ${editingEintrag.laufendeNummer} von 
-          ${format(editingEintrag.timestampEreignis, natoDateTime)} bearbeiten`
+                    editingEintrag && isUeberschreibeModus
+                        ? `Eintrag ${editingEintrag.laufendeNummer} von 
+                            ${formatNatoDateTime(editingEintrag.timestampEreignis)} überschreiben`
+                        : (editingEintrag ? `Eintrag ${editingEintrag.laufendeNummer} bearbeiten` : '')
                 }
             >
                 {editingEintrag && (
@@ -181,7 +210,7 @@ export const ETBOverview: React.FC = () => {
                         editingEntry={editingEintrag}
                         onSubmitSuccess={handleEditFormSubmit}
                         onCancel={onDrawerClose}
-                        isEditMode
+                        isEditMode={!isUeberschreibeModus}
                     />
                 )}
             </Drawer>

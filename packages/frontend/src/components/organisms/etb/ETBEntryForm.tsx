@@ -1,5 +1,6 @@
+import { FahrzeugMock, useFahrzeuge } from '@/hooks/etb/useFahrzeuge';
 import { EtbEntryDto } from '@bluelight-hub/shared/client/models/EtbEntryDto';
-import { Button, Input } from 'antd';
+import { Button, Input, Select } from 'antd';
 import React, { useState } from 'react';
 import { PiPlus, PiSwap, PiX } from 'react-icons/pi';
 /**
@@ -187,6 +188,15 @@ export const ETBEntryForm: React.FC<ETBEntryFormProps> = ({
         }
     };
 
+    const { fahrzeuge } = useFahrzeuge();
+    const fahrzeugListe = fahrzeuge.data.fahrzeugeImEinsatz || [];
+
+    /**
+     * Filterfunktion für die Fahrzeugauswahl
+     */
+    const filterOption = (input: string, option?: { label: string; value: string }) =>
+        (option?.label ?? '').toLowerCase().includes(input.toLowerCase());
+
     return (
         <FormLayout<ETBEntryFormData>
             form={{
@@ -205,10 +215,18 @@ export const ETBEntryForm: React.FC<ETBEntryFormProps> = ({
                 name="sender"
                 rules={[{ required: true, message: 'Es sollte ein Absender angegeben werden' }]}
             >
-                <Input
+                <Select
                     placeholder="z.B. ELRD, RTW-1"
                     value={formData.sender}
-                    onChange={(e) => handleChange('sender', e.target.value)}
+                    className='w-full'
+                    onChange={(value) => handleChange('sender', value)}
+                    showSearch
+                    filterOption={filterOption}
+                    allowClear
+                    options={fahrzeugListe.map((fahrzeug: FahrzeugMock) => ({
+                        label: fahrzeug.fullOpta,
+                        value: fahrzeug.fullOpta
+                    }))}
                 />
             </InputWrapper>
 
@@ -217,10 +235,18 @@ export const ETBEntryForm: React.FC<ETBEntryFormProps> = ({
                 name="receiver"
                 rules={[{ required: true, message: 'Es sollte ein Empfänger angegeben werden' }]}
             >
-                <Input
+                <Select
                     placeholder="z.B. RTW-1, NEF-1"
                     value={formData.receiver}
-                    onChange={(e) => handleChange('receiver', e.target.value)}
+                    className='w-full'
+                    onChange={(value) => handleChange('receiver', value)}
+                    showSearch
+                    filterOption={filterOption}
+                    allowClear
+                    options={fahrzeugListe.map((fahrzeug: FahrzeugMock) => ({
+                        label: fahrzeug.fullOpta,
+                        value: fahrzeug.fullOpta
+                    }))}
                 />
             </InputWrapper>
 

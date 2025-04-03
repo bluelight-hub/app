@@ -127,7 +127,23 @@ export interface EtbEntryDto {
    * @memberof EtbEntryDto
    */
   abgeschlossenVon: string | null;
+  /**
+   * Status des Eintrags
+   * @type {string}
+   * @memberof EtbEntryDto
+   */
+  status: EtbEntryDtoStatusEnum | null;
 }
+
+/**
+ * @export
+ */
+export const EtbEntryDtoStatusEnum = {
+  Aktiv: "aktiv",
+  Ueberschrieben: "ueberschrieben",
+} as const;
+export type EtbEntryDtoStatusEnum =
+  (typeof EtbEntryDtoStatusEnum)[keyof typeof EtbEntryDtoStatusEnum];
 
 /**
  * Check if a given object implements the EtbEntryDto interface.
@@ -181,6 +197,7 @@ export function instanceOfEtbEntryDto(value: object): value is EtbEntryDto {
     return false;
   if (!("abgeschlossenVon" in value) || value["abgeschlossenVon"] === undefined)
     return false;
+  if (!("status" in value) || value["status"] === undefined) return false;
   return true;
 }
 
@@ -217,6 +234,7 @@ export function EtbEntryDtoFromJSONTyped(
         ? null
         : new Date(json["timestampAbschluss"]),
     abgeschlossenVon: json["abgeschlossenVon"],
+    status: json["status"],
   };
 }
 
@@ -254,5 +272,6 @@ export function EtbEntryDtoToJSONTyped(
         ? null
         : (value["timestampAbschluss"] as any).toISOString(),
     abgeschlossenVon: value["abgeschlossenVon"],
+    status: value["status"],
   };
 }

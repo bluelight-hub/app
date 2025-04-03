@@ -12,4 +12,5 @@ export * from "./EtbEntryResponse";
 export * from "./HealthControllerCheck200Response";
 export * from "./HealthControllerCheck200ResponseInfoValue";
 export * from "./HealthControllerCheck503Response";
+export * from "./UeberschreibeEtbDto";
 export * from "./UpdateEtbDto";

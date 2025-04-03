@@ -1,6 +1,7 @@
 import { ApiResponse } from '@/common/interfaces/api-response.interface';
 import { ApiProperty } from '@nestjs/swagger';
 import { EtbAttachment } from '../entities/etb-attachment.entity';
+import { EtbEntryStatus } from '../entities/etb-entry.entity';
 
 /**
  * DTO für ETB-Eintrag
@@ -126,6 +127,15 @@ export class EtbEntryDto {
         nullable: true,
     })
     abgeschlossenVon: string;
+
+    @ApiProperty({
+        description: 'Status des Eintrags',
+        type: 'string',
+        nullable: true,
+        enum: EtbEntryStatus,
+        example: EtbEntryStatus.AKTIV,
+    })
+    status: EtbEntryStatus;
 }
 
 /**

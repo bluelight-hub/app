@@ -22,7 +22,13 @@ export default tseslint.config(
       'react-refresh/only-export-components': [
         'warn',
         { allowConstantExport: true },
-      ],
+      ]
+    },
+  },
+  {
+    files: ['src/**/*.{ts,tsx}'],
+    ignores: ['src/components/organisms/mocks/**/*.tsx'],
+    rules: {
       'max-lines': [
         'error',
         {
@@ -38,7 +44,7 @@ export default tseslint.config(
           skipBlankLines: false,
           skipComments: false
         }
-      ]
-    },
-  },
+      ] 
+    }
+  }
 )

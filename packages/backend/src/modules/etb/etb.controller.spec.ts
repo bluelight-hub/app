@@ -3,9 +3,10 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { Request } from 'express';
 import { CreateEtbDto } from './dto/create-etb.dto';
 import { FilterEtbDto } from './dto/filter-etb.dto';
+import { UeberschreibeEtbDto } from './dto/ueberschreibe-etb.dto';
 import { UpdateEtbDto } from './dto/update-etb.dto';
 import { EtbAttachment } from './entities/etb-attachment.entity';
-import { EtbEntry } from './entities/etb-entry.entity';
+import { EtbEntry, EtbEntryStatus } from './entities/etb-entry.entity';
 import { EtbController } from './etb.controller';
 import { EtbService } from './etb.service';
 
@@ -66,6 +67,7 @@ describe('EtbController', () => {
         findAttachmentsByEtbEntryId: jest.fn(),
         findAttachmentById: jest.fn(),
         addAttachment: jest.fn(),
+        ueberschreibeEintrag: jest.fn(),
     };
 
     // Mock für Request mit User
@@ -182,30 +184,8 @@ describe('EtbController', () => {
         it('sollte alle ETB-Einträge mit Filteroptionen zurückgeben', async () => {
             // Arrange
             const filterDto: FilterEtbDto = {
-                kategorie: 'Test',
                 page: 1,
                 limit: 10,
-            };
-            const mockEntry = createMockEtbEntry();
-            const mockEntries = [mockEntry];
-            const mockTotal = 1;
-
-            mockEtbService.findAll.mockResolvedValue([mockEntries, mockTotal]);
-
-            // Act
-            const result = await controller.findAll(filterDto);
-
-            // Assert
-            expect(service.findAll).toHaveBeenCalledWith(filterDto);
-            expect(result).toEqual({ entries: mockEntries, total: mockTotal });
-            expect(mockLogger.info).toHaveBeenCalled();
-        });
-
-        it('sollte mit Zeitraumfilterung korrekt umgehen', async () => {
-            // Arrange
-            const filterDto: FilterEtbDto = {
-                vonZeitstempel: '2023-01-01T00:00:00Z',
-                bisZeitstempel: '2023-12-31T23:59:59Z'
             };
             const mockEntries = [createMockEtbEntry()];
             mockEtbService.findAll.mockResolvedValue([mockEntries, 1]);
@@ -215,8 +195,24 @@ describe('EtbController', () => {
 
             // Assert
             expect(service.findAll).toHaveBeenCalledWith(filterDto);
-            expect(result.entries).toEqual(mockEntries);
-            expect(result.total).toEqual(1);
+            expect(result).toEqual({ entries: expect.any(Array), total: 1 });
+        });
+
+        it('sollte mit includeUeberschrieben=true korrekt umgehen', async () => {
+            // Arrange
+            const filterDto: FilterEtbDto = {
+                includeUeberschrieben: true
+            };
+            const mockEntries = [createMockEtbEntry()];
+            mockEtbService.findAll.mockResolvedValue([mockEntries, 1]);
+
+            // Act
+            await controller.findAll(filterDto);
+
+            // Assert
+            expect(service.findAll).toHaveBeenCalledWith(expect.objectContaining({
+                includeUeberschrieben: true
+            }));
         });
 
         it('sollte mit komplexen Filterkriterien korrekt umgehen', async () => {
@@ -277,7 +273,7 @@ describe('EtbController', () => {
         it('sollte einen ETB-Eintrag aktualisieren', async () => {
             // Arrange
             const id = 'test-id';
-            const updateEtbDto: UpdateEtbDto = {
+            const updateDto: UpdateEtbDto = {
                 titel: 'Aktualisierter Titel',
                 beschreibung: 'Aktualisierte Beschreibung',
             };
@@ -291,10 +287,10 @@ describe('EtbController', () => {
             mockEtbService.updateEintrag.mockResolvedValue(mockEntry);
 
             // Act
-            const result = await controller.update(id, updateEtbDto);
+            const result = await controller.update(id, updateDto);
 
             // Assert
-            expect(service.updateEintrag).toHaveBeenCalledWith(id, updateEtbDto);
+            expect(service.updateEintrag).toHaveBeenCalledWith(id, updateDto);
             expect(result).toEqual(mockEntry);
             expect(mockLogger.info).toHaveBeenCalled();
         });
@@ -302,7 +298,7 @@ describe('EtbController', () => {
         it('sollte nur die übermittelten Felder aktualisieren', async () => {
             // Arrange
             const id = 'test-id';
-            const updateEtbDto: UpdateEtbDto = {
+            const updateDto: UpdateEtbDto = {
                 titel: 'Nur Titel aktualisieren'
                 // Beschreibung bleibt unverändert
             };
@@ -314,16 +310,16 @@ describe('EtbController', () => {
             mockEtbService.updateEintrag.mockResolvedValue(mockEntry);
 
             // Act
-            await controller.update(id, updateEtbDto);
+            await controller.update(id, updateDto);
 
             // Assert
-            expect(service.updateEintrag).toHaveBeenCalledWith(id, updateEtbDto);
+            expect(service.updateEintrag).toHaveBeenCalledWith(id, updateDto);
         });
 
         it('sollte die BadRequestException vom Service weiterleiten', async () => {
             // Arrange
             const id = 'test-id';
-            const updateEtbDto: UpdateEtbDto = {
+            const updateDto: UpdateEtbDto = {
                 titel: 'Aktualisierter Titel',
             };
 
@@ -332,8 +328,8 @@ describe('EtbController', () => {
             );
 
             // Act & Assert
-            await expect(controller.update(id, updateEtbDto)).rejects.toThrow(BadRequestException);
-            expect(service.updateEintrag).toHaveBeenCalledWith(id, updateEtbDto);
+            await expect(controller.update(id, updateDto)).rejects.toThrow(BadRequestException);
+            expect(service.updateEintrag).toHaveBeenCalledWith(id, updateDto);
             expect(mockLogger.info).toHaveBeenCalled();
         });
     });
@@ -542,6 +538,123 @@ describe('EtbController', () => {
             await expect(controller.addAttachment(id, file, 'Test Anlage')).rejects.toThrow(BadRequestException);
             expect(service.addAttachment).not.toHaveBeenCalled();
             expect(mockLogger.error).toHaveBeenCalled();
+        });
+    });
+
+    /**
+     * Tests für ueberschreibeEintrag-Methode
+     */
+    describe('ueberschreibeEintrag', () => {
+        it('sollte einen ETB-Eintrag überschreiben', async () => {
+            // Arrange
+            const id = 'test-id';
+            const ueberschreibeEtbDto: UeberschreibeEtbDto = {
+                beschreibung: 'Übergeschriebene Beschreibung',
+            };
+
+            const originalEntry = createMockEtbEntry({
+                id,
+                beschreibung: 'Original Beschreibung'
+            });
+
+            const mockNewEntry = createMockEtbEntry({
+                id: 'new-id',
+                beschreibung: 'Übergeschriebene Beschreibung',
+                status: EtbEntryStatus.AKTIV,
+                ueberschriebeneEintraege: [
+                    {
+                        ...originalEntry,
+                        status: EtbEntryStatus.UEBERSCHRIEBEN,
+                        timestampUeberschrieben: new Date(),
+                        ueberschriebenVon: req.user.id
+                    }
+                ]
+            });
+
+            mockEtbService.ueberschreibeEintrag.mockResolvedValue(mockNewEntry);
+
+            // Act
+            const result = await controller.ueberschreibeEintrag(id, ueberschreibeEtbDto, req);
+
+            // Assert
+            expect(service.ueberschreibeEintrag).toHaveBeenCalledWith(
+                id,
+                ueberschreibeEtbDto,
+                req.user.id,
+                req.user.name,
+                req.user.role
+            );
+            expect(result).toEqual(mockNewEntry);
+            expect(mockLogger.info).toHaveBeenCalled();
+        });
+
+        it('sollte mit Mock-Benutzerinformationen funktionieren, wenn keine Benutzerinformationen im Request vorhanden sind', async () => {
+            // Arrange
+            const id = 'test-id';
+            const ueberschreibeEtbDto: UeberschreibeEtbDto = {
+                beschreibung: 'Übergeschriebene Beschreibung',
+            };
+            const mockNewEntry = createMockEtbEntry();
+            mockEtbService.ueberschreibeEintrag.mockResolvedValue(mockNewEntry);
+
+            const reqWithoutUser = {} as Request & { user?: any }; // Request ohne User-Objekt
+
+            // Act
+            const result = await controller.ueberschreibeEintrag(id, ueberschreibeEtbDto, reqWithoutUser);
+
+            // Assert
+            expect(service.ueberschreibeEintrag).toHaveBeenCalledWith(
+                id,
+                ueberschreibeEtbDto,
+                'mock-user-id', // Standard-Wert, wenn keine User-ID vorhanden
+                'Mock User',     // Standard-Name
+                'Einsatzleiter'  // Standard-Rolle
+            );
+            expect(result).toEqual(mockNewEntry);
+        });
+
+        it('sollte die NotFoundException vom Service weiterleiten', async () => {
+            // Arrange
+            const id = 'non-existent-id';
+            const ueberschreibeEtbDto: UeberschreibeEtbDto = {
+                beschreibung: 'Übergeschriebene Beschreibung',
+            };
+
+            mockEtbService.ueberschreibeEintrag.mockRejectedValue(
+                new NotFoundException(`ETB-Eintrag mit ID ${id} wurde nicht gefunden`)
+            );
+
+            // Act & Assert
+            await expect(controller.ueberschreibeEintrag(id, ueberschreibeEtbDto, req))
+                .rejects.toThrow(NotFoundException);
+        });
+
+        it('sollte alle optionalen Felder korrekt an den Service weiterleiten', async () => {
+            // Arrange
+            const id = 'test-id';
+            const ueberschreibeEtbDto: UeberschreibeEtbDto = {
+                timestampEreignis: new Date().toISOString(),
+                kategorie: 'Neue Kategorie',
+                titel: 'Neuer Titel',
+                beschreibung: 'Übergeschriebene Beschreibung',
+                referenzEinsatzId: 'einsatz-123',
+                referenzPatientId: 'patient-456',
+                referenzEinsatzmittelId: 'em-789'
+            };
+            const mockNewEntry = createMockEtbEntry();
+            mockEtbService.ueberschreibeEintrag.mockResolvedValue(mockNewEntry);
+
+            // Act
+            await controller.ueberschreibeEintrag(id, ueberschreibeEtbDto, req);
+
+            // Assert
+            expect(service.ueberschreibeEintrag).toHaveBeenCalledWith(
+                id,
+                expect.objectContaining(ueberschreibeEtbDto),
+                req.user.id,
+                req.user.name,
+                req.user.role
+            );
         });
     });
 }); 

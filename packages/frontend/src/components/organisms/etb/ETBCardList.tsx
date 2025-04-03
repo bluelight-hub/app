@@ -1,11 +1,7 @@
+import { formatNatoDateTime } from '@/utils/date';
 import { EtbEntryDto } from '@bluelight-hub/shared/client';
-import { Button, Empty, Tooltip } from 'antd';
-import { format } from 'date-fns';
-import React from 'react';
+import { Button, Empty, Tag, Tooltip } from 'antd';
 import { PiEmpty, PiSwap, PiTextStrikethrough } from 'react-icons/pi';
-
-// Mock für natoDateTime
-const natoDateTime = 'dd.MM.yyyy HH:mm';
 
 /**
  * Internes Hilfs-Interface für Typannotationen
@@ -19,6 +15,7 @@ type ETBEntryFields = {
     sender?: string;
     receiver?: string;
     archived?: boolean;
+    status?: 'aktiv' | 'ueberschrieben';
 };
 
 /**
@@ -39,6 +36,11 @@ interface ETBCardListProps {
      * Callback für das Archivieren eines Eintrags
      */
     onArchiveEntry?: (nummer: number) => void;
+
+    /**
+     * Callback für das Überschreiben eines Eintrags
+     */
+    onUeberschreibeEntry?: (entry: EtbEntryDto) => void;
 }
 
 /**
@@ -48,6 +50,7 @@ export const ETBCardList: React.FC<ETBCardListProps> = ({
     entries,
     onEditEntry,
     onArchiveEntry,
+    onUeberschreibeEntry,
 }) => {
     if (!entries.length) {
         return <Empty image={<PiEmpty size={48} />} description="Keine Einträge verfügbar" />;
@@ -65,31 +68,47 @@ export const ETBCardList: React.FC<ETBCardListProps> = ({
                 const entrySender = entryWithFields.sender ?? "";
                 const entryReceiver = entryWithFields.receiver ?? "";
                 const isArchived = entryWithFields.archived ?? false;
+                const isUeberschrieben = entryWithFields.status === 'ueberschrieben';
 
                 // Datum formatieren, falls vorhanden
                 let formattedDate = "-";
                 if (entryWithFields.timestamp) {
                     try {
-                        formattedDate = format(entryWithFields.timestamp, natoDateTime);
+                        formattedDate = formatNatoDateTime(entryWithFields.timestamp) ?? "-";
                     } catch (error) {
                         console.error("Fehler beim Formatieren des Datums:", error);
                     }
                 }
 
                 return (
-                    <div key={entryId} className="p-3 border rounded shadow-sm">
+                    <div
+                        key={entryId}
+                        className={`p-3 border rounded shadow-sm ${isUeberschrieben ? 'opacity-60' : ''}`}
+                    >
                         <div className="font-semibold flex justify-between mb-1 text-primary-600 dark:text-primary-400">
-                            <span>#{entryNumber} | {entryType}</span>
+                            <span className="flex items-center">
+                                #{entryNumber} | {entryType}
+                                {isUeberschrieben && (
+                                    <Tag color="warning" className="ml-2">Überschrieben</Tag>
+                                )}
+                            </span>
                             <span>{formattedDate}</span>
                         </div>
-                        <p className="text-sm">{entryContent}</p>
+                        <p className={`text-sm ${isUeberschrieben ? 'line-through' : ''}`}>{entryContent}</p>
                         <div className="text-xs mt-1 text-gray-500 flex items-center justify-between">
                             <span>Absender: {entrySender}</span>
                             <span>Empfänger: {entryReceiver}</span>
                         </div>
-                        {!isArchived && (
+                        {!isArchived && !isUeberschrieben && (
                             <div className="mt-2 flex gap-2 justify-end">
                                 <Tooltip title="Eintrag überschreiben">
+                                    <Button
+                                        size="small"
+                                        onClick={() => onUeberschreibeEntry && onUeberschreibeEntry(item)}
+                                        icon={<PiSwap />}
+                                    />
+                                </Tooltip>
+                                <Tooltip title="Eintrag bearbeiten">
                                     <Button
                                         size="small"
                                         onClick={() => onEditEntry && onEditEntry(item)}

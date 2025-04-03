@@ -1,6 +1,8 @@
 import { join } from 'path';
 import { DataSource } from 'typeorm';
 import { CreateEtbTables1743354348523 } from './migrations/1743354348523-CreateEtbTables';
+import { AddLaufendeNummerToEtbEntry1743452819521 } from './migrations/1743452819521-AddLaufendeNummerToEtbEntry';
+import { AddEtbEntryStatus1743618694268 } from './migrations/1743618694268-AddEtbEntryStatus';
 
 /**
  * Einmalige Ausführung der Migrationen.
@@ -12,7 +14,11 @@ async function runMigrations() {
         database: process.env.SQLITE_DB_PATH || join(__dirname, '..', '..', '..', 'data', 'database.sqlite'),
         synchronize: false,
         logging: true,
-        migrations: [CreateEtbTables1743354348523],
+        migrations: [
+            CreateEtbTables1743354348523,
+            AddLaufendeNummerToEtbEntry1743452819521,
+            AddEtbEntryStatus1743618694268
+        ],
     });
 
     try {

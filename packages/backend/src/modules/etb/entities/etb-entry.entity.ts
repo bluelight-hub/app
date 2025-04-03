@@ -1,5 +1,14 @@
-import { Column, Entity, OneToMany, PrimaryGeneratedColumn } from 'typeorm';
+import { Column, Entity, ManyToOne, OneToMany, PrimaryGeneratedColumn } from 'typeorm';
 import { EtbAttachment } from './etb-attachment.entity';
+
+/**
+ * Enum für den Status eines Einsatztagebuch-Eintrags
+ */
+export enum EtbEntryStatus {
+    AKTIV = 'aktiv',
+    UEBERSCHRIEBEN = 'ueberschrieben'
+}
+
 /**
  * Entity für Einträge im Einsatztagebuch.
  * Speichert alle relevanten Informationen zu einem Ereignis während eines Einsatzes.
@@ -97,6 +106,15 @@ export class EtbEntry {
     version: number;
 
     /**
+     * Status des Eintrags, standardmäßig aktiv
+     */
+    @Column({
+        type: 'varchar',
+        default: EtbEntryStatus.AKTIV
+    })
+    status: EtbEntryStatus;
+
+    /**
      * Gibt an, ob der Eintrag abgeschlossen ist
      */
     @Column({ default: false })
@@ -113,6 +131,30 @@ export class EtbEntry {
      */
     @Column({ nullable: true })
     abgeschlossenVon: string;
+
+    /**
+     * Verweis auf den Eintrag, der diesen überschrieben hat (falls dieser überschrieben wurde)
+     */
+    @ManyToOne(() => EtbEntry, entry => entry.ueberschriebeneEintraege, { nullable: true })
+    ueberschriebenDurch: EtbEntry;
+
+    /**
+     * Liste der Einträge, die durch diesen Eintrag überschrieben wurden
+     */
+    @OneToMany(() => EtbEntry, entry => entry.ueberschriebenDurch)
+    ueberschriebeneEintraege: EtbEntry[];
+
+    /**
+     * Zeitpunkt, wann der Eintrag überschrieben wurde
+     */
+    @Column({ type: 'datetime', nullable: true })
+    timestampUeberschrieben: Date;
+
+    /**
+     * ID der Person, die den Eintrag überschrieben hat
+     */
+    @Column({ nullable: true })
+    ueberschriebenVon: string;
 
     /**
      * Liste aller Anlagen zu diesem Eintrag
