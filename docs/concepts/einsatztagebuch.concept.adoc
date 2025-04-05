@@ -1,0 +1,201 @@
+= Konzept: Einsatztagebuch (ETB)
+:toc:
+:toc-title: Inhaltsverzeichnis
+:toclevels: 3
+:sectlinks:
+:sectnums:
+
+== Zusammenfassung der Anforderung
+
+Du möchtest eine einzige, einheitliche Einsatztagebuch-Komponente (ETB) in Deiner Anwendung umsetzen, in der alle relevanten Ereignisse – ob automatisch erfasst (z. B. durch Systemaktionen) oder manuell eingetragen (z. B. per Formular) – chronologisch aufgelistet werden. Diese Komponente soll unterschiedliche Aufgaben eines klassischen Funkbuchs, Wachbuchs oder separater Protokolle (z. B. Lagemeldungen) zusammenführen. Gleichzeitig muss sie den formalen und rechtlichen Anforderungen entsprechen (keine nachträglichen Änderungen, vollständige und nachvollziehbare Dokumentation, mindestens 10 Jahre Archivierung etc.).
+
+Im Folgenden findest Du eine Empfehlung, welche Felder und Informationen in einem Einsatztagebuch enthalten sein sollten und wie Du das Ganze konzeptionell aufbauen kannst.
+
+== Grundlegende Ziele und Anforderungen
+
+=== Chronologische, nachvollziehbare Dokumentation
+* Sämtliche Ereignisse und Informationen werden mit Zeitstempel und Autor abgelegt.
+* Die Reihenfolge und der Zusammenhang zwischen Ereignissen müssen klar erkennbar sein.
+
+=== Vollständigkeit und Verständlichkeit aus sich selbst heraus
+* Alle relevanten Daten sollten ohne Hinzuziehen weiterer Dokumente verständlich sein (Ausnahmen: Anlagen, die dem ETB direkt beigefügt sind).
+* Knappe, aber aussagekräftige Beschreibung der Ereignisse (Wer? Was? Warum? Wann?).
+
+=== Keine nachträglichen Änderungen
+* Nach Abschluss (z. B. Einsatzende) darf das ETB nicht mehr modifizierbar sein.
+* Jegliche Änderungen während des offenen Status müssen versioniert oder zumindest protokolliert werden, sodass die Glaubwürdigkeit erhalten bleibt.
+
+=== Rollen und Zugriffsrechte
+* Nur autorisierte Personen (bspw. S2 / Lageführer oder deren beauftragte Personen) können Einträge verfassen.
+* Die Einträge müssen klar zuordenbar sein (Verantwortliche Person, Rolle, Einheit).
+
+=== Langzeitarchivierung (i. d. R. 10 Jahre)
+* Daten müssen langfristig sicher und unveränderbar gespeichert werden.
+* Export- oder Druckfunktion (z. B. PDF) zum Nachweis.
+
+=== Automatische und manuelle Einträge
+* Systemgenerierte Einträge (z. B. Zeitstempel beim Eintreffen einer Meldung, Zuweisung von Einsatzmitteln, Statuswechsel).
+* Manuelle Einträge (z. B. Notizen, wichtige Befehle, Lageeinschätzungen, Patienteninfos).
+
+== Empfohlene Felder im Einsatztagebuch
+
+Damit Du das Einsatztagebuch strukturiert abbilden kannst, solltest Du Dir ein Datenmodell überlegen, das folgende Felder bzw. Datenpunkte abdeckt:
+
+=== Allgemeine Metadaten
+* ETB-Eintrag-ID (eindeutige Kennung, z. B. UUID)
+* Laufende Nummer (fortlaufende Nummerierung für chronologische Sortierung und einfache Referenzierung)
+* Erstelldatum/-uhrzeit (Timestamp)
+* Autor (Person, die den Eintrag macht: Name, ID, Rolle/Stabsfunktion)
+* Zugehörige Einheit (optional, z. B. Ortsverband, San-Gruppe o. ä.)
+
+=== Zeitangaben
+* Zeitpunkt des Ereignisses (Kann identisch sein mit Erstelldatum, falls direkt eingetragen wird, oder abweichen, wenn das Ereignis mit Verspätung dokumentiert wird.)
+* Zeitpunkt der Freigabe (bei automatischen Einträgen oder wenn interne Validierung stattfindet)
+
+=== Kategorisierung
+* Eintragsart (z. B. Meldung, Befehl, Lageeinschätzung, Radiokommunikation, Patientenmaßnahme, Materialanfrage, sonstige Information usw.)
+* Dringlichkeit/Priorität (optional, wenn eine Priorisierung notwendig ist)
+* Status (nur relevant, solange das ETB noch offen ist, z. B. "Entwurf" → "Bestätigt" → "Gesperrt")
+
+=== Inhalt
+* Kurzbeschreibung / Titel (optionaler kurzer Betreff, hilft bei der Übersicht)
+* Beschreibung / Details (ausführliche Schilderung des Ereignisses: Was ist passiert, worauf bezieht es sich, welche Maßnahmen wurden ergriffen?)
+* Betroffene Personen/Patienten (Verweis auf Patientendatensatz oder Personal-ID, wenn relevant)
+* Betroffene Einsatzmittel (Verweis auf z. B. Fahrzeuge, Geräte, Material)
+* Bezug zum Einsatz (Einsatz-ID oder Einsatzbezeichnung, falls mehrere Einsätze parallel laufen)
+
+=== Verknüpfungen und Anhänge
+* Anlagen (Upload von Dokumenten, Bildern, PDF-Dateien etc. mit Verweis "Anlage zum ETB vom...")
+* Verweis auf andere Einträge (z. B. "Fortsetzung von Eintrag #45" oder Verweis auf Befehle, die diesen Eintrag ausgelöst haben)
+
+=== Automatisierungsinformationen
+_Optional, wenn automatische Einträge erstellt werden_
+
+* Systemquelle (z. B. TMS, Einsatzleitsoftware, Funkbuch-Schnittstelle)
+* Automatisierter Prozess (z. B. "Patient angelegt", "Status Wechsel [RTW 1: Abfahrt]")
+* Zusätzliche Felder abhängig vom jeweiligen Ereignistyp (z. B. Sprechfunkkanal, GPS-Position, wer die Meldung abgesetzt hat, etc.)
+
+=== Änderungs- und Abschlussinformationen
+* Versionierung (solange der Eintrag nicht final ist)
+* Abschlussdatum und -uhrzeit
+* Unterschrift (digital) des ETB-Führers und ggf. Gegenzeichnung
+* Schreibschutz (technische Sperre, nachdem das Dokument abgeschlossen ist)
+
+== Logische Struktur und Darstellung
+
+=== Chronologische Liste vs. Kategorisierte Sichten
+* Chronologische Hauptansicht: Alle Einträge werden in zeitlicher Reihenfolge aufgelistet. Diese Ansicht ist der Kern des Einsatztagebuchs.
+* Filter-/Suchfunktionen: Nutzer können nach Kategorien (z. B. "Befehl", "Patient", "Funkverkehr"), Zeiträumen oder einzelnen Einsatzkräften filtern.
+* Detailansicht: Klickt man auf einen Eintrag, sieht man alle Felder (Beschreibung, Autor, Anhänge, beteiligte Personen etc.).
+
+=== Automatische Einträge
+* Ereignisse wie "Einsatzmittel X ist ausgerückt", "Patient Y wurde angelegt", "Lagemeldung geändert" können direkt und automatisch als ETB-Eintrag erzeugt werden.
+* Diese Einträge haben in der Regel ein Standardformat (z. B. feste Vorlagen, die nur dynamische Felder wie Zeit und Beteiligte füllen).
+
+=== Manuelle Einträge
+* Ein Eingabeformular mit Pflichtfeldern (z. B. Kategorie, Datum/Uhrzeit, Beschreibung) und optionalen Feldern (Anlagen, Verweise).
+* Die Eingabe sollte so einfach wie möglich gehalten werden: z. B. Dropdown-Felder für Kategorien, automatische Vorschläge für Einsatzmittel, Personen etc.
+
+=== Abschluss des Einsatztagebuches
+* Ist ein Einsatz beendet, werden alle offenen Einträge finalisiert.
+* Nachträgliche Änderungen sind technisch unterbunden. Ein Sperrvermerk ("ETB abgeschlossen am...") wird angezeigt.
+* Für etwaige Korrekturen während eines laufenden Einsatzes kann man eine Versionierung oder ein revisionssicheres Änderungsprotokoll hinterlegen.
+* Anschließend kann ein PDF-Export generiert werden.
+
+== Besondere Anforderungen für die Langzeitarchivierung
+
+=== Unveränderbarkeit
+* Die Daten müssen in einer Form gespeichert werden, die eine Manipulation verhindert (z. B. durch Hashing, elektronische Signaturen oder eine revisionssichere Datenbank).
+
+=== Strukturierte Datenspeicherung
+* Neben der Anzeige in der Anwendung sollte eine externe Archivierung (z. B. PDF/A, Anbindung an ein Dokumenten-Management-System) möglich sein.
+
+=== Datenschutz
+* Medizinische Informationen (Patientendaten, Gesundheitszustände) müssen nach geltendem Recht gespeichert, geschützt und nach Ablauf der Aufbewahrungsfristen gelöscht werden.
+* Zugriff nur für berechtigtes Personal.
+
+== Beispiel eines möglichen Datenmodells (vereinfacht)
+
+[source,typescript]
+----
+interface EinsatztagebuchEintrag {
+  id: string;                // z. B. UUID
+  laufendeNummer: number;    // Fortlaufende Nummer für ETB-Einträge
+  timestampErstellung: Date; // Zeitpunkt der Eintragserstellung
+  timestampEreignis: Date;   // Zeitpunkt, an dem das Ereignis stattfand
+  autor: {
+    id: string;
+    name: string;
+    rolle: string;           // z. B. S2, S3, Einsatzleiter, Sanitäter etc.
+  };
+  
+  kategorie: string;         // "Meldung", "Befehl", "Patientenmaßnahme", ...
+  titel?: string;            // Optionaler Kurztitel
+  beschreibung: string;      // Detaillierte Beschreibung des Vorgangs
+  
+  referenzEinsatzId?: string;  // Welcher Einsatz?
+  referenzPatientId?: string;  // Welcher Patient?
+  referenzEinsatzmittelId?: string; // Welches Fahrzeug/Gerät?
+
+  anlagen?: Anlage[];        // Liste von Anhängen (Dokument, Bild etc.)
+  systemQuelle?: string;     // Optional, wenn Eintrag automatisiert
+
+  // Daten für Änderungs- und Abschlussstatus
+  version: number;
+  istAbgeschlossen: boolean; 
+  timestampAbschluss?: Date; 
+  abgeschlossenVon?: string; 
+}
+
+interface Anlage {
+  id: string;                // UUID oder ähnliches
+  dateiname: string;         // Originalname
+  dateityp: string;          // MIME type
+  speicherOrt: string;       // Pfad/Link in der Datenbank oder im Dateisystem
+  beschreibung?: string;     // Kurze Beschreibung
+}
+----
+
+== Tipps für die Implementierung in Deiner Anwendung
+
+=== UI/UX
+* Schnelleingabe-Funktion für manuelle Einträge: z. B. ein Button "Neuer Eintrag", der ein Modal öffnet.
+* Listen- und Detailansicht in einer übersichtlichen Oberfläche (z. B. React mit Ant Design oder Tailwind)
+* Mögliche Darstellung als Timeline (um den zeitlichen Ablauf optisch ansprechend zu zeigen).
+
+=== Validierung
+* Plausibilitätschecks (z. B. Zeitstempel in der Vergangenheit, sinnvolle Kategorien).
+* Pflichtfelder (Beschreibung, Zeitstempel).
+
+=== Automatische vs. manuelle Einträge
+* Baue Hooks/Listener in Deinem Backend (NestJS), die bei bestimmten Ereignissen (z. B. Änderung des Patientenstatus) selbstständig einen Eintrag ins ETB schreiben.
+* Stelle sicher, dass die Quelle klar erkennbar ist, um manuell erzeugte und automatisch erzeugte Einträge zu unterscheiden.
+
+=== Rechte- und Rollenmodell
+* Nur berechtigte Nutzer dürfen neue ETB-Einträge anlegen, bearbeiten oder löschen.
+* Änderungsmöglichkeiten nur solange, bis der Eintrag freigegeben ist (Versionierung kann hier helfen).
+
+=== Abschlusslogik und Archivierung
+* Definiere einen Workflow für den Abschluss (ggf. müssen mehrere Personen unterzeichnen).
+* Anschließender PDF-Export (inkl. Anlagen als Anhang oder Verweise).
+* Sperren der Daten in der Datenbank.
+
+=== Revisionssicherheit
+* Wenn Du Änderungen im laufenden Betrieb zulassen musst (z. B. Korrektur eines Tippfehlers), dann versioniere den Eintrag oder erstelle automatisierte "Änderungshistorien".
+* Nach Abschluss eines Einsatztagebuchs keine Änderungen mehr zulassen.
+
+=== Langzeitarchivierung
+* Speicherung in PDF/A-Format (oder ähnliche Standards) mit Metadaten.
+* Sichere Aufbewahrung (Backup-Strategie, Verschlüsselung, Auditing).
+
+== Zusammenfassung und nächste Schritte
+
+Ein Einsatztagebuch benötigt eine eindeutige Struktur, damit alle relevanten Informationen (Zeit, Autor, Ereignis, Beschreibung) lückenlos und revisionssicher erfasst werden können. Wichtig ist dabei:
+
+* Chronologische Darstellung mit Pflichtfeldern (Zeitstempel, Autor, Inhalt).
+* Keine nachträglichen Änderungen nach Abschluss; ggf. Versionierung während des Einsatzes.
+* Integration automatischer Einträge aus Deiner Anwendung, um etwaige Routineaktionen (Eintreffen von Meldungen, Anlage von Patienten) ohne händische Arbeit festzuhalten.
+* Benutzerfreundliche UI zur schnellen Erfassung und Nachvollziehbarkeit.
+* Revisionssichere Langzeitarchivierung (rechtliche und organisatorische Anforderungen beachten).
+
+Du kannst nun dieses Feldkonzept als Grundlage verwenden, um Deine Datenbankstruktur (z. B. in SQLite) und Deine React-Komponenten (z. B. mit Ant Design) aufzubauen. Achte darauf, dass die Bedienung auch in stressigen Situationen (z. B. im Einsatzfahrzeug) problemlos möglich ist – klare Eingabemasken, strukturierte Listen und eine intuitive Oberfläche sind hier entscheidend.

@@ -124,6 +124,20 @@ describe('MainSidebar', () => {
         expect(screen.queryByTestId('mobile-sidebar')).not.toBeInTheDocument();
     });
 
+    it('should not render mobile sidebar when isMobile is false, even if isOpen is true', () => {
+        render(
+            <MainSidebar
+                isOpen={true}
+                isMobile={false}
+                navigation={mockNavigation}
+            />
+        );
+
+        // Only desktop sidebar should be rendered
+        expect(screen.getByTestId('desktop-sidebar')).toBeInTheDocument();
+        expect(screen.queryByTestId('mobile-sidebar')).not.toBeInTheDocument();
+    });
+
     // Snapshot test
     it('should match snapshot', () => {
         const { container } = render(

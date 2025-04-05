@@ -42,19 +42,29 @@ alwaysApply: false
    - Enum-Typen für Felder mit festgelegten Werten
    - Konsistente Verwendung von optionalen Eigenschaften
 
-6. **Vererbung und Wiederverwendung**
+6. **Typkonvertierung**
+   - `@Transform`-Dekorator für Eingabetransformation
+   - Queryparameter in korrekten Datentyp konvertieren
+   - Konsistente Behandlung von URL-Query-Parametern (immer Strings)
+   - Standardwerte für optionale Parameter festlegen
+   - Robuste Konvertierungsfunktionen für unterschiedliche Eingabewerte
+   - Strikte Typprüfung nach Konvertierung
+   - Boolean-Werte aus Strings wie 'true'/'false', '1'/'0' korrekt extrahieren
+   - Datum-Strings in Date-Objekte konvertieren
+
+7. **Vererbung und Wiederverwendung**
    - Basis-DTOs für gemeinsame Eigenschaften
    - Vererbung für verwandte DTOs (z.B. Create/Update)
    - Partielle Typen für verwandte DTOs
    - OmitType, PickType und PartialType für abgeleitete DTOs
 
-7. **Versionierung**
+8. **Versionierung**
    - Separate DTOs für verschiedene API-Versionen
    - Abwärtskompatibilität bei Änderungen
    - Migration-Strategien für Breaking Changes
    - Versionspräfixe in Verzeichnisstrukturen
 
-8. **Sicherheit**
+9. **Sicherheit**
    - Keine sensiblen Daten in Response-DTOs
    - ExcludeProperty für sensible Felder
    - Strikte Validierung von Benutzerinput
@@ -131,6 +141,65 @@ export class CreateUserDto {
     message: 'Telefonnummer darf nur Ziffern, Leerzeichen und ein führendes Plus-Zeichen enthalten',
   })
   phone?: string;
+}
+```
+
+```typescript
+// Gutes Beispiel: Typkonvertierung von Query-Parametern in DTOs
+import { ApiPropertyOptional } from '@nestjs/swagger';
+import { IsOptional } from 'class-validator';
+import { Transform } from 'class-transformer';
+
+/**
+ * DTO für das Filtern von Datensätzen mit Typkonvertierung.
+ */
+export class FilterDto {
+  /**
+   * Gibt an, ob archivierte Einträge eingeschlossen werden sollen
+   */
+  @ApiPropertyOptional({
+    description: 'Gibt an, ob archivierte Einträge eingeschlossen werden sollen',
+    default: false,
+    type: Boolean
+  })
+  @IsOptional()
+  @Transform(({ value }) => {
+    if (value === 'true' || value === true || value === '1' || value === 1) {
+      return true;
+    }
+    return false;
+  })
+  includeArchived?: boolean = false;
+
+  /**
+   * Maximales Alter der Einträge in Tagen
+   */
+  @ApiPropertyOptional({
+    description: 'Maximales Alter der Einträge in Tagen',
+    default: 30,
+    type: Number
+  })
+  @IsOptional()
+  @Transform(({ value }) => {
+    const parsed = parseInt(value, 10);
+    return isNaN(parsed) ? 30 : parsed;
+  })
+  maxAge?: number = 30;
+
+  /**
+   * Datumsbereich für die Suche
+   */
+  @ApiPropertyOptional({
+    description: 'Startdatum für die Suche (ISO 8601)',
+    type: Date
+  })
+  @IsOptional()
+  @Transform(({ value }) => {
+    if (!value) return undefined;
+    const date = new Date(value);
+    return isNaN(date.getTime()) ? undefined : date;
+  })
+  startDate?: Date;
 }
 ```
 

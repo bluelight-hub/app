@@ -7,3 +7,6 @@
 - When using Jest, a test suite can fail even if all individual tests pass, typically due to issues in suite-level setup code or lifecycle hooks
 
 # Scratchpad
+
+# ToDo
+[ ] Implementierung einer korrekten Tauri-spezifischen Fetch-Implementierung für die Desktop-App (packages/frontend/src/utils/fetch.ts)

@@ -7,6 +7,7 @@ exports[`AppLayout > matches snapshot 1`] = `
     data-testid="app-layout"
   >
     <div
+      data-is-mobile="false"
       data-is-open="false"
       data-nav-items="1"
       data-testid="sidebar"

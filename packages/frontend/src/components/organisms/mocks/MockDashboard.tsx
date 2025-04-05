@@ -1,3 +1,6 @@
+import { useEinsatztagebuch } from "@/hooks/etb/useEinsatztagebuch";
+import { formatNatoDateTime } from "@/utils/date";
+import { EtbEntryDtoStatusEnum } from "@bluelight-hub/shared/client";
 import {
     Badge,
     Card,
@@ -10,6 +13,7 @@ import {
     Tag,
     Typography
 } from "antd";
+import { useMemo } from "react";
 
 import {
     PiBookOpenTextBold,
@@ -60,11 +64,6 @@ const mockData = {
         { kanal: 'Kanal 3', status: 'frei' },
     ],
     // Neue Mock-Daten für zusätzliche Kacheln
-    einsatzTagebuch: [
-        { id: 'ETB-001', zeit: '08:15', text: 'Einsatzbeginn, Erkundung gestartet', ersteller: 'M. Müller' },
-        { id: 'ETB-002', zeit: '08:30', text: 'Kontakt mit Polizei hergestellt', ersteller: 'S. Schmidt' },
-        { id: 'ETB-003', zeit: '09:10', text: 'Wasserversorgung sichergestellt', ersteller: 'L. Lehmann' },
-    ],
     wetter: {
         aktuell: { temperatur: '22°C', beschreibung: 'Leicht bewölkt', wind: '10 km/h' },
         prognose: [
@@ -90,7 +89,14 @@ const mockData = {
 const { Text, Title } = Typography;
 const { TextArea } = Input;
 
+
 const DashboardContent = () => {
+    const { einsatztagebuch } = useEinsatztagebuch();
+
+    const etbItems = useMemo(() => {
+        return einsatztagebuch.data.items.filter((eintrag) => eintrag.status === EtbEntryDtoStatusEnum.Aktiv).slice(0, 5);
+    }, [einsatztagebuch.data.items]);
+
     return (
         <div className="p-4 min-h-screen">
             <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
@@ -258,19 +264,19 @@ const DashboardContent = () => {
                         className="shadow-sm"
                     >
                         <List
-                            dataSource={mockData.einsatzTagebuch}
+                            dataSource={etbItems}
                             renderItem={(eintrag) => (
                                 <List.Item>
                                     <List.Item.Meta
                                         title={
                                             <Space>
                                                 <Badge color="blue" />
-                                                <span>{eintrag.text}</span>
+                                                <span>{eintrag.beschreibung}</span>
                                             </Space>
                                         }
                                         description={
                                             <Text type="secondary" style={{ fontSize: '0.85rem' }}>
-                                                {eintrag.zeit} | {eintrag.ersteller}
+                                                {formatNatoDateTime(eintrag.timestampEreignis)} | {eintrag.titel} | <Tag bordered={false} color="blue">{eintrag.kategorie}</Tag> | {eintrag.autorName}
                                             </Text>
                                         }
                                     />

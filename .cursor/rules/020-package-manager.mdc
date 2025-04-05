@@ -1,7 +1,7 @@
 ---
-description: REQUIRE using pnpm for dependency management across all packages
+description: 
 globs: 
-alwaysApply: false
+alwaysApply: true
 ---
 # Package Manager Usage
 
@@ -21,6 +21,8 @@ alwaysApply: false
    - Alle Scripts mit `pnpm run <script>` ausführen
 5. **Rationale**
    - Konsistente Dependency-Auflösung und verbessertes Caching
+6. **pnpx**
+   - Verwende pnpx, statt npx.
 
 ## Examples
 

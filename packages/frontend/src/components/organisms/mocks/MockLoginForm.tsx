@@ -49,7 +49,12 @@ const MockLoginForm: React.FC = () => {
             <Card
                 title="Bluelight Hub Login"
                 className="w-full max-w-md shadow-md"
-                headStyle={{ textAlign: 'center', fontSize: '1.5rem' }}
+                styles={{
+                    header: {
+                        textAlign: 'center',
+                        fontSize: '1.5rem',
+                    },
+                }}
             >
                 <Form
                     name="login"

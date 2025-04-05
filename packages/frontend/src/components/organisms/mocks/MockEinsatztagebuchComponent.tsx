@@ -1,3 +1,4 @@
+import { formatNatoDateTime, natoDateTime } from '@/utils/date';
 import { Input as AntInput, Button, Drawer, Empty, Input, InputRef, Space, Table, TableColumnsType, TableColumnType, Tooltip } from 'antd';
 import { format } from 'date-fns';
 import dayjs from 'dayjs';
@@ -5,8 +6,6 @@ import { useCallback, useMemo, useRef, useState } from 'react';
 import { PiAmbulance, PiEmpty, PiMagnifyingGlass, PiPencil, PiPictureInPicture, PiPlus, PiSwap, PiTextStrikethrough, PiUser } from 'react-icons/pi';
 
 // Mocks für fehlende Module
-// Mock für natoDateTime
-const natoDateTime = 'dd.MM.yyyy HH:mm'; 
 
 // Mock für JournalEntryDto
 interface JournalEntryDto {
@@ -360,7 +359,7 @@ export function MockEinsatztagebuchComponent() {
                 width: 200,
                 // ...
                 render: (_, record) => {
-                    const timestampAsNato = format(record.timestamp, natoDateTime);
+                    const timestampAsNato = formatNatoDateTime(record.timestamp);
                     return <span>{timestampAsNato}</span>;
                 },
                 sorter: (a, b) => dayjs(a.timestamp).diff(dayjs(b.timestamp)),
@@ -431,7 +430,7 @@ export function MockEinsatztagebuchComponent() {
                     ) : (
                         <div className="flex flex-col gap-4">
                             {einsatztagebuch.data.items.map((item) => {
-                                const timestampAsNato = format(item.timestamp, natoDateTime);
+                                const timestampAsNato = formatNatoDateTime(item.timestamp);
                                 return (
                                     <div key={item.id} className="p-3 border rounded shadow-sm">
                                         <div className="font-semibold flex justify-between mb-1 text-primary-600 dark:text-primary-400">
