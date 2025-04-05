@@ -12,16 +12,55 @@ import { UpdateEtbDto } from './dto/update-etb.dto';
 import { EtbAttachment } from './entities/etb-attachment.entity';
 import { EtbEntry, EtbEntryStatus } from './entities/etb-entry.entity';
 
-// Multer-Typ für Dateien
+/**
+ * Interface für Multer-Dateien.
+ * Definiert die Struktur von hochgeladenen Dateien, die über Multer verarbeitet werden.
+ * Wird verwendet, um Dateien als Anlagen zu ETB-Einträgen zu verarbeiten.
+ */
 interface MulterFile {
+    /**
+     * Name des Formularfelds, durch das die Datei hochgeladen wurde
+     */
     fieldname: string;
+
+    /**
+     * Originaler Dateiname, wie er vom Client hochgeladen wurde
+     */
     originalname: string;
+
+    /**
+     * Encoding-Typ der Datei
+     */
     encoding: string;
+
+    /**
+     * MIME-Typ der Datei (z.B. 'image/jpeg', 'application/pdf')
+     */
     mimetype: string;
+
+    /**
+     * Größe der Datei in Bytes
+     */
     size: number;
+
+    /**
+     * Optionaler Pfad zum Verzeichnis, in dem die Datei gespeichert wurde
+     */
     destination?: string;
+
+    /**
+     * Optionaler Name der Datei im Dateisystem nach der Speicherung
+     */
     filename?: string;
+
+    /**
+     * Optionaler vollständiger Pfad zur gespeicherten Datei
+     */
     path?: string;
+
+    /**
+     * Buffer mit dem Inhalt der Datei
+     */
     buffer: Buffer;
 }
 

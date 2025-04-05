@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "nest start --watch",
-    "docs": "compodoc -p tsconfig.json -d docs",
+    "docs:build": "compodoc -p tsconfig.json -d docs",
     "docs:serve": "compodoc -p tsconfig.json -d docs --serve",
     "docs:cov": "pnpm compodoc --coverageTest -p tsconfig.json",
     "build": "nest build",

@@ -43,11 +43,30 @@ import { EtbAttachment } from './entities/etb-attachment.entity';
 import { EtbEntry } from './entities/etb-entry.entity';
 import { EtbService } from './etb.service';
 
-// Erweiterte Request-Definition mit Benutzerinformationen
+/**
+ * Erweitert den Express Request um Benutzerinformationen.
+ * Wird für Authentifizierung und Autorisierung in den Controller-Methoden verwendet.
+ */
 interface RequestWithUser extends Request {
+    /**
+     * Benutzerinformationen aus dem JWT-Token oder einer anderen Authentifizierungsquelle.
+     * Enthält grundlegende Identifikations- und Rolleninformationen für Berechtigungsprüfungen.
+     * Kann null sein, wenn der Benutzer nicht authentifiziert ist.
+     */
     user?: {
+        /**
+         * Eindeutige ID des Benutzers
+         */
         id: string;
+
+        /**
+         * Anzeigename des Benutzers
+         */
         name: string;
+
+        /**
+         * Rolle oder Position des Benutzers im System (z.B. 'admin', 'einsatzleiter')
+         */
         role: string;
     };
 }

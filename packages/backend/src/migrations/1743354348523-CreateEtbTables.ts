@@ -1,7 +1,22 @@
 import { MigrationInterface, QueryRunner } from "typeorm";
 
+/**
+ * Migration zur Erstellung der grundlegenden ETB-Tabellen.
+ * Erzeugt die Tabellen für Einträge im elektronischen Tagebuch (ETB) und dazugehörige Anhänge.
+ * 
+ * @class CreateEtbTables1743354348523
+ * @implements {MigrationInterface}
+ */
 export class CreateEtbTables1743354348523 implements MigrationInterface {
 
+    /**
+     * Führt die Migration aus und erstellt die ETB-Tabellen.
+     * Erstellt die Haupttabelle etb_entry und die zugehörige etb_attachment Tabelle,
+     * sowie die entsprechenden Indizes für Performanceoptimierung.
+     * 
+     * @param {QueryRunner} queryRunner - TypeORM QueryRunner zur Ausführung der SQL-Befehle
+     * @returns {Promise<void>} Promise, das nach erfolgreicher Ausführung aufgelöst wird
+     */
     public async up(queryRunner: QueryRunner): Promise<void> {
         // EtbEntry-Tabelle erstellen
         await queryRunner.query(`
@@ -62,6 +77,14 @@ export class CreateEtbTables1743354348523 implements MigrationInterface {
         `);
     }
 
+    /**
+     * Macht die Migration rückgängig und löscht die ETB-Tabellen.
+     * Entfernt zunächst die Indizes und dann die Tabellen in der korrekten Reihenfolge,
+     * um Fremdschlüsselabhängigkeiten zu berücksichtigen.
+     * 
+     * @param {QueryRunner} queryRunner - TypeORM QueryRunner zur Ausführung der SQL-Befehle
+     * @returns {Promise<void>} Promise, das nach erfolgreicher Ausführung aufgelöst wird
+     */
     public async down(queryRunner: QueryRunner): Promise<void> {
         // Tabellen in umgekehrter Reihenfolge löschen
         await queryRunner.query(`DROP INDEX "idx_etb_attachment_etb_entry_id"`);
