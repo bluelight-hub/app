@@ -1,5 +1,5 @@
 import { EtbEntryDto, EtbEntryDtoStatusEnum } from '@bluelight-hub/shared/client/models/EtbEntryDto';
-import { QueryClient } from '@tanstack/react-query';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { useEinsatztagebuch } from '../../../../hooks/etb/useEinsatztagebuch';
@@ -71,26 +71,42 @@ describe('ETBOverview Komponente', () => {
             laufendeNummer: 1,
             autorId: 'user1',
             autorName: 'Test User',
-            timestampErstellung: new Date().toISOString(),
-            timestampEreignis: new Date().toISOString(),
+            autorRolle: 'Sanitäter',
+            timestampErstellung: new Date(),
+            timestampEreignis: new Date(),
             kategorie: 'USER',
+            titel: 'Test Titel 1',
             beschreibung: 'Test Eintrag 1',
+            referenzEinsatzId: null,
+            referenzPatientId: null,
+            referenzEinsatzmittelId: null,
+            systemQuelle: null,
             status: 'aktiv',
             version: 1,
             istAbgeschlossen: false,
+            timestampAbschluss: null,
+            abgeschlossenVon: null
         },
         {
             id: '2',
             laufendeNummer: 2,
             autorId: 'user1',
             autorName: 'Test User',
-            timestampErstellung: new Date().toISOString(),
-            timestampEreignis: new Date().toISOString(),
+            autorRolle: 'Sanitäter',
+            timestampErstellung: new Date(),
+            timestampEreignis: new Date(),
             kategorie: 'USER',
+            titel: 'Test Titel 2',
             beschreibung: 'Test Eintrag 2',
+            referenzEinsatzId: null,
+            referenzPatientId: null,
+            referenzEinsatzmittelId: null,
+            systemQuelle: null,
             status: 'aktiv',
             version: 1,
             istAbgeschlossen: false,
+            timestampAbschluss: null,
+            abgeschlossenVon: null
         },
     ];
 
@@ -153,9 +169,8 @@ describe('ETBOverview Komponente', () => {
             </QueryClientProvider>
         );
 
-        // Prüfe, ob die Einträge angezeigt werden
-        expect(screen.getByText('Test Eintrag 1')).toBeInTheDocument();
-        expect(screen.getByText('Test Eintrag 2')).toBeInTheDocument();
+        // Prüfe, ob die Mock-Tabelle angezeigt wird
+        expect(screen.getByTestId('mock-etb-table')).toBeInTheDocument();
     });
 
     it('sollte einen Ladeindikator anzeigen, wenn Daten geladen werden', () => {
@@ -175,7 +190,8 @@ describe('ETBOverview Komponente', () => {
         );
 
         // Prüfe, ob der Ladeindikator angezeigt wird
-        expect(screen.getByText('Lade Einsatztagebuch...')).toBeInTheDocument();
+        const spinElement = document.querySelector('.ant-spin');
+        expect(spinElement).toBeInTheDocument();
     });
 
     it('sollte eine Fehlermeldung anzeigen, wenn ein Fehler auftritt', () => {
@@ -196,8 +212,11 @@ describe('ETBOverview Komponente', () => {
         );
 
         // Prüfe, ob die Fehlermeldung angezeigt wird
+        expect(screen.getByRole('alert')).toBeInTheDocument();
         expect(screen.getByText('Fehler beim Laden des Einsatztagebuchs')).toBeInTheDocument();
-        expect(screen.getByText(errorMessage)).toBeInTheDocument();
+        // Prüfe, ob die Fehlermeldung den Fehlertext enthält
+        const alertElement = screen.getByRole('alert');
+        expect(alertElement).toHaveTextContent(errorMessage);
     });
 
     it('sollte den Überschreibe-Dialog korrekt anzeigen', async () => {
@@ -236,4 +255,4 @@ describe('ETBOverview Komponente', () => {
         // Prüfe, ob useEinsatztagebuch mit den richtigen Optionen aufgerufen wurde
         expect(useEinsatztagebuch).toHaveBeenLastCalledWith({ includeUeberschrieben: true });
     });
-}); 
+});

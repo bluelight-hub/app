@@ -62,20 +62,20 @@ export const ETBCardList: React.FC<ETBCardListProps> = ({
             {entries.map((item) => {
                 // Sichere Typzugriffe mit optionalem Chaining und Fallbacks
                 const entryWithFields = item as EtbEntryDto & ETBEntryFields;
-                const entryId = item.id || `entry-${Math.random()}`;
-                const entryNumber = entryWithFields.nummer ?? "-";
-                const entryType = entryWithFields.type ?? "Standard";
-                const entryContent = entryWithFields.content ?? "";
-                const entrySender = entryWithFields.sender ?? "";
-                const entryReceiver = entryWithFields.receiver ?? "";
-                const isArchived = entryWithFields.archived ?? false;
-                const isUeberschrieben = entryWithFields.status === 'ueberschrieben';
+                const entryId = item?.id || `entry-${Math.random()}`;
+                const entryNumber = entryWithFields?.nummer ?? "-";
+                const entryType = entryWithFields?.type ?? "Standard";
+                const entryContent = entryWithFields?.content ?? "";
+                const entrySender = entryWithFields?.sender ?? "";
+                const entryReceiver = entryWithFields?.receiver ?? "";
+                const isArchived = entryWithFields?.archived ?? false;
+                const isUeberschrieben = entryWithFields?.status === 'ueberschrieben';
 
                 // Datum formatieren, falls vorhanden
                 let formattedDate = "-";
-                if (entryWithFields.timestamp) {
+                if (entryWithFields?.timestamp) {
                     try {
-                        formattedDate = formatNatoDateTime(entryWithFields.timestamp) ?? "-";
+                        formattedDate = formatNatoDateTime(entryWithFields?.timestamp) ?? "-";
                     } catch (error) {
                         logger.error("Fehler beim Formatieren des Datums:", error);
                     }
@@ -105,6 +105,7 @@ export const ETBCardList: React.FC<ETBCardListProps> = ({
                                 <Tooltip title="Eintrag überschreiben">
                                     <Button
                                         size="small"
+                                        data-testid="ueberschreiben-button"
                                         onClick={() => onUeberschreibeEntry && onUeberschreibeEntry(item)}
                                         icon={<PiSwap />}
                                     />
@@ -112,6 +113,7 @@ export const ETBCardList: React.FC<ETBCardListProps> = ({
                                 <Tooltip title="Eintrag bearbeiten">
                                     <Button
                                         size="small"
+                                        data-testid="edit-button"
                                         onClick={() => onEditEntry && onEditEntry(item)}
                                         icon={<PiSwap />}
                                     />
@@ -119,6 +121,7 @@ export const ETBCardList: React.FC<ETBCardListProps> = ({
                                 <Tooltip title="Eintrag streichen">
                                     <Button
                                         size="small"
+                                        data-testid="archive-button"
                                         onClick={() =>
                                             onArchiveEntry &&
                                             typeof entryNumber === 'number' &&
@@ -135,4 +138,4 @@ export const ETBCardList: React.FC<ETBCardListProps> = ({
             })}
         </div>
     );
-}; 
+};

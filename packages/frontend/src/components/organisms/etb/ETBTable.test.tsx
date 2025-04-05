@@ -1,6 +1,6 @@
 import { EtbEntryDtoStatusEnum } from '@bluelight-hub/shared/client/models/EtbEntryDto';
 import { fireEvent, render, screen } from '@testing-library/react';
-import { describe, expect, it, vi } from 'vitest';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { ETBTable } from './ETBTable';
 
 // Mocks
@@ -14,6 +14,36 @@ vi.mock('dayjs', () => {
         default: () => ({
             diff: vi.fn(() => 0),
         })
+    };
+});
+
+// Mock für window.getComputedStyle, um JSDOM-Warnungen zu vermeiden
+beforeEach(() => {
+    // Speichere die originale Implementierung
+    const originalGetComputedStyle = window.getComputedStyle;
+
+    // Überschreibe getComputedStyle mit einem Mock
+    window.getComputedStyle = vi.fn().mockImplementation(() => {
+        return {
+            getPropertyValue: (prop: string) => {
+                // Standardwerte für die am häufigsten verwendeten Eigenschaften
+                if (prop === 'box-sizing') return 'border-box';
+                if (prop === 'padding-right' || prop === 'padding-left') return '0px';
+                if (prop === 'border-right-width' || prop === 'border-left-width') return '0px';
+                return '';
+            },
+            // Weitere Eigenschaften, die von Ant Design verwendet werden könnten
+            paddingRight: '0px',
+            paddingLeft: '0px',
+            borderRightWidth: '0px',
+            borderLeftWidth: '0px',
+            boxSizing: 'border-box',
+        };
+    });
+
+    // Cleanup nach dem Test
+    return () => {
+        window.getComputedStyle = originalGetComputedStyle;
     };
 });
 
@@ -189,4 +219,43 @@ describe('ETBTable Komponente', () => {
         const filterButton = statusHeaderCell?.parentElement?.querySelector('.ant-table-filter-trigger');
         expect(filterButton).not.toBeNull();
     });
-}); 
+
+    it('sollte den Ladezustand korrekt anzeigen', () => {
+        render(<ETBTable entries={mockEntries} isLoading={true} />);
+
+        // Prüfe, ob der Ladeindikator angezeigt wird
+        const loadingIndicator = document.querySelector('.ant-spin');
+        expect(loadingIndicator).toBeInTheDocument();
+    });
+
+    it('sollte die Fahrzeuge im Einsatz korrekt anzeigen', () => {
+        const fahrzeugeImEinsatz = [
+            { optaFunktion: 'ELW', fullOpta: 'Florian 1', id: 'TEST-123' },
+            { optaFunktion: 'RTW', fullOpta: 'Florian 2', id: 'TEST-456' }
+        ];
+
+        render(<ETBTable entries={mockEntries} fahrzeugeImEinsatz={fahrzeugeImEinsatz} />);
+
+        // Hier können wir nicht direkt die Fahrzeuge prüfen, da sie nur für die Filter verwendet werden
+        // Aber wir können prüfen, ob die Tabelle korrekt gerendert wird
+        const table = document.querySelector('.ant-table');
+        expect(table).toBeInTheDocument();
+    });
+
+    it('sollte die Tabelle ohne Einträge korrekt anzeigen', () => {
+        render(<ETBTable entries={[]} />);
+
+        // Prüfe, ob die leere Tabelle angezeigt wird
+        const emptyText = screen.getByText('Keine Einträge verfügbar');
+        expect(emptyText).toBeInTheDocument();
+    });
+
+    it('sollte die Zeitstempel korrekt formatieren', () => {
+        render(<ETBTable entries={mockEntries} />);
+
+        // Prüfe, ob die formatierten Zeitstempel angezeigt werden
+        // Wir haben oben formatNatoDateTime gemockt, um '10 JAN 2023 10:00Z' zurückzugeben
+        const zeitstempel = screen.getAllByText('10 JAN 2023 10:00Z');
+        expect(zeitstempel.length).toBeGreaterThan(0);
+    });
+});

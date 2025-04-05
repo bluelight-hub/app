@@ -2,7 +2,7 @@ import * as dateUtils from '@/utils/date';
 import { logger } from '@/utils/logger';
 import { EtbEntryDto, EtbEntryDtoStatusEnum } from '@bluelight-hub/shared/client';
 import { fireEvent, render, screen } from '@testing-library/react';
-import { MockedFunction, vi } from 'vitest';
+import { describe, MockedFunction, vi } from 'vitest';
 import { ETBCardList } from './ETBCardList';
 
 // Der ETBEntryFields Typ aus der Komponente
@@ -29,6 +29,37 @@ vi.mock('@/utils/logger', () => ({
 vi.mock('@/utils/date', () => ({
     formatNatoDateTime: vi.fn()
 }));
+
+// Mock für Ant Design Komponenten
+vi.mock('antd', async () => {
+    const actual = await vi.importActual('antd');
+    return {
+        ...actual,
+        Empty: ({ description }: { description: string }) => (
+            <div data-testid="mock-empty">{description}</div>
+        ),
+        Tag: ({ children, color }: { children: React.ReactNode, color?: string }) => (
+            <span data-testid="mock-tag" data-color={color}>{children}</span>
+        ),
+        Button: (props: {
+            onClick?: () => void;
+            children?: React.ReactNode;
+            icon?: React.ReactNode;
+            'data-testid'?: string;
+        }) => (
+            <button
+                data-testid={props['data-testid']}
+                onClick={props.onClick}
+            >
+                {props.children}
+                {props.icon && 'Icon'}
+            </button>
+        ),
+        Tooltip: ({ title, children }: { title: string; children: React.ReactNode }) => (
+            <div data-testid="mock-tooltip" data-title={title}>{children}</div>
+        ),
+    };
+});
 
 describe('ETBCardList', () => {
     const mockOnEditEntry = vi.fn();
@@ -161,15 +192,11 @@ describe('ETBCardList', () => {
                 onEditEntry={mockOnEditEntry} />
         );
 
-        // Alle Buttons finden und nach Icon-Inhalt identifizieren
-        const buttons = screen.getAllByRole('button');
+        // Finde den Edit-Button mit data-testid
+        const editButton = screen.getByTestId('edit-button');
+        fireEvent.click(editButton);
 
-        // Klicke auf jeden Button und prüfe, welcher den Callback auslöst
-        for (const button of buttons) {
-            fireEvent.click(button);
-        }
-
-        // Prüfen, ob der Callback mindestens einmal aufgerufen wurde
+        // Prüfen, ob der Callback aufgerufen wurde
         expect(mockOnEditEntry).toHaveBeenCalledWith(entry);
     });
 
@@ -186,15 +213,11 @@ describe('ETBCardList', () => {
             />
         );
 
-        // Alle Buttons finden und klicken
-        const buttons = screen.getAllByRole('button');
+        // Finde den Archive-Button mit data-testid
+        const archiveButton = screen.getByTestId('archive-button');
+        fireEvent.click(archiveButton);
 
-        // Klicke auf jeden Button und prüfe, welcher den Callback auslöst
-        for (const button of buttons) {
-            fireEvent.click(button);
-        }
-
-        // Prüfen, ob der Callback mindestens einmal aufgerufen wurde
+        // Prüfen, ob der Callback aufgerufen wurde
         expect(mockOnArchiveEntry).toHaveBeenCalledWith(42);
     });
 
@@ -207,15 +230,11 @@ describe('ETBCardList', () => {
             />
         );
 
-        // Alle Buttons finden und klicken
-        const buttons = screen.getAllByRole('button');
+        // Finde den Überschreiben-Button mit data-testid
+        const ueberschreibenButton = screen.getByTestId('ueberschreiben-button');
+        fireEvent.click(ueberschreibenButton);
 
-        // Klicke auf jeden Button und prüfe, welcher den Callback auslöst
-        for (const button of buttons) {
-            fireEvent.click(button);
-        }
-
-        // Prüfen, ob der Callback mindestens einmal aufgerufen wurde
+        // Prüfen, ob der Callback aufgerufen wurde
         expect(mockOnUeberschreibeEntry).toHaveBeenCalledWith(entry);
     });
 
@@ -254,4 +273,4 @@ describe('ETBCardList', () => {
         // Es sollten keine Button-Elemente vorhanden sein
         expect(screen.queryAllByRole('button').length).toBe(0);
     });
-}); 
+});

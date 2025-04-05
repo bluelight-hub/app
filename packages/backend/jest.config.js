@@ -10,10 +10,10 @@ module.exports = {
         '^.+\\.(t|j)s$': 'ts-jest'
     },
     collectCoverageFrom: [
-        'src/**/*.ts',
-        '!src/migrations/**/*.ts',
-        '!src/main.ts',
-        '!src/migrate.ts',
+        '**/*.ts',
+        '!migrations/**/*.ts',
+        '!main.ts',
+        '!migrate.ts',
         '!**/node_modules/**',
         '!dist/**',
         '!**/test/**',
@@ -26,4 +26,4 @@ module.exports = {
     moduleNameMapper: {
         '^@/(.*)$': '<rootDir>/$1'
     }
-}; 
+};
