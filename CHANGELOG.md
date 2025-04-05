@@ -1,3 +1,39 @@
+## Version [v1.0.0-alpha.17](https://github.com/bluelight-hub/app/compare/v1.0.0-alpha.16...v1.0.0-alpha.17) – Veröffentlicht am 2025-04-05
+
+## ✨ Neue Funktionen
+Die folgenden neuen Features wurden hinzugefügt:
+- [`3438ebf`](https://github.com/bluelight-hub/app/commit/3438ebf) (backend): Add database migration support - Add migration configuration, script and directory structure 
+
+- [`4e0dc51`](https://github.com/bluelight-hub/app/commit/4e0dc51) (backend): Add ETB module implementation 
+
+- [`0c8ad69`](https://github.com/bluelight-hub/app/commit/0c8ad69) (frontend): Add ETB component structure and hooks 
+
+- [`6565065`](https://github.com/bluelight-hub/app/commit/6565065) (frontend): Update ETB page with new components 
+
+- [`c7e3b92`](https://github.com/bluelight-hub/app/commit/c7e3b92) (api): Standardized API response format and added ETB entry number 
+
+- [`d8daff2`](https://github.com/bluelight-hub/app/commit/d8daff2) (etb): Implement status filter functionality for ETB entries 
+
+- [`5d69248`](https://github.com/bluelight-hub/app/commit/5d69248) (etb): Update ETB module with entry status and response DTO 
+
+## 🐛 Fehlerbehebungen
+Diese Probleme wurden behoben:
+- [`be87fa6`](https://github.com/bluelight-hub/app/commit/be87fa6)  fix(mobile): Schließe mobile Sidebar automatisch bei Viewport-Änderung 
+
+## 🔒 Sicherheitsverbesserungen
+Sicherheitsrelevante Änderungen:
+- [`0c2e975`](https://github.com/bluelight-hub/app/commit/0c2e975) (etb): Implement filename sanitization to prevent path traversal attacks 
+
+## 🔧 Tool Verbesserungen
+Verbesserungen an den Werkzeugen:
+- [`ddf2abc`](https://github.com/bluelight-hub/app/commit/ddf2abc) (backend): Add Jest setup file for testing 
+
+- [`f95cf27`](https://github.com/bluelight-hub/app/commit/f95cf27) (backend): Update configurations for database and ETB module 
+
+
+
+# [1.0.0-alpha.17](https://github.com/bluelight-hub/app/compare/v1.0.0-alpha.16...v1.0.0-alpha.17) (2025-04-05)
+
 ## Version [v1.0.0-alpha.16](https://github.com/bluelight-hub/app/compare/v1.0.0-alpha.15...v1.0.0-alpha.16) – Veröffentlicht am 2025-03-30
 
 ## ✨ Neue Funktionen
