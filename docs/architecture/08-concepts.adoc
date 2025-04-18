@@ -373,6 +373,36 @@ sequenceDiagram
 * Touch-optimierte Bedienung für Tablet-Nutzung im Einsatz
 * Barrierefreiheit für verschiedene Nutzergruppen
 
+==== Dashboard-Ansichten
+
+Das Bluelight-Hub-System nutzt spezialisierte Dashboard-Ansichten für die Visualisierung und das Monitoring wichtiger Einsatzdaten:
+
+* Separate Webview-Fenster für fokussierte Darstellung
+* Optimiert für Multi-Monitor-Setups im Einsatzumfeld
+* Automatische Datenaktualisierung mit konfigurierbaren Intervallen
+* Statistische Übersichten und detaillierte Echtzeit-Informationen
+* Klare visuelle Hierarchie für schnelle Informationserfassung
+
+[mermaid]
+....
+flowchart TD
+    MainApp[Hauptanwendung] --> |öffnet| WebView[Dashboard Webview]
+    WebView --> |zeigt| DashboardLayout[Dashboard Layout]
+    DashboardLayout --> |enthält| Stats[Statistiken]
+    DashboardLayout --> |enthält| Tables[Tabellen/Listen]
+    DashboardLayout --> |enthält| RefreshMech[Aktualisierungsmechanismus]
+    
+    classDef main fill:#42A5F5,stroke:#1976D2,color:white
+    classDef view fill:#66BB6A,stroke:#43A047,color:white
+    classDef comp fill:#FFA726,stroke:#FB8C00,color:white
+    
+    class MainApp main
+    class WebView,DashboardLayout view
+    class Stats,Tables,RefreshMech comp
+....
+
+Die Dashboard-Architektur nutzt Tauri Webviews für leichtgewichtige, separate Fenster, die dennoch eng mit der Hauptanwendung integriert sind. Die vollständige Begründung und technische Details sind in <<../adr/009-dashboard-architektur.adoc>> dokumentiert.
+
 ==== Kontextbezogene Benutzeroberfläche
 
 * Anpassung der UI basierend auf Einsatzrolle und -phase

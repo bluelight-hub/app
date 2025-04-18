@@ -1,4 +1,4 @@
-import { TransformInterceptor } from '@/common/interceptors/transform.interceptor';
+import { PaginatedResponse } from '@/common/interfaces/paginated-response.interface';
 import { logger } from '@/logger/consola.logger';
 import {
     BadRequestException,
@@ -31,7 +31,6 @@ import { CreateEtbDto } from './dto/create-etb.dto';
 import {
     EtbAttachmentResponse,
     EtbAttachmentsResponse,
-    EtbEntriesData,
     EtbEntriesResponse,
     EtbEntryDto,
     EtbEntryResponse
@@ -78,7 +77,6 @@ interface RequestWithUser extends Request {
 @ApiTags('Einsatztagebuch')
 @ApiBearerAuth()
 @Controller('etb')
-    @UseInterceptors(TransformInterceptor)
 export class EtbController {
     /**
      * Konstruktor für den EtbController
@@ -115,7 +113,7 @@ export class EtbController {
      * Findet alle ETB-Einträge mit optionaler Filterung
      * 
      * @param filterDto Filter für die Abfrage
-     * @returns Eine Liste von ETB-Einträgen und die Gesamtzahl
+     * @returns Eine paginierte Liste von ETB-Einträgen
      */
     @Get()
     @ApiOperation({ summary: 'Findet alle ETB-Einträge mit optionaler Filterung' })
@@ -123,14 +121,18 @@ export class EtbController {
         description: 'Liste von ETB-Einträgen',
         type: EtbEntriesResponse
     })
-    async findAll(@Query() filterDto: FilterEtbDto): Promise<EtbEntriesData> {
+    async findAll(@Query() filterDto: FilterEtbDto): Promise<PaginatedResponse<EtbEntryDto>> {
         logger.info(`HTTP GET /etb - Abruf von ETB-Einträgen mit Filtern`);
-        const [entries, total] = await this.etbService.findAll(filterDto);
+        const paginatedResult = await this.etbService.findAll(filterDto);
 
         // Mapping von EtbEntry zu EtbEntryDto
-        const mappedEntries = plainToInstance(EtbEntryDto, entries);
+        const mappedEntries = plainToInstance(EtbEntryDto, paginatedResult.items);
 
-        return { entries: mappedEntries, total };
+        // Standard PaginatedResponse zurückgeben
+        return {
+            items: mappedEntries,
+            pagination: paginatedResult.pagination
+        };
     }
 
     /**

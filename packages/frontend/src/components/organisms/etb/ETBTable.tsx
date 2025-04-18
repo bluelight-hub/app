@@ -1,4 +1,5 @@
 import { formatNatoDateTime } from '@/utils/date';
+import { PaginationMeta } from '@bluelight-hub/shared/client';
 import { EtbEntryDto, EtbEntryDtoStatusEnum } from '@bluelight-hub/shared/client/models/EtbEntryDto';
 import { Button, Empty, Input, InputRef, Space, Table, TableColumnsType, TableColumnType, Tag, Tooltip } from 'antd';
 import dayjs from 'dayjs';
@@ -46,6 +47,16 @@ interface ETBTableProps {
      * Gibt an, ob gerade ein Eintrag bearbeitet wird
      */
     isEditing?: boolean;
+
+    /**
+     * Pagination-Daten
+     */
+    pagination?: PaginationMeta;
+
+    /**
+     * Callback für Seitenwechsel
+     */
+    onPageChange?: (page: number, pageSize: number) => void;
 }
 
 /**
@@ -58,6 +69,8 @@ export const ETBTable: React.FC<ETBTableProps> = ({
     onUeberschreibeEntry,
     isLoading = false,
     isEditing = false,
+    pagination,
+    onPageChange,
 }) => {
     // Referenz für das Sucheingabefeld
     const searchInput = useRef<InputRef>(null);
@@ -224,10 +237,16 @@ export const ETBTable: React.FC<ETBTableProps> = ({
                 title: 'Inhalt',
                 dataIndex: 'beschreibung',
                 key: 'beschreibung',
-                width: 500,
+                width: 300,
                 ...getColumnSearchProps('beschreibung'),
                 render: (text, record) => (
-                    <div className={isUeberschrieben(record) ? 'line-through text-opacity-60' : ''}>
+                    <div
+                        className={
+                            (isUeberschrieben(record) ? 'line-through text-opacity-60 ' : '') +
+                            'max-w-md break-words whitespace-pre-line'
+                        }
+                        style={{ wordBreak: 'break-word', whiteSpace: 'pre-line' }}
+                    >
                         {text}
                     </div>
                 ),
@@ -262,7 +281,7 @@ export const ETBTable: React.FC<ETBTableProps> = ({
                 width: 150,
             },
         ];
-    }, [fahrzeugeImEinsatz, isEditing, onArchiveEntry, onUeberschreibeEntry]);
+    }, [fahrzeugeImEinsatz, isEditing, onArchiveEntry, ueberschreibeEntry, kategorieFilter]);
 
     return (
         <div className="-mx-4 sm:-mx-6 lg:-mx-8">
@@ -274,7 +293,19 @@ export const ETBTable: React.FC<ETBTableProps> = ({
                     columns={columns}
                     rowKey="id"
                     scroll={{ x: 'max-content', y: 1000 }}
-                    pagination={false}
+                    pagination={{
+                        position: ['bottomRight', 'topRight'],
+                        current: pagination?.currentPage,
+                        pageSize: pagination?.itemsPerPage,
+                        total: pagination?.totalItems,
+                        showSizeChanger: true,
+                        showTotal: (total) => `Gesamt ${total} Einträge`,
+                        onChange: onPageChange,
+                        pageSizeOptions: ['10', '20', '50', '100'],
+                        hideOnSinglePage: pagination?.itemsPerPage === 10,
+                        showQuickJumper: true,
+                        showTitle: true
+                    }}
                     locale={{
                         emptyText: <Empty image={<PiEmpty size={48} />} description="Keine Einträge verfügbar" />,
                     }}

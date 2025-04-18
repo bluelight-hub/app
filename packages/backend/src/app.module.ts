@@ -2,6 +2,7 @@ import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { join } from 'path';
+import { CommonModule } from './common/common.module';
 import { HealthModule } from './health/health.module';
 import { ConsolaLogger } from './logger/consola.logger';
 import { EtbModule } from './modules/etb/etb.module';
@@ -28,6 +29,7 @@ import { EtbModule } from './modules/etb/etb.module';
         }),
         HealthModule,
         EtbModule,
+        CommonModule,
     ],
     controllers: [],
     providers: [

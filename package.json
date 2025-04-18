@@ -35,7 +35,7 @@
         "@semantic-release/github": "^11.0.1",
         "@softwaretechnik/dbml-renderer": "^1.0.30",
         "bpmn-js-cmd": "^0.4.0",
-        "puppeteer": "^24.5.0",
+        "puppeteer": "^24.6.1",
         "semantic-release": "^24.2.3",
         "semantic-release-gitmoji": "^1.6.8"
     },

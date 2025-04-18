@@ -1,4 +1,5 @@
 import { ApiResponse } from '@/common/interfaces/api-response.interface';
+import { PaginationMeta } from '@/common/interfaces/paginated-response.interface';
 import { ApiProperty } from '@nestjs/swagger';
 import { EtbAttachment } from '../entities/etb-attachment.entity';
 import { EtbEntryStatus } from '../entities/etb-entry.entity';
@@ -196,6 +197,9 @@ export class EtbEntryDto {
         example: EtbEntryStatus.AKTIV,
     })
     status: EtbEntryStatus;
+
+    @ApiProperty({ type: [EtbAttachment], description: 'Anlagen zum ETB-Eintrag', required: false })
+    anlagen?: EtbAttachment[];
 }
 
 /**
@@ -223,9 +227,10 @@ export class EtbEntriesData {
      */
     @ApiProperty({
         description: 'ETB-Einträge',
-        type: [EtbEntryDto],
+        type: EtbEntryDto,
+        isArray: true,
     })
-    entries: EtbEntryDto[];
+    items: EtbEntryDto[];
 
     /**
      * Gesamtzahl der verfügbaren ETB-Einträge (für Paginierung)
@@ -240,15 +245,25 @@ export class EtbEntriesData {
 /**
  * DTO für die Antwort einer Liste von ETB-Einträgen
  */
-export class EtbEntriesResponse extends ApiResponse<EtbEntriesData> {
+export class EtbEntriesResponse {
     /**
-     * Liste von ETB-Einträgen und Gesamtzahl
+     * Liste von ETB-Einträgen
      */
     @ApiProperty({
-        description: 'ETB-Einträge und Gesamtzahl',
-        type: EtbEntriesData,
+        description: 'Liste von ETB-Einträgen',
+        type: EtbEntryDto,
+        isArray: true
     })
-    data: EtbEntriesData;
+    items: EtbEntryDto[];
+
+    /**
+     * Metainformationen zur Paginierung
+     */
+    @ApiProperty({
+        type: PaginationMeta,
+        description: 'Metainformationen zur Paginierung'
+    })
+    pagination: PaginationMeta;
 }
 
 /**

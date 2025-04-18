@@ -1,6 +1,6 @@
 import { useEinsatztagebuch } from "@/hooks/etb/useEinsatztagebuch";
 import { formatNatoDateTime } from "@/utils/date";
-import { EtbEntryDtoStatusEnum } from "@bluelight-hub/shared/client";
+import { EtbEntryDto, EtbEntryDtoStatusEnum } from "@bluelight-hub/shared/client";
 import {
     Badge,
     Card,
@@ -94,7 +94,7 @@ const DashboardContent = () => {
     const { einsatztagebuch } = useEinsatztagebuch();
 
     const etbItems = useMemo(() => {
-        return einsatztagebuch.data.items.filter((eintrag) => eintrag.status === EtbEntryDtoStatusEnum.Aktiv).slice(0, 5);
+        return einsatztagebuch.data.items.filter((eintrag: EtbEntryDto) => eintrag.status === EtbEntryDtoStatusEnum.Aktiv).slice(0, 5);
     }, [einsatztagebuch.data.items]);
 
     return (
@@ -265,7 +265,7 @@ const DashboardContent = () => {
                     >
                         <List
                             dataSource={etbItems}
-                            renderItem={(eintrag) => (
+                            renderItem={(eintrag: EtbEntryDto) => (
                                 <List.Item>
                                     <List.Item.Meta
                                         title={

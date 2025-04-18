@@ -474,7 +474,7 @@ describe('EtbService', () => {
             mockEtbRepository.findAndCount.mockResolvedValue([mockEntries, mockTotal]);
 
             // Act
-            const [entries, total] = await service.findAll(filterDto);
+            const result = await service.findAll(filterDto);
 
             // Assert
             // Hinweis: Standardmäßig werden nur aktive Einträge zurückgegeben
@@ -483,8 +483,8 @@ describe('EtbService', () => {
                     status: EtbEntryStatus.AKTIV
                 }),
             }));
-            expect(entries.length).toBe(2);
-            expect(total).toBe(2);
+            expect(result.items.length).toBe(2);
+            expect(result.pagination.totalItems).toBe(2);
         });
     });
 

@@ -1,3 +1,4 @@
+import { FilterPaginationDto } from '@/common/dto/pagination.dto';
 import { ApiPropertyOptional } from '@nestjs/swagger';
 import { Transform } from 'class-transformer';
 import { IsDateString, IsEnum, IsOptional, IsString, IsUUID } from 'class-validator';
@@ -7,7 +8,7 @@ import { EtbEntryStatus } from '../entities/etb-entry.entity';
  * DTO für das Filtern von Einsatztagebuch-Einträgen.
  * Ermöglicht das Filtern nach verschiedenen Kriterien.
  */
-export class FilterEtbDto {
+export class FilterEtbDto extends FilterPaginationDto {
     /**
      * Filtert nach Einsatz-ID
      */
@@ -92,18 +93,4 @@ export class FilterEtbDto {
         return false;
     })
     includeUeberschrieben?: boolean = false;
-
-    /**
-     * Seite für Paginierung (1-basiert)
-     */
-    @ApiPropertyOptional({ description: 'Seite für Paginierung', default: 1 })
-    @IsOptional()
-    page?: number = 1;
-
-    /**
-     * Anzahl der Einträge pro Seite
-     */
-    @ApiPropertyOptional({ description: 'Anzahl der Einträge pro Seite', default: 10 })
-    @IsOptional()
-    limit?: number = 10;
 } 

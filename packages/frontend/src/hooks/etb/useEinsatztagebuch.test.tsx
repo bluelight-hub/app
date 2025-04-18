@@ -85,7 +85,7 @@ describe('useEinsatztagebuch Hook', () => {
         const { result } = renderHook(() => useEinsatztagebuch(), { wrapper });
 
         // Auf Abschluss der Abfrage warten
-        await waitFor(() => expect(result.current.einsatztagebuch.isLoading).toBe(false));
+        await waitFor(() => expect(result.current.einsatztagebuch.query.isLoading).toBe(false));
 
         // Prüfen, ob die Daten korrekt geladen wurden
         expect(result.current.einsatztagebuch.data.items).toEqual(mockData.entries);
@@ -156,12 +156,12 @@ describe('useEinsatztagebuch Hook', () => {
 
         // Hook mit includeUeberschrieben=true rendern
         const { result: resultWithUeberschrieben } = renderHook(
-            () => useEinsatztagebuch({ includeUeberschrieben: true }),
+            () => useEinsatztagebuch({ includeUeberschrieben: true } as Record<string, unknown>),
             { wrapper }
         );
 
         // Auf Abschluss der Abfrage warten
-        await waitFor(() => expect(resultWithUeberschrieben.current.einsatztagebuch.isLoading).toBe(false));
+        await waitFor(() => expect(resultWithUeberschrieben.current.einsatztagebuch.query.isLoading).toBe(false));
 
         // Prüfen, ob der Parameter korrekt übergeben wurde
         expect(api.etb.etbControllerFindAllV1).toHaveBeenCalledWith(
@@ -173,12 +173,12 @@ describe('useEinsatztagebuch Hook', () => {
 
         // Hook mit explizitem Status rendern
         const { result: resultWithStatus } = renderHook(
-            () => useEinsatztagebuch({ status: 'ueberschrieben' }),
+            () => useEinsatztagebuch({ status: 'ueberschrieben' } as Record<string, unknown>),
             { wrapper }
         );
 
         // Auf Abschluss der Abfrage warten
-        await waitFor(() => expect(resultWithStatus.current.einsatztagebuch.isLoading).toBe(false));
+        await waitFor(() => expect(resultWithStatus.current.einsatztagebuch.query.isLoading).toBe(false));
 
         // Prüfen, ob der Parameter korrekt übergeben wurde
         expect(api.etb.etbControllerFindAllV1).toHaveBeenCalledWith(
@@ -234,7 +234,7 @@ describe('useEinsatztagebuch Hook', () => {
         const { result } = renderHook(() => useEinsatztagebuch(), { wrapper });
 
         // Auf Abschluss der Abfrage warten
-        await waitFor(() => expect(result.current.einsatztagebuch.isLoading).toBe(false));
+        await waitFor(() => expect(result.current.einsatztagebuch.query.isLoading).toBe(false));
 
         // Überschreiben-Mutation ausführen
         result.current.ueberschreibeEinsatztagebuchEintrag.mutate({
@@ -304,7 +304,7 @@ describe('useEinsatztagebuch Hook', () => {
         const { result } = renderHook(() => useEinsatztagebuch(), { wrapper });
 
         // Auf Abschluss der Abfrage warten
-        await waitFor(() => expect(result.current.einsatztagebuch.isLoading).toBe(false));
+        await waitFor(() => expect(result.current.einsatztagebuch.query.isLoading).toBe(false));
 
         // Archivieren-Mutation ausführen
         result.current.archiveEinsatztagebuchEintrag.mutate({
@@ -391,7 +391,7 @@ describe('useEinsatztagebuch Hook', () => {
         const { result } = renderHook(() => useEinsatztagebuch(), { wrapper });
 
         // Auf Abschluss der Abfrage warten
-        await waitFor(() => expect(result.current.einsatztagebuch.isLoading).toBe(false));
+        await waitFor(() => expect(result.current.einsatztagebuch.query.isLoading).toBe(false));
 
         // Neuen Eintrag erstellen
         const newEntry = {
@@ -432,10 +432,10 @@ describe('useEinsatztagebuch Hook', () => {
         const { result } = renderHook(() => useEinsatztagebuch(), { wrapper });
 
         // Auf Abschluss der Abfrage warten
-        await waitFor(() => expect(result.current.einsatztagebuch.isLoading).toBe(false));
+        await waitFor(() => expect(result.current.einsatztagebuch.query.isLoading).toBe(false));
 
         // Prüfen, ob der Fehler korrekt weitergegeben wird
-        expect(result.current.einsatztagebuch.error).toBeDefined();
+        expect(result.current.einsatztagebuch.query.error).toBeDefined();
 
         // Importieren des Loggers für den Test
         const { logger } = await import('../../utils/logger');
@@ -492,7 +492,7 @@ describe('useEinsatztagebuch Hook', () => {
         const { result } = renderHook(() => useEinsatztagebuch(), { wrapper });
 
         // Auf Abschluss der Abfrage warten
-        await waitFor(() => expect(result.current.einsatztagebuch.isLoading).toBe(false));
+        await waitFor(() => expect(result.current.einsatztagebuch.query.isLoading).toBe(false));
 
         // Überschreiben-Mutation ausführen, die fehlschlagen wird
         result.current.ueberschreibeEinsatztagebuchEintrag.mutate({
@@ -553,7 +553,7 @@ describe('useEinsatztagebuch Hook', () => {
         const { result } = renderHook(() => useEinsatztagebuch(), { wrapper });
 
         // Auf Abschluss der Abfrage warten
-        await waitFor(() => expect(result.current.einsatztagebuch.isLoading).toBe(false));
+        await waitFor(() => expect(result.current.einsatztagebuch.query.isLoading).toBe(false));
 
         // refetch aufrufen
         result.current.einsatztagebuch.refetch();

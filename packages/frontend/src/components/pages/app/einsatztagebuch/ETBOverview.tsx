@@ -22,6 +22,9 @@ export const ETBOverview: React.FC = () => {
     // State für Filter
     const [includeUeberschrieben, setIncludeUeberschrieben] = useState(false);
 
+    const [page, setPage] = useState(1);
+    const [pageSize, setPageSize] = useState(10);
+
     // Hooks für Daten
     const {
         einsatztagebuch,
@@ -29,7 +32,11 @@ export const ETBOverview: React.FC = () => {
         createEinsatztagebuchEintrag,
         ueberschreibeEinsatztagebuchEintrag
     } = useEinsatztagebuch({
-        includeUeberschrieben
+        filterParams: {
+            includeUeberschrieben,
+            page,
+            limit: pageSize
+        },
     });
     const { fahrzeuge, error: fahrzeugeError, refreshFahrzeuge } = useFahrzeuge();
 
@@ -84,11 +91,19 @@ export const ETBOverview: React.FC = () => {
     };
 
     /**
+     * Handler für Seitenwechsel
+     */
+    const handlePageChange = (page: number, pageSize: number) => {
+        setPage(page);
+        setPageSize(pageSize);
+    };
+
+    /**
      * Rendert den Inhalt basierend auf dem Ladezustand
      */
     const renderContent = () => {
         // Zeige Ladeanimation, wenn Daten geladen werden
-        if (einsatztagebuch.isLoading) {
+        if (einsatztagebuch.query.isLoading) {
             return (
                 <div className="flex justify-center items-center h-64">
                     <Spin size="large" tip="Lade Einsatztagebuch..." />
@@ -97,11 +112,11 @@ export const ETBOverview: React.FC = () => {
         }
 
         // Zeige Fehler an, falls vorhanden
-        if (einsatztagebuch.error) {
+        if (einsatztagebuch.query.error) {
             return (
                 <Alert
                     message="Fehler beim Laden des Einsatztagebuchs"
-                    description={einsatztagebuch.error.toString()}
+                    description={einsatztagebuch.query.error.toString()}
                     type="error"
                     showIcon
                     className="mb-4"
@@ -138,8 +153,14 @@ export const ETBOverview: React.FC = () => {
                         onArchiveEntry={(nummer) => archiveEinsatztagebuchEintrag.mutate({ nummer })}
                             onUeberschreibeEntry={modifyEntry}
                             fahrzeugeImEinsatz={fahrzeuge.data?.fahrzeugeImEinsatz || []}
-                            isLoading={einsatztagebuch.isLoading}
+                            isLoading={einsatztagebuch.query.isLoading}
                         isEditing={isOpen}
+                            onPageChange={handlePageChange}
+                            pagination={einsatztagebuch?.data.pagination ? {
+                                ...einsatztagebuch.data.pagination,
+                                hasNextPage: einsatztagebuch.data.pagination.currentPage < einsatztagebuch.data.pagination.totalPages,
+                                hasPreviousPage: einsatztagebuch.data.pagination.currentPage > 1
+                            } : undefined}
                     />
                 )}
             </div>

@@ -1,3 +1,5 @@
+import { PaginatedResponse } from '@/common/interfaces/paginated-response.interface';
+import { PaginationService } from '@/common/services/pagination.service';
 import { logger } from '@/logger/consola.logger';
 import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -74,12 +76,14 @@ export class EtbService {
      * 
      * @param etbRepository Repository für ETB-Einträge
      * @param attachmentRepository Repository für ETB-Anlagen
+     * @param paginationService Service für Paginierung
      */
     constructor(
         @InjectRepository(EtbEntry)
         private etbRepository: Repository<EtbEntry>,
         @InjectRepository(EtbAttachment)
         private attachmentRepository: Repository<EtbAttachment>,
+        private paginationService: PaginationService,
     ) { }
 
     /**
@@ -168,9 +172,9 @@ export class EtbService {
      * Findet alle ETB-Einträge mit optionaler Filterung
      * 
      * @param filterDto Filter für die Abfrage
-     * @returns Eine Liste von ETB-Einträgen
+     * @returns Eine paginierte Liste von ETB-Einträgen
      */
-    async findAll(filterDto: FilterEtbDto): Promise<[EtbEntry[], number]> {
+    async findAll(filterDto: FilterEtbDto): Promise<PaginatedResponse<EtbEntry>> {
         const {
             referenzEinsatzId,
             referenzPatientId,
@@ -183,8 +187,6 @@ export class EtbService {
             page = 1,
             limit = 10
         } = filterDto;
-
-        const skip = (page - 1) * limit;
 
         const where: FindOptionsWhere<EtbEntry> = {};
 
@@ -228,13 +230,17 @@ export class EtbService {
 
         logger.info(`Suche ETB-Einträge mit Filtern: ${JSON.stringify(filterDto)}`);
 
-        return this.etbRepository.findAndCount({
-            where,
-            order: { timestampEreignis: 'DESC' },
-            skip,
-            take: limit,
-            relations: ['anlagen', 'ueberschriebenDurch', 'ueberschriebeneEintraege'],
-        });
+        // Verwende den PaginationService für die Abfrage
+        return this.paginationService.paginate<EtbEntry>(
+            this.etbRepository,
+            {
+                where,
+                order: { laufendeNummer: 'DESC' },
+                relations: ['anlagen', 'ueberschriebenDurch', 'ueberschriebeneEintraege'],
+            },
+            page,
+            limit
+        );
     }
 
     /**

@@ -1,6 +1,7 @@
 import { EtbEntryDto } from '@bluelight-hub/shared/client';
-import { EtbControllerFindAllV1StatusEnum } from '@bluelight-hub/shared/client/apis/EinsatztagebuchApi';
+import { EtbControllerFindAllV1Request, EtbControllerFindAllV1StatusEnum } from '@bluelight-hub/shared/client/apis/EinsatztagebuchApi';
 import { CreateEtbDto } from '@bluelight-hub/shared/client/models/CreateEtbDto';
+import { EtbEntriesResponse } from '@bluelight-hub/shared/client/models/EtbEntriesResponse';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { api } from '../../api';
 import { logger } from '../../utils/logger';
@@ -26,44 +27,87 @@ export interface EtbFilterParams {
      * Filter für den Status der Einträge
      */
     status?: EtbControllerFindAllV1StatusEnum;
+    /**
+     * Seite für die Paginierung (1-basiert)
+     */
+    page?: number;
+    /**
+     * Anzahl der Einträge pro Seite
+     */
+    limit?: number;
+}
+
+/**
+ * Interface für die Optionen des useEinsatztagebuch Hooks
+ */
+export interface UseEinsatztagebuchOptions {
+    /**
+     * Filter-Parameter für die Abfrage
+     */
+    filterParams?: EtbFilterParams;
+    /**
+     * Intervall in Millisekunden für automatische Aktualisierungen
+     * Wenn nicht gesetzt, wird keine automatische Aktualisierung durchgeführt
+     */
+    refetchInterval?: number;
 }
 
 /**
  * Hook für die Verwaltung der Einsatztagebuch-Daten
  * Verwendet React Query für die Kommunikation mit dem Backend
  */
-export const useEinsatztagebuch = (filterParams: EtbFilterParams = {}) => {
+export const useEinsatztagebuch = ({
+    filterParams = {},
+    refetchInterval
+}: UseEinsatztagebuchOptions = {}) => {
     const queryClient = useQueryClient();
 
+    // Standardwerte für Paginierung setzen
+    const params = {
+        ...filterParams,
+        page: filterParams.page || 1,
+        limit: filterParams.limit || 10
+    };
+
     /**
-     * Abfrage der Einsatztagebuch-Daten
+     * Hook: Abfrage der Einsatztagebuch-Einträge mit Filter
      */
-    const {
-        data: entriesData,
-        isLoading,
-        error,
-    } = useQuery({
-        queryKey: [...ETB_KEYS.entries(), filterParams],
+    const einsatztagebuch = useQuery<EtbEntriesResponse, Error>({
+        queryKey: [...ETB_KEYS.entries(), params],
         queryFn: async () => {
             try {
-                const response = await api.etb.etbControllerFindAllV1(
-                    {
-                        includeUeberschrieben: filterParams.includeUeberschrieben,
-                        status: filterParams.status
+                // Wichtig: Baue ein separates Objekt für die API-Anfrage
+                const queryParams: EtbControllerFindAllV1Request = {};
+                if (params.includeUeberschrieben !== undefined) queryParams.includeUeberschrieben = params.includeUeberschrieben;
+                if (params.status !== undefined) queryParams.status = params.status;
+                if (params.page !== undefined) queryParams.page = params.page;
+                if (params.limit !== undefined) queryParams.limit = params.limit;
+
+                logger.debug('API Request Parameter:', queryParams);
+
+                // Direkte API-Anfrage mit typisierten Parametern
+                const response = await api.etb.etbControllerFindAllV1(queryParams, {
+                    headers: {
+                        'Content-Type': 'application/json',
                     },
-                    {
-                        headers: {
-                            'Content-Type': 'application/json',
-                        },
-                    }
-                );
-                return response.data.entries || [];
-            } catch (err) {
-                logger.error('Fehler beim Abrufen der Einsatztagebuch-Daten:', err);
-                throw err;
+                });
+
+                // Debug: Zeige Server-Antwort
+                logger.debug('API Response:', {
+                    entries: response.items.length,
+                    currentPage: response.pagination.currentPage,
+                    totalItems: response.pagination.totalItems
+                });
+
+                logger.info('Einsatztagebuch-Daten geladen:', response);
+                return response;
+            } catch (error) {
+                logger.error('Fehler beim Abrufen der Einsatztagebuch-Daten:', error);
+                throw error;
             }
         },
         staleTime: 1000 * 60 * 5, // 5 Minuten
+        refetchInterval,
     });
 
     /**
@@ -72,7 +116,7 @@ export const useEinsatztagebuch = (filterParams: EtbFilterParams = {}) => {
     const archiveEinsatztagebuchEintrag = useMutation({
         mutationFn: async ({ nummer }: { nummer: number }) => {
             // Finde den Eintrag
-            const entry = entriesData?.find(item => item.laufendeNummer === nummer);
+            const entry = einsatztagebuch.data?.items.find(item => item.laufendeNummer === nummer);
             if (!entry) {
                 throw new Error(`Eintrag mit Nummer ${nummer} nicht gefunden`);
             }
@@ -80,17 +124,38 @@ export const useEinsatztagebuch = (filterParams: EtbFilterParams = {}) => {
         },
         onMutate: async ({ nummer }) => {
             // Optimistic Update
-            await queryClient.cancelQueries({ queryKey: [...ETB_KEYS.entries(), filterParams] });
+            await queryClient.cancelQueries({ queryKey: [...ETB_KEYS.entries(), params] });
 
             // Snapshot des vorherigen Zustands
-            const previousEntries = queryClient.getQueryData<EtbEntryDto[]>([...ETB_KEYS.entries(), filterParams]);
+            const previousEntries = queryClient.getQueryData<EtbEntriesResponse>([...ETB_KEYS.entries(), params]);
 
             // Optimistic update
-            queryClient.setQueryData<EtbEntryDto[]>([...ETB_KEYS.entries(), filterParams], old => {
-                if (!old) return [];
-                return old.map((item) =>
-                    item.laufendeNummer === nummer ? { ...item, istAbgeschlossen: true } : item
-                );
+            queryClient.setQueryData<EtbEntriesResponse>([...ETB_KEYS.entries(), params], old => {
+                if (!old) return {
+                    items: [],
+                    pagination: {
+                        currentPage: 1,
+                        itemsPerPage: 10,
+                        totalItems: 0,
+                        totalPages: 0,
+                        hasNextPage: false,
+                        hasPreviousPage: false
+                    },
+                    data: { items: [], total: 0 }
+                };
+
+                return {
+                    ...old,
+                    items: old.items.map((item) =>
+                        item.laufendeNummer === nummer ? { ...item, istAbgeschlossen: true } : item
+                    ),
+                    data: {
+                        ...old.pagination,
+                        items: old.items.map((item) =>
+                            item.laufendeNummer === nummer ? { ...item, istAbgeschlossen: true } : item
+                        )
+                    }
+                };
             });
 
             return { previousEntries };
@@ -99,7 +164,7 @@ export const useEinsatztagebuch = (filterParams: EtbFilterParams = {}) => {
             logger.error('Fehler beim Archivieren des Eintrags:', err);
             // Zurücksetzen bei Fehler
             if (context?.previousEntries) {
-                queryClient.setQueryData([...ETB_KEYS.entries(), filterParams], context.previousEntries);
+                queryClient.setQueryData([...ETB_KEYS.entries(), params], context.previousEntries);
             }
         },
         onSettled: () => {
@@ -155,16 +220,16 @@ export const useEinsatztagebuch = (filterParams: EtbFilterParams = {}) => {
         },
         onMutate: async (newEntry) => {
             // Optimistic Update
-            await queryClient.cancelQueries({ queryKey: [...ETB_KEYS.entries(), filterParams] });
+            await queryClient.cancelQueries({ queryKey: [...ETB_KEYS.entries(), params] });
 
             // Snapshot des vorherigen Zustands
-            const previousEntries = queryClient.getQueryData<EtbEntryDto[]>([...ETB_KEYS.entries(), filterParams]);
+            const previousEntries = queryClient.getQueryData<EtbEntriesResponse>([...ETB_KEYS.entries(), params]);
 
             // Temporärer Eintrag für optimistic update
             const tempId = `temp-${Math.random().toString(36).substring(2, 11)}`;
             const tempEntry: EtbEntryDto = {
                 id: tempId,
-                laufendeNummer: (previousEntries?.length || 0) + 1,
+                laufendeNummer: (previousEntries?.items.length || 0) + 1,
                 timestampErstellung: new Date(),
                 timestampEreignis: new Date(),
                 autorId: newEntry.autorId || '',
@@ -185,9 +250,29 @@ export const useEinsatztagebuch = (filterParams: EtbFilterParams = {}) => {
             };
 
             // Optimistic update
-            queryClient.setQueryData<EtbEntryDto[]>([...ETB_KEYS.entries(), filterParams], old => {
-                if (!old) return [tempEntry];
-                return [...old, tempEntry];
+            queryClient.setQueryData<EtbEntriesResponse>([...ETB_KEYS.entries(), params], old => {
+                logger.info('Optimistic update', old);
+                if (!old) return {
+                    items: [tempEntry],
+                    pagination: {
+                        currentPage: 1,
+                        itemsPerPage: 10,
+                        totalItems: 1,
+                        totalPages: 1,
+                        hasNextPage: false,
+                        hasPreviousPage: false
+                    },
+                    data: { items: [tempEntry], total: 1 }
+                };
+
+                return {
+                    ...old,
+                    items: [...old.items, tempEntry],
+                    data: {
+                        ...old.pagination,
+                        items: [...old.items, tempEntry],
+                    }
+                };
             });
 
             return { previousEntries, tempId };
@@ -196,7 +281,7 @@ export const useEinsatztagebuch = (filterParams: EtbFilterParams = {}) => {
             logger.error('Fehler beim Erstellen des Eintrags:', err);
             // Zurücksetzen bei Fehler
             if (context?.previousEntries) {
-                queryClient.setQueryData([...ETB_KEYS.entries(), filterParams], context.previousEntries);
+                queryClient.setQueryData([...ETB_KEYS.entries(), params], context.previousEntries);
             }
         },
         onSettled: () => {
@@ -205,12 +290,78 @@ export const useEinsatztagebuch = (filterParams: EtbFilterParams = {}) => {
         },
     });
 
+    /**
+     * Funktion zum Ändern der Seite oder Anzahl der Einträge pro Seite
+     */
+    const changePage = async (page: number, limit: number) => {
+        logger.info(`Seitenwechsel: Seite ${page}, Limit ${limit}`);
+
+        // Erstelle neue Parameterstruktur für die Anfrage
+        const newParams = { ...params, page, limit };
+
+        try {
+            // Wichtig: Baue ein separates Objekt für die API-Anfrage
+            const queryParams: EtbControllerFindAllV1Request = {};
+            if (newParams.includeUeberschrieben !== undefined) queryParams.includeUeberschrieben = newParams.includeUeberschrieben;
+            if (newParams.status !== undefined) queryParams.status = newParams.status;
+            if (page !== undefined) queryParams.page = page;
+            if (limit !== undefined) queryParams.limit = limit;
+
+            logger.debug('ChangePage API Request Parameter:', queryParams);
+
+            // Direkter API-Aufruf, um Fehler in der React Query-Schicht zu vermeiden
+            const response = await api.etb.etbControllerFindAllV1(
+                queryParams,
+                {
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                }
+            );
+
+            logger.debug('ChangePage API Response:', {
+                requestedPage: page,
+                receivedPage: response.pagination.currentPage,
+                entries: response.items.length,
+                currentPage: response.pagination.currentPage,
+                totalItems: response.pagination.totalItems
+            });
+
+            // Setze die Daten in den React Query Cache
+            queryClient.setQueryData([...ETB_KEYS.entries(), newParams], response);
+
+            return response;
+        } catch (err) {
+            logger.error('Fehler beim Abrufen der Einsatztagebuch-Daten für Seite', { page, limit }, err);
+            throw err;
+        }
+    };
+
+    // Debugging: Zeige aktuelle Pagination-Daten
+    if (einsatztagebuch.data) {
+        logger.debug('Pagination-Daten:', {
+            total: einsatztagebuch.data.pagination.totalItems,
+            page: einsatztagebuch.data.pagination.currentPage || 1,
+            limit: einsatztagebuch.data.pagination.itemsPerPage || 10,
+            totalPages: einsatztagebuch.data.pagination.totalPages || 1,
+            entriesLength: einsatztagebuch.data.items.length
+        });
+    }
+
     return {
         einsatztagebuch: {
-            data: { items: entriesData || [] },
-            isLoading,
-            error,
-            refetch: () => queryClient.invalidateQueries({ queryKey: [...ETB_KEYS.entries(), filterParams] }),
+            query: einsatztagebuch,
+            data: {
+                items: einsatztagebuch.data?.items || [],
+                pagination: einsatztagebuch.data?.pagination || {
+                    totalItems: einsatztagebuch.data?.pagination.totalItems || 0,
+                    currentPage: einsatztagebuch.data?.pagination.currentPage || 1,
+                    itemsPerPage: einsatztagebuch.data?.pagination.itemsPerPage || 10,
+                    totalPages: einsatztagebuch.data?.pagination.totalPages || 1
+                }
+            },
+            refetch: () => queryClient.invalidateQueries({ queryKey: [...ETB_KEYS.entries(), params] }),
+            changePage,
         },
         archiveEinsatztagebuchEintrag,
         createEinsatztagebuchEintrag,

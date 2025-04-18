@@ -6,6 +6,9 @@ import PrivateRoute from "./auth/PrivateRoute";
 // App Layout
 const AppLayout = React.lazy(() => import("@templates/AppLayout"));
 
+// Dashboard Layout
+const DashboardLayout = React.lazy(() => import("@templates/DashboardLayout"));
+
 // Index Page
 const IndexPage = React.lazy(() => import("@pages/page"));
 
@@ -14,6 +17,7 @@ const LoginPage = React.lazy(() => import("@pages/login/page"));
 
 // Dashboard
 const DashboardPage = React.lazy(() => import("@/components/pages/app/dashboard/page"));
+const ETBDashboardPage = React.lazy(() => import("@/components/pages/dashboard/etb/page"));
 
 // Einsatz
 const EinsatztagebuchPage = React.lazy(() => import("@pages/app/einsatztagebuch/page"));
@@ -76,6 +80,13 @@ export const Router = () => {
                     {/* Öffentliche Routen */}
                     <Route path="/" element={<IndexPage />} />
                     <Route path="/login" element={<LoginPage />} />
+
+                    {/* Dashboard Routes */}
+                    <Route element={<PrivateRoute />}>
+                        <Route path="/dashboard" element={<DashboardLayout />}>
+                            <Route path="etb" element={<ETBDashboardPage />} />
+                        </Route>
+                    </Route>
 
                     {/* Geschützte Routen */}
                     <Route element={<PrivateRoute />}>
