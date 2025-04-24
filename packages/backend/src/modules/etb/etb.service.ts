@@ -6,7 +6,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import * as fs from 'fs';
 import * as path from 'path';
 import sanitize from 'sanitize-filename';
-import { Between, FindOptionsWhere, LessThanOrEqual, MoreThanOrEqual, Repository } from 'typeorm';
+import { Repository } from 'typeorm';
 import { CreateEtbDto } from './dto/create-etb.dto';
 import { FilterEtbDto } from './dto/filter-etb.dto';
 import { UeberschreibeEtbDto } from './dto/ueberschreibe-etb.dto';
@@ -184,63 +184,89 @@ export class EtbService {
             bisZeitstempel,
             autorId,
             includeUeberschrieben,
+            search,
             page = 1,
             limit = 10
         } = filterDto;
 
-        const where: FindOptionsWhere<EtbEntry> = {};
+        const qb = this.etbRepository.createQueryBuilder('etb');
+        const conditions: string[] = [];
+        const params: Record<string, any> = {};
 
         if (referenzEinsatzId) {
-            where.referenzEinsatzId = referenzEinsatzId;
+            conditions.push('etb.referenzEinsatzId = :referenzEinsatzId');
+            params.referenzEinsatzId = referenzEinsatzId;
         }
-
         if (referenzPatientId) {
-            where.referenzPatientId = referenzPatientId;
+            conditions.push('etb.referenzPatientId = :referenzPatientId');
+            params.referenzPatientId = referenzPatientId;
         }
-
         if (referenzEinsatzmittelId) {
-            where.referenzEinsatzmittelId = referenzEinsatzmittelId;
+            conditions.push('etb.referenzEinsatzmittelId = :referenzEinsatzmittelId');
+            params.referenzEinsatzmittelId = referenzEinsatzmittelId;
         }
-
         if (kategorie) {
-            where.kategorie = kategorie;
+            conditions.push('etb.kategorie = :kategorie');
+            params.kategorie = kategorie;
         }
-
         if (autorId) {
-            where.autorId = autorId;
+            conditions.push('etb.autorId = :autorId');
+            params.autorId = autorId;
         }
-
-        // Vereinfachte Filter-Logik: 
-        // Nur den includeUeberschrieben-Parameter berücksichtigen
         if (!includeUeberschrieben) {
-            // Standardmäßig nur aktive Einträge anzeigen
-            where.status = EtbEntryStatus.AKTIV;
+            conditions.push('etb.status = :status');
+            params.status = EtbEntryStatus.AKTIV;
         }
-
         if (vonZeitstempel && bisZeitstempel) {
-            where.timestampEreignis = Between(
-                new Date(vonZeitstempel),
-                new Date(bisZeitstempel),
-            );
+            conditions.push('etb.timestampEreignis BETWEEN :vonZeitstempel AND :bisZeitstempel');
+            params.vonZeitstempel = new Date(vonZeitstempel);
+            params.bisZeitstempel = new Date(bisZeitstempel);
         } else if (vonZeitstempel) {
-            where.timestampEreignis = MoreThanOrEqual(new Date(vonZeitstempel));
+            conditions.push('etb.timestampEreignis >= :vonZeitstempel');
+            params.vonZeitstempel = new Date(vonZeitstempel);
         } else if (bisZeitstempel) {
-            where.timestampEreignis = LessThanOrEqual(new Date(bisZeitstempel));
+            conditions.push('etb.timestampEreignis <= :bisZeitstempel');
+            params.bisZeitstempel = new Date(bisZeitstempel);
+        }
+        if (search?.trim()) {
+            const op = qb.connection.driver.options.type === 'sqlite' ? 'LIKE' : 'ILIKE';
+            conditions.push(`(
+                etb.beschreibung ${op} :search OR
+                etb.autorName ${op} :search OR
+                etb.abgeschlossenVon ${op} :search
+            )`);
+            params.search = `%${search}%`;
         }
 
-        logger.info(`Suche ETB-Einträge mit Filtern: ${JSON.stringify(filterDto)}`);
+        if (conditions.length) {
+            qb.where(conditions[0], params);
+            for (let i = 1; i < conditions.length; i++) {
+                qb.andWhere(conditions[i], params);
+            }
+        }
 
-        // Verwende den PaginationService für die Abfrage
-        return this.paginationService.paginate<EtbEntry>(
-            this.etbRepository,
-            {
-                where,
-                order: { laufendeNummer: 'DESC' },
-                relations: ['anlagen', 'ueberschriebenDurch', 'ueberschriebeneEintraege'],
+        qb
+            .leftJoinAndSelect('etb.anlagen', 'anlagen')
+            .leftJoinAndSelect('etb.ueberschriebenDurch', 'ubD')
+            .leftJoinAndSelect('etb.ueberschriebeneEintraege', 'ue')
+            .orderBy('etb.laufendeNummer', 'DESC')
+            .skip((page - 1) * limit)
+            .take(limit);
+
+        const [items, total] = await qb.getManyAndCount();
+        const totalPages = Math.ceil(total / limit);
+
+        return {
+            items,
+            pagination: {
+                currentPage: page,
+                itemsPerPage: limit,
+                totalItems: total,
+                totalPages,
+                hasNextPage: page < totalPages,
+                hasPreviousPage: page > 1,
             },
-            page,
-            limit
-        );
+        };
     }
 
     /**

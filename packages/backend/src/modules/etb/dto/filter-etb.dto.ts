@@ -93,4 +93,15 @@ export class FilterEtbDto extends FilterPaginationDto {
         return false;
     })
     includeUeberschrieben?: boolean = false;
+
+    /**
+     * Optionales Suchfeld für Volltextsuche (Beschreibung, Autor, Empfänger)
+     */
+    @ApiPropertyOptional({
+        description: 'Volltextsuche in Beschreibung, Autor und Empfänger',
+        example: 'Stromausfall',
+    })
+    @IsString()
+    @IsOptional()
+    search?: string;
 } 
