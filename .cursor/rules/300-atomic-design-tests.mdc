@@ -1,6 +1,6 @@
 ---
 description: 
-globs: packages/frontend/src/components/*
+globs: packages/frontend/src/components/**
 alwaysApply: false
 ---
 # Atomic Design Component Tests

@@ -1,9 +1,8 @@
 ---
-description: SUGGEST best-practice commit messages with EMOJI(context): short description
+description: ENFORCE commit messages formatting with EMOJI(context): short description
 globs: 
 alwaysApply: false
 ---
-
 # Commit Message Standards
 
 ## Context
