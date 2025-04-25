@@ -77,9 +77,7 @@ describe('useEinsatztagebuch Hook', () => {
         };
 
         // Mock der API-Antwort
-        (api.etb.etbControllerFindAllV1 as unknown as ReturnType<typeof vi.fn>).mockResolvedValue({
-            data: mockData
-        });
+        (api.etb.etbControllerFindAllV1 as unknown as ReturnType<typeof vi.fn>).mockResolvedValue(mockData);
 
         // Hook rendern
         const { result } = renderHook(() => useEinsatztagebuch(), { wrapper });
@@ -150,13 +148,11 @@ describe('useEinsatztagebuch Hook', () => {
         };
 
         // Mock der API-Antwort
-        (api.etb.etbControllerFindAllV1 as unknown as ReturnType<typeof vi.fn>).mockResolvedValue({
-            data: mockData
-        });
+        (api.etb.etbControllerFindAllV1 as unknown as ReturnType<typeof vi.fn>).mockResolvedValue(mockData);
 
         // Hook mit includeUeberschrieben=true rendern
         const { result: resultWithUeberschrieben } = renderHook(
-            () => useEinsatztagebuch({ includeUeberschrieben: true } as Record<string, unknown>),
+            () => useEinsatztagebuch({ filterParams: { includeUeberschrieben: true } }),
             { wrapper }
         );
 
@@ -165,15 +161,19 @@ describe('useEinsatztagebuch Hook', () => {
 
         // Prüfen, ob der Parameter korrekt übergeben wurde
         expect(api.etb.etbControllerFindAllV1).toHaveBeenCalledWith(
-            expect.objectContaining({
+            {
                 includeUeberschrieben: true
-            }),
-            expect.anything()
+            },
+            expect.objectContaining({
+                headers: expect.objectContaining({
+                    'Content-Type': 'application/json'
+                })
+            })
         );
 
         // Hook mit explizitem Status rendern
         const { result: resultWithStatus } = renderHook(
-            () => useEinsatztagebuch({ status: 'ueberschrieben' } as Record<string, unknown>),
+            () => useEinsatztagebuch({ filterParams: { status: 'ueberschrieben' } }),
             { wrapper }
         );
 
@@ -182,10 +182,14 @@ describe('useEinsatztagebuch Hook', () => {
 
         // Prüfen, ob der Parameter korrekt übergeben wurde
         expect(api.etb.etbControllerFindAllV1).toHaveBeenCalledWith(
-            expect.objectContaining({
+            {
                 status: 'ueberschrieben'
-            }),
-            expect.anything()
+            },
+            expect.objectContaining({
+                headers: expect.objectContaining({
+                    'Content-Type': 'application/json'
+                })
+            })
         );
     });
 
@@ -219,9 +223,7 @@ describe('useEinsatztagebuch Hook', () => {
         };
 
         // Mock der API-Antwort für Abfrage
-        (api.etb.etbControllerFindAllV1 as unknown as ReturnType<typeof vi.fn>).mockResolvedValue({
-            data: mockData
-        });
+        (api.etb.etbControllerFindAllV1 as unknown as ReturnType<typeof vi.fn>).mockResolvedValue(mockData);
 
         // Mock der API-Antwort für Überschreiben
         (api.etb.etbControllerUeberschreibeEintragV1 as unknown as ReturnType<typeof vi.fn>).mockResolvedValue({
@@ -284,16 +286,10 @@ describe('useEinsatztagebuch Hook', () => {
         };
 
         // Mock der API-Antwort für Abfrage
-        (api.etb.etbControllerFindAllV1 as unknown as ReturnType<typeof vi.fn>).mockResolvedValue({
-            data: mockData
-        });
+        (api.etb.etbControllerFindAllV1 as unknown as ReturnType<typeof vi.fn>).mockResolvedValue(mockData);
 
-        // Mock der API-Antwort für Archivierung
-        (api.etb.etbControllerCloseEntryV1 as unknown as ReturnType<typeof vi.fn>).mockResolvedValue({
-            data: {
-                success: true
-            }
-        });
+        // Mock der API-Antwort für Archivieren
+        (api.etb.etbControllerCloseEntryV1 as unknown as ReturnType<typeof vi.fn>).mockResolvedValue({ success: true });
 
         // Spy für queryClient Methoden
         const invalidateQueriesSpy = vi.spyOn(queryClient, 'invalidateQueries');
@@ -311,12 +307,8 @@ describe('useEinsatztagebuch Hook', () => {
             nummer: 1
         });
 
-        // Prüfen, ob die API-Funktion mit den korrekten Parametern aufgerufen wurde
-        await waitFor(() => expect(api.etb.etbControllerCloseEntryV1).toHaveBeenCalled());
-
-        expect(api.etb.etbControllerCloseEntryV1).toHaveBeenCalledWith({
-            id: '1'
-        });
+        // Prüfen, ob die API-Funktion aufgerufen wurde
+        await waitFor(() => expect(api.etb.etbControllerCloseEntryV1).toHaveBeenCalledWith({ id: '1' }));
 
         // Prüfen, ob optimistic update durchgeführt wurde
         expect(cancelQueriesSpy).toHaveBeenCalled();
@@ -356,9 +348,7 @@ describe('useEinsatztagebuch Hook', () => {
         };
 
         // Mock der API-Antwort für Abfrage
-        (api.etb.etbControllerFindAllV1 as unknown as ReturnType<typeof vi.fn>).mockResolvedValue({
-            data: mockData
-        });
+        (api.etb.etbControllerFindAllV1 as unknown as ReturnType<typeof vi.fn>).mockResolvedValue(mockData);
 
         // Mock der API-Antwort für Erstellung
         (api.etb.etbControllerCreateV1 as unknown as ReturnType<typeof vi.fn>).mockResolvedValue({
@@ -477,9 +467,7 @@ describe('useEinsatztagebuch Hook', () => {
         };
 
         // Mock der API-Antwort für Abfrage
-        (api.etb.etbControllerFindAllV1 as unknown as ReturnType<typeof vi.fn>).mockResolvedValue({
-            data: mockData
-        });
+        (api.etb.etbControllerFindAllV1 as unknown as ReturnType<typeof vi.fn>).mockResolvedValue(mockData);
 
         // Mock einen API-Fehler für die Überschreiben-Mutation
         const testError = new Error('API-Fehler bei Überschreiben');
@@ -542,9 +530,7 @@ describe('useEinsatztagebuch Hook', () => {
         };
 
         // Mock der API-Antwort
-        (api.etb.etbControllerFindAllV1 as unknown as ReturnType<typeof vi.fn>).mockResolvedValue({
-            data: mockData
-        });
+        (api.etb.etbControllerFindAllV1 as unknown as ReturnType<typeof vi.fn>).mockResolvedValue(mockData);
 
         // Spy für queryClient.invalidateQueries
         const invalidateQueriesSpy = vi.spyOn(queryClient, 'invalidateQueries');

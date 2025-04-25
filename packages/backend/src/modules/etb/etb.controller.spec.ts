@@ -188,14 +188,25 @@ describe('EtbController', () => {
                 limit: 10,
             };
             const mockEntries = [createMockEtbEntry()];
-            mockEtbService.findAll.mockResolvedValue([mockEntries, 1]);
+            const paginatedResponse = {
+                items: mockEntries,
+                pagination: {
+                    currentPage: 1,
+                    itemsPerPage: 10,
+                    totalItems: 1,
+                    totalPages: 1,
+                    hasNextPage: false,
+                    hasPreviousPage: false,
+                },
+            };
+            mockEtbService.findAll.mockResolvedValue(paginatedResponse);
 
             // Act
             const result = await controller.findAll(filterDto);
 
             // Assert
             expect(service.findAll).toHaveBeenCalledWith(filterDto);
-            expect(result).toEqual({ entries: expect.any(Array), total: 1 });
+            expect(result).toEqual({ items: expect.any(Array), pagination: expect.any(Object) });
         });
 
         it('sollte mit includeUeberschrieben=true korrekt umgehen', async () => {

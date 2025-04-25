@@ -8,7 +8,7 @@ import { Outlet } from 'react-router';
  */
 const DashboardLayout: React.FC = () => {
     return (
-        <div className="h-screen flex flex-col bg-white dark:bg-gray-900 text-black dark:text-white overflow-hidden">
+        <div className="min-h-screen flex flex-col bg-white dark:bg-gray-900 text-black dark:text-white overflow-hidden">
             <main className="flex-1 overflow-auto py-4">
                 <div className="px-4 h-full">
                     <Outlet />

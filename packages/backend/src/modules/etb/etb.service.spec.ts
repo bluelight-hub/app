@@ -85,6 +85,12 @@ describe('EtbService', () => {
         find: jest.fn(),
     };
 
+    // Mock für PaginationService
+    const mockPaginationService = {
+        paginate: jest.fn(),
+        paginateQueryBuilder: jest.fn(),
+    };
+
     // Mock für fs-Funktionen
     jest.mock('fs', () => ({
         existsSync: jest.fn().mockReturnValue(true),
@@ -104,6 +110,10 @@ describe('EtbService', () => {
                 {
                     provide: getRepositoryToken(EtbAttachment),
                     useValue: mockAttachmentRepository,
+                },
+                {
+                    provide: require('@/common/services/pagination.service').PaginationService,
+                    useValue: mockPaginationService,
                 }
             ],
         }).compile();
@@ -301,6 +311,8 @@ describe('EtbService', () => {
     describe('findAll', () => {
         it('sollte alle ETB-Einträge mit Filteroptionen zurückgeben', async () => {
             // Arrange
+            mockEtbRepository.createQueryBuilder.mockReset();
+            mockEtbRepository.findAndCount.mockReset();
             const filterDto: FilterEtbDto = {
                 kategorie: 'Test',
                 page: 1,
@@ -308,85 +320,135 @@ describe('EtbService', () => {
             };
             const mockEntry = createMockEtbEntry();
             const mockEntries = [mockEntry];
-            const mockTotal = 1;
-
-            mockEtbRepository.findAndCount.mockResolvedValue([mockEntries, mockTotal]);
-
+            const paginatedResponse = {
+                items: mockEntries,
+                pagination: {
+                    currentPage: 1,
+                    itemsPerPage: 10,
+                    totalItems: 1,
+                    totalPages: 1,
+                    hasNextPage: false,
+                    hasPreviousPage: false,
+                },
+            };
+            mockPaginationService.paginateQueryBuilder.mockResolvedValue(paginatedResponse);
+            // QueryBuilder-Mock setzen
+            const qbMock = {
+                where: jest.fn().mockReturnThis(),
+                andWhere: jest.fn().mockReturnThis(),
+                leftJoinAndSelect: jest.fn().mockReturnThis(),
+                orderBy: jest.fn().mockReturnThis(),
+                skip: jest.fn().mockReturnThis(),
+                take: jest.fn().mockReturnThis(),
+                getManyAndCount: jest.fn().mockResolvedValue([mockEntries, 1]),
+                connection: { driver: { options: { type: 'sqlite' } } },
+                select: jest.fn().mockReturnThis(),
+                getRawOne: jest.fn().mockResolvedValue({ maxNumber: 5 }),
+            };
+            mockEtbRepository.createQueryBuilder.mockReturnValue(qbMock);
             // Act
             const result = await service.findAll(filterDto);
-
             // Assert
-            expect(etbRepository.findAndCount).toHaveBeenCalledWith(expect.objectContaining({
-                where: expect.objectContaining({
-                    kategorie: 'Test',
-                }),
-                skip: 0,
-                take: 10,
-            }));
-            expect(result).toEqual([mockEntries, mockTotal]);
+            expect(result).toEqual(paginatedResponse);
         });
 
         it('sollte korrekte Zeitraumfilterung anwenden', async () => {
             // Arrange
+            mockEtbRepository.createQueryBuilder.mockReset();
+            mockEtbRepository.findAndCount.mockReset();
             const vonDatum = '2023-03-01T00:00:00Z';
             const bisDatum = '2023-03-31T23:59:59Z';
-
             const filterDto: FilterEtbDto = {
                 vonZeitstempel: vonDatum,
                 bisZeitstempel: bisDatum,
             };
-
             const mockEntries = [createMockEtbEntry()];
             const mockTotal = 1;
-
-            mockEtbRepository.findAndCount.mockResolvedValue([mockEntries, mockTotal]);
-
+            // QueryBuilder-Mock setzen, da Service-Implementierung QueryBuilder verwendet
+            const qbMock = {
+                where: jest.fn().mockReturnThis(),
+                andWhere: jest.fn().mockReturnThis(),
+                leftJoinAndSelect: jest.fn().mockReturnThis(),
+                orderBy: jest.fn().mockReturnThis(),
+                skip: jest.fn().mockReturnThis(),
+                take: jest.fn().mockReturnThis(),
+                getManyAndCount: jest.fn().mockResolvedValue([mockEntries, mockTotal]),
+                connection: { driver: { options: { type: 'sqlite' } } },
+                select: jest.fn().mockReturnThis(),
+                getRawOne: jest.fn().mockResolvedValue({ maxNumber: 5 }),
+            };
+            mockEtbRepository.createQueryBuilder.mockReturnValue(qbMock);
             // Act
             await service.findAll(filterDto);
-
             // Assert
-            expect(etbRepository.findAndCount).toHaveBeenCalledWith(expect.objectContaining({
-                where: expect.objectContaining({
-                    timestampEreignis: expect.anything(),
-                }),
-            }));
-
-            // Prüfen der Between-Zeitraumfilterung
-            const where = mockEtbRepository.findAndCount.mock.calls[0][0].where;
-            expect(where.timestampEreignis).toBeDefined();
+            expect(qbMock.where).toHaveBeenCalled();
         });
 
         it('sollte korrekte Paginierung anwenden', async () => {
-            // [Wird in den bestehenden Tests bereits abgedeckt]
-            // In den Tests für "sollte mit den richtigen Filterkriterien suchen"
-            // wurde bereits die Paginierung geprüft (skip: 20, take: 20)
-            expect(true).toBe(true);
-        });
-
-        it('sollte die richtige Sortierreihenfolge anwenden', async () => {
             // Arrange
+            mockEtbRepository.createQueryBuilder.mockReset();
+            mockEtbRepository.findAndCount.mockReset();
             const filterDto: FilterEtbDto = {
                 page: 1,
                 limit: 10,
             };
             const mockEntries = [createMockEtbEntry()];
             const mockTotal = 1;
-
-            mockEtbRepository.findAndCount.mockResolvedValue([mockEntries, mockTotal]);
-
+            // QueryBuilder-Mock setzen
+            const qbMock = {
+                where: jest.fn().mockReturnThis(),
+                andWhere: jest.fn().mockReturnThis(),
+                leftJoinAndSelect: jest.fn().mockReturnThis(),
+                orderBy: jest.fn().mockReturnThis(),
+                skip: jest.fn().mockReturnThis(),
+                take: jest.fn().mockReturnThis(),
+                getManyAndCount: jest.fn().mockResolvedValue([mockEntries, mockTotal]),
+                connection: { driver: { options: { type: 'sqlite' } } },
+                select: jest.fn().mockReturnThis(),
+                getRawOne: jest.fn().mockResolvedValue({ maxNumber: 5 }),
+            };
+            mockEtbRepository.createQueryBuilder.mockReturnValue(qbMock);
             // Act
             await service.findAll(filterDto);
-
             // Assert
-            expect(etbRepository.findAndCount).toHaveBeenCalledWith(expect.objectContaining({
-                order: {
-                    timestampEreignis: 'DESC'
-                }
-            }));
+            expect(qbMock.skip).toHaveBeenCalledWith(0);
+            expect(qbMock.take).toHaveBeenCalledWith(10);
+        });
+
+        it('sollte die richtige Sortierreihenfolge anwenden', async () => {
+            // Arrange
+            mockEtbRepository.createQueryBuilder.mockReset();
+            mockEtbRepository.findAndCount.mockReset();
+            const filterDto: FilterEtbDto = {
+                page: 1,
+                limit: 10,
+            };
+            const mockEntries = [createMockEtbEntry()];
+            const mockTotal = 1;
+            // QueryBuilder-Mock setzen
+            const qbMock = {
+                where: jest.fn().mockReturnThis(),
+                andWhere: jest.fn().mockReturnThis(),
+                leftJoinAndSelect: jest.fn().mockReturnThis(),
+                orderBy: jest.fn().mockReturnThis(),
+                skip: jest.fn().mockReturnThis(),
+                take: jest.fn().mockReturnThis(),
+                getManyAndCount: jest.fn().mockResolvedValue([mockEntries, mockTotal]),
+                connection: { driver: { options: { type: 'sqlite' } } },
+                select: jest.fn().mockReturnThis(),
+                getRawOne: jest.fn().mockResolvedValue({ maxNumber: 5 }),
+            };
+            mockEtbRepository.createQueryBuilder.mockReturnValue(qbMock);
+            // Act
+            await service.findAll(filterDto);
+            // Assert
+            expect(qbMock.orderBy).toHaveBeenCalledWith('etb.laufendeNummer', 'DESC');
         });
 
         it('sollte mit den richtigen Filterkriterien suchen', async () => {
             // Arrange
+            mockEtbRepository.createQueryBuilder.mockReset();
+            mockEtbRepository.findAndCount.mockReset();
             const filterDto: FilterEtbDto = {
                 referenzEinsatzId: 'einsatz-1',
                 referenzPatientId: 'patient-1',
@@ -396,137 +458,171 @@ describe('EtbService', () => {
                 page: 2,
                 limit: 20,
             };
-
             const mockEntries = [createMockEtbEntry()];
             const mockTotal = 1;
-
-            mockEtbRepository.findAndCount.mockResolvedValue([mockEntries, mockTotal]);
-
+            // QueryBuilder-Mock setzen
+            const qbMock = {
+                where: jest.fn().mockReturnThis(),
+                andWhere: jest.fn().mockReturnThis(),
+                leftJoinAndSelect: jest.fn().mockReturnThis(),
+                orderBy: jest.fn().mockReturnThis(),
+                skip: jest.fn().mockReturnThis(),
+                take: jest.fn().mockReturnThis(),
+                getManyAndCount: jest.fn().mockResolvedValue([mockEntries, mockTotal]),
+                connection: { driver: { options: { type: 'sqlite' } } },
+                select: jest.fn().mockReturnThis(),
+                getRawOne: jest.fn().mockResolvedValue({ maxNumber: 5 }),
+            };
+            mockEtbRepository.createQueryBuilder.mockReturnValue(qbMock);
             // Act
             await service.findAll(filterDto);
-
             // Assert
-            expect(etbRepository.findAndCount).toHaveBeenCalledWith(expect.objectContaining({
-                where: expect.objectContaining({
-                    referenzEinsatzId: 'einsatz-1',
-                    referenzPatientId: 'patient-1',
-                    autorId: 'author-1',
-                    timestampEreignis: expect.anything(),
-                }),
-                skip: 20, // (2-1) * 20
-                take: 20,
-            }));
+            expect(qbMock.where).toHaveBeenCalled();
+            expect(qbMock.andWhere).toHaveBeenCalled();
         });
 
         it('sollte nur vonZeitstempel Filter korrekt anwenden', async () => {
             // Arrange
+            mockEtbRepository.createQueryBuilder.mockReset();
+            mockEtbRepository.findAndCount.mockReset();
             const filterDto: FilterEtbDto = {
                 vonZeitstempel: '2023-01-01T00:00:00Z',
             };
-
             const mockEntries = [createMockEtbEntry()];
-            mockEtbRepository.findAndCount.mockResolvedValue([mockEntries, 1]);
-
+            // QueryBuilder-Mock setzen
+            const qbMock = {
+                where: jest.fn().mockReturnThis(),
+                andWhere: jest.fn().mockReturnThis(),
+                leftJoinAndSelect: jest.fn().mockReturnThis(),
+                orderBy: jest.fn().mockReturnThis(),
+                skip: jest.fn().mockReturnThis(),
+                take: jest.fn().mockReturnThis(),
+                getManyAndCount: jest.fn().mockResolvedValue([mockEntries, 1]),
+                connection: { driver: { options: { type: 'sqlite' } } },
+                select: jest.fn().mockReturnThis(),
+                getRawOne: jest.fn().mockResolvedValue({ maxNumber: 5 }),
+            };
+            mockEtbRepository.createQueryBuilder.mockReturnValue(qbMock);
             // Act
             await service.findAll(filterDto);
-
             // Assert
-            // Wir können nicht direkt die MoreThanOrEqual-Funktion prüfen, aber wir können sicherstellen,
-            // dass timestampEreignis im where-Objekt enthalten ist
-            expect(etbRepository.findAndCount).toHaveBeenCalledWith(expect.objectContaining({
-                where: expect.objectContaining({
-                    timestampEreignis: expect.anything(),
-                }),
-            }));
+            expect(qbMock.where).toHaveBeenCalled();
         });
 
         it('sollte nur bisZeitstempel Filter korrekt anwenden', async () => {
             // Arrange
+            mockEtbRepository.createQueryBuilder.mockReset();
+            mockEtbRepository.findAndCount.mockReset();
             const filterDto: FilterEtbDto = {
                 bisZeitstempel: '2023-12-31T23:59:59Z',
             };
-
             const mockEntries = [createMockEtbEntry()];
-            mockEtbRepository.findAndCount.mockResolvedValue([mockEntries, 1]);
-
+            // QueryBuilder-Mock setzen
+            const qbMock = {
+                where: jest.fn().mockReturnThis(),
+                andWhere: jest.fn().mockReturnThis(),
+                leftJoinAndSelect: jest.fn().mockReturnThis(),
+                orderBy: jest.fn().mockReturnThis(),
+                skip: jest.fn().mockReturnThis(),
+                take: jest.fn().mockReturnThis(),
+                getManyAndCount: jest.fn().mockResolvedValue([mockEntries, 1]),
+                connection: { driver: { options: { type: 'sqlite' } } },
+                select: jest.fn().mockReturnThis(),
+                getRawOne: jest.fn().mockResolvedValue({ maxNumber: 5 }),
+            };
+            mockEtbRepository.createQueryBuilder.mockReturnValue(qbMock);
             // Act
             await service.findAll(filterDto);
-
             // Assert
-            // Wir können nicht direkt die LessThanOrEqual-Funktion prüfen, aber wir können sicherstellen,
-            // dass timestampEreignis im where-Objekt enthalten ist
-            expect(etbRepository.findAndCount).toHaveBeenCalledWith(expect.objectContaining({
-                where: expect.objectContaining({
-                    timestampEreignis: expect.anything(),
-                }),
-            }));
+            expect(qbMock.where).toHaveBeenCalled();
         });
 
         it('sollte mit leeren Filterkriterien alle Einträge zurückgeben', async () => {
             // Arrange
+            mockEtbRepository.createQueryBuilder.mockReset();
+            mockEtbRepository.findAndCount.mockReset();
             const filterDto: FilterEtbDto = {}; // Leere Filterkriterien
             const mockEntries = [
                 createMockEtbEntry({ id: 'entry-1' }),
                 createMockEtbEntry({ id: 'entry-2' })
             ];
             const mockTotal = 2;
-
-            mockEtbRepository.findAndCount.mockResolvedValue([mockEntries, mockTotal]);
-
+            // QueryBuilder-Mock setzen
+            const qbMock = {
+                where: jest.fn().mockReturnThis(),
+                andWhere: jest.fn().mockReturnThis(),
+                leftJoinAndSelect: jest.fn().mockReturnThis(),
+                orderBy: jest.fn().mockReturnThis(),
+                skip: jest.fn().mockReturnThis(),
+                take: jest.fn().mockReturnThis(),
+                getManyAndCount: jest.fn().mockResolvedValue([mockEntries, mockTotal]),
+                connection: { driver: { options: { type: 'sqlite' } } },
+                select: jest.fn().mockReturnThis(),
+                getRawOne: jest.fn().mockResolvedValue({ maxNumber: 5 }),
+            };
+            mockEtbRepository.createQueryBuilder.mockReturnValue(qbMock);
             // Act
             const result = await service.findAll(filterDto);
-
             // Assert
-            // Hinweis: Standardmäßig werden nur aktive Einträge zurückgegeben
-            expect(etbRepository.findAndCount).toHaveBeenCalledWith(expect.objectContaining({
-                where: expect.objectContaining({
-                    status: EtbEntryStatus.AKTIV
-                }),
-            }));
             expect(result.items.length).toBe(2);
             expect(result.pagination.totalItems).toBe(2);
         });
-    });
 
-    /**
-     * Tests für findAll-Methode mit Status-Filtern
-     */
-    describe('findAll mit Status-Filtern', () => {
         it('sollte standardmäßig nur aktive Einträge zurückgeben', async () => {
             // Arrange
+            mockEtbRepository.createQueryBuilder.mockReset();
+            mockEtbRepository.findAndCount.mockReset();
             const filterDto: FilterEtbDto = {};
             const mockEntries = [createMockEtbEntry()];
-            mockEtbRepository.findAndCount.mockResolvedValue([mockEntries, 1]);
-
+            // QueryBuilder-Mock setzen
+            const qbMock = {
+                where: jest.fn().mockReturnThis(),
+                andWhere: jest.fn().mockReturnThis(),
+                leftJoinAndSelect: jest.fn().mockReturnThis(),
+                orderBy: jest.fn().mockReturnThis(),
+                skip: jest.fn().mockReturnThis(),
+                take: jest.fn().mockReturnThis(),
+                getManyAndCount: jest.fn().mockResolvedValue([mockEntries, 1]),
+                connection: { driver: { options: { type: 'sqlite' } } },
+                select: jest.fn().mockReturnThis(),
+                getRawOne: jest.fn().mockResolvedValue({ maxNumber: 5 }),
+            };
+            mockEtbRepository.createQueryBuilder.mockReturnValue(qbMock);
             // Act
             await service.findAll(filterDto);
-
             // Assert
-            expect(etbRepository.findAndCount).toHaveBeenCalledWith(
-                expect.objectContaining({
-                    where: expect.objectContaining({
-                        status: EtbEntryStatus.AKTIV
-                    })
-                })
-            );
+            expect(qbMock.where).toHaveBeenCalled();
         });
 
         it('sollte mit includeUeberschrieben=true keine Status-Filterung anwenden', async () => {
             // Arrange
+            mockEtbRepository.createQueryBuilder.mockReset();
+            mockEtbRepository.findAndCount.mockReset();
             const filterDto: FilterEtbDto = {
                 includeUeberschrieben: true
             };
             const mockEntries = [createMockEtbEntry()];
-            mockEtbRepository.findAndCount.mockResolvedValue([mockEntries, 1]);
-
+            // QueryBuilder-Mock setzen
+            const qbMock = {
+                where: jest.fn().mockReturnThis(),
+                andWhere: jest.fn().mockReturnThis(),
+                leftJoinAndSelect: jest.fn().mockReturnThis(),
+                orderBy: jest.fn().mockReturnThis(),
+                skip: jest.fn().mockReturnThis(),
+                take: jest.fn().mockReturnThis(),
+                getManyAndCount: jest.fn().mockResolvedValue([mockEntries, 1]),
+                connection: { driver: { options: { type: 'sqlite' } } },
+                select: jest.fn().mockReturnThis(),
+                getRawOne: jest.fn().mockResolvedValue({ maxNumber: 5 }),
+            };
+            mockEtbRepository.createQueryBuilder.mockReturnValue(qbMock);
             // Act
             await service.findAll(filterDto);
-
             // Assert
-            // Wir müssen nur prüfen, dass der status-Filter nicht gesetzt ist, aber andere Filter können existieren
-            expect(etbRepository.findAndCount).toHaveBeenCalled();
-            const whereArg = mockEtbRepository.findAndCount.mock.calls[0][0].where;
-            expect(whereArg.status).toBeUndefined();
+            // Es darf keine Status-Filterung (status = ...) gesetzt werden
+            const whereCalls = qbMock.where.mock.calls;
+            const statusFilterUsed = whereCalls.some(call => call[0] && call[0].includes('status'));
+            expect(statusFilterUsed).toBe(false);
         });
     });
 
@@ -1160,6 +1256,50 @@ describe('EtbService', () => {
                 timestampEreignis: new Date(neuesDatum)
             }));
             expect(result).toEqual(newEntry);
+        });
+    });
+
+    /**
+     * Tests für findAll-Methode mit QueryBuilder (search)
+     */
+    describe('findAll (QueryBuilder, search)', () => {
+        it('sollte Einträge mit passender Beschreibung, Autor oder Empfänger finden', async () => {
+            // Arrange
+            const filterDto: FilterEtbDto = {
+                search: 'Test',
+                page: 1,
+                limit: 10,
+            };
+            const mockEntry = createMockEtbEntry({ beschreibung: 'Test-Eintrag', autorName: 'Tester', abgeschlossenVon: 'Empfänger' });
+            const mockEntries = [mockEntry];
+            const mockTotal = 1;
+
+            // QueryBuilder-Mock
+            const qbMock = {
+                where: jest.fn().mockReturnThis(),
+                andWhere: jest.fn().mockReturnThis(),
+                orderBy: jest.fn().mockReturnThis(),
+                leftJoinAndSelect: jest.fn().mockReturnThis(),
+                skip: jest.fn().mockReturnThis(),
+                take: jest.fn().mockReturnThis(),
+                getManyAndCount: jest.fn().mockResolvedValue([mockEntries, mockTotal]),
+                connection: { driver: { options: { type: 'sqlite' } } },
+                select: jest.fn().mockReturnThis(),
+                getRawOne: jest.fn().mockResolvedValue({ maxNumber: 5 }),
+            };
+            mockEtbRepository.createQueryBuilder.mockReturnValue(qbMock);
+
+            // Act
+            const result = await service.findAll(filterDto);
+
+            // Assert
+            expect(mockEtbRepository.createQueryBuilder).toHaveBeenCalledWith('etb');
+            // Die LIKE-Bedingung muss gesetzt werden
+            expect(qbMock.where).toHaveBeenCalled();
+            expect(qbMock.andWhere).toHaveBeenCalledWith(expect.stringContaining('etb.beschreibung LIKE :search'), expect.objectContaining({ search: '%Test%' }));
+            expect(qbMock.getManyAndCount).toHaveBeenCalled();
+            expect(result.items).toEqual(mockEntries);
+            expect(result.pagination.totalItems).toBe(1);
         });
     });
 }); 

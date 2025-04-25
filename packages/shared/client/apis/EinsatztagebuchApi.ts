@@ -65,6 +65,7 @@ export interface EtbControllerFindAllV1Request {
   autorId?: string;
   status?: EtbControllerFindAllV1StatusEnum;
   includeUeberschrieben?: boolean;
+  search?: string;
 }
 
 export interface EtbControllerFindAttachmentV1Request {
@@ -333,6 +334,10 @@ export class EinsatztagebuchApi extends runtime.BaseAPI {
     if (requestParameters["includeUeberschrieben"] != null) {
       queryParameters["includeUeberschrieben"] =
         requestParameters["includeUeberschrieben"];
+    }
+
+    if (requestParameters["search"] != null) {
+      queryParameters["search"] = requestParameters["search"];
     }
 
     const headerParameters: runtime.HTTPHeaders = {};

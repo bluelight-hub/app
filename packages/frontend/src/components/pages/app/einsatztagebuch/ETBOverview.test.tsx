@@ -197,10 +197,13 @@ describe('ETBOverview Komponente', () => {
     // Mocks für die Hooks
     const mockUseEinsatztagebuch = {
         einsatztagebuch: {
+            query: {
+                isLoading: false,
+                error: null,
+            },
             data: { items: mockEntries },
-            isLoading: false,
-            error: null,
             refetch: vi.fn(),
+            changePage: vi.fn(),
         },
         createEinsatztagebuchEintrag: { mutate: vi.fn(), mutateAsync: vi.fn() },
         archiveEinsatztagebuchEintrag: { mutate: vi.fn(), mutateAsync: vi.fn() },
@@ -263,7 +266,10 @@ describe('ETBOverview Komponente', () => {
             ...mockUseEinsatztagebuch,
             einsatztagebuch: {
                 ...mockUseEinsatztagebuch.einsatztagebuch,
-                isLoading: true,
+                query: {
+                    ...mockUseEinsatztagebuch.einsatztagebuch.query,
+                    isLoading: true,
+                },
             },
         });
 
@@ -281,7 +287,10 @@ describe('ETBOverview Komponente', () => {
             ...mockUseEinsatztagebuch,
             einsatztagebuch: {
                 ...mockUseEinsatztagebuch.einsatztagebuch,
-                error: new Error(errorMessage),
+                query: {
+                    ...mockUseEinsatztagebuch.einsatztagebuch.query,
+                    error: new Error(errorMessage),
+                },
             },
         });
 
@@ -321,7 +330,9 @@ describe('ETBOverview Komponente', () => {
         fireEvent.click(toggleSwitch);
 
         // Prüfe, ob useEinsatztagebuch mit den richtigen Optionen aufgerufen wurde
-        expect(useEinsatztagebuch).toHaveBeenLastCalledWith({ includeUeberschrieben: true });
+        expect(useEinsatztagebuch).toHaveBeenLastCalledWith({
+            filterParams: { includeUeberschrieben: true, page: 1, limit: 10 }
+        });
     });
 
     // NEUE TESTS
@@ -554,7 +565,10 @@ describe('ETBOverview Komponente', () => {
             ...mockUseEinsatztagebuch,
             einsatztagebuch: {
                 ...mockUseEinsatztagebuch.einsatztagebuch,
-                error: new Error('Fehler beim Laden der Daten'),
+                query: {
+                    ...mockUseEinsatztagebuch.einsatztagebuch.query,
+                    error: new Error('Fehler beim Laden der Daten'),
+                },
             },
         });
 
@@ -568,7 +582,10 @@ describe('ETBOverview Komponente', () => {
             ...mockUseEinsatztagebuch,
             einsatztagebuch: {
                 ...mockUseEinsatztagebuch.einsatztagebuch,
-                isLoading: true,
+                query: {
+                    ...mockUseEinsatztagebuch.einsatztagebuch.query,
+                    isLoading: true,
+                },
             },
         });
 
