@@ -63,6 +63,7 @@ export interface EtbControllerFindAllV1Request {
   vonZeitstempel?: string;
   bisZeitstempel?: string;
   autorId?: string;
+  empfaenger?: string;
   status?: EtbControllerFindAllV1StatusEnum;
   includeUeberschrieben?: boolean;
   search?: string;
@@ -325,6 +326,10 @@ export class EinsatztagebuchApi extends runtime.BaseAPI {
 
     if (requestParameters["autorId"] != null) {
       queryParameters["autorId"] = requestParameters["autorId"];
+    }
+
+    if (requestParameters["empfaenger"] != null) {
+      queryParameters["empfaenger"] = requestParameters["empfaenger"];
     }
 
     if (requestParameters["status"] != null) {

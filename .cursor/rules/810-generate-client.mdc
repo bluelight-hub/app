@@ -14,7 +14,7 @@ alwaysApply: false
 1. **Trigger**
    - Jede Änderung unter `backend/dtos/` oder `backend/controllers/`
 2. **Befehl**
-   - `pnpm generate-client` (aus dem `shared` Ordner heraus)
+   - `pnpm generate-api` (aus dem `shared` Ordner heraus)
 3. **Automatisierung**
    - Idealerweise Hook oder Script, das diesen Befehl bei Bedarf ausführt
 4. **Rationale**
@@ -25,5 +25,5 @@ alwaysApply: false
 <example>
 # CLI
 cd shared
-pnpm generate-client
+pnpm generate-api
 </example>

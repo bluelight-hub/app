@@ -66,6 +66,14 @@ export class FilterEtbDto extends FilterPaginationDto {
     autorId?: string;
 
     /**
+     * Filtert nach Empfänger (abgeschlossenVon)
+     */
+    @ApiPropertyOptional({ description: 'Filtert nach Empfänger (abgeschlossenVon)' })
+    @IsString()
+    @IsOptional()
+    empfaenger?: string;
+
+    /**
      * Filter nach Status
      * @deprecated Verwende stattdessen includeUeberschrieben
      */

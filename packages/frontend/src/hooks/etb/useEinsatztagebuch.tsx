@@ -37,6 +37,30 @@ export interface EtbFilterParams {
      * Anzahl der Einträge pro Seite
      */
     limit?: number;
+    /**
+     * Filter für die Kategorie der Einträge
+     */
+    kategorie?: string;
+    /**
+     * Filter für die Autor-ID der Einträge
+     */
+    autorId?: string;
+    /**
+     * Filter für den Startzeitstempel der Einträge
+     */
+    vonZeitstempel?: string;
+    /**
+     * Filter für den Endzeitstempel der Einträge
+     */
+    bisZeitstempel?: string;
+    /**
+     * Filter für die Suche nach Einträgen
+     */
+    search?: string;
+    /**
+     * Filter für den Empfänger der Einträge (wird über search implementiert)
+     */
+    empfaenger?: string;
 }
 
 /**
@@ -78,22 +102,44 @@ export const useEinsatztagebuch = ({
         queryKey: [...ETB_KEYS.entries(), params],
         queryFn: async () => {
             try {
-                // Wichtig: Hier müssen wir für den API-Aufruf die Parameter im Testformat übergeben
-                // Das bedeutet ein leeres Objekt an erster Stelle oder ein Objekt mit filterParams
                 const requestObj: EtbControllerFindAllV1Request = {};
+                if (filterParams.includeUeberschrieben !== undefined) {
+                    requestObj.includeUeberschrieben = filterParams.includeUeberschrieben;
+                }
+                if (filterParams.status !== undefined) {
+                    requestObj.status = filterParams.status;
+                }
+                if (filterParams.kategorie) {
+                    requestObj.kategorie = filterParams.kategorie;
+                }
+                if (filterParams.autorId) {
+                    requestObj.autorId = filterParams.autorId;
+                }
+                if (filterParams.vonZeitstempel) {
+                    requestObj.vonZeitstempel = filterParams.vonZeitstempel;
+                }
+                if (filterParams.bisZeitstempel) {
+                    requestObj.bisZeitstempel = filterParams.bisZeitstempel;
+                }
+                // Kombiniere search und empfaenger für die Suche
+                const searchTerm = filterParams.search || '';
 
-                if (filterParams.includeUeberschrieben !== undefined ||
-                    filterParams.status !== undefined) {
-                    // Wenn wir filterParams haben, können wir sie direkt setzen
-                    if (filterParams.includeUeberschrieben !== undefined) {
-                        requestObj.includeUeberschrieben = filterParams.includeUeberschrieben;
-                    }
-                    if (filterParams.status !== undefined) {
-                        requestObj.status = filterParams.status;
-                    }
+                // Statt das search-Feld mit dem empfaenger-Parameter zu kombinieren,
+                // übergeben wir den empfaenger direkt als separaten Parameter ans Backend
+                if (filterParams.empfaenger) {
+                    requestObj.empfaenger = filterParams.empfaenger;
                 }
 
-                // Direkte API-Anfrage mit formatieren Parametern für Kompatibilität mit Tests
+                if (searchTerm) {
+                    requestObj.search = searchTerm;
+                }
+                if (filterParams.page) {
+                    requestObj.page = filterParams.page;
+                }
+                if (filterParams.limit) {
+                    requestObj.limit = filterParams.limit;
+                }
+                // API-Aufruf
                 const rawResponse = await api.etb.etbControllerFindAllV1(requestObj, {
                     headers: {
                         'Content-Type': 'application/json',

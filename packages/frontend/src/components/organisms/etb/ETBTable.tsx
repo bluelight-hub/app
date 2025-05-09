@@ -1,6 +1,7 @@
 import { formatNatoDateTime } from '@/utils/date';
 import { PaginationMeta } from '@bluelight-hub/shared/client';
 import { EtbEntryDto, EtbEntryDtoStatusEnum } from '@bluelight-hub/shared/client/models/EtbEntryDto';
+import type { TablePaginationConfig, TableProps } from 'antd';
 import { Button, Empty, Input, InputRef, Space, Table, TableColumnsType, TableColumnType, Tag, Tooltip } from 'antd';
 import dayjs from 'dayjs';
 import React, { useCallback, useMemo, useRef } from 'react';
@@ -57,6 +58,16 @@ interface ETBTableProps {
      * Callback für Seitenwechsel
      */
     onPageChange?: (page: number, pageSize: number) => void;
+
+    /**
+     * Callback für Filteränderungen
+     */
+    onFilterChange?: (filters: Record<string, React.Key[] | null>) => void;
+
+    /**
+     * Callback für Sortieränderungen
+     */
+    onSorterChange?: (sorter: Parameters<NonNullable<TableProps<EtbEntryDto>["onChange"]>>[2]) => void;
 }
 
 /**
@@ -71,6 +82,8 @@ export const ETBTable: React.FC<ETBTableProps> = ({
     isEditing = false,
     pagination,
     onPageChange,
+    onFilterChange,
+    onSorterChange,
 }) => {
     // Referenz für das Sucheingabefeld
     const searchInput = useRef<InputRef>(null);
@@ -95,14 +108,26 @@ export const ETBTable: React.FC<ETBTableProps> = ({
             <div style={{ padding: 8 }} onKeyDown={(e) => e.stopPropagation()}>
                 <Input
                     ref={searchInput}
-                    placeholder="Inhalt suchen"
+                    placeholder={`${dataIndex} durchsuchen`}
                     value={selectedKeys[0]}
                     onChange={(e) => setSelectedKeys(e.target.value ? [e.target.value] : [])}
-                    onPressEnter={() => confirm()}
+                    onPressEnter={() => {
+                        confirm();
+                        // Wichtig: Führe keine lokale Filterung durch, sondern verwende den onChange-Handler der Tabelle
+                    }}
                     style={{ marginBottom: 8, display: 'block' }}
                 />
                 <Space>
-                    <Button type="primary" onClick={() => confirm()} icon={<PiMagnifyingGlass />} size="small" style={{ width: 90 }}>
+                    <Button
+                        type="primary"
+                        onClick={() => {
+                            confirm();
+                            // Wichtig: Führe keine lokale Filterung durch, sondern verwende den onChange-Handler der Tabelle
+                        }}
+                        icon={<PiMagnifyingGlass />}
+                        size="small"
+                        style={{ width: 90 }}
+                    >
                         Filtern
                     </Button>
                     <Button type="link" size="small" onClick={close}>
@@ -112,11 +137,7 @@ export const ETBTable: React.FC<ETBTableProps> = ({
             </div>
         ),
         filterIcon: (filtered: boolean) => <PiMagnifyingGlass style={{ color: filtered ? '#1677ff' : undefined }} />,
-        onFilter: (value, record) =>
-            record[dataIndex]
-                ?.toString()
-                .toLowerCase()
-                .includes((value as string).toLowerCase()) ?? false,
+        // Entferne die lokale onFilter-Implementierung, da die Filterung server-seitig erfolgen soll
     });
 
     /**
@@ -171,7 +192,6 @@ export const ETBTable: React.FC<ETBTableProps> = ({
                 dataIndex: 'kategorie',
                 key: 'kategorie',
                 filterSearch: kategorieFilter && kategorieFilter.length > 3 ? true : false,
-                onFilter: (value, record) => record.kategorie?.toLowerCase().includes((value as string).toLowerCase()),
                 width: 80,
                 filters: kategorieFilter,
                 render: (value) => {
@@ -196,12 +216,9 @@ export const ETBTable: React.FC<ETBTableProps> = ({
                 key: 'status',
                 width: 100,
                 filters: [
-                    { text: 'Aktiv', value: 'aktiv' },
-                    { text: 'Überschrieben', value: 'ueberschrieben' },
+                    { text: 'Aktiv', value: EtbEntryDtoStatusEnum.Aktiv },
+                    { text: 'Überschrieben', value: EtbEntryDtoStatusEnum.Ueberschrieben },
                 ],
-                onFilter: (value, record) => {
-                    return record.status === value;
-                },
                 render: (_, record) => (
                     isUeberschrieben(record) ?
                         <Tag color="warning">Überschrieben</Tag> :
@@ -310,6 +327,18 @@ export const ETBTable: React.FC<ETBTableProps> = ({
                         emptyText: <Empty image={<PiEmpty size={48} />} description="Keine Einträge verfügbar" />,
                     }}
                     rowClassName={(record) => isUeberschrieben(record) ? 'opacity-60' : ''}
+                    onChange={(pagination, filters, sorter) => {
+                        const pageConfig = pagination as TablePaginationConfig;
+                        if (typeof onPageChange === 'function') {
+                            onPageChange(pageConfig.current!, pageConfig.pageSize!);
+                        }
+                        if (typeof onFilterChange === 'function') {
+                            onFilterChange(filters as Record<string, React.Key[] | null>);
+                        }
+                        if (typeof onSorterChange === 'function') {
+                            onSorterChange(sorter);
+                        }
+                    }}
                 />
             </div>
         </div>

@@ -1,14 +1,16 @@
+import { useFahrzeuge } from '@/hooks/etb/useFahrzeuge';
 import { formatNatoDateTime } from '@/utils/date';
-import { EtbEntryDto } from '@bluelight-hub/shared/client/models/EtbEntryDto';
+import { EtbEntryDto, EtbEntryDtoStatusEnum } from '@bluelight-hub/shared/client/models/EtbEntryDto';
 import { ETBFormWrapper } from '@molecules/etb/ETBFormWrapper';
 import { ETBHeader } from '@molecules/etb/ETBHeader';
 import { ETBCardList } from '@organisms/etb/ETBCardList';
 import { ETBEntryForm, ETBEntryFormData } from '@organisms/etb/ETBEntryForm';
 import { ETBTable } from '@organisms/etb/ETBTable';
-import { Alert, Drawer, Space, Spin, Switch, Typography } from 'antd';
+import { Alert, DatePicker, Drawer, Input, Space, Spin, Switch, Typography } from 'antd';
+import dayjs from 'dayjs';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
+import { PiMagnifyingGlass } from 'react-icons/pi';
 import { useEinsatztagebuch } from '../../../../hooks/etb/useEinsatztagebuch';
-import { useFahrzeuge } from '../../../../hooks/etb/useFahrzeuge';
 
 /**
  * Vereinfachter Mobile-Check
@@ -21,11 +23,27 @@ const isMobile = typeof window !== 'undefined' && window.innerWidth < 768;
 export const ETBOverview: React.FC = () => {
     // State für Filter
     const [includeUeberschrieben, setIncludeUeberschrieben] = useState(false);
-
     const [page, setPage] = useState(1);
     const [pageSize, setPageSize] = useState(10);
+    const [filter, setFilter] = useState<{
+        kategorie?: string;
+        autorId?: string;
+        search?: string;
+        vonZeitstempel?: string;
+        bisZeitstempel?: string;
+        status?: EtbEntryDtoStatusEnum;
+        empfaenger?: string;
+    }>({});
 
-    // Hooks für Daten
+    const { fahrzeuge, error: fahrzeugeError, refreshFahrzeuge } = useFahrzeuge();
+
+    // States für UI
+    const [inputVisible, setInputVisible] = useState(false);
+    const [isOpen, setIsOpen] = useState(false);
+    const [editingEintrag, setEditingEintrag] = useState<EtbEntryDto | null>(null);
+    const [isUeberschreibeModus, setIsUeberschreibeModus] = useState(false);
+    const parentRef = useRef<HTMLDivElement>(null);
+
     const {
         einsatztagebuch,
         archiveEinsatztagebuchEintrag,
@@ -35,17 +53,11 @@ export const ETBOverview: React.FC = () => {
         filterParams: {
             includeUeberschrieben,
             page,
-            limit: pageSize
+            limit: pageSize,
+            ...filter,
+            // Sortierung kann hier ergänzt werden, wenn Backend unterstützt
         },
     });
-    const { fahrzeuge, error: fahrzeugeError, refreshFahrzeuge } = useFahrzeuge();
-
-    // States für UI
-    const [inputVisible, setInputVisible] = useState(false);
-    const [isOpen, setIsOpen] = useState(false);
-    const [editingEintrag, setEditingEintrag] = useState<EtbEntryDto | null>(null);
-    const [isUeberschreibeModus, setIsUeberschreibeModus] = useState(false);
-    const parentRef = useRef<HTMLDivElement>(null);
 
     // Periodisches Aktualisieren der Daten
     useEffect(() => {
@@ -99,6 +111,78 @@ export const ETBOverview: React.FC = () => {
     };
 
     /**
+     * Handler für Änderungen an den Tabellenfiltern und Sortierung
+     * @param filters Die gefilterten Spalten mit ihren Werten
+     */
+    const handleFilterChange = (filters: Record<string, React.Key[] | null>) => {
+        // Alle Tabellenfilter zusammenführen und an den Backend-Request übergeben
+        const newFilter = {
+            ...filter,
+            kategorie: filters.kategorie && filters.kategorie[0] ? String(filters.kategorie[0]) : undefined,
+            autorId: filters.autorName && filters.autorName[0] ? String(filters.autorName[0]) : undefined,
+            status: filters.status && filters.status[0] ? filters.status[0] as EtbEntryDtoStatusEnum : undefined,
+            empfaenger: filters.abgeschlossenVon && filters.abgeschlossenVon[0] ? String(filters.abgeschlossenVon[0]) : undefined,
+        };
+
+        // Suche in der Beschreibungsspalte
+        if (filters.beschreibung && filters.beschreibung[0]) {
+            newFilter.search = String(filters.beschreibung[0]);
+        }
+
+        setFilter(newFilter);
+        setPage(1); // Bei Filterwechsel auf Seite 1 zurücksetzen
+    };
+
+    /**
+     * Handler für die Sortierung (für zukünftige Implementierung)
+     */
+    const handleSorterChange = () => {
+        // Sortierung kann hier implementiert werden, wenn das Backend dies unterstützt
+    };
+
+    /**
+     * Handler für die globale Suche
+     * @param e Das Änderungsereignis des Eingabefelds
+     */
+    const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
+        // Da die globale Suche die Beschreibungsspalte betrifft, aktualisiere nur den search-Parameter
+        const value = e.target.value;
+        setFilter((prev) => ({
+            ...prev,
+            search: value || undefined
+        }));
+        setPage(1); // Bei Suchänderung auf Seite 1 zurücksetzen
+    };
+
+    /**
+     * Handler für Zeitraumfilter
+     */
+    const handleDateRangeChange = (dates: [dayjs.Dayjs | null, dayjs.Dayjs | null] | null) => {
+        if (!dates || !dates[0] || !dates[1]) {
+            // Wenn keine Daten oder ungültige Daten, Filter zurücksetzen
+            setFilter(prev => ({
+                ...prev,
+                vonZeitstempel: undefined,
+                bisZeitstempel: undefined
+            }));
+        } else {
+            // Prüfen, ob die Datumswerte gültig sind
+            const vonDatum = dates[0];
+            const bisDatum = dates[1];
+
+            if (vonDatum && bisDatum) {
+                // Sonst Filter mit Zeitstempeln setzen
+                setFilter(prev => ({
+                    ...prev,
+                    vonZeitstempel: vonDatum.startOf('day').toISOString(),
+                    bisZeitstempel: bisDatum.endOf('day').toISOString()
+                }));
+            }
+        }
+        setPage(1); // Bei Datumswechsel auf Seite 1
+    };
+
+    /**
      * Rendert den Inhalt basierend auf dem Ladezustand
      */
     const renderContent = () => {
@@ -140,7 +224,7 @@ export const ETBOverview: React.FC = () => {
                 {isMobile ? (
                     // Mobile-Ansicht
                     <ETBCardList
-                        entries={einsatztagebuch?.data.items || []}
+                        entries={einsatztagebuch.data.items || []}
                         onEditEntry={modifyEntry}
                         onArchiveEntry={(nummer) => archiveEinsatztagebuchEintrag.mutate({ nummer })}
                         onUeberschreibeEntry={modifyEntry}
@@ -148,7 +232,7 @@ export const ETBOverview: React.FC = () => {
                 ) : (
                     // Desktop-Ansicht
                     <ETBTable
-                        entries={einsatztagebuch?.data.items || []}
+                            entries={einsatztagebuch.data.items || []}
                         onEditEntry={modifyEntry}
                         onArchiveEntry={(nummer) => archiveEinsatztagebuchEintrag.mutate({ nummer })}
                             onUeberschreibeEntry={modifyEntry}
@@ -156,11 +240,13 @@ export const ETBOverview: React.FC = () => {
                             isLoading={einsatztagebuch.query.isLoading}
                         isEditing={isOpen}
                             onPageChange={handlePageChange}
-                            pagination={einsatztagebuch?.data.pagination ? {
+                            pagination={einsatztagebuch.data.pagination ? {
                                 ...einsatztagebuch.data.pagination,
                                 hasNextPage: einsatztagebuch.data.pagination.currentPage < einsatztagebuch.data.pagination.totalPages,
                                 hasPreviousPage: einsatztagebuch.data.pagination.currentPage > 1
                             } : undefined}
+                            onFilterChange={handleFilterChange}
+                            onSorterChange={handleSorterChange}
                     />
                 )}
             </div>
@@ -184,16 +270,37 @@ export const ETBOverview: React.FC = () => {
                 />
             )}
 
-            {/* Filter-Optionen */}
-            <div className="mt-4 mb-2">
-                <Space align="center">
-                    <Typography.Text>Überschriebene Einträge anzeigen:</Typography.Text>
-                    <Switch
-                        checked={includeUeberschrieben}
-                        onChange={setIncludeUeberschrieben}
-                        data-testid="toggle-ueberschrieben-switch"
-                    />
-                </Space>
+            {/* Erweiterte Filter-Optionen */}
+            <div className="mt-4 mb-2 space-y-4">
+                <div className="flex flex-wrap gap-4 items-center">
+                    <Space align="center">
+                        <Typography.Text>Überschriebene Einträge anzeigen:</Typography.Text>
+                        <Switch
+                            checked={includeUeberschrieben}
+                            onChange={setIncludeUeberschrieben}
+                            data-testid="toggle-ueberschrieben-switch"
+                        />
+                    </Space>
+
+                    <Space align="center">
+                        <Typography.Text>Zeitraum:</Typography.Text>
+                        <DatePicker.RangePicker
+                            onChange={handleDateRangeChange}
+                            allowClear
+                            placeholder={['Von', 'Bis']}
+                        />
+                    </Space>
+
+                    <Space align="center">
+                        <Input
+                            placeholder="Suchen..."
+                            onChange={handleSearch}
+                            allowClear
+                            prefix={<PiMagnifyingGlass />}
+                            style={{ width: 250 }}
+                        />
+                    </Space>
+                </div>
             </div>
 
             {/* Formular für neuen Eintrag */}

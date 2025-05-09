@@ -183,6 +183,7 @@ export class EtbService {
             vonZeitstempel,
             bisZeitstempel,
             autorId,
+            empfaenger,
             includeUeberschrieben,
             search,
             page = 1,
@@ -213,6 +214,10 @@ export class EtbService {
             conditions.push('etb.autorId = :autorId');
             params.autorId = autorId;
         }
+        if (empfaenger) {
+            conditions.push('etb.abgeschlossenVon = :empfaenger');
+            params.empfaenger = empfaenger;
+        }
         if (!includeUeberschrieben) {
             conditions.push('etb.status = :status');
             params.status = EtbEntryStatus.AKTIV;
@@ -230,11 +235,7 @@ export class EtbService {
         }
         if (search?.trim()) {
             const op = qb.connection.driver.options.type === 'sqlite' ? 'LIKE' : 'ILIKE';
-            conditions.push(`(
-                etb.beschreibung ${op} :search OR
-                etb.autorName ${op} :search OR
-                etb.abgeschlossenVon ${op} :search
-            )`);
+            conditions.push(`(etb.beschreibung ${op} :search OR etb.autorName ${op} :search OR etb.abgeschlossenVon ${op} :search)`);
             params.search = `%${search}%`;
         }
 
@@ -253,20 +254,25 @@ export class EtbService {
             .skip((page - 1) * limit)
             .take(limit);
 
-        const [items, total] = await qb.getManyAndCount();
-        const totalPages = Math.ceil(total / limit);
+        try {
+            const [items, total] = await qb.getManyAndCount();
+            const totalPages = Math.ceil(total / limit);
 
-        return {
-            items,
-            pagination: {
-                currentPage: page,
-                itemsPerPage: limit,
-                totalItems: total,
-                totalPages,
-                hasNextPage: page < totalPages,
-                hasPreviousPage: page > 1,
-            },
-        };
+            return {
+                items,
+                pagination: {
+                    currentPage: page,
+                    itemsPerPage: limit,
+                    totalItems: total,
+                    totalPages,
+                    hasNextPage: page < totalPages,
+                    hasPreviousPage: page > 1,
+                },
+            };
+        } catch (error) {
+            logger.error(`Fehler beim Abrufen der ETB-Einträge: ${error.message}`, error.stack);
+            throw error;
+        }
     }
 
     /**

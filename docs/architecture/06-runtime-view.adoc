@@ -384,9 +384,11 @@ sequenceDiagram
     Q->>UI: UI aktualisieren
     
     %% ETB filtern
-    B->>UI: Nach Zeitraum filtern
-    UI->>Q: Gefilterte Ansicht anfordern
-    Q->>UI: Gefilterte Einträge zurückgeben
+    B->>UI: Filter anwenden
+    UI->>C: Filter verarbeiten
+    C->>Q: Gefilterte Ansicht anfordern
+    Q->>C: Gefilterte Einträge zurückgeben
+    C->>UI: Gefilterte Einträge anzeigen
     
     %% ETB exportieren
     B->>UI: ETB exportieren (PDF)
@@ -414,12 +416,19 @@ Die Führung des Einsatztagebuchs erfolgt nach dem Event-Sourcing-Prinzip (ADR-0
    - Bei Offline-Betrieb werden Einträge lokal gespeichert und bei Wiederverbindung synchronisiert
    - Konfliktlösung erfolgt automatisch nach definierten Regeln (zeitbasierte Einordnung)
 
-4. *Auswertung und Export*:
+4. *Filterung und Suche*:
+   - Umfassende Filtermöglichkeiten ermöglichen das schnelle Auffinden relevanter Informationen
+   - Filterkriterien umfassen Zeitraum, Kategorie, Autor und weitere Attribute
+   - Volltextsuche erlaubt die Suche in Beschreibungen, Autoren und Empfängern
+   - Ein- und Ausblenden überschriebener Einträge für bessere Übersicht
+   - Alle Filteroperationen werden serverseitig ausgeführt für optimale Performance
+
+5. *Auswertung und Export*:
    - Das ETB kann nach verschiedenen Kriterien gefiltert werden (Zeitraum, Kategorie, Priorität, etc.)
    - Die vollständige Ereignishistorie ermöglicht die Rekonstruktion des ETB zu jedem Zeitpunkt
    - Export-Funktionen für PDF, CSV und andere Formate unterstützen die Nachbearbeitung und Dokumentation
 
-5. *Automatische Einträge*:
+6. *Automatische Einträge*:
    - Bestimmte Systemereignisse (Statusänderungen, Alarme, etc.) generieren automatisch ETB-Einträge
    - Integrationen mit externen Systemen (z.B. Digitalfunk) fließen in das ETB ein
    - Alle automatischen Einträge sind als solche gekennzeichnet
@@ -429,6 +438,8 @@ Die Implementierung nach dem Event-Sourcing-Prinzip bietet folgende Vorteile:
 - Zeitliche Rekonstruktion des ETB-Zustands zu jedem Zeitpunkt
 - Robuste Offline-Funktionalität mit zuverlässiger Synchronisation
 - Unterstützung regulatorischer Anforderungen durch lückenlose Dokumentation
+
+Die Filterimplementierung ist detailliert in ADR-015 beschrieben und ermöglicht eine hoch optimierte Such- und Filterfunktionalität, die speziell auf die Anforderungen des Einsatzmanagements zugeschnitten ist.
 
 Der Query Store dient als optimierte Leseansicht, die aus den Events generiert wird und effiziente Abfragen ermöglicht, ohne die vollständige Ereignishistorie traversieren zu müssen.
 

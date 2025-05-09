@@ -121,6 +121,16 @@ export class EtbController {
         description: 'Liste von ETB-Einträgen',
         type: EtbEntriesResponse
     })
+    @ApiResponse({ status: 400, description: 'Ungültige Filterparameter' })
+    @ApiResponse({ status: 401, description: 'Nicht autorisiert' })
+    @ApiResponse({ status: 403, description: 'Keine Berechtigung' })
+    @ApiResponse({ status: 500, description: 'Interner Serverfehler' })
+    @ApiResponse({ status: 200, description: 'Gefilterte Liste von ETB-Einträgen', type: EtbEntriesResponse })
+    @ApiResponse({ status: 200, description: 'Filter: kategorie', schema: { type: 'string' } })
+    @ApiResponse({ status: 200, description: 'Filter: autorId', schema: { type: 'string' } })
+    @ApiResponse({ status: 200, description: 'Filter: vonZeitstempel', schema: { type: 'string', format: 'date-time' } })
+    @ApiResponse({ status: 200, description: 'Filter: bisZeitstempel', schema: { type: 'string', format: 'date-time' } })
+    @ApiResponse({ status: 200, description: 'Filter: search', schema: { type: 'string' } })
     async findAll(@Query() filterDto: FilterEtbDto): Promise<PaginatedResponse<EtbEntryDto>> {
         logger.info(`HTTP GET /etb - Abruf von ETB-Einträgen mit Filtern`);
         const paginatedResult = await this.etbService.findAll(filterDto);
