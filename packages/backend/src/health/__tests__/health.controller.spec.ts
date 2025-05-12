@@ -7,6 +7,7 @@ import {
 } from '@nestjs/terminus';
 import { Test, TestingModule } from '@nestjs/testing';
 import { DataSource } from 'typeorm';
+import { EtbService } from '../../modules/etb/etb.service';
 import { HealthController } from '../health.controller';
 
 // Mock-Socket für das Testen
@@ -40,6 +41,7 @@ describe('HealthController', () => {
     let memoryHealthIndicator: MemoryHealthIndicator;
     let dbHealthIndicator: TypeOrmHealthIndicator;
     let dataSource: { isInitialized: boolean };
+    let etbService: Partial<EtbService>;
 
     beforeEach(async () => {
         // Zurücksetzen aller Mock-Implementierungen
@@ -53,6 +55,21 @@ describe('HealthController', () => {
             }
             return mockSocketInstance;
         });
+
+        // Mock für den EtbService erstellen
+        etbService = {
+            findAll: jest.fn().mockResolvedValue({
+                items: [],
+                pagination: {
+                    currentPage: 1,
+                    itemsPerPage: 10,
+                    totalItems: 0,
+                    totalPages: 0,
+                    hasNextPage: false,
+                    hasPreviousPage: false,
+                },
+            }),
+        };
 
         // Erstelle Test-Modul mit gemockten Abhängigkeiten
         const module: TestingModule = await Test.createTestingModule({
@@ -118,6 +135,10 @@ describe('HealthController', () => {
                     useValue: {
                         isInitialized: true,
                     },
+                },
+                {
+                    provide: EtbService,
+                    useValue: etbService,
                 },
             ],
         }).compile();

@@ -2,6 +2,7 @@ import { HealthCheckResult, HealthCheckService, HealthCheckStatus, HealthIndicat
 import { Test, TestingModule } from '@nestjs/testing';
 import { Socket } from 'net';
 import { Connection, DataSource } from 'typeorm';
+import { EtbService } from '../modules/etb/etb.service';
 import { HealthController } from './health.controller';
 
 // Mock der Socket-Klasse
@@ -59,6 +60,21 @@ describe('HealthController', () => {
         isInitialized: true
     } as any; // Verwende 'any' für den Test, damit wir isInitialized setzen können
 
+    // Mock des EtbService
+    const mockEtbService = {
+        findAll: jest.fn().mockResolvedValue({
+            items: [],
+            pagination: {
+                currentPage: 1,
+                itemsPerPage: 10,
+                totalItems: 0,
+                totalPages: 0,
+                hasNextPage: false,
+                hasPreviousPage: false,
+            },
+        }),
+    };
+
     beforeEach(async () => {
 
         const module: TestingModule = await Test.createTestingModule({
@@ -72,6 +88,10 @@ describe('HealthController', () => {
                 {
                     provide: DataSource,
                     useValue: mockDataSource,
+                },
+                {
+                    provide: EtbService,
+                    useValue: mockEtbService,
                 },
             ],
         }).compile();

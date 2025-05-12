@@ -1,5 +1,6 @@
 import { ApiPropertyOptional } from '@nestjs/swagger';
-import { IsDateString, IsOptional, IsString, IsUUID } from 'class-validator';
+import { IsDateString, IsEnum, IsOptional, IsString, IsUUID } from 'class-validator';
+import { EtbKategorie } from './etb-kategorie.enum';
 
 /**
  * DTO für das Aktualisieren eines bestehenden Einsatztagebuch-Eintrags.
@@ -15,12 +16,16 @@ export class UpdateEtbDto {
     timestampEreignis?: string;
 
     /**
-     * Kategorie des Eintrags (z.B. "Meldung", "Befehl", "Patientenmaßnahme")
+     * Kategorie des Eintrags
      */
-    @ApiPropertyOptional({ description: 'Kategorie des Eintrags' })
-    @IsString()
+    @ApiPropertyOptional({
+        description: 'Kategorie des Eintrags',
+        enum: EtbKategorie,
+        enumName: 'EtbKategorie'
+    })
+    @IsEnum(EtbKategorie)
     @IsOptional()
-    kategorie?: string;
+    kategorie?: EtbKategorie;
 
     /**
      * Optionaler Titel für den Eintrag
@@ -61,4 +66,20 @@ export class UpdateEtbDto {
     @IsUUID()
     @IsOptional()
     referenzEinsatzmittelId?: string;
+
+    /**
+     * Absender des Eintrags (OPTA-Nummer)
+     */
+    @ApiPropertyOptional({ description: 'Absender des Eintrags (OPTA-Nummer)' })
+    @IsString()
+    @IsOptional()
+    sender?: string;
+
+    /**
+     * Empfänger des Eintrags (OPTA-Nummer)
+     */
+    @ApiPropertyOptional({ description: 'Empfänger des Eintrags (OPTA-Nummer)' })
+    @IsString()
+    @IsOptional()
+    receiver?: string;
 } 

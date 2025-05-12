@@ -9,7 +9,7 @@ import { EtbEntry } from './modules/etb/entities/etb-entry.entity';
  */
 export default new DataSource({
     type: 'better-sqlite3',
-    database: process.env.SQLITE_DB_PATH || join(__dirname, '..', '..', '..', 'data', 'database.sqlite'),
+    database: process.env.SQLITE_DB_PATH || join(__dirname, '..', '..', '..', '..', 'data', 'database.sqlite'),
     entities: [EtbEntry, EtbAttachment],
     migrations: [join(__dirname, 'migrations', '*')],
     synchronize: false,

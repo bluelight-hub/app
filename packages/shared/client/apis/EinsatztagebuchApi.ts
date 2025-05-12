@@ -19,6 +19,7 @@ import type {
   EtbAttachmentsResponse,
   EtbEntriesResponse,
   EtbEntryResponse,
+  EtbKategorie,
   UeberschreibeEtbDto,
   UpdateEtbDto,
 } from "../models/index";
@@ -33,6 +34,8 @@ import {
   EtbEntriesResponseToJSON,
   EtbEntryResponseFromJSON,
   EtbEntryResponseToJSON,
+  EtbKategorieFromJSON,
+  EtbKategorieToJSON,
   UeberschreibeEtbDtoFromJSON,
   UeberschreibeEtbDtoToJSON,
   UpdateEtbDtoFromJSON,
@@ -59,7 +62,7 @@ export interface EtbControllerFindAllV1Request {
   referenzEinsatzId?: string;
   referenzPatientId?: string;
   referenzEinsatzmittelId?: string;
-  kategorie?: string;
+  kategorie?: EtbKategorie;
   vonZeitstempel?: string;
   bisZeitstempel?: string;
   autorId?: string;

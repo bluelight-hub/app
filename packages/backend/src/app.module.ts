@@ -21,7 +21,7 @@ import { EtbModule } from './modules/etb/etb.module';
         }),
         TypeOrmModule.forRoot({
             type: 'better-sqlite3',
-            database: process.env.SQLITE_DB_PATH || join(__dirname, '..', '..', '..', 'data', 'database.sqlite'),
+            database: process.env.SQLITE_DB_PATH || join(__dirname, '..', '..', '..', '..', 'data', 'database.sqlite'),
             entities: ['dist/**/*.entity.{ts,js}'],
             synchronize: process.env.NODE_ENV !== 'production',
             logging: process.env.NODE_ENV !== 'production',

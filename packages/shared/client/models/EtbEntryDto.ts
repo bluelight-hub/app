@@ -13,6 +13,14 @@
  */
 
 import { mapValues } from "../runtime";
+import type { EtbKategorie } from "./EtbKategorie";
+import {
+  EtbKategorieFromJSON,
+  EtbKategorieFromJSONTyped,
+  EtbKategorieToJSON,
+  EtbKategorieToJSONTyped,
+} from "./EtbKategorie";
+
 /**
  *
  * @export
@@ -63,22 +71,16 @@ export interface EtbEntryDto {
   autorRolle: string | null;
   /**
    * Kategorie des Eintrags
-   * @type {string}
+   * @type {EtbKategorie}
    * @memberof EtbEntryDto
    */
-  kategorie: string;
+  kategorie: EtbKategorie;
   /**
-   * Titel des Eintrags
+   * Inhalt des Eintrags
    * @type {string}
    * @memberof EtbEntryDto
    */
-  titel: string | null;
-  /**
-   * Beschreibung des Eintrags
-   * @type {string}
-   * @memberof EtbEntryDto
-   */
-  beschreibung: string;
+  inhalt: string;
   /**
    * Referenz zur Einsatz-ID
    * @type {string}
@@ -139,6 +141,18 @@ export interface EtbEntryDto {
    * @memberof EtbEntryDto
    */
   anlagen?: Array<object>;
+  /**
+   * Absender des Eintrags (OPTA-Nummer)
+   * @type {string}
+   * @memberof EtbEntryDto
+   */
+  sender: string | null;
+  /**
+   * Empfänger des Eintrags (OPTA-Nummer)
+   * @type {string}
+   * @memberof EtbEntryDto
+   */
+  receiver: string | null;
 }
 
 /**
@@ -173,9 +187,7 @@ export function instanceOfEtbEntryDto(value: object): value is EtbEntryDto {
   if (!("autorRolle" in value) || value["autorRolle"] === undefined)
     return false;
   if (!("kategorie" in value) || value["kategorie"] === undefined) return false;
-  if (!("titel" in value) || value["titel"] === undefined) return false;
-  if (!("beschreibung" in value) || value["beschreibung"] === undefined)
-    return false;
+  if (!("inhalt" in value) || value["inhalt"] === undefined) return false;
   if (
     !("referenzEinsatzId" in value) ||
     value["referenzEinsatzId"] === undefined
@@ -204,6 +216,8 @@ export function instanceOfEtbEntryDto(value: object): value is EtbEntryDto {
   if (!("abgeschlossenVon" in value) || value["abgeschlossenVon"] === undefined)
     return false;
   if (!("status" in value) || value["status"] === undefined) return false;
+  if (!("sender" in value) || value["sender"] === undefined) return false;
+  if (!("receiver" in value) || value["receiver"] === undefined) return false;
   return true;
 }
 
@@ -226,9 +240,8 @@ export function EtbEntryDtoFromJSONTyped(
     autorId: json["autorId"],
     autorName: json["autorName"],
     autorRolle: json["autorRolle"],
-    kategorie: json["kategorie"],
-    titel: json["titel"],
-    beschreibung: json["beschreibung"],
+    kategorie: EtbKategorieFromJSON(json["kategorie"]),
+    inhalt: json["inhalt"],
     referenzEinsatzId: json["referenzEinsatzId"],
     referenzPatientId: json["referenzPatientId"],
     referenzEinsatzmittelId: json["referenzEinsatzmittelId"],
@@ -242,6 +255,8 @@ export function EtbEntryDtoFromJSONTyped(
     abgeschlossenVon: json["abgeschlossenVon"],
     status: json["status"],
     anlagen: json["anlagen"] == null ? undefined : json["anlagen"],
+    sender: json["sender"],
+    receiver: json["receiver"],
   };
 }
 
@@ -265,9 +280,8 @@ export function EtbEntryDtoToJSONTyped(
     autorId: value["autorId"],
     autorName: value["autorName"],
     autorRolle: value["autorRolle"],
-    kategorie: value["kategorie"],
-    titel: value["titel"],
-    beschreibung: value["beschreibung"],
+    kategorie: EtbKategorieToJSON(value["kategorie"]),
+    inhalt: value["inhalt"],
     referenzEinsatzId: value["referenzEinsatzId"],
     referenzPatientId: value["referenzPatientId"],
     referenzEinsatzmittelId: value["referenzEinsatzmittelId"],
@@ -281,5 +295,7 @@ export function EtbEntryDtoToJSONTyped(
     abgeschlossenVon: value["abgeschlossenVon"],
     status: value["status"],
     anlagen: value["anlagen"],
+    sender: value["sender"],
+    receiver: value["receiver"],
   };
 }

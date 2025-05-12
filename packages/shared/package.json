@@ -9,7 +9,8 @@
     "format": "prettier --write .",
     "generate-api": "openapi-generator-cli generate -g=typescript-fetch -i http://localhost:3000/api-json -o ./client && pnpm format",
     "build": "tsc -b",
-    "prebuild": "rimraf dist"
+    "prebuild": "rimraf dist",
+    "test": "echo 'No tests available for shared package'"
   },
   "devDependencies": {
     "@openapitools/openapi-generator-cli": "^2.19.1",

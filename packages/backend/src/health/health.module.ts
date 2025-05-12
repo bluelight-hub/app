@@ -1,5 +1,6 @@
 import { Module } from '@nestjs/common';
 import { TerminusModule } from '@nestjs/terminus';
+import { EtbModule } from '../modules/etb/etb.module';
 import { HealthController } from './health.controller';
 
 /**
@@ -9,7 +10,10 @@ import { HealthController } from './health.controller';
  * @class HealthModule
  */
 @Module({
-    imports: [TerminusModule],
+    imports: [
+        TerminusModule,
+        EtbModule
+    ],
     controllers: [HealthController],
 })
 export class HealthModule { } 

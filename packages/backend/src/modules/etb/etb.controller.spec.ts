@@ -560,7 +560,7 @@ describe('EtbController', () => {
             // Arrange
             const id = 'test-id';
             const ueberschreibeEtbDto: UeberschreibeEtbDto = {
-                beschreibung: 'Übergeschriebene Beschreibung',
+                inhalt: 'Übergeschriebene Beschreibung',
             };
 
             const originalEntry = createMockEtbEntry({
@@ -603,7 +603,7 @@ describe('EtbController', () => {
             // Arrange
             const id = 'test-id';
             const ueberschreibeEtbDto: UeberschreibeEtbDto = {
-                beschreibung: 'Übergeschriebene Beschreibung',
+                inhalt: 'Übergeschriebene Beschreibung',
             };
             const mockNewEntry = createMockEtbEntry();
             mockEtbService.ueberschreibeEintrag.mockResolvedValue(mockNewEntry);
@@ -628,7 +628,7 @@ describe('EtbController', () => {
             // Arrange
             const id = 'non-existent-id';
             const ueberschreibeEtbDto: UeberschreibeEtbDto = {
-                beschreibung: 'Übergeschriebene Beschreibung',
+                inhalt: 'Übergeschriebene Beschreibung',
             };
 
             mockEtbService.ueberschreibeEintrag.mockRejectedValue(
@@ -647,7 +647,7 @@ describe('EtbController', () => {
                 timestampEreignis: new Date().toISOString(),
                 kategorie: 'Neue Kategorie',
                 titel: 'Neuer Titel',
-                beschreibung: 'Übergeschriebene Beschreibung',
+                inhalt: 'Übergeschriebene Beschreibung',
                 referenzEinsatzId: 'einsatz-123',
                 referenzPatientId: 'patient-456',
                 referenzEinsatzmittelId: 'em-789'

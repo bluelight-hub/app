@@ -556,16 +556,191 @@ Das API-Design folgt den REST-Prinzipien mit folgenden Merkmalen:
 * **Validierung**: DTO-basierte Eingabevalidierung mit class-validator
 * **Fehlerformate**: Einheitliches Fehlerformat mit HTTP-Statuscodes
 
+==== Standardisierte API-Antwortstruktur
+
+Eine der wichtigsten Architekturentscheidungen im Backend ist die Verwendung einer standardisierten API-Antwortstruktur. Diese gewährleistet ein konsistentes Format für alle API-Antworten und verbessert die Nutzererfahrung, Wartbarkeit und Testbarkeit.
+
+===== ApiResponse<T> Basisklasse
+
+Das Herzstück des API-Antwortkonzepts ist die abstrakte Klasse `ApiResponse<T>`:
+
+[source,typescript]
+----
+export abstract class ApiResponse<T> {
+    abstract data: T;
+    meta: ApiMeta;
+    message?: string;
+}
+
+export class ApiMeta {
+    timestamp: string;
+}
+----
+
+Diese Struktur stellt sicher, dass jede API-Antwort folgendes enthält:
+* **data**: Die eigentlichen Antwortdaten mit spezifischem Typ
+* **meta**: Metadaten wie Zeitstempel oder Paginierungsinformationen
+* **message**: Optionale Nachricht für zusätzliche Informationen
+
+===== Integration mit TransformInterceptor
+
+Die standardisierte Antwortstruktur wird durch einen `TransformInterceptor` automatisiert, der jeden Controller-Rückgabewert in das definierte Format umwandelt. Dies vereinfacht die Controller-Implementierung und stellt gleichzeitig Konsistenz sicher.
+
+Der Interceptor kann auf Controller- oder Routenebene angewendet werden:
+
+[source,typescript]
+----
+@Controller('beispiel')
+@UseInterceptors(TransformInterceptor)
+export class BeispielController {
+    // Kontroller-Methoden geben direkt ihre Daten zurück
+    // Der Interceptor wandelt sie automatisch in ApiResponse<T> um
+}
+----
+
+===== Konkrete Response-DTOs
+
+Für verschiedene Anwendungsfälle werden spezialisierte Response-DTOs erstellt, die von `ApiResponse<T>` ableiten:
+
+* **Einzelobjekt-Antworten**:
+[source,typescript]
+----
+export class EntityResponse extends ApiResponse<EntityDto> {
+    @ApiProperty({ type: EntityDto })
+    data: EntityDto;
+}
+----
+
+* **Listen-Antworten**:
+[source,typescript]
+----
+export class EntitiesResponse extends ApiResponse<EntityDto[]> {
+    @ApiProperty({ 
+        type: EntityDto,
+        isArray: true
+    })
+    data: EntityDto[];
+}
+----
+
+* **Paginierte Antworten**:
+[source,typescript]
+----
+export class PaginatedResponse<T> {
+    @ApiProperty({ isArray: true })
+    items: T[];
+    
+    @ApiProperty({ type: PaginationMeta })
+    pagination: PaginationMeta;
+}
+
+export class PaginatedEntitiesResponse extends ApiResponse<PaginatedResponse<EntityDto>> {
+    @ApiProperty({ type: () => PaginatedResponse })
+    data: PaginatedResponse<EntityDto>;
+}
+----
+
+===== Vorteile der standardisierten Antwortstruktur
+
+Die einheitliche API-Antwortstruktur bietet mehrere Vorteile:
+
+1. **Konsistenz**: Alle API-Antworten folgen demselben Muster, was die Client-Integration vereinfacht
+2. **Metadaten**: Zusätzliche Informationen können konsistent übermittelt werden
+3. **Erweiterbarkeit**: Neue Metadatenfelder können hinzugefügt werden, ohne bestehende Clients zu beeinträchtigen
+4. **Dokumentation**: Durch Swagger/OpenAPI-Integration ist die Struktur gut dokumentiert
+5. **Fehlerbehandlung**: Konsistentes Format auch für Fehlerantworten möglich
+6. **Testbarkeit**: Einheitliche Struktur vereinfacht das Testen von API-Antworten
+
+===== Integration mit Frontend
+
+Das Frontend kann sich auf diese konsistente Struktur verlassen und generische Komponenten für das Handling von API-Antworten implementieren. Die OpenAPI-generierte Client-Bibliothek spiegelt diese Struktur im Frontend wider.
+
 ==== Querschnittskonzepte
 
 Folgende Querschnittskonzepte ziehen sich durch die gesamte Backend-Architektur:
 
 * **Logging**: Strukturiertes Logging mit dem consola-Logger
+
+===== Logging-Konzept
+
+Das Bluelight-Hub-System setzt auf ein strukturiertes Logging-Konzept, das auf der consola-Bibliothek basiert. Dies bietet mehrere Vorteile gegenüber der direkten Verwendung von console.log:
+
+[source]
+----
+// Importieren des Loggers
+import { logger } from '@/logger/consola.logger';
+
+// Verschiedene Log-Level verwenden
+logger.info('Informative Nachricht');
+logger.error('Fehlermeldung', errorObject);
+logger.warn('Warnung');
+logger.debug('Debug-Information');
+logger.trace('Detaillierte Trace-Information');
+----
+
+*Hauptmerkmale des Logging-Konzepts:*
+
+1. **Zentrale Logger-Implementation**: `packages/backend/src/logger/consola.logger.ts` stellt einen einheitlichen Logger bereit:
+   * Als direkt importierbarer `logger`
+   * Als `ConsolaLogger`-Klasse für die NestJS LoggerService-Integration
+
+2. **Umgebungsabhängige Log-Level-Konfiguration**:
+   * Produktion: Log-Level 3 (info) - Nur wichtige Nachrichten
+   * Entwicklung: Log-Level 4 (debug) - Detailliertere Informationen
+
+3. **Architekturelle Vorgaben**:
+   * Verwendung von `console.*` ist nicht erlaubt und wird durch Architekturtests verhindert
+   * Einheitliche Logger-Integration für konsistente Ausgabeformate
+
+4. **Verfügbare Log-Level**:
+   * `error`: Kritische Fehler, die Aufmerksamkeit erfordern
+   * `warn`: Warnungen über potenzielle Probleme
+   * `info`: Allgemeine Informationen zum Programmablauf
+   * `debug`: Ausführliche Informationen für Entwickler
+   * `trace`: Detaillierte Nachverfolgung für tiefergehende Analyse
+
+5. **Integration mit NestJS**:
+   * Bereitstellung als Provider in der Anwendung: `{ provide: 'Logger', useClass: ConsolaLogger }`
+   * Konsistente Verwendung in allen Modulen durch Dependency Injection
+
+*Vorteile des strukturierten Loggings:*
+
+* **Konsistenz**: Einheitliches Format und Log-Level-Steuerung
+* **Filterbarkeit**: Nachrichten können nach Level gefiltert werden
+* **Formatierung**: Bessere Lesbarkeit als direkte Console-Ausgaben
+* **Konfigurierbarkeit**: Anpassbare Log-Level je nach Umgebung
+* **Erweiterbarkeit**: Möglichkeit zur Integration mit externen Logging-Diensten
+
+*Code-Beispiel für die Verwendung in NestJS-Komponenten:*
+
+[source,typescript]
+----
+import { Injectable } from '@nestjs/common';
+import { logger } from '@/logger/consola.logger';
+
+@Injectable()
+export class UserService {
+    async findUser(id: string) {
+        logger.debug(`Suche nach Benutzer mit ID: ${id}`);
+        
+        try {
+            // Geschäftslogik
+            
+            logger.info(`Benutzer ${id} erfolgreich gefunden`);
+            return user;
+        } catch (error) {
+            logger.error(`Fehler beim Suchen des Benutzers ${id}:`, error);
+            throw error;
+        }
+    }
+}
+----
+
+*Architektursicherung:*
+
+Um sicherzustellen, dass die Logger-Konvention eingehalten wird, verfügt das System über einen speziellen Architekturtest (`logger.architecture.spec.ts`), der den gesamten Codebase auf direkte Verwendung von `console.*`-Aufrufen prüft und den Test fehlschlagen lässt, wenn solche gefunden werden.
+
 * **Authentifizierung**: JWT-basierte Authentifizierung mit Guards
-* **Autorisierung**: Rollenbasierte Zugriffssteuerung mit Guards und Decorators
-* **Validierung**: DTO-basierte Validierung mit ValidationPipe
-* **Fehlerbehandlung**: Globale Exception Filter für einheitliche Fehlerantworten
-* **Konfigurationsmanagement**: Umgebungsspezifische Konfiguration mit ConfigService
 
 Diese Architekturkonzepte bilden das Fundament für ein wartbares, erweiterbares und robustes Backend-System, das kontinuierlich weiterentwickelt werden kann.
 

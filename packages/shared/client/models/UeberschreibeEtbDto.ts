@@ -13,6 +13,14 @@
  */
 
 import { mapValues } from "../runtime";
+import type { EtbKategorie } from "./EtbKategorie";
+import {
+  EtbKategorieFromJSON,
+  EtbKategorieFromJSONTyped,
+  EtbKategorieToJSON,
+  EtbKategorieToJSONTyped,
+} from "./EtbKategorie";
+
 /**
  *
  * @export
@@ -27,22 +35,16 @@ export interface UeberschreibeEtbDto {
   timestampEreignis?: string;
   /**
    * Kategorie des Eintrags
-   * @type {string}
+   * @type {EtbKategorie}
    * @memberof UeberschreibeEtbDto
    */
-  kategorie?: string;
+  kategorie?: EtbKategorie;
   /**
-   * Optionaler Titel für den Eintrag
+   * Inhalt des Eintrags
    * @type {string}
    * @memberof UeberschreibeEtbDto
    */
-  titel?: string;
-  /**
-   * Detaillierte Beschreibung des Ereignisses
-   * @type {string}
-   * @memberof UeberschreibeEtbDto
-   */
-  beschreibung?: string;
+  inhalt?: string;
   /**
    * Referenz zur Einsatz-ID
    * @type {string}
@@ -61,6 +63,18 @@ export interface UeberschreibeEtbDto {
    * @memberof UeberschreibeEtbDto
    */
   referenzEinsatzmittelId?: string;
+  /**
+   * Absender des Eintrags (OPTA-Nummer)
+   * @type {string}
+   * @memberof UeberschreibeEtbDto
+   */
+  sender?: string;
+  /**
+   * Empfänger des Eintrags (OPTA-Nummer)
+   * @type {string}
+   * @memberof UeberschreibeEtbDto
+   */
+  receiver?: string;
 }
 
 /**
@@ -86,10 +100,11 @@ export function UeberschreibeEtbDtoFromJSONTyped(
   return {
     timestampEreignis:
       json["timestampEreignis"] == null ? undefined : json["timestampEreignis"],
-    kategorie: json["kategorie"] == null ? undefined : json["kategorie"],
-    titel: json["titel"] == null ? undefined : json["titel"],
-    beschreibung:
-      json["beschreibung"] == null ? undefined : json["beschreibung"],
+    kategorie:
+      json["kategorie"] == null
+        ? undefined
+        : EtbKategorieFromJSON(json["kategorie"]),
+    inhalt: json["inhalt"] == null ? undefined : json["inhalt"],
     referenzEinsatzId:
       json["referenzEinsatzId"] == null ? undefined : json["referenzEinsatzId"],
     referenzPatientId:
@@ -98,6 +113,8 @@ export function UeberschreibeEtbDtoFromJSONTyped(
       json["referenzEinsatzmittelId"] == null
         ? undefined
         : json["referenzEinsatzmittelId"],
+    sender: json["sender"] == null ? undefined : json["sender"],
+    receiver: json["receiver"] == null ? undefined : json["receiver"],
   };
 }
 
@@ -115,11 +132,12 @@ export function UeberschreibeEtbDtoToJSONTyped(
 
   return {
     timestampEreignis: value["timestampEreignis"],
-    kategorie: value["kategorie"],
-    titel: value["titel"],
-    beschreibung: value["beschreibung"],
+    kategorie: EtbKategorieToJSON(value["kategorie"]),
+    inhalt: value["inhalt"],
     referenzEinsatzId: value["referenzEinsatzId"],
     referenzPatientId: value["referenzPatientId"],
     referenzEinsatzmittelId: value["referenzEinsatzmittelId"],
+    sender: value["sender"],
+    receiver: value["receiver"],
   };
 }

@@ -3,6 +3,7 @@ import { PaginationMeta } from '@/common/interfaces/paginated-response.interface
 import { ApiProperty } from '@nestjs/swagger';
 import { EtbAttachment } from '../entities/etb-attachment.entity';
 import { EtbEntryStatus } from '../entities/etb-entry.entity';
+import { EtbKategorie } from './etb-kategorie.enum';
 
 /**
  * Data Transfer Object für Einsatztagebuch-Einträge.
@@ -80,32 +81,23 @@ export class EtbEntryDto {
     autorRolle: string;
 
     /**
-     * Kategorie des Eintrags zur Klassifizierung (z.B. "Meldung", "Befehl", "Patientenmaßnahme")
+     * Kategorie des Eintrags zur Klassifizierung
      */
     @ApiProperty({
         description: 'Kategorie des Eintrags',
-        type: 'string',
+        enum: EtbKategorie,
+        enumName: 'EtbKategorie',
     })
-    kategorie: string;
+    kategorie: EtbKategorie;
 
     /**
-     * Optionaler Titel für den Eintrag zur besseren Übersicht
+     * Inhalt des Eintrags
      */
     @ApiProperty({
-        description: 'Titel des Eintrags',
-        type: 'string',
-        nullable: true,
-    })
-    titel: string;
-
-    /**
-     * Detaillierte Beschreibung des Ereignisses
-     */
-    @ApiProperty({
-        description: 'Beschreibung des Eintrags',
+        description: 'Inhalt des Eintrags',
         type: 'string',
     })
-    beschreibung: string;
+    inhalt: string;
 
     /**
      * Referenz zur zugehörigen Einsatz-ID, falls der Eintrag einem bestimmten Einsatz zugeordnet ist
@@ -200,6 +192,26 @@ export class EtbEntryDto {
 
     @ApiProperty({ type: [EtbAttachment], description: 'Anlagen zum ETB-Eintrag', required: false })
     anlagen?: EtbAttachment[];
+
+    /**
+     * Absender des Eintrags (OPTA-Nummer)
+     */
+    @ApiProperty({
+        description: 'Absender des Eintrags (OPTA-Nummer)',
+        type: 'string',
+        nullable: true,
+    })
+    sender: string;
+
+    /**
+     * Empfänger des Eintrags (OPTA-Nummer)
+     */
+    @ApiProperty({
+        description: 'Empfänger des Eintrags (OPTA-Nummer)',
+        type: 'string',
+        nullable: true,
+    })
+    receiver: string;
 }
 
 /**

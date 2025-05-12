@@ -1,16 +1,18 @@
 import { useFahrzeuge } from '@/hooks/etb/useFahrzeuge';
 import { formatNatoDateTime } from '@/utils/date';
+import { EtbKategorie } from '@bluelight-hub/shared/client';
 import { EtbEntryDto, EtbEntryDtoStatusEnum } from '@bluelight-hub/shared/client/models/EtbEntryDto';
 import { ETBFormWrapper } from '@molecules/etb/ETBFormWrapper';
 import { ETBHeader } from '@molecules/etb/ETBHeader';
 import { ETBCardList } from '@organisms/etb/ETBCardList';
 import { ETBEntryForm, ETBEntryFormData } from '@organisms/etb/ETBEntryForm';
 import { ETBTable } from '@organisms/etb/ETBTable';
-import { Alert, DatePicker, Drawer, Input, Space, Spin, Switch, Typography } from 'antd';
+import { Alert, DatePicker, Drawer, Input, message, Space, Spin, Switch, Typography } from 'antd';
 import dayjs from 'dayjs';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { PiMagnifyingGlass } from 'react-icons/pi';
 import { useEinsatztagebuch } from '../../../../hooks/etb/useEinsatztagebuch';
+import { logger } from '../../../../utils/logger';
 
 /**
  * Vereinfachter Mobile-Check
@@ -253,8 +255,11 @@ export const ETBOverview: React.FC = () => {
         );
     };
 
+    const [messageApi, contextHolder] = message.useMessage();
+
     return (
         <div className="px-4 sm:px-6 lg:px-8">
+            {contextHolder}
             {/* Header */}
             <ETBHeader inputVisible={inputVisible} setInputVisible={setInputVisible} />
 
@@ -306,14 +311,22 @@ export const ETBOverview: React.FC = () => {
             {/* Formular für neuen Eintrag */}
             <ETBFormWrapper inputVisible={inputVisible} closeForm={() => setInputVisible(false)}>
                 <ETBEntryForm
-                    onSubmitSuccess={(data) => {
-                        createEinsatztagebuchEintrag.mutate({
-                            autorName: data.sender,
-                            abgeschlossenVon: data.receiver,
-                            beschreibung: data.content,
-                            kategorie: 'USER',
-                        });
-                        setInputVisible(false);
+                    onSubmitSuccess={async (data) => {
+                        try {
+                            // Erstellen eines typensicheren Objekts für den API-Aufruf
+                            const createEtbPayload = {
+                                inhalt: data.content,
+                                kategorie: EtbKategorie.Meldung,
+                                sender: data.sender,
+                                receiver: data.receiver
+                            };
+
+                            await createEinsatztagebuchEintrag.mutateAsync(createEtbPayload);
+                            setInputVisible(false);
+                        } catch (error) {
+                            logger.error('Fehler beim Erstellen des Eintrags', error as Error);
+                            messageApi.error('Fehler beim Erstellen des Eintrags: ' + (error instanceof Error ? error.message : String(error)));
+                        }
                     }}
                     onCancel={() => setInputVisible(false)}
                 />

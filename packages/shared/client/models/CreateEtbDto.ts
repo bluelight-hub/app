@@ -13,6 +13,14 @@
  */
 
 import { mapValues } from "../runtime";
+import type { EtbKategorie } from "./EtbKategorie";
+import {
+  EtbKategorieFromJSON,
+  EtbKategorieFromJSONTyped,
+  EtbKategorieToJSON,
+  EtbKategorieToJSONTyped,
+} from "./EtbKategorie";
+
 /**
  *
  * @export
@@ -27,28 +35,28 @@ export interface CreateEtbDto {
   timestampEreignis: string;
   /**
    * Kategorie des Eintrags
-   * @type {string}
+   * @type {EtbKategorie}
    * @memberof CreateEtbDto
    */
-  kategorie: string;
+  kategorie: EtbKategorie;
   /**
-   * Optionaler Titel für den Eintrag
+   * Inhalt des Eintrags
    * @type {string}
    * @memberof CreateEtbDto
    */
-  titel?: string;
+  inhalt: string;
   /**
-   * Detaillierte Beschreibung des Ereignisses
+   * Absender des Eintrags (OPTA-Nummer)
    * @type {string}
    * @memberof CreateEtbDto
    */
-  beschreibung: string;
+  sender?: string;
   /**
-   * Referenz zur Einsatz-ID
+   * Empfänger des Eintrags (OPTA-Nummer)
    * @type {string}
    * @memberof CreateEtbDto
    */
-  referenzEinsatzId?: string;
+  receiver?: string;
   /**
    * Referenz zur Patienten-ID
    * @type {string}
@@ -73,8 +81,7 @@ export function instanceOfCreateEtbDto(value: object): value is CreateEtbDto {
   )
     return false;
   if (!("kategorie" in value) || value["kategorie"] === undefined) return false;
-  if (!("beschreibung" in value) || value["beschreibung"] === undefined)
-    return false;
+  if (!("inhalt" in value) || value["inhalt"] === undefined) return false;
   return true;
 }
 
@@ -91,11 +98,10 @@ export function CreateEtbDtoFromJSONTyped(
   }
   return {
     timestampEreignis: json["timestampEreignis"],
-    kategorie: json["kategorie"],
-    titel: json["titel"] == null ? undefined : json["titel"],
-    beschreibung: json["beschreibung"],
-    referenzEinsatzId:
-      json["referenzEinsatzId"] == null ? undefined : json["referenzEinsatzId"],
+    kategorie: EtbKategorieFromJSON(json["kategorie"]),
+    inhalt: json["inhalt"],
+    sender: json["sender"] == null ? undefined : json["sender"],
+    receiver: json["receiver"] == null ? undefined : json["receiver"],
     referenzPatientId:
       json["referenzPatientId"] == null ? undefined : json["referenzPatientId"],
     referenzEinsatzmittelId:
@@ -119,10 +125,10 @@ export function CreateEtbDtoToJSONTyped(
 
   return {
     timestampEreignis: value["timestampEreignis"],
-    kategorie: value["kategorie"],
-    titel: value["titel"],
-    beschreibung: value["beschreibung"],
-    referenzEinsatzId: value["referenzEinsatzId"],
+    kategorie: EtbKategorieToJSON(value["kategorie"]),
+    inhalt: value["inhalt"],
+    sender: value["sender"],
+    receiver: value["receiver"],
     referenzPatientId: value["referenzPatientId"],
     referenzEinsatzmittelId: value["referenzEinsatzmittelId"],
   };

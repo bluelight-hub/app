@@ -23,6 +23,7 @@ jest.mock('@/logger/consola.logger', () => ({
 
 // Import des gemockten Loggers für Tests
 import { logger as mockLogger } from '@/logger/consola.logger';
+import { EtbKategorie } from './dto/etb-kategorie.enum';
 
 // Mock für das sanitize-filename Modul
 jest.mock('sanitize-filename', () => jest.fn().mockImplementation(filename => filename));
@@ -141,8 +142,8 @@ describe('EtbService', () => {
             // Arrange
             const createEtbDto: CreateEtbDto = {
                 timestampEreignis: new Date().toISOString(),
-                kategorie: 'Test',
-                beschreibung: 'Test Beschreibung',
+                kategorie: EtbKategorie.MELDUNG,
+                inhalt: 'Test Beschreibung',
             };
             const userId = 'user-id';
             const userName = 'Test User';
@@ -175,8 +176,8 @@ describe('EtbService', () => {
             // Arrange
             const createEtbDto: CreateEtbDto = {
                 timestampEreignis: new Date().toISOString(),
-                kategorie: 'Test',
-                beschreibung: 'Minimaler Test-Eintrag'
+                kategorie: EtbKategorie.MELDUNG,
+                inhalt: 'Minimaler Test-Eintrag'
             };
             const userId = 'user-id';
 
@@ -221,9 +222,8 @@ describe('EtbService', () => {
             // Arrange
             const eventData = {
                 timestampEreignis: new Date(),
-                kategorie: 'Automatisch',
-                titel: 'Systemmeldung',
-                beschreibung: 'Automatisch generierter Eintrag',
+                kategorie: EtbKategorie.MELDUNG,
+                inhalt: 'Automatisch generierter Eintrag',
             };
             const systemQuelle = 'SYSTEM_EVENT';
 
@@ -253,9 +253,8 @@ describe('EtbService', () => {
             // Arrange
             const eventData = {
                 timestampEreignis: new Date(),
-                kategorie: 'Automatisch',
-                titel: 'Systemmeldung mit Referenzen',
-                beschreibung: 'Automatisch generierter Eintrag mit Referenzen',
+                kategorie: EtbKategorie.MELDUNG,
+                inhalt: 'Automatisch generierter Eintrag mit Referenzen',
                 referenzEinsatzId: 'einsatz-123',
                 referenzPatientId: 'patient-456',
                 referenzEinsatzmittelId: 'em-789'
@@ -314,7 +313,7 @@ describe('EtbService', () => {
             mockEtbRepository.createQueryBuilder.mockReset();
             mockEtbRepository.findAndCount.mockReset();
             const filterDto: FilterEtbDto = {
-                kategorie: 'Test',
+                kategorie: EtbKategorie.MELDUNG,
                 page: 1,
                 limit: 10,
             };
@@ -1035,7 +1034,7 @@ describe('EtbService', () => {
             const id = 'already-overwritten-id';
             const userId = 'user-id';
             const ueberschreibeEtbDto: UeberschreibeEtbDto = {
-                beschreibung: 'Neue Beschreibung'
+                inhalt: 'Neue Beschreibung'
             };
 
             const originalEntry = createMockEtbEntry({
@@ -1064,7 +1063,7 @@ describe('EtbService', () => {
             const id = 'closed-entry-id';
             const userId = 'user-id';
             const ueberschreibeEtbDto: UeberschreibeEtbDto = {
-                beschreibung: 'Neue Beschreibung'
+                inhalt: 'Neue Beschreibung'
             };
 
             const originalEntry = createMockEtbEntry({
@@ -1108,7 +1107,7 @@ describe('EtbService', () => {
             });
 
             const ueberschreibeEtbDto: UeberschreibeEtbDto = {
-                beschreibung: 'Übergeschriebene Beschreibung'
+                inhalt: 'Übergeschriebene Beschreibung'
             };
 
             const updatedOriginalEntry = {
@@ -1182,7 +1181,7 @@ describe('EtbService', () => {
             });
 
             const ueberschreibeEtbDto: UeberschreibeEtbDto = {
-                beschreibung: 'Übergeschriebene Beschreibung'
+                inhalt: 'Übergeschriebene Beschreibung'
             };
 
             const updatedOriginalEntry = {

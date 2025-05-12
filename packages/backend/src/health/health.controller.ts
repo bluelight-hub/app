@@ -12,6 +12,7 @@ import { InjectDataSource } from '@nestjs/typeorm';
 import * as net from 'net';
 import * as os from 'os';
 import { DataSource } from 'typeorm';
+import { EtbService } from '../modules/etb/etb.service';
 
 /**
  * Konstanten für Health-Checks
@@ -62,6 +63,7 @@ export class HealthController {
      * @param {DiskHealthIndicator} disk - Indikator für Festplatten-Gesundheitschecks
      * @param {TypeOrmHealthIndicator} db - Indikator für Datenbank-Gesundheitschecks
      * @param {DataSource} defaultConnection - TypeORM-Datenbankverbindung
+     * @param {EtbService} etbService - Service für ETB-Operationen zur FüKW-Erreichbarkeitsprüfung
      */
     constructor(
         private health: HealthCheckService,
@@ -69,6 +71,7 @@ export class HealthController {
         private disk: DiskHealthIndicator,
         private db: TypeOrmHealthIndicator,
         @InjectDataSource() private defaultConnection: DataSource,
+        private etbService: EtbService,
     ) { }
 
     /**
@@ -271,17 +274,18 @@ export class HealthController {
 
     /**
      * Überprüft, ob das FüKW-System über das Netzwerk erreichbar ist.
-     * Diese Vereinfachte Implementierung prüft die Datenbankverfügbarkeit.
-     * 
-     * In einer vollständigen Implementierung würde hier ein spezifischer 
-     * Dienst des FüKW-Systems geprüft werden.
+     * Testet die Erreichbarkeit durch Aufruf einer einfachen, nicht-schreibenden
+     * Operation des EtbService, der eine Kernfunktionalität des FüKW-Systems darstellt.
      * 
      * @returns {Promise<boolean>} True wenn FüKW erreichbar, sonst false
      */
     private async isFuekwPingable(): Promise<boolean> {
         try {
-            // In einer realen Umgebung würde hier eine FüKW-spezifische
-            // Erreichbarkeitsprüfung durchgeführt werden
+            // Tatsächliche FüKW-spezifische Erreichbarkeitsprüfung:
+            // Eine einfache Abfrage des EtbService durchführen
+            await this.etbService.findAll({ limit: 1, page: 1 });
+
+            // Zusätzlich prüfen, ob die Datenbank initialisiert ist
             return this.defaultConnection.isInitialized;
         } catch (error) {
             return false;

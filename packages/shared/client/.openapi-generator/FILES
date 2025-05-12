@@ -9,6 +9,7 @@ models/EtbAttachmentsResponse.ts
 models/EtbEntriesResponse.ts
 models/EtbEntryDto.ts
 models/EtbEntryResponse.ts
+models/EtbKategorie.ts
 models/HealthControllerCheck200Response.ts
 models/HealthControllerCheck200ResponseInfoValue.ts
 models/HealthControllerCheck503Response.ts

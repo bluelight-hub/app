@@ -3,6 +3,7 @@ import { ApiPropertyOptional } from '@nestjs/swagger';
 import { Transform } from 'class-transformer';
 import { IsDateString, IsEnum, IsOptional, IsString, IsUUID } from 'class-validator';
 import { EtbEntryStatus } from '../entities/etb-entry.entity';
+import { EtbKategorie } from './etb-kategorie.enum';
 
 /**
  * DTO für das Filtern von Einsatztagebuch-Einträgen.
@@ -36,10 +37,14 @@ export class FilterEtbDto extends FilterPaginationDto {
     /**
      * Filtert nach Kategorie
      */
-    @ApiPropertyOptional({ description: 'Filtert nach Kategorie' })
-    @IsString()
+    @ApiPropertyOptional({
+        description: 'Filtert nach Kategorie',
+        enum: EtbKategorie,
+        enumName: 'EtbKategorie'
+    })
+    @IsEnum(EtbKategorie)
     @IsOptional()
-    kategorie?: string;
+    kategorie?: EtbKategorie;
 
     /**
      * Filtert nach Einträgen ab diesem Zeitpunkt
@@ -103,10 +108,10 @@ export class FilterEtbDto extends FilterPaginationDto {
     includeUeberschrieben?: boolean = false;
 
     /**
-     * Optionales Suchfeld für Volltextsuche (Beschreibung, Autor, Empfänger)
+     * Optionales Suchfeld für Volltextsuche (Inhalt, Autor, Empfänger)
      */
     @ApiPropertyOptional({
-        description: 'Volltextsuche in Beschreibung, Autor und Empfänger',
+        description: 'Volltextsuche in Inhalt, Autor und Empfänger',
         example: 'Stromausfall',
     })
     @IsString()

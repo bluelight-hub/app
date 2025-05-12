@@ -13,6 +13,14 @@
  */
 
 import { mapValues } from "../runtime";
+import type { EtbKategorie } from "./EtbKategorie";
+import {
+  EtbKategorieFromJSON,
+  EtbKategorieFromJSONTyped,
+  EtbKategorieToJSON,
+  EtbKategorieToJSONTyped,
+} from "./EtbKategorie";
+
 /**
  *
  * @export
@@ -27,10 +35,10 @@ export interface UpdateEtbDto {
   timestampEreignis?: string;
   /**
    * Kategorie des Eintrags
-   * @type {string}
+   * @type {EtbKategorie}
    * @memberof UpdateEtbDto
    */
-  kategorie?: string;
+  kategorie?: EtbKategorie;
   /**
    * Optionaler Titel für den Eintrag
    * @type {string}
@@ -61,6 +69,18 @@ export interface UpdateEtbDto {
    * @memberof UpdateEtbDto
    */
   referenzEinsatzmittelId?: string;
+  /**
+   * Absender des Eintrags (OPTA-Nummer)
+   * @type {string}
+   * @memberof UpdateEtbDto
+   */
+  sender?: string;
+  /**
+   * Empfänger des Eintrags (OPTA-Nummer)
+   * @type {string}
+   * @memberof UpdateEtbDto
+   */
+  receiver?: string;
 }
 
 /**
@@ -84,7 +104,10 @@ export function UpdateEtbDtoFromJSONTyped(
   return {
     timestampEreignis:
       json["timestampEreignis"] == null ? undefined : json["timestampEreignis"],
-    kategorie: json["kategorie"] == null ? undefined : json["kategorie"],
+    kategorie:
+      json["kategorie"] == null
+        ? undefined
+        : EtbKategorieFromJSON(json["kategorie"]),
     titel: json["titel"] == null ? undefined : json["titel"],
     beschreibung:
       json["beschreibung"] == null ? undefined : json["beschreibung"],
@@ -96,6 +119,8 @@ export function UpdateEtbDtoFromJSONTyped(
       json["referenzEinsatzmittelId"] == null
         ? undefined
         : json["referenzEinsatzmittelId"],
+    sender: json["sender"] == null ? undefined : json["sender"],
+    receiver: json["receiver"] == null ? undefined : json["receiver"],
   };
 }
 
@@ -113,11 +138,13 @@ export function UpdateEtbDtoToJSONTyped(
 
   return {
     timestampEreignis: value["timestampEreignis"],
-    kategorie: value["kategorie"],
+    kategorie: EtbKategorieToJSON(value["kategorie"]),
     titel: value["titel"],
     beschreibung: value["beschreibung"],
     referenzEinsatzId: value["referenzEinsatzId"],
     referenzPatientId: value["referenzPatientId"],
     referenzEinsatzmittelId: value["referenzEinsatzmittelId"],
+    sender: value["sender"],
+    receiver: value["receiver"],
   };
 }

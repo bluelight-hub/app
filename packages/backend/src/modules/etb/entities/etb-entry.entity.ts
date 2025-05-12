@@ -1,4 +1,5 @@
 import { Column, Entity, ManyToOne, OneToMany, PrimaryGeneratedColumn } from 'typeorm';
+import { EtbKategorie } from '../dto/etb-kategorie.enum';
 import { EtbAttachment } from './etb-attachment.entity';
 
 /**
@@ -58,22 +59,19 @@ export class EtbEntry {
     autorRolle: string;
 
     /**
-     * Kategorie des Eintrags (z.B. "Meldung", "Befehl", "Patientenmaßnahme")
+     * Kategorie des Eintrags
      */
-    @Column()
-    kategorie: string;
+    @Column({
+        type: 'varchar',
+        enum: EtbKategorie
+    })
+    kategorie: EtbKategorie;
 
     /**
-     * Optionaler Titel für den Eintrag
-     */
-    @Column({ nullable: true })
-    titel: string;
-
-    /**
-     * Detaillierte Beschreibung des Ereignisses
+     * Inhalt des Eintrags
      */
     @Column('text')
-    beschreibung: string;
+    inhalt: string;
 
     /**
      * Referenz zur Einsatz-ID (optional)
@@ -161,4 +159,16 @@ export class EtbEntry {
      */
     @OneToMany(() => EtbAttachment, attachment => attachment.etbEntry)
     anlagen: EtbAttachment[];
+
+    /**
+     * Absender des Eintrags
+     */
+    @Column({ nullable: true })
+    sender: string;
+
+    /**
+     * Empfänger des Eintrags
+     */
+    @Column({ nullable: true })
+    receiver: string;
 } 

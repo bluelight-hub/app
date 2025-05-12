@@ -28,7 +28,7 @@
 
 ## 2. API-Client-Generierung
 
-- Nach Backend-Änderungen `pnpm generate-client` ausführen, um Shared-Client-Modelle zu aktualisieren
+- Nach Backend-Änderungen `pnpm generate-api` ausführen, um Shared-Client-Modelle zu aktualisieren
 
 ## 3. Frontend-Anpassungen
 

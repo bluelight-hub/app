@@ -7,6 +7,7 @@ export * from "./EtbAttachmentsResponse";
 export * from "./EtbEntriesResponse";
 export * from "./EtbEntryDto";
 export * from "./EtbEntryResponse";
+export * from "./EtbKategorie";
 export * from "./HealthControllerCheck200Response";
 export * from "./HealthControllerCheck200ResponseInfoValue";
 export * from "./HealthControllerCheck503Response";

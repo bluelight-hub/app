@@ -1,4 +1,4 @@
-import { EtbEntryDto } from '@bluelight-hub/shared/client';
+import { EtbEntryDto, EtbKategorie, EtbKategorieFromJSON } from '@bluelight-hub/shared/client';
 import { EtbControllerFindAllV1Request } from '@bluelight-hub/shared/client/apis/EinsatztagebuchApi';
 import { CreateEtbDto } from '@bluelight-hub/shared/client/models/CreateEtbDto';
 import { EtbEntriesResponse } from '@bluelight-hub/shared/client/models/EtbEntriesResponse';
@@ -110,7 +110,7 @@ export const useEinsatztagebuch = ({
                     requestObj.status = filterParams.status;
                 }
                 if (filterParams.kategorie) {
-                    requestObj.kategorie = filterParams.kategorie;
+                    requestObj.kategorie = EtbKategorieFromJSON(filterParams.kategorie);
                 }
                 if (filterParams.autorId) {
                     requestObj.autorId = filterParams.autorId;
@@ -264,8 +264,8 @@ export const useEinsatztagebuch = ({
             return api.etb.etbControllerUeberschreibeEintragV1({
                 id,
                 ueberschreibeEtbDto: {
-                    beschreibung,
-                    kategorie: 'KORREKTUR',
+                    inhalt: beschreibung,
+                    kategorie: EtbKategorie.Korrektur,
                     timestampEreignis: new Date().toISOString()
                 }
             });
@@ -284,13 +284,14 @@ export const useEinsatztagebuch = ({
      */
     const createEinsatztagebuchEintrag = useMutation({
         mutationKey: ['createEinsatztagebuchEintrag'],
-        mutationFn: async (newEntry: Partial<EtbEntryDto>) => {
+        mutationFn: async (newEntry: Partial<EtbEntryDto> & { sender?: string, receiver?: string }) => {
             // API-Aufruf vorbereiten
             const createDto: CreateEtbDto = {
                 timestampEreignis: new Date().toISOString(),
-                kategorie: newEntry.kategorie || 'USER',
-                beschreibung: newEntry.beschreibung || '',
-                titel: `${newEntry.autorName} -> ${newEntry.abgeschlossenVon}`,
+                kategorie: newEntry.kategorie || EtbKategorie.Meldung,
+                inhalt: newEntry.inhalt || '',
+                ...(newEntry.sender && { sender: newEntry.sender }),
+                ...(newEntry.receiver && { receiver: newEntry.receiver }),
             };
 
             return api.etb.etbControllerCreateV1({ createEtbDto: createDto });
@@ -310,9 +311,8 @@ export const useEinsatztagebuch = ({
                 timestampErstellung: new Date(),
                 timestampEreignis: new Date(),
                 autorId: newEntry.autorId || '',
-                kategorie: newEntry.kategorie || 'USER',
-                beschreibung: newEntry.beschreibung || '',
-                titel: `${newEntry.autorName} -> ${newEntry.abgeschlossenVon}`,
+                kategorie: newEntry.kategorie || EtbKategorie.Meldung,
+                inhalt: newEntry.inhalt || '',
                 autorName: `${newEntry.autorName} -> ${newEntry.abgeschlossenVon}`,
                 autorRolle: null,
                 referenzEinsatzId: null,

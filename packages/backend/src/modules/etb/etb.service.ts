@@ -8,6 +8,7 @@ import * as path from 'path';
 import sanitize from 'sanitize-filename';
 import { Repository } from 'typeorm';
 import { CreateEtbDto } from './dto/create-etb.dto';
+import { EtbKategorie } from './dto/etb-kategorie.enum';
 import { FilterEtbDto } from './dto/filter-etb.dto';
 import { UeberschreibeEtbDto } from './dto/ueberschreibe-etb.dto';
 import { UpdateEtbDto } from './dto/update-etb.dto';
@@ -105,24 +106,25 @@ export class EtbService {
      * 
      * @param createEtbDto DTO mit den Daten für den neuen Eintrag
      * @param userId ID des Benutzers, der den Eintrag erstellt
-     * @param userName Name des Benutzers, der den Eintrag erstellt
+     * @param _userName Name des Benutzers, der den Eintrag erstellt
      * @param userRole Rolle des Benutzers, der den Eintrag erstellt
      * @returns Der erstellte ETB-Eintrag
      */
     async createEintrag(
         createEtbDto: CreateEtbDto,
         userId: string,
-        userName?: string,
+        _userName?: string,
         userRole?: string,
     ): Promise<EtbEntry> {
         logger.info(`ETB-Eintrag wird erstellt von Benutzer ${userId}`);
 
+        // Use complete DTO including sender and receiver fields
         const etbEntry = this.etbRepository.create({
             ...createEtbDto,
             timestampErstellung: new Date(),
             timestampEreignis: new Date(createEtbDto.timestampEreignis),
             autorId: userId,
-            autorName: userName,
+            autorName: _userName || userId,
             autorRolle: userRole,
             version: 1,
             istAbgeschlossen: false,
@@ -142,9 +144,8 @@ export class EtbService {
     async createAutomaticEintrag(
         data: {
             timestampEreignis: Date;
-            kategorie: string;
-            titel?: string;
-            beschreibung: string;
+            kategorie: EtbKategorie;
+            inhalt: string;
             referenzEinsatzId?: string;
             referenzPatientId?: string;
             referenzEinsatzmittelId?: string;
@@ -474,12 +475,10 @@ export class EtbService {
 
         // Erstelle einen neuen Eintrag mit den aktualisierten Daten
         const neuerEintrag = this.etbRepository.create({
-            // Übernehme die Daten des ursprünglichen Eintrags
             timestampErstellung: new Date(),
             timestampEreignis: ueberschreibeEtbDto.timestampEreignis ? new Date(ueberschreibeEtbDto.timestampEreignis) : originalEntry.timestampEreignis,
             kategorie: ueberschreibeEtbDto.kategorie || originalEntry.kategorie,
-            titel: ueberschreibeEtbDto.titel !== undefined ? ueberschreibeEtbDto.titel : originalEntry.titel,
-            beschreibung: ueberschreibeEtbDto.beschreibung || originalEntry.beschreibung,
+            inhalt: ueberschreibeEtbDto.inhalt || originalEntry.inhalt,
             referenzEinsatzId: ueberschreibeEtbDto.referenzEinsatzId || originalEntry.referenzEinsatzId,
             referenzPatientId: ueberschreibeEtbDto.referenzPatientId || originalEntry.referenzPatientId,
             referenzEinsatzmittelId: ueberschreibeEtbDto.referenzEinsatzmittelId || originalEntry.referenzEinsatzmittelId,

@@ -41,6 +41,7 @@ lerna-debug.log*
 
 # Database
 /data/*.db
+/data/*.sqlite
 /data/*.db-journal 
 
 # generated docs
