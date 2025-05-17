@@ -21,7 +21,7 @@ import type { EtbAttachment, EtbEntry } from '../../../prisma/generated/prisma/c
  * Definiert die Struktur von hochgeladenen Dateien, die über Multer verarbeitet werden.
  * Wird verwendet, um Dateien als Anlagen zu ETB-Einträgen zu verarbeiten.
  */
-interface MulterFile {
+export interface MulterFile {
     /**
      * Name des Formularfelds, durch das die Datei hochgeladen wurde
      */

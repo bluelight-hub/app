@@ -4,9 +4,9 @@
   "private": true,
   "scripts": {
     "dev": "nest start --watch",
-    "docs:build": "compodoc -p tsconfig.json -d docs",
-    "docs:serve": "compodoc -p tsconfig.json -d docs --serve",
-    "docs:cov": "pnpm compodoc --coverageTest -p tsconfig.json",
+    "docs:build": "compodoc -p tsconfig.compodoc.json -d docs",
+    "docs:serve": "compodoc -p tsconfig.compodoc.json -d docs --serve",
+    "docs:cov": "pnpm compodoc --coverageTest -p tsconfig.compodoc.json",
     "build": "prisma generate && nest build",
     "format": "prettier --write \"src/**/*.ts\"",
     "start": "nest start",

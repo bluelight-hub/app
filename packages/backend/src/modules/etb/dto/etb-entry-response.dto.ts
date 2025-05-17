@@ -210,6 +210,9 @@ export class EtbEntryDto {
     })
     status: EtbEntryStatus;
 
+    /**
+     * Liste der Anlagen, die diesem ETB-Eintrag zugeordnet sind
+     */
     @ApiProperty({ type: [EtbAttachment], description: 'Anlagen zum ETB-Eintrag', required: false })
     anlagen?: EtbAttachment[];
 
