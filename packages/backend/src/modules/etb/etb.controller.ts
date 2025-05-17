@@ -46,7 +46,7 @@ import { EtbService } from './etb.service';
  * Erweitert den Express Request um Benutzerinformationen.
  * Wird für Authentifizierung und Autorisierung in den Controller-Methoden verwendet.
  */
-export interface RequestWithUser extends Request {
+interface RequestWithUser extends Request {
     /**
      * Benutzerinformationen aus dem JWT-Token oder einer anderen Authentifizierungsquelle.
      * Enthält grundlegende Identifikations- und Rolleninformationen für Berechtigungsprüfungen.

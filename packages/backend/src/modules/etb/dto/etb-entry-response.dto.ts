@@ -232,7 +232,7 @@ export class EtbEntryDto {
     @ApiProperty({
         description: 'Empfänger des Eintrags (OPTA-Nummer)',
         type: 'string',
-        nullable: true,
+        example: 'OPTA-123456'
     })
     receiver: string;
 }
@@ -273,6 +273,7 @@ export class EtbEntriesData {
     @ApiProperty({
         description: 'Gesamtzahl der ETB-Einträge',
         type: 'number',
+        example: 42
     })
     total: number;
 }
