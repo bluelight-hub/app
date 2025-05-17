@@ -200,10 +200,15 @@ export class EtbService {
         filterDto: FilterEtbDto
     ): Promise<PaginatedResponse<EtbEntry>> {
         logger.info('Suche ETB-Einträge mit Filtern');
-        const { page = 1, limit = 10, kategorie, autorId, vonZeitstempel, bisZeitstempel, search } = filterDto;
+        const { page = 1, limit = 10, kategorie, autorId, vonZeitstempel, bisZeitstempel, search, referenzEinsatzId, includeUeberschrieben = false } = filterDto;
 
         // Baue Where-Bedingung basierend auf den Filtern
         const where: any = {};
+
+        // Status-Filter (standardmäßig nur aktive Einträge)
+        if (!includeUeberschrieben) {
+            where.status = EtbEntryStatus.AKTIV;
+        }
 
         // Kategorie-Filter
         if (kategorie) {
@@ -226,6 +231,11 @@ export class EtbService {
             if (bisZeitstempel) {
                 where.timestampEreignis.lte = new Date(bisZeitstempel);
             }
+        }
+
+        // ReferenzEinsatzId-Filter
+        if (referenzEinsatzId) {
+            where.referenzEinsatzId = referenzEinsatzId;
         }
 
         // Textsuche im Inhalt
@@ -308,7 +318,7 @@ export class EtbService {
                 timestampEreignis: updateEtbDto.timestampEreignis
                     ? new Date(updateEtbDto.timestampEreignis)
                     : undefined,
-                // Inkrementiere die Version
+                // Setze die Version direkt (Inkrement um 1)
                 version: { increment: 1 }
             },
             include: { anlagen: true }
@@ -410,7 +420,7 @@ export class EtbService {
             logger.info(`Anlage wurde erfolgreich zum ETB-Eintrag ${id} hinzugefügt`);
 
             return attachment;
-        } catch (error) {
+        } catch (error: any) {
             logger.error(`Fehler beim Hinzufügen einer Anlage zum ETB-Eintrag ${id}:`, error);
             throw new BadRequestException(`Fehler beim Hinzufügen der Anlage: ${error.message}`);
         }
@@ -493,7 +503,7 @@ export class EtbService {
                     timestampEreignis: ueberschreibeEtbDto.timestampEreignis ? new Date(ueberschreibeEtbDto.timestampEreignis) : originalEntry.timestampEreignis,
                     kategorie: ueberschreibeEtbDto.kategorie || originalEntry.kategorie,
                     inhalt: ueberschreibeEtbDto.inhalt || originalEntry.inhalt,
-                    referenzEinsatzId: ueberschreibeEtbDto.referenzEinsatzId || originalEntry.referenzEinsatzId,
+                    referenzEinsatzId: originalEntry.referenzEinsatzId, // ID kann nicht geändert werden
                     referenzPatientId: ueberschreibeEtbDto.referenzPatientId || originalEntry.referenzPatientId,
                     referenzEinsatzmittelId: ueberschreibeEtbDto.referenzEinsatzmittelId || originalEntry.referenzEinsatzmittelId,
                     autorId: userId,

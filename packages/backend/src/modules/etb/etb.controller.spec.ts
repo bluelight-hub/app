@@ -1,11 +1,14 @@
 import { BadRequestException, NotFoundException } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
 import { Request } from 'express';
+import { AddAttachmentDto } from './dto/add-attachment.dto';
 import { CreateEtbDto } from './dto/create-etb.dto';
 import { EtbKategorie } from './dto/etb-kategorie.enum';
 import { FilterEtbDto } from './dto/filter-etb.dto';
 import { UeberschreibeEtbDto } from './dto/ueberschreibe-etb.dto';
 import { UpdateEtbDto } from './dto/update-etb.dto';
+import { EtbAttachment } from './entities/etb-attachment.entity';
+import { EtbEntry, EtbEntryStatus } from './entities/etb-entry.entity';
 import { EtbController } from './etb.controller';
 import { EtbService } from './etb.service';
 
@@ -21,8 +24,6 @@ jest.mock('@/logger/consola.logger', () => ({
 
 // Import des gemockten Loggers für Tests
 import { logger as mockLogger } from '@/logger/consola.logger';
-import { EtbAttachment } from './dto/etb-entry-response.dto';
-import { EtbEntry, EtbEntryStatus } from './entities/etb-entry.entity';
 
 // Mock RequestWithUser based on its actual behavior in tests
 type MockRequestWithUser = Partial<Request> & {
@@ -535,6 +536,7 @@ describe('EtbController', () => {
                 size: 4
             };
             const beschreibung = 'Test Anlage';
+            const addAttachmentDto: AddAttachmentDto = { beschreibung };
 
             const mockAttachment = {
                 id: 'attach-1',
@@ -549,10 +551,10 @@ describe('EtbController', () => {
             mockEtbService.addAttachment.mockResolvedValue(mockAttachment);
 
             // Act
-            const result = await controller.addAttachment(id, file, beschreibung);
+            const result = await controller.addAttachment(id, file, addAttachmentDto);
 
             // Assert
-            expect(service.addAttachment).toHaveBeenCalledWith(id, file, beschreibung);
+            expect(service.addAttachment).toHaveBeenCalledWith(id, file, addAttachmentDto);
             expect(result).toEqual(mockAttachment);
             expect(mockLogger.info).toHaveBeenCalled();
         });
@@ -568,23 +570,25 @@ describe('EtbController', () => {
                 buffer: Buffer.from('test'),
                 size: 4
             };
+            const addAttachmentDto: AddAttachmentDto = {};
 
             mockEtbService.addAttachment.mockResolvedValue({} as EtbAttachment);
 
             // Act
-            await controller.addAttachment(id, file, undefined);
+            await controller.addAttachment(id, file, addAttachmentDto);
 
             // Assert
-            expect(service.addAttachment).toHaveBeenCalledWith(id, file, undefined);
+            expect(service.addAttachment).toHaveBeenCalledWith(id, file, addAttachmentDto);
         });
 
         it('sollte einen Fehler werfen, wenn keine Datei hochgeladen wurde', async () => {
             // Arrange
             const id = 'test-id';
             const file = null;
+            const addAttachmentDto: AddAttachmentDto = { beschreibung: 'Test Anlage' };
 
             // Act & Assert
-            await expect(controller.addAttachment(id, file, 'Test Anlage')).rejects.toThrow(BadRequestException);
+            await expect(controller.addAttachment(id, file, addAttachmentDto)).rejects.toThrow(BadRequestException);
             expect(service.addAttachment).not.toHaveBeenCalled();
             expect(mockLogger.error).toHaveBeenCalled();
         });
@@ -599,6 +603,9 @@ describe('EtbController', () => {
             const id = 'test-id';
             const ueberschreibeEtbDto: UeberschreibeEtbDto = {
                 inhalt: 'Übergeschriebene Beschreibung',
+                ueberschreibungsgrund: 'Korrektur von Tippfehlern',
+                timestampEreignis: new Date().toISOString(),
+                kategorie: EtbKategorie.KORREKTUR
             };
 
             const originalEntry = createMockEtbEntry({
@@ -646,6 +653,9 @@ describe('EtbController', () => {
             const id = 'test-id';
             const ueberschreibeEtbDto: UeberschreibeEtbDto = {
                 inhalt: 'Übergeschriebene Beschreibung',
+                ueberschreibungsgrund: 'Korrektur von Tippfehlern',
+                timestampEreignis: new Date().toISOString(),
+                kategorie: EtbKategorie.KORREKTUR
             };
             const mockNewEntry = createMockEtbEntry();
             mockEtbService.ueberschreibeEintrag.mockResolvedValue(mockNewEntry);
@@ -671,6 +681,9 @@ describe('EtbController', () => {
             const id = 'non-existent-id';
             const ueberschreibeEtbDto: UeberschreibeEtbDto = {
                 inhalt: 'Übergeschriebene Beschreibung',
+                ueberschreibungsgrund: 'Korrektur von Tippfehlern',
+                timestampEreignis: new Date().toISOString(),
+                kategorie: EtbKategorie.KORREKTUR
             };
 
             mockEtbService.ueberschreibeEintrag.mockRejectedValue(
@@ -689,7 +702,7 @@ describe('EtbController', () => {
                 timestampEreignis: new Date().toISOString(),
                 kategorie: EtbKategorie.MELDUNG,
                 inhalt: 'Übergeschriebene Beschreibung',
-                referenzEinsatzId: 'einsatz-123',
+                ueberschreibungsgrund: 'Korrektur von Tippfehlern',
                 referenzPatientId: 'patient-456',
                 referenzEinsatzmittelId: 'em-789'
             };

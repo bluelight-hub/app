@@ -252,7 +252,7 @@ export class EtbController {
      * 
      * @param id ID des ETB-Eintrags
      * @param file Die hochgeladene Datei
-     * @param beschreibung Optionale Beschreibung der Anlage
+     * @param addAttachmentDto DTO mit Informationen zur Anlage
      * @returns Die erstellte ETB-Anlage
      */
     @Post(':id/anlage')
@@ -273,7 +273,7 @@ export class EtbController {
     async addAttachment(
         @Param('id', ParseUUIDPipe) id: string,
         @UploadedFile() file: any,
-        @Body('beschreibung') beschreibung?: string,
+        @Body() addAttachmentDto: AddAttachmentDto,
     ): Promise<EtbAttachment> {
         if (!file) {
             logger.error(`Keine Datei gefunden beim Anlegen einer Anlage für ETB-Eintrag ${id}`);
@@ -281,7 +281,7 @@ export class EtbController {
         }
 
         logger.info(`HTTP POST /etb/${id}/anlage - Füge Anlage zu ETB-Eintrag hinzu`);
-        const result = await this.etbService.addAttachment(id, file, beschreibung);
+        const result = await this.etbService.addAttachment(id, file, addAttachmentDto);
         return EtbAttachment.fromPrisma(result);
     }
 
