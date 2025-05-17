@@ -63,7 +63,7 @@ Die Umsetzung dieser Entscheidung hat folgende Auswirkungen:
    - Einstiegsbarriere für neue Entwickler
 
 3. **Ausnahmen**:
-   - Wenige spezifische Dateien sind von der Konvention ausgenommen (main.ts, migrate.ts)
+   - Wenige spezifische Dateien sind von der Konvention ausgenommen (main.ts)
    - Testdateien dürfen weiterhin console.* verwenden
 
 == Implementierung

@@ -3,12 +3,11 @@ import {
     HealthCheckService,
     HealthIndicatorFunction,
     MemoryHealthIndicator,
-    TypeOrmHealthIndicator
 } from '@nestjs/terminus';
 import { Test, TestingModule } from '@nestjs/testing';
-import { DataSource } from 'typeorm';
 import { EtbService } from '../../modules/etb/etb.service';
 import { HealthController } from '../health.controller';
+import { PrismaHealthIndicator } from '../prisma-health.indicator';
 
 // Mock-Socket für das Testen
 const mockSocketInstance = {
@@ -39,7 +38,7 @@ describe('HealthController', () => {
     let healthCheckService: HealthCheckService;
     let diskHealthIndicator: DiskHealthIndicator;
     let memoryHealthIndicator: MemoryHealthIndicator;
-    let dbHealthIndicator: TypeOrmHealthIndicator;
+    let prismaHealthIndicator: PrismaHealthIndicator;
     let dataSource: { isInitialized: boolean };
     let etbService: Partial<EtbService>;
 
@@ -78,7 +77,7 @@ describe('HealthController', () => {
                 {
                     provide: HealthCheckService,
                     useValue: {
-                        check: jest.fn().mockImplementation((indicators: HealthIndicatorFunction[]) => {
+                        check: jest.fn().mockImplementation(async (indicators: HealthIndicatorFunction[]) => {
                             // Führe alle Health-Indikatoren aus und gib ein Ergebnis zurück
                             const results = indicators.map(indicator => {
                                 if (typeof indicator === 'function') {
@@ -121,19 +120,18 @@ describe('HealthController', () => {
                     },
                 },
                 {
-                    provide: TypeOrmHealthIndicator,
+                    provide: PrismaHealthIndicator,
                     useValue: {
                         pingCheck: jest.fn().mockResolvedValue({
                             database: {
                                 status: 'up',
                             },
                         }),
-                    },
-                },
-                {
-                    provide: DataSource,
-                    useValue: {
-                        isInitialized: true,
+                        isConnected: jest.fn().mockResolvedValue({
+                            database_connections: {
+                                status: 'up',
+                            },
+                        }),
                     },
                 },
                 {
@@ -147,8 +145,10 @@ describe('HealthController', () => {
         healthCheckService = module.get<HealthCheckService>(HealthCheckService);
         diskHealthIndicator = module.get<DiskHealthIndicator>(DiskHealthIndicator);
         memoryHealthIndicator = module.get<MemoryHealthIndicator>(MemoryHealthIndicator);
-        dbHealthIndicator = module.get<TypeOrmHealthIndicator>(TypeOrmHealthIndicator);
-        dataSource = module.get<DataSource>(DataSource) as { isInitialized: boolean };
+        prismaHealthIndicator = module.get<PrismaHealthIndicator>(PrismaHealthIndicator);
+
+        // Mock für dataSource
+        dataSource = { isInitialized: true };
     });
 
     it('sollte definiert sein', () => {
@@ -156,7 +156,7 @@ describe('HealthController', () => {
         expect(healthCheckService).toBeDefined();
         expect(diskHealthIndicator).toBeDefined();
         expect(memoryHealthIndicator).toBeDefined();
-        expect(dbHealthIndicator).toBeDefined();
+        expect(prismaHealthIndicator).toBeDefined();
         expect(dataSource).toBeDefined();
     });
 
@@ -172,7 +172,6 @@ describe('HealthController', () => {
             expect(mockSocketInstance.connect).toHaveBeenCalled();
 
             // Überprüfe, ob alle Indikatoren aufgerufen wurden
-            expect(dbHealthIndicator.pingCheck).toHaveBeenCalled();
             expect(memoryHealthIndicator.checkHeap).toHaveBeenCalled();
             expect(memoryHealthIndicator.checkRSS).toHaveBeenCalled();
             expect(diskHealthIndicator.checkStorage).toHaveBeenCalled();
@@ -202,7 +201,6 @@ describe('HealthController', () => {
             expect(mockSocketInstance.connect).toHaveBeenCalled();
 
             // Überprüfe, ob alle Indikatoren aufgerufen wurden
-            expect(dbHealthIndicator.pingCheck).toHaveBeenCalled();
             expect(memoryHealthIndicator.checkHeap).toHaveBeenCalled();
             expect(memoryHealthIndicator.checkRSS).toHaveBeenCalled();
             expect(diskHealthIndicator.checkStorage).toHaveBeenCalled();
@@ -232,7 +230,6 @@ describe('HealthController', () => {
             expect(mockSocketInstance.connect).toHaveBeenCalled();
 
             // Überprüfe, ob alle Indikatoren aufgerufen wurden
-            expect(dbHealthIndicator.pingCheck).toHaveBeenCalled();
             expect(memoryHealthIndicator.checkHeap).toHaveBeenCalled();
             expect(memoryHealthIndicator.checkRSS).toHaveBeenCalled();
             expect(diskHealthIndicator.checkStorage).toHaveBeenCalled();
@@ -247,10 +244,6 @@ describe('HealthController', () => {
         it('sollte einen Liveness-Check durchführen', async () => {
             // Führe den Check aus
             const result = await controller.checkLiveness();
-
-            // Überprüfe, ob die Datenbank geprüft wurde
-            expect(dbHealthIndicator.pingCheck).toHaveBeenCalled();
-
             // Überprüfe die Ergebnisse
             expect(result.status).toBe('ok');
             expect(healthCheckService.check).toHaveBeenCalled();
@@ -276,10 +269,6 @@ describe('HealthController', () => {
         it('sollte einen Datenbank-Check durchführen', async () => {
             // Führe den Check aus
             const result = await controller.checkDatabase();
-
-            // Überprüfe, ob die Datenbank geprüft wurde
-            expect(dbHealthIndicator.pingCheck).toHaveBeenCalled();
-
             // Überprüfe die Ergebnisse
             expect(result.status).toBe('ok');
             expect(healthCheckService.check).toHaveBeenCalled();

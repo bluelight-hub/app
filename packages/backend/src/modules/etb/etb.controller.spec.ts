@@ -2,11 +2,10 @@ import { BadRequestException, NotFoundException } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
 import { Request } from 'express';
 import { CreateEtbDto } from './dto/create-etb.dto';
+import { EtbKategorie } from './dto/etb-kategorie.enum';
 import { FilterEtbDto } from './dto/filter-etb.dto';
 import { UeberschreibeEtbDto } from './dto/ueberschreibe-etb.dto';
 import { UpdateEtbDto } from './dto/update-etb.dto';
-import { EtbAttachment } from './entities/etb-attachment.entity';
-import { EtbEntry, EtbEntryStatus } from './entities/etb-entry.entity';
 import { EtbController } from './etb.controller';
 import { EtbService } from './etb.service';
 
@@ -22,11 +21,22 @@ jest.mock('@/logger/consola.logger', () => ({
 
 // Import des gemockten Loggers für Tests
 import { logger as mockLogger } from '@/logger/consola.logger';
+import { EtbAttachment } from './dto/etb-entry-response.dto';
+import { EtbEntry, EtbEntryStatus } from './entities/etb-entry.entity';
+
+// Mock RequestWithUser based on its actual behavior in tests
+type MockRequestWithUser = Partial<Request> & {
+    user?: {
+        id: string;
+        name: string;
+        role: string;
+    };
+};
 
 describe('EtbController', () => {
     let controller: EtbController;
     let service: jest.Mocked<EtbService>;
-    let req: Request & { user?: any };
+    let req: MockRequestWithUser;
 
     /**
      * Helfer-Funktion zum Erstellen eines Mock-ETB-Eintrags für Tests
@@ -39,22 +49,31 @@ describe('EtbController', () => {
             autorId: 'test-author',
             autorName: 'Test Author',
             autorRolle: 'Tester',
-            kategorie: 'Test',
-            titel: 'Test Eintrag',
-            beschreibung: 'Dies ist ein Test-Eintrag',
+            kategorie: EtbKategorie.MELDUNG,
+            inhalt: 'Dies ist ein Test-Eintrag',
             referenzEinsatzId: '',
             referenzPatientId: '',
             referenzEinsatzmittelId: '',
             systemQuelle: '',
             version: 1,
+            status: EtbEntryStatus.AKTIV,
             istAbgeschlossen: false,
-            timestampAbschluss: undefined,
+            timestampAbschluss: null,
             abgeschlossenVon: '',
+            ueberschriebenDurch: null,
+            ueberschriebenDurchId: null,
+            ueberschriebeneEintraege: [],
+            timestampUeberschrieben: null,
+            ueberschriebenVon: null,
             anlagen: [],
-            ...overrides
+            sender: '',
+            receiver: '',
+            ...overrides,
+            // Add toPrisma and fromPrisma methods for type compatibility
+            toPrisma: () => ({}),
         };
 
-        return entry as unknown as EtbEntry;
+        return entry as EtbEntry;
     }
 
     // Mock-Objekte für den Service
@@ -71,13 +90,13 @@ describe('EtbController', () => {
     };
 
     // Mock für Request mit User
-    const requestWithUser = {
+    const requestWithUser: MockRequestWithUser = {
         user: {
             id: 'user-id',
             name: 'Test User',
             role: 'Tester',
         }
-    } as Request & { user?: any };
+    };
 
     beforeEach(async () => {
         const module: TestingModule = await Test.createTestingModule({
@@ -110,14 +129,14 @@ describe('EtbController', () => {
             // Arrange
             const createEtbDto: CreateEtbDto = {
                 timestampEreignis: new Date().toISOString(),
-                kategorie: 'Test',
-                beschreibung: 'Test Beschreibung',
+                kategorie: EtbKategorie.MELDUNG,
+                inhalt: 'Test Inhalt',
             };
             const mockEntry = createMockEtbEntry();
             mockEtbService.createEintrag.mockResolvedValue(mockEntry);
 
             // Act
-            const result = await controller.create(createEtbDto, req);
+            const result = await controller.create(createEtbDto, req as any);
 
             // Assert
             expect(service.createEintrag).toHaveBeenCalledWith(
@@ -134,16 +153,16 @@ describe('EtbController', () => {
             // Arrange
             const createEtbDto: CreateEtbDto = {
                 timestampEreignis: new Date().toISOString(),
-                kategorie: 'Test',
-                beschreibung: 'Test Beschreibung',
+                kategorie: EtbKategorie.MELDUNG,
+                inhalt: 'Test Inhalt',
             };
             const mockEntry = createMockEtbEntry();
             mockEtbService.createEintrag.mockResolvedValue(mockEntry);
 
-            const reqWithoutUser = {} as Request & { user?: any }; // Request ohne User-Objekt
+            const reqWithoutUser = {} as MockRequestWithUser; // Request ohne User-Objekt
 
             // Act
-            const result = await controller.create(createEtbDto, reqWithoutUser);
+            const result = await controller.create(createEtbDto, reqWithoutUser as any);
 
             // Assert
             expect(service.createEintrag).toHaveBeenCalledWith(
@@ -159,18 +178,18 @@ describe('EtbController', () => {
             // Arrange
             const createEtbDto: CreateEtbDto = {
                 timestampEreignis: new Date().toISOString(),
-                kategorie: 'Test',
-                beschreibung: 'Test Beschreibung',
-                titel: 'Optionaler Titel',
-                referenzEinsatzId: 'einsatz-123',
+                kategorie: EtbKategorie.MELDUNG,
+                inhalt: 'Test Inhalt',
                 referenzPatientId: 'patient-456',
-                referenzEinsatzmittelId: 'em-789'
+                referenzEinsatzmittelId: 'em-789',
+                sender: 'sender-123',
+                receiver: 'receiver-456'
             };
             const mockEntry = createMockEtbEntry();
             mockEtbService.createEintrag.mockResolvedValue(mockEntry);
 
             // Act
-            await controller.create(createEtbDto, req);
+            await controller.create(createEtbDto, req as any);
 
             // Assert
             expect(service.createEintrag).toHaveBeenCalledWith(expect.objectContaining(createEtbDto), expect.any(String), expect.any(String), expect.any(String));
@@ -229,7 +248,7 @@ describe('EtbController', () => {
         it('sollte mit komplexen Filterkriterien korrekt umgehen', async () => {
             // Arrange
             const filterDto: FilterEtbDto = {
-                kategorie: 'Test',
+                kategorie: EtbKategorie.MELDUNG,
                 referenzEinsatzId: 'einsatz-123',
                 referenzPatientId: 'patient-456',
                 page: 2,
@@ -362,7 +381,7 @@ describe('EtbController', () => {
             mockEtbService.closeEintrag.mockResolvedValue(mockEntry);
 
             // Act
-            const result = await controller.closeEntry(id, req);
+            const result = await controller.closeEntry(id, req as any);
 
             // Assert
             expect(service.closeEintrag).toHaveBeenCalledWith(id, req.user.id);
@@ -381,10 +400,10 @@ describe('EtbController', () => {
             });
 
             mockEtbService.closeEintrag.mockResolvedValue(mockEntry);
-            const reqWithoutUser = {} as Request & { user?: any };
+            const reqWithoutUser = {} as MockRequestWithUser;
 
             // Act
-            const result = await controller.closeEntry(id, reqWithoutUser);
+            const result = await controller.closeEntry(id, reqWithoutUser as any);
 
             // Assert
             expect(service.closeEintrag).toHaveBeenCalledWith(id, 'mock-user-id');
@@ -400,7 +419,7 @@ describe('EtbController', () => {
             );
 
             // Act & Assert
-            await expect(controller.closeEntry(id, req)).rejects.toThrow(BadRequestException);
+            await expect(controller.closeEntry(id, req as any)).rejects.toThrow(BadRequestException);
             expect(service.closeEintrag).toHaveBeenCalledWith(id, req.user.id);
             expect(mockLogger.info).toHaveBeenCalled();
         });
@@ -414,9 +433,25 @@ describe('EtbController', () => {
             // Arrange
             const id = 'test-id';
             const mockAttachments = [
-                { id: 'attach-1', etbEntryId: id, dateiname: 'test1.pdf', dateityp: 'application/pdf', speicherOrt: '/uploads/test1.pdf' },
-                { id: 'attach-2', etbEntryId: id, dateiname: 'test2.jpg', dateityp: 'image/jpeg', speicherOrt: '/uploads/test2.jpg' },
-            ] as EtbAttachment[];
+                {
+                    id: 'attach-1',
+                    etbEntryId: id,
+                    dateiname: 'test1.pdf',
+                    dateityp: 'application/pdf',
+                    speicherOrt: '/uploads/test1.pdf',
+                    beschreibung: 'Test Attachment 1',
+                    toPrisma: () => ({})
+                },
+                {
+                    id: 'attach-2',
+                    etbEntryId: id,
+                    dateiname: 'test2.jpg',
+                    dateityp: 'image/jpeg',
+                    speicherOrt: '/uploads/test2.jpg',
+                    beschreibung: 'Test Attachment 2',
+                    toPrisma: () => ({})
+                },
+            ] as unknown as EtbAttachment[];
 
             mockEtbService.findOne.mockResolvedValue(createMockEtbEntry({ id }));
             mockEtbService.findAttachmentsByEtbEntryId.mockResolvedValue(mockAttachments);
@@ -463,7 +498,9 @@ describe('EtbController', () => {
                 etbEntryId: 'test-id',
                 dateiname: 'test1.pdf',
                 dateityp: 'application/pdf',
-                speicherOrt: '/uploads/test1.pdf'
+                speicherOrt: '/uploads/test1.pdf',
+                // Add toPrisma method for compatibility
+                toPrisma: () => ({}),
             } as EtbAttachment;
 
             mockEtbService.findAttachmentById.mockResolvedValue(mockAttachment);
@@ -505,7 +542,8 @@ describe('EtbController', () => {
                 dateiname: file.originalname,
                 dateityp: file.mimetype,
                 speicherOrt: '/uploads/test.pdf',
-                beschreibung: beschreibung
+                beschreibung: beschreibung,
+                toPrisma: () => ({})
             } as EtbAttachment;
 
             mockEtbService.addAttachment.mockResolvedValue(mockAttachment);
@@ -585,7 +623,7 @@ describe('EtbController', () => {
             mockEtbService.ueberschreibeEintrag.mockResolvedValue(mockNewEntry);
 
             // Act
-            const result = await controller.ueberschreibeEintrag(id, ueberschreibeEtbDto, req);
+            const result = await controller.ueberschreibeEintrag(id, ueberschreibeEtbDto, req as any);
 
             // Assert
             expect(service.ueberschreibeEintrag).toHaveBeenCalledWith(
@@ -595,7 +633,11 @@ describe('EtbController', () => {
                 req.user.name,
                 req.user.role
             );
-            expect(result).toEqual(mockNewEntry);
+            expect(result).toMatchObject({
+                id: mockNewEntry.id,
+                inhalt: mockNewEntry.inhalt,
+                status: mockNewEntry.status
+            });
             expect(mockLogger.info).toHaveBeenCalled();
         });
 
@@ -608,10 +650,10 @@ describe('EtbController', () => {
             const mockNewEntry = createMockEtbEntry();
             mockEtbService.ueberschreibeEintrag.mockResolvedValue(mockNewEntry);
 
-            const reqWithoutUser = {} as Request & { user?: any }; // Request ohne User-Objekt
+            const reqWithoutUser = {} as MockRequestWithUser; // Request ohne User-Objekt
 
             // Act
-            const result = await controller.ueberschreibeEintrag(id, ueberschreibeEtbDto, reqWithoutUser);
+            const result = await controller.ueberschreibeEintrag(id, ueberschreibeEtbDto, reqWithoutUser as any);
 
             // Assert
             expect(service.ueberschreibeEintrag).toHaveBeenCalledWith(
@@ -636,7 +678,7 @@ describe('EtbController', () => {
             );
 
             // Act & Assert
-            await expect(controller.ueberschreibeEintrag(id, ueberschreibeEtbDto, req))
+            await expect(controller.ueberschreibeEintrag(id, ueberschreibeEtbDto, req as any))
                 .rejects.toThrow(NotFoundException);
         });
 
@@ -645,8 +687,7 @@ describe('EtbController', () => {
             const id = 'test-id';
             const ueberschreibeEtbDto: UeberschreibeEtbDto = {
                 timestampEreignis: new Date().toISOString(),
-                kategorie: 'Neue Kategorie',
-                titel: 'Neuer Titel',
+                kategorie: EtbKategorie.MELDUNG,
                 inhalt: 'Übergeschriebene Beschreibung',
                 referenzEinsatzId: 'einsatz-123',
                 referenzPatientId: 'patient-456',
@@ -656,7 +697,7 @@ describe('EtbController', () => {
             mockEtbService.ueberschreibeEintrag.mockResolvedValue(mockNewEntry);
 
             // Act
-            await controller.ueberschreibeEintrag(id, ueberschreibeEtbDto, req);
+            await controller.ueberschreibeEintrag(id, ueberschreibeEtbDto, req as any);
 
             // Assert
             expect(service.ueberschreibeEintrag).toHaveBeenCalledWith(

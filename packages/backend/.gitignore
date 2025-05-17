@@ -47,3 +47,5 @@ lerna-debug.log*
 # generated docs
 docs
 docs/*
+
+prisma/generated/*

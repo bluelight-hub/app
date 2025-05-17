@@ -1,12 +1,17 @@
-import { Global, Module } from '@nestjs/common';
+import { Module } from '@nestjs/common';
+import { ConfigModule } from '../config/config.module';
+import { PrismaModule } from '../prisma/prisma.module';
 import { PaginationService } from './services/pagination.service';
 
 /**
- * Gemeinsames Modul für Dienste und Funktionen, die im gesamten Backend verfügbar sein sollen.
+ * Modul für gemeinsam genutzte Funktionalitäten wie Paginierung, Validierung, etc.
  */
-@Global()
 @Module({
+    imports: [
+        ConfigModule,
+        PrismaModule
+    ],
     providers: [PaginationService],
-    exports: [PaginationService],
+    exports: [PaginationService]
 })
 export class CommonModule { } 

@@ -1,0 +1,163 @@
+{
+  "meta": {
+    "generatedAt": "2025-05-16T13:31:15.243Z",
+    "tasksAnalyzed": 19,
+    "thresholdScore": 5,
+    "projectName": "Taskmaster",
+    "usedResearch": true
+  },
+  "complexityAnalysis": [
+    {
+      "taskId": 2,
+      "taskTitle": "Implement Authentication Module",
+      "complexityScore": 8,
+      "recommendedSubtasks": 10,
+      "expansionPrompt": "Break down the Authentication Module implementation into specific subtasks covering both backend and frontend components. Include user entity creation, JWT implementation, role management, frontend state management, and security testing.",
+      "reasoning": "High complexity due to security implications, multiple components across frontend and backend, role-based permissions, and token management. Requires careful implementation of security features and extensive testing."
+    },
+    {
+      "taskId": 3,
+      "taskTitle": "Define Core Data Models",
+      "complexityScore": 7,
+      "recommendedSubtasks": 8,
+      "expansionPrompt": "Break down the Core Data Models implementation into specific subtasks covering the creation of TypeScript interfaces, DTOs, Prisma schema definitions, entity relationships, and migration scripts for all core entities.",
+      "reasoning": "Moderate to high complexity due to multiple interconnected data models, relationships between entities, and the need for consistency between frontend and backend representations. Requires careful design to ensure data integrity."
+    },
+    {
+      "taskId": 4,
+      "taskTitle": "Setup SQLite Database and ORM",
+      "complexityScore": 6,
+      "recommendedSubtasks": 7,
+      "expansionPrompt": "Break down the SQLite and Prisma ORM setup into specific subtasks covering database configuration, connection management, migration system, seed data creation, transaction handling, and local storage implementation.",
+      "reasoning": "Moderate complexity involving database configuration, ORM setup, migration management, and local storage considerations. Requires technical expertise but follows established patterns."
+    },
+    {
+      "taskId": 5,
+      "taskTitle": "Implement Atomic Design Component Library",
+      "complexityScore": 8,
+      "recommendedSubtasks": 12,
+      "expansionPrompt": "Break down the Atomic Design Component Library implementation into specific subtasks covering Storybook setup, component hierarchy (atoms, molecules, organisms, templates, pages), theming system, responsive design, and component testing.",
+      "reasoning": "High complexity due to the extensive component hierarchy, styling requirements, theming support, accessibility compliance, and comprehensive testing needs. Forms the foundation of the entire UI."
+    },
+    {
+      "taskId": 6,
+      "taskTitle": "Implement State Management with Zustand",
+      "complexityScore": 7,
+      "recommendedSubtasks": 8,
+      "expansionPrompt": "Break down the Zustand state management implementation into specific subtasks covering store creation for different domains (auth, einsatz, resources, UI), persistence layer, selectors, middleware, and component integration.",
+      "reasoning": "Moderate to high complexity due to multiple stores, offline persistence requirements, and the need to coordinate state across different parts of the application. Critical for application data flow."
+    },
+    {
+      "taskId": 7,
+      "taskTitle": "Implement API Services and Communication Layer",
+      "complexityScore": 8,
+      "recommendedSubtasks": 10,
+      "expansionPrompt": "Break down the API Services and Communication Layer implementation into specific subtasks covering RESTful endpoints, WebSocket integration, request validation, error handling, offline queueing, and API documentation.",
+      "reasoning": "High complexity due to multiple communication protocols (REST, WebSocket), offline support requirements, error handling, and security considerations. Critical for frontend-backend communication."
+    },
+    {
+      "taskId": 8,
+      "taskTitle": "Implement Einsatz Management Module",
+      "complexityScore": 7,
+      "recommendedSubtasks": 9,
+      "expansionPrompt": "Break down the Einsatz Management Module implementation into specific subtasks covering CRUD operations, business logic for status transitions, EinsatzAbschnitt management, UI components, and dynamic UI transformation.",
+      "reasoning": "Moderate to high complexity due to business logic requirements, status transitions, and UI transformation needs. Core functionality of the application requiring careful implementation."
+    },
+    {
+      "taskId": 9,
+      "taskTitle": "Implement Basic Einsatztagebuch (ETB)",
+      "complexityScore": 6,
+      "recommendedSubtasks": 7,
+      "expansionPrompt": "Break down the Basic Einsatztagebuch implementation into specific subtasks covering CRUD operations, automatic numbering, timestamp management, categorization, filtering, search functionality, and event sourcing.",
+      "reasoning": "Moderate complexity with straightforward CRUD operations but additional complexity from automatic numbering, event sourcing, and real-time updates. Core functionality requiring careful implementation."
+    },
+    {
+      "taskId": 10,
+      "taskTitle": "Implement Basic Resource Management",
+      "complexityScore": 6,
+      "recommendedSubtasks": 7,
+      "expansionPrompt": "Break down the Basic Resource Management implementation into specific subtasks covering CRUD operations for different resource types, status tracking, assignment logic, and UI components for visualization and management.",
+      "reasoning": "Moderate complexity with multiple resource types (personnel, vehicles, material) and status tracking requirements. Requires careful implementation of assignment logic and status transitions."
+    },
+    {
+      "taskId": 11,
+      "taskTitle": "Implement Local Connectivity Mode",
+      "complexityScore": 9,
+      "recommendedSubtasks": 10,
+      "expansionPrompt": "Break down the Local Connectivity Mode implementation into specific subtasks covering local server discovery, network communication, connection state management, offline data access, synchronization, and conflict resolution.",
+      "reasoning": "High complexity due to networking challenges, offline support, synchronization requirements, and conflict resolution. Requires sophisticated technical solutions for reliable operation in varying network conditions."
+    },
+    {
+      "taskId": 12,
+      "taskTitle": "Implement Basic TETRA Integration",
+      "complexityScore": 7,
+      "recommendedSubtasks": 7,
+      "expansionPrompt": "Break down the Basic TETRA Integration implementation into specific subtasks covering adapter module creation, message reception and parsing, status handling, visualization, and mock service for testing.",
+      "reasoning": "Moderate to high complexity due to integration with external system, message parsing requirements, and the need for reliable status updates. Requires domain knowledge of TETRA systems."
+    },
+    {
+      "taskId": 13,
+      "taskTitle": "Implement Basic Lagekarte (Situation Map)",
+      "complexityScore": 8,
+      "recommendedSubtasks": 9,
+      "expansionPrompt": "Break down the Basic Lagekarte implementation into specific subtasks covering Mapbox integration, geospatial data storage, tactical symbol library, drawing tools, layer management, and resource positioning.",
+      "reasoning": "High complexity due to geospatial visualization requirements, tactical symbol implementation, and interactive map features. Requires integration with mapping libraries and careful UI implementation."
+    },
+    {
+      "taskId": 14,
+      "taskTitle": "Implement Export Functionality",
+      "complexityScore": 6,
+      "recommendedSubtasks": 6,
+      "expansionPrompt": "Break down the Export Functionality implementation into specific subtasks covering PDF generation, CSV export, standardized format exports, template customization, and export job queue management.",
+      "reasoning": "Moderate complexity with multiple export formats and template requirements. Technically straightforward but requires attention to detail for proper document formatting and data completeness."
+    },
+    {
+      "taskId": 15,
+      "taskTitle": "Implement UI Transformation for Einsatz Mode",
+      "complexityScore": 7,
+      "recommendedSubtasks": 7,
+      "expansionPrompt": "Break down the UI Transformation implementation into specific subtasks covering context provider creation, component variations, transition animations, mode-specific layouts, and state management for different modes.",
+      "reasoning": "Moderate to high complexity due to dynamic UI requirements, animation needs, and context-aware component variations. Requires sophisticated frontend implementation for smooth transitions."
+    },
+    {
+      "taskId": 16,
+      "taskTitle": "Implement Advanced ETB Features",
+      "complexityScore": 7,
+      "recommendedSubtasks": 8,
+      "expansionPrompt": "Break down the Advanced ETB Features implementation into specific subtasks covering attachment management, advanced filtering, categorization system, entry relationships, search functionality, and visualization options.",
+      "reasoning": "Moderate to high complexity building on the basic ETB with additional features like attachments, advanced filtering, and relationships between entries. Requires careful UI design for usability."
+    },
+    {
+      "taskId": 17,
+      "taskTitle": "Implement Advanced Resource Management",
+      "complexityScore": 7,
+      "recommendedSubtasks": 7,
+      "expansionPrompt": "Break down the Advanced Resource Management implementation into specific subtasks covering resource templates, advanced assignment logic, grouping, history tracking, timeline visualization, and utilization dashboard.",
+      "reasoning": "Moderate to high complexity extending the basic resource management with templates, advanced assignment, and visualization features. Requires careful UI design for complex workflows."
+    },
+    {
+      "taskId": 18,
+      "taskTitle": "Implement Online Connectivity Mode",
+      "complexityScore": 9,
+      "recommendedSubtasks": 10,
+      "expansionPrompt": "Break down the Online Connectivity Mode implementation into specific subtasks covering cloud server deployment, multi-tenant architecture, synchronization API, conflict resolution, mode switching, and bandwidth-aware synchronization.",
+      "reasoning": "High complexity due to cloud deployment, multi-tenant considerations, sophisticated synchronization requirements, and conflict resolution. Requires robust implementation for reliable operation."
+    },
+    {
+      "taskId": 19,
+      "taskTitle": "Implement Communication Module",
+      "complexityScore": 7,
+      "recommendedSubtasks": 8,
+      "expansionPrompt": "Break down the Communication Module implementation into specific subtasks covering message storage and routing, notification system, message categorization, real-time updates, composition UI, and status indicators.",
+      "reasoning": "Moderate to high complexity with messaging, notifications, and real-time requirements. Requires careful implementation for reliable communication between units."
+    },
+    {
+      "taskId": 20,
+      "taskTitle": "Implement System Health Monitoring",
+      "complexityScore": 6,
+      "recommendedSubtasks": 6,
+      "expansionPrompt": "Break down the System Health Monitoring implementation into specific subtasks covering health check endpoints, metrics collection, error tracking, performance monitoring, diagnostic tools, and alerting system.",
+      "reasoning": "Moderate complexity with standard monitoring patterns but requiring comprehensive coverage of system components. Important for system reliability and troubleshooting."
+    }
+  ]
+}

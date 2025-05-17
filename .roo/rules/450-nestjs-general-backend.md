@@ -1,0 +1,368 @@
+---
+description: 
+globs: packages/backend/**
+alwaysApply: false
+---
+# NestJS Allgemeine Backend-Praktiken
+
+## Context
+- Gilt für alle Backend-Dateien, die nicht spezifisch durch andere Rules abgedeckt sind
+- Fördert bewährte Praktiken für NestJS-Anwendungen
+- Verbessert Codequalität, Wartbarkeit und Konsistenz
+
+## Requirements
+
+1. **Projektstruktur**
+   - Nach Domänen/Features organisieren, nicht nach Technologien
+   - Namenskonventionen konsequent einhalten
+   - Kernbibliotheken in einem `core`-Modul
+   - Gemeinsame Module in einem `shared`-Modul
+
+2. **Dependency Injection**
+   - NestJS DI-Container für alle Abhängigkeiten verwenden
+   - Konstruktor-Injektion bevorzugen
+   - `@Injectable()` für alle injizierbaren Klassen
+   - Zirkuläre Abhängigkeiten vermeiden oder mit `forwardRef()` lösen
+
+3. **Konfigurationsmanagement**
+   - Zentrale Konfigurationsmodule
+   - Umgebungsvariablen für alle konfigurierbaren Werte
+   - Validierung aller Umgebungsvariablen
+   - Umgebungsspezifische Konfigurationen
+
+4. **Fehlerbehandlung**
+   - Globale Exception-Filter für einheitliche Fehlerbehandlung
+   - Sinnvolle HTTP-Statuscodes
+   - Angemessenes Logging von Fehlern
+   - Domain-spezifische Exceptions
+
+5. **Logging**
+   - Strukturiertes Logging mit dem NestJS Logger
+   - Konsistente Log-Level-Verwendung
+   - Kontextspezifische Logger mit `Logger.setContext()`
+   - Performance-Metriken für kritische Operationen
+
+6. **Validierung**
+   - Eingabevalidierung über class-validator und ValidationPipe
+   - Ausgabevalidierung wo kritisch
+   - Typsicherheit durch TypeScript
+   - Konsistente Fehlermeldungen
+
+7. **Sicherheit**
+   - CORS-Konfiguration
+   - Helmet für HTTP-Header-Sicherheit
+   - Rate-Limiting für öffentliche Endpunkte
+   - Content-Security-Policy
+
+8. **Tests**
+   - Unit-Tests für Services und Controller
+   - Integration-Tests für Module
+   - End-to-End-Tests für kritische Pfade
+   - Mocks für externe Abhängigkeiten
+
+9. **Dokumentation**
+   - Swagger/OpenAPI für API-Dokumentation
+   - JSDoc für Klassen und Methoden
+   - README für Module und Features
+   - Architektur-Diagramme für komplexe Systeme
+
+10. **Caching**
+    - Cache-Strategie für häufig abgefragte Daten
+    - TTL (Time-to-Live) für Cache-Einträge
+    - Cache-Invalidierung bei Datenänderungen
+    - Verteiltes Caching für Skalierung
+
+11. **Performance**
+    - Asynchrone Verarbeitung für blockierende Operationen
+    - Pagination für große Datenmengen
+    - Bulk-Operationen wenn möglich
+    - Microservices für kritische Performance-Anforderungen
+
+12. **Versionsmanagement**
+    - API-Versionierung über URI oder Header
+    - Abwärtskompatibilität bei Änderungen
+    - Deprecation-Hinweise vor Breaking Changes
+    - Dokumentation von Breaking Changes
+
+13. **Entity-DTO-Konvertierung**
+    - Entities nie direkt in Responses zurückgeben
+    - Stets DTOs für API-Schnittstellen verwenden
+    - Mapper-Klassen für Entity-zu-DTO-Konvertierung implementieren
+    - Konvertierungslogik von Controller und Service trennen
+
+## Examples
+
+```typescript
+// Gutes Beispiel: Modul-Struktur
+// src/users/users.module.ts
+import { Module } from '@nestjs/common';
+import { TypeOrmModule } from '@nestjs/typeorm';
+import { UserController } from './controllers/user.controller';
+import { UserService } from './services/user.service';
+import { UserRepository } from './repositories/user.repository';
+import { UserEntity } from './entities/user.entity';
+import { SharedModule } from '../shared/shared.module';
+
+@Module({
+  imports: [
+    TypeOrmModule.forFeature([UserEntity]),
+    SharedModule,
+  ],
+  controllers: [UserController],
+  providers: [UserService, UserRepository],
+  exports: [UserService],
+})
+export class UsersModule {}
+```
+
+```typescript
+// Gutes Beispiel: Dependency Injection und Service
+// src/users/services/user.service.ts
+import { Injectable, Logger, NotFoundException } from '@nestjs/common';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
+import { UserEntity } from '../entities/user.entity';
+import { CreateUserDto, UpdateUserDto } from '../dtos';
+import { UserMapper } from '../mappers/user.mapper';
+import { ConfigService } from '@nestjs/config';
+
+@Injectable()
+export class UserService {
+  private readonly logger = new Logger(UserService.name);
+
+  constructor(
+    @InjectRepository(UserEntity)
+    private readonly userRepository: Repository<UserEntity>,
+    private readonly configService: ConfigService,
+    private readonly userMapper: UserMapper,
+  ) {}
+
+  async findAll(page = 1, limit = 10) {
+    this.logger.log(`Abrufen aller Benutzer mit Paginierung: page=${page}, limit=${limit}`);
+    
+    const [users, total] = await this.userRepository.findAndCount({
+      skip: (page - 1) * limit,
+      take: limit,
+      order: { createdAt: 'DESC' },
+    });
+
+    return {
+      data: users.map(user => this.userMapper.toDto(user)),
+      meta: {
+        total,
+        page,
+        limit,
+        pages: Math.ceil(total / limit),
+      },
+    };
+  }
+
+  async findById(id: string) {
+    this.logger.log(`Suche Benutzer mit ID: ${id}`);
+    
+    const user = await this.userRepository.findOne({ where: { id } });
+    
+    if (!user) {
+      this.logger.warn(`Benutzer mit ID ${id} nicht gefunden`);
+      throw new NotFoundException(`Benutzer mit ID ${id} nicht gefunden`);
+    }
+    
+    return this.userMapper.toDto(user);
+  }
+
+  async create(createUserDto: CreateUserDto) {
+    this.logger.log(`Erstelle neuen Benutzer: ${createUserDto.email}`);
+    
+    const user = this.userRepository.create(createUserDto);
+    const savedUser = await this.userRepository.save(user);
+    
+    return this.userMapper.toDto(savedUser);
+  }
+
+  async update(id: string, updateUserDto: UpdateUserDto) {
+    this.logger.log(`Aktualisiere Benutzer mit ID: ${id}`);
+    
+    const user = await this.findById(id);
+    
+    const updatedUser = await this.userRepository.save({
+      ...user,
+      ...updateUserDto,
+    });
+    
+    return this.userMapper.toDto(updatedUser);
+  }
+
+  async remove(id: string) {
+    this.logger.log(`Lösche Benutzer mit ID: ${id}`);
+    
+    const user = await this.findById(id);
+    await this.userRepository.remove(user);
+    
+    return { success: true };
+  }
+}
+```
+
+```typescript
+// Gutes Beispiel: Controller
+// src/users/controllers/user.controller.ts
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Param,
+  Delete,
+  Put,
+  Query,
+  UseGuards,
+  HttpCode,
+  HttpStatus,
+} from '@nestjs/common';
+import { 
+  ApiTags, 
+  ApiOperation, 
+  ApiResponse, 
+  ApiParam, 
+  ApiQuery,
+  ApiBearerAuth,
+  ApiBody,
+} from '@nestjs/swagger';
+import { UserService } from '../services/user.service';
+import { CreateUserDto, UpdateUserDto, UserResponseDto } from '../dtos';
+import { JwtAuthGuard } from '../../auth/guards/jwt-auth.guard';
+import { RolesGuard } from '../../auth/guards/roles.guard';
+import { Roles } from '../../auth/decorators/roles.decorator';
+import { UserRole } from '../enums/user-role.enum';
+import { PaginationDto } from '../../shared/dtos/pagination.dto';
+
+@ApiTags('users')
+@Controller('users')
+@UseGuards(JwtAuthGuard, RolesGuard)
+@ApiBearerAuth()
+export class UserController {
+  constructor(private readonly userService: UserService) {}
+
+  @Get()
+  @ApiOperation({ summary: 'Liste aller Benutzer abrufen' })
+  @ApiQuery({ name: 'page', required: false, type: Number })
+  @ApiQuery({ name: 'limit', required: false, type: Number })
+  @ApiResponse({ status: 200, description: 'Liste der Benutzer', type: [UserResponseDto] })
+  @Roles(UserRole.ADMIN)
+  async findAll(@Query() pagination: PaginationDto) {
+    const { page = 1, limit = 10 } = pagination;
+    return this.userService.findAll(page, limit);
+  }
+
+  @Get(':id')
+  @ApiOperation({ summary: 'Benutzer nach ID abrufen' })
+  @ApiParam({ name: 'id', description: 'Benutzer-ID' })
+  @ApiResponse({ status: 200, description: 'Der gefundene Benutzer', type: UserResponseDto })
+  @ApiResponse({ status: 404, description: 'Benutzer nicht gefunden' })
+  async findOne(@Param('id') id: string) {
+    return this.userService.findById(id);
+  }
+
+  @Post()
+  @ApiOperation({ summary: 'Neuen Benutzer erstellen' })
+  @ApiBody({ type: CreateUserDto })
+  @ApiResponse({ status: 201, description: 'Der erstellte Benutzer', type: UserResponseDto })
+  @Roles(UserRole.ADMIN)
+  @HttpCode(HttpStatus.CREATED)
+  async create(@Body() createUserDto: CreateUserDto) {
+    return this.userService.create(createUserDto);
+  }
+
+  @Put(':id')
+  @ApiOperation({ summary: 'Benutzer aktualisieren' })
+  @ApiParam({ name: 'id', description: 'Benutzer-ID' })
+  @ApiBody({ type: UpdateUserDto })
+  @ApiResponse({ status: 200, description: 'Der aktualisierte Benutzer', type: UserResponseDto })
+  @ApiResponse({ status: 404, description: 'Benutzer nicht gefunden' })
+  async update(@Param('id') id: string, @Body() updateUserDto: UpdateUserDto) {
+    return this.userService.update(id, updateUserDto);
+  }
+
+  @Delete(':id')
+  @ApiOperation({ summary: 'Benutzer löschen' })
+  @ApiParam({ name: 'id', description: 'Benutzer-ID' })
+  @ApiResponse({ status: 200, description: 'Benutzer erfolgreich gelöscht' })
+  @ApiResponse({ status: 404, description: 'Benutzer nicht gefunden' })
+  @Roles(UserRole.ADMIN)
+  @HttpCode(HttpStatus.OK)
+  async remove(@Param('id') id: string) {
+    return this.userService.remove(id);
+  }
+}
+```
+
+```typescript
+// Gutes Beispiel: Entity zu DTO Mapper
+// src/users/mappers/user.mapper.ts
+import { Injectable } from '@nestjs/common';
+import { UserEntity } from '../entities/user.entity';
+import { UserResponseDto } from '../dtos/user-response.dto';
+
+@Injectable()
+export class UserMapper {
+  /**
+   * Konvertiert eine UserEntity in ein UserResponseDto
+   * 
+   * @param entity Die zu konvertierende Entity
+   * @returns Das konvertierte DTO
+   */
+  toDto(entity: UserEntity): UserResponseDto {
+    const dto = new UserResponseDto();
+    dto.id = entity.id;
+    dto.email = entity.email;
+    dto.firstName = entity.firstName;
+    dto.lastName = entity.lastName;
+    dto.role = entity.role;
+    dto.createdAt = entity.createdAt;
+    dto.updatedAt = entity.updatedAt;
+    
+    // Sensible Daten ausschließen
+    // dto.password wird nicht kopiert
+    
+    return dto;
+  }
+
+  /**
+   * Konvertiert mehrere UserEntities in UserResponseDtos
+   * 
+   * @param entities Die zu konvertierenden Entities
+   * @returns Array von konvertierten DTOs
+   */
+  toDtoList(entities: UserEntity[]): UserResponseDto[] {
+    return entities.map(entity => this.toDto(entity));
+  }
+}
+```
+
+```typescript
+// Schlechtes Beispiel
+// Alles in einer Datei, keine Trennung von Zuständigkeiten
+import { Controller, Get, Post, Injectable } from '@nestjs/common';
+import { Connection } from 'typeorm';
+
+// Model und Controller in einer Datei
+@Controller('accounts')
+export class AccountsCtrl {
+  // Direkte DB-Verbindung statt Repository
+  constructor(private connection: Connection) {}
+
+  @Get()
+  async getAccounts() {
+    // SQL direkt im Controller
+    return this.connection.query('SELECT * FROM accounts');
+  }
+
+  @Post()
+  addAccount(data) {
+    // Keine Validierung
+    // Keine Fehlerbehandlung
+    // Geschäftslogik im Controller
+    const account = { name: data.name, active: true };
+    return this.connection.manager.save('Account', account);
+  }
+} 

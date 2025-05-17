@@ -189,3 +189,20 @@ commit_msg
 
 # RepoMix
 repomix-output.xml
+
+# Added by Claude Task Master
+dev-debug.log
+# Editor directories and files
+.vscode
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+# OS specific
+# Task files
+tasks.json
+tasks/
+
+# Cursor MCP (enthält API-Schlüssel)
+.cursor/mcp.json 

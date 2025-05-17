@@ -1,9 +1,29 @@
 import { ApiResponse } from '@/common/interfaces/api-response.interface';
 import { PaginationMeta } from '@/common/interfaces/paginated-response.interface';
 import { ApiProperty } from '@nestjs/swagger';
-import { EtbAttachment } from '../entities/etb-attachment.entity';
-import { EtbEntryStatus } from '../entities/etb-entry.entity';
+import { EtbEntryStatus } from '@prisma/generated/prisma/enums';
 import { EtbKategorie } from './etb-kategorie.enum';
+
+// Lokale Definition statt Import der Prisma-Models
+export class EtbAttachment {
+    @ApiProperty({ description: 'ID der Anlage', type: 'string', format: 'uuid' })
+    id: string;
+
+    @ApiProperty({ description: 'ID des ETB-Eintrags', type: 'string', format: 'uuid' })
+    etbEntryId: string;
+
+    @ApiProperty({ description: 'Dateiname der Anlage', type: 'string' })
+    dateiname: string;
+
+    @ApiProperty({ description: 'Dateityp der Anlage', type: 'string' })
+    dateityp: string;
+
+    @ApiProperty({ description: 'Speicherort der Anlage', type: 'string' })
+    speicherOrt: string;
+
+    @ApiProperty({ description: 'Beschreibung der Anlage', type: 'string', nullable: true })
+    beschreibung?: string;
+}
 
 /**
  * Data Transfer Object für Einsatztagebuch-Einträge.

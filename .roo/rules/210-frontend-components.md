@@ -1,0 +1,108 @@
+---
+description: ENFORCE Atomic Design for React components in src/components/**.tsx
+globs: packages/frontend/src/components/**/*.tsx
+alwaysApply: false
+---
+
+# Frontend Components (Atomic Design)
+
+## Context
+- React-Komponenten (Atomic Design)
+- Gilt für `packages/frontend/src/components/**/*.tsx`
+
+## Requirements
+1. **Ordnerstruktur**
+```
+src/components/
+    ├── atoms/
+    ├── molecules/
+    ├── organisms/
+    ├── templates/
+    └── pages/
+```
+
+2. **Ein-Komponente-Pro-Datei**
+- Dateiname = Komponentennamen (PascalCase)
+- Props-Interface definieren
+- Default export
+
+3. **Import-Verwendung**
+- Verwende stets die konfigurierten Pfad-Aliase:
+  - `@atoms/*` für Atom-Komponenten
+  - `@molecules/*` für Molecule-Komponenten
+  - `@organisms/*` für Organism-Komponenten
+  - `@templates/*` für Template-Komponenten
+  - `@pages/*` für Page-Komponenten
+- Beispiel: `import Button from '@atoms/Button';`
+- Direkte relative Imports (`../`) sind zu vermeiden
+
+4. **Icon-Nutzung**
+- Nutze ausschließlich Icons aus dem `react-icons/pi` Paket (Phosphor Icons)
+- Vermeiden von anderen Icon-Bibliotheken wie Ant Design Icons
+- Beispiel: `import { PiEnvelope, PiLockKey } from 'react-icons/pi';`
+
+5. **Testing**
+- Zu jeder Komponente eine Testdatei (Name.test.tsx)
+- Mindestens Unit-, Integrations- und Snapshot-Test
+
+6. **Best Practices**
+- Komponenten < 150 Zeilen
+- TypeScript strict
+- Single Responsibility Principle
+- Dokumentation per JSDoc
+
+## Examples
+
+<example>
+# Beispielkomponente
+interface ButtonProps {
+label: string;
+onClick: () => void;
+}
+
+export default function Button({ label, onClick }: ButtonProps) {
+return <button onClick={onClick}>{label}</button>;
+}
+</example>
+
+<example>
+# Import-Beispiel
+import React from 'react';
+import Button from '@atoms/Button';
+import UserCard from '@molecules/UserCard';
+import Dashboard from '@organisms/Dashboard';
+
+export const HomePage: React.FC = () => {
+  return (
+    <Dashboard>
+      <UserCard />
+      <Button label="Weiter" onClick={() => console.log('Klick')} />
+    </Dashboard>
+  );
+};
+
+export default HomePage;
+</example>
+
+<example>
+# Icon-Nutzung
+import React from 'react';
+import { PiEnvelope, PiLockKey } from 'react-icons/pi';
+
+const LoginForm: React.FC = () => {
+  return (
+    <form>
+      <div>
+        <PiEnvelope size={20} />
+        <input type="email" placeholder="E-Mail" />
+      </div>
+      <div>
+        <PiLockKey size={20} />
+        <input type="password" placeholder="Passwort" />
+      </div>
+    </form>
+  );
+};
+
+export default LoginForm;
+</example>

@@ -23,7 +23,7 @@
    * Validate that changes comply with the established architecture. Warn and propose compliant solutions if a violation is detected.
 3. **Pattern & Tech Stack Awareness:**
    * Frontend: React with Atomic Design and Vite/Vitest for testing
-   * Backend: NestJS with TypeORM (SQLite)
+   * Backend: NestJS with Prisma (PostgreSQL)
    * Packages structure: frontend, backend, shared (monorepo with pnpm workspaces)
    * Use existing implementations before proposing new patterns or libraries.
 

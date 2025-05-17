@@ -1,0 +1,35 @@
+# Backend-Test-Fehler Behebung PRD
+
+## Übersicht
+Dieses Dokument beschreibt die Anforderungen zur Behebung der fehlgeschlagenen Tests im Backend des Bluelight-Hub-Projekts. Mehrere Tests schlagen aufgrund fehlender Module und inkonsistenter Code-Implementierungen fehl.
+
+## Hauptprobleme
+
+1. **Fehlende Modulimporte**:
+   - `typeorm` und `@nestjs/typeorm` werden in Tests nicht gefunden
+   - `@prisma/generated/prisma` wird nicht gefunden
+
+2. **ETB-Service-Fehler**:
+   - Undefinierte Variablen (`prismaKategorie`, `PrismaEtbEntryStatus`)
+   - Fehlende Methoden (`mapKategorieToPrisma`) 
+
+## Anforderungen
+
+1. Backend-Tests reparieren:
+   - Fehlende Abhängigkeiten und Module installieren
+   - Testdateien auf Prisma-Migration anpassen
+   - Mocks für Prisma-Dienste erstellen
+   - Testabdeckung wiederherstellen
+
+2. Code-Konsistenz sicherstellen:
+   - Einheitliche Verwendung von Prisma oder TypeORM (nicht gemischt)
+   - Korrekte Importe für alle benötigten Module
+   - Fehlende Methoden implementieren oder unnötige Aufrufe entfernen
+
+## Erwartete Ergebnisse
+- Alle Backend-Tests laufen ohne Fehler durch
+- Testabdeckung bleibt erhalten oder verbessert sich
+- Keine TypeScript-Compiler-Warnungen oder -Fehler
+
+## Priorität
+Diese Aufgabe hat hohe Priorität, da fehlschlagende Tests die Codequalität und Zuverlässigkeit beeinträchtigen. 

@@ -13,7 +13,6 @@ module.exports = {
         '**/*.ts',
         '!migrations/**/*.ts',
         '!main.ts',
-        '!migrate.ts',
         '!**/node_modules/**',
         '!dist/**',
         '!**/test/**',
@@ -24,6 +23,9 @@ module.exports = {
         '<rootDir>/jest.setup.ts'
     ],
     moduleNameMapper: {
-        '^@/(.*)$': '<rootDir>/$1'
+        '^@/(.*)$': '<rootDir>/$1',
+        '^@prisma/generated/prisma/enums$': '<rootDir>/__mocks__/prisma/enums.ts',
+        '^@prisma/generated/prisma/client$': '<rootDir>/__mocks__/prisma/client.ts',
+        '^@prisma/generated/prisma$': '<rootDir>/__mocks__/prisma/enums.ts'
     }
 };

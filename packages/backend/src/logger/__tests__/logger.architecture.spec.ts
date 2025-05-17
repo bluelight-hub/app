@@ -66,7 +66,6 @@ describe('Logger Architecture', () => {
             'jest.setup.ts',
             'main.ts',  // main.ts darf console verwenden für Startup-Logs
             'consola.logger.ts', // Die Logger-Implementierung selbst darf console erwähnen
-            'migrate.ts', // Migrations-Skript darf console verwenden
         ];
 
         // Filtere Testdateien und ausgenommene Dateien

@@ -1,0 +1,29 @@
+---
+description: RUN pnpm generate-client whenever DTOs or Controllers in 'backend' change
+globs: 
+alwaysApply: false
+---
+
+# Generate Client Workflow
+
+## Context
+- Wenn Änderungen an DTOs oder Controllern im `shared` Verzeichnis gemacht werden
+- Danach soll ein Client-Stub generiert werden, um das Frontend aktuell zu halten
+
+## Requirements
+1. **Trigger**
+   - Jede Änderung unter `backend/dtos/` oder `backend/controllers/`
+2. **Befehl**
+   - `pnpm generate-api` (aus dem `shared` Ordner heraus)
+3. **Automatisierung**
+   - Idealerweise Hook oder Script, das diesen Befehl bei Bedarf ausführt
+4. **Rationale**
+   - Synchron hält Frontend-DTOs & API-Interfaces
+
+## Examples
+
+<example>
+# CLI
+cd shared
+pnpm generate-api
+</example>

@@ -1,19 +1,20 @@
 import { PaginatedResponse } from '@/common/interfaces/paginated-response.interface';
 import { PaginationService } from '@/common/services/pagination.service';
 import { logger } from '@/logger/consola.logger';
+import { PrismaService } from '@/prisma/prisma.service';
 import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
 import * as fs from 'fs';
 import * as path from 'path';
 import sanitize from 'sanitize-filename';
-import { Repository } from 'typeorm';
+import { EtbEntryStatus, EtbKategorie } from '../../../prisma/generated/prisma/enums';
+import { AddAttachmentDto } from './dto/add-attachment.dto';
 import { CreateEtbDto } from './dto/create-etb.dto';
-import { EtbKategorie } from './dto/etb-kategorie.enum';
 import { FilterEtbDto } from './dto/filter-etb.dto';
 import { UeberschreibeEtbDto } from './dto/ueberschreibe-etb.dto';
 import { UpdateEtbDto } from './dto/update-etb.dto';
-import { EtbAttachment } from './entities/etb-attachment.entity';
-import { EtbEntry, EtbEntryStatus } from './entities/etb-entry.entity';
+
+// Import der generierten Prisma-Typen für ETB-Einträge und Anlagen
+import type { EtbAttachment, EtbEntry } from '../../../prisma/generated/prisma/client';
 
 /**
  * Interface für Multer-Dateien.
@@ -75,17 +76,16 @@ export class EtbService {
     /**
      * Konstruktor für den EtbService
      * 
-     * @param etbRepository Repository für ETB-Einträge
-     * @param attachmentRepository Repository für ETB-Anlagen
      * @param paginationService Service für Paginierung
+     * @param prisma PrismaService für Datenbankzugriffe mit Prisma
      */
     constructor(
-        @InjectRepository(EtbEntry)
-        private etbRepository: Repository<EtbEntry>,
-        @InjectRepository(EtbAttachment)
-        private attachmentRepository: Repository<EtbAttachment>,
         private paginationService: PaginationService,
+        private prisma: PrismaService,
     ) { }
+
+    // Die mapKategorieToPrisma-Methode wurde entfernt, da wir direkt Prisma-Enums verwenden
+
 
     /**
      * Generiert die nächste verfügbare laufende Nummer für ETB-Einträge
@@ -93,12 +93,12 @@ export class EtbService {
      * @returns Die nächste verfügbare laufende Nummer
      */
     private async getNextLaufendeNummer(): Promise<number> {
-        const result = await this.etbRepository
-            .createQueryBuilder('etbEntry')
-            .select('MAX(etbEntry.laufendeNummer)', 'maxNumber')
-            .getRawOne();
-
-        return (result.maxNumber || 0) + 1;
+        const result = await this.prisma.etbEntry.aggregate({
+            _max: {
+                laufendeNummer: true
+            }
+        });
+        return (result._max.laufendeNummer || 0) + 1;
     }
 
     /**
@@ -118,31 +118,41 @@ export class EtbService {
     ): Promise<EtbEntry> {
         logger.info(`ETB-Eintrag wird erstellt von Benutzer ${userId}`);
 
-        // Use complete DTO including sender and receiver fields
-        const etbEntry = this.etbRepository.create({
-            ...createEtbDto,
-            timestampErstellung: new Date(),
-            timestampEreignis: new Date(createEtbDto.timestampEreignis),
-            autorId: userId,
-            autorName: _userName || userId,
-            autorRolle: userRole,
-            version: 1,
-            istAbgeschlossen: false,
-            laufendeNummer: await this.getNextLaufendeNummer(),
+        // Hole die nächste laufende Nummer
+        const laufendeNummer = await this.getNextLaufendeNummer();
+
+        // Wir verwenden direkt den EtbKategorie-Enum von Prisma
+        const prismaKategorie = createEtbDto.kategorie;
+
+        // Erstelle den Eintrag mit Prisma
+        const prismaEintrag = await this.prisma.etbEntry.create({
+            data: {
+                ...createEtbDto,
+                kategorie: prismaKategorie,
+                timestampErstellung: new Date(),
+                timestampEreignis: new Date(createEtbDto.timestampEreignis),
+                autorId: userId,
+                autorName: _userName || userId,
+                autorRolle: userRole,
+                version: 1,
+                istAbgeschlossen: false,
+                laufendeNummer,
+                status: EtbEntryStatus.AKTIV,
+            }
         });
 
-        return this.etbRepository.save(etbEntry);
+        return prismaEintrag;
     }
 
     /**
      * Erstellt einen automatischen ETB-Eintrag
      * 
-     * @param data Daten für den automatischen Eintrag
-     * @param systemQuelle Quelle des automatischen Eintrags
+     * @param _data Daten für den automatischen Eintrag
+     * @param _systemQuelle Quelle des automatischen Eintrags
      * @returns Der erstellte ETB-Eintrag
      */
     async createAutomaticEintrag(
-        data: {
+        _data: {
             timestampEreignis: Date;
             kategorie: EtbKategorie;
             inhalt: string;
@@ -150,130 +160,102 @@ export class EtbService {
             referenzPatientId?: string;
             referenzEinsatzmittelId?: string;
         },
-        systemQuelle: string,
+        _systemQuelle: string,
     ): Promise<EtbEntry> {
-        logger.info(`Automatischer ETB-Eintrag wird erstellt durch ${systemQuelle}`);
+        logger.info(`Automatischer ETB-Eintrag wird erstellt durch ${_systemQuelle}`);
 
-        const etbEntry = this.etbRepository.create({
-            ...data,
-            timestampErstellung: new Date(),
-            autorId: 'system',
-            autorName: 'System',
-            autorRolle: 'Automatisierung',
-            systemQuelle,
-            version: 1,
-            istAbgeschlossen: false,
-            laufendeNummer: await this.getNextLaufendeNummer(),
+        // Hole die nächste laufende Nummer
+        const laufendeNummer = await this.getNextLaufendeNummer();
+
+        // Wir verwenden direkt den EtbKategorie-Enum von Prisma
+        const prismaKategorie = _data.kategorie;
+
+        // Erstelle den Eintrag mit Prisma
+        const prismaEintrag = await this.prisma.etbEntry.create({
+            data: {
+                ..._data,
+                kategorie: prismaKategorie,
+                timestampErstellung: new Date(),
+                autorId: 'system',
+                autorName: 'System',
+                autorRolle: 'Automatisierung',
+                systemQuelle: _systemQuelle,
+                version: 1,
+                istAbgeschlossen: false,
+                laufendeNummer,
+                status: EtbEntryStatus.AKTIV,
+            }
         });
 
-        return this.etbRepository.save(etbEntry);
+        return prismaEintrag;
     }
 
     /**
-     * Findet alle ETB-Einträge mit optionaler Filterung
+     * Findet alle ETB-Einträge mit optionaler Filterung und Paginierung
      * 
-     * @param filterDto Filter für die Abfrage
+     * @param filterDto DTO mit Filterkriterien und Paginierungsparametern
      * @returns Eine paginierte Liste von ETB-Einträgen
      */
-    async findAll(filterDto: FilterEtbDto): Promise<PaginatedResponse<EtbEntry>> {
-        const {
-            referenzEinsatzId,
-            referenzPatientId,
-            referenzEinsatzmittelId,
-            kategorie,
-            vonZeitstempel,
-            bisZeitstempel,
-            autorId,
-            empfaenger,
-            includeUeberschrieben,
-            search,
-            page = 1,
-            limit = 10
-        } = filterDto;
+    async findAll(
+        filterDto: FilterEtbDto
+    ): Promise<PaginatedResponse<EtbEntry>> {
+        logger.info('Suche ETB-Einträge mit Filtern');
+        const { page = 1, limit = 10, kategorie, autorId, vonZeitstempel, bisZeitstempel, search } = filterDto;
 
-        const qb = this.etbRepository.createQueryBuilder('etb');
-        const conditions: string[] = [];
-        const params: Record<string, any> = {};
+        // Baue Where-Bedingung basierend auf den Filtern
+        const where: any = {};
 
-        if (referenzEinsatzId) {
-            conditions.push('etb.referenzEinsatzId = :referenzEinsatzId');
-            params.referenzEinsatzId = referenzEinsatzId;
-        }
-        if (referenzPatientId) {
-            conditions.push('etb.referenzPatientId = :referenzPatientId');
-            params.referenzPatientId = referenzPatientId;
-        }
-        if (referenzEinsatzmittelId) {
-            conditions.push('etb.referenzEinsatzmittelId = :referenzEinsatzmittelId');
-            params.referenzEinsatzmittelId = referenzEinsatzmittelId;
-        }
+        // Kategorie-Filter
         if (kategorie) {
-            conditions.push('etb.kategorie = :kategorie');
-            params.kategorie = kategorie;
-        }
-        if (autorId) {
-            conditions.push('etb.autorId = :autorId');
-            params.autorId = autorId;
-        }
-        if (empfaenger) {
-            conditions.push('etb.abgeschlossenVon = :empfaenger');
-            params.empfaenger = empfaenger;
-        }
-        if (!includeUeberschrieben) {
-            conditions.push('etb.status = :status');
-            params.status = EtbEntryStatus.AKTIV;
-        }
-        if (vonZeitstempel && bisZeitstempel) {
-            conditions.push('etb.timestampEreignis BETWEEN :vonZeitstempel AND :bisZeitstempel');
-            params.vonZeitstempel = new Date(vonZeitstempel);
-            params.bisZeitstempel = new Date(bisZeitstempel);
-        } else if (vonZeitstempel) {
-            conditions.push('etb.timestampEreignis >= :vonZeitstempel');
-            params.vonZeitstempel = new Date(vonZeitstempel);
-        } else if (bisZeitstempel) {
-            conditions.push('etb.timestampEreignis <= :bisZeitstempel');
-            params.bisZeitstempel = new Date(bisZeitstempel);
-        }
-        if (search?.trim()) {
-            const op = qb.connection.driver.options.type === 'sqlite' ? 'LIKE' : 'ILIKE';
-            conditions.push(`(etb.beschreibung ${op} :search OR etb.autorName ${op} :search OR etb.abgeschlossenVon ${op} :search)`);
-            params.search = `%${search}%`;
+            where.kategorie = kategorie;
         }
 
-        if (conditions.length) {
-            qb.where(conditions[0], params);
-            for (let i = 1; i < conditions.length; i++) {
-                qb.andWhere(conditions[i], params);
+        // Autor-Filter
+        if (autorId) {
+            where.autorId = autorId;
+        }
+
+        // Zeitstempel-Filter (von - bis)
+        if (vonZeitstempel || bisZeitstempel) {
+            where.timestampEreignis = {};
+
+            if (vonZeitstempel) {
+                where.timestampEreignis.gte = new Date(vonZeitstempel);
+            }
+
+            if (bisZeitstempel) {
+                where.timestampEreignis.lte = new Date(bisZeitstempel);
             }
         }
 
-        qb
-            .leftJoinAndSelect('etb.anlagen', 'anlagen')
-            .leftJoinAndSelect('etb.ueberschriebenDurch', 'ubD')
-            .leftJoinAndSelect('etb.ueberschriebeneEintraege', 'ue')
-            .orderBy('etb.laufendeNummer', 'DESC')
-            .skip((page - 1) * limit)
-            .take(limit);
-
-        try {
-            const [items, total] = await qb.getManyAndCount();
-            const totalPages = Math.ceil(total / limit);
-
-            return {
-                items,
-                pagination: {
-                    currentPage: page,
-                    itemsPerPage: limit,
-                    totalItems: total,
-                    totalPages,
-                    hasNextPage: page < totalPages,
-                    hasPreviousPage: page > 1,
-                },
-            };
-        } catch (error) {
-            logger.error(`Fehler beim Abrufen der ETB-Einträge: ${error.message}`, error.stack);
-            throw error;
+        // Textsuche im Inhalt
+        if (search) {
+            where.OR = [
+                { inhalt: { contains: search, mode: 'insensitive' } },
+                { autorName: { contains: search, mode: 'insensitive' } }
+            ];
         }
+
+        // Erstelle paginierte Abfrage
+        const paginatedEntries = await this.paginationService.paginate<EtbEntry>(
+            'etbEntry',
+            {
+                where,
+                orderBy: { laufendeNummer: 'desc' },
+                include: { anlagen: true }
+            },
+            page,
+            limit
+        );
+
+        // Konvertiere Prisma-Objekte in Entities (falls Entity-Klasse verwendet wird)
+        // const mappedEntries = {
+        //     ...paginatedEntries,
+        //     items: paginatedEntries.items.map(item => EtbEntryEntity.fromPrisma(item))
+        // };
+
+        // Einfach die Prisma-Objekte zurückgeben, da wir mit dem Prisma-Typ arbeiten
+        return paginatedEntries;
     }
 
     /**
@@ -284,9 +266,9 @@ export class EtbService {
      * @throws NotFoundException wenn der Eintrag nicht gefunden wurde
      */
     async findOne(id: string): Promise<EtbEntry> {
-        const etbEntry = await this.etbRepository.findOne({
+        const etbEntry = await this.prisma.etbEntry.findUnique({
             where: { id },
-            relations: ['anlagen'],
+            include: { anlagen: true }
         });
 
         if (!etbEntry) {
@@ -298,38 +280,41 @@ export class EtbService {
     }
 
     /**
-     * Aktualisiert einen ETB-Eintrag
+     * Aktualisiert einen bestehenden ETB-Eintrag
      * 
      * @param id ID des zu aktualisierenden ETB-Eintrags
-     * @param updateEtbDto Daten für die Aktualisierung
+     * @param updateEtbDto DTO mit den zu aktualisierenden Daten
      * @returns Der aktualisierte ETB-Eintrag
-     * @throws NotFoundException wenn der Eintrag nicht gefunden wurde
-     * @throws BadRequestException wenn der Eintrag bereits abgeschlossen ist
+     * @throws NotFoundException Wenn der Eintrag nicht gefunden wurde
+     * @throws BadRequestException Wenn der Eintrag bereits abgeschlossen ist
      */
     async updateEintrag(id: string, updateEtbDto: UpdateEtbDto): Promise<EtbEntry> {
-        const etbEntry = await this.findOne(id);
+        // Prüfe, ob der Eintrag existiert und nicht abgeschlossen ist
+        const existingEntry = await this.findOne(id);
 
-        if (etbEntry.istAbgeschlossen) {
-            logger.error(`ETB-Eintrag mit ID ${id} kann nicht aktualisiert werden, da er bereits abgeschlossen ist`);
-            throw new BadRequestException(`ETB-Eintrag kann nicht aktualisiert werden, da er bereits abgeschlossen ist`);
+        if (existingEntry.istAbgeschlossen) {
+            logger.error(`ETB-Eintrag mit ID ${id} ist bereits abgeschlossen und kann nicht aktualisiert werden`);
+            throw new BadRequestException('Abgeschlossene ETB-Einträge können nicht aktualisiert werden');
         }
 
-        // Erstelle ein neues Objekt mit aktualisierten Werten
-        const updatedEntry = {
-            ...etbEntry,
-            ...updateEtbDto,
-            version: etbEntry.version + 1,
-        };
+        logger.info(`ETB-Eintrag mit ID ${id} wird aktualisiert`);
 
-        // Konvertiere timestampEreignis zu Date, falls es angegeben wurde
-        if (updateEtbDto.timestampEreignis) {
-            updatedEntry.timestampEreignis = new Date(updateEtbDto.timestampEreignis);
-        }
+        // Update des Eintrags mit Prisma
+        const updatedPrismaEntry = await this.prisma.etbEntry.update({
+            where: { id },
+            data: {
+                ...updateEtbDto,
+                // Wenn ein neuer Zeitstempel angegeben ist, konvertiere ihn zu Date
+                timestampEreignis: updateEtbDto.timestampEreignis
+                    ? new Date(updateEtbDto.timestampEreignis)
+                    : undefined,
+                // Inkrementiere die Version
+                version: { increment: 1 }
+            },
+            include: { anlagen: true }
+        });
 
-        logger.info(`ETB-Eintrag mit ID ${id} wird aktualisiert, neue Version: ${updatedEntry.version}`);
-
-        // Speichere die Aktualisierung
-        return this.etbRepository.save(updatedEntry);
+        return updatedPrismaEntry;
     }
 
     /**
@@ -349,68 +334,86 @@ export class EtbService {
             throw new BadRequestException(`ETB-Eintrag ist bereits abgeschlossen`);
         }
 
-        etbEntry.istAbgeschlossen = true;
-        etbEntry.timestampAbschluss = new Date();
-        etbEntry.abgeschlossenVon = userId;
-
         logger.info(`ETB-Eintrag mit ID ${id} wird abgeschlossen von Benutzer ${userId}`);
 
-        return this.etbRepository.save(etbEntry);
+        const updatedPrismaEntry = await this.prisma.etbEntry.update({
+            where: { id },
+            data: {
+                istAbgeschlossen: true,
+                timestampAbschluss: new Date(),
+                abgeschlossenVon: userId
+            },
+            include: { anlagen: true }
+        });
+
+        return updatedPrismaEntry;
     }
 
     /**
-     * Fügt eine Anlage zu einem ETB-Eintrag hinzu
+     * Fügt eine Dateianlage zu einem ETB-Eintrag hinzu
      * 
-     * @param etbEntryId ID des ETB-Eintrags
+     * @param id ID des ETB-Eintrags
      * @param file Die hochgeladene Datei
-     * @param beschreibung Optionale Beschreibung der Anlage
+     * @param addAttachmentDto DTO mit zusätzlichen Informationen zur Anlage
      * @returns Die erstellte ETB-Anlage
-     * @throws NotFoundException wenn der ETB-Eintrag nicht gefunden wurde
-     * @throws BadRequestException wenn der ETB-Eintrag bereits abgeschlossen ist
+     * @throws NotFoundException Wenn der ETB-Eintrag nicht gefunden wurde
+     * @throws BadRequestException Wenn der ETB-Eintrag bereits abgeschlossen ist oder andere Validierungsfehler auftreten
      */
     async addAttachment(
-        etbEntryId: string,
+        id: string,
         file: MulterFile,
-        beschreibung?: string,
+        addAttachmentDto: AddAttachmentDto
     ): Promise<EtbAttachment> {
-        const etbEntry = await this.findOne(etbEntryId);
+        // Prüfen, ob der Eintrag existiert
+        const etbEntry = await this.findOne(id);
 
+        // Prüfen, ob der Eintrag abgeschlossen ist
         if (etbEntry.istAbgeschlossen) {
-            logger.error(`Anlage kann nicht hinzugefügt werden, da der ETB-Eintrag mit ID ${etbEntryId} bereits abgeschlossen ist`);
-            throw new BadRequestException(`Anlage kann nicht hinzugefügt werden, da der ETB-Eintrag bereits abgeschlossen ist`);
+            logger.error(`Anlage kann nicht zu ETB-Eintrag ${id} hinzugefügt werden, da er abgeschlossen ist`);
+            throw new BadRequestException('Anlagen können nicht zu abgeschlossenen ETB-Einträgen hinzugefügt werden');
         }
 
-        // Erstelle den Upload-Ordner, falls er nicht existiert
-        const uploadDir = path.join(process.cwd(), 'uploads', 'etb-attachments');
-        if (!fs.existsSync(uploadDir)) {
-            fs.mkdirSync(uploadDir, { recursive: true });
+        try {
+            // Sicherer Dateiname durch Sanitization
+            const safeFileName = sanitize(file.originalname);
+
+            // Generiere einen eindeutigen Dateinamen, um Überschreibungen zu vermeiden
+            const uniqueFileName = `${Date.now()}-${safeFileName}`;
+
+            // Pfad zum Uploads-Verzeichnis
+            const uploadDir = path.join(process.cwd(), 'uploads');
+
+            // Erstelle das Verzeichnis, falls es nicht existiert
+            if (!fs.existsSync(uploadDir)) {
+                fs.mkdirSync(uploadDir, { recursive: true });
+            }
+
+            // Vollständiger Pfad zur Datei
+            const filePath = path.join(uploadDir, uniqueFileName);
+
+            // Schreibe die Datei
+            fs.writeFileSync(filePath, file.buffer);
+
+            logger.info(`Datei ${uniqueFileName} wurde gespeichert unter ${filePath}`);
+
+            // Erstelle den Datenbankeintrag für die Anlage
+            const attachment = await this.prisma.etbAttachment.create({
+                data: {
+                    etbEntryId: id,
+                    dateiname: safeFileName, // Verwende die Feldnamen gemäß Prisma-Schema
+                    dateityp: file.mimetype,
+                    speicherOrt: filePath,
+                    beschreibung: addAttachmentDto.beschreibung || null,
+                }
+            });
+
+            logger.info(`Anlage wurde erfolgreich zum ETB-Eintrag ${id} hinzugefügt`);
+
+            return attachment;
+        } catch (error) {
+            logger.error(`Fehler beim Hinzufügen einer Anlage zum ETB-Eintrag ${id}:`, error);
+            throw new BadRequestException(`Fehler beim Hinzufügen der Anlage: ${error.message}`);
         }
-
-        // TODO: Dateien sollten nicht direkt hochgeladen werden, stattdessen über minio - und nur vielleicht.
-        //      -> ist eher ein Beispiel, als eine vernünftige Implementierung. || BLH-108
-        // Sanitize den Dateinamen, um Path Traversal Angriffe zu verhindern
-        const sanitizedFilename = sanitize(file.originalname);
-
-        // Generiere einen eindeutigen Dateinamen
-        const timestamp = Date.now();
-        const uniqueFilename = `${timestamp}-${sanitizedFilename}`;
-        const filePath = path.join(uploadDir, uniqueFilename);
-
-        // Speichere die Datei
-        fs.writeFileSync(filePath, file.buffer);
-
-        logger.info(`Anlage wird hinzugefügt zu ETB-Eintrag mit ID ${etbEntryId}`);
-
-        // Erstelle den Datenbankeintrag für die Anlage
-        const attachment = this.attachmentRepository.create({
-            etbEntryId,
-            dateiname: sanitizedFilename,
-            dateityp: file.mimetype,
-            speicherOrt: `uploads/etb-attachments/${uniqueFilename}`,
-            beschreibung,
-        });
-
-        return this.attachmentRepository.save(attachment);
     }
 
     /**
@@ -420,26 +423,28 @@ export class EtbService {
      * @returns Eine Liste von ETB-Anlagen
      */
     async findAttachmentsByEtbEntryId(etbEntryId: string): Promise<EtbAttachment[]> {
-        return this.attachmentRepository.find({
-            where: { etbEntryId },
+        const attachments = await this.prisma.etbAttachment.findMany({
+            where: { etbEntryId }
         });
+
+        return attachments;
     }
 
     /**
-     * Findet eine Anlage anhand ihrer ID
+     * Findet eine ETB-Anlage anhand ihrer ID
      * 
-     * @param id ID der zu findenden Anlage
+     * @param id ID der zu findenden ETB-Anlage
      * @returns Die gefundene ETB-Anlage
-     * @throws NotFoundException wenn die Anlage nicht gefunden wurde
+     * @throws NotFoundException Wenn die Anlage nicht gefunden wurde
      */
     async findAttachmentById(id: string): Promise<EtbAttachment> {
-        const attachment = await this.attachmentRepository.findOne({
-            where: { id },
+        const attachment = await this.prisma.etbAttachment.findUnique({
+            where: { id }
         });
 
         if (!attachment) {
-            logger.error(`Anlage mit ID ${id} wurde nicht gefunden`);
-            throw new NotFoundException(`Anlage mit ID ${id} wurde nicht gefunden`);
+            logger.error(`ETB-Anlage mit ID ${id} wurde nicht gefunden`);
+            throw new NotFoundException(`ETB-Anlage mit ID ${id} wurde nicht gefunden`);
         }
 
         return attachment;
@@ -464,41 +469,53 @@ export class EtbService {
     ): Promise<EtbEntry> {
         // Finde den zu überschreibenden Eintrag
         const originalEntry = await this.findOne(id);
+        const now = new Date();
 
-        // Markiere den ursprünglichen Eintrag als überschrieben
-        originalEntry.status = EtbEntryStatus.UEBERSCHRIEBEN;
-        originalEntry.timestampUeberschrieben = new Date();
-        originalEntry.ueberschriebenVon = userId;
+        // Führe die Überschreibung in einer Transaktion durch, um die Konsistenz zu gewährleisten
+        return this.prisma.$transaction(async (tx) => {
+            // Markiere den ursprünglichen Eintrag als überschrieben
+            await tx.etbEntry.update({
+                where: { id },
+                data: {
+                    status: EtbEntryStatus.UEBERSCHRIEBEN,
+                    timestampUeberschrieben: now,
+                    ueberschriebenVon: userId
+                }
+            });
 
-        // Speichere den aktualisierten ursprünglichen Eintrag
-        await this.etbRepository.save(originalEntry);
+            // Hole die nächste laufende Nummer
+            const laufendeNummer = await this.getNextLaufendeNummer();
 
-        // Erstelle einen neuen Eintrag mit den aktualisierten Daten
-        const neuerEintrag = this.etbRepository.create({
-            timestampErstellung: new Date(),
-            timestampEreignis: ueberschreibeEtbDto.timestampEreignis ? new Date(ueberschreibeEtbDto.timestampEreignis) : originalEntry.timestampEreignis,
-            kategorie: ueberschreibeEtbDto.kategorie || originalEntry.kategorie,
-            inhalt: ueberschreibeEtbDto.inhalt || originalEntry.inhalt,
-            referenzEinsatzId: ueberschreibeEtbDto.referenzEinsatzId || originalEntry.referenzEinsatzId,
-            referenzPatientId: ueberschreibeEtbDto.referenzPatientId || originalEntry.referenzPatientId,
-            referenzEinsatzmittelId: ueberschreibeEtbDto.referenzEinsatzmittelId || originalEntry.referenzEinsatzmittelId,
+            // Erstelle den neuen Eintrag
+            const neuerEintrag = await tx.etbEntry.create({
+                data: {
+                    timestampErstellung: now,
+                    timestampEreignis: ueberschreibeEtbDto.timestampEreignis ? new Date(ueberschreibeEtbDto.timestampEreignis) : originalEntry.timestampEreignis,
+                    kategorie: ueberschreibeEtbDto.kategorie || originalEntry.kategorie,
+                    inhalt: ueberschreibeEtbDto.inhalt || originalEntry.inhalt,
+                    referenzEinsatzId: ueberschreibeEtbDto.referenzEinsatzId || originalEntry.referenzEinsatzId,
+                    referenzPatientId: ueberschreibeEtbDto.referenzPatientId || originalEntry.referenzPatientId,
+                    referenzEinsatzmittelId: ueberschreibeEtbDto.referenzEinsatzmittelId || originalEntry.referenzEinsatzmittelId,
+                    autorId: userId,
+                    autorName: userName,
+                    autorRolle: userRole,
+                    version: 1,
+                    status: EtbEntryStatus.AKTIV,
+                    istAbgeschlossen: false,
+                    laufendeNummer,
+                    ueberschriebeneEintraege: {
+                        connect: { id }
+                    }
+                },
+                include: {
+                    anlagen: true,
+                    ueberschriebeneEintraege: true
+                }
+            });
 
-            // Neue Metadaten
-            autorId: userId,
-            autorName: userName,
-            autorRolle: userRole,
-            version: 1,
-            status: EtbEntryStatus.AKTIV,
-            istAbgeschlossen: false,
-            laufendeNummer: await this.getNextLaufendeNummer(),
+            logger.info(`ETB-Eintrag mit ID ${id} wird überschrieben von Benutzer ${userId}`);
 
-            // Beziehung zum ursprünglichen Eintrag
-            ueberschriebeneEintraege: [originalEntry]
+            return neuerEintrag;
         });
-
-        logger.info(`ETB-Eintrag mit ID ${id} wird überschrieben von Benutzer ${userId}`);
-
-        // Speichere den neuen Eintrag
-        return this.etbRepository.save(neuerEintrag);
     }
-} 
+}

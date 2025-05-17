@@ -498,9 +498,38 @@ Für komplexere Domänen kann das CQRS-Muster (Command Query Responsibility Segr
 
 Das Repository-Pattern abstrahiert den Datenbankzugriff:
 
-* **Generische Repositories**: Für gemeinsame CRUD-Operationen
-* **Domänenspezifische Repositories**: Für komplexe Abfragen
-* **Typsicherheit**: TypeORM-Integration mit vollständiger TypeScript-Unterstützung
+* **Einheitliche Schnittstelle**: Konsistente Methoden für alle Entitäten
+* **Testbarkeit**: Repositories können leicht gemockt werden
+* **Separation of Concerns**: Trennung von Datenzugriff und Geschäftslogik
+* **Typsicherheit**: Prisma-Integration mit vollständiger TypeScript-Unterstützung und generierten Typen
+
+===== Prisma ORM
+
+Der Datenbankzugriff erfolgt über Prisma ORM, das folgende Vorteile bietet:
+
+* **Typsicherheit**: Generierte Typen für alle Abfragen und Modelle
+* **Intuitive Abfrage-API**: Fluent API für einfache und komplexe Abfragen
+* **Migrationssystem**: Robustes und versioniertes Migrationssystem
+* **Schema-first Ansatz**: Klare und zentrale Definition des Datenbankschemas
+* **Transaktionen**: First-class Support für atomare Transaktionen
+* **Optimierte Abfragen**: Effiziente SQL-Abfragen ohne N+1 Probleme
+
+Die Integration erfolgt über den `PrismaService`, der als globaler Provider in der Anwendung verfügbar ist und den Prisma Client bereitstellt.
+
+```typescript
+@Injectable()
+export class PrismaService extends PrismaClient implements OnModuleInit, OnModuleDestroy {
+  async onModuleInit() {
+    await this.$connect();
+  }
+
+  async onModuleDestroy() {
+    await this.$disconnect();
+  }
+}
+```
+
+Das Prisma-Schema in `schema.prisma` definiert alle Modelle und ihre Beziehungen und dient als zentrale Wahrheit für die Datenbankstruktur.
 
 ===== Dependency Injection
 
@@ -539,7 +568,7 @@ Bei der Entwicklung des Backends wurden folgende Architekturentscheidungen getro
 
 2. **Shared Types mit Frontend**: DTOs und Entitäten werden durch OpenAPI/Swagger-Generierung mit dem Frontend geteilt, um Typkonsistenz zu gewährleisten.
 
-3. **SQLite als Primärdatenbank**: Verwendung von SQLite für einfache Bereitstellung und lokale Entwicklung mit der Möglichkeit, später auf andere RDBMS umzusteigen.
+3. **PostgreSQL als Primärdatenbank**: Verwendung von PostgreSQL für Robustheit, Skalierbarkeit und erweiterte Funktionen. Für die lokale Entwicklung wird SQLite weiterhin unterstützt.
 
 4. **Repository Pattern über Active Record**: Bewusste Entscheidung für das Repository-Pattern statt Active Record für bessere Testbarkeit und Abstraktion.
 

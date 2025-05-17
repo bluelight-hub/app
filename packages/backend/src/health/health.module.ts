@@ -2,10 +2,11 @@ import { Module } from '@nestjs/common';
 import { TerminusModule } from '@nestjs/terminus';
 import { EtbModule } from '../modules/etb/etb.module';
 import { HealthController } from './health.controller';
+import { PrismaHealthIndicator } from './prisma-health.indicator';
 
 /**
- * Modul, das Gesundheitscheck-Funktionalität für die Anwendung bereitstellt.
- * Konfiguriert die Terminus-Gesundheitscheck-Bibliothek und stellt Gesundheitscheck-Endpunkte bereit.
+ * Modul für Gesundheitschecks der Anwendung.
+ * Enthält Controller und Indikatoren für verschiedene Gesundheitschecks.
  * 
  * @class HealthModule
  */
@@ -15,5 +16,7 @@ import { HealthController } from './health.controller';
         EtbModule
     ],
     controllers: [HealthController],
+    providers: [PrismaHealthIndicator],
+    exports: [PrismaHealthIndicator]
 })
 export class HealthModule { } 

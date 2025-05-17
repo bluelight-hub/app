@@ -20,7 +20,7 @@ Die folgenden Technologieentscheidungen bilden das Fundament der Architektur:
 |Frontend |React, TypeScript, Ant Design |Moderne, typsichere Entwicklung mit etabliertem UI-Framework
 |Mobile App |Tauri v2 mit TypeScript |Plattformübergreifende Entwicklung, nativer Zugriff auf Systemfunktionen
 |Backend |NestJS |Strukturiertes, modulares Framework mit TypeScript
-|Datenbank |SQLite (lokal und Server) |Einfache, leichtgewichtige SQL-Datenbank mit guter Offline-Unterstützung
+|Datenbank |PostgreSQL (Server), SQLite (lokal) |Robuste, skalierbare SQL-Datenbank (PostgreSQL) auf dem Server, SQLite für lokale Entwicklung
 |API |REST |Standardisierte, ressourcenorientierte Schnittstellen
 |Verbindungskonzept |Custom-Lösung mit verschiedenen Konnektivitätsszenarien |Unterstützung von lokaler Verbindung (FüKW), vollständiger Verbindung (FüKW + Internet) und zukünftig autonomem Modus
 |Kartendarstellung |mapbox (Entscheidung noch nicht final) |Unterstützung für Offline-Karten, umfangreiche Features
@@ -98,7 +98,7 @@ mindmap
 
 ==== Persistenz
 
-* *SQLite für alle Datenhaltung*: Sowohl als lokale Datenbank als auch für den Server
+* *PostgreSQL für Server-Datenhaltung, SQLite für lokale Entwicklung*: Robuste, skalierbare Datenbank für den Server, SQLite für Entwicklungsumgebungen
 * *Daten-Synchronisationsschicht*: Verwaltet Konflikte und sorgt für konsistente Datenreplikation
 * *Versioning*: Versionierung aller Datenobjekte zur Konfliktlösung
 

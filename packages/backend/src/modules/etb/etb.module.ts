@@ -1,7 +1,7 @@
+import { CommonModule } from '@/common/common.module';
+import { ConfigModule } from '@/config/config.module';
+import { PrismaModule } from '@/prisma/prisma.module';
 import { Module } from '@nestjs/common';
-import { TypeOrmModule } from '@nestjs/typeorm';
-import { EtbAttachment } from './entities/etb-attachment.entity';
-import { EtbEntry } from './entities/etb-entry.entity';
 import { EtbController } from './etb.controller';
 import { EtbService } from './etb.service';
 
@@ -11,7 +11,9 @@ import { EtbService } from './etb.service';
  */
 @Module({
     imports: [
-        TypeOrmModule.forFeature([EtbEntry, EtbAttachment])
+        ConfigModule,
+        PrismaModule,
+        CommonModule
     ],
     controllers: [EtbController],
     providers: [EtbService],

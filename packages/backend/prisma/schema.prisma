@@ -1,0 +1,70 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client"
+  output   = "./generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum EtbKategorie {
+  LAGEMELDUNG
+  MELDUNG
+  ANFORDERUNG
+  KORREKTUR
+  AUTO_KRAEFTE
+  AUTO_PATIENTEN
+  AUTO_TECHNISCH
+  AUTO_SONSTIGES
+}
+
+enum EtbEntryStatus {
+  AKTIV
+  UEBERSCHRIEBEN
+}
+
+model EtbEntry {
+  id                      String           @id @default(nanoid())
+  laufendeNummer          Int
+  timestampErstellung     DateTime
+  timestampEreignis       DateTime
+  autorId                 String
+  autorName               String?
+  autorRolle              String?
+  kategorie               EtbKategorie
+  inhalt                  String
+  referenzEinsatzId       String?
+  referenzPatientId       String?
+  referenzEinsatzmittelId String?
+  systemQuelle            String?
+  version                 Int              @default(1)
+  status                  EtbEntryStatus   @default(AKTIV)
+  istAbgeschlossen        Boolean          @default(false)
+  timestampAbschluss      DateTime?
+  abgeschlossenVon        String?
+  ueberschriebenDurch     EtbEntry?        @relation("UeberschriebenDurch", fields: [ueberschriebenDurchId], references: [id])
+  ueberschriebenDurchId   String?
+  ueberschriebeneEintraege EtbEntry[]      @relation("UeberschriebenDurch")
+  timestampUeberschrieben DateTime?
+  ueberschriebenVon       String?
+  anlagen                 EtbAttachment[]
+  sender                  String?
+  receiver                String?
+}
+
+model EtbAttachment {
+  id          String   @id @default(nanoid())
+  etbEntryId  String
+  etbEntry    EtbEntry @relation(fields: [etbEntryId], references: [id])
+  dateiname   String
+  dateityp    String
+  speicherOrt String
+  beschreibung String?
+}

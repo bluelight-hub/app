@@ -1,8 +1,8 @@
 import { FilterPaginationDto } from '@/common/dto/pagination.dto';
 import { ApiPropertyOptional } from '@nestjs/swagger';
+import { EtbEntryStatus } from '@prisma/generated/prisma';
 import { Transform } from 'class-transformer';
 import { IsDateString, IsEnum, IsOptional, IsString, IsUUID } from 'class-validator';
-import { EtbEntryStatus } from '../entities/etb-entry.entity';
 import { EtbKategorie } from './etb-kategorie.enum';
 
 /**

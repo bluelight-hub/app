@@ -17,7 +17,7 @@
 
 ## Architecture & Patterns
 - React frontend with Atomic Design and Vite/Vitest for testing
-- NestJS backend with TypeORM (SQLite)
+- NestJS backend with Prisma (PostgreSQL)
 - Packages: frontend, backend, shared (monorepo with pnpm workspaces)
 - DRY code with clear separation of concerns
 - Single Responsibility Principle for components (<150 lines)

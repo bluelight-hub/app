@@ -1,5 +1,5 @@
+import { PrismaService } from '@/prisma/prisma.service';
 import { Injectable } from '@nestjs/common';
-import { FindManyOptions, Repository, SelectQueryBuilder } from 'typeorm';
 import { PaginatedResponse } from '../interfaces/paginated-response.interface';
 
 /**
@@ -9,48 +9,50 @@ import { PaginatedResponse } from '../interfaces/paginated-response.interface';
 @Injectable()
 export class PaginationService {
     /**
-     * Erzeugt eine paginierte Antwort aus einer TypeORM-Repository-Abfrage.
+     * Konstruktor für den PaginationService
      * 
-     * @param repository Das Repository
-     * @param options Optionen für die Abfrage
+     * @param prisma Der Prisma-Service für Datenbankabfragen
+     */
+    constructor(
+        private prisma: PrismaService,
+    ) { }
+
+    /**
+     * Erzeugt eine paginierte Antwort aus einer Prisma-Abfrage.
+     * 
+     * @param model Der Name des Prisma-Models als String
+     * @param options Optionen für die Abfrage (where, orderBy, include)
      * @param page Seitennummer (1-basiert)
      * @param limit Anzahl der Elemente pro Seite
      * @returns Eine paginierte Antwort
      */
     async paginate<T>(
-        repository: Repository<T>,
-        options: FindManyOptions<T>,
+        model: string,
+        options: {
+            where?: any;
+            orderBy?: any;
+            include?: any;
+        },
         page: number = 1,
         limit: number = 10
     ): Promise<PaginatedResponse<T>> {
-        const [items, totalItems] = await repository.findAndCount({
-            ...options,
-            skip: (page - 1) * limit,
-            take: limit,
-        });
+        const prismaModel = this.prisma[model];
+        if (!prismaModel) {
+            throw new Error(`Prisma model '${model}' not found`);
+        }
 
-        return PaginatedResponse.create(items, totalItems, page, limit);
-    }
+        const skip = (page - 1) * limit;
 
-    /**
-     * Erzeugt eine paginierte Antwort aus einem TypeORM-QueryBuilder.
-     * 
-     * @param queryBuilder Der QueryBuilder
-     * @param page Seitennummer (1-basiert)
-     * @param limit Anzahl der Elemente pro Seite
-     * @returns Eine paginierte Antwort
-     */
-    async paginateQueryBuilder<T>(
-        queryBuilder: SelectQueryBuilder<T>,
-        page: number = 1,
-        limit: number = 10
-    ): Promise<PaginatedResponse<T>> {
-        const offset = (page - 1) * limit;
-
-        const [items, totalItems] = await queryBuilder
-            .take(limit)
-            .skip(offset)
-            .getManyAndCount();
+        const [items, totalItems] = await Promise.all([
+            prismaModel.findMany({
+                ...options,
+                skip,
+                take: limit,
+            }),
+            prismaModel.count({
+                where: options.where
+            })
+        ]);
 
         return PaginatedResponse.create(items, totalItems, page, limit);
     }

@@ -22,10 +22,14 @@
             "@/*": [
                 "src/*"
             ],
+            "@prisma/*": [
+                "prisma/*"
+            ]
         }
     },
     "include": [
-        "src/**/*"
+        "src/**/*",
+        "prisma/**/*"
     ],
     "exclude": [
         "node_modules",
