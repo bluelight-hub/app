@@ -11,22 +11,22 @@ export class UeberschreibeEtbDto {
     /**
      * Zeitpunkt des tatsächlichen Ereignisses
      */
-    @ApiProperty({ description: 'Zeitpunkt des tatsächlichen Ereignisses' })
+    @ApiPropertyOptional({ description: 'Zeitpunkt des tatsächlichen Ereignisses' })
     @IsDateString()
-    @IsNotEmpty()
-    timestampEreignis: string;
+    @IsOptional()
+    timestampEreignis?: string;
 
     /**
      * Kategorie des neuen Eintrags
      */
-    @ApiProperty({
+    @ApiPropertyOptional({
         description: 'Kategorie des Eintrags',
         enum: EtbKategorie,
         enumName: 'EtbKategorie'
     })
     @IsEnum(EtbKategorie)
-    @IsNotEmpty()
-    kategorie: EtbKategorie;
+    @IsOptional()
+    kategorie?: EtbKategorie;
 
     /**
      * Inhalt des neuen Eintrags
@@ -39,10 +39,10 @@ export class UeberschreibeEtbDto {
     /**
      * Grund für die Überschreibung
      */
-    @ApiProperty({ description: 'Grund für die Überschreibung' })
+    @ApiPropertyOptional({ description: 'Grund für die Überschreibung' })
     @IsString()
-    @IsNotEmpty()
-    ueberschreibungsgrund: string;
+    @IsOptional()
+    ueberschreibungsgrund?: string;
 
     /**
      * Absender des Eintrags (OPTA-Nummer)
@@ -59,6 +59,14 @@ export class UeberschreibeEtbDto {
     @IsString()
     @IsOptional()
     receiver?: string;
+
+    /**
+     * Referenz zur Einsatz-ID (optional)
+     */
+    @ApiPropertyOptional({ description: 'Referenz zur Einsatz-ID' })
+    @IsUUID()
+    @IsOptional()
+    referenzEinsatzId?: string;
 
     /**
      * Referenz zur Patienten-ID (optional)

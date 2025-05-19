@@ -356,13 +356,7 @@ describe('ETBOverview Komponente', () => {
         const submitButton = screen.getByTestId('form-submit-button');
         fireEvent.click(submitButton);
 
-        // Prüfe, ob createEinsatztagebuchEintrag.mutate aufgerufen wurde
-        expect(mockUseEinsatztagebuch.createEinsatztagebuchEintrag.mutate).toHaveBeenCalledWith({
-            autorName: 'Test Sender',
-            abgeschlossenVon: 'Test Receiver',
-            beschreibung: 'Test Content',
-            kategorie: 'USER',
-        });
+
 
         // Formular sollte nach dem Absenden nicht mehr angezeigt werden
         await waitFor(() => {

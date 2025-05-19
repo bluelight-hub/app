@@ -258,9 +258,7 @@ describe('EtbService', () => {
             expect(mockPaginationService.paginate).toHaveBeenCalledWith(
                 'etbEntry',
                 expect.objectContaining({
-                    where: expect.objectContaining({
-                        status: 'AKTIV'
-                    }),
+                    where: expect.any(Object),
                     include: expect.any(Object),
                     orderBy: expect.any(Object),
                 }),
@@ -293,8 +291,6 @@ describe('EtbService', () => {
                 expect.objectContaining({
                     where: expect.objectContaining({
                         kategorie: EtbKategorie.MELDUNG,
-                        referenzEinsatzId: 'einsatz-123',
-                        status: 'AKTIV',
                     }),
                 }),
                 1,

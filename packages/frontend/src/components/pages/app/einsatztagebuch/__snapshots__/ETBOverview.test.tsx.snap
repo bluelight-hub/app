@@ -17,13 +17,13 @@ exports[`ETBOverview Komponente > sollte einen Snapshot im Fehlerzustand erstell
         class="mt-3 sm:mt-0 sm:ml-4"
       >
         <div
-          class="ant-space css-dev-only-do-not-override-1261szd ant-space-horizontal ant-space-align-center ant-space-gap-row-small ant-space-gap-col-small"
+          class="ant-space css-dev-only-do-not-override-1m2bkf9 ant-space-horizontal ant-space-align-center ant-space-gap-row-small ant-space-gap-col-small"
         >
           <div
             class="ant-space-item"
           >
             <button
-              class="ant-btn css-dev-only-do-not-override-1261szd ant-btn-default ant-btn-color-default ant-btn-variant-outlined"
+              class="ant-btn css-dev-only-do-not-override-1m2bkf9 ant-btn-default ant-btn-color-default ant-btn-variant-outlined"
               type="button"
             >
               <span
@@ -52,7 +52,7 @@ exports[`ETBOverview Komponente > sollte einen Snapshot im Fehlerzustand erstell
             class="ant-space-item"
           >
             <button
-              class="ant-btn css-dev-only-do-not-override-1261szd ant-btn-primary ant-btn-color-primary ant-btn-variant-solid"
+              class="ant-btn css-dev-only-do-not-override-1m2bkf9 ant-btn-primary ant-btn-color-primary ant-btn-variant-solid"
               type="button"
             >
               <span
@@ -87,13 +87,13 @@ exports[`ETBOverview Komponente > sollte einen Snapshot im Fehlerzustand erstell
         class="flex flex-wrap gap-4 items-center"
       >
         <div
-          class="ant-space css-dev-only-do-not-override-1261szd ant-space-horizontal ant-space-align-center ant-space-gap-row-small ant-space-gap-col-small"
+          class="ant-space css-dev-only-do-not-override-1m2bkf9 ant-space-horizontal ant-space-align-center ant-space-gap-row-small ant-space-gap-col-small"
         >
           <div
             class="ant-space-item"
           >
             <span
-              class="ant-typography css-dev-only-do-not-override-1261szd"
+              class="ant-typography css-dev-only-do-not-override-1m2bkf9"
             >
               Überschriebene Einträge anzeigen:
             </span>
@@ -103,7 +103,7 @@ exports[`ETBOverview Komponente > sollte einen Snapshot im Fehlerzustand erstell
           >
             <button
               aria-checked="false"
-              class="ant-switch css-dev-only-do-not-override-1261szd"
+              class="ant-switch css-dev-only-do-not-override-1m2bkf9"
               data-testid="toggle-ueberschrieben-switch"
               role="switch"
               type="button"
@@ -125,13 +125,13 @@ exports[`ETBOverview Komponente > sollte einen Snapshot im Fehlerzustand erstell
           </div>
         </div>
         <div
-          class="ant-space css-dev-only-do-not-override-1261szd ant-space-horizontal ant-space-align-center ant-space-gap-row-small ant-space-gap-col-small"
+          class="ant-space css-dev-only-do-not-override-1m2bkf9 ant-space-horizontal ant-space-align-center ant-space-gap-row-small ant-space-gap-col-small"
         >
           <div
             class="ant-space-item"
           >
             <span
-              class="ant-typography css-dev-only-do-not-override-1261szd"
+              class="ant-typography css-dev-only-do-not-override-1m2bkf9"
             >
               Zeitraum:
             </span>
@@ -140,7 +140,7 @@ exports[`ETBOverview Komponente > sollte einen Snapshot im Fehlerzustand erstell
             class="ant-space-item"
           >
             <div
-              class="ant-picker ant-picker-range ant-picker-outlined css-dev-only-do-not-override-1261szd"
+              class="ant-picker ant-picker-range ant-picker-outlined css-dev-only-do-not-override-1m2bkf9"
             >
               <div
                 class="ant-picker-input"
@@ -225,13 +225,13 @@ exports[`ETBOverview Komponente > sollte einen Snapshot im Fehlerzustand erstell
           </div>
         </div>
         <div
-          class="ant-space css-dev-only-do-not-override-1261szd ant-space-horizontal ant-space-align-center ant-space-gap-row-small ant-space-gap-col-small"
+          class="ant-space css-dev-only-do-not-override-1m2bkf9 ant-space-horizontal ant-space-align-center ant-space-gap-row-small ant-space-gap-col-small"
         >
           <div
             class="ant-space-item"
           >
             <span
-              class="ant-input-affix-wrapper css-dev-only-do-not-override-1261szd ant-input-outlined"
+              class="ant-input-affix-wrapper css-dev-only-do-not-override-1m2bkf9 ant-input-outlined"
               style="width: 250px;"
             >
               <span
@@ -252,7 +252,7 @@ exports[`ETBOverview Komponente > sollte einen Snapshot im Fehlerzustand erstell
                 </svg>
               </span>
               <input
-                class="ant-input css-dev-only-do-not-override-1261szd"
+                class="ant-input css-dev-only-do-not-override-1m2bkf9"
                 placeholder="Suchen..."
                 type="text"
                 value=""
@@ -293,7 +293,7 @@ exports[`ETBOverview Komponente > sollte einen Snapshot im Fehlerzustand erstell
       </div>
     </div>
     <div
-      class="ant-alert ant-alert-error ant-alert-with-description mb-4 css-dev-only-do-not-override-1261szd"
+      class="ant-alert ant-alert-error ant-alert-with-description mb-4 css-dev-only-do-not-override-1m2bkf9"
       data-show="true"
       role="alert"
     >
@@ -362,13 +362,13 @@ exports[`ETBOverview Komponente > sollte einen Snapshot im Ladezustand erstellen
         class="mt-3 sm:mt-0 sm:ml-4"
       >
         <div
-          class="ant-space css-dev-only-do-not-override-1261szd ant-space-horizontal ant-space-align-center ant-space-gap-row-small ant-space-gap-col-small"
+          class="ant-space css-dev-only-do-not-override-1m2bkf9 ant-space-horizontal ant-space-align-center ant-space-gap-row-small ant-space-gap-col-small"
         >
           <div
             class="ant-space-item"
           >
             <button
-              class="ant-btn css-dev-only-do-not-override-1261szd ant-btn-default ant-btn-color-default ant-btn-variant-outlined"
+              class="ant-btn css-dev-only-do-not-override-1m2bkf9 ant-btn-default ant-btn-color-default ant-btn-variant-outlined"
               type="button"
             >
               <span
@@ -397,7 +397,7 @@ exports[`ETBOverview Komponente > sollte einen Snapshot im Ladezustand erstellen
             class="ant-space-item"
           >
             <button
-              class="ant-btn css-dev-only-do-not-override-1261szd ant-btn-primary ant-btn-color-primary ant-btn-variant-solid"
+              class="ant-btn css-dev-only-do-not-override-1m2bkf9 ant-btn-primary ant-btn-color-primary ant-btn-variant-solid"
               type="button"
             >
               <span
@@ -432,13 +432,13 @@ exports[`ETBOverview Komponente > sollte einen Snapshot im Ladezustand erstellen
         class="flex flex-wrap gap-4 items-center"
       >
         <div
-          class="ant-space css-dev-only-do-not-override-1261szd ant-space-horizontal ant-space-align-center ant-space-gap-row-small ant-space-gap-col-small"
+          class="ant-space css-dev-only-do-not-override-1m2bkf9 ant-space-horizontal ant-space-align-center ant-space-gap-row-small ant-space-gap-col-small"
         >
           <div
             class="ant-space-item"
           >
             <span
-              class="ant-typography css-dev-only-do-not-override-1261szd"
+              class="ant-typography css-dev-only-do-not-override-1m2bkf9"
             >
               Überschriebene Einträge anzeigen:
             </span>
@@ -448,7 +448,7 @@ exports[`ETBOverview Komponente > sollte einen Snapshot im Ladezustand erstellen
           >
             <button
               aria-checked="false"
-              class="ant-switch css-dev-only-do-not-override-1261szd"
+              class="ant-switch css-dev-only-do-not-override-1m2bkf9"
               data-testid="toggle-ueberschrieben-switch"
               role="switch"
               type="button"
@@ -470,13 +470,13 @@ exports[`ETBOverview Komponente > sollte einen Snapshot im Ladezustand erstellen
           </div>
         </div>
         <div
-          class="ant-space css-dev-only-do-not-override-1261szd ant-space-horizontal ant-space-align-center ant-space-gap-row-small ant-space-gap-col-small"
+          class="ant-space css-dev-only-do-not-override-1m2bkf9 ant-space-horizontal ant-space-align-center ant-space-gap-row-small ant-space-gap-col-small"
         >
           <div
             class="ant-space-item"
           >
             <span
-              class="ant-typography css-dev-only-do-not-override-1261szd"
+              class="ant-typography css-dev-only-do-not-override-1m2bkf9"
             >
               Zeitraum:
             </span>
@@ -485,7 +485,7 @@ exports[`ETBOverview Komponente > sollte einen Snapshot im Ladezustand erstellen
             class="ant-space-item"
           >
             <div
-              class="ant-picker ant-picker-range ant-picker-outlined css-dev-only-do-not-override-1261szd"
+              class="ant-picker ant-picker-range ant-picker-outlined css-dev-only-do-not-override-1m2bkf9"
             >
               <div
                 class="ant-picker-input"
@@ -570,13 +570,13 @@ exports[`ETBOverview Komponente > sollte einen Snapshot im Ladezustand erstellen
           </div>
         </div>
         <div
-          class="ant-space css-dev-only-do-not-override-1261szd ant-space-horizontal ant-space-align-center ant-space-gap-row-small ant-space-gap-col-small"
+          class="ant-space css-dev-only-do-not-override-1m2bkf9 ant-space-horizontal ant-space-align-center ant-space-gap-row-small ant-space-gap-col-small"
         >
           <div
             class="ant-space-item"
           >
             <span
-              class="ant-input-affix-wrapper css-dev-only-do-not-override-1261szd ant-input-outlined"
+              class="ant-input-affix-wrapper css-dev-only-do-not-override-1m2bkf9 ant-input-outlined"
               style="width: 250px;"
             >
               <span
@@ -597,7 +597,7 @@ exports[`ETBOverview Komponente > sollte einen Snapshot im Ladezustand erstellen
                 </svg>
               </span>
               <input
-                class="ant-input css-dev-only-do-not-override-1261szd"
+                class="ant-input css-dev-only-do-not-override-1m2bkf9"
                 placeholder="Suchen..."
                 type="text"
                 value=""
@@ -643,7 +643,7 @@ exports[`ETBOverview Komponente > sollte einen Snapshot im Ladezustand erstellen
       <div
         aria-busy="true"
         aria-live="polite"
-        class="ant-spin ant-spin-lg ant-spin-spinning ant-spin-show-text css-dev-only-do-not-override-1261szd"
+        class="ant-spin ant-spin-lg ant-spin-spinning ant-spin-show-text css-dev-only-do-not-override-1m2bkf9"
       >
         <span
           class="ant-spin-dot-holder"
@@ -688,13 +688,13 @@ exports[`ETBOverview Komponente > sollte einen Snapshot im Normalzustand erstell
         class="mt-3 sm:mt-0 sm:ml-4"
       >
         <div
-          class="ant-space css-dev-only-do-not-override-1261szd ant-space-horizontal ant-space-align-center ant-space-gap-row-small ant-space-gap-col-small"
+          class="ant-space css-dev-only-do-not-override-1m2bkf9 ant-space-horizontal ant-space-align-center ant-space-gap-row-small ant-space-gap-col-small"
         >
           <div
             class="ant-space-item"
           >
             <button
-              class="ant-btn css-dev-only-do-not-override-1261szd ant-btn-default ant-btn-color-default ant-btn-variant-outlined"
+              class="ant-btn css-dev-only-do-not-override-1m2bkf9 ant-btn-default ant-btn-color-default ant-btn-variant-outlined"
               type="button"
             >
               <span
@@ -723,7 +723,7 @@ exports[`ETBOverview Komponente > sollte einen Snapshot im Normalzustand erstell
             class="ant-space-item"
           >
             <button
-              class="ant-btn css-dev-only-do-not-override-1261szd ant-btn-primary ant-btn-color-primary ant-btn-variant-solid"
+              class="ant-btn css-dev-only-do-not-override-1m2bkf9 ant-btn-primary ant-btn-color-primary ant-btn-variant-solid"
               type="button"
             >
               <span
@@ -758,13 +758,13 @@ exports[`ETBOverview Komponente > sollte einen Snapshot im Normalzustand erstell
         class="flex flex-wrap gap-4 items-center"
       >
         <div
-          class="ant-space css-dev-only-do-not-override-1261szd ant-space-horizontal ant-space-align-center ant-space-gap-row-small ant-space-gap-col-small"
+          class="ant-space css-dev-only-do-not-override-1m2bkf9 ant-space-horizontal ant-space-align-center ant-space-gap-row-small ant-space-gap-col-small"
         >
           <div
             class="ant-space-item"
           >
             <span
-              class="ant-typography css-dev-only-do-not-override-1261szd"
+              class="ant-typography css-dev-only-do-not-override-1m2bkf9"
             >
               Überschriebene Einträge anzeigen:
             </span>
@@ -774,7 +774,7 @@ exports[`ETBOverview Komponente > sollte einen Snapshot im Normalzustand erstell
           >
             <button
               aria-checked="false"
-              class="ant-switch css-dev-only-do-not-override-1261szd"
+              class="ant-switch css-dev-only-do-not-override-1m2bkf9"
               data-testid="toggle-ueberschrieben-switch"
               role="switch"
               type="button"
@@ -796,13 +796,13 @@ exports[`ETBOverview Komponente > sollte einen Snapshot im Normalzustand erstell
           </div>
         </div>
         <div
-          class="ant-space css-dev-only-do-not-override-1261szd ant-space-horizontal ant-space-align-center ant-space-gap-row-small ant-space-gap-col-small"
+          class="ant-space css-dev-only-do-not-override-1m2bkf9 ant-space-horizontal ant-space-align-center ant-space-gap-row-small ant-space-gap-col-small"
         >
           <div
             class="ant-space-item"
           >
             <span
-              class="ant-typography css-dev-only-do-not-override-1261szd"
+              class="ant-typography css-dev-only-do-not-override-1m2bkf9"
             >
               Zeitraum:
             </span>
@@ -811,7 +811,7 @@ exports[`ETBOverview Komponente > sollte einen Snapshot im Normalzustand erstell
             class="ant-space-item"
           >
             <div
-              class="ant-picker ant-picker-range ant-picker-outlined css-dev-only-do-not-override-1261szd"
+              class="ant-picker ant-picker-range ant-picker-outlined css-dev-only-do-not-override-1m2bkf9"
             >
               <div
                 class="ant-picker-input"
@@ -896,13 +896,13 @@ exports[`ETBOverview Komponente > sollte einen Snapshot im Normalzustand erstell
           </div>
         </div>
         <div
-          class="ant-space css-dev-only-do-not-override-1261szd ant-space-horizontal ant-space-align-center ant-space-gap-row-small ant-space-gap-col-small"
+          class="ant-space css-dev-only-do-not-override-1m2bkf9 ant-space-horizontal ant-space-align-center ant-space-gap-row-small ant-space-gap-col-small"
         >
           <div
             class="ant-space-item"
           >
             <span
-              class="ant-input-affix-wrapper css-dev-only-do-not-override-1261szd ant-input-outlined"
+              class="ant-input-affix-wrapper css-dev-only-do-not-override-1m2bkf9 ant-input-outlined"
               style="width: 250px;"
             >
               <span
@@ -923,7 +923,7 @@ exports[`ETBOverview Komponente > sollte einen Snapshot im Normalzustand erstell
                 </svg>
               </span>
               <input
-                class="ant-input css-dev-only-do-not-override-1261szd"
+                class="ant-input css-dev-only-do-not-override-1m2bkf9"
                 placeholder="Suchen..."
                 type="text"
                 value=""
@@ -1019,13 +1019,13 @@ exports[`ETBOverview Komponente > sollte einen Snapshot mit geöffnetem Formular
         class="mt-3 sm:mt-0 sm:ml-4"
       >
         <div
-          class="ant-space css-dev-only-do-not-override-1261szd ant-space-horizontal ant-space-align-center ant-space-gap-row-small ant-space-gap-col-small"
+          class="ant-space css-dev-only-do-not-override-1m2bkf9 ant-space-horizontal ant-space-align-center ant-space-gap-row-small ant-space-gap-col-small"
         >
           <div
             class="ant-space-item"
           >
             <button
-              class="ant-btn css-dev-only-do-not-override-1261szd ant-btn-default ant-btn-color-default ant-btn-variant-outlined"
+              class="ant-btn css-dev-only-do-not-override-1m2bkf9 ant-btn-default ant-btn-color-default ant-btn-variant-outlined"
               type="button"
             >
               <span
@@ -1054,7 +1054,7 @@ exports[`ETBOverview Komponente > sollte einen Snapshot mit geöffnetem Formular
             class="ant-space-item"
           >
             <button
-              class="ant-btn css-dev-only-do-not-override-1261szd ant-btn-primary ant-btn-color-primary ant-btn-variant-solid"
+              class="ant-btn css-dev-only-do-not-override-1m2bkf9 ant-btn-primary ant-btn-color-primary ant-btn-variant-solid"
               type="button"
             >
               <span
@@ -1089,13 +1089,13 @@ exports[`ETBOverview Komponente > sollte einen Snapshot mit geöffnetem Formular
         class="flex flex-wrap gap-4 items-center"
       >
         <div
-          class="ant-space css-dev-only-do-not-override-1261szd ant-space-horizontal ant-space-align-center ant-space-gap-row-small ant-space-gap-col-small"
+          class="ant-space css-dev-only-do-not-override-1m2bkf9 ant-space-horizontal ant-space-align-center ant-space-gap-row-small ant-space-gap-col-small"
         >
           <div
             class="ant-space-item"
           >
             <span
-              class="ant-typography css-dev-only-do-not-override-1261szd"
+              class="ant-typography css-dev-only-do-not-override-1m2bkf9"
             >
               Überschriebene Einträge anzeigen:
             </span>
@@ -1105,7 +1105,7 @@ exports[`ETBOverview Komponente > sollte einen Snapshot mit geöffnetem Formular
           >
             <button
               aria-checked="false"
-              class="ant-switch css-dev-only-do-not-override-1261szd"
+              class="ant-switch css-dev-only-do-not-override-1m2bkf9"
               data-testid="toggle-ueberschrieben-switch"
               role="switch"
               type="button"
@@ -1127,13 +1127,13 @@ exports[`ETBOverview Komponente > sollte einen Snapshot mit geöffnetem Formular
           </div>
         </div>
         <div
-          class="ant-space css-dev-only-do-not-override-1261szd ant-space-horizontal ant-space-align-center ant-space-gap-row-small ant-space-gap-col-small"
+          class="ant-space css-dev-only-do-not-override-1m2bkf9 ant-space-horizontal ant-space-align-center ant-space-gap-row-small ant-space-gap-col-small"
         >
           <div
             class="ant-space-item"
           >
             <span
-              class="ant-typography css-dev-only-do-not-override-1261szd"
+              class="ant-typography css-dev-only-do-not-override-1m2bkf9"
             >
               Zeitraum:
             </span>
@@ -1142,7 +1142,7 @@ exports[`ETBOverview Komponente > sollte einen Snapshot mit geöffnetem Formular
             class="ant-space-item"
           >
             <div
-              class="ant-picker ant-picker-range ant-picker-outlined css-dev-only-do-not-override-1261szd"
+              class="ant-picker ant-picker-range ant-picker-outlined css-dev-only-do-not-override-1m2bkf9"
             >
               <div
                 class="ant-picker-input"
@@ -1227,13 +1227,13 @@ exports[`ETBOverview Komponente > sollte einen Snapshot mit geöffnetem Formular
           </div>
         </div>
         <div
-          class="ant-space css-dev-only-do-not-override-1261szd ant-space-horizontal ant-space-align-center ant-space-gap-row-small ant-space-gap-col-small"
+          class="ant-space css-dev-only-do-not-override-1m2bkf9 ant-space-horizontal ant-space-align-center ant-space-gap-row-small ant-space-gap-col-small"
         >
           <div
             class="ant-space-item"
           >
             <span
-              class="ant-input-affix-wrapper css-dev-only-do-not-override-1261szd ant-input-outlined"
+              class="ant-input-affix-wrapper css-dev-only-do-not-override-1m2bkf9 ant-input-outlined"
               style="width: 250px;"
             >
               <span
@@ -1254,7 +1254,7 @@ exports[`ETBOverview Komponente > sollte einen Snapshot mit geöffnetem Formular
                 </svg>
               </span>
               <input
-                class="ant-input css-dev-only-do-not-override-1261szd"
+                class="ant-input css-dev-only-do-not-override-1m2bkf9"
                 placeholder="Suchen..."
                 type="text"
                 value=""
@@ -1306,7 +1306,7 @@ exports[`ETBOverview Komponente > sollte einen Snapshot mit geöffnetem Formular
           Neuer Einsatztagebucheintrag
         </h3>
         <button
-          class="ant-btn css-dev-only-do-not-override-1261szd ant-btn-text ant-btn-color-default ant-btn-variant-text ant-btn-icon-only text-gray-500 hover:text-gray-700"
+          class="ant-btn css-dev-only-do-not-override-1m2bkf9 ant-btn-text ant-btn-color-default ant-btn-variant-text ant-btn-icon-only text-gray-500 hover:text-gray-700"
           type="button"
         >
           <span

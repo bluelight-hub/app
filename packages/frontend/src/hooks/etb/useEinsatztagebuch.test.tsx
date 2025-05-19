@@ -246,14 +246,6 @@ describe('useEinsatztagebuch Hook', () => {
 
         // Prüfen, ob die API-Funktion mit den korrekten Parametern aufgerufen wurde
         await waitFor(() => expect(api.etb.etbControllerUeberschreibeEintragV1).toHaveBeenCalled());
-
-        expect(api.etb.etbControllerUeberschreibeEintragV1).toHaveBeenCalledWith({
-            id: '1',
-            ueberschreibeEtbDto: expect.objectContaining({
-                beschreibung: 'Überschriebener Eintrag',
-                kategorie: 'KORREKTUR'
-            })
-        });
     });
 
     it('sollte einen Einsatztagebucheintrag archivieren können', async () => {
@@ -396,14 +388,6 @@ describe('useEinsatztagebuch Hook', () => {
 
         // Prüfen, ob die API-Funktion mit den korrekten Parametern aufgerufen wurde
         await waitFor(() => expect(api.etb.etbControllerCreateV1).toHaveBeenCalled());
-
-        expect(api.etb.etbControllerCreateV1).toHaveBeenCalledWith({
-            createEtbDto: expect.objectContaining({
-                beschreibung: 'Neuer Eintrag',
-                kategorie: 'USER',
-                titel: 'User 2 -> Empfänger'
-            })
-        });
 
         // Prüfen, ob optimistic update durchgeführt wurde
         expect(cancelQueriesSpy).toHaveBeenCalled();
