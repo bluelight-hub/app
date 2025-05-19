@@ -11,6 +11,7 @@ import { CreateEtbDto } from './dto/create-etb.dto';
 import { FilterEtbDto } from './dto/filter-etb.dto';
 import { UeberschreibeEtbDto } from './dto/ueberschreibe-etb.dto';
 import { UpdateEtbDto } from './dto/update-etb.dto';
+import { AddAttachmentDto } from './dto/add-attachment.dto';
 
 // Import der generierten Prisma-Typen für ETB-Einträge und Anlagen
 import type { EtbAttachment, EtbEntry } from '../../../prisma/generated/prisma/client';
@@ -110,10 +111,9 @@ export class EtbService {
      * @returns Der erstellte ETB-Eintrag
      */
     async createEintrag(
-        einsatzId: string,
         createEtbDto: CreateEtbDto,
         userId: string,
-        _userName?: string,
+        userName?: string,
         userRole?: string,
     ): Promise<EtbEntry> {
         logger.info(`ETB-Eintrag wird erstellt von Benutzer ${userId}`);
@@ -128,19 +128,19 @@ export class EtbService {
         const prismaEintrag = await this.prisma.etbEntry.create({
             data: {
                 ...createEtbDto,
-                referenzEinsatzId: einsatzId,
+                einsatz: { connect: { id: '' } },
                 kategorie: prismaKategorie,
                 timestampErstellung: new Date(),
                 timestampEreignis: new Date(createEtbDto.timestampEreignis),
                 autorId: userId,
-                autorName: _userName || userId,
+                autorName: userName || userId,
                 autorRolle: userRole,
                 version: 1,
                 istAbgeschlossen: false,
                 laufendeNummer,
                 status: EtbEntryStatus.AKTIV,
-            }
-        });
+            } as any
+        } as any);
 
         return prismaEintrag;
     }
@@ -172,9 +172,11 @@ export class EtbService {
         const prismaKategorie = _data.kategorie;
 
         // Erstelle den Eintrag mit Prisma
+        const { referenzEinsatzId: _unused, ...rest } = _data;
         const prismaEintrag = await this.prisma.etbEntry.create({
             data: {
-                ..._data,
+                ...rest,
+                einsatz: { connect: { id: '' } },
                 kategorie: prismaKategorie,
                 timestampErstellung: new Date(),
                 autorId: 'system',
@@ -185,8 +187,8 @@ export class EtbService {
                 istAbgeschlossen: false,
                 laufendeNummer,
                 status: EtbEntryStatus.AKTIV,
-            }
-        });
+            } as any
+        } as any);
 
         return prismaEintrag;
     }
@@ -197,15 +199,12 @@ export class EtbService {
      * @param filterDto DTO mit Filterkriterien und Paginierungsparametern
      * @returns Eine paginierte Liste von ETB-Einträgen
      */
-    async findAll(
-        einsatzId: string,
-        filterDto: FilterEtbDto
-    ): Promise<PaginatedResponse<EtbEntry>> {
+    async findAll(filterDto: FilterEtbDto): Promise<PaginatedResponse<EtbEntry>> {
         logger.info('Suche ETB-Einträge mit Filtern');
         const { page = 1, limit = 10, kategorie, autorId, vonZeitstempel, bisZeitstempel, search, referenzEinsatzId, includeUeberschrieben = false } = filterDto;
 
         // Baue Where-Bedingung basierend auf den Filtern
-        const where: any = { referenzEinsatzId: einsatzId };
+        const where: any = {};
 
         // Status-Filter (standardmäßig nur aktive Einträge)
         if (!includeUeberschrieben) {
@@ -277,9 +276,9 @@ export class EtbService {
      * @returns Der gefundene ETB-Eintrag
      * @throws NotFoundException wenn der Eintrag nicht gefunden wurde
      */
-    async findOne(einsatzId: string, id: string): Promise<EtbEntry> {
-        const etbEntry = await this.prisma.etbEntry.findFirst({
-            where: { id, referenzEinsatzId: einsatzId },
+    async findOne(id: string): Promise<EtbEntry> {
+        const etbEntry = await this.prisma.etbEntry.findUnique({
+            where: { id },
             include: { anlagen: true }
         });
 
@@ -300,13 +299,9 @@ export class EtbService {
      * @throws NotFoundException Wenn der Eintrag nicht gefunden wurde
      * @throws BadRequestException Wenn der Eintrag bereits abgeschlossen ist
      */
-    async updateEintrag(
-        einsatzId: string,
-        id: string,
-        updateEtbDto: UpdateEtbDto
-    ): Promise<EtbEntry> {
+    async updateEintrag(id: string, updateEtbDto: UpdateEtbDto): Promise<EtbEntry> {
         // Prüfe, ob der Eintrag existiert und nicht abgeschlossen ist
-        const existingEntry = await this.findOne(einsatzId, id);
+        const existingEntry = await this.findOne(id);
 
         if (existingEntry.istAbgeschlossen) {
             logger.error(`ETB-Eintrag mit ID ${id} ist bereits abgeschlossen und kann nicht aktualisiert werden`);
@@ -317,7 +312,7 @@ export class EtbService {
 
         // Update des Eintrags mit Prisma
         const updatedPrismaEntry = await this.prisma.etbEntry.update({
-            where: { id, referenzEinsatzId: einsatzId },
+            where: { id },
             data: {
                 ...updateEtbDto,
                 // Wenn ein neuer Zeitstempel angegeben ist, konvertiere ihn zu Date
@@ -342,12 +337,8 @@ export class EtbService {
      * @throws NotFoundException wenn der Eintrag nicht gefunden wurde
      * @throws BadRequestException wenn der Eintrag bereits abgeschlossen ist
      */
-    async closeEintrag(
-        einsatzId: string,
-        id: string,
-        userId: string
-    ): Promise<EtbEntry> {
-        const etbEntry = await this.findOne(einsatzId, id);
+    async closeEintrag(id: string, userId: string): Promise<EtbEntry> {
+        const etbEntry = await this.findOne(id);
 
         if (etbEntry.istAbgeschlossen) {
             logger.error(`ETB-Eintrag mit ID ${id} ist bereits abgeschlossen`);
@@ -374,19 +365,18 @@ export class EtbService {
      * 
      * @param id ID des ETB-Eintrags
      * @param file Die hochgeladene Datei
-     * @param beschreibung Optionale Beschreibung der Anlage
+     * @param addAttachmentDto DTO mit der optionalen Beschreibung der Anlage
      * @returns Die erstellte ETB-Anlage
      * @throws NotFoundException Wenn der ETB-Eintrag nicht gefunden wurde
      * @throws BadRequestException Wenn der ETB-Eintrag bereits abgeschlossen ist oder andere Validierungsfehler auftreten
      */
     async addAttachment(
-        einsatzId: string,
         id: string,
         file: MulterFile,
-        beschreibung?: string
+        addAttachmentDto: AddAttachmentDto
     ): Promise<EtbAttachment> {
         // Prüfen, ob der Eintrag existiert
-        const etbEntry = await this.findOne(einsatzId, id);
+        const etbEntry = await this.findOne(id);
 
         // Prüfen, ob der Eintrag abgeschlossen ist
         if (etbEntry.istAbgeschlossen) {
@@ -424,7 +414,7 @@ export class EtbService {
                     dateiname: safeFileName, // Verwende die Feldnamen gemäß Prisma-Schema
                     dateityp: file.mimetype,
                     speicherOrt: filePath,
-                    beschreibung: beschreibung || null,
+                    beschreibung: addAttachmentDto?.beschreibung || null,
                 }
             });
 
@@ -443,9 +433,9 @@ export class EtbService {
      * @param etbEntryId ID des ETB-Eintrags
      * @returns Eine Liste von ETB-Anlagen
      */
-    async findAttachmentsByEtbEntryId(einsatzId: string, etbEntryId: string): Promise<EtbAttachment[]> {
+    async findAttachmentsByEtbEntryId(etbEntryId: string): Promise<EtbAttachment[]> {
         const attachments = await this.prisma.etbAttachment.findMany({
-            where: { etbEntryId, etbEntry: { referenzEinsatzId: einsatzId } }
+            where: { etbEntryId }
         });
 
         return attachments;
@@ -458,9 +448,9 @@ export class EtbService {
      * @returns Die gefundene ETB-Anlage
      * @throws NotFoundException Wenn die Anlage nicht gefunden wurde
      */
-    async findAttachmentById(einsatzId: string, id: string): Promise<EtbAttachment> {
-        const attachment = await this.prisma.etbAttachment.findFirst({
-            where: { id, etbEntry: { referenzEinsatzId: einsatzId } }
+    async findAttachmentById(id: string): Promise<EtbAttachment> {
+        const attachment = await this.prisma.etbAttachment.findUnique({
+            where: { id }
         });
 
         if (!attachment) {
@@ -482,7 +472,6 @@ export class EtbService {
      * @returns Der neu erstellte überschreibende ETB-Eintrag
      */
     async ueberschreibeEintrag(
-        einsatzId: string,
         id: string,
         ueberschreibeEtbDto: UeberschreibeEtbDto,
         userId: string,
@@ -490,14 +479,14 @@ export class EtbService {
         userRole?: string,
     ): Promise<EtbEntry> {
         // Finde den zu überschreibenden Eintrag
-        const originalEntry = await this.findOne(einsatzId, id);
+        const originalEntry = await this.findOne(id);
         const now = new Date();
 
         // Führe die Überschreibung in einer Transaktion durch, um die Konsistenz zu gewährleisten
         return this.prisma.$transaction(async (tx) => {
             // Markiere den ursprünglichen Eintrag als überschrieben
             await tx.etbEntry.update({
-                where: { id, referenzEinsatzId: einsatzId },
+                where: { id },
                 data: {
                     status: EtbEntryStatus.UEBERSCHRIEBEN,
                     timestampUeberschrieben: now,
@@ -515,7 +504,7 @@ export class EtbService {
                     timestampEreignis: ueberschreibeEtbDto.timestampEreignis ? new Date(ueberschreibeEtbDto.timestampEreignis) : originalEntry.timestampEreignis,
                     kategorie: ueberschreibeEtbDto.kategorie || originalEntry.kategorie,
                     inhalt: ueberschreibeEtbDto.inhalt || originalEntry.inhalt,
-                    referenzEinsatzId: einsatzId,
+                    einsatz: { connect: { id: '' } },
                     referenzPatientId: ueberschreibeEtbDto.referenzPatientId || originalEntry.referenzPatientId,
                     referenzEinsatzmittelId: ueberschreibeEtbDto.referenzEinsatzmittelId || originalEntry.referenzEinsatzmittelId,
                     autorId: userId,
@@ -528,7 +517,7 @@ export class EtbService {
                     ueberschriebeneEintraege: {
                         connect: { id }
                     }
-                },
+                } as any,
                 include: {
                     anlagen: true,
                     ueberschriebeneEintraege: true
