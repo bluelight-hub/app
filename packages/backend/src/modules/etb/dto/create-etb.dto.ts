@@ -1,6 +1,5 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { IsDateString, IsEnum, IsNotEmpty, IsOptional, IsString } from 'class-validator';
-import { nanoid } from 'nanoid';
 import { IsNanoId } from '../../../common/decorators';
 import { EtbKategorie } from './etb-kategorie.enum';
 
@@ -56,7 +55,7 @@ export class CreateEtbDto {
     /**
      * Referenz zur Patienten-ID (optional)
      */
-    @ApiPropertyOptional({ description: 'Referenz zur Patienten-ID', example: nanoid() })
+    @ApiPropertyOptional({ description: 'Referenz zur Patienten-ID', example: 'patient-id' })
     @IsNanoId()
     @IsOptional()
     referenzPatientId?: string;
@@ -64,7 +63,7 @@ export class CreateEtbDto {
     /**
      * Referenz zur Einsatzmittel-ID (optional)
      */
-    @ApiPropertyOptional({ description: 'Referenz zur Einsatzmittel-ID', example: nanoid() })
+    @ApiPropertyOptional({ description: 'Referenz zur Einsatzmittel-ID', example: 'vehicle-id' })
     @IsNanoId()
     @IsOptional()
     referenzEinsatzmittelId?: string;
