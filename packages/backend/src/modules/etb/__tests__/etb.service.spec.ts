@@ -2,6 +2,7 @@ import { PaginationService } from '@/common/services/pagination.service';
 import { PrismaService } from '@/prisma/prisma.service';
 import { BadRequestException, NotFoundException } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
+import { AddAttachmentDto } from '../dto/add-attachment.dto';
 import { CreateEtbDto } from '../dto/create-etb.dto';
 import { EtbKategorie } from '../dto/etb-kategorie.enum';
 import { UeberschreibeEtbDto } from '../dto/ueberschreibe-etb.dto';
@@ -363,7 +364,7 @@ describe('EtbService', () => {
                 where: { id },
                 data: expect.objectContaining({
                     beschreibung: 'Aktualisierte Beschreibung',
-                    version: 2
+                    version: { increment: 1 }
                 }),
                 include: { anlagen: true }
             });
@@ -479,7 +480,8 @@ describe('EtbService', () => {
             });
 
             // Act
-            const result = await service.addAttachment(etbEntryId, file as any, beschreibung);
+            const addAttachmentDto: AddAttachmentDto = { beschreibung };
+            const result = await service.addAttachment(etbEntryId, file as any, addAttachmentDto);
 
             // Restore Date.now und original Methode
             Date.now = originalDateNow;
@@ -517,7 +519,8 @@ describe('EtbService', () => {
             });
 
             // Act & Assert
-            await expect(service.addAttachment(etbEntryId, file as any, 'Beschreibung')).rejects.toThrow(BadRequestException);
+            const addAttachmentDto: AddAttachmentDto = { beschreibung: 'Beschreibung' };
+            await expect(service.addAttachment(etbEntryId, file as any, addAttachmentDto)).rejects.toThrow(BadRequestException);
 
             // Restore original Methode
             service.addAttachment = originalAddAttachment;
@@ -606,6 +609,7 @@ describe('EtbService', () => {
                 timestampEreignis: new Date().toISOString(),
                 kategorie: EtbKategorie.KORREKTUR,
                 inhalt: 'Korrigierter Inhalt',
+                ueberschreibungsgrund: 'Korrektur erforderlich'
             };
 
             const existingEntry = createMockEtbEntry({
@@ -667,6 +671,7 @@ describe('EtbService', () => {
                 timestampEreignis: new Date().toISOString(),
                 kategorie: EtbKategorie.KORREKTUR,
                 inhalt: 'Korrigierter Inhalt',
+                ueberschreibungsgrund: 'Korrektur erforderlich'
             };
 
             const existingEntry = createMockEtbEntry({
@@ -721,6 +726,7 @@ describe('EtbService', () => {
                 timestampEreignis: new Date().toISOString(),
                 kategorie: EtbKategorie.KORREKTUR,
                 inhalt: 'Korrigierter Inhalt',
+                ueberschreibungsgrund: 'Korrektur erforderlich'
             };
 
             const existingEntry = createMockEtbEntry({

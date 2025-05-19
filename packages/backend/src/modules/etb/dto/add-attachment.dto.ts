@@ -15,8 +15,11 @@ export class AddAttachmentDto {
 
     /**
      * Datei wird als Multer-File über den Request hochgeladen
-     * und nicht direkt in diesem DTO repräsentiert
+     * und nicht direkt in diesem DTO repräsentiert.
+     * Diese Eigenschaft ist im DTO optional, da die Datei über den
+     * @UploadedFile() Decorator bereitgestellt wird.
      */
     @ApiProperty({ description: 'Hochgeladene Datei', type: 'string', format: 'binary' })
-    file: any;
+    @IsOptional()
+    file?: any;
 } 

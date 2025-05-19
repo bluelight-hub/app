@@ -1,5 +1,7 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { IsDateString, IsEnum, IsNotEmpty, IsOptional, IsString, IsUUID } from 'class-validator';
+import { IsDateString, IsEnum, IsNotEmpty, IsOptional, IsString } from 'class-validator';
+import { nanoid } from 'nanoid';
+import { IsNanoId } from '../../../common/decorators';
 import { EtbKategorie } from './etb-kategorie.enum';
 
 /**
@@ -9,7 +11,7 @@ export class CreateEtbDto {
     /**
      * Zeitpunkt des tatsächlichen Ereignisses
      */
-    @ApiProperty({ description: 'Zeitpunkt des tatsächlichen Ereignisses' })
+    @ApiProperty({ description: 'Zeitpunkt des tatsächlichen Ereignisses', example: '2025-05-17T10:00:00Z' })
     @IsDateString()
     @IsNotEmpty()
     timestampEreignis: string;
@@ -20,7 +22,8 @@ export class CreateEtbDto {
     @ApiProperty({
         description: 'Kategorie des Eintrags',
         enum: EtbKategorie,
-        enumName: 'EtbKategorie'
+        enumName: 'EtbKategorie',
+        example: EtbKategorie.MELDUNG
     })
     @IsEnum(EtbKategorie)
     @IsNotEmpty()
@@ -29,7 +32,7 @@ export class CreateEtbDto {
     /**
      * Inhalt des Eintrags
      */
-    @ApiProperty({ description: 'Inhalt des Eintrags' })
+    @ApiProperty({ description: 'Inhalt des Eintrags', example: 'Meldung über einen Patienten' })
     @IsString()
     @IsNotEmpty()
     inhalt: string;
@@ -37,7 +40,7 @@ export class CreateEtbDto {
     /**
      * Absender des Eintrags (OPTA-Nummer)
      */
-    @ApiPropertyOptional({ description: 'Absender des Eintrags (OPTA-Nummer)' })
+    @ApiPropertyOptional({ description: 'Absender des Eintrags (OPTA-Nummer)', example: '40-83-3' })
     @IsString()
     @IsOptional()
     sender?: string;
@@ -45,7 +48,7 @@ export class CreateEtbDto {
     /**
      * Empfänger des Eintrags (OPTA-Nummer)
      */
-    @ApiPropertyOptional({ description: 'Empfänger des Eintrags (OPTA-Nummer)' })
+    @ApiPropertyOptional({ description: 'Empfänger des Eintrags (OPTA-Nummer)', example: '40-83-4' })
     @IsString()
     @IsOptional()
     receiver?: string;
@@ -53,16 +56,16 @@ export class CreateEtbDto {
     /**
      * Referenz zur Patienten-ID (optional)
      */
-    @ApiPropertyOptional({ description: 'Referenz zur Patienten-ID' })
-    @IsUUID()
+    @ApiPropertyOptional({ description: 'Referenz zur Patienten-ID', example: nanoid() })
+    @IsNanoId()
     @IsOptional()
     referenzPatientId?: string;
 
     /**
      * Referenz zur Einsatzmittel-ID (optional)
      */
-    @ApiPropertyOptional({ description: 'Referenz zur Einsatzmittel-ID' })
-    @IsUUID()
+    @ApiPropertyOptional({ description: 'Referenz zur Einsatzmittel-ID', example: nanoid() })
+    @IsNanoId()
     @IsOptional()
     referenzEinsatzmittelId?: string;
 } 

@@ -172,7 +172,7 @@ export class HealthController {
                     }
                 }
             };
-        } catch (error) {
+        } catch (error: any) {
             return {
                 fuekw: {
                     status: 'down',

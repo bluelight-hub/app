@@ -1,163 +1,91 @@
 {
   "meta": {
-    "generatedAt": "2025-05-16T13:31:15.243Z",
-    "tasksAnalyzed": 19,
+    "generatedAt": "2025-05-17T17:49:55.831Z",
+    "tasksAnalyzed": 10,
     "thresholdScore": 5,
     "projectName": "Taskmaster",
-    "usedResearch": true
+    "usedResearch": false
   },
   "complexityAnalysis": [
     {
+      "taskId": 1,
+      "taskTitle": "Analyse der TypeScript-Fehler im ETB-Modul",
+      "complexityScore": 6,
+      "recommendedSubtasks": 4,
+      "expansionPrompt": "Break down the TypeScript error analysis task into specific subtasks covering different aspects: compiler error collection, error categorization, pattern identification, and dependency mapping.",
+      "reasoning": "This task requires technical expertise in TypeScript and understanding of the codebase structure. It involves multiple analytical steps including running compiler checks, documenting errors, categorizing them, and creating dependency diagrams. The complexity comes from the need to understand the relationships between components."
+    },
+    {
       "taskId": 2,
-      "taskTitle": "Implement Authentication Module",
-      "complexityScore": 8,
-      "recommendedSubtasks": 10,
-      "expansionPrompt": "Break down the Authentication Module implementation into specific subtasks covering both backend and frontend components. Include user entity creation, JWT implementation, role management, frontend state management, and security testing.",
-      "reasoning": "High complexity due to security implications, multiple components across frontend and backend, role-based permissions, and token management. Requires careful implementation of security features and extensive testing."
+      "taskTitle": "Korrektur der AddAttachmentDto-Definition",
+      "complexityScore": 3,
+      "recommendedSubtasks": 2,
+      "expansionPrompt": "Divide the AddAttachmentDto correction task into implementation and validation subtasks.",
+      "reasoning": "This is a relatively straightforward task focused on correcting a single DTO class. The implementation details are already well-defined in the task description with a code example. The complexity is low as it involves modifying a single file with clear requirements."
     },
     {
       "taskId": 3,
-      "taskTitle": "Define Core Data Models",
-      "complexityScore": 7,
-      "recommendedSubtasks": 8,
-      "expansionPrompt": "Break down the Core Data Models implementation into specific subtasks covering the creation of TypeScript interfaces, DTOs, Prisma schema definitions, entity relationships, and migration scripts for all core entities.",
-      "reasoning": "Moderate to high complexity due to multiple interconnected data models, relationships between entities, and the need for consistency between frontend and backend representations. Requires careful design to ensure data integrity."
+      "taskTitle": "Korrektur der UeberschreibeEtbDto-Definition",
+      "complexityScore": 3,
+      "recommendedSubtasks": 2,
+      "expansionPrompt": "Split the UeberschreibeEtbDto correction task into implementation and validation subtasks.",
+      "reasoning": "Similar to task 2, this is a focused task on correcting a single DTO class with clear requirements. The complexity is low as it involves adding a missing field and potentially removing an incorrect one, with a provided code example."
     },
     {
       "taskId": 4,
-      "taskTitle": "Setup SQLite Database and ORM",
-      "complexityScore": 6,
-      "recommendedSubtasks": 7,
-      "expansionPrompt": "Break down the SQLite and Prisma ORM setup into specific subtasks covering database configuration, connection management, migration system, seed data creation, transaction handling, and local storage implementation.",
-      "reasoning": "Moderate complexity involving database configuration, ORM setup, migration management, and local storage considerations. Requires technical expertise but follows established patterns."
+      "taskTitle": "Anpassung des ETB-Services für korrekte DTO-Verwendung",
+      "complexityScore": 5,
+      "recommendedSubtasks": 3,
+      "expansionPrompt": "Divide the ETB service adaptation task into subtasks for identifying usage points, implementing changes, and verifying type consistency.",
+      "reasoning": "This task is moderately complex as it requires understanding how the DTOs are used throughout the service, making appropriate changes to method signatures and implementations, and ensuring type consistency. It affects multiple methods and requires careful coordination with the updated DTOs."
     },
     {
       "taskId": 5,
-      "taskTitle": "Implement Atomic Design Component Library",
-      "complexityScore": 8,
-      "recommendedSubtasks": 12,
-      "expansionPrompt": "Break down the Atomic Design Component Library implementation into specific subtasks covering Storybook setup, component hierarchy (atoms, molecules, organisms, templates, pages), theming system, responsive design, and component testing.",
-      "reasoning": "High complexity due to the extensive component hierarchy, styling requirements, theming support, accessibility compliance, and comprehensive testing needs. Forms the foundation of the entire UI."
+      "taskTitle": "Anpassung des ETB-Controllers für korrekte DTO-Verwendung",
+      "complexityScore": 5,
+      "recommendedSubtasks": 3,
+      "expansionPrompt": "Break down the ETB controller adaptation task into subtasks for endpoint identification, parameter updates, and Swagger documentation updates.",
+      "reasoning": "Similar to task 4, this requires understanding how the DTOs are used in the controller, updating endpoint parameters and decorators, and ensuring Swagger documentation is updated. The complexity comes from ensuring all endpoints are correctly modified while maintaining API consistency."
     },
     {
       "taskId": 6,
-      "taskTitle": "Implement State Management with Zustand",
-      "complexityScore": 7,
-      "recommendedSubtasks": 8,
-      "expansionPrompt": "Break down the Zustand state management implementation into specific subtasks covering store creation for different domains (auth, einsatz, resources, UI), persistence layer, selectors, middleware, and component integration.",
-      "reasoning": "Moderate to high complexity due to multiple stores, offline persistence requirements, and the need to coordinate state across different parts of the application. Critical for application data flow."
+      "taskTitle": "Korrektur der ETB-Service-Tests",
+      "complexityScore": 4,
+      "recommendedSubtasks": 2,
+      "expansionPrompt": "Divide the ETB service test correction task into test fixture updates and test case verification subtasks.",
+      "reasoning": "This task involves updating test fixtures and expectations to match the corrected DTOs. The complexity is moderate as it requires understanding the existing tests and ensuring they properly validate the updated service functionality."
     },
     {
       "taskId": 7,
-      "taskTitle": "Implement API Services and Communication Layer",
-      "complexityScore": 8,
-      "recommendedSubtasks": 10,
-      "expansionPrompt": "Break down the API Services and Communication Layer implementation into specific subtasks covering RESTful endpoints, WebSocket integration, request validation, error handling, offline queueing, and API documentation.",
-      "reasoning": "High complexity due to multiple communication protocols (REST, WebSocket), offline support requirements, error handling, and security considerations. Critical for frontend-backend communication."
+      "taskTitle": "Korrektur der ETB-Controller-Tests",
+      "complexityScore": 4,
+      "recommendedSubtasks": 2,
+      "expansionPrompt": "Split the ETB controller test correction task into HTTP request updates and response validation subtasks.",
+      "reasoning": "Similar to task 6, this involves updating test fixtures for HTTP requests and ensuring the tests properly validate the controller's behavior. The complexity is moderate as it requires understanding the existing controller tests and API interactions."
     },
     {
       "taskId": 8,
-      "taskTitle": "Implement Einsatz Management Module",
+      "taskTitle": "Überprüfung auf weitere Typinkonsistenzen im ETB-Modul",
       "complexityScore": 7,
-      "recommendedSubtasks": 9,
-      "expansionPrompt": "Break down the Einsatz Management Module implementation into specific subtasks covering CRUD operations, business logic for status transitions, EinsatzAbschnitt management, UI components, and dynamic UI transformation.",
-      "reasoning": "Moderate to high complexity due to business logic requirements, status transitions, and UI transformation needs. Core functionality of the application requiring careful implementation."
+      "recommendedSubtasks": 4,
+      "expansionPrompt": "Break down the type inconsistency review task into subtasks for strict compiler analysis, any-type replacement, return type verification, and variable type checking.",
+      "reasoning": "This is a more complex task as it involves a comprehensive review of the entire ETB module with stricter TypeScript settings. It requires deep understanding of TypeScript's type system and the ability to identify and fix various type inconsistencies throughout the codebase."
     },
     {
       "taskId": 9,
-      "taskTitle": "Implement Basic Einsatztagebuch (ETB)",
-      "complexityScore": 6,
-      "recommendedSubtasks": 7,
-      "expansionPrompt": "Break down the Basic Einsatztagebuch implementation into specific subtasks covering CRUD operations, automatic numbering, timestamp management, categorization, filtering, search functionality, and event sourcing.",
-      "reasoning": "Moderate complexity with straightforward CRUD operations but additional complexity from automatic numbering, event sourcing, and real-time updates. Core functionality requiring careful implementation."
+      "taskTitle": "Integration und Systemtests",
+      "complexityScore": 8,
+      "recommendedSubtasks": 5,
+      "expansionPrompt": "Divide the integration and system testing task into subtasks for automated tests, manual testing of key workflows, API validation, cross-module interaction testing, and documentation verification.",
+      "reasoning": "This is a complex task that involves comprehensive testing across multiple levels. It requires running existing integration tests, performing manual testing of key workflows, verifying API documentation, and ensuring cross-module interactions work correctly. The complexity comes from the breadth of testing required and the need to verify that all changes work together correctly."
     },
     {
       "taskId": 10,
-      "taskTitle": "Implement Basic Resource Management",
-      "complexityScore": 6,
-      "recommendedSubtasks": 7,
-      "expansionPrompt": "Break down the Basic Resource Management implementation into specific subtasks covering CRUD operations for different resource types, status tracking, assignment logic, and UI components for visualization and management.",
-      "reasoning": "Moderate complexity with multiple resource types (personnel, vehicles, material) and status tracking requirements. Requires careful implementation of assignment logic and status transitions."
-    },
-    {
-      "taskId": 11,
-      "taskTitle": "Implement Local Connectivity Mode",
-      "complexityScore": 9,
-      "recommendedSubtasks": 10,
-      "expansionPrompt": "Break down the Local Connectivity Mode implementation into specific subtasks covering local server discovery, network communication, connection state management, offline data access, synchronization, and conflict resolution.",
-      "reasoning": "High complexity due to networking challenges, offline support, synchronization requirements, and conflict resolution. Requires sophisticated technical solutions for reliable operation in varying network conditions."
-    },
-    {
-      "taskId": 12,
-      "taskTitle": "Implement Basic TETRA Integration",
-      "complexityScore": 7,
-      "recommendedSubtasks": 7,
-      "expansionPrompt": "Break down the Basic TETRA Integration implementation into specific subtasks covering adapter module creation, message reception and parsing, status handling, visualization, and mock service for testing.",
-      "reasoning": "Moderate to high complexity due to integration with external system, message parsing requirements, and the need for reliable status updates. Requires domain knowledge of TETRA systems."
-    },
-    {
-      "taskId": 13,
-      "taskTitle": "Implement Basic Lagekarte (Situation Map)",
-      "complexityScore": 8,
-      "recommendedSubtasks": 9,
-      "expansionPrompt": "Break down the Basic Lagekarte implementation into specific subtasks covering Mapbox integration, geospatial data storage, tactical symbol library, drawing tools, layer management, and resource positioning.",
-      "reasoning": "High complexity due to geospatial visualization requirements, tactical symbol implementation, and interactive map features. Requires integration with mapping libraries and careful UI implementation."
-    },
-    {
-      "taskId": 14,
-      "taskTitle": "Implement Export Functionality",
-      "complexityScore": 6,
-      "recommendedSubtasks": 6,
-      "expansionPrompt": "Break down the Export Functionality implementation into specific subtasks covering PDF generation, CSV export, standardized format exports, template customization, and export job queue management.",
-      "reasoning": "Moderate complexity with multiple export formats and template requirements. Technically straightforward but requires attention to detail for proper document formatting and data completeness."
-    },
-    {
-      "taskId": 15,
-      "taskTitle": "Implement UI Transformation for Einsatz Mode",
-      "complexityScore": 7,
-      "recommendedSubtasks": 7,
-      "expansionPrompt": "Break down the UI Transformation implementation into specific subtasks covering context provider creation, component variations, transition animations, mode-specific layouts, and state management for different modes.",
-      "reasoning": "Moderate to high complexity due to dynamic UI requirements, animation needs, and context-aware component variations. Requires sophisticated frontend implementation for smooth transitions."
-    },
-    {
-      "taskId": 16,
-      "taskTitle": "Implement Advanced ETB Features",
-      "complexityScore": 7,
-      "recommendedSubtasks": 8,
-      "expansionPrompt": "Break down the Advanced ETB Features implementation into specific subtasks covering attachment management, advanced filtering, categorization system, entry relationships, search functionality, and visualization options.",
-      "reasoning": "Moderate to high complexity building on the basic ETB with additional features like attachments, advanced filtering, and relationships between entries. Requires careful UI design for usability."
-    },
-    {
-      "taskId": 17,
-      "taskTitle": "Implement Advanced Resource Management",
-      "complexityScore": 7,
-      "recommendedSubtasks": 7,
-      "expansionPrompt": "Break down the Advanced Resource Management implementation into specific subtasks covering resource templates, advanced assignment logic, grouping, history tracking, timeline visualization, and utilization dashboard.",
-      "reasoning": "Moderate to high complexity extending the basic resource management with templates, advanced assignment, and visualization features. Requires careful UI design for complex workflows."
-    },
-    {
-      "taskId": 18,
-      "taskTitle": "Implement Online Connectivity Mode",
-      "complexityScore": 9,
-      "recommendedSubtasks": 10,
-      "expansionPrompt": "Break down the Online Connectivity Mode implementation into specific subtasks covering cloud server deployment, multi-tenant architecture, synchronization API, conflict resolution, mode switching, and bandwidth-aware synchronization.",
-      "reasoning": "High complexity due to cloud deployment, multi-tenant considerations, sophisticated synchronization requirements, and conflict resolution. Requires robust implementation for reliable operation."
-    },
-    {
-      "taskId": 19,
-      "taskTitle": "Implement Communication Module",
-      "complexityScore": 7,
-      "recommendedSubtasks": 8,
-      "expansionPrompt": "Break down the Communication Module implementation into specific subtasks covering message storage and routing, notification system, message categorization, real-time updates, composition UI, and status indicators.",
-      "reasoning": "Moderate to high complexity with messaging, notifications, and real-time requirements. Requires careful implementation for reliable communication between units."
-    },
-    {
-      "taskId": 20,
-      "taskTitle": "Implement System Health Monitoring",
-      "complexityScore": 6,
-      "recommendedSubtasks": 6,
-      "expansionPrompt": "Break down the System Health Monitoring implementation into specific subtasks covering health check endpoints, metrics collection, error tracking, performance monitoring, diagnostic tools, and alerting system.",
-      "reasoning": "Moderate complexity with standard monitoring patterns but requiring comprehensive coverage of system components. Important for system reliability and troubleshooting."
+      "taskTitle": "Dokumentation und Abschluss",
+      "complexityScore": 4,
+      "recommendedSubtasks": 3,
+      "expansionPrompt": "Break down the documentation task into subtasks for technical documentation, API documentation updates, and final review.",
+      "reasoning": "This task involves creating comprehensive documentation of all changes made. While not technically complex, it requires attention to detail and a thorough understanding of all the changes that were implemented. The complexity is moderate as it involves synthesizing information from multiple tasks."
     }
   ]
 }
