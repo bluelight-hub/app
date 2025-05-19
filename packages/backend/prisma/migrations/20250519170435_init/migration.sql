@@ -5,6 +5,16 @@ CREATE TYPE "EtbKategorie" AS ENUM ('LAGEMELDUNG', 'MELDUNG', 'ANFORDERUNG', 'KO
 CREATE TYPE "EtbEntryStatus" AS ENUM ('AKTIV', 'UEBERSCHRIEBEN');
 
 -- CreateTable
+CREATE TABLE "Einsatz" (
+    "id" TEXT NOT NULL,
+    "name" TEXT NOT NULL,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
+
+    CONSTRAINT "Einsatz_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
 CREATE TABLE "EtbEntry" (
     "id" TEXT NOT NULL,
     "laufendeNummer" INTEGER NOT NULL,
@@ -15,7 +25,7 @@ CREATE TABLE "EtbEntry" (
     "autorRolle" TEXT,
     "kategorie" "EtbKategorie" NOT NULL,
     "inhalt" TEXT NOT NULL,
-    "referenzEinsatzId" TEXT,
+    "referenzEinsatzId" TEXT NOT NULL,
     "referenzPatientId" TEXT,
     "referenzEinsatzmittelId" TEXT,
     "systemQuelle" TEXT,
@@ -44,6 +54,9 @@ CREATE TABLE "EtbAttachment" (
 
     CONSTRAINT "EtbAttachment_pkey" PRIMARY KEY ("id")
 );
+
+-- AddForeignKey
+ALTER TABLE "EtbEntry" ADD CONSTRAINT "EtbEntry_referenzEinsatzId_fkey" FOREIGN KEY ("referenzEinsatzId") REFERENCES "Einsatz"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "EtbEntry" ADD CONSTRAINT "EtbEntry_ueberschriebenDurchId_fkey" FOREIGN KEY ("ueberschriebenDurchId") REFERENCES "EtbEntry"("id") ON DELETE SET NULL ON UPDATE CASCADE;
