@@ -684,6 +684,44 @@ Die einheitliche API-Antwortstruktur bietet mehrere Vorteile:
 
 Das Frontend kann sich auf diese konsistente Struktur verlassen und generische Komponenten für das Handling von API-Antworten implementieren. Die OpenAPI-generierte Client-Bibliothek spiegelt diese Struktur im Frontend wider.
 
+==== Standardisierte Validierungs-Dekoratoren
+
+Das Backend des Bluelight-Hub-Systems verwendet eine Reihe standardisierter Validierungs-Dekoratoren, um die Gültigkeit von Eingabedaten sicherzustellen. Neben den von class-validator bereitgestellten Standard-Dekoratoren wurden verschiedene benutzerdefinierte Validierungs-Dekoratoren entwickelt, um projektspezifische Validierungsanforderungen zu erfüllen.
+
+===== IsNanoId Validator
+
+Die `IsNanoId`-Validierung ist ein benutzerdefinierter Decorator, der die Gültigkeit von NanoID-Strings überprüft. NanoIDs werden im System als ID-Format für verschiedene Entitäten verwendet und bieten eine Alternative zu UUIDs mit kürzeren, URL-freundlichen IDs.
+
+*Implementierung:*
+
+[source,typescript]
+----
+@IsNanoId()
+@IsOptional()
+referenzPatientId?: string;
+----
+
+Der `IsNanoId`-Validator prüft folgende Kriterien:
+
+1. Der Wert muss ein String sein
+2. Der String muss die korrekte Länge haben (standardmäßig 21 Zeichen, kann aber konfiguriert werden)
+3. Der String darf nur Zeichen aus dem NanoID-Alphabet enthalten (A-Za-z0-9_-)
+
+*Konfiguration:*
+
+[source,typescript]
+----
+// Standard-Verwendung (21 Zeichen)
+@IsNanoId()
+id: string;
+
+// Angepasste Länge (z.B. 10 Zeichen)
+@IsNanoId({}, 10)
+kurzId: string;
+----
+
+Diese Validierungen gewährleisten, dass alle in das System eingehenden IDs dem erwarteten Format entsprechen, wodurch Fehler bei Datenbankabfragen und -operationen vermieden werden.
+
 ==== Querschnittskonzepte
 
 Folgende Querschnittskonzepte ziehen sich durch die gesamte Backend-Architektur:

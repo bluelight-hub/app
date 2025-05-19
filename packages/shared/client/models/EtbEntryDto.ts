@@ -12,13 +12,9 @@
  * Do not edit the class manually.
  */
 
-import { mapValues } from "../runtime";
 import type { EtbKategorie } from "./EtbKategorie";
 import {
-  EtbKategorieFromJSON,
-  EtbKategorieFromJSONTyped,
-  EtbKategorieToJSON,
-  EtbKategorieToJSONTyped,
+  EtbKategorieFromJSON, EtbKategorieToJSON
 } from "./EtbKategorie";
 
 /**
