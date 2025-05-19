@@ -30,6 +30,14 @@ enum EtbEntryStatus {
   UEBERSCHRIEBEN
 }
 
+model Einsatz {
+  id        String    @id @default(nanoid())
+  name      String
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  etbEntries EtbEntry[]
+}
+
 model EtbEntry {
   id                      String           @id @default(nanoid())
   laufendeNummer          Int
@@ -40,7 +48,8 @@ model EtbEntry {
   autorRolle              String?
   kategorie               EtbKategorie
   inhalt                  String
-  referenzEinsatzId       String?
+  referenzEinsatzId       String
+  einsatz                 Einsatz          @relation(fields: [referenzEinsatzId], references: [id])
   referenzPatientId       String?
   referenzEinsatzmittelId String?
   systemQuelle            String?
