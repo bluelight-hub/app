@@ -1,6 +1,0 @@
----
-description: 
-globs: 
-alwaysApply: true
----
-The console message "zoxide: you are already in the only match" says: you are in the current directory and must not cd.
