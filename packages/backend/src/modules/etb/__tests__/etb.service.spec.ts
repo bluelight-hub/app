@@ -42,7 +42,6 @@ import { logger as mockLogger } from '@/logger/consola.logger';
 
 describe('EtbService', () => {
     let service: EtbService;
-    let prismaService: any;
     let paginationService: any;
 
     // Mock für PrismaService
@@ -135,7 +134,6 @@ describe('EtbService', () => {
         }).compile();
 
         service = module.get<EtbService>(EtbService);
-        prismaService = module.get(PrismaService);
         paginationService = module.get(PaginationService);
     });
 
