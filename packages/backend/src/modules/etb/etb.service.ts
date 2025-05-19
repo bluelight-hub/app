@@ -7,7 +7,6 @@ import * as fs from 'fs';
 import * as path from 'path';
 import sanitize from 'sanitize-filename';
 import { EtbEntryStatus, EtbKategorie } from '../../../prisma/generated/prisma/enums';
-import { AddAttachmentDto } from './dto/add-attachment.dto';
 import { CreateEtbDto } from './dto/create-etb.dto';
 import { FilterEtbDto } from './dto/filter-etb.dto';
 import { UeberschreibeEtbDto } from './dto/ueberschreibe-etb.dto';
@@ -354,7 +353,7 @@ export class EtbService {
      * 
      * @param id ID des ETB-Eintrags
      * @param file Die hochgeladene Datei
-     * @param addAttachmentDto DTO mit zusätzlichen Informationen zur Anlage
+     * @param beschreibung Optionale Beschreibung der Anlage
      * @returns Die erstellte ETB-Anlage
      * @throws NotFoundException Wenn der ETB-Eintrag nicht gefunden wurde
      * @throws BadRequestException Wenn der ETB-Eintrag bereits abgeschlossen ist oder andere Validierungsfehler auftreten
@@ -362,7 +361,7 @@ export class EtbService {
     async addAttachment(
         id: string,
         file: MulterFile,
-        addAttachmentDto: AddAttachmentDto
+        beschreibung?: string
     ): Promise<EtbAttachment> {
         // Prüfen, ob der Eintrag existiert
         const etbEntry = await this.findOne(id);
@@ -403,7 +402,7 @@ export class EtbService {
                     dateiname: safeFileName, // Verwende die Feldnamen gemäß Prisma-Schema
                     dateityp: file.mimetype,
                     speicherOrt: filePath,
-                    beschreibung: addAttachmentDto.beschreibung || null,
+                    beschreibung: beschreibung || null,
                 }
             });
 
