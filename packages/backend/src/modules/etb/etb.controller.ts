@@ -6,14 +6,14 @@ import {
     Controller,
     Get,
     Param,
-    ParseUUIDPipe,
     Patch,
     Post,
     Put,
     Query,
     Req,
     UploadedFile,
-    UseInterceptors
+    UseInterceptors,
+    UseGuards
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import {
@@ -27,6 +27,7 @@ import {
     ApiTags
 } from '@nestjs/swagger';
 import { plainToInstance } from 'class-transformer';
+import { EinsatzExistsGuard } from '../einsatz/guards/einsatz-exists.guard';
 import { AddAttachmentDto } from './dto/add-attachment.dto';
 import { CreateEtbDto } from './dto/create-etb.dto';
 import {
@@ -76,7 +77,8 @@ interface RequestWithUser extends Request {
  */
 @ApiTags('Einsatztagebuch')
 @ApiBearerAuth()
-@Controller('etb')
+@UseGuards(EinsatzExistsGuard)
+@Controller('einsatz/:einsatzId/etb')
 export class EtbController {
     /**
      * Konstruktor für den EtbController
@@ -102,13 +104,17 @@ export class EtbController {
         description: 'Der ETB-Eintrag wurde erstellt',
         type: EtbEntry
     })
-    async create(@Body() createEtbDto: CreateEtbDto, @Req() req: RequestWithUser): Promise<EtbEntry> {
+    async create(
+        @Param('einsatzId') einsatzId: string,
+        @Body() createEtbDto: CreateEtbDto,
+        @Req() req: RequestWithUser
+    ): Promise<EtbEntry> {
         logger.info(`ETB-Controller: POST /etb mit DTO ${JSON.stringify(createEtbDto)}`);
         const userId = req.user?.id || 'mock-user-id';
         const userName = req.user?.name || 'Mock User';
         const userRole = req.user?.role || 'Einsatzleiter';
 
-        const result = await this.etbService.createEintrag(createEtbDto, userId, userName, userRole);
+        const result = await this.etbService.createEintrag(einsatzId, createEtbDto, userId, userName, userRole);
 
         // Erweitere das Resultat mit leeren Arrays/Objekten, um den EtbEntry-Typ zu erfüllen
 
@@ -142,9 +148,12 @@ export class EtbController {
     @ApiResponse({ status: 200, description: 'Filter: vonZeitstempel', schema: { type: 'string', format: 'date-time' } })
     @ApiResponse({ status: 200, description: 'Filter: bisZeitstempel', schema: { type: 'string', format: 'date-time' } })
     @ApiResponse({ status: 200, description: 'Filter: search', schema: { type: 'string' } })
-    async findAll(@Query() filterDto: FilterEtbDto): Promise<PaginatedResponse<EtbEntryDto>> {
+    async findAll(
+        @Param('einsatzId') einsatzId: string,
+        @Query() filterDto: FilterEtbDto
+    ): Promise<PaginatedResponse<EtbEntryDto>> {
         logger.info(`HTTP GET /etb - Abruf von ETB-Einträgen mit Filtern`);
-        const paginatedResult = await this.etbService.findAll(filterDto);
+        const paginatedResult = await this.etbService.findAll(einsatzId, filterDto);
 
         // Mapping von EtbEntry zu EtbEntryDto
         const mappedEntries = plainToInstance(EtbEntryDto, paginatedResult.items);
@@ -172,10 +181,13 @@ export class EtbController {
         type: EtbEntry
     })
     @ApiResponse({ status: 404, description: 'ETB-Eintrag wurde nicht gefunden' })
-    async findOne(@Param('id') id: string): Promise<EtbEntry> {
+    async findOne(
+        @Param('einsatzId') einsatzId: string,
+        @Param('id') id: string
+    ): Promise<EtbEntry> {
         logger.info(`HTTP GET /etb/${id} - Finde ETB-Eintrag mit ID ${id}`);
 
-        const result = await this.etbService.findOne(id);
+        const result = await this.etbService.findOne(einsatzId, id);
 
         // Erweitere das Resultat, falls nötig, um den EtbEntry-Typ zu erfüllen
         return {
@@ -205,10 +217,14 @@ export class EtbController {
     })
     @ApiResponse({ status: 400, description: 'Ungültige Eingabedaten oder Eintrag bereits abgeschlossen' })
     @ApiResponse({ status: 404, description: 'ETB-Eintrag wurde nicht gefunden' })
-    async update(@Param('id') id: string, @Body() updateEtbDto: UpdateEtbDto): Promise<EtbEntry> {
+    async update(
+        @Param('einsatzId') einsatzId: string,
+        @Param('id') id: string,
+        @Body() updateEtbDto: UpdateEtbDto
+    ): Promise<EtbEntry> {
         logger.info(`HTTP PUT /etb/${id} - Aktualisiere ETB-Eintrag`);
 
-        const result = await this.etbService.updateEintrag(id, updateEtbDto);
+        const result = await this.etbService.updateEintrag(einsatzId, id, updateEtbDto);
 
         // Erweitere das Resultat, falls nötig, um den EtbEntry-Typ zu erfüllen
         return {
@@ -232,11 +248,15 @@ export class EtbController {
     })
     @ApiResponse({ status: 400, description: 'Eintrag ist bereits abgeschlossen' })
     @ApiResponse({ status: 404, description: 'ETB-Eintrag wurde nicht gefunden' })
-    async closeEntry(@Param('id') id: string, @Req() req: RequestWithUser): Promise<EtbEntry> {
+    async closeEntry(
+        @Param('einsatzId') einsatzId: string,
+        @Param('id') id: string,
+        @Req() req: RequestWithUser
+    ): Promise<EtbEntry> {
         logger.info(`HTTP PATCH /etb/${id}/close - Schließe ETB-Eintrag ab`);
         const userId = req.user?.id || 'mock-user-id';
 
-        const result = await this.etbService.closeEintrag(id, userId);
+        const result = await this.etbService.closeEintrag(einsatzId, id, userId);
 
         // Erweitere das Resultat, falls nötig, um den EtbEntry-Typ zu erfüllen
         return {
@@ -271,7 +291,8 @@ export class EtbController {
     @ApiResponse({ status: 404, description: 'ETB-Eintrag nicht gefunden' })
     @UseInterceptors(FileInterceptor('file'))
     async addAttachment(
-        @Param('id', ParseUUIDPipe) id: string,
+        @Param('einsatzId') einsatzId: string,
+        @Param('id') id: string,
         @UploadedFile() file: any,
         @Body() addAttachmentDto: AddAttachmentDto,
     ): Promise<EtbAttachment> {
@@ -281,7 +302,6 @@ export class EtbController {
         }
 
         logger.info(`HTTP POST /etb/${id}/anlage - Füge Anlage zu ETB-Eintrag hinzu`);
-        const result = await this.etbService.addAttachment(id, file, addAttachmentDto);
         return EtbAttachment.fromPrisma(result);
     }
 
@@ -298,12 +318,15 @@ export class EtbController {
         type: EtbAttachmentsResponse
     })
     @ApiResponse({ status: 404, description: 'ETB-Eintrag nicht gefunden' })
-    async findAttachments(@Param('id', ParseUUIDPipe) id: string): Promise<EtbAttachment[]> {
+    async findAttachments(
+        @Param('einsatzId') einsatzId: string,
+        @Param('id') id: string
+    ): Promise<EtbAttachment[]> {
         // Prüfe, ob der ETB-Eintrag existiert
-        await this.etbService.findOne(id);
+        await this.etbService.findOne(einsatzId, id);
 
         logger.info(`HTTP GET /etb/${id}/anlagen - Abruf aller Anlagen zu ETB-Eintrag`);
-        const anlagen = await this.etbService.findAttachmentsByEtbEntryId(id);
+        const anlagen = await this.etbService.findAttachmentsByEtbEntryId(einsatzId, id);
         return anlagen.map(anlage => EtbAttachment.fromPrisma(anlage));
     }
 
@@ -320,9 +343,12 @@ export class EtbController {
         type: EtbAttachmentResponse
     })
     @ApiResponse({ status: 404, description: 'Anlage nicht gefunden' })
-    async findAttachment(@Param('id', ParseUUIDPipe) id: string): Promise<EtbAttachment> {
+    async findAttachment(
+        @Param('einsatzId') einsatzId: string,
+        @Param('id') id: string
+    ): Promise<EtbAttachment> {
         logger.info(`HTTP GET /etb/anlage/${id} - Abruf einer spezifischen Anlage`);
-        const anlage = await this.etbService.findAttachmentById(id);
+        const anlage = await this.etbService.findAttachmentById(einsatzId, id);
         return EtbAttachment.fromPrisma(anlage);
     }
 
@@ -346,6 +372,7 @@ export class EtbController {
     })
     @ApiResponse({ status: 404, description: 'ETB-Eintrag wurde nicht gefunden' })
     async ueberschreibeEintrag(
+        @Param('einsatzId') einsatzId: string,
         @Param('id') id: string,
         @Body() ueberschreibeEtbDto: UeberschreibeEtbDto,
         @Req() req: RequestWithUser,
@@ -355,7 +382,7 @@ export class EtbController {
         const userName = req.user?.name || 'Mock User';
         const userRole = req.user?.role || 'Einsatzleiter';
 
-        const result = await this.etbService.ueberschreibeEintrag(id, ueberschreibeEtbDto, userId, userName, userRole);
+        const result = await this.etbService.ueberschreibeEintrag(einsatzId, id, ueberschreibeEtbDto, userId, userName, userRole);
 
         // Erweitere das Resultat, falls nötig, um den EtbEntry-Typ zu erfüllen
         return {

@@ -4,6 +4,7 @@ import { ConfigModule } from './config/config.module';
 import { HealthModule } from './health/health.module';
 import { ConsolaLogger } from './logger/consola.logger';
 import { EtbModule } from './modules/etb/etb.module';
+import { EinsatzModule } from './modules/einsatz/einsatz.module';
 import { PrismaModule } from './prisma/prisma.module';
 
 /**
@@ -17,6 +18,7 @@ import { PrismaModule } from './prisma/prisma.module';
         ConfigModule,
         PrismaModule,
         HealthModule,
+        EinsatzModule,
         EtbModule,
         CommonModule,
     ],

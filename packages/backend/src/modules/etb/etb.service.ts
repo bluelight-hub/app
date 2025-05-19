@@ -111,6 +111,7 @@ export class EtbService {
      * @returns Der erstellte ETB-Eintrag
      */
     async createEintrag(
+        einsatzId: string,
         createEtbDto: CreateEtbDto,
         userId: string,
         _userName?: string,
@@ -128,6 +129,7 @@ export class EtbService {
         const prismaEintrag = await this.prisma.etbEntry.create({
             data: {
                 ...createEtbDto,
+                referenzEinsatzId: einsatzId,
                 kategorie: prismaKategorie,
                 timestampErstellung: new Date(),
                 timestampEreignis: new Date(createEtbDto.timestampEreignis),
@@ -197,13 +199,14 @@ export class EtbService {
      * @returns Eine paginierte Liste von ETB-Einträgen
      */
     async findAll(
+        einsatzId: string,
         filterDto: FilterEtbDto
     ): Promise<PaginatedResponse<EtbEntry>> {
         logger.info('Suche ETB-Einträge mit Filtern');
         const { page = 1, limit = 10, kategorie, autorId, vonZeitstempel, bisZeitstempel, search, referenzEinsatzId, includeUeberschrieben = false } = filterDto;
 
         // Baue Where-Bedingung basierend auf den Filtern
-        const where: any = {};
+        const where: any = { referenzEinsatzId: einsatzId };
 
         // Status-Filter (standardmäßig nur aktive Einträge)
         if (!includeUeberschrieben) {
@@ -275,9 +278,9 @@ export class EtbService {
      * @returns Der gefundene ETB-Eintrag
      * @throws NotFoundException wenn der Eintrag nicht gefunden wurde
      */
-    async findOne(id: string): Promise<EtbEntry> {
-        const etbEntry = await this.prisma.etbEntry.findUnique({
-            where: { id },
+    async findOne(einsatzId: string, id: string): Promise<EtbEntry> {
+        const etbEntry = await this.prisma.etbEntry.findFirst({
+            where: { id, referenzEinsatzId: einsatzId },
             include: { anlagen: true }
         });
 
@@ -298,9 +301,13 @@ export class EtbService {
      * @throws NotFoundException Wenn der Eintrag nicht gefunden wurde
      * @throws BadRequestException Wenn der Eintrag bereits abgeschlossen ist
      */
-    async updateEintrag(id: string, updateEtbDto: UpdateEtbDto): Promise<EtbEntry> {
+    async updateEintrag(
+        einsatzId: string,
+        id: string,
+        updateEtbDto: UpdateEtbDto
+    ): Promise<EtbEntry> {
         // Prüfe, ob der Eintrag existiert und nicht abgeschlossen ist
-        const existingEntry = await this.findOne(id);
+        const existingEntry = await this.findOne(einsatzId, id);
 
         if (existingEntry.istAbgeschlossen) {
             logger.error(`ETB-Eintrag mit ID ${id} ist bereits abgeschlossen und kann nicht aktualisiert werden`);
@@ -311,7 +318,7 @@ export class EtbService {
 
         // Update des Eintrags mit Prisma
         const updatedPrismaEntry = await this.prisma.etbEntry.update({
-            where: { id },
+            where: { id, referenzEinsatzId: einsatzId },
             data: {
                 ...updateEtbDto,
                 // Wenn ein neuer Zeitstempel angegeben ist, konvertiere ihn zu Date
@@ -336,8 +343,12 @@ export class EtbService {
      * @throws NotFoundException wenn der Eintrag nicht gefunden wurde
      * @throws BadRequestException wenn der Eintrag bereits abgeschlossen ist
      */
-    async closeEintrag(id: string, userId: string): Promise<EtbEntry> {
-        const etbEntry = await this.findOne(id);
+    async closeEintrag(
+        einsatzId: string,
+        id: string,
+        userId: string
+    ): Promise<EtbEntry> {
+        const etbEntry = await this.findOne(einsatzId, id);
 
         if (etbEntry.istAbgeschlossen) {
             logger.error(`ETB-Eintrag mit ID ${id} ist bereits abgeschlossen`);
@@ -370,12 +381,13 @@ export class EtbService {
      * @throws BadRequestException Wenn der ETB-Eintrag bereits abgeschlossen ist oder andere Validierungsfehler auftreten
      */
     async addAttachment(
+        einsatzId: string,
         id: string,
         file: MulterFile,
         addAttachmentDto: AddAttachmentDto
     ): Promise<EtbAttachment> {
         // Prüfen, ob der Eintrag existiert
-        const etbEntry = await this.findOne(id);
+        const etbEntry = await this.findOne(einsatzId, id);
 
         // Prüfen, ob der Eintrag abgeschlossen ist
         if (etbEntry.istAbgeschlossen) {
@@ -432,9 +444,9 @@ export class EtbService {
      * @param etbEntryId ID des ETB-Eintrags
      * @returns Eine Liste von ETB-Anlagen
      */
-    async findAttachmentsByEtbEntryId(etbEntryId: string): Promise<EtbAttachment[]> {
+    async findAttachmentsByEtbEntryId(einsatzId: string, etbEntryId: string): Promise<EtbAttachment[]> {
         const attachments = await this.prisma.etbAttachment.findMany({
-            where: { etbEntryId }
+            where: { etbEntryId, etbEntry: { referenzEinsatzId: einsatzId } }
         });
 
         return attachments;
@@ -447,9 +459,9 @@ export class EtbService {
      * @returns Die gefundene ETB-Anlage
      * @throws NotFoundException Wenn die Anlage nicht gefunden wurde
      */
-    async findAttachmentById(id: string): Promise<EtbAttachment> {
-        const attachment = await this.prisma.etbAttachment.findUnique({
-            where: { id }
+    async findAttachmentById(einsatzId: string, id: string): Promise<EtbAttachment> {
+        const attachment = await this.prisma.etbAttachment.findFirst({
+            where: { id, etbEntry: { referenzEinsatzId: einsatzId } }
         });
 
         if (!attachment) {
@@ -471,6 +483,7 @@ export class EtbService {
      * @returns Der neu erstellte überschreibende ETB-Eintrag
      */
     async ueberschreibeEintrag(
+        einsatzId: string,
         id: string,
         ueberschreibeEtbDto: UeberschreibeEtbDto,
         userId: string,
@@ -478,14 +491,14 @@ export class EtbService {
         userRole?: string,
     ): Promise<EtbEntry> {
         // Finde den zu überschreibenden Eintrag
-        const originalEntry = await this.findOne(id);
+        const originalEntry = await this.findOne(einsatzId, id);
         const now = new Date();
 
         // Führe die Überschreibung in einer Transaktion durch, um die Konsistenz zu gewährleisten
         return this.prisma.$transaction(async (tx) => {
             // Markiere den ursprünglichen Eintrag als überschrieben
             await tx.etbEntry.update({
-                where: { id },
+                where: { id, referenzEinsatzId: einsatzId },
                 data: {
                     status: EtbEntryStatus.UEBERSCHRIEBEN,
                     timestampUeberschrieben: now,
@@ -503,7 +516,7 @@ export class EtbService {
                     timestampEreignis: ueberschreibeEtbDto.timestampEreignis ? new Date(ueberschreibeEtbDto.timestampEreignis) : originalEntry.timestampEreignis,
                     kategorie: ueberschreibeEtbDto.kategorie || originalEntry.kategorie,
                     inhalt: ueberschreibeEtbDto.inhalt || originalEntry.inhalt,
-                    referenzEinsatzId: originalEntry.referenzEinsatzId, // ID kann nicht geändert werden
+                    referenzEinsatzId: einsatzId,
                     referenzPatientId: ueberschreibeEtbDto.referenzPatientId || originalEntry.referenzPatientId,
                     referenzEinsatzmittelId: ueberschreibeEtbDto.referenzEinsatzmittelId || originalEntry.referenzEinsatzmittelId,
                     autorId: userId,
