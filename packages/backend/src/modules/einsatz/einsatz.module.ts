@@ -1,12 +1,14 @@
 import { Module } from '@nestjs/common';
 import { PrismaModule } from '@/prisma/prisma.module';
+import { ConfigModule } from '@/config/config.module';
 import { EinsatzService } from './einsatz.service';
 import { EinsatzController } from './einsatz.controller';
+import { DevSeedService } from './dev-seed.service';
 
 @Module({
-    imports: [PrismaModule],
+    imports: [PrismaModule, ConfigModule],
     controllers: [EinsatzController],
-    providers: [EinsatzService],
+    providers: [EinsatzService, DevSeedService],
     exports: [EinsatzService],
 })
 export class EinsatzModule {}
