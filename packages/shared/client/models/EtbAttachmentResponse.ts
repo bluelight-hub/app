@@ -20,6 +20,13 @@ import {
   ApiMetaToJSON,
   ApiMetaToJSONTyped,
 } from "./ApiMeta";
+import type { EtbAttachment } from "./EtbAttachment";
+import {
+  EtbAttachmentFromJSON,
+  EtbAttachmentFromJSONTyped,
+  EtbAttachmentToJSON,
+  EtbAttachmentToJSONTyped,
+} from "./EtbAttachment";
 
 /**
  *
@@ -41,10 +48,10 @@ export interface EtbAttachmentResponse {
   message?: string;
   /**
    * ETB-Anlage
-   * @type {object}
+   * @type {EtbAttachment}
    * @memberof EtbAttachmentResponse
    */
-  data: object;
+  data: EtbAttachment;
 }
 
 /**
@@ -74,7 +81,7 @@ export function EtbAttachmentResponseFromJSONTyped(
   return {
     meta: ApiMetaFromJSON(json["meta"]),
     message: json["message"] == null ? undefined : json["message"],
-    data: json["data"],
+    data: EtbAttachmentFromJSON(json["data"]),
   };
 }
 
@@ -93,6 +100,6 @@ export function EtbAttachmentResponseToJSONTyped(
   return {
     meta: ApiMetaToJSON(value["meta"]),
     message: value["message"],
-    data: value["data"],
+    data: EtbAttachmentToJSON(value["data"]),
   };
 }

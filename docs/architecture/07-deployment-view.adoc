@@ -20,7 +20,7 @@ Im Fall von Bluelight-Hub ist die Infrastruktur bewusst einfach gehalten: Das Ba
 flowchart TB
  subgraph Server["Server-Komponenten 🖥️"]
     direction LR
-        DB[("SQLite DB 💾\n(Lokale Datenspeicherung)")]
+        DB[("PostgreSQL DB 💾\n(Server-Datenspeicherung)")]
         Backend["Backend NestJS\n(API-Endpunkte, Geschäftslogik)"]
         Frontend["Frontend React\n(Web-Interface)"]
   end
@@ -72,7 +72,7 @@ flowchart TB
 |NestJS-Anwendung, die im FüKW läuft und die Geschäftslogik bereitstellt. Kommuniziert mit der Datenbank, stellt API-Endpunkte bereit und kann optional Internet-APIs aufrufen.
 
 |Datenbank
-|PostgreSQL-Datenbank für die Datenspeicherung. Wird im FüKW gehostet und speichert alle Einsatzdaten. Für lokale Entwicklung kann auch SQLite verwendet werden.
+|PostgreSQL-Datenbank für die Datenspeicherung. Wird im FüKW gehostet und speichert alle Einsatzdaten.
 
 |Frontend
 |React-Anwendung, die als WebApp-Interface dient. Läuft im FüKW und stellt ein Web-Interface bereit, auf das Client-Geräte über den Browser zugreifen können.
@@ -109,7 +109,7 @@ Alle Server-Komponenten laufen innerhalb des lokalen Netzwerks des FüKW, was di
 
 === Einfaches Backup-Konzept
 
-* Regelmäßige Sicherung der SQLite-Datenbank
+* Regelmäßige Sicherung der PostgreSQL-Datenbank
 * Manuelle oder automatisierte Backups nach Einsatzende
 * Export- und Importfunktionen für Einsatzdaten
 
@@ -475,7 +475,7 @@ Dockerfile-Auszüge:
 ----
 # Base stage for shared dependencies
 FROM node:20-alpine AS base
-RUN apk add --no-cache python3 make g++ sqlite
+RUN apk add --no-cache python3 make g++
 RUN npm install -g pnpm
 WORKDIR /app
 COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
@@ -503,7 +503,7 @@ RUN cd packages/backend && pnpm build
 
 # Production stage
 FROM node:20-alpine AS production
-RUN apk add --no-cache sqlite python3 make g++
+RUN apk add --no-cache python3 make g++
 RUN npm install -g pnpm
 WORKDIR /app
 
@@ -532,11 +532,8 @@ services:
       dockerfile: Dockerfile
     ports:
       - "3000:3000"
-    volumes:
-      - sqlite_data:/data/db
     environment:
       - NODE_ENV=production
-      - SQLITE_DB_PATH=/data/db/database.sqlite
     restart: unless-stopped
     healthcheck:
       test: ["CMD", "wget", "--spider", "-q", "http://localhost:3000/api/health"]
@@ -550,10 +547,6 @@ services:
           memory: 1G
         reservations:
           memory: 512M
-
-volumes:
-  sqlite_data:
-    name: bluelight-hub-db
 ----
 
 ==== 7.3.4 Deployment auf dem Führungskraftwagen

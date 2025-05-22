@@ -1,10 +1,11 @@
 import { Module } from '@nestjs/common';
+import { ConfigModule } from '@nestjs/config';
 import { CommonModule } from './common/common.module';
-import { ConfigModule } from './config/config.module';
 import { HealthModule } from './health/health.module';
 import { ConsolaLogger } from './logger/consola.logger';
-import { EtbModule } from './modules/etb/etb.module';
 import { EinsatzModule } from './modules/einsatz/einsatz.module';
+import { EtbModule } from './modules/etb/etb.module';
+import { SeedModule } from './modules/seed/seed.module';
 import { PrismaModule } from './prisma/prisma.module';
 
 /**
@@ -15,12 +16,15 @@ import { PrismaModule } from './prisma/prisma.module';
  */
 @Module({
     imports: [
-        ConfigModule,
+        ConfigModule.forRoot({
+            isGlobal: true,
+        }),
         PrismaModule,
         HealthModule,
         EinsatzModule,
         EtbModule,
         CommonModule,
+        SeedModule.registerAsync(),
     ],
     controllers: [],
     providers: [

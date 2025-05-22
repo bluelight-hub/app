@@ -39,11 +39,6 @@ lerna-debug.log*
 .env.*
 !.env.example
 
-# Database
-/data/*.db
-/data/*.sqlite
-/data/*.db-journal 
-
 # generated docs
 docs
 docs/*

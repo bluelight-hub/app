@@ -25,7 +25,7 @@ flowchart TB
     end
     
     %% Externe Systeme
-    DB[(SQLite\nDatenbank)]:::database
+    DB[(PostgreSQL\nDatenbank)]:::database
     ExtDigitalfunk[Digitalfunk\nTETRA]:::external
     
     %% Beziehungen
@@ -60,7 +60,6 @@ flowchart TB
 |Schnittstelle |Beschreibung
 |Frontend ↔ Backend |RESTful API für Datenaustausch und Aktionen, gruppiert nach Domänen und Funktionsbereichen
 |Backend ↔ Datenbank |Prisma-basierter PostgreSQL-Datenbankzugriff für zentrale Persistenz und Synchronisation
-|Frontend ↔ Datenbank |Lokale SQLite-Instanz für Offline-Funktionalität
 |Backend ↔ Externe Systeme |Integration von Digitalfunk und anderen externen Systemen über domänenspezifische Adapter
 |===
 
@@ -175,7 +174,7 @@ flowchart TB
     end
 
     subgraph external["Externe Systeme"]
-        DB[(SQLite\nDatenbank)]
+        DB[(PostgreSQL\nDatenbank)]
         DigitalfunkSystem["Digitalfunk\n(TETRA)"]
     end
 

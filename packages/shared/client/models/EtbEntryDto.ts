@@ -12,9 +12,20 @@
  * Do not edit the class manually.
  */
 
+import { mapValues } from "../runtime";
+import type { EtbAttachment } from "./EtbAttachment";
+import {
+  EtbAttachmentFromJSON,
+  EtbAttachmentFromJSONTyped,
+  EtbAttachmentToJSON,
+  EtbAttachmentToJSONTyped,
+} from "./EtbAttachment";
 import type { EtbKategorie } from "./EtbKategorie";
 import {
-  EtbKategorieFromJSON, EtbKategorieToJSON
+  EtbKategorieFromJSON,
+  EtbKategorieFromJSONTyped,
+  EtbKategorieToJSON,
+  EtbKategorieToJSONTyped,
 } from "./EtbKategorie";
 
 /**
@@ -133,10 +144,10 @@ export interface EtbEntryDto {
   status: EtbEntryDtoStatusEnum | null;
   /**
    * Anlagen zum ETB-Eintrag
-   * @type {Array<object>}
+   * @type {Array<EtbAttachment>}
    * @memberof EtbEntryDto
    */
-  anlagen?: Array<object>;
+  anlagen?: Array<EtbAttachment>;
   /**
    * Absender des Eintrags (OPTA-Nummer)
    * @type {string}
@@ -148,15 +159,15 @@ export interface EtbEntryDto {
    * @type {string}
    * @memberof EtbEntryDto
    */
-  receiver: string | null;
+  receiver: string;
 }
 
 /**
  * @export
  */
 export const EtbEntryDtoStatusEnum = {
-  Aktiv: "aktiv",
-  Ueberschrieben: "ueberschrieben",
+  Aktiv: "AKTIV",
+  Ueberschrieben: "UEBERSCHRIEBEN",
 } as const;
 export type EtbEntryDtoStatusEnum =
   (typeof EtbEntryDtoStatusEnum)[keyof typeof EtbEntryDtoStatusEnum];
@@ -250,7 +261,10 @@ export function EtbEntryDtoFromJSONTyped(
         : new Date(json["timestampAbschluss"]),
     abgeschlossenVon: json["abgeschlossenVon"],
     status: json["status"],
-    anlagen: json["anlagen"] == null ? undefined : json["anlagen"],
+    anlagen:
+      json["anlagen"] == null
+        ? undefined
+        : (json["anlagen"] as Array<any>).map(EtbAttachmentFromJSON),
     sender: json["sender"],
     receiver: json["receiver"],
   };
@@ -290,7 +304,10 @@ export function EtbEntryDtoToJSONTyped(
         : (value["timestampAbschluss"] as any).toISOString(),
     abgeschlossenVon: value["abgeschlossenVon"],
     status: value["status"],
-    anlagen: value["anlagen"],
+    anlagen:
+      value["anlagen"] == null
+        ? undefined
+        : (value["anlagen"] as Array<any>).map(EtbAttachmentToJSON),
     sender: value["sender"],
     receiver: value["receiver"],
   };

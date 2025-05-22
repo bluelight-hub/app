@@ -31,7 +31,7 @@ Dieser Abschnitt beschreibt die Randbedingungen und Vorgaben, die bei der Entwic
 |Frontend |React auf Vite mit TypeScript |Moderne, typsichere Entwicklung
 |Mobile App |Tauri v2 |Plattformübergreifende Entwicklung
 |Backend |NestJS |Strukturiertes Framework mit TypeScript
-|Datenbank |PostgreSQL (Server), SQLite (lokal) |Robustheit, Skalierbarkeit, Offline-Fähigkeit
+|Datenbank |PostgreSQL (Server) |Robustheit, Skalierbarkeit, Offline-Fähigkeit
 |API |RESTful und WebSockets |Standardisierte Schnittstellen und Echtzeitkommunikation
 |Authentifizierung |Rollenbasierte Authentifizierung mit JWT-Tokens |Sichere, zustandslose Autorisierung
 |===

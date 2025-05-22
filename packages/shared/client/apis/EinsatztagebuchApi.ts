@@ -18,7 +18,6 @@ import type {
   EtbAttachmentResponse,
   EtbAttachmentsResponse,
   EtbEntriesResponse,
-  EtbEntryResponse,
   EtbKategorie,
   UeberschreibeEtbDto,
   UpdateEtbDto,
@@ -32,8 +31,6 @@ import {
   EtbAttachmentsResponseToJSON,
   EtbEntriesResponseFromJSON,
   EtbEntriesResponseToJSON,
-  EtbEntryResponseFromJSON,
-  EtbEntryResponseToJSON,
   EtbKategorieFromJSON,
   EtbKategorieToJSON,
   UeberschreibeEtbDtoFromJSON,
@@ -152,7 +149,7 @@ export class EinsatztagebuchApi extends runtime.BaseAPI {
 
     const response = await this.request(
       {
-        path: `/v1/etb/{id}/anlage`.replace(
+        path: `/v1/einsatz/{einsatzId}/etb/{id}/anlage`.replace(
           `{${"id"}}`,
           encodeURIComponent(String(requestParameters["id"])),
         ),
@@ -189,7 +186,7 @@ export class EinsatztagebuchApi extends runtime.BaseAPI {
   async etbControllerCloseEntryV1Raw(
     requestParameters: EtbControllerCloseEntryV1Request,
     initOverrides?: RequestInit | runtime.InitOverrideFunction,
-  ): Promise<runtime.ApiResponse<EtbEntryResponse>> {
+  ): Promise<runtime.ApiResponse<object>> {
     if (requestParameters["id"] == null) {
       throw new runtime.RequiredError(
         "id",
@@ -203,7 +200,7 @@ export class EinsatztagebuchApi extends runtime.BaseAPI {
 
     const response = await this.request(
       {
-        path: `/v1/etb/{id}/schliessen`.replace(
+        path: `/v1/einsatz/{einsatzId}/etb/{id}/close`.replace(
           `{${"id"}}`,
           encodeURIComponent(String(requestParameters["id"])),
         ),
@@ -214,9 +211,7 @@ export class EinsatztagebuchApi extends runtime.BaseAPI {
       initOverrides,
     );
 
-    return new runtime.JSONApiResponse(response, (jsonValue) =>
-      EtbEntryResponseFromJSON(jsonValue),
-    );
+    return new runtime.JSONApiResponse<any>(response);
   }
 
   /**
@@ -225,7 +220,7 @@ export class EinsatztagebuchApi extends runtime.BaseAPI {
   async etbControllerCloseEntryV1(
     requestParameters: EtbControllerCloseEntryV1Request,
     initOverrides?: RequestInit | runtime.InitOverrideFunction,
-  ): Promise<EtbEntryResponse> {
+  ): Promise<object> {
     const response = await this.etbControllerCloseEntryV1Raw(
       requestParameters,
       initOverrides,
@@ -239,7 +234,7 @@ export class EinsatztagebuchApi extends runtime.BaseAPI {
   async etbControllerCreateV1Raw(
     requestParameters: EtbControllerCreateV1Request,
     initOverrides?: RequestInit | runtime.InitOverrideFunction,
-  ): Promise<runtime.ApiResponse<EtbEntryResponse>> {
+  ): Promise<runtime.ApiResponse<object>> {
     if (requestParameters["createEtbDto"] == null) {
       throw new runtime.RequiredError(
         "createEtbDto",
@@ -255,7 +250,7 @@ export class EinsatztagebuchApi extends runtime.BaseAPI {
 
     const response = await this.request(
       {
-        path: `/v1/etb`,
+        path: `/v1/einsatz/{einsatzId}/etb`,
         method: "POST",
         headers: headerParameters,
         query: queryParameters,
@@ -264,9 +259,7 @@ export class EinsatztagebuchApi extends runtime.BaseAPI {
       initOverrides,
     );
 
-    return new runtime.JSONApiResponse(response, (jsonValue) =>
-      EtbEntryResponseFromJSON(jsonValue),
-    );
+    return new runtime.JSONApiResponse<any>(response);
   }
 
   /**
@@ -275,7 +268,7 @@ export class EinsatztagebuchApi extends runtime.BaseAPI {
   async etbControllerCreateV1(
     requestParameters: EtbControllerCreateV1Request,
     initOverrides?: RequestInit | runtime.InitOverrideFunction,
-  ): Promise<EtbEntryResponse> {
+  ): Promise<object> {
     const response = await this.etbControllerCreateV1Raw(
       requestParameters,
       initOverrides,
@@ -352,7 +345,7 @@ export class EinsatztagebuchApi extends runtime.BaseAPI {
 
     const response = await this.request(
       {
-        path: `/v1/etb`,
+        path: `/v1/einsatz/{einsatzId}/etb`,
         method: "GET",
         headers: headerParameters,
         query: queryParameters,
@@ -399,7 +392,7 @@ export class EinsatztagebuchApi extends runtime.BaseAPI {
 
     const response = await this.request(
       {
-        path: `/v1/etb/anlage/{id}`.replace(
+        path: `/v1/einsatz/{einsatzId}/etb/anlage/{id}`.replace(
           `{${"id"}}`,
           encodeURIComponent(String(requestParameters["id"])),
         ),
@@ -449,7 +442,7 @@ export class EinsatztagebuchApi extends runtime.BaseAPI {
 
     const response = await this.request(
       {
-        path: `/v1/etb/{id}/anlagen`.replace(
+        path: `/v1/einsatz/{einsatzId}/etb/{id}/anlagen`.replace(
           `{${"id"}}`,
           encodeURIComponent(String(requestParameters["id"])),
         ),
@@ -485,7 +478,7 @@ export class EinsatztagebuchApi extends runtime.BaseAPI {
   async etbControllerFindOneV1Raw(
     requestParameters: EtbControllerFindOneV1Request,
     initOverrides?: RequestInit | runtime.InitOverrideFunction,
-  ): Promise<runtime.ApiResponse<EtbEntryResponse>> {
+  ): Promise<runtime.ApiResponse<object>> {
     if (requestParameters["id"] == null) {
       throw new runtime.RequiredError(
         "id",
@@ -499,7 +492,7 @@ export class EinsatztagebuchApi extends runtime.BaseAPI {
 
     const response = await this.request(
       {
-        path: `/v1/etb/{id}`.replace(
+        path: `/v1/einsatz/{einsatzId}/etb/{id}`.replace(
           `{${"id"}}`,
           encodeURIComponent(String(requestParameters["id"])),
         ),
@@ -510,9 +503,7 @@ export class EinsatztagebuchApi extends runtime.BaseAPI {
       initOverrides,
     );
 
-    return new runtime.JSONApiResponse(response, (jsonValue) =>
-      EtbEntryResponseFromJSON(jsonValue),
-    );
+    return new runtime.JSONApiResponse<any>(response);
   }
 
   /**
@@ -521,7 +512,7 @@ export class EinsatztagebuchApi extends runtime.BaseAPI {
   async etbControllerFindOneV1(
     requestParameters: EtbControllerFindOneV1Request,
     initOverrides?: RequestInit | runtime.InitOverrideFunction,
-  ): Promise<EtbEntryResponse> {
+  ): Promise<object> {
     const response = await this.etbControllerFindOneV1Raw(
       requestParameters,
       initOverrides,
@@ -530,12 +521,12 @@ export class EinsatztagebuchApi extends runtime.BaseAPI {
   }
 
   /**
-   * Überschreibt einen ETB-Eintrag
+   * Überschreibt einen ETB-Eintrag mit einer neuen Version
    */
   async etbControllerUeberschreibeEintragV1Raw(
     requestParameters: EtbControllerUeberschreibeEintragV1Request,
     initOverrides?: RequestInit | runtime.InitOverrideFunction,
-  ): Promise<runtime.ApiResponse<EtbEntryResponse>> {
+  ): Promise<runtime.ApiResponse<object>> {
     if (requestParameters["id"] == null) {
       throw new runtime.RequiredError(
         "id",
@@ -558,7 +549,7 @@ export class EinsatztagebuchApi extends runtime.BaseAPI {
 
     const response = await this.request(
       {
-        path: `/v1/etb/{id}/ueberschreiben`.replace(
+        path: `/v1/einsatz/{einsatzId}/etb/{id}/ueberschreiben`.replace(
           `{${"id"}}`,
           encodeURIComponent(String(requestParameters["id"])),
         ),
@@ -572,18 +563,16 @@ export class EinsatztagebuchApi extends runtime.BaseAPI {
       initOverrides,
     );
 
-    return new runtime.JSONApiResponse(response, (jsonValue) =>
-      EtbEntryResponseFromJSON(jsonValue),
-    );
+    return new runtime.JSONApiResponse<any>(response);
   }
 
   /**
-   * Überschreibt einen ETB-Eintrag
+   * Überschreibt einen ETB-Eintrag mit einer neuen Version
    */
   async etbControllerUeberschreibeEintragV1(
     requestParameters: EtbControllerUeberschreibeEintragV1Request,
     initOverrides?: RequestInit | runtime.InitOverrideFunction,
-  ): Promise<EtbEntryResponse> {
+  ): Promise<object> {
     const response = await this.etbControllerUeberschreibeEintragV1Raw(
       requestParameters,
       initOverrides,
@@ -597,7 +586,7 @@ export class EinsatztagebuchApi extends runtime.BaseAPI {
   async etbControllerUpdateV1Raw(
     requestParameters: EtbControllerUpdateV1Request,
     initOverrides?: RequestInit | runtime.InitOverrideFunction,
-  ): Promise<runtime.ApiResponse<EtbEntryResponse>> {
+  ): Promise<runtime.ApiResponse<object>> {
     if (requestParameters["id"] == null) {
       throw new runtime.RequiredError(
         "id",
@@ -620,11 +609,11 @@ export class EinsatztagebuchApi extends runtime.BaseAPI {
 
     const response = await this.request(
       {
-        path: `/v1/etb/{id}`.replace(
+        path: `/v1/einsatz/{einsatzId}/etb/{id}`.replace(
           `{${"id"}}`,
           encodeURIComponent(String(requestParameters["id"])),
         ),
-        method: "PATCH",
+        method: "PUT",
         headers: headerParameters,
         query: queryParameters,
         body: UpdateEtbDtoToJSON(requestParameters["updateEtbDto"]),
@@ -632,9 +621,7 @@ export class EinsatztagebuchApi extends runtime.BaseAPI {
       initOverrides,
     );
 
-    return new runtime.JSONApiResponse(response, (jsonValue) =>
-      EtbEntryResponseFromJSON(jsonValue),
-    );
+    return new runtime.JSONApiResponse<any>(response);
   }
 
   /**
@@ -643,7 +630,7 @@ export class EinsatztagebuchApi extends runtime.BaseAPI {
   async etbControllerUpdateV1(
     requestParameters: EtbControllerUpdateV1Request,
     initOverrides?: RequestInit | runtime.InitOverrideFunction,
-  ): Promise<EtbEntryResponse> {
+  ): Promise<object> {
     const response = await this.etbControllerUpdateV1Raw(
       requestParameters,
       initOverrides,
@@ -656,8 +643,8 @@ export class EinsatztagebuchApi extends runtime.BaseAPI {
  * @export
  */
 export const EtbControllerFindAllV1StatusEnum = {
-  Aktiv: "aktiv",
-  Ueberschrieben: "ueberschrieben",
+  Aktiv: "AKTIV",
+  Ueberschrieben: "UEBERSCHRIEBEN",
 } as const;
 export type EtbControllerFindAllV1StatusEnum =
   (typeof EtbControllerFindAllV1StatusEnum)[keyof typeof EtbControllerFindAllV1StatusEnum];

@@ -63,7 +63,7 @@ flowchart TB
     end
 
     subgraph Infrastructure[Infrastruktur-Schicht]
-        DB[(SQLite-DB)]
+        DB[(PostgreSQL-DB)]
         Logger[Logging]
         Messaging[Event-Bus]
     end
@@ -149,7 +149,7 @@ Das Verbindungskonzept unterstützt drei Konnektivitätsszenarien:
 flowchart TB
     Frontend --> React & TypeScript & AntDesign
     Backend --> NestJS & Node.js
-    Daten --> SQLite & CRDTs
+    Daten --> PostgreSQL & Prisma
     API --> REST & JWT
     Mobile --> Tauri & WebView
 ....
@@ -273,6 +273,6 @@ Die wichtigsten Merkmale sind:
 * *Modulare Architektur:* Klar getrennte Verantwortlichkeiten und einfache Erweiterbarkeit
 * *Echtzeit-Kommunikation:* Schneller Informationsaustausch zwischen allen Einheiten
 * *Benutzerfreundlichkeit:* Intuitive Bedienung auch unter Stress
-* *Moderne Technologien:* React, TypeScript, NestJS, SQLite, Docker
+* *Moderne Technologien:* React, TypeScript, NestJS, PostgreSQL, Docker
 
 Das Bluelight-Hub-System wird kontinuierlich weiterentwickelt, um den sich ändernden Anforderungen der Einsatzkräfte gerecht zu werden und die neuesten Technologien und Best Practices zu integrieren. 

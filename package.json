@@ -20,7 +20,6 @@
             "@nestjs/core",
             "@openapitools/openapi-generator-cli",
             "@swc/core",
-            "better-sqlite3",
             "esbuild"
         ]
     },

@@ -1,12 +1,10 @@
-import { ValidationPipe, VersioningType } from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
-import { NestFactory } from '@nestjs/core';
-import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
-import { readFileSync } from 'fs';
-import { join } from 'path';
+import {ValidationPipe, VersioningType} from '@nestjs/common';
+import {ConfigService} from '@nestjs/config';
+import {NestFactory} from '@nestjs/core';
+import {DocumentBuilder, SwaggerModule} from '@nestjs/swagger';
 import * as packageJson from '../package.json';
-import { AppModule } from './app.module';
-import { logger } from './logger/consola.logger';
+import {AppModule} from './app.module';
+import {logger} from './logger/consola.logger';
 
 /**
  * Bootstrap-Funktion zum Initialisieren und Starten der NestJS-Anwendung.
@@ -34,14 +32,7 @@ async function bootstrap() {
         description: 'Local Environment',
     }];
 
-    // Lese Dark-Mode-Styles für Swagger UI ein
-    const swaggerCss = readFileSync(
-        join(__dirname, '../swagger-dark.css'),
-        'utf8',
-    );
-
-    // Aktiviere Swagger UI unter /api mit den eingelesenen Styles
-    SwaggerModule.setup('api', app, document, { customCss: swaggerCss });
+    SwaggerModule.setup('api', app, document, {});
 
     app.enableCors();
 

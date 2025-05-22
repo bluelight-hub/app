@@ -141,10 +141,6 @@ dist
 .yarn/install-state.gz
 .pnp.*
 
-# SQLite database
-*.sqlite
-*.sqlite-journal
-
 # Python
 __pycache__/
 *.py[cod]

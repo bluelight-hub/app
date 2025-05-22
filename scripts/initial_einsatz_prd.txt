@@ -1,0 +1,141 @@
+# Projektübersicht
+Die Bluelight-Hub-Anwendung benötigt für die meisten Funktionen einen aktiven Einsatz. Um Entwicklern und Testern ein besseres Arbeiten zu ermöglichen, soll die Anwendung im Dev-Modus automatisch einen initialen Einsatz anlegen, wenn noch keiner vorhanden ist. Alternativ soll ein einfacher Weg bereitgestellt werden, manuell einen Test-Einsatz zu erstellen.
+
+Hauptnutzer dieses Features sind:
+1. **Entwickler:innen** – benötigen schnell einen konsistenten Datenstand für UI- und API-Tests
+2. **QA/Test-Teams** – können schneller reproduzierbare Testfälle ausführen
+
+Das Feature löst das Problem des zeitintensiven manuellen Aufsetzens von Testdaten und verringert Fehlerquellen durch inkonsistente Seeds.
+
+# Kernfunktionen
+## Automatischer Dev-Seed
+- Beim Start von `pnpm --filter @bluelight-hub/backend dev` prüft der Backend-Dienst, ob in der Tabelle `Einsatz` bereits Einträge existieren
+- Fehlen Einsätze, wird automatisch ein Standard-Einsatz erstellt:
+  - Name: "Dev-Einsatz <ISO-Datum>"
+  - Eigenschaften können per `.env`-Variablen überschrieben werden (z.B. `DEV_EINSATZ_NAME`)
+- Seed-Logik ist ausschaltbar über `SEED_INITIAL_EINSATZ=false`
+
+## CLI-Wizard
+- Kommando: `pnpm --filter @bluelight-hub/backend run seed:einsatz -- --name "Einsatz Alpha"`
+- Legt genau einen Einsatz mit Wunsch-Namen an
+- Nutzt dieselben Service-Klassen wie der Auto-Seed
+
+## UI-Wizard (Optional)
+- Erkennt im Frontend, dass kein Einsatz existiert (GET `/einsatz` liefert leeres Array)
+- Leitet Anwender:innen auf Seite "Einsatz anlegen" weiter
+- Formular: Name + optionaler Hinweistext, Submit triggert POST `/einsatz`
+
+# Benutzererfahrung
+## Zielgruppen
+- **Backend-Dev**: möchte ohne Zusatzschritte einen Testeinsatz haben
+- **Frontend-Dev/QA**: will auf der UI sofort Einsatzdaten sehen
+- **Neue Teammitglieder**: sollen das Projekt klonen, `pnpm dev` ausführen und loslegen können
+
+## Hauptabläufe
+- **Auto-Seed Workflow**  
+  1. `pnpm -r dev` starten  
+  2. Backend registriert fehlende Einsätze → erstellt Dev-Einsatz  
+  3. Frontend ruft `/einsatz` ab → erhält Dev-Einsatz → UI zeigt Dashboard
+
+- **CLI-Wizard Workflow**  
+  1. `pnpm --filter @bluelight-hub/backend run seed:einsatz -- --name "Test Beta"`  
+  2. Backend schreibt neuen Einsatz  
+  3. Frontend reload → zwei Einsätze verfügbar
+
+- **UI-Wizard Workflow**  
+  1. Frontend erkennt leere Liste → zeigt Wizard  
+  2. Nutzer füllt Formular aus → POST `/einsatz`  
+  3. Dashboard zeigt frisch erstellten Einsatz
+
+## UI/UX-Konzept
+- Minimalistischer Wizard (Schritt 1/1) mit validiertem Namen
+- Klarer Hinweis "Dieser Schritt ist nur im Dev-Modus sichtbar"
+
+# Technische Architektur
+## Systemkomponenten
+- **Frontend**: React mit Atomic Design, Zustand-Store
+  - Neue Page `pages/app/CreateInitialEinsatz.tsx`
+  - Routing-Guard in `router/auth` prüft Einsatz-Existenz
+  - State-Update nach Einsatz-Erstellung
+
+- **Backend**: NestJS
+  - Modul `EinsatzModule` erhält `create()`-Methode in `EinsatzService`
+  - Seeder-Service (`DevSeedService`) wird nur in `NODE_ENV=development` geladen
+  - POST-Endpoint für Einsatz-Erstellung
+
+- **Shared Package**: 
+  - OpenAPI-Client-Update für neue Endpunkte
+
+## Datenmodelle
+- **Einsatz**:
+  - id (UUID) 
+  - name (string) - Pflichtfeld
+  - beschreibung (string) - Optional
+  - createdAt (Date)
+  - updatedAt (Date)
+
+## APIs und Integrationen
+- Neu: `POST /einsatz` → erstellt Einsatz
+- Bestehend: `GET /einsatz` (Liste), `GET /einsatz/:id` (Detail)
+
+## Infrastrukturanforderungen
+- **Datenbank**: SQLite (Dev) – keine Änderung nötig
+- **Server**: Seed-Service wird über Nest Lifecycle-Hook `onModuleInit` ausgeführt
+
+# Entwicklungs-Roadmap
+## MVP-Anforderungen (Phase 1)
+- `create()`-Methode + DTO im Backend
+- Auto-Seed bei `NODE_ENV=development`
+- CLI-Task `seed:einsatz`
+- OpenAPI-Specs anpassen & Client generieren
+- Frontend-Guard → Redirect auf Dashboard
+
+## Erweiterte Funktionen (Phase 2)
+- UI-Wizard für manuelle Anlage
+- Mehrere vordefinierte Seed-Profile (z.B. Brandbekämpfung, Massenanfall Verletzter)
+
+## Zukunftspläne (Phase 3)
+- Seed-Daten über JSON-Dateien importierbar
+- Einstellbarer Zeitplaner für periodische Test-Seeds in CI
+
+# Logische Abhängigkeitskette
+## Grundlegende Komponenten
+1. DTO & Service-Methode `create()`
+2. Route `POST /einsatz`
+3. Auto-Seed Service
+
+## Kernsystem
+4. CLI-Seed-Command
+5. Frontend-Guard für leere Einsatz-Liste
+6. OpenAPI-Client-Update
+
+## Erweiterung
+7. UI-Wizard für manuelle Einsatz-Erstellung
+8. Vordefinierte Seed-Profile für verschiedene Einsatzszenarien
+9. Seed-Daten-Import
+
+# Risiken und Gegenmaßnahmen
+## Technische Herausforderungen
+- **Race Condition bei parallelen Backend-Starts**
+  *Mitigation*: Unique-Constraint auf `name` + Retry-Logik
+
+- **Seed läuft versehentlich in Produktion**
+  *Mitigation*: Aktivierung nur bei `NODE_ENV=development` & `ENABLE_DEV_SEED=true`
+
+## Projektrisiken
+- **Ungewollte Testdaten im QA-Staging**
+  *Mitigation*: Seed-Flags in CI/CD klären; getrennte Umgebungs-Configs
+
+- **Inkonsistente Daten bei mehrfacher Ausführung**
+  *Mitigation*: Idempotente Implementierung, die bestehende Daten erkennt
+
+# Anhang
+## Technische Spezifikationen
+- Frontend: React 18, React Router v6, Zustand v4
+- Backend: NestJS 10, Prisma v5
+- DB: SQLite 3 (Dev), Postgres 15 (Prod)
+
+## Architekturentscheidungen
+- Seed-Logik als **Lifecycle-Hook** statt separatem Skript → weniger Wartungsaufwand
+- CLI-Seed nutzt denselben Service wie Auto-Seed → verhindert Code-Duplikation
+- UI-Wizard bleibt optional, um Headless-Tests nicht zu blockieren 

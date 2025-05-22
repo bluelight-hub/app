@@ -1,6 +1,6 @@
 # Base stage for shared dependencies
 FROM node:20-alpine AS base
-RUN apk add --no-cache python3 make g++ sqlite
+RUN apk add --no-cache python3 make g++
 RUN npm install -g pnpm
 WORKDIR /app
 COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
@@ -29,7 +29,7 @@ RUN cd packages/backend && pnpm build
 
 # Production stage
 FROM node:20-alpine AS production
-RUN apk add --no-cache sqlite python3 make g++
+RUN apk add --no-cache python3 make g++
 RUN npm install -g pnpm
 WORKDIR /app
 
@@ -43,18 +43,12 @@ COPY --from=backend-builder /app/packages/backend/dist ./packages/backend/dist
 COPY --from=frontend-builder /app/packages/frontend/dist ./public
 COPY --from=backend-builder /app/packages/shared ./packages/shared
 
-# Install production dependencies and rebuild better-sqlite3
+# Install production dependencies
 WORKDIR /app/packages/backend
 RUN pnpm install --prod
-RUN cd node_modules/better-sqlite3 && pnpm rebuild
-
-# Create data directory for SQLite with proper permissions
-RUN mkdir -p /data/db && chown -R node:node /data
-VOLUME /data/db
 
 # Set environment variables
 ENV NODE_ENV=production
-ENV SQLITE_DB_PATH=/data/db/database.sqlite
 
 # Switch to non-root user
 USER node

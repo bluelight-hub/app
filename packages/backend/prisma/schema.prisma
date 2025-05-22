@@ -31,11 +31,12 @@ enum EtbEntryStatus {
 }
 
 model Einsatz {
-  id        String    @id @default(nanoid())
-  name      String
-  createdAt DateTime  @default(now())
-  updatedAt DateTime  @updatedAt
-  etbEntries EtbEntry[]
+  id          String    @id @default(nanoid())
+  name        String    @unique
+  beschreibung String?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  etbEntries  EtbEntry[]
 }
 
 model EtbEntry {

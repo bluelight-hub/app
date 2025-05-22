@@ -17,14 +17,14 @@
  * @export
  */
 export const EtbKategorie = {
-  Lagemeldung: "Lagemeldung",
-  Meldung: "Meldung",
-  Anforderung: "Anforderung",
-  Korrektur: "Korrektur",
-  MeldungAutomatisiertKrfte: "Meldung (automatisiert) - Kräfte",
-  MeldungAutomatisiertPatienten: "Meldung (automatisiert) - Patienten",
-  MeldungAutomatisiertTechnisch: "Meldung (automatisiert) - Technisch",
-  MeldungAutomatisiertSonstiges: "Meldung (automatisiert) - Sonstiges",
+  Lagemeldung: "LAGEMELDUNG",
+  Meldung: "MELDUNG",
+  Anforderung: "ANFORDERUNG",
+  Korrektur: "KORREKTUR",
+  AutoKraefte: "AUTO_KRAEFTE",
+  AutoPatienten: "AUTO_PATIENTEN",
+  AutoTechnisch: "AUTO_TECHNISCH",
+  AutoSonstiges: "AUTO_SONSTIGES",
 } as const;
 export type EtbKategorie = (typeof EtbKategorie)[keyof typeof EtbKategorie];
 

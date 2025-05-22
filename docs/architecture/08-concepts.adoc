@@ -411,7 +411,7 @@ Die Dashboard-Architektur nutzt Tauri Webviews für leichtgewichtige, separate F
 
 === Persistenzkonzept
 
-* SQLite als lokale Datenbank auf allen Endgeräten
+* PostgreSQL als Datenbank
 * Versionierung von Datensätzen für Konfliktauflösung
 * Inkrementelle Backups auf FüKW-Server
 
@@ -568,7 +568,7 @@ Bei der Entwicklung des Backends wurden folgende Architekturentscheidungen getro
 
 2. **Shared Types mit Frontend**: DTOs und Entitäten werden durch OpenAPI/Swagger-Generierung mit dem Frontend geteilt, um Typkonsistenz zu gewährleisten.
 
-3. **PostgreSQL als Primärdatenbank**: Verwendung von PostgreSQL für Robustheit, Skalierbarkeit und erweiterte Funktionen. Für die lokale Entwicklung wird SQLite weiterhin unterstützt.
+3. **PostgreSQL als Primärdatenbank**: Verwendung von PostgreSQL für Robustheit, Skalierbarkeit und erweiterte Funktionen.
 
 4. **Repository Pattern über Active Record**: Bewusste Entscheidung für das Repository-Pattern statt Active Record für bessere Testbarkeit und Abstraktion.
 

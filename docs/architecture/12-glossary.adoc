@@ -89,9 +89,6 @@ Dieses Glossar definiert die wichtigsten Fachbegriffe, Abkürzungen und technisc
 |REST
 |Representational State Transfer; Architekturstil für verteilte Systeme, der für die API des Bluelight-Hub-Systems verwendet wird.
 
-|SQLite
-|Leichtgewichtige, dateibasierte relationale Datenbank, die im Bluelight-Hub-System für die lokale Datenspeicherung verwendet wird.
-
 |Tauri
 |Framework für die Entwicklung von Desktop-Anwendungen mit Webtechnologien, das für die Erstellung der plattformübergreifenden Client-Anwendung des Bluelight-Hub-Systems verwendet wird.
 

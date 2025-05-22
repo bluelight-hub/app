@@ -44,7 +44,25 @@ export interface UeberschreibeEtbDto {
    * @type {string}
    * @memberof UeberschreibeEtbDto
    */
-  inhalt?: string;
+  inhalt: string;
+  /**
+   * Grund für die Überschreibung
+   * @type {string}
+   * @memberof UeberschreibeEtbDto
+   */
+  ueberschreibungsgrund?: string;
+  /**
+   * Absender des Eintrags (OPTA-Nummer)
+   * @type {string}
+   * @memberof UeberschreibeEtbDto
+   */
+  sender?: string;
+  /**
+   * Empfänger des Eintrags (OPTA-Nummer)
+   * @type {string}
+   * @memberof UeberschreibeEtbDto
+   */
+  receiver?: string;
   /**
    * Referenz zur Einsatz-ID
    * @type {string}
@@ -63,18 +81,6 @@ export interface UeberschreibeEtbDto {
    * @memberof UeberschreibeEtbDto
    */
   referenzEinsatzmittelId?: string;
-  /**
-   * Absender des Eintrags (OPTA-Nummer)
-   * @type {string}
-   * @memberof UeberschreibeEtbDto
-   */
-  sender?: string;
-  /**
-   * Empfänger des Eintrags (OPTA-Nummer)
-   * @type {string}
-   * @memberof UeberschreibeEtbDto
-   */
-  receiver?: string;
 }
 
 /**
@@ -83,6 +89,7 @@ export interface UeberschreibeEtbDto {
 export function instanceOfUeberschreibeEtbDto(
   value: object,
 ): value is UeberschreibeEtbDto {
+  if (!("inhalt" in value) || value["inhalt"] === undefined) return false;
   return true;
 }
 
@@ -104,7 +111,13 @@ export function UeberschreibeEtbDtoFromJSONTyped(
       json["kategorie"] == null
         ? undefined
         : EtbKategorieFromJSON(json["kategorie"]),
-    inhalt: json["inhalt"] == null ? undefined : json["inhalt"],
+    inhalt: json["inhalt"],
+    ueberschreibungsgrund:
+      json["ueberschreibungsgrund"] == null
+        ? undefined
+        : json["ueberschreibungsgrund"],
+    sender: json["sender"] == null ? undefined : json["sender"],
+    receiver: json["receiver"] == null ? undefined : json["receiver"],
     referenzEinsatzId:
       json["referenzEinsatzId"] == null ? undefined : json["referenzEinsatzId"],
     referenzPatientId:
@@ -113,8 +126,6 @@ export function UeberschreibeEtbDtoFromJSONTyped(
       json["referenzEinsatzmittelId"] == null
         ? undefined
         : json["referenzEinsatzmittelId"],
-    sender: json["sender"] == null ? undefined : json["sender"],
-    receiver: json["receiver"] == null ? undefined : json["receiver"],
   };
 }
 
@@ -134,10 +145,11 @@ export function UeberschreibeEtbDtoToJSONTyped(
     timestampEreignis: value["timestampEreignis"],
     kategorie: EtbKategorieToJSON(value["kategorie"]),
     inhalt: value["inhalt"],
+    ueberschreibungsgrund: value["ueberschreibungsgrund"],
+    sender: value["sender"],
+    receiver: value["receiver"],
     referenzEinsatzId: value["referenzEinsatzId"],
     referenzPatientId: value["referenzPatientId"],
     referenzEinsatzmittelId: value["referenzEinsatzmittelId"],
-    sender: value["sender"],
-    receiver: value["receiver"],
   };
 }
