@@ -27,5 +27,13 @@ module.exports = {
         '^@prisma/generated/prisma/enums$': '<rootDir>/__mocks__/prisma/enums.ts',
         '^@prisma/generated/prisma/client$': '<rootDir>/__mocks__/prisma/client.ts',
         '^@prisma/generated/prisma$': '<rootDir>/__mocks__/prisma/enums.ts'
+    },
+    coverageThreshold: {
+        global: {
+            branches: 80,
+            functions: 80,
+            lines: 80,
+            statements: 80
+        }
     }
 };
