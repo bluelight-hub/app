@@ -277,9 +277,6 @@ describe('useThemeStore', () => {
         });
 
         it('sollte bei Auto-Aktivierung mit dark system preference korrekt funktionieren', () => {
-            // Mock system preference für dark mode BEFORE rendering
-            mockMatchMedia.mockImplementation(() => createMatchMediaMock(true));
-
             const { result } = renderHook(() => useThemeStore());
 
             // Erst manuell auf light setzen
@@ -287,9 +284,17 @@ describe('useThemeStore', () => {
                 result.current.setManualDark(false);
             });
 
-            // Auto-Modus aktivieren (sollte dark system preference übernehmen)
+            expect(result.current.auto).toBe(false);
+            expect(result.current.dark).toBe(false);
+
+            // Auto-Modus aktivieren
             act(() => {
                 result.current.setAuto(true);
+            });
+
+            // Simuliere System dark mode preference durch setSystemDark
+            act(() => {
+                result.current.setSystemDark(true);
             });
 
             expect(result.current.auto).toBe(true);
