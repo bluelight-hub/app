@@ -1,6 +1,7 @@
 import React, { Suspense } from "react";
 import { Route, Routes } from "react-router";
 import { AuthProvider } from "../contexts/AuthContext";
+import EinsatzGuard from "./auth/EinsatzGuard";
 import PrivateRoute from "./auth/PrivateRoute";
 
 // App Layout
@@ -65,6 +66,9 @@ const SchadenPage = React.lazy(() => import("@pages/app/schaden/page"));
 const GefahrenPage = React.lazy(() => import("@pages/app/gefahren/page"));
 const NotizenPage = React.lazy(() => import("@pages/app/notizen/page"));
 
+// Einsatz Management
+const CreateInitialEinsatzPage = React.lazy(() => import("@/components/pages/app/CreateInitialEinsatz"));
+
 // NotFound Page
 const NotFoundPage = React.lazy(() => import("@/components/pages/not-found/page"));
 
@@ -90,7 +94,8 @@ export const Router = () => {
 
                     {/* Geschützte Routen */}
                     <Route element={<PrivateRoute />}>
-                        <Route path="/app" element={<AppLayout />}>
+                        <Route element={<EinsatzGuard />}>
+                            <Route path="/app" element={<AppLayout />}>
                             <Route index element={<DashboardPage />} />
 
                             {/* Einsatz */}
@@ -144,6 +149,10 @@ export const Router = () => {
                             <Route path="schaden" element={<SchadenPage />} />
                             <Route path="gefahren" element={<GefahrenPage />} />
                             <Route path="notizen" element={<NotizenPage />} />
+                            </Route>
+
+                            {/* Standalone Einsatz Management - außerhalb AppLayout */}
+                            <Route path="/app/create-initial-einsatz" element={<CreateInitialEinsatzPage />} />
                         </Route>
                     </Route>
 

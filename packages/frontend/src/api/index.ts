@@ -1,3 +1,4 @@
+import { EinsatzApi } from "@bluelight-hub/shared/client/apis/EinsatzApi";
 import { EinsatztagebuchApi } from "@bluelight-hub/shared/client/apis/EinsatztagebuchApi";
 import { HealthApi } from "@bluelight-hub/shared/client/apis/HealthApi";
 import { apiConfiguration } from "../utils/fetch";
@@ -10,6 +11,7 @@ class API {
     private static instance: API;
     private healthApi: HealthApi;
     private einsatztagebuchApi: EinsatztagebuchApi;
+    private einsatzApi: EinsatzApi;
     private _isInitialized = false;
 
     private constructor() {
@@ -21,6 +23,7 @@ class API {
 
             this.healthApi = new HealthApi(apiConfiguration);
             this.einsatztagebuchApi = new EinsatztagebuchApi(apiConfiguration);
+            this.einsatzApi = new EinsatzApi(apiConfiguration);
 
             if (
                 !apiConfiguration.basePath ||
@@ -38,6 +41,7 @@ class API {
 
             this.healthApi = new HealthApi(apiConfiguration);
             this.einsatztagebuchApi = new EinsatztagebuchApi(apiConfiguration);
+            this.einsatzApi = new EinsatzApi(apiConfiguration);
         }
     }
 
@@ -54,6 +58,10 @@ class API {
 
     public get etb() {
         return this.einsatztagebuchApi;
+    }
+
+    public get einsatz() {
+        return this.einsatzApi;
     }
 
     public get isInitialized() {

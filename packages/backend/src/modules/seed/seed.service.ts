@@ -1,8 +1,8 @@
-import {EinsatzService} from '@/modules/einsatz/einsatz.service';
-import {PrismaService} from '@/prisma/prisma.service';
-import {Injectable, Logger} from '@nestjs/common';
-import {ConfigService} from '@nestjs/config';
-import {DatabaseCheckService} from './database-check.service';
+import { EinsatzService } from '@/modules/einsatz/einsatz.service';
+import { PrismaService } from '@/prisma/prisma.service';
+import { Injectable, Logger } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
+import { DatabaseCheckService } from './database-check.service';
 
 /**
  * Service zum Seeden der Datenbank mit initialen Daten.

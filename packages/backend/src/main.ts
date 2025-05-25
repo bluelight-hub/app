@@ -1,10 +1,10 @@
-import {ValidationPipe, VersioningType} from '@nestjs/common';
-import {ConfigService} from '@nestjs/config';
-import {NestFactory} from '@nestjs/core';
-import {DocumentBuilder, SwaggerModule} from '@nestjs/swagger';
+import { ValidationPipe, VersioningType } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
+import { NestFactory } from '@nestjs/core';
+import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import * as packageJson from '../package.json';
-import {AppModule} from './app.module';
-import {logger} from './logger/consola.logger';
+import { AppModule } from './app.module';
+import { logger } from './logger/consola.logger';
 
 /**
  * Bootstrap-Funktion zum Initialisieren und Starten der NestJS-Anwendung.
@@ -44,7 +44,7 @@ async function bootstrap() {
     }));
 
     const configService = app.get(ConfigService);
-    const port = configService.get('PORT') || 3000;
+    const port = configService.get('BACKEND_PORT') || configService.get('PORT') || 3000;
 
     await app.listen(port);
     logger.success(`Application is running on: http://localhost:${port}`);
