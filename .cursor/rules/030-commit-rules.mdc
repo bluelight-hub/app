@@ -75,12 +75,12 @@ alwaysApply: false
 - `✨(frontend): Neue Kartenfunktion für Einsatzplanung`
 - `🐛(backend): Korrigiere Auth-Fehler bei OAuth-Anmeldung`
 
-8. **Enforcement Tools (AUTOMATISCH AKTIVIERT)**
-- **Git Hook**: `.git/hooks/commit-msg` validiert alle Commits automatisch
-  - Prüft Emoji-Format und Context-Format
-  - Warnt bei einzeiligen Commits für substantielle Änderungen
-  - Verhindert zu lange erste Zeilen (>72 Zeichen)
-  - Gibt hilfreiche Fehlermeldungen mit Beispielen
+8. **Enforcement Tools (AUTOMATISCH AKTIVIERT via HUSKY)**
+- **Git Hooks**: `.husky/commit-msg` und `.husky/pre-commit` - automatisch installiert bei `npm install`
+  - **commit-msg**: Prüft Emoji-Format, Context-Format, Länge und gibt hilfreiche Fehlermeldungen
+  - **pre-commit**: Führt alle Tests aus um Code-Qualität sicherzustellen  
+  - **Versioniert**: Hooks sind im Repository und werden automatisch für alle Teammitglieder installiert
+  - **Husky**: Verwaltet die automatische Installation und Ausführung der Hooks
 - **Commit Helper**: `git commit-helper` für interaktive Commit-Erstellung
   - Schritt-für-Schritt Anleitung durch korrektes Format
   - Automatische Formatierung und Validierung
@@ -154,8 +154,14 @@ git commit -F commit-message.txt && rm commit-message.txt
 
 ### Git Hook Bypass (NUR IN NOTFÄLLEN)
 ```bash
-# Hook umgehen (nicht empfohlen!)
+# Hooks umgehen (nicht empfohlen!)
 git commit --no-verify -m "emergency fix"
+git push --no-verify
+
+# Husky komplett deaktivieren (temporär)
+export HUSKY=0
+git commit -m "emergency fix"
+unset HUSKY
 ```
 
 ### Commit-Nachricht bearbeiten
