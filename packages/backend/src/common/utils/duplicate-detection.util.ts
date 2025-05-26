@@ -23,12 +23,16 @@ export const DEFAULT_DUPLICATE_CONFIG: DuplicateDetectionConfig = {
 };
 
 /**
- * Operation-Metadaten für Duplicate Detection
+ * Metadaten für eine Operation im Duplicate Detection Cache
  */
 interface OperationMetadata {
+    /** SHA-256 Hash der Operation für eindeutige Identifikation */
     hash: string;
+    /** Zeitstempel der Operation (Unix-Timestamp in Millisekunden) */
     timestamp: number;
+    /** Ergebnis der erfolgreichen Operation (falls vorhanden) */
     result?: any;
+    /** Fehler der fehlgeschlagenen Operation (falls vorhanden) */
     error?: any;
 }
 

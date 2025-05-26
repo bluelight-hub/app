@@ -10,16 +10,24 @@ import { DuplicateDetectionUtil } from '../utils/duplicate-detection.util';
 import { RetryConfig, RetryUtil } from '../utils/retry.util';
 
 /**
- * Error Metrics Interface
+ * Interface für die Sammlung von Error-Metriken im Error Handling Service
  */
 export interface ErrorMetrics {
+    /** Gesamtanzahl aller aufgetretenen Fehler */
     totalErrors: number;
+    /** Anzahl der Fehler, die wiederholt werden können */
     retryableErrors: number;
+    /** Anzahl der Fehler, die nicht wiederholt werden können */
     nonRetryableErrors: number;
+    /** Anzahl erfolgreicher Wiederholungsversuche */
     successfulRetries: number;
+    /** Anzahl fehlgeschlagener Wiederholungsversuche */
     failedRetries: number;
+    /** Anzahl der erkannten doppelten Operationen */
     duplicateOperations: number;
+    /** Durchschnittliche Anzahl von Wiederholungsversuchen pro Operation */
     averageRetryAttempts: number;
+    /** Zeitstempel des letzten aufgetretenen Fehlers */
     lastErrorTimestamp?: Date;
 }
 
