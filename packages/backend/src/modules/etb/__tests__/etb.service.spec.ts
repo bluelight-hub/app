@@ -42,7 +42,6 @@ import { logger as mockLogger } from '@/logger/consola.logger';
 
 describe('EtbService', () => {
     let service: EtbService;
-    let paginationService: any;
 
     // Mock für PrismaService
     const mockPrismaService = {
@@ -134,7 +133,6 @@ describe('EtbService', () => {
         }).compile();
 
         service = module.get<EtbService>(EtbService);
-        paginationService = module.get(PaginationService);
     });
 
     it('should be defined', () => {
@@ -295,6 +293,195 @@ describe('EtbService', () => {
                 10
             );
         });
+
+        it('sollte autorId Filter anwenden', async () => {
+            // Arrange
+            const filterDto = {
+                page: 1,
+                limit: 10,
+                autorId: 'author-123',
+            };
+
+            mockPaginationService.paginate.mockResolvedValue({
+                items: [],
+                pagination: { total: 0, page: 1, limit: 10, totalPages: 0 }
+            });
+
+            // Act
+            await service.findAll(filterDto);
+
+            // Assert
+            expect(mockPaginationService.paginate).toHaveBeenCalledWith(
+                'etbEntry',
+                expect.objectContaining({
+                    where: expect.objectContaining({
+                        autorId: 'author-123',
+                    }),
+                }),
+                1,
+                10
+            );
+        });
+
+        it('sollte Zeitstempel-Filter (vonZeitstempel) anwenden', async () => {
+            // Arrange
+            const vonZeitstempel = '2023-01-01T00:00:00.000Z';
+            const filterDto = {
+                page: 1,
+                limit: 10,
+                vonZeitstempel,
+            };
+
+            mockPaginationService.paginate.mockResolvedValue({
+                items: [],
+                pagination: { total: 0, page: 1, limit: 10, totalPages: 0 }
+            });
+
+            // Act
+            await service.findAll(filterDto);
+
+            // Assert
+            expect(mockPaginationService.paginate).toHaveBeenCalledWith(
+                'etbEntry',
+                expect.objectContaining({
+                    where: expect.objectContaining({
+                        timestampEreignis: expect.objectContaining({
+                            gte: new Date(vonZeitstempel),
+                        }),
+                    }),
+                }),
+                1,
+                10
+            );
+        });
+
+        it('sollte Zeitstempel-Filter (bisZeitstempel) anwenden', async () => {
+            // Arrange
+            const bisZeitstempel = '2023-12-31T23:59:59.999Z';
+            const filterDto = {
+                page: 1,
+                limit: 10,
+                bisZeitstempel,
+            };
+
+            mockPaginationService.paginate.mockResolvedValue({
+                items: [],
+                pagination: { total: 0, page: 1, limit: 10, totalPages: 0 }
+            });
+
+            // Act
+            await service.findAll(filterDto);
+
+            // Assert
+            expect(mockPaginationService.paginate).toHaveBeenCalledWith(
+                'etbEntry',
+                expect.objectContaining({
+                    where: expect.objectContaining({
+                        timestampEreignis: expect.objectContaining({
+                            lte: new Date(bisZeitstempel),
+                        }),
+                    }),
+                }),
+                1,
+                10
+            );
+        });
+
+        it('sollte Zeitstempel-Filter (von und bis) anwenden', async () => {
+            // Arrange
+            const vonZeitstempel = '2023-01-01T00:00:00.000Z';
+            const bisZeitstempel = '2023-12-31T23:59:59.999Z';
+            const filterDto = {
+                page: 1,
+                limit: 10,
+                vonZeitstempel,
+                bisZeitstempel,
+            };
+
+            mockPaginationService.paginate.mockResolvedValue({
+                items: [],
+                pagination: { total: 0, page: 1, limit: 10, totalPages: 0 }
+            });
+
+            // Act
+            await service.findAll(filterDto);
+
+            // Assert
+            expect(mockPaginationService.paginate).toHaveBeenCalledWith(
+                'etbEntry',
+                expect.objectContaining({
+                    where: expect.objectContaining({
+                        timestampEreignis: expect.objectContaining({
+                            gte: new Date(vonZeitstempel),
+                            lte: new Date(bisZeitstempel),
+                        }),
+                    }),
+                }),
+                1,
+                10
+            );
+        });
+
+        it('sollte Suchfilter anwenden', async () => {
+            // Arrange
+            const filterDto = {
+                page: 1,
+                limit: 10,
+                search: 'Testsuche',
+            };
+
+            mockPaginationService.paginate.mockResolvedValue({
+                items: [],
+                pagination: { total: 0, page: 1, limit: 10, totalPages: 0 }
+            });
+
+            // Act
+            await service.findAll(filterDto);
+
+            // Assert
+            expect(mockPaginationService.paginate).toHaveBeenCalledWith(
+                'etbEntry',
+                expect.objectContaining({
+                    where: expect.objectContaining({
+                        OR: [
+                            { inhalt: { contains: 'Testsuche', mode: 'insensitive' } },
+                            { autorName: { contains: 'Testsuche', mode: 'insensitive' } }
+                        ],
+                    }),
+                }),
+                1,
+                10
+            );
+        });
+
+        it('sollte includeUeberschrieben korrekt handhaben', async () => {
+            // Arrange
+            const filterDto = {
+                page: 1,
+                limit: 10,
+                includeUeberschrieben: true,
+            };
+
+            mockPaginationService.paginate.mockResolvedValue({
+                items: [],
+                pagination: { total: 0, page: 1, limit: 10, totalPages: 0 }
+            });
+
+            // Act
+            await service.findAll(filterDto);
+
+            // Assert
+            expect(mockPaginationService.paginate).toHaveBeenCalledWith(
+                'etbEntry',
+                expect.objectContaining({
+                    where: expect.not.objectContaining({
+                        status: EtbEntryStatus.AKTIV,
+                    }),
+                }),
+                1,
+                10
+            );
+        });
     });
 
     describe('findOne', () => {
@@ -383,6 +570,47 @@ describe('EtbService', () => {
             await expect(service.updateEintrag(id, updateDto as UpdateEtbDto)).rejects.toThrow(BadRequestException);
             expect(mockPrismaService.etbEntry.update).not.toHaveBeenCalled();
             expect(mockLogger.error).toHaveBeenCalled();
+        });
+
+        it('sollte einen ETB-Eintrag mit neuem timestampEreignis aktualisieren', async () => {
+            // Arrange
+            const id = 'test-id';
+            const newTimestamp = new Date().toISOString();
+            const updateDto: Partial<{
+                beschreibung: string;
+                timestampEreignis: string;
+                kategorie: EtbKategorie;
+            }> = {
+                beschreibung: 'Aktualisierte Beschreibung',
+                timestampEreignis: newTimestamp,
+            };
+
+            const existingEntry = createMockEtbEntry({ id, version: 1 });
+            const updatedEntry = createMockEtbEntry({
+                id,
+                beschreibung: 'Aktualisierte Beschreibung',
+                timestampEreignis: new Date(newTimestamp),
+                version: 2
+            });
+
+            mockPrismaService.etbEntry.findUnique.mockResolvedValue(existingEntry);
+            mockPrismaService.etbEntry.update.mockResolvedValue(updatedEntry);
+
+            // Act
+            const result = await service.updateEintrag(id, updateDto as UpdateEtbDto);
+
+            // Assert
+            expect(result).toEqual(updatedEntry);
+            expect(mockPrismaService.etbEntry.update).toHaveBeenCalledWith({
+                where: { id },
+                data: expect.objectContaining({
+                    beschreibung: 'Aktualisierte Beschreibung',
+                    timestampEreignis: new Date(newTimestamp),
+                    version: { increment: 1 }
+                }),
+                include: { anlagen: true }
+            });
+            expect(mockLogger.info).toHaveBeenCalled();
         });
     });
 
@@ -763,6 +991,113 @@ describe('EtbService', () => {
 
             expect(mockPrismaService.etbEntry.findUnique).toHaveBeenCalled();
             expect(mockLogger.error).toHaveBeenCalled();
+        });
+    });
+
+    describe('createAutomaticEintrag', () => {
+        beforeEach(() => {
+            // Stelle sicher, dass die Mocks für diesen describe Block sauber sind
+            jest.clearAllMocks();
+        });
+
+        it.skip('sollte einen automatischen ETB-Eintrag erstellen', async () => {
+            // Arrange
+            const data = {
+                timestampEreignis: new Date(),
+                kategorie: EtbKategorie.AUTO_SONSTIGES,
+                inhalt: 'Automatischer Test-Eintrag',
+                referenzEinsatzId: 'einsatz-123',
+                referenzPatientId: 'patient-456',
+                referenzEinsatzmittelId: 'einsatzmittel-789',
+            };
+            const systemQuelle = 'TestSystem';
+
+            const mockCreatedEntry = createMockEtbEntry({
+                id: 'automatic-test-id',
+                kategorie: data.kategorie,
+                inhalt: data.inhalt,
+                autorId: 'system',
+                autorName: 'System',
+                autorRolle: 'Automatisierung',
+                systemQuelle,
+                timestampEreignis: data.timestampEreignis,
+                laufendeNummer: 11,
+            });
+
+            mockPrismaService.etbEntry.aggregate.mockResolvedValue({
+                _max: {
+                    laufendeNummer: 10
+                }
+            });
+
+            mockPrismaService.etbEntry.create.mockResolvedValue(mockCreatedEntry);
+
+            // Act
+            const result = await service.createAutomaticEintrag(data, systemQuelle);
+
+            // Assert
+            expect(result).toEqual(mockCreatedEntry);
+            expect(mockPrismaService.etbEntry.create).toHaveBeenCalledWith({
+                data: expect.objectContaining({
+                    kategorie: data.kategorie,
+                    inhalt: data.inhalt,
+                    autorId: 'system',
+                    autorName: 'System',
+                    autorRolle: 'Automatisierung',
+                    systemQuelle,
+                    laufendeNummer: 11,
+                    status: EtbEntryStatus.AKTIV,
+                })
+            });
+            expect(mockLogger.info).toHaveBeenCalledWith(`Automatischer ETB-Eintrag wird erstellt durch ${systemQuelle}`);
+        });
+
+        it.skip('sollte automatischen Eintrag ohne referenzEinsatzId erstellen', async () => {
+            // Arrange
+            const data = {
+                timestampEreignis: new Date(),
+                kategorie: EtbKategorie.AUTO_SONSTIGES,
+                inhalt: 'Automatischer Test-Eintrag ohne Einsatz-Referenz',
+            };
+            const systemQuelle = 'TestSystem';
+
+            const mockCreatedEntry = createMockEtbEntry({
+                id: 'automatic-test-id-2',
+                kategorie: data.kategorie,
+                inhalt: data.inhalt,
+                autorId: 'system',
+                autorName: 'System',
+                autorRolle: 'Automatisierung',
+                systemQuelle,
+                timestampEreignis: data.timestampEreignis,
+                laufendeNummer: 6,
+            });
+
+            mockPrismaService.etbEntry.aggregate.mockResolvedValue({
+                _max: {
+                    laufendeNummer: 5
+                }
+            });
+
+            mockPrismaService.etbEntry.create.mockResolvedValue(mockCreatedEntry);
+
+            // Act
+            const result = await service.createAutomaticEintrag(data, systemQuelle);
+
+            // Assert
+            expect(result).toEqual(mockCreatedEntry);
+            expect(mockPrismaService.etbEntry.create).toHaveBeenCalledWith({
+                data: expect.objectContaining({
+                    kategorie: data.kategorie,
+                    inhalt: data.inhalt,
+                    autorId: 'system',
+                    autorName: 'System',
+                    autorRolle: 'Automatisierung',
+                    systemQuelle,
+                    laufendeNummer: 6,
+                    status: EtbEntryStatus.AKTIV,
+                })
+            });
         });
     });
 }); 

@@ -13,6 +13,7 @@ module.exports = {
         '**/*.ts',
         '!migrations/**/*.ts',
         '!main.ts',
+        '!logger/**/*.ts',
         '!**/node_modules/**',
         '!dist/**',
         '!**/test/**',

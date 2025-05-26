@@ -127,5 +127,137 @@ describe('EinsatzController', () => {
             expect(result).toBe(createdEinsatz);
             expect(mockErrorHandlingService.executeWithErrorHandling).toHaveBeenCalled();
         });
+
+        it('should allow creation in production when ENABLE_EINSATZ_CREATION is true', async () => {
+            // Arrange
+            const createEinsatzDto: CreateEinsatzDto = {
+                name: 'Production Einsatz',
+                beschreibung: 'Production Beschreibung',
+            };
+
+            const createdEinsatz: Einsatz = {
+                id: 'prod-test-id',
+                name: 'Production Einsatz',
+                beschreibung: 'Production Beschreibung',
+                createdAt: new Date(),
+                updatedAt: new Date(),
+            };
+
+            // Mock production environment
+            mockConfigService.get
+                .mockReturnValueOnce('production') // NODE_ENV
+                .mockReturnValueOnce('true'); // ENABLE_EINSATZ_CREATION
+
+            mockErrorHandlingService.executeWithErrorHandling.mockImplementation(
+                async (operation) => await operation()
+            );
+            mockEinsatzService.create.mockResolvedValue(createdEinsatz);
+
+            // Act
+            const result = await controller.create(createEinsatzDto);
+
+            // Assert
+            expect(result).toBe(createdEinsatz);
+            expect(mockConfigService.get).toHaveBeenCalledWith('NODE_ENV', 'development');
+            expect(mockConfigService.get).toHaveBeenCalledWith('ENABLE_EINSATZ_CREATION', 'false');
+            expect(mockErrorHandlingService.executeWithErrorHandling).toHaveBeenCalled();
+        });
+
+        it('should throw ForbiddenException in production when ENABLE_EINSATZ_CREATION is false', async () => {
+            // Arrange
+            const createEinsatzDto: CreateEinsatzDto = {
+                name: 'Production Einsatz',
+                beschreibung: 'Production Beschreibung',
+            };
+
+            // Mock production environment with disabled creation
+            mockConfigService.get
+                .mockReturnValueOnce('production') // NODE_ENV
+                .mockReturnValueOnce('false'); // ENABLE_EINSATZ_CREATION
+
+            // Act & Assert
+            await expect(controller.create(createEinsatzDto)).rejects.toThrow(
+                'Einsatzerstellung ist in der Produktionsumgebung nicht aktiviert'
+            );
+            expect(mockConfigService.get).toHaveBeenCalledWith('NODE_ENV', 'development');
+            expect(mockConfigService.get).toHaveBeenCalledWith('ENABLE_EINSATZ_CREATION', 'false');
+            expect(mockErrorHandlingService.executeWithErrorHandling).not.toHaveBeenCalled();
+        });
+
+        it('should throw ForbiddenException in production for names containing "test"', async () => {
+            // Arrange
+            const createEinsatzDto: CreateEinsatzDto = {
+                name: 'Test Einsatz in Production',
+                beschreibung: 'Should not be allowed',
+            };
+
+            // Mock production environment with enabled creation
+            mockConfigService.get
+                .mockReturnValueOnce('production') // NODE_ENV
+                .mockReturnValueOnce('true'); // ENABLE_EINSATZ_CREATION
+
+            // Act & Assert
+            await expect(controller.create(createEinsatzDto)).rejects.toThrow(
+                'Test- oder Entwicklungsnamen sind in der Produktionsumgebung nicht erlaubt'
+            );
+            expect(mockConfigService.get).toHaveBeenCalledWith('NODE_ENV', 'development');
+            expect(mockConfigService.get).toHaveBeenCalledWith('ENABLE_EINSATZ_CREATION', 'false');
+            expect(mockErrorHandlingService.executeWithErrorHandling).not.toHaveBeenCalled();
+        });
+
+        it('should throw ForbiddenException in production for names containing "dev"', async () => {
+            // Arrange
+            const createEinsatzDto: CreateEinsatzDto = {
+                name: 'Development Einsatz',
+                beschreibung: 'Should not be allowed',
+            };
+
+            // Mock production environment with enabled creation
+            mockConfigService.get
+                .mockReturnValueOnce('production') // NODE_ENV
+                .mockReturnValueOnce('true'); // ENABLE_EINSATZ_CREATION
+
+            // Act & Assert
+            await expect(controller.create(createEinsatzDto)).rejects.toThrow(
+                'Test- oder Entwicklungsnamen sind in der Produktionsumgebung nicht erlaubt'
+            );
+            expect(mockConfigService.get).toHaveBeenCalledWith('NODE_ENV', 'development');
+            expect(mockConfigService.get).toHaveBeenCalledWith('ENABLE_EINSATZ_CREATION', 'false');
+            expect(mockErrorHandlingService.executeWithErrorHandling).not.toHaveBeenCalled();
+        });
+
+        it('should allow creation in development without restrictions', async () => {
+            // Arrange
+            const createEinsatzDto: CreateEinsatzDto = {
+                name: 'Test Development Einsatz',
+                beschreibung: 'Should be allowed in development',
+            };
+
+            const createdEinsatz: Einsatz = {
+                id: 'dev-test-id',
+                name: 'Test Development Einsatz',
+                beschreibung: 'Should be allowed in development',
+                createdAt: new Date(),
+                updatedAt: new Date(),
+            };
+
+            // Mock development environment
+            mockConfigService.get.mockReturnValueOnce('development'); // NODE_ENV
+
+            mockErrorHandlingService.executeWithErrorHandling.mockImplementation(
+                async (operation) => await operation()
+            );
+            mockEinsatzService.create.mockResolvedValue(createdEinsatz);
+
+            // Act
+            const result = await controller.create(createEinsatzDto);
+
+            // Assert
+            expect(result).toBe(createdEinsatz);
+            expect(mockConfigService.get).toHaveBeenCalledWith('NODE_ENV', 'development');
+            // Should not check ENABLE_EINSATZ_CREATION in development
+            expect(mockConfigService.get).toHaveBeenCalledTimes(1);
+            expect(mockErrorHandlingService.executeWithErrorHandling).toHaveBeenCalled();
+        });
     });
 }); 
