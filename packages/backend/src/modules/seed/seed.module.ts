@@ -1,3 +1,4 @@
+import { CommonModule } from '@/common/common.module';
 import { EinsatzModule } from '@/modules/einsatz/einsatz.module';
 import { PrismaModule } from '@/prisma/prisma.module';
 import { DynamicModule, Module } from '@nestjs/common';
@@ -36,6 +37,7 @@ export interface SeedModuleOptions {
     imports: [
         PrismaModule,
         EinsatzModule,
+        CommonModule,
         ConfigModule,
     ],
     providers: [

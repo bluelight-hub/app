@@ -20,6 +20,7 @@ describe('DevSeedService', () => {
 
         const mockSeedService = {
             seedInitialEinsatz: jest.fn(),
+            createEinsatzWithRetry: jest.fn(),
         };
 
         const mockConfigService = {
@@ -72,7 +73,7 @@ describe('DevSeedService', () => {
                 .mockReturnValueOnce(undefined) // SEED_INITIAL_EINSATZ (default: undefined = enabled)
                 .mockReturnValueOnce(undefined); // DEV_EINSATZ_NAME (default)
 
-            seedService.seedInitialEinsatz.mockResolvedValue(mockEinsatz);
+            seedService.createEinsatzWithRetry.mockResolvedValue(mockEinsatz);
 
             // Act
             await service.onModuleInit();
@@ -80,7 +81,7 @@ describe('DevSeedService', () => {
             // Assert
             expect(configService.get).toHaveBeenCalledWith('NODE_ENV');
             expect(configService.get).toHaveBeenCalledWith('SEED_INITIAL_EINSATZ');
-            expect(seedService.seedInitialEinsatz).toHaveBeenCalledWith(
+            expect(seedService.createEinsatzWithRetry).toHaveBeenCalledWith(
                 expect.stringMatching(/^Dev-Einsatz \d{4}-\d{2}-\d{2}$/),
                 'Automatisch erstellter Entwicklungs-Einsatz'
             );
@@ -105,13 +106,13 @@ describe('DevSeedService', () => {
                 .mockReturnValueOnce(undefined) // SEED_INITIAL_EINSATZ
                 .mockReturnValueOnce(customName); // DEV_EINSATZ_NAME
 
-            seedService.seedInitialEinsatz.mockResolvedValue(mockEinsatz);
+            seedService.createEinsatzWithRetry.mockResolvedValue(mockEinsatz);
 
             // Act
             await service.onModuleInit();
 
             // Assert
-            expect(seedService.seedInitialEinsatz).toHaveBeenCalledWith(
+            expect(seedService.createEinsatzWithRetry).toHaveBeenCalledWith(
                 customName,
                 'Automatisch erstellter Entwicklungs-Einsatz'
             );
@@ -128,7 +129,7 @@ describe('DevSeedService', () => {
             await service.onModuleInit();
 
             // Assert
-            expect(seedService.seedInitialEinsatz).not.toHaveBeenCalled();
+            expect(seedService.createEinsatzWithRetry).not.toHaveBeenCalled();
             expect(mockLogger.debug).toHaveBeenCalledWith(
                 'Automatische Erstellung eines initialen Einsatzes übersprungen (nicht im Dev-Modus oder deaktiviert)'
             );
@@ -144,7 +145,7 @@ describe('DevSeedService', () => {
             await service.onModuleInit();
 
             // Assert
-            expect(seedService.seedInitialEinsatz).not.toHaveBeenCalled();
+            expect(seedService.createEinsatzWithRetry).not.toHaveBeenCalled();
             expect(mockLogger.debug).toHaveBeenCalledWith(
                 'Automatische Erstellung eines initialen Einsatzes übersprungen (nicht im Dev-Modus oder deaktiviert)'
             );
@@ -157,7 +158,7 @@ describe('DevSeedService', () => {
                 .mockReturnValueOnce('development') // NODE_ENV
                 .mockReturnValueOnce(undefined); // SEED_INITIAL_EINSATZ
 
-            seedService.seedInitialEinsatz.mockRejectedValue(error);
+            seedService.createEinsatzWithRetry.mockRejectedValue(error);
 
             // Act
             await service.onModuleInit();
@@ -175,7 +176,7 @@ describe('DevSeedService', () => {
                 .mockReturnValueOnce('development') // NODE_ENV
                 .mockReturnValueOnce(undefined); // SEED_INITIAL_EINSATZ
 
-            seedService.seedInitialEinsatz.mockResolvedValue(null);
+            seedService.createEinsatzWithRetry.mockResolvedValue(null);
 
             // Act
             await service.onModuleInit();
@@ -196,7 +197,7 @@ describe('DevSeedService', () => {
 
                 await service.onModuleInit();
 
-                expect(seedService.seedInitialEinsatz).not.toHaveBeenCalled();
+                expect(seedService.createEinsatzWithRetry).not.toHaveBeenCalled();
                 expect(mockLogger.debug).toHaveBeenCalledWith(
                     'Automatische Erstellung eines initialen Einsatzes übersprungen (nicht im Dev-Modus oder deaktiviert)'
                 );
@@ -222,13 +223,13 @@ describe('DevSeedService', () => {
                 .mockReturnValueOnce(undefined) // SEED_INITIAL_EINSATZ
                 .mockReturnValueOnce(undefined); // DEV_EINSATZ_NAME
 
-            seedService.seedInitialEinsatz.mockResolvedValue(mockEinsatz);
+            seedService.createEinsatzWithRetry.mockResolvedValue(mockEinsatz);
 
             // Act
             await service.onModuleInit();
 
             // Assert
-            expect(seedService.seedInitialEinsatz).toHaveBeenCalledWith(
+            expect(seedService.createEinsatzWithRetry).toHaveBeenCalledWith(
                 'Dev-Einsatz 2025-01-24',
                 'Automatisch erstellter Entwicklungs-Einsatz'
             );

@@ -1,6 +1,5 @@
 import { PrismaService } from '@/prisma/prisma.service';
 import { Injectable, NotFoundException } from '@nestjs/common';
-import { randomUUID } from 'crypto';
 import { CreateEinsatzDto } from './dto/create-einsatz.dto';
 import { Einsatz } from './entities/einsatz.entity';
 
@@ -16,10 +15,7 @@ export class EinsatzService {
      */
     async create(createEinsatzDto: CreateEinsatzDto): Promise<Einsatz> {
         return this.prisma.einsatz.create({
-            data: {
-                id: randomUUID(), // UUID für neuen Einsatz generieren
-                ...createEinsatzDto,
-            },
+            data: createEinsatzDto,
         });
     }
 

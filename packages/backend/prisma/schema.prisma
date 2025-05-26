@@ -32,11 +32,15 @@ enum EtbEntryStatus {
 
 model Einsatz {
   id          String    @id @default(nanoid())
-  name        String    @unique
-  beschreibung String?
+  name        String    @unique @db.VarChar(255)
+  beschreibung String?  @db.Text
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
   etbEntries  EtbEntry[]
+
+  // Postgres-specific constraints and indexes
+  @@index([createdAt], map: "idx_einsatz_created_at")
+  @@index([name, createdAt], map: "idx_einsatz_name_created_at")
 }
 
 model EtbEntry {
@@ -44,37 +48,48 @@ model EtbEntry {
   laufendeNummer          Int
   timestampErstellung     DateTime
   timestampEreignis       DateTime
-  autorId                 String
-  autorName               String?
-  autorRolle              String?
+  autorId                 String           @db.VarChar(255)
+  autorName               String?          @db.VarChar(255)
+  autorRolle              String?          @db.VarChar(100)
   kategorie               EtbKategorie
-  inhalt                  String
+  inhalt                  String           @db.Text
   referenzEinsatzId       String
-  einsatz                 Einsatz          @relation(fields: [referenzEinsatzId], references: [id])
-  referenzPatientId       String?
-  referenzEinsatzmittelId String?
-  systemQuelle            String?
+  einsatz                 Einsatz          @relation(fields: [referenzEinsatzId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  referenzPatientId       String?          @db.VarChar(255)
+  referenzEinsatzmittelId String?          @db.VarChar(255)
+  systemQuelle            String?          @db.VarChar(100)
   version                 Int              @default(1)
   status                  EtbEntryStatus   @default(AKTIV)
   istAbgeschlossen        Boolean          @default(false)
   timestampAbschluss      DateTime?
-  abgeschlossenVon        String?
-  ueberschriebenDurch     EtbEntry?        @relation("UeberschriebenDurch", fields: [ueberschriebenDurchId], references: [id])
+  abgeschlossenVon        String?          @db.VarChar(255)
+  ueberschriebenDurch     EtbEntry?        @relation("UeberschriebenDurch", fields: [ueberschriebenDurchId], references: [id], onDelete: SetNull, onUpdate: Cascade)
   ueberschriebenDurchId   String?
   ueberschriebeneEintraege EtbEntry[]      @relation("UeberschriebenDurch")
   timestampUeberschrieben DateTime?
-  ueberschriebenVon       String?
+  ueberschriebenVon       String?          @db.VarChar(255)
   anlagen                 EtbAttachment[]
-  sender                  String?
-  receiver                String?
+  sender                  String?          @db.VarChar(255)
+  receiver                String?          @db.VarChar(255)
+
+  // Postgres-specific constraints and indexes
+  @@unique([referenzEinsatzId, laufendeNummer], map: "uk_etb_entry_einsatz_laufende_nummer")
+  @@index([referenzEinsatzId, timestampErstellung], map: "idx_etb_entry_einsatz_timestamp")
+  @@index([kategorie, status], map: "idx_etb_entry_kategorie_status")
+  @@index([autorId, timestampErstellung], map: "idx_etb_entry_autor_timestamp")
+  @@index([timestampEreignis], map: "idx_etb_entry_ereignis_timestamp")
 }
 
 model EtbAttachment {
   id          String   @id @default(nanoid())
   etbEntryId  String
-  etbEntry    EtbEntry @relation(fields: [etbEntryId], references: [id])
-  dateiname   String
-  dateityp    String
-  speicherOrt String
-  beschreibung String?
+  etbEntry    EtbEntry @relation(fields: [etbEntryId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  dateiname   String   @db.VarChar(255)
+  dateityp    String   @db.VarChar(50)
+  speicherOrt String   @db.VarChar(500)
+  beschreibung String? @db.Text
+
+  // Postgres-specific constraints and indexes
+  @@index([etbEntryId], map: "idx_etb_attachment_entry_id")
+  @@index([dateityp], map: "idx_etb_attachment_dateityp")
 }

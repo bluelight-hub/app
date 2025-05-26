@@ -1,17 +1,12 @@
 import { PrismaService } from '@/prisma/prisma.service';
 import { Test, TestingModule } from '@nestjs/testing';
-import { randomUUID } from 'crypto';
 import { CreateEinsatzDto } from '../dto/create-einsatz.dto';
 import { EinsatzService } from '../einsatz.service';
 
-// Mock für crypto.randomUUID
-jest.mock('crypto', () => ({
-    randomUUID: jest.fn(() => 'test-uuid-1234'),
-}));
+
 
 describe('EinsatzService', () => {
     let service: EinsatzService;
-    let prisma: PrismaService;
 
     const mockPrismaService = {
         einsatz: {
@@ -33,7 +28,6 @@ describe('EinsatzService', () => {
         }).compile();
 
         service = module.get<EinsatzService>(EinsatzService);
-        prisma = module.get<PrismaService>(PrismaService);
 
         // Clear all mocks before each test
         jest.clearAllMocks();
@@ -64,12 +58,10 @@ describe('EinsatzService', () => {
             expect(result).toEqual(expectedEinsatz);
             expect(mockPrismaService.einsatz.create).toHaveBeenCalledWith({
                 data: {
-                    id: 'test-uuid-1234',
                     name: 'Test Einsatz',
                     beschreibung: 'Eine Beschreibung',
                 },
             });
-            expect(randomUUID).toHaveBeenCalled();
         });
 
         it('should create a new Einsatz without optional beschreibung', async () => {
@@ -95,7 +87,6 @@ describe('EinsatzService', () => {
             expect(result).toEqual(expectedEinsatz);
             expect(mockPrismaService.einsatz.create).toHaveBeenCalledWith({
                 data: {
-                    id: 'test-uuid-1234',
                     name: 'Test Einsatz ohne Beschreibung',
                 },
             });

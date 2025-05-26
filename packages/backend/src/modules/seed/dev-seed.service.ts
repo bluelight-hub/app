@@ -40,7 +40,7 @@ export class DevSeedService implements OnModuleInit {
                 this.configService.get('DEV_EINSATZ_NAME') || `Dev-Einsatz ${today}`;
             const beschreibung = 'Automatisch erstellter Entwicklungs-Einsatz';
 
-            const einsatz = await this.seedService.seedInitialEinsatz(name, beschreibung);
+            const einsatz = await this.seedService.createEinsatzWithRetry(name, beschreibung);
 
             if (einsatz) {
                 this.logger.log(`Initialen Dev-Einsatz erstellt: ${name} (ID: ${einsatz.id})`);

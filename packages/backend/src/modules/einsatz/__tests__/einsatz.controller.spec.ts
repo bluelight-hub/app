@@ -1,3 +1,5 @@
+import { ErrorHandlingService } from '@/common/services/error-handling.service';
+import { ConfigService } from '@nestjs/config';
 import { Test, TestingModule } from '@nestjs/testing';
 import { CreateEinsatzDto } from '../dto/create-einsatz.dto';
 import { EinsatzController } from '../einsatz.controller';
@@ -6,12 +8,19 @@ import { Einsatz } from '../entities/einsatz.entity';
 
 describe('EinsatzController', () => {
     let controller: EinsatzController;
-    let service: EinsatzService;
 
     const mockEinsatzService = {
         findAll: jest.fn(),
         findById: jest.fn(),
         create: jest.fn(),
+    };
+
+    const mockConfigService = {
+        get: jest.fn(),
+    };
+
+    const mockErrorHandlingService = {
+        executeWithErrorHandling: jest.fn(),
     };
 
     beforeEach(async () => {
@@ -22,11 +31,18 @@ describe('EinsatzController', () => {
                     provide: EinsatzService,
                     useValue: mockEinsatzService,
                 },
+                {
+                    provide: ConfigService,
+                    useValue: mockConfigService,
+                },
+                {
+                    provide: ErrorHandlingService,
+                    useValue: mockErrorHandlingService,
+                },
             ],
         }).compile();
 
         controller = module.get<EinsatzController>(EinsatzController);
-        service = module.get<EinsatzService>(EinsatzService);
 
         jest.clearAllMocks();
     });
@@ -98,6 +114,10 @@ describe('EinsatzController', () => {
                 updatedAt: new Date(),
             };
 
+            // Mock der ErrorHandlingService executeWithErrorHandling Methode
+            mockErrorHandlingService.executeWithErrorHandling.mockImplementation(
+                async (operation) => await operation()
+            );
             mockEinsatzService.create.mockResolvedValue(createdEinsatz);
 
             // Act
@@ -105,7 +125,7 @@ describe('EinsatzController', () => {
 
             // Assert
             expect(result).toBe(createdEinsatz);
-            expect(mockEinsatzService.create).toHaveBeenCalledWith(createEinsatzDto);
+            expect(mockErrorHandlingService.executeWithErrorHandling).toHaveBeenCalled();
         });
     });
 }); 

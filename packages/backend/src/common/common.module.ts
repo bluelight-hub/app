@@ -1,6 +1,7 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '../config/config.module';
 import { PrismaModule } from '../prisma/prisma.module';
+import { ErrorHandlingService } from './services/error-handling.service';
 import { PaginationService } from './services/pagination.service';
 
 /**
@@ -11,7 +12,7 @@ import { PaginationService } from './services/pagination.service';
         ConfigModule,
         PrismaModule
     ],
-    providers: [PaginationService],
-    exports: [PaginationService]
+    providers: [PaginationService, ErrorHandlingService],
+    exports: [PaginationService, ErrorHandlingService]
 })
 export class CommonModule { } 
