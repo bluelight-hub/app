@@ -1,8 +1,11 @@
-import { HealthCheckResult, HealthCheckService, HealthCheckStatus, HealthIndicatorStatus, TerminusModule } from '@nestjs/terminus';
+import { ConfigService } from '@nestjs/config';
+import { DiskHealthIndicator, HealthCheckResult, HealthCheckService, HealthCheckStatus, HealthIndicatorService, HealthIndicatorStatus, MemoryHealthIndicator, TerminusModule } from '@nestjs/terminus';
 import { Test, TestingModule } from '@nestjs/testing';
 import { Socket } from 'net';
-import { Connection, DataSource } from 'typeorm';
+import { EtbService } from '../modules/etb/etb.service';
+import { PrismaService } from '../prisma/prisma.service';
 import { HealthController } from './health.controller';
+import { PrismaHealthIndicator } from './prisma-health.indicator';
 
 // Mock der Socket-Klasse
 jest.mock('net', () => {
@@ -47,32 +50,98 @@ describe('HealthController', () => {
         },
     };
 
-    // Mock der Connection
-    const mockConnection = {
-        query: jest.fn().mockResolvedValue([]),
-        isInitialized: true
-    } as unknown as Connection;
+    // Mock des PrismaService
+    const mockPrismaService = {
+        $queryRaw: jest.fn().mockResolvedValue([{ 1: 1 }]),
+        $connect: jest.fn().mockResolvedValue(true),
+        $disconnect: jest.fn().mockResolvedValue(true)
+    };
 
-    // Mock der DataSource
-    const mockDataSource = {
-        query: jest.fn().mockResolvedValue([]),
-        isInitialized: true
-    } as any; // Verwende 'any' für den Test, damit wir isInitialized setzen können
+    // Mock des HealthIndicatorService
+    const mockHealthIndicatorService = {
+        check: jest.fn().mockReturnValue({
+            up: jest.fn().mockReturnValue({ status: 'up' }),
+            down: jest.fn().mockImplementation((error) => ({
+                status: 'down',
+                message: error?.message || 'Verbindung nicht verfügbar'
+            }))
+        })
+    };
+
+    // Mock des EtbService
+    const mockEtbService = {
+        findAll: jest.fn().mockResolvedValue({
+            items: [],
+            pagination: {
+                currentPage: 1,
+                itemsPerPage: 10,
+                totalItems: 0,
+                totalPages: 0,
+                hasNextPage: false,
+                hasPreviousPage: false,
+            },
+        }),
+    };
 
     beforeEach(async () => {
-
         const module: TestingModule = await Test.createTestingModule({
             imports: [TerminusModule],
             controllers: [HealthController],
             providers: [
                 {
-                    provide: Connection,
-                    useValue: mockConnection,
+                    provide: PrismaService,
+                    useValue: mockPrismaService,
                 },
                 {
-                    provide: DataSource,
-                    useValue: mockDataSource,
+                    provide: HealthIndicatorService,
+                    useValue: mockHealthIndicatorService,
                 },
+                {
+                    provide: EtbService,
+                    useValue: mockEtbService,
+                },
+                {
+                    provide: ConfigService,
+                    useValue: {
+                        get: jest.fn().mockImplementation((key) => {
+                            if (key === 'database.url') return 'sqlite::memory:';
+                            return null;
+                        }),
+                    },
+                },
+                {
+                    provide: PrismaHealthIndicator,
+                    useValue: {
+                        pingCheck: jest.fn().mockResolvedValue({
+                            database: { status: 'up' as HealthIndicatorStatus }
+                        }),
+                        isConnected: jest.fn().mockResolvedValue({
+                            database_connections: {
+                                status: 'up' as HealthIndicatorStatus,
+                                details: { isInitialized: true }
+                            }
+                        })
+                    },
+                },
+                {
+                    provide: DiskHealthIndicator,
+                    useValue: {
+                        checkStorage: jest.fn().mockResolvedValue({
+                            storage: { status: 'up' as HealthIndicatorStatus }
+                        })
+                    }
+                },
+                {
+                    provide: MemoryHealthIndicator,
+                    useValue: {
+                        checkHeap: jest.fn().mockResolvedValue({
+                            memory_heap: { status: 'up' as HealthIndicatorStatus }
+                        }),
+                        checkRSS: jest.fn().mockResolvedValue({
+                            memory_rss: { status: 'up' as HealthIndicatorStatus }
+                        })
+                    }
+                }
             ],
         }).compile();
 
@@ -235,9 +304,8 @@ describe('HealthController', () => {
         });
 
         it('should test FUEKW connectivity', async () => {
-            // Mock der DataSource für FUEKW-Test
-            // Da wir mockDataSource als 'any' typisiert haben, können wir isInitialized setzen
-            mockDataSource.isInitialized = true;
+            // Mock für Prisma DB-Verbindungstest ist bereits in den Providers definiert
+            // Wir müssen nicht erneut auf module.get zugreifen
 
             // Mock der gesamten check-Methode
             const originalCheck = controller.check;

@@ -30,19 +30,19 @@ export const useThemeStore = create<ThemeState>()(
                     // Manuelle Änderung durch den Benutzer
                     setManualDark: (dark) =>
                         set(() => ({
-                            dark,
+                            dark: typeof dark === 'boolean' ? dark : false,
                             auto: false, // Automatik wird ausgeschaltet
                         })),
                     // Automatische Änderung durch das System
                     setSystemDark: (dark) =>
                         set((state) => ({
-                            dark: state.auto ? dark : state.dark, // Nur ändern wenn auto aktiv
+                            dark: state.auto && typeof dark === 'boolean' ? dark : state.dark, // Nur ändern wenn auto aktiv und dark ist boolean
                             auto: state.auto, // Auto-Status bleibt unverändert
                         })),
                     setAuto: (auto) =>
                         set((state) => ({
-                            auto,
-                            dark: auto ? getInitialDarkMode() : state.dark,
+                            auto: typeof auto === 'boolean' ? auto : state.auto,
+                            dark: typeof auto === 'boolean' && auto ? getInitialDarkMode() : state.dark,
                         })),
                 };
             },

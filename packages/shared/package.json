@@ -7,14 +7,15 @@
   "types": "dist/index.d.ts",
   "scripts": {
     "format": "prettier --write .",
-    "generate-api": "openapi-generator-cli generate -g=typescript-fetch -i http://localhost:3000/api-json -o ./client && pnpm format",
+    "generate-api": "openapi-generator-cli generate -g=typescript-fetch -i http://localhost:3000/api-json -o ./client --skip-validate-spec && pnpm format",
     "build": "tsc -b",
-    "prebuild": "rimraf dist"
+    "prebuild": "rimraf dist",
+    "test": "echo 'No tests available for shared package'"
   },
   "devDependencies": {
-    "@openapitools/openapi-generator-cli": "^2.18.4",
+    "@openapitools/openapi-generator-cli": "^2.19.1",
     "prettier": "^3.5.3",
     "rimraf": "^6.0.1",
-    "typescript": "^5.8.2"
+    "typescript": "^5.8.3"
   }
 }

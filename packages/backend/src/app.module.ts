@@ -1,10 +1,12 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
-import { TypeOrmModule } from '@nestjs/typeorm';
-import { join } from 'path';
+import { CommonModule } from './common/common.module';
 import { HealthModule } from './health/health.module';
 import { ConsolaLogger } from './logger/consola.logger';
+import { EinsatzModule } from './modules/einsatz/einsatz.module';
 import { EtbModule } from './modules/etb/etb.module';
+import { SeedModule } from './modules/seed/seed.module';
+import { PrismaModule } from './prisma/prisma.module';
 
 /**
  * Haupt-Anwendungsmodul, das die Abhängigkeiten und Provider der Anwendung konfiguriert.
@@ -16,18 +18,13 @@ import { EtbModule } from './modules/etb/etb.module';
     imports: [
         ConfigModule.forRoot({
             isGlobal: true,
-            envFilePath: '.env',
         }),
-        TypeOrmModule.forRoot({
-            type: 'better-sqlite3',
-            database: process.env.SQLITE_DB_PATH || join(__dirname, '..', '..', '..', 'data', 'database.sqlite'),
-            entities: ['dist/**/*.entity.{ts,js}'],
-            synchronize: process.env.NODE_ENV !== 'production',
-            logging: process.env.NODE_ENV !== 'production',
-            autoLoadEntities: true,
-        }),
+        PrismaModule,
         HealthModule,
+        EinsatzModule,
         EtbModule,
+        CommonModule,
+        SeedModule.registerAsync(),
     ],
     controllers: [],
     providers: [

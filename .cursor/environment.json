@@ -1,0 +1,5 @@
+{
+  "snapshot": "snapshot-20250527-75f825f4-90e3-44c0-a1b4-220f8399c21a",
+  "install": "sudo apt-get update && sudo apt-get install -y chromium-browser asciidoctor && sudo gem install asciidoctor-diagram asciidoctor-pdf && pnpm install",
+  "terminals": []
+}

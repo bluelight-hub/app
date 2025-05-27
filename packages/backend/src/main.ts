@@ -31,6 +31,7 @@ async function bootstrap() {
         url: 'http://localhost:3000',
         description: 'Local Environment',
     }];
+
     SwaggerModule.setup('api', app, document, {});
 
     app.enableCors();
@@ -43,7 +44,7 @@ async function bootstrap() {
     }));
 
     const configService = app.get(ConfigService);
-    const port = configService.get('PORT') || 3000;
+    const port = configService.get('BACKEND_PORT') || configService.get('PORT') || 3000;
 
     await app.listen(port);
     logger.success(`Application is running on: http://localhost:${port}`);

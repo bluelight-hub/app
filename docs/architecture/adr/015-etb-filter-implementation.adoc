@@ -1,0 +1,144 @@
+= ADR 015: Filterimplementierung im Einsatztagebuch (ETB)
+:author: Bluelight-Hub Team
+:revnumber: 1.0.0
+:revdate: 2023-07-24
+:status: Accepted
+
+== Kontext
+
+Das Einsatztagebuch (ETB) ist ein zentrales Werkzeug zur chronologischen Dokumentation von Ereignissen, Maßnahmen und Entscheidungen während eines Einsatzes. Mit zunehmender Anzahl von Einträgen wird die Filterung von Einträgen nach verschiedenen Kriterien immer wichtiger, um relevante Informationen schnell zu finden und die Übersicht zu behalten.
+
+Die Anforderungen an die Filterung des ETB umfassen:
+
+* Schnelles Auffinden von Einträgen nach verschiedenen Kriterien
+* Filterung nach Zeitraum, Kategorie, Autor und weiteren Parametern
+* Möglichkeit, überschriebene Einträge ein- oder auszublenden
+* Volltextsuche in den Einträgen
+* Einfache und intuitive Bedienung auch in stressigen Einsatzsituationen
+
+== Entscheidung
+
+Wir haben uns für eine umfassende Filterimplementierung entschieden, die sowohl im Backend als auch im Frontend realisiert wird:
+
+=== Backend-Implementierung
+
+* Nutzung eines `FilterEtbDto` als zentrales Data Transfer Object für alle Filter-Parameter
+* Dynamische Erstellung von Datenbankabfragen basierend auf den übergebenen Filterparametern
+* Unterstützung für folgende Filterkriterien:
+  ** `includeUeberschrieben`: Einschluss überschriebener Einträge
+  ** `kategorie`: Filterung nach Kategorie der Einträge
+  ** `autorId`: Filterung nach Autor-ID
+  ** `vonZeitstempel` und `bisZeitstempel`: Zeitraumbegrenzung
+  ** `search`: Volltextsuche in Beschreibung, Autor und Empfänger
+  ** `referenzEinsatzId`, `referenzPatientId`, `referenzEinsatzmittelId`: Filterung nach Referenzen
+* Paginierung der Ergebnisse mit konfigurierbarer Seitengröße
+
+=== Frontend-Implementierung
+
+* Benutzerfreundliche Filter-UI-Komponenten im ETBOverview
+* Direktes Mapping von UI-Interaktionen zu Backend-Filterparametern
+* Erweiterte Filteroptionen:
+  ** Schalter für überschriebene Einträge
+  ** Datumsbereichsauswahl für Zeitraumfilterung
+  ** Suchfeld für Volltextsuche
+  ** Kategoriefilterung über Tabellenspaltenfilter
+  ** Autorfilterung über Tabellenspaltenfilter
+* Automatisches Zurücksetzen der Paginierung bei Filteränderungen
+
+== Status
+
+Implementiert
+
+== Konsequenzen
+
+=== Vorteile
+
+* Bessere Benutzerfreundlichkeit durch schnelleres Auffinden relevanter Informationen
+* Erhöhte Effizienz in der Einsatzführung
+* Konsistente Filterlogik zwischen Frontend und Backend
+* Erweiterbarkeit für zukünftige Filterkriterien
+* Performante Suche durch optimierte Datenbankabfragen
+
+=== Nachteile
+
+* Erhöhte Komplexität in der Wartung des Codes
+* Zusätzlicher Testaufwand für verschiedene Filterkombinationen
+* Mögliche Performance-Einbußen bei komplexen Filterabfragen mit großen Datenmengen
+
+=== Technische Details
+
+==== FilterEtbDto
+
+Das `FilterEtbDto` erweitert den `FilterPaginationDto` und definiert alle möglichen Filterparameter mit entsprechenden Validierungen:
+
+[source,typescript]
+----
+export class FilterEtbDto extends FilterPaginationDto {
+    @ApiPropertyOptional({ description: 'Filtert nach Kategorie' })
+    @IsString()
+    @IsOptional()
+    kategorie?: string;
+
+    @ApiPropertyOptional({ description: 'Filtert nach Autor-ID' })
+    @IsString()
+    @IsOptional()
+    autorId?: string;
+
+    @ApiPropertyOptional({ description: 'Filtert nach Einträgen ab diesem Zeitpunkt' })
+    @IsDateString()
+    @IsOptional()
+    vonZeitstempel?: string;
+
+    @ApiPropertyOptional({ description: 'Filtert nach Einträgen bis zu diesem Zeitpunkt' })
+    @IsDateString()
+    @IsOptional()
+    bisZeitstempel?: string;
+
+    @ApiPropertyOptional({
+        description: 'Gibt an, ob überschriebene Einträge eingeschlossen werden sollen',
+        default: false,
+        type: Boolean
+    })
+    @IsOptional()
+    @Transform(({ value }) => {
+        if (value === 'true' || value === true || value === '1' || value === 1) {
+            return true;
+        }
+        return false;
+    })
+    includeUeberschrieben?: boolean = false;
+
+    @ApiPropertyOptional({
+        description: 'Volltextsuche in Beschreibung, Autor und Empfänger',
+        example: 'Stromausfall',
+    })
+    @IsString()
+    @IsOptional()
+    search?: string;
+}
+----
+
+==== Frontend-Backend-Kommunikation
+
+Die Frontend-Filterparameter werden über den `useEinsatztagebuch` Hook als `filterParams` an das Backend weitergegeben:
+
+[source,typescript]
+----
+const { einsatztagebuch } = useEinsatztagebuch({
+    filterParams: {
+        includeUeberschrieben,
+        page,
+        limit: pageSize,
+        kategorie: filter.kategorie,
+        autorId: filter.autorId,
+        search: filter.search,
+        vonZeitstempel: filter.vonZeitstempel,
+        bisZeitstempel: filter.bisZeitstempel,
+    },
+});
+----
+
+== Verwandte Entscheidungen
+
+* ADR 005: Event-Sourcing-Prinzip für das ETB
+* ADR 010: Paginierungsstrategie für Listenansichten 

@@ -1,164 +1,222 @@
-import { Column, Entity, ManyToOne, OneToMany, PrimaryGeneratedColumn } from 'typeorm';
+import { EtbEntryStatus as PrismaEtbEntryStatus, EtbKategorie as PrismaEtbKategorie } from '../../../../prisma/generated/prisma/enums';
+import { EtbKategorie } from '../dto/etb-kategorie.enum';
 import { EtbAttachment } from './etb-attachment.entity';
 
 /**
- * Enum für den Status eines Einsatztagebuch-Eintrags
+ * Entity-Klasse für einen ETB-Eintrag (Einsatztagebuch-Eintrag).
+ * Diese Klasse dient als Wrapper für Prisma-generierte Typen und bietet Methoden zur Konvertierung
+ * zwischen Entity-Objekten und Prisma-Datenmodellen.
  */
-export enum EtbEntryStatus {
-    AKTIV = 'aktiv',
-    UEBERSCHRIEBEN = 'ueberschrieben'
-}
-
-/**
- * Entity für Einträge im Einsatztagebuch.
- * Speichert alle relevanten Informationen zu einem Ereignis während eines Einsatzes.
- */
-@Entity()
 export class EtbEntry {
     /**
-     * Eindeutige ID des Eintrags
+     * Eindeutige ID des ETB-Eintrags
      */
-    @PrimaryGeneratedColumn('uuid')
     id: string;
 
     /**
-     * Fortlaufende Nummer des Eintrags
+     * Fortlaufende Nummer des Eintrags (automatisch generiert)
      */
-    @Column({ nullable: false })
     laufendeNummer: number;
 
     /**
-     * Zeitpunkt der Erstellung des Eintrags
+     * Zeitstempel der Erstellung des Eintrags
      */
-    @Column({ type: 'datetime' })
     timestampErstellung: Date;
 
     /**
-     * Zeitpunkt des tatsächlichen Ereignisses
+     * Zeitstempel des beschriebenen Ereignisses
      */
-    @Column({ type: 'datetime' })
     timestampEreignis: Date;
 
     /**
-     * ID des Autors, der den Eintrag erstellt hat
+     * ID des Autors/der Autorin des Eintrags
      */
-    @Column()
     autorId: string;
 
     /**
-     * Name des Autors (optional)
+     * Name des Autors/der Autorin des Eintrags
      */
-    @Column({ nullable: true })
-    autorName: string;
+    autorName: string | null;
 
     /**
-     * Rolle des Autors (optional)
+     * Rolle oder Position des Autors/der Autorin
      */
-    @Column({ nullable: true })
-    autorRolle: string;
+    autorRolle: string | null;
 
     /**
-     * Kategorie des Eintrags (z.B. "Meldung", "Befehl", "Patientenmaßnahme")
+     * Kategorie des Eintrags (z.B. MELDUNG, ANWEISUNG)
      */
-    @Column()
-    kategorie: string;
+    kategorie: EtbKategorie;
 
     /**
-     * Optionaler Titel für den Eintrag
+     * Hauptinhalt des ETB-Eintrags
      */
-    @Column({ nullable: true })
-    titel: string;
+    inhalt: string;
 
     /**
-     * Detaillierte Beschreibung des Ereignisses
+     * Optionale Referenz auf eine Einsatz-ID
      */
-    @Column('text')
-    beschreibung: string;
+    referenzEinsatzId: string | null;
 
     /**
-     * Referenz zur Einsatz-ID (optional)
+     * Optionale Referenz auf eine Patienten-ID
      */
-    @Column({ nullable: true })
-    referenzEinsatzId: string;
+    referenzPatientId: string | null;
 
     /**
-     * Referenz zur Patienten-ID (optional)
+     * Optionale Referenz auf eine Einsatzmittel-ID
      */
-    @Column({ nullable: true })
-    referenzPatientId: string;
+    referenzEinsatzmittelId: string | null;
 
     /**
-     * Referenz zur Einsatzmittel-ID (optional)
+     * Quelle für automatisch generierte Einträge
      */
-    @Column({ nullable: true })
-    referenzEinsatzmittelId: string;
+    systemQuelle: string | null;
 
     /**
-     * Quelle des Eintrags, falls automatisch generiert
+     * Versionsnummer des Eintrags
      */
-    @Column({ nullable: true })
-    systemQuelle: string;
-
-    /**
-     * Aktuelle Version des Eintrags
-     */
-    @Column({ default: 1 })
     version: number;
 
     /**
-     * Status des Eintrags, standardmäßig aktiv
+     * Aktueller Status des Eintrags (AKTIV oder UEBERSCHRIEBEN)
      */
-    @Column({
-        type: 'varchar',
-        default: EtbEntryStatus.AKTIV
-    })
     status: EtbEntryStatus;
 
     /**
-     * Gibt an, ob der Eintrag abgeschlossen ist
+     * Flag, das anzeigt, ob der Eintrag abgeschlossen ist
      */
-    @Column({ default: false })
     istAbgeschlossen: boolean;
 
     /**
-     * Zeitpunkt des Abschlusses (optional)
+     * Zeitstempel des Abschlusses des Eintrags (falls abgeschlossen)
      */
-    @Column({ type: 'datetime', nullable: true })
-    timestampAbschluss: Date;
+    timestampAbschluss: Date | null;
 
     /**
-     * ID der Person, die den Eintrag abgeschlossen hat (optional)
+     * ID des Benutzers, der den Eintrag abgeschlossen hat
      */
-    @Column({ nullable: true })
-    abgeschlossenVon: string;
+    abgeschlossenVon: string | null;
 
     /**
-     * Verweis auf den Eintrag, der diesen überschrieben hat (falls dieser überschrieben wurde)
+     * Referenz auf den überschreibenden Eintrag (falls vorhanden)
      */
-    @ManyToOne(() => EtbEntry, entry => entry.ueberschriebeneEintraege, { nullable: true })
-    ueberschriebenDurch: EtbEntry;
+    ueberschriebenDurch: EtbEntry | null;
 
     /**
-     * Liste der Einträge, die durch diesen Eintrag überschrieben wurden
+     * ID des überschreibenden Eintrags
      */
-    @OneToMany(() => EtbEntry, entry => entry.ueberschriebenDurch)
+    ueberschriebenDurchId: string | null;
+
+    /**
+     * Liste der Einträge, die von diesem Eintrag überschrieben wurden
+     */
     ueberschriebeneEintraege: EtbEntry[];
 
     /**
-     * Zeitpunkt, wann der Eintrag überschrieben wurde
+     * Zeitstempel der Überschreibung (falls überschrieben)
      */
-    @Column({ type: 'datetime', nullable: true })
-    timestampUeberschrieben: Date;
+    timestampUeberschrieben: Date | null;
 
     /**
-     * ID der Person, die den Eintrag überschrieben hat
+     * ID des Benutzers, der den Eintrag überschrieben hat
      */
-    @Column({ nullable: true })
-    ueberschriebenVon: string;
+    ueberschriebenVon: string | null;
 
     /**
-     * Liste aller Anlagen zu diesem Eintrag
+     * Liste von Dateianlagen zu diesem Eintrag
      */
-    @OneToMany(() => EtbAttachment, attachment => attachment.etbEntry)
     anlagen: EtbAttachment[];
-} 
+
+    /**
+     * Absender des Eintrags (optional, für spezielle Kommunikationswege)
+     */
+    sender: string | null;
+
+    /**
+     * Empfänger des Eintrags (optional, für spezielle Kommunikationswege)
+     */
+    receiver: string | null;
+
+    /**
+     * Erstellt eine neue EtbEntry-Instanz
+     * 
+     * @param partial Teilweise oder vollständige Daten für den ETB-Eintrag
+     */
+    constructor(partial: Partial<EtbEntry>) {
+        Object.assign(this, partial);
+    }
+
+    /**
+     * Konvertiert diese Entity in ein Prisma-kompatibles Format für Datenbank-Operationen
+     * 
+     * @returns Ein Prisma-kompatibles Objekt dieses ETB-Eintrags
+     */
+    toPrisma() {
+        return {
+            id: this.id,
+            laufendeNummer: this.laufendeNummer,
+            timestampErstellung: this.timestampErstellung,
+            timestampEreignis: this.timestampEreignis,
+            autorId: this.autorId,
+            autorName: this.autorName,
+            autorRolle: this.autorRolle,
+            kategorie: this.kategorie as unknown as PrismaEtbKategorie,
+            inhalt: this.inhalt,
+            referenzEinsatzId: this.referenzEinsatzId,
+            referenzPatientId: this.referenzPatientId,
+            referenzEinsatzmittelId: this.referenzEinsatzmittelId,
+            systemQuelle: this.systemQuelle,
+            version: this.version,
+            status: this.status as unknown as PrismaEtbEntryStatus,
+            istAbgeschlossen: this.istAbgeschlossen,
+            timestampAbschluss: this.timestampAbschluss,
+            abgeschlossenVon: this.abgeschlossenVon,
+            ueberschriebenDurchId: this.ueberschriebenDurchId,
+            timestampUeberschrieben: this.timestampUeberschrieben,
+            ueberschriebenVon: this.ueberschriebenVon,
+            sender: this.sender,
+            receiver: this.receiver
+        };
+    }
+
+    /**
+     * Erstellt eine Entity aus einem Prisma-Objekt
+     * 
+     * @param prismaObj Das rohe Prisma-Objekt aus der Datenbank
+     * @returns Eine neue EtbEntry-Instanz mit den konvertierten Daten
+     */
+    static fromPrisma(prismaObj: any): EtbEntry {
+        return new EtbEntry({
+            ...prismaObj,
+            kategorie: prismaObj.kategorie as unknown as EtbKategorie,
+            status: prismaObj.status as EtbEntryStatus,
+            ueberschriebenDurch: prismaObj.ueberschriebenDurch ? EtbEntry.fromPrisma(prismaObj.ueberschriebenDurch) : null,
+            ueberschriebeneEintraege: prismaObj.ueberschriebeneEintraege ?
+                prismaObj.ueberschriebeneEintraege.map((entry: any) => EtbEntry.fromPrisma(entry)) : [],
+            anlagen: prismaObj.anlagen ?
+                prismaObj.anlagen.map((anlage: any) => EtbAttachment.fromPrisma(anlage)) : []
+        });
+    }
+}
+
+/**
+ * Re-export für vereinfachten Import. Definiert die EtbEntryStatus-Werte.
+ * Erlaubt die Verwendung der Status-Werte ohne direkte Prisma-Importe.
+ */
+export const EtbEntryStatus = {
+    /**
+     * Status für aktive, gültige ETB-Einträge
+     */
+    AKTIV: 'AKTIV',
+
+    /**
+     * Status für ETB-Einträge, die durch neuere Versionen überschrieben wurden
+     */
+    UEBERSCHRIEBEN: 'UEBERSCHRIEBEN'
+} as const;
+
+/**
+ * Typdefinition für den Status eines ETB-Eintrags
+ */
+export type EtbEntryStatus = keyof typeof EtbEntryStatus;

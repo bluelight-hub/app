@@ -25,7 +25,7 @@ flowchart TB
     end
     
     %% Externe Systeme
-    DB[(SQLite\nDatenbank)]:::database
+    DB[(PostgreSQL\nDatenbank)]:::database
     ExtDigitalfunk[Digitalfunk\nTETRA]:::external
     
     %% Beziehungen
@@ -59,8 +59,7 @@ flowchart TB
 |===
 |Schnittstelle |Beschreibung
 |Frontend ↔ Backend |RESTful API für Datenaustausch und Aktionen, gruppiert nach Domänen und Funktionsbereichen
-|Backend ↔ Datenbank |ORM-basierter SQLite-Datenbankzugriff für zentrale Persistenz und Synchronisation
-|Frontend ↔ Datenbank |Lokale SQLite-Instanz für Offline-Funktionalität
+|Backend ↔ Datenbank |Prisma-basierter PostgreSQL-Datenbankzugriff für zentrale Persistenz und Synchronisation
 |Backend ↔ Externe Systeme |Integration von Digitalfunk und anderen externen Systemen über domänenspezifische Adapter
 |===
 
@@ -175,7 +174,7 @@ flowchart TB
     end
 
     subgraph external["Externe Systeme"]
-        DB[(SQLite\nDatenbank)]
+        DB[(PostgreSQL\nDatenbank)]
         DigitalfunkSystem["Digitalfunk\n(TETRA)"]
     end
 
@@ -409,7 +408,7 @@ Die Kernkomponenten und ihre Namenskonventionen sind:
 |Controller |`*.controller.ts` |Definiert API-Endpunkte und HTTP-Routen. Verantwortlich für die Annahme von Anfragen und das Senden von Antworten.
 |Service |`*.service.ts` |Enthält die Geschäftslogik der Anwendung. Services werden von Controllern verwendet und können andere Services oder Repositories injizieren.
 |Repository |`*.repository.ts` |Abstrahiert den Datenbankzugriff und stellt CRUD-Operationen sowie komplexe Abfragen bereit.
-|Entity |`*.entity.ts` |Definiert das Datenmodell für die Datenbank mit TypeORM-Dekoratoren. Beschreibt Tabellen, Spalten und Beziehungen.
+|Prisma Schema |`schema.prisma` |Definiert das Datenmodell für die Datenbank mit Prisma Schema Language. Beschreibt Tabellen, Spalten und Beziehungen.
 |DTO |`*.dto.ts` |Data Transfer Objects definieren die Struktur der Daten, die zwischen Client und Server ausgetauscht werden, inklusive Validierungsregeln.
 |Module |`*.module.ts` |Organisiert Komponenten wie Controller, Services und Repositories in logische Einheiten und definiert deren Abhängigkeiten.
 |Factory |`*.factory.ts` |Erzeugt komplexe Objekte oder konfiguriert Komponenten dynamisch.
@@ -636,7 +635,7 @@ Das Diagramm zeigt folgende Beziehungen:
 
 Dieses Entitätsmodell bildet die Grundlage für:
 
-1. Die Datenbankschema-Definition in TypeORM
+1. Die Datenbankschema-Definition in Prisma Schema
 2. Die Entity-Klassen im Backend
 3. Die Geschäftslogik in den Service-Klassen
 4. Die API-Schnittstellen in den DTOs

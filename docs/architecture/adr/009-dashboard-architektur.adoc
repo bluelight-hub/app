@@ -1,0 +1,36 @@
+= ADR-009: Dashboard-Architektur mit Tauri Webviews
+:author: Bluelight-Hub Team
+:revnumber: 1.0.0
+:revdate: 2025-04-05
+:
+
+== Status
+Angenommen (Stand: 2025-04-05)
+
+== Kontext
+Für bestimmte Anwendungsbereiche wie das Einsatztagebuch (ETB) werden spezialisierte Dashboard-Ansichten benötigt, die übersichtlich und fokussiert große Datenmengen visualisieren. Diese Dashboards sollten auch in separaten Fenstern angezeigt werden können, um eine Multi-Monitor-Nutzung und spezialisierte Ansichten zu ermöglichen.
+
+== Optionen
+1. *Eingebettete Dashboards*: Integration der Dashboards in die Hauptanwendung mit Möglichkeit zur Vollbildansicht.
+2. *Separate Tauri-Fenster*: Öffnen der Dashboards in neuen Tauri-Fenstern mit eigener Instanz.
+3. *Tauri Webviews*: Nutzung von Webviews für leichtgewichtige Dashboard-Ansichten in separaten Fenstern.
+4. *Externe Browser-Fenster*: Öffnen der Dashboards in einem externen Browserfenster.
+
+== Entscheidung
+Wir haben uns für Option 3 (Tauri Webviews) entschieden.
+
+== Begründung
+* Leichtgewichtige Lösung für fokussierte Dashboard-Ansichten
+* Einfache Integration in die bestehende Tauri-Architektur
+* Wiederverwendung der bestehenden React-Komponenten
+* Direkte Kommunikation mit der Hauptanwendung möglich
+* Bessere Performance im Vergleich zu separaten Tauri-Fenstern
+* Vereinfachtes Zustandsmanagement zwischen Hauptanwendung und Dashboard
+* Unterstützung für Multi-Monitor-Setups im Einsatzumfeld
+
+== Konsequenzen
+* Dashboard-Komponenten müssen autonom funktionieren können (eigener State)
+* Kommunikation zwischen Hauptanwendung und Dashboard-Webviews erfordert spezifische IPC-Mechanismen
+* Dashboards benötigen ein vereinfachtes Layout ohne Hauptnavigation
+* Daten-Aktualisierungsstrategien müssen implementiert werden (Polling/Subscriptions)
+* Wiederverwendbarkeit von Komponenten zwischen Haupt-App und Dashboards muss sichergestellt werden 

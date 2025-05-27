@@ -1,9 +1,8 @@
 ---
-description: SUGGEST best-practice commit messages with EMOJI(context): short description
+description: ENFORCE commit messages formatting with EMOJI(context): short description
 globs: 
 alwaysApply: false
 ---
-
 # Commit Message Standards
 
 ## Context
@@ -23,9 +22,11 @@ alwaysApply: false
 <optional: 💥 BREAKING CHANGE>
 ```
 
-2. **Mehrzeilige Messages**
+2. **Mehrzeilige Messages (ERZWUNGEN)**
+- **OBLIGATORISCH** für substantielle Änderungen (>3 Dateien oder >50 Zeilen)
 - Verwende eine temporäre Datei (z. B. `commit-message.txt`)
 - Lösche sie nach dem Commit
+- Git Hook validiert automatisch Format und Länge
 
 3. **Emojis & Versioning**
    - **Major (Breaking):** 
@@ -74,6 +75,19 @@ alwaysApply: false
 - `✨(frontend): Neue Kartenfunktion für Einsatzplanung`
 - `🐛(backend): Korrigiere Auth-Fehler bei OAuth-Anmeldung`
 
+8. **Enforcement Tools (AUTOMATISCH AKTIVIERT via HUSKY)**
+- **Git Hooks**: `.husky/commit-msg` und `.husky/pre-commit` - automatisch installiert bei `npm install`
+  - **commit-msg**: Prüft Emoji-Format, Context-Format, Länge und gibt hilfreiche Fehlermeldungen
+  - **pre-commit**: Führt alle Tests aus um Code-Qualität sicherzustellen  
+  - **Versioniert**: Hooks sind im Repository und werden automatisch für alle Teammitglieder installiert
+  - **Husky**: Verwaltet die automatische Installation und Ausführung der Hooks
+- **Commit Helper**: `git commit-helper` für interaktive Commit-Erstellung
+  - Schritt-für-Schritt Anleitung durch korrektes Format
+  - Automatische Formatierung und Validierung
+  - Emoji-Auswahl mit Beschreibungen
+  - Breaking Change Unterstützung
+- **Git Alias**: Schnelle Commit-Erstellung via CLI
+
 ## Examples
 
 <example>
@@ -111,6 +125,53 @@ Commit: add stuff
 
 Hier fehlt der Kontext und die Beschreibung ist zu vage.
 </example>
+
+## Verfügbare Kommandos
+
+### Interaktiver Commit Helper (EMPFOHLEN)
+```bash
+git commit-helper
+# oder
+./scripts/commit-helper.sh
+```
+- Führt durch den gesamten Commit-Prozess
+- Automatische Formatierung und Validierung
+- Emoji-Auswahl mit Beschreibungen
+- Verhindert Formatierungsfehler
+
+### Manuelle Commits (für Experten)
+```bash
+# Erstelle temporäre Datei
+echo "✨(context): Kurze Beschreibung
+
+Detaillierte Beschreibung hier.
+- Stichpunkt 1
+- Stichpunkt 2" > commit-message.txt
+
+# Committe und lösche Datei
+git commit -F commit-message.txt && rm commit-message.txt
+```
+
+### Git Hook Bypass (NUR IN NOTFÄLLEN)
+```bash
+# Hooks umgehen (nicht empfohlen!)
+git commit --no-verify -m "emergency fix"
+git push --no-verify
+
+# Husky komplett deaktivieren (temporär)
+export HUSKY=0
+git commit -m "emergency fix"
+unset HUSKY
+```
+
+### Commit-Nachricht bearbeiten
+```bash
+# Letzten Commit bearbeiten
+git commit --amend
+
+# Interaktives Rebase für ältere Commits
+git rebase -i HEAD~3
+```
 
 ## Semantic Release
 Diese Commit-Konventionen werden von unserem Semantic Release System genutzt, um automatisch die Versionsnummer zu erhöhen und Release Notes zu generieren. Die Emojis bestimmen dabei die Art des Releases:

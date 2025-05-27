@@ -6,12 +6,11 @@ import {
     HealthCheckService,
     HealthIndicatorResult,
     MemoryHealthIndicator,
-    TypeOrmHealthIndicator
 } from '@nestjs/terminus';
-import { InjectDataSource } from '@nestjs/typeorm';
 import * as net from 'net';
 import * as os from 'os';
-import { DataSource } from 'typeorm';
+import { EtbService } from '../modules/etb/etb.service';
+import { PrismaHealthIndicator } from './prisma-health.indicator';
 
 /**
  * Konstanten für Health-Checks
@@ -60,15 +59,15 @@ export class HealthController {
      * @param {HealthCheckService} health - Service zur Durchführung von Gesundheitschecks
      * @param {MemoryHealthIndicator} memory - Indikator für Speicher-Gesundheitschecks
      * @param {DiskHealthIndicator} disk - Indikator für Festplatten-Gesundheitschecks
-     * @param {TypeOrmHealthIndicator} db - Indikator für Datenbank-Gesundheitschecks
-     * @param {DataSource} defaultConnection - TypeORM-Datenbankverbindung
+     * @param {PrismaHealthIndicator} prismaDb - Indikator für Prisma-Datenbank-Gesundheitschecks
+     * @param {EtbService} etbService - Service für ETB-Operationen zur FüKW-Erreichbarkeitsprüfung
      */
     constructor(
         private health: HealthCheckService,
         private memory: MemoryHealthIndicator,
         private disk: DiskHealthIndicator,
-        private db: TypeOrmHealthIndicator,
-        @InjectDataSource() private defaultConnection: DataSource,
+        private prismaDb: PrismaHealthIndicator,
+        private etbService: EtbService,
     ) { }
 
     /**
@@ -82,8 +81,7 @@ export class HealthController {
     @HealthCheck()
     async check(): Promise<HealthCheckResult> {
         return this.health.check([
-            // Datenbank-Checks
-            () => this.db.pingCheck('database', { connection: this.defaultConnection }),
+            async () => this.prismaDb.pingCheck('database'),
 
             // Memory-Checks
             () => this.memory.checkHeap('memory_heap', HEALTH_CHECK_CONFIG.MEMORY.HEAP_THRESHOLD),
@@ -150,7 +148,16 @@ export class HealthController {
     private async checkFuekwStatus(): Promise<HealthIndicatorResult> {
         try {
             // Prüfe, ob die Datenbank als lokaler Dienst erreichbar ist
-            const isConnected = this.defaultConnection.isInitialized;
+            let isConnected: boolean;
+
+            // Mit Prisma prüfen
+            try {
+                await this.prismaDb.pingCheck('prisma_connection');
+                isConnected = true;
+            } catch (error) {
+                isConnected = false;
+            }
+
             const isPingable = await this.isFuekwPingable();
 
             return {
@@ -165,7 +172,7 @@ export class HealthController {
                     }
                 }
             };
-        } catch (error) {
+        } catch (error: any) {
             return {
                 fuekw: {
                     status: 'down',
@@ -183,7 +190,14 @@ export class HealthController {
      */
     private async determineConnectionStatus(): Promise<HealthIndicatorResult> {
         const internetResult = await this.checkInternetConnectivity();
-        const fuekwResult = this.defaultConnection.isInitialized && await this.isFuekwPingable();
+
+        let fuekwResult: boolean;
+        try {
+            await this.prismaDb.pingCheck('prisma_ping');
+            fuekwResult = await this.isFuekwPingable();
+        } catch (error) {
+            fuekwResult = false;
+        }
 
         let connectionMode: ConnectionMode = 'error';
         if (internetResult && fuekwResult) {
@@ -271,18 +285,24 @@ export class HealthController {
 
     /**
      * Überprüft, ob das FüKW-System über das Netzwerk erreichbar ist.
-     * Diese Vereinfachte Implementierung prüft die Datenbankverfügbarkeit.
-     * 
-     * In einer vollständigen Implementierung würde hier ein spezifischer 
-     * Dienst des FüKW-Systems geprüft werden.
+     * Testet die Erreichbarkeit durch Aufruf einer einfachen, nicht-schreibenden
+     * Operation des EtbService, der eine Kernfunktionalität des FüKW-Systems darstellt.
      * 
      * @returns {Promise<boolean>} True wenn FüKW erreichbar, sonst false
      */
     private async isFuekwPingable(): Promise<boolean> {
         try {
-            // In einer realen Umgebung würde hier eine FüKW-spezifische
-            // Erreichbarkeitsprüfung durchgeführt werden
-            return this.defaultConnection.isInitialized;
+            // Tatsächliche FüKW-spezifische Erreichbarkeitsprüfung:
+            // Eine einfache Abfrage des EtbService durchführen
+            await this.etbService.findAll({ limit: 1, page: 1 });
+
+            // Je nach Konfiguration die Datenbankverbindung prüfen
+            try {
+                await this.prismaDb.pingCheck('prisma_ping');
+                return true;
+            } catch (error) {
+                return false;
+            }
         } catch (error) {
             return false;
         }
@@ -298,7 +318,7 @@ export class HealthController {
     @HealthCheck()
     async checkLiveness(): Promise<HealthCheckResult> {
         return this.health.check([
-            () => this.db.pingCheck('database', { connection: this.defaultConnection }),
+            async () => this.prismaDb.pingCheck('database'),
         ]);
     }
 
@@ -330,15 +350,8 @@ export class HealthController {
     @HealthCheck()
     async checkDatabase(): Promise<HealthCheckResult> {
         return this.health.check([
-            () => this.db.pingCheck('database', { connection: this.defaultConnection }),
-            async () => ({
-                database_connections: {
-                    status: 'up',
-                    details: {
-                        isInitialized: this.defaultConnection.isInitialized
-                    }
-                }
-            }),
+            () => this.prismaDb.pingCheck('database'),
+            () => this.prismaDb.isConnected('database_connections')
         ]);
     }
 } 

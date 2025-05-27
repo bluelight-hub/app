@@ -1,17 +1,39 @@
 version: '3.8'
 
 services:
+  postgres:
+    image: postgres:17
+    container_name: bluelight-hub-postgres
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    environment:
+      - POSTGRES_USER=${DATABASE_USER:-bluelight}
+      - POSTGRES_PASSWORD=${DATABASE_PASSWORD:-bluelight}
+      - POSTGRES_DB=${DATABASE_NAME:-bluelight_hub}
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U bluelight"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+
   app:
     build:
       context: .
       dockerfile: Dockerfile
     ports:
       - "3000:3000"
-    volumes:
-      - sqlite_data:/data/db
     environment:
       - NODE_ENV=production
-      - SQLITE_DB_PATH=/data/db/database.sqlite
+      - DATABASE_HOST=postgres
+      - DATABASE_PORT=5432
+      - DATABASE_USER=${DATABASE_USER:-bluelight}
+      - DATABASE_PASSWORD=${DATABASE_PASSWORD:-bluelight}
+      - DATABASE_NAME=${DATABASE_NAME:-bluelight_hub}
+    depends_on:
+      postgres:
+        condition: service_healthy
     restart: unless-stopped
     healthcheck:
       test: ["CMD", "wget", "--spider", "-q", "http://localhost:3000/api/health"]
@@ -27,5 +49,5 @@ services:
           memory: 512M
 
 volumes:
-  sqlite_data:
-    name: bluelight-hub-db 
+  postgres_data:
+    name: bluelight-hub-postgres-data 

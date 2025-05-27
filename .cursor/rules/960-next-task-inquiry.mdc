@@ -1,0 +1,57 @@
+---
+description: 
+globs: 
+alwaysApply: true
+---
+# Next Task Inquiry Handler
+
+## Context
+- Gilt für alle Dateien und Kontexte
+- Optimiert Workflow durch automatische Task Master Integration
+- Reduziert Reibung bei der Aufgabenplanung
+
+## Requirements
+
+1. **"Was muss getan werden" Erkennung**
+   - Bei Fragen wie "was muss getan werden", "was ist zu tun", "was steht als nächstes an"
+   - **Automatisch vorschlagen:** Task Master's nächsten Task zu ermitteln
+   - Verwende `next_task` MCP tool oder (bei Problemen) `task-master next` CLI command
+
+2. **Kontext berücksichtigen**
+   - **Ausnahme:** Wenn der aktuelle Kontext eindeutig auf etwas anderes hinweist
+   - Beispiele für andere Kontexte:
+   
+     - Aktuelle Debugging-Session
+     - Spezifische Code-Diskussion
+     - Dokumentations-Review
+     - Test-Failure-Behebung
+
+3. **Automatische Ausführung**
+   - Direkt `next_task` aufrufen, außer Kontext deutet auf anderes hin
+   - Nach Task-Anzeige fragen, ob der Benutzer mit diesem Task beginnen möchte
+   - Bei Bedarf weitere Details mit `get_task` bereitstellen
+
+## Examples
+
+```
+✅ Automatisch Task Master verwenden:
+User: "Was muss getan werden?"
+→ Rufe next_task auf und zeige nächsten Task
+
+User: "Was steht als nächstes an?"
+→ Rufe next_task auf und zeige nächsten Task
+```
+
+```
+❌ Kontext-Ausnahmen:
+User: "Was muss getan werden?" (während Debugging einer spezifischen Funktion)
+→ Beziehe dich auf das aktuelle Debug-Problem
+
+User: "Was muss getan werden?" (während Code-Review)
+→ Beziehe dich auf die Review-Kommentare
+```
+
+## Benefits
+- **Workflow-Optimierung:** Direkter Zugang zu geplanten Aufgaben
+- **Weniger Reibung:** Kein manuelles Nachfragen nach Task-Status
+- **Konsistente Projektplanung:** Nutzt etablierte Task Master Struktur

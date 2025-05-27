@@ -1,9 +1,11 @@
-import { ApiPropertyOptional } from '@nestjs/swagger';
-import { IsDateString, IsOptional, IsString, IsUUID } from 'class-validator';
+import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
+import { IsDateString, IsEnum, IsNotEmpty, IsOptional, IsString, IsUUID } from 'class-validator';
+import { EtbKategorie } from './etb-kategorie.enum';
 
 /**
  * DTO für das Überschreiben eines bestehenden Einsatztagebuch-Eintrags.
- * Enthält alle Felder, die beim Überschreiben eines Eintrags aktualisiert werden können.
+ * Wird verwendet, wenn ein Eintrag durch eine neuere Version ersetzt werden soll,
+ * wobei der Originalinhalt erhalten bleibt und als "überschrieben" markiert wird.
  */
 export class UeberschreibeEtbDto {
     /**
@@ -15,28 +17,48 @@ export class UeberschreibeEtbDto {
     timestampEreignis?: string;
 
     /**
-     * Kategorie des Eintrags (z.B. "Meldung", "Befehl", "Patientenmaßnahme")
+     * Kategorie des neuen Eintrags
      */
-    @ApiPropertyOptional({ description: 'Kategorie des Eintrags' })
-    @IsString()
+    @ApiPropertyOptional({
+        description: 'Kategorie des Eintrags',
+        enum: EtbKategorie,
+        enumName: 'EtbKategorie'
+    })
+    @IsEnum(EtbKategorie)
     @IsOptional()
-    kategorie?: string;
+    kategorie?: EtbKategorie;
 
     /**
-     * Optionaler Titel für den Eintrag
+     * Inhalt des neuen Eintrags
      */
-    @ApiPropertyOptional({ description: 'Optionaler Titel für den Eintrag' })
+    @ApiProperty({ description: 'Inhalt des Eintrags' })
     @IsString()
-    @IsOptional()
-    titel?: string;
+    @IsNotEmpty()
+    inhalt: string;
 
     /**
-     * Detaillierte Beschreibung des Ereignisses
+     * Grund für die Überschreibung
      */
-    @ApiPropertyOptional({ description: 'Detaillierte Beschreibung des Ereignisses' })
+    @ApiPropertyOptional({ description: 'Grund für die Überschreibung' })
     @IsString()
     @IsOptional()
-    beschreibung?: string;
+    ueberschreibungsgrund?: string;
+
+    /**
+     * Absender des Eintrags (OPTA-Nummer)
+     */
+    @ApiPropertyOptional({ description: 'Absender des Eintrags (OPTA-Nummer)' })
+    @IsString()
+    @IsOptional()
+    sender?: string;
+
+    /**
+     * Empfänger des Eintrags (OPTA-Nummer)
+     */
+    @ApiPropertyOptional({ description: 'Empfänger des Eintrags (OPTA-Nummer)' })
+    @IsString()
+    @IsOptional()
+    receiver?: string;
 
     /**
      * Referenz zur Einsatz-ID (optional)

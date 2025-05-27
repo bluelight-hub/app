@@ -1,7 +1,29 @@
 import { ApiResponse } from '@/common/interfaces/api-response.interface';
+import { PaginationMeta } from '@/common/interfaces/paginated-response.interface';
 import { ApiProperty } from '@nestjs/swagger';
-import { EtbAttachment } from '../entities/etb-attachment.entity';
-import { EtbEntryStatus } from '../entities/etb-entry.entity';
+import { EtbEntryStatus } from '@prisma/generated/prisma/enums';
+import { EtbKategorie } from './etb-kategorie.enum';
+
+// Lokale Definition statt Import der Prisma-Models
+export class EtbAttachment {
+    @ApiProperty({ description: 'ID der Anlage', type: 'string', format: 'uuid' })
+    id: string;
+
+    @ApiProperty({ description: 'ID des ETB-Eintrags', type: 'string', format: 'uuid' })
+    etbEntryId: string;
+
+    @ApiProperty({ description: 'Dateiname der Anlage', type: 'string' })
+    dateiname: string;
+
+    @ApiProperty({ description: 'Dateityp der Anlage', type: 'string' })
+    dateityp: string;
+
+    @ApiProperty({ description: 'Speicherort der Anlage', type: 'string' })
+    speicherOrt: string;
+
+    @ApiProperty({ description: 'Beschreibung der Anlage', type: 'string', nullable: true })
+    beschreibung?: string;
+}
 
 /**
  * Data Transfer Object für Einsatztagebuch-Einträge.
@@ -79,32 +101,23 @@ export class EtbEntryDto {
     autorRolle: string;
 
     /**
-     * Kategorie des Eintrags zur Klassifizierung (z.B. "Meldung", "Befehl", "Patientenmaßnahme")
+     * Kategorie des Eintrags zur Klassifizierung
      */
     @ApiProperty({
         description: 'Kategorie des Eintrags',
-        type: 'string',
+        enum: EtbKategorie,
+        enumName: 'EtbKategorie',
     })
-    kategorie: string;
+    kategorie: EtbKategorie;
 
     /**
-     * Optionaler Titel für den Eintrag zur besseren Übersicht
+     * Inhalt des Eintrags
      */
     @ApiProperty({
-        description: 'Titel des Eintrags',
-        type: 'string',
-        nullable: true,
-    })
-    titel: string;
-
-    /**
-     * Detaillierte Beschreibung des Ereignisses
-     */
-    @ApiProperty({
-        description: 'Beschreibung des Eintrags',
+        description: 'Inhalt des Eintrags',
         type: 'string',
     })
-    beschreibung: string;
+    inhalt: string;
 
     /**
      * Referenz zur zugehörigen Einsatz-ID, falls der Eintrag einem bestimmten Einsatz zugeordnet ist
@@ -196,6 +209,32 @@ export class EtbEntryDto {
         example: EtbEntryStatus.AKTIV,
     })
     status: EtbEntryStatus;
+
+    /**
+     * Liste der Anlagen, die diesem ETB-Eintrag zugeordnet sind
+     */
+    @ApiProperty({ type: [EtbAttachment], description: 'Anlagen zum ETB-Eintrag', required: false })
+    anlagen?: EtbAttachment[];
+
+    /**
+     * Absender des Eintrags (OPTA-Nummer)
+     */
+    @ApiProperty({
+        description: 'Absender des Eintrags (OPTA-Nummer)',
+        type: 'string',
+        nullable: true,
+    })
+    sender: string;
+
+    /**
+     * Empfänger des Eintrags (OPTA-Nummer)
+     */
+    @ApiProperty({
+        description: 'Empfänger des Eintrags (OPTA-Nummer)',
+        type: 'string',
+        example: 'OPTA-123456'
+    })
+    receiver: string;
 }
 
 /**
@@ -223,9 +262,10 @@ export class EtbEntriesData {
      */
     @ApiProperty({
         description: 'ETB-Einträge',
-        type: [EtbEntryDto],
+        type: EtbEntryDto,
+        isArray: true,
     })
-    entries: EtbEntryDto[];
+    items: EtbEntryDto[];
 
     /**
      * Gesamtzahl der verfügbaren ETB-Einträge (für Paginierung)
@@ -233,6 +273,7 @@ export class EtbEntriesData {
     @ApiProperty({
         description: 'Gesamtzahl der ETB-Einträge',
         type: 'number',
+        example: 42
     })
     total: number;
 }
@@ -240,15 +281,25 @@ export class EtbEntriesData {
 /**
  * DTO für die Antwort einer Liste von ETB-Einträgen
  */
-export class EtbEntriesResponse extends ApiResponse<EtbEntriesData> {
+export class EtbEntriesResponse {
     /**
-     * Liste von ETB-Einträgen und Gesamtzahl
+     * Liste von ETB-Einträgen
      */
     @ApiProperty({
-        description: 'ETB-Einträge und Gesamtzahl',
-        type: EtbEntriesData,
+        description: 'Liste von ETB-Einträgen',
+        type: EtbEntryDto,
+        isArray: true
     })
-    data: EtbEntriesData;
+    items: EtbEntryDto[];
+
+    /**
+     * Metainformationen zur Paginierung
+     */
+    @ApiProperty({
+        type: PaginationMeta,
+        description: 'Metainformationen zur Paginierung'
+    })
+    pagination: PaginationMeta;
 }
 
 /**

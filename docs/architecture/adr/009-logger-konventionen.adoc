@@ -1,0 +1,121 @@
+= ADR-009: Logger-Konventionen
+:author: Bluelight-Hub Team
+:revnumber: 1.0.0
+:revdate: 2025-05-11
+:revremark: Finale Version
+:source-highlighter: highlightjs
+
+== Status
+
+Akzeptiert
+
+== Kontext
+
+Im Rahmen der Entwicklung des Bluelight-Hub-Systems ist es notwendig, eine einheitliche Strategie für das Logging zu etablieren, um Konsistenz, Fehlerverfolgung und Wartbarkeit zu gewährleisten. Die aktuelle Situation ist durch uneinheitliche Logging-Praktiken und die Verwendung von direkten `console.*`-Aufrufen gekennzeichnet.
+
+== Entscheidung
+
+Wir haben entschieden, einen einheitlichen Ansatz für das Logging im gesamten Backend-System zu implementieren, basierend auf der consola-Bibliothek:
+
+1. **Zentrale Logger-Implementation**:
+   - Bereitstellung einer einheitlichen Logger-Instanz in `packages/backend/src/logger/consola.logger.ts`
+   - Export eines vordefinierten `logger`-Objekts für direkte Importierung
+   - Bereitstellung einer `ConsolaLogger`-Klasse, die das NestJS `LoggerService`-Interface implementiert
+
+2. **Verbindliche Nutzung**:
+   - Verbot von direkten `console.*`-Aufrufen (console.log, console.error, usw.) im gesamten Code
+   - Verpflichtende Verwendung des consola-Loggers durch alle Komponenten
+
+3. **Log-Level-Management**:
+   - Produktionsumgebung: Log-Level 3 (info)
+   - Entwicklungsumgebung: Log-Level 4 (debug)
+
+4. **Durchsetzung durch Tests**:
+   - Implementierung von Architekturtests, die die Einhaltung der Logger-Konventionen überprüfen
+   - Automatische Tests verhindern die Einführung von `console.*`-Aufrufen
+
+== Gründe
+
+Die Entscheidung für den consola-Logger und das verbindliche Logging-Konzept basiert auf mehreren Überlegungen:
+
+1. **Einheitlichkeit**: Ein konsistentes Logging-Format in der gesamten Anwendung verbessert die Lesbarkeit und Analysierbarkeit von Logs.
+
+2. **Konfigurierbarkeit**: Die Möglichkeit, Log-Level je nach Umgebung anzupassen, ermöglicht umfangreiche Logs während der Entwicklung und fokussierte Logs in der Produktion.
+
+3. **Erweiterte Funktionalität**: Consola bietet gegenüber der nativen Console API mehr Funktionen, wie formatierte Ausgaben, Zeitstempel und bessere visuelle Unterscheidung verschiedener Log-Typen.
+
+4. **Konsistenz mit NestJS**: Die Implementierung als NestJS-kompatible LoggerService-Klasse ermöglicht eine nahtlose Integration mit dem Framework.
+
+5. **Leichtere Wartung**: Zentralisierte Logger-Konfiguration und -Management vereinfachen zukünftige Anpassungen.
+
+== Konsequenzen
+
+Die Umsetzung dieser Entscheidung hat folgende Auswirkungen:
+
+1. **Positive Auswirkungen**:
+   - Verbesserte Lesbarkeit und Einheitlichkeit aller Logs
+   - Einfachere Konfiguration von Log-Levels und -Verhalten
+   - Bessere Debuggingmöglichkeiten
+
+2. **Negative Auswirkungen**:
+   - Notwendige Umstellung des bestehenden Codes
+   - Zusätzlicher Test-Overhead
+   - Einstiegsbarriere für neue Entwickler
+
+3. **Ausnahmen**:
+   - Wenige spezifische Dateien sind von der Konvention ausgenommen (main.ts)
+   - Testdateien dürfen weiterhin console.* verwenden
+
+== Implementierung
+
+1. **Logger-Klasse**:
+   ```typescript
+   import { LoggerService } from '@nestjs/common';
+   import { consola } from 'consola';
+
+   export const logger = consola.create({
+       level: process.env.NODE_ENV === 'production' ? 3 : 4,
+   });
+
+   export class ConsolaLogger implements LoggerService {
+       log(message: any, ...optionalParams: any[]) {
+           logger.log(message, ...optionalParams);
+       }
+       
+       error(message: any, ...optionalParams: any[]) {
+           logger.error(message, ...optionalParams);
+       }
+       
+       // Weitere Methoden...
+   }
+   ```
+
+2. **Architekturtest**:
+   ```typescript
+   it('should not use console.log, console.error etc. directly in code', () => {
+       // Implementierung von Tests, die sicherstellen, dass keine console.* Aufrufe verwendet werden
+   });
+   ```
+
+== Alternativen
+
+Als Alternativen wurden betrachtet:
+
+1. **Winston**: Ein häufig verwendeter Node.js-Logger mit hoher Konfigurierbarkeit. Wurde als zu komplex für die aktuellen Anforderungen angesehen.
+
+2. **Pino**: Ein leistungsstarker, JSON-basierter Logger, optimiert für Geschwindigkeit. Wurde als Überschuss für die aktuelle Anwendungsgröße betrachtet.
+
+3. **Direktes NestJS-Logging**: Verwendung der eingebauten NestJS-Logging-Funktionalität. Wurde als zu eingeschränkt befunden.
+
+4. **Beibehalten uneinheitlicher Logging-Praktiken**: Wurde aufgrund der negativen Auswirkungen auf Wartbarkeit und Konsistenz abgelehnt.
+
+== Verwandte Entscheidungen
+
+Diese Entscheidung steht in Zusammenhang mit:
+
+- Allgemeine Backend-Architektur (ADR-003)
+- Cross-Cutting Concerns Management (noch keine spezifische ADR)
+
+== Anmerkungen
+
+Die Logger-Konventionen gelten für das gesamte Backend-System und sollten in Zukunft auch auf das Frontend ausgeweitet werden, um eine konsistente Logging-Strategie im gesamten Bluelight-Hub-System zu erreichen. 

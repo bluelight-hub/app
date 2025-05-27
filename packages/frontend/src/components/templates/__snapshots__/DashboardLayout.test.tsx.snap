@@ -1,0 +1,23 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`DashboardLayout > matches snapshot 1`] = `
+<div>
+  <div
+    class="min-h-screen flex flex-col bg-white dark:bg-gray-900 text-black dark:text-white overflow-hidden"
+  >
+    <main
+      class="flex-1 overflow-auto py-4"
+    >
+      <div
+        class="px-4 h-full"
+      >
+        <div
+          data-testid="outlet-content"
+        >
+          Dashboard Content
+        </div>
+      </div>
+    </main>
+  </div>
+</div>
+`;

@@ -19,7 +19,7 @@ flowchart TD
 
     subgraph FüKW[Führungskraftwagen (Hauptsystem)]
         Backend[Backend\nNestJS]
-        DB[(Lokale Datenbank\nSQLite)]
+        DB[(PostgreSQL\nDatenbank)]
         Backend <--> DB
     end
 
@@ -63,7 +63,7 @@ flowchart TB
     end
 
     subgraph Infrastructure[Infrastruktur-Schicht]
-        DB[(SQLite-DB)]
+        DB[(PostgreSQL-DB)]
         Logger[Logging]
         Messaging[Event-Bus]
     end
@@ -149,7 +149,7 @@ Das Verbindungskonzept unterstützt drei Konnektivitätsszenarien:
 flowchart TB
     Frontend --> React & TypeScript & AntDesign
     Backend --> NestJS & Node.js
-    Daten --> SQLite & CRDTs
+    Daten --> PostgreSQL & Prisma
     API --> REST & JWT
     Mobile --> Tauri & WebView
 ....
@@ -160,7 +160,7 @@ flowchart TB
 |Frontend |React, TypeScript, Ant Design |Moderne, typsichere Entwicklung mit etabliertem UI-Framework
 |Mobile App |Tauri v2 mit TypeScript |Plattformübergreifende Entwicklung, nativer Zugriff auf Systemfunktionen
 |Backend |NestJS |Strukturiertes, modulares Framework mit TypeScript
-|Datenbank |SQLite |Einfache, leichtgewichtige SQL-Datenbank mit lokaler Speicherung
+|Datenbank |PostgreSQL, Prisma |Robuste, skalierbare SQL-Datenbank mit Prisma ORM
 |API |REST |Standardisierte, ressourcenorientierte Schnittstellen
 |Authentifizierung |JWT |Industrie-Standard für sichere Authentifizierung
 |===
@@ -171,7 +171,7 @@ flowchart TB
 |===
 |ADR |Beschreibung
 |ADR-001 |Verbindungskonzept-Architektur: Unterstützung verschiedener Konnektivitätsszenarien
-|ADR-002 |SQLite für lokale Datenspeicherung: Einfache, zuverlässige lokale Datenbank ohne Serverkomponente
+|ADR-002 |PostgreSQL mit Prisma ORM: Robuste, skalierbare Datenbank mit typsicherem ORM
 |ADR-003 |Modulare Backend-Architektur mit NestJS: Klare Trennung von Zuständigkeiten und bessere Wartbarkeit
 |ADR-004 |Tauri für plattformübergreifende Desktop-App: Native Performance mit Webfrontend
 |ADR-005 |JWT für Authentifizierung: Statuslose, sichere Benutzerauthentifizierung
@@ -273,6 +273,6 @@ Die wichtigsten Merkmale sind:
 * *Modulare Architektur:* Klar getrennte Verantwortlichkeiten und einfache Erweiterbarkeit
 * *Echtzeit-Kommunikation:* Schneller Informationsaustausch zwischen allen Einheiten
 * *Benutzerfreundlichkeit:* Intuitive Bedienung auch unter Stress
-* *Moderne Technologien:* React, TypeScript, NestJS, SQLite, Docker
+* *Moderne Technologien:* React, TypeScript, NestJS, PostgreSQL, Docker
 
 Das Bluelight-Hub-System wird kontinuierlich weiterentwickelt, um den sich ändernden Anforderungen der Einsatzkräfte gerecht zu werden und die neuesten Technologien und Best Practices zu integrieren. 

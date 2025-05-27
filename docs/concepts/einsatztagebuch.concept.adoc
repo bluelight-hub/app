@@ -198,4 +198,4 @@ Ein Einsatztagebuch benötigt eine eindeutige Struktur, damit alle relevanten In
 * Benutzerfreundliche UI zur schnellen Erfassung und Nachvollziehbarkeit.
 * Revisionssichere Langzeitarchivierung (rechtliche und organisatorische Anforderungen beachten).
 
-Du kannst nun dieses Feldkonzept als Grundlage verwenden, um Deine Datenbankstruktur (z. B. in SQLite) und Deine React-Komponenten (z. B. mit Ant Design) aufzubauen. Achte darauf, dass die Bedienung auch in stressigen Situationen (z. B. im Einsatzfahrzeug) problemlos möglich ist – klare Eingabemasken, strukturierte Listen und eine intuitive Oberfläche sind hier entscheidend.
+Du kannst nun dieses Feldkonzept als Grundlage verwenden, um Deine Datenbankstruktur (z. B. in Postgres) und Deine React-Komponenten (z. B. mit Ant Design) aufzubauen. Achte darauf, dass die Bedienung auch in stressigen Situationen (z. B. im Einsatzfahrzeug) problemlos möglich ist – klare Eingabemasken, strukturierte Listen und eine intuitive Oberfläche sind hier entscheidend.

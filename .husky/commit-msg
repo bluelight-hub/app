@@ -1,0 +1,61 @@
+#!/bin/bash
+
+# Git Hook für Commit-Message Validation
+# Basierend auf 030-commit-rules
+
+COMMIT_MSG_FILE=$1
+COMMIT_MSG=$(cat $COMMIT_MSG_FILE)
+
+# Emoji-Pattern für erlaubte Commit-Typen
+EMOJI_PATTERN="^(💥|✨|🐛|🚑|🔒|🧹|♻️|🔧|📦|📝|💄|⚡|🗑|🛠|🚀|🎉|🧪)\([a-zA-Z0-9-]+\): .+"
+
+# Zähle Zeilen (ignoriere leere Zeilen am Ende)
+LINE_COUNT=$(echo "$COMMIT_MSG" | sed '/^$/d' | wc -l | tr -d ' ')
+
+echo "🔍 Validiere Commit-Nachricht..."
+echo "📏 Anzahl Zeilen: $LINE_COUNT"
+
+# Prüfe Grundformat
+if ! echo "$COMMIT_MSG" | head -n1 | grep -qE "$EMOJI_PATTERN"; then
+    echo "❌ FEHLER: Commit-Nachricht entspricht nicht dem Format!"
+    echo "📋 Erwartetes Format: <emoji>(<context>): <kurze Beschreibung>"
+    echo "📚 Siehe .cursor/rules/030-commit-rules.mdc für Details"
+    echo ""
+    echo "🔧 Beispiele:"
+    echo "   ✨(frontend): Neue Benutzeroberfläche für Dashboard"
+    echo "   🐛(backend): Korrigiere Auth-Fehler bei OAuth-Anmeldung"
+    echo "   🔧(config): Aktualisiere ESLint-Konfiguration"
+    exit 1
+fi
+
+# Prüfe ob Commit mehrzeilig ist (mindestens 3 Zeilen für substantielle Commits)
+if [ "$LINE_COUNT" -lt 3 ]; then
+    echo "⚠️  WARNUNG: Einzeilige Commit-Nachricht erkannt!"
+    echo "📋 Für substantielle Änderungen sind mehrzeilige Commits erwünscht:"
+    echo ""
+    echo "   <emoji>(<context>): <kurze Beschreibung>"
+    echo "   "
+    echo "   <detaillierte Beschreibung>"
+    echo "   - <Stichpunkt 1>"
+    echo "   - <Stichpunkt 2>"
+    echo ""
+    echo "🤔 Ist dies wirklich nur eine triviale Änderung?"
+    echo "💡 Für komplexe Änderungen verwende: git commit (ohne -m) oder erstelle commit-message.txt"
+    echo ""
+    echo "⏭️  Trotzdem fortfahren? (Enter=Ja, Ctrl+C=Abbruch)"
+    read -r
+fi
+
+# Prüfe erste Zeile Länge
+FIRST_LINE=$(echo "$COMMIT_MSG" | head -n1)
+FIRST_LINE_LENGTH=${#FIRST_LINE}
+
+if [ "$FIRST_LINE_LENGTH" -gt 72 ]; then
+    echo "❌ FEHLER: Erste Zeile zu lang ($FIRST_LINE_LENGTH Zeichen, max. 72)"
+    echo "📏 Erste Zeile: $FIRST_LINE"
+    echo "💡 Verschiebe Details in nachfolgende Zeilen"
+    exit 1
+fi
+
+echo "✅ Commit-Nachricht ist gültig!"
+exit 0 

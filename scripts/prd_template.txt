@@ -1,0 +1,126 @@
+<context>
+# Projektübersicht
+[Beschreibe hier dein Projekt in 2-3 Absätzen. Was ist der Zweck? Wer sind die Benutzer? Welches Problem löst es?]
+
+# Kernfunktionen
+## Funktion 1
+- [Unterpunkt zur Funktion]
+- [Weiterer Unterpunkt]
+- [Beispiele für Benutzerinteraktionen]
+
+## Funktion 2
+- [Unterpunkt zur Funktion]
+- [Weiterer Unterpunkt]
+- [Beispiele für Benutzerinteraktionen]
+
+## Funktion 3
+- [Unterpunkt zur Funktion]
+- [Weiterer Unterpunkt]
+- [Beispiele für Benutzerinteraktionen]
+
+# Benutzererfahrung
+## Zielgruppen
+- [Zielgruppe 1]: [Beschreibung ihrer Bedürfnisse und Erwartungen]
+- [Zielgruppe 2]: [Beschreibung ihrer Bedürfnisse und Erwartungen]
+
+## Hauptabläufe
+- [Workflow 1]: [Beschreibung des Ablaufs]
+- [Workflow 2]: [Beschreibung des Ablaufs]
+- [Workflow 3]: [Beschreibung des Ablaufs]
+
+## UI/UX-Konzept
+- [Design-Prinzip 1]
+- [Design-Prinzip 2]
+- [Besondere Anforderungen an die Benutzeroberfläche]
+</context>
+<PRD>
+# Technische Architektur
+## Systemkomponenten
+- **Frontend**: [Technologie, Framework und Architekturstil]
+  - [Komponenten/Struktur]
+  - [State Management]
+  - [Routing]
+  - [Weitere wichtige Aspekte]
+
+- **Backend**: [Technologie, Framework und Architekturstil]
+  - [Haupt-Module]
+  - [Weitere Module]
+  - [Besondere Dienste]
+
+- **Shared Package/Bibliothek**: [Beschreibung gemeinsam genutzter Code]
+
+## Datenmodelle
+- **[Entität 1]**: [Felder und Beziehungen]
+- **[Entität 2]**: [Felder und Beziehungen]
+- **[Entität 3]**: [Felder und Beziehungen]
+
+## APIs und Integrationen
+- [API-Typ] für [Zweck]
+- Integration mit [Externer Dienst/System]
+- [Weitere Integrationen]
+
+## Infrastrukturanforderungen
+- **Datenbank**: [Datenbanktyp und Besonderheiten]
+- **Server**: [Serveranforderungen]
+- **Netzwerk**: [Besondere Netzwerkanforderungen]
+- **Clients**: [Unterstützte Clients/Geräte]
+
+# Entwicklungs-Roadmap
+## MVP-Anforderungen (Phase 1)
+- [MVP-Funktion 1]
+- [MVP-Funktion 2]
+- [MVP-Funktion 3]
+
+## Erweiterte Funktionen (Phase 2)
+- [Erweiterung 1]
+- [Erweiterung 2]
+- [Erweiterung 3]
+
+## Zukunftspläne (Phase 3)
+- [Zukünftige Funktion 1]
+- [Zukünftige Funktion 2]
+- [Zukünftige Funktion 3]
+
+# Logische Abhängigkeitskette
+## Grundlegender Aufbau
+1. [Grundlegende Komponente 1]
+2. [Grundlegende Komponente 2]
+3. [Grundlegende Komponente 3]
+
+## Kernsystem
+4. [Kernfunktion 1]
+5. [Kernfunktion 2]
+6. [Kernfunktion 3]
+
+## Erweiterung
+7. [Erweiterte Funktion 1]
+8. [Erweiterte Funktion 2]
+9. [Erweiterte Funktion 3]
+
+# Risiken und Gegenmaßnahmen
+## Technische Herausforderungen
+- **[Risiko 1]**: [Beschreibung]
+  *Mitigation*: [Gegenmaßnahme]
+
+- **[Risiko 2]**: [Beschreibung]
+  *Mitigation*: [Gegenmaßnahme]
+
+## Projektrisiken
+- **[Risiko 1]**: [Beschreibung]
+  *Mitigation*: [Gegenmaßnahme]
+
+- **[Risiko 2]**: [Beschreibung]
+  *Mitigation*: [Gegenmaßnahme]
+
+# Anhang
+## Technische Spezifikationen
+- [Frontend-Technologien mit Versionen]
+- [Backend-Technologien mit Versionen]
+- [Datenbank mit Version]
+- [Weitere relevante Technologien]
+
+## Architekturentscheidungen
+- [Entscheidung 1] für [Komponente/Bereich]
+- [Entscheidung 2] für [Komponente/Bereich]
+- [Entscheidung 3] für [Komponente/Bereich]
+</PRD> 

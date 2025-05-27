@@ -15,7 +15,32 @@ export default defineConfig({
             exclude: [
                 'node_modules/',
                 'src/test/',
+                'src/**/*.d.ts',
+                'src/**/__snapshots__/**',
+                'src/**/mocks/**',
+                'src-tauri/**',
+                'dist/**',
+                'coverage/**',
+                '**/node_modules/**',
+                'src/**/*.config.{js,ts}',
+                'src/**/*.test.{js,ts,jsx,tsx}',
+                'src/**/*.spec.{js,ts,jsx,tsx}',
+                // Type-only files
+                'src/utils/types.ts',
+                // Asset-only imports
+                'src/assets/**',
+                // Main entry points that bootstrap the app
+                'src/main.tsx',
+                'src/App.tsx',
             ],
+            thresholds: {
+                global: {
+                    branches: 80,
+                    functions: 80,
+                    lines: 80,
+                    statements: 80
+                }
+            }
         },
     },
     resolve: {

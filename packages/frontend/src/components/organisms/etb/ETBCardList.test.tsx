@@ -1,21 +1,9 @@
 import * as dateUtils from '@/utils/date';
 import { logger } from '@/utils/logger';
-import { EtbEntryDto, EtbEntryDtoStatusEnum } from '@bluelight-hub/shared/client';
+import { EtbEntryDto, EtbEntryDtoStatusEnum, EtbKategorie } from '@bluelight-hub/shared/client';
 import { fireEvent, render, screen } from '@testing-library/react';
 import { describe, MockedFunction, vi } from 'vitest';
 import { ETBCardList } from './ETBCardList';
-
-// Der ETBEntryFields Typ aus der Komponente
-type ETBEntryFields = {
-    nummer?: number;
-    type?: string;
-    timestamp?: Date;
-    content?: string;
-    sender?: string;
-    receiver?: string;
-    archived?: boolean;
-    status?: 'aktiv' | 'ueberschrieben';
-};
 
 // Mock der logger-Funktionen
 vi.mock('@/utils/logger', () => ({
@@ -66,8 +54,8 @@ describe('ETBCardList', () => {
     const mockOnArchiveEntry = vi.fn();
     const mockOnUeberschreibeEntry = vi.fn();
 
-    // Fixtures - mit zusätzlichen Feldern, die vom ETBEntryFields-Interface erwartet werden
-    const createMockEntry = (overrides = {}): EtbEntryDto & ETBEntryFields => ({
+    // Erstelle einen Mock-Eintrag basierend auf echten EtbEntryDto Properties
+    const createMockEntry = (overrides: Partial<EtbEntryDto> = {}): EtbEntryDto => ({
         id: 'test-id-1',
         laufendeNummer: 1,
         timestampErstellung: new Date('2023-01-01T10:00:00Z'),
@@ -75,9 +63,8 @@ describe('ETBCardList', () => {
         autorId: 'author-1',
         autorName: 'Max Mustermann',
         autorRolle: 'Einsatzleiter',
-        kategorie: 'Standard',
-        titel: 'Test Eintrag',
-        beschreibung: 'Dies ist ein Testeintrag',
+        kategorie: EtbKategorie.Meldung,
+        inhalt: 'Dies ist ein Testeintrag',
         referenzEinsatzId: 'einsatz-1',
         referenzPatientId: null,
         referenzEinsatzmittelId: null,
@@ -87,14 +74,8 @@ describe('ETBCardList', () => {
         timestampAbschluss: null,
         abgeschlossenVon: null,
         status: EtbEntryDtoStatusEnum.Aktiv,
-        // ETBEntryFields zusätzliche Felder
-        nummer: 1,
-        type: 'Standard',
-        timestamp: new Date('2023-01-01T09:30:00Z'),
-        content: 'Dies ist ein Testeintrag',
         sender: 'Max Mustermann',
         receiver: 'Einsatzleitung',
-        archived: false,
         ...overrides
     });
 
@@ -111,48 +92,47 @@ describe('ETBCardList', () => {
 
     test('sollte alle Einträge korrekt anzeigen', () => {
         const entries = [
-            createMockEntry({ id: 'test-id-1', nummer: 1, laufendeNummer: 1 }),
-            createMockEntry({ id: 'test-id-2', nummer: 2, laufendeNummer: 2, content: 'Zweiter Eintrag', beschreibung: 'Zweiter Eintrag' })
+            createMockEntry({ id: 'test-id-1', laufendeNummer: 1 }),
+            createMockEntry({
+                id: 'test-id-2',
+                laufendeNummer: 2,
+                inhalt: 'Zweiter Eintrag',
+                kategorie: EtbKategorie.Lagemeldung
+            })
         ];
 
         render(<ETBCardList entries={entries} />);
 
-        // Text ist aufgeteilt im DOM, deshalb prüfen wir spezifische Texte
-        const nummerElements = screen.getAllByText(/#\d+/);
-        expect(nummerElements.length).toBe(2);
-        expect(nummerElements[0].textContent).toContain('#1');
-        expect(nummerElements[1].textContent).toContain('#2');
+        // Prüfe, ob die Nummern korrekt angezeigt werden
+        expect(screen.getByText(/#1 \| Meldung/)).toBeInTheDocument();
+        expect(screen.getByText(/#2 \| Lagemeldung/)).toBeInTheDocument();
 
-        // Prüfen, ob beide Standardtypen vorhanden sind
-        const standardElements = screen.getAllByText(/Standard/);
-        expect(standardElements.length).toBe(2);
-
-        // Prüfen, ob die Inhalte korrekt sind
+        // Prüfe, ob die Inhalte korrekt sind
         expect(screen.getByText('Dies ist ein Testeintrag')).toBeInTheDocument();
         expect(screen.getByText('Zweiter Eintrag')).toBeInTheDocument();
     });
 
     test('sollte Einträge mit fehlenden Feldern korrekt anzeigen', () => {
-        // Eintrag mit fehlenden Standardfeldern
-        const entryWithMissingFields = {
-            id: 'missing-fields',
-            content: 'Inhalt ohne vollständige Struktur'
-        } as unknown as EtbEntryDto;
+        // Eintrag mit minimalen Feldern
+        const entryWithMissingFields = createMockEntry({
+            sender: null, // sender kann null sein
+            inhalt: 'Inhalt ohne vollständige Struktur'
+        });
 
         render(<ETBCardList entries={[entryWithMissingFields]} />);
 
         // Prüfen, ob der Inhalt korrekt angezeigt wird
         expect(screen.getByText('Inhalt ohne vollständige Struktur')).toBeInTheDocument();
 
-        // Prüfen, ob die Standardtexte vorhanden sind
-        expect(screen.getByText('Absender:')).toBeInTheDocument();
-        expect(screen.getByText('Empfänger:')).toBeInTheDocument();
+        // Prüfen, ob "Unbekannt" für fehlenden sender angezeigt wird
+        expect(screen.getByText('Absender: Unbekannt')).toBeInTheDocument();
+        expect(screen.getByText('Empfänger: Einsatzleitung')).toBeInTheDocument();
     });
 
     test('sollte überschriebene Einträge korrekt anzeigen', () => {
         const überschriebenerEintrag = createMockEntry({
-            status: EtbEntryDtoStatusEnum.Ueberschrieben,
-            content: 'Überschriebener Eintrag'
+            inhalt: 'Überschriebener Eintrag',
+            status: EtbEntryDtoStatusEnum.Ueberschrieben
         });
 
         render(<ETBCardList entries={[überschriebenerEintrag]} />);
@@ -202,7 +182,6 @@ describe('ETBCardList', () => {
 
     test('sollte den onArchiveEntry-Callback korrekt aufrufen', () => {
         const entry = createMockEntry({
-            nummer: 42,
             laufendeNummer: 42
         });
 
@@ -217,7 +196,7 @@ describe('ETBCardList', () => {
         const archiveButton = screen.getByTestId('archive-button');
         fireEvent.click(archiveButton);
 
-        // Prüfen, ob der Callback aufgerufen wurde
+        // Prüfen, ob der Callback mit der laufendeNummer aufgerufen wurde
         expect(mockOnArchiveEntry).toHaveBeenCalledWith(42);
     });
 
@@ -238,22 +217,24 @@ describe('ETBCardList', () => {
         expect(mockOnUeberschreibeEntry).toHaveBeenCalledWith(entry);
     });
 
-    test('sollte keine Aktions-Buttons für archivierte Einträge anzeigen', () => {
-        const archivedEntry = createMockEntry({
-            archived: true
+    test('sollte keine Aktions-Buttons für abgeschlossene Einträge anzeigen', () => {
+        const abgeschlossenerEntry = createMockEntry({
+            istAbgeschlossen: true
         });
 
         render(
             <ETBCardList
-                entries={[archivedEntry]}
+                entries={[abgeschlossenerEntry]}
                 onEditEntry={mockOnEditEntry}
                 onArchiveEntry={mockOnArchiveEntry}
                 onUeberschreibeEntry={mockOnUeberschreibeEntry}
             />
         );
 
-        // Es sollten keine Button-Elemente vorhanden sein
-        expect(screen.queryAllByRole('button').length).toBe(0);
+        // Es sollten keine Aktions-Buttons vorhanden sein (spezifische Test-IDs prüfen)
+        expect(screen.queryByTestId('edit-button')).not.toBeInTheDocument();
+        expect(screen.queryByTestId('archive-button')).not.toBeInTheDocument();
+        expect(screen.queryByTestId('ueberschreiben-button')).not.toBeInTheDocument();
     });
 
     test('sollte keine Aktions-Buttons für überschriebene Einträge anzeigen', () => {
@@ -270,7 +251,35 @@ describe('ETBCardList', () => {
             />
         );
 
-        // Es sollten keine Button-Elemente vorhanden sein
-        expect(screen.queryAllByRole('button').length).toBe(0);
+        // Es sollten keine Aktions-Buttons vorhanden sein (spezifische Test-IDs prüfen)
+        expect(screen.queryByTestId('edit-button')).not.toBeInTheDocument();
+        expect(screen.queryByTestId('archive-button')).not.toBeInTheDocument();
+        expect(screen.queryByTestId('ueberschreiben-button')).not.toBeInTheDocument();
+    });
+
+    test('sollte verschiedene Kategorien korrekt anzeigen', () => {
+        const entries = [
+            createMockEntry({ kategorie: EtbKategorie.Lagemeldung }),
+            createMockEntry({ kategorie: EtbKategorie.Anforderung, laufendeNummer: 2 }),
+            createMockEntry({ kategorie: EtbKategorie.AutoKraefte, laufendeNummer: 3 })
+        ];
+
+        render(<ETBCardList entries={entries} />);
+
+        expect(screen.getByText(/#1 \| Lagemeldung/)).toBeInTheDocument();
+        expect(screen.getByText(/#2 \| Anforderung/)).toBeInTheDocument();
+        expect(screen.getByText(/#3 \| Auto Kräfte/)).toBeInTheDocument();
+    });
+
+    // Snapshot Tests
+    test('sollte mit Standard-Props dem Snapshot entsprechen', () => {
+        const entries = [createMockEntry()];
+        const { container } = render(<ETBCardList entries={entries} />);
+        expect(container).toMatchSnapshot();
+    });
+
+    test('sollte mit leeren Daten dem Snapshot entsprechen', () => {
+        const { container } = render(<ETBCardList entries={[]} />);
+        expect(container).toMatchSnapshot();
     });
 });

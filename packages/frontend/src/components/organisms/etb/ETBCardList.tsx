@@ -1,23 +1,8 @@
 import { formatNatoDateTime } from '@/utils/date';
 import { logger } from '@/utils/logger';
-import { EtbEntryDto } from '@bluelight-hub/shared/client';
+import { EtbEntryDto, EtbEntryDtoStatusEnum, EtbKategorie } from '@bluelight-hub/shared/client';
 import { Button, Empty, Tag, Tooltip } from 'antd';
 import { PiEmpty, PiSwap, PiTextStrikethrough } from 'react-icons/pi';
-
-/**
- * Internes Hilfs-Interface für Typannotationen
- * @private
- */
-type ETBEntryFields = {
-    nummer?: number;
-    type?: string;
-    timestamp?: Date;
-    content?: string;
-    sender?: string;
-    receiver?: string;
-    archived?: boolean;
-    status?: 'aktiv' | 'ueberschrieben';
-};
 
 /**
  * Props für die ETBCardList-Komponente
@@ -45,6 +30,23 @@ interface ETBCardListProps {
 }
 
 /**
+ * Hilfsfunktion um EtbKategorie in lesbaren Text zu konvertieren
+ */
+const getKategorieDisplayName = (kategorie: EtbKategorie): string => {
+    const kategorieMap: Record<EtbKategorie, string> = {
+        [EtbKategorie.Lagemeldung]: 'Lagemeldung',
+        [EtbKategorie.Meldung]: 'Meldung',
+        [EtbKategorie.Anforderung]: 'Anforderung',
+        [EtbKategorie.Korrektur]: 'Korrektur',
+        [EtbKategorie.AutoKraefte]: 'Auto Kräfte',
+        [EtbKategorie.AutoPatienten]: 'Auto Patienten',
+        [EtbKategorie.AutoTechnisch]: 'Auto Technisch',
+        [EtbKategorie.AutoSonstiges]: 'Auto Sonstiges',
+    };
+    return kategorieMap[kategorie] || kategorie;
+};
+
+/**
  * Karten-Liste für die Mobile-Ansicht des Einsatztagebuchs
  */
 export const ETBCardList: React.FC<ETBCardListProps> = ({
@@ -59,23 +61,22 @@ export const ETBCardList: React.FC<ETBCardListProps> = ({
 
     return (
         <div className="flex flex-col gap-4">
-            {entries.map((item) => {
-                // Sichere Typzugriffe mit optionalem Chaining und Fallbacks
-                const entryWithFields = item as EtbEntryDto & ETBEntryFields;
-                const entryId = item?.id || `entry-${Math.random()}`;
-                const entryNumber = entryWithFields?.nummer ?? "-";
-                const entryType = entryWithFields?.type ?? "Standard";
-                const entryContent = entryWithFields?.content ?? "";
-                const entrySender = entryWithFields?.sender ?? "";
-                const entryReceiver = entryWithFields?.receiver ?? "";
-                const isArchived = entryWithFields?.archived ?? false;
-                const isUeberschrieben = entryWithFields?.status === 'ueberschrieben';
+            {entries.map((entry) => {
+                // Verwende die echten Properties aus EtbEntryDto
+                const entryId = entry.id;
+                const entryNumber = entry.laufendeNummer;
+                const entryType = getKategorieDisplayName(entry.kategorie);
+                const entryContent = entry.inhalt;
+                const entrySender = entry.sender || "Unbekannt";
+                const entryReceiver = entry.receiver;
+                const isArchived = entry.istAbgeschlossen;
+                const isUeberschrieben = entry.status === EtbEntryDtoStatusEnum.Ueberschrieben;
 
-                // Datum formatieren, falls vorhanden
+                // Datum formatieren - verwende timestampEreignis für das eigentliche Ereignis
                 let formattedDate = "-";
-                if (entryWithFields?.timestamp) {
+                if (entry.timestampEreignis) {
                     try {
-                        formattedDate = formatNatoDateTime(entryWithFields?.timestamp) ?? "-";
+                        formattedDate = formatNatoDateTime(entry.timestampEreignis) ?? "-";
                     } catch (error) {
                         logger.error("Fehler beim Formatieren des Datums:", error);
                     }
@@ -106,7 +107,7 @@ export const ETBCardList: React.FC<ETBCardListProps> = ({
                                     <Button
                                         size="small"
                                         data-testid="ueberschreiben-button"
-                                        onClick={() => onUeberschreibeEntry && onUeberschreibeEntry(item)}
+                                        onClick={() => onUeberschreibeEntry && onUeberschreibeEntry(entry)}
                                         icon={<PiSwap />}
                                     />
                                 </Tooltip>
@@ -114,7 +115,7 @@ export const ETBCardList: React.FC<ETBCardListProps> = ({
                                     <Button
                                         size="small"
                                         data-testid="edit-button"
-                                        onClick={() => onEditEntry && onEditEntry(item)}
+                                        onClick={() => onEditEntry && onEditEntry(entry)}
                                         icon={<PiSwap />}
                                     />
                                 </Tooltip>
@@ -122,11 +123,7 @@ export const ETBCardList: React.FC<ETBCardListProps> = ({
                                     <Button
                                         size="small"
                                         data-testid="archive-button"
-                                        onClick={() =>
-                                            onArchiveEntry &&
-                                            typeof entryNumber === 'number' &&
-                                            onArchiveEntry(entryNumber)
-                                        }
+                                        onClick={() => onArchiveEntry && onArchiveEntry(entryNumber)}
                                         danger
                                         icon={<PiTextStrikethrough />}
                                     />

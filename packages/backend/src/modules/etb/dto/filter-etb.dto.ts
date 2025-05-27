@@ -1,13 +1,15 @@
+import { FilterPaginationDto } from '@/common/dto/pagination.dto';
 import { ApiPropertyOptional } from '@nestjs/swagger';
+import { EtbEntryStatus } from '@prisma/generated/prisma';
 import { Transform } from 'class-transformer';
 import { IsDateString, IsEnum, IsOptional, IsString, IsUUID } from 'class-validator';
-import { EtbEntryStatus } from '../entities/etb-entry.entity';
+import { EtbKategorie } from './etb-kategorie.enum';
 
 /**
  * DTO für das Filtern von Einsatztagebuch-Einträgen.
  * Ermöglicht das Filtern nach verschiedenen Kriterien.
  */
-export class FilterEtbDto {
+export class FilterEtbDto extends FilterPaginationDto {
     /**
      * Filtert nach Einsatz-ID
      */
@@ -35,10 +37,14 @@ export class FilterEtbDto {
     /**
      * Filtert nach Kategorie
      */
-    @ApiPropertyOptional({ description: 'Filtert nach Kategorie' })
-    @IsString()
+    @ApiPropertyOptional({
+        description: 'Filtert nach Kategorie',
+        enum: EtbKategorie,
+        enumName: 'EtbKategorie'
+    })
+    @IsEnum(EtbKategorie)
     @IsOptional()
-    kategorie?: string;
+    kategorie?: EtbKategorie;
 
     /**
      * Filtert nach Einträgen ab diesem Zeitpunkt
@@ -63,6 +69,14 @@ export class FilterEtbDto {
     @IsString()
     @IsOptional()
     autorId?: string;
+
+    /**
+     * Filtert nach Empfänger (abgeschlossenVon)
+     */
+    @ApiPropertyOptional({ description: 'Filtert nach Empfänger (abgeschlossenVon)' })
+    @IsString()
+    @IsOptional()
+    empfaenger?: string;
 
     /**
      * Filter nach Status
@@ -94,16 +108,13 @@ export class FilterEtbDto {
     includeUeberschrieben?: boolean = false;
 
     /**
-     * Seite für Paginierung (1-basiert)
+     * Optionales Suchfeld für Volltextsuche (Inhalt, Autor, Empfänger)
      */
-    @ApiPropertyOptional({ description: 'Seite für Paginierung', default: 1 })
+    @ApiPropertyOptional({
+        description: 'Volltextsuche in Inhalt, Autor und Empfänger',
+        example: 'Stromausfall',
+    })
+    @IsString()
     @IsOptional()
-    page?: number = 1;
-
-    /**
-     * Anzahl der Einträge pro Seite
-     */
-    @ApiPropertyOptional({ description: 'Anzahl der Einträge pro Seite', default: 10 })
-    @IsOptional()
-    limit?: number = 10;
+    search?: string;
 } 

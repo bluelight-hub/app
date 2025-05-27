@@ -1,6 +1,5 @@
 import { AppModule } from './app.module';
 
-// Statt der direkten Mocks verwenden wir einfachere Tests, die keine TypeORM-Abhängigkeiten erfordern
 describe('AppModule', () => {
     it('should be defined', () => {
         // Einfacher Test, ob das Modul definiert ist

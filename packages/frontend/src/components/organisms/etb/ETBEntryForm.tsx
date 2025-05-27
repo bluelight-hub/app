@@ -1,7 +1,7 @@
 import { FahrzeugMock, useFahrzeuge } from '@/hooks/etb/useFahrzeuge';
 import { EtbEntryDto } from '@bluelight-hub/shared/client/models/EtbEntryDto';
-import { Button, Input, Select } from 'antd';
-import React, { useState } from 'react';
+import { Button, Form, Input, Select } from 'antd';
+import React from 'react';
 import { PiPlus, PiSwap, PiX } from 'react-icons/pi';
 /**
  * Input-Wrapper-Komponente für Formular-Felder
@@ -28,11 +28,15 @@ interface InputWrapperProps {
     children: React.ReactNode;
 }
 
-const InputWrapper: React.FC<InputWrapperProps> = ({ label, children }) => (
-    <div className="mb-4">
-        <div className="block mb-1 font-medium text-gray-700">{label}</div>
+const InputWrapper: React.FC<InputWrapperProps> = ({ label, name, rules, children }) => (
+    <Form.Item
+        label={label}
+        name={name}
+        rules={rules}
+        className="mb-4"
+    >
         {children}
-    </div>
+    </Form.Item>
 );
 
 /**
@@ -85,20 +89,22 @@ function FormLayout<T extends object>({
     buttons,
     children,
 }: FormLayoutProps<T>) {
-    const handleSubmit = (e: React.FormEvent) => {
-        e.preventDefault();
-        form.onFinish(form.initialValues as T);
-    };
+    const [antForm] = Form.useForm();
 
     return (
-        <form onSubmit={handleSubmit}>
+        <Form
+            form={antForm}
+            initialValues={form.initialValues}
+            onFinish={form.onFinish}
+            layout="vertical"
+        >
             {children}
             <div className="mt-5">
                 <Button type="primary" htmlType="submit" icon={buttons.submit.icon}>
                     {buttons.submit.children}
                 </Button>
             </div>
-        </form>
+        </Form>
     );
 }
 
@@ -163,28 +169,19 @@ export const ETBEntryForm: React.FC<ETBEntryFormProps> = ({
     onCancel,
     isEditMode = false,
 }) => {
-    const [formData, setFormData] = useState<Partial<ETBEntryFormData>>({
+    const initialValues: Partial<ETBEntryFormData> = {
+
         sender: editingEntry?.autorName || '',
         receiver: editingEntry?.abgeschlossenVon || '',
-        content: editingEntry?.beschreibung || '',
-    });
-
-    /**
-     * Aktualisiert die Formulardaten
-     */
-    const handleChange = (field: keyof ETBEntryFormData, value: string) => {
-        setFormData(prev => ({
-            ...prev,
-            [field]: value
-        }));
+        content: editingEntry?.inhalt || '',
     };
 
     /**
      * Submit-Handler für das Formular
      */
-    const handleFormSubmit = async () => {
+    const handleFormSubmit = async (values: ETBEntryFormData) => {
         if (onSubmitSuccess) {
-            onSubmitSuccess(formData);
+            onSubmitSuccess(values);
         }
     };
 
@@ -200,7 +197,7 @@ export const ETBEntryForm: React.FC<ETBEntryFormProps> = ({
     return (
         <FormLayout<ETBEntryFormData>
             form={{
-                initialValues: formData,
+                initialValues,
                 onFinish: handleFormSubmit,
             }}
             buttons={{
@@ -217,9 +214,7 @@ export const ETBEntryForm: React.FC<ETBEntryFormProps> = ({
             >
                 <Select
                     placeholder="z.B. ELRD, RTW-1"
-                    value={formData.sender}
                     className='w-full'
-                    onChange={(value) => handleChange('sender', value)}
                     showSearch
                     filterOption={filterOption}
                     allowClear
@@ -237,9 +232,7 @@ export const ETBEntryForm: React.FC<ETBEntryFormProps> = ({
             >
                 <Select
                     placeholder="z.B. RTW-1, NEF-1"
-                    value={formData.receiver}
                     className='w-full'
-                    onChange={(value) => handleChange('receiver', value)}
                     showSearch
                     filterOption={filterOption}
                     allowClear
@@ -258,8 +251,6 @@ export const ETBEntryForm: React.FC<ETBEntryFormProps> = ({
                 <Input.TextArea
                     rows={5}
                     placeholder="Geben Sie hier den Inhalt des Einsatztagebucheintrags ein"
-                    value={formData.content}
-                    onChange={(e) => handleChange('content', e.target.value)}
                 />
             </InputWrapper>
 

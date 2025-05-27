@@ -1,4 +1,4 @@
-import { TransformInterceptor } from '@/common/interceptors/transform.interceptor';
+import { PaginatedResponse } from '@/common/interfaces/paginated-response.interface';
 import { logger } from '@/logger/consola.logger';
 import {
     BadRequestException,
@@ -6,9 +6,9 @@ import {
     Controller,
     Get,
     Param,
-    ParseUUIDPipe,
     Patch,
     Post,
+    Put,
     Query,
     Req,
     UploadedFile,
@@ -21,20 +21,18 @@ import {
     ApiConsumes,
     ApiOkResponse,
     ApiOperation,
+    ApiParam,
     ApiResponse,
-    ApiTags,
+    ApiTags
 } from '@nestjs/swagger';
 import { plainToInstance } from 'class-transformer';
-import { Request } from 'express';
 import { AddAttachmentDto } from './dto/add-attachment.dto';
 import { CreateEtbDto } from './dto/create-etb.dto';
 import {
     EtbAttachmentResponse,
     EtbAttachmentsResponse,
-    EtbEntriesData,
     EtbEntriesResponse,
-    EtbEntryDto,
-    EtbEntryResponse
+    EtbEntryDto
 } from './dto/etb-entry-response.dto';
 import { FilterEtbDto } from './dto/filter-etb.dto';
 import { UeberschreibeEtbDto } from './dto/ueberschreibe-etb.dto';
@@ -77,8 +75,7 @@ interface RequestWithUser extends Request {
  */
 @ApiTags('Einsatztagebuch')
 @ApiBearerAuth()
-@Controller('etb')
-    @UseInterceptors(TransformInterceptor)
+@Controller('einsatz/:einsatzId/etb')
 export class EtbController {
     /**
      * Konstruktor für den EtbController
@@ -92,30 +89,44 @@ export class EtbController {
     /**
      * Erstellt einen neuen ETB-Eintrag
      * 
-     * @param createEtbDto DTO mit den Daten für den neuen Eintrag
-     * @param req Express Request Objekt für Benutzerinformationen
-     * @returns Der erstellte ETB-Eintrag
+     * @param createEtbDto DTO mit den Daten für den neuen ETB-Eintrag
+     * @param req Request-Objekt mit authentifizierten Benutzerinformationen
+     * @returns Der erstellte ETB-Eintrag als Entity-Objekt
+     * @throws BadRequestException Wenn die Eingabedaten ungültig sind
      */
     @Post()
     @ApiOperation({ summary: 'Erstellt einen neuen ETB-Eintrag' })
-    @ApiResponse({ status: 201, description: 'ETB-Eintrag wurde erstellt', type: EtbEntryResponse })
-    @ApiResponse({ status: 400, description: 'Ungültige Eingabedaten' })
-    async create(@Body() createEtbDto: CreateEtbDto, @Req() req: RequestWithUser): Promise<EtbEntry> {
-        // Hier würden normalerweise Benutzerinformationen aus dem Token extrahiert
-        // Für dieses Beispiel verwenden wir Mock-Daten
+    @ApiResponse({
+        status: 201,
+        description: 'Der ETB-Eintrag wurde erstellt',
+        type: EtbEntry
+    })
+    async create(
+        @Body() createEtbDto: CreateEtbDto,
+        @Req() req: RequestWithUser
+    ): Promise<EtbEntry> {
+        logger.info(`ETB-Controller: POST /etb mit DTO ${JSON.stringify(createEtbDto)}`);
         const userId = req.user?.id || 'mock-user-id';
         const userName = req.user?.name || 'Mock User';
         const userRole = req.user?.role || 'Einsatzleiter';
 
-        logger.info(`HTTP POST /etb - Erstelle neuen ETB-Eintrag`);
-        return this.etbService.createEintrag(createEtbDto, userId, userName, userRole);
+        const result = await this.etbService.createEintrag(createEtbDto, userId, userName, userRole);
+
+        // Erweitere das Resultat mit leeren Arrays/Objekten, um den EtbEntry-Typ zu erfüllen
+
+        return {
+            ...result,
+            ueberschriebenDurch: null,
+            ueberschriebeneEintraege: [],
+            anlagen: []
+        } as EtbEntry;
     }
 
     /**
      * Findet alle ETB-Einträge mit optionaler Filterung
      * 
      * @param filterDto Filter für die Abfrage
-     * @returns Eine Liste von ETB-Einträgen und die Gesamtzahl
+     * @returns Eine paginierte Liste von ETB-Einträgen
      */
     @Get()
     @ApiOperation({ summary: 'Findet alle ETB-Einträge mit optionaler Filterung' })
@@ -123,80 +134,129 @@ export class EtbController {
         description: 'Liste von ETB-Einträgen',
         type: EtbEntriesResponse
     })
-    async findAll(@Query() filterDto: FilterEtbDto): Promise<EtbEntriesData> {
+    @ApiResponse({ status: 400, description: 'Ungültige Filterparameter' })
+    @ApiResponse({ status: 401, description: 'Nicht autorisiert' })
+    @ApiResponse({ status: 403, description: 'Keine Berechtigung' })
+    @ApiResponse({ status: 500, description: 'Interner Serverfehler' })
+    @ApiResponse({ status: 200, description: 'Gefilterte Liste von ETB-Einträgen', type: EtbEntriesResponse })
+    @ApiResponse({ status: 200, description: 'Filter: kategorie', schema: { type: 'string' } })
+    @ApiResponse({ status: 200, description: 'Filter: autorId', schema: { type: 'string' } })
+    @ApiResponse({ status: 200, description: 'Filter: vonZeitstempel', schema: { type: 'string', format: 'date-time' } })
+    @ApiResponse({ status: 200, description: 'Filter: bisZeitstempel', schema: { type: 'string', format: 'date-time' } })
+    @ApiResponse({ status: 200, description: 'Filter: search', schema: { type: 'string' } })
+    async findAll(
+        @Query() filterDto: FilterEtbDto
+    ): Promise<PaginatedResponse<EtbEntryDto>> {
         logger.info(`HTTP GET /etb - Abruf von ETB-Einträgen mit Filtern`);
-        const [entries, total] = await this.etbService.findAll(filterDto);
+        const paginatedResult = await this.etbService.findAll(filterDto);
 
         // Mapping von EtbEntry zu EtbEntryDto
-        const mappedEntries = plainToInstance(EtbEntryDto, entries);
+        const mappedEntries = plainToInstance(EtbEntryDto, paginatedResult.items);
 
-        return { entries: mappedEntries, total };
+        // Standard PaginatedResponse zurückgeben
+        return {
+            items: mappedEntries,
+            pagination: paginatedResult.pagination
+        };
     }
 
     /**
      * Findet einen ETB-Eintrag anhand seiner ID
      * 
-     * @param id ID des zu findenden ETB-Eintrags
-     * @returns Der gefundene ETB-Eintrag
+     * @param id Eindeutige ID des ETB-Eintrags
+     * @returns Der gefundene ETB-Eintrag als Entity-Objekt
+     * @throws NotFoundException Wenn der ETB-Eintrag mit der angegebenen ID nicht gefunden wurde
      */
     @Get(':id')
     @ApiOperation({ summary: 'Findet einen ETB-Eintrag anhand seiner ID' })
-    @ApiOkResponse({
-        description: 'ETB-Eintrag gefunden',
-        type: EtbEntryResponse
+    @ApiParam({ name: 'id', description: 'ID des ETB-Eintrags' })
+    @ApiResponse({
+        status: 200,
+        description: 'Der ETB-Eintrag wurde gefunden',
+        type: EtbEntry
     })
-    @ApiResponse({ status: 404, description: 'ETB-Eintrag nicht gefunden' })
-    async findOne(@Param('id', ParseUUIDPipe) id: string): Promise<EtbEntry> {
-        logger.info(`HTTP GET /etb/${id} - Abruf eines spezifischen ETB-Eintrags`);
-        return this.etbService.findOne(id);
+    @ApiResponse({ status: 404, description: 'ETB-Eintrag wurde nicht gefunden' })
+    async findOne(
+        @Param('id') id: string
+    ): Promise<EtbEntry> {
+        logger.info(`HTTP GET /etb/${id} - Finde ETB-Eintrag mit ID ${id}`);
+
+        const result = await this.etbService.findOne(id);
+
+        // Erweitere das Resultat, falls nötig, um den EtbEntry-Typ zu erfüllen
+        return {
+            ...result,
+            ueberschriebenDurch: null,
+            ueberschriebeneEintraege: [],
+            anlagen: []
+        } as EtbEntry;
     }
 
     /**
      * Aktualisiert einen ETB-Eintrag
      * 
-     * @param id ID des zu aktualisierenden ETB-Eintrags
-     * @param updateEtbDto Daten für die Aktualisierung
-     * @returns Der aktualisierte ETB-Eintrag
+     * @param id Eindeutige ID des zu aktualisierenden ETB-Eintrags
+     * @param updateEtbDto DTO mit den zu aktualisierenden Daten
+     * @returns Der aktualisierte ETB-Eintrag als Entity-Objekt
+     * @throws NotFoundException Wenn der ETB-Eintrag mit der angegebenen ID nicht gefunden wurde
+     * @throws BadRequestException Wenn der Eintrag bereits abgeschlossen ist oder die Eingabedaten ungültig sind
      */
-    @Patch(':id')
+    @Put(':id')
     @ApiOperation({ summary: 'Aktualisiert einen ETB-Eintrag' })
-    @ApiOkResponse({
-        description: 'ETB-Eintrag aktualisiert',
-        type: EtbEntryResponse
+    @ApiParam({ name: 'id', description: 'ID des zu aktualisierenden ETB-Eintrags' })
+    @ApiResponse({
+        status: 200,
+        description: 'Der ETB-Eintrag wurde aktualisiert',
+        type: EtbEntry
     })
     @ApiResponse({ status: 400, description: 'Ungültige Eingabedaten oder Eintrag bereits abgeschlossen' })
-    @ApiResponse({ status: 404, description: 'ETB-Eintrag nicht gefunden' })
+    @ApiResponse({ status: 404, description: 'ETB-Eintrag wurde nicht gefunden' })
     async update(
-        @Param('id', ParseUUIDPipe) id: string,
-        @Body() updateEtbDto: UpdateEtbDto,
+        @Param('id') id: string,
+        @Body() updateEtbDto: UpdateEtbDto
     ): Promise<EtbEntry> {
-        logger.info(`HTTP PATCH /etb/${id} - Aktualisiere ETB-Eintrag`);
-        return this.etbService.updateEintrag(id, updateEtbDto);
+        logger.info(`HTTP PUT /etb/${id} - Aktualisiere ETB-Eintrag`);
+
+        const result = await this.etbService.updateEintrag(id, updateEtbDto);
+
+        // Erweitere das Resultat, falls nötig, um den EtbEntry-Typ zu erfüllen
+        return {
+            ...result,
+            ueberschriebenDurch: null,
+            ueberschriebeneEintraege: [],
+            anlagen: []
+        } as EtbEntry;
     }
 
     /**
      * Schließt einen ETB-Eintrag ab
-     * 
-     * @param id ID des abzuschließenden ETB-Eintrags
-     * @param req Express Request Objekt für Benutzerinformationen
-     * @returns Der abgeschlossene ETB-Eintrag
      */
-    @Patch(':id/schliessen')
+    @Patch(':id/close')
     @ApiOperation({ summary: 'Schließt einen ETB-Eintrag ab' })
-    @ApiOkResponse({
-        description: 'ETB-Eintrag abgeschlossen',
-        type: EtbEntryResponse
+    @ApiParam({ name: 'id', description: 'ID des abzuschließenden ETB-Eintrags' })
+    @ApiResponse({
+        status: 200,
+        description: 'Der ETB-Eintrag wurde abgeschlossen',
+        type: EtbEntry
     })
-    @ApiResponse({ status: 400, description: 'Eintrag bereits abgeschlossen' })
-    @ApiResponse({ status: 404, description: 'ETB-Eintrag nicht gefunden' })
+    @ApiResponse({ status: 400, description: 'Eintrag ist bereits abgeschlossen' })
+    @ApiResponse({ status: 404, description: 'ETB-Eintrag wurde nicht gefunden' })
     async closeEntry(
-        @Param('id', ParseUUIDPipe) id: string,
-        @Req() req: RequestWithUser,
+        @Param('id') id: string,
+        @Req() req: RequestWithUser
     ): Promise<EtbEntry> {
+        logger.info(`HTTP PATCH /etb/${id}/close - Schließe ETB-Eintrag ab`);
         const userId = req.user?.id || 'mock-user-id';
 
-        logger.info(`HTTP PATCH /etb/${id}/schliessen - Schließe ETB-Eintrag ab`);
-        return this.etbService.closeEintrag(id, userId);
+        const result = await this.etbService.closeEintrag(id, userId);
+
+        // Erweitere das Resultat, falls nötig, um den EtbEntry-Typ zu erfüllen
+        return {
+            ...result,
+            ueberschriebenDurch: null,
+            ueberschriebeneEintraege: [],
+            anlagen: []
+        } as EtbEntry;
     }
 
     /**
@@ -204,7 +264,7 @@ export class EtbController {
      * 
      * @param id ID des ETB-Eintrags
      * @param file Die hochgeladene Datei
-     * @param beschreibung Optionale Beschreibung der Anlage
+     * @param addAttachmentDto DTO mit Informationen zur Anlage
      * @returns Die erstellte ETB-Anlage
      */
     @Post(':id/anlage')
@@ -223,17 +283,24 @@ export class EtbController {
     @ApiResponse({ status: 404, description: 'ETB-Eintrag nicht gefunden' })
     @UseInterceptors(FileInterceptor('file'))
     async addAttachment(
-        @Param('id', ParseUUIDPipe) id: string,
+        @Param('id') id: string,
         @UploadedFile() file: any,
-        @Body('beschreibung') beschreibung?: string,
+        @Body() addAttachmentDto: AddAttachmentDto,
     ): Promise<EtbAttachment> {
         if (!file) {
-            logger.error(`Keine Datei gefunden beim Anlegen einer Anlage für ETB-Eintrag ${id}`);
+            logger.error(
+                `Keine Datei gefunden beim Anlegen einer Anlage für ETB-Eintrag ${id}`,
+            );
             throw new BadRequestException('Keine Datei gefunden');
         }
 
         logger.info(`HTTP POST /etb/${id}/anlage - Füge Anlage zu ETB-Eintrag hinzu`);
-        return this.etbService.addAttachment(id, file, beschreibung);
+        const created = await this.etbService.addAttachment(
+            id,
+            file,
+            addAttachmentDto,
+        );
+        return EtbAttachment.fromPrisma(created);
     }
 
     /**
@@ -249,12 +316,15 @@ export class EtbController {
         type: EtbAttachmentsResponse
     })
     @ApiResponse({ status: 404, description: 'ETB-Eintrag nicht gefunden' })
-    async findAttachments(@Param('id', ParseUUIDPipe) id: string): Promise<EtbAttachment[]> {
+    async findAttachments(
+        @Param('id') id: string
+    ): Promise<EtbAttachment[]> {
         // Prüfe, ob der ETB-Eintrag existiert
         await this.etbService.findOne(id);
 
         logger.info(`HTTP GET /etb/${id}/anlagen - Abruf aller Anlagen zu ETB-Eintrag`);
-        return this.etbService.findAttachmentsByEtbEntryId(id);
+        const anlagen = await this.etbService.findAttachmentsByEtbEntryId(id);
+        return anlagen.map(anlage => EtbAttachment.fromPrisma(anlage));
     }
 
     /**
@@ -270,39 +340,51 @@ export class EtbController {
         type: EtbAttachmentResponse
     })
     @ApiResponse({ status: 404, description: 'Anlage nicht gefunden' })
-    async findAttachment(@Param('id', ParseUUIDPipe) id: string): Promise<EtbAttachment> {
+    async findAttachment(
+        @Param('id') id: string
+    ): Promise<EtbAttachment> {
         logger.info(`HTTP GET /etb/anlage/${id} - Abruf einer spezifischen Anlage`);
-        return this.etbService.findAttachmentById(id);
+        const anlage = await this.etbService.findAttachmentById(id);
+        return EtbAttachment.fromPrisma(anlage);
     }
 
     /**
-     * Überschreibt einen ETB-Eintrag
+     * Überschreibt einen ETB-Eintrag mit einer neuen Version
      * 
-     * @param id ID des zu überschreibenden ETB-Eintrags
-     * @param ueberschreibeEtbDto Daten für den neuen überschreibenden Eintrag
-     * @param req Express Request Objekt für Benutzerinformationen
-     * @returns Der neu erstellte überschreibende ETB-Eintrag
+     * @param id Eindeutige ID des zu überschreibenden ETB-Eintrags
+     * @param ueberschreibeEtbDto DTO mit den Daten für den neuen überschreibenden Eintrag
+     * @param req Request-Objekt mit authentifizierten Benutzerinformationen
+     * @returns Der neu erstellte überschreibende ETB-Eintrag als Entity-Objekt
+     * @throws NotFoundException Wenn der ETB-Eintrag mit der angegebenen ID nicht gefunden wurde
+     * @throws BadRequestException Wenn die Eingabedaten ungültig sind
      */
     @Post(':id/ueberschreiben')
-    @ApiOperation({ summary: 'Überschreibt einen ETB-Eintrag' })
+    @ApiOperation({ summary: 'Überschreibt einen ETB-Eintrag mit einer neuen Version' })
+    @ApiParam({ name: 'id', description: 'ID des zu überschreibenden ETB-Eintrags' })
     @ApiResponse({
         status: 201,
-        description: 'ETB-Eintrag wurde überschrieben, neuer Eintrag erstellt',
-        type: EtbEntryResponse
+        description: 'Der ETB-Eintrag wurde überschrieben',
+        type: EtbEntry
     })
-    @ApiResponse({ status: 400, description: 'Ungültige Eingabedaten' })
-    @ApiResponse({ status: 404, description: 'ETB-Eintrag nicht gefunden' })
+    @ApiResponse({ status: 404, description: 'ETB-Eintrag wurde nicht gefunden' })
     async ueberschreibeEintrag(
-        @Param('id', ParseUUIDPipe) id: string,
+        @Param('id') id: string,
         @Body() ueberschreibeEtbDto: UeberschreibeEtbDto,
         @Req() req: RequestWithUser,
     ): Promise<EtbEntry> {
-        // Benutzerinformationen aus dem Token extrahieren
+        logger.info(`HTTP POST /etb/${id}/ueberschreiben - Überschreibe ETB-Eintrag`);
         const userId = req.user?.id || 'mock-user-id';
         const userName = req.user?.name || 'Mock User';
         const userRole = req.user?.role || 'Einsatzleiter';
 
-        logger.info(`HTTP POST /etb/${id}/ueberschreiben - Überschreibe ETB-Eintrag`);
-        return this.etbService.ueberschreibeEintrag(id, ueberschreibeEtbDto, userId, userName, userRole);
+        const result = await this.etbService.ueberschreibeEintrag(id, ueberschreibeEtbDto, userId, userName, userRole);
+
+        // Erweitere das Resultat, falls nötig, um den EtbEntry-Typ zu erfüllen
+        return {
+            ...result,
+            ueberschriebenDurch: null,
+            ueberschriebeneEintraege: [],
+            anlagen: []
+        } as EtbEntry;
     }
 } 

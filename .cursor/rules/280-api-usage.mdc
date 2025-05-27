@@ -1,6 +1,6 @@
 ---
-description: ENFORCE consistent API usage patterns across frontend components
-globs: 
+description: 
+globs: packages/frontend/src/**/*.tsx,packages/frontend/src/**/*.ts
 alwaysApply: false
 ---
 
