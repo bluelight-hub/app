@@ -1,6 +1,6 @@
-import {EinsatzService} from '@/modules/einsatz/einsatz.service';
-import {Injectable, Logger} from '@nestjs/common';
-import {Command, CommandRunner, Option} from 'nest-commander';
+import { EinsatzService } from '@/modules/einsatz/einsatz.service';
+import { Injectable, Logger } from '@nestjs/common';
+import { Command, CommandRunner, Option } from 'nest-commander';
 
 /**
  * Optionen für den Seed-Einsatz-Befehl.

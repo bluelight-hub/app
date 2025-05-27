@@ -12,8 +12,7 @@ import {
     Query,
     Req,
     UploadedFile,
-    UseInterceptors,
-    UseGuards
+    UseInterceptors
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import {
@@ -27,7 +26,6 @@ import {
     ApiTags
 } from '@nestjs/swagger';
 import { plainToInstance } from 'class-transformer';
-import { EinsatzExistsGuard } from '../einsatz/guards/einsatz-exists.guard';
 import { AddAttachmentDto } from './dto/add-attachment.dto';
 import { CreateEtbDto } from './dto/create-etb.dto';
 import {

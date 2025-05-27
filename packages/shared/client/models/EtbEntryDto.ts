@@ -12,20 +12,13 @@
  * Do not edit the class manually.
  */
 
-import { mapValues } from "../runtime";
 import type { EtbAttachment } from "./EtbAttachment";
 import {
-  EtbAttachmentFromJSON,
-  EtbAttachmentFromJSONTyped,
-  EtbAttachmentToJSON,
-  EtbAttachmentToJSONTyped,
+  EtbAttachmentFromJSON, EtbAttachmentToJSON
 } from "./EtbAttachment";
 import type { EtbKategorie } from "./EtbKategorie";
 import {
-  EtbKategorieFromJSON,
-  EtbKategorieFromJSONTyped,
-  EtbKategorieToJSON,
-  EtbKategorieToJSONTyped,
+  EtbKategorieFromJSON, EtbKategorieToJSON
 } from "./EtbKategorie";
 
 /**
