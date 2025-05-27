@@ -122,7 +122,10 @@ describe('DuplicateDetectionUtil', () => {
             const result1 = await util.executeIdempotent(operationId, mockOperation, data);
 
             // Warte länger als das Zeitfenster
-            await new Promise(resolve => setTimeout(resolve, 1100));
+            await new Promise(resolve => {
+                const timer = setTimeout(resolve, 1100);
+                timer.unref(); // Timer soll den Prozess nicht am Beenden hindern
+            });
 
             const result2 = await util.executeIdempotent(operationId, mockOperation, data);
 

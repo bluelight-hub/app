@@ -162,7 +162,10 @@ export class RetryUtil {
      * @param ms Verzögerung in Millisekunden
      */
     private async delay(ms: number): Promise<void> {
-        return new Promise((resolve) => setTimeout(resolve, ms));
+        return new Promise((resolve) => {
+            const timer = setTimeout(resolve, ms);
+            timer.unref(); // Timer soll den Prozess nicht am Beenden hindern
+        });
     }
 
     /**
@@ -174,7 +177,8 @@ export class RetryUtil {
      */
     private async withTimeout<T>(promise: Promise<T>, timeoutMs: number): Promise<T> {
         const timeoutPromise = new Promise<never>((_, reject) => {
-            setTimeout(() => reject(new Error(`Operation timeout after ${timeoutMs}ms`)), timeoutMs);
+            const timer = setTimeout(() => reject(new Error(`Operation timeout after ${timeoutMs}ms`)), timeoutMs);
+            timer.unref(); // Timer soll den Prozess nicht am Beenden hindern
         });
 
         return Promise.race([promise, timeoutPromise]);

@@ -91,6 +91,7 @@ export class DatabaseCheckService {
                 this.logger.error(`Datenbankabfrage Timeout nach ${this.queryTimeout}ms`);
                 resolve(null);
             }, this.queryTimeout);
+            timeoutId.unref(); // Timer soll den Prozess nicht am Beenden hindern
 
             // Abfrage ausführen
             this.prisma.$queryRawUnsafe<T>(query, ...params)
