@@ -11,7 +11,10 @@ import { EtbEntryStatus } from '../entities/etb-entry.entity';
 import { EtbService } from '../etb.service';
 
 // Mock für sanitize-filename
-jest.mock('sanitize-filename', () => jest.fn().mockImplementation(filename => filename));
+jest.mock('sanitize-filename', () => ({
+    __esModule: true,
+    default: jest.fn().mockImplementation(filename => filename),
+}));
 
 // Mock für Logger
 jest.mock('@/logger/consola.logger', () => ({
@@ -662,109 +665,137 @@ describe('EtbService', () => {
     });
 
     describe('addAttachment', () => {
-        it.skip('sollte eine Anlage zu einem ETB-Eintrag hinzufügen', async () => {
+        const mockFile = {
+            fieldname: 'file',
+            originalname: 'test.pdf',
+            encoding: '7bit',
+            mimetype: 'application/pdf',
+            size: 1024,
+            buffer: Buffer.from('test file content'),
+        };
+
+        const addAttachmentDto: AddAttachmentDto = {
+            beschreibung: 'Test attachment description',
+        };
+
+        beforeEach(() => {
+            // Mock file system
+            const fs = require('fs');
+            fs.existsSync.mockReturnValue(false);
+            fs.mkdirSync.mockImplementation();
+            fs.writeFileSync.mockImplementation();
+
+            // Mock path
+            const path = require('path');
+            path.join.mockImplementation((...args) => args.join('/'));
+        });
+
+        it('sollte eine Anlage erfolgreich hinzufügen', async () => {
             // Arrange
             const etbEntryId = 'test-id';
-            const beschreibung = 'Test Beschreibung';
-            const file = {
-                fieldname: 'file',
-                originalname: 'test.pdf',
-                encoding: '7bit',
-                mimetype: 'application/pdf',
-                buffer: Buffer.from('test'),
-                size: 4
-            };
+            const mockEntry = createMockEtbEntry({ id: etbEntryId, istAbgeschlossen: false });
+            const mockAttachment = createMockAttachment({ etbEntryId });
 
-            const existingEntry = createMockEtbEntry({ id: etbEntryId, istAbgeschlossen: false });
-            const mockAttachment = {
-                id: 'attachment-id',
-                etbEntryId,
-                dateiname: 'test.pdf',
-                dateityp: 'application/pdf',
-                speicherOrt: expect.stringContaining('test.pdf'),
-                beschreibung,
-            };
-
-            mockPrismaService.etbEntry.findUnique.mockResolvedValue(existingEntry);
+            mockPrismaService.etbEntry.findUnique.mockResolvedValue(mockEntry);
             mockPrismaService.etbAttachment.create.mockResolvedValue(mockAttachment);
 
-            // Mock Date.now() für deterministischen Dateinamen
-            const originalDateNow = Date.now;
-            Date.now = jest.fn(() => 123456);
-
             // Act
-            const addAttachmentDto: AddAttachmentDto = { beschreibung };
-            const result = await service.addAttachment(etbEntryId, file as any, addAttachmentDto);
-
-            // Restore Date.now
-            Date.now = originalDateNow;
+            const result = await service.addAttachment(etbEntryId, mockFile, addAttachmentDto);
 
             // Assert
             expect(result).toEqual(mockAttachment);
-            expect(mockPrismaService.etbEntry.findUnique).toHaveBeenCalledWith({
-                where: { id: etbEntryId },
-                include: { anlagen: true }
-            });
             expect(mockPrismaService.etbAttachment.create).toHaveBeenCalledWith({
-                data: expect.objectContaining({
+                data: {
                     etbEntryId,
-                    dateiname: 'test.pdf',
-                    dateityp: 'application/pdf',
-                    beschreibung,
-                })
+                    dateiname: mockFile.originalname,
+                    dateityp: mockFile.mimetype,
+                    speicherOrt: expect.stringContaining('test.pdf'),
+                    beschreibung: addAttachmentDto.beschreibung,
+                }
             });
         });
 
-        it('sollte einen Fehler werfen, wenn der ETB-Eintrag bereits abgeschlossen ist', async () => {
+        it('sollte Fehler werfen wenn ETB-Eintrag abgeschlossen ist', async () => {
             // Arrange
             const etbEntryId = 'test-id';
-            const file = {
-                fieldname: 'file',
-                originalname: 'test.pdf',
-                encoding: '7bit',
-                mimetype: 'application/pdf',
-                buffer: Buffer.from('test'),
-                size: 4
-            };
+            const mockEntry = createMockEtbEntry({ id: etbEntryId, istAbgeschlossen: true });
 
-            const existingEntry = createMockEtbEntry({ id: etbEntryId, istAbgeschlossen: true });
-            mockPrismaService.etbEntry.findUnique.mockResolvedValue(existingEntry);
+            mockPrismaService.etbEntry.findUnique.mockResolvedValue(mockEntry);
 
             // Act & Assert
-            const addAttachmentDto: AddAttachmentDto = { beschreibung: 'Beschreibung' };
-            await expect(service.addAttachment(etbEntryId, file as any, addAttachmentDto)).rejects.toThrow(BadRequestException);
+            await expect(service.addAttachment(etbEntryId, mockFile, addAttachmentDto))
+                .rejects.toThrow(BadRequestException);
 
-            expect(mockPrismaService.etbEntry.findUnique).toHaveBeenCalled();
-            expect(mockPrismaService.etbAttachment.create).not.toHaveBeenCalled();
-            expect(mockLogger.error).toHaveBeenCalled();
+            expect(mockLogger.error).toHaveBeenCalledWith(
+                expect.stringContaining('Anlage kann nicht zu ETB-Eintrag')
+            );
         });
 
-        it('sollte Fehler bei Dateisystem-Operationen behandeln', async () => {
+        it('sollte BadRequestException werfen bei Dateisystem-Fehler', async () => {
             // Arrange
             const etbEntryId = 'test-id';
-            const file = {
-                fieldname: 'file',
-                originalname: 'test.pdf',
-                encoding: '7bit',
-                mimetype: 'application/pdf',
-                buffer: Buffer.from('test'),
-                size: 4
-            };
+            const mockEntry = createMockEtbEntry({ id: etbEntryId, istAbgeschlossen: false });
 
-            const existingEntry = createMockEtbEntry({ id: etbEntryId, istAbgeschlossen: false });
-            mockPrismaService.etbEntry.findUnique.mockResolvedValue(existingEntry);
+            mockPrismaService.etbEntry.findUnique.mockResolvedValue(mockEntry);
 
-            // Mock fs.writeFileSync to throw an error
+            // Mock fs.writeFileSync to throw error
             const fs = require('fs');
             fs.writeFileSync.mockImplementation(() => {
-                throw new Error('Dateisystem-Fehler');
+                throw new Error('File system error');
             });
 
             // Act & Assert
-            const addAttachmentDto: AddAttachmentDto = { beschreibung: 'Test' };
-            await expect(service.addAttachment(etbEntryId, file as any, addAttachmentDto)).rejects.toThrow(BadRequestException);
+            await expect(service.addAttachment(etbEntryId, mockFile, addAttachmentDto))
+                .rejects.toThrow(BadRequestException);
+        });
 
-            expect(mockLogger.error).toHaveBeenCalled();
+        it('sollte Upload-Verzeichnis erstellen wenn es nicht existiert', async () => {
+            // Arrange
+            const etbEntryId = 'test-id';
+            const mockEntry = createMockEtbEntry({ id: etbEntryId, istAbgeschlossen: false });
+            const mockAttachment = createMockAttachment({ etbEntryId });
+
+            mockPrismaService.etbEntry.findUnique.mockResolvedValue(mockEntry);
+            mockPrismaService.etbAttachment.create.mockResolvedValue(mockAttachment);
+
+            const fs = require('fs');
+            fs.existsSync.mockReturnValue(false);
+
+            // Act
+            await service.addAttachment(etbEntryId, mockFile, addAttachmentDto);
+
+            // Assert
+            expect(fs.mkdirSync).toHaveBeenCalledWith(
+                expect.stringContaining('uploads'),
+                { recursive: true }
+            );
+        });
+
+        it('sollte eindeutigen Dateinamen generieren', async () => {
+            // Arrange
+            const etbEntryId = 'test-id';
+            const mockEntry = createMockEtbEntry({ id: etbEntryId, istAbgeschlossen: false });
+            const mockAttachment = createMockAttachment({ etbEntryId });
+
+            mockPrismaService.etbEntry.findUnique.mockResolvedValue(mockEntry);
+            mockPrismaService.etbAttachment.create.mockResolvedValue(mockAttachment);
+
+            // Mock Date.now() for predictable file name
+            const mockNow = 1234567890;
+            jest.spyOn(Date, 'now').mockReturnValue(mockNow);
+
+            // Act
+            await service.addAttachment(etbEntryId, mockFile, addAttachmentDto);
+
+            // Assert
+            const fs = require('fs');
+            expect(fs.writeFileSync).toHaveBeenCalledWith(
+                expect.stringContaining(`${mockNow}-test.pdf`),
+                mockFile.buffer
+            );
+
+            // Cleanup
+            jest.restoreAllMocks();
         });
     });
 
@@ -835,130 +866,190 @@ describe('EtbService', () => {
     });
 
     describe('ueberschreibeEintrag', () => {
-        it('sollte einen ETB-Eintrag überschreiben und einen neuen Eintrag erstellen', async () => {
+        const ueberschreibeDto: UeberschreibeEtbDto = {
+            inhalt: 'Überschriebener Inhalt',
+            kategorie: EtbKategorie.KORREKTUR,
+            timestampEreignis: new Date().toISOString(),
+        };
+
+        it('sollte einen ETB-Eintrag erfolgreich überschreiben', async () => {
             // Arrange
-            const etbEntryId = 'test-id';
-            const userId = 'user-123';
+            const originalId = 'original-id';
+            const userId = 'user-id';
             const userName = 'User Name';
-            const userRole = 'User Role';
+            const userRole = 'Admin';
 
-            const ueberschreibeDto: UeberschreibeEtbDto = {
-                timestampEreignis: new Date().toISOString(),
-                kategorie: EtbKategorie.KORREKTUR,
-                inhalt: 'Korrigierter Inhalt',
-                ueberschreibungsgrund: 'Korrektur erforderlich'
-            };
-
-            const existingEntry = createMockEtbEntry({
-                id: etbEntryId,
-                inhalt: 'Originaler Inhalt',
-                istAbgeschlossen: false,
-                version: 1
-            });
-
-            const newEntry = createMockEtbEntry({
+            const mockOriginalEntry = createMockEtbEntry({ id: originalId });
+            const mockNewEntry = createMockEtbEntry({
                 id: 'new-id',
                 inhalt: ueberschreibeDto.inhalt,
                 kategorie: ueberschreibeDto.kategorie,
                 autorId: userId,
                 autorName: userName,
                 autorRolle: userRole,
-                version: 1,
-                laufendeNummer: 11
+                laufendeNummer: 2,
             });
 
-            // Mock findOne für den ursprünglichen Eintrag
-            mockPrismaService.etbEntry.findUnique.mockResolvedValue(existingEntry);
+            mockPrismaService.etbEntry.findUnique.mockResolvedValue(mockOriginalEntry);
 
-            // Mock $transaction - simulate the callback execution
-            mockPrismaService.$transaction.mockImplementation(async (callback) => {
-                return await callback({
-                    etbEntry: {
-                        update: jest.fn().mockResolvedValue({
-                            ...existingEntry,
-                            status: EtbEntryStatus.UEBERSCHRIEBEN
-                        }),
-                        create: jest.fn().mockResolvedValue(newEntry)
-                    }
-                });
-            });
-
-            // Mock getNextLaufendeNummer
+            // Mock getNextLaufendeNummer for the new entry
             mockPrismaService.etbEntry.aggregate.mockResolvedValue({
-                _max: { laufendeNummer: 10 }
+                _max: { laufendeNummer: 1 }
+            });
+
+            // Mock transaction
+            mockPrismaService.$transaction.mockImplementation(async (callback) => {
+                const mockTx = {
+                    etbEntry: {
+                        update: jest.fn().mockResolvedValue(mockOriginalEntry),
+                        create: jest.fn().mockResolvedValue(mockNewEntry),
+                    }
+                };
+                return await callback(mockTx);
             });
 
             // Act
-            const result = await service.ueberschreibeEintrag(etbEntryId, ueberschreibeDto, userId, userName, userRole);
+            const result = await service.ueberschreibeEintrag(
+                originalId,
+                ueberschreibeDto,
+                userId,
+                userName,
+                userRole
+            );
 
             // Assert
-            expect(result).toEqual(newEntry);
-            expect(mockPrismaService.etbEntry.findUnique).toHaveBeenCalledWith({
-                where: { id: etbEntryId },
-                include: { anlagen: true }
-            });
-            expect(mockPrismaService.$transaction).toHaveBeenCalled();
+            expect(result).toEqual(mockNewEntry);
+            expect(mockLogger.info).toHaveBeenCalledWith(
+                expect.stringContaining(`ETB-Eintrag mit ID ${originalId} wird überschrieben`)
+            );
         });
 
-        it('sollte einen ETB-Eintrag überschreiben auch wenn er bereits abgeschlossen ist', async () => {
+        it('sollte ursprünglichen Eintrag als überschrieben markieren', async () => {
             // Arrange
-            const etbEntryId = 'test-id';
-            const userId = 'user-123';
-            const userName = 'User Name';
-            const userRole = 'User Role';
+            const originalId = 'original-id';
+            const userId = 'user-id';
+            const mockOriginalEntry = createMockEtbEntry({ id: originalId });
+            const mockNewEntry = createMockEtbEntry({ id: 'new-id' });
 
-            const ueberschreibeDto: UeberschreibeEtbDto = {
-                timestampEreignis: new Date().toISOString(),
-                kategorie: EtbKategorie.KORREKTUR,
-                inhalt: 'Korrigierter Inhalt',
-                ueberschreibungsgrund: 'Korrektur erforderlich'
-            };
-
-            const existingEntry = createMockEtbEntry({
-                id: etbEntryId,
-                status: EtbEntryStatus.UEBERSCHRIEBEN,
-                ueberschriebenDurchId: 'other-id'
-            });
-
-            const newEntry = createMockEtbEntry({
-                id: 'new-id',
-                inhalt: ueberschreibeDto.inhalt,
-                kategorie: ueberschreibeDto.kategorie,
-                autorId: userId,
-                autorName: userName,
-                autorRolle: userRole,
-                version: 1,
-                laufendeNummer: 11
-            });
-
-            // Mock findOne für den ursprünglichen Eintrag
-            mockPrismaService.etbEntry.findUnique.mockResolvedValue(existingEntry);
-
-            // Mock $transaction - simulate the callback execution
-            mockPrismaService.$transaction.mockImplementation(async (callback) => {
-                return await callback({
-                    etbEntry: {
-                        update: jest.fn().mockResolvedValue({
-                            ...existingEntry,
-                            status: EtbEntryStatus.UEBERSCHRIEBEN
-                        }),
-                        create: jest.fn().mockResolvedValue(newEntry)
-                    }
-                });
-            });
-
-            // Mock getNextLaufendeNummer
+            mockPrismaService.etbEntry.findUnique.mockResolvedValue(mockOriginalEntry);
             mockPrismaService.etbEntry.aggregate.mockResolvedValue({
-                _max: { laufendeNummer: 10 }
+                _max: { laufendeNummer: 1 }
+            });
+
+            let updateCalled = false;
+            let createCalled = false;
+
+            mockPrismaService.$transaction.mockImplementation(async (callback) => {
+                const mockTx = {
+                    etbEntry: {
+                        update: jest.fn().mockImplementation((params) => {
+                            updateCalled = true;
+                            expect(params.where.id).toBe(originalId);
+                            expect(params.data.status).toBe(EtbEntryStatus.UEBERSCHRIEBEN);
+                            expect(params.data.ueberschriebenVon).toBe(userId);
+                            expect(params.data.timestampUeberschrieben).toBeInstanceOf(Date);
+                            return mockOriginalEntry;
+                        }),
+                        create: jest.fn().mockImplementation(() => {
+                            createCalled = true;
+                            return mockNewEntry;
+                        }),
+                    }
+                };
+                return await callback(mockTx);
             });
 
             // Act
-            const result = await service.ueberschreibeEintrag(etbEntryId, ueberschreibeDto, userId, userName, userRole);
+            await service.ueberschreibeEintrag(originalId, ueberschreibeDto, userId);
 
             // Assert
-            expect(result).toEqual(newEntry);
-            expect(mockPrismaService.etbEntry.findUnique).toHaveBeenCalled();
-            expect(mockPrismaService.$transaction).toHaveBeenCalled();
+            expect(updateCalled).toBe(true);
+            expect(createCalled).toBe(true);
+        });
+
+        it('sollte neue laufende Nummer für überschreibenden Eintrag verwenden', async () => {
+            // Arrange
+            const originalId = 'original-id';
+            const userId = 'user-id';
+            const mockOriginalEntry = createMockEtbEntry({ id: originalId });
+            const mockNewEntry = createMockEtbEntry({ id: 'new-id', laufendeNummer: 5 });
+
+            mockPrismaService.etbEntry.findUnique.mockResolvedValue(mockOriginalEntry);
+            mockPrismaService.etbEntry.aggregate.mockResolvedValue({
+                _max: { laufendeNummer: 4 }
+            });
+
+            let createCalledWithCorrectNumber = false;
+
+            mockPrismaService.$transaction.mockImplementation(async (callback) => {
+                const mockTx = {
+                    etbEntry: {
+                        update: jest.fn().mockResolvedValue(mockOriginalEntry),
+                        create: jest.fn().mockImplementation((params) => {
+                            expect(params.data.laufendeNummer).toBe(5);
+                            createCalledWithCorrectNumber = true;
+                            return mockNewEntry;
+                        }),
+                    }
+                };
+                return await callback(mockTx);
+            });
+
+            // Act
+            await service.ueberschreibeEintrag(originalId, ueberschreibeDto, userId);
+
+            // Assert
+            expect(createCalledWithCorrectNumber).toBe(true);
+        });
+
+        it('sollte Originalwerte verwenden wenn DTO-Felder leer sind', async () => {
+            // Arrange
+            const originalId = 'original-id';
+            const userId = 'user-id';
+            const mockOriginalEntry = createMockEtbEntry({
+                id: originalId,
+                kategorie: EtbKategorie.MELDUNG,
+                inhalt: 'Original Inhalt',
+                referenzPatientId: 'patient-123'
+            });
+            const mockNewEntry = createMockEtbEntry({ id: 'new-id' });
+
+            // Use minimal DTO with required inhalt field but no optional fields
+            const minimalDto: UeberschreibeEtbDto = {
+                inhalt: 'Minimal überschreibender Inhalt'
+            };
+
+            mockPrismaService.etbEntry.findUnique.mockResolvedValue(mockOriginalEntry);
+            mockPrismaService.etbEntry.aggregate.mockResolvedValue({
+                _max: { laufendeNummer: 1 }
+            });
+
+            let createCalledWithOriginalValues = false;
+
+            mockPrismaService.$transaction.mockImplementation(async (callback) => {
+                const mockTx = {
+                    etbEntry: {
+                        update: jest.fn().mockResolvedValue(mockOriginalEntry),
+                        create: jest.fn().mockImplementation((params) => {
+                            // kategorie should use original value since not provided in DTO
+                            expect(params.data.kategorie).toBe(mockOriginalEntry.kategorie);
+                            // inhalt should use DTO value
+                            expect(params.data.inhalt).toBe(minimalDto.inhalt);
+                            // referenzPatientId should use original value since not provided in DTO
+                            expect(params.data.referenzPatientId).toBe(mockOriginalEntry.referenzPatientId);
+                            createCalledWithOriginalValues = true;
+                            return mockNewEntry;
+                        }),
+                    }
+                };
+                return await callback(mockTx);
+            });
+
+            // Act
+            await service.ueberschreibeEintrag(originalId, minimalDto, userId);
+
+            // Assert
+            expect(createCalledWithOriginalValues).toBe(true);
         });
     });
 

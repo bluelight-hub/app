@@ -848,3 +848,181 @@ graph TD
     style D fill:#BBDEFB,stroke:#1976D2
     style E fill:#FFECB3,stroke:#FF8C00
 ....
+
+=== Seeding- und Profile-System
+
+Das Seeding- und Profile-System ist ein spezialisiertes Subsystem für die Erstellung und Verwaltung von Test- und Entwicklungsdaten. Es ermöglicht die schnelle Generierung realistischer DRK-Einsatzszenarien für Entwicklung, Testing und Demonstrations-zwecke.
+
+==== Konzept und Motivation
+
+Das System adressiert die Herausforderung, dass Entwickler und Tester konsistente, realistische Daten für ihre Arbeit benötigen, ohne jedes Mal manuell komplexe Einsatzszenarien erstellen zu müssen.
+
+*Hauptziele:*
+* Standardisierte, wiederverwendbare Einsatzszenarien für das DRK
+* Reduzierte Einrichtungszeit für Entwicklungs- und Testumgebungen
+* Konsistente Testdaten für reproduzierbare Tests
+* Realistische Demo-Daten für Präsentationen und Schulungen
+
+==== Architektur des Profile-Systems
+
+[mermaid]
+....
+flowchart TD
+    ProfileConfig[Profile-Konfiguration] --> ProfileService[ProfileService]
+    ProfileService --> SeedService[SeedService]
+    SeedService --> EinsatzService[EinsatzService]
+    EinsatzService --> Database[(Datenbank)]
+    
+    CLI[CLI Interface] --> ProfileService
+    AdminPanel[Admin Panel] --> ProfileService
+    DevSeedService[DevSeedService] --> ProfileService
+    
+    ProfileConfig --> |definiert| DRKProfiles[DRK-Profile]
+    DRKProfiles --> |MANV| MANVProfile[MANV-Szenario]
+    DRKProfiles --> |Sanitätsdienst| SaniProfile[Sanitätsdienst-Szenario]
+    DRKProfiles --> |KatS| KatSProfile[Katastrophenschutz]
+    DRKProfiles --> |weitere| OtherProfiles[...]
+    
+    classDef config fill:#FFE082,stroke:#FFC107,color:black
+    classDef service fill:#81C784,stroke:#4CAF50,color:white
+    classDef interface fill:#64B5F6,stroke:#2196F3,color:white
+    classDef data fill:#FFAB91,stroke:#FF5722,color:white
+    
+    class ProfileConfig,DRKProfiles,MANVProfile,SaniProfile,KatSProfile,OtherProfiles config
+    class ProfileService,SeedService,EinsatzService,DevSeedService service
+    class CLI,AdminPanel interface
+    class Database data
+....
+
+==== Profile-Struktur und Metadaten
+
+Profile enthalten sowohl die eigentlichen Einsatzdaten als auch umfangreiche Metadaten für die Kategorisierung und Verwendung:
+
+[source,typescript]
+----
+interface SeedProfile {
+  key: string;                    // Eindeutiger Identifikator
+  name: string;                   // Anzeigename
+  description: string;            // Ausführliche Beschreibung
+  einsatz: {
+    name: string;                 // Einsatzname
+    beschreibung: string;         // Detaillierte Szenario-Beschreibung
+  };
+  metadata: {
+    category: DRKEinsatzCategory; // Kategorisierung
+    estimatedPersonsAffected: number;
+    estimatedDurationHours: number;
+    requiredResources: string[];  // Benötigte Ressourcen
+    priority: 'low' | 'medium' | 'high' | 'critical';
+  };
+}
+----
+
+==== DRK-spezifische Profile-Kategorien
+
+Das System bietet vordefinierte Profile für typische DRK-Einsatzbereiche:
+
+* *MANV (Massenanfall von Verletzten)*: Großschadensereignisse mit vielen Verletzten
+* *Sanitätsdienst*: Medizinische Betreuung bei Veranstaltungen  
+* *Katastrophenschutz*: Naturkatastrophen und Großschadensereignisse
+* *Betreuung*: Soziale Betreuung und Versorgung von Evakuierten
+* *Rettungsdienst*: Reguläre medizinische Notfallversorgung
+* *PSNV*: Psychosoziale Notfallversorgung
+* *Ausbildung*: Simulierte Einsätze für Übungszwecke
+
+==== Verwendungsszenarien
+
+===== Entwicklungsumgebung
+* Automatische Initialisierung mit Standard-Einsatz beim App-Start
+* Schnelle Erstellung verschiedener Testszenarien
+* Konsistente Ausgangslage für Feature-Entwicklung
+
+===== Testing
+* Reproduzierbare Testdaten für Unit- und Integrationstests
+* Stress-Testing mit verschiedenen Einsatzgrößen
+* Grenzfall-Tests mit komplexen Szenarien
+
+===== Präsentationen und Demos
+* Realistische Daten für Stakeholder-Präsentationen
+* Verschiedene Einsatztypen für Feature-Demonstrationen
+* Schneller Wechsel zwischen Szenarien
+
+==== Schnittstellen und Zugriffsmethoden
+
+===== CLI-Interface
+Das Command-Line-Interface bietet direkten Zugriff für Entwickler:
+
+[source,bash]
+----
+# Profile auflisten
+npm run cli seed:einsatz --list
+
+# Detaillierte Profilinformationen
+npm run cli seed:einsatz --info manv
+
+# Einsatz aus Profil erstellen  
+npm run cli seed:einsatz --profile manv
+
+# Nach Kategorie filtern
+npm run cli seed:einsatz --category katastrophenschutz
+----
+
+===== Admin-Panel-Integration (geplant)
+Web-basierte Oberfläche für erweiterte Profile-Verwaltung:
+* Visual Profile-Browser mit Filterung und Suche
+* Bulk-Operations für mehrere Profile
+* Custom-Profile-Editor für projektspezifische Szenarien
+* Import/Export von Profile-Sets
+
+===== Programmatische API
+Direkte Integration in Backend-Services:
+
+[source,typescript]
+----
+// Einsatz aus Profil erstellen
+const einsatz = await profileService.createEinsatzFromProfile('manv');
+
+// Profile nach Kriterien suchen
+const criticalProfiles = profileService.getProfilesByPriority('critical');
+
+// Custom-Empfehlungen
+const recommended = profileService.getRecommendedProfiles({
+  maxPersonsAffected: 50,
+  maxDurationHours: 12
+});
+----
+
+==== Error Handling und Race Condition Prevention
+
+Das Seeding-System nutzt erweiterte Fehlerbehandlung für robuste Operation in verschiedenen Umgebungen:
+
+* *Retry-Mechanismus*: Exponential Backoff für transiente Fehler
+* *Duplicate Detection*: Verhindert doppelte Einsätze bei parallelen Operationen  
+* *Umgebungsspezifisches Verhalten*: Angepasste Strategien für Dev/Test/Prod
+* *PostgreSQL-spezifische Optimierungen*: Nutzt DB-Features für Konsistenz
+
+==== Erweiterbarkeit und Anpassung
+
+===== Custom-Profile
+* Projektspezifische Profile zusätzlich zu Standard-DRK-Profilen
+* Template-basierte Profile-Erstellung
+* Versionierung und Migration von Profilen
+
+===== Plugin-Architektur
+* Erweiterbare Profile-Generatoren
+* Custom-Metadata-Provider
+* Integration mit externen Datenquellen
+
+===== Konfigurierbarkeit
+* Umgebungsabhängige Profile-Sets
+* Konfigurierbare Default-Profile
+* Feature-Flags für verschiedene Profile-Features
+
+==== Security und Compliance
+
+* *Zugriffskontrolle*: Profile-basierte Berechtigungen je nach Umgebung
+* *Audit-Logging*: Vollständige Nachverfolgung von Seeding-Operationen
+* *Datenschutz*: Anonymisierte/synthetische Daten in Profilen
+* *Umgebungsisolation*: Strikte Trennung zwischen Dev-, Test- und Prod-Profilen
+
+Dieses System stellt sicher, dass realistische und konsistente Testdaten für alle Entwicklungs- und Testaktivitäten verfügbar sind, während gleichzeitig die Sicherheits- und Compliance-Anforderungen des DRK-Umfelds erfüllt werden.
