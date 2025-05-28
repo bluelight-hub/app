@@ -13,7 +13,7 @@
     "docs:pdf": "asciidoctor-pdf -r asciidoctor-diagram -a mmdc=./mmdc-no-sandbox -s docs/styles/bluelight-pdf.css docs/index.adoc -o dist/docs/bluelight-hub-architecture.pdf",
     "docs:build": "mkdir -p dist/docs && pnpm docs:html && pnpm docs:pdf",
     "docs:deploy": "pnpm docs:build",
-    "prepare": "husky"
+    "prepare": "command -v husky >/dev/null 2>&1 && husky || echo 'husky not available, skipping git hooks setup'"
   },
   "packageManager": "pnpm@10.5.2",
   "pnpm": {
