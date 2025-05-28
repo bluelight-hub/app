@@ -133,8 +133,13 @@ export const createEtbServiceTestModule = async (
 };
 
 // Helper for testing async operations with delays
-export const waitForAsync = (ms: number = 0) =>
-    new Promise(resolve => setTimeout(resolve, ms));
+export const waitForAsync = (ms: number = 0) => {
+    const timeoutPromise = new Promise(resolve => {
+        const timer = setTimeout(resolve, ms);
+        timer.unref(); // Timer soll den Prozess nicht am Beenden hindern
+    });
+    return timeoutPromise;
+};
 
 // Helper for testing error scenarios
 export const expectAsyncError = async (

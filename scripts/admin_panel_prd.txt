@@ -1,0 +1,263 @@
+<context>
+# Projektübersicht
+
+Das Admin-Panel für Bluelight-Hub ist eine spezialisierte Verwaltungsoberfläche für Systemadministratoren und Entwickler. Es bietet erweiterte Funktionen für die Systemverwaltung, Datenmanagement und Entwicklungsunterstützung, die über die normalen Benutzerfunktionen hinausgehen.
+
+Das Panel ist kontextsensitiv und zeigt je nach Umgebung (Development / Production) unterschiedliche Funktionen an. In Entwicklungsumgebungen stehen zusätzliche Tools wie Profile-Seeding, Datenbankmanagement und Debug-Funktionen zur Verfügung.
+
+# Kernfunktionen
+
+## Entwicklungsumgebung-spezifische Features
+- **Seed-Profile Management**: Verwaltung und Verwendung vordefinierter DRK-Einsatzszenarien
+- **Test-Daten-Generierung**: Erstellung realistischer Testdaten für verschiedene Szenarien
+- **Datenbank-Tools**: Reset, Migration, Schema-Inspection
+- **Debug-Dashboard**: System-Metriken, Performance-Monitoring
+- **API-Testing**: Integrierte API-Test-Umgebung
+
+## Produktionsumgebung Features
+- **System-Monitoring**: Überwachung von System-Health und Performance
+- **Benutzer-Management**: Verwaltung von Benutzern, Rollen und Berechtigungen
+- **Backup-Management**: Backup-Erstellung und -Wiederherstellung
+- **Audit-Logs**: Einsicht in System-Aktivitäten und Sicherheitsereignisse
+- **Konfiguration**: System-weite Einstellungen und Parameter
+
+## Universelle Features
+- **Einsatz-Verwaltung**: Erweiterte Einsatz-Operationen (Archivierung, Bulk-Updates)
+- **Template-Management**: Verwaltung von Einsatz-, Personal-, Fahrzeug-Templates
+- **Reporting**: Detaillierte Reports und Statistiken
+- **Export/Import**: Datenexport für Analysen, Backup-Import
+- **System-Information**: Hardware-Status, Software-Versionen, Abhängigkeiten
+
+# Benutzererfahrung
+
+Das Admin-Panel ist als separate, geschützte Anwendung konzipiert, die nur von authorisierten Administratoren und Entwicklern zugänglich ist. Die Benutzeroberfläche ist funktional und effizient gestaltet, mit Fokus auf schnelle Aufgabenerledigung und klare Informationsdarstellung.
+
+**Zugangskontrolle:**
+- Rollenbasierte Authentifizierung (Admin, Entwickler, Super-Admin)
+- Session-Management mit automatischer Abmeldung
+
+**Responsive Design:**
+- Optimiert für Desktop-Arbeitsplätze
+- Funktional auf Tablets
+- Klare Navigation und strukturierte Layouts
+
+**Feedback und Sicherheit:**
+- Bestätigungsdialoge für kritische Operationen
+- Audit-Trail für alle Admin-Aktionen
+- Rollback-Funktionen wo möglich
+</context>
+<PRD>
+# Technische Architektur
+
+## Frontend-Architektur
+- **Framework**: React mit TypeScript
+- **Routing**: React Router mit Protected Routes
+- **State Management**: Zustand für Admin-spezifische Daten, Zustand für komplexe Zustände
+- **UI-Framework**: Ant Design mit Admin-spezifischen Themes
+- **Styling**: Tailwind CSS für Custom-Styling
+- **Charts/Visualisierung**: Recharts oder D3.js für Monitoring-Dashboards
+
+## Backend-Integration
+- **API-Struktur**: Separate Admin-Controller in NestJS
+- **Authentifizierung**: JWT mit Admin-spezifischen Claims
+- **Autorisierung**: Role-Based Access Control (RBAC)
+- **Rate Limiting**: Spezielle Limits für Admin-Operationen
+- **Audit Logging**: Detailliertes Logging aller Admin-Aktionen
+
+## Profile-Seeding System
+- **Profile-Service**: Bestehender ProfileService erweitern
+- **UI-Integration**: React-Komponenten für Profile-Auswahl und -Management
+- **Bulk-Operations**: Möglichkeit mehrere Einsätze aus Profilen zu erstellen
+- **Custom-Profile**: Erstellung und Bearbeitung eigener Profile
+- **Profile-Kategorisierung**: Filter nach Einsatztyp, Priorität, Komplexität
+
+## Entwicklungstools
+- **Seeding-Interface**: Web-UI für das bestehende CLI-Seeding
+- **Database-Browser**: Einsicht in Tabellen und Datenstrukturen
+- **API-Docs Integration**: Swagger/OpenAPI direkt im Panel
+- **Log-Viewer**: Real-time Log-Streaming und -Filterung
+- **Performance-Profiler**: Integration von Performance-Metriken
+
+## Security-Konzept
+- **Environment-basierte Features**: Feature-Flags je nach Umgebung
+- **Secure Headers**: Zusätzliche Security-Headers für Admin-Routes
+- **CSRF-Protection**: Enhanced CSRF-Schutz für Admin-Operationen
+- **IP-Whitelisting**: Optionale IP-Beschränkungen für Produktionsumgebungen
+- **Session-Security**: Erhöhte Session-Sicherheit und -überwachung
+
+# Entwicklungs-Roadmap
+
+## Phase 1: Grundstruktur (2-3 Wochen)
+1. **Admin-Routing Setup**
+   - Protected Routes für Admin-Bereich
+   - Authentifizierung und Autorisierung
+   - Basis-Layout und Navigation
+
+2. **Backend-Controller**
+   - Admin-Controller für verschiedene Bereiche
+   - Permission-System für Admin-Funktionen
+   - Audit-Logging-Infrastruktur
+
+3. **Profile-Seeding UI**
+   - Integration des bestehenden ProfileService
+   - React-Komponenten für Profile-Auswahl
+   - Einsatzerstellung aus Profilen
+
+## Phase 2: Entwicklungstools (2-3 Wochen)
+1. **Database-Tools**
+   - Schema-Inspektion Interface
+   - Data-Browser für Tabellen
+   - Backup/Restore-Funktionen
+
+2. **Debug-Dashboard**
+   - System-Metriken Display
+   - Performance-Monitoring
+   - Log-Viewer Interface
+
+3. **API-Testing**
+   - Integrierte Swagger-UI
+   - API-Request-Builder
+   - Response-Analyzer
+
+## Phase 3: Produktions-Features (3-4 Wochen)
+1. **User-Management**
+   - CRUD-Operationen für Benutzer
+   - Rollen- und Berechtigungsverwaltung
+   - Bulk-User-Operationen
+
+2. **System-Monitoring**
+   - Health-Check Dashboard
+   - Performance-Alerts
+   - System-Resource-Monitoring
+
+3. **Reporting-System**
+   - Configurable Reports
+   - Export-Funktionen
+   - Scheduled Reports
+
+## Phase 4: Erweiterte Features (2-3 Wochen)
+1. **Template-Management**
+   - Visual Template-Editor
+   - Template-Import/Export
+   - Template-Versionierung
+
+2. **Advanced-Seeding**
+   - Bulk-Einsatz-Erstellung
+   - Scenario-based Seeding
+   - Custom-Profile-Editor
+
+3. **Integration-Tools**
+   - External-System-Connectors
+   - Data-Sync-Monitoring
+   - Integration-Testing-Tools
+
+# Logische Abhängigkeitskette
+
+## Technische Abhängigkeiten
+1. **Basis-Infrastruktur** → Admin-Routing & Auth
+2. **Auth-System** → Protected Admin-Routes
+3. **ProfileService** → Profile-Seeding UI
+4. **Audit-System** → User-Management
+5. **Monitoring-Backend** → Dashboard-Frontend
+6. **Template-System** → Template-Management-UI
+
+## Feature-Abhängigkeiten
+1. **Admin-Auth** muss vor allen anderen Features implementiert werden
+2. **Profile-Seeding** basiert auf bestehendem ProfileService
+3. **Database-Tools** benötigen sichere Verbindungsabstraktion
+4. **Monitoring** braucht Backend-Metriken-Collection
+5. **Reporting** benötigt Data-Access-Layer
+6. **Template-Management** baut auf ETB-Template-System auf
+
+## Umgebungs-Abhängigkeiten
+- **Development**: Alle Features verfügbar
+- **Staging**: Produktions-Features + eingeschränkte Debug-Tools
+- **Production**: Nur Produktions-Features, erweiterte Security
+
+# Risiken und Gegenmaßnahmen
+
+## Sicherheitsrisiken
+- **Risiko**: Unberechtigter Zugang zu Admin-Funktionen
+- **Maßnahme**: Strenge Authentifizierung, Session-Monitoring, IP-Beschränkungen
+
+- **Risiko**: Versehentliche Datenmanipulation in Produktion
+- **Maßnahme**: Bestätigungsdialoge, Rollback-Funktionen, Audit-Trail
+
+- **Risiko**: Exposure sensitiver Daten über Admin-Panel
+- **Maßnahme**: Daten-Maskierung, rollenbasierte Sichtbarkeit
+
+## Technische Risiken
+- **Risiko**: Performance-Impact durch Admin-Operationen
+- **Maßnahme**: Separate Thread-Pools, Background-Processing, Rate-Limiting
+
+- **Risiko**: Komplexität der Umgebungs-spezifischen Features
+- **Maßnahme**: Feature-Flag-System, Environment-Config-Validation
+
+- **Risiko**: Wartungsaufwand durch zusätzliche UI-Komplexität
+- **Maßnahme**: Modulare Architektur, Automated Testing, Documentation
+
+## Benutzerrisiken
+- **Risiko**: Overwhelming UI für neue Administratoren
+- **Maßnahme**: Progressive Disclosure, Context-Help, Training-Materials
+
+- **Risiko**: Inkonsistente UX zwischen Main-App und Admin-Panel
+- **Maßnahme**: Shared Design-System, Common Components
+
+# Anhang
+
+## Technologie-Stack
+- **Frontend**: React, TypeScript, Ant Design, Tailwind CSS
+- **Backend**: NestJS, PostgreSQL
+- **Testing**: Jest, React Testing Library, Playwright
+- **Monitoring**: Custom Metrics, Winston Logging
+- **Security**: JWT, bcrypt, helmet, rate-limiter-flexible
+
+## API-Endpunkte (Beispiele)
+```
+POST   /api/admin/auth/login
+GET    /api/admin/system/health
+GET    /api/admin/users
+POST   /api/admin/profiles/seed
+GET    /api/admin/database/tables
+POST   /api/admin/backup/create
+GET    /api/admin/logs/stream
+POST   /api/admin/templates/import
+```
+
+## Environment-spezifische Features
+```typescript
+interface AdminFeatures {
+  development: {
+    profileSeeding: true,
+    databaseTools: true,
+    debugDashboard: true,
+    apiTesting: true
+  },
+  staging: {
+    profileSeeding: false,
+    databaseTools: true,
+    debugDashboard: true,
+    apiTesting: false
+  },
+  production: {
+    profileSeeding: false,
+    databaseTools: false,
+    debugDashboard: false,
+    apiTesting: false
+  }
+}
+```
+
+## Performance-Anforderungen
+- **Seitenladung**: < 2 Sekunden für Admin-Dashboard
+- **API-Response**: < 500ms für Standard-Admin-Operationen
+- **Bulk-Operations**: Progress-Indication für Operationen > 5 Sekunden
+- **Real-time-Updates**: < 1 Sekunde für Log-Streaming
+- **Memory-Usage**: < 100MB zusätzlich zur Main-Application
+
+## Compliance-Anforderungen
+- **DSGVO**: Audit-Logs für Datenzugriff und -manipulation
+- **SOX**: Unveränderliche Audit-Trails für kritische Operationen
+- **ISO 27001**: Security-Standards für Administratorzugang
+- **Accessibility**: WCAG 2.1 Level AA für Admin-Oberflächen
+</PRD> 

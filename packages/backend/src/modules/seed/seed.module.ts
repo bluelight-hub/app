@@ -5,6 +5,8 @@ import { DynamicModule, Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { DatabaseCheckService } from './database-check.service';
 import { DevSeedService } from './dev-seed.service';
+import { ProfileService } from './profile.service';
+import { SeedImportService } from './seed-import.service';
 import { SeedService } from './seed.service';
 
 /**
@@ -43,10 +45,15 @@ export interface SeedModuleOptions {
     providers: [
         DatabaseCheckService,
         SeedService,
+        DevSeedService,
+        ProfileService,
+        SeedImportService,
     ],
     exports: [
         SeedService,
-        DatabaseCheckService,
+        DevSeedService,
+        ProfileService,
+        SeedImportService,
     ],
 })
 export class SeedModule {
@@ -66,11 +73,16 @@ export class SeedModule {
                 },
                 DatabaseCheckService,
                 SeedService,
+                DevSeedService,
+                ProfileService,
+                SeedImportService,
                 ...(SeedModule.shouldRegisterDevSeed(options) ? [DevSeedService] : []),
             ],
             exports: [
                 SeedService,
-                DatabaseCheckService,
+                DevSeedService,
+                ProfileService,
+                SeedImportService,
             ],
         };
     }
@@ -101,6 +113,9 @@ export class SeedModule {
                 },
                 DatabaseCheckService,
                 SeedService,
+                DevSeedService,
+                ProfileService,
+                SeedImportService,
                 {
                     provide: DevSeedService,
                     inject: [SeedService, ConfigService, 'SEED_OPTIONS'],
@@ -114,7 +129,9 @@ export class SeedModule {
             ],
             exports: [
                 SeedService,
-                DatabaseCheckService,
+                DevSeedService,
+                ProfileService,
+                SeedImportService,
             ],
         };
     }

@@ -1,6 +1,7 @@
 import { Logger } from '@nestjs/common';
 import { TestingModule } from '@nestjs/testing';
 import { EinsatzService } from '../../../modules/einsatz/einsatz.service';
+import { ProfileService } from '../../../modules/seed/profile.service';
 import { createTestModule, mockConsole, mockEinsatz } from '../../../test/testUtils';
 import { SeedEinsatzCommand } from '../seed-einsatz.command';
 
@@ -8,12 +9,27 @@ describe('SeedEinsatzCommand', () => {
     let command: SeedEinsatzCommand;
     let einsatzService: EinsatzService;
     let mockLogger: jest.SpyInstance;
-    let consoleHelper: ReturnType<typeof mockConsole>;
+    let consoleHelper: ReturnType<typeof mockConsole> | undefined;
 
     beforeEach(async () => {
+        // Setup console mocking first
+        consoleHelper = mockConsole();
+
         const module: TestingModule = await createTestModule([
             SeedEinsatzCommand,
             EinsatzService,
+            {
+                provide: ProfileService,
+                useValue: {
+                    createEinsatzFromProfile: jest.fn(),
+                    getProfile: jest.fn(),
+                    getAllProfiles: jest.fn().mockReturnValue([]),
+                    getProfileDetails: jest.fn(),
+                    getAvailableProfileKeys: jest.fn().mockReturnValue([]),
+                    getProfilesByCategory: jest.fn().mockReturnValue([]),
+                    getProfilesByPriority: jest.fn().mockReturnValue([]),
+                },
+            },
         ]);
 
         command = module.get<SeedEinsatzCommand>(SeedEinsatzCommand);
@@ -22,14 +38,11 @@ describe('SeedEinsatzCommand', () => {
         // Mock Logger
         mockLogger = jest.spyOn(Logger.prototype, 'log').mockImplementation();
         jest.spyOn(Logger.prototype, 'error').mockImplementation();
-
-        // Setup console mocking
-        consoleHelper = mockConsole();
     });
 
     afterEach(() => {
         jest.clearAllMocks();
-        consoleHelper.restore();
+        consoleHelper?.restore();
     });
 
     describe('run', () => {
@@ -49,9 +62,9 @@ describe('SeedEinsatzCommand', () => {
                 name: 'Test-Einsatz 2025-05-25 13:45',
                 beschreibung: undefined,
             });
-            expect(mockLogger).toHaveBeenCalledWith('Erstelle Einsatz "Test-Einsatz 2025-05-25 13:45"...');
+            expect(mockLogger).toHaveBeenCalledWith('Erstelle benutzerdefinierten Einsatz "Test-Einsatz 2025-05-25 13:45"...');
             expect(mockLogger).toHaveBeenCalledWith(
-                `Einsatz erfolgreich erstellt: ${expectedEinsatz.name} (ID: ${expectedEinsatz.id})`
+                `✅ Einsatz erfolgreich erstellt: ${expectedEinsatz.name} (ID: ${expectedEinsatz.id})`
             );
         });
 
@@ -69,7 +82,7 @@ describe('SeedEinsatzCommand', () => {
                 name: customName,
                 beschreibung: undefined,
             });
-            expect(mockLogger).toHaveBeenCalledWith(`Erstelle Einsatz "${customName}"...`);
+            expect(mockLogger).toHaveBeenCalledWith(`Erstelle benutzerdefinierten Einsatz "${customName}"...`);
         });
 
         it('sollte einen Einsatz mit name und beschreibung erstellen', async () => {
@@ -93,9 +106,9 @@ describe('SeedEinsatzCommand', () => {
                 name: customName,
                 beschreibung: customBeschreibung,
             });
-            expect(mockLogger).toHaveBeenCalledWith(`Erstelle Einsatz "${customName}"...`);
+            expect(mockLogger).toHaveBeenCalledWith(`Erstelle benutzerdefinierten Einsatz "${customName}"...`);
             expect(mockLogger).toHaveBeenCalledWith(
-                `Einsatz erfolgreich erstellt: ${expectedEinsatz.name} (ID: ${expectedEinsatz.id})`
+                `✅ Einsatz erfolgreich erstellt: ${expectedEinsatz.name} (ID: ${expectedEinsatz.id})`
             );
         });
 
@@ -111,7 +124,7 @@ describe('SeedEinsatzCommand', () => {
 
             // Assert
             expect(errorLogSpy).toHaveBeenCalledWith(
-                'Fehler beim Erstellen des Einsatzes: Unique constraint failed'
+                '❌ Fehler beim Erstellen des Einsatzes: Unique constraint failed'
             );
             expect(errorLogSpy).toHaveBeenCalledWith(
                 'Ein Einsatz mit diesem Namen existiert bereits'
@@ -129,7 +142,7 @@ describe('SeedEinsatzCommand', () => {
 
             // Assert
             expect(errorLogSpy).toHaveBeenCalledWith(
-                'Fehler beim Erstellen des Einsatzes: Database connection failed'
+                '❌ Fehler beim Erstellen des Einsatzes: Database connection failed'
             );
             expect(errorLogSpy).toHaveBeenCalledTimes(1); // Nur der erste Fehler, nicht der P2002-spezifische
         });
@@ -240,11 +253,9 @@ describe('SeedEinsatzCommand', () => {
                 name: 'Test-Einsatz 2025-05-25 13:45',
                 beschreibung: undefined,
             });
+            expect(mockLogger).toHaveBeenCalledWith('Erstelle benutzerdefinierten Einsatz "Test-Einsatz 2025-05-25 13:45"...');
             expect(mockLogger).toHaveBeenCalledWith(
-                'Erstelle Einsatz "Test-Einsatz 2025-05-25 13:45"...'
-            );
-            expect(mockLogger).toHaveBeenCalledWith(
-                'Einsatz erfolgreich erstellt: Test-Einsatz 2025-05-25 13:45 (ID: generated-id-123)'
+                `✅ Einsatz erfolgreich erstellt: ${expectedEinsatz.name} (ID: ${expectedEinsatz.id})`
             );
         });
 
@@ -263,10 +274,10 @@ describe('SeedEinsatzCommand', () => {
             // Assert
             expect(einsatzService.create).toHaveBeenCalledWith(options);
             expect(mockLogger).toHaveBeenCalledWith(
-                `Erstelle Einsatz "${options.name}"...`
+                `Erstelle benutzerdefinierten Einsatz "${options.name}"...`
             );
             expect(mockLogger).toHaveBeenCalledWith(
-                `Einsatz erfolgreich erstellt: ${expectedEinsatz.name} (ID: ${expectedEinsatz.id})`
+                `✅ Einsatz erfolgreich erstellt: ${expectedEinsatz.name} (ID: ${expectedEinsatz.id})`
             );
         });
     });
