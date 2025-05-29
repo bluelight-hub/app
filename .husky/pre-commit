@@ -1,1 +1,8 @@
+#!/bin/bash
+
+if echo "$COMMIT_MSG" | grep -q "\[Skip-CI\]"; then
+    echo "🔍 Skip-CI Flag erkannt, überspringe Tests..."
+    exit 0
+fi
+
 pnpm test:cov
