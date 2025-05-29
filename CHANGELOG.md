@@ -1,3 +1,75 @@
+## Version [v1.0.0-alpha.18](https://github.com/bluelight-hub/app/compare/v1.0.0-alpha.17...v1.0.0-alpha.18) – Veröffentlicht am 2025-05-29
+
+## ✨ Neue Funktionen
+Die folgenden neuen Features wurden hinzugefügt:
+- [`c9713f2`](https://github.com/bluelight-hub/app/commit/c9713f2) (etb): Überarbeite ETB-Logik, Tests und Snapshots für neues AntD+Tailwind-Layout 
+
+- [`39e6c37`](https://github.com/bluelight-hub/app/commit/39e6c37) (scripts): PRD templates und Anleitung für Taskmaster 
+
+- [`cb676fd`](https://github.com/bluelight-hub/app/commit/cb676fd) (etb): Update ETB DTOs, migrations und Doku - Aktualisiere create-etb.dto.ts und EtbEntryDto.ts für neue Felder - Passe package.json und pnpm-lock.yaml an - Füge neue Migrationen und Decorators hinzu - Überarbeite docs/architecture/08-concepts.adoc entsprechend - Stellt Konsistenz zwischen Backend, Shared Models und Dokumentation sicher 
+
+- [`9048232`](https://github.com/bluelight-hub/app/commit/9048232) (cursor): Add environment configuration file for terminal snapshots 
+
+- [`7f54337`](https://github.com/bluelight-hub/app/commit/7f54337) (backend): Implement CLI seed command and OpenAPI client generation 
+
+- [`84e395b`](https://github.com/bluelight-hub/app/commit/84e395b) (backend): Add error handling infrastructure and fix test failures 
+
+- [`41e5a4c`](https://github.com/bluelight-hub/app/commit/41e5a4c) (backend): Add concurrent operations test suite 
+
+- [`a06a853`](https://github.com/bluelight-hub/app/commit/a06a853) (backend): JSON-basierte Seed-Daten-Import-Funktionalität 
+
+## 🐛 Fehlerbehebungen
+Diese Probleme wurden behoben:
+- [`1c58829`](https://github.com/bluelight-hub/app/commit/1c58829) (backend): remove invalid uuid pipe 
+
+- [`379ef77`](https://github.com/bluelight-hub/app/commit/379ef77) (tests): Testfehler behoben 
+
+- [`c1e53ec`](https://github.com/bluelight-hub/app/commit/c1e53ec) (backend): resolve test compilation issues 
+
+- [`cd2de7a`](https://github.com/bluelight-hub/app/commit/cd2de7a) (sql): reinit migration 
+
+- [`67db2d5`](https://github.com/bluelight-hub/app/commit/67db2d5) (backend): behebe fehlgeschlagene Tests 
+
+- [`f06df0a`](https://github.com/bluelight-hub/app/commit/f06df0a) (frontend): Fix useThemeStore robustness and failing tests - Add type checking for store parameters, protect against undefined values, fix test reliability - All 269 frontend tests now pass 
+
+- [`1a36f7d`](https://github.com/bluelight-hub/app/commit/1a36f7d) (backend): Behebe Worker-Prozess Timer-Leaks in Jest Tests 
+
+## 🔒 Sicherheitsverbesserungen
+Sicherheitsrelevante Änderungen:
+- [`43f0790`](https://github.com/bluelight-hub/app/commit/43f0790) (security): Exclude API keys from tracking and update .gitignore 
+
+## ♻ Refactoring
+Struktur- oder Code-Verbesserungen:
+- [`ef2f086`](https://github.com/bluelight-hub/app/commit/ef2f086) (backend): Unify ETB filter logic to single QueryBuilder with dynamic conditions and fulltext search support 
+
+## 🔧 Tool Verbesserungen
+Verbesserungen an den Werkzeugen:
+- [`f722c27`](https://github.com/bluelight-hub/app/commit/f722c27) (scripts): Add commit enforcement tools 
+
+- [`fb0a463`](https://github.com/bluelight-hub/app/commit/fb0a463) (scripts): Enforce structured commit messages with validation tools 
+
+- [`b5a07d8`](https://github.com/bluelight-hub/app/commit/b5a07d8) (scripts): Integrate Husky for automatic Git hook management 
+
+- [`d54025b`](https://github.com/bluelight-hub/app/commit/d54025b) (scripts): Update documentation build commands for Asciidoctor 
+
+- [`8b3b052`](https://github.com/bluelight-hub/app/commit/8b3b052) (config): Aktualisiere Cursor Environment-Konfiguration 
+
+- [`e08814c`](https://github.com/bluelight-hub/app/commit/e08814c) (formatting): Improve formatting 
+
+- [`268f34e`](https://github.com/bluelight-hub/app/commit/268f34e) (pnpm): aktualisiere pnpm prod install 
+
+- [`be07719`](https://github.com/bluelight-hub/app/commit/be07719) (git): Implementiere Husky Git-Hooks für Qualitätssicherung 
+
+- [`2ebd15b`](https://github.com/bluelight-hub/app/commit/2ebd15b) (git): Implementiere Husky Git-Hooks für Qualitätssicherung 
+
+- [`724ae7b`](https://github.com/bluelight-hub/app/commit/724ae7b) (build): try to fix ci 
+
+- [`9b2d6a4`](https://github.com/bluelight-hub/app/commit/9b2d6a4) (build): try to fix ci 
+
+
+
+# [1.0.0-alpha.18](https://github.com/bluelight-hub/app/compare/v1.0.0-alpha.17...v1.0.0-alpha.18) (2025-05-29)
+
 ## Version [v1.0.0-alpha.17](https://github.com/bluelight-hub/app/compare/v1.0.0-alpha.16...v1.0.0-alpha.17) – Veröffentlicht am 2025-04-05
 
 ## ✨ Neue Funktionen
