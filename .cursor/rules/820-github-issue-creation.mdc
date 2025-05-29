@@ -1,0 +1,77 @@
+---
+description: ENFORCE standardized GitHub issue creation process for consistent project documentation
+globs: 
+alwaysApply: false
+---
+# GitHub Issue Creation Standards
+
+## Context
+- Gilt für alle Fälle, in denen GitHub Issues erstellt werden
+- Nutze für Features, Bugs, Documentation und andere Issue-Typen
+- Sorgt für einheitliche Struktur und Qualität
+
+## Requirements
+
+1. **Emoji-Präfixe verwenden**
+   - 🚑 Feature
+   - 🐛 Bug  
+   - 📚 Documentation
+   - ⚡ Performance
+   - 🔧 Maintenance
+   - 🧪 Test
+
+2. **Issue-Body Struktur**
+   - ## 📋 Beschreibung
+   - ## 🎯 Ziel
+   - ## 📝 Requirements (Funktionale und Technische)
+   - ## 🔗 API Integration (falls relevant)
+   - ## 📚 Dokumentation
+   - ## 🚫 Out of Scope
+   - ## ✅ Definition of Done
+   - ## 📋 Tasks/Subtasks
+
+3. **Body-Files erstellen**
+   - Separate .md-Datei in `scripts/` Verzeichnis
+   - Naming: `[feature-name]-issue-body.md`
+   - CLI: `gh issue create --title "🚑 Feature: Name" --body-file scripts/issue-body.md --assignee "@me"`
+   - Datei nach Verwendung wieder löschen
+
+4. **Bluelight-Hub Guidelines**
+   - Rettungsdienst-Terminologie verwenden
+   - Tauri-Kompatibilität berücksichtigen
+   - Deutsche UI-Texte, englischer Code
+   - WCAG 2.1 AA Standard
+   - Responsive Design spezifizieren
+
+5. **Task Master Integration**
+   - PRD erstellen vor Issue-Erstellung
+   - Task-Generierung: `task-master parse-prd`
+   - Cross-Referenzen zwischen Issues und Tasks
+
+## Examples
+
+```markdown
+Title: 🚑 Feature: Einsätze-Übersicht im Frontend implementieren
+
+## 📋 Beschreibung
+Implementierung einer zentralen Einsätze-Übersicht als Einstiegspunkt nach Login.
+
+## 🎯 Ziel
+- **Hauptfunktion:** Liste aller Einsätze anzeigen
+- **Sekundärfunktion:** Neue Einsätze anlegen
+- **Navigation:** Als Einstiegspunkt nach Login
+
+## 📝 Requirements
+### Funktionale Anforderungen:
+- [ ] Einsätze-Liste mit responsive Layout
+- [ ] Suchfunktion und Filter
+
+### Technische Anforderungen:
+- [ ] React + TypeScript
+- [ ] Ant Design Komponenten
+- [ ] Unit Tests >90% Coverage
+
+## ✅ Definition of Done
+- [ ] Alle Requirements implementiert
+- [ ] Tests bestanden
+- [ ] Code Review abgeschlossen

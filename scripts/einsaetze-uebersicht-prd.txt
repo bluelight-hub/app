@@ -1,0 +1,183 @@
+# Product Requirements Document: Einsätze-Übersicht
+
+## 1. Projektziel & Vision
+
+**Ziel:** Implementierung einer zentralen Einsätze-Übersicht im Bluelight-Hub Frontend, die nach dem Login als Startseite dient und eine schnelle Übersicht über alle vorhandenen Einsätze bietet.
+
+**Vision:** Einsatzkräfte sollen sofort nach dem Login einen klaren Überblick über alle aktiven und vergangenen Einsätze erhalten und neue Einsätze schnell anlegen können.
+
+## 2. Scope Definition
+
+### In Scope:
+- Einsätze-Liste mit Übersicht aller vorhandenen Einsätze
+- Neue Einsätze anlegen über Formular
+- Responsive Design für Desktop und Mobile
+- Integration in bestehende Bluelight-Hub Navigation
+- Filtern und Sortieren der Einsätze
+- Status-Anzeige der Einsätze
+
+### Out of Scope:
+- Detailansicht einzelner Einsätze
+- Bearbeitung bestehender Einsätze
+- Löschung von Einsätzen
+- Erweiterte Einsatz-Management Funktionen
+- ETB/Fahrzeug-Zuordnung auf dieser Seite
+
+## 3. Functional Requirements
+
+### FR1: Einsätze-Liste anzeigen
+- **Beschreibung:** Zentrale Tabelle/Liste aller Einsätze
+- **Datenfelder:** ID, Name, Beschreibung, Erstelldatum, Letzte Aktualisierung
+- **Sortierung:** Standard nach Erstelldatum (neueste zuerst)
+- **Paginierung:** Max. 20 Einsätze pro Seite
+- **Filter:** Archivierte Einsätze ausblenden / in einem eingeklappten Bereich anzeigen. Aktive sind eher wenige.
+
+### FR2: Einsätze filtern
+- **Suchfeld:** Freitext-Suche in Name und Beschreibung
+- **Zeitraum-Filter:** Nach Erstelldatum filtern
+- **Anzahl-Info:** "X von Y Einsätzen" anzeigen
+
+### FR3: Neuen Einsatz anlegen
+- **Trigger:** "Neuer Einsatz" Button prominent platziert
+- **Modal/Drawer:** Formular mit Name (required) und Beschreibung (optional) bzw. den properties aus dem dto
+- **Validierung:** Name mindestens 2 Zeichen, max. 100 Zeichen - orientiere dich hier auch am dto
+- **Feedback:** Success-Message nach erfolgreichem Anlegen
+- **Navigation:** Nach Anlegen Liste aktualisieren
+
+### FR4: Navigation Integration
+- **Hauptmenü:** "Einsätze" als Einstiegspunkt nach Login, ohne Einsatz-Navigation (optional eigene Nav mit Einstellungen (tbd) / Admin (tbd) / Archiv oder so)
+- **Dashboard:** Als Standard-Startseite nach Einsatzauswahl / Erstellung
+
+### FR5: Responsive Design
+- **Desktop:** Tabellen-Layout mit allen Spalten (vielleicht auch Card-Layout?)
+- **Tablet:** Reduzierte Spalten, kompaktere Darstellung
+- **Mobile:** Card-Layout, wesentliche Infos gestapelt
+
+## 4. Technical Requirements
+
+### TR1: Frontend-Architektur
+- **Framework:** React mit TypeScript
+- **UI-Library:** Ant Design (bestehende Designsprache)
+- **State Management:** React Query für API-Calls
+- **Routing:** React Router Integration
+
+### TR2: API Integration
+- **Endpoints:** 
+  - GET /api/einsatz (Liste abrufen)
+  - POST /api/einsatz (Neuen Einsatz erstellen)
+- **Error Handling:** Graceful degradation bei API-Fehlern
+- **Loading States:** Skeleton/Spinner während API-Calls
+
+### TR3: Code-Organisation
+- **Atomic Design:** Komponenten nach bestehender Struktur
+- **Location:** `packages/frontend/src/components/pages/app/einsaetze/`
+- **Tests:** Unit-Tests für alle Komponenten
+- **Hooks:** Wiederverwendbare Custom Hooks für Einsatz-Operations
+
+### TR4: Performance
+- **Caching:** React Query für automatisches Caching
+- **Pagination:** Server-side Pagination für große Datenmengen
+- **Optimistic Updates:** Bei Einsatz-Erstellung
+
+### TR5: Architecture Documentation
+- **Documentation:** Maintain comprehensive architecture documentation for the Einsätze-Übersicht feature.
+- **Location:** Store documentation in the `/docs` directory.
+- **Content:** Include details on component structure, data flow, and integration points.
+- **Updates:** Regularly update documentation to reflect any changes in the architecture.
+
+## 5. User Experience Requirements
+
+### UX1: Benutzerfreundlichkeit
+- **Lade-Zeit:** Erste Anzeige < 2 Sekunden
+- **Suchgeschwindigkeit:** Live-Search mit 300ms Debounce
+- **Keyboard Navigation:** Vollständig über Tastatur bedienbar
+- **Accessibility:** WCAG 2.1 AA konform
+
+### UX2: Visual Design
+- **Konsistenz:** Folgt bestehender Bluelight-Hub Designsprache
+- **Farben:** Blau-Töne für primäre Aktionen (bestehende Palette)
+- **Icons:** React Icons (PiX) für konsistente Iconographie
+- **Typography:** Bestehende Schriftarten und -größen
+
+### UX3: Feedback & Guidance
+- **Empty State:** Hilfreiche Meldung wenn keine Einsätze vorhanden
+- **Error States:** Klare Fehlermeldungen mit Lösungsvorschlägen
+- **Success Feedback:** Toast-Notifications für erfolgreiche Aktionen
+
+## 6. Data Model
+
+### Einsatz Entity (bereits vorhanden):
+```typescript
+interface Einsatz {
+    id: string;                    // UUID
+    name: string;                  // 2-100 Zeichen
+    beschreibung?: string;         // Optional, max 500 Zeichen
+    createdAt: Date;              // ISO-8601 Format
+    updatedAt: Date;              // ISO-8601 Format
+}
+```
+
+### Create DTO (bereits vorhanden):
+```typescript
+interface CreateEinsatzDto {
+    name: string;                  // Required, validiert
+    beschreibung?: string;         // Optional
+}
+```
+
+## 7. Integration Points
+
+### Bestehende Komponenten:
+- **CreateInitialEinsatz:** Wiederverwendung der Einsatz-Erstellung
+- **useEinsatzQueries:** Bestehende Hooks erweitern
+- **Navigation:** Integration in bestehende Sidebar / neue Nav wie oben
+- **Auth:** Respektiert bestehende Authentifizierung falls vorhanden
+
+### API Endpoints (bereits vorhanden):
+- **Backend:** NestJS EinsatzController
+- **Client:** OpenAPI-generierte TypeScript-Client
+- **Error Handling:** Bestehender ErrorHandlingService
+
+## 8. Success Criteria
+
+### Primäre Erfolgskriterien:
+1. **Funktionalität:** Alle Einsätze werden korrekt angezeigt
+2. **Performance:** Liste lädt in < 2 Sekunden
+3. **Usability:** Neue Einsätze können ohne Verwirrung angelegt werden
+4. **Mobile:** Vollständig funktional auf Smartphone
+
+### Sekundäre Erfolgskriterien:
+1. **Test Coverage:** > 90% für neue Komponenten
+2. **Accessibility:** Keine WCAG-Verstöße
+3. **Browser Support:** Chrome, Firefox, Safari, Edge (aktuelle Versionen)
+4. **Code Quality:** ESLint/Prettier konform
+5. **Tauri:** Vollständig funktional in Tauri
+
+## 9. Rollout Plan
+
+### Phase 1: Basic Implementation
+- Einsätze-Liste Komponente
+- Basic Layout und Styling
+- API Integration
+
+### Phase 2: Enhanced UX
+- Suchfunktion
+- Filteroptionen
+- Responsive Design
+
+### Phase 3: Integration & Polish
+- Navigation Integration
+- Error Handling
+- Performance Optimization
+
+## 10. Anhang
+
+### Mockup-Referenzen:
+- Orientierung an bestehenden Mock-Komponenten (EinsatzkräfteÜbersicht)
+- Konsistente Card/Table-Layouts
+- Bewährte Ant Design Patterns
+
+### Technische Notizen:
+- Bestehende `.taskmasterconfig` und MCP-Integration nutzen
+- Bluelight-Hub spezifische Rettungsdienst-Terminologie
+- Deutsche Lokalisierung für alle UI-Texte 
