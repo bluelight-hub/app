@@ -6,7 +6,7 @@
 COMMIT_MSG_FILE=$1
 COMMIT_MSG=$(cat $COMMIT_MSG_FILE)
 
-if echo "$COMMIT_MSG" | grep -q "\[Skip-CI\]"; then
+if echo "$COMMIT_MSG" | grep -q "\[skip ci\]"; then
     echo "🔍 Skip-CI Flag erkannt, überspringe Validierung..."
     exit 0
 fi

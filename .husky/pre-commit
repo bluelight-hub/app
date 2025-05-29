@@ -1,6 +1,6 @@
 #!/bin/bash
 
-if echo "$COMMIT_MSG" | grep -q "\[Skip-CI\]"; then
+if echo "$COMMIT_MSG" | grep -q "\[skip ci\]"; then
     echo "🔍 Skip-CI Flag erkannt, überspringe Tests..."
     exit 0
 fi
