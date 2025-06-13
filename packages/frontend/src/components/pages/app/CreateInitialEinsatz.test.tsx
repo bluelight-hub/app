@@ -126,9 +126,9 @@ describe('CreateInitialEinsatz', () => {
                 });
             });
 
-            // Prüfen, ob zur Dashboard-Seite navigiert wird
+            // Prüfen, ob zur Einsätze-Übersicht navigiert wird
             await waitFor(() => {
-                expect(mockNavigate).toHaveBeenCalledWith('/app');
+                expect(mockNavigate).toHaveBeenCalledWith('/app/einsaetze');
             });
         });
 

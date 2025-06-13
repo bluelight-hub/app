@@ -29,7 +29,7 @@ describe('IndexPage', () => {
     });
 
     // Integration test: Button interaction works correctly
-    test('navigates to /app when button is clicked', () => {
+    test('navigates to /app/einsaetze when button is clicked', () => {
         render(
             <BrowserRouter>
                 <IndexPage />
@@ -42,7 +42,7 @@ describe('IndexPage', () => {
 
         // Verify navigation was called with correct path
         expect(mockNavigate).toHaveBeenCalledTimes(1);
-        expect(mockNavigate).toHaveBeenCalledWith('/app');
+        expect(mockNavigate).toHaveBeenCalledWith('/app/einsaetze');
     });
 
     // Layout and structure test

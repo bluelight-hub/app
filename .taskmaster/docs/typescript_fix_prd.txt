@@ -1,0 +1,91 @@
+<context>
+# Projektübersicht
+Dieses Projekt zielt darauf ab, die vorhandenen TypeScript-Fehler im Backend des Bluelight-Hub-Projekts zu beheben. Die Fehler treten hauptsächlich im ETB-Modul (Elektronisches Tagebuch) auf und betreffen Typinkonsistenzen in DTOs, Tests und Controller-Service-Interaktionen.
+
+# Kernfunktionen
+## Fehlerbehebung im ETB-Modul
+- Korrektur der DTO-Verwendung im ETB-Service und Controller
+- Anpassung der Testfälle an die korrekten DTO-Strukturen
+- Sicherstellung der Typkonsistenz im gesamten Modul
+
+## TypeScript-Kompatibilität
+- Behebung aller TypeScript-Kompilierungsfehler
+- Sicherstellung korrekter Typdefinitionen
+- Vermeidung von Type-Casting (any) wo möglich
+
+## Testabdeckung erhalten
+- Sicherstellung, dass alle Tests nach der Fehlerbehebung weiterhin funktionieren
+- Beibehaltung der bestehenden Funktionalität
+
+# Benutzererfahrung
+## Zielgruppen
+- Entwickler: Verbesserte Codequalität und Entwicklungserfahrung durch korrekte Typisierung
+- Tester: Stabile Testumgebung mit konsistenten Datenstrukturen
+- Endbenutzer: Keine direkte Auswirkung, aber indirekt verbesserte Stabilität
+
+## Hauptabläufe
+- ETB-Einträge erstellen und bearbeiten funktionieren fehlerfrei
+- Anhänge zu ETB-Einträgen hinzufügen mit korrekter Parametrisierung
+- Überschreiben von ETB-Einträgen mit validen DTOs
+</context>
+<PRD>
+# Technische Architektur
+## Systemkomponenten
+- **Backend**: NestJS mit TypeScript
+  - ETB-Modul (Elektronisches Tagebuch)
+  - DTO-Definitionen
+  - Controller und Service-Implementierungen
+  - Test-Suites
+
+## Datenmodell
+- **AddAttachmentDto**: Muss korrekt definiert und verwendet werden anstelle von Strings
+- **UeberschreibeEtbDto**: Muss das Feld 'ueberschreibungsgrund' enthalten
+- Konsistente Verwendung von Typen in Tests und Implementierungen
+
+# Entwicklungs-Roadmap
+## Phase 1: Analyse und Vorbereitung
+- Identifikation aller TypeScript-Fehler im ETB-Modul
+- Verstehen der betroffenen Datenstrukturen und ihrer Verwendung
+- Analyse der Abhängigkeiten zwischen den betroffenen Komponenten
+
+## Phase 2: DTO-Korrekturen
+- Überprüfung und Korrektur der AddAttachmentDto-Definition
+- Anpassung der UeberschreibeEtbDto-Definition
+- Sicherstellung, dass alle DTO-Klassen vollständig und korrekt definiert sind
+
+## Phase 3: Controller- und Service-Anpassungen
+- Korrektur des ETB-Controllers zur Verwendung des korrekten DTO-Typs
+- Anpassung des ETB-Services für konsistente Typverwendung
+- Überprüfung auf weitere Typinkonsistenzen in verwandtem Code
+
+## Phase 4: Test-Korrekturen
+- Anpassung der ETB-Service-Tests für korrekte DTO-Verwendung
+- Korrektur der ETB-Controller-Tests
+- Sicherstellung, dass alle Tests erfolgreich durchlaufen
+
+# Logische Abhängigkeitskette
+1. DTO-Definitionen müssen zuerst korrigiert werden, da sie die Grundlage für andere Komponenten bilden
+2. Service-Implementierungen müssen aktualisiert werden, um die korrekten DTOs zu verwenden
+3. Controller-Implementierungen müssen angepasst werden, um mit den aktualisierten Services zu funktionieren
+4. Tests müssen als letztes aktualisiert werden, um die neuen DTO-Strukturen zu berücksichtigen
+
+# Risiken und Gegenmaßnahmen
+| Risiko | Wahrscheinlichkeit | Auswirkung | Gegenmaßnahme |
+|--------|-------------------|------------|--------------|
+| Fehlende Tests für neue Felder | Mittel | Hoch | Sicherstellen, dass alle neuen oder geänderten Felder in Tests abgedeckt sind |
+| Breaking Changes für andere Module | Niedrig | Mittel | Typänderungen auf das ETB-Modul beschränken |
+| Regressionsfehler | Mittel | Hoch | Umfangreiche Testabdeckung sicherstellen |
+
+# Anhang
+## Betroffene Dateien
+- src/modules/etb/__tests__/etb.service.spec.ts
+- src/modules/etb/etb.controller.spec.ts
+- src/modules/etb/etb.controller.ts
+- src/modules/etb/etb.service.ts
+- src/modules/etb/dto/ueberschreibe-etb.dto.ts
+- src/modules/etb/dto/add-attachment.dto.ts (möglicherweise)
+
+## Spezifische Fehler
+1. String statt AddAttachmentDto als Parameter
+2. Fehlende ueberschreibungsgrund-Eigenschaft in UeberschreibeEtbDto
+3. Verwendung von nicht existierender referenzEinsatzId-Eigenschaft in UeberschreibeEtbDto 

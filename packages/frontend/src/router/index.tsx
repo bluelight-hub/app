@@ -1,6 +1,7 @@
 import React, { Suspense } from "react";
 import { Route, Routes } from "react-router";
 import { AuthProvider } from "../contexts/AuthContext";
+import { EinsatzProvider } from "../contexts/EinsatzContext";
 import EinsatzGuard from "./auth/EinsatzGuard";
 import PrivateRoute from "./auth/PrivateRoute";
 
@@ -19,6 +20,9 @@ const LoginPage = React.lazy(() => import("@pages/login/page"));
 // Dashboard
 const DashboardPage = React.lazy(() => import("@/components/pages/app/dashboard/page"));
 const ETBDashboardPage = React.lazy(() => import("@/components/pages/dashboard/etb/page"));
+
+// Einsätze
+const EinsaetzeUebersichtPage = React.lazy(() => import("@/components/pages/app/einsaetze/page"));
 
 // Einsatz
 const EinsatztagebuchPage = React.lazy(() => import("@pages/app/einsatztagebuch/page"));
@@ -79,8 +83,9 @@ const Loading = () => <div className="p-6 text-center">Lädt...</div>;
 export const Router = () => {
     return (
         <AuthProvider>
-            <Suspense fallback={<Loading />}>
-                <Routes>
+            <EinsatzProvider>
+                <Suspense fallback={<Loading />}>
+                    <Routes>
                     {/* Öffentliche Routen */}
                     <Route path="/" element={<IndexPage />} />
                     <Route path="/login" element={<LoginPage />} />
@@ -153,6 +158,7 @@ export const Router = () => {
 
                             {/* Standalone Einsatz Management - außerhalb AppLayout */}
                             <Route path="/app/create-initial-einsatz" element={<CreateInitialEinsatzPage />} />
+                            <Route path="/app/einsaetze" element={<EinsaetzeUebersichtPage />} />
                         </Route>
                     </Route>
 
@@ -160,6 +166,7 @@ export const Router = () => {
                     <Route path="*" element={<NotFoundPage />} />
                 </Routes>
             </Suspense>
+            </EinsatzProvider>
         </AuthProvider>
     );
 }; 

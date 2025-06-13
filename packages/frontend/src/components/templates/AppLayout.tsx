@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Outlet, useLocation } from 'react-router';
+import { Outlet, useLocation, useNavigate } from 'react-router';
 import { findRouteTitle, mainNavigation } from '../../config/navigation';
 import useMediaQuery from '../../hooks/useMediaQuery';
 import MobileHeader from '../organisms/MobileHeader';
@@ -13,6 +13,9 @@ const AppLayout: React.FC<{ children?: React.ReactNode }> = () => {
     const location = useLocation();
     const title = findRouteTitle(location.pathname);
     const isMobile = useMediaQuery('(max-width: 1024px)'); // lg breakpoint in Tailwind
+    const navigate = useNavigate();
+
+    // Entfernt - die Navigation wird jetzt durch den EinsatzGuard gehandhabt
 
     // Schließt die Sidebar automatisch, wenn der Viewport auf mobile Größe wechselt
     useEffect(() => {
