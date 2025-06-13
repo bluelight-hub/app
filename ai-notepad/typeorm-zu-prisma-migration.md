@@ -136,7 +136,7 @@ Aktuell verwendet das Backend:
 
 6. **.env-Datei aktualisieren**
    ```
-   DATABASE_URL="postgresql://bluelight:bluelight@localhost:5432/bluelight_hub?schema=public"
+   DATABASE_URL="postgresql://bluelight:bluelight@localhost:5432/bluelight-hub?schema=public"
    USE_PRISMA=false
    ```
 
@@ -167,7 +167,7 @@ Aktuell verwendet das Backend:
          port: parseInt(process.env.DATABASE_PORT || '5432', 10),
          username: process.env.DATABASE_USER || 'bluelight',
          password: process.env.DATABASE_PASSWORD || 'bluelight',
-         database: process.env.DATABASE_NAME || 'bluelight_hub',
+         database: process.env.DATABASE_NAME || 'bluelight-hub',
          entities: ['dist/**/*.entity.{ts,js}'],
          synchronize: process.env.NODE_ENV !== 'production',
          logging: process.env.NODE_ENV !== 'production',
