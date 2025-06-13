@@ -1,3 +1,21 @@
+## Version [v1.0.0-alpha.19](https://github.com/bluelight-hub/app/compare/v1.0.0-alpha.18...v1.0.0-alpha.19) – Veröffentlicht am 2025-05-30
+
+## ♻ Refactoring
+Struktur- oder Code-Verbesserungen:
+- [`1edb687`](https://github.com/bluelight-hub/app/commit/1edb687) (rules): Migrate rules from .roo to .cursor 
+
+## 🔧 Tool Verbesserungen
+Verbesserungen an den Werkzeugen:
+- [`eb0036d`](https://github.com/bluelight-hub/app/commit/eb0036d) (build): try to fix ci 
+
+- [`fc53fbf`](https://github.com/bluelight-hub/app/commit/fc53fbf) (build): try to fix ci 
+
+- [`67fdad5`](https://github.com/bluelight-hub/app/commit/67fdad5) (build): try to fix ci 
+
+
+
+# [1.0.0-alpha.19](https://github.com/bluelight-hub/app/compare/v1.0.0-alpha.18...v1.0.0-alpha.19) (2025-05-30)
+
 ## Version [v1.0.0-alpha.18](https://github.com/bluelight-hub/app/compare/v1.0.0-alpha.17...v1.0.0-alpha.18) – Veröffentlicht am 2025-05-29
 
 ## ✨ Neue Funktionen
