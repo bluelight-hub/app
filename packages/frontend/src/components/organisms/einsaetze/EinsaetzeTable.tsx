@@ -5,60 +5,7 @@ import { Empty, Table, TableColumnsType, Tooltip } from 'antd';
 import dayjs from 'dayjs';
 import React, { useMemo } from 'react';
 import { PiEmpty } from 'react-icons/pi';
-
-/**
- * Props für die EinsaetzeTable-Komponente
- */
-interface EinsaetzeTableProps {
-    /**
-     * Die anzuzeigenden Einsätze
-     */
-    einsaetze: Einsatz[];
-
-    /**
-     * Loading-State der Tabelle
-     */
-    loading?: boolean;
-
-    /**
-     * Pagination-Konfiguration
-     */
-    pagination?: {
-        current: number;
-        pageSize: number;
-        total: number;
-    };
-
-    /**
-     * Callback für Paginierung
-     */
-    onPageChange?: (page: number, pageSize: number) => void;
-
-    /**
-     * Callback für Sortierung
-     */
-    onSortChange?: (sorter: any) => void;
-
-    /**
-     * Callback für Filter-Änderungen
-     */
-    onFilterChange?: (filters: Record<string, React.Key[] | null>) => void;
-
-    /**
-     * Callback für Einsatz-Auswahl
-     */
-    onEinsatzSelect?: (einsatzId: string) => void;
-
-    /**
-     * Ausgewählte Einsätze für Row Selection
-     */
-    selectedRowKeys?: React.Key[];
-
-    /**
-     * Callback für Row Selection Änderungen
-     */
-    onSelectionChange?: (selectedRowKeys: React.Key[], selectedRows: Einsatz[]) => void;
-}
+import type { EinsaetzeTableProps } from '../../../types/components/einsaetze';
 
 /**
  * Tabellen-Komponente für die Darstellung von Einsätzen

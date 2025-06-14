@@ -2,6 +2,8 @@ import { useCallback, useMemo, useState } from 'react';
 import type { EinsaetzeFilterOptions, EinsaetzeSortOptions } from '../../types/einsaetze';
 import { filterEinsaetze } from '../../utils/einsaetze';
 import { logger } from '../../utils/logger';
+import { paginate, validatePageNumber } from '../../utils/pagination';
+import { sortData } from '../../utils/sorting';
 import { useCreateEinsatz, useEinsaetze, useEinsatzOperations } from './useEinsatzQueries';
 
 /**
@@ -34,32 +36,20 @@ export const useEinsaetzeUebersicht = () => {
         // Filterung
         let filtered = filterEinsaetze(einsaetzeQuery.data, filters);
 
-        // Sortierung
-        filtered = [...filtered].sort((a, b) => {
-            let aValue: any;
-            let bValue: any;
-
-            switch (sort.field) {
-                case 'name':
-                    aValue = a.name.toLowerCase();
-                    bValue = b.name.toLowerCase();
-                    break;
-                case 'createdAt':
-                    aValue = new Date(a.createdAt);
-                    bValue = new Date(b.createdAt);
-                    break;
-                case 'updatedAt':
-                    aValue = new Date(a.updatedAt);
-                    bValue = new Date(b.updatedAt);
-                    break;
-                default:
-                    return 0;
-            }
-
-            if (aValue < bValue) return sort.direction === 'asc' ? -1 : 1;
-            if (aValue > bValue) return sort.direction === 'asc' ? 1 : -1;
-            return 0;
-        });
+        // Sortierung mit Utility-Funktion
+        if (sort.field) {
+            filtered = sortData(filtered, {
+                field: sort.field,
+                direction: sort.direction,
+                customCompare: sort.field === 'createdAt' || sort.field === 'updatedAt'
+                    ? (a, b) => {
+                        const aDate = new Date(a[sort.field as keyof typeof a] as string);
+                        const bDate = new Date(b[sort.field as keyof typeof b] as string);
+                        return aDate.getTime() - bDate.getTime();
+                    }
+                    : undefined
+            });
+        }
 
         logger.debug('Processed Einsätze', {
             filtered: filtered.length,
@@ -69,11 +59,9 @@ export const useEinsaetzeUebersicht = () => {
         return filtered;
     }, [einsaetzeQuery.data, filters, sort]);
 
-    // Paginierte Daten
-    const paginatedEinsaetze = useMemo(() => {
-        const startIndex = (currentPage - 1) * pageSize;
-        const endIndex = startIndex + pageSize;
-        return processedEinsaetze.slice(startIndex, endIndex);
+    // Paginierte Daten mit Utility-Funktion
+    const paginatedData = useMemo(() => {
+        return paginate(processedEinsaetze, currentPage, pageSize);
     }, [processedEinsaetze, currentPage, pageSize]);
 
     // Filter-Funktionen
@@ -98,27 +86,27 @@ export const useEinsaetzeUebersicht = () => {
 
     // Pagination-Funktionen
     const goToPage = useCallback((page: number) => {
-        const maxPage = Math.ceil(processedEinsaetze.length / pageSize);
-        const validPage = Math.max(1, Math.min(page, maxPage));
+        const totalPages = Math.ceil(processedEinsaetze.length / pageSize);
+        const validPage = validatePageNumber(page, totalPages);
         setCurrentPage(validPage);
-        logger.debug('Changed page', { page: validPage, maxPage });
+        logger.debug('Changed page', { page: validPage, totalPages });
     }, [processedEinsaetze.length, pageSize]);
 
-    // Statistiken
+    // Statistiken aus paginatedData verwenden
     const stats = useMemo(() => ({
         totalEinsaetze: einsaetzeQuery.data?.length ?? 0,
         filteredEinsaetze: processedEinsaetze.length,
-        currentPageItems: paginatedEinsaetze.length,
-        totalPages: Math.ceil(processedEinsaetze.length / pageSize),
-        currentPage,
-        pageSize,
-        hasNextPage: currentPage < Math.ceil(processedEinsaetze.length / pageSize),
-        hasPreviousPage: currentPage > 1
-    }), [einsaetzeQuery.data, processedEinsaetze.length, paginatedEinsaetze.length, currentPage, pageSize]);
+        currentPageItems: paginatedData.items.length,
+        totalPages: paginatedData.totalPages,
+        currentPage: paginatedData.currentPage,
+        pageSize: paginatedData.pageSize,
+        hasNextPage: paginatedData.hasNextPage,
+        hasPreviousPage: paginatedData.hasPreviousPage
+    }), [einsaetzeQuery.data, processedEinsaetze.length, paginatedData]);
 
     return {
         // Daten
-        einsaetze: paginatedEinsaetze,
+        einsaetze: paginatedData.items,
         allEinsaetze: processedEinsaetze,
 
         // Status

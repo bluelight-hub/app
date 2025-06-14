@@ -1,5 +1,6 @@
 import type { Einsatz } from '@bluelight-hub/shared/client/models';
 import type { EinsaetzeFilterOptions } from '../types/einsaetze';
+import { formatNatoDateTime } from './date';
 
 /**
  * Filtert Einsätze basierend auf den gegebenen Filter-Optionen
@@ -40,17 +41,10 @@ export const filterEinsaetze = (
 };
 
 /**
- * Formatiert ein Datum für die Anzeige
+ * Formatiert ein Datum für die Anzeige im NATO-DateTime Format
  */
 export const formatDate = (date: string | Date): string => {
-    const dateObj = typeof date === 'string' ? new Date(date) : date;
-    return dateObj.toLocaleDateString('de-DE', {
-        day: '2-digit',
-        month: '2-digit',
-        year: 'numeric',
-        hour: '2-digit',
-        minute: '2-digit'
-    });
+    return formatNatoDateTime(date) || 'Invalid Date';
 };
 
 /**
