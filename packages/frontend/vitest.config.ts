@@ -27,6 +27,9 @@ export default defineConfig({
                 'src/**/*.spec.{js,ts,jsx,tsx}',
                 // Type-only files
                 'src/utils/types.ts',
+                'src/types/**/*.ts',
+                'src/**/*.types.ts',
+                'src/**/*.d.ts',
                 // Asset-only imports
                 'src/assets/**',
                 // Main entry points that bootstrap the app
