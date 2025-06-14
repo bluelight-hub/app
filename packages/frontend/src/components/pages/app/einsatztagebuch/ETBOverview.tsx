@@ -192,7 +192,7 @@ export const ETBOverview: React.FC = () => {
         if (einsatztagebuch.query.isLoading) {
             return (
                 <div className="flex justify-center items-center h-64">
-                    <Spin size="large" tip="Lade Einsatztagebuch..." />
+                    <Spin size="large" />
                 </div>
             );
         }

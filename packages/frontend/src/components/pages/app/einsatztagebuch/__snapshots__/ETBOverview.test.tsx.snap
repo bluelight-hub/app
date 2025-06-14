@@ -643,7 +643,7 @@ exports[`ETBOverview Komponente > sollte einen Snapshot im Ladezustand erstellen
       <div
         aria-busy="true"
         aria-live="polite"
-        class="ant-spin ant-spin-lg ant-spin-spinning ant-spin-show-text css-dev-only-do-not-override-ut69n1"
+        class="ant-spin ant-spin-lg ant-spin-spinning css-dev-only-do-not-override-ut69n1"
       >
         <span
           class="ant-spin-dot-holder"

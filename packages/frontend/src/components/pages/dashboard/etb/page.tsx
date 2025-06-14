@@ -167,7 +167,7 @@ const ETBDashboardPage: React.FC = () => {
     if (einsatztagebuch.query.isLoading && !einsatztagebuch.data) {
         return (
             <div className="flex justify-center items-center h-64">
-                <Spin size="large" tip="Lade Einsatztagebuch-Daten..." />
+                <Spin size="large" />
             </div>
         );
     }
