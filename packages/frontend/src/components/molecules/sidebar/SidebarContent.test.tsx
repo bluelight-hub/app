@@ -3,6 +3,7 @@ import { fireEvent, render, screen } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { NavigationItem } from '../../../config/navigation';
+import { EinsatzProvider } from '../../../contexts/EinsatzContext';
 import * as ThemeHook from '../../../hooks/useTheme';
 import SidebarContent from './SidebarContent';
 
@@ -41,6 +42,11 @@ vi.mock('../../../hooks/useTheme', async () => {
     };
 });
 
+// Mock für auth utils
+vi.mock('../../../utils/auth', () => ({
+    logout: vi.fn()
+}));
+
 describe('SidebarContent', () => {
     let queryClient: QueryClient;
 
@@ -59,7 +65,9 @@ describe('SidebarContent', () => {
         return render(
             <QueryClientProvider client={queryClient}>
                 <MemoryRouter>
-                    <SidebarContent {...props} />
+                    <EinsatzProvider>
+                        <SidebarContent {...props} />
+                    </EinsatzProvider>
                 </MemoryRouter>
             </QueryClientProvider>
         );

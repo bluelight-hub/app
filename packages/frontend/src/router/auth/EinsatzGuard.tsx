@@ -1,4 +1,5 @@
 import { Navigate, Outlet, useLocation } from 'react-router-dom';
+import { useEinsatzContext } from '../../contexts/EinsatzContext';
 import { useEinsatzOperations } from '../../hooks/einsatz/useEinsatzQueries';
 import { logger } from '../../utils/logger';
 
@@ -9,6 +10,7 @@ import { logger } from '../../utils/logger';
 const EinsatzGuard = () => {
     const location = useLocation();
     const { isLoading, hasDataBeenFetched, hasEinsatz, isError } = useEinsatzOperations();
+    const { isEinsatzSelected } = useEinsatzContext();
 
     // Loading state - zeige Indikator während Daten geladen werden
     if (isLoading || !hasDataBeenFetched) {
@@ -23,8 +25,12 @@ const EinsatzGuard = () => {
         );
     }
 
-    // Umleitung zur Erstellung wenn keine Einsätze vorhanden
+    // Spezielle Pfade die immer erlaubt sind
     const isOnCreatePage = location.pathname === '/app/create-initial-einsatz';
+    const isOnEinsaetzePage = location.pathname === '/app/einsaetze';
+    const isAllowedPath = isOnCreatePage || isOnEinsaetzePage;
+
+    // Umleitung zur Erstellung wenn keine Einsätze vorhanden
     const shouldRedirectToCreate = !hasEinsatz() && !isOnCreatePage;
 
     if (shouldRedirectToCreate) {
@@ -38,10 +44,17 @@ const EinsatzGuard = () => {
         return <Navigate to="/app/create-initial-einsatz" replace />;
     }
 
+    // Wenn Einsätze vorhanden aber keiner ausgewählt ist, zur Einsatzliste umleiten
+    if (hasEinsatz() && !isEinsatzSelected && !isAllowedPath) {
+        logger.info('EinsatzGuard: No Einsatz selected, redirecting to Einsätze list');
+        return <Navigate to="/app/einsaetze" replace />;
+    }
+
     // Zugriff erlauben - entweder Einsätze vorhanden oder bereits auf Create-Seite
     logger.debug('EinsatzGuard: Allowing access to protected content', {
         hasEinsatz: hasEinsatz(),
-        isOnCreatePage,
+        isEinsatzSelected,
+        isAllowedPath,
         isError
     });
 

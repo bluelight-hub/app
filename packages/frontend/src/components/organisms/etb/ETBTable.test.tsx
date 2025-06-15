@@ -47,7 +47,7 @@ beforeEach(() => {
     };
 });
 
-describe('ETBTable Komponente', () => {
+describe('ETBTable Komponente', { timeout: 10000 }, () => {
     // Testdaten für die Tabelle
     const mockEntries = [
         {

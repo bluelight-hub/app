@@ -48,7 +48,7 @@ export const CreateInitialEinsatz: React.FC = () => {
             await createEinsatzMutation.mutateAsync(createEinsatzDto);
 
             message.success('Einsatz wurde erfolgreich erstellt');
-            navigate('/app');
+            navigate('/app/einsaetze');
         } catch (err) {
             const errorMessage = err instanceof Error ? err.message : 'Fehler beim Erstellen des Einsatzes';
             setError(errorMessage);

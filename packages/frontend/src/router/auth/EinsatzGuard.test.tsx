@@ -3,6 +3,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { render, screen, waitFor } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { EinsatzProvider } from '../../contexts/EinsatzContext';
 import EinsatzGuard from './EinsatzGuard';
 
 // Mock der useEinsatzOperations Hook
@@ -23,6 +24,19 @@ const mockUseEinsatzOperations = {
 // Mock useEinsatzOperations
 vi.mock('../../hooks/einsatz/useEinsatzQueries', () => ({
     useEinsatzOperations: () => mockUseEinsatzOperations
+}));
+
+// Mock useEinsatzContext
+const mockUseEinsatzContext = {
+    selectedEinsatz: null as Einsatz | null,
+    selectEinsatz: vi.fn(),
+    clearSelectedEinsatz: vi.fn(),
+    isEinsatzSelected: false
+};
+
+vi.mock('../../contexts/EinsatzContext', () => ({
+    EinsatzProvider: ({ children }: { children: React.ReactNode }) => children,
+    useEinsatzContext: () => mockUseEinsatzContext
 }));
 
 // Mock logger
@@ -47,9 +61,11 @@ const renderWithProviders = (initialPath = '/app') => {
 
     return render(
         <QueryClientProvider client={queryClient}>
-            <MemoryRouter initialEntries={[initialPath]}>
-                <EinsatzGuard />
-            </MemoryRouter>
+            <EinsatzProvider>
+                <MemoryRouter initialEntries={[initialPath]}>
+                    <EinsatzGuard />
+                </MemoryRouter>
+            </EinsatzProvider>
         </QueryClientProvider>
     );
 };
@@ -80,6 +96,10 @@ describe('EinsatzGuard', () => {
         mockUseEinsatzOperations.isError = false;
         mockUseEinsatzOperations.hasDataBeenFetched = false;
         mockUseEinsatzOperations.hasEinsatz.mockReturnValue(false);
+
+        // Reset EinsatzContext mock
+        mockUseEinsatzContext.selectedEinsatz = null;
+        mockUseEinsatzContext.isEinsatzSelected = false;
 
         // Reset environment
         process.env.NODE_ENV = 'development';
@@ -162,9 +182,11 @@ describe('EinsatzGuard', () => {
             });
         });
 
-        it('should allow access when Einsätze exist in development', async () => {
+        it('should allow access when Einsätze exist and one is selected in development', async () => {
             mockUseEinsatzOperations.hasDataBeenFetched = true;
             mockUseEinsatzOperations.hasEinsatz.mockReturnValue(true);
+            mockUseEinsatzContext.isEinsatzSelected = true;
+            mockUseEinsatzContext.selectedEinsatz = { id: '1', name: 'Test Einsatz' } as Einsatz;
 
             renderWithProviders();
 
@@ -174,11 +196,41 @@ describe('EinsatzGuard', () => {
             });
         });
 
+        it('should redirect to einsaetze list when Einsätze exist but none selected', async () => {
+            mockUseEinsatzOperations.hasDataBeenFetched = true;
+            mockUseEinsatzOperations.hasEinsatz.mockReturnValue(true);
+            mockUseEinsatzContext.isEinsatzSelected = false;
+            mockUseEinsatzContext.selectedEinsatz = null;
+
+            renderWithProviders();
+
+            await waitFor(() => {
+                const navigate = screen.getByTestId('navigate');
+                expect(navigate).toBeInTheDocument();
+                expect(navigate).toHaveAttribute('data-to', '/app/einsaetze');
+                expect(navigate).toHaveAttribute('data-replace', 'true');
+            });
+        });
+
         it('should not redirect when already on create page', async () => {
             mockUseEinsatzOperations.hasDataBeenFetched = true;
             mockUseEinsatzOperations.hasEinsatz.mockReturnValue(false);
+            mockUseEinsatzContext.isEinsatzSelected = false;
 
             renderWithProviders('/app/create-initial-einsatz');
+
+            await waitFor(() => {
+                expect(screen.getByTestId('protected-content')).toBeInTheDocument();
+                expect(screen.queryByTestId('navigate')).not.toBeInTheDocument();
+            });
+        });
+
+        it('should not redirect when already on einsaetze page', async () => {
+            mockUseEinsatzOperations.hasDataBeenFetched = true;
+            mockUseEinsatzOperations.hasEinsatz.mockReturnValue(true);
+            mockUseEinsatzContext.isEinsatzSelected = false;
+
+            renderWithProviders('/app/einsaetze');
 
             await waitFor(() => {
                 expect(screen.getByTestId('protected-content')).toBeInTheDocument();
@@ -204,9 +256,11 @@ describe('EinsatzGuard', () => {
             });
         });
 
-        it('should allow access when Einsätze exist in production', async () => {
+        it('should allow access when Einsätze exist and one is selected in production', async () => {
             mockUseEinsatzOperations.hasDataBeenFetched = true;
             mockUseEinsatzOperations.hasEinsatz.mockReturnValue(true);
+            mockUseEinsatzContext.isEinsatzSelected = true;
+            mockUseEinsatzContext.selectedEinsatz = { id: '1', name: 'Test Einsatz' } as Einsatz;
 
             renderWithProviders();
 
@@ -217,7 +271,7 @@ describe('EinsatzGuard', () => {
     });
 
     describe('Integration Tests', () => {
-        it('should complete full flow: load → check → allow access when Einsätze exist', async () => {
+        it('should complete full flow: load → check → allow access when Einsätze exist and one selected', async () => {
             const mockEinsatz: Einsatz = {
                 id: '1',
                 name: 'Test Einsatz',
@@ -229,6 +283,8 @@ describe('EinsatzGuard', () => {
             mockUseEinsatzOperations.hasDataBeenFetched = true;
             mockUseEinsatzOperations.einsaetze = [mockEinsatz];
             mockUseEinsatzOperations.hasEinsatz.mockReturnValue(true);
+            mockUseEinsatzContext.isEinsatzSelected = true;
+            mockUseEinsatzContext.selectedEinsatz = mockEinsatz;
 
             renderWithProviders();
 
@@ -266,6 +322,8 @@ describe('EinsatzGuard', () => {
         it('should handle normal successful data fetching', async () => {
             mockUseEinsatzOperations.hasDataBeenFetched = true;
             mockUseEinsatzOperations.hasEinsatz.mockReturnValue(true);
+            mockUseEinsatzContext.isEinsatzSelected = true;
+            mockUseEinsatzContext.selectedEinsatz = { id: '1', name: 'Test Einsatz' } as Einsatz;
 
             renderWithProviders();
 

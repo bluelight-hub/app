@@ -1,7 +1,9 @@
-import { Button, Card, DatePicker, Form, Input, message, Select } from 'antd';
-import { Dayjs } from 'dayjs';
-import React, { useState } from 'react';
-import { formatNatoDateTime, parseNatoDateTime } from '../../../utils/date';
+import {Button, Card, Col, DatePicker, Form, Input, message, Modal, Row, Select} from 'antd';
+import {Dayjs} from 'dayjs';
+import React, {useState} from 'react';
+import {useNavigate} from 'react-router';
+import {formatNatoDateTime, parseNatoDateTime} from '../../../utils/date';
+import {PiExclamationMark} from "react-icons/pi";
 
 interface Einsatzdaten {
     einsatzstichwort: string;
@@ -33,9 +35,14 @@ const initialEinsatz: Einsatzdaten = {
 
 const rettungsmittelOptions = ['RTW 1', 'RTW 2', 'NEF 2', 'KTW 1'];
 
+// Modal.confirm entfernt - wird durch useState Modal ersetzt
+
 const EinsatzdatenPage: React.FC = () => {
     const [form] = Form.useForm<EinsatzdatenFormValues>();
     const [einsatz, setEinsatz] = useState<Einsatzdaten>(initialEinsatz);
+    const [loading, setLoading] = useState(false);
+    const [showConfirmModal, setShowConfirmModal] = useState(false);
+    const navigate = useNavigate();
 
     React.useEffect(() => {
         // Initialisiere das Formular mit den Anfangswerten
@@ -66,61 +73,126 @@ const EinsatzdatenPage: React.FC = () => {
         message.success('Einsatzdaten gespeichert');
     };
 
+    /**
+     * Einsatz schließen - zeigt Bestätigungsdialog
+     */
+    const handleCloseEinsatz = () => {
+        setShowConfirmModal(true);
+    };
+
+    /**
+     * Bestätigter Einsatz-Schließung
+     */
+    const handleConfirmCloseEinsatz = async () => {
+        setLoading(true);
+        try {
+            // TODO: API-Call zum Schließen des Einsatzes implementieren
+            await new Promise((resolve) => setTimeout(resolve, 1000)); // Simulierter API-Call
+
+            message.success('Einsatz wurde erfolgreich geschlossen');
+            setShowConfirmModal(false);
+            navigate('/app/einsaetze');
+        } catch {
+            message.error('Fehler beim Schließen des Einsatzes');
+        } finally {
+            setLoading(false);
+        }
+    };
+
     return (
-        <Card title="Einsatzdaten">
-            <Form layout="vertical" form={form} onFinish={handleSave}>
-                <Form.Item
-                    label="Einsatzstichwort"
-                    name="einsatzstichwort"
-                    rules={[{ required: true, message: 'Bitte Einsatzstichwort eingeben' }]}
-                >
-                    <Input placeholder="z.B. Brand, VU, MANV" />
-                </Form.Item>
+        <div>
+            <Row justify="space-between" align="middle" className="mb-6">
+                <Col>
+                    <h2 className="text-2xl font-semibold">Einsatzdaten</h2>
+                </Col>
+                <Col>
+                    <Button
+                        danger
+                        size="large"
+                        onClick={handleCloseEinsatz}
+                        loading={loading}
+                        icon={<PiExclamationMark/>}
+                    >
+                        Einsatz schließen
+                    </Button>
+                </Col>
+            </Row>
 
-                <Form.Item
-                    label="Datum und Uhrzeit"
-                    name="zeitpunkt"
-                    rules={[{ required: true, message: 'Bitte ein Datum und eine Uhrzeit wählen' }]}
-                >
-                    <DatePicker
-                        showTime
-                        placeholder="Datum und Uhrzeit wählen"
-                    />
-                </Form.Item>
+            <Card>
+                <Form layout="vertical" form={form} onFinish={handleSave}>
+                    <Form.Item
+                        label="Einsatzstichwort"
+                        name="einsatzstichwort"
+                        rules={[{required: true, message: 'Bitte Einsatzstichwort eingeben'}]}
+                    >
+                        <Input placeholder="z.B. Brand, VU, MANV"/>
+                    </Form.Item>
 
-                <Form.Item
-                    label="Einsatzleiter"
-                    name="einsatzleiter"
-                    rules={[{ required: true, message: 'Bitte einen Namen eingeben' }]}
-                >
-                    <Input />
-                </Form.Item>
+                    <Form.Item
+                        label="Datum und Uhrzeit"
+                        name="zeitpunkt"
+                        rules={[{required: true, message: 'Bitte ein Datum und eine Uhrzeit wählen'}]}
+                    >
+                        <DatePicker
+                            showTime
+                            placeholder="Datum und Uhrzeit wählen"
+                        />
+                    </Form.Item>
 
-                <Form.Item
-                    label="Einsatzort"
-                    name="einsatzort"
-                    rules={[{ required: true, message: 'Bitte Einsatzort eingeben' }]}
-                >
-                    <Input placeholder="z.B. A5, Ausfahrt Musterstadt" />
-                </Form.Item>
+                    <Form.Item
+                        label="Einsatzleiter"
+                        name="einsatzleiter"
+                        rules={[{required: true, message: 'Bitte einen Namen eingeben'}]}
+                    >
+                        <Input/>
+                    </Form.Item>
 
-                <Form.Item
-                    label="Rettungsmittel"
-                    name="rettungsmittel"
-                    rules={[{ required: true, message: 'Bitte ein Rettungsmittel auswählen' }]}
-                >
-                    <Select options={rettungsmittelOptions.map((item) => ({ label: item, value: item }))} />
-                </Form.Item>
+                    <Form.Item
+                        label="Einsatzort"
+                        name="einsatzort"
+                        rules={[{required: true, message: 'Bitte Einsatzort eingeben'}]}
+                    >
+                        <Input placeholder="z.B. A5, Ausfahrt Musterstadt"/>
+                    </Form.Item>
 
-                <Form.Item label="Bemerkungen" name="bemerkungen">
-                    <Input.TextArea rows={3} />
-                </Form.Item>
+                    <Form.Item
+                        label="Rettungsmittel"
+                        name="rettungsmittel"
+                        rules={[{required: true, message: 'Bitte ein Rettungsmittel auswählen'}]}
+                    >
+                        <Select options={rettungsmittelOptions.map((item) => ({label: item, value: item}))}/>
+                    </Form.Item>
 
-                <Button type="primary" htmlType="submit">
-                    Speichern
-                </Button>
-            </Form>
-        </Card>
+                    <Form.Item label="Bemerkungen" name="bemerkungen">
+                        <Input.TextArea rows={3}/>
+                    </Form.Item>
+
+                    <Button type="primary" htmlType="submit">
+                        Speichern
+                    </Button>
+                </Form>
+            </Card>
+
+            {/* Bestätigungs-Modal für Einsatz schließen */}
+            <Modal
+                title="Einsatz schließen"
+                open={showConfirmModal}
+                onOk={handleConfirmCloseEinsatz}
+                onCancel={() => setShowConfirmModal(false)}
+                okText="Ja, Einsatz schließen"
+                cancelText="Abbrechen"
+                okType="danger"
+                confirmLoading={loading}
+            >
+                <div className="flex items-center gap-3 mb-4">
+                    <PiExclamationMark className="text-orange-500 text-xl" />
+                    <span>Möchten Sie diesen Einsatz wirklich schließen?</span>
+                </div>
+                <p className="text-gray-600 text-sm">
+                    Diese Aktion kann nicht rückgängig gemacht werden. Der Einsatz wird geschlossen und Sie werden zur Einsatzliste weitergeleitet.
+                </p>
+            </Modal>
+        </div>
     );
 };
 

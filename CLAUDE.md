@@ -13,7 +13,55 @@
 - Backend: NestJS modular architecture (controller, service, repository)
 - File naming: PascalCase for components, camelCase for others
 - Comments: Explain "why" not "what", JSDoc for public APIs
-- Commit style: `<emoji>(<context>): <description>` (e.g., `✨(frontend): Add user dashboard`)
+
+## Commit Message Convention
+- Format: `<emoji>(<context>): <title>`
+- Context: `frontend`, `backend`, `shared`, `release`, or other module names
+- Title: Short summary (50-72 characters), use imperative mood
+- Body (optional): Detailed explanation after blank line
+
+### Commit Message Structure
+```
+<emoji>(<context>): <title>
+
+<optional body>
+```
+
+### Examples
+Single-line commits:
+- `✨(frontend): Add user dashboard`
+- `🐛(backend): Fix database connection timeout`
+- `♻️(shared): Refactor date utility functions`
+
+Multi-line commit:
+```
+💥(backend): Change API response format
+
+BREAKING CHANGE: The API now returns data in a nested structure
+instead of flat objects. This improves consistency but requires
+frontend updates.
+
+Affected endpoints:
+- GET /api/users
+- GET /api/organizations
+```
+
+### Semantic Release Emojis
+This project uses semantic-release with gitmoji for automated versioning:
+
+**Major Version (Breaking Changes):**
+- 💥 Breaking changes
+
+**Minor Version (New Features):**
+- ✨ New features/functionality
+
+**Patch Version (Fixes & Improvements):**
+- 🐛 Bug fixes
+- 🚑 Critical hotfixes
+- 🔒 Security fixes
+- 🧹 Code cleanup/chore
+- ♻️ Code refactoring
+- 🔧 Configuration/tooling changes
 
 ## Architecture & Patterns
 - React frontend with Atomic Design and Vite/Vitest for testing

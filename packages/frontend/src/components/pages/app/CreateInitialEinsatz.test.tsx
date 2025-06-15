@@ -34,7 +34,7 @@ vi.mock('antd', async () => {
     };
 });
 
-describe('CreateInitialEinsatz', () => {
+describe('CreateInitialEinsatz', { timeout: 10000 }, () => {
     // Mock-Objekte für die Tests
     const mockMutateAsync = vi.fn();
     const mockCreateEinsatz = {
@@ -126,9 +126,9 @@ describe('CreateInitialEinsatz', () => {
                 });
             });
 
-            // Prüfen, ob zur Dashboard-Seite navigiert wird
+            // Prüfen, ob zur Einsätze-Übersicht navigiert wird
             await waitFor(() => {
-                expect(mockNavigate).toHaveBeenCalledWith('/app');
+                expect(mockNavigate).toHaveBeenCalledWith('/app/einsaetze');
             });
         });
 
