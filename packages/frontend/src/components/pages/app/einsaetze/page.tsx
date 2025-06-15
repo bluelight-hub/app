@@ -1,12 +1,14 @@
 import type { Einsatz } from '@bluelight-hub/shared/client/models';
 import { Alert, Button, Card, Input, Space, Table, Typography } from 'antd';
-import React from 'react';
-import { PiMagnifyingGlass, PiPlus, PiSiren } from 'react-icons/pi';
+import React, { useState } from 'react';
+import { PiMagnifyingGlass, PiPlus, PiSignOut, PiSiren } from 'react-icons/pi';
 import { useNavigate } from 'react-router-dom';
 import { useEinsatzContext } from '../../../../contexts/EinsatzContext';
 import { useEinsaetzeUebersicht, useEinsatzSearch } from '../../../../hooks/einsatz/useEinsaetzeUebersicht';
+import { logout } from '../../../../utils/auth';
 import { formatDate } from '../../../../utils/einsaetze';
 import { logger } from '../../../../utils/logger';
+import { NewEinsatzModal } from '../../../organisms/einsaetze/NewEinsatzModal';
 
 const { Title } = Typography;
 const { Search } = Input;
@@ -19,7 +21,9 @@ const { Search } = Input;
  */
 export const EinsaetzeUebersichtPage: React.FC = () => {
     const navigate = useNavigate();
-    const { selectEinsatz } = useEinsatzContext();
+    const { selectEinsatz, clearSelectedEinsatz } = useEinsatzContext();
+    const [logoutLoading, setLogoutLoading] = useState(false);
+    const [newEinsatzModalOpen, setNewEinsatzModalOpen] = useState(false);
     
     const {
         einsaetze,
@@ -104,6 +108,32 @@ export const EinsaetzeUebersichtPage: React.FC = () => {
         navigate('/app');
     };
 
+    const handleLogout = async () => {
+        setLogoutLoading(true);
+        try {
+            await logout(clearSelectedEinsatz);
+        } catch (error) {
+            // Fehler wird bereits in der logout-Funktion behandelt
+        } finally {
+            setLogoutLoading(false);
+        }
+    };
+
+    const handleOpenNewEinsatzModal = () => {
+        logger.debug('Opening new Einsatz modal');
+        setNewEinsatzModalOpen(true);
+    };
+
+    const handleCloseNewEinsatzModal = () => {
+        logger.debug('Closing new Einsatz modal');
+        setNewEinsatzModalOpen(false);
+    };
+
+    const handleNewEinsatzSuccess = () => {
+        logger.debug('New Einsatz created successfully');
+        // Modal wird automatisch geschlossen, Liste wird durch React Query aktualisiert
+    };
+
     logger.debug('EinsaetzeUebersichtPage render', {
         einsaetzeCount: einsaetze.length,
         isLoading,
@@ -122,13 +152,26 @@ export const EinsaetzeUebersichtPage: React.FC = () => {
                         </Title>
                     </div>
 
-                    <Button
-                        type="primary"
-                        icon={<PiPlus />}
-                        size="large"
-                    >
-                        Neuer Einsatz
-                    </Button>
+                    <Space>
+                        <Button
+                            type="primary"
+                            icon={<PiPlus />}
+                            size="large"
+                            onClick={handleOpenNewEinsatzModal}
+                        >
+                            Neuer Einsatz
+                        </Button>
+                        
+                        <Button
+                            icon={<PiSignOut />}
+                            size="large"
+                            onClick={handleLogout}
+                            loading={logoutLoading}
+                            danger
+                        >
+                            Ausloggen
+                        </Button>
+                    </Space>
                 </div>
 
                 {/* Filters */}
@@ -200,6 +243,13 @@ export const EinsaetzeUebersichtPage: React.FC = () => {
                         })}
                     />
                 </Card>
+
+                {/* New Einsatz Modal */}
+                <NewEinsatzModal
+                    open={newEinsatzModalOpen}
+                    onClose={handleCloseNewEinsatzModal}
+                    onSuccess={handleNewEinsatzSuccess}
+                />
             </div>
         </div>
     );

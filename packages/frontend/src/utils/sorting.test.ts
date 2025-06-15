@@ -114,6 +114,20 @@ describe('sorting utils', () => {
             
             expect(compareValues(obj1, obj2, 'asc')).toBeLessThan(0);
         });
+
+        it('should handle string comparison for fallback with same values', () => {
+            const obj1 = { toString: () => 'same' };
+            const obj2 = { toString: () => 'same' };
+            
+            expect(compareValues(obj1, obj2, 'asc')).toBe(0);
+        });
+
+        it('should handle string comparison for fallback in descending order', () => {
+            const obj1 = { toString: () => 'z' };
+            const obj2 = { toString: () => 'a' };
+            
+            expect(compareValues(obj1, obj2, 'desc')).toBeLessThan(0);
+        });
     });
 
     describe('getNestedValue', () => {
@@ -182,6 +196,45 @@ describe('sorting utils', () => {
             
             expect(result[0]).toEqual({ category: 'A', priority: 2, name: 'Item 4' });
             expect(result[1]).toEqual({ category: 'A', priority: 1, name: 'Item 1' });
+        });
+
+        it('should use custom compare function in multi-sort', () => {
+            const customCompare = (a: any, b: any) => {
+                // Custom compare that reverses the order
+                if (a.category < b.category) return 1;
+                if (a.category > b.category) return -1;
+                return 0;
+            };
+            
+            const configs = [
+                { field: 'category', direction: 'asc' as const, customCompare },
+                { field: 'priority', direction: 'asc' as const }
+            ];
+            
+            const result = [...testData].sort(createMultiSort(configs));
+            
+            // With custom compare reversing category order, B should come first
+            expect(result[0].category).toBe('B');
+            expect(result[1].category).toBe('B');
+            expect(result[2].category).toBe('A');
+            expect(result[3].category).toBe('A');
+        });
+
+        it('should apply direction to custom compare results', () => {
+            const customCompare = (a: any, b: any) => a.priority - b.priority;
+            
+            const configs = [
+                { field: 'category', direction: 'asc' as const },
+                { field: 'priority', direction: 'desc' as const, customCompare }
+            ];
+            
+            const result = [...testData].sort(createMultiSort(configs));
+            
+            // Within each category, priority should be descending due to desc direction
+            expect(result[0]).toEqual({ category: 'A', priority: 2, name: 'Item 4' });
+            expect(result[1]).toEqual({ category: 'A', priority: 1, name: 'Item 1' });
+            expect(result[2]).toEqual({ category: 'B', priority: 2, name: 'Item 3' });
+            expect(result[3]).toEqual({ category: 'B', priority: 1, name: 'Item 2' });
         });
     });
 

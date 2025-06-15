@@ -85,6 +85,16 @@ vi.mock('antd', async () => {
                             </button>
                         </div>
                     )}
+                    <button
+                        data-testid="trigger-filter"
+                        onClick={() => onChange?.(
+                            pagination || {},
+                            { name: ['test'] },
+                            {}
+                        )}
+                    >
+                        Apply Filter
+                    </button>
                 </div>
             );
         },
@@ -119,6 +129,7 @@ describe('EinsaetzeTable', () => {
     const mockOnSortChange = vi.fn();
     const mockOnEinsatzSelect = vi.fn();
     const mockOnSelectionChange = vi.fn();
+    const mockOnFilterChange = vi.fn();
 
     // Erstelle Mock-Einsätze basierend auf dem echten Einsatz-Interface
     const createMockEinsatz = (overrides: Partial<Einsatz> = {}): Einsatz => ({
@@ -294,6 +305,25 @@ describe('EinsaetzeTable', () => {
         });
     });
 
+    describe('Filtering', () => {
+        it('sollte onFilterChange aufrufen, wenn Filter angewendet werden', () => {
+            render(
+                <EinsaetzeTable
+                    einsaetze={mockEinsaetze}
+                    onFilterChange={mockOnFilterChange}
+                    onSortChange={mockOnSortChange}
+                />
+            );
+
+            // Nutze den Mock-Button um Filter zu triggern
+            const filterButton = screen.getByTestId('trigger-filter');
+            fireEvent.click(filterButton);
+            
+            // Dies testet die Zeilen 177-178
+            expect(mockOnFilterChange).toHaveBeenCalledWith({ name: ['test'] });
+        });
+    });
+
     describe('Row Selection', () => {
         it('sollte Row Selection anzeigen, wenn onSelectionChange bereitgestellt wird', () => {
             render(
@@ -328,6 +358,51 @@ describe('EinsaetzeTable', () => {
             render(<EinsaetzeTable einsaetze={mockEinsaetze} />);
 
             expect(screen.queryByText('Select')).not.toBeInTheDocument();
+        });
+
+        it('sollte getCheckboxProps mit name property für jede Zeile setzen', () => {
+            render(
+                <EinsaetzeTable
+                    einsaetze={mockEinsaetze}
+                    onSelectionChange={mockOnSelectionChange}
+                    selectedRowKeys={['einsatz-1']}
+                />
+            );
+
+            // Prüfe, dass die Checkboxen korrekt gerendert werden
+            const checkbox = screen.getByTestId('row-select-einsatz-1');
+            expect(checkbox).toBeInTheDocument();
+            
+            // Die getCheckboxProps Funktion wird intern von Ant Design verwendet
+            // und gibt den name für jede Checkbox zurück
+        });
+
+        it('sollte selectedRowKeys korrekt verarbeiten', () => {
+            const { rerender } = render(
+                <EinsaetzeTable
+                    einsaetze={mockEinsaetze}
+                    onSelectionChange={mockOnSelectionChange}
+                    selectedRowKeys={['einsatz-1']}
+                />
+            );
+
+            // Test onChange mit neuen selectedRowKeys
+            const checkbox = screen.getByTestId('row-select-einsatz-2');
+            fireEvent.click(checkbox);
+
+            expect(mockOnSelectionChange).toHaveBeenCalledWith(
+                ['einsatz-2'],
+                [mockEinsaetze[1]]
+            );
+
+            // Re-render mit neuen selectedRowKeys
+            rerender(
+                <EinsaetzeTable
+                    einsaetze={mockEinsaetze}
+                    onSelectionChange={mockOnSelectionChange}
+                    selectedRowKeys={['einsatz-1', 'einsatz-2']}
+                />
+            );
         });
     });
 

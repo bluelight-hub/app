@@ -17,6 +17,27 @@ vi.mock('../../../../utils/logger', () => ({
     }
 }));
 
+// Mock NewEinsatzModal component
+vi.mock('../../../organisms/einsaetze/NewEinsatzModal', () => ({
+    NewEinsatzModal: ({ open, onClose, onSuccess }: any) => {
+        if (!open) return null;
+        return (
+            <div data-testid="new-einsatz-modal">
+                <button onClick={onClose} data-testid="modal-close">Close Modal</button>
+                <button 
+                    onClick={() => {
+                        onSuccess?.();
+                        onClose();
+                    }} 
+                    data-testid="modal-success"
+                >
+                    Success
+                </button>
+            </div>
+        );
+    }
+}));
+
 const mockNavigate = vi.fn();
 vi.mock('react-router-dom', async () => {
     const actual = await vi.importActual('react-router-dom');
@@ -58,6 +79,18 @@ vi.mock('antd', async () => {
         ...actual,
         Table: ({ dataSource, columns, onRow, loading, pagination, locale }: any) => {
             const handlePageChange = pagination?.onChange;
+            
+            // Berechne Range für showTotal
+            let showTotalText = '';
+            if (pagination?.showTotal && dataSource) {
+                const current = pagination.current || 1;
+                const pageSize = pagination.pageSize || 10;
+                const total = pagination.total || dataSource.length;
+                const rangeStart = (current - 1) * pageSize + 1;
+                const rangeEnd = Math.min(current * pageSize, total);
+                showTotalText = pagination.showTotal(total, [rangeStart, rangeEnd]);
+            }
+            
             return (
                 <div>
                     {loading && <div>Loading...</div>}
@@ -115,6 +148,9 @@ vi.mock('antd', async () => {
                             >
                                 Next
                             </button>
+                            {showTotalText && (
+                                <div data-testid="pagination-info">{showTotalText}</div>
+                            )}
                         </div>
                     )}
                 </div>
@@ -423,6 +459,115 @@ describe('EinsaetzeUebersichtPage', () => {
 
             const nextButton = screen.getByText('Next');
             expect(nextButton).toBeDisabled();
+        });
+
+        it('should display pagination info with showTotal', () => {
+            mockUseEinsaetzeUebersicht.mockReturnValue({
+                ...defaultMockData,
+                einsaetze: Array(50).fill(null).map((_, i) => ({
+                    ...mockEinsaetze[0],
+                    id: `${i + 1}`
+                })),
+                totalEinsaetze: 50,
+                filteredEinsaetze: 50,
+                currentPage: 2,
+                pageSize: 20
+            });
+
+            renderComponent();
+
+            // Test zeigt an: "21-40 von 50 Einsätzen"
+            expect(screen.getByTestId('pagination-info')).toHaveTextContent('21-40 von 50 Einsätzen');
+        });
+
+        it('should display correct range on first page', () => {
+            mockUseEinsaetzeUebersicht.mockReturnValue({
+                ...defaultMockData,
+                einsaetze: Array(50).fill(null).map((_, i) => ({
+                    ...mockEinsaetze[0],
+                    id: `${i + 1}`
+                })),
+                totalEinsaetze: 50,
+                filteredEinsaetze: 50,
+                currentPage: 1,
+                pageSize: 20
+            });
+
+            renderComponent();
+
+            // Test zeigt an: "1-20 von 50 Einsätzen"
+            expect(screen.getByTestId('pagination-info')).toHaveTextContent('1-20 von 50 Einsätzen');
+        });
+
+        it('should display correct range on last page with partial items', () => {
+            mockUseEinsaetzeUebersicht.mockReturnValue({
+                ...defaultMockData,
+                einsaetze: Array(45).fill(null).map((_, i) => ({
+                    ...mockEinsaetze[0],
+                    id: `${i + 1}`
+                })),
+                totalEinsaetze: 45,
+                filteredEinsaetze: 45,
+                currentPage: 3,
+                pageSize: 20
+            });
+
+            renderComponent();
+
+            // Test zeigt an: "41-45 von 45 Einsätzen"
+            expect(screen.getByTestId('pagination-info')).toHaveTextContent('41-45 von 45 Einsätzen');
+        });
+    });
+
+    describe('modal interactions', () => {
+        it('should open modal when "Neuer Einsatz" button is clicked', async () => {
+            renderComponent();
+
+            const newEinsatzButton = screen.getByText('Neuer Einsatz');
+            fireEvent.click(newEinsatzButton);
+
+            expect(screen.getByTestId('new-einsatz-modal')).toBeInTheDocument();
+        });
+
+        it('should close modal when close handler is called', async () => {
+            renderComponent();
+
+            // Open modal
+            const newEinsatzButton = screen.getByText('Neuer Einsatz');
+            fireEvent.click(newEinsatzButton);
+
+            expect(screen.getByTestId('new-einsatz-modal')).toBeInTheDocument();
+
+            // Close modal
+            const closeButton = screen.getByTestId('modal-close');
+            fireEvent.click(closeButton);
+
+            expect(screen.queryByTestId('new-einsatz-modal')).not.toBeInTheDocument();
+        });
+
+        it('should close modal when success handler is called', async () => {
+            renderComponent();
+
+            // Open modal
+            const newEinsatzButton = screen.getByText('Neuer Einsatz');
+            fireEvent.click(newEinsatzButton);
+
+            expect(screen.getByTestId('new-einsatz-modal')).toBeInTheDocument();
+
+            // Trigger success (this will call onSuccess which should close the modal)
+            const successButton = screen.getByTestId('modal-success');
+            fireEvent.click(successButton);
+
+            // Wait for the modal to close
+            await waitFor(() => {
+                expect(screen.queryByTestId('new-einsatz-modal')).not.toBeInTheDocument();
+            });
+        });
+
+        it('should not show modal initially', () => {
+            renderComponent();
+
+            expect(screen.queryByTestId('new-einsatz-modal')).not.toBeInTheDocument();
         });
     });
 });

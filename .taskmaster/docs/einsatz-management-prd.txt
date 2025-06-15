@@ -1,0 +1,144 @@
+<context>
+# Feature: Erweitertes Einsatz-Management
+Das bestehende Einsatz-Management in Bluelight Hub benötigt drei spezifische Aktionen für einen vollständigen Workflow:
+
+1. **Navigation**: Einsatz verlassen ohne Status zu ändern
+2. **Status-Management**: Einsatz offiziell abschließen
+3. **Archivierung**: Abgeschlossene Einsätze aus der aktiven Liste entfernen
+
+Aktuell ist nur ein unvollständiger "Einsatz schließen" Button implementiert, der zwischen Navigation und Status-Änderung verwechselt wird.
+
+# Zu implementierende Aktionen
+
+## 1. Einsatz verlassen (Navigation)
+**Ziel**: Schnelle Navigation zurück zur Einsatzliste ohne den Einsatz zu verändern
+
+**Implementation**:
+- Neuer Menüeintrag "Zur Einsatzliste" im UserProfile Dropdown
+- Icon: PiArrowLeft oder PiSignOut  
+- Funktion: `clearSelectedEinsatz()` + `navigate('/app/einsaetze')`
+- Immer verfügbar, keine Bestätigung nötig
+- Position: Im UserProfile zwischen "Profil" und "Ausloggen"
+
+## 2. Einsatz abschließen (Status-Management)
+**Ziel**: Einsatz offiziell als "abgeschlossen" markieren
+
+**Implementation**:
+- Bestehenden Button in MockEinsatzdaten von "Einsatz schließen" zu "Einsatz abschließen" umbenennen
+- Icon: PiCheckCircle statt PiExclamationMark
+- API-Call: `PATCH /api/einsatz/:id/status` mit `status: 'COMPLETED'`
+- Bestätigungsdialog: "Einsatz als abgeschlossen markieren? Diese Aktion ändert den Status permanent."
+- Nach Erfolg: Weiterleitung zur Einsatzliste
+
+## 3. Einsatz-Archivierung (Bulk-Management)
+**Ziel**: Abgeschlossene Einsätze aus der aktiven Liste in ein Archiv verschieben
+
+**Implementation**:
+- EinsatzListe erweitern um Tab-Navigation: "Aktiv" | "Abgeschlossen" | "Archiviert"
+- Bulk-Selection für abgeschlossene Einsätze
+- "Archivieren" Button für ausgewählte Einsätze
+- API-Call: `PATCH /api/einsatz/bulk/archive` mit Array von Einsatz-IDs
+- Filter und Suche pro Tab für bessere Übersicht
+</context>
+<PRD>
+# Technische Architektur
+## Systemkomponenten
+- **Frontend**: React mit TypeScript, Atomic Design Pattern
+  - UserProfile Dropdown-Komponente für Navigation
+  - Einsatzdaten-Seite für Status-Management
+  - EinsatzListe mit Tab-Navigation für Archivierung
+  - Zentrale Einsatz-Context für State Management
+
+- **Backend**: NestJS mit Prisma ORM
+  - EinsatzController für CRUD-Operationen
+  - Status-Management für Einsatz-Lifecycle
+  - Bulk-Operations für Archivierung
+  - Audit-Logging für Statusänderungen
+
+- **Shared Package**: TypeScript-Definitionen für Einsatz-Entitäten und API-Contracts
+
+## Datenmodelle
+- **Einsatz**: id, name, beschreibung, status, createdAt, updatedAt, archivedAt
+- **EinsatzStatus**: ACTIVE, COMPLETED, ARCHIVED (neue Enum-Werte)
+- **EinsatzAudit**: Logging von Statusänderungen mit Timestamp und Benutzer
+
+## APIs und Integrationen
+- PATCH /api/einsatz/:id/status für Status-Updates
+- GET /api/einsatz?status=completed für gefilterte Listen
+- PATCH /api/einsatz/bulk/archive für Bulk-Archivierung
+- WebSocket-Updates für Echtzeit-Synchronisation bei Status-Änderungen
+
+## Infrastrukturanforderungen
+- **Datenbank**: PostgreSQL mit Indizes auf Status-Felder für Performance
+- **Frontend**: Ant Design für konsistente UI-Komponenten
+- **State Management**: React Context für globalen Einsatz-State
+- **Navigation**: React Router für Routing zwischen Einsatz-Bereichen
+
+# Entwicklungs-Roadmap
+## Sofortige Implementierung (MVP)
+- UserProfile Dropdown: "Zur Einsatzliste" Menüeintrag hinzufügen
+- MockEinsatzdaten: Button-Text und Icon von "schließen" zu "abschließen" ändern
+- Bestätigungsdialog: Text anpassen für Status-Änderung statt Navigation
+- Backend: Einsatz-Entity um `status` Enum-Feld erweitern
+
+## Phase 2: Status-Management
+- API-Endpoint: `PATCH /api/einsatz/:id/status` implementieren
+- Frontend: API-Integration für Status-Updates
+- Einsatz-Context: Status in State-Management integrieren
+- Validation: Nur aktive Einsätze können abgeschlossen werden
+
+## Phase 3: Archivierung
+- EinsatzListe: Tab-Navigation für Status-Filter implementieren
+- Bulk-Operations: Multi-Select und Archivierung von abgeschlossenen Einsätzen
+- API-Endpoint: `PATCH /api/einsatz/bulk/archive` für Bulk-Updates
+- Search & Filter: Pro Tab individuell konfigurierbar
+
+# Implementierungs-Abhängigkeiten
+## Sofortige Umsetzung (parallel möglich)
+1. UserProfile Dropdown: "Zur Einsatzliste" Navigation hinzufügen
+2. MockEinsatzdaten: Button-Wording von "schließen" zu "abschließen" ändern
+3. Modal-Text: Bestätigungsdialog für Status-Änderung anpassen
+
+## Backend-Erweiterungen (benötigt für Phase 2)
+4. Einsatz-Entity: `status` Enum-Feld hinzufügen (ACTIVE, COMPLETED, ARCHIVED)
+5. API-Endpoint: `PATCH /api/einsatz/:id/status` für Status-Updates
+6. Database Migration: Status-Feld mit Default-Werten
+
+## Frontend-Integration (abhängig von Backend)
+7. API-Integration: Status-Update Calls in Frontend
+8. Context-Update: Einsatz-Status in State-Management
+9. UI-Updates: Status-basierte Darstellung und Validierung
+
+## Archivierungs-Features (Phase 3, abhängig von Status-Management)
+10. EinsatzListe: Tab-Navigation für Status-Filter
+11. Bulk-Selection: Multi-Select Komponente für Einsätze
+12. Bulk-API: `PATCH /api/einsatz/bulk/archive` Endpoint
+
+# Risiken und Gegenmaßnahmen
+## Technische Herausforderungen
+- **Performance bei großen Einsatzlisten**: Paginierung und Virtualisierung für archivierte Einsätze
+  *Mitigation*: Lazy Loading und Indizierung der Datenbank
+
+- **State-Synchronisation zwischen Komponenten**: Inkonsistente Darstellung bei Status-Änderungen
+  *Mitigation*: Centralized State Management mit React Context und WebSocket-Updates
+
+## Projektrisiken
+- **UX-Verwirrung durch ähnliche Begriffe**: "Schließen" vs "Abschließen" vs "Archivieren"
+  *Mitigation*: Klare Wording-Guidelines und Benutzer-Tests
+
+- **Datenintegrität bei Bulk-Operationen**: Fehlerhafte Archivierung mehrerer Einsätze
+  *Mitigation*: Transaktionale Bulk-Operations und Rollback-Mechanismen
+
+# Anhang
+## Technische Spezifikationen
+- Frontend: React 18+, TypeScript 5+, Ant Design 5+
+- Backend: NestJS 10+, Prisma 5+, PostgreSQL 15+
+- Shared: TypeScript-Definitionen, OpenAPI-generated Clients
+- Testing: Vitest, React Testing Library, Supertest
+
+## Architekturentscheidungen
+- Atomic Design Pattern für konsistente Komponenten-Struktur
+- React Context für globalen Einsatz-State statt Redux (Simplicity over Complexity)
+- Tab-Navigation in EinsatzListe statt separate Routen (bessere UX für Status-Filter)
+- Bulk-Operations für Archivierung (Performance bei vielen Einsätzen)
+</PRD>

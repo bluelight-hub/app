@@ -14,6 +14,9 @@ vi.mock('../utils/logger', () => ({
     }
 }));
 
+// Get mocked logger for assertions
+import { logger as mockLogger } from '../utils/logger';
+
 describe('EinsatzContext', () => {
     const mockEinsatz: Einsatz = {
         id: 'test-id',
@@ -80,6 +83,34 @@ describe('EinsatzContext', () => {
                 name: 'Saved Einsatz'
             });
             expect(result.current.isEinsatzSelected).toBe(true);
+        });
+
+        it('should handle legacy localStorage format and log warning', () => {
+            // Set invalid JSON in selectedEinsatz to trigger the catch block
+            localStorage.setItem('selectedEinsatz', 'invalid-json');
+            // Set legacy format data
+            localStorage.setItem('selectedEinsatzId', 'legacy-id');
+            localStorage.setItem('selectedEinsatzName', 'Legacy Einsatz');
+
+            renderHook(() => useEinsatzContext(), {
+                wrapper: EinsatzProvider
+            });
+
+            // Should log error for invalid JSON
+            expect(vi.mocked(mockLogger.error)).toHaveBeenCalledWith(
+                'Failed to parse saved Einsatz', 
+                expect.any(Error)
+            );
+
+            // Should log warning
+            expect(vi.mocked(mockLogger.warn)).toHaveBeenCalledWith(
+                'Using legacy localStorage format, please re-select Einsatz'
+            );
+
+            // Should clean up legacy keys and invalid JSON
+            expect(localStorage.getItem('selectedEinsatzId')).toBeNull();
+            expect(localStorage.getItem('selectedEinsatzName')).toBeNull();
+            expect(localStorage.getItem('selectedEinsatz')).toBeNull();
         });
 
         it('should start with null selectedEinsatz when localStorage is empty', () => {
@@ -285,6 +316,36 @@ describe('EinsatzContext', () => {
             expect(result.current.selectedEinsatz).toEqual(mockEinsatz);
 
             localStorage.setItem = originalSetItem;
+        });
+
+        it('should log error when localStorage save fails', () => {
+            const { result } = renderHook(() => useEinsatzContext(), {
+                wrapper: EinsatzProvider
+            });
+
+            // Clear all previous mock calls
+            vi.clearAllMocks();
+
+            // Mock localStorage.setItem to throw error
+            const originalSetItem = localStorage.setItem;
+            const mockError = new Error('Storage error');
+            vi.spyOn(Storage.prototype, 'setItem').mockImplementation(() => {
+                throw mockError;
+            });
+
+            // Select einsatz which should trigger save
+            act(() => {
+                result.current.selectEinsatz(mockEinsatz);
+            });
+
+            // Should log error
+            expect(vi.mocked(mockLogger.error)).toHaveBeenCalledWith(
+                'Failed to save Einsatz to localStorage',
+                mockError
+            );
+
+            // Restore original localStorage
+            vi.mocked(Storage.prototype.setItem).mockRestore();
         });
     });
 });
