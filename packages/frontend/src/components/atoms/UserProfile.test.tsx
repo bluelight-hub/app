@@ -1,4 +1,4 @@
-import {fireEvent, render, screen} from '@testing-library/react';
+import {act, fireEvent, render, screen} from '@testing-library/react';
 import {describe, expect, it, vi} from 'vitest';
 import {EinsatzProvider} from '../../contexts/EinsatzContext';
 import {useUserProfileStore} from '../../stores/useUserProfileStore';
@@ -75,12 +75,14 @@ describe('UserProfile', () => {
     });
 
     // Unit Test - Prüft, ob onClick richtig aufgerufen wird (jetzt Dropdown)
-    it('should handle onClick event', () => {
+    it('should handle onClick event', async () => {
         const handleClick = vi.fn();
         renderWithEinsatzProvider(<UserProfile href="/profile" onClick={handleClick} data-testid="user-profile" />);
 
         // Dropdown trigger klicken
-        fireEvent.click(screen.getByTestId('user-profile'));
+        await act(async () => {
+            fireEvent.click(screen.getByTestId('user-profile'));
+        });
         
         // Das onclick wird nicht mehr direkt aufgerufen, da wir ein Dropdown haben
         // Stattdessen testen wir, dass das Dropdown funktioniert
@@ -117,13 +119,13 @@ describe('UserProfile', () => {
 
     // Snapshot Test
     it('should match snapshot', () => {
-        const { container } = render(<UserProfile href="/profile" data-testid="user-profile" />);
+        const { container } = renderWithEinsatzProvider(<UserProfile href="/profile" data-testid="user-profile" />);
         expect(container).toMatchSnapshot();
     });
 
     // Snapshot Test with hideText
     it('should match snapshot with hidden text', () => {
-        const { container } = render(<UserProfile href="/profile" hideText={true} data-testid="user-profile" />);
+        const { container } = renderWithEinsatzProvider(<UserProfile href="/profile" hideText={true} data-testid="user-profile" />);
         expect(container).toMatchSnapshot();
     });
 

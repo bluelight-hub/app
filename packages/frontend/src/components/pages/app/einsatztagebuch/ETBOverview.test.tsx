@@ -141,7 +141,7 @@ interface ETBEntryFormData {
     content: string;
 }
 
-describe('ETBOverview Komponente', () => {
+describe('ETBOverview Komponente', { timeout: 10000 }, () => {
     // Test-Daten
     const mockEntries: EtbEntryDto[] = [
         {

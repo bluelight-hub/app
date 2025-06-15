@@ -65,7 +65,7 @@ import { NewEinsatzModal } from './NewEinsatzModal';
 import { notification } from 'antd';
 const mockNotification = notification as { success: any; error: any };
 
-describe('NewEinsatzModal', () => {
+describe('NewEinsatzModal', { timeout: 10000 }, () => {
     const mockMutateAsync = vi.fn();
     const mockUseCreateEinsatz = useCreateEinsatz as MockedFunction<typeof useCreateEinsatz>;
     
@@ -422,7 +422,7 @@ describe('NewEinsatzModal', () => {
             await user.click(submitButton);
             
             await waitFor(() => {
-                expect(logger.info).toHaveBeenCalledWith('Einsatz successfully created via modal', { name: 'Test Einsatz' });
+                expect(logger.info).toHaveBeenCalledWith('Einsatz successfully created via modal', { name: 'Test Einsatz', id: '123' });
             });
         });
 

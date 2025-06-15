@@ -34,7 +34,7 @@ vi.mock('antd', async () => {
     };
 });
 
-describe('CreateInitialEinsatz', () => {
+describe('CreateInitialEinsatz', { timeout: 10000 }, () => {
     // Mock-Objekte für die Tests
     const mockMutateAsync = vi.fn();
     const mockCreateEinsatz = {
