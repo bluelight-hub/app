@@ -1,3 +1,34 @@
+## Version [v1.0.0-alpha.20](https://github.com/bluelight-hub/app/compare/v1.0.0-alpha.19...v1.0.0-alpha.20) – Veröffentlicht am 2025-06-15
+
+## ✨ Neue Funktionen
+Die folgenden neuen Features wurden hinzugefügt:
+- [`704b2b5`](https://github.com/bluelight-hub/app/commit/704b2b5) (frontend): Implementiere Einsatzübersicht mit Auswahlmechanismus 
+
+- [`50a0df2`](https://github.com/bluelight-hub/app/commit/50a0df2) (frontend): Implementiere Einsatzübersicht mit Auswahlmechanismus 
+
+- [`cfaa44b`](https://github.com/bluelight-hub/app/commit/cfaa44b) (frontend): Implementiere Basis Einsätze-Übersicht mit NewEinsatzModal 
+(Zugehörige Issues: [`#137`](https://github.com/bluelight-hub/app/issues/), [`#138`](https://github.com/bluelight-hub/app/issues/), [`#139`](https://github.com/bluelight-hub/app/issues/), [`#140`](https://github.com/bluelight-hub/app/issues/), [`#141`](https://github.com/bluelight-hub/app/issues/), [`#142`](https://github.com/bluelight-hub/app/issues/), [`#143`](https://github.com/bluelight-hub/app/issues/))
+
+## 🐛 Fehlerbehebungen
+Diese Probleme wurden behoben:
+- [`e6de68f`](https://github.com/bluelight-hub/app/commit/e6de68f) (frontend): Entferne tip prop von Spin Komponenten 
+
+- [`a09985e`](https://github.com/bluelight-hub/app/commit/a09985e) (frontend): Behebe Test-Fehler und aktualisiere Snapshots 
+
+## ♻ Refactoring
+Struktur- oder Code-Verbesserungen:
+- [`74edfed`](https://github.com/bluelight-hub/app/commit/74edfed) (frontend): Refaktorisiere Einsatzübersicht mit Utilities 
+
+## 🔧 Tool Verbesserungen
+Verbesserungen an den Werkzeugen:
+- [`5ea55e9`](https://github.com/bluelight-hub/app/commit/5ea55e9) (frontend): Behebe Testfehler nach Ant Design Update 
+
+- [`9e21845`](https://github.com/bluelight-hub/app/commit/9e21845) (frontend): Schließe TypeScript-Typdateien von Coverage aus 
+
+
+
+# [1.0.0-alpha.20](https://github.com/bluelight-hub/app/compare/v1.0.0-alpha.19...v1.0.0-alpha.20) (2025-06-15)
+
 ## Version [v1.0.0-alpha.19](https://github.com/bluelight-hub/app/compare/v1.0.0-alpha.18...v1.0.0-alpha.19) – Veröffentlicht am 2025-05-30
 
 ## ♻ Refactoring
