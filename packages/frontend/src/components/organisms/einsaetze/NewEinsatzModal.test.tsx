@@ -40,7 +40,7 @@ vi.mock('antd', async () => {
             success: vi.fn(),
             error: vi.fn()
         },
-        Modal: ({ children, open, onCancel, title, onKeyDown }: any) => {
+        Modal: ({ children, open, onCancel: _onCancel, title, onKeyDown }: any) => {
             if (!open) return null;
             return (
                 <div 

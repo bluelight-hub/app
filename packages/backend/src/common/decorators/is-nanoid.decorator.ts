@@ -10,7 +10,7 @@ import { registerDecorator, ValidationArguments, ValidationOptions } from 'class
  * @returns PropertyDecorator für class-validator
  */
 export function IsNanoId(validationOptions?: ValidationOptions, length: number = 21) {
-    return function (object: Object, propertyName: string) {
+    return function (object: object, propertyName: string) {
         registerDecorator({
             name: 'isNanoId',
             target: object.constructor,

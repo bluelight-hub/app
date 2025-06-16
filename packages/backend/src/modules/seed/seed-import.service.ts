@@ -464,7 +464,7 @@ export class SeedImportService {
         }
     }
 
-    private getTotalEinsaetzeCount(data: any): number {
+    private getTotalEinsaetzeCount(_data: any): number {
         return 1; // Da wir pro Einsatz aufrufen
     }
 

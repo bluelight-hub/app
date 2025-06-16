@@ -10,8 +10,8 @@ import { SeedService } from '../seed.service';
 describe('SeedService', () => {
     let service: SeedService;
     let prismaService: jest.Mocked<PrismaService>;
-    let configService: jest.Mocked<ConfigService>;
-    let databaseCheckService: jest.Mocked<DatabaseCheckService>;
+    let _configService: jest.Mocked<ConfigService>;
+    let _databaseCheckService: jest.Mocked<DatabaseCheckService>;
     let einsatzService: jest.Mocked<EinsatzService>;
     let errorHandlingService: jest.Mocked<ErrorHandlingService>;
 
@@ -82,8 +82,8 @@ describe('SeedService', () => {
 
         service = module.get<SeedService>(SeedService);
         prismaService = module.get(PrismaService);
-        configService = module.get(ConfigService);
-        databaseCheckService = module.get(DatabaseCheckService);
+        _configService = module.get(ConfigService);
+        _databaseCheckService = module.get(DatabaseCheckService);
         einsatzService = module.get(EinsatzService);
         errorHandlingService = module.get(ErrorHandlingService);
 

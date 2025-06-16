@@ -16,7 +16,7 @@ interface UserProfileProps extends BaseAtomProps {
  * User profile component for the sidebar
  */
 const UserProfile: React.FC<UserProfileProps> = ({
-    href,
+    href: _href,
     onClick,
     hideText = false,
     'data-testid': dataTestId = 'user-profile'
@@ -29,7 +29,7 @@ const UserProfile: React.FC<UserProfileProps> = ({
         setLoading(true);
         try {
             await logout(clearSelectedEinsatz);
-        } catch (error) {
+        } catch (_error) {
             // Fehler wird bereits in der logout-Funktion behandelt
         } finally {
             setLoading(false);

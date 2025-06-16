@@ -447,11 +447,11 @@ describe('useWorkspaceStore', () => {
 
             // Diese sollten nicht crashen
             act(() => {
-                // @ts-ignore - Testen mit ungültigen Eingaben
+                // @ts-ignore - Testing with invalid null input - Testen mit ungültigen Eingaben
                 result.current.removeTab(null);
-                // @ts-ignore
+                // @ts-ignore - Testing with invalid null input
                 result.current.setActiveTab(undefined);
-                // @ts-ignore
+                // @ts-ignore - Testing with invalid null input
                 result.current.updateTabTitle('test-uuid-1', null);
             });
 

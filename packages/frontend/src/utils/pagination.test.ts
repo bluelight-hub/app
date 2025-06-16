@@ -153,7 +153,7 @@ describe('pagination utils', () => {
         });
 
         it('should go to specific page', () => {
-            const { state, goToPage } = createPaginationState(100, 1, 10);
+            const { _state, goToPage } = createPaginationState(100, 1, 10);
             const newState = goToPage(5);
             
             expect(newState.currentPage).toBe(5);
@@ -162,35 +162,35 @@ describe('pagination utils', () => {
         });
 
         it('should go to next page', () => {
-            const { state, nextPage } = createPaginationState(100, 5, 10);
+            const { _state, nextPage } = createPaginationState(100, 5, 10);
             const newState = nextPage();
             
             expect(newState.currentPage).toBe(6);
         });
 
         it('should not go past last page', () => {
-            const { state, nextPage } = createPaginationState(100, 10, 10);
+            const { _state, nextPage } = createPaginationState(100, 10, 10);
             const newState = nextPage();
             
             expect(newState.currentPage).toBe(10); // Stay on last page
         });
 
         it('should go to previous page', () => {
-            const { state, previousPage } = createPaginationState(100, 5, 10);
+            const { _state, previousPage } = createPaginationState(100, 5, 10);
             const newState = previousPage();
             
             expect(newState.currentPage).toBe(4);
         });
 
         it('should not go before first page', () => {
-            const { state, previousPage } = createPaginationState(100, 1, 10);
+            const { _state, previousPage } = createPaginationState(100, 1, 10);
             const newState = previousPage();
             
             expect(newState.currentPage).toBe(1); // Stay on first page
         });
 
         it('should change page size and adjust current page', () => {
-            const { state, changePageSize } = createPaginationState(100, 10, 10);
+            const { _state, changePageSize } = createPaginationState(100, 10, 10);
             const newState = changePageSize(20);
             
             expect(newState.pageSize).toBe(20);

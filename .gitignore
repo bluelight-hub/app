@@ -30,7 +30,8 @@ pnpm-debug.log*
 !.vscode/extensions.json
 
 # IDE - JetBrains
-.idea
+.idea/*
+!.idea/runConfigurations
 *.iml
 *.ipr
 *.iws

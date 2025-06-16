@@ -154,19 +154,19 @@ vi.mock('../contexts/EinsatzContext', () => ({
 }));
 
 // Mock auth guards
-vi.mock('./auth/PrivateRoute', () => ({
-    default: () => {
-        const { Outlet } = require('react-router');
-        return <Outlet />;
-    }
-}));
+vi.mock('./auth/PrivateRoute', async () => {
+    const { Outlet } = await import('react-router');
+    return {
+        default: () => <Outlet />
+    };
+});
 
-vi.mock('./auth/EinsatzGuard', () => ({
-    default: () => {
-        const { Outlet } = require('react-router');
-        return <Outlet />;
-    }
-}));
+vi.mock('./auth/EinsatzGuard', async () => {
+    const { Outlet } = await import('react-router');
+    return {
+        default: () => <Outlet />
+    };
+});
 
 import { render, screen } from '@testing-library/react';
 import { Router } from './index';

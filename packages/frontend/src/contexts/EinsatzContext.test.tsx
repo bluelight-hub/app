@@ -300,7 +300,7 @@ describe('EinsatzContext', () => {
             });
 
             // Mock localStorage.setItem to throw quota exceeded error
-            const originalSetItem = localStorage.setItem;
+            const _originalSetItem = localStorage.setItem;
             localStorage.setItem = vi.fn(() => {
                 throw new Error('QuotaExceededError');
             });
@@ -315,7 +315,7 @@ describe('EinsatzContext', () => {
             // Einsatz should still be selected in memory
             expect(result.current.selectedEinsatz).toEqual(mockEinsatz);
 
-            localStorage.setItem = originalSetItem;
+            localStorage.setItem = _originalSetItem;
         });
 
         it('should log error when localStorage save fails', () => {
@@ -327,7 +327,7 @@ describe('EinsatzContext', () => {
             vi.clearAllMocks();
 
             // Mock localStorage.setItem to throw error
-            const originalSetItem = localStorage.setItem;
+            const _originalSetItem = localStorage.setItem;
             const mockError = new Error('Storage error');
             vi.spyOn(Storage.prototype, 'setItem').mockImplementation(() => {
                 throw mockError;
