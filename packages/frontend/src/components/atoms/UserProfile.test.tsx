@@ -163,4 +163,26 @@ describe('UserProfile', () => {
         const { container } = renderWithEinsatzProvider(<UserProfile href="/profile" data-testid="user-profile" />);
         expect(container.firstChild).toBeNull();
     });
+
+    // Test für Logout-Fehlerbehandlung
+    it('should handle logout error gracefully', async () => {
+        const { logout } = await import('../../utils/auth');
+        vi.mocked(logout).mockRejectedValueOnce(new Error('Logout failed'));
+        
+        renderWithEinsatzProvider(<UserProfile href="/profile" data-testid="user-profile" />);
+
+        // Dropdown öffnen
+        await act(async () => {
+            fireEvent.click(screen.getByTestId('user-profile'));
+        });
+
+        // Auf "Ausloggen" klicken
+        const logoutMenuItem = screen.getByText('Ausloggen');
+        await act(async () => {
+            fireEvent.click(logoutMenuItem);
+        });
+
+        // Der Fehler sollte stillschweigend behandelt werden (catch block)
+        expect(vi.mocked(logout)).toHaveBeenCalled();
+    });
 }); 
