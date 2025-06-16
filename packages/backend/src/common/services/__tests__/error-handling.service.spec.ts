@@ -286,7 +286,7 @@ describe('ErrorHandlingService', () => {
                     undefined, // keine data für Duplicate Detection
                     { maxRetries: 0 } // keine Retries für schnelleren Test
                 );
-            } catch (e) {
+            } catch (_e) {
                 // Fehler ignorieren für Test
             }
 
@@ -304,7 +304,7 @@ describe('ErrorHandlingService', () => {
 
             try {
                 await service.executeWithErrorHandling(mockOperation, 'test-operation');
-            } catch (e) {
+            } catch (_e) {
                 // Fehler ignorieren für Test
             }
 
@@ -382,7 +382,7 @@ describe('ErrorHandlingService', () => {
 
                 try {
                     await devService.executeWithErrorHandling(mockOperation, 'postgres-test');
-                } catch (e) {
+                } catch (_e) {
                     // Fehler ignorieren für Test
                 }
 
@@ -398,7 +398,7 @@ describe('ErrorHandlingService', () => {
 
             try {
                 await devService.executeWithErrorHandling(mockOperation, 'prisma-test');
-            } catch (e) {
+            } catch (_e) {
                 // Fehler ignorieren für Test
             }
 
@@ -419,7 +419,7 @@ describe('ErrorHandlingService', () => {
 
                 try {
                     await devService.executeWithErrorHandling(mockOperation, 'network-test');
-                } catch (e) {
+                } catch (_e) {
                     // Fehler ignorieren für Test
                 }
 
@@ -435,7 +435,7 @@ describe('ErrorHandlingService', () => {
 
             try {
                 await devService.executeWithErrorHandling(mockOperation, 'non-retryable-test');
-            } catch (e) {
+            } catch (_e) {
                 // Fehler ignorieren für Test
             }
 
@@ -529,7 +529,7 @@ describe('ErrorHandlingService', () => {
 
             try {
                 await verboseService.executeWithErrorHandling(mockOperation, 'verbose-test');
-            } catch (e) {
+            } catch (_e) {
                 // Fehler ignorieren für Test
             }
 
@@ -567,7 +567,7 @@ describe('ErrorHandlingService', () => {
 
             try {
                 await nonVerboseService.executeWithErrorHandling(mockOperation, 'non-verbose-test');
-            } catch (e) {
+            } catch (_e) {
                 // Fehler ignorieren für Test
             }
 
@@ -725,7 +725,7 @@ describe('ErrorHandlingService', () => {
 
             try {
                 await verboseService.executeWithErrorHandling(mockOperation, 'no-code-test');
-            } catch (e) {
+            } catch (_e) {
                 // Fehler ignorieren für Test
             }
 
@@ -740,7 +740,7 @@ describe('ErrorHandlingService', () => {
 
             try {
                 await service.executeWithErrorHandling(mockOperation, 'simple-no-code-test');
-            } catch (e) {
+            } catch (_e) {
                 // Fehler ignorieren für Test
             }
 

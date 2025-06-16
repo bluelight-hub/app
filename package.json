@@ -6,6 +6,7 @@
     "dev": "pnpm -r dev",
     "build": "pnpm -r build",
     "generate-api": "pnpm -r generate-api",
+    "lint": "pnpm -r lint",
     "test": "pnpm -r test",
     "test:ui": "pnpm -r test:ui",
     "test:cov": "pnpm -r test:cov",
@@ -31,6 +32,14 @@
       "prisma"
     ]
   },
+  "lint-staged": {
+    "packages/backend/**/*.ts": [
+      "pnpm --filter @bluelight-hub/backend lint"
+    ],
+    "packages/frontend/**/*.{ts,tsx}": [
+      "pnpm --filter @bluelight-hub/frontend lint"
+    ]
+  },
   "devDependencies": {
     "@mermaid-js/mermaid-cli": "^11.4.2",
     "@semantic-release/changelog": "^6.0.3",
@@ -40,6 +49,7 @@
     "@softwaretechnik/dbml-renderer": "^1.0.30",
     "bpmn-js-cmd": "^0.4.0",
     "husky": "^9.1.7",
+    "lint-staged": "^16.1.2",
     "puppeteer": "^24.6.1",
     "semantic-release": "^24.2.3",
     "semantic-release-gitmoji": "^1.6.8"

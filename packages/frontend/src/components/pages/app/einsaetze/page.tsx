@@ -112,7 +112,7 @@ export const EinsaetzeUebersichtPage: React.FC = () => {
         setLogoutLoading(true);
         try {
             await logout(clearSelectedEinsatz);
-        } catch (error) {
+        } catch (_error) {
             // Fehler wird bereits in der logout-Funktion behandelt
         } finally {
             setLogoutLoading(false);

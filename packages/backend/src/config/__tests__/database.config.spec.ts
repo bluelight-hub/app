@@ -56,9 +56,10 @@ describe('DatabaseConfig', () => {
             const mockDatabaseUrl = 'postgresql://localhost:5432/production_db';
             configService.getOrThrow.mockReturnValue(mockDatabaseUrl);
 
-            databaseConfig.databaseUrl;
+            const result = databaseConfig.databaseUrl;
 
             expect(configService.getOrThrow).toHaveBeenCalledWith<[string]>('DATABASE_URL');
+            expect(result).toBe(mockDatabaseUrl);
         });
 
         it('should handle different database URL formats', () => {

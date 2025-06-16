@@ -24,6 +24,10 @@ export default defineConfig({
                 '**/node_modules/**',
                 'src/**/*.config.{js,ts}',
                 'src/**/*.test.{js,ts,jsx,tsx}',
+                // ESLint configuration files
+                'eslint.config.js',
+                '.eslintrc.*',
+                '**/eslint.config.{js,ts,mjs}',
                 'src/**/*.spec.{js,ts,jsx,tsx}',
                 // Type-only files
                 'src/utils/types.ts',

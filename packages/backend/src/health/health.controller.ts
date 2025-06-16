@@ -154,7 +154,7 @@ export class HealthController {
             try {
                 await this.prismaDb.pingCheck('prisma_connection');
                 isConnected = true;
-            } catch (error) {
+            } catch (_error) {
                 isConnected = false;
             }
 
@@ -195,7 +195,7 @@ export class HealthController {
         try {
             await this.prismaDb.pingCheck('prisma_ping');
             fuekwResult = await this.isFuekwPingable();
-        } catch (error) {
+        } catch (_error) {
             fuekwResult = false;
         }
 
@@ -237,7 +237,7 @@ export class HealthController {
                     HEALTH_CHECK_CONFIG.CONNECTIVITY.TIMEOUT_MS
                 );
                 return true; // Erfolgreich verbunden
-            } catch (error) {
+            } catch (_error) {
                 // Versuche den nächsten Server
                 continue;
             }
@@ -300,10 +300,10 @@ export class HealthController {
             try {
                 await this.prismaDb.pingCheck('prisma_ping');
                 return true;
-            } catch (error) {
+            } catch (_error) {
                 return false;
             }
-        } catch (error) {
+        } catch (_error) {
             return false;
         }
     }

@@ -150,7 +150,6 @@ describe('EtbService', () => {
             });
 
             // Act
-            // @ts-ignore - Private Methode für Test zugänglich machen
             const result = await service['getNextLaufendeNummer']();
 
             // Assert
@@ -171,7 +170,6 @@ describe('EtbService', () => {
             });
 
             // Act
-            // @ts-ignore - Private Methode für Test zugänglich machen
             const result = await service['getNextLaufendeNummer']();
 
             // Assert

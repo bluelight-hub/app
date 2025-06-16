@@ -24,7 +24,7 @@ vi.mock('../organisms/MobileHeader', () => ({
 
 // Mock navigation config
 vi.mock('../../config/navigation', () => ({
-    findRouteTitle: vi.fn((path) => 'Test Title'),
+    findRouteTitle: vi.fn((_path) => 'Test Title'),
     mainNavigation: []
 }));
 

@@ -13,3 +13,26 @@ coverage:
         target: 90%
         threshold: 5%
         base: auto
+
+ignore:
+  # Configuration files
+  - "**/*.config.js"
+  - "**/*.config.ts"
+  - "**/*.config.mjs"
+  - "**/vitest.config.ts"
+  - "**/jest.config.js"
+  - "**/eslint.config.js"
+  - "**/.eslintrc.*"
+  # Build outputs
+  - "**/dist/**"
+  - "**/build/**"
+  - "**/coverage/**"
+  # Dependencies
+  - "**/node_modules/**"
+  # Test files
+  - "**/*.test.ts"
+  - "**/*.test.tsx"
+  - "**/*.spec.ts"
+  - "**/*.spec.tsx"
+  # Type definitions
+  - "**/*.d.ts"

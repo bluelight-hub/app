@@ -13,7 +13,7 @@ const AppLayout: React.FC<{ children?: React.ReactNode }> = () => {
     const location = useLocation();
     const title = findRouteTitle(location.pathname);
     const isMobile = useMediaQuery('(max-width: 1024px)'); // lg breakpoint in Tailwind
-    const navigate = useNavigate();
+    const _navigate = useNavigate();
 
     // Entfernt - die Navigation wird jetzt durch den EinsatzGuard gehandhabt
 

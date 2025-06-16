@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { render, screen, fireEvent, waitFor, within } from '@testing-library/react';
+import { render, screen, fireEvent, waitFor, act } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import React from 'react';
 import { BrowserRouter } from 'react-router-dom';
@@ -15,6 +15,11 @@ vi.mock('../../../../utils/logger', () => ({
         warn: vi.fn(),
         error: vi.fn()
     }
+}));
+
+// Mock auth utils
+vi.mock('../../../../utils/auth', () => ({
+    logout: vi.fn()
 }));
 
 // Mock NewEinsatzModal component
@@ -291,6 +296,7 @@ describe('EinsaetzeUebersichtPage', () => {
             expect(screen.getByText('-')).toBeInTheDocument();
         });
 
+
         it('should show loading state', () => {
             mockUseEinsaetzeUebersicht.mockReturnValue({
                 ...defaultMockData,
@@ -516,6 +522,24 @@ describe('EinsaetzeUebersichtPage', () => {
 
             // Test zeigt an: "41-45 von 45 Einsätzen"
             expect(screen.getByTestId('pagination-info')).toHaveTextContent('41-45 von 45 Einsätzen');
+        });
+    });
+
+    describe('auth interactions', () => {
+        it('should handle logout error gracefully', async () => {
+            const { logout } = await import('../../../../utils/auth');
+            vi.mocked(logout).mockRejectedValueOnce(new Error('Logout failed'));
+            
+            renderComponent();
+
+            // Auf Logout-Button klicken
+            const logoutButton = screen.getByText('Ausloggen');
+            await act(async () => {
+                fireEvent.click(logoutButton);
+            });
+
+            // Der Fehler sollte stillschweigend behandelt werden
+            expect(vi.mocked(logout)).toHaveBeenCalled();
         });
     });
 
