@@ -89,6 +89,25 @@ describe('UserProfile', () => {
         expect(screen.getByTestId('user-profile')).toBeInTheDocument();
     });
 
+    // Unit Test - Prüft, ob der onClick Handler im Profil-MenuItem funktioniert
+    it('should call onClick when profile menu item is clicked', async () => {
+        const handleClick = vi.fn();
+        renderWithEinsatzProvider(<UserProfile href="/profile" onClick={handleClick} data-testid="user-profile" />);
+
+        // Dropdown öffnen
+        await act(async () => {
+            fireEvent.click(screen.getByTestId('user-profile'));
+        });
+
+        // Auf "Profil" klicken
+        const profileMenuItem = screen.getByText('Profil');
+        await act(async () => {
+            fireEvent.click(profileMenuItem);
+        });
+
+        expect(handleClick).toHaveBeenCalledTimes(1);
+    });
+
     // Unit Test - Prüft, ob der hideText Parameter funktioniert
     it('should hide text when hideText is true', () => {
         renderWithEinsatzProvider(<UserProfile href="/profile" hideText={true} data-testid="user-profile" />);
