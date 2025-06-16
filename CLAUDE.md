@@ -1,5 +1,8 @@
 # CLAUDE.md - Repository Guide
 
+## Repository Information
+- GitHub: github.com/bluelight-hub/app
+
 ## Build Commands
 - Project-wide: `pnpm -r dev`, `pnpm -r build`, `pnpm -r test`, `pnpm -r test:cov`
 - Backend: `pnpm --filter @bluelight-hub/backend dev`, `pnpm --filter @bluelight-hub/backend test`

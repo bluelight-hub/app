@@ -12,7 +12,7 @@ Das Panel ist kontextsensitiv und zeigt je nach Umgebung (Development / Producti
 - **Test-Daten-Generierung**: Erstellung realistischer Testdaten für verschiedene Szenarien
 - **Datenbank-Tools**: Reset, Migration, Schema-Inspection
 - **Debug-Dashboard**: System-Metriken, Performance-Monitoring
-- **API-Testing**: Integrierte API-Test-Umgebung
+- **API-Testing**: Integrierte API-Test-Umgebung (Swagger/OpenAPI)
 
 ## Produktionsumgebung Features
 - **System-Monitoring**: Überwachung von System-Health und Performance
@@ -35,16 +35,48 @@ Das Admin-Panel ist als separate, geschützte Anwendung konzipiert, die nur von 
 **Zugangskontrolle:**
 - Rollenbasierte Authentifizierung (Admin, Entwickler, Super-Admin)
 - Session-Management mit automatischer Abmeldung
+- Multi-Factor Authentication (MFA) für erhöhte Sicherheit
 
 **Responsive Design:**
 - Optimiert für Desktop-Arbeitsplätze
 - Funktional auf Tablets
 - Klare Navigation und strukturierte Layouts
+- Mobile-Darstellung nur für kritische Funktionen
 
 **Feedback und Sicherheit:**
 - Bestätigungsdialoge für kritische Operationen
 - Audit-Trail für alle Admin-Aktionen
 - Rollback-Funktionen wo möglich
+- Echtzeit-Notifications für kritische Ereignisse
+
+## Accessibility & UX
+
+**WCAG 2.1 Level AA Compliance:**
+- Vollständige Barrierefreiheit für alle Admin-Funktionen
+- Screen Reader optimierte Oberflächen mit ARIA-Labels
+- Kontrastreiches Design mit Dark/Light Mode
+- Fokus-Indikatoren für alle interaktiven Elemente
+
+**Progressive Disclosure:**
+- Schrittweise Anzeige komplexer Funktionen
+- Collapsible Sections für erweiterte Optionen
+- Wizard-basierte Workflows für komplexe Operationen
+
+**Context-sensitive Help:**
+- Kontextbezogene Hilfe für alle Features
+- Inline-Tooltips und Erklärungen
+- Video-Tutorials für komplexe Workflows
+- Integrierte Dokumentation
+
+**Keyboard Navigation:**
+- Vollständige Tastaturunterstützung für alle Funktionen
+- Shortcuts für häufig genutzte Operationen
+- Tab-Navigation optimiert für Effizienz
+
+**Error Handling:**
+- Klare, verständliche Fehlermeldungen
+- Lösungsvorschläge bei Fehlern
+- Graceful Degradation bei Netzwerkproblemen
 </context>
 <PRD>
 # Technische Architektur
@@ -203,6 +235,22 @@ Das Admin-Panel ist als separate, geschützte Anwendung konzipiert, die nur von 
 - **Risiko**: Inkonsistente UX zwischen Main-App und Admin-Panel
 - **Maßnahme**: Shared Design-System, Common Components
 
+# Abhängigkeiten
+
+## Voraussetzungen für die Implementierung
+- **Basis-Authentifizierung**: Muss vollständig implementiert sein
+- **ProfileService**: Für Seeding-Features erforderlich
+- **Template-System (ETB)**: Für Template-Management
+- **Monitoring-Backend**: Für Dashboard-Features
+- **Audit-System**: Für vollständige Protokollierung
+- **Permission-System**: Für granulare Zugriffskontolle
+
+## Integration mit bestehenden Systemen
+- **Einsatz-Management**: Erweiterte Admin-Funktionen
+- **User-Service**: Benutzer- und Rollenverwaltung
+- **Notification-Service**: Admin-Benachrichtigungen
+- **Backup-Service**: Automatisierte Backup-Prozesse
+
 # Anhang
 
 ## Technologie-Stack
@@ -259,5 +307,5 @@ interface AdminFeatures {
 - **DSGVO**: Audit-Logs für Datenzugriff und -manipulation
 - **SOX**: Unveränderliche Audit-Trails für kritische Operationen
 - **ISO 27001**: Security-Standards für Administratorzugang
-- **Accessibility**: WCAG 2.1 Level AA für Admin-Oberflächen
+- **WCAG 2.1**: Level AA für alle Admin-Oberflächen
 </PRD> 
