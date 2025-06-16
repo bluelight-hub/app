@@ -202,4 +202,11 @@ tasks.json
 tasks/
 
 # Cursor MCP (enthält API-Schlüssel)
-.cursor/mcp.json 
+.cursor/mcp.json
+
+# Added by Task Master AI
+.idea
+
+# Windsurfrules and Roo files
+.windsurfrules
+.roo*
