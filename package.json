@@ -29,7 +29,8 @@
       "@tailwindcss/oxide",
       "es5-ext",
       "esbuild",
-      "prisma"
+      "prisma",
+      "puppeteer"
     ]
   },
   "lint-staged": {
