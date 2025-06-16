@@ -1,0 +1,11 @@
+<component name="ProjectRunConfigurationManager">
+  <configuration default="false" name="Backend Tests (Coverage)" type="JavaScriptTestRunnerJest">
+    <node-interpreter value="project" />
+    <jest-package value="$PROJECT_DIR$/packages/backend/node_modules/jest" />
+    <working-dir value="$PROJECT_DIR$/packages/backend" />
+    <jest-options value="--coverage" />
+    <envs />
+    <scope-kind value="ALL" />
+    <method v="2" />
+  </configuration>
+</component>
