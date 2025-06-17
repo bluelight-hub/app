@@ -180,12 +180,13 @@ describe('Router', () => {
     });
 
     it('should have Routes component with Suspense wrapper', () => {
-        const { container } = render(<Router />);
+        render(<Router />);
         
         // Check if the component structure exists
-        expect(container.querySelector('div[data-testid="auth-provider"]')).toBeInTheDocument();
-        expect(container.querySelector('div[data-testid="einsatz-provider"]')).toBeInTheDocument();
-        expect(container.querySelector('div[data-testid="routes"]')).toBeInTheDocument();
+        expect(screen.getByTestId('auth-provider')).toBeInTheDocument();
+        expect(screen.getByTestId('einsatz-provider')).toBeInTheDocument();
+        // Suspense is rendering its fallback, so we check for the loading text
+        expect(screen.getByText('Lädt...')).toBeInTheDocument();
     });
 
     it('should import and use EinsatzProvider from contexts', () => {

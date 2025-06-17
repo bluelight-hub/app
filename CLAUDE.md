@@ -16,6 +16,7 @@
 - Backend: NestJS modular architecture (controller, service, repository)
 - File naming: PascalCase for components, camelCase for others
 - Comments: Explain "why" not "what", JSDoc for public APIs
+- Use react-icons (phosphor-icons) when using icons
 
 ## Commit Message Convention
 - Format: `<emoji>(<context>): <title>`
@@ -73,3 +74,6 @@ This project uses semantic-release with gitmoji for automated versioning:
 - DRY code with clear separation of concerns
 - Single Responsibility Principle for components (<150 lines)
 - Full test coverage for new features
+
+## Development Workflow
+- Committe die Änderungen nach jedem Subtask

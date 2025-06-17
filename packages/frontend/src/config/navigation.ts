@@ -14,6 +14,7 @@ import {
     PiFirstAid,
     PiGauge,
     PiGaugeBold,
+    PiGear,
     PiInfo,
     PiList,
     PiMapPinLineBold,
@@ -23,13 +24,16 @@ import {
     PiNotePencilBold,
     PiPersonSimpleCircle,
     PiPlus,
+    PiShieldCheck,
     PiSquaresFour,
     PiSunDimBold,
     PiUserFocus,
     PiUsers,
+    PiUsersThree,
     PiVideoCameraBold,
     PiWarningDiamond,
-    PiWrench
+    PiWrench,
+    PiFileText
 } from 'react-icons/pi';
 
 export type NavigationType = 'item' | 'group' | 'submenu';
@@ -349,6 +353,51 @@ export const mainNavigation: NavigationItem[] = [
         path: '/app/notizen',
         label: 'Notizen',
         icon: PiChecks,
+    },
+];
+
+export const adminNavigation: NavigationItem[] = [
+    {
+        type: 'group',
+        key: 'administration',
+        label: 'Administration',
+        children: [
+            {
+                type: 'item',
+                key: '/app/admin',
+                path: '/app/admin',
+                label: 'Admin Dashboard',
+                icon: PiShieldCheck,
+            },
+            {
+                type: 'item',
+                key: '/app/admin/users',
+                path: '/app/admin/users',
+                label: 'Benutzerverwaltung',
+                icon: PiUsers,
+            },
+            {
+                type: 'item',
+                key: '/app/admin/organizations',
+                path: '/app/admin/organizations',
+                label: 'Organisationen',
+                icon: PiUsersThree,
+            },
+            {
+                type: 'item',
+                key: '/app/admin/system',
+                path: '/app/admin/system',
+                label: 'Systemeinstellungen',
+                icon: PiGear,
+            },
+            {
+                type: 'item',
+                key: '/app/admin/logs',
+                path: '/app/admin/logs',
+                label: 'System-Logs',
+                icon: PiFileText,
+            },
+        ],
     },
 ];
 

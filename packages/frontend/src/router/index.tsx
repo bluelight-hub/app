@@ -73,6 +73,14 @@ const NotizenPage = React.lazy(() => import("@pages/app/notizen/page"));
 // Einsatz Management
 const CreateInitialEinsatzPage = React.lazy(() => import("@/components/pages/app/CreateInitialEinsatz"));
 
+// Admin Pages
+const AdminGuard = React.lazy(() => import("@/components/organisms/admin/AdminGuard"));
+const AdminDashboardPage = React.lazy(() => import("@/components/pages/app/admin/page"));
+const AdminUsersPage = React.lazy(() => import("@/components/pages/app/admin/users/page"));
+const AdminOrganizationsPage = React.lazy(() => import("@/components/pages/app/admin/organizations/page"));
+const AdminSystemPage = React.lazy(() => import("@/components/pages/app/admin/system/page"));
+const AdminLogsPage = React.lazy(() => import("@/components/pages/app/admin/logs/page"));
+
 // NotFound Page
 const NotFoundPage = React.lazy(() => import("@/components/pages/not-found/page"));
 
@@ -154,6 +162,15 @@ export const Router = () => {
                             <Route path="schaden" element={<SchadenPage />} />
                             <Route path="gefahren" element={<GefahrenPage />} />
                             <Route path="notizen" element={<NotizenPage />} />
+
+                            {/* Admin Routes - geschützt durch AdminGuard */}
+                            <Route element={<AdminGuard />}>
+                                <Route path="admin" element={<AdminDashboardPage />} />
+                                <Route path="admin/users" element={<AdminUsersPage />} />
+                                <Route path="admin/organizations" element={<AdminOrganizationsPage />} />
+                                <Route path="admin/system" element={<AdminSystemPage />} />
+                                <Route path="admin/logs" element={<AdminLogsPage />} />
+                            </Route>
                             </Route>
 
                             {/* Standalone Einsatz Management - außerhalb AppLayout */}
@@ -164,8 +181,8 @@ export const Router = () => {
 
                     {/* 404 - Not Found Route */}
                     <Route path="*" element={<NotFoundPage />} />
-                </Routes>
-            </Suspense>
+                    </Routes>
+                </Suspense>
             </EinsatzProvider>
         </AuthProvider>
     );

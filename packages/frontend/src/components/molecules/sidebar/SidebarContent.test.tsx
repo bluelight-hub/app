@@ -3,6 +3,7 @@ import { fireEvent, render, screen } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { NavigationItem } from '../../../config/navigation';
+import { AuthProvider } from '../../../contexts/AuthContext';
 import { EinsatzProvider } from '../../../contexts/EinsatzContext';
 import * as ThemeHook from '../../../hooks/useTheme';
 import SidebarContent from './SidebarContent';
@@ -65,9 +66,11 @@ describe('SidebarContent', () => {
         return render(
             <QueryClientProvider client={queryClient}>
                 <MemoryRouter>
-                    <EinsatzProvider>
-                        <SidebarContent {...props} />
-                    </EinsatzProvider>
+                    <AuthProvider>
+                        <EinsatzProvider>
+                            <SidebarContent {...props} />
+                        </EinsatzProvider>
+                    </AuthProvider>
                 </MemoryRouter>
             </QueryClientProvider>
         );
