@@ -1,3 +1,7 @@
+/**
+ * JWT payload structure containing user authentication data.
+ * Used for access tokens with user identity and permissions.
+ */
 export interface JWTPayload {
   sub: string; // User ID
   email: string;
@@ -10,6 +14,10 @@ export interface JWTPayload {
   jti?: string; // JWT ID for revocation
 }
 
+/**
+ * JWT refresh token payload for token renewal.
+ * Contains minimal data needed for secure token refresh.
+ */
 export interface JWTRefreshPayload {
   sub: string;
   sessionId: string;
@@ -18,6 +26,10 @@ export interface JWTRefreshPayload {
   jti: string;
 }
 
+/**
+ * User roles for role-based access control.
+ * Defines hierarchy of administrative privileges.
+ */
 export enum UserRole {
   SUPER_ADMIN = 'SUPER_ADMIN',
   ADMIN = 'ADMIN',
@@ -25,6 +37,10 @@ export enum UserRole {
   USER = 'USER',
 }
 
+/**
+ * Granular permissions for fine-grained access control.
+ * Used to control access to specific actions and resources.
+ */
 export enum Permission {
   // User Management
   USERS_READ = 'users:read',
@@ -55,7 +71,10 @@ export enum Permission {
   SYSTEM_BACKUP = 'system:backup',
 }
 
-// Role to Permission Mapping
+/**
+ * Role to permission mapping defining what permissions each role has.
+ * Used to automatically assign permissions based on user roles.
+ */
 export const RolePermissions: Record<UserRole, Permission[]> = {
   [UserRole.SUPER_ADMIN]: Object.values(Permission), // All permissions
   [UserRole.ADMIN]: [

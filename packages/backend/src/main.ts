@@ -24,6 +24,7 @@ async function bootstrap() {
         .setTitle('BlueLight Hub API')
         .setDescription('BlueLight Hub API for the BlueLight Hub application')
         .setVersion(packageJson.version)
+        .addBearerAuth()
         .build();
 
     const document = SwaggerModule.createDocument(app, config);

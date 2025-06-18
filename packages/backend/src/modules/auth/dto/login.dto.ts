@@ -1,6 +1,10 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { IsEmail, IsString, MinLength, IsBoolean, IsOptional } from 'class-validator';
 
+/**
+ * Data transfer object for user login requests.
+ * Contains credentials and optional remember me flag.
+ */
 export class LoginDto {
   @ApiProperty({ example: 'admin@bluelight-hub.com' })
   @IsEmail()
@@ -17,6 +21,10 @@ export class LoginDto {
   rememberMe?: boolean;
 }
 
+/**
+ * Data transfer object for multi-factor authentication verification.
+ * Contains the MFA code and challenge ID.
+ */
 export class MfaVerifyDto {
   @ApiProperty({ example: '123456' })
   @IsString()
@@ -28,6 +36,10 @@ export class MfaVerifyDto {
   challengeId: string;
 }
 
+/**
+ * Data transfer object for token refresh requests.
+ * Contains the refresh token to exchange for new tokens.
+ */
 export class RefreshTokenDto {
   @ApiProperty()
   @IsString()

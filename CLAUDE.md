@@ -17,6 +17,7 @@
 - File naming: PascalCase for components, camelCase for others
 - Comments: Explain "why" not "what", JSDoc for public APIs
 - Use react-icons (phosphor-icons) when using icons
+- JSDoc sollte in deutsch geschrieben sein, die geht direkt in die technische Dokumentation (und die ist auf deutsch)
 
 ## Commit Message Convention
 - Format: `<emoji>(<context>): <title>`

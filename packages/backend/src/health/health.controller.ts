@@ -11,6 +11,7 @@ import * as net from 'net';
 import * as os from 'os';
 import { EtbService } from '../modules/etb/etb.service';
 import { PrismaHealthIndicator } from './prisma-health.indicator';
+import { Public } from '../modules/auth/decorators';
 
 /**
  * Konstanten für Health-Checks
@@ -40,6 +41,7 @@ type ConnectionMode = 'checking' | 'online' | 'offline' | 'error';
  * 
  * @class HealthController
  */
+@Public()
 @Controller({ path: 'api/health', version: VERSION_NEUTRAL })
 export class HealthController {
     /**
