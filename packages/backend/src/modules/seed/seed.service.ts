@@ -5,7 +5,7 @@ import { ConfigService } from '@nestjs/config';
 import { ErrorHandlingService } from '@/common/services/error-handling.service';
 import { RetryConfig } from '@/common/utils/retry.util';
 import { DatabaseCheckService } from './database-check.service';
-import { AdminPermission, AdminRole } from '@prisma/generated/prisma/enums';
+import { Permission, UserRole } from '@prisma/generated/prisma/enums';
 import * as bcrypt from 'bcrypt';
 
 /**
@@ -248,11 +248,11 @@ export class SeedService {
   }
 
   /**
-   * Initialisiert die Admin-Rollen-Berechtigungen basierend auf der definierten Matrix.
+   * Initialisiert die Rollen-Berechtigungen basierend auf der definierten Matrix.
    *
    * @returns true, wenn erfolgreich, sonst false
    */
-  async seedAdminRolePermissions(): Promise<boolean> {
+  async seedRolePermissions(): Promise<boolean> {
     const retryConfig: Partial<RetryConfig> = {
       maxRetries: 3,
       baseDelay: 500,
@@ -260,35 +260,48 @@ export class SeedService {
     };
 
     return await this.executeWithTransaction(async () => {
-      this.logger.log('Erstelle Admin-Rollen-Berechtigungen...');
+      this.logger.log('Erstelle Rollen-Berechtigungen...');
 
       // SUPER_ADMIN bekommt alle Berechtigungen
-      const superAdminPermissions = Object.values(AdminPermission);
+      const superAdminPermissions = Object.values(Permission);
 
       // ADMIN Berechtigungen
       const adminPermissions = [
-        AdminPermission.ADMIN_USERS_READ,
-        AdminPermission.ADMIN_USERS_WRITE,
-        AdminPermission.SYSTEM_SETTINGS_READ,
-        AdminPermission.SYSTEM_SETTINGS_WRITE,
-        AdminPermission.AUDIT_LOG_READ,
+        Permission.USERS_READ,
+        Permission.USERS_WRITE,
+        Permission.USERS_DELETE,
+        Permission.SYSTEM_SETTINGS_READ,
+        Permission.SYSTEM_SETTINGS_WRITE,
+        Permission.AUDIT_LOG_READ,
+        Permission.ETB_READ,
+        Permission.ETB_WRITE,
+        Permission.EINSATZ_READ,
+        Permission.EINSATZ_WRITE,
       ];
 
       // SUPPORT Berechtigungen
-      const supportPermissions = [AdminPermission.ADMIN_USERS_READ, AdminPermission.AUDIT_LOG_READ];
+      const supportPermissions = [
+        Permission.USERS_READ,
+        Permission.AUDIT_LOG_READ,
+        Permission.ETB_READ,
+        Permission.EINSATZ_READ,
+      ];
+
+      // USER Berechtigungen
+      const userPermissions = [Permission.ETB_READ, Permission.EINSATZ_READ];
 
       // Erstelle Berechtigungen für SUPER_ADMIN
       for (const permission of superAdminPermissions) {
-        await this.prisma.adminRolePermission.upsert({
+        await this.prisma.rolePermission.upsert({
           where: {
             role_permission: {
-              role: AdminRole.SUPER_ADMIN,
+              role: UserRole.SUPER_ADMIN,
               permission,
             },
           },
           update: {},
           create: {
-            role: AdminRole.SUPER_ADMIN,
+            role: UserRole.SUPER_ADMIN,
             permission,
           },
         });
@@ -296,16 +309,16 @@ export class SeedService {
 
       // Erstelle Berechtigungen für ADMIN
       for (const permission of adminPermissions) {
-        await this.prisma.adminRolePermission.upsert({
+        await this.prisma.rolePermission.upsert({
           where: {
             role_permission: {
-              role: AdminRole.ADMIN,
+              role: UserRole.ADMIN,
               permission,
             },
           },
           update: {},
           create: {
-            role: AdminRole.ADMIN,
+            role: UserRole.ADMIN,
             permission,
           },
         });
@@ -313,50 +326,67 @@ export class SeedService {
 
       // Erstelle Berechtigungen für SUPPORT
       for (const permission of supportPermissions) {
-        await this.prisma.adminRolePermission.upsert({
+        await this.prisma.rolePermission.upsert({
           where: {
             role_permission: {
-              role: AdminRole.SUPPORT,
+              role: UserRole.SUPPORT,
               permission,
             },
           },
           update: {},
           create: {
-            role: AdminRole.SUPPORT,
+            role: UserRole.SUPPORT,
             permission,
           },
         });
       }
 
-      this.logger.log('Admin-Rollen-Berechtigungen erfolgreich erstellt');
+      // Erstelle Berechtigungen für USER
+      for (const permission of userPermissions) {
+        await this.prisma.rolePermission.upsert({
+          where: {
+            role_permission: {
+              role: UserRole.USER,
+              permission,
+            },
+          },
+          update: {},
+          create: {
+            role: UserRole.USER,
+            permission,
+          },
+        });
+      }
+
+      this.logger.log('Rollen-Berechtigungen erfolgreich erstellt');
     }, retryConfig);
   }
 
   /**
-   * Erstellt initiale Admin-Benutzer für Entwicklung und Tests.
+   * Erstellt initiale Benutzer für Entwicklung und Tests.
    *
    * @param password Optionales Passwort für alle Test-Benutzer (Standard: "admin123")
    * @returns true, wenn erfolgreich, sonst false
    */
-  async seedAdminUsers(password = 'admin123'): Promise<boolean> {
+  async seedUsers(password = 'admin123'): Promise<boolean> {
     try {
-      this.logger.log('Erstelle initiale Admin-Benutzer...');
+      this.logger.log('Erstelle initiale Benutzer...');
 
       // Passwort-Hash für alle Test-Benutzer
       const passwordHash = await bcrypt.hash(password, 10);
       this.logger.log(`Passwort-Hash erstellt: ${passwordHash.substring(0, 10)}...`);
 
-      // Transaktion für alle Admin-Benutzer
+      // Transaktion für alle Benutzer
       await this.prisma.$transaction(async (tx) => {
         // Super Admin
-        const superAdmin = await tx.adminUser.upsert({
+        const superAdmin = await tx.user.upsert({
           where: { email: 'superadmin@bluelight-hub.com' },
           update: {},
           create: {
             email: 'superadmin@bluelight-hub.com',
             username: 'superadmin',
             passwordHash,
-            role: AdminRole.SUPER_ADMIN,
+            role: UserRole.SUPER_ADMIN,
             isActive: true,
           },
         });
@@ -365,70 +395,97 @@ export class SeedService {
         );
 
         // Admin
-        const admin = await tx.adminUser.upsert({
+        const admin = await tx.user.upsert({
           where: { email: 'admin@bluelight-hub.com' },
           update: {},
           create: {
             email: 'admin@bluelight-hub.com',
             username: 'admin',
             passwordHash,
-            role: AdminRole.ADMIN,
+            role: UserRole.ADMIN,
             isActive: true,
           },
         });
         this.logger.log(`Admin erstellt/aktualisiert: ${admin.email} (ID: ${admin.id})`);
 
         // Support
-        const support = await tx.adminUser.upsert({
+        const support = await tx.user.upsert({
           where: { email: 'support@bluelight-hub.com' },
           update: {},
           create: {
             email: 'support@bluelight-hub.com',
             username: 'support',
             passwordHash,
-            role: AdminRole.SUPPORT,
+            role: UserRole.SUPPORT,
             isActive: true,
           },
         });
         this.logger.log(`Support erstellt/aktualisiert: ${support.email} (ID: ${support.id})`);
+
+        // Regular User
+        const user = await tx.user.upsert({
+          where: { email: 'user@bluelight-hub.com' },
+          update: {},
+          create: {
+            email: 'user@bluelight-hub.com',
+            username: 'user',
+            passwordHash,
+            role: UserRole.USER,
+            isActive: true,
+          },
+        });
+        this.logger.log(`User erstellt/aktualisiert: ${user.email} (ID: ${user.id})`);
       });
 
-      this.logger.log('Admin-Benutzer erfolgreich erstellt');
+      this.logger.log('Benutzer erfolgreich erstellt');
 
       // Verifiziere die Erstellung
-      const count = await this.prisma.adminUser.count();
-      this.logger.log(`Anzahl Admin-Benutzer in der Datenbank: ${count}`);
+      const count = await this.prisma.user.count();
+      this.logger.log(`Anzahl Benutzer in der Datenbank: ${count}`);
 
       return true;
     } catch (error) {
-      this.logger.error('Fehler beim Erstellen der Admin-Benutzer:', error);
+      this.logger.error('Fehler beim Erstellen der Benutzer:', error);
       return false;
     }
   }
 
   /**
-   * Führt das komplette Admin-Authentication-Seeding durch.
+   * Führt das komplette Authentication-Seeding durch.
    *
-   * @param password Optionales Passwort für Admin-Benutzer
+   * @param password Optionales Passwort für Benutzer
    * @returns true, wenn erfolgreich, sonst false
    */
-  async seedAdminAuthentication(password?: string): Promise<boolean> {
-    this.logger.log('Starte Admin-Authentication-Seeding...');
+  async seedAuthentication(password?: string): Promise<boolean> {
+    this.logger.log('Starte Authentication-Seeding...');
 
     // Erst Rollen-Berechtigungen
-    const permissionsSeeded = await this.seedAdminRolePermissions();
+    const permissionsSeeded = await this.seedRolePermissions();
     if (!permissionsSeeded) {
-      this.logger.error('Fehler beim Seeden der Admin-Rollen-Berechtigungen');
+      this.logger.error('Fehler beim Seeden der Rollen-Berechtigungen');
       return false;
     }
 
-    // Dann Admin-Benutzer
-    const usersSeeded = await this.seedAdminUsers(password);
+    // Dann Benutzer
+    const usersSeeded = await this.seedUsers(password);
     if (!usersSeeded) {
-      this.logger.warn('Admin-Benutzer wurden nicht erstellt (existieren bereits oder Fehler)');
+      this.logger.warn('Benutzer wurden nicht erstellt (existieren bereits oder Fehler)');
     }
 
-    this.logger.log('Admin-Authentication-Seeding abgeschlossen');
+    this.logger.log('Authentication-Seeding abgeschlossen');
     return true;
+  }
+
+  // Legacy methods for backwards compatibility
+  async seedAdminRolePermissions(): Promise<boolean> {
+    return this.seedRolePermissions();
+  }
+
+  async seedAdminUsers(password = 'admin123'): Promise<boolean> {
+    return this.seedUsers(password);
+  }
+
+  async seedAdminAuthentication(password?: string): Promise<boolean> {
+    return this.seedAuthentication(password);
   }
 }

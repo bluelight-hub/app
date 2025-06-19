@@ -33,7 +33,7 @@ export interface JWTRefreshPayload {
 export enum UserRole {
   SUPER_ADMIN = 'SUPER_ADMIN',
   ADMIN = 'ADMIN',
-  MODERATOR = 'MODERATOR',
+  SUPPORT = 'SUPPORT',
   USER = 'USER',
 }
 
@@ -43,32 +43,27 @@ export enum UserRole {
  */
 export enum Permission {
   // User Management
-  USERS_READ = 'users:read',
-  USERS_WRITE = 'users:write',
-  USERS_DELETE = 'users:delete',
+  USERS_READ = 'USERS_READ',
+  USERS_WRITE = 'USERS_WRITE',
+  USERS_DELETE = 'USERS_DELETE',
 
-  // Organization Management
-  ORGS_READ = 'orgs:read',
-  ORGS_WRITE = 'orgs:write',
-  ORGS_DELETE = 'orgs:delete',
+  // System Settings
+  SYSTEM_SETTINGS_READ = 'SYSTEM_SETTINGS_READ',
+  SYSTEM_SETTINGS_WRITE = 'SYSTEM_SETTINGS_WRITE',
 
-  // Content Management
-  CONTENT_READ = 'content:read',
-  CONTENT_WRITE = 'content:write',
-  CONTENT_DELETE = 'content:delete',
-  CONTENT_PUBLISH = 'content:publish',
+  // Audit Logs
+  AUDIT_LOG_READ = 'AUDIT_LOG_READ',
 
-  // Settings Management
-  SETTINGS_READ = 'settings:read',
-  SETTINGS_WRITE = 'settings:write',
+  // Role Management
+  ROLE_MANAGE = 'ROLE_MANAGE',
 
-  // Analytics
-  ANALYTICS_READ = 'analytics:read',
-
-  // System Administration
-  SYSTEM_CONFIG = 'system:config',
-  SYSTEM_LOGS = 'system:logs',
-  SYSTEM_BACKUP = 'system:backup',
+  // Application Permissions
+  ETB_READ = 'ETB_READ',
+  ETB_WRITE = 'ETB_WRITE',
+  ETB_DELETE = 'ETB_DELETE',
+  EINSATZ_READ = 'EINSATZ_READ',
+  EINSATZ_WRITE = 'EINSATZ_WRITE',
+  EINSATZ_DELETE = 'EINSATZ_DELETE',
 }
 
 /**
@@ -80,22 +75,20 @@ export const RolePermissions: Record<UserRole, Permission[]> = {
   [UserRole.ADMIN]: [
     Permission.USERS_READ,
     Permission.USERS_WRITE,
-    Permission.ORGS_READ,
-    Permission.ORGS_WRITE,
-    Permission.CONTENT_READ,
-    Permission.CONTENT_WRITE,
-    Permission.CONTENT_DELETE,
-    Permission.CONTENT_PUBLISH,
-    Permission.SETTINGS_READ,
-    Permission.SETTINGS_WRITE,
-    Permission.ANALYTICS_READ,
+    Permission.USERS_DELETE,
+    Permission.SYSTEM_SETTINGS_READ,
+    Permission.SYSTEM_SETTINGS_WRITE,
+    Permission.AUDIT_LOG_READ,
+    Permission.ETB_READ,
+    Permission.ETB_WRITE,
+    Permission.EINSATZ_READ,
+    Permission.EINSATZ_WRITE,
   ],
-  [UserRole.MODERATOR]: [
+  [UserRole.SUPPORT]: [
     Permission.USERS_READ,
-    Permission.CONTENT_READ,
-    Permission.CONTENT_WRITE,
-    Permission.CONTENT_PUBLISH,
-    Permission.ANALYTICS_READ,
+    Permission.AUDIT_LOG_READ,
+    Permission.ETB_READ,
+    Permission.EINSATZ_READ,
   ],
-  [UserRole.USER]: [Permission.CONTENT_READ],
+  [UserRole.USER]: [Permission.ETB_READ, Permission.EINSATZ_READ],
 };

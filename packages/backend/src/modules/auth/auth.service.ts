@@ -5,57 +5,81 @@ import * as bcrypt from 'bcryptjs';
 import { randomUUID } from 'crypto';
 import { LoginDto } from './dto';
 import { AuthUser, LoginResponse, TokenResponse } from './types/auth.types';
-import {
-  JWTPayload,
-  JWTRefreshPayload,
-  Permission,
-  RolePermissions,
-  UserRole,
-} from './types/jwt.types';
+import { JWTPayload, JWTRefreshPayload, Permission, UserRole } from './types/jwt.types';
+import { PrismaService } from '@/prisma/prisma.service';
 
 /**
  * Service responsible for authentication operations including login, token refresh, and logout.
- * Handles JWT token generation and validation for admin users.
+ * Handles JWT token generation and validation for users.
  */
 @Injectable()
 export class AuthService {
   constructor(
     private jwtService: JwtService,
     private configService: ConfigService,
+    private prisma: PrismaService,
   ) {}
 
   async login(loginDto: LoginDto): Promise<LoginResponse> {
-    // TODO: Replace with actual database lookup
-    // Pre-hashed password for testing: SecurePassword123!
-    const mockUser = {
-      id: '1',
-      email: 'admin@bluelight-hub.com',
-      password: '$2b$10$dfOmBT9d17O7VS6lErrEZuSPuOUWFkLeJV6KGnkHrNXbP3.2IrD8e',
-      roles: [UserRole.ADMIN],
-      isActive: true,
-      isMfaEnabled: false,
-      createdAt: new Date(),
-      updatedAt: new Date(),
-    };
+    // Find user by email
+    const user = await this.prisma.user.findUnique({
+      where: { email: loginDto.email },
+    });
 
-    if (loginDto.email !== mockUser.email) {
+    if (!user) {
       throw new UnauthorizedException('Invalid credentials');
     }
 
-    const isPasswordValid = await bcrypt.compare(loginDto.password, mockUser.password);
+    // Check if user is active
+    if (!user.isActive) {
+      throw new UnauthorizedException('Account is disabled');
+    }
+
+    // Check if user is locked
+    if (user.lockedUntil && user.lockedUntil > new Date()) {
+      throw new UnauthorizedException('Account is locked');
+    }
+
+    // Verify password
+    const isPasswordValid = await bcrypt.compare(loginDto.password, user.passwordHash);
     if (!isPasswordValid) {
+      // Increment failed login count
+      await this.prisma.user.update({
+        where: { id: user.id },
+        data: {
+          failedLoginCount: { increment: 1 },
+          // Lock account after 5 failed attempts for 30 minutes
+          lockedUntil: user.failedLoginCount >= 4 ? new Date(Date.now() + 30 * 60 * 1000) : null,
+        },
+      });
       throw new UnauthorizedException('Invalid credentials');
     }
+
+    // Reset failed login count and update last login
+    await this.prisma.user.update({
+      where: { id: user.id },
+      data: {
+        failedLoginCount: 0,
+        lockedUntil: null,
+        lastLoginAt: new Date(),
+      },
+    });
 
     const sessionId = randomUUID();
     const jti = randomUUID();
 
-    const permissions = this.getPermissionsForRoles(mockUser.roles);
+    // Get permissions for user role
+    const rolePermissions = await this.prisma.rolePermission.findMany({
+      where: { role: user.role },
+      select: { permission: true },
+    });
+
+    const permissions = rolePermissions.map((rp) => rp.permission as Permission);
 
     const payload: JWTPayload = {
-      sub: mockUser.id,
-      email: mockUser.email,
-      roles: mockUser.roles,
+      sub: user.id,
+      email: user.email,
+      roles: [user.role as UserRole],
       permissions,
       sessionId,
       iat: Date.now() / 1000,
@@ -63,7 +87,7 @@ export class AuthService {
     };
 
     const refreshPayload: JWTRefreshPayload = {
-      sub: mockUser.id,
+      sub: user.id,
       sessionId,
       jti,
       iat: Date.now() / 1000,
@@ -76,17 +100,35 @@ export class AuthService {
       expiresIn: '7d',
     });
 
-    // TODO: Save session and refresh token to database
+    // Create session in database
+    const expiresAt = new Date(Date.now() + 604800 * 1000); // 7 days
+    await this.prisma.session.create({
+      data: {
+        jti,
+        userId: user.id,
+        expiresAt,
+      },
+    });
+
+    // Create refresh token in database
+    await this.prisma.refreshToken.create({
+      data: {
+        token: refreshToken,
+        userId: user.id,
+        sessionJti: jti,
+        expiresAt,
+      },
+    });
 
     const authUser: AuthUser = {
-      id: mockUser.id,
-      email: mockUser.email,
-      roles: mockUser.roles,
+      id: user.id,
+      email: user.email,
+      roles: [user.role as UserRole],
       permissions,
-      isActive: mockUser.isActive,
-      isMfaEnabled: mockUser.isMfaEnabled,
-      createdAt: mockUser.createdAt,
-      updatedAt: mockUser.updatedAt,
+      isActive: user.isActive,
+      isMfaEnabled: user.isMfaEnabled,
+      createdAt: user.createdAt,
+      updatedAt: user.updatedAt,
     };
 
     return {
@@ -98,26 +140,45 @@ export class AuthService {
 
   async refreshTokens(refreshToken: string): Promise<TokenResponse> {
     try {
-      const payload = this.jwtService.verify<JWTRefreshPayload>(refreshToken, {
+      this.jwtService.verify<JWTRefreshPayload>(refreshToken, {
         secret: this.configService.get<string>('JWT_REFRESH_SECRET'),
       });
 
-      // TODO: Validate refresh token exists in database
-      // TODO: Get user from database
+      // Check if refresh token exists and is valid
+      const storedToken = await this.prisma.refreshToken.findUnique({
+        where: { token: refreshToken },
+        include: { user: true },
+      });
 
-      const mockUser = {
-        id: payload.sub,
-        email: 'admin@bluelight-hub.com',
-        roles: [UserRole.ADMIN],
-      };
+      if (!storedToken || storedToken.isUsed || storedToken.isRevoked) {
+        throw new UnauthorizedException('Invalid refresh token');
+      }
 
-      const permissions = this.getPermissionsForRoles(mockUser.roles);
+      if (storedToken.expiresAt < new Date()) {
+        throw new UnauthorizedException('Refresh token expired');
+      }
+
+      const user = storedToken.user;
+
+      if (!user.isActive) {
+        throw new UnauthorizedException('Account is disabled');
+      }
+
+      // Get permissions for user role
+      const rolePermissions = await this.prisma.rolePermission.findMany({
+        where: { role: user.role },
+        select: { permission: true },
+      });
+
+      const permissions = rolePermissions.map((rp) => rp.permission as Permission);
+
       const newSessionId = randomUUID();
+      const newJti = randomUUID();
 
       const newPayload: JWTPayload = {
-        sub: mockUser.id,
-        email: mockUser.email,
-        roles: mockUser.roles,
+        sub: user.id,
+        email: user.email,
+        roles: [user.role as UserRole],
         permissions,
         sessionId: newSessionId,
         iat: Date.now() / 1000,
@@ -125,9 +186,9 @@ export class AuthService {
       };
 
       const newRefreshPayload: JWTRefreshPayload = {
-        sub: mockUser.id,
+        sub: user.id,
         sessionId: newSessionId,
-        jti: randomUUID(),
+        jti: newJti,
         iat: Date.now() / 1000,
         exp: Date.now() / 1000 + 604800,
       };
@@ -138,7 +199,34 @@ export class AuthService {
         expiresIn: '7d',
       });
 
-      // TODO: Update session in database
+      // Mark old refresh token as used
+      await this.prisma.refreshToken.update({
+        where: { id: storedToken.id },
+        data: {
+          isUsed: true,
+          usedAt: new Date(),
+        },
+      });
+
+      // Create new session
+      const expiresAt = new Date(Date.now() + 604800 * 1000); // 7 days
+      await this.prisma.session.create({
+        data: {
+          jti: newJti,
+          userId: user.id,
+          expiresAt,
+        },
+      });
+
+      // Create new refresh token
+      await this.prisma.refreshToken.create({
+        data: {
+          token: newRefreshToken,
+          userId: user.id,
+          sessionJti: newJti,
+          expiresAt,
+        },
+      });
 
       return {
         accessToken: newAccessToken,
@@ -149,18 +237,30 @@ export class AuthService {
     }
   }
 
-  async logout(_sessionId: string): Promise<void> {
-    // TODO: Invalidate session in database
-  }
+  async logout(sessionId: string): Promise<void> {
+    // Invalidate session in database
+    await this.prisma.session.updateMany({
+      where: {
+        jti: sessionId,
+        isRevoked: false,
+      },
+      data: {
+        isRevoked: true,
+        revokedAt: new Date(),
+        revokedReason: 'User logout',
+      },
+    });
 
-  private getPermissionsForRoles(roles: UserRole[]): Permission[] {
-    const permissions = new Set<Permission>();
-
-    for (const role of roles) {
-      const rolePermissions = RolePermissions[role] || [];
-      rolePermissions.forEach((permission) => permissions.add(permission));
-    }
-
-    return Array.from(permissions);
+    // Invalidate associated refresh tokens
+    await this.prisma.refreshToken.updateMany({
+      where: {
+        sessionJti: sessionId,
+        isRevoked: false,
+      },
+      data: {
+        isRevoked: true,
+        revokedAt: new Date(),
+      },
+    });
   }
 }

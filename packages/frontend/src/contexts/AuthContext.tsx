@@ -47,7 +47,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     setIsLoading(true);
 
     try {
-      const response = await fetch(`${getBaseUrl()}/v1/api/auth/login`, {
+      const response = await fetch(`${getBaseUrl()}/api/auth/login`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -89,7 +89,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   const logout = async () => {
     try {
-      await fetch(`${getBaseUrl()}/v1/api/auth/logout`, {
+      await fetch(`${getBaseUrl()}/api/auth/logout`, {
         method: 'POST',
         headers: {
           Authorization: `Bearer ${localStorage.getItem('auth_token')}`,

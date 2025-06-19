@@ -109,9 +109,9 @@ export class SeedAdminCommand extends CommandRunner {
     const success = await this.seedService.seedAdminAuthentication(password);
 
     if (success) {
-      this.logger.log('✅ Admin-Authentication erfolgreich geseeded!');
+      this.logger.log('✅ Authentication erfolgreich geseeded!');
       this.logger.log('');
-      this.logger.log('📋 Erstelle Admin-Benutzer:');
+      this.logger.log('📋 Erstelle Benutzer:');
       this.logger.log('=====================================');
       this.logger.log('🔹 Super Admin:');
       this.logger.log('   Email: superadmin@bluelight-hub.com');
@@ -124,14 +124,20 @@ export class SeedAdminCommand extends CommandRunner {
       this.logger.log('   Username: admin');
       this.logger.log(`   Passwort: ${password}`);
       this.logger.log(
-        '   Berechtigungen: Admin-Benutzer verwalten, System-Einstellungen, Audit-Logs',
+        '   Berechtigungen: Benutzer verwalten, System-Einstellungen, Audit-Logs, ETB/Einsatz verwalten',
       );
       this.logger.log('');
       this.logger.log('🔹 Support:');
       this.logger.log('   Email: support@bluelight-hub.com');
       this.logger.log('   Username: support');
       this.logger.log(`   Passwort: ${password}`);
-      this.logger.log('   Berechtigungen: Admin-Benutzer lesen, Audit-Logs lesen');
+      this.logger.log('   Berechtigungen: Benutzer lesen, Audit-Logs lesen, ETB/Einsatz lesen');
+      this.logger.log('');
+      this.logger.log('🔹 User:');
+      this.logger.log('   Email: user@bluelight-hub.com');
+      this.logger.log('   Username: user');
+      this.logger.log(`   Passwort: ${password}`);
+      this.logger.log('   Berechtigungen: ETB/Einsatz lesen');
       this.logger.log('');
       this.logger.warn('⚠️  WICHTIG: Ändern Sie diese Passwörter vor dem Produktivbetrieb!');
     } else {

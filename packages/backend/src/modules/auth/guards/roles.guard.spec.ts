@@ -57,9 +57,9 @@ describe('RolesGuard', () => {
     });
 
     it('should return true when user has one of multiple required roles', () => {
-      mockReflector.getAllAndOverride.mockReturnValue([UserRole.ADMIN, UserRole.MODERATOR]);
+      mockReflector.getAllAndOverride.mockReturnValue([UserRole.ADMIN, UserRole.SUPPORT]);
 
-      const user = { roles: [UserRole.MODERATOR] };
+      const user = { roles: [UserRole.SUPPORT] };
       const context = createMockContext(user);
       const result = guard.canActivate(context);
 

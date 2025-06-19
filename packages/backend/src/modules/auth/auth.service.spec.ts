@@ -4,6 +4,14 @@ import { ConfigService } from '@nestjs/config';
 import { UnauthorizedException } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { Permission, UserRole } from './types/jwt.types';
+import { PrismaService } from '@/prisma/prisma.service';
+import * as bcrypt from 'bcryptjs';
+
+// Mock bcrypt
+jest.mock('bcryptjs', () => ({
+  compare: jest.fn(),
+  hash: jest.fn(),
+}));
 
 describe('AuthService', () => {
   let service: AuthService;
@@ -17,6 +25,26 @@ describe('AuthService', () => {
     get: jest.fn(),
   };
 
+  const mockPrismaService = {
+    user: {
+      findUnique: jest.fn(),
+      update: jest.fn(),
+    },
+    rolePermission: {
+      findMany: jest.fn(),
+    },
+    session: {
+      create: jest.fn(),
+      updateMany: jest.fn(),
+    },
+    refreshToken: {
+      create: jest.fn(),
+      findUnique: jest.fn(),
+      update: jest.fn(),
+      updateMany: jest.fn(),
+    },
+  };
+
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
@@ -28,6 +56,10 @@ describe('AuthService', () => {
         {
           provide: ConfigService,
           useValue: mockConfigService,
+        },
+        {
+          provide: PrismaService,
+          useValue: mockPrismaService,
         },
       ],
     }).compile();
@@ -48,66 +80,128 @@ describe('AuthService', () => {
   });
 
   describe('login', () => {
-    const validLoginDto = {
+    const mockLoginDto = {
       email: 'admin@bluelight-hub.com',
       password: 'SecurePassword123!',
-      rememberMe: false,
     };
 
-    it('should successfully login with valid credentials', async () => {
-      mockJwtService.sign.mockReturnValueOnce('access-token').mockReturnValueOnce('refresh-token');
+    const mockUser = {
+      id: '1',
+      email: 'admin@bluelight-hub.com',
+      username: 'admin',
+      passwordHash: 'hashed_password',
+      role: UserRole.ADMIN,
+      isActive: true,
+      isMfaEnabled: false,
+      failedLoginCount: 0,
+      lockedUntil: null,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    };
 
-      const result = await service.login(validLoginDto);
+    it('should login successfully with valid credentials', async () => {
+      mockPrismaService.user.findUnique.mockResolvedValue(mockUser);
+      mockPrismaService.user.update.mockResolvedValue(mockUser);
+      mockPrismaService.rolePermission.findMany.mockResolvedValue([
+        { permission: Permission.USERS_READ },
+        { permission: Permission.USERS_WRITE },
+      ]);
+      mockPrismaService.session.create.mockResolvedValue({});
+      mockPrismaService.refreshToken.create.mockResolvedValue({});
 
-      expect(result).toHaveProperty('accessToken', 'access-token');
-      expect(result).toHaveProperty('refreshToken', 'refresh-token');
+      (bcrypt.compare as jest.Mock).mockResolvedValue(true);
+
+      mockJwtService.sign.mockReturnValueOnce('access_token');
+      mockJwtService.sign.mockReturnValueOnce('refresh_token');
+
+      const result = await service.login(mockLoginDto);
+
+      expect(result).toHaveProperty('accessToken', 'access_token');
+      expect(result).toHaveProperty('refreshToken', 'refresh_token');
       expect(result).toHaveProperty('user');
-      expect(result.user).toMatchObject({
-        id: '1',
-        email: 'admin@bluelight-hub.com',
-        roles: [UserRole.ADMIN],
-        isActive: true,
-        isMfaEnabled: false,
-      });
-      expect(result.user.permissions).toContain(Permission.USERS_READ);
-      expect(result.user.permissions).toContain(Permission.USERS_WRITE);
+      expect(result.user.email).toBe(mockUser.email);
+      expect(result.user.roles).toEqual([UserRole.ADMIN]);
     });
 
     it('should throw UnauthorizedException for invalid email', async () => {
-      const invalidLoginDto = {
-        email: 'wrong@example.com',
-        password: 'SecurePassword123!',
-      };
+      mockPrismaService.user.findUnique.mockResolvedValue(null);
 
-      await expect(service.login(invalidLoginDto)).rejects.toThrow(UnauthorizedException);
+      await expect(service.login(mockLoginDto)).rejects.toThrow(UnauthorizedException);
+      await expect(service.login(mockLoginDto)).rejects.toThrow('Invalid credentials');
     });
 
     it('should throw UnauthorizedException for invalid password', async () => {
-      const invalidLoginDto = {
-        email: 'admin@bluelight-hub.com',
-        password: 'WrongPassword!',
-      };
+      mockPrismaService.user.findUnique.mockResolvedValue(mockUser);
+      (bcrypt.compare as jest.Mock).mockResolvedValue(false);
 
-      await expect(service.login(invalidLoginDto)).rejects.toThrow(UnauthorizedException);
+      await expect(service.login(mockLoginDto)).rejects.toThrow(UnauthorizedException);
+      await expect(service.login(mockLoginDto)).rejects.toThrow('Invalid credentials');
     });
 
-    it('should generate different session IDs for each login', async () => {
-      mockJwtService.sign.mockReturnValue('token');
+    it('should throw UnauthorizedException for inactive user', async () => {
+      mockPrismaService.user.findUnique.mockResolvedValue({
+        ...mockUser,
+        isActive: false,
+      });
 
-      await service.login(validLoginDto);
-      await service.login(validLoginDto);
+      await expect(service.login(mockLoginDto)).rejects.toThrow(UnauthorizedException);
+      await expect(service.login(mockLoginDto)).rejects.toThrow('Account is disabled');
+    });
 
-      const payload1 = mockJwtService.sign.mock.calls[0][0];
-      const payload2 = mockJwtService.sign.mock.calls[2][0];
+    it('should throw UnauthorizedException for locked user', async () => {
+      mockPrismaService.user.findUnique.mockResolvedValue({
+        ...mockUser,
+        lockedUntil: new Date(Date.now() + 60000), // Locked for 1 minute
+      });
 
-      expect(payload1.sessionId).toBeDefined();
-      expect(payload2.sessionId).toBeDefined();
-      expect(payload1.sessionId).not.toBe(payload2.sessionId);
+      await expect(service.login(mockLoginDto)).rejects.toThrow(UnauthorizedException);
+      await expect(service.login(mockLoginDto)).rejects.toThrow('Account is locked');
+    });
+
+    it('should increment failed login count on invalid password', async () => {
+      mockPrismaService.user.findUnique.mockResolvedValue(mockUser);
+      (bcrypt.compare as jest.Mock).mockResolvedValue(false);
+
+      try {
+        await service.login(mockLoginDto);
+      } catch {
+        // Expected to throw
+      }
+
+      expect(mockPrismaService.user.update).toHaveBeenCalledWith({
+        where: { id: mockUser.id },
+        data: {
+          failedLoginCount: { increment: 1 },
+          lockedUntil: null,
+        },
+      });
+    });
+
+    it('should lock account after 5 failed attempts', async () => {
+      mockPrismaService.user.findUnique.mockResolvedValue({
+        ...mockUser,
+        failedLoginCount: 4,
+      });
+      (bcrypt.compare as jest.Mock).mockResolvedValue(false);
+
+      try {
+        await service.login(mockLoginDto);
+      } catch {
+        // Expected to throw
+      }
+
+      expect(mockPrismaService.user.update).toHaveBeenCalledWith({
+        where: { id: mockUser.id },
+        data: {
+          failedLoginCount: { increment: 1 },
+          lockedUntil: expect.any(Date),
+        },
+      });
     });
   });
 
   describe('refreshTokens', () => {
-    const validRefreshToken = 'valid-refresh-token';
+    const mockRefreshToken = 'valid_refresh_token';
     const mockPayload = {
       sub: '1',
       sessionId: 'session-123',
@@ -116,17 +210,41 @@ describe('AuthService', () => {
       exp: Date.now() / 1000 + 604800,
     };
 
-    it('should successfully refresh tokens with valid refresh token', async () => {
+    const mockStoredToken = {
+      id: '1',
+      token: mockRefreshToken,
+      userId: '1',
+      sessionJti: 'jti-123',
+      expiresAt: new Date(Date.now() + 604800 * 1000),
+      isUsed: false,
+      isRevoked: false,
+      user: {
+        id: '1',
+        email: 'admin@bluelight-hub.com',
+        role: UserRole.ADMIN,
+        isActive: true,
+      },
+    };
+
+    it('should refresh tokens successfully', async () => {
       mockJwtService.verify.mockReturnValue(mockPayload);
-      mockJwtService.sign
-        .mockReturnValueOnce('new-access-token')
-        .mockReturnValueOnce('new-refresh-token');
+      mockPrismaService.refreshToken.findUnique.mockResolvedValue(mockStoredToken);
+      mockPrismaService.rolePermission.findMany.mockResolvedValue([
+        { permission: Permission.USERS_READ },
+        { permission: Permission.USERS_WRITE },
+      ]);
+      mockPrismaService.refreshToken.update.mockResolvedValue({});
+      mockPrismaService.session.create.mockResolvedValue({});
+      mockPrismaService.refreshToken.create.mockResolvedValue({});
 
-      const result = await service.refreshTokens(validRefreshToken);
+      mockJwtService.sign.mockReturnValueOnce('new_access_token');
+      mockJwtService.sign.mockReturnValueOnce('new_refresh_token');
 
-      expect(result).toHaveProperty('accessToken', 'new-access-token');
-      expect(result).toHaveProperty('refreshToken', 'new-refresh-token');
-      expect(mockJwtService.verify).toHaveBeenCalledWith(validRefreshToken, {
+      const result = await service.refreshTokens(mockRefreshToken);
+
+      expect(result).toHaveProperty('accessToken', 'new_access_token');
+      expect(result).toHaveProperty('refreshToken', 'new_refresh_token');
+      expect(mockJwtService.verify).toHaveBeenCalledWith(mockRefreshToken, {
         secret: 'test-refresh-secret',
       });
     });
@@ -136,81 +254,84 @@ describe('AuthService', () => {
         throw new Error('Invalid token');
       });
 
-      await expect(service.refreshTokens('invalid-token')).rejects.toThrow(UnauthorizedException);
+      await expect(service.refreshTokens(mockRefreshToken)).rejects.toThrow(UnauthorizedException);
     });
 
-    it('should generate new session ID on refresh', async () => {
+    it('should throw UnauthorizedException for used refresh token', async () => {
       mockJwtService.verify.mockReturnValue(mockPayload);
-      mockJwtService.sign.mockReturnValue('token');
+      mockPrismaService.refreshToken.findUnique.mockResolvedValue({
+        ...mockStoredToken,
+        isUsed: true,
+      });
 
-      await service.refreshTokens(validRefreshToken);
+      await expect(service.refreshTokens(mockRefreshToken)).rejects.toThrow(UnauthorizedException);
+    });
 
-      const newAccessTokenPayload = mockJwtService.sign.mock.calls[0][0];
-      expect(newAccessTokenPayload.sessionId).toBeDefined();
-      expect(newAccessTokenPayload.sessionId).not.toBe(mockPayload.sessionId);
+    it('should throw UnauthorizedException for revoked refresh token', async () => {
+      mockJwtService.verify.mockReturnValue(mockPayload);
+      mockPrismaService.refreshToken.findUnique.mockResolvedValue({
+        ...mockStoredToken,
+        isRevoked: true,
+      });
+
+      await expect(service.refreshTokens(mockRefreshToken)).rejects.toThrow(UnauthorizedException);
+    });
+
+    it('should throw UnauthorizedException for expired refresh token', async () => {
+      mockJwtService.verify.mockReturnValue(mockPayload);
+      mockPrismaService.refreshToken.findUnique.mockResolvedValue({
+        ...mockStoredToken,
+        expiresAt: new Date(Date.now() - 1000), // Expired
+      });
+
+      await expect(service.refreshTokens(mockRefreshToken)).rejects.toThrow(UnauthorizedException);
+    });
+
+    it('should throw UnauthorizedException for inactive user', async () => {
+      mockJwtService.verify.mockReturnValue(mockPayload);
+      mockPrismaService.refreshToken.findUnique.mockResolvedValue({
+        ...mockStoredToken,
+        user: {
+          ...mockStoredToken.user,
+          isActive: false,
+        },
+      });
+
+      await expect(service.refreshTokens(mockRefreshToken)).rejects.toThrow(UnauthorizedException);
     });
   });
 
   describe('logout', () => {
-    it('should accept session ID for logout', async () => {
-      await expect(service.logout('session-123')).resolves.toBeUndefined();
-    });
-  });
+    it('should invalidate session and refresh tokens', async () => {
+      const sessionId = 'session-123';
 
-  describe('getPermissionsForRoles', () => {
-    it('should return correct permissions for SUPER_ADMIN', () => {
-      const service = new AuthService({} as JwtService, {} as ConfigService);
-      const permissions = service['getPermissionsForRoles']([UserRole.SUPER_ADMIN]);
+      mockPrismaService.session.updateMany.mockResolvedValue({ count: 1 });
+      mockPrismaService.refreshToken.updateMany.mockResolvedValue({ count: 1 });
 
-      expect(permissions).toContain(Permission.USERS_READ);
-      expect(permissions).toContain(Permission.USERS_WRITE);
-      expect(permissions).toContain(Permission.USERS_DELETE);
-      expect(permissions).toContain(Permission.SYSTEM_CONFIG);
-      expect(permissions.length).toBe(Object.values(Permission).length);
-    });
+      await service.logout(sessionId);
 
-    it('should return correct permissions for ADMIN', () => {
-      const service = new AuthService({} as JwtService, {} as ConfigService);
-      const permissions = service['getPermissionsForRoles']([UserRole.ADMIN]);
+      expect(mockPrismaService.session.updateMany).toHaveBeenCalledWith({
+        where: {
+          jti: sessionId,
+          isRevoked: false,
+        },
+        data: {
+          isRevoked: true,
+          revokedAt: expect.any(Date),
+          revokedReason: 'User logout',
+        },
+      });
 
-      expect(permissions).toContain(Permission.USERS_READ);
-      expect(permissions).toContain(Permission.USERS_WRITE);
-      expect(permissions).not.toContain(Permission.USERS_DELETE);
-      expect(permissions).not.toContain(Permission.SYSTEM_CONFIG);
-    });
-
-    it('should return correct permissions for MODERATOR', () => {
-      const service = new AuthService({} as JwtService, {} as ConfigService);
-      const permissions = service['getPermissionsForRoles']([UserRole.MODERATOR]);
-
-      expect(permissions).toContain(Permission.USERS_READ);
-      expect(permissions).toContain(Permission.CONTENT_READ);
-      expect(permissions).not.toContain(Permission.USERS_WRITE);
-      expect(permissions).not.toContain(Permission.ORGS_WRITE);
-    });
-
-    it('should return correct permissions for USER', () => {
-      const service = new AuthService({} as JwtService, {} as ConfigService);
-      const permissions = service['getPermissionsForRoles']([UserRole.USER]);
-
-      expect(permissions).toEqual([Permission.CONTENT_READ]);
-    });
-
-    it('should combine permissions for multiple roles', () => {
-      const service = new AuthService({} as JwtService, {} as ConfigService);
-      const permissions = service['getPermissionsForRoles']([UserRole.USER, UserRole.MODERATOR]);
-
-      expect(permissions).toContain(Permission.CONTENT_READ);
-      expect(permissions).toContain(Permission.USERS_READ);
-      expect(permissions).toContain(Permission.CONTENT_WRITE);
-      expect(permissions).toContain(Permission.ANALYTICS_READ);
-    });
-
-    it('should handle empty roles array', () => {
-      const service = new AuthService({} as JwtService, {} as ConfigService);
-      const permissions = service['getPermissionsForRoles']([]);
-
-      expect(permissions).toEqual([]);
+      expect(mockPrismaService.refreshToken.updateMany).toHaveBeenCalledWith({
+        where: {
+          sessionJti: sessionId,
+          isRevoked: false,
+        },
+        data: {
+          isRevoked: true,
+          revokedAt: expect.any(Date),
+        },
+      });
     });
   });
 });

@@ -107,12 +107,16 @@ describe('PermissionsGuard', () => {
 
     it('should handle system permissions correctly', () => {
       mockReflector.getAllAndOverride.mockReturnValue([
-        Permission.SYSTEM_CONFIG,
-        Permission.SYSTEM_LOGS,
+        Permission.SYSTEM_SETTINGS_READ,
+        Permission.SYSTEM_SETTINGS_WRITE,
       ]);
 
       const user = {
-        permissions: [Permission.SYSTEM_CONFIG, Permission.SYSTEM_LOGS, Permission.SYSTEM_BACKUP],
+        permissions: [
+          Permission.SYSTEM_SETTINGS_READ,
+          Permission.SYSTEM_SETTINGS_WRITE,
+          Permission.AUDIT_LOG_READ,
+        ],
       };
       const context = createMockContext(user);
       const result = guard.canActivate(context);
