@@ -3,6 +3,7 @@ import { PassportStrategy } from '@nestjs/passport';
 import { ExtractJwt, Strategy } from 'passport-jwt';
 import { ConfigService } from '@nestjs/config';
 import { JWTPayload } from '../types/jwt.types';
+import { Request } from 'express';
 
 /**
  * JWT authentication strategy for validating access tokens.
@@ -12,7 +13,14 @@ import { JWTPayload } from '../types/jwt.types';
 export class JwtStrategy extends PassportStrategy(Strategy) {
   constructor(private configService: ConfigService) {
     super({
-      jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
+      jwtFromRequest: (request: Request) => {
+        // First, try to get token from cookie
+        if (request?.cookies?.access_token) {
+          return request.cookies.access_token;
+        }
+        // Fallback to Authorization header
+        return ExtractJwt.fromAuthHeaderAsBearerToken()(request);
+      },
       ignoreExpiration: false,
       secretOrKey: configService.get<string>('JWT_SECRET'),
     });

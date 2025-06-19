@@ -93,3 +93,125 @@ model EtbAttachment {
   @@index([etbEntryId], map: "idx_etb_attachment_entry_id")
   @@index([dateityp], map: "idx_etb_attachment_dateityp")
 }
+
+// ===== ADMIN AUTHENTICATION SYSTEM =====
+// IMPORTANT: This authentication system is intended solely for internal admin accounts.
+// No operational or end-user identities should be stored here.
+
+enum AdminRole {
+  SUPER_ADMIN
+  ADMIN
+  SUPPORT
+}
+
+enum AdminPermission {
+  // Admin users management
+  ADMIN_USERS_READ
+  ADMIN_USERS_WRITE
+  ADMIN_USERS_DELETE
+  
+  // System settings
+  SYSTEM_SETTINGS_READ
+  SYSTEM_SETTINGS_WRITE
+  
+  // Audit logs
+  AUDIT_LOG_READ
+  
+  // Role management
+  ROLE_MANAGE
+}
+
+model AdminUser {
+  id                String              @id @default(nanoid())
+  email             String              @unique @db.VarChar(255)
+  username          String              @unique @db.VarChar(100)
+  passwordHash      String              @db.Text
+  role              AdminRole           @default(SUPPORT)
+  isActive          Boolean             @default(true)
+  isMfaEnabled      Boolean             @default(false)
+  lastLoginAt       DateTime?
+  failedLoginCount  Int                 @default(0)
+  lockedUntil       DateTime?
+  createdAt         DateTime            @default(now())
+  updatedAt         DateTime            @updatedAt
+  
+  // Relations
+  mfaSecrets        AdminMfaSecret[]
+  sessions          AdminSession[]
+  refreshTokens     AdminRefreshToken[]
+  rolePermissions   AdminRolePermission[]
+  
+  // Indexes
+  @@index([email], map: "idx_admin_user_email")
+  @@index([role, isActive], map: "idx_admin_user_role_active")
+  @@index([lastLoginAt], map: "idx_admin_user_last_login")
+}
+
+model AdminMfaSecret {
+  id               String      @id @default(nanoid())
+  adminUserId      String
+  adminUser        AdminUser   @relation(fields: [adminUserId], references: [id], onDelete: Cascade)
+  secret           String      @db.Text // Encrypted TOTP secret
+  backupCodes      String[]    // Encrypted backup codes
+  isVerified       Boolean     @default(false)
+  verifiedAt       DateTime?
+  lastUsedAt       DateTime?
+  createdAt        DateTime    @default(now())
+  updatedAt        DateTime    @updatedAt
+  
+  // Unique constraint - one active MFA secret per user
+  @@unique([adminUserId], map: "uk_admin_mfa_secret_user")
+  @@index([adminUserId, isVerified], map: "idx_admin_mfa_user_verified")
+}
+
+model AdminSession {
+  id               String      @id @default(nanoid())
+  jti              String      @unique // JWT ID for tracking
+  adminUserId      String
+  adminUser        AdminUser   @relation(fields: [adminUserId], references: [id], onDelete: Cascade)
+  ipAddress        String?     @db.VarChar(45) // Supports IPv6
+  userAgent        String?     @db.Text
+  lastActivityAt   DateTime    @default(now())
+  expiresAt        DateTime
+  isRevoked        Boolean     @default(false)
+  revokedAt        DateTime?
+  revokedReason    String?     @db.VarChar(255)
+  createdAt        DateTime    @default(now())
+  
+  // Indexes for session management
+  @@index([adminUserId, isRevoked], map: "idx_admin_session_user_active")
+  @@index([jti], map: "idx_admin_session_jti")
+  @@index([expiresAt, isRevoked], map: "idx_admin_session_expiry")
+}
+
+model AdminRefreshToken {
+  id               String      @id @default(nanoid())
+  token            String      @unique @db.Text
+  adminUserId      String
+  adminUser        AdminUser   @relation(fields: [adminUserId], references: [id], onDelete: Cascade)
+  sessionJti       String?     // Link to session JWT ID
+  expiresAt        DateTime
+  isUsed           Boolean     @default(false)
+  usedAt           DateTime?
+  isRevoked        Boolean     @default(false)
+  revokedAt        DateTime?
+  createdAt        DateTime    @default(now())
+  
+  // Indexes
+  @@index([token], map: "idx_admin_refresh_token")
+  @@index([adminUserId, isRevoked, isUsed], map: "idx_admin_refresh_user_status")
+  @@index([expiresAt], map: "idx_admin_refresh_expiry")
+}
+
+model AdminRolePermission {
+  id               String           @id @default(nanoid())
+  role             AdminRole
+  permission       AdminPermission
+  grantedBy        String?          // Admin user ID who granted this permission
+  grantedByUser    AdminUser?       @relation(fields: [grantedBy], references: [id], onDelete: SetNull)
+  grantedAt        DateTime         @default(now())
+  
+  // Unique constraint - one permission per role
+  @@unique([role, permission], map: "uk_admin_role_permission")
+  @@index([role], map: "idx_admin_role_permission_role")
+}

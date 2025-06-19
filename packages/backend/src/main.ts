@@ -5,6 +5,9 @@ import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import * as packageJson from '../package.json';
 import { AppModule } from './app.module';
 import { logger } from './logger/consola.logger';
+import helmet from 'helmet';
+import * as cookieParser from 'cookie-parser';
+import { helmetConfig, corsConfig } from './config/security.config';
 
 /**
  * Bootstrap-Funktion zum Initialisieren und Starten der NestJS-Anwendung.
@@ -35,7 +38,19 @@ async function bootstrap() {
 
     SwaggerModule.setup('api', app, document, {});
 
-    app.enableCors();
+    // Get config service to determine environment
+    const configService = app.get(ConfigService);
+    const isProduction = configService.get('NODE_ENV') === 'production';
+
+    // Apply Helmet middleware for security headers
+    app.use(helmet(helmetConfig));
+
+    // Apply cookie parser middleware
+    app.use(cookieParser());
+
+    // Configure CORS based on environment
+    const corsOptions = isProduction ? corsConfig.production : corsConfig.development;
+    app.enableCors(corsOptions);
 
     // Enable validation pipes globally
     app.useGlobalPipes(new ValidationPipe({
@@ -44,7 +59,6 @@ async function bootstrap() {
         forbidNonWhitelisted: true,
     }));
 
-    const configService = app.get(ConfigService);
     const port = configService.get('BACKEND_PORT') || configService.get('PORT') || 3000;
 
     await app.listen(port);

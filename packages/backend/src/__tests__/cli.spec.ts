@@ -17,6 +17,10 @@ jest.mock('../cli/commands/seed-import.command', () => ({
     SeedImportCommand: jest.fn(),
 }));
 
+jest.mock('../cli/commands/seed-admin.command', () => ({
+    SeedAdminCommand: jest.fn(),
+}));
+
 /**
  * Tests für die CLI Bootstrap-Funktion.
  * Testet den Start und Fehlerbehandlung der CLI.

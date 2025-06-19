@@ -27,7 +27,30 @@ export const getBaseUrl = (): string => {
 //   return await tauriFetch(url, init);
 // };
 
+// Custom fetch implementation with credentials
+const customFetch = (input: RequestInfo | URL, init?: RequestInit): Promise<Response> => {
+  return fetch(input, {
+    ...init,
+    credentials: 'include', // Always include cookies
+  });
+};
+
+// Middleware to add authentication headers
+const authMiddleware = {
+  pre: async (context: any) => {
+    const token = localStorage.getItem('auth_token');
+    if (token) {
+      context.init.headers = {
+        ...context.init.headers,
+        'Authorization': `Bearer ${token}`,
+      };
+    }
+    return context;
+  },
+};
+
 export const apiConfiguration = new Configuration({
   basePath: getBaseUrl(),
-  fetchApi: fetch,
+  fetchApi: customFetch,
+  middleware: [authMiddleware],
 });

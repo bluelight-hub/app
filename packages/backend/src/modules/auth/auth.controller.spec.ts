@@ -3,10 +3,13 @@ import { AuthController } from './auth.controller';
 import { AuthService } from './auth.service';
 import { LoginDto, RefreshTokenDto } from './dto';
 import { JWTPayload } from './types/jwt.types';
+import { Response, Request } from 'express';
 
 describe('AuthController', () => {
   let controller: AuthController;
   let authService: AuthService;
+  let mockResponse: Response;
+  let mockRequest: Request;
 
   const mockAuthService = {
     login: jest.fn(),
@@ -27,6 +30,16 @@ describe('AuthController', () => {
 
     controller = module.get<AuthController>(AuthController);
     authService = module.get<AuthService>(AuthService);
+
+    // Create fresh mocks for each test
+    mockResponse = {
+      cookie: jest.fn(),
+      clearCookie: jest.fn(),
+    } as unknown as Response;
+
+    mockRequest = {
+      cookies: {},
+    } as unknown as Request;
 
     jest.clearAllMocks();
   });
@@ -56,9 +69,12 @@ describe('AuthController', () => {
 
       mockAuthService.login.mockResolvedValue(expectedResult);
 
-      const result = await controller.login(loginDto);
+      const result = await controller.login(loginDto, mockResponse);
 
       expect(authService.login).toHaveBeenCalledWith(loginDto);
+      expect(mockResponse.cookie).toHaveBeenCalledTimes(2);
+      expect(mockResponse.cookie).toHaveBeenCalledWith('access_token', 'access-token', expect.any(Object));
+      expect(mockResponse.cookie).toHaveBeenCalledWith('refresh_token', 'refresh-token', expect.any(Object));
       expect(result).toBe(expectedResult);
     });
   });
@@ -76,9 +92,12 @@ describe('AuthController', () => {
 
       mockAuthService.refreshTokens.mockResolvedValue(expectedResult);
 
-      const result = await controller.refresh(refreshTokenDto);
+      const result = await controller.refresh(refreshTokenDto, mockRequest, mockResponse);
 
       expect(authService.refreshTokens).toHaveBeenCalledWith('refresh-token');
+      expect(mockResponse.cookie).toHaveBeenCalledTimes(2);
+      expect(mockResponse.cookie).toHaveBeenCalledWith('access_token', 'new-access-token', expect.any(Object));
+      expect(mockResponse.cookie).toHaveBeenCalledWith('refresh_token', 'new-refresh-token', expect.any(Object));
       expect(result).toBe(expectedResult);
     });
   });
@@ -97,9 +116,12 @@ describe('AuthController', () => {
 
       mockAuthService.logout.mockResolvedValue(undefined);
 
-      await controller.logout(user);
+      await controller.logout(user, mockResponse);
 
       expect(authService.logout).toHaveBeenCalledWith('session-123');
+      expect(mockResponse.clearCookie).toHaveBeenCalledTimes(2);
+      expect(mockResponse.clearCookie).toHaveBeenCalledWith('access_token');
+      expect(mockResponse.clearCookie).toHaveBeenCalledWith('refresh_token');
     });
   });
 });

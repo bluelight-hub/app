@@ -1,0 +1,54 @@
+# Build outputs
+dist/
+build/
+out/
+coverage/
+*.svg
+
+# Dependencies
+node_modules/
+pnpm-lock.yaml
+
+# Generated files
+packages/backend/prisma/generated/
+packages/shared/client/
+packages/backend/docs/
+packages/frontend/docs/
+
+# Database
+*.sqlite
+*.db
+packages/backend/prisma/migrations/
+
+# Logs
+*.log
+logs/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# IDE
+.idea/
+.vscode/
+
+# Environment
+.env*
+
+# Temporary files
+*.tmp
+temp/
+tmp/
+
+# Python/Ruby stuff
+venv/
+__pycache__/
+Gemfile.lock
+
+# Documentation
+docs/architecture/diagrams/
+repomix-output.xml
+
+# Other
+*.min.js
+*.min.css

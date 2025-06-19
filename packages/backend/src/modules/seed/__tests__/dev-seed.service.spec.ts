@@ -59,7 +59,7 @@ describe('DevSeedService', () => {
             expect(service.onModuleInit).toBeDefined();
         });
 
-        it('sollte im Development Mode einen initialen Einsatz erstellen', async () => {
+        it('sollte im Development Mode Admin-Auth und initialen Einsatz erstellen', async () => {
             // Arrange
             const mockEinsatz = {
                 id: 'test-id',
@@ -70,9 +70,12 @@ describe('DevSeedService', () => {
             };
             configService.get
                 .mockReturnValueOnce('development') // NODE_ENV
-                .mockReturnValueOnce(undefined) // SEED_INITIAL_EINSATZ (default: undefined = enabled)
+                .mockReturnValueOnce(undefined) // SEED_ADMIN_AUTH (default: enabled)
+                .mockReturnValueOnce('admin123') // ADMIN_SEED_PASSWORD
+                .mockReturnValueOnce(undefined) // SEED_INITIAL_EINSATZ (default: enabled)
                 .mockReturnValueOnce(undefined); // DEV_EINSATZ_NAME (default)
 
+            seedService.seedAdminAuthentication = jest.fn().mockResolvedValue(true);
             seedService.createEinsatzWithRetry.mockResolvedValue(mockEinsatz);
 
             // Act
@@ -80,7 +83,9 @@ describe('DevSeedService', () => {
 
             // Assert
             expect(configService.get).toHaveBeenCalledWith('NODE_ENV');
-            expect(configService.get).toHaveBeenCalledWith('SEED_INITIAL_EINSATZ');
+            expect(configService.get).toHaveBeenCalledWith('SEED_ADMIN_AUTH');
+            expect(seedService.seedAdminAuthentication).toHaveBeenCalledWith('admin123');
+            expect(mockLogger.log).toHaveBeenCalledWith('Admin-Authentication erfolgreich geseeded');
             expect(seedService.createEinsatzWithRetry).toHaveBeenCalledWith(
                 expect.stringMatching(/^Dev-Einsatz \d{4}-\d{2}-\d{2}$/),
                 'Automatisch erstellter Entwicklungs-Einsatz'
@@ -103,9 +108,12 @@ describe('DevSeedService', () => {
 
             configService.get
                 .mockReturnValueOnce('development') // NODE_ENV
+                .mockReturnValueOnce(undefined) // SEED_ADMIN_AUTH
+                .mockReturnValueOnce('admin123') // ADMIN_SEED_PASSWORD
                 .mockReturnValueOnce(undefined) // SEED_INITIAL_EINSATZ
                 .mockReturnValueOnce(customName); // DEV_EINSATZ_NAME
 
+            seedService.seedAdminAuthentication = jest.fn().mockResolvedValue(true);
             seedService.createEinsatzWithRetry.mockResolvedValue(mockEinsatz);
 
             // Act
@@ -131,24 +139,26 @@ describe('DevSeedService', () => {
             // Assert
             expect(seedService.createEinsatzWithRetry).not.toHaveBeenCalled();
             expect(mockLogger.debug).toHaveBeenCalledWith(
-                'Automatische Erstellung eines initialen Einsatzes übersprungen (nicht im Dev-Modus oder deaktiviert)'
+                'Automatisches Seeding übersprungen (nicht im Dev-Modus)'
             );
         });
 
-        it('sollte nicht ausgeführt werden wenn SEED_INITIAL_EINSATZ false ist', async () => {
+        it('sollte Admin Auth erstellen aber nicht Einsatz wenn SEED_INITIAL_EINSATZ false ist', async () => {
             // Arrange
             configService.get
                 .mockReturnValueOnce('development') // NODE_ENV
+                .mockReturnValueOnce(undefined) // SEED_ADMIN_AUTH (enabled)
+                .mockReturnValueOnce('admin123') // ADMIN_SEED_PASSWORD
                 .mockReturnValueOnce('false'); // SEED_INITIAL_EINSATZ
+
+            seedService.seedAdminAuthentication = jest.fn().mockResolvedValue(true);
 
             // Act
             await service.onModuleInit();
 
             // Assert
+            expect(seedService.seedAdminAuthentication).toHaveBeenCalled();
             expect(seedService.createEinsatzWithRetry).not.toHaveBeenCalled();
-            expect(mockLogger.debug).toHaveBeenCalledWith(
-                'Automatische Erstellung eines initialen Einsatzes übersprungen (nicht im Dev-Modus oder deaktiviert)'
-            );
         });
 
         it('sollte Fehler beim Seed-Prozess abfangen und loggen', async () => {
@@ -156,8 +166,11 @@ describe('DevSeedService', () => {
             const error = new Error('Seed fehlgeschlagen');
             configService.get
                 .mockReturnValueOnce('development') // NODE_ENV
+                .mockReturnValueOnce(undefined) // SEED_ADMIN_AUTH
+                .mockReturnValueOnce('admin123') // ADMIN_SEED_PASSWORD
                 .mockReturnValueOnce(undefined); // SEED_INITIAL_EINSATZ
 
+            seedService.seedAdminAuthentication = jest.fn().mockResolvedValue(true);
             seedService.createEinsatzWithRetry.mockRejectedValue(error);
 
             // Act
@@ -174,8 +187,11 @@ describe('DevSeedService', () => {
             // Arrange
             configService.get
                 .mockReturnValueOnce('development') // NODE_ENV
+                .mockReturnValueOnce(undefined) // SEED_ADMIN_AUTH
+                .mockReturnValueOnce('admin123') // ADMIN_SEED_PASSWORD
                 .mockReturnValueOnce(undefined); // SEED_INITIAL_EINSATZ
 
+            seedService.seedAdminAuthentication = jest.fn().mockResolvedValue(true);
             seedService.createEinsatzWithRetry.mockResolvedValue(null);
 
             // Act
@@ -199,7 +215,7 @@ describe('DevSeedService', () => {
 
                 expect(seedService.createEinsatzWithRetry).not.toHaveBeenCalled();
                 expect(mockLogger.debug).toHaveBeenCalledWith(
-                    'Automatische Erstellung eines initialen Einsatzes übersprungen (nicht im Dev-Modus oder deaktiviert)'
+                    'Automatisches Seeding übersprungen (nicht im Dev-Modus)'
                 );
             }
         });
@@ -220,9 +236,12 @@ describe('DevSeedService', () => {
             };
             configService.get
                 .mockReturnValueOnce('development') // NODE_ENV
+                .mockReturnValueOnce(undefined) // SEED_ADMIN_AUTH
+                .mockReturnValueOnce('admin123') // ADMIN_SEED_PASSWORD
                 .mockReturnValueOnce(undefined) // SEED_INITIAL_EINSATZ
                 .mockReturnValueOnce(undefined); // DEV_EINSATZ_NAME
 
+            seedService.seedAdminAuthentication = jest.fn().mockResolvedValue(true);
             seedService.createEinsatzWithRetry.mockResolvedValue(mockEinsatz);
 
             // Act

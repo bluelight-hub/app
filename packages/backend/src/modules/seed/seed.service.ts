@@ -1,10 +1,12 @@
-import { EinsatzService } from '@/modules/einsatz/einsatz.service';
-import { PrismaService } from '@/prisma/prisma.service';
-import { Injectable, Logger } from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
-import { ErrorHandlingService } from '../../common/services/error-handling.service';
-import { RetryConfig } from '../../common/utils/retry.util';
-import { DatabaseCheckService } from './database-check.service';
+import {EinsatzService} from '@/modules/einsatz/einsatz.service';
+import {PrismaService} from '@/prisma/prisma.service';
+import {Injectable, Logger} from '@nestjs/common';
+import {ConfigService} from '@nestjs/config';
+import {ErrorHandlingService} from '@/common/services/error-handling.service';
+import {RetryConfig} from '@/common/utils/retry.util';
+import {DatabaseCheckService} from './database-check.service';
+import {AdminPermission, AdminRole} from '@prisma/generated/prisma/enums';
+import * as bcrypt from 'bcrypt';
 
 /**
  * Service zum Seeden der Datenbank mit initialen Daten.
@@ -42,13 +44,13 @@ export class SeedService {
                         // Seed-Funktion ausführen
                         return await seedFunction();
                     }, {
-                    // PostgreSQL-spezifische Transaktionsoptionen
+                        // PostgreSQL-spezifische Transaktionsoptionen
                         timeout: this.errorHandlingService.getConfig().operationTimeout,
                         isolationLevel: 'Serializable', // Höchstes Isolationslevel für Konsistenz
                     });
                 },
                 'seed-transaction',
-                { seedFunction: seedFunction.name }, // Daten für Duplicate Detection
+                {seedFunction: seedFunction.name}, // Daten für Duplicate Detection
                 retryConfig,
             );
 
@@ -137,7 +139,7 @@ export class SeedService {
             async () => {
                 // Zuerst prüfen, ob der Einsatz bereits existiert
                 const existingEinsatz = await this.prisma.einsatz.findFirst({
-                    where: { name },
+                    where: {name},
                 });
 
                 if (existingEinsatz) {
@@ -149,7 +151,7 @@ export class SeedService {
                 try {
                     // Validiere Operation mit umgebungsspezifischen Regeln
                     this.errorHandlingService.validateOperation(
-                        { name, beschreibung },
+                        {name, beschreibung},
                         'create-einsatz'
                     );
 
@@ -164,7 +166,7 @@ export class SeedService {
                     // Bei Unique Constraint Violation, nochmal prüfen ob der Einsatz inzwischen existiert
                     if (error.code === '23505' || error.code === 'P2002') {
                         const existingAfterError = await this.prisma.einsatz.findFirst({
-                            where: { name },
+                            where: {name},
                         });
 
                         if (existingAfterError) {
@@ -177,7 +179,7 @@ export class SeedService {
                 }
             },
             `create-einsatz-${name}`,
-            { name, beschreibung }, // Daten für Duplicate Detection
+            {name, beschreibung}, // Daten für Duplicate Detection
             customRetryConfig,
         );
     }
@@ -197,19 +199,19 @@ export class SeedService {
             async () => {
                 // Validiere Operation mit umgebungsspezifischen Regeln
                 this.errorHandlingService.validateOperation(
-                    { name, beschreibung },
+                    {name, beschreibung},
                     'create-einsatz'
                 );
 
                 // Verwende PostgreSQL's ON CONFLICT für atomare Upsert-Operation
                 const result = await this.prisma.$queryRaw`
                     INSERT INTO "Einsatz" (id, name, beschreibung, "createdAt", "updatedAt")
-                    VALUES (gen_random_uuid(), ${name}, ${beschreibung || null}, NOW(), NOW())
-                    ON CONFLICT (name) 
-                    DO UPDATE SET 
-                        beschreibung = COALESCE(EXCLUDED.beschreibung, "Einsatz".beschreibung),
+                    VALUES (gen_random_uuid(), ${name}, ${beschreibung || null}, NOW(), NOW()) ON CONFLICT (name) 
+                    DO
+                    UPDATE SET
+                        beschreibung = COALESCE (EXCLUDED.beschreibung, "Einsatz".beschreibung),
                         "updatedAt" = NOW()
-                    RETURNING *;
+                        RETURNING *;
                 `;
 
                 const einsatz = Array.isArray(result) ? result[0] : result;
@@ -218,7 +220,7 @@ export class SeedService {
                 return einsatz;
             },
             `upsert-einsatz-${name}`,
-            { name, beschreibung },
+            {name, beschreibung},
         );
     }
 
@@ -248,5 +250,191 @@ export class SeedService {
      */
     cleanup() {
         this.errorHandlingService.cleanup();
+    }
+
+    /**
+     * Initialisiert die Admin-Rollen-Berechtigungen basierend auf der definierten Matrix.
+     *
+     * @returns true, wenn erfolgreich, sonst false
+     */
+    async seedAdminRolePermissions(): Promise<boolean> {
+        const retryConfig: Partial<RetryConfig> = {
+            maxRetries: 3,
+            baseDelay: 500,
+            maxDelay: 5000,
+        };
+
+        return await this.executeWithTransaction(async () => {
+            this.logger.log('Erstelle Admin-Rollen-Berechtigungen...');
+
+            // SUPER_ADMIN bekommt alle Berechtigungen
+            const superAdminPermissions = Object.values(AdminPermission);
+
+            // ADMIN Berechtigungen
+            const adminPermissions = [
+                AdminPermission.ADMIN_USERS_READ,
+                AdminPermission.ADMIN_USERS_WRITE,
+                AdminPermission.SYSTEM_SETTINGS_READ,
+                AdminPermission.SYSTEM_SETTINGS_WRITE,
+                AdminPermission.AUDIT_LOG_READ,
+            ];
+
+            // SUPPORT Berechtigungen
+            const supportPermissions = [
+                AdminPermission.ADMIN_USERS_READ,
+                AdminPermission.AUDIT_LOG_READ,
+            ];
+
+            // Erstelle Berechtigungen für SUPER_ADMIN
+            for (const permission of superAdminPermissions) {
+                await this.prisma.adminRolePermission.upsert({
+                    where: {
+                        role_permission: {
+                            role: AdminRole.SUPER_ADMIN,
+                            permission,
+                        },
+                    },
+                    update: {},
+                    create: {
+                        role: AdminRole.SUPER_ADMIN,
+                        permission,
+                    },
+                });
+            }
+
+            // Erstelle Berechtigungen für ADMIN
+            for (const permission of adminPermissions) {
+                await this.prisma.adminRolePermission.upsert({
+                    where: {
+                        role_permission: {
+                            role: AdminRole.ADMIN,
+                            permission,
+                        },
+                    },
+                    update: {},
+                    create: {
+                        role: AdminRole.ADMIN,
+                        permission,
+                    },
+                });
+            }
+
+            // Erstelle Berechtigungen für SUPPORT
+            for (const permission of supportPermissions) {
+                await this.prisma.adminRolePermission.upsert({
+                    where: {
+                        role_permission: {
+                            role: AdminRole.SUPPORT,
+                            permission,
+                        },
+                    },
+                    update: {},
+                    create: {
+                        role: AdminRole.SUPPORT,
+                        permission,
+                    },
+                });
+            }
+
+            this.logger.log('Admin-Rollen-Berechtigungen erfolgreich erstellt');
+        }, retryConfig);
+    }
+
+    /**
+     * Erstellt initiale Admin-Benutzer für Entwicklung und Tests.
+     *
+     * @param password Optionales Passwort für alle Test-Benutzer (Standard: "admin123")
+     * @returns true, wenn erfolgreich, sonst false
+     */
+    async seedAdminUsers(password = 'admin123'): Promise<boolean> {
+        try {
+            this.logger.log('Erstelle initiale Admin-Benutzer...');
+
+            // Passwort-Hash für alle Test-Benutzer
+            const passwordHash = await bcrypt.hash(password, 10);
+            this.logger.log(`Passwort-Hash erstellt: ${passwordHash.substring(0, 10)}...`);
+
+            // Transaktion für alle Admin-Benutzer
+            await this.prisma.$transaction(async (tx) => {
+                // Super Admin
+                const superAdmin = await tx.adminUser.upsert({
+                    where: {email: 'superadmin@bluelight-hub.com'},
+                    update: {},
+                    create: {
+                        email: 'superadmin@bluelight-hub.com',
+                        username: 'superadmin',
+                        passwordHash,
+                        role: AdminRole.SUPER_ADMIN,
+                        isActive: true,
+                    },
+                });
+                this.logger.log(`Super Admin erstellt/aktualisiert: ${superAdmin.email} (ID: ${superAdmin.id})`);
+
+                // Admin
+                const admin = await tx.adminUser.upsert({
+                    where: {email: 'admin@bluelight-hub.com'},
+                    update: {},
+                    create: {
+                        email: 'admin@bluelight-hub.com',
+                        username: 'admin',
+                        passwordHash,
+                        role: AdminRole.ADMIN,
+                        isActive: true,
+                    },
+                });
+                this.logger.log(`Admin erstellt/aktualisiert: ${admin.email} (ID: ${admin.id})`);
+
+                // Support
+                const support = await tx.adminUser.upsert({
+                    where: {email: 'support@bluelight-hub.com'},
+                    update: {},
+                    create: {
+                        email: 'support@bluelight-hub.com',
+                        username: 'support',
+                        passwordHash,
+                        role: AdminRole.SUPPORT,
+                        isActive: true,
+                    },
+                });
+                this.logger.log(`Support erstellt/aktualisiert: ${support.email} (ID: ${support.id})`);
+            });
+
+            this.logger.log('Admin-Benutzer erfolgreich erstellt');
+            
+            // Verifiziere die Erstellung
+            const count = await this.prisma.adminUser.count();
+            this.logger.log(`Anzahl Admin-Benutzer in der Datenbank: ${count}`);
+            
+            return true;
+        } catch (error) {
+            this.logger.error('Fehler beim Erstellen der Admin-Benutzer:', error);
+            return false;
+        }
+    }
+
+    /**
+     * Führt das komplette Admin-Authentication-Seeding durch.
+     *
+     * @param password Optionales Passwort für Admin-Benutzer
+     * @returns true, wenn erfolgreich, sonst false
+     */
+    async seedAdminAuthentication(password?: string): Promise<boolean> {
+        this.logger.log('Starte Admin-Authentication-Seeding...');
+
+        // Erst Rollen-Berechtigungen
+        const permissionsSeeded = await this.seedAdminRolePermissions();
+        if (!permissionsSeeded) {
+            this.logger.error('Fehler beim Seeden der Admin-Rollen-Berechtigungen');
+            return false;
+        }
+
+        // Dann Admin-Benutzer
+        const usersSeeded = await this.seedAdminUsers(password);
+        if (!usersSeeded) {
+            this.logger.warn('Admin-Benutzer wurden nicht erstellt (existieren bereits oder Fehler)');
+        }
+
+        this.logger.log('Admin-Authentication-Seeding abgeschlossen');
+        return true;
     }
 } 

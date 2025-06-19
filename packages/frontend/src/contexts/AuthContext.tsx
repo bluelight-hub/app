@@ -1,10 +1,14 @@
 import React, { createContext, ReactNode, useEffect, useState } from 'react';
+import { getBaseUrl } from '../utils/fetch';
+import { logger } from '../utils/logger';
 
 interface User {
     id: string;
-    name: string;
     email: string;
-    role: string;
+    roles: string[];
+    permissions: string[];
+    isActive: boolean;
+    isMfaEnabled: boolean;
 }
 
 export interface AuthContextType {
@@ -15,13 +19,7 @@ export interface AuthContextType {
     logout: () => void;
 }
 
-// Mock-User für Entwicklungszwecke
-const MOCK_USER: User = {
-    id: '1',
-    name: 'Test User',
-    email: 'test@example.com',
-    role: 'admin',
-};
+// Remove mock user - we'll use real API
 
 export const AuthContext = createContext<AuthContextType | null>(null);
 
@@ -34,11 +32,13 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     const [isLoading, setIsLoading] = useState(true);
 
     useEffect(() => {
-        // Simuliere das Laden des Benutzers beim ersten Rendern
+        // Check if user is already logged in
         const token = localStorage.getItem('auth_token');
         if (token) {
-            // In einer realen Anwendung würden wir hier den Token verifizieren
-            setUser(MOCK_USER);
+            // For now, we'll trust the token exists
+            // In production, you'd verify with the backend
+            // TODO: Implement token verification endpoint
+            logger.debug('Found existing auth token');
         }
         setIsLoading(false);
     }, []);
@@ -46,26 +46,63 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     const login = async (email: string, password: string): Promise<boolean> => {
         setIsLoading(true);
 
-        // Simuliere API-Aufruf mit Verzögerung
-        return new Promise<boolean>((resolve) => {
-            setTimeout(() => {
-                // Mock-Authentifizierung - in der Produktion würde hier ein echter API-Aufruf stehen
-                if (email === 'test@example.com' && password === 'password') {
-                    setUser(MOCK_USER);
-                    localStorage.setItem('auth_token', 'mock_jwt_token');
-                    setIsLoading(false);
-                    resolve(true);
-                } else {
-                    setIsLoading(false);
-                    resolve(false);
+        try {
+            const response = await fetch(`${getBaseUrl()}/v1/api/auth/login`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                credentials: 'include', // Important for cookies
+                body: JSON.stringify({ email, password }),
+            });
+
+            if (response.ok) {
+                const data = await response.json();
+                logger.info('Login successful', { email });
+                
+                // Store tokens
+                if (data.accessToken) {
+                    localStorage.setItem('auth_token', data.accessToken);
                 }
-            }, 1000);
-        });
+                if (data.refreshToken) {
+                    localStorage.setItem('refresh_token', data.refreshToken);
+                }
+                
+                // Set user
+                if (data.user) {
+                    setUser(data.user);
+                }
+                
+                setIsLoading(false);
+                return true;
+            } else {
+                logger.error('Login failed', { status: response.status });
+                setIsLoading(false);
+                return false;
+            }
+        } catch (error) {
+            logger.error('Login error', { error });
+            setIsLoading(false);
+            return false;
+        }
     };
 
-    const logout = () => {
+    const logout = async () => {
+        try {
+            await fetch(`${getBaseUrl()}/v1/api/auth/logout`, {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${localStorage.getItem('auth_token')}`,
+                },
+                credentials: 'include',
+            });
+        } catch (error) {
+            logger.error('Logout error', { error });
+        }
+        
         setUser(null);
         localStorage.removeItem('auth_token');
+        localStorage.removeItem('refresh_token');
     };
 
     return (
