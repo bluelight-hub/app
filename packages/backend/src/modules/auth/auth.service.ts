@@ -90,8 +90,7 @@ export class AuthService {
       sub: user.id,
       sessionId,
       jti,
-      iat: Date.now() / 1000,
-      exp: Date.now() / 1000 + 604800, // 7 days
+      iat: Math.floor(Date.now() / 1000),
     };
 
     const accessToken = this.jwtService.sign(payload);

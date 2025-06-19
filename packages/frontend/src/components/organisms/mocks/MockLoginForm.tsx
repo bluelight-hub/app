@@ -58,7 +58,7 @@ const MockLoginForm: React.FC = () => {
       >
         <Form
           name="login"
-          initialValues={{ remember: true, email: 'admin@bluelight-hub.com', password: 'SecurePassword123!' }}
+          initialValues={{ remember: true, email: 'admin@bluelight-hub.com', password: 'admin123' }}
           onFinish={onFinish}
           layout="vertical"
           size="large"
@@ -80,7 +80,7 @@ const MockLoginForm: React.FC = () => {
           <div className="text-center text-gray-500 text-sm">
             <p>Demo Anmeldedaten:</p>
             <p>E-Mail: admin@bluelight-hub.com</p>
-            <p>Passwort: SecurePassword123!</p>
+            <p>Passwort: admin123</p>
           </div>
         </Form>
       </Card>

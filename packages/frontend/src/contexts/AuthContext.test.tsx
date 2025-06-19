@@ -41,8 +41,12 @@ function TestComponent({ onAuth }: { onAuth?: (auth: ReturnType<typeof useAuth>)
     onAuth(auth);
   }
   return (
-    <div data-testid="auth-status">
-      {auth.isLoading ? 'Loading' : auth.isAuthenticated ? 'Authenticated' : 'Not Authenticated'}
+    <div>
+      <div data-testid="auth-status">
+        {auth.isLoading ? 'Loading' : auth.isAuthenticated ? 'Authenticated' : 'Not Authenticated'}
+      </div>
+      <div data-testid="is-admin">{auth.isAdmin() ? 'Is Admin' : 'Not Admin'}</div>
+      <div data-testid="has-admin-role">{auth.hasRole('ADMIN') ? 'Has ADMIN Role' : 'No ADMIN Role'}</div>
     </div>
   );
 }
@@ -250,5 +254,121 @@ describe('AuthContext', () => {
     expect(localStorageMock.removeItem).toHaveBeenCalledWith('auth_token');
     expect(localStorageMock.removeItem).toHaveBeenCalledWith('refresh_token');
     expect(screen.getByTestId('auth-status').textContent).toBe('Not Authenticated');
+  });
+
+  it('sollte Admin-Rolle korrekt erkennen', async () => {
+    let authData: ReturnType<typeof useAuth> | undefined;
+
+    // Mock erfolgreiche Login-Response mit Admin-Rolle
+    fetchMock.mockResolvedValueOnce({
+      ok: true,
+      json: async () => ({
+        accessToken: 'mock-access-token',
+        refreshToken: 'mock-refresh-token',
+        user: mockUser,
+      }),
+    } as Response);
+
+    // Komponente rendern
+    renderWithAuthProvider((auth) => {
+      authData = auth;
+    });
+
+    // Als Admin anmelden
+    await act(async () => {
+      await authData?.login('admin@example.com', 'password');
+    });
+
+    // Warten auf UI-Update
+    await act(async () => {
+      await waitForUI('Authenticated');
+    });
+
+    // Admin-Status prüfen
+    expect(authData?.isAdmin()).toBe(true);
+    expect(authData?.hasRole('ADMIN')).toBe(true);
+    expect(screen.getByTestId('is-admin').textContent).toBe('Is Admin');
+    expect(screen.getByTestId('has-admin-role').textContent).toBe('Has ADMIN Role');
+  });
+
+  it('sollte Nicht-Admin-Rolle korrekt erkennen', async () => {
+    let authData: ReturnType<typeof useAuth> | undefined;
+
+    // Mock erfolgreiche Login-Response mit normaler Benutzer-Rolle
+    const normalUser = {
+      ...mockUser,
+      roles: ['USER'],
+    };
+
+    fetchMock.mockResolvedValueOnce({
+      ok: true,
+      json: async () => ({
+        accessToken: 'mock-access-token',
+        refreshToken: 'mock-refresh-token',
+        user: normalUser,
+      }),
+    } as Response);
+
+    // Komponente rendern
+    renderWithAuthProvider((auth) => {
+      authData = auth;
+    });
+
+    // Als normaler Benutzer anmelden
+    await act(async () => {
+      await authData?.login('user@example.com', 'password');
+    });
+
+    // Warten auf UI-Update
+    await act(async () => {
+      await waitForUI('Authenticated');
+    });
+
+    // Admin-Status prüfen
+    expect(authData?.isAdmin()).toBe(false);
+    expect(authData?.hasRole('ADMIN')).toBe(false);
+    expect(authData?.hasRole('USER')).toBe(true);
+    expect(screen.getByTestId('is-admin').textContent).toBe('Not Admin');
+    expect(screen.getByTestId('has-admin-role').textContent).toBe('No ADMIN Role');
+  });
+
+  it('sollte mehrere Admin-Rollen erkennen', async () => {
+    let authData: ReturnType<typeof useAuth> | undefined;
+
+    // Mock erfolgreiche Login-Response mit SUPER_ADMIN Rolle
+    const superAdminUser = {
+      ...mockUser,
+      roles: ['SUPER_ADMIN'],
+    };
+
+    fetchMock.mockResolvedValueOnce({
+      ok: true,
+      json: async () => ({
+        accessToken: 'mock-access-token',
+        refreshToken: 'mock-refresh-token',
+        user: superAdminUser,
+      }),
+    } as Response);
+
+    // Komponente rendern
+    renderWithAuthProvider((auth) => {
+      authData = auth;
+    });
+
+    // Als Super Admin anmelden
+    await act(async () => {
+      await authData?.login('superadmin@example.com', 'password');
+    });
+
+    // Warten auf UI-Update
+    await act(async () => {
+      await waitForUI('Authenticated');
+    });
+
+    // Admin-Status prüfen
+    expect(authData?.isAdmin()).toBe(true);
+    expect(authData?.hasRole('SUPER_ADMIN')).toBe(true);
+    expect(authData?.hasRole('ADMIN')).toBe(false);
+    expect(screen.getByTestId('is-admin').textContent).toBe('Is Admin');
   });
 });

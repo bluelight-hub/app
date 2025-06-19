@@ -4,7 +4,7 @@ import { Alert } from 'antd';
 import { useAuth } from '@/hooks/useAuth';
 
 const AdminGuard: React.FC = () => {
-  const { user, isLoading } = useAuth();
+  const { user, isLoading, isAdmin } = useAuth();
 
   if (isLoading) {
     return (
@@ -17,7 +17,7 @@ const AdminGuard: React.FC = () => {
     );
   }
 
-  if (!user || user.role !== 'admin') {
+  if (!user || !isAdmin()) {
     return (
       <div className="p-6">
         <Alert

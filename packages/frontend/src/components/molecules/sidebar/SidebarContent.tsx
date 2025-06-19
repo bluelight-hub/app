@@ -22,7 +22,7 @@ const SidebarContent: React.FC<SidebarContentProps> = ({ navigation, onNavigate 
   const navigate = useNavigate();
   const location = useLocation();
   const themeUtils = useThemeInternal();
-  const { user } = useAuth();
+  const { isAdmin } = useAuth();
 
   const handleMenuClick: MenuProps['onClick'] = (info) => {
     navigate(info.key);
@@ -57,7 +57,7 @@ const SidebarContent: React.FC<SidebarContentProps> = ({ navigation, onNavigate 
           <Divider />
 
           {/* Admin Navigation - nur für Admins sichtbar */}
-          {user?.role === 'admin' && (
+          {isAdmin() && (
             <>
               <Menu
                 theme={themeUtils.isDark ? 'dark' : 'light'}

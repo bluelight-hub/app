@@ -1,3 +1,4 @@
+/* eslint-disable react-refresh/only-export-components */
 import React, { createContext, ReactNode, useEffect, useState } from 'react';
 import { getBaseUrl } from '../utils/fetch';
 import { logger } from '../utils/logger';
@@ -17,6 +18,8 @@ export interface AuthContextType {
   isLoading: boolean;
   login: (email: string, password: string) => Promise<boolean>;
   logout: () => void;
+  hasRole: (role: string) => boolean;
+  isAdmin: () => boolean;
 }
 
 // Remove mock user - we'll use real API
@@ -47,7 +50,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     setIsLoading(true);
 
     try {
-      const response = await fetch(`${getBaseUrl()}/api/auth/login`, {
+      const response = await fetch(`${getBaseUrl()}/v1/api/auth/login`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -105,6 +108,16 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     localStorage.removeItem('refresh_token');
   };
 
+  // Check if user has a specific role
+  const hasRole = (role: string): boolean => {
+    return user?.roles?.includes(role) || false;
+  };
+
+  // Check if user is any type of admin
+  const isAdmin = (): boolean => {
+    return user?.roles?.some(role => ['SUPER_ADMIN', 'ADMIN', 'SUPPORT'].includes(role)) || false;
+  };
+
   return (
     <AuthContext.Provider
       value={{
@@ -113,6 +126,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         isLoading,
         login,
         logout,
+        hasRole,
+        isAdmin,
       }}
     >
       {children}

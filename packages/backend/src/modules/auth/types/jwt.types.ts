@@ -22,7 +22,7 @@ export interface JWTRefreshPayload {
   sub: string;
   sessionId: string;
   iat: number;
-  exp: number;
+  exp?: number;
   jti: string;
 }
 
