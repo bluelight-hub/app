@@ -5,29 +5,29 @@
 
 /* Grundlegende Farbdefinitionen */
 :root {
-    --primary-color: #42A5F5;
+    --primary-color: #42a5f5;
     /* Blau - Primärfarbe */
-    --primary-dark: #1976D2;
+    --primary-dark: #1976d2;
     /* Dunkelblau - Akzente */
-    --secondary-color: #5C6BC0;
+    --secondary-color: #5c6bc0;
     /* Indigo - Sekundärfarbe */
-    --secondary-dark: #3949AB;
+    --secondary-dark: #3949ab;
     /* Dunkelindigo - Akzente */
-    --accent-color: #26A69A;
+    --accent-color: #26a69a;
     /* Türkis - Akzentfarbe */
-    --warning-color: #FF9800;
+    --warning-color: #ff9800;
     /* Orange - Warnungen */
-    --info-color: #29B6F6;
+    --info-color: #29b6f6;
     /* Hellblau - Info */
-    --success-color: #66BB6A;
+    --success-color: #66bb6a;
     /* Grün - Erfolg */
-    --error-color: #EF5350;
+    --error-color: #ef5350;
     /* Rot - Fehler */
     --text-color: #333333;
     /* Dunkelgrau - Haupttext */
     --light-text: #757575;
     /* Hellgrau - Sekundärtext */
-    --code-bg: #F5F5F5;
+    --code-bg: #f5f5f5;
     /* Hellgrau - Code-Hintergrund */
 }
 
@@ -108,7 +108,7 @@ h6 {
 #toc {
     margin: 2em 0;
     padding: 1em;
-    background-color: #F8F9FA;
+    background-color: #f8f9fa;
     border-left: 4px solid var(--primary-color);
 }
 
@@ -156,7 +156,7 @@ table {
 table,
 th,
 td {
-    border: 1px solid #E0E0E0;
+    border: 1px solid #e0e0e0;
 }
 
 th {
@@ -171,7 +171,7 @@ td {
 }
 
 tr:nth-child(even) {
-    background-color: #F9F9F9;
+    background-color: #f9f9f9;
 }
 
 .tableblock {
@@ -202,7 +202,7 @@ code {
     margin: 1em 0;
     padding: 1em;
     border-left: 4px solid;
-    background-color: #F8F9FA;
+    background-color: #f8f9fa;
 }
 
 .admonitionblock.note {
@@ -277,7 +277,7 @@ h2 {
     font-size: 9pt;
     text-align: center;
     margin-top: 2em;
-    border-top: 1px solid #E0E0E0;
+    border-top: 1px solid #e0e0e0;
     padding-top: 0.5em;
 }
 
@@ -293,6 +293,6 @@ h2 {
 
     pre,
     code {
-        background-color: #F8F8F8 !important;
+        background-color: #f8f8f8 !important;
     }
 }

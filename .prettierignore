@@ -52,3 +52,7 @@ repomix-output.xml
 # Other
 *.min.js
 *.min.css
+
+target
+packages/frontend/src-tauri/target/
+packages/frontend/src-tauri/gen/

@@ -38,10 +38,10 @@ describe('JwtAuthGuard', () => {
       const result = await guard.canActivate(mockContext);
 
       expect(result).toBe(true);
-      expect(mockReflector.getAllAndOverride).toHaveBeenCalledWith(
-        'isPublic',
-        [mockContext.getHandler(), mockContext.getClass()],
-      );
+      expect(mockReflector.getAllAndOverride).toHaveBeenCalledWith('isPublic', [
+        mockContext.getHandler(),
+        mockContext.getClass(),
+      ]);
     });
 
     it('should call parent canActivate for non-public routes', async () => {
@@ -59,7 +59,8 @@ describe('JwtAuthGuard', () => {
 
       // Mock the parent's canActivate method
       const parentCanActivate = jest.fn().mockResolvedValue(true);
-      jest.spyOn(Object.getPrototypeOf(Object.getPrototypeOf(guard)), 'canActivate')
+      jest
+        .spyOn(Object.getPrototypeOf(Object.getPrototypeOf(guard)), 'canActivate')
         .mockImplementation(parentCanActivate);
 
       await guard.canActivate(mockContext);
@@ -85,15 +86,11 @@ describe('JwtAuthGuard', () => {
     });
 
     it('should throw UnauthorizedException when user is null', () => {
-      expect(() => guard.handleRequest(null, null, null)).toThrow(
-        UnauthorizedException,
-      );
+      expect(() => guard.handleRequest(null, null, null)).toThrow(UnauthorizedException);
     });
 
     it('should throw UnauthorizedException with message when no user', () => {
-      expect(() => guard.handleRequest(null, null, null)).toThrow(
-        'Authentication required',
-      );
+      expect(() => guard.handleRequest(null, null, null)).toThrow('Authentication required');
     });
   });
 });

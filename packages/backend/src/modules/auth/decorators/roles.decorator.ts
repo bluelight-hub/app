@@ -9,7 +9,7 @@ export const ROLES_KEY = 'roles';
 /**
  * Decorator to specify required roles for accessing a route.
  * Used with RolesGuard to enforce role-based access control.
- * 
+ *
  * @param roles - Array of UserRole values required for access
  * @example
  * ```typescript

@@ -1,6 +1,7 @@
-import js from '@eslint/js'
-import globals from 'globals'
-import tseslint from 'typescript-eslint'
+import js from '@eslint/js';
+import globals from 'globals';
+import tseslint from 'typescript-eslint';
+import eslintConfigPrettier from 'eslint-config-prettier';
 
 export default tseslint.config(
   { ignores: ['dist', 'coverage', 'node_modules'] },
@@ -22,28 +23,28 @@ export default tseslint.config(
         {
           argsIgnorePattern: '^_',
           varsIgnorePattern: '^_',
-          caughtErrorsIgnorePattern: '^_'
-        }
+          caughtErrorsIgnorePattern: '^_',
+        },
       ],
       '@typescript-eslint/no-require-imports': 'off',
-      
+
       // General rules
       'max-lines': [
         'error',
         {
           max: 1000,
           skipBlankLines: false,
-          skipComments: false
-        }
+          skipComments: false,
+        },
       ],
       'max-lines-per-function': [
         'warn',
         {
           max: 200,
           skipBlankLines: false,
-          skipComments: false
-        }
-      ]
+          skipComments: false,
+        },
+      ],
     },
   },
   // Separate config for test files with more lenient rules
@@ -52,7 +53,9 @@ export default tseslint.config(
     rules: {
       'max-lines': 'off',
       'max-lines-per-function': 'off',
-      '@typescript-eslint/no-explicit-any': 'off'
-    }
-  }
-)
+      '@typescript-eslint/no-explicit-any': 'off',
+    },
+  },
+  // Add Prettier config at the end to override conflicting rules
+  eslintConfigPrettier,
+);

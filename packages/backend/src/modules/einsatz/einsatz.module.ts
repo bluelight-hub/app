@@ -5,9 +5,9 @@ import { EinsatzController } from './einsatz.controller';
 import { EinsatzService } from './einsatz.service';
 
 @Module({
-    imports: [PrismaModule, CommonModule],
-    controllers: [EinsatzController],
-    providers: [EinsatzService],
-    exports: [EinsatzService],
+  imports: [PrismaModule, CommonModule],
+  controllers: [EinsatzController],
+  providers: [EinsatzService],
+  exports: [EinsatzService],
 })
 export class EinsatzModule {}

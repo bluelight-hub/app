@@ -14,32 +14,32 @@ import { JwtAuthGuard } from './modules/auth/guards';
 /**
  * Haupt-Anwendungsmodul, das die Abhängigkeiten und Provider der Anwendung konfiguriert.
  * Richtet Umgebungskonfiguration, Datenbankverbindung und Gesundheitschecks ein.
- * 
+ *
  * @class AppModule
  */
 @Module({
-    imports: [
-        ConfigModule.forRoot({
-            isGlobal: true,
-        }),
-        PrismaModule,
-        AuthModule,
-        HealthModule,
-        EinsatzModule,
-        EtbModule,
-        CommonModule,
-        SeedModule.registerAsync(),
-    ],
-    controllers: [],
-    providers: [
-        {
-            provide: 'Logger',
-            useClass: ConsolaLogger,
-        },
-        {
-            provide: APP_GUARD,
-            useClass: JwtAuthGuard,
-        },
-    ],
+  imports: [
+    ConfigModule.forRoot({
+      isGlobal: true,
+    }),
+    PrismaModule,
+    AuthModule,
+    HealthModule,
+    EinsatzModule,
+    EtbModule,
+    CommonModule,
+    SeedModule.registerAsync(),
+  ],
+  controllers: [],
+  providers: [
+    {
+      provide: 'Logger',
+      useClass: ConsolaLogger,
+    },
+    {
+      provide: APP_GUARD,
+      useClass: JwtAuthGuard,
+    },
+  ],
 })
-export class AppModule { } 
+export class AppModule {}

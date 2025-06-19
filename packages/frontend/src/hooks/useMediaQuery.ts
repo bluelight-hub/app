@@ -6,30 +6,30 @@ import { useEffect, useState } from 'react';
  * @returns Boolean indicating if the query matches
  */
 export const useMediaQuery = (query: string): boolean => {
-    const [matches, setMatches] = useState<boolean>(false);
+  const [matches, setMatches] = useState<boolean>(false);
 
-    useEffect(() => {
-        // Create media query list
-        const mediaQuery = window.matchMedia(query);
+  useEffect(() => {
+    // Create media query list
+    const mediaQuery = window.matchMedia(query);
 
-        // Set initial value
-        setMatches(mediaQuery.matches);
+    // Set initial value
+    setMatches(mediaQuery.matches);
 
-        // Define callback for changes
-        const handleResize = (event: MediaQueryListEvent) => {
-            setMatches(event.matches);
-        };
+    // Define callback for changes
+    const handleResize = (event: MediaQueryListEvent) => {
+      setMatches(event.matches);
+    };
 
-        // Add event listener
-        mediaQuery.addEventListener('change', handleResize);
+    // Add event listener
+    mediaQuery.addEventListener('change', handleResize);
 
-        // Cleanup
-        return () => {
-            mediaQuery.removeEventListener('change', handleResize);
-        };
-    }, [query]);
+    // Cleanup
+    return () => {
+      mediaQuery.removeEventListener('change', handleResize);
+    };
+  }, [query]);
 
-    return matches;
+  return matches;
 };
 
-export default useMediaQuery; 
+export default useMediaQuery;

@@ -8,11 +8,8 @@ import { PaginationService } from './services/pagination.service';
  * Modul für gemeinsam genutzte Funktionalitäten wie Paginierung, Validierung, etc.
  */
 @Module({
-    imports: [
-        ConfigModule,
-        PrismaModule
-    ],
-    providers: [PaginationService, ErrorHandlingService],
-    exports: [PaginationService, ErrorHandlingService]
+  imports: [ConfigModule, PrismaModule],
+  providers: [PaginationService, ErrorHandlingService],
+  exports: [PaginationService, ErrorHandlingService],
 })
-export class CommonModule { } 
+export class CommonModule {}

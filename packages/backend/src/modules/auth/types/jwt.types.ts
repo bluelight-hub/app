@@ -46,25 +46,25 @@ export enum Permission {
   USERS_READ = 'users:read',
   USERS_WRITE = 'users:write',
   USERS_DELETE = 'users:delete',
-  
+
   // Organization Management
   ORGS_READ = 'orgs:read',
   ORGS_WRITE = 'orgs:write',
   ORGS_DELETE = 'orgs:delete',
-  
+
   // Content Management
   CONTENT_READ = 'content:read',
   CONTENT_WRITE = 'content:write',
   CONTENT_DELETE = 'content:delete',
   CONTENT_PUBLISH = 'content:publish',
-  
+
   // Settings Management
   SETTINGS_READ = 'settings:read',
   SETTINGS_WRITE = 'settings:write',
-  
+
   // Analytics
   ANALYTICS_READ = 'analytics:read',
-  
+
   // System Administration
   SYSTEM_CONFIG = 'system:config',
   SYSTEM_LOGS = 'system:logs',
@@ -97,7 +97,5 @@ export const RolePermissions: Record<UserRole, Permission[]> = {
     Permission.CONTENT_PUBLISH,
     Permission.ANALYTICS_READ,
   ],
-  [UserRole.USER]: [
-    Permission.CONTENT_READ,
-  ],
+  [UserRole.USER]: [Permission.CONTENT_READ],
 };

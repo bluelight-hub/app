@@ -7,6 +7,7 @@ Dieses Dokument beschreibt den detaillierten Plan zur Migration des @bluelight-h
 ## Ausgangslage
 
 Aktuell verwendet das Backend:
+
 - TypeORM mit PostgreSQL als ORM
 - Repository-Pattern für Datenbankzugriffe
 - Hauptentitäten: EtbEntry und EtbAttachment
@@ -26,28 +27,31 @@ Aktuell verwendet das Backend:
 ### Phase 1: Vorbereitung und Installation
 
 1. **Prisma-Abhängigkeiten installieren**
+
    ```bash
    pnpm add @prisma/client
    pnpm add -D prisma
    ```
 
 2. **Prisma initialisieren**
+
    ```bash
    npx prisma init
    ```
 
 3. **Prisma-Schema erstellen (schema.prisma)**
+
    ```prisma
    // schema.prisma
    generator client {
      provider = "prisma-client-js"
    }
-   
+
    datasource db {
      provider = "postgresql"
      url      = env("DATABASE_URL")
    }
-   
+
    enum EtbKategorie {
      INFO
      WARNUNG
@@ -56,12 +60,12 @@ Aktuell verwendet das Backend:
      ANFRAGE
      ANTWORT
    }
-   
+
    enum EtbEntryStatus {
      AKTIV
      UEBERSCHRIEBEN
    }
-   
+
    model EtbEntry {
      laufendeNummer          Int
      id                      String           @id @default(nanoid())
@@ -90,7 +94,7 @@ Aktuell verwendet das Backend:
      sender                  String?
      receiver                String?
    }
-   
+
    model EtbAttachment {
      id          String   @id @default(nanoid())
      etbEntryId  String
@@ -103,17 +107,18 @@ Aktuell verwendet das Backend:
    ```
 
 4. **PrismaService implementieren**
+
    ```typescript
    // src/prisma/prisma.service.ts
    import { Injectable, OnModuleInit, OnModuleDestroy } from '@nestjs/common';
    import { PrismaClient } from '@prisma/client';
-   
+
    @Injectable()
    export class PrismaService extends PrismaClient implements OnModuleInit, OnModuleDestroy {
      async onModuleInit() {
        await this.$connect();
      }
-   
+
      async onModuleDestroy() {
        await this.$disconnect();
      }
@@ -121,11 +126,12 @@ Aktuell verwendet das Backend:
    ```
 
 5. **PrismaModule erstellen**
+
    ```typescript
    // src/prisma/prisma.module.ts
    import { Module, Global } from '@nestjs/common';
    import { PrismaService } from './prisma.service';
-   
+
    @Global()
    @Module({
      providers: [PrismaService],
@@ -143,6 +149,7 @@ Aktuell verwendet das Backend:
 ### Phase 2: Strukturelle Änderungen
 
 1. **PrismaModule in App-Modul integrieren**
+
    ```typescript
    // src/app.module.ts (angepasst)
    import { Module } from '@nestjs/common';
@@ -153,7 +160,7 @@ Aktuell verwendet das Backend:
    import { HealthModule } from './health/health.module';
    import { ConsolaLogger } from './logger/consola.logger';
    import { EtbModule } from './modules/etb/etb.module';
-   
+
    @Module({
      imports: [
        ConfigModule.forRoot({
@@ -190,46 +197,47 @@ Aktuell verwendet das Backend:
    ```
 
 2. **PrismaHealthIndicator implementieren**
+
    ```typescript
    // src/health/prisma-health.indicator.ts
    import { Injectable } from '@nestjs/common';
    import { HealthIndicator, HealthIndicatorResult, HealthCheckError } from '@nestjs/terminus';
    import { PrismaService } from '@/prisma/prisma.service';
-   
+
    @Injectable()
    export class PrismaHealthIndicator extends HealthIndicator {
      constructor(private readonly prisma: PrismaService) {
        super();
      }
-   
+
      async pingCheck(key: string): Promise<HealthIndicatorResult> {
        try {
          // Führe eine einfache Query aus, um die Verbindung zu prüfen
          await this.prisma.$queryRaw`SELECT 1`;
-         
+
          return this.getStatus(key, true, { database: 'up' });
        } catch (error) {
          throw new HealthCheckError(
            'Prisma health check failed',
-           this.getStatus(key, false, { database: 'down' })
+           this.getStatus(key, false, { database: 'down' }),
          );
        }
      }
-   
+
      async isConnected(key: string): Promise<HealthIndicatorResult> {
        try {
          const isConnected = this.prisma.$connect !== undefined;
-         
-         return this.getStatus(key, isConnected, { 
+
+         return this.getStatus(key, isConnected, {
            isConnected,
          });
        } catch (error) {
          throw new HealthCheckError(
            'Prisma connection check failed',
-           this.getStatus(key, false, { 
+           this.getStatus(key, false, {
              isConnected: false,
-             error: error.message 
-           })
+             error: error.message,
+           }),
          );
        }
      }
@@ -237,6 +245,7 @@ Aktuell verwendet das Backend:
    ```
 
 3. **PaginationService für Prisma anpassen**
+
    ```typescript
    // src/common/services/pagination.service.ts (erweitert)
    import { Injectable } from '@nestjs/common';
@@ -244,20 +253,20 @@ Aktuell verwendet das Backend:
    import { PrismaService } from '@/prisma/prisma.service';
    import { PaginatedResponse } from '../interfaces/paginated-response.interface';
    import { ConfigService } from '@nestjs/config';
-   
+
    @Injectable()
    export class PaginationService {
      constructor(
        private configService: ConfigService,
-       private prisma: PrismaService
+       private prisma: PrismaService,
      ) {}
-   
+
      private get usePrisma(): boolean {
        return this.configService.get('USE_PRISMA') === 'true';
      }
-   
+
      // Bestehende TypeORM-Methoden beibehalten
-     
+
      // Neue Prisma-Methode hinzufügen
      async paginatePrisma<T, K extends keyof any>(
        model: K,
@@ -267,20 +276,20 @@ Aktuell verwendet das Backend:
          include?: any;
        },
        page: number = 1,
-       limit: number = 10
+       limit: number = 10,
      ): Promise<PaginatedResponse<T>> {
        const totalItems = await this.prisma[model].count({
-         where: options.where
+         where: options.where,
        });
-   
+
        const items = await this.prisma[model].findMany({
          where: options.where,
          include: options.include,
          orderBy: options.orderBy,
          skip: (page - 1) * limit,
-         take: limit
+         take: limit,
        });
-   
+
        return PaginatedResponse.create(items, totalItems, page, limit);
      }
    }
@@ -300,15 +309,16 @@ Aktuell verwendet das Backend:
 ### Phase 3: Schrittweise Migration des ETB-Moduls
 
 1. **Feature-Flag-Bereitstellung**
+
    ```typescript
    // src/config/database.config.ts
    import { Injectable } from '@nestjs/common';
    import { ConfigService } from '@nestjs/config';
-   
+
    @Injectable()
    export class DatabaseConfig {
      constructor(private configService: ConfigService) {}
-   
+
      get usePrisma(): boolean {
        return this.configService.get('USE_PRISMA') === 'true';
      }
@@ -316,6 +326,7 @@ Aktuell verwendet das Backend:
    ```
 
 2. **EtbService mit Dual-Implementierung**
+
    ```typescript
    // src/modules/etb/etb.service.ts (angepasst)
    import { PaginatedResponse } from '@/common/interfaces/paginated-response.interface';
@@ -336,7 +347,7 @@ Aktuell verwendet das Backend:
    import { UpdateEtbDto } from './dto/update-etb.dto';
    import { EtbAttachment } from './entities/etb-attachment.entity';
    import { EtbEntry, EtbEntryStatus } from './entities/etb-entry.entity';
-   
+
    @Injectable()
    export class EtbService {
      constructor(
@@ -348,14 +359,14 @@ Aktuell verwendet das Backend:
        private prisma: PrismaService,
        private dbConfig: DatabaseConfig,
      ) {}
-   
+
      // Migration der Methoden: z.B. getNextLaufendeNummer
      private async getNextLaufendeNummer(): Promise<number> {
        if (this.dbConfig.usePrisma) {
          const result = await this.prisma.etbEntry.aggregate({
            _max: {
-             laufendeNummer: true
-           }
+             laufendeNummer: true,
+           },
          });
          return (result._max.laufendeNummer || 0) + 1;
        } else {
@@ -366,12 +377,13 @@ Aktuell verwendet das Backend:
          return (result.maxNumber || 0) + 1;
        }
      }
-   
+
      // Weitere Methoden analog anpassen
    }
    ```
 
 3. **Migrationsmuster für eine typische Methode**
+
    ```typescript
    // Beispiel: findOne-Methode
    async findOne(id: string): Promise<EtbEntry> {
@@ -380,24 +392,24 @@ Aktuell verwendet das Backend:
          where: { id },
          include: { anlagen: true },
        });
-   
+
        if (!etbEntry) {
          logger.error(`ETB-Eintrag mit ID ${id} wurde nicht gefunden`);
          throw new NotFoundException(`ETB-Eintrag mit ID ${id} wurde nicht gefunden`);
        }
-   
+
        return etbEntry;
      } else {
        const etbEntry = await this.etbRepository.findOne({
          where: { id },
          relations: ['anlagen'],
        });
-   
+
        if (!etbEntry) {
          logger.error(`ETB-Eintrag mit ID ${id} wurde nicht gefunden`);
          throw new NotFoundException(`ETB-Eintrag mit ID ${id} wurde nicht gefunden`);
        }
-   
+
        return etbEntry;
      }
    }
@@ -406,19 +418,23 @@ Aktuell verwendet das Backend:
 ### Phase 4: Tests und Validierung
 
 #### Umgesetzte Aufgaben:
+
 - [x] Manuelle Tests für den ETB-Service mit Prisma erstellt (`packages/backend/docs/etb-prisma-test.http`)
 - [x] Health-Endpoints getestet, einschließlich des neuen Prisma-spezifischen Indikators
 - [x] API-Endpunkte auf Kompatibilität geprüft
 - [x] Performance-Vergleich zwischen TypeORM und Prisma durchgeführt (Prisma zeigt bessere Leistung bei komplexen Abfragen)
 
 #### Offene Probleme und nächste Schritte:
+
 - [ ] Unit-Tests für Prisma-Implementierung müssen angepasst werden
 - [ ] Code-Coverage für Prisma-Implementierung erhöhen
 
 #### Dokumentation:
+
 - Entwicklerdokumentation zur Verwendung von Prisma im Projekt aktualisiert
 
 ### Phase 5: Vollständige Umstellung auf Prisma
+
 - Einheitliches Datenzugriffsmodell durch Prisma
 - Typsicherheit durch generierte Prisma-Client-Typen
 - Vereinfachte Datenbankabfragen und Transaktionen
@@ -428,6 +444,7 @@ Aktuell verwendet das Backend:
 ### Phase 6: Optimierung und Bereinigung
 
 1. **Transaktionen optimieren**
+
    ```typescript
    // Beispiel: Optimierte Transaktion
    async ueberschreibeEintrag(id: string, ueberschreibeDto: UeberschreibeEtbDto, userId: string, userName?: string): Promise<EtbEntry> {
@@ -436,11 +453,11 @@ Aktuell verwendet das Backend:
          where: { id },
          include: { anlagen: true }
        });
-   
+
        if (!existingEntry) {
          throw new NotFoundException(`ETB-Eintrag mit ID ${id} wurde nicht gefunden`);
        }
-   
+
        await tx.etbEntry.update({
          where: { id },
          data: {
@@ -449,7 +466,7 @@ Aktuell verwendet das Backend:
            ueberschriebenVon: userId
          }
        });
-   
+
        return tx.etbEntry.create({
          data: {
            laufendeNummer: await this.getNextLaufendeNummer(),
@@ -477,6 +494,7 @@ Aktuell verwendet das Backend:
 ### Phase 7: Dokumentation und Abschluss
 
 1. **Code-Kommentare aktualisieren**
+
    ```typescript
    /**
     * Prisma-Service für Datenbankoperationen.
@@ -491,25 +509,28 @@ Aktuell verwendet das Backend:
 
 2. **README aktualisieren**
    Fügen Sie einen Abschnitt zur Datenbank und Prisma hinzu:
+
    ```markdown
    ## Datenbank-Zugriffsschicht
-   
+
    Dieses Projekt verwendet Prisma als ORM. Die wichtigsten Befehle sind:
-   
+
    - `pnpm prisma:generate` - Generiert Prisma-Client basierend auf schema.prisma
    - `pnpm prisma:migrate` - Erstellt und führt Migrationen aus
    - `pnpm prisma:studio` - Öffnet Prisma Studio für visuelle Datenbankbearbeitung
-   
+
    Die Datenbank-Konfiguration wird über die Umgebungsvariable `DATABASE_URL` gesteuert.
    ```
 
 ## Testplan
 
 1. **Unit-Tests**
+
    - Tests für alle Services mit Prisma-Mocks
    - 100% Testabdeckung für kritische Datenbankoperationen
 
 2. **Integrationstests**
+
    - Tests mit echter Testdatenbank
    - API-Endpoint-Tests
 
@@ -520,10 +541,12 @@ Aktuell verwendet das Backend:
 ## Risikominderung
 
 1. **Backup-Strategie**
+
    - Vollständiges Datenbank-Backup vor Beginn der Migration
    - Inkrementelle Backups vor jeder Testphase
 
 2. **Feature-Flag-Ansatz**
+
    - Ermöglicht schnelles Umschalten zwischen Implementierungen
    - Erleichtert schrittweise Migration
 
@@ -580,4 +603,4 @@ Die Migration von TypeORM zu Prisma hat folgende Vorteile gebracht:
 - **Performance** - Verbesserte Leistung bei komplexen Abfragen
 - **Schema-Management** - Zentralisiertes Schema-Management über Prisma-Schema
 
-Das Projekt ist nun komplett auf Prisma umgestellt und bereit für die Nutzung aller Vorteile dieses modernen ORM. 
+Das Projekt ist nun komplett auf Prisma umgestellt und bereit für die Nutzung aller Vorteile dieses modernen ORM.

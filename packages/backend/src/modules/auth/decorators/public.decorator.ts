@@ -8,7 +8,7 @@ export const IS_PUBLIC_KEY = 'isPublic';
 /**
  * Decorator to mark routes as publicly accessible without authentication.
  * Routes with this decorator bypass the global JWT authentication guard.
- * 
+ *
  * @example
  * ```typescript
  * @Public()

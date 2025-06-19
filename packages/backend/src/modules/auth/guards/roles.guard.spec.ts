@@ -28,13 +28,14 @@ describe('RolesGuard', () => {
   });
 
   describe('canActivate', () => {
-    const createMockContext = (user?: any): ExecutionContext => ({
-      getHandler: jest.fn(),
-      getClass: jest.fn(),
-      switchToHttp: jest.fn().mockReturnValue({
-        getRequest: jest.fn().mockReturnValue({ user }),
-      }),
-    } as unknown as ExecutionContext);
+    const createMockContext = (user?: any): ExecutionContext =>
+      ({
+        getHandler: jest.fn(),
+        getClass: jest.fn(),
+        switchToHttp: jest.fn().mockReturnValue({
+          getRequest: jest.fn().mockReturnValue({ user }),
+        }),
+      }) as unknown as ExecutionContext;
 
     it('should return true when no roles are required', () => {
       mockReflector.getAllAndOverride.mockReturnValue(null);
@@ -56,10 +57,7 @@ describe('RolesGuard', () => {
     });
 
     it('should return true when user has one of multiple required roles', () => {
-      mockReflector.getAllAndOverride.mockReturnValue([
-        UserRole.ADMIN,
-        UserRole.MODERATOR,
-      ]);
+      mockReflector.getAllAndOverride.mockReturnValue([UserRole.ADMIN, UserRole.MODERATOR]);
 
       const user = { roles: [UserRole.MODERATOR] };
       const context = createMockContext(user);

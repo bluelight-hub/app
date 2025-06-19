@@ -35,9 +35,10 @@ describe('JwtRefreshStrategy', () => {
   });
 
   describe('validate', () => {
-    const createMockRequest = (refreshToken?: string): Request => ({
-      body: { refreshToken },
-    } as Request);
+    const createMockRequest = (refreshToken?: string): Request =>
+      ({
+        body: { refreshToken },
+      }) as Request;
 
     it('should return payload for valid refresh token', async () => {
       const req = createMockRequest('valid-refresh-token');

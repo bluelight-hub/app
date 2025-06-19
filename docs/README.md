@@ -121,4 +121,4 @@ Für das Deployment auf Cloudflare Pages werden folgende Secrets benötigt:
 - `CLOUDFLARE_API_TOKEN`
 - `CLOUDFLARE_ACCOUNT_ID`
 
-Diese müssen in den GitHub Repository Secrets hinterlegt werden. 
+Diese müssen in den GitHub Repository Secrets hinterlegt werden.

@@ -3,7 +3,7 @@ import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
 import { UnauthorizedException } from '@nestjs/common';
 import { AuthService } from './auth.service';
-import { UserRole, Permission } from './types/jwt.types';
+import { Permission, UserRole } from './types/jwt.types';
 
 describe('AuthService', () => {
   let service: AuthService;
@@ -55,9 +55,7 @@ describe('AuthService', () => {
     };
 
     it('should successfully login with valid credentials', async () => {
-      mockJwtService.sign
-        .mockReturnValueOnce('access-token')
-        .mockReturnValueOnce('refresh-token');
+      mockJwtService.sign.mockReturnValueOnce('access-token').mockReturnValueOnce('refresh-token');
 
       const result = await service.login(validLoginDto);
 
@@ -81,9 +79,7 @@ describe('AuthService', () => {
         password: 'SecurePassword123!',
       };
 
-      await expect(service.login(invalidLoginDto)).rejects.toThrow(
-        UnauthorizedException,
-      );
+      await expect(service.login(invalidLoginDto)).rejects.toThrow(UnauthorizedException);
     });
 
     it('should throw UnauthorizedException for invalid password', async () => {
@@ -92,9 +88,7 @@ describe('AuthService', () => {
         password: 'WrongPassword!',
       };
 
-      await expect(service.login(invalidLoginDto)).rejects.toThrow(
-        UnauthorizedException,
-      );
+      await expect(service.login(invalidLoginDto)).rejects.toThrow(UnauthorizedException);
     });
 
     it('should generate different session IDs for each login', async () => {
@@ -132,10 +126,9 @@ describe('AuthService', () => {
 
       expect(result).toHaveProperty('accessToken', 'new-access-token');
       expect(result).toHaveProperty('refreshToken', 'new-refresh-token');
-      expect(mockJwtService.verify).toHaveBeenCalledWith(
-        validRefreshToken,
-        { secret: 'test-refresh-secret' },
-      );
+      expect(mockJwtService.verify).toHaveBeenCalledWith(validRefreshToken, {
+        secret: 'test-refresh-secret',
+      });
     });
 
     it('should throw UnauthorizedException for invalid refresh token', async () => {
@@ -143,9 +136,7 @@ describe('AuthService', () => {
         throw new Error('Invalid token');
       });
 
-      await expect(
-        service.refreshTokens('invalid-token'),
-      ).rejects.toThrow(UnauthorizedException);
+      await expect(service.refreshTokens('invalid-token')).rejects.toThrow(UnauthorizedException);
     });
 
     it('should generate new session ID on refresh', async () => {
@@ -162,20 +153,15 @@ describe('AuthService', () => {
 
   describe('logout', () => {
     it('should accept session ID for logout', async () => {
-      await expect(
-        service.logout('session-123'),
-      ).resolves.toBeUndefined();
+      await expect(service.logout('session-123')).resolves.toBeUndefined();
     });
   });
 
   describe('getPermissionsForRoles', () => {
     it('should return correct permissions for SUPER_ADMIN', () => {
-      const service = new AuthService(
-        {} as JwtService,
-        {} as ConfigService,
-      );
+      const service = new AuthService({} as JwtService, {} as ConfigService);
       const permissions = service['getPermissionsForRoles']([UserRole.SUPER_ADMIN]);
-      
+
       expect(permissions).toContain(Permission.USERS_READ);
       expect(permissions).toContain(Permission.USERS_WRITE);
       expect(permissions).toContain(Permission.USERS_DELETE);
@@ -184,12 +170,9 @@ describe('AuthService', () => {
     });
 
     it('should return correct permissions for ADMIN', () => {
-      const service = new AuthService(
-        {} as JwtService,
-        {} as ConfigService,
-      );
+      const service = new AuthService({} as JwtService, {} as ConfigService);
       const permissions = service['getPermissionsForRoles']([UserRole.ADMIN]);
-      
+
       expect(permissions).toContain(Permission.USERS_READ);
       expect(permissions).toContain(Permission.USERS_WRITE);
       expect(permissions).not.toContain(Permission.USERS_DELETE);
@@ -197,12 +180,9 @@ describe('AuthService', () => {
     });
 
     it('should return correct permissions for MODERATOR', () => {
-      const service = new AuthService(
-        {} as JwtService,
-        {} as ConfigService,
-      );
+      const service = new AuthService({} as JwtService, {} as ConfigService);
       const permissions = service['getPermissionsForRoles']([UserRole.MODERATOR]);
-      
+
       expect(permissions).toContain(Permission.USERS_READ);
       expect(permissions).toContain(Permission.CONTENT_READ);
       expect(permissions).not.toContain(Permission.USERS_WRITE);
@@ -210,25 +190,16 @@ describe('AuthService', () => {
     });
 
     it('should return correct permissions for USER', () => {
-      const service = new AuthService(
-        {} as JwtService,
-        {} as ConfigService,
-      );
+      const service = new AuthService({} as JwtService, {} as ConfigService);
       const permissions = service['getPermissionsForRoles']([UserRole.USER]);
-      
+
       expect(permissions).toEqual([Permission.CONTENT_READ]);
     });
 
     it('should combine permissions for multiple roles', () => {
-      const service = new AuthService(
-        {} as JwtService,
-        {} as ConfigService,
-      );
-      const permissions = service['getPermissionsForRoles']([
-        UserRole.USER,
-        UserRole.MODERATOR,
-      ]);
-      
+      const service = new AuthService({} as JwtService, {} as ConfigService);
+      const permissions = service['getPermissionsForRoles']([UserRole.USER, UserRole.MODERATOR]);
+
       expect(permissions).toContain(Permission.CONTENT_READ);
       expect(permissions).toContain(Permission.USERS_READ);
       expect(permissions).toContain(Permission.CONTENT_WRITE);
@@ -236,12 +207,9 @@ describe('AuthService', () => {
     });
 
     it('should handle empty roles array', () => {
-      const service = new AuthService(
-        {} as JwtService,
-        {} as ConfigService,
-      );
+      const service = new AuthService({} as JwtService, {} as ConfigService);
       const permissions = service['getPermissionsForRoles']([]);
-      
+
       expect(permissions).toEqual([]);
     });
   });

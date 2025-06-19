@@ -2,10 +2,16 @@ import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
 import * as bcrypt from 'bcryptjs';
-import { LoginDto } from './dto';
-import { LoginResponse, TokenResponse, AuthUser } from './types/auth.types';
-import { JWTPayload, JWTRefreshPayload, UserRole, RolePermissions, Permission } from './types/jwt.types';
 import { randomUUID } from 'crypto';
+import { LoginDto } from './dto';
+import { AuthUser, LoginResponse, TokenResponse } from './types/auth.types';
+import {
+  JWTPayload,
+  JWTRefreshPayload,
+  Permission,
+  RolePermissions,
+  UserRole,
+} from './types/jwt.types';
 
 /**
  * Service responsible for authentication operations including login, token refresh, and logout.
@@ -149,12 +155,12 @@ export class AuthService {
 
   private getPermissionsForRoles(roles: UserRole[]): Permission[] {
     const permissions = new Set<Permission>();
-    
+
     for (const role of roles) {
       const rolePermissions = RolePermissions[role] || [];
       rolePermissions.forEach((permission) => permissions.add(permission));
     }
-    
+
     return Array.from(permissions);
   }
 }

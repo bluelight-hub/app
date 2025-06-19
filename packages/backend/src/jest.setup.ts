@@ -1,11 +1,15 @@
 // Mock des Loggers
-jest.mock('@/logger/consola.logger', () => ({
+jest.mock(
+  '@/logger/consola.logger',
+  () => ({
     logger: {
-        info: jest.fn(),
-        error: jest.fn(),
-        warn: jest.fn(),
-        debug: jest.fn(),
-    }
-}), { virtual: true });
+      info: jest.fn(),
+      error: jest.fn(),
+      warn: jest.fn(),
+      debug: jest.fn(),
+    },
+  }),
+  { virtual: true },
+);
 
-// Andere globale Mocks können hier hinzugefügt werden 
+// Andere globale Mocks können hier hinzugefügt werden

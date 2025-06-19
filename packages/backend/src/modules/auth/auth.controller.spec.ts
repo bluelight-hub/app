@@ -3,7 +3,7 @@ import { AuthController } from './auth.controller';
 import { AuthService } from './auth.service';
 import { LoginDto, RefreshTokenDto } from './dto';
 import { JWTPayload } from './types/jwt.types';
-import { Response, Request } from 'express';
+import { Request, Response } from 'express';
 
 describe('AuthController', () => {
   let controller: AuthController;
@@ -73,8 +73,16 @@ describe('AuthController', () => {
 
       expect(authService.login).toHaveBeenCalledWith(loginDto);
       expect(mockResponse.cookie).toHaveBeenCalledTimes(2);
-      expect(mockResponse.cookie).toHaveBeenCalledWith('access_token', 'access-token', expect.any(Object));
-      expect(mockResponse.cookie).toHaveBeenCalledWith('refresh_token', 'refresh-token', expect.any(Object));
+      expect(mockResponse.cookie).toHaveBeenCalledWith(
+        'access_token',
+        'access-token',
+        expect.any(Object),
+      );
+      expect(mockResponse.cookie).toHaveBeenCalledWith(
+        'refresh_token',
+        'refresh-token',
+        expect.any(Object),
+      );
       expect(result).toBe(expectedResult);
     });
   });
@@ -96,8 +104,16 @@ describe('AuthController', () => {
 
       expect(authService.refreshTokens).toHaveBeenCalledWith('refresh-token');
       expect(mockResponse.cookie).toHaveBeenCalledTimes(2);
-      expect(mockResponse.cookie).toHaveBeenCalledWith('access_token', 'new-access-token', expect.any(Object));
-      expect(mockResponse.cookie).toHaveBeenCalledWith('refresh_token', 'new-refresh-token', expect.any(Object));
+      expect(mockResponse.cookie).toHaveBeenCalledWith(
+        'access_token',
+        'new-access-token',
+        expect.any(Object),
+      );
+      expect(mockResponse.cookie).toHaveBeenCalledWith(
+        'refresh_token',
+        'new-refresh-token',
+        expect.any(Object),
+      );
       expect(result).toBe(expectedResult);
     });
   });

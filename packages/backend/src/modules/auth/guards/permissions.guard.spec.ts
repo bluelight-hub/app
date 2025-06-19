@@ -28,13 +28,14 @@ describe('PermissionsGuard', () => {
   });
 
   describe('canActivate', () => {
-    const createMockContext = (user?: any): ExecutionContext => ({
-      getHandler: jest.fn(),
-      getClass: jest.fn(),
-      switchToHttp: jest.fn().mockReturnValue({
-        getRequest: jest.fn().mockReturnValue({ user }),
-      }),
-    } as unknown as ExecutionContext);
+    const createMockContext = (user?: any): ExecutionContext =>
+      ({
+        getHandler: jest.fn(),
+        getClass: jest.fn(),
+        switchToHttp: jest.fn().mockReturnValue({
+          getRequest: jest.fn().mockReturnValue({ user }),
+        }),
+      }) as unknown as ExecutionContext;
 
     it('should return true when no permissions are required', () => {
       mockReflector.getAllAndOverride.mockReturnValue(null);
@@ -52,11 +53,7 @@ describe('PermissionsGuard', () => {
       ]);
 
       const user = {
-        permissions: [
-          Permission.USERS_READ,
-          Permission.USERS_WRITE,
-          Permission.USERS_DELETE,
-        ],
+        permissions: [Permission.USERS_READ, Permission.USERS_WRITE, Permission.USERS_DELETE],
       };
       const context = createMockContext(user);
       const result = guard.canActivate(context);
@@ -115,11 +112,7 @@ describe('PermissionsGuard', () => {
       ]);
 
       const user = {
-        permissions: [
-          Permission.SYSTEM_CONFIG,
-          Permission.SYSTEM_LOGS,
-          Permission.SYSTEM_BACKUP,
-        ],
+        permissions: [Permission.SYSTEM_CONFIG, Permission.SYSTEM_LOGS, Permission.SYSTEM_BACKUP],
       };
       const context = createMockContext(user);
       const result = guard.canActivate(context);

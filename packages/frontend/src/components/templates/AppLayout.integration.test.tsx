@@ -5,104 +5,106 @@ import AppLayout from './AppLayout';
 
 // Mock Sidebar component
 vi.mock('../organisms/Sidebar', () => ({
-    __esModule: true,
-    default: ({ isOpen }: { isOpen: boolean }) => (
-        <div data-testid="sidebar" data-is-open={isOpen}>Sidebar</div>
-    )
+  __esModule: true,
+  default: ({ isOpen }: { isOpen: boolean }) => (
+    <div data-testid="sidebar" data-is-open={isOpen}>
+      Sidebar
+    </div>
+  ),
 }));
 
 // Mock MobileHeader component
 vi.mock('../organisms/MobileHeader', () => ({
-    __esModule: true,
-    default: ({ title, onMenuToggle }: { title: string; onMenuToggle: () => void }) => (
-        <header data-testid="mobile-header">
-            <span>{title}</span>
-            <button onClick={onMenuToggle}>Toggle Menu</button>
-        </header>
-    )
+  __esModule: true,
+  default: ({ title, onMenuToggle }: { title: string; onMenuToggle: () => void }) => (
+    <header data-testid="mobile-header">
+      <span>{title}</span>
+      <button onClick={onMenuToggle}>Toggle Menu</button>
+    </header>
+  ),
 }));
 
 // Mock navigation config
 vi.mock('../../config/navigation', () => ({
-    findRouteTitle: vi.fn((_path) => 'Test Title'),
-    mainNavigation: []
+  findRouteTitle: vi.fn((_path) => 'Test Title'),
+  mainNavigation: [],
 }));
 
 // Mock useMediaQuery
 vi.mock('../../hooks/useMediaQuery', () => ({
-    __esModule: true,
-    default: vi.fn(() => false)
+  __esModule: true,
+  default: vi.fn(() => false),
 }));
 
 // Mock react-router
 vi.mock('react-router', () => ({
-    ...vi.importActual('react-router'),
-    Outlet: () => <div data-testid="outlet">Outlet</div>,
-    useLocation: () => ({ pathname: '/test' }),
-    useNavigate: () => vi.fn()
+  ...vi.importActual('react-router'),
+  Outlet: () => <div data-testid="outlet">Outlet</div>,
+  useLocation: () => ({ pathname: '/test' }),
+  useNavigate: () => vi.fn(),
 }));
 
 describe('AppLayout Integration Tests', () => {
-    beforeEach(() => {
-        vi.clearAllMocks();
-    });
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
 
-    it('renders with react-router components', () => {
-        render(
-            <BrowserRouter>
-                <AppLayout />
-            </BrowserRouter>
-        );
+  it('renders with react-router components', () => {
+    render(
+      <BrowserRouter>
+        <AppLayout />
+      </BrowserRouter>,
+    );
 
-        expect(screen.getByTestId('sidebar')).toBeInTheDocument();
-        expect(screen.getByTestId('mobile-header')).toBeInTheDocument();
-    });
+    expect(screen.getByTestId('sidebar')).toBeInTheDocument();
+    expect(screen.getByTestId('mobile-header')).toBeInTheDocument();
+  });
 
-    it('initializes useNavigate hook', () => {
-        const navigateSpy = vi.fn();
-        vi.doMock('react-router', () => ({
-            ...vi.importActual('react-router'),
-            useNavigate: () => navigateSpy
-        }));
+  it('initializes useNavigate hook', () => {
+    const navigateSpy = vi.fn();
+    vi.doMock('react-router', () => ({
+      ...vi.importActual('react-router'),
+      useNavigate: () => navigateSpy,
+    }));
 
-        render(
-            <BrowserRouter>
-                <AppLayout />
-            </BrowserRouter>
-        );
+    render(
+      <BrowserRouter>
+        <AppLayout />
+      </BrowserRouter>,
+    );
 
-        // Component should render without errors when navigate is initialized
-        expect(screen.getByTestId('sidebar')).toBeInTheDocument();
-    });
+    // Component should render without errors when navigate is initialized
+    expect(screen.getByTestId('sidebar')).toBeInTheDocument();
+  });
 
-    it('uses useLocation hook to get current path', () => {
-        const mockFindRouteTitle = vi.fn(() => 'Test Page');
-        vi.doMock('../../config/navigation', () => ({
-            findRouteTitle: mockFindRouteTitle,
-            mainNavigation: []
-        }));
+  it('uses useLocation hook to get current path', () => {
+    const mockFindRouteTitle = vi.fn(() => 'Test Page');
+    vi.doMock('../../config/navigation', () => ({
+      findRouteTitle: mockFindRouteTitle,
+      mainNavigation: [],
+    }));
 
-        render(
-            <BrowserRouter>
-                <AppLayout />
-            </BrowserRouter>
-        );
+    render(
+      <BrowserRouter>
+        <AppLayout />
+      </BrowserRouter>,
+    );
 
-        // Component should render and use location
-        expect(screen.getByTestId('mobile-header')).toBeInTheDocument();
-    });
+    // Component should render and use location
+    expect(screen.getByTestId('mobile-header')).toBeInTheDocument();
+  });
 
-    it('renders with Outlet for child routes', () => {
-        // Test that component imports and uses Outlet from react-router
-        render(
-            <BrowserRouter>
-                <AppLayout />
-            </BrowserRouter>
-        );
+  it('renders with Outlet for child routes', () => {
+    // Test that component imports and uses Outlet from react-router
+    render(
+      <BrowserRouter>
+        <AppLayout />
+      </BrowserRouter>,
+    );
 
-        // Main content area should exist for Outlet
-        const mainElement = document.querySelector('main');
-        expect(mainElement).toBeInTheDocument();
-        expect(mainElement).toHaveClass('py-10', 'lg:pl-72');
-    });
+    // Main content area should exist for Outlet
+    const mainElement = document.querySelector('main');
+    expect(mainElement).toBeInTheDocument();
+    expect(mainElement).toHaveClass('py-10', 'lg:pl-72');
+  });
 });

@@ -8,6 +8,8 @@
     "dev:vite": "vite",
     "build": "tsc --skipLibCheck --noEmit && vite build",
     "lint": "eslint .",
+    "format": "prettier --write \"src/**/*.{ts,tsx,css}\" \"*.{json,js,ts}\"",
+    "format:check": "prettier --check \"src/**/*.{ts,tsx,css}\" \"*.{json,js,ts}\"",
     "preview": "vite preview",
     "tauri": "tauri",
     "test": "vitest run",

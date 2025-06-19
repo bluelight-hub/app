@@ -1,9 +1,11 @@
 # CLAUDE.md - Repository Guide
 
 ## Repository Information
+
 - GitHub: github.com/bluelight-hub/app
 
 ## Build Commands
+
 - Project-wide: `pnpm -r dev`, `pnpm -r build`, `pnpm -r test`, `pnpm -r test:cov`
 - Backend: `pnpm --filter @bluelight-hub/backend dev`, `pnpm --filter @bluelight-hub/backend test`
 - Frontend: `pnpm --filter @bluelight-hub/frontend dev`, `pnpm --filter @bluelight-hub/frontend test`
@@ -11,6 +13,7 @@
 - Single test (frontend): `pnpm --filter @bluelight-hub/frontend test -- -t "test name"`
 
 ## Code Style Guidelines
+
 - TypeScript strict mode required throughout codebase
 - Frontend: Atomic Design (atoms, molecules, organisms, templates, pages)
 - Backend: NestJS modular architecture (controller, service, repository)
@@ -20,12 +23,14 @@
 - JSDoc sollte in deutsch geschrieben sein, die geht direkt in die technische Dokumentation (und die ist auf deutsch)
 
 ## Commit Message Convention
+
 - Format: `<emoji>(<context>): <title>`
 - Context: `frontend`, `backend`, `shared`, `release`, or other module names
 - Title: Short summary (50-72 characters), use imperative mood
 - Body (optional): Detailed explanation after blank line
 
 ### Commit Message Structure
+
 ```
 <emoji>(<context>): <title>
 
@@ -33,12 +38,15 @@
 ```
 
 ### Examples
+
 Single-line commits:
+
 - `✨(frontend): Add user dashboard`
 - `🐛(backend): Fix database connection timeout`
 - `♻️(shared): Refactor date utility functions`
 
 Multi-line commit:
+
 ```
 💥(backend): Change API response format
 
@@ -52,15 +60,19 @@ Affected endpoints:
 ```
 
 ### Semantic Release Emojis
+
 This project uses semantic-release with gitmoji for automated versioning:
 
 **Major Version (Breaking Changes):**
+
 - 💥 Breaking changes
 
 **Minor Version (New Features):**
+
 - ✨ New features/functionality
 
 **Patch Version (Fixes & Improvements):**
+
 - 🐛 Bug fixes
 - 🚑 Critical hotfixes
 - 🔒 Security fixes
@@ -69,6 +81,7 @@ This project uses semantic-release with gitmoji for automated versioning:
 - 🔧 Configuration/tooling changes
 
 ## Architecture & Patterns
+
 - React frontend with Atomic Design and Vite/Vitest for testing
 - NestJS backend with Prisma (PostgreSQL)
 - Packages: frontend, backend, shared (monorepo with pnpm workspaces)
@@ -77,4 +90,5 @@ This project uses semantic-release with gitmoji for automated versioning:
 - Full test coverage for new features
 
 ## Development Workflow
+
 - Committe die Änderungen nach jedem Subtask
