@@ -7,6 +7,7 @@ import { RetryConfig } from '@/common/utils/retry.util';
 import { DatabaseCheckService } from './database-check.service';
 import { Permission, UserRole } from '@prisma/generated/prisma/enums';
 import * as bcrypt from 'bcrypt';
+import { DefaultRolePermissions } from '@/modules/auth/constants';
 
 /**
  * Service zum Seeden der Datenbank mit initialen Daten.
@@ -262,103 +263,43 @@ export class SeedService {
     return await this.executeWithTransaction(async () => {
       this.logger.log('Erstelle Rollen-Berechtigungen...');
 
-      // SUPER_ADMIN bekommt alle Berechtigungen
-      const superAdminPermissions = Object.values(Permission);
+      // Verwende die zentral definierte Permissions-Matrix
+      for (const [role, permissions] of Object.entries(DefaultRolePermissions)) {
+        this.logger.log(
+          `Erstelle Berechtigungen für Rolle ${role}: ${permissions.length} Berechtigungen`,
+        );
 
-      // ADMIN Berechtigungen
-      const adminPermissions = [
-        Permission.USERS_READ,
-        Permission.USERS_WRITE,
-        Permission.USERS_DELETE,
-        Permission.SYSTEM_SETTINGS_READ,
-        Permission.SYSTEM_SETTINGS_WRITE,
-        Permission.AUDIT_LOG_READ,
-        Permission.ETB_READ,
-        Permission.ETB_WRITE,
-        Permission.EINSATZ_READ,
-        Permission.EINSATZ_WRITE,
-      ];
-
-      // SUPPORT Berechtigungen
-      const supportPermissions = [
-        Permission.USERS_READ,
-        Permission.AUDIT_LOG_READ,
-        Permission.ETB_READ,
-        Permission.EINSATZ_READ,
-      ];
-
-      // USER Berechtigungen
-      const userPermissions = [Permission.ETB_READ, Permission.EINSATZ_READ];
-
-      // Erstelle Berechtigungen für SUPER_ADMIN
-      for (const permission of superAdminPermissions) {
-        await this.prisma.rolePermission.upsert({
-          where: {
-            role_permission: {
-              role: UserRole.SUPER_ADMIN,
-              permission,
+        for (const permission of permissions) {
+          await this.prisma.rolePermission.upsert({
+            where: {
+              role_permission: {
+                role: role as UserRole,
+                permission: permission as Permission,
+              },
             },
-          },
-          update: {},
-          create: {
-            role: UserRole.SUPER_ADMIN,
-            permission,
-          },
-        });
+            update: {
+              grantedAt: new Date(), // Aktualisiere Zeitstempel bei erneutem Seeding
+            },
+            create: {
+              role: role as UserRole,
+              permission: permission as Permission,
+              grantedBy: 'system', // System-generierte Berechtigungen
+            },
+          });
+        }
       }
 
-      // Erstelle Berechtigungen für ADMIN
-      for (const permission of adminPermissions) {
-        await this.prisma.rolePermission.upsert({
-          where: {
-            role_permission: {
-              role: UserRole.ADMIN,
-              permission,
-            },
-          },
-          update: {},
-          create: {
-            role: UserRole.ADMIN,
-            permission,
-          },
-        });
-      }
+      // Verifiziere die Erstellung
+      const totalPermissions = await this.prisma.rolePermission.count();
+      this.logger.log(`Rollen-Berechtigungen erfolgreich erstellt. Total: ${totalPermissions}`);
 
-      // Erstelle Berechtigungen für SUPPORT
-      for (const permission of supportPermissions) {
-        await this.prisma.rolePermission.upsert({
-          where: {
-            role_permission: {
-              role: UserRole.SUPPORT,
-              permission,
-            },
-          },
-          update: {},
-          create: {
-            role: UserRole.SUPPORT,
-            permission,
-          },
+      // Log Zusammenfassung pro Rolle
+      for (const role of Object.values(UserRole)) {
+        const count = await this.prisma.rolePermission.count({
+          where: { role },
         });
+        this.logger.log(`  ${role}: ${count} Berechtigungen`);
       }
-
-      // Erstelle Berechtigungen für USER
-      for (const permission of userPermissions) {
-        await this.prisma.rolePermission.upsert({
-          where: {
-            role_permission: {
-              role: UserRole.USER,
-              permission,
-            },
-          },
-          update: {},
-          create: {
-            role: UserRole.USER,
-            permission,
-          },
-        });
-      }
-
-      this.logger.log('Rollen-Berechtigungen erfolgreich erstellt');
     }, retryConfig);
   }
 

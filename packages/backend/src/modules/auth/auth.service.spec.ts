@@ -198,6 +198,57 @@ describe('AuthService', () => {
         },
       });
     });
+
+    it('should use fallback permissions when none found in database', async () => {
+      mockPrismaService.user.findUnique.mockResolvedValue(mockUser);
+      (bcrypt.compare as jest.Mock).mockResolvedValue(true);
+
+      // Mock empty permissions from database
+      mockPrismaService.rolePermission.findMany.mockResolvedValue([]);
+
+      mockPrismaService.user.update.mockResolvedValue(mockUser);
+      mockPrismaService.session.create.mockResolvedValue({});
+      mockPrismaService.refreshToken.create.mockResolvedValue({});
+
+      mockJwtService.sign.mockReturnValueOnce('access_token');
+      mockJwtService.sign.mockReturnValueOnce('refresh_token');
+
+      const result = await service.login(mockLoginDto);
+
+      expect(result).toHaveProperty('accessToken', 'access_token');
+
+      // Verify JWT was signed with fallback permissions
+      const jwtSignCall = mockJwtService.sign.mock.calls[0][0];
+      expect(jwtSignCall.permissions).toBeDefined();
+      expect(jwtSignCall.permissions.length).toBeGreaterThan(0);
+    });
+
+    it('should load permissions from database when available', async () => {
+      mockPrismaService.user.findUnique.mockResolvedValue(mockUser);
+      (bcrypt.compare as jest.Mock).mockResolvedValue(true);
+
+      // Mock permissions from database
+      const dbPermissions = [
+        { permission: Permission.USERS_READ },
+        { permission: Permission.USERS_WRITE },
+      ];
+      mockPrismaService.rolePermission.findMany.mockResolvedValue(dbPermissions);
+
+      mockPrismaService.user.update.mockResolvedValue(mockUser);
+      mockPrismaService.session.create.mockResolvedValue({});
+      mockPrismaService.refreshToken.create.mockResolvedValue({});
+
+      mockJwtService.sign.mockReturnValueOnce('access_token');
+      mockJwtService.sign.mockReturnValueOnce('refresh_token');
+
+      const result = await service.login(mockLoginDto);
+
+      expect(result).toHaveProperty('accessToken', 'access_token');
+
+      // Verify JWT was signed with database permissions
+      const jwtSignCall = mockJwtService.sign.mock.calls[0][0];
+      expect(jwtSignCall.permissions).toEqual([Permission.USERS_READ, Permission.USERS_WRITE]);
+    });
   });
 
   describe('refreshTokens', () => {
@@ -247,6 +298,30 @@ describe('AuthService', () => {
       expect(mockJwtService.verify).toHaveBeenCalledWith(mockRefreshToken, {
         secret: 'test-refresh-secret',
       });
+    });
+
+    it('should use fallback permissions when refreshing with empty database permissions', async () => {
+      mockJwtService.verify.mockReturnValue(mockPayload);
+      mockPrismaService.refreshToken.findUnique.mockResolvedValue(mockStoredToken);
+
+      // Mock empty permissions from database
+      mockPrismaService.rolePermission.findMany.mockResolvedValue([]);
+
+      mockPrismaService.refreshToken.update.mockResolvedValue({});
+      mockPrismaService.session.create.mockResolvedValue({});
+      mockPrismaService.refreshToken.create.mockResolvedValue({});
+
+      mockJwtService.sign.mockReturnValueOnce('new_access_token');
+      mockJwtService.sign.mockReturnValueOnce('new_refresh_token');
+
+      const result = await service.refreshTokens(mockRefreshToken);
+
+      expect(result).toHaveProperty('accessToken', 'new_access_token');
+
+      // Verify JWT was signed with fallback permissions
+      const jwtSignCall = mockJwtService.sign.mock.calls[0][0];
+      expect(jwtSignCall.permissions).toBeDefined();
+      expect(jwtSignCall.permissions.length).toBeGreaterThan(0);
     });
 
     it('should throw UnauthorizedException for invalid refresh token', async () => {

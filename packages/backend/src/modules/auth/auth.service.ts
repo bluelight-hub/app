@@ -1,4 +1,4 @@
-import { Injectable, UnauthorizedException } from '@nestjs/common';
+import { Injectable, UnauthorizedException, Logger } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
 import * as bcrypt from 'bcryptjs';
@@ -13,6 +13,7 @@ import {
   RolePermissions,
 } from './types/jwt.types';
 import { PrismaService } from '@/prisma/prisma.service';
+import { DefaultRolePermissions } from './constants';
 
 /**
  * Service responsible for authentication operations including login, token refresh, and logout.
@@ -20,6 +21,8 @@ import { PrismaService } from '@/prisma/prisma.service';
  */
 @Injectable()
 export class AuthService {
+  private readonly logger = new Logger(AuthService.name);
+
   constructor(
     private jwtService: JwtService,
     private configService: ConfigService,
@@ -74,13 +77,19 @@ export class AuthService {
     const sessionId = randomUUID();
     const jti = randomUUID();
 
-    // Get permissions for user role
+    // Get permissions for user role from database
     const rolePermissions = await this.prisma.rolePermission.findMany({
       where: { role: user.role },
       select: { permission: true },
     });
 
-    const permissions = rolePermissions.map((rp) => rp.permission as Permission);
+    let permissions = rolePermissions.map((rp) => rp.permission as Permission);
+
+    // Fallback to default permissions if none found in database
+    if (permissions.length === 0) {
+      this.logger.warn(`No permissions found in database for role ${user.role}, using defaults`);
+      permissions = DefaultRolePermissions[user.role as UserRole] || [];
+    }
 
     const payload: JWTPayload = {
       sub: user.id,
@@ -169,13 +178,19 @@ export class AuthService {
         throw new UnauthorizedException('Account is disabled');
       }
 
-      // Get permissions for user role
+      // Get permissions for user role from database
       const rolePermissions = await this.prisma.rolePermission.findMany({
         where: { role: user.role },
         select: { permission: true },
       });
 
-      const permissions = rolePermissions.map((rp) => rp.permission as Permission);
+      let permissions = rolePermissions.map((rp) => rp.permission as Permission);
+
+      // Fallback to default permissions if none found in database
+      if (permissions.length === 0) {
+        this.logger.warn(`No permissions found in database for role ${user.role}, using defaults`);
+        permissions = DefaultRolePermissions[user.role as UserRole] || [];
+      }
 
       const newSessionId = randomUUID();
       const newJti = randomUUID();

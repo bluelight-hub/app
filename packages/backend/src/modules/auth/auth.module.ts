@@ -6,6 +6,7 @@ import { JwtRefreshStrategy, JwtStrategy } from './strategies';
 import { AuthService } from './auth.service';
 import { AuthController } from './auth.controller';
 import { PrismaService } from '@/prisma/prisma.service';
+import { PermissionValidationService } from './services/permission-validation.service';
 
 /**
  * Authentication module that provides JWT-based authentication for the application.
@@ -23,8 +24,14 @@ import { PrismaService } from '@/prisma/prisma.service';
       }),
     }),
   ],
-  providers: [AuthService, JwtStrategy, JwtRefreshStrategy, PrismaService],
+  providers: [
+    AuthService,
+    JwtStrategy,
+    JwtRefreshStrategy,
+    PrismaService,
+    PermissionValidationService,
+  ],
   controllers: [AuthController],
-  exports: [AuthService, JwtModule],
+  exports: [AuthService, JwtModule, PermissionValidationService],
 })
 export class AuthModule {}
