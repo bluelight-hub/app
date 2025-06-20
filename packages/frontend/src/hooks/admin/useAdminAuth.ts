@@ -6,14 +6,13 @@ import { useAuth } from '../useAuth';
  * Hook für Admin-spezifische Authentifizierung und Autorisierung
  */
 export const useAdminAuth = () => {
-  const { user, isAuthenticated, isLoading, isAdmin: checkIsAdmin, hasRole } = useAuth();
+  const { isAuthenticated, isLoading, isAdmin: checkIsAdmin, hasRole } = useAuth();
   const navigate = useNavigate();
 
   const isAdmin = checkIsAdmin();
   const isSuperAdmin = hasRole('SUPER_ADMIN');
   const isAdminRole = hasRole('ADMIN');
-  const isSupport = hasRole('SUPPORT');
-  
+
   // Berechtigungen basierend auf Rollen
   const canViewUsers = isAdmin;
   const canEditUsers = isSuperAdmin || isAdminRole;

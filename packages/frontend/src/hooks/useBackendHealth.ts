@@ -1,7 +1,7 @@
 import { HealthControllerCheck200Response } from '@bluelight-hub/shared/client';
 import { useQuery } from '@tanstack/react-query';
 import { useCallback } from 'react';
-import { getBaseUrl } from '../utils/fetch';
+import { api } from '../api';
 import { logger } from '../utils/logger';
 
 /**
@@ -23,26 +23,14 @@ export const useBackendHealth = () => {
     queryFn: async () => {
       try {
         logger.debug('StatusIndicator checking health endpoint');
-        // Attempt to get response from backend
-        const response = await fetch(`${getBaseUrl()}/api/health`, {
-          method: 'GET',
-          headers: {
-            Accept: 'application/json',
-          },
+        // Use the API client for the health check
+        const data = await api.health.healthControllerCheck();
+
+        logger.info('StatusIndicator health check successful', {
+          status: data.status,
+          details: data.details,
         });
 
-        const data = (await response.json()) as HealthControllerCheck200Response;
-        if (!response.ok) {
-          logger.warn('StatusIndicator received error response', {
-            status: data.status,
-            details: data.details,
-          });
-        } else {
-          logger.info('StatusIndicator health check successful', {
-            status: data.status,
-            details: data.details,
-          });
-        }
         return data;
       } catch (error) {
         logger.error('StatusIndicator unexpected error', {

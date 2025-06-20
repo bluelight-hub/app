@@ -1,6 +1,7 @@
 import {
   Body,
   Controller,
+  Get,
   HttpCode,
   HttpStatus,
   Post,
@@ -74,6 +75,17 @@ export class AuthController {
     response.cookie('refresh_token', result.refreshToken, refreshCookieConfig);
 
     return result;
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Get('me')
+  @HttpCode(HttpStatus.OK)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Get current user' })
+  @ApiResponse({ status: 200, description: 'Current user data' })
+  @ApiResponse({ status: 401, description: 'Unauthorized' })
+  async getCurrentUser(@CurrentUser() user: JWTPayload) {
+    return await this.authService.getCurrentUser(user.sub);
   }
 
   @UseGuards(JwtAuthGuard)

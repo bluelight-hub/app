@@ -1,9 +1,8 @@
 import { Menu, MenuProps } from 'antd';
 import React from 'react';
 import { useLocation, useNavigate } from 'react-router';
-import { NavigationItem, workspaces, adminNavigation } from '../../../config/navigation';
+import { NavigationItem, workspaces } from '../../../config/navigation';
 import { useThemeInternal } from '../../../hooks/useTheme';
-import { useAuth } from '../../../hooks/useAuth';
 import { convertNavigationToMenuItems } from '../../../utils/navigationConverter';
 import Divider from '../../atoms/Divider';
 import Logo from '../../atoms/Logo';
@@ -22,7 +21,6 @@ const SidebarContent: React.FC<SidebarContentProps> = ({ navigation, onNavigate 
   const navigate = useNavigate();
   const location = useLocation();
   const themeUtils = useThemeInternal();
-  const { isAdmin } = useAuth();
 
   const handleMenuClick: MenuProps['onClick'] = (info) => {
     navigate(info.key);
@@ -55,21 +53,6 @@ const SidebarContent: React.FC<SidebarContentProps> = ({ navigation, onNavigate 
           />
 
           <Divider />
-
-          {/* Admin Navigation - nur für Admins sichtbar */}
-          {isAdmin() && (
-            <>
-              <Menu
-                theme={themeUtils.isDark ? 'dark' : 'light'}
-                mode="inline"
-                selectedKeys={[location.pathname]}
-                onClick={handleMenuClick}
-                items={convertNavigationToMenuItems(adminNavigation)}
-                className="border-none bg-transparent"
-              />
-              <Divider />
-            </>
-          )}
 
           {/* Workspaces Navigation */}
           <Menu

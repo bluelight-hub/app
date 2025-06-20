@@ -250,6 +250,9 @@ importers:
       '@tauri-apps/plugin-http':
         specifier: ^2.4.3
         version: 2.4.4
+      '@tauri-apps/plugin-store':
+        specifier: ^2.2.1
+        version: 2.2.1
       antd:
         specifier: ^5.24.7
         version: 5.26.0(date-fns@4.1.0)(moment@2.30.1)(react-dom@19.1.0(react@19.1.0))(react@19.1.0)
@@ -3220,6 +3223,9 @@ packages:
 
   '@tauri-apps/plugin-http@2.4.4':
     resolution: {integrity: sha512-IjlaaS4z8ybB10qnh6djZ2FIaHdWVs/U1D1C56udKcjX1f+jAmR8/s7qBV5cv/OmcGkOIzet3LWuH70LKf4J2A==}
+
+  '@tauri-apps/plugin-store@2.2.1':
+    resolution: {integrity: sha512-/hPafeliMe0tMc8NB9tSlkAH+Ww3H7BGD8NycjfY6QBM//0jSoqCO1QGdngPxugeF5NgUNspsVkpvpTz1lLAVQ==}
 
   '@testing-library/dom@10.4.0':
     resolution: {integrity: sha512-pemlzrSESWbdAloYml3bAJMEfNh1Z7EduzqPKprCH5S341frlpYnUEW0H72dLxa6IsYr+mPno20GiSm+h9dEdQ==}
@@ -12911,6 +12917,10 @@ snapshots:
       '@tauri-apps/cli-win32-x64-msvc': 2.5.0
 
   '@tauri-apps/plugin-http@2.4.4':
+    dependencies:
+      '@tauri-apps/api': 2.5.0
+
+  '@tauri-apps/plugin-store@2.2.1':
     dependencies:
       '@tauri-apps/api': 2.5.0
 

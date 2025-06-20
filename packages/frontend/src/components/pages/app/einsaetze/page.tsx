@@ -1,13 +1,15 @@
 import type { Einsatz } from '@bluelight-hub/shared/client/models';
 import { Alert, Button, Card, Input, Space, Table, Typography } from 'antd';
 import React, { useState } from 'react';
-import { PiMagnifyingGlass, PiPlus, PiSignOut, PiSiren } from 'react-icons/pi';
+import { PiMagnifyingGlass, PiPlus, PiShield, PiSignOut, PiSiren } from 'react-icons/pi';
 import { useNavigate } from 'react-router-dom';
 import { useEinsatzContext } from '../../../../contexts/EinsatzContext';
+import { useAuth } from '../../../../hooks/useAuth';
 import { useEinsaetzeUebersicht, useEinsatzSearch } from '../../../../hooks/einsatz/useEinsaetzeUebersicht';
 import { logout } from '../../../../utils/auth';
 import { formatDate } from '../../../../utils/einsaetze';
 import { logger } from '../../../../utils/logger';
+import { openAdminWindow } from '../../../../utils/tauri';
 import { NewEinsatzModal } from '../../../organisms/einsaetze/NewEinsatzModal';
 
 const { Title } = Typography;
@@ -22,6 +24,7 @@ const { Search } = Input;
 export const EinsaetzeUebersichtPage: React.FC = () => {
   const navigate = useNavigate();
   const { selectEinsatz, clearSelectedEinsatz } = useEinsatzContext();
+  const { isAdmin } = useAuth();
   const [logoutLoading, setLogoutLoading] = useState(false);
   const [newEinsatzModalOpen, setNewEinsatzModalOpen] = useState(false);
 
@@ -127,6 +130,15 @@ export const EinsaetzeUebersichtPage: React.FC = () => {
     // Modal wird automatisch geschlossen, Liste wird durch React Query aktualisiert
   };
 
+  const handleOpenAdmin = async () => {
+    logger.debug('Opening admin panel in new window');
+    try {
+      await openAdminWindow();
+    } catch (error) {
+      logger.error('Fehler beim Öffnen des Admin-Fensters:', error);
+    }
+  };
+
   logger.debug('EinsaetzeUebersichtPage render', {
     einsaetzeCount: einsaetze.length,
     isLoading,
@@ -149,6 +161,12 @@ export const EinsaetzeUebersichtPage: React.FC = () => {
             <Button type="primary" icon={<PiPlus />} size="large" onClick={handleOpenNewEinsatzModal}>
               Neuer Einsatz
             </Button>
+
+            {isAdmin() && (
+              <Button icon={<PiShield />} size="large" onClick={handleOpenAdmin}>
+                Administration
+              </Button>
+            )}
 
             <Button icon={<PiSignOut />} size="large" onClick={handleLogout} loading={logoutLoading} danger>
               Ausloggen

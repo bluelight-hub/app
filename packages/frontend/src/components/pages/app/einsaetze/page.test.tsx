@@ -22,6 +22,19 @@ vi.mock('../../../../utils/auth', () => ({
   logout: vi.fn(),
 }));
 
+// Mock useAuth hook
+vi.mock('../../../../hooks/useAuth', () => ({
+  useAuth: () => ({
+    user: { id: 'user1', email: 'test@example.com' },
+    isAuthenticated: true,
+    isLoading: false,
+    login: vi.fn(),
+    logout: vi.fn(),
+    isAdmin: () => false,
+    hasRole: () => false,
+  }),
+}));
+
 // Mock NewEinsatzModal component
 vi.mock('../../../organisms/einsaetze/NewEinsatzModal', () => ({
   NewEinsatzModal: ({ open, onClose, onSuccess }: any) => {

@@ -1,5 +1,6 @@
 import { Configuration } from '@bluelight-hub/shared/client';
 import { logger } from './logger';
+import { authStorage } from './authStorage';
 
 // Determine the base URL based on the environment
 export const getBaseUrl = (): string => {
@@ -38,11 +39,11 @@ const customFetch = (input: RequestInfo | URL, init?: RequestInit): Promise<Resp
 // Middleware to add authentication headers
 const authMiddleware = {
   pre: async (context: any) => {
-    const token = localStorage.getItem('auth_token');
-    if (token) {
+    const tokens = await authStorage.getTokens();
+    if (tokens.authToken) {
       context.init.headers = {
         ...context.init.headers,
-        Authorization: `Bearer ${token}`,
+        Authorization: `Bearer ${tokens.authToken}`,
       };
     }
     return context;

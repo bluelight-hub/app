@@ -1,3 +1,4 @@
+import { AuthenticationApi } from '@bluelight-hub/shared/client/apis/AuthenticationApi';
 import { EinsatzApi } from '@bluelight-hub/shared/client/apis/EinsatzApi';
 import { EinsatztagebuchApi } from '@bluelight-hub/shared/client/apis/EinsatztagebuchApi';
 import { HealthApi } from '@bluelight-hub/shared/client/apis/HealthApi';
@@ -9,6 +10,7 @@ import { logger } from '../utils/logger';
  */
 class API {
   private static instance: API;
+  private authApi: AuthenticationApi;
   private healthApi: HealthApi;
   private einsatztagebuchApi: EinsatztagebuchApi;
   private einsatzApi: EinsatzApi;
@@ -20,6 +22,7 @@ class API {
         middlewareCount: apiConfiguration.middleware.length,
       });
 
+      this.authApi = new AuthenticationApi(apiConfiguration);
       this.healthApi = new HealthApi(apiConfiguration);
       this.einsatztagebuchApi = new EinsatztagebuchApi(apiConfiguration);
       this.einsatzApi = new EinsatzApi(apiConfiguration);
@@ -35,6 +38,7 @@ class API {
         error: error instanceof Error ? error.message : String(error),
       });
 
+      this.authApi = new AuthenticationApi(apiConfiguration);
       this.healthApi = new HealthApi(apiConfiguration);
       this.einsatztagebuchApi = new EinsatztagebuchApi(apiConfiguration);
       this.einsatzApi = new EinsatzApi(apiConfiguration);
@@ -45,6 +49,10 @@ class API {
 
   public get isInitialized() {
     return this._isInitialized;
+  }
+
+  public get auth() {
+    return this.authApi;
   }
 
   public get health() {

@@ -1,7 +1,8 @@
 /* eslint-disable react-refresh/only-export-components */
 import React, { createContext, ReactNode, useEffect, useState } from 'react';
-import { getBaseUrl } from '../utils/fetch';
+import { api } from '../api';
 import { logger } from '../utils/logger';
+import { authStorage } from '../utils/authStorage';
 
 interface User {
   id: string;
@@ -36,39 +37,54 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   useEffect(() => {
     // Check if user is already logged in
-    const token = localStorage.getItem('auth_token');
-    if (token) {
-      // For now, we'll trust the token exists
-      // In production, you'd verify with the backend
-      // TODO: Implement token verification endpoint
-      logger.debug('Found existing auth token');
-    }
-    setIsLoading(false);
+    const checkAuth = async () => {
+      try {
+        const hasTokens = await authStorage.hasValidTokens();
+        if (hasTokens) {
+          logger.debug('Found existing auth token, fetching user data');
+
+          // Get current user data from backend
+          try {
+            const response = await api.auth.authControllerGetCurrentUserV1Raw();
+            if (response.raw.ok) {
+              const userData = await response.raw.json();
+              setUser(userData);
+              logger.debug('User data loaded successfully');
+            } else {
+              logger.warn('Failed to fetch user data, clearing tokens');
+              await authStorage.clearTokens();
+            }
+          } catch (error) {
+            logger.error('Error fetching user data:', error);
+            await authStorage.clearTokens();
+          }
+        }
+      } catch (error) {
+        logger.error('Error checking auth tokens:', error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    checkAuth();
   }, []);
 
   const login = async (email: string, password: string): Promise<boolean> => {
     setIsLoading(true);
 
     try {
-      const response = await fetch(`${getBaseUrl()}/v1/api/auth/login`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        credentials: 'include', // Important for cookies
-        body: JSON.stringify({ email, password }),
+      // Use the raw method to get access to the response
+      const response = await api.auth.authControllerLoginV1Raw({
+        loginDto: { email, password },
       });
 
-      if (response.ok) {
-        const data = await response.json();
+      if (response.raw.ok) {
+        const data = await response.raw.json();
         logger.info('Login successful', { email });
 
-        // Store tokens
+        // Store tokens using authStorage
         if (data.accessToken) {
-          localStorage.setItem('auth_token', data.accessToken);
-        }
-        if (data.refreshToken) {
-          localStorage.setItem('refresh_token', data.refreshToken);
+          await authStorage.setTokens(data.accessToken, data.refreshToken);
         }
 
         // Set user
@@ -79,7 +95,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         setIsLoading(false);
         return true;
       } else {
-        logger.error('Login failed', { status: response.status });
+        logger.error('Login failed', { status: response.raw.status });
         setIsLoading(false);
         return false;
       }
@@ -92,20 +108,13 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   const logout = async () => {
     try {
-      await fetch(`${getBaseUrl()}/api/auth/logout`, {
-        method: 'POST',
-        headers: {
-          Authorization: `Bearer ${localStorage.getItem('auth_token')}`,
-        },
-        credentials: 'include',
-      });
+      await api.auth.authControllerLogoutV1();
     } catch (error) {
       logger.error('Logout error', { error });
     }
 
     setUser(null);
-    localStorage.removeItem('auth_token');
-    localStorage.removeItem('refresh_token');
+    await authStorage.clearTokens();
   };
 
   // Check if user has a specific role
@@ -115,7 +124,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   // Check if user is any type of admin
   const isAdmin = (): boolean => {
-    return user?.roles?.some(role => ['SUPER_ADMIN', 'ADMIN', 'SUPPORT'].includes(role)) || false;
+    return user?.roles?.some((role) => ['SUPER_ADMIN', 'ADMIN', 'SUPPORT'].includes(role)) || false;
   };
 
   return (

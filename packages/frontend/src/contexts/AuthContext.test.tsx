@@ -3,9 +3,32 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { useAuth } from '../hooks/useAuth';
 import { AuthProvider } from './AuthContext';
 
-// Mock für fetch
-const fetchMock = vi.fn();
-global.fetch = fetchMock;
+// Mock für das API-Modul
+vi.mock('../api', () => ({
+  api: {
+    auth: {
+      authControllerLoginV1Raw: vi.fn(),
+      authControllerLogoutV1: vi.fn(),
+      authControllerGetCurrentUserV1Raw: vi.fn(),
+      authControllerRefreshTokenV1Raw: vi.fn(),
+    },
+  },
+}));
+
+// Import API after mocking to get the mocked version
+import { api } from '../api';
+import { authStorage } from '../utils/authStorage';
+
+// Mock für authStorage
+vi.mock('../utils/authStorage', () => ({
+  authStorage: {
+    getAccessToken: vi.fn(),
+    getRefreshToken: vi.fn(),
+    setTokens: vi.fn(),
+    clearTokens: vi.fn(),
+    hasValidTokens: vi.fn(() => false),
+  },
+}));
 
 // Mock für localStorage
 const localStorageMock = (() => {
@@ -73,7 +96,6 @@ describe('AuthContext', () => {
     Object.defineProperty(window, 'localStorage', { value: localStorageMock });
     localStorageMock.clear();
     vi.clearAllMocks();
-    fetchMock.mockClear();
 
     // Echte Timer verwenden
     vi.useRealTimers();
@@ -92,11 +114,13 @@ describe('AuthContext', () => {
     );
   };
 
-  it('sollte initial nicht authentifiziert sein', () => {
+  it('sollte initial nicht authentifiziert sein', async () => {
     let authData: ReturnType<typeof useAuth> | undefined;
 
-    renderWithAuthProvider((auth) => {
-      authData = auth;
+    await act(async () => {
+      renderWithAuthProvider((auth) => {
+        authData = auth;
+      });
     });
 
     expect(authData).toBeDefined();
@@ -105,9 +129,16 @@ describe('AuthContext', () => {
     expect(screen.getByTestId('auth-status').textContent).toBe('Not Authenticated');
   });
 
-  it('sollte den Benutzer aus dem localStorage laden, wenn ein Token vorhanden ist', async () => {
-    // Token im localStorage setzen
-    localStorageMock.setItem('auth_token', 'mock_jwt_token');
+  it('sollte den Benutzer aus dem authStorage laden, wenn Token vorhanden sind', async () => {
+    // Mock authStorage mit gültigen Tokens
+    vi.mocked(authStorage.hasValidTokens).mockReturnValue(true);
+    vi.mocked(authStorage.getAccessToken).mockReturnValue('mock-access-token');
+    vi.mocked(api.auth.authControllerGetCurrentUserV1Raw).mockResolvedValueOnce({
+      raw: {
+        ok: true,
+        json: async () => mockUser,
+      } as Response,
+    });
 
     let authData: ReturnType<typeof useAuth> | undefined;
 
@@ -121,13 +152,12 @@ describe('AuthContext', () => {
       await new Promise((resolve) => setTimeout(resolve, 100));
     });
 
-    // Der aktuelle AuthContext verifiziert das Token noch nicht automatisch
-    // Daher bleibt der Benutzer unauthentifiziert, bis ein login durchgeführt wird
-    expect(authData?.isAuthenticated).toBe(false);
-    expect(authData?.user).toBeNull();
+    // Nach dem Laden sollte der Benutzer authentifiziert sein
+    expect(authData?.isAuthenticated).toBe(true);
+    expect(authData?.user).toEqual(mockUser);
     expect(authData?.isLoading).toBe(false);
-    expect(localStorageMock.getItem).toHaveBeenCalledWith('auth_token');
-    expect(screen.getByTestId('auth-status').textContent).toBe('Not Authenticated');
+    expect(authStorage.hasValidTokens).toHaveBeenCalled();
+    expect(screen.getByTestId('auth-status').textContent).toBe('Authenticated');
   });
 
   it('sollte erfolgreiche Anmeldung durchführen', async () => {
@@ -135,14 +165,18 @@ describe('AuthContext', () => {
     let result: boolean | undefined;
 
     // Mock erfolgreiche Login-Response
-    fetchMock.mockResolvedValueOnce({
-      ok: true,
-      json: async () => ({
-        accessToken: 'mock-access-token',
-        refreshToken: 'mock-refresh-token',
-        user: mockUser,
-      }),
-    } as Response);
+    const mockLoginResponse = {
+      raw: {
+        ok: true,
+        json: async () => ({
+          accessToken: 'mock-access-token',
+          refreshToken: 'mock-refresh-token',
+          user: mockUser,
+        }),
+      } as Response,
+    };
+
+    vi.mocked(api.auth.authControllerLoginV1Raw).mockResolvedValueOnce(mockLoginResponse);
 
     // Komponente rendern
     renderWithAuthProvider((auth) => {
@@ -164,8 +198,7 @@ describe('AuthContext', () => {
     expect(authData?.isAuthenticated).toBe(true);
     expect(authData?.user).not.toBeNull();
     expect(authData?.user?.email).toBe('test@example.com');
-    expect(localStorageMock.setItem).toHaveBeenCalledWith('auth_token', 'mock-access-token');
-    expect(localStorageMock.setItem).toHaveBeenCalledWith('refresh_token', 'mock-refresh-token');
+    expect(authStorage.setTokens).toHaveBeenCalledWith('mock-access-token', 'mock-refresh-token');
     expect(screen.getByTestId('auth-status').textContent).toBe('Authenticated');
   });
 
@@ -174,11 +207,15 @@ describe('AuthContext', () => {
     let result: boolean | undefined;
 
     // Mock fehlgeschlagene Login-Response
-    fetchMock.mockResolvedValueOnce({
-      ok: false,
-      status: 401,
-      json: async () => ({ message: 'Invalid credentials' }),
-    } as Response);
+    const mockFailedResponse = {
+      raw: {
+        ok: false,
+        status: 401,
+        json: async () => ({ message: 'Invalid credentials' }),
+      } as Response,
+    };
+
+    vi.mocked(api.auth.authControllerLoginV1Raw).mockResolvedValueOnce(mockFailedResponse);
 
     // Komponente rendern
     renderWithAuthProvider((auth) => {
@@ -207,20 +244,21 @@ describe('AuthContext', () => {
     let authData: ReturnType<typeof useAuth> | undefined;
 
     // Mock erfolgreiche Login-Response
-    fetchMock.mockResolvedValueOnce({
-      ok: true,
-      json: async () => ({
-        accessToken: 'mock-access-token',
-        refreshToken: 'mock-refresh-token',
-        user: mockUser,
-      }),
-    } as Response);
+    const mockLoginResponse = {
+      raw: {
+        ok: true,
+        json: async () => ({
+          accessToken: 'mock-access-token',
+          refreshToken: 'mock-refresh-token',
+          user: mockUser,
+        }),
+      } as Response,
+    };
+
+    vi.mocked(api.auth.authControllerLoginV1Raw).mockResolvedValueOnce(mockLoginResponse);
 
     // Mock erfolgreiche Logout-Response
-    fetchMock.mockResolvedValueOnce({
-      ok: true,
-      json: async () => ({ message: 'Logged out' }),
-    } as Response);
+    vi.mocked(api.auth.authControllerLogoutV1).mockResolvedValueOnce(undefined);
 
     // Komponente rendern
     renderWithAuthProvider((auth) => {
@@ -251,8 +289,7 @@ describe('AuthContext', () => {
     // Prüfen des Ergebnisses
     expect(authData?.isAuthenticated).toBe(false);
     expect(authData?.user).toBeNull();
-    expect(localStorageMock.removeItem).toHaveBeenCalledWith('auth_token');
-    expect(localStorageMock.removeItem).toHaveBeenCalledWith('refresh_token');
+    expect(authStorage.clearTokens).toHaveBeenCalled();
     expect(screen.getByTestId('auth-status').textContent).toBe('Not Authenticated');
   });
 
@@ -260,14 +297,18 @@ describe('AuthContext', () => {
     let authData: ReturnType<typeof useAuth> | undefined;
 
     // Mock erfolgreiche Login-Response mit Admin-Rolle
-    fetchMock.mockResolvedValueOnce({
-      ok: true,
-      json: async () => ({
-        accessToken: 'mock-access-token',
-        refreshToken: 'mock-refresh-token',
-        user: mockUser,
-      }),
-    } as Response);
+    const mockLoginResponse = {
+      raw: {
+        ok: true,
+        json: async () => ({
+          accessToken: 'mock-access-token',
+          refreshToken: 'mock-refresh-token',
+          user: mockUser,
+        }),
+      } as Response,
+    };
+
+    vi.mocked(api.auth.authControllerLoginV1Raw).mockResolvedValueOnce(mockLoginResponse);
 
     // Komponente rendern
     renderWithAuthProvider((auth) => {
@@ -300,14 +341,18 @@ describe('AuthContext', () => {
       roles: ['USER'],
     };
 
-    fetchMock.mockResolvedValueOnce({
-      ok: true,
-      json: async () => ({
-        accessToken: 'mock-access-token',
-        refreshToken: 'mock-refresh-token',
-        user: normalUser,
-      }),
-    } as Response);
+    const mockLoginResponse = {
+      raw: {
+        ok: true,
+        json: async () => ({
+          accessToken: 'mock-access-token',
+          refreshToken: 'mock-refresh-token',
+          user: normalUser,
+        }),
+      } as Response,
+    };
+
+    vi.mocked(api.auth.authControllerLoginV1Raw).mockResolvedValueOnce(mockLoginResponse);
 
     // Komponente rendern
     renderWithAuthProvider((auth) => {
@@ -341,14 +386,18 @@ describe('AuthContext', () => {
       roles: ['SUPER_ADMIN'],
     };
 
-    fetchMock.mockResolvedValueOnce({
-      ok: true,
-      json: async () => ({
-        accessToken: 'mock-access-token',
-        refreshToken: 'mock-refresh-token',
-        user: superAdminUser,
-      }),
-    } as Response);
+    const mockLoginResponse = {
+      raw: {
+        ok: true,
+        json: async () => ({
+          accessToken: 'mock-access-token',
+          refreshToken: 'mock-refresh-token',
+          user: superAdminUser,
+        }),
+      } as Response,
+    };
+
+    vi.mocked(api.auth.authControllerLoginV1Raw).mockResolvedValueOnce(mockLoginResponse);
 
     // Komponente rendern
     renderWithAuthProvider((auth) => {

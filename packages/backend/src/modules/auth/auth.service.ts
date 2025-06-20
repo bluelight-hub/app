@@ -5,7 +5,13 @@ import * as bcrypt from 'bcryptjs';
 import { randomUUID } from 'crypto';
 import { LoginDto } from './dto';
 import { AuthUser, LoginResponse, TokenResponse } from './types/auth.types';
-import { JWTPayload, JWTRefreshPayload, Permission, UserRole } from './types/jwt.types';
+import {
+  JWTPayload,
+  JWTRefreshPayload,
+  Permission,
+  UserRole,
+  RolePermissions,
+} from './types/jwt.types';
 import { PrismaService } from '@/prisma/prisma.service';
 
 /**
@@ -261,5 +267,30 @@ export class AuthService {
         revokedAt: new Date(),
       },
     });
+  }
+
+  async getCurrentUser(userId: string): Promise<AuthUser> {
+    const user = await this.prisma.user.findUnique({
+      where: { id: userId },
+    });
+
+    if (!user || !user.isActive) {
+      throw new UnauthorizedException('User not found');
+    }
+
+    return {
+      id: user.id,
+      email: user.email,
+      roles: [user.role as UserRole],
+      permissions: this.getRolePermissions(user.role as UserRole),
+      isActive: user.isActive,
+      isMfaEnabled: user.isMfaEnabled,
+      createdAt: user.createdAt,
+      updatedAt: user.updatedAt,
+    };
+  }
+
+  private getRolePermissions(role: UserRole): Permission[] {
+    return RolePermissions[role] || [];
   }
 }

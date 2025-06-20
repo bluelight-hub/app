@@ -1,3 +1,4 @@
+apis/AuthenticationApi.ts
 apis/EinsatzApi.ts
 apis/EinsatztagebuchApi.ts
 apis/HealthApi.ts
@@ -16,7 +17,9 @@ models/EtbKategorie.ts
 models/HealthControllerCheck200Response.ts
 models/HealthControllerCheck200ResponseInfoValue.ts
 models/HealthControllerCheck503Response.ts
+models/LoginDto.ts
 models/PaginationMeta.ts
+models/RefreshTokenDto.ts
 models/UeberschreibeEtbDto.ts
 models/UpdateEtbDto.ts
 models/index.ts
