@@ -430,5 +430,6 @@ export const findRouteTitle = (pathname: string): string => {
     return '';
   };
 
-  return findInItems(mainNavigation) || 'Dashboard';
+  // Search in both main and admin navigation
+  return findInItems(mainNavigation) || findInItems(adminNavigation) || 'Dashboard';
 };

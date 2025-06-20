@@ -1,7 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import { Outlet, useLocation, useNavigate } from 'react-router';
-import { findRouteTitle, mainNavigation } from '../../config/navigation';
+import { findRouteTitle, mainNavigation, adminNavigation } from '../../config/navigation';
 import useMediaQuery from '../../hooks/useMediaQuery';
+import { useAuth } from '../../hooks/useAuth';
 import MobileHeader from '../organisms/MobileHeader';
 import Sidebar from '../organisms/Sidebar';
 
@@ -14,6 +15,7 @@ const AppLayout: React.FC<{ children?: React.ReactNode }> = () => {
   const title = findRouteTitle(location.pathname);
   const isMobile = useMediaQuery('(max-width: 1024px)'); // lg breakpoint in Tailwind
   const _navigate = useNavigate();
+  const { isAdmin } = useAuth();
 
   // Entfernt - die Navigation wird jetzt durch den EinsatzGuard gehandhabt
 
@@ -24,6 +26,9 @@ const AppLayout: React.FC<{ children?: React.ReactNode }> = () => {
     }
   }, [isMobile]);
 
+  // Combine main and admin navigation for admin users
+  const navigation = isAdmin() ? [...mainNavigation, ...adminNavigation] : mainNavigation;
+
   return (
     <div className="min-h-screen bg-white dark:bg-gray-900 text-black dark:text-white">
       {/* Unified Sidebar - entscheidet intern zwischen Mobile und Desktop */}
@@ -31,7 +36,7 @@ const AppLayout: React.FC<{ children?: React.ReactNode }> = () => {
         isOpen={isMobileMenuOpen}
         onClose={() => setIsMobileMenuOpen(false)}
         isMobile={isMobile}
-        navigation={mainNavigation}
+        navigation={navigation}
       />
 
       {/* Mobile Header */}

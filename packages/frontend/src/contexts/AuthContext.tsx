@@ -20,6 +20,7 @@ export interface AuthContextType {
   login: (email: string, password: string) => Promise<boolean>;
   logout: () => void;
   hasRole: (role: string) => boolean;
+  hasPermission: (permission: string) => boolean;
   isAdmin: () => boolean;
 }
 
@@ -122,6 +123,11 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     return user?.roles?.includes(role) || false;
   };
 
+  // Check if user has a specific permission
+  const hasPermission = (permission: string): boolean => {
+    return user?.permissions?.includes(permission) || false;
+  };
+
   // Check if user is any type of admin
   const isAdmin = (): boolean => {
     return user?.roles?.some((role) => ['SUPER_ADMIN', 'ADMIN', 'SUPPORT'].includes(role)) || false;
@@ -136,6 +142,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         login,
         logout,
         hasRole,
+        hasPermission,
         isAdmin,
       }}
     >

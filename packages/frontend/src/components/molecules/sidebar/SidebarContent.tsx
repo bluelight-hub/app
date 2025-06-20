@@ -1,9 +1,12 @@
-import { Menu, MenuProps } from 'antd';
+import { Menu, MenuProps, Button } from 'antd';
 import React from 'react';
 import { useLocation, useNavigate } from 'react-router';
+import { PiShieldCheck } from 'react-icons/pi';
 import { NavigationItem, workspaces } from '../../../config/navigation';
 import { useThemeInternal } from '../../../hooks/useTheme';
+import { useAuth } from '../../../hooks/useAuth';
 import { convertNavigationToMenuItems } from '../../../utils/navigationConverter';
+import { openAdminWindow } from '../../../utils/tauri';
 import Divider from '../../atoms/Divider';
 import Logo from '../../atoms/Logo';
 import { StatusIndicator } from '../../atoms/StatusIndicator';
@@ -21,6 +24,7 @@ const SidebarContent: React.FC<SidebarContentProps> = ({ navigation, onNavigate 
   const navigate = useNavigate();
   const location = useLocation();
   const themeUtils = useThemeInternal();
+  const { isAdmin } = useAuth();
 
   const handleMenuClick: MenuProps['onClick'] = (info) => {
     navigate(info.key);
@@ -70,6 +74,22 @@ const SidebarContent: React.FC<SidebarContentProps> = ({ navigation, onNavigate 
           <div className="px-6 py-2 flex items-center gap-2">
             <StatusIndicator withText />
           </div>
+
+          {/* Admin Panel Button - nur für Admins sichtbar */}
+          {isAdmin() && (
+            <div className="px-6 py-2">
+              <Button
+                type="primary"
+                icon={<PiShieldCheck />}
+                onClick={openAdminWindow}
+                className="w-full"
+                size="middle"
+              >
+                Admin Panel öffnen
+              </Button>
+            </div>
+          )}
+
           <UserProfile href="#" />
         </div>
       </nav>

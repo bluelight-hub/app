@@ -2,6 +2,7 @@ import { render, screen } from '@testing-library/react';
 import { BrowserRouter } from 'react-router-dom';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import AppLayout from './AppLayout';
+import { AuthProvider } from '../../contexts/AuthContext';
 
 // Mock Sidebar component
 vi.mock('../organisms/Sidebar', () => ({
@@ -28,6 +29,7 @@ vi.mock('../organisms/MobileHeader', () => ({
 vi.mock('../../config/navigation', () => ({
   findRouteTitle: vi.fn((_path) => 'Test Title'),
   mainNavigation: [],
+  adminNavigation: [],
 }));
 
 // Mock useMediaQuery
@@ -52,7 +54,9 @@ describe('AppLayout Integration Tests', () => {
   it('renders with react-router components', () => {
     render(
       <BrowserRouter>
-        <AppLayout />
+        <AuthProvider>
+          <AppLayout />
+        </AuthProvider>
       </BrowserRouter>,
     );
 
@@ -69,7 +73,9 @@ describe('AppLayout Integration Tests', () => {
 
     render(
       <BrowserRouter>
-        <AppLayout />
+        <AuthProvider>
+          <AppLayout />
+        </AuthProvider>
       </BrowserRouter>,
     );
 
@@ -82,11 +88,14 @@ describe('AppLayout Integration Tests', () => {
     vi.doMock('../../config/navigation', () => ({
       findRouteTitle: mockFindRouteTitle,
       mainNavigation: [],
+      adminNavigation: [],
     }));
 
     render(
       <BrowserRouter>
-        <AppLayout />
+        <AuthProvider>
+          <AppLayout />
+        </AuthProvider>
       </BrowserRouter>,
     );
 
@@ -98,7 +107,9 @@ describe('AppLayout Integration Tests', () => {
     // Test that component imports and uses Outlet from react-router
     render(
       <BrowserRouter>
-        <AppLayout />
+        <AuthProvider>
+          <AppLayout />
+        </AuthProvider>
       </BrowserRouter>,
     );
 
