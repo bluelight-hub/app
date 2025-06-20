@@ -89,6 +89,13 @@ This project uses semantic-release with gitmoji for automated versioning:
 - Single Responsibility Principle for components (<150 lines)
 - Full test coverage for new features
 
+### Documentation Guidelines
+
+- **Architectural documentation** belongs in `docs/architecture/` following the arc42 template
+- Do NOT create separate markdown files in the `docs/` root directory for architectural concepts
+- System design, security concepts, and technical decisions should be documented in the appropriate arc42 sections
+- Only create markdown files in `docs/` root for operational guides (deployment, migration, etc.)
+
 ## Development Workflow
 
 - Committe die Änderungen nach jedem Subtask

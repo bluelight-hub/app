@@ -1026,3 +1026,164 @@ Das Seeding-System nutzt erweiterte Fehlerbehandlung für robuste Operation in v
 * *Umgebungsisolation*: Strikte Trennung zwischen Dev-, Test- und Prod-Profilen
 
 Dieses System stellt sicher, dass realistische und konsistente Testdaten für alle Entwicklungs- und Testaktivitäten verfügbar sind, während gleichzeitig die Sicherheits- und Compliance-Anforderungen des DRK-Umfelds erfüllt werden.
+
+=== Rollenbasiertes Administrationssystem
+
+Das Bluelight-Hub-System implementiert ein umfassendes rollenbasiertes Administrationssystem, das verschiedene Zugriffsebenen basierend auf Benutzerrollen bietet. Dies gewährleistet die Sicherheit und Kontrolle über administrative Funktionen.
+
+==== Übersicht
+
+Das System nutzt ein granulares berechtigungsbasiertes Zugriffskontrollsystem (Permission-based Access Control). Jede Rolle hat spezifische Berechtigungen, die den Zugriff auf verschiedene Teile des Systems steuern.
+
+==== Benutzerrollen
+
+Das System unterstützt vier verschiedene Benutzerrollen:
+
+1. *SUPER_ADMIN*: Vollständiger Systemzugriff mit allen Berechtigungen
+2. *ADMIN*: Administrativer Zugriff mit den meisten Berechtigungen außer Rollenverwaltung
+3. *SUPPORT*: Hauptsächlich Lesezugriff auf die meisten Ressourcen, begrenzte Schreibberechtigungen
+4. *USER*: Basiszugriff auf ETB- und Einsatz-Ressourcen (nur lesen)
+
+==== Berechtigungskategorien
+
+===== Benutzerverwaltung
+* `USERS_READ`: Benutzerdaten und Listen anzeigen
+* `USERS_WRITE`: Benutzer erstellen und bearbeiten
+* `USERS_DELETE`: Benutzer löschen
+
+===== Systemeinstellungen
+* `SYSTEM_SETTINGS_READ`: Systemeinstellungen anzeigen
+* `SYSTEM_SETTINGS_WRITE`: Systemeinstellungen ändern
+* `AUDIT_LOG_READ`: Audit-Logs und Systemprotokolle anzeigen
+* `ROLE_MANAGE`: Rollen und Berechtigungen verwalten
+
+===== Anwendungsberechtigungen
+* `ETB_READ`: Einsatztagebuch-Einträge anzeigen
+* `ETB_WRITE`: ETB-Einträge erstellen und bearbeiten
+* `ETB_DELETE`: ETB-Einträge löschen
+* `EINSATZ_READ`: Einsätze anzeigen
+* `EINSATZ_WRITE`: Einsätze erstellen und bearbeiten
+* `EINSATZ_DELETE`: Einsätze löschen
+
+==== Rollen-Berechtigungs-Matrix
+
+[cols="3,1,1,1,1", options="header"]
+|===
+|Berechtigung |SUPER_ADMIN |ADMIN |SUPPORT |USER
+
+5+^h|*Benutzerverwaltung*
+|USERS_READ |✓ |✓ |✓ |-
+|USERS_WRITE |✓ |✓ |- |-
+|USERS_DELETE |✓ |✓ |- |-
+
+5+^h|*Systemeinstellungen*
+|SYSTEM_SETTINGS_READ |✓ |✓ |- |-
+|SYSTEM_SETTINGS_WRITE |✓ |✓ |- |-
+|AUDIT_LOG_READ |✓ |✓ |✓ |-
+|ROLE_MANAGE |✓ |- |- |-
+
+5+^h|*Anwendung*
+|ETB_READ |✓ |✓ |✓ |✓
+|ETB_WRITE |✓ |✓ |- |-
+|ETB_DELETE |✓ |- |- |-
+|EINSATZ_READ |✓ |✓ |✓ |✓
+|EINSATZ_WRITE |✓ |✓ |- |-
+|EINSATZ_DELETE |✓ |- |- |-
+|===
+
+==== Kritische Berechtigungen
+
+Die folgenden Berechtigungen werden als kritisch eingestuft und sollten nur vertrauenswürdigen Benutzern gewährt werden:
+
+* `USERS_DELETE`: Kann Benutzer aus dem System entfernen
+* `ROLE_MANAGE`: Kann Rollen und Berechtigungen ändern
+* `SYSTEM_SETTINGS_WRITE`: Kann Systemkonfiguration ändern
+
+==== Technische Implementierung
+
+===== Backend-Architektur
+
+1. *Datenbankschema*: Nutzt PostgreSQL mit Prisma ORM
+   * User-Modell mit Rollenfeld
+   * RolePermission-Modell für Rollen-zu-Berechtigungs-Zuordnung
+   * JWT-Tokens enthalten Rollen und Berechtigungen
+
+2. *Guards*:
+   * `RolesGuard`: Prüft, ob Benutzer die erforderliche Rolle hat
+   * `PermissionsGuard`: Prüft auf spezifische Berechtigungen
+   * `JwtAuthGuard`: Validiert JWT-Tokens
+
+3. *Decorators*:
+   * `@Roles()`: Erforderliche Rollen für Endpoints spezifizieren
+   * `@RequirePermissions()`: Erforderliche Berechtigungen spezifizieren
+   * `@Public()`: Endpoints als öffentlich zugänglich markieren
+
+===== Frontend-Integration
+
+1. *AuthContext*:
+   * `hasRole(role: string)`: Prüft, ob Benutzer eine bestimmte Rolle hat
+   * `hasPermission(permission: string)`: Prüft, ob Benutzer eine bestimmte Berechtigung hat
+   * `isAdmin()`: Prüft, ob Benutzer ein Admin ist (SUPER_ADMIN, ADMIN oder SUPPORT)
+
+2. *Navigation*:
+   * Normale Benutzer sehen nur Haupt-Navigationselemente
+   * Admin-Benutzer sehen sowohl Haupt- als auch Admin-Navigationselemente
+   * Admin-Panel kann in einem separaten Fenster geöffnet werden
+
+3. *Routen-Schutz*:
+   * Admin-Routen sind durch `AdminGuard` geschützt
+   * Routen können sowohl in der Haupt-App als auch im separaten Admin-Fenster aufgerufen werden
+
+==== Berechtigungsverwaltung
+
+===== Datenbank-Seeding
+
+Die Rollen-Berechtigungs-Zuordnungen werden in der Datenbank gespeichert und müssen geseeded werden:
+
+[source,bash]
+----
+# Rollen-Berechtigungen seeden
+npm run cli -- seed:admin
+
+# Oder alles seeden (Berechtigungen + Benutzer)
+npm run cli -- seed:admin --password="secure-password"
+----
+
+===== Berechtigungs-Konstanten
+
+Alle Berechtigungen sind in `packages/backend/src/modules/auth/constants/permissions.constants.ts` definiert. Diese Datei enthält:
+
+* Berechtigungsgruppen für einfacheres Management
+* Standard-Rollen-Berechtigungs-Zuordnungen
+* Berechtigungsbeschreibungen
+* Hilfsfunktionen
+
+===== Fallback-Mechanismus
+
+Wenn keine Berechtigungen in der Datenbank gefunden werden, fällt das System auf die im Code definierten Standardberechtigungen zurück. Dies stellt sicher, dass das System auch ohne durchgeführtes Datenbank-Seeding weiter funktioniert.
+
+==== Berechtigungsvalidierung
+
+Das System nutzt einen `PermissionValidationService`, der:
+
+* Die Konsistenz zwischen Code-definierten und Datenbank-Berechtigungen prüft
+* Fehlende Berechtigungen zur Datenbank synchronisieren kann
+* Detaillierte Berichte über den Berechtigungszustand liefert
+* Die Validierung beim Modulstart durchführt
+
+==== Sicherheitsüberlegungen
+
+* Frontend-Rollenprüfungen dienen nur der UX
+* Alle Sicherheit wird auf Backend-API-Ebene durchgesetzt
+* JWT-Tokens laufen nach 15 Minuten (Zugriff) und 7 Tagen (Refresh) ab
+* Fehlgeschlagene Anmeldeversuche sperren Konten nach 5 Versuchen
+* Sitzungen werden in der Datenbank für Widerruf verfolgt
+
+==== Erweiterbarkeit
+
+Das System ist für zukünftige Erweiterungen ausgelegt:
+
+* Neue Berechtigungen können einfach zur `Permission`-Enum hinzugefügt werden
+* Rollen-Berechtigungs-Zuordnungen können in der Datenbank angepasst werden
+* Custom Guards und Decorators können für spezielle Anforderungen erstellt werden
+* Das System unterstützt hierarchische Berechtigungen (geplant)
