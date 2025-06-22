@@ -13,6 +13,8 @@ import {
 import { ApiBearerAuth, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { AuthService } from './auth.service';
 import { LoginDto, RefreshTokenDto } from './dto';
+import { MfaLoginDto } from './dto/mfa.dto';
+import { MfaService } from './services/mfa.service';
 import { LoginResponse, TokenResponse } from './types/auth.types';
 import { JwtAuthGuard } from './guards';
 import { CurrentUser, Public } from './decorators';
@@ -27,7 +29,10 @@ import { cookieConfig, refreshCookieConfig } from '../../config/security.config'
 @ApiTags('Authentication')
 @Controller('api/auth')
 export class AuthController {
-  constructor(private authService: AuthService) {}
+  constructor(
+    private authService: AuthService,
+    private mfaService: MfaService,
+  ) {}
 
   @Public()
   @Post('login')
@@ -45,6 +50,47 @@ export class AuthController {
     response.cookie('access_token', result.accessToken, cookieConfig);
 
     // Set refresh token in httpOnly cookie with path restriction
+    response.cookie('refresh_token', result.refreshToken, refreshCookieConfig);
+
+    return result;
+  }
+
+  @Public()
+  @Post('login/mfa')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Complete login with MFA verification' })
+  @ApiResponse({ status: 200, description: 'MFA verification successful' })
+  @ApiResponse({ status: 401, description: 'Invalid MFA code or challenge' })
+  async loginWithMfa(
+    @Body() mfaLoginDto: MfaLoginDto,
+    @Res({ passthrough: true }) response: Response,
+  ): Promise<LoginResponse> {
+    // In production, retrieve the user ID from the challenge ID stored in cache/session
+    // For now, we'll need to pass it in the request or store it temporarily
+    // This is a simplified implementation
+
+    // Verify WebAuthn if provided
+    if (mfaLoginDto.webAuthnResponse) {
+      const webAuthnVerified = await this.mfaService.completeWebAuthnAuthentication(
+        mfaLoginDto.challengeId, // Using challenge ID as user ID for now
+        mfaLoginDto.webAuthnResponse,
+        mfaLoginDto.challengeId, // Challenge should be stored separately
+      );
+
+      if (!webAuthnVerified) {
+        throw new UnauthorizedException('WebAuthn verification failed');
+      }
+    }
+
+    // Complete login with MFA verification
+    const result = await this.authService.verifyMfaAndLogin(
+      mfaLoginDto.challengeId, // This should be the user ID from challenge
+      mfaLoginDto.totpCode,
+      mfaLoginDto.webAuthnResponse,
+    );
+
+    // Set cookies
+    response.cookie('access_token', result.accessToken, cookieConfig);
     response.cookie('refresh_token', result.refreshToken, refreshCookieConfig);
 
     return result;

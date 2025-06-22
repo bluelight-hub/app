@@ -145,6 +145,7 @@ model User {
   
   // Relations
   mfaSecrets        MfaSecret[]
+  webauthnCredentials WebAuthnCredential[]
   sessions          Session[]
   refreshTokens     RefreshToken[]
   rolePermissions   RolePermission[]
@@ -170,6 +171,27 @@ model MfaSecret {
   // Unique constraint - one active MFA secret per user
   @@unique([userId], map: "uk_mfa_secret_user")
   @@index([userId, isVerified], map: "idx_mfa_user_verified")
+}
+
+model WebAuthnCredential {
+  id                   String      @id @default(nanoid())
+  userId               String
+  user                 User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  credentialId         String      @unique @db.Text // Base64 encoded credential ID
+  publicKey            String      @db.Text // Base64 encoded public key
+  counter              BigInt      @default(0)
+  deviceType           String      @db.VarChar(100) // platform or cross-platform
+  transports           String[]    // ["usb", "nfc", "ble", "internal"]
+  isBackupEligible     Boolean     @default(false)
+  isBackupState        Boolean     @default(false)
+  name                 String?     @db.VarChar(255) // User-friendly name for the credential
+  lastUsedAt           DateTime?
+  createdAt            DateTime    @default(now())
+  updatedAt            DateTime    @updatedAt
+  
+  // Indexes
+  @@index([userId], map: "idx_webauthn_user")
+  @@index([credentialId], map: "idx_webauthn_credential")
 }
 
 model Session {

@@ -14,6 +14,7 @@ import {
 } from './types/jwt.types';
 import { PrismaService } from '@/prisma/prisma.service';
 import { DefaultRolePermissions } from './constants';
+import { MfaService } from './services/mfa.service';
 
 /**
  * Service responsible for authentication operations including login, token refresh, and logout.
@@ -27,6 +28,7 @@ export class AuthService {
     private jwtService: JwtService,
     private configService: ConfigService,
     private prisma: PrismaService,
+    private mfaService: MfaService,
   ) {}
 
   async login(loginDto: LoginDto): Promise<LoginResponse> {
@@ -144,6 +146,23 @@ export class AuthService {
       createdAt: user.createdAt,
       updatedAt: user.updatedAt,
     };
+
+    // Check if user has MFA enabled
+    if (user.isMfaEnabled) {
+      // Generate MFA challenge ID
+      const mfaChallengeId = randomUUID();
+
+      // Store challenge in session/cache (for now, we'll include it in response)
+      // In production, this should be stored in Redis or similar
+
+      return {
+        accessToken: '', // Don't provide access token yet
+        refreshToken: '', // Don't provide refresh token yet
+        user: authUser,
+        requiresMfa: true,
+        mfaChallengeId,
+      };
+    }
 
     return {
       accessToken,
@@ -307,5 +326,114 @@ export class AuthService {
 
   private getRolePermissions(role: UserRole): Permission[] {
     return RolePermissions[role] || [];
+  }
+
+  async verifyMfaAndLogin(
+    userId: string,
+    mfaCode?: string,
+    webAuthnResponse?: any,
+  ): Promise<LoginResponse> {
+    // Verify user exists and is active
+    const user = await this.prisma.user.findUnique({
+      where: { id: userId },
+    });
+
+    if (!user || !user.isActive) {
+      throw new UnauthorizedException('Invalid user');
+    }
+
+    // Verify MFA
+    let mfaVerified = false;
+
+    if (webAuthnResponse) {
+      // WebAuthn verification is handled in the controller with challenge
+      mfaVerified = true;
+    } else if (mfaCode) {
+      // Verify TOTP code
+      mfaVerified = await this.mfaService.validateTotp(userId, mfaCode);
+    }
+
+    if (!mfaVerified) {
+      throw new UnauthorizedException('MFA verification failed');
+    }
+
+    // Generate tokens with MFA flag
+    const sessionId = randomUUID();
+    const jti = randomUUID();
+
+    // Get permissions for user role from database
+    const rolePermissions = await this.prisma.rolePermission.findMany({
+      where: { role: user.role },
+      select: { permission: true },
+    });
+
+    let permissions = rolePermissions.map((rp) => rp.permission as Permission);
+
+    // Fallback to default permissions if none found in database
+    if (permissions.length === 0) {
+      this.logger.warn(`No permissions found in database for role ${user.role}, using defaults`);
+      permissions = DefaultRolePermissions[user.role as UserRole] || [];
+    }
+
+    const payload: JWTPayload = {
+      sub: user.id,
+      email: user.email,
+      roles: [user.role as UserRole],
+      permissions,
+      sessionId,
+      mfa: true, // Set MFA flag to true
+      iat: Date.now() / 1000,
+      exp: Date.now() / 1000 + 900, // 15 minutes
+    };
+
+    const refreshPayload: JWTRefreshPayload = {
+      sub: user.id,
+      sessionId,
+      jti,
+      iat: Math.floor(Date.now() / 1000),
+    };
+
+    const accessToken = this.jwtService.sign(payload);
+    const refreshToken = this.jwtService.sign(refreshPayload, {
+      secret: this.configService.get<string>('JWT_REFRESH_SECRET'),
+      expiresIn: '7d',
+    });
+
+    // Create session in database
+    const expiresAt = new Date(Date.now() + 604800 * 1000); // 7 days
+    await this.prisma.session.create({
+      data: {
+        jti,
+        userId: user.id,
+        expiresAt,
+      },
+    });
+
+    // Create refresh token in database
+    await this.prisma.refreshToken.create({
+      data: {
+        token: refreshToken,
+        userId: user.id,
+        sessionJti: jti,
+        expiresAt,
+      },
+    });
+
+    const authUser: AuthUser = {
+      id: user.id,
+      email: user.email,
+      roles: [user.role as UserRole],
+      permissions,
+      isActive: user.isActive,
+      isMfaEnabled: user.isMfaEnabled,
+      createdAt: user.createdAt,
+      updatedAt: user.updatedAt,
+    };
+
+    return {
+      accessToken,
+      refreshToken,
+      user: authUser,
+    };
   }
 }

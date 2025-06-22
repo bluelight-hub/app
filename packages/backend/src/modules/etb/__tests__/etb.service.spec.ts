@@ -689,6 +689,45 @@ describe('EtbService', () => {
       path.join.mockImplementation((...args) => args.join('/'));
     });
 
+    it('sollte eine Anlage ohne Beschreibung hinzufügen', async () => {
+      // Arrange
+      const etbEntryId = 'test-id';
+      const mockFile = {
+        originalname: 'document.pdf',
+        mimetype: 'application/pdf',
+        size: 1000,
+        buffer: Buffer.from('test'),
+      };
+
+      const mockEntry = {
+        id: etbEntryId,
+        status: EtbEntryStatus.AKTIV,
+      };
+
+      const mockAttachment = {
+        id: 'attachment-1',
+        etbEntryId,
+        dateiname: 'document.pdf',
+        dateityp: 'application/pdf',
+        speicherOrt: 'uploads/etb/document.pdf',
+        beschreibung: null,
+      };
+
+      mockPrismaService.etbEntry.findUnique.mockResolvedValue(mockEntry);
+      mockPrismaService.etbAttachment.create.mockResolvedValue(mockAttachment);
+
+      // Act - ohne AddAttachmentDto
+      const result = await service.addAttachment(etbEntryId, mockFile as any, undefined);
+
+      // Assert
+      expect(result).toEqual(mockAttachment);
+      expect(mockPrismaService.etbAttachment.create).toHaveBeenCalledWith({
+        data: expect.objectContaining({
+          beschreibung: null,
+        }),
+      });
+    });
+
     it('sollte eine Anlage erfolgreich hinzufügen', async () => {
       // Arrange
       const etbEntryId = 'test-id';

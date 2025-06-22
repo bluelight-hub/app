@@ -3,22 +3,31 @@ import { UnauthorizedException } from '@nestjs/common';
 import { JwtStrategy } from './jwt.strategy';
 import { JWTPayload, UserRole } from '../types/jwt.types';
 
-// Mock passport-jwt
-jest.mock('passport-jwt', () => ({
-  Strategy: jest.fn().mockImplementation(() => ({})),
-  ExtractJwt: {
-    fromAuthHeaderAsBearerToken: jest.fn().mockReturnValue(() => 'token'),
-  },
-}));
+// We'll test the JWT extraction logic directly
+// since mocking PassportStrategy constructor is complex
+const _createMockJwtStrategy = () => {
+  const mockConfigService = {
+    get: jest.fn().mockReturnValue('test-secret'),
+  } as unknown as ConfigService;
 
-// Mock @nestjs/passport
-jest.mock('@nestjs/passport', () => ({
-  PassportStrategy: jest.fn().mockImplementation((_Strategy) => {
-    return class {
-      constructor() {}
-    };
-  }),
-}));
+  // Create a test instance to access the jwtFromRequest function
+  const options: any = {};
+
+  // Mock the PassportStrategy to capture constructor options
+  jest.mock('@nestjs/passport', () => ({
+    PassportStrategy: jest.fn().mockImplementation(() => {
+      return class {
+        constructor(opts: any) {
+          Object.assign(options, opts);
+        }
+      };
+    }),
+  }));
+
+  const strategy = new JwtStrategy(mockConfigService);
+
+  return { strategy, configService: mockConfigService, options };
+};
 
 describe('JwtStrategy', () => {
   let strategy: JwtStrategy;

@@ -193,6 +193,18 @@ describe('DatabaseCheckService', () => {
       expect(result).toBe(0);
     });
 
+    it('sollte 0 zurückgeben wenn count nicht parseable ist', async () => {
+      // Arrange
+      const tableName = 'test_table';
+      (prismaService.$queryRaw as jest.Mock).mockResolvedValue([{ count: 'not-a-number' }]);
+
+      // Act
+      const result = await service.countRecords(tableName);
+
+      // Assert
+      expect(result).toBe(0);
+    });
+
     it('sollte -1 zurückgeben und Fehler loggen bei Datenbankfehler', async () => {
       // Arrange
       const tableName = 'test_table';
@@ -296,6 +308,17 @@ describe('DatabaseCheckService', () => {
       expect(result).toBe(true);
     });
 
+    it('sollte true zurückgeben wenn count nicht parseable ist', async () => {
+      // Arrange
+      (prismaService.$queryRaw as jest.Mock).mockResolvedValue([{ count: 'not-a-number' }]);
+
+      // Act
+      const result = await service.isDatabaseEmpty();
+
+      // Assert
+      expect(result).toBe(true);
+    });
+
     it('sollte false zurückgeben und Fehler loggen bei Datenbankfehler', async () => {
       // Arrange
       const error = new Error('Query failed');
@@ -310,6 +333,58 @@ describe('DatabaseCheckService', () => {
         'Fehler beim Prüfen, ob die Datenbank leer ist:',
         error,
       );
+    });
+  });
+
+  describe('executeWithTimeout', () => {
+    it('should return null on timeout', async () => {
+      // Arrange
+      const query = 'SELECT 1';
+
+      // Mock a query that never resolves to simulate timeout
+      (prismaService.$queryRawUnsafe as jest.Mock).mockImplementation(
+        () => new Promise(() => {}), // Never resolves
+      );
+
+      // Act - call with a short timeout
+      const originalTimeout = (service as any).queryTimeout;
+      (service as any).queryTimeout = 10; // Set very short timeout
+      const result = await service.executeWithTimeout(query);
+
+      // Assert
+      expect(result).toBeNull();
+      expect(mockLogger.error).toHaveBeenCalledWith('Datenbankabfrage Timeout nach 10ms');
+
+      // Cleanup
+      (service as any).queryTimeout = originalTimeout;
+    });
+
+    it('should return result on successful query', async () => {
+      // Arrange
+      const query = 'SELECT * FROM test';
+      const expectedResult = [{ id: 1, name: 'test' }];
+      (prismaService.$queryRawUnsafe as jest.Mock).mockResolvedValue(expectedResult);
+
+      // Act
+      const result = await service.executeWithTimeout(query);
+
+      // Assert
+      expect(result).toEqual(expectedResult);
+      expect(prismaService.$queryRawUnsafe).toHaveBeenCalledWith(query);
+    });
+
+    it('should return null on query error', async () => {
+      // Arrange
+      const query = 'SELECT * FROM test';
+      const error = new Error('Query failed');
+      (prismaService.$queryRawUnsafe as jest.Mock).mockRejectedValue(error);
+
+      // Act
+      const result = await service.executeWithTimeout(query);
+
+      // Assert
+      expect(result).toBeNull();
+      expect(mockLogger.error).toHaveBeenCalledWith('Fehler bei Datenbankabfrage:', error);
     });
   });
 });
