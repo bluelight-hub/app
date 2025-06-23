@@ -10,25 +10,18 @@ interface User {
   roles: string[];
   permissions: string[];
   isActive: boolean;
-  isMfaEnabled: boolean;
 }
 
 export interface AuthContextType {
   user: User | null;
   isAuthenticated: boolean;
   isLoading: boolean;
-  login: (
-    email: string,
-    password: string,
-  ) => Promise<{ success: boolean; requiresMfa?: boolean; mfaChallengeId?: string }>;
-  completeMfaLogin: (mfaChallengeId: string, code: string) => Promise<boolean>;
+  login: (email: string, password: string) => Promise<{ success: boolean }>;
   logout: () => void;
   hasRole: (role: string) => boolean;
   hasPermission: (permission: string) => boolean;
   isAdmin: () => boolean;
 }
-
-// Remove mock user - we'll use real API
 
 export const AuthContext = createContext<AuthContextType | null>(null);
 
@@ -74,10 +67,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     checkAuth();
   }, []);
 
-  const login = async (
-    email: string,
-    password: string,
-  ): Promise<{ success: boolean; requiresMfa?: boolean; mfaChallengeId?: string }> => {
+  const login = async (email: string, password: string): Promise<{ success: boolean }> => {
     setIsLoading(true);
 
     try {
@@ -88,17 +78,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
       if (response.raw.ok) {
         const data = await response.raw.json();
-        logger.info('Login response received', { email, requiresMfa: data.requiresMfa });
-
-        // Check if MFA is required
-        if (data.requiresMfa) {
-          setIsLoading(false);
-          return {
-            success: false,
-            requiresMfa: true,
-            mfaChallengeId: data.mfaChallengeId,
-          };
-        }
+        logger.info('Login response received', { email });
 
         // Store tokens using authStorage
         if (data.accessToken) {
@@ -121,42 +101,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       logger.error('Login error', { error });
       setIsLoading(false);
       return { success: false };
-    }
-  };
-
-  const completeMfaLogin = async (mfaChallengeId: string, code: string): Promise<boolean> => {
-    setIsLoading(true);
-
-    try {
-      const response = await api.auth.authControllerMfaLoginV1Raw({
-        mfaLoginDto: { mfaChallengeId, code },
-      });
-
-      if (response.raw.ok) {
-        const data = await response.raw.json();
-        logger.info('MFA login successful');
-
-        // Store tokens using authStorage
-        if (data.accessToken) {
-          await authStorage.setTokens(data.accessToken, data.refreshToken);
-        }
-
-        // Set user
-        if (data.user) {
-          setUser(data.user);
-        }
-
-        setIsLoading(false);
-        return true;
-      } else {
-        logger.error('MFA login failed', { status: response.raw.status });
-        setIsLoading(false);
-        return false;
-      }
-    } catch (error) {
-      logger.error('MFA login error', { error });
-      setIsLoading(false);
-      return false;
     }
   };
 
@@ -193,7 +137,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         isAuthenticated: !!user,
         isLoading,
         login,
-        completeMfaLogin,
         logout,
         hasRole,
         hasPermission,

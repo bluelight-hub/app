@@ -3,7 +3,6 @@ import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
 import { UnauthorizedException } from '@nestjs/common';
 import { AuthService } from './auth.service';
-import { MfaService } from './services/mfa.service';
 import { Permission, UserRole } from './types/jwt.types';
 import { PrismaService } from '@/prisma/prisma.service';
 import { DefaultRolePermissions } from './constants';
@@ -25,11 +24,6 @@ describe('AuthService', () => {
 
   const mockConfigService = {
     get: jest.fn(),
-  };
-
-  const mockMfaService = {
-    hasMfaEnabled: jest.fn(),
-    validateTotp: jest.fn(),
   };
 
   const mockPrismaService = {
@@ -63,10 +57,6 @@ describe('AuthService', () => {
         {
           provide: ConfigService,
           useValue: mockConfigService,
-        },
-        {
-          provide: MfaService,
-          useValue: mockMfaService,
         },
         {
           provide: PrismaService,
@@ -103,7 +93,6 @@ describe('AuthService', () => {
       passwordHash: 'hashed_password',
       role: UserRole.ADMIN,
       isActive: true,
-      isMfaEnabled: false,
       failedLoginCount: 0,
       lockedUntil: null,
       createdAt: new Date(),
@@ -132,32 +121,6 @@ describe('AuthService', () => {
       expect(result).toHaveProperty('user');
       expect(result.user.email).toBe(mockUser.email);
       expect(result.user.roles).toEqual([UserRole.ADMIN]);
-    });
-
-    it('should return partial tokens when MFA is enabled', async () => {
-      const mfaUser = { ...mockUser, isMfaEnabled: true };
-      mockPrismaService.user.findUnique.mockResolvedValue(mfaUser);
-      mockPrismaService.user.update.mockResolvedValue(mfaUser);
-      mockPrismaService.rolePermission.findMany.mockResolvedValue([
-        { permission: Permission.USERS_READ },
-        { permission: Permission.USERS_WRITE },
-      ]);
-      mockPrismaService.session.create.mockResolvedValue({ jti: 'session-123' });
-      mockPrismaService.refreshToken.create.mockResolvedValue({});
-
-      (bcrypt.compare as jest.Mock).mockResolvedValue(true);
-
-      mockJwtService.sign.mockReturnValueOnce('partial_access_token');
-      mockJwtService.sign.mockReturnValueOnce('partial_refresh_token');
-
-      const result = await service.login(mockLoginDto);
-
-      expect(result).toHaveProperty('accessToken', '');
-      expect(result).toHaveProperty('refreshToken', '');
-      expect(result).toHaveProperty('requiresMfa', true);
-      expect(result.user.isMfaEnabled).toBe(true);
-
-      // Verify that MFA is required and no tokens are issued yet
     });
 
     it('should throw UnauthorizedException for invalid email', async () => {
@@ -501,7 +464,6 @@ describe('AuthService', () => {
         username: 'testuser',
         role: 'ADMIN',
         isActive: true,
-        isMfaEnabled: false,
         createdAt: new Date(),
         updatedAt: new Date(),
       };
@@ -533,7 +495,6 @@ describe('AuthService', () => {
           Permission.EINSATZ_WRITE,
         ]),
         isActive: true,
-        isMfaEnabled: false,
         createdAt: mockUser.createdAt,
         updatedAt: mockUser.updatedAt,
       });
@@ -543,118 +504,6 @@ describe('AuthService', () => {
       mockPrismaService.user.findUnique.mockResolvedValue(null);
 
       await expect(service.getCurrentUser('123')).rejects.toThrow(UnauthorizedException);
-    });
-  });
-
-  describe('verifyMfaAndLogin', () => {
-    it('should verify MFA and return login response', async () => {
-      const userId = '123';
-      const mfaCode = '123456';
-      const mockUser = {
-        id: userId,
-        email: 'test@example.com',
-        passwordHash: 'hashedPassword',
-        username: 'testuser',
-        role: 'ADMIN',
-        isActive: true,
-        isMfaEnabled: true,
-        createdAt: new Date(),
-        updatedAt: new Date(),
-      };
-
-      const mockSession = {
-        id: 'session-456',
-        jti: 'session-jti-456',
-      };
-
-      const mockPermissions = [
-        { permission: Permission.USERS_READ },
-        { permission: Permission.USERS_WRITE },
-      ];
-
-      mockPrismaService.user.findUnique.mockResolvedValue(mockUser);
-      mockMfaService.validateTotp.mockResolvedValue(true);
-      mockPrismaService.rolePermission.findMany.mockResolvedValue(mockPermissions);
-      mockPrismaService.session.create.mockResolvedValue(mockSession);
-      mockPrismaService.refreshToken.create.mockResolvedValue({
-        id: 'refresh-123',
-        token: 'refresh-token',
-      });
-      mockJwtService.sign.mockReturnValueOnce('access-token').mockReturnValueOnce('refresh-token');
-
-      const result = await service.verifyMfaAndLogin(userId, mfaCode);
-
-      expect(mockMfaService.validateTotp).toHaveBeenCalledWith(userId, mfaCode);
-      expect(result).toEqual({
-        accessToken: 'access-token',
-        refreshToken: 'refresh-token',
-        user: expect.objectContaining({
-          id: userId,
-          email: 'test@example.com',
-          roles: ['ADMIN'],
-          permissions: expect.arrayContaining([Permission.USERS_READ, Permission.USERS_WRITE]),
-        }),
-      });
-    });
-
-    it('should throw UnauthorizedException for invalid MFA code', async () => {
-      const userId = '123';
-      const mockUser = {
-        id: userId,
-        isActive: true,
-        isMfaEnabled: true,
-      };
-
-      mockPrismaService.user.findUnique.mockResolvedValue(mockUser);
-      mockMfaService.validateTotp.mockResolvedValue(false);
-
-      await expect(service.verifyMfaAndLogin(userId, '123456')).rejects.toThrow(
-        UnauthorizedException,
-      );
-    });
-
-    it('should use default permissions when no permissions found during MFA login', async () => {
-      const userId = '123';
-      const mfaCode = '123456';
-      const mockUser = {
-        id: userId,
-        email: 'test@example.com',
-        passwordHash: 'hashedPassword',
-        username: 'testuser',
-        role: 'ADMIN',
-        isActive: true,
-        isMfaEnabled: true,
-        createdAt: new Date(),
-        updatedAt: new Date(),
-      };
-
-      const mockSession = {
-        id: 'session-456',
-        jti: 'session-jti-456',
-      };
-
-      mockPrismaService.user.findUnique.mockResolvedValue(mockUser);
-      mockMfaService.validateTotp.mockResolvedValue(true);
-      mockPrismaService.rolePermission.findMany.mockResolvedValue([]); // Empty permissions
-      mockPrismaService.session.create.mockResolvedValue(mockSession);
-      mockPrismaService.refreshToken.create.mockResolvedValue({
-        id: 'refresh-123',
-        token: 'refresh-token',
-      });
-      mockJwtService.sign.mockReturnValueOnce('access-token').mockReturnValueOnce('refresh-token');
-
-      const result = await service.verifyMfaAndLogin(userId, mfaCode);
-
-      expect(result).toEqual({
-        accessToken: 'access-token',
-        refreshToken: 'refresh-token',
-        user: expect.objectContaining({
-          id: userId,
-          email: 'test@example.com',
-          roles: ['ADMIN'],
-          permissions: DefaultRolePermissions[UserRole.ADMIN],
-        }),
-      });
     });
   });
 });

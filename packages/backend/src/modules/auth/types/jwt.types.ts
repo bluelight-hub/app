@@ -9,7 +9,6 @@ export interface JWTPayload {
   permissions: Permission[];
   orgId?: string; // Organization ID if applicable
   sessionId: string; // For session management
-  mfa?: boolean; // MFA verification status
   iat: number; // Issued at
   exp: number; // Expiration
   jti?: string; // JWT ID for revocation

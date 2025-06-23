@@ -45,18 +45,6 @@ export interface LoginResponseDto {
    * @memberof LoginResponseDto
    */
   user: AuthUserDto;
-  /**
-   * Whether MFA verification is required
-   * @type {boolean}
-   * @memberof LoginResponseDto
-   */
-  requiresMfa?: boolean;
-  /**
-   * MFA challenge ID for verification
-   * @type {string}
-   * @memberof LoginResponseDto
-   */
-  mfaChallengeId?: string;
 }
 
 /**
@@ -84,8 +72,6 @@ export function LoginResponseDtoFromJSONTyped(
     accessToken: json['accessToken'],
     refreshToken: json['refreshToken'],
     user: AuthUserDtoFromJSON(json['user']),
-    requiresMfa: json['requiresMfa'] == null ? undefined : json['requiresMfa'],
-    mfaChallengeId: json['mfaChallengeId'] == null ? undefined : json['mfaChallengeId'],
   };
 }
 
@@ -105,7 +91,5 @@ export function LoginResponseDtoToJSONTyped(
     accessToken: value['accessToken'],
     refreshToken: value['refreshToken'],
     user: AuthUserDtoToJSON(value['user']),
-    requiresMfa: value['requiresMfa'],
-    mfaChallengeId: value['mfaChallengeId'],
   };
 }

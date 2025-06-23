@@ -5,10 +5,8 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { JwtRefreshStrategy, JwtStrategy } from './strategies';
 import { AuthService } from './auth.service';
 import { AuthController } from './auth.controller';
-import { MfaController } from './controllers/mfa.controller';
 import { PrismaService } from '@/prisma/prisma.service';
 import { PermissionValidationService } from './services/permission-validation.service';
-import { MfaService } from './services/mfa.service';
 
 /**
  * Authentication module that provides JWT-based authentication for the application.
@@ -28,13 +26,12 @@ import { MfaService } from './services/mfa.service';
   ],
   providers: [
     AuthService,
-    MfaService,
     JwtStrategy,
     JwtRefreshStrategy,
     PrismaService,
     PermissionValidationService,
   ],
-  controllers: [AuthController, MfaController],
-  exports: [AuthService, MfaService, JwtModule, PermissionValidationService],
+  controllers: [AuthController],
+  exports: [AuthService, JwtModule, PermissionValidationService],
 })
 export class AuthModule {}

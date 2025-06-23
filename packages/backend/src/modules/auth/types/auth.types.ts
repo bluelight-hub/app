@@ -11,7 +11,6 @@ export interface AuthUser {
   permissions: string[];
   organizationId?: string;
   isActive: boolean;
-  isMfaEnabled: boolean;
   lastLoginAt?: Date;
   createdAt: Date;
   updatedAt: Date;
@@ -33,19 +32,6 @@ export interface Session {
 }
 
 /**
- * Multi-factor authentication challenge data.
- * Used to track and validate MFA attempts.
- */
-export interface MfaChallenge {
-  challengeId: string;
-  userId: string;
-  type: 'totp' | 'sms' | 'email';
-  expiresAt: Date;
-  attempts: number;
-  maxAttempts: number;
-}
-
-/**
  * Login request data structure.
  * Contains user credentials and options.
  */
@@ -63,17 +49,6 @@ export interface LoginResponse {
   accessToken: string;
   refreshToken: string;
   user: AuthUser;
-  requiresMfa?: boolean;
-  mfaChallengeId?: string;
-}
-
-/**
- * MFA verification request data.
- * Contains challenge ID and verification code.
- */
-export interface MfaVerifyRequest {
-  challengeId: string;
-  code: string;
 }
 
 /**

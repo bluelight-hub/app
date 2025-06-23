@@ -168,11 +168,6 @@ const SystemPage: React.FC = () => {
               >
                 <Switch />
               </Form.Item>
-              <Divider />
-              <Form.Item label="Zwei-Faktor-Authentifizierung">
-                <Switch defaultChecked />
-                <div className="text-sm text-gray-500 mt-2">Ermöglicht Benutzern die Aktivierung von 2FA</div>
-              </Form.Item>
             </Card>
           </TabPane>
 

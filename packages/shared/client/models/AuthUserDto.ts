@@ -50,12 +50,6 @@ export interface AuthUserDto {
    */
   isActive: boolean;
   /**
-   * Whether MFA is enabled for the user
-   * @type {boolean}
-   * @memberof AuthUserDto
-   */
-  isMfaEnabled: boolean;
-  /**
    * User creation date
    * @type {Date}
    * @memberof AuthUserDto
@@ -89,7 +83,6 @@ export function instanceOfAuthUserDto(value: object): value is AuthUserDto {
   if (!('roles' in value) || value['roles'] === undefined) return false;
   if (!('permissions' in value) || value['permissions'] === undefined) return false;
   if (!('isActive' in value) || value['isActive'] === undefined) return false;
-  if (!('isMfaEnabled' in value) || value['isMfaEnabled'] === undefined) return false;
   if (!('createdAt' in value) || value['createdAt'] === undefined) return false;
   if (!('updatedAt' in value) || value['updatedAt'] === undefined) return false;
   return true;
@@ -109,7 +102,6 @@ export function AuthUserDtoFromJSONTyped(json: any, ignoreDiscriminator: boolean
     roles: json['roles'],
     permissions: json['permissions'],
     isActive: json['isActive'],
-    isMfaEnabled: json['isMfaEnabled'],
     createdAt: new Date(json['createdAt']),
     updatedAt: new Date(json['updatedAt']),
   };
@@ -133,7 +125,6 @@ export function AuthUserDtoToJSONTyped(
     roles: value['roles'],
     permissions: value['permissions'],
     isActive: value['isActive'],
-    isMfaEnabled: value['isMfaEnabled'],
     createdAt: value['createdAt'].toISOString(),
     updatedAt: value['updatedAt'].toISOString(),
   };

@@ -2,7 +2,6 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { UnauthorizedException } from '@nestjs/common';
 import { AuthController } from './auth.controller';
 import { AuthService } from './auth.service';
-import { MfaService } from './services/mfa.service';
 import { LoginDto, RefreshTokenDto } from './dto';
 import { JWTPayload } from './types/jwt.types';
 import { Request, Response } from 'express';
@@ -17,13 +16,7 @@ describe('AuthController', () => {
     login: jest.fn(),
     refreshTokens: jest.fn(),
     logout: jest.fn(),
-    verifyMfaAndLogin: jest.fn(),
     getCurrentUser: jest.fn(),
-  };
-
-  const mockMfaService = {
-    verify: jest.fn(),
-    completeWebAuthnAuthentication: jest.fn(),
   };
 
   beforeEach(async () => {
@@ -33,10 +26,6 @@ describe('AuthController', () => {
         {
           provide: AuthService,
           useValue: mockAuthService,
-        },
-        {
-          provide: MfaService,
-          useValue: mockMfaService,
         },
       ],
     }).compile();
@@ -74,7 +63,6 @@ describe('AuthController', () => {
           roles: [],
           permissions: [],
           isActive: true,
-          isMfaEnabled: false,
           createdAt: new Date(),
           updatedAt: new Date(),
         },
@@ -97,120 +85,6 @@ describe('AuthController', () => {
         expect.any(Object),
       );
       expect(result).toBe(expectedResult);
-    });
-  });
-
-  describe('loginWithMfa', () => {
-    it('should verify MFA and complete login', async () => {
-      const mfaLoginDto = {
-        challengeId: 'user-123',
-        totpCode: '123456',
-      };
-
-      const expectedResult = {
-        accessToken: 'access-token',
-        refreshToken: 'refresh-token',
-        user: {
-          id: 'user-123',
-          email: 'test@example.com',
-          roles: [],
-          permissions: [],
-          isActive: true,
-          isMfaEnabled: true,
-          createdAt: new Date(),
-          updatedAt: new Date(),
-        },
-      };
-
-      mockAuthService.verifyMfaAndLogin.mockResolvedValue(expectedResult);
-
-      const result = await controller.loginWithMfa(mfaLoginDto, mockResponse);
-
-      expect(authService.verifyMfaAndLogin).toHaveBeenCalledWith('user-123', '123456', undefined);
-      expect(mockResponse.cookie).toHaveBeenCalledTimes(2);
-      expect(result).toBe(expectedResult);
-    });
-
-    it('should verify WebAuthn and complete login', async () => {
-      const mfaLoginDto = {
-        challengeId: 'user-123',
-        webAuthnResponse: {
-          id: 'credential-id',
-          rawId: 'credential-raw-id',
-          response: {
-            authenticatorData: 'auth-data',
-            clientDataJSON: 'client-data',
-            signature: 'signature',
-            userHandle: 'user-handle',
-          },
-          type: 'public-key' as const,
-          clientExtensionResults: {},
-        },
-      };
-
-      const expectedResult = {
-        accessToken: 'access-token',
-        refreshToken: 'refresh-token',
-        user: {
-          id: 'user-123',
-          email: 'test@example.com',
-          roles: [],
-          permissions: [],
-          isActive: true,
-          isMfaEnabled: true,
-          createdAt: new Date(),
-          updatedAt: new Date(),
-        },
-      };
-
-      mockMfaService.completeWebAuthnAuthentication.mockResolvedValue(true);
-      mockAuthService.verifyMfaAndLogin.mockResolvedValue(expectedResult);
-
-      const result = await controller.loginWithMfa(mfaLoginDto, mockResponse);
-
-      expect(mockMfaService.completeWebAuthnAuthentication).toHaveBeenCalledWith(
-        'user-123',
-        mfaLoginDto.webAuthnResponse,
-        'user-123',
-      );
-      expect(authService.verifyMfaAndLogin).toHaveBeenCalledWith(
-        'user-123',
-        undefined,
-        mfaLoginDto.webAuthnResponse,
-      );
-      expect(mockResponse.cookie).toHaveBeenCalledTimes(2);
-      expect(result).toBe(expectedResult);
-    });
-
-    it('should throw UnauthorizedException when WebAuthn verification fails', async () => {
-      const mfaLoginDto = {
-        challengeId: 'user-123',
-        webAuthnResponse: {
-          id: 'credential-id',
-          rawId: 'credential-raw-id',
-          response: {
-            authenticatorData: 'auth-data',
-            clientDataJSON: 'client-data',
-            signature: 'signature',
-            userHandle: 'user-handle',
-          },
-          type: 'public-key' as const,
-          clientExtensionResults: {},
-        },
-      };
-
-      mockMfaService.completeWebAuthnAuthentication.mockResolvedValue(false);
-
-      await expect(controller.loginWithMfa(mfaLoginDto, mockResponse)).rejects.toThrow(
-        new UnauthorizedException('WebAuthn verification failed'),
-      );
-
-      expect(mockMfaService.completeWebAuthnAuthentication).toHaveBeenCalledWith(
-        'user-123',
-        mfaLoginDto.webAuthnResponse,
-        'user-123',
-      );
-      expect(authService.verifyMfaAndLogin).not.toHaveBeenCalled();
     });
   });
 

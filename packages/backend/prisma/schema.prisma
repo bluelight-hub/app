@@ -136,7 +136,6 @@ model User {
   passwordHash      String              @db.Text
   role              UserRole            @default(USER)
   isActive          Boolean             @default(true)
-  isMfaEnabled      Boolean             @default(false)
   lastLoginAt       DateTime?
   failedLoginCount  Int                 @default(0)
   lockedUntil       DateTime?
@@ -144,8 +143,6 @@ model User {
   updatedAt         DateTime            @updatedAt
   
   // Relations
-  mfaSecrets        MfaSecret[]
-  webauthnCredentials WebAuthnCredential[]
   sessions          Session[]
   refreshTokens     RefreshToken[]
   rolePermissions   RolePermission[]
@@ -154,44 +151,6 @@ model User {
   @@index([email], map: "idx_user_email")
   @@index([role, isActive], map: "idx_user_role_active")
   @@index([lastLoginAt], map: "idx_user_last_login")
-}
-
-model MfaSecret {
-  id               String      @id @default(nanoid())
-  userId           String
-  user             User        @relation(fields: [userId], references: [id], onDelete: Cascade)
-  secret           String      @db.Text // Encrypted TOTP secret
-  backupCodes      String[]    // Encrypted backup codes
-  isVerified       Boolean     @default(false)
-  verifiedAt       DateTime?
-  lastUsedAt       DateTime?
-  createdAt        DateTime    @default(now())
-  updatedAt        DateTime    @updatedAt
-  
-  // Unique constraint - one active MFA secret per user
-  @@unique([userId], map: "uk_mfa_secret_user")
-  @@index([userId, isVerified], map: "idx_mfa_user_verified")
-}
-
-model WebAuthnCredential {
-  id                   String      @id @default(nanoid())
-  userId               String
-  user                 User        @relation(fields: [userId], references: [id], onDelete: Cascade)
-  credentialId         String      @unique @db.Text // Base64 encoded credential ID
-  publicKey            String      @db.Text // Base64 encoded public key
-  counter              BigInt      @default(0)
-  deviceType           String      @db.VarChar(100) // platform or cross-platform
-  transports           String[]    // ["usb", "nfc", "ble", "internal"]
-  isBackupEligible     Boolean     @default(false)
-  isBackupState        Boolean     @default(false)
-  name                 String?     @db.VarChar(255) // User-friendly name for the credential
-  lastUsedAt           DateTime?
-  createdAt            DateTime    @default(now())
-  updatedAt            DateTime    @updatedAt
-  
-  // Indexes
-  @@index([userId], map: "idx_webauthn_user")
-  @@index([credentialId], map: "idx_webauthn_credential")
 }
 
 model Session {

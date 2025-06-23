@@ -1,4 +1,4 @@
-import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
+import { ApiProperty } from '@nestjs/swagger';
 import { UserRole } from '../types/jwt.types';
 
 /**
@@ -27,10 +27,6 @@ export class AuthUserDto {
   @ApiProperty({ description: 'Whether user is active' })
   isActive: boolean;
 
-  /** MFA-Aktivierungsstatus des Benutzers */
-  @ApiProperty({ description: 'Whether MFA is enabled for the user' })
-  isMfaEnabled: boolean;
-
   /** Erstellungsdatum des Benutzerkontos */
   @ApiProperty({ description: 'User creation date', type: Date })
   createdAt: Date;
@@ -43,7 +39,7 @@ export class AuthUserDto {
 /**
  * DTO für Login Response
  * @class LoginResponseDto
- * @description Enthält die Antwort nach erfolgreichem Login mit optionaler MFA-Anforderung
+ * @description Enthält die Antwort nach erfolgreichem Login
  */
 export class LoginResponseDto {
   /** JWT Access Token für API-Zugriff */
@@ -57,14 +53,6 @@ export class LoginResponseDto {
   /** Informationen über den authentifizierten Benutzer */
   @ApiProperty({ description: 'Authenticated user information', type: AuthUserDto })
   user: AuthUserDto;
-
-  /** Indikator, ob eine MFA-Verifizierung erforderlich ist */
-  @ApiPropertyOptional({ description: 'Whether MFA verification is required' })
-  requiresMfa?: boolean;
-
-  /** Challenge-ID für die MFA-Verifizierung */
-  @ApiPropertyOptional({ description: 'MFA challenge ID for verification' })
-  mfaChallengeId?: string;
 }
 
 /**
