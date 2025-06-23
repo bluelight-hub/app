@@ -17,7 +17,6 @@ import type {
   AuthUserDto,
   LoginDto,
   LoginResponseDto,
-  MfaLoginDto,
   RefreshTokenDto,
   TokenResponseDto,
 } from '../models/index';
@@ -28,8 +27,6 @@ import {
   LoginDtoToJSON,
   LoginResponseDtoFromJSON,
   LoginResponseDtoToJSON,
-  MfaLoginDtoFromJSON,
-  MfaLoginDtoToJSON,
   RefreshTokenDtoFromJSON,
   RefreshTokenDtoToJSON,
   TokenResponseDtoFromJSON,
@@ -38,10 +35,6 @@ import {
 
 export interface AuthControllerLoginV1Request {
   loginDto: LoginDto;
-}
-
-export interface AuthControllerLoginWithMfaV1Request {
-  mfaLoginDto: MfaLoginDto;
 }
 
 export interface AuthControllerRefreshV1Request {
@@ -137,53 +130,6 @@ export class AuthenticationApi extends runtime.BaseAPI {
     initOverrides?: RequestInit | runtime.InitOverrideFunction,
   ): Promise<LoginResponseDto> {
     const response = await this.authControllerLoginV1Raw(requestParameters, initOverrides);
-    return await response.value();
-  }
-
-  /**
-   * Complete login with MFA verification
-   */
-  async authControllerLoginWithMfaV1Raw(
-    requestParameters: AuthControllerLoginWithMfaV1Request,
-    initOverrides?: RequestInit | runtime.InitOverrideFunction,
-  ): Promise<runtime.ApiResponse<LoginResponseDto>> {
-    if (requestParameters['mfaLoginDto'] == null) {
-      throw new runtime.RequiredError(
-        'mfaLoginDto',
-        'Required parameter "mfaLoginDto" was null or undefined when calling authControllerLoginWithMfaV1().',
-      );
-    }
-
-    const queryParameters: any = {};
-
-    const headerParameters: runtime.HTTPHeaders = {};
-
-    headerParameters['Content-Type'] = 'application/json';
-
-    const response = await this.request(
-      {
-        path: `/v1/api/auth/login/mfa`,
-        method: 'POST',
-        headers: headerParameters,
-        query: queryParameters,
-        body: MfaLoginDtoToJSON(requestParameters['mfaLoginDto']),
-      },
-      initOverrides,
-    );
-
-    return new runtime.JSONApiResponse(response, (jsonValue) =>
-      LoginResponseDtoFromJSON(jsonValue),
-    );
-  }
-
-  /**
-   * Complete login with MFA verification
-   */
-  async authControllerLoginWithMfaV1(
-    requestParameters: AuthControllerLoginWithMfaV1Request,
-    initOverrides?: RequestInit | runtime.InitOverrideFunction,
-  ): Promise<LoginResponseDto> {
-    const response = await this.authControllerLoginWithMfaV1Raw(requestParameters, initOverrides);
     return await response.value();
   }
 
