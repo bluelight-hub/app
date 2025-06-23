@@ -17,7 +17,11 @@ export interface AuthContextType {
   user: User | null;
   isAuthenticated: boolean;
   isLoading: boolean;
-  login: (email: string, password: string) => Promise<boolean>;
+  login: (
+    email: string,
+    password: string,
+  ) => Promise<{ success: boolean; requiresMfa?: boolean; mfaChallengeId?: string }>;
+  completeMfaLogin: (mfaChallengeId: string, code: string) => Promise<boolean>;
   logout: () => void;
   hasRole: (role: string) => boolean;
   hasPermission: (permission: string) => boolean;
@@ -70,7 +74,10 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     checkAuth();
   }, []);
 
-  const login = async (email: string, password: string): Promise<boolean> => {
+  const login = async (
+    email: string,
+    password: string,
+  ): Promise<{ success: boolean; requiresMfa?: boolean; mfaChallengeId?: string }> => {
     setIsLoading(true);
 
     try {
@@ -81,7 +88,53 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
       if (response.raw.ok) {
         const data = await response.raw.json();
-        logger.info('Login successful', { email });
+        logger.info('Login response received', { email, requiresMfa: data.requiresMfa });
+
+        // Check if MFA is required
+        if (data.requiresMfa) {
+          setIsLoading(false);
+          return {
+            success: false,
+            requiresMfa: true,
+            mfaChallengeId: data.mfaChallengeId,
+          };
+        }
+
+        // Store tokens using authStorage
+        if (data.accessToken) {
+          await authStorage.setTokens(data.accessToken, data.refreshToken);
+        }
+
+        // Set user
+        if (data.user) {
+          setUser(data.user);
+        }
+
+        setIsLoading(false);
+        return { success: true };
+      } else {
+        logger.error('Login failed', { status: response.raw.status });
+        setIsLoading(false);
+        return { success: false };
+      }
+    } catch (error) {
+      logger.error('Login error', { error });
+      setIsLoading(false);
+      return { success: false };
+    }
+  };
+
+  const completeMfaLogin = async (mfaChallengeId: string, code: string): Promise<boolean> => {
+    setIsLoading(true);
+
+    try {
+      const response = await api.auth.authControllerMfaLoginV1Raw({
+        mfaLoginDto: { mfaChallengeId, code },
+      });
+
+      if (response.raw.ok) {
+        const data = await response.raw.json();
+        logger.info('MFA login successful');
 
         // Store tokens using authStorage
         if (data.accessToken) {
@@ -96,12 +149,12 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         setIsLoading(false);
         return true;
       } else {
-        logger.error('Login failed', { status: response.raw.status });
+        logger.error('MFA login failed', { status: response.raw.status });
         setIsLoading(false);
         return false;
       }
     } catch (error) {
-      logger.error('Login error', { error });
+      logger.error('MFA login error', { error });
       setIsLoading(false);
       return false;
     }
@@ -140,6 +193,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         isAuthenticated: !!user,
         isLoading,
         login,
+        completeMfaLogin,
         logout,
         hasRole,
         hasPermission,

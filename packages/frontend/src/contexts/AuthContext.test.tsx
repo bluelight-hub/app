@@ -11,6 +11,7 @@ vi.mock('../api', () => ({
       authControllerLogoutV1: vi.fn(),
       authControllerGetCurrentUserV1Raw: vi.fn(),
       authControllerRefreshTokenV1Raw: vi.fn(),
+      authControllerMfaLoginV1Raw: vi.fn(),
     },
   },
 }));
@@ -162,7 +163,7 @@ describe('AuthContext', () => {
 
   it('sollte erfolgreiche Anmeldung durchführen', async () => {
     let authData: ReturnType<typeof useAuth> | undefined;
-    let result: boolean | undefined;
+    let result: { success: boolean; requiresMfa?: boolean; mfaChallengeId?: string } | undefined;
 
     // Mock erfolgreiche Login-Response
     const mockLoginResponse = {
@@ -194,7 +195,8 @@ describe('AuthContext', () => {
     });
 
     // Assertions für erfolgreiche Anmeldung
-    expect(result).toBe(true);
+    expect(result?.success).toBe(true);
+    expect(result?.requiresMfa).toBeUndefined();
     expect(authData?.isAuthenticated).toBe(true);
     expect(authData?.user).not.toBeNull();
     expect(authData?.user?.email).toBe('test@example.com');
@@ -204,7 +206,7 @@ describe('AuthContext', () => {
 
   it('sollte fehlgeschlagene Anmeldung behandeln', async () => {
     let authData: ReturnType<typeof useAuth> | undefined;
-    let result: boolean | undefined;
+    let result: { success: boolean; requiresMfa?: boolean; mfaChallengeId?: string } | undefined;
 
     // Mock fehlgeschlagene Login-Response
     const mockFailedResponse = {
@@ -233,7 +235,8 @@ describe('AuthContext', () => {
     });
 
     // Assertions für fehlgeschlagene Anmeldung
-    expect(result).toBe(false);
+    expect(result?.success).toBe(false);
+    expect(result?.requiresMfa).toBeUndefined();
     expect(authData?.isAuthenticated).toBe(false);
     expect(authData?.user).toBeNull();
     expect(localStorageMock.setItem).not.toHaveBeenCalledWith('auth_token', expect.any(String));
@@ -419,5 +422,70 @@ describe('AuthContext', () => {
     expect(authData?.hasRole('SUPER_ADMIN')).toBe(true);
     expect(authData?.hasRole('ADMIN')).toBe(false);
     expect(screen.getByTestId('is-admin').textContent).toBe('Is Admin');
+  });
+
+  it('sollte MFA-Challenge erkennen und behandeln', async () => {
+    let authData: ReturnType<typeof useAuth> | undefined;
+    let loginResult: { success: boolean; requiresMfa?: boolean; mfaChallengeId?: string } | undefined;
+    let mfaResult: boolean | undefined;
+
+    // Mock Login-Response mit MFA-Anforderung
+    const mockMfaRequiredResponse = {
+      raw: {
+        ok: true,
+        json: async () => ({
+          requiresMfa: true,
+          mfaChallengeId: 'test-challenge-id',
+        }),
+      } as Response,
+    };
+
+    // Mock erfolgreiche MFA-Verifizierung
+    const mockMfaSuccessResponse = {
+      raw: {
+        ok: true,
+        json: async () => ({
+          accessToken: 'mock-access-token',
+          refreshToken: 'mock-refresh-token',
+          user: mockUser,
+        }),
+      } as Response,
+    };
+
+    vi.mocked(api.auth.authControllerLoginV1Raw).mockResolvedValueOnce(mockMfaRequiredResponse);
+    vi.mocked(api.auth.authControllerMfaLoginV1Raw).mockResolvedValueOnce(mockMfaSuccessResponse);
+
+    // Komponente rendern
+    renderWithAuthProvider((auth) => {
+      authData = auth;
+    });
+
+    // Login durchführen - sollte MFA erfordern
+    await act(async () => {
+      loginResult = await authData?.login('test@example.com', 'password');
+    });
+
+    // Assertions für MFA-Anforderung
+    expect(loginResult?.success).toBe(false);
+    expect(loginResult?.requiresMfa).toBe(true);
+    expect(loginResult?.mfaChallengeId).toBe('test-challenge-id');
+    expect(authData?.isAuthenticated).toBe(false);
+
+    // MFA-Code verifizieren
+    await act(async () => {
+      mfaResult = await authData?.completeMfaLogin('test-challenge-id', '123456');
+    });
+
+    // Warten auf UI-Update
+    await act(async () => {
+      await waitForUI('Authenticated');
+    });
+
+    // Assertions für erfolgreiche MFA-Verifizierung
+    expect(mfaResult).toBe(true);
+    expect(authData?.isAuthenticated).toBe(true);
+    expect(authData?.user).not.toBeNull();
+    expect(authData?.user?.email).toBe('test@example.com');
+    expect(authStorage.setTokens).toHaveBeenCalledWith('mock-access-token', 'mock-refresh-token');
   });
 });

@@ -70,6 +70,9 @@ const SchadenPage = React.lazy(() => import('@pages/app/schaden/page'));
 const GefahrenPage = React.lazy(() => import('@pages/app/gefahren/page'));
 const NotizenPage = React.lazy(() => import('@pages/app/notizen/page'));
 
+// Profile Pages
+const UserMfaSettingsPage = React.lazy(() => import('@/components/pages/app/profile/mfa/page'));
+
 // Einsatz Management
 const CreateInitialEinsatzPage = React.lazy(() => import('@/components/pages/app/CreateInitialEinsatz'));
 
@@ -85,6 +88,7 @@ const AdminUsers = React.lazy(() => import('@/components/pages/admin/users/page'
 const AdminOrganizations = React.lazy(() => import('@/components/pages/admin/organizations/page'));
 const AdminSystem = React.lazy(() => import('@/components/pages/admin/system/page'));
 const AdminLogs = React.lazy(() => import('@/components/pages/admin/logs/page'));
+const MfaSettingsPage = React.lazy(() => import('@/components/pages/admin/MfaSettingsPage'));
 
 // NotFound Page
 const NotFoundPage = React.lazy(() => import('@/components/pages/not-found/page'));
@@ -175,6 +179,9 @@ export const Router = () => {
                   <Route path="gefahren" element={<GefahrenPage />} />
                   <Route path="notizen" element={<NotizenPage />} />
 
+                  {/* Profile Routes */}
+                  <Route path="profile/mfa" element={<UserMfaSettingsPage />} />
+
                   {/* Admin Routes within main app */}
                   <Route element={<AdminGuard />}>
                     <Route path="admin" element={<AdminDashboard />} />
@@ -182,6 +189,7 @@ export const Router = () => {
                     <Route path="admin/organizations" element={<AdminOrganizations />} />
                     <Route path="admin/system" element={<AdminSystem />} />
                     <Route path="admin/logs" element={<AdminLogs />} />
+                    <Route path="admin/mfa" element={<MfaSettingsPage />} />
                   </Route>
                 </Route>
 

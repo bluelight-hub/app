@@ -2,6 +2,7 @@ import { AuthenticationApi } from '@bluelight-hub/shared/client/apis/Authenticat
 import { EinsatzApi } from '@bluelight-hub/shared/client/apis/EinsatzApi';
 import { EinsatztagebuchApi } from '@bluelight-hub/shared/client/apis/EinsatztagebuchApi';
 import { HealthApi } from '@bluelight-hub/shared/client/apis/HealthApi';
+import { MFAApi } from '@bluelight-hub/shared/client/apis/MFAApi';
 import { apiConfiguration } from '../utils/fetch';
 import { logger } from '../utils/logger';
 
@@ -14,6 +15,7 @@ class API {
   private healthApi: HealthApi;
   private einsatztagebuchApi: EinsatztagebuchApi;
   private einsatzApi: EinsatzApi;
+  private mfaApi: MFAApi;
 
   private constructor() {
     try {
@@ -26,6 +28,7 @@ class API {
       this.healthApi = new HealthApi(apiConfiguration);
       this.einsatztagebuchApi = new EinsatztagebuchApi(apiConfiguration);
       this.einsatzApi = new EinsatzApi(apiConfiguration);
+      this.mfaApi = new MFAApi(apiConfiguration);
 
       if (!apiConfiguration.basePath || apiConfiguration.basePath.trim() === '') {
         throw new Error('API base path is not configured properly');
@@ -42,6 +45,7 @@ class API {
       this.healthApi = new HealthApi(apiConfiguration);
       this.einsatztagebuchApi = new EinsatztagebuchApi(apiConfiguration);
       this.einsatzApi = new EinsatzApi(apiConfiguration);
+      this.mfaApi = new MFAApi(apiConfiguration);
     }
   }
 
@@ -65,6 +69,10 @@ class API {
 
   public get einsatz() {
     return this.einsatzApi;
+  }
+
+  public get mfa() {
+    return this.mfaApi;
   }
 
   public static getInstance(): API {
