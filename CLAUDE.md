@@ -99,3 +99,4 @@ This project uses semantic-release with gitmoji for automated versioning:
 ## Development Workflow
 
 - Committe die Änderungen nach jedem Subtask
+- Du darfst nicht mit --no-verify committen

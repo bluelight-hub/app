@@ -4,6 +4,7 @@ import { ExtractJwt, Strategy } from 'passport-jwt';
 import { ConfigService } from '@nestjs/config';
 import { JWTPayload } from '../types/jwt.types';
 import { Request } from 'express';
+import { PrismaService } from '@/prisma/prisma.service';
 
 /**
  * JWT authentication strategy for validating access tokens.
@@ -11,7 +12,10 @@ import { Request } from 'express';
  */
 @Injectable()
 export class JwtStrategy extends PassportStrategy(Strategy) {
-  constructor(private configService: ConfigService) {
+  constructor(
+    private configService: ConfigService,
+    private prisma: PrismaService,
+  ) {
     super({
       jwtFromRequest: (request: Request) => {
         // First, try to get token from cookie
@@ -31,11 +35,24 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
       throw new UnauthorizedException('Invalid token payload');
     }
 
-    // TODO: Validate session is still active in database
-    // const session = await this.authService.validateSession(payload.sessionId);
-    // if (!session) {
-    //   throw new UnauthorizedException('Session expired or invalid');
-    // }
+    // Validate session is still active in database
+    const session = await this.prisma.session.findUnique({
+      where: { jti: payload.sessionId },
+    });
+
+    if (!session || session.isRevoked) {
+      throw new UnauthorizedException('Session expired or revoked');
+    }
+
+    if (session.expiresAt < new Date()) {
+      throw new UnauthorizedException('Session expired');
+    }
+
+    // Update last activity for idle timeout tracking
+    await this.prisma.session.update({
+      where: { id: session.id },
+      data: { lastActivityAt: new Date() },
+    });
 
     return payload;
   }

@@ -1,6 +1,6 @@
 import { Configuration } from '@bluelight-hub/shared/client';
 import { logger } from './logger';
-import { authStorage } from './authStorage';
+import { fetchWithAuth, authInterceptorMiddleware } from './authInterceptor';
 
 // Determine the base URL based on the environment
 export const getBaseUrl = (): string => {
@@ -20,38 +20,8 @@ export const getBaseUrl = (): string => {
   return fallbackUrl;
 };
 
-// Custom fetch implementation that handles Tauri specifics
-// const customFetch = async (
-//   url: string,
-//   init: RequestInit
-// ): Promise<Response> => {
-//   return await tauriFetch(url, init);
-// };
-
-// Custom fetch implementation with credentials
-const customFetch = (input: RequestInfo | URL, init?: RequestInit): Promise<Response> => {
-  return fetch(input, {
-    ...init,
-    credentials: 'include', // Always include cookies
-  });
-};
-
-// Middleware to add authentication headers
-const authMiddleware = {
-  pre: async (context: any) => {
-    const tokens = await authStorage.getTokens();
-    if (tokens.authToken) {
-      context.init.headers = {
-        ...context.init.headers,
-        Authorization: `Bearer ${tokens.authToken}`,
-      };
-    }
-    return context;
-  },
-};
-
 export const apiConfiguration = new Configuration({
   basePath: getBaseUrl(),
-  fetchApi: customFetch,
-  middleware: [authMiddleware],
+  fetchApi: fetchWithAuth,
+  middleware: [authInterceptorMiddleware],
 });

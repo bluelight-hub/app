@@ -1,49 +1,48 @@
+import { Test, TestingModule } from '@nestjs/testing';
 import { ConfigService } from '@nestjs/config';
 import { UnauthorizedException } from '@nestjs/common';
 import { JwtStrategy } from './jwt.strategy';
 import { JWTPayload, UserRole } from '../types/jwt.types';
-
-// We'll test the JWT extraction logic directly
-// since mocking PassportStrategy constructor is complex
-const _createMockJwtStrategy = () => {
-  const mockConfigService = {
-    get: jest.fn().mockReturnValue('test-secret'),
-  } as unknown as ConfigService;
-
-  // Create a test instance to access the jwtFromRequest function
-  const options: any = {};
-
-  // Mock the PassportStrategy to capture constructor options
-  jest.mock('@nestjs/passport', () => ({
-    PassportStrategy: jest.fn().mockImplementation(() => {
-      return class {
-        constructor(opts: any) {
-          Object.assign(options, opts);
-        }
-      };
-    }),
-  }));
-
-  const strategy = new JwtStrategy(mockConfigService);
-
-  return { strategy, configService: mockConfigService, options };
-};
+import { PrismaService } from '@/prisma/prisma.service';
 
 describe('JwtStrategy', () => {
   let strategy: JwtStrategy;
   let configService: ConfigService;
 
-  beforeEach(() => {
-    const mockConfigService = {
-      get: jest.fn().mockReturnValue('test-secret'),
-    } as unknown as ConfigService;
+  const mockPrismaService = {
+    session: {
+      findUnique: jest.fn(),
+      update: jest.fn(),
+    },
+  };
 
-    strategy = new JwtStrategy(mockConfigService);
-    configService = mockConfigService;
+  beforeEach(async () => {
+    const module: TestingModule = await Test.createTestingModule({
+      providers: [
+        JwtStrategy,
+        {
+          provide: ConfigService,
+          useValue: {
+            get: jest.fn().mockReturnValue('test-secret'),
+          },
+        },
+        {
+          provide: PrismaService,
+          useValue: mockPrismaService,
+        },
+      ],
+    }).compile();
+
+    strategy = module.get<JwtStrategy>(JwtStrategy);
+    configService = module.get<ConfigService>(ConfigService);
+  });
+
+  afterEach(() => {
+    jest.clearAllMocks();
   });
 
   describe('validate', () => {
-    it('should return payload for valid token payload', async () => {
+    it('should return payload for valid token payload with active session', async () => {
       const payload: JWTPayload = {
         sub: '1',
         email: 'test@example.com',
@@ -54,9 +53,30 @@ describe('JwtStrategy', () => {
         exp: Date.now() / 1000 + 900,
       };
 
+      const mockSession = {
+        id: 'session-id',
+        jti: 'session-123',
+        isRevoked: false,
+        expiresAt: new Date(Date.now() + 3600000), // 1 hour from now
+        lastActivityAt: new Date(),
+      };
+
+      mockPrismaService.session.findUnique.mockResolvedValue(mockSession);
+      mockPrismaService.session.update.mockResolvedValue({
+        ...mockSession,
+        lastActivityAt: new Date(),
+      });
+
       const result = await strategy.validate(payload);
 
       expect(result).toBe(payload);
+      expect(mockPrismaService.session.findUnique).toHaveBeenCalledWith({
+        where: { jti: 'session-123' },
+      });
+      expect(mockPrismaService.session.update).toHaveBeenCalledWith({
+        where: { id: 'session-id' },
+        data: { lastActivityAt: expect.any(Date) },
+      });
     });
 
     it('should throw UnauthorizedException when sub is missing', async () => {
@@ -116,6 +136,20 @@ describe('JwtStrategy', () => {
         exp: Date.now() / 1000 + 900,
       };
 
+      const mockSession = {
+        id: 'session-id',
+        jti: 'session-123',
+        isRevoked: false,
+        expiresAt: new Date(Date.now() + 3600000),
+        lastActivityAt: new Date(),
+      };
+
+      mockPrismaService.session.findUnique.mockResolvedValue(mockSession);
+      mockPrismaService.session.update.mockResolvedValue({
+        ...mockSession,
+        lastActivityAt: new Date(),
+      });
+
       const result = await strategy.validate(payload);
 
       expect(result).toBe(payload);
@@ -134,10 +168,98 @@ describe('JwtStrategy', () => {
         exp: Date.now() / 1000 + 900,
       };
 
+      const mockSession = {
+        id: 'session-id',
+        jti: 'session-123',
+        isRevoked: false,
+        expiresAt: new Date(Date.now() + 3600000),
+        lastActivityAt: new Date(),
+      };
+
+      mockPrismaService.session.findUnique.mockResolvedValue(mockSession);
+      mockPrismaService.session.update.mockResolvedValue({
+        ...mockSession,
+        lastActivityAt: new Date(),
+      });
+
       const result = await strategy.validate(payload);
 
       expect(result).toBe(payload);
       expect(result.jti).toBe('jwt-123');
+    });
+
+    it('should throw UnauthorizedException when session not found', async () => {
+      const payload: JWTPayload = {
+        sub: '1',
+        email: 'test@example.com',
+        roles: [UserRole.USER],
+        permissions: [],
+        sessionId: 'session-123',
+        iat: Date.now() / 1000,
+        exp: Date.now() / 1000 + 900,
+      };
+
+      mockPrismaService.session.findUnique.mockResolvedValue(null);
+
+      await expect(strategy.validate(payload)).rejects.toThrow(
+        new UnauthorizedException('Session expired or revoked'),
+      );
+    });
+
+    it('should throw UnauthorizedException when session is revoked', async () => {
+      const payload: JWTPayload = {
+        sub: '1',
+        email: 'test@example.com',
+        roles: [UserRole.USER],
+        permissions: [],
+        sessionId: 'session-123',
+        iat: Date.now() / 1000,
+        exp: Date.now() / 1000 + 900,
+      };
+
+      const revokedSession = {
+        id: 'session-id',
+        jti: 'session-123',
+        isRevoked: true,
+        expiresAt: new Date(Date.now() + 3600000),
+        revokedAt: new Date(),
+        revokedReason: 'User logout',
+      };
+
+      mockPrismaService.session.findUnique.mockResolvedValue(revokedSession);
+
+      await expect(strategy.validate(payload)).rejects.toThrow(
+        new UnauthorizedException('Session expired or revoked'),
+      );
+
+      expect(mockPrismaService.session.update).not.toHaveBeenCalled();
+    });
+
+    it('should throw UnauthorizedException when session is expired', async () => {
+      const payload: JWTPayload = {
+        sub: '1',
+        email: 'test@example.com',
+        roles: [UserRole.USER],
+        permissions: [],
+        sessionId: 'session-123',
+        iat: Date.now() / 1000,
+        exp: Date.now() / 1000 + 900,
+      };
+
+      const expiredSession = {
+        id: 'session-id',
+        jti: 'session-123',
+        isRevoked: false,
+        expiresAt: new Date(Date.now() - 3600000), // 1 hour ago
+      };
+
+      mockPrismaService.session.findUnique.mockResolvedValue(expiredSession);
+
+      await expect(strategy.validate(payload)).rejects.toThrow(
+        new UnauthorizedException('Session expired'),
+      );
+
+      expect(mockPrismaService.session.update).not.toHaveBeenCalled();
     });
   });
 

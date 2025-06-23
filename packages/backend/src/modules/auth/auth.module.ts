@@ -7,6 +7,7 @@ import { AuthService } from './auth.service';
 import { AuthController } from './auth.controller';
 import { PrismaService } from '@/prisma/prisma.service';
 import { PermissionValidationService } from './services/permission-validation.service';
+import { SessionCleanupService } from './services/session-cleanup.service';
 
 /**
  * Authentication module that provides JWT-based authentication for the application.
@@ -30,6 +31,7 @@ import { PermissionValidationService } from './services/permission-validation.se
     JwtRefreshStrategy,
     PrismaService,
     PermissionValidationService,
+    SessionCleanupService,
   ],
   controllers: [AuthController],
   exports: [AuthService, JwtModule, PermissionValidationService],

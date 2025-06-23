@@ -2,6 +2,37 @@ import '@testing-library/jest-dom/vitest';
 import { cleanup } from '@testing-library/react';
 import { afterEach, beforeAll, beforeEach, vi } from 'vitest';
 
+// Mock Zustand to prevent infinite loops in tests
+vi.mock('zustand', async () => {
+  const actualZustand = await vi.importActual('zustand');
+  const { create: actualCreate } = actualZustand as any;
+
+  // Wrap create to handle subscriptions better in tests
+  const create = (stateCreator: any) => {
+    const store = actualCreate(stateCreator);
+
+    // Override subscribe to prevent infinite loops
+    const originalSubscribe = store.subscribe;
+    store.subscribe = (listener: any, selector?: any) => {
+      // Debounce listener calls to prevent loops
+      let timeoutId: NodeJS.Timeout;
+      const debouncedListener = (...args: any[]) => {
+        clearTimeout(timeoutId);
+        timeoutId = setTimeout(() => listener(...args), 0);
+      };
+
+      return originalSubscribe(debouncedListener, selector);
+    };
+
+    return store;
+  };
+
+  return {
+    ...actualZustand,
+    create,
+  };
+});
+
 // Cleanup nach jedem Test
 afterEach(() => {
   cleanup();
