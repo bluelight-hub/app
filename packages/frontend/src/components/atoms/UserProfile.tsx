@@ -1,8 +1,6 @@
-import { Dropdown, MenuProps, Badge } from 'antd';
-import { PiSignOut, PiUser, PiShieldCheck } from 'react-icons/pi';
+import { Dropdown, MenuProps } from 'antd';
+import { PiSignOut, PiUser } from 'react-icons/pi';
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { useAuth } from '../../hooks/useAuth';
 import { useEinsatzContext } from '../../contexts/EinsatzContext';
 import { useUserProfileStore } from '../../stores/useUserProfileStore';
 import { logout } from '../../utils/auth';
@@ -25,8 +23,6 @@ const UserProfile: React.FC<UserProfileProps> = ({
 }) => {
   const profile = useUserProfileStore((state) => state.profile);
   const { clearSelectedEinsatz } = useEinsatzContext();
-  const { user } = useAuth();
-  const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
 
   const handleLogout = async () => {
@@ -47,19 +43,6 @@ const UserProfile: React.FC<UserProfileProps> = ({
       label: 'Profil',
       onClick: () => {
         if (onClick) onClick();
-      },
-    },
-    {
-      key: 'mfa',
-      icon: <PiShieldCheck />,
-      label: (
-        <span className="flex items-center justify-between">
-          <span>Zwei-Faktor-Authentifizierung</span>
-          {user?.isMfaEnabled && <Badge status="success" text="Aktiv" className="ml-2" />}
-        </span>
-      ),
-      onClick: () => {
-        navigate('/app/profile/mfa');
       },
     },
     {

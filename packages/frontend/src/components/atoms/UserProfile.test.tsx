@@ -51,27 +51,7 @@ vi.mock('../../utils/auth', () => ({
   logout: vi.fn(),
 }));
 
-// Mock für useAuth hook
-vi.mock('../../hooks/useAuth', () => ({
-  useAuth: vi.fn(() => ({
-    user: {
-      id: '1',
-      email: 'test@example.com',
-      roles: ['user'],
-      permissions: [],
-      isActive: true,
-      isMfaEnabled: false,
-    },
-    isAuthenticated: true,
-    isLoading: false,
-    login: vi.fn(),
-    completeMfaLogin: vi.fn(),
-    logout: vi.fn(),
-    hasRole: vi.fn(),
-    hasPermission: vi.fn(),
-    isAdmin: vi.fn(() => false),
-  })),
-}));
+// useAuth hook wird nicht mehr benötigt
 
 // Mock für React Router
 vi.mock('react-router-dom', () => ({
