@@ -1,23 +1,24 @@
-import { Injectable, BadRequestException, UnauthorizedException } from '@nestjs/common';
+import { logger } from '@/logger/consola.logger';
 import { PrismaService } from '@/prisma/prisma.service';
+import { BadRequestException, Injectable, UnauthorizedException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import * as crypto from 'crypto';
-import { authenticator } from 'otplib';
-import * as qrcode from 'qrcode';
 import {
-  generateRegistrationOptions,
-  verifyRegistrationResponse,
   generateAuthenticationOptions,
-  verifyAuthenticationResponse,
+  generateRegistrationOptions,
   VerifiedAuthenticationResponse,
   VerifiedRegistrationResponse,
+  verifyAuthenticationResponse,
+  verifyRegistrationResponse,
 } from '@simplewebauthn/server';
 import type {
   AuthenticationResponseJSON,
-  RegistrationResponseJSON,
   AuthenticatorTransport,
+  RegistrationResponseJSON,
   WebAuthnCredential,
 } from '@simplewebauthn/types';
+import * as crypto from 'crypto';
+import { authenticator } from 'otplib';
+import * as qrcode from 'qrcode';
 
 /**
  * Service zur Verwaltung von Multi-Factor Authentication (MFA).
@@ -37,6 +38,7 @@ export class MfaService {
     // Encryption key for TOTP secrets
     const key = this.configService.get<string>('MFA_ENCRYPTION_KEY');
     if (!key || key.length < 32) {
+      logger.warn('MFA_ENCRYPTION_KEY is ', key);
       throw new Error('MFA_ENCRYPTION_KEY must be at least 32 characters');
     }
     this.encryptionKey = Buffer.from(key.substring(0, 32));
