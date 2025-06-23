@@ -1,1 +1,8 @@
 export * from './permissions.constants';
+
+/**
+ * Version der Authentifizierungs-Module
+ * @constant AUTH_MODULE_VERSION
+ * @description Aktuelle Version des Auth-Moduls für Versionsverwaltung
+ */
+export const AUTH_MODULE_VERSION = '2.0.0';

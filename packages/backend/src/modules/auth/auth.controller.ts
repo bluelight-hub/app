@@ -12,7 +12,7 @@ import {
 } from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { AuthService } from './auth.service';
-import { LoginDto, RefreshTokenDto } from './dto';
+import { LoginDto, RefreshTokenDto, LoginResponseDto, TokenResponseDto, AuthUserDto } from './dto';
 import { MfaLoginDto } from './dto/mfa.dto';
 import { MfaService } from './services/mfa.service';
 import { LoginResponse, TokenResponse } from './types/auth.types';
@@ -38,7 +38,7 @@ export class AuthController {
   @Post('login')
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Admin login' })
-  @ApiResponse({ status: 200, description: 'Login successful' })
+  @ApiResponse({ status: 200, description: 'Login successful', type: LoginResponseDto })
   @ApiResponse({ status: 401, description: 'Invalid credentials' })
   async login(
     @Body() loginDto: LoginDto,
@@ -59,7 +59,7 @@ export class AuthController {
   @Post('login/mfa')
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Complete login with MFA verification' })
-  @ApiResponse({ status: 200, description: 'MFA verification successful' })
+  @ApiResponse({ status: 200, description: 'MFA verification successful', type: LoginResponseDto })
   @ApiResponse({ status: 401, description: 'Invalid MFA code or challenge' })
   async loginWithMfa(
     @Body() mfaLoginDto: MfaLoginDto,
@@ -100,7 +100,7 @@ export class AuthController {
   @Post('refresh')
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Refresh access token' })
-  @ApiResponse({ status: 200, description: 'Token refreshed successfully' })
+  @ApiResponse({ status: 200, description: 'Token refreshed successfully', type: TokenResponseDto })
   @ApiResponse({ status: 401, description: 'Invalid refresh token' })
   async refresh(
     @Body() refreshTokenDto: RefreshTokenDto,
@@ -128,7 +128,7 @@ export class AuthController {
   @HttpCode(HttpStatus.OK)
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Get current user' })
-  @ApiResponse({ status: 200, description: 'Current user data' })
+  @ApiResponse({ status: 200, description: 'Current user data', type: AuthUserDto })
   @ApiResponse({ status: 401, description: 'Unauthorized' })
   async getCurrentUser(@CurrentUser() user: JWTPayload) {
     return await this.authService.getCurrentUser(user.sub);
