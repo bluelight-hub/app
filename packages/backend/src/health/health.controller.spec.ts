@@ -393,6 +393,142 @@ describe('HealthController', () => {
       // Restore original method
       controller.check = originalCheck;
     });
+
+    it('should handle socket timeout on Internet check', async () => {
+      // Mock socket to simulate timeout
+      const Socket = require('net').Socket;
+      const mockSocket = {
+        setTimeout: jest.fn(),
+        on: jest.fn((event, callback) => {
+          if (event === 'timeout') {
+            setTimeout(() => callback(), 0);
+          }
+          return mockSocket;
+        }),
+        connect: jest.fn(),
+        destroy: jest.fn(),
+        end: jest.fn(),
+      };
+      Socket.mockReturnValue(mockSocket);
+
+      // Rufe die private Methode testTcpConnectionWithTimeout auf
+      const testConnection = controller['testTcpConnectionWithTimeout']('1.1.1.1', 53, 100);
+
+      await expect(testConnection).rejects.toThrow('Connection timeout');
+      expect(mockSocket.setTimeout).toHaveBeenCalledWith(100);
+      expect(mockSocket.destroy).toHaveBeenCalled();
+    });
+
+    it('should handle socket error on Internet check', async () => {
+      // Mock socket to simulate error
+      const Socket = require('net').Socket;
+      const mockSocket = {
+        setTimeout: jest.fn(),
+        on: jest.fn((event, callback) => {
+          if (event === 'error') {
+            setTimeout(() => callback(new Error('Network error')), 0);
+          }
+          return mockSocket;
+        }),
+        connect: jest.fn(),
+        destroy: jest.fn(),
+        end: jest.fn(),
+      };
+      Socket.mockReturnValue(mockSocket);
+
+      // Rufe die private Methode testTcpConnectionWithTimeout auf
+      const testConnection = controller['testTcpConnectionWithTimeout']('1.1.1.1', 53, 100);
+
+      await expect(testConnection).rejects.toThrow('Network error');
+      expect(mockSocket.destroy).toHaveBeenCalled();
+    });
+
+    it('should handle checkFuekwStatus catch block', async () => {
+      // Mock die isFuekwPingable Methode um einen Fehler zu werfen
+      jest.spyOn(controller as any, 'isFuekwPingable').mockRejectedValue(new Error('Test error'));
+
+      const result = await controller['checkFuekwStatus']();
+
+      expect(result.fuekw.status).toBe('down');
+      expect(result.fuekw.message).toBe('Fehler bei FüKW-Verbindungsprüfung');
+      expect(result.fuekw.error).toBe('Test error');
+    });
+
+    it('should handle prisma pingCheck failure in checkFuekwStatus', async () => {
+      // Mock prismaDb.pingCheck um einen Fehler zu werfen
+      jest
+        .spyOn(controller['prismaDb'], 'pingCheck')
+        .mockRejectedValue(new Error('DB connection failed'));
+
+      // Mock isFuekwPingable
+      jest.spyOn(controller as any, 'isFuekwPingable').mockResolvedValue(true);
+
+      const result = await controller['checkFuekwStatus']();
+
+      expect(result.fuekw.status).toBe('down');
+      expect(result.fuekw.details.dbInitialized).toBe(false);
+      expect(result.fuekw.details.networkReachable).toBe(true);
+    });
+
+    it('should handle determineConnectionStatus with prisma error', async () => {
+      // Mock prismaDb.pingCheck um einen Fehler zu werfen
+      jest.spyOn(controller['prismaDb'], 'pingCheck').mockRejectedValue(new Error('DB error'));
+
+      // Mock checkInternetConnectivity
+      jest.spyOn(controller as any, 'checkInternetConnectivity').mockResolvedValue(true);
+
+      const result = await controller['determineConnectionStatus']();
+
+      expect(result.connection_status.status).toBe('up');
+      expect(result.connection_status.details.mode).toBe('error');
+    });
+
+    it('should handle isFuekwPingable with etbService error and prisma success', async () => {
+      // Mock etbService.findAll um einen Fehler zu werfen
+      mockEtbService.findAll.mockRejectedValue(new Error('ETB service error'));
+
+      // Mock prismaDb.pingCheck um erfolgreich zu sein
+      jest.spyOn(controller['prismaDb'], 'pingCheck').mockResolvedValue({
+        database: { status: 'up' },
+      });
+
+      const result = await controller['isFuekwPingable']();
+
+      // When etbService fails, it returns false immediately without checking prisma
+      expect(result).toBe(false);
+    });
+
+    it('should handle isFuekwPingable with etbService success and prisma error', async () => {
+      // Mock etbService.findAll um erfolgreich zu sein
+      mockEtbService.findAll.mockResolvedValue({
+        items: [],
+        pagination: {
+          currentPage: 1,
+          itemsPerPage: 1,
+          totalItems: 0,
+          totalPages: 0,
+          hasNextPage: false,
+          hasPreviousPage: false,
+        },
+      });
+
+      // Mock prismaDb.pingCheck um einen Fehler zu werfen
+      jest.spyOn(controller['prismaDb'], 'pingCheck').mockRejectedValue(new Error('Prisma error'));
+
+      const result = await controller['isFuekwPingable']();
+
+      expect(result).toBe(false);
+    });
+
+    it('should handle isFuekwPingable with both services failing', async () => {
+      // Mock etbService.findAll um einen Fehler zu werfen
+      mockEtbService.findAll.mockRejectedValue(new Error('ETB service error'));
+
+      // Mock prismaDb.pingCheck wird auch fehlschlagen (nicht aufgerufen wegen frühem return)
+      const result = await controller['isFuekwPingable']();
+
+      expect(result).toBe(false);
+    });
   });
 
   describe('specialized health endpoints', () => {

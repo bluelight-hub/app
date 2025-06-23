@@ -251,6 +251,28 @@ describe('SeedImportService', () => {
       expect(result.errors.length).toBeGreaterThan(0);
     });
 
+    it('sollte Validierungsfehler mit Warnungen behandeln', async () => {
+      const filePath = '/test/invalid.json';
+      const invalidJson = '{ warnings present }';
+
+      (fs.readFile as jest.Mock).mockResolvedValue(invalidJson);
+
+      // Mock validation failure mit warnings
+      mockValidateSeedDataString.mockReturnValue({
+        valid: false,
+        errors: [{ code: 'STRUCTURE_ERROR', message: 'Invalid structure', severity: 'error' }],
+        warnings: [{ code: 'MINOR_ISSUE', message: 'Minor warning' }],
+        detectedFormat: 'unknown',
+        metadata: { einsaetzeCount: 0, etbEntriesCount: 0, estimatedSizeBytes: 0 },
+      });
+
+      const result = await service.importFromFile(filePath);
+
+      expect(result.success).toBe(false);
+      expect(result.errors).toContain('Invalid structure');
+      expect(result.warnings).toContain('Minor warning');
+    });
+
     it('sollte Dry-Run-Modus unterstützen', async () => {
       const filePath = '/test/path.json';
       const jsonContent = JSON.stringify(validFullSeedData);
@@ -427,6 +449,41 @@ describe('SeedImportService', () => {
 
       expect(result.warnings.some((w) => w.includes('Pre-Import SQL-Warnung'))).toBe(true);
     });
+
+    it('sollte bei strictWarnings und SQL-Fehler den Import abbrechen', async () => {
+      const dataWithSql = {
+        ...validFullSeedData,
+        preImportSetup: {
+          sqlCommands: ['INVALID SQL COMMAND'],
+        },
+      };
+
+      const filePath = '/test/path.json';
+      const jsonContent = JSON.stringify(dataWithSql);
+
+      (fs.readFile as jest.Mock).mockResolvedValue(jsonContent);
+      prismaService.$executeRawUnsafe.mockRejectedValue(new Error('SQL error'));
+
+      // Mock validation mit den SQL-Daten
+      mockValidateSeedDataString.mockReturnValue({
+        valid: true,
+        errors: [],
+        warnings: [],
+        detectedFormat: 'full',
+        data: dataWithSql,
+        metadata: {
+          schemaVersion: CURRENT_SCHEMA_VERSION,
+          einsaetzeCount: 1,
+          etbEntriesCount: 1,
+          estimatedSizeBytes: 1024,
+        },
+      });
+
+      const result = await service.importFromFile(filePath, { strictWarnings: true });
+
+      expect(result.success).toBe(false);
+      expect(result.errors.some((e) => e.includes('Pre-Import Setup fehlgeschlagen'))).toBe(true);
+    });
   });
 
   describe('Einsatz-Import', () => {
@@ -513,6 +570,92 @@ describe('SeedImportService', () => {
   });
 
   describe('ETB-Import', () => {
+    it('sollte ETB-Einträge nach laufender Nummer sortiert importieren', async () => {
+      const dataWithUnsortedEntries = {
+        ...validFullSeedData,
+        einsaetze: [
+          {
+            name: 'Test Einsatz',
+            beschreibung: 'Test',
+            etbEntries: [
+              {
+                laufendeNummer: 3,
+                kategorie: EtbKategorie.MELDUNG,
+                inhalt: 'Dritter Eintrag',
+                autorId: 'test-autor-id',
+                autorName: 'Test Autor',
+              },
+              {
+                laufendeNummer: 1,
+                kategorie: EtbKategorie.MELDUNG,
+                inhalt: 'Erster Eintrag',
+                autorId: 'test-autor-id',
+                autorName: 'Test Autor',
+              },
+              {
+                laufendeNummer: 2,
+                kategorie: EtbKategorie.MELDUNG,
+                inhalt: 'Zweiter Eintrag',
+                autorId: 'test-autor-id',
+                autorName: 'Test Autor',
+              },
+            ],
+          },
+        ],
+      };
+
+      const filePath = '/test/path.json';
+      const jsonContent = JSON.stringify(dataWithUnsortedEntries);
+
+      (fs.readFile as jest.Mock).mockResolvedValue(jsonContent);
+
+      // Mock validation mit unsortierten Daten
+      mockValidateSeedDataString.mockReturnValue({
+        valid: true,
+        errors: [],
+        warnings: [],
+        detectedFormat: 'full',
+        data: dataWithUnsortedEntries,
+        metadata: {
+          schemaVersion: CURRENT_SCHEMA_VERSION,
+          einsaetzeCount: 1,
+          etbEntriesCount: 3,
+          estimatedSizeBytes: 1024,
+        },
+      });
+
+      const createCalls: any[] = [];
+      mockTransaction.mockImplementation(async (callback) => {
+        const mockTx = {
+          einsatz: {
+            findFirst: jest.fn().mockResolvedValue(null),
+            create: jest.fn().mockResolvedValue(mockEinsatz),
+          },
+          etbEntry: {
+            findFirst: jest.fn().mockResolvedValue(null),
+            create: jest.fn().mockImplementation((data) => {
+              createCalls.push(data);
+              return mockEtbEntry;
+            }),
+          },
+          etbAttachment: { create: jest.fn() },
+        };
+        return await callback(mockTx);
+      });
+
+      errorHandlingService.executeWithErrorHandling.mockImplementation(async (fn) => {
+        return await fn();
+      });
+
+      await service.importFromFile(filePath);
+
+      // Prüfe dass Einträge in sortierter Reihenfolge erstellt wurden
+      expect(createCalls).toHaveLength(3);
+      expect(createCalls[0].data.inhalt).toBe('Erster Eintrag');
+      expect(createCalls[1].data.inhalt).toBe('Zweiter Eintrag');
+      expect(createCalls[2].data.inhalt).toBe('Dritter Eintrag');
+    });
+
     it('sollte ETB-Einträge mit Auto-Timestamps erstellen', async () => {
       const dataWithoutTimestamps = {
         ...validFullSeedData,
@@ -772,6 +915,91 @@ describe('SeedImportService', () => {
       expect(prismaService.$executeRawUnsafe).toHaveBeenCalledWith(
         'UPDATE test_table SET imported = true',
       );
+    });
+
+    it('sollte Post-Import SQL-Fehler als Warnung behandeln', async () => {
+      const dataWithCleanup = {
+        ...validFullSeedData,
+        postImportCleanup: {
+          sqlCommands: ['INVALID SQL CLEANUP COMMAND'],
+        },
+      };
+
+      const filePath = '/test/path.json';
+      const jsonContent = JSON.stringify(dataWithCleanup);
+
+      (fs.readFile as jest.Mock).mockResolvedValue(jsonContent);
+
+      // Mock validation mit cleanup-Daten
+      mockValidateSeedDataString.mockReturnValue({
+        valid: true,
+        errors: [],
+        warnings: [],
+        detectedFormat: 'full',
+        data: dataWithCleanup,
+        metadata: {
+          schemaVersion: CURRENT_SCHEMA_VERSION,
+          einsaetzeCount: 1,
+          etbEntriesCount: 1,
+          estimatedSizeBytes: 1024,
+        },
+      });
+
+      mockTransaction.mockImplementation(async (callback) => {
+        const mockTx = {
+          einsatz: {
+            findFirst: jest.fn().mockResolvedValue(null),
+            create: jest.fn().mockResolvedValue(mockEinsatz),
+          },
+          etbEntry: {
+            findFirst: jest.fn().mockResolvedValue(null),
+            create: jest.fn().mockResolvedValue(mockEtbEntry),
+          },
+          etbAttachment: { create: jest.fn() },
+        };
+        return await callback(mockTx);
+      });
+
+      errorHandlingService.executeWithErrorHandling.mockImplementation(async (fn) => {
+        return await fn();
+      });
+
+      // Mock SQL error for cleanup
+      prismaService.$executeRawUnsafe.mockRejectedValue(new Error('SQL cleanup error'));
+
+      const result = await service.importFromFile(filePath);
+
+      // Import sollte erfolgreich sein, aber mit Warnung
+      expect(result.success).toBe(true);
+      expect(result.warnings.some((w) => w.includes('Post-Import SQL-Warnung'))).toBe(true);
+    });
+  });
+
+  describe('validateFile', () => {
+    it('sollte Datei erfolgreich validieren', async () => {
+      const filePath = '/test/path.json';
+      const jsonContent = JSON.stringify(validFullSeedData);
+
+      (fs.readFile as jest.Mock).mockResolvedValue(jsonContent);
+
+      const result = await service.validateFile(filePath);
+
+      expect(result.valid).toBe(true);
+      expect(result.errors).toHaveLength(0);
+    });
+
+    it('sollte Fehler beim Lesen der Datei behandeln', async () => {
+      const filePath = '/nonexistent/path.json';
+      const error = new Error('ENOENT: no such file or directory');
+
+      (fs.readFile as jest.Mock).mockRejectedValue(error);
+
+      const result = await service.validateFile(filePath);
+
+      expect(result.valid).toBe(false);
+      expect(result.errors).toHaveLength(1);
+      expect(result.errors[0].code).toBe('FILE_READ_ERROR');
+      expect(result.errors[0].message).toContain('Datei konnte nicht gelesen werden');
     });
   });
 

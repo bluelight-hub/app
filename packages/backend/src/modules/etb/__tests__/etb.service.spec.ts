@@ -221,6 +221,87 @@ describe('EtbService', () => {
       });
       expect(mockLogger.info).toHaveBeenCalled();
     });
+
+    it('sollte einen ETB-Eintrag ohne userName erstellen und userId als Fallback verwenden', async () => {
+      // Arrange
+      const createEtbDto: CreateEtbDto = {
+        timestampEreignis: new Date().toISOString(),
+        kategorie: EtbKategorie.MELDUNG,
+        inhalt: 'Test Inhalt',
+      };
+
+      const mockCreatedEntry = createMockEtbEntry({
+        kategorie: createEtbDto.kategorie,
+        inhalt: createEtbDto.inhalt,
+        autorId: 'user-id',
+        autorName: 'user-id', // Fallback zu userId
+      });
+
+      mockPrismaService.etbEntry.aggregate.mockResolvedValue({
+        _max: {
+          laufendeNummer: 5,
+        },
+      });
+
+      mockPrismaService.etbEntry.create.mockResolvedValue(mockCreatedEntry);
+
+      // Act
+      const result = await service.createEintrag(
+        createEtbDto,
+        'user-id',
+        undefined, // kein userName
+        'Benutzer Rolle',
+      );
+
+      // Assert
+      expect(result).toEqual(mockCreatedEntry);
+      expect(mockPrismaService.etbEntry.create).toHaveBeenCalledWith({
+        data: expect.objectContaining({
+          autorId: 'user-id',
+          autorName: 'user-id', // Sollte userId als Fallback verwenden
+          autorRolle: 'Benutzer Rolle',
+        }),
+      });
+    });
+
+    it('sollte einen ETB-Eintrag ohne userRole erstellen', async () => {
+      // Arrange
+      const createEtbDto: CreateEtbDto = {
+        timestampEreignis: new Date().toISOString(),
+        kategorie: EtbKategorie.MELDUNG,
+        inhalt: 'Test Inhalt',
+      };
+
+      const mockCreatedEntry = createMockEtbEntry({
+        kategorie: createEtbDto.kategorie,
+        inhalt: createEtbDto.inhalt,
+        autorRolle: undefined,
+      });
+
+      mockPrismaService.etbEntry.aggregate.mockResolvedValue({
+        _max: {
+          laufendeNummer: 5,
+        },
+      });
+
+      mockPrismaService.etbEntry.create.mockResolvedValue(mockCreatedEntry);
+
+      // Act
+      const result = await service.createEintrag(
+        createEtbDto,
+        'user-id',
+        'User Name',
+        undefined, // kein userRole
+      );
+
+      // Assert
+      expect(result).toEqual(mockCreatedEntry);
+      expect(mockPrismaService.etbEntry.create).toHaveBeenCalledWith({
+        data: expect.objectContaining({
+          autorRolle: undefined,
+        }),
+      });
+    });
   });
 
   describe('findAll', () => {
@@ -1089,6 +1170,101 @@ describe('EtbService', () => {
 
       // Assert
       expect(createCalledWithOriginalValues).toBe(true);
+    });
+
+    it('sollte alle optionalen Felder mit Originalwerten füllen', async () => {
+      // Arrange
+      const originalId = 'original-id';
+      const userId = 'user-id';
+      const mockOriginalEntry = createMockEtbEntry({
+        id: originalId,
+        kategorie: EtbKategorie.MELDUNG,
+        inhalt: 'Original Inhalt',
+        referenzPatientId: 'patient-123',
+        referenzEinsatzmittelId: 'einsatzmittel-456',
+        timestampEreignis: new Date('2023-01-01'),
+      });
+      const mockNewEntry = createMockEtbEntry({ id: 'new-id' });
+
+      // Minimales DTO mit nur required Feld
+      const minimalDto: UeberschreibeEtbDto = {
+        inhalt: 'Neuer Inhalt',
+        // alle anderen Felder fehlen absichtlich
+      };
+
+      mockPrismaService.etbEntry.findUnique.mockResolvedValue(mockOriginalEntry);
+      mockPrismaService.etbEntry.aggregate.mockResolvedValue({
+        _max: { laufendeNummer: 1 },
+      });
+
+      let createCalledWithOriginalValues = false;
+
+      mockPrismaService.$transaction.mockImplementation(async (callback) => {
+        const mockTx = {
+          etbEntry: {
+            update: jest.fn().mockResolvedValue(mockOriginalEntry),
+            create: jest.fn().mockImplementation((params) => {
+              // kategorie sollte Original verwenden da nicht im DTO
+              expect(params.data.kategorie).toBe(mockOriginalEntry.kategorie);
+              // timestampEreignis sollte Original verwenden da nicht im DTO
+              expect(params.data.timestampEreignis).toBe(mockOriginalEntry.timestampEreignis);
+              // referenzPatientId sollte Original verwenden
+              expect(params.data.referenzPatientId).toBe(mockOriginalEntry.referenzPatientId);
+              // referenzEinsatzmittelId sollte Original verwenden
+              expect(params.data.referenzEinsatzmittelId).toBe(
+                mockOriginalEntry.referenzEinsatzmittelId,
+              );
+              // inhalt sollte neuen Wert verwenden
+              expect(params.data.inhalt).toBe(minimalDto.inhalt);
+              createCalledWithOriginalValues = true;
+              return mockNewEntry;
+            }),
+          },
+        };
+        return await callback(mockTx);
+      });
+
+      // Act
+      await service.ueberschreibeEintrag(originalId, minimalDto, userId);
+
+      // Assert
+      expect(createCalledWithOriginalValues).toBe(true);
+    });
+
+    it('sollte userName und userRole undefined behandeln', async () => {
+      // Arrange
+      const originalId = 'original-id';
+      const userId = 'user-id';
+      const mockOriginalEntry = createMockEtbEntry({ id: originalId });
+      const mockNewEntry = createMockEtbEntry({ id: 'new-id' });
+
+      mockPrismaService.etbEntry.findUnique.mockResolvedValue(mockOriginalEntry);
+      mockPrismaService.etbEntry.aggregate.mockResolvedValue({
+        _max: { laufendeNummer: 1 },
+      });
+
+      let createCalledWithUndefinedValues = false;
+
+      mockPrismaService.$transaction.mockImplementation(async (callback) => {
+        const mockTx = {
+          etbEntry: {
+            update: jest.fn().mockResolvedValue(mockOriginalEntry),
+            create: jest.fn().mockImplementation((params) => {
+              expect(params.data.autorName).toBeUndefined();
+              expect(params.data.autorRolle).toBeUndefined();
+              createCalledWithUndefinedValues = true;
+              return mockNewEntry;
+            }),
+          },
+        };
+        return await callback(mockTx);
+      });
+
+      // Act - ohne userName und userRole
+      await service.ueberschreibeEintrag(originalId, ueberschreibeDto, userId);
+
+      // Assert
+      expect(createCalledWithUndefinedValues).toBe(true);
     });
   });
 
