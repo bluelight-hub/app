@@ -5,7 +5,7 @@
 :
 
 == Status
-In Prüfung (Stand: 2025-03-23)
+Akzeptiert (Stand: 2025-06-25)
 
 == Kontext
 Das Bluelight-Hub-System benötigt einen Authentifizierungsmechanismus, der sowohl in vollständig verbundenen als auch in lokalen Verbindungsszenarien funktioniert. Die Lösung muss sicher, skalierbar und mit dem Verbindungskonzept kompatibel sein.
@@ -15,3 +15,114 @@ Das Bluelight-Hub-System benötigt einen Authentifizierungsmechanismus, der sowo
 . *Basic Authentication*: Einfache HTTP-Authentifizierung mit Benutzername und Passwort.
 . *OAuth 2.0 / OpenID Connect*: Standardisiertes Protokoll für Authentifizierung und Autorisierung.
 . *JWT (JSON Web Tokens)*: Statuslose, token-basierte Authentifizierung.
+
+== Bewertung der Optionen
+
+=== Option 1: Session-basierte Authentifizierung
+* ✅ *Vorteile*:
+  ** Bewährte und gut verstandene Technologie
+  ** Einfache Session-Invalidierung möglich
+  ** Volle Kontrolle über aktive Sessions
+* ❌ *Nachteile*:
+  ** Erfordert Session-Storage (Redis/Datenbank) für Skalierung
+  ** Nicht für Offline-Szenarien geeignet
+  ** Zusätzliche Infrastruktur-Komplexität bei verteilten Systemen
+  ** Performance-Overhead durch Session-Lookups
+
+=== Option 2: Basic Authentication
+* ✅ *Vorteile*:
+  ** Sehr einfache Implementierung
+  ** Keine Token-Verwaltung notwendig
+  ** Funktioniert in allen HTTP-Clients
+* ❌ *Nachteile*:
+  ** Credentials werden bei jeder Anfrage übertragen
+  ** Keine eingebaute Logout-Funktionalität
+  ** Erhöhtes Sicherheitsrisiko bei Kompromittierung
+  ** Nicht für moderne Web-Anwendungen geeignet
+
+=== Option 3: OAuth 2.0 / OpenID Connect
+* ✅ *Vorteile*:
+  ** Industriestandard für Authentifizierung
+  ** Unterstützt Third-Party-Logins
+  ** Gut für föderierte Systeme
+  ** Hohe Sicherheit durch standardisierte Flows
+* ❌ *Nachteile*:
+  ** Überkomplex für unser Self-Hosted-Szenario
+  ** Erfordert zusätzliche Infrastruktur (Authorization Server)
+  ** Nicht notwendig ohne externe Identity Provider
+  ** Erhöhte Implementierungskomplexität
+
+=== Option 4: JWT (JSON Web Tokens)
+* ✅ *Vorteile*:
+  ** Stateless - keine Server-seitige Session-Verwaltung nötig
+  ** Funktioniert in Offline-Szenarien (lokale Verbindungen)
+  ** Skaliert horizontal ohne zusätzliche Infrastruktur
+  ** Kann zusätzliche Claims für Autorisierung enthalten
+  ** Unterstützt Token-Rotation für erhöhte Sicherheit
+* ❌ *Nachteile*:
+  ** Token können nicht vor Ablauf invalidiert werden
+  ** Größere Payload als Session-IDs
+  ** Erfordert sorgfältige Implementierung der Token-Rotation
+  ** Komplexität bei der Verwaltung von Refresh Tokens
+
+== Entscheidung
+Wir haben uns für *JWT (JSON Web Tokens)* in Kombination mit einer hybriden Session-Verwaltung entschieden.
+
+=== Implementierungsdetails
+
+==== Token-Strategie
+* *Access Token*: Kurze Gültigkeit von 15 Minuten für erhöhte Sicherheit
+* *Refresh Token*: 7 Tage Gültigkeit für komfortable Nutzung
+* Beide Token werden als httpOnly-Cookies gespeichert
+
+==== Sicherheitsmaßnahmen
+* *Cookie-Konfiguration*:
+  ** `httpOnly`: Verhindert JavaScript-Zugriff
+  ** `secure`: Nur über HTTPS übertragen
+  ** `SameSite=Strict`: Schutz vor CSRF-Angriffen
+* *Security Headers* (via Helmet):
+  ** HSTS (HTTP Strict Transport Security)
+  ** CSP (Content Security Policy)
+  ** X-Frame-Options
+  ** X-Content-Type-Options
+* *Account-Sperrung*: Nach 5 fehlgeschlagenen Anmeldeversuchen
+
+==== Session-Management
+* Hybride Lösung: JWT für Stateless-Authentifizierung + Datenbank-Sessions für Tracking
+* Session-Tabelle speichert:
+  ** Aktive Refresh Tokens
+  ** Device-Informationen
+  ** IP-Adressen
+  ** Letzte Aktivität
+* Ermöglicht Session-Invalidierung und Multi-Device-Management
+
+=== Begründung
+. *Skalierbarkeit*: JWT ermöglicht horizontale Skalierung ohne zentrale Session-Storage
+. *Offline-Fähigkeit*: Token können ohne Verbindung zum Server validiert werden (wichtig für lokale Verbindungen)
+. *Sicherheit*: Kurze Access-Token-Laufzeit und httpOnly-Cookies minimieren Risiken
+. *Flexibilität*: Refresh-Token-Mechanismus erlaubt sowohl Sicherheit als auch Benutzerfreundlichkeit
+. *Compliance*: Session-Tracking erfüllt Anforderungen für Audit-Trails
+
+== Konsequenzen
+
+=== Positive Konsequenzen
+* *Hohe Sicherheit*: Mehrschichtige Sicherheitsmaßnahmen schützen vor gängigen Angriffen
+* *Gute Performance*: Keine Server-seitigen Session-Lookups für jede Anfrage erforderlich
+* *Einfache Skalierung*: Neue Server können ohne Session-Synchronisation hinzugefügt werden
+* *Multi-Device-Support*: Benutzer können sich auf mehreren Geräten gleichzeitig anmelden
+* *Granulare Kontrolle*: Einzelne Sessions können gezielt invalidiert werden
+* *Compliance-Ready*: Vollständiges Audit-Trail für Login-Aktivitäten
+
+=== Negative Konsequenzen
+* *Komplexität*: Hybrid-Ansatz erhöht die Implementierungskomplexität
+* *Token-Rotation*: Regelmäßige Token-Erneuerung erfordert zusätzliche Logik
+* *Speicherbedarf*: Session-Tabelle benötigt Datenbank-Speicher
+* *Keine Echtzeit-Revokation*: Access Tokens können bis zum Ablauf nicht invalidiert werden
+* *Client-Komplexität*: Frontend muss Token-Refresh-Logik implementieren
+
+=== Mitigationsstrategien
+* Verwendung von bewährten Bibliotheken (Passport.js, jsonwebtoken)
+* Automatisierte Token-Refresh-Mechanismen im Frontend
+* Regelmäßige Bereinigung abgelaufener Sessions
+* Monitoring und Alerting für verdächtige Login-Aktivitäten
+* Dokumentation der Sicherheits-Best-Practices für Entwickler
