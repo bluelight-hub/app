@@ -359,6 +359,222 @@ sequenceDiagram
 * *Datenschutz*: Verschlüsselung sensibler Daten in Rest und während der Übertragung
 * *Auditierung*: Logging aller sicherheitsrelevanten Ereignisse für spätere Analyse
 
+==== Admin-Authentifizierung und Sicherheit
+
+Das Bluelight-Hub-System implementiert ein umfassendes Sicherheitskonzept für die Authentifizierung und Autorisierung von Administratoren. Die Implementierung basiert auf modernen Sicherheitsstandards und -praktiken, die in mehreren Architekturentscheidungen (ADRs) dokumentiert sind.
+
+===== JWT-basierte Authentifizierung
+
+Das System nutzt JSON Web Tokens (JWT) für die Authentifizierung, wie in <<../adr/007-auth-refresh-tokens.adoc>> dokumentiert. Die JWT-Implementierung bietet:
+
+* *Zugriffstokens*: Kurzlebige Tokens (15 Minuten Gültigkeit) für API-Zugriffe
+* *Refresh-Tokens*: Langlebige Tokens (7 Tage Gültigkeit) für Token-Erneuerung
+* *Token-Rotation*: Automatische Rotation von Refresh-Tokens bei jeder Verwendung
+* *Sichere Speicherung*: Zugriffstokens im Memory, Refresh-Tokens in HttpOnly-Cookies
+
+[source,typescript]
+----
+// Token-Konfiguration
+export const JWT_CONFIG = {
+  access: {
+    secret: process.env.JWT_SECRET,
+    expiresIn: '15m',
+  },
+  refresh: {
+    secret: process.env.JWT_REFRESH_SECRET,
+    expiresIn: '7d',
+  }
+};
+----
+
+===== Session-Management
+
+Die Session-Verwaltung kombiniert die Vorteile von JWT mit server-seitiger Kontrolle:
+
+* *Datenbank-Tracking*: Alle aktiven Sessions werden in der Datenbank verfolgt
+* *Session-Widerruf*: Möglichkeit, einzelne oder alle Sessions eines Benutzers zu beenden
+* *Geräte-Identifikation*: User-Agent und IP-Adresse werden für Session-Tracking gespeichert
+* *Session-Limits*: Konfigurierbare Limits für gleichzeitige Sessions pro Benutzer
+
+[source,typescript]
+----
+// Session-Schema (Prisma)
+model Session {
+  id            String   @id @default(nanoid())
+  userId        String
+  refreshToken  String   @unique
+  userAgent     String?
+  ipAddress     String?
+  lastActivity  DateTime @default(now())
+  expiresAt     DateTime
+  createdAt     DateTime @default(now())
+  
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+----
+
+===== Sicherheitsheader
+
+Das System implementiert umfassende Sicherheitsheader, wie in <<../adr/010-security-headers.adoc>> spezifiziert:
+
+*Helmet.js Integration*:
+[source,typescript]
+----
+app.use(helmet({
+  contentSecurityPolicy: {
+    directives: {
+      defaultSrc: ["'self'"],
+      scriptSrc: ["'self'", "'unsafe-inline'", "'unsafe-eval'"],
+      styleSrc: ["'self'", "'unsafe-inline'"],
+      imgSrc: ["'self'", "data:", "https:"],
+      connectSrc: ["'self'", "ws:", "wss:"],
+      fontSrc: ["'self'"],
+      objectSrc: ["'none'"],
+      mediaSrc: ["'self'"],
+      frameSrc: ["'none'"],
+    },
+  },
+  hsts: {
+    maxAge: 31536000,
+    includeSubDomains: true,
+    preload: true,
+  },
+}));
+----
+
+*Zusätzliche Sicherheitsheader*:
+* `X-Content-Type-Options: nosniff` - Verhindert MIME-Type-Sniffing
+* `X-Frame-Options: DENY` - Schutz vor Clickjacking
+* `X-XSS-Protection: 1; mode=block` - XSS-Schutz (Legacy-Browser)
+* `Referrer-Policy: strict-origin-when-cross-origin` - Kontrollierte Referrer-Informationen
+* `Permissions-Policy` - Einschränkung von Browser-Features
+
+===== Account-Lockout-Mechanismus
+
+Der Account-Lockout-Mechanismus schützt vor Brute-Force-Angriffen, wie in <<../adr/011-account-lockout.adoc>> dokumentiert:
+
+* *Progressive Sperrung*: Nach 5 fehlgeschlagenen Anmeldeversuchen
+* *Zeitbasierte Entsperrung*: Automatische Entsperrung nach 15 Minuten
+* *Admin-Override*: Super-Admins können Accounts manuell entsperren
+* *Audit-Logging*: Alle Anmeldeversuche werden protokolliert
+
+[source,typescript]
+----
+// Lockout-Konfiguration
+export const LOCKOUT_CONFIG = {
+  maxAttempts: 5,
+  lockoutDurationMinutes: 15,
+  resetAttemptsAfterMinutes: 60,
+};
+
+// User-Modell Erweiterung
+model User {
+  // ... andere Felder
+  failedLoginAttempts  Int      @default(0)
+  lastFailedLogin      DateTime?
+  lockedUntil          DateTime?
+}
+----
+
+===== Cookie-Sicherheitskonfiguration
+
+Refresh-Tokens werden in sicheren HttpOnly-Cookies gespeichert:
+
+[source,typescript]
+----
+// Cookie-Konfiguration
+export const COOKIE_CONFIG = {
+  httpOnly: true,          // Kein JavaScript-Zugriff
+  secure: true,            // Nur über HTTPS (in Produktion)
+  sameSite: 'strict',      // CSRF-Schutz
+  path: '/api/auth',       // Eingeschränkter Pfad
+  maxAge: 7 * 24 * 60 * 60 * 1000, // 7 Tage
+};
+----
+
+===== Refresh-Token-Strategie
+
+Die Refresh-Token-Strategie bietet Balance zwischen Sicherheit und Benutzerfreundlichkeit:
+
+* *Token-Rotation*: Jeder Refresh generiert neue Access- und Refresh-Tokens
+* *Reuse-Detection*: Verwendung alter Refresh-Tokens invalidiert alle Tokens einer Session
+* *Graceful Expiration*: Frontend erkennt ablaufende Tokens und erneuert sie automatisch
+* *Offline-Support*: Tokens bleiben für Offline-Szenarien gültig
+
+[source,typescript]
+----
+// Token-Refresh-Flow
+async refreshTokens(refreshToken: string) {
+  // 1. Validiere Refresh-Token
+  const session = await this.validateRefreshToken(refreshToken);
+  
+  // 2. Prüfe auf Token-Reuse
+  if (session.used) {
+    await this.revokeAllUserSessions(session.userId);
+    throw new UnauthorizedException('Token reuse detected');
+  }
+  
+  // 3. Generiere neue Tokens
+  const newTokens = await this.generateTokenPair(session.userId);
+  
+  // 4. Rotiere Session
+  await this.rotateSession(session.id, newTokens.refreshToken);
+  
+  return newTokens;
+}
+----
+
+===== Datenbank-Session-Tracking
+
+Alle aktiven Sessions werden in der Datenbank verfolgt für:
+
+* *Zentrale Kontrolle*: Administratoren können alle aktiven Sessions einsehen
+* *Geräte-Management*: Benutzer können ihre aktiven Geräte verwalten
+* *Sicherheits-Audits*: Vollständige Historie aller Anmeldungen
+* *Anomalie-Erkennung*: Ungewöhnliche Anmeldemuster können identifiziert werden
+
+[source,typescript]
+----
+// Session-Management-Service
+@Injectable()
+export class SessionService {
+  async getUserSessions(userId: string): Promise<SessionInfo[]> {
+    return this.prisma.session.findMany({
+      where: { 
+        userId,
+        expiresAt: { gt: new Date() }
+      },
+      orderBy: { lastActivity: 'desc' },
+    });
+  }
+  
+  async revokeSession(sessionId: string): Promise<void> {
+    await this.prisma.session.delete({
+      where: { id: sessionId }
+    });
+  }
+  
+  async revokeAllUserSessions(userId: string): Promise<void> {
+    await this.prisma.session.deleteMany({
+      where: { userId }
+    });
+  }
+}
+----
+
+===== Sicherheits-Best-Practices
+
+Das System implementiert weitere Sicherheitsmaßnahmen:
+
+* *Rate Limiting*: API-Endpunkte sind gegen Überlastung geschützt
+* *Input Validation*: Strikte Validierung aller Eingaben mit class-validator
+* *SQL Injection Schutz*: Prisma ORM mit parametrisierten Abfragen
+* *XSS-Prävention*: Content Security Policy und Output-Encoding
+* *CORS-Konfiguration*: Restriktive Cross-Origin-Policies
+* *Verschlüsselung*: Sensible Daten werden mit bcrypt (Passwörter) verschlüsselt
+
+Diese umfassenden Sicherheitsmaßnahmen gewährleisten, dass das Admin-Panel und die gesamte Anwendung gegen moderne Bedrohungen geschützt sind und gleichzeitig eine benutzerfreundliche Authentifizierungserfahrung bieten.
+
 ==== Fehlerbehandlung und Resilience
 
 * Graceful Degradation bei Teilausfällen
