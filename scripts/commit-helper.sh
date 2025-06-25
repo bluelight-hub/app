@@ -37,8 +37,15 @@ echo "  7) 💄 Style (UI/CSS Änderungen)"
 echo "  8) ⚡ Performance (Performance-Verbesserung)"
 echo "  9) 🚑 Hotfix (kritischer Hotfix)"
 echo " 10) 💥 Breaking (Breaking Change)"
+echo " 11) 🧹 Cleanup (Code-Aufräumarbeiten)"
+echo " 12) 🔒 Security (Sicherheitsverbesserung)"
+echo " 13) 📦 Deps (Dependencies aktualisiert)"
+echo " 14) 🗑 Remove (Code/Feature entfernt)"
+echo " 15) 🛠 Fix (Allgemeine Fixes)"
+echo " 16) 🚀 Deploy (Deployment-bezogen)"
+echo " 17) 🎉 Initial (Initial commit)"
 
-read -p "Auswahl (1-10): " choice
+read -p "Auswahl (1-17): " choice
 
 case $choice in
     1) emoji="✨"; type="Feature" ;;
@@ -51,6 +58,13 @@ case $choice in
     8) emoji="⚡"; type="Performance" ;;
     9) emoji="🚑"; type="Hotfix" ;;
     10) emoji="💥"; type="Breaking" ;;
+    11) emoji="🧹"; type="Cleanup" ;;
+    12) emoji="🔒"; type="Security" ;;
+    13) emoji="📦"; type="Deps" ;;
+    14) emoji="🗑"; type="Remove" ;;
+    15) emoji="🛠"; type="Fix" ;;
+    16) emoji="🚀"; type="Deploy" ;;
+    17) emoji="🎉"; type="Initial" ;;
     *) echo "❌ Ungültige Auswahl!"; exit 1 ;;
 esac
 
