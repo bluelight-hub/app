@@ -1,4 +1,4 @@
-import { Button, Card, Form, Input, message } from 'antd';
+import { App, Button, Card, Form, Input } from 'antd';
 import React, { useState } from 'react';
 import { PiEnvelope, PiLockKey } from 'react-icons/pi';
 import { useLocation, useNavigate } from 'react-router-dom';
@@ -15,6 +15,7 @@ interface LoginFormValues {
  * Bietet ein einfaches Anmeldesystem mit E-Mail und Passwort
  */
 const LoginForm: React.FC = () => {
+  const { message } = App.useApp();
   const [loading, setLoading] = useState(false);
   const { login } = useAuth();
   const navigate = useNavigate();

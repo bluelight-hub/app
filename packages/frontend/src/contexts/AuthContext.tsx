@@ -28,36 +28,34 @@ interface AuthProviderProps {
  * This is now a thin wrapper around the Zustand auth store for backward compatibility.
  */
 export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
-  // Use a single subscription to avoid multiple re-renders
-  const authState = useAuthStore((state) => ({
-    user: state.user,
-    isAuthenticated: state.isAuthenticated,
-    isLoading: state.isLoading,
-    login: state.login,
-    logout: state.logout,
-    hasRole: state.hasRole,
-    hasPermission: state.hasPermission,
-    isAdmin: state.isAdmin,
-    checkAuthStatus: state.checkAuthStatus,
-  }));
+  // Use individual selectors to prevent unnecessary re-renders
+  const user = useAuthStore((state) => state.user);
+  const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
+  const isLoading = useAuthStore((state) => state.isLoading);
+  const login = useAuthStore((state) => state.login);
+  const logout = useAuthStore((state) => state.logout);
+  const hasRole = useAuthStore((state) => state.hasRole);
+  const hasPermission = useAuthStore((state) => state.hasPermission);
+  const isAdmin = useAuthStore((state) => state.isAdmin);
+  const checkAuthStatus = useAuthStore((state) => state.checkAuthStatus);
 
   useEffect(() => {
     // Check auth status on mount
-    authState.checkAuthStatus();
-  }, []); // Empty dependency array since checkAuthStatus is stable
+    checkAuthStatus();
+  }, [checkAuthStatus]);
 
   // Create the context value with the same interface as before
   const contextValue: AuthContextType = {
-    user: authState.user,
-    isAuthenticated: authState.isAuthenticated,
-    isLoading: authState.isLoading,
-    login: authState.login,
+    user,
+    isAuthenticated,
+    isLoading,
+    login,
     logout: async () => {
-      await authState.logout();
+      await logout();
     },
-    hasRole: authState.hasRole,
-    hasPermission: authState.hasPermission,
-    isAdmin: authState.isAdmin,
+    hasRole,
+    hasPermission,
+    isAdmin,
   };
 
   return <AuthContext.Provider value={contextValue}>{children}</AuthContext.Provider>;

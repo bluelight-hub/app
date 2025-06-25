@@ -75,22 +75,25 @@ const SidebarContent: React.FC<SidebarContentProps> = ({ navigation, onNavigate 
             <StatusIndicator withText />
           </div>
 
-          {/* Admin Panel Button - nur für Admins sichtbar */}
-          {isAdmin() && (
-            <div className="px-6 py-2">
+          {/* Action Buttons */}
+          {isAdmin() ? (
+            // Für Admins: Profile und Admin Panel Buttons nebeneinander
+            <div className="px-6 py-2 flex gap-2">
+              <UserProfile href="#" hideText />
               <Button
-                type="primary"
+                type="default"
                 icon={<PiShieldCheck />}
                 onClick={openAdminWindow}
-                className="w-full"
+                className="flex-1"
                 size="middle"
               >
-                Admin Panel öffnen
+                Admin Panel
               </Button>
             </div>
+          ) : (
+            // Für normale Nutzer: Nur Profile Button
+            <UserProfile href="#" />
           )}
-
-          <UserProfile href="#" />
         </div>
       </nav>
     </div>

@@ -89,9 +89,9 @@ export const useAuthStore = create<AuthStore>()(
             const response = await api.auth.authControllerLoginV1Raw({
               loginDto: { email, password },
             });
+            const data = await response.value();
 
-            if (response.raw.ok) {
-              const data: LoginResponseDto = await response.raw.json();
+            if (data) {
               logger.info('Login successful', { email });
 
               // Set user and tokens
@@ -106,16 +106,10 @@ export const useAuthStore = create<AuthStore>()(
               set({ isLoading: false });
               return { success: true };
             } else {
-              const errorData = await response.raw.json().catch(() => ({}));
-              logger.error('Login failed', {
-                status: response.raw.status,
-                error: errorData,
-              });
-
               set({ isLoading: false });
               return {
                 success: false,
-                error: errorData.message || 'Login failed',
+                error: 'No data received from server',
               };
             }
           } catch (error) {

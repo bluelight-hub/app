@@ -74,8 +74,8 @@ export class AuthService {
       },
     });
 
-    const sessionId = randomUUID();
     const jti = randomUUID();
+    const sessionId = jti; // Use jti as sessionId for consistency
 
     // Get permissions for user role from database
     const rolePermissions = await this.prisma.rolePermission.findMany({

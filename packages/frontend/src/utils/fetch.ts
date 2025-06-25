@@ -1,6 +1,6 @@
 import { Configuration } from '@bluelight-hub/shared/client';
 import { logger } from './logger';
-import { fetchWithAuth, authInterceptorMiddleware } from './authInterceptor';
+import { fetchWithAuth } from './authInterceptor';
 
 // Determine the base URL based on the environment
 export const getBaseUrl = (): string => {
@@ -23,5 +23,5 @@ export const getBaseUrl = (): string => {
 export const apiConfiguration = new Configuration({
   basePath: getBaseUrl(),
   fetchApi: fetchWithAuth,
-  middleware: [authInterceptorMiddleware],
+  // middleware: [authInterceptorMiddleware], // Already applied in fetchWithAuth
 });

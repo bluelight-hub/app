@@ -1,4 +1,4 @@
-import { Dropdown, MenuProps } from 'antd';
+import { Dropdown, MenuProps, Button } from 'antd';
 import { PiSignOut, PiUser } from 'react-icons/pi';
 import React, { useState } from 'react';
 import { useEinsatzContext } from '../../contexts/EinsatzContext';
@@ -61,18 +61,13 @@ const UserProfile: React.FC<UserProfileProps> = ({
   if (!profile) return null;
 
   return (
-    <Dropdown menu={{ items }} trigger={['click']} placement="topRight">
-      <a
-        href="#"
-        onClick={(e) => e.preventDefault()}
-        data-testid={dataTestId}
-        className="flex w-full h-12 items-center gap-x-4 px-6 py-2 text-sm/6 font-semibold text-gray-900 dark:text-gray-100 hover:bg-gray-50 dark:hover:bg-gray-800 cursor-pointer"
-      >
-        <img className="size-8 rounded-full bg-gray-50 dark:bg-gray-800" src={profile.imageUrl} alt={profile.name} />
-        <span className="sr-only">Dein Profil</span>
-        {!hideText && <span aria-hidden="true">{profile.name}</span>}
-      </a>
-    </Dropdown>
+    <div className={hideText ? '' : 'px-6 py-2'}>
+      <Dropdown menu={{ items }} trigger={['click']} placement="topRight">
+        <Button type="default" icon={<PiUser />} className="w-full" size="middle" data-testid={dataTestId}>
+          {!hideText && (profile.name || 'Profil')}
+        </Button>
+      </Dropdown>
+    </div>
   );
 };
 

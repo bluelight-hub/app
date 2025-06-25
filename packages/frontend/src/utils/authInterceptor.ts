@@ -32,10 +32,22 @@ export const authInterceptorMiddleware = {
   post: async (context: { url: string; init: RequestInit; response: Response }) => {
     const { response } = context;
 
+    // Debug: Check response status
+    logger.debug('authInterceptor: post-request', {
+      url: context.url,
+      status: response.status,
+      ok: response.ok,
+    });
+
     // Skip auth endpoints to prevent infinite loops
     const isAuthEndpoint = AUTH_ENDPOINTS.some((endpoint) => context.url.includes(endpoint));
 
     if (isAuthEndpoint) {
+      return context;
+    }
+
+    // If response is successful, return it unchanged
+    if (response.ok) {
       return context;
     }
 
@@ -108,10 +120,19 @@ export const fetchWithAuth = async (
   const preContext = await authInterceptorMiddleware.pre(context);
 
   // Make the request with credentials
-  const response = await fetch(preContext.url, {
+  const fetchOptions = {
     ...preContext.init,
-    credentials: 'include',
+    credentials: 'include' as RequestCredentials,
+  };
+
+  logger.debug('fetchWithAuth: making request', {
+    url: preContext.url,
+    method: fetchOptions.method,
+    hasAuth: !!(fetchOptions.headers as any)?.Authorization,
+    credentials: fetchOptions.credentials,
   });
+
+  const response = await fetch(preContext.url, fetchOptions);
 
   // Apply post-request middleware
   const postContext = await authInterceptorMiddleware.post({
