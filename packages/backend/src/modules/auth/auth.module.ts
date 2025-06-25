@@ -15,6 +15,7 @@ import { SessionCleanupService } from './services/session-cleanup.service';
  */
 @Module({
   imports: [
+    ConfigModule,
     PassportModule.register({ defaultStrategy: 'jwt' }),
     JwtModule.registerAsync({
       imports: [ConfigModule],
