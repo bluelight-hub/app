@@ -1,20 +1,31 @@
 import React from 'react';
 import { render, screen } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
+import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { AuthContext, AuthContextType } from '@/contexts/AuthContext';
 import ProtectedRoute from '@/components/guards/ProtectedRoute';
 import { AdminRole } from '@/config/routes';
+
+// Mock react-router-dom Outlet
+vi.mock('react-router-dom', async () => {
+  const actual = await vi.importActual<typeof import('react-router-dom')>('react-router-dom');
+  return {
+    ...actual,
+    Outlet: () => <div data-testid="protected-content">Protected Content</div>,
+    Navigate: ({ to }: { to: string }) => <div>Redirecting to {to}</div>,
+  };
+});
 
 // Mock AuthContext für Tests
 const createMockAuthContext = (overrides: Partial<AuthContextType> = {}): AuthContextType => ({
   user: null,
   isAuthenticated: false,
   isLoading: false,
-  login: jest.fn(),
-  logout: jest.fn(),
-  hasRole: jest.fn(),
-  hasPermission: jest.fn(),
-  isAdmin: jest.fn(() => false),
+  login: vi.fn(),
+  logout: vi.fn(),
+  hasRole: vi.fn(),
+  hasPermission: vi.fn(),
+  isAdmin: vi.fn(() => false),
   ...overrides,
 });
 
@@ -29,12 +40,9 @@ const TestWrapper: React.FC<{
   </MemoryRouter>
 );
 
-// Mock Outlet Component
-const MockOutlet = () => <div data-testid="protected-content">Protected Content</div>;
-
 describe('ProtectedRoute', () => {
   beforeEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
   });
 
   describe('Authentication Tests', () => {
@@ -77,9 +85,7 @@ describe('ProtectedRoute', () => {
 
       render(
         <TestWrapper authContext={authContext}>
-          <ProtectedRoute>
-            <MockOutlet />
-          </ProtectedRoute>
+          <ProtectedRoute />
         </TestWrapper>,
       );
 
@@ -93,14 +99,12 @@ describe('ProtectedRoute', () => {
         isAuthenticated: true,
         isLoading: false,
         user: { id: '1', name: 'Test User', role: 'user' } as any,
-        isAdmin: jest.fn(() => false),
+        isAdmin: vi.fn(() => false),
       });
 
       render(
         <TestWrapper authContext={authContext}>
-          <ProtectedRoute requiresAdmin={true}>
-            <MockOutlet />
-          </ProtectedRoute>
+          <ProtectedRoute requiresAdmin={true} />
         </TestWrapper>,
       );
 
@@ -113,14 +117,12 @@ describe('ProtectedRoute', () => {
         isAuthenticated: true,
         isLoading: false,
         user: { id: '1', name: 'Admin User', role: 'admin' } as any,
-        isAdmin: jest.fn(() => true),
+        isAdmin: vi.fn(() => true),
       });
 
       render(
         <TestWrapper authContext={authContext}>
-          <ProtectedRoute requiresAdmin={true}>
-            <MockOutlet />
-          </ProtectedRoute>
+          <ProtectedRoute requiresAdmin={true} />
         </TestWrapper>,
       );
 
@@ -130,7 +132,7 @@ describe('ProtectedRoute', () => {
 
   describe('Role-Based Access Tests', () => {
     it('should deny access when user does not have required role', () => {
-      const mockHasRole = jest.fn((role: string) => role !== AdminRole.SUPER_ADMIN);
+      const mockHasRole = vi.fn((role: string) => role !== AdminRole.SUPER_ADMIN);
       const authContext = createMockAuthContext({
         isAuthenticated: true,
         isLoading: false,
@@ -140,9 +142,7 @@ describe('ProtectedRoute', () => {
 
       render(
         <TestWrapper authContext={authContext}>
-          <ProtectedRoute allowedRoles={[AdminRole.SUPER_ADMIN]}>
-            <MockOutlet />
-          </ProtectedRoute>
+          <ProtectedRoute allowedRoles={[AdminRole.SUPER_ADMIN]} />
         </TestWrapper>,
       );
 
@@ -151,7 +151,7 @@ describe('ProtectedRoute', () => {
     });
 
     it('should allow access when user has one of the required roles', () => {
-      const mockHasRole = jest.fn((role: string) => [AdminRole.ADMIN, AdminRole.SUPPORT].includes(role as AdminRole));
+      const mockHasRole = vi.fn((role: string) => [AdminRole.ADMIN, AdminRole.SUPPORT].includes(role as AdminRole));
       const authContext = createMockAuthContext({
         isAuthenticated: true,
         isLoading: false,
@@ -161,9 +161,7 @@ describe('ProtectedRoute', () => {
 
       render(
         <TestWrapper authContext={authContext}>
-          <ProtectedRoute allowedRoles={[AdminRole.ADMIN, AdminRole.SUPER_ADMIN]}>
-            <MockOutlet />
-          </ProtectedRoute>
+          <ProtectedRoute allowedRoles={[AdminRole.ADMIN, AdminRole.SUPER_ADMIN]} />
         </TestWrapper>,
       );
 
@@ -180,9 +178,7 @@ describe('ProtectedRoute', () => {
 
       render(
         <TestWrapper authContext={authContext}>
-          <ProtectedRoute loadingComponent={CustomLoading}>
-            <MockOutlet />
-          </ProtectedRoute>
+          <ProtectedRoute loadingComponent={CustomLoading} />
         </TestWrapper>,
       );
 
@@ -195,14 +191,12 @@ describe('ProtectedRoute', () => {
         isAuthenticated: true,
         isLoading: false,
         user: { id: '1', name: 'User', role: 'user' } as any,
-        isAdmin: jest.fn(() => false),
+        isAdmin: vi.fn(() => false),
       });
 
       render(
         <TestWrapper authContext={authContext}>
-          <ProtectedRoute requiresAdmin={true} fallbackComponent={CustomFallback}>
-            <MockOutlet />
-          </ProtectedRoute>
+          <ProtectedRoute requiresAdmin={true} fallbackComponent={CustomFallback} />
         </TestWrapper>,
       );
 
@@ -214,14 +208,12 @@ describe('ProtectedRoute', () => {
         isAuthenticated: true,
         isLoading: false,
         user: { id: '1', name: 'User', role: 'user' } as any,
-        isAdmin: jest.fn(() => false),
+        isAdmin: vi.fn(() => false),
       });
 
       render(
         <TestWrapper authContext={authContext}>
-          <ProtectedRoute requiresAdmin={true} showAccessDenied={false}>
-            <MockOutlet />
-          </ProtectedRoute>
+          <ProtectedRoute requiresAdmin={true} showAccessDenied={false} />
         </TestWrapper>,
       );
 
@@ -235,14 +227,12 @@ describe('ProtectedRoute', () => {
         isAuthenticated: true,
         isLoading: false,
         user: { id: '1', name: 'User', role: 'user' } as any,
-        isAdmin: jest.fn(() => false),
+        isAdmin: vi.fn(() => false),
       });
 
       render(
         <TestWrapper authContext={authContext}>
-          <ProtectedRoute requiresAdmin={true} redirectPath="/custom-redirect" showAccessDenied={false}>
-            <MockOutlet />
-          </ProtectedRoute>
+          <ProtectedRoute requiresAdmin={true} redirectPath="/custom-redirect" showAccessDenied={false} />
         </TestWrapper>,
       );
 

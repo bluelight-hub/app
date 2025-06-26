@@ -2,7 +2,7 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { Request } from 'express';
 import { AuditLoggerUtil, AuditLogInput } from '../utils/audit-logger.util';
 import { AuditLogService } from '../services/audit-log.service';
-import { AuditActionType, AuditSeverity, UserRole } from '@prisma/generated/prisma/client';
+import { AuditActionType, AuditSeverity, UserRole } from '@prisma/generated/prisma/enums';
 
 // Extend Request interface for testing
 interface TestRequest extends Request {
@@ -164,6 +164,9 @@ describe('AuditLoggerUtil', () => {
       await expect(util.logAction(mockRequest as TestRequest, input)).resolves.toBeUndefined();
 
       process.env.NODE_ENV = originalEnv;
+
+      // Reset mock for next tests
+      mockAuditLogService.create.mockReset();
     });
 
     it('should throw in development when audit logging fails', async () => {
@@ -183,6 +186,9 @@ describe('AuditLoggerUtil', () => {
       );
 
       process.env.NODE_ENV = originalEnv;
+
+      // Reset mock for next tests
+      mockAuditLogService.create.mockReset();
     });
   });
 

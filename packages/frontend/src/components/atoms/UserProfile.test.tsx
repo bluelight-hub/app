@@ -73,14 +73,15 @@ describe('UserProfile', () => {
     expect(screen.getByText('Test User')).toBeInTheDocument();
   });
 
-  // Unit Test - Prüft, ob das Bild korrekt gerendert wird
-  it('should render the profile image correctly', () => {
+  // Unit Test - Prüft, ob das Profile Button korrekt gerendert wird
+  it('should render the profile button correctly', () => {
     renderWithEinsatzProvider(<UserProfile href="/profile" data-testid="user-profile" />);
 
-    const imageElement = screen.getByAltText('Test User');
-    expect(imageElement).toBeInTheDocument();
-    expect(imageElement).toHaveAttribute('src', 'test-image-url');
-    expect(imageElement).toHaveClass('rounded-full');
+    const profileButton = screen.getByTestId('user-profile');
+    expect(profileButton).toBeInTheDocument();
+    expect(profileButton).toHaveClass('ant-btn');
+    // Prüfe ob der Name angezeigt wird
+    expect(screen.getByText('Test User')).toBeInTheDocument();
   });
 
   // Unit Test - Prüft, ob onClick richtig aufgerufen wird (jetzt Dropdown)
@@ -121,8 +122,8 @@ describe('UserProfile', () => {
   it('should hide text when hideText is true', () => {
     renderWithEinsatzProvider(<UserProfile href="/profile" hideText={true} data-testid="user-profile" />);
 
-    // Bild sollte noch sichtbar sein
-    expect(screen.getByAltText('Test User')).toBeInTheDocument();
+    // Button sollte noch sichtbar sein
+    expect(screen.getByTestId('user-profile')).toBeInTheDocument();
 
     // Name sollte nicht sichtbar sein
     expect(screen.queryByText('Test User')).not.toBeInTheDocument();

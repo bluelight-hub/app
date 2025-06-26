@@ -53,7 +53,7 @@ export class AuditLoggerUtil {
         { ...input.oldValues, ...input.newValues },
         input.resource,
       );
-      const compliance = [...(input.compliance || []), ...autoComplianceTags];
+      const compliance = [...new Set([...(input.compliance || []), ...autoComplianceTags])];
 
       // Sensible Daten sanitisieren
       const sanitizedOldValues = input.oldValues

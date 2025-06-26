@@ -1,13 +1,14 @@
+import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { renderHook } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
 import { useActiveNavigation, useNavigationUtils } from '@/hooks/useActiveNavigation';
 import { RouteUtils } from '@/config/routes';
 
 // Mock RouteUtils
-jest.mock('@/config/routes', () => ({
+vi.mock('@/config/routes', () => ({
   RouteUtils: {
-    findByPath: jest.fn(),
-    getNavigationRoutes: jest.fn(),
+    findByPath: vi.fn(),
+    getNavigationRoutes: vi.fn(),
   },
 }));
 
@@ -19,7 +20,7 @@ const createWrapper = (initialEntries: string[] = ['/admin/users']) => {
 
 describe('useActiveNavigation', () => {
   beforeEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
   });
 
   describe('isExactActive', () => {
@@ -124,7 +125,7 @@ describe('useActiveNavigation', () => {
         title: 'Users',
       };
 
-      (RouteUtils.findByPath as jest.Mock).mockReturnValue(mockRoute);
+      (RouteUtils.findByPath as any).mockReturnValue(mockRoute);
 
       const wrapper = createWrapper(['/admin/users']);
       const { result } = renderHook(() => useActiveNavigation(), { wrapper });
@@ -157,7 +158,7 @@ describe('useActiveNavigation', () => {
 
 describe('useNavigationUtils', () => {
   beforeEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
   });
 
   describe('isParentRoute', () => {
@@ -180,7 +181,7 @@ describe('useNavigationUtils', () => {
 
   describe('getPathSegments', () => {
     it('should generate path segments correctly', () => {
-      (RouteUtils.findByPath as jest.Mock).mockImplementation((path: string) => {
+      (RouteUtils.findByPath as any).mockImplementation((path: string) => {
         const routes: Record<string, any> = {
           '/admin': { title: 'Admin Dashboard' },
           '/admin/users': { title: 'User Management' },
@@ -225,7 +226,7 @@ describe('useNavigationUtils', () => {
         { path: '/app/dashboard', showInNavigation: true, title: 'App Dashboard' },
       ];
 
-      (RouteUtils.getNavigationRoutes as jest.Mock).mockReturnValue(mockRoutes);
+      (RouteUtils.getNavigationRoutes as any).mockReturnValue(mockRoutes);
 
       const wrapper = createWrapper(['/admin']);
       const { result } = renderHook(() => useNavigationUtils(), { wrapper });
@@ -240,9 +241,7 @@ describe('useNavigationUtils', () => {
   describe('getParentRoute', () => {
     it('should return parent route', () => {
       const mockRoute = { path: '/admin/users', title: 'Users' };
-      (RouteUtils.findByPath as jest.Mock).mockImplementation((path: string) =>
-        path === '/admin/users' ? mockRoute : null,
-      );
+      (RouteUtils.findByPath as any).mockImplementation((path: string) => (path === '/admin/users' ? mockRoute : null));
 
       const wrapper = createWrapper(['/admin/users/details']);
       const { result } = renderHook(() => useNavigationUtils(), { wrapper });

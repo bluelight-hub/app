@@ -3,7 +3,18 @@ import { BadRequestException, NotFoundException } from '@nestjs/common';
 import { AuditLogService } from '../services/audit-log.service';
 import { PrismaService } from '../../../prisma/prisma.service';
 import { CreateAuditLogDto, QueryAuditLogDto } from '../dto';
-import { AuditActionType, AuditSeverity } from '@prisma/generated/prisma/client';
+import { AuditActionType, AuditSeverity } from '@prisma/generated/prisma/enums';
+
+// Mock consola logger
+jest.mock('consola', () => ({
+  __esModule: true,
+  default: {
+    debug: jest.fn(),
+    info: jest.fn(),
+    warn: jest.fn(),
+    error: jest.fn(),
+  },
+}));
 
 describe('AuditLogService', () => {
   let service: AuditLogService;
@@ -22,6 +33,9 @@ describe('AuditLogService', () => {
   };
 
   beforeEach(async () => {
+    // Reset mock for each test
+    jest.clearAllMocks();
+
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         AuditLogService,

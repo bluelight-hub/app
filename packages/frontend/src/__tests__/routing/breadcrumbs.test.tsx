@@ -1,4 +1,5 @@
 import React from 'react';
+import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
 import { AuthContext, AuthContextType } from '@/contexts/AuthContext';
@@ -6,16 +7,16 @@ import Breadcrumbs from '@/components/navigation/Breadcrumbs';
 import { RouteUtils } from '@/config/routes';
 
 // Mock RouteUtils
-jest.mock('@/config/routes', () => ({
+vi.mock('@/config/routes', () => ({
   RouteUtils: {
-    generateBreadcrumbs: jest.fn(),
+    generateBreadcrumbs: vi.fn(),
   },
 }));
 
 // Mock useAuthorization Hook
-jest.mock('@/hooks/useAuthorization', () => ({
+vi.mock('@/hooks/useAuthorization', () => ({
   useAuthorization: () => ({
-    canAccessPath: jest.fn((path: string) => path !== '/admin/restricted'),
+    canAccessPath: vi.fn((path: string) => path !== '/admin/restricted'),
   }),
 }));
 
@@ -23,11 +24,11 @@ const mockAuthContext: AuthContextType = {
   user: { id: '1', name: 'Test User', role: 'admin' } as any,
   isAuthenticated: true,
   isLoading: false,
-  login: jest.fn(),
-  logout: jest.fn(),
-  hasRole: jest.fn(),
-  hasPermission: jest.fn(),
-  isAdmin: jest.fn(() => true),
+  login: vi.fn(),
+  logout: vi.fn(),
+  hasRole: vi.fn(),
+  hasPermission: vi.fn(),
+  isAdmin: vi.fn(() => true),
 };
 
 const TestWrapper: React.FC<{
@@ -41,7 +42,7 @@ const TestWrapper: React.FC<{
 
 describe('Breadcrumbs', () => {
   beforeEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
   });
 
   it('should render breadcrumbs based on current route', () => {
@@ -50,7 +51,7 @@ describe('Breadcrumbs', () => {
       { label: 'Users', path: '/admin/users', clickable: false },
     ];
 
-    (RouteUtils.generateBreadcrumbs as jest.Mock).mockReturnValue(mockBreadcrumbs);
+    (RouteUtils.generateBreadcrumbs as any).mockReturnValue(mockBreadcrumbs);
 
     render(
       <TestWrapper>
@@ -81,7 +82,7 @@ describe('Breadcrumbs', () => {
   it('should show home icon when showHomeIcon is true', () => {
     const mockBreadcrumbs = [{ label: 'Dashboard', path: '/admin', clickable: true }];
 
-    (RouteUtils.generateBreadcrumbs as jest.Mock).mockReturnValue(mockBreadcrumbs);
+    (RouteUtils.generateBreadcrumbs as any).mockReturnValue(mockBreadcrumbs);
 
     render(
       <TestWrapper>
@@ -121,7 +122,7 @@ describe('Breadcrumbs', () => {
       { label: 'Current Page', path: '/admin/current', clickable: false },
     ];
 
-    (RouteUtils.generateBreadcrumbs as jest.Mock).mockReturnValue(mockBreadcrumbs);
+    (RouteUtils.generateBreadcrumbs as any).mockReturnValue(mockBreadcrumbs);
 
     render(
       <TestWrapper>
@@ -145,7 +146,7 @@ describe('Breadcrumbs', () => {
       { label: 'Restricted', path: '/admin/restricted', clickable: true },
     ];
 
-    (RouteUtils.generateBreadcrumbs as jest.Mock).mockReturnValue(mockBreadcrumbs);
+    (RouteUtils.generateBreadcrumbs as any).mockReturnValue(mockBreadcrumbs);
 
     render(
       <TestWrapper>
@@ -179,7 +180,7 @@ describe('Breadcrumbs', () => {
       { label: 'Users', path: '/admin/users', clickable: false },
     ];
 
-    (RouteUtils.generateBreadcrumbs as jest.Mock).mockReturnValue(mockBreadcrumbs);
+    (RouteUtils.generateBreadcrumbs as any).mockReturnValue(mockBreadcrumbs);
 
     render(
       <TestWrapper>
@@ -193,10 +194,10 @@ describe('Breadcrumbs', () => {
   });
 
   it('should call onItemClick when breadcrumb is clicked', () => {
-    const mockOnItemClick = jest.fn();
+    const mockOnItemClick = vi.fn();
     const mockBreadcrumbs = [{ label: 'Dashboard', path: '/admin', clickable: true }];
 
-    (RouteUtils.generateBreadcrumbs as jest.Mock).mockReturnValue(mockBreadcrumbs);
+    (RouteUtils.generateBreadcrumbs as any).mockReturnValue(mockBreadcrumbs);
 
     render(
       <TestWrapper>
@@ -204,7 +205,8 @@ describe('Breadcrumbs', () => {
       </TestWrapper>,
     );
 
-    const dashboardLink = screen.getByRole('link', { name: /dashboard/i });
+    // Finde den Link durch Text
+    const dashboardLink = screen.getByText('Dashboard');
     dashboardLink.click();
 
     expect(mockOnItemClick).toHaveBeenCalledWith(

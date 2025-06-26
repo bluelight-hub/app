@@ -103,10 +103,8 @@ describe('useAuthStore', () => {
   describe('login', () => {
     it('should handle successful login', async () => {
       vi.mocked(api.auth.authControllerLoginV1Raw).mockResolvedValue({
-        raw: {
-          ok: true,
-          json: async () => mockLoginResponse,
-        },
+        raw: new Response(),
+        value: async () => mockLoginResponse,
       } as any);
 
       const { result } = renderHook(() => useAuthStore());
@@ -124,13 +122,9 @@ describe('useAuthStore', () => {
     });
 
     it('should handle login failure', async () => {
-      vi.mocked(api.auth.authControllerLoginV1Raw).mockResolvedValue({
-        raw: {
-          ok: false,
-          status: 401,
-          json: async () => ({ message: 'Invalid credentials' }),
-        },
-      } as any);
+      vi.mocked(api.auth.authControllerLoginV1Raw).mockRejectedValue(
+        new Error('Invalid credentials'),
+      );
 
       const { result } = renderHook(() => useAuthStore());
 
@@ -212,10 +206,8 @@ describe('useAuthStore', () => {
       };
 
       vi.mocked(api.auth.authControllerRefreshTokenV1Raw).mockResolvedValue({
-        raw: {
-          ok: true,
-          json: async () => refreshResponse,
-        },
+        raw: { ok: true } as Response,
+        value: async () => refreshResponse,
       } as any);
 
       useAuthStore.setState({
@@ -243,10 +235,8 @@ describe('useAuthStore', () => {
             setTimeout(
               () =>
                 resolve({
-                  raw: {
-                    ok: true,
-                    json: async () => mockLoginResponse,
-                  },
+                  raw: { ok: true } as Response,
+                  value: async () => mockLoginResponse,
                 } as any),
               100,
             ),
@@ -279,12 +269,10 @@ describe('useAuthStore', () => {
     });
 
     it('should logout on 401 refresh failure', async () => {
-      vi.mocked(api.auth.authControllerRefreshTokenV1Raw).mockResolvedValue({
-        raw: {
-          ok: false,
-          status: 401,
-        },
-      } as any);
+      vi.mocked(api.auth.authControllerRefreshTokenV1Raw).mockRejectedValue({
+        status: 401,
+        message: 'Unauthorized',
+      });
 
       useAuthStore.setState({
         user: mockUser,
@@ -313,10 +301,8 @@ describe('useAuthStore', () => {
         refreshToken: 'stored-refresh',
       });
       vi.mocked(api.auth.authControllerGetCurrentUserV1Raw).mockResolvedValue({
-        raw: {
-          ok: true,
-          json: async () => mockUser,
-        },
+        raw: { ok: true } as Response,
+        value: async () => mockUser,
       } as any);
 
       const { result } = renderHook(() => useAuthStore());
@@ -341,10 +327,8 @@ describe('useAuthStore', () => {
         new Error('Unauthorized'),
       );
       vi.mocked(api.auth.authControllerRefreshTokenV1Raw).mockResolvedValue({
-        raw: {
-          ok: true,
-          json: async () => mockLoginResponse,
-        },
+        raw: { ok: true } as Response,
+        value: async () => mockLoginResponse,
       } as any);
 
       const { result } = renderHook(() => useAuthStore());

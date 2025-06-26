@@ -1,6 +1,6 @@
 import { Request } from 'express';
 import { AuditContextUtil } from '../utils/audit-context.util';
-import { UserRole } from '@prisma/generated/prisma/client';
+import { UserRole } from '@prisma/generated/prisma/enums';
 
 // Extend Request interface for testing
 interface TestRequest extends Request {

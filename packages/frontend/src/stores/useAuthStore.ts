@@ -3,7 +3,7 @@ import { devtools, persist } from 'zustand/middleware';
 import { api } from '../api';
 import { logger } from '../utils/logger';
 import { authStorage } from '../utils/authStorage';
-import { LoginResponseDto, AuthUserDto } from '@bluelight-hub/shared/client';
+import { AuthUserDto } from '@bluelight-hub/shared/client';
 
 interface AuthState {
   user: AuthUserDto | null;
@@ -179,8 +179,8 @@ export const useAuthStore = create<AuthStore>()(
               refreshTokenDto: { refreshToken },
             });
 
-            if (response.raw.ok) {
-              const data: LoginResponseDto = await response.raw.json();
+            const data = await response.value();
+            if (data) {
               logger.info('Token refresh successful');
 
               // Update tokens and user data
@@ -195,20 +195,17 @@ export const useAuthStore = create<AuthStore>()(
               set({ isRefreshing: false });
               return true;
             } else {
-              logger.error('Token refresh failed', {
-                status: response.raw.status,
-              });
-
-              // If refresh fails with 401, clear auth state
-              if (response.raw.status === 401) {
-                await get().logout();
-              }
-
               set({ isRefreshing: false });
               return false;
             }
-          } catch (error) {
+          } catch (error: any) {
             logger.error('Token refresh error', { error });
+
+            // If refresh fails with 401, clear auth state
+            if (error?.response?.status === 401 || error?.status === 401) {
+              await get().logout();
+            }
+
             set({ isRefreshing: false });
             return false;
           }
@@ -236,8 +233,8 @@ export const useAuthStore = create<AuthStore>()(
             // Try to get current user
             try {
               const response = await api.auth.authControllerGetCurrentUserV1Raw();
-              if (response.raw.ok) {
-                const userData: AuthUserDto = await response.raw.json();
+              const userData = await response.value();
+              if (userData) {
                 set({
                   user: userData,
                   isAuthenticated: true,

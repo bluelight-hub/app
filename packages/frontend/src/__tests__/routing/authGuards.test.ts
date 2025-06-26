@@ -1,3 +1,4 @@
+import { describe, it, expect, vi } from 'vitest';
 import { AuthGuardUtils } from '@/utils/authGuards';
 import { AdminRole, RouteDefinition } from '@/config/routes';
 
@@ -6,7 +7,7 @@ const mockRoutes: RouteDefinition[] = [
   {
     id: 'admin.dashboard',
     path: '/admin',
-    element: jest.fn() as any,
+    element: vi.fn() as any,
     title: 'Dashboard',
     requiresAuth: true,
     requiresAdmin: true,
@@ -16,7 +17,7 @@ const mockRoutes: RouteDefinition[] = [
   {
     id: 'admin.users',
     path: '/admin/users',
-    element: jest.fn() as any,
+    element: vi.fn() as any,
     title: 'Users',
     requiresAuth: true,
     allowedRoles: [AdminRole.SUPER_ADMIN, AdminRole.ADMIN],
@@ -25,7 +26,7 @@ const mockRoutes: RouteDefinition[] = [
   {
     id: 'admin.support',
     path: '/admin/support',
-    element: jest.fn() as any,
+    element: vi.fn() as any,
     title: 'Support',
     requiresAuth: true,
     allowedRoles: [AdminRole.SUPER_ADMIN, AdminRole.ADMIN, AdminRole.SUPPORT],
@@ -34,7 +35,7 @@ const mockRoutes: RouteDefinition[] = [
   {
     id: 'public.home',
     path: '/',
-    element: jest.fn() as any,
+    element: vi.fn() as any,
     title: 'Home',
     requiresAuth: false,
     showInNavigation: false,
