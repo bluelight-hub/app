@@ -29,6 +29,7 @@
       "@scarf/scarf",
       "@swc/core",
       "@tailwindcss/oxide",
+      "bcrypt",
       "es5-ext",
       "esbuild",
       "prisma",
@@ -58,7 +59,7 @@
     "husky": "^9.1.7",
     "lint-staged": "^16.1.2",
     "prettier": "^3.5.3",
-    "puppeteer": "^24.6.1",
+    "puppeteer": "^24.11.1",
     "semantic-release": "^24.2.3",
     "semantic-release-gitmoji": "^1.6.8"
   },

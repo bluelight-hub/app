@@ -20,9 +20,7 @@ module.exports = {
   coverageDirectory: '../coverage',
   testEnvironment: 'node',
   setupFilesAfterEnv: ['<rootDir>/jest.setup.ts'],
-  transformIgnorePatterns: [
-    'node_modules/(?!(nanoid)/)',
-  ],
+  transformIgnorePatterns: ['node_modules/(?!(nanoid)/)'],
   moduleNameMapper: {
     '^@/(.*)$': '<rootDir>/$1',
     '^@prisma/generated/prisma/enums$': '<rootDir>/__mocks__/prisma/enums.ts',

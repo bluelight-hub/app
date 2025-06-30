@@ -1,14 +1,14 @@
 ## Version [v1.0.0-alpha.21](https://github.com/bluelight-hub/app/compare/v1.0.0-alpha.20...v1.0.0-alpha.21) – Veröffentlicht am 2025-06-16
 
 ## 🔧 Tool Verbesserungen
+
 Verbesserungen an den Werkzeugen:
-- [`0cded20`](https://github.com/bluelight-hub/app/commit/0cded20) (config): Add linting to PR checks and pre-commit hooks 
 
-- [`89c8986`](https://github.com/bluelight-hub/app/commit/89c8986) (config): Exclude ESLint config files from coverage 
+- [`0cded20`](https://github.com/bluelight-hub/app/commit/0cded20) (config): Add linting to PR checks and pre-commit hooks
 
-- [`3d5bbe0`](https://github.com/bluelight-hub/app/commit/3d5bbe0) (config): Konfiguriere Coverage-Ausschlüsse für Codecov 
+- [`89c8986`](https://github.com/bluelight-hub/app/commit/89c8986) (config): Exclude ESLint config files from coverage
 
-
+- [`3d5bbe0`](https://github.com/bluelight-hub/app/commit/3d5bbe0) (config): Konfiguriere Coverage-Ausschlüsse für Codecov
 
 # [1.0.0-alpha.21](https://github.com/bluelight-hub/app/compare/v1.0.0-alpha.20...v1.0.0-alpha.21) (2025-06-16)
 

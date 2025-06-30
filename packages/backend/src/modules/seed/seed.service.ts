@@ -279,11 +279,12 @@ export class SeedService {
             },
             update: {
               grantedAt: new Date(), // Aktualisiere Zeitstempel bei erneutem Seeding
+              grantedBy: null, // Behalte null für System-Berechtigungen
             },
             create: {
               role: role as UserRole,
               permission: permission as Permission,
-              grantedBy: 'system', // System-generierte Berechtigungen
+              grantedBy: null, // System-generierte Berechtigungen haben keinen spezifischen Benutzer
             },
           });
         }

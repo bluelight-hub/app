@@ -1,6 +1,6 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
-import { APP_GUARD } from '@nestjs/core';
+import { APP_GUARD, APP_INTERCEPTOR } from '@nestjs/core';
 import { ScheduleModule } from '@nestjs/schedule';
 import { CommonModule } from './common/common.module';
 import { HealthModule } from './health/health.module';
@@ -11,6 +11,7 @@ import { SeedModule } from './modules/seed/seed.module';
 import { PrismaModule } from './prisma/prisma.module';
 import { AuthModule } from './modules/auth/auth.module';
 import { JwtAuthGuard } from './modules/auth/guards';
+import { AuditModule, AuditLogInterceptor } from './modules/audit';
 
 /**
  * Haupt-Anwendungsmodul, das die Abhängigkeiten und Provider der Anwendung konfiguriert.
@@ -26,6 +27,7 @@ import { JwtAuthGuard } from './modules/auth/guards';
     ScheduleModule.forRoot(),
     PrismaModule,
     AuthModule,
+    AuditModule,
     HealthModule,
     EinsatzModule,
     EtbModule,
@@ -41,6 +43,10 @@ import { JwtAuthGuard } from './modules/auth/guards';
     {
       provide: APP_GUARD,
       useClass: JwtAuthGuard,
+    },
+    {
+      provide: APP_INTERCEPTOR,
+      useClass: AuditLogInterceptor,
     },
   ],
 })
