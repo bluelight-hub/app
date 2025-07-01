@@ -1,3 +1,6 @@
+// Set test environment
+process.env.NODE_ENV = 'test';
+
 // Mock des Loggers
 jest.mock(
   '@/logger/consola.logger',

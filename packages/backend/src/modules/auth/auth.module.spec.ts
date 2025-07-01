@@ -147,9 +147,10 @@ describe('AuthModule', () => {
       const exports = Reflect.getMetadata('exports', AuthModule);
       expect(exports).toBeDefined();
       expect(Array.isArray(exports)).toBe(true);
-      expect(exports).toHaveLength(3);
+      expect(exports).toHaveLength(4);
       expect(exports).toContain(AuthService);
       expect(exports).toContain(PermissionValidationService);
+      expect(exports).toContain(SessionCleanupService);
       // JwtModule is also exported
     });
   });

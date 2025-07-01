@@ -35,6 +35,6 @@ import { SessionCleanupService } from './services/session-cleanup.service';
     SessionCleanupService,
   ],
   controllers: [AuthController],
-  exports: [AuthService, JwtModule, PermissionValidationService],
+  exports: [AuthService, JwtModule, PermissionValidationService, SessionCleanupService],
 })
 export class AuthModule {}

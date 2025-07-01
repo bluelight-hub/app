@@ -100,3 +100,4 @@ This project uses semantic-release with gitmoji for automated versioning:
 
 - Committe die Änderungen nach jedem Subtask
 - Du darfst nicht mit --no-verify committen
+- Du darfst die tests niemals überspringen beim commit

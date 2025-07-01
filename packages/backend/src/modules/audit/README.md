@@ -1,27 +1,39 @@
 # Audit Module
 
+## Current Status
 ## Overview
 
 The Audit Module provides comprehensive audit logging capabilities for the BlueLight Hub backend. It includes an interceptor that automatically logs all admin actions, decorators for fine-grained control, and utilities for managing audit logs.
 
+The Audit Module is fully implemented with the following components:
 ## Components
 
+### Completed Features:
 ### AuditInterceptor
 
+1. **AuditLogService** - Core service for creating and querying audit logs
+2. **AuditLogBatchService** - Batch processing with retention policies and export functionality
+3. **AuditLogSchedulerService** - Automated maintenance tasks
+4. **AuditLogInterceptor** - Global request/response logging
 The `AuditInterceptor` automatically captures and logs all admin API calls, including:
 
+### Known Issues:
 - Request details (method, path, body, query parameters)
 - Response data and status codes
 - User information and IP addresses
 - Execution duration
 - Success/failure status
 
+- The AuditLogInterceptor cannot be registered as APP_INTERCEPTOR due to integration test conflicts
+- This will be resolved when implementing the API endpoints (Subtask 5.4)
 ### Decorators
 
+### Usage:
 - `@Audit()` - Configure audit behavior for specific endpoints
 - `@NoAudit()` - Skip audit logging for specific endpoints
 - `@AuditCreate()`, `@AuditUpdate()`, `@AuditDelete()` - Predefined decorators for common actions
 
+To enable the interceptor in production, add the following to AppModule:
 ## Usage
 
 ### Applying the Interceptor Globally
@@ -29,6 +41,9 @@ The `AuditInterceptor` automatically captures and logs all admin API calls, incl
 To apply the audit interceptor to all admin routes, add it to your module or globally in `main.ts`:
 
 ```typescript
+{
+  provide: APP_INTERCEPTOR,
+  useClass: AuditLogInterceptor,
 // In a specific module (e.g., AdminModule)
 import { Module } from '@nestjs/common';
 import { APP_INTERCEPTOR } from '@nestjs/core';
@@ -61,6 +76,7 @@ async function bootstrap() {
 }
 ```
 
+### Environment Variables:
 ### Using Decorators
 
 ```typescript
@@ -68,6 +84,9 @@ import { Controller, Post, Get, Delete } from '@nestjs/common';
 import { Audit, NoAudit, AuditCreate, AuditDelete, AuditCritical } from '../audit/decorators';
 import { AuditAction } from '../audit/types';
 
+- `AUDIT_SCHEDULER_ENABLED` - Enable/disable scheduled tasks (default: true)
+- `AUDIT_BATCH_SIZE` - Batch processing size (default: 100)
+- `AUDIT_DEFAULT_RETENTION_DAYS` - Default retention period (default: 365)
 @Controller('admin/users')
 export class UserController {
   // Automatically logged as CREATE action with MEDIUM severity

@@ -219,9 +219,27 @@ describe('PermissionValidationService', () => {
         timestamp: new Date(),
       });
 
+      // Set NODE_ENV to non-test to trigger validation
+      const originalEnv = process.env.NODE_ENV;
+      process.env.NODE_ENV = 'development';
+
       await service.onModuleInit();
 
       expect(validateSpy).toHaveBeenCalled();
+
+      // Restore original NODE_ENV
+      process.env.NODE_ENV = originalEnv;
+    });
+
+    it('should skip validation in test environment', async () => {
+      const validateSpy = jest.spyOn(service, 'validatePermissions');
+
+      // Ensure NODE_ENV is set to test
+      process.env.NODE_ENV = 'test';
+
+      await service.onModuleInit();
+
+      expect(validateSpy).not.toHaveBeenCalled();
     });
   });
 });

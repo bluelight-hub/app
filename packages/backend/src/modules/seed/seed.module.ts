@@ -95,20 +95,7 @@ export class SeedModule {
         DevSeedService,
         ProfileService,
         SeedImportService,
-        {
-          provide: DevSeedService,
-          inject: [SeedService, ConfigService, 'SEED_OPTIONS'],
-          useFactory: (
-            seedService: SeedService,
-            configService: ConfigService,
-            options: SeedModuleOptions,
-          ) => {
-            if (SeedModule.shouldRegisterDevSeed(options)) {
-              return new DevSeedService(seedService, configService);
-            }
-            return null;
-          },
-        },
+        // DevSeedService is already included in the providers array above
       ],
       exports: [SeedService, DevSeedService, ProfileService, SeedImportService],
     };

@@ -17,6 +17,11 @@ export class PermissionValidationService implements OnModuleInit {
    * Wird beim Start des Moduls ausgeführt, um die Berechtigungen zu validieren.
    */
   async onModuleInit() {
+    // Skip validation in test environment to avoid database access during module initialization
+    if (process.env.NODE_ENV === 'test') {
+      this.logger.log('Überspringe Berechtigungsvalidierung im Test-Modus');
+      return;
+    }
     await this.validatePermissions();
   }
 
