@@ -1,6 +1,6 @@
 import { Injectable, BadRequestException } from '@nestjs/common';
 import { PrismaService } from '../../../prisma/prisma.service';
-import { CreateAuditLogDto } from '../dto';
+import { CreateAuditLogDto, QueryAuditLogDto } from '../dto';
 import { AuditLog, Prisma } from '@prisma/generated/prisma/client';
 import { logger } from '../../../logger/consola.logger';
 import { ConfigService } from '@nestjs/config';
@@ -464,17 +464,39 @@ export class AuditLogBatchService {
 
   /**
    * Exportiert Audit-Logs in verschiedenen Formaten
-   * @param query Abfrage-Parameter
+   * @param queryDto Abfrage-Parameter
    * @param format Export-Format
    * @returns Exportierte Daten
    */
   async exportLogs(
-    query: Prisma.AuditLogWhereInput,
+    queryDto: QueryAuditLogDto,
     format: 'json' | 'csv' | 'ndjson' = 'json',
-  ): Promise<string | Buffer> {
+  ): Promise<string> {
     try {
+      // Build where clause from query DTO
+      const where: Prisma.AuditLogWhereInput = {};
+
+      // Apply filters from queryDto
+      if (queryDto.actionType) where.actionType = queryDto.actionType;
+      if (queryDto.severity) where.severity = queryDto.severity;
+      if (queryDto.action) where.action = { contains: queryDto.action, mode: 'insensitive' };
+      if (queryDto.resource) where.resource = { contains: queryDto.resource, mode: 'insensitive' };
+      if (queryDto.resourceId) where.resourceId = queryDto.resourceId;
+      if (queryDto.userId) where.userId = queryDto.userId;
+      if (queryDto.userEmail)
+        where.userEmail = { contains: queryDto.userEmail, mode: 'insensitive' };
+      if (queryDto.userRole) where.userRole = queryDto.userRole;
+      if (queryDto.success !== undefined) where.success = queryDto.success;
+
+      // Date range filter
+      if (queryDto.startDate || queryDto.endDate) {
+        where.timestamp = {};
+        if (queryDto.startDate) where.timestamp.gte = new Date(queryDto.startDate);
+        if (queryDto.endDate) where.timestamp.lte = new Date(queryDto.endDate);
+      }
+
       const logs = await this.prisma.auditLog.findMany({
-        where: query,
+        where,
         orderBy: {
           timestamp: 'desc',
         },

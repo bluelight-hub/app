@@ -51,8 +51,16 @@ describe('permissions.constants', () => {
       expect(permissions).toEqual(Object.values(PermissionGroups.SYSTEM));
       expect(permissions).toContain(Permission.SYSTEM_SETTINGS_READ);
       expect(permissions).toContain(Permission.SYSTEM_SETTINGS_WRITE);
-      expect(permissions).toContain(Permission.AUDIT_LOG_READ);
       expect(permissions).toContain(Permission.ROLE_MANAGE);
+    });
+
+    it('should return audit permissions for "audit" resource', () => {
+      const permissions = getPermissionsForResource('audit');
+      expect(permissions).toEqual(Object.values(PermissionGroups.AUDIT));
+      expect(permissions).toContain(Permission.AUDIT_LOG_READ);
+      expect(permissions).toContain(Permission.AUDIT_LOG_WRITE);
+      expect(permissions).toContain(Permission.AUDIT_LOG_DELETE);
+      expect(permissions).toContain(Permission.AUDIT_LOG_EXPORT);
     });
 
     it('should return ETB permissions for "etb" resource', () => {

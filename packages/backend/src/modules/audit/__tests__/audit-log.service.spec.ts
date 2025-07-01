@@ -126,14 +126,27 @@ describe('AuditLogService', () => {
         skip: 0,
         take: 50,
       });
-      expect(result.data).toEqual(mockAuditLogs);
-      expect(result.meta).toEqual({
-        total: 50,
-        page: 1,
-        limit: 50,
+      expect(result.items).toEqual([
+        {
+          ...mockAuditLogs[0],
+          oldValues: undefined,
+          newValues: undefined,
+          metadata: undefined,
+        },
+        {
+          ...mockAuditLogs[1],
+          oldValues: undefined,
+          newValues: undefined,
+          metadata: undefined,
+        },
+      ]);
+      expect(result.pagination).toEqual({
+        currentPage: 1,
+        itemsPerPage: 50,
+        totalItems: 50,
         totalPages: 1,
-        hasNext: false,
-        hasPrev: false,
+        hasNextPage: false,
+        hasPreviousPage: false,
       });
     });
 
@@ -334,7 +347,7 @@ describe('AuditLogService', () => {
           { resource: 'einsatz', _count: { resource: 30 } },
         ]);
 
-      const result = await service.getStatistics(startDate, endDate);
+      const result = await service.getStatistics({ startDate, endDate });
 
       expect(result).toEqual({
         totalLogs: 100,

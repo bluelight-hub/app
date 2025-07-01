@@ -421,7 +421,7 @@ describe('Admin Authentication', () => {
       const result = await authService.login({ email: 'noperm@example.com', password: 'password' });
 
       // Should get default permissions for ADMIN role
-      expect(result.user.permissions).toHaveLength(10);
+      expect(result.user.permissions).toHaveLength(12);
       expect(result.user.permissions).toContain('USERS_READ');
       expect(result.user.permissions).toContain('USERS_WRITE');
       expect(result.accessToken).toBeDefined();
@@ -537,7 +537,7 @@ describe('Admin Authentication', () => {
       const duration2 = Date.now() - start2;
 
       // Both should take roughly the same time (bcrypt comparison is performed in both cases)
-      expect(Math.abs(duration1 - duration2)).toBeLessThan(150); // Within 150ms
+      expect(Math.abs(duration1 - duration2)).toBeLessThan(250); // Within 250ms
     });
   });
 

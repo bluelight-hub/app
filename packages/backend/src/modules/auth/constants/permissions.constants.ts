@@ -20,8 +20,17 @@ export const PermissionGroups = {
   SYSTEM: {
     SETTINGS_READ: Permission.SYSTEM_SETTINGS_READ,
     SETTINGS_WRITE: Permission.SYSTEM_SETTINGS_WRITE,
-    AUDIT_LOG_READ: Permission.AUDIT_LOG_READ,
     ROLE_MANAGE: Permission.ROLE_MANAGE,
+  },
+
+  /**
+   * Berechtigungen für Audit-Logs
+   */
+  AUDIT: {
+    READ: Permission.AUDIT_LOG_READ,
+    WRITE: Permission.AUDIT_LOG_WRITE,
+    DELETE: Permission.AUDIT_LOG_DELETE,
+    EXPORT: Permission.AUDIT_LOG_EXPORT,
   },
 
   /**
@@ -56,8 +65,13 @@ export const PermissionDescriptions: Record<Permission, string> = {
   // Systemeinstellungen
   [Permission.SYSTEM_SETTINGS_READ]: 'Berechtigung zum Anzeigen von Systemeinstellungen',
   [Permission.SYSTEM_SETTINGS_WRITE]: 'Berechtigung zum Ändern von Systemeinstellungen',
-  [Permission.AUDIT_LOG_READ]: 'Berechtigung zum Einsehen von Audit-Logs und Systemprotokollen',
   [Permission.ROLE_MANAGE]: 'Berechtigung zum Verwalten von Rollen und Berechtigungen',
+
+  // Audit-Logs
+  [Permission.AUDIT_LOG_READ]: 'Berechtigung zum Einsehen von Audit-Logs und Systemprotokollen',
+  [Permission.AUDIT_LOG_WRITE]: 'Berechtigung zum Erstellen von manuellen Audit-Log-Einträgen',
+  [Permission.AUDIT_LOG_DELETE]: 'Berechtigung zum Löschen von Audit-Log-Einträgen',
+  [Permission.AUDIT_LOG_EXPORT]: 'Berechtigung zum Exportieren von Audit-Logs',
 
   // ETB (Einsatztagebuch)
   [Permission.ETB_READ]: 'Berechtigung zum Anzeigen von Einsatztagebuch-Einträgen',
@@ -91,6 +105,21 @@ export const DefaultRolePermissions: Record<UserRole, Permission[]> = {
     // Systemeinstellungen (ohne Rollenverwaltung)
     Permission.SYSTEM_SETTINGS_READ,
     Permission.SYSTEM_SETTINGS_WRITE,
+    // Audit-Logs
+    Permission.AUDIT_LOG_READ,
+    Permission.AUDIT_LOG_WRITE,
+    Permission.AUDIT_LOG_EXPORT,
+    // Anwendungsberechtigungen
+    Permission.ETB_READ,
+    Permission.ETB_WRITE,
+    Permission.EINSATZ_READ,
+    Permission.EINSATZ_WRITE,
+  ],
+
+  [UserRole.MANAGER]: [
+    // Benutzerverwaltung (nur lesen)
+    Permission.USERS_READ,
+    // Audit-Logs (nur lesen)
     Permission.AUDIT_LOG_READ,
     // Anwendungsberechtigungen
     Permission.ETB_READ,
@@ -122,6 +151,7 @@ export const CriticalPermissions: Permission[] = [
   Permission.USERS_DELETE,
   Permission.ROLE_MANAGE,
   Permission.SYSTEM_SETTINGS_WRITE,
+  Permission.AUDIT_LOG_DELETE,
 ];
 
 /**
@@ -135,13 +165,15 @@ export function isCriticalPermission(permission: Permission): boolean {
  * Gibt alle Berechtigungen für eine bestimmte Ressource zurück.
  */
 export function getPermissionsForResource(
-  resource: 'users' | 'system' | 'etb' | 'einsatz',
+  resource: 'users' | 'system' | 'audit' | 'etb' | 'einsatz',
 ): Permission[] {
   switch (resource) {
     case 'users':
       return Object.values(PermissionGroups.USER_MANAGEMENT);
     case 'system':
       return Object.values(PermissionGroups.SYSTEM);
+    case 'audit':
+      return Object.values(PermissionGroups.AUDIT);
     case 'etb':
       return Object.values(PermissionGroups.ETB);
     case 'einsatz':

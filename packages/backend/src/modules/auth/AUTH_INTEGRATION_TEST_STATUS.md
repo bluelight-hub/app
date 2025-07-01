@@ -20,7 +20,7 @@
 The integration tests now initialize correctly but require a database connection to run. The error message indicates:
 
 ```
-PrismaClientInitializationError: Database `bluelight_hub` does not exist
+PrismaClientInitializationError: Database `bluelight-hub` does not exist
 ```
 
 ## Next Steps
@@ -28,7 +28,7 @@ PrismaClientInitializationError: Database `bluelight_hub` does not exist
 To run the integration tests:
 
 1. Ensure PostgreSQL is running locally
-2. Create a test database: `createdb bluelight_hub_test`
+2. Create a test database: `createdb bluelight-hub_test`
 3. Set up test environment variables with test database URL
 4. Run migrations on test database
 5. Run the tests with proper database connection

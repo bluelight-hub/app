@@ -33,6 +33,7 @@ export interface JWTRefreshPayload {
 export enum UserRole {
   SUPER_ADMIN = 'SUPER_ADMIN',
   ADMIN = 'ADMIN',
+  MANAGER = 'MANAGER',
   SUPPORT = 'SUPPORT',
   USER = 'USER',
 }
@@ -53,6 +54,9 @@ export enum Permission {
 
   // Audit Logs
   AUDIT_LOG_READ = 'AUDIT_LOG_READ',
+  AUDIT_LOG_WRITE = 'AUDIT_LOG_WRITE',
+  AUDIT_LOG_DELETE = 'AUDIT_LOG_DELETE',
+  AUDIT_LOG_EXPORT = 'AUDIT_LOG_EXPORT',
 
   // Role Management
   ROLE_MANAGE = 'ROLE_MANAGE',
@@ -78,6 +82,16 @@ export const RolePermissions: Record<UserRole, Permission[]> = {
     Permission.USERS_DELETE,
     Permission.SYSTEM_SETTINGS_READ,
     Permission.SYSTEM_SETTINGS_WRITE,
+    Permission.AUDIT_LOG_READ,
+    Permission.AUDIT_LOG_WRITE,
+    Permission.AUDIT_LOG_EXPORT,
+    Permission.ETB_READ,
+    Permission.ETB_WRITE,
+    Permission.EINSATZ_READ,
+    Permission.EINSATZ_WRITE,
+  ],
+  [UserRole.MANAGER]: [
+    Permission.USERS_READ,
     Permission.AUDIT_LOG_READ,
     Permission.ETB_READ,
     Permission.ETB_WRITE,

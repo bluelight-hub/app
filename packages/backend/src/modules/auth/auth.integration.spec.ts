@@ -4,7 +4,7 @@ import * as request from 'supertest';
 import { AppModule } from '@/app.module';
 import { PrismaService } from '@/prisma/prisma.service';
 import * as bcrypt from 'bcrypt';
-import { UserRole } from './types/jwt.types';
+import { UserRole } from '@prisma/generated/prisma/client';
 import * as cookieParser from 'cookie-parser';
 import { SessionCleanupService } from './services/session-cleanup.service';
 

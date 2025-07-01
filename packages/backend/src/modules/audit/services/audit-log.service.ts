@@ -1,8 +1,15 @@
-import { Injectable, BadRequestException, NotFoundException } from '@nestjs/common';
+import {
+  Injectable,
+  BadRequestException,
+  NotFoundException,
+  ForbiddenException,
+} from '@nestjs/common';
 import { PrismaService } from '../../../prisma/prisma.service';
 import { CreateAuditLogDto, QueryAuditLogDto } from '../dto';
 import { AuditLog, AuditSeverity, Prisma } from '@prisma/generated/prisma/client';
 import { logger } from '../../../logger/consola.logger';
+import { AuditLogEntity } from '../entities/audit-log.entity';
+import { PaginatedResponse } from '../../../common/interfaces/paginated-response.interface';
 
 /**
  * Service für die Verwaltung von Audit-Logs
@@ -13,11 +20,25 @@ export class AuditLogService {
   constructor(private readonly prisma: PrismaService) {}
 
   /**
+   * Konvertiert ein Prisma AuditLog zu einer AuditLogEntity
+   * @param auditLog Prisma AuditLog
+   * @returns AuditLogEntity
+   */
+  private toEntity(auditLog: AuditLog): AuditLogEntity {
+    return {
+      ...auditLog,
+      oldValues: auditLog.oldValues as Record<string, any> | undefined,
+      newValues: auditLog.newValues as Record<string, any> | undefined,
+      metadata: auditLog.metadata as Record<string, any> | undefined,
+    };
+  }
+
+  /**
    * Erstellt einen neuen Audit-Log-Eintrag
    * @param createAuditLogDto Daten für den neuen Audit-Log-Eintrag
    * @returns Der erstellte Audit-Log-Eintrag
    */
-  async create(createAuditLogDto: CreateAuditLogDto): Promise<AuditLog> {
+  async create(createAuditLogDto: CreateAuditLogDto): Promise<AuditLogEntity> {
     try {
       logger.debug('Creating audit log entry', {
         action: createAuditLogDto.action,
@@ -43,7 +64,7 @@ export class AuditLogService {
         action: auditLog.action,
       });
 
-      return auditLog;
+      return this.toEntity(auditLog);
     } catch (error) {
       logger.error('Failed to create audit log entry', {
         error: error.message,
@@ -58,7 +79,16 @@ export class AuditLogService {
    * @param queryDto Filter- und Paginierungsoptionen
    * @returns Paginierte Liste von Audit-Logs mit Metadaten
    */
-  async findMany(queryDto: QueryAuditLogDto) {
+  async findAll(queryDto: QueryAuditLogDto): Promise<PaginatedResponse<AuditLogEntity>> {
+    return this.findMany(queryDto);
+  }
+
+  /**
+   * Ruft Audit-Logs mit erweiterten Filtermöglichkeiten ab
+   * @param queryDto Filter- und Paginierungsoptionen
+   * @returns Paginierte Liste von Audit-Logs mit Metadaten
+   */
+  async findMany(queryDto: QueryAuditLogDto): Promise<PaginatedResponse<AuditLogEntity>> {
     try {
       const {
         page = 1,
@@ -159,14 +189,14 @@ export class AuditLogService {
       });
 
       return {
-        data: logs,
-        meta: {
-          total,
-          page,
-          limit,
+        items: logs.map((log) => this.toEntity(log)),
+        pagination: {
+          currentPage: page,
+          itemsPerPage: limit,
+          totalItems: total,
           totalPages,
-          hasNext,
-          hasPrev,
+          hasNextPage: hasNext,
+          hasPreviousPage: hasPrev,
         },
       };
     } catch (error) {
@@ -183,7 +213,7 @@ export class AuditLogService {
    * @param id ID des Audit-Log-Eintrags
    * @returns Der Audit-Log-Eintrag
    */
-  async findOne(id: string): Promise<AuditLog> {
+  async findOne(id: string): Promise<AuditLogEntity> {
     try {
       const auditLog = await this.prisma.auditLog.findUnique({
         where: { id },
@@ -198,7 +228,7 @@ export class AuditLogService {
         action: auditLog.action,
       });
 
-      return auditLog;
+      return this.toEntity(auditLog);
     } catch (error) {
       if (error instanceof NotFoundException) {
         throw error;
@@ -315,12 +345,86 @@ export class AuditLogService {
   }
 
   /**
+   * Löscht einen einzelnen Audit-Log-Eintrag
+   * @param id ID des zu löschenden Eintrags
+   * @throws ForbiddenException wenn Compliance-Tags vorhanden sind
+   */
+  async remove(id: string): Promise<void> {
+    try {
+      const auditLog = await this.findOne(id);
+
+      // Prüfe auf Compliance-Tags
+      if (auditLog.compliance && auditLog.compliance.length > 0) {
+        throw new ForbiddenException('Cannot delete compliance-tagged logs');
+      }
+
+      await this.prisma.auditLog.delete({
+        where: { id },
+      });
+
+      logger.info('Deleted audit log entry', { auditLogId: id });
+    } catch (error) {
+      if (error instanceof ForbiddenException) {
+        throw error;
+      }
+      if (error.code === 'P2025') {
+        throw new NotFoundException(`Audit log with ID ${id} not found`);
+      }
+      logger.error('Failed to delete audit log', {
+        error: error.message,
+        auditLogId: id,
+      });
+      throw new BadRequestException('Failed to delete audit log');
+    }
+  }
+
+  /**
+   * Löscht mehrere Audit-Log-Einträge basierend auf Kriterien
+   * @param criteria Löschkriterien
+   * @returns Anzahl gelöschter Einträge
+   */
+  async bulkDelete(criteria: {
+    olderThan: Date;
+    severity?: string;
+    excludeCompliance?: boolean;
+  }): Promise<number> {
+    try {
+      const where: Prisma.AuditLogWhereInput = {
+        timestamp: { lt: criteria.olderThan },
+      };
+
+      if (criteria.severity) {
+        where.severity = criteria.severity as AuditSeverity;
+      }
+
+      if (criteria.excludeCompliance) {
+        where.compliance = { isEmpty: true };
+      }
+
+      const result = await this.prisma.auditLog.deleteMany({ where });
+
+      logger.info('Bulk deleted audit log entries', {
+        deletedCount: result.count,
+        criteria,
+      });
+
+      return result.count;
+    } catch (error) {
+      logger.error('Failed to bulk delete audit logs', {
+        error: error.message,
+        criteria,
+      });
+      throw new BadRequestException('Failed to bulk delete audit logs');
+    }
+  }
+
+  /**
    * Erstellt Statistiken über Audit-Log-Einträge
-   * @param startDate Startdatum für Statistiken
-   * @param endDate Enddatum für Statistiken
+   * @param options Optionen für Statistiken
    * @returns Detaillierte Statistiken
    */
-  async getStatistics(startDate?: Date, endDate?: Date) {
+  async getStatistics(options: { startDate?: Date; endDate?: Date; groupBy?: string }) {
+    const { startDate, endDate } = options;
     try {
       const where: Prisma.AuditLogWhereInput = {};
 
