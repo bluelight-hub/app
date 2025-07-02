@@ -249,4 +249,51 @@ export class AuditLogController {
 
     return { deletedCount, message: `Successfully deleted ${deletedCount} audit log entries` };
   }
+
+  /**
+   * Archive old audit logs
+   * @description Archives audit logs older than specified days for compliance retention
+   */
+  @Post('archive')
+  @Roles(UserRole.SUPER_ADMIN)
+  @RequirePermissions(Permission.AUDIT_LOG_WRITE)
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Archive old audit logs' })
+  @ApiResponse({
+    status: HttpStatus.OK,
+    description: 'Number of archived entries',
+  })
+  @ApiQuery({ name: 'daysToKeep', required: false, type: Number })
+  async archiveOldLogs(@Query('daysToKeep') daysToKeep: number = 365) {
+    logger.debug('Archiving old audit logs', { daysToKeep });
+    const archivedCount = await this.auditLogService.archiveOldLogs(daysToKeep);
+
+    return {
+      archivedCount,
+      message: `Successfully archived ${archivedCount} audit log entries older than ${daysToKeep} days`,
+    };
+  }
+
+  /**
+   * Apply retention policy and cleanup expired logs
+   * @description Applies configured retention policies and removes expired audit logs
+   */
+  @Post('cleanup')
+  @Roles(UserRole.SUPER_ADMIN)
+  @RequirePermissions(Permission.AUDIT_LOG_DELETE)
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Apply retention policy and cleanup logs' })
+  @ApiResponse({
+    status: HttpStatus.OK,
+    description: 'Cleanup results with deleted count',
+  })
+  async applyRetentionPolicy() {
+    logger.debug('Applying retention policy and cleaning up audit logs');
+    const deletedCount = await this.auditLogBatchService.applyRetentionPolicy();
+
+    return {
+      deletedCount,
+      message: `Successfully cleaned up ${deletedCount} expired audit log entries based on retention policies`,
+    };
+  }
 }

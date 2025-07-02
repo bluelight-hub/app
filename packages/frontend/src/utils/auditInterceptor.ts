@@ -27,18 +27,17 @@ function extractResourceFromUrl(url: string): { resource: string; resourceId?: s
   try {
     const urlObj = new URL(url);
     const pathSegments = urlObj.pathname.split('/').filter(Boolean);
-    
+
     // Remove 'api' prefix if present
     if (pathSegments[0] === 'api') {
       pathSegments.shift();
     }
-    
+
     // Extract resource and potential ID
     const resource = pathSegments[0] || 'unknown';
-    const resourceId = pathSegments.length > 1 && !pathSegments[1].includes('?') 
-      ? pathSegments[1] 
-      : undefined;
-    
+    const resourceId =
+      pathSegments.length > 1 && !pathSegments[1].includes('?') ? pathSegments[1] : undefined;
+
     return { resource, resourceId };
   } catch {
     return { resource: 'unknown' };
@@ -51,19 +50,19 @@ function extractResourceFromUrl(url: string): { resource: string; resourceId?: s
 function determineSeverity(resource: string, method: string): AuditSeverity {
   const criticalResources = ['auth', 'users', 'roles', 'permissions'];
   const highSeverityMethods = ['DELETE', 'PUT', 'PATCH'];
-  
+
   if (resource === 'auth') {
     return AuditSeverity.HIGH;
   }
-  
+
   if (criticalResources.includes(resource) && highSeverityMethods.includes(method.toUpperCase())) {
     return AuditSeverity.HIGH;
   }
-  
+
   if (method.toUpperCase() === 'DELETE') {
     return AuditSeverity.MEDIUM;
   }
-  
+
   return AuditSeverity.LOW;
 }
 
@@ -75,19 +74,19 @@ export const auditInterceptorMiddleware = {
     // Log the start of the request
     const { resource, resourceId } = extractResourceFromUrl(context.url);
     const method = context.init.method || 'GET';
-    
+
     logger.debug('API request initiated', {
       url: context.url,
       method,
       resource,
       resourceId,
     });
-    
+
     // Store request start time for duration calculation
     (context as any).__auditStartTime = Date.now();
     (context as any).__auditResource = resource;
     (context as any).__auditResourceId = resourceId;
-    
+
     return context;
   },
 
@@ -98,10 +97,10 @@ export const auditInterceptorMiddleware = {
     const resourceId = (context as any).__auditResourceId;
     const startTime = (context as any).__auditStartTime || Date.now();
     const duration = Date.now() - startTime;
-    
+
     const actionType = getActionTypeFromMethod(method);
     const severity = determineSeverity(resource, method);
-    
+
     // Prepare audit context
     const auditContext = {
       action: `${method.toLowerCase()}-${resource}`,
@@ -110,14 +109,14 @@ export const auditInterceptorMiddleware = {
       actionType,
       severity,
       httpMethod: method,
-      httpPath: new URL(context.url).pathname,
+      httpPath: context.url.startsWith('http') ? new URL(context.url).pathname : context.url,
       metadata: {
         duration,
         statusCode: response.status,
         statusText: response.statusText,
       },
     };
-    
+
     if (response.ok) {
       // Log successful request
       await auditLogger.log({
@@ -130,7 +129,7 @@ export const auditInterceptorMiddleware = {
     } else {
       // Log failed request
       let errorMessage = `HTTP ${response.status}: ${response.statusText}`;
-      
+
       // Try to extract error message from response
       try {
         const contentType = response.headers.get('content-type');
@@ -142,21 +141,16 @@ export const auditInterceptorMiddleware = {
       } catch {
         // Ignore parsing errors
       }
-      
-      await auditLogger.logError(
-        auditContext.action,
-        resource,
-        errorMessage,
-        {
-          ...auditContext,
-          metadata: {
-            ...auditContext.metadata,
-            success: false,
-          },
-        }
-      );
+
+      await auditLogger.logError(auditContext.action, resource, errorMessage, {
+        ...auditContext,
+        metadata: {
+          ...auditContext.metadata,
+          success: false,
+        },
+      });
     }
-    
+
     return context;
   },
 };

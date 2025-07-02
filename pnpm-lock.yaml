@@ -226,9 +226,6 @@ importers:
 
   packages/frontend:
     dependencies:
-      '@ant-design/icons':
-        specifier: ^6.0.0
-        version: 6.0.0(react-dom@19.1.0(react@19.1.0))(react@19.1.0)
       '@bluelight-hub/shared':
         specifier: workspace:*
         version: link:../shared
@@ -305,6 +302,9 @@ importers:
         specifier: ^5.0.3
         version: 5.0.5(@types/react@19.1.8)(immer@10.1.1)(react@19.1.0)(use-sync-external-store@1.5.0(react@19.1.0))
     devDependencies:
+      '@ant-design/icons':
+        specifier: ^6.0.0
+        version: 6.0.0(react-dom@19.1.0(react@19.1.0))(react@19.1.0)
       '@eslint/js':
         specifier: ^9.24.0
         version: 9.28.0

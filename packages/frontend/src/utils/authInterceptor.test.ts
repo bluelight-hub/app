@@ -145,7 +145,7 @@ describe('authInterceptor', () => {
         init: {},
         response: new Response(null, { status: 401 }),
         retryCount: 1,
-      };
+      } as any;
 
       await authInterceptorMiddleware.post(context);
 

@@ -43,11 +43,11 @@ describe('AuditLogger', () => {
       };
 
       await auditLogger.log(context);
-      
+
       // Should be queued for batch processing
       expect(logger.debug).not.toHaveBeenCalledWith(
         expect.stringContaining('Audit log queued'),
-        expect.any(Object)
+        expect.any(Object),
       );
     });
 
@@ -60,11 +60,11 @@ describe('AuditLogger', () => {
       };
 
       await auditLogger.log(context);
-      
+
       // Critical logs should be sent immediately
       expect(logger.debug).toHaveBeenCalledWith(
         'Audit log queued for sending',
-        expect.objectContaining({ action: 'critical-action' })
+        expect.objectContaining({ action: 'critical-action' }),
       );
     });
 
@@ -85,19 +85,19 @@ describe('AuditLogger', () => {
 
       await auditLogger.log(context1);
       await auditLogger.log(context2);
-      
+
       // Should not be sent immediately
       expect(logger.debug).not.toHaveBeenCalledWith(
         'Audit log queued for sending',
-        expect.any(Object)
+        expect.any(Object),
       );
 
       // Fast forward to trigger batch
       vi.advanceTimersByTime(5000);
-      
+
       // Now both should be sent
       await vi.runAllTimersAsync();
-      
+
       expect(logger.debug).toHaveBeenCalledTimes(2);
     });
   });
@@ -108,11 +108,15 @@ describe('AuditLogger', () => {
         resourceId: 'user-789',
       });
 
+      // Fast forward to trigger batch
+      vi.advanceTimersByTime(5000);
+      await vi.runAllTimersAsync();
+
       expect(logger.debug).toHaveBeenCalledWith(
         'Audit log queued for sending',
         expect.objectContaining({
           action: 'create-user',
-        })
+        }),
       );
     });
   });
@@ -120,7 +124,7 @@ describe('AuditLogger', () => {
   describe('logError', () => {
     it('should log error with error message', async () => {
       const error = new Error('Test error');
-      
+
       await auditLogger.logError('failed-action', 'resource', error, {
         resourceId: 'res-123',
       });
@@ -129,7 +133,7 @@ describe('AuditLogger', () => {
         'Audit log queued for sending',
         expect.objectContaining({
           action: 'failed-action',
-        })
+        }),
       );
     });
 
@@ -140,7 +144,7 @@ describe('AuditLogger', () => {
         'Audit log queued for sending',
         expect.objectContaining({
           action: 'failed-action',
-        })
+        }),
       );
     });
   });
@@ -153,7 +157,7 @@ describe('AuditLogger', () => {
         'Audit log queued for sending',
         expect.objectContaining({
           action: 'unauthorized-access',
-        })
+        }),
       );
     });
   });
@@ -172,13 +176,7 @@ describe('AuditLogger', () => {
         role: 'USER', // unchanged
       };
 
-      await auditLogger.logDataChange(
-        'update-user',
-        'users',
-        'user-123',
-        oldValues,
-        newValues
-      );
+      await auditLogger.logDataChange('update-user', 'users', 'user-123', oldValues, newValues);
 
       // Should be queued and will eventually be sent
       vi.advanceTimersByTime(5000);
@@ -188,7 +186,7 @@ describe('AuditLogger', () => {
         'Audit log queued for sending',
         expect.objectContaining({
           action: 'update-user',
-        })
+        }),
       );
     });
   });
@@ -211,9 +209,9 @@ describe('AuditLogger', () => {
 
     it('should handle errors when flushing batch', async () => {
       const error = new Error('Network error');
-      
-      // Mock API to throw error
-      vi.mocked(logger.error).mockImplementationOnce(() => {
+
+      // Mock logger.debug to throw error to simulate sendLog failure
+      vi.mocked(logger.debug).mockImplementationOnce(() => {
         throw error;
       });
 
@@ -228,8 +226,8 @@ describe('AuditLogger', () => {
       await vi.runAllTimersAsync();
 
       expect(logger.error).toHaveBeenCalledWith(
-        expect.stringContaining('Failed'),
-        expect.any(Object)
+        expect.stringContaining('Failed to flush audit log batch'),
+        expect.any(Object),
       );
     });
   });

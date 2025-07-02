@@ -81,6 +81,7 @@ describe('AuditLogController', () => {
             remove: jest.fn(),
             bulkDelete: jest.fn(),
             getStatistics: jest.fn(),
+            archiveOldLogs: jest.fn(),
           },
         },
         {
@@ -88,6 +89,7 @@ describe('AuditLogController', () => {
           useValue: {
             createBatch: jest.fn(),
             exportLogs: jest.fn(),
+            applyRetentionPolicy: jest.fn(),
           },
         },
       ],
@@ -404,6 +406,50 @@ describe('AuditLogController', () => {
         severity: undefined,
         excludeCompliance: true,
       });
+    });
+  });
+
+  describe('archiveOldLogs', () => {
+    it('should archive old audit logs with default days', async () => {
+      const archivedCount = 50;
+
+      auditLogService.archiveOldLogs.mockResolvedValue(archivedCount);
+
+      const result = await controller.archiveOldLogs(undefined);
+
+      expect(result.archivedCount).toBe(archivedCount);
+      expect(result.message).toContain('50');
+      expect(result.message).toContain('365 days');
+      expect(auditLogService.archiveOldLogs).toHaveBeenCalledWith(365);
+    });
+
+    it('should archive old audit logs with custom days', async () => {
+      const daysToKeep = 180;
+      const archivedCount = 75;
+
+      auditLogService.archiveOldLogs.mockResolvedValue(archivedCount);
+
+      const result = await controller.archiveOldLogs(daysToKeep);
+
+      expect(result.archivedCount).toBe(archivedCount);
+      expect(result.message).toContain('75');
+      expect(result.message).toContain('180 days');
+      expect(auditLogService.archiveOldLogs).toHaveBeenCalledWith(daysToKeep);
+    });
+  });
+
+  describe('applyRetentionPolicy', () => {
+    it('should apply retention policy and cleanup logs', async () => {
+      const deletedCount = 200;
+
+      auditLogBatchService.applyRetentionPolicy.mockResolvedValue(deletedCount);
+
+      const result = await controller.applyRetentionPolicy();
+
+      expect(result.deletedCount).toBe(deletedCount);
+      expect(result.message).toContain('200');
+      expect(result.message).toContain('retention policies');
+      expect(auditLogBatchService.applyRetentionPolicy).toHaveBeenCalled();
     });
   });
 });
