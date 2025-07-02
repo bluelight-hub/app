@@ -8,3 +8,14 @@ export {
   useIsLoading,
   useAuthActions,
 } from '../stores/useAuthStore';
+
+// Export audit hooks
+export {
+  useAuditedAction,
+  useAuditedForm,
+  useAuditedNavigation,
+  useAuditedDataChange,
+} from './useAuditedAction';
+
+// Export audit logger hook
+export { useAuditLogger } from '../utils/audit';

@@ -1,5 +1,6 @@
 import { logger } from './logger';
 import { useAuthStore } from '../stores/useAuthStore';
+import { auditInterceptorMiddleware, combineInterceptors } from './auditInterceptor';
 
 interface RequestContext {
   url: string;
@@ -107,7 +108,12 @@ export const authInterceptorMiddleware = {
 };
 
 /**
- * Custom fetch with automatic token refresh on 401
+ * Combined middleware with auth and audit
+ */
+const combinedMiddleware = combineInterceptors(authInterceptorMiddleware, auditInterceptorMiddleware);
+
+/**
+ * Custom fetch with automatic token refresh on 401 and audit logging
  */
 export const fetchWithAuth = async (
   input: RequestInfo | URL,
@@ -116,8 +122,8 @@ export const fetchWithAuth = async (
   const url = typeof input === 'string' ? input : input.toString();
   const context = { url, init: init || {} };
 
-  // Apply pre-request middleware
-  const preContext = await authInterceptorMiddleware.pre(context);
+  // Apply pre-request middleware (auth + audit)
+  const preContext = await combinedMiddleware.pre(context);
 
   // Make the request with credentials
   const fetchOptions = {
@@ -134,8 +140,8 @@ export const fetchWithAuth = async (
 
   const response = await fetch(preContext.url, fetchOptions);
 
-  // Apply post-request middleware
-  const postContext = await authInterceptorMiddleware.post({
+  // Apply post-request middleware (auth + audit)
+  const postContext = await combinedMiddleware.post({
     ...preContext,
     response,
   });
