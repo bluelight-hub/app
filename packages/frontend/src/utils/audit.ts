@@ -292,7 +292,7 @@ class AuditLogger {
    */
   private async sendLog(context: AuditContext): Promise<void> {
     try {
-      await api.auditLogs.auditLogsControllerCreate({
+      await api.auditLogs.auditLogControllerCreateV1({
         createAuditLogDto: {
           actionType: context.actionType,
           action: context.action,
@@ -323,8 +323,8 @@ class AuditLogger {
     const batchId = `batch-${Date.now()}`;
 
     try {
-      await api.auditLogs.auditLogsControllerCreateBatch({
-        requestBody: { logs },
+      await api.auditLogs.auditLogControllerCreateBatchV1({
+        requestBody: logs,
       });
 
       // Clear retry attempts on success

@@ -1,275 +1,467 @@
 import React, { useState } from 'react';
-import { Table, Tag, Input, Select, DatePicker, Button, Card } from 'antd';
-import { PiMagnifyingGlass, PiArrowClockwise, PiDownloadSimple, PiFunnel } from 'react-icons/pi';
-import type { ColumnsType } from 'antd/es/table';
+import { Table, Tag, Input, Select, DatePicker, Button, Card, Modal, Badge, Tooltip, Space, Row, Col, Statistic } from 'antd';
+import { PiArrowClockwise, PiDownloadSimple, PiFunnel, PiEye, PiTrash, PiWarning, PiCheckCircle, PiShieldCheck, PiWarningCircle, PiBug } from 'react-icons/pi';
+import type { ColumnsType, TablePaginationConfig } from 'antd/es/table';
+import type { FilterValue } from 'antd/es/table/interface';
 import dayjs from 'dayjs';
+import { useAuditLogs, useAuditLogById, useDeleteAuditLog, useDeleteAuditLogs, useExportAuditLogs, AuditLogFilters, useAuditLogStatistics } from '../../../../hooks/admin/useAuditLogs';
+import { AuditLogEntity } from '@bluelight-hub/shared/client/models';
+import { LogDetailModal } from './LogDetailModal';
 
 const { RangePicker } = DatePicker;
 const { Option } = Select;
 
-interface LogEntry {
-    id: string;
-    timestamp: string;
-    level: 'info' | 'warning' | 'error' | 'debug';
-    category: string;
-    user: string;
-    action: string;
-    details: string;
-    ip: string;
-}
-
 const LogsPage: React.FC = () => {
-    const [searchText, setSearchText] = useState('');
-    const [levelFilter, setLevelFilter] = useState<string | undefined>(undefined);
-    const [categoryFilter, setCategoryFilter] = useState<string | undefined>(undefined);
-    const [_dateRange, setDateRange] = useState<[dayjs.Dayjs | null, dayjs.Dayjs | null] | null>(null);
+    const [filters, setFilters] = useState<AuditLogFilters>({
+        page: 1,
+        limit: 20,
+        sortField: 'createdAt',
+        sortOrder: 'desc',
+    });
+    const [selectedRowKeys, setSelectedRowKeys] = useState<React.Key[]>([]);
+    const [detailModalVisible, setDetailModalVisible] = useState(false);
+    const [selectedLogId, setSelectedLogId] = useState<string | undefined>();
 
-    // Mock-Daten - werden später durch API ersetzt
-    const [logs] = useState<LogEntry[]>([
-        {
-            id: '1',
-            timestamp: '2025-01-17 14:32:15',
-            level: 'info',
-            category: 'auth',
-            user: 'max.mustermann@example.com',
-            action: 'Benutzer angemeldet',
-            details: 'Erfolgreiche Anmeldung',
-            ip: '192.168.1.100'
-        },
-        {
-            id: '2',
-            timestamp: '2025-01-17 14:30:45',
-            level: 'warning',
-            category: 'security',
-            user: 'system',
-            action: 'Fehlgeschlagene Anmeldung',
-            details: '3 fehlgeschlagene Anmeldeversuche für benutzer@example.com',
-            ip: '192.168.1.105'
-        },
-        {
-            id: '3',
-            timestamp: '2025-01-17 14:28:10',
-            level: 'error',
-            category: 'system',
-            user: 'system',
-            action: 'Datenbankfehler',
-            details: 'Verbindung zur Datenbank verloren und wiederhergestellt',
-            ip: 'localhost'
-        },
-        {
-            id: '4',
-            timestamp: '2025-01-17 14:25:30',
-            level: 'info',
-            category: 'admin',
-            user: 'anna.schmidt@example.com',
-            action: 'Benutzer erstellt',
-            details: 'Neuer Benutzer: tom.weber@example.com',
-            ip: '192.168.1.102'
-        },
-        {
-            id: '5',
-            timestamp: '2025-01-17 14:20:00',
-            level: 'debug',
-            category: 'api',
-            user: 'api-client',
-            action: 'API-Aufruf',
-            details: 'GET /api/v1/einsaetze - 200 OK (125ms)',
-            ip: '10.0.0.50'
+    // Hooks
+    const { logs, meta, isLoading, refetch } = useAuditLogs(filters);
+    const { data: statistics, isLoading: statsLoading } = useAuditLogStatistics(filters);
+    const { data: selectedLog, isLoading: detailLoading } = useAuditLogById(selectedLogId);
+    const deleteLog = useDeleteAuditLog();
+    const deleteLogs = useDeleteAuditLogs();
+    const exportLogs = useExportAuditLogs();
+
+    // Action types and severities from backend
+    const actionTypes = [
+        'CREATE', 'READ', 'UPDATE', 'DELETE', 
+        'LOGIN', 'LOGOUT', 'ERROR', 'SECURITY', 'SYSTEM'
+    ];
+
+    const severities = ['LOW', 'MEDIUM', 'HIGH', 'CRITICAL'];
+
+    const severityColors: Record<string, string> = {
+        'LOW': 'green',
+        'MEDIUM': 'blue',
+        'HIGH': 'orange',
+        'CRITICAL': 'red'
+    };
+
+    const actionTypeIcons: Record<string, React.ReactNode> = {
+        'CREATE': <PiCheckCircle className="text-green-500" />,
+        'READ': <PiEye className="text-blue-500" />,
+        'UPDATE': <PiArrowClockwise className="text-orange-500" />,
+        'DELETE': <PiTrash className="text-red-500" />,
+        'LOGIN': <PiShieldCheck className="text-green-500" />,
+        'LOGOUT': <PiShieldCheck className="text-gray-500" />,
+        'ERROR': <PiBug className="text-red-500" />,
+        'SECURITY': <PiWarningCircle className="text-red-600" />,
+        'SYSTEM': <PiWarning className="text-yellow-500" />
+    };
+
+    const handleTableChange = (
+        pagination: TablePaginationConfig,
+        tableFilters: Record<string, FilterValue | null>,
+        sorter: any
+    ) => {
+        const singleSorter = Array.isArray(sorter) ? sorter[0] : sorter;
+
+        setFilters({
+            ...filters,
+            page: pagination.current || 1,
+            limit: pagination.pageSize || 20,
+            sortField: singleSorter?.field as string || 'createdAt',
+            sortOrder: singleSorter?.order === 'ascend' ? 'asc' : 'desc',
+        });
+    };
+
+    const handleSearch = (value: string) => {
+        setFilters({
+            ...filters,
+            search: value || undefined,
+            page: 1,
+        });
+    };
+
+    const handleDateRangeChange = (dates: any) => {
+        if (dates && Array.isArray(dates)) {
+            setFilters({
+                ...filters,
+                startDate: dates[0]?.toISOString(),
+                endDate: dates[1]?.toISOString(),
+                page: 1,
+            });
+        } else {
+            setFilters({
+                ...filters,
+                startDate: undefined,
+                endDate: undefined,
+                page: 1,
+            });
         }
-    ]);
-
-    const levelColors = {
-        info: 'blue',
-        warning: 'orange',
-        error: 'red',
-        debug: 'default'
     };
 
-    const categoryLabels = {
-        auth: 'Authentifizierung',
-        security: 'Sicherheit',
-        system: 'System',
-        admin: 'Administration',
-        api: 'API',
-        user: 'Benutzer',
-        data: 'Daten'
+    const handleExport = async (format: 'csv' | 'json') => {
+        await exportLogs.mutateAsync({
+            format,
+            filters: {
+                actionType: filters.actionType,
+                severity: filters.severity,
+                userId: filters.userId,
+                resource: filters.resource,
+                startDate: filters.startDate,
+                endDate: filters.endDate,
+                search: filters.search,
+                success: filters.success,
+            }
+        });
     };
 
-    const handleExport = () => {
-        // TODO: Export-Funktionalität implementieren
-        console.log('Exporting logs...');
+    const handleDeleteSelected = async () => {
+        Modal.confirm({
+            title: 'Ausgewählte Logs löschen?',
+            content: `Möchten Sie wirklich ${selectedRowKeys.length} Logs löschen?`,
+            okText: 'Löschen',
+            okType: 'danger',
+            cancelText: 'Abbrechen',
+            onOk: async () => {
+                await deleteLogs.mutateAsync(selectedRowKeys as string[]);
+                setSelectedRowKeys([]);
+            },
+        });
     };
 
-    const columns: ColumnsType<LogEntry> = [
+    const showDetail = (record: AuditLogEntity) => {
+        setSelectedLogId(record.id);
+        setDetailModalVisible(true);
+    };
+
+    const columns: ColumnsType<AuditLogEntity> = [
         {
             title: 'Zeitstempel',
-            dataIndex: 'timestamp',
-            key: 'timestamp',
+            dataIndex: 'createdAt',
+            key: 'createdAt',
             width: 180,
-            sorter: (a, b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime(),
+            sorter: true,
             defaultSortOrder: 'descend',
+            render: (date: string) => dayjs(date).format('DD.MM.YYYY HH:mm:ss'),
         },
         {
-            title: 'Level',
-            dataIndex: 'level',
-            key: 'level',
-            width: 100,
-            render: (level: string) => (
-                <Tag color={levelColors[level as keyof typeof levelColors]}>
-                    {level.toUpperCase()}
-                </Tag>
+            title: 'Aktion',
+            dataIndex: 'actionType',
+            key: 'actionType',
+            width: 120,
+            render: (actionType: string) => (
+                <Space>
+                    {actionTypeIcons[actionType]}
+                    <span>{actionType}</span>
+                </Space>
             ),
-            filters: Object.keys(levelColors).map(level => ({
-                text: level.toUpperCase(),
-                value: level
-            })),
-            onFilter: (value, record) => record.level === value,
-            filteredValue: levelFilter ? [levelFilter] : null,
+            filters: actionTypes.map(type => ({ text: type, value: type })),
+            filteredValue: filters.actionType ? [filters.actionType] : null,
+            onFilter: (value, record) => record.actionType === value,
         },
         {
-            title: 'Kategorie',
-            dataIndex: 'category',
-            key: 'category',
-            width: 150,
-            render: (category: string) => categoryLabels[category as keyof typeof categoryLabels] || category,
-            filters: Object.entries(categoryLabels).map(([value, text]) => ({ text, value })),
-            onFilter: (value, record) => record.category === value,
-            filteredValue: categoryFilter ? [categoryFilter] : null,
+            title: 'Schweregrad',
+            dataIndex: 'severity',
+            key: 'severity',
+            width: 120,
+            render: (severity: string) => severity ? (
+                <Tag color={severityColors[severity]}>
+                    {severity}
+                </Tag>
+            ) : '-',
+            filters: severities.map(sev => ({ text: sev, value: sev })),
+            filteredValue: filters.severity ? [filters.severity] : null,
+            onFilter: (value, record) => record.severity === value,
+        },
+        {
+            title: 'Status',
+            dataIndex: 'success',
+            key: 'success',
+            width: 100,
+            render: (success: boolean | null) => {
+                if (success === null) return '-';
+                return success ? (
+                    <Badge status="success" text="Erfolgreich" />
+                ) : (
+                    <Badge status="error" text="Fehlgeschlagen" />
+                );
+            },
+            filters: [
+                { text: 'Erfolgreich', value: 'true' },
+                { text: 'Fehlgeschlagen', value: 'false' }
+            ],
+            onFilter: (value, record) => record.success === (value === 'true'),
         },
         {
             title: 'Benutzer',
-            dataIndex: 'user',
-            key: 'user',
+            dataIndex: 'userEmail',
+            key: 'userEmail',
             width: 200,
-            filteredValue: searchText ? ['filtered'] : null,
-            onFilter: (_, record) => 
-                record.user.toLowerCase().includes(searchText.toLowerCase()) ||
-                record.action.toLowerCase().includes(searchText.toLowerCase()) ||
-                record.details.toLowerCase().includes(searchText.toLowerCase()),
+            render: (email: string, record: AuditLogEntity) => (
+                <Tooltip title={`ID: ${record.userId || 'System'}`}>
+                    {email || 'System'}
+                </Tooltip>
+            ),
+        },
+        {
+            title: 'Ressource',
+            dataIndex: 'resource',
+            key: 'resource',
+            width: 150,
+            render: (resource: string, record: AuditLogEntity) => (
+                <Space direction="vertical" size={0}>
+                    <span>{resource}</span>
+                    {record.resourceId && (
+                        <span className="text-xs text-gray-500">ID: {record.resourceId}</span>
+                    )}
+                </Space>
+            ),
         },
         {
             title: 'Aktion',
             dataIndex: 'action',
             key: 'action',
-        },
-        {
-            title: 'Details',
-            dataIndex: 'details',
-            key: 'details',
             ellipsis: true,
         },
         {
             title: 'IP-Adresse',
-            dataIndex: 'ip',
-            key: 'ip',
+            dataIndex: 'ipAddress',
+            key: 'ipAddress',
             width: 130,
+        },
+        {
+            title: 'Aktionen',
+            key: 'actions',
+            fixed: 'right',
+            width: 100,
+            render: (_, record) => (
+                <Space>
+                    <Tooltip title="Details anzeigen">
+                        <Button
+                            type="text"
+                            icon={<PiEye />}
+                            onClick={() => showDetail(record)}
+                        />
+                    </Tooltip>
+                    <Tooltip title="Löschen">
+                        <Button
+                            type="text"
+                            danger
+                            icon={<PiTrash />}
+                            onClick={() => {
+                                Modal.confirm({
+                                    title: 'Log löschen?',
+                                    content: 'Möchten Sie diesen Log-Eintrag wirklich löschen?',
+                                    okText: 'Löschen',
+                                    okType: 'danger',
+                                    cancelText: 'Abbrechen',
+                                    onOk: () => deleteLog.mutate(record.id),
+                                });
+                            }}
+                        />
+                    </Tooltip>
+                </Space>
+            ),
         },
     ];
 
-    const logStats = {
-        total: logs.length,
-        errors: logs.filter(log => log.level === 'error').length,
-        warnings: logs.filter(log => log.level === 'warning').length,
-        today: logs.filter(log => log.timestamp.startsWith('2025-01-17')).length
+    const rowSelection = {
+        selectedRowKeys,
+        onChange: (keys: React.Key[]) => setSelectedRowKeys(keys),
     };
 
     return (
         <div className="p-6">
             <div className="mb-6">
-                <h1 className="text-2xl font-bold">System-Logs</h1>
+                <h1 className="text-2xl font-bold">Audit Logs</h1>
                 <p className="text-gray-600 mt-2">
-                    Überwachen Sie Systemaktivitäten und Ereignisse
+                    Überwachen Sie alle Systemaktivitäten und Benutzeraktionen
                 </p>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
-                <Card size="small">
-                    <div className="text-2xl font-bold">{logStats.total}</div>
-                    <div className="text-gray-500">Einträge gesamt</div>
-                </Card>
-                <Card size="small">
-                    <div className="text-2xl font-bold text-red-600">{logStats.errors}</div>
-                    <div className="text-gray-500">Fehler</div>
-                </Card>
-                <Card size="small">
-                    <div className="text-2xl font-bold text-orange-600">{logStats.warnings}</div>
-                    <div className="text-gray-500">Warnungen</div>
-                </Card>
-                <Card size="small">
-                    <div className="text-2xl font-bold text-blue-600">{logStats.today}</div>
-                    <div className="text-gray-500">Heute</div>
-                </Card>
-            </div>
+            {/* Statistics Cards */}
+            {statsLoading ? (
+                <Row gutter={16} className="mb-6">
+                    <Col span={24}>
+                        <Card loading />
+                    </Col>
+                </Row>
+            ) : (
+                <Row gutter={16} className="mb-6">
+                    <Col span={6}>
+                        <Card>
+                            <Statistic
+                                title="Gesamt"
+                                value={statistics?.total || 0}
+                                prefix={<PiEye />}
+                            />
+                        </Card>
+                    </Col>
+                    <Col span={6}>
+                        <Card>
+                            <Statistic
+                                title="Fehler"
+                                value={statistics?.errors || 0}
+                                valueStyle={{ color: '#cf1322' }}
+                                prefix={<PiBug />}
+                            />
+                        </Card>
+                    </Col>
+                    <Col span={6}>
+                        <Card>
+                            <Statistic
+                                title="Warnungen"
+                                value={statistics?.warnings || 0}
+                                valueStyle={{ color: '#fa8c16' }}
+                                prefix={<PiWarning />}
+                            />
+                        </Card>
+                    </Col>
+                    <Col span={6}>
+                        <Card>
+                            <Statistic
+                                title="Kritisch"
+                                value={statistics?.critical || 0}
+                                valueStyle={{ color: '#a61d24' }}
+                                prefix={<PiWarningCircle />}
+                            />
+                        </Card>
+                    </Col>
+                </Row>
+            )}
 
+            {/* Filters */}
             <div className="mb-4 space-y-4">
                 <div className="flex flex-wrap gap-2 items-center">
-                    <Input
+                    <Input.Search
                         placeholder="Suche in Logs..."
-                        prefix={<PiMagnifyingGlass />}
                         style={{ width: 300 }}
-                        value={searchText}
-                        onChange={e => setSearchText(e.target.value)}
+                        onSearch={handleSearch}
+                        enterButton
                     />
                     <Select
-                        placeholder="Level filtern"
+                        placeholder="Aktionstyp"
                         style={{ width: 150 }}
                         allowClear
-                        value={levelFilter}
-                        onChange={setLevelFilter}
+                        value={filters.actionType}
+                        onChange={(value) => setFilters({ ...filters, actionType: value, page: 1 })}
                     >
-                        <Option value="info">INFO</Option>
-                        <Option value="warning">WARNING</Option>
-                        <Option value="error">ERROR</Option>
-                        <Option value="debug">DEBUG</Option>
+                        {actionTypes.map(type => (
+                            <Option key={type} value={type}>{type}</Option>
+                        ))}
                     </Select>
                     <Select
-                        placeholder="Kategorie filtern"
-                        style={{ width: 180 }}
+                        placeholder="Schweregrad"
+                        style={{ width: 150 }}
                         allowClear
-                        value={categoryFilter}
-                        onChange={setCategoryFilter}
+                        value={filters.severity}
+                        onChange={(value) => setFilters({ ...filters, severity: value, page: 1 })}
                     >
-                        {Object.entries(categoryLabels).map(([value, label]) => (
-                            <Option key={value} value={value}>{label}</Option>
+                        {severities.map(sev => (
+                            <Option key={sev} value={sev}>
+                                <Tag color={severityColors[sev]}>{sev}</Tag>
+                            </Option>
                         ))}
+                    </Select>
+                    <Select
+                        placeholder="Status"
+                        style={{ width: 150 }}
+                        allowClear
+                        value={filters.success?.toString()}
+                        onChange={(value) => setFilters({ 
+                            ...filters, 
+                            success: value ? value === 'true' : undefined, 
+                            page: 1 
+                        })}
+                    >
+                        <Option value="true">Erfolgreich</Option>
+                        <Option value="false">Fehlgeschlagen</Option>
                     </Select>
                     <RangePicker
                         placeholder={['Von', 'Bis']}
-                        onChange={(dates) => setDateRange(dates)}
+                        onChange={handleDateRangeChange}
+                        format="DD.MM.YYYY"
                     />
                 </div>
                 <div className="flex gap-2">
-                    <Button icon={<PiArrowClockwise />}>
+                    <Button 
+                        icon={<PiArrowClockwise />}
+                        onClick={() => refetch()}
+                        loading={isLoading}
+                    >
                         Aktualisieren
                     </Button>
-                    <Button icon={<PiDownloadSimple />} onClick={handleExport}>
-                        Exportieren
-                    </Button>
+                    <Button.Group>
+                        <Button 
+                            icon={<PiDownloadSimple />} 
+                            onClick={() => handleExport('csv')}
+                            loading={exportLogs.isPending}
+                        >
+                            CSV Export
+                        </Button>
+                        <Button 
+                            onClick={() => handleExport('json')}
+                            loading={exportLogs.isPending}
+                        >
+                            JSON Export
+                        </Button>
+                    </Button.Group>
                     <Button 
                         icon={<PiFunnel />}
                         onClick={() => {
-                            setSearchText('');
-                            setLevelFilter(undefined);
-                            setCategoryFilter(undefined);
-                            setDateRange(null);
+                            setFilters({
+                                page: 1,
+                                limit: 20,
+                                sortField: 'createdAt',
+                                sortOrder: 'desc',
+                            });
                         }}
                     >
                         Filter zurücksetzen
                     </Button>
+                    {selectedRowKeys.length > 0 && (
+                        <Button
+                            danger
+                            icon={<PiTrash />}
+                            onClick={handleDeleteSelected}
+                            loading={deleteLogs.isPending}
+                        >
+                            {selectedRowKeys.length} ausgewählte löschen
+                        </Button>
+                    )}
                 </div>
             </div>
 
+            {/* Table */}
             <Table
+                rowSelection={rowSelection}
                 columns={columns}
                 dataSource={logs}
                 rowKey="id"
-                size="small"
+                loading={isLoading}
+                onChange={handleTableChange}
                 pagination={{
-                    pageSize: 20,
+                    current: filters.page,
+                    pageSize: filters.limit,
+                    total: meta?.total || 0,
                     showSizeChanger: true,
                     showTotal: (total) => `Gesamt ${total} Einträge`,
+                    pageSizeOptions: ['10', '20', '50', '100'],
                 }}
-                scroll={{ x: 1200 }}
+                scroll={{ x: 1400 }}
+                size="small"
+            />
+
+            {/* Detail Modal */}
+            <LogDetailModal
+                visible={detailModalVisible}
+                logId={selectedLogId}
+                log={selectedLog}
+                loading={detailLoading}
+                onClose={() => {
+                    setDetailModalVisible(false);
+                    setSelectedLogId(undefined);
+                }}
             />
         </div>
     );

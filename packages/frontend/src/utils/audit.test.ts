@@ -7,8 +7,8 @@ import { logger } from './logger';
 vi.mock('../api', () => ({
   api: {
     auditLogs: {
-      auditLogsControllerCreate: vi.fn(),
-      auditLogsControllerCreateBatch: vi.fn(),
+      auditLogControllerCreateV1: vi.fn(),
+      auditLogControllerCreateBatchV1: vi.fn(),
     },
   },
 }));
@@ -46,7 +46,7 @@ describe('AuditLogger', () => {
     }
 
     // Default mock implementation
-    vi.mocked(api.auditLogs.auditLogsControllerCreateBatch).mockResolvedValue(undefined);
+    vi.mocked(api.auditLogs.auditLogControllerCreateBatchV1).mockResolvedValue(undefined);
   });
 
   afterEach(() => {
@@ -66,17 +66,15 @@ describe('AuditLogger', () => {
       // Fast forward to trigger batch send
       vi.advanceTimersByTime(5000);
 
-      expect(api.auditLogs.auditLogsControllerCreateBatch).toHaveBeenCalledWith({
-        requestBody: {
-          logs: expect.arrayContaining([
-            expect.objectContaining({
-              action: 'test-action',
-              resource: 'test-resource',
-              actionType: AuditActionType.READ,
-              metadata: expect.stringContaining('test-user-id'),
-            }),
-          ]),
-        },
+      expect(api.auditLogs.auditLogControllerCreateBatchV1).toHaveBeenCalledWith({
+        requestBody: expect.arrayContaining([
+          expect.objectContaining({
+            action: 'test-action',
+            resource: 'test-resource',
+            actionType: AuditActionType.READ,
+            metadata: expect.stringContaining('test-user-id'),
+          }),
+        ]),
       });
     });
 
@@ -91,7 +89,7 @@ describe('AuditLogger', () => {
       await auditLogger.log(context);
 
       // Should be sent immediately without waiting
-      expect(api.auditLogs.auditLogsControllerCreateBatch).toHaveBeenCalled();
+      expect(api.auditLogs.auditLogControllerCreateBatchV1).toHaveBeenCalled();
     });
 
     it('should batch non-critical logs', async () => {
@@ -111,19 +109,17 @@ describe('AuditLogger', () => {
       await auditLogger.log(context2);
 
       // Should not be sent immediately
-      expect(api.auditLogs.auditLogsControllerCreateBatch).not.toHaveBeenCalled();
+      expect(api.auditLogs.auditLogControllerCreateBatchV1).not.toHaveBeenCalled();
 
       // Fast forward to trigger batch send
       vi.advanceTimersByTime(5000);
 
-      expect(api.auditLogs.auditLogsControllerCreateBatch).toHaveBeenCalledTimes(1);
-      expect(api.auditLogs.auditLogsControllerCreateBatch).toHaveBeenCalledWith({
-        requestBody: {
-          logs: expect.arrayContaining([
-            expect.objectContaining({ action: 'action-1' }),
-            expect.objectContaining({ action: 'action-2' }),
-          ]),
-        },
+      expect(api.auditLogs.auditLogControllerCreateBatchV1).toHaveBeenCalledTimes(1);
+      expect(api.auditLogs.auditLogControllerCreateBatchV1).toHaveBeenCalledWith({
+        requestBody: expect.arrayContaining([
+          expect.objectContaining({ action: 'action-1' }),
+          expect.objectContaining({ action: 'action-2' }),
+        ]),
       });
     });
   });
@@ -132,7 +128,7 @@ describe('AuditLogger', () => {
     it('should retry failed batch sends with exponential backoff', async () => {
       // Mock API to fail twice then succeed
       let callCount = 0;
-      vi.mocked(api.auditLogs.auditLogsControllerCreateBatch).mockImplementation(() => {
+      vi.mocked(api.auditLogs.auditLogControllerCreateBatchV1).mockImplementation(() => {
         callCount++;
         if (callCount <= 2) {
           return Promise.reject(new Error('Network error'));
@@ -157,7 +153,7 @@ describe('AuditLogger', () => {
       // Wait for second retry (2 seconds)
       await vi.advanceTimersByTimeAsync(2000);
 
-      expect(api.auditLogs.auditLogsControllerCreateBatch).toHaveBeenCalledTimes(3);
+      expect(api.auditLogs.auditLogControllerCreateBatchV1).toHaveBeenCalledTimes(3);
       expect(logger.warn).toHaveBeenCalledWith(
         expect.stringContaining('Retrying audit log batch'),
         expect.any(Object),
@@ -166,7 +162,7 @@ describe('AuditLogger', () => {
 
     it('should persist failed logs to localStorage after max retries', async () => {
       // Mock API to always fail
-      vi.mocked(api.auditLogs.auditLogsControllerCreateBatch).mockRejectedValue(
+      vi.mocked(api.auditLogs.auditLogControllerCreateBatchV1).mockRejectedValue(
         new Error('Persistent network error'),
       );
 
@@ -204,17 +200,15 @@ describe('AuditLogger', () => {
 
       vi.advanceTimersByTime(5000);
 
-      expect(api.auditLogs.auditLogsControllerCreateBatch).toHaveBeenCalledWith({
-        requestBody: {
-          logs: expect.arrayContaining([
-            expect.objectContaining({
-              action: 'success-action',
-              resource: 'success-resource',
-              actionType: AuditActionType.READ,
-              metadata: expect.stringContaining('"custom":"data"'),
-            }),
-          ]),
-        },
+      expect(api.auditLogs.auditLogControllerCreateBatchV1).toHaveBeenCalledWith({
+        requestBody: expect.arrayContaining([
+          expect.objectContaining({
+            action: 'success-action',
+            resource: 'success-resource',
+            actionType: AuditActionType.READ,
+            metadata: expect.stringContaining('"custom":"data"'),
+          }),
+        ]),
       });
     });
   });
@@ -229,17 +223,15 @@ describe('AuditLogger', () => {
       await vi.runAllTimersAsync();
 
       // Error logs should be sent immediately
-      expect(api.auditLogs.auditLogsControllerCreateBatch).toHaveBeenCalledWith({
-        requestBody: {
-          logs: expect.arrayContaining([
-            expect.objectContaining({
-              action: 'error-action',
-              resource: 'error-resource',
-              actionType: AuditActionType.ERROR,
-              metadata: expect.stringContaining('userAgent'),
-            }),
-          ]),
-        },
+      expect(api.auditLogs.auditLogControllerCreateBatchV1).toHaveBeenCalledWith({
+        requestBody: expect.arrayContaining([
+          expect.objectContaining({
+            action: 'error-action',
+            resource: 'error-resource',
+            actionType: AuditActionType.ERROR,
+            metadata: expect.stringContaining('userAgent'),
+          }),
+        ]),
       });
     });
   });
@@ -252,16 +244,14 @@ describe('AuditLogger', () => {
       await vi.runAllTimersAsync();
 
       // Security logs should be sent immediately
-      expect(api.auditLogs.auditLogsControllerCreateBatch).toHaveBeenCalledWith({
-        requestBody: {
-          logs: expect.arrayContaining([
-            expect.objectContaining({
-              action: 'security-action',
-              resource: 'security-resource',
-              actionType: AuditActionType.SECURITY,
-            }),
-          ]),
-        },
+      expect(api.auditLogs.auditLogControllerCreateBatchV1).toHaveBeenCalledWith({
+        requestBody: expect.arrayContaining([
+          expect.objectContaining({
+            action: 'security-action',
+            resource: 'security-resource',
+            actionType: AuditActionType.SECURITY,
+          }),
+        ]),
       });
     });
   });
@@ -275,19 +265,17 @@ describe('AuditLogger', () => {
 
       vi.advanceTimersByTime(5000);
 
-      expect(api.auditLogs.auditLogsControllerCreateBatch).toHaveBeenCalledWith({
-        requestBody: {
-          logs: expect.arrayContaining([
-            expect.objectContaining({
-              action: 'update-user',
-              resource: 'user',
-              resourceId: '123',
-              actionType: AuditActionType.UPDATE,
-              oldValues: JSON.stringify(oldValues),
-              newValues: JSON.stringify(newValues),
-            }),
-          ]),
-        },
+      expect(api.auditLogs.auditLogControllerCreateBatchV1).toHaveBeenCalledWith({
+        requestBody: expect.arrayContaining([
+          expect.objectContaining({
+            action: 'update-user',
+            resource: 'user',
+            resourceId: '123',
+            actionType: AuditActionType.UPDATE,
+            oldValues: JSON.stringify(oldValues),
+            newValues: JSON.stringify(newValues),
+          }),
+        ]),
       });
     });
   });
@@ -295,7 +283,7 @@ describe('AuditLogger', () => {
   describe('local storage persistence', () => {
     it('should persist failed logs to localStorage on window unload', async () => {
       // Mock API to always fail
-      vi.mocked(api.auditLogs.auditLogsControllerCreateBatch).mockRejectedValue(
+      vi.mocked(api.auditLogs.auditLogControllerCreateBatchV1).mockRejectedValue(
         new Error('Network error'),
       );
 
