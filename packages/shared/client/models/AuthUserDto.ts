@@ -69,6 +69,7 @@ export interface AuthUserDto {
 export const AuthUserDtoRolesEnum = {
   SuperAdmin: 'SUPER_ADMIN',
   Admin: 'ADMIN',
+  Manager: 'MANAGER',
   Support: 'SUPPORT',
   User: 'USER',
 } as const;

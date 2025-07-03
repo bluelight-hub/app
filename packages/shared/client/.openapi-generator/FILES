@@ -1,3 +1,4 @@
+apis/AuditLogsApi.ts
 apis/AuthenticationApi.ts
 apis/EinsatzApi.ts
 apis/EinsatztagebuchApi.ts
@@ -5,7 +6,9 @@ apis/HealthApi.ts
 apis/index.ts
 index.ts
 models/ApiMeta.ts
+models/AuditLogEntity.ts
 models/AuthUserDto.ts
+models/CreateAuditLogDto.ts
 models/CreateEinsatzDto.ts
 models/CreateEtbDto.ts
 models/Einsatz.ts

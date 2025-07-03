@@ -1,6 +1,7 @@
 import React from 'react';
 import { logger } from './logger';
 import { useAuthStore } from '../stores/useAuthStore';
+import { api } from '../api';
 
 /**
  * Audit-Aktionstypen
@@ -15,7 +16,7 @@ export enum AuditActionType {
   LOGOUT = 'LOGOUT',
   ERROR = 'ERROR',
   SECURITY = 'SECURITY',
-  SYSTEM = 'SYSTEM'
+  SYSTEM = 'SYSTEM',
 }
 
 /**
@@ -26,7 +27,7 @@ export enum AuditSeverity {
   LOW = 'LOW',
   MEDIUM = 'MEDIUM',
   HIGH = 'HIGH',
-  CRITICAL = 'CRITICAL'
+  CRITICAL = 'CRITICAL',
 }
 
 /**
@@ -59,13 +60,21 @@ class AuditLogger {
   private batchTimer: NodeJS.Timeout | null = null;
   private readonly BATCH_SIZE = 10;
   private readonly BATCH_DELAY = 5000; // 5 seconds
+  private readonly MAX_RETRY_ATTEMPTS = 3;
+  private readonly RETRY_DELAY_BASE = 1000; // 1 second
+  private retryAttempts = new Map<string, number>();
+  private failedLogs: AuditContext[] = [];
 
   private constructor() {
     // Initialize with window unload handler to flush remaining logs
     if (typeof window !== 'undefined') {
       window.addEventListener('beforeunload', () => {
         this.flushBatch();
+        this.persistFailedLogs();
       });
+
+      // Restore failed logs from local storage on init
+      this.restoreFailedLogs();
     }
   }
 
@@ -130,7 +139,7 @@ class AuditLogger {
     details?: Partial<AuditContext>,
   ): Promise<void> {
     const errorMessage = error instanceof Error ? error.message : error;
-    
+
     await this.log({
       action,
       resource,
@@ -171,7 +180,7 @@ class AuditLogger {
     details?: Partial<AuditContext>,
   ): Promise<void> {
     const changedFields = Object.keys(newValues).filter(
-      key => JSON.stringify(oldValues[key]) !== JSON.stringify(newValues[key])
+      (key) => JSON.stringify(oldValues[key]) !== JSON.stringify(newValues[key]),
     );
 
     await this.log({
@@ -192,7 +201,7 @@ class AuditLogger {
    */
   private enrichContext(context: AuditContext, authState: any): AuditContext {
     const userAgent = typeof navigator !== 'undefined' ? navigator.userAgent : 'Unknown';
-    
+
     return {
       ...context,
       metadata: {
@@ -250,19 +259,31 @@ class AuditLogger {
     }
 
     try {
-      // Send logs to backend
-      // Note: We need to implement the batch endpoint in the API
-      for (const log of logsToSend) {
-        await this.sendLog(log);
-      }
+      // Send logs to backend using batch endpoint
+      const logs = logsToSend.map((context) => ({
+        actionType: context.actionType,
+        action: context.action,
+        resource: context.resource,
+        resourceId: context.resourceId,
+        oldValues: context.oldValues ? JSON.stringify(context.oldValues) : undefined,
+        newValues: context.newValues ? JSON.stringify(context.newValues) : undefined,
+        metadata: context.metadata ? JSON.stringify(context.metadata) : undefined,
+        ipAddress: '0.0.0.0', // Will be populated by backend
+        userAgent: context.metadata?.userAgent || 'Unknown',
+      }));
+
+      await this.sendBatchWithRetry(logs);
+
+      logger.debug('Audit log batch sent successfully', { batchSize: logsToSend.length });
     } catch (error) {
-      logger.error('Failed to flush audit log batch', {
+      logger.error('Failed to flush audit log batch after retries', {
         error: error instanceof Error ? error.message : String(error),
         batchSize: logsToSend.length,
       });
-      
-      // Re-add failed logs to queue for retry
-      this.batchQueue.unshift(...logsToSend);
+
+      // Add to failed logs for later retry
+      this.failedLogs.push(...logsToSend);
+      this.persistFailedLogs();
     }
   }
 
@@ -271,16 +292,21 @@ class AuditLogger {
    */
   private async sendLog(context: AuditContext): Promise<void> {
     try {
-      // TODO: Replace with actual API call once AuditApi is generated
-      // await api.audit.create({
-      //   actionType: context.actionType,
-      //   action: context.action,
-      //   resource: context.resource,
-      //   resourceId: context.resourceId,
-      //   ...context,
-      // });
-      
-      logger.debug('Audit log queued for sending', { action: context.action });
+      await api.auditLogs.auditLogsControllerCreate({
+        createAuditLogDto: {
+          actionType: context.actionType,
+          action: context.action,
+          resource: context.resource,
+          resourceId: context.resourceId,
+          oldValues: context.oldValues ? JSON.stringify(context.oldValues) : undefined,
+          newValues: context.newValues ? JSON.stringify(context.newValues) : undefined,
+          metadata: context.metadata ? JSON.stringify(context.metadata) : undefined,
+          ipAddress: '0.0.0.0', // Will be populated by backend
+          userAgent: context.metadata?.userAgent || 'Unknown',
+        },
+      });
+
+      logger.debug('Audit log sent successfully', { action: context.action });
     } catch (error) {
       logger.error('Failed to send audit log', {
         error: error instanceof Error ? error.message : String(error),
@@ -288,6 +314,113 @@ class AuditLogger {
       });
       throw error;
     }
+  }
+
+  /**
+   * Sends batch with exponential backoff retry
+   */
+  private async sendBatchWithRetry(logs: any[], attempt = 1): Promise<void> {
+    const batchId = `batch-${Date.now()}`;
+
+    try {
+      await api.auditLogs.auditLogsControllerCreateBatch({
+        requestBody: { logs },
+      });
+
+      // Clear retry attempts on success
+      this.retryAttempts.delete(batchId);
+    } catch (error) {
+      if (attempt < this.MAX_RETRY_ATTEMPTS) {
+        const delay = this.RETRY_DELAY_BASE * Math.pow(2, attempt - 1);
+
+        logger.warn(`Retrying audit log batch after ${delay}ms`, {
+          attempt,
+          batchId,
+          error: error instanceof Error ? error.message : String(error),
+        });
+
+        this.retryAttempts.set(batchId, attempt);
+
+        await new Promise((resolve) => setTimeout(resolve, delay));
+        await this.sendBatchWithRetry(logs, attempt + 1);
+      } else {
+        throw error;
+      }
+    }
+  }
+
+  /**
+   * Persists failed logs to local storage
+   */
+  private persistFailedLogs(): void {
+    try {
+      if (typeof window !== 'undefined' && window.localStorage) {
+        const key = 'bluelight_audit_failed_logs';
+        const maxLogs = 100; // Limit storage size
+
+        const logsToStore = this.failedLogs.slice(-maxLogs);
+        localStorage.setItem(key, JSON.stringify(logsToStore));
+
+        logger.debug('Persisted failed audit logs to local storage', {
+          count: logsToStore.length,
+        });
+      }
+    } catch (error) {
+      logger.error('Failed to persist audit logs to local storage', {
+        error: error instanceof Error ? error.message : String(error),
+      });
+    }
+  }
+
+  /**
+   * Restores failed logs from local storage
+   */
+  private restoreFailedLogs(): void {
+    try {
+      if (typeof window !== 'undefined' && window.localStorage) {
+        const key = 'bluelight_audit_failed_logs';
+        const stored = localStorage.getItem(key);
+
+        if (stored) {
+          const logs = JSON.parse(stored) as AuditContext[];
+          this.failedLogs = logs;
+
+          // Clear stored logs
+          localStorage.removeItem(key);
+
+          logger.info('Restored failed audit logs from local storage', {
+            count: logs.length,
+          });
+
+          // Retry sending failed logs after a delay
+          setTimeout(() => {
+            this.retryFailedLogs();
+          }, 5000);
+        }
+      }
+    } catch (error) {
+      logger.error('Failed to restore audit logs from local storage', {
+        error: error instanceof Error ? error.message : String(error),
+      });
+    }
+  }
+
+  /**
+   * Retries sending failed logs
+   */
+  private async retryFailedLogs(): Promise<void> {
+    if (this.failedLogs.length === 0) {
+      return;
+    }
+
+    const logsToRetry = [...this.failedLogs];
+    this.failedLogs = [];
+
+    logger.info('Retrying failed audit logs', { count: logsToRetry.length });
+
+    // Add back to queue for processing
+    this.batchQueue.push(...logsToRetry);
+    await this.flushBatch();
   }
 }
 

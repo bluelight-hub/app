@@ -1,4 +1,5 @@
 import { AuthenticationApi } from '@bluelight-hub/shared/client/apis/AuthenticationApi';
+import { AuditLogsApi } from '@bluelight-hub/shared/client/apis/AuditLogsApi';
 import { EinsatzApi } from '@bluelight-hub/shared/client/apis/EinsatzApi';
 import { EinsatztagebuchApi } from '@bluelight-hub/shared/client/apis/EinsatztagebuchApi';
 import { HealthApi } from '@bluelight-hub/shared/client/apis/HealthApi';
@@ -11,6 +12,7 @@ import { logger } from '../utils/logger';
 class API {
   private static instance: API;
   private authApi: AuthenticationApi;
+  private auditLogsApi: AuditLogsApi;
   private healthApi: HealthApi;
   private einsatztagebuchApi: EinsatztagebuchApi;
   private einsatzApi: EinsatzApi;
@@ -23,6 +25,7 @@ class API {
       });
 
       this.authApi = new AuthenticationApi(apiConfiguration);
+      this.auditLogsApi = new AuditLogsApi(apiConfiguration);
       this.healthApi = new HealthApi(apiConfiguration);
       this.einsatztagebuchApi = new EinsatztagebuchApi(apiConfiguration);
       this.einsatzApi = new EinsatzApi(apiConfiguration);
@@ -39,6 +42,7 @@ class API {
       });
 
       this.authApi = new AuthenticationApi(apiConfiguration);
+      this.auditLogsApi = new AuditLogsApi(apiConfiguration);
       this.healthApi = new HealthApi(apiConfiguration);
       this.einsatztagebuchApi = new EinsatztagebuchApi(apiConfiguration);
       this.einsatzApi = new EinsatzApi(apiConfiguration);
@@ -53,6 +57,10 @@ class API {
 
   public get auth() {
     return this.authApi;
+  }
+
+  public get auditLogs() {
+    return this.auditLogsApi;
   }
 
   public get health() {
