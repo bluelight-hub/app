@@ -116,6 +116,9 @@ enum Permission {
   
   // Audit logs
   AUDIT_LOG_READ
+  AUDIT_LOG_WRITE
+  AUDIT_LOG_DELETE
+  AUDIT_LOG_EXPORT
   
   // Role management
   ROLE_MANAGE

@@ -244,6 +244,7 @@ class AuditLogger {
 
   /**
    * Flushes the batch queue
+   * Note: Currently disabled as audit logging should be handled server-side
    */
   private async flushBatch(): Promise<void> {
     if (this.batchQueue.length === 0) {
@@ -258,33 +259,15 @@ class AuditLogger {
       this.batchTimer = null;
     }
 
-    try {
-      // Send logs to backend using batch endpoint
-      const logs = logsToSend.map((context) => ({
-        actionType: context.actionType,
-        action: context.action,
-        resource: context.resource,
-        resourceId: context.resourceId,
-        oldValues: context.oldValues ? JSON.stringify(context.oldValues) : undefined,
-        newValues: context.newValues ? JSON.stringify(context.newValues) : undefined,
-        metadata: context.metadata ? JSON.stringify(context.metadata) : undefined,
-        ipAddress: '0.0.0.0', // Will be populated by backend
-        userAgent: context.metadata?.userAgent || 'Unknown',
-      }));
+    // Temporarily disable client-side audit logging
+    // Audit logs should be created server-side through interceptors
+    logger.debug('Client-side audit logging disabled, logs discarded', {
+      batchSize: logsToSend.length,
+      reason: 'Audit logs should be created server-side',
+    });
 
-      await this.sendBatchWithRetry(logs);
-
-      logger.debug('Audit log batch sent successfully', { batchSize: logsToSend.length });
-    } catch (error) {
-      logger.error('Failed to flush audit log batch after retries', {
-        error: error instanceof Error ? error.message : String(error),
-        batchSize: logsToSend.length,
-      });
-
-      // Add to failed logs for later retry
-      this.failedLogs.push(...logsToSend);
-      this.persistFailedLogs();
-    }
+    // TODO: In future, we could send these as "client events" to a different endpoint
+    // that doesn't require AUDIT_LOG_WRITE permission
   }
 
   /**
@@ -318,58 +301,22 @@ class AuditLogger {
 
   /**
    * Sends batch with exponential backoff retry
+   * Note: Currently disabled as audit logging should be handled server-side
    */
-  private async sendBatchWithRetry(logs: any[], attempt = 1): Promise<void> {
-    const batchId = `batch-${Date.now()}`;
-
-    try {
-      await api.auditLogs.auditLogControllerCreateBatchV1({
-        requestBody: logs,
-      });
-
-      // Clear retry attempts on success
-      this.retryAttempts.delete(batchId);
-    } catch (error) {
-      if (attempt < this.MAX_RETRY_ATTEMPTS) {
-        const delay = this.RETRY_DELAY_BASE * Math.pow(2, attempt - 1);
-
-        logger.warn(`Retrying audit log batch after ${delay}ms`, {
-          attempt,
-          batchId,
-          error: error instanceof Error ? error.message : String(error),
-        });
-
-        this.retryAttempts.set(batchId, attempt);
-
-        await new Promise((resolve) => setTimeout(resolve, delay));
-        await this.sendBatchWithRetry(logs, attempt + 1);
-      } else {
-        throw error;
-      }
-    }
+  private async sendBatchWithRetry(logs: any[], _attempt = 1): Promise<void> {
+    // Disabled - audit logs should be created server-side
+    throw new Error('Client-side audit logging is disabled');
   }
 
   /**
    * Persists failed logs to local storage
+   * Note: Currently disabled as audit logging should be handled server-side
    */
   private persistFailedLogs(): void {
-    try {
-      if (typeof window !== 'undefined' && window.localStorage) {
-        const key = 'bluelight_audit_failed_logs';
-        const maxLogs = 100; // Limit storage size
-
-        const logsToStore = this.failedLogs.slice(-maxLogs);
-        localStorage.setItem(key, JSON.stringify(logsToStore));
-
-        logger.debug('Persisted failed audit logs to local storage', {
-          count: logsToStore.length,
-        });
-      }
-    } catch (error) {
-      logger.error('Failed to persist audit logs to local storage', {
-        error: error instanceof Error ? error.message : String(error),
-      });
-    }
+    // Disabled - not persisting logs anymore
+    logger.debug('Skipping persist of failed logs', {
+      reason: 'Client-side audit logging disabled',
+    });
   }
 
   /**
@@ -383,23 +330,18 @@ class AuditLogger {
 
         if (stored) {
           const logs = JSON.parse(stored) as AuditContext[];
-          this.failedLogs = logs;
 
-          // Clear stored logs
+          // Clear stored logs immediately since we're not processing them
           localStorage.removeItem(key);
 
-          logger.info('Restored failed audit logs from local storage', {
+          logger.info('Cleared legacy failed audit logs from local storage', {
             count: logs.length,
+            reason: 'Client-side audit logging disabled',
           });
-
-          // Retry sending failed logs after a delay
-          setTimeout(() => {
-            this.retryFailedLogs();
-          }, 5000);
         }
       }
     } catch (error) {
-      logger.error('Failed to restore audit logs from local storage', {
+      logger.error('Failed to clear audit logs from local storage', {
         error: error instanceof Error ? error.message : String(error),
       });
     }
@@ -407,20 +349,24 @@ class AuditLogger {
 
   /**
    * Retries sending failed logs
+   * Note: Currently disabled as audit logging should be handled server-side
    */
   private async retryFailedLogs(): Promise<void> {
     if (this.failedLogs.length === 0) {
       return;
     }
 
-    const logsToRetry = [...this.failedLogs];
+    // Clear failed logs since we're not sending them anymore
     this.failedLogs = [];
 
-    logger.info('Retrying failed audit logs', { count: logsToRetry.length });
+    // Clear from localStorage
+    if (typeof window !== 'undefined' && window.localStorage) {
+      localStorage.removeItem('bluelight_audit_failed_logs');
+    }
 
-    // Add back to queue for processing
-    this.batchQueue.push(...logsToRetry);
-    await this.flushBatch();
+    logger.debug('Cleared failed audit logs', {
+      reason: 'Client-side audit logging disabled',
+    });
   }
 }
 

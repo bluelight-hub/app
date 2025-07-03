@@ -1,5 +1,5 @@
 import { vi, describe, it, expect, beforeEach, afterEach } from 'vitest';
-import { auditLogger, AuditActionType, AuditSeverity } from './audit';
+import { auditLogger, AuditActionType } from './audit';
 import { api } from '../api';
 import { logger } from './logger';
 
@@ -53,268 +53,157 @@ describe('AuditLogger', () => {
     vi.useRealTimers();
   });
 
-  describe('log', () => {
-    it('should enrich context with user information', async () => {
+  describe('Client-side logging disabled', () => {
+    it('should not send logs to backend when client-side logging is disabled', async () => {
       const context = {
         action: 'test-action',
         resource: 'test-resource',
-        actionType: AuditActionType.READ,
-      };
-
-      await auditLogger.log(context);
-
-      // Fast forward to trigger batch send
-      vi.advanceTimersByTime(5000);
-
-      expect(api.auditLogs.auditLogControllerCreateBatchV1).toHaveBeenCalledWith({
-        requestBody: expect.arrayContaining([
-          expect.objectContaining({
-            action: 'test-action',
-            resource: 'test-resource',
-            actionType: AuditActionType.READ,
-            metadata: expect.stringContaining('test-user-id'),
-          }),
-        ]),
-      });
-    });
-
-    it('should send critical logs immediately', async () => {
-      const context = {
-        action: 'critical-action',
-        resource: 'critical-resource',
-        actionType: AuditActionType.SECURITY,
-        severity: AuditSeverity.CRITICAL,
-      };
-
-      await auditLogger.log(context);
-
-      // Should be sent immediately without waiting
-      expect(api.auditLogs.auditLogControllerCreateBatchV1).toHaveBeenCalled();
-    });
-
-    it('should batch non-critical logs', async () => {
-      const context1 = {
-        action: 'action-1',
-        resource: 'resource-1',
-        actionType: AuditActionType.READ,
-      };
-
-      const context2 = {
-        action: 'action-2',
-        resource: 'resource-2',
-        actionType: AuditActionType.UPDATE,
-      };
-
-      await auditLogger.log(context1);
-      await auditLogger.log(context2);
-
-      // Should not be sent immediately
-      expect(api.auditLogs.auditLogControllerCreateBatchV1).not.toHaveBeenCalled();
-
-      // Fast forward to trigger batch send
-      vi.advanceTimersByTime(5000);
-
-      expect(api.auditLogs.auditLogControllerCreateBatchV1).toHaveBeenCalledTimes(1);
-      expect(api.auditLogs.auditLogControllerCreateBatchV1).toHaveBeenCalledWith({
-        requestBody: expect.arrayContaining([
-          expect.objectContaining({ action: 'action-1' }),
-          expect.objectContaining({ action: 'action-2' }),
-        ]),
-      });
-    });
-  });
-
-  describe('retry logic', () => {
-    it('should retry failed batch sends with exponential backoff', async () => {
-      // Mock API to fail twice then succeed
-      let callCount = 0;
-      vi.mocked(api.auditLogs.auditLogControllerCreateBatchV1).mockImplementation(() => {
-        callCount++;
-        if (callCount <= 2) {
-          return Promise.reject(new Error('Network error'));
-        }
-        return Promise.resolve();
-      });
-
-      const context = {
-        action: 'test-action',
-        resource: 'test-resource',
-        actionType: AuditActionType.READ,
-      };
-
-      await auditLogger.log(context);
-
-      // Trigger initial send
-      vi.advanceTimersByTime(5000);
-
-      // Wait for first retry (1 second)
-      await vi.advanceTimersByTimeAsync(1000);
-
-      // Wait for second retry (2 seconds)
-      await vi.advanceTimersByTimeAsync(2000);
-
-      expect(api.auditLogs.auditLogControllerCreateBatchV1).toHaveBeenCalledTimes(3);
-      expect(logger.warn).toHaveBeenCalledWith(
-        expect.stringContaining('Retrying audit log batch'),
-        expect.any(Object),
-      );
-    });
-
-    it('should persist failed logs to localStorage after max retries', async () => {
-      // Mock API to always fail
-      vi.mocked(api.auditLogs.auditLogControllerCreateBatchV1).mockRejectedValue(
-        new Error('Persistent network error'),
-      );
-
-      const context = {
-        action: 'failed-action',
-        resource: 'failed-resource',
         actionType: AuditActionType.CREATE,
       };
 
       await auditLogger.log(context);
 
-      // Trigger initial send
+      // Wait for batch timer
       vi.advanceTimersByTime(5000);
 
-      // Wait for all retries
-      await vi.advanceTimersByTimeAsync(10000);
+      // Should not call API
+      expect(api.auditLogs.auditLogControllerCreateBatchV1).not.toHaveBeenCalled();
 
-      const storedLogs = localStorage.getItem('bluelight_audit_failed_logs');
-      expect(storedLogs).toBeTruthy();
+      // Should log debug message about disabled logging
+      expect(logger.debug).toHaveBeenCalledWith(
+        'Client-side audit logging disabled, logs discarded',
+        expect.objectContaining({
+          reason: 'Audit logs should be created server-side',
+        }),
+      );
+    });
 
-      const parsedLogs = JSON.parse(storedLogs!);
-      expect(parsedLogs).toHaveLength(1);
-      expect(parsedLogs[0]).toMatchObject({
-        action: 'failed-action',
-        resource: 'failed-resource',
-      });
+    it('should clear legacy failed logs from localStorage', () => {
+      // Set up legacy failed logs
+      const legacyLogs = [
+        {
+          action: 'legacy-action',
+          resource: 'legacy-resource',
+          timestamp: new Date().toISOString(),
+        },
+      ];
+      localStorage.setItem('bluelight_audit_failed_logs', JSON.stringify(legacyLogs));
+
+      // Create new instance to trigger restoration
+      auditLogger['restoreFailedLogs']();
+
+      // Should clear the logs
+      expect(localStorage.getItem('bluelight_audit_failed_logs')).toBeNull();
+
+      // Should log info about clearing
+      expect(logger.info).toHaveBeenCalledWith(
+        'Cleared legacy failed audit logs from local storage',
+        expect.objectContaining({
+          count: 1,
+          reason: 'Client-side audit logging disabled',
+        }),
+      );
     });
   });
 
-  describe('logSuccess', () => {
-    it('should log successful actions with appropriate defaults', async () => {
+  describe('log methods still create contexts', () => {
+    it('logSuccess should create proper context but not send', async () => {
       await auditLogger.logSuccess('success-action', 'success-resource', {
         metadata: { custom: 'data' },
       });
 
       vi.advanceTimersByTime(5000);
 
-      expect(api.auditLogs.auditLogControllerCreateBatchV1).toHaveBeenCalledWith({
-        requestBody: expect.arrayContaining([
-          expect.objectContaining({
-            action: 'success-action',
-            resource: 'success-resource',
-            actionType: AuditActionType.READ,
-            metadata: expect.stringContaining('"custom":"data"'),
-          }),
-        ]),
-      });
+      expect(api.auditLogs.auditLogControllerCreateBatchV1).not.toHaveBeenCalled();
+      expect(logger.debug).toHaveBeenCalledWith(
+        'Client-side audit logging disabled, logs discarded',
+        expect.any(Object),
+      );
     });
-  });
 
-  describe('logError', () => {
-    it('should log errors with high severity', async () => {
+    it('logError should create proper context but not send', async () => {
       const error = new Error('Test error');
-
       await auditLogger.logError('error-action', 'error-resource', error);
 
-      // Wait a tick for async operations
-      await vi.runAllTimersAsync();
-
-      // Error logs should be sent immediately
-      expect(api.auditLogs.auditLogControllerCreateBatchV1).toHaveBeenCalledWith({
-        requestBody: expect.arrayContaining([
-          expect.objectContaining({
-            action: 'error-action',
-            resource: 'error-resource',
-            actionType: AuditActionType.ERROR,
-            metadata: expect.stringContaining('userAgent'),
-          }),
-        ]),
-      });
+      // Error logs would normally be sent immediately, but now they shouldn't
+      expect(api.auditLogs.auditLogControllerCreateBatchV1).not.toHaveBeenCalled();
+      expect(logger.debug).toHaveBeenCalledWith(
+        'Client-side audit logging disabled, logs discarded',
+        expect.any(Object),
+      );
     });
-  });
 
-  describe('logSecurity', () => {
-    it('should log security events with high severity and sensitive flag', async () => {
-      await auditLogger.logSecurity('security-action', 'security-resource');
-
-      // Wait a tick for async operations
-      await vi.runAllTimersAsync();
-
-      // Security logs should be sent immediately
-      expect(api.auditLogs.auditLogControllerCreateBatchV1).toHaveBeenCalledWith({
-        requestBody: expect.arrayContaining([
-          expect.objectContaining({
-            action: 'security-action',
-            resource: 'security-resource',
-            actionType: AuditActionType.SECURITY,
-          }),
-        ]),
+    it('logSecurity should create proper context but not send', async () => {
+      await auditLogger.logSecurity('security-action', 'security-resource', {
+        metadata: { threat: 'suspicious' },
       });
+
+      // Security logs would normally be sent immediately, but now they shouldn't
+      expect(api.auditLogs.auditLogControllerCreateBatchV1).not.toHaveBeenCalled();
+      expect(logger.debug).toHaveBeenCalledWith(
+        'Client-side audit logging disabled, logs discarded',
+        expect.any(Object),
+      );
     });
-  });
 
-  describe('logDataChange', () => {
-    it('should log data changes with affected fields', async () => {
-      const oldValues = { name: 'old', age: 25 };
-      const newValues = { name: 'new', age: 25 };
-
-      await auditLogger.logDataChange('update-user', 'user', '123', oldValues, newValues);
+    it('logDataChange should create proper context but not send', async () => {
+      await auditLogger.logDataChange(
+        'data-action',
+        'data-resource',
+        '123',
+        { field1: 'old', field2: 'old' },
+        { field1: 'new', field2: 'new' },
+        { metadata: { entityId: '123' } },
+      );
 
       vi.advanceTimersByTime(5000);
 
-      expect(api.auditLogs.auditLogControllerCreateBatchV1).toHaveBeenCalledWith({
-        requestBody: expect.arrayContaining([
-          expect.objectContaining({
-            action: 'update-user',
-            resource: 'user',
-            resourceId: '123',
-            actionType: AuditActionType.UPDATE,
-            oldValues: JSON.stringify(oldValues),
-            newValues: JSON.stringify(newValues),
-          }),
-        ]),
-      });
+      expect(api.auditLogs.auditLogControllerCreateBatchV1).not.toHaveBeenCalled();
+      expect(logger.debug).toHaveBeenCalledWith(
+        'Client-side audit logging disabled, logs discarded',
+        expect.any(Object),
+      );
     });
   });
 
-  describe('local storage persistence', () => {
-    it('should persist failed logs to localStorage on window unload', async () => {
-      // Mock API to always fail
-      vi.mocked(api.auditLogs.auditLogControllerCreateBatchV1).mockRejectedValue(
-        new Error('Network error'),
-      );
+  describe('batch processing disabled', () => {
+    it('should not accumulate logs in batch', async () => {
+      // Send multiple logs
+      for (let i = 0; i < 10; i++) {
+        await auditLogger.log({
+          action: `action-${i}`,
+          resource: 'resource',
+          actionType: AuditActionType.CREATE,
+        });
+      }
 
-      const context = {
-        action: 'unload-action',
-        resource: 'unload-resource',
+      vi.advanceTimersByTime(5000);
+
+      // Should not call API at all
+      expect(api.auditLogs.auditLogControllerCreateBatchV1).not.toHaveBeenCalled();
+    });
+
+    it('should not persist logs on window unload', () => {
+      // Add some logs
+      auditLogger.log({
+        action: 'test-action',
+        resource: 'test-resource',
         actionType: AuditActionType.CREATE,
-      };
+      });
 
-      await auditLogger.log(context);
+      // Trigger unload event
+      window.dispatchEvent(new Event('beforeunload'));
 
-      // Trigger initial send and let it fail
-      vi.advanceTimersByTime(5000);
-      await vi.runAllTimersAsync();
+      // Should not persist to localStorage
+      expect(localStorage.getItem('bluelight_audit_failed_logs')).toBeNull();
+    });
+  });
 
-      // Simulate window unload
-      const unloadEvent = new Event('beforeunload');
-      window.dispatchEvent(unloadEvent);
-
-      const storedLogs = localStorage.getItem('bluelight_audit_failed_logs');
-      expect(storedLogs).toBeTruthy();
-
-      const parsedLogs = JSON.parse(storedLogs!);
-      expect(parsedLogs).toEqual(
-        expect.arrayContaining([
-          expect.objectContaining({
-            action: 'unload-action',
-            resource: 'unload-resource',
-          }),
-        ]),
-      );
+  describe('getInstance', () => {
+    it('should always return the same instance', () => {
+      const instance1 = auditLogger;
+      const instance2 = auditLogger;
+      expect(instance1).toBe(instance2);
     });
   });
 });
