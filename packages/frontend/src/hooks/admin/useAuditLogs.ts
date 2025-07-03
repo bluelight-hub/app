@@ -7,7 +7,7 @@ import { useState } from 'react';
 export interface AuditLogFilters {
   page?: number;
   limit?: number;
-  sortField?: string;
+  sortBy?: string;
   sortOrder?: 'asc' | 'desc';
   actionType?: string;
   severity?: string;
@@ -44,10 +44,11 @@ export function useAuditLogs(filters: AuditLogFilters = {}) {
   const { data, isLoading, error, refetch } = useQuery<AuditLogResponse, Error>({
     queryKey,
     queryFn: async () => {
-      const response = await api.auditLogs.auditLogControllerFindAllV1({
+      // Use the raw method to get the actual response
+      const response = await (api.auditLogs as any).auditLogControllerFindAllV1Raw({
         page: filters.page || 1,
         limit: filters.limit || 20,
-        sortBy: filters.sortField || 'createdAt',
+        sortBy: filters.sortBy || 'timestamp',
         sortOrder: filters.sortOrder as 'asc' | 'desc' | undefined,
         actionType: filters.actionType as any,
         severity: filters.severity as any,
@@ -58,8 +59,10 @@ export function useAuditLogs(filters: AuditLogFilters = {}) {
         search: filters.search,
         success: filters.success,
       });
-      // The API returns void but actually returns data, so we need to cast
-      return response as unknown as AuditLogResponse;
+
+      // Parse the response
+      const data = await response.json();
+      return data as AuditLogResponse;
     },
     staleTime: 30000, // 30 seconds
   });

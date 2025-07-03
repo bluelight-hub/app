@@ -15,7 +15,7 @@ const LogsPage: React.FC = () => {
     const [filters, setFilters] = useState<AuditLogFilters>({
         page: 1,
         limit: 20,
-        sortField: 'createdAt',
+        sortBy: 'timestamp',
         sortOrder: 'desc',
     });
     const [selectedRowKeys, setSelectedRowKeys] = useState<React.Key[]>([]);
@@ -68,7 +68,7 @@ const LogsPage: React.FC = () => {
             ...filters,
             page: pagination.current || 1,
             limit: pagination.pageSize || 20,
-            sortField: singleSorter?.field as string || 'createdAt',
+            sortBy: singleSorter?.field as string || 'timestamp',
             sortOrder: singleSorter?.order === 'ascend' ? 'asc' : 'desc',
         });
     };
@@ -137,8 +137,8 @@ const LogsPage: React.FC = () => {
     const columns: ColumnsType<AuditLogEntity> = [
         {
             title: 'Zeitstempel',
-            dataIndex: 'createdAt',
-            key: 'createdAt',
+            dataIndex: 'timestamp',
+            key: 'timestamp',
             width: 180,
             sorter: true,
             defaultSortOrder: 'descend',
@@ -412,7 +412,7 @@ const LogsPage: React.FC = () => {
                             setFilters({
                                 page: 1,
                                 limit: 20,
-                                sortField: 'createdAt',
+                                sortBy: 'timestamp',
                                 sortOrder: 'desc',
                             });
                         }}

@@ -56,7 +56,7 @@ export const LogDetailModal: React.FC<LogDetailModalProps> = ({
               {log.id}
             </Descriptions.Item>
             <Descriptions.Item label="Zeitstempel">
-              {dayjs(log.createdAt).format('DD.MM.YYYY HH:mm:ss')}
+              {dayjs(log.timestamp || log.createdAt).format('DD.MM.YYYY HH:mm:ss')}
             </Descriptions.Item>
             <Descriptions.Item label="Benutzer">
               {log.userEmail || 'System'} ({log.userId || '-'})
