@@ -100,6 +100,7 @@ model EtbAttachment {
 enum UserRole {
   SUPER_ADMIN
   ADMIN
+  MANAGER
   SUPPORT
   USER
 }
