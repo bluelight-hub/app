@@ -108,17 +108,26 @@ export function useAuditLogStatistics(filters: Omit<AuditLogFilters, 'page' | 'l
   return useQuery<AuditLogStatistics, Error>({
     queryKey: ['audit-log-statistics', filters],
     queryFn: async () => {
-      await api.auditLogs.auditLogControllerGetStatisticsV1({
+      // Use the raw method to get the actual response
+      const response = await (api.auditLogs as any).auditLogControllerGetStatisticsV1Raw({
         startDate: filters.startDate ? new Date(filters.startDate) : undefined,
         endDate: filters.endDate ? new Date(filters.endDate) : undefined,
       });
-      // Mock statistics since the API doesn't return the expected structure
+
+      const stats = await response.json();
+
+      // Transform backend response to frontend expected format
+      // Backend returns: totalLogs, actionTypes, severities, successRate, topUsers, topResources
+      // Frontend expects: total, errors, warnings, critical, successRate
       return {
-        total: 0,
-        errors: 0,
-        warnings: 0,
-        critical: 0,
-        successRate: 100,
+        total: stats.totalLogs || 0,
+        errors: stats.severities?.HIGH || 0,
+        warnings: stats.severities?.MEDIUM || 0,
+        critical: stats.severities?.CRITICAL || 0,
+        successRate:
+          stats.totalLogs > 0
+            ? Math.round(((stats.successRate?.success || 0) / stats.totalLogs) * 100)
+            : 100,
       } as AuditLogStatistics;
     },
     staleTime: 60000, // 1 minute
