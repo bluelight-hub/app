@@ -61,8 +61,20 @@ export function useAuditLogs(filters: AuditLogFilters = {}) {
       });
 
       // Parse the response
-      const data = await response.json();
-      return data as AuditLogResponse;
+      const rawData = await response.json();
+
+      // Transform backend response structure to frontend expected structure
+      // Backend returns: { items: [], pagination: { currentPage, itemsPerPage, totalItems, totalPages, ... } }
+      // Frontend expects: { data: [], meta: { total, page, limit, totalPages } }
+      return {
+        data: rawData.items || [],
+        meta: {
+          total: rawData.pagination?.totalItems || 0,
+          page: rawData.pagination?.currentPage || 1,
+          limit: rawData.pagination?.itemsPerPage || 20,
+          totalPages: rawData.pagination?.totalPages || 1,
+        },
+      } as AuditLogResponse;
     },
     staleTime: 30000, // 30 seconds
   });
