@@ -241,10 +241,7 @@ export class AuditLogService {
         },
       });
 
-      logger.info('Audit log entry marked as reviewed', {
-        auditLogId: id,
-        reviewedBy,
-      });
+      // Marked as reviewed
 
       return auditLog;
     } catch (error) {
@@ -280,11 +277,7 @@ export class AuditLogService {
         },
       });
 
-      logger.info('Archived old audit log entries', {
-        archivedCount: result.count,
-        cutoffDate,
-        daysToKeep,
-      });
+      // Archived old entries
 
       return result.count;
     } catch (error) {
@@ -312,11 +305,7 @@ export class AuditLogService {
         },
       });
 
-      logger.info('Deleted archived audit log entries', {
-        deletedCount: result.count,
-        cutoffDate,
-        olderThanDays,
-      });
+      // Deleted archived entries
 
       return result.count;
     } catch (error) {
@@ -346,7 +335,7 @@ export class AuditLogService {
         where: { id },
       });
 
-      logger.info('Deleted audit log entry', { auditLogId: id });
+      // Deleted entry
     } catch (error) {
       if (error instanceof ForbiddenException) {
         throw error;
@@ -387,10 +376,7 @@ export class AuditLogService {
 
       const result = await this.prisma.auditLog.deleteMany({ where });
 
-      logger.info('Bulk deleted audit log entries', {
-        deletedCount: result.count,
-        criteria,
-      });
+      // Bulk deletion completed
 
       return result.count;
     } catch (error) {

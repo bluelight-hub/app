@@ -10,6 +10,15 @@ export const logger = consola.create({
 });
 
 /**
+ * Trace-Methode für minimale Logging-Ausgabe
+ */
+logger.trace = logger.trace || function(message: any, ...args: any[]) {
+  if (process.env.LOG_LEVEL === 'trace') {
+    logger.log(message, ...args);
+  }
+};
+
+/**
  * NestJS-Logger-Implementierung mit Consola.
  * Stellt Standard-Logging-Methoden bereit, die auf die Consola-API abgebildet werden.
  *
@@ -70,6 +79,18 @@ export class ConsolaLogger implements LoggerService {
    */
   verbose(message: any, ...optionalParams: any[]) {
     logger.trace(message, ...optionalParams);
+  }
+
+  /**
+   * Protokolliert eine Nachricht auf dem 'trace'-Level.
+   *
+   * @param {any} message - Die zu protokollierende Trace-Nachricht
+   * @param {any[]} optionalParams - Zusätzliche zu protokollierende Parameter
+   */
+  trace(message: any, ...optionalParams: any[]) {
+    if (process.env.LOG_LEVEL === 'trace') {
+      logger.log(message, ...optionalParams);
+    }
   }
 
   /**

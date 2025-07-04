@@ -256,10 +256,7 @@ export class AuditLogBatchService {
           result.successful.push(...createdLogs);
           result.successCount += created.count;
 
-          logger.info('Batch audit logs created', {
-            batchSize: validatedBatch.length,
-            successCount: created.count,
-          });
+          // Batch creation completed
         } catch (error) {
           // Bei Batch-Fehler alle Einträge als fehlgeschlagen markieren
           for (let j = 0; j < validatedBatch.length; j++) {
@@ -279,11 +276,7 @@ export class AuditLogBatchService {
       }
     }
 
-    logger.info('Batch audit log processing completed', {
-      totalProcessed: result.totalProcessed,
-      successCount: result.successCount,
-      failureCount: result.failureCount,
-    });
+    // Batch processing completed
 
     return result;
   }
@@ -327,11 +320,7 @@ export class AuditLogBatchService {
 
       totalDeleted += deleteArchived.count;
 
-      logger.info('Applied retention policy', {
-        deletedWithRetention: deleteWithRetention.count,
-        deletedArchived: deleteArchived.count,
-        totalDeleted,
-      });
+      // Retention policy applied
 
       return totalDeleted;
     } catch (error) {
@@ -497,10 +486,7 @@ export class AuditLogBatchService {
         },
       });
 
-      logger.info('Exporting audit logs', {
-        count: logs.length,
-        format,
-      });
+      // Exporting logs
 
       switch (format) {
         case 'json':
