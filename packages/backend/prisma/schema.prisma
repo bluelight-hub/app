@@ -293,4 +293,10 @@ model AuditLog {
   @@index([requestId], map: "idx_audit_request_id")
   @@index([sessionId], map: "idx_audit_session")
   @@index([ipAddress, timestamp], map: "idx_audit_ip")
+  
+  // Composite indexes for common query patterns
+  @@index([timestamp, actionType, severity], map: "idx_audit_timestamp_action_severity")
+  @@index([archivedAt, timestamp], map: "idx_audit_archived_timestamp")
+  @@index([userEmail, timestamp], map: "idx_audit_user_email_timestamp")
+  @@index([resource, timestamp, success], map: "idx_audit_resource_timestamp_success")
 }

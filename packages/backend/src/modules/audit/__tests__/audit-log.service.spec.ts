@@ -2,6 +2,7 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { BadRequestException, NotFoundException } from '@nestjs/common';
 import { AuditLogService } from '../services/audit-log.service';
 import { PrismaService } from '../../../prisma/prisma.service';
+import { AuditLogCacheService } from '../services/audit-log-cache.service';
 import { CreateAuditLogDto, QueryAuditLogDto } from '../dto';
 import { AuditActionType, AuditSeverity } from '@prisma/generated/prisma/enums';
 
@@ -32,6 +33,15 @@ describe('AuditLogService', () => {
     },
   };
 
+  const mockCacheService = {
+    get: jest.fn(),
+    set: jest.fn(),
+    delete: jest.fn(),
+    invalidateStatistics: jest.fn(),
+    generateStatisticsKey: jest.fn(),
+    generateQueryKey: jest.fn(),
+  };
+
   beforeEach(async () => {
     // Reset mock for each test
     jest.clearAllMocks();
@@ -42,6 +52,10 @@ describe('AuditLogService', () => {
         {
           provide: PrismaService,
           useValue: mockPrismaService,
+        },
+        {
+          provide: AuditLogCacheService,
+          useValue: mockCacheService,
         },
       ],
     }).compile();
@@ -77,6 +91,7 @@ describe('AuditLogService', () => {
       };
 
       mockPrismaService.auditLog.create.mockResolvedValue(expectedAuditLog);
+      mockCacheService.invalidateStatistics.mockResolvedValue(undefined);
 
       const result = await service.create(createDto);
 
@@ -324,6 +339,10 @@ describe('AuditLogService', () => {
     it('should return comprehensive statistics', async () => {
       const startDate = new Date('2024-01-01');
       const endDate = new Date('2024-12-31');
+
+      // Mock cache miss
+      mockCacheService.get.mockResolvedValue(null);
+      mockCacheService.generateStatisticsKey.mockReturnValue('stats:test');
 
       mockPrismaService.auditLog.count.mockResolvedValue(100);
       mockPrismaService.auditLog.groupBy

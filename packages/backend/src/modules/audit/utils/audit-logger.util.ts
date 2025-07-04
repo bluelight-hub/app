@@ -1,10 +1,12 @@
 import { Injectable } from '@nestjs/common';
 import { Request } from 'express';
 import { AuditLogService } from '../services/audit-log.service';
+import { AuditLogQueue } from '../queues/audit-log.queue';
 import { AuditContextUtil, UserContext } from './audit-context.util';
 import { CreateAuditLogDto } from '../dto';
 import { AuditActionType, AuditSeverity } from '@prisma/generated/prisma/client';
 import { logger } from '../../../logger/consola.logger';
+import { ConfigService } from '@nestjs/config';
 
 /**
  * Interface für vereinfachte Audit-Log-Erstellung
@@ -32,10 +34,20 @@ export interface AuditLogInput {
 /**
  * Utility-Service für vereinfachte Audit-Log-Erstellung
  * Integriert mit dem bestehenden Consola-Logger und AuditLogService
+ * Unterstützt asynchrone Verarbeitung über Queue
  */
 @Injectable()
 export class AuditLoggerUtil {
-  constructor(private readonly auditLogService: AuditLogService) {}
+  private readonly useQueue: boolean;
+
+  constructor(
+    private readonly auditLogService: AuditLogService,
+    private readonly auditLogQueue: AuditLogQueue,
+    private readonly configService: ConfigService,
+  ) {
+    // Queue kann über Umgebungsvariable aktiviert/deaktiviert werden
+    this.useQueue = this.configService.get<boolean>('AUDIT_USE_QUEUE', true);
+  }
 
   /**
    * Erstellt einen Audit-Log-Eintrag mit automatischer Kontext-Extraktion
@@ -97,11 +109,17 @@ export class AuditLoggerUtil {
         retentionPeriod: input.retentionPeriod,
       };
 
-      const auditLog = await this.auditLogService.create(auditLogDto);
-
-      // Audit log created successfully
-
-      return auditLog;
+      // Verwende Queue für asynchrone Verarbeitung oder direkten Service
+      if (this.useQueue) {
+        const jobId = await this.auditLogQueue.addAuditLog(auditLogDto);
+        logger.trace('Audit log queued for async processing', { jobId });
+        // Gebe ein Pseudo-Objekt zurück, da der tatsächliche Log noch nicht erstellt wurde
+        return { id: jobId, ...auditLogDto } as any;
+      } else {
+        const auditLog = await this.auditLogService.create(auditLogDto);
+        // Audit log created successfully
+        return auditLog;
+      }
     } catch (error) {
       // Fehler beim Audit-Logging sollten nicht die Hauptfunktionalität beeinträchtigen
       logger.error('Failed to create audit log', {
@@ -127,7 +145,7 @@ export class AuditLoggerUtil {
   async logLogin(req: Request, userContext: UserContext, success: boolean, errorMessage?: string) {
     const requestContext = AuditContextUtil.extractRequestContext(req);
 
-    return this.auditLogService.create({
+    const auditLogDto: CreateAuditLogDto = {
       actionType: AuditActionType.LOGIN,
       severity: success ? AuditSeverity.LOW : AuditSeverity.MEDIUM,
       action: 'user-login',
@@ -149,7 +167,14 @@ export class AuditLoggerUtil {
       },
 
       compliance: ['AUDIT'],
-    });
+    };
+
+    if (this.useQueue) {
+      const jobId = await this.auditLogQueue.addAuditLog(auditLogDto);
+      return { id: jobId, ...auditLogDto } as any;
+    } else {
+      return this.auditLogService.create(auditLogDto);
+    }
   }
 
   /**
@@ -160,7 +185,7 @@ export class AuditLoggerUtil {
   async logLogout(req: Request, userContext: UserContext) {
     const requestContext = AuditContextUtil.extractRequestContext(req);
 
-    return this.auditLogService.create({
+    const auditLogDto: CreateAuditLogDto = {
       actionType: AuditActionType.LOGOUT,
       severity: AuditSeverity.LOW,
       action: 'user-logout',
@@ -181,7 +206,14 @@ export class AuditLoggerUtil {
       },
 
       compliance: ['AUDIT'],
-    });
+    };
+
+    if (this.useQueue) {
+      const jobId = await this.auditLogQueue.addAuditLog(auditLogDto);
+      return { id: jobId, ...auditLogDto } as any;
+    } else {
+      return this.auditLogService.create(auditLogDto);
+    }
   }
 
   /**

@@ -5,11 +5,12 @@ import {
   ForbiddenException,
 } from '@nestjs/common';
 import { PrismaService } from '../../../prisma/prisma.service';
-import { CreateAuditLogDto, QueryAuditLogDto } from '../dto';
+import { CreateAuditLogDto, QueryAuditLogDto, AuditLogStatisticsResponse } from '../dto';
 import { AuditLog, AuditSeverity, Prisma } from '@prisma/generated/prisma/client';
 import { logger } from '../../../logger/consola.logger';
 import { AuditLogEntity } from '../entities/audit-log.entity';
 import { PaginatedResponse } from '../../../common/interfaces/paginated-response.interface';
+import { AuditLogCacheService } from './audit-log-cache.service';
 
 /**
  * Service für die Verwaltung von Audit-Logs
@@ -17,7 +18,10 @@ import { PaginatedResponse } from '../../../common/interfaces/paginated-response
  */
 @Injectable()
 export class AuditLogService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly cacheService: AuditLogCacheService,
+  ) {}
 
   /**
    * Konvertiert ein Prisma AuditLog zu einer AuditLogEntity
@@ -56,6 +60,9 @@ export class AuditLogService {
       });
 
       // Audit log entry created successfully
+
+      // Invalidiere relevante Caches
+      await this.cacheService.invalidateStatistics();
 
       return this.toEntity(auditLog);
     } catch (error) {
@@ -393,8 +400,21 @@ export class AuditLogService {
    * @param options Optionen für Statistiken
    * @returns Detaillierte Statistiken
    */
-  async getStatistics(options: { startDate?: Date; endDate?: Date; groupBy?: string }) {
+  async getStatistics(options: {
+    startDate?: Date;
+    endDate?: Date;
+    groupBy?: string;
+  }): Promise<AuditLogStatisticsResponse> {
     const { startDate, endDate } = options;
+
+    // Versuche aus Cache zu laden
+    const cacheKey = this.cacheService.generateStatisticsKey(options);
+    const cached = await this.cacheService.get<AuditLogStatisticsResponse>(cacheKey);
+    if (cached) {
+      logger.trace('Statistics loaded from cache');
+      return cached;
+    }
+
     try {
       const where: Prisma.AuditLogWhereInput = {};
 
@@ -438,23 +458,32 @@ export class AuditLogService {
           }),
         ]);
 
-      const statistics = {
+      const statistics: AuditLogStatisticsResponse = {
         totalLogs,
-        actionTypes: actionTypeStats.reduce((acc, stat) => {
-          acc[stat.actionType] = stat._count.actionType;
-          return acc;
-        }, {}),
-        severities: severityStats.reduce((acc, stat) => {
-          acc[stat.severity] = stat._count.severity;
-          return acc;
-        }, {}),
-        successRate: successStats.reduce((acc, stat) => {
-          acc[stat.success ? 'success' : 'failed'] = stat._count.success;
-          return acc;
-        }, {}),
+        actionTypes: actionTypeStats.reduce(
+          (acc, stat) => {
+            acc[stat.actionType] = stat._count.actionType;
+            return acc;
+          },
+          {} as Record<string, number>,
+        ),
+        severities: severityStats.reduce(
+          (acc, stat) => {
+            acc[stat.severity] = stat._count.severity;
+            return acc;
+          },
+          {} as Record<string, number>,
+        ),
+        successRate: successStats.reduce(
+          (acc, stat) => {
+            acc[stat.success ? 'success' : 'failed'] = stat._count.success;
+            return acc;
+          },
+          {} as Record<string, number>,
+        ),
         topUsers: topUsers.map((user) => ({
-          userId: user.userId,
-          userEmail: user.userEmail,
+          userId: user.userId ?? '',
+          userEmail: user.userEmail ?? '',
           count: user._count.userId,
         })),
         topResources: topResources.map((resource) => ({
@@ -464,6 +493,9 @@ export class AuditLogService {
       };
 
       // Generated audit log statistics
+
+      // Cache die Statistiken
+      await this.cacheService.set(cacheKey, statistics, 300); // 5 Minuten TTL
 
       return statistics;
     } catch (error) {
