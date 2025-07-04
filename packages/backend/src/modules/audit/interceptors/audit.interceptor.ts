@@ -9,6 +9,7 @@ import { Observable, throwError } from 'rxjs';
 import { tap, catchError } from 'rxjs/operators';
 import { Request, Response } from 'express';
 import { AuditLogService } from '../services/audit-log.service';
+import { AuditLogQueue } from '../queues/audit-log.queue';
 import { logger } from '../../../logger/consola.logger';
 import { AuditAction, AuditSeverityExtended as AuditSeverity } from '../types/audit.types';
 import {
@@ -50,7 +51,10 @@ interface AuditMetadata {
 export class AuditInterceptor implements NestInterceptor {
   private config: AuditInterceptorConfig;
 
-  constructor(private readonly auditLogService: AuditLogService) {
+  constructor(
+    private readonly auditLogService: AuditLogService,
+    private readonly auditLogQueue: AuditLogQueue,
+  ) {
     this.config = defaultAuditInterceptorConfig;
   }
 
@@ -263,8 +267,8 @@ export class AuditInterceptor implements NestInterceptor {
     // Map our custom action to Prisma's AuditActionType
     const actionType = this.mapActionToActionType(action);
 
-    // Create audit log
-    await this.auditLogService.create({
+    // Create audit log data
+    const auditLogData = {
       actionType,
       severity: severity as any, // Map extended severity
       action: action.toLowerCase().replace(/_/g, '-'),
@@ -298,7 +302,28 @@ export class AuditInterceptor implements NestInterceptor {
       // Compliance
       sensitiveData: this.containsSensitiveData(resourceType, action),
       requiresReview: this.requiresReview(action, severity),
-    });
+    };
+
+    // Queue the audit log for asynchronous processing
+    try {
+      await this.auditLogQueue.addAuditLog(auditLogData);
+      logger.trace('Audit log queued successfully', { 
+        action: auditLogData.action, 
+        resource: auditLogData.resource 
+      });
+    } catch (queueError) {
+      // If queueing fails, fall back to direct logging
+      logger.error('Failed to queue audit log, falling back to direct logging', { 
+        error: queueError.message 
+      });
+      try {
+        await this.auditLogService.create(auditLogData);
+      } catch (directError) {
+        logger.error('Failed to create audit log directly', { 
+          error: directError.message 
+        });
+      }
+    }
   }
 
   /**
@@ -514,9 +539,10 @@ export class AuditInterceptor implements NestInterceptor {
  */
 export function createAuditInterceptor(
   auditLogService: AuditLogService,
+  auditLogQueue: AuditLogQueue,
   config?: Partial<AuditInterceptorConfig>,
 ): AuditInterceptor {
-  const interceptor = new AuditInterceptor(auditLogService);
+  const interceptor = new AuditInterceptor(auditLogService, auditLogQueue);
   if (config) {
     interceptor.setConfig(config);
   }

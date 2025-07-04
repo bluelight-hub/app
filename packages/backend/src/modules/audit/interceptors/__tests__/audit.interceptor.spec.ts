@@ -3,6 +3,7 @@ import { CallHandler, ExecutionContext, HttpException } from '@nestjs/common';
 import { of, throwError } from 'rxjs';
 import { AuditInterceptor } from '../audit.interceptor';
 import { AuditLogService } from '../../services/audit-log.service';
+import { AuditLogQueue } from '../../queues/audit-log.queue';
 import { AuditAction, AuditSeverityExtended as AuditSeverity } from '../../types/audit.types';
 import {
   AUDIT_CONTEXT_KEY,
@@ -19,12 +20,14 @@ jest.mock('../../../../logger/consola.logger', () => ({
     info: jest.fn(),
     warn: jest.fn(),
     error: jest.fn(),
+    trace: jest.fn(),
   },
 }));
 
 describe('AuditInterceptor', () => {
   let interceptor: AuditInterceptor;
   let auditLogService: jest.Mocked<AuditLogService>;
+  let auditLogQueue: jest.Mocked<AuditLogQueue>;
   let context: ExecutionContext;
   let callHandler: CallHandler;
 
@@ -61,7 +64,11 @@ describe('AuditInterceptor', () => {
       create: jest.fn().mockResolvedValue({ id: 'audit-log-id' }),
     } as any;
 
-    interceptor = new AuditInterceptor(auditLogService);
+    auditLogQueue = {
+      addAuditLog: jest.fn().mockResolvedValue('job-id'),
+    } as any;
+
+    interceptor = new AuditInterceptor(auditLogService, auditLogQueue);
 
     context = {
       switchToHttp: jest.fn().mockReturnValue({
@@ -90,7 +97,7 @@ describe('AuditInterceptor', () => {
     it('should audit admin routes', (done) => {
       interceptor.intercept(context, callHandler).subscribe({
         next: () => {
-          expect(auditLogService.create).toHaveBeenCalledWith(
+          expect(auditLogQueue.addAuditLog).toHaveBeenCalledWith(
             expect.objectContaining({
               userId: mockUser.id,
               action: 'create',
@@ -110,7 +117,7 @@ describe('AuditInterceptor', () => {
 
       interceptor.intercept(context, callHandler).subscribe({
         next: () => {
-          expect(auditLogService.create).not.toHaveBeenCalled();
+          expect(auditLogQueue.addAuditLog).not.toHaveBeenCalled();
           done();
         },
       });
@@ -119,8 +126,8 @@ describe('AuditInterceptor', () => {
     it('should sanitize sensitive data', (done) => {
       interceptor.intercept(context, callHandler).subscribe({
         next: () => {
-          expect(auditLogService.create).toHaveBeenCalled();
-          const logCall = auditLogService.create.mock.calls[0][0];
+          expect(auditLogQueue.addAuditLog).toHaveBeenCalled();
+          const logCall = auditLogQueue.addAuditLog.mock.calls[0][0];
 
           // Check that the body is sanitized in the metadata
           const requestBody = logCall.metadata?.request?.body;
@@ -147,7 +154,7 @@ describe('AuditInterceptor', () => {
       interceptor.intercept(context, callHandler).subscribe({
         error: (err) => {
           expect(err).toBe(error);
-          expect(auditLogService.create).toHaveBeenCalledWith(
+          expect(auditLogQueue.addAuditLog).toHaveBeenCalledWith(
             expect.objectContaining({
               severity: AuditSeverity.ERROR,
               success: false,
@@ -165,7 +172,7 @@ describe('AuditInterceptor', () => {
 
       interceptor.intercept(context, callHandler).subscribe({
         next: () => {
-          expect(auditLogService.create).not.toHaveBeenCalled();
+          expect(auditLogQueue.addAuditLog).not.toHaveBeenCalled();
           done();
         },
       });
@@ -178,7 +185,7 @@ describe('AuditInterceptor', () => {
 
       interceptor.intercept(context, callHandler).subscribe({
         next: () => {
-          expect(auditLogService.create).toHaveBeenCalledWith(
+          expect(auditLogQueue.addAuditLog).toHaveBeenCalledWith(
             expect.objectContaining({
               action: 'approve',
               severity: AuditSeverity.HIGH,
@@ -194,7 +201,7 @@ describe('AuditInterceptor', () => {
 
       interceptor.intercept(context, callHandler).subscribe({
         next: () => {
-          expect(auditLogService.create).toHaveBeenCalledWith(
+          expect(auditLogQueue.addAuditLog).toHaveBeenCalledWith(
             expect.objectContaining({
               resourceId: '123',
             }),
@@ -221,7 +228,7 @@ describe('AuditInterceptor', () => {
 
           interceptor.intercept(context, callHandler).subscribe({
             next: () => {
-              expect(auditLogService.create).toHaveBeenCalledWith(
+              expect(auditLogQueue.addAuditLog).toHaveBeenCalledWith(
                 expect.objectContaining({
                   action: expectedAction.toLowerCase().replace(/_/g, '-'),
                 }),
@@ -260,8 +267,8 @@ describe('AuditInterceptor', () => {
 
       interceptor.intercept(context, callHandler).subscribe({
         next: () => {
-          expect(auditLogService.create).toHaveBeenCalled();
-          const logCall = auditLogService.create.mock.calls[0][0];
+          expect(auditLogQueue.addAuditLog).toHaveBeenCalled();
+          const logCall = auditLogQueue.addAuditLog.mock.calls[0][0];
 
           // The truncated body should be in the metadata.request.body
           const body = logCall.metadata?.request?.body;
@@ -293,7 +300,7 @@ describe('AuditInterceptor', () => {
 
           interceptor.intercept(context, callHandler).subscribe({
             next: () => {
-              expect(auditLogService.create).toHaveBeenCalledWith(
+              expect(auditLogQueue.addAuditLog).toHaveBeenCalledWith(
                 expect.objectContaining({
                   action: expectedAction.toLowerCase().replace(/_/g, '-'),
                 }),
@@ -319,7 +326,7 @@ describe('AuditInterceptor', () => {
 
         interceptor.intercept(context, callHandler).subscribe({
           next: () => {
-            expect(auditLogService.create).not.toHaveBeenCalled();
+            expect(auditLogQueue.addAuditLog).not.toHaveBeenCalled();
             completed++;
             if (completed === excludedPaths.length) {
               done();
@@ -334,7 +341,7 @@ describe('AuditInterceptor', () => {
 
       interceptor.intercept(context, callHandler).subscribe({
         next: () => {
-          expect(auditLogService.create).toHaveBeenCalledWith(
+          expect(auditLogQueue.addAuditLog).toHaveBeenCalledWith(
             expect.objectContaining({
               userId: undefined,
               userEmail: undefined,
@@ -352,7 +359,7 @@ describe('AuditInterceptor', () => {
 
       interceptor.intercept(context, callHandler).subscribe({
         next: () => {
-          expect(auditLogService.create).toHaveBeenCalledWith(
+          expect(auditLogQueue.addAuditLog).toHaveBeenCalledWith(
             expect.objectContaining({
               resourceId: 'query-id-456',
             }),
@@ -369,7 +376,7 @@ describe('AuditInterceptor', () => {
 
       interceptor.intercept(context, callHandler).subscribe({
         next: () => {
-          expect(auditLogService.create).toHaveBeenCalledWith(
+          expect(auditLogQueue.addAuditLog).toHaveBeenCalledWith(
             expect.objectContaining({
               resourceId: '550e8400-e29b-41d4-a716-446655440000',
             }),
@@ -392,7 +399,7 @@ describe('AuditInterceptor', () => {
 
       interceptor.intercept(context, callHandler).subscribe({
         next: () => {
-          expect(auditLogService.create).toHaveBeenCalledWith(
+          expect(auditLogQueue.addAuditLog).toHaveBeenCalledWith(
             expect.objectContaining({
               oldValues: expect.objectContaining({ name: 'Old Name' }),
               newValues: expect.objectContaining({ name: 'New Name' }),
@@ -409,7 +416,7 @@ describe('AuditInterceptor', () => {
 
       interceptor.intercept(context, callHandler).subscribe({
         next: () => {
-          expect(auditLogService.create).toHaveBeenCalledWith(
+          expect(auditLogQueue.addAuditLog).toHaveBeenCalledWith(
             expect.objectContaining({
               sensitiveData: true,
               requiresReview: true,
@@ -428,7 +435,7 @@ describe('AuditInterceptor', () => {
 
       interceptor.intercept(context, callHandler).subscribe({
         next: () => {
-          expect(auditLogService.create).toHaveBeenCalledWith(
+          expect(auditLogQueue.addAuditLog).toHaveBeenCalledWith(
             expect.objectContaining({
               metadata: expect.objectContaining(customContext),
             }),
@@ -445,7 +452,7 @@ describe('AuditInterceptor', () => {
 
       interceptor.intercept(context, callHandler).subscribe({
         next: () => {
-          expect(auditLogService.create).toHaveBeenCalledWith(
+          expect(auditLogQueue.addAuditLog).toHaveBeenCalledWith(
             expect.objectContaining({
               ipAddress: '10.0.0.1',
             }),
@@ -469,7 +476,7 @@ describe('AuditInterceptor', () => {
 
       interceptor.intercept(context, callHandler).subscribe({
         next: () => {
-          const logCall = auditLogService.create.mock.calls[0][0];
+          const logCall = auditLogQueue.addAuditLog.mock.calls[0][0];
           const body = logCall.metadata?.request?.body;
 
           expect(body.user.profile.password).toBe('[REDACTED]');
@@ -485,6 +492,7 @@ describe('AuditInterceptor', () => {
       // Test error handling in the catchError path
       const error = new Error('Request error');
       callHandler.handle = jest.fn().mockReturnValue(throwError(() => error));
+      auditLogQueue.addAuditLog = jest.fn().mockRejectedValue(new Error('Queue error'));
       auditLogService.create = jest.fn().mockRejectedValue(new Error('Database error'));
 
       // Import and spy on the logger
@@ -497,8 +505,12 @@ describe('AuditInterceptor', () => {
           // The logger.error happens in the catch block which is async
           setTimeout(() => {
             expect(loggerErrorSpy).toHaveBeenCalledWith(
-              'Failed to log audit event:',
-              expect.any(Error),
+              'Failed to queue audit log, falling back to direct logging',
+              expect.objectContaining({ error: 'Queue error' }),
+            );
+            expect(loggerErrorSpy).toHaveBeenCalledWith(
+              'Failed to create audit log directly',
+              expect.objectContaining({ error: 'Database error' }),
             );
             loggerErrorSpy.mockRestore();
             done();
@@ -512,7 +524,7 @@ describe('AuditInterceptor', () => {
 
       interceptor.intercept(context, callHandler).subscribe({
         next: () => {
-          expect(auditLogService.create).toHaveBeenCalledWith(
+          expect(auditLogQueue.addAuditLog).toHaveBeenCalledWith(
             expect.objectContaining({
               resource: 'template',
             }),
@@ -528,7 +540,7 @@ describe('AuditInterceptor', () => {
 
       interceptor.intercept(context, callHandler).subscribe({
         next: () => {
-          expect(auditLogService.create).toHaveBeenCalledWith(
+          expect(auditLogQueue.addAuditLog).toHaveBeenCalledWith(
             expect.objectContaining({
               action: 'block',
             }),
@@ -544,7 +556,7 @@ describe('AuditInterceptor', () => {
 
       interceptor.intercept(context, callHandler).subscribe({
         next: () => {
-          expect(auditLogService.create).toHaveBeenCalledWith(
+          expect(auditLogQueue.addAuditLog).toHaveBeenCalledWith(
             expect.objectContaining({
               sessionId: 'header-session-id',
             }),
@@ -560,7 +572,7 @@ describe('AuditInterceptor', () => {
 
       interceptor.intercept(context, callHandler).subscribe({
         next: () => {
-          expect(auditLogService.create).toHaveBeenCalledWith(
+          expect(auditLogQueue.addAuditLog).toHaveBeenCalledWith(
             expect.objectContaining({
               action: 'create',
               resource: 'permission',
@@ -577,7 +589,7 @@ describe('AuditInterceptor', () => {
 
       interceptor.intercept(context, callHandler).subscribe({
         next: () => {
-          const logCall = auditLogService.create.mock.calls[0][0];
+          const logCall = auditLogQueue.addAuditLog.mock.calls[0][0];
           const body = logCall.metadata?.request?.body;
           expect(body).toBe('string-body');
           done();
@@ -592,7 +604,7 @@ describe('AuditInterceptor', () => {
 
       interceptor.intercept(context, callHandler).subscribe({
         next: () => {
-          const logCall = auditLogService.create.mock.calls[0][0];
+          const logCall = auditLogQueue.addAuditLog.mock.calls[0][0];
           expect(logCall.metadata?.request?.body).toBeNull();
           expect(logCall.metadata?.request?.query).toBeUndefined();
           done();
@@ -608,7 +620,7 @@ describe('AuditInterceptor', () => {
 
       interceptor.intercept(context, callHandler).subscribe({
         next: () => {
-          const logCall = auditLogService.create.mock.calls[0][0];
+          const logCall = auditLogQueue.addAuditLog.mock.calls[0][0];
           const body = logCall.metadata?.request?.body;
           // Arrays are converted to objects when spread with { ...data }
           expect(body['0'].password).toBe('[REDACTED]');
@@ -626,7 +638,7 @@ describe('AuditInterceptor', () => {
 
       interceptor.intercept(context, callHandler).subscribe({
         next: () => {
-          expect(auditLogService.create).toHaveBeenCalledWith(
+          expect(auditLogQueue.addAuditLog).toHaveBeenCalledWith(
             expect.objectContaining({
               resource: 'special',
             }),
@@ -641,7 +653,7 @@ describe('AuditInterceptor', () => {
 
       interceptor.intercept(context, callHandler).subscribe({
         next: () => {
-          expect(auditLogService.create).toHaveBeenCalledWith(
+          expect(auditLogQueue.addAuditLog).toHaveBeenCalledWith(
             expect.objectContaining({
               resource: 'users',
               resourceId: '123',
@@ -659,7 +671,7 @@ describe('AuditInterceptor', () => {
 
       interceptor.intercept(context, callHandler).subscribe({
         next: () => {
-          expect(auditLogService.create).toHaveBeenCalledWith(
+          expect(auditLogQueue.addAuditLog).toHaveBeenCalledWith(
             expect.objectContaining({
               resourceId: 'unknown',
             }),
@@ -675,7 +687,7 @@ describe('AuditInterceptor', () => {
 
       interceptor.intercept(context, callHandler).subscribe({
         next: () => {
-          expect(auditLogService.create).toHaveBeenCalledWith(
+          expect(auditLogQueue.addAuditLog).toHaveBeenCalledWith(
             expect.objectContaining({
               action: 'update',
               newValues: expect.objectContaining({ name: 'Updated Name' }),
@@ -692,7 +704,7 @@ describe('AuditInterceptor', () => {
 
       interceptor.intercept(context, callHandler).subscribe({
         next: () => {
-          expect(auditLogService.create).toHaveBeenCalledWith(
+          expect(auditLogQueue.addAuditLog).toHaveBeenCalledWith(
             expect.objectContaining({
               action: 'approve',
             }),
@@ -708,7 +720,7 @@ describe('AuditInterceptor', () => {
 
       interceptor.intercept(context, callHandler).subscribe({
         next: () => {
-          expect(auditLogService.create).toHaveBeenCalledWith(
+          expect(auditLogQueue.addAuditLog).toHaveBeenCalledWith(
             expect.objectContaining({
               action: 'reject',
             }),
@@ -723,7 +735,7 @@ describe('AuditInterceptor', () => {
 
       interceptor.intercept(context, callHandler).subscribe({
         next: () => {
-          expect(auditLogService.create).toHaveBeenCalledWith(
+          expect(auditLogQueue.addAuditLog).toHaveBeenCalledWith(
             expect.objectContaining({
               action: 'other',
             }),
@@ -742,7 +754,7 @@ describe('AuditInterceptor', () => {
 
       interceptor.intercept(context, callHandler).subscribe({
         next: () => {
-          expect(auditLogService.create).toHaveBeenCalledWith(
+          expect(auditLogQueue.addAuditLog).toHaveBeenCalledWith(
             expect.objectContaining({
               action: 'revoke-permission',
               severity: AuditSeverity.CRITICAL,
@@ -766,7 +778,7 @@ describe('AuditInterceptor', () => {
         error: (err) => {
           expect(err).toBe(error);
           setTimeout(() => {
-            const logCall = auditLogService.create.mock.calls[0][0];
+            const logCall = auditLogQueue.addAuditLog.mock.calls[0][0];
             expect(logCall.metadata?.error?.stack).toBe('Error stack trace');
             process.env.NODE_ENV = originalEnv;
             done();
@@ -780,7 +792,7 @@ describe('AuditInterceptor', () => {
 
       interceptor.intercept(context, callHandler).subscribe({
         next: () => {
-          const logCall = auditLogService.create.mock.calls[0][0];
+          const logCall = auditLogQueue.addAuditLog.mock.calls[0][0];
           expect(logCall.metadata?.request?.referer).toBeUndefined();
           done();
         },
@@ -792,7 +804,7 @@ describe('AuditInterceptor', () => {
 
       interceptor.intercept(context, callHandler).subscribe({
         next: () => {
-          expect(auditLogService.create).toHaveBeenCalledWith(
+          expect(auditLogQueue.addAuditLog).toHaveBeenCalledWith(
             expect.objectContaining({
               requestId: 'req-123-456',
             }),
@@ -810,7 +822,7 @@ describe('AuditInterceptor', () => {
         error: (err) => {
           expect(err).toBe(httpError);
           setTimeout(() => {
-            const logCall = auditLogService.create.mock.calls[0][0];
+            const logCall = auditLogQueue.addAuditLog.mock.calls[0][0];
             expect(logCall.metadata?.error?.statusCode).toBe(403);
             done();
           }, 50);
@@ -823,7 +835,7 @@ describe('AuditInterceptor', () => {
 
       interceptor.intercept(context, callHandler).subscribe({
         next: () => {
-          expect(auditLogService.create).toHaveBeenCalledWith(
+          expect(auditLogQueue.addAuditLog).toHaveBeenCalledWith(
             expect.objectContaining({
               sensitiveData: true,
             }),
@@ -847,7 +859,7 @@ describe('AuditInterceptor', () => {
 
       interceptor.intercept(context, callHandler).subscribe({
         next: () => {
-          const logCall = auditLogService.create.mock.calls[0][0];
+          const logCall = auditLogQueue.addAuditLog.mock.calls[0][0];
           const body = logCall.metadata?.request?.body;
           expect(body._truncated).toBe(true);
           expect(body._message).toContain('5000 bytes');
@@ -861,7 +873,7 @@ describe('AuditInterceptor', () => {
 
       interceptor.intercept(context, callHandler).subscribe({
         next: () => {
-          expect(auditLogService.create).toHaveBeenCalledWith(
+          expect(auditLogQueue.addAuditLog).toHaveBeenCalledWith(
             expect.objectContaining({
               actionType: AuditActionType.PERMISSION_CHANGE,
             }),
@@ -878,7 +890,7 @@ describe('AuditInterceptor', () => {
 
       interceptor.intercept(context, callHandler).subscribe({
         next: () => {
-          expect(auditLogService.create).toHaveBeenCalledWith(
+          expect(auditLogQueue.addAuditLog).toHaveBeenCalledWith(
             expect.objectContaining({
               resourceId: '12345',
             }),
@@ -895,7 +907,7 @@ describe('AuditInterceptor', () => {
         excludePaths: ['/test'],
       };
 
-      const newInterceptor = createAuditInterceptor(auditLogService, customConfig);
+      const newInterceptor = createAuditInterceptor(auditLogService, auditLogQueue, customConfig);
       expect(newInterceptor).toBeDefined();
 
       // Test that custom config is applied
@@ -904,7 +916,7 @@ describe('AuditInterceptor', () => {
 
       newInterceptor.intercept(context, callHandler).subscribe({
         next: () => {
-          const logCall = auditLogService.create.mock.calls[0][0];
+          const logCall = auditLogQueue.addAuditLog.mock.calls[0][0];
           const body = logCall.metadata?.request?.body;
           expect(body._truncated).toBe(true);
           expect(body._message).toContain('2000 bytes');
@@ -924,7 +936,7 @@ describe('AuditInterceptor', () => {
         error: (err) => {
           expect(err).toBe(error);
           setTimeout(() => {
-            const logCall = auditLogService.create.mock.calls[0][0];
+            const logCall = auditLogQueue.addAuditLog.mock.calls[0][0];
             expect(logCall.metadata?.error?.stack).toBeUndefined();
             process.env.NODE_ENV = originalEnv;
             done();
@@ -942,7 +954,7 @@ describe('AuditInterceptor', () => {
 
       interceptor.intercept(context, callHandler).subscribe({
         next: () => {
-          expect(auditLogService.create).toHaveBeenCalledWith(
+          expect(auditLogQueue.addAuditLog).toHaveBeenCalledWith(
             expect.objectContaining({
               newValues: expect.objectContaining({ name: 'New Name' }),
               oldValues: undefined,
@@ -959,7 +971,7 @@ describe('AuditInterceptor', () => {
 
       interceptor.intercept(context, callHandler).subscribe({
         next: () => {
-          expect(auditLogService.create).toHaveBeenCalledWith(
+          expect(auditLogQueue.addAuditLog).toHaveBeenCalledWith(
             expect.objectContaining({
               action: 'unblock',
             }),
@@ -975,7 +987,7 @@ describe('AuditInterceptor', () => {
 
       interceptor.intercept(context, callHandler).subscribe({
         next: () => {
-          expect(auditLogService.create).toHaveBeenCalledWith(
+          expect(auditLogQueue.addAuditLog).toHaveBeenCalledWith(
             expect.objectContaining({
               action: 'restore',
             }),
@@ -992,7 +1004,7 @@ describe('AuditInterceptor', () => {
 
       interceptor.intercept(context, callHandler).subscribe({
         next: () => {
-          expect(auditLogService.create).toHaveBeenCalledWith(
+          expect(auditLogQueue.addAuditLog).toHaveBeenCalledWith(
             expect.objectContaining({
               ipAddress: '172.16.0.1',
             }),
@@ -1010,7 +1022,7 @@ describe('AuditInterceptor', () => {
         error: (err) => {
           expect(err).toBe(error);
           setTimeout(() => {
-            const logCall = auditLogService.create.mock.calls[0][0];
+            const logCall = auditLogQueue.addAuditLog.mock.calls[0][0];
             expect(logCall.metadata?.error?.statusCode).toBe(500);
             done();
           }, 50);
@@ -1024,7 +1036,7 @@ describe('AuditInterceptor', () => {
 
       interceptor.intercept(context, callHandler).subscribe({
         next: () => {
-          expect(auditLogService.create).toHaveBeenCalledWith(
+          expect(auditLogQueue.addAuditLog).toHaveBeenCalledWith(
             expect.objectContaining({
               requiresReview: true,
             }),
@@ -1039,7 +1051,7 @@ describe('AuditInterceptor', () => {
 
       interceptor.intercept(context, callHandler).subscribe({
         next: () => {
-          expect(auditLogService.create).toHaveBeenCalledWith(
+          expect(auditLogQueue.addAuditLog).toHaveBeenCalledWith(
             expect.objectContaining({
               sensitiveData: true,
             }),
@@ -1054,7 +1066,7 @@ describe('AuditInterceptor', () => {
 
       interceptor.intercept(context, callHandler).subscribe({
         next: () => {
-          expect(auditLogService.create).toHaveBeenCalledWith(
+          expect(auditLogQueue.addAuditLog).toHaveBeenCalledWith(
             expect.objectContaining({
               sensitiveData: true,
             }),
@@ -1070,7 +1082,7 @@ describe('AuditInterceptor', () => {
 
       interceptor.intercept(context, callHandler).subscribe({
         next: () => {
-          expect(auditLogService.create).toHaveBeenCalledWith(
+          expect(auditLogQueue.addAuditLog).toHaveBeenCalledWith(
             expect.objectContaining({
               oldValues: undefined,
               newValues: undefined,
@@ -1086,7 +1098,7 @@ describe('AuditInterceptor', () => {
 
       interceptor.intercept(context, callHandler).subscribe({
         next: () => {
-          expect(auditLogService.create).toHaveBeenCalledWith(
+          expect(auditLogQueue.addAuditLog).toHaveBeenCalledWith(
             expect.objectContaining({
               resource: 'unknown',
             }),
@@ -1098,7 +1110,7 @@ describe('AuditInterceptor', () => {
 
     it('should handle createAuditInterceptor without config', () => {
       const { createAuditInterceptor } = require('../audit.interceptor');
-      const newInterceptor = createAuditInterceptor(auditLogService);
+      const newInterceptor = createAuditInterceptor(auditLogService, auditLogQueue);
       expect(newInterceptor).toBeDefined();
     });
   });
