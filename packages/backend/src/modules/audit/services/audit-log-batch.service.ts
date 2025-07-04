@@ -4,6 +4,7 @@ import { CreateAuditLogDto, QueryAuditLogDto } from '../dto';
 import { AuditLog, Prisma } from '@prisma/generated/prisma/client';
 import { logger } from '../../../logger/consola.logger';
 import { ConfigService } from '@nestjs/config';
+import { Readable } from 'stream';
 
 /**
  * Interface für Batch-Ergebnisse
@@ -544,6 +545,172 @@ export class AuditLogBatchService {
         throw error;
       }
       throw new BadRequestException('Failed to export audit logs');
+    }
+  }
+
+  /**
+   * Exportiert Audit-Logs als Stream für große Datenmengen
+   * @param queryDto Abfrage-Parameter
+   * @param format Export-Format
+   * @returns Readable Stream
+   */
+  async exportLogsStream(
+    queryDto: QueryAuditLogDto,
+    format: 'json' | 'csv' | 'ndjson' = 'json',
+  ): Promise<Readable> {
+    try {
+      // Build where clause from query DTO
+      const where: Prisma.AuditLogWhereInput = {};
+
+      // Apply filters from queryDto
+      if (queryDto.actionType) where.actionType = queryDto.actionType;
+      if (queryDto.severity) where.severity = queryDto.severity;
+      if (queryDto.action) where.action = { contains: queryDto.action, mode: 'insensitive' };
+      if (queryDto.resource) where.resource = { contains: queryDto.resource, mode: 'insensitive' };
+      if (queryDto.resourceId) where.resourceId = queryDto.resourceId;
+      if (queryDto.userId) where.userId = queryDto.userId;
+      if (queryDto.userEmail)
+        where.userEmail = { contains: queryDto.userEmail, mode: 'insensitive' };
+      if (queryDto.userRole) where.userRole = queryDto.userRole;
+      if (queryDto.success !== undefined) where.success = queryDto.success;
+
+      // Date range filter
+      if (queryDto.startDate || queryDto.endDate) {
+        where.timestamp = {};
+        if (queryDto.startDate) where.timestamp.gte = new Date(queryDto.startDate);
+        if (queryDto.endDate) where.timestamp.lte = new Date(queryDto.endDate);
+      }
+
+      // Create cursor-based pagination stream
+      const batchSize = 1000;
+      let cursor: string | undefined = undefined;
+      let isFirstBatch = true;
+      let recordCount = 0;
+
+      // Create readable stream
+      const prisma = this.prisma;
+      const stream = new Readable({
+        async read() {
+          try {
+            const findManyArgs: Prisma.AuditLogFindManyArgs = {
+              where,
+              orderBy: { timestamp: 'desc' },
+              take: batchSize,
+            };
+
+            if (cursor) {
+              findManyArgs.cursor = { id: cursor };
+              findManyArgs.skip = 1; // Skip the cursor record
+            }
+
+            const logs = await prisma.auditLog.findMany(findManyArgs);
+
+            if (logs.length === 0) {
+              // End of data
+              if (format === 'json') {
+                this.push(isFirstBatch ? '[]' : '\n]');
+              }
+              this.push(null); // Signal end of stream
+              logger.trace(`Export stream completed with ${recordCount} records`);
+              return;
+            }
+
+            // Process batch
+            switch (format) {
+              case 'json':
+                if (isFirstBatch) {
+                  this.push('[\n');
+                }
+                logs.forEach((log, index) => {
+                  const isLast = index === logs.length - 1;
+                  const comma = !isFirstBatch || index > 0 ? ',' : '';
+                  this.push(comma + JSON.stringify(log));
+                  if (!isLast) this.push('\n');
+                });
+                break;
+
+              case 'ndjson':
+                logs.forEach((log) => {
+                  this.push(JSON.stringify(log) + '\n');
+                });
+                break;
+
+              case 'csv':
+                if (isFirstBatch) {
+                  const headers = [
+                    'id',
+                    'timestamp',
+                    'actionType',
+                    'severity',
+                    'action',
+                    'resource',
+                    'resourceId',
+                    'userId',
+                    'userEmail',
+                    'userRole',
+                    'ipAddress',
+                    'success',
+                    'statusCode',
+                    'errorMessage',
+                  ];
+                  this.push(headers.join(',') + '\n');
+                }
+
+                logs.forEach((log) => {
+                  const row = [
+                    log.id,
+                    log.timestamp.toISOString(),
+                    log.actionType,
+                    log.severity,
+                    log.action || '',
+                    log.resource || '',
+                    log.resourceId || '',
+                    log.userId || '',
+                    log.userEmail || '',
+                    log.userRole || '',
+                    log.ipAddress || '',
+                    log.success,
+                    log.statusCode || '',
+                    log.errorMessage || '',
+                  ].map((value) => {
+                    if (value === null || value === undefined) return '';
+                    const str = String(value);
+                    if (str.includes(',') || str.includes('"') || str.includes('\n')) {
+                      return `"${str.replace(/"/g, '""')}"`;
+                    }
+                    return str;
+                  });
+                  this.push(row.join(',') + '\n');
+                });
+                break;
+            }
+
+            recordCount += logs.length;
+            cursor = logs[logs.length - 1].id;
+            isFirstBatch = false;
+
+            // If we got less than batchSize, we're at the end
+            if (logs.length < batchSize) {
+              if (format === 'json') {
+                this.push('\n]');
+              }
+              this.push(null);
+              logger.trace(`Export stream completed with ${recordCount} records`);
+            }
+          } catch (error) {
+            logger.error('Stream read error', { error: error.message });
+            this.destroy(error);
+          }
+        },
+      });
+
+      return stream;
+    } catch (error) {
+      logger.error('Failed to create export stream', {
+        error: error.message,
+        format,
+      });
+      throw new BadRequestException('Failed to create export stream');
     }
   }
 }

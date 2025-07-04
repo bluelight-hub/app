@@ -10,8 +10,11 @@ import {
   HttpCode,
   HttpStatus,
   BadRequestException,
+  Res,
+  StreamableFile,
 } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth, ApiQuery } from '@nestjs/swagger';
+import { Response } from 'express';
 import { AuditLogService } from '../services/audit-log.service';
 import { AuditLogBatchService } from '../services/audit-log-batch.service';
 import { JwtAuthGuard } from '@/modules/auth/guards/jwt-auth.guard';
@@ -166,9 +169,20 @@ export class AuditLogController {
   async export(
     @Query() query: QueryAuditLogDto,
     @Query('format') format: 'json' | 'csv' | 'ndjson' = 'json',
+    @Res({ passthrough: true }) res: Response,
   ) {
-    // Exporting audit logs
-    return await this.auditLogBatchService.exportLogs(query, format);
+    // Set appropriate headers based on format
+    const contentType = format === 'csv' ? 'text/csv' : 'application/json';
+    const filename = `audit-logs-${new Date().toISOString().split('T')[0]}.${format}`;
+
+    res.set({
+      'Content-Type': contentType,
+      'Content-Disposition': `attachment; filename="${filename}"`,
+    });
+
+    // For large exports, use streaming
+    const stream = await this.auditLogBatchService.exportLogsStream(query, format);
+    return new StreamableFile(stream);
   }
 
   /**

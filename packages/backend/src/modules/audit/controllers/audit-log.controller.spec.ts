@@ -1,10 +1,17 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { BadRequestException, NotFoundException, ForbiddenException } from '@nestjs/common';
+import {
+  BadRequestException,
+  NotFoundException,
+  ForbiddenException,
+  StreamableFile,
+} from '@nestjs/common';
 import { AuditLogController } from './audit-log.controller';
 import { AuditLogService } from '../services/audit-log.service';
 import { AuditLogBatchService } from '../services/audit-log-batch.service';
 import { CreateAuditLogDto, QueryAuditLogDto } from '../dto';
 import { AuditActionType, AuditSeverity, UserRole } from '@prisma/generated/prisma/client';
+import { Readable } from 'stream';
+import { Response } from 'express';
 
 // Mock the logger module
 jest.mock('@/logger/consola.logger', () => ({
@@ -89,6 +96,7 @@ describe('AuditLogController', () => {
           useValue: {
             createBatch: jest.fn(),
             exportLogs: jest.fn(),
+            exportLogsStream: jest.fn(),
             applyRetentionPolicy: jest.fn(),
           },
         },
@@ -280,46 +288,75 @@ describe('AuditLogController', () => {
   });
 
   describe('export', () => {
-    it('should export logs as JSON by default', async () => {
+    let mockResponse: Partial<Response>;
+
+    beforeEach(() => {
+      mockResponse = {
+        set: jest.fn(),
+      };
+    });
+
+    it('should export logs as JSON stream by default', async () => {
       const query: QueryAuditLogDto = {
         page: 1,
         limit: 100,
         startDate: '2024-01-01',
       };
 
-      const exportData = JSON.stringify({ logs: [mockAuditLog], format: 'json' });
+      const mockStream = new Readable();
+      mockStream.push('[{"id":"log-123"}]');
+      mockStream.push(null);
 
-      auditLogBatchService.exportLogs.mockResolvedValue(exportData);
+      auditLogBatchService.exportLogsStream.mockResolvedValue(mockStream);
 
-      const result = await controller.export(query);
+      const result = await controller.export(query, 'json', mockResponse as Response);
 
-      expect(result).toEqual(exportData);
-      expect(auditLogBatchService.exportLogs).toHaveBeenCalledWith(query, 'json');
+      expect(result).toBeInstanceOf(StreamableFile);
+      expect(mockResponse.set).toHaveBeenCalledWith({
+        'Content-Type': 'application/json',
+        'Content-Disposition': expect.stringMatching(/attachment; filename="audit-logs-.*\.json"/),
+      });
+      expect(auditLogBatchService.exportLogsStream).toHaveBeenCalledWith(query, 'json');
     });
 
-    it('should export logs as CSV', async () => {
+    it('should export logs as CSV stream', async () => {
       const query: QueryAuditLogDto = {};
-      const csvData = 'id,userId,action,resource\nlog-123,user-123,READ,users';
 
-      auditLogBatchService.exportLogs.mockResolvedValue(csvData);
+      const mockStream = new Readable();
+      mockStream.push('id,userId,action,resource\nlog-123,user-123,READ,users');
+      mockStream.push(null);
 
-      const result = await controller.export(query, 'csv');
+      auditLogBatchService.exportLogsStream.mockResolvedValue(mockStream);
 
-      expect(result).toEqual(csvData);
-      expect(auditLogBatchService.exportLogs).toHaveBeenCalledWith(query, 'csv');
+      const result = await controller.export(query, 'csv', mockResponse as Response);
+
+      expect(result).toBeInstanceOf(StreamableFile);
+      expect(mockResponse.set).toHaveBeenCalledWith({
+        'Content-Type': 'text/csv',
+        'Content-Disposition': expect.stringMatching(/attachment; filename="audit-logs-.*\.csv"/),
+      });
+      expect(auditLogBatchService.exportLogsStream).toHaveBeenCalledWith(query, 'csv');
     });
 
-    it('should export logs as NDJSON', async () => {
+    it('should export logs as NDJSON stream', async () => {
       const query: QueryAuditLogDto = {};
-      const ndjsonData =
-        '{"id":"log-123","userId":"user-123"}\n{"id":"log-456","userId":"user-456"}';
 
-      auditLogBatchService.exportLogs.mockResolvedValue(ndjsonData);
+      const mockStream = new Readable();
+      mockStream.push('{"id":"log-123","userId":"user-123"}\n{"id":"log-456","userId":"user-456"}');
+      mockStream.push(null);
 
-      const result = await controller.export(query, 'ndjson');
+      auditLogBatchService.exportLogsStream.mockResolvedValue(mockStream);
 
-      expect(result).toEqual(ndjsonData);
-      expect(auditLogBatchService.exportLogs).toHaveBeenCalledWith(query, 'ndjson');
+      const result = await controller.export(query, 'ndjson', mockResponse as Response);
+
+      expect(result).toBeInstanceOf(StreamableFile);
+      expect(mockResponse.set).toHaveBeenCalledWith({
+        'Content-Type': 'application/json',
+        'Content-Disposition': expect.stringMatching(
+          /attachment; filename="audit-logs-.*\.ndjson"/,
+        ),
+      });
+      expect(auditLogBatchService.exportLogsStream).toHaveBeenCalledWith(query, 'ndjson');
     });
   });
 

@@ -1,7 +1,9 @@
 import { Test, TestingModule } from '@nestjs/testing';
+import { ConfigService } from '@nestjs/config';
 import { Request } from 'express';
 import { AuditLoggerUtil, AuditLogInput } from '../utils/audit-logger.util';
 import { AuditLogService } from '../services/audit-log.service';
+import { AuditLogQueue } from '../queues/audit-log.queue';
 import { AuditActionType, AuditSeverity, UserRole } from '@prisma/generated/prisma/enums';
 
 // Extend Request interface for testing
@@ -17,6 +19,17 @@ describe('AuditLoggerUtil', () => {
     create: jest.fn(),
   };
 
+  const mockAuditLogQueue = {
+    addAuditLog: jest.fn().mockResolvedValue('job-id'),
+  };
+
+  const mockConfigService = {
+    get: jest.fn().mockImplementation((key: string, defaultValue?: any) => {
+      if (key === 'AUDIT_USE_QUEUE') return false; // Disable queue for tests
+      return defaultValue;
+    }),
+  };
+
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
@@ -24,6 +37,14 @@ describe('AuditLoggerUtil', () => {
         {
           provide: AuditLogService,
           useValue: mockAuditLogService,
+        },
+        {
+          provide: AuditLogQueue,
+          useValue: mockAuditLogQueue,
+        },
+        {
+          provide: ConfigService,
+          useValue: mockConfigService,
         },
       ],
     }).compile();
