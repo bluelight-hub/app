@@ -20,7 +20,7 @@ import { PermissionsGuard } from '@/modules/auth/guards/permissions.guard';
 import { Roles } from '@/modules/auth/decorators/roles.decorator';
 import { RequirePermissions } from '@/modules/auth/decorators/permissions.decorator';
 import { Permission, UserRole } from '@/modules/auth/types/jwt.types';
-import { CreateAuditLogDto, QueryAuditLogDto } from '../dto';
+import { CreateAuditLogDto, QueryAuditLogDto, PaginatedAuditLogResponse } from '../dto';
 import { AuditLogEntity } from '../entities';
 import { PaginatedResponse } from '@/common/interfaces/paginated-response.interface';
 
@@ -110,8 +110,8 @@ export class AuditLogController {
   @ApiResponse({
     status: HttpStatus.OK,
     description: 'List of audit logs',
+    type: PaginatedAuditLogResponse,
   })
-  @ApiQuery({ type: QueryAuditLogDto })
   async findAll(@Query() query: QueryAuditLogDto): Promise<PaginatedResponse<AuditLogEntity>> {
     // Querying audit logs
     return await this.auditLogService.findAll(query);

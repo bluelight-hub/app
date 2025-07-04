@@ -44,23 +44,33 @@ export function useAuditLogs(filters: AuditLogFilters = {}) {
   const { data, isLoading, error, refetch } = useQuery<AuditLogResponse, Error>({
     queryKey,
     queryFn: async () => {
-      // Use the raw method to get the actual response
-      const response = await (api.auditLogs as any).auditLogControllerFindAllV1Raw({
-        page: filters.page || 1,
-        limit: filters.limit || 20,
-        sortBy: filters.sortBy || 'timestamp',
-        sortOrder: filters.sortOrder as 'asc' | 'desc' | undefined,
-        actionType: filters.actionType as any,
-        severity: filters.severity as any,
-        userId: filters.userId,
-        resource: filters.resource,
-        startDate: filters.startDate,
-        endDate: filters.endDate,
-        search: filters.search,
-        success: filters.success,
+      // Make a direct fetch request since the generated client has issues
+      const params = new URLSearchParams();
+      if (filters.page) params.append('page', String(filters.page));
+      if (filters.limit) params.append('limit', String(filters.limit));
+      if (filters.sortBy) params.append('sortBy', filters.sortBy);
+      if (filters.sortOrder) params.append('sortOrder', filters.sortOrder);
+      if (filters.actionType) params.append('actionType', filters.actionType);
+      if (filters.severity) params.append('severity', filters.severity);
+      if (filters.userId) params.append('userId', filters.userId);
+      if (filters.resource) params.append('resource', filters.resource);
+      if (filters.startDate) params.append('startDate', filters.startDate);
+      if (filters.endDate) params.append('endDate', filters.endDate);
+      if (filters.search) params.append('search', filters.search);
+      if (filters.success !== undefined) params.append('success', String(filters.success));
+
+      const token = localStorage.getItem('token');
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/v1/audit/logs?${params}`, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
       });
 
-      // Parse the response
+      if (!response.ok) {
+        throw new Error(`Failed to fetch audit logs: ${response.statusText}`);
+      }
+
       const rawData = await response.json();
 
       // Transform backend response structure to frontend expected structure
@@ -108,11 +118,22 @@ export function useAuditLogStatistics(filters: Omit<AuditLogFilters, 'page' | 'l
   return useQuery<AuditLogStatistics, Error>({
     queryKey: ['audit-log-statistics', filters],
     queryFn: async () => {
-      // Use the raw method to get the actual response
-      const response = await (api.auditLogs as any).auditLogControllerGetStatisticsV1Raw({
-        startDate: filters.startDate ? new Date(filters.startDate) : undefined,
-        endDate: filters.endDate ? new Date(filters.endDate) : undefined,
+      // Make a direct fetch request
+      const params = new URLSearchParams();
+      if (filters.startDate) params.append('startDate', filters.startDate);
+      if (filters.endDate) params.append('endDate', filters.endDate);
+
+      const token = localStorage.getItem('token');
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/v1/audit/logs/statistics?${params}`, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
       });
+
+      if (!response.ok) {
+        throw new Error(`Failed to fetch audit log statistics: ${response.statusText}`);
+      }
 
       const stats = await response.json();
 

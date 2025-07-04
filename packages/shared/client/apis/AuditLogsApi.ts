@@ -1010,6 +1010,7 @@ export type AuditLogControllerExportV1SeverityEnum =
 export const AuditLogControllerExportV1UserRoleEnum = {
   SuperAdmin: 'SUPER_ADMIN',
   Admin: 'ADMIN',
+  Manager: 'MANAGER',
   Support: 'SUPPORT',
   User: 'USER',
 } as const;
@@ -1070,6 +1071,7 @@ export type AuditLogControllerFindAllV1SeverityEnum =
 export const AuditLogControllerFindAllV1UserRoleEnum = {
   SuperAdmin: 'SUPER_ADMIN',
   Admin: 'ADMIN',
+  Manager: 'MANAGER',
   Support: 'SUPPORT',
   User: 'USER',
 } as const;

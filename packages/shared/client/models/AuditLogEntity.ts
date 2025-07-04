@@ -251,6 +251,7 @@ export type AuditLogEntitySeverityEnum =
 export const AuditLogEntityUserRoleEnum = {
   SuperAdmin: 'SUPER_ADMIN',
   Admin: 'ADMIN',
+  Manager: 'MANAGER',
   Support: 'SUPPORT',
   User: 'USER',
 } as const;
