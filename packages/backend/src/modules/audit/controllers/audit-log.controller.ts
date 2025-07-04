@@ -20,9 +20,13 @@ import { PermissionsGuard } from '@/modules/auth/guards/permissions.guard';
 import { Roles } from '@/modules/auth/decorators/roles.decorator';
 import { RequirePermissions } from '@/modules/auth/decorators/permissions.decorator';
 import { Permission, UserRole } from '@/modules/auth/types/jwt.types';
-import { CreateAuditLogDto, QueryAuditLogDto, PaginatedAuditLogResponse, AuditLogStatisticsResponse } from '../dto';
+import {
+  CreateAuditLogDto,
+  QueryAuditLogDto,
+  PaginatedAuditLogResponse,
+  AuditLogStatisticsResponse,
+} from '../dto';
 import { AuditLogEntity } from '../entities';
-import { PaginatedResponse } from '@/common/interfaces/paginated-response.interface';
 
 @ApiTags('Audit Logs')
 @ApiBearerAuth()

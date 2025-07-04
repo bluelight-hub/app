@@ -12,6 +12,16 @@ import {
 } from '../../decorators/audit.decorator';
 import { AuditActionType } from '@prisma/generated/prisma/client';
 
+// Mock the logger module
+jest.mock('../../../../logger/consola.logger', () => ({
+  logger: {
+    debug: jest.fn(),
+    info: jest.fn(),
+    warn: jest.fn(),
+    error: jest.fn(),
+  },
+}));
+
 describe('AuditInterceptor', () => {
   let interceptor: AuditInterceptor;
   let auditLogService: jest.Mocked<AuditLogService>;
@@ -476,15 +486,21 @@ describe('AuditInterceptor', () => {
       const error = new Error('Request error');
       callHandler.handle = jest.fn().mockReturnValue(throwError(() => error));
       auditLogService.create = jest.fn().mockRejectedValue(new Error('Database error'));
-      const consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation();
+
+      // Import and spy on the logger
+      const { logger } = require('../../../../logger/consola.logger');
+      const loggerErrorSpy = jest.spyOn(logger, 'error');
 
       interceptor.intercept(context, callHandler).subscribe({
         error: (err) => {
           expect(err).toBe(error);
-          // The console.error happens in the catch block which is async
+          // The logger.error happens in the catch block which is async
           setTimeout(() => {
-            expect(consoleErrorSpy).toHaveBeenCalled();
-            consoleErrorSpy.mockRestore();
+            expect(loggerErrorSpy).toHaveBeenCalledWith(
+              'Failed to log audit event:',
+              expect.any(Error),
+            );
+            loggerErrorSpy.mockRestore();
             done();
           }, 100);
         },

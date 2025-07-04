@@ -62,8 +62,8 @@ export function useAuditLogs(filters: AuditLogFilters = {}) {
           success: filters.success,
         });
 
-        // The response is a raw Response object, parse it manually
-        const rawData = await response.json();
+        // The response is a VoidApiResponse object, access the raw Response
+        const rawData = await response.raw.json();
 
         // Transform backend response structure to frontend expected structure
         // Backend returns: { items: [], pagination: { currentPage, itemsPerPage, totalItems, totalPages, ... } }
@@ -121,7 +121,7 @@ export function useAuditLogStatistics(filters: Omit<AuditLogFilters, 'page' | 'l
           endDate: filters.endDate ? new Date(filters.endDate) : undefined,
         });
 
-        const stats = await response.json();
+        const stats = await response.raw.json();
 
         // Transform backend response to frontend expected format
         // Backend returns: totalLogs, actionTypes, severities, successRate, topUsers, topResources
@@ -203,12 +203,12 @@ export function useExportAuditLogs() {
         search: filters?.search,
         success: filters?.success,
       });
-      // Get the response data for export
-      const contentType = response.headers.get('content-type');
+      // Get the response data for export from the raw Response object
+      const contentType = response.raw.headers.get('content-type');
       if (contentType?.includes('text/csv')) {
-        return await response.text();
+        return await response.raw.text();
       } else {
-        return await response.json();
+        return await response.raw.json();
       }
     },
     onSuccess: (data: unknown, variables) => {

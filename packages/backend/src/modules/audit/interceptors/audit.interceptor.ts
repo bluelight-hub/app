@@ -9,6 +9,7 @@ import { Observable, throwError } from 'rxjs';
 import { tap, catchError } from 'rxjs/operators';
 import { Request, Response } from 'express';
 import { AuditLogService } from '../services/audit-log.service';
+import { logger } from '../../../logger/consola.logger';
 import { AuditAction, AuditSeverityExtended as AuditSeverity } from '../types/audit.types';
 import {
   AuditInterceptorConfig,
@@ -111,7 +112,9 @@ export class AuditInterceptor implements NestInterceptor {
           duration,
           metadata,
           success: false,
-        }).catch(() => { /* Silently ignore audit logging failures */ });
+        }).catch((err) => {
+          logger.error('Failed to log audit event:', err);
+        });
 
         return throwError(() => error);
       }),

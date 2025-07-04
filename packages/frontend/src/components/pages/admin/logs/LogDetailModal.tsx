@@ -98,21 +98,21 @@ export const LogDetailModal: React.FC<LogDetailModalProps> = ({
             {log.oldValues && (
               <Descriptions.Item label="Alte Werte" span={2}>
                 <pre className="text-xs bg-gray-100 p-2 rounded overflow-auto max-h-40">
-                  {JSON.stringify(JSON.parse(log.oldValues as string), null, 2)}
+                  {JSON.stringify(log.oldValues, null, 2)}
                 </pre>
               </Descriptions.Item>
             )}
             {log.newValues && (
               <Descriptions.Item label="Neue Werte" span={2}>
                 <pre className="text-xs bg-gray-100 p-2 rounded overflow-auto max-h-40">
-                  {JSON.stringify(JSON.parse(log.newValues as string), null, 2)}
+                  {JSON.stringify(log.newValues, null, 2)}
                 </pre>
               </Descriptions.Item>
             )}
             {log.metadata && (
               <Descriptions.Item label="Metadaten" span={2}>
                 <pre className="text-xs bg-gray-100 p-2 rounded overflow-auto max-h-40">
-                  {JSON.stringify(JSON.parse(log.metadata as string), null, 2)}
+                  {JSON.stringify(log.metadata, null, 2)}
                 </pre>
               </Descriptions.Item>
             )}
