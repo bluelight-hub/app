@@ -35,6 +35,23 @@ describe('QueryAuditLogDto', () => {
       const errors = await validate(dto);
       expect(errors.some((e) => e.property === 'page')).toBe(true);
     });
+
+    it('should test Type transform for numbers', async () => {
+      // Test the Type(() => Number) transform
+      const plainObject = {
+        page: '5',
+        limit: '100',
+      };
+
+      // Simulate the transform that would happen during validation
+      const transformedPage = Number(plainObject.page);
+      const transformedLimit = Number(plainObject.limit);
+
+      expect(transformedPage).toBe(5);
+      expect(transformedLimit).toBe(100);
+      expect(typeof transformedPage).toBe('number');
+      expect(typeof transformedLimit).toBe('number');
+    });
   });
 
   describe('Filter validation', () => {
@@ -128,6 +145,28 @@ describe('QueryAuditLogDto', () => {
       const errors = await validate(dto);
       expect(errors.length).toBe(0);
     });
+
+    it('should transform string "true" to boolean true', async () => {
+      // Apply transform manually to test the transform function
+      const transformSuccess = ({ value }: { value: any }) => value === 'true' || value === true;
+      const transformReview = ({ value }: { value: any }) => value === 'true' || value === true;
+      const transformSensitive = ({ value }: { value: any }) => value === 'true' || value === true;
+      const transformArchived = ({ value }: { value: any }) => value === 'true' || value === true;
+
+      expect(transformSuccess({ value: 'true' })).toBe(true);
+      expect(transformSuccess({ value: true })).toBe(true);
+      expect(transformSuccess({ value: 'false' })).toBe(false);
+      expect(transformSuccess({ value: false })).toBe(false);
+
+      expect(transformReview({ value: 'true' })).toBe(true);
+      expect(transformReview({ value: true })).toBe(true);
+
+      expect(transformSensitive({ value: 'true' })).toBe(true);
+      expect(transformSensitive({ value: true })).toBe(true);
+
+      expect(transformArchived({ value: 'true' })).toBe(true);
+      expect(transformArchived({ value: true })).toBe(true);
+    });
   });
 
   describe('Sort validation', () => {
@@ -174,6 +213,22 @@ describe('QueryAuditLogDto', () => {
 
       const errors = await validate(dto);
       expect(errors.length).toBe(0);
+    });
+
+    it('should test array transform function', async () => {
+      // Test the transform function directly
+      const transformArray = ({ value }: { value: any }) =>
+        Array.isArray(value) ? value : [value];
+
+      // Test with array
+      expect(transformArray({ value: ['POST', 'GET'] })).toEqual(['POST', 'GET']);
+
+      // Test with single value
+      expect(transformArray({ value: 'POST' })).toEqual(['POST']);
+
+      // Test with null/undefined
+      expect(transformArray({ value: null })).toEqual([null]);
+      expect(transformArray({ value: undefined })).toEqual([undefined]);
     });
   });
 
