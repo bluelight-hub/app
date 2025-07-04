@@ -20,7 +20,7 @@ import { PermissionsGuard } from '@/modules/auth/guards/permissions.guard';
 import { Roles } from '@/modules/auth/decorators/roles.decorator';
 import { RequirePermissions } from '@/modules/auth/decorators/permissions.decorator';
 import { Permission, UserRole } from '@/modules/auth/types/jwt.types';
-import { CreateAuditLogDto, QueryAuditLogDto, PaginatedAuditLogResponse } from '../dto';
+import { CreateAuditLogDto, QueryAuditLogDto, PaginatedAuditLogResponse, AuditLogStatisticsResponse } from '../dto';
 import { AuditLogEntity } from '../entities';
 import { PaginatedResponse } from '@/common/interfaces/paginated-response.interface';
 
@@ -112,7 +112,7 @@ export class AuditLogController {
     description: 'List of audit logs',
     type: PaginatedAuditLogResponse,
   })
-  async findAll(@Query() query: QueryAuditLogDto): Promise<PaginatedResponse<AuditLogEntity>> {
+  async findAll(@Query() query: QueryAuditLogDto): Promise<PaginatedAuditLogResponse> {
     // Querying audit logs
     return await this.auditLogService.findAll(query);
   }
@@ -128,6 +128,7 @@ export class AuditLogController {
   @ApiResponse({
     status: HttpStatus.OK,
     description: 'Audit log statistics',
+    type: AuditLogStatisticsResponse,
   })
   @ApiQuery({ name: 'startDate', required: false, type: Date })
   @ApiQuery({ name: 'endDate', required: false, type: Date })
@@ -140,7 +141,7 @@ export class AuditLogController {
     @Query('startDate') startDate?: Date,
     @Query('endDate') endDate?: Date,
     @Query('groupBy') groupBy?: string,
-  ) {
+  ): Promise<AuditLogStatisticsResponse> {
     // Getting audit log statistics
     return await this.auditLogService.getStatistics({ startDate, endDate, groupBy });
   }

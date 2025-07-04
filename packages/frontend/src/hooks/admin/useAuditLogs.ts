@@ -44,47 +44,43 @@ export function useAuditLogs(filters: AuditLogFilters = {}) {
   const { data, isLoading, error, refetch } = useQuery<AuditLogResponse, Error>({
     queryKey,
     queryFn: async () => {
-      // Make a direct fetch request since the generated client has issues
-      const params = new URLSearchParams();
-      if (filters.page) params.append('page', String(filters.page));
-      if (filters.limit) params.append('limit', String(filters.limit));
-      if (filters.sortBy) params.append('sortBy', filters.sortBy);
-      if (filters.sortOrder) params.append('sortOrder', filters.sortOrder);
-      if (filters.actionType) params.append('actionType', filters.actionType);
-      if (filters.severity) params.append('severity', filters.severity);
-      if (filters.userId) params.append('userId', filters.userId);
-      if (filters.resource) params.append('resource', filters.resource);
-      if (filters.startDate) params.append('startDate', filters.startDate);
-      if (filters.endDate) params.append('endDate', filters.endDate);
-      if (filters.search) params.append('search', filters.search);
-      if (filters.success !== undefined) params.append('success', String(filters.success));
+      // Use the generated API client with a workaround for the response type issue
+      try {
+        // Call the raw method to get the Response object
+        const response = await (api.auditLogs as any).auditLogControllerFindAllV1Raw({
+          page: filters.page || 1,
+          limit: filters.limit || 20,
+          sortBy: filters.sortBy || 'timestamp',
+          sortOrder: filters.sortOrder as 'asc' | 'desc' | undefined,
+          actionType: filters.actionType as any,
+          severity: filters.severity as any,
+          userId: filters.userId,
+          resource: filters.resource,
+          startDate: filters.startDate,
+          endDate: filters.endDate,
+          search: filters.search,
+          success: filters.success,
+        });
 
-      const token = localStorage.getItem('token');
-      const response = await fetch(`${import.meta.env.VITE_API_URL}/v1/audit/logs?${params}`, {
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json',
-        },
-      });
+        // The response is a raw Response object, parse it manually
+        const rawData = await response.json();
 
-      if (!response.ok) {
-        throw new Error(`Failed to fetch audit logs: ${response.statusText}`);
+        // Transform backend response structure to frontend expected structure
+        // Backend returns: { items: [], pagination: { currentPage, itemsPerPage, totalItems, totalPages, ... } }
+        // Frontend expects: { data: [], meta: { total, page, limit, totalPages } }
+        return {
+          data: rawData.items || [],
+          meta: {
+            total: rawData.pagination?.totalItems || 0,
+            page: rawData.pagination?.currentPage || 1,
+            limit: rawData.pagination?.itemsPerPage || 20,
+            totalPages: rawData.pagination?.totalPages || 1,
+          },
+        } as AuditLogResponse;
+      } catch (error) {
+        console.error('Failed to fetch audit logs:', error);
+        throw error;
       }
-
-      const rawData = await response.json();
-
-      // Transform backend response structure to frontend expected structure
-      // Backend returns: { items: [], pagination: { currentPage, itemsPerPage, totalItems, totalPages, ... } }
-      // Frontend expects: { data: [], meta: { total, page, limit, totalPages } }
-      return {
-        data: rawData.items || [],
-        meta: {
-          total: rawData.pagination?.totalItems || 0,
-          page: rawData.pagination?.currentPage || 1,
-          limit: rawData.pagination?.itemsPerPage || 20,
-          totalPages: rawData.pagination?.totalPages || 1,
-        },
-      } as AuditLogResponse;
     },
     staleTime: 30000, // 30 seconds
   });
@@ -118,38 +114,32 @@ export function useAuditLogStatistics(filters: Omit<AuditLogFilters, 'page' | 'l
   return useQuery<AuditLogStatistics, Error>({
     queryKey: ['audit-log-statistics', filters],
     queryFn: async () => {
-      // Make a direct fetch request
-      const params = new URLSearchParams();
-      if (filters.startDate) params.append('startDate', filters.startDate);
-      if (filters.endDate) params.append('endDate', filters.endDate);
+      try {
+        // Use the generated API client
+        const response = await (api.auditLogs as any).auditLogControllerGetStatisticsV1Raw({
+          startDate: filters.startDate ? new Date(filters.startDate) : undefined,
+          endDate: filters.endDate ? new Date(filters.endDate) : undefined,
+        });
 
-      const token = localStorage.getItem('token');
-      const response = await fetch(`${import.meta.env.VITE_API_URL}/v1/audit/logs/statistics?${params}`, {
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json',
-        },
-      });
+        const stats = await response.json();
 
-      if (!response.ok) {
-        throw new Error(`Failed to fetch audit log statistics: ${response.statusText}`);
+        // Transform backend response to frontend expected format
+        // Backend returns: totalLogs, actionTypes, severities, successRate, topUsers, topResources
+        // Frontend expects: total, errors, warnings, critical, successRate
+        return {
+          total: stats.totalLogs || 0,
+          errors: stats.severities?.HIGH || 0,
+          warnings: stats.severities?.MEDIUM || 0,
+          critical: stats.severities?.CRITICAL || 0,
+          successRate:
+            stats.totalLogs > 0
+              ? Math.round(((stats.successRate?.success || 0) / stats.totalLogs) * 100)
+              : 100,
+        } as AuditLogStatistics;
+      } catch (error) {
+        console.error('Failed to fetch audit log statistics:', error);
+        throw error;
       }
-
-      const stats = await response.json();
-
-      // Transform backend response to frontend expected format
-      // Backend returns: totalLogs, actionTypes, severities, successRate, topUsers, topResources
-      // Frontend expects: total, errors, warnings, critical, successRate
-      return {
-        total: stats.totalLogs || 0,
-        errors: stats.severities?.HIGH || 0,
-        warnings: stats.severities?.MEDIUM || 0,
-        critical: stats.severities?.CRITICAL || 0,
-        successRate:
-          stats.totalLogs > 0
-            ? Math.round(((stats.successRate?.success || 0) / stats.totalLogs) * 100)
-            : 100,
-      } as AuditLogStatistics;
     },
     staleTime: 60000, // 1 minute
   });
