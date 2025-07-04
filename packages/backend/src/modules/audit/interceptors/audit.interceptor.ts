@@ -111,7 +111,7 @@ export class AuditInterceptor implements NestInterceptor {
           duration,
           metadata,
           success: false,
-        }).catch(console.error); // Don't let audit logging failures affect the response
+        }).catch(() => { /* Silently ignore audit logging failures */ });
 
         return throwError(() => error);
       }),

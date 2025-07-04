@@ -9,14 +9,14 @@ export const logger = consola.create({
   level: process.env.NODE_ENV === 'production' ? 3 : 4,
 });
 
-/**
- * Trace-Methode für minimale Logging-Ausgabe
- */
-logger.trace = logger.trace || function(message: any, ...args: any[]) {
-  if (process.env.LOG_LEVEL === 'trace') {
-    logger.log(message, ...args);
-  }
-};
+// Add trace method if it doesn't exist
+if (!logger.trace) {
+  (logger as any).trace = function(message: any, ...args: any[]) {
+    if (process.env.LOG_LEVEL === 'trace') {
+      logger.log(message, ...args);
+    }
+  };
+}
 
 /**
  * NestJS-Logger-Implementierung mit Consola.
