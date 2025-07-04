@@ -40,11 +40,7 @@ export class AuditLogService {
    */
   async create(createAuditLogDto: CreateAuditLogDto): Promise<AuditLogEntity> {
     try {
-      logger.debug('Creating audit log entry', {
-        action: createAuditLogDto.action,
-        resource: createAuditLogDto.resource,
-        userId: createAuditLogDto.userId,
-      });
+      // Creating audit log entry
 
       const auditLog = await this.prisma.auditLog.create({
         data: {
@@ -59,10 +55,7 @@ export class AuditLogService {
         },
       });
 
-      logger.debug('Audit log entry created successfully', {
-        auditLogId: auditLog.id,
-        action: auditLog.action,
-      });
+      // Audit log entry created successfully
 
       return this.toEntity(auditLog);
     } catch (error) {
@@ -180,13 +173,7 @@ export class AuditLogService {
       const hasNext = page < totalPages;
       const hasPrev = page > 1;
 
-      logger.debug('Retrieved audit logs', {
-        total,
-        page,
-        limit,
-        totalPages,
-        filterCount: Object.keys(filters).length,
-      });
+      // Retrieved audit logs successfully
 
       return {
         items: logs.map((log) => this.toEntity(log)),
@@ -223,10 +210,7 @@ export class AuditLogService {
         throw new NotFoundException(`Audit log with ID ${id} not found`);
       }
 
-      logger.debug('Retrieved audit log entry', {
-        auditLogId: id,
-        action: auditLog.action,
-      });
+      // Retrieved audit log entry
 
       return this.toEntity(auditLog);
     } catch (error) {
@@ -493,10 +477,7 @@ export class AuditLogService {
         })),
       };
 
-      logger.debug('Generated audit log statistics', {
-        totalLogs,
-        dateRange: { startDate, endDate },
-      });
+      // Generated audit log statistics
 
       return statistics;
     } catch (error) {

@@ -443,12 +443,7 @@ export class AuditLogBatchService {
         },
       }));
 
-      logger.debug('Generated aggregated statistics', {
-        startDate,
-        endDate,
-        groupBy,
-        periodsCount: result.length,
-      });
+      // Generated aggregated statistics
 
       return result;
     } catch (error) {

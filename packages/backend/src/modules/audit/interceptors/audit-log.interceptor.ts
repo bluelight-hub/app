@@ -195,13 +195,7 @@ export class AuditLogInterceptor implements NestInterceptor {
       (request.headers['x-request-id'] as string) ||
       `req_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
 
-    logger.debug('Intercepting request for audit logging', {
-      method,
-      path,
-      resource,
-      resourceId,
-      requestId,
-    });
+    // Audit logging is handled silently
 
     return next.handle().pipe(
       tap(async (data) => {

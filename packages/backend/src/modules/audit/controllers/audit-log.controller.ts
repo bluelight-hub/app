@@ -23,7 +23,6 @@ import { Permission, UserRole } from '@/modules/auth/types/jwt.types';
 import { CreateAuditLogDto, QueryAuditLogDto } from '../dto';
 import { AuditLogEntity } from '../entities';
 import { PaginatedResponse } from '@/common/interfaces/paginated-response.interface';
-import { logger } from '@/logger/consola.logger';
 
 @ApiTags('Audit Logs')
 @ApiBearerAuth()
@@ -62,7 +61,7 @@ export class AuditLogController {
     description: 'Insufficient permissions',
   })
   async create(@Body() createAuditLogDto: CreateAuditLogDto): Promise<AuditLogEntity> {
-    logger.debug('Creating audit log entry', { data: createAuditLogDto });
+    // Creating audit log entry
     return await this.auditLogService.create(createAuditLogDto);
   }
 
@@ -96,7 +95,7 @@ export class AuditLogController {
       throw new BadRequestException('Batch size cannot exceed 1000 entries');
     }
 
-    logger.debug(`Processing batch of ${createAuditLogDtos.length} audit log entries`);
+    // Processing batch
     return await this.auditLogBatchService.createBatch(createAuditLogDtos);
   }
 
@@ -114,7 +113,7 @@ export class AuditLogController {
   })
   @ApiQuery({ type: QueryAuditLogDto })
   async findAll(@Query() query: QueryAuditLogDto): Promise<PaginatedResponse<AuditLogEntity>> {
-    logger.debug('Querying audit logs', { query });
+    // Querying audit logs
     return await this.auditLogService.findAll(query);
   }
 
@@ -142,7 +141,7 @@ export class AuditLogController {
     @Query('endDate') endDate?: Date,
     @Query('groupBy') groupBy?: string,
   ) {
-    logger.debug('Getting audit log statistics', { startDate, endDate, groupBy });
+    // Getting audit log statistics
     return await this.auditLogService.getStatistics({ startDate, endDate, groupBy });
   }
 
@@ -163,7 +162,7 @@ export class AuditLogController {
     @Query() query: QueryAuditLogDto,
     @Query('format') format: 'json' | 'csv' | 'ndjson' = 'json',
   ) {
-    logger.debug('Exporting audit logs', { query, format });
+    // Exporting audit logs
     return await this.auditLogBatchService.exportLogs(query, format);
   }
 
@@ -185,7 +184,7 @@ export class AuditLogController {
     description: 'Audit log not found',
   })
   async findOne(@Param('id') id: string): Promise<AuditLogEntity> {
-    logger.debug('Getting audit log by ID', { id });
+    // Getting audit log by ID
     return await this.auditLogService.findOne(id);
   }
 
@@ -211,7 +210,7 @@ export class AuditLogController {
     description: 'Cannot delete compliance-tagged logs',
   })
   async remove(@Param('id') id: string): Promise<void> {
-    logger.debug('Deleting audit log', { id });
+    // Deleting audit log
     await this.auditLogService.remove(id);
   }
 
@@ -240,7 +239,7 @@ export class AuditLogController {
       throw new BadRequestException('olderThan parameter is required');
     }
 
-    logger.debug('Bulk deleting audit logs', { olderThan, severity, excludeCompliance });
+    // Bulk deleting audit logs
     const deletedCount = await this.auditLogService.bulkDelete({
       olderThan: new Date(olderThan),
       severity: severity as any,
@@ -265,7 +264,7 @@ export class AuditLogController {
   })
   @ApiQuery({ name: 'daysToKeep', required: false, type: Number })
   async archiveOldLogs(@Query('daysToKeep') daysToKeep: number = 365) {
-    logger.debug('Archiving old audit logs', { daysToKeep });
+    // Archiving old audit logs
     const archivedCount = await this.auditLogService.archiveOldLogs(daysToKeep);
 
     return {
@@ -288,7 +287,7 @@ export class AuditLogController {
     description: 'Cleanup results with deleted count',
   })
   async applyRetentionPolicy() {
-    logger.debug('Applying retention policy and cleaning up audit logs');
+    // Applying retention policy
     const deletedCount = await this.auditLogBatchService.applyRetentionPolicy();
 
     return {

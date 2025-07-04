@@ -99,14 +99,7 @@ export class AuditLoggerUtil {
 
       const auditLog = await this.auditLogService.create(auditLogDto);
 
-      // Zusätzliches Logging mit Consola für Entwicklung/Debugging
-      logger.debug('Audit log created', {
-        auditLogId: auditLog.id,
-        action: input.action,
-        resource: input.resource,
-        userId: userContext?.id,
-        success: input.success ?? true,
-      });
+      // Audit log created successfully
 
       return auditLog;
     } catch (error) {

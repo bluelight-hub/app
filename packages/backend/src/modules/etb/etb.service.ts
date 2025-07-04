@@ -185,7 +185,7 @@ export class EtbService {
    * @returns Eine paginierte Liste von ETB-Einträgen
    */
   async findAll(filterDto: FilterEtbDto): Promise<PaginatedResponse<EtbEntry>> {
-    logger.info('Suche ETB-Einträge mit Filtern');
+    logger.debug('Suche ETB-Einträge mit Filtern');
     const {
       page = 1,
       limit = 10,
