@@ -1,0 +1,61 @@
+{
+  "hooks": {
+    "pre_edit": {
+      "script": ".claude/hooks/pre-edit-typescript.sh",
+      "timeout": 5000,
+      "enabled": true,
+      "description": "Validiert TypeScript-Code vor Bearbeitung"
+    },
+    "post_edit": {
+      "script": ".claude/hooks/post-edit-lint.sh",
+      "timeout": 10000,
+      "enabled": true,
+      "description": "Führt ESLint auf bearbeiteten Dateien aus"
+    },
+    "pre_commit": {
+      "script": ".claude/hooks/pre-commit-checks.sh",
+      "timeout": 30000,
+      "enabled": true,
+      "description": "Prüft Code-Qualität, Tests und Coverage vor Commit"
+    },
+    "post_commit": {
+      "script": ".claude/hooks/post-commit-notify.sh",
+      "timeout": 5000,
+      "enabled": true,
+      "description": "Benachrichtigt über erfolgreiche Commits"
+    },
+    "on_test_run": {
+      "script": ".claude/hooks/test-coverage-check.sh",
+      "timeout": 60000,
+      "enabled": true,
+      "fail_on_error": true,
+      "description": "Überprüft Test-Coverage Schwellenwerte"
+    },
+    "on_dependency_change": {
+      "script": ".claude/hooks/dependency-security-check.sh",
+      "timeout": 30000,
+      "enabled": true,
+      "description": "Prüft Dependencies auf Sicherheitslücken"
+    },
+    "on_branch_switch": {
+      "script": ".claude/hooks/branch-protection.sh",
+      "timeout": 5000,
+      "enabled": true,
+      "description": "Schützt kritische Branches vor direkten Änderungen"
+    },
+    "on_file_create": {
+      "script": ".claude/hooks/file-structure-check.sh",
+      "timeout": 5000,
+      "enabled": true,
+      "description": "Prüft Dateinamen-Konventionen und Struktur"
+    }
+  },
+  "global": {
+    "log_level": "info",
+    "fail_fast": false,
+    "env": {
+      "PROJECT_ROOT": ".",
+      "COVERAGE_THRESHOLD": "80"
+    }
+  }
+}
