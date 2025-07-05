@@ -4,10 +4,15 @@ import { PrismaService } from '@/prisma/prisma.service';
 import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
 import { PermissionValidationService } from './services/permission-validation.service';
+import { SessionCleanupService } from './services/session-cleanup.service';
 import * as bcrypt from 'bcrypt';
 import { UnauthorizedException } from '@nestjs/common';
 import { UserRole } from './types/jwt.types';
 
+/**
+ * Test-Suite für die Admin-Authentifizierung.
+ * Testet spezifische Admin-Funktionalitäten der Authentifizierung.
+ */
 describe('Admin Authentication', () => {
   let authService: AuthService;
 
@@ -47,12 +52,23 @@ describe('Admin Authentication', () => {
     rolePermission: {
       findMany: jest.fn(),
     },
-    $transaction: jest.fn((callback) => callback(mockPrismaService)),
+    $transaction: jest.fn(async (callbacks) => {
+      if (Array.isArray(callbacks)) {
+        return Promise.all(callbacks);
+      }
+      return callbacks(mockPrismaService);
+    }),
   };
 
   const mockJwtService = {
     sign: jest.fn(),
     verify: jest.fn(),
+  };
+
+  const mockSessionCleanupService = {
+    enforceSessionLimit: jest.fn(),
+    checkRefreshRateLimit: jest.fn(),
+    revokeAllUserSessions: jest.fn(),
   };
 
   beforeEach(async () => {
@@ -74,6 +90,10 @@ describe('Admin Authentication', () => {
         {
           provide: PermissionValidationService,
           useValue: mockPermissionValidationService,
+        },
+        {
+          provide: SessionCleanupService,
+          useValue: mockSessionCleanupService,
         },
       ],
     }).compile();
