@@ -1,4 +1,5 @@
 export * from './permissions.constants';
+export * from './auth.constants';
 
 /**
  * Version der Authentifizierungs-Module

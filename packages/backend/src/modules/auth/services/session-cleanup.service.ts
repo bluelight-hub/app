@@ -2,6 +2,7 @@ import { Injectable, Logger } from '@nestjs/common';
 import { Cron, CronExpression } from '@nestjs/schedule';
 import { ConfigService } from '@nestjs/config';
 import { PrismaService } from '../../../prisma/prisma.service';
+import { LOGIN_SECURITY, SESSION_CONFIG } from '../constants/auth.constants';
 
 /**
  * Service responsible for cleaning up expired sessions and tokens.
@@ -176,6 +177,131 @@ export class SessionCleanupService {
       }
     } catch (error) {
       this.logger.error('Error cleaning up old revoked sessions', error);
+    }
+  }
+
+  /**
+   * Entfernt überschüssige Sessions eines Benutzers.
+   * Behält nur die neuesten N Sessions (definiert durch MAX_SESSIONS_PER_USER).
+   */
+  async enforceSessionLimit(userId: string): Promise<void> {
+    try {
+      // Hole alle aktiven Sessions des Benutzers, sortiert nach Erstellungsdatum
+      const sessions = await this.prisma.session.findMany({
+        where: {
+          userId,
+          isRevoked: false,
+          expiresAt: { gt: new Date() },
+        },
+        orderBy: { createdAt: 'desc' },
+        select: { jti: true },
+      });
+
+      // Wenn mehr Sessions als erlaubt existieren, entferne die ältesten
+      if (sessions.length > LOGIN_SECURITY.MAX_SESSIONS_PER_USER) {
+        const sessionsToRevoke = sessions.slice(LOGIN_SECURITY.MAX_SESSIONS_PER_USER);
+        const jtiList = sessionsToRevoke.map((s) => s.jti);
+
+        // Widerrufe die überschüssigen Sessions
+        await this.prisma.session.updateMany({
+          where: { jti: { in: jtiList } },
+          data: {
+            isRevoked: true,
+            revokedAt: new Date(),
+            revokedReason: 'Session limit exceeded',
+          },
+        });
+
+        // Widerrufe auch die zugehörigen Refresh Tokens
+        await this.prisma.refreshToken.updateMany({
+          where: { sessionJti: { in: jtiList } },
+          data: {
+            isRevoked: true,
+            revokedAt: new Date(),
+          },
+        });
+
+        this.logger.warn(`Revoked ${sessionsToRevoke.length} excess sessions for user ${userId}`);
+      }
+    } catch (error) {
+      this.logger.error(`Failed to enforce session limit for user ${userId}`, error);
+    }
+  }
+
+  /**
+   * Prüft Rate-Limiting für Refresh-Token-Verwendung.
+   * Verhindert zu häufige Token-Refreshes als Sicherheitsmaßnahme.
+   */
+  async checkRefreshRateLimit(userId: string): Promise<{ allowed: boolean; retryAfter?: Date }> {
+    try {
+      const oneHourAgo = new Date(Date.now() - 60 * 60 * 1000);
+
+      // Zähle Refresh-Token-Verwendungen in der letzten Stunde
+      const recentRefreshCount = await this.prisma.refreshToken.count({
+        where: {
+          userId,
+          isUsed: true,
+          usedAt: { gte: oneHourAgo },
+        },
+      });
+
+      if (recentRefreshCount >= SESSION_CONFIG.MAX_REFRESH_ATTEMPTS_PER_HOUR) {
+        // Finde den ältesten Refresh in der letzten Stunde
+        const oldestRefresh = await this.prisma.refreshToken.findFirst({
+          where: {
+            userId,
+            isUsed: true,
+            usedAt: { gte: oneHourAgo },
+          },
+          orderBy: { usedAt: 'asc' },
+          select: { usedAt: true },
+        });
+
+        const retryAfter = oldestRefresh
+          ? new Date(oldestRefresh.usedAt.getTime() + 60 * 60 * 1000)
+          : new Date(Date.now() + 60 * 60 * 1000);
+
+        return { allowed: false, retryAfter };
+      }
+
+      return { allowed: true };
+    } catch (error) {
+      this.logger.error(`Failed to check refresh rate limit for user ${userId}`, error);
+      // Im Fehlerfall erlauben wir den Refresh
+      return { allowed: true };
+    }
+  }
+
+  /**
+   * Bereinigt alle Sessions und Tokens eines Benutzers.
+   * Wird beim Zurücksetzen von Passwörtern oder bei Sicherheitsvorfällen verwendet.
+   */
+  async revokeAllUserSessions(userId: string, reason: string): Promise<void> {
+    try {
+      await this.prisma.$transaction([
+        // Widerrufe alle Sessions
+        this.prisma.session.updateMany({
+          where: { userId, isRevoked: false },
+          data: {
+            isRevoked: true,
+            revokedAt: new Date(),
+            revokedReason: reason,
+          },
+        }),
+        // Widerrufe alle Refresh Tokens
+        this.prisma.refreshToken.updateMany({
+          where: { userId, isRevoked: false },
+          data: {
+            isRevoked: true,
+            revokedAt: new Date(),
+          },
+        }),
+      ]);
+
+      this.logger.log(`Revoked all sessions for user ${userId}. Reason: ${reason}`);
+    } catch (error) {
+      this.logger.error(`Failed to revoke sessions for user ${userId}`, error);
+      throw error;
     }
   }
 }

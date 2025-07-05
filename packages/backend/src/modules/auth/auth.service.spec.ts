@@ -1,11 +1,18 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
-import { UnauthorizedException } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { Permission, UserRole } from './types/jwt.types';
 import { PrismaService } from '@/prisma/prisma.service';
 import { DefaultRolePermissions } from './constants';
+import { SessionCleanupService } from './services/session-cleanup.service';
+import {
+  InvalidCredentialsException,
+  AccountDisabledException,
+  AccountLockedException,
+  InvalidTokenException,
+  TokenRevokedException,
+} from './exceptions/auth.exceptions';
 import * as bcrypt from 'bcryptjs';
 
 // Mock bcrypt
@@ -37,13 +44,24 @@ describe('AuthService', () => {
     session: {
       create: jest.fn(),
       updateMany: jest.fn(),
+      findUnique: jest.fn(),
+      findMany: jest.fn(),
     },
     refreshToken: {
       create: jest.fn(),
       findUnique: jest.fn(),
       update: jest.fn(),
       updateMany: jest.fn(),
+      count: jest.fn(),
+      findFirst: jest.fn(),
     },
+    $transaction: jest.fn(),
+  };
+
+  const mockSessionCleanupService = {
+    enforceSessionLimit: jest.fn(),
+    checkRefreshRateLimit: jest.fn(),
+    revokeAllUserSessions: jest.fn(),
   };
 
   beforeEach(async () => {
@@ -62,6 +80,10 @@ describe('AuthService', () => {
           provide: PrismaService,
           useValue: mockPrismaService,
         },
+        {
+          provide: SessionCleanupService,
+          useValue: mockSessionCleanupService,
+        },
       ],
     }).compile();
 
@@ -77,6 +99,14 @@ describe('AuthService', () => {
         JWT_REFRESH_EXPIRES_IN: '7d',
       };
       return config[key];
+    });
+
+    // Mock transaction to execute the callbacks
+    mockPrismaService.$transaction.mockImplementation(async (callbacks) => {
+      if (Array.isArray(callbacks)) {
+        return Promise.all(callbacks);
+      }
+      return callbacks();
     });
   });
 
@@ -108,6 +138,7 @@ describe('AuthService', () => {
       ]);
       mockPrismaService.session.create.mockResolvedValue({ jti: 'session-123' });
       mockPrismaService.refreshToken.create.mockResolvedValue({});
+      mockSessionCleanupService.enforceSessionLimit.mockResolvedValue(undefined);
 
       (bcrypt.compare as jest.Mock).mockResolvedValue(true);
 
@@ -126,16 +157,15 @@ describe('AuthService', () => {
     it('should throw UnauthorizedException for invalid email', async () => {
       mockPrismaService.user.findUnique.mockResolvedValue(null);
 
-      await expect(service.login(mockLoginDto)).rejects.toThrow(UnauthorizedException);
-      await expect(service.login(mockLoginDto)).rejects.toThrow('Invalid credentials');
+      await expect(service.login(mockLoginDto)).rejects.toThrow(InvalidCredentialsException);
     });
 
     it('should throw UnauthorizedException for invalid password', async () => {
       mockPrismaService.user.findUnique.mockResolvedValue(mockUser);
+      mockPrismaService.user.update.mockResolvedValue({ ...mockUser, failedLoginCount: 1 });
       (bcrypt.compare as jest.Mock).mockResolvedValue(false);
 
-      await expect(service.login(mockLoginDto)).rejects.toThrow(UnauthorizedException);
-      await expect(service.login(mockLoginDto)).rejects.toThrow('Invalid credentials');
+      await expect(service.login(mockLoginDto)).rejects.toThrow(InvalidCredentialsException);
     });
 
     it('should throw UnauthorizedException for inactive user', async () => {
@@ -144,8 +174,7 @@ describe('AuthService', () => {
         isActive: false,
       });
 
-      await expect(service.login(mockLoginDto)).rejects.toThrow(UnauthorizedException);
-      await expect(service.login(mockLoginDto)).rejects.toThrow('Account is disabled');
+      await expect(service.login(mockLoginDto)).rejects.toThrow(AccountDisabledException);
     });
 
     it('should use default permissions when no permissions found in database', async () => {
@@ -154,6 +183,7 @@ describe('AuthService', () => {
       mockPrismaService.rolePermission.findMany.mockResolvedValue([]); // Empty permissions
       mockPrismaService.session.create.mockResolvedValue({ jti: 'session-123' });
       mockPrismaService.refreshToken.create.mockResolvedValue({});
+      mockSessionCleanupService.enforceSessionLimit.mockResolvedValue(undefined);
 
       (bcrypt.compare as jest.Mock).mockResolvedValue(true);
       mockJwtService.sign.mockReturnValueOnce('access_token').mockReturnValueOnce('refresh_token');
@@ -172,8 +202,7 @@ describe('AuthService', () => {
         lockedUntil: new Date(Date.now() + 60000), // Locked for 1 minute
       });
 
-      await expect(service.login(mockLoginDto)).rejects.toThrow(UnauthorizedException);
-      await expect(service.login(mockLoginDto)).rejects.toThrow('Account is locked');
+      await expect(service.login(mockLoginDto)).rejects.toThrow(AccountLockedException);
     });
 
     it('should increment failed login count on invalid password', async () => {
@@ -227,6 +256,7 @@ describe('AuthService', () => {
       mockPrismaService.user.update.mockResolvedValue(mockUser);
       mockPrismaService.session.create.mockResolvedValue({ jti: 'session-123' });
       mockPrismaService.refreshToken.create.mockResolvedValue({});
+      mockSessionCleanupService.enforceSessionLimit.mockResolvedValue(undefined);
 
       mockJwtService.sign.mockReturnValueOnce('access_token');
       mockJwtService.sign.mockReturnValueOnce('refresh_token');
@@ -255,6 +285,7 @@ describe('AuthService', () => {
       mockPrismaService.user.update.mockResolvedValue(mockUser);
       mockPrismaService.session.create.mockResolvedValue({ jti: 'session-123' });
       mockPrismaService.refreshToken.create.mockResolvedValue({});
+      mockSessionCleanupService.enforceSessionLimit.mockResolvedValue(undefined);
 
       mockJwtService.sign.mockReturnValueOnce('access_token');
       mockJwtService.sign.mockReturnValueOnce('refresh_token');
@@ -305,6 +336,7 @@ describe('AuthService', () => {
       mockPrismaService.refreshToken.update.mockResolvedValue({});
       mockPrismaService.session.create.mockResolvedValue({ jti: 'new-session-123' });
       mockPrismaService.refreshToken.create.mockResolvedValue({});
+      mockSessionCleanupService.checkRefreshRateLimit.mockResolvedValue({ allowed: true });
 
       mockJwtService.sign.mockReturnValueOnce('new_access_token');
       mockJwtService.sign.mockReturnValueOnce('new_refresh_token');
@@ -328,6 +360,7 @@ describe('AuthService', () => {
       mockPrismaService.refreshToken.update.mockResolvedValue({});
       mockPrismaService.session.create.mockResolvedValue({ jti: 'new-session-123' });
       mockPrismaService.refreshToken.create.mockResolvedValue({});
+      mockSessionCleanupService.checkRefreshRateLimit.mockResolvedValue({ allowed: true });
 
       mockJwtService.sign.mockReturnValueOnce('new_access_token');
       mockJwtService.sign.mockReturnValueOnce('new_refresh_token');
@@ -347,7 +380,7 @@ describe('AuthService', () => {
         throw new Error('Invalid token');
       });
 
-      await expect(service.refreshTokens(mockRefreshToken)).rejects.toThrow(UnauthorizedException);
+      await expect(service.refreshTokens(mockRefreshToken)).rejects.toThrow(InvalidTokenException);
     });
 
     it('should throw UnauthorizedException for used refresh token', async () => {
@@ -356,8 +389,9 @@ describe('AuthService', () => {
         ...mockStoredToken,
         isUsed: true,
       });
+      mockSessionCleanupService.revokeAllUserSessions.mockResolvedValue(undefined);
 
-      await expect(service.refreshTokens(mockRefreshToken)).rejects.toThrow(UnauthorizedException);
+      await expect(service.refreshTokens(mockRefreshToken)).rejects.toThrow(InvalidTokenException);
     });
 
     it('should throw UnauthorizedException for revoked refresh token', async () => {
@@ -367,7 +401,7 @@ describe('AuthService', () => {
         isRevoked: true,
       });
 
-      await expect(service.refreshTokens(mockRefreshToken)).rejects.toThrow(UnauthorizedException);
+      await expect(service.refreshTokens(mockRefreshToken)).rejects.toThrow(TokenRevokedException);
     });
 
     it('should throw UnauthorizedException for expired refresh token', async () => {
@@ -377,7 +411,7 @@ describe('AuthService', () => {
         expiresAt: new Date(Date.now() - 1000), // Expired
       });
 
-      await expect(service.refreshTokens(mockRefreshToken)).rejects.toThrow(UnauthorizedException);
+      await expect(service.refreshTokens(mockRefreshToken)).rejects.toThrow(InvalidTokenException);
     });
 
     it('should throw UnauthorizedException for inactive user', async () => {
@@ -389,8 +423,11 @@ describe('AuthService', () => {
           isActive: false,
         },
       });
+      mockSessionCleanupService.checkRefreshRateLimit.mockResolvedValue({ allowed: true });
 
-      await expect(service.refreshTokens(mockRefreshToken)).rejects.toThrow(UnauthorizedException);
+      await expect(service.refreshTokens(mockRefreshToken)).rejects.toThrow(
+        AccountDisabledException,
+      );
     });
 
     it('should use default permissions when no permissions found during refresh', async () => {
@@ -403,6 +440,7 @@ describe('AuthService', () => {
         id: 'new-refresh-id',
         token: 'new_refresh_token',
       });
+      mockSessionCleanupService.checkRefreshRateLimit.mockResolvedValue({ allowed: true });
 
       mockJwtService.sign
         .mockReturnValueOnce('new_access_token')
@@ -427,9 +465,11 @@ describe('AuthService', () => {
 
       mockPrismaService.session.updateMany.mockResolvedValue({ count: 1 });
       mockPrismaService.refreshToken.updateMany.mockResolvedValue({ count: 1 });
+      mockPrismaService.session.findUnique.mockResolvedValue({ jti: sessionId, userId: '123' });
 
       await service.logout(sessionId);
 
+      expect(mockPrismaService.$transaction).toHaveBeenCalled();
       expect(mockPrismaService.session.updateMany).toHaveBeenCalledWith({
         where: {
           jti: sessionId,
@@ -482,18 +522,7 @@ describe('AuthService', () => {
         id: userId,
         email: 'test@example.com',
         roles: ['ADMIN'],
-        permissions: expect.arrayContaining([
-          Permission.USERS_READ,
-          Permission.USERS_WRITE,
-          Permission.USERS_DELETE,
-          Permission.SYSTEM_SETTINGS_READ,
-          Permission.SYSTEM_SETTINGS_WRITE,
-          Permission.AUDIT_LOG_READ,
-          Permission.ETB_READ,
-          Permission.ETB_WRITE,
-          Permission.EINSATZ_READ,
-          Permission.EINSATZ_WRITE,
-        ]),
+        permissions: [Permission.USERS_READ], // Using mocked permissions from database
         isActive: true,
         createdAt: mockUser.createdAt,
         updatedAt: mockUser.updatedAt,
@@ -503,7 +532,7 @@ describe('AuthService', () => {
     it('should throw UnauthorizedException if user not found', async () => {
       mockPrismaService.user.findUnique.mockResolvedValue(null);
 
-      await expect(service.getCurrentUser('123')).rejects.toThrow(UnauthorizedException);
+      await expect(service.getCurrentUser('123')).rejects.toThrow(InvalidTokenException);
     });
   });
 });

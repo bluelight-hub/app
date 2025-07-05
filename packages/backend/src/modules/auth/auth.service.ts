@@ -1,19 +1,23 @@
-import { Injectable, UnauthorizedException, Logger } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
 import * as bcrypt from 'bcryptjs';
 import { randomUUID } from 'crypto';
 import { LoginDto } from './dto';
 import { AuthUser, LoginResponse, TokenResponse } from './types/auth.types';
-import {
-  JWTPayload,
-  JWTRefreshPayload,
-  Permission,
-  UserRole,
-  RolePermissions,
-} from './types/jwt.types';
+import { JWTPayload, JWTRefreshPayload, Permission, UserRole } from './types/jwt.types';
 import { PrismaService } from '@/prisma/prisma.service';
 import { DefaultRolePermissions } from './constants';
+import { TOKEN_CONFIG, LOGIN_SECURITY, SecurityEventType } from './constants/auth.constants';
+import {
+  InvalidCredentialsException,
+  AccountDisabledException,
+  AccountLockedException,
+  InvalidTokenException,
+  TokenRevokedException,
+  RefreshRateLimitExceededException,
+} from './exceptions/auth.exceptions';
+import { SessionCleanupService } from './services/session-cleanup.service';
 
 /**
  * Service responsible for authentication operations including login, token refresh, and logout.
@@ -27,6 +31,7 @@ export class AuthService {
     private jwtService: JwtService,
     private configService: ConfigService,
     private prisma: PrismaService,
+    private sessionCleanupService: SessionCleanupService,
   ) {}
 
   async login(loginDto: LoginDto): Promise<LoginResponse> {
@@ -36,32 +41,52 @@ export class AuthService {
     });
 
     if (!user) {
-      throw new UnauthorizedException('Invalid credentials');
+      this.logger.warn(`Failed login attempt for email: ${loginDto.email}`);
+      throw new InvalidCredentialsException();
     }
 
     // Check if user is active
     if (!user.isActive) {
-      throw new UnauthorizedException('Account is disabled');
+      this.logger.warn(`Login attempt for disabled account: ${user.id}`);
+      throw new AccountDisabledException();
     }
 
     // Check if user is locked
     if (user.lockedUntil && user.lockedUntil > new Date()) {
-      throw new UnauthorizedException('Account is locked');
+      this.logger.warn(`Login attempt for locked account: ${user.id}`);
+      throw new AccountLockedException(user.lockedUntil);
     }
 
     // Verify password
     const isPasswordValid = await bcrypt.compare(loginDto.password, user.passwordHash);
     if (!isPasswordValid) {
       // Increment failed login count
-      await this.prisma.user.update({
+      const updatedUser = await this.prisma.user.update({
         where: { id: user.id },
         data: {
           failedLoginCount: { increment: 1 },
-          // Lock account after 5 failed attempts for 30 minutes
-          lockedUntil: user.failedLoginCount >= 4 ? new Date(Date.now() + 30 * 60 * 1000) : null,
+          // Lock account after MAX_FAILED_ATTEMPTS
+          lockedUntil:
+            user.failedLoginCount >= LOGIN_SECURITY.MAX_FAILED_ATTEMPTS - 1
+              ? new Date(Date.now() + LOGIN_SECURITY.LOCKOUT_DURATION_MS)
+              : null,
         },
       });
-      throw new UnauthorizedException('Invalid credentials');
+
+      const remainingAttempts = Math.max(
+        0,
+        LOGIN_SECURITY.MAX_FAILED_ATTEMPTS - updatedUser.failedLoginCount,
+      );
+
+      this.logger.warn(`Failed login attempt ${updatedUser.failedLoginCount} for user: ${user.id}`);
+
+      if (updatedUser.lockedUntil) {
+        this.logSecurityEvent(SecurityEventType.ACCOUNT_LOCKED, user.id, {
+          lockedUntil: updatedUser.lockedUntil,
+        });
+      }
+
+      throw new InvalidCredentialsException(remainingAttempts);
     }
 
     // Reset failed login count and update last login
@@ -74,64 +99,49 @@ export class AuthService {
       },
     });
 
+    // Check session limit before creating new session
+    await this.sessionCleanupService.enforceSessionLimit(user.id);
+
     const jti = randomUUID();
     const sessionId = jti; // Use jti as sessionId for consistency
 
-    // Get permissions for user role from database
-    const rolePermissions = await this.prisma.rolePermission.findMany({
-      where: { role: user.role },
-      select: { permission: true },
-    });
+    // Get permissions for user role
+    const permissions = await this.getUserPermissions(user.role as UserRole);
 
-    let permissions = rolePermissions.map((rp) => rp.permission as Permission);
-
-    // Fallback to default permissions if none found in database
-    if (permissions.length === 0) {
-      this.logger.warn(`No permissions found in database for role ${user.role}, using defaults`);
-      permissions = DefaultRolePermissions[user.role as UserRole] || [];
-    }
-
-    const payload: JWTPayload = {
-      sub: user.id,
+    // Generate tokens with consistent time calculation
+    const { accessToken, refreshToken } = this.generateTokenPair({
+      userId: user.id,
       email: user.email,
-      roles: [user.role as UserRole],
+      role: user.role as UserRole,
       permissions,
       sessionId,
-      iat: Date.now() / 1000,
-      exp: Date.now() / 1000 + 900, // 15 minutes
-    };
-
-    const refreshPayload: JWTRefreshPayload = {
-      sub: user.id,
-      sessionId,
       jti,
-      iat: Math.floor(Date.now() / 1000),
-    };
-
-    const accessToken = this.jwtService.sign(payload);
-    const refreshToken = this.jwtService.sign(refreshPayload, {
-      secret: this.configService.get<string>('JWT_REFRESH_SECRET'),
-      expiresIn: '7d',
     });
 
-    // Create session in database
-    const expiresAt = new Date(Date.now() + 604800 * 1000); // 7 days
-    await this.prisma.session.create({
-      data: {
-        jti,
-        userId: user.id,
-        expiresAt,
-      },
-    });
+    // Create session and refresh token in database
+    const expiresAt = new Date(Date.now() + TOKEN_CONFIG.REFRESH_TOKEN_EXPIRY_SECONDS * 1000);
 
-    // Create refresh token in database
-    await this.prisma.refreshToken.create({
-      data: {
-        token: refreshToken,
-        userId: user.id,
-        sessionJti: jti,
-        expiresAt,
-      },
+    await this.prisma.$transaction([
+      this.prisma.session.create({
+        data: {
+          jti,
+          userId: user.id,
+          expiresAt,
+        },
+      }),
+      this.prisma.refreshToken.create({
+        data: {
+          token: refreshToken,
+          userId: user.id,
+          sessionJti: jti,
+          expiresAt,
+        },
+      }),
+    ]);
+
+    // Log successful login
+    this.logSecurityEvent(SecurityEventType.LOGIN_SUCCESS, user.id, {
+      sessionId,
     });
 
     const authUser: AuthUser = {
@@ -156,131 +166,167 @@ export class AuthService {
       this.jwtService.verify<JWTRefreshPayload>(refreshToken, {
         secret: this.configService.get<string>('JWT_REFRESH_SECRET'),
       });
+    } catch (_error) {
+      this.logger.warn('Invalid refresh token presented');
+      throw new InvalidTokenException('Token verification failed');
+    }
 
-      // Check if refresh token exists and is valid
-      const storedToken = await this.prisma.refreshToken.findUnique({
-        where: { token: refreshToken },
-        include: { user: true },
+    // Check if refresh token exists and is valid
+    const storedToken = await this.prisma.refreshToken.findUnique({
+      where: { token: refreshToken },
+      include: { user: true },
+    });
+
+    if (!storedToken) {
+      this.logger.warn('Refresh token not found in database');
+      throw new InvalidTokenException('Token not found');
+    }
+
+    if (storedToken.isRevoked) {
+      this.logger.warn(`Attempt to use revoked refresh token for user: ${storedToken.userId}`);
+      this.logSecurityEvent(SecurityEventType.SUSPICIOUS_ACTIVITY, storedToken.userId, {
+        reason: 'Attempted to use revoked token',
+      });
+      throw new TokenRevokedException();
+    }
+
+    if (storedToken.isUsed) {
+      // Token reuse detected - potential security breach
+      this.logger.error(`Refresh token reuse detected for user: ${storedToken.userId}`);
+      this.logSecurityEvent(SecurityEventType.SUSPICIOUS_ACTIVITY, storedToken.userId, {
+        reason: 'Token reuse detected',
       });
 
-      if (!storedToken || storedToken.isUsed || storedToken.isRevoked) {
-        throw new UnauthorizedException('Invalid refresh token');
-      }
+      // Revoke all user sessions as a security measure
+      await this.sessionCleanupService.revokeAllUserSessions(
+        storedToken.userId,
+        'Token reuse detected',
+      );
 
-      if (storedToken.expiresAt < new Date()) {
-        throw new UnauthorizedException('Refresh token expired');
-      }
+      throw new InvalidTokenException('Token reuse detected');
+    }
 
-      const user = storedToken.user;
+    if (storedToken.expiresAt < new Date()) {
+      this.logger.warn(`Expired refresh token used for user: ${storedToken.userId}`);
+      throw new InvalidTokenException('Token expired');
+    }
 
-      if (!user.isActive) {
-        throw new UnauthorizedException('Account is disabled');
-      }
+    const user = storedToken.user;
 
-      // Get permissions for user role from database
-      const rolePermissions = await this.prisma.rolePermission.findMany({
-        where: { role: user.role },
-        select: { permission: true },
+    if (!user.isActive) {
+      throw new AccountDisabledException();
+    }
+
+    // Check rate limiting
+    const rateLimitCheck = await this.sessionCleanupService.checkRefreshRateLimit(user.id);
+    if (!rateLimitCheck.allowed) {
+      this.logger.warn(`Refresh rate limit exceeded for user: ${user.id}`);
+      this.logSecurityEvent(SecurityEventType.SUSPICIOUS_ACTIVITY, user.id, {
+        reason: 'Refresh rate limit exceeded',
       });
+      throw new RefreshRateLimitExceededException(rateLimitCheck.retryAfter!);
+    }
 
-      let permissions = rolePermissions.map((rp) => rp.permission as Permission);
+    // Get current permissions
+    const permissions = await this.getUserPermissions(user.role as UserRole);
 
-      // Fallback to default permissions if none found in database
-      if (permissions.length === 0) {
-        this.logger.warn(`No permissions found in database for role ${user.role}, using defaults`);
-        permissions = DefaultRolePermissions[user.role as UserRole] || [];
-      }
+    const newSessionId = randomUUID();
+    const newJti = randomUUID();
 
-      const newSessionId = randomUUID();
-      const newJti = randomUUID();
+    // Generate new token pair
+    const { accessToken: newAccessToken, refreshToken: newRefreshToken } = this.generateTokenPair({
+      userId: user.id,
+      email: user.email,
+      role: user.role as UserRole,
+      permissions,
+      sessionId: newSessionId,
+      jti: newJti,
+    });
 
-      const newPayload: JWTPayload = {
-        sub: user.id,
-        email: user.email,
-        roles: [user.role as UserRole],
-        permissions,
-        sessionId: newSessionId,
-        iat: Date.now() / 1000,
-        exp: Date.now() / 1000 + 900,
-      };
+    // Perform token rotation in transaction
+    const expiresAt = new Date(Date.now() + TOKEN_CONFIG.REFRESH_TOKEN_EXPIRY_SECONDS * 1000);
 
-      const newRefreshPayload: JWTRefreshPayload = {
-        sub: user.id,
-        sessionId: newSessionId,
-        jti: newJti,
-        iat: Date.now() / 1000,
-        exp: Date.now() / 1000 + 604800,
-      };
-
-      const newAccessToken = this.jwtService.sign(newPayload);
-      const newRefreshToken = this.jwtService.sign(newRefreshPayload, {
-        secret: this.configService.get<string>('JWT_REFRESH_SECRET'),
-        expiresIn: '7d',
-      });
-
+    await this.prisma.$transaction([
       // Mark old refresh token as used
-      await this.prisma.refreshToken.update({
+      this.prisma.refreshToken.update({
         where: { id: storedToken.id },
         data: {
           isUsed: true,
           usedAt: new Date(),
         },
-      });
-
+      }),
       // Create new session
-      const expiresAt = new Date(Date.now() + 604800 * 1000); // 7 days
-      await this.prisma.session.create({
+      this.prisma.session.create({
         data: {
           jti: newJti,
           userId: user.id,
           expiresAt,
         },
-      });
-
+      }),
       // Create new refresh token
-      await this.prisma.refreshToken.create({
+      this.prisma.refreshToken.create({
         data: {
           token: newRefreshToken,
           userId: user.id,
           sessionJti: newJti,
           expiresAt,
         },
-      });
+      }),
+    ]);
 
-      return {
-        accessToken: newAccessToken,
-        refreshToken: newRefreshToken,
-      };
-    } catch (_error) {
-      throw new UnauthorizedException('Invalid refresh token');
-    }
+    // Log successful token refresh
+    this.logSecurityEvent(SecurityEventType.TOKEN_REFRESH, user.id, {
+      oldSessionId: storedToken.sessionJti,
+      newSessionId: newSessionId,
+    });
+
+    return {
+      accessToken: newAccessToken,
+      refreshToken: newRefreshToken,
+    };
   }
 
   async logout(sessionId: string): Promise<void> {
-    // Invalidate session in database
-    await this.prisma.session.updateMany({
-      where: {
-        jti: sessionId,
-        isRevoked: false,
-      },
-      data: {
-        isRevoked: true,
-        revokedAt: new Date(),
-        revokedReason: 'User logout',
-      },
-    });
+    // Invalidate session and tokens in transaction
+    const results = await this.prisma.$transaction([
+      // Invalidate session in database
+      this.prisma.session.updateMany({
+        where: {
+          jti: sessionId,
+          isRevoked: false,
+        },
+        data: {
+          isRevoked: true,
+          revokedAt: new Date(),
+          revokedReason: 'User logout',
+        },
+      }),
+      // Invalidate associated refresh tokens
+      this.prisma.refreshToken.updateMany({
+        where: {
+          sessionJti: sessionId,
+          isRevoked: false,
+        },
+        data: {
+          isRevoked: true,
+          revokedAt: new Date(),
+        },
+      }),
+    ]);
 
-    // Invalidate associated refresh tokens
-    await this.prisma.refreshToken.updateMany({
-      where: {
-        sessionJti: sessionId,
-        isRevoked: false,
-      },
-      data: {
-        isRevoked: true,
-        revokedAt: new Date(),
-      },
-    });
+    if (results[0].count > 0) {
+      // Get user ID from session for logging
+      const session = await this.prisma.session.findUnique({
+        where: { jti: sessionId },
+        select: { userId: true },
+      });
+
+      if (session) {
+        this.logSecurityEvent(SecurityEventType.LOGOUT, session.userId, {
+          sessionId,
+        });
+      }
+    }
   }
 
   async getCurrentUser(userId: string): Promise<AuthUser> {
@@ -289,21 +335,98 @@ export class AuthService {
     });
 
     if (!user || !user.isActive) {
-      throw new UnauthorizedException('User not found');
+      throw new InvalidTokenException('User not found');
     }
+
+    const permissions = await this.getUserPermissions(user.role as UserRole);
 
     return {
       id: user.id,
       email: user.email,
       roles: [user.role as UserRole],
-      permissions: this.getRolePermissions(user.role as UserRole),
+      permissions,
       isActive: user.isActive,
       createdAt: user.createdAt,
       updatedAt: user.updatedAt,
     };
   }
 
-  private getRolePermissions(role: UserRole): Permission[] {
-    return RolePermissions[role] || [];
+  /**
+   * Holt die Berechtigungen für eine Rolle aus der Datenbank oder verwendet Standardwerte.
+   * Zentralisierte Methode zur Vermeidung von Code-Duplikation.
+   */
+  private async getUserPermissions(role: UserRole): Promise<Permission[]> {
+    // Get permissions from database
+    const rolePermissions = await this.prisma.rolePermission.findMany({
+      where: { role },
+      select: { permission: true },
+    });
+
+    let permissions = rolePermissions.map((rp) => rp.permission as Permission);
+
+    // Fallback to default permissions if none found in database
+    if (permissions.length === 0) {
+      this.logger.warn(`No permissions found in database for role ${role}, using defaults`);
+      permissions = DefaultRolePermissions[role] || [];
+    }
+
+    return permissions;
+  }
+
+  /**
+   * Generiert ein neues Token-Paar (Access und Refresh Token).
+   * Zentralisierte Token-Generierung für Konsistenz.
+   */
+  private generateTokenPair(params: {
+    userId: string;
+    email: string;
+    role: UserRole;
+    permissions: Permission[];
+    sessionId: string;
+    jti: string;
+  }): { accessToken: string; refreshToken: string } {
+    const now = Math.floor(Date.now() / 1000);
+
+    const payload: JWTPayload = {
+      sub: params.userId,
+      email: params.email,
+      roles: [params.role],
+      permissions: params.permissions,
+      sessionId: params.sessionId,
+      iat: now,
+      exp: now + TOKEN_CONFIG.ACCESS_TOKEN_EXPIRY_SECONDS,
+    };
+
+    const refreshPayload: JWTRefreshPayload = {
+      sub: params.userId,
+      sessionId: params.sessionId,
+      jti: params.jti,
+      iat: now,
+    };
+
+    const accessToken = this.jwtService.sign(payload);
+    const refreshToken = this.jwtService.sign(refreshPayload, {
+      secret: this.configService.get<string>('JWT_REFRESH_SECRET'),
+      expiresIn: TOKEN_CONFIG.REFRESH_TOKEN_EXPIRY_STRING,
+    });
+
+    return { accessToken, refreshToken };
+  }
+
+  /**
+   * Protokolliert sicherheitsrelevante Ereignisse.
+   * Kann später mit einem Audit-Log-System verbunden werden.
+   */
+  private logSecurityEvent(
+    event: SecurityEventType,
+    userId: string,
+    details?: Record<string, any>,
+  ): void {
+    this.logger.log({
+      event,
+      userId,
+      timestamp: new Date().toISOString(),
+      ...details,
+    });
   }
 }

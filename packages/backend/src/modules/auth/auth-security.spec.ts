@@ -5,6 +5,7 @@ import { PrismaService } from '@/prisma/prisma.service';
 import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
 import { PermissionValidationService } from './services/permission-validation.service';
+import { SessionCleanupService } from './services/session-cleanup.service';
 import * as bcrypt from 'bcrypt';
 import { UserRole } from './types/jwt.types';
 
@@ -40,6 +41,7 @@ describe('Auth Security', () => {
     session: {
       create: jest.fn(),
       findFirst: jest.fn(),
+      findUnique: jest.fn(),
       delete: jest.fn(),
       deleteMany: jest.fn(),
       updateMany: jest.fn(),
@@ -56,12 +58,23 @@ describe('Auth Security', () => {
     rolePermission: {
       findMany: jest.fn(),
     },
-    $transaction: jest.fn((callback) => callback(mockPrismaService)),
+    $transaction: jest.fn(async (callbacks) => {
+      if (Array.isArray(callbacks)) {
+        return Promise.all(callbacks);
+      }
+      return callbacks(mockPrismaService);
+    }),
   };
 
   const mockJwtService = {
     sign: jest.fn(),
     verify: jest.fn(),
+  };
+
+  const mockSessionCleanupService = {
+    enforceSessionLimit: jest.fn(),
+    checkRefreshRateLimit: jest.fn(),
+    revokeAllUserSessions: jest.fn(),
   };
 
   beforeEach(async () => {
@@ -83,6 +96,10 @@ describe('Auth Security', () => {
         {
           provide: PermissionValidationService,
           useValue: mockPermissionValidationService,
+        },
+        {
+          provide: SessionCleanupService,
+          useValue: mockSessionCleanupService,
         },
       ],
     }).compile();
