@@ -49,9 +49,19 @@ export interface AuditInterceptorConfig {
  * Standard-Konfiguration für den Audit-Interceptor
  */
 export const defaultAuditInterceptorConfig: AuditInterceptorConfig = {
-  excludePaths: ['/health', '/metrics', '/api-docs', '/swagger', '/favicon.ico', '/public'],
+  excludePaths: [
+    '/health',
+    '/metrics',
+    '/api-docs',
+    '/swagger',
+    '/favicon.ico',
+    '/public',
+    '/robots.txt',
+    '/_next',
+    '/static',
+  ],
 
-  includePaths: ['/admin', '/api/admin'],
+  includePaths: ['/', '/api', '/admin', '/api/admin'],
 
   sensitiveFields: [
     'password',

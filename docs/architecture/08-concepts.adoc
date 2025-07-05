@@ -1403,3 +1403,386 @@ Das System ist für zukünftige Erweiterungen ausgelegt:
 * Rollen-Berechtigungs-Zuordnungen können in der Datenbank angepasst werden
 * Custom Guards und Decorators können für spezielle Anforderungen erstellt werden
 * Das System unterstützt hierarchische Berechtigungen (geplant)
+
+=== Audit-Logging-System
+
+Das Bluelight-Hub-System implementiert ein umfassendes Audit-Logging-System zur Nachverfolgung aller sicherheitsrelevanten und administrativen Aktionen. Dieses System ist essentiell für Compliance, Security-Monitoring und forensische Analysen.
+
+==== Übersicht und Architektur
+
+Das Audit-System basiert auf einem konfigurierbaren Interceptor-Pattern, das automatisch alle API-Aufrufe erfasst und strukturiert protokolliert. Die Architektur nutzt asynchrone Verarbeitung über Message Queues für optimale Performance.
+
+[mermaid]
+....
+flowchart TD
+    Request[HTTP Request] --> Interceptor[AuditInterceptor]
+    Interceptor --> |erfasst| Context[Request Context]
+    Context --> |extrahiert| Metadata[Metadaten]
+    
+    Interceptor --> Queue[AuditLogQueue]
+    Queue --> |async| Processor[AuditLogProcessor]
+    Processor --> |persistiert| DB[(PostgreSQL)]
+    
+    Interceptor --> |Decorators| Config[Konfiguration]
+    Config --> |Skip| SkipAudit[@SkipAudit]
+    Config --> |Action| AuditAction[@AuditAction]
+    Config --> |Severity| AuditSeverity[@AuditSeverity]
+    
+    DB --> Service[AuditLogService]
+    Service --> |query| API[Audit API]
+    Service --> |export| Export[Export Service]
+    Service --> |retention| Scheduler[Scheduler Service]
+    
+    classDef request fill:#FFE082,stroke:#FFC107,color:black
+    classDef interceptor fill:#81C784,stroke:#4CAF50,color:white
+    classDef storage fill:#64B5F6,stroke:#2196F3,color:white
+    classDef config fill:#CE93D8,stroke:#9C27B0,color:white
+    
+    class Request request
+    class Interceptor,Context,Metadata interceptor
+    class Queue,Processor,DB,Service,API,Export,Scheduler storage
+    class Config,SkipAudit,AuditAction,AuditSeverity config
+....
+
+==== Kernkomponenten
+
+===== AuditInterceptor
+
+Der zentrale `AuditInterceptor` ist global registriert und erfasst automatisch:
+
+* *Request-Daten*: HTTP-Methode, Pfad, Query-Parameter, Body
+* *Response-Daten*: Statuscode, Response-Body, Ausführungsdauer
+* *Benutzerkontext*: User-ID, Email, Rolle, Session-ID
+* *Technische Details*: IP-Adresse, User-Agent, Request-ID
+
+[source,typescript]
+----
+// Automatische Erfassung aller Requests
+@Injectable()
+export class AuditInterceptor implements NestInterceptor {
+  intercept(context: ExecutionContext, next: CallHandler): Observable<any> {
+    // Extrahiere Request-Daten
+    const request = context.switchToHttp().getRequest();
+    const startTime = Date.now();
+    
+    return next.handle().pipe(
+      tap(async (response) => {
+        // Erstelle Audit-Log für erfolgreiche Requests
+        await this.logAuditEvent({
+          success: true,
+          duration: Date.now() - startTime,
+          // ... weitere Daten
+        });
+      }),
+      catchError((error) => {
+        // Erstelle Audit-Log für fehlgeschlagene Requests
+        this.logAuditEvent({
+          success: false,
+          error: error.message,
+          // ... weitere Daten
+        });
+        return throwError(() => error);
+      })
+    );
+  }
+}
+----
+
+===== Konfigurationssystem
+
+Das Audit-System ist hochgradig konfigurierbar:
+
+[source,typescript]
+----
+export const defaultAuditInterceptorConfig = {
+  // Pfade, die vom Audit ausgeschlossen werden
+  excludePaths: ['/health', '/metrics', '/robots.txt', '/_next', '/static'],
+  
+  // Pfade, die immer auditiert werden
+  includePaths: ['/', '/api', '/admin', '/api/admin'],
+  
+  // Sensible Felder, die automatisch redaktiert werden
+  sensitiveFields: ['password', 'token', 'secret', 'apiKey', 'creditCard'],
+  
+  // Maximale Größe für Request/Response Bodies
+  maxBodySize: 10 * 1024, // 10KB
+  
+  // Mapping von Pfaden zu Ressourcentypen
+  resourceMapping: {
+    '/admin/users': 'user',
+    '/admin/audit-logs': 'audit_log',
+    // ...
+  },
+  
+  // Mapping von Aktionen zu Severity-Levels
+  severityMapping: {
+    [AuditAction.DELETE]: AuditSeverity.HIGH,
+    [AuditAction.LOGIN]: AuditSeverity.LOW,
+    // ...
+  }
+};
+----
+
+===== Decorator-basierte Kontrolle
+
+Entwickler können das Audit-Verhalten für spezifische Endpoints anpassen:
+
+[source,typescript]
+----
+@Controller('admin/users')
+export class UserController {
+  // Standard-Verhalten - automatisch geloggt
+  @Post()
+  createUser() {
+    // Wird als CREATE action mit MEDIUM severity geloggt
+  }
+  
+  // Custom Audit-Konfiguration
+  @Post(':id/approve')
+  @AuditAction(AuditActionType.APPROVE)
+  @AuditSeverity(AuditSeverity.HIGH)
+  @AuditResourceType('user')
+  approveUser() {
+    // Spezielle Audit-Konfiguration
+  }
+  
+  // Audit-Logging überspringen
+  @Get('stats')
+  @SkipAudit()
+  getUserStatistics() {
+    // Wird nicht geloggt
+  }
+}
+----
+
+==== Datenmodell
+
+Das Audit-Log-Datenmodell erfasst umfassende Informationen:
+
+[source,prisma]
+----
+model AuditLog {
+  id           String        @id @default(nanoid())
+  
+  // Aktionsinformationen
+  actionType   AuditActionType
+  action       String
+  severity     AuditSeverity
+  resource     String?
+  resourceId   String?
+  
+  // Benutzerkontext
+  userId       String?
+  userEmail    String?
+  userRole     UserRole?
+  
+  // Request-Kontext
+  requestId    String?
+  sessionId    String?
+  ipAddress    String?
+  userAgent    String?
+  endpoint     String
+  httpMethod   String
+  
+  // Datenänderungen
+  oldValues    Json?
+  newValues    Json?
+  metadata     Json?
+  
+  // Ergebnis
+  duration     Int
+  success      Boolean
+  errorMessage String?
+  statusCode   Int
+  
+  // Compliance
+  sensitiveData  Boolean    @default(false)
+  requiresReview Boolean    @default(false)
+  
+  // Timestamps
+  createdAt    DateTime   @default(now())
+  
+  // Beziehungen
+  user         User?      @relation(fields: [userId], references: [id])
+  
+  @@index([userId])
+  @@index([actionType])
+  @@index([createdAt])
+}
+----
+
+==== Aktionstypen und Severity
+
+===== Audit Action Types
+
+Das System definiert verschiedene Aktionstypen für präzise Kategorisierung:
+
+* *CRUD-Operationen*: READ, CREATE, UPDATE, DELETE
+* *Authentifizierung*: LOGIN, LOGOUT, FAILED_LOGIN
+* *Berechtigungen*: PERMISSION_CHANGE, ROLE_CHANGE
+* *Datenmanagement*: EXPORT, IMPORT, BACKUP, RESTORE
+* *Administration*: SYSTEM_CONFIG, BULK_OPERATION
+* *Weitere*: APPROVE, REJECT, spezifische Business-Actions
+
+===== Severity Levels
+
+Audit-Ereignisse werden nach Schweregrad klassifiziert:
+
+* *LOW*: Normale Leseoperationen, erfolgreiche Logins
+* *MEDIUM*: Standardmäßige Schreiboperationen
+* *HIGH*: Löschungen, Berechtigungsänderungen, fehlgeschlagene Logins
+* *CRITICAL*: Systemkonfigurationsänderungen, Massenlöschungen
+
+==== Asynchrone Verarbeitung
+
+Für optimale Performance nutzt das System eine Queue-basierte Architektur:
+
+[source,typescript]
+----
+@Injectable()
+export class AuditLogQueue {
+  constructor(
+    @InjectQueue(AUDIT_LOG_QUEUE) 
+    private auditQueue: Queue
+  ) {}
+  
+  async addAuditLog(data: CreateAuditLogDto): Promise<void> {
+    await this.auditQueue.add('process-audit-log', data, {
+      attempts: 3,
+      backoff: {
+        type: 'exponential',
+        delay: 2000,
+      },
+    });
+  }
+}
+----
+
+==== Sicherheitsfeatures
+
+===== Automatische Datensanitization
+
+Sensible Daten werden automatisch vor der Speicherung redaktiert:
+
+[source,typescript]
+----
+private sanitizeSensitiveData(data: any): any {
+  const sanitized = { ...data };
+  
+  for (const field of this.config.sensitiveFields) {
+    if (field in sanitized) {
+      sanitized[field] = '[REDACTED]';
+    }
+  }
+  
+  return sanitized;
+}
+----
+
+===== Tamper-Proof Design
+
+* Audit-Logs sind unveränderlich (keine UPDATE-Operationen)
+* Löschungen nur über automatisierte Retention-Policies
+* Alle Änderungen an Audit-Einstellungen werden selbst auditiert
+
+==== Query und Export
+
+===== Erweiterte Suchmöglichkeiten
+
+Das System bietet umfangreiche Filtermöglichkeiten:
+
+[source,typescript]
+----
+interface QueryAuditLogDto {
+  // Zeitbereich
+  startDate?: Date;
+  endDate?: Date;
+  
+  // Filterkriterien
+  userId?: string;
+  actionType?: AuditActionType;
+  severity?: AuditSeverity;
+  resource?: string;
+  success?: boolean;
+  
+  // Volltextsuche
+  search?: string;
+  
+  // Paginierung
+  page?: number;
+  limit?: number;
+  
+  // Sortierung
+  sortBy?: string;
+  sortOrder?: 'asc' | 'desc';
+}
+----
+
+===== Export-Funktionalität
+
+Audit-Logs können in verschiedenen Formaten exportiert werden:
+
+* *CSV*: Für Excel-Integration und Reporting
+* *JSON*: Für programmatische Weiterverarbeitung
+* *PDF*: Für Compliance-Dokumentation (geplant)
+
+==== Retention und Archivierung
+
+===== Automatische Retention
+
+Der `AuditLogSchedulerService` verwaltet die Aufbewahrungsfristen:
+
+[source,typescript]
+----
+@Cron('0 2 * * *') // Täglich um 2 Uhr
+async enforceRetentionPolicies() {
+  const policies = await this.getRetentionPolicies();
+  
+  for (const policy of policies) {
+    await this.deleteOldLogs({
+      resource: policy.resource,
+      olderThan: policy.retentionDays,
+    });
+  }
+}
+----
+
+===== Archivierungsstrategie
+
+* Standard-Aufbewahrung: 365 Tage
+* Kritische Ereignisse: 7 Jahre
+* Archivierung in separater Tabelle vor Löschung
+* Export-Option vor endgültiger Löschung
+
+==== Integration mit anderen Systemen
+
+===== Monitoring und Alerting
+
+Das Audit-System kann mit Monitoring-Tools integriert werden:
+
+* Echtzeit-Alerts bei kritischen Ereignissen
+* Anomalie-Erkennung für ungewöhnliche Aktivitätsmuster
+* Dashboard-Integration für Security-Monitoring
+
+===== Compliance-Reporting
+
+* Automatisierte Compliance-Reports
+* Integration mit SIEM-Systemen
+* Export für externe Audits
+
+==== Best Practices für Entwickler
+
+1. *Verwende spezifische Action-Types*: Nutze die vordefinierten Aktionstypen für bessere Kategorisierung
+2. *Setze angemessene Severity-Levels*: Überlege, welche Auswirkungen eine Aktion hat
+3. *Füge Kontext hinzu*: Nutze @AuditContext für zusätzliche Informationen
+4. *Vermeide sensible Daten*: Stelle sicher, dass keine unverschlüsselten sensiblen Daten geloggt werden
+5. *Teste Audit-Funktionalität*: Verifiziere, dass wichtige Aktionen korrekt geloggt werden
+
+==== Zukünftige Erweiterungen
+
+* *Machine Learning Integration*: Anomalie-Erkennung basierend auf historischen Mustern
+* *Blockchain-Integration*: Unveränderliche Audit-Trail für kritische Operationen
+* *Cross-System Correlation*: Verknüpfung von Audit-Events über mehrere Systeme
+* *Enhanced Analytics*: Erweiterte Analyse- und Visualisierungsmöglichkeiten
+
+Dieses umfassende Audit-System stellt sicher, dass alle relevanten Aktionen im Bluelight-Hub-System nachvollziehbar protokolliert werden und erfüllt dabei höchste Standards für Security, Compliance und Performance.

@@ -1,124 +1,115 @@
 # Audit Module
 
-## Current Status
 ## Overview
 
-The Audit Module provides comprehensive audit logging capabilities for the BlueLight Hub backend. It includes an interceptor that automatically logs all admin actions, decorators for fine-grained control, and utilities for managing audit logs.
+The Audit Module provides comprehensive audit logging capabilities for the BlueLight Hub backend. It includes an interceptor that automatically logs all API calls, decorators for fine-grained control, and utilities for managing audit logs.
 
-The Audit Module is fully implemented with the following components:
+## Architecture
+
+The module uses a single, configurable `AuditInterceptor` that provides:
+
+- Automatic request/response logging
+- Pattern-based path filtering (include/exclude)
+- Decorator support for custom audit behavior
+- Sensitive data redaction
+- Queue-based asynchronous processing
+- Configurable severity mapping
+
 ## Components
 
-### Completed Features:
-### AuditInterceptor
+### Core Services
 
 1. **AuditLogService** - Core service for creating and querying audit logs
 2. **AuditLogBatchService** - Batch processing with retention policies and export functionality
 3. **AuditLogSchedulerService** - Automated maintenance tasks
-4. **AuditLogInterceptor** - Global request/response logging
-The `AuditInterceptor` automatically captures and logs all admin API calls, including:
+4. **AuditLogCacheService** - Caching layer for performance optimization
+5. **AuditLogQueue** - Bull queue for asynchronous audit log processing
 
-### Known Issues:
+### AuditInterceptor
+
+The `AuditInterceptor` is registered globally and automatically captures all API calls. It provides:
+
 - Request details (method, path, body, query parameters)
 - Response data and status codes
 - User information and IP addresses
 - Execution duration
 - Success/failure status
+- Decorator-based customization
+- Pattern-based path filtering
 
-- The AuditLogInterceptor cannot be registered as APP_INTERCEPTOR due to integration test conflicts
-- This will be resolved when implementing the API endpoints (Subtask 5.4)
 ### Decorators
 
-### Usage:
-- `@Audit()` - Configure audit behavior for specific endpoints
-- `@NoAudit()` - Skip audit logging for specific endpoints
-- `@AuditCreate()`, `@AuditUpdate()`, `@AuditDelete()` - Predefined decorators for common actions
+- `@SkipAudit()` - Skip audit logging for specific endpoints
+- `@AuditAction(action: AuditAction)` - Set custom action type
+- `@AuditSeverity(severity: AuditSeverity)` - Set custom severity level
+- `@AuditResourceType(resourceType: string)` - Set resource type
+- `@AuditContext(context: Record<string, any>)` - Add additional context
 
-To enable the interceptor in production, add the following to AppModule:
-## Usage
+## Configuration
 
-### Applying the Interceptor Globally
-
-To apply the audit interceptor to all admin routes, add it to your module or globally in `main.ts`:
+The `AuditInterceptor` is registered globally in the `AuditModule` and uses the following default configuration:
 
 ```typescript
 {
-  provide: APP_INTERCEPTOR,
-  useClass: AuditLogInterceptor,
-// In a specific module (e.g., AdminModule)
-import { Module } from '@nestjs/common';
-import { APP_INTERCEPTOR } from '@nestjs/core';
-import { AuditInterceptor } from './audit/interceptors';
-
-@Module({
-  providers: [
-    {
-      provide: APP_INTERCEPTOR,
-      useClass: AuditInterceptor,
-    },
-  ],
-})
-export class AdminModule {}
-```
-
-Or globally in `main.ts`:
-
-```typescript
-import { AuditInterceptor } from './modules/audit';
-
-async function bootstrap() {
-  const app = await NestFactory.create(AppModule);
-
-  // Get the interceptor instance from the IoC container
-  const auditInterceptor = app.get(AuditInterceptor);
-  app.useGlobalInterceptors(auditInterceptor);
-
-  // ... rest of bootstrap
+  excludePaths: ['/health', '/metrics', '/api-docs', '/swagger', '/favicon.ico', '/public', '/robots.txt', '/_next', '/static'],
+  includePaths: ['/', '/api', '/admin', '/api/admin'],
+  sensitiveFields: ['password', 'token', 'secret', 'apiKey', 'creditCard', 'ssn'],
+  maxBodySize: 10 * 1024, // 10KB
+  // ... additional configuration
 }
 ```
 
-### Environment Variables:
-### Using Decorators
-
-```typescript
-import { Controller, Post, Get, Delete } from '@nestjs/common';
-import { Audit, NoAudit, AuditCreate, AuditDelete, AuditCritical } from '../audit/decorators';
-import { AuditAction } from '../audit/types';
+### Environment Variables
 
 - `AUDIT_SCHEDULER_ENABLED` - Enable/disable scheduled tasks (default: true)
 - `AUDIT_BATCH_SIZE` - Batch processing size (default: 100)
 - `AUDIT_DEFAULT_RETENTION_DAYS` - Default retention period (default: 365)
+- `REDIS_HOST`, `REDIS_PORT`, `REDIS_PASSWORD` - Redis configuration for audit queue
+
+## Usage
+
+### Using Decorators
+
+```typescript
+import { Controller, Post, Get, Delete } from '@nestjs/common';
+import {
+  SkipAudit,
+  AuditAction,
+  AuditSeverity,
+  AuditResourceType,
+  AuditContext,
+} from '../audit/decorators';
+import { AuditAction as AuditActionType } from '../audit/types';
+
 @Controller('admin/users')
 export class UserController {
-  // Automatically logged as CREATE action with MEDIUM severity
+  // Default behavior - automatically logged
   @Post()
-  @AuditCreate('user')
   createUser() {
-    // ...
+    // Logged as CREATE action based on HTTP method
   }
 
-  // Custom audit configuration
+  // Custom audit action
   @Post(':id/approve')
-  @Audit({
-    action: AuditAction.APPROVE,
-    severity: AuditSeverity.HIGH,
-    resourceType: 'user',
-    description: 'Admin approved user account',
-  })
+  @AuditAction(AuditActionType.APPROVE)
+  @AuditSeverity(AuditSeverity.HIGH)
+  @AuditResourceType('user')
   approveUser() {
     // ...
   }
 
   // Skip audit logging for this endpoint
   @Get('stats')
-  @NoAudit()
+  @SkipAudit()
   getUserStatistics() {
     // ...
   }
 
-  // Critical action with custom description
-  @Delete('purge')
-  @AuditCritical(AuditAction.DELETE, 'user', 'Permanently delete all inactive users')
-  purgeInactiveUsers() {
+  // Add additional context
+  @Delete(':id')
+  @AuditAction(AuditActionType.DELETE)
+  @AuditContext({ reason: 'User requested deletion' })
+  deleteUser() {
     // ...
   }
 }
@@ -126,29 +117,30 @@ export class UserController {
 
 ### Custom Configuration
 
-You can customize the interceptor behavior by providing a custom configuration:
+You can customize the interceptor behavior by creating a custom configuration:
 
 ```typescript
-import { Module } from '@nestjs/common';
-import { AuditInterceptor, createAuditInterceptorConfig } from './audit';
+import { createAuditInterceptor, createAuditInterceptorConfig } from './audit';
+import { AuditLogService, AuditLogQueue } from './audit/services';
 
-@Module({
-  providers: [
-    {
-      provide: AuditInterceptor,
-      useFactory: (auditLogger: AuditLoggerUtil) => {
-        const customConfig = createAuditInterceptorConfig({
-          excludePaths: ['/admin/debug'],
-          sensitiveFields: ['socialSecurityNumber', 'bankAccount'],
-          maxBodySize: 50 * 1024, // 50KB
-        });
-        return new AuditInterceptor(auditLogger, customConfig);
-      },
-      inject: [AuditLoggerUtil],
-    },
-  ],
-})
-export class AdminModule {}
+// Custom configuration
+const customConfig = createAuditInterceptorConfig({
+  excludePaths: ['/admin/debug', '/internal'],
+  includePaths: ['/api/v2', '/graphql'],
+  sensitiveFields: ['socialSecurityNumber', 'bankAccount'],
+  maxBodySize: 50 * 1024, // 50KB
+  resourceMapping: {
+    '/api/v2/accounts': 'account',
+    '/api/v2/transactions': 'transaction',
+  },
+  actionMapping: {
+    'POST /api/v2/accounts/*/verify': AuditAction.APPROVE,
+    'POST /api/v2/accounts/*/suspend': AuditAction.BLOCK,
+  },
+});
+
+// Create configured interceptor
+const auditInterceptor = createAuditInterceptor(auditLogService, auditLogQueue, customConfig);
 ```
 
 ## Security Considerations

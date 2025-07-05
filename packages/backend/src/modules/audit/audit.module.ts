@@ -12,7 +12,6 @@ import {
 } from './services';
 import { AuditLoggerUtil } from './utils';
 import { AuditLogController } from './controllers';
-import { AuditLogInterceptor } from './interceptors';
 import { AuditInterceptor } from './interceptors/audit.interceptor';
 import { AuditLogQueue, AUDIT_LOG_QUEUE, AuditLogProcessor } from './queues';
 
@@ -57,12 +56,11 @@ import { AuditLogQueue, AUDIT_LOG_QUEUE, AuditLogProcessor } from './queues';
     AuditLogQueue,
     AuditLogProcessor,
     AuditLoggerUtil,
-    AuditLogInterceptor,
+    AuditInterceptor,
     {
       provide: APP_INTERCEPTOR,
-      useClass: AuditLogInterceptor,
+      useClass: AuditInterceptor,
     },
-    AuditInterceptor,
   ],
   exports: [
     AuditLogService,
@@ -70,7 +68,6 @@ import { AuditLogQueue, AUDIT_LOG_QUEUE, AuditLogProcessor } from './queues';
     AuditLogQueue,
     AuditLoggerUtil,
     AuditInterceptor,
-    AuditLogInterceptor,
   ],
 })
 export class AuditModule {}

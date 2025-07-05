@@ -3,7 +3,6 @@ export { AuditLogService, AuditLogBatchService, AuditLogSchedulerService } from 
 export { AuditLoggerUtil, AuditContextUtil } from './utils';
 export { CreateAuditLogDto, QueryAuditLogDto } from './dto';
 export { AuditLogEntity } from './entities';
-export { AuditLogInterceptor } from './interceptors';
 export { AuditLogController } from './controllers';
 export * from './interceptors';
 export * from './decorators';
