@@ -2,9 +2,9 @@ name: Release
 run-name: Release ${{ github.ref_name }}#${{ github.run_number }}
 on:
   workflow_run:
-    workflows: ["Tests"]
+    workflows: ['Tests']
     branches: [main, alpha, beta, next]
-    types: 
+    types:
       - completed
 
 env:
@@ -112,7 +112,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: "lts/*"
+          node-version: 'lts/*'
 
       - name: Install pnpm
         uses: pnpm/action-setup@v2
@@ -181,7 +181,7 @@ jobs:
 
   release:
     name: Create Release
-    needs: [ build-backend, build-frontend ]
+    needs: [build-backend, build-frontend]
     runs-on: ubuntu-latest
     environment: releases
     steps:
@@ -199,7 +199,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: "lts/*"
+          node-version: 'lts/*'
 
       - name: Install pnpm
         uses: pnpm/action-setup@v2
@@ -249,4 +249,4 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ steps.app-token.outputs.token }}
           RELEASE_NOTES: ${{ github.workspace }}/RELEASE_NOTES.md
-        run: npx semantic-release 
+        run: npx semantic-release

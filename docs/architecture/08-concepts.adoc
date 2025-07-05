@@ -359,6 +359,222 @@ sequenceDiagram
 * *Datenschutz*: Verschlüsselung sensibler Daten in Rest und während der Übertragung
 * *Auditierung*: Logging aller sicherheitsrelevanten Ereignisse für spätere Analyse
 
+==== Admin-Authentifizierung und Sicherheit
+
+Das Bluelight-Hub-System implementiert ein umfassendes Sicherheitskonzept für die Authentifizierung und Autorisierung von Administratoren. Die Implementierung basiert auf modernen Sicherheitsstandards und -praktiken, die in mehreren Architekturentscheidungen (ADRs) dokumentiert sind.
+
+===== JWT-basierte Authentifizierung
+
+Das System nutzt JSON Web Tokens (JWT) für die Authentifizierung, wie in <<../adr/007-auth-refresh-tokens.adoc>> dokumentiert. Die JWT-Implementierung bietet:
+
+* *Zugriffstokens*: Kurzlebige Tokens (15 Minuten Gültigkeit) für API-Zugriffe
+* *Refresh-Tokens*: Langlebige Tokens (7 Tage Gültigkeit) für Token-Erneuerung
+* *Token-Rotation*: Automatische Rotation von Refresh-Tokens bei jeder Verwendung
+* *Sichere Speicherung*: Zugriffstokens im Memory, Refresh-Tokens in HttpOnly-Cookies
+
+[source,typescript]
+----
+// Token-Konfiguration
+export const JWT_CONFIG = {
+  access: {
+    secret: process.env.JWT_SECRET,
+    expiresIn: '15m',
+  },
+  refresh: {
+    secret: process.env.JWT_REFRESH_SECRET,
+    expiresIn: '7d',
+  }
+};
+----
+
+===== Session-Management
+
+Die Session-Verwaltung kombiniert die Vorteile von JWT mit server-seitiger Kontrolle:
+
+* *Datenbank-Tracking*: Alle aktiven Sessions werden in der Datenbank verfolgt
+* *Session-Widerruf*: Möglichkeit, einzelne oder alle Sessions eines Benutzers zu beenden
+* *Geräte-Identifikation*: User-Agent und IP-Adresse werden für Session-Tracking gespeichert
+* *Session-Limits*: Konfigurierbare Limits für gleichzeitige Sessions pro Benutzer
+
+[source,typescript]
+----
+// Session-Schema (Prisma)
+model Session {
+  id            String   @id @default(nanoid())
+  userId        String
+  refreshToken  String   @unique
+  userAgent     String?
+  ipAddress     String?
+  lastActivity  DateTime @default(now())
+  expiresAt     DateTime
+  createdAt     DateTime @default(now())
+  
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+----
+
+===== Sicherheitsheader
+
+Das System implementiert umfassende Sicherheitsheader, wie in <<../adr/010-security-headers.adoc>> spezifiziert:
+
+*Helmet.js Integration*:
+[source,typescript]
+----
+app.use(helmet({
+  contentSecurityPolicy: {
+    directives: {
+      defaultSrc: ["'self'"],
+      scriptSrc: ["'self'", "'unsafe-inline'", "'unsafe-eval'"],
+      styleSrc: ["'self'", "'unsafe-inline'"],
+      imgSrc: ["'self'", "data:", "https:"],
+      connectSrc: ["'self'", "ws:", "wss:"],
+      fontSrc: ["'self'"],
+      objectSrc: ["'none'"],
+      mediaSrc: ["'self'"],
+      frameSrc: ["'none'"],
+    },
+  },
+  hsts: {
+    maxAge: 31536000,
+    includeSubDomains: true,
+    preload: true,
+  },
+}));
+----
+
+*Zusätzliche Sicherheitsheader*:
+* `X-Content-Type-Options: nosniff` - Verhindert MIME-Type-Sniffing
+* `X-Frame-Options: DENY` - Schutz vor Clickjacking
+* `X-XSS-Protection: 1; mode=block` - XSS-Schutz (Legacy-Browser)
+* `Referrer-Policy: strict-origin-when-cross-origin` - Kontrollierte Referrer-Informationen
+* `Permissions-Policy` - Einschränkung von Browser-Features
+
+===== Account-Lockout-Mechanismus
+
+Der Account-Lockout-Mechanismus schützt vor Brute-Force-Angriffen, wie in <<../adr/011-account-lockout.adoc>> dokumentiert:
+
+* *Progressive Sperrung*: Nach 5 fehlgeschlagenen Anmeldeversuchen
+* *Zeitbasierte Entsperrung*: Automatische Entsperrung nach 15 Minuten
+* *Admin-Override*: Super-Admins können Accounts manuell entsperren
+* *Audit-Logging*: Alle Anmeldeversuche werden protokolliert
+
+[source,typescript]
+----
+// Lockout-Konfiguration
+export const LOCKOUT_CONFIG = {
+  maxAttempts: 5,
+  lockoutDurationMinutes: 15,
+  resetAttemptsAfterMinutes: 60,
+};
+
+// User-Modell Erweiterung
+model User {
+  // ... andere Felder
+  failedLoginAttempts  Int      @default(0)
+  lastFailedLogin      DateTime?
+  lockedUntil          DateTime?
+}
+----
+
+===== Cookie-Sicherheitskonfiguration
+
+Refresh-Tokens werden in sicheren HttpOnly-Cookies gespeichert:
+
+[source,typescript]
+----
+// Cookie-Konfiguration
+export const COOKIE_CONFIG = {
+  httpOnly: true,          // Kein JavaScript-Zugriff
+  secure: true,            // Nur über HTTPS (in Produktion)
+  sameSite: 'strict',      // CSRF-Schutz
+  path: '/api/auth',       // Eingeschränkter Pfad
+  maxAge: 7 * 24 * 60 * 60 * 1000, // 7 Tage
+};
+----
+
+===== Refresh-Token-Strategie
+
+Die Refresh-Token-Strategie bietet Balance zwischen Sicherheit und Benutzerfreundlichkeit:
+
+* *Token-Rotation*: Jeder Refresh generiert neue Access- und Refresh-Tokens
+* *Reuse-Detection*: Verwendung alter Refresh-Tokens invalidiert alle Tokens einer Session
+* *Graceful Expiration*: Frontend erkennt ablaufende Tokens und erneuert sie automatisch
+* *Offline-Support*: Tokens bleiben für Offline-Szenarien gültig
+
+[source,typescript]
+----
+// Token-Refresh-Flow
+async refreshTokens(refreshToken: string) {
+  // 1. Validiere Refresh-Token
+  const session = await this.validateRefreshToken(refreshToken);
+  
+  // 2. Prüfe auf Token-Reuse
+  if (session.used) {
+    await this.revokeAllUserSessions(session.userId);
+    throw new UnauthorizedException('Token reuse detected');
+  }
+  
+  // 3. Generiere neue Tokens
+  const newTokens = await this.generateTokenPair(session.userId);
+  
+  // 4. Rotiere Session
+  await this.rotateSession(session.id, newTokens.refreshToken);
+  
+  return newTokens;
+}
+----
+
+===== Datenbank-Session-Tracking
+
+Alle aktiven Sessions werden in der Datenbank verfolgt für:
+
+* *Zentrale Kontrolle*: Administratoren können alle aktiven Sessions einsehen
+* *Geräte-Management*: Benutzer können ihre aktiven Geräte verwalten
+* *Sicherheits-Audits*: Vollständige Historie aller Anmeldungen
+* *Anomalie-Erkennung*: Ungewöhnliche Anmeldemuster können identifiziert werden
+
+[source,typescript]
+----
+// Session-Management-Service
+@Injectable()
+export class SessionService {
+  async getUserSessions(userId: string): Promise<SessionInfo[]> {
+    return this.prisma.session.findMany({
+      where: { 
+        userId,
+        expiresAt: { gt: new Date() }
+      },
+      orderBy: { lastActivity: 'desc' },
+    });
+  }
+  
+  async revokeSession(sessionId: string): Promise<void> {
+    await this.prisma.session.delete({
+      where: { id: sessionId }
+    });
+  }
+  
+  async revokeAllUserSessions(userId: string): Promise<void> {
+    await this.prisma.session.deleteMany({
+      where: { userId }
+    });
+  }
+}
+----
+
+===== Sicherheits-Best-Practices
+
+Das System implementiert weitere Sicherheitsmaßnahmen:
+
+* *Rate Limiting*: API-Endpunkte sind gegen Überlastung geschützt
+* *Input Validation*: Strikte Validierung aller Eingaben mit class-validator
+* *SQL Injection Schutz*: Prisma ORM mit parametrisierten Abfragen
+* *XSS-Prävention*: Content Security Policy und Output-Encoding
+* *CORS-Konfiguration*: Restriktive Cross-Origin-Policies
+* *Verschlüsselung*: Sensible Daten werden mit bcrypt (Passwörter) verschlüsselt
+
+Diese umfassenden Sicherheitsmaßnahmen gewährleisten, dass das Admin-Panel und die gesamte Anwendung gegen moderne Bedrohungen geschützt sind und gleichzeitig eine benutzerfreundliche Authentifizierungserfahrung bieten.
+
 ==== Fehlerbehandlung und Resilience
 
 * Graceful Degradation bei Teilausfällen
@@ -1026,3 +1242,547 @@ Das Seeding-System nutzt erweiterte Fehlerbehandlung für robuste Operation in v
 * *Umgebungsisolation*: Strikte Trennung zwischen Dev-, Test- und Prod-Profilen
 
 Dieses System stellt sicher, dass realistische und konsistente Testdaten für alle Entwicklungs- und Testaktivitäten verfügbar sind, während gleichzeitig die Sicherheits- und Compliance-Anforderungen des DRK-Umfelds erfüllt werden.
+
+=== Rollenbasiertes Administrationssystem
+
+Das Bluelight-Hub-System implementiert ein umfassendes rollenbasiertes Administrationssystem, das verschiedene Zugriffsebenen basierend auf Benutzerrollen bietet. Dies gewährleistet die Sicherheit und Kontrolle über administrative Funktionen.
+
+==== Übersicht
+
+Das System nutzt ein granulares berechtigungsbasiertes Zugriffskontrollsystem (Permission-based Access Control). Jede Rolle hat spezifische Berechtigungen, die den Zugriff auf verschiedene Teile des Systems steuern.
+
+==== Benutzerrollen
+
+Das System unterstützt vier verschiedene Benutzerrollen:
+
+1. *SUPER_ADMIN*: Vollständiger Systemzugriff mit allen Berechtigungen
+2. *ADMIN*: Administrativer Zugriff mit den meisten Berechtigungen außer Rollenverwaltung
+3. *SUPPORT*: Hauptsächlich Lesezugriff auf die meisten Ressourcen, begrenzte Schreibberechtigungen
+4. *USER*: Basiszugriff auf ETB- und Einsatz-Ressourcen (nur lesen)
+
+==== Berechtigungskategorien
+
+===== Benutzerverwaltung
+* `USERS_READ`: Benutzerdaten und Listen anzeigen
+* `USERS_WRITE`: Benutzer erstellen und bearbeiten
+* `USERS_DELETE`: Benutzer löschen
+
+===== Systemeinstellungen
+* `SYSTEM_SETTINGS_READ`: Systemeinstellungen anzeigen
+* `SYSTEM_SETTINGS_WRITE`: Systemeinstellungen ändern
+* `AUDIT_LOG_READ`: Audit-Logs und Systemprotokolle anzeigen
+* `ROLE_MANAGE`: Rollen und Berechtigungen verwalten
+
+===== Anwendungsberechtigungen
+* `ETB_READ`: Einsatztagebuch-Einträge anzeigen
+* `ETB_WRITE`: ETB-Einträge erstellen und bearbeiten
+* `ETB_DELETE`: ETB-Einträge löschen
+* `EINSATZ_READ`: Einsätze anzeigen
+* `EINSATZ_WRITE`: Einsätze erstellen und bearbeiten
+* `EINSATZ_DELETE`: Einsätze löschen
+
+==== Rollen-Berechtigungs-Matrix
+
+[cols="3,1,1,1,1", options="header"]
+|===
+|Berechtigung |SUPER_ADMIN |ADMIN |SUPPORT |USER
+
+5+^h|*Benutzerverwaltung*
+|USERS_READ |✓ |✓ |✓ |-
+|USERS_WRITE |✓ |✓ |- |-
+|USERS_DELETE |✓ |✓ |- |-
+
+5+^h|*Systemeinstellungen*
+|SYSTEM_SETTINGS_READ |✓ |✓ |- |-
+|SYSTEM_SETTINGS_WRITE |✓ |✓ |- |-
+|AUDIT_LOG_READ |✓ |✓ |✓ |-
+|ROLE_MANAGE |✓ |- |- |-
+
+5+^h|*Anwendung*
+|ETB_READ |✓ |✓ |✓ |✓
+|ETB_WRITE |✓ |✓ |- |-
+|ETB_DELETE |✓ |- |- |-
+|EINSATZ_READ |✓ |✓ |✓ |✓
+|EINSATZ_WRITE |✓ |✓ |- |-
+|EINSATZ_DELETE |✓ |- |- |-
+|===
+
+==== Kritische Berechtigungen
+
+Die folgenden Berechtigungen werden als kritisch eingestuft und sollten nur vertrauenswürdigen Benutzern gewährt werden:
+
+* `USERS_DELETE`: Kann Benutzer aus dem System entfernen
+* `ROLE_MANAGE`: Kann Rollen und Berechtigungen ändern
+* `SYSTEM_SETTINGS_WRITE`: Kann Systemkonfiguration ändern
+
+==== Technische Implementierung
+
+===== Backend-Architektur
+
+1. *Datenbankschema*: Nutzt PostgreSQL mit Prisma ORM
+   * User-Modell mit Rollenfeld
+   * RolePermission-Modell für Rollen-zu-Berechtigungs-Zuordnung
+   * JWT-Tokens enthalten Rollen und Berechtigungen
+
+2. *Guards*:
+   * `RolesGuard`: Prüft, ob Benutzer die erforderliche Rolle hat
+   * `PermissionsGuard`: Prüft auf spezifische Berechtigungen
+   * `JwtAuthGuard`: Validiert JWT-Tokens
+
+3. *Decorators*:
+   * `@Roles()`: Erforderliche Rollen für Endpoints spezifizieren
+   * `@RequirePermissions()`: Erforderliche Berechtigungen spezifizieren
+   * `@Public()`: Endpoints als öffentlich zugänglich markieren
+
+===== Frontend-Integration
+
+1. *AuthContext*:
+   * `hasRole(role: string)`: Prüft, ob Benutzer eine bestimmte Rolle hat
+   * `hasPermission(permission: string)`: Prüft, ob Benutzer eine bestimmte Berechtigung hat
+   * `isAdmin()`: Prüft, ob Benutzer ein Admin ist (SUPER_ADMIN, ADMIN oder SUPPORT)
+
+2. *Navigation*:
+   * Normale Benutzer sehen nur Haupt-Navigationselemente
+   * Admin-Benutzer sehen sowohl Haupt- als auch Admin-Navigationselemente
+   * Admin-Panel kann in einem separaten Fenster geöffnet werden
+
+3. *Routen-Schutz*:
+   * Admin-Routen sind durch `AdminGuard` geschützt
+   * Routen können sowohl in der Haupt-App als auch im separaten Admin-Fenster aufgerufen werden
+
+==== Berechtigungsverwaltung
+
+===== Datenbank-Seeding
+
+Die Rollen-Berechtigungs-Zuordnungen werden in der Datenbank gespeichert und müssen geseeded werden:
+
+[source,bash]
+----
+# Rollen-Berechtigungen seeden
+npm run cli -- seed:admin
+
+# Oder alles seeden (Berechtigungen + Benutzer)
+npm run cli -- seed:admin --password="secure-password"
+----
+
+===== Berechtigungs-Konstanten
+
+Alle Berechtigungen sind in `packages/backend/src/modules/auth/constants/permissions.constants.ts` definiert. Diese Datei enthält:
+
+* Berechtigungsgruppen für einfacheres Management
+* Standard-Rollen-Berechtigungs-Zuordnungen
+* Berechtigungsbeschreibungen
+* Hilfsfunktionen
+
+===== Fallback-Mechanismus
+
+Wenn keine Berechtigungen in der Datenbank gefunden werden, fällt das System auf die im Code definierten Standardberechtigungen zurück. Dies stellt sicher, dass das System auch ohne durchgeführtes Datenbank-Seeding weiter funktioniert.
+
+==== Berechtigungsvalidierung
+
+Das System nutzt einen `PermissionValidationService`, der:
+
+* Die Konsistenz zwischen Code-definierten und Datenbank-Berechtigungen prüft
+* Fehlende Berechtigungen zur Datenbank synchronisieren kann
+* Detaillierte Berichte über den Berechtigungszustand liefert
+* Die Validierung beim Modulstart durchführt
+
+==== Sicherheitsüberlegungen
+
+* Frontend-Rollenprüfungen dienen nur der UX
+* Alle Sicherheit wird auf Backend-API-Ebene durchgesetzt
+* JWT-Tokens laufen nach 15 Minuten (Zugriff) und 7 Tagen (Refresh) ab
+* Fehlgeschlagene Anmeldeversuche sperren Konten nach 5 Versuchen
+* Sitzungen werden in der Datenbank für Widerruf verfolgt
+
+==== Erweiterbarkeit
+
+Das System ist für zukünftige Erweiterungen ausgelegt:
+
+* Neue Berechtigungen können einfach zur `Permission`-Enum hinzugefügt werden
+* Rollen-Berechtigungs-Zuordnungen können in der Datenbank angepasst werden
+* Custom Guards und Decorators können für spezielle Anforderungen erstellt werden
+* Das System unterstützt hierarchische Berechtigungen (geplant)
+
+=== Audit-Logging-System
+
+Das Bluelight-Hub-System implementiert ein umfassendes Audit-Logging-System zur Nachverfolgung aller sicherheitsrelevanten und administrativen Aktionen. Dieses System ist essentiell für Compliance, Security-Monitoring und forensische Analysen.
+
+==== Übersicht und Architektur
+
+Das Audit-System basiert auf einem konfigurierbaren Interceptor-Pattern, das automatisch alle API-Aufrufe erfasst und strukturiert protokolliert. Die Architektur nutzt asynchrone Verarbeitung über Message Queues für optimale Performance.
+
+[mermaid]
+....
+flowchart TD
+    Request[HTTP Request] --> Interceptor[AuditInterceptor]
+    Interceptor --> |erfasst| Context[Request Context]
+    Context --> |extrahiert| Metadata[Metadaten]
+    
+    Interceptor --> Queue[AuditLogQueue]
+    Queue --> |async| Processor[AuditLogProcessor]
+    Processor --> |persistiert| DB[(PostgreSQL)]
+    
+    Interceptor --> |Decorators| Config[Konfiguration]
+    Config --> |Skip| SkipAudit[@SkipAudit]
+    Config --> |Action| AuditAction[@AuditAction]
+    Config --> |Severity| AuditSeverity[@AuditSeverity]
+    
+    DB --> Service[AuditLogService]
+    Service --> |query| API[Audit API]
+    Service --> |export| Export[Export Service]
+    Service --> |retention| Scheduler[Scheduler Service]
+    
+    classDef request fill:#FFE082,stroke:#FFC107,color:black
+    classDef interceptor fill:#81C784,stroke:#4CAF50,color:white
+    classDef storage fill:#64B5F6,stroke:#2196F3,color:white
+    classDef config fill:#CE93D8,stroke:#9C27B0,color:white
+    
+    class Request request
+    class Interceptor,Context,Metadata interceptor
+    class Queue,Processor,DB,Service,API,Export,Scheduler storage
+    class Config,SkipAudit,AuditAction,AuditSeverity config
+....
+
+==== Kernkomponenten
+
+===== AuditInterceptor
+
+Der zentrale `AuditInterceptor` ist global registriert und erfasst automatisch:
+
+* *Request-Daten*: HTTP-Methode, Pfad, Query-Parameter, Body
+* *Response-Daten*: Statuscode, Response-Body, Ausführungsdauer
+* *Benutzerkontext*: User-ID, Email, Rolle, Session-ID
+* *Technische Details*: IP-Adresse, User-Agent, Request-ID
+
+[source,typescript]
+----
+// Automatische Erfassung aller Requests
+@Injectable()
+export class AuditInterceptor implements NestInterceptor {
+  intercept(context: ExecutionContext, next: CallHandler): Observable<any> {
+    // Extrahiere Request-Daten
+    const request = context.switchToHttp().getRequest();
+    const startTime = Date.now();
+    
+    return next.handle().pipe(
+      tap(async (response) => {
+        // Erstelle Audit-Log für erfolgreiche Requests
+        await this.logAuditEvent({
+          success: true,
+          duration: Date.now() - startTime,
+          // ... weitere Daten
+        });
+      }),
+      catchError((error) => {
+        // Erstelle Audit-Log für fehlgeschlagene Requests
+        this.logAuditEvent({
+          success: false,
+          error: error.message,
+          // ... weitere Daten
+        });
+        return throwError(() => error);
+      })
+    );
+  }
+}
+----
+
+===== Konfigurationssystem
+
+Das Audit-System ist hochgradig konfigurierbar:
+
+[source,typescript]
+----
+export const defaultAuditInterceptorConfig = {
+  // Pfade, die vom Audit ausgeschlossen werden
+  excludePaths: ['/health', '/metrics', '/robots.txt', '/_next', '/static'],
+  
+  // Pfade, die immer auditiert werden
+  includePaths: ['/', '/api', '/admin', '/api/admin'],
+  
+  // Sensible Felder, die automatisch redaktiert werden
+  sensitiveFields: ['password', 'token', 'secret', 'apiKey', 'creditCard'],
+  
+  // Maximale Größe für Request/Response Bodies
+  maxBodySize: 10 * 1024, // 10KB
+  
+  // Mapping von Pfaden zu Ressourcentypen
+  resourceMapping: {
+    '/admin/users': 'user',
+    '/admin/audit-logs': 'audit_log',
+    // ...
+  },
+  
+  // Mapping von Aktionen zu Severity-Levels
+  severityMapping: {
+    [AuditAction.DELETE]: AuditSeverity.HIGH,
+    [AuditAction.LOGIN]: AuditSeverity.LOW,
+    // ...
+  }
+};
+----
+
+===== Decorator-basierte Kontrolle
+
+Entwickler können das Audit-Verhalten für spezifische Endpoints anpassen:
+
+[source,typescript]
+----
+@Controller('admin/users')
+export class UserController {
+  // Standard-Verhalten - automatisch geloggt
+  @Post()
+  createUser() {
+    // Wird als CREATE action mit MEDIUM severity geloggt
+  }
+  
+  // Custom Audit-Konfiguration
+  @Post(':id/approve')
+  @AuditAction(AuditActionType.APPROVE)
+  @AuditSeverity(AuditSeverity.HIGH)
+  @AuditResourceType('user')
+  approveUser() {
+    // Spezielle Audit-Konfiguration
+  }
+  
+  // Audit-Logging überspringen
+  @Get('stats')
+  @SkipAudit()
+  getUserStatistics() {
+    // Wird nicht geloggt
+  }
+}
+----
+
+==== Datenmodell
+
+Das Audit-Log-Datenmodell erfasst umfassende Informationen:
+
+[source,prisma]
+----
+model AuditLog {
+  id           String        @id @default(nanoid())
+  
+  // Aktionsinformationen
+  actionType   AuditActionType
+  action       String
+  severity     AuditSeverity
+  resource     String?
+  resourceId   String?
+  
+  // Benutzerkontext
+  userId       String?
+  userEmail    String?
+  userRole     UserRole?
+  
+  // Request-Kontext
+  requestId    String?
+  sessionId    String?
+  ipAddress    String?
+  userAgent    String?
+  endpoint     String
+  httpMethod   String
+  
+  // Datenänderungen
+  oldValues    Json?
+  newValues    Json?
+  metadata     Json?
+  
+  // Ergebnis
+  duration     Int
+  success      Boolean
+  errorMessage String?
+  statusCode   Int
+  
+  // Compliance
+  sensitiveData  Boolean    @default(false)
+  requiresReview Boolean    @default(false)
+  
+  // Timestamps
+  createdAt    DateTime   @default(now())
+  
+  // Beziehungen
+  user         User?      @relation(fields: [userId], references: [id])
+  
+  @@index([userId])
+  @@index([actionType])
+  @@index([createdAt])
+}
+----
+
+==== Aktionstypen und Severity
+
+===== Audit Action Types
+
+Das System definiert verschiedene Aktionstypen für präzise Kategorisierung:
+
+* *CRUD-Operationen*: READ, CREATE, UPDATE, DELETE
+* *Authentifizierung*: LOGIN, LOGOUT, FAILED_LOGIN
+* *Berechtigungen*: PERMISSION_CHANGE, ROLE_CHANGE
+* *Datenmanagement*: EXPORT, IMPORT, BACKUP, RESTORE
+* *Administration*: SYSTEM_CONFIG, BULK_OPERATION
+* *Weitere*: APPROVE, REJECT, spezifische Business-Actions
+
+===== Severity Levels
+
+Audit-Ereignisse werden nach Schweregrad klassifiziert:
+
+* *LOW*: Normale Leseoperationen, erfolgreiche Logins
+* *MEDIUM*: Standardmäßige Schreiboperationen
+* *HIGH*: Löschungen, Berechtigungsänderungen, fehlgeschlagene Logins
+* *CRITICAL*: Systemkonfigurationsänderungen, Massenlöschungen
+
+==== Asynchrone Verarbeitung
+
+Für optimale Performance nutzt das System eine Queue-basierte Architektur:
+
+[source,typescript]
+----
+@Injectable()
+export class AuditLogQueue {
+  constructor(
+    @InjectQueue(AUDIT_LOG_QUEUE) 
+    private auditQueue: Queue
+  ) {}
+  
+  async addAuditLog(data: CreateAuditLogDto): Promise<void> {
+    await this.auditQueue.add('process-audit-log', data, {
+      attempts: 3,
+      backoff: {
+        type: 'exponential',
+        delay: 2000,
+      },
+    });
+  }
+}
+----
+
+==== Sicherheitsfeatures
+
+===== Automatische Datensanitization
+
+Sensible Daten werden automatisch vor der Speicherung redaktiert:
+
+[source,typescript]
+----
+private sanitizeSensitiveData(data: any): any {
+  const sanitized = { ...data };
+  
+  for (const field of this.config.sensitiveFields) {
+    if (field in sanitized) {
+      sanitized[field] = '[REDACTED]';
+    }
+  }
+  
+  return sanitized;
+}
+----
+
+===== Tamper-Proof Design
+
+* Audit-Logs sind unveränderlich (keine UPDATE-Operationen)
+* Löschungen nur über automatisierte Retention-Policies
+* Alle Änderungen an Audit-Einstellungen werden selbst auditiert
+
+==== Query und Export
+
+===== Erweiterte Suchmöglichkeiten
+
+Das System bietet umfangreiche Filtermöglichkeiten:
+
+[source,typescript]
+----
+interface QueryAuditLogDto {
+  // Zeitbereich
+  startDate?: Date;
+  endDate?: Date;
+  
+  // Filterkriterien
+  userId?: string;
+  actionType?: AuditActionType;
+  severity?: AuditSeverity;
+  resource?: string;
+  success?: boolean;
+  
+  // Volltextsuche
+  search?: string;
+  
+  // Paginierung
+  page?: number;
+  limit?: number;
+  
+  // Sortierung
+  sortBy?: string;
+  sortOrder?: 'asc' | 'desc';
+}
+----
+
+===== Export-Funktionalität
+
+Audit-Logs können in verschiedenen Formaten exportiert werden:
+
+* *CSV*: Für Excel-Integration und Reporting
+* *JSON*: Für programmatische Weiterverarbeitung
+* *PDF*: Für Compliance-Dokumentation (geplant)
+
+==== Retention und Archivierung
+
+===== Automatische Retention
+
+Der `AuditLogSchedulerService` verwaltet die Aufbewahrungsfristen:
+
+[source,typescript]
+----
+@Cron('0 2 * * *') // Täglich um 2 Uhr
+async enforceRetentionPolicies() {
+  const policies = await this.getRetentionPolicies();
+  
+  for (const policy of policies) {
+    await this.deleteOldLogs({
+      resource: policy.resource,
+      olderThan: policy.retentionDays,
+    });
+  }
+}
+----
+
+===== Archivierungsstrategie
+
+* Standard-Aufbewahrung: 365 Tage
+* Kritische Ereignisse: 7 Jahre
+* Archivierung in separater Tabelle vor Löschung
+* Export-Option vor endgültiger Löschung
+
+==== Integration mit anderen Systemen
+
+===== Monitoring und Alerting
+
+Das Audit-System kann mit Monitoring-Tools integriert werden:
+
+* Echtzeit-Alerts bei kritischen Ereignissen
+* Anomalie-Erkennung für ungewöhnliche Aktivitätsmuster
+* Dashboard-Integration für Security-Monitoring
+
+===== Compliance-Reporting
+
+* Automatisierte Compliance-Reports
+* Integration mit SIEM-Systemen
+* Export für externe Audits
+
+==== Best Practices für Entwickler
+
+1. *Verwende spezifische Action-Types*: Nutze die vordefinierten Aktionstypen für bessere Kategorisierung
+2. *Setze angemessene Severity-Levels*: Überlege, welche Auswirkungen eine Aktion hat
+3. *Füge Kontext hinzu*: Nutze @AuditContext für zusätzliche Informationen
+4. *Vermeide sensible Daten*: Stelle sicher, dass keine unverschlüsselten sensiblen Daten geloggt werden
+5. *Teste Audit-Funktionalität*: Verifiziere, dass wichtige Aktionen korrekt geloggt werden
+
+==== Zukünftige Erweiterungen
+
+* *Machine Learning Integration*: Anomalie-Erkennung basierend auf historischen Mustern
+* *Blockchain-Integration*: Unveränderliche Audit-Trail für kritische Operationen
+* *Cross-System Correlation*: Verknüpfung von Audit-Events über mehrere Systeme
+* *Enhanced Analytics*: Erweiterte Analyse- und Visualisierungsmöglichkeiten
+
+Dieses umfassende Audit-System stellt sicher, dass alle relevanten Aktionen im Bluelight-Hub-System nachvollziehbar protokolliert werden und erfüllt dabei höchste Standards für Security, Compliance und Performance.

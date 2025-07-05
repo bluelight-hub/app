@@ -5,12 +5,12 @@ permissions: read-all
 
 on:
   push:
-    branches: [ main ]
+    branches: [main]
     paths:
       - 'docs/**'
       - '.github/workflows/docs.yml'
   pull_request:
-    branches: [ main ]
+    branches: [main]
     paths:
       - 'docs/**'
   workflow_dispatch:
@@ -30,17 +30,17 @@ jobs:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
-      
+
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: '20'
-          
+
       - name: Install pnpm
         uses: pnpm/action-setup@v2
         with:
           version: '10.5.2'
-          
+
       - name: Get pnpm store directory
         shell: bash
         run: |
@@ -78,21 +78,21 @@ jobs:
           gem install asciidoctor
           gem install asciidoctor-diagram
           gem install asciidoctor-pdf
-          
+
           # PlantUML-spezifische Pakete
           gem install asciidoctor-plantuml
-          
+
           # Mermaid-spezifische Pakete
           npm install -g @mermaid-js/mermaid-cli
-          
+
           # BPMN-spezifische Pakete
           npm install -g bpmn-js-cmd
           echo "BPMN_JS=$(which bpmn-js-cmd)" >> $GITHUB_ENV
-          
+
           # DBML-spezifische Pakete
           npm install -g @dbml/cli
           echo "DBML_RENDERER=$(which dbml2sql)" >> $GITHUB_ENV
-          
+
           # Weitere Diagramm-Extensions
           gem install asciidoctor-kroki
 
@@ -107,32 +107,32 @@ jobs:
           echo "MMD (Mermaid CLI) path: $(which mmdc)"
           echo "BPMN-JS path: $BPMN_JS"
           echo "DBML tools path: $DBML_RENDERER"
-          
+
           # Sicherstellen, dass alle Tools im PATH sind
           mkdir -p ./bin
-          
+
           # Bei Bedarf symbolische Links erstellen
           if [ -f "$(npm bin -g)/mmdc" ] && [ ! -f "./bin/mmdc" ]; then
             ln -s "$(npm bin -g)/mmdc" ./bin/mmdc
           fi
-          
+
           if [ -f "$(npm bin -g)/bpmn-js-cmd" ] && [ ! -f "./bin/bpmn-js" ]; then
             ln -s "$(npm bin -g)/bpmn-js-cmd" ./bin/bpmn-js
           fi
-          
+
           if [ -f "$(npm bin -g)/dbml2sql" ] && [ ! -f "./bin/dbml-renderer" ]; then
             ln -s "$(npm bin -g)/dbml2sql" ./bin/dbml-renderer
           fi
-          
+
           # Füge das bin-Verzeichnis zum PATH hinzu
           echo "$(pwd)/bin" >> $GITHUB_PATH
-          
+
           # Verzeichnisinhalt anzeigen
           ls -la ./bin
-      
+
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
-        
+
       - name: Set diagram attributes for Asciidoctor
         run: |
           echo "Creating asciidoctor attributes file"
@@ -142,17 +142,17 @@ jobs:
           :mmdc: $(which mmdc)
           :diagram-svg-type: svg
           EOL
-          
+
           cat ./docs/attributes.adoc
-        
+
       - name: Build documentation
         run: |
           # Füge die Attribute-Datei zur Hauptdatei hinzu
           sed -i '/:source-highlighter: highlightjs/a :include: attributes.adoc' ./docs/index.adoc
-          
+
           # Dokumentation bauen
           pnpm docs:build
-      
+
       - name: Upload documentation artifacts
         uses: actions/upload-artifact@v4
         with:

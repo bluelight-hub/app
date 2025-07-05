@@ -1,9 +1,7 @@
 import MockKommunikationsverzeichnis from '@organisms/mocks/MockKommunikationsverzeichnis';
 import React from 'react';
 export const KommunikationsverzeichnisPage: React.FC = () => {
-  return (
-    <MockKommunikationsverzeichnis />
-  );
+  return <MockKommunikationsverzeichnis />;
 };
 
 export default KommunikationsverzeichnisPage;

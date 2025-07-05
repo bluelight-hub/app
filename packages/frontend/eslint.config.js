@@ -1,8 +1,9 @@
-import js from '@eslint/js'
-import reactHooks from 'eslint-plugin-react-hooks'
-import reactRefresh from 'eslint-plugin-react-refresh'
-import globals from 'globals'
-import tseslint from 'typescript-eslint'
+import js from '@eslint/js';
+import reactHooks from 'eslint-plugin-react-hooks';
+import reactRefresh from 'eslint-plugin-react-refresh';
+import globals from 'globals';
+import tseslint from 'typescript-eslint';
+import eslintConfigPrettier from 'eslint-config-prettier';
 
 export default tseslint.config(
   { ignores: ['dist', '../shared/**/*', 'src-tauri/**/*'] },
@@ -19,18 +20,15 @@ export default tseslint.config(
     },
     rules: {
       ...reactHooks.configs.recommended.rules,
-      'react-refresh/only-export-components': [
-        'warn',
-        { allowConstantExport: true },
-      ],
+      'react-refresh/only-export-components': ['warn', { allowConstantExport: true }],
       '@typescript-eslint/no-explicit-any': 'warn',
       '@typescript-eslint/no-unused-vars': [
         'error',
         {
           argsIgnorePattern: '^_',
           varsIgnorePattern: '^_',
-          caughtErrorsIgnorePattern: '^_'
-        }
+          caughtErrorsIgnorePattern: '^_',
+        },
       ],
       '@typescript-eslint/ban-ts-comment': [
         'error',
@@ -38,10 +36,10 @@ export default tseslint.config(
           'ts-expect-error': 'allow-with-description',
           'ts-ignore': 'allow-with-description',
           'ts-nocheck': true,
-          'ts-check': false
-        }
+          'ts-check': false,
+        },
       ],
-      'no-useless-escape': 'warn'
+      'no-useless-escape': 'warn',
     },
   },
   {
@@ -53,17 +51,19 @@ export default tseslint.config(
         {
           max: 500,
           skipBlankLines: false,
-          skipComments: false
-        }
+          skipComments: false,
+        },
       ],
       'max-lines-per-function': [
         'warn',
         {
           max: 400,
           skipBlankLines: false,
-          skipComments: false
-        }
-      ] 
-    }
-  }
-)
+          skipComments: false,
+        },
+      ],
+    },
+  },
+  // Add Prettier config at the end to override conflicting rules
+  eslintConfigPrettier,
+);

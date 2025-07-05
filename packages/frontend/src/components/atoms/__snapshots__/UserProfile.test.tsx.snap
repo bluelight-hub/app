@@ -2,47 +2,67 @@
 
 exports[`UserProfile > should match snapshot 1`] = `
 <div>
-  <a
-    class="ant-dropdown-trigger flex w-full h-12 items-center gap-x-4 px-6 py-2 text-sm/6 font-semibold text-gray-900 dark:text-gray-100 hover:bg-gray-50 dark:hover:bg-gray-800 cursor-pointer"
-    data-testid="user-profile"
-    href="#"
+  <div
+    class="px-6 py-2"
   >
-    <img
-      alt="Test User"
-      class="size-8 rounded-full bg-gray-50 dark:bg-gray-800"
-      src="test-image-url"
-    />
-    <span
-      class="sr-only"
+    <button
+      class="ant-btn css-dev-only-do-not-override-ut69n1 ant-btn-default ant-btn-color-default ant-btn-variant-outlined ant-dropdown-trigger w-full"
+      data-testid="user-profile"
+      type="button"
     >
-      Dein Profil
-    </span>
-    <span
-      aria-hidden="true"
-    >
-      Test User
-    </span>
-  </a>
+      <span
+        class="ant-btn-icon"
+      >
+        <svg
+          fill="currentColor"
+          height="1em"
+          stroke="currentColor"
+          stroke-width="0"
+          viewBox="0 0 256 256"
+          width="1em"
+          xmlns="http://www.w3.org/2000/svg"
+        >
+          <path
+            d="M230.92,212c-15.23-26.33-38.7-45.21-66.09-54.16a72,72,0,1,0-73.66,0C63.78,166.78,40.31,185.66,25.08,212a8,8,0,1,0,13.85,8c18.84-32.56,52.14-52,89.07-52s70.23,19.44,89.07,52a8,8,0,1,0,13.85-8ZM72,96a56,56,0,1,1,56,56A56.06,56.06,0,0,1,72,96Z"
+          />
+        </svg>
+      </span>
+      <span>
+        Test User
+      </span>
+    </button>
+  </div>
 </div>
 `;
 
 exports[`UserProfile > should match snapshot with hidden text 1`] = `
 <div>
-  <a
-    class="ant-dropdown-trigger flex w-full h-12 items-center gap-x-4 px-6 py-2 text-sm/6 font-semibold text-gray-900 dark:text-gray-100 hover:bg-gray-50 dark:hover:bg-gray-800 cursor-pointer"
-    data-testid="user-profile"
-    href="#"
+  <div
+    class=""
   >
-    <img
-      alt="Test User"
-      class="size-8 rounded-full bg-gray-50 dark:bg-gray-800"
-      src="test-image-url"
-    />
-    <span
-      class="sr-only"
+    <button
+      class="ant-btn css-dev-only-do-not-override-ut69n1 ant-btn-default ant-btn-color-default ant-btn-variant-outlined ant-btn-icon-only ant-dropdown-trigger w-full"
+      data-testid="user-profile"
+      type="button"
     >
-      Dein Profil
-    </span>
-  </a>
+      <span
+        class="ant-btn-icon"
+      >
+        <svg
+          fill="currentColor"
+          height="1em"
+          stroke="currentColor"
+          stroke-width="0"
+          viewBox="0 0 256 256"
+          width="1em"
+          xmlns="http://www.w3.org/2000/svg"
+        >
+          <path
+            d="M230.92,212c-15.23-26.33-38.7-45.21-66.09-54.16a72,72,0,1,0-73.66,0C63.78,166.78,40.31,185.66,25.08,212a8,8,0,1,0,13.85,8c18.84-32.56,52.14-52,89.07-52s70.23,19.44,89.07,52a8,8,0,1,0,13.85-8ZM72,96a56,56,0,1,1,56,56A56.06,56.06,0,0,1,72,96Z"
+          />
+        </svg>
+      </span>
+    </button>
+  </div>
 </div>
 `;

@@ -1,11 +1,11 @@
 = ADR-008: Offene Architekturentscheidungen
 :author: Bluelight-Hub Team
-:revnumber: 1.0.0
-:revdate: 2025-03-23
+:revnumber: 1.1.0
+:revdate: 2025-01-03
 :
 
 == Status
-In Prüfung (Stand: 2025-03-23)
+In Prüfung (Stand: 2025-01-03)
 
 == Kontext
 Es gibt verschiedene architektonische Entscheidungen, die noch evaluiert werden müssen oder für die noch keine endgültige Entscheidung getroffen wurde.
@@ -21,9 +21,6 @@ Für die Implementierung der Conflict-free Replicated Data Types muss noch eine 
 === Detaillierte Technologieauswahl für Service Mesh
 Falls ein Service Mesh benötigt wird, muss eine konkrete Technologie ausgewählt werden.
 
-=== Authentifizierungsmechanismen für Offline-Szenarien
-Die genauen Mechanismen für die Authentifizierung in Offline-Szenarien sind noch zu spezifizieren.
-
 === Hexagonale Architektur vs. vereinfachte Schichtenarchitektur
 Die Anwendung könnte von einer einfacheren Architektur profitieren, die weniger Overhead erfordert.
 
@@ -31,4 +28,30 @@ Die Anwendung könnte von einer einfacheren Architektur profitieren, die weniger
 Die Notwendigkeit dieses Patterns wird evaluiert. Eine direkte Implementierung könnte für die aktuelle Anwendung ausreichen.
 
 === Vollständige Offline-Synchronisation
-Der Umfang und die Implementierung werden in späteren Phasen detailliert. 
+Der Umfang und die Implementierung werden in späteren Phasen detailliert.
+
+=== Biometrische Authentifizierung für Einsatzszenarien
+Die Integration von biometrischen Verfahren (Fingerabdruck, Gesichtserkennung) als Alternative zu Passwörtern für schnellen Zugang in Notfallsituationen wird evaluiert. Dies könnte eine Balance zwischen Sicherheit und schnellem Zugriff bieten.
+
+=== Single Sign-On (SSO) Integration
+Die mögliche Integration mit bestehenden SSO-Lösungen von Behörden und Rettungsdiensten (z.B. Active Directory, LDAP) für nahtlose Integration in bestehende IT-Infrastrukturen.
+
+== Kürzlich getroffene Entscheidungen
+
+Die folgenden Entscheidungen wurden seit der letzten Aktualisierung dieses Dokuments getroffen:
+
+=== Authentifizierungsmechanismen
+Die Authentifizierung wurde durch JWT-basierte Token mit hybrider Session-Verwaltung gelöst (siehe ADR-007). Die ursprünglich geplante Multi-Faktor-Authentifizierung wurde nach initialer Implementierung wieder entfernt, um den spezifischen Anforderungen von Einsatzorganisationen besser gerecht zu werden (siehe ADR-010).
+
+=== Administrationsrollen-System
+Ein flexibles rollenbasiertes Zugriffskontrollsystem (RBAC) mit vier definierten Rollen (SUPER_ADMIN, ADMIN, SUPPORT, USER) und granularen Berechtigungen wurde implementiert (siehe ADR-011).
+
+=== Session-Management
+Eine hybride Lösung mit JWT-Tokens für Stateless-Authentifizierung kombiniert mit Datenbank-Sessions für Tracking, Audit und Revokation wurde umgesetzt.
+
+=== Kompensatorische Sicherheitsmaßnahmen
+Anstelle von MFA wurden umfassende alternative Sicherheitsmaßnahmen implementiert, einschließlich:
+* IP-Whitelisting und Geo-Blocking
+* Verstärktes Session-Management mit adaptiven Timeouts
+* Device Fingerprinting und Anomalie-Erkennung
+* Erweitertes Monitoring und Echtzeit-Alerts 

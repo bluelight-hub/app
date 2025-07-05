@@ -24,30 +24,14 @@
     /* Path Aliases for Atomic Design */
     "baseUrl": ".",
     "paths": {
-      "@/*": [
-        "src/*"
-      ],
-      "@atoms/*": [
-        "src/components/atoms/*"
-      ],
-      "@molecules/*": [
-        "src/components/molecules/*"
-      ],
-      "@organisms/*": [
-        "src/components/organisms/*"
-      ],
-      "@templates/*": [
-        "src/components/templates/*"
-      ],
-      "@pages/*": [
-        "src/components/pages/*"
-      ]
-    },
+      "@/*": ["src/*"],
+      "@atoms/*": ["src/components/atoms/*"],
+      "@molecules/*": ["src/components/molecules/*"],
+      "@organisms/*": ["src/components/organisms/*"],
+      "@templates/*": ["src/components/templates/*"],
+      "@pages/*": ["src/components/pages/*"]
+    }
   },
-  "include": [
-    "src"
-  ],
-  "exclude": [
-    "../shared/client/**/*.ts"
-  ]
+  "include": ["src"],
+  "exclude": ["../shared/client/**/*.ts"]
 }

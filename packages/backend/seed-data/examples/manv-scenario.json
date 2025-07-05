@@ -1,221 +1,183 @@
 {
-    "version": "1.0.0",
-    "metadata": {
-        "name": "MANV Hauptbahnhof Komplettszenario",
-        "description": "Vollständiges MANV-Szenario mit realistischen ETB-Einträgen für Ausbildung und Testing",
-        "author": "DRK Seed-Team",
-        "createdAt": "2025-05-28T12:00:00.000Z",
-        "category": "manv",
-        "estimatedPersonsAffected": 25,
-        "estimatedDurationHours": 8,
-        "requiredResources": [
-            "ELW 1",
-            "RTW (3x)",
-            "NEF (2x)",
-            "GW-San",
-            "Behandlungsplatz-Material",
-            "Sichtungsanhänger"
-        ],
-        "priority": "critical",
-        "tags": [
-            "manv",
-            "training",
-            "vollständig",
-            "realitätsnah"
-        ],
-        "compatibility": {
-            "minSchemaVersion": "1.0.0",
-            "requirements": [
-                "ETB-System aktiviert"
-            ]
-        }
-    },
-    "einsaetze": [
-        {
-            "name": "MANV Hauptbahnhof München",
-            "beschreibung": "Zugunglück mit Entgleisung im Hauptbahnhof München. 25 Verletzte, davon 3 schwer, 8 mittel, 14 leicht. Behandlungsplatz vor dem Haupteingang aufgebaut.",
-            "etbEntries": [
-                {
-                    "laufendeNummer": 1,
-                    "timestampErstellung": "2025-05-28T10:00:00.000Z",
-                    "timestampEreignis": "2025-05-28T09:58:00.000Z",
-                    "autorId": "leitstelle-muc",
-                    "autorName": "Leitstelle München",
-                    "autorRolle": "Disponent",
-                    "kategorie": "LAGEMELDUNG",
-                    "inhalt": "Zugunglück im Hauptbahnhof München, Gleis 12. Mehrere Verletzte gemeldet. Erstmeldung von Polizei vor Ort.",
-                    "systemQuelle": "Leitstelle",
-                    "sender": "Leitstelle München",
-                    "_meta": {
-                        "description": "Erste Lagemeldung vom Ereignis",
-                        "tags": [
-                            "erstmeldung",
-                            "lagebild"
-                        ]
-                    }
-                },
-                {
-                    "laufendeNummer": 2,
-                    "timestampErstellung": "2025-05-28T10:02:00.000Z",
-                    "timestampEreignis": "2025-05-28T10:01:00.000Z",
-                    "autorId": "rtw-01",
-                    "autorName": "RTW München 01/83",
-                    "autorRolle": "Rettungsassistent",
-                    "kategorie": "LAGEMELDUNG",
-                    "inhalt": "RTW 01/83 am Einsatzort. Sichte ca. 25 Personen, mehrere gehfähig, mind. 3 Personen bewusstlos. Benötige Unterstützung und OrgL.",
-                    "systemQuelle": "Funk",
-                    "sender": "RTW 01/83",
-                    "_meta": {
-                        "description": "Erste Lagemeldung der Einsatzkräfte vor Ort",
-                        "tags": [
-                            "ersterkunder",
-                            "sichtung"
-                        ]
-                    }
-                },
-                {
-                    "laufendeNummer": 3,
-                    "timestampErstellung": "2025-05-28T10:03:00.000Z",
-                    "timestampEreignis": "2025-05-28T10:03:00.000Z",
-                    "autorId": "leitstelle-muc",
-                    "autorName": "Leitstelle München",
-                    "autorRolle": "Disponent",
-                    "kategorie": "ANFORDERUNG",
-                    "inhalt": "Alarmierung: MANV 25 verletzte Personen. OrgL, 2x NEF, 4x RTW, GW-San, ELW KatS alarmiert. Anfahrt über Bayerstraße.",
-                    "systemQuelle": "Leitstelle",
-                    "sender": "Leitstelle München",
-                    "_meta": {
-                        "description": "Offizielle Alarmierung der Einsatzkräfte",
-                        "tags": [
-                            "alarmierung",
-                            "kräfteanforderung"
-                        ]
-                    }
-                },
-                {
-                    "laufendeNummer": 4,
-                    "timestampErstellung": "2025-05-28T10:05:00.000Z",
-                    "timestampEreignis": "2025-05-28T10:04:00.000Z",
-                    "autorId": "orgl-muenchen",
-                    "autorName": "OrgL München",
-                    "autorRolle": "Organisatorischer Leiter",
-                    "kategorie": "LAGEMELDUNG",
-                    "inhalt": "OrgL übernimmt Einsatzleitung. Behandlungsplatz wird vor Haupteingang aufgebaut. Sichtung nach STaRT-Verfahren eingeleitet.",
-                    "systemQuelle": "Funk",
-                    "sender": "OrgL München",
-                    "_meta": {
-                        "description": "Übernahme der Einsatzleitung",
-                        "tags": [
-                            "einsatzleitung",
-                            "behandlungsplatz"
-                        ]
-                    }
-                },
-                {
-                    "laufendeNummer": 5,
-                    "timestampErstellung": "2025-05-28T10:08:00.000Z",
-                    "timestampEreignis": "2025-05-28T10:07:00.000Z",
-                    "autorId": "sichtungsteam-01",
-                    "autorName": "Sichtungsteam 1",
-                    "autorRolle": "Sichtungsassistent",
-                    "kategorie": "MELDUNG",
-                    "inhalt": "Sichtung abgeschlossen: 3x rot, 8x gelb, 14x grün. Rote Patienten werden priorisiert transportiert. Hubschrauber angefordert.",
-                    "systemQuelle": "Funk",
-                    "sender": "Sichtungsteam 1",
-                    "referenzPatientId": "sichtung-ergebnis-001",
-                    "_meta": {
-                        "description": "Ergebnis der Patientensichtung",
-                        "tags": [
-                            "sichtung",
-                            "triage",
-                            "patientenzahlen"
-                        ]
-                    }
-                },
-                {
-                    "laufendeNummer": 6,
-                    "timestampErstellung": "2025-05-28T10:15:00.000Z",
-                    "timestampEreignis": "2025-05-28T10:14:00.000Z",
-                    "autorId": "nef-01",
-                    "autorName": "NEF München 01",
-                    "autorRolle": "Notarzt",
-                    "kategorie": "MELDUNG",
-                    "inhalt": "Patient 1 (männlich, ca. 45 Jahre) mit Schädel-Hirn-Trauma und Bewusstlosigkeit stabilisiert. Transport zur Unfallchirurgie vorbereitet.",
-                    "systemQuelle": "Funk",
-                    "sender": "NEF 01",
-                    "referenzPatientId": "patient-001-rot",
-                    "_meta": {
-                        "description": "Behandlung kritischer Patient",
-                        "tags": [
-                            "notarzt",
-                            "behandlung",
-                            "rot"
-                        ]
-                    }
-                },
-                {
-                    "laufendeNummer": 7,
-                    "timestampErstellung": "2025-05-28T10:25:00.000Z",
-                    "timestampEreignis": "2025-05-28T10:24:00.000Z",
-                    "autorId": "orgl-muenchen",
-                    "autorName": "OrgL München",
-                    "autorRolle": "Organisatorischer Leiter",
-                    "kategorie": "MELDUNG",
-                    "inhalt": "Behandlungsplatz läuft strukturiert. Alle roten Patienten in Kliniken transportiert. Gelbe Patienten in Behandlung. PSNV-Team angefordert.",
-                    "systemQuelle": "Funk",
-                    "sender": "OrgL München",
-                    "_meta": {
-                        "description": "Zwischenbericht Einsatzleitung",
-                        "tags": [
-                            "zwischenbericht",
-                            "status",
-                            "psnv"
-                        ]
-                    }
-                },
-                {
-                    "laufendeNummer": 8,
-                    "timestampErstellung": "2025-05-28T11:30:00.000Z",
-                    "timestampEreignis": "2025-05-28T11:29:00.000Z",
-                    "autorId": "orgl-muenchen",
-                    "autorName": "OrgL München",
-                    "autorRolle": "Organisatorischer Leiter",
-                    "kategorie": "MELDUNG",
-                    "inhalt": "Einsatz weitgehend abgearbeitet. Alle Patienten versorgt und transportiert. Behandlungsplatz wird abgebaut. Einsatz wird beendet.",
-                    "systemQuelle": "Funk",
-                    "sender": "OrgL München",
-                    "_meta": {
-                        "description": "Einsatzende-Meldung",
-                        "tags": [
-                            "einsatzende",
-                            "abbau"
-                        ]
-                    }
-                }
-            ],
-            "_meta": {
-                "description": "Vollständiges MANV-Szenario mit realistischem ETB-Verlauf",
-                "tags": [
-                    "komplex",
-                    "realitätsnah",
-                    "ausbildung"
-                ],
-                "importNotes": "Dieses Szenario zeigt einen typischen MANV-Verlauf mit allen wichtigen Phasen: Alarmierung, Sichtung, Behandlung, Transport und Abschluss."
-            }
-        }
+  "version": "1.0.0",
+  "metadata": {
+    "name": "MANV Hauptbahnhof Komplettszenario",
+    "description": "Vollständiges MANV-Szenario mit realistischen ETB-Einträgen für Ausbildung und Testing",
+    "author": "DRK Seed-Team",
+    "createdAt": "2025-05-28T12:00:00.000Z",
+    "category": "manv",
+    "estimatedPersonsAffected": 25,
+    "estimatedDurationHours": 8,
+    "requiredResources": [
+      "ELW 1",
+      "RTW (3x)",
+      "NEF (2x)",
+      "GW-San",
+      "Behandlungsplatz-Material",
+      "Sichtungsanhänger"
     ],
-    "preImportSetup": {
-        "warnings": [
-            "Dieses Szenario erstellt umfangreiche ETB-Daten",
-            "Für Training und Test-Umgebungen geeignet",
-            "Nicht für Produktions-Datenbanken verwenden"
-        ]
-    },
-    "postImportCleanup": {
-        "validationSteps": [
-            "Prüfung: Alle ETB-Einträge haben fortlaufende Nummern",
-            "Prüfung: Zeitstempel sind chronologisch korrekt",
-            "Prüfung: Referenzen zwischen Einträgen sind gültig"
-        ]
+    "priority": "critical",
+    "tags": ["manv", "training", "vollständig", "realitätsnah"],
+    "compatibility": {
+      "minSchemaVersion": "1.0.0",
+      "requirements": ["ETB-System aktiviert"]
     }
+  },
+  "einsaetze": [
+    {
+      "name": "MANV Hauptbahnhof München",
+      "beschreibung": "Zugunglück mit Entgleisung im Hauptbahnhof München. 25 Verletzte, davon 3 schwer, 8 mittel, 14 leicht. Behandlungsplatz vor dem Haupteingang aufgebaut.",
+      "etbEntries": [
+        {
+          "laufendeNummer": 1,
+          "timestampErstellung": "2025-05-28T10:00:00.000Z",
+          "timestampEreignis": "2025-05-28T09:58:00.000Z",
+          "autorId": "leitstelle-muc",
+          "autorName": "Leitstelle München",
+          "autorRolle": "Disponent",
+          "kategorie": "LAGEMELDUNG",
+          "inhalt": "Zugunglück im Hauptbahnhof München, Gleis 12. Mehrere Verletzte gemeldet. Erstmeldung von Polizei vor Ort.",
+          "systemQuelle": "Leitstelle",
+          "sender": "Leitstelle München",
+          "_meta": {
+            "description": "Erste Lagemeldung vom Ereignis",
+            "tags": ["erstmeldung", "lagebild"]
+          }
+        },
+        {
+          "laufendeNummer": 2,
+          "timestampErstellung": "2025-05-28T10:02:00.000Z",
+          "timestampEreignis": "2025-05-28T10:01:00.000Z",
+          "autorId": "rtw-01",
+          "autorName": "RTW München 01/83",
+          "autorRolle": "Rettungsassistent",
+          "kategorie": "LAGEMELDUNG",
+          "inhalt": "RTW 01/83 am Einsatzort. Sichte ca. 25 Personen, mehrere gehfähig, mind. 3 Personen bewusstlos. Benötige Unterstützung und OrgL.",
+          "systemQuelle": "Funk",
+          "sender": "RTW 01/83",
+          "_meta": {
+            "description": "Erste Lagemeldung der Einsatzkräfte vor Ort",
+            "tags": ["ersterkunder", "sichtung"]
+          }
+        },
+        {
+          "laufendeNummer": 3,
+          "timestampErstellung": "2025-05-28T10:03:00.000Z",
+          "timestampEreignis": "2025-05-28T10:03:00.000Z",
+          "autorId": "leitstelle-muc",
+          "autorName": "Leitstelle München",
+          "autorRolle": "Disponent",
+          "kategorie": "ANFORDERUNG",
+          "inhalt": "Alarmierung: MANV 25 verletzte Personen. OrgL, 2x NEF, 4x RTW, GW-San, ELW KatS alarmiert. Anfahrt über Bayerstraße.",
+          "systemQuelle": "Leitstelle",
+          "sender": "Leitstelle München",
+          "_meta": {
+            "description": "Offizielle Alarmierung der Einsatzkräfte",
+            "tags": ["alarmierung", "kräfteanforderung"]
+          }
+        },
+        {
+          "laufendeNummer": 4,
+          "timestampErstellung": "2025-05-28T10:05:00.000Z",
+          "timestampEreignis": "2025-05-28T10:04:00.000Z",
+          "autorId": "orgl-muenchen",
+          "autorName": "OrgL München",
+          "autorRolle": "Organisatorischer Leiter",
+          "kategorie": "LAGEMELDUNG",
+          "inhalt": "OrgL übernimmt Einsatzleitung. Behandlungsplatz wird vor Haupteingang aufgebaut. Sichtung nach STaRT-Verfahren eingeleitet.",
+          "systemQuelle": "Funk",
+          "sender": "OrgL München",
+          "_meta": {
+            "description": "Übernahme der Einsatzleitung",
+            "tags": ["einsatzleitung", "behandlungsplatz"]
+          }
+        },
+        {
+          "laufendeNummer": 5,
+          "timestampErstellung": "2025-05-28T10:08:00.000Z",
+          "timestampEreignis": "2025-05-28T10:07:00.000Z",
+          "autorId": "sichtungsteam-01",
+          "autorName": "Sichtungsteam 1",
+          "autorRolle": "Sichtungsassistent",
+          "kategorie": "MELDUNG",
+          "inhalt": "Sichtung abgeschlossen: 3x rot, 8x gelb, 14x grün. Rote Patienten werden priorisiert transportiert. Hubschrauber angefordert.",
+          "systemQuelle": "Funk",
+          "sender": "Sichtungsteam 1",
+          "referenzPatientId": "sichtung-ergebnis-001",
+          "_meta": {
+            "description": "Ergebnis der Patientensichtung",
+            "tags": ["sichtung", "triage", "patientenzahlen"]
+          }
+        },
+        {
+          "laufendeNummer": 6,
+          "timestampErstellung": "2025-05-28T10:15:00.000Z",
+          "timestampEreignis": "2025-05-28T10:14:00.000Z",
+          "autorId": "nef-01",
+          "autorName": "NEF München 01",
+          "autorRolle": "Notarzt",
+          "kategorie": "MELDUNG",
+          "inhalt": "Patient 1 (männlich, ca. 45 Jahre) mit Schädel-Hirn-Trauma und Bewusstlosigkeit stabilisiert. Transport zur Unfallchirurgie vorbereitet.",
+          "systemQuelle": "Funk",
+          "sender": "NEF 01",
+          "referenzPatientId": "patient-001-rot",
+          "_meta": {
+            "description": "Behandlung kritischer Patient",
+            "tags": ["notarzt", "behandlung", "rot"]
+          }
+        },
+        {
+          "laufendeNummer": 7,
+          "timestampErstellung": "2025-05-28T10:25:00.000Z",
+          "timestampEreignis": "2025-05-28T10:24:00.000Z",
+          "autorId": "orgl-muenchen",
+          "autorName": "OrgL München",
+          "autorRolle": "Organisatorischer Leiter",
+          "kategorie": "MELDUNG",
+          "inhalt": "Behandlungsplatz läuft strukturiert. Alle roten Patienten in Kliniken transportiert. Gelbe Patienten in Behandlung. PSNV-Team angefordert.",
+          "systemQuelle": "Funk",
+          "sender": "OrgL München",
+          "_meta": {
+            "description": "Zwischenbericht Einsatzleitung",
+            "tags": ["zwischenbericht", "status", "psnv"]
+          }
+        },
+        {
+          "laufendeNummer": 8,
+          "timestampErstellung": "2025-05-28T11:30:00.000Z",
+          "timestampEreignis": "2025-05-28T11:29:00.000Z",
+          "autorId": "orgl-muenchen",
+          "autorName": "OrgL München",
+          "autorRolle": "Organisatorischer Leiter",
+          "kategorie": "MELDUNG",
+          "inhalt": "Einsatz weitgehend abgearbeitet. Alle Patienten versorgt und transportiert. Behandlungsplatz wird abgebaut. Einsatz wird beendet.",
+          "systemQuelle": "Funk",
+          "sender": "OrgL München",
+          "_meta": {
+            "description": "Einsatzende-Meldung",
+            "tags": ["einsatzende", "abbau"]
+          }
+        }
+      ],
+      "_meta": {
+        "description": "Vollständiges MANV-Szenario mit realistischem ETB-Verlauf",
+        "tags": ["komplex", "realitätsnah", "ausbildung"],
+        "importNotes": "Dieses Szenario zeigt einen typischen MANV-Verlauf mit allen wichtigen Phasen: Alarmierung, Sichtung, Behandlung, Transport und Abschluss."
+      }
+    }
+  ],
+  "preImportSetup": {
+    "warnings": [
+      "Dieses Szenario erstellt umfangreiche ETB-Daten",
+      "Für Training und Test-Umgebungen geeignet",
+      "Nicht für Produktions-Datenbanken verwenden"
+    ]
+  },
+  "postImportCleanup": {
+    "validationSteps": [
+      "Prüfung: Alle ETB-Einträge haben fortlaufende Nummern",
+      "Prüfung: Zeitstempel sind chronologisch korrekt",
+      "Prüfung: Referenzen zwischen Einträgen sind gültig"
+    ]
+  }
 }

@@ -1,14 +1,14 @@
 import React from 'react';
-import MockLoginForm from '../../organisms/mocks/MockLoginForm';
+import LoginForm from '../../organisms/auth/LoginForm';
 
 /**
  * LoginPage - Anmeldeseite
- * 
- * Rendert die Mock-Login-Komponente.
+ *
+ * Rendert die Login-Komponente mit MFA-Unterstützung.
  * Diese Seite dient als Container für die Login-Funktionalität.
  */
 const LoginPage: React.FC = () => {
-    return <MockLoginForm />;
+  return <LoginForm />;
 };
 
-export default LoginPage; 
+export default LoginPage;

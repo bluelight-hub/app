@@ -95,25 +95,25 @@
 }
 
 /* Styles für Listen-Checkboxen */
-.mdx-editor-wrapper .prose ul[data-type="taskList"] {
+.mdx-editor-wrapper .prose ul[data-type='taskList'] {
     list-style: none;
     padding-left: 0;
 }
 
-.mdx-editor-wrapper .prose ul[data-type="taskList"] li {
+.mdx-editor-wrapper .prose ul[data-type='taskList'] li {
     display: flex;
     align-items: center;
     gap: 0.5rem;
 }
 
-.mdx-editor-wrapper .prose ul[data-type="taskList"] input[type="checkbox"] {
+.mdx-editor-wrapper .prose ul[data-type='taskList'] input[type='checkbox'] {
     margin: 0;
 }
 
 /* Dropdown und Popover Styles */
-.mdx-editor-wrapper [role="listbox"],
-.mdx-editor-wrapper [role="menu"],
-.mdx-editor-wrapper [role="dialog"],
+.mdx-editor-wrapper [role='listbox'],
+.mdx-editor-wrapper [role='menu'],
+.mdx-editor-wrapper [role='dialog'],
 .mdx-editor-wrapper .popup-wrapper,
 .mdx-editor-wrapper [data-radix-popper-content-wrapper] {
     z-index: 1400 !important;
@@ -122,20 +122,21 @@
     background-color: white;
     border: 1px solid #e5e7eb;
     border-radius: 0.375rem;
-    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1),
+    0 2px 4px -1px rgba(0, 0, 0, 0.06);
 }
 
 /* Dropdown-Items */
-.mdx-editor-wrapper [role="option"],
-.mdx-editor-wrapper [role="menuitem"] {
+.mdx-editor-wrapper [role='option'],
+.mdx-editor-wrapper [role='menuitem'] {
     padding: 0.5rem 1rem;
     cursor: pointer;
     position: relative;
     z-index: 1401 !important;
 }
 
-.mdx-editor-wrapper [role="option"]:hover,
-.mdx-editor-wrapper [role="menuitem"]:hover {
+.mdx-editor-wrapper [role='option']:hover,
+.mdx-editor-wrapper [role='menuitem']:hover {
     background-color: #f3f4f6;
 }
 

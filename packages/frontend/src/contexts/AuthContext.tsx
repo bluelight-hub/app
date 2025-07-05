@@ -1,86 +1,64 @@
-import React, { createContext, ReactNode, useEffect, useState } from 'react';
+/* eslint-disable react-refresh/only-export-components */
+import React, { createContext, ReactNode, useEffect } from 'react';
+import { useAuthStore } from '../stores/useAuthStore';
+import { AuthUserDto } from '@bluelight-hub/shared/client';
 
-interface User {
-    id: string;
-    name: string;
-    email: string;
-    role: string;
-}
+// Legacy User type for backward compatibility
+type User = AuthUserDto;
 
 export interface AuthContextType {
-    user: User | null;
-    isAuthenticated: boolean;
-    isLoading: boolean;
-    login: (email: string, password: string) => Promise<boolean>;
-    logout: () => void;
+  user: User | null;
+  isAuthenticated: boolean;
+  isLoading: boolean;
+  login: (email: string, password: string) => Promise<{ success: boolean }>;
+  logout: () => void;
+  hasRole: (role: string) => boolean;
+  hasPermission: (permission: string) => boolean;
+  isAdmin: () => boolean;
 }
-
-// Mock-User für Entwicklungszwecke
-const MOCK_USER: User = {
-    id: '1',
-    name: 'Test User',
-    email: 'test@example.com',
-    role: 'admin',
-};
 
 export const AuthContext = createContext<AuthContextType | null>(null);
 
 interface AuthProviderProps {
-    children: ReactNode;
+  children: ReactNode;
 }
 
+/**
+ * AuthProvider component that wraps the application and provides authentication context.
+ * This is now a thin wrapper around the Zustand auth store for backward compatibility.
+ */
 export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
-    const [user, setUser] = useState<User | null>(null);
-    const [isLoading, setIsLoading] = useState(true);
+  // Use individual selectors to prevent unnecessary re-renders
+  const user = useAuthStore((state) => state.user);
+  const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
+  const isLoading = useAuthStore((state) => state.isLoading);
+  const login = useAuthStore((state) => state.login);
+  const logout = useAuthStore((state) => state.logout);
+  const hasRole = useAuthStore((state) => state.hasRole);
+  const hasPermission = useAuthStore((state) => state.hasPermission);
+  const isAdmin = useAuthStore((state) => state.isAdmin);
+  const checkAuthStatus = useAuthStore((state) => state.checkAuthStatus);
 
-    useEffect(() => {
-        // Simuliere das Laden des Benutzers beim ersten Rendern
-        const token = localStorage.getItem('auth_token');
-        if (token) {
-            // In einer realen Anwendung würden wir hier den Token verifizieren
-            setUser(MOCK_USER);
-        }
-        setIsLoading(false);
-    }, []);
+  useEffect(() => {
+    // Check auth status on mount
+    checkAuthStatus();
+  }, [checkAuthStatus]);
 
-    const login = async (email: string, password: string): Promise<boolean> => {
-        setIsLoading(true);
+  // Create the context value with the same interface as before
+  const contextValue: AuthContextType = {
+    user,
+    isAuthenticated,
+    isLoading,
+    login,
+    logout: async () => {
+      await logout();
+    },
+    hasRole,
+    hasPermission,
+    isAdmin,
+  };
 
-        // Simuliere API-Aufruf mit Verzögerung
-        return new Promise<boolean>((resolve) => {
-            setTimeout(() => {
-                // Mock-Authentifizierung - in der Produktion würde hier ein echter API-Aufruf stehen
-                if (email === 'test@example.com' && password === 'password') {
-                    setUser(MOCK_USER);
-                    localStorage.setItem('auth_token', 'mock_jwt_token');
-                    setIsLoading(false);
-                    resolve(true);
-                } else {
-                    setIsLoading(false);
-                    resolve(false);
-                }
-            }, 1000);
-        });
-    };
-
-    const logout = () => {
-        setUser(null);
-        localStorage.removeItem('auth_token');
-    };
-
-    return (
-        <AuthContext.Provider
-            value={{
-                user,
-                isAuthenticated: !!user,
-                isLoading,
-                login,
-                logout,
-            }}
-        >
-            {children}
-        </AuthContext.Provider>
-    );
+  return <AuthContext.Provider value={contextValue}>{children}</AuthContext.Provider>;
 };
 
-export default AuthContext; 
+export default AuthContext;

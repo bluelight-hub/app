@@ -5,6 +5,7 @@ Diese Verzeichnis enthält alle Git Hooks für das Bluelight-Hub Projekt.
 ## 🚀 Automatische Installation
 
 Husky installiert die Git Hooks automatisch bei:
+
 - `npm install`
 - `pnpm install`
 - `yarn install`
@@ -14,9 +15,11 @@ Dies geschieht über das `prepare` Script in der `package.json`.
 ## 📋 Verfügbare Hooks
 
 ### `commit-msg`
+
 **Zweck:** Validiert Commit-Nachrichten nach den Projektstandards
 
 **Was wird geprüft:**
+
 - ✅ Korrekte Emoji + Context Format: `✨(frontend): Beschreibung`
 - ✅ Maximale Länge der ersten Zeile (72 Zeichen)
 - ⚠️ Warnung bei einzeiligen Commits für substantielle Änderungen
@@ -25,9 +28,11 @@ Dies geschieht über das `prepare` Script in der `package.json`.
 **Referenz:** Siehe `.cursor/rules/030-commit-rules.mdc`
 
 ### `pre-commit`
+
 **Zweck:** Führt alle Tests vor jedem Commit aus
 
 **Was passiert:**
+
 - Führt `pnpm test` für alle Packages aus
 - Verhindert Commits wenn Tests fehlschlagen
 - Stellt Code-Qualität sicher
@@ -43,6 +48,7 @@ git push --no-verify
 ## 🛠️ Hook-Entwicklung
 
 ### Hook bearbeiten
+
 ```bash
 # Hook-Datei bearbeiten
 nano .husky/commit-msg
@@ -52,15 +58,17 @@ chmod +x .husky/commit-msg
 ```
 
 ### Hook testen
+
 ```bash
 # Commit-msg Hook testen
 echo "test message" | .husky/commit-msg /dev/stdin
 
-# Pre-commit Hook testen  
+# Pre-commit Hook testen
 .husky/pre-commit
 ```
 
 ### Hook hinzufügen
+
 ```bash
 # Neuen Hook erstellen
 npx husky add .husky/pre-push "pnpm build"
@@ -70,4 +78,4 @@ npx husky add .husky/pre-push "pnpm build"
 
 - **Husky Dokumentation:** https://typicode.github.io/husky/
 - **Commit Standards:** `.cursor/rules/030-commit-rules.mdc`
-- **Commit Helper:** `git commit-helper` für interaktive Commits 
+- **Commit Helper:** `git commit-helper` für interaktive Commits

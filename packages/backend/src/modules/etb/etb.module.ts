@@ -10,13 +10,9 @@ import { EtbService } from './etb.service';
  * Enthält Komponenten für die Verwaltung von ETB-Einträgen und deren Anlagen.
  */
 @Module({
-    imports: [
-        ConfigModule,
-        PrismaModule,
-        CommonModule
-    ],
-    controllers: [EtbController],
-    providers: [EtbService],
-    exports: [EtbService]
+  imports: [ConfigModule, PrismaModule, CommonModule],
+  controllers: [EtbController],
+  providers: [EtbService],
+  exports: [EtbService],
 })
-export class EtbModule { } 
+export class EtbModule {}
