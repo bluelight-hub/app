@@ -4,14 +4,13 @@ import { of, throwError } from 'rxjs';
 import { AuditInterceptor } from '../audit.interceptor';
 import { AuditLogService } from '../../services/audit-log.service';
 import { AuditLogQueue } from '../../queues/audit-log.queue';
-import { AuditAction, AuditSeverityExtended as AuditSeverity } from '../../types/audit.types';
 import {
   AUDIT_CONTEXT_KEY,
   AUDIT_ACTION_KEY,
   AUDIT_SEVERITY_KEY,
   AUDIT_RESOURCE_TYPE_KEY,
 } from '../../decorators/audit.decorator';
-import { AuditActionType } from '@prisma/generated/prisma/client';
+import { AuditActionType, AuditSeverity } from '@prisma/generated/prisma/client';
 
 // Mock the logger module
 jest.mock('../../../../logger/consola.logger', () => ({
@@ -180,14 +179,14 @@ describe('AuditInterceptor', () => {
 
     it('should use custom action from decorator', (done) => {
       (context.getHandler as jest.Mock).mockReturnValue(() => {});
-      Reflect.defineMetadata('auditAction', AuditAction.APPROVE, context.getHandler());
-      Reflect.defineMetadata('auditSeverity', AuditSeverity.HIGH, context.getHandler());
+      Reflect.defineMetadata(AUDIT_ACTION_KEY, AuditActionType.APPROVE, context.getHandler());
+      Reflect.defineMetadata(AUDIT_SEVERITY_KEY, AuditSeverity.HIGH, context.getHandler());
 
       interceptor.intercept(context, callHandler).subscribe({
         next: () => {
           expect(auditLogQueue.addAuditLog).toHaveBeenCalledWith(
             expect.objectContaining({
-              action: 'approve',
+              actionType: AuditActionType.APPROVE,
               severity: AuditSeverity.HIGH,
             }),
           );
@@ -213,11 +212,11 @@ describe('AuditInterceptor', () => {
 
     it('should determine action based on HTTP method', (done) => {
       const testCases = [
-        { method: 'GET', expectedAction: AuditAction.VIEW },
-        { method: 'POST', expectedAction: AuditAction.CREATE },
-        { method: 'PUT', expectedAction: AuditAction.UPDATE },
-        { method: 'PATCH', expectedAction: AuditAction.UPDATE },
-        { method: 'DELETE', expectedAction: AuditAction.DELETE },
+        { method: 'GET', expectedAction: AuditActionType.READ },
+        { method: 'POST', expectedAction: AuditActionType.CREATE },
+        { method: 'PUT', expectedAction: AuditActionType.UPDATE },
+        { method: 'PATCH', expectedAction: AuditActionType.UPDATE },
+        { method: 'DELETE', expectedAction: AuditActionType.DELETE },
       ];
 
       let completed = 0;
@@ -286,10 +285,10 @@ describe('AuditInterceptor', () => {
 
     it('should handle special action paths', (done) => {
       const testCases = [
-        { path: '/admin/users/login', expectedAction: AuditAction.LOGIN },
-        { path: '/admin/users/logout', expectedAction: AuditAction.LOGOUT },
-        { path: '/admin/reports/export', expectedAction: AuditAction.EXPORT },
-        { path: '/admin/data/import', expectedAction: AuditAction.IMPORT },
+        { path: '/admin/users/login', expectedAction: AuditActionType.LOGIN },
+        { path: '/admin/users/logout', expectedAction: AuditActionType.LOGOUT },
+        { path: '/admin/reports/export', expectedAction: AuditActionType.EXPORT },
+        { path: '/admin/data/import', expectedAction: AuditActionType.IMPORT },
       ];
 
       let completed = 0;
@@ -542,7 +541,7 @@ describe('AuditInterceptor', () => {
         next: () => {
           expect(auditLogQueue.addAuditLog).toHaveBeenCalledWith(
             expect.objectContaining({
-              action: 'block',
+              actionType: AuditActionType.BLOCK,
             }),
           );
           done();
@@ -706,7 +705,7 @@ describe('AuditInterceptor', () => {
         next: () => {
           expect(auditLogQueue.addAuditLog).toHaveBeenCalledWith(
             expect.objectContaining({
-              action: 'approve',
+              actionType: AuditActionType.APPROVE,
             }),
           );
           done();
@@ -722,7 +721,7 @@ describe('AuditInterceptor', () => {
         next: () => {
           expect(auditLogQueue.addAuditLog).toHaveBeenCalledWith(
             expect.objectContaining({
-              action: 'reject',
+              actionType: AuditActionType.REJECT,
             }),
           );
           done();
@@ -737,7 +736,7 @@ describe('AuditInterceptor', () => {
         next: () => {
           expect(auditLogQueue.addAuditLog).toHaveBeenCalledWith(
             expect.objectContaining({
-              action: 'other',
+              actionType: AuditActionType.READ,
             }),
           );
           done();
@@ -869,7 +868,11 @@ describe('AuditInterceptor', () => {
 
     it('should handle REVOKE_PERMISSION action mapping', (done) => {
       (context.getHandler as jest.Mock).mockReturnValue(() => {});
-      Reflect.defineMetadata(AUDIT_ACTION_KEY, AuditAction.REVOKE_PERMISSION, context.getHandler());
+      Reflect.defineMetadata(
+        AUDIT_ACTION_KEY,
+        AuditActionType.PERMISSION_CHANGE,
+        context.getHandler(),
+      );
 
       interceptor.intercept(context, callHandler).subscribe({
         next: () => {
@@ -973,7 +976,7 @@ describe('AuditInterceptor', () => {
         next: () => {
           expect(auditLogQueue.addAuditLog).toHaveBeenCalledWith(
             expect.objectContaining({
-              action: 'unblock',
+              actionType: AuditActionType.UNBLOCK,
             }),
           );
           done();
@@ -989,7 +992,7 @@ describe('AuditInterceptor', () => {
         next: () => {
           expect(auditLogQueue.addAuditLog).toHaveBeenCalledWith(
             expect.objectContaining({
-              action: 'restore',
+              actionType: AuditActionType.RESTORE,
             }),
           );
           done();
@@ -1032,7 +1035,11 @@ describe('AuditInterceptor', () => {
 
     it('should handle sensitive actions for requiresReview', (done) => {
       (context.getHandler as jest.Mock).mockReturnValue(() => {});
-      Reflect.defineMetadata(AUDIT_ACTION_KEY, AuditAction.GRANT_PERMISSION, context.getHandler());
+      Reflect.defineMetadata(
+        AUDIT_ACTION_KEY,
+        AuditActionType.PERMISSION_CHANGE,
+        context.getHandler(),
+      );
 
       interceptor.intercept(context, callHandler).subscribe({
         next: () => {

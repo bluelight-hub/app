@@ -17,20 +17,20 @@ import {
   AUDIT_CONTEXT_KEY,
   SKIP_AUDIT_KEY,
 } from '../audit.decorator';
-import { AuditAction, AuditSeverityExtended as AuditSeverity } from '../../types/audit.types';
+import { AuditActionType, AuditSeverity } from '@prisma/generated/prisma/client';
 
 describe('Audit Decorators', () => {
   describe('Audit', () => {
     it('should set action metadata when action is provided', () => {
       class TestClass {
-        @Audit({ action: AuditAction.CREATE })
+        @Audit({ action: AuditActionType.CREATE })
         testMethod() {
           return 'test';
         }
       }
 
       const metadata = Reflect.getMetadata(AUDIT_ACTION_KEY, TestClass.prototype.testMethod);
-      expect(metadata).toBe(AuditAction.CREATE);
+      expect(metadata).toBe(AuditActionType.CREATE);
     });
 
     it('should set severity metadata when severity is provided', () => {
@@ -102,7 +102,7 @@ describe('Audit Decorators', () => {
 
     it('should set multiple metadata values when multiple options are provided', () => {
       const options = {
-        action: AuditAction.UPDATE,
+        action: AuditActionType.UPDATE,
         severity: AuditSeverity.MEDIUM,
         resourceType: 'post',
         context: { version: 2 },
@@ -116,7 +116,7 @@ describe('Audit Decorators', () => {
       }
 
       expect(Reflect.getMetadata(AUDIT_ACTION_KEY, TestClass.prototype.testMethod)).toBe(
-        AuditAction.UPDATE,
+        AuditActionType.UPDATE,
       );
       expect(Reflect.getMetadata(AUDIT_SEVERITY_KEY, TestClass.prototype.testMethod)).toBe(
         AuditSeverity.MEDIUM,
@@ -145,7 +145,7 @@ describe('Audit Decorators', () => {
     });
 
     it('should work on class level', () => {
-      @Audit({ action: AuditAction.VIEW })
+      @Audit({ action: AuditActionType.READ })
       class TestClass {
         testMethod() {
           return 'test';
@@ -153,7 +153,7 @@ describe('Audit Decorators', () => {
       }
 
       const metadata = Reflect.getMetadata(AUDIT_ACTION_KEY, TestClass);
-      expect(metadata).toBe(AuditAction.VIEW);
+      expect(metadata).toBe(AuditActionType.READ);
     });
   });
 
@@ -181,7 +181,7 @@ describe('Audit Decorators', () => {
       }
 
       expect(Reflect.getMetadata(AUDIT_ACTION_KEY, TestClass.prototype.testMethod)).toBe(
-        AuditAction.LOGIN,
+        AuditActionType.LOGIN,
       );
       expect(Reflect.getMetadata(AUDIT_SEVERITY_KEY, TestClass.prototype.testMethod)).toBe(
         AuditSeverity.LOW,
@@ -214,7 +214,7 @@ describe('Audit Decorators', () => {
       }
 
       expect(Reflect.getMetadata(AUDIT_ACTION_KEY, TestClass.prototype.testMethod)).toBe(
-        AuditAction.LOGOUT,
+        AuditActionType.LOGOUT,
       );
       expect(Reflect.getMetadata(AUDIT_SEVERITY_KEY, TestClass.prototype.testMethod)).toBe(
         AuditSeverity.LOW,
@@ -232,7 +232,7 @@ describe('Audit Decorators', () => {
       }
 
       expect(Reflect.getMetadata(AUDIT_ACTION_KEY, TestClass.prototype.testMethod)).toBe(
-        AuditAction.CREATE,
+        AuditActionType.CREATE,
       );
       expect(Reflect.getMetadata(AUDIT_SEVERITY_KEY, TestClass.prototype.testMethod)).toBe(
         AuditSeverity.MEDIUM,
@@ -268,7 +268,7 @@ describe('Audit Decorators', () => {
       }
 
       expect(Reflect.getMetadata(AUDIT_ACTION_KEY, TestClass.prototype.testMethod)).toBe(
-        AuditAction.UPDATE,
+        AuditActionType.UPDATE,
       );
       expect(Reflect.getMetadata(AUDIT_SEVERITY_KEY, TestClass.prototype.testMethod)).toBe(
         AuditSeverity.MEDIUM,
@@ -289,7 +289,7 @@ describe('Audit Decorators', () => {
       }
 
       expect(Reflect.getMetadata(AUDIT_ACTION_KEY, TestClass.prototype.testMethod)).toBe(
-        AuditAction.DELETE,
+        AuditActionType.DELETE,
       );
       expect(Reflect.getMetadata(AUDIT_SEVERITY_KEY, TestClass.prototype.testMethod)).toBe(
         AuditSeverity.HIGH,
@@ -310,7 +310,7 @@ describe('Audit Decorators', () => {
       }
 
       expect(Reflect.getMetadata(AUDIT_ACTION_KEY, TestClass.prototype.testMethod)).toBe(
-        AuditAction.VIEW,
+        AuditActionType.READ,
       );
       expect(Reflect.getMetadata(AUDIT_SEVERITY_KEY, TestClass.prototype.testMethod)).toBe(
         AuditSeverity.LOW,
@@ -331,7 +331,7 @@ describe('Audit Decorators', () => {
       }
 
       expect(Reflect.getMetadata(AUDIT_ACTION_KEY, TestClass.prototype.testMethod)).toBe(
-        AuditAction.EXPORT,
+        AuditActionType.EXPORT,
       );
       expect(Reflect.getMetadata(AUDIT_SEVERITY_KEY, TestClass.prototype.testMethod)).toBe(
         AuditSeverity.MEDIUM,
@@ -352,7 +352,7 @@ describe('Audit Decorators', () => {
       }
 
       expect(Reflect.getMetadata(AUDIT_ACTION_KEY, TestClass.prototype.testMethod)).toBe(
-        AuditAction.IMPORT,
+        AuditActionType.IMPORT,
       );
       expect(Reflect.getMetadata(AUDIT_SEVERITY_KEY, TestClass.prototype.testMethod)).toBe(
         AuditSeverity.HIGH,
@@ -368,14 +368,14 @@ describe('Audit Decorators', () => {
       const description = 'Deleting all user data';
 
       class TestClass {
-        @AuditCritical(AuditAction.DELETE, 'system', description)
+        @AuditCritical(AuditActionType.DELETE, 'system', description)
         testMethod() {
           return 'test';
         }
       }
 
       expect(Reflect.getMetadata(AUDIT_ACTION_KEY, TestClass.prototype.testMethod)).toBe(
-        AuditAction.DELETE,
+        AuditActionType.DELETE,
       );
       expect(Reflect.getMetadata(AUDIT_SEVERITY_KEY, TestClass.prototype.testMethod)).toBe(
         AuditSeverity.HIGH,
@@ -392,7 +392,7 @@ describe('Audit Decorators', () => {
   describe('Integration with controller methods', () => {
     it('should work with multiple decorators on the same method', () => {
       class TestClass {
-        @Audit({ action: AuditAction.UPDATE })
+        @Audit({ action: AuditActionType.UPDATE })
         @Audit({ severity: AuditSeverity.HIGH })
         testMethod() {
           return 'test';
@@ -400,7 +400,7 @@ describe('Audit Decorators', () => {
       }
 
       expect(Reflect.getMetadata(AUDIT_ACTION_KEY, TestClass.prototype.testMethod)).toBe(
-        AuditAction.UPDATE,
+        AuditActionType.UPDATE,
       );
       expect(Reflect.getMetadata(AUDIT_SEVERITY_KEY, TestClass.prototype.testMethod)).toBe(
         AuditSeverity.HIGH,
@@ -417,7 +417,7 @@ describe('Audit Decorators', () => {
       }
 
       expect(Reflect.getMetadata(AUDIT_ACTION_KEY, TestClass.prototype.testMethod)).toBe(
-        AuditAction.UPDATE,
+        AuditActionType.UPDATE,
       );
       expect(Reflect.getMetadata(AUDIT_RESOURCE_TYPE_KEY, TestClass.prototype.testMethod)).toBe(
         'user',
@@ -459,18 +459,18 @@ describe('Audit Decorators', () => {
 
       // Method-level metadata
       expect(Reflect.getMetadata(AUDIT_ACTION_KEY, AdminController.prototype.listUsers)).toBe(
-        AuditAction.VIEW,
+        AuditActionType.READ,
       );
       expect(
         Reflect.getMetadata(AUDIT_RESOURCE_TYPE_KEY, AdminController.prototype.listUsers),
       ).toBe('users');
 
       expect(Reflect.getMetadata(AUDIT_ACTION_KEY, AdminController.prototype.createUser)).toBe(
-        AuditAction.CREATE,
+        AuditActionType.CREATE,
       );
 
       expect(Reflect.getMetadata(AUDIT_ACTION_KEY, AdminController.prototype.deleteUser)).toBe(
-        AuditAction.DELETE,
+        AuditActionType.DELETE,
       );
       expect(Reflect.getMetadata(AUDIT_CONTEXT_KEY, AdminController.prototype.deleteUser)).toEqual({
         reason: 'account violation',

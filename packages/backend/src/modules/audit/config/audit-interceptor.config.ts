@@ -1,4 +1,4 @@
-import { AuditAction, AuditSeverityExtended as AuditSeverity } from '../types/audit.types';
+import { AuditActionType, AuditSeverity } from '@prisma/generated/prisma/client';
 
 /**
  * Konfiguration für den Audit-Interceptor
@@ -27,12 +27,12 @@ export interface AuditInterceptorConfig {
   /**
    * Mapping von Pfaden zu Aktionen
    */
-  actionMapping: Record<string, AuditAction>;
+  actionMapping: Record<string, AuditActionType>;
 
   /**
    * Mapping von Aktionen zu Schweregraden
    */
-  severityMapping: Record<AuditAction, AuditSeverity>;
+  severityMapping: Record<AuditActionType, AuditSeverity>;
 
   /**
    * Maximale Größe für Request/Response Bodies in Bytes
@@ -104,44 +104,38 @@ export const defaultAuditInterceptorConfig: AuditInterceptorConfig = {
   },
 
   actionMapping: {
-    'POST /admin/users/login': AuditAction.LOGIN,
-    'POST /admin/users/logout': AuditAction.LOGOUT,
-    'POST /admin/users/*/block': AuditAction.BLOCK,
-    'POST /admin/users/*/unblock': AuditAction.UNBLOCK,
-    'POST /admin/*/approve': AuditAction.APPROVE,
-    'POST /admin/*/reject': AuditAction.REJECT,
-    'POST /admin/*/export': AuditAction.EXPORT,
-    'POST /admin/*/import': AuditAction.IMPORT,
-    'POST /admin/backups/restore': AuditAction.RESTORE,
+    'POST /admin/users/login': AuditActionType.LOGIN,
+    'POST /admin/users/logout': AuditActionType.LOGOUT,
+    'POST /admin/users/*/block': AuditActionType.BLOCK,
+    'POST /admin/users/*/unblock': AuditActionType.UNBLOCK,
+    'POST /admin/*/approve': AuditActionType.APPROVE,
+    'POST /admin/*/reject': AuditActionType.REJECT,
+    'POST /admin/*/export': AuditActionType.EXPORT,
+    'POST /admin/*/import': AuditActionType.IMPORT,
+    'POST /admin/backups/restore': AuditActionType.RESTORE,
   },
 
-  severityMapping: Object.assign(
-    {},
-    {
-      [AuditAction.VIEW]: AuditSeverity.LOW,
-      [AuditAction.CREATE]: AuditSeverity.MEDIUM,
-      [AuditAction.UPDATE]: AuditSeverity.MEDIUM,
-      [AuditAction.DELETE]: AuditSeverity.HIGH,
-      [AuditAction.LOGIN]: AuditSeverity.LOW,
-      [AuditAction.LOGOUT]: AuditSeverity.LOW,
-      [AuditAction.FAILED_LOGIN]: AuditSeverity.HIGH,
-      [AuditAction.EXPORT]: AuditSeverity.MEDIUM,
-      [AuditAction.IMPORT]: AuditSeverity.HIGH,
-      [AuditAction.APPROVE]: AuditSeverity.HIGH,
-      [AuditAction.REJECT]: AuditSeverity.HIGH,
-      [AuditAction.BLOCK]: AuditSeverity.HIGH,
-      [AuditAction.UNBLOCK]: AuditSeverity.MEDIUM,
-      [AuditAction.GRANT_PERMISSION]: AuditSeverity.HIGH,
-      [AuditAction.CHANGE_ROLE]: AuditSeverity.HIGH,
-      [AuditAction.RESTORE]: AuditSeverity.HIGH,
-      [AuditAction.BACKUP]: AuditSeverity.MEDIUM,
-      [AuditAction.CONFIG_CHANGE]: AuditSeverity.HIGH,
-      [AuditAction.BULK_OPERATION]: AuditSeverity.MEDIUM,
-      [AuditAction.OTHER]: AuditSeverity.LOW,
-    },
-    // Add REVOKE_PERMISSION with the same severity as GRANT_PERMISSION
-    { [AuditAction.REVOKE_PERMISSION]: AuditSeverity.HIGH },
-  ) as Record<AuditAction, AuditSeverity>,
+  severityMapping: {
+    [AuditActionType.READ]: AuditSeverity.LOW,
+    [AuditActionType.CREATE]: AuditSeverity.MEDIUM,
+    [AuditActionType.UPDATE]: AuditSeverity.MEDIUM,
+    [AuditActionType.DELETE]: AuditSeverity.HIGH,
+    [AuditActionType.LOGIN]: AuditSeverity.LOW,
+    [AuditActionType.LOGOUT]: AuditSeverity.LOW,
+    [AuditActionType.FAILED_LOGIN]: AuditSeverity.HIGH,
+    [AuditActionType.EXPORT]: AuditSeverity.MEDIUM,
+    [AuditActionType.IMPORT]: AuditSeverity.HIGH,
+    [AuditActionType.APPROVE]: AuditSeverity.HIGH,
+    [AuditActionType.REJECT]: AuditSeverity.HIGH,
+    [AuditActionType.BLOCK]: AuditSeverity.HIGH,
+    [AuditActionType.UNBLOCK]: AuditSeverity.MEDIUM,
+    [AuditActionType.PERMISSION_CHANGE]: AuditSeverity.HIGH,
+    [AuditActionType.ROLE_CHANGE]: AuditSeverity.HIGH,
+    [AuditActionType.RESTORE]: AuditSeverity.HIGH,
+    [AuditActionType.BACKUP]: AuditSeverity.MEDIUM,
+    [AuditActionType.SYSTEM_CONFIG]: AuditSeverity.HIGH,
+    [AuditActionType.BULK_OPERATION]: AuditSeverity.MEDIUM,
+  } as Record<AuditActionType, AuditSeverity>,
 
   maxBodySize: 10 * 1024, // 10KB
 

@@ -219,12 +219,19 @@ enum AuditActionType {
   DELETE
   LOGIN
   LOGOUT
+  FAILED_LOGIN
   PERMISSION_CHANGE
   ROLE_CHANGE
   BULK_OPERATION
   SYSTEM_CONFIG
   EXPORT
   IMPORT
+  APPROVE
+  REJECT
+  BLOCK
+  UNBLOCK
+  RESTORE
+  BACKUP
 }
 
 enum AuditSeverity {
@@ -232,6 +239,7 @@ enum AuditSeverity {
   MEDIUM
   HIGH
   CRITICAL
+  ERROR
 }
 
 model AuditLog {

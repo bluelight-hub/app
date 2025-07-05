@@ -57,6 +57,7 @@ export const helmetConfig: HelmetOptions = {
 export const corsConfig = {
   development: {
     origin: [
+      process.env.ALLOWED_ORIGINS?.split(',') || false,
       'http://localhost:3000',
       'http://localhost:3001',
       'http://localhost:5173',

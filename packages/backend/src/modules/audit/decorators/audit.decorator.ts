@@ -1,5 +1,5 @@
 import { SetMetadata } from '@nestjs/common';
-import { AuditAction, AuditSeverityExtended as AuditSeverity } from '../types/audit.types';
+import { AuditActionType, AuditSeverity } from '@prisma/generated/prisma/client';
 
 /**
  * Metadaten-Schlüssel für Audit-Decorators
@@ -17,7 +17,7 @@ export interface AuditOptions {
   /**
    * Die Aktion, die protokolliert werden soll
    */
-  action?: AuditAction;
+  action?: AuditActionType;
 
   /**
    * Die Schwere der Aktion
@@ -98,7 +98,7 @@ export const NoAudit = () => SetMetadata(SKIP_AUDIT_KEY, true);
  */
 export const AuditLogin = (context?: Record<string, any>) =>
   Audit({
-    action: AuditAction.LOGIN,
+    action: AuditActionType.LOGIN,
     severity: AuditSeverity.LOW,
     context,
   });
@@ -108,7 +108,7 @@ export const AuditLogin = (context?: Record<string, any>) =>
  */
 export const AuditLogout = (context?: Record<string, any>) =>
   Audit({
-    action: AuditAction.LOGOUT,
+    action: AuditActionType.LOGOUT,
     severity: AuditSeverity.LOW,
     context,
   });
@@ -118,7 +118,7 @@ export const AuditLogout = (context?: Record<string, any>) =>
  */
 export const AuditCreate = (resourceType: string, context?: Record<string, any>) =>
   Audit({
-    action: AuditAction.CREATE,
+    action: AuditActionType.CREATE,
     severity: AuditSeverity.MEDIUM,
     resourceType,
     context,
@@ -129,7 +129,7 @@ export const AuditCreate = (resourceType: string, context?: Record<string, any>)
  */
 export const AuditUpdate = (resourceType: string, context?: Record<string, any>) =>
   Audit({
-    action: AuditAction.UPDATE,
+    action: AuditActionType.UPDATE,
     severity: AuditSeverity.MEDIUM,
     resourceType,
     context,
@@ -140,7 +140,7 @@ export const AuditUpdate = (resourceType: string, context?: Record<string, any>)
  */
 export const AuditDelete = (resourceType: string, context?: Record<string, any>) =>
   Audit({
-    action: AuditAction.DELETE,
+    action: AuditActionType.DELETE,
     severity: AuditSeverity.HIGH,
     resourceType,
     context,
@@ -151,7 +151,7 @@ export const AuditDelete = (resourceType: string, context?: Record<string, any>)
  */
 export const AuditView = (resourceType: string, context?: Record<string, any>) =>
   Audit({
-    action: AuditAction.VIEW,
+    action: AuditActionType.READ,
     severity: AuditSeverity.LOW,
     resourceType,
     context,
@@ -162,7 +162,7 @@ export const AuditView = (resourceType: string, context?: Record<string, any>) =
  */
 export const AuditExport = (resourceType: string, context?: Record<string, any>) =>
   Audit({
-    action: AuditAction.EXPORT,
+    action: AuditActionType.EXPORT,
     severity: AuditSeverity.MEDIUM,
     resourceType,
     context,
@@ -173,7 +173,7 @@ export const AuditExport = (resourceType: string, context?: Record<string, any>)
  */
 export const AuditImport = (resourceType: string, context?: Record<string, any>) =>
   Audit({
-    action: AuditAction.IMPORT,
+    action: AuditActionType.IMPORT,
     severity: AuditSeverity.HIGH,
     resourceType,
     context,
@@ -182,7 +182,7 @@ export const AuditImport = (resourceType: string, context?: Record<string, any>)
 /**
  * Markiert eine Methode als kritische Aktion
  */
-export const AuditCritical = (action: AuditAction, resourceType: string, description: string) =>
+export const AuditCritical = (action: AuditActionType, resourceType: string, description: string) =>
   Audit({
     action,
     severity: AuditSeverity.HIGH,

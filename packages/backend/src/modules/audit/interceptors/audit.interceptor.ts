@@ -11,12 +11,11 @@ import { Request, Response } from 'express';
 import { AuditLogService } from '../services/audit-log.service';
 import { AuditLogQueue } from '../queues/audit-log.queue';
 import { logger } from '../../../logger/consola.logger';
-import { AuditAction, AuditSeverityExtended as AuditSeverity } from '../types/audit.types';
 import {
   AuditInterceptorConfig,
   defaultAuditInterceptorConfig,
 } from '../config/audit-interceptor.config';
-import { AuditActionType, UserRole } from '@prisma/generated/prisma/client';
+import { AuditActionType, AuditSeverity, UserRole } from '@prisma/generated/prisma/client';
 import {
   AUDIT_ACTION_KEY,
   AUDIT_SEVERITY_KEY,
@@ -37,7 +36,7 @@ interface AuditRequest extends Request {
 
 interface AuditMetadata {
   skipAudit?: boolean;
-  action?: AuditAction;
+  action?: AuditActionType;
   severity?: AuditSeverity;
   resourceType?: string;
   additionalContext?: Record<string, any>;
@@ -307,20 +306,20 @@ export class AuditInterceptor implements NestInterceptor {
     // Queue the audit log for asynchronous processing
     try {
       await this.auditLogQueue.addAuditLog(auditLogData);
-      logger.trace('Audit log queued successfully', { 
-        action: auditLogData.action, 
-        resource: auditLogData.resource 
+      logger.trace('Audit log queued successfully', {
+        action: auditLogData.action,
+        resource: auditLogData.resource,
       });
     } catch (queueError) {
       // If queueing fails, fall back to direct logging
-      logger.error('Failed to queue audit log, falling back to direct logging', { 
-        error: queueError.message 
+      logger.error('Failed to queue audit log, falling back to direct logging', {
+        error: queueError.message,
       });
       try {
         await this.auditLogService.create(auditLogData);
       } catch (directError) {
-        logger.error('Failed to create audit log directly', { 
-          error: directError.message 
+        logger.error('Failed to create audit log directly', {
+          error: directError.message,
         });
       }
     }
@@ -329,7 +328,7 @@ export class AuditInterceptor implements NestInterceptor {
   /**
    * Bestimmt die Aktion basierend auf HTTP-Methode und Pfad
    */
-  private determineAction(method: string, path: string): AuditAction {
+  private determineAction(method: string, path: string): AuditActionType {
     // Check custom action mappings first
     const fullPath = `${method} ${path}`;
     for (const [pattern, action] of Object.entries(this.config.actionMapping)) {
@@ -338,29 +337,29 @@ export class AuditInterceptor implements NestInterceptor {
       }
     }
 
-    const methodActionMap: Record<string, AuditAction> = {
-      GET: AuditAction.VIEW,
-      POST: AuditAction.CREATE,
-      PUT: AuditAction.UPDATE,
-      PATCH: AuditAction.UPDATE,
-      DELETE: AuditAction.DELETE,
+    const methodActionMap: Record<string, AuditActionType> = {
+      GET: AuditActionType.READ,
+      POST: AuditActionType.CREATE,
+      PUT: AuditActionType.UPDATE,
+      PATCH: AuditActionType.UPDATE,
+      DELETE: AuditActionType.DELETE,
     };
 
     // Special cases based on path
-    if (path.includes('/login')) return AuditAction.LOGIN;
-    if (path.includes('/logout')) return AuditAction.LOGOUT;
-    if (path.includes('/export')) return AuditAction.EXPORT;
-    if (path.includes('/import')) return AuditAction.IMPORT;
-    if (path.includes('/approve')) return AuditAction.APPROVE;
-    if (path.includes('/reject')) return AuditAction.REJECT;
+    if (path.includes('/login')) return AuditActionType.LOGIN;
+    if (path.includes('/logout')) return AuditActionType.LOGOUT;
+    if (path.includes('/export')) return AuditActionType.EXPORT;
+    if (path.includes('/import')) return AuditActionType.IMPORT;
+    if (path.includes('/approve')) return AuditActionType.APPROVE;
+    if (path.includes('/reject')) return AuditActionType.REJECT;
 
-    return methodActionMap[method] || AuditAction.OTHER;
+    return methodActionMap[method] || AuditActionType.READ;
   }
 
   /**
    * Bestimmt die Schwere basierend auf Aktion und Erfolg
    */
-  private determineSeverity(action: AuditAction, success: boolean): AuditSeverity {
+  private determineSeverity(action: AuditActionType, success: boolean): AuditSeverity {
     if (!success) {
       return AuditSeverity.ERROR;
     }
@@ -467,8 +466,12 @@ export class AuditInterceptor implements NestInterceptor {
    * Prüft die Größe von Request/Response Bodies
    */
   private truncateIfNeeded(data: any): any {
+    if (data === undefined || data === null) {
+      return data;
+    }
+
     const json = JSON.stringify(data);
-    if (json.length > this.config.maxBodySize) {
+    if (json && json.length > this.config.maxBodySize) {
       return {
         _truncated: true,
         _originalSize: json.length,
@@ -479,57 +482,56 @@ export class AuditInterceptor implements NestInterceptor {
   }
 
   /**
-   * Maps custom AuditAction to Prisma's AuditActionType
+   * Maps action string to Prisma's AuditActionType
    */
-  private mapActionToActionType(action: string): AuditActionType {
-    const mapping: Record<string, AuditActionType> = {
-      [AuditAction.VIEW]: AuditActionType.READ,
-      [AuditAction.CREATE]: AuditActionType.CREATE,
-      [AuditAction.UPDATE]: AuditActionType.UPDATE,
-      [AuditAction.DELETE]: AuditActionType.DELETE,
-      [AuditAction.LOGIN]: AuditActionType.LOGIN,
-      [AuditAction.LOGOUT]: AuditActionType.LOGOUT,
-      [AuditAction.EXPORT]: AuditActionType.EXPORT,
-      [AuditAction.IMPORT]: AuditActionType.IMPORT,
-      [AuditAction.GRANT_PERMISSION]: AuditActionType.PERMISSION_CHANGE,
-      // REVOKE_PERMISSION maps to the same value, handled in the mapping logic
-      [AuditAction.CHANGE_ROLE]: AuditActionType.ROLE_CHANGE,
-      [AuditAction.CONFIG_CHANGE]: AuditActionType.SYSTEM_CONFIG,
-      [AuditAction.BULK_OPERATION]: AuditActionType.BULK_OPERATION,
-    };
-
-    // Handle REVOKE_PERMISSION separately since it maps to the same value
-    if (action === AuditAction.REVOKE_PERMISSION) {
-      return AuditActionType.PERMISSION_CHANGE;
+  private mapActionToActionType(action: string | AuditActionType): AuditActionType {
+    // If it's already an AuditActionType, return it
+    if (Object.values(AuditActionType).includes(action as AuditActionType)) {
+      return action as AuditActionType;
     }
 
-    return mapping[action] || AuditActionType.READ;
+    // Handle string mappings
+    const stringMappings: Record<string, AuditActionType> = {
+      view: AuditActionType.READ,
+      'grant-permission': AuditActionType.PERMISSION_CHANGE,
+      'revoke-permission': AuditActionType.PERMISSION_CHANGE,
+      'change-role': AuditActionType.ROLE_CHANGE,
+      'config-change': AuditActionType.SYSTEM_CONFIG,
+      'bulk-operation': AuditActionType.BULK_OPERATION,
+    };
+
+    return stringMappings[action.toLowerCase()] || AuditActionType.READ;
   }
 
   /**
    * Prüft, ob die Aktion sensible Daten betrifft
    */
-  private containsSensitiveData(resourceType: string, action: string): boolean {
+  private containsSensitiveData(resourceType: string, action: string | AuditActionType): boolean {
     const sensitiveResources = ['user', 'permission', 'role', 'session', 'authentication'];
-    const sensitiveActions = [
-      AuditAction.GRANT_PERMISSION,
-      AuditAction.REVOKE_PERMISSION,
-      AuditAction.CHANGE_ROLE,
+    const sensitiveActions: AuditActionType[] = [
+      AuditActionType.PERMISSION_CHANGE,
+      AuditActionType.ROLE_CHANGE,
     ];
 
-    return sensitiveResources.includes(resourceType) || sensitiveActions.includes(action as any);
+    const actionType = typeof action === 'string' ? this.mapActionToActionType(action) : action;
+    return sensitiveResources.includes(resourceType) || sensitiveActions.includes(actionType);
   }
 
   /**
    * Prüft, ob die Aktion eine Überprüfung erfordert
    */
-  private requiresReview(action: string, severity: string): boolean {
+  private requiresReview(
+    action: string | AuditActionType,
+    severity: string | AuditSeverity,
+  ): boolean {
+    const actionType = typeof action === 'string' ? this.mapActionToActionType(action) : action;
+
     return (
       severity === AuditSeverity.CRITICAL ||
       severity === AuditSeverity.HIGH ||
-      action === AuditAction.DELETE ||
-      action === AuditAction.GRANT_PERMISSION ||
-      action === AuditAction.REVOKE_PERMISSION
+      actionType === AuditActionType.DELETE ||
+      actionType === AuditActionType.PERMISSION_CHANGE ||
+      actionType === AuditActionType.ROLE_CHANGE
     );
   }
 }

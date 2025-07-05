@@ -4,7 +4,7 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { AuthModule } from './auth.module';
 import { AuthService } from './auth.service';
 import { AuthController } from './auth.controller';
-import { JwtStrategy, JwtRefreshStrategy } from './strategies';
+import { JwtStrategy } from './strategies';
 import { PrismaService } from '@/prisma/prisma.service';
 import { PermissionValidationService } from './services/permission-validation.service';
 import { SessionCleanupService } from './services/session-cleanup.service';
@@ -39,7 +39,6 @@ describe('AuthModule', () => {
       // Check all providers are available
       expect(module.get(AuthService)).toBeDefined();
       expect(module.get(JwtStrategy)).toBeDefined();
-      expect(module.get(JwtRefreshStrategy)).toBeDefined();
       expect(module.get(PrismaService)).toBeDefined();
       expect(module.get(PermissionValidationService)).toBeDefined();
       expect(module.get(SessionCleanupService)).toBeDefined();
@@ -126,10 +125,9 @@ describe('AuthModule', () => {
       const providers = Reflect.getMetadata('providers', AuthModule);
       expect(providers).toBeDefined();
       expect(Array.isArray(providers)).toBe(true);
-      expect(providers).toHaveLength(6);
+      expect(providers).toHaveLength(5);
       expect(providers).toContain(AuthService);
       expect(providers).toContain(JwtStrategy);
-      expect(providers).toContain(JwtRefreshStrategy);
       expect(providers).toContain(PrismaService);
       expect(providers).toContain(PermissionValidationService);
       expect(providers).toContain(SessionCleanupService);

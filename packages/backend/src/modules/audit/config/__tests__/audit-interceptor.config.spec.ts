@@ -3,7 +3,7 @@ import {
   createAuditInterceptorConfig,
   AuditInterceptorConfig,
 } from '../audit-interceptor.config';
-import { AuditAction, AuditSeverityExtended as AuditSeverity } from '../../types/audit.types';
+import { AuditActionType, AuditSeverity } from '@prisma/generated/prisma/client';
 
 describe('Audit Interceptor Config', () => {
   describe('defaultAuditInterceptorConfig', () => {
@@ -90,46 +90,46 @@ describe('Audit Interceptor Config', () => {
     it('should have correct action mappings', () => {
       const { actionMapping } = defaultAuditInterceptorConfig;
 
-      expect(actionMapping['POST /admin/users/login']).toBe(AuditAction.LOGIN);
-      expect(actionMapping['POST /admin/users/logout']).toBe(AuditAction.LOGOUT);
-      expect(actionMapping['POST /admin/users/*/block']).toBe(AuditAction.BLOCK);
-      expect(actionMapping['POST /admin/users/*/unblock']).toBe(AuditAction.UNBLOCK);
-      expect(actionMapping['POST /admin/*/approve']).toBe(AuditAction.APPROVE);
-      expect(actionMapping['POST /admin/*/reject']).toBe(AuditAction.REJECT);
-      expect(actionMapping['POST /admin/*/export']).toBe(AuditAction.EXPORT);
-      expect(actionMapping['POST /admin/*/import']).toBe(AuditAction.IMPORT);
-      expect(actionMapping['POST /admin/backups/restore']).toBe(AuditAction.RESTORE);
+      expect(actionMapping['POST /admin/users/login']).toBe(AuditActionType.LOGIN);
+      expect(actionMapping['POST /admin/users/logout']).toBe(AuditActionType.LOGOUT);
+      expect(actionMapping['POST /admin/users/*/block']).toBe(AuditActionType.BLOCK);
+      expect(actionMapping['POST /admin/users/*/unblock']).toBe(AuditActionType.UNBLOCK);
+      expect(actionMapping['POST /admin/*/approve']).toBe(AuditActionType.APPROVE);
+      expect(actionMapping['POST /admin/*/reject']).toBe(AuditActionType.REJECT);
+      expect(actionMapping['POST /admin/*/export']).toBe(AuditActionType.EXPORT);
+      expect(actionMapping['POST /admin/*/import']).toBe(AuditActionType.IMPORT);
+      expect(actionMapping['POST /admin/backups/restore']).toBe(AuditActionType.RESTORE);
     });
 
     it('should have correct severity mappings for all actions', () => {
       const { severityMapping } = defaultAuditInterceptorConfig;
 
       // Low severity
-      expect(severityMapping[AuditAction.VIEW]).toBe(AuditSeverity.LOW);
-      expect(severityMapping[AuditAction.LOGIN]).toBe(AuditSeverity.LOW);
-      expect(severityMapping[AuditAction.LOGOUT]).toBe(AuditSeverity.LOW);
-      expect(severityMapping[AuditAction.OTHER]).toBe(AuditSeverity.LOW);
+      expect(severityMapping[AuditActionType.READ]).toBe(AuditSeverity.LOW);
+      expect(severityMapping[AuditActionType.LOGIN]).toBe(AuditSeverity.LOW);
+      expect(severityMapping[AuditActionType.LOGOUT]).toBe(AuditSeverity.LOW);
+      expect(severityMapping[AuditActionType.READ]).toBe(AuditSeverity.LOW);
 
       // Medium severity
-      expect(severityMapping[AuditAction.CREATE]).toBe(AuditSeverity.MEDIUM);
-      expect(severityMapping[AuditAction.UPDATE]).toBe(AuditSeverity.MEDIUM);
-      expect(severityMapping[AuditAction.EXPORT]).toBe(AuditSeverity.MEDIUM);
-      expect(severityMapping[AuditAction.UNBLOCK]).toBe(AuditSeverity.MEDIUM);
-      expect(severityMapping[AuditAction.BACKUP]).toBe(AuditSeverity.MEDIUM);
-      expect(severityMapping[AuditAction.BULK_OPERATION]).toBe(AuditSeverity.MEDIUM);
+      expect(severityMapping[AuditActionType.CREATE]).toBe(AuditSeverity.MEDIUM);
+      expect(severityMapping[AuditActionType.UPDATE]).toBe(AuditSeverity.MEDIUM);
+      expect(severityMapping[AuditActionType.EXPORT]).toBe(AuditSeverity.MEDIUM);
+      expect(severityMapping[AuditActionType.UNBLOCK]).toBe(AuditSeverity.MEDIUM);
+      expect(severityMapping[AuditActionType.BACKUP]).toBe(AuditSeverity.MEDIUM);
+      expect(severityMapping[AuditActionType.BULK_OPERATION]).toBe(AuditSeverity.MEDIUM);
 
       // High severity
-      expect(severityMapping[AuditAction.DELETE]).toBe(AuditSeverity.HIGH);
-      expect(severityMapping[AuditAction.FAILED_LOGIN]).toBe(AuditSeverity.HIGH);
-      expect(severityMapping[AuditAction.IMPORT]).toBe(AuditSeverity.HIGH);
-      expect(severityMapping[AuditAction.APPROVE]).toBe(AuditSeverity.HIGH);
-      expect(severityMapping[AuditAction.REJECT]).toBe(AuditSeverity.HIGH);
-      expect(severityMapping[AuditAction.BLOCK]).toBe(AuditSeverity.HIGH);
-      expect(severityMapping[AuditAction.GRANT_PERMISSION]).toBe(AuditSeverity.HIGH);
-      expect(severityMapping[AuditAction.REVOKE_PERMISSION]).toBe(AuditSeverity.HIGH);
-      expect(severityMapping[AuditAction.CHANGE_ROLE]).toBe(AuditSeverity.HIGH);
-      expect(severityMapping[AuditAction.RESTORE]).toBe(AuditSeverity.HIGH);
-      expect(severityMapping[AuditAction.CONFIG_CHANGE]).toBe(AuditSeverity.HIGH);
+      expect(severityMapping[AuditActionType.DELETE]).toBe(AuditSeverity.HIGH);
+      expect(severityMapping[AuditActionType.FAILED_LOGIN]).toBe(AuditSeverity.HIGH);
+      expect(severityMapping[AuditActionType.IMPORT]).toBe(AuditSeverity.HIGH);
+      expect(severityMapping[AuditActionType.APPROVE]).toBe(AuditSeverity.HIGH);
+      expect(severityMapping[AuditActionType.REJECT]).toBe(AuditSeverity.HIGH);
+      expect(severityMapping[AuditActionType.BLOCK]).toBe(AuditSeverity.HIGH);
+      expect(severityMapping[AuditActionType.PERMISSION_CHANGE]).toBe(AuditSeverity.HIGH);
+      expect(severityMapping[AuditActionType.PERMISSION_CHANGE]).toBe(AuditSeverity.HIGH);
+      expect(severityMapping[AuditActionType.ROLE_CHANGE]).toBe(AuditSeverity.HIGH);
+      expect(severityMapping[AuditActionType.RESTORE]).toBe(AuditSeverity.HIGH);
+      expect(severityMapping[AuditActionType.SYSTEM_CONFIG]).toBe(AuditSeverity.HIGH);
     });
 
     it('should have correct maxBodySize', () => {
@@ -223,31 +223,31 @@ describe('Audit Interceptor Config', () => {
     it('should merge action mappings', () => {
       const customConfig: Partial<AuditInterceptorConfig> = {
         actionMapping: {
-          'POST /custom/action': AuditAction.OTHER,
-          'POST /admin/users/login': AuditAction.OTHER, // Override existing
+          'POST /custom/action': AuditActionType.READ,
+          'POST /admin/users/login': AuditActionType.READ, // Override existing
         },
       };
 
       const config = createAuditInterceptorConfig(customConfig);
 
-      expect(config.actionMapping['POST /custom/action']).toBe(AuditAction.OTHER);
-      expect(config.actionMapping['POST /admin/users/login']).toBe(AuditAction.OTHER); // Overridden
-      expect(config.actionMapping['POST /admin/users/logout']).toBe(AuditAction.LOGOUT); // Default preserved
+      expect(config.actionMapping['POST /custom/action']).toBe(AuditActionType.READ);
+      expect(config.actionMapping['POST /admin/users/login']).toBe(AuditActionType.READ); // Overridden
+      expect(config.actionMapping['POST /admin/users/logout']).toBe(AuditActionType.LOGOUT); // Default preserved
     });
 
     it('should merge severity mappings', () => {
       const customConfig: Partial<AuditInterceptorConfig> = {
         severityMapping: {
-          [AuditAction.VIEW]: AuditSeverity.HIGH, // Override
-          [AuditAction.OTHER]: AuditSeverity.MEDIUM, // Override
-        } as Record<AuditAction, AuditSeverity>,
+          [AuditActionType.READ]: AuditSeverity.HIGH, // Override
+          [AuditActionType.CREATE]: AuditSeverity.LOW, // Override
+        } as Record<AuditActionType, AuditSeverity>,
       };
 
       const config = createAuditInterceptorConfig(customConfig);
 
-      expect(config.severityMapping[AuditAction.VIEW]).toBe(AuditSeverity.HIGH); // Overridden
-      expect(config.severityMapping[AuditAction.OTHER]).toBe(AuditSeverity.MEDIUM); // Overridden
-      expect(config.severityMapping[AuditAction.CREATE]).toBe(AuditSeverity.MEDIUM); // Default preserved
+      expect(config.severityMapping[AuditActionType.READ]).toBe(AuditSeverity.HIGH); // Overridden
+      expect(config.severityMapping[AuditActionType.CREATE]).toBe(AuditSeverity.LOW); // Overridden
+      expect(config.severityMapping[AuditActionType.UPDATE]).toBe(AuditSeverity.MEDIUM); // Default preserved
     });
 
     it('should override scalar properties', () => {
@@ -299,9 +299,9 @@ describe('Audit Interceptor Config', () => {
         includePaths: ['/api/v2'],
         sensitiveFields: ['test_field'],
         resourceMapping: { '/test': 'test_resource' },
-        actionMapping: { 'GET /test': AuditAction.VIEW },
-        severityMapping: { [AuditAction.OTHER]: AuditSeverity.HIGH } as Record<
-          AuditAction,
+        actionMapping: { 'GET /test': AuditActionType.READ },
+        severityMapping: { [AuditActionType.READ]: AuditSeverity.HIGH } as Record<
+          AuditActionType,
           AuditSeverity
         >,
         maxBodySize: 5 * 1024,
@@ -324,11 +324,11 @@ describe('Audit Interceptor Config', () => {
       expect(config.resourceMapping['/admin/users']).toBe('user');
       expect(config.resourceMapping['/test']).toBe('test_resource');
 
-      expect(config.actionMapping['POST /admin/users/login']).toBe(AuditAction.LOGIN);
-      expect(config.actionMapping['GET /test']).toBe(AuditAction.VIEW);
+      expect(config.actionMapping['POST /admin/users/login']).toBe(AuditActionType.LOGIN);
+      expect(config.actionMapping['GET /test']).toBe(AuditActionType.READ);
 
-      expect(config.severityMapping[AuditAction.CREATE]).toBe(AuditSeverity.MEDIUM);
-      expect(config.severityMapping[AuditAction.OTHER]).toBe(AuditSeverity.HIGH);
+      expect(config.severityMapping[AuditActionType.CREATE]).toBe(AuditSeverity.MEDIUM);
+      expect(config.severityMapping[AuditActionType.READ]).toBe(AuditSeverity.HIGH);
 
       // Scalar values should be overridden
       expect(config.maxBodySize).toBe(5 * 1024);
@@ -338,7 +338,7 @@ describe('Audit Interceptor Config', () => {
 
   describe('Config Validation', () => {
     it('should have all audit actions mapped to severity', () => {
-      const allActions = Object.values(AuditAction);
+      const allActions = Object.values(AuditActionType);
       const { severityMapping } = defaultAuditInterceptorConfig;
 
       allActions.forEach((action) => {
@@ -371,10 +371,10 @@ describe('Audit Interceptor Config', () => {
       const { severityMapping } = defaultAuditInterceptorConfig;
 
       // REVOKE_PERMISSION should have the same severity as GRANT_PERMISSION
-      expect(severityMapping[AuditAction.REVOKE_PERMISSION]).toBe(
-        severityMapping[AuditAction.GRANT_PERMISSION],
+      expect(severityMapping[AuditActionType.PERMISSION_CHANGE]).toBe(
+        severityMapping[AuditActionType.PERMISSION_CHANGE],
       );
-      expect(severityMapping[AuditAction.REVOKE_PERMISSION]).toBe(AuditSeverity.HIGH);
+      expect(severityMapping[AuditActionType.PERMISSION_CHANGE]).toBe(AuditSeverity.HIGH);
     });
   });
 });
