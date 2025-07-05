@@ -1,4 +1,4 @@
-import { fireEvent, render, screen } from '@testing-library/react';
+import { render, screen, waitFor } from '@testing-library/react';
 import { BrowserRouter } from 'react-router-dom';
 import { vi } from 'vitest';
 import IndexPage from './page';
@@ -9,57 +9,72 @@ vi.mock('react-router', () => ({
   useNavigate: () => mockNavigate,
 }));
 
+// Mock for useAuth
+const mockAuth = {
+  isAuthenticated: false,
+  isLoading: true,
+  user: null,
+  login: vi.fn(),
+  logout: vi.fn(),
+  hasRole: vi.fn(),
+  hasPermission: vi.fn(),
+  isAdmin: vi.fn(),
+};
+
+vi.mock('@/hooks/useAuth', () => ({
+  useAuth: () => mockAuth,
+}));
+
 describe('IndexPage', () => {
   // Reset mocks before each test
   beforeEach(() => {
     mockNavigate.mockReset();
+    mockAuth.isAuthenticated = false;
+    mockAuth.isLoading = true;
   });
 
-  // Unit test: Component renders correctly
-  test('renders correctly with login button', () => {
+  // Test loading state
+  test('shows loading state while checking authentication', () => {
     render(
       <BrowserRouter>
         <IndexPage />
       </BrowserRouter>,
     );
 
-    // Check if the button exists
-    const loginButton = screen.getByText('Anmelden');
-    expect(loginButton).toBeInTheDocument();
+    expect(screen.getByText('Lädt...')).toBeInTheDocument();
   });
 
-  // Integration test: Button interaction works correctly
-  test('navigates to /app when button is clicked', () => {
+  // Test redirect to login when not authenticated
+  test('redirects to login when not authenticated', async () => {
+    mockAuth.isLoading = false;
+    mockAuth.isAuthenticated = false;
+
     render(
       <BrowserRouter>
         <IndexPage />
       </BrowserRouter>,
     );
 
-    // Find the button and click it
-    const loginButton = screen.getByText('Anmelden');
-    fireEvent.click(loginButton);
-
-    // Verify navigation was called with correct path
-    expect(mockNavigate).toHaveBeenCalledTimes(1);
-    expect(mockNavigate).toHaveBeenCalledWith('/app');
+    await waitFor(() => {
+      expect(mockNavigate).toHaveBeenCalledTimes(1);
+      expect(mockNavigate).toHaveBeenCalledWith('/login');
+    });
   });
 
-  // Layout and structure test
-  test('has correct layout and structure', () => {
+  // Test redirect to app when authenticated
+  test('redirects to app when authenticated', async () => {
+    mockAuth.isLoading = false;
+    mockAuth.isAuthenticated = true;
+
     render(
       <BrowserRouter>
         <IndexPage />
       </BrowserRouter>,
     );
 
-    // Check container layout
-    const container = screen.getByRole('button').parentElement;
-    expect(container).toHaveClass('flex', 'flex-col', 'items-center', 'justify-center', 'h-screen', 'w-screen');
-
-    // Check button properties
-    const button = screen.getByRole('button');
-    expect(button).toHaveTextContent('Anmelden');
-    expect(button).toHaveAttribute('type', 'button');
+    await waitFor(() => {
+      expect(mockNavigate).toHaveBeenCalledTimes(1);
+      expect(mockNavigate).toHaveBeenCalledWith('/app');
+    });
   });
 });
