@@ -93,3 +93,34 @@ model EtbAttachment {
   @@index([etbEntryId], map: "idx_etb_attachment_entry_id")
   @@index([dateityp], map: "idx_etb_attachment_dateityp")
 }
+
+model IpWhitelist {
+  id            String   @id @default(nanoid())
+  ipAddress     String   @unique @db.VarChar(45) // Supports both IPv4 and IPv6
+  description   String?  @db.VarChar(255)
+  isActive      Boolean  @default(true)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  createdBy     String   @db.VarChar(255)
+  
+  // Postgres-specific indexes
+  @@index([ipAddress, isActive], map: "idx_ip_whitelist_ip_active")
+  @@index([isActive, createdAt], map: "idx_ip_whitelist_active_created")
+}
+
+model AuditLog {
+  id          String   @id @default(nanoid())
+  action      String   @db.VarChar(50)
+  resource    String   @db.VarChar(100)
+  resourceId  String?  @db.VarChar(255)
+  userId      String   @db.VarChar(255)
+  ipAddress   String?  @db.VarChar(45)
+  userAgent   String?  @db.Text
+  details     Json?
+  timestamp   DateTime @default(now())
+  
+  // Postgres-specific indexes
+  @@index([action, resource], map: "idx_audit_log_action_resource")
+  @@index([userId, timestamp], map: "idx_audit_log_user_timestamp")
+  @@index([timestamp], map: "idx_audit_log_timestamp")
+}
