@@ -1,6 +1,7 @@
 import { act, fireEvent, render, screen } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
-import { EinsatzProvider } from '../../contexts/EinsatzContext';
+import { MemoryRouter } from 'react-router-dom';
+import { App } from 'antd';
 import { useUserProfileStore } from '../../stores/useUserProfileStore';
 import UserProfile from './UserProfile';
 
@@ -54,19 +55,36 @@ vi.mock('../../utils/auth', () => ({
 // useAuth hook wird nicht mehr benötigt
 
 // Mock für React Router
-vi.mock('react-router-dom', () => ({
-  useNavigate: vi.fn(() => vi.fn()),
+const mockNavigate = vi.fn();
+vi.mock('react-router', () => ({
+  ...vi.importActual('react-router'),
+  useNavigate: () => mockNavigate,
 }));
 
-// Helper function to render with EinsatzProvider
-const renderWithEinsatzProvider = (component: React.ReactElement) => {
-  return render(<EinsatzProvider>{component}</EinsatzProvider>);
+// Mock für EinsatzContext
+vi.mock('../../contexts/EinsatzContext', () => ({
+  ...vi.importActual('../../contexts/EinsatzContext'),
+  useEinsatzContext: () => ({
+    selectedEinsatz: { id: '1', name: 'Test Einsatz' },
+    clearSelectedEinsatz: vi.fn(),
+    selectEinsatz: vi.fn(),
+    isEinsatzSelected: true,
+  }),
+}));
+
+// Helper function to render with providers
+const renderWithProviders = (component: React.ReactElement) => {
+  return render(
+    <MemoryRouter>
+      <App>{component}</App>
+    </MemoryRouter>,
+  );
 };
 
 describe('UserProfile', () => {
   // Unit Test - Grundlegendes Rendering
   it('should render with profile data', () => {
-    renderWithEinsatzProvider(<UserProfile href="/profile" data-testid="user-profile" />);
+    renderWithProviders(<UserProfile href="/profile" data-testid="user-profile" />);
 
     const profileElement = screen.getByTestId('user-profile');
     expect(profileElement).toBeInTheDocument();
@@ -75,7 +93,7 @@ describe('UserProfile', () => {
 
   // Unit Test - Prüft, ob das Profile Button korrekt gerendert wird
   it('should render the profile button correctly', () => {
-    renderWithEinsatzProvider(<UserProfile href="/profile" data-testid="user-profile" />);
+    renderWithProviders(<UserProfile href="/profile" data-testid="user-profile" />);
 
     const profileButton = screen.getByTestId('user-profile');
     expect(profileButton).toBeInTheDocument();
@@ -87,7 +105,7 @@ describe('UserProfile', () => {
   // Unit Test - Prüft, ob onClick richtig aufgerufen wird (jetzt Dropdown)
   it('should handle onClick event', async () => {
     const handleClick = vi.fn();
-    renderWithEinsatzProvider(<UserProfile href="/profile" onClick={handleClick} data-testid="user-profile" />);
+    renderWithProviders(<UserProfile href="/profile" onClick={handleClick} data-testid="user-profile" />);
 
     // Dropdown trigger klicken
     await act(async () => {
@@ -102,7 +120,7 @@ describe('UserProfile', () => {
   // Unit Test - Prüft, ob der onClick Handler im Profil-MenuItem funktioniert
   it('should call onClick when profile menu item is clicked', async () => {
     const handleClick = vi.fn();
-    renderWithEinsatzProvider(<UserProfile href="/profile" onClick={handleClick} data-testid="user-profile" />);
+    renderWithProviders(<UserProfile href="/profile" onClick={handleClick} data-testid="user-profile" />);
 
     // Dropdown öffnen
     await act(async () => {
@@ -120,7 +138,7 @@ describe('UserProfile', () => {
 
   // Unit Test - Prüft, ob der hideText Parameter funktioniert
   it('should hide text when hideText is true', () => {
-    renderWithEinsatzProvider(<UserProfile href="/profile" hideText={true} data-testid="user-profile" />);
+    renderWithProviders(<UserProfile href="/profile" hideText={true} data-testid="user-profile" />);
 
     // Button sollte noch sichtbar sein
     expect(screen.getByTestId('user-profile')).toBeInTheDocument();
@@ -132,13 +150,15 @@ describe('UserProfile', () => {
   // Integration Test - Im Layout-Kontext
   it('should work properly in a sidebar layout', () => {
     render(
-      <EinsatzProvider>
-        <div data-testid="sidebar">
-          <nav>
-            <UserProfile href="/profile" data-testid="user-profile" />
-          </nav>
-        </div>
-      </EinsatzProvider>,
+      <MemoryRouter>
+        <App>
+          <div data-testid="sidebar">
+            <nav>
+              <UserProfile href="/profile" data-testid="user-profile" />
+            </nav>
+          </div>
+        </App>
+      </MemoryRouter>,
     );
 
     const sidebar = screen.getByTestId('sidebar');
@@ -148,13 +168,13 @@ describe('UserProfile', () => {
 
   // Snapshot Test
   it('should match snapshot', () => {
-    const { container } = renderWithEinsatzProvider(<UserProfile href="/profile" data-testid="user-profile" />);
+    const { container } = renderWithProviders(<UserProfile href="/profile" data-testid="user-profile" />);
     expect(container).toMatchSnapshot();
   });
 
   // Snapshot Test with hideText
   it('should match snapshot with hidden text', () => {
-    const { container } = renderWithEinsatzProvider(
+    const { container } = renderWithProviders(
       <UserProfile href="/profile" hideText={true} data-testid="user-profile" />,
     );
     expect(container).toMatchSnapshot();
@@ -174,8 +194,8 @@ describe('UserProfile', () => {
       } as MockUserProfileState),
     );
 
-    const { container } = renderWithEinsatzProvider(<UserProfile href="/profile" data-testid="user-profile" />);
-    expect(container.firstChild).toBeNull();
+    renderWithProviders(<UserProfile href="/profile" data-testid="user-profile" />);
+    expect(screen.queryByTestId('user-profile')).not.toBeInTheDocument();
   });
 
   // Test für Logout-Fehlerbehandlung
@@ -183,7 +203,7 @@ describe('UserProfile', () => {
     const { logout } = await import('../../utils/auth');
     vi.mocked(logout).mockRejectedValueOnce(new Error('Logout failed'));
 
-    renderWithEinsatzProvider(<UserProfile href="/profile" data-testid="user-profile" />);
+    renderWithProviders(<UserProfile href="/profile" data-testid="user-profile" />);
 
     // Dropdown öffnen
     await act(async () => {

@@ -4,7 +4,6 @@ import { MemoryRouter } from 'react-router-dom';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { NavigationItem } from '../../../config/navigation';
 import { AuthProvider } from '../../../contexts/AuthContext';
-import { EinsatzProvider } from '../../../contexts/EinsatzContext';
 import * as ThemeHook from '../../../hooks/useTheme';
 import SidebarContent from './SidebarContent';
 
@@ -88,9 +87,7 @@ describe.skip('SidebarContent', () => {
       <QueryClientProvider client={queryClient}>
         <MemoryRouter>
           <AuthProvider>
-            <EinsatzProvider>
-              <SidebarContent {...props} />
-            </EinsatzProvider>
+            <SidebarContent {...props} />
           </AuthProvider>
         </MemoryRouter>
       </QueryClientProvider>,

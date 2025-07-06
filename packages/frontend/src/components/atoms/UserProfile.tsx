@@ -1,10 +1,11 @@
-import { Dropdown, MenuProps, Button } from 'antd';
-import { PiSignOut, PiUser } from 'react-icons/pi';
+import { App, Button, Dropdown, MenuProps } from 'antd';
+import { PiSignOut, PiUser, PiX } from 'react-icons/pi';
 import React, { useState } from 'react';
 import { useEinsatzContext } from '../../contexts/EinsatzContext';
 import { useUserProfileStore } from '../../stores/useUserProfileStore';
 import { logout } from '../../utils/auth';
 import { BaseAtomProps } from '../../utils/types';
+import { useNavigate } from 'react-router';
 
 interface UserProfileProps extends BaseAtomProps {
   href: string;
@@ -22,8 +23,10 @@ const UserProfile: React.FC<UserProfileProps> = ({
   'data-testid': dataTestId = 'user-profile',
 }) => {
   const profile = useUserProfileStore((state) => state.profile);
-  const { clearSelectedEinsatz } = useEinsatzContext();
+  const { clearSelectedEinsatz, selectedEinsatz } = useEinsatzContext();
   const [loading, setLoading] = useState(false);
+  const navigate = useNavigate();
+  const { modal } = App.useApp();
 
   const handleLogout = async () => {
     setLoading(true);
@@ -34,6 +37,19 @@ const UserProfile: React.FC<UserProfileProps> = ({
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleCloseEinsatz = () => {
+    modal.confirm({
+      title: 'Einsatz schließen',
+      content: `Möchten Sie den laufenden Einsatz "${selectedEinsatz?.name}" wirklich schließen und zur Einsatzübersicht zurückkehren?`,
+      okText: 'Ja, schließen',
+      cancelText: 'Abbrechen',
+      onOk: () => {
+        clearSelectedEinsatz();
+        navigate('/app/einsaetze');
+      },
+    });
   };
 
   const items: MenuProps['items'] = [
@@ -47,6 +63,13 @@ const UserProfile: React.FC<UserProfileProps> = ({
     },
     {
       type: 'divider',
+    },
+    {
+      type: 'item',
+      key: 'close-einsatz',
+      label: 'Einsatz schließen',
+      icon: <PiX />,
+      onClick: handleCloseEinsatz,
     },
     {
       key: 'logout',

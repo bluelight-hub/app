@@ -4,7 +4,11 @@ import { api } from '../api';
 import { logger } from '../utils/logger';
 import { authStorage } from '../utils/authStorage';
 import { AuthUserDto } from '@bluelight-hub/shared/client';
-import { auditLogger, AuditActionType, AuditSeverity } from '../utils/audit';
+import { auditLogger } from '../utils/audit';
+import {
+  CreateAuditLogDtoActionTypeEnum as AuditActionType,
+  CreateAuditLogDtoSeverityEnum as AuditSeverity,
+} from '@bluelight-hub/shared/client';
 
 interface AuthState {
   user: AuthUserDto | null;
@@ -99,8 +103,8 @@ export const useAuthStore = create<AuthStore>()(
               await auditLogger.log({
                 action: 'login',
                 resource: 'auth',
-                actionType: AuditActionType.LOGIN,
-                severity: AuditSeverity.HIGH,
+                actionType: AuditActionType.Login,
+                severity: AuditSeverity.High,
                 metadata: {
                   email,
                   userId: data.user?.id,
@@ -128,14 +132,14 @@ export const useAuthStore = create<AuthStore>()(
             }
           } catch (error) {
             logger.error('Login error', { error });
-            
+
             // Log failed login attempt
             await auditLogger.logError('login', 'auth', error as Error, {
-              actionType: AuditActionType.LOGIN,
-              severity: AuditSeverity.HIGH,
+              actionType: AuditActionType.Login,
+              severity: AuditSeverity.High,
               metadata: { email },
             });
-            
+
             set({ isLoading: false });
             return {
               success: false,
@@ -146,7 +150,7 @@ export const useAuthStore = create<AuthStore>()(
 
         logout: async () => {
           const currentUser = get().user;
-          
+
           try {
             // Clear refresh timer first
             get().clearRefreshTimer();
@@ -154,13 +158,13 @@ export const useAuthStore = create<AuthStore>()(
             // Call logout endpoint to revoke session
             await api.auth.authControllerLogoutV1();
             logger.info('Logout successful');
-            
+
             // Log successful logout
             await auditLogger.log({
               action: 'logout',
               resource: 'auth',
-              actionType: AuditActionType.LOGOUT,
-              severity: AuditSeverity.MEDIUM,
+              actionType: AuditActionType.Logout,
+              severity: AuditSeverity.Medium,
               metadata: {
                 userId: currentUser?.id,
                 userEmail: currentUser?.email,
@@ -168,11 +172,11 @@ export const useAuthStore = create<AuthStore>()(
             });
           } catch (error) {
             logger.error('Logout error', { error });
-            
+
             // Log logout error
             await auditLogger.logError('logout', 'auth', error as Error, {
-              actionType: AuditActionType.LOGOUT,
-              severity: AuditSeverity.MEDIUM,
+              actionType: AuditActionType.Logout,
+              severity: AuditSeverity.Medium,
               metadata: {
                 userId: currentUser?.id,
                 userEmail: currentUser?.email,

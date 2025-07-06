@@ -11,6 +11,7 @@ import {
   PiClock,
   PiCloud,
   PiDrone,
+  PiFileText,
   PiFirstAid,
   PiGauge,
   PiGaugeBold,
@@ -33,7 +34,6 @@ import {
   PiVideoCameraBold,
   PiWarningDiamond,
   PiWrench,
-  PiFileText,
 } from 'react-icons/pi';
 
 export type NavigationType = 'item' | 'group' | 'submenu';

@@ -11,15 +11,18 @@ vi.mock('../../utils/audit', () => ({
     logError: vi.fn(),
     logDataChange: vi.fn(),
   })),
-  AuditActionType: {
-    READ: 'READ',
-    CREATE: 'CREATE',
-    UPDATE: 'UPDATE',
+}));
+
+vi.mock('@bluelight-hub/shared/client', () => ({
+  CreateAuditLogDtoActionTypeEnum: {
+    Read: 'READ',
+    Create: 'CREATE',
+    Update: 'UPDATE',
   },
-  AuditSeverity: {
-    LOW: 'LOW',
-    MEDIUM: 'MEDIUM',
-    HIGH: 'HIGH',
+  CreateAuditLogDtoSeverityEnum: {
+    Low: 'LOW',
+    Medium: 'MEDIUM',
+    High: 'HIGH',
   },
 }));
 
@@ -36,7 +39,7 @@ describe('useAuditedAction', () => {
       useAuditedAction(mockAction, {
         action: 'create-item',
         resource: 'items',
-      })
+      }),
     );
 
     await act(async () => {
@@ -54,7 +57,7 @@ describe('useAuditedAction', () => {
         metadata: expect.objectContaining({
           result: { id: '123' },
         }),
-      })
+      }),
     );
   });
 
@@ -71,7 +74,7 @@ describe('useAuditedAction', () => {
       useAuditedAction(mockAction, {
         action: 'delete-item',
         resource: 'items',
-      })
+      }),
     );
 
     await act(async () => {
@@ -85,7 +88,7 @@ describe('useAuditedAction', () => {
       expect.objectContaining({
         action: 'delete-item',
         resource: 'items',
-      })
+      }),
     );
   });
 
@@ -101,18 +104,14 @@ describe('useAuditedAction', () => {
       useAuditedAction(mockAction, (args) => ({
         action: `process-${args[0]}`,
         resource: args[1] || 'default',
-      }))
+      })),
     );
 
     await act(async () => {
       await result.current('task', 'queue');
     });
 
-    expect(mockAudit.logSuccess).toHaveBeenCalledWith(
-      'process-task',
-      'queue',
-      expect.any(Object)
-    );
+    expect(mockAudit.logSuccess).toHaveBeenCalledWith('process-task', 'queue', expect.any(Object));
   });
 });
 
@@ -125,9 +124,7 @@ describe('useAuditedForm', () => {
     };
     (useAuditLogger as any).mockReturnValue(mockAudit);
 
-    const { result } = renderHook(() =>
-      useAuditedForm('users', 'create', mockSubmit)
-    );
+    const { result } = renderHook(() => useAuditedForm('users', 'create', mockSubmit));
 
     const formData = {
       name: 'John Doe',
@@ -148,7 +145,7 @@ describe('useAuditedForm', () => {
           duration: expect.any(Number),
           formFields: ['name', 'email', 'role'],
         }),
-      })
+      }),
     );
   });
 
@@ -161,9 +158,7 @@ describe('useAuditedForm', () => {
     };
     (useAuditLogger as any).mockReturnValue(mockAudit);
 
-    const { result } = renderHook(() =>
-      useAuditedForm('users', 'update', mockSubmit)
-    );
+    const { result } = renderHook(() => useAuditedForm('users', 'update', mockSubmit));
 
     await act(async () => {
       await expect(result.current({ name: 'Jane' })).rejects.toThrow('Validation failed');
@@ -177,7 +172,7 @@ describe('useAuditedForm', () => {
         metadata: expect.objectContaining({
           formFields: ['name'],
         }),
-      })
+      }),
     );
   });
 });
@@ -204,7 +199,7 @@ describe('useAuditedNavigation', () => {
           from: '/home',
           timestamp: expect.any(String),
         }),
-      })
+      }),
     );
   });
 });
@@ -216,9 +211,7 @@ describe('useAuditedDataChange', () => {
     };
     (useAuditLogger as any).mockReturnValue(mockAudit);
 
-    const { result } = renderHook(() =>
-      useAuditedDataChange('users', 'user-123')
-    );
+    const { result } = renderHook(() => useAuditedDataChange('users', 'user-123'));
 
     const oldData = { name: 'John', email: 'john@old.com' };
     const newData = { name: 'John Doe', email: 'john@new.com' };
@@ -233,7 +226,7 @@ describe('useAuditedDataChange', () => {
       'user-123',
       oldData,
       newData,
-      undefined
+      undefined,
     );
   });
 
@@ -243,9 +236,7 @@ describe('useAuditedDataChange', () => {
     };
     (useAuditLogger as any).mockReturnValue(mockAudit);
 
-    const { result } = renderHook(() =>
-      useAuditedDataChange('settings', 'app-settings')
-    );
+    const { result } = renderHook(() => useAuditedDataChange('settings', 'app-settings'));
 
     const oldData = { theme: 'light' };
     const newData = { theme: 'dark' };
@@ -255,12 +246,7 @@ describe('useAuditedDataChange', () => {
     };
 
     await act(async () => {
-      await result.current.logDataChange(
-        'change-theme',
-        oldData,
-        newData,
-        additionalContext
-      );
+      await result.current.logDataChange('change-theme', oldData, newData, additionalContext);
     });
 
     expect(mockAudit.logDataChange).toHaveBeenCalledWith(
@@ -269,7 +255,7 @@ describe('useAuditedDataChange', () => {
       'app-settings',
       oldData,
       newData,
-      additionalContext
+      additionalContext,
     );
   });
 });

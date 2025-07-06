@@ -1,5 +1,6 @@
 import { vi, describe, it, expect, beforeEach, afterEach } from 'vitest';
-import { auditLogger, AuditActionType } from './audit';
+import { auditLogger } from './audit';
+import { CreateAuditLogDtoActionTypeEnum as AuditActionType } from '@bluelight-hub/shared/client';
 import { api } from '../api';
 import { logger } from './logger';
 
@@ -58,7 +59,7 @@ describe('AuditLogger', () => {
       const context = {
         action: 'test-action',
         resource: 'test-resource',
-        actionType: AuditActionType.CREATE,
+        actionType: AuditActionType.Create,
       };
 
       await auditLogger.log(context);
@@ -173,7 +174,7 @@ describe('AuditLogger', () => {
         await auditLogger.log({
           action: `action-${i}`,
           resource: 'resource',
-          actionType: AuditActionType.CREATE,
+          actionType: AuditActionType.Create,
         });
       }
 
@@ -188,7 +189,7 @@ describe('AuditLogger', () => {
       auditLogger.log({
         action: 'test-action',
         resource: 'test-resource',
-        actionType: AuditActionType.CREATE,
+        actionType: AuditActionType.Create,
       });
 
       // Trigger unload event

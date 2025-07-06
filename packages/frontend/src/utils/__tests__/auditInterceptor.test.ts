@@ -9,16 +9,19 @@ vi.mock('../audit', () => ({
     log: vi.fn(),
     logError: vi.fn(),
   },
-  AuditActionType: {
-    CREATE: 'CREATE',
-    READ: 'READ',
-    UPDATE: 'UPDATE',
-    DELETE: 'DELETE',
+}));
+
+vi.mock('@bluelight-hub/shared/client', () => ({
+  CreateAuditLogDtoActionTypeEnum: {
+    Create: 'CREATE',
+    Read: 'READ',
+    Update: 'UPDATE',
+    Delete: 'DELETE',
   },
-  AuditSeverity: {
-    LOW: 'LOW',
-    MEDIUM: 'MEDIUM',
-    HIGH: 'HIGH',
+  CreateAuditLogDtoSeverityEnum: {
+    Low: 'LOW',
+    Medium: 'MEDIUM',
+    High: 'HIGH',
   },
 }));
 
@@ -48,7 +51,7 @@ describe('auditInterceptorMiddleware', () => {
           method: 'GET',
           resource: 'users',
           resourceId: '123',
-        })
+        }),
       );
     });
 
@@ -102,7 +105,7 @@ describe('auditInterceptorMiddleware', () => {
             statusText: 'OK',
             success: true,
           }),
-        })
+        }),
       );
     });
 
@@ -140,7 +143,7 @@ describe('auditInterceptorMiddleware', () => {
             statusCode: 404,
             success: false,
           }),
-        })
+        }),
       );
     });
 
@@ -165,7 +168,7 @@ describe('auditInterceptorMiddleware', () => {
         'post-users',
         'users',
         'HTTP 500: Internal Server Error',
-        expect.any(Object)
+        expect.any(Object),
       );
     });
 
@@ -184,7 +187,7 @@ describe('auditInterceptorMiddleware', () => {
         expect.objectContaining({
           resource: 'auth',
           severity: 'HIGH',
-        })
+        }),
       );
     });
 
@@ -203,7 +206,7 @@ describe('auditInterceptorMiddleware', () => {
       expect(auditLogger.log).toHaveBeenCalledWith(
         expect.objectContaining({
           severity: 'MEDIUM',
-        })
+        }),
       );
     });
   });

@@ -2,33 +2,10 @@ import React from 'react';
 import { logger } from './logger';
 import { useAuthStore } from '../stores/useAuthStore';
 import { api } from '../api';
-
-/**
- * Audit-Aktionstypen
- * TODO: Replace with generated types from @bluelight-hub/shared/client/models once available
- */
-export enum AuditActionType {
-  CREATE = 'CREATE',
-  READ = 'READ',
-  UPDATE = 'UPDATE',
-  DELETE = 'DELETE',
-  LOGIN = 'LOGIN',
-  LOGOUT = 'LOGOUT',
-  ERROR = 'ERROR',
-  SECURITY = 'SECURITY',
-  SYSTEM = 'SYSTEM',
-}
-
-/**
- * Audit-Schweregrade
- * TODO: Replace with generated types from @bluelight-hub/shared/client/models once available
- */
-export enum AuditSeverity {
-  LOW = 'LOW',
-  MEDIUM = 'MEDIUM',
-  HIGH = 'HIGH',
-  CRITICAL = 'CRITICAL',
-}
+import {
+  CreateAuditLogDtoActionTypeEnum as AuditActionType,
+  CreateAuditLogDtoSeverityEnum as AuditSeverity,
+} from '@bluelight-hub/shared/client';
 
 /**
  * Kontext-Informationen für Audit-Logs
@@ -123,8 +100,8 @@ class AuditLogger {
     await this.log({
       action,
       resource,
-      actionType: details?.actionType || AuditActionType.READ,
-      severity: details?.severity || AuditSeverity.LOW,
+      actionType: details?.actionType || AuditActionType.Read,
+      severity: details?.severity || AuditSeverity.Low,
       ...details,
     });
   }
@@ -143,8 +120,8 @@ class AuditLogger {
     await this.log({
       action,
       resource,
-      actionType: details?.actionType || AuditActionType.ERROR,
-      severity: details?.severity || AuditSeverity.HIGH,
+      actionType: details?.actionType || AuditActionType.Create,
+      severity: details?.severity || AuditSeverity.High,
       errorMessage,
       ...details,
     });
@@ -161,8 +138,8 @@ class AuditLogger {
     await this.log({
       action,
       resource,
-      actionType: AuditActionType.SECURITY,
-      severity: details?.severity || AuditSeverity.HIGH,
+      actionType: AuditActionType.PermissionChange,
+      severity: details?.severity || AuditSeverity.High,
       sensitiveData: true,
       ...details,
     });
@@ -187,8 +164,8 @@ class AuditLogger {
       action,
       resource,
       resourceId,
-      actionType: AuditActionType.UPDATE,
-      severity: details?.severity || AuditSeverity.MEDIUM,
+      actionType: AuditActionType.Update,
+      severity: details?.severity || AuditSeverity.Medium,
       oldValues,
       newValues,
       affectedFields: changedFields,
@@ -222,9 +199,9 @@ class AuditLogger {
    */
   private shouldSendImmediately(context: AuditContext): boolean {
     return (
-      context.severity === AuditSeverity.CRITICAL ||
-      context.actionType === AuditActionType.SECURITY ||
-      context.actionType === AuditActionType.ERROR ||
+      context.severity === AuditSeverity.Critical ||
+      context.actionType === AuditActionType.PermissionChange ||
+      context.actionType === AuditActionType.Create ||
       context.sensitiveData === true
     );
   }
@@ -401,8 +378,8 @@ export function withAuditLogging<T extends Record<string, any>>(
       audit.log({
         action: `view-${defaultContext.resource || 'component'}`,
         resource: defaultContext.resource || 'component',
-        actionType: AuditActionType.READ,
-        severity: AuditSeverity.LOW,
+        actionType: AuditActionType.Read,
+        severity: AuditSeverity.Low,
         ...defaultContext,
       });
     }, [audit]);

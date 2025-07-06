@@ -1,5 +1,9 @@
 import { logger } from './logger';
-import { auditLogger, AuditActionType, AuditSeverity } from './audit';
+import { auditLogger } from './audit';
+import {
+  CreateAuditLogDtoActionTypeEnum as AuditActionType,
+  CreateAuditLogDtoSeverityEnum as AuditSeverity,
+} from '@bluelight-hub/shared/client';
 
 /**
  * Bestimmt den Aktionstyp basierend auf der HTTP-Methode
@@ -7,16 +11,16 @@ import { auditLogger, AuditActionType, AuditSeverity } from './audit';
 function getActionTypeFromMethod(method: string): AuditActionType {
   switch (method.toUpperCase()) {
     case 'GET':
-      return AuditActionType.READ;
+      return AuditActionType.Read;
     case 'POST':
-      return AuditActionType.CREATE;
+      return AuditActionType.Create;
     case 'PUT':
     case 'PATCH':
-      return AuditActionType.UPDATE;
+      return AuditActionType.Update;
     case 'DELETE':
-      return AuditActionType.DELETE;
+      return AuditActionType.Delete;
     default:
-      return AuditActionType.READ;
+      return AuditActionType.Read;
   }
 }
 
@@ -52,18 +56,18 @@ function determineSeverity(resource: string, method: string): AuditSeverity {
   const highSeverityMethods = ['DELETE', 'PUT', 'PATCH'];
 
   if (resource === 'auth') {
-    return AuditSeverity.HIGH;
+    return AuditSeverity.High;
   }
 
   if (criticalResources.includes(resource) && highSeverityMethods.includes(method.toUpperCase())) {
-    return AuditSeverity.HIGH;
+    return AuditSeverity.High;
   }
 
   if (method.toUpperCase() === 'DELETE') {
-    return AuditSeverity.MEDIUM;
+    return AuditSeverity.Medium;
   }
 
-  return AuditSeverity.LOW;
+  return AuditSeverity.Low;
 }
 
 /**
