@@ -6,9 +6,9 @@ import { CreateAuditLogDto, QueryAuditLogDto } from '../../dto';
 import { BadRequestException } from '@nestjs/common';
 import {
   AuditActionType,
+  AuditLog,
   AuditSeverity,
   UserRole,
-  AuditLog,
 } from '@prisma/generated/prisma/client';
 
 describe('AuditLogBatchService', () => {
@@ -277,35 +277,35 @@ describe('AuditLogBatchService', () => {
 
     it('should aggregate statistics by hour', async () => {
       const mockLogs = [
-        { ...mockAuditLog, timestamp: new Date('2024-01-01T09:00:00') },
-        { ...mockAuditLog, timestamp: new Date('2024-01-01T09:30:00') },
-        { ...mockAuditLog, timestamp: new Date('2024-01-01T10:00:00') },
+        { ...mockAuditLog, timestamp: new Date(Date.UTC(2024, 0, 1, 9, 0, 0)) },
+        { ...mockAuditLog, timestamp: new Date(Date.UTC(2024, 0, 1, 9, 30, 0)) },
+        { ...mockAuditLog, timestamp: new Date(Date.UTC(2024, 0, 1, 10, 0, 0)) },
       ];
 
       (prismaService.auditLog.findMany as jest.Mock).mockResolvedValue(mockLogs);
 
       const result = await service.getAggregatedStatistics(
-        new Date('2024-01-01T09:00:00'),
-        new Date('2024-01-01T10:00:00'),
+        new Date(Date.UTC(2024, 0, 1, 9, 0, 0)),
+        new Date(Date.UTC(2024, 0, 1, 10, 0, 0)),
         'hour',
       );
 
       expect(result).toHaveLength(2);
-      expect(result[0].period).toBe('2024-01-01T08:00');
+      expect(result[0].period).toBe('2024-01-01T09:00');
       expect(result[0].total).toBe(2);
     });
 
     it('should aggregate statistics by week', async () => {
       const mockLogs = [
-        { ...mockAuditLog, timestamp: new Date('2024-01-01') },
-        { ...mockAuditLog, timestamp: new Date('2024-01-08') },
+        { ...mockAuditLog, timestamp: new Date(Date.UTC(2024, 0, 1)) },
+        { ...mockAuditLog, timestamp: new Date(Date.UTC(2024, 0, 8)) },
       ];
 
       (prismaService.auditLog.findMany as jest.Mock).mockResolvedValue(mockLogs);
 
       const result = await service.getAggregatedStatistics(
-        new Date('2024-01-01'),
-        new Date('2024-01-08'),
+        new Date(Date.UTC(2024, 0, 1)),
+        new Date(Date.UTC(2024, 0, 8)),
         'week',
       );
 
@@ -315,15 +315,15 @@ describe('AuditLogBatchService', () => {
 
     it('should aggregate statistics by month', async () => {
       const mockLogs = [
-        { ...mockAuditLog, timestamp: new Date('2024-01-01') },
-        { ...mockAuditLog, timestamp: new Date('2024-02-01') },
+        { ...mockAuditLog, timestamp: new Date(Date.UTC(2024, 0, 1)) },
+        { ...mockAuditLog, timestamp: new Date(Date.UTC(2024, 1, 1)) },
       ];
 
       (prismaService.auditLog.findMany as jest.Mock).mockResolvedValue(mockLogs);
 
       const result = await service.getAggregatedStatistics(
-        new Date('2024-01-01'),
-        new Date('2024-02-01'),
+        new Date(Date.UTC(2024, 0, 1)),
+        new Date(Date.UTC(2024, 1, 1)),
         'month',
       );
 
@@ -336,7 +336,11 @@ describe('AuditLogBatchService', () => {
       (prismaService.auditLog.findMany as jest.Mock).mockRejectedValue(new Error('Database error'));
 
       await expect(
-        service.getAggregatedStatistics(new Date('2024-01-01'), new Date('2024-01-02'), 'day'),
+        service.getAggregatedStatistics(
+          new Date(Date.UTC(2024, 0, 1)),
+          new Date(Date.UTC(2024, 0, 2)),
+          'day',
+        ),
       ).rejects.toThrow(BadRequestException);
     });
   });

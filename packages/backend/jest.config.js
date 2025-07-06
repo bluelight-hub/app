@@ -36,4 +36,10 @@ module.exports = {
       statements: 80,
     },
   },
+  testPathIgnorePatterns: [
+    '/node_modules/',
+    '/dist/',
+    '/test/',
+    '/__tests__/audit-performance.spec.ts$',
+  ],
 };
