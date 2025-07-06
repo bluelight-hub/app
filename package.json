@@ -7,6 +7,8 @@
     "build": "pnpm -r build",
     "generate-api": "pnpm -r generate-api",
     "lint": "pnpm -r lint",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
     "test": "pnpm -r test",
     "test:ui": "pnpm -r test:ui",
     "test:cov": "pnpm -r test:cov",
@@ -27,12 +29,17 @@
       "@scarf/scarf",
       "@swc/core",
       "@tailwindcss/oxide",
+      "bcrypt",
       "es5-ext",
       "esbuild",
-      "prisma"
+      "prisma",
+      "puppeteer"
     ]
   },
   "lint-staged": {
+    "**/*.{js,ts,tsx,json,md,yml,yaml}": [
+      "prettier --write"
+    ],
     "packages/backend/**/*.ts": [
       "pnpm --filter @bluelight-hub/backend lint"
     ],
@@ -48,9 +55,11 @@
     "@semantic-release/github": "^11.0.1",
     "@softwaretechnik/dbml-renderer": "^1.0.30",
     "bpmn-js-cmd": "^0.4.0",
+    "eslint-config-prettier": "^10.1.5",
     "husky": "^9.1.7",
     "lint-staged": "^16.1.2",
-    "puppeteer": "^24.6.1",
+    "prettier": "^3.5.3",
+    "puppeteer": "^24.11.1",
     "semantic-release": "^24.2.3",
     "semantic-release-gitmoji": "^1.6.8"
   },

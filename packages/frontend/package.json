@@ -8,6 +8,8 @@
     "dev:vite": "vite",
     "build": "tsc --skipLibCheck --noEmit && vite build",
     "lint": "eslint .",
+    "format": "prettier --write \"src/**/*.{ts,tsx,css}\" \"*.{json,js,ts}\"",
+    "format:check": "prettier --check \"src/**/*.{ts,tsx,css}\" \"*.{json,js,ts}\"",
     "preview": "vite preview",
     "tauri": "tauri",
     "test": "vitest run",
@@ -31,6 +33,7 @@
     "@tanstack/react-query-devtools": "5.74.4",
     "@tauri-apps/api": "^2.5.0",
     "@tauri-apps/plugin-http": "^2.4.3",
+    "@tauri-apps/plugin-store": "^2.2.1",
     "antd": "^5.24.7",
     "date-fns": "^4.1.0",
     "dayjs": "^1.11.13",
@@ -44,6 +47,7 @@
     "zustand": "^5.0.3"
   },
   "devDependencies": {
+    "@ant-design/icons": "^6.0.0",
     "@eslint/js": "^9.24.0",
     "@tauri-apps/cli": "^2.5.0",
     "@testing-library/jest-dom": "^6.6.3",

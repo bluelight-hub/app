@@ -12,21 +12,21 @@
  * Do not edit the class manually.
  */
 
-import { mapValues } from "../runtime";
-import type { ApiMeta } from "./ApiMeta";
+import { mapValues } from '../runtime';
+import type { ApiMeta } from './ApiMeta';
 import {
   ApiMetaFromJSON,
   ApiMetaFromJSONTyped,
   ApiMetaToJSON,
   ApiMetaToJSONTyped,
-} from "./ApiMeta";
-import type { EtbEntryDto } from "./EtbEntryDto";
+} from './ApiMeta';
+import type { EtbEntryDto } from './EtbEntryDto';
 import {
   EtbEntryDtoFromJSON,
   EtbEntryDtoFromJSONTyped,
   EtbEntryDtoToJSON,
   EtbEntryDtoToJSONTyped,
-} from "./EtbEntryDto";
+} from './EtbEntryDto';
 
 /**
  *
@@ -57,11 +57,9 @@ export interface EtbEntryResponse {
 /**
  * Check if a given object implements the EtbEntryResponse interface.
  */
-export function instanceOfEtbEntryResponse(
-  value: object,
-): value is EtbEntryResponse {
-  if (!("meta" in value) || value["meta"] === undefined) return false;
-  if (!("data" in value) || value["data"] === undefined) return false;
+export function instanceOfEtbEntryResponse(value: object): value is EtbEntryResponse {
+  if (!('meta' in value) || value['meta'] === undefined) return false;
+  if (!('data' in value) || value['data'] === undefined) return false;
   return true;
 }
 
@@ -77,9 +75,9 @@ export function EtbEntryResponseFromJSONTyped(
     return json;
   }
   return {
-    meta: ApiMetaFromJSON(json["meta"]),
-    message: json["message"] == null ? undefined : json["message"],
-    data: EtbEntryDtoFromJSON(json["data"]),
+    meta: ApiMetaFromJSON(json['meta']),
+    message: json['message'] == null ? undefined : json['message'],
+    data: EtbEntryDtoFromJSON(json['data']),
   };
 }
 
@@ -96,8 +94,8 @@ export function EtbEntryResponseToJSONTyped(
   }
 
   return {
-    meta: ApiMetaToJSON(value["meta"]),
-    message: value["message"],
-    data: EtbEntryDtoToJSON(value["data"]),
+    meta: ApiMetaToJSON(value['meta']),
+    message: value['message'],
+    data: EtbEntryDtoToJSON(value['data']),
   };
 }

@@ -1,5 +1,5 @@
 comment:
-  layout: " diff, flags, files"
+  layout: ' diff, flags, files'
   behavior: default
   require_changes: false
   require_base: false
@@ -16,23 +16,23 @@ coverage:
 
 ignore:
   # Configuration files
-  - "**/*.config.js"
-  - "**/*.config.ts"
-  - "**/*.config.mjs"
-  - "**/vitest.config.ts"
-  - "**/jest.config.js"
-  - "**/eslint.config.js"
-  - "**/.eslintrc.*"
+  - '**/*.config.js'
+  - '**/*.config.ts'
+  - '**/*.config.mjs'
+  - '**/vitest.config.ts'
+  - '**/jest.config.js'
+  - '**/eslint.config.js'
+  - '**/.eslintrc.*'
   # Build outputs
-  - "**/dist/**"
-  - "**/build/**"
-  - "**/coverage/**"
+  - '**/dist/**'
+  - '**/build/**'
+  - '**/coverage/**'
   # Dependencies
-  - "**/node_modules/**"
+  - '**/node_modules/**'
   # Test files
-  - "**/*.test.ts"
-  - "**/*.test.tsx"
-  - "**/*.spec.ts"
-  - "**/*.spec.tsx"
+  - '**/*.test.ts'
+  - '**/*.test.tsx'
+  - '**/*.spec.ts'
+  - '**/*.spec.tsx'
   # Type definitions
-  - "**/*.d.ts"
+  - '**/*.d.ts'

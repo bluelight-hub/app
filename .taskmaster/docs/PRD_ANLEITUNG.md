@@ -61,12 +61,14 @@ Nachdem du dein PRD erstellt hast, kannst du es mit Task Master verarbeiten, um 
 ### Über die MCP-Tools (empfohlen):
 
 ```typescript
-mcp_task-master-ai_parse_prd({
-  projectRoot: "/absoluter/pfad/zum/projekt",
-  input: "scripts/mein_projekt_prd.txt",
-  append: false, // auf true setzen, um zu existierenden Tasks hinzuzufügen
-  force: true // überschreibt tasks.json ohne Rückfrage
-})
+mcp_task -
+  master -
+  ai_parse_prd({
+    projectRoot: '/absoluter/pfad/zum/projekt',
+    input: 'scripts/mein_projekt_prd.txt',
+    append: false, // auf true setzen, um zu existierenden Tasks hinzuzufügen
+    force: true, // überschreibt tasks.json ohne Rückfrage
+  });
 ```
 
 ### Über die Kommandozeile:
@@ -87,15 +89,17 @@ task-master parse-prd --input=scripts/mein_projekt_prd.txt --force
 Nach dem Parsen des PRDs kannst du die generierten Aufgaben anzeigen:
 
 ```typescript
-mcp_task-master-ai_get_tasks({
-  projectRoot: "/absoluter/pfad/zum/projekt"
-})
+mcp_task -
+  master -
+  ai_get_tasks({
+    projectRoot: '/absoluter/pfad/zum/projekt',
+  });
 ```
 
 oder
 
-```bash 
+```bash
 task-master list
 ```
 
-Verwende dann `task-master expand` oder `mcp_task-master-ai_expand_task`, um komplexe Aufgaben in detailliertere Unteraufgaben aufzuteilen. 
+Verwende dann `task-master expand` oder `mcp_task-master-ai_expand_task`, um komplexe Aufgaben in detailliertere Unteraufgaben aufzuteilen.

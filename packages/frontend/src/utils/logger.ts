@@ -1,5 +1,5 @@
-import { createConsola } from "consola";
+import { createConsola } from 'consola';
 
 export const logger = createConsola({
-    level: process.env.NODE_ENV === 'production' ? 3 : 5,
+  level: process.env.NODE_ENV === 'production' ? 3 : 5,
 });

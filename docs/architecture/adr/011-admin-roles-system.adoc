@@ -1,0 +1,215 @@
+= ADR-011: Rollenbasiertes Administrationssystem
+:author: Bluelight-Hub Team
+:revnumber: 1.0.0
+:revdate: 2025-06-25
+:
+
+== Status
+Akzeptiert (Stand: 2025-06-25)
+
+== Kontext
+Das Bluelight-Hub-System benötigt ein granulares Zugriffskontrollsystem für administrative Funktionen. Verschiedene Benutzertypen benötigen unterschiedliche Zugriffsebenen auf Systemfunktionen, von vollständiger Systemadministration bis zu reinem Lesezugriff. Die Lösung muss flexibel, erweiterbar und sicher sein, während sie gleichzeitig eine klare Benutzerführung ermöglicht.
+
+Das System muss folgende Anforderungen erfüllen:
+* Granulare Kontrolle über Systemfunktionen
+* Klare Trennung zwischen operativen und administrativen Funktionen
+* Erweiterbarkeit für zukünftige Berechtigungen
+* Auditierbarkeit aller administrativen Aktionen
+* Konsistenz zwischen Frontend und Backend
+
+== Optionen
+. *Einfaches Rollen-System*: Feste Rollen mit hartcodierten Berechtigungen
+. *ACL (Access Control List)*: Benutzer-spezifische Berechtigungen
+. *RBAC (Role-Based Access Control)*: Rollenbasiertes System mit flexiblen Berechtigungen
+. *ABAC (Attribute-Based Access Control)*: Attributbasiertes System mit dynamischen Policies
+
+== Bewertung der Optionen
+
+=== Option 1: Einfaches Rollen-System
+* ✅ *Vorteile*:
+  ** Sehr einfache Implementierung
+  ** Leicht verständlich für Entwickler
+  ** Geringe Komplexität
+* ❌ *Nachteile*:
+  ** Keine Flexibilität bei Berechtigungen
+  ** Schwer erweiterbar ohne Code-Änderungen
+  ** Keine granulare Kontrolle möglich
+  ** Führt zu Rollen-Explosion bei wachsenden Anforderungen
+
+=== Option 2: ACL (Access Control List)
+* ✅ *Vorteile*:
+  ** Sehr granulare Kontrolle möglich
+  ** Individuelle Berechtigungen pro Benutzer
+  ** Keine Rollen-Hierarchie notwendig
+* ❌ *Nachteile*:
+  ** Sehr hoher Verwaltungsaufwand
+  ** Schwer skalierbar bei vielen Benutzern
+  ** Keine Gruppierung von Berechtigungen
+  ** Unübersichtlich bei komplexen Systemen
+
+=== Option 3: RBAC (Role-Based Access Control)
+* ✅ *Vorteile*:
+  ** Balance zwischen Flexibilität und Komplexität
+  ** Berechtigungen über Rollen gruppierbar
+  ** Gut skalierbar mit wachsenden Anforderungen
+  ** Industriestandard für Zugriffskontrolle
+  ** Einfache Verwaltung über Rollenzuweisungen
+* ❌ *Nachteile*:
+  ** Initiale Komplexität höher als einfache Systeme
+  ** Erfordert sorgfältige Planung der Berechtigungsstruktur
+  ** Potenzielle Rollen-Explosion bei vielen Spezialfällen
+
+=== Option 4: ABAC (Attribute-Based Access Control)
+* ✅ *Vorteile*:
+  ** Höchste Flexibilität
+  ** Kontextabhängige Entscheidungen möglich
+  ** Dynamische Policy-Evaluation
+* ❌ *Nachteile*:
+  ** Sehr hohe Komplexität
+  ** Schwer zu verstehen und zu debuggen
+  ** Überdimensioniert für aktuelle Anforderungen
+  ** Hoher Implementierungsaufwand
+
+== Entscheidung
+Wir haben uns für ein *berechtigungsbasiertes RBAC-System* mit vier definierten Rollen entschieden: SUPER_ADMIN, ADMIN, SUPPORT und USER.
+
+=== 4-Stufen-Rollenmodell
+
+==== SUPER_ADMIN
+* Vollständiger Systemzugriff
+* Kann Rollen und Berechtigungen verwalten
+* Zugriff auf alle kritischen Systemfunktionen
+* Typische Nutzer: Systemadministratoren, IT-Verantwortliche
+
+==== ADMIN
+* Administrativer Zugriff ohne Rollenverwaltung
+* Kann Benutzer und Einsätze verwalten
+* Zugriff auf Systemeinstellungen
+* Typische Nutzer: Einsatzleiter, Administratoren
+
+==== SUPPORT
+* Hauptsächlich Lesezugriff
+* Kann Audit-Logs einsehen
+* Unterstützung bei Problemen ohne Änderungsrechte
+* Typische Nutzer: Support-Personal, Helfer
+
+==== USER
+* Basiszugriff auf operative Funktionen
+* Nur Lesezugriff auf ETB und Einsätze
+* Keine administrativen Funktionen
+* Typische Nutzer: Einsatzkräfte, Beobachter
+
+=== Berechtigungsmodell
+
+Das System verwendet ressourcenbasierte Berechtigungen:
+
+[source]
+----
+// Berechtigungsstruktur
+RESOURCE_ACTION
+
+// Beispiele:
+USERS_READ      // Benutzer anzeigen
+USERS_WRITE     // Benutzer bearbeiten
+USERS_DELETE    // Benutzer löschen
+----
+
+Berechtigungskategorien:
+* *Benutzerverwaltung*: USERS_*
+* *Systemeinstellungen*: SYSTEM_SETTINGS_*, AUDIT_LOG_*, ROLE_*
+* *Anwendung*: ETB_*, EINSATZ_*
+
+=== Implementierungsansatz
+
+==== Backend (NestJS)
+* *Guards*: `RolesGuard` und `PermissionsGuard` für Zugriffskontrolle
+* *Decorators*: `@Roles()`, `@RequirePermissions()`, `@Public()`
+* *JWT-Integration*: Rollen und Berechtigungen im Token
+* *Prisma-Modelle*: User mit Rolle, RolePermission für Zuordnungen
+
+==== Frontend (React)
+* *AuthContext*: Zentrale Stelle für Berechtigungsprüfungen
+* *Conditional Rendering*: UI-Elemente basierend auf Berechtigungen
+* *Route Guards*: Schutz von Admin-Routen
+* *Separates Admin-Panel*: Dediziertes Fenster für Admin-Funktionen
+
+==== Datenbankdesign
+[source,prisma]
+----
+model User {
+  id        String   @id
+  email     String   @unique
+  role      UserRole
+  // ... weitere Felder
+}
+
+model RolePermission {
+  id         String     @id
+  role       UserRole
+  permission Permission
+  createdAt  DateTime   @default(now())
+  
+  @@unique([role, permission])
+}
+
+enum UserRole {
+  SUPER_ADMIN
+  ADMIN
+  SUPPORT
+  USER
+}
+
+enum Permission {
+  // Berechtigungen als Enum
+}
+----
+
+==== Fallback-Mechanismus
+Das System implementiert einen robusten Fallback-Mechanismus:
+
+. Prüfung der Datenbank-Berechtigungen
+. Falls nicht vorhanden: Verwendung der Code-definierten Standards
+. Automatische Synchronisation bei Inkonsistenzen
+. Logging aller Fallback-Verwendungen
+
+=== Begründung
+
+. *Granularität*: Berechtigungsbasiertes System ermöglicht präzise Kontrolle
+. *Erweiterbarkeit*: Neue Berechtigungen können einfach hinzugefügt werden
+. *Klarheit*: Vier Rollen decken alle aktuellen Anwendungsfälle ab
+. *Sicherheit*: Klare Trennung kritischer Funktionen (ROLE_MANAGE nur für SUPER_ADMIN)
+. *Wartbarkeit*: Zentrale Definition in Konstanten-Dateien
+
+== Konsequenzen
+
+=== Positive Konsequenzen
+* *Flexibilität*: Berechtigungen können ohne Code-Änderungen angepasst werden
+* *Skalierbarkeit*: System wächst mit steigenden Anforderungen
+* *Sicherheit*: Granulare Kontrolle verhindert unberechtigte Zugriffe
+* *Auditierbarkeit*: Alle Aktionen können Rollen/Berechtigungen zugeordnet werden
+* *Benutzerfreundlichkeit*: Klare Rollentrennung vereinfacht Benutzerverwaltung
+* *Konsistenz*: Einheitliches Berechtigungsmodell im gesamten System
+
+=== Negative Konsequenzen
+* *Initiale Komplexität*: Höherer Implementierungsaufwand als einfache Systeme
+* *Datenbankabhängigkeit*: Berechtigungen müssen geseeded werden
+* *Wartungsaufwand*: Berechtigungsmatrix muss gepflegt werden
+* *Performance*: Zusätzliche Datenbankabfragen für Berechtigungen
+* *Lernkurve*: Entwickler müssen das Berechtigungssystem verstehen
+
+=== Mitigationsstrategien
+* Verwendung von Caching für häufige Berechtigungsabfragen
+* Automatisierte Tests für alle Berechtigungskombinationen
+* CLI-Tools für Berechtigungsverwaltung (`npm run cli seed:admin`)
+* Umfassende Dokumentation mit Beispielen
+* Validierungsservice für Konsistenzprüfungen
+* Frontend-Hilfsfunktionen für einfache Integration
+
+== Verwandte Entscheidungen
+* ADR-007: JWT für Authentifizierung - Token enthalten Rollen und Berechtigungen
+* Kapitel 8: Übergreifende Konzepte - Detaillierte Beschreibung des Rollensystems
+
+== Referenzen
+* NIST RBAC Model: https://csrc.nist.gov/projects/role-based-access-control
+* NestJS Guards Documentation: https://docs.nestjs.com/guards
+* Prisma Schema Documentation: https://www.prisma.io/docs/concepts/components/prisma-schema

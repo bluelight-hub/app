@@ -7,16 +7,13 @@ import { PrismaHealthIndicator } from './prisma-health.indicator';
 /**
  * Modul für Gesundheitschecks der Anwendung.
  * Enthält Controller und Indikatoren für verschiedene Gesundheitschecks.
- * 
+ *
  * @class HealthModule
  */
 @Module({
-    imports: [
-        TerminusModule,
-        EtbModule
-    ],
-    controllers: [HealthController],
-    providers: [PrismaHealthIndicator],
-    exports: [PrismaHealthIndicator]
+  imports: [TerminusModule, EtbModule],
+  controllers: [HealthController],
+  providers: [PrismaHealthIndicator],
+  exports: [PrismaHealthIndicator],
 })
-export class HealthModule { } 
+export class HealthModule {}
