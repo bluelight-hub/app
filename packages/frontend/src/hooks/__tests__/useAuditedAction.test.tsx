@@ -1,7 +1,7 @@
-import { describe, it, expect, vi } from 'vitest';
-import { renderHook, act } from '@testing-library/react';
-import { useAuditedAction, useAuditedForm, useAuditedNavigation, useAuditedDataChange } from '../useAuditedAction';
-import { useAuditLogger } from '../../utils/audit';
+import { describe, expect, it, vi } from 'vitest';
+import { act, renderHook } from '@testing-library/react';
+import { useAuditedAction, useAuditedDataChange, useAuditedForm, useAuditedNavigation } from '@/hooks';
+import { useAuditLogger } from '@/utils/audit.ts';
 
 // Mock the audit logger
 vi.mock('../../utils/audit', () => ({
@@ -18,12 +18,38 @@ vi.mock('@bluelight-hub/shared/client', () => ({
     Read: 'READ',
     Create: 'CREATE',
     Update: 'UPDATE',
+    Delete: 'DELETE',
+    Login: 'LOGIN',
+    Logout: 'LOGOUT',
+    FailedLogin: 'FAILED_LOGIN',
+    PermissionChange: 'PERMISSION_CHANGE',
+    RoleChange: 'ROLE_CHANGE',
+    BulkOperation: 'BULK_OPERATION',
+    SystemConfig: 'SYSTEM_CONFIG',
+    Export: 'EXPORT',
+    Import: 'IMPORT',
+    Approve: 'APPROVE',
+    Reject: 'REJECT',
+    Block: 'BLOCK',
+    Unblock: 'UNBLOCK',
+    Restore: 'RESTORE',
+    Backup: 'BACKUP',
   },
   CreateAuditLogDtoSeverityEnum: {
     Low: 'LOW',
     Medium: 'MEDIUM',
     High: 'HIGH',
+    Critical: 'CRITICAL',
+    Error: 'ERROR',
   },
+  Configuration: vi.fn().mockImplementation(function (config) {
+    return {
+      basePath: config?.basePath || '',
+      fetchApi: config?.fetchApi || fetch,
+      middleware: config?.middleware || [],
+      ...config,
+    };
+  }),
 }));
 
 describe('useAuditedAction', () => {

@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { auditInterceptorMiddleware } from '../auditInterceptor';
 import { auditLogger } from '../audit';
 import { logger } from '../logger';
@@ -13,15 +13,32 @@ vi.mock('../audit', () => ({
 
 vi.mock('@bluelight-hub/shared/client', () => ({
   CreateAuditLogDtoActionTypeEnum: {
-    Create: 'CREATE',
     Read: 'READ',
+    Create: 'CREATE',
     Update: 'UPDATE',
     Delete: 'DELETE',
+    Login: 'LOGIN',
+    Logout: 'LOGOUT',
+    FailedLogin: 'FAILED_LOGIN',
+    PermissionChange: 'PERMISSION_CHANGE',
+    RoleChange: 'ROLE_CHANGE',
+    BulkOperation: 'BULK_OPERATION',
+    SystemConfig: 'SYSTEM_CONFIG',
+    Export: 'EXPORT',
+    Import: 'IMPORT',
+    Approve: 'APPROVE',
+    Reject: 'REJECT',
+    Block: 'BLOCK',
+    Unblock: 'UNBLOCK',
+    Restore: 'RESTORE',
+    Backup: 'BACKUP',
   },
   CreateAuditLogDtoSeverityEnum: {
     Low: 'LOW',
     Medium: 'MEDIUM',
     High: 'HIGH',
+    Critical: 'CRITICAL',
+    Error: 'ERROR',
   },
 }));
 
@@ -64,7 +81,7 @@ describe('auditInterceptorMiddleware', () => {
       const result = await auditInterceptorMiddleware.pre(context);
 
       expect(result).toHaveProperty('__auditResource', 'users');
-      expect(result.__auditResourceId).toBeUndefined();
+      expect((result as any).__auditResourceId).toBeUndefined();
     });
 
     it('should handle malformed URLs', async () => {

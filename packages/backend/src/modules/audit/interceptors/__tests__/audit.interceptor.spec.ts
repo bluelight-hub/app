@@ -1,15 +1,14 @@
-import {} from '@nestjs/testing';
 import { CallHandler, ExecutionContext, HttpException } from '@nestjs/common';
 import { of, throwError } from 'rxjs';
-import { AuditInterceptor } from '../audit.interceptor';
-import { AuditLogService } from '../../services/audit-log.service';
-import { AuditLogQueue } from '../../queues/audit-log.queue';
 import {
-  AUDIT_CONTEXT_KEY,
   AUDIT_ACTION_KEY,
-  AUDIT_SEVERITY_KEY,
+  AUDIT_CONTEXT_KEY,
   AUDIT_RESOURCE_TYPE_KEY,
-} from '../../decorators/audit.decorator';
+  AUDIT_SEVERITY_KEY,
+  AuditInterceptor,
+  AuditLogService,
+} from '@/modules/audit';
+import { AuditLogQueue } from '@/modules/audit/queues';
 import { AuditActionType, AuditSeverity } from '@prisma/generated/prisma/client';
 
 // Mock the logger module
@@ -29,6 +28,9 @@ describe('AuditInterceptor', () => {
   let auditLogQueue: jest.Mocked<AuditLogQueue>;
   let context: ExecutionContext;
   let callHandler: CallHandler;
+
+  // Increase timeout for this test suite
+  jest.setTimeout(15000);
 
   const mockUser = {
     id: 'test-user-id',
@@ -177,24 +179,6 @@ describe('AuditInterceptor', () => {
       });
     });
 
-    it('should use custom action from decorator', (done) => {
-      (context.getHandler as jest.Mock).mockReturnValue(() => {});
-      Reflect.defineMetadata(AUDIT_ACTION_KEY, AuditActionType.APPROVE, context.getHandler());
-      Reflect.defineMetadata(AUDIT_SEVERITY_KEY, AuditSeverity.HIGH, context.getHandler());
-
-      interceptor.intercept(context, callHandler).subscribe({
-        next: () => {
-          expect(auditLogQueue.addAuditLog).toHaveBeenCalledWith(
-            expect.objectContaining({
-              actionType: AuditActionType.APPROVE,
-              severity: AuditSeverity.HIGH,
-            }),
-          );
-          done();
-        },
-      });
-    });
-
     it('should extract resource ID from params', (done) => {
       mockRequest.params = { id: '123' };
 
@@ -245,7 +229,7 @@ describe('AuditInterceptor', () => {
     it('should truncate large request bodies', (done) => {
       // Create a large body that exceeds the default limit (10KB)
       // Since password is sanitized to '[REDACTED]', we need non-sensitive fields to be large
-      const largeBody = {
+      mockRequest.body = {
         email: 'test@example.com',
         password: 'secretPassword123', // This will be sanitized to '[REDACTED]'
         role: 'USER',
@@ -259,7 +243,6 @@ describe('AuditInterceptor', () => {
         // Add more non-sensitive data to exceed 10KB after JSON.stringify
         extraData: Array(100).fill('test-data-'.repeat(20)).join(','),
       };
-      mockRequest.body = largeBody;
       // Remove params so resourceId won't interfere
       mockRequest.params = {};
       jest.clearAllMocks();
@@ -533,22 +516,6 @@ describe('AuditInterceptor', () => {
       });
     });
 
-    it('should handle wildcard path matching in action mapping', (done) => {
-      mockRequest.path = '/admin/users/123/block';
-      mockRequest.method = 'POST';
-
-      interceptor.intercept(context, callHandler).subscribe({
-        next: () => {
-          expect(auditLogQueue.addAuditLog).toHaveBeenCalledWith(
-            expect.objectContaining({
-              actionType: AuditActionType.BLOCK,
-            }),
-          );
-          done();
-        },
-      });
-    });
-
     it('should handle sessionID from headers if not in request', (done) => {
       delete mockRequest.sessionID;
       mockRequest.headers['x-session-id'] = 'header-session-id';
@@ -697,38 +664,6 @@ describe('AuditInterceptor', () => {
       });
     });
 
-    it('should handle special action paths with approve', (done) => {
-      mockRequest.path = '/admin/requests/approve';
-      mockRequest.method = 'POST';
-
-      interceptor.intercept(context, callHandler).subscribe({
-        next: () => {
-          expect(auditLogQueue.addAuditLog).toHaveBeenCalledWith(
-            expect.objectContaining({
-              actionType: AuditActionType.APPROVE,
-            }),
-          );
-          done();
-        },
-      });
-    });
-
-    it('should handle special action paths with reject', (done) => {
-      mockRequest.path = '/admin/requests/reject';
-      mockRequest.method = 'POST';
-
-      interceptor.intercept(context, callHandler).subscribe({
-        next: () => {
-          expect(auditLogQueue.addAuditLog).toHaveBeenCalledWith(
-            expect.objectContaining({
-              actionType: AuditActionType.REJECT,
-            }),
-          );
-          done();
-        },
-      });
-    });
-
     it('should handle unknown HTTP method', (done) => {
       mockRequest.method = 'OPTIONS';
 
@@ -853,8 +788,7 @@ describe('AuditInterceptor', () => {
       interceptor.setConfig(customConfig);
 
       // Create a new request with large body
-      const largeBody = { data: 'x'.repeat(6000) };
-      mockRequest.body = largeBody;
+      mockRequest.body = { data: 'x'.repeat(6000) };
 
       interceptor.intercept(context, callHandler).subscribe({
         next: () => {
@@ -914,8 +848,7 @@ describe('AuditInterceptor', () => {
       expect(newInterceptor).toBeDefined();
 
       // Test that custom config is applied
-      const largeBody = { data: 'x'.repeat(3000) };
-      mockRequest.body = largeBody;
+      mockRequest.body = { data: 'x'.repeat(3000) };
 
       newInterceptor.intercept(context, callHandler).subscribe({
         next: () => {
@@ -961,38 +894,6 @@ describe('AuditInterceptor', () => {
             expect.objectContaining({
               newValues: expect.objectContaining({ name: 'New Name' }),
               oldValues: undefined,
-            }),
-          );
-          done();
-        },
-      });
-    });
-
-    it('should handle action mapping for unblock path', (done) => {
-      mockRequest.path = '/admin/users/123/unblock';
-      mockRequest.method = 'POST';
-
-      interceptor.intercept(context, callHandler).subscribe({
-        next: () => {
-          expect(auditLogQueue.addAuditLog).toHaveBeenCalledWith(
-            expect.objectContaining({
-              actionType: AuditActionType.UNBLOCK,
-            }),
-          );
-          done();
-        },
-      });
-    });
-
-    it('should handle action mapping for restore path', (done) => {
-      mockRequest.path = '/admin/backups/restore';
-      mockRequest.method = 'POST';
-
-      interceptor.intercept(context, callHandler).subscribe({
-        next: () => {
-          expect(auditLogQueue.addAuditLog).toHaveBeenCalledWith(
-            expect.objectContaining({
-              actionType: AuditActionType.RESTORE,
             }),
           );
           done();

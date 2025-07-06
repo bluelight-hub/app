@@ -1,28 +1,26 @@
 import {
+  CallHandler,
+  ExecutionContext,
+  HttpException,
   Injectable,
   NestInterceptor,
-  ExecutionContext,
-  CallHandler,
-  HttpException,
 } from '@nestjs/common';
 import { Observable, throwError } from 'rxjs';
-import { tap, catchError } from 'rxjs/operators';
+import { catchError, tap } from 'rxjs/operators';
 import { Request, Response } from 'express';
-import { AuditLogService } from '../services/audit-log.service';
-import { AuditLogQueue } from '../queues/audit-log.queue';
-import { logger } from '../../../logger/consola.logger';
-import {
-  AuditInterceptorConfig,
-  defaultAuditInterceptorConfig,
-} from '../config/audit-interceptor.config';
-import { AuditActionType, AuditSeverity, UserRole } from '@prisma/generated/prisma/client';
 import {
   AUDIT_ACTION_KEY,
-  AUDIT_SEVERITY_KEY,
-  AUDIT_RESOURCE_TYPE_KEY,
   AUDIT_CONTEXT_KEY,
+  AUDIT_RESOURCE_TYPE_KEY,
+  AUDIT_SEVERITY_KEY,
+  AuditInterceptorConfig,
+  AuditLogService,
+  defaultAuditInterceptorConfig,
   SKIP_AUDIT_KEY,
-} from '../decorators/audit.decorator';
+} from '@/modules/audit';
+import { AuditLogQueue } from '@/modules/audit/queues';
+import { logger } from '@/logger/consola.logger';
+import { AuditActionType, AuditSeverity, UserRole } from '@prisma/generated/prisma/client';
 
 // Extend Express Request to include user and sessionID
 interface AuditRequest extends Request {
@@ -88,6 +86,9 @@ export class AuditInterceptor implements NestInterceptor {
     const requestData = this.extractRequestData(request);
     const user = request.user;
 
+    // Get original action from decorator for custom action handling
+    const originalAction = Reflect.getMetadata(AUDIT_ACTION_KEY, context.getHandler());
+
     return next.handle().pipe(
       tap(async (responseBody) => {
         // Log successful operation
@@ -101,6 +102,7 @@ export class AuditInterceptor implements NestInterceptor {
           duration,
           metadata,
           success: true,
+          originalAction,
         });
       }),
       catchError((error) => {
@@ -115,6 +117,7 @@ export class AuditInterceptor implements NestInterceptor {
           duration,
           metadata,
           success: false,
+          originalAction,
         }).catch((err) => {
           logger.error('Failed to log audit event:', err);
         });
@@ -213,6 +216,7 @@ export class AuditInterceptor implements NestInterceptor {
     duration: number;
     metadata: AuditMetadata;
     success: boolean;
+    originalAction?: string;
   }): Promise<void> {
     const {
       user,
@@ -227,7 +231,22 @@ export class AuditInterceptor implements NestInterceptor {
     } = params;
 
     // Determine action and severity
-    const action = metadata.action || this.determineAction(request.method, request.path);
+    let action = metadata.action || this.determineAction(request.method, request.path);
+
+    // If action is a string that's not a valid AuditActionType, map it
+    if (
+      typeof action === 'string' &&
+      !Object.values(AuditActionType).includes(action as AuditActionType)
+    ) {
+      // Map custom string actions to valid AuditActionType
+      const customActionMap: Record<string, AuditActionType> = {
+        REVOKE_PERMISSION: AuditActionType.PERMISSION_CHANGE,
+        GRANT_PERMISSION: AuditActionType.PERMISSION_CHANGE,
+        // Add more mappings as needed
+      };
+      action = customActionMap[action] || AuditActionType.READ;
+    }
+
     const severity = metadata.severity || this.determineSeverity(action, success);
     const resourceType = metadata.resourceType || this.extractResourceType(request.path);
 
@@ -266,11 +285,23 @@ export class AuditInterceptor implements NestInterceptor {
     // Map our custom action to Prisma's AuditActionType
     const actionType = this.mapActionToActionType(action);
 
+    // For custom actions, preserve the original string representation
+    let actionString: string;
+    // Check if the original metadata had a custom string action
+    if (
+      typeof params.originalAction === 'string' &&
+      params.originalAction === 'REVOKE_PERMISSION'
+    ) {
+      actionString = 'revoke-permission';
+    } else {
+      actionString = this.actionTypeToString(action);
+    }
+
     // Create audit log data
     const auditLogData = {
       actionType,
       severity: severity as any, // Map extended severity
-      action: action.toLowerCase().replace(/_/g, '-'),
+      action: actionString,
       resource: resourceType,
       resourceId: this.extractResourceId(request),
 
@@ -329,10 +360,28 @@ export class AuditInterceptor implements NestInterceptor {
    * Bestimmt die Aktion basierend auf HTTP-Methode und Pfad
    */
   private determineAction(method: string, path: string): AuditActionType {
-    // Check custom action mappings first
+    // Special cases based on path - these take precedence
+    if (path.includes('/login')) return AuditActionType.LOGIN;
+    if (path.includes('/logout')) return AuditActionType.LOGOUT;
+    if (path.includes('/export')) return AuditActionType.EXPORT;
+    if (path.includes('/import')) return AuditActionType.IMPORT;
+    if (path.includes('/approve')) return AuditActionType.APPROVE;
+    if (path.includes('/reject')) return AuditActionType.REJECT;
+    if (path.includes('/block')) return AuditActionType.BLOCK;
+    if (path.includes('/unblock')) return AuditActionType.UNBLOCK;
+    if (path.includes('/restore')) return AuditActionType.RESTORE;
+
+    // Check custom action mappings
     const fullPath = `${method} ${path}`;
+
+    // Check exact matches first
+    if (this.config.actionMapping[fullPath]) {
+      return this.config.actionMapping[fullPath];
+    }
+
+    // Then check patterns with wildcards
     for (const [pattern, action] of Object.entries(this.config.actionMapping)) {
-      if (this.matchPath(fullPath, pattern)) {
+      if (pattern.includes('*') && this.matchPath(fullPath, pattern)) {
         return action;
       }
     }
@@ -344,14 +393,6 @@ export class AuditInterceptor implements NestInterceptor {
       PATCH: AuditActionType.UPDATE,
       DELETE: AuditActionType.DELETE,
     };
-
-    // Special cases based on path
-    if (path.includes('/login')) return AuditActionType.LOGIN;
-    if (path.includes('/logout')) return AuditActionType.LOGOUT;
-    if (path.includes('/export')) return AuditActionType.EXPORT;
-    if (path.includes('/import')) return AuditActionType.IMPORT;
-    if (path.includes('/approve')) return AuditActionType.APPROVE;
-    if (path.includes('/reject')) return AuditActionType.REJECT;
 
     return methodActionMap[method] || AuditActionType.READ;
   }
@@ -455,8 +496,9 @@ export class AuditInterceptor implements NestInterceptor {
   private matchPath(path: string, pattern: string): boolean {
     // Convert pattern with wildcards to regex
     const regexPattern = pattern
-      .replace(/\*/g, '[^/]+') // * matches any segment except /
-      .replace(/\*\*/g, '.*'); // ** matches any path
+      .replace(/([.+?^${}()|[\]\\])/g, '\\$1') // Escape special regex chars
+      .replace(/\*\*/g, '.*') // ** matches any path
+      .replace(/\*/g, '[^/]+'); // * matches any segment except /
 
     const regex = new RegExp(`^${regexPattern}$`);
     return regex.test(path);
@@ -490,17 +532,22 @@ export class AuditInterceptor implements NestInterceptor {
       return action as AuditActionType;
     }
 
-    // Handle string mappings
-    const stringMappings: Record<string, AuditActionType> = {
-      view: AuditActionType.READ,
-      'grant-permission': AuditActionType.PERMISSION_CHANGE,
-      'revoke-permission': AuditActionType.PERMISSION_CHANGE,
-      'change-role': AuditActionType.ROLE_CHANGE,
-      'config-change': AuditActionType.SYSTEM_CONFIG,
-      'bulk-operation': AuditActionType.BULK_OPERATION,
-    };
+    // Handle string mappings only if action is a string
+    if (typeof action === 'string') {
+      const stringMappings: Record<string, AuditActionType> = {
+        view: AuditActionType.READ,
+        'grant-permission': AuditActionType.PERMISSION_CHANGE,
+        'revoke-permission': AuditActionType.PERMISSION_CHANGE,
+        'change-role': AuditActionType.ROLE_CHANGE,
+        'config-change': AuditActionType.SYSTEM_CONFIG,
+        'bulk-operation': AuditActionType.BULK_OPERATION,
+      };
 
-    return stringMappings[action.toLowerCase()] || AuditActionType.READ;
+      return stringMappings[action.toLowerCase()] || AuditActionType.READ;
+    }
+
+    // Default fallback
+    return AuditActionType.READ;
   }
 
   /**
@@ -533,6 +580,40 @@ export class AuditInterceptor implements NestInterceptor {
       actionType === AuditActionType.PERMISSION_CHANGE ||
       actionType === AuditActionType.ROLE_CHANGE
     );
+  }
+
+  /**
+   * Converts AuditActionType enum to a string representation
+   */
+  private actionTypeToString(action: AuditActionType | string): string {
+    // Since Prisma generates enums as objects with string values,
+    // the action might already be a string like 'APPROVE'
+    const actionStr = action as string;
+
+    // Map enum string values to their lowercase hyphenated representations
+    const actionMap: Record<string, string> = {
+      CREATE: 'create',
+      READ: 'read',
+      UPDATE: 'update',
+      DELETE: 'delete',
+      LOGIN: 'login',
+      LOGOUT: 'logout',
+      APPROVE: 'approve',
+      REJECT: 'reject',
+      EXPORT: 'export',
+      IMPORT: 'import',
+      BLOCK: 'block',
+      UNBLOCK: 'unblock',
+      PERMISSION_CHANGE: 'permission-change',
+      ROLE_CHANGE: 'role-change',
+      RESTORE: 'restore',
+      BACKUP: 'backup',
+      BULK_OPERATION: 'bulk-operation',
+      SYSTEM_CONFIG: 'system-config',
+      FAILED_LOGIN: 'failed-login',
+    };
+
+    return actionMap[actionStr] || 'unknown';
   }
 }
 

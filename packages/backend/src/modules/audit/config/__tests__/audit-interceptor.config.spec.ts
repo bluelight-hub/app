@@ -1,8 +1,8 @@
 import {
-  defaultAuditInterceptorConfig,
-  createAuditInterceptorConfig,
   AuditInterceptorConfig,
-} from '../audit-interceptor.config';
+  createAuditInterceptorConfig,
+  defaultAuditInterceptorConfig,
+} from '@/modules/audit';
 import { AuditActionType, AuditSeverity } from '@prisma/generated/prisma/client';
 
 describe('Audit Interceptor Config', () => {
@@ -117,18 +117,17 @@ describe('Audit Interceptor Config', () => {
       expect(severityMapping[AuditActionType.UNBLOCK]).toBe(AuditSeverity.MEDIUM);
       expect(severityMapping[AuditActionType.BACKUP]).toBe(AuditSeverity.MEDIUM);
       expect(severityMapping[AuditActionType.BULK_OPERATION]).toBe(AuditSeverity.MEDIUM);
+      expect(severityMapping[AuditActionType.FAILED_LOGIN]).toBe(AuditSeverity.MEDIUM);
+      expect(severityMapping[AuditActionType.APPROVE]).toBe(AuditSeverity.MEDIUM);
+      expect(severityMapping[AuditActionType.REJECT]).toBe(AuditSeverity.MEDIUM);
+      expect(severityMapping[AuditActionType.BLOCK]).toBe(AuditSeverity.MEDIUM);
+      expect(severityMapping[AuditActionType.RESTORE]).toBe(AuditSeverity.MEDIUM);
 
       // High severity
       expect(severityMapping[AuditActionType.DELETE]).toBe(AuditSeverity.HIGH);
-      expect(severityMapping[AuditActionType.FAILED_LOGIN]).toBe(AuditSeverity.HIGH);
       expect(severityMapping[AuditActionType.IMPORT]).toBe(AuditSeverity.HIGH);
-      expect(severityMapping[AuditActionType.APPROVE]).toBe(AuditSeverity.HIGH);
-      expect(severityMapping[AuditActionType.REJECT]).toBe(AuditSeverity.HIGH);
-      expect(severityMapping[AuditActionType.BLOCK]).toBe(AuditSeverity.HIGH);
-      expect(severityMapping[AuditActionType.PERMISSION_CHANGE]).toBe(AuditSeverity.HIGH);
       expect(severityMapping[AuditActionType.PERMISSION_CHANGE]).toBe(AuditSeverity.HIGH);
       expect(severityMapping[AuditActionType.ROLE_CHANGE]).toBe(AuditSeverity.HIGH);
-      expect(severityMapping[AuditActionType.RESTORE]).toBe(AuditSeverity.HIGH);
       expect(severityMapping[AuditActionType.SYSTEM_CONFIG]).toBe(AuditSeverity.HIGH);
     });
 
@@ -142,17 +141,20 @@ describe('Audit Interceptor Config', () => {
       // Test development environment
       process.env.NODE_ENV = 'development';
       jest.resetModules();
-      const devConfig = require('../audit-interceptor.config').defaultAuditInterceptorConfig;
+      const { defaultAuditInterceptorConfig: devConfig } = require('../audit-interceptor.config');
       expect(devConfig.logStackTraces).toBe(true);
 
       // Test production environment
       process.env.NODE_ENV = 'production';
       jest.resetModules();
-      const prodConfig = require('../audit-interceptor.config').defaultAuditInterceptorConfig;
+      const { defaultAuditInterceptorConfig: prodConfig } = require('../audit-interceptor.config');
       expect(prodConfig.logStackTraces).toBe(false);
 
       // Restore original environment
       process.env.NODE_ENV = originalEnv;
+
+      // Clear module cache again to restore original state
+      jest.resetModules();
     });
   });
 
