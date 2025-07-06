@@ -17,7 +17,7 @@ import { AuditActionType, AuditSeverity } from '@prisma/generated/prisma/client'
  * - Performance unter Last
  * - Sicherheitsaspekte
  */
-describe.skip('Audit Logging System (e2e) - NEEDS UPDATE FOR NEW INTERCEPTOR', () => {
+describe('Audit Logging System (e2e)', () => {
   let app: INestApplication;
   let prismaService: PrismaService;
   let auditLogService: AuditLogService;
@@ -75,7 +75,8 @@ describe.skip('Audit Logging System (e2e) - NEEDS UPDATE FOR NEW INTERCEPTOR', (
         update: {},
         create: {
           email: testUser.email,
-          hashedPassword: await authService['hashPassword'](testUser.password),
+          username: testUser.email.split('@')[0],
+          passwordHash: await authService['hashPassword'](testUser.password),
           role: testUser.role as any,
           isActive: true,
         },
@@ -87,7 +88,8 @@ describe.skip('Audit Logging System (e2e) - NEEDS UPDATE FOR NEW INTERCEPTOR', (
         update: {},
         create: {
           email: testSuperAdmin.email,
-          hashedPassword: await authService['hashPassword'](testSuperAdmin.password),
+          username: testSuperAdmin.email.split('@')[0],
+          passwordHash: await authService['hashPassword'](testSuperAdmin.password),
           role: testSuperAdmin.role as any,
           isActive: true,
         },
@@ -141,11 +143,12 @@ describe.skip('Audit Logging System (e2e) - NEEDS UPDATE FOR NEW INTERCEPTOR', (
 
       expect(auditLogs.items).toHaveLength(1);
       expect(auditLogs.items[0]).toMatchObject({
-        action: 'view',
-        resource: 'user',
+        action: 'read',
+        resource: 'users',
         httpMethod: 'GET',
         userEmail: testUser.email,
         success: true,
+        endpoint: '/admin/users',
       });
     });
 
@@ -232,6 +235,45 @@ describe.skip('Audit Logging System (e2e) - NEEDS UPDATE FOR NEW INTERCEPTOR', (
       // All requests should be logged
       expect(auditLogs.items.length).toBeGreaterThanOrEqual(50);
     });
+
+    it('should skip audit logging for endpoints decorated with @NoAudit', async () => {
+      // Make request to a health endpoint (typically decorated with @NoAudit)
+      await request(app.getHttpServer()).get('/health').expect(200);
+
+      // Wait for async logging
+      await new Promise((resolve) => setTimeout(resolve, 100));
+
+      const auditLogs = await auditLogService.findMany({
+        search: '/health',
+      });
+
+      // No audit logs should be created for @NoAudit endpoints
+      expect(auditLogs.items).toHaveLength(0);
+    });
+
+    it('should respect custom audit metadata from decorators', async () => {
+      // Make request to an endpoint with custom audit metadata
+      await request(app.getHttpServer())
+        .post('/admin/audit-logs/archive')
+        .set('Authorization', `Bearer ${superAdminToken}`)
+        .send({ days: 30 })
+        .expect(201);
+
+      // Wait for async logging
+      await new Promise((resolve) => setTimeout(resolve, 100));
+
+      const auditLogs = await auditLogService.findMany({
+        userEmail: testSuperAdmin.email,
+        action: 'archive',
+      });
+
+      expect(auditLogs.items).toHaveLength(1);
+      expect(auditLogs.items[0]).toMatchObject({
+        actionType: AuditActionType.SYSTEM_CONFIG,
+        severity: AuditSeverity.HIGH,
+        resource: 'audit-logs',
+      });
+    });
   });
 
   describe('Audit Log API Endpoints', () => {
@@ -247,7 +289,7 @@ describe.skip('Audit Logging System (e2e) - NEEDS UPDATE FOR NEW INTERCEPTOR', (
         severity: AuditSeverity.MEDIUM,
         success: true,
         httpMethod: 'POST',
-        httpPath: '/admin/users',
+        endpoint: '/admin/users',
         ipAddress: '127.0.0.1',
         userAgent: 'test-agent',
       });
@@ -263,7 +305,7 @@ describe.skip('Audit Logging System (e2e) - NEEDS UPDATE FOR NEW INTERCEPTOR', (
         success: false,
         errorMessage: 'Validation failed',
         httpMethod: 'PUT',
-        httpPath: '/admin/users/test-user-1',
+        endpoint: '/admin/users/test-user-1',
         ipAddress: '127.0.0.1',
         userAgent: 'test-agent',
       });
@@ -377,7 +419,8 @@ describe.skip('Audit Logging System (e2e) - NEEDS UPDATE FOR NEW INTERCEPTOR', (
       const regularUser = await prismaService.user.create({
         data: {
           email: 'regular-user@example.com',
-          hashedPassword: await authService['hashPassword']('Test123!'),
+          username: 'regular-user',
+          passwordHash: await authService['hashPassword']('Test123!'),
           role: 'USER',
           isActive: true,
         },

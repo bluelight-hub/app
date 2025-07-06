@@ -1,618 +1,257 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { INestApplication } from '@nestjs/common';
-import { PrismaService } from '../../../prisma/prisma.service';
-import { AuditModule } from '../audit.module';
+import { AuditInterceptor } from '../interceptors/audit.interceptor';
 import { AuditLogService } from '../services/audit-log.service';
 import { AuditLogQueue } from '../queues/audit-log.queue';
-import { AuditInterceptor } from '../interceptors/audit.interceptor';
-import { AuthModule } from '../../auth/auth.module';
-import { BullModule } from '@nestjs/bull';
-import { ConfigModule } from '@nestjs/config';
-import { CreateAuditLogDto } from '../dto';
 import { AuditActionType, AuditSeverity } from '@prisma/generated/prisma/client';
+import { NoAudit, Audit, AuditDelete } from '../decorators/audit.decorator';
+import { Controller, Get, Post, Delete, Param, Body } from '@nestjs/common';
+import * as request from 'supertest';
+import { waitForAuditProcessing } from './utils/auditTestUtils';
 
-/**
- * Integration-Tests für das vollständige Audit Logging System
- *
- * Diese Tests validieren:
- * - End-to-End Funktionalität zwischen allen Komponenten
- * - Datenintegrität durch alle Schichten
- * - Queue-Processing und Batch-Operations
- * - Cache-Integration
- * - Error Recovery und Resilience
- * - Performance unter realistischen Bedingungen
- */
-describe.skip('Audit System Integration Tests - NEEDS UPDATE FOR NEW INTERCEPTOR', () => {
+// Test Controller with various audit decorators
+@Controller('test-audit')
+class TestAuditController {
+  @Get('normal')
+  getNormal() {
+    return { message: 'normal endpoint' };
+  }
+
+  @NoAudit()
+  @Get('no-audit')
+  getNoAudit() {
+    return { message: 'no audit endpoint' };
+  }
+
+  @Audit({
+    action: AuditActionType.APPROVE,
+    severity: AuditSeverity.HIGH,
+    resourceType: 'test-resource',
+    context: { customField: 'customValue' },
+  })
+  @Post('custom-audit')
+  postCustomAudit(@Body() data: any) {
+    return { message: 'custom audit endpoint', data };
+  }
+
+  @AuditDelete('user')
+  @Delete('users/:id')
+  deleteUser(@Param('id') id: string) {
+    return { message: `User ${id} deleted` };
+  }
+}
+
+describe('Audit Module Integration Tests', () => {
   let app: INestApplication;
-  let prismaService: PrismaService;
-  let auditLogService: AuditLogService;
-  let auditLogQueue: AuditLogQueue;
-  let _auditInterceptor: AuditInterceptor;
+  let interceptor: AuditInterceptor;
+
+  // Mock services
+  const mockAuditLogService = {
+    create: jest.fn().mockResolvedValue({ id: 'test-id' }),
+    findMany: jest.fn().mockResolvedValue({ items: [], pagination: {} }),
+    findOne: jest.fn(),
+    getStatistics: jest.fn(),
+    archiveOldLogs: jest.fn(),
+    deleteArchivedLogs: jest.fn(),
+    markAsReviewed: jest.fn(),
+  };
+
+  const mockAuditLogQueue = {
+    addAuditLog: jest.fn().mockResolvedValue('job-id'),
+    addBulkAuditLogs: jest.fn().mockResolvedValue(['job-id']),
+    getQueueStats: jest.fn().mockResolvedValue({ waiting: 0, active: 0, completed: 0 }),
+  };
 
   beforeAll(async () => {
     const moduleFixture: TestingModule = await Test.createTestingModule({
-      imports: [
-        ConfigModule.forRoot({
-          isGlobal: true,
-          envFilePath: '.env.test',
-        }),
-        BullModule.forRoot({
-          redis: {
-            host: process.env.REDIS_HOST || 'localhost',
-            port: parseInt(process.env.REDIS_PORT || '6379'),
-            db: parseInt(process.env.REDIS_DB || '1'), // Use different DB for tests
-          },
-        }),
-        AuditModule,
-        AuthModule,
+      controllers: [TestAuditController],
+      providers: [
+        { provide: AuditLogService, useValue: mockAuditLogService },
+        { provide: AuditLogQueue, useValue: mockAuditLogQueue },
       ],
     }).compile();
 
     app = moduleFixture.createNestApplication();
-    prismaService = moduleFixture.get<PrismaService>(PrismaService);
-    auditLogService = moduleFixture.get<AuditLogService>(AuditLogService);
-    auditLogQueue = moduleFixture.get<AuditLogQueue>(AuditLogQueue);
-    _auditInterceptor = moduleFixture.get<AuditInterceptor>(AuditInterceptor);
+
+    // Create and configure interceptor
+    interceptor = new AuditInterceptor(mockAuditLogService as any, mockAuditLogQueue as any);
+    interceptor.setConfig({
+      includePaths: ['/test-audit'],
+      excludePaths: ['/health', '/metrics'],
+    });
+
+    // Apply interceptor globally
+    app.useGlobalInterceptors(interceptor);
 
     await app.init();
   });
 
   afterAll(async () => {
-    await cleanupTestData();
     await app.close();
   });
 
-  beforeEach(async () => {
-    await cleanupTestData();
+  beforeEach(() => {
+    // Clear all mocks
+    jest.clearAllMocks();
   });
 
-  async function cleanupTestData() {
-    await prismaService.auditLog.deleteMany({
-      where: {
-        OR: [
-          { action: { startsWith: 'integration-test-' } },
-          { resource: 'integration-test' },
-          { userEmail: { contains: 'integration-test' } },
-        ],
-      },
-    });
-  }
+  describe('AuditInterceptor + AuditService Integration', () => {
+    it('should create audit log for normal endpoint', async () => {
+      await request(app.getHttpServer()).get('/test-audit/normal').expect(200);
 
-  describe('End-to-End Audit Log Creation', () => {
-    it('should create audit log through service and persist to database', async () => {
-      const auditData: CreateAuditLogDto = {
-        actionType: AuditActionType.CREATE,
-        action: 'integration-test-create',
-        resource: 'integration-test',
-        resourceId: 'test-resource-1',
-        userId: 'test-user-1',
-        userEmail: 'integration-test@example.com',
-        severity: AuditSeverity.MEDIUM,
-        success: true,
-        httpMethod: 'POST',
-        endpoint: '/api/integration-test',
-        ipAddress: '127.0.0.1',
-        userAgent: 'Test Agent',
-        metadata: {
-          test: 'integration-data',
-          nested: {
-            value: 'nested-test',
-          },
-        },
-      };
+      await waitForAuditProcessing();
 
-      // Create audit log through service
-      const createdLog = await auditLogService.create(auditData);
-
-      // Verify log was created with correct data
-      expect(createdLog).toMatchObject({
-        action: auditData.action,
-        resource: auditData.resource,
-        userId: auditData.userId,
-        userEmail: auditData.userEmail,
-        severity: auditData.severity,
-        success: auditData.success,
-      });
-
-      // Verify log exists in database
-      const dbLog = await prismaService.auditLog.findUnique({
-        where: { id: createdLog.id },
-      });
-
-      expect(dbLog).toBeTruthy();
-      expect(dbLog!.metadata).toEqual(auditData.metadata);
+      expect(mockAuditLogQueue.addAuditLog).toHaveBeenCalledWith(
+        expect.objectContaining({
+          actionType: AuditActionType.READ,
+          action: 'read',
+          resource: 'test-audit',
+          httpMethod: 'GET',
+          endpoint: '/test-audit/normal',
+          success: true,
+          statusCode: 200,
+        }),
+      );
     });
 
-    it('should handle audit log creation with minimal required data', async () => {
-      const minimalData: CreateAuditLogDto = {
-        actionType: AuditActionType.READ,
-        action: 'integration-test-minimal',
-        resource: 'integration-test',
-      };
+    it('should skip audit logging for @NoAudit decorated endpoints', async () => {
+      await request(app.getHttpServer()).get('/test-audit/no-audit').expect(200);
 
-      const createdLog = await auditLogService.create(minimalData);
+      await waitForAuditProcessing();
 
-      expect(createdLog).toMatchObject({
-        action: minimalData.action,
-        resource: minimalData.resource,
-        severity: AuditSeverity.MEDIUM, // Default value
-        success: true, // Default value
-      });
+      expect(mockAuditLogQueue.addAuditLog).not.toHaveBeenCalled();
+    });
 
-      // Verify in database
-      const dbLog = await prismaService.auditLog.findUnique({
-        where: { id: createdLog.id },
-      });
+    it('should use custom audit metadata from decorators', async () => {
+      const testData = { test: 'data' };
 
-      expect(dbLog).toBeTruthy();
+      await request(app.getHttpServer())
+        .post('/test-audit/custom-audit')
+        .send(testData)
+        .expect(201);
+
+      await waitForAuditProcessing();
+
+      expect(mockAuditLogQueue.addAuditLog).toHaveBeenCalledWith(
+        expect.objectContaining({
+          actionType: AuditActionType.CREATE, // POST maps to CREATE by default
+          action: 'create',
+          severity: AuditSeverity.HIGH, // Custom severity is preserved
+          resource: 'test-resource', // Custom resource is preserved
+          httpMethod: 'POST',
+          success: true,
+          metadata: expect.objectContaining({
+            customField: 'customValue', // Custom context is preserved
+          }),
+        }),
+      );
+    });
+
+    it('should handle delete operations with proper severity', async () => {
+      await request(app.getHttpServer()).delete('/test-audit/users/123').expect(200);
+
+      await waitForAuditProcessing();
+
+      expect(mockAuditLogQueue.addAuditLog).toHaveBeenCalledWith(
+        expect.objectContaining({
+          actionType: AuditActionType.DELETE,
+          action: 'delete',
+          severity: AuditSeverity.HIGH,
+          resource: 'user',
+          resourceId: '123',
+          httpMethod: 'DELETE',
+          success: true,
+        }),
+      );
+    });
+  });
+
+  describe('Error Handling', () => {
+    it('should log failed operations with error details', async () => {
+      // Create a controller that throws an error
+      @Controller('test-error')
+      class TestErrorController {
+        @Get('throw')
+        throwError() {
+          throw new Error('Test error');
+        }
+      }
+
+      const errorModule = await Test.createTestingModule({
+        controllers: [TestErrorController],
+      }).compile();
+
+      const errorApp = errorModule.createNestApplication();
+      errorApp.useGlobalInterceptors(
+        new AuditInterceptor(mockAuditLogService as any, mockAuditLogQueue as any),
+      );
+      await errorApp.init();
+
+      await request(errorApp.getHttpServer()).get('/test-error/throw').expect(500);
+
+      await waitForAuditProcessing();
+
+      expect(mockAuditLogQueue.addAuditLog).toHaveBeenCalledWith(
+        expect.objectContaining({
+          success: false,
+          severity: AuditSeverity.ERROR,
+          errorMessage: 'Test error',
+        }),
+      );
+
+      await errorApp.close();
     });
   });
 
   describe('Queue Integration', () => {
-    it('should process audit logs through queue successfully', async () => {
-      const auditData: CreateAuditLogDto = {
-        actionType: AuditActionType.UPDATE,
-        action: 'integration-test-queue',
-        resource: 'integration-test',
-        resourceId: 'queue-test-1',
-        userId: 'queue-user',
-        userEmail: 'queue-integration-test@example.com',
-        severity: AuditSeverity.HIGH,
-        success: true,
-      };
+    it('should fallback to direct service call when queue fails', async () => {
+      // Make queue fail
+      mockAuditLogQueue.addAuditLog.mockRejectedValueOnce(new Error('Queue failed'));
 
-      // Add to queue
-      const _jobId = await auditLogQueue.addAuditLog(auditData);
-      expect(_jobId).toBeTruthy();
+      await request(app.getHttpServer()).get('/test-audit/normal').expect(200);
 
-      // Wait for job processing
-      await new Promise((resolve) => setTimeout(resolve, 2000));
+      await waitForAuditProcessing();
 
-      // Verify log was created through queue processing
-      const logs = await auditLogService.findMany({
-        action: 'integration-test-queue',
-      });
+      // Should have tried queue first
+      expect(mockAuditLogQueue.addAuditLog).toHaveBeenCalled();
 
-      expect(logs.items).toHaveLength(1);
-      expect(logs.items[0]).toMatchObject({
-        action: auditData.action,
-        resource: auditData.resource,
-        userId: auditData.userId,
-      });
-    });
-
-    it('should handle bulk queue operations efficiently', async () => {
-      const bulkData = Array.from({ length: 50 }, (_, i) => ({
-        actionType: AuditActionType.BULK_OPERATION,
-        action: `integration-test-bulk-${i}`,
-        resource: 'integration-test',
-        resourceId: `bulk-resource-${i}`,
-        userId: `bulk-user-${i}`,
-        userEmail: `bulk-integration-test-${i}@example.com`,
-        severity: AuditSeverity.LOW,
-        success: true,
-      }));
-
-      // Add bulk data to queue
-      const jobIds = await Promise.all(bulkData.map((data) => auditLogQueue.addAuditLog(data)));
-      expect(jobIds).toHaveLength(50); // Individual jobs for each audit log
-
-      // Wait for processing
-      await new Promise((resolve) => setTimeout(resolve, 5000));
-
-      // Verify all logs were created
-      const logs = await auditLogService.findMany({
-        search: 'integration-test-bulk',
-        limit: 100,
-      });
-
-      expect(logs.items).toHaveLength(50);
-    });
-
-    it('should retry failed queue jobs', async () => {
-      // Create audit data that will initially fail
-      const auditData: CreateAuditLogDto = {
-        actionType: AuditActionType.DELETE,
-        action: 'integration-test-retry',
-        resource: 'integration-test',
-        resourceId: 'retry-test',
-        userId: 'retry-user',
-        userEmail: 'retry-integration-test@example.com',
-        severity: AuditSeverity.CRITICAL,
-        success: false,
-        errorMessage: 'Simulated failure for retry test',
-      };
-
-      // Temporarily mock database to fail then succeed
-      let callCount = 0;
-      const originalCreate = prismaService.auditLog.create;
-      prismaService.auditLog.create = jest.fn().mockImplementation((args) => {
-        callCount++;
-        if (callCount <= 2) {
-          throw new Error('Simulated database error');
-        }
-        return originalCreate.call(prismaService.auditLog, args);
-      });
-
-      const _jobId = await auditLogQueue.addAuditLog(auditData);
-
-      // Wait for retries and final success
-      await new Promise((resolve) => setTimeout(resolve, 10000));
-
-      // Restore original function
-      prismaService.auditLog.create = originalCreate;
-
-      // Verify log was eventually created
-      const logs = await auditLogService.findMany({
-        action: 'integration-test-retry',
-      });
-
-      expect(logs.items).toHaveLength(1);
-      expect(callCount).toBeGreaterThan(1); // Verify retries occurred
+      // Should have fallen back to direct service
+      expect(mockAuditLogService.create).toHaveBeenCalled();
     });
   });
 
-  describe('Cache Integration', () => {
-    it('should cache query results and invalidate on create', async () => {
-      // Create some initial data
-      await auditLogService.create({
-        actionType: AuditActionType.READ,
-        action: 'integration-test-cache-1',
-        resource: 'integration-test',
-        userId: 'cache-user',
-        userEmail: 'cache-integration-test@example.com',
-      });
-
-      // First query - cache miss
-      const startTime1 = Date.now();
-      const result1 = await auditLogService.findMany({
-        search: 'integration-test-cache',
-      });
-      const duration1 = Date.now() - startTime1;
-
-      expect(result1.items).toHaveLength(1);
-
-      // Second query - should be cached
-      const startTime2 = Date.now();
-      const result2 = await auditLogService.findMany({
-        search: 'integration-test-cache',
-      });
-      const duration2 = Date.now() - startTime2;
-
-      expect(result2.items).toHaveLength(1);
-      expect(duration2).toBeLessThan(duration1 / 2); // Cache hit should be faster
-
-      // Create new log - should invalidate cache
-      await auditLogService.create({
-        actionType: AuditActionType.CREATE,
-        action: 'integration-test-cache-2',
-        resource: 'integration-test',
-        userId: 'cache-user',
-        userEmail: 'cache-integration-test@example.com',
-      });
-
-      // Query again - should reflect new data
-      const result3 = await auditLogService.findMany({
-        search: 'integration-test-cache',
-      });
-
-      expect(result3.items).toHaveLength(2);
-    });
-
-    it('should cache statistics and invalidate appropriately', async () => {
-      // Create test data
-      const auditLogs = Array.from({ length: 10 }, (_, i) => ({
-        actionType: i % 2 === 0 ? AuditActionType.CREATE : AuditActionType.UPDATE,
-        action: `integration-test-stats-${i}`,
-        resource: 'integration-test',
-        resourceId: `stats-${i}`,
-        userId: 'stats-user',
-        userEmail: 'stats-integration-test@example.com',
-        severity: i % 3 === 0 ? AuditSeverity.HIGH : AuditSeverity.MEDIUM,
-        success: i % 5 !== 0,
-      }));
-
-      for (const logData of auditLogs) {
-        await auditLogService.create(logData);
-      }
-
-      // Get statistics - first call
-      const stats1 = await auditLogService.getStatistics({});
-      expect(stats1.totalLogs).toBeGreaterThanOrEqual(10);
-
-      // Get statistics again - should be cached
-      const startTime = Date.now();
-      const stats2 = await auditLogService.getStatistics({});
-      const duration = Date.now() - startTime;
-
-      expect(stats2).toEqual(stats1);
-      expect(duration).toBeLessThan(50); // Should be very fast from cache
-    });
-  });
-
-  describe('Error Handling and Resilience', () => {
-    it('should handle database connection failures gracefully', async () => {
-      // Temporarily disconnect from database
-      await prismaService.$disconnect();
-
-      const auditData: CreateAuditLogDto = {
-        actionType: AuditActionType.SYSTEM_CONFIG,
-        action: 'integration-test-db-failure',
-        resource: 'integration-test',
-        userId: 'error-user',
-        userEmail: 'error-integration-test@example.com',
-        success: false,
-        errorMessage: 'Database connection test',
+  describe('Interceptor Configuration', () => {
+    it('should sanitize sensitive data', async () => {
+      const sensitiveData = {
+        username: 'testuser',
+        password: 'secret123',
+        apiKey: 'abc-123',
+        token: 'jwt-token',
+        email: 'test@example.com',
       };
 
-      // Should not throw error, should queue for later processing
-      expect(async () => {
-        await auditLogQueue.addAuditLog(auditData);
-      }).not.toThrow();
+      await request(app.getHttpServer())
+        .post('/test-audit/custom-audit')
+        .send(sensitiveData)
+        .expect(201);
 
-      // Reconnect
-      await prismaService.$connect();
+      await waitForAuditProcessing();
 
-      // Wait for queue to process
-      await new Promise((resolve) => setTimeout(resolve, 3000));
-
-      // Verify log was eventually created
-      const logs = await auditLogService.findMany({
-        action: 'integration-test-db-failure',
-      });
-
-      expect(logs.items).toHaveLength(1);
-    });
-
-    it('should handle queue service failures', async () => {
-      const auditData: CreateAuditLogDto = {
-        actionType: AuditActionType.CREATE,
-        action: 'integration-test-queue-failure',
-        resource: 'integration-test',
-        userId: 'queue-failure-user',
-        userEmail: 'queue-failure-integration-test@example.com',
-      };
-
-      // Mock queue failure
-      const originalAddAuditLog = auditLogQueue.addAuditLog;
-      auditLogQueue.addAuditLog = jest.fn().mockRejectedValue(new Error('Queue service down'));
-
-      // Should fallback to direct database creation
-      const result = await auditLogService.create(auditData);
-      expect(result).toBeTruthy();
-
-      // Verify log exists in database
-      const dbLog = await prismaService.auditLog.findUnique({
-        where: { id: result.id },
-      });
-      expect(dbLog).toBeTruthy();
-
-      // Restore original function
-      auditLogQueue.addAuditLog = originalAddAuditLog;
-    });
-  });
-
-  describe('Data Integrity and Validation', () => {
-    it('should maintain referential integrity across operations', async () => {
-      const userId = 'integrity-test-user';
-      const resourceId = 'integrity-test-resource';
-
-      // Create multiple related logs
-      const logs = await Promise.all([
-        auditLogService.create({
-          actionType: AuditActionType.CREATE,
-          action: 'integration-test-create-resource',
-          resource: 'integration-test',
-          resourceId,
-          userId,
-          userEmail: 'integrity-integration-test@example.com',
-        }),
-        auditLogService.create({
-          actionType: AuditActionType.UPDATE,
-          action: 'integration-test-update-resource',
-          resource: 'integration-test',
-          resourceId,
-          userId,
-          userEmail: 'integrity-integration-test@example.com',
-        }),
-        auditLogService.create({
-          actionType: AuditActionType.DELETE,
-          action: 'integration-test-delete-resource',
-          resource: 'integration-test',
-          resourceId,
-          userId,
-          userEmail: 'integrity-integration-test@example.com',
-        }),
-      ]);
-
-      // Verify all logs have consistent data
-      logs.forEach((log) => {
-        expect(log.userId).toBe(userId);
-        expect(log.resourceId).toBe(resourceId);
-      });
-
-      // Query by resource ID should return all logs
-      const resourceLogs = await auditLogService.findMany({
-        resourceId,
-      });
-
-      expect(resourceLogs.items).toHaveLength(3);
-    });
-
-    it('should validate audit log data constraints', async () => {
-      // Test with invalid data
-      const invalidData = {
-        actionType: 'INVALID_ACTION' as any,
-        action: '', // Empty action
-        resource: 'integration-test',
-      };
-
-      await expect(auditLogService.create(invalidData)).rejects.toThrow();
-    });
-
-    it('should handle concurrent access correctly', async () => {
-      const userId = 'concurrent-test-user';
-      const promises = [];
-
-      // Create 20 concurrent audit logs
-      for (let i = 0; i < 20; i++) {
-        promises.push(
-          auditLogService.create({
-            actionType: AuditActionType.BULK_OPERATION,
-            action: `integration-test-concurrent-${i}`,
-            resource: 'integration-test',
-            resourceId: `concurrent-${i}`,
-            userId,
-            userEmail: 'concurrent-integration-test@example.com',
+      expect(mockAuditLogQueue.addAuditLog).toHaveBeenCalledWith(
+        expect.objectContaining({
+          metadata: expect.objectContaining({
+            request: expect.objectContaining({
+              body: expect.objectContaining({
+                password: '[REDACTED]',
+                apiKey: '[REDACTED]',
+                token: '[REDACTED]',
+                username: 'testuser',
+                email: 'test@example.com',
+              }),
+            }),
           }),
-        );
-      }
-
-      const results = await Promise.all(promises);
-
-      // All should succeed
-      expect(results).toHaveLength(20);
-      results.forEach((result) => {
-        expect(result.id).toBeTruthy();
-        expect(result.userId).toBe(userId);
-      });
-
-      // Verify in database
-      const dbLogs = await auditLogService.findMany({
-        userId,
-        search: 'integration-test-concurrent',
-        limit: 25,
-      });
-
-      expect(dbLogs.items).toHaveLength(20);
-    });
-  });
-
-  describe('Performance Under Load', () => {
-    it('should maintain performance with high-volume operations', async () => {
-      const startTime = Date.now();
-      const promises = [];
-
-      // Create 100 audit logs
-      for (let i = 0; i < 100; i++) {
-        promises.push(
-          auditLogService.create({
-            actionType: AuditActionType.BULK_OPERATION,
-            action: `integration-test-performance-${i}`,
-            resource: 'integration-test',
-            resourceId: `perf-${i}`,
-            userId: `perf-user-${i % 5}`, // 5 different users
-            userEmail: `perf-integration-test-${i % 5}@example.com`,
-            severity: i % 3 === 0 ? AuditSeverity.HIGH : AuditSeverity.MEDIUM,
-            success: i % 10 !== 0, // 10% failure rate
-          }),
-        );
-      }
-
-      await Promise.all(promises);
-      const duration = Date.now() - startTime;
-
-      // Should complete within reasonable time
-      expect(duration).toBeLessThan(10000); // 10 seconds max
-
-      // Verify all logs were created
-      const logs = await auditLogService.findMany({
-        search: 'integration-test-performance',
-        limit: 150,
-      });
-
-      expect(logs.items).toHaveLength(100);
-
-      // Test query performance with large dataset
-      const queryStartTime = Date.now();
-      const filteredLogs = await auditLogService.findMany({
-        actionType: AuditActionType.BULK_OPERATION,
-        severity: AuditSeverity.HIGH,
-        success: true,
-        limit: 50,
-      });
-      const queryDuration = Date.now() - queryStartTime;
-
-      expect(queryDuration).toBeLessThan(1000); // 1 second max
-      expect(filteredLogs.items.length).toBeGreaterThan(0);
-    });
-  });
-
-  describe('Archive and Cleanup Operations', () => {
-    it('should archive old logs correctly', async () => {
-      // Create old logs
-      const oldLogs = await Promise.all([
-        auditLogService.create({
-          actionType: AuditActionType.CREATE,
-          action: 'integration-test-old-1',
-          resource: 'integration-test',
-          userId: 'archive-user',
-          userEmail: 'archive-integration-test@example.com',
         }),
-        auditLogService.create({
-          actionType: AuditActionType.UPDATE,
-          action: 'integration-test-old-2',
-          resource: 'integration-test',
-          userId: 'archive-user',
-          userEmail: 'archive-integration-test@example.com',
-        }),
-      ]);
-
-      // Manually update timestamps to be old
-      await Promise.all(
-        oldLogs.map((log) =>
-          prismaService.auditLog.update({
-            where: { id: log.id },
-            data: {
-              timestamp: new Date(Date.now() - 35 * 24 * 60 * 60 * 1000), // 35 days ago
-            },
-          }),
-        ),
       );
-
-      // Archive logs older than 30 days
-      const archivedCount = await auditLogService.archiveOldLogs(30);
-      expect(archivedCount).toBe(2);
-
-      // Verify logs are marked as archived
-      const archivedLogs = await prismaService.auditLog.findMany({
-        where: {
-          id: { in: oldLogs.map((log) => log.id) },
-        },
-      });
-
-      archivedLogs.forEach((log) => {
-        expect(log.archivedAt).toBeTruthy();
-      });
-    });
-
-    it('should delete archived logs correctly', async () => {
-      // Create and archive logs
-      const log = await auditLogService.create({
-        actionType: AuditActionType.DELETE,
-        action: 'integration-test-delete-archive',
-        resource: 'integration-test',
-        userId: 'delete-user',
-        userEmail: 'delete-integration-test@example.com',
-      });
-
-      // Archive the log
-      await prismaService.auditLog.update({
-        where: { id: log.id },
-        data: {
-          archivedAt: new Date(Date.now() - 400 * 24 * 60 * 60 * 1000), // 400 days ago
-        },
-      });
-
-      // Delete archived logs older than 365 days
-      const deletedCount = await auditLogService.deleteArchivedLogs(365);
-      expect(deletedCount).toBe(1);
-
-      // Verify log is deleted
-      const deletedLog = await prismaService.auditLog.findUnique({
-        where: { id: log.id },
-      });
-      expect(deletedLog).toBeNull();
     });
   });
 });

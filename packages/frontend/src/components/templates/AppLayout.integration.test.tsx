@@ -46,7 +46,7 @@ vi.mock('react-router', () => ({
   useNavigate: () => vi.fn(),
 }));
 
-describe.skip('AppLayout Integration Tests', () => {
+describe('AppLayout Integration Tests', () => {
   // TODO: Fix these tests after Zustand auth store migration
   beforeEach(() => {
     vi.clearAllMocks();
