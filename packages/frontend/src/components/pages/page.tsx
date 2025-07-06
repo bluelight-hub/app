@@ -1,5 +1,5 @@
-import { Button } from "antd";
-import { useNavigate } from "react-router";
+import {useNavigate} from "react-router";
+import {Button} from "@/components/ui/button.tsx";
 
 const IndexPage = () => {
     const navigate = useNavigate();
