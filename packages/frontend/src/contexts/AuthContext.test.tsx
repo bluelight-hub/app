@@ -2,6 +2,11 @@ import { act, render, screen } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { useAuth } from '../hooks/useAuth';
 import { AuthProvider } from './AuthContext';
+// Import API after mocking to get the mocked version
+import { api } from '../api';
+import { authStorage } from '../utils/authStorage';
+import { useAuthStore } from '../stores/useAuthStore';
+import { AuthUserDtoRolesEnum } from '@bluelight-hub/shared/client/models/AuthUserDto';
 
 // Mock für das API-Modul
 vi.mock('../api', () => ({
@@ -15,11 +20,6 @@ vi.mock('../api', () => ({
     },
   },
 }));
-
-// Import API after mocking to get the mocked version
-import { api } from '../api';
-import { authStorage } from '../utils/authStorage';
-import { useAuthStore } from '../stores/useAuthStore';
 
 // Mock für authStorage
 vi.mock('../utils/authStorage', () => ({
@@ -64,12 +64,12 @@ const localStorageMock = (() => {
 const mockUser = {
   id: '123',
   email: 'test@example.com',
-  roles: ['ADMIN'],
+  roles: [AuthUserDtoRolesEnum.Admin],
   permissions: ['ADMIN_USERS_READ', 'ADMIN_USERS_WRITE'],
   isActive: true,
   organizationId: 'org-1',
-  createdAt: new Date().toISOString(),
-  updatedAt: new Date().toISOString(),
+  createdAt: new Date(),
+  updatedAt: new Date(),
 };
 
 // Test-Komponente, die den useAuth-Hook verwendet
@@ -105,7 +105,7 @@ const waitForUI = async (expectedText: string) => {
   return false;
 };
 
-describe.skip('AuthContext', () => {
+describe('AuthContext', () => {
   // TODO: Fix these tests after Zustand auth store migration
   // Setup und Teardown
   beforeEach(() => {
@@ -175,6 +175,7 @@ describe.skip('AuthContext', () => {
         ok: true,
         json: async () => mockUser,
       } as Response,
+      value: async () => mockUser,
     });
 
     let authData: ReturnType<typeof useAuth> | undefined;
@@ -211,6 +212,11 @@ describe.skip('AuthContext', () => {
           user: mockUser,
         }),
       } as Response,
+      value: async () => ({
+        accessToken: 'mock-access-token',
+        refreshToken: 'mock-refresh-token',
+        user: mockUser,
+      }),
     };
 
     vi.mocked(api.auth.authControllerLoginV1Raw).mockResolvedValueOnce(mockLoginResponse);
@@ -244,15 +250,7 @@ describe.skip('AuthContext', () => {
     let result: { success: boolean } | undefined;
 
     // Mock fehlgeschlagene Login-Response
-    const mockFailedResponse = {
-      raw: {
-        ok: false,
-        status: 401,
-        json: async () => ({ message: 'Invalid credentials' }),
-      } as Response,
-    };
-
-    vi.mocked(api.auth.authControllerLoginV1Raw).mockResolvedValueOnce(mockFailedResponse);
+    vi.mocked(api.auth.authControllerLoginV1Raw).mockRejectedValueOnce(new Error('Invalid credentials'));
 
     // Komponente rendern
     renderWithAuthProvider((auth) => {
@@ -271,7 +269,6 @@ describe.skip('AuthContext', () => {
 
     // Assertions für fehlgeschlagene Anmeldung
     expect(result?.success).toBe(false);
-    expect(result?.requiresMfa).toBeUndefined();
     expect(authData?.isAuthenticated).toBe(false);
     expect(authData?.user).toBeNull();
     expect(localStorageMock.setItem).not.toHaveBeenCalledWith('auth_token', expect.any(String));
@@ -291,6 +288,11 @@ describe.skip('AuthContext', () => {
           user: mockUser,
         }),
       } as Response,
+      value: async () => ({
+        accessToken: 'mock-access-token',
+        refreshToken: 'mock-refresh-token',
+        user: mockUser,
+      }),
     };
 
     vi.mocked(api.auth.authControllerLoginV1Raw).mockResolvedValueOnce(mockLoginResponse);
@@ -344,6 +346,11 @@ describe.skip('AuthContext', () => {
           user: mockUser,
         }),
       } as Response,
+      value: async () => ({
+        accessToken: 'mock-access-token',
+        refreshToken: 'mock-refresh-token',
+        user: mockUser,
+      }),
     };
 
     vi.mocked(api.auth.authControllerLoginV1Raw).mockResolvedValueOnce(mockLoginResponse);
@@ -376,7 +383,7 @@ describe.skip('AuthContext', () => {
     // Mock erfolgreiche Login-Response mit normaler Benutzer-Rolle
     const normalUser = {
       ...mockUser,
-      roles: ['USER'],
+      roles: [AuthUserDtoRolesEnum.User],
     };
 
     const mockLoginResponse = {
@@ -388,6 +395,11 @@ describe.skip('AuthContext', () => {
           user: normalUser,
         }),
       } as Response,
+      value: async () => ({
+        accessToken: 'mock-access-token',
+        refreshToken: 'mock-refresh-token',
+        user: normalUser,
+      }),
     };
 
     vi.mocked(api.auth.authControllerLoginV1Raw).mockResolvedValueOnce(mockLoginResponse);
@@ -421,7 +433,7 @@ describe.skip('AuthContext', () => {
     // Mock erfolgreiche Login-Response mit SUPER_ADMIN Rolle
     const superAdminUser = {
       ...mockUser,
-      roles: ['SUPER_ADMIN'],
+      roles: [AuthUserDtoRolesEnum.SuperAdmin],
     };
 
     const mockLoginResponse = {
@@ -433,6 +445,11 @@ describe.skip('AuthContext', () => {
           user: superAdminUser,
         }),
       } as Response,
+      value: async () => ({
+        accessToken: 'mock-access-token',
+        refreshToken: 'mock-refresh-token',
+        user: superAdminUser,
+      }),
     };
 
     vi.mocked(api.auth.authControllerLoginV1Raw).mockResolvedValueOnce(mockLoginResponse);

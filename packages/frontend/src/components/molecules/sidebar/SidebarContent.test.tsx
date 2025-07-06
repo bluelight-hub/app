@@ -6,6 +6,7 @@ import { NavigationItem } from '../../../config/navigation';
 import { AuthProvider } from '../../../contexts/AuthContext';
 import * as ThemeHook from '../../../hooks/useTheme';
 import SidebarContent from './SidebarContent';
+import { EinsatzProvider } from '../../../contexts/EinsatzContext';
 
 // Mock the navigation items
 const mockNavigation: NavigationItem[] = [
@@ -67,7 +68,7 @@ vi.mock('../../../hooks/useAuth', () => ({
   })),
 }));
 
-describe.skip('SidebarContent', () => {
+describe('SidebarContent', () => {
   // TODO: Fix these tests after Zustand auth store migration
   let queryClient: QueryClient;
 
@@ -87,7 +88,9 @@ describe.skip('SidebarContent', () => {
       <QueryClientProvider client={queryClient}>
         <MemoryRouter>
           <AuthProvider>
-            <SidebarContent {...props} />
+            <EinsatzProvider>
+              <SidebarContent {...props} />
+            </EinsatzProvider>
           </AuthProvider>
         </MemoryRouter>
       </QueryClientProvider>,
