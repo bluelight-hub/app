@@ -23,6 +23,18 @@ describe('Audit System Performance Tests', () => {
   let _cacheService: AuditLogCacheService;
   let performanceEntries: any[] = [];
 
+  // Configurable performance thresholds
+  const PERF_THRESHOLDS = {
+    SINGLE_CREATE: parseInt(process.env.AUDIT_PERF_SINGLE_CREATE || '50'),
+    SINGLE_QUERY: parseInt(process.env.AUDIT_PERF_SINGLE_QUERY || '100'),
+    BULK_1000_TIMEOUT: parseInt(process.env.AUDIT_PERF_BULK_TIMEOUT || '10000'),
+    MIN_THROUGHPUT: parseInt(process.env.AUDIT_PERF_MIN_THROUGHPUT || '100'),
+    COMPLEX_QUERY: parseInt(process.env.AUDIT_PERF_COMPLEX_QUERY || '200'),
+    STATISTICS: parseInt(process.env.AUDIT_PERF_STATISTICS || '300'),
+    ARCHIVE: parseInt(process.env.AUDIT_PERF_ARCHIVE || '1000'),
+    DELETE: parseInt(process.env.AUDIT_PERF_DELETE || '2000'),
+  };
+
   const mockPrismaService = {
     auditLog: {
       create: jest.fn(),
@@ -78,7 +90,19 @@ describe('Audit System Performance Tests', () => {
       performanceEntries.push(...list.getEntries());
     });
     obs.observe({ entryTypes: ['measure'] });
+
+    // Warm up to avoid cold start effects
+    await warmUp();
   });
+
+  async function warmUp() {
+    // Perform some dummy operations to warm up V8 and mocks
+    for (let i = 0; i < 10; i++) {
+      await mockPrismaService.auditLog.create({
+        data: { id: `warmup-${i}` },
+      });
+    }
+  }
 
   beforeEach(() => {
     jest.clearAllMocks();
@@ -112,7 +136,7 @@ describe('Audit System Performance Tests', () => {
       performance.measure('create-audit-log', 'create-start', 'create-end');
 
       const measure = performance.getEntriesByName('create-audit-log')[0];
-      expect(measure.duration).toBeLessThan(50); // 50ms threshold
+      expect(measure.duration).toBeLessThan(PERF_THRESHOLDS.SINGLE_CREATE);
     });
 
     it('should query audit logs within acceptable latency (<100ms)', async () => {
@@ -131,7 +155,7 @@ describe('Audit System Performance Tests', () => {
       performance.measure('query-audit-logs', 'query-start', 'query-end');
 
       const measure = performance.getEntriesByName('query-audit-logs')[0];
-      expect(measure.duration).toBeLessThan(100); // 100ms threshold
+      expect(measure.duration).toBeLessThan(PERF_THRESHOLDS.SINGLE_QUERY);
     });
   });
 
@@ -169,8 +193,8 @@ describe('Audit System Performance Tests', () => {
       const measure = performance.getEntriesByName('bulk-create-1000')[0];
       const throughput = 1000 / (measure.duration / 1000); // operations per second
 
-      expect(throughput).toBeGreaterThan(100); // At least 100 ops/sec
-      expect(measure.duration).toBeLessThan(10000); // Complete within 10 seconds
+      expect(throughput).toBeGreaterThan(PERF_THRESHOLDS.MIN_THROUGHPUT);
+      expect(measure.duration).toBeLessThan(PERF_THRESHOLDS.BULK_1000_TIMEOUT);
     });
 
     it('should maintain performance under sustained load', async () => {
@@ -449,7 +473,7 @@ describe('Audit System Performance Tests', () => {
       const measure = performance.getEntriesByName('complex-query')[0];
 
       // Complex query should still complete within reasonable time
-      expect(measure.duration).toBeLessThan(200); // 200ms threshold
+      expect(measure.duration).toBeLessThan(PERF_THRESHOLDS.COMPLEX_QUERY);
     });
 
     it('should handle statistics aggregation efficiently', async () => {
@@ -490,7 +514,7 @@ describe('Audit System Performance Tests', () => {
       const measure = performance.getEntriesByName('statistics-aggregation')[0];
 
       // Statistics should be calculated efficiently even for large datasets
-      expect(measure.duration).toBeLessThan(300); // 300ms threshold
+      expect(measure.duration).toBeLessThan(PERF_THRESHOLDS.STATISTICS);
     });
   });
 
@@ -506,7 +530,7 @@ describe('Audit System Performance Tests', () => {
       const measure = performance.getEntriesByName('archive-operation')[0];
 
       expect(archivedCount).toBe(5000);
-      expect(measure.duration).toBeLessThan(1000); // Should complete within 1 second
+      expect(measure.duration).toBeLessThan(PERF_THRESHOLDS.ARCHIVE);
     });
 
     it('should efficiently delete archived logs', async () => {
@@ -520,7 +544,7 @@ describe('Audit System Performance Tests', () => {
       const measure = performance.getEntriesByName('delete-operation')[0];
 
       expect(deletedCount).toBe(2000);
-      expect(measure.duration).toBeLessThan(2000); // Should complete within 2 seconds
+      expect(measure.duration).toBeLessThan(PERF_THRESHOLDS.DELETE);
     });
   });
 
