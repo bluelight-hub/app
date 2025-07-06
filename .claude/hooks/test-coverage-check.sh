@@ -25,16 +25,24 @@ log() {
     echo -e "[$(date +'%Y-%m-%d %H:%M:%S')] $1"
 }
 
+# Funktion zum Escapen von JSON-Strings
+escape_json_string() {
+    local input="$1"
+    printf '%s' "$input" | sed -e 's/\\/\\\\/g' -e 's/"/\\"/g' -e 's/\n/\\n/g'
+}
+
 # Fehler-Handler
 handle_error() {
     local error_msg="$1"
     log "${RED}❌ $error_msg${NC}"
     
     if [ -n "$HOOK_RESULT_FILE" ]; then
+        local escaped_error_msg
+        escaped_error_msg=$(escape_json_string "$error_msg")
         cat > "$HOOK_RESULT_FILE" <<EOF
 {
     "status": "failed",
-    "message": "$error_msg"
+    "message": "$escaped_error_msg"
 }
 EOF
     fi
