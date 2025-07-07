@@ -1,0 +1,205 @@
+---
+description:
+  ENFORCE commit messages formatting with EMOJI(context): short description
+globs:
+alwaysApply: false
+---
+
+# Commit Message Standards
+
+## Context
+
+- Erstellung und Pflege von Git-Commit-Nachrichten
+- Einheitliches Format mit Emojis, Kontext, Titel
+
+## Requirements
+
+1. **Format**
+
+```
+<emoji>(<context>): <kurze, prägnante Nachricht>
+
+<zusätzliche Beschreibung, falls nötig>
+- <detaillierter Stichpunkt 1>
+- <detaillierter Stichpunkt 2>
+- <detaillierter Stichpunkt 3>
+
+<optional: 💥 BREAKING CHANGE>
+```
+
+2. **Mehrzeilige Messages (ERZWUNGEN)**
+
+- **OBLIGATORISCH** für substantielle Änderungen (>3 Dateien oder >50 Zeilen)
+- Verwende eine temporäre Datei (z. B. `commit-message.txt`)
+- Lösche sie nach dem Commit
+- Git Hook validiert automatisch Format und Länge
+
+3. **Emojis & Versioning**
+
+   - **Major (Breaking):**
+
+     - 💥 (boom) - Breaking Changes, inkompatible API-Änderungen
+
+   - **Minor (Features):**
+
+     - ✨ (sparkles) - Neue Features oder größere Verbesserungen
+
+   - **Patch (Fixes und Verbesserungen):**
+
+     - 🐛 (bug) - Bugfixes
+     - 🚑 (ambulance) - Kritische Hotfixes
+     - 🔒 (lock) - Sicherheitsverbesserungen
+     - 🧹 (broom) - Code-Bereinigung, Entfernen von Legacy-Code
+     - ♻️ (recycle) - Refactoring ohne Funktionsänderung
+     - 🔧 (wrench) - Konfigurationsänderungen, Tooling-Updates
+
+   - **Zusätzliche Emojis (aus .releaserc.js):**
+     - 📦 (package) - Dependencies aktualisieren
+     - 📝 (memo) - Dokumentation aktualisieren
+     - 💄 (lipstick) - UI/Styling-Verbesserungen
+     - ⚡ (zap) - Performance-Verbesserungen
+     - 🗑 (wastebasket) - Entfernen von Dateien oder Code
+     - 🛠 (hammer_and_wrench) - Entwicklungs-Tools oder Skripte
+     - 🚀 (rocket) - Deployment oder Performance-Verbesserungen
+     - 🎉 (tada) - Initiale Commits oder Meilensteine
+
+4. **Kontext**
+
+- z. B. `frontend`, `backend`, `shared`, `deps`, `docs` usw.
+- Sollte den Bereich des Projekts klar identifizieren
+- Bei globalen Änderungen: `global`, `project` oder `repo`
+
+5. **Detaillierte Stichpunkte**
+
+- Füge nach der Hauptnachricht eine Liste mit detaillierten Stichpunkten hinzu
+- Beschreibe **was** geändert wurde und **warum**
+- Beginne jeden Stichpunkt mit einem Verb im Präsens
+- Vermeide vage Beschreibungen wie "Fixes" oder "Updates"
+- Verweise auf relevante Issue-Nummern mit # (z.B. #123)
+- Halte jeden Stichpunkt auf maximal eine Zeile begrenzt
+
+6. **Analyse**
+
+- Prüfe geänderte Dateien
+- Identifiziere Art der Änderung (Feature, Bugfix etc.)
+- Beachte Breaking Changes
+
+7. **Beispiele**
+
+- `✨(frontend): Neue Kartenfunktion für Einsatzplanung`
+- `🐛(backend): Korrigiere Auth-Fehler bei OAuth-Anmeldung`
+
+8. **Enforcement Tools (AUTOMATISCH AKTIVIERT via HUSKY)**
+
+- **Git Hooks**: `.husky/commit-msg` und `.husky/pre-commit` - automatisch installiert bei `npm install`
+  - **commit-msg**: Prüft Emoji-Format, Context-Format, Länge und gibt hilfreiche Fehlermeldungen
+  - **pre-commit**: Führt alle Tests aus um Code-Qualität sicherzustellen
+  - **Versioniert**: Hooks sind im Repository und werden automatisch für alle Teammitglieder installiert
+  - **Husky**: Verwaltet die automatische Installation und Ausführung der Hooks
+- **Commit Helper**: `git commit-helper` für interaktive Commit-Erstellung
+  - Schritt-für-Schritt Anleitung durch korrektes Format
+  - Automatische Formatierung und Validierung
+  - Emoji-Auswahl mit Beschreibungen
+  - Breaking Change Unterstützung
+- **Git Alias**: Schnelle Commit-Erstellung via CLI
+
+## Examples
+
+<example>
+# Richtig
+✨(frontend): Neue Kartenfunktion für Einsatzplanung
+
+Implementiert eine interaktive Karte zur besseren Visualisierung.
+
+- Fügt OpenStreetMap-Integration für realtime-Tracking hinzu
+- Optimiert die Darstellung für mobile Geräte
+- Verbessert die Performance durch Caching von Geo-Daten
+- Unterstützt das Hinzufügen von Custom-Markern #42
+  </example>
+
+<example>
+# Richtig mit Breaking Change
+💥(api): Ändere Authentifizierungs-Endpunkte
+
+Die OAuth-Implementierung wurde komplett überarbeitet.
+
+- Entfernt veraltete Basic-Auth Endpoints
+- Implementiert moderne OAuth2-Flows mit PKCE
+- Fügt Refresh-Token-Rotation für erhöhte Sicherheit hinzu
+- Reduziert Token-Lebensdauer auf 15 Minuten
+
+💥 BREAKING CHANGE: Alle Clients müssen aktualisiert werden, um den neuen Auth-Flow zu nutzen
+</example>
+
+<example type="invalid">
+# Falsch
+Commit: add stuff
+</example>
+
+<example type="invalid">
+# Falsch
+✨: Neue Features
+
+Hier fehlt der Kontext und die Beschreibung ist zu vage.
+</example>
+
+## Verfügbare Kommandos
+
+### Interaktiver Commit Helper (EMPFOHLEN)
+
+```bash
+git commit-helper
+# oder
+./scripts/commit-helper.sh
+```
+
+- Führt durch den gesamten Commit-Prozess
+- Automatische Formatierung und Validierung
+- Emoji-Auswahl mit Beschreibungen
+- Verhindert Formatierungsfehler
+
+### Manuelle Commits (für Experten)
+
+```bash
+# Erstelle temporäre Datei
+echo "✨(context): Kurze Beschreibung
+
+Detaillierte Beschreibung hier.
+- Stichpunkt 1
+- Stichpunkt 2" > commit-message.txt
+
+# Committe und lösche Datei
+git commit -F commit-message.txt && rm commit-message.txt
+```
+
+### Git Hook Bypass (NUR IN NOTFÄLLEN)
+
+```bash
+# Hooks umgehen (nicht empfohlen!)
+git commit --no-verify -m "emergency fix"
+git push --no-verify
+
+# Husky komplett deaktivieren (temporär)
+export HUSKY=0
+git commit -m "emergency fix"
+unset HUSKY
+```
+
+### Commit-Nachricht bearbeiten
+
+```bash
+# Letzten Commit bearbeiten
+git commit --amend
+
+# Interaktives Rebase für ältere Commits
+git rebase -i HEAD~3
+```
+
+## Semantic Release
+
+Diese Commit-Konventionen werden von unserem Semantic Release System genutzt, um automatisch die Versionsnummer zu erhöhen und Release Notes zu generieren. Die Emojis bestimmen dabei die Art
+des Releases:
+
+- Major (Breaking): Inkompatible API-Änderungen (💥)
+- Minor: Neue Features (✨)
+- Patch: Bugfixes und kleine Verbesserungen (🐛, ��, 🔒, 🧹, ♻️, 🔧)
