@@ -9,9 +9,9 @@ import {
 } from '@nestjs/terminus';
 import * as net from 'net';
 import * as os from 'os';
-import { EtbService } from '../modules/etb/etb.service';
+import { EtbService } from '@/modules/etb/etb.service';
 import { PrismaHealthIndicator } from './prisma-health.indicator';
-import { Public } from '../modules/auth/decorators';
+import { Public } from '@/modules/auth';
 
 /**
  * Konstanten für Health-Checks
@@ -19,7 +19,7 @@ import { Public } from '../modules/auth/decorators';
 const HEALTH_CHECK_CONFIG = {
   MEMORY: {
     HEAP_THRESHOLD: 150 * 1024 * 1024, // 150MB
-    RSS_THRESHOLD: 150 * 1024 * 1024, // 150MB
+    RSS_THRESHOLD: 1024 * 1024 * 1024, // 1024MB
   },
   DISK: {
     THRESHOLD_PERCENT: 0.9, // 90%
