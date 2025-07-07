@@ -2,10 +2,6 @@
   "mcpServers": {
     "context7": {
       "url": "https://mcp.context7.com/mcp"
-    },
-    "interactive": {
-      "command": "npx",
-      "args": ["-y", "interactive-mcp"]
     }
   }
 }

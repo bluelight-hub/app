@@ -440,8 +440,8 @@ describe('Admin Authentication', () => {
 
       const result = await authService.login({ email: 'noperm@example.com', password: 'password' });
 
-      // Should get default permissions for ADMIN role
-      expect(result.user.permissions).toHaveLength(12);
+      // Should get default permissions for ADMIN role (including IP whitelist permissions)
+      expect(result.user.permissions).toHaveLength(15);
       expect(result.user.permissions).toContain('USERS_READ');
       expect(result.user.permissions).toContain('USERS_WRITE');
       expect(result.accessToken).toBeDefined();

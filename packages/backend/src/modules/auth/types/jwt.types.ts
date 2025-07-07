@@ -68,6 +68,11 @@ export enum Permission {
   EINSATZ_READ = 'EINSATZ_READ',
   EINSATZ_WRITE = 'EINSATZ_WRITE',
   EINSATZ_DELETE = 'EINSATZ_DELETE',
+
+  // Security Permissions
+  IP_WHITELIST_READ = 'IP_WHITELIST_READ',
+  IP_WHITELIST_WRITE = 'IP_WHITELIST_WRITE',
+  IP_WHITELIST_DELETE = 'IP_WHITELIST_DELETE',
 }
 
 /**
@@ -89,6 +94,9 @@ export const RolePermissions: Record<UserRole, Permission[]> = {
     Permission.ETB_WRITE,
     Permission.EINSATZ_READ,
     Permission.EINSATZ_WRITE,
+    Permission.IP_WHITELIST_READ,
+    Permission.IP_WHITELIST_WRITE,
+    Permission.IP_WHITELIST_DELETE,
   ],
   [UserRole.MANAGER]: [
     Permission.USERS_READ,

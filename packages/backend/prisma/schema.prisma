@@ -131,6 +131,11 @@ enum Permission {
   EINSATZ_READ
   EINSATZ_WRITE
   EINSATZ_DELETE
+  
+  // Security permissions
+  IP_WHITELIST_READ
+  IP_WHITELIST_WRITE
+  IP_WHITELIST_DELETE
 }
 
 model User {
@@ -307,4 +312,40 @@ model AuditLog {
   @@index([archivedAt, timestamp], map: "idx_audit_archived_timestamp")
   @@index([userEmail, timestamp], map: "idx_audit_user_email_timestamp")
   @@index([resource, timestamp, success], map: "idx_audit_resource_timestamp_success")
+}
+
+// ===== IP WHITELIST SYSTEM =====
+// IP address whitelist for access control
+
+model IpWhitelist {
+  id               String            @id @default(nanoid())
+  ipAddress        String            @db.VarChar(45)    // Support IPv6
+  cidr             Int?                                 // CIDR notation for ranges (e.g., /24)
+  description      String?           @db.Text           // Description of the IP/range
+  isActive         Boolean           @default(true)
+  isTemporary      Boolean           @default(false)
+  expiresAt        DateTime?                            // For temporary entries
+  
+  // User who created/modified
+  createdBy        String            @db.VarChar(255)
+  createdByEmail   String            @db.VarChar(255)
+  updatedBy        String?           @db.VarChar(255)
+  updatedByEmail   String?           @db.VarChar(255)
+  
+  // Timestamps
+  createdAt        DateTime          @default(now())
+  updatedAt        DateTime          @updatedAt
+  lastUsedAt       DateTime?                            // Track when IP was last used
+  useCount         Int               @default(0)        // Track usage frequency
+  
+  // Security
+  tags             String[]          @default([])       // Tags for grouping (e.g., "office", "vpn", "partner")
+  allowedEndpoints String[]          @default([])       // Specific endpoints this IP can access (empty = all)
+  
+  // Indexes
+  @@unique([ipAddress, cidr], map: "uk_ip_whitelist_address_cidr")
+  @@index([isActive, expiresAt], map: "idx_ip_whitelist_active_expires")
+  @@index([tags], map: "idx_ip_whitelist_tags")
+  @@index([createdAt], map: "idx_ip_whitelist_created")
+  @@index([lastUsedAt], map: "idx_ip_whitelist_last_used")
 }

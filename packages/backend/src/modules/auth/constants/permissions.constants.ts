@@ -50,6 +50,15 @@ export const PermissionGroups = {
     WRITE: Permission.EINSATZ_WRITE,
     DELETE: Permission.EINSATZ_DELETE,
   },
+
+  /**
+   * Berechtigungen für IP-Whitelist
+   */
+  IP_WHITELIST: {
+    READ: Permission.IP_WHITELIST_READ,
+    WRITE: Permission.IP_WHITELIST_WRITE,
+    DELETE: Permission.IP_WHITELIST_DELETE,
+  },
 } as const;
 
 /**
@@ -82,6 +91,12 @@ export const PermissionDescriptions: Record<Permission, string> = {
   [Permission.EINSATZ_READ]: 'Berechtigung zum Anzeigen von Einsätzen',
   [Permission.EINSATZ_WRITE]: 'Berechtigung zum Erstellen und Bearbeiten von Einsätzen',
   [Permission.EINSATZ_DELETE]: 'Berechtigung zum Löschen von Einsätzen',
+
+  // IP-Whitelist
+  [Permission.IP_WHITELIST_READ]: 'Berechtigung zum Anzeigen der IP-Whitelist',
+  [Permission.IP_WHITELIST_WRITE]:
+    'Berechtigung zum Erstellen und Bearbeiten von IP-Whitelist-Einträgen',
+  [Permission.IP_WHITELIST_DELETE]: 'Berechtigung zum Löschen von IP-Whitelist-Einträgen',
 };
 
 /**
@@ -114,6 +129,10 @@ export const DefaultRolePermissions: Record<UserRole, Permission[]> = {
     Permission.ETB_WRITE,
     Permission.EINSATZ_READ,
     Permission.EINSATZ_WRITE,
+    // Sicherheit
+    Permission.IP_WHITELIST_READ,
+    Permission.IP_WHITELIST_WRITE,
+    Permission.IP_WHITELIST_DELETE,
   ],
 
   [UserRole.MANAGER]: [
@@ -152,6 +171,7 @@ export const CriticalPermissions: Permission[] = [
   Permission.ROLE_MANAGE,
   Permission.SYSTEM_SETTINGS_WRITE,
   Permission.AUDIT_LOG_DELETE,
+  Permission.IP_WHITELIST_DELETE,
 ];
 
 /**
@@ -165,7 +185,7 @@ export function isCriticalPermission(permission: Permission): boolean {
  * Gibt alle Berechtigungen für eine bestimmte Ressource zurück.
  */
 export function getPermissionsForResource(
-  resource: 'users' | 'system' | 'audit' | 'etb' | 'einsatz',
+  resource: 'users' | 'system' | 'audit' | 'etb' | 'einsatz' | 'ip-whitelist',
 ): Permission[] {
   switch (resource) {
     case 'users':
@@ -178,6 +198,8 @@ export function getPermissionsForResource(
       return Object.values(PermissionGroups.ETB);
     case 'einsatz':
       return Object.values(PermissionGroups.EINSATZ);
+    case 'ip-whitelist':
+      return Object.values(PermissionGroups.IP_WHITELIST);
     default:
       return [];
   }

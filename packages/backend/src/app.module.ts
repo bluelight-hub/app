@@ -12,6 +12,7 @@ import { PrismaModule } from './prisma/prisma.module';
 import { AuthModule } from './modules/auth/auth.module';
 import { JwtAuthGuard } from './modules/auth/guards';
 import { AuditModule } from './modules/audit';
+import { IpWhitelistModule } from './modules/security';
 
 /**
  * Haupt-Anwendungsmodul, das die Abhängigkeiten und Provider der Anwendung konfiguriert.
@@ -28,6 +29,7 @@ import { AuditModule } from './modules/audit';
     PrismaModule,
     AuthModule,
     AuditModule,
+    IpWhitelistModule,
     HealthModule,
     EinsatzModule,
     EtbModule,
