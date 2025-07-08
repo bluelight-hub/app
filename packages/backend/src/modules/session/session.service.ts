@@ -25,6 +25,18 @@ import {
   ActivityType,
 } from './dto/session.dto';
 
+/**
+ * Service für die Verwaltung und Überwachung von Benutzersitzungen
+ *
+ * Dieser Service bietet umfassende Funktionen für:
+ * - Session-Erstellung und -Verwaltung
+ * - Risikobewertung und Anomalieerkennung
+ * - Aktivitätsverfolgung und Heartbeat-Updates
+ * - Statistiken und Analysen
+ * - Session-Revozierung und -Cleanup
+ *
+ * @class SessionService
+ */
 @Injectable()
 export class SessionService {
   private readonly logger = new Logger(SessionService.name);

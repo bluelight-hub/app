@@ -2,7 +2,20 @@ import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { AuditActionType, AuditSeverity, UserRole } from '@prisma/generated/prisma/client';
 
 /**
- * Audit-Log-Entity für API-Dokumentation und Typisierung
+ * Entity-Klasse für Audit-Log-Einträge
+ *
+ * Diese Klasse repräsentiert einen einzelnen Audit-Log-Eintrag im System.
+ * Sie erfasst alle sicherheitsrelevanten Aktionen und Änderungen mit
+ * umfassenden Metadaten für Compliance, Forensik und Monitoring.
+ *
+ * Features:
+ * - Vollständige Erfassung von Benutzeraktionen
+ * - Änderungsverfolgung mit Vorher/Nachher-Werten
+ * - Compliance-Tagging für regulatorische Anforderungen
+ * - Performance-Metriken für Operationen
+ * - Review- und Archivierungsfunktionen
+ *
+ * @class AuditLogEntity
  */
 export class AuditLogEntity {
   @ApiProperty({

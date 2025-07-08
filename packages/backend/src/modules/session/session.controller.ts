@@ -26,6 +26,18 @@ import {
   SessionStatisticsDto,
 } from './dto/session.dto';
 
+/**
+ * Controller für die Verwaltung von Benutzersitzungen
+ *
+ * Dieser Controller bietet Endpunkte für:
+ * - Anzeige und Filterung von Sessions
+ * - Session-Statistiken und Analysen
+ * - Tracking von Session-Aktivitäten
+ * - Verwaltung und Revozierung von Sessions
+ * - Heartbeat-Updates für Online-Status
+ *
+ * @class SessionController
+ */
 @ApiTags('sessions')
 @Controller('admin/security/sessions')
 @UseGuards(JwtAuthGuard, RolesGuard)

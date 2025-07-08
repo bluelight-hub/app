@@ -10,8 +10,20 @@ import * as bcrypt from 'bcrypt';
 import { DefaultRolePermissions } from '@/modules/auth/constants';
 
 /**
- * Service zum Seeden der Datenbank mit initialen Daten.
- * Unterstützt Transaktionen, Fehlerbehandlung und umgebungsspezifische Konfiguration.
+ * Service für das Seeding der Datenbank mit initialen Daten
+ *
+ * Dieser Service verwaltet das kontrollierte Befüllen der Datenbank
+ * mit Testdaten für Entwicklung und Tests. Er bietet transaktionale
+ * Sicherheit, Retry-Mechanismen und umgebungsspezifische Konfiguration.
+ *
+ * Features:
+ * - Transaktionale Seed-Operationen mit Rollback bei Fehlern
+ * - Retry-Logik mit exponentieller Backoff-Strategie
+ * - Duplicate Detection zur Vermeidung von Race Conditions
+ * - Umgebungsspezifische Validierung und Konfiguration
+ * - Erstellung von initialen Einsätzen, Benutzern und Berechtigungen
+ *
+ * @class SeedService
  */
 @Injectable()
 export class SeedService {

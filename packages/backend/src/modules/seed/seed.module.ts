@@ -10,7 +10,12 @@ import { SeedImportService } from './seed-import.service';
 import { SeedService } from './seed.service';
 
 /**
- * Options für das SeedModule.
+ * Konfigurationsoptionen für das SeedModule
+ *
+ * Diese Schnittstelle definiert die möglichen Optionen zur
+ * Konfiguration des Seed-Moduls beim Start der Anwendung.
+ *
+ * @interface SeedModuleOptions
  */
 export interface SeedModuleOptions {
   /**
@@ -32,8 +37,21 @@ export interface SeedModuleOptions {
 }
 
 /**
- * Modul zur Verwaltung des Seeding-Prozesses.
- * Wird standardmäßig nur im Entwicklungsmodus aktiviert.
+ * Seed-Modul für die Initialisierung von Testdaten
+ *
+ * Dieses Modul stellt Services für das automatische Befüllen
+ * der Datenbank mit Testdaten bereit. Es wird hauptsächlich
+ * in der Entwicklungsumgebung verwendet und kann über
+ * Umgebungsvariablen konfiguriert werden.
+ *
+ * Features:
+ * - Automatische Erstellung von Entwicklungs-Einsätzen
+ * - Import von Testdaten aus JSON-Dateien
+ * - Vordefinierte Benutzerprofile für Tests
+ * - Datenbankstatus-Prüfung vor Seeding
+ * - Konfigurierbare Aktivierung über Umgebungsvariablen
+ *
+ * @module SeedModule
  */
 @Module({
   imports: [PrismaModule, EinsatzModule, CommonModule, ConfigModule],

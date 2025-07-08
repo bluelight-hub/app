@@ -6,9 +6,21 @@ import { EtbKategorie } from '../dto/etb-kategorie.enum';
 import { EtbAttachment } from './etb-attachment.entity';
 
 /**
- * Entity-Klasse für einen ETB-Eintrag (Einsatztagebuch-Eintrag).
- * Diese Klasse dient als Wrapper für Prisma-generierte Typen und bietet Methoden zur Konvertierung
- * zwischen Entity-Objekten und Prisma-Datenmodellen.
+ * Entity-Klasse für einen ETB-Eintrag (Einsatztagebuch-Eintrag)
+ *
+ * Diese Klasse repräsentiert einen Eintrag im elektronischen Einsatztagebuch.
+ * Sie dient als Wrapper für Prisma-generierte Typen und bietet Methoden zur
+ * Konvertierung zwischen Entity-Objekten und Prisma-Datenmodellen. Die Klasse
+ * unterstützt Versionierung, Überschreibungen und Referenzen zu anderen Entitäten.
+ *
+ * Features:
+ * - Automatische fortlaufende Nummerierung
+ * - Versionierung von Einträgen
+ * - Überschreibungsmechanismus für Korrekturen
+ * - Referenzen zu Einsätzen, Patienten und Einsatzmitteln
+ * - Anlagenverwaltung (Dokumente, Bilder, etc.)
+ *
+ * @class EtbEntry
  */
 export class EtbEntry {
   /**
@@ -208,8 +220,12 @@ export class EtbEntry {
 }
 
 /**
- * Re-export für vereinfachten Import. Definiert die EtbEntryStatus-Werte.
- * Erlaubt die Verwendung der Status-Werte ohne direkte Prisma-Importe.
+ * Enumeration für den Status eines ETB-Eintrags
+ *
+ * Definiert die möglichen Status-Werte für ETB-Einträge.
+ * Re-export für vereinfachten Import ohne direkte Prisma-Abhängigkeiten.
+ *
+ * @enum {string} EtbEntryStatus
  */
 export const EtbEntryStatus = {
   /**

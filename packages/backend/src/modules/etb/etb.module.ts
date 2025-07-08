@@ -6,8 +6,20 @@ import { EtbController } from './etb.controller';
 import { EtbService } from './etb.service';
 
 /**
- * Modul für das Einsatztagebuch (ETB).
- * Enthält Komponenten für die Verwaltung von ETB-Einträgen und deren Anlagen.
+ * Modul für das Einsatztagebuch (ETB)
+ *
+ * Dieses Modul implementiert die vollständige Funktionalität für
+ * die Verwaltung von Einsatztagebuch-Einträgen. Es bietet CRUD-Operationen
+ * für ETB-Einträge sowie die Verwaltung von zugehörigen Anlagen.
+ *
+ * Features:
+ * - Erstellung und Verwaltung von ETB-Einträgen
+ * - Kategorisierung von Einträgen
+ * - Anlagenverwaltung (Dokumente, Bilder, etc.)
+ * - Filterung und Paginierung von Einträgen
+ * - Integration mit dem Einsatz-Modul
+ *
+ * @module EtbModule
  */
 @Module({
   imports: [ConfigModule, PrismaModule, CommonModule],

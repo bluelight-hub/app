@@ -7,6 +7,12 @@ import { HelmetOptions } from 'helmet';
 
 /**
  * Helmet-Konfiguration für sichere HTTP-Header
+ *
+ * Diese Konfiguration setzt verschiedene Sicherheits-Header,
+ * um die Anwendung gegen gängige Webangriffe zu schützen.
+ * Enthält CSP, HSTS, X-Frame-Options und weitere Schutzmaßnahmen.
+ *
+ * @constant {HelmetOptions}
  */
 export const helmetConfig: HelmetOptions = {
   // Content Security Policy - Verhindert XSS-Angriffe
@@ -53,6 +59,11 @@ export const helmetConfig: HelmetOptions = {
 
 /**
  * CORS-Konfiguration für verschiedene Umgebungen
+ *
+ * Definiert Cross-Origin Resource Sharing Einstellungen
+ * für Development- und Production-Umgebungen.
+ *
+ * @constant
  */
 export const corsConfig = {
   development: {
@@ -79,6 +90,11 @@ export const corsConfig = {
 
 /**
  * Cookie-Konfiguration für JWT-Tokens
+ *
+ * Sicherheitseinstellungen für HTTP-Only Cookies,
+ * die für die Speicherung von JWT-Tokens verwendet werden.
+ *
+ * @constant
  */
 export const cookieConfig = {
   httpOnly: true,
@@ -90,6 +106,11 @@ export const cookieConfig = {
 
 /**
  * Refresh-Token Cookie-Konfiguration
+ *
+ * Erweiterte Cookie-Konfiguration speziell für Refresh-Tokens
+ * mit längerer Gültigkeit und eingeschränktem Pfad.
+ *
+ * @constant
  */
 export const refreshCookieConfig = {
   ...cookieConfig,

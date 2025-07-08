@@ -6,6 +6,7 @@ import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
 import { PermissionValidationService } from './services/permission-validation.service';
 import { SessionCleanupService } from './services/session-cleanup.service';
+import { SessionService } from '../session/session.service';
 import * as bcrypt from 'bcrypt';
 import { UserRole } from './types/jwt.types';
 
@@ -77,6 +78,10 @@ describe('Auth Security', () => {
     revokeAllUserSessions: jest.fn(),
   };
 
+  const mockSessionService = {
+    enhanceSession: jest.fn(),
+  };
+
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
@@ -100,6 +105,10 @@ describe('Auth Security', () => {
         {
           provide: SessionCleanupService,
           useValue: mockSessionCleanupService,
+        },
+        {
+          provide: SessionService,
+          useValue: mockSessionService,
         },
       ],
     }).compile();
@@ -133,7 +142,11 @@ describe('Auth Security', () => {
       });
 
       await expect(
-        authService.login({ email: 'test@example.com', password: 'wrongPassword' }),
+        authService.login(
+          { email: 'test@example.com', password: 'wrongPassword' },
+          '127.0.0.1',
+          'test-agent',
+        ),
       ).rejects.toThrow(UnauthorizedException);
 
       // Verify account lockout update
@@ -286,7 +299,11 @@ describe('Auth Security', () => {
 
       const start2 = Date.now();
       await expect(
-        authService.login({ email: 'test@example.com', password: 'wrongPassword' }),
+        authService.login(
+          { email: 'test@example.com', password: 'wrongPassword' },
+          '127.0.0.1',
+          'test-agent',
+        ),
       ).rejects.toThrow(UnauthorizedException);
       const duration2 = Date.now() - start2;
 

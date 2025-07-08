@@ -70,8 +70,21 @@ interface RequestWithUser extends Request {
 }
 
 /**
- * Controller für das Einsatztagebuch (ETB).
- * Stellt Endpoints zum Erstellen, Abrufen, Aktualisieren und Abschließen von ETB-Einträgen bereit.
+ * Controller für das Einsatztagebuch (ETB)
+ *
+ * Dieser Controller stellt die REST-API-Endpunkte für das elektronische
+ * Einsatztagebuch bereit. Er verwaltet ETB-Einträge, Anlagen und bietet
+ * Funktionen für das Überschreiben und Abschließen von Einträgen.
+ * Alle Endpunkte sind geschützt und erfordern Authentifizierung.
+ *
+ * Features:
+ * - CRUD-Operationen für ETB-Einträge
+ * - Verwaltung von Dateianhängen
+ * - Filterung und Paginierung
+ * - Überschreibungsmechanismus für Korrekturen
+ * - Abschluss-Funktionalität für unveränderliche Einträge
+ *
+ * @class EtbController
  */
 @ApiTags('Einsatztagebuch')
 @ApiBearerAuth()

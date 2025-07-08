@@ -33,6 +33,15 @@ export interface ErrorMetrics {
 
 /**
  * Service für umgebungsspezifisches Error Handling
+ * 
+ * Dieser Service bietet umfassende Fehlerbehandlung mit:
+ * - Umgebungsspezifischen Konfigurationen
+ * - Retry-Mechanismen mit exponentieller Backoff-Strategie
+ * - Duplikatserkennung für idempotente Operationen
+ * - Feature-Flags für granulare Kontrolle
+ * - Detaillierte Error-Metriken und Monitoring
+ * 
+ * @class ErrorHandlingService
  */
 @Injectable()
 export class ErrorHandlingService {

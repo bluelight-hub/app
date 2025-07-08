@@ -69,7 +69,22 @@ interface MulterFile {
 }
 
 /**
- * Service für die Verwaltung von Einsatztagebuch-Einträgen.
+ * Service für die Verwaltung von Einsatztagebuch-Einträgen (ETB)
+ *
+ * Dieser Service implementiert die Geschäftslogik für das elektronische
+ * Einsatztagebuch. Er verwaltet ETB-Einträge, deren Versionierung,
+ * Überschreibungen und Anlagen. Der Service unterstützt sowohl
+ * manuelle als auch automatisch generierte Einträge.
+ *
+ * Features:
+ * - CRUD-Operationen für ETB-Einträge
+ * - Fortlaufende Nummerierung von Einträgen
+ * - Versionierung und Überschreibungsmechanismen
+ * - Anlagenverwaltung mit sicherer Dateispeicherung
+ * - Filterung und Paginierung von Einträgen
+ * - Abschluss-Funktionalität für unveränderliche Einträge
+ *
+ * @class EtbService
  */
 @Injectable()
 export class EtbService {

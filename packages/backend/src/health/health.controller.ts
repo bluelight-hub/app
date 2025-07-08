@@ -32,6 +32,12 @@ const HEALTH_CHECK_CONFIG = {
 
 /**
  * Typ-Definition für Verbindungsmodi
+ *
+ * @typedef {'checking' | 'online' | 'offline' | 'error'} ConnectionMode
+ * - 'checking': Verbindungsprüfung läuft
+ * - 'online': Vollständige Verbindung (Internet + FüKW)
+ * - 'offline': Lokale Verbindung (nur FüKW)
+ * - 'error': Keine Verbindung verfügbar
  */
 type ConnectionMode = 'checking' | 'online' | 'offline' | 'error';
 

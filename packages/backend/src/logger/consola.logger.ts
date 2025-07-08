@@ -2,8 +2,17 @@ import { LoggerService, LogLevel } from '@nestjs/common';
 import { consola } from 'consola';
 
 /**
- * Vorkonfigurierte Consola-Logger-Instanz für anwendungsweite Nutzung.
- * Setzt das Log-Level basierend auf der Umgebung (Produktion: 3, Entwicklung: 4).
+ * Vorkonfigurierte Consola-Logger-Instanz für anwendungsweite Nutzung
+ *
+ * Diese Logger-Instanz verwendet Consola für erweiterte Terminal-Ausgaben
+ * mit Farben, Icons und formatiertem Output. Das Log-Level wird
+ * automatisch basierend auf der Umgebung gesetzt.
+ *
+ * Log-Level:
+ * - Produktion: 3 (Info, Warn, Error)
+ * - Entwicklung: 4 (Alle Levels inkl. Debug)
+ *
+ * @constant {ConsolaInstance} logger
  */
 export const logger = consola.create({
   level: process.env.NODE_ENV === 'production' ? 3 : 4,
@@ -11,7 +20,7 @@ export const logger = consola.create({
 
 // Add trace method if it doesn't exist
 if (!logger.trace) {
-  (logger as any).trace = function(message: any, ...args: any[]) {
+  (logger as any).trace = function (message: any, ...args: any[]) {
     if (process.env.LOG_LEVEL === 'trace') {
       logger.log(message, ...args);
     }

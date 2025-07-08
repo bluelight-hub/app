@@ -5,6 +5,8 @@ import { PaginatedResponse } from '../interfaces/paginated-response.interface';
 /**
  * Service für die Verwaltung von Paginierung in Datenbank-Abfragen.
  * Bietet Hilfsmethoden für die Erstellung von paginierten Abfragen und Antworten.
+ * 
+ * @class PaginationService
  */
 @Injectable()
 export class PaginationService {

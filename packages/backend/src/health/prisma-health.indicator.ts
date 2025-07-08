@@ -3,8 +3,18 @@ import { Injectable } from '@nestjs/common';
 import { HealthIndicatorResult, HealthIndicatorService } from '@nestjs/terminus';
 
 /**
- * Health Indicator für Prisma Datenbankverbindungen.
- * Ermöglicht das Prüfen der Verbindung zur Datenbank über den Prisma Client.
+ * Health Indicator für Prisma-Datenbankverbindungen
+ *
+ * Diese Klasse implementiert benutzerdefinierte Health-Checks für
+ * die Datenbankverbindung über den Prisma ORM. Sie wird von
+ * Terminus für Monitoring und Liveness/Readiness-Probes verwendet.
+ *
+ * Features:
+ * - Ping-Check zur Überprüfung der Datenbankverbindung
+ * - Verbindungsstatus-Check mit detaillierten Informationen
+ * - Integration in das Terminus Health-Check-System
+ *
+ * @class PrismaHealthIndicator
  */
 @Injectable()
 export class PrismaHealthIndicator {

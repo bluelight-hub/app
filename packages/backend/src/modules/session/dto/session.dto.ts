@@ -11,6 +11,9 @@ import {
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { Type } from 'class-transformer';
 
+/**
+ * Gerätetypen für Session-Tracking
+ */
 export enum DeviceType {
   MOBILE = 'mobile',
   DESKTOP = 'desktop',
@@ -18,6 +21,9 @@ export enum DeviceType {
   UNKNOWN = 'unknown',
 }
 
+/**
+ * Verfügbare Login-Methoden
+ */
 export enum LoginMethod {
   PASSWORD = 'password',
   OAUTH = 'oauth',
@@ -25,6 +31,9 @@ export enum LoginMethod {
   BIOMETRIC = 'biometric',
 }
 
+/**
+ * Typen von Session-Aktivitäten
+ */
 export enum ActivityType {
   LOGIN = 'login',
   LOGOUT = 'logout',
@@ -35,6 +44,12 @@ export enum ActivityType {
   SECURITY_EVENT = 'security_event',
 }
 
+/**
+ * Data Transfer Object für Session-Informationen
+ *
+ * Enthält alle relevanten Informationen einer Benutzersitzung
+ * inklusive Geräteinformationen, Risikobewertung und Status
+ */
 export class SessionDto {
   @ApiProperty()
   @IsString()
@@ -151,6 +166,11 @@ export class SessionDto {
   revokedReason?: string;
 }
 
+/**
+ * Data Transfer Object für Session-Aktivitäten
+ *
+ * Repräsentiert eine einzelne Aktivität innerhalb einer Session
+ */
 export class SessionActivityDto {
   @ApiProperty()
   @IsString()
@@ -200,6 +220,9 @@ export class SessionActivityDto {
   metadata?: Record<string, any>;
 }
 
+/**
+ * Data Transfer Object zum Erstellen von Session-Aktivitäten
+ */
 export class CreateSessionActivityDto {
   @ApiProperty({ enum: ActivityType })
   @IsEnum(ActivityType)
@@ -231,6 +254,11 @@ export class CreateSessionActivityDto {
   metadata?: Record<string, any>;
 }
 
+/**
+ * Data Transfer Object für Session-Filter
+ *
+ * Ermöglicht das Filtern von Sessions nach verschiedenen Kriterien
+ */
 export class SessionFilterDto {
   @ApiPropertyOptional()
   @IsOptional()
@@ -286,6 +314,11 @@ export class SessionFilterDto {
   suspiciousFlags?: string[];
 }
 
+/**
+ * Data Transfer Object für Session-Statistiken
+ *
+ * Enthält aggregierte Statistiken über Sessions
+ */
 export class SessionStatisticsDto {
   @ApiProperty()
   @IsNumber()

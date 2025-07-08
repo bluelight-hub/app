@@ -2,6 +2,15 @@ import { CanActivate, ExecutionContext, Injectable, NotFoundException } from '@n
 import { Request } from 'express';
 import { EinsatzService } from '../einsatz.service';
 
+/**
+ * Guard zur Überprüfung der Existenz eines Einsatzes
+ *
+ * Dieser Guard prüft, ob ein Einsatz mit der angegebenen ID existiert,
+ * bevor der Zugriff auf die geschützte Route gewährt wird.
+ * Wirft eine NotFoundException, wenn der Einsatz nicht gefunden wird.
+ *
+ * @class EinsatzExistsGuard
+ */
 @Injectable()
 export class EinsatzExistsGuard implements CanActivate {
   constructor(private readonly einsatzService: EinsatzService) {}

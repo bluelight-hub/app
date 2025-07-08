@@ -16,9 +16,20 @@ import { AuditModule } from './modules/audit';
 import { SessionModule } from './modules/session/session.module';
 
 /**
- * Haupt-Anwendungsmodul, das die Abhängigkeiten und Provider der Anwendung konfiguriert.
- * Richtet Umgebungskonfiguration, Datenbankverbindung und Gesundheitschecks ein.
+ * Haupt-Anwendungsmodul der Bluelight Hub Backend-Anwendung
  *
+ * Dieses Modul orchestriert alle Anwendungsmodule und konfiguriert
+ * globale Einstellungen und Guards. Es stellt die zentrale
+ * Einstiegsstelle für die NestJS-Anwendung dar.
+ *
+ * Features:
+ * - Globale Umgebungskonfiguration
+ * - Aufgabenplanung mit ScheduleModule
+ * - Event-basierte Kommunikation
+ * - JWT-basierte Authentifizierung als globaler Guard
+ * - Datenbankanbindung über Prisma
+ *
+ * @module AppModule
  * @class AppModule
  */
 @Module({

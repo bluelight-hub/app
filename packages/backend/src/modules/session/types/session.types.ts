@@ -1,18 +1,30 @@
 import { Session, SessionActivity, User } from '../../../../prisma/generated/prisma';
 
+/**
+ * Session mit zugehörigem Benutzer
+ */
 export interface SessionWithUser extends Session {
   user: User;
 }
 
+/**
+ * Session mit Aktivitätsliste
+ */
 export interface SessionWithActivities extends Session {
   activities: SessionActivity[];
 }
 
+/**
+ * Session mit vollständigen Details
+ */
 export interface SessionWithDetails extends Session {
   user: User;
   activities: SessionActivity[];
 }
 
+/**
+ * Aggregierte Session-Metriken
+ */
 export interface SessionMetrics {
   totalSessions: number;
   activeSessions: number;
@@ -22,6 +34,9 @@ export interface SessionMetrics {
   sessionsPerUser: number;
 }
 
+/**
+ * Geräte-Informationen aus User-Agent
+ */
 export interface DeviceInfo {
   type: string;
   browser: string;
@@ -30,6 +45,9 @@ export interface DeviceInfo {
   osVersion: string;
 }
 
+/**
+ * Standort-Informationen basierend auf IP-Adresse
+ */
 export interface LocationInfo {
   city?: string;
   country?: string;
@@ -41,6 +59,9 @@ export interface LocationInfo {
   };
 }
 
+/**
+ * Risikofaktoren für Session-Bewertung
+ */
 export interface SessionRiskFactors {
   newLocation: boolean;
   newDevice: boolean;
@@ -51,6 +72,9 @@ export interface SessionRiskFactors {
   concurrentSessionLimit: boolean;
 }
 
+/**
+ * Daten für Session-Heartbeat Updates
+ */
 export interface SessionHeartbeatData {
   sessionId: string;
   timestamp: Date;
@@ -61,6 +85,9 @@ export interface SessionHeartbeatData {
   };
 }
 
+/**
+ * WebSocket-Payload für Session-Events
+ */
 export interface SessionWebSocketPayload {
   type: 'session_created' | 'session_updated' | 'session_terminated' | 'session_activity';
   session: SessionWithUser;

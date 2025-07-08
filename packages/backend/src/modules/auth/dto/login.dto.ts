@@ -4,6 +4,8 @@ import { IsEmail, IsString, MinLength, IsBoolean, IsOptional } from 'class-valid
 /**
  * Data transfer object for user login requests.
  * Contains credentials and optional remember me flag.
+ * 
+ * @class LoginDto
  */
 export class LoginDto {
   @ApiProperty({ example: 'admin@bluelight-hub.com' })
@@ -24,6 +26,8 @@ export class LoginDto {
 /**
  * Data transfer object for token refresh requests.
  * Contains the refresh token to exchange for new tokens.
+ * 
+ * @class RefreshTokenDto
  */
 export class RefreshTokenDto {
   @ApiProperty()

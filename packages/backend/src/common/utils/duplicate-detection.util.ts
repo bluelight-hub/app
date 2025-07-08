@@ -15,6 +15,11 @@ export interface DuplicateDetectionConfig {
 
 /**
  * Standard-Konfiguration für Duplicate Detection
+ *
+ * Definiert Standardwerte für Zeitfenster, Cache-Größe
+ * und Cleanup-Intervall für die Duplikatserkennung.
+ *
+ * @constant {DuplicateDetectionConfig}
  */
 export const DEFAULT_DUPLICATE_CONFIG: DuplicateDetectionConfig = {
   timeWindow: 60000, // 1 Minute
@@ -40,6 +45,18 @@ export interface OperationMetadata {
 
 /**
  * Utility-Klasse für Duplicate Detection und idempotente Operationen
+ *
+ * Diese Klasse ermöglicht es, Operationen idempotent auszuführen,
+ * indem sie doppelte Anfragen innerhalb eines definierten Zeitfensters erkennt
+ * und das zwischengespeicherte Ergebnis zurückgibt.
+ *
+ * Features:
+ * - Automatische Duplikatserkennung basierend auf Operation-ID und Daten
+ * - Zeitfenster-basiertes Caching von Ergebnissen
+ * - Automatische Cache-Bereinigung
+ * - Konsistente Fehlerbehandlung
+ *
+ * @class DuplicateDetectionUtil
  */
 export class DuplicateDetectionUtil {
   private readonly logger = new Logger(DuplicateDetectionUtil.name);

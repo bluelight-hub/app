@@ -1,5 +1,13 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 
+/**
+ * Entität für einen Einsatz
+ *
+ * Repräsentiert einen Einsatz im System mit allen relevanten Informationen
+ * wie Name, Beschreibung und Zeitstempel.
+ *
+ * @class Einsatz
+ */
 export class Einsatz {
   @ApiProperty({
     description: 'Eindeutige ID des Einsatzes',
