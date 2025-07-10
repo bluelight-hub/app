@@ -102,7 +102,7 @@ export const createMockPrismaService = () => ({
   },
   $connect: jest.fn(),
   $disconnect: jest.fn(),
-  $transaction: jest.fn((callback) => callback(this)),
+  $transaction: jest.fn(function (callback) { return callback(this); }),
 });
 
 /**
