@@ -158,7 +158,7 @@ describe('SessionService', () => {
       expect(result).toBeDefined();
       // The actual implementation might add location and flags, so we just check the basics
       expect(mockPrismaService.session.update).toHaveBeenCalledWith({
-        where: { id: '1' },
+        where: { jti: '1' },
         data: expect.objectContaining({
           browser: 'Chrome',
           browserVersion: '96',
@@ -223,7 +223,7 @@ describe('SessionService', () => {
       );
 
       expect(mockPrismaService.session.update).toHaveBeenCalledWith({
-        where: { id: '1' },
+        where: { jti: '1' },
         data: expect.objectContaining({
           browser: 'Firefox',
           browserVersion: '94',

@@ -1,4 +1,4 @@
-import { Injectable, Logger, Inject, forwardRef } from '@nestjs/common';
+import { forwardRef, Inject, Injectable, Logger } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
 import * as bcrypt from 'bcryptjs';
@@ -8,14 +8,14 @@ import { AuthUser, LoginResponse, TokenResponse } from './types/auth.types';
 import { JWTPayload, JWTRefreshPayload, Permission, UserRole } from './types/jwt.types';
 import { PrismaService } from '@/prisma/prisma.service';
 import { DefaultRolePermissions } from './constants';
-import { TOKEN_CONFIG, LOGIN_SECURITY, SecurityEventType } from './constants/auth.constants';
+import { LOGIN_SECURITY, SecurityEventType, TOKEN_CONFIG } from './constants/auth.constants';
 import {
-  InvalidCredentialsException,
   AccountDisabledException,
   AccountLockedException,
+  InvalidCredentialsException,
   InvalidTokenException,
-  TokenRevokedException,
   RefreshRateLimitExceededException,
+  TokenRevokedException,
 } from './exceptions/auth.exceptions';
 import { SessionCleanupService } from './services/session-cleanup.service';
 import { SessionService } from '../session/session.service';

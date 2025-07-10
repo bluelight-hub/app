@@ -5,24 +5,24 @@ import { PrismaService } from '../../prisma/prisma.service';
 import { Prisma, SessionActivity } from '../../../prisma/generated/prisma';
 import { UAParser } from 'ua-parser-js';
 import {
-  SessionWithUser,
-  SessionWithDetails,
   DeviceInfo,
   LocationInfo,
-  SessionRiskFactors,
-  SESSION_EVENTS,
-  SUSPICIOUS_FLAGS,
   RISK_SCORE_THRESHOLDS,
+  SESSION_EVENTS,
+  SessionRiskFactors,
+  SessionWithDetails,
+  SessionWithUser,
+  SUSPICIOUS_FLAGS,
   SuspiciousFlag,
 } from './types/session.types';
 import { SessionNotFoundException } from './exceptions/session.exceptions';
 import {
-  SessionActivityDto,
+  ActivityType,
   CreateSessionActivityDto,
+  DeviceType,
+  SessionActivityDto,
   SessionFilterDto,
   SessionStatisticsDto,
-  DeviceType,
-  ActivityType,
 } from './dto/session.dto';
 
 /**
@@ -53,19 +53,19 @@ export class SessionService {
    * Erweitert eine bestehende Session mit Monitoring-Daten
    */
   async enhanceSession(
-    sessionId: string,
+    sessionJti: string,
     ipAddress: string,
     userAgent: string,
     loginMethod = 'password',
   ): Promise<SessionWithUser> {
     const deviceInfo = this.parseUserAgent(userAgent);
     const location = await this.getLocationFromIp(ipAddress);
-    const riskFactors = await this.assessSessionRisk(sessionId, ipAddress, deviceInfo, location);
+    const riskFactors = await this.assessSessionRisk(sessionJti, ipAddress, deviceInfo, location);
     const riskScore = this.calculateRiskScore(riskFactors);
     const suspiciousFlags = this.getSuspiciousFlags(riskFactors);
 
     const session = await this.prisma.session.update({
-      where: { id: sessionId },
+      where: { jti: sessionJti },
       data: {
         location: location ? `${location.city}, ${location.country}` : null,
         deviceType: deviceInfo.type as DeviceType,
@@ -342,25 +342,25 @@ export class SessionService {
    * Bewertet Session-Risikofaktoren
    */
   private async assessSessionRisk(
-    sessionId: string,
+    sessionJti: string,
     ipAddress: string,
     deviceInfo: DeviceInfo,
     location: LocationInfo | null,
   ): Promise<SessionRiskFactors> {
     const session = await this.prisma.session.findUnique({
-      where: { id: sessionId },
+      where: { jti: sessionJti },
       include: { user: true },
     });
 
     if (!session) {
-      throw new SessionNotFoundException(sessionId);
+      throw new SessionNotFoundException(sessionJti);
     }
 
     // Get user's session history
     const userSessions = await this.prisma.session.findMany({
       where: {
         userId: session.userId,
-        id: { not: sessionId },
+        jti: { not: sessionJti },
       },
       orderBy: { createdAt: 'desc' },
       take: 10,
