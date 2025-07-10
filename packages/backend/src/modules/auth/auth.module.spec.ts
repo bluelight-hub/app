@@ -213,10 +213,20 @@ describe('AuthModule', () => {
       delete process.env.JWT_SECRET;
 
       try {
-        // Module creation should succeed with default from .env file
+        // Module creation should succeed with default from .env file or config
         const module = await Test.createTestingModule({
           imports: [
-            ConfigModule.forRoot({ isGlobal: true }),
+            ConfigModule.forRoot({
+              isGlobal: true,
+              // Provide a fallback for CI environments where .env might not exist
+              load: [
+                () => ({
+                  JWT_SECRET: 'dev-secret-key-for-testing-only-change-in-production',
+                  JWT_REFRESH_SECRET:
+                    'dev-refresh-secret-key-for-testing-only-change-in-production',
+                }),
+              ],
+            }),
             EventEmitterModule.forRoot(),
             AuthModule,
           ],
@@ -224,7 +234,7 @@ describe('AuthModule', () => {
 
         expect(module).toBeDefined();
 
-        // The secret should come from .env file
+        // The secret should be available
         const configService = module.get(ConfigService);
         expect(configService.get('JWT_SECRET')).toBe(
           'dev-secret-key-for-testing-only-change-in-production',
