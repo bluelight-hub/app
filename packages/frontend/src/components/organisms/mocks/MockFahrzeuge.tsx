@@ -19,7 +19,7 @@ interface Vehicle {
   location: string; // z.B. "Wache 1"
   driver?: string; // Fahrer
   crew?: string; // z.B. "2/1"
-  fms?: number; // FMS-Status: 1=Einsatz klar, 2=Fahrt, 3=E-Stelle etc.
+  fms?: number; // FMS-Status: 1=Frei auf Funk, 2=Frei auf Wache, 3=auf Anfahrt, 4=an E-Stelle
 }
 
 // Mögliche Auswahlwerte

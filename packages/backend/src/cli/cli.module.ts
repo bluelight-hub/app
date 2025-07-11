@@ -7,6 +7,16 @@ import { SeedEinsatzCommand } from './commands/seed-einsatz.command';
 import { SeedImportCommand } from './commands/seed-import.command';
 import { SeedAdminCommand } from './commands/seed-admin.command';
 
+/**
+ * Modul für CLI-Befehle
+ *
+ * Dieses Modul stellt Command-Line-Interface-Funktionen bereit:
+ * - Seed-Befehle für Testdaten
+ * - Import-Befehle für Datenmigration
+ * - Administrative Befehle
+ *
+ * @module CliModule
+ */
 @Module({
   imports: [
     ConfigModule.forRoot({

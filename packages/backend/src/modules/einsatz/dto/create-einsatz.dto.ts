@@ -2,7 +2,13 @@ import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { IsNotEmpty, IsOptional, IsString } from 'class-validator';
 
 /**
- * DTO für das Erstellen eines neuen Einsatzes.
+ * Data Transfer Object für die Einsatzerstellung
+ *
+ * Dieses DTO definiert die erforderlichen und optionalen Felder
+ * für die Erstellung eines neuen Einsatzes. Es beinhaltet
+ * Validierungsregeln und Swagger-Dokumentation für die API.
+ *
+ * @class CreateEinsatzDto
  */
 export class CreateEinsatzDto {
   /**

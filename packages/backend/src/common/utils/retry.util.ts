@@ -49,6 +49,17 @@ export const POSTGRES_RETRYABLE_ERRORS = {
 
 /**
  * Utility-Klasse für robuste Retry-Mechanismen mit exponential backoff
+ *
+ * Diese Klasse bietet Retry-Funktionalität für fehleranfällige Operationen
+ * mit konfigurierbarem exponentiellen Backoff und Jitter.
+ *
+ * Features:
+ * - Exponentielles Backoff mit konfigurierbarem Multiplikator
+ * - Jitter zur Vermeidung von Thundering Herd
+ * - Unterstützung für PostgreSQL- und Netzwerk-Fehler
+ * - Konfigurierbare Timeouts pro Versuch
+ *
+ * @class RetryUtil
  */
 export class RetryUtil {
   private readonly logger = new Logger(RetryUtil.name);

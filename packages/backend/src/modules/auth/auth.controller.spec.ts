@@ -70,9 +70,13 @@ describe('AuthController', () => {
 
       mockAuthService.login.mockResolvedValue(expectedResult);
 
-      const result = await controller.login(loginDto, mockResponse);
+      const mockRequest = {
+        ip: '127.0.0.1',
+        headers: { 'user-agent': 'test-agent' },
+      } as any;
+      const result = await controller.login(loginDto, mockRequest, mockResponse);
 
-      expect(authService.login).toHaveBeenCalledWith(loginDto);
+      expect(authService.login).toHaveBeenCalledWith(loginDto, '127.0.0.1', 'test-agent');
       expect(mockResponse.cookie).toHaveBeenCalledTimes(2);
       expect(mockResponse.cookie).toHaveBeenCalledWith(
         'access_token',

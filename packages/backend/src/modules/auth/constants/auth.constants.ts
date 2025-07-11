@@ -65,6 +65,12 @@ export const SESSION_CONFIG = {
 
 /**
  * Sicherheits-Event-Typen für Logging
+ *
+ * Definiert alle sicherheitsrelevanten Ereignisse, die im System
+ * protokolliert werden sollen, wie Login-Versuche, Token-Operationen
+ * und verdächtige Aktivitäten.
+ *
+ * @enum {string}
  */
 export enum SecurityEventType {
   LOGIN_SUCCESS = 'LOGIN_SUCCESS',
@@ -79,6 +85,12 @@ export enum SecurityEventType {
 
 /**
  * Error-Codes für Authentifizierungsfehler
+ *
+ * Standardisierte Fehlercodes für alle authentifizierungsbezogenen
+ * Fehler im System. Diese Codes werden in Exceptions und Fehlermeldungen
+ * verwendet, um eine einheitliche Fehlerbehandlung zu gewährleisten.
+ *
+ * @enum {string}
  */
 export enum AuthErrorCode {
   INVALID_CREDENTIALS = 'INVALID_CREDENTIALS',

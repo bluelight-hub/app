@@ -1,6 +1,7 @@
 /**
- * JWT payload structure containing user authentication data.
- * Used for access tokens with user identity and permissions.
+ * JWT-Payload-Struktur mit Benutzerauthentifizierungsdaten
+ *
+ * Wird für Access-Tokens mit Benutzeridentität und Berechtigungen verwendet
  */
 export interface JWTPayload {
   sub: string; // User ID
@@ -15,8 +16,9 @@ export interface JWTPayload {
 }
 
 /**
- * JWT refresh token payload for token renewal.
- * Contains minimal data needed for secure token refresh.
+ * JWT-Refresh-Token-Payload für Token-Erneuerung
+ *
+ * Enthält minimale Daten für sichere Token-Aktualisierung
  */
 export interface JWTRefreshPayload {
   sub: string;
@@ -27,8 +29,9 @@ export interface JWTRefreshPayload {
 }
 
 /**
- * User roles for role-based access control.
- * Defines hierarchy of administrative privileges.
+ * Benutzerrollen für rollenbasierte Zugriffskontrolle
+ *
+ * Definiert die Hierarchie administrativer Berechtigungen
  */
 export enum UserRole {
   SUPER_ADMIN = 'SUPER_ADMIN',
@@ -39,8 +42,9 @@ export enum UserRole {
 }
 
 /**
- * Granular permissions for fine-grained access control.
- * Used to control access to specific actions and resources.
+ * Granulare Berechtigungen für feingliedrige Zugriffskontrolle
+ *
+ * Wird verwendet, um den Zugriff auf spezifische Aktionen und Ressourcen zu steuern
  */
 export enum Permission {
   // User Management
@@ -71,8 +75,10 @@ export enum Permission {
 }
 
 /**
- * Role to permission mapping defining what permissions each role has.
- * Used to automatically assign permissions based on user roles.
+ * Rollen-zu-Berechtigungen-Zuordnung
+ *
+ * Definiert, welche Berechtigungen jede Rolle hat.
+ * Wird verwendet, um Berechtigungen automatisch basierend auf Benutzerrollen zuzuweisen.
  */
 export const RolePermissions: Record<UserRole, Permission[]> = {
   [UserRole.SUPER_ADMIN]: Object.values(Permission), // All permissions

@@ -1,10 +1,8 @@
-import { Card, Select, Table, message } from 'antd';
+import { Card, message, Select, Table } from 'antd';
 import type { ColumnsType } from 'antd/es/table';
 import React, { useState } from 'react';
 
 type FmsStatus = 1 | 2 | 3 | 4 | 5 | 6 | 7;
-// z.B. 1 = Einsatz klar, 2 = Auf Anfahrt, 3 = Ankunft Einsatzort, 4 = Sprechwunsch, 6 = Außer Dienst, etc.
-// (Definition kann variieren, je nach BOS und Land)
 
 interface FahrzeugFMS {
   id: string;
@@ -35,13 +33,19 @@ const initialFmsData: FahrzeugFMS[] = [
 ];
 
 const fmsOptions = [
-  { label: '1 - Einsatz klar', value: 1 },
-  { label: '2 - Auf Anfahrt', value: 2 },
-  { label: '3 - Ankunft Einsatzort', value: 3 },
-  { label: '4 - Sprechwunsch', value: 4 },
-  { label: '5 - ...', value: 5 },
-  { label: '6 - Außer Dienst', value: 6 },
-  { label: '7 - ...', value: 7 },
+  { label: '0 - Dringender Sprechwunsch', value: 0 },
+  { label: '1 - einsatzbereit über Funk (auch Einbuchen)', value: 1 },
+  { label: '2 - einsatzbereit auf Wache', value: 2 },
+  { label: '3 - Einsatz übernommen / Anfahrt zum Einsatzort ("ab")', value: 3 },
+  { label: '4 - Ankunft am Einsatzort ("an")', value: 4 },
+  { label: '5 - Sprechwunsch', value: 5 },
+  { label: '6 - nicht einsatzbereit', value: 6 },
+  { label: '7 - Patient aufgenommen', value: 7 },
+  { label: '8 - am Transportziel', value: 8 },
+  {
+    label: '9 - ./.',
+    value: 9,
+  },
 ];
 
 const FMS: React.FC = () => {

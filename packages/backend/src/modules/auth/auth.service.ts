@@ -1,4 +1,4 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { forwardRef, Inject, Injectable, Logger } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
 import * as bcrypt from 'bcryptjs';
@@ -8,16 +8,17 @@ import { AuthUser, LoginResponse, TokenResponse } from './types/auth.types';
 import { JWTPayload, JWTRefreshPayload, Permission, UserRole } from './types/jwt.types';
 import { PrismaService } from '@/prisma/prisma.service';
 import { DefaultRolePermissions } from './constants';
-import { TOKEN_CONFIG, LOGIN_SECURITY, SecurityEventType } from './constants/auth.constants';
+import { LOGIN_SECURITY, SecurityEventType, TOKEN_CONFIG } from './constants/auth.constants';
 import {
-  InvalidCredentialsException,
   AccountDisabledException,
   AccountLockedException,
+  InvalidCredentialsException,
   InvalidTokenException,
-  TokenRevokedException,
   RefreshRateLimitExceededException,
+  TokenRevokedException,
 } from './exceptions/auth.exceptions';
 import { SessionCleanupService } from './services/session-cleanup.service';
+import { SessionService } from '../session/session.service';
 
 /**
  * Service responsible for authentication operations including login, token refresh, and logout.
@@ -32,9 +33,11 @@ export class AuthService {
     private configService: ConfigService,
     private prisma: PrismaService,
     private sessionCleanupService: SessionCleanupService,
+    @Inject(forwardRef(() => SessionService))
+    private sessionService: SessionService,
   ) {}
 
-  async login(loginDto: LoginDto): Promise<LoginResponse> {
+  async login(loginDto: LoginDto, ipAddress?: string, userAgent?: string): Promise<LoginResponse> {
     // Find user by email
     const user = await this.prisma.user.findUnique({
       where: { email: loginDto.email },
@@ -127,6 +130,8 @@ export class AuthService {
           jti,
           userId: user.id,
           expiresAt,
+          ipAddress,
+          userAgent,
         },
       }),
       this.prisma.refreshToken.create({
@@ -138,6 +143,11 @@ export class AuthService {
         },
       }),
     ]);
+
+    // Enhance session with monitoring data
+    if (ipAddress && userAgent) {
+      await this.sessionService.enhanceSession(jti, ipAddress, userAgent, 'password');
+    }
 
     // Log successful login
     this.logSecurityEvent(SecurityEventType.LOGIN_SUCCESS, user.id, {

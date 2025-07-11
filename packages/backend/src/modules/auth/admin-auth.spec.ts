@@ -5,6 +5,7 @@ import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
 import { PermissionValidationService } from './services/permission-validation.service';
 import { SessionCleanupService } from './services/session-cleanup.service';
+import { SessionService } from '../session/session.service';
 import * as bcrypt from 'bcrypt';
 import { UnauthorizedException } from '@nestjs/common';
 import { UserRole } from './types/jwt.types';
@@ -71,6 +72,10 @@ describe('Admin Authentication', () => {
     revokeAllUserSessions: jest.fn(),
   };
 
+  const mockSessionService = {
+    enhanceSession: jest.fn(),
+  };
+
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
@@ -94,6 +99,10 @@ describe('Admin Authentication', () => {
         {
           provide: SessionCleanupService,
           useValue: mockSessionCleanupService,
+        },
+        {
+          provide: SessionService,
+          useValue: mockSessionService,
         },
       ],
     }).compile();
@@ -211,10 +220,14 @@ describe('Admin Authentication', () => {
       mockPrismaService.refreshToken.create.mockResolvedValue({});
       mockPrismaService.user.update.mockResolvedValue({});
 
-      const result = await authService.login({
-        email: 'support@example.com',
-        password: 'password',
-      });
+      const result = await authService.login(
+        {
+          email: 'support@example.com',
+          password: 'password',
+        },
+        '127.0.0.1',
+        'test-agent',
+      );
 
       expect(result.user.roles).toEqual([UserRole.SUPPORT]);
       expect(result.user.permissions).toHaveLength(2);

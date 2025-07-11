@@ -2,9 +2,20 @@ import { Injectable, OnModuleDestroy, OnModuleInit } from '@nestjs/common';
 import { PrismaClient } from '../../prisma/generated/prisma/client';
 
 /**
- * Prisma-Service für Datenbankoperationen.
- * Verwaltet die Verbindung zum Prisma-Client und stellt sicher, dass
- * die Verbindung korrekt initialisiert und geschlossen wird.
+ * Service für Prisma-Datenbankoperationen
+ *
+ * Diese Klasse erweitert den generierten Prisma Client und integriert
+ * ihn in den NestJS-Lebenszyklus. Sie verwaltet automatisch die
+ * Datenbankverbindung und stellt typsichere Methoden für alle
+ * Datenbankoperationen bereit.
+ *
+ * Features:
+ * - Automatische Verbindungsverwaltung
+ * - Integration in NestJS-Lebenszyklus
+ * - Typsichere Datenbankoperationen
+ * - Connection-Pooling und Retry-Logik
+ *
+ * @class PrismaService
  */
 @Injectable()
 export class PrismaService extends PrismaClient implements OnModuleInit, OnModuleDestroy {

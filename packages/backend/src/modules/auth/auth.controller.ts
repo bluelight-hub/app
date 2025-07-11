@@ -37,9 +37,13 @@ export class AuthController {
   @ApiResponse({ status: 401, description: 'Invalid credentials' })
   async login(
     @Body() loginDto: LoginDto,
+    @Req() request: Request,
     @Res({ passthrough: true }) response: Response,
   ): Promise<LoginResponse> {
-    const result = await this.authService.login(loginDto);
+    const ipAddress = request.ip || (request.headers['x-forwarded-for'] as string) || undefined;
+    const userAgent = request.headers['user-agent'] || undefined;
+
+    const result = await this.authService.login(loginDto, ipAddress, userAgent);
 
     // Set access token in httpOnly cookie
     response.cookie('access_token', result.accessToken, cookieConfig);

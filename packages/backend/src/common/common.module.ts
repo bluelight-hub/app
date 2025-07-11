@@ -6,7 +6,15 @@ import { ErrorHandlingService } from './services/error-handling.service';
 import { PaginationService } from './services/pagination.service';
 
 /**
- * Modul für gemeinsam genutzte Funktionalitäten wie Paginierung, Validierung, Audit-Logging, etc.
+ * Gemeinsames Modul für anwendungsübergreifende Funktionalitäten
+ *
+ * Dieses Modul bündelt wiederverwendbare Services und Utilities,
+ * die von mehreren anderen Modulen genutzt werden. Dazu gehören:
+ * - Paginierung für Datenbankabfragen
+ * - Fehlerbehandlung mit Retry-Logik
+ * - Audit-Logging-Funktionalität
+ *
+ * @module CommonModule
  */
 @Module({
   imports: [ConfigModule, PrismaModule, AuditModule],

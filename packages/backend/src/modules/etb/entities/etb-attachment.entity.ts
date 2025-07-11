@@ -1,7 +1,18 @@
 /**
- * Entity-Klasse für eine Anlage (Anhang) zu einem ETB-Eintrag.
- * Diese Klasse dient als Wrapper für Prisma-generierte Typen und bietet Methoden zur Konvertierung
- * zwischen Entity-Objekten und Prisma-Datenmodellen.
+ * Entity-Klasse für eine Anlage (Anhang) zu einem ETB-Eintrag
+ *
+ * Diese Klasse repräsentiert eine Dateianlage, die einem ETB-Eintrag
+ * zugeordnet ist. Sie unterstützt verschiedene Dateitypen wie Bilder,
+ * PDFs und andere Dokumente. Die Klasse dient als Wrapper für
+ * Prisma-generierte Typen und bietet Konvertierungsmethoden.
+ *
+ * Features:
+ * - Speicherung von Dateimetadaten
+ * - Unterstützung verschiedener Dateitypen
+ * - Beschreibungen für Anlagen
+ * - Zeitstempel für Audit-Trail
+ *
+ * @class EtbAttachment
  */
 export class EtbAttachment {
   /**

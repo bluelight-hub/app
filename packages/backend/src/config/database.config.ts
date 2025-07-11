@@ -2,8 +2,19 @@ import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 
 /**
- * Konfigurationsklasse für Datenbankzugriffe.
- * Stellt Konfigurationswerte für den Prisma-Datenbankzugriff bereit.
+ * Konfigurationsservice für Datenbankverbindungen
+ *
+ * Diese Klasse kapselt die Datenbankonfiguration und stellt
+ * typsichere Zugriffsmethoden für Datenbankverbindungsparameter bereit.
+ * Sie nutzt den NestJS ConfigService für den Zugriff auf Umgebungsvariablen.
+ *
+ * Features:
+ * - Zentralisierte Datenbankkonfiguration
+ * - Typsichere Konfigurationswerte
+ * - Validierung von erforderlichen Umgebungsvariablen
+ * - Abstrahierung von Konfigurationsdetails
+ *
+ * @class DatabaseConfig
  */
 @Injectable()
 export class DatabaseConfig {

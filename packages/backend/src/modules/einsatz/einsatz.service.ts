@@ -3,6 +3,20 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { CreateEinsatzDto } from './dto/create-einsatz.dto';
 import { Einsatz } from './entities/einsatz.entity';
 
+/**
+ * Service für die Verwaltung von Einsätzen
+ *
+ * Dieser Service implementiert die Geschäftslogik für Einsätze im
+ * Bluelight Hub System. Er bietet grundlegende CRUD-Operationen
+ * und dient als zentrale Schnittstelle für die Einsatzverwaltung.
+ *
+ * Features:
+ * - Erstellung neuer Einsätze
+ * - Abruf aller Einsätze
+ * - Suche von Einsätzen nach ID
+ *
+ * @class EinsatzService
+ */
 @Injectable()
 export class EinsatzService {
   constructor(private readonly prisma: PrismaService) {}

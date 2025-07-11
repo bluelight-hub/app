@@ -16,9 +16,22 @@ import { AuditInterceptor } from './interceptors/audit.interceptor';
 import { AuditLogQueue, AUDIT_LOG_QUEUE, AuditLogProcessor } from './queues';
 
 /**
- * Modul für Audit-Logging-Funktionalitäten
- * Stellt Services für die Erstellung, Abfrage und Verwaltung von Audit-Logs bereit
- * Unterstützt asynchrone Verarbeitung über Bull Queue
+ * Audit-Logging-Modul für umfassende Systemüberwachung
+ *
+ * Dieses Modul implementiert ein hochperformantes Audit-Logging-System
+ * mit asynchroner Verarbeitung über Redis-basierte Queues. Es zeichnet
+ * automatisch alle sicherheitsrelevanten Aktionen und API-Zugriffe auf.
+ *
+ * Features:
+ * - Automatisches Logging aller HTTP-Requests via Interceptor
+ * - Asynchrone Verarbeitung über Bull Queue (Redis)
+ * - Batch-Verarbeitung für optimale Performance
+ * - Caching-Mechanismen zur Reduzierung der Datenbankzugriffe
+ * - Scheduled Jobs für Bereinigung und Archivierung
+ * - Flexibles Filterungssystem für Audit-Abfragen
+ * - Integration mit dem Authentifizierungssystem
+ *
+ * @module AuditModule
  */
 @Module({
   imports: [

@@ -6,6 +6,7 @@ import { Permission, UserRole } from './types/jwt.types';
 import { PrismaService } from '@/prisma/prisma.service';
 import { DefaultRolePermissions } from './constants';
 import { SessionCleanupService } from './services/session-cleanup.service';
+import { SessionService } from '../session/session.service';
 import {
   InvalidCredentialsException,
   AccountDisabledException,
@@ -64,6 +65,10 @@ describe('AuthService', () => {
     revokeAllUserSessions: jest.fn(),
   };
 
+  const mockSessionService = {
+    enhanceSession: jest.fn(),
+  };
+
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
@@ -83,6 +88,10 @@ describe('AuthService', () => {
         {
           provide: SessionCleanupService,
           useValue: mockSessionCleanupService,
+        },
+        {
+          provide: SessionService,
+          useValue: mockSessionService,
         },
       ],
     }).compile();
@@ -145,7 +154,7 @@ describe('AuthService', () => {
       mockJwtService.sign.mockReturnValueOnce('access_token');
       mockJwtService.sign.mockReturnValueOnce('refresh_token');
 
-      const result = await service.login(mockLoginDto);
+      const result = await service.login(mockLoginDto, '127.0.0.1', 'test-agent');
 
       expect(result).toHaveProperty('accessToken', 'access_token');
       expect(result).toHaveProperty('refreshToken', 'refresh_token');
@@ -157,7 +166,9 @@ describe('AuthService', () => {
     it('should throw UnauthorizedException for invalid email', async () => {
       mockPrismaService.user.findUnique.mockResolvedValue(null);
 
-      await expect(service.login(mockLoginDto)).rejects.toThrow(InvalidCredentialsException);
+      await expect(service.login(mockLoginDto, '127.0.0.1', 'test-agent')).rejects.toThrow(
+        InvalidCredentialsException,
+      );
     });
 
     it('should throw UnauthorizedException for invalid password', async () => {
@@ -165,7 +176,9 @@ describe('AuthService', () => {
       mockPrismaService.user.update.mockResolvedValue({ ...mockUser, failedLoginCount: 1 });
       (bcrypt.compare as jest.Mock).mockResolvedValue(false);
 
-      await expect(service.login(mockLoginDto)).rejects.toThrow(InvalidCredentialsException);
+      await expect(service.login(mockLoginDto, '127.0.0.1', 'test-agent')).rejects.toThrow(
+        InvalidCredentialsException,
+      );
     });
 
     it('should throw UnauthorizedException for inactive user', async () => {
@@ -174,7 +187,9 @@ describe('AuthService', () => {
         isActive: false,
       });
 
-      await expect(service.login(mockLoginDto)).rejects.toThrow(AccountDisabledException);
+      await expect(service.login(mockLoginDto, '127.0.0.1', 'test-agent')).rejects.toThrow(
+        AccountDisabledException,
+      );
     });
 
     it('should use default permissions when no permissions found in database', async () => {
@@ -188,7 +203,7 @@ describe('AuthService', () => {
       (bcrypt.compare as jest.Mock).mockResolvedValue(true);
       mockJwtService.sign.mockReturnValueOnce('access_token').mockReturnValueOnce('refresh_token');
 
-      const result = await service.login(mockLoginDto);
+      const result = await service.login(mockLoginDto, '127.0.0.1', 'test-agent');
 
       expect(result).toHaveProperty('accessToken', 'access_token');
       expect(result).toHaveProperty('refreshToken', 'refresh_token');
@@ -202,7 +217,9 @@ describe('AuthService', () => {
         lockedUntil: new Date(Date.now() + 60000), // Locked for 1 minute
       });
 
-      await expect(service.login(mockLoginDto)).rejects.toThrow(AccountLockedException);
+      await expect(service.login(mockLoginDto, '127.0.0.1', 'test-agent')).rejects.toThrow(
+        AccountLockedException,
+      );
     });
 
     it('should increment failed login count on invalid password', async () => {
@@ -210,7 +227,7 @@ describe('AuthService', () => {
       (bcrypt.compare as jest.Mock).mockResolvedValue(false);
 
       try {
-        await service.login(mockLoginDto);
+        await service.login(mockLoginDto, '127.0.0.1', 'test-agent');
       } catch {
         // Expected to throw
       }
@@ -232,7 +249,7 @@ describe('AuthService', () => {
       (bcrypt.compare as jest.Mock).mockResolvedValue(false);
 
       try {
-        await service.login(mockLoginDto);
+        await service.login(mockLoginDto, '127.0.0.1', 'test-agent');
       } catch {
         // Expected to throw
       }
@@ -261,7 +278,7 @@ describe('AuthService', () => {
       mockJwtService.sign.mockReturnValueOnce('access_token');
       mockJwtService.sign.mockReturnValueOnce('refresh_token');
 
-      const result = await service.login(mockLoginDto);
+      const result = await service.login(mockLoginDto, '127.0.0.1', 'test-agent');
 
       expect(result).toHaveProperty('accessToken', 'access_token');
 
@@ -290,7 +307,7 @@ describe('AuthService', () => {
       mockJwtService.sign.mockReturnValueOnce('access_token');
       mockJwtService.sign.mockReturnValueOnce('refresh_token');
 
-      const result = await service.login(mockLoginDto);
+      const result = await service.login(mockLoginDto, '127.0.0.1', 'test-agent');
 
       expect(result).toHaveProperty('accessToken', 'access_token');
 
