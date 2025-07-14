@@ -18,6 +18,7 @@ import {
   TokenRevokedException,
 } from './exceptions/auth.exceptions';
 import { SessionCleanupService } from './services/session-cleanup.service';
+import { LoginAttemptService } from './services/login-attempt.service';
 import { SessionService } from '../session/session.service';
 
 /**
@@ -33,62 +34,120 @@ export class AuthService {
     private configService: ConfigService,
     private prisma: PrismaService,
     private sessionCleanupService: SessionCleanupService,
+    private loginAttemptService: LoginAttemptService,
     @Inject(forwardRef(() => SessionService))
     private sessionService: SessionService,
   ) {}
 
   async login(loginDto: LoginDto, ipAddress?: string, userAgent?: string): Promise<LoginResponse> {
+    // Check IP rate limit first
+    if (ipAddress) {
+      const isIpRateLimited = await this.loginAttemptService.checkIpRateLimit(ipAddress);
+      if (isIpRateLimited) {
+        this.logger.warn(`IP rate limit exceeded for: ${ipAddress}`);
+        throw new InvalidCredentialsException(
+          0,
+          'Too many attempts from this IP. Please try again later.',
+        );
+      }
+    }
+
+    // Check if account is already locked
+    const isLocked = await this.loginAttemptService.isAccountLocked(loginDto.email);
+    if (isLocked) {
+      // Record the failed attempt
+      await this.loginAttemptService.recordLoginAttempt({
+        email: loginDto.email,
+        ipAddress: ipAddress || 'unknown',
+        userAgent,
+        success: false,
+        failureReason: 'Account locked',
+      });
+
+      const user = await this.prisma.user.findUnique({
+        where: { email: loginDto.email },
+        select: { lockedUntil: true },
+      });
+
+      throw new AccountLockedException(user?.lockedUntil || new Date());
+    }
+
     // Find user by email
     const user = await this.prisma.user.findUnique({
       where: { email: loginDto.email },
     });
 
     if (!user) {
+      // Record failed attempt for non-existent user
+      await this.loginAttemptService.recordLoginAttempt({
+        email: loginDto.email,
+        ipAddress: ipAddress || 'unknown',
+        userAgent,
+        success: false,
+        failureReason: 'User not found',
+      });
+
       this.logger.warn(`Failed login attempt for email: ${loginDto.email}`);
       throw new InvalidCredentialsException();
     }
 
     // Check if user is active
     if (!user.isActive) {
+      // Record failed attempt for disabled account
+      await this.loginAttemptService.recordLoginAttempt({
+        userId: user.id,
+        email: loginDto.email,
+        ipAddress: ipAddress || 'unknown',
+        userAgent,
+        success: false,
+        failureReason: 'Account disabled',
+      });
+
       this.logger.warn(`Login attempt for disabled account: ${user.id}`);
       throw new AccountDisabledException();
-    }
-
-    // Check if user is locked
-    if (user.lockedUntil && user.lockedUntil > new Date()) {
-      this.logger.warn(`Login attempt for locked account: ${user.id}`);
-      throw new AccountLockedException(user.lockedUntil);
     }
 
     // Verify password
     const isPasswordValid = await bcrypt.compare(loginDto.password, user.passwordHash);
     if (!isPasswordValid) {
-      // Increment failed login count
-      const updatedUser = await this.prisma.user.update({
-        where: { id: user.id },
-        data: {
-          failedLoginCount: { increment: 1 },
-          // Lock account after MAX_FAILED_ATTEMPTS
-          lockedUntil:
-            user.failedLoginCount >= LOGIN_SECURITY.MAX_FAILED_ATTEMPTS - 1
-              ? new Date(Date.now() + LOGIN_SECURITY.LOCKOUT_DURATION_MS)
-              : null,
+      // Record failed login attempt
+      await this.loginAttemptService.recordLoginAttempt({
+        userId: user.id,
+        email: loginDto.email,
+        ipAddress: ipAddress || 'unknown',
+        userAgent,
+        success: false,
+        failureReason: 'Invalid password',
+      });
+
+      // Check if account should be locked
+      const lockoutResult = await this.loginAttemptService.checkAndUpdateLockout(loginDto.email);
+
+      if (lockoutResult.isLocked) {
+        this.logSecurityEvent(SecurityEventType.ACCOUNT_LOCKED, user.id, {
+          lockedUntil: lockoutResult.lockedUntil,
+        });
+        throw new AccountLockedException(lockoutResult.lockedUntil!);
+      }
+
+      // Calculate remaining attempts
+      const windowStart = new Date(Date.now() - 15 * 60 * 1000); // 15 minute window
+      const recentFailedAttempts = await this.prisma.loginAttempt.count({
+        where: {
+          email: loginDto.email,
+          success: false,
+          attemptAt: { gte: windowStart },
         },
       });
 
       const remainingAttempts = Math.max(
         0,
-        LOGIN_SECURITY.MAX_FAILED_ATTEMPTS - updatedUser.failedLoginCount,
+        LOGIN_SECURITY.MAX_FAILED_ATTEMPTS - recentFailedAttempts,
       );
 
-      this.logger.warn(`Failed login attempt ${updatedUser.failedLoginCount} for user: ${user.id}`);
-
-      if (updatedUser.lockedUntil) {
-        this.logSecurityEvent(SecurityEventType.ACCOUNT_LOCKED, user.id, {
-          lockedUntil: updatedUser.lockedUntil,
-        });
-      }
-
+      this.logger.warn(
+        `Failed login attempt for user: ${user.id}, remaining attempts: ${remainingAttempts}`,
+      );
       throw new InvalidCredentialsException(remainingAttempts);
     }
 
@@ -101,6 +160,18 @@ export class AuthService {
         lastLoginAt: new Date(),
       },
     });
+
+    // Record successful login attempt
+    await this.loginAttemptService.recordLoginAttempt({
+      userId: user.id,
+      email: loginDto.email,
+      ipAddress: ipAddress || 'unknown',
+      userAgent,
+      success: true,
+    });
+
+    // Reset failed attempts counter
+    await this.loginAttemptService.resetFailedAttempts(loginDto.email);
 
     // Check session limit before creating new session
     await this.sessionCleanupService.enforceSessionLimit(user.id);

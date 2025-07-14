@@ -7,6 +7,7 @@ import { PrismaService } from '@/prisma/prisma.service';
 import { DefaultRolePermissions } from './constants';
 import { SessionCleanupService } from './services/session-cleanup.service';
 import { SessionService } from '../session/session.service';
+import { LoginAttemptService } from './services/login-attempt.service';
 import {
   InvalidCredentialsException,
   AccountDisabledException,
@@ -56,6 +57,9 @@ describe('AuthService', () => {
       count: jest.fn(),
       findFirst: jest.fn(),
     },
+    loginAttempt: {
+      count: jest.fn(),
+    },
     $transaction: jest.fn(),
   };
 
@@ -67,6 +71,14 @@ describe('AuthService', () => {
 
   const mockSessionService = {
     enhanceSession: jest.fn(),
+  };
+
+  const mockLoginAttemptService = {
+    checkIpRateLimit: jest.fn(),
+    isAccountLocked: jest.fn(),
+    recordLoginAttempt: jest.fn(),
+    checkAndUpdateLockout: jest.fn(),
+    resetFailedAttempts: jest.fn(),
   };
 
   beforeEach(async () => {
@@ -92,6 +104,10 @@ describe('AuthService', () => {
         {
           provide: SessionService,
           useValue: mockSessionService,
+        },
+        {
+          provide: LoginAttemptService,
+          useValue: mockLoginAttemptService,
         },
       ],
     }).compile();
@@ -149,6 +165,12 @@ describe('AuthService', () => {
       mockPrismaService.refreshToken.create.mockResolvedValue({});
       mockSessionCleanupService.enforceSessionLimit.mockResolvedValue(undefined);
 
+      // Login attempt mocks
+      mockLoginAttemptService.checkIpRateLimit.mockResolvedValue(false);
+      mockLoginAttemptService.isAccountLocked.mockResolvedValue(false);
+      mockLoginAttemptService.recordLoginAttempt.mockResolvedValue({});
+      mockLoginAttemptService.resetFailedAttempts.mockResolvedValue(undefined);
+
       (bcrypt.compare as jest.Mock).mockResolvedValue(true);
 
       mockJwtService.sign.mockReturnValueOnce('access_token');
@@ -161,24 +183,60 @@ describe('AuthService', () => {
       expect(result).toHaveProperty('user');
       expect(result.user.email).toBe(mockUser.email);
       expect(result.user.roles).toEqual([UserRole.ADMIN]);
+
+      // Verify login attempt was recorded
+      expect(mockLoginAttemptService.recordLoginAttempt).toHaveBeenCalledWith({
+        userId: mockUser.id,
+        email: mockUser.email,
+        ipAddress: '127.0.0.1',
+        userAgent: 'test-agent',
+        success: true,
+      });
+      expect(mockLoginAttemptService.resetFailedAttempts).toHaveBeenCalledWith(mockUser.email);
     });
 
     it('should throw UnauthorizedException for invalid email', async () => {
       mockPrismaService.user.findUnique.mockResolvedValue(null);
+      mockLoginAttemptService.checkIpRateLimit.mockResolvedValue(false);
+      mockLoginAttemptService.isAccountLocked.mockResolvedValue(false);
 
       await expect(service.login(mockLoginDto, '127.0.0.1', 'test-agent')).rejects.toThrow(
         InvalidCredentialsException,
       );
+
+      // Verify failed attempt was recorded
+      expect(mockLoginAttemptService.recordLoginAttempt).toHaveBeenCalledWith({
+        email: mockLoginDto.email,
+        ipAddress: '127.0.0.1',
+        userAgent: 'test-agent',
+        success: false,
+        failureReason: 'User not found',
+      });
     });
 
     it('should throw UnauthorizedException for invalid password', async () => {
       mockPrismaService.user.findUnique.mockResolvedValue(mockUser);
       mockPrismaService.user.update.mockResolvedValue({ ...mockUser, failedLoginCount: 1 });
+      mockLoginAttemptService.checkIpRateLimit.mockResolvedValue(false);
+      mockLoginAttemptService.isAccountLocked.mockResolvedValue(false);
+      mockLoginAttemptService.checkAndUpdateLockout.mockResolvedValue({ isLocked: false });
+      mockPrismaService.loginAttempt.count.mockResolvedValue(1);
+
       (bcrypt.compare as jest.Mock).mockResolvedValue(false);
 
       await expect(service.login(mockLoginDto, '127.0.0.1', 'test-agent')).rejects.toThrow(
         InvalidCredentialsException,
       );
+
+      // Verify failed attempt was recorded
+      expect(mockLoginAttemptService.recordLoginAttempt).toHaveBeenCalledWith({
+        userId: mockUser.id,
+        email: mockLoginDto.email,
+        ipAddress: '127.0.0.1',
+        userAgent: 'test-agent',
+        success: false,
+        failureReason: 'Invalid password',
+      });
     });
 
     it('should throw UnauthorizedException for inactive user', async () => {
@@ -186,10 +244,22 @@ describe('AuthService', () => {
         ...mockUser,
         isActive: false,
       });
+      mockLoginAttemptService.checkIpRateLimit.mockResolvedValue(false);
+      mockLoginAttemptService.isAccountLocked.mockResolvedValue(false);
 
       await expect(service.login(mockLoginDto, '127.0.0.1', 'test-agent')).rejects.toThrow(
         AccountDisabledException,
       );
+
+      // Verify failed attempt was recorded
+      expect(mockLoginAttemptService.recordLoginAttempt).toHaveBeenCalledWith({
+        userId: mockUser.id,
+        email: mockLoginDto.email,
+        ipAddress: '127.0.0.1',
+        userAgent: 'test-agent',
+        success: false,
+        failureReason: 'Account disabled',
+      });
     });
 
     it('should use default permissions when no permissions found in database', async () => {
@@ -199,6 +269,12 @@ describe('AuthService', () => {
       mockPrismaService.session.create.mockResolvedValue({ jti: 'session-123' });
       mockPrismaService.refreshToken.create.mockResolvedValue({});
       mockSessionCleanupService.enforceSessionLimit.mockResolvedValue(undefined);
+
+      // Login attempt mocks
+      mockLoginAttemptService.checkIpRateLimit.mockResolvedValue(false);
+      mockLoginAttemptService.isAccountLocked.mockResolvedValue(false);
+      mockLoginAttemptService.recordLoginAttempt.mockResolvedValue({});
+      mockLoginAttemptService.resetFailedAttempts.mockResolvedValue(undefined);
 
       (bcrypt.compare as jest.Mock).mockResolvedValue(true);
       mockJwtService.sign.mockReturnValueOnce('access_token').mockReturnValueOnce('refresh_token');
@@ -211,7 +287,9 @@ describe('AuthService', () => {
       expect(result.user.permissions).toEqual(DefaultRolePermissions[UserRole.ADMIN]);
     });
 
-    it('should throw UnauthorizedException for locked user', async () => {
+    it('should throw AccountLockedException when account is locked', async () => {
+      mockLoginAttemptService.checkIpRateLimit.mockResolvedValue(false);
+      mockLoginAttemptService.isAccountLocked.mockResolvedValue(true);
       mockPrismaService.user.findUnique.mockResolvedValue({
         ...mockUser,
         lockedUntil: new Date(Date.now() + 60000), // Locked for 1 minute
@@ -220,47 +298,45 @@ describe('AuthService', () => {
       await expect(service.login(mockLoginDto, '127.0.0.1', 'test-agent')).rejects.toThrow(
         AccountLockedException,
       );
+
+      // Verify failed attempt was recorded
+      expect(mockLoginAttemptService.recordLoginAttempt).toHaveBeenCalledWith({
+        email: mockLoginDto.email,
+        ipAddress: '127.0.0.1',
+        userAgent: 'test-agent',
+        success: false,
+        failureReason: 'Account locked',
+      });
     });
 
-    it('should increment failed login count on invalid password', async () => {
+    it('should throw InvalidCredentialsException when IP is rate limited', async () => {
+      mockLoginAttemptService.checkIpRateLimit.mockResolvedValue(true);
+
+      const error = await service.login(mockLoginDto, '127.0.0.1', 'test-agent').catch((e) => e);
+
+      expect(error).toBeInstanceOf(InvalidCredentialsException);
+      expect(error.message).toContain('Too many attempts from this IP');
+    });
+
+    it('should lock account after exceeding max failed attempts', async () => {
       mockPrismaService.user.findUnique.mockResolvedValue(mockUser);
+      mockLoginAttemptService.checkIpRateLimit.mockResolvedValue(false);
+      mockLoginAttemptService.isAccountLocked.mockResolvedValue(false);
+      mockLoginAttemptService.checkAndUpdateLockout.mockResolvedValue({
+        isLocked: true,
+        lockedUntil: new Date(Date.now() + 30 * 60 * 1000),
+      });
+      mockPrismaService.loginAttempt.count.mockResolvedValue(5);
+
       (bcrypt.compare as jest.Mock).mockResolvedValue(false);
 
-      try {
-        await service.login(mockLoginDto, '127.0.0.1', 'test-agent');
-      } catch {
-        // Expected to throw
-      }
+      await expect(service.login(mockLoginDto, '127.0.0.1', 'test-agent')).rejects.toThrow(
+        AccountLockedException,
+      );
 
-      expect(mockPrismaService.user.update).toHaveBeenCalledWith({
-        where: { id: mockUser.id },
-        data: {
-          failedLoginCount: { increment: 1 },
-          lockedUntil: null,
-        },
-      });
-    });
-
-    it('should lock account after 5 failed attempts', async () => {
-      mockPrismaService.user.findUnique.mockResolvedValue({
-        ...mockUser,
-        failedLoginCount: 4,
-      });
-      (bcrypt.compare as jest.Mock).mockResolvedValue(false);
-
-      try {
-        await service.login(mockLoginDto, '127.0.0.1', 'test-agent');
-      } catch {
-        // Expected to throw
-      }
-
-      expect(mockPrismaService.user.update).toHaveBeenCalledWith({
-        where: { id: mockUser.id },
-        data: {
-          failedLoginCount: { increment: 1 },
-          lockedUntil: expect.any(Date),
-        },
-      });
+      expect(mockLoginAttemptService.checkAndUpdateLockout).toHaveBeenCalledWith(
+        mockLoginDto.email,
+      );
     });
 
     it('should use fallback permissions when none found in database', async () => {
@@ -274,6 +350,12 @@ describe('AuthService', () => {
       mockPrismaService.session.create.mockResolvedValue({ jti: 'session-123' });
       mockPrismaService.refreshToken.create.mockResolvedValue({});
       mockSessionCleanupService.enforceSessionLimit.mockResolvedValue(undefined);
+
+      // Login attempt mocks
+      mockLoginAttemptService.checkIpRateLimit.mockResolvedValue(false);
+      mockLoginAttemptService.isAccountLocked.mockResolvedValue(false);
+      mockLoginAttemptService.recordLoginAttempt.mockResolvedValue({});
+      mockLoginAttemptService.resetFailedAttempts.mockResolvedValue(undefined);
 
       mockJwtService.sign.mockReturnValueOnce('access_token');
       mockJwtService.sign.mockReturnValueOnce('refresh_token');
@@ -303,6 +385,12 @@ describe('AuthService', () => {
       mockPrismaService.session.create.mockResolvedValue({ jti: 'session-123' });
       mockPrismaService.refreshToken.create.mockResolvedValue({});
       mockSessionCleanupService.enforceSessionLimit.mockResolvedValue(undefined);
+
+      // Login attempt mocks
+      mockLoginAttemptService.checkIpRateLimit.mockResolvedValue(false);
+      mockLoginAttemptService.isAccountLocked.mockResolvedValue(false);
+      mockLoginAttemptService.recordLoginAttempt.mockResolvedValue({});
+      mockLoginAttemptService.resetFailedAttempts.mockResolvedValue(undefined);
 
       mockJwtService.sign.mockReturnValueOnce('access_token');
       mockJwtService.sign.mockReturnValueOnce('refresh_token');

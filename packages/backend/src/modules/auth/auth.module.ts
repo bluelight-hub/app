@@ -5,9 +5,11 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { JwtStrategy } from './strategies';
 import { AuthService } from './auth.service';
 import { AuthController } from './auth.controller';
+import { LoginAttemptController } from './controllers/login-attempt.controller';
 import { PrismaService } from '@/prisma/prisma.service';
 import { PermissionValidationService } from './services/permission-validation.service';
 import { SessionCleanupService } from './services/session-cleanup.service';
+import { LoginAttemptService } from './services/login-attempt.service';
 import { SessionModule } from '../session/session.module';
 
 /**
@@ -34,8 +36,15 @@ import { SessionModule } from '../session/session.module';
     PrismaService,
     PermissionValidationService,
     SessionCleanupService,
+    LoginAttemptService,
   ],
-  controllers: [AuthController],
-  exports: [AuthService, JwtModule, PermissionValidationService, SessionCleanupService],
+  controllers: [AuthController, LoginAttemptController],
+  exports: [
+    AuthService,
+    JwtModule,
+    PermissionValidationService,
+    SessionCleanupService,
+    LoginAttemptService,
+  ],
 })
 export class AuthModule {}

@@ -150,6 +150,7 @@ model User {
   sessions        Session[]
   refreshTokens   RefreshToken[]
   rolePermissions RolePermission[]
+  loginAttempts   LoginAttempt[]
 
   // Indexes
   @@index([email], map: "idx_user_email")
@@ -345,4 +346,41 @@ model AuditLog {
   @@index([archivedAt, timestamp], map: "idx_audit_archived_timestamp")
   @@index([userEmail, timestamp], map: "idx_audit_user_email_timestamp")
   @@index([resource, timestamp, success], map: "idx_audit_resource_timestamp_success")
+}
+
+// ===== LOGIN TRACKING SYSTEM =====
+// Track login attempts for security and lockout functionality
+
+model LoginAttempt {
+  id            String   @id @default(nanoid())
+  
+  // User identification (optional for failed attempts with non-existent users)
+  userId        String?
+  user          User?    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  email         String   @db.VarChar(255) // Email used in attempt
+  
+  // Attempt details
+  attemptAt     DateTime @default(now())
+  ipAddress     String   @db.VarChar(45) // IPv6 compatible
+  userAgent     String?  @db.Text
+  success       Boolean  @default(false)
+  failureReason String?  @db.VarChar(255) // Invalid password, account locked, etc.
+  
+  // Location and device info
+  location      String?  @db.VarChar(255) // Geolocation
+  deviceType    String?  @db.VarChar(50)
+  browser       String?  @db.VarChar(50)
+  os            String?  @db.VarChar(50)
+  
+  // Security metadata
+  suspicious    Boolean  @default(false) // Flag for suspicious attempts
+  riskScore     Int      @default(0) // 0-100 risk score
+  metadata      Json?    // Additional security metadata
+  
+  // Indexes for efficient queries
+  @@index([email, attemptAt], map: "idx_login_attempt_email_time")
+  @@index([userId, attemptAt], map: "idx_login_attempt_user_time")
+  @@index([ipAddress, attemptAt], map: "idx_login_attempt_ip_time")
+  @@index([success, attemptAt], map: "idx_login_attempt_success_time")
+  @@index([suspicious, attemptAt], map: "idx_login_attempt_suspicious")
 }

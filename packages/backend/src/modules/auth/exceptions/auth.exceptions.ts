@@ -22,9 +22,9 @@ export abstract class AuthException extends UnauthorizedException {
  * Fehler bei ungültigen Anmeldedaten
  */
 export class InvalidCredentialsException extends AuthException {
-  constructor(remainingAttempts?: number) {
+  constructor(remainingAttempts?: number, customMessage?: string) {
     super(
-      'Invalid credentials',
+      customMessage || 'Invalid credentials',
       AuthErrorCode.INVALID_CREDENTIALS,
       remainingAttempts !== undefined ? { remainingAttempts } : undefined,
     );
