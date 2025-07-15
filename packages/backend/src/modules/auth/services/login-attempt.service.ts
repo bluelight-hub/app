@@ -5,6 +5,7 @@ import { LoginAttempt } from '@prisma/generated/prisma';
 import { CreateLoginAttemptDto, LoginAttemptStatsDto } from '../dto/login-attempt.dto';
 import { AuthConfig } from '../config/auth.config';
 import { UAParser } from 'ua-parser-js';
+import { SecurityAlertService } from './security-alert.service';
 
 @Injectable()
 export class LoginAttemptService {
@@ -14,6 +15,7 @@ export class LoginAttemptService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly configService: ConfigService,
+    private readonly securityAlertService: SecurityAlertService,
   ) {
     this.authConfig = {
       jwt: {
@@ -32,6 +34,15 @@ export class LoginAttemptService {
         inactivityTimeoutMinutes: this.configService.get<number>('SESSION_INACTIVITY_TIMEOUT', 30),
         maxConcurrentSessions: this.configService.get<number>('MAX_CONCURRENT_SESSIONS', 5),
         heartbeatIntervalSeconds: this.configService.get<number>('SESSION_HEARTBEAT_INTERVAL', 30),
+      },
+      securityAlerts: {
+        enabled: this.configService.get<string>('SECURITY_ALERTS_ENABLED', 'false') === 'true',
+        webhookUrl: this.configService.get<string>('SECURITY_ALERT_WEBHOOK_URL', null),
+        authToken: this.configService.get<string>('SECURITY_ALERT_AUTH_TOKEN', null),
+        thresholds: {
+          suspiciousLoginRiskScore: 70,
+          multipleFailedAttemptsWarning: 3,
+        },
       },
     };
   }
@@ -66,6 +77,19 @@ export class LoginAttemptService {
       });
 
       this.logger.log(`Login attempt recorded for ${data.email} from ${data.ipAddress}`);
+
+      // Send alert for suspicious login attempts
+      if (riskScore > this.authConfig.securityAlerts.thresholds.suspiciousLoginRiskScore) {
+        await this.securityAlertService.sendSuspiciousLoginAlert(
+          data.email,
+          data.userId || null,
+          data.ipAddress,
+          data.userAgent || '',
+          riskScore,
+          data.failureReason || 'High risk score detected',
+        );
+      }
+
       return loginAttempt;
     } catch (error) {
       this.logger.error('Failed to record login attempt', error);
@@ -111,6 +135,15 @@ export class LoginAttemptService {
       }
 
       this.logger.warn(`Account locked for ${email} until ${lockedUntil}`);
+
+      // Send account locked alert
+      await this.securityAlertService.sendAccountLockedAlert(
+        email,
+        user?.id || null,
+        lockedUntil,
+        failedAttempts,
+      );
+
       return { isLocked: true, lockedUntil };
     }
 
@@ -176,7 +209,18 @@ export class LoginAttemptService {
       },
     });
 
-    return attemptCount >= this.authConfig.loginAttempts.ipRateLimitAttempts;
+    const isRateLimited = attemptCount >= this.authConfig.loginAttempts.ipRateLimitAttempts;
+
+    // Send brute force alert if rate limit is exceeded
+    if (isRateLimited) {
+      await this.securityAlertService.sendBruteForceAlert(
+        ipAddress,
+        attemptCount,
+        this.authConfig.loginAttempts.ipRateLimitWindowMinutes,
+      );
+    }
+
+    return isRateLimited;
   }
 
   /**
@@ -291,6 +335,27 @@ export class LoginAttemptService {
   /**
    * Parst User-Agent-Informationen
    */
+  /**
+   * Überprüft mehrere fehlgeschlagene Login-Versuche und sendet ggf. Alert
+   */
+  async checkMultipleFailedAttempts(
+    email: string,
+    userId: string,
+    failedAttempts: number,
+    remainingAttempts: number,
+    ipAddress?: string,
+  ): Promise<void> {
+    if (failedAttempts >= this.authConfig.securityAlerts.thresholds.multipleFailedAttemptsWarning) {
+      await this.securityAlertService.sendMultipleFailedAttemptsAlert(
+        email,
+        userId,
+        failedAttempts,
+        remainingAttempts,
+        ipAddress,
+      );
+    }
+  }
+
   private parseUserAgent(userAgent?: string): {
     deviceType?: string;
     browser?: string;

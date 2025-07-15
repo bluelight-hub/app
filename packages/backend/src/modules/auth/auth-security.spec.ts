@@ -92,6 +92,7 @@ describe('Auth Security', () => {
     isAccountLocked: jest.fn(),
     resetFailedAttempts: jest.fn(),
     checkIpRateLimit: jest.fn(),
+    checkMultipleFailedAttempts: jest.fn(),
   };
 
   beforeEach(async () => {

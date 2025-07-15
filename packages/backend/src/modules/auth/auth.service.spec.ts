@@ -79,6 +79,7 @@ describe('AuthService', () => {
     recordLoginAttempt: jest.fn(),
     checkAndUpdateLockout: jest.fn(),
     resetFailedAttempts: jest.fn(),
+    checkMultipleFailedAttempts: jest.fn(),
   };
 
   beforeEach(async () => {

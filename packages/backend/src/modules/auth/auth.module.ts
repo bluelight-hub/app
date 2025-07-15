@@ -2,6 +2,7 @@ import { Module, forwardRef } from '@nestjs/common';
 import { JwtModule } from '@nestjs/jwt';
 import { PassportModule } from '@nestjs/passport';
 import { ConfigModule, ConfigService } from '@nestjs/config';
+import { HttpModule } from '@nestjs/axios';
 import { JwtStrategy } from './strategies';
 import { AuthService } from './auth.service';
 import { AuthController } from './auth.controller';
@@ -10,6 +11,7 @@ import { PrismaService } from '@/prisma/prisma.service';
 import { PermissionValidationService } from './services/permission-validation.service';
 import { SessionCleanupService } from './services/session-cleanup.service';
 import { LoginAttemptService } from './services/login-attempt.service';
+import { SecurityAlertService } from './services/security-alert.service';
 import { SessionModule } from '../session/session.module';
 
 /**
@@ -19,6 +21,7 @@ import { SessionModule } from '../session/session.module';
 @Module({
   imports: [
     ConfigModule,
+    HttpModule,
     PassportModule.register({ defaultStrategy: 'jwt' }),
     JwtModule.registerAsync({
       imports: [ConfigModule],
@@ -37,6 +40,7 @@ import { SessionModule } from '../session/session.module';
     PermissionValidationService,
     SessionCleanupService,
     LoginAttemptService,
+    SecurityAlertService,
   ],
   controllers: [AuthController, LoginAttemptController],
   exports: [

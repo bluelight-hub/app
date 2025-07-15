@@ -86,6 +86,7 @@ describe('Admin Authentication', () => {
     isAccountLocked: jest.fn(),
     resetFailedAttempts: jest.fn(),
     checkIpRateLimit: jest.fn(),
+    checkMultipleFailedAttempts: jest.fn(),
   };
 
   beforeEach(async () => {
@@ -132,6 +133,7 @@ describe('Admin Authentication', () => {
     mockLoginAttemptService.isAccountLocked.mockResolvedValue(false);
     mockLoginAttemptService.recordLoginAttempt.mockResolvedValue({});
     mockLoginAttemptService.resetFailedAttempts.mockResolvedValue(undefined);
+    mockLoginAttemptService.checkMultipleFailedAttempts.mockResolvedValue(undefined);
   });
 
   describe('Admin Role Login Scenarios', () => {

@@ -16,6 +16,15 @@ export interface AuthConfig {
     maxConcurrentSessions: number;
     heartbeatIntervalSeconds: number;
   };
+  securityAlerts: {
+    enabled: boolean;
+    webhookUrl: string | null;
+    authToken: string | null;
+    thresholds: {
+      suspiciousLoginRiskScore: number;
+      multipleFailedAttemptsWarning: number;
+    };
+  };
 }
 
 export const defaultAuthConfig: AuthConfig = {
@@ -35,5 +44,14 @@ export const defaultAuthConfig: AuthConfig = {
     inactivityTimeoutMinutes: 30,
     maxConcurrentSessions: 5,
     heartbeatIntervalSeconds: 30,
+  },
+  securityAlerts: {
+    enabled: process.env.SECURITY_ALERTS_ENABLED === 'true',
+    webhookUrl: process.env.SECURITY_ALERT_WEBHOOK_URL || null,
+    authToken: process.env.SECURITY_ALERT_AUTH_TOKEN || null,
+    thresholds: {
+      suspiciousLoginRiskScore: 70,
+      multipleFailedAttemptsWarning: 3,
+    },
   },
 };

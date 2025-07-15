@@ -11,6 +11,7 @@ import { PrismaService } from '@/prisma/prisma.service';
 import { PermissionValidationService } from './services/permission-validation.service';
 import { SessionCleanupService } from './services/session-cleanup.service';
 import { LoginAttemptService } from './services/login-attempt.service';
+import { SecurityAlertService } from './services/security-alert.service';
 
 describe('AuthModule', () => {
   beforeAll(() => {
@@ -140,32 +141,36 @@ describe('AuthModule', () => {
       const imports = Reflect.getMetadata('imports', AuthModule);
       expect(imports).toBeDefined();
       expect(Array.isArray(imports)).toBe(true);
-      expect(imports).toHaveLength(4);
+      expect(imports).toHaveLength(5);
 
       // Check ConfigModule
       expect(imports[0]).toBeDefined();
 
-      // Check PassportModule
+      // Check HttpModule
       expect(imports[1]).toBeDefined();
 
-      // Check JwtModule
+      // Check PassportModule
       expect(imports[2]).toBeDefined();
 
-      // Check SessionModule (with forwardRef)
+      // Check JwtModule
       expect(imports[3]).toBeDefined();
+
+      // Check SessionModule (with forwardRef)
+      expect(imports[4]).toBeDefined();
     });
 
     it('should have correct providers metadata', () => {
       const providers = Reflect.getMetadata('providers', AuthModule);
       expect(providers).toBeDefined();
       expect(Array.isArray(providers)).toBe(true);
-      expect(providers).toHaveLength(6);
+      expect(providers).toHaveLength(7);
       expect(providers).toContain(AuthService);
       expect(providers).toContain(JwtStrategy);
       expect(providers).toContain(PrismaService);
       expect(providers).toContain(PermissionValidationService);
       expect(providers).toContain(SessionCleanupService);
       expect(providers).toContain(LoginAttemptService);
+      expect(providers).toContain(SecurityAlertService);
     });
 
     it('should have correct controllers metadata', () => {

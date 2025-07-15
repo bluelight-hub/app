@@ -145,6 +145,20 @@ export class AuthService {
         LOGIN_SECURITY.MAX_FAILED_ATTEMPTS - recentFailedAttempts,
       );
 
+      // Send alert if failed attempts reach warning threshold
+      if (
+        recentFailedAttempts >= 3 && // Multiple failed attempts warning threshold
+        remainingAttempts > 0
+      ) {
+        await this.loginAttemptService.checkMultipleFailedAttempts(
+          loginDto.email,
+          user.id,
+          recentFailedAttempts,
+          remainingAttempts,
+          ipAddress,
+        );
+      }
+
       this.logger.warn(
         `Failed login attempt for user: ${user.id}, remaining attempts: ${remainingAttempts}`,
       );
