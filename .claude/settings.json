@@ -1,0 +1,42 @@
+{
+  "hooks": {
+    "Notification": [
+      {
+        "command": "osascript -e \"display notification \\\"$(jq -r .message)\\\" with title \\\"$(jq -r .title)\\\" sound name \\\"Glass\\\"\"",
+        "type": "command"
+      }
+    ],
+    "PostToolUse": [
+      {
+        "hooks": [
+          {
+            "command": "if [[ \"$( jq -r .tool_input.file_path )\" =~ \\.(ts|tsx|js|jsx)$ ]]; then prettier --write \"$( jq -r .tool_input.file_path )\"; fi",
+            "type": "command"
+          },
+          {
+            "command": "if [[ \"$( jq -r .tool_input.file_path )\" =~ \\.go$ ]]; then gofmt -w \"$( jq -r .tool_input.file_path )\"; fi",
+            "type": "command"
+          }
+        ],
+        "matcher": "Write|Edit|MultiEdit"
+      }
+    ],
+    "PreToolUse": [
+      {
+        "hooks": [
+          {
+            "command": "jq -r '\"(.tool_input.command) - (.tool_input.description // \"No description\")\"' >> ~/.claude/bash-command-log.txt",
+            "type": "command"
+          }
+        ],
+        "matcher": "Bash"
+      }
+    ],
+    "Stop": [
+      {
+        "command": "if grep -q \"All tests passed\" \"$( jq -r .transcript_path )\"; then echo '{\"decision\": \"block\", \"reason\": \"All tests passed. Continue with next task.\"}'; fi",
+        "type": "command"
+      }
+    ]
+  }
+}

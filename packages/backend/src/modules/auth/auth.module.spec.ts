@@ -141,7 +141,7 @@ describe('AuthModule', () => {
       const imports = Reflect.getMetadata('imports', AuthModule);
       expect(imports).toBeDefined();
       expect(Array.isArray(imports)).toBe(true);
-      expect(imports).toHaveLength(5);
+      expect(imports).toHaveLength(6); // Now includes ThrottlerModule
 
       // Check ConfigModule
       expect(imports[0]).toBeDefined();
@@ -163,7 +163,7 @@ describe('AuthModule', () => {
       const providers = Reflect.getMetadata('providers', AuthModule);
       expect(providers).toBeDefined();
       expect(Array.isArray(providers)).toBe(true);
-      expect(providers).toHaveLength(7);
+      expect(providers).toHaveLength(12); // Added new security services
       expect(providers).toContain(AuthService);
       expect(providers).toContain(JwtStrategy);
       expect(providers).toContain(PrismaService);
@@ -177,7 +177,7 @@ describe('AuthModule', () => {
       const controllers = Reflect.getMetadata('controllers', AuthModule);
       expect(controllers).toBeDefined();
       expect(Array.isArray(controllers)).toBe(true);
-      expect(controllers).toHaveLength(2);
+      expect(controllers).toHaveLength(3); // Added SecurityController
       expect(controllers).toContain(AuthController);
       expect(controllers).toContain(LoginAttemptController);
     });
@@ -186,7 +186,7 @@ describe('AuthModule', () => {
       const exports = Reflect.getMetadata('exports', AuthModule);
       expect(exports).toBeDefined();
       expect(Array.isArray(exports)).toBe(true);
-      expect(exports).toHaveLength(5);
+      expect(exports).toHaveLength(9); // Added new security services to exports
       expect(exports).toContain(AuthService);
       expect(exports).toContain(PermissionValidationService);
       expect(exports).toContain(SessionCleanupService);

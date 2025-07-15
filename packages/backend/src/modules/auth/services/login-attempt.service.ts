@@ -6,6 +6,9 @@ import { CreateLoginAttemptDto, LoginAttemptStatsDto } from '../dto/login-attemp
 import { AuthConfig } from '../config/auth.config';
 import { UAParser } from 'ua-parser-js';
 import { SecurityAlertService } from './security-alert.service';
+import { SecurityLogService } from './security-log.service';
+import { SuspiciousActivityService } from './suspicious-activity.service';
+import { SecurityEventType } from '../enums/security-event-type.enum';
 
 @Injectable()
 export class LoginAttemptService {
@@ -16,6 +19,8 @@ export class LoginAttemptService {
     private readonly prisma: PrismaService,
     private readonly configService: ConfigService,
     private readonly securityAlertService: SecurityAlertService,
+    private readonly securityLogService?: SecurityLogService,
+    private readonly suspiciousActivityService?: SuspiciousActivityService,
   ) {
     this.authConfig = {
       jwt: {
@@ -90,6 +95,38 @@ export class LoginAttemptService {
         );
       }
 
+      // Log security event (only if service is available)
+      if (this.securityLogService) {
+        await this.securityLogService.logSecurityEvent({
+          eventType: data.success
+            ? SecurityEventType.LOGIN_SUCCESS
+            : SecurityEventType.LOGIN_FAILED,
+          userId: data.userId,
+          ipAddress: data.ipAddress,
+          userAgent: data.userAgent,
+          metadata: {
+            email: data.email,
+            failureReason: data.failureReason,
+            suspicious: loginAttempt.suspicious,
+            riskScore: loginAttempt.riskScore,
+          },
+        });
+      }
+
+      // Check for suspicious patterns (only if service is available)
+      if (this.suspiciousActivityService) {
+        // Check for suspicious patterns on failed attempts
+        if (!data.success && data.ipAddress) {
+          await this.suspiciousActivityService.checkBruteForcePattern(data.ipAddress);
+          await this.suspiciousActivityService.checkAccountEnumeration(data.ipAddress);
+        }
+
+        // Check for suspicious patterns on successful login
+        if (data.success && data.userId) {
+          await this.suspiciousActivityService.checkLoginPatterns(data.userId, data.ipAddress);
+        }
+      }
+
       return loginAttempt;
     } catch (error) {
       this.logger.error('Failed to record login attempt', error);
@@ -135,6 +172,19 @@ export class LoginAttemptService {
       }
 
       this.logger.warn(`Account locked for ${email} until ${lockedUntil}`);
+
+      // Log security event (only if service is available)
+      if (user && this.securityLogService) {
+        await this.securityLogService.logSecurityEvent({
+          eventType: SecurityEventType.ACCOUNT_LOCKED,
+          userId: user.id,
+          metadata: {
+            lockedUntil,
+            failedAttempts,
+            reason: 'max_attempts',
+          },
+        });
+      }
 
       // Send account locked alert
       await this.securityAlertService.sendAccountLockedAlert(

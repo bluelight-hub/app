@@ -151,6 +151,7 @@ model User {
   refreshTokens   RefreshToken[]
   rolePermissions RolePermission[]
   loginAttempts   LoginAttempt[]
+  securityLogs    SecurityLog[]
 
   // Indexes
   @@index([email], map: "idx_user_email")
@@ -383,4 +384,38 @@ model LoginAttempt {
   @@index([ipAddress, attemptAt], map: "idx_login_attempt_ip_time")
   @@index([success, attemptAt], map: "idx_login_attempt_success_time")
   @@index([suspicious, attemptAt], map: "idx_login_attempt_suspicious")
+}
+
+// ===== SECURITY LOG SYSTEM =====
+// Track all security-related events for monitoring and compliance
+
+model SecurityLog {
+  id            String   @id @default(nanoid())
+  
+  // Event information
+  eventType     String   @db.VarChar(50) // LOGIN_SUCCESS, LOGIN_FAILED, etc.
+  severity      String   @default("INFO") @db.VarChar(20) // INFO, WARN, ERROR, CRITICAL
+  
+  // User context (optional for events without user)
+  userId        String?
+  user          User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+  
+  // Request context
+  ipAddress     String?  @db.VarChar(45) // IPv6 compatible
+  userAgent     String?  @db.Text
+  sessionId     String?  @db.VarChar(255)
+  
+  // Event metadata
+  metadata      Json?    // Flexible data for different event types
+  message       String?  @db.Text // Human-readable description
+  
+  // Timing
+  createdAt     DateTime @default(now())
+  
+  // Indexes for efficient queries
+  @@index([eventType, createdAt], map: "idx_security_log_type_time")
+  @@index([userId, createdAt], map: "idx_security_log_user_time")
+  @@index([ipAddress, createdAt], map: "idx_security_log_ip_time")
+  @@index([severity, createdAt], map: "idx_security_log_severity_time")
+  @@index([sessionId], map: "idx_security_log_session")
 }

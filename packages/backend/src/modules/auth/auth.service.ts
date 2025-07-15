@@ -447,6 +447,46 @@ export class AuthService {
   }
 
   /**
+   * Entsperrt einen gesperrten Account manuell.
+   * Sollte nur von Administratoren verwendet werden.
+   */
+  async unlockAccount(email: string, adminId: string): Promise<void> {
+    const user = await this.prisma.user.findUnique({
+      where: { email },
+      select: { id: true, lockedUntil: true },
+    });
+
+    if (!user) {
+      throw new InvalidCredentialsException(0, 'User not found');
+    }
+
+    if (!user.lockedUntil || user.lockedUntil < new Date()) {
+      this.logger.log(`Account ${email} is not locked`);
+      return;
+    }
+
+    // Unlock the account
+    await this.prisma.user.update({
+      where: { id: user.id },
+      data: {
+        lockedUntil: null,
+        failedLoginCount: 0,
+      },
+    });
+
+    // Reset failed attempts
+    await this.loginAttemptService.resetFailedAttempts(email);
+
+    // Log the unlock event
+    this.logSecurityEvent(SecurityEventType.ACCOUNT_UNLOCKED, user.id, {
+      unlockedBy: adminId,
+      previousLockUntil: user.lockedUntil,
+    });
+
+    this.logger.log(`Account ${email} unlocked by admin ${adminId}`);
+  }
+
+  /**
    * Holt die Berechtigungen für eine Rolle aus der Datenbank oder verwendet Standardwerte.
    * Zentralisierte Methode zur Vermeidung von Code-Duplikation.
    */

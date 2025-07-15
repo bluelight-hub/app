@@ -2,6 +2,8 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { ConfigService } from '@nestjs/config';
 import { LoginAttemptService } from './login-attempt.service';
 import { SecurityAlertService } from './security-alert.service';
+import { SecurityLogService } from './security-log.service';
+import { SuspiciousActivityService } from './suspicious-activity.service';
 import { PrismaService } from '@/prisma/prisma.service';
 import { CreateLoginAttemptDto } from '../dto/login-attempt.dto';
 import { LoginAttempt, User } from '@prisma/generated/prisma';
@@ -55,6 +57,16 @@ describe('LoginAttemptService', () => {
     sendMultipleFailedAttemptsAlert: jest.fn(),
   };
 
+  const mockSecurityLogService = {
+    logSecurityEvent: jest.fn(),
+  };
+
+  const mockSuspiciousActivityService = {
+    checkBruteForcePattern: jest.fn(),
+    checkAccountEnumeration: jest.fn(),
+    checkLoginPatterns: jest.fn(),
+  };
+
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
@@ -62,6 +74,8 @@ describe('LoginAttemptService', () => {
         { provide: PrismaService, useValue: mockPrismaService },
         { provide: ConfigService, useValue: mockConfigService },
         { provide: SecurityAlertService, useValue: mockSecurityAlertService },
+        { provide: SecurityLogService, useValue: mockSecurityLogService },
+        { provide: SuspiciousActivityService, useValue: mockSuspiciousActivityService },
       ],
     }).compile();
 
