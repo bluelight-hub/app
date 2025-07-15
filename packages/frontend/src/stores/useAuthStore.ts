@@ -25,7 +25,18 @@ interface AuthState {
 interface AuthActions {
   setUser: (user: AuthUserDto | null) => void;
   setTokens: (accessToken: string, refreshToken?: string, expiresIn?: number) => Promise<void>;
-  login: (email: string, password: string) => Promise<{ success: boolean; error?: string }>;
+  login: (
+    email: string,
+    password: string,
+  ) => Promise<{
+    success: boolean;
+    error?: string;
+    errorCode?: string;
+    errorDetails?: {
+      lockedUntil?: string;
+      remainingAttempts?: number;
+    };
+  }>;
   logout: () => Promise<void>;
   refreshAccessToken: () => Promise<boolean>;
   checkAuthStatus: () => Promise<void>;
@@ -130,7 +141,7 @@ export const useAuthStore = create<AuthStore>()(
                 error: 'No data received from server',
               };
             }
-          } catch (error) {
+          } catch (error: any) {
             logger.error('Login error', { error });
 
             // Log failed login attempt
@@ -141,9 +152,40 @@ export const useAuthStore = create<AuthStore>()(
             });
 
             set({ isLoading: false });
+
+            // Try to parse error response
+            let errorCode: string | undefined;
+            const errorDetails: any = {};
+            let errorMessage = 'Network error';
+
+            if (error.response) {
+              try {
+                // Clone the response to read it
+                const clonedResponse = error.response.clone();
+                const errorData = await clonedResponse.json();
+
+                errorCode = errorData.code;
+                errorMessage = errorData.message || 'Login failed';
+
+                // Extract additional details like lockedUntil, remainingAttempts
+                if (errorData.lockedUntil) {
+                  errorDetails.lockedUntil = errorData.lockedUntil;
+                }
+                if (errorData.remainingAttempts !== undefined) {
+                  errorDetails.remainingAttempts = errorData.remainingAttempts;
+                }
+              } catch (parseError) {
+                logger.error('Failed to parse error response', { parseError });
+              }
+            } else if (error instanceof Error) {
+              errorMessage = error.message;
+            }
+
             return {
               success: false,
-              error: error instanceof Error ? error.message : 'Network error',
+              error: errorMessage,
+              errorCode,
+              errorDetails,
             };
           }
         },

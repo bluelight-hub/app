@@ -31,7 +31,7 @@ export class LoginAttemptService {
       loginAttempts: {
         maxAttempts: this.configService.get<number>('LOGIN_MAX_ATTEMPTS', 5),
         windowMinutes: this.configService.get<number>('LOGIN_WINDOW_MINUTES', 15),
-        lockoutDurationMinutes: this.configService.get<number>('LOGIN_LOCKOUT_MINUTES', 30),
+        lockoutDurationMinutes: this.configService.get<number>('LOGIN_LOCKOUT_MINUTES', 0.167), // Default to 10 seconds
         ipRateLimitAttempts: this.configService.get<number>('IP_RATE_LIMIT_ATTEMPTS', 20),
         ipRateLimitWindowMinutes: this.configService.get<number>('IP_RATE_LIMIT_MINUTES', 60),
       },
