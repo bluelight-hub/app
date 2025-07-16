@@ -17,6 +17,7 @@ import { SecurityLogService } from '../services/security-log.service';
 import { AuthService } from '../auth.service';
 import { JWTPayload, UserRole } from '../types/jwt.types';
 import { SecurityEventType } from '../enums/security-event-type.enum';
+import { parseDateRange, parseOptionalDate } from '../utils';
 
 /**
  * Controller für Security-bezogene Endpunkte.
@@ -57,8 +58,7 @@ export class SecurityController {
     @Query('startDate') startDate?: string,
     @Query('endDate') endDate?: string,
   ) {
-    const start = startDate ? new Date(startDate) : new Date(Date.now() - 24 * 60 * 60 * 1000);
-    const end = endDate ? new Date(endDate) : new Date();
+    const { start, end } = parseDateRange(startDate, endDate);
 
     return await this.securityMetricsService.getFailedLoginMetrics({ start, end });
   }
@@ -76,8 +76,7 @@ export class SecurityController {
     @Query('startDate') startDate?: string,
     @Query('endDate') endDate?: string,
   ) {
-    const start = startDate ? new Date(startDate) : new Date(Date.now() - 24 * 60 * 60 * 1000);
-    const end = endDate ? new Date(endDate) : new Date();
+    const { start, end } = parseDateRange(startDate, endDate);
 
     return await this.securityMetricsService.getAccountLockoutMetrics({ start, end });
   }
@@ -95,8 +94,7 @@ export class SecurityController {
     @Query('startDate') startDate?: string,
     @Query('endDate') endDate?: string,
   ) {
-    const start = startDate ? new Date(startDate) : new Date(Date.now() - 24 * 60 * 60 * 1000);
-    const end = endDate ? new Date(endDate) : new Date();
+    const { start, end } = parseDateRange(startDate, endDate);
 
     return await this.securityMetricsService.getSuspiciousActivityMetrics({ start, end });
   }
@@ -126,8 +124,8 @@ export class SecurityController {
       eventType,
       userId,
       ipAddress,
-      startDate: startDate ? new Date(startDate) : undefined,
-      endDate: endDate ? new Date(endDate) : undefined,
+      startDate: parseOptionalDate(startDate),
+      endDate: parseOptionalDate(endDate),
       limit: limit ? parseInt(limit, 10) : undefined,
     });
   }

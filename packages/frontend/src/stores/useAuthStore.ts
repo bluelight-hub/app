@@ -3,12 +3,12 @@ import { devtools, persist } from 'zustand/middleware';
 import { api } from '../api';
 import { logger } from '../utils/logger';
 import { authStorage } from '../utils/authStorage';
-import { AuthUserDto } from '@bluelight-hub/shared/client';
-import { auditLogger } from '../utils/audit';
 import {
+  AuthUserDto,
   CreateAuditLogDtoActionTypeEnum as AuditActionType,
   CreateAuditLogDtoSeverityEnum as AuditSeverity,
 } from '@bluelight-hub/shared/client';
+import { auditLogger } from '../utils/audit';
 
 interface AuthState {
   user: AuthUserDto | null;
@@ -160,9 +160,8 @@ export const useAuthStore = create<AuthStore>()(
 
             if (error.response) {
               try {
-                // Clone the response to read it
-                const clonedResponse = error.response.clone();
-                const errorData = await clonedResponse.json();
+                // Access Axios error response data directly
+                const errorData = error.response.data;
 
                 errorCode = errorData.code;
                 errorMessage = errorData.message || 'Login failed';
