@@ -145,9 +145,29 @@ export class RetryUtil {
     if (
       error.message?.includes('ECONNRESET') ||
       error.message?.includes('ENOTFOUND') ||
-      error.message?.includes('ETIMEDOUT')
+      error.message?.includes('ETIMEDOUT') ||
+      error.message?.includes('ECONNREFUSED') ||
+      error.message?.includes('EHOSTUNREACH') ||
+      error.message?.includes('ENETUNREACH') ||
+      error.message?.includes('EPIPE') ||
+      error.message?.includes('timeout')
     ) {
       return true;
+    }
+
+    // HTTP-spezifische Fehler (Axios)
+    if (error.response) {
+      const status = error.response.status;
+      // Retry bei Server-Fehlern und einigen Client-Fehlern
+      if (
+        status === 408 || // Request Timeout
+        status === 429 || // Too Many Requests
+        status === 502 || // Bad Gateway
+        status === 503 || // Service Unavailable
+        status === 504 // Gateway Timeout
+      ) {
+        return true;
+      }
     }
 
     return false;

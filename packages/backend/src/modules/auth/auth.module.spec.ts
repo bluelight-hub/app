@@ -5,10 +5,13 @@ import { EventEmitterModule } from '@nestjs/event-emitter';
 import { AuthModule } from './auth.module';
 import { AuthService } from './auth.service';
 import { AuthController } from './auth.controller';
+import { LoginAttemptController } from './controllers/login-attempt.controller';
 import { JwtStrategy } from './strategies';
 import { PrismaService } from '@/prisma/prisma.service';
 import { PermissionValidationService } from './services/permission-validation.service';
 import { SessionCleanupService } from './services/session-cleanup.service';
+import { LoginAttemptService } from './services/login-attempt.service';
+import { SecurityAlertService } from './services/security-alert.service';
 
 describe('AuthModule', () => {
   beforeAll(() => {
@@ -138,49 +141,56 @@ describe('AuthModule', () => {
       const imports = Reflect.getMetadata('imports', AuthModule);
       expect(imports).toBeDefined();
       expect(Array.isArray(imports)).toBe(true);
-      expect(imports).toHaveLength(4);
+      expect(imports).toHaveLength(6); // Now includes ThrottlerModule
 
       // Check ConfigModule
       expect(imports[0]).toBeDefined();
 
-      // Check PassportModule
+      // Check HttpModule
       expect(imports[1]).toBeDefined();
 
-      // Check JwtModule
+      // Check PassportModule
       expect(imports[2]).toBeDefined();
 
-      // Check SessionModule (with forwardRef)
+      // Check JwtModule
       expect(imports[3]).toBeDefined();
+
+      // Check SessionModule (with forwardRef)
+      expect(imports[4]).toBeDefined();
     });
 
     it('should have correct providers metadata', () => {
       const providers = Reflect.getMetadata('providers', AuthModule);
       expect(providers).toBeDefined();
       expect(Array.isArray(providers)).toBe(true);
-      expect(providers).toHaveLength(5);
+      expect(providers).toHaveLength(12); // Added new security services
       expect(providers).toContain(AuthService);
       expect(providers).toContain(JwtStrategy);
       expect(providers).toContain(PrismaService);
       expect(providers).toContain(PermissionValidationService);
       expect(providers).toContain(SessionCleanupService);
+      expect(providers).toContain(LoginAttemptService);
+      expect(providers).toContain(SecurityAlertService);
     });
 
     it('should have correct controllers metadata', () => {
       const controllers = Reflect.getMetadata('controllers', AuthModule);
       expect(controllers).toBeDefined();
       expect(Array.isArray(controllers)).toBe(true);
-      expect(controllers).toHaveLength(1);
-      expect(controllers[0]).toBe(AuthController);
+      expect(controllers).toHaveLength(3); // Added SecurityController
+      expect(controllers).toContain(AuthController);
+      expect(controllers).toContain(LoginAttemptController);
     });
 
     it('should have correct exports metadata', () => {
       const exports = Reflect.getMetadata('exports', AuthModule);
       expect(exports).toBeDefined();
       expect(Array.isArray(exports)).toBe(true);
-      expect(exports).toHaveLength(4);
+      expect(exports).toHaveLength(9); // Added new security services to exports
       expect(exports).toContain(AuthService);
       expect(exports).toContain(PermissionValidationService);
       expect(exports).toContain(SessionCleanupService);
+      expect(exports).toContain(LoginAttemptService);
       // JwtModule is also exported
     });
   });

@@ -2,12 +2,23 @@ import { Module, forwardRef } from '@nestjs/common';
 import { JwtModule } from '@nestjs/jwt';
 import { PassportModule } from '@nestjs/passport';
 import { ConfigModule, ConfigService } from '@nestjs/config';
+import { HttpModule } from '@nestjs/axios';
+import { ThrottlerModule } from '@nestjs/throttler';
 import { JwtStrategy } from './strategies';
 import { AuthService } from './auth.service';
 import { AuthController } from './auth.controller';
+import { LoginAttemptController } from './controllers/login-attempt.controller';
+import { SecurityController } from './controllers/security.controller';
 import { PrismaService } from '@/prisma/prisma.service';
 import { PermissionValidationService } from './services/permission-validation.service';
 import { SessionCleanupService } from './services/session-cleanup.service';
+import { LoginAttemptService } from './services/login-attempt.service';
+import { SecurityAlertService } from './services/security-alert.service';
+import { SecurityMetricsService } from './services/security-metrics.service';
+import { SecurityLogService } from './services/security-log.service';
+import { SuspiciousActivityService } from './services/suspicious-activity.service';
+import { GeoIpService } from './services/geo-ip.service';
+import { IpAllowlistGuard } from './guards/ip-allowlist.guard';
 import { SessionModule } from '../session/session.module';
 
 /**
@@ -17,6 +28,7 @@ import { SessionModule } from '../session/session.module';
 @Module({
   imports: [
     ConfigModule,
+    HttpModule,
     PassportModule.register({ defaultStrategy: 'jwt' }),
     JwtModule.registerAsync({
       imports: [ConfigModule],
@@ -26,6 +38,12 @@ import { SessionModule } from '../session/session.module';
         // No default signOptions - we handle expiration in the payload
       }),
     }),
+    ThrottlerModule.forRoot([
+      {
+        ttl: 60000,
+        limit: 10,
+      },
+    ]),
     forwardRef(() => SessionModule),
   ],
   providers: [
@@ -34,8 +52,25 @@ import { SessionModule } from '../session/session.module';
     PrismaService,
     PermissionValidationService,
     SessionCleanupService,
+    LoginAttemptService,
+    SecurityAlertService,
+    SecurityMetricsService,
+    SecurityLogService,
+    SuspiciousActivityService,
+    GeoIpService,
+    IpAllowlistGuard,
   ],
-  controllers: [AuthController],
-  exports: [AuthService, JwtModule, PermissionValidationService, SessionCleanupService],
+  controllers: [AuthController, LoginAttemptController, SecurityController],
+  exports: [
+    AuthService,
+    JwtModule,
+    PermissionValidationService,
+    SessionCleanupService,
+    LoginAttemptService,
+    SecurityMetricsService,
+    SecurityLogService,
+    SuspiciousActivityService,
+    GeoIpService,
+  ],
 })
 export class AuthModule {}

@@ -7,6 +7,7 @@ import { ConfigService } from '@nestjs/config';
 import { PermissionValidationService } from './services/permission-validation.service';
 import { SessionCleanupService } from './services/session-cleanup.service';
 import { SessionService } from '../session/session.service';
+import { LoginAttemptService } from './services/login-attempt.service';
 import * as bcrypt from 'bcrypt';
 import { UserRole } from './types/jwt.types';
 
@@ -59,6 +60,9 @@ describe('Auth Security', () => {
     rolePermission: {
       findMany: jest.fn(),
     },
+    loginAttempt: {
+      count: jest.fn(),
+    },
     $transaction: jest.fn(async (callbacks) => {
       if (Array.isArray(callbacks)) {
         return Promise.all(callbacks);
@@ -80,6 +84,15 @@ describe('Auth Security', () => {
 
   const mockSessionService = {
     enhanceSession: jest.fn(),
+  };
+
+  const mockLoginAttemptService = {
+    recordLoginAttempt: jest.fn(),
+    checkAndUpdateLockout: jest.fn(),
+    isAccountLocked: jest.fn(),
+    resetFailedAttempts: jest.fn(),
+    checkIpRateLimit: jest.fn(),
+    checkMultipleFailedAttempts: jest.fn(),
   };
 
   beforeEach(async () => {
@@ -109,6 +122,10 @@ describe('Auth Security', () => {
         {
           provide: SessionService,
           useValue: mockSessionService,
+        },
+        {
+          provide: LoginAttemptService,
+          useValue: mockLoginAttemptService,
         },
       ],
     }).compile();
@@ -141,6 +158,15 @@ describe('Auth Security', () => {
         lockedUntil: new Date(Date.now() + 30 * 60 * 1000),
       });
 
+      // Mock LoginAttemptService behavior
+      mockLoginAttemptService.checkIpRateLimit.mockResolvedValue(false);
+      mockLoginAttemptService.isAccountLocked.mockResolvedValue(false);
+      mockLoginAttemptService.checkAndUpdateLockout.mockResolvedValue({
+        isLocked: true,
+        lockedUntil: new Date(Date.now() + 30 * 60 * 1000),
+      });
+      mockPrismaService.loginAttempt.count.mockResolvedValue(5);
+
       await expect(
         authService.login(
           { email: 'test@example.com', password: 'wrongPassword' },
@@ -149,21 +175,20 @@ describe('Auth Security', () => {
         ),
       ).rejects.toThrow(UnauthorizedException);
 
-      // Verify account lockout update
-      expect(mockPrismaService.user.update).toHaveBeenCalledWith({
-        where: { id: 'user-123' },
-        data: {
-          failedLoginCount: { increment: 1 },
-          lockedUntil: expect.any(Date),
-        },
+      // Verify login attempt was recorded
+      expect(mockLoginAttemptService.recordLoginAttempt).toHaveBeenCalledWith({
+        userId: 'user-123',
+        email: 'test@example.com',
+        ipAddress: '127.0.0.1',
+        userAgent: 'test-agent',
+        success: false,
+        failureReason: 'Invalid password',
       });
 
-      // Verify the lockout date is approximately 30 minutes in the future
-      const updateCall = mockPrismaService.user.update.mock.calls[0];
-      const lockedUntilDate = updateCall[0].data.lockedUntil;
-      const expectedLockoutTime = Date.now() + 30 * 60 * 1000;
-      expect(lockedUntilDate.getTime()).toBeGreaterThan(Date.now());
-      expect(lockedUntilDate.getTime()).toBeLessThan(expectedLockoutTime + 1000); // Allow 1 second tolerance
+      // Verify account lockout was checked
+      expect(mockLoginAttemptService.checkAndUpdateLockout).toHaveBeenCalledWith(
+        'test@example.com',
+      );
     });
 
     it('should reset failed attempts after successful login', async () => {
@@ -194,6 +219,12 @@ describe('Auth Security', () => {
         lastFailedLogin: null,
       });
 
+      // Mock LoginAttemptService
+      mockLoginAttemptService.checkIpRateLimit.mockResolvedValue(false);
+      mockLoginAttemptService.isAccountLocked.mockResolvedValue(false);
+      mockLoginAttemptService.recordLoginAttempt.mockResolvedValue({});
+      mockLoginAttemptService.resetFailedAttempts.mockResolvedValue(undefined);
+
       await authService.login({ email: 'test@example.com', password: 'password' });
 
       // Verify failed attempts were reset
@@ -205,6 +236,9 @@ describe('Auth Security', () => {
           lastLoginAt: expect.any(Date),
         },
       });
+
+      // Verify LoginAttemptService was called
+      expect(mockLoginAttemptService.resetFailedAttempts).toHaveBeenCalledWith('test@example.com');
     });
 
     it('should reject login when account is locked', async () => {
@@ -224,6 +258,10 @@ describe('Auth Security', () => {
       };
 
       mockPrismaService.user.findUnique.mockResolvedValue(testUser);
+
+      // Mock LoginAttemptService to indicate account is locked
+      mockLoginAttemptService.checkIpRateLimit.mockResolvedValue(false);
+      mockLoginAttemptService.isAccountLocked.mockResolvedValue(true);
 
       await expect(
         authService.login({ email: 'test@example.com', password: 'password' }),
@@ -260,6 +298,12 @@ describe('Auth Security', () => {
         lockedUntil: null,
       });
 
+      // Mock LoginAttemptService - account was locked but is now expired
+      mockLoginAttemptService.checkIpRateLimit.mockResolvedValue(false);
+      mockLoginAttemptService.isAccountLocked.mockResolvedValue(false); // Lock has expired
+      mockLoginAttemptService.recordLoginAttempt.mockResolvedValue({});
+      mockLoginAttemptService.resetFailedAttempts.mockResolvedValue(undefined);
+
       const result = await authService.login({ email: 'test@example.com', password: 'password' });
 
       expect(result).toBeDefined();
@@ -267,6 +311,13 @@ describe('Auth Security', () => {
     });
 
     it('should implement constant-time comparison for timing attack prevention', async () => {
+      // Mock LoginAttemptService for both scenarios
+      mockLoginAttemptService.checkIpRateLimit.mockResolvedValue(false);
+      mockLoginAttemptService.isAccountLocked.mockResolvedValue(false);
+      mockLoginAttemptService.recordLoginAttempt.mockResolvedValue({});
+      mockLoginAttemptService.checkAndUpdateLockout.mockResolvedValue({ isLocked: false });
+      mockPrismaService.loginAttempt.count.mockResolvedValue(1);
+
       // Test with non-existent user
       mockPrismaService.user.findUnique.mockResolvedValue(null);
 

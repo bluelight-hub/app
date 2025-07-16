@@ -6,6 +6,7 @@ import { ConfigService } from '@nestjs/config';
 import { PermissionValidationService } from './services/permission-validation.service';
 import { SessionCleanupService } from './services/session-cleanup.service';
 import { SessionService } from '../session/session.service';
+import { LoginAttemptService } from './services/login-attempt.service';
 import * as bcrypt from 'bcrypt';
 import { UnauthorizedException } from '@nestjs/common';
 import { UserRole } from './types/jwt.types';
@@ -53,6 +54,9 @@ describe('Admin Authentication', () => {
     rolePermission: {
       findMany: jest.fn(),
     },
+    loginAttempt: {
+      count: jest.fn(),
+    },
     $transaction: jest.fn(async (callbacks) => {
       if (Array.isArray(callbacks)) {
         return Promise.all(callbacks);
@@ -74,6 +78,15 @@ describe('Admin Authentication', () => {
 
   const mockSessionService = {
     enhanceSession: jest.fn(),
+  };
+
+  const mockLoginAttemptService = {
+    recordLoginAttempt: jest.fn(),
+    checkAndUpdateLockout: jest.fn(),
+    isAccountLocked: jest.fn(),
+    resetFailedAttempts: jest.fn(),
+    checkIpRateLimit: jest.fn(),
+    checkMultipleFailedAttempts: jest.fn(),
   };
 
   beforeEach(async () => {
@@ -104,12 +117,23 @@ describe('Admin Authentication', () => {
           provide: SessionService,
           useValue: mockSessionService,
         },
+        {
+          provide: LoginAttemptService,
+          useValue: mockLoginAttemptService,
+        },
       ],
     }).compile();
 
     authService = module.get<AuthService>(AuthService);
 
     jest.clearAllMocks();
+
+    // Default LoginAttemptService mocks for successful login
+    mockLoginAttemptService.checkIpRateLimit.mockResolvedValue(false);
+    mockLoginAttemptService.isAccountLocked.mockResolvedValue(false);
+    mockLoginAttemptService.recordLoginAttempt.mockResolvedValue({});
+    mockLoginAttemptService.resetFailedAttempts.mockResolvedValue(undefined);
+    mockLoginAttemptService.checkMultipleFailedAttempts.mockResolvedValue(undefined);
   });
 
   describe('Admin Role Login Scenarios', () => {
@@ -299,16 +323,22 @@ describe('Admin Authentication', () => {
         lastFailedLogin: new Date(),
       });
 
+      // Mock checkAndUpdateLockout to not lock the account yet
+      mockLoginAttemptService.checkAndUpdateLockout.mockResolvedValue({ isLocked: false });
+      mockPrismaService.loginAttempt.count.mockResolvedValue(3);
+
       await expect(
         authService.login({ email: 'admin@example.com', password: 'wrong-password' }),
       ).rejects.toThrow(UnauthorizedException);
 
-      expect(mockPrismaService.user.update).toHaveBeenCalledWith({
-        where: { id: 'admin-123' },
-        data: {
-          failedLoginCount: { increment: 1 },
-          lockedUntil: null,
-        },
+      // Verify login attempt was recorded
+      expect(mockLoginAttemptService.recordLoginAttempt).toHaveBeenCalledWith({
+        userId: 'admin-123',
+        email: 'admin@example.com',
+        ipAddress: 'unknown',
+        userAgent: undefined,
+        success: false,
+        failureReason: 'Invalid password',
       });
     });
 
@@ -333,16 +363,30 @@ describe('Admin Authentication', () => {
         lockedUntil: new Date(Date.now() + 30 * 60 * 1000), // 30 minutes
       });
 
+      // Mock checkAndUpdateLockout to lock the account
+      mockLoginAttemptService.checkAndUpdateLockout.mockResolvedValue({
+        isLocked: true,
+        lockedUntil: new Date(Date.now() + 30 * 60 * 1000),
+      });
+      mockPrismaService.loginAttempt.count.mockResolvedValue(5);
+
       await expect(
         authService.login({ email: 'admin@example.com', password: 'wrong-password' }),
       ).rejects.toThrow(UnauthorizedException);
 
-      expect(mockPrismaService.user.update).toHaveBeenCalledWith({
-        where: { id: 'admin-123' },
-        data: {
-          failedLoginCount: { increment: 1 },
-          lockedUntil: expect.any(Date),
-        },
+      // Verify account lockout was triggered
+      expect(mockLoginAttemptService.checkAndUpdateLockout).toHaveBeenCalledWith(
+        'admin@example.com',
+      );
+
+      // Verify login attempt was recorded
+      expect(mockLoginAttemptService.recordLoginAttempt).toHaveBeenCalledWith({
+        userId: 'admin-123',
+        email: 'admin@example.com',
+        ipAddress: 'unknown',
+        userAgent: undefined,
+        success: false,
+        failureReason: 'Invalid password',
       });
     });
 
@@ -360,6 +404,9 @@ describe('Admin Authentication', () => {
       };
 
       mockPrismaService.user.findUnique.mockResolvedValue(mockAdmin);
+
+      // Mock isAccountLocked to return true
+      mockLoginAttemptService.isAccountLocked.mockResolvedValue(true);
 
       await expect(
         authService.login({ email: 'admin@example.com', password: 'password' }),

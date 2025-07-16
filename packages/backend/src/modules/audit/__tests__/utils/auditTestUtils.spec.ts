@@ -174,7 +174,7 @@ describe('AuditTestUtils', () => {
       const duration = Date.now() - start;
 
       expect(duration).toBeGreaterThanOrEqual(90);
-      expect(duration).toBeLessThan(150);
+      expect(duration).toBeLessThan(200); // Increased tolerance for system load
     });
 
     it('should wait for custom duration', async () => {
