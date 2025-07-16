@@ -18,6 +18,7 @@ const LoginForm: React.FC = () => {
   const { message } = App.useApp();
   const [loading, setLoading] = useState(false);
   const [lockoutTimer, setLockoutTimer] = useState<number>(0);
+  const [initialLockoutDuration, setInitialLockoutDuration] = useState<number>(0);
   const [isLocked, setIsLocked] = useState(false);
   const { login } = useAuth();
   const navigate = useNavigate();
@@ -34,6 +35,7 @@ const LoginForm: React.FC = () => {
         setLockoutTimer((prev) => {
           if (prev <= 1) {
             setIsLocked(false);
+            setInitialLockoutDuration(0);
             return 0;
           }
           return prev - 1;
@@ -64,6 +66,7 @@ const LoginForm: React.FC = () => {
 
           setIsLocked(true);
           setLockoutTimer(remainingSeconds);
+          setInitialLockoutDuration(remainingSeconds);
 
           message.error({
             content: `Ihr Account wurde aufgrund zu vieler fehlgeschlagener Anmeldeversuche gesperrt. Bitte warten Sie ${remainingSeconds} Sekunden.`,
@@ -116,7 +119,11 @@ const LoginForm: React.FC = () => {
             </p>
             <div className="text-2xl font-bold text-red-500 mb-4">{lockoutTimer} Sekunden</div>
             <Progress
-              percent={100 - (lockoutTimer / 10) * 100}
+              percent={
+                initialLockoutDuration > 0
+                  ? ((initialLockoutDuration - lockoutTimer) / initialLockoutDuration) * 100
+                  : 0
+              }
               showInfo={false}
               strokeColor="#ef4444"
               className="w-3/4"

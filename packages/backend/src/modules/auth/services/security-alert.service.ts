@@ -2,6 +2,8 @@ import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { HttpService } from '@nestjs/axios';
 import { firstValueFrom } from 'rxjs';
+import { RetryUtil, RetryConfig } from '../../../common/utils/retry.util';
+import { CircuitBreaker, CircuitBreakerConfig } from '../../../common/utils/circuit-breaker.util';
 
 export enum SecurityAlertType {
   ACCOUNT_LOCKED = 'ACCOUNT_LOCKED',
@@ -33,6 +35,10 @@ export class SecurityAlertService {
   private readonly webhookUrl: string | null;
   private readonly webhookAuthToken: string | null;
   private readonly alertsEnabled: boolean;
+  private readonly retryUtil: RetryUtil;
+  private readonly circuitBreaker: CircuitBreaker;
+  private readonly retryConfig: Partial<RetryConfig>;
+  private readonly circuitBreakerConfig: Partial<CircuitBreakerConfig>;
 
   constructor(
     private readonly configService: ConfigService,
@@ -42,13 +48,36 @@ export class SecurityAlertService {
     this.webhookAuthToken = this.configService.get<string>('SECURITY_ALERT_AUTH_TOKEN', null);
     this.alertsEnabled = this.configService.get<boolean>('SECURITY_ALERTS_ENABLED', false);
 
+    // Retry-Konfiguration
+    this.retryConfig = {
+      maxRetries: this.configService.get<number>('SECURITY_ALERT_MAX_RETRIES', 3),
+      baseDelay: this.configService.get<number>('SECURITY_ALERT_BASE_DELAY', 1000),
+      maxDelay: this.configService.get<number>('SECURITY_ALERT_MAX_DELAY', 30000),
+      backoffMultiplier: this.configService.get<number>('SECURITY_ALERT_BACKOFF_MULTIPLIER', 2),
+      jitterFactor: this.configService.get<number>('SECURITY_ALERT_JITTER_FACTOR', 0.1),
+      timeout: this.configService.get<number>('SECURITY_ALERT_TIMEOUT', 5000),
+    };
+
+    // Circuit Breaker Konfiguration
+    this.circuitBreakerConfig = {
+      failureThreshold: this.configService.get<number>('SECURITY_ALERT_FAILURE_THRESHOLD', 5),
+      failureCountWindow: this.configService.get<number>('SECURITY_ALERT_FAILURE_WINDOW', 60000),
+      openStateDuration: this.configService.get<number>('SECURITY_ALERT_OPEN_DURATION', 30000),
+      successThreshold: this.configService.get<number>('SECURITY_ALERT_SUCCESS_THRESHOLD', 3),
+      failureRateThreshold: this.configService.get<number>('SECURITY_ALERT_FAILURE_RATE', 50),
+      minimumNumberOfCalls: this.configService.get<number>('SECURITY_ALERT_MIN_CALLS', 5),
+    };
+
+    this.retryUtil = new RetryUtil();
+    this.circuitBreaker = new CircuitBreaker('SecurityAlertWebhook', this.circuitBreakerConfig);
+
     if (this.alertsEnabled && !this.webhookUrl) {
       this.logger.warn('Security alerts are enabled but no webhook URL is configured');
     }
   }
 
   /**
-   * Sendet einen Security Alert via Webhook
+   * Sendet einen Security Alert via Webhook mit Retry und Circuit Breaker
    */
   async sendAlert(payload: SecurityAlertPayload): Promise<void> {
     if (!this.alertsEnabled || !this.webhookUrl) {
@@ -59,6 +88,15 @@ export class SecurityAlertService {
     }
 
     try {
+      // Prüfe Circuit Breaker Status
+      const circuitStatus = this.circuitBreaker.getStatus();
+      if (circuitStatus.state === 'OPEN') {
+        this.logger.warn(
+          `Circuit breaker is OPEN, skipping alert. Last failure: ${circuitStatus.lastFailureTime}`,
+        );
+        return;
+      }
+
       const headers: Record<string, string> = {
         'Content-Type': 'application/json',
       };
@@ -67,19 +105,44 @@ export class SecurityAlertService {
         headers['Authorization'] = `Bearer ${this.webhookAuthToken}`;
       }
 
-      await firstValueFrom(
-        this.httpService.post(this.webhookUrl, payload, {
-          headers,
-          timeout: 5000, // 5 second timeout
-        }),
-      );
+      // Webhook-Aufruf mit Circuit Breaker und Retry
+      await this.circuitBreaker.execute(async () => {
+        return await this.retryUtil.executeWithRetry(
+          async () => {
+            const response = await firstValueFrom(
+              this.httpService.post(this.webhookUrl, payload, {
+                headers,
+                timeout: this.retryConfig.timeout || 5000,
+              }),
+            );
+
+            // Prüfe auf erfolgreiche HTTP-Antwort
+            if (response.status < 200 || response.status >= 300) {
+              throw new Error(`Webhook returned status ${response.status}`);
+            }
+
+            return response;
+          },
+          this.retryConfig,
+          `SecurityAlert-${payload.type}`,
+        );
+      });
 
       this.logger.log(
         `Security alert sent: ${payload.type} for ${payload.details.email || 'unknown'}`,
       );
     } catch (error) {
-      // Log error but don't throw - alerts should not break the main flow
-      this.logger.error(`Failed to send security alert: ${error.message}`, error.stack);
+      if (error.name === 'CircuitBreakerOpenError') {
+        this.logger.warn(
+          `Circuit breaker prevented alert delivery for ${payload.type}. Alert dropped to prevent cascading failures.`,
+        );
+      } else {
+        this.logger.error(
+          `Failed to send security alert after retries: ${error.message}`,
+          error.stack,
+        );
+      }
+      // Alerts should not break the main flow
     }
   }
 

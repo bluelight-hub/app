@@ -16,6 +16,18 @@ describe('SecurityAlertService', () => {
         SECURITY_ALERT_WEBHOOK_URL: 'https://webhook.example.com/alerts',
         SECURITY_ALERT_AUTH_TOKEN: 'test-token',
         SECURITY_ALERTS_ENABLED: true,
+        SECURITY_ALERT_MAX_RETRIES: 3,
+        SECURITY_ALERT_BASE_DELAY: 100,
+        SECURITY_ALERT_MAX_DELAY: 5000,
+        SECURITY_ALERT_BACKOFF_MULTIPLIER: 2,
+        SECURITY_ALERT_JITTER_FACTOR: 0.1,
+        SECURITY_ALERT_TIMEOUT: 5000,
+        SECURITY_ALERT_FAILURE_THRESHOLD: 5,
+        SECURITY_ALERT_FAILURE_WINDOW: 60000,
+        SECURITY_ALERT_OPEN_DURATION: 30000,
+        SECURITY_ALERT_SUCCESS_THRESHOLD: 3,
+        SECURITY_ALERT_FAILURE_RATE: 50,
+        SECURITY_ALERT_MIN_CALLS: 5,
       };
       return config[key] ?? defaultValue;
     }),
@@ -34,6 +46,18 @@ describe('SecurityAlertService', () => {
         SECURITY_ALERT_WEBHOOK_URL: 'https://webhook.example.com/alerts',
         SECURITY_ALERT_AUTH_TOKEN: 'test-token',
         SECURITY_ALERTS_ENABLED: true,
+        SECURITY_ALERT_MAX_RETRIES: 3,
+        SECURITY_ALERT_BASE_DELAY: 100,
+        SECURITY_ALERT_MAX_DELAY: 5000,
+        SECURITY_ALERT_BACKOFF_MULTIPLIER: 2,
+        SECURITY_ALERT_JITTER_FACTOR: 0.1,
+        SECURITY_ALERT_TIMEOUT: 5000,
+        SECURITY_ALERT_FAILURE_THRESHOLD: 5,
+        SECURITY_ALERT_FAILURE_WINDOW: 60000,
+        SECURITY_ALERT_OPEN_DURATION: 30000,
+        SECURITY_ALERT_SUCCESS_THRESHOLD: 3,
+        SECURITY_ALERT_FAILURE_RATE: 50,
+        SECURITY_ALERT_MIN_CALLS: 5,
       };
       return config[key] ?? defaultValue;
     });
@@ -348,6 +372,138 @@ describe('SecurityAlertService', () => {
         }),
         expect.any(Object),
       );
+    });
+  });
+
+  describe('Retry Mechanism', () => {
+    it('should retry failed requests with exponential backoff', async () => {
+      jest.useFakeTimers();
+
+      const payload = {
+        type: SecurityAlertType.ACCOUNT_LOCKED,
+        severity: 'high' as const,
+        timestamp: new Date(),
+        details: {
+          email: 'test@example.com',
+          message: 'Test alert',
+        },
+      };
+
+      // Mock network error on first 2 attempts, success on 3rd
+      let callCount = 0;
+      mockHttpService.post.mockImplementation(() => {
+        callCount++;
+        if (callCount < 3) {
+          return throwError(() => {
+            const error = new Error('ECONNRESET');
+            error.message = 'ECONNRESET: Connection reset';
+            return error;
+          });
+        }
+        return of({
+          data: { success: true },
+          status: 200,
+          statusText: 'OK',
+          headers: {},
+          config: {} as any,
+        } as AxiosResponse);
+      });
+
+      const alertPromise = service.sendAlert(payload);
+
+      // Advance through all timers progressively
+      await jest.runAllTimersAsync();
+
+      await alertPromise;
+
+      expect(mockHttpService.post).toHaveBeenCalledTimes(3);
+      expect(callCount).toBe(3);
+
+      jest.useRealTimers();
+    }, 10000);
+
+    it('should not retry non-retryable errors', async () => {
+      const payload = {
+        type: SecurityAlertType.ACCOUNT_LOCKED,
+        severity: 'high' as const,
+        timestamp: new Date(),
+        details: {
+          email: 'test@example.com',
+          message: 'Test alert',
+        },
+      };
+
+      // Mock 401 Unauthorized error (non-retryable)
+      mockHttpService.post.mockReturnValue(
+        throwError(() => {
+          const error: any = new Error('Unauthorized');
+          error.response = { status: 401 };
+          return error;
+        }),
+      );
+
+      await service.sendAlert(payload);
+
+      // Should only call once (no retries)
+      expect(mockHttpService.post).toHaveBeenCalledTimes(1);
+    });
+  });
+
+  describe('Circuit Breaker', () => {
+    it('should open circuit after multiple failures', async () => {
+      // Create service with low failure threshold for testing
+      mockConfigService.get.mockImplementation((key: string, defaultValue?: any) => {
+        if (key === 'SECURITY_ALERT_FAILURE_THRESHOLD') return 2;
+        if (key === 'SECURITY_ALERT_MIN_CALLS') return 2;
+        if (key === 'SECURITY_ALERT_MAX_RETRIES') return 0; // No retries for this test
+        const config: Record<string, any> = {
+          SECURITY_ALERT_WEBHOOK_URL: 'https://webhook.example.com/alerts',
+          SECURITY_ALERT_AUTH_TOKEN: 'test-token',
+          SECURITY_ALERTS_ENABLED: true,
+          SECURITY_ALERT_BASE_DELAY: 100,
+          SECURITY_ALERT_MAX_DELAY: 5000,
+          SECURITY_ALERT_BACKOFF_MULTIPLIER: 2,
+          SECURITY_ALERT_JITTER_FACTOR: 0.1,
+          SECURITY_ALERT_TIMEOUT: 5000,
+          SECURITY_ALERT_FAILURE_WINDOW: 60000,
+          SECURITY_ALERT_OPEN_DURATION: 30000,
+          SECURITY_ALERT_SUCCESS_THRESHOLD: 3,
+          SECURITY_ALERT_FAILURE_RATE: 50,
+        };
+        return config[key] ?? defaultValue;
+      });
+
+      const circuitService = new SecurityAlertService(configService as any, httpService as any);
+
+      // Mock all requests to fail with retryable error
+      mockHttpService.post.mockReturnValue(
+        throwError(() => {
+          const error = new Error('ECONNRESET');
+          error.message = 'ECONNRESET: Connection reset';
+          return error;
+        }),
+      );
+
+      const payload = {
+        type: SecurityAlertType.ACCOUNT_LOCKED,
+        severity: 'high' as const,
+        timestamp: new Date(),
+        details: {
+          email: 'test@example.com',
+          message: 'Test alert',
+        },
+      };
+
+      // Send 2 alerts that will fail
+      await circuitService.sendAlert(payload);
+      await circuitService.sendAlert(payload);
+
+      // Circuit should now be open
+      // Next call should not even attempt HTTP request
+      mockHttpService.post.mockClear();
+      await circuitService.sendAlert(payload);
+
+      expect(mockHttpService.post).not.toHaveBeenCalled();
     });
   });
 });
