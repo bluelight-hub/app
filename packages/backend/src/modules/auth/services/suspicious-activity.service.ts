@@ -31,8 +31,72 @@ export class SuspiciousActivityService {
       this.checkRapidLoginAttempts(userId),
       this.checkMultipleIpAddresses(userId),
       this.checkUnusualLoginTime(userId, ipAddress),
-      this.checkGeographicalAnomaly(userId, ipAddress),
     ]);
+  }
+
+  /**
+   * Überprüft auf Brute-Force-Angriffe von einer IP
+   */
+  async checkBruteForcePattern(ipAddress: string): Promise<void> {
+    const fiveMinutesAgo = new Date(Date.now() - 5 * 60 * 1000);
+
+    const failedAttempts = await this.securityLogService.getSecurityLogs({
+      ipAddress,
+      eventType: SecurityEventType.LOGIN_FAILED,
+      startDate: fiveMinutesAgo,
+      endDate: new Date(),
+    });
+
+    if (failedAttempts.length >= this.BRUTEFORCE_THRESHOLD) {
+      await this.reportSuspiciousActivity(
+        'brute_force_attempt',
+        undefined,
+        {
+          attemptCount: failedAttempts.length,
+          timeWindow: '5 minutes',
+          targetUsers: failedAttempts.map((log) => log.userId).filter(Boolean),
+        },
+        ipAddress,
+      );
+
+      // Emit event for automatic IP blocking
+      this.eventEmitter.emit('security.bruteforce.detected', {
+        ipAddress,
+        attemptCount: failedAttempts.length,
+      });
+    }
+  }
+
+  /**
+   * Überprüft auf Account-Enumeration-Versuche
+   */
+  async checkAccountEnumeration(ipAddress: string): Promise<void> {
+    const fiveMinutesAgo = new Date(Date.now() - 5 * 60 * 1000);
+
+    const failedAttempts = await this.securityLogService.getSecurityLogs({
+      ipAddress,
+      eventType: SecurityEventType.LOGIN_FAILED,
+      startDate: fiveMinutesAgo,
+      endDate: new Date(),
+    });
+
+    // Check for attempts with different usernames
+    const uniqueUsernames = new Set(
+      failedAttempts.map((log) => (log.metadata as any)?.username).filter(Boolean),
+    );
+
+    if (uniqueUsernames.size >= 5) {
+      await this.reportSuspiciousActivity(
+        'account_enumeration',
+        undefined,
+        {
+          attemptCount: failedAttempts.length,
+          uniqueUsernames: uniqueUsernames.size,
+          timeWindow: '5 minutes',
+        },
+        ipAddress,
+      );
+    }
   }
 
   /**
@@ -95,82 +159,6 @@ export class SuspiciousActivityService {
           loginTime: new Date().toISOString(),
           hour,
           ipAddress,
-        },
-        ipAddress,
-      );
-    }
-  }
-
-  /**
-   * Überprüft auf geographische Anomalien (Placeholder für GeoIP-Integration)
-   */
-  private async checkGeographicalAnomaly(userId: string, ipAddress?: string): Promise<void> {
-    if (!ipAddress) return;
-
-    // TODO: Implement GeoIP lookup and comparison with user's usual locations
-    // For now, just log for future implementation
-    this.logger.debug(`Geographical check for user ${userId} from IP ${ipAddress}`);
-  }
-
-  /**
-   * Überprüft auf Brute-Force-Angriffe von einer IP
-   */
-  async checkBruteForcePattern(ipAddress: string): Promise<void> {
-    const fiveMinutesAgo = new Date(Date.now() - 5 * 60 * 1000);
-
-    const failedAttempts = await this.securityLogService.getSecurityLogs({
-      ipAddress,
-      eventType: SecurityEventType.LOGIN_FAILED,
-      startDate: fiveMinutesAgo,
-      endDate: new Date(),
-    });
-
-    if (failedAttempts.length >= this.BRUTEFORCE_THRESHOLD) {
-      await this.reportSuspiciousActivity(
-        'brute_force_attempt',
-        undefined,
-        {
-          attemptCount: failedAttempts.length,
-          timeWindow: '5 minutes',
-          targetUsers: failedAttempts.map((log) => log.userId).filter(Boolean),
-        },
-        ipAddress,
-      );
-
-      // Emit event for automatic IP blocking
-      this.eventEmitter.emit('security.bruteforce.detected', {
-        ipAddress,
-        attemptCount: failedAttempts.length,
-      });
-    }
-  }
-
-  /**
-   * Überprüft auf Account-Enumeration-Versuche
-   */
-  async checkAccountEnumeration(ipAddress: string): Promise<void> {
-    const fiveMinutesAgo = new Date(Date.now() - 5 * 60 * 1000);
-
-    const failedAttempts = await this.securityLogService.getSecurityLogs({
-      ipAddress,
-      eventType: SecurityEventType.LOGIN_FAILED,
-      startDate: fiveMinutesAgo,
-      endDate: new Date(),
-    });
-
-    // Check for attempts with different usernames
-    const uniqueUsernames = new Set(
-      failedAttempts.map((log) => (log.metadata as any)?.username).filter(Boolean),
-    );
-
-    if (uniqueUsernames.size >= 5) {
-      await this.reportSuspiciousActivity(
-        'account_enumeration',
-        undefined,
-        {
-          attemptCount: failedAttempts.length,
-          uniqueUsernames: uniqueUsernames.size,
-          timeWindow: '5 minutes',
         },
         ipAddress,
       );
