@@ -5,6 +5,7 @@ import { LoginAttempt } from '@prisma/generated/prisma';
 import { CreateLoginAttemptDto, LoginAttemptStatsDto } from '../dto/login-attempt.dto';
 import { AuthConfig } from '../config/auth.config';
 import { UAParser } from 'ua-parser-js';
+import { isbot } from 'isbot';
 import { SecurityAlertService } from './security-alert.service';
 import { SecurityLogService } from './security-log.service';
 import { SuspiciousActivityService } from './suspicious-activity.service';
@@ -75,9 +76,12 @@ export class LoginAttemptService {
           deviceType: deviceInfo.deviceType,
           browser: deviceInfo.browser,
           os: deviceInfo.os,
-          suspicious: riskScore > 70,
+          suspicious: riskScore > 70 || deviceInfo.isBot === true,
           riskScore,
-          metadata: data.metadata,
+          metadata: {
+            ...data.metadata,
+            botDetected: deviceInfo.isBot,
+          },
         },
       });
 
@@ -374,9 +378,22 @@ export class LoginAttemptService {
       score += 20;
     }
 
-    // Unknown or suspicious user agents
-    if (!data.userAgent || data.userAgent.includes('bot') || data.userAgent.includes('crawler')) {
-      score += 10;
+    // Bot detection using sophisticated analysis
+    if (!data.userAgent) {
+      score += 15; // No user agent is suspicious
+    } else if (isbot(data.userAgent)) {
+      score += 25; // Confirmed bot/crawler
+    } else {
+      // Additional checks for suspicious patterns
+      const suspiciousPatterns = [
+        /curl|wget|python|java|perl|ruby|go-http|scrapy/i,
+        /headless|phantom|puppeteer|playwright/i,
+        /bot|spider|crawl|scrape|harvest/i,
+      ];
+
+      if (suspiciousPatterns.some((pattern) => pattern.test(data.userAgent))) {
+        score += 20;
+      }
     }
 
     return Math.min(score, 100);
@@ -410,18 +427,23 @@ export class LoginAttemptService {
     deviceType?: string;
     browser?: string;
     os?: string;
+    isBot?: boolean;
   } {
     if (!userAgent) {
-      return {};
+      return { isBot: true }; // No user agent is suspicious
     }
 
     const parser = new UAParser(userAgent);
     const result = parser.getResult();
 
+    // Detect bot using isbot library
+    const botDetected = isbot(userAgent);
+
     return {
-      deviceType: result.device.type || 'desktop',
-      browser: result.browser.name,
+      deviceType: result.device.type || (botDetected ? 'bot' : 'desktop'),
+      browser: result.browser.name || (botDetected ? 'bot' : undefined),
       os: result.os.name,
+      isBot: botDetected,
     };
   }
 }

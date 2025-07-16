@@ -136,7 +136,9 @@ describe('LoginAttemptService', () => {
           os: expect.any(String),
           suspicious: false,
           riskScore: 0,
-          metadata: undefined,
+          metadata: {
+            botDetected: expect.any(Boolean),
+          },
         },
       });
     });
@@ -201,7 +203,7 @@ describe('LoginAttemptService', () => {
       ];
       mockPrismaService.loginAttempt.findMany.mockResolvedValue(recentFailedAttempts);
 
-      // The service will calculate: 20 (failed) + 30 (5 failed attempts) + 20 (>3 unique IPs) + 10 (bot agent) = 80
+      // The service will calculate: 20 (failed) + 30 (5 failed attempts) + 20 (>3 unique IPs) + 25 (bot detected by isbot) = 95
       mockPrismaService.loginAttempt.create.mockImplementation(async ({ data }) => {
         return {
           id: 'attempt-125',
@@ -229,7 +231,7 @@ describe('LoginAttemptService', () => {
         null,
         createDto.ipAddress,
         createDto.userAgent,
-        80,
+        95,
         'Suspicious activity',
       );
     });
