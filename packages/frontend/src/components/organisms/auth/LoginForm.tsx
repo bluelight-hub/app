@@ -76,7 +76,14 @@ const LoginForm: React.FC = () => {
         } else if (result.errorCode === 'INVALID_CREDENTIALS' && result.errorDetails?.remainingAttempts !== undefined) {
           const remaining = result.errorDetails.remainingAttempts;
 
-          if (remaining <= 2 && remaining > 0) {
+          if (remaining === 0 && result.error?.includes('IP')) {
+            // IP rate limit case
+            message.error({
+              content: result.error,
+              duration: 5,
+              icon: <PiWarning className="text-red-500" />,
+            });
+          } else if (remaining <= 2 && remaining > 0) {
             message.warning({
               content: `Falsches Passwort! Sie haben noch ${remaining} Versuch${remaining === 1 ? '' : 'e'}, bevor Ihr Account gesperrt wird.`,
               duration: 5,
@@ -86,7 +93,16 @@ const LoginForm: React.FC = () => {
             message.error('Falsche E-Mail oder Passwort!');
           }
         } else {
-          message.error(result.error || 'Falsche E-Mail oder Passwort!');
+          // Check if it's an IP rate limit error message
+          if (result.error?.includes('Too many attempts from this IP')) {
+            message.error({
+              content: result.error,
+              duration: 5,
+              icon: <PiWarning className="text-red-500" />,
+            });
+          } else {
+            message.error(result.error || 'Falsche E-Mail oder Passwort!');
+          }
         }
       }
     } catch (error) {

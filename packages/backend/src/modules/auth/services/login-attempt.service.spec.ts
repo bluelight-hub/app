@@ -331,8 +331,28 @@ describe('LoginAttemptService', () => {
   });
 
   describe('checkIpRateLimit', () => {
-    it('should return true when IP exceeds rate limit', async () => {
-      const ipAddress = '192.168.1.1';
+    it('should return false for local IP addresses', async () => {
+      const localIPs = [
+        '127.0.0.1',
+        '192.168.1.1',
+        '10.0.0.1',
+        '172.16.0.1',
+        '::1',
+        'localhost',
+        'unknown',
+      ];
+
+      for (const ipAddress of localIPs) {
+        const result = await service.checkIpRateLimit(ipAddress);
+        expect(result).toBe(false);
+      }
+
+      expect(mockPrismaService.loginAttempt.count).not.toHaveBeenCalled();
+      expect(mockSecurityAlertService.sendBruteForceAlert).not.toHaveBeenCalled();
+    });
+
+    it('should return true when public IP exceeds rate limit', async () => {
+      const ipAddress = '8.8.8.8'; // Public IP
 
       mockPrismaService.loginAttempt.count.mockResolvedValue(20); // Max IP attempts
 
@@ -342,8 +362,8 @@ describe('LoginAttemptService', () => {
       expect(mockSecurityAlertService.sendBruteForceAlert).toHaveBeenCalledWith(ipAddress, 20, 60);
     });
 
-    it('should return false when IP is within rate limit', async () => {
-      const ipAddress = '192.168.1.1';
+    it('should return false when public IP is within rate limit', async () => {
+      const ipAddress = '8.8.8.8'; // Public IP
 
       mockPrismaService.loginAttempt.count.mockResolvedValue(10); // Below limit
 

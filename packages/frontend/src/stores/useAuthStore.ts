@@ -141,7 +141,7 @@ export const useAuthStore = create<AuthStore>()(
                 error: 'No data received from server',
               };
             }
-          } catch (error: any) {
+          } catch (error) {
             logger.error('Login error', { error });
 
             // Log failed login attempt
@@ -155,26 +155,90 @@ export const useAuthStore = create<AuthStore>()(
 
             // Try to parse error response
             let errorCode: string | undefined;
-            const errorDetails: any = {};
+            const errorDetails: {
+              lockedUntil?: string;
+              remainingAttempts?: number;
+            } = {};
             let errorMessage = 'Network error';
 
-            if (error.response) {
+            // Handle ResponseError from generated API client
+            if (error?.response) {
               try {
-                // Access Axios error response data directly
-                const errorData = error.response.data;
+                let errorText: string | undefined;
 
-                errorCode = errorData.code;
-                errorMessage = errorData.message || 'Login failed';
-
-                // Extract additional details like lockedUntil, remainingAttempts
-                if (errorData.lockedUntil) {
-                  errorDetails.lockedUntil = errorData.lockedUntil;
+                // Try to read the response body
+                try {
+                  // Clone the response to read it
+                  const clonedResponse = error.response.clone();
+                  errorText = await clonedResponse.text();
+                } catch (_cloneError) {
+                  // If cloning fails, try to read directly
+                  try {
+                    errorText = await error.response.text();
+                  } catch (readError) {
+                    logger.error('Failed to read error response', { readError });
+                  }
                 }
-                if (errorData.remainingAttempts !== undefined) {
-                  errorDetails.remainingAttempts = errorData.remainingAttempts;
+
+                if (errorText) {
+                  try {
+                    const errorData = JSON.parse(errorText);
+
+                    // NestJS returns error in 'message' field with nested structure
+                    if (errorData.message && typeof errorData.message === 'object') {
+                      errorCode = errorData.message.code;
+                      errorMessage =
+                        errorData.message.message || errorData.message || 'Login failed';
+
+                      // Extract additional details
+                      if (errorData.message.lockedUntil) {
+                        errorDetails.lockedUntil = errorData.message.lockedUntil;
+                      }
+                      if (errorData.message.remainingAttempts !== undefined) {
+                        errorDetails.remainingAttempts = errorData.message.remainingAttempts;
+                      }
+                    } else if (errorData.code) {
+                      // Direct error structure
+                      errorCode = errorData.code;
+                      errorMessage = errorData.message || 'Login failed';
+
+                      if (errorData.lockedUntil) {
+                        errorDetails.lockedUntil = errorData.lockedUntil;
+                      }
+                      if (errorData.remainingAttempts !== undefined) {
+                        errorDetails.remainingAttempts = errorData.remainingAttempts;
+                      }
+                    } else {
+                      errorMessage = errorData.message || errorData.error || 'Login failed';
+                    }
+                  } catch (_jsonError) {
+                    // If JSON parsing fails, use the text as message
+                    errorMessage = errorText || 'Login failed';
+                  }
+                } else {
+                  // No error text available, use status-based messages
+                  if (error.response.status === 401) {
+                    errorMessage = 'Invalid credentials';
+                  } else if (error.response.status === 429) {
+                    errorMessage = 'Too many login attempts. Please try again later.';
+                  } else {
+                    errorMessage = `Login failed (${error.response.status})`;
+                  }
                 }
               } catch (parseError) {
                 logger.error('Failed to parse error response', { parseError });
+                // Try to get status text as fallback
+                try {
+                  if (error.response.status === 401) {
+                    errorMessage = 'Invalid credentials';
+                  } else if (error.response.status === 429) {
+                    errorMessage = 'Too many login attempts. Please try again later.';
+                  } else {
+                    errorMessage = `Login failed (${error.response.status})`;
+                  }
+                } catch {
+                  errorMessage = 'Login failed';
+                }
               }
             } else if (error instanceof Error) {
               errorMessage = error.message;
@@ -289,7 +353,7 @@ export const useAuthStore = create<AuthStore>()(
               set({ isRefreshing: false });
               return false;
             }
-          } catch (error: any) {
+          } catch (error) {
             logger.error('Token refresh error', { error });
 
             // If refresh fails with 401, clear auth state
@@ -427,16 +491,3 @@ export const useAuthStore = create<AuthStore>()(
     },
   ),
 );
-
-// Selector hooks for common use cases
-export const useUser = () => useAuthStore((state) => state.user);
-export const useIsAuthenticated = () => useAuthStore((state) => state.isAuthenticated);
-export const useIsLoading = () => useAuthStore((state) => state.isLoading);
-export const useAuthActions = () =>
-  useAuthStore((state) => ({
-    login: state.login,
-    logout: state.logout,
-    hasRole: state.hasRole,
-    hasPermission: state.hasPermission,
-    isAdmin: state.isAdmin,
-  }));

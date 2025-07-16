@@ -250,6 +250,12 @@ export class LoginAttemptService {
    * Überprüft IP-basierte Ratenbegrenzung
    */
   async checkIpRateLimit(ipAddress: string): Promise<boolean> {
+    // Skip rate limiting for local IPs (emergency service use case)
+    if (this.isLocalIp(ipAddress)) {
+      this.logger.debug(`Skipping IP rate limit for local IP: ${ipAddress}`);
+      return false;
+    }
+
     const windowStart = new Date(
       Date.now() - this.authConfig.loginAttempts.ipRateLimitWindowMinutes * 60 * 1000,
     );
@@ -445,5 +451,30 @@ export class LoginAttemptService {
       os: result.os.name,
       isBot: botDetected,
     };
+  }
+
+  /**
+   * Überprüft, ob eine IP-Adresse lokal ist (für Einsatzumgebungen)
+   */
+  private isLocalIp(ipAddress: string): boolean {
+    // Handle undefined or empty IP
+    if (!ipAddress) {
+      return false;
+    }
+
+    // Common patterns for local IPs
+    const localPatterns = [
+      /^127\./, // Loopback (127.0.0.1, etc.)
+      /^192\.168\./, // Private network class C
+      /^10\./, // Private network class A
+      /^172\.(1[6-9]|2[0-9]|3[0-1])\./, // Private network class B
+      /^::1$/, // IPv6 loopback
+      /^fe80::/, // IPv6 link-local
+      /^fd[0-9a-f]{2}:/, // IPv6 unique local addresses
+      /^localhost$/i,
+      /^unknown$/i, // Sometimes reported for local connections
+    ];
+
+    return localPatterns.some((pattern) => pattern.test(ipAddress));
   }
 }
