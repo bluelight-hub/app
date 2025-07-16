@@ -131,7 +131,8 @@ export class AuthService {
       }
 
       // Calculate remaining attempts
-      const windowStart = new Date(Date.now() - 15 * 60 * 1000); // 15 minute window
+      const windowMinutes = this.configService.get<number>('LOGIN_WINDOW_MINUTES', 15);
+      const windowStart = new Date(Date.now() - windowMinutes * 60 * 1000);
       const recentFailedAttempts = await this.prisma.loginAttempt.count({
         where: {
           email: loginDto.email,
