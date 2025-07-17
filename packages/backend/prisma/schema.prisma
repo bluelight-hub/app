@@ -419,3 +419,76 @@ model SecurityLog {
   @@index([severity, createdAt], map: "idx_security_log_severity_time")
   @@index([sessionId], map: "idx_security_log_session")
 }
+
+// ===== NOTIFICATION SYSTEM =====
+// Pluggable notification channels for security and system alerts
+
+enum ChannelType {
+  EMAIL
+  WEBHOOK
+}
+
+enum NotificationStatus {
+  QUEUED
+  PROCESSING
+  SENT
+  FAILED
+  CANCELLED
+}
+
+model NotificationChannel {
+  id           String      @id @default(nanoid())
+  name         String      @unique @db.VarChar(255)
+  type         ChannelType
+  config       Json        // Encrypted channel-specific configuration
+  isActive     Boolean     @default(true)
+  priority     Int         @default(0) // Higher priority channels are tried first
+  healthStatus Json?       // Last health check result
+  createdAt    DateTime    @default(now())
+  updatedAt    DateTime    @updatedAt
+  
+  
+  // Indexes
+  @@index([type, isActive], map: "idx_notification_channel_type_active")
+  @@index([priority], map: "idx_notification_channel_priority")
+}
+
+model NotificationTemplate {
+  id           String      @id @default(nanoid())
+  name         String      @unique @db.VarChar(255)
+  channelType  ChannelType
+  subject      String?     @db.VarChar(255) // For email
+  bodyHtml     String?     @db.Text // For email HTML
+  bodyText     String      @db.Text // Plain text content
+  variables    Json        // Available variables schema
+  language     String      @default("de") @db.VarChar(10)
+  isActive     Boolean     @default(true)
+  createdAt    DateTime    @default(now())
+  updatedAt    DateTime    @updatedAt
+  
+  // Indexes
+  @@index([channelType, isActive], map: "idx_notification_template_type_active")
+  @@index([name, language], map: "idx_notification_template_name_lang")
+}
+
+model NotificationLog {
+  id           String              @id @default(nanoid())
+  channel      String              @db.VarChar(255)
+  recipient    String              @db.Text // JSON serialized recipient info
+  subject      String              @db.VarChar(255)
+  payload      Json                // Full notification payload
+  status       NotificationStatus
+  priority     String?             @db.VarChar(50)
+  metadata     Json?               // Additional metadata
+  attempts     Int                 @default(0)
+  error        String?             @db.Text
+  sentAt       DateTime?
+  createdAt    DateTime            @default(now())
+  updatedAt    DateTime            @updatedAt
+  
+  // Indexes for efficient queries
+  @@index([status, createdAt], map: "idx_notification_log_status_time")
+  @@index([channel, createdAt], map: "idx_notification_log_channel_time")
+  @@index([createdAt], map: "idx_notification_log_created")
+  @@index([sentAt], map: "idx_notification_log_sent")
+}

@@ -1,3 +1,9 @@
+/**
+ * Konfigurationsinterface für das Auth-Modul
+ *
+ * Definiert alle konfigurierbaren Parameter für Authentifizierung,
+ * Session-Management und Sicherheitsmechanismen.
+ */
 export interface AuthConfig {
   jwt: {
     secret: string;
@@ -27,6 +33,12 @@ export interface AuthConfig {
   };
 }
 
+/**
+ * Standard-Konfigurationswerte für das Auth-Modul
+ *
+ * Diese Werte werden verwendet, wenn keine explizite Konfiguration
+ * über Umgebungsvariablen bereitgestellt wird.
+ */
 export const defaultAuthConfig: AuthConfig = {
   jwt: {
     secret: process.env.JWT_SECRET || 'your-secret-key',

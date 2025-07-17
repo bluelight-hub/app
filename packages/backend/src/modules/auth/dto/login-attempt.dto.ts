@@ -1,6 +1,12 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { IsString, IsBoolean, IsOptional, IsNumber, IsDate } from 'class-validator';
 
+/**
+ * DTO für Login-Versuche
+ *
+ * Repräsentiert einen einzelnen Login-Versuch mit allen relevanten
+ * Informationen für Sicherheitsanalysen und Audit-Zwecke.
+ */
 export class LoginAttemptDto {
   @ApiProperty({ description: 'Unique identifier of the login attempt' })
   id: string;
@@ -65,6 +71,12 @@ export class LoginAttemptDto {
   riskScore: number;
 }
 
+/**
+ * DTO für Login-Versuch-Statistiken
+ *
+ * Aggregierte Statistiken über Login-Versuche für einen bestimmten Zeitraum.
+ * Wird für Dashboard-Anzeigen und Sicherheitsberichte verwendet.
+ */
 export class LoginAttemptStatsDto {
   @ApiProperty({ description: 'Total number of login attempts' })
   totalAttempts: number;
@@ -91,6 +103,12 @@ export class LoginAttemptStatsDto {
   periodEnd: Date;
 }
 
+/**
+ * DTO für die Erstellung eines neuen Login-Versuch-Eintrags
+ *
+ * Wird verwendet, um neue Login-Versuche im System zu erfassen.
+ * Enthält alle notwendigen Informationen für die Sicherheitsanalyse.
+ */
 export class CreateLoginAttemptDto {
   @ApiPropertyOptional({ description: 'User ID if the user exists' })
   @IsOptional()

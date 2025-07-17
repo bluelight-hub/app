@@ -3,6 +3,7 @@ import { ConfigModule } from '@nestjs/config';
 import { APP_GUARD } from '@nestjs/core';
 import { ScheduleModule } from '@nestjs/schedule';
 import { EventEmitterModule } from '@nestjs/event-emitter';
+import { BullModule } from '@nestjs/bull';
 import { CommonModule } from './common/common.module';
 import { HealthModule } from './health/health.module';
 // import { ConsolaLogger } from './logger/consola.logger';
@@ -14,6 +15,7 @@ import { AuthModule } from './modules/auth/auth.module';
 import { JwtAuthGuard } from './modules/auth/guards';
 import { AuditModule } from './modules/audit';
 import { SessionModule } from './modules/session/session.module';
+import { NotificationModule } from './modules/notification/notification.module';
 
 /**
  * Haupt-Anwendungsmodul der Bluelight Hub Backend-Anwendung
@@ -39,10 +41,17 @@ import { SessionModule } from './modules/session/session.module';
     }),
     ScheduleModule.forRoot(),
     EventEmitterModule.forRoot(),
+    BullModule.forRoot({
+      redis: {
+        host: process.env.REDIS_HOST || 'localhost',
+        port: parseInt(process.env.REDIS_PORT || '6379', 10),
+      },
+    }),
     PrismaModule,
     AuthModule,
     AuditModule,
     SessionModule,
+    NotificationModule,
     HealthModule,
     EinsatzModule,
     EtbModule,

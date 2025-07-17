@@ -209,3 +209,4 @@ tasks/
 # Windsurfrules and Roo files
 .windsurfrules
 .roo*
+/packages/backend/documentation/
