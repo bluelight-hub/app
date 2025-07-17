@@ -1,0 +1,1757 @@
+<!doctype html>
+<html class="no-js" lang="">
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="x-ua-compatible" content="ie=edge">
+        <title>@bluelight-hub/backend documentation</title>
+        <meta name="description" content="">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+
+        <link rel="icon" type="image/x-icon" href="../images/favicon.ico">
+	   <link rel="stylesheet" href="../styles/style.css">
+        <link rel="stylesheet" href="../styles/dark.css">
+    </head>
+    <body>
+          <script>
+               // Blocking script to avoid flickering dark mode
+               // Dark mode toggle button
+               var useDark = window.matchMedia('(prefers-color-scheme: dark)');
+               var darkModeState = useDark.matches;
+               var $darkModeToggleSwitchers = document.querySelectorAll('.dark-mode-switch input');
+               var $darkModeToggles = document.querySelectorAll('.dark-mode-switch');
+               var darkModeStateLocal = localStorage.getItem('compodoc_darkmode-state');
+
+               function checkToggle(check) {
+                    for (var i = 0; i < $darkModeToggleSwitchers.length; i++) {
+                         $darkModeToggleSwitchers[i].checked = check;
+                    }
+               }
+
+               function toggleDarkMode(state) {
+                    if (window.localStorage) {
+                         localStorage.setItem('compodoc_darkmode-state', state);
+                    }
+
+                    checkToggle(state);
+
+                    const hasClass = document.body.classList.contains('dark');
+
+                    if (state) {
+                         for (var i = 0; i < $darkModeToggles.length; i++) {
+                              $darkModeToggles[i].classList.add('dark');
+                         }
+                         if (!hasClass) {
+                              document.body.classList.add('dark');
+                         }
+                    } else {
+                         for (var i = 0; i < $darkModeToggles.length; i++) {
+                              $darkModeToggles[i].classList.remove('dark');
+                         }
+                         if (hasClass) {
+                              document.body.classList.remove('dark');
+                         }
+                    }
+               }
+
+               useDark.addEventListener('change', function (evt) {
+                    toggleDarkMode(evt.matches);
+               });
+               if (darkModeStateLocal) {
+                    darkModeState = darkModeStateLocal === 'true';
+               }
+               toggleDarkMode(darkModeState);
+          </script>
+
+        <div class="navbar navbar-default navbar-fixed-top d-md-none p-0">
+               <div class="d-flex">
+                    <a href="../" class="navbar-brand">@bluelight-hub/backend documentation</a>
+                    <button type="button" class="btn btn-default btn-menu ion-ios-menu" id="btn-menu"></button>
+               </div>
+        </div>
+
+        <div class="xs-menu menu" id="mobile-menu">
+                <div id="book-search-input" role="search"><input type="text" placeholder="Type to search"></div>            <compodoc-menu></compodoc-menu>
+        </div>
+
+        <div class="container-fluid main">
+           <div class="row main">
+               <div class="d-none d-md-block menu">
+                   <compodoc-menu mode="normal"></compodoc-menu>
+               </div>
+               <!-- START CONTENT -->
+               <div class="content injectable">
+                   <div class="content-data">
+
+
+
+
+
+
+
+
+<ol class="breadcrumb">
+  <li class="breadcrumb-item">Injectables</li>
+  <li class="breadcrumb-item" >SeedEinsatzCommand</li>
+</ol>
+
+<ul class="nav nav-tabs" role="tablist">
+        <li class="nav-item">
+            <a href="#info" 
+                class="nav-link"
+                class="nav-link active"
+                role="tab" id="info-tab" data-bs-toggle="tab" data-link="info">Info</a>
+        </li>
+        <li class="nav-item">
+            <a href="#source" 
+                class="nav-link"
+                
+                role="tab" id="source-tab" data-bs-toggle="tab" data-link="source">Source</a>
+        </li>
+</ul>
+
+<div class="tab-content">
+    <div class="tab-pane fade active in" id="info">
+        <p class="comment">
+            <h3>File</h3>
+        </p>
+        <p class="comment">
+            <code>src/cli/commands/seed-einsatz.command.ts</code>
+        </p>
+
+
+            <p class="comment">
+                <h3>Description</h3>
+            </p>
+            <p class="comment">
+                <p>CLI-Befehl zum manuellen Erstellen eines Test-Einsatzes.
+Unterstützt jetzt vordefinierte DRK-Profile für realistische Szenarien.</p>
+<p>Verwendung:</p>
+<ul>
+<li>npm run cli -- seed:einsatz --profile=manv</li>
+<li>npm run cli -- seed:einsatz --name=&quot;Mein Test-Einsatz&quot; --beschreibung=&quot;Optionale Beschreibung&quot;</li>
+<li>npm run cli -- seed:einsatz --list</li>
+<li>npm run cli -- seed:einsatz --info=manv</li>
+</ul>
+
+            </p>
+
+            <p class="comment">
+                <h3>Extends</h3>
+            </p>
+            <p class="comment">
+                        <code>CommandRunner</code>
+            </p>
+
+
+            <section data-compodoc="block-index">
+    <h3 id="index">Index</h3>
+    <table class="table table-sm table-bordered index-table">
+        <tbody>
+                <tr>
+                    <td class="col-md-4">
+                        <h6><b>Properties</b></h6>
+                    </td>
+                </tr>
+                <tr>
+                    <td class="col-md-4">
+                        <ul class="index-list">
+                            <li>
+                                    <span class="modifier">Private</span>
+                                    <span class="modifier">Readonly</span>
+                                <a href="#logger" >logger</a>
+                            </li>
+                        </ul>
+                    </td>
+                </tr>
+
+                <tr>
+                    <td class="col-md-4">
+                        <h6><b>Methods</b></h6>
+                    </td>
+                </tr>
+                <tr>
+                    <td class="col-md-4">
+                        <ul class="index-list">
+                            <li>
+                                    <span class="modifier">Private</span>
+                                    <span class="modifier">Async</span>
+                                <a href="#createCustomEinsatz" >createCustomEinsatz</a>
+                            </li>
+                            <li>
+                                    <span class="modifier">Private</span>
+                                    <span class="modifier">Async</span>
+                                <a href="#createEinsatzFromProfile" >createEinsatzFromProfile</a>
+                            </li>
+                            <li>
+                                    <span class="modifier">Private</span>
+                                <a href="#generateDefaultName" >generateDefaultName</a>
+                            </li>
+                            <li>
+                                    <span class="modifier"></span>
+                                <a href="#parseBeschreibung" >parseBeschreibung</a>
+                            </li>
+                            <li>
+                                    <span class="modifier"></span>
+                                <a href="#parseCategory" >parseCategory</a>
+                            </li>
+                            <li>
+                                    <span class="modifier"></span>
+                                <a href="#parseInfo" >parseInfo</a>
+                            </li>
+                            <li>
+                                    <span class="modifier"></span>
+                                <a href="#parseList" >parseList</a>
+                            </li>
+                            <li>
+                                    <span class="modifier"></span>
+                                <a href="#parseName" >parseName</a>
+                            </li>
+                            <li>
+                                    <span class="modifier"></span>
+                                <a href="#parsePriority" >parsePriority</a>
+                            </li>
+                            <li>
+                                    <span class="modifier"></span>
+                                <a href="#parseProfile" >parseProfile</a>
+                            </li>
+                            <li>
+                                    <span class="modifier">Async</span>
+                                <a href="#run" >run</a>
+                            </li>
+                            <li>
+                                    <span class="modifier">Private</span>
+                                <a href="#showFilteredProfiles" >showFilteredProfiles</a>
+                            </li>
+                            <li>
+                                    <span class="modifier">Private</span>
+                                <a href="#showProfileInfo" >showProfileInfo</a>
+                            </li>
+                            <li>
+                                    <span class="modifier">Private</span>
+                                <a href="#showProfileList" >showProfileList</a>
+                            </li>
+                        </ul>
+                    </td>
+                </tr>
+
+
+
+
+
+        </tbody>
+    </table>
+</section>
+
+            <section data-compodoc="block-constructor">
+    <h3 id="constructor">Constructor</h3>
+        <table class="table table-sm table-bordered">
+            <tbody>
+                <tr>
+                    <td class="col-md-4">
+<code>constructor(einsatzService: <a href="../injectables/EinsatzService.html" target="_self">EinsatzService</a>, profileService: <a href="../injectables/ProfileService.html" target="_self">ProfileService</a>)</code>
+                    </td>
+                </tr>
+                        <tr>
+                            <td class="col-md-4">
+                                <div class="io-line">Defined in <a href="" data-line="65" class="link-to-prism">src/cli/commands/seed-einsatz.command.ts:65</a></div>
+                            </td>
+                        </tr>
+
+                <tr>
+                    <td class="col-md-4">
+                            <div>
+                                    <b>Parameters :</b>
+                                    <table class="params">
+                                        <thead>
+                                            <tr>
+                                                <td>Name</td>
+                                                    <td>Type</td>
+                                                <td>Optional</td>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                                <tr>
+                                                        <td>einsatzService</td>
+                                                  
+                                                        <td>
+                                                                        <code><a href="../injectables/EinsatzService.html" target="_self" >EinsatzService</a></code>
+                                                        </td>
+                                                  
+                                                    <td>
+                                                            No
+                                                    </td>
+                                                    
+                                                </tr>
+                                                <tr>
+                                                        <td>profileService</td>
+                                                  
+                                                        <td>
+                                                                        <code><a href="../injectables/ProfileService.html" target="_self" >ProfileService</a></code>
+                                                        </td>
+                                                  
+                                                    <td>
+                                                            No
+                                                    </td>
+                                                    
+                                                </tr>
+                                        </tbody>
+                                    </table>
+                            </div>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+</section>
+
+            <section data-compodoc="block-methods">
+    
+    <h3 id="methods">
+        Methods
+    </h3>
+    <table class="table table-sm table-bordered">
+        <tbody>
+            <tr>
+                <td class="col-md-4">
+                    <a name="createCustomEinsatz"></a>
+                    <span class="name">
+                            <span class="modifier">Private</span>
+                            <span class="modifier">Async</span>
+                        <span ><b>createCustomEinsatz</b></span>
+                        <a href="#createCustomEinsatz"><span class="icon ion-ios-link"></span></a>
+                    </span>
+                </td>
+            </tr>
+            <tr>
+                <td class="col-md-4">
+                        <span class="modifier-icon icon ion-ios-reset"></span>
+                    <code>createCustomEinsatz(options?: <a href="../interfaces/SeedEinsatzOptions.html" target="_self">SeedEinsatzOptions</a>)</code>
+                </td>
+            </tr>
+
+
+                    <tr>
+                        <td class="col-md-4">
+                            <div class="io-line">Defined in <a href="" data-line="224"
+                                    class="link-to-prism">src/cli/commands/seed-einsatz.command.ts:224</a></div>
+                        </td>
+                    </tr>
+
+
+            <tr>
+                <td class="col-md-4">
+                        <div class="io-description"><p>Erstellt einen benutzerdefinierten Einsatz.</p>
+</div>
+
+                            <div class="io-description">
+                                <b>Parameters :</b>
+                                
+                                <table class="params">
+                                    <thead>
+                                        <tr>
+                                            <td>Name</td>
+                                                <td>Type</td>
+                                            <td>Optional</td>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                                <td>options</td>
+                                            <td>
+                                                            <code><a href="../interfaces/SeedEinsatzOptions.html" target="_self" >SeedEinsatzOptions</a></code>
+                                            </td>
+
+                                            <td>
+                                                    Yes
+                                            </td>
+
+
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        <div class="io-description">
+                            <b>Returns : </b>    <code>Promise&lt;void&gt;</code>
+
+                        </div>
+                            <div class="io-description">
+                                
+                            </div>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+    <table class="table table-sm table-bordered">
+        <tbody>
+            <tr>
+                <td class="col-md-4">
+                    <a name="createEinsatzFromProfile"></a>
+                    <span class="name">
+                            <span class="modifier">Private</span>
+                            <span class="modifier">Async</span>
+                        <span ><b>createEinsatzFromProfile</b></span>
+                        <a href="#createEinsatzFromProfile"><span class="icon ion-ios-link"></span></a>
+                    </span>
+                </td>
+            </tr>
+            <tr>
+                <td class="col-md-4">
+                        <span class="modifier-icon icon ion-ios-reset"></span>
+                    <code>createEinsatzFromProfile(profileKey: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/string" target="_blank">string</a>)</code>
+                </td>
+            </tr>
+
+
+                    <tr>
+                        <td class="col-md-4">
+                            <div class="io-line">Defined in <a href="" data-line="196"
+                                    class="link-to-prism">src/cli/commands/seed-einsatz.command.ts:196</a></div>
+                        </td>
+                    </tr>
+
+
+            <tr>
+                <td class="col-md-4">
+                        <div class="io-description"><p>Erstellt einen Einsatz aus einem vordefinierten Profil.</p>
+</div>
+
+                            <div class="io-description">
+                                <b>Parameters :</b>
+                                
+                                <table class="params">
+                                    <thead>
+                                        <tr>
+                                            <td>Name</td>
+                                                <td>Type</td>
+                                            <td>Optional</td>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                                <td>profileKey</td>
+                                            <td>
+                                                            <code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/string" target="_blank" >string</a></code>
+                                            </td>
+
+                                            <td>
+                                                    No
+                                            </td>
+
+
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        <div class="io-description">
+                            <b>Returns : </b>    <code>Promise&lt;void&gt;</code>
+
+                        </div>
+                            <div class="io-description">
+                                
+                            </div>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+    <table class="table table-sm table-bordered">
+        <tbody>
+            <tr>
+                <td class="col-md-4">
+                    <a name="generateDefaultName"></a>
+                    <span class="name">
+                            <span class="modifier">Private</span>
+                        <span ><b>generateDefaultName</b></span>
+                        <a href="#generateDefaultName"><span class="icon ion-ios-link"></span></a>
+                    </span>
+                </td>
+            </tr>
+            <tr>
+                <td class="col-md-4">
+                        <span class="modifier-icon icon ion-ios-reset"></span>
+                    <code>generateDefaultName()</code>
+                </td>
+            </tr>
+
+
+                    <tr>
+                        <td class="col-md-4">
+                            <div class="io-line">Defined in <a href="" data-line="327"
+                                    class="link-to-prism">src/cli/commands/seed-einsatz.command.ts:327</a></div>
+                        </td>
+                    </tr>
+
+
+            <tr>
+                <td class="col-md-4">
+                        <div class="io-description"><p>Generiert einen Standard-Einsatz-Namen.</p>
+</div>
+
+                        <div class="io-description">
+                            <b>Returns : </b>        <code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/string" target="_blank" >string</a></code>
+
+                        </div>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+    <table class="table table-sm table-bordered">
+        <tbody>
+            <tr>
+                <td class="col-md-4">
+                    <a name="parseBeschreibung"></a>
+                    <span class="name">
+                            <span class="modifier"></span>
+                        <span ><b>parseBeschreibung</b></span>
+                        <a href="#parseBeschreibung"><span class="icon ion-ios-link"></span></a>
+                    </span>
+                </td>
+            </tr>
+            <tr>
+                <td class="col-md-4">
+                        <span class="modifier-icon icon ion-ios-reset"></span>
+                    <code>parseBeschreibung(val: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/string" target="_blank">string</a>)</code>
+                </td>
+            </tr>
+
+            <tr>
+                <td class="col-md-4">
+                    <b>Decorators : </b>
+                    <br />
+                    <code>@Option({flags: &#x27;-d, --beschreibung [beschreibung]&#x27;, description: &#x27;Optionale Beschreibung des Einsatzes&#x27;})<br /></code>
+                </td>
+            </tr>
+
+                    <tr>
+                        <td class="col-md-4">
+                            <div class="io-line">Defined in <a href="" data-line="132"
+                                    class="link-to-prism">src/cli/commands/seed-einsatz.command.ts:132</a></div>
+                        </td>
+                    </tr>
+
+
+            <tr>
+                <td class="col-md-4">
+                        <div class="io-description"><p>Parser für die Beschreibungs-Option.</p>
+</div>
+
+                            <div class="io-description">
+                                <b>Parameters :</b>
+                                
+                                <table class="params">
+                                    <thead>
+                                        <tr>
+                                            <td>Name</td>
+                                                <td>Type</td>
+                                            <td>Optional</td>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                                <td>val</td>
+                                            <td>
+                                                            <code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/string" target="_blank" >string</a></code>
+                                            </td>
+
+                                            <td>
+                                                    No
+                                            </td>
+
+
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        <div class="io-description">
+                            <b>Returns : </b>        <code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/string" target="_blank" >string</a></code>
+
+                        </div>
+                            <div class="io-description">
+                                
+                            </div>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+    <table class="table table-sm table-bordered">
+        <tbody>
+            <tr>
+                <td class="col-md-4">
+                    <a name="parseCategory"></a>
+                    <span class="name">
+                            <span class="modifier"></span>
+                        <span ><b>parseCategory</b></span>
+                        <a href="#parseCategory"><span class="icon ion-ios-link"></span></a>
+                    </span>
+                </td>
+            </tr>
+            <tr>
+                <td class="col-md-4">
+                        <span class="modifier-icon icon ion-ios-reset"></span>
+                    <code>parseCategory(val: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/string" target="_blank">string</a>)</code>
+                </td>
+            </tr>
+
+            <tr>
+                <td class="col-md-4">
+                    <b>Decorators : </b>
+                    <br />
+                    <code>@Option({flags: &#x27;-c, --category [category]&#x27;, description: &#x27;Profile nach Kategorie filtern (rettungsdienst, katastrophenschutz, sanitaetsdienst, betreuung, psnv, manv, ausbildung)&#x27;})<br /></code>
+                </td>
+            </tr>
+
+                    <tr>
+                        <td class="col-md-4">
+                            <div class="io-line">Defined in <a href="" data-line="178"
+                                    class="link-to-prism">src/cli/commands/seed-einsatz.command.ts:178</a></div>
+                        </td>
+                    </tr>
+
+
+            <tr>
+                <td class="col-md-4">
+                        <div class="io-description"><p>Parser für die Kategorie-Option.</p>
+</div>
+
+                            <div class="io-description">
+                                <b>Parameters :</b>
+                                
+                                <table class="params">
+                                    <thead>
+                                        <tr>
+                                            <td>Name</td>
+                                                <td>Type</td>
+                                            <td>Optional</td>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                                <td>val</td>
+                                            <td>
+                                                            <code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/string" target="_blank" >string</a></code>
+                                            </td>
+
+                                            <td>
+                                                    No
+                                            </td>
+
+
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        <div class="io-description">
+                            <b>Returns : </b>        <code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/string" target="_blank" >string</a></code>
+
+                        </div>
+                            <div class="io-description">
+                                
+                            </div>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+    <table class="table table-sm table-bordered">
+        <tbody>
+            <tr>
+                <td class="col-md-4">
+                    <a name="parseInfo"></a>
+                    <span class="name">
+                            <span class="modifier"></span>
+                        <span ><b>parseInfo</b></span>
+                        <a href="#parseInfo"><span class="icon ion-ios-link"></span></a>
+                    </span>
+                </td>
+            </tr>
+            <tr>
+                <td class="col-md-4">
+                        <span class="modifier-icon icon ion-ios-reset"></span>
+                    <code>parseInfo(val: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/string" target="_blank">string</a>)</code>
+                </td>
+            </tr>
+
+            <tr>
+                <td class="col-md-4">
+                    <b>Decorators : </b>
+                    <br />
+                    <code>@Option({flags: &#x27;-i, --info [profile]&#x27;, description: &#x27;Detaillierte Informationen zu einem DRK-Profil anzeigen&#x27;})<br /></code>
+                </td>
+            </tr>
+
+                    <tr>
+                        <td class="col-md-4">
+                            <div class="io-line">Defined in <a href="" data-line="166"
+                                    class="link-to-prism">src/cli/commands/seed-einsatz.command.ts:166</a></div>
+                        </td>
+                    </tr>
+
+
+            <tr>
+                <td class="col-md-4">
+                        <div class="io-description"><p>Parser für die Info-Option.</p>
+</div>
+
+                            <div class="io-description">
+                                <b>Parameters :</b>
+                                
+                                <table class="params">
+                                    <thead>
+                                        <tr>
+                                            <td>Name</td>
+                                                <td>Type</td>
+                                            <td>Optional</td>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                                <td>val</td>
+                                            <td>
+                                                            <code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/string" target="_blank" >string</a></code>
+                                            </td>
+
+                                            <td>
+                                                    No
+                                            </td>
+
+
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        <div class="io-description">
+                            <b>Returns : </b>        <code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/string" target="_blank" >string</a></code>
+
+                        </div>
+                            <div class="io-description">
+                                
+                            </div>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+    <table class="table table-sm table-bordered">
+        <tbody>
+            <tr>
+                <td class="col-md-4">
+                    <a name="parseList"></a>
+                    <span class="name">
+                            <span class="modifier"></span>
+                        <span ><b>parseList</b></span>
+                        <a href="#parseList"><span class="icon ion-ios-link"></span></a>
+                    </span>
+                </td>
+            </tr>
+            <tr>
+                <td class="col-md-4">
+                        <span class="modifier-icon icon ion-ios-reset"></span>
+                    <code>parseList()</code>
+                </td>
+            </tr>
+
+            <tr>
+                <td class="col-md-4">
+                    <b>Decorators : </b>
+                    <br />
+                    <code>@Option({flags: &#x27;-l, --list&#x27;, description: &#x27;Alle verfügbaren DRK-Profile auflisten&#x27;})<br /></code>
+                </td>
+            </tr>
+
+                    <tr>
+                        <td class="col-md-4">
+                            <div class="io-line">Defined in <a href="" data-line="155"
+                                    class="link-to-prism">src/cli/commands/seed-einsatz.command.ts:155</a></div>
+                        </td>
+                    </tr>
+
+
+            <tr>
+                <td class="col-md-4">
+                        <div class="io-description"><p>Parser für die List-Option.</p>
+</div>
+
+                        <div class="io-description">
+                            <b>Returns : </b>        <code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/boolean" target="_blank" >boolean</a></code>
+
+                        </div>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+    <table class="table table-sm table-bordered">
+        <tbody>
+            <tr>
+                <td class="col-md-4">
+                    <a name="parseName"></a>
+                    <span class="name">
+                            <span class="modifier"></span>
+                        <span ><b>parseName</b></span>
+                        <a href="#parseName"><span class="icon ion-ios-link"></span></a>
+                    </span>
+                </td>
+            </tr>
+            <tr>
+                <td class="col-md-4">
+                        <span class="modifier-icon icon ion-ios-reset"></span>
+                    <code>parseName(val: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/string" target="_blank">string</a>)</code>
+                </td>
+            </tr>
+
+            <tr>
+                <td class="col-md-4">
+                    <b>Decorators : </b>
+                    <br />
+                    <code>@Option({flags: &#x27;-n, --name [name]&#x27;, description: &#x27;Name des zu erstellenden Einsatzes (optional, Standard wird generiert)&#x27;, required: false})<br /></code>
+                </td>
+            </tr>
+
+                    <tr>
+                        <td class="col-md-4">
+                            <div class="io-line">Defined in <a href="" data-line="121"
+                                    class="link-to-prism">src/cli/commands/seed-einsatz.command.ts:121</a></div>
+                        </td>
+                    </tr>
+
+
+            <tr>
+                <td class="col-md-4">
+                        <div class="io-description"><p>Parser für die Name-Option.</p>
+</div>
+
+                            <div class="io-description">
+                                <b>Parameters :</b>
+                                
+                                <table class="params">
+                                    <thead>
+                                        <tr>
+                                            <td>Name</td>
+                                                <td>Type</td>
+                                            <td>Optional</td>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                                <td>val</td>
+                                            <td>
+                                                            <code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/string" target="_blank" >string</a></code>
+                                            </td>
+
+                                            <td>
+                                                    No
+                                            </td>
+
+
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        <div class="io-description">
+                            <b>Returns : </b>        <code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/string" target="_blank" >string</a></code>
+
+                        </div>
+                            <div class="io-description">
+                                
+                            </div>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+    <table class="table table-sm table-bordered">
+        <tbody>
+            <tr>
+                <td class="col-md-4">
+                    <a name="parsePriority"></a>
+                    <span class="name">
+                            <span class="modifier"></span>
+                        <span ><b>parsePriority</b></span>
+                        <a href="#parsePriority"><span class="icon ion-ios-link"></span></a>
+                    </span>
+                </td>
+            </tr>
+            <tr>
+                <td class="col-md-4">
+                        <span class="modifier-icon icon ion-ios-reset"></span>
+                    <code>parsePriority(val: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/string" target="_blank">string</a>)</code>
+                </td>
+            </tr>
+
+            <tr>
+                <td class="col-md-4">
+                    <b>Decorators : </b>
+                    <br />
+                    <code>@Option({flags: &#x27;--priority [priority]&#x27;, description: &#x27;Profile nach Priorität filtern (low, medium, high, critical)&#x27;})<br /></code>
+                </td>
+            </tr>
+
+                    <tr>
+                        <td class="col-md-4">
+                            <div class="io-line">Defined in <a href="" data-line="189"
+                                    class="link-to-prism">src/cli/commands/seed-einsatz.command.ts:189</a></div>
+                        </td>
+                    </tr>
+
+
+            <tr>
+                <td class="col-md-4">
+                        <div class="io-description"><p>Parser für die Priorität-Option.</p>
+</div>
+
+                            <div class="io-description">
+                                <b>Parameters :</b>
+                                
+                                <table class="params">
+                                    <thead>
+                                        <tr>
+                                            <td>Name</td>
+                                                <td>Type</td>
+                                            <td>Optional</td>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                                <td>val</td>
+                                            <td>
+                                                            <code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/string" target="_blank" >string</a></code>
+                                            </td>
+
+                                            <td>
+                                                    No
+                                            </td>
+
+
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        <div class="io-description">
+                            <b>Returns : </b>        <code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/string" target="_blank" >string</a></code>
+
+                        </div>
+                            <div class="io-description">
+                                
+                            </div>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+    <table class="table table-sm table-bordered">
+        <tbody>
+            <tr>
+                <td class="col-md-4">
+                    <a name="parseProfile"></a>
+                    <span class="name">
+                            <span class="modifier"></span>
+                        <span ><b>parseProfile</b></span>
+                        <a href="#parseProfile"><span class="icon ion-ios-link"></span></a>
+                    </span>
+                </td>
+            </tr>
+            <tr>
+                <td class="col-md-4">
+                        <span class="modifier-icon icon ion-ios-reset"></span>
+                    <code>parseProfile(val: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/string" target="_blank">string</a>)</code>
+                </td>
+            </tr>
+
+            <tr>
+                <td class="col-md-4">
+                    <b>Decorators : </b>
+                    <br />
+                    <code>@Option({flags: &#x27;-p, --profile [profile]&#x27;, description: &#x27;Vordefiniertes DRK-Profil verwenden (manv, sanitaetsdienst, katastrophenschutz, betreuung, rettungsdienst, psnv, ausbildung)&#x27;})<br /></code>
+                </td>
+            </tr>
+
+                    <tr>
+                        <td class="col-md-4">
+                            <div class="io-line">Defined in <a href="" data-line="144"
+                                    class="link-to-prism">src/cli/commands/seed-einsatz.command.ts:144</a></div>
+                        </td>
+                    </tr>
+
+
+            <tr>
+                <td class="col-md-4">
+                        <div class="io-description"><p>Parser für die Profil-Option.</p>
+</div>
+
+                            <div class="io-description">
+                                <b>Parameters :</b>
+                                
+                                <table class="params">
+                                    <thead>
+                                        <tr>
+                                            <td>Name</td>
+                                                <td>Type</td>
+                                            <td>Optional</td>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                                <td>val</td>
+                                            <td>
+                                                            <code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/string" target="_blank" >string</a></code>
+                                            </td>
+
+                                            <td>
+                                                    No
+                                            </td>
+
+
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        <div class="io-description">
+                            <b>Returns : </b>        <code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/string" target="_blank" >string</a></code>
+
+                        </div>
+                            <div class="io-description">
+                                
+                            </div>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+    <table class="table table-sm table-bordered">
+        <tbody>
+            <tr>
+                <td class="col-md-4">
+                    <a name="run"></a>
+                    <span class="name">
+                            <span class="modifier">Async</span>
+                        <span ><b>run</b></span>
+                        <a href="#run"><span class="icon ion-ios-link"></span></a>
+                    </span>
+                </td>
+            </tr>
+            <tr>
+                <td class="col-md-4">
+                        <span class="modifier-icon icon ion-ios-reset"></span>
+                    <code>run(_passedParams: string[], options?: <a href="../interfaces/SeedEinsatzOptions.html" target="_self">SeedEinsatzOptions</a>)</code>
+                </td>
+            </tr>
+
+
+                    <tr>
+                        <td class="col-md-4">
+                            <div class="io-line">Defined in <a href="" data-line="80"
+                                    class="link-to-prism">src/cli/commands/seed-einsatz.command.ts:80</a></div>
+                        </td>
+                    </tr>
+
+
+            <tr>
+                <td class="col-md-4">
+                        <div class="io-description"><p>Führt den Befehl aus.</p>
+</div>
+
+                            <div class="io-description">
+                                <b>Parameters :</b>
+                                
+                                <table class="params">
+                                    <thead>
+                                        <tr>
+                                            <td>Name</td>
+                                                <td>Type</td>
+                                            <td>Optional</td>
+                                                <td>Description</td>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                                <td>_passedParams</td>
+                                            <td>
+                                                        <code>string[]</code>
+                                            </td>
+
+                                            <td>
+                                                    No
+                                            </td>
+
+
+                                            <td>
+                                                    <p>Übergebene Parameter</p>
+
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                                <td>options</td>
+                                            <td>
+                                                            <code><a href="../interfaces/SeedEinsatzOptions.html" target="_self" >SeedEinsatzOptions</a></code>
+                                            </td>
+
+                                            <td>
+                                                    Yes
+                                            </td>
+
+
+                                            <td>
+                                                    <p>Übergebene Optionen</p>
+
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        <div class="io-description">
+                            <b>Returns : </b>    <code>Promise&lt;void&gt;</code>
+
+                        </div>
+                            <div class="io-description">
+                                
+                            </div>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+    <table class="table table-sm table-bordered">
+        <tbody>
+            <tr>
+                <td class="col-md-4">
+                    <a name="showFilteredProfiles"></a>
+                    <span class="name">
+                            <span class="modifier">Private</span>
+                        <span ><b>showFilteredProfiles</b></span>
+                        <a href="#showFilteredProfiles"><span class="icon ion-ios-link"></span></a>
+                    </span>
+                </td>
+            </tr>
+            <tr>
+                <td class="col-md-4">
+                        <span class="modifier-icon icon ion-ios-reset"></span>
+                    <code>showFilteredProfiles(category?: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/string" target="_blank">string</a>, priority?: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/string" target="_blank">string</a>)</code>
+                </td>
+            </tr>
+
+
+                    <tr>
+                        <td class="col-md-4">
+                            <div class="io-line">Defined in <a href="" data-line="291"
+                                    class="link-to-prism">src/cli/commands/seed-einsatz.command.ts:291</a></div>
+                        </td>
+                    </tr>
+
+
+            <tr>
+                <td class="col-md-4">
+                        <div class="io-description"><p>Zeigt gefilterte Profile nach Kategorie und/oder Priorität an.</p>
+</div>
+
+                            <div class="io-description">
+                                <b>Parameters :</b>
+                                
+                                <table class="params">
+                                    <thead>
+                                        <tr>
+                                            <td>Name</td>
+                                                <td>Type</td>
+                                            <td>Optional</td>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                                <td>category</td>
+                                            <td>
+                                                            <code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/string" target="_blank" >string</a></code>
+                                            </td>
+
+                                            <td>
+                                                    Yes
+                                            </td>
+
+
+                                        </tr>
+                                        <tr>
+                                                <td>priority</td>
+                                            <td>
+                                                            <code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/string" target="_blank" >string</a></code>
+                                            </td>
+
+                                            <td>
+                                                    Yes
+                                            </td>
+
+
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        <div class="io-description">
+                            <b>Returns : </b>        <code><a href="https://www.typescriptlang.org/docs/handbook/basic-types.html" target="_blank" >void</a></code>
+
+                        </div>
+                            <div class="io-description">
+                                
+                            </div>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+    <table class="table table-sm table-bordered">
+        <tbody>
+            <tr>
+                <td class="col-md-4">
+                    <a name="showProfileInfo"></a>
+                    <span class="name">
+                            <span class="modifier">Private</span>
+                        <span ><b>showProfileInfo</b></span>
+                        <a href="#showProfileInfo"><span class="icon ion-ios-link"></span></a>
+                    </span>
+                </td>
+            </tr>
+            <tr>
+                <td class="col-md-4">
+                        <span class="modifier-icon icon ion-ios-reset"></span>
+                    <code>showProfileInfo(profileKey: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/string" target="_blank">string</a>)</code>
+                </td>
+            </tr>
+
+
+                    <tr>
+                        <td class="col-md-4">
+                            <div class="io-line">Defined in <a href="" data-line="271"
+                                    class="link-to-prism">src/cli/commands/seed-einsatz.command.ts:271</a></div>
+                        </td>
+                    </tr>
+
+
+            <tr>
+                <td class="col-md-4">
+                        <div class="io-description"><p>Zeigt detaillierte Informationen zu einem Profil an.</p>
+</div>
+
+                            <div class="io-description">
+                                <b>Parameters :</b>
+                                
+                                <table class="params">
+                                    <thead>
+                                        <tr>
+                                            <td>Name</td>
+                                                <td>Type</td>
+                                            <td>Optional</td>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                                <td>profileKey</td>
+                                            <td>
+                                                            <code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/string" target="_blank" >string</a></code>
+                                            </td>
+
+                                            <td>
+                                                    No
+                                            </td>
+
+
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        <div class="io-description">
+                            <b>Returns : </b>        <code><a href="https://www.typescriptlang.org/docs/handbook/basic-types.html" target="_blank" >void</a></code>
+
+                        </div>
+                            <div class="io-description">
+                                
+                            </div>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+    <table class="table table-sm table-bordered">
+        <tbody>
+            <tr>
+                <td class="col-md-4">
+                    <a name="showProfileList"></a>
+                    <span class="name">
+                            <span class="modifier">Private</span>
+                        <span ><b>showProfileList</b></span>
+                        <a href="#showProfileList"><span class="icon ion-ios-link"></span></a>
+                    </span>
+                </td>
+            </tr>
+            <tr>
+                <td class="col-md-4">
+                        <span class="modifier-icon icon ion-ios-reset"></span>
+                    <code>showProfileList()</code>
+                </td>
+            </tr>
+
+
+                    <tr>
+                        <td class="col-md-4">
+                            <div class="io-line">Defined in <a href="" data-line="247"
+                                    class="link-to-prism">src/cli/commands/seed-einsatz.command.ts:247</a></div>
+                        </td>
+                    </tr>
+
+
+            <tr>
+                <td class="col-md-4">
+                        <div class="io-description"><p>Zeigt eine Liste aller verfügbaren Profile an.</p>
+</div>
+
+                        <div class="io-description">
+                            <b>Returns : </b>        <code><a href="https://www.typescriptlang.org/docs/handbook/basic-types.html" target="_blank" >void</a></code>
+
+                        </div>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+</section>
+            <section data-compodoc="block-properties">
+    
+    <h3 id="inputs">
+        Properties
+    </h3>
+    <table class="table table-sm table-bordered">
+        <tbody>
+            <tr>
+                <td class="col-md-4">
+                    <a name="logger"></a>
+                    <span class="name">
+                            <span class="modifier">Private</span>
+                            <span class="modifier">Readonly</span>
+                        <span ><b>logger</b></span>
+                        <a href="#logger"><span class="icon ion-ios-link"></span></a>
+                    </span>
+                </td>
+            </tr>
+                <tr>
+                    <td class="col-md-4">
+                        <i>Default value : </i><code>new Logger(SeedEinsatzCommand.name)</code>
+                    </td>
+                </tr>
+                    <tr>
+                        <td class="col-md-4">
+                                <div class="io-line">Defined in <a href="" data-line="65" class="link-to-prism">src/cli/commands/seed-einsatz.command.ts:65</a></div>
+                        </td>
+                    </tr>
+
+
+        </tbody>
+    </table>
+</section>
+
+    </div>
+
+
+    <div class="tab-pane fade  tab-source-code" id="source">
+        <pre class="line-numbers compodoc-sourcecode"><code class="language-typescript">import { EinsatzService } from &#x27;@/modules/einsatz/einsatz.service&#x27;;
+import { ProfileService } from &#x27;@/modules/seed/profile.service&#x27;;
+import { Injectable, Logger } from &#x27;@nestjs/common&#x27;;
+import { Command, CommandRunner, Option } from &#x27;nest-commander&#x27;;
+
+/**
+ * Optionen für den Seed-Einsatz-Befehl.
+ */
+interface SeedEinsatzOptions {
+  /**
+   * Name des zu erstellenden Einsatzes.
+   * Wenn nicht angegeben, wird ein Standard-Name generiert.
+   */
+  name?: string;
+
+  /**
+   * Optionale Beschreibung des Einsatzes.
+   */
+  beschreibung?: string;
+
+  /**
+   * Vordefiniertes DRK-Profil verwenden.
+   * Verfügbare Profile: manv, sanitaetsdienst, katastrophenschutz, betreuung, rettungsdienst, psnv, ausbildung
+   */
+  profile?: string;
+
+  /**
+   * Alle verfügbaren Profile auflisten.
+   */
+  list?: boolean;
+
+  /**
+   * Detaillierte Informationen zu einem Profil anzeigen.
+   */
+  info?: string;
+
+  /**
+   * Profile nach Kategorie filtern.
+   */
+  category?: string;
+
+  /**
+   * Profile nach Priorität filtern.
+   */
+  priority?: string;
+}
+
+/**
+ * CLI-Befehl zum manuellen Erstellen eines Test-Einsatzes.
+ * Unterstützt jetzt vordefinierte DRK-Profile für realistische Szenarien.
+ *
+ * Verwendung:
+ * - npm run cli -- seed:einsatz --profile&#x3D;manv
+ * - npm run cli -- seed:einsatz --name&#x3D;&quot;Mein Test-Einsatz&quot; --beschreibung&#x3D;&quot;Optionale Beschreibung&quot;
+ * - npm run cli -- seed:einsatz --list
+ * - npm run cli -- seed:einsatz --info&#x3D;manv
+ */
+@Injectable()
+@Command({
+  name: &#x27;seed:einsatz&#x27;,
+  description:
+    &#x27;Erstellt einen Test-Einsatz mit dem angegebenen Namen oder aus einem vordefinierten DRK-Profil&#x27;,
+})
+export class SeedEinsatzCommand extends CommandRunner {
+  private readonly logger &#x3D; new Logger(SeedEinsatzCommand.name);
+
+  constructor(
+    private readonly einsatzService: EinsatzService,
+    private readonly profileService: ProfileService,
+  ) {
+    super();
+  }
+
+  /**
+   * Führt den Befehl aus.
+   *
+   * @param _passedParams Übergebene Parameter
+   * @param options Übergebene Optionen
+   */
+  async run(_passedParams: string[], options?: SeedEinsatzOptions): Promise&lt;void&gt; {
+    try {
+      // Liste aller Profile anzeigen
+      if (options?.list) {
+        this.showProfileList();
+        return;
+      }
+
+      // Informationen zu einem spezifischen Profil anzeigen
+      if (options?.info) {
+        this.showProfileInfo(options.info);
+        return;
+      }
+
+      // Profile nach Kriterien filtern und anzeigen
+      if (options?.category || options?.priority) {
+        this.showFilteredProfiles(options.category, options.priority);
+        return;
+      }
+
+      // Einsatz aus Profil erstellen
+      if (options?.profile) {
+        await this.createEinsatzFromProfile(options.profile);
+        return;
+      }
+
+      // Einsatz mit benutzerdefinierten Daten erstellen
+      await this.createCustomEinsatz(options);
+    } catch (error) {
+      this.logger.error(&#x60;Fehler beim Ausführen des Befehls: ${error.message}&#x60;);
+    }
+  }
+
+  /**
+   * Parser für die Name-Option.
+   */
+  @Option({
+    flags: &#x27;-n, --name [name]&#x27;,
+    description: &#x27;Name des zu erstellenden Einsatzes (optional, Standard wird generiert)&#x27;,
+    required: false,
+  })
+  parseName(val: string): string {
+    return val;
+  }
+
+  /**
+   * Parser für die Beschreibungs-Option.
+   */
+  @Option({
+    flags: &#x27;-d, --beschreibung [beschreibung]&#x27;,
+    description: &#x27;Optionale Beschreibung des Einsatzes&#x27;,
+  })
+  parseBeschreibung(val: string): string {
+    return val;
+  }
+
+  /**
+   * Parser für die Profil-Option.
+   */
+  @Option({
+    flags: &#x27;-p, --profile [profile]&#x27;,
+    description:
+      &#x27;Vordefiniertes DRK-Profil verwenden (manv, sanitaetsdienst, katastrophenschutz, betreuung, rettungsdienst, psnv, ausbildung)&#x27;,
+  })
+  parseProfile(val: string): string {
+    return val;
+  }
+
+  /**
+   * Parser für die List-Option.
+   */
+  @Option({
+    flags: &#x27;-l, --list&#x27;,
+    description: &#x27;Alle verfügbaren DRK-Profile auflisten&#x27;,
+  })
+  parseList(): boolean {
+    return true;
+  }
+
+  /**
+   * Parser für die Info-Option.
+   */
+  @Option({
+    flags: &#x27;-i, --info [profile]&#x27;,
+    description: &#x27;Detaillierte Informationen zu einem DRK-Profil anzeigen&#x27;,
+  })
+  parseInfo(val: string): string {
+    return val;
+  }
+
+  /**
+   * Parser für die Kategorie-Option.
+   */
+  @Option({
+    flags: &#x27;-c, --category [category]&#x27;,
+    description:
+      &#x27;Profile nach Kategorie filtern (rettungsdienst, katastrophenschutz, sanitaetsdienst, betreuung, psnv, manv, ausbildung)&#x27;,
+  })
+  parseCategory(val: string): string {
+    return val;
+  }
+
+  /**
+   * Parser für die Priorität-Option.
+   */
+  @Option({
+    flags: &#x27;--priority [priority]&#x27;,
+    description: &#x27;Profile nach Priorität filtern (low, medium, high, critical)&#x27;,
+  })
+  parsePriority(val: string): string {
+    return val;
+  }
+
+  /**
+   * Erstellt einen Einsatz aus einem vordefinierten Profil.
+   */
+  private async createEinsatzFromProfile(profileKey: string): Promise&lt;void&gt; {
+    this.logger.log(&#x60;Erstelle Einsatz aus DRK-Profil &quot;${profileKey}&quot;...&#x60;);
+
+    try {
+      const einsatz &#x3D; await this.profileService.createEinsatzFromProfile(profileKey);
+
+      if (einsatz) {
+        const profile &#x3D; this.profileService.getProfile(profileKey);
+        this.logger.log(&#x60;✅ DRK-Einsatz erfolgreich erstellt:&#x60;);
+        this.logger.log(&#x60;   Name: ${einsatz.name}&#x60;);
+        this.logger.log(&#x60;   ID: ${einsatz.id}&#x60;);
+        this.logger.log(&#x60;   Profil: ${profile?.name} (${profile?.metadata.category})&#x60;);
+        this.logger.log(&#x60;   Priorität: ${profile?.metadata.priority}&#x60;);
+        this.logger.log(&#x60;   Betroffene Personen: ${profile?.metadata.estimatedPersonsAffected}&#x60;);
+      }
+    } catch (error) {
+      this.logger.error(&#x60;❌ Fehler beim Erstellen des Einsatzes aus Profil: ${error.message}&#x60;);
+
+      if (error.message.includes(&#x27;nicht gefunden&#x27;)) {
+        this.logger.log(&#x27;\n📋 Verfügbare DRK-Profile:&#x27;);
+        this.showProfileList();
+      }
+    }
+  }
+
+  /**
+   * Erstellt einen benutzerdefinierten Einsatz.
+   */
+  private async createCustomEinsatz(options?: SeedEinsatzOptions): Promise&lt;void&gt; {
+    const name &#x3D; options?.name || this.generateDefaultName();
+
+    this.logger.log(&#x60;Erstelle benutzerdefinierten Einsatz &quot;${name}&quot;...&#x60;);
+
+    try {
+      const einsatz &#x3D; await this.einsatzService.create({
+        name,
+        beschreibung: options?.beschreibung,
+      });
+
+      this.logger.log(&#x60;✅ Einsatz erfolgreich erstellt: ${einsatz.name} (ID: ${einsatz.id})&#x60;);
+    } catch (error) {
+      this.logger.error(&#x60;❌ Fehler beim Erstellen des Einsatzes: ${error.message}&#x60;);
+      if (error.code &#x3D;&#x3D;&#x3D; &#x27;P2002&#x27;) {
+        this.logger.error(&#x27;Ein Einsatz mit diesem Namen existiert bereits&#x27;);
+      }
+    }
+  }
+
+  /**
+   * Zeigt eine Liste aller verfügbaren Profile an.
+   */
+  private showProfileList(): void {
+    this.logger.log(&#x27;\n📋 Verfügbare DRK-Profile:&#x27;);
+    this.logger.log(&#x27;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x27;);
+
+    const profiles &#x3D; this.profileService.getAllProfiles();
+    profiles.forEach((profile) &#x3D;&gt; {
+      this.logger.log(&#x60;🔹 ${profile.key}: ${profile.name}&#x60;);
+      this.logger.log(
+        &#x60;   Kategorie: ${profile.metadata.category} | Priorität: ${profile.metadata.priority}&#x60;,
+      );
+      this.logger.log(
+        &#x60;   Personen: ${profile.metadata.estimatedPersonsAffected} | Dauer: ${profile.metadata.estimatedDurationHours}h&#x60;,
+      );
+      this.logger.log(&#x27;&#x27;);
+    });
+
+    this.logger.log(&#x27;💡 Verwendung:&#x27;);
+    this.logger.log(&#x27;   npm run cli -- seed:einsatz --profile&#x3D;&lt;key&gt;&#x27;);
+    this.logger.log(&#x27;   npm run cli -- seed:einsatz --info&#x3D;&lt;key&gt;&#x27;);
+  }
+
+  /**
+   * Zeigt detaillierte Informationen zu einem Profil an.
+   */
+  private showProfileInfo(profileKey: string): void {
+    const details &#x3D; this.profileService.getProfileDetails(profileKey);
+
+    if (!details) {
+      this.logger.error(&#x60;❌ Profil &quot;${profileKey}&quot; nicht gefunden.&#x60;);
+      this.logger.log(&#x27;\n📋 Verfügbare Profile:&#x27;);
+      this.logger.log(this.profileService.getAvailableProfileKeys().join(&#x27;, &#x27;));
+      return;
+    }
+
+    this.logger.log(&#x27;\n📋 DRK-Profil Details:&#x27;);
+    this.logger.log(&#x27;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x27;);
+    this.logger.log(details);
+    this.logger.log(&#x27;\n💡 Einsatz erstellen:&#x27;);
+    this.logger.log(&#x60;   npm run cli -- seed:einsatz --profile&#x3D;${profileKey}&#x60;);
+  }
+
+  /**
+   * Zeigt gefilterte Profile nach Kategorie und/oder Priorität an.
+   */
+  private showFilteredProfiles(category?: string, priority?: string): void {
+    let profiles &#x3D; this.profileService.getAllProfiles();
+
+    if (category) {
+      const categoryProfiles &#x3D; this.profileService.getProfilesByCategory(category as any);
+      if (categoryProfiles.length &#x3D;&#x3D;&#x3D; 0) {
+        this.logger.error(&#x60;❌ Keine Profile für Kategorie &quot;${category}&quot; gefunden.&#x60;);
+        return;
+      }
+      profiles &#x3D; categoryProfiles;
+    }
+
+    if (priority) {
+      const priorityProfiles &#x3D; this.profileService.getProfilesByPriority(priority as any);
+      if (priorityProfiles.length &#x3D;&#x3D;&#x3D; 0) {
+        this.logger.error(&#x60;❌ Keine Profile für Priorität &quot;${priority}&quot; gefunden.&#x60;);
+        return;
+      }
+      profiles &#x3D; priorityProfiles;
+    }
+
+    this.logger.log(
+      &#x60;\n📋 Gefilterte DRK-Profile (${category || &#x27;alle&#x27;} Kategorien, ${priority || &#x27;alle&#x27;} Prioritäten):&#x60;,
+    );
+    this.logger.log(&#x27;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x27;);
+
+    profiles.forEach((profile) &#x3D;&gt; {
+      this.logger.log(&#x60;🔹 ${profile.key}: ${profile.name}&#x60;);
+      this.logger.log(&#x60;   ${profile.description}&#x60;);
+      this.logger.log(&#x27;&#x27;);
+    });
+  }
+
+  /**
+   * Generiert einen Standard-Einsatz-Namen.
+   */
+  private generateDefaultName(): string {
+    const now &#x3D; new Date();
+    const timestamp &#x3D; now.toISOString().slice(0, 16).replace(&#x27;T&#x27;, &#x27; &#x27;);
+    return &#x60;Test-Einsatz ${timestamp}&#x60;;
+  }
+}
+</code></pre>
+    </div>
+
+</div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+                   </div><div class="search-results">
+    <div class="has-results">
+        <h1 class="search-results-title"><span class='search-results-count'></span> results matching "<span class='search-query'></span>"</h1>
+        <ul class="search-results-list"></ul>
+    </div>
+    <div class="no-results">
+        <h1 class="search-results-title">No results matching "<span class='search-query'></span>"</h1>
+    </div>
+</div>
+</div>
+               <!-- END CONTENT -->
+           </div>
+       </div>
+
+          <label class="dark-mode-switch">
+               <input type="checkbox">
+               <span class="slider">
+                    <svg class="slider-icon" viewBox="0 0 24 24" fill="none" height="20" stroke="#000" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" width="20" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"></path>
+                    </svg>
+               </span>
+          </label>
+
+       <script>
+            var COMPODOC_CURRENT_PAGE_DEPTH = 1;
+            var COMPODOC_CURRENT_PAGE_CONTEXT = 'injectable';
+            var COMPODOC_CURRENT_PAGE_URL = 'SeedEinsatzCommand.html';
+            var MAX_SEARCH_RESULTS = 15;
+       </script>
+
+       <script>
+               $darkModeToggleSwitchers = document.querySelectorAll('.dark-mode-switch input');
+               checkToggle(darkModeState);
+               if ($darkModeToggleSwitchers.length > 0) {
+                    for (var i = 0; i < $darkModeToggleSwitchers.length; i++) {
+                         $darkModeToggleSwitchers[i].addEventListener('change', function (event) {
+                              darkModeState = !darkModeState;
+                              toggleDarkMode(darkModeState);
+                         });
+                    }
+               }
+          </script>
+
+       <script src="../js/libs/custom-elements.min.js"></script>
+       <script src="../js/libs/lit-html.js"></script>
+
+       <script src="../js/menu-wc.js" defer></script>
+       <script nomodule src="../js/menu-wc_es5.js" defer></script>
+
+       <script src="../js/libs/bootstrap-native.js"></script>
+
+       <script src="../js/libs/es6-shim.min.js"></script>
+       <script src="../js/libs/EventDispatcher.js"></script>
+       <script src="../js/libs/promise.min.js"></script>
+
+       <script src="../js/compodoc.js"></script>
+
+       <script src="../js/tabs.js"></script>
+       <script src="../js/menu.js"></script>
+       <script src="../js/libs/clipboard.min.js"></script>
+       <script src="../js/libs/prism.js"></script>
+       <script src="../js/sourceCode.js"></script>
+          <script src="../js/search/search.js"></script>
+          <script src="../js/search/lunr.min.js"></script>
+          <script src="../js/search/search-lunr.js"></script>
+          <script src="../js/search/search_index.js"></script>
+       <script src="../js/lazy-load-graphs.js"></script>
+
+
+    </body>
+</html>

@@ -141,7 +141,7 @@ describe('AuthModule', () => {
       const imports = Reflect.getMetadata('imports', AuthModule);
       expect(imports).toBeDefined();
       expect(Array.isArray(imports)).toBe(true);
-      expect(imports).toHaveLength(6); // Now includes ThrottlerModule
+      expect(imports).toHaveLength(7); // Now includes ThrottlerModule and NotificationModule
 
       // Check ConfigModule
       expect(imports[0]).toBeDefined();
@@ -163,7 +163,7 @@ describe('AuthModule', () => {
       const providers = Reflect.getMetadata('providers', AuthModule);
       expect(providers).toBeDefined();
       expect(Array.isArray(providers)).toBe(true);
-      expect(providers).toHaveLength(12); // Added new security services
+      expect(providers).toHaveLength(13); // Added new security services
       expect(providers).toContain(AuthService);
       expect(providers).toContain(JwtStrategy);
       expect(providers).toContain(PrismaService);

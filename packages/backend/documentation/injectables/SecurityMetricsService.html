@@ -1,0 +1,969 @@
+<!doctype html>
+<html class="no-js" lang="">
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="x-ua-compatible" content="ie=edge">
+        <title>@bluelight-hub/backend documentation</title>
+        <meta name="description" content="">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+
+        <link rel="icon" type="image/x-icon" href="../images/favicon.ico">
+	   <link rel="stylesheet" href="../styles/style.css">
+        <link rel="stylesheet" href="../styles/dark.css">
+    </head>
+    <body>
+          <script>
+               // Blocking script to avoid flickering dark mode
+               // Dark mode toggle button
+               var useDark = window.matchMedia('(prefers-color-scheme: dark)');
+               var darkModeState = useDark.matches;
+               var $darkModeToggleSwitchers = document.querySelectorAll('.dark-mode-switch input');
+               var $darkModeToggles = document.querySelectorAll('.dark-mode-switch');
+               var darkModeStateLocal = localStorage.getItem('compodoc_darkmode-state');
+
+               function checkToggle(check) {
+                    for (var i = 0; i < $darkModeToggleSwitchers.length; i++) {
+                         $darkModeToggleSwitchers[i].checked = check;
+                    }
+               }
+
+               function toggleDarkMode(state) {
+                    if (window.localStorage) {
+                         localStorage.setItem('compodoc_darkmode-state', state);
+                    }
+
+                    checkToggle(state);
+
+                    const hasClass = document.body.classList.contains('dark');
+
+                    if (state) {
+                         for (var i = 0; i < $darkModeToggles.length; i++) {
+                              $darkModeToggles[i].classList.add('dark');
+                         }
+                         if (!hasClass) {
+                              document.body.classList.add('dark');
+                         }
+                    } else {
+                         for (var i = 0; i < $darkModeToggles.length; i++) {
+                              $darkModeToggles[i].classList.remove('dark');
+                         }
+                         if (hasClass) {
+                              document.body.classList.remove('dark');
+                         }
+                    }
+               }
+
+               useDark.addEventListener('change', function (evt) {
+                    toggleDarkMode(evt.matches);
+               });
+               if (darkModeStateLocal) {
+                    darkModeState = darkModeStateLocal === 'true';
+               }
+               toggleDarkMode(darkModeState);
+          </script>
+
+        <div class="navbar navbar-default navbar-fixed-top d-md-none p-0">
+               <div class="d-flex">
+                    <a href="../" class="navbar-brand">@bluelight-hub/backend documentation</a>
+                    <button type="button" class="btn btn-default btn-menu ion-ios-menu" id="btn-menu"></button>
+               </div>
+        </div>
+
+        <div class="xs-menu menu" id="mobile-menu">
+                <div id="book-search-input" role="search"><input type="text" placeholder="Type to search"></div>            <compodoc-menu></compodoc-menu>
+        </div>
+
+        <div class="container-fluid main">
+           <div class="row main">
+               <div class="d-none d-md-block menu">
+                   <compodoc-menu mode="normal"></compodoc-menu>
+               </div>
+               <!-- START CONTENT -->
+               <div class="content injectable">
+                   <div class="content-data">
+
+
+
+
+
+
+
+
+<ol class="breadcrumb">
+  <li class="breadcrumb-item">Injectables</li>
+  <li class="breadcrumb-item" >SecurityMetricsService</li>
+</ol>
+
+<ul class="nav nav-tabs" role="tablist">
+        <li class="nav-item">
+            <a href="#info" 
+                class="nav-link"
+                class="nav-link active"
+                role="tab" id="info-tab" data-bs-toggle="tab" data-link="info">Info</a>
+        </li>
+        <li class="nav-item">
+            <a href="#source" 
+                class="nav-link"
+                
+                role="tab" id="source-tab" data-bs-toggle="tab" data-link="source">Source</a>
+        </li>
+</ul>
+
+<div class="tab-content">
+    <div class="tab-pane fade active in" id="info">
+        <p class="comment">
+            <h3>File</h3>
+        </p>
+        <p class="comment">
+            <code>src/modules/auth/services/security-metrics.service.ts</code>
+        </p>
+
+
+            <p class="comment">
+                <h3>Description</h3>
+            </p>
+            <p class="comment">
+                <p>Service zur Sammlung und Verwaltung von Sicherheitsmetriken.
+Stellt aggregierte Daten für Monitoring und Dashboards bereit.</p>
+
+            </p>
+
+
+
+            <section data-compodoc="block-index">
+    <h3 id="index">Index</h3>
+    <table class="table table-sm table-bordered index-table">
+        <tbody>
+                <tr>
+                    <td class="col-md-4">
+                        <h6><b>Properties</b></h6>
+                    </td>
+                </tr>
+                <tr>
+                    <td class="col-md-4">
+                        <ul class="index-list">
+                            <li>
+                                    <span class="modifier">Private</span>
+                                    <span class="modifier">Readonly</span>
+                                <a href="#logger" >logger</a>
+                            </li>
+                        </ul>
+                    </td>
+                </tr>
+
+                <tr>
+                    <td class="col-md-4">
+                        <h6><b>Methods</b></h6>
+                    </td>
+                </tr>
+                <tr>
+                    <td class="col-md-4">
+                        <ul class="index-list">
+                            <li>
+                                    <span class="modifier">Private</span>
+                                <a href="#calculateTrend" >calculateTrend</a>
+                            </li>
+                            <li>
+                                    <span class="modifier">Async</span>
+                                <a href="#emitMetrics" >emitMetrics</a>
+                            </li>
+                            <li>
+                                    <span class="modifier">Async</span>
+                                <a href="#getAccountLockoutMetrics" >getAccountLockoutMetrics</a>
+                            </li>
+                            <li>
+                                    <span class="modifier">Async</span>
+                                <a href="#getDashboardMetrics" >getDashboardMetrics</a>
+                            </li>
+                            <li>
+                                    <span class="modifier">Async</span>
+                                <a href="#getFailedLoginMetrics" >getFailedLoginMetrics</a>
+                            </li>
+                            <li>
+                                    <span class="modifier">Async</span>
+                                <a href="#getSuspiciousActivityMetrics" >getSuspiciousActivityMetrics</a>
+                            </li>
+                        </ul>
+                    </td>
+                </tr>
+
+
+
+
+
+        </tbody>
+    </table>
+</section>
+
+            <section data-compodoc="block-constructor">
+    <h3 id="constructor">Constructor</h3>
+        <table class="table table-sm table-bordered">
+            <tbody>
+                <tr>
+                    <td class="col-md-4">
+<code>constructor(securityLogService: <a href="../injectables/SecurityLogService.html" target="_self">SecurityLogService</a>, eventEmitter: EventEmitter2)</code>
+                    </td>
+                </tr>
+                        <tr>
+                            <td class="col-md-4">
+                                <div class="io-line">Defined in <a href="" data-line="12" class="link-to-prism">src/modules/auth/services/security-metrics.service.ts:12</a></div>
+                            </td>
+                        </tr>
+
+                <tr>
+                    <td class="col-md-4">
+                            <div>
+                                    <b>Parameters :</b>
+                                    <table class="params">
+                                        <thead>
+                                            <tr>
+                                                <td>Name</td>
+                                                    <td>Type</td>
+                                                <td>Optional</td>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                                <tr>
+                                                        <td>securityLogService</td>
+                                                  
+                                                        <td>
+                                                                        <code><a href="../injectables/SecurityLogService.html" target="_self" >SecurityLogService</a></code>
+                                                        </td>
+                                                  
+                                                    <td>
+                                                            No
+                                                    </td>
+                                                    
+                                                </tr>
+                                                <tr>
+                                                        <td>eventEmitter</td>
+                                                  
+                                                        <td>
+                                                                    <code>EventEmitter2</code>
+                                                        </td>
+                                                  
+                                                    <td>
+                                                            No
+                                                    </td>
+                                                    
+                                                </tr>
+                                        </tbody>
+                                    </table>
+                            </div>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+</section>
+
+            <section data-compodoc="block-methods">
+    
+    <h3 id="methods">
+        Methods
+    </h3>
+    <table class="table table-sm table-bordered">
+        <tbody>
+            <tr>
+                <td class="col-md-4">
+                    <a name="calculateTrend"></a>
+                    <span class="name">
+                            <span class="modifier">Private</span>
+                        <span ><b>calculateTrend</b></span>
+                        <a href="#calculateTrend"><span class="icon ion-ios-link"></span></a>
+                    </span>
+                </td>
+            </tr>
+            <tr>
+                <td class="col-md-4">
+                        <span class="modifier-icon icon ion-ios-reset"></span>
+                    <code>calculateTrend(totalPeriod: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/number" target="_blank">number</a>, recentPeriod: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/number" target="_blank">number</a>)</code>
+                </td>
+            </tr>
+
+
+                    <tr>
+                        <td class="col-md-4">
+                            <div class="io-line">Defined in <a href="" data-line="181"
+                                    class="link-to-prism">src/modules/auth/services/security-metrics.service.ts:181</a></div>
+                        </td>
+                    </tr>
+
+
+            <tr>
+                <td class="col-md-4">
+                        <div class="io-description"><p>Berechnet den Trend (Änderung in Prozent)</p>
+</div>
+
+                            <div class="io-description">
+                                <b>Parameters :</b>
+                                
+                                <table class="params">
+                                    <thead>
+                                        <tr>
+                                            <td>Name</td>
+                                                <td>Type</td>
+                                            <td>Optional</td>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                                <td>totalPeriod</td>
+                                            <td>
+                                                            <code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/number" target="_blank" >number</a></code>
+                                            </td>
+
+                                            <td>
+                                                    No
+                                            </td>
+
+
+                                        </tr>
+                                        <tr>
+                                                <td>recentPeriod</td>
+                                            <td>
+                                                            <code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/number" target="_blank" >number</a></code>
+                                            </td>
+
+                                            <td>
+                                                    No
+                                            </td>
+
+
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        <div class="io-description">
+                            <b>Returns : </b>        <code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/number" target="_blank" >number</a></code>
+
+                        </div>
+                            <div class="io-description">
+                                
+                            </div>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+    <table class="table table-sm table-bordered">
+        <tbody>
+            <tr>
+                <td class="col-md-4">
+                    <a name="emitMetrics"></a>
+                    <span class="name">
+                            <span class="modifier">Async</span>
+                        <span ><b>emitMetrics</b></span>
+                        <a href="#emitMetrics"><span class="icon ion-ios-link"></span></a>
+                    </span>
+                </td>
+            </tr>
+            <tr>
+                <td class="col-md-4">
+                        <span class="modifier-icon icon ion-ios-reset"></span>
+                    <code>emitMetrics()</code>
+                </td>
+            </tr>
+
+
+                    <tr>
+                        <td class="col-md-4">
+                            <div class="io-line">Defined in <a href="" data-line="191"
+                                    class="link-to-prism">src/modules/auth/services/security-metrics.service.ts:191</a></div>
+                        </td>
+                    </tr>
+
+
+            <tr>
+                <td class="col-md-4">
+                        <div class="io-description"><p>Emittiert Metriken für externes Monitoring (z.B. Prometheus)</p>
+</div>
+
+                        <div class="io-description">
+                            <b>Returns : </b>        <code><a href="https://www.typescriptlang.org/docs/handbook/basic-types.html" target="_blank" >any</a></code>
+
+                        </div>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+    <table class="table table-sm table-bordered">
+        <tbody>
+            <tr>
+                <td class="col-md-4">
+                    <a name="getAccountLockoutMetrics"></a>
+                    <span class="name">
+                            <span class="modifier">Async</span>
+                        <span ><b>getAccountLockoutMetrics</b></span>
+                        <a href="#getAccountLockoutMetrics"><span class="icon ion-ios-link"></span></a>
+                    </span>
+                </td>
+            </tr>
+            <tr>
+                <td class="col-md-4">
+                        <span class="modifier-icon icon ion-ios-reset"></span>
+                    <code>getAccountLockoutMetrics(timeRange: literal type)</code>
+                </td>
+            </tr>
+
+
+                    <tr>
+                        <td class="col-md-4">
+                            <div class="io-line">Defined in <a href="" data-line="69"
+                                    class="link-to-prism">src/modules/auth/services/security-metrics.service.ts:69</a></div>
+                        </td>
+                    </tr>
+
+
+            <tr>
+                <td class="col-md-4">
+                        <div class="io-description"><p>Holt die Metriken für Account-Sperrungen</p>
+</div>
+
+                            <div class="io-description">
+                                <b>Parameters :</b>
+                                
+                                <table class="params">
+                                    <thead>
+                                        <tr>
+                                            <td>Name</td>
+                                                <td>Type</td>
+                                            <td>Optional</td>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                                <td>timeRange</td>
+                                            <td>
+                                                        <code>literal type</code>
+                                            </td>
+
+                                            <td>
+                                                    No
+                                            </td>
+
+
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        <div class="io-description">
+                            <b>Returns : </b>    <code>unknown</code>
+
+                        </div>
+                            <div class="io-description">
+                                
+                            </div>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+    <table class="table table-sm table-bordered">
+        <tbody>
+            <tr>
+                <td class="col-md-4">
+                    <a name="getDashboardMetrics"></a>
+                    <span class="name">
+                            <span class="modifier">Async</span>
+                        <span ><b>getDashboardMetrics</b></span>
+                        <a href="#getDashboardMetrics"><span class="icon ion-ios-link"></span></a>
+                    </span>
+                </td>
+            </tr>
+            <tr>
+                <td class="col-md-4">
+                        <span class="modifier-icon icon ion-ios-reset"></span>
+                    <code>getDashboardMetrics()</code>
+                </td>
+            </tr>
+
+
+                    <tr>
+                        <td class="col-md-4">
+                            <div class="io-line">Defined in <a href="" data-line="137"
+                                    class="link-to-prism">src/modules/auth/services/security-metrics.service.ts:137</a></div>
+                        </td>
+                    </tr>
+
+
+            <tr>
+                <td class="col-md-4">
+                        <div class="io-description"><p>Holt aggregierte Sicherheitsmetriken für Dashboard</p>
+</div>
+
+                        <div class="io-description">
+                            <b>Returns : </b>    <code>unknown</code>
+
+                        </div>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+    <table class="table table-sm table-bordered">
+        <tbody>
+            <tr>
+                <td class="col-md-4">
+                    <a name="getFailedLoginMetrics"></a>
+                    <span class="name">
+                            <span class="modifier">Async</span>
+                        <span ><b>getFailedLoginMetrics</b></span>
+                        <a href="#getFailedLoginMetrics"><span class="icon ion-ios-link"></span></a>
+                    </span>
+                </td>
+            </tr>
+            <tr>
+                <td class="col-md-4">
+                        <span class="modifier-icon icon ion-ios-reset"></span>
+                    <code>getFailedLoginMetrics(timeRange: literal type)</code>
+                </td>
+            </tr>
+
+
+                    <tr>
+                        <td class="col-md-4">
+                            <div class="io-line">Defined in <a href="" data-line="22"
+                                    class="link-to-prism">src/modules/auth/services/security-metrics.service.ts:22</a></div>
+                        </td>
+                    </tr>
+
+
+            <tr>
+                <td class="col-md-4">
+                        <div class="io-description"><p>Holt die Metriken für fehlgeschlagene Login-Versuche</p>
+</div>
+
+                            <div class="io-description">
+                                <b>Parameters :</b>
+                                
+                                <table class="params">
+                                    <thead>
+                                        <tr>
+                                            <td>Name</td>
+                                                <td>Type</td>
+                                            <td>Optional</td>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                                <td>timeRange</td>
+                                            <td>
+                                                        <code>literal type</code>
+                                            </td>
+
+                                            <td>
+                                                    No
+                                            </td>
+
+
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        <div class="io-description">
+                            <b>Returns : </b>    <code>unknown</code>
+
+                        </div>
+                            <div class="io-description">
+                                
+                            </div>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+    <table class="table table-sm table-bordered">
+        <tbody>
+            <tr>
+                <td class="col-md-4">
+                    <a name="getSuspiciousActivityMetrics"></a>
+                    <span class="name">
+                            <span class="modifier">Async</span>
+                        <span ><b>getSuspiciousActivityMetrics</b></span>
+                        <a href="#getSuspiciousActivityMetrics"><span class="icon ion-ios-link"></span></a>
+                    </span>
+                </td>
+            </tr>
+            <tr>
+                <td class="col-md-4">
+                        <span class="modifier-icon icon ion-ios-reset"></span>
+                    <code>getSuspiciousActivityMetrics(timeRange: literal type)</code>
+                </td>
+            </tr>
+
+
+                    <tr>
+                        <td class="col-md-4">
+                            <div class="io-line">Defined in <a href="" data-line="103"
+                                    class="link-to-prism">src/modules/auth/services/security-metrics.service.ts:103</a></div>
+                        </td>
+                    </tr>
+
+
+            <tr>
+                <td class="col-md-4">
+                        <div class="io-description"><p>Holt die Metriken für verdächtige Aktivitäten</p>
+</div>
+
+                            <div class="io-description">
+                                <b>Parameters :</b>
+                                
+                                <table class="params">
+                                    <thead>
+                                        <tr>
+                                            <td>Name</td>
+                                                <td>Type</td>
+                                            <td>Optional</td>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                                <td>timeRange</td>
+                                            <td>
+                                                        <code>literal type</code>
+                                            </td>
+
+                                            <td>
+                                                    No
+                                            </td>
+
+
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        <div class="io-description">
+                            <b>Returns : </b>    <code>unknown</code>
+
+                        </div>
+                            <div class="io-description">
+                                
+                            </div>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+</section>
+            <section data-compodoc="block-properties">
+    
+    <h3 id="inputs">
+        Properties
+    </h3>
+    <table class="table table-sm table-bordered">
+        <tbody>
+            <tr>
+                <td class="col-md-4">
+                    <a name="logger"></a>
+                    <span class="name">
+                            <span class="modifier">Private</span>
+                            <span class="modifier">Readonly</span>
+                        <span ><b>logger</b></span>
+                        <a href="#logger"><span class="icon ion-ios-link"></span></a>
+                    </span>
+                </td>
+            </tr>
+                <tr>
+                    <td class="col-md-4">
+                        <i>Default value : </i><code>new Logger(SecurityMetricsService.name)</code>
+                    </td>
+                </tr>
+                    <tr>
+                        <td class="col-md-4">
+                                <div class="io-line">Defined in <a href="" data-line="12" class="link-to-prism">src/modules/auth/services/security-metrics.service.ts:12</a></div>
+                        </td>
+                    </tr>
+
+
+        </tbody>
+    </table>
+</section>
+
+    </div>
+
+
+    <div class="tab-pane fade  tab-source-code" id="source">
+        <pre class="line-numbers compodoc-sourcecode"><code class="language-typescript">import { Injectable, Logger } from &#x27;@nestjs/common&#x27;;
+import { SecurityLogService } from &#x27;./security-log.service&#x27;;
+import { SecurityEventType } from &#x27;../enums/security-event-type.enum&#x27;;
+import { EventEmitter2 } from &#x27;@nestjs/event-emitter&#x27;;
+
+/**
+ * Service zur Sammlung und Verwaltung von Sicherheitsmetriken.
+ * Stellt aggregierte Daten für Monitoring und Dashboards bereit.
+ */
+@Injectable()
+export class SecurityMetricsService {
+  private readonly logger &#x3D; new Logger(SecurityMetricsService.name);
+
+  constructor(
+    private readonly securityLogService: SecurityLogService,
+    private readonly eventEmitter: EventEmitter2,
+  ) {}
+
+  /**
+   * Holt die Metriken für fehlgeschlagene Login-Versuche
+   */
+  async getFailedLoginMetrics(timeRange: { start: Date; end: Date }) {
+    const logs &#x3D; await this.securityLogService.getSecurityLogs({
+      eventType: SecurityEventType.LOGIN_FAILED,
+      startDate: timeRange.start,
+      endDate: timeRange.end,
+    });
+
+    // Group by IP address
+    const byIp &#x3D; new Map&lt;string, number&gt;();
+    const byUser &#x3D; new Map&lt;string, number&gt;();
+    const byHour &#x3D; new Map&lt;string, number&gt;();
+
+    logs.forEach((log) &#x3D;&gt; {
+      // Count by IP
+      if (log.ipAddress) {
+        byIp.set(log.ipAddress, (byIp.get(log.ipAddress) || 0) + 1);
+      }
+
+      // Count by user
+      if (log.userId) {
+        byUser.set(log.userId, (byUser.get(log.userId) || 0) + 1);
+      }
+
+      // Count by hour
+      const hour &#x3D; new Date(log.createdAt).toISOString().slice(0, 13);
+      byHour.set(hour, (byHour.get(hour) || 0) + 1);
+    });
+
+    return {
+      total: logs.length,
+      byIp: Array.from(byIp.entries())
+        .map(([ip, count]) &#x3D;&gt; ({ ip, count }))
+        .sort((a, b) &#x3D;&gt; b.count - a.count)
+        .slice(0, 10), // Top 10 IPs
+      byUser: Array.from(byUser.entries())
+        .map(([userId, count]) &#x3D;&gt; ({ userId, count }))
+        .sort((a, b) &#x3D;&gt; b.count - a.count)
+        .slice(0, 10), // Top 10 users
+      byHour: Array.from(byHour.entries())
+        .map(([hour, count]) &#x3D;&gt; ({ hour, count }))
+        .sort((a, b) &#x3D;&gt; a.hour.localeCompare(b.hour)),
+    };
+  }
+
+  /**
+   * Holt die Metriken für Account-Sperrungen
+   */
+  async getAccountLockoutMetrics(timeRange: { start: Date; end: Date }) {
+    const logs &#x3D; await this.securityLogService.getSecurityLogs({
+      eventType: SecurityEventType.ACCOUNT_LOCKED,
+      startDate: timeRange.start,
+      endDate: timeRange.end,
+    });
+
+    // Count reasons for lockout
+    const byReason &#x3D; new Map&lt;string, number&gt;();
+    const byUser &#x3D; new Map&lt;string, number&gt;();
+
+    logs.forEach((log) &#x3D;&gt; {
+      const metadata &#x3D; log.metadata as Record&lt;string, any&gt;;
+      const reason &#x3D; metadata?.reason || &#x27;unknown&#x27;;
+      byReason.set(reason, (byReason.get(reason) || 0) + 1);
+
+      if (log.userId) {
+        byUser.set(log.userId, (byUser.get(log.userId) || 0) + 1);
+      }
+    });
+
+    return {
+      total: logs.length,
+      byReason: Array.from(byReason.entries()).map(([reason, count]) &#x3D;&gt; ({ reason, count })),
+      byUser: Array.from(byUser.entries())
+        .map(([userId, count]) &#x3D;&gt; ({ userId, count }))
+        .sort((a, b) &#x3D;&gt; b.count - a.count)
+        .slice(0, 10),
+    };
+  }
+
+  /**
+   * Holt die Metriken für verdächtige Aktivitäten
+   */
+  async getSuspiciousActivityMetrics(timeRange: { start: Date; end: Date }) {
+    const logs &#x3D; await this.securityLogService.getSecurityLogs({
+      eventType: SecurityEventType.SUSPICIOUS_ACTIVITY,
+      startDate: timeRange.start,
+      endDate: timeRange.end,
+    });
+
+    // Group by activity type
+    const byType &#x3D; new Map&lt;string, number&gt;();
+    const byIp &#x3D; new Map&lt;string, number&gt;();
+
+    logs.forEach((log) &#x3D;&gt; {
+      const metadata &#x3D; log.metadata as Record&lt;string, any&gt;;
+      const activityType &#x3D; metadata?.type || &#x27;unknown&#x27;;
+      byType.set(activityType, (byType.get(activityType) || 0) + 1);
+
+      if (log.ipAddress) {
+        byIp.set(log.ipAddress, (byIp.get(log.ipAddress) || 0) + 1);
+      }
+    });
+
+    return {
+      total: logs.length,
+      byType: Array.from(byType.entries()).map(([type, count]) &#x3D;&gt; ({ type, count })),
+      byIp: Array.from(byIp.entries())
+        .map(([ip, count]) &#x3D;&gt; ({ ip, count }))
+        .sort((a, b) &#x3D;&gt; b.count - a.count)
+        .slice(0, 10),
+    };
+  }
+
+  /**
+   * Holt aggregierte Sicherheitsmetriken für Dashboard
+   */
+  async getDashboardMetrics() {
+    const now &#x3D; new Date();
+    const last24Hours &#x3D; new Date(now.getTime() - 24 * 60 * 60 * 1000);
+    const last7Days &#x3D; new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+
+    const [failedLogins24h, failedLogins7d, lockouts24h, lockouts7d, suspicious24h, suspicious7d] &#x3D;
+      await Promise.all([
+        this.getFailedLoginMetrics({ start: last24Hours, end: now }),
+        this.getFailedLoginMetrics({ start: last7Days, end: now }),
+        this.getAccountLockoutMetrics({ start: last24Hours, end: now }),
+        this.getAccountLockoutMetrics({ start: last7Days, end: now }),
+        this.getSuspiciousActivityMetrics({ start: last24Hours, end: now }),
+        this.getSuspiciousActivityMetrics({ start: last7Days, end: now }),
+      ]);
+
+    return {
+      summary: {
+        failedLogins: {
+          last24Hours: failedLogins24h.total,
+          last7Days: failedLogins7d.total,
+          trend: this.calculateTrend(failedLogins7d.total, failedLogins24h.total),
+        },
+        accountLockouts: {
+          last24Hours: lockouts24h.total,
+          last7Days: lockouts7d.total,
+          trend: this.calculateTrend(lockouts7d.total, lockouts24h.total),
+        },
+        suspiciousActivities: {
+          last24Hours: suspicious24h.total,
+          last7Days: suspicious7d.total,
+          trend: this.calculateTrend(suspicious7d.total, suspicious24h.total),
+        },
+      },
+      details: {
+        topFailedLoginIps: failedLogins24h.byIp,
+        topLockedUsers: lockouts24h.byUser,
+        suspiciousActivityTypes: suspicious24h.byType,
+      },
+    };
+  }
+
+  /**
+   * Berechnet den Trend (Änderung in Prozent)
+   */
+  private calculateTrend(totalPeriod: number, recentPeriod: number): number {
+    if (totalPeriod &#x3D;&#x3D;&#x3D; 0) return 0;
+    const averageDaily &#x3D; totalPeriod / 7;
+    if (averageDaily &#x3D;&#x3D;&#x3D; 0) return 0;
+    return Math.round(((recentPeriod - averageDaily) / averageDaily) * 100);
+  }
+
+  /**
+   * Emittiert Metriken für externes Monitoring (z.B. Prometheus)
+   */
+  async emitMetrics() {
+    const metrics &#x3D; await this.getDashboardMetrics();
+
+    this.eventEmitter.emit(&#x27;security.metrics&#x27;, {
+      timestamp: new Date(),
+      metrics,
+    });
+
+    this.logger.debug(&#x27;Security metrics emitted&#x27;);
+  }
+}
+</code></pre>
+    </div>
+
+</div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+                   </div><div class="search-results">
+    <div class="has-results">
+        <h1 class="search-results-title"><span class='search-results-count'></span> results matching "<span class='search-query'></span>"</h1>
+        <ul class="search-results-list"></ul>
+    </div>
+    <div class="no-results">
+        <h1 class="search-results-title">No results matching "<span class='search-query'></span>"</h1>
+    </div>
+</div>
+</div>
+               <!-- END CONTENT -->
+           </div>
+       </div>
+
+          <label class="dark-mode-switch">
+               <input type="checkbox">
+               <span class="slider">
+                    <svg class="slider-icon" viewBox="0 0 24 24" fill="none" height="20" stroke="#000" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" width="20" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"></path>
+                    </svg>
+               </span>
+          </label>
+
+       <script>
+            var COMPODOC_CURRENT_PAGE_DEPTH = 1;
+            var COMPODOC_CURRENT_PAGE_CONTEXT = 'injectable';
+            var COMPODOC_CURRENT_PAGE_URL = 'SecurityMetricsService.html';
+            var MAX_SEARCH_RESULTS = 15;
+       </script>
+
+       <script>
+               $darkModeToggleSwitchers = document.querySelectorAll('.dark-mode-switch input');
+               checkToggle(darkModeState);
+               if ($darkModeToggleSwitchers.length > 0) {
+                    for (var i = 0; i < $darkModeToggleSwitchers.length; i++) {
+                         $darkModeToggleSwitchers[i].addEventListener('change', function (event) {
+                              darkModeState = !darkModeState;
+                              toggleDarkMode(darkModeState);
+                         });
+                    }
+               }
+          </script>
+
+       <script src="../js/libs/custom-elements.min.js"></script>
+       <script src="../js/libs/lit-html.js"></script>
+
+       <script src="../js/menu-wc.js" defer></script>
+       <script nomodule src="../js/menu-wc_es5.js" defer></script>
+
+       <script src="../js/libs/bootstrap-native.js"></script>
+
+       <script src="../js/libs/es6-shim.min.js"></script>
+       <script src="../js/libs/EventDispatcher.js"></script>
+       <script src="../js/libs/promise.min.js"></script>
+
+       <script src="../js/compodoc.js"></script>
+
+       <script src="../js/tabs.js"></script>
+       <script src="../js/menu.js"></script>
+       <script src="../js/libs/clipboard.min.js"></script>
+       <script src="../js/libs/prism.js"></script>
+       <script src="../js/sourceCode.js"></script>
+          <script src="../js/search/search.js"></script>
+          <script src="../js/search/lunr.min.js"></script>
+          <script src="../js/search/search-lunr.js"></script>
+          <script src="../js/search/search_index.js"></script>
+       <script src="../js/lazy-load-graphs.js"></script>
+
+
+    </body>
+</html>

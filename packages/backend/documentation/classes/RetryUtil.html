@@ -1,0 +1,1041 @@
+<!doctype html>
+<html class="no-js" lang="">
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="x-ua-compatible" content="ie=edge">
+        <title>@bluelight-hub/backend documentation</title>
+        <meta name="description" content="">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+
+        <link rel="icon" type="image/x-icon" href="../images/favicon.ico">
+	   <link rel="stylesheet" href="../styles/style.css">
+        <link rel="stylesheet" href="../styles/dark.css">
+    </head>
+    <body>
+          <script>
+               // Blocking script to avoid flickering dark mode
+               // Dark mode toggle button
+               var useDark = window.matchMedia('(prefers-color-scheme: dark)');
+               var darkModeState = useDark.matches;
+               var $darkModeToggleSwitchers = document.querySelectorAll('.dark-mode-switch input');
+               var $darkModeToggles = document.querySelectorAll('.dark-mode-switch');
+               var darkModeStateLocal = localStorage.getItem('compodoc_darkmode-state');
+
+               function checkToggle(check) {
+                    for (var i = 0; i < $darkModeToggleSwitchers.length; i++) {
+                         $darkModeToggleSwitchers[i].checked = check;
+                    }
+               }
+
+               function toggleDarkMode(state) {
+                    if (window.localStorage) {
+                         localStorage.setItem('compodoc_darkmode-state', state);
+                    }
+
+                    checkToggle(state);
+
+                    const hasClass = document.body.classList.contains('dark');
+
+                    if (state) {
+                         for (var i = 0; i < $darkModeToggles.length; i++) {
+                              $darkModeToggles[i].classList.add('dark');
+                         }
+                         if (!hasClass) {
+                              document.body.classList.add('dark');
+                         }
+                    } else {
+                         for (var i = 0; i < $darkModeToggles.length; i++) {
+                              $darkModeToggles[i].classList.remove('dark');
+                         }
+                         if (hasClass) {
+                              document.body.classList.remove('dark');
+                         }
+                    }
+               }
+
+               useDark.addEventListener('change', function (evt) {
+                    toggleDarkMode(evt.matches);
+               });
+               if (darkModeStateLocal) {
+                    darkModeState = darkModeStateLocal === 'true';
+               }
+               toggleDarkMode(darkModeState);
+          </script>
+
+        <div class="navbar navbar-default navbar-fixed-top d-md-none p-0">
+               <div class="d-flex">
+                    <a href="../" class="navbar-brand">@bluelight-hub/backend documentation</a>
+                    <button type="button" class="btn btn-default btn-menu ion-ios-menu" id="btn-menu"></button>
+               </div>
+        </div>
+
+        <div class="xs-menu menu" id="mobile-menu">
+                <div id="book-search-input" role="search"><input type="text" placeholder="Type to search"></div>            <compodoc-menu></compodoc-menu>
+        </div>
+
+        <div class="container-fluid main">
+           <div class="row main">
+               <div class="d-none d-md-block menu">
+                   <compodoc-menu mode="normal"></compodoc-menu>
+               </div>
+               <!-- START CONTENT -->
+               <div class="content class">
+                   <div class="content-data">
+
+
+
+
+
+
+
+
+
+
+
+
+<ol class="breadcrumb">
+  <li class="breadcrumb-item">Classes</li>
+  <li class="breadcrumb-item" >RetryUtil</li>
+</ol>
+
+<ul class="nav nav-tabs" role="tablist">
+        <li class="nav-item">
+            <a href="#info" 
+                class="nav-link"
+                class="nav-link active"
+                role="tab" id="info-tab" data-bs-toggle="tab" data-link="info">Info</a>
+        </li>
+        <li class="nav-item">
+            <a href="#source" 
+                class="nav-link"
+                
+                role="tab" id="source-tab" data-bs-toggle="tab" data-link="source">Source</a>
+        </li>
+</ul>
+
+<div class="tab-content">
+    <div class="tab-pane fade active in" id="info">
+        <p class="comment">
+            <h3>File</h3>
+        </p>
+        <p class="comment">
+            <code>src/common/utils/retry.util.ts</code>
+        </p>
+
+
+            <p class="comment">
+                <h3>Description</h3>
+            </p>
+            <p class="comment">
+                <p>Utility-Klasse für robuste Retry-Mechanismen mit exponential backoff</p>
+<p>Diese Klasse bietet Retry-Funktionalität für fehleranfällige Operationen
+mit konfigurierbarem exponentiellen Backoff und Jitter.</p>
+<p>Features:</p>
+<ul>
+<li>Exponentielles Backoff mit konfigurierbarem Multiplikator</li>
+<li>Jitter zur Vermeidung von Thundering Herd</li>
+<li>Unterstützung für PostgreSQL- und Netzwerk-Fehler</li>
+<li>Konfigurierbare Timeouts pro Versuch</li>
+</ul>
+
+            </p>
+
+
+
+
+            <section data-compodoc="block-index">
+    <h3 id="index">Index</h3>
+    <table class="table table-sm table-bordered index-table">
+        <tbody>
+                <tr>
+                    <td class="col-md-4">
+                        <h6><b>Properties</b></h6>
+                    </td>
+                </tr>
+                <tr>
+                    <td class="col-md-4">
+                        <ul class="index-list">
+                            <li>
+                                    <span class="modifier">Private</span>
+                                    <span class="modifier">Readonly</span>
+                                <a href="#logger" >logger</a>
+                            </li>
+                        </ul>
+                    </td>
+                </tr>
+
+                <tr>
+                    <td class="col-md-4">
+                        <h6><b>Methods</b></h6>
+                    </td>
+                </tr>
+                <tr>
+                    <td class="col-md-4">
+                        <ul class="index-list">
+                            <li>
+                                    <span class="modifier">Private</span>
+                                <a href="#calculateDelay" >calculateDelay</a>
+                            </li>
+                            <li>
+                                    <span class="modifier">Private</span>
+                                    <span class="modifier">Async</span>
+                                <a href="#delay" >delay</a>
+                            </li>
+                            <li>
+                                    <span class="modifier">Async</span>
+                                <a href="#executeWithRetry" >executeWithRetry</a>
+                            </li>
+                            <li>
+                                    <span class="modifier">Private</span>
+                                <a href="#isRetryableError" >isRetryableError</a>
+                            </li>
+                            <li>
+                                    <span class="modifier">Private</span>
+                                    <span class="modifier">Async</span>
+                                <a href="#withTimeout" >withTimeout</a>
+                            </li>
+                        </ul>
+                    </td>
+                </tr>
+
+
+
+
+
+        </tbody>
+    </table>
+</section>
+
+
+            <section data-compodoc="block-properties">
+    
+    <h3 id="inputs">
+        Properties
+    </h3>
+    <table class="table table-sm table-bordered">
+        <tbody>
+            <tr>
+                <td class="col-md-4">
+                    <a name="logger"></a>
+                    <span class="name">
+                            <span class="modifier">Private</span>
+                            <span class="modifier">Readonly</span>
+                        <span ><b>logger</b></span>
+                        <a href="#logger"><span class="icon ion-ios-link"></span></a>
+                    </span>
+                </td>
+            </tr>
+                <tr>
+                    <td class="col-md-4">
+                        <i>Default value : </i><code>new Logger(RetryUtil.name)</code>
+                    </td>
+                </tr>
+                    <tr>
+                        <td class="col-md-4">
+                                <div class="io-line">Defined in <a href="" data-line="65" class="link-to-prism">src/common/utils/retry.util.ts:65</a></div>
+                        </td>
+                    </tr>
+
+
+        </tbody>
+    </table>
+</section>
+
+            <section data-compodoc="block-methods">
+    
+    <h3 id="methods">
+        Methods
+    </h3>
+    <table class="table table-sm table-bordered">
+        <tbody>
+            <tr>
+                <td class="col-md-4">
+                    <a name="calculateDelay"></a>
+                    <span class="name">
+                            <span class="modifier">Private</span>
+                        <span ><b>calculateDelay</b></span>
+                        <a href="#calculateDelay"><span class="icon ion-ios-link"></span></a>
+                    </span>
+                </td>
+            </tr>
+            <tr>
+                <td class="col-md-4">
+                        <span class="modifier-icon icon ion-ios-reset"></span>
+                    <code>calculateDelay(attempt: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/number" target="_blank">number</a>, config: <a href="../interfaces/RetryConfig.html" target="_self">RetryConfig</a>)</code>
+                </td>
+            </tr>
+
+
+                    <tr>
+                        <td class="col-md-4">
+                            <div class="io-line">Defined in <a href="" data-line="183"
+                                    class="link-to-prism">src/common/utils/retry.util.ts:183</a></div>
+                        </td>
+                    </tr>
+
+
+            <tr>
+                <td class="col-md-4">
+                        <div class="io-description"><p>Berechnet die Verzögerung für den nächsten Versuch mit exponential backoff und jitter</p>
+</div>
+
+                            <div class="io-description">
+                                <b>Parameters :</b>
+                                
+                                <table class="params">
+                                    <thead>
+                                        <tr>
+                                            <td>Name</td>
+                                                <td>Type</td>
+                                            <td>Optional</td>
+                                                <td>Description</td>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                                <td>attempt</td>
+                                            <td>
+                                                            <code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/number" target="_blank" >number</a></code>
+                                            </td>
+
+                                            <td>
+                                                    No
+                                            </td>
+
+
+                                            <td>
+                                                    <p>Aktuelle Versuchsnummer (1-basiert)</p>
+
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                                <td>config</td>
+                                            <td>
+                                                            <code><a href="../interfaces/RetryConfig.html" target="_self" >RetryConfig</a></code>
+                                            </td>
+
+                                            <td>
+                                                    No
+                                            </td>
+
+
+                                            <td>
+                                                    <p>Retry-Konfiguration</p>
+
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        <div class="io-description">
+                            <b>Returns : </b>        <code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/number" target="_blank" >number</a></code>
+
+                        </div>
+                            <div class="io-description">
+                                <p>Verzögerung in Millisekunden</p>
+
+                            </div>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+    <table class="table table-sm table-bordered">
+        <tbody>
+            <tr>
+                <td class="col-md-4">
+                    <a name="delay"></a>
+                    <span class="name">
+                            <span class="modifier">Private</span>
+                            <span class="modifier">Async</span>
+                        <span ><b>delay</b></span>
+                        <a href="#delay"><span class="icon ion-ios-link"></span></a>
+                    </span>
+                </td>
+            </tr>
+            <tr>
+                <td class="col-md-4">
+                        <span class="modifier-icon icon ion-ios-reset"></span>
+                    <code>delay(ms: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/number" target="_blank">number</a>)</code>
+                </td>
+            </tr>
+
+
+                    <tr>
+                        <td class="col-md-4">
+                            <div class="io-line">Defined in <a href="" data-line="200"
+                                    class="link-to-prism">src/common/utils/retry.util.ts:200</a></div>
+                        </td>
+                    </tr>
+
+
+            <tr>
+                <td class="col-md-4">
+                        <div class="io-description"><p>Hilfsfunktion für Verzögerungen</p>
+</div>
+
+                            <div class="io-description">
+                                <b>Parameters :</b>
+                                
+                                <table class="params">
+                                    <thead>
+                                        <tr>
+                                            <td>Name</td>
+                                                <td>Type</td>
+                                            <td>Optional</td>
+                                                <td>Description</td>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                                <td>ms</td>
+                                            <td>
+                                                            <code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/number" target="_blank" >number</a></code>
+                                            </td>
+
+                                            <td>
+                                                    No
+                                            </td>
+
+
+                                            <td>
+                                                    <p>Verzögerung in Millisekunden</p>
+
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        <div class="io-description">
+                            <b>Returns : </b>    <code>Promise&lt;void&gt;</code>
+
+                        </div>
+                            <div class="io-description">
+                                
+                            </div>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+    <table class="table table-sm table-bordered">
+        <tbody>
+            <tr>
+                <td class="col-md-4">
+                    <a name="executeWithRetry"></a>
+                    <span class="name">
+                            <span class="modifier">Async</span>
+                        <span ><b>executeWithRetry</b></span>
+                        <a href="#executeWithRetry"><span class="icon ion-ios-link"></span></a>
+                    </span>
+                </td>
+            </tr>
+            <tr>
+                <td class="col-md-4">
+                        <span class="modifier-icon icon ion-ios-reset"></span>
+                    <code>executeWithRetry(operation: () => void, config: <a href="../interfaces/RetryConfig.html" target="_self">Partial&lt;RetryConfig&gt;</a>, context: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/string" target="_blank">string</a>)</code>
+                </td>
+            </tr>
+
+
+                    <tr>
+                        <td class="col-md-4">
+                            <div class="io-line">Defined in <a href="" data-line="75"
+                                    class="link-to-prism">src/common/utils/retry.util.ts:75</a></div>
+                        </td>
+                    </tr>
+
+                    <tr>
+                        <td class="col-md-4">
+                            <b>Type parameters :</b>
+                            <ul class="type-parameters">
+                                    <li>T</li>
+                            </ul>
+                        </td>
+                    </tr>
+
+            <tr>
+                <td class="col-md-4">
+                        <div class="io-description"><p>Führt eine Operation mit Retry-Logik aus</p>
+</div>
+
+                            <div class="io-description">
+                                <b>Parameters :</b>
+                                
+                                <table class="params">
+                                    <thead>
+                                        <tr>
+                                            <td>Name</td>
+                                                <td>Type</td>
+                                            <td>Optional</td>
+                                                <td>Default value</td>
+                                                <td>Description</td>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                                <td>operation</td>
+                                            <td>
+                                                            <code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/function" target="_blank" >function</a></code>
+                                            </td>
+
+                                            <td>
+                                                    No
+                                            </td>
+
+                                            <td>
+                                            </td>
+
+                                            <td>
+                                                    <p>Die auszuführende Operation</p>
+
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                                <td>config</td>
+                                            <td>
+                                                            <code><a href="../interfaces/RetryConfig.html" target="_self" >Partial&lt;RetryConfig&gt;</a></code>
+                                            </td>
+
+                                            <td>
+                                                    No
+                                            </td>
+
+                                            <td>
+                                                    <code>{}</code>
+                                            </td>
+
+                                            <td>
+                                                    <p>Retry-Konfiguration</p>
+
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                                <td>context</td>
+                                            <td>
+                                                            <code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/string" target="_blank" >string</a></code>
+                                            </td>
+
+                                            <td>
+                                                    No
+                                            </td>
+
+                                            <td>
+                                                    <code>&#x27;operation&#x27;</code>
+                                            </td>
+
+                                            <td>
+                                                    <p>Kontext für Logging</p>
+
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        <div class="io-description">
+                            <b>Returns : </b>    <code>Promise&lt;T&gt;</code>
+
+                        </div>
+                            <div class="io-description">
+                                <p>Das Ergebnis der Operation</p>
+
+                            </div>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+    <table class="table table-sm table-bordered">
+        <tbody>
+            <tr>
+                <td class="col-md-4">
+                    <a name="isRetryableError"></a>
+                    <span class="name">
+                            <span class="modifier">Private</span>
+                        <span ><b>isRetryableError</b></span>
+                        <a href="#isRetryableError"><span class="icon ion-ios-link"></span></a>
+                    </span>
+                </td>
+            </tr>
+            <tr>
+                <td class="col-md-4">
+                        <span class="modifier-icon icon ion-ios-reset"></span>
+                    <code>isRetryableError(error: <a href="https://www.typescriptlang.org/docs/handbook/basic-types.html" target="_blank">any</a>)</code>
+                </td>
+            </tr>
+
+
+                    <tr>
+                        <td class="col-md-4">
+                            <div class="io-line">Defined in <a href="" data-line="132"
+                                    class="link-to-prism">src/common/utils/retry.util.ts:132</a></div>
+                        </td>
+                    </tr>
+
+
+            <tr>
+                <td class="col-md-4">
+                        <div class="io-description"><p>Prüft, ob ein Fehler einen Retry rechtfertigt</p>
+</div>
+
+                            <div class="io-description">
+                                <b>Parameters :</b>
+                                
+                                <table class="params">
+                                    <thead>
+                                        <tr>
+                                            <td>Name</td>
+                                                <td>Type</td>
+                                            <td>Optional</td>
+                                                <td>Description</td>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                                <td>error</td>
+                                            <td>
+                                                            <code><a href="https://www.typescriptlang.org/docs/handbook/basic-types.html" target="_blank" >any</a></code>
+                                            </td>
+
+                                            <td>
+                                                    No
+                                            </td>
+
+
+                                            <td>
+                                                    <p>Der zu prüfende Fehler</p>
+
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        <div class="io-description">
+                            <b>Returns : </b>        <code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/boolean" target="_blank" >boolean</a></code>
+
+                        </div>
+                            <div class="io-description">
+                                <p>true, wenn der Fehler wiederholbar ist</p>
+
+                            </div>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+    <table class="table table-sm table-bordered">
+        <tbody>
+            <tr>
+                <td class="col-md-4">
+                    <a name="withTimeout"></a>
+                    <span class="name">
+                            <span class="modifier">Private</span>
+                            <span class="modifier">Async</span>
+                        <span ><b>withTimeout</b></span>
+                        <a href="#withTimeout"><span class="icon ion-ios-link"></span></a>
+                    </span>
+                </td>
+            </tr>
+            <tr>
+                <td class="col-md-4">
+                        <span class="modifier-icon icon ion-ios-reset"></span>
+                    <code>withTimeout(promise: Promise<T>, timeoutMs: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/number" target="_blank">number</a>)</code>
+                </td>
+            </tr>
+
+
+                    <tr>
+                        <td class="col-md-4">
+                            <div class="io-line">Defined in <a href="" data-line="214"
+                                    class="link-to-prism">src/common/utils/retry.util.ts:214</a></div>
+                        </td>
+                    </tr>
+
+                    <tr>
+                        <td class="col-md-4">
+                            <b>Type parameters :</b>
+                            <ul class="type-parameters">
+                                    <li>T</li>
+                            </ul>
+                        </td>
+                    </tr>
+
+            <tr>
+                <td class="col-md-4">
+                        <div class="io-description"><p>Führt eine Operation mit Timeout aus</p>
+</div>
+
+                            <div class="io-description">
+                                <b>Parameters :</b>
+                                
+                                <table class="params">
+                                    <thead>
+                                        <tr>
+                                            <td>Name</td>
+                                                <td>Type</td>
+                                            <td>Optional</td>
+                                                <td>Description</td>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                                <td>promise</td>
+                                            <td>
+                                                        <code>Promise&lt;T&gt;</code>
+                                            </td>
+
+                                            <td>
+                                                    No
+                                            </td>
+
+
+                                            <td>
+                                                    <p>Das auszuführende Promise</p>
+
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                                <td>timeoutMs</td>
+                                            <td>
+                                                            <code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/number" target="_blank" >number</a></code>
+                                            </td>
+
+                                            <td>
+                                                    No
+                                            </td>
+
+
+                                            <td>
+                                                    <p>Timeout in Millisekunden</p>
+
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        <div class="io-description">
+                            <b>Returns : </b>    <code>Promise&lt;T&gt;</code>
+
+                        </div>
+                            <div class="io-description">
+                                <p>Das Ergebnis der Operation</p>
+
+                            </div>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+</section>
+
+
+
+
+
+    </div>
+
+
+    <div class="tab-pane fade  tab-source-code" id="source">
+        <pre class="line-numbers compodoc-sourcecode"><code class="language-typescript">import { Logger } from &#x27;@nestjs/common&#x27;;
+
+/**
+ * Konfiguration für Retry-Verhalten
+ */
+export interface RetryConfig {
+  /** Maximale Anzahl der Wiederholungsversuche */
+  maxRetries: number;
+  /** Basis-Verzögerung in Millisekunden */
+  baseDelay: number;
+  /** Maximale Verzögerung in Millisekunden */
+  maxDelay: number;
+  /** Multiplikator für exponentielles Backoff */
+  backoffMultiplier: number;
+  /** Jitter-Faktor (0-1) für zufällige Verzögerung */
+  jitterFactor: number;
+  /** Timeout für einzelne Versuche in Millisekunden */
+  timeout?: number;
+}
+
+/**
+ * Standard-Konfiguration für Retry-Verhalten
+ */
+export const DEFAULT_RETRY_CONFIG: RetryConfig &#x3D; {
+  maxRetries: 3,
+  baseDelay: 500,
+  maxDelay: 10000,
+  backoffMultiplier: 2,
+  jitterFactor: 0.1,
+  timeout: 30000,
+};
+
+/**
+ * PostgreSQL-spezifische Fehlercodes, die einen Retry rechtfertigen
+ */
+export const POSTGRES_RETRYABLE_ERRORS &#x3D; {
+  UNIQUE_VIOLATION: &#x27;23505&#x27;,
+  DEADLOCK_DETECTED: &#x27;40P01&#x27;,
+  SERIALIZATION_FAILURE: &#x27;40001&#x27;,
+  QUERY_TIMEOUT: &#x27;57014&#x27;,
+  CONNECTION_FAILURE: &#x27;08000&#x27;,
+  CONNECTION_EXCEPTION: &#x27;08001&#x27;,
+  CONNECTION_DOES_NOT_EXIST: &#x27;08003&#x27;,
+  CONNECTION_FAILURE_SQLCLIENT: &#x27;08006&#x27;,
+  TRANSACTION_ROLLBACK: &#x27;40000&#x27;,
+  TRANSACTION_ROLLBACK_SERIALIZATION: &#x27;40001&#x27;,
+  TRANSACTION_ROLLBACK_DEADLOCK: &#x27;40P01&#x27;,
+} as const;
+
+/**
+ * Utility-Klasse für robuste Retry-Mechanismen mit exponential backoff
+ *
+ * Diese Klasse bietet Retry-Funktionalität für fehleranfällige Operationen
+ * mit konfigurierbarem exponentiellen Backoff und Jitter.
+ *
+ * Features:
+ * - Exponentielles Backoff mit konfigurierbarem Multiplikator
+ * - Jitter zur Vermeidung von Thundering Herd
+ * - Unterstützung für PostgreSQL- und Netzwerk-Fehler
+ * - Konfigurierbare Timeouts pro Versuch
+ *
+ * @class RetryUtil
+ */
+export class RetryUtil {
+  private readonly logger &#x3D; new Logger(RetryUtil.name);
+
+  /**
+   * Führt eine Operation mit Retry-Logik aus
+   *
+   * @param operation Die auszuführende Operation
+   * @param config Retry-Konfiguration
+   * @param context Kontext für Logging
+   * @returns Das Ergebnis der Operation
+   */
+  async executeWithRetry&lt;T&gt;(
+    operation: () &#x3D;&gt; Promise&lt;T&gt;,
+    config: Partial&lt;RetryConfig&gt; &#x3D; {},
+    context &#x3D; &#x27;operation&#x27;,
+  ): Promise&lt;T&gt; {
+    const finalConfig &#x3D; { ...DEFAULT_RETRY_CONFIG, ...config };
+    let lastError: any &#x3D; null;
+
+    for (let attempt &#x3D; 0; attempt &lt;&#x3D; finalConfig.maxRetries; attempt++) {
+      try {
+        this.logger.debug(&#x60;${context}: Versuch ${attempt + 1}/${finalConfig.maxRetries + 1}&#x60;);
+
+        // Operation ausführen, optional mit Timeout
+        const operationPromise &#x3D; operation();
+        const result &#x3D; finalConfig.timeout
+          ? await this.withTimeout(operationPromise, finalConfig.timeout)
+          : await operationPromise;
+
+        return result;
+      } catch (error) {
+        lastError &#x3D; error;
+
+        // Prüfen, ob der Fehler einen Retry rechtfertigt
+        if (!this.isRetryableError(error)) {
+          this.logger.warn(&#x60;${context}: Nicht-wiederholbarer Fehler erkannt&#x60;, error.message);
+          throw error;
+        }
+
+        // Wenn es der letzte Versuch war, Fehler werfen
+        if (attempt &gt;&#x3D; finalConfig.maxRetries) {
+          this.logger.error(
+            &#x60;${context}: Alle ${finalConfig.maxRetries + 1} Versuche fehlgeschlagen&#x60;,
+          );
+          throw lastError;
+        }
+
+        // Verzögerung berechnen und warten
+        const delay &#x3D; this.calculateDelay(attempt + 1, finalConfig);
+        this.logger.warn(
+          &#x60;${context}: Versuch ${attempt + 1} fehlgeschlagen (${error.code || error.message}), &#x60; +
+            &#x60;warte ${delay}ms vor nächstem Versuch&#x60;,
+        );
+
+        await this.delay(delay);
+      }
+    }
+
+    // Sollte nie erreicht werden, aber als Fallback
+    throw lastError;
+  }
+
+  /**
+   * Prüft, ob ein Fehler einen Retry rechtfertigt
+   *
+   * @param error Der zu prüfende Fehler
+   * @returns true, wenn der Fehler wiederholbar ist
+   */
+  private isRetryableError(error: any): boolean {
+    // PostgreSQL-spezifische Fehlercodes
+    if (error.code &amp;&amp; Object.values(POSTGRES_RETRYABLE_ERRORS).includes(error.code)) {
+      return true;
+    }
+
+    // Prisma-spezifische Fehler
+    if (error.code &#x3D;&#x3D;&#x3D; &#x27;P2002&#x27;) {
+      // Unique constraint violation
+      return true;
+    }
+
+    // Netzwerk- und Verbindungsfehler
+    if (
+      error.message?.includes(&#x27;ECONNRESET&#x27;) ||
+      error.message?.includes(&#x27;ENOTFOUND&#x27;) ||
+      error.message?.includes(&#x27;ETIMEDOUT&#x27;) ||
+      error.message?.includes(&#x27;ECONNREFUSED&#x27;) ||
+      error.message?.includes(&#x27;EHOSTUNREACH&#x27;) ||
+      error.message?.includes(&#x27;ENETUNREACH&#x27;) ||
+      error.message?.includes(&#x27;EPIPE&#x27;) ||
+      error.message?.includes(&#x27;timeout&#x27;)
+    ) {
+      return true;
+    }
+
+    // HTTP-spezifische Fehler (Axios)
+    if (error.response) {
+      const status &#x3D; error.response.status;
+      // Retry bei Server-Fehlern und einigen Client-Fehlern
+      if (
+        status &#x3D;&#x3D;&#x3D; 408 || // Request Timeout
+        status &#x3D;&#x3D;&#x3D; 429 || // Too Many Requests
+        status &#x3D;&#x3D;&#x3D; 502 || // Bad Gateway
+        status &#x3D;&#x3D;&#x3D; 503 || // Service Unavailable
+        status &#x3D;&#x3D;&#x3D; 504 // Gateway Timeout
+      ) {
+        return true;
+      }
+    }
+
+    return false;
+  }
+
+  /**
+   * Berechnet die Verzögerung für den nächsten Versuch mit exponential backoff und jitter
+   *
+   * @param attempt Aktuelle Versuchsnummer (1-basiert)
+   * @param config Retry-Konfiguration
+   * @returns Verzögerung in Millisekunden
+   */
+  private calculateDelay(attempt: number, config: RetryConfig): number {
+    // Exponential backoff
+    const exponentialDelay &#x3D; config.baseDelay * Math.pow(config.backoffMultiplier, attempt - 1);
+
+    // Jitter hinzufügen (zufällige Variation)
+    const jitter &#x3D; exponentialDelay * config.jitterFactor * Math.random();
+    const delayWithJitter &#x3D; exponentialDelay + jitter;
+
+    // Maximale Verzögerung respektieren
+    return Math.min(delayWithJitter, config.maxDelay);
+  }
+
+  /**
+   * Hilfsfunktion für Verzögerungen
+   *
+   * @param ms Verzögerung in Millisekunden
+   */
+  private async delay(ms: number): Promise&lt;void&gt; {
+    return new Promise((resolve) &#x3D;&gt; {
+      const timer &#x3D; setTimeout(resolve, ms);
+      timer.unref(); // Timer soll den Prozess nicht am Beenden hindern
+    });
+  }
+
+  /**
+   * Führt eine Operation mit Timeout aus
+   *
+   * @param promise Das auszuführende Promise
+   * @param timeoutMs Timeout in Millisekunden
+   * @returns Das Ergebnis der Operation
+   */
+  private async withTimeout&lt;T&gt;(promise: Promise&lt;T&gt;, timeoutMs: number): Promise&lt;T&gt; {
+    const timeoutPromise &#x3D; new Promise&lt;never&gt;((_, reject) &#x3D;&gt; {
+      const timer &#x3D; setTimeout(
+        () &#x3D;&gt; reject(new Error(&#x60;Operation timeout after ${timeoutMs}ms&#x60;)),
+        timeoutMs,
+      );
+      timer.unref(); // Timer soll den Prozess nicht am Beenden hindern
+    });
+
+    return Promise.race([promise, timeoutPromise]);
+  }
+}
+</code></pre>
+    </div>
+</div>
+
+
+
+
+
+
+
+
+
+                   </div><div class="search-results">
+    <div class="has-results">
+        <h1 class="search-results-title"><span class='search-results-count'></span> results matching "<span class='search-query'></span>"</h1>
+        <ul class="search-results-list"></ul>
+    </div>
+    <div class="no-results">
+        <h1 class="search-results-title">No results matching "<span class='search-query'></span>"</h1>
+    </div>
+</div>
+</div>
+               <!-- END CONTENT -->
+           </div>
+       </div>
+
+          <label class="dark-mode-switch">
+               <input type="checkbox">
+               <span class="slider">
+                    <svg class="slider-icon" viewBox="0 0 24 24" fill="none" height="20" stroke="#000" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" width="20" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"></path>
+                    </svg>
+               </span>
+          </label>
+
+       <script>
+            var COMPODOC_CURRENT_PAGE_DEPTH = 1;
+            var COMPODOC_CURRENT_PAGE_CONTEXT = 'class';
+            var COMPODOC_CURRENT_PAGE_URL = 'RetryUtil.html';
+            var MAX_SEARCH_RESULTS = 15;
+       </script>
+
+       <script>
+               $darkModeToggleSwitchers = document.querySelectorAll('.dark-mode-switch input');
+               checkToggle(darkModeState);
+               if ($darkModeToggleSwitchers.length > 0) {
+                    for (var i = 0; i < $darkModeToggleSwitchers.length; i++) {
+                         $darkModeToggleSwitchers[i].addEventListener('change', function (event) {
+                              darkModeState = !darkModeState;
+                              toggleDarkMode(darkModeState);
+                         });
+                    }
+               }
+          </script>
+
+       <script src="../js/libs/custom-elements.min.js"></script>
+       <script src="../js/libs/lit-html.js"></script>
+
+       <script src="../js/menu-wc.js" defer></script>
+       <script nomodule src="../js/menu-wc_es5.js" defer></script>
+
+       <script src="../js/libs/bootstrap-native.js"></script>
+
+       <script src="../js/libs/es6-shim.min.js"></script>
+       <script src="../js/libs/EventDispatcher.js"></script>
+       <script src="../js/libs/promise.min.js"></script>
+
+       <script src="../js/compodoc.js"></script>
+
+       <script src="../js/tabs.js"></script>
+       <script src="../js/menu.js"></script>
+       <script src="../js/libs/clipboard.min.js"></script>
+       <script src="../js/libs/prism.js"></script>
+       <script src="../js/sourceCode.js"></script>
+          <script src="../js/search/search.js"></script>
+          <script src="../js/search/lunr.min.js"></script>
+          <script src="../js/search/search-lunr.js"></script>
+          <script src="../js/search/search_index.js"></script>
+       <script src="../js/lazy-load-graphs.js"></script>
+
+
+    </body>
+</html>

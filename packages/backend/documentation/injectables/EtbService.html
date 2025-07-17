@@ -1,0 +1,1957 @@
+<!doctype html>
+<html class="no-js" lang="">
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="x-ua-compatible" content="ie=edge">
+        <title>@bluelight-hub/backend documentation</title>
+        <meta name="description" content="">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+
+        <link rel="icon" type="image/x-icon" href="../images/favicon.ico">
+	   <link rel="stylesheet" href="../styles/style.css">
+        <link rel="stylesheet" href="../styles/dark.css">
+    </head>
+    <body>
+          <script>
+               // Blocking script to avoid flickering dark mode
+               // Dark mode toggle button
+               var useDark = window.matchMedia('(prefers-color-scheme: dark)');
+               var darkModeState = useDark.matches;
+               var $darkModeToggleSwitchers = document.querySelectorAll('.dark-mode-switch input');
+               var $darkModeToggles = document.querySelectorAll('.dark-mode-switch');
+               var darkModeStateLocal = localStorage.getItem('compodoc_darkmode-state');
+
+               function checkToggle(check) {
+                    for (var i = 0; i < $darkModeToggleSwitchers.length; i++) {
+                         $darkModeToggleSwitchers[i].checked = check;
+                    }
+               }
+
+               function toggleDarkMode(state) {
+                    if (window.localStorage) {
+                         localStorage.setItem('compodoc_darkmode-state', state);
+                    }
+
+                    checkToggle(state);
+
+                    const hasClass = document.body.classList.contains('dark');
+
+                    if (state) {
+                         for (var i = 0; i < $darkModeToggles.length; i++) {
+                              $darkModeToggles[i].classList.add('dark');
+                         }
+                         if (!hasClass) {
+                              document.body.classList.add('dark');
+                         }
+                    } else {
+                         for (var i = 0; i < $darkModeToggles.length; i++) {
+                              $darkModeToggles[i].classList.remove('dark');
+                         }
+                         if (hasClass) {
+                              document.body.classList.remove('dark');
+                         }
+                    }
+               }
+
+               useDark.addEventListener('change', function (evt) {
+                    toggleDarkMode(evt.matches);
+               });
+               if (darkModeStateLocal) {
+                    darkModeState = darkModeStateLocal === 'true';
+               }
+               toggleDarkMode(darkModeState);
+          </script>
+
+        <div class="navbar navbar-default navbar-fixed-top d-md-none p-0">
+               <div class="d-flex">
+                    <a href="../" class="navbar-brand">@bluelight-hub/backend documentation</a>
+                    <button type="button" class="btn btn-default btn-menu ion-ios-menu" id="btn-menu"></button>
+               </div>
+        </div>
+
+        <div class="xs-menu menu" id="mobile-menu">
+                <div id="book-search-input" role="search"><input type="text" placeholder="Type to search"></div>            <compodoc-menu></compodoc-menu>
+        </div>
+
+        <div class="container-fluid main">
+           <div class="row main">
+               <div class="d-none d-md-block menu">
+                   <compodoc-menu mode="normal"></compodoc-menu>
+               </div>
+               <!-- START CONTENT -->
+               <div class="content injectable">
+                   <div class="content-data">
+
+
+
+
+
+
+
+
+<ol class="breadcrumb">
+  <li class="breadcrumb-item">Injectables</li>
+  <li class="breadcrumb-item" >EtbService</li>
+</ol>
+
+<ul class="nav nav-tabs" role="tablist">
+        <li class="nav-item">
+            <a href="#info" 
+                class="nav-link"
+                class="nav-link active"
+                role="tab" id="info-tab" data-bs-toggle="tab" data-link="info">Info</a>
+        </li>
+        <li class="nav-item">
+            <a href="#source" 
+                class="nav-link"
+                
+                role="tab" id="source-tab" data-bs-toggle="tab" data-link="source">Source</a>
+        </li>
+</ul>
+
+<div class="tab-content">
+    <div class="tab-pane fade active in" id="info">
+        <p class="comment">
+            <h3>File</h3>
+        </p>
+        <p class="comment">
+            <code>src/modules/etb/etb.service.ts</code>
+        </p>
+
+
+            <p class="comment">
+                <h3>Description</h3>
+            </p>
+            <p class="comment">
+                <p>Service für die Verwaltung von Einsatztagebuch-Einträgen (ETB)</p>
+<p>Dieser Service implementiert die Geschäftslogik für das elektronische
+Einsatztagebuch. Er verwaltet ETB-Einträge, deren Versionierung,
+Überschreibungen und Anlagen. Der Service unterstützt sowohl
+manuelle als auch automatisch generierte Einträge.</p>
+<p>Features:</p>
+<ul>
+<li>CRUD-Operationen für ETB-Einträge</li>
+<li>Fortlaufende Nummerierung von Einträgen</li>
+<li>Versionierung und Überschreibungsmechanismen</li>
+<li>Anlagenverwaltung mit sicherer Dateispeicherung</li>
+<li>Filterung und Paginierung von Einträgen</li>
+<li>Abschluss-Funktionalität für unveränderliche Einträge</li>
+</ul>
+
+            </p>
+
+
+
+            <section data-compodoc="block-index">
+    <h3 id="index">Index</h3>
+    <table class="table table-sm table-bordered index-table">
+        <tbody>
+
+                <tr>
+                    <td class="col-md-4">
+                        <h6><b>Methods</b></h6>
+                    </td>
+                </tr>
+                <tr>
+                    <td class="col-md-4">
+                        <ul class="index-list">
+                            <li>
+                                    <span class="modifier">Async</span>
+                                <a href="#addAttachment" >addAttachment</a>
+                            </li>
+                            <li>
+                                    <span class="modifier">Async</span>
+                                <a href="#closeEintrag" >closeEintrag</a>
+                            </li>
+                            <li>
+                                    <span class="modifier">Async</span>
+                                <a href="#createAutomaticEintrag" >createAutomaticEintrag</a>
+                            </li>
+                            <li>
+                                    <span class="modifier">Async</span>
+                                <a href="#createEintrag" >createEintrag</a>
+                            </li>
+                            <li>
+                                    <span class="modifier">Async</span>
+                                <a href="#findAll" >findAll</a>
+                            </li>
+                            <li>
+                                    <span class="modifier">Async</span>
+                                <a href="#findAttachmentById" >findAttachmentById</a>
+                            </li>
+                            <li>
+                                    <span class="modifier">Async</span>
+                                <a href="#findAttachmentsByEtbEntryId" >findAttachmentsByEtbEntryId</a>
+                            </li>
+                            <li>
+                                    <span class="modifier">Async</span>
+                                <a href="#findOne" >findOne</a>
+                            </li>
+                            <li>
+                                    <span class="modifier">Private</span>
+                                    <span class="modifier">Async</span>
+                                <a href="#getNextLaufendeNummer" >getNextLaufendeNummer</a>
+                            </li>
+                            <li>
+                                    <span class="modifier">Async</span>
+                                <a href="#ueberschreibeEintrag" >ueberschreibeEintrag</a>
+                            </li>
+                            <li>
+                                    <span class="modifier">Async</span>
+                                <a href="#updateEintrag" >updateEintrag</a>
+                            </li>
+                        </ul>
+                    </td>
+                </tr>
+
+
+
+
+
+        </tbody>
+    </table>
+</section>
+
+            <section data-compodoc="block-constructor">
+    <h3 id="constructor">Constructor</h3>
+        <table class="table table-sm table-bordered">
+            <tbody>
+                <tr>
+                    <td class="col-md-4">
+<code>constructor(paginationService: <a href="../injectables/PaginationService.html" target="_self">PaginationService</a>, prisma: <a href="../injectables/PrismaService.html" target="_self">PrismaService</a>)</code>
+                    </td>
+                </tr>
+                        <tr>
+                            <td class="col-md-4">
+                                <div class="io-line">Defined in <a href="" data-line="90" class="link-to-prism">src/modules/etb/etb.service.ts:90</a></div>
+                            </td>
+                        </tr>
+
+                <tr>
+                    <td class="col-md-4">
+                            <div class="io-description"><p>Konstruktor für den EtbService</p>
+</div>
+                            <div>
+                                    <b>Parameters :</b>
+                                    <table class="params">
+                                        <thead>
+                                            <tr>
+                                                <td>Name</td>
+                                                    <td>Type</td>
+                                                <td>Optional</td>
+                                                    <td>Description</td>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                                <tr>
+                                                        <td>paginationService</td>
+                                                  
+                                                        <td>
+                                                                        <code><a href="../injectables/PaginationService.html" target="_self" >PaginationService</a></code>
+                                                        </td>
+                                                  
+                                                    <td>
+                                                            No
+                                                    </td>
+                                                    
+                                                        <td>
+                                                                <p>Service für Paginierung</p>
+
+                                                        </td>
+                                                </tr>
+                                                <tr>
+                                                        <td>prisma</td>
+                                                  
+                                                        <td>
+                                                                        <code><a href="../injectables/PrismaService.html" target="_self" >PrismaService</a></code>
+                                                        </td>
+                                                  
+                                                    <td>
+                                                            No
+                                                    </td>
+                                                    
+                                                        <td>
+                                                                <p>PrismaService für Datenbankzugriffe mit Prisma</p>
+
+                                                        </td>
+                                                </tr>
+                                        </tbody>
+                                    </table>
+                            </div>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+</section>
+
+            <section data-compodoc="block-methods">
+    
+    <h3 id="methods">
+        Methods
+    </h3>
+    <table class="table table-sm table-bordered">
+        <tbody>
+            <tr>
+                <td class="col-md-4">
+                    <a name="addAttachment"></a>
+                    <span class="name">
+                            <span class="modifier">Async</span>
+                        <span ><b>addAttachment</b></span>
+                        <a href="#addAttachment"><span class="icon ion-ios-link"></span></a>
+                    </span>
+                </td>
+            </tr>
+            <tr>
+                <td class="col-md-4">
+                        <span class="modifier-icon icon ion-ios-reset"></span>
+                    <code>addAttachment(id: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/string" target="_blank">string</a>, file: <a href="../interfaces/MulterFile.html" target="_self">MulterFile</a>, addAttachmentDto: <a href="../classes/AddAttachmentDto.html" target="_self">AddAttachmentDto</a>)</code>
+                </td>
+            </tr>
+
+
+                    <tr>
+                        <td class="col-md-4">
+                            <div class="io-line">Defined in <a href="" data-line="385"
+                                    class="link-to-prism">src/modules/etb/etb.service.ts:385</a></div>
+                        </td>
+                    </tr>
+
+
+            <tr>
+                <td class="col-md-4">
+                        <div class="io-description"><p>Fügt eine Dateianlage zu einem ETB-Eintrag hinzu</p>
+</div>
+
+                            <div class="io-description">
+                                <b>Parameters :</b>
+                                
+                                <table class="params">
+                                    <thead>
+                                        <tr>
+                                            <td>Name</td>
+                                                <td>Type</td>
+                                            <td>Optional</td>
+                                                <td>Description</td>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                                <td>id</td>
+                                            <td>
+                                                            <code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/string" target="_blank" >string</a></code>
+                                            </td>
+
+                                            <td>
+                                                    No
+                                            </td>
+
+
+                                            <td>
+                                                    <p>ID des ETB-Eintrags</p>
+
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                                <td>file</td>
+                                            <td>
+                                                            <code><a href="../interfaces/MulterFile.html" target="_self" >MulterFile</a></code>
+                                            </td>
+
+                                            <td>
+                                                    No
+                                            </td>
+
+
+                                            <td>
+                                                    <p>Die hochgeladene Datei</p>
+
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                                <td>addAttachmentDto</td>
+                                            <td>
+                                                            <code><a href="../classes/AddAttachmentDto.html" target="_self" >AddAttachmentDto</a></code>
+                                            </td>
+
+                                            <td>
+                                                    No
+                                            </td>
+
+
+                                            <td>
+                                                    <p>DTO mit der optionalen Beschreibung der Anlage</p>
+
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        <div class="io-description">
+                            <b>Returns : </b>    <code>Promise&lt;EtbAttachment&gt;</code>
+
+                        </div>
+                            <div class="io-description">
+                                <p>Die erstellte ETB-Anlage</p>
+
+                            </div>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+    <table class="table table-sm table-bordered">
+        <tbody>
+            <tr>
+                <td class="col-md-4">
+                    <a name="closeEintrag"></a>
+                    <span class="name">
+                            <span class="modifier">Async</span>
+                        <span ><b>closeEintrag</b></span>
+                        <a href="#closeEintrag"><span class="icon ion-ios-link"></span></a>
+                    </span>
+                </td>
+            </tr>
+            <tr>
+                <td class="col-md-4">
+                        <span class="modifier-icon icon ion-ios-reset"></span>
+                    <code>closeEintrag(id: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/string" target="_blank">string</a>, userId: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/string" target="_blank">string</a>)</code>
+                </td>
+            </tr>
+
+
+                    <tr>
+                        <td class="col-md-4">
+                            <div class="io-line">Defined in <a href="" data-line="352"
+                                    class="link-to-prism">src/modules/etb/etb.service.ts:352</a></div>
+                        </td>
+                    </tr>
+
+
+            <tr>
+                <td class="col-md-4">
+                        <div class="io-description"><p>Schließt einen ETB-Eintrag ab, sodass er nicht mehr bearbeitet werden kann</p>
+</div>
+
+                            <div class="io-description">
+                                <b>Parameters :</b>
+                                
+                                <table class="params">
+                                    <thead>
+                                        <tr>
+                                            <td>Name</td>
+                                                <td>Type</td>
+                                            <td>Optional</td>
+                                                <td>Description</td>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                                <td>id</td>
+                                            <td>
+                                                            <code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/string" target="_blank" >string</a></code>
+                                            </td>
+
+                                            <td>
+                                                    No
+                                            </td>
+
+
+                                            <td>
+                                                    <p>ID des abzuschließenden ETB-Eintrags</p>
+
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                                <td>userId</td>
+                                            <td>
+                                                            <code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/string" target="_blank" >string</a></code>
+                                            </td>
+
+                                            <td>
+                                                    No
+                                            </td>
+
+
+                                            <td>
+                                                    <p>ID des Benutzers, der den Eintrag abschließt</p>
+
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        <div class="io-description">
+                            <b>Returns : </b>        <code><a href="../classes/EtbEntry.html" target="_self" >Promise&lt;EtbEntry&gt;</a></code>
+
+                        </div>
+                            <div class="io-description">
+                                <p>Der abgeschlossene ETB-Eintrag</p>
+
+                            </div>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+    <table class="table table-sm table-bordered">
+        <tbody>
+            <tr>
+                <td class="col-md-4">
+                    <a name="createAutomaticEintrag"></a>
+                    <span class="name">
+                            <span class="modifier">Async</span>
+                        <span ><b>createAutomaticEintrag</b></span>
+                        <a href="#createAutomaticEintrag"><span class="icon ion-ios-link"></span></a>
+                    </span>
+                </td>
+            </tr>
+            <tr>
+                <td class="col-md-4">
+                        <span class="modifier-icon icon ion-ios-reset"></span>
+                    <code>createAutomaticEintrag(_data: literal type, _systemQuelle: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/string" target="_blank">string</a>)</code>
+                </td>
+            </tr>
+
+
+                    <tr>
+                        <td class="col-md-4">
+                            <div class="io-line">Defined in <a href="" data-line="155"
+                                    class="link-to-prism">src/modules/etb/etb.service.ts:155</a></div>
+                        </td>
+                    </tr>
+
+
+            <tr>
+                <td class="col-md-4">
+                        <div class="io-description"><p>Erstellt einen automatischen ETB-Eintrag</p>
+</div>
+
+                            <div class="io-description">
+                                <b>Parameters :</b>
+                                
+                                <table class="params">
+                                    <thead>
+                                        <tr>
+                                            <td>Name</td>
+                                                <td>Type</td>
+                                            <td>Optional</td>
+                                                <td>Description</td>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                                <td>_data</td>
+                                            <td>
+                                                        <code>literal type</code>
+                                            </td>
+
+                                            <td>
+                                                    No
+                                            </td>
+
+
+                                            <td>
+                                                    <p>Daten für den automatischen Eintrag</p>
+
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                                <td>_systemQuelle</td>
+                                            <td>
+                                                            <code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/string" target="_blank" >string</a></code>
+                                            </td>
+
+                                            <td>
+                                                    No
+                                            </td>
+
+
+                                            <td>
+                                                    <p>Quelle des automatischen Eintrags</p>
+
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        <div class="io-description">
+                            <b>Returns : </b>        <code><a href="../classes/EtbEntry.html" target="_self" >Promise&lt;EtbEntry&gt;</a></code>
+
+                        </div>
+                            <div class="io-description">
+                                <p>Der erstellte ETB-Eintrag</p>
+
+                            </div>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+    <table class="table table-sm table-bordered">
+        <tbody>
+            <tr>
+                <td class="col-md-4">
+                    <a name="createEintrag"></a>
+                    <span class="name">
+                            <span class="modifier">Async</span>
+                        <span ><b>createEintrag</b></span>
+                        <a href="#createEintrag"><span class="icon ion-ios-link"></span></a>
+                    </span>
+                </td>
+            </tr>
+            <tr>
+                <td class="col-md-4">
+                        <span class="modifier-icon icon ion-ios-reset"></span>
+                    <code>createEintrag(createEtbDto: <a href="../classes/CreateEtbDto.html" target="_self">CreateEtbDto</a>, userId: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/string" target="_blank">string</a>, userName?: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/string" target="_blank">string</a>, userRole?: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/string" target="_blank">string</a>)</code>
+                </td>
+            </tr>
+
+
+                    <tr>
+                        <td class="col-md-4">
+                            <div class="io-line">Defined in <a href="" data-line="113"
+                                    class="link-to-prism">src/modules/etb/etb.service.ts:113</a></div>
+                        </td>
+                    </tr>
+
+
+            <tr>
+                <td class="col-md-4">
+                        <div class="io-description"><p>Erstellt einen neuen ETB-Eintrag</p>
+</div>
+
+                            <div class="io-description">
+                                <b>Parameters :</b>
+                                
+                                <table class="params">
+                                    <thead>
+                                        <tr>
+                                            <td>Name</td>
+                                                <td>Type</td>
+                                            <td>Optional</td>
+                                                <td>Description</td>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                                <td>createEtbDto</td>
+                                            <td>
+                                                            <code><a href="../classes/CreateEtbDto.html" target="_self" >CreateEtbDto</a></code>
+                                            </td>
+
+                                            <td>
+                                                    No
+                                            </td>
+
+
+                                            <td>
+                                                    <p>DTO mit den Daten für den neuen Eintrag</p>
+
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                                <td>userId</td>
+                                            <td>
+                                                            <code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/string" target="_blank" >string</a></code>
+                                            </td>
+
+                                            <td>
+                                                    No
+                                            </td>
+
+
+                                            <td>
+                                                    <p>ID des Benutzers, der den Eintrag erstellt</p>
+
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                                <td>userName</td>
+                                            <td>
+                                                            <code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/string" target="_blank" >string</a></code>
+                                            </td>
+
+                                            <td>
+                                                    Yes
+                                            </td>
+
+
+                                            <td>
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                                <td>userRole</td>
+                                            <td>
+                                                            <code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/string" target="_blank" >string</a></code>
+                                            </td>
+
+                                            <td>
+                                                    Yes
+                                            </td>
+
+
+                                            <td>
+                                                    <p>Rolle des Benutzers, der den Eintrag erstellt</p>
+
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        <div class="io-description">
+                            <b>Returns : </b>        <code><a href="../classes/EtbEntry.html" target="_self" >Promise&lt;EtbEntry&gt;</a></code>
+
+                        </div>
+                            <div class="io-description">
+                                <p>Der erstellte ETB-Eintrag</p>
+
+                            </div>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+    <table class="table table-sm table-bordered">
+        <tbody>
+            <tr>
+                <td class="col-md-4">
+                    <a name="findAll"></a>
+                    <span class="name">
+                            <span class="modifier">Async</span>
+                        <span ><b>findAll</b></span>
+                        <a href="#findAll"><span class="icon ion-ios-link"></span></a>
+                    </span>
+                </td>
+            </tr>
+            <tr>
+                <td class="col-md-4">
+                        <span class="modifier-icon icon ion-ios-reset"></span>
+                    <code>findAll(filterDto: <a href="../classes/FilterEtbDto.html" target="_self">FilterEtbDto</a>)</code>
+                </td>
+            </tr>
+
+
+                    <tr>
+                        <td class="col-md-4">
+                            <div class="io-line">Defined in <a href="" data-line="202"
+                                    class="link-to-prism">src/modules/etb/etb.service.ts:202</a></div>
+                        </td>
+                    </tr>
+
+
+            <tr>
+                <td class="col-md-4">
+                        <div class="io-description"><p>Findet alle ETB-Einträge mit optionaler Filterung und Paginierung</p>
+</div>
+
+                            <div class="io-description">
+                                <b>Parameters :</b>
+                                
+                                <table class="params">
+                                    <thead>
+                                        <tr>
+                                            <td>Name</td>
+                                                <td>Type</td>
+                                            <td>Optional</td>
+                                                <td>Description</td>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                                <td>filterDto</td>
+                                            <td>
+                                                            <code><a href="../classes/FilterEtbDto.html" target="_self" >FilterEtbDto</a></code>
+                                            </td>
+
+                                            <td>
+                                                    No
+                                            </td>
+
+
+                                            <td>
+                                                    <p>DTO mit Filterkriterien und Paginierungsparametern</p>
+
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        <div class="io-description">
+                            <b>Returns : </b>    <code>Promise&lt;PaginatedResponse&lt;EtbEntry&gt;&gt;</code>
+
+                        </div>
+                            <div class="io-description">
+                                <p>Eine paginierte Liste von ETB-Einträgen</p>
+
+                            </div>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+    <table class="table table-sm table-bordered">
+        <tbody>
+            <tr>
+                <td class="col-md-4">
+                    <a name="findAttachmentById"></a>
+                    <span class="name">
+                            <span class="modifier">Async</span>
+                        <span ><b>findAttachmentById</b></span>
+                        <a href="#findAttachmentById"><span class="icon ion-ios-link"></span></a>
+                    </span>
+                </td>
+            </tr>
+            <tr>
+                <td class="col-md-4">
+                        <span class="modifier-icon icon ion-ios-reset"></span>
+                    <code>findAttachmentById(id: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/string" target="_blank">string</a>)</code>
+                </td>
+            </tr>
+
+
+                    <tr>
+                        <td class="col-md-4">
+                            <div class="io-line">Defined in <a href="" data-line="467"
+                                    class="link-to-prism">src/modules/etb/etb.service.ts:467</a></div>
+                        </td>
+                    </tr>
+
+
+            <tr>
+                <td class="col-md-4">
+                        <div class="io-description"><p>Findet eine ETB-Anlage anhand ihrer ID</p>
+</div>
+
+                            <div class="io-description">
+                                <b>Parameters :</b>
+                                
+                                <table class="params">
+                                    <thead>
+                                        <tr>
+                                            <td>Name</td>
+                                                <td>Type</td>
+                                            <td>Optional</td>
+                                                <td>Description</td>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                                <td>id</td>
+                                            <td>
+                                                            <code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/string" target="_blank" >string</a></code>
+                                            </td>
+
+                                            <td>
+                                                    No
+                                            </td>
+
+
+                                            <td>
+                                                    <p>ID der zu findenden ETB-Anlage</p>
+
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        <div class="io-description">
+                            <b>Returns : </b>    <code>Promise&lt;EtbAttachment&gt;</code>
+
+                        </div>
+                            <div class="io-description">
+                                <p>Die gefundene ETB-Anlage</p>
+
+                            </div>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+    <table class="table table-sm table-bordered">
+        <tbody>
+            <tr>
+                <td class="col-md-4">
+                    <a name="findAttachmentsByEtbEntryId"></a>
+                    <span class="name">
+                            <span class="modifier">Async</span>
+                        <span ><b>findAttachmentsByEtbEntryId</b></span>
+                        <a href="#findAttachmentsByEtbEntryId"><span class="icon ion-ios-link"></span></a>
+                    </span>
+                </td>
+            </tr>
+            <tr>
+                <td class="col-md-4">
+                        <span class="modifier-icon icon ion-ios-reset"></span>
+                    <code>findAttachmentsByEtbEntryId(etbEntryId: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/string" target="_blank">string</a>)</code>
+                </td>
+            </tr>
+
+
+                    <tr>
+                        <td class="col-md-4">
+                            <div class="io-line">Defined in <a href="" data-line="452"
+                                    class="link-to-prism">src/modules/etb/etb.service.ts:452</a></div>
+                        </td>
+                    </tr>
+
+
+            <tr>
+                <td class="col-md-4">
+                        <div class="io-description"><p>Findet alle Anlagen zu einem ETB-Eintrag</p>
+</div>
+
+                            <div class="io-description">
+                                <b>Parameters :</b>
+                                
+                                <table class="params">
+                                    <thead>
+                                        <tr>
+                                            <td>Name</td>
+                                                <td>Type</td>
+                                            <td>Optional</td>
+                                                <td>Description</td>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                                <td>etbEntryId</td>
+                                            <td>
+                                                            <code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/string" target="_blank" >string</a></code>
+                                            </td>
+
+                                            <td>
+                                                    No
+                                            </td>
+
+
+                                            <td>
+                                                    <p>ID des ETB-Eintrags</p>
+
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        <div class="io-description">
+                            <b>Returns : </b>    <code>Promise&lt;EtbAttachment[]&gt;</code>
+
+                        </div>
+                            <div class="io-description">
+                                <p>Eine Liste von ETB-Anlagen</p>
+
+                            </div>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+    <table class="table table-sm table-bordered">
+        <tbody>
+            <tr>
+                <td class="col-md-4">
+                    <a name="findOne"></a>
+                    <span class="name">
+                            <span class="modifier">Async</span>
+                        <span ><b>findOne</b></span>
+                        <a href="#findOne"><span class="icon ion-ios-link"></span></a>
+                    </span>
+                </td>
+            </tr>
+            <tr>
+                <td class="col-md-4">
+                        <span class="modifier-icon icon ion-ios-reset"></span>
+                    <code>findOne(id: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/string" target="_blank">string</a>)</code>
+                </td>
+            </tr>
+
+
+                    <tr>
+                        <td class="col-md-4">
+                            <div class="io-line">Defined in <a href="" data-line="289"
+                                    class="link-to-prism">src/modules/etb/etb.service.ts:289</a></div>
+                        </td>
+                    </tr>
+
+
+            <tr>
+                <td class="col-md-4">
+                        <div class="io-description"><p>Findet einen ETB-Eintrag anhand seiner ID</p>
+</div>
+
+                            <div class="io-description">
+                                <b>Parameters :</b>
+                                
+                                <table class="params">
+                                    <thead>
+                                        <tr>
+                                            <td>Name</td>
+                                                <td>Type</td>
+                                            <td>Optional</td>
+                                                <td>Description</td>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                                <td>id</td>
+                                            <td>
+                                                            <code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/string" target="_blank" >string</a></code>
+                                            </td>
+
+                                            <td>
+                                                    No
+                                            </td>
+
+
+                                            <td>
+                                                    <p>ID des zu findenden ETB-Eintrags</p>
+
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        <div class="io-description">
+                            <b>Returns : </b>        <code><a href="../classes/EtbEntry.html" target="_self" >Promise&lt;EtbEntry&gt;</a></code>
+
+                        </div>
+                            <div class="io-description">
+                                <p>Der gefundene ETB-Eintrag</p>
+
+                            </div>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+    <table class="table table-sm table-bordered">
+        <tbody>
+            <tr>
+                <td class="col-md-4">
+                    <a name="getNextLaufendeNummer"></a>
+                    <span class="name">
+                            <span class="modifier">Private</span>
+                            <span class="modifier">Async</span>
+                        <span ><b>getNextLaufendeNummer</b></span>
+                        <a href="#getNextLaufendeNummer"><span class="icon ion-ios-link"></span></a>
+                    </span>
+                </td>
+            </tr>
+            <tr>
+                <td class="col-md-4">
+                        <span class="modifier-icon icon ion-ios-reset"></span>
+                    <code>getNextLaufendeNummer()</code>
+                </td>
+            </tr>
+
+
+                    <tr>
+                        <td class="col-md-4">
+                            <div class="io-line">Defined in <a href="" data-line="558"
+                                    class="link-to-prism">src/modules/etb/etb.service.ts:558</a></div>
+                        </td>
+                    </tr>
+
+
+            <tr>
+                <td class="col-md-4">
+                        <div class="io-description"><p>Generiert die nächste verfügbare laufende Nummer für ETB-Einträge</p>
+</div>
+
+                        <div class="io-description">
+                            <b>Returns : </b>    <code>Promise&lt;number&gt;</code>
+
+                        </div>
+                            <div class="io-description">
+                                <p>Die nächste verfügbare laufende Nummer</p>
+
+                            </div>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+    <table class="table table-sm table-bordered">
+        <tbody>
+            <tr>
+                <td class="col-md-4">
+                    <a name="ueberschreibeEintrag"></a>
+                    <span class="name">
+                            <span class="modifier">Async</span>
+                        <span ><b>ueberschreibeEintrag</b></span>
+                        <a href="#ueberschreibeEintrag"><span class="icon ion-ios-link"></span></a>
+                    </span>
+                </td>
+            </tr>
+            <tr>
+                <td class="col-md-4">
+                        <span class="modifier-icon icon ion-ios-reset"></span>
+                    <code>ueberschreibeEintrag(id: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/string" target="_blank">string</a>, ueberschreibeEtbDto: <a href="../classes/UeberschreibeEtbDto.html" target="_self">UeberschreibeEtbDto</a>, userId: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/string" target="_blank">string</a>, userName?: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/string" target="_blank">string</a>, userRole?: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/string" target="_blank">string</a>)</code>
+                </td>
+            </tr>
+
+
+                    <tr>
+                        <td class="col-md-4">
+                            <div class="io-line">Defined in <a href="" data-line="490"
+                                    class="link-to-prism">src/modules/etb/etb.service.ts:490</a></div>
+                        </td>
+                    </tr>
+
+
+            <tr>
+                <td class="col-md-4">
+                        <div class="io-description"><p>Überschreibt einen ETB-Eintrag</p>
+</div>
+
+                            <div class="io-description">
+                                <b>Parameters :</b>
+                                
+                                <table class="params">
+                                    <thead>
+                                        <tr>
+                                            <td>Name</td>
+                                                <td>Type</td>
+                                            <td>Optional</td>
+                                                <td>Description</td>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                                <td>id</td>
+                                            <td>
+                                                            <code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/string" target="_blank" >string</a></code>
+                                            </td>
+
+                                            <td>
+                                                    No
+                                            </td>
+
+
+                                            <td>
+                                                    <p>ID des zu überschreibenden ETB-Eintrags</p>
+
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                                <td>ueberschreibeEtbDto</td>
+                                            <td>
+                                                            <code><a href="../classes/UeberschreibeEtbDto.html" target="_self" >UeberschreibeEtbDto</a></code>
+                                            </td>
+
+                                            <td>
+                                                    No
+                                            </td>
+
+
+                                            <td>
+                                                    <p>Daten für den neuen überschreibenden Eintrag</p>
+
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                                <td>userId</td>
+                                            <td>
+                                                            <code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/string" target="_blank" >string</a></code>
+                                            </td>
+
+                                            <td>
+                                                    No
+                                            </td>
+
+
+                                            <td>
+                                                    <p>ID des Benutzers, der den Eintrag überschreibt</p>
+
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                                <td>userName</td>
+                                            <td>
+                                                            <code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/string" target="_blank" >string</a></code>
+                                            </td>
+
+                                            <td>
+                                                    Yes
+                                            </td>
+
+
+                                            <td>
+                                                    <p>Name des Benutzers, der den Eintrag überschreibt</p>
+
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                                <td>userRole</td>
+                                            <td>
+                                                            <code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/string" target="_blank" >string</a></code>
+                                            </td>
+
+                                            <td>
+                                                    Yes
+                                            </td>
+
+
+                                            <td>
+                                                    <p>Rolle des Benutzers, der den Eintrag überschreibt</p>
+
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        <div class="io-description">
+                            <b>Returns : </b>        <code><a href="../classes/EtbEntry.html" target="_self" >Promise&lt;EtbEntry&gt;</a></code>
+
+                        </div>
+                            <div class="io-description">
+                                <p>Der neu erstellte überschreibende ETB-Eintrag</p>
+
+                            </div>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+    <table class="table table-sm table-bordered">
+        <tbody>
+            <tr>
+                <td class="col-md-4">
+                    <a name="updateEintrag"></a>
+                    <span class="name">
+                            <span class="modifier">Async</span>
+                        <span ><b>updateEintrag</b></span>
+                        <a href="#updateEintrag"><span class="icon ion-ios-link"></span></a>
+                    </span>
+                </td>
+            </tr>
+            <tr>
+                <td class="col-md-4">
+                        <span class="modifier-icon icon ion-ios-reset"></span>
+                    <code>updateEintrag(id: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/string" target="_blank">string</a>, updateEtbDto: <a href="../classes/UpdateEtbDto.html" target="_self">UpdateEtbDto</a>)</code>
+                </td>
+            </tr>
+
+
+                    <tr>
+                        <td class="col-md-4">
+                            <div class="io-line">Defined in <a href="" data-line="312"
+                                    class="link-to-prism">src/modules/etb/etb.service.ts:312</a></div>
+                        </td>
+                    </tr>
+
+
+            <tr>
+                <td class="col-md-4">
+                        <div class="io-description"><p>Aktualisiert einen bestehenden ETB-Eintrag</p>
+</div>
+
+                            <div class="io-description">
+                                <b>Parameters :</b>
+                                
+                                <table class="params">
+                                    <thead>
+                                        <tr>
+                                            <td>Name</td>
+                                                <td>Type</td>
+                                            <td>Optional</td>
+                                                <td>Description</td>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                                <td>id</td>
+                                            <td>
+                                                            <code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/string" target="_blank" >string</a></code>
+                                            </td>
+
+                                            <td>
+                                                    No
+                                            </td>
+
+
+                                            <td>
+                                                    <p>ID des zu aktualisierenden ETB-Eintrags</p>
+
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                                <td>updateEtbDto</td>
+                                            <td>
+                                                            <code><a href="../classes/UpdateEtbDto.html" target="_self" >UpdateEtbDto</a></code>
+                                            </td>
+
+                                            <td>
+                                                    No
+                                            </td>
+
+
+                                            <td>
+                                                    <p>DTO mit den zu aktualisierenden Daten</p>
+
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        <div class="io-description">
+                            <b>Returns : </b>        <code><a href="../classes/EtbEntry.html" target="_self" >Promise&lt;EtbEntry&gt;</a></code>
+
+                        </div>
+                            <div class="io-description">
+                                <p>Der aktualisierte ETB-Eintrag</p>
+
+                            </div>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+</section>
+
+    </div>
+
+
+    <div class="tab-pane fade  tab-source-code" id="source">
+        <pre class="line-numbers compodoc-sourcecode"><code class="language-typescript">import { PaginatedResponse } from &#x27;@/common/interfaces/paginated-response.interface&#x27;;
+import { PaginationService } from &#x27;@/common/services/pagination.service&#x27;;
+import { logger } from &#x27;@/logger/consola.logger&#x27;;
+import { PrismaService } from &#x27;@/prisma/prisma.service&#x27;;
+import { BadRequestException, Injectable, NotFoundException } from &#x27;@nestjs/common&#x27;;
+import * as fs from &#x27;fs&#x27;;
+import * as path from &#x27;path&#x27;;
+import sanitize from &#x27;sanitize-filename&#x27;;
+import { EtbEntryStatus, EtbKategorie } from &#x27;../../../prisma/generated/prisma/enums&#x27;;
+import { CreateEtbDto } from &#x27;./dto/create-etb.dto&#x27;;
+import { FilterEtbDto } from &#x27;./dto/filter-etb.dto&#x27;;
+import { UeberschreibeEtbDto } from &#x27;./dto/ueberschreibe-etb.dto&#x27;;
+import { UpdateEtbDto } from &#x27;./dto/update-etb.dto&#x27;;
+import { AddAttachmentDto } from &#x27;./dto/add-attachment.dto&#x27;;
+
+// Import der generierten Prisma-Typen für ETB-Einträge und Anlagen
+import type { EtbAttachment, EtbEntry } from &#x27;../../../prisma/generated/prisma/client&#x27;;
+
+/**
+ * Interface für Multer-Dateien.
+ * Definiert die Struktur von hochgeladenen Dateien, die über Multer verarbeitet werden.
+ * Wird verwendet, um Dateien als Anlagen zu ETB-Einträgen zu verarbeiten.
+ */
+interface MulterFile {
+  /**
+   * Name des Formularfelds, durch das die Datei hochgeladen wurde
+   */
+  fieldname: string;
+
+  /**
+   * Originaler Dateiname, wie er vom Client hochgeladen wurde
+   */
+  originalname: string;
+
+  /**
+   * Encoding-Typ der Datei
+   */
+  encoding: string;
+
+  /**
+   * MIME-Typ der Datei (z.B. &#x27;image/jpeg&#x27;, &#x27;application/pdf&#x27;)
+   */
+  mimetype: string;
+
+  /**
+   * Größe der Datei in Bytes
+   */
+  size: number;
+
+  /**
+   * Optionaler Pfad zum Verzeichnis, in dem die Datei gespeichert wurde
+   */
+  destination?: string;
+
+  /**
+   * Optionaler Name der Datei im Dateisystem nach der Speicherung
+   */
+  filename?: string;
+
+  /**
+   * Optionaler vollständiger Pfad zur gespeicherten Datei
+   */
+  path?: string;
+
+  /**
+   * Buffer mit dem Inhalt der Datei
+   */
+  buffer: Buffer;
+}
+
+/**
+ * Service für die Verwaltung von Einsatztagebuch-Einträgen (ETB)
+ *
+ * Dieser Service implementiert die Geschäftslogik für das elektronische
+ * Einsatztagebuch. Er verwaltet ETB-Einträge, deren Versionierung,
+ * Überschreibungen und Anlagen. Der Service unterstützt sowohl
+ * manuelle als auch automatisch generierte Einträge.
+ *
+ * Features:
+ * - CRUD-Operationen für ETB-Einträge
+ * - Fortlaufende Nummerierung von Einträgen
+ * - Versionierung und Überschreibungsmechanismen
+ * - Anlagenverwaltung mit sicherer Dateispeicherung
+ * - Filterung und Paginierung von Einträgen
+ * - Abschluss-Funktionalität für unveränderliche Einträge
+ *
+ * @class EtbService
+ */
+@Injectable()
+export class EtbService {
+  /**
+   * Konstruktor für den EtbService
+   *
+   * @param paginationService Service für Paginierung
+   * @param prisma PrismaService für Datenbankzugriffe mit Prisma
+   */
+  constructor(
+    private paginationService: PaginationService,
+    private prisma: PrismaService,
+  ) {}
+
+  // Die mapKategorieToPrisma-Methode wurde entfernt, da wir direkt Prisma-Enums verwenden
+
+  /**
+   * Erstellt einen neuen ETB-Eintrag
+   *
+   * @param createEtbDto DTO mit den Daten für den neuen Eintrag
+   * @param userId ID des Benutzers, der den Eintrag erstellt
+   * @param _userName Name des Benutzers, der den Eintrag erstellt
+   * @param userRole Rolle des Benutzers, der den Eintrag erstellt
+   * @returns Der erstellte ETB-Eintrag
+   */
+  async createEintrag(
+    createEtbDto: CreateEtbDto,
+    userId: string,
+    userName?: string,
+    userRole?: string,
+  ): Promise&lt;EtbEntry&gt; {
+    logger.info(&#x60;ETB-Eintrag wird erstellt von Benutzer ${userId}&#x60;);
+
+    // Hole die nächste laufende Nummer
+    const laufendeNummer &#x3D; await this.getNextLaufendeNummer();
+
+    // Wir verwenden direkt den EtbKategorie-Enum von Prisma
+    const prismaKategorie &#x3D; createEtbDto.kategorie;
+
+    // Erstelle den Eintrag mit Prisma
+    const prismaEintrag &#x3D; await this.prisma.etbEntry.create({
+      data: {
+        ...createEtbDto,
+        einsatz: { connect: { id: &#x27;&#x27; } },
+        kategorie: prismaKategorie,
+        timestampErstellung: new Date(),
+        timestampEreignis: new Date(createEtbDto.timestampEreignis),
+        autorId: userId,
+        autorName: userName || userId,
+        autorRolle: userRole,
+        version: 1,
+        istAbgeschlossen: false,
+        laufendeNummer,
+        status: EtbEntryStatus.AKTIV,
+      } as any,
+    } as any);
+
+    return prismaEintrag;
+  }
+
+  /**
+   * Erstellt einen automatischen ETB-Eintrag
+   *
+   * @param _data Daten für den automatischen Eintrag
+   * @param _systemQuelle Quelle des automatischen Eintrags
+   * @returns Der erstellte ETB-Eintrag
+   */
+  async createAutomaticEintrag(
+    _data: {
+      timestampEreignis: Date;
+      kategorie: EtbKategorie;
+      inhalt: string;
+      referenzEinsatzId?: string;
+      referenzPatientId?: string;
+      referenzEinsatzmittelId?: string;
+    },
+    _systemQuelle: string,
+  ): Promise&lt;EtbEntry&gt; {
+    logger.info(&#x60;Automatischer ETB-Eintrag wird erstellt durch ${_systemQuelle}&#x60;);
+
+    // Hole die nächste laufende Nummer
+    const laufendeNummer &#x3D; await this.getNextLaufendeNummer();
+
+    // Wir verwenden direkt den EtbKategorie-Enum von Prisma
+    const prismaKategorie &#x3D; _data.kategorie;
+
+    // Erstelle den Eintrag mit Prisma
+    const { referenzEinsatzId: _unused, ...rest } &#x3D; _data;
+    const prismaEintrag &#x3D; await this.prisma.etbEntry.create({
+      data: {
+        ...rest,
+        einsatz: { connect: { id: &#x27;&#x27; } },
+        kategorie: prismaKategorie,
+        timestampErstellung: new Date(),
+        autorId: &#x27;system&#x27;,
+        autorName: &#x27;System&#x27;,
+        autorRolle: &#x27;Automatisierung&#x27;,
+        systemQuelle: _systemQuelle,
+        version: 1,
+        istAbgeschlossen: false,
+        laufendeNummer,
+        status: EtbEntryStatus.AKTIV,
+      } as any,
+    } as any);
+
+    return prismaEintrag;
+  }
+
+  /**
+   * Findet alle ETB-Einträge mit optionaler Filterung und Paginierung
+   *
+   * @param filterDto DTO mit Filterkriterien und Paginierungsparametern
+   * @returns Eine paginierte Liste von ETB-Einträgen
+   */
+  async findAll(filterDto: FilterEtbDto): Promise&lt;PaginatedResponse&lt;EtbEntry&gt;&gt; {
+    logger.debug(&#x27;Suche ETB-Einträge mit Filtern&#x27;);
+    const {
+      page &#x3D; 1,
+      limit &#x3D; 10,
+      kategorie,
+      autorId,
+      vonZeitstempel,
+      bisZeitstempel,
+      search,
+      referenzEinsatzId,
+      includeUeberschrieben &#x3D; false,
+    } &#x3D; filterDto;
+
+    // Baue Where-Bedingung basierend auf den Filtern
+    const where: any &#x3D; {};
+
+    // Status-Filter (standardmäßig nur aktive Einträge)
+    if (!includeUeberschrieben) {
+      where.status &#x3D; EtbEntryStatus.AKTIV;
+    }
+
+    // Kategorie-Filter
+    if (kategorie) {
+      where.kategorie &#x3D; kategorie;
+    }
+
+    // Autor-Filter
+    if (autorId) {
+      where.autorId &#x3D; autorId;
+    }
+
+    // Zeitstempel-Filter (von - bis)
+    if (vonZeitstempel || bisZeitstempel) {
+      where.timestampEreignis &#x3D; {};
+
+      if (vonZeitstempel) {
+        where.timestampEreignis.gte &#x3D; new Date(vonZeitstempel);
+      }
+
+      if (bisZeitstempel) {
+        where.timestampEreignis.lte &#x3D; new Date(bisZeitstempel);
+      }
+    }
+
+    // ReferenzEinsatzId-Filter
+    if (referenzEinsatzId) {
+      where.referenzEinsatzId &#x3D; referenzEinsatzId;
+    }
+
+    // Textsuche im Inhalt
+    if (search) {
+      where.OR &#x3D; [
+        { inhalt: { contains: search, mode: &#x27;insensitive&#x27; } },
+        { autorName: { contains: search, mode: &#x27;insensitive&#x27; } },
+      ];
+    }
+
+    // Erstelle paginierte Abfrage
+    const paginatedEntries &#x3D; await this.paginationService.paginate&lt;EtbEntry&gt;(
+      &#x27;etbEntry&#x27;,
+      {
+        where,
+        orderBy: { laufendeNummer: &#x27;desc&#x27; },
+        include: { anlagen: true },
+      },
+      page,
+      limit,
+    );
+
+    // Konvertiere Prisma-Objekte in Entities (falls Entity-Klasse verwendet wird)
+    // const mappedEntries &#x3D; {
+    //     ...paginatedEntries,
+    //     items: paginatedEntries.items.map(item &#x3D;&gt; EtbEntryEntity.fromPrisma(item))
+    // };
+
+    // Einfach die Prisma-Objekte zurückgeben, da wir mit dem Prisma-Typ arbeiten
+    return paginatedEntries;
+  }
+
+  /**
+   * Findet einen ETB-Eintrag anhand seiner ID
+   *
+   * @param id ID des zu findenden ETB-Eintrags
+   * @returns Der gefundene ETB-Eintrag
+   * @throws NotFoundException wenn der Eintrag nicht gefunden wurde
+   */
+  async findOne(id: string): Promise&lt;EtbEntry&gt; {
+    const etbEntry &#x3D; await this.prisma.etbEntry.findUnique({
+      where: { id },
+      include: { anlagen: true },
+    });
+
+    if (!etbEntry) {
+      logger.error(&#x60;ETB-Eintrag mit ID ${id} wurde nicht gefunden&#x60;);
+      throw new NotFoundException(&#x60;ETB-Eintrag mit ID ${id} wurde nicht gefunden&#x60;);
+    }
+
+    return etbEntry;
+  }
+
+  /**
+   * Aktualisiert einen bestehenden ETB-Eintrag
+   *
+   * @param id ID des zu aktualisierenden ETB-Eintrags
+   * @param updateEtbDto DTO mit den zu aktualisierenden Daten
+   * @returns Der aktualisierte ETB-Eintrag
+   * @throws NotFoundException Wenn der Eintrag nicht gefunden wurde
+   * @throws BadRequestException Wenn der Eintrag bereits abgeschlossen ist
+   */
+  async updateEintrag(id: string, updateEtbDto: UpdateEtbDto): Promise&lt;EtbEntry&gt; {
+    // Prüfe, ob der Eintrag existiert und nicht abgeschlossen ist
+    const existingEntry &#x3D; await this.findOne(id);
+
+    if (existingEntry.istAbgeschlossen) {
+      logger.error(
+        &#x60;ETB-Eintrag mit ID ${id} ist bereits abgeschlossen und kann nicht aktualisiert werden&#x60;,
+      );
+      throw new BadRequestException(&#x27;Abgeschlossene ETB-Einträge können nicht aktualisiert werden&#x27;);
+    }
+
+    logger.info(&#x60;ETB-Eintrag mit ID ${id} wird aktualisiert&#x60;);
+
+    // Update des Eintrags mit Prisma
+    const updatedPrismaEntry &#x3D; await this.prisma.etbEntry.update({
+      where: { id },
+      data: {
+        ...updateEtbDto,
+        // Wenn ein neuer Zeitstempel angegeben ist, konvertiere ihn zu Date
+        timestampEreignis: updateEtbDto.timestampEreignis
+          ? new Date(updateEtbDto.timestampEreignis)
+          : undefined,
+        // Setze die Version direkt (Inkrement um 1)
+        version: { increment: 1 },
+      },
+      include: { anlagen: true },
+    });
+
+    return updatedPrismaEntry;
+  }
+
+  /**
+   * Schließt einen ETB-Eintrag ab, sodass er nicht mehr bearbeitet werden kann
+   *
+   * @param id ID des abzuschließenden ETB-Eintrags
+   * @param userId ID des Benutzers, der den Eintrag abschließt
+   * @returns Der abgeschlossene ETB-Eintrag
+   * @throws NotFoundException wenn der Eintrag nicht gefunden wurde
+   * @throws BadRequestException wenn der Eintrag bereits abgeschlossen ist
+   */
+  async closeEintrag(id: string, userId: string): Promise&lt;EtbEntry&gt; {
+    const etbEntry &#x3D; await this.findOne(id);
+
+    if (etbEntry.istAbgeschlossen) {
+      logger.error(&#x60;ETB-Eintrag mit ID ${id} ist bereits abgeschlossen&#x60;);
+      throw new BadRequestException(&#x60;ETB-Eintrag ist bereits abgeschlossen&#x60;);
+    }
+
+    logger.info(&#x60;ETB-Eintrag mit ID ${id} wird abgeschlossen von Benutzer ${userId}&#x60;);
+
+    const updatedPrismaEntry &#x3D; await this.prisma.etbEntry.update({
+      where: { id },
+      data: {
+        istAbgeschlossen: true,
+        timestampAbschluss: new Date(),
+        abgeschlossenVon: userId,
+      },
+      include: { anlagen: true },
+    });
+
+    return updatedPrismaEntry;
+  }
+
+  /**
+   * Fügt eine Dateianlage zu einem ETB-Eintrag hinzu
+   *
+   * @param id ID des ETB-Eintrags
+   * @param file Die hochgeladene Datei
+   * @param addAttachmentDto DTO mit der optionalen Beschreibung der Anlage
+   * @returns Die erstellte ETB-Anlage
+   * @throws NotFoundException Wenn der ETB-Eintrag nicht gefunden wurde
+   * @throws BadRequestException Wenn der ETB-Eintrag bereits abgeschlossen ist oder andere Validierungsfehler auftreten
+   */
+  async addAttachment(
+    id: string,
+    file: MulterFile,
+    addAttachmentDto: AddAttachmentDto,
+  ): Promise&lt;EtbAttachment&gt; {
+    // Prüfen, ob der Eintrag existiert
+    const etbEntry &#x3D; await this.findOne(id);
+
+    // Prüfen, ob der Eintrag abgeschlossen ist
+    if (etbEntry.istAbgeschlossen) {
+      logger.error(
+        &#x60;Anlage kann nicht zu ETB-Eintrag ${id} hinzugefügt werden, da er abgeschlossen ist&#x60;,
+      );
+      throw new BadRequestException(
+        &#x27;Anlagen können nicht zu abgeschlossenen ETB-Einträgen hinzugefügt werden&#x27;,
+      );
+    }
+
+    try {
+      // Sicherer Dateiname durch Sanitization
+      const safeFileName &#x3D; sanitize(file.originalname);
+
+      // Generiere einen eindeutigen Dateinamen, um Überschreibungen zu vermeiden
+      const uniqueFileName &#x3D; &#x60;${Date.now()}-${safeFileName}&#x60;;
+
+      // Pfad zum Uploads-Verzeichnis
+      const uploadDir &#x3D; path.join(process.cwd(), &#x27;uploads&#x27;);
+
+      // Erstelle das Verzeichnis, falls es nicht existiert
+      if (!fs.existsSync(uploadDir)) {
+        fs.mkdirSync(uploadDir, { recursive: true });
+      }
+
+      // Vollständiger Pfad zur Datei
+      const filePath &#x3D; path.join(uploadDir, uniqueFileName);
+
+      // Schreibe die Datei
+      fs.writeFileSync(filePath, file.buffer);
+
+      logger.info(&#x60;Datei ${uniqueFileName} wurde gespeichert unter ${filePath}&#x60;);
+
+      // Erstelle den Datenbankeintrag für die Anlage
+      const attachment &#x3D; await this.prisma.etbAttachment.create({
+        data: {
+          etbEntryId: id,
+          dateiname: safeFileName, // Verwende die Feldnamen gemäß Prisma-Schema
+          dateityp: file.mimetype,
+          speicherOrt: filePath,
+          beschreibung: addAttachmentDto?.beschreibung || null,
+        },
+      });
+
+      logger.info(&#x60;Anlage wurde erfolgreich zum ETB-Eintrag ${id} hinzugefügt&#x60;);
+
+      return attachment;
+    } catch (error: any) {
+      logger.error(&#x60;Fehler beim Hinzufügen einer Anlage zum ETB-Eintrag ${id}:&#x60;, error);
+      throw new BadRequestException(&#x60;Fehler beim Hinzufügen der Anlage: ${error.message}&#x60;);
+    }
+  }
+
+  /**
+   * Findet alle Anlagen zu einem ETB-Eintrag
+   *
+   * @param etbEntryId ID des ETB-Eintrags
+   * @returns Eine Liste von ETB-Anlagen
+   */
+  async findAttachmentsByEtbEntryId(etbEntryId: string): Promise&lt;EtbAttachment[]&gt; {
+    const attachments &#x3D; await this.prisma.etbAttachment.findMany({
+      where: { etbEntryId },
+    });
+
+    return attachments;
+  }
+
+  /**
+   * Findet eine ETB-Anlage anhand ihrer ID
+   *
+   * @param id ID der zu findenden ETB-Anlage
+   * @returns Die gefundene ETB-Anlage
+   * @throws NotFoundException Wenn die Anlage nicht gefunden wurde
+   */
+  async findAttachmentById(id: string): Promise&lt;EtbAttachment&gt; {
+    const attachment &#x3D; await this.prisma.etbAttachment.findUnique({
+      where: { id },
+    });
+
+    if (!attachment) {
+      logger.error(&#x60;ETB-Anlage mit ID ${id} wurde nicht gefunden&#x60;);
+      throw new NotFoundException(&#x60;ETB-Anlage mit ID ${id} wurde nicht gefunden&#x60;);
+    }
+
+    return attachment;
+  }
+
+  /**
+   * Überschreibt einen ETB-Eintrag
+   *
+   * @param id ID des zu überschreibenden ETB-Eintrags
+   * @param ueberschreibeEtbDto Daten für den neuen überschreibenden Eintrag
+   * @param userId ID des Benutzers, der den Eintrag überschreibt
+   * @param userName Name des Benutzers, der den Eintrag überschreibt
+   * @param userRole Rolle des Benutzers, der den Eintrag überschreibt
+   * @returns Der neu erstellte überschreibende ETB-Eintrag
+   */
+  async ueberschreibeEintrag(
+    id: string,
+    ueberschreibeEtbDto: UeberschreibeEtbDto,
+    userId: string,
+    userName?: string,
+    userRole?: string,
+  ): Promise&lt;EtbEntry&gt; {
+    // Finde den zu überschreibenden Eintrag
+    const originalEntry &#x3D; await this.findOne(id);
+    const now &#x3D; new Date();
+
+    // Führe die Überschreibung in einer Transaktion durch, um die Konsistenz zu gewährleisten
+    return this.prisma.$transaction(async (tx) &#x3D;&gt; {
+      // Markiere den ursprünglichen Eintrag als überschrieben
+      await tx.etbEntry.update({
+        where: { id },
+        data: {
+          status: EtbEntryStatus.UEBERSCHRIEBEN,
+          timestampUeberschrieben: now,
+          ueberschriebenVon: userId,
+        },
+      });
+
+      // Hole die nächste laufende Nummer
+      const laufendeNummer &#x3D; await this.getNextLaufendeNummer();
+
+      // Erstelle den neuen Eintrag
+      const neuerEintrag &#x3D; await tx.etbEntry.create({
+        data: {
+          timestampErstellung: now,
+          timestampEreignis: ueberschreibeEtbDto.timestampEreignis
+            ? new Date(ueberschreibeEtbDto.timestampEreignis)
+            : originalEntry.timestampEreignis,
+          kategorie: ueberschreibeEtbDto.kategorie || originalEntry.kategorie,
+          inhalt: ueberschreibeEtbDto.inhalt || originalEntry.inhalt,
+          einsatz: { connect: { id: &#x27;&#x27; } },
+          referenzPatientId:
+            ueberschreibeEtbDto.referenzPatientId || originalEntry.referenzPatientId,
+          referenzEinsatzmittelId:
+            ueberschreibeEtbDto.referenzEinsatzmittelId || originalEntry.referenzEinsatzmittelId,
+          autorId: userId,
+          autorName: userName,
+          autorRolle: userRole,
+          version: 1,
+          status: EtbEntryStatus.AKTIV,
+          istAbgeschlossen: false,
+          laufendeNummer,
+          ueberschriebeneEintraege: {
+            connect: { id },
+          },
+        } as any,
+        include: {
+          anlagen: true,
+          ueberschriebeneEintraege: true,
+        },
+      });
+
+      logger.info(&#x60;ETB-Eintrag mit ID ${id} wird überschrieben von Benutzer ${userId}&#x60;);
+
+      return neuerEintrag;
+    });
+  }
+
+  /**
+   * Generiert die nächste verfügbare laufende Nummer für ETB-Einträge
+   *
+   * @returns Die nächste verfügbare laufende Nummer
+   */
+  private async getNextLaufendeNummer(): Promise&lt;number&gt; {
+    const result &#x3D; await this.prisma.etbEntry.aggregate({
+      _max: {
+        laufendeNummer: true,
+      },
+    });
+    return (result._max.laufendeNummer || 0) + 1;
+  }
+}
+</code></pre>
+    </div>
+
+</div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+                   </div><div class="search-results">
+    <div class="has-results">
+        <h1 class="search-results-title"><span class='search-results-count'></span> results matching "<span class='search-query'></span>"</h1>
+        <ul class="search-results-list"></ul>
+    </div>
+    <div class="no-results">
+        <h1 class="search-results-title">No results matching "<span class='search-query'></span>"</h1>
+    </div>
+</div>
+</div>
+               <!-- END CONTENT -->
+           </div>
+       </div>
+
+          <label class="dark-mode-switch">
+               <input type="checkbox">
+               <span class="slider">
+                    <svg class="slider-icon" viewBox="0 0 24 24" fill="none" height="20" stroke="#000" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" width="20" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"></path>
+                    </svg>
+               </span>
+          </label>
+
+       <script>
+            var COMPODOC_CURRENT_PAGE_DEPTH = 1;
+            var COMPODOC_CURRENT_PAGE_CONTEXT = 'injectable';
+            var COMPODOC_CURRENT_PAGE_URL = 'EtbService.html';
+            var MAX_SEARCH_RESULTS = 15;
+       </script>
+
+       <script>
+               $darkModeToggleSwitchers = document.querySelectorAll('.dark-mode-switch input');
+               checkToggle(darkModeState);
+               if ($darkModeToggleSwitchers.length > 0) {
+                    for (var i = 0; i < $darkModeToggleSwitchers.length; i++) {
+                         $darkModeToggleSwitchers[i].addEventListener('change', function (event) {
+                              darkModeState = !darkModeState;
+                              toggleDarkMode(darkModeState);
+                         });
+                    }
+               }
+          </script>
+
+       <script src="../js/libs/custom-elements.min.js"></script>
+       <script src="../js/libs/lit-html.js"></script>
+
+       <script src="../js/menu-wc.js" defer></script>
+       <script nomodule src="../js/menu-wc_es5.js" defer></script>
+
+       <script src="../js/libs/bootstrap-native.js"></script>
+
+       <script src="../js/libs/es6-shim.min.js"></script>
+       <script src="../js/libs/EventDispatcher.js"></script>
+       <script src="../js/libs/promise.min.js"></script>
+
+       <script src="../js/compodoc.js"></script>
+
+       <script src="../js/tabs.js"></script>
+       <script src="../js/menu.js"></script>
+       <script src="../js/libs/clipboard.min.js"></script>
+       <script src="../js/libs/prism.js"></script>
+       <script src="../js/sourceCode.js"></script>
+          <script src="../js/search/search.js"></script>
+          <script src="../js/search/lunr.min.js"></script>
+          <script src="../js/search/search-lunr.js"></script>
+          <script src="../js/search/search_index.js"></script>
+       <script src="../js/lazy-load-graphs.js"></script>
+
+
+    </body>
+</html>

@@ -20,6 +20,8 @@ import { SuspiciousActivityService } from './services/suspicious-activity.servic
 import { GeoIpService } from './services/geo-ip.service';
 import { IpAllowlistGuard } from './guards/ip-allowlist.guard';
 import { SessionModule } from '../session/session.module';
+import { NotificationModule } from '../notification/notification.module';
+import { SecurityAlertServiceV2 } from './services/security-alert-v2.service';
 
 /**
  * Authentication module that provides JWT-based authentication for the application.
@@ -45,6 +47,7 @@ import { SessionModule } from '../session/session.module';
       },
     ]),
     forwardRef(() => SessionModule),
+    forwardRef(() => NotificationModule),
   ],
   providers: [
     AuthService,
@@ -54,6 +57,7 @@ import { SessionModule } from '../session/session.module';
     SessionCleanupService,
     LoginAttemptService,
     SecurityAlertService,
+    SecurityAlertServiceV2,
     SecurityMetricsService,
     SecurityLogService,
     SuspiciousActivityService,

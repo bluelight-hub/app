@@ -1,0 +1,649 @@
+<!doctype html>
+<html class="no-js" lang="">
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="x-ua-compatible" content="ie=edge">
+        <title>@bluelight-hub/backend documentation</title>
+        <meta name="description" content="">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+
+        <link rel="icon" type="image/x-icon" href="../images/favicon.ico">
+	   <link rel="stylesheet" href="../styles/style.css">
+        <link rel="stylesheet" href="../styles/dark.css">
+    </head>
+    <body>
+          <script>
+               // Blocking script to avoid flickering dark mode
+               // Dark mode toggle button
+               var useDark = window.matchMedia('(prefers-color-scheme: dark)');
+               var darkModeState = useDark.matches;
+               var $darkModeToggleSwitchers = document.querySelectorAll('.dark-mode-switch input');
+               var $darkModeToggles = document.querySelectorAll('.dark-mode-switch');
+               var darkModeStateLocal = localStorage.getItem('compodoc_darkmode-state');
+
+               function checkToggle(check) {
+                    for (var i = 0; i < $darkModeToggleSwitchers.length; i++) {
+                         $darkModeToggleSwitchers[i].checked = check;
+                    }
+               }
+
+               function toggleDarkMode(state) {
+                    if (window.localStorage) {
+                         localStorage.setItem('compodoc_darkmode-state', state);
+                    }
+
+                    checkToggle(state);
+
+                    const hasClass = document.body.classList.contains('dark');
+
+                    if (state) {
+                         for (var i = 0; i < $darkModeToggles.length; i++) {
+                              $darkModeToggles[i].classList.add('dark');
+                         }
+                         if (!hasClass) {
+                              document.body.classList.add('dark');
+                         }
+                    } else {
+                         for (var i = 0; i < $darkModeToggles.length; i++) {
+                              $darkModeToggles[i].classList.remove('dark');
+                         }
+                         if (hasClass) {
+                              document.body.classList.remove('dark');
+                         }
+                    }
+               }
+
+               useDark.addEventListener('change', function (evt) {
+                    toggleDarkMode(evt.matches);
+               });
+               if (darkModeStateLocal) {
+                    darkModeState = darkModeStateLocal === 'true';
+               }
+               toggleDarkMode(darkModeState);
+          </script>
+
+        <div class="navbar navbar-default navbar-fixed-top d-md-none p-0">
+               <div class="d-flex">
+                    <a href="../" class="navbar-brand">@bluelight-hub/backend documentation</a>
+                    <button type="button" class="btn btn-default btn-menu ion-ios-menu" id="btn-menu"></button>
+               </div>
+        </div>
+
+        <div class="xs-menu menu" id="mobile-menu">
+                <div id="book-search-input" role="search"><input type="text" placeholder="Type to search"></div>            <compodoc-menu></compodoc-menu>
+        </div>
+
+        <div class="container-fluid main">
+           <div class="row main">
+               <div class="d-none d-md-block menu">
+                   <compodoc-menu mode="normal"></compodoc-menu>
+               </div>
+               <!-- START CONTENT -->
+               <div class="content interface">
+                   <div class="content-data">
+
+
+
+
+
+
+
+
+
+
+
+
+
+<ol class="breadcrumb">
+  <li class="breadcrumb-item">Interfaces</li>
+  <li class="breadcrumb-item"
+  >
+  ErrorHandlingFeatureFlags</li>
+</ol>
+
+<ul class="nav nav-tabs" role="tablist">
+        <li class="nav-item">
+            <a href="#info" 
+                class="nav-link"
+                class="nav-link active"
+                role="tab" id="info-tab" data-bs-toggle="tab" data-link="info">Info</a>
+        </li>
+        <li class="nav-item">
+            <a href="#source" 
+                class="nav-link"
+                
+                role="tab" id="source-tab" data-bs-toggle="tab" data-link="source">Source</a>
+        </li>
+</ul>
+
+<div class="tab-content">
+    <div class="tab-pane fade active in" id="info">
+        <p class="comment">
+            <h3>File</h3>
+        </p>
+        <p class="comment">
+            <code>src/common/config/error-handling.config.ts</code>
+        </p>
+
+
+            <p class="comment">
+                <h3>Description</h3>
+            </p>
+            <p class="comment">
+                <p>Feature Flags für Error Handling</p>
+
+            </p>
+
+
+        <section data-compodoc="block-index">
+            <h3 id="index">Index</h3>
+            <table class="table table-sm table-bordered index-table">
+                <tbody>
+                    <tr>
+                        <td class="col-md-4">
+                            <h6><b>Properties</b></h6>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="col-md-4">
+                            <ul class="index-list">
+                                <li>
+                                        <a href="#enableAdvancedRetry" 
+>
+                                            enableAdvancedRetry
+                                        </a>
+                                </li>
+                                <li>
+                                        <a href="#enableCircuitBreaker" 
+>
+                                            enableCircuitBreaker
+                                        </a>
+                                </li>
+                                <li>
+                                        <a href="#enableDuplicateDetection" 
+>
+                                            enableDuplicateDetection
+                                        </a>
+                                </li>
+                                <li>
+                                        <a href="#enableMetricsCollection" 
+>
+                                            enableMetricsCollection
+                                        </a>
+                                </li>
+                                <li>
+                                        <a href="#enableRateLimiting" 
+>
+                                            enableRateLimiting
+                                        </a>
+                                </li>
+                            </ul>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </section>
+
+
+
+            <section data-compodoc="block-properties">
+                <h3 id="inputs">Properties</h3>
+                    <table class="table table-sm table-bordered">
+                        <tbody>
+                                <tr>
+                                    <td class="col-md-4">
+                                        <a name="enableAdvancedRetry"></a>
+                                        <span class="name "><b>enableAdvancedRetry</b>
+                                            <a href="#enableAdvancedRetry">
+                                                <span class="icon ion-ios-link"></span>
+                                            </a>
+                                        </span>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td class="col-md-4">
+                                        <code>enableAdvancedRetry:         <code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/boolean" target="_blank" >boolean</a></code>
+</code>
+                                    </td>
+                                </tr>
+
+
+                                    <tr>
+                                        <td class="col-md-4">
+                                            <i>Type : </i>        <code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/boolean" target="_blank" >boolean</a></code>
+
+                                        </td>
+                                    </tr>
+
+
+
+
+
+                            <tr>
+                                <td class="col-md-4">
+                                    <div class="io-description"><p>Ob erweiterte Retry-Logik aktiviert ist</p>
+</div>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    <table class="table table-sm table-bordered">
+                        <tbody>
+                                <tr>
+                                    <td class="col-md-4">
+                                        <a name="enableCircuitBreaker"></a>
+                                        <span class="name "><b>enableCircuitBreaker</b>
+                                            <a href="#enableCircuitBreaker">
+                                                <span class="icon ion-ios-link"></span>
+                                            </a>
+                                        </span>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td class="col-md-4">
+                                        <code>enableCircuitBreaker:         <code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/boolean" target="_blank" >boolean</a></code>
+</code>
+                                    </td>
+                                </tr>
+
+
+                                    <tr>
+                                        <td class="col-md-4">
+                                            <i>Type : </i>        <code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/boolean" target="_blank" >boolean</a></code>
+
+                                        </td>
+                                    </tr>
+
+
+
+
+
+                            <tr>
+                                <td class="col-md-4">
+                                    <div class="io-description"><p>Ob Circuit Breaker aktiviert ist</p>
+</div>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    <table class="table table-sm table-bordered">
+                        <tbody>
+                                <tr>
+                                    <td class="col-md-4">
+                                        <a name="enableDuplicateDetection"></a>
+                                        <span class="name "><b>enableDuplicateDetection</b>
+                                            <a href="#enableDuplicateDetection">
+                                                <span class="icon ion-ios-link"></span>
+                                            </a>
+                                        </span>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td class="col-md-4">
+                                        <code>enableDuplicateDetection:         <code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/boolean" target="_blank" >boolean</a></code>
+</code>
+                                    </td>
+                                </tr>
+
+
+                                    <tr>
+                                        <td class="col-md-4">
+                                            <i>Type : </i>        <code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/boolean" target="_blank" >boolean</a></code>
+
+                                        </td>
+                                    </tr>
+
+
+
+
+
+                            <tr>
+                                <td class="col-md-4">
+                                    <div class="io-description"><p>Ob Duplicate Detection aktiviert ist</p>
+</div>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    <table class="table table-sm table-bordered">
+                        <tbody>
+                                <tr>
+                                    <td class="col-md-4">
+                                        <a name="enableMetricsCollection"></a>
+                                        <span class="name "><b>enableMetricsCollection</b>
+                                            <a href="#enableMetricsCollection">
+                                                <span class="icon ion-ios-link"></span>
+                                            </a>
+                                        </span>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td class="col-md-4">
+                                        <code>enableMetricsCollection:         <code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/boolean" target="_blank" >boolean</a></code>
+</code>
+                                    </td>
+                                </tr>
+
+
+                                    <tr>
+                                        <td class="col-md-4">
+                                            <i>Type : </i>        <code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/boolean" target="_blank" >boolean</a></code>
+
+                                        </td>
+                                    </tr>
+
+
+
+
+
+                            <tr>
+                                <td class="col-md-4">
+                                    <div class="io-description"><p>Ob Metriken-Sammlung aktiviert ist</p>
+</div>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    <table class="table table-sm table-bordered">
+                        <tbody>
+                                <tr>
+                                    <td class="col-md-4">
+                                        <a name="enableRateLimiting"></a>
+                                        <span class="name "><b>enableRateLimiting</b>
+                                            <a href="#enableRateLimiting">
+                                                <span class="icon ion-ios-link"></span>
+                                            </a>
+                                        </span>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td class="col-md-4">
+                                        <code>enableRateLimiting:         <code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/boolean" target="_blank" >boolean</a></code>
+</code>
+                                    </td>
+                                </tr>
+
+
+                                    <tr>
+                                        <td class="col-md-4">
+                                            <i>Type : </i>        <code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/boolean" target="_blank" >boolean</a></code>
+
+                                        </td>
+                                    </tr>
+
+
+
+
+
+                            <tr>
+                                <td class="col-md-4">
+                                    <div class="io-description"><p>Ob Rate Limiting aktiviert ist</p>
+</div>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+            </section>
+    </div>
+
+
+    <div class="tab-pane fade  tab-source-code" id="source">
+        <pre class="line-numbers compodoc-sourcecode"><code class="language-typescript">import { DuplicateDetectionConfig } from &#x27;../utils/duplicate-detection.util&#x27;;
+import { RetryConfig } from &#x27;../utils/retry.util&#x27;;
+
+/**
+ * Umgebungsspezifische Konfiguration für Error Handling
+ */
+export interface EnvironmentErrorConfig {
+  /** Retry-Konfiguration für diese Umgebung */
+  retryConfig: RetryConfig;
+  /** Duplicate Detection Konfiguration */
+  duplicateDetectionConfig: DuplicateDetectionConfig;
+  /** Ob detaillierte Fehlerberichte aktiviert sind */
+  verboseErrorReporting: boolean;
+  /** Ob strikte Validierung aktiviert ist */
+  strictValidation: boolean;
+  /** Ob Feature Flags aktiviert sind */
+  enableFeatureFlags: boolean;
+  /** Maximale Anzahl gleichzeitiger Operationen */
+  maxConcurrentOperations: number;
+  /** Timeout für Operationen in Millisekunden */
+  operationTimeout: number;
+  /** Ob Fehler-Metriken gesammelt werden sollen */
+  collectErrorMetrics: boolean;
+}
+
+/**
+ * Development Environment Konfiguration
+ */
+export const DEVELOPMENT_ERROR_CONFIG: EnvironmentErrorConfig &#x3D; {
+  retryConfig: {
+    maxRetries: 5, // Mehr Versuche für Entwicklung
+    baseDelay: 1000,
+    maxDelay: 15000,
+    backoffMultiplier: 2,
+    jitterFactor: 0.2,
+    timeout: 60000, // Längere Timeouts für Debugging
+  },
+  duplicateDetectionConfig: {
+    timeWindow: 120000, // 2 Minuten für Entwicklung
+    maxCacheSize: 500,
+    cleanupInterval: 60000, // 1 Minute
+  },
+  verboseErrorReporting: true,
+  strictValidation: false, // Weniger strikt für Entwicklung
+  enableFeatureFlags: true,
+  maxConcurrentOperations: 10,
+  operationTimeout: 60000,
+  collectErrorMetrics: true,
+};
+
+/**
+ * Test Environment Konfiguration
+ */
+export const TEST_ERROR_CONFIG: EnvironmentErrorConfig &#x3D; {
+  retryConfig: {
+    maxRetries: 2, // Weniger Versuche für schnelle Tests
+    baseDelay: 100,
+    maxDelay: 1000,
+    backoffMultiplier: 2,
+    jitterFactor: 0.1,
+    timeout: 5000, // Kurze Timeouts für Tests
+  },
+  duplicateDetectionConfig: {
+    timeWindow: 10000, // 10 Sekunden für Tests
+    maxCacheSize: 100,
+    cleanupInterval: 5000, // 5 Sekunden
+  },
+  verboseErrorReporting: false,
+  strictValidation: true, // Strikt für Tests
+  enableFeatureFlags: false,
+  maxConcurrentOperations: 5,
+  operationTimeout: 5000,
+  collectErrorMetrics: false,
+};
+
+/**
+ * Production Environment Konfiguration
+ */
+export const PRODUCTION_ERROR_CONFIG: EnvironmentErrorConfig &#x3D; {
+  retryConfig: {
+    maxRetries: 3, // Moderate Anzahl für Production
+    baseDelay: 500,
+    maxDelay: 10000,
+    backoffMultiplier: 2,
+    jitterFactor: 0.15,
+    timeout: 30000, // Standard Timeouts
+  },
+  duplicateDetectionConfig: {
+    timeWindow: 60000, // 1 Minute für Production
+    maxCacheSize: 1000,
+    cleanupInterval: 300000, // 5 Minuten
+  },
+  verboseErrorReporting: false, // Keine detaillierten Fehler in Production
+  strictValidation: true,
+  enableFeatureFlags: true,
+  maxConcurrentOperations: 20,
+  operationTimeout: 30000,
+  collectErrorMetrics: true,
+};
+
+/**
+ * Staging Environment Konfiguration
+ */
+export const STAGING_ERROR_CONFIG: EnvironmentErrorConfig &#x3D; {
+  retryConfig: {
+    maxRetries: 3,
+    baseDelay: 750,
+    maxDelay: 12000,
+    backoffMultiplier: 2,
+    jitterFactor: 0.15,
+    timeout: 45000,
+  },
+  duplicateDetectionConfig: {
+    timeWindow: 90000, // 1.5 Minuten für Staging
+    maxCacheSize: 750,
+    cleanupInterval: 180000, // 3 Minuten
+  },
+  verboseErrorReporting: true, // Detaillierte Fehler für Staging
+  strictValidation: true,
+  enableFeatureFlags: true,
+  maxConcurrentOperations: 15,
+  operationTimeout: 45000,
+  collectErrorMetrics: true,
+};
+
+/**
+ * Gibt die Konfiguration für die aktuelle Umgebung zurück
+ *
+ * @param environment Die Umgebung (NODE_ENV)
+ * @returns Die entsprechende Error Handling Konfiguration
+ */
+export function getErrorConfigForEnvironment(environment: string): EnvironmentErrorConfig {
+  switch (environment?.toLowerCase()) {
+    case &#x27;development&#x27;:
+    case &#x27;dev&#x27;:
+      return DEVELOPMENT_ERROR_CONFIG;
+    case &#x27;test&#x27;:
+    case &#x27;testing&#x27;:
+      return TEST_ERROR_CONFIG;
+    case &#x27;production&#x27;:
+    case &#x27;prod&#x27;:
+      return PRODUCTION_ERROR_CONFIG;
+    case &#x27;staging&#x27;:
+    case &#x27;stage&#x27;:
+      return STAGING_ERROR_CONFIG;
+    default:
+      // Fallback auf Development für unbekannte Umgebungen
+      return DEVELOPMENT_ERROR_CONFIG;
+  }
+}
+
+/**
+ * Feature Flags für Error Handling
+ */
+export interface ErrorHandlingFeatureFlags {
+  /** Ob erweiterte Retry-Logik aktiviert ist */
+  enableAdvancedRetry: boolean;
+  /** Ob Duplicate Detection aktiviert ist */
+  enableDuplicateDetection: boolean;
+  /** Ob Metriken-Sammlung aktiviert ist */
+  enableMetricsCollection: boolean;
+  /** Ob Circuit Breaker aktiviert ist */
+  enableCircuitBreaker: boolean;
+  /** Ob Rate Limiting aktiviert ist */
+  enableRateLimiting: boolean;
+}
+
+/**
+ * Standard Feature Flags
+ */
+export const DEFAULT_FEATURE_FLAGS: ErrorHandlingFeatureFlags &#x3D; {
+  enableAdvancedRetry: true,
+  enableDuplicateDetection: true,
+  enableMetricsCollection: true,
+  enableCircuitBreaker: false, // Noch nicht implementiert
+  enableRateLimiting: false, // Noch nicht implementiert
+};
+</code></pre>
+    </div>
+</div>
+
+
+
+
+
+
+
+
+                   </div><div class="search-results">
+    <div class="has-results">
+        <h1 class="search-results-title"><span class='search-results-count'></span> results matching "<span class='search-query'></span>"</h1>
+        <ul class="search-results-list"></ul>
+    </div>
+    <div class="no-results">
+        <h1 class="search-results-title">No results matching "<span class='search-query'></span>"</h1>
+    </div>
+</div>
+</div>
+               <!-- END CONTENT -->
+           </div>
+       </div>
+
+          <label class="dark-mode-switch">
+               <input type="checkbox">
+               <span class="slider">
+                    <svg class="slider-icon" viewBox="0 0 24 24" fill="none" height="20" stroke="#000" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" width="20" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"></path>
+                    </svg>
+               </span>
+          </label>
+
+       <script>
+            var COMPODOC_CURRENT_PAGE_DEPTH = 1;
+            var COMPODOC_CURRENT_PAGE_CONTEXT = 'interface';
+            var COMPODOC_CURRENT_PAGE_URL = 'ErrorHandlingFeatureFlags.html';
+            var MAX_SEARCH_RESULTS = 15;
+       </script>
+
+       <script>
+               $darkModeToggleSwitchers = document.querySelectorAll('.dark-mode-switch input');
+               checkToggle(darkModeState);
+               if ($darkModeToggleSwitchers.length > 0) {
+                    for (var i = 0; i < $darkModeToggleSwitchers.length; i++) {
+                         $darkModeToggleSwitchers[i].addEventListener('change', function (event) {
+                              darkModeState = !darkModeState;
+                              toggleDarkMode(darkModeState);
+                         });
+                    }
+               }
+          </script>
+
+       <script src="../js/libs/custom-elements.min.js"></script>
+       <script src="../js/libs/lit-html.js"></script>
+
+       <script src="../js/menu-wc.js" defer></script>
+       <script nomodule src="../js/menu-wc_es5.js" defer></script>
+
+       <script src="../js/libs/bootstrap-native.js"></script>
+
+       <script src="../js/libs/es6-shim.min.js"></script>
+       <script src="../js/libs/EventDispatcher.js"></script>
+       <script src="../js/libs/promise.min.js"></script>
+
+       <script src="../js/compodoc.js"></script>
+
+       <script src="../js/tabs.js"></script>
+       <script src="../js/menu.js"></script>
+       <script src="../js/libs/clipboard.min.js"></script>
+       <script src="../js/libs/prism.js"></script>
+       <script src="../js/sourceCode.js"></script>
+          <script src="../js/search/search.js"></script>
+          <script src="../js/search/lunr.min.js"></script>
+          <script src="../js/search/search-lunr.js"></script>
+          <script src="../js/search/search_index.js"></script>
+       <script src="../js/lazy-load-graphs.js"></script>
+
+
+    </body>
+</html>

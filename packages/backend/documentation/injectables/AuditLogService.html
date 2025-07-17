@@ -1,0 +1,1741 @@
+<!doctype html>
+<html class="no-js" lang="">
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="x-ua-compatible" content="ie=edge">
+        <title>@bluelight-hub/backend documentation</title>
+        <meta name="description" content="">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+
+        <link rel="icon" type="image/x-icon" href="../images/favicon.ico">
+	   <link rel="stylesheet" href="../styles/style.css">
+        <link rel="stylesheet" href="../styles/dark.css">
+    </head>
+    <body>
+          <script>
+               // Blocking script to avoid flickering dark mode
+               // Dark mode toggle button
+               var useDark = window.matchMedia('(prefers-color-scheme: dark)');
+               var darkModeState = useDark.matches;
+               var $darkModeToggleSwitchers = document.querySelectorAll('.dark-mode-switch input');
+               var $darkModeToggles = document.querySelectorAll('.dark-mode-switch');
+               var darkModeStateLocal = localStorage.getItem('compodoc_darkmode-state');
+
+               function checkToggle(check) {
+                    for (var i = 0; i < $darkModeToggleSwitchers.length; i++) {
+                         $darkModeToggleSwitchers[i].checked = check;
+                    }
+               }
+
+               function toggleDarkMode(state) {
+                    if (window.localStorage) {
+                         localStorage.setItem('compodoc_darkmode-state', state);
+                    }
+
+                    checkToggle(state);
+
+                    const hasClass = document.body.classList.contains('dark');
+
+                    if (state) {
+                         for (var i = 0; i < $darkModeToggles.length; i++) {
+                              $darkModeToggles[i].classList.add('dark');
+                         }
+                         if (!hasClass) {
+                              document.body.classList.add('dark');
+                         }
+                    } else {
+                         for (var i = 0; i < $darkModeToggles.length; i++) {
+                              $darkModeToggles[i].classList.remove('dark');
+                         }
+                         if (hasClass) {
+                              document.body.classList.remove('dark');
+                         }
+                    }
+               }
+
+               useDark.addEventListener('change', function (evt) {
+                    toggleDarkMode(evt.matches);
+               });
+               if (darkModeStateLocal) {
+                    darkModeState = darkModeStateLocal === 'true';
+               }
+               toggleDarkMode(darkModeState);
+          </script>
+
+        <div class="navbar navbar-default navbar-fixed-top d-md-none p-0">
+               <div class="d-flex">
+                    <a href="../" class="navbar-brand">@bluelight-hub/backend documentation</a>
+                    <button type="button" class="btn btn-default btn-menu ion-ios-menu" id="btn-menu"></button>
+               </div>
+        </div>
+
+        <div class="xs-menu menu" id="mobile-menu">
+                <div id="book-search-input" role="search"><input type="text" placeholder="Type to search"></div>            <compodoc-menu></compodoc-menu>
+        </div>
+
+        <div class="container-fluid main">
+           <div class="row main">
+               <div class="d-none d-md-block menu">
+                   <compodoc-menu mode="normal"></compodoc-menu>
+               </div>
+               <!-- START CONTENT -->
+               <div class="content injectable">
+                   <div class="content-data">
+
+
+
+
+
+
+
+
+<ol class="breadcrumb">
+  <li class="breadcrumb-item">Injectables</li>
+  <li class="breadcrumb-item" >AuditLogService</li>
+</ol>
+
+<ul class="nav nav-tabs" role="tablist">
+        <li class="nav-item">
+            <a href="#info" 
+                class="nav-link"
+                class="nav-link active"
+                role="tab" id="info-tab" data-bs-toggle="tab" data-link="info">Info</a>
+        </li>
+        <li class="nav-item">
+            <a href="#source" 
+                class="nav-link"
+                
+                role="tab" id="source-tab" data-bs-toggle="tab" data-link="source">Source</a>
+        </li>
+</ul>
+
+<div class="tab-content">
+    <div class="tab-pane fade active in" id="info">
+        <p class="comment">
+            <h3>File</h3>
+        </p>
+        <p class="comment">
+            <code>src/modules/audit/services/audit-log.service.ts</code>
+        </p>
+
+
+            <p class="comment">
+                <h3>Description</h3>
+            </p>
+            <p class="comment">
+                <p>Service für die Verwaltung von Audit-Logs
+Bietet CRUD-Operationen, erweiterte Filterung und Archivierung</p>
+
+            </p>
+
+
+
+            <section data-compodoc="block-index">
+    <h3 id="index">Index</h3>
+    <table class="table table-sm table-bordered index-table">
+        <tbody>
+
+                <tr>
+                    <td class="col-md-4">
+                        <h6><b>Methods</b></h6>
+                    </td>
+                </tr>
+                <tr>
+                    <td class="col-md-4">
+                        <ul class="index-list">
+                            <li>
+                                    <span class="modifier">Async</span>
+                                <a href="#archiveOldLogs" >archiveOldLogs</a>
+                            </li>
+                            <li>
+                                    <span class="modifier">Async</span>
+                                <a href="#bulkDelete" >bulkDelete</a>
+                            </li>
+                            <li>
+                                    <span class="modifier">Async</span>
+                                <a href="#create" >create</a>
+                            </li>
+                            <li>
+                                    <span class="modifier">Async</span>
+                                <a href="#deleteArchivedLogs" >deleteArchivedLogs</a>
+                            </li>
+                            <li>
+                                    <span class="modifier">Async</span>
+                                <a href="#findAll" >findAll</a>
+                            </li>
+                            <li>
+                                    <span class="modifier">Async</span>
+                                <a href="#findMany" >findMany</a>
+                            </li>
+                            <li>
+                                    <span class="modifier">Async</span>
+                                <a href="#findOne" >findOne</a>
+                            </li>
+                            <li>
+                                    <span class="modifier">Async</span>
+                                <a href="#getStatistics" >getStatistics</a>
+                            </li>
+                            <li>
+                                    <span class="modifier">Async</span>
+                                <a href="#markAsReviewed" >markAsReviewed</a>
+                            </li>
+                            <li>
+                                    <span class="modifier">Async</span>
+                                <a href="#remove" >remove</a>
+                            </li>
+                            <li>
+                                    <span class="modifier">Private</span>
+                                <a href="#toEntity" >toEntity</a>
+                            </li>
+                        </ul>
+                    </td>
+                </tr>
+
+
+
+
+
+        </tbody>
+    </table>
+</section>
+
+            <section data-compodoc="block-constructor">
+    <h3 id="constructor">Constructor</h3>
+        <table class="table table-sm table-bordered">
+            <tbody>
+                <tr>
+                    <td class="col-md-4">
+<code>constructor(prisma: <a href="../injectables/PrismaService.html" target="_self">PrismaService</a>, cacheService: <a href="../injectables/AuditLogCacheService.html" target="_self">AuditLogCacheService</a>)</code>
+                    </td>
+                </tr>
+                        <tr>
+                            <td class="col-md-4">
+                                <div class="io-line">Defined in <a href="" data-line="20" class="link-to-prism">src/modules/audit/services/audit-log.service.ts:20</a></div>
+                            </td>
+                        </tr>
+
+                <tr>
+                    <td class="col-md-4">
+                            <div>
+                                    <b>Parameters :</b>
+                                    <table class="params">
+                                        <thead>
+                                            <tr>
+                                                <td>Name</td>
+                                                    <td>Type</td>
+                                                <td>Optional</td>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                                <tr>
+                                                        <td>prisma</td>
+                                                  
+                                                        <td>
+                                                                        <code><a href="../injectables/PrismaService.html" target="_self" >PrismaService</a></code>
+                                                        </td>
+                                                  
+                                                    <td>
+                                                            No
+                                                    </td>
+                                                    
+                                                </tr>
+                                                <tr>
+                                                        <td>cacheService</td>
+                                                  
+                                                        <td>
+                                                                        <code><a href="../injectables/AuditLogCacheService.html" target="_self" >AuditLogCacheService</a></code>
+                                                        </td>
+                                                  
+                                                    <td>
+                                                            No
+                                                    </td>
+                                                    
+                                                </tr>
+                                        </tbody>
+                                    </table>
+                            </div>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+</section>
+
+            <section data-compodoc="block-methods">
+    
+    <h3 id="methods">
+        Methods
+    </h3>
+    <table class="table table-sm table-bordered">
+        <tbody>
+            <tr>
+                <td class="col-md-4">
+                    <a name="archiveOldLogs"></a>
+                    <span class="name">
+                            <span class="modifier">Async</span>
+                        <span ><b>archiveOldLogs</b></span>
+                        <a href="#archiveOldLogs"><span class="icon ion-ios-link"></span></a>
+                    </span>
+                </td>
+            </tr>
+            <tr>
+                <td class="col-md-4">
+                        <span class="modifier-icon icon ion-ios-reset"></span>
+                    <code>archiveOldLogs(daysToKeep: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/number" target="_blank">number</a>)</code>
+                </td>
+            </tr>
+
+
+                    <tr>
+                        <td class="col-md-4">
+                            <div class="io-line">Defined in <a href="" data-line="272"
+                                    class="link-to-prism">src/modules/audit/services/audit-log.service.ts:272</a></div>
+                        </td>
+                    </tr>
+
+
+            <tr>
+                <td class="col-md-4">
+                        <div class="io-description"><p>Archiviert alte Audit-Log-Einträge basierend auf Aufbewahrungsrichtlinien</p>
+</div>
+
+                            <div class="io-description">
+                                <b>Parameters :</b>
+                                
+                                <table class="params">
+                                    <thead>
+                                        <tr>
+                                            <td>Name</td>
+                                                <td>Type</td>
+                                            <td>Optional</td>
+                                                <td>Default value</td>
+                                                <td>Description</td>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                                <td>daysToKeep</td>
+                                            <td>
+                                                            <code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/number" target="_blank" >number</a></code>
+                                            </td>
+
+                                            <td>
+                                                    No
+                                            </td>
+
+                                            <td>
+                                                    <code>365</code>
+                                            </td>
+
+                                            <td>
+                                                    <p>Anzahl Tage, die Logs aufbewahrt werden sollen</p>
+
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        <div class="io-description">
+                            <b>Returns : </b>    <code>Promise&lt;number&gt;</code>
+
+                        </div>
+                            <div class="io-description">
+                                <p>Anzahl archivierter Einträge</p>
+
+                            </div>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+    <table class="table table-sm table-bordered">
+        <tbody>
+            <tr>
+                <td class="col-md-4">
+                    <a name="bulkDelete"></a>
+                    <span class="name">
+                            <span class="modifier">Async</span>
+                        <span ><b>bulkDelete</b></span>
+                        <a href="#bulkDelete"><span class="icon ion-ios-link"></span></a>
+                    </span>
+                </td>
+            </tr>
+            <tr>
+                <td class="col-md-4">
+                        <span class="modifier-icon icon ion-ios-reset"></span>
+                    <code>bulkDelete(criteria: literal type)</code>
+                </td>
+            </tr>
+
+
+                    <tr>
+                        <td class="col-md-4">
+                            <div class="io-line">Defined in <a href="" data-line="366"
+                                    class="link-to-prism">src/modules/audit/services/audit-log.service.ts:366</a></div>
+                        </td>
+                    </tr>
+
+
+            <tr>
+                <td class="col-md-4">
+                        <div class="io-description"><p>Löscht mehrere Audit-Log-Einträge basierend auf Kriterien</p>
+</div>
+
+                            <div class="io-description">
+                                <b>Parameters :</b>
+                                
+                                <table class="params">
+                                    <thead>
+                                        <tr>
+                                            <td>Name</td>
+                                                <td>Type</td>
+                                            <td>Optional</td>
+                                                <td>Description</td>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                                <td>criteria</td>
+                                            <td>
+                                                        <code>literal type</code>
+                                            </td>
+
+                                            <td>
+                                                    No
+                                            </td>
+
+
+                                            <td>
+                                                    <p>Löschkriterien</p>
+
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        <div class="io-description">
+                            <b>Returns : </b>    <code>Promise&lt;number&gt;</code>
+
+                        </div>
+                            <div class="io-description">
+                                <p>Anzahl gelöschter Einträge</p>
+
+                            </div>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+    <table class="table table-sm table-bordered">
+        <tbody>
+            <tr>
+                <td class="col-md-4">
+                    <a name="create"></a>
+                    <span class="name">
+                            <span class="modifier">Async</span>
+                        <span ><b>create</b></span>
+                        <a href="#create"><span class="icon ion-ios-link"></span></a>
+                    </span>
+                </td>
+            </tr>
+            <tr>
+                <td class="col-md-4">
+                        <span class="modifier-icon icon ion-ios-reset"></span>
+                    <code>create(createAuditLogDto: <a href="../classes/CreateAuditLogDto.html" target="_self">CreateAuditLogDto</a>)</code>
+                </td>
+            </tr>
+
+
+                    <tr>
+                        <td class="col-md-4">
+                            <div class="io-line">Defined in <a href="" data-line="45"
+                                    class="link-to-prism">src/modules/audit/services/audit-log.service.ts:45</a></div>
+                        </td>
+                    </tr>
+
+
+            <tr>
+                <td class="col-md-4">
+                        <div class="io-description"><p>Erstellt einen neuen Audit-Log-Eintrag</p>
+</div>
+
+                            <div class="io-description">
+                                <b>Parameters :</b>
+                                
+                                <table class="params">
+                                    <thead>
+                                        <tr>
+                                            <td>Name</td>
+                                                <td>Type</td>
+                                            <td>Optional</td>
+                                                <td>Description</td>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                                <td>createAuditLogDto</td>
+                                            <td>
+                                                            <code><a href="../classes/CreateAuditLogDto.html" target="_self" >CreateAuditLogDto</a></code>
+                                            </td>
+
+                                            <td>
+                                                    No
+                                            </td>
+
+
+                                            <td>
+                                                    <p>Daten für den neuen Audit-Log-Eintrag</p>
+
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        <div class="io-description">
+                            <b>Returns : </b>        <code><a href="../classes/AuditLogEntity.html" target="_self" >Promise&lt;AuditLogEntity&gt;</a></code>
+
+                        </div>
+                            <div class="io-description">
+                                <p>Der erstellte Audit-Log-Eintrag</p>
+
+                            </div>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+    <table class="table table-sm table-bordered">
+        <tbody>
+            <tr>
+                <td class="col-md-4">
+                    <a name="deleteArchivedLogs"></a>
+                    <span class="name">
+                            <span class="modifier">Async</span>
+                        <span ><b>deleteArchivedLogs</b></span>
+                        <a href="#deleteArchivedLogs"><span class="icon ion-ios-link"></span></a>
+                    </span>
+                </td>
+            </tr>
+            <tr>
+                <td class="col-md-4">
+                        <span class="modifier-icon icon ion-ios-reset"></span>
+                    <code>deleteArchivedLogs(olderThanDays: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/number" target="_blank">number</a>)</code>
+                </td>
+            </tr>
+
+
+                    <tr>
+                        <td class="col-md-4">
+                            <div class="io-line">Defined in <a href="" data-line="304"
+                                    class="link-to-prism">src/modules/audit/services/audit-log.service.ts:304</a></div>
+                        </td>
+                    </tr>
+
+
+            <tr>
+                <td class="col-md-4">
+                        <div class="io-description"><p>Löscht archivierte Audit-Log-Einträge permanent</p>
+</div>
+
+                            <div class="io-description">
+                                <b>Parameters :</b>
+                                
+                                <table class="params">
+                                    <thead>
+                                        <tr>
+                                            <td>Name</td>
+                                                <td>Type</td>
+                                            <td>Optional</td>
+                                                <td>Default value</td>
+                                                <td>Description</td>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                                <td>olderThanDays</td>
+                                            <td>
+                                                            <code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/number" target="_blank" >number</a></code>
+                                            </td>
+
+                                            <td>
+                                                    No
+                                            </td>
+
+                                            <td>
+                                                    <code>90</code>
+                                            </td>
+
+                                            <td>
+                                                    <p>Einträge löschen, die älter als X Tage archiviert sind</p>
+
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        <div class="io-description">
+                            <b>Returns : </b>    <code>Promise&lt;number&gt;</code>
+
+                        </div>
+                            <div class="io-description">
+                                <p>Anzahl gelöschter Einträge</p>
+
+                            </div>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+    <table class="table table-sm table-bordered">
+        <tbody>
+            <tr>
+                <td class="col-md-4">
+                    <a name="findAll"></a>
+                    <span class="name">
+                            <span class="modifier">Async</span>
+                        <span ><b>findAll</b></span>
+                        <a href="#findAll"><span class="icon ion-ios-link"></span></a>
+                    </span>
+                </td>
+            </tr>
+            <tr>
+                <td class="col-md-4">
+                        <span class="modifier-icon icon ion-ios-reset"></span>
+                    <code>findAll(queryDto: <a href="../classes/QueryAuditLogDto.html" target="_self">QueryAuditLogDto</a>)</code>
+                </td>
+            </tr>
+
+
+                    <tr>
+                        <td class="col-md-4">
+                            <div class="io-line">Defined in <a href="" data-line="82"
+                                    class="link-to-prism">src/modules/audit/services/audit-log.service.ts:82</a></div>
+                        </td>
+                    </tr>
+
+
+            <tr>
+                <td class="col-md-4">
+                        <div class="io-description"><p>Ruft Audit-Logs mit erweiterten Filtermöglichkeiten ab</p>
+</div>
+
+                            <div class="io-description">
+                                <b>Parameters :</b>
+                                
+                                <table class="params">
+                                    <thead>
+                                        <tr>
+                                            <td>Name</td>
+                                                <td>Type</td>
+                                            <td>Optional</td>
+                                                <td>Description</td>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                                <td>queryDto</td>
+                                            <td>
+                                                            <code><a href="../classes/QueryAuditLogDto.html" target="_self" >QueryAuditLogDto</a></code>
+                                            </td>
+
+                                            <td>
+                                                    No
+                                            </td>
+
+
+                                            <td>
+                                                    <p>Filter- und Paginierungsoptionen</p>
+
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        <div class="io-description">
+                            <b>Returns : </b>        <code><a href="../miscellaneous/variables.html#Audit" target="_self" >Promise&lt;PaginatedResponse&lt;AuditLogEntity&gt;&gt;</a></code>
+
+                        </div>
+                            <div class="io-description">
+                                <p>Paginierte Liste von Audit-Logs mit Metadaten</p>
+
+                            </div>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+    <table class="table table-sm table-bordered">
+        <tbody>
+            <tr>
+                <td class="col-md-4">
+                    <a name="findMany"></a>
+                    <span class="name">
+                            <span class="modifier">Async</span>
+                        <span ><b>findMany</b></span>
+                        <a href="#findMany"><span class="icon ion-ios-link"></span></a>
+                    </span>
+                </td>
+            </tr>
+            <tr>
+                <td class="col-md-4">
+                        <span class="modifier-icon icon ion-ios-reset"></span>
+                    <code>findMany(queryDto: <a href="../classes/QueryAuditLogDto.html" target="_self">QueryAuditLogDto</a>)</code>
+                </td>
+            </tr>
+
+
+                    <tr>
+                        <td class="col-md-4">
+                            <div class="io-line">Defined in <a href="" data-line="91"
+                                    class="link-to-prism">src/modules/audit/services/audit-log.service.ts:91</a></div>
+                        </td>
+                    </tr>
+
+
+            <tr>
+                <td class="col-md-4">
+                        <div class="io-description"><p>Ruft Audit-Logs mit erweiterten Filtermöglichkeiten ab</p>
+</div>
+
+                            <div class="io-description">
+                                <b>Parameters :</b>
+                                
+                                <table class="params">
+                                    <thead>
+                                        <tr>
+                                            <td>Name</td>
+                                                <td>Type</td>
+                                            <td>Optional</td>
+                                                <td>Description</td>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                                <td>queryDto</td>
+                                            <td>
+                                                            <code><a href="../classes/QueryAuditLogDto.html" target="_self" >QueryAuditLogDto</a></code>
+                                            </td>
+
+                                            <td>
+                                                    No
+                                            </td>
+
+
+                                            <td>
+                                                    <p>Filter- und Paginierungsoptionen</p>
+
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        <div class="io-description">
+                            <b>Returns : </b>        <code><a href="../miscellaneous/variables.html#Audit" target="_self" >Promise&lt;PaginatedResponse&lt;AuditLogEntity&gt;&gt;</a></code>
+
+                        </div>
+                            <div class="io-description">
+                                <p>Paginierte Liste von Audit-Logs mit Metadaten</p>
+
+                            </div>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+    <table class="table table-sm table-bordered">
+        <tbody>
+            <tr>
+                <td class="col-md-4">
+                    <a name="findOne"></a>
+                    <span class="name">
+                            <span class="modifier">Async</span>
+                        <span ><b>findOne</b></span>
+                        <a href="#findOne"><span class="icon ion-ios-link"></span></a>
+                    </span>
+                </td>
+            </tr>
+            <tr>
+                <td class="col-md-4">
+                        <span class="modifier-icon icon ion-ios-reset"></span>
+                    <code>findOne(id: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/string" target="_blank">string</a>)</code>
+                </td>
+            </tr>
+
+
+                    <tr>
+                        <td class="col-md-4">
+                            <div class="io-line">Defined in <a href="" data-line="210"
+                                    class="link-to-prism">src/modules/audit/services/audit-log.service.ts:210</a></div>
+                        </td>
+                    </tr>
+
+
+            <tr>
+                <td class="col-md-4">
+                        <div class="io-description"><p>Ruft einen spezifischen Audit-Log-Eintrag ab</p>
+</div>
+
+                            <div class="io-description">
+                                <b>Parameters :</b>
+                                
+                                <table class="params">
+                                    <thead>
+                                        <tr>
+                                            <td>Name</td>
+                                                <td>Type</td>
+                                            <td>Optional</td>
+                                                <td>Description</td>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                                <td>id</td>
+                                            <td>
+                                                            <code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/string" target="_blank" >string</a></code>
+                                            </td>
+
+                                            <td>
+                                                    No
+                                            </td>
+
+
+                                            <td>
+                                                    <p>ID des Audit-Log-Eintrags</p>
+
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        <div class="io-description">
+                            <b>Returns : </b>        <code><a href="../classes/AuditLogEntity.html" target="_self" >Promise&lt;AuditLogEntity&gt;</a></code>
+
+                        </div>
+                            <div class="io-description">
+                                <p>Der Audit-Log-Eintrag</p>
+
+                            </div>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+    <table class="table table-sm table-bordered">
+        <tbody>
+            <tr>
+                <td class="col-md-4">
+                    <a name="getStatistics"></a>
+                    <span class="name">
+                            <span class="modifier">Async</span>
+                        <span ><b>getStatistics</b></span>
+                        <a href="#getStatistics"><span class="icon ion-ios-link"></span></a>
+                    </span>
+                </td>
+            </tr>
+            <tr>
+                <td class="col-md-4">
+                        <span class="modifier-icon icon ion-ios-reset"></span>
+                    <code>getStatistics(options: literal type)</code>
+                </td>
+            </tr>
+
+
+                    <tr>
+                        <td class="col-md-4">
+                            <div class="io-line">Defined in <a href="" data-line="403"
+                                    class="link-to-prism">src/modules/audit/services/audit-log.service.ts:403</a></div>
+                        </td>
+                    </tr>
+
+
+            <tr>
+                <td class="col-md-4">
+                        <div class="io-description"><p>Erstellt Statistiken über Audit-Log-Einträge</p>
+</div>
+
+                            <div class="io-description">
+                                <b>Parameters :</b>
+                                
+                                <table class="params">
+                                    <thead>
+                                        <tr>
+                                            <td>Name</td>
+                                                <td>Type</td>
+                                            <td>Optional</td>
+                                                <td>Description</td>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                                <td>options</td>
+                                            <td>
+                                                        <code>literal type</code>
+                                            </td>
+
+                                            <td>
+                                                    No
+                                            </td>
+
+
+                                            <td>
+                                                    <p>Optionen für Statistiken</p>
+
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        <div class="io-description">
+                            <b>Returns : </b>        <code><a href="../classes/AuditLogStatisticsResponse.html" target="_self" >Promise&lt;AuditLogStatisticsResponse&gt;</a></code>
+
+                        </div>
+                            <div class="io-description">
+                                <p>Detaillierte Statistiken</p>
+
+                            </div>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+    <table class="table table-sm table-bordered">
+        <tbody>
+            <tr>
+                <td class="col-md-4">
+                    <a name="markAsReviewed"></a>
+                    <span class="name">
+                            <span class="modifier">Async</span>
+                        <span ><b>markAsReviewed</b></span>
+                        <a href="#markAsReviewed"><span class="icon ion-ios-link"></span></a>
+                    </span>
+                </td>
+            </tr>
+            <tr>
+                <td class="col-md-4">
+                        <span class="modifier-icon icon ion-ios-reset"></span>
+                    <code>markAsReviewed(id: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/string" target="_blank">string</a>, reviewedBy: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/string" target="_blank">string</a>)</code>
+                </td>
+            </tr>
+
+
+                    <tr>
+                        <td class="col-md-4">
+                            <div class="io-line">Defined in <a href="" data-line="241"
+                                    class="link-to-prism">src/modules/audit/services/audit-log.service.ts:241</a></div>
+                        </td>
+                    </tr>
+
+
+            <tr>
+                <td class="col-md-4">
+                        <div class="io-description"><p>Markiert einen Audit-Log-Eintrag als überprüft</p>
+</div>
+
+                            <div class="io-description">
+                                <b>Parameters :</b>
+                                
+                                <table class="params">
+                                    <thead>
+                                        <tr>
+                                            <td>Name</td>
+                                                <td>Type</td>
+                                            <td>Optional</td>
+                                                <td>Description</td>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                                <td>id</td>
+                                            <td>
+                                                            <code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/string" target="_blank" >string</a></code>
+                                            </td>
+
+                                            <td>
+                                                    No
+                                            </td>
+
+
+                                            <td>
+                                                    <p>ID des Audit-Log-Eintrags</p>
+
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                                <td>reviewedBy</td>
+                                            <td>
+                                                            <code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/string" target="_blank" >string</a></code>
+                                            </td>
+
+                                            <td>
+                                                    No
+                                            </td>
+
+
+                                            <td>
+                                                    <p>ID des überprüfenden Benutzers</p>
+
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        <div class="io-description">
+                            <b>Returns : </b>        <code><a href="../miscellaneous/variables.html#Audit" target="_self" >Promise&lt;AuditLog&gt;</a></code>
+
+                        </div>
+                            <div class="io-description">
+                                <p>Der aktualisierte Audit-Log-Eintrag</p>
+
+                            </div>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+    <table class="table table-sm table-bordered">
+        <tbody>
+            <tr>
+                <td class="col-md-4">
+                    <a name="remove"></a>
+                    <span class="name">
+                            <span class="modifier">Async</span>
+                        <span ><b>remove</b></span>
+                        <a href="#remove"><span class="icon ion-ios-link"></span></a>
+                    </span>
+                </td>
+            </tr>
+            <tr>
+                <td class="col-md-4">
+                        <span class="modifier-icon icon ion-ios-reset"></span>
+                    <code>remove(id: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/string" target="_blank">string</a>)</code>
+                </td>
+            </tr>
+
+
+                    <tr>
+                        <td class="col-md-4">
+                            <div class="io-line">Defined in <a href="" data-line="332"
+                                    class="link-to-prism">src/modules/audit/services/audit-log.service.ts:332</a></div>
+                        </td>
+                    </tr>
+
+
+            <tr>
+                <td class="col-md-4">
+                        <div class="io-description"><p>Löscht einen einzelnen Audit-Log-Eintrag</p>
+</div>
+
+                            <div class="io-description">
+                                <b>Parameters :</b>
+                                
+                                <table class="params">
+                                    <thead>
+                                        <tr>
+                                            <td>Name</td>
+                                                <td>Type</td>
+                                            <td>Optional</td>
+                                                <td>Description</td>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                                <td>id</td>
+                                            <td>
+                                                            <code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/string" target="_blank" >string</a></code>
+                                            </td>
+
+                                            <td>
+                                                    No
+                                            </td>
+
+
+                                            <td>
+                                                    <p>ID des zu löschenden Eintrags</p>
+
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        <div class="io-description">
+                            <b>Returns : </b>    <code>Promise&lt;void&gt;</code>
+
+                        </div>
+                            <div class="io-description">
+                                
+                            </div>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+    <table class="table table-sm table-bordered">
+        <tbody>
+            <tr>
+                <td class="col-md-4">
+                    <a name="toEntity"></a>
+                    <span class="name">
+                            <span class="modifier">Private</span>
+                        <span ><b>toEntity</b></span>
+                        <a href="#toEntity"><span class="icon ion-ios-link"></span></a>
+                    </span>
+                </td>
+            </tr>
+            <tr>
+                <td class="col-md-4">
+                        <span class="modifier-icon icon ion-ios-reset"></span>
+                    <code>toEntity(auditLog: <a href="../s/Audit.html" target="_self">AuditLog</a>)</code>
+                </td>
+            </tr>
+
+
+                    <tr>
+                        <td class="col-md-4">
+                            <div class="io-line">Defined in <a href="" data-line="31"
+                                    class="link-to-prism">src/modules/audit/services/audit-log.service.ts:31</a></div>
+                        </td>
+                    </tr>
+
+
+            <tr>
+                <td class="col-md-4">
+                        <div class="io-description"><p>Konvertiert ein Prisma AuditLog zu einer AuditLogEntity</p>
+</div>
+
+                            <div class="io-description">
+                                <b>Parameters :</b>
+                                
+                                <table class="params">
+                                    <thead>
+                                        <tr>
+                                            <td>Name</td>
+                                                <td>Type</td>
+                                            <td>Optional</td>
+                                                <td>Description</td>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                                <td>auditLog</td>
+                                            <td>
+                                                            <code><a href="../miscellaneous/variables.html#Audit" target="_self" >AuditLog</a></code>
+                                            </td>
+
+                                            <td>
+                                                    No
+                                            </td>
+
+
+                                            <td>
+                                                    <p>Prisma AuditLog</p>
+
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        <div class="io-description">
+                            <b>Returns : </b>        <code><a href="../classes/AuditLogEntity.html" target="_self" >AuditLogEntity</a></code>
+
+                        </div>
+                            <div class="io-description">
+                                <p>AuditLogEntity</p>
+
+                            </div>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+</section>
+
+    </div>
+
+
+    <div class="tab-pane fade  tab-source-code" id="source">
+        <pre class="line-numbers compodoc-sourcecode"><code class="language-typescript">import {
+  Injectable,
+  BadRequestException,
+  NotFoundException,
+  ForbiddenException,
+} from &#x27;@nestjs/common&#x27;;
+import { PrismaService } from &#x27;../../../prisma/prisma.service&#x27;;
+import { CreateAuditLogDto, QueryAuditLogDto, AuditLogStatisticsResponse } from &#x27;../dto&#x27;;
+import { AuditLog, AuditSeverity, Prisma } from &#x27;@prisma/generated/prisma/client&#x27;;
+import { logger } from &#x27;../../../logger/consola.logger&#x27;;
+import { AuditLogEntity } from &#x27;../entities/audit-log.entity&#x27;;
+import { PaginatedResponse } from &#x27;../../../common/interfaces/paginated-response.interface&#x27;;
+import { AuditLogCacheService } from &#x27;./audit-log-cache.service&#x27;;
+
+/**
+ * Service für die Verwaltung von Audit-Logs
+ * Bietet CRUD-Operationen, erweiterte Filterung und Archivierung
+ */
+@Injectable()
+export class AuditLogService {
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly cacheService: AuditLogCacheService,
+  ) {}
+
+  /**
+   * Konvertiert ein Prisma AuditLog zu einer AuditLogEntity
+   * @param auditLog Prisma AuditLog
+   * @returns AuditLogEntity
+   */
+  private toEntity(auditLog: AuditLog): AuditLogEntity {
+    return {
+      ...auditLog,
+      oldValues: auditLog.oldValues as Record&lt;string, any&gt; | undefined,
+      newValues: auditLog.newValues as Record&lt;string, any&gt; | undefined,
+      metadata: auditLog.metadata as Record&lt;string, any&gt; | undefined,
+    };
+  }
+
+  /**
+   * Erstellt einen neuen Audit-Log-Eintrag
+   * @param createAuditLogDto Daten für den neuen Audit-Log-Eintrag
+   * @returns Der erstellte Audit-Log-Eintrag
+   */
+  async create(createAuditLogDto: CreateAuditLogDto): Promise&lt;AuditLogEntity&gt; {
+    try {
+      // Creating audit log entry
+
+      const auditLog &#x3D; await this.prisma.auditLog.create({
+        data: {
+          ...createAuditLogDto,
+          // Setze Standard-Werte falls nicht übertragen
+          severity: createAuditLogDto.severity || AuditSeverity.MEDIUM,
+          success: createAuditLogDto.success ?? true,
+          sensitiveData: createAuditLogDto.sensitiveData || false,
+          requiresReview: createAuditLogDto.requiresReview || false,
+          compliance: createAuditLogDto.compliance || [],
+          affectedFields: createAuditLogDto.affectedFields || [],
+        },
+      });
+
+      // Audit log entry created successfully
+
+      // Invalidiere relevante Caches
+      await this.cacheService.invalidateStatistics();
+
+      return this.toEntity(auditLog);
+    } catch (error) {
+      logger.error(&#x27;Failed to create audit log entry&#x27;, {
+        error: error.message,
+        dto: createAuditLogDto,
+      });
+      throw new BadRequestException(&#x27;Failed to create audit log entry&#x27;);
+    }
+  }
+
+  /**
+   * Ruft Audit-Logs mit erweiterten Filtermöglichkeiten ab
+   * @param queryDto Filter- und Paginierungsoptionen
+   * @returns Paginierte Liste von Audit-Logs mit Metadaten
+   */
+  async findAll(queryDto: QueryAuditLogDto): Promise&lt;PaginatedResponse&lt;AuditLogEntity&gt;&gt; {
+    return this.findMany(queryDto);
+  }
+
+  /**
+   * Ruft Audit-Logs mit erweiterten Filtermöglichkeiten ab
+   * @param queryDto Filter- und Paginierungsoptionen
+   * @returns Paginierte Liste von Audit-Logs mit Metadaten
+   */
+  async findMany(queryDto: QueryAuditLogDto): Promise&lt;PaginatedResponse&lt;AuditLogEntity&gt;&gt; {
+    try {
+      const {
+        page &#x3D; 1,
+        limit &#x3D; 50,
+        sortBy &#x3D; &#x27;timestamp&#x27;,
+        sortOrder &#x3D; &#x27;desc&#x27;,
+        excludeArchived &#x3D; true,
+        ...filters
+      } &#x3D; queryDto;
+
+      // Basis-Where-Bedingung
+      const where: Prisma.AuditLogWhereInput &#x3D; {};
+
+      // Archivierte Einträge ausschließen falls gewünscht
+      if (excludeArchived) {
+        where.archivedAt &#x3D; null;
+      }
+
+      // Einfache Filter
+      if (filters.actionType) where.actionType &#x3D; filters.actionType;
+      if (filters.severity) where.severity &#x3D; filters.severity;
+      if (filters.action) where.action &#x3D; { contains: filters.action, mode: &#x27;insensitive&#x27; };
+      if (filters.resource) where.resource &#x3D; { contains: filters.resource, mode: &#x27;insensitive&#x27; };
+      if (filters.resourceId) where.resourceId &#x3D; filters.resourceId;
+      if (filters.userId) where.userId &#x3D; filters.userId;
+      if (filters.userEmail) where.userEmail &#x3D; { contains: filters.userEmail, mode: &#x27;insensitive&#x27; };
+      if (filters.userRole) where.userRole &#x3D; filters.userRole;
+      if (filters.ipAddress) where.ipAddress &#x3D; filters.ipAddress;
+      if (filters.sessionId) where.sessionId &#x3D; filters.sessionId;
+      if (filters.requestId) where.requestId &#x3D; filters.requestId;
+      if (filters.success !&#x3D;&#x3D; undefined) where.success &#x3D; filters.success;
+      if (filters.requiresReview !&#x3D;&#x3D; undefined) where.requiresReview &#x3D; filters.requiresReview;
+      if (filters.sensitiveData !&#x3D;&#x3D; undefined) where.sensitiveData &#x3D; filters.sensitiveData;
+
+      // Zeitraum-Filter
+      if (filters.startDate || filters.endDate) {
+        where.timestamp &#x3D; {};
+        if (filters.startDate) where.timestamp.gte &#x3D; new Date(filters.startDate);
+        if (filters.endDate) where.timestamp.lte &#x3D; new Date(filters.endDate);
+      }
+
+      // HTTP-Methoden-Filter
+      if (filters.httpMethods &amp;&amp; filters.httpMethods.length &gt; 0) {
+        where.httpMethod &#x3D; { in: filters.httpMethods };
+      }
+
+      // Compliance-Filter
+      if (filters.compliance &amp;&amp; filters.compliance.length &gt; 0) {
+        where.compliance &#x3D; { hasSome: filters.compliance };
+      }
+
+      // Dauer-Filter
+      if (filters.minDuration !&#x3D;&#x3D; undefined || filters.maxDuration !&#x3D;&#x3D; undefined) {
+        where.duration &#x3D; {};
+        if (filters.minDuration !&#x3D;&#x3D; undefined) where.duration.gte &#x3D; filters.minDuration;
+        if (filters.maxDuration !&#x3D;&#x3D; undefined) where.duration.lte &#x3D; filters.maxDuration;
+      }
+
+      // Volltext-Suche
+      if (filters.search) {
+        where.OR &#x3D; [
+          { action: { contains: filters.search, mode: &#x27;insensitive&#x27; } },
+          { resource: { contains: filters.search, mode: &#x27;insensitive&#x27; } },
+          { errorMessage: { contains: filters.search, mode: &#x27;insensitive&#x27; } },
+          { userEmail: { contains: filters.search, mode: &#x27;insensitive&#x27; } },
+        ];
+      }
+
+      // Paginierung
+      const skip &#x3D; (page - 1) * limit;
+
+      // Sortierung
+      const orderBy: Prisma.AuditLogOrderByWithRelationInput &#x3D; {};
+      orderBy[sortBy] &#x3D; sortOrder;
+
+      // Abfrage ausführen
+      const [logs, total] &#x3D; await Promise.all([
+        this.prisma.auditLog.findMany({
+          where,
+          orderBy,
+          skip,
+          take: limit,
+        }),
+        this.prisma.auditLog.count({ where }),
+      ]);
+
+      // Metadaten berechnen
+      const totalPages &#x3D; Math.ceil(total / limit);
+      const hasNext &#x3D; page &lt; totalPages;
+      const hasPrev &#x3D; page &gt; 1;
+
+      // Retrieved audit logs successfully
+
+      return {
+        items: logs.map((log) &#x3D;&gt; this.toEntity(log)),
+        pagination: {
+          currentPage: page,
+          itemsPerPage: limit,
+          totalItems: total,
+          totalPages,
+          hasNextPage: hasNext,
+          hasPreviousPage: hasPrev,
+        },
+      };
+    } catch (error) {
+      logger.error(&#x27;Failed to retrieve audit logs&#x27;, {
+        error: error.message,
+        queryDto,
+      });
+      throw new BadRequestException(&#x27;Failed to retrieve audit logs&#x27;);
+    }
+  }
+
+  /**
+   * Ruft einen spezifischen Audit-Log-Eintrag ab
+   * @param id ID des Audit-Log-Eintrags
+   * @returns Der Audit-Log-Eintrag
+   */
+  async findOne(id: string): Promise&lt;AuditLogEntity&gt; {
+    try {
+      const auditLog &#x3D; await this.prisma.auditLog.findUnique({
+        where: { id },
+      });
+
+      if (!auditLog) {
+        throw new NotFoundException(&#x60;Audit log with ID ${id} not found&#x60;);
+      }
+
+      // Retrieved audit log entry
+
+      return this.toEntity(auditLog);
+    } catch (error) {
+      if (error instanceof NotFoundException) {
+        throw error;
+      }
+      logger.error(&#x27;Failed to retrieve audit log&#x27;, {
+        error: error.message,
+        auditLogId: id,
+      });
+      throw new BadRequestException(&#x27;Failed to retrieve audit log&#x27;);
+    }
+  }
+
+  /**
+   * Markiert einen Audit-Log-Eintrag als überprüft
+   * @param id ID des Audit-Log-Eintrags
+   * @param reviewedBy ID des überprüfenden Benutzers
+   * @returns Der aktualisierte Audit-Log-Eintrag
+   */
+  async markAsReviewed(id: string, reviewedBy: string): Promise&lt;AuditLog&gt; {
+    try {
+      const auditLog &#x3D; await this.prisma.auditLog.update({
+        where: { id },
+        data: {
+          reviewedBy,
+          reviewedAt: new Date(),
+        },
+      });
+
+      // Marked as reviewed
+
+      return auditLog;
+    } catch (error) {
+      if (error.code &#x3D;&#x3D;&#x3D; &#x27;P2025&#x27;) {
+        throw new NotFoundException(&#x60;Audit log with ID ${id} not found&#x60;);
+      }
+      logger.error(&#x27;Failed to mark audit log as reviewed&#x27;, {
+        error: error.message,
+        auditLogId: id,
+        reviewedBy,
+      });
+      throw new BadRequestException(&#x27;Failed to mark audit log as reviewed&#x27;);
+    }
+  }
+
+  /**
+   * Archiviert alte Audit-Log-Einträge basierend auf Aufbewahrungsrichtlinien
+   * @param daysToKeep Anzahl Tage, die Logs aufbewahrt werden sollen
+   * @returns Anzahl archivierter Einträge
+   */
+  async archiveOldLogs(daysToKeep: number &#x3D; 365): Promise&lt;number&gt; {
+    try {
+      const cutoffDate &#x3D; new Date();
+      cutoffDate.setDate(cutoffDate.getDate() - daysToKeep);
+
+      const result &#x3D; await this.prisma.auditLog.updateMany({
+        where: {
+          timestamp: { lt: cutoffDate },
+          archivedAt: null,
+        },
+        data: {
+          archivedAt: new Date(),
+        },
+      });
+
+      // Archived old entries
+
+      return result.count;
+    } catch (error) {
+      logger.error(&#x27;Failed to archive old audit logs&#x27;, {
+        error: error.message,
+        daysToKeep,
+      });
+      throw new BadRequestException(&#x27;Failed to archive old audit logs&#x27;);
+    }
+  }
+
+  /**
+   * Löscht archivierte Audit-Log-Einträge permanent
+   * @param olderThanDays Einträge löschen, die älter als X Tage archiviert sind
+   * @returns Anzahl gelöschter Einträge
+   */
+  async deleteArchivedLogs(olderThanDays: number &#x3D; 90): Promise&lt;number&gt; {
+    try {
+      const cutoffDate &#x3D; new Date();
+      cutoffDate.setDate(cutoffDate.getDate() - olderThanDays);
+
+      const result &#x3D; await this.prisma.auditLog.deleteMany({
+        where: {
+          archivedAt: { lt: cutoffDate },
+        },
+      });
+
+      // Deleted archived entries
+
+      return result.count;
+    } catch (error) {
+      logger.error(&#x27;Failed to delete archived audit logs&#x27;, {
+        error: error.message,
+        olderThanDays,
+      });
+      throw new BadRequestException(&#x27;Failed to delete archived audit logs&#x27;);
+    }
+  }
+
+  /**
+   * Löscht einen einzelnen Audit-Log-Eintrag
+   * @param id ID des zu löschenden Eintrags
+   * @throws ForbiddenException wenn Compliance-Tags vorhanden sind
+   */
+  async remove(id: string): Promise&lt;void&gt; {
+    try {
+      const auditLog &#x3D; await this.findOne(id);
+
+      // Prüfe auf Compliance-Tags
+      if (auditLog.compliance &amp;&amp; auditLog.compliance.length &gt; 0) {
+        throw new ForbiddenException(&#x27;Cannot delete compliance-tagged logs&#x27;);
+      }
+
+      await this.prisma.auditLog.delete({
+        where: { id },
+      });
+
+      // Deleted entry
+    } catch (error) {
+      if (error instanceof ForbiddenException) {
+        throw error;
+      }
+      if (error.code &#x3D;&#x3D;&#x3D; &#x27;P2025&#x27;) {
+        throw new NotFoundException(&#x60;Audit log with ID ${id} not found&#x60;);
+      }
+      logger.error(&#x27;Failed to delete audit log&#x27;, {
+        error: error.message,
+        auditLogId: id,
+      });
+      throw new BadRequestException(&#x27;Failed to delete audit log&#x27;);
+    }
+  }
+
+  /**
+   * Löscht mehrere Audit-Log-Einträge basierend auf Kriterien
+   * @param criteria Löschkriterien
+   * @returns Anzahl gelöschter Einträge
+   */
+  async bulkDelete(criteria: {
+    olderThan: Date;
+    severity?: string;
+    excludeCompliance?: boolean;
+  }): Promise&lt;number&gt; {
+    try {
+      const where: Prisma.AuditLogWhereInput &#x3D; {
+        timestamp: { lt: criteria.olderThan },
+      };
+
+      if (criteria.severity) {
+        where.severity &#x3D; criteria.severity as AuditSeverity;
+      }
+
+      if (criteria.excludeCompliance) {
+        where.compliance &#x3D; { isEmpty: true };
+      }
+
+      const result &#x3D; await this.prisma.auditLog.deleteMany({ where });
+
+      // Bulk deletion completed
+
+      return result.count;
+    } catch (error) {
+      logger.error(&#x27;Failed to bulk delete audit logs&#x27;, {
+        error: error.message,
+        criteria,
+      });
+      throw new BadRequestException(&#x27;Failed to bulk delete audit logs&#x27;);
+    }
+  }
+
+  /**
+   * Erstellt Statistiken über Audit-Log-Einträge
+   * @param options Optionen für Statistiken
+   * @returns Detaillierte Statistiken
+   */
+  async getStatistics(options: {
+    startDate?: Date;
+    endDate?: Date;
+    groupBy?: string;
+  }): Promise&lt;AuditLogStatisticsResponse&gt; {
+    const { startDate, endDate } &#x3D; options;
+
+    // Versuche aus Cache zu laden
+    const cacheKey &#x3D; this.cacheService.generateStatisticsKey(options);
+    const cached &#x3D; await this.cacheService.get&lt;AuditLogStatisticsResponse&gt;(cacheKey);
+    if (cached) {
+      logger.trace(&#x27;Statistics loaded from cache&#x27;);
+      return cached;
+    }
+
+    try {
+      const where: Prisma.AuditLogWhereInput &#x3D; {};
+
+      if (startDate || endDate) {
+        where.timestamp &#x3D; {};
+        if (startDate) where.timestamp.gte &#x3D; startDate;
+        if (endDate) where.timestamp.lte &#x3D; endDate;
+      }
+
+      const [totalLogs, actionTypeStats, severityStats, successStats, topUsers, topResources] &#x3D;
+        await Promise.all([
+          this.prisma.auditLog.count({ where }),
+          this.prisma.auditLog.groupBy({
+            by: [&#x27;actionType&#x27;],
+            where,
+            _count: { actionType: true },
+          }),
+          this.prisma.auditLog.groupBy({
+            by: [&#x27;severity&#x27;],
+            where,
+            _count: { severity: true },
+          }),
+          this.prisma.auditLog.groupBy({
+            by: [&#x27;success&#x27;],
+            where,
+            _count: { success: true },
+          }),
+          this.prisma.auditLog.groupBy({
+            by: [&#x27;userId&#x27;, &#x27;userEmail&#x27;],
+            where: { ...where, userId: { not: null } },
+            _count: { userId: true },
+            orderBy: { _count: { userId: &#x27;desc&#x27; } },
+            take: 10,
+          }),
+          this.prisma.auditLog.groupBy({
+            by: [&#x27;resource&#x27;],
+            where,
+            _count: { resource: true },
+            orderBy: { _count: { resource: &#x27;desc&#x27; } },
+            take: 10,
+          }),
+        ]);
+
+      const statistics: AuditLogStatisticsResponse &#x3D; {
+        totalLogs,
+        actionTypes: actionTypeStats.reduce(
+          (acc, stat) &#x3D;&gt; {
+            acc[stat.actionType] &#x3D; stat._count.actionType;
+            return acc;
+          },
+          {} as Record&lt;string, number&gt;,
+        ),
+        severities: severityStats.reduce(
+          (acc, stat) &#x3D;&gt; {
+            acc[stat.severity] &#x3D; stat._count.severity;
+            return acc;
+          },
+          {} as Record&lt;string, number&gt;,
+        ),
+        successRate: successStats.reduce(
+          (acc, stat) &#x3D;&gt; {
+            acc[stat.success ? &#x27;success&#x27; : &#x27;failed&#x27;] &#x3D; stat._count.success;
+            return acc;
+          },
+          {} as Record&lt;string, number&gt;,
+        ),
+        topUsers: topUsers.map((user) &#x3D;&gt; ({
+          userId: user.userId ?? &#x27;&#x27;,
+          userEmail: user.userEmail ?? &#x27;&#x27;,
+          count: user._count.userId,
+        })),
+        topResources: topResources.map((resource) &#x3D;&gt; ({
+          resource: resource.resource,
+          count: resource._count.resource,
+        })),
+      };
+
+      // Generated audit log statistics
+
+      // Cache die Statistiken
+      await this.cacheService.set(cacheKey, statistics, 300); // 5 Minuten TTL
+
+      return statistics;
+    } catch (error) {
+      logger.error(&#x27;Failed to generate audit log statistics&#x27;, {
+        error: error.message,
+        startDate,
+        endDate,
+      });
+      throw new BadRequestException(&#x27;Failed to generate audit log statistics&#x27;);
+    }
+  }
+}
+</code></pre>
+    </div>
+
+</div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+                   </div><div class="search-results">
+    <div class="has-results">
+        <h1 class="search-results-title"><span class='search-results-count'></span> results matching "<span class='search-query'></span>"</h1>
+        <ul class="search-results-list"></ul>
+    </div>
+    <div class="no-results">
+        <h1 class="search-results-title">No results matching "<span class='search-query'></span>"</h1>
+    </div>
+</div>
+</div>
+               <!-- END CONTENT -->
+           </div>
+       </div>
+
+          <label class="dark-mode-switch">
+               <input type="checkbox">
+               <span class="slider">
+                    <svg class="slider-icon" viewBox="0 0 24 24" fill="none" height="20" stroke="#000" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" width="20" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"></path>
+                    </svg>
+               </span>
+          </label>
+
+       <script>
+            var COMPODOC_CURRENT_PAGE_DEPTH = 1;
+            var COMPODOC_CURRENT_PAGE_CONTEXT = 'injectable';
+            var COMPODOC_CURRENT_PAGE_URL = 'AuditLogService.html';
+            var MAX_SEARCH_RESULTS = 15;
+       </script>
+
+       <script>
+               $darkModeToggleSwitchers = document.querySelectorAll('.dark-mode-switch input');
+               checkToggle(darkModeState);
+               if ($darkModeToggleSwitchers.length > 0) {
+                    for (var i = 0; i < $darkModeToggleSwitchers.length; i++) {
+                         $darkModeToggleSwitchers[i].addEventListener('change', function (event) {
+                              darkModeState = !darkModeState;
+                              toggleDarkMode(darkModeState);
+                         });
+                    }
+               }
+          </script>
+
+       <script src="../js/libs/custom-elements.min.js"></script>
+       <script src="../js/libs/lit-html.js"></script>
+
+       <script src="../js/menu-wc.js" defer></script>
+       <script nomodule src="../js/menu-wc_es5.js" defer></script>
+
+       <script src="../js/libs/bootstrap-native.js"></script>
+
+       <script src="../js/libs/es6-shim.min.js"></script>
+       <script src="../js/libs/EventDispatcher.js"></script>
+       <script src="../js/libs/promise.min.js"></script>
+
+       <script src="../js/compodoc.js"></script>
+
+       <script src="../js/tabs.js"></script>
+       <script src="../js/menu.js"></script>
+       <script src="../js/libs/clipboard.min.js"></script>
+       <script src="../js/libs/prism.js"></script>
+       <script src="../js/sourceCode.js"></script>
+          <script src="../js/search/search.js"></script>
+          <script src="../js/search/lunr.min.js"></script>
+          <script src="../js/search/search-lunr.js"></script>
+          <script src="../js/search/search_index.js"></script>
+       <script src="../js/lazy-load-graphs.js"></script>
+
+
+    </body>
+</html>

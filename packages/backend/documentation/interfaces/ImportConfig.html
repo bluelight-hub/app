@@ -1,0 +1,980 @@
+<!doctype html>
+<html class="no-js" lang="">
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="x-ua-compatible" content="ie=edge">
+        <title>@bluelight-hub/backend documentation</title>
+        <meta name="description" content="">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+
+        <link rel="icon" type="image/x-icon" href="../images/favicon.ico">
+	   <link rel="stylesheet" href="../styles/style.css">
+        <link rel="stylesheet" href="../styles/dark.css">
+    </head>
+    <body>
+          <script>
+               // Blocking script to avoid flickering dark mode
+               // Dark mode toggle button
+               var useDark = window.matchMedia('(prefers-color-scheme: dark)');
+               var darkModeState = useDark.matches;
+               var $darkModeToggleSwitchers = document.querySelectorAll('.dark-mode-switch input');
+               var $darkModeToggles = document.querySelectorAll('.dark-mode-switch');
+               var darkModeStateLocal = localStorage.getItem('compodoc_darkmode-state');
+
+               function checkToggle(check) {
+                    for (var i = 0; i < $darkModeToggleSwitchers.length; i++) {
+                         $darkModeToggleSwitchers[i].checked = check;
+                    }
+               }
+
+               function toggleDarkMode(state) {
+                    if (window.localStorage) {
+                         localStorage.setItem('compodoc_darkmode-state', state);
+                    }
+
+                    checkToggle(state);
+
+                    const hasClass = document.body.classList.contains('dark');
+
+                    if (state) {
+                         for (var i = 0; i < $darkModeToggles.length; i++) {
+                              $darkModeToggles[i].classList.add('dark');
+                         }
+                         if (!hasClass) {
+                              document.body.classList.add('dark');
+                         }
+                    } else {
+                         for (var i = 0; i < $darkModeToggles.length; i++) {
+                              $darkModeToggles[i].classList.remove('dark');
+                         }
+                         if (hasClass) {
+                              document.body.classList.remove('dark');
+                         }
+                    }
+               }
+
+               useDark.addEventListener('change', function (evt) {
+                    toggleDarkMode(evt.matches);
+               });
+               if (darkModeStateLocal) {
+                    darkModeState = darkModeStateLocal === 'true';
+               }
+               toggleDarkMode(darkModeState);
+          </script>
+
+        <div class="navbar navbar-default navbar-fixed-top d-md-none p-0">
+               <div class="d-flex">
+                    <a href="../" class="navbar-brand">@bluelight-hub/backend documentation</a>
+                    <button type="button" class="btn btn-default btn-menu ion-ios-menu" id="btn-menu"></button>
+               </div>
+        </div>
+
+        <div class="xs-menu menu" id="mobile-menu">
+                <div id="book-search-input" role="search"><input type="text" placeholder="Type to search"></div>            <compodoc-menu></compodoc-menu>
+        </div>
+
+        <div class="container-fluid main">
+           <div class="row main">
+               <div class="d-none d-md-block menu">
+                   <compodoc-menu mode="normal"></compodoc-menu>
+               </div>
+               <!-- START CONTENT -->
+               <div class="content interface">
+                   <div class="content-data">
+
+
+
+
+
+
+
+
+
+
+
+
+
+<ol class="breadcrumb">
+  <li class="breadcrumb-item">Interfaces</li>
+  <li class="breadcrumb-item"
+  >
+  ImportConfig</li>
+</ol>
+
+<ul class="nav nav-tabs" role="tablist">
+        <li class="nav-item">
+            <a href="#info" 
+                class="nav-link"
+                class="nav-link active"
+                role="tab" id="info-tab" data-bs-toggle="tab" data-link="info">Info</a>
+        </li>
+        <li class="nav-item">
+            <a href="#source" 
+                class="nav-link"
+                
+                role="tab" id="source-tab" data-bs-toggle="tab" data-link="source">Source</a>
+        </li>
+</ul>
+
+<div class="tab-content">
+    <div class="tab-pane fade active in" id="info">
+        <p class="comment">
+            <h3>File</h3>
+        </p>
+        <p class="comment">
+            <code>src/modules/seed/schema.ts</code>
+        </p>
+
+
+            <p class="comment">
+                <h3>Description</h3>
+            </p>
+            <p class="comment">
+                <p>Konfiguration für den Import-Prozess.</p>
+
+            </p>
+
+
+        <section data-compodoc="block-index">
+            <h3 id="index">Index</h3>
+            <table class="table table-sm table-bordered index-table">
+                <tbody>
+                    <tr>
+                        <td class="col-md-4">
+                            <h6><b>Properties</b></h6>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="col-md-4">
+                            <ul class="index-list">
+                                <li>
+                                            <span class="modifier">Optional</span>
+                                        <a href="#autoTimestamps" 
+>
+                                            autoTimestamps
+                                        </a>
+                                </li>
+                                <li>
+                                            <span class="modifier">Optional</span>
+                                        <a href="#defaultAutor" 
+>
+                                            defaultAutor
+                                        </a>
+                                </li>
+                                <li>
+                                            <span class="modifier">Optional</span>
+                                        <a href="#dryRun" 
+>
+                                            dryRun
+                                        </a>
+                                </li>
+                                <li>
+                                            <span class="modifier">Optional</span>
+                                        <a href="#overwriteConflicts" 
+>
+                                            overwriteConflicts
+                                        </a>
+                                </li>
+                                <li>
+                                            <span class="modifier">Optional</span>
+                                        <a href="#progressCallback" 
+>
+                                            progressCallback
+                                        </a>
+                                </li>
+                                <li>
+                                            <span class="modifier">Optional</span>
+                                        <a href="#strictWarnings" 
+>
+                                            strictWarnings
+                                        </a>
+                                </li>
+                                <li>
+                                            <span class="modifier">Optional</span>
+                                        <a href="#validationLevel" 
+>
+                                            validationLevel
+                                        </a>
+                                </li>
+                            </ul>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </section>
+
+
+
+            <section data-compodoc="block-properties">
+                <h3 id="inputs">Properties</h3>
+                    <table class="table table-sm table-bordered">
+                        <tbody>
+                                <tr>
+                                    <td class="col-md-4">
+                                        <a name="autoTimestamps"></a>
+                                        <span class="name "><b>autoTimestamps</b>
+                                            <a href="#autoTimestamps">
+                                                <span class="icon ion-ios-link"></span>
+                                            </a>
+                                        </span>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td class="col-md-4">
+                                        <code>autoTimestamps:         <code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/boolean" target="_blank" >boolean</a></code>
+</code>
+                                    </td>
+                                </tr>
+
+
+                                    <tr>
+                                        <td class="col-md-4">
+                                            <i>Type : </i>        <code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/boolean" target="_blank" >boolean</a></code>
+
+                                        </td>
+                                    </tr>
+
+                                    <tr>
+                                        <td class="col-md-4">
+                                            <i>Optional</i>
+                                        </td>
+                                    </tr>
+
+
+
+
+                            <tr>
+                                <td class="col-md-4">
+                                    <div class="io-description"><p>Sollen automatische Zeitstempel gesetzt werden?</p>
+</div>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    <table class="table table-sm table-bordered">
+                        <tbody>
+                                <tr>
+                                    <td class="col-md-4">
+                                        <a name="defaultAutor"></a>
+                                        <span class="name "><b>defaultAutor</b>
+                                            <a href="#defaultAutor">
+                                                <span class="icon ion-ios-link"></span>
+                                            </a>
+                                        </span>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td class="col-md-4">
+                                        <code>defaultAutor:     <code>literal type</code>
+</code>
+                                    </td>
+                                </tr>
+
+
+                                    <tr>
+                                        <td class="col-md-4">
+                                            <i>Type : </i>    <code>literal type</code>
+
+                                        </td>
+                                    </tr>
+
+                                    <tr>
+                                        <td class="col-md-4">
+                                            <i>Optional</i>
+                                        </td>
+                                    </tr>
+
+
+
+
+                            <tr>
+                                <td class="col-md-4">
+                                    <div class="io-description"><p>Basis-Autor für ETB-Einträge ohne Autor</p>
+</div>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    <table class="table table-sm table-bordered">
+                        <tbody>
+                                <tr>
+                                    <td class="col-md-4">
+                                        <a name="dryRun"></a>
+                                        <span class="name "><b>dryRun</b>
+                                            <a href="#dryRun">
+                                                <span class="icon ion-ios-link"></span>
+                                            </a>
+                                        </span>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td class="col-md-4">
+                                        <code>dryRun:         <code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/boolean" target="_blank" >boolean</a></code>
+</code>
+                                    </td>
+                                </tr>
+
+
+                                    <tr>
+                                        <td class="col-md-4">
+                                            <i>Type : </i>        <code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/boolean" target="_blank" >boolean</a></code>
+
+                                        </td>
+                                    </tr>
+
+                                    <tr>
+                                        <td class="col-md-4">
+                                            <i>Optional</i>
+                                        </td>
+                                    </tr>
+
+
+
+
+                            <tr>
+                                <td class="col-md-4">
+                                    <div class="io-description"><p>Soll ein Dry-Run durchgeführt werden?</p>
+</div>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    <table class="table table-sm table-bordered">
+                        <tbody>
+                                <tr>
+                                    <td class="col-md-4">
+                                        <a name="overwriteConflicts"></a>
+                                        <span class="name "><b>overwriteConflicts</b>
+                                            <a href="#overwriteConflicts">
+                                                <span class="icon ion-ios-link"></span>
+                                            </a>
+                                        </span>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td class="col-md-4">
+                                        <code>overwriteConflicts:         <code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/boolean" target="_blank" >boolean</a></code>
+</code>
+                                    </td>
+                                </tr>
+
+
+                                    <tr>
+                                        <td class="col-md-4">
+                                            <i>Type : </i>        <code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/boolean" target="_blank" >boolean</a></code>
+
+                                        </td>
+                                    </tr>
+
+                                    <tr>
+                                        <td class="col-md-4">
+                                            <i>Optional</i>
+                                        </td>
+                                    </tr>
+
+
+
+
+                            <tr>
+                                <td class="col-md-4">
+                                    <div class="io-description"><p>Soll bei Konflikten überschrieben werden?</p>
+</div>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    <table class="table table-sm table-bordered">
+                        <tbody>
+                                <tr>
+                                    <td class="col-md-4">
+                                        <a name="progressCallback"></a>
+                                        <span class="name "><b>progressCallback</b>
+                                            <a href="#progressCallback">
+                                                <span class="icon ion-ios-link"></span>
+                                            </a>
+                                        </span>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td class="col-md-4">
+                                        <code>progressCallback:         <code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/function" target="_blank" >function</a></code>
+</code>
+                                    </td>
+                                </tr>
+
+
+                                    <tr>
+                                        <td class="col-md-4">
+                                            <i>Type : </i>        <code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/function" target="_blank" >function</a></code>
+
+                                        </td>
+                                    </tr>
+
+                                    <tr>
+                                        <td class="col-md-4">
+                                            <i>Optional</i>
+                                        </td>
+                                    </tr>
+
+
+
+
+                            <tr>
+                                <td class="col-md-4">
+                                    <div class="io-description"><p>Callback für Fortschritts-Updates</p>
+</div>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    <table class="table table-sm table-bordered">
+                        <tbody>
+                                <tr>
+                                    <td class="col-md-4">
+                                        <a name="strictWarnings"></a>
+                                        <span class="name "><b>strictWarnings</b>
+                                            <a href="#strictWarnings">
+                                                <span class="icon ion-ios-link"></span>
+                                            </a>
+                                        </span>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td class="col-md-4">
+                                        <code>strictWarnings:         <code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/boolean" target="_blank" >boolean</a></code>
+</code>
+                                    </td>
+                                </tr>
+
+
+                                    <tr>
+                                        <td class="col-md-4">
+                                            <i>Type : </i>        <code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/boolean" target="_blank" >boolean</a></code>
+
+                                        </td>
+                                    </tr>
+
+                                    <tr>
+                                        <td class="col-md-4">
+                                            <i>Optional</i>
+                                        </td>
+                                    </tr>
+
+
+
+
+                            <tr>
+                                <td class="col-md-4">
+                                    <div class="io-description"><p>Sollen Warnings als Errors behandelt werden?</p>
+</div>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    <table class="table table-sm table-bordered">
+                        <tbody>
+                                <tr>
+                                    <td class="col-md-4">
+                                        <a name="validationLevel"></a>
+                                        <span class="name "><b>validationLevel</b>
+                                            <a href="#validationLevel">
+                                                <span class="icon ion-ios-link"></span>
+                                            </a>
+                                        </span>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td class="col-md-4">
+                                        <code>validationLevel:     <code>&quot;strict&quot; | &quot;moderate&quot; | &quot;lenient&quot;</code>
+</code>
+                                    </td>
+                                </tr>
+
+
+                                    <tr>
+                                        <td class="col-md-4">
+                                            <i>Type : </i>    <code>&quot;strict&quot; | &quot;moderate&quot; | &quot;lenient&quot;</code>
+
+                                        </td>
+                                    </tr>
+
+                                    <tr>
+                                        <td class="col-md-4">
+                                            <i>Optional</i>
+                                        </td>
+                                    </tr>
+
+
+
+
+                            <tr>
+                                <td class="col-md-4">
+                                    <div class="io-description"><p>Validierungs-Level</p>
+</div>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+            </section>
+    </div>
+
+
+    <div class="tab-pane fade  tab-source-code" id="source">
+        <pre class="line-numbers compodoc-sourcecode"><code class="language-typescript">import { DRKEinsatzCategory } from &#x27;./profiles&#x27;;
+
+/**
+ * ETB Kategorien (entspricht Prisma enum EtbKategorie).
+ */
+export enum EtbKategorie {
+  LAGEMELDUNG &#x3D; &#x27;LAGEMELDUNG&#x27;,
+  MELDUNG &#x3D; &#x27;MELDUNG&#x27;,
+  ANFORDERUNG &#x3D; &#x27;ANFORDERUNG&#x27;,
+  KORREKTUR &#x3D; &#x27;KORREKTUR&#x27;,
+  AUTO_KRAEFTE &#x3D; &#x27;AUTO_KRAEFTE&#x27;,
+  AUTO_PATIENTEN &#x3D; &#x27;AUTO_PATIENTEN&#x27;,
+  AUTO_TECHNISCH &#x3D; &#x27;AUTO_TECHNISCH&#x27;,
+  AUTO_SONSTIGES &#x3D; &#x27;AUTO_SONSTIGES&#x27;,
+}
+
+/**
+ * ETB Entry Status (entspricht Prisma enum EtbEntryStatus).
+ */
+export enum EtbEntryStatus {
+  AKTIV &#x3D; &#x27;AKTIV&#x27;,
+  UEBERSCHRIEBEN &#x3D; &#x27;UEBERSCHRIEBEN&#x27;,
+}
+
+/**
+ * Basis-Interface für alle Seed-Entitäten.
+ */
+export interface BaseSeedEntity {
+  /** Optional: Eindeutige ID für Referenzierung */
+  id?: string;
+  /** Optional: Metadaten für Import-Prozess */
+  _meta?: {
+    /** Beschreibung der Entität */
+    description?: string;
+    /** Tags für Kategorisierung */
+    tags?: string[];
+    /** Import-Anweisungen */
+    importNotes?: string;
+  };
+}
+
+/**
+ * Einsatz-Daten für JSON Import.
+ */
+export interface SeedEinsatz extends BaseSeedEntity {
+  /** Name des Einsatzes (eindeutig) */
+  name: string;
+  /** Optionale Beschreibung */
+  beschreibung?: string;
+  /** ETB-Einträge für diesen Einsatz */
+  etbEntries?: SeedEtbEntry[];
+}
+
+/**
+ * ETB-Eintrag für JSON Import.
+ */
+export interface SeedEtbEntry extends BaseSeedEntity {
+  /** Laufende Nummer (wird automatisch generiert wenn nicht angegeben) */
+  laufendeNummer?: number;
+  /** Zeitstempel der Erstellung (ISO 8601 Format) */
+  timestampErstellung?: string;
+  /** Zeitstempel des Ereignisses (ISO 8601 Format) */
+  timestampEreignis?: string;
+  /** Autor-ID */
+  autorId: string;
+  /** Optional: Autor-Name */
+  autorName?: string;
+  /** Optional: Autor-Rolle */
+  autorRolle?: string;
+  /** Kategorie des ETB-Eintrags */
+  kategorie: EtbKategorie;
+  /** Inhalt des Eintrags */
+  inhalt: string;
+  /** Optional: Referenz auf Patient */
+  referenzPatientId?: string;
+  /** Optional: Referenz auf Einsatzmittel */
+  referenzEinsatzmittelId?: string;
+  /** Optional: System-Quelle */
+  systemQuelle?: string;
+  /** Optional: Version */
+  version?: number;
+  /** Optional: Status */
+  status?: EtbEntryStatus;
+  /** Optional: Sender */
+  sender?: string;
+  /** Optional: Empfänger */
+  receiver?: string;
+  /** Optional: Anlagen für diesen ETB-Eintrag */
+  anlagen?: SeedEtbAttachment[];
+}
+
+/**
+ * ETB-Anhang für JSON Import.
+ */
+export interface SeedEtbAttachment extends BaseSeedEntity {
+  /** Dateiname */
+  dateiname: string;
+  /** Dateityp/MIME-Type */
+  dateityp: string;
+  /** Speicherort (Pfad oder URL) */
+  speicherOrt: string;
+  /** Optional: Beschreibung */
+  beschreibung?: string;
+}
+
+/**
+ * Umfassende Seed-Daten-Struktur.
+ * Kann einen oder mehrere Einsätze mit allen zugehörigen Daten enthalten.
+ */
+export interface SeedData {
+  /** Schema-Version für Kompatibilität */
+  version: string;
+  /** Metadaten für das gesamte Seed-Set */
+  metadata: {
+    /** Name/Titel des Seed-Sets */
+    name: string;
+    /** Beschreibung des Szenarios */
+    description: string;
+    /** Autor des Seed-Sets */
+    author?: string;
+    /** Erstellungsdatum */
+    createdAt?: string;
+    /** DRK-spezifische Kategorisierung */
+    category?: DRKEinsatzCategory;
+    /** Geschätzte Anzahl betroffener Personen */
+    estimatedPersonsAffected?: number;
+    /** Geschätzte Einsatzdauer in Stunden */
+    estimatedDurationHours?: number;
+    /** Benötigte Ressourcen */
+    requiredResources?: string[];
+    /** Prioritätsstufe */
+    priority?: &#x27;low&#x27; | &#x27;medium&#x27; | &#x27;high&#x27; | &#x27;critical&#x27;;
+    /** Tags für Suche und Filterung */
+    tags?: string[];
+    /** Kompatibilitäts-Hinweise */
+    compatibility?: {
+      /** Minimum erforderliche Schema-Version */
+      minSchemaVersion?: string;
+      /** Besondere Anforderungen */
+      requirements?: string[];
+    };
+  };
+  /** Einsatz-Daten */
+  einsaetze: SeedEinsatz[];
+  /** Optional: Setup-Anweisungen vor dem Import */
+  preImportSetup?: {
+    /** SQL-Befehle die vor dem Import ausgeführt werden */
+    sqlCommands?: string[];
+    /** Konfigurationsänderungen */
+    configChanges?: Record&lt;string, any&gt;;
+    /** Warnungen für den Benutzer */
+    warnings?: string[];
+  };
+  /** Optional: Cleanup-Anweisungen nach dem Import */
+  postImportCleanup?: {
+    /** SQL-Befehle die nach dem Import ausgeführt werden */
+    sqlCommands?: string[];
+    /** Validierungsschritte */
+    validationSteps?: string[];
+  };
+}
+
+/**
+ * Vereinfachtes Seed-Format für schnelle Einsatz-Erstellung.
+ * Kompatibel mit bestehenden Profilen.
+ */
+export interface SimpleSeedData {
+  /** Einsatz-Informationen */
+  einsatz: {
+    name: string;
+    beschreibung?: string;
+  };
+  /** Optional: Basis ETB-Einträge */
+  initialEtbEntries?: Array&lt;{
+    autorId: string;
+    autorName?: string;
+    kategorie: EtbKategorie;
+    inhalt: string;
+    timestampEreignis?: string;
+  }&gt;;
+}
+
+/**
+ * Konfiguration für den Import-Prozess.
+ */
+export interface ImportConfig {
+  /** Soll bei Konflikten überschrieben werden? */
+  overwriteConflicts?: boolean;
+  /** Soll ein Dry-Run durchgeführt werden? */
+  dryRun?: boolean;
+  /** Validierungs-Level */
+  validationLevel?: &#x27;strict&#x27; | &#x27;moderate&#x27; | &#x27;lenient&#x27;;
+  /** Sollen automatische Zeitstempel gesetzt werden? */
+  autoTimestamps?: boolean;
+  /** Basis-Autor für ETB-Einträge ohne Autor */
+  defaultAutor?: {
+    id: string;
+    name: string;
+    rolle: string;
+  };
+  /** Callback für Fortschritts-Updates */
+  progressCallback?: (step: string, progress: number) &#x3D;&gt; void;
+  /** Sollen Warnings als Errors behandelt werden? */
+  strictWarnings?: boolean;
+}
+
+/**
+ * Ergebnis eines Import-Prozesses.
+ */
+export interface ImportResult {
+  /** War der Import erfolgreich? */
+  success: boolean;
+  /** Anzahl erstellter Einsätze */
+  einsaetzeCreated: number;
+  /** Anzahl erstellter ETB-Einträge */
+  etbEntriesCreated: number;
+  /** Anzahl erstellter Anhänge */
+  attachmentsCreated: number;
+  /** Import-Dauer in Millisekunden */
+  durationMs: number;
+  /** Warnungen während des Imports */
+  warnings: string[];
+  /** Fehler während des Imports */
+  errors: string[];
+  /** Erstelle Entitäten mit IDs */
+  createdEntities: {
+    einsaetze: Array&lt;{ id: string; name: string }&gt;;
+    etbEntries: Array&lt;{ id: string; laufendeNummer: number; einsatzId: string }&gt;;
+  };
+  /** Optional: Rollback-Informationen */
+  rollbackInfo?: {
+    /** Können Änderungen rückgängig gemacht werden? */
+    canRollback: boolean;
+    /** Rollback-Token für Identifikation */
+    rollbackToken?: string;
+  };
+}
+
+/**
+ * JSON Schema Definition für Validierung.
+ * Wird für die strukturelle Validierung der JSON-Dateien verwendet.
+ */
+export const SEED_DATA_JSON_SCHEMA &#x3D; {
+  $schema: &#x27;http://json-schema.org/draft-07/schema#&#x27;,
+  title: &#x27;Bluelight-Hub Seed Data&#x27;,
+  description: &#x27;Schema für Seed-Daten Import in Bluelight-Hub&#x27;,
+  type: &#x27;object&#x27;,
+  required: [&#x27;version&#x27;, &#x27;metadata&#x27;, &#x27;einsaetze&#x27;],
+  properties: {
+    version: {
+      type: &#x27;string&#x27;,
+      pattern: &#x27;^\\d+\\.\\d+\\.\\d+$&#x27;,
+      description: &#x27;Semantic version der Schema-Version&#x27;,
+    },
+    metadata: {
+      type: &#x27;object&#x27;,
+      required: [&#x27;name&#x27;, &#x27;description&#x27;],
+      properties: {
+        name: { type: &#x27;string&#x27;, minLength: 1, maxLength: 255 },
+        description: { type: &#x27;string&#x27;, minLength: 1 },
+        author: { type: &#x27;string&#x27; },
+        createdAt: { type: &#x27;string&#x27;, format: &#x27;date-time&#x27; },
+        category: {
+          type: &#x27;string&#x27;,
+          enum: Object.values(DRKEinsatzCategory),
+        },
+        estimatedPersonsAffected: { type: &#x27;number&#x27;, minimum: 0 },
+        estimatedDurationHours: { type: &#x27;number&#x27;, minimum: 0 },
+        requiredResources: {
+          type: &#x27;array&#x27;,
+          items: { type: &#x27;string&#x27; },
+        },
+        priority: {
+          type: &#x27;string&#x27;,
+          enum: [&#x27;low&#x27;, &#x27;medium&#x27;, &#x27;high&#x27;, &#x27;critical&#x27;],
+        },
+        tags: {
+          type: &#x27;array&#x27;,
+          items: { type: &#x27;string&#x27; },
+        },
+      },
+    },
+    einsaetze: {
+      type: &#x27;array&#x27;,
+      minItems: 1,
+      items: {
+        type: &#x27;object&#x27;,
+        required: [&#x27;name&#x27;],
+        properties: {
+          id: { type: &#x27;string&#x27; },
+          name: { type: &#x27;string&#x27;, minLength: 1, maxLength: 255 },
+          beschreibung: { type: &#x27;string&#x27; },
+          etbEntries: {
+            type: &#x27;array&#x27;,
+            items: {
+              type: &#x27;object&#x27;,
+              required: [&#x27;autorId&#x27;, &#x27;kategorie&#x27;, &#x27;inhalt&#x27;],
+              properties: {
+                id: { type: &#x27;string&#x27; },
+                laufendeNummer: { type: &#x27;number&#x27;, minimum: 1 },
+                timestampErstellung: { type: &#x27;string&#x27;, format: &#x27;date-time&#x27; },
+                timestampEreignis: { type: &#x27;string&#x27;, format: &#x27;date-time&#x27; },
+                autorId: { type: &#x27;string&#x27;, minLength: 1 },
+                autorName: { type: &#x27;string&#x27; },
+                autorRolle: { type: &#x27;string&#x27; },
+                kategorie: {
+                  type: &#x27;string&#x27;,
+                  enum: Object.values(EtbKategorie),
+                },
+                inhalt: { type: &#x27;string&#x27;, minLength: 1 },
+                referenzPatientId: { type: &#x27;string&#x27; },
+                referenzEinsatzmittelId: { type: &#x27;string&#x27; },
+                systemQuelle: { type: &#x27;string&#x27; },
+                version: { type: &#x27;number&#x27;, minimum: 1 },
+                status: {
+                  type: &#x27;string&#x27;,
+                  enum: Object.values(EtbEntryStatus),
+                },
+                sender: { type: &#x27;string&#x27; },
+                receiver: { type: &#x27;string&#x27; },
+              },
+            },
+          },
+        },
+      },
+    },
+  },
+} as const;
+
+/**
+ * JSON Schema für vereinfachtes Seed-Format.
+ */
+export const SIMPLE_SEED_DATA_JSON_SCHEMA &#x3D; {
+  $schema: &#x27;http://json-schema.org/draft-07/schema#&#x27;,
+  title: &#x27;Bluelight-Hub Simple Seed Data&#x27;,
+  description: &#x27;Vereinfachtes Schema für schnelle Einsatz-Erstellung&#x27;,
+  type: &#x27;object&#x27;,
+  required: [&#x27;einsatz&#x27;],
+  properties: {
+    einsatz: {
+      type: &#x27;object&#x27;,
+      required: [&#x27;name&#x27;],
+      properties: {
+        name: { type: &#x27;string&#x27;, minLength: 1, maxLength: 255 },
+        beschreibung: { type: &#x27;string&#x27; },
+      },
+    },
+    initialEtbEntries: {
+      type: &#x27;array&#x27;,
+      items: {
+        type: &#x27;object&#x27;,
+        required: [&#x27;autorId&#x27;, &#x27;kategorie&#x27;, &#x27;inhalt&#x27;],
+        properties: {
+          autorId: { type: &#x27;string&#x27;, minLength: 1 },
+          autorName: { type: &#x27;string&#x27; },
+          kategorie: {
+            type: &#x27;string&#x27;,
+            enum: Object.values(EtbKategorie),
+          },
+          inhalt: { type: &#x27;string&#x27;, minLength: 1 },
+          timestampEreignis: { type: &#x27;string&#x27;, format: &#x27;date-time&#x27; },
+        },
+      },
+    },
+  },
+} as const;
+
+/**
+ * Aktuelle Schema-Version.
+ */
+export const CURRENT_SCHEMA_VERSION &#x3D; &#x27;1.0.0&#x27;;
+
+/**
+ * Unterstützte Schema-Versionen.
+ */
+export const SUPPORTED_SCHEMA_VERSIONS &#x3D; [&#x27;1.0.0&#x27;];
+</code></pre>
+    </div>
+</div>
+
+
+
+
+
+
+
+
+                   </div><div class="search-results">
+    <div class="has-results">
+        <h1 class="search-results-title"><span class='search-results-count'></span> results matching "<span class='search-query'></span>"</h1>
+        <ul class="search-results-list"></ul>
+    </div>
+    <div class="no-results">
+        <h1 class="search-results-title">No results matching "<span class='search-query'></span>"</h1>
+    </div>
+</div>
+</div>
+               <!-- END CONTENT -->
+           </div>
+       </div>
+
+          <label class="dark-mode-switch">
+               <input type="checkbox">
+               <span class="slider">
+                    <svg class="slider-icon" viewBox="0 0 24 24" fill="none" height="20" stroke="#000" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" width="20" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"></path>
+                    </svg>
+               </span>
+          </label>
+
+       <script>
+            var COMPODOC_CURRENT_PAGE_DEPTH = 1;
+            var COMPODOC_CURRENT_PAGE_CONTEXT = 'interface';
+            var COMPODOC_CURRENT_PAGE_URL = 'ImportConfig.html';
+            var MAX_SEARCH_RESULTS = 15;
+       </script>
+
+       <script>
+               $darkModeToggleSwitchers = document.querySelectorAll('.dark-mode-switch input');
+               checkToggle(darkModeState);
+               if ($darkModeToggleSwitchers.length > 0) {
+                    for (var i = 0; i < $darkModeToggleSwitchers.length; i++) {
+                         $darkModeToggleSwitchers[i].addEventListener('change', function (event) {
+                              darkModeState = !darkModeState;
+                              toggleDarkMode(darkModeState);
+                         });
+                    }
+               }
+          </script>
+
+       <script src="../js/libs/custom-elements.min.js"></script>
+       <script src="../js/libs/lit-html.js"></script>
+
+       <script src="../js/menu-wc.js" defer></script>
+       <script nomodule src="../js/menu-wc_es5.js" defer></script>
+
+       <script src="../js/libs/bootstrap-native.js"></script>
+
+       <script src="../js/libs/es6-shim.min.js"></script>
+       <script src="../js/libs/EventDispatcher.js"></script>
+       <script src="../js/libs/promise.min.js"></script>
+
+       <script src="../js/compodoc.js"></script>
+
+       <script src="../js/tabs.js"></script>
+       <script src="../js/menu.js"></script>
+       <script src="../js/libs/clipboard.min.js"></script>
+       <script src="../js/libs/prism.js"></script>
+       <script src="../js/sourceCode.js"></script>
+          <script src="../js/search/search.js"></script>
+          <script src="../js/search/lunr.min.js"></script>
+          <script src="../js/search/search-lunr.js"></script>
+          <script src="../js/search/search_index.js"></script>
+       <script src="../js/lazy-load-graphs.js"></script>
+
+
+    </body>
+</html>

@@ -1,0 +1,748 @@
+<!doctype html>
+<html class="no-js" lang="">
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="x-ua-compatible" content="ie=edge">
+        <title>@bluelight-hub/backend documentation</title>
+        <meta name="description" content="">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+
+        <link rel="icon" type="image/x-icon" href="../images/favicon.ico">
+	   <link rel="stylesheet" href="../styles/style.css">
+        <link rel="stylesheet" href="../styles/dark.css">
+    </head>
+    <body>
+          <script>
+               // Blocking script to avoid flickering dark mode
+               // Dark mode toggle button
+               var useDark = window.matchMedia('(prefers-color-scheme: dark)');
+               var darkModeState = useDark.matches;
+               var $darkModeToggleSwitchers = document.querySelectorAll('.dark-mode-switch input');
+               var $darkModeToggles = document.querySelectorAll('.dark-mode-switch');
+               var darkModeStateLocal = localStorage.getItem('compodoc_darkmode-state');
+
+               function checkToggle(check) {
+                    for (var i = 0; i < $darkModeToggleSwitchers.length; i++) {
+                         $darkModeToggleSwitchers[i].checked = check;
+                    }
+               }
+
+               function toggleDarkMode(state) {
+                    if (window.localStorage) {
+                         localStorage.setItem('compodoc_darkmode-state', state);
+                    }
+
+                    checkToggle(state);
+
+                    const hasClass = document.body.classList.contains('dark');
+
+                    if (state) {
+                         for (var i = 0; i < $darkModeToggles.length; i++) {
+                              $darkModeToggles[i].classList.add('dark');
+                         }
+                         if (!hasClass) {
+                              document.body.classList.add('dark');
+                         }
+                    } else {
+                         for (var i = 0; i < $darkModeToggles.length; i++) {
+                              $darkModeToggles[i].classList.remove('dark');
+                         }
+                         if (hasClass) {
+                              document.body.classList.remove('dark');
+                         }
+                    }
+               }
+
+               useDark.addEventListener('change', function (evt) {
+                    toggleDarkMode(evt.matches);
+               });
+               if (darkModeStateLocal) {
+                    darkModeState = darkModeStateLocal === 'true';
+               }
+               toggleDarkMode(darkModeState);
+          </script>
+
+        <div class="navbar navbar-default navbar-fixed-top d-md-none p-0">
+               <div class="d-flex">
+                    <a href="../" class="navbar-brand">@bluelight-hub/backend documentation</a>
+                    <button type="button" class="btn btn-default btn-menu ion-ios-menu" id="btn-menu"></button>
+               </div>
+        </div>
+
+        <div class="xs-menu menu" id="mobile-menu">
+                <div id="book-search-input" role="search"><input type="text" placeholder="Type to search"></div>            <compodoc-menu></compodoc-menu>
+        </div>
+
+        <div class="container-fluid main">
+           <div class="row main">
+               <div class="d-none d-md-block menu">
+                   <compodoc-menu mode="normal"></compodoc-menu>
+               </div>
+               <!-- START CONTENT -->
+               <div class="content interface">
+                   <div class="content-data">
+
+
+
+
+
+
+
+
+
+
+
+
+
+<ol class="breadcrumb">
+  <li class="breadcrumb-item">Interfaces</li>
+  <li class="breadcrumb-item"
+  >
+  RetryConfig</li>
+</ol>
+
+<ul class="nav nav-tabs" role="tablist">
+        <li class="nav-item">
+            <a href="#info" 
+                class="nav-link"
+                class="nav-link active"
+                role="tab" id="info-tab" data-bs-toggle="tab" data-link="info">Info</a>
+        </li>
+        <li class="nav-item">
+            <a href="#source" 
+                class="nav-link"
+                
+                role="tab" id="source-tab" data-bs-toggle="tab" data-link="source">Source</a>
+        </li>
+</ul>
+
+<div class="tab-content">
+    <div class="tab-pane fade active in" id="info">
+        <p class="comment">
+            <h3>File</h3>
+        </p>
+        <p class="comment">
+            <code>src/common/utils/retry.util.ts</code>
+        </p>
+
+
+            <p class="comment">
+                <h3>Description</h3>
+            </p>
+            <p class="comment">
+                <p>Konfiguration für Retry-Verhalten</p>
+
+            </p>
+
+
+        <section data-compodoc="block-index">
+            <h3 id="index">Index</h3>
+            <table class="table table-sm table-bordered index-table">
+                <tbody>
+                    <tr>
+                        <td class="col-md-4">
+                            <h6><b>Properties</b></h6>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="col-md-4">
+                            <ul class="index-list">
+                                <li>
+                                        <a href="#backoffMultiplier" 
+>
+                                            backoffMultiplier
+                                        </a>
+                                </li>
+                                <li>
+                                        <a href="#baseDelay" 
+>
+                                            baseDelay
+                                        </a>
+                                </li>
+                                <li>
+                                        <a href="#jitterFactor" 
+>
+                                            jitterFactor
+                                        </a>
+                                </li>
+                                <li>
+                                        <a href="#maxDelay" 
+>
+                                            maxDelay
+                                        </a>
+                                </li>
+                                <li>
+                                        <a href="#maxRetries" 
+>
+                                            maxRetries
+                                        </a>
+                                </li>
+                                <li>
+                                            <span class="modifier">Optional</span>
+                                        <a href="#timeout" 
+>
+                                            timeout
+                                        </a>
+                                </li>
+                            </ul>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </section>
+
+
+
+            <section data-compodoc="block-properties">
+                <h3 id="inputs">Properties</h3>
+                    <table class="table table-sm table-bordered">
+                        <tbody>
+                                <tr>
+                                    <td class="col-md-4">
+                                        <a name="backoffMultiplier"></a>
+                                        <span class="name "><b>backoffMultiplier</b>
+                                            <a href="#backoffMultiplier">
+                                                <span class="icon ion-ios-link"></span>
+                                            </a>
+                                        </span>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td class="col-md-4">
+                                        <code>backoffMultiplier:         <code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/number" target="_blank" >number</a></code>
+</code>
+                                    </td>
+                                </tr>
+
+
+                                    <tr>
+                                        <td class="col-md-4">
+                                            <i>Type : </i>        <code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/number" target="_blank" >number</a></code>
+
+                                        </td>
+                                    </tr>
+
+
+
+
+
+                            <tr>
+                                <td class="col-md-4">
+                                    <div class="io-description"><p>Multiplikator für exponentielles Backoff</p>
+</div>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    <table class="table table-sm table-bordered">
+                        <tbody>
+                                <tr>
+                                    <td class="col-md-4">
+                                        <a name="baseDelay"></a>
+                                        <span class="name "><b>baseDelay</b>
+                                            <a href="#baseDelay">
+                                                <span class="icon ion-ios-link"></span>
+                                            </a>
+                                        </span>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td class="col-md-4">
+                                        <code>baseDelay:         <code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/number" target="_blank" >number</a></code>
+</code>
+                                    </td>
+                                </tr>
+
+
+                                    <tr>
+                                        <td class="col-md-4">
+                                            <i>Type : </i>        <code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/number" target="_blank" >number</a></code>
+
+                                        </td>
+                                    </tr>
+
+
+
+
+
+                            <tr>
+                                <td class="col-md-4">
+                                    <div class="io-description"><p>Basis-Verzögerung in Millisekunden</p>
+</div>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    <table class="table table-sm table-bordered">
+                        <tbody>
+                                <tr>
+                                    <td class="col-md-4">
+                                        <a name="jitterFactor"></a>
+                                        <span class="name "><b>jitterFactor</b>
+                                            <a href="#jitterFactor">
+                                                <span class="icon ion-ios-link"></span>
+                                            </a>
+                                        </span>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td class="col-md-4">
+                                        <code>jitterFactor:         <code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/number" target="_blank" >number</a></code>
+</code>
+                                    </td>
+                                </tr>
+
+
+                                    <tr>
+                                        <td class="col-md-4">
+                                            <i>Type : </i>        <code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/number" target="_blank" >number</a></code>
+
+                                        </td>
+                                    </tr>
+
+
+
+
+
+                            <tr>
+                                <td class="col-md-4">
+                                    <div class="io-description"><p>Jitter-Faktor (0-1) für zufällige Verzögerung</p>
+</div>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    <table class="table table-sm table-bordered">
+                        <tbody>
+                                <tr>
+                                    <td class="col-md-4">
+                                        <a name="maxDelay"></a>
+                                        <span class="name "><b>maxDelay</b>
+                                            <a href="#maxDelay">
+                                                <span class="icon ion-ios-link"></span>
+                                            </a>
+                                        </span>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td class="col-md-4">
+                                        <code>maxDelay:         <code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/number" target="_blank" >number</a></code>
+</code>
+                                    </td>
+                                </tr>
+
+
+                                    <tr>
+                                        <td class="col-md-4">
+                                            <i>Type : </i>        <code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/number" target="_blank" >number</a></code>
+
+                                        </td>
+                                    </tr>
+
+
+
+
+
+                            <tr>
+                                <td class="col-md-4">
+                                    <div class="io-description"><p>Maximale Verzögerung in Millisekunden</p>
+</div>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    <table class="table table-sm table-bordered">
+                        <tbody>
+                                <tr>
+                                    <td class="col-md-4">
+                                        <a name="maxRetries"></a>
+                                        <span class="name "><b>maxRetries</b>
+                                            <a href="#maxRetries">
+                                                <span class="icon ion-ios-link"></span>
+                                            </a>
+                                        </span>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td class="col-md-4">
+                                        <code>maxRetries:         <code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/number" target="_blank" >number</a></code>
+</code>
+                                    </td>
+                                </tr>
+
+
+                                    <tr>
+                                        <td class="col-md-4">
+                                            <i>Type : </i>        <code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/number" target="_blank" >number</a></code>
+
+                                        </td>
+                                    </tr>
+
+
+
+
+
+                            <tr>
+                                <td class="col-md-4">
+                                    <div class="io-description"><p>Maximale Anzahl der Wiederholungsversuche</p>
+</div>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    <table class="table table-sm table-bordered">
+                        <tbody>
+                                <tr>
+                                    <td class="col-md-4">
+                                        <a name="timeout"></a>
+                                        <span class="name "><b>timeout</b>
+                                            <a href="#timeout">
+                                                <span class="icon ion-ios-link"></span>
+                                            </a>
+                                        </span>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td class="col-md-4">
+                                        <code>timeout:         <code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/number" target="_blank" >number</a></code>
+</code>
+                                    </td>
+                                </tr>
+
+
+                                    <tr>
+                                        <td class="col-md-4">
+                                            <i>Type : </i>        <code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/number" target="_blank" >number</a></code>
+
+                                        </td>
+                                    </tr>
+
+                                    <tr>
+                                        <td class="col-md-4">
+                                            <i>Optional</i>
+                                        </td>
+                                    </tr>
+
+
+
+
+                            <tr>
+                                <td class="col-md-4">
+                                    <div class="io-description"><p>Timeout für einzelne Versuche in Millisekunden</p>
+</div>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+            </section>
+    </div>
+
+
+    <div class="tab-pane fade  tab-source-code" id="source">
+        <pre class="line-numbers compodoc-sourcecode"><code class="language-typescript">import { Logger } from &#x27;@nestjs/common&#x27;;
+
+/**
+ * Konfiguration für Retry-Verhalten
+ */
+export interface RetryConfig {
+  /** Maximale Anzahl der Wiederholungsversuche */
+  maxRetries: number;
+  /** Basis-Verzögerung in Millisekunden */
+  baseDelay: number;
+  /** Maximale Verzögerung in Millisekunden */
+  maxDelay: number;
+  /** Multiplikator für exponentielles Backoff */
+  backoffMultiplier: number;
+  /** Jitter-Faktor (0-1) für zufällige Verzögerung */
+  jitterFactor: number;
+  /** Timeout für einzelne Versuche in Millisekunden */
+  timeout?: number;
+}
+
+/**
+ * Standard-Konfiguration für Retry-Verhalten
+ */
+export const DEFAULT_RETRY_CONFIG: RetryConfig &#x3D; {
+  maxRetries: 3,
+  baseDelay: 500,
+  maxDelay: 10000,
+  backoffMultiplier: 2,
+  jitterFactor: 0.1,
+  timeout: 30000,
+};
+
+/**
+ * PostgreSQL-spezifische Fehlercodes, die einen Retry rechtfertigen
+ */
+export const POSTGRES_RETRYABLE_ERRORS &#x3D; {
+  UNIQUE_VIOLATION: &#x27;23505&#x27;,
+  DEADLOCK_DETECTED: &#x27;40P01&#x27;,
+  SERIALIZATION_FAILURE: &#x27;40001&#x27;,
+  QUERY_TIMEOUT: &#x27;57014&#x27;,
+  CONNECTION_FAILURE: &#x27;08000&#x27;,
+  CONNECTION_EXCEPTION: &#x27;08001&#x27;,
+  CONNECTION_DOES_NOT_EXIST: &#x27;08003&#x27;,
+  CONNECTION_FAILURE_SQLCLIENT: &#x27;08006&#x27;,
+  TRANSACTION_ROLLBACK: &#x27;40000&#x27;,
+  TRANSACTION_ROLLBACK_SERIALIZATION: &#x27;40001&#x27;,
+  TRANSACTION_ROLLBACK_DEADLOCK: &#x27;40P01&#x27;,
+} as const;
+
+/**
+ * Utility-Klasse für robuste Retry-Mechanismen mit exponential backoff
+ *
+ * Diese Klasse bietet Retry-Funktionalität für fehleranfällige Operationen
+ * mit konfigurierbarem exponentiellen Backoff und Jitter.
+ *
+ * Features:
+ * - Exponentielles Backoff mit konfigurierbarem Multiplikator
+ * - Jitter zur Vermeidung von Thundering Herd
+ * - Unterstützung für PostgreSQL- und Netzwerk-Fehler
+ * - Konfigurierbare Timeouts pro Versuch
+ *
+ * @class RetryUtil
+ */
+export class RetryUtil {
+  private readonly logger &#x3D; new Logger(RetryUtil.name);
+
+  /**
+   * Führt eine Operation mit Retry-Logik aus
+   *
+   * @param operation Die auszuführende Operation
+   * @param config Retry-Konfiguration
+   * @param context Kontext für Logging
+   * @returns Das Ergebnis der Operation
+   */
+  async executeWithRetry&lt;T&gt;(
+    operation: () &#x3D;&gt; Promise&lt;T&gt;,
+    config: Partial&lt;RetryConfig&gt; &#x3D; {},
+    context &#x3D; &#x27;operation&#x27;,
+  ): Promise&lt;T&gt; {
+    const finalConfig &#x3D; { ...DEFAULT_RETRY_CONFIG, ...config };
+    let lastError: any &#x3D; null;
+
+    for (let attempt &#x3D; 0; attempt &lt;&#x3D; finalConfig.maxRetries; attempt++) {
+      try {
+        this.logger.debug(&#x60;${context}: Versuch ${attempt + 1}/${finalConfig.maxRetries + 1}&#x60;);
+
+        // Operation ausführen, optional mit Timeout
+        const operationPromise &#x3D; operation();
+        const result &#x3D; finalConfig.timeout
+          ? await this.withTimeout(operationPromise, finalConfig.timeout)
+          : await operationPromise;
+
+        return result;
+      } catch (error) {
+        lastError &#x3D; error;
+
+        // Prüfen, ob der Fehler einen Retry rechtfertigt
+        if (!this.isRetryableError(error)) {
+          this.logger.warn(&#x60;${context}: Nicht-wiederholbarer Fehler erkannt&#x60;, error.message);
+          throw error;
+        }
+
+        // Wenn es der letzte Versuch war, Fehler werfen
+        if (attempt &gt;&#x3D; finalConfig.maxRetries) {
+          this.logger.error(
+            &#x60;${context}: Alle ${finalConfig.maxRetries + 1} Versuche fehlgeschlagen&#x60;,
+          );
+          throw lastError;
+        }
+
+        // Verzögerung berechnen und warten
+        const delay &#x3D; this.calculateDelay(attempt + 1, finalConfig);
+        this.logger.warn(
+          &#x60;${context}: Versuch ${attempt + 1} fehlgeschlagen (${error.code || error.message}), &#x60; +
+            &#x60;warte ${delay}ms vor nächstem Versuch&#x60;,
+        );
+
+        await this.delay(delay);
+      }
+    }
+
+    // Sollte nie erreicht werden, aber als Fallback
+    throw lastError;
+  }
+
+  /**
+   * Prüft, ob ein Fehler einen Retry rechtfertigt
+   *
+   * @param error Der zu prüfende Fehler
+   * @returns true, wenn der Fehler wiederholbar ist
+   */
+  private isRetryableError(error: any): boolean {
+    // PostgreSQL-spezifische Fehlercodes
+    if (error.code &amp;&amp; Object.values(POSTGRES_RETRYABLE_ERRORS).includes(error.code)) {
+      return true;
+    }
+
+    // Prisma-spezifische Fehler
+    if (error.code &#x3D;&#x3D;&#x3D; &#x27;P2002&#x27;) {
+      // Unique constraint violation
+      return true;
+    }
+
+    // Netzwerk- und Verbindungsfehler
+    if (
+      error.message?.includes(&#x27;ECONNRESET&#x27;) ||
+      error.message?.includes(&#x27;ENOTFOUND&#x27;) ||
+      error.message?.includes(&#x27;ETIMEDOUT&#x27;) ||
+      error.message?.includes(&#x27;ECONNREFUSED&#x27;) ||
+      error.message?.includes(&#x27;EHOSTUNREACH&#x27;) ||
+      error.message?.includes(&#x27;ENETUNREACH&#x27;) ||
+      error.message?.includes(&#x27;EPIPE&#x27;) ||
+      error.message?.includes(&#x27;timeout&#x27;)
+    ) {
+      return true;
+    }
+
+    // HTTP-spezifische Fehler (Axios)
+    if (error.response) {
+      const status &#x3D; error.response.status;
+      // Retry bei Server-Fehlern und einigen Client-Fehlern
+      if (
+        status &#x3D;&#x3D;&#x3D; 408 || // Request Timeout
+        status &#x3D;&#x3D;&#x3D; 429 || // Too Many Requests
+        status &#x3D;&#x3D;&#x3D; 502 || // Bad Gateway
+        status &#x3D;&#x3D;&#x3D; 503 || // Service Unavailable
+        status &#x3D;&#x3D;&#x3D; 504 // Gateway Timeout
+      ) {
+        return true;
+      }
+    }
+
+    return false;
+  }
+
+  /**
+   * Berechnet die Verzögerung für den nächsten Versuch mit exponential backoff und jitter
+   *
+   * @param attempt Aktuelle Versuchsnummer (1-basiert)
+   * @param config Retry-Konfiguration
+   * @returns Verzögerung in Millisekunden
+   */
+  private calculateDelay(attempt: number, config: RetryConfig): number {
+    // Exponential backoff
+    const exponentialDelay &#x3D; config.baseDelay * Math.pow(config.backoffMultiplier, attempt - 1);
+
+    // Jitter hinzufügen (zufällige Variation)
+    const jitter &#x3D; exponentialDelay * config.jitterFactor * Math.random();
+    const delayWithJitter &#x3D; exponentialDelay + jitter;
+
+    // Maximale Verzögerung respektieren
+    return Math.min(delayWithJitter, config.maxDelay);
+  }
+
+  /**
+   * Hilfsfunktion für Verzögerungen
+   *
+   * @param ms Verzögerung in Millisekunden
+   */
+  private async delay(ms: number): Promise&lt;void&gt; {
+    return new Promise((resolve) &#x3D;&gt; {
+      const timer &#x3D; setTimeout(resolve, ms);
+      timer.unref(); // Timer soll den Prozess nicht am Beenden hindern
+    });
+  }
+
+  /**
+   * Führt eine Operation mit Timeout aus
+   *
+   * @param promise Das auszuführende Promise
+   * @param timeoutMs Timeout in Millisekunden
+   * @returns Das Ergebnis der Operation
+   */
+  private async withTimeout&lt;T&gt;(promise: Promise&lt;T&gt;, timeoutMs: number): Promise&lt;T&gt; {
+    const timeoutPromise &#x3D; new Promise&lt;never&gt;((_, reject) &#x3D;&gt; {
+      const timer &#x3D; setTimeout(
+        () &#x3D;&gt; reject(new Error(&#x60;Operation timeout after ${timeoutMs}ms&#x60;)),
+        timeoutMs,
+      );
+      timer.unref(); // Timer soll den Prozess nicht am Beenden hindern
+    });
+
+    return Promise.race([promise, timeoutPromise]);
+  }
+}
+</code></pre>
+    </div>
+</div>
+
+
+
+
+
+
+
+
+                   </div><div class="search-results">
+    <div class="has-results">
+        <h1 class="search-results-title"><span class='search-results-count'></span> results matching "<span class='search-query'></span>"</h1>
+        <ul class="search-results-list"></ul>
+    </div>
+    <div class="no-results">
+        <h1 class="search-results-title">No results matching "<span class='search-query'></span>"</h1>
+    </div>
+</div>
+</div>
+               <!-- END CONTENT -->
+           </div>
+       </div>
+
+          <label class="dark-mode-switch">
+               <input type="checkbox">
+               <span class="slider">
+                    <svg class="slider-icon" viewBox="0 0 24 24" fill="none" height="20" stroke="#000" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" width="20" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"></path>
+                    </svg>
+               </span>
+          </label>
+
+       <script>
+            var COMPODOC_CURRENT_PAGE_DEPTH = 1;
+            var COMPODOC_CURRENT_PAGE_CONTEXT = 'interface';
+            var COMPODOC_CURRENT_PAGE_URL = 'RetryConfig.html';
+            var MAX_SEARCH_RESULTS = 15;
+       </script>
+
+       <script>
+               $darkModeToggleSwitchers = document.querySelectorAll('.dark-mode-switch input');
+               checkToggle(darkModeState);
+               if ($darkModeToggleSwitchers.length > 0) {
+                    for (var i = 0; i < $darkModeToggleSwitchers.length; i++) {
+                         $darkModeToggleSwitchers[i].addEventListener('change', function (event) {
+                              darkModeState = !darkModeState;
+                              toggleDarkMode(darkModeState);
+                         });
+                    }
+               }
+          </script>
+
+       <script src="../js/libs/custom-elements.min.js"></script>
+       <script src="../js/libs/lit-html.js"></script>
+
+       <script src="../js/menu-wc.js" defer></script>
+       <script nomodule src="../js/menu-wc_es5.js" defer></script>
+
+       <script src="../js/libs/bootstrap-native.js"></script>
+
+       <script src="../js/libs/es6-shim.min.js"></script>
+       <script src="../js/libs/EventDispatcher.js"></script>
+       <script src="../js/libs/promise.min.js"></script>
+
+       <script src="../js/compodoc.js"></script>
+
+       <script src="../js/tabs.js"></script>
+       <script src="../js/menu.js"></script>
+       <script src="../js/libs/clipboard.min.js"></script>
+       <script src="../js/libs/prism.js"></script>
+       <script src="../js/sourceCode.js"></script>
+          <script src="../js/search/search.js"></script>
+          <script src="../js/search/lunr.min.js"></script>
+          <script src="../js/search/search-lunr.js"></script>
+          <script src="../js/search/search_index.js"></script>
+       <script src="../js/lazy-load-graphs.js"></script>
+
+
+    </body>
+</html>

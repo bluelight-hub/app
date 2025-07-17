@@ -1,0 +1,1627 @@
+<!doctype html>
+<html class="no-js" lang="">
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="x-ua-compatible" content="ie=edge">
+        <title>@bluelight-hub/backend documentation</title>
+        <meta name="description" content="">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+
+        <link rel="icon" type="image/x-icon" href="../images/favicon.ico">
+	   <link rel="stylesheet" href="../styles/style.css">
+        <link rel="stylesheet" href="../styles/dark.css">
+    </head>
+    <body>
+          <script>
+               // Blocking script to avoid flickering dark mode
+               // Dark mode toggle button
+               var useDark = window.matchMedia('(prefers-color-scheme: dark)');
+               var darkModeState = useDark.matches;
+               var $darkModeToggleSwitchers = document.querySelectorAll('.dark-mode-switch input');
+               var $darkModeToggles = document.querySelectorAll('.dark-mode-switch');
+               var darkModeStateLocal = localStorage.getItem('compodoc_darkmode-state');
+
+               function checkToggle(check) {
+                    for (var i = 0; i < $darkModeToggleSwitchers.length; i++) {
+                         $darkModeToggleSwitchers[i].checked = check;
+                    }
+               }
+
+               function toggleDarkMode(state) {
+                    if (window.localStorage) {
+                         localStorage.setItem('compodoc_darkmode-state', state);
+                    }
+
+                    checkToggle(state);
+
+                    const hasClass = document.body.classList.contains('dark');
+
+                    if (state) {
+                         for (var i = 0; i < $darkModeToggles.length; i++) {
+                              $darkModeToggles[i].classList.add('dark');
+                         }
+                         if (!hasClass) {
+                              document.body.classList.add('dark');
+                         }
+                    } else {
+                         for (var i = 0; i < $darkModeToggles.length; i++) {
+                              $darkModeToggles[i].classList.remove('dark');
+                         }
+                         if (hasClass) {
+                              document.body.classList.remove('dark');
+                         }
+                    }
+               }
+
+               useDark.addEventListener('change', function (evt) {
+                    toggleDarkMode(evt.matches);
+               });
+               if (darkModeStateLocal) {
+                    darkModeState = darkModeStateLocal === 'true';
+               }
+               toggleDarkMode(darkModeState);
+          </script>
+
+        <div class="navbar navbar-default navbar-fixed-top d-md-none p-0">
+               <div class="d-flex">
+                    <a href="../" class="navbar-brand">@bluelight-hub/backend documentation</a>
+                    <button type="button" class="btn btn-default btn-menu ion-ios-menu" id="btn-menu"></button>
+               </div>
+        </div>
+
+        <div class="xs-menu menu" id="mobile-menu">
+                <div id="book-search-input" role="search"><input type="text" placeholder="Type to search"></div>            <compodoc-menu></compodoc-menu>
+        </div>
+
+        <div class="container-fluid main">
+           <div class="row main">
+               <div class="d-none d-md-block menu">
+                   <compodoc-menu mode="normal"></compodoc-menu>
+               </div>
+               <!-- START CONTENT -->
+               <div class="content class">
+                   <div class="content-data">
+
+
+
+
+
+
+
+
+
+
+
+
+<ol class="breadcrumb">
+  <li class="breadcrumb-item">Classes</li>
+  <li class="breadcrumb-item" >EtbEntry</li>
+</ol>
+
+<ul class="nav nav-tabs" role="tablist">
+        <li class="nav-item">
+            <a href="#info" 
+                class="nav-link"
+                class="nav-link active"
+                role="tab" id="info-tab" data-bs-toggle="tab" data-link="info">Info</a>
+        </li>
+        <li class="nav-item">
+            <a href="#source" 
+                class="nav-link"
+                
+                role="tab" id="source-tab" data-bs-toggle="tab" data-link="source">Source</a>
+        </li>
+</ul>
+
+<div class="tab-content">
+    <div class="tab-pane fade active in" id="info">
+        <p class="comment">
+            <h3>File</h3>
+        </p>
+        <p class="comment">
+            <code>src/modules/etb/entities/etb-entry.entity.ts</code>
+        </p>
+
+
+            <p class="comment">
+                <h3>Description</h3>
+            </p>
+            <p class="comment">
+                <p>Entity-Klasse für einen ETB-Eintrag (Einsatztagebuch-Eintrag)</p>
+<p>Diese Klasse repräsentiert einen Eintrag im elektronischen Einsatztagebuch.
+Sie dient als Wrapper für Prisma-generierte Typen und bietet Methoden zur
+Konvertierung zwischen Entity-Objekten und Prisma-Datenmodellen. Die Klasse
+unterstützt Versionierung, Überschreibungen und Referenzen zu anderen Entitäten.</p>
+<p>Features:</p>
+<ul>
+<li>Automatische fortlaufende Nummerierung</li>
+<li>Versionierung von Einträgen</li>
+<li>Überschreibungsmechanismus für Korrekturen</li>
+<li>Referenzen zu Einsätzen, Patienten und Einsatzmitteln</li>
+<li>Anlagenverwaltung (Dokumente, Bilder, etc.)</li>
+</ul>
+
+            </p>
+
+
+
+
+            <section data-compodoc="block-index">
+    <h3 id="index">Index</h3>
+    <table class="table table-sm table-bordered index-table">
+        <tbody>
+                <tr>
+                    <td class="col-md-4">
+                        <h6><b>Properties</b></h6>
+                    </td>
+                </tr>
+                <tr>
+                    <td class="col-md-4">
+                        <ul class="index-list">
+                            <li>
+                                <a href="#abgeschlossenVon" >abgeschlossenVon</a>
+                            </li>
+                            <li>
+                                <a href="#anlagen" >anlagen</a>
+                            </li>
+                            <li>
+                                <a href="#autorId" >autorId</a>
+                            </li>
+                            <li>
+                                <a href="#autorName" >autorName</a>
+                            </li>
+                            <li>
+                                <a href="#autorRolle" >autorRolle</a>
+                            </li>
+                            <li>
+                                <a href="#id" >id</a>
+                            </li>
+                            <li>
+                                <a href="#inhalt" >inhalt</a>
+                            </li>
+                            <li>
+                                <a href="#istAbgeschlossen" >istAbgeschlossen</a>
+                            </li>
+                            <li>
+                                <a href="#kategorie" >kategorie</a>
+                            </li>
+                            <li>
+                                <a href="#laufendeNummer" >laufendeNummer</a>
+                            </li>
+                            <li>
+                                <a href="#receiver" >receiver</a>
+                            </li>
+                            <li>
+                                <a href="#referenzEinsatzId" >referenzEinsatzId</a>
+                            </li>
+                            <li>
+                                <a href="#referenzEinsatzmittelId" >referenzEinsatzmittelId</a>
+                            </li>
+                            <li>
+                                <a href="#referenzPatientId" >referenzPatientId</a>
+                            </li>
+                            <li>
+                                <a href="#sender" >sender</a>
+                            </li>
+                            <li>
+                                <a href="#status" >status</a>
+                            </li>
+                            <li>
+                                <a href="#systemQuelle" >systemQuelle</a>
+                            </li>
+                            <li>
+                                <a href="#timestampAbschluss" >timestampAbschluss</a>
+                            </li>
+                            <li>
+                                <a href="#timestampEreignis" >timestampEreignis</a>
+                            </li>
+                            <li>
+                                <a href="#timestampErstellung" >timestampErstellung</a>
+                            </li>
+                            <li>
+                                <a href="#timestampUeberschrieben" >timestampUeberschrieben</a>
+                            </li>
+                            <li>
+                                <a href="#ueberschriebenDurch" >ueberschriebenDurch</a>
+                            </li>
+                            <li>
+                                <a href="#ueberschriebenDurchId" >ueberschriebenDurchId</a>
+                            </li>
+                            <li>
+                                <a href="#ueberschriebeneEintraege" >ueberschriebeneEintraege</a>
+                            </li>
+                            <li>
+                                <a href="#ueberschriebenVon" >ueberschriebenVon</a>
+                            </li>
+                            <li>
+                                <a href="#version" >version</a>
+                            </li>
+                        </ul>
+                    </td>
+                </tr>
+
+                <tr>
+                    <td class="col-md-4">
+                        <h6><b>Methods</b></h6>
+                    </td>
+                </tr>
+                <tr>
+                    <td class="col-md-4">
+                        <ul class="index-list">
+                            <li>
+                                    <span class="modifier">Static</span>
+                                <a href="#fromPrisma" >fromPrisma</a>
+                            </li>
+                            <li>
+                                <a href="#toPrisma" >toPrisma</a>
+                            </li>
+                        </ul>
+                    </td>
+                </tr>
+
+
+
+
+
+        </tbody>
+    </table>
+</section>
+
+            <section data-compodoc="block-constructor">
+    <h3 id="constructor">Constructor</h3>
+        <table class="table table-sm table-bordered">
+            <tbody>
+                <tr>
+                    <td class="col-md-4">
+<code>constructor(partial: <a href="../classes/EtbEntry.html" target="_self">Partial&lt;EtbEntry&gt;</a>)</code>
+                    </td>
+                </tr>
+                        <tr>
+                            <td class="col-md-4">
+                                <div class="io-line">Defined in <a href="" data-line="154" class="link-to-prism">src/modules/etb/entities/etb-entry.entity.ts:154</a></div>
+                            </td>
+                        </tr>
+
+                <tr>
+                    <td class="col-md-4">
+                            <div class="io-description"><p>Erstellt eine neue EtbEntry-Instanz</p>
+</div>
+                            <div>
+                                    <b>Parameters :</b>
+                                    <table class="params">
+                                        <thead>
+                                            <tr>
+                                                <td>Name</td>
+                                                    <td>Type</td>
+                                                <td>Optional</td>
+                                                    <td>Description</td>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                                <tr>
+                                                        <td>partial</td>
+                                                  
+                                                        <td>
+                                                                        <code><a href="../classes/EtbEntry.html" target="_self" >Partial&lt;EtbEntry&gt;</a></code>
+                                                        </td>
+                                                  
+                                                    <td>
+                                                            No
+                                                    </td>
+                                                    
+                                                        <td>
+                                                                <p>Teilweise oder vollständige Daten für den ETB-Eintrag</p>
+
+                                                        </td>
+                                                </tr>
+                                        </tbody>
+                                    </table>
+                            </div>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+</section>
+
+            <section data-compodoc="block-properties">
+    
+    <h3 id="inputs">
+        Properties
+    </h3>
+    <table class="table table-sm table-bordered">
+        <tbody>
+            <tr>
+                <td class="col-md-4">
+                    <a name="abgeschlossenVon"></a>
+                    <span class="name">
+                        <span ><b>abgeschlossenVon</b></span>
+                        <a href="#abgeschlossenVon"><span class="icon ion-ios-link"></span></a>
+                    </span>
+                </td>
+            </tr>
+                <tr>
+                    <td class="col-md-4">
+                        <i>Type : </i>    <code>string | null</code>
+
+                    </td>
+                </tr>
+                    <tr>
+                        <td class="col-md-4">
+                                <div class="io-line">Defined in <a href="" data-line="114" class="link-to-prism">src/modules/etb/entities/etb-entry.entity.ts:114</a></div>
+                        </td>
+                    </tr>
+
+            <tr>
+                <td class="col-md-4">
+                    <div class="io-description"><p>ID des Benutzers, der den Eintrag abgeschlossen hat</p>
+</div>
+                </td>
+            </tr>
+
+        </tbody>
+    </table>
+    <table class="table table-sm table-bordered">
+        <tbody>
+            <tr>
+                <td class="col-md-4">
+                    <a name="anlagen"></a>
+                    <span class="name">
+                        <span ><b>anlagen</b></span>
+                        <a href="#anlagen"><span class="icon ion-ios-link"></span></a>
+                    </span>
+                </td>
+            </tr>
+                <tr>
+                    <td class="col-md-4">
+                        <i>Type : </i>    <code>EtbAttachment[]</code>
+
+                    </td>
+                </tr>
+                    <tr>
+                        <td class="col-md-4">
+                                <div class="io-line">Defined in <a href="" data-line="144" class="link-to-prism">src/modules/etb/entities/etb-entry.entity.ts:144</a></div>
+                        </td>
+                    </tr>
+
+            <tr>
+                <td class="col-md-4">
+                    <div class="io-description"><p>Liste von Dateianlagen zu diesem Eintrag</p>
+</div>
+                </td>
+            </tr>
+
+        </tbody>
+    </table>
+    <table class="table table-sm table-bordered">
+        <tbody>
+            <tr>
+                <td class="col-md-4">
+                    <a name="autorId"></a>
+                    <span class="name">
+                        <span ><b>autorId</b></span>
+                        <a href="#autorId"><span class="icon ion-ios-link"></span></a>
+                    </span>
+                </td>
+            </tr>
+                <tr>
+                    <td class="col-md-4">
+                        <i>Type : </i>        <code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/string" target="_blank" >string</a></code>
+
+                    </td>
+                </tr>
+                    <tr>
+                        <td class="col-md-4">
+                                <div class="io-line">Defined in <a href="" data-line="49" class="link-to-prism">src/modules/etb/entities/etb-entry.entity.ts:49</a></div>
+                        </td>
+                    </tr>
+
+            <tr>
+                <td class="col-md-4">
+                    <div class="io-description"><p>ID des Autors/der Autorin des Eintrags</p>
+</div>
+                </td>
+            </tr>
+
+        </tbody>
+    </table>
+    <table class="table table-sm table-bordered">
+        <tbody>
+            <tr>
+                <td class="col-md-4">
+                    <a name="autorName"></a>
+                    <span class="name">
+                        <span ><b>autorName</b></span>
+                        <a href="#autorName"><span class="icon ion-ios-link"></span></a>
+                    </span>
+                </td>
+            </tr>
+                <tr>
+                    <td class="col-md-4">
+                        <i>Type : </i>    <code>string | null</code>
+
+                    </td>
+                </tr>
+                    <tr>
+                        <td class="col-md-4">
+                                <div class="io-line">Defined in <a href="" data-line="54" class="link-to-prism">src/modules/etb/entities/etb-entry.entity.ts:54</a></div>
+                        </td>
+                    </tr>
+
+            <tr>
+                <td class="col-md-4">
+                    <div class="io-description"><p>Name des Autors/der Autorin des Eintrags</p>
+</div>
+                </td>
+            </tr>
+
+        </tbody>
+    </table>
+    <table class="table table-sm table-bordered">
+        <tbody>
+            <tr>
+                <td class="col-md-4">
+                    <a name="autorRolle"></a>
+                    <span class="name">
+                        <span ><b>autorRolle</b></span>
+                        <a href="#autorRolle"><span class="icon ion-ios-link"></span></a>
+                    </span>
+                </td>
+            </tr>
+                <tr>
+                    <td class="col-md-4">
+                        <i>Type : </i>    <code>string | null</code>
+
+                    </td>
+                </tr>
+                    <tr>
+                        <td class="col-md-4">
+                                <div class="io-line">Defined in <a href="" data-line="59" class="link-to-prism">src/modules/etb/entities/etb-entry.entity.ts:59</a></div>
+                        </td>
+                    </tr>
+
+            <tr>
+                <td class="col-md-4">
+                    <div class="io-description"><p>Rolle oder Position des Autors/der Autorin</p>
+</div>
+                </td>
+            </tr>
+
+        </tbody>
+    </table>
+    <table class="table table-sm table-bordered">
+        <tbody>
+            <tr>
+                <td class="col-md-4">
+                    <a name="id"></a>
+                    <span class="name">
+                        <span ><b>id</b></span>
+                        <a href="#id"><span class="icon ion-ios-link"></span></a>
+                    </span>
+                </td>
+            </tr>
+                <tr>
+                    <td class="col-md-4">
+                        <i>Type : </i>        <code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/string" target="_blank" >string</a></code>
+
+                    </td>
+                </tr>
+                    <tr>
+                        <td class="col-md-4">
+                                <div class="io-line">Defined in <a href="" data-line="29" class="link-to-prism">src/modules/etb/entities/etb-entry.entity.ts:29</a></div>
+                        </td>
+                    </tr>
+
+            <tr>
+                <td class="col-md-4">
+                    <div class="io-description"><p>Eindeutige ID des ETB-Eintrags</p>
+</div>
+                </td>
+            </tr>
+
+        </tbody>
+    </table>
+    <table class="table table-sm table-bordered">
+        <tbody>
+            <tr>
+                <td class="col-md-4">
+                    <a name="inhalt"></a>
+                    <span class="name">
+                        <span ><b>inhalt</b></span>
+                        <a href="#inhalt"><span class="icon ion-ios-link"></span></a>
+                    </span>
+                </td>
+            </tr>
+                <tr>
+                    <td class="col-md-4">
+                        <i>Type : </i>        <code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/string" target="_blank" >string</a></code>
+
+                    </td>
+                </tr>
+                    <tr>
+                        <td class="col-md-4">
+                                <div class="io-line">Defined in <a href="" data-line="69" class="link-to-prism">src/modules/etb/entities/etb-entry.entity.ts:69</a></div>
+                        </td>
+                    </tr>
+
+            <tr>
+                <td class="col-md-4">
+                    <div class="io-description"><p>Hauptinhalt des ETB-Eintrags</p>
+</div>
+                </td>
+            </tr>
+
+        </tbody>
+    </table>
+    <table class="table table-sm table-bordered">
+        <tbody>
+            <tr>
+                <td class="col-md-4">
+                    <a name="istAbgeschlossen"></a>
+                    <span class="name">
+                        <span ><b>istAbgeschlossen</b></span>
+                        <a href="#istAbgeschlossen"><span class="icon ion-ios-link"></span></a>
+                    </span>
+                </td>
+            </tr>
+                <tr>
+                    <td class="col-md-4">
+                        <i>Type : </i>        <code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/boolean" target="_blank" >boolean</a></code>
+
+                    </td>
+                </tr>
+                    <tr>
+                        <td class="col-md-4">
+                                <div class="io-line">Defined in <a href="" data-line="104" class="link-to-prism">src/modules/etb/entities/etb-entry.entity.ts:104</a></div>
+                        </td>
+                    </tr>
+
+            <tr>
+                <td class="col-md-4">
+                    <div class="io-description"><p>Flag, das anzeigt, ob der Eintrag abgeschlossen ist</p>
+</div>
+                </td>
+            </tr>
+
+        </tbody>
+    </table>
+    <table class="table table-sm table-bordered">
+        <tbody>
+            <tr>
+                <td class="col-md-4">
+                    <a name="kategorie"></a>
+                    <span class="name">
+                        <span ><b>kategorie</b></span>
+                        <a href="#kategorie"><span class="icon ion-ios-link"></span></a>
+                    </span>
+                </td>
+            </tr>
+                <tr>
+                    <td class="col-md-4">
+                        <i>Type : </i>        <code><a href="../miscellaneous/variables.html#EtbKategorie" target="_self" >EtbKategorie</a></code>
+
+                    </td>
+                </tr>
+                    <tr>
+                        <td class="col-md-4">
+                                <div class="io-line">Defined in <a href="" data-line="64" class="link-to-prism">src/modules/etb/entities/etb-entry.entity.ts:64</a></div>
+                        </td>
+                    </tr>
+
+            <tr>
+                <td class="col-md-4">
+                    <div class="io-description"><p>Kategorie des Eintrags (z.B. MELDUNG, ANWEISUNG)</p>
+</div>
+                </td>
+            </tr>
+
+        </tbody>
+    </table>
+    <table class="table table-sm table-bordered">
+        <tbody>
+            <tr>
+                <td class="col-md-4">
+                    <a name="laufendeNummer"></a>
+                    <span class="name">
+                        <span ><b>laufendeNummer</b></span>
+                        <a href="#laufendeNummer"><span class="icon ion-ios-link"></span></a>
+                    </span>
+                </td>
+            </tr>
+                <tr>
+                    <td class="col-md-4">
+                        <i>Type : </i>        <code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/number" target="_blank" >number</a></code>
+
+                    </td>
+                </tr>
+                    <tr>
+                        <td class="col-md-4">
+                                <div class="io-line">Defined in <a href="" data-line="34" class="link-to-prism">src/modules/etb/entities/etb-entry.entity.ts:34</a></div>
+                        </td>
+                    </tr>
+
+            <tr>
+                <td class="col-md-4">
+                    <div class="io-description"><p>Fortlaufende Nummer des Eintrags (automatisch generiert)</p>
+</div>
+                </td>
+            </tr>
+
+        </tbody>
+    </table>
+    <table class="table table-sm table-bordered">
+        <tbody>
+            <tr>
+                <td class="col-md-4">
+                    <a name="receiver"></a>
+                    <span class="name">
+                        <span ><b>receiver</b></span>
+                        <a href="#receiver"><span class="icon ion-ios-link"></span></a>
+                    </span>
+                </td>
+            </tr>
+                <tr>
+                    <td class="col-md-4">
+                        <i>Type : </i>    <code>string | null</code>
+
+                    </td>
+                </tr>
+                    <tr>
+                        <td class="col-md-4">
+                                <div class="io-line">Defined in <a href="" data-line="154" class="link-to-prism">src/modules/etb/entities/etb-entry.entity.ts:154</a></div>
+                        </td>
+                    </tr>
+
+            <tr>
+                <td class="col-md-4">
+                    <div class="io-description"><p>Empfänger des Eintrags (optional, für spezielle Kommunikationswege)</p>
+</div>
+                </td>
+            </tr>
+
+        </tbody>
+    </table>
+    <table class="table table-sm table-bordered">
+        <tbody>
+            <tr>
+                <td class="col-md-4">
+                    <a name="referenzEinsatzId"></a>
+                    <span class="name">
+                        <span ><b>referenzEinsatzId</b></span>
+                        <a href="#referenzEinsatzId"><span class="icon ion-ios-link"></span></a>
+                    </span>
+                </td>
+            </tr>
+                <tr>
+                    <td class="col-md-4">
+                        <i>Type : </i>    <code>string | null</code>
+
+                    </td>
+                </tr>
+                    <tr>
+                        <td class="col-md-4">
+                                <div class="io-line">Defined in <a href="" data-line="74" class="link-to-prism">src/modules/etb/entities/etb-entry.entity.ts:74</a></div>
+                        </td>
+                    </tr>
+
+            <tr>
+                <td class="col-md-4">
+                    <div class="io-description"><p>Optionale Referenz auf eine Einsatz-ID</p>
+</div>
+                </td>
+            </tr>
+
+        </tbody>
+    </table>
+    <table class="table table-sm table-bordered">
+        <tbody>
+            <tr>
+                <td class="col-md-4">
+                    <a name="referenzEinsatzmittelId"></a>
+                    <span class="name">
+                        <span ><b>referenzEinsatzmittelId</b></span>
+                        <a href="#referenzEinsatzmittelId"><span class="icon ion-ios-link"></span></a>
+                    </span>
+                </td>
+            </tr>
+                <tr>
+                    <td class="col-md-4">
+                        <i>Type : </i>    <code>string | null</code>
+
+                    </td>
+                </tr>
+                    <tr>
+                        <td class="col-md-4">
+                                <div class="io-line">Defined in <a href="" data-line="84" class="link-to-prism">src/modules/etb/entities/etb-entry.entity.ts:84</a></div>
+                        </td>
+                    </tr>
+
+            <tr>
+                <td class="col-md-4">
+                    <div class="io-description"><p>Optionale Referenz auf eine Einsatzmittel-ID</p>
+</div>
+                </td>
+            </tr>
+
+        </tbody>
+    </table>
+    <table class="table table-sm table-bordered">
+        <tbody>
+            <tr>
+                <td class="col-md-4">
+                    <a name="referenzPatientId"></a>
+                    <span class="name">
+                        <span ><b>referenzPatientId</b></span>
+                        <a href="#referenzPatientId"><span class="icon ion-ios-link"></span></a>
+                    </span>
+                </td>
+            </tr>
+                <tr>
+                    <td class="col-md-4">
+                        <i>Type : </i>    <code>string | null</code>
+
+                    </td>
+                </tr>
+                    <tr>
+                        <td class="col-md-4">
+                                <div class="io-line">Defined in <a href="" data-line="79" class="link-to-prism">src/modules/etb/entities/etb-entry.entity.ts:79</a></div>
+                        </td>
+                    </tr>
+
+            <tr>
+                <td class="col-md-4">
+                    <div class="io-description"><p>Optionale Referenz auf eine Patienten-ID</p>
+</div>
+                </td>
+            </tr>
+
+        </tbody>
+    </table>
+    <table class="table table-sm table-bordered">
+        <tbody>
+            <tr>
+                <td class="col-md-4">
+                    <a name="sender"></a>
+                    <span class="name">
+                        <span ><b>sender</b></span>
+                        <a href="#sender"><span class="icon ion-ios-link"></span></a>
+                    </span>
+                </td>
+            </tr>
+                <tr>
+                    <td class="col-md-4">
+                        <i>Type : </i>    <code>string | null</code>
+
+                    </td>
+                </tr>
+                    <tr>
+                        <td class="col-md-4">
+                                <div class="io-line">Defined in <a href="" data-line="149" class="link-to-prism">src/modules/etb/entities/etb-entry.entity.ts:149</a></div>
+                        </td>
+                    </tr>
+
+            <tr>
+                <td class="col-md-4">
+                    <div class="io-description"><p>Absender des Eintrags (optional, für spezielle Kommunikationswege)</p>
+</div>
+                </td>
+            </tr>
+
+        </tbody>
+    </table>
+    <table class="table table-sm table-bordered">
+        <tbody>
+            <tr>
+                <td class="col-md-4">
+                    <a name="status"></a>
+                    <span class="name">
+                        <span ><b>status</b></span>
+                        <a href="#status"><span class="icon ion-ios-link"></span></a>
+                    </span>
+                </td>
+            </tr>
+                <tr>
+                    <td class="col-md-4">
+                        <i>Type : </i>        <code><a href="../miscellaneous/variables.html#EtbEntryStatus" target="_self" >EtbEntryStatus</a></code>
+
+                    </td>
+                </tr>
+                    <tr>
+                        <td class="col-md-4">
+                                <div class="io-line">Defined in <a href="" data-line="99" class="link-to-prism">src/modules/etb/entities/etb-entry.entity.ts:99</a></div>
+                        </td>
+                    </tr>
+
+            <tr>
+                <td class="col-md-4">
+                    <div class="io-description"><p>Aktueller Status des Eintrags (AKTIV oder UEBERSCHRIEBEN)</p>
+</div>
+                </td>
+            </tr>
+
+        </tbody>
+    </table>
+    <table class="table table-sm table-bordered">
+        <tbody>
+            <tr>
+                <td class="col-md-4">
+                    <a name="systemQuelle"></a>
+                    <span class="name">
+                        <span ><b>systemQuelle</b></span>
+                        <a href="#systemQuelle"><span class="icon ion-ios-link"></span></a>
+                    </span>
+                </td>
+            </tr>
+                <tr>
+                    <td class="col-md-4">
+                        <i>Type : </i>    <code>string | null</code>
+
+                    </td>
+                </tr>
+                    <tr>
+                        <td class="col-md-4">
+                                <div class="io-line">Defined in <a href="" data-line="89" class="link-to-prism">src/modules/etb/entities/etb-entry.entity.ts:89</a></div>
+                        </td>
+                    </tr>
+
+            <tr>
+                <td class="col-md-4">
+                    <div class="io-description"><p>Quelle für automatisch generierte Einträge</p>
+</div>
+                </td>
+            </tr>
+
+        </tbody>
+    </table>
+    <table class="table table-sm table-bordered">
+        <tbody>
+            <tr>
+                <td class="col-md-4">
+                    <a name="timestampAbschluss"></a>
+                    <span class="name">
+                        <span ><b>timestampAbschluss</b></span>
+                        <a href="#timestampAbschluss"><span class="icon ion-ios-link"></span></a>
+                    </span>
+                </td>
+            </tr>
+                <tr>
+                    <td class="col-md-4">
+                        <i>Type : </i>    <code>Date | null</code>
+
+                    </td>
+                </tr>
+                    <tr>
+                        <td class="col-md-4">
+                                <div class="io-line">Defined in <a href="" data-line="109" class="link-to-prism">src/modules/etb/entities/etb-entry.entity.ts:109</a></div>
+                        </td>
+                    </tr>
+
+            <tr>
+                <td class="col-md-4">
+                    <div class="io-description"><p>Zeitstempel des Abschlusses des Eintrags (falls abgeschlossen)</p>
+</div>
+                </td>
+            </tr>
+
+        </tbody>
+    </table>
+    <table class="table table-sm table-bordered">
+        <tbody>
+            <tr>
+                <td class="col-md-4">
+                    <a name="timestampEreignis"></a>
+                    <span class="name">
+                        <span ><b>timestampEreignis</b></span>
+                        <a href="#timestampEreignis"><span class="icon ion-ios-link"></span></a>
+                    </span>
+                </td>
+            </tr>
+                <tr>
+                    <td class="col-md-4">
+                        <i>Type : </i>        <code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date" target="_blank" >Date</a></code>
+
+                    </td>
+                </tr>
+                    <tr>
+                        <td class="col-md-4">
+                                <div class="io-line">Defined in <a href="" data-line="44" class="link-to-prism">src/modules/etb/entities/etb-entry.entity.ts:44</a></div>
+                        </td>
+                    </tr>
+
+            <tr>
+                <td class="col-md-4">
+                    <div class="io-description"><p>Zeitstempel des beschriebenen Ereignisses</p>
+</div>
+                </td>
+            </tr>
+
+        </tbody>
+    </table>
+    <table class="table table-sm table-bordered">
+        <tbody>
+            <tr>
+                <td class="col-md-4">
+                    <a name="timestampErstellung"></a>
+                    <span class="name">
+                        <span ><b>timestampErstellung</b></span>
+                        <a href="#timestampErstellung"><span class="icon ion-ios-link"></span></a>
+                    </span>
+                </td>
+            </tr>
+                <tr>
+                    <td class="col-md-4">
+                        <i>Type : </i>        <code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date" target="_blank" >Date</a></code>
+
+                    </td>
+                </tr>
+                    <tr>
+                        <td class="col-md-4">
+                                <div class="io-line">Defined in <a href="" data-line="39" class="link-to-prism">src/modules/etb/entities/etb-entry.entity.ts:39</a></div>
+                        </td>
+                    </tr>
+
+            <tr>
+                <td class="col-md-4">
+                    <div class="io-description"><p>Zeitstempel der Erstellung des Eintrags</p>
+</div>
+                </td>
+            </tr>
+
+        </tbody>
+    </table>
+    <table class="table table-sm table-bordered">
+        <tbody>
+            <tr>
+                <td class="col-md-4">
+                    <a name="timestampUeberschrieben"></a>
+                    <span class="name">
+                        <span ><b>timestampUeberschrieben</b></span>
+                        <a href="#timestampUeberschrieben"><span class="icon ion-ios-link"></span></a>
+                    </span>
+                </td>
+            </tr>
+                <tr>
+                    <td class="col-md-4">
+                        <i>Type : </i>    <code>Date | null</code>
+
+                    </td>
+                </tr>
+                    <tr>
+                        <td class="col-md-4">
+                                <div class="io-line">Defined in <a href="" data-line="134" class="link-to-prism">src/modules/etb/entities/etb-entry.entity.ts:134</a></div>
+                        </td>
+                    </tr>
+
+            <tr>
+                <td class="col-md-4">
+                    <div class="io-description"><p>Zeitstempel der Überschreibung (falls überschrieben)</p>
+</div>
+                </td>
+            </tr>
+
+        </tbody>
+    </table>
+    <table class="table table-sm table-bordered">
+        <tbody>
+            <tr>
+                <td class="col-md-4">
+                    <a name="ueberschriebenDurch"></a>
+                    <span class="name">
+                        <span ><b>ueberschriebenDurch</b></span>
+                        <a href="#ueberschriebenDurch"><span class="icon ion-ios-link"></span></a>
+                    </span>
+                </td>
+            </tr>
+                <tr>
+                    <td class="col-md-4">
+                        <i>Type : </i>        <code><a href="../classes/EtbEntry.html" target="_self" >EtbEntry | null</a></code>
+
+                    </td>
+                </tr>
+                    <tr>
+                        <td class="col-md-4">
+                                <div class="io-line">Defined in <a href="" data-line="119" class="link-to-prism">src/modules/etb/entities/etb-entry.entity.ts:119</a></div>
+                        </td>
+                    </tr>
+
+            <tr>
+                <td class="col-md-4">
+                    <div class="io-description"><p>Referenz auf den überschreibenden Eintrag (falls vorhanden)</p>
+</div>
+                </td>
+            </tr>
+
+        </tbody>
+    </table>
+    <table class="table table-sm table-bordered">
+        <tbody>
+            <tr>
+                <td class="col-md-4">
+                    <a name="ueberschriebenDurchId"></a>
+                    <span class="name">
+                        <span ><b>ueberschriebenDurchId</b></span>
+                        <a href="#ueberschriebenDurchId"><span class="icon ion-ios-link"></span></a>
+                    </span>
+                </td>
+            </tr>
+                <tr>
+                    <td class="col-md-4">
+                        <i>Type : </i>    <code>string | null</code>
+
+                    </td>
+                </tr>
+                    <tr>
+                        <td class="col-md-4">
+                                <div class="io-line">Defined in <a href="" data-line="124" class="link-to-prism">src/modules/etb/entities/etb-entry.entity.ts:124</a></div>
+                        </td>
+                    </tr>
+
+            <tr>
+                <td class="col-md-4">
+                    <div class="io-description"><p>ID des überschreibenden Eintrags</p>
+</div>
+                </td>
+            </tr>
+
+        </tbody>
+    </table>
+    <table class="table table-sm table-bordered">
+        <tbody>
+            <tr>
+                <td class="col-md-4">
+                    <a name="ueberschriebeneEintraege"></a>
+                    <span class="name">
+                        <span ><b>ueberschriebeneEintraege</b></span>
+                        <a href="#ueberschriebeneEintraege"><span class="icon ion-ios-link"></span></a>
+                    </span>
+                </td>
+            </tr>
+                <tr>
+                    <td class="col-md-4">
+                        <i>Type : </i>        <code><a href="../classes/EtbEntry.html" target="_self" >EtbEntry[]</a></code>
+
+                    </td>
+                </tr>
+                    <tr>
+                        <td class="col-md-4">
+                                <div class="io-line">Defined in <a href="" data-line="129" class="link-to-prism">src/modules/etb/entities/etb-entry.entity.ts:129</a></div>
+                        </td>
+                    </tr>
+
+            <tr>
+                <td class="col-md-4">
+                    <div class="io-description"><p>Liste der Einträge, die von diesem Eintrag überschrieben wurden</p>
+</div>
+                </td>
+            </tr>
+
+        </tbody>
+    </table>
+    <table class="table table-sm table-bordered">
+        <tbody>
+            <tr>
+                <td class="col-md-4">
+                    <a name="ueberschriebenVon"></a>
+                    <span class="name">
+                        <span ><b>ueberschriebenVon</b></span>
+                        <a href="#ueberschriebenVon"><span class="icon ion-ios-link"></span></a>
+                    </span>
+                </td>
+            </tr>
+                <tr>
+                    <td class="col-md-4">
+                        <i>Type : </i>    <code>string | null</code>
+
+                    </td>
+                </tr>
+                    <tr>
+                        <td class="col-md-4">
+                                <div class="io-line">Defined in <a href="" data-line="139" class="link-to-prism">src/modules/etb/entities/etb-entry.entity.ts:139</a></div>
+                        </td>
+                    </tr>
+
+            <tr>
+                <td class="col-md-4">
+                    <div class="io-description"><p>ID des Benutzers, der den Eintrag überschrieben hat</p>
+</div>
+                </td>
+            </tr>
+
+        </tbody>
+    </table>
+    <table class="table table-sm table-bordered">
+        <tbody>
+            <tr>
+                <td class="col-md-4">
+                    <a name="version"></a>
+                    <span class="name">
+                        <span ><b>version</b></span>
+                        <a href="#version"><span class="icon ion-ios-link"></span></a>
+                    </span>
+                </td>
+            </tr>
+                <tr>
+                    <td class="col-md-4">
+                        <i>Type : </i>        <code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/number" target="_blank" >number</a></code>
+
+                    </td>
+                </tr>
+                    <tr>
+                        <td class="col-md-4">
+                                <div class="io-line">Defined in <a href="" data-line="94" class="link-to-prism">src/modules/etb/entities/etb-entry.entity.ts:94</a></div>
+                        </td>
+                    </tr>
+
+            <tr>
+                <td class="col-md-4">
+                    <div class="io-description"><p>Versionsnummer des Eintrags</p>
+</div>
+                </td>
+            </tr>
+
+        </tbody>
+    </table>
+</section>
+
+            <section data-compodoc="block-methods">
+    
+    <h3 id="methods">
+        Methods
+    </h3>
+    <table class="table table-sm table-bordered">
+        <tbody>
+            <tr>
+                <td class="col-md-4">
+                    <a name="fromPrisma"></a>
+                    <span class="name">
+                            <span class="modifier">Static</span>
+                        <span ><b>fromPrisma</b></span>
+                        <a href="#fromPrisma"><span class="icon ion-ios-link"></span></a>
+                    </span>
+                </td>
+            </tr>
+            <tr>
+                <td class="col-md-4">
+                        <span class="modifier-icon icon ion-ios-reset"></span>
+                    <code>fromPrisma(prismaObj: <a href="https://www.typescriptlang.org/docs/handbook/basic-types.html" target="_blank">any</a>)</code>
+                </td>
+            </tr>
+
+
+                    <tr>
+                        <td class="col-md-4">
+                            <div class="io-line">Defined in <a href="" data-line="171"
+                                    class="link-to-prism">src/modules/etb/entities/etb-entry.entity.ts:171</a></div>
+                        </td>
+                    </tr>
+
+
+            <tr>
+                <td class="col-md-4">
+                        <div class="io-description"><p>Erstellt eine Entity aus einem Prisma-Objekt</p>
+</div>
+
+                            <div class="io-description">
+                                <b>Parameters :</b>
+                                
+                                <table class="params">
+                                    <thead>
+                                        <tr>
+                                            <td>Name</td>
+                                                <td>Type</td>
+                                            <td>Optional</td>
+                                                <td>Description</td>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                                <td>prismaObj</td>
+                                            <td>
+                                                            <code><a href="https://www.typescriptlang.org/docs/handbook/basic-types.html" target="_blank" >any</a></code>
+                                            </td>
+
+                                            <td>
+                                                    No
+                                            </td>
+
+
+                                            <td>
+                                                    <p>Das rohe Prisma-Objekt aus der Datenbank</p>
+
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        <div class="io-description">
+                            <b>Returns : </b>        <code><a href="../classes/EtbEntry.html" target="_self" >EtbEntry</a></code>
+
+                        </div>
+                            <div class="io-description">
+                                <p>Eine neue EtbEntry-Instanz mit den konvertierten Daten</p>
+
+                            </div>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+    <table class="table table-sm table-bordered">
+        <tbody>
+            <tr>
+                <td class="col-md-4">
+                    <a name="toPrisma"></a>
+                    <span class="name">
+                        <span ><b>toPrisma</b></span>
+                        <a href="#toPrisma"><span class="icon ion-ios-link"></span></a>
+                    </span>
+                </td>
+            </tr>
+            <tr>
+                <td class="col-md-4">
+<code>toPrisma()</code>
+                </td>
+            </tr>
+
+
+                    <tr>
+                        <td class="col-md-4">
+                            <div class="io-line">Defined in <a href="" data-line="193"
+                                    class="link-to-prism">src/modules/etb/entities/etb-entry.entity.ts:193</a></div>
+                        </td>
+                    </tr>
+
+
+            <tr>
+                <td class="col-md-4">
+                        <div class="io-description"><p>Konvertiert diese Entity in ein Prisma-kompatibles Format für Datenbank-Operationen</p>
+</div>
+
+                        <div class="io-description">
+                            <b>Returns : </b>        <code><a href="../classes/Einsatz.html" target="_self" >{ id: string; laufendeNummer: number; timestampErstellung: Date; timestampEreignis: Date; autorId: string; autorName: string; autorRolle: string; kategorie: PrismaEtbKategorie; inhalt: string; referenzEinsatzId: string; ... 12 more ...; receiver: string; }</a></code>
+
+                        </div>
+                            <div class="io-description">
+                                <p>Ein Prisma-kompatibles Objekt dieses ETB-Eintrags</p>
+
+                            </div>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+</section>
+
+
+
+
+
+    </div>
+
+
+    <div class="tab-pane fade  tab-source-code" id="source">
+        <pre class="line-numbers compodoc-sourcecode"><code class="language-typescript">import {
+  EtbEntryStatus as PrismaEtbEntryStatus,
+  EtbKategorie as PrismaEtbKategorie,
+} from &#x27;../../../../prisma/generated/prisma/enums&#x27;;
+import { EtbKategorie } from &#x27;../dto/etb-kategorie.enum&#x27;;
+import { EtbAttachment } from &#x27;./etb-attachment.entity&#x27;;
+
+/**
+ * Entity-Klasse für einen ETB-Eintrag (Einsatztagebuch-Eintrag)
+ *
+ * Diese Klasse repräsentiert einen Eintrag im elektronischen Einsatztagebuch.
+ * Sie dient als Wrapper für Prisma-generierte Typen und bietet Methoden zur
+ * Konvertierung zwischen Entity-Objekten und Prisma-Datenmodellen. Die Klasse
+ * unterstützt Versionierung, Überschreibungen und Referenzen zu anderen Entitäten.
+ *
+ * Features:
+ * - Automatische fortlaufende Nummerierung
+ * - Versionierung von Einträgen
+ * - Überschreibungsmechanismus für Korrekturen
+ * - Referenzen zu Einsätzen, Patienten und Einsatzmitteln
+ * - Anlagenverwaltung (Dokumente, Bilder, etc.)
+ *
+ * @class EtbEntry
+ */
+export class EtbEntry {
+  /**
+   * Eindeutige ID des ETB-Eintrags
+   */
+  id: string;
+
+  /**
+   * Fortlaufende Nummer des Eintrags (automatisch generiert)
+   */
+  laufendeNummer: number;
+
+  /**
+   * Zeitstempel der Erstellung des Eintrags
+   */
+  timestampErstellung: Date;
+
+  /**
+   * Zeitstempel des beschriebenen Ereignisses
+   */
+  timestampEreignis: Date;
+
+  /**
+   * ID des Autors/der Autorin des Eintrags
+   */
+  autorId: string;
+
+  /**
+   * Name des Autors/der Autorin des Eintrags
+   */
+  autorName: string | null;
+
+  /**
+   * Rolle oder Position des Autors/der Autorin
+   */
+  autorRolle: string | null;
+
+  /**
+   * Kategorie des Eintrags (z.B. MELDUNG, ANWEISUNG)
+   */
+  kategorie: EtbKategorie;
+
+  /**
+   * Hauptinhalt des ETB-Eintrags
+   */
+  inhalt: string;
+
+  /**
+   * Optionale Referenz auf eine Einsatz-ID
+   */
+  referenzEinsatzId: string | null;
+
+  /**
+   * Optionale Referenz auf eine Patienten-ID
+   */
+  referenzPatientId: string | null;
+
+  /**
+   * Optionale Referenz auf eine Einsatzmittel-ID
+   */
+  referenzEinsatzmittelId: string | null;
+
+  /**
+   * Quelle für automatisch generierte Einträge
+   */
+  systemQuelle: string | null;
+
+  /**
+   * Versionsnummer des Eintrags
+   */
+  version: number;
+
+  /**
+   * Aktueller Status des Eintrags (AKTIV oder UEBERSCHRIEBEN)
+   */
+  status: EtbEntryStatus;
+
+  /**
+   * Flag, das anzeigt, ob der Eintrag abgeschlossen ist
+   */
+  istAbgeschlossen: boolean;
+
+  /**
+   * Zeitstempel des Abschlusses des Eintrags (falls abgeschlossen)
+   */
+  timestampAbschluss: Date | null;
+
+  /**
+   * ID des Benutzers, der den Eintrag abgeschlossen hat
+   */
+  abgeschlossenVon: string | null;
+
+  /**
+   * Referenz auf den überschreibenden Eintrag (falls vorhanden)
+   */
+  ueberschriebenDurch: EtbEntry | null;
+
+  /**
+   * ID des überschreibenden Eintrags
+   */
+  ueberschriebenDurchId: string | null;
+
+  /**
+   * Liste der Einträge, die von diesem Eintrag überschrieben wurden
+   */
+  ueberschriebeneEintraege: EtbEntry[];
+
+  /**
+   * Zeitstempel der Überschreibung (falls überschrieben)
+   */
+  timestampUeberschrieben: Date | null;
+
+  /**
+   * ID des Benutzers, der den Eintrag überschrieben hat
+   */
+  ueberschriebenVon: string | null;
+
+  /**
+   * Liste von Dateianlagen zu diesem Eintrag
+   */
+  anlagen: EtbAttachment[];
+
+  /**
+   * Absender des Eintrags (optional, für spezielle Kommunikationswege)
+   */
+  sender: string | null;
+
+  /**
+   * Empfänger des Eintrags (optional, für spezielle Kommunikationswege)
+   */
+  receiver: string | null;
+
+  /**
+   * Erstellt eine neue EtbEntry-Instanz
+   *
+   * @param partial Teilweise oder vollständige Daten für den ETB-Eintrag
+   */
+  constructor(partial: Partial&lt;EtbEntry&gt;) {
+    Object.assign(this, partial);
+  }
+
+  /**
+   * Erstellt eine Entity aus einem Prisma-Objekt
+   *
+   * @param prismaObj Das rohe Prisma-Objekt aus der Datenbank
+   * @returns Eine neue EtbEntry-Instanz mit den konvertierten Daten
+   */
+  static fromPrisma(prismaObj: any): EtbEntry {
+    return new EtbEntry({
+      ...prismaObj,
+      kategorie: prismaObj.kategorie as unknown as EtbKategorie,
+      status: prismaObj.status as EtbEntryStatus,
+      ueberschriebenDurch: prismaObj.ueberschriebenDurch
+        ? EtbEntry.fromPrisma(prismaObj.ueberschriebenDurch)
+        : null,
+      ueberschriebeneEintraege: prismaObj.ueberschriebeneEintraege
+        ? prismaObj.ueberschriebeneEintraege.map((entry: any) &#x3D;&gt; EtbEntry.fromPrisma(entry))
+        : [],
+      anlagen: prismaObj.anlagen
+        ? prismaObj.anlagen.map((anlage: any) &#x3D;&gt; EtbAttachment.fromPrisma(anlage))
+        : [],
+    });
+  }
+
+  /**
+   * Konvertiert diese Entity in ein Prisma-kompatibles Format für Datenbank-Operationen
+   *
+   * @returns Ein Prisma-kompatibles Objekt dieses ETB-Eintrags
+   */
+  toPrisma() {
+    return {
+      id: this.id,
+      laufendeNummer: this.laufendeNummer,
+      timestampErstellung: this.timestampErstellung,
+      timestampEreignis: this.timestampEreignis,
+      autorId: this.autorId,
+      autorName: this.autorName,
+      autorRolle: this.autorRolle,
+      kategorie: this.kategorie as unknown as PrismaEtbKategorie,
+      inhalt: this.inhalt,
+      referenzEinsatzId: this.referenzEinsatzId,
+      referenzPatientId: this.referenzPatientId,
+      referenzEinsatzmittelId: this.referenzEinsatzmittelId,
+      systemQuelle: this.systemQuelle,
+      version: this.version,
+      status: this.status as unknown as PrismaEtbEntryStatus,
+      istAbgeschlossen: this.istAbgeschlossen,
+      timestampAbschluss: this.timestampAbschluss,
+      abgeschlossenVon: this.abgeschlossenVon,
+      ueberschriebenDurchId: this.ueberschriebenDurchId,
+      timestampUeberschrieben: this.timestampUeberschrieben,
+      ueberschriebenVon: this.ueberschriebenVon,
+      sender: this.sender,
+      receiver: this.receiver,
+    };
+  }
+}
+
+/**
+ * Enumeration für den Status eines ETB-Eintrags
+ *
+ * Definiert die möglichen Status-Werte für ETB-Einträge.
+ * Re-export für vereinfachten Import ohne direkte Prisma-Abhängigkeiten.
+ *
+ * @enum {string} EtbEntryStatus
+ */
+export const EtbEntryStatus &#x3D; {
+  /**
+   * Status für aktive, gültige ETB-Einträge
+   */
+  AKTIV: &#x27;AKTIV&#x27;,
+
+  /**
+   * Status für ETB-Einträge, die durch neuere Versionen überschrieben wurden
+   */
+  UEBERSCHRIEBEN: &#x27;UEBERSCHRIEBEN&#x27;,
+} as const;
+
+/**
+ * Typdefinition für den Status eines ETB-Eintrags
+ */
+export type EtbEntryStatus &#x3D; keyof typeof EtbEntryStatus;
+</code></pre>
+    </div>
+</div>
+
+
+
+
+
+
+
+
+
+                   </div><div class="search-results">
+    <div class="has-results">
+        <h1 class="search-results-title"><span class='search-results-count'></span> results matching "<span class='search-query'></span>"</h1>
+        <ul class="search-results-list"></ul>
+    </div>
+    <div class="no-results">
+        <h1 class="search-results-title">No results matching "<span class='search-query'></span>"</h1>
+    </div>
+</div>
+</div>
+               <!-- END CONTENT -->
+           </div>
+       </div>
+
+          <label class="dark-mode-switch">
+               <input type="checkbox">
+               <span class="slider">
+                    <svg class="slider-icon" viewBox="0 0 24 24" fill="none" height="20" stroke="#000" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" width="20" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"></path>
+                    </svg>
+               </span>
+          </label>
+
+       <script>
+            var COMPODOC_CURRENT_PAGE_DEPTH = 1;
+            var COMPODOC_CURRENT_PAGE_CONTEXT = 'class';
+            var COMPODOC_CURRENT_PAGE_URL = 'EtbEntry.html';
+            var MAX_SEARCH_RESULTS = 15;
+       </script>
+
+       <script>
+               $darkModeToggleSwitchers = document.querySelectorAll('.dark-mode-switch input');
+               checkToggle(darkModeState);
+               if ($darkModeToggleSwitchers.length > 0) {
+                    for (var i = 0; i < $darkModeToggleSwitchers.length; i++) {
+                         $darkModeToggleSwitchers[i].addEventListener('change', function (event) {
+                              darkModeState = !darkModeState;
+                              toggleDarkMode(darkModeState);
+                         });
+                    }
+               }
+          </script>
+
+       <script src="../js/libs/custom-elements.min.js"></script>
+       <script src="../js/libs/lit-html.js"></script>
+
+       <script src="../js/menu-wc.js" defer></script>
+       <script nomodule src="../js/menu-wc_es5.js" defer></script>
+
+       <script src="../js/libs/bootstrap-native.js"></script>
+
+       <script src="../js/libs/es6-shim.min.js"></script>
+       <script src="../js/libs/EventDispatcher.js"></script>
+       <script src="../js/libs/promise.min.js"></script>
+
+       <script src="../js/compodoc.js"></script>
+
+       <script src="../js/tabs.js"></script>
+       <script src="../js/menu.js"></script>
+       <script src="../js/libs/clipboard.min.js"></script>
+       <script src="../js/libs/prism.js"></script>
+       <script src="../js/sourceCode.js"></script>
+          <script src="../js/search/search.js"></script>
+          <script src="../js/search/lunr.min.js"></script>
+          <script src="../js/search/search-lunr.js"></script>
+          <script src="../js/search/search_index.js"></script>
+       <script src="../js/lazy-load-graphs.js"></script>
+
+
+    </body>
+</html>

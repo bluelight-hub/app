@@ -1,0 +1,641 @@
+<!doctype html>
+<html class="no-js" lang="">
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="x-ua-compatible" content="ie=edge">
+        <title>@bluelight-hub/backend documentation</title>
+        <meta name="description" content="">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+
+        <link rel="icon" type="image/x-icon" href="../images/favicon.ico">
+	   <link rel="stylesheet" href="../styles/style.css">
+        <link rel="stylesheet" href="../styles/dark.css">
+    </head>
+    <body>
+          <script>
+               // Blocking script to avoid flickering dark mode
+               // Dark mode toggle button
+               var useDark = window.matchMedia('(prefers-color-scheme: dark)');
+               var darkModeState = useDark.matches;
+               var $darkModeToggleSwitchers = document.querySelectorAll('.dark-mode-switch input');
+               var $darkModeToggles = document.querySelectorAll('.dark-mode-switch');
+               var darkModeStateLocal = localStorage.getItem('compodoc_darkmode-state');
+
+               function checkToggle(check) {
+                    for (var i = 0; i < $darkModeToggleSwitchers.length; i++) {
+                         $darkModeToggleSwitchers[i].checked = check;
+                    }
+               }
+
+               function toggleDarkMode(state) {
+                    if (window.localStorage) {
+                         localStorage.setItem('compodoc_darkmode-state', state);
+                    }
+
+                    checkToggle(state);
+
+                    const hasClass = document.body.classList.contains('dark');
+
+                    if (state) {
+                         for (var i = 0; i < $darkModeToggles.length; i++) {
+                              $darkModeToggles[i].classList.add('dark');
+                         }
+                         if (!hasClass) {
+                              document.body.classList.add('dark');
+                         }
+                    } else {
+                         for (var i = 0; i < $darkModeToggles.length; i++) {
+                              $darkModeToggles[i].classList.remove('dark');
+                         }
+                         if (hasClass) {
+                              document.body.classList.remove('dark');
+                         }
+                    }
+               }
+
+               useDark.addEventListener('change', function (evt) {
+                    toggleDarkMode(evt.matches);
+               });
+               if (darkModeStateLocal) {
+                    darkModeState = darkModeStateLocal === 'true';
+               }
+               toggleDarkMode(darkModeState);
+          </script>
+
+        <div class="navbar navbar-default navbar-fixed-top d-md-none p-0">
+               <div class="d-flex">
+                    <a href="../" class="navbar-brand">@bluelight-hub/backend documentation</a>
+                    <button type="button" class="btn btn-default btn-menu ion-ios-menu" id="btn-menu"></button>
+               </div>
+        </div>
+
+        <div class="xs-menu menu" id="mobile-menu">
+                <div id="book-search-input" role="search"><input type="text" placeholder="Type to search"></div>            <compodoc-menu></compodoc-menu>
+        </div>
+
+        <div class="container-fluid main">
+           <div class="row main">
+               <div class="d-none d-md-block menu">
+                   <compodoc-menu mode="normal"></compodoc-menu>
+               </div>
+               <!-- START CONTENT -->
+               <div class="content controller">
+                   <div class="content-data">
+
+
+
+
+
+<ol class="breadcrumb">
+  <li class="breadcrumb-item">Controllers</li>
+  <li class="breadcrumb-item" >EinsatzController</li>
+</ol>
+
+<ul class="nav nav-tabs" role="tablist">
+        <li class="nav-item">
+            <a href="#info" 
+                class="nav-link"
+                class="nav-link active"
+                role="tab" id="info-tab" data-bs-toggle="tab" data-link="info">Info</a>
+        </li>
+        <li class="nav-item">
+            <a href="#source" 
+                class="nav-link"
+                
+                role="tab" id="source-tab" data-bs-toggle="tab" data-link="source">Source</a>
+        </li>
+</ul>
+
+<div class="tab-content">
+    <div class="tab-pane fade active in" id="info">
+        <p class="comment">
+            <h3>File</h3>
+        </p>
+        <p class="comment">
+            <code>src/modules/einsatz/einsatz.controller.ts</code>
+        </p>
+
+            <p class="comment">
+                <h3>Prefix</h3>
+            </p>
+            <p class="comment">
+                <code>einsatz</code>
+            </p>
+
+
+
+
+
+
+            <section data-compodoc="block-index">
+    <h3 id="index">Index</h3>
+    <table class="table table-sm table-bordered index-table">
+        <tbody>
+
+                <tr>
+                    <td class="col-md-4">
+                        <h6><b>Methods</b></h6>
+                    </td>
+                </tr>
+                <tr>
+                    <td class="col-md-4">
+                        <ul class="index-list">
+                            <li>
+                                    <span class="modifier"></span>
+                                    <span class="modifier"></span>
+                                    <span class="modifier"></span>
+                                    <span class="modifier"></span>
+                                    <span class="modifier"></span>
+                                    <span class="modifier">Async</span>
+                                <a href="#create" >create</a>
+                            </li>
+                            <li>
+                                    <span class="modifier"></span>
+                                    <span class="modifier"></span>
+                                    <span class="modifier"></span>
+                                    <span class="modifier">Async</span>
+                                <a href="#findAll" >findAll</a>
+                            </li>
+                            <li>
+                                    <span class="modifier"></span>
+                                    <span class="modifier"></span>
+                                    <span class="modifier"></span>
+                                    <span class="modifier"></span>
+                                    <span class="modifier"></span>
+                                    <span class="modifier">Async</span>
+                                <a href="#findById" >findById</a>
+                            </li>
+                        </ul>
+                    </td>
+                </tr>
+
+
+
+
+
+        </tbody>
+    </table>
+</section>
+
+            <section data-compodoc="block-methods">
+    
+    <h3 id="methods">
+        Methods
+    </h3>
+    <table class="table table-sm table-bordered">
+        <tbody>
+            <tr>
+                <td class="col-md-4">
+                    <a name="create"></a>
+                    <span class="name">
+                            <span class="modifier"></span>
+                            <span class="modifier"></span>
+                            <span class="modifier"></span>
+                            <span class="modifier"></span>
+                            <span class="modifier"></span>
+                            <span class="modifier">Async</span>
+                        <span ><b>create</b></span>
+                        <a href="#create"><span class="icon ion-ios-link"></span></a>
+                    </span>
+                </td>
+            </tr>
+            <tr>
+                <td class="col-md-4">
+                        <span class="modifier-icon icon ion-ios-reset"></span>
+                    <code>create(createEinsatzDto: <a href="../classes/CreateEinsatzDto.html" target="_self">CreateEinsatzDto</a>)</code>
+                </td>
+            </tr>
+
+            <tr>
+                <td class="col-md-4">
+                    <b>Decorators : </b>
+                    <br />
+                    <code>@Post()<br />@ApiOperation({summary: &#x27;Einen neuen Einsatz erstellen&#x27;})<br />@ApiResponse({status: undefined, description: &#x27;Der Einsatz wurde erfolgreich erstellt&#x27;, type: Einsatz})<br />@ApiResponse({status: undefined, description: &#x27;Ungültige Anfragedaten&#x27;})<br />@ApiResponse({status: undefined, description: &#x27;Einsatzerstellung ist in dieser Umgebung nicht erlaubt&#x27;})<br /></code>
+                </td>
+            </tr>
+
+                    <tr>
+                        <td class="col-md-4">
+                            <div class="io-line">Defined in <a href="" data-line="88"
+                                    class="link-to-prism">src/modules/einsatz/einsatz.controller.ts:88</a></div>
+                        </td>
+                    </tr>
+
+
+            <tr>
+                <td class="col-md-4">
+                        <div class="io-description"><p>Erstellt einen neuen Einsatz mit umgebungsspezifischen Sicherheitsmaßnahmen.</p>
+</div>
+
+                            <div class="io-description">
+                                <b>Parameters :</b>
+                                
+                                <table class="params">
+                                    <thead>
+                                        <tr>
+                                            <td>Name</td>
+                                                <td>Type</td>
+                                            <td>Optional</td>
+                                                <td>Description</td>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                                <td>createEinsatzDto</td>
+                                            <td>
+                                                            <code><a href="../classes/CreateEinsatzDto.html" target="_self" >CreateEinsatzDto</a></code>
+                                            </td>
+
+                                            <td>
+                                                    No
+                                            </td>
+
+
+                                            <td>
+                                                    <p>Die Daten für den zu erstellenden Einsatz</p>
+
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        <div class="io-description">
+                            <b>Returns : </b>        <code><a href="../classes/Einsatz.html" target="_self" >Promise&lt;Einsatz&gt;</a></code>
+
+                        </div>
+                            <div class="io-description">
+                                <p>Der erstellte Einsatz</p>
+
+                            </div>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+    <table class="table table-sm table-bordered">
+        <tbody>
+            <tr>
+                <td class="col-md-4">
+                    <a name="findAll"></a>
+                    <span class="name">
+                            <span class="modifier"></span>
+                            <span class="modifier"></span>
+                            <span class="modifier"></span>
+                            <span class="modifier">Async</span>
+                        <span ><b>findAll</b></span>
+                        <a href="#findAll"><span class="icon ion-ios-link"></span></a>
+                    </span>
+                </td>
+            </tr>
+            <tr>
+                <td class="col-md-4">
+                        <span class="modifier-icon icon ion-ios-reset"></span>
+                    <code>findAll()</code>
+                </td>
+            </tr>
+
+            <tr>
+                <td class="col-md-4">
+                    <b>Decorators : </b>
+                    <br />
+                    <code>@Get()<br />@ApiOperation({summary: &#x27;Alle Einsätze abrufen&#x27;})<br />@ApiResponse({status: undefined, description: &#x27;Die Liste aller Einsätze wurde erfolgreich abgerufen&#x27;, type: undefined})<br /></code>
+                </td>
+            </tr>
+
+                    <tr>
+                        <td class="col-md-4">
+                            <div class="io-line">Defined in <a href="" data-line="41"
+                                    class="link-to-prism">src/modules/einsatz/einsatz.controller.ts:41</a></div>
+                        </td>
+                    </tr>
+
+
+            <tr>
+                <td class="col-md-4">
+                        <div class="io-description"><p>Ruft alle Einsätze ab.</p>
+</div>
+
+                        <div class="io-description">
+                            <b>Returns : </b>        <code><a href="../classes/Einsatz.html" target="_self" >Promise&lt;Einsatz[]&gt;</a></code>
+
+                        </div>
+                            <div class="io-description">
+                                <p>Eine Liste aller Einsätze</p>
+
+                            </div>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+    <table class="table table-sm table-bordered">
+        <tbody>
+            <tr>
+                <td class="col-md-4">
+                    <a name="findById"></a>
+                    <span class="name">
+                            <span class="modifier"></span>
+                            <span class="modifier"></span>
+                            <span class="modifier"></span>
+                            <span class="modifier"></span>
+                            <span class="modifier"></span>
+                            <span class="modifier">Async</span>
+                        <span ><b>findById</b></span>
+                        <a href="#findById"><span class="icon ion-ios-link"></span></a>
+                    </span>
+                </td>
+            </tr>
+            <tr>
+                <td class="col-md-4">
+                        <span class="modifier-icon icon ion-ios-reset"></span>
+                    <code>findById(id: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/string" target="_blank">string</a>)</code>
+                </td>
+            </tr>
+
+            <tr>
+                <td class="col-md-4">
+                    <b>Decorators : </b>
+                    <br />
+                    <code>@Get(&#x27;:id&#x27;)<br />@ApiOperation({summary: &#x27;Einen Einsatz anhand der ID abrufen&#x27;})<br />@ApiParam({name: &#x27;id&#x27;, description: &#x27;Die ID des Einsatzes&#x27;})<br />@ApiResponse({status: undefined, description: &#x27;Der Einsatz wurde erfolgreich abgerufen&#x27;, type: Einsatz})<br />@ApiResponse({status: undefined, description: &#x27;Der Einsatz wurde nicht gefunden&#x27;})<br /></code>
+                </td>
+            </tr>
+
+                    <tr>
+                        <td class="col-md-4">
+                            <div class="io-line">Defined in <a href="" data-line="63"
+                                    class="link-to-prism">src/modules/einsatz/einsatz.controller.ts:63</a></div>
+                        </td>
+                    </tr>
+
+
+            <tr>
+                <td class="col-md-4">
+                        <div class="io-description"><p>Ruft einen Einsatz anhand seiner ID ab.</p>
+</div>
+
+                            <div class="io-description">
+                                <b>Parameters :</b>
+                                
+                                <table class="params">
+                                    <thead>
+                                        <tr>
+                                            <td>Name</td>
+                                                <td>Type</td>
+                                            <td>Optional</td>
+                                                <td>Description</td>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                                <td>id</td>
+                                            <td>
+                                                            <code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/string" target="_blank" >string</a></code>
+                                            </td>
+
+                                            <td>
+                                                    No
+                                            </td>
+
+
+                                            <td>
+                                                    <p>Die ID des Einsatzes</p>
+
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        <div class="io-description">
+                            <b>Returns : </b>        <code><a href="../classes/Einsatz.html" target="_self" >Promise&lt;Einsatz&gt;</a></code>
+
+                        </div>
+                            <div class="io-description">
+                                <p>Der Einsatz mit der angegebenen ID</p>
+
+                            </div>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+</section>    </div>
+
+
+    <div class="tab-pane fade  tab-source-code" id="source">
+        <pre class="line-numbers compodoc-sourcecode"><code class="language-typescript">import {
+  Body,
+  Controller,
+  ForbiddenException,
+  Get,
+  HttpStatus,
+  Logger,
+  Param,
+  Post,
+} from &#x27;@nestjs/common&#x27;;
+import { ConfigService } from &#x27;@nestjs/config&#x27;;
+import { ApiOperation, ApiParam, ApiResponse, ApiTags } from &#x27;@nestjs/swagger&#x27;;
+import { ErrorHandlingService } from &#x27;../../common/services/error-handling.service&#x27;;
+import { CreateEinsatzDto } from &#x27;./dto/create-einsatz.dto&#x27;;
+import { EinsatzService } from &#x27;./einsatz.service&#x27;;
+import { Einsatz } from &#x27;./entities/einsatz.entity&#x27;;
+
+@ApiTags(&#x27;Einsatz&#x27;)
+@Controller(&#x27;einsatz&#x27;)
+export class EinsatzController {
+  private readonly logger &#x3D; new Logger(EinsatzController.name);
+
+  constructor(
+    private readonly einsatzService: EinsatzService,
+    private readonly configService: ConfigService,
+    private readonly errorHandlingService: ErrorHandlingService,
+  ) {}
+
+  /**
+   * Ruft alle Einsätze ab.
+   *
+   * @returns Eine Liste aller Einsätze
+   */
+  @Get()
+  @ApiOperation({ summary: &#x27;Alle Einsätze abrufen&#x27; })
+  @ApiResponse({
+    status: HttpStatus.OK,
+    description: &#x27;Die Liste aller Einsätze wurde erfolgreich abgerufen&#x27;,
+    type: [Einsatz],
+  })
+  async findAll(): Promise&lt;Einsatz[]&gt; {
+    return this.einsatzService.findAll();
+  }
+
+  /**
+   * Ruft einen Einsatz anhand seiner ID ab.
+   *
+   * @param id Die ID des Einsatzes
+   * @returns Der Einsatz mit der angegebenen ID
+   */
+  @Get(&#x27;:id&#x27;)
+  @ApiOperation({ summary: &#x27;Einen Einsatz anhand der ID abrufen&#x27; })
+  @ApiParam({ name: &#x27;id&#x27;, description: &#x27;Die ID des Einsatzes&#x27; })
+  @ApiResponse({
+    status: HttpStatus.OK,
+    description: &#x27;Der Einsatz wurde erfolgreich abgerufen&#x27;,
+    type: Einsatz,
+  })
+  @ApiResponse({
+    status: HttpStatus.NOT_FOUND,
+    description: &#x27;Der Einsatz wurde nicht gefunden&#x27;,
+  })
+  async findById(@Param(&#x27;id&#x27;) id: string): Promise&lt;Einsatz&gt; {
+    return this.einsatzService.findById(id);
+  }
+
+  /**
+   * Erstellt einen neuen Einsatz mit umgebungsspezifischen Sicherheitsmaßnahmen.
+   *
+   * @param createEinsatzDto Die Daten für den zu erstellenden Einsatz
+   * @returns Der erstellte Einsatz
+   */
+  @Post()
+  @ApiOperation({ summary: &#x27;Einen neuen Einsatz erstellen&#x27; })
+  @ApiResponse({
+    status: HttpStatus.CREATED,
+    description: &#x27;Der Einsatz wurde erfolgreich erstellt&#x27;,
+    type: Einsatz,
+  })
+  @ApiResponse({
+    status: HttpStatus.BAD_REQUEST,
+    description: &#x27;Ungültige Anfragedaten&#x27;,
+  })
+  @ApiResponse({
+    status: HttpStatus.FORBIDDEN,
+    description: &#x27;Einsatzerstellung ist in dieser Umgebung nicht erlaubt&#x27;,
+  })
+  async create(@Body() createEinsatzDto: CreateEinsatzDto): Promise&lt;Einsatz&gt; {
+    // Umgebungsspezifische Sicherheitsprüfungen
+    const environment &#x3D; this.configService.get(&#x27;NODE_ENV&#x27;, &#x27;development&#x27;);
+
+    // Production-spezifische Einschränkungen
+    if (environment &#x3D;&#x3D;&#x3D; &#x27;production&#x27;) {
+      // Prüfe, ob Einsatzerstellung in Production erlaubt ist
+      const enableEinsatzCreation &#x3D; this.configService.get(&#x27;ENABLE_EINSATZ_CREATION&#x27;, &#x27;false&#x27;);
+
+      if (enableEinsatzCreation !&#x3D;&#x3D; &#x27;true&#x27;) {
+        this.logger.warn(
+          &#x60;Einsatzerstellung in Production verweigert für: ${createEinsatzDto.name}&#x60;,
+        );
+        throw new ForbiddenException(
+          &#x27;Einsatzerstellung ist in der Produktionsumgebung nicht aktiviert&#x27;,
+        );
+      }
+
+      // Zusätzliche Production-Validierung
+      if (
+        createEinsatzDto.name?.toLowerCase().includes(&#x27;test&#x27;) ||
+        createEinsatzDto.name?.toLowerCase().includes(&#x27;dev&#x27;)
+      ) {
+        this.logger.warn(
+          &#x60;Production-Einsatz mit Test/Dev Namen verweigert: ${createEinsatzDto.name}&#x60;,
+        );
+        throw new ForbiddenException(
+          &#x27;Test- oder Entwicklungsnamen sind in der Produktionsumgebung nicht erlaubt&#x27;,
+        );
+      }
+    }
+
+    // Verwende Error Handling Service für robuste Erstellung
+    return await this.errorHandlingService.executeWithErrorHandling(
+      async () &#x3D;&gt; {
+        this.logger.log(&#x60;Erstelle Einsatz: ${createEinsatzDto.name} in ${environment} Umgebung&#x60;);
+        return await this.einsatzService.create(createEinsatzDto);
+      },
+      &#x60;create-einsatz-controller-${createEinsatzDto.name}&#x60;,
+      createEinsatzDto,
+    );
+  }
+}
+</code></pre>
+    </div>
+</div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+                   </div><div class="search-results">
+    <div class="has-results">
+        <h1 class="search-results-title"><span class='search-results-count'></span> results matching "<span class='search-query'></span>"</h1>
+        <ul class="search-results-list"></ul>
+    </div>
+    <div class="no-results">
+        <h1 class="search-results-title">No results matching "<span class='search-query'></span>"</h1>
+    </div>
+</div>
+</div>
+               <!-- END CONTENT -->
+           </div>
+       </div>
+
+          <label class="dark-mode-switch">
+               <input type="checkbox">
+               <span class="slider">
+                    <svg class="slider-icon" viewBox="0 0 24 24" fill="none" height="20" stroke="#000" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" width="20" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"></path>
+                    </svg>
+               </span>
+          </label>
+
+       <script>
+            var COMPODOC_CURRENT_PAGE_DEPTH = 1;
+            var COMPODOC_CURRENT_PAGE_CONTEXT = 'controller';
+            var COMPODOC_CURRENT_PAGE_URL = 'EinsatzController.html';
+            var MAX_SEARCH_RESULTS = 15;
+       </script>
+
+       <script>
+               $darkModeToggleSwitchers = document.querySelectorAll('.dark-mode-switch input');
+               checkToggle(darkModeState);
+               if ($darkModeToggleSwitchers.length > 0) {
+                    for (var i = 0; i < $darkModeToggleSwitchers.length; i++) {
+                         $darkModeToggleSwitchers[i].addEventListener('change', function (event) {
+                              darkModeState = !darkModeState;
+                              toggleDarkMode(darkModeState);
+                         });
+                    }
+               }
+          </script>
+
+       <script src="../js/libs/custom-elements.min.js"></script>
+       <script src="../js/libs/lit-html.js"></script>
+
+       <script src="../js/menu-wc.js" defer></script>
+       <script nomodule src="../js/menu-wc_es5.js" defer></script>
+
+       <script src="../js/libs/bootstrap-native.js"></script>
+
+       <script src="../js/libs/es6-shim.min.js"></script>
+       <script src="../js/libs/EventDispatcher.js"></script>
+       <script src="../js/libs/promise.min.js"></script>
+
+       <script src="../js/compodoc.js"></script>
+
+       <script src="../js/tabs.js"></script>
+       <script src="../js/menu.js"></script>
+       <script src="../js/libs/clipboard.min.js"></script>
+       <script src="../js/libs/prism.js"></script>
+       <script src="../js/sourceCode.js"></script>
+          <script src="../js/search/search.js"></script>
+          <script src="../js/search/lunr.min.js"></script>
+          <script src="../js/search/search-lunr.js"></script>
+          <script src="../js/search/search_index.js"></script>
+       <script src="../js/lazy-load-graphs.js"></script>
+
+
+    </body>
+</html>

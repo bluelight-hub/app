@@ -1,0 +1,1098 @@
+<!doctype html>
+<html class="no-js" lang="">
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="x-ua-compatible" content="ie=edge">
+        <title>@bluelight-hub/backend documentation</title>
+        <meta name="description" content="">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+
+        <link rel="icon" type="image/x-icon" href="../images/favicon.ico">
+	   <link rel="stylesheet" href="../styles/style.css">
+        <link rel="stylesheet" href="../styles/dark.css">
+    </head>
+    <body>
+          <script>
+               // Blocking script to avoid flickering dark mode
+               // Dark mode toggle button
+               var useDark = window.matchMedia('(prefers-color-scheme: dark)');
+               var darkModeState = useDark.matches;
+               var $darkModeToggleSwitchers = document.querySelectorAll('.dark-mode-switch input');
+               var $darkModeToggles = document.querySelectorAll('.dark-mode-switch');
+               var darkModeStateLocal = localStorage.getItem('compodoc_darkmode-state');
+
+               function checkToggle(check) {
+                    for (var i = 0; i < $darkModeToggleSwitchers.length; i++) {
+                         $darkModeToggleSwitchers[i].checked = check;
+                    }
+               }
+
+               function toggleDarkMode(state) {
+                    if (window.localStorage) {
+                         localStorage.setItem('compodoc_darkmode-state', state);
+                    }
+
+                    checkToggle(state);
+
+                    const hasClass = document.body.classList.contains('dark');
+
+                    if (state) {
+                         for (var i = 0; i < $darkModeToggles.length; i++) {
+                              $darkModeToggles[i].classList.add('dark');
+                         }
+                         if (!hasClass) {
+                              document.body.classList.add('dark');
+                         }
+                    } else {
+                         for (var i = 0; i < $darkModeToggles.length; i++) {
+                              $darkModeToggles[i].classList.remove('dark');
+                         }
+                         if (hasClass) {
+                              document.body.classList.remove('dark');
+                         }
+                    }
+               }
+
+               useDark.addEventListener('change', function (evt) {
+                    toggleDarkMode(evt.matches);
+               });
+               if (darkModeStateLocal) {
+                    darkModeState = darkModeStateLocal === 'true';
+               }
+               toggleDarkMode(darkModeState);
+          </script>
+
+        <div class="navbar navbar-default navbar-fixed-top d-md-none p-0">
+               <div class="d-flex">
+                    <a href="../" class="navbar-brand">@bluelight-hub/backend documentation</a>
+                    <button type="button" class="btn btn-default btn-menu ion-ios-menu" id="btn-menu"></button>
+               </div>
+        </div>
+
+        <div class="xs-menu menu" id="mobile-menu">
+                <div id="book-search-input" role="search"><input type="text" placeholder="Type to search"></div>            <compodoc-menu></compodoc-menu>
+        </div>
+
+        <div class="container-fluid main">
+           <div class="row main">
+               <div class="d-none d-md-block menu">
+                   <compodoc-menu mode="normal"></compodoc-menu>
+               </div>
+               <!-- START CONTENT -->
+               <div class="content interface">
+                   <div class="content-data">
+
+
+
+
+
+
+
+
+
+
+
+
+
+<ol class="breadcrumb">
+  <li class="breadcrumb-item">Interfaces</li>
+  <li class="breadcrumb-item"
+  >
+  AuditMetadata</li>
+</ol>
+
+<ul class="nav nav-tabs" role="tablist">
+        <li class="nav-item">
+            <a href="#info" 
+                class="nav-link"
+                class="nav-link active"
+                role="tab" id="info-tab" data-bs-toggle="tab" data-link="info">Info</a>
+        </li>
+        <li class="nav-item">
+            <a href="#source" 
+                class="nav-link"
+                
+                role="tab" id="source-tab" data-bs-toggle="tab" data-link="source">Source</a>
+        </li>
+</ul>
+
+<div class="tab-content">
+    <div class="tab-pane fade active in" id="info">
+        <p class="comment">
+            <h3>File</h3>
+        </p>
+        <p class="comment">
+            <code>src/modules/audit/interceptors/audit.interceptor.ts</code>
+        </p>
+
+
+
+
+        <section data-compodoc="block-index">
+            <h3 id="index">Index</h3>
+            <table class="table table-sm table-bordered index-table">
+                <tbody>
+                    <tr>
+                        <td class="col-md-4">
+                            <h6><b>Properties</b></h6>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="col-md-4">
+                            <ul class="index-list">
+                                <li>
+                                            <span class="modifier">Optional</span>
+                                        <a href="#action" 
+>
+                                            action
+                                        </a>
+                                </li>
+                                <li>
+                                            <span class="modifier">Optional</span>
+                                        <a href="#additionalContext" 
+>
+                                            additionalContext
+                                        </a>
+                                </li>
+                                <li>
+                                            <span class="modifier">Optional</span>
+                                        <a href="#resourceType" 
+>
+                                            resourceType
+                                        </a>
+                                </li>
+                                <li>
+                                            <span class="modifier">Optional</span>
+                                        <a href="#severity" 
+>
+                                            severity
+                                        </a>
+                                </li>
+                                <li>
+                                            <span class="modifier">Optional</span>
+                                        <a href="#skipAudit" 
+>
+                                            skipAudit
+                                        </a>
+                                </li>
+                            </ul>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </section>
+
+
+
+            <section data-compodoc="block-properties">
+                <h3 id="inputs">Properties</h3>
+                    <table class="table table-sm table-bordered">
+                        <tbody>
+                                <tr>
+                                    <td class="col-md-4">
+                                        <a name="action"></a>
+                                        <span class="name "><b>action</b>
+                                            <a href="#action">
+                                                <span class="icon ion-ios-link"></span>
+                                            </a>
+                                        </span>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td class="col-md-4">
+                                        <code>action:         <code><a href="../miscellaneous/variables.html#Audit" target="_self" >AuditActionType</a></code>
+</code>
+                                    </td>
+                                </tr>
+
+
+                                    <tr>
+                                        <td class="col-md-4">
+                                            <i>Type : </i>        <code><a href="../miscellaneous/variables.html#Audit" target="_self" >AuditActionType</a></code>
+
+                                        </td>
+                                    </tr>
+
+                                    <tr>
+                                        <td class="col-md-4">
+                                            <i>Optional</i>
+                                        </td>
+                                    </tr>
+
+
+
+
+                        </tbody>
+                    </table>
+                    <table class="table table-sm table-bordered">
+                        <tbody>
+                                <tr>
+                                    <td class="col-md-4">
+                                        <a name="additionalContext"></a>
+                                        <span class="name "><b>additionalContext</b>
+                                            <a href="#additionalContext">
+                                                <span class="icon ion-ios-link"></span>
+                                            </a>
+                                        </span>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td class="col-md-4">
+                                        <code>additionalContext:     <code>Record&lt;string | any&gt;</code>
+</code>
+                                    </td>
+                                </tr>
+
+
+                                    <tr>
+                                        <td class="col-md-4">
+                                            <i>Type : </i>    <code>Record&lt;string | any&gt;</code>
+
+                                        </td>
+                                    </tr>
+
+                                    <tr>
+                                        <td class="col-md-4">
+                                            <i>Optional</i>
+                                        </td>
+                                    </tr>
+
+
+
+
+                        </tbody>
+                    </table>
+                    <table class="table table-sm table-bordered">
+                        <tbody>
+                                <tr>
+                                    <td class="col-md-4">
+                                        <a name="resourceType"></a>
+                                        <span class="name "><b>resourceType</b>
+                                            <a href="#resourceType">
+                                                <span class="icon ion-ios-link"></span>
+                                            </a>
+                                        </span>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td class="col-md-4">
+                                        <code>resourceType:         <code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/string" target="_blank" >string</a></code>
+</code>
+                                    </td>
+                                </tr>
+
+
+                                    <tr>
+                                        <td class="col-md-4">
+                                            <i>Type : </i>        <code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/string" target="_blank" >string</a></code>
+
+                                        </td>
+                                    </tr>
+
+                                    <tr>
+                                        <td class="col-md-4">
+                                            <i>Optional</i>
+                                        </td>
+                                    </tr>
+
+
+
+
+                        </tbody>
+                    </table>
+                    <table class="table table-sm table-bordered">
+                        <tbody>
+                                <tr>
+                                    <td class="col-md-4">
+                                        <a name="severity"></a>
+                                        <span class="name "><b>severity</b>
+                                            <a href="#severity">
+                                                <span class="icon ion-ios-link"></span>
+                                            </a>
+                                        </span>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td class="col-md-4">
+                                        <code>severity:         <code><a href="../miscellaneous/variables.html#Audit" target="_self" >AuditSeverity</a></code>
+</code>
+                                    </td>
+                                </tr>
+
+
+                                    <tr>
+                                        <td class="col-md-4">
+                                            <i>Type : </i>        <code><a href="../miscellaneous/variables.html#Audit" target="_self" >AuditSeverity</a></code>
+
+                                        </td>
+                                    </tr>
+
+                                    <tr>
+                                        <td class="col-md-4">
+                                            <i>Optional</i>
+                                        </td>
+                                    </tr>
+
+
+
+
+                        </tbody>
+                    </table>
+                    <table class="table table-sm table-bordered">
+                        <tbody>
+                                <tr>
+                                    <td class="col-md-4">
+                                        <a name="skipAudit"></a>
+                                        <span class="name "><b>skipAudit</b>
+                                            <a href="#skipAudit">
+                                                <span class="icon ion-ios-link"></span>
+                                            </a>
+                                        </span>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td class="col-md-4">
+                                        <code>skipAudit:         <code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/boolean" target="_blank" >boolean</a></code>
+</code>
+                                    </td>
+                                </tr>
+
+
+                                    <tr>
+                                        <td class="col-md-4">
+                                            <i>Type : </i>        <code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/boolean" target="_blank" >boolean</a></code>
+
+                                        </td>
+                                    </tr>
+
+                                    <tr>
+                                        <td class="col-md-4">
+                                            <i>Optional</i>
+                                        </td>
+                                    </tr>
+
+
+
+
+                        </tbody>
+                    </table>
+            </section>
+    </div>
+
+
+    <div class="tab-pane fade  tab-source-code" id="source">
+        <pre class="line-numbers compodoc-sourcecode"><code class="language-typescript">import {
+  CallHandler,
+  ExecutionContext,
+  HttpException,
+  Injectable,
+  NestInterceptor,
+} from &#x27;@nestjs/common&#x27;;
+import { Observable, throwError } from &#x27;rxjs&#x27;;
+import { catchError, tap } from &#x27;rxjs/operators&#x27;;
+import { Request, Response } from &#x27;express&#x27;;
+import {
+  AUDIT_ACTION_KEY,
+  AUDIT_CONTEXT_KEY,
+  AUDIT_RESOURCE_TYPE_KEY,
+  AUDIT_SEVERITY_KEY,
+  AuditInterceptorConfig,
+  AuditLogService,
+  defaultAuditInterceptorConfig,
+  SKIP_AUDIT_KEY,
+} from &#x27;@/modules/audit&#x27;;
+import { AuditLogQueue } from &#x27;@/modules/audit/queues&#x27;;
+import { logger } from &#x27;@/logger/consola.logger&#x27;;
+import { AuditActionType, AuditSeverity, UserRole } from &#x27;@prisma/generated/prisma/client&#x27;;
+
+// Extend Express Request to include user and sessionID
+interface AuditRequest extends Request {
+  user?: {
+    id: string;
+    email: string;
+    role: UserRole;
+  };
+  sessionID?: string;
+}
+
+interface AuditMetadata {
+  skipAudit?: boolean;
+  action?: AuditActionType;
+  severity?: AuditSeverity;
+  resourceType?: string;
+  additionalContext?: Record&lt;string, any&gt;;
+}
+
+/**
+ * Interceptor für die Protokollierung von Admin-Aktionen
+ * Erfasst Request/Response-Daten und erstellt strukturierte Audit-Logs
+ */
+@Injectable()
+export class AuditInterceptor implements NestInterceptor {
+  private config: AuditInterceptorConfig;
+
+  constructor(
+    private readonly auditLogService: AuditLogService,
+    private readonly auditLogQueue: AuditLogQueue,
+  ) {
+    this.config &#x3D; defaultAuditInterceptorConfig;
+  }
+
+  /**
+   * Sets a custom configuration for the interceptor
+   */
+  setConfig(config: Partial&lt;AuditInterceptorConfig&gt;): void {
+    this.config &#x3D; { ...defaultAuditInterceptorConfig, ...config };
+  }
+
+  /**
+   * Intercept-Methode für die Verarbeitung von Requests
+   */
+  intercept(context: ExecutionContext, next: CallHandler): Observable&lt;any&gt; {
+    const ctx &#x3D; context.switchToHttp();
+    const request &#x3D; ctx.getRequest&lt;AuditRequest&gt;();
+    const response &#x3D; ctx.getResponse&lt;Response&gt;();
+    const startTime &#x3D; Date.now();
+
+    // Skip audit for non-admin routes
+    if (!this.shouldAudit(request)) {
+      return next.handle();
+    }
+
+    // Extract metadata from route handler
+    const metadata &#x3D; this.extractMetadata(context);
+    if (metadata.skipAudit) {
+      return next.handle();
+    }
+
+    // Extract request data
+    const requestData &#x3D; this.extractRequestData(request);
+    const user &#x3D; request.user;
+
+    // Get original action from decorator for custom action handling
+    const originalAction &#x3D; Reflect.getMetadata(AUDIT_ACTION_KEY, context.getHandler());
+
+    return next.handle().pipe(
+      tap(async (responseBody) &#x3D;&gt; {
+        // Log successful operation
+        const duration &#x3D; Date.now() - startTime;
+        await this.logAuditEvent({
+          user,
+          request,
+          response,
+          requestData,
+          responseBody,
+          duration,
+          metadata,
+          success: true,
+          originalAction,
+        });
+      }),
+      catchError((error) &#x3D;&gt; {
+        // Log failed operation
+        const duration &#x3D; Date.now() - startTime;
+        this.logAuditEvent({
+          user,
+          request,
+          response,
+          requestData,
+          error,
+          duration,
+          metadata,
+          success: false,
+          originalAction,
+        }).catch((err) &#x3D;&gt; {
+          logger.error(&#x27;Failed to log audit event:&#x27;, err);
+        });
+
+        return throwError(() &#x3D;&gt; error);
+      }),
+    );
+  }
+
+  /**
+   * Prüft, ob der Request auditiert werden soll
+   */
+  private shouldAudit(request: AuditRequest): boolean {
+    const path &#x3D; request.path;
+
+    // Check exclude paths first
+    if (this.config.excludePaths.some((excludePath) &#x3D;&gt; path.includes(excludePath))) {
+      return false;
+    }
+
+    // Check include paths
+    return this.config.includePaths.some((includePath) &#x3D;&gt; path.startsWith(includePath));
+  }
+
+  /**
+   * Extrahiert Metadaten vom Route-Handler
+   */
+  private extractMetadata(context: ExecutionContext): AuditMetadata {
+    const handler &#x3D; context.getHandler();
+    const metadata: AuditMetadata &#x3D; {};
+
+    // Extract custom metadata set by decorators
+    metadata.skipAudit &#x3D; Reflect.getMetadata(SKIP_AUDIT_KEY, handler) || false;
+    metadata.action &#x3D; Reflect.getMetadata(AUDIT_ACTION_KEY, handler);
+    metadata.severity &#x3D; Reflect.getMetadata(AUDIT_SEVERITY_KEY, handler);
+    metadata.resourceType &#x3D; Reflect.getMetadata(AUDIT_RESOURCE_TYPE_KEY, handler);
+    metadata.additionalContext &#x3D; Reflect.getMetadata(AUDIT_CONTEXT_KEY, handler);
+
+    return metadata;
+  }
+
+  /**
+   * Extrahiert relevante Daten aus dem Request
+   */
+  private extractRequestData(request: AuditRequest): Record&lt;string, any&gt; {
+    const { method, path, query, body, headers, ip } &#x3D; request;
+
+    // Sanitize and truncate data
+    const sanitizedBody &#x3D; this.truncateIfNeeded(this.sanitizeSensitiveData(body));
+    const sanitizedQuery &#x3D; this.sanitizeSensitiveData(query);
+
+    return {
+      method,
+      path,
+      query: sanitizedQuery,
+      body: sanitizedBody,
+      ip: ip || headers[&#x27;x-forwarded-for&#x27;] || headers[&#x27;x-real-ip&#x27;],
+      userAgent: headers[&#x27;user-agent&#x27;],
+      referer: headers[&#x27;referer&#x27;],
+      timestamp: new Date().toISOString(),
+    };
+  }
+
+  /**
+   * Entfernt sensible Daten aus Objekten
+   */
+  private sanitizeSensitiveData(data: any): any {
+    if (!data || typeof data !&#x3D;&#x3D; &#x27;object&#x27;) {
+      return data;
+    }
+
+    const sanitized &#x3D; { ...data };
+
+    Object.keys(sanitized).forEach((key) &#x3D;&gt; {
+      const lowerKey &#x3D; key.toLowerCase();
+      if (this.config.sensitiveFields.some((field) &#x3D;&gt; lowerKey.includes(field.toLowerCase()))) {
+        sanitized[key] &#x3D; &#x27;[REDACTED]&#x27;;
+      } else if (typeof sanitized[key] &#x3D;&#x3D;&#x3D; &#x27;object&#x27;) {
+        sanitized[key] &#x3D; this.sanitizeSensitiveData(sanitized[key]);
+      }
+    });
+
+    return sanitized;
+  }
+
+  /**
+   * Erstellt einen Audit-Log-Eintrag
+   */
+  private async logAuditEvent(params: {
+    user: AuditRequest[&#x27;user&#x27;];
+    request: AuditRequest;
+    response: Response;
+    requestData: Record&lt;string, any&gt;;
+    responseBody?: any;
+    error?: any;
+    duration: number;
+    metadata: AuditMetadata;
+    success: boolean;
+    originalAction?: string;
+  }): Promise&lt;void&gt; {
+    const {
+      user,
+      request,
+      response,
+      requestData,
+      responseBody,
+      error,
+      duration,
+      metadata,
+      success,
+    } &#x3D; params;
+
+    // Determine action and severity
+    let action &#x3D; metadata.action || this.determineAction(request.method, request.path);
+
+    // If action is a string that&#x27;s not a valid AuditActionType, map it
+    if (
+      typeof action &#x3D;&#x3D;&#x3D; &#x27;string&#x27; &amp;&amp;
+      !Object.values(AuditActionType).includes(action as AuditActionType)
+    ) {
+      // Map custom string actions to valid AuditActionType
+      const customActionMap: Record&lt;string, AuditActionType&gt; &#x3D; {
+        REVOKE_PERMISSION: AuditActionType.PERMISSION_CHANGE,
+        GRANT_PERMISSION: AuditActionType.PERMISSION_CHANGE,
+        // Add more mappings as needed
+      };
+      action &#x3D; customActionMap[action] || AuditActionType.READ;
+    }
+
+    const severity &#x3D; metadata.severity || this.determineSeverity(action, success);
+    const resourceType &#x3D; metadata.resourceType || this.extractResourceType(request.path);
+
+    // Extract old and new values for update operations
+    const { oldValues, newValues } &#x3D; this.extractValueChanges(
+      request.method,
+      requestData.body,
+      responseBody,
+    );
+
+    // Build audit context
+    const auditContext &#x3D; {
+      ...metadata.additionalContext,
+      request: {
+        method: requestData.method,
+        path: requestData.path,
+        query: requestData.query,
+        body: requestData.body,
+        ip: requestData.ip,
+        userAgent: requestData.userAgent,
+      },
+      response: {
+        statusCode: response.statusCode,
+        duration: &#x60;${duration}ms&#x60;,
+        success,
+      },
+      ...(error &amp;&amp; {
+        error: {
+          message: error.message,
+          statusCode: error instanceof HttpException ? error.getStatus() : 500,
+          stack: process.env.NODE_ENV &#x3D;&#x3D;&#x3D; &#x27;development&#x27; ? error.stack : undefined,
+        },
+      }),
+    };
+
+    // Map our custom action to Prisma&#x27;s AuditActionType
+    const actionType &#x3D; this.mapActionToActionType(action);
+
+    // For custom actions, preserve the original string representation
+    let actionString: string;
+    // Check if the original metadata had a custom string action
+    if (
+      typeof params.originalAction &#x3D;&#x3D;&#x3D; &#x27;string&#x27; &amp;&amp;
+      params.originalAction &#x3D;&#x3D;&#x3D; &#x27;REVOKE_PERMISSION&#x27;
+    ) {
+      actionString &#x3D; &#x27;revoke-permission&#x27;;
+    } else {
+      actionString &#x3D; this.actionTypeToString(action);
+    }
+
+    // Create audit log data
+    const auditLogData &#x3D; {
+      actionType,
+      severity: severity as any, // Map extended severity
+      action: actionString,
+      resource: resourceType,
+      resourceId: this.extractResourceId(request),
+
+      // User context
+      userId: user?.id,
+      userEmail: user?.email,
+      userRole: user?.role,
+
+      // Request context
+      requestId: request.headers[&#x27;x-request-id&#x27;] as string,
+      sessionId: request.sessionID || (request.headers[&#x27;x-session-id&#x27;] as string),
+      ipAddress: requestData.ip,
+      userAgent: requestData.userAgent,
+      endpoint: requestData.path,
+      httpMethod: requestData.method,
+
+      // Data context
+      oldValues,
+      newValues,
+      metadata: auditContext,
+
+      // Result
+      duration,
+      success,
+      errorMessage: error?.message,
+      statusCode: response.statusCode,
+
+      // Compliance
+      sensitiveData: this.containsSensitiveData(resourceType, action),
+      requiresReview: this.requiresReview(action, severity),
+    };
+
+    // Queue the audit log for asynchronous processing
+    try {
+      await this.auditLogQueue.addAuditLog(auditLogData);
+      logger.trace(&#x27;Audit log queued successfully&#x27;, {
+        action: auditLogData.action,
+        resource: auditLogData.resource,
+      });
+    } catch (queueError) {
+      // If queueing fails, fall back to direct logging
+      logger.error(&#x27;Failed to queue audit log, falling back to direct logging&#x27;, {
+        error: queueError.message,
+      });
+      try {
+        await this.auditLogService.create(auditLogData);
+      } catch (directError) {
+        logger.error(&#x27;Failed to create audit log directly&#x27;, {
+          error: directError.message,
+        });
+      }
+    }
+  }
+
+  /**
+   * Bestimmt die Aktion basierend auf HTTP-Methode und Pfad
+   */
+  private determineAction(method: string, path: string): AuditActionType {
+    // Special cases based on path - these take precedence
+    if (path.includes(&#x27;/login&#x27;)) return AuditActionType.LOGIN;
+    if (path.includes(&#x27;/logout&#x27;)) return AuditActionType.LOGOUT;
+    if (path.includes(&#x27;/export&#x27;)) return AuditActionType.EXPORT;
+    if (path.includes(&#x27;/import&#x27;)) return AuditActionType.IMPORT;
+    if (path.includes(&#x27;/approve&#x27;)) return AuditActionType.APPROVE;
+    if (path.includes(&#x27;/reject&#x27;)) return AuditActionType.REJECT;
+    if (path.includes(&#x27;/block&#x27;)) return AuditActionType.BLOCK;
+    if (path.includes(&#x27;/unblock&#x27;)) return AuditActionType.UNBLOCK;
+    if (path.includes(&#x27;/restore&#x27;)) return AuditActionType.RESTORE;
+
+    // Check custom action mappings
+    const fullPath &#x3D; &#x60;${method} ${path}&#x60;;
+
+    // Check exact matches first
+    if (this.config.actionMapping[fullPath]) {
+      return this.config.actionMapping[fullPath];
+    }
+
+    // Then check patterns with wildcards
+    for (const [pattern, action] of Object.entries(this.config.actionMapping)) {
+      if (pattern.includes(&#x27;*&#x27;) &amp;&amp; this.matchPath(fullPath, pattern)) {
+        return action;
+      }
+    }
+
+    const methodActionMap: Record&lt;string, AuditActionType&gt; &#x3D; {
+      GET: AuditActionType.READ,
+      POST: AuditActionType.CREATE,
+      PUT: AuditActionType.UPDATE,
+      PATCH: AuditActionType.UPDATE,
+      DELETE: AuditActionType.DELETE,
+    };
+
+    return methodActionMap[method] || AuditActionType.READ;
+  }
+
+  /**
+   * Bestimmt die Schwere basierend auf Aktion und Erfolg
+   */
+  private determineSeverity(action: AuditActionType, success: boolean): AuditSeverity {
+    if (!success) {
+      return AuditSeverity.ERROR;
+    }
+
+    // Use configured severity mapping
+    return this.config.severityMapping[action] || AuditSeverity.LOW;
+  }
+
+  /**
+   * Extrahiert den Ressourcentyp aus dem Pfad
+   */
+  private extractResourceType(path: string): string {
+    // Check configured resource mappings first
+    for (const [pattern, resourceType] of Object.entries(this.config.resourceMapping)) {
+      if (path.startsWith(pattern)) {
+        return resourceType;
+      }
+    }
+
+    const segments &#x3D; path.split(&#x27;/&#x27;).filter(Boolean);
+
+    // Remove &#x27;admin&#x27; prefix
+    if (segments[0] &#x3D;&#x3D;&#x3D; &#x27;admin&#x27;) {
+      segments.shift();
+    }
+
+    // Return first meaningful segment
+    return segments[0] || &#x27;unknown&#x27;;
+  }
+
+  /**
+   * Extrahiert die Ressourcen-ID aus dem Request
+   */
+  private extractResourceId(request: AuditRequest): string {
+    // Try to extract ID from path params
+    const params &#x3D; request.params as Record&lt;string, any&gt;;
+    if (params.id) {
+      return params.id;
+    }
+
+    // Try to extract from path
+    const pathMatch &#x3D; request.path.match(/\/(\d+|[a-f0-9-]{36})(\/|$)/);
+    if (pathMatch) {
+      return pathMatch[1];
+    }
+
+    // Try to extract from query
+    const query &#x3D; request.query as Record&lt;string, any&gt;;
+    if (query?.id) {
+      return query.id as string;
+    }
+
+    return &#x27;unknown&#x27;;
+  }
+
+  /**
+   * Extrahiert alte und neue Werte für Update-Operationen
+   */
+  private extractValueChanges(
+    method: string,
+    requestBody: any,
+    responseBody: any,
+  ): { oldValues?: any; newValues?: any } {
+    if (![&#x27;PUT&#x27;, &#x27;PATCH&#x27;].includes(method)) {
+      return {};
+    }
+
+    // For updates, request body contains new values
+    const newValues &#x3D; this.sanitizeSensitiveData(requestBody);
+
+    // If response contains both old and new values
+    if (responseBody?.oldValues &amp;&amp; responseBody?.newValues) {
+      return {
+        oldValues: this.sanitizeSensitiveData(responseBody.oldValues),
+        newValues: this.sanitizeSensitiveData(responseBody.newValues),
+      };
+    }
+
+    // If response contains the updated entity
+    if (responseBody &amp;&amp; typeof responseBody &#x3D;&#x3D;&#x3D; &#x27;object&#x27;) {
+      return {
+        newValues,
+        // Old values would need to be provided by the service layer
+      };
+    }
+
+    return { newValues };
+  }
+
+  /**
+   * Prüft, ob ein Pfad einem Muster entspricht
+   */
+  private matchPath(path: string, pattern: string): boolean {
+    // Convert pattern with wildcards to regex
+    const regexPattern &#x3D; pattern
+      .replace(/([.+?^${}()|[\]\\])/g, &#x27;\\$1&#x27;) // Escape special regex chars
+      .replace(/\*\*/g, &#x27;.*&#x27;) // ** matches any path
+      .replace(/\*/g, &#x27;[^/]+&#x27;); // * matches any segment except /
+
+    const regex &#x3D; new RegExp(&#x60;^${regexPattern}$&#x60;);
+    return regex.test(path);
+  }
+
+  /**
+   * Prüft die Größe von Request/Response Bodies
+   */
+  private truncateIfNeeded(data: any): any {
+    if (data &#x3D;&#x3D;&#x3D; undefined || data &#x3D;&#x3D;&#x3D; null) {
+      return data;
+    }
+
+    const json &#x3D; JSON.stringify(data);
+    if (json &amp;&amp; json.length &gt; this.config.maxBodySize) {
+      return {
+        _truncated: true,
+        _originalSize: json.length,
+        _message: &#x60;Body truncated - exceeded ${this.config.maxBodySize} bytes&#x60;,
+      };
+    }
+    return data;
+  }
+
+  /**
+   * Maps action string to Prisma&#x27;s AuditActionType
+   */
+  private mapActionToActionType(action: string | AuditActionType): AuditActionType {
+    // If it&#x27;s already an AuditActionType, return it
+    if (Object.values(AuditActionType).includes(action as AuditActionType)) {
+      return action as AuditActionType;
+    }
+
+    // Handle string mappings only if action is a string
+    if (typeof action &#x3D;&#x3D;&#x3D; &#x27;string&#x27;) {
+      const stringMappings: Record&lt;string, AuditActionType&gt; &#x3D; {
+        view: AuditActionType.READ,
+        &#x27;grant-permission&#x27;: AuditActionType.PERMISSION_CHANGE,
+        &#x27;revoke-permission&#x27;: AuditActionType.PERMISSION_CHANGE,
+        &#x27;change-role&#x27;: AuditActionType.ROLE_CHANGE,
+        &#x27;config-change&#x27;: AuditActionType.SYSTEM_CONFIG,
+        &#x27;bulk-operation&#x27;: AuditActionType.BULK_OPERATION,
+      };
+
+      return stringMappings[action.toLowerCase()] || AuditActionType.READ;
+    }
+
+    // Default fallback
+    return AuditActionType.READ;
+  }
+
+  /**
+   * Prüft, ob die Aktion sensible Daten betrifft
+   */
+  private containsSensitiveData(resourceType: string, action: string | AuditActionType): boolean {
+    const sensitiveResources &#x3D; [&#x27;user&#x27;, &#x27;permission&#x27;, &#x27;role&#x27;, &#x27;session&#x27;, &#x27;authentication&#x27;];
+    const sensitiveActions: AuditActionType[] &#x3D; [
+      AuditActionType.PERMISSION_CHANGE,
+      AuditActionType.ROLE_CHANGE,
+    ];
+
+    const actionType &#x3D; typeof action &#x3D;&#x3D;&#x3D; &#x27;string&#x27; ? this.mapActionToActionType(action) : action;
+    return sensitiveResources.includes(resourceType) || sensitiveActions.includes(actionType);
+  }
+
+  /**
+   * Prüft, ob die Aktion eine Überprüfung erfordert
+   */
+  private requiresReview(
+    action: string | AuditActionType,
+    severity: string | AuditSeverity,
+  ): boolean {
+    const actionType &#x3D; typeof action &#x3D;&#x3D;&#x3D; &#x27;string&#x27; ? this.mapActionToActionType(action) : action;
+
+    return (
+      severity &#x3D;&#x3D;&#x3D; AuditSeverity.CRITICAL ||
+      severity &#x3D;&#x3D;&#x3D; AuditSeverity.HIGH ||
+      actionType &#x3D;&#x3D;&#x3D; AuditActionType.DELETE ||
+      actionType &#x3D;&#x3D;&#x3D; AuditActionType.PERMISSION_CHANGE ||
+      actionType &#x3D;&#x3D;&#x3D; AuditActionType.ROLE_CHANGE
+    );
+  }
+
+  /**
+   * Converts AuditActionType enum to a string representation
+   */
+  private actionTypeToString(action: AuditActionType | string): string {
+    // Since Prisma generates enums as objects with string values,
+    // the action might already be a string like &#x27;APPROVE&#x27;
+    const actionStr &#x3D; action as string;
+
+    // Map enum string values to their lowercase hyphenated representations
+    const actionMap: Record&lt;string, string&gt; &#x3D; {
+      CREATE: &#x27;create&#x27;,
+      READ: &#x27;read&#x27;,
+      UPDATE: &#x27;update&#x27;,
+      DELETE: &#x27;delete&#x27;,
+      LOGIN: &#x27;login&#x27;,
+      LOGOUT: &#x27;logout&#x27;,
+      APPROVE: &#x27;approve&#x27;,
+      REJECT: &#x27;reject&#x27;,
+      EXPORT: &#x27;export&#x27;,
+      IMPORT: &#x27;import&#x27;,
+      BLOCK: &#x27;block&#x27;,
+      UNBLOCK: &#x27;unblock&#x27;,
+      PERMISSION_CHANGE: &#x27;permission-change&#x27;,
+      ROLE_CHANGE: &#x27;role-change&#x27;,
+      RESTORE: &#x27;restore&#x27;,
+      BACKUP: &#x27;backup&#x27;,
+      BULK_OPERATION: &#x27;bulk-operation&#x27;,
+      SYSTEM_CONFIG: &#x27;system-config&#x27;,
+      FAILED_LOGIN: &#x27;failed-login&#x27;,
+    };
+
+    return actionMap[actionStr] || &#x27;unknown&#x27;;
+  }
+}
+
+/**
+ * Factory function to create a configured AuditInterceptor
+ */
+export function createAuditInterceptor(
+  auditLogService: AuditLogService,
+  auditLogQueue: AuditLogQueue,
+  config?: Partial&lt;AuditInterceptorConfig&gt;,
+): AuditInterceptor {
+  const interceptor &#x3D; new AuditInterceptor(auditLogService, auditLogQueue);
+  if (config) {
+    interceptor.setConfig(config);
+  }
+  return interceptor;
+}
+</code></pre>
+    </div>
+</div>
+
+
+
+
+
+
+
+
+                   </div><div class="search-results">
+    <div class="has-results">
+        <h1 class="search-results-title"><span class='search-results-count'></span> results matching "<span class='search-query'></span>"</h1>
+        <ul class="search-results-list"></ul>
+    </div>
+    <div class="no-results">
+        <h1 class="search-results-title">No results matching "<span class='search-query'></span>"</h1>
+    </div>
+</div>
+</div>
+               <!-- END CONTENT -->
+           </div>
+       </div>
+
+          <label class="dark-mode-switch">
+               <input type="checkbox">
+               <span class="slider">
+                    <svg class="slider-icon" viewBox="0 0 24 24" fill="none" height="20" stroke="#000" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" width="20" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"></path>
+                    </svg>
+               </span>
+          </label>
+
+       <script>
+            var COMPODOC_CURRENT_PAGE_DEPTH = 1;
+            var COMPODOC_CURRENT_PAGE_CONTEXT = 'interface';
+            var COMPODOC_CURRENT_PAGE_URL = 'AuditMetadata.html';
+            var MAX_SEARCH_RESULTS = 15;
+       </script>
+
+       <script>
+               $darkModeToggleSwitchers = document.querySelectorAll('.dark-mode-switch input');
+               checkToggle(darkModeState);
+               if ($darkModeToggleSwitchers.length > 0) {
+                    for (var i = 0; i < $darkModeToggleSwitchers.length; i++) {
+                         $darkModeToggleSwitchers[i].addEventListener('change', function (event) {
+                              darkModeState = !darkModeState;
+                              toggleDarkMode(darkModeState);
+                         });
+                    }
+               }
+          </script>
+
+       <script src="../js/libs/custom-elements.min.js"></script>
+       <script src="../js/libs/lit-html.js"></script>
+
+       <script src="../js/menu-wc.js" defer></script>
+       <script nomodule src="../js/menu-wc_es5.js" defer></script>
+
+       <script src="../js/libs/bootstrap-native.js"></script>
+
+       <script src="../js/libs/es6-shim.min.js"></script>
+       <script src="../js/libs/EventDispatcher.js"></script>
+       <script src="../js/libs/promise.min.js"></script>
+
+       <script src="../js/compodoc.js"></script>
+
+       <script src="../js/tabs.js"></script>
+       <script src="../js/menu.js"></script>
+       <script src="../js/libs/clipboard.min.js"></script>
+       <script src="../js/libs/prism.js"></script>
+       <script src="../js/sourceCode.js"></script>
+          <script src="../js/search/search.js"></script>
+          <script src="../js/search/lunr.min.js"></script>
+          <script src="../js/search/search-lunr.js"></script>
+          <script src="../js/search/search_index.js"></script>
+       <script src="../js/lazy-load-graphs.js"></script>
+
+
+    </body>
+</html>

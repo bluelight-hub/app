@@ -1,0 +1,1676 @@
+<!doctype html>
+<html class="no-js" lang="">
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="x-ua-compatible" content="ie=edge">
+        <title>@bluelight-hub/backend documentation</title>
+        <meta name="description" content="">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+
+        <link rel="icon" type="image/x-icon" href="../images/favicon.ico">
+	   <link rel="stylesheet" href="../styles/style.css">
+        <link rel="stylesheet" href="../styles/dark.css">
+    </head>
+    <body>
+          <script>
+               // Blocking script to avoid flickering dark mode
+               // Dark mode toggle button
+               var useDark = window.matchMedia('(prefers-color-scheme: dark)');
+               var darkModeState = useDark.matches;
+               var $darkModeToggleSwitchers = document.querySelectorAll('.dark-mode-switch input');
+               var $darkModeToggles = document.querySelectorAll('.dark-mode-switch');
+               var darkModeStateLocal = localStorage.getItem('compodoc_darkmode-state');
+
+               function checkToggle(check) {
+                    for (var i = 0; i < $darkModeToggleSwitchers.length; i++) {
+                         $darkModeToggleSwitchers[i].checked = check;
+                    }
+               }
+
+               function toggleDarkMode(state) {
+                    if (window.localStorage) {
+                         localStorage.setItem('compodoc_darkmode-state', state);
+                    }
+
+                    checkToggle(state);
+
+                    const hasClass = document.body.classList.contains('dark');
+
+                    if (state) {
+                         for (var i = 0; i < $darkModeToggles.length; i++) {
+                              $darkModeToggles[i].classList.add('dark');
+                         }
+                         if (!hasClass) {
+                              document.body.classList.add('dark');
+                         }
+                    } else {
+                         for (var i = 0; i < $darkModeToggles.length; i++) {
+                              $darkModeToggles[i].classList.remove('dark');
+                         }
+                         if (hasClass) {
+                              document.body.classList.remove('dark');
+                         }
+                    }
+               }
+
+               useDark.addEventListener('change', function (evt) {
+                    toggleDarkMode(evt.matches);
+               });
+               if (darkModeStateLocal) {
+                    darkModeState = darkModeStateLocal === 'true';
+               }
+               toggleDarkMode(darkModeState);
+          </script>
+
+        <div class="navbar navbar-default navbar-fixed-top d-md-none p-0">
+               <div class="d-flex">
+                    <a href="../" class="navbar-brand">@bluelight-hub/backend documentation</a>
+                    <button type="button" class="btn btn-default btn-menu ion-ios-menu" id="btn-menu"></button>
+               </div>
+        </div>
+
+        <div class="xs-menu menu" id="mobile-menu">
+                <div id="book-search-input" role="search"><input type="text" placeholder="Type to search"></div>            <compodoc-menu></compodoc-menu>
+        </div>
+
+        <div class="container-fluid main">
+           <div class="row main">
+               <div class="d-none d-md-block menu">
+                   <compodoc-menu mode="normal"></compodoc-menu>
+               </div>
+               <!-- START CONTENT -->
+               <div class="content controller">
+                   <div class="content-data">
+
+
+
+
+
+<ol class="breadcrumb">
+  <li class="breadcrumb-item">Controllers</li>
+  <li class="breadcrumb-item" >EtbController</li>
+</ol>
+
+<ul class="nav nav-tabs" role="tablist">
+        <li class="nav-item">
+            <a href="#info" 
+                class="nav-link"
+                class="nav-link active"
+                role="tab" id="info-tab" data-bs-toggle="tab" data-link="info">Info</a>
+        </li>
+        <li class="nav-item">
+            <a href="#source" 
+                class="nav-link"
+                
+                role="tab" id="source-tab" data-bs-toggle="tab" data-link="source">Source</a>
+        </li>
+</ul>
+
+<div class="tab-content">
+    <div class="tab-pane fade active in" id="info">
+        <p class="comment">
+            <h3>File</h3>
+        </p>
+        <p class="comment">
+            <code>src/modules/etb/etb.controller.ts</code>
+        </p>
+
+            <p class="comment">
+                <h3>Prefix</h3>
+            </p>
+            <p class="comment">
+                <code>einsatz/:einsatzId/etb</code>
+            </p>
+
+
+            <p class="comment">
+                <h3>Description</h3>
+            </p>
+            <p class="comment">
+                <p>Controller für das Einsatztagebuch (ETB)</p>
+<p>Dieser Controller stellt die REST-API-Endpunkte für das elektronische
+Einsatztagebuch bereit. Er verwaltet ETB-Einträge, Anlagen und bietet
+Funktionen für das Überschreiben und Abschließen von Einträgen.
+Alle Endpunkte sind geschützt und erfordern Authentifizierung.</p>
+<p>Features:</p>
+<ul>
+<li>CRUD-Operationen für ETB-Einträge</li>
+<li>Verwaltung von Dateianhängen</li>
+<li>Filterung und Paginierung</li>
+<li>Überschreibungsmechanismus für Korrekturen</li>
+<li>Abschluss-Funktionalität für unveränderliche Einträge</li>
+</ul>
+
+            </p>
+
+
+
+
+            <section data-compodoc="block-index">
+    <h3 id="index">Index</h3>
+    <table class="table table-sm table-bordered index-table">
+        <tbody>
+
+                <tr>
+                    <td class="col-md-4">
+                        <h6><b>Methods</b></h6>
+                    </td>
+                </tr>
+                <tr>
+                    <td class="col-md-4">
+                        <ul class="index-list">
+                            <li>
+                                    <span class="modifier"></span>
+                                    <span class="modifier"></span>
+                                    <span class="modifier"></span>
+                                    <span class="modifier"></span>
+                                    <span class="modifier"></span>
+                                    <span class="modifier"></span>
+                                    <span class="modifier"></span>
+                                    <span class="modifier"></span>
+                                    <span class="modifier">Async</span>
+                                <a href="#addAttachment" >addAttachment</a>
+                            </li>
+                            <li>
+                                    <span class="modifier"></span>
+                                    <span class="modifier"></span>
+                                    <span class="modifier"></span>
+                                    <span class="modifier"></span>
+                                    <span class="modifier"></span>
+                                    <span class="modifier"></span>
+                                    <span class="modifier">Async</span>
+                                <a href="#closeEntry" >closeEntry</a>
+                            </li>
+                            <li>
+                                    <span class="modifier"></span>
+                                    <span class="modifier"></span>
+                                    <span class="modifier"></span>
+                                    <span class="modifier">Async</span>
+                                <a href="#create" >create</a>
+                            </li>
+                            <li>
+                                    <span class="modifier"></span>
+                                    <span class="modifier"></span>
+                                    <span class="modifier"></span>
+                                    <span class="modifier"></span>
+                                    <span class="modifier"></span>
+                                    <span class="modifier"></span>
+                                    <span class="modifier"></span>
+                                    <span class="modifier"></span>
+                                    <span class="modifier"></span>
+                                    <span class="modifier"></span>
+                                    <span class="modifier"></span>
+                                    <span class="modifier"></span>
+                                    <span class="modifier"></span>
+                                    <span class="modifier">Async</span>
+                                <a href="#findAll" >findAll</a>
+                            </li>
+                            <li>
+                                    <span class="modifier"></span>
+                                    <span class="modifier"></span>
+                                    <span class="modifier"></span>
+                                    <span class="modifier"></span>
+                                    <span class="modifier">Async</span>
+                                <a href="#findAttachment" >findAttachment</a>
+                            </li>
+                            <li>
+                                    <span class="modifier"></span>
+                                    <span class="modifier"></span>
+                                    <span class="modifier"></span>
+                                    <span class="modifier"></span>
+                                    <span class="modifier">Async</span>
+                                <a href="#findAttachments" >findAttachments</a>
+                            </li>
+                            <li>
+                                    <span class="modifier"></span>
+                                    <span class="modifier"></span>
+                                    <span class="modifier"></span>
+                                    <span class="modifier"></span>
+                                    <span class="modifier"></span>
+                                    <span class="modifier">Async</span>
+                                <a href="#findOne" >findOne</a>
+                            </li>
+                            <li>
+                                    <span class="modifier"></span>
+                                    <span class="modifier"></span>
+                                    <span class="modifier"></span>
+                                    <span class="modifier"></span>
+                                    <span class="modifier"></span>
+                                    <span class="modifier">Async</span>
+                                <a href="#ueberschreibeEintrag" >ueberschreibeEintrag</a>
+                            </li>
+                            <li>
+                                    <span class="modifier"></span>
+                                    <span class="modifier"></span>
+                                    <span class="modifier"></span>
+                                    <span class="modifier"></span>
+                                    <span class="modifier"></span>
+                                    <span class="modifier"></span>
+                                    <span class="modifier">Async</span>
+                                <a href="#update" >update</a>
+                            </li>
+                        </ul>
+                    </td>
+                </tr>
+
+
+
+
+
+        </tbody>
+    </table>
+</section>
+
+            <section data-compodoc="block-methods">
+    
+    <h3 id="methods">
+        Methods
+    </h3>
+    <table class="table table-sm table-bordered">
+        <tbody>
+            <tr>
+                <td class="col-md-4">
+                    <a name="addAttachment"></a>
+                    <span class="name">
+                            <span class="modifier"></span>
+                            <span class="modifier"></span>
+                            <span class="modifier"></span>
+                            <span class="modifier"></span>
+                            <span class="modifier"></span>
+                            <span class="modifier"></span>
+                            <span class="modifier"></span>
+                            <span class="modifier"></span>
+                            <span class="modifier">Async</span>
+                        <span ><b>addAttachment</b></span>
+                        <a href="#addAttachment"><span class="icon ion-ios-link"></span></a>
+                    </span>
+                </td>
+            </tr>
+            <tr>
+                <td class="col-md-4">
+                        <span class="modifier-icon icon ion-ios-reset"></span>
+                    <code>addAttachment(id: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/string" target="_blank">string</a>, file: <a href="https://www.typescriptlang.org/docs/handbook/basic-types.html" target="_blank">any</a>, addAttachmentDto: <a href="../classes/AddAttachmentDto.html" target="_self">AddAttachmentDto</a>)</code>
+                </td>
+            </tr>
+
+            <tr>
+                <td class="col-md-4">
+                    <b>Decorators : </b>
+                    <br />
+                    <code>@Post(&#x27;:id/anlage&#x27;)<br />@ApiOperation({summary: &#x27;Fügt eine Anlage zu einem ETB-Eintrag hinzu&#x27;})<br />@ApiConsumes(&#x27;multipart/form-data&#x27;)<br />@ApiBody({description: &#x27;Datei und optionale Beschreibung&#x27;, type: AddAttachmentDto})<br />@ApiResponse({status: 201, description: &#x27;Anlage hinzugefügt&#x27;, type: EtbAttachmentResponse})<br />@ApiResponse({status: 400, description: &#x27;Ungültige Eingabedaten oder Eintrag bereits abgeschlossen&#x27;})<br />@ApiResponse({status: 404, description: &#x27;ETB-Eintrag nicht gefunden&#x27;})<br />@UseInterceptors(undefined)<br /></code>
+                </td>
+            </tr>
+
+                    <tr>
+                        <td class="col-md-4">
+                            <div class="io-line">Defined in <a href="" data-line="301"
+                                    class="link-to-prism">src/modules/etb/etb.controller.ts:301</a></div>
+                        </td>
+                    </tr>
+
+
+            <tr>
+                <td class="col-md-4">
+                        <div class="io-description"><p>Fügt eine Anlage zu einem ETB-Eintrag hinzu</p>
+</div>
+
+                            <div class="io-description">
+                                <b>Parameters :</b>
+                                
+                                <table class="params">
+                                    <thead>
+                                        <tr>
+                                            <td>Name</td>
+                                                <td>Type</td>
+                                            <td>Optional</td>
+                                                <td>Description</td>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                                <td>id</td>
+                                            <td>
+                                                            <code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/string" target="_blank" >string</a></code>
+                                            </td>
+
+                                            <td>
+                                                    No
+                                            </td>
+
+
+                                            <td>
+                                                    <p>ID des ETB-Eintrags</p>
+
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                                <td>file</td>
+                                            <td>
+                                                            <code><a href="https://www.typescriptlang.org/docs/handbook/basic-types.html" target="_blank" >any</a></code>
+                                            </td>
+
+                                            <td>
+                                                    No
+                                            </td>
+
+
+                                            <td>
+                                                    <p>Die hochgeladene Datei</p>
+
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                                <td>addAttachmentDto</td>
+                                            <td>
+                                                            <code><a href="../classes/AddAttachmentDto.html" target="_self" >AddAttachmentDto</a></code>
+                                            </td>
+
+                                            <td>
+                                                    No
+                                            </td>
+
+
+                                            <td>
+                                                    <p>DTO mit Informationen zur Anlage</p>
+
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        <div class="io-description">
+                            <b>Returns : </b>    <code>Promise&lt;EtbAttachment&gt;</code>
+
+                        </div>
+                            <div class="io-description">
+                                <p>Die erstellte ETB-Anlage</p>
+
+                            </div>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+    <table class="table table-sm table-bordered">
+        <tbody>
+            <tr>
+                <td class="col-md-4">
+                    <a name="closeEntry"></a>
+                    <span class="name">
+                            <span class="modifier"></span>
+                            <span class="modifier"></span>
+                            <span class="modifier"></span>
+                            <span class="modifier"></span>
+                            <span class="modifier"></span>
+                            <span class="modifier"></span>
+                            <span class="modifier">Async</span>
+                        <span ><b>closeEntry</b></span>
+                        <a href="#closeEntry"><span class="icon ion-ios-link"></span></a>
+                    </span>
+                </td>
+            </tr>
+            <tr>
+                <td class="col-md-4">
+                        <span class="modifier-icon icon ion-ios-reset"></span>
+                    <code>closeEntry(id: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/string" target="_blank">string</a>, req: <a href="../interfaces/RequestWithUser.html" target="_self">RequestWithUser</a>)</code>
+                </td>
+            </tr>
+
+            <tr>
+                <td class="col-md-4">
+                    <b>Decorators : </b>
+                    <br />
+                    <code>@Patch(&#x27;:id/close&#x27;)<br />@ApiOperation({summary: &#x27;Schließt einen ETB-Eintrag ab&#x27;})<br />@ApiParam({name: &#x27;id&#x27;, description: &#x27;ID des abzuschließenden ETB-Eintrags&#x27;})<br />@ApiResponse({status: 200, description: &#x27;Der ETB-Eintrag wurde abgeschlossen&#x27;, type: EtbEntry})<br />@ApiResponse({status: 400, description: &#x27;Eintrag ist bereits abgeschlossen&#x27;})<br />@ApiResponse({status: 404, description: &#x27;ETB-Eintrag wurde nicht gefunden&#x27;})<br /></code>
+                </td>
+            </tr>
+
+                    <tr>
+                        <td class="col-md-4">
+                            <div class="io-line">Defined in <a href="" data-line="260"
+                                    class="link-to-prism">src/modules/etb/etb.controller.ts:260</a></div>
+                        </td>
+                    </tr>
+
+
+            <tr>
+                <td class="col-md-4">
+                        <div class="io-description"><p>Schließt einen ETB-Eintrag ab</p>
+</div>
+
+                            <div class="io-description">
+                                <b>Parameters :</b>
+                                
+                                <table class="params">
+                                    <thead>
+                                        <tr>
+                                            <td>Name</td>
+                                                <td>Type</td>
+                                            <td>Optional</td>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                                <td>id</td>
+                                            <td>
+                                                            <code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/string" target="_blank" >string</a></code>
+                                            </td>
+
+                                            <td>
+                                                    No
+                                            </td>
+
+
+                                        </tr>
+                                        <tr>
+                                                <td>req</td>
+                                            <td>
+                                                            <code><a href="../interfaces/RequestWithUser.html" target="_self" >RequestWithUser</a></code>
+                                            </td>
+
+                                            <td>
+                                                    No
+                                            </td>
+
+
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        <div class="io-description">
+                            <b>Returns : </b>        <code><a href="../classes/EtbEntry.html" target="_self" >Promise&lt;EtbEntry&gt;</a></code>
+
+                        </div>
+                            <div class="io-description">
+                                
+                            </div>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+    <table class="table table-sm table-bordered">
+        <tbody>
+            <tr>
+                <td class="col-md-4">
+                    <a name="create"></a>
+                    <span class="name">
+                            <span class="modifier"></span>
+                            <span class="modifier"></span>
+                            <span class="modifier"></span>
+                            <span class="modifier">Async</span>
+                        <span ><b>create</b></span>
+                        <a href="#create"><span class="icon ion-ios-link"></span></a>
+                    </span>
+                </td>
+            </tr>
+            <tr>
+                <td class="col-md-4">
+                        <span class="modifier-icon icon ion-ios-reset"></span>
+                    <code>create(createEtbDto: <a href="../classes/CreateEtbDto.html" target="_self">CreateEtbDto</a>, req: <a href="../interfaces/RequestWithUser.html" target="_self">RequestWithUser</a>)</code>
+                </td>
+            </tr>
+
+            <tr>
+                <td class="col-md-4">
+                    <b>Decorators : </b>
+                    <br />
+                    <code>@Post()<br />@ApiOperation({summary: &#x27;Erstellt einen neuen ETB-Eintrag&#x27;})<br />@ApiResponse({status: 201, description: &#x27;Der ETB-Eintrag wurde erstellt&#x27;, type: EtbEntry})<br /></code>
+                </td>
+            </tr>
+
+                    <tr>
+                        <td class="col-md-4">
+                            <div class="io-line">Defined in <a href="" data-line="115"
+                                    class="link-to-prism">src/modules/etb/etb.controller.ts:115</a></div>
+                        </td>
+                    </tr>
+
+
+            <tr>
+                <td class="col-md-4">
+                        <div class="io-description"><p>Erstellt einen neuen ETB-Eintrag</p>
+</div>
+
+                            <div class="io-description">
+                                <b>Parameters :</b>
+                                
+                                <table class="params">
+                                    <thead>
+                                        <tr>
+                                            <td>Name</td>
+                                                <td>Type</td>
+                                            <td>Optional</td>
+                                                <td>Description</td>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                                <td>createEtbDto</td>
+                                            <td>
+                                                            <code><a href="../classes/CreateEtbDto.html" target="_self" >CreateEtbDto</a></code>
+                                            </td>
+
+                                            <td>
+                                                    No
+                                            </td>
+
+
+                                            <td>
+                                                    <p>DTO mit den Daten für den neuen ETB-Eintrag</p>
+
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                                <td>req</td>
+                                            <td>
+                                                            <code><a href="../interfaces/RequestWithUser.html" target="_self" >RequestWithUser</a></code>
+                                            </td>
+
+                                            <td>
+                                                    No
+                                            </td>
+
+
+                                            <td>
+                                                    <p>Request-Objekt mit authentifizierten Benutzerinformationen</p>
+
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        <div class="io-description">
+                            <b>Returns : </b>        <code><a href="../classes/EtbEntry.html" target="_self" >Promise&lt;EtbEntry&gt;</a></code>
+
+                        </div>
+                            <div class="io-description">
+                                <p>Der erstellte ETB-Eintrag als Entity-Objekt</p>
+
+                            </div>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+    <table class="table table-sm table-bordered">
+        <tbody>
+            <tr>
+                <td class="col-md-4">
+                    <a name="findAll"></a>
+                    <span class="name">
+                            <span class="modifier"></span>
+                            <span class="modifier"></span>
+                            <span class="modifier"></span>
+                            <span class="modifier"></span>
+                            <span class="modifier"></span>
+                            <span class="modifier"></span>
+                            <span class="modifier"></span>
+                            <span class="modifier"></span>
+                            <span class="modifier"></span>
+                            <span class="modifier"></span>
+                            <span class="modifier"></span>
+                            <span class="modifier"></span>
+                            <span class="modifier"></span>
+                            <span class="modifier">Async</span>
+                        <span ><b>findAll</b></span>
+                        <a href="#findAll"><span class="icon ion-ios-link"></span></a>
+                    </span>
+                </td>
+            </tr>
+            <tr>
+                <td class="col-md-4">
+                        <span class="modifier-icon icon ion-ios-reset"></span>
+                    <code>findAll(filterDto: <a href="../classes/FilterEtbDto.html" target="_self">FilterEtbDto</a>)</code>
+                </td>
+            </tr>
+
+            <tr>
+                <td class="col-md-4">
+                    <b>Decorators : </b>
+                    <br />
+                    <code>@Get()<br />@ApiOperation({summary: &#x27;Findet alle ETB-Einträge mit optionaler Filterung&#x27;})<br />@ApiOkResponse({description: &#x27;Liste von ETB-Einträgen&#x27;, type: EtbEntriesResponse})<br />@ApiResponse({status: 400, description: &#x27;Ungültige Filterparameter&#x27;})<br />@ApiResponse({status: 401, description: &#x27;Nicht autorisiert&#x27;})<br />@ApiResponse({status: 403, description: &#x27;Keine Berechtigung&#x27;})<br />@ApiResponse({status: 500, description: &#x27;Interner Serverfehler&#x27;})<br />@ApiResponse({status: 200, description: &#x27;Gefilterte Liste von ETB-Einträgen&#x27;, type: EtbEntriesResponse})<br />@ApiResponse({status: 200, description: &#x27;Filter: kategorie&#x27;, schema: undefined})<br />@ApiResponse({status: 200, description: &#x27;Filter: autorId&#x27;, schema: undefined})<br />@ApiResponse({status: 200, description: &#x27;Filter: vonZeitstempel&#x27;, schema: undefined})<br />@ApiResponse({status: 200, description: &#x27;Filter: bisZeitstempel&#x27;, schema: undefined})<br />@ApiResponse({status: 200, description: &#x27;Filter: search&#x27;, schema: undefined})<br /></code>
+                </td>
+            </tr>
+
+                    <tr>
+                        <td class="col-md-4">
+                            <div class="io-line">Defined in <a href="" data-line="167"
+                                    class="link-to-prism">src/modules/etb/etb.controller.ts:167</a></div>
+                        </td>
+                    </tr>
+
+
+            <tr>
+                <td class="col-md-4">
+                        <div class="io-description"><p>Findet alle ETB-Einträge mit optionaler Filterung</p>
+</div>
+
+                            <div class="io-description">
+                                <b>Parameters :</b>
+                                
+                                <table class="params">
+                                    <thead>
+                                        <tr>
+                                            <td>Name</td>
+                                                <td>Type</td>
+                                            <td>Optional</td>
+                                                <td>Description</td>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                                <td>filterDto</td>
+                                            <td>
+                                                            <code><a href="../classes/FilterEtbDto.html" target="_self" >FilterEtbDto</a></code>
+                                            </td>
+
+                                            <td>
+                                                    No
+                                            </td>
+
+
+                                            <td>
+                                                    <p>Filter für die Abfrage</p>
+
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        <div class="io-description">
+                            <b>Returns : </b>    <code>Promise&lt;PaginatedResponse&lt;EtbEntryDto&gt;&gt;</code>
+
+                        </div>
+                            <div class="io-description">
+                                <p>Eine paginierte Liste von ETB-Einträgen</p>
+
+                            </div>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+    <table class="table table-sm table-bordered">
+        <tbody>
+            <tr>
+                <td class="col-md-4">
+                    <a name="findAttachment"></a>
+                    <span class="name">
+                            <span class="modifier"></span>
+                            <span class="modifier"></span>
+                            <span class="modifier"></span>
+                            <span class="modifier"></span>
+                            <span class="modifier">Async</span>
+                        <span ><b>findAttachment</b></span>
+                        <a href="#findAttachment"><span class="icon ion-ios-link"></span></a>
+                    </span>
+                </td>
+            </tr>
+            <tr>
+                <td class="col-md-4">
+                        <span class="modifier-icon icon ion-ios-reset"></span>
+                    <code>findAttachment(id: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/string" target="_blank">string</a>)</code>
+                </td>
+            </tr>
+
+            <tr>
+                <td class="col-md-4">
+                    <b>Decorators : </b>
+                    <br />
+                    <code>@Get(&#x27;anlage/:id&#x27;)<br />@ApiOperation({summary: &#x27;Findet eine Anlage anhand ihrer ID&#x27;})<br />@ApiOkResponse({description: &#x27;Anlage gefunden&#x27;, type: EtbAttachmentResponse})<br />@ApiResponse({status: 404, description: &#x27;Anlage nicht gefunden&#x27;})<br /></code>
+                </td>
+            </tr>
+
+                    <tr>
+                        <td class="col-md-4">
+                            <div class="io-line">Defined in <a href="" data-line="351"
+                                    class="link-to-prism">src/modules/etb/etb.controller.ts:351</a></div>
+                        </td>
+                    </tr>
+
+
+            <tr>
+                <td class="col-md-4">
+                        <div class="io-description"><p>Findet eine Anlage anhand ihrer ID</p>
+</div>
+
+                            <div class="io-description">
+                                <b>Parameters :</b>
+                                
+                                <table class="params">
+                                    <thead>
+                                        <tr>
+                                            <td>Name</td>
+                                                <td>Type</td>
+                                            <td>Optional</td>
+                                                <td>Description</td>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                                <td>id</td>
+                                            <td>
+                                                            <code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/string" target="_blank" >string</a></code>
+                                            </td>
+
+                                            <td>
+                                                    No
+                                            </td>
+
+
+                                            <td>
+                                                    <p>ID der zu findenden Anlage</p>
+
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        <div class="io-description">
+                            <b>Returns : </b>    <code>Promise&lt;EtbAttachment&gt;</code>
+
+                        </div>
+                            <div class="io-description">
+                                <p>Die gefundene ETB-Anlage</p>
+
+                            </div>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+    <table class="table table-sm table-bordered">
+        <tbody>
+            <tr>
+                <td class="col-md-4">
+                    <a name="findAttachments"></a>
+                    <span class="name">
+                            <span class="modifier"></span>
+                            <span class="modifier"></span>
+                            <span class="modifier"></span>
+                            <span class="modifier"></span>
+                            <span class="modifier">Async</span>
+                        <span ><b>findAttachments</b></span>
+                        <a href="#findAttachments"><span class="icon ion-ios-link"></span></a>
+                    </span>
+                </td>
+            </tr>
+            <tr>
+                <td class="col-md-4">
+                        <span class="modifier-icon icon ion-ios-reset"></span>
+                    <code>findAttachments(id: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/string" target="_blank">string</a>)</code>
+                </td>
+            </tr>
+
+            <tr>
+                <td class="col-md-4">
+                    <b>Decorators : </b>
+                    <br />
+                    <code>@Get(&#x27;:id/anlagen&#x27;)<br />@ApiOperation({summary: &#x27;Findet alle Anlagen zu einem ETB-Eintrag&#x27;})<br />@ApiOkResponse({description: &#x27;Liste von Anlagen&#x27;, type: EtbAttachmentsResponse})<br />@ApiResponse({status: 404, description: &#x27;ETB-Eintrag nicht gefunden&#x27;})<br /></code>
+                </td>
+            </tr>
+
+                    <tr>
+                        <td class="col-md-4">
+                            <div class="io-line">Defined in <a href="" data-line="329"
+                                    class="link-to-prism">src/modules/etb/etb.controller.ts:329</a></div>
+                        </td>
+                    </tr>
+
+
+            <tr>
+                <td class="col-md-4">
+                        <div class="io-description"><p>Findet alle Anlagen zu einem ETB-Eintrag</p>
+</div>
+
+                            <div class="io-description">
+                                <b>Parameters :</b>
+                                
+                                <table class="params">
+                                    <thead>
+                                        <tr>
+                                            <td>Name</td>
+                                                <td>Type</td>
+                                            <td>Optional</td>
+                                                <td>Description</td>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                                <td>id</td>
+                                            <td>
+                                                            <code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/string" target="_blank" >string</a></code>
+                                            </td>
+
+                                            <td>
+                                                    No
+                                            </td>
+
+
+                                            <td>
+                                                    <p>ID des ETB-Eintrags</p>
+
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        <div class="io-description">
+                            <b>Returns : </b>    <code>Promise&lt;EtbAttachment[]&gt;</code>
+
+                        </div>
+                            <div class="io-description">
+                                <p>Eine Liste von ETB-Anlagen</p>
+
+                            </div>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+    <table class="table table-sm table-bordered">
+        <tbody>
+            <tr>
+                <td class="col-md-4">
+                    <a name="findOne"></a>
+                    <span class="name">
+                            <span class="modifier"></span>
+                            <span class="modifier"></span>
+                            <span class="modifier"></span>
+                            <span class="modifier"></span>
+                            <span class="modifier"></span>
+                            <span class="modifier">Async</span>
+                        <span ><b>findOne</b></span>
+                        <a href="#findOne"><span class="icon ion-ios-link"></span></a>
+                    </span>
+                </td>
+            </tr>
+            <tr>
+                <td class="col-md-4">
+                        <span class="modifier-icon icon ion-ios-reset"></span>
+                    <code>findOne(id: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/string" target="_blank">string</a>)</code>
+                </td>
+            </tr>
+
+            <tr>
+                <td class="col-md-4">
+                    <b>Decorators : </b>
+                    <br />
+                    <code>@Get(&#x27;:id&#x27;)<br />@ApiOperation({summary: &#x27;Findet einen ETB-Eintrag anhand seiner ID&#x27;})<br />@ApiParam({name: &#x27;id&#x27;, description: &#x27;ID des ETB-Eintrags&#x27;})<br />@ApiResponse({status: 200, description: &#x27;Der ETB-Eintrag wurde gefunden&#x27;, type: EtbEntry})<br />@ApiResponse({status: 404, description: &#x27;ETB-Eintrag wurde nicht gefunden&#x27;})<br /></code>
+                </td>
+            </tr>
+
+                    <tr>
+                        <td class="col-md-4">
+                            <div class="io-line">Defined in <a href="" data-line="197"
+                                    class="link-to-prism">src/modules/etb/etb.controller.ts:197</a></div>
+                        </td>
+                    </tr>
+
+
+            <tr>
+                <td class="col-md-4">
+                        <div class="io-description"><p>Findet einen ETB-Eintrag anhand seiner ID</p>
+</div>
+
+                            <div class="io-description">
+                                <b>Parameters :</b>
+                                
+                                <table class="params">
+                                    <thead>
+                                        <tr>
+                                            <td>Name</td>
+                                                <td>Type</td>
+                                            <td>Optional</td>
+                                                <td>Description</td>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                                <td>id</td>
+                                            <td>
+                                                            <code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/string" target="_blank" >string</a></code>
+                                            </td>
+
+                                            <td>
+                                                    No
+                                            </td>
+
+
+                                            <td>
+                                                    <p>Eindeutige ID des ETB-Eintrags</p>
+
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        <div class="io-description">
+                            <b>Returns : </b>        <code><a href="../classes/EtbEntry.html" target="_self" >Promise&lt;EtbEntry&gt;</a></code>
+
+                        </div>
+                            <div class="io-description">
+                                <p>Der gefundene ETB-Eintrag als Entity-Objekt</p>
+
+                            </div>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+    <table class="table table-sm table-bordered">
+        <tbody>
+            <tr>
+                <td class="col-md-4">
+                    <a name="ueberschreibeEintrag"></a>
+                    <span class="name">
+                            <span class="modifier"></span>
+                            <span class="modifier"></span>
+                            <span class="modifier"></span>
+                            <span class="modifier"></span>
+                            <span class="modifier"></span>
+                            <span class="modifier">Async</span>
+                        <span ><b>ueberschreibeEintrag</b></span>
+                        <a href="#ueberschreibeEintrag"><span class="icon ion-ios-link"></span></a>
+                    </span>
+                </td>
+            </tr>
+            <tr>
+                <td class="col-md-4">
+                        <span class="modifier-icon icon ion-ios-reset"></span>
+                    <code>ueberschreibeEintrag(id: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/string" target="_blank">string</a>, ueberschreibeEtbDto: <a href="../classes/UeberschreibeEtbDto.html" target="_self">UeberschreibeEtbDto</a>, req: <a href="../interfaces/RequestWithUser.html" target="_self">RequestWithUser</a>)</code>
+                </td>
+            </tr>
+
+            <tr>
+                <td class="col-md-4">
+                    <b>Decorators : </b>
+                    <br />
+                    <code>@Post(&#x27;:id/ueberschreiben&#x27;)<br />@ApiOperation({summary: &#x27;Überschreibt einen ETB-Eintrag mit einer neuen Version&#x27;})<br />@ApiParam({name: &#x27;id&#x27;, description: &#x27;ID des zu überschreibenden ETB-Eintrags&#x27;})<br />@ApiResponse({status: 201, description: &#x27;Der ETB-Eintrag wurde überschrieben&#x27;, type: EtbEntry})<br />@ApiResponse({status: 404, description: &#x27;ETB-Eintrag wurde nicht gefunden&#x27;})<br /></code>
+                </td>
+            </tr>
+
+                    <tr>
+                        <td class="col-md-4">
+                            <div class="io-line">Defined in <a href="" data-line="376"
+                                    class="link-to-prism">src/modules/etb/etb.controller.ts:376</a></div>
+                        </td>
+                    </tr>
+
+
+            <tr>
+                <td class="col-md-4">
+                        <div class="io-description"><p>Überschreibt einen ETB-Eintrag mit einer neuen Version</p>
+</div>
+
+                            <div class="io-description">
+                                <b>Parameters :</b>
+                                
+                                <table class="params">
+                                    <thead>
+                                        <tr>
+                                            <td>Name</td>
+                                                <td>Type</td>
+                                            <td>Optional</td>
+                                                <td>Description</td>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                                <td>id</td>
+                                            <td>
+                                                            <code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/string" target="_blank" >string</a></code>
+                                            </td>
+
+                                            <td>
+                                                    No
+                                            </td>
+
+
+                                            <td>
+                                                    <p>Eindeutige ID des zu überschreibenden ETB-Eintrags</p>
+
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                                <td>ueberschreibeEtbDto</td>
+                                            <td>
+                                                            <code><a href="../classes/UeberschreibeEtbDto.html" target="_self" >UeberschreibeEtbDto</a></code>
+                                            </td>
+
+                                            <td>
+                                                    No
+                                            </td>
+
+
+                                            <td>
+                                                    <p>DTO mit den Daten für den neuen überschreibenden Eintrag</p>
+
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                                <td>req</td>
+                                            <td>
+                                                            <code><a href="../interfaces/RequestWithUser.html" target="_self" >RequestWithUser</a></code>
+                                            </td>
+
+                                            <td>
+                                                    No
+                                            </td>
+
+
+                                            <td>
+                                                    <p>Request-Objekt mit authentifizierten Benutzerinformationen</p>
+
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        <div class="io-description">
+                            <b>Returns : </b>        <code><a href="../classes/EtbEntry.html" target="_self" >Promise&lt;EtbEntry&gt;</a></code>
+
+                        </div>
+                            <div class="io-description">
+                                <p>Der neu erstellte überschreibende ETB-Eintrag als Entity-Objekt</p>
+
+                            </div>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+    <table class="table table-sm table-bordered">
+        <tbody>
+            <tr>
+                <td class="col-md-4">
+                    <a name="update"></a>
+                    <span class="name">
+                            <span class="modifier"></span>
+                            <span class="modifier"></span>
+                            <span class="modifier"></span>
+                            <span class="modifier"></span>
+                            <span class="modifier"></span>
+                            <span class="modifier"></span>
+                            <span class="modifier">Async</span>
+                        <span ><b>update</b></span>
+                        <a href="#update"><span class="icon ion-ios-link"></span></a>
+                    </span>
+                </td>
+            </tr>
+            <tr>
+                <td class="col-md-4">
+                        <span class="modifier-icon icon ion-ios-reset"></span>
+                    <code>update(id: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/string" target="_blank">string</a>, updateEtbDto: <a href="../classes/UpdateEtbDto.html" target="_self">UpdateEtbDto</a>)</code>
+                </td>
+            </tr>
+
+            <tr>
+                <td class="col-md-4">
+                    <b>Decorators : </b>
+                    <br />
+                    <code>@Put(&#x27;:id&#x27;)<br />@ApiOperation({summary: &#x27;Aktualisiert einen ETB-Eintrag&#x27;})<br />@ApiParam({name: &#x27;id&#x27;, description: &#x27;ID des zu aktualisierenden ETB-Eintrags&#x27;})<br />@ApiResponse({status: 200, description: &#x27;Der ETB-Eintrag wurde aktualisiert&#x27;, type: EtbEntry})<br />@ApiResponse({status: 400, description: &#x27;Ungültige Eingabedaten oder Eintrag bereits abgeschlossen&#x27;})<br />@ApiResponse({status: 404, description: &#x27;ETB-Eintrag wurde nicht gefunden&#x27;})<br /></code>
+                </td>
+            </tr>
+
+                    <tr>
+                        <td class="col-md-4">
+                            <div class="io-line">Defined in <a href="" data-line="233"
+                                    class="link-to-prism">src/modules/etb/etb.controller.ts:233</a></div>
+                        </td>
+                    </tr>
+
+
+            <tr>
+                <td class="col-md-4">
+                        <div class="io-description"><p>Aktualisiert einen ETB-Eintrag</p>
+</div>
+
+                            <div class="io-description">
+                                <b>Parameters :</b>
+                                
+                                <table class="params">
+                                    <thead>
+                                        <tr>
+                                            <td>Name</td>
+                                                <td>Type</td>
+                                            <td>Optional</td>
+                                                <td>Description</td>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                                <td>id</td>
+                                            <td>
+                                                            <code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/string" target="_blank" >string</a></code>
+                                            </td>
+
+                                            <td>
+                                                    No
+                                            </td>
+
+
+                                            <td>
+                                                    <p>Eindeutige ID des zu aktualisierenden ETB-Eintrags</p>
+
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                                <td>updateEtbDto</td>
+                                            <td>
+                                                            <code><a href="../classes/UpdateEtbDto.html" target="_self" >UpdateEtbDto</a></code>
+                                            </td>
+
+                                            <td>
+                                                    No
+                                            </td>
+
+
+                                            <td>
+                                                    <p>DTO mit den zu aktualisierenden Daten</p>
+
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        <div class="io-description">
+                            <b>Returns : </b>        <code><a href="../classes/EtbEntry.html" target="_self" >Promise&lt;EtbEntry&gt;</a></code>
+
+                        </div>
+                            <div class="io-description">
+                                <p>Der aktualisierte ETB-Eintrag als Entity-Objekt</p>
+
+                            </div>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+</section>    </div>
+
+
+    <div class="tab-pane fade  tab-source-code" id="source">
+        <pre class="line-numbers compodoc-sourcecode"><code class="language-typescript">import { PaginatedResponse } from &#x27;@/common/interfaces/paginated-response.interface&#x27;;
+import { logger } from &#x27;@/logger/consola.logger&#x27;;
+import {
+  BadRequestException,
+  Body,
+  Controller,
+  Get,
+  Param,
+  Patch,
+  Post,
+  Put,
+  Query,
+  Req,
+  UploadedFile,
+  UseInterceptors,
+} from &#x27;@nestjs/common&#x27;;
+import { FileInterceptor } from &#x27;@nestjs/platform-express&#x27;;
+import {
+  ApiBearerAuth,
+  ApiBody,
+  ApiConsumes,
+  ApiOkResponse,
+  ApiOperation,
+  ApiParam,
+  ApiResponse,
+  ApiTags,
+} from &#x27;@nestjs/swagger&#x27;;
+import { plainToInstance } from &#x27;class-transformer&#x27;;
+import { AddAttachmentDto } from &#x27;./dto/add-attachment.dto&#x27;;
+import { CreateEtbDto } from &#x27;./dto/create-etb.dto&#x27;;
+import {
+  EtbAttachmentResponse,
+  EtbAttachmentsResponse,
+  EtbEntriesResponse,
+  EtbEntryDto,
+} from &#x27;./dto/etb-entry-response.dto&#x27;;
+import { FilterEtbDto } from &#x27;./dto/filter-etb.dto&#x27;;
+import { UeberschreibeEtbDto } from &#x27;./dto/ueberschreibe-etb.dto&#x27;;
+import { UpdateEtbDto } from &#x27;./dto/update-etb.dto&#x27;;
+import { EtbAttachment } from &#x27;./entities/etb-attachment.entity&#x27;;
+import { EtbEntry } from &#x27;./entities/etb-entry.entity&#x27;;
+import { EtbService } from &#x27;./etb.service&#x27;;
+
+/**
+ * Erweitert den Express Request um Benutzerinformationen.
+ * Wird für Authentifizierung und Autorisierung in den Controller-Methoden verwendet.
+ */
+interface RequestWithUser extends Request {
+  /**
+   * Benutzerinformationen aus dem JWT-Token oder einer anderen Authentifizierungsquelle.
+   * Enthält grundlegende Identifikations- und Rolleninformationen für Berechtigungsprüfungen.
+   * Kann null sein, wenn der Benutzer nicht authentifiziert ist.
+   */
+  user?: {
+    /**
+     * Eindeutige ID des Benutzers
+     */
+    id: string;
+
+    /**
+     * Anzeigename des Benutzers
+     */
+    name: string;
+
+    /**
+     * Rolle oder Position des Benutzers im System (z.B. &#x27;admin&#x27;, &#x27;einsatzleiter&#x27;)
+     */
+    role: string;
+  };
+}
+
+/**
+ * Controller für das Einsatztagebuch (ETB)
+ *
+ * Dieser Controller stellt die REST-API-Endpunkte für das elektronische
+ * Einsatztagebuch bereit. Er verwaltet ETB-Einträge, Anlagen und bietet
+ * Funktionen für das Überschreiben und Abschließen von Einträgen.
+ * Alle Endpunkte sind geschützt und erfordern Authentifizierung.
+ *
+ * Features:
+ * - CRUD-Operationen für ETB-Einträge
+ * - Verwaltung von Dateianhängen
+ * - Filterung und Paginierung
+ * - Überschreibungsmechanismus für Korrekturen
+ * - Abschluss-Funktionalität für unveränderliche Einträge
+ *
+ * @class EtbController
+ */
+@ApiTags(&#x27;Einsatztagebuch&#x27;)
+@ApiBearerAuth()
+@Controller(&#x27;einsatz/:einsatzId/etb&#x27;)
+export class EtbController {
+  /**
+   * Konstruktor für den EtbController
+   *
+   * @param etbService Service für ETB-Operationen
+   */
+  constructor(private readonly etbService: EtbService) {}
+
+  /**
+   * Erstellt einen neuen ETB-Eintrag
+   *
+   * @param createEtbDto DTO mit den Daten für den neuen ETB-Eintrag
+   * @param req Request-Objekt mit authentifizierten Benutzerinformationen
+   * @returns Der erstellte ETB-Eintrag als Entity-Objekt
+   * @throws BadRequestException Wenn die Eingabedaten ungültig sind
+   */
+  @Post()
+  @ApiOperation({ summary: &#x27;Erstellt einen neuen ETB-Eintrag&#x27; })
+  @ApiResponse({
+    status: 201,
+    description: &#x27;Der ETB-Eintrag wurde erstellt&#x27;,
+    type: EtbEntry,
+  })
+  async create(@Body() createEtbDto: CreateEtbDto, @Req() req: RequestWithUser): Promise&lt;EtbEntry&gt; {
+    logger.info(&#x60;ETB-Controller: POST /etb mit DTO ${JSON.stringify(createEtbDto)}&#x60;);
+    const userId &#x3D; req.user?.id || &#x27;mock-user-id&#x27;;
+    const userName &#x3D; req.user?.name || &#x27;Mock User&#x27;;
+    const userRole &#x3D; req.user?.role || &#x27;Einsatzleiter&#x27;;
+
+    const result &#x3D; await this.etbService.createEintrag(createEtbDto, userId, userName, userRole);
+
+    // Erweitere das Resultat mit leeren Arrays/Objekten, um den EtbEntry-Typ zu erfüllen
+
+    return {
+      ...result,
+      ueberschriebenDurch: null,
+      ueberschriebeneEintraege: [],
+      anlagen: [],
+    } as EtbEntry;
+  }
+
+  /**
+   * Findet alle ETB-Einträge mit optionaler Filterung
+   *
+   * @param filterDto Filter für die Abfrage
+   * @returns Eine paginierte Liste von ETB-Einträgen
+   */
+  @Get()
+  @ApiOperation({ summary: &#x27;Findet alle ETB-Einträge mit optionaler Filterung&#x27; })
+  @ApiOkResponse({
+    description: &#x27;Liste von ETB-Einträgen&#x27;,
+    type: EtbEntriesResponse,
+  })
+  @ApiResponse({ status: 400, description: &#x27;Ungültige Filterparameter&#x27; })
+  @ApiResponse({ status: 401, description: &#x27;Nicht autorisiert&#x27; })
+  @ApiResponse({ status: 403, description: &#x27;Keine Berechtigung&#x27; })
+  @ApiResponse({ status: 500, description: &#x27;Interner Serverfehler&#x27; })
+  @ApiResponse({
+    status: 200,
+    description: &#x27;Gefilterte Liste von ETB-Einträgen&#x27;,
+    type: EtbEntriesResponse,
+  })
+  @ApiResponse({ status: 200, description: &#x27;Filter: kategorie&#x27;, schema: { type: &#x27;string&#x27; } })
+  @ApiResponse({ status: 200, description: &#x27;Filter: autorId&#x27;, schema: { type: &#x27;string&#x27; } })
+  @ApiResponse({
+    status: 200,
+    description: &#x27;Filter: vonZeitstempel&#x27;,
+    schema: { type: &#x27;string&#x27;, format: &#x27;date-time&#x27; },
+  })
+  @ApiResponse({
+    status: 200,
+    description: &#x27;Filter: bisZeitstempel&#x27;,
+    schema: { type: &#x27;string&#x27;, format: &#x27;date-time&#x27; },
+  })
+  @ApiResponse({ status: 200, description: &#x27;Filter: search&#x27;, schema: { type: &#x27;string&#x27; } })
+  async findAll(@Query() filterDto: FilterEtbDto): Promise&lt;PaginatedResponse&lt;EtbEntryDto&gt;&gt; {
+    logger.info(&#x60;HTTP GET /etb - Abruf von ETB-Einträgen mit Filtern&#x60;);
+    const paginatedResult &#x3D; await this.etbService.findAll(filterDto);
+
+    // Mapping von EtbEntry zu EtbEntryDto
+    const mappedEntries &#x3D; plainToInstance(EtbEntryDto, paginatedResult.items);
+
+    // Standard PaginatedResponse zurückgeben
+    return {
+      items: mappedEntries,
+      pagination: paginatedResult.pagination,
+    };
+  }
+
+  /**
+   * Findet einen ETB-Eintrag anhand seiner ID
+   *
+   * @param id Eindeutige ID des ETB-Eintrags
+   * @returns Der gefundene ETB-Eintrag als Entity-Objekt
+   * @throws NotFoundException Wenn der ETB-Eintrag mit der angegebenen ID nicht gefunden wurde
+   */
+  @Get(&#x27;:id&#x27;)
+  @ApiOperation({ summary: &#x27;Findet einen ETB-Eintrag anhand seiner ID&#x27; })
+  @ApiParam({ name: &#x27;id&#x27;, description: &#x27;ID des ETB-Eintrags&#x27; })
+  @ApiResponse({
+    status: 200,
+    description: &#x27;Der ETB-Eintrag wurde gefunden&#x27;,
+    type: EtbEntry,
+  })
+  @ApiResponse({ status: 404, description: &#x27;ETB-Eintrag wurde nicht gefunden&#x27; })
+  async findOne(@Param(&#x27;id&#x27;) id: string): Promise&lt;EtbEntry&gt; {
+    logger.info(&#x60;HTTP GET /etb/${id} - Finde ETB-Eintrag mit ID ${id}&#x60;);
+
+    const result &#x3D; await this.etbService.findOne(id);
+
+    // Erweitere das Resultat, falls nötig, um den EtbEntry-Typ zu erfüllen
+    return {
+      ...result,
+      ueberschriebenDurch: null,
+      ueberschriebeneEintraege: [],
+      anlagen: [],
+    } as EtbEntry;
+  }
+
+  /**
+   * Aktualisiert einen ETB-Eintrag
+   *
+   * @param id Eindeutige ID des zu aktualisierenden ETB-Eintrags
+   * @param updateEtbDto DTO mit den zu aktualisierenden Daten
+   * @returns Der aktualisierte ETB-Eintrag als Entity-Objekt
+   * @throws NotFoundException Wenn der ETB-Eintrag mit der angegebenen ID nicht gefunden wurde
+   * @throws BadRequestException Wenn der Eintrag bereits abgeschlossen ist oder die Eingabedaten ungültig sind
+   */
+  @Put(&#x27;:id&#x27;)
+  @ApiOperation({ summary: &#x27;Aktualisiert einen ETB-Eintrag&#x27; })
+  @ApiParam({ name: &#x27;id&#x27;, description: &#x27;ID des zu aktualisierenden ETB-Eintrags&#x27; })
+  @ApiResponse({
+    status: 200,
+    description: &#x27;Der ETB-Eintrag wurde aktualisiert&#x27;,
+    type: EtbEntry,
+  })
+  @ApiResponse({
+    status: 400,
+    description: &#x27;Ungültige Eingabedaten oder Eintrag bereits abgeschlossen&#x27;,
+  })
+  @ApiResponse({ status: 404, description: &#x27;ETB-Eintrag wurde nicht gefunden&#x27; })
+  async update(@Param(&#x27;id&#x27;) id: string, @Body() updateEtbDto: UpdateEtbDto): Promise&lt;EtbEntry&gt; {
+    logger.info(&#x60;HTTP PUT /etb/${id} - Aktualisiere ETB-Eintrag&#x60;);
+
+    const result &#x3D; await this.etbService.updateEintrag(id, updateEtbDto);
+
+    // Erweitere das Resultat, falls nötig, um den EtbEntry-Typ zu erfüllen
+    return {
+      ...result,
+      ueberschriebenDurch: null,
+      ueberschriebeneEintraege: [],
+      anlagen: [],
+    } as EtbEntry;
+  }
+
+  /**
+   * Schließt einen ETB-Eintrag ab
+   */
+  @Patch(&#x27;:id/close&#x27;)
+  @ApiOperation({ summary: &#x27;Schließt einen ETB-Eintrag ab&#x27; })
+  @ApiParam({ name: &#x27;id&#x27;, description: &#x27;ID des abzuschließenden ETB-Eintrags&#x27; })
+  @ApiResponse({
+    status: 200,
+    description: &#x27;Der ETB-Eintrag wurde abgeschlossen&#x27;,
+    type: EtbEntry,
+  })
+  @ApiResponse({ status: 400, description: &#x27;Eintrag ist bereits abgeschlossen&#x27; })
+  @ApiResponse({ status: 404, description: &#x27;ETB-Eintrag wurde nicht gefunden&#x27; })
+  async closeEntry(@Param(&#x27;id&#x27;) id: string, @Req() req: RequestWithUser): Promise&lt;EtbEntry&gt; {
+    logger.info(&#x60;HTTP PATCH /etb/${id}/close - Schließe ETB-Eintrag ab&#x60;);
+    const userId &#x3D; req.user?.id || &#x27;mock-user-id&#x27;;
+
+    const result &#x3D; await this.etbService.closeEintrag(id, userId);
+
+    // Erweitere das Resultat, falls nötig, um den EtbEntry-Typ zu erfüllen
+    return {
+      ...result,
+      ueberschriebenDurch: null,
+      ueberschriebeneEintraege: [],
+      anlagen: [],
+    } as EtbEntry;
+  }
+
+  /**
+   * Fügt eine Anlage zu einem ETB-Eintrag hinzu
+   *
+   * @param id ID des ETB-Eintrags
+   * @param file Die hochgeladene Datei
+   * @param addAttachmentDto DTO mit Informationen zur Anlage
+   * @returns Die erstellte ETB-Anlage
+   */
+  @Post(&#x27;:id/anlage&#x27;)
+  @ApiOperation({ summary: &#x27;Fügt eine Anlage zu einem ETB-Eintrag hinzu&#x27; })
+  @ApiConsumes(&#x27;multipart/form-data&#x27;)
+  @ApiBody({
+    description: &#x27;Datei und optionale Beschreibung&#x27;,
+    type: AddAttachmentDto,
+  })
+  @ApiResponse({
+    status: 201,
+    description: &#x27;Anlage hinzugefügt&#x27;,
+    type: EtbAttachmentResponse,
+  })
+  @ApiResponse({
+    status: 400,
+    description: &#x27;Ungültige Eingabedaten oder Eintrag bereits abgeschlossen&#x27;,
+  })
+  @ApiResponse({ status: 404, description: &#x27;ETB-Eintrag nicht gefunden&#x27; })
+  @UseInterceptors(FileInterceptor(&#x27;file&#x27;))
+  async addAttachment(
+    @Param(&#x27;id&#x27;) id: string,
+    @UploadedFile() file: any,
+    @Body() addAttachmentDto: AddAttachmentDto,
+  ): Promise&lt;EtbAttachment&gt; {
+    if (!file) {
+      logger.error(&#x60;Keine Datei gefunden beim Anlegen einer Anlage für ETB-Eintrag ${id}&#x60;);
+      throw new BadRequestException(&#x27;Keine Datei gefunden&#x27;);
+    }
+
+    logger.info(&#x60;HTTP POST /etb/${id}/anlage - Füge Anlage zu ETB-Eintrag hinzu&#x60;);
+    const created &#x3D; await this.etbService.addAttachment(id, file, addAttachmentDto);
+    return EtbAttachment.fromPrisma(created);
+  }
+
+  /**
+   * Findet alle Anlagen zu einem ETB-Eintrag
+   *
+   * @param id ID des ETB-Eintrags
+   * @returns Eine Liste von ETB-Anlagen
+   */
+  @Get(&#x27;:id/anlagen&#x27;)
+  @ApiOperation({ summary: &#x27;Findet alle Anlagen zu einem ETB-Eintrag&#x27; })
+  @ApiOkResponse({
+    description: &#x27;Liste von Anlagen&#x27;,
+    type: EtbAttachmentsResponse,
+  })
+  @ApiResponse({ status: 404, description: &#x27;ETB-Eintrag nicht gefunden&#x27; })
+  async findAttachments(@Param(&#x27;id&#x27;) id: string): Promise&lt;EtbAttachment[]&gt; {
+    // Prüfe, ob der ETB-Eintrag existiert
+    await this.etbService.findOne(id);
+
+    logger.info(&#x60;HTTP GET /etb/${id}/anlagen - Abruf aller Anlagen zu ETB-Eintrag&#x60;);
+    const anlagen &#x3D; await this.etbService.findAttachmentsByEtbEntryId(id);
+    return anlagen.map((anlage) &#x3D;&gt; EtbAttachment.fromPrisma(anlage));
+  }
+
+  /**
+   * Findet eine Anlage anhand ihrer ID
+   *
+   * @param id ID der zu findenden Anlage
+   * @returns Die gefundene ETB-Anlage
+   */
+  @Get(&#x27;anlage/:id&#x27;)
+  @ApiOperation({ summary: &#x27;Findet eine Anlage anhand ihrer ID&#x27; })
+  @ApiOkResponse({
+    description: &#x27;Anlage gefunden&#x27;,
+    type: EtbAttachmentResponse,
+  })
+  @ApiResponse({ status: 404, description: &#x27;Anlage nicht gefunden&#x27; })
+  async findAttachment(@Param(&#x27;id&#x27;) id: string): Promise&lt;EtbAttachment&gt; {
+    logger.info(&#x60;HTTP GET /etb/anlage/${id} - Abruf einer spezifischen Anlage&#x60;);
+    const anlage &#x3D; await this.etbService.findAttachmentById(id);
+    return EtbAttachment.fromPrisma(anlage);
+  }
+
+  /**
+   * Überschreibt einen ETB-Eintrag mit einer neuen Version
+   *
+   * @param id Eindeutige ID des zu überschreibenden ETB-Eintrags
+   * @param ueberschreibeEtbDto DTO mit den Daten für den neuen überschreibenden Eintrag
+   * @param req Request-Objekt mit authentifizierten Benutzerinformationen
+   * @returns Der neu erstellte überschreibende ETB-Eintrag als Entity-Objekt
+   * @throws NotFoundException Wenn der ETB-Eintrag mit der angegebenen ID nicht gefunden wurde
+   * @throws BadRequestException Wenn die Eingabedaten ungültig sind
+   */
+  @Post(&#x27;:id/ueberschreiben&#x27;)
+  @ApiOperation({ summary: &#x27;Überschreibt einen ETB-Eintrag mit einer neuen Version&#x27; })
+  @ApiParam({ name: &#x27;id&#x27;, description: &#x27;ID des zu überschreibenden ETB-Eintrags&#x27; })
+  @ApiResponse({
+    status: 201,
+    description: &#x27;Der ETB-Eintrag wurde überschrieben&#x27;,
+    type: EtbEntry,
+  })
+  @ApiResponse({ status: 404, description: &#x27;ETB-Eintrag wurde nicht gefunden&#x27; })
+  async ueberschreibeEintrag(
+    @Param(&#x27;id&#x27;) id: string,
+    @Body() ueberschreibeEtbDto: UeberschreibeEtbDto,
+    @Req() req: RequestWithUser,
+  ): Promise&lt;EtbEntry&gt; {
+    logger.info(&#x60;HTTP POST /etb/${id}/ueberschreiben - Überschreibe ETB-Eintrag&#x60;);
+    const userId &#x3D; req.user?.id || &#x27;mock-user-id&#x27;;
+    const userName &#x3D; req.user?.name || &#x27;Mock User&#x27;;
+    const userRole &#x3D; req.user?.role || &#x27;Einsatzleiter&#x27;;
+
+    const result &#x3D; await this.etbService.ueberschreibeEintrag(
+      id,
+      ueberschreibeEtbDto,
+      userId,
+      userName,
+      userRole,
+    );
+
+    // Erweitere das Resultat, falls nötig, um den EtbEntry-Typ zu erfüllen
+    return {
+      ...result,
+      ueberschriebenDurch: null,
+      ueberschriebeneEintraege: [],
+      anlagen: [],
+    } as EtbEntry;
+  }
+}
+</code></pre>
+    </div>
+</div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+                   </div><div class="search-results">
+    <div class="has-results">
+        <h1 class="search-results-title"><span class='search-results-count'></span> results matching "<span class='search-query'></span>"</h1>
+        <ul class="search-results-list"></ul>
+    </div>
+    <div class="no-results">
+        <h1 class="search-results-title">No results matching "<span class='search-query'></span>"</h1>
+    </div>
+</div>
+</div>
+               <!-- END CONTENT -->
+           </div>
+       </div>
+
+          <label class="dark-mode-switch">
+               <input type="checkbox">
+               <span class="slider">
+                    <svg class="slider-icon" viewBox="0 0 24 24" fill="none" height="20" stroke="#000" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" width="20" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"></path>
+                    </svg>
+               </span>
+          </label>
+
+       <script>
+            var COMPODOC_CURRENT_PAGE_DEPTH = 1;
+            var COMPODOC_CURRENT_PAGE_CONTEXT = 'controller';
+            var COMPODOC_CURRENT_PAGE_URL = 'EtbController.html';
+            var MAX_SEARCH_RESULTS = 15;
+       </script>
+
+       <script>
+               $darkModeToggleSwitchers = document.querySelectorAll('.dark-mode-switch input');
+               checkToggle(darkModeState);
+               if ($darkModeToggleSwitchers.length > 0) {
+                    for (var i = 0; i < $darkModeToggleSwitchers.length; i++) {
+                         $darkModeToggleSwitchers[i].addEventListener('change', function (event) {
+                              darkModeState = !darkModeState;
+                              toggleDarkMode(darkModeState);
+                         });
+                    }
+               }
+          </script>
+
+       <script src="../js/libs/custom-elements.min.js"></script>
+       <script src="../js/libs/lit-html.js"></script>
+
+       <script src="../js/menu-wc.js" defer></script>
+       <script nomodule src="../js/menu-wc_es5.js" defer></script>
+
+       <script src="../js/libs/bootstrap-native.js"></script>
+
+       <script src="../js/libs/es6-shim.min.js"></script>
+       <script src="../js/libs/EventDispatcher.js"></script>
+       <script src="../js/libs/promise.min.js"></script>
+
+       <script src="../js/compodoc.js"></script>
+
+       <script src="../js/tabs.js"></script>
+       <script src="../js/menu.js"></script>
+       <script src="../js/libs/clipboard.min.js"></script>
+       <script src="../js/libs/prism.js"></script>
+       <script src="../js/sourceCode.js"></script>
+          <script src="../js/search/search.js"></script>
+          <script src="../js/search/lunr.min.js"></script>
+          <script src="../js/search/search-lunr.js"></script>
+          <script src="../js/search/search_index.js"></script>
+       <script src="../js/lazy-load-graphs.js"></script>
+
+
+    </body>
+</html>
