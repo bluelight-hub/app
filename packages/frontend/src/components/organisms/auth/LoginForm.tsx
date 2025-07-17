@@ -3,7 +3,7 @@ import React, { useEffect, useState } from 'react';
 import { PiCloudSlash, PiEnvelope, PiLock, PiLockKey, PiWarning } from 'react-icons/pi';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../../hooks/useAuth';
-import { useBackendHealth } from '@/hooks/useBackendHealth.ts';
+import { useBackendHealth } from '@/hooks/useBackendHealth';
 
 interface LoginFormValues {
   email: string;
