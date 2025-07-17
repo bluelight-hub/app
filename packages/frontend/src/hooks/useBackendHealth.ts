@@ -1,113 +1,90 @@
-import { HealthControllerCheck200Response } from '@bluelight-hub/shared/client';
-import { useQuery } from '@tanstack/react-query';
-import { useCallback } from 'react';
+import { useState, useEffect } from 'react';
 import { api } from '../api';
 import { logger } from '../utils/logger';
 
-/**
- * Mögliche Verbindungszustände basierend auf ADR-001
- */
 export type ConnectionStatus = 'checking' | 'online' | 'offline' | 'error';
 
+interface BackendHealthState {
+  isHealthy: boolean;
+  isLoading: boolean;
+  error?: string;
+  lastChecked?: Date;
+}
+
 /**
- * Hook zur Überwachung des Backend-Gesundheitsstatus
+ * Hook zur Überwachung der Backend-Verfügbarkeit
  *
- * Prüft regelmäßig den Verbindungsstatus des Backends und berechnet den
- * aktuellen Betriebsmodus (online, offline, error).
- *
- * @returns Backend-Gesundheitsdaten und aktuelle Verbindungsinformationen
+ * Führt einen Health-Check durch und überwacht die Verbindung zum Backend.
+ * Zeigt entsprechende Fehlermeldungen an, wenn das Backend nicht erreichbar ist.
  */
-export const useBackendHealth = () => {
-  const { data, isError, isLoading } = useQuery<HealthControllerCheck200Response>({
-    queryKey: ['backendHealth'],
-    queryFn: async () => {
-      try {
-        logger.debug('StatusIndicator checking health endpoint');
-        // Use the API client for the health check
-        const data = await api.health.healthControllerCheck();
-
-        logger.info('StatusIndicator health check successful', {
-          status: data.status,
-          details: data.details,
-        });
-
-        return data;
-      } catch (error) {
-        logger.error('StatusIndicator unexpected error', {
-          error: error instanceof Error ? error.message : String(error),
-        });
-        throw error;
-      }
-    },
-    refetchInterval: 30000, // Check every 30 seconds
-    retry: 3,
-    retryDelay: 1000,
+export const useBackendHealth = (checkOnMount = true) => {
+  const [state, setState] = useState<BackendHealthState>({
+    isHealthy: false,
+    isLoading: false,
   });
 
-  const getConnectionStatus = useCallback((): ConnectionStatus => {
-    if (isLoading) return 'checking';
-    if (isError) return 'error';
-    if (!data || !data.details) return 'error';
+  const checkHealth = async () => {
+    setState((prev) => ({ ...prev, isLoading: true, error: undefined }));
 
-    // Wenn der Backend-Controller einen expliziten connection_status liefert, verwenden wir diesen
-    const connectionStatus = data.details['connection_status'];
-    if (connectionStatus?.details?.mode) {
-      // Der Backend-Controller liefert direkt den Verbindungsstatus
-      const mode = connectionStatus.details.mode;
-      if (mode === 'online' || mode === 'offline' || mode === 'error') {
-        return mode;
-      }
+    try {
+      await api.health.healthControllerCheckLiveness();
+      setState((prev) => ({
+        ...prev,
+        isHealthy: true,
+        isLoading: false,
+        lastChecked: new Date(),
+      }));
+      logger.debug('Backend health check passed');
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Backend ist nicht erreichbar';
+      setState((prev) => ({
+        ...prev,
+        isHealthy: false,
+        isLoading: false,
+        error: errorMessage,
+        lastChecked: new Date(),
+      }));
+      logger.warn('Backend health check failed', { error: errorMessage });
     }
+  };
 
-    // Alternativ leiten wir den Status aus den einzelnen Komponenten ab
-    const hasInternetConnection = data.details['internet']?.status === 'up';
-    const hasFuekwConnection = data.details['fuekw']?.status === 'up';
-
-    if (hasInternetConnection && hasFuekwConnection) {
-      return 'online';
-    } else if (hasFuekwConnection) {
-      return 'offline';
+  useEffect(() => {
+    if (checkOnMount) {
+      checkHealth();
     }
+  }, [checkOnMount]);
 
+  // Zusätzliche Methoden für StatusIndicator-Kompatibilität
+  const getConnectionStatus = (): ConnectionStatus => {
+    if (state.isLoading) return 'checking';
+    if (state.isHealthy) return 'online';
     return 'error';
-  }, [data, isError, isLoading]);
+  };
 
-  /**
-   * Erzeugt einen formatierten String mit dem Systemstatus
-   *
-   * @returns String mit dem Status der einzelnen Systeme
-   */
-  const getSystemDetailsText = useCallback((): string => {
-    if (!data || !data.details) return 'Keine Details verfügbar';
+  const getSystemDetailsText = (): string => {
+    if (state.lastChecked) {
+      return `Letzte Prüfung: ${state.lastChecked.toLocaleTimeString()}`;
+    }
+    return 'Noch nicht geprüft';
+  };
 
-    return Object.entries(data.details)
-      .map(([system, info]) => `${system}: ${info.status === 'up' ? '✅' : '❌'}`)
-      .join('\n');
-  }, [data]);
-
-  /**
-   * Erzeugt ein Debug-Info-Objekt für Diagnosezwecke
-   *
-   * @returns JSON-String mit allen Debug-Informationen
-   */
-  const getDebugInfo = useCallback((): string => {
-    if (!data) return '';
-
+  const getDebugInfo = (): string => {
     return JSON.stringify(
       {
-        status: getConnectionStatus(),
-        details: data.details,
+        isHealthy: state.isHealthy,
+        isLoading: state.isLoading,
+        error: state.error,
+        lastChecked: state.lastChecked?.toISOString(),
         timestamp: new Date().toISOString(),
       },
       null,
       2,
     );
-  }, [data, getConnectionStatus]);
+  };
 
   return {
-    data,
-    isError,
-    isLoading,
+    ...state,
+    checkHealth,
     getConnectionStatus,
     getSystemDetailsText,
     getDebugInfo,

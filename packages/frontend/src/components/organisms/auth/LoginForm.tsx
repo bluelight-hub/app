@@ -1,8 +1,9 @@
 import { App, Button, Card, Form, Input, Progress } from 'antd';
-import React, { useState, useEffect } from 'react';
-import { PiEnvelope, PiLockKey, PiWarning, PiLock } from 'react-icons/pi';
+import React, { useEffect, useState } from 'react';
+import { PiCloudSlash, PiEnvelope, PiLock, PiLockKey, PiWarning } from 'react-icons/pi';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../../hooks/useAuth';
+import { useBackendHealth } from '@/hooks/useBackendHealth.ts';
 
 interface LoginFormValues {
   email: string;
@@ -24,6 +25,7 @@ const LoginForm: React.FC = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const [form] = Form.useForm();
+  const { isHealthy, isLoading: healthLoading, checkHealth } = useBackendHealth();
 
   // Ziel nach erfolgreichem Login
   const from = location.state?.from || '/app';
@@ -48,6 +50,16 @@ const LoginForm: React.FC = () => {
 
   const onFinishLogin = async (values: LoginFormValues) => {
     if (isLocked) {
+      return;
+    }
+
+    // Check backend health before attempting login
+    if (!isHealthy) {
+      message.error({
+        content: 'Backend ist nicht erreichbar. Bitte versuchen Sie es später erneut.',
+        duration: 5,
+        icon: <PiCloudSlash className="text-red-500" />,
+      });
       return;
     }
 
@@ -125,6 +137,33 @@ const LoginForm: React.FC = () => {
           },
         }}
       >
+        {/* Backend Health Status */}
+        {!isHealthy && !healthLoading && (
+          <div className="mb-4 p-4 bg-gradient-to-r from-red-50 to-red-100 border border-red-200 rounded-lg">
+            <div className="flex items-start space-x-3">
+              <div className="flex-shrink-0 mt-0.5">
+                <PiCloudSlash className="text-red-500 text-xl" />
+              </div>
+              <div className="flex-1">
+                <h3 className="text-sm font-medium text-red-800 mb-1">Verbindung zum Server unterbrochen</h3>
+                <p className="text-sm text-red-700 mb-3">
+                  Der Server ist momentan nicht erreichbar. Bitte überprüfen Sie Ihre Internetverbindung oder versuchen
+                  Sie es später erneut.
+                </p>
+                <Button
+                  type="default"
+                  size="small"
+                  onClick={checkHealth}
+                  className="bg-white border-red-300 text-red-700 hover:bg-red-50 hover:border-red-400 hover:text-red-800"
+                  loading={healthLoading}
+                >
+                  Verbindung testen
+                </Button>
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* Lockout-Overlay */}
         {isLocked && lockoutTimer > 0 && (
           <div className="absolute inset-0 bg-white bg-opacity-95 z-10 flex flex-col items-center justify-center rounded-lg">
@@ -171,8 +210,14 @@ const LoginForm: React.FC = () => {
           </Form.Item>
 
           <Form.Item>
-            <Button type="primary" htmlType="submit" className="w-full" loading={loading} disabled={isLocked}>
-              {isLocked ? `Gesperrt (${lockoutTimer}s)` : 'Anmelden'}
+            <Button
+              type="primary"
+              htmlType="submit"
+              className="w-full"
+              loading={loading || healthLoading}
+              disabled={isLocked || !isHealthy}
+            >
+              {isLocked ? `Gesperrt (${lockoutTimer}s)` : !isHealthy ? 'Server nicht erreichbar' : 'Anmelden'}
             </Button>
           </Form.Item>
 

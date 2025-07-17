@@ -10,7 +10,18 @@ export interface AuthContextType {
   user: User | null;
   isAuthenticated: boolean;
   isLoading: boolean;
-  login: (email: string, password: string) => Promise<{ success: boolean }>;
+  login: (
+    email: string,
+    password: string,
+  ) => Promise<{
+    success: boolean;
+    error?: string;
+    errorCode?: string;
+    errorDetails?: {
+      lockedUntil?: string;
+      remainingAttempts?: number;
+    };
+  }>;
   logout: () => void;
   hasRole: (role: string) => boolean;
   hasPermission: (permission: string) => boolean;
