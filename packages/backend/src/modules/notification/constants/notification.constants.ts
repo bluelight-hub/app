@@ -1,10 +1,29 @@
+/**
+ * Name der Bull-Queue für Benachrichtigungen
+ */
 export const NOTIFICATION_QUEUE = 'notification-queue';
 
+/**
+ * Verfügbare Benachrichtigungs-Channels
+ *
+ * - EMAIL: E-Mail-Benachrichtigungen
+ * - WEBHOOK: Webhook-basierte Benachrichtigungen
+ */
 export const NOTIFICATION_CHANNELS = {
   EMAIL: 'email',
   WEBHOOK: 'webhook',
 } as const;
 
+/**
+ * Standard-Konfiguration für Retry-Mechanismus
+ *
+ * @property maxRetries - Maximale Anzahl von Wiederholungsversuchen
+ * @property baseDelay - Basis-Verzögerung zwischen Versuchen in ms
+ * @property maxDelay - Maximale Verzögerung zwischen Versuchen in ms
+ * @property backoffMultiplier - Multiplikator für exponentielles Backoff
+ * @property jitterFactor - Zufallsfaktor zur Vermeidung von Retry-Storms
+ * @property timeout - Timeout für einzelne Versuche in ms
+ */
 export const DEFAULT_RETRY_CONFIG = {
   maxRetries: 3,
   baseDelay: 1000,
@@ -14,6 +33,11 @@ export const DEFAULT_RETRY_CONFIG = {
   timeout: 30000,
 };
 
+/**
+ * Standard-Konfiguration für Bull-Queue
+ *
+ * Definiert das Verhalten von Jobs in der Benachrichtigungs-Queue
+ */
 export const DEFAULT_QUEUE_CONFIG = {
   defaultJobOptions: {
     attempts: 3,
@@ -26,6 +50,11 @@ export const DEFAULT_QUEUE_CONFIG = {
   },
 };
 
+/**
+ * Event-Namen für das Benachrichtigungs-System
+ *
+ * Werden für Event-basierte Kommunikation und Monitoring verwendet
+ */
 export const NOTIFICATION_EVENTS = {
   SENT: 'notification.sent',
   FAILED: 'notification.failed',

@@ -122,7 +122,12 @@ describe('useBackendHealth', () => {
     const mockError = new Error('Network Error');
     vi.mocked(api.health.healthControllerCheckLiveness).mockRejectedValueOnce(mockError);
 
-    const { result } = renderHook(() => useBackendHealth());
+    const { result } = renderHook(() => useBackendHealth(false));
+
+    // Start checking
+    await act(async () => {
+      await result.current.checkHealth();
+    });
 
     await waitFor(() => {
       expect(result.current.isHealthy).toBe(false);
