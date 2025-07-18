@@ -1,4 +1,4 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Injectable, Logger, Inject, forwardRef } from '@nestjs/common';
 import { PrismaService } from '@/prisma/prisma.service';
 import { ConfigService } from '@nestjs/config';
 import { LoginAttempt } from '@prisma/generated/prisma';
@@ -10,6 +10,8 @@ import { SecurityAlertService } from './security-alert.service';
 import { SecurityLogService } from './security-log.service';
 import { SuspiciousActivityService } from './suspicious-activity.service';
 import { SecurityEventType } from '../enums/security-event-type.enum';
+import { RuleEngineService } from '../rules/rule-engine.service';
+import { RuleContext } from '../rules/rule.interface';
 
 @Injectable()
 export class LoginAttemptService {
@@ -22,6 +24,8 @@ export class LoginAttemptService {
     private readonly securityAlertService: SecurityAlertService,
     private readonly securityLogService?: SecurityLogService,
     private readonly suspiciousActivityService?: SuspiciousActivityService,
+    @Inject(forwardRef(() => RuleEngineService))
+    private readonly ruleEngineService?: RuleEngineService,
   ) {
     this.authConfig = {
       jwt: {
@@ -129,6 +133,23 @@ export class LoginAttemptService {
         if (data.success && data.userId) {
           await this.suspiciousActivityService.checkLoginPatterns(data.userId, data.ipAddress);
         }
+      }
+
+      // Evaluate threat detection rules (only if service is available)
+      if (this.ruleEngineService) {
+        await this.evaluateThreatRules({
+          userId: data.userId,
+          email: data.email,
+          ipAddress: data.ipAddress,
+          userAgent: data.userAgent,
+          success: data.success,
+          metadata: {
+            ...data.metadata,
+            ...deviceInfo,
+            riskScore,
+            sessionId: (data.metadata as any)?.sessionId,
+          },
+        });
       }
 
       return loginAttempt;
@@ -476,5 +497,96 @@ export class LoginAttemptService {
     ];
 
     return localPatterns.some((pattern) => pattern.test(ipAddress));
+  }
+
+  /**
+   * Evaluiert Threat Detection Rules für einen Login-Versuch
+   */
+  private async evaluateThreatRules(data: {
+    userId?: string;
+    email: string;
+    ipAddress: string;
+    userAgent?: string;
+    success: boolean;
+    metadata?: Record<string, any>;
+  }): Promise<void> {
+    try {
+      // Prepare recent events for context
+      const lookbackMinutes = 60; // 1 hour lookback
+      const recentEvents = await this.getRecentSecurityEvents(
+        data.userId,
+        data.email,
+        data.ipAddress,
+        lookbackMinutes,
+      );
+
+      // Build rule context
+      const context: RuleContext = {
+        userId: data.userId,
+        email: data.email,
+        ipAddress: data.ipAddress,
+        userAgent: data.userAgent,
+        timestamp: new Date(),
+        eventType: data.success ? SecurityEventType.LOGIN_SUCCESS : SecurityEventType.LOGIN_FAILED,
+        metadata: data.metadata,
+        recentEvents,
+      };
+
+      // Evaluate rules
+      const results = await this.ruleEngineService!.evaluateRules(context);
+
+      // Log evaluation results
+      if (results.length > 0) {
+        this.logger.warn(`Threat detection rules matched for ${data.email}:`, {
+          matchedRules: results.length,
+          severities: results.map((r) => r.severity),
+        });
+      }
+    } catch (error) {
+      this.logger.error('Failed to evaluate threat detection rules', error);
+      // Don't throw - rule evaluation should not break login flow
+    }
+  }
+
+  /**
+   * Holt die letzten Security Events für Rule-Kontext
+   */
+  private async getRecentSecurityEvents(
+    userId: string | undefined,
+    email: string | undefined,
+    ipAddress: string | undefined,
+    lookbackMinutes: number,
+  ): Promise<RuleContext['recentEvents']> {
+    const cutoffTime = new Date(Date.now() - lookbackMinutes * 60 * 1000);
+
+    // Get recent login attempts
+    const recentAttempts = await this.prisma.loginAttempt.findMany({
+      where: {
+        OR: [{ userId }, { email }, { ipAddress }].filter(Boolean),
+        attemptAt: {
+          gte: cutoffTime,
+        },
+      },
+      orderBy: { attemptAt: 'desc' },
+      take: 100, // Limit to prevent memory issues
+    });
+
+    // Convert to rule context format
+    return recentAttempts.map((attempt) => ({
+      eventType: attempt.success ? SecurityEventType.LOGIN_SUCCESS : SecurityEventType.LOGIN_FAILED,
+      timestamp: attempt.attemptAt,
+      ipAddress: attempt.ipAddress || undefined,
+      success: attempt.success,
+      metadata: {
+        email: attempt.email,
+        userId: attempt.userId,
+        deviceType: attempt.deviceType,
+        browser: attempt.browser,
+        os: attempt.os,
+        location: attempt.location,
+        riskScore: attempt.riskScore,
+        ...((attempt.metadata as any) || {}),
+      },
+    }));
   }
 }

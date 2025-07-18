@@ -5,6 +5,7 @@ import { ConfigService } from '@nestjs/config';
 import { SecurityAlertService } from '../security-alert.service';
 import { SecurityLogService } from '../security-log.service';
 import { SuspiciousActivityService } from '../suspicious-activity.service';
+import { RuleEngineService } from '../../rules/rule-engine.service';
 import { HttpService } from '@nestjs/axios';
 import { RetryUtil } from '@/common/utils/retry.util';
 import { CircuitBreaker } from '@/common/utils/circuit-breaker.util';
@@ -83,6 +84,10 @@ describe('Bot Detection in LoginAttemptService', () => {
     ),
   };
 
+  const mockRuleEngineService = {
+    evaluateRules: jest.fn().mockResolvedValue([]),
+  };
+
   beforeEach(async () => {
     jest.clearAllMocks();
 
@@ -96,6 +101,7 @@ describe('Bot Detection in LoginAttemptService', () => {
         { provide: HttpService, useValue: mockHttpService },
         { provide: SecurityLogService, useValue: mockSecurityLogService },
         { provide: SuspiciousActivityService, useValue: mockSuspiciousActivityService },
+        { provide: RuleEngineService, useValue: mockRuleEngineService },
         {
           provide: CircuitBreaker,
           useFactory: () => new CircuitBreaker('TestBreaker'),

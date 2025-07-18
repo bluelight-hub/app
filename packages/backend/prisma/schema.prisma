@@ -420,6 +420,98 @@ model SecurityLog {
   @@index([sessionId], map: "idx_security_log_session")
 }
 
+// ===== THREAT DETECTION RULES =====
+// Dynamic threat detection rules for security monitoring
+
+enum ThreatSeverity {
+  LOW
+  MEDIUM
+  HIGH
+  CRITICAL
+}
+
+enum RuleStatus {
+  ACTIVE
+  INACTIVE
+  TESTING
+}
+
+enum ConditionType {
+  THRESHOLD    // Threshold-based rules (e.g., X events in Y minutes)
+  PATTERN      // Pattern matching rules
+  ANOMALY      // Anomaly detection rules
+  TIME_BASED   // Time-based rules (unusual hours)
+  GEO_BASED    // Geography-based rules
+}
+
+model ThreatDetectionRule {
+  id             String          @id @default(nanoid())
+
+  // Rule metadata
+  name           String          @unique @db.VarChar(255)
+  description    String          @db.Text
+  version        String          @default("1.0.0") @db.VarChar(20)
+  status         RuleStatus      @default(INACTIVE)
+  severity       ThreatSeverity
+  conditionType  ConditionType
+
+  // Rule configuration (JSON)
+  config         Json            // Rule-specific configuration
+
+  // Categorization
+  tags           String[]        @default([])
+
+  // Audit fields
+  createdBy      String?         @db.VarChar(255)
+  createdAt      DateTime        @default(now())
+  updatedBy      String?         @db.VarChar(255)
+  updatedAt      DateTime        @updatedAt
+
+  // Rule evaluation history
+  evaluations    RuleEvaluation[]
+
+  // Indexes
+  @@index([status, severity], map: "idx_threat_rule_status_severity")
+  @@index([conditionType], map: "idx_threat_rule_condition_type")
+  @@index([tags], map: "idx_threat_rule_tags")
+  @@index([createdAt], map: "idx_threat_rule_created")
+}
+
+model RuleEvaluation {
+  id             String              @id @default(nanoid())
+
+  // Rule reference
+  ruleId         String
+  rule           ThreatDetectionRule @relation(fields: [ruleId], references: [id], onDelete: Cascade)
+
+  // Evaluation context
+  userId         String?             @db.VarChar(255)
+  ipAddress      String?             @db.VarChar(45)
+  sessionId      String?             @db.VarChar(255)
+
+  // Evaluation result
+  matched        Boolean             @default(false)
+  score          Int?                // Risk score 0-100
+  severity       ThreatSeverity?
+  reason         String?             @db.Text
+  evidence       Json?               // Evidence that triggered the rule
+
+  // Actions taken
+  actionsTriggered String[]         @default([])
+  alertSent        Boolean          @default(false)
+
+  // Timing
+  evaluatedAt    DateTime           @default(now())
+  executionTime  Int?               // Execution time in ms
+
+  // Indexes
+  @@index([ruleId, evaluatedAt], map: "idx_rule_eval_rule_time")
+  @@index([matched, evaluatedAt], map: "idx_rule_eval_matched_time")
+  @@index([userId, evaluatedAt], map: "idx_rule_eval_user_time")
+  @@index([ipAddress, evaluatedAt], map: "idx_rule_eval_ip_time")
+  @@index([severity, evaluatedAt], map: "idx_rule_eval_severity_time")
+}
+
 // ===== NOTIFICATION SYSTEM =====
 // Pluggable notification channels for security and system alerts
 
@@ -446,8 +538,8 @@ model NotificationChannel {
   healthStatus Json?       // Last health check result
   createdAt    DateTime    @default(now())
   updatedAt    DateTime    @updatedAt
-  
-  
+
+
   // Indexes
   @@index([type, isActive], map: "idx_notification_channel_type_active")
   @@index([priority], map: "idx_notification_channel_priority")
@@ -465,7 +557,7 @@ model NotificationTemplate {
   isActive     Boolean     @default(true)
   createdAt    DateTime    @default(now())
   updatedAt    DateTime    @updatedAt
-  
+
   // Indexes
   @@index([channelType, isActive], map: "idx_notification_template_type_active")
   @@index([name, language], map: "idx_notification_template_name_lang")
@@ -485,7 +577,7 @@ model NotificationLog {
   sentAt       DateTime?
   createdAt    DateTime            @default(now())
   updatedAt    DateTime            @updatedAt
-  
+
   // Indexes for efficient queries
   @@index([status, createdAt], map: "idx_notification_log_status_time")
   @@index([channel, createdAt], map: "idx_notification_log_channel_time")
