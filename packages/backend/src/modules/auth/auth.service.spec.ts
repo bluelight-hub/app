@@ -14,6 +14,7 @@ import {
   AccountLockedException,
   InvalidTokenException,
   TokenRevokedException,
+  RefreshRateLimitExceededException,
 } from './exceptions/auth.exceptions';
 import * as bcrypt from 'bcryptjs';
 
@@ -639,6 +640,123 @@ describe('AuthService', () => {
       mockPrismaService.user.findUnique.mockResolvedValue(null);
 
       await expect(service.getCurrentUser('123')).rejects.toThrow(InvalidTokenException);
+    });
+
+    it('should throw UnauthorizedException if user is inactive', async () => {
+      const mockUser = {
+        id: '123',
+        email: 'test@example.com',
+        username: 'testuser',
+        role: 'ADMIN',
+        isActive: false,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      };
+
+      mockPrismaService.user.findUnique.mockResolvedValue(mockUser);
+
+      await expect(service.getCurrentUser('123')).rejects.toThrow(InvalidTokenException);
+    });
+  });
+
+  describe('unlockAccount', () => {
+    const adminId = 'admin-123';
+    const email = 'locked@example.com';
+
+    it('should unlock a locked account', async () => {
+      const lockedUser = {
+        id: 'user-123',
+        lockedUntil: new Date(Date.now() + 60000), // Locked for 1 more minute
+      };
+
+      mockPrismaService.user.findUnique.mockResolvedValue(lockedUser);
+      mockPrismaService.user.update.mockResolvedValue({});
+      mockLoginAttemptService.resetFailedAttempts.mockResolvedValue(undefined);
+
+      await service.unlockAccount(email, adminId);
+
+      expect(mockPrismaService.user.update).toHaveBeenCalledWith({
+        where: { id: lockedUser.id },
+        data: {
+          lockedUntil: null,
+          failedLoginCount: 0,
+        },
+      });
+      expect(mockLoginAttemptService.resetFailedAttempts).toHaveBeenCalledWith(email);
+    });
+
+    it('should throw error if user not found', async () => {
+      mockPrismaService.user.findUnique.mockResolvedValue(null);
+
+      await expect(service.unlockAccount(email, adminId)).rejects.toThrow(
+        InvalidCredentialsException,
+      );
+    });
+
+    it('should do nothing if account is not locked', async () => {
+      const unlockedUser = {
+        id: 'user-123',
+        lockedUntil: null,
+      };
+
+      mockPrismaService.user.findUnique.mockResolvedValue(unlockedUser);
+
+      await service.unlockAccount(email, adminId);
+
+      expect(mockPrismaService.user.update).not.toHaveBeenCalled();
+    });
+
+    it('should do nothing if account lock has expired', async () => {
+      const expiredLockUser = {
+        id: 'user-123',
+        lockedUntil: new Date(Date.now() - 60000), // Lock expired 1 minute ago
+      };
+
+      mockPrismaService.user.findUnique.mockResolvedValue(expiredLockUser);
+
+      await service.unlockAccount(email, adminId);
+
+      expect(mockPrismaService.user.update).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('refreshTokens edge cases', () => {
+    it('should handle rate limit with retry after information', async () => {
+      const mockRefreshToken = 'valid_refresh_token';
+      const mockPayload = {
+        sub: '1',
+        sessionId: 'session-123',
+        jti: 'jti-123',
+        iat: Date.now() / 1000,
+        exp: Date.now() / 1000 + 604800,
+      };
+
+      const mockStoredToken = {
+        id: '1',
+        token: mockRefreshToken,
+        userId: '1',
+        sessionJti: 'jti-123',
+        expiresAt: new Date(Date.now() + 604800 * 1000),
+        isUsed: false,
+        isRevoked: false,
+        user: {
+          id: '1',
+          email: 'admin@bluelight-hub.com',
+          role: UserRole.ADMIN,
+          isActive: true,
+        },
+      };
+
+      mockJwtService.verify.mockReturnValue(mockPayload);
+      mockPrismaService.refreshToken.findUnique.mockResolvedValue(mockStoredToken);
+      mockSessionCleanupService.checkRefreshRateLimit.mockResolvedValue({
+        allowed: false,
+        retryAfter: new Date(Date.now() + 60000),
+      });
+
+      await expect(service.refreshTokens(mockRefreshToken)).rejects.toThrow(
+        RefreshRateLimitExceededException,
+      );
     });
   });
 });

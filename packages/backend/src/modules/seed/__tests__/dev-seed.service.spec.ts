@@ -16,11 +16,13 @@ describe('DevSeedService', () => {
       debug: jest.fn(),
       log: jest.fn(),
       error: jest.fn(),
+      warn: jest.fn(),
     } as any;
 
     const mockSeedService = {
       seedInitialEinsatz: jest.fn(),
       createEinsatzWithRetry: jest.fn(),
+      seedAdminAuthentication: jest.fn(),
     };
 
     const mockConfigService = {
@@ -255,6 +257,195 @@ describe('DevSeedService', () => {
 
       // Cleanup
       global.Date = originalDate;
+    });
+
+    it('sollte Admin Auth überspringen wenn SEED_ADMIN_AUTH false ist', async () => {
+      // Arrange
+      configService.get
+        .mockReturnValueOnce('development') // NODE_ENV
+        .mockReturnValueOnce('false') // SEED_ADMIN_AUTH disabled
+        .mockReturnValueOnce('false'); // SEED_INITIAL_EINSATZ disabled
+
+      // Mock the SeedService methods as spies
+      jest.spyOn(seedService, 'seedAdminAuthentication').mockResolvedValue(true);
+      jest.spyOn(seedService, 'createEinsatzWithRetry').mockResolvedValue(null);
+
+      // Act
+      await service.onModuleInit();
+
+      // Assert
+      expect(seedService.seedAdminAuthentication).not.toHaveBeenCalled();
+      expect(seedService.createEinsatzWithRetry).not.toHaveBeenCalled();
+    });
+
+    it('sollte Fehler beim Admin-Auth-Seeding abfangen und loggen', async () => {
+      // Arrange
+      const error = new Error('Admin auth seed failed');
+      configService.get
+        .mockReturnValueOnce('development') // NODE_ENV
+        .mockReturnValueOnce(undefined) // SEED_ADMIN_AUTH
+        .mockReturnValueOnce('admin123') // ADMIN_SEED_PASSWORD
+        .mockReturnValueOnce('false'); // SEED_INITIAL_EINSATZ disabled
+
+      seedService.seedAdminAuthentication = jest.fn().mockRejectedValue(error);
+
+      // Act
+      await service.onModuleInit();
+
+      // Assert
+      expect(mockLogger.error).toHaveBeenCalledWith(
+        'Fehler beim Seeden der Admin-Authentication:',
+        error,
+      );
+      expect(seedService.createEinsatzWithRetry).not.toHaveBeenCalled();
+    });
+
+    it('sollte trotz Admin-Auth-Fehler das Einsatz-Seeding durchführen', async () => {
+      // Arrange
+      const mockEinsatz = {
+        id: 'test-id',
+        name: 'Dev-Einsatz 2025-01-24',
+        beschreibung: 'Automatisch erstellter Entwicklungs-Einsatz',
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      };
+      configService.get
+        .mockReturnValueOnce('development') // NODE_ENV
+        .mockReturnValueOnce(undefined) // SEED_ADMIN_AUTH
+        .mockReturnValueOnce('admin123') // ADMIN_SEED_PASSWORD
+        .mockReturnValueOnce(undefined) // SEED_INITIAL_EINSATZ
+        .mockReturnValueOnce(undefined); // DEV_EINSATZ_NAME
+
+      seedService.seedAdminAuthentication = jest.fn().mockRejectedValue(new Error('Auth failed'));
+      seedService.createEinsatzWithRetry.mockResolvedValue(mockEinsatz);
+
+      // Act
+      await service.onModuleInit();
+
+      // Assert
+      expect(seedService.createEinsatzWithRetry).toHaveBeenCalled();
+      expect(mockLogger.log).toHaveBeenCalledWith(
+        expect.stringContaining('Initialen Dev-Einsatz erstellt:'),
+      );
+    });
+
+    it('sollte verschiedene Konfigurationswerte korrekt interpretieren', async () => {
+      // Test "enabled" als String
+      configService.get
+        .mockReturnValueOnce('development') // NODE_ENV
+        .mockReturnValueOnce('enabled') // SEED_ADMIN_AUTH
+        .mockReturnValueOnce('admin123') // ADMIN_SEED_PASSWORD
+        .mockReturnValueOnce('enabled'); // SEED_INITIAL_EINSATZ
+
+      seedService.seedAdminAuthentication = jest.fn().mockResolvedValue(true);
+      seedService.createEinsatzWithRetry.mockResolvedValue(null);
+
+      await service.onModuleInit();
+
+      expect(seedService.seedAdminAuthentication).toHaveBeenCalled();
+      expect(seedService.createEinsatzWithRetry).toHaveBeenCalled();
+    });
+
+    it('sollte mit leeren Strings in Konfiguration umgehen', async () => {
+      // Mock the SeedService methods as spies BEFORE calling onModuleInit
+      jest.spyOn(seedService, 'seedAdminAuthentication').mockResolvedValue(true);
+      jest.spyOn(seedService, 'createEinsatzWithRetry').mockResolvedValue(null);
+
+      // Test empty strings
+      configService.get
+        .mockReturnValueOnce('development') // NODE_ENV
+        .mockReturnValueOnce('false') // SEED_ADMIN_AUTH disabled
+        .mockReturnValueOnce('false'); // SEED_INITIAL_EINSATZ disabled
+
+      // Act
+      await service.onModuleInit();
+
+      // Empty strings should be treated as disabled
+      expect(seedService.seedAdminAuthentication).not.toHaveBeenCalled();
+      expect(seedService.createEinsatzWithRetry).not.toHaveBeenCalled();
+    });
+
+    it('sollte mit null-Werten in Konfiguration umgehen', async () => {
+      // Mock the SeedService methods as spies BEFORE calling onModuleInit
+      jest.spyOn(seedService, 'seedAdminAuthentication').mockResolvedValue(true);
+      jest.spyOn(seedService, 'createEinsatzWithRetry').mockResolvedValue(null);
+
+      // Test null values
+      configService.get
+        .mockReturnValueOnce('development') // NODE_ENV
+        .mockReturnValueOnce('false') // SEED_ADMIN_AUTH disabled
+        .mockReturnValueOnce('false'); // SEED_INITIAL_EINSATZ disabled
+
+      // Act
+      await service.onModuleInit();
+
+      // Null values should be treated as disabled
+      expect(seedService.seedAdminAuthentication).not.toHaveBeenCalled();
+      expect(seedService.createEinsatzWithRetry).not.toHaveBeenCalled();
+    });
+
+    it('sollte mit undefined NODE_ENV umgehen', async () => {
+      // Mock the SeedService methods as spies BEFORE calling onModuleInit
+      jest.spyOn(seedService, 'seedAdminAuthentication').mockResolvedValue(true);
+      jest.spyOn(seedService, 'createEinsatzWithRetry').mockResolvedValue(null);
+
+      // Test undefined NODE_ENV
+      configService.get.mockReturnValueOnce(undefined); // NODE_ENV
+
+      // Act
+      await service.onModuleInit();
+
+      // Should not run seeding when NODE_ENV is undefined
+      expect(seedService.seedAdminAuthentication).not.toHaveBeenCalled();
+      expect(seedService.createEinsatzWithRetry).not.toHaveBeenCalled();
+      expect(mockLogger.debug).toHaveBeenCalledWith(
+        'Automatisches Seeding übersprungen (nicht im Dev-Modus)',
+      );
+    });
+
+    it('sollte loggen wenn Admin-Authentication bereits existiert', async () => {
+      // Arrange
+      configService.get
+        .mockReturnValueOnce('development') // NODE_ENV
+        .mockReturnValueOnce(undefined) // SEED_ADMIN_AUTH
+        .mockReturnValueOnce('admin123') // ADMIN_SEED_PASSWORD
+        .mockReturnValueOnce('false'); // SEED_INITIAL_EINSATZ
+
+      seedService.seedAdminAuthentication = jest.fn().mockResolvedValue(false);
+
+      // Act
+      await service.onModuleInit();
+
+      // Assert
+      expect(seedService.seedAdminAuthentication).toHaveBeenCalledWith('admin123');
+      expect(mockLogger.log).toHaveBeenCalledWith(
+        'Admin-Authentication Seeding übersprungen (existiert bereits)',
+      );
+      expect(seedService.createEinsatzWithRetry).not.toHaveBeenCalled();
+    });
+
+    it('sollte Standard-Passwort verwenden wenn ADMIN_SEED_PASSWORD nicht gesetzt ist', async () => {
+      // Arrange
+      configService.get
+        .mockReturnValueOnce('development') // NODE_ENV
+        .mockReturnValueOnce(undefined) // SEED_ADMIN_AUTH
+        .mockReturnValueOnce(undefined) // ADMIN_SEED_PASSWORD (undefined to trigger default)
+        .mockReturnValueOnce('false'); // SEED_INITIAL_EINSATZ
+
+      seedService.seedAdminAuthentication = jest.fn().mockResolvedValue(true);
+
+      // Act
+      await service.onModuleInit();
+
+      // Assert
+      expect(seedService.seedAdminAuthentication).toHaveBeenCalledWith('admin123');
+      expect(mockLogger.log).toHaveBeenCalledWith('Admin-Authentication erfolgreich geseeded');
+      expect(mockLogger.warn).toHaveBeenCalledWith(
+        'Test-Admin-Benutzer erstellt mit Passwort: admin123',
+      );
+      expect(mockLogger.warn).toHaveBeenCalledWith(
+        'WICHTIG: Ändern Sie die Passwörter vor dem Produktivbetrieb!',
+      );
     });
   });
 });

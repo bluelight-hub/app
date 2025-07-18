@@ -12,6 +12,8 @@ describe('SessionController', () => {
     getSessionStatistics: jest.fn(),
     updateHeartbeat: jest.fn(),
     revokeSession: jest.fn(),
+    trackActivity: jest.fn(),
+    revokeUserSessions: jest.fn(),
   };
 
   const mockSession = {
@@ -141,6 +143,139 @@ describe('SessionController', () => {
         'session-456',
         'Security reason',
       );
+    });
+  });
+
+  describe('trackActivity', () => {
+    it('should track session activity', async () => {
+      const activity = {
+        activityType: 'API_CALL' as any,
+        resource: '/api/users',
+        method: 'GET',
+        statusCode: 200,
+      };
+      const mockActivity = {
+        id: 'activity-1',
+        sessionId: 'session-1',
+        timestamp: new Date(),
+        ...activity,
+      };
+      const req = { ip: '192.168.1.1' };
+
+      mockSessionService.trackActivity.mockResolvedValue(mockActivity);
+
+      const result = await controller.trackActivity('session-1', activity, req);
+
+      expect(result).toBeDefined();
+      expect(result.id).toBe('activity-1');
+      expect(mockSessionService.trackActivity).toHaveBeenCalledWith(
+        'session-1',
+        activity,
+        '192.168.1.1',
+      );
+    });
+  });
+
+  describe('revokeMySession', () => {
+    it('should revoke own session if it exists', async () => {
+      const req = { user: { userId: 'user-123' } };
+      const mockSessions = [mockSession];
+
+      mockSessionService.getSessions.mockResolvedValue(mockSessions);
+      mockSessionService.revokeSession.mockResolvedValue(undefined);
+
+      await controller.revokeMySession('1', req);
+
+      expect(mockSessionService.getSessions).toHaveBeenCalledWith({ userId: 'user-123' });
+      expect(mockSessionService.revokeSession).toHaveBeenCalledWith('1', 'User initiated');
+    });
+
+    it('should not revoke session if it does not belong to user', async () => {
+      const req = { user: { userId: 'user-123' } };
+      const mockSessions = [{ ...mockSession, id: '2' }]; // Different session ID
+
+      mockSessionService.getSessions.mockResolvedValue(mockSessions);
+
+      await controller.revokeMySession('1', req);
+
+      expect(mockSessionService.getSessions).toHaveBeenCalledWith({ userId: 'user-123' });
+      expect(mockSessionService.revokeSession).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('revokeUserSessions', () => {
+    it('should revoke all sessions for a user', async () => {
+      mockSessionService.revokeUserSessions.mockResolvedValue(3);
+
+      const result = await controller.revokeUserSessions('user-123', 'Account suspended');
+
+      expect(result).toEqual({ count: 3 });
+      expect(mockSessionService.revokeUserSessions).toHaveBeenCalledWith(
+        'user-123',
+        'Account suspended',
+      );
+    });
+  });
+
+  describe('getStatistics without userId', () => {
+    it('should return global session statistics when no userId provided', async () => {
+      const mockStats = {
+        totalSessions: 100,
+        activeSessions: 50,
+        averageSessionDuration: 3600,
+        sessionsByBrowser: { Chrome: 70, Firefox: 30 },
+        sessionsByOS: { Windows: 60, Linux: 40 },
+      };
+
+      mockSessionService.getSessionStatistics.mockResolvedValue(mockStats);
+
+      const result = await controller.getStatistics(undefined);
+
+      expect(result).toEqual(mockStats);
+      expect(mockSessionService.getSessionStatistics).toHaveBeenCalledWith(undefined);
+    });
+  });
+
+  describe('private methods', () => {
+    describe('mapSessionToDto', () => {
+      it('should correctly map session entity to DTO', async () => {
+        const mockSessions = [mockSession];
+        mockSessionService.getSessions.mockResolvedValue(mockSessions);
+
+        const result = await controller.getSessions({});
+
+        expect(result[0]).toMatchObject({
+          id: '1',
+          userId: 'user-123',
+          username: 'testuser',
+          email: 'test@example.com',
+          browser: 'Chrome',
+          browserVersion: '96',
+          os: 'Windows',
+          osVersion: '10',
+          deviceType: 'desktop',
+          location: 'New York, US',
+          isOnline: true,
+          activityCount: 42,
+          riskScore: 10,
+        });
+      });
+    });
+
+    describe('mapActivityToDto', () => {
+      it('should correctly map activity entity to DTO', async () => {
+        mockSessionService.getSessionDetails.mockResolvedValue(mockSession);
+
+        const result = await controller.getSessionDetails('session-jti-123');
+
+        expect(result.activities[0]).toMatchObject({
+          id: '1',
+          sessionId: 'session-1',
+          activityType: 'LOGIN',
+          timestamp: expect.any(Date),
+          metadata: {},
+        });
+      });
     });
   });
 });

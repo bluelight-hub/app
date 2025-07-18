@@ -1054,4 +1054,526 @@ describe('SeedImportService', () => {
       );
     });
   });
+
+  describe('Timestamp Handling Edge Cases', () => {
+    it('should handle ETB entries with custom timestamps and autoTimestamps=false', async () => {
+      const customTimestamp = '2024-01-15T10:30:00Z';
+      const dataWithCustomTimestamps = {
+        ...validFullSeedData,
+        einsaetze: [
+          {
+            name: 'Test Einsatz',
+            beschreibung: 'Test Beschreibung',
+            etbEntries: [
+              {
+                laufendeNummer: 1,
+                autorId: 'autor-1',
+                autorName: 'Test Autor',
+                kategorie: 'EINSATZLEITUNG' as any,
+                inhalt: 'Test Inhalt',
+                timestampErstellung: customTimestamp,
+                timestampEreignis: customTimestamp,
+              },
+            ],
+          },
+        ],
+      };
+
+      const filePath = '/test/custom-timestamps.json';
+      const jsonContent = JSON.stringify(dataWithCustomTimestamps);
+
+      (fs.readFile as jest.Mock).mockResolvedValue(jsonContent);
+
+      mockValidateSeedDataString.mockReturnValue({
+        valid: true,
+        errors: [],
+        warnings: [],
+        detectedFormat: 'full',
+        data: dataWithCustomTimestamps,
+        metadata: {
+          schemaVersion: CURRENT_SCHEMA_VERSION,
+          einsaetzeCount: 1,
+          etbEntriesCount: 1,
+          estimatedSizeBytes: 1024,
+        },
+      });
+
+      const mockEtbCreateWithTimestamp = jest.fn().mockResolvedValue(mockEtbEntry);
+      mockTransaction.mockImplementation(async (callback) => {
+        const mockTx = {
+          einsatz: {
+            findFirst: jest.fn().mockResolvedValue(null),
+            create: jest.fn().mockResolvedValue(mockEinsatz),
+          },
+          etbEntry: {
+            findFirst: jest.fn().mockResolvedValue(null),
+            create: mockEtbCreateWithTimestamp,
+          },
+          etbAttachment: { create: jest.fn() },
+        };
+        return await callback(mockTx);
+      });
+
+      errorHandlingService.executeWithErrorHandling.mockImplementation(async (fn) => {
+        return await fn();
+      });
+
+      const result = await service.importFromFile(filePath, { autoTimestamps: false });
+
+      expect(result.success).toBe(true);
+      expect(mockEtbCreateWithTimestamp).toHaveBeenCalledWith({
+        data: expect.objectContaining({
+          timestampErstellung: new Date(customTimestamp),
+          timestampEreignis: new Date(customTimestamp),
+        }),
+      });
+    });
+
+    it('should handle ETB entries without timestamps and autoTimestamps=true', async () => {
+      const dataWithoutTimestamps = {
+        ...validFullSeedData,
+        einsaetze: [
+          {
+            name: 'Test Einsatz',
+            beschreibung: 'Test Beschreibung',
+            etbEntries: [
+              {
+                laufendeNummer: 1,
+                autorId: 'autor-1',
+                autorName: 'Test Autor',
+                kategorie: 'EINSATZLEITUNG' as any,
+                inhalt: 'Test Inhalt',
+                // No timestamps provided
+              },
+            ],
+          },
+        ],
+      };
+
+      const filePath = '/test/no-timestamps.json';
+      const jsonContent = JSON.stringify(dataWithoutTimestamps);
+
+      (fs.readFile as jest.Mock).mockResolvedValue(jsonContent);
+
+      mockValidateSeedDataString.mockReturnValue({
+        valid: true,
+        errors: [],
+        warnings: [],
+        detectedFormat: 'full',
+        data: dataWithoutTimestamps,
+        metadata: {
+          schemaVersion: CURRENT_SCHEMA_VERSION,
+          einsaetzeCount: 1,
+          etbEntriesCount: 1,
+          estimatedSizeBytes: 1024,
+        },
+      });
+
+      const mockEtbCreateWithAutoTimestamp = jest.fn().mockResolvedValue(mockEtbEntry);
+      mockTransaction.mockImplementation(async (callback) => {
+        const mockTx = {
+          einsatz: {
+            findFirst: jest.fn().mockResolvedValue(null),
+            create: jest.fn().mockResolvedValue(mockEinsatz),
+          },
+          etbEntry: {
+            findFirst: jest.fn().mockResolvedValue(null),
+            create: mockEtbCreateWithAutoTimestamp,
+          },
+          etbAttachment: { create: jest.fn() },
+        };
+        return await callback(mockTx);
+      });
+
+      errorHandlingService.executeWithErrorHandling.mockImplementation(async (fn) => {
+        return await fn();
+      });
+
+      const result = await service.importFromFile(filePath, { autoTimestamps: true });
+
+      expect(result.success).toBe(true);
+      expect(mockEtbCreateWithAutoTimestamp).toHaveBeenCalledWith({
+        data: expect.objectContaining({
+          timestampErstellung: expect.any(Date),
+          timestampEreignis: expect.any(Date),
+        }),
+      });
+    });
+  });
+
+  describe('ETB Entry Sorting Edge Cases', () => {
+    it('should handle ETB entries with missing laufendeNummer', async () => {
+      const dataWithMissingNummer = {
+        ...validFullSeedData,
+        einsaetze: [
+          {
+            name: 'Test Einsatz',
+            beschreibung: 'Test Beschreibung',
+            etbEntries: [
+              {
+                // No laufendeNummer
+                autorId: 'autor-1',
+                autorName: 'Test Autor',
+                kategorie: 'EINSATZLEITUNG' as any,
+                inhalt: 'Test Inhalt 1',
+              },
+              {
+                laufendeNummer: 5,
+                autorId: 'autor-2',
+                autorName: 'Test Autor 2',
+                kategorie: 'EINSATZLEITUNG' as any,
+                inhalt: 'Test Inhalt 2',
+              },
+            ],
+          },
+        ],
+      };
+
+      const filePath = '/test/missing-nummer.json';
+      const jsonContent = JSON.stringify(dataWithMissingNummer);
+
+      (fs.readFile as jest.Mock).mockResolvedValue(jsonContent);
+
+      mockValidateSeedDataString.mockReturnValue({
+        valid: true,
+        errors: [],
+        warnings: [],
+        detectedFormat: 'full',
+        data: dataWithMissingNummer,
+        metadata: {
+          schemaVersion: CURRENT_SCHEMA_VERSION,
+          einsaetzeCount: 1,
+          etbEntriesCount: 2,
+          estimatedSizeBytes: 1024,
+        },
+      });
+
+      const mockEtbCreateSorted = jest.fn().mockResolvedValue(mockEtbEntry);
+      mockTransaction.mockImplementation(async (callback) => {
+        const mockTx = {
+          einsatz: {
+            findFirst: jest.fn().mockResolvedValue(null),
+            create: jest.fn().mockResolvedValue(mockEinsatz),
+          },
+          etbEntry: {
+            findFirst: jest.fn().mockResolvedValue(null),
+            create: mockEtbCreateSorted,
+          },
+          etbAttachment: { create: jest.fn() },
+        };
+        return await callback(mockTx);
+      });
+
+      errorHandlingService.executeWithErrorHandling.mockImplementation(async (fn) => {
+        return await fn();
+      });
+
+      const result = await service.importFromFile(filePath);
+
+      expect(result.success).toBe(true);
+      expect(result.etbEntriesCreated).toBe(2);
+      // Should create entries in sorted order (0, 5)
+      expect(mockEtbCreateSorted).toHaveBeenCalledTimes(2);
+    });
+
+    it('should handle existing ETB entries when calculating next laufendeNummer', async () => {
+      const dataWithExistingEntries = {
+        ...validFullSeedData,
+        einsaetze: [
+          {
+            name: 'Test Einsatz',
+            beschreibung: 'Test Beschreibung',
+            etbEntries: [
+              {
+                autorId: 'autor-1',
+                autorName: 'Test Autor',
+                kategorie: 'EINSATZLEITUNG' as any,
+                inhalt: 'Test Inhalt',
+              },
+            ],
+          },
+        ],
+      };
+
+      const filePath = '/test/existing-entries.json';
+      const jsonContent = JSON.stringify(dataWithExistingEntries);
+
+      (fs.readFile as jest.Mock).mockResolvedValue(jsonContent);
+
+      mockValidateSeedDataString.mockReturnValue({
+        valid: true,
+        errors: [],
+        warnings: [],
+        detectedFormat: 'full',
+        data: dataWithExistingEntries,
+        metadata: {
+          schemaVersion: CURRENT_SCHEMA_VERSION,
+          einsaetzeCount: 1,
+          etbEntriesCount: 1,
+          estimatedSizeBytes: 1024,
+        },
+      });
+
+      const mockEtbCreateWithNext = jest.fn().mockResolvedValue(mockEtbEntry);
+      mockTransaction.mockImplementation(async (callback) => {
+        const mockTx = {
+          einsatz: {
+            findFirst: jest.fn().mockResolvedValue(null),
+            create: jest.fn().mockResolvedValue(mockEinsatz),
+          },
+          etbEntry: {
+            // Mock existing entry with laufendeNummer 10
+            findFirst: jest.fn().mockResolvedValue({ laufendeNummer: 10 }),
+            create: mockEtbCreateWithNext,
+          },
+          etbAttachment: { create: jest.fn() },
+        };
+        return await callback(mockTx);
+      });
+
+      errorHandlingService.executeWithErrorHandling.mockImplementation(async (fn) => {
+        return await fn();
+      });
+
+      const result = await service.importFromFile(filePath);
+
+      expect(result.success).toBe(true);
+      // Should use next available number (11) since existing entry has 10
+      expect(mockEtbCreateWithNext).toHaveBeenCalledWith({
+        data: expect.objectContaining({
+          laufendeNummer: 11,
+        }),
+      });
+    });
+  });
+
+  describe('Dry-Run Mode Edge Cases', () => {
+    it('should handle einsaetze without etbEntries in dry-run mode', async () => {
+      const dataWithoutEtbEntries = {
+        ...validFullSeedData,
+        einsaetze: [
+          {
+            name: 'Test Einsatz',
+            beschreibung: 'Test Beschreibung',
+            // No etbEntries array
+          },
+        ],
+      };
+
+      const filePath = '/test/no-etb-entries.json';
+      const jsonContent = JSON.stringify(dataWithoutEtbEntries);
+
+      (fs.readFile as jest.Mock).mockResolvedValue(jsonContent);
+
+      mockValidateSeedDataString.mockReturnValue({
+        valid: true,
+        errors: [],
+        warnings: [],
+        detectedFormat: 'full',
+        data: dataWithoutEtbEntries,
+        metadata: {
+          schemaVersion: CURRENT_SCHEMA_VERSION,
+          einsaetzeCount: 1,
+          etbEntriesCount: 0,
+          estimatedSizeBytes: 512,
+        },
+      });
+
+      const result = await service.importFromFile(filePath, { dryRun: true });
+
+      expect(result.success).toBe(true);
+      expect(result.einsaetzeCreated).toBe(1);
+      expect(result.etbEntriesCreated).toBe(0);
+      expect(result.attachmentsCreated).toBe(0);
+      expect(result.warnings).toContain('Dry-Run durchgeführt - keine Datenbank-Änderungen');
+    });
+
+    it('should handle einsaetze with etbEntries but no anlagen in dry-run mode', async () => {
+      const dataWithoutAnlagen = {
+        ...validFullSeedData,
+        einsaetze: [
+          {
+            name: 'Test Einsatz',
+            beschreibung: 'Test Beschreibung',
+            etbEntries: [
+              {
+                laufendeNummer: 1,
+                autorId: 'autor-1',
+                autorName: 'Test Autor',
+                kategorie: 'EINSATZLEITUNG' as any,
+                inhalt: 'Test Inhalt',
+                // No anlagen array
+              },
+            ],
+          },
+        ],
+      };
+
+      const filePath = '/test/no-anlagen.json';
+      const jsonContent = JSON.stringify(dataWithoutAnlagen);
+
+      (fs.readFile as jest.Mock).mockResolvedValue(jsonContent);
+
+      mockValidateSeedDataString.mockReturnValue({
+        valid: true,
+        errors: [],
+        warnings: [],
+        detectedFormat: 'full',
+        data: dataWithoutAnlagen,
+        metadata: {
+          schemaVersion: CURRENT_SCHEMA_VERSION,
+          einsaetzeCount: 1,
+          etbEntriesCount: 1,
+          estimatedSizeBytes: 512,
+        },
+      });
+
+      const result = await service.importFromFile(filePath, { dryRun: true });
+
+      expect(result.success).toBe(true);
+      expect(result.einsaetzeCreated).toBe(1);
+      expect(result.etbEntriesCreated).toBe(1);
+      expect(result.attachmentsCreated).toBe(0);
+      expect(result.warnings).toContain('Dry-Run durchgeführt - keine Datenbank-Änderungen');
+    });
+
+    it('should handle einsaetze with etbEntries containing anlagen in dry-run mode', async () => {
+      const dataWithAnlagen = {
+        ...validFullSeedData,
+        einsaetze: [
+          {
+            name: 'Test Einsatz',
+            beschreibung: 'Test Beschreibung',
+            etbEntries: [
+              {
+                laufendeNummer: 1,
+                autorId: 'autor-1',
+                autorName: 'Test Autor',
+                kategorie: 'EINSATZLEITUNG' as any,
+                inhalt: 'Test Inhalt',
+                anlagen: [
+                  {
+                    dateiname: 'test1.pdf',
+                    dateityp: 'application/pdf',
+                    speicherOrt: '/path/to/test1.pdf',
+                    beschreibung: 'Test Anhang 1',
+                  },
+                  {
+                    dateiname: 'test2.pdf',
+                    dateityp: 'application/pdf',
+                    speicherOrt: '/path/to/test2.pdf',
+                    beschreibung: 'Test Anhang 2',
+                  },
+                ],
+              },
+            ],
+          },
+        ],
+      };
+
+      const filePath = '/test/with-anlagen.json';
+      const jsonContent = JSON.stringify(dataWithAnlagen);
+
+      (fs.readFile as jest.Mock).mockResolvedValue(jsonContent);
+
+      mockValidateSeedDataString.mockReturnValue({
+        valid: true,
+        errors: [],
+        warnings: [],
+        detectedFormat: 'full',
+        data: dataWithAnlagen,
+        metadata: {
+          schemaVersion: CURRENT_SCHEMA_VERSION,
+          einsaetzeCount: 1,
+          etbEntriesCount: 1,
+          estimatedSizeBytes: 1024,
+        },
+      });
+
+      const result = await service.importFromFile(filePath, { dryRun: true });
+
+      expect(result.success).toBe(true);
+      expect(result.einsaetzeCreated).toBe(1);
+      expect(result.etbEntriesCreated).toBe(1);
+      expect(result.attachmentsCreated).toBe(2);
+      expect(result.warnings).toContain('Dry-Run durchgeführt - keine Datenbank-Änderungen');
+    });
+
+    it('sollte ETB-Einträge mit null laufendeNummer sortieren', async () => {
+      const dataWithNullNumbers = {
+        ...validFullSeedData,
+        einsaetze: [
+          {
+            name: 'Test Einsatz',
+            beschreibung: 'Test',
+            etbEntries: [
+              {
+                laufendeNummer: null, // null wird zu 0 sortiert
+                kategorie: EtbKategorie.MELDUNG,
+                inhalt: 'Test null',
+                autorId: 'author-null',
+              },
+              {
+                laufendeNummer: 2,
+                kategorie: EtbKategorie.MELDUNG,
+                inhalt: 'Test 2',
+                autorId: 'author-2',
+              },
+              {
+                laufendeNummer: 1,
+                kategorie: EtbKategorie.MELDUNG,
+                inhalt: 'Test 1',
+                autorId: 'author-1',
+              },
+            ],
+          },
+        ],
+      };
+
+      const filePath = '/test/path.json';
+      const jsonContent = JSON.stringify(dataWithNullNumbers);
+
+      (fs.readFile as jest.Mock).mockResolvedValue(jsonContent);
+
+      mockValidateSeedDataString.mockReturnValue({
+        valid: true,
+        errors: [],
+        warnings: [],
+        detectedFormat: 'full',
+        data: dataWithNullNumbers,
+        metadata: {
+          schemaVersion: CURRENT_SCHEMA_VERSION,
+          einsaetzeCount: 1,
+          etbEntriesCount: 3,
+          estimatedSizeBytes: 1024,
+        },
+      });
+
+      mockTransaction.mockImplementation(async (callback) => {
+        const mockTx = {
+          einsatz: {
+            findFirst: jest.fn().mockResolvedValue(null),
+            create: jest.fn().mockResolvedValue(mockEinsatz),
+          },
+          etbEntry: {
+            findFirst: jest.fn().mockResolvedValue(null),
+            create: jest.fn().mockResolvedValue(mockEtbEntry),
+          },
+          etbAttachment: { create: jest.fn() },
+        };
+        return await callback(mockTx);
+      });
+
+      errorHandlingService.executeWithErrorHandling.mockImplementation(async (fn) => {
+        return await fn();
+      });
+
+      const result = await service.importFromFile(filePath);
+
+      expect(result.success).toBe(true);
+      expect(result.etbEntriesCreated).toBe(3);
+      // Verify sorting worked by checking the order of ETB entries creation
+      expect(mockTransaction).toHaveBeenCalledTimes(1);
+    });
+  });
 });

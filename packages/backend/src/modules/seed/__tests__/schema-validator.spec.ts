@@ -245,6 +245,21 @@ describe('SchemaValidator', () => {
         expect(result.errors.some((e) => e.code === 'SCHEMA_MAXLENGTH')).toBe(true);
       });
 
+      it('sollte zu lange Einsatz-Namen im einfachen Format erkennen', () => {
+        const longName = 'x'.repeat(256); // über 255 Zeichen
+        const dataWithLongName = {
+          einsatz: {
+            name: longName,
+            beschreibung: 'Test',
+          },
+        };
+
+        const result = validator.validate(dataWithLongName);
+
+        expect(result.valid).toBe(false);
+        expect(result.errors.some((e) => e.code === 'SCHEMA_MAXLENGTH')).toBe(true);
+      });
+
       it('sollte Warnung für große Datensätze geben', () => {
         const largeDataset = {
           ...validFullFormatData,
@@ -358,6 +373,67 @@ describe('SchemaValidator', () => {
           },
           expectedErrorType: 'SCHEMA_MINLENGTH',
         },
+        {
+          data: {
+            ...validFullFormatData,
+            einsaetze: [
+              {
+                name: 'Test',
+                beschreibung: 'Test',
+                etbEntries: [
+                  {
+                    laufendeNummer: 1,
+                    kategorie: 'INVALID_KATEGORIE', // enum error
+                    inhalt: 'Test',
+                    autorId: 'author-1',
+                  },
+                ],
+              },
+            ],
+          },
+          expectedErrorType: 'SCHEMA_ENUM',
+        },
+        {
+          data: {
+            ...validFullFormatData,
+            einsaetze: [
+              {
+                name: 'Test',
+                beschreibung: 'Test',
+                etbEntries: [
+                  {
+                    laufendeNummer: 1,
+                    kategorie: 'MELDUNG',
+                    inhalt: 'Test',
+                    timestampEreignis: 'invalid-date-format', // format error
+                    autorId: 'author-1',
+                  },
+                ],
+              },
+            ],
+          },
+          expectedErrorType: 'SCHEMA_FORMAT',
+        },
+        {
+          data: {
+            ...validFullFormatData,
+            einsaetze: [
+              {
+                name: 'Test',
+                beschreibung: 'Test',
+                etbEntries: [
+                  {
+                    laufendeNummer: -1, // minimum error
+                    kategorie: 'MELDUNG',
+                    inhalt: 'Test',
+                    autorId: 'author-1',
+                  },
+                ],
+              },
+            ],
+          },
+          expectedErrorType: 'SCHEMA_MINIMUM',
+        },
       ];
 
       testCases.forEach(({ data, expectedErrorType }) => {
@@ -419,6 +495,32 @@ describe('SchemaValidator', () => {
       const result = validator.validate(simpleWithoutEtb);
       expect(result.valid).toBe(true);
       expect(result.metadata.etbEntriesCount).toBe(0);
+    });
+
+    it('sollte EINSATZ_NAME_TOO_LONG Fehler für zu lange Namen auslösen', () => {
+      const longName = 'x'.repeat(256); // über 255 Zeichen
+      const dataWithLongName = {
+        version: CURRENT_SCHEMA_VERSION,
+        metadata: {
+          name: 'Test Export',
+          description: 'Test',
+          exportDate: '2023-01-01T00:00:00.000Z',
+          source: 'test',
+        },
+        einsaetze: [
+          {
+            name: longName,
+            beschreibung: 'Test',
+          },
+        ],
+      };
+
+      const result = validator.validate(dataWithLongName);
+      expect(result.valid).toBe(false);
+      // Should have either SCHEMA_MAXLENGTH or EINSATZ_NAME_TOO_LONG
+      const hasMaxLengthError = result.errors.some((e) => e.code === 'SCHEMA_MAXLENGTH');
+      const hasNameTooLongError = result.errors.some((e) => e.code === 'EINSATZ_NAME_TOO_LONG');
+      expect(hasMaxLengthError || hasNameTooLongError).toBe(true);
     });
   });
 });

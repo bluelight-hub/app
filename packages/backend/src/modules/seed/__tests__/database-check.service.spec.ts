@@ -205,6 +205,18 @@ describe('DatabaseCheckService', () => {
       expect(result).toBe(0);
     });
 
+    it('sollte 0 zurückgeben wenn Query result leer ist', async () => {
+      // Arrange
+      const tableName = 'test_table';
+      (prismaService.$queryRaw as jest.Mock).mockResolvedValue([]);
+
+      // Act
+      const result = await service.countRecords(tableName);
+
+      // Assert
+      expect(result).toBe(0);
+    });
+
     it('sollte -1 zurückgeben und Fehler loggen bei Datenbankfehler', async () => {
       // Arrange
       const tableName = 'test_table';
@@ -311,6 +323,17 @@ describe('DatabaseCheckService', () => {
     it('sollte true zurückgeben wenn count nicht parseable ist', async () => {
       // Arrange
       (prismaService.$queryRaw as jest.Mock).mockResolvedValue([{ count: 'not-a-number' }]);
+
+      // Act
+      const result = await service.isDatabaseEmpty();
+
+      // Assert
+      expect(result).toBe(true);
+    });
+
+    it('sollte true zurückgeben wenn Query result leer ist', async () => {
+      // Arrange
+      (prismaService.$queryRaw as jest.Mock).mockResolvedValue([]);
 
       // Act
       const result = await service.isDatabaseEmpty();
