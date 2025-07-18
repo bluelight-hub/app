@@ -1,5 +1,6 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { ForbiddenException, HttpStatus } from '@nestjs/common';
+import { ForbiddenException } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { SecurityController } from './security.controller';
 import { SecurityMetricsService } from '../services/security-metrics.service';
 import { SecurityLogService } from '../services/security-log.service';
@@ -17,6 +18,8 @@ describe('SecurityController', () => {
     sub: 'user-id',
     email: 'admin@example.com',
     roles: [UserRole.SUPER_ADMIN],
+    permissions: [],
+    sessionId: 'session-id',
     iat: Date.now() / 1000,
     exp: Date.now() / 1000 + 3600,
     jti: 'jwt-id',
@@ -54,6 +57,12 @@ describe('SecurityController', () => {
           provide: AuthService,
           useValue: mockAuthService,
         },
+        {
+          provide: ConfigService,
+          useValue: {
+            get: jest.fn().mockReturnValue(''),
+          },
+        },
       ],
     }).compile();
 
@@ -67,9 +76,28 @@ describe('SecurityController', () => {
   describe('getDashboardMetrics', () => {
     it('should return dashboard metrics', async () => {
       const mockMetrics = {
-        failedLogins: 10,
-        accountLockouts: 2,
-        suspiciousActivities: 5,
+        summary: {
+          failedLogins: {
+            last24Hours: 10,
+            last7Days: 50,
+            trend: -20,
+          },
+          accountLockouts: {
+            last24Hours: 2,
+            last7Days: 8,
+            trend: 10,
+          },
+          suspiciousActivities: {
+            last24Hours: 5,
+            last7Days: 20,
+            trend: 15,
+          },
+        },
+        details: {
+          topFailedLoginIps: [{ ip: '192.168.1.1', count: 5 }],
+          topLockedUsers: [{ userId: 'user-123', count: 2 }],
+          suspiciousActivityTypes: [{ type: 'rapid_requests', count: 3 }],
+        },
       };
       mockSecurityMetricsService.getDashboardMetrics.mockResolvedValue(mockMetrics);
 
@@ -82,7 +110,12 @@ describe('SecurityController', () => {
 
   describe('getFailedLoginMetrics', () => {
     it('should return failed login metrics without date range', async () => {
-      const mockMetrics = { totalFailures: 50, uniqueIps: 20 };
+      const mockMetrics = {
+        total: 50,
+        byIp: [{ ip: '192.168.1.1', count: 10 }],
+        byUser: [{ userId: 'user-123', count: 5 }],
+        byHour: [{ hour: '2024-01-01T10', count: 3 }],
+      };
       mockSecurityMetricsService.getFailedLoginMetrics.mockResolvedValue(mockMetrics);
 
       const result = await controller.getFailedLoginMetrics();
@@ -95,7 +128,12 @@ describe('SecurityController', () => {
     });
 
     it('should return failed login metrics with date range', async () => {
-      const mockMetrics = { totalFailures: 25, uniqueIps: 10 };
+      const mockMetrics = {
+        total: 25,
+        byIp: [{ ip: '192.168.1.1', count: 5 }],
+        byUser: [{ userId: 'user-123', count: 3 }],
+        byHour: [{ hour: '2024-01-01T10', count: 2 }],
+      };
       mockSecurityMetricsService.getFailedLoginMetrics.mockResolvedValue(mockMetrics);
 
       const startDate = '2024-01-01';
@@ -110,7 +148,12 @@ describe('SecurityController', () => {
     });
 
     it('should handle invalid date format gracefully', async () => {
-      const mockMetrics = { totalFailures: 0, uniqueIps: 0 };
+      const mockMetrics = {
+        total: 0,
+        byIp: [],
+        byUser: [],
+        byHour: [],
+      };
       mockSecurityMetricsService.getFailedLoginMetrics.mockResolvedValue(mockMetrics);
 
       const result = await controller.getFailedLoginMetrics('invalid-date', 'also-invalid');
@@ -122,7 +165,11 @@ describe('SecurityController', () => {
 
   describe('getAccountLockoutMetrics', () => {
     it('should return account lockout metrics without date range', async () => {
-      const mockMetrics = { totalLockouts: 5, affectedUsers: 5 };
+      const mockMetrics = {
+        total: 5,
+        byReason: [{ reason: 'too_many_attempts', count: 3 }],
+        byUser: [{ userId: 'user-123', count: 2 }],
+      };
       mockSecurityMetricsService.getAccountLockoutMetrics.mockResolvedValue(mockMetrics);
 
       const result = await controller.getAccountLockoutMetrics();
@@ -135,7 +182,11 @@ describe('SecurityController', () => {
     });
 
     it('should return account lockout metrics with date range', async () => {
-      const mockMetrics = { totalLockouts: 3, affectedUsers: 3 };
+      const mockMetrics = {
+        total: 3,
+        byReason: [{ reason: 'too_many_attempts', count: 2 }],
+        byUser: [{ userId: 'user-123', count: 1 }],
+      };
       mockSecurityMetricsService.getAccountLockoutMetrics.mockResolvedValue(mockMetrics);
 
       const startDate = '2024-01-01';
@@ -152,7 +203,11 @@ describe('SecurityController', () => {
 
   describe('getSuspiciousActivityMetrics', () => {
     it('should return suspicious activity metrics without date range', async () => {
-      const mockMetrics = { totalActivities: 15, uniqueSources: 8 };
+      const mockMetrics = {
+        total: 15,
+        byType: [{ type: 'rapid_requests', count: 10 }],
+        byIp: [{ ip: '192.168.1.1', count: 5 }],
+      };
       mockSecurityMetricsService.getSuspiciousActivityMetrics.mockResolvedValue(mockMetrics);
 
       const result = await controller.getSuspiciousActivityMetrics();
@@ -165,7 +220,11 @@ describe('SecurityController', () => {
     });
 
     it('should return suspicious activity metrics with date range', async () => {
-      const mockMetrics = { totalActivities: 8, uniqueSources: 4 };
+      const mockMetrics = {
+        total: 8,
+        byType: [{ type: 'rapid_requests', count: 5 }],
+        byIp: [{ ip: '192.168.1.1', count: 3 }],
+      };
       mockSecurityMetricsService.getSuspiciousActivityMetrics.mockResolvedValue(mockMetrics);
 
       const startDate = '2024-01-01';
@@ -183,8 +242,40 @@ describe('SecurityController', () => {
   describe('getSecurityLogs', () => {
     it('should return security logs without filters', async () => {
       const mockLogs = [
-        { id: '1', eventType: SecurityEventType.LOGIN_FAILED, timestamp: new Date() },
-        { id: '2', eventType: SecurityEventType.ACCOUNT_LOCKED, timestamp: new Date() },
+        {
+          id: '1',
+          eventType: SecurityEventType.LOGIN_FAILED,
+          severity: 'medium',
+          createdAt: new Date(),
+          userId: 'user-123',
+          ipAddress: '192.168.1.1',
+          userAgent: 'Mozilla/5.0',
+          sessionId: 'session-123',
+          message: 'Login failed',
+          metadata: {},
+          user: {
+            id: 'user-123',
+            email: 'user@example.com',
+            role: UserRole.USER,
+          },
+        },
+        {
+          id: '2',
+          eventType: SecurityEventType.ACCOUNT_LOCKED,
+          severity: 'high',
+          createdAt: new Date(),
+          userId: 'user-456',
+          ipAddress: '192.168.1.2',
+          userAgent: 'Mozilla/5.0',
+          sessionId: 'session-456',
+          message: 'Account locked',
+          metadata: {},
+          user: {
+            id: 'user-456',
+            email: 'user2@example.com',
+            role: UserRole.USER,
+          },
+        },
       ];
       mockSecurityLogService.getSecurityLogs.mockResolvedValue(mockLogs);
 
@@ -203,7 +294,23 @@ describe('SecurityController', () => {
 
     it('should return security logs with all filters', async () => {
       const mockLogs = [
-        { id: '1', eventType: SecurityEventType.LOGIN_FAILED, timestamp: new Date() },
+        {
+          id: '1',
+          eventType: SecurityEventType.LOGIN_FAILED,
+          severity: 'medium',
+          createdAt: new Date(),
+          userId: 'user-123',
+          ipAddress: '192.168.1.1',
+          userAgent: 'Mozilla/5.0',
+          sessionId: 'session-123',
+          message: 'Login failed',
+          metadata: {},
+          user: {
+            id: 'user-123',
+            email: 'user@example.com',
+            role: UserRole.USER,
+          },
+        },
       ];
       mockSecurityLogService.getSecurityLogs.mockResolvedValue(mockLogs);
 

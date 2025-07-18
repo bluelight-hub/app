@@ -313,7 +313,7 @@ describe('IpHoppingRule', () => {
         },
         recentEvents: [
           {
-            timestamp: new Date(Date.now() - 30 * 60 * 1000), // 30 minutes ago
+            timestamp: new Date(Date.now() - 5 * 60 * 1000), // 5 minutes ago
             eventType: SecurityEventType.LOGIN_SUCCESS,
             ipAddress: '192.168.1.1',
             metadata: {

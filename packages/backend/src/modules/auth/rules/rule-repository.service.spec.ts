@@ -317,9 +317,6 @@ describe('RuleRepositoryService', () => {
 
   describe('onModuleInit', () => {
     it('should load all rules on module init without hot reload', async () => {
-      const mockConfigService = {
-        get: jest.fn().mockReturnValue(false),
-      };
       jest.spyOn(service, 'loadAllRules').mockResolvedValue();
 
       await service.onModuleInit();
@@ -381,7 +378,8 @@ describe('RuleRepositoryService', () => {
         ],
       }).compile();
 
-      const serviceWithHotReload = moduleWithHotReload.get<RuleRepositoryService>(RuleRepositoryService);
+      const serviceWithHotReload =
+        moduleWithHotReload.get<RuleRepositoryService>(RuleRepositoryService);
       jest.spyOn(serviceWithHotReload, 'loadAllRules').mockResolvedValue();
 
       await serviceWithHotReload.onModuleInit();
@@ -572,7 +570,10 @@ describe('RuleRepositoryService', () => {
 
     it('should skip rules that fail validation', async () => {
       const invalidRule = { ...mockPrismaRule, id: 'invalid-rule' };
-      (prisma.threatDetectionRule.findMany as jest.Mock).mockResolvedValue([mockPrismaRule, invalidRule]);
+      (prisma.threatDetectionRule.findMany as jest.Mock).mockResolvedValue([
+        mockPrismaRule,
+        invalidRule,
+      ]);
 
       const validRuleInstance = {
         id: 'rule-1',
@@ -584,7 +585,8 @@ describe('RuleRepositoryService', () => {
       };
 
       // Mock createRuleFromDbRecord to return valid rule for first call, null for second (failed validation)
-      jest.spyOn(service as any, 'createRuleFromDbRecord')
+      jest
+        .spyOn(service as any, 'createRuleFromDbRecord')
         .mockResolvedValueOnce(validRuleInstance)
         .mockResolvedValueOnce(null); // Simulating validation failure by returning null
 
