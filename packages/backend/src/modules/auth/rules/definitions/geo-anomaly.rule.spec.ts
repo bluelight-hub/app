@@ -137,6 +137,9 @@ describe('GeoAnomalyRule', () => {
           config: {
             allowedCountries: ['US', 'CA', 'UK'],
             blockedCountries: [],
+            checkNewCountry: true,
+            userPatternLearning: true,
+            learningPeriodDays: 30,
           },
         });
       });
@@ -186,16 +189,12 @@ describe('GeoAnomalyRule', () => {
           metadata: { location: 'Paris, France', country: 'FR' },
           recentEvents: [
             {
-              id: '1',
-              userId: 'user123',
               ipAddress: '192.168.1.1',
               timestamp: new Date(now.getTime() - 5 * 24 * 60 * 60 * 1000), // 5 days ago
               eventType: SecurityEventType.LOGIN_SUCCESS,
               metadata: { country: 'US' },
             },
             {
-              id: '2',
-              userId: 'user123',
               ipAddress: '192.168.1.2',
               timestamp: new Date(now.getTime() - 10 * 24 * 60 * 60 * 1000), // 10 days ago
               eventType: SecurityEventType.LOGIN_SUCCESS,
@@ -214,6 +213,7 @@ describe('GeoAnomalyRule', () => {
           newCountry: 'FR',
           knownCountries: ['US', 'CA'],
           userId: 'user123',
+          hasRecentActivity: true,
         });
         expect(result.suggestedActions).toEqual(['REQUIRE_2FA']);
       });
@@ -228,8 +228,6 @@ describe('GeoAnomalyRule', () => {
           metadata: { location: 'New York, US', country: 'US' },
           recentEvents: [
             {
-              id: '1',
-              userId: 'user123',
               ipAddress: '192.168.1.1',
               timestamp: new Date(now.getTime() - 5 * 24 * 60 * 60 * 1000),
               eventType: SecurityEventType.LOGIN_SUCCESS,
@@ -252,8 +250,6 @@ describe('GeoAnomalyRule', () => {
           metadata: { location: 'Paris, France', country: 'FR' },
           recentEvents: [
             {
-              id: '1',
-              userId: 'user123',
               ipAddress: '192.168.1.1',
               timestamp: new Date(now.getTime() - 35 * 24 * 60 * 60 * 1000), // 35 days ago (outside 30-day period)
               eventType: SecurityEventType.LOGIN_SUCCESS,
@@ -270,6 +266,8 @@ describe('GeoAnomalyRule', () => {
         rule = new GeoAnomalyRule({
           config: {
             checkNewCountry: false,
+            userPatternLearning: true,
+            learningPeriodDays: 30,
           },
         });
 
@@ -310,8 +308,6 @@ describe('GeoAnomalyRule', () => {
           metadata: { location: 'Paris, France', country: 'FR' },
           recentEvents: [
             {
-              id: '1',
-              userId: 'user123',
               ipAddress: '192.168.1.1',
               timestamp: new Date(now.getTime() - 5 * 24 * 60 * 60 * 1000),
               eventType: SecurityEventType.LOGIN_SUCCESS,

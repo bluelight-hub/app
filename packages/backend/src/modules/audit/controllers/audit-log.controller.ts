@@ -31,6 +31,13 @@ import {
 } from '../dto';
 import { AuditLogEntity } from '../entities';
 
+/**
+ * Controller für die Verwaltung von Audit-Logs
+ *
+ * Bietet Endpunkte für das Erstellen, Abfragen, Exportieren und
+ * Verwalten von Audit-Logs. Unterstützt Batch-Operationen und
+ * umfangreiche Filteroptionen für die Compliance-Überwachung.
+ */
 @ApiTags('Audit Logs')
 @ApiBearerAuth()
 @Controller('audit/logs')

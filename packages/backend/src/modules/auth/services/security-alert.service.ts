@@ -29,6 +29,13 @@ export interface SecurityAlertPayload {
   };
 }
 
+/**
+ * Service zur Verwaltung und Versendung von Sicherheitswarnungen
+ *
+ * Dieser Service überwacht sicherheitsrelevante Ereignisse und sendet
+ * Warnungen über Webhooks an externe Systeme. Unterstützt Retry-Logik
+ * und Circuit Breaker Pattern für robuste Kommunikation.
+ */
 @Injectable()
 export class SecurityAlertService {
   private readonly logger = new Logger(SecurityAlertService.name);
@@ -78,6 +85,9 @@ export class SecurityAlertService {
 
   /**
    * Sendet einen Security Alert via Webhook mit Retry und Circuit Breaker
+   *
+   * @param payload - Die zu sendenden Alert-Daten
+   * @returns Promise<void>
    */
   async sendAlert(payload: SecurityAlertPayload): Promise<void> {
     if (!this.alertsEnabled || !this.webhookUrl) {
@@ -148,6 +158,13 @@ export class SecurityAlertService {
 
   /**
    * Sendet einen Alert für einen gesperrten Account
+   *
+   * @param email - E-Mail-Adresse des gesperrten Accounts
+   * @param userId - Benutzer-ID (optional)
+   * @param lockedUntil - Zeitpunkt bis zu dem der Account gesperrt ist
+   * @param failedAttempts - Anzahl der fehlgeschlagenen Versuche
+   * @param ipAddress - IP-Adresse des letzten Versuchs (optional)
+   * @returns Promise<void>
    */
   async sendAccountLockedAlert(
     email: string,
@@ -175,6 +192,14 @@ export class SecurityAlertService {
 
   /**
    * Sendet einen Alert für einen verdächtigen Login-Versuch
+   *
+   * @param email - E-Mail-Adresse des verdächtigen Logins
+   * @param userId - Benutzer-ID (optional)
+   * @param ipAddress - IP-Adresse des Login-Versuchs
+   * @param userAgent - User-Agent String
+   * @param riskScore - Berechneter Risiko-Score (0-100)
+   * @param reason - Grund für die Verdachtsmarkierung
+   * @returns Promise<void>
    */
   async sendSuspiciousLoginAlert(
     email: string,

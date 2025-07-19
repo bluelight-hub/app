@@ -2,7 +2,7 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { ThreatRuleController } from './threat-rule.controller';
 import { RuleRepositoryService } from '../rules/rule-repository.service';
 import { RuleEngineService } from '../rules/rule-engine.service';
-import { ThreatSeverity, RuleStatus } from '../rules/rule.interface';
+import { ThreatSeverity, RuleStatus, ConditionType } from '../rules/rule.interface';
 import { SecurityEventType } from '../enums/security-event-type.enum';
 import {
   CreateThreatRuleDto,
@@ -97,9 +97,10 @@ describe('ThreatRuleController', () => {
       const createDto: CreateThreatRuleDto = {
         name: 'New Rule',
         description: 'Test rule',
-        ruleType: 'pattern',
+        conditionType: ConditionType.PATTERN,
         severity: ThreatSeverity.HIGH,
         config: {},
+        tags: [],
       };
       ruleRepository.createRule.mockResolvedValue('new-rule-id');
 
@@ -185,8 +186,6 @@ describe('ThreatRuleController', () => {
         },
         recentEvents: [
           {
-            id: 'event1',
-            userId: 'user123',
             ipAddress: '192.168.1.1',
             timestamp: new Date(),
             eventType: SecurityEventType.LOGIN_FAILED,
@@ -197,7 +196,7 @@ describe('ThreatRuleController', () => {
 
       ruleEngine.getRule.mockReturnValue(mockRule as any);
 
-      await controller.testRule(testDto);
+      const result = await controller.testRule(testDto);
 
       expect(result).toMatchObject({
         ruleId: 'rule1',
@@ -269,10 +268,12 @@ describe('ThreatRuleController', () => {
   describe('getEngineMetrics', () => {
     it('should return engine metrics', async () => {
       const mockMetrics = {
-        rulesLoaded: 10,
-        evaluationsPerformed: 1000,
-        averageExecutionTime: 5.2,
-        lastEvaluationTime: new Date(),
+        totalRules: 10,
+        activeRules: 8,
+        totalExecutions: 1000,
+        totalMatches: 250,
+        matchRate: 25,
+        ruleStats: {},
       };
       ruleEngine.getMetrics.mockReturnValue(mockMetrics);
 
@@ -286,12 +287,10 @@ describe('ThreatRuleController', () => {
   describe('getRuleStatistics', () => {
     it('should return statistics for a specific rule', async () => {
       const mockStats = {
-        ruleId: 'rule1',
-        evaluationCount: 100,
-        matchCount: 25,
-        matchRate: 0.25,
-        averageScore: 75,
-        lastMatch: new Date(),
+        executions: 100,
+        matches: 25,
+        lastExecution: new Date(),
+        averageExecutionTime: 5.2,
       };
       ruleEngine.getRuleStats.mockReturnValue(mockStats);
 

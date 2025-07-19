@@ -17,8 +17,8 @@ describe('SecurityController', () => {
   const mockUser: JWTPayload = {
     sub: 'user-id',
     email: 'admin@example.com',
-    roles: [UserRole.SUPER_ADMIN],
     permissions: [],
+    roles: [UserRole.SUPER_ADMIN],
     sessionId: 'session-id',
     iat: Date.now() / 1000,
     exp: Date.now() / 1000 + 3600,
@@ -122,8 +122,8 @@ describe('SecurityController', () => {
 
       expect(result).toEqual(mockMetrics);
       expect(mockSecurityMetricsService.getFailedLoginMetrics).toHaveBeenCalledWith({
-        start: undefined,
-        end: undefined,
+        start: expect.any(Date),
+        end: expect.any(Date),
       });
     });
 
@@ -176,8 +176,8 @@ describe('SecurityController', () => {
 
       expect(result).toEqual(mockMetrics);
       expect(mockSecurityMetricsService.getAccountLockoutMetrics).toHaveBeenCalledWith({
-        start: undefined,
-        end: undefined,
+        start: expect.any(Date),
+        end: expect.any(Date),
       });
     });
 
@@ -214,8 +214,8 @@ describe('SecurityController', () => {
 
       expect(result).toEqual(mockMetrics);
       expect(mockSecurityMetricsService.getSuspiciousActivityMetrics).toHaveBeenCalledWith({
-        start: undefined,
-        end: undefined,
+        start: expect.any(Date),
+        end: expect.any(Date),
       });
     });
 

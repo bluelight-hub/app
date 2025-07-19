@@ -7,6 +7,12 @@ import { Permission } from '../types/jwt.types';
 import { LoginAttemptService } from '../services/login-attempt.service';
 import { LoginAttemptDto, LoginAttemptStatsDto } from '../dto/login-attempt.dto';
 
+/**
+ * Controller zur Verwaltung von Login-Versuchen
+ *
+ * Bietet Endpunkte für Login-Statistiken, Überwachung von fehlgeschlagenen
+ * Versuchen und Verwaltung von gesperrten Accounts.
+ */
 @ApiTags('auth/login-attempts')
 @Controller('auth/login-attempts')
 @UseGuards(JwtAuthGuard)

@@ -12,6 +12,7 @@ import {
 import { SecurityEventType } from '../enums/security-event-type.enum';
 import { SecurityAlertService, SecurityAlertType } from '../services/security-alert.service';
 import { SecurityLogService } from '../services/security-log.service';
+import { PrismaService } from '@/prisma/prisma.service';
 
 describe('RuleEngineService', () => {
   let service: RuleEngineService;
@@ -37,6 +38,14 @@ describe('RuleEngineService', () => {
           provide: SecurityLogService,
           useValue: {
             logSecurityEvent: jest.fn(),
+          },
+        },
+        {
+          provide: PrismaService,
+          useValue: {
+            loginAttempt: {
+              findMany: jest.fn().mockResolvedValue([]),
+            },
           },
         },
       ],

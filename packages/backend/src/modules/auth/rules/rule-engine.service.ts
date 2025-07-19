@@ -1,5 +1,5 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { EventEmitter2 } from '@nestjs/event-emitter';
+import { EventEmitter2, OnEvent } from '@nestjs/event-emitter';
 import {
   RuleContext,
   RuleEvaluationResult,
@@ -9,6 +9,7 @@ import {
 import { SecurityAlertService, SecurityAlertType } from '../services/security-alert.service';
 import { SecurityLogService } from '../services/security-log.service';
 import { SecurityEventType } from '../enums/security-event-type.enum';
+import { PrismaService } from '@/prisma/prisma.service';
 
 /**
  * Service zur Verwaltung und Ausführung von Threat Detection Rules
@@ -31,6 +32,7 @@ export class RuleEngineService {
     private readonly eventEmitter: EventEmitter2,
     private readonly securityAlertService: SecurityAlertService,
     private readonly securityLogService: SecurityLogService,
+    private readonly prisma: PrismaService,
   ) {}
 
   /**
@@ -134,7 +136,12 @@ export class RuleEngineService {
   }
 
   /**
-   * Verarbeitet eine gematchte Regel
+   * Verarbeitet eine gematchte Regel und führt entsprechende Aktionen aus
+   *
+   * @param rule - Die gematchte Regel
+   * @param context - Der Sicherheitskontext
+   * @param result - Das Evaluierungsergebnis
+   * @private
    */
   private async handleMatchedRule(
     rule: ThreatDetectionRule,
@@ -156,6 +163,11 @@ export class RuleEngineService {
 
   /**
    * Sendet einen Security Alert für eine gematchte Regel
+   *
+   * @param rule - Die gematchte Regel
+   * @param context - Der Sicherheitskontext
+   * @param result - Das Evaluierungsergebnis
+   * @private
    */
   private async sendSecurityAlert(
     rule: ThreatDetectionRule,
@@ -357,5 +369,99 @@ export class RuleEngineService {
       matchRate: totalExecutions > 0 ? (totalMatches / totalExecutions) * 100 : 0,
       ruleStats: stats,
     };
+  }
+
+  /**
+   * Event-Listener für Login-Versuche
+   */
+  @OnEvent('login.attempt')
+  async handleLoginAttempt(event: {
+    userId?: string;
+    email: string;
+    ipAddress: string;
+    userAgent?: string;
+    success: boolean;
+    eventType: SecurityEventType;
+    metadata?: Record<string, any>;
+    timestamp: Date;
+  }): Promise<void> {
+    try {
+      // Prepare recent events for context
+      const lookbackMinutes = 60; // 1 hour lookback
+      const recentEvents = await this.getRecentSecurityEvents(
+        event.userId,
+        event.email,
+        event.ipAddress,
+        lookbackMinutes,
+      );
+
+      // Build rule context
+      const context: RuleContext = {
+        userId: event.userId,
+        email: event.email,
+        ipAddress: event.ipAddress,
+        userAgent: event.userAgent,
+        timestamp: event.timestamp,
+        eventType: event.eventType,
+        metadata: event.metadata,
+        recentEvents,
+      };
+
+      // Evaluate rules
+      const results = await this.evaluateRules(context);
+
+      // Log evaluation results
+      if (results.length > 0) {
+        this.logger.warn(`Threat detection rules matched for ${event.email}:`, {
+          matchedRules: results.length,
+          severities: results.map((r) => r.severity),
+        });
+      }
+    } catch (error) {
+      this.logger.error('Failed to evaluate threat detection rules', error);
+      // Don't throw - rule evaluation should not break login flow
+    }
+  }
+
+  /**
+   * Holt die letzten Security Events für Rule-Kontext
+   */
+  private async getRecentSecurityEvents(
+    userId: string | undefined,
+    email: string | undefined,
+    ipAddress: string | undefined,
+    lookbackMinutes: number,
+  ): Promise<RuleContext['recentEvents']> {
+    const cutoffTime = new Date(Date.now() - lookbackMinutes * 60 * 1000);
+
+    // Get recent login attempts
+    const recentAttempts = await this.prisma.loginAttempt.findMany({
+      where: {
+        OR: [{ userId }, { email }, { ipAddress }].filter(Boolean),
+        attemptAt: {
+          gte: cutoffTime,
+        },
+      },
+      orderBy: { attemptAt: 'desc' },
+      take: 100, // Limit to prevent memory issues
+    });
+
+    // Convert to rule context format
+    return recentAttempts.map((attempt) => ({
+      eventType: attempt.success ? SecurityEventType.LOGIN_SUCCESS : SecurityEventType.LOGIN_FAILED,
+      timestamp: attempt.attemptAt,
+      ipAddress: attempt.ipAddress || undefined,
+      success: attempt.success,
+      metadata: {
+        email: attempt.email,
+        userId: attempt.userId,
+        deviceType: attempt.deviceType,
+        browser: attempt.browser,
+        os: attempt.os,
+        location: attempt.location,
+        riskScore: attempt.riskScore,
+        ...((attempt.metadata as any) || {}),
+      },
+    }));
   }
 }

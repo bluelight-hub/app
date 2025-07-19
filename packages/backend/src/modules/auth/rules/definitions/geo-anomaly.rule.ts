@@ -58,6 +58,12 @@ export class GeoAnomalyRule implements GeoBasedRule {
     };
   }
 
+  /**
+   * Evaluiert die geografische Anomalie-Regel
+   *
+   * @param context - Der Kontext der zu evaluierenden Sicherheitsaktion
+   * @returns Das Evaluierungsergebnis mit Übereinstimmung, Schweregrad und Details
+   */
   async evaluate(context: RuleContext): Promise<RuleEvaluationResult> {
     if (context.eventType !== SecurityEventType.LOGIN_SUCCESS) {
       return { matched: false };
@@ -103,6 +109,14 @@ export class GeoAnomalyRule implements GeoBasedRule {
     return { matched: false };
   }
 
+  /**
+   * Prüft, ob ein Benutzer sich aus einem neuen Land anmeldet
+   *
+   * @param context - Der Sicherheitskontext mit historischen Ereignissen
+   * @param currentCountry - Das aktuelle Land des Login-Versuchs
+   * @returns Evaluierungsergebnis wenn neues Land erkannt wird
+   * @private
+   */
   private async checkNewCountryForUser(
     context: RuleContext,
     currentCountry: string,
@@ -112,12 +126,47 @@ export class GeoAnomalyRule implements GeoBasedRule {
     );
 
     const userCountries = new Set<string>();
+    let hasRecentEvents = false;
+    let hasCountryData = false;
+
     context.recentEvents?.forEach((event) => {
-      if (event.timestamp >= learningCutoff && (event.metadata as any)?.country) {
-        userCountries.add((event.metadata as any).country);
+      if (event.timestamp >= learningCutoff) {
+        hasRecentEvents = true;
+        if ((event.metadata as any)?.country) {
+          userCountries.add((event.metadata as any).country);
+          hasCountryData = true;
+        }
       }
     });
 
+    // If we have recent events but no country data, we can't make a determination
+    if (hasRecentEvents && !hasCountryData) {
+      return { matched: false };
+    }
+
+    // If we have no recent events, we can't determine if it's a new country
+    if (!context.recentEvents || context.recentEvents.length === 0) {
+      return { matched: false };
+    }
+
+    // If we have no recent events within the learning period, it's a period of inactivity
+    if (!hasRecentEvents) {
+      return {
+        matched: true,
+        severity: ThreatSeverity.MEDIUM,
+        score: 65,
+        reason: `First login after ${this.config.learningPeriodDays} days of inactivity from country: ${currentCountry}`,
+        evidence: {
+          newCountry: currentCountry,
+          knownCountries: Array.from(userCountries),
+          userId: context.userId,
+          hasRecentActivity: false,
+        },
+        suggestedActions: ['REQUIRE_2FA'],
+      };
+    }
+
+    // If it's a new country (we have history but not from this country)
     if (userCountries.size > 0 && !userCountries.has(currentCountry)) {
       return {
         matched: true,
@@ -128,6 +177,7 @@ export class GeoAnomalyRule implements GeoBasedRule {
           newCountry: currentCountry,
           knownCountries: Array.from(userCountries),
           userId: context.userId,
+          hasRecentActivity: true,
         },
         suggestedActions: ['REQUIRE_2FA'],
       };
@@ -136,10 +186,20 @@ export class GeoAnomalyRule implements GeoBasedRule {
     return { matched: false };
   }
 
+  /**
+   * Validiert die Regel-Konfiguration
+   *
+   * @returns true wenn die Konfiguration gültig ist
+   */
   validate(): boolean {
     return this.config.learningPeriodDays > 0;
   }
 
+  /**
+   * Gibt die Beschreibung der Regel zurück
+   *
+   * @returns Beschreibung der Regel
+   */
   getDescription(): string {
     return `Detects geographic anomalies including blocked countries, unusual locations, and new countries for users`;
   }

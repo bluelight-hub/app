@@ -1,7 +1,7 @@
 import { Injectable, Logger, OnModuleInit } from '@nestjs/common';
 import { PrismaService } from '@/prisma/prisma.service';
 import { ConfigService } from '@nestjs/config';
-import { ThreatDetectionRule, RuleStatus, ThreatSeverity, ConditionType } from './rule.interface';
+import { ConditionType, RuleStatus, ThreatDetectionRule, ThreatSeverity } from './rule.interface';
 import { RuleEngineService } from './rule-engine.service';
 
 /**
@@ -21,6 +21,9 @@ export class RuleRepositoryService implements OnModuleInit {
     this.enableHotReload = this.configService.get<boolean>('THREAT_RULES_HOT_RELOAD', false);
   }
 
+  /**
+   * Initialisiert das Modul und lädt alle Regeln
+   */
   async onModuleInit() {
     await this.loadAllRules();
 
@@ -191,9 +194,33 @@ export class RuleRepositoryService implements OnModuleInit {
   }
 
   /**
+   * Holt Regel-Statistiken
+   */
+  async getRuleStatistics(): Promise<any> {
+    const rules = await this.prisma.threatDetectionRule.findMany();
+    const engineMetrics = this.ruleEngineService.getMetrics();
+
+    return {
+      totalRules: rules.length,
+      rulesByStatus: {
+        active: rules.filter((r) => r.status === RuleStatus.ACTIVE).length,
+        inactive: rules.filter((r) => r.status === RuleStatus.INACTIVE).length,
+        testing: rules.filter((r) => r.status === RuleStatus.TESTING).length,
+      },
+      rulesBySeverity: {
+        low: rules.filter((r) => r.severity === ThreatSeverity.LOW).length,
+        medium: rules.filter((r) => r.severity === ThreatSeverity.MEDIUM).length,
+        high: rules.filter((r) => r.severity === ThreatSeverity.HIGH).length,
+        critical: rules.filter((r) => r.severity === ThreatSeverity.CRITICAL).length,
+      },
+      engineMetrics,
+    };
+  }
+
+  /**
    * Erstellt eine Regel-Instanz aus einem Datenbank-Record
    */
-  private async createRuleFromDbRecord(dbRule: any): Promise<ThreatDetectionRule | null> {
+  private async createRuleFromDbRecord(dbRule: Partial<any>): Promise<ThreatDetectionRule | null> {
     try {
       const RuleClass = await this.getRuleClass(dbRule.conditionType);
       if (!RuleClass) {
@@ -324,29 +351,5 @@ export class RuleRepositoryService implements OnModuleInit {
         this.ruleCache.delete(ruleId);
       }
     }
-  }
-
-  /**
-   * Holt Regel-Statistiken
-   */
-  async getRuleStatistics(): Promise<any> {
-    const rules = await this.prisma.threatDetectionRule.findMany();
-    const engineMetrics = this.ruleEngineService.getMetrics();
-
-    return {
-      totalRules: rules.length,
-      rulesByStatus: {
-        active: rules.filter((r) => r.status === RuleStatus.ACTIVE).length,
-        inactive: rules.filter((r) => r.status === RuleStatus.INACTIVE).length,
-        testing: rules.filter((r) => r.status === RuleStatus.TESTING).length,
-      },
-      rulesBySeverity: {
-        low: rules.filter((r) => r.severity === ThreatSeverity.LOW).length,
-        medium: rules.filter((r) => r.severity === ThreatSeverity.MEDIUM).length,
-        high: rules.filter((r) => r.severity === ThreatSeverity.HIGH).length,
-        critical: rules.filter((r) => r.severity === ThreatSeverity.CRITICAL).length,
-      },
-      engineMetrics,
-    };
   }
 }
