@@ -141,7 +141,7 @@ describe('AuthModule', () => {
       const imports = Reflect.getMetadata('imports', AuthModule);
       expect(imports).toBeDefined();
       expect(Array.isArray(imports)).toBe(true);
-      expect(imports).toHaveLength(7); // Now includes ThrottlerModule and NotificationModule
+      expect(imports).toHaveLength(8);
 
       // Check ConfigModule
       expect(imports[0]).toBeDefined();
@@ -163,7 +163,7 @@ describe('AuthModule', () => {
       const providers = Reflect.getMetadata('providers', AuthModule);
       expect(providers).toBeDefined();
       expect(Array.isArray(providers)).toBe(true);
-      expect(providers).toHaveLength(14); // Added new security services including RuleEngineService and RuleRepositoryService
+      expect(providers).toHaveLength(15);
       expect(providers).toContain(AuthService);
       expect(providers).toContain(JwtStrategy);
       expect(providers).toContain(PrismaService);
