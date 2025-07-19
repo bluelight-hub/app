@@ -1,6 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { PrismaService } from '@/prisma/prisma.service';
 import { ConfigService } from '@nestjs/config';
+import { EventEmitter2 } from '@nestjs/event-emitter';
 import { LoginAttempt } from '@prisma/generated/prisma';
 import { CreateLoginAttemptDto, LoginAttemptStatsDto } from '../dto/login-attempt.dto';
 import { AuthConfig } from '../config/auth.config';
@@ -11,6 +12,12 @@ import { SecurityLogService } from './security-log.service';
 import { SuspiciousActivityService } from './suspicious-activity.service';
 import { SecurityEventType } from '../enums/security-event-type.enum';
 
+/**
+ * Service zur Verwaltung von Login-Versuchen und Sicherheitsüberwachung
+ *
+ * Dieser Service verfolgt Login-Versuche, erkennt verdächtige Aktivitäten
+ * und verwaltet Account-Sperrungen basierend auf fehlgeschlagenen Versuchen.
+ */
 @Injectable()
 export class LoginAttemptService {
   private readonly logger = new Logger(LoginAttemptService.name);
@@ -19,6 +26,7 @@ export class LoginAttemptService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly configService: ConfigService,
+    private readonly eventEmitter: EventEmitter2,
     private readonly securityAlertService: SecurityAlertService,
     private readonly securityLogService?: SecurityLogService,
     private readonly suspiciousActivityService?: SuspiciousActivityService,
@@ -130,6 +138,21 @@ export class LoginAttemptService {
           await this.suspiciousActivityService.checkLoginPatterns(data.userId, data.ipAddress);
         }
       }
+
+      // Emit event for threat detection rule evaluation
+      this.emitLoginAttemptEvent({
+        userId: data.userId,
+        email: data.email,
+        ipAddress: data.ipAddress,
+        userAgent: data.userAgent,
+        success: data.success,
+        metadata: {
+          ...data.metadata,
+          ...deviceInfo,
+          riskScore,
+          sessionId: (data.metadata as any)?.sessionId,
+        },
+      });
 
       return loginAttempt;
     } catch (error) {
@@ -352,7 +375,11 @@ export class LoginAttemptService {
   }
 
   /**
-   * Berechnet einen Risiko-Score für einen Login-Versuch
+   * Berechnet den Risiko-Score für einen Login-Versuch
+   *
+   * @param data - Die Login-Versuch Daten
+   * @returns Ein Risiko-Score zwischen 0 und 100
+   * @private
    */
   private async calculateRiskScore(data: CreateLoginAttemptDto): Promise<number> {
     let score = 0;
@@ -429,6 +456,13 @@ export class LoginAttemptService {
     }
   }
 
+  /**
+   * Analysiert den User-Agent String zur Geräteerkennung
+   *
+   * @param userAgent - Der User-Agent String des Browsers
+   * @returns Informationen über Gerätetyp, Browser, OS und Bot-Erkennung
+   * @private
+   */
   private parseUserAgent(userAgent?: string): {
     deviceType?: string;
     browser?: string;
@@ -476,5 +510,34 @@ export class LoginAttemptService {
     ];
 
     return localPatterns.some((pattern) => pattern.test(ipAddress));
+  }
+
+  /**
+   * Sendet ein Login-Versuch Event für die Threat Detection Engine
+   *
+   * @param data - Die Event-Daten
+   * @private
+   */
+  private emitLoginAttemptEvent(data: {
+    userId?: string;
+    email: string;
+    ipAddress: string;
+    userAgent?: string;
+    success: boolean;
+    metadata?: Record<string, any>;
+  }): void {
+    // Emit event asynchronously to avoid blocking login flow
+    setImmediate(() => {
+      this.eventEmitter.emit('login.attempt', {
+        userId: data.userId,
+        email: data.email,
+        ipAddress: data.ipAddress,
+        userAgent: data.userAgent,
+        success: data.success,
+        eventType: data.success ? SecurityEventType.LOGIN_SUCCESS : SecurityEventType.LOGIN_FAILED,
+        metadata: data.metadata,
+        timestamp: new Date(),
+      });
+    });
   }
 }

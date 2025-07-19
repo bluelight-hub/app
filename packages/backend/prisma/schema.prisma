@@ -353,31 +353,31 @@ model AuditLog {
 // Track login attempts for security and lockout functionality
 
 model LoginAttempt {
-  id            String   @id @default(nanoid())
-  
+  id String @id @default(nanoid())
+
   // User identification (optional for failed attempts with non-existent users)
-  userId        String?
-  user          User?    @relation(fields: [userId], references: [id], onDelete: Cascade)
-  email         String   @db.VarChar(255) // Email used in attempt
-  
+  userId String?
+  user   User?   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  email  String  @db.VarChar(255) // Email used in attempt
+
   // Attempt details
   attemptAt     DateTime @default(now())
   ipAddress     String   @db.VarChar(45) // IPv6 compatible
   userAgent     String?  @db.Text
   success       Boolean  @default(false)
   failureReason String?  @db.VarChar(255) // Invalid password, account locked, etc.
-  
+
   // Location and device info
-  location      String?  @db.VarChar(255) // Geolocation
-  deviceType    String?  @db.VarChar(50)
-  browser       String?  @db.VarChar(50)
-  os            String?  @db.VarChar(50)
-  
+  location   String? @db.VarChar(255) // Geolocation
+  deviceType String? @db.VarChar(50)
+  browser    String? @db.VarChar(50)
+  os         String? @db.VarChar(50)
+
   // Security metadata
-  suspicious    Boolean  @default(false) // Flag for suspicious attempts
-  riskScore     Int      @default(0) // 0-100 risk score
-  metadata      Json?    // Additional security metadata
-  
+  suspicious Boolean @default(false) // Flag for suspicious attempts
+  riskScore  Int     @default(0) // 0-100 risk score
+  metadata   Json? // Additional security metadata
+
   // Indexes for efficient queries
   @@index([email, attemptAt], map: "idx_login_attempt_email_time")
   @@index([userId, attemptAt], map: "idx_login_attempt_user_time")
@@ -390,34 +390,126 @@ model LoginAttempt {
 // Track all security-related events for monitoring and compliance
 
 model SecurityLog {
-  id            String   @id @default(nanoid())
-  
+  id String @id @default(nanoid())
+
   // Event information
-  eventType     String   @db.VarChar(50) // LOGIN_SUCCESS, LOGIN_FAILED, etc.
-  severity      String   @default("INFO") @db.VarChar(20) // INFO, WARN, ERROR, CRITICAL
-  
+  eventType String @db.VarChar(50) // LOGIN_SUCCESS, LOGIN_FAILED, etc.
+  severity  String @default("INFO") @db.VarChar(20) // INFO, WARN, ERROR, CRITICAL
+
   // User context (optional for events without user)
-  userId        String?
-  user          User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
-  
+  userId String?
+  user   User?   @relation(fields: [userId], references: [id], onDelete: SetNull)
+
   // Request context
-  ipAddress     String?  @db.VarChar(45) // IPv6 compatible
-  userAgent     String?  @db.Text
-  sessionId     String?  @db.VarChar(255)
-  
+  ipAddress String? @db.VarChar(45) // IPv6 compatible
+  userAgent String? @db.Text
+  sessionId String? @db.VarChar(255)
+
   // Event metadata
-  metadata      Json?    // Flexible data for different event types
-  message       String?  @db.Text // Human-readable description
-  
+  metadata Json? // Flexible data for different event types
+  message  String? @db.Text // Human-readable description
+
   // Timing
-  createdAt     DateTime @default(now())
-  
+  createdAt DateTime @default(now())
+
   // Indexes for efficient queries
   @@index([eventType, createdAt], map: "idx_security_log_type_time")
   @@index([userId, createdAt], map: "idx_security_log_user_time")
   @@index([ipAddress, createdAt], map: "idx_security_log_ip_time")
   @@index([severity, createdAt], map: "idx_security_log_severity_time")
   @@index([sessionId], map: "idx_security_log_session")
+}
+
+// ===== THREAT DETECTION RULES =====
+// Dynamic threat detection rules for security monitoring
+
+enum ThreatSeverity {
+  LOW
+  MEDIUM
+  HIGH
+  CRITICAL
+}
+
+enum RuleStatus {
+  ACTIVE
+  INACTIVE
+  TESTING
+}
+
+enum ConditionType {
+  THRESHOLD // Threshold-based rules (e.g., X events in Y minutes)
+  PATTERN // Pattern matching rules
+  ANOMALY // Anomaly detection rules
+  TIME_BASED // Time-based rules (unusual hours)
+  GEO_BASED // Geography-based rules
+}
+
+model ThreatDetectionRule {
+  id String @id @default(nanoid())
+
+  // Rule metadata
+  name          String         @unique @db.VarChar(255)
+  description   String         @db.Text
+  version       String         @default("1.0.0") @db.VarChar(20)
+  status        RuleStatus     @default(INACTIVE)
+  severity      ThreatSeverity
+  conditionType ConditionType
+
+  // Rule configuration (JSON)
+  config Json // Rule-specific configuration
+
+  // Categorization
+  tags String[] @default([])
+
+  // Audit fields
+  createdBy String?  @db.VarChar(255)
+  createdAt DateTime @default(now())
+  updatedBy String?  @db.VarChar(255)
+  updatedAt DateTime @updatedAt
+
+  // Rule evaluation history
+  evaluations RuleEvaluation[]
+
+  // Indexes
+  @@index([status, severity], map: "idx_threat_rule_status_severity")
+  @@index([conditionType], map: "idx_threat_rule_condition_type")
+  @@index([tags], map: "idx_threat_rule_tags")
+  @@index([createdAt], map: "idx_threat_rule_created")
+}
+
+model RuleEvaluation {
+  id String @id @default(nanoid())
+
+  // Rule reference
+  ruleId String
+  rule   ThreatDetectionRule @relation(fields: [ruleId], references: [id], onDelete: Cascade)
+
+  // Evaluation context
+  userId    String? @db.VarChar(255)
+  ipAddress String? @db.VarChar(45)
+  sessionId String? @db.VarChar(255)
+
+  // Evaluation result
+  matched  Boolean         @default(false)
+  score    Int? // Risk score 0-100
+  severity ThreatSeverity?
+  reason   String?         @db.Text
+  evidence Json? // Evidence that triggered the rule
+
+  // Actions taken
+  actionsTriggered String[] @default([])
+  alertSent        Boolean  @default(false)
+
+  // Timing
+  evaluatedAt   DateTime @default(now())
+  executionTime Int? // Execution time in ms
+
+  // Indexes
+  @@index([ruleId, evaluatedAt], map: "idx_rule_eval_rule_time")
+  @@index([matched, evaluatedAt], map: "idx_rule_eval_matched_time")
+  @@index([userId, evaluatedAt], map: "idx_rule_eval_user_time")
+  @@index([ipAddress, evaluatedAt], map: "idx_rule_eval_ip_time")
+  @@index([severity, evaluatedAt], map: "idx_rule_eval_severity_time")
 }
 
 // ===== NOTIFICATION SYSTEM =====
@@ -440,52 +532,51 @@ model NotificationChannel {
   id           String      @id @default(nanoid())
   name         String      @unique @db.VarChar(255)
   type         ChannelType
-  config       Json        // Encrypted channel-specific configuration
+  config       Json // Encrypted channel-specific configuration
   isActive     Boolean     @default(true)
   priority     Int         @default(0) // Higher priority channels are tried first
-  healthStatus Json?       // Last health check result
+  healthStatus Json? // Last health check result
   createdAt    DateTime    @default(now())
   updatedAt    DateTime    @updatedAt
-  
-  
+
   // Indexes
   @@index([type, isActive], map: "idx_notification_channel_type_active")
   @@index([priority], map: "idx_notification_channel_priority")
 }
 
 model NotificationTemplate {
-  id           String      @id @default(nanoid())
-  name         String      @unique @db.VarChar(255)
-  channelType  ChannelType
-  subject      String?     @db.VarChar(255) // For email
-  bodyHtml     String?     @db.Text // For email HTML
-  bodyText     String      @db.Text // Plain text content
-  variables    Json        // Available variables schema
-  language     String      @default("de") @db.VarChar(10)
-  isActive     Boolean     @default(true)
-  createdAt    DateTime    @default(now())
-  updatedAt    DateTime    @updatedAt
-  
+  id          String      @id @default(nanoid())
+  name        String      @unique @db.VarChar(255)
+  channelType ChannelType
+  subject     String?     @db.VarChar(255) // For email
+  bodyHtml    String?     @db.Text // For email HTML
+  bodyText    String      @db.Text // Plain text content
+  variables   Json // Available variables schema
+  language    String      @default("de") @db.VarChar(10)
+  isActive    Boolean     @default(true)
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+
   // Indexes
   @@index([channelType, isActive], map: "idx_notification_template_type_active")
   @@index([name, language], map: "idx_notification_template_name_lang")
 }
 
 model NotificationLog {
-  id           String              @id @default(nanoid())
-  channel      String              @db.VarChar(255)
-  recipient    String              @db.Text // JSON serialized recipient info
-  subject      String              @db.VarChar(255)
-  payload      Json                // Full notification payload
-  status       NotificationStatus
-  priority     String?             @db.VarChar(50)
-  metadata     Json?               // Additional metadata
-  attempts     Int                 @default(0)
-  error        String?             @db.Text
-  sentAt       DateTime?
-  createdAt    DateTime            @default(now())
-  updatedAt    DateTime            @updatedAt
-  
+  id        String             @id @default(nanoid())
+  channel   String             @db.VarChar(255)
+  recipient String             @db.Text // JSON serialized recipient info
+  subject   String             @db.VarChar(255)
+  payload   Json // Full notification payload
+  status    NotificationStatus
+  priority  String?            @db.VarChar(50)
+  metadata  Json? // Additional metadata
+  attempts  Int                @default(0)
+  error     String?            @db.Text
+  sentAt    DateTime?
+  createdAt DateTime           @default(now())
+  updatedAt DateTime           @updatedAt
+
   // Indexes for efficient queries
   @@index([status, createdAt], map: "idx_notification_log_status_time")
   @@index([channel, createdAt], map: "idx_notification_log_channel_time")

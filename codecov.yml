@@ -36,3 +36,13 @@ ignore:
   - '**/*.spec.tsx'
   # Type definitions
   - '**/*.d.ts'
+  # DTOs, Interfaces, Entities and Enums (meist nur Typdefinitionen ohne Logik)
+  - '**/*.dto.ts'
+  - '**/*.interface.ts'
+  - '**/*.entity.ts'
+  - '**/*.enum.ts'
+  # Prisma generated files
+  - '**/prisma/generated/**'
+  - '**/prisma/schema.prisma'
+  # Module definitions (nur Dependency Injection)
+  - '**/*.module.ts'

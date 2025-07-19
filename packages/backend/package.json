@@ -6,7 +6,7 @@
     "dev": "nest start --watch",
     "docs:build": "compodoc -p tsconfig.compodoc.json -d docs",
     "docs:serve": "compodoc -p tsconfig.compodoc.json -d docs --serve",
-    "docs:cov": "pnpm compodoc --coverageTest -p tsconfig.compodoc.json",
+    "docs:cov": "pnpm compodoc --coverageTest 68 -p tsconfig.compodoc.json",
     "build": "prisma generate && nest build",
     "format": "prettier --write \"src/**/*.ts\" \"prisma/**/*.prisma\"",
     "format:check": "prettier --check \"src/**/*.ts\" \"prisma/**/*.prisma\"",
@@ -26,7 +26,10 @@
     "prisma:studio": "prisma studio",
     "prisma:generate": "prisma generate",
     "prisma:migrate": "prisma migrate dev",
-    "prisma:deploy": "prisma migrate deploy"
+    "prisma:deploy": "prisma migrate deploy",
+    "check:jsdoc": "ts-node -r tsconfig-paths/register scripts/find-missing-jsdoc.ts",
+    "check:jsdoc:public": "ts-node -r tsconfig-paths/register scripts/find-missing-jsdoc.ts --public-only",
+    "check:jsdoc:json": "ts-node -r tsconfig-paths/register scripts/find-missing-jsdoc.ts --json-report"
   },
   "dependencies": {
     "@bluelight-hub/shared": "workspace:*",

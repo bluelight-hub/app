@@ -5,7 +5,7 @@ import {
   MemoryHealthIndicator,
 } from '@nestjs/terminus';
 import { Test, TestingModule } from '@nestjs/testing';
-import { EtbService } from '../../modules/etb/etb.service';
+import { EtbService } from '@/modules/etb/etb.service';
 import { HealthController } from '../health.controller';
 import { PrismaHealthIndicator } from '../prisma-health.indicator';
 

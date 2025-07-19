@@ -245,6 +245,21 @@ describe('SchemaValidator', () => {
         expect(result.errors.some((e) => e.code === 'SCHEMA_MAXLENGTH')).toBe(true);
       });
 
+      it('sollte zu lange Einsatz-Namen im einfachen Format erkennen', () => {
+        const longName = 'x'.repeat(256); // über 255 Zeichen
+        const dataWithLongName = {
+          einsatz: {
+            name: longName,
+            beschreibung: 'Test',
+          },
+        };
+
+        const result = validator.validate(dataWithLongName);
+
+        expect(result.valid).toBe(false);
+        expect(result.errors.some((e) => e.code === 'SCHEMA_MAXLENGTH')).toBe(true);
+      });
+
       it('sollte Warnung für große Datensätze geben', () => {
         const largeDataset = {
           ...validFullFormatData,
@@ -358,6 +373,67 @@ describe('SchemaValidator', () => {
           },
           expectedErrorType: 'SCHEMA_MINLENGTH',
         },
+        {
+          data: {
+            ...validFullFormatData,
+            einsaetze: [
+              {
+                name: 'Test',
+                beschreibung: 'Test',
+                etbEntries: [
+                  {
+                    laufendeNummer: 1,
+                    kategorie: 'INVALID_KATEGORIE', // enum error
+                    inhalt: 'Test',
+                    autorId: 'author-1',
+                  },
+                ],
+              },
+            ],
+          },
+          expectedErrorType: 'SCHEMA_ENUM',
+        },
+        {
+          data: {
+            ...validFullFormatData,
+            einsaetze: [
+              {
+                name: 'Test',
+                beschreibung: 'Test',
+                etbEntries: [
+                  {
+                    laufendeNummer: 1,
+                    kategorie: 'MELDUNG',
+                    inhalt: 'Test',
+                    timestampEreignis: 'invalid-date-format', // format error
+                    autorId: 'author-1',
+                  },
+                ],
+              },
+            ],
+          },
+          expectedErrorType: 'SCHEMA_FORMAT',
+        },
+        {
+          data: {
+            ...validFullFormatData,
+            einsaetze: [
+              {
+                name: 'Test',
+                beschreibung: 'Test',
+                etbEntries: [
+                  {
+                    laufendeNummer: -1, // minimum error
+                    kategorie: 'MELDUNG',
+                    inhalt: 'Test',
+                    autorId: 'author-1',
+                  },
+                ],
+              },
+            ],
+          },
+          expectedErrorType: 'SCHEMA_MINIMUM',
+        },
       ];
 
       testCases.forEach(({ data, expectedErrorType }) => {
@@ -419,6 +495,262 @@ describe('SchemaValidator', () => {
       const result = validator.validate(simpleWithoutEtb);
       expect(result.valid).toBe(true);
       expect(result.metadata.etbEntriesCount).toBe(0);
+    });
+
+    it('sollte EINSATZ_NAME_TOO_LONG Fehler für zu lange Namen auslösen', () => {
+      const longName = 'x'.repeat(256); // über 255 Zeichen
+      const dataWithLongName = {
+        version: CURRENT_SCHEMA_VERSION,
+        metadata: {
+          name: 'Test Export',
+          description: 'Test',
+          exportDate: '2023-01-01T00:00:00.000Z',
+          source: 'test',
+        },
+        einsaetze: [
+          {
+            name: longName,
+            beschreibung: 'Test',
+          },
+        ],
+      };
+
+      const result = validator.validate(dataWithLongName);
+      expect(result.valid).toBe(false);
+      // Should have either SCHEMA_MAXLENGTH or EINSATZ_NAME_TOO_LONG
+      const hasMaxLengthError = result.errors.some((e) => e.code === 'SCHEMA_MAXLENGTH');
+      const hasNameTooLongError = result.errors.some((e) => e.code === 'EINSATZ_NAME_TOO_LONG');
+      expect(hasMaxLengthError || hasNameTooLongError).toBe(true);
+    });
+
+    it('sollte AJV-Fehler ohne keyword korrekt behandeln', () => {
+      // Mock AJV um einen Fehler ohne keyword zu simulieren
+      const mockValidator = {
+        errors: [
+          {
+            instancePath: '/test',
+            schemaPath: '#/test',
+            data: 'test',
+            message: 'Test error without keyword',
+          },
+        ],
+      };
+
+      const ajvErrors = (validator as any).convertAjvErrors(mockValidator.errors);
+      expect(ajvErrors).toHaveLength(1);
+      expect(ajvErrors[0].code).toBe('SCHEMA_ERROR');
+    });
+
+    it('sollte humanizeAjvError für unbekannte keywords verwenden', () => {
+      const unknownError = {
+        keyword: 'unknown',
+        instancePath: '/test',
+        message: 'Unknown validation error',
+      };
+
+      const humanized = (validator as any).humanizeAjvError(unknownError);
+      expect(humanized).toContain('Validierungsfehler in /test');
+    });
+
+    it('sollte humanizeAjvError für alle keyword-Typen testen', () => {
+      const errorTypes = [
+        {
+          keyword: 'required',
+          instancePath: '/test',
+          params: { missingProperty: 'name' },
+          expectedText: 'Pflichtfeld fehlt',
+        },
+        {
+          keyword: 'type',
+          instancePath: '/test',
+          params: { type: 'string' },
+          data: 123,
+          expectedText: 'Falscher Datentyp',
+        },
+        {
+          keyword: 'minLength',
+          instancePath: '/test',
+          params: { limit: 5 },
+          expectedText: 'zu kurz',
+        },
+        {
+          keyword: 'maxLength',
+          instancePath: '/test',
+          params: { limit: 10 },
+          expectedText: 'zu lang',
+        },
+        {
+          keyword: 'enum',
+          instancePath: '/test',
+          params: { allowedValues: ['A', 'B'] },
+          expectedText: 'Ungültiger Wert',
+        },
+        {
+          keyword: 'format',
+          instancePath: '/test',
+          params: { format: 'email' },
+          expectedText: 'Ungültiges Format',
+        },
+        {
+          keyword: 'minimum',
+          instancePath: '/test',
+          params: { limit: 0 },
+          expectedText: 'zu klein',
+        },
+      ];
+
+      errorTypes.forEach(({ keyword, instancePath, params, data, expectedText }) => {
+        const error = { keyword, instancePath, params, data };
+        const humanized = (validator as any).humanizeAjvError(error);
+        expect(humanized).toContain(expectedText);
+      });
+    });
+
+    it('sollte humanizeAjvError für leeren instancePath verwenden', () => {
+      const error = {
+        keyword: 'required',
+        instancePath: '',
+        params: { missingProperty: 'name' },
+      };
+
+      const humanized = (validator as any).humanizeAjvError(error);
+      expect(humanized).toContain('Pflichtfeld fehlt in Root');
+    });
+
+    it('sollte detectFormat für partiell vollständige Daten testen', () => {
+      // Test mit version und metadata aber ohne einsaetze
+      const partialFullData = {
+        version: CURRENT_SCHEMA_VERSION,
+        metadata: { name: 'Test' },
+      };
+
+      const format = (validator as any).detectFormat(partialFullData);
+      expect(format).toBe('unknown');
+    });
+
+    it('sollte detectFormat für partiell einfache Daten testen', () => {
+      // Test mit einsatz aber als Array statt Object
+      const partialSimpleData = {
+        einsatz: [],
+      };
+
+      const format = (validator as any).detectFormat(partialSimpleData);
+      expect(format).toBe('simple');
+    });
+
+    it('sollte validateEtbEntries mit leeren Einträgen funktionieren', () => {
+      const dataWithEmptyEntries = {
+        ...validFullFormatData,
+        einsaetze: [
+          {
+            name: 'Test',
+            beschreibung: 'Test',
+            etbEntries: [],
+          },
+        ],
+      };
+
+      const result = validator.validate(dataWithEmptyEntries);
+      expect(result.valid).toBe(true);
+      expect(result.metadata.etbEntriesCount).toBe(0);
+    });
+
+    it('sollte validateEtbEntries mit Einträgen ohne timestampEreignis funktionieren', () => {
+      const dataWithoutTimestamp = {
+        ...validFullFormatData,
+        einsaetze: [
+          {
+            name: 'Test',
+            beschreibung: 'Test',
+            etbEntries: [
+              { laufendeNummer: 1, kategorie: 'MELDUNG', inhalt: 'Test 1', autorId: 'author-1' },
+              { laufendeNummer: 2, kategorie: 'MELDUNG', inhalt: 'Test 2', autorId: 'author-2' },
+            ],
+          },
+        ],
+      };
+
+      const result = validator.validate(dataWithoutTimestamp);
+      expect(result.valid).toBe(true);
+      // Sollte keine Timestamp-Warnungen geben
+      expect(result.warnings.filter((w) => w.code === 'TIMESTAMP_ORDER')).toHaveLength(0);
+    });
+
+    it('sollte validateCommonSemantics mit langen Namen im simple Format testen', () => {
+      // Test für coverage der common semantics validateCommonSemantics Methode
+      const longName = 'x'.repeat(256);
+      const dataWithLongName = {
+        einsatz: {
+          name: longName,
+          beschreibung: 'Test',
+        },
+      };
+
+      const result = validator.validate(dataWithLongName);
+      expect(result.valid).toBe(false);
+      expect(result.errors.some((e) => e.code === 'SCHEMA_MAXLENGTH')).toBe(true);
+    });
+
+    it('sollte generateMetadata mit mehreren Einsätzen testen', () => {
+      const multipleEinsatzData = {
+        ...validFullFormatData,
+        einsaetze: [
+          {
+            name: 'Test 1',
+            beschreibung: 'Test 1',
+            etbEntries: [
+              { laufendeNummer: 1, kategorie: 'MELDUNG', inhalt: 'Test 1', autorId: 'author-1' },
+              { laufendeNummer: 2, kategorie: 'MELDUNG', inhalt: 'Test 2', autorId: 'author-2' },
+            ],
+          },
+          {
+            name: 'Test 2',
+            beschreibung: 'Test 2',
+            etbEntries: [
+              { laufendeNummer: 1, kategorie: 'MELDUNG', inhalt: 'Test 3', autorId: 'author-3' },
+            ],
+          },
+        ],
+      };
+
+      const result = validator.validate(multipleEinsatzData);
+      expect(result.valid).toBe(true);
+      expect(result.metadata.einsaetzeCount).toBe(2);
+      expect(result.metadata.etbEntriesCount).toBe(3);
+    });
+
+    it('sollte generateMetadata mit einfachem Format ohne initialEtbEntries testen', () => {
+      const simpleWithoutEtb = {
+        einsatz: {
+          name: 'Simple Test',
+          beschreibung: 'Test',
+        },
+      };
+
+      const result = validator.validate(simpleWithoutEtb);
+      expect(result.valid).toBe(true);
+      expect(result.metadata.einsaetzeCount).toBe(1);
+      expect(result.metadata.etbEntriesCount).toBe(0);
+    });
+
+    it('sollte validateSemantics mit leerem validationLevel testen', () => {
+      const dataWithOldVersion = {
+        ...validFullFormatData,
+        version: '0.0.1',
+      };
+
+      const result = validator.validate(dataWithOldVersion, { validationLevel: undefined });
+      expect(result.warnings.some((w) => w.code === 'SCHEMA_VERSION_WARNING')).toBe(true);
+    });
+
+    it('sollte validateSemantics mit lenient validationLevel testen', () => {
+      const dataWithOldVersion = {
+        ...validFullFormatData,
+        version: '0.0.1',
+      };
+
+      const result = validator.validate(dataWithOldVersion, { validationLevel: 'lenient' });
+      expect(result.warnings.some((w) => w.code === 'SCHEMA_VERSION_WARNING')).toBe(true);
     });
   });
 });

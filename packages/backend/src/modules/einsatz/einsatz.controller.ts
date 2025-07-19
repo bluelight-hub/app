@@ -15,6 +15,12 @@ import { CreateEinsatzDto } from './dto/create-einsatz.dto';
 import { EinsatzService } from './einsatz.service';
 import { Einsatz } from './entities/einsatz.entity';
 
+/**
+ * Controller für die Verwaltung von Einsätzen
+ *
+ * Bietet RESTful API-Endpunkte für CRUD-Operationen
+ * auf Einsatz-Entitäten.
+ */
 @ApiTags('Einsatz')
 @Controller('einsatz')
 export class EinsatzController {

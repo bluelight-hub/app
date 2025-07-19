@@ -4,13 +4,44 @@
 
 - GitHub: github.com/bluelight-hub/app
 
-## Build Commands
+## Development Tools
+
+### IntelliJ Run Configurations (Preferred)
+
+Use IntelliJ run configurations instead of shell commands for better IDE integration:
+
+**Development:**
+
+- `backend > dev` - Start backend development server
+- `frontend > dev` - Start frontend development server
+
+**Testing:**
+
+- `Backend Tests (All)` - Run all backend tests
+- `Backend Tests (Watch)` - Run backend tests in watch mode
+- `Backend Tests (Coverage)` - Run backend tests with coverage
+- `Frontend Tests (All)` - Run all frontend tests
+- `Frontend Tests (Watch)` - Run frontend tests in watch mode
+- `Frontend Tests (Coverage)` - Run frontend tests with coverage
+- `All Tests (pnpm)` - Run all tests across the monorepo
+- `All Tests Coverage (pnpm)` - Run all tests with coverage
+
+**Infrastructure (you may not use these, the user should have started those):**
+
+- `docker-compose.yml: Compose Deployment` - Start all services
+- `docker-compose.yml.postgres: Compose Deployment` - Start PostgreSQL
+- `docker-compose.yml.redis: Compose Deployment` - Start Redis
+
+### Build Commands (Fallback)
+
+Only use these shell commands if IntelliJ is not available:
 
 - Project-wide: `pnpm -r dev`, `pnpm -r build`, `pnpm -r test`, `pnpm -r test:cov`
 - Backend: `pnpm --filter @bluelight-hub/backend dev`, `pnpm --filter @bluelight-hub/backend test`
 - Frontend: `pnpm --filter @bluelight-hub/frontend dev`, `pnpm --filter @bluelight-hub/frontend test`
 - Single test (backend): `pnpm --filter @bluelight-hub/backend test -- -t "test name"`
 - Single test (frontend): `pnpm --filter @bluelight-hub/frontend test -- -t "test name"`
+- **Doc Coverage Check:** `pnpm --filter @bluelight-hub/backend check:jsdoc:public`
 
 ## Code Style Guidelines
 
@@ -98,6 +129,16 @@ This project uses semantic-release with gitmoji for automated versioning:
 
 ## Development Workflow
 
-- Committe die Änderungen nach jedem Subtask
-- Du darfst nicht mit --no-verify committen
-- Du darfst die tests niemals überspringen beim commit
+### Commit-Regeln (WICHTIG!)
+
+- **NIEMALS mit `--no-verify` committen!** Pre-commit hooks müssen IMMER durchlaufen
+- **Tests dürfen NIEMALS übersprungen werden** - alle Tests müssen erfolgreich sein
+- **Committe nach jedem abgeschlossenen Subtask** für bessere Nachvollziehbarkeit
+
+### Workflow-Schritte
+
+1. Änderungen implementieren
+2. Tests ausführen (via IntelliJ Run Configurations)
+3. Linting und Type-Checking sicherstellen
+4. Commit MIT allen Checks (ohne `--no-verify`)
+5. Bei Fehlern: Erst fixen, dann committen

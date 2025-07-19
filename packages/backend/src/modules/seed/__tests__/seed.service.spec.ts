@@ -6,6 +6,12 @@ import { PrismaService } from '../../../prisma/prisma.service';
 import { EinsatzService } from '../../einsatz/einsatz.service';
 import { DatabaseCheckService } from '../database-check.service';
 import { SeedService } from '../seed.service';
+import * as bcrypt from 'bcrypt';
+
+// Mock bcrypt
+jest.mock('bcrypt', () => ({
+  hash: jest.fn().mockResolvedValue('$2b$10$mocked_hash'),
+}));
 
 describe('SeedService', () => {
   let service: SeedService;
@@ -406,6 +412,183 @@ describe('SeedService', () => {
       service.cleanup();
 
       expect(errorHandlingService.cleanup).toHaveBeenCalled();
+    });
+  });
+
+  describe('seedRolePermissions', () => {
+    beforeEach(() => {
+      // Setup mock for rolePermission
+      (prismaService as any).rolePermission = {
+        upsert: jest.fn(),
+        count: jest.fn(),
+      };
+    });
+
+    it('should seed role permissions successfully', async () => {
+      errorHandlingService.executeWithErrorHandling.mockImplementation(async (fn) => await fn());
+      prismaService.$transaction.mockImplementation(async (fn) => await fn(prismaService));
+      (prismaService as any).rolePermission.upsert.mockResolvedValue({});
+      (prismaService as any).rolePermission.count.mockResolvedValue(50);
+
+      const result = await service.seedRolePermissions();
+
+      expect(result).toBe(true);
+      expect((prismaService as any).rolePermission.upsert).toHaveBeenCalled();
+      expect(Logger.prototype.log).toHaveBeenCalledWith(
+        expect.stringContaining('Rollen-Berechtigungen erfolgreich erstellt'),
+      );
+    });
+
+    it('should handle errors during permission seeding', async () => {
+      const error = new Error('Permission error');
+      errorHandlingService.executeWithErrorHandling.mockRejectedValue(error);
+
+      const result = await service.seedRolePermissions();
+
+      expect(result).toBe(false);
+      expect(Logger.prototype.error).toHaveBeenCalledWith(
+        'Seed-Prozess nach allen Wiederholungsversuchen fehlgeschlagen:',
+        error,
+      );
+    });
+  });
+
+  describe('seedUsers', () => {
+    beforeEach(() => {
+      // Setup mock for user
+      (prismaService as any).user = {
+        upsert: jest.fn(),
+        count: jest.fn(),
+      };
+    });
+
+    it('should seed users successfully', async () => {
+      const mockUser = {
+        id: 'user-id',
+        email: 'test@example.com',
+        username: 'test',
+        role: 'ADMIN',
+      };
+
+      prismaService.$transaction.mockImplementation(async (fn) => await fn(prismaService));
+      (prismaService as any).user.upsert.mockResolvedValue(mockUser);
+      (prismaService as any).user.count.mockResolvedValue(4);
+      (bcrypt.hash as jest.Mock).mockResolvedValue('hashed_password');
+
+      const result = await service.seedUsers('testpassword');
+
+      expect(result).toBe(true);
+      expect(bcrypt.hash).toHaveBeenCalledWith('testpassword', 10);
+      expect((prismaService as any).user.upsert).toHaveBeenCalledTimes(4); // 4 users
+      expect(Logger.prototype.log).toHaveBeenCalledWith(
+        expect.stringContaining('Benutzer erfolgreich erstellt'),
+      );
+    });
+
+    it('should handle errors during user seeding', async () => {
+      const error = new Error('User creation error');
+      prismaService.$transaction.mockRejectedValue(error);
+      (bcrypt.hash as jest.Mock).mockResolvedValue('hashed_password');
+
+      const result = await service.seedUsers();
+
+      expect(result).toBe(false);
+      expect(Logger.prototype.error).toHaveBeenCalledWith(
+        'Fehler beim Erstellen der Benutzer:',
+        error,
+      );
+    });
+
+    it('should use default password if not provided', async () => {
+      prismaService.$transaction.mockImplementation(async (fn) => await fn(prismaService));
+      (prismaService as any).user.upsert.mockResolvedValue({});
+      (prismaService as any).user.count.mockResolvedValue(4);
+      (bcrypt.hash as jest.Mock).mockResolvedValue('hashed_password');
+
+      await service.seedUsers();
+
+      expect(bcrypt.hash).toHaveBeenCalledWith('admin123', 10);
+      expect((prismaService as any).user.upsert).toHaveBeenCalled();
+    });
+  });
+
+  describe('seedAuthentication', () => {
+    it('should complete authentication seeding successfully', async () => {
+      // Mock successful seedRolePermissions
+      jest.spyOn(service, 'seedRolePermissions').mockResolvedValue(true);
+      // Mock successful seedUsers
+      jest.spyOn(service, 'seedUsers').mockResolvedValue(true);
+
+      const result = await service.seedAuthentication('testpass');
+
+      expect(result).toBe(true);
+      expect(service.seedRolePermissions).toHaveBeenCalled();
+      expect(service.seedUsers).toHaveBeenCalledWith('testpass');
+      expect(Logger.prototype.log).toHaveBeenCalledWith('Authentication-Seeding abgeschlossen');
+    });
+
+    it('should fail if role permissions seeding fails', async () => {
+      jest.spyOn(service, 'seedRolePermissions').mockResolvedValue(false);
+      jest.spyOn(service, 'seedUsers').mockResolvedValue(true);
+
+      const result = await service.seedAuthentication();
+
+      expect(result).toBe(false);
+      expect(service.seedRolePermissions).toHaveBeenCalled();
+      expect(service.seedUsers).not.toHaveBeenCalled();
+      expect(Logger.prototype.error).toHaveBeenCalledWith(
+        'Fehler beim Seeden der Rollen-Berechtigungen',
+      );
+    });
+
+    it('should continue if user seeding fails', async () => {
+      jest.spyOn(service, 'seedRolePermissions').mockResolvedValue(true);
+      jest.spyOn(service, 'seedUsers').mockResolvedValue(false);
+
+      const result = await service.seedAuthentication();
+
+      expect(result).toBe(true);
+      expect(Logger.prototype.warn).toHaveBeenCalledWith(
+        'Benutzer wurden nicht erstellt (existieren bereits oder Fehler)',
+      );
+    });
+  });
+
+  describe('Legacy methods', () => {
+    it('should call seedRolePermissions from seedAdminRolePermissions', async () => {
+      jest.spyOn(service, 'seedRolePermissions').mockResolvedValue(true);
+
+      const result = await service.seedAdminRolePermissions();
+
+      expect(result).toBe(true);
+      expect(service.seedRolePermissions).toHaveBeenCalled();
+    });
+
+    it('should call seedUsers from seedAdminUsers', async () => {
+      jest.spyOn(service, 'seedUsers').mockResolvedValue(true);
+
+      const result = await service.seedAdminUsers('password');
+
+      expect(result).toBe(true);
+      expect(service.seedUsers).toHaveBeenCalledWith('password');
+    });
+
+    it('should call seedUsers from seedAdminUsers with default password', async () => {
+      jest.spyOn(service, 'seedUsers').mockResolvedValue(true);
+
+      const result = await service.seedAdminUsers();
+
+      expect(result).toBe(true);
+      expect(service.seedUsers).toHaveBeenCalledWith('admin123');
+    });
+
+    it('should call seedAuthentication from seedAdminAuthentication', async () => {
+      jest.spyOn(service, 'seedAuthentication').mockResolvedValue(true);
+
+      const result = await service.seedAdminAuthentication('password');
+
+      expect(result).toBe(true);
+      expect(service.seedAuthentication).toHaveBeenCalledWith('password');
     });
   });
 });

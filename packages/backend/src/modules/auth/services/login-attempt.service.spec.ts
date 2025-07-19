@@ -4,9 +4,11 @@ import { LoginAttemptService } from './login-attempt.service';
 import { SecurityAlertService } from './security-alert.service';
 import { SecurityLogService } from './security-log.service';
 import { SuspiciousActivityService } from './suspicious-activity.service';
+import { RuleEngineService } from '../rules/rule-engine.service';
 import { PrismaService } from '@/prisma/prisma.service';
 import { CreateLoginAttemptDto } from '../dto/login-attempt.dto';
 import { LoginAttempt, User } from '@prisma/generated/prisma';
+import { EventEmitter2 } from '@nestjs/event-emitter';
 
 describe('LoginAttemptService', () => {
   let service: LoginAttemptService;
@@ -67,6 +69,14 @@ describe('LoginAttemptService', () => {
     checkLoginPatterns: jest.fn(),
   };
 
+  const mockRuleEngineService = {
+    evaluateRules: jest.fn().mockResolvedValue([]),
+  };
+
+  const mockEventEmitter = {
+    emit: jest.fn(),
+  };
+
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
@@ -76,6 +86,8 @@ describe('LoginAttemptService', () => {
         { provide: SecurityAlertService, useValue: mockSecurityAlertService },
         { provide: SecurityLogService, useValue: mockSecurityLogService },
         { provide: SuspiciousActivityService, useValue: mockSuspiciousActivityService },
+        { provide: RuleEngineService, useValue: mockRuleEngineService },
+        { provide: EventEmitter2, useValue: mockEventEmitter },
       ],
     }).compile();
 

@@ -203,4 +203,218 @@ describe('SecurityMetricsService', () => {
       );
     });
   });
+
+  describe('getSuspiciousActivityMetrics', () => {
+    it('should aggregate suspicious activity metrics', async () => {
+      const suspiciousLogs = [
+        {
+          id: '1',
+          eventType: SecurityEventType.SUSPICIOUS_ACTIVITY,
+          severity: 'ERROR',
+          userId: 'user1',
+          ipAddress: '192.168.1.1',
+          userAgent: null,
+          sessionId: null,
+          metadata: { type: 'brute_force' },
+          message: null,
+          createdAt: new Date(),
+          user: null,
+        },
+        {
+          id: '2',
+          eventType: SecurityEventType.SUSPICIOUS_ACTIVITY,
+          severity: 'ERROR',
+          userId: 'user2',
+          ipAddress: '192.168.1.2',
+          userAgent: null,
+          sessionId: null,
+          metadata: { type: 'brute_force' },
+          message: null,
+          createdAt: new Date(),
+          user: null,
+        },
+        {
+          id: '3',
+          eventType: SecurityEventType.SUSPICIOUS_ACTIVITY,
+          severity: 'ERROR',
+          userId: 'user3',
+          ipAddress: '192.168.1.1',
+          userAgent: null,
+          sessionId: null,
+          metadata: { type: 'credential_stuffing' },
+          message: null,
+          createdAt: new Date(),
+          user: null,
+        },
+      ];
+
+      securityLogService.getSecurityLogs.mockResolvedValue(suspiciousLogs);
+
+      const timeRange = {
+        start: new Date(Date.now() - 24 * 60 * 60 * 1000),
+        end: new Date(),
+      };
+
+      const result = await service.getSuspiciousActivityMetrics(timeRange);
+
+      expect(result.total).toBe(3);
+      expect(result.byType).toContainEqual({ type: 'brute_force', count: 2 });
+      expect(result.byType).toContainEqual({ type: 'credential_stuffing', count: 1 });
+      expect(result.byIp[0]).toEqual({ ip: '192.168.1.1', count: 2 });
+    });
+
+    it('should handle missing metadata', async () => {
+      const suspiciousLogs = [
+        {
+          id: '1',
+          eventType: SecurityEventType.SUSPICIOUS_ACTIVITY,
+          severity: 'ERROR',
+          userId: 'user1',
+          ipAddress: null,
+          userAgent: null,
+          sessionId: null,
+          metadata: null,
+          message: null,
+          createdAt: new Date(),
+          user: null,
+        },
+        {
+          id: '2',
+          eventType: SecurityEventType.SUSPICIOUS_ACTIVITY,
+          severity: 'ERROR',
+          userId: 'user2',
+          ipAddress: '192.168.1.1',
+          userAgent: null,
+          sessionId: null,
+          metadata: {},
+          message: null,
+          createdAt: new Date(),
+          user: null,
+        },
+      ];
+
+      securityLogService.getSecurityLogs.mockResolvedValue(suspiciousLogs);
+
+      const timeRange = {
+        start: new Date(Date.now() - 24 * 60 * 60 * 1000),
+        end: new Date(),
+      };
+
+      const result = await service.getSuspiciousActivityMetrics(timeRange);
+
+      expect(result.total).toBe(2);
+      expect(result.byType).toContainEqual({ type: 'unknown', count: 2 });
+    });
+  });
+
+  describe('getFailedLoginMetrics edge cases', () => {
+    it('should handle missing user and IP data', async () => {
+      const logs = [
+        {
+          id: '1',
+          eventType: SecurityEventType.LOGIN_FAILED,
+          severity: 'WARN',
+          userId: null,
+          ipAddress: null,
+          userAgent: 'Mozilla/5.0',
+          sessionId: null,
+          metadata: {},
+          message: null,
+          createdAt: new Date(),
+          user: null,
+        },
+      ];
+
+      securityLogService.getSecurityLogs.mockResolvedValue(logs);
+
+      const timeRange = {
+        start: new Date(Date.now() - 24 * 60 * 60 * 1000),
+        end: new Date(),
+      };
+
+      const result = await service.getFailedLoginMetrics(timeRange);
+
+      expect(result.total).toBe(1);
+      expect(result.byIp).toHaveLength(0);
+      expect(result.byUser).toHaveLength(0);
+    });
+  });
+
+  describe('getAccountLockoutMetrics edge cases', () => {
+    it('should handle missing metadata and user data', async () => {
+      const logs = [
+        {
+          id: '1',
+          eventType: SecurityEventType.ACCOUNT_LOCKED,
+          severity: 'ERROR',
+          userId: null,
+          ipAddress: null,
+          userAgent: null,
+          sessionId: null,
+          metadata: null,
+          message: null,
+          createdAt: new Date(),
+          user: null,
+        },
+      ];
+
+      securityLogService.getSecurityLogs.mockResolvedValue(logs);
+
+      const timeRange = {
+        start: new Date(Date.now() - 24 * 60 * 60 * 1000),
+        end: new Date(),
+      };
+
+      const result = await service.getAccountLockoutMetrics(timeRange);
+
+      expect(result.total).toBe(1);
+      expect(result.byReason).toContainEqual({ reason: 'unknown', count: 1 });
+      expect(result.byUser).toHaveLength(0);
+    });
+  });
+
+  describe('calculateTrend', () => {
+    it('should calculate positive trend correctly', async () => {
+      // Mock data that will result in specific trend calculations
+      const failedLogins7d = Array(14)
+        .fill(null)
+        .map(() => ({
+          id: Math.random().toString(),
+          eventType: SecurityEventType.LOGIN_FAILED,
+          severity: 'WARN',
+          userId: 'user1',
+          ipAddress: '192.168.1.1',
+          userAgent: 'Mozilla/5.0',
+          sessionId: null,
+          metadata: {},
+          message: null,
+          createdAt: new Date(),
+          user: null,
+        }));
+
+      const failedLogins24h = failedLogins7d.slice(0, 4); // 4 in last 24h, average is 2 per day
+
+      securityLogService.getSecurityLogs
+        .mockResolvedValueOnce(failedLogins24h)
+        .mockResolvedValueOnce(failedLogins7d)
+        .mockResolvedValueOnce([])
+        .mockResolvedValueOnce([])
+        .mockResolvedValueOnce([])
+        .mockResolvedValueOnce([]);
+
+      const result = await service.getDashboardMetrics();
+
+      expect(result.summary.failedLogins.trend).toBe(100); // 100% increase
+    });
+
+    it('should handle zero values in trend calculation', async () => {
+      securityLogService.getSecurityLogs.mockResolvedValue([]);
+
+      const result = await service.getDashboardMetrics();
+
+      expect(result.summary.failedLogins.trend).toBe(0);
+      expect(result.summary.accountLockouts.trend).toBe(0);
+      expect(result.summary.suspiciousActivities.trend).toBe(0);
+    });
+  });
 });
