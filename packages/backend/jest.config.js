@@ -21,6 +21,15 @@ module.exports = {
     '!eslint.config.js',
     '!.eslintrc.*',
     '!**/eslint.config.{js,ts,mjs}',
+    // DTOs, Interfaces, Entities und Enums (meist nur Typdefinitionen ohne Logik)
+    '!**/*.dto.ts',
+    '!**/*.interface.ts',
+    '!**/*.entity.ts',
+    '!**/*.enum.ts',
+    // Module-Dateien (nur Dependency Injection)
+    '!**/*.module.ts',
+    // Prisma generated files
+    '!**/prisma/generated/**',
   ],
   coverageDirectory: '../coverage',
   testEnvironment: 'node',
