@@ -1,6 +1,7 @@
 import { AccountEnumerationRule } from './account-enumeration.rule';
-import { RuleContext, ThreatSeverity, RuleStatus, ConditionType } from '../rule.interface';
-import { SecurityEventType } from '../../enums/security-event-type.enum';
+import { RuleContext } from '../rule.interface';
+import { SecurityEventType } from '@/modules/auth/constants';
+import { ConditionType, RuleStatus, ThreatSeverity } from '@prisma/generated/prisma/enums';
 
 describe('AccountEnumerationRule', () => {
   let rule: AccountEnumerationRule;

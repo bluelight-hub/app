@@ -1,6 +1,7 @@
 import { BruteForceRule } from './brute-force.rule';
-import { RuleContext, ThreatSeverity } from '../rule.interface';
-import { SecurityEventType } from '../../enums/security-event-type.enum';
+import { RuleContext } from '../rule.interface';
+import { SecurityEventType } from '@/modules/auth/constants';
+import { ThreatSeverity } from '@prisma/generated/prisma/enums';
 
 describe('BruteForceRule', () => {
   let rule: BruteForceRule;

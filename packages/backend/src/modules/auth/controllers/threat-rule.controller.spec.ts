@@ -2,14 +2,14 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { ThreatRuleController } from './threat-rule.controller';
 import { RuleRepositoryService } from '../rules/rule-repository.service';
 import { RuleEngineService } from '../rules/rule-engine.service';
-import { ThreatSeverity, RuleStatus, ConditionType } from '../rules/rule.interface';
-import { SecurityEventType } from '../enums/security-event-type.enum';
+import { SecurityEventType } from '@/modules/auth/constants';
 import {
   CreateThreatRuleDto,
-  UpdateThreatRuleDto,
-  ThreatRuleFilterDto,
   TestRuleDto,
+  ThreatRuleFilterDto,
+  UpdateThreatRuleDto,
 } from '../dto/threat-rule.dto';
+import { ConditionType, RuleStatus, ThreatSeverity } from '@prisma/generated/prisma';
 
 describe('ThreatRuleController', () => {
   let controller: ThreatRuleController;

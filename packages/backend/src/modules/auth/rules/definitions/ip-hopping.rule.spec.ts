@@ -1,6 +1,7 @@
 import { IpHoppingRule } from './ip-hopping.rule';
-import { RuleContext, ThreatSeverity } from '../rule.interface';
+import { RuleContext } from '../rule.interface';
 import { SecurityEventType } from '../../enums/security-event-type.enum';
+import { ThreatSeverity } from '@prisma/generated/prisma/enums';
 
 describe('IpHoppingRule', () => {
   let rule: IpHoppingRule;

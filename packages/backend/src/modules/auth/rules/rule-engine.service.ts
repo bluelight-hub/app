@@ -1,11 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { EventEmitter2, OnEvent } from '@nestjs/event-emitter';
-import {
-  RuleContext,
-  RuleEvaluationResult,
-  ThreatDetectionRule,
-  ThreatSeverity,
-} from './rule.interface';
+import { RuleContext, RuleEvaluationResult, ThreatDetectionRule } from './rule.interface';
+import { ThreatSeverity } from '@prisma/generated/prisma/enums';
 import { SecurityAlertService, SecurityAlertType } from '../services/security-alert.service';
 import { SecurityLogService } from '../services/security-log.service';
 import { SecurityEventType } from '../enums/security-event-type.enum';

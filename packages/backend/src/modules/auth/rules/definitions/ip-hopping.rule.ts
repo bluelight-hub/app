@@ -1,11 +1,5 @@
-import {
-  RuleContext,
-  RuleEvaluationResult,
-  PatternRule,
-  ThreatSeverity,
-  RuleStatus,
-  ConditionType,
-} from '../rule.interface';
+import { RuleContext, RuleEvaluationResult, PatternRule } from '../rule.interface';
+import { ThreatSeverity, RuleStatus, ConditionType } from '@prisma/generated/prisma/enums';
 import { SecurityEventType } from '../../enums/security-event-type.enum';
 
 /**

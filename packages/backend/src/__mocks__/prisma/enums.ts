@@ -75,3 +75,30 @@ export const AuditSeverity = {
 } as const;
 
 export type AuditSeverity = (typeof AuditSeverity)[keyof typeof AuditSeverity];
+
+export const ThreatSeverity = {
+  LOW: 'LOW',
+  MEDIUM: 'MEDIUM',
+  HIGH: 'HIGH',
+  CRITICAL: 'CRITICAL',
+} as const;
+
+export type ThreatSeverity = (typeof ThreatSeverity)[keyof typeof ThreatSeverity];
+
+export const RuleStatus = {
+  ACTIVE: 'ACTIVE',
+  INACTIVE: 'INACTIVE',
+  TESTING: 'TESTING',
+} as const;
+
+export type RuleStatus = (typeof RuleStatus)[keyof typeof RuleStatus];
+
+export const ConditionType = {
+  THRESHOLD: 'THRESHOLD',
+  PATTERN: 'PATTERN',
+  ANOMALY: 'ANOMALY',
+  TIME_BASED: 'TIME_BASED',
+  GEO_BASED: 'GEO_BASED',
+} as const;
+
+export type ConditionType = (typeof ConditionType)[keyof typeof ConditionType];

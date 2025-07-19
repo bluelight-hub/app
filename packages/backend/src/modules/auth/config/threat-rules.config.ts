@@ -1,4 +1,4 @@
-import { ThreatSeverity } from '../rules/rule.interface';
+import { ThreatSeverity } from '@prisma/generated/prisma';
 
 /**
  * Konfiguration für das Threat Detection System

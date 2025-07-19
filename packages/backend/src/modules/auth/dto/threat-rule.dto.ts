@@ -1,6 +1,13 @@
 import { IsString, IsEnum, IsObject, IsArray, IsOptional } from 'class-validator';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { ThreatSeverity, RuleStatus, ConditionType } from '../rules/rule.interface';
+import {
+  ThreatSeverity as ThreatSeverityEnum,
+  RuleStatus as RuleStatusEnum,
+  ConditionType as ConditionTypeEnum,
+  type ThreatSeverity,
+  type RuleStatus,
+  type ConditionType,
+} from '@prisma/generated/prisma/enums';
 
 /**
  * DTO für die Erstellung einer neuen Threat Detection Rule
@@ -14,12 +21,12 @@ export class CreateThreatRuleDto {
   @IsString()
   description: string;
 
-  @ApiProperty({ enum: ThreatSeverity, description: 'Schweregrad der Bedrohung' })
-  @IsEnum(ThreatSeverity)
+  @ApiProperty({ enum: ThreatSeverityEnum, description: 'Schweregrad der Bedrohung' })
+  @IsEnum(ThreatSeverityEnum)
   severity: ThreatSeverity;
 
-  @ApiProperty({ enum: ConditionType, description: 'Typ der Regel-Bedingung' })
-  @IsEnum(ConditionType)
+  @ApiProperty({ enum: ConditionTypeEnum, description: 'Typ der Regel-Bedingung' })
+  @IsEnum(ConditionTypeEnum)
   conditionType: ConditionType;
 
   @ApiProperty({ description: 'Regel-spezifische Konfiguration' })
@@ -46,14 +53,14 @@ export class UpdateThreatRuleDto {
   @IsString()
   description?: string;
 
-  @ApiPropertyOptional({ enum: RuleStatus, description: 'Status der Regel' })
+  @ApiPropertyOptional({ enum: RuleStatusEnum, description: 'Status der Regel' })
   @IsOptional()
-  @IsEnum(RuleStatus)
+  @IsEnum(RuleStatusEnum)
   status?: RuleStatus;
 
-  @ApiPropertyOptional({ enum: ThreatSeverity, description: 'Schweregrad der Bedrohung' })
+  @ApiPropertyOptional({ enum: ThreatSeverityEnum, description: 'Schweregrad der Bedrohung' })
   @IsOptional()
-  @IsEnum(ThreatSeverity)
+  @IsEnum(ThreatSeverityEnum)
   severity?: ThreatSeverity;
 
   @ApiPropertyOptional({ description: 'Regel-spezifische Konfiguration' })
@@ -84,13 +91,13 @@ export class ThreatRuleDto {
   @ApiProperty({ description: 'Version der Regel' })
   version: string;
 
-  @ApiProperty({ enum: RuleStatus, description: 'Status der Regel' })
+  @ApiProperty({ enum: RuleStatusEnum, description: 'Status der Regel' })
   status: RuleStatus;
 
-  @ApiProperty({ enum: ThreatSeverity, description: 'Schweregrad der Bedrohung' })
+  @ApiProperty({ enum: ThreatSeverityEnum, description: 'Schweregrad der Bedrohung' })
   severity: ThreatSeverity;
 
-  @ApiProperty({ enum: ConditionType, description: 'Typ der Regel-Bedingung' })
+  @ApiProperty({ enum: ConditionTypeEnum, description: 'Typ der Regel-Bedingung' })
   conditionType: ConditionType;
 
   @ApiProperty({ description: 'Regel-spezifische Konfiguration' })
@@ -116,14 +123,14 @@ export class ThreatRuleDto {
  * DTO für Regel-Filter
  */
 export class ThreatRuleFilterDto {
-  @ApiPropertyOptional({ enum: RuleStatus, description: 'Filter nach Status' })
+  @ApiPropertyOptional({ enum: RuleStatusEnum, description: 'Filter nach Status' })
   @IsOptional()
-  @IsEnum(RuleStatus)
+  @IsEnum(RuleStatusEnum)
   status?: RuleStatus;
 
-  @ApiPropertyOptional({ enum: ThreatSeverity, description: 'Filter nach Schweregrad' })
+  @ApiPropertyOptional({ enum: ThreatSeverityEnum, description: 'Filter nach Schweregrad' })
   @IsOptional()
-  @IsEnum(ThreatSeverity)
+  @IsEnum(ThreatSeverityEnum)
   severity?: ThreatSeverity;
 
   @ApiPropertyOptional({ description: 'Filter nach Tags', type: [String] })
@@ -146,7 +153,10 @@ export class RuleEvaluationResultDto {
   @ApiProperty({ description: 'Ob die Regel gematcht hat' })
   matched: boolean;
 
-  @ApiPropertyOptional({ enum: ThreatSeverity, description: 'Schweregrad der erkannten Bedrohung' })
+  @ApiPropertyOptional({
+    enum: ThreatSeverityEnum,
+    description: 'Schweregrad der erkannten Bedrohung',
+  })
   severity?: ThreatSeverity;
 
   @ApiPropertyOptional({ description: 'Risiko-Score (0-100)' })

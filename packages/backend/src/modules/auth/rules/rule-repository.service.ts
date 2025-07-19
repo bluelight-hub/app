@@ -1,8 +1,10 @@
 import { Injectable, Logger, OnModuleInit } from '@nestjs/common';
 import { PrismaService } from '@/prisma/prisma.service';
 import { ConfigService } from '@nestjs/config';
-import { ConditionType, RuleStatus, ThreatDetectionRule, ThreatSeverity } from './rule.interface';
+import { ThreatDetectionRule } from './rule.interface';
+import { ConditionType, RuleStatus, ThreatSeverity } from '@prisma/generated/prisma/enums';
 import { RuleEngineService } from './rule-engine.service';
+import type { ThreatDetectionRuleModel } from '@prisma/generated/prisma/models/ThreatDetectionRule';
 
 /**
  * Service zur Verwaltung der Threat Detection Rules in der Datenbank
@@ -163,7 +165,7 @@ export class RuleRepositoryService implements OnModuleInit {
   /**
    * Holt eine spezifische Regel
    */
-  async getRule(id: string): Promise<any> {
+  async getRule(id: string): Promise<ThreatDetectionRuleModel | null> {
     return this.prisma.threatDetectionRule.findUnique({
       where: { id },
     });
@@ -176,7 +178,7 @@ export class RuleRepositoryService implements OnModuleInit {
     status?: RuleStatus;
     severity?: ThreatSeverity;
     tags?: string[];
-  }): Promise<any[]> {
+  }): Promise<ThreatDetectionRuleModel[]> {
     return this.prisma.threatDetectionRule.findMany({
       where: {
         ...(filters?.status && { status: filters.status }),
@@ -196,7 +198,21 @@ export class RuleRepositoryService implements OnModuleInit {
   /**
    * Holt Regel-Statistiken
    */
-  async getRuleStatistics(): Promise<any> {
+  async getRuleStatistics(): Promise<{
+    totalRules: number;
+    rulesByStatus: {
+      active: number;
+      inactive: number;
+      testing: number;
+    };
+    rulesBySeverity: {
+      low: number;
+      medium: number;
+      high: number;
+      critical: number;
+    };
+    engineMetrics: any; // Dies bleibt any, da es von RuleEngineService.getMetrics() kommt
+  }> {
     const rules = await this.prisma.threatDetectionRule.findMany();
     const engineMetrics = this.ruleEngineService.getMetrics();
 
@@ -220,7 +236,9 @@ export class RuleRepositoryService implements OnModuleInit {
   /**
    * Erstellt eine Regel-Instanz aus einem Datenbank-Record
    */
-  private async createRuleFromDbRecord(dbRule: Partial<any>): Promise<ThreatDetectionRule | null> {
+  private async createRuleFromDbRecord(
+    dbRule: ThreatDetectionRuleModel,
+  ): Promise<ThreatDetectionRule | null> {
     try {
       const RuleClass = await this.getRuleClass(dbRule.conditionType);
       if (!RuleClass) {
@@ -255,7 +273,9 @@ export class RuleRepositoryService implements OnModuleInit {
   /**
    * Holt die entsprechende Regel-Klasse basierend auf dem Condition Type
    */
-  private async getRuleClass(conditionType: ConditionType): Promise<any> {
+  private async getRuleClass(
+    conditionType: ConditionType,
+  ): Promise<new (config: any) => ThreatDetectionRule | null> {
     // Dynamisches Laden der Regel-Klassen
     switch (conditionType) {
       case ConditionType.THRESHOLD: {
@@ -286,7 +306,7 @@ export class RuleRepositoryService implements OnModuleInit {
   /**
    * Erhöht die Versionsnummer
    */
-  private incrementVersion(rule: any): string {
+  private incrementVersion(rule: ThreatDetectionRuleModel | null): string {
     if (!rule?.version) return '1.0.0';
 
     const parts = rule.version.split('.');

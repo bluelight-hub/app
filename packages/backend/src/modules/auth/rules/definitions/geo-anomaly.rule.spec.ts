@@ -1,6 +1,7 @@
 import { GeoAnomalyRule } from './geo-anomaly.rule';
-import { RuleContext, RuleStatus, ThreatSeverity, ConditionType } from '../rule.interface';
-import { SecurityEventType } from '../../enums/security-event-type.enum';
+import { RuleContext } from '../rule.interface';
+import { SecurityEventType } from '@/modules/auth/constants';
+import { ConditionType, RuleStatus, ThreatSeverity } from '@prisma/generated/prisma/enums';
 
 describe('GeoAnomalyRule', () => {
   let rule: GeoAnomalyRule;

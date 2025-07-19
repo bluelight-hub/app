@@ -4,7 +4,7 @@ import { RuleEngineService } from './rule-engine.service';
 import { PrismaService } from '@/prisma/prisma.service';
 import { Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { ThreatSeverity, RuleStatus, ConditionType } from './rule.interface';
+import { ThreatSeverity, RuleStatus, ConditionType } from '@prisma/generated/prisma/enums';
 import { ThreatDetectionRule as PrismaThreatDetectionRule } from '@prisma/generated/prisma/client';
 
 describe('RuleRepositoryService', () => {

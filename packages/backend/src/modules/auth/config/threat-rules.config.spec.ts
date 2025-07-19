@@ -1,5 +1,5 @@
-import { loadThreatRulesConfig, defaultThreatRulesConfig } from './threat-rules.config';
-import { ThreatSeverity } from '../rules/rule.interface';
+import { defaultThreatRulesConfig, loadThreatRulesConfig } from './threat-rules.config';
+import { ThreatSeverity } from '@prisma/generated/prisma';
 
 describe('threat-rules.config', () => {
   const originalEnv = process.env;

@@ -41,6 +41,7 @@ Only use these shell commands if IntelliJ is not available:
 - Frontend: `pnpm --filter @bluelight-hub/frontend dev`, `pnpm --filter @bluelight-hub/frontend test`
 - Single test (backend): `pnpm --filter @bluelight-hub/backend test -- -t "test name"`
 - Single test (frontend): `pnpm --filter @bluelight-hub/frontend test -- -t "test name"`
+- **Doc Coverage Check:** `pnpm --filter @bluelight-hub/backend check:jsdoc:public`
 
 ## Code Style Guidelines
 

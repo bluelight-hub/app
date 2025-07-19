@@ -1,34 +1,5 @@
 import { SecurityEventType } from '../enums/security-event-type.enum';
-
-/**
- * Schweregrad einer Bedrohung
- */
-export enum ThreatSeverity {
-  LOW = 'LOW',
-  MEDIUM = 'MEDIUM',
-  HIGH = 'HIGH',
-  CRITICAL = 'CRITICAL',
-}
-
-/**
- * Status einer Regel
- */
-export enum RuleStatus {
-  ACTIVE = 'ACTIVE',
-  INACTIVE = 'INACTIVE',
-  TESTING = 'TESTING',
-}
-
-/**
- * Typ der Regel-Bedingung
- */
-export enum ConditionType {
-  THRESHOLD = 'THRESHOLD', // Schwellenwert-basiert
-  PATTERN = 'PATTERN', // Muster-basiert
-  ANOMALY = 'ANOMALY', // Anomalie-basiert
-  TIME_BASED = 'TIME_BASED', // Zeit-basiert
-  GEO_BASED = 'GEO_BASED', // Geografisch-basiert
-}
+import { ThreatSeverity, RuleStatus, ConditionType } from '@prisma/generated/prisma/enums';
 
 /**
  * Kontext für die Regel-Evaluierung

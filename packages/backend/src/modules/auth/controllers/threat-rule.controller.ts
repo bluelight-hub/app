@@ -51,7 +51,22 @@ export class ThreatRuleController {
   @ApiOperation({ summary: 'Get all threat detection rules' })
   @ApiResponse({ status: 200, type: [ThreatRuleDto] })
   async getRules(@Query() filters: ThreatRuleFilterDto): Promise<ThreatRuleDto[]> {
-    return this.ruleRepository.getRules(filters);
+    const rules = await this.ruleRepository.getRules(filters);
+    return rules.map((rule) => ({
+      id: rule.id,
+      name: rule.name,
+      description: rule.description,
+      version: rule.version,
+      status: rule.status,
+      severity: rule.severity,
+      conditionType: rule.conditionType,
+      config: rule.config as Record<string, any>,
+      tags: rule.tags as string[],
+      createdBy: rule.createdBy || undefined,
+      createdAt: rule.createdAt,
+      updatedBy: rule.updatedBy || undefined,
+      updatedAt: rule.updatedAt,
+    }));
   }
 
   /**
@@ -67,7 +82,21 @@ export class ThreatRuleController {
     if (!rule) {
       throw new Error('Rule not found');
     }
-    return rule;
+    return {
+      id: rule.id,
+      name: rule.name,
+      description: rule.description,
+      version: rule.version,
+      status: rule.status,
+      severity: rule.severity,
+      conditionType: rule.conditionType,
+      config: rule.config as Record<string, any>,
+      tags: rule.tags as string[],
+      createdBy: rule.createdBy || undefined,
+      createdAt: rule.createdAt,
+      updatedBy: rule.updatedBy || undefined,
+      updatedAt: rule.updatedAt,
+    };
   }
 
   /**

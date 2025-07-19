@@ -1,15 +1,9 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import { RuleEngineService } from './rule-engine.service';
-import {
-  RuleContext,
-  RuleEvaluationResult,
-  ThreatDetectionRule,
-  ThreatSeverity,
-  RuleStatus,
-  ConditionType,
-} from './rule.interface';
-import { SecurityEventType } from '../enums/security-event-type.enum';
+import { RuleContext, RuleEvaluationResult, ThreatDetectionRule } from './rule.interface';
+import { ConditionType, RuleStatus, ThreatSeverity } from '@prisma/generated/prisma';
+import { SecurityEventType } from '@/modules/auth/constants';
 import { SecurityAlertService, SecurityAlertType } from '../services/security-alert.service';
 import { SecurityLogService } from '../services/security-log.service';
 import { PrismaService } from '@/prisma/prisma.service';
