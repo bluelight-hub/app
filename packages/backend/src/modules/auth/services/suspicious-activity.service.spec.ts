@@ -406,13 +406,16 @@ describe('SuspiciousActivityService', () => {
 
       await service.checkLoginPatterns('user1', '192.168.1.1');
 
+      // Get the actual hour that was logged
+      const actualHour = mockDate.getHours();
+
       expect(securityLogService.logSecurityEvent).toHaveBeenCalledWith({
         eventType: SecurityEventType.SUSPICIOUS_ACTIVITY,
         userId: 'user1',
         ipAddress: '192.168.1.1',
         metadata: expect.objectContaining({
           type: 'unusual_login_time',
-          hour: 4, // Local time (UTC+1)
+          hour: actualHour, // Use the actual hour from the mocked date
           ipAddress: '192.168.1.1',
         }),
       });
