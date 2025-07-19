@@ -1420,19 +1420,49 @@ describe('SessionService', () => {
       mockPrismaService.session.findMany.mockResolvedValue([]);
       mockPrismaService.session.count.mockResolvedValue(1);
 
-      let callCount = 0;
-      mockPrismaService.session.update.mockImplementation(() => {
-        callCount++;
-        return Promise.resolve({
+      // Mock the private getLocationFromIp method to return consistent locations per IP
+      const locationCache = new Map<string, any>();
+      jest.spyOn(service as any, 'getLocationFromIp').mockImplementation(async (ip: string) => {
+        if (!locationCache.has(ip)) {
+          if (ip === '192.168.1.1') {
+            locationCache.set(ip, { city: 'Hamburg', country: 'Germany' });
+          } else if (ip === '192.168.1.2') {
+            locationCache.set(ip, { city: 'Munich', country: 'Germany' });
+          }
+        }
+        const location = locationCache.get(ip);
+        return location ? location : null;
+      });
+
+      // Different sessions should be created
+      mockPrismaService.session.update
+        .mockResolvedValueOnce({
           ...mockSession,
-          location: callCount === 1 ? 'Berlin, Germany' : 'Hamburg, Germany',
+          location: 'Hamburg, Germany', // First IP gets Hamburg
+          deviceType: 'desktop',
+          browser: 'Chrome',
+          os: 'Windows',
+          suspiciousFlags: [],
+          riskScore: 15,
+        })
+        .mockResolvedValueOnce({
+          ...mockSession,
+          location: 'Munich, Germany', // Second IP gets Munich
+          deviceType: 'desktop',
+          browser: 'Chrome',
+          os: 'Windows',
+          suspiciousFlags: [],
+          riskScore: 15,
+        })
+        .mockResolvedValueOnce({
+          ...mockSession,
+          location: 'Hamburg, Germany', // Third call (same IP as first) gets cached Hamburg
           deviceType: 'desktop',
           browser: 'Chrome',
           os: 'Windows',
           suspiciousFlags: [],
           riskScore: 15,
         });
-      });
 
       // Call with different IPs
       await service.enhanceSession('session-jti-1', '192.168.1.1', 'Chrome', 'password');
@@ -1442,10 +1472,14 @@ describe('SessionService', () => {
       const calls = mockPrismaService.session.update.mock.calls;
 
       // First and third calls (same IP) should have same location
-      expect(calls[0][0].data.location).toBe(calls[2][0].data.location);
+      expect(calls[0][0].data.location).toBe('Hamburg, Germany');
+      expect(calls[2][0].data.location).toBe('Hamburg, Germany');
 
       // Second call (different IP) should have different location
+      expect(calls[1][0].data.location).toBe('Munich, Germany');
       expect(calls[1][0].data.location).not.toBe(calls[0][0].data.location);
+
+      jest.restoreAllMocks();
     });
   });
 
