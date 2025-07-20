@@ -5,9 +5,9 @@ import { ConfigService } from '@nestjs/config';
 import { ErrorHandlingService } from '@/common/services/error-handling.service';
 import { RetryConfig } from '@/common/utils/retry.util';
 import { DatabaseCheckService } from './database-check.service';
-import { Permission, UserRole } from '@prisma/generated/prisma/enums';
+import { Permission, UserRole, RuleStatus } from '@prisma/generated/prisma/enums';
 import * as bcrypt from 'bcrypt';
-import { DefaultRolePermissions } from '@/modules/auth/constants';
+import { DefaultRolePermissions, getRulesForPreset } from '@/modules/auth/constants';
 
 /**
  * Service für das Seeding der Datenbank mit initialen Daten
@@ -441,5 +441,128 @@ export class SeedService {
 
   async seedAdminAuthentication(password?: string): Promise<boolean> {
     return this.seedAuthentication(password);
+  }
+
+  /**
+   * Seedet Threat Detection Rules basierend auf dem gewählten Preset
+   */
+  async seedThreatDetectionRules(options: {
+    preset: 'minimal' | 'standard' | 'maximum' | 'development';
+    reset?: boolean;
+    dryRun?: boolean;
+    activate?: boolean;
+    skipExisting?: boolean;
+  }): Promise<{
+    imported?: number;
+    updated?: number;
+    skipped?: number;
+    errors?: number;
+    wouldImport?: number;
+    wouldUpdate?: number;
+    wouldSkip?: number;
+    rules?: any[];
+  }> {
+    this.logger.log(`Seeding Threat Detection Rules mit Preset: ${options.preset}`);
+
+    // Hole Regeln für das gewählte Preset
+    const rulesToSeed = getRulesForPreset(options.preset);
+
+    if (options.dryRun) {
+      // Dry-Run: Nur analysieren was passieren würde
+      const result = {
+        wouldImport: 0,
+        wouldUpdate: 0,
+        wouldSkip: 0,
+        rules: [] as any[],
+      };
+
+      for (const ruleData of rulesToSeed) {
+        const existing = await this.prisma.threatDetectionRule.findUnique({
+          where: { id: ruleData.id },
+        });
+
+        if (existing) {
+          if (options.reset || !options.skipExisting) {
+            result.wouldUpdate++;
+          } else {
+            result.wouldSkip++;
+          }
+        } else {
+          result.wouldImport++;
+        }
+
+        result.rules.push({
+          ...ruleData,
+          wouldBe: existing
+            ? options.reset || !options.skipExisting
+              ? 'updated'
+              : 'skipped'
+            : 'imported',
+        });
+      }
+
+      return result;
+    }
+
+    // Echtes Seeding
+    try {
+      // Bei Reset erst alle Regeln löschen
+      if (options.reset) {
+        this.logger.warn('Reset-Modus: Lösche alle bestehenden Threat Detection Rules...');
+        await this.prisma.threatDetectionRule.deleteMany();
+        this.logger.log('Alle Regeln gelöscht');
+      }
+
+      // Bereite Regeln für Import vor
+      const preparedRules = rulesToSeed.map((rule) => ({
+        ...rule,
+        status: options.activate !== false ? RuleStatus.ACTIVE : RuleStatus.INACTIVE,
+      }));
+
+      // Importiere Regeln direkt über Prisma
+      const result = {
+        imported: 0,
+        updated: 0,
+        skipped: 0,
+        errors: 0,
+        rules: [] as any[],
+      };
+
+      for (const ruleData of preparedRules) {
+        try {
+          const existing = await this.prisma.threatDetectionRule.findUnique({
+            where: { id: ruleData.id },
+          });
+
+          if (existing) {
+            if (options.skipExisting !== false) {
+              result.skipped++;
+              continue;
+            }
+
+            await this.prisma.threatDetectionRule.update({
+              where: { id: ruleData.id },
+              data: ruleData,
+            });
+            result.updated++;
+          } else {
+            await this.prisma.threatDetectionRule.create({
+              data: ruleData,
+            });
+            result.imported++;
+          }
+
+          result.rules.push(ruleData);
+        } catch (error) {
+          this.logger.error(`Fehler beim Importieren der Regel ${ruleData.id}:`, error);
+          result.errors++;
+        }
+      }
+
+      return result;
+    } catch (error) {
+      this.logger.error('Fehler beim Seeding der Threat Detection Rules:', error);
+      throw error;
+    }
   }
 }

@@ -67,5 +67,29 @@ export class DevSeedService implements OnModuleInit {
         this.logger.error('Fehler beim Erstellen des initialen Einsatzes:', error);
       }
     }
+
+    // Threat Detection Rules seeden
+    if (this.configService.get('SEED_THREAT_RULES') !== 'false') {
+      try {
+        const preset = this.configService.get('THREAT_RULES_PRESET') || 'standard';
+        const result = await this.seedService.seedThreatDetectionRules({
+          preset: preset as any,
+          activate: true,
+          skipExisting: true,
+        });
+
+        if (result.imported > 0) {
+          this.logger.log(
+            `Threat Detection Rules erfolgreich geseeded: ${result.imported} Regeln importiert`,
+          );
+        } else if (result.skipped > 0) {
+          this.logger.log(
+            `Threat Detection Rules bereits vorhanden: ${result.skipped} Regeln übersprungen`,
+          );
+        }
+      } catch (error) {
+        this.logger.error('Fehler beim Seeden der Threat Detection Rules:', error);
+      }
+    }
   }
 }

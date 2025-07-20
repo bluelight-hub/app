@@ -23,6 +23,7 @@ describe('DevSeedService', () => {
       seedInitialEinsatz: jest.fn(),
       createEinsatzWithRetry: jest.fn(),
       seedAdminAuthentication: jest.fn(),
+      seedThreatDetectionRules: jest.fn(),
     };
 
     const mockConfigService = {
@@ -70,15 +71,24 @@ describe('DevSeedService', () => {
         createdAt: new Date(),
         updatedAt: new Date(),
       };
+      const mockThreatRulesResult = {
+        imported: 4,
+        updated: 0,
+        skipped: 0,
+        errors: 0,
+      };
       configService.get
         .mockReturnValueOnce('development') // NODE_ENV
         .mockReturnValueOnce(undefined) // SEED_ADMIN_AUTH (default: enabled)
         .mockReturnValueOnce('admin123') // ADMIN_SEED_PASSWORD
         .mockReturnValueOnce(undefined) // SEED_INITIAL_EINSATZ (default: enabled)
-        .mockReturnValueOnce(undefined); // DEV_EINSATZ_NAME (default)
+        .mockReturnValueOnce(undefined) // DEV_EINSATZ_NAME (default)
+        .mockReturnValueOnce(undefined) // SEED_THREAT_RULES (default: enabled)
+        .mockReturnValueOnce('standard'); // THREAT_RULES_PRESET (default)
 
       seedService.seedAdminAuthentication = jest.fn().mockResolvedValue(true);
       seedService.createEinsatzWithRetry.mockResolvedValue(mockEinsatz);
+      seedService.seedThreatDetectionRules.mockResolvedValue(mockThreatRulesResult);
 
       // Act
       await service.onModuleInit();
@@ -94,6 +104,14 @@ describe('DevSeedService', () => {
       );
       expect(mockLogger.log).toHaveBeenCalledWith(
         expect.stringContaining(`Initialen Dev-Einsatz erstellt: Dev-Einsatz`),
+      );
+      expect(seedService.seedThreatDetectionRules).toHaveBeenCalledWith({
+        preset: 'standard',
+        activate: true,
+        skipExisting: true,
+      });
+      expect(mockLogger.log).toHaveBeenCalledWith(
+        'Threat Detection Rules erfolgreich geseeded: 4 Regeln importiert',
       );
     });
 
@@ -264,11 +282,15 @@ describe('DevSeedService', () => {
       configService.get
         .mockReturnValueOnce('development') // NODE_ENV
         .mockReturnValueOnce('false') // SEED_ADMIN_AUTH disabled
-        .mockReturnValueOnce('false'); // SEED_INITIAL_EINSATZ disabled
+        .mockReturnValueOnce('false') // SEED_INITIAL_EINSATZ disabled
+        .mockReturnValueOnce('false'); // SEED_THREAT_RULES disabled
 
       // Mock the SeedService methods as spies
       jest.spyOn(seedService, 'seedAdminAuthentication').mockResolvedValue(true);
       jest.spyOn(seedService, 'createEinsatzWithRetry').mockResolvedValue(null);
+      jest
+        .spyOn(seedService, 'seedThreatDetectionRules')
+        .mockResolvedValue({ imported: 0, skipped: 0, updated: 0, errors: 0 });
 
       // Act
       await service.onModuleInit();
@@ -276,6 +298,7 @@ describe('DevSeedService', () => {
       // Assert
       expect(seedService.seedAdminAuthentication).not.toHaveBeenCalled();
       expect(seedService.createEinsatzWithRetry).not.toHaveBeenCalled();
+      expect(seedService.seedThreatDetectionRules).not.toHaveBeenCalled();
     });
 
     it('sollte Fehler beim Admin-Auth-Seeding abfangen und loggen', async () => {
@@ -430,7 +453,8 @@ describe('DevSeedService', () => {
         .mockReturnValueOnce('development') // NODE_ENV
         .mockReturnValueOnce(undefined) // SEED_ADMIN_AUTH
         .mockReturnValueOnce(undefined) // ADMIN_SEED_PASSWORD (undefined to trigger default)
-        .mockReturnValueOnce('false'); // SEED_INITIAL_EINSATZ
+        .mockReturnValueOnce('false') // SEED_INITIAL_EINSATZ
+        .mockReturnValueOnce('false'); // SEED_THREAT_RULES
 
       seedService.seedAdminAuthentication = jest.fn().mockResolvedValue(true);
 
@@ -445,6 +469,131 @@ describe('DevSeedService', () => {
       );
       expect(mockLogger.warn).toHaveBeenCalledWith(
         'WICHTIG: Ändern Sie die Passwörter vor dem Produktivbetrieb!',
+      );
+    });
+
+    it('sollte Threat Detection Rules mit Standard-Preset seeden', async () => {
+      // Arrange
+      const mockThreatRulesResult = {
+        imported: 4,
+        updated: 0,
+        skipped: 0,
+        errors: 0,
+      };
+      configService.get
+        .mockReturnValueOnce('development') // NODE_ENV
+        .mockReturnValueOnce('false') // SEED_ADMIN_AUTH disabled
+        .mockReturnValueOnce('false') // SEED_INITIAL_EINSATZ disabled
+        .mockReturnValueOnce(undefined) // SEED_THREAT_RULES (default: enabled)
+        .mockReturnValueOnce(undefined); // THREAT_RULES_PRESET (default: 'standard')
+
+      seedService.seedThreatDetectionRules.mockResolvedValue(mockThreatRulesResult);
+
+      // Act
+      await service.onModuleInit();
+
+      // Assert
+      expect(seedService.seedThreatDetectionRules).toHaveBeenCalledWith({
+        preset: 'standard',
+        activate: true,
+        skipExisting: true,
+      });
+      expect(mockLogger.log).toHaveBeenCalledWith(
+        'Threat Detection Rules erfolgreich geseeded: 4 Regeln importiert',
+      );
+    });
+
+    it('sollte Threat Detection Rules mit custom Preset seeden', async () => {
+      // Arrange
+      const mockThreatRulesResult = {
+        imported: 2,
+        updated: 0,
+        skipped: 0,
+        errors: 0,
+      };
+      configService.get
+        .mockReturnValueOnce('development') // NODE_ENV
+        .mockReturnValueOnce('false') // SEED_ADMIN_AUTH disabled
+        .mockReturnValueOnce('false') // SEED_INITIAL_EINSATZ disabled
+        .mockReturnValueOnce(undefined) // SEED_THREAT_RULES (default: enabled)
+        .mockReturnValueOnce('minimal'); // THREAT_RULES_PRESET
+
+      seedService.seedThreatDetectionRules.mockResolvedValue(mockThreatRulesResult);
+
+      // Act
+      await service.onModuleInit();
+
+      // Assert
+      expect(seedService.seedThreatDetectionRules).toHaveBeenCalledWith({
+        preset: 'minimal',
+        activate: true,
+        skipExisting: true,
+      });
+      expect(mockLogger.log).toHaveBeenCalledWith(
+        'Threat Detection Rules erfolgreich geseeded: 2 Regeln importiert',
+      );
+    });
+
+    it('sollte Threat Detection Rules überspringen wenn SEED_THREAT_RULES false ist', async () => {
+      // Arrange
+      configService.get
+        .mockReturnValueOnce('development') // NODE_ENV
+        .mockReturnValueOnce('false') // SEED_ADMIN_AUTH disabled
+        .mockReturnValueOnce('false') // SEED_INITIAL_EINSATZ disabled
+        .mockReturnValueOnce('false'); // SEED_THREAT_RULES disabled
+
+      // Act
+      await service.onModuleInit();
+
+      // Assert
+      expect(seedService.seedThreatDetectionRules).not.toHaveBeenCalled();
+    });
+
+    it('sollte loggen wenn Threat Detection Rules bereits existieren', async () => {
+      // Arrange
+      const mockThreatRulesResult = {
+        imported: 0,
+        updated: 0,
+        skipped: 4,
+        errors: 0,
+      };
+      configService.get
+        .mockReturnValueOnce('development') // NODE_ENV
+        .mockReturnValueOnce('false') // SEED_ADMIN_AUTH disabled
+        .mockReturnValueOnce('false') // SEED_INITIAL_EINSATZ disabled
+        .mockReturnValueOnce(undefined) // SEED_THREAT_RULES (default: enabled)
+        .mockReturnValueOnce('standard'); // THREAT_RULES_PRESET
+
+      seedService.seedThreatDetectionRules.mockResolvedValue(mockThreatRulesResult);
+
+      // Act
+      await service.onModuleInit();
+
+      // Assert
+      expect(mockLogger.log).toHaveBeenCalledWith(
+        'Threat Detection Rules bereits vorhanden: 4 Regeln übersprungen',
+      );
+    });
+
+    it('sollte Fehler beim Threat Rules Seeding abfangen und loggen', async () => {
+      // Arrange
+      const error = new Error('Threat rules seed failed');
+      configService.get
+        .mockReturnValueOnce('development') // NODE_ENV
+        .mockReturnValueOnce('false') // SEED_ADMIN_AUTH disabled
+        .mockReturnValueOnce('false') // SEED_INITIAL_EINSATZ disabled
+        .mockReturnValueOnce(undefined) // SEED_THREAT_RULES (default: enabled)
+        .mockReturnValueOnce('standard'); // THREAT_RULES_PRESET
+
+      seedService.seedThreatDetectionRules.mockRejectedValue(error);
+
+      // Act
+      await service.onModuleInit();
+
+      // Assert
+      expect(mockLogger.error).toHaveBeenCalledWith(
+        'Fehler beim Seeden der Threat Detection Rules:',
+        error,
       );
     });
   });

@@ -6,6 +6,7 @@ import { ConfigModule } from '@nestjs/config';
 import { SeedEinsatzCommand } from './commands/seed-einsatz.command';
 import { SeedImportCommand } from './commands/seed-import.command';
 import { SeedAdminCommand } from './commands/seed-admin.command';
+import { SeedThreatRulesCommand } from './commands/seed-threat-rules.command';
 
 /**
  * Modul für CLI-Befehle
@@ -26,6 +27,6 @@ import { SeedAdminCommand } from './commands/seed-admin.command';
     EinsatzModule,
     SeedModule,
   ],
-  providers: [SeedEinsatzCommand, SeedImportCommand, SeedAdminCommand],
+  providers: [SeedEinsatzCommand, SeedImportCommand, SeedAdminCommand, SeedThreatRulesCommand],
 })
 export class CliModule {}
