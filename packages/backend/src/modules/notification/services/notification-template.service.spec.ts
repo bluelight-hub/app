@@ -6,7 +6,6 @@ const TemplateType = {
   SECURITY_ALERT: 'SECURITY_ALERT',
   ACCOUNT_LOCKED: 'ACCOUNT_LOCKED',
 };
-// import * as Handlebars from 'handlebars';
 
 describe('NotificationTemplateService', () => {
   let service: NotificationTemplateService;
@@ -306,6 +305,291 @@ describe('NotificationTemplateService', () => {
       expect(result.isValid).toBe(false);
       expect(result.errors).toHaveLength(1);
       expect(result.errors[0]).toContain('Template compilation error');
+    });
+  });
+
+  describe('Handlebars helpers', () => {
+    it('should register and use date helper', async () => {
+      const template = {
+        ...mockTemplate,
+        subject: 'Date: {{date createdAt}}',
+        bodyHtml: '<p>Date: {{date createdAt}}</p>',
+        bodyText: 'Date: {{date createdAt}}',
+      };
+      (prismaService.notificationTemplate.findFirst as jest.Mock).mockResolvedValue(template);
+
+      const testDate = new Date('2024-01-15T10:00:00Z');
+      const result = await service.renderTemplate(
+        TemplateType.SECURITY_ALERT,
+        { createdAt: testDate },
+        'en',
+      );
+
+      expect(result.subject).toContain(testDate.toLocaleDateString());
+      expect(result.html).toContain(testDate.toLocaleDateString());
+      expect(result.text).toContain(testDate.toLocaleDateString());
+    });
+
+    it('should register and use datetime helper', async () => {
+      const template = {
+        ...mockTemplate,
+        subject: 'DateTime: {{datetime createdAt}}',
+        bodyHtml: '<p>DateTime: {{datetime createdAt}}</p>',
+        bodyText: 'DateTime: {{datetime createdAt}}',
+      };
+      (prismaService.notificationTemplate.findFirst as jest.Mock).mockResolvedValue(template);
+
+      const testDate = new Date('2024-01-15T10:00:00Z');
+      const result = await service.renderTemplate(
+        TemplateType.SECURITY_ALERT,
+        { createdAt: testDate },
+        'en',
+      );
+
+      expect(result.subject).toContain(testDate.toLocaleString());
+      expect(result.html).toContain(testDate.toLocaleString());
+      expect(result.text).toContain(testDate.toLocaleString());
+    });
+
+    it('should register and use uppercase helper', async () => {
+      const template = {
+        ...mockTemplate,
+        subject: 'Name: {{uppercase name}}',
+        bodyHtml: '<p>Name: {{uppercase name}}</p>',
+        bodyText: 'Name: {{uppercase name}}',
+      };
+      (prismaService.notificationTemplate.findFirst as jest.Mock).mockResolvedValue(template);
+
+      const result = await service.renderTemplate(
+        TemplateType.SECURITY_ALERT,
+        { name: 'john doe' },
+        'en',
+      );
+
+      expect(result.subject).toBe('Name: JOHN DOE');
+      expect(result.html).toBe('<p>Name: JOHN DOE</p>');
+      expect(result.text).toBe('Name: JOHN DOE');
+    });
+
+    it('should register and use lowercase helper', async () => {
+      const template = {
+        ...mockTemplate,
+        subject: 'Email: {{lowercase email}}',
+        bodyHtml: '<p>Email: {{lowercase email}}</p>',
+        bodyText: 'Email: {{lowercase email}}',
+      };
+      (prismaService.notificationTemplate.findFirst as jest.Mock).mockResolvedValue(template);
+
+      const result = await service.renderTemplate(
+        TemplateType.SECURITY_ALERT,
+        { email: 'JOHN.DOE@EXAMPLE.COM' },
+        'en',
+      );
+
+      expect(result.subject).toBe('Email: john.doe@example.com');
+      expect(result.html).toBe('<p>Email: john.doe@example.com</p>');
+      expect(result.text).toBe('Email: john.doe@example.com');
+    });
+
+    it('should handle undefined values in helpers', async () => {
+      const template = {
+        ...mockTemplate,
+        subject: 'Value: {{uppercase value}}',
+        bodyHtml: '<p>Value: {{uppercase value}}</p>',
+        bodyText: 'Value: {{uppercase value}}',
+      };
+      (prismaService.notificationTemplate.findFirst as jest.Mock).mockResolvedValue(template);
+
+      const result = await service.renderTemplate(
+        TemplateType.SECURITY_ALERT,
+        { value: undefined },
+        'en',
+      );
+
+      expect(result.subject).toBe('Value: ');
+      expect(result.html).toBe('<p>Value: </p>');
+      expect(result.text).toBe('Value: ');
+    });
+
+    it('should handle string dates in date helper', async () => {
+      const template = {
+        ...mockTemplate,
+        subject: 'Date: {{date dateString}}',
+      };
+      (prismaService.notificationTemplate.findFirst as jest.Mock).mockResolvedValue(template);
+
+      const dateString = '2024-01-15T10:00:00Z';
+      const result = await service.renderTemplate(
+        TemplateType.SECURITY_ALERT,
+        { dateString },
+        'en',
+      );
+
+      expect(result.subject).toContain(new Date(dateString).toLocaleDateString());
+    });
+  });
+
+  describe('getTemplate', () => {
+    it('should return null when neither id nor type is provided', async () => {
+      const result = await service.getTemplate();
+      expect(result).toBeNull();
+      expect(prismaService.notificationTemplate.findFirst).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('renderTemplate error handling', () => {
+    it('should handle template compilation errors and rethrow', async () => {
+      const template = {
+        ...mockTemplate,
+        subject: '{{#if}}Invalid handlebars', // Invalid Handlebars syntax
+        bodyHtml: '<p>Valid</p>',
+        bodyText: 'Valid',
+      };
+      (prismaService.notificationTemplate.findFirst as jest.Mock).mockResolvedValue(template);
+
+      await expect(service.renderTemplate(TemplateType.SECURITY_ALERT, {}, 'en')).rejects.toThrow();
+    });
+
+    it('should handle bodyHtml being null or empty', async () => {
+      const template = {
+        ...mockTemplate,
+        subject: 'Test Subject',
+        bodyHtml: null, // null bodyHtml
+        bodyText: 'Test Text',
+      };
+      (prismaService.notificationTemplate.findFirst as jest.Mock).mockResolvedValue(template);
+
+      const result = await service.renderTemplate(
+        TemplateType.SECURITY_ALERT,
+        { alertType: 'Test' },
+        'en',
+      );
+
+      expect(result.subject).toBe('Test Subject');
+      expect(result.html).toBe(''); // Empty string for null template
+      expect(result.text).toBe('Test Text');
+    });
+
+    it('should handle subject being null or empty', async () => {
+      const template = {
+        ...mockTemplate,
+        subject: null, // null subject
+        bodyHtml: '<p>Test</p>',
+        bodyText: 'Test',
+      };
+      (prismaService.notificationTemplate.findFirst as jest.Mock).mockResolvedValue(template);
+
+      const result = await service.renderTemplate(
+        TemplateType.SECURITY_ALERT,
+        { message: 'Test' },
+        'en',
+      );
+
+      expect(result.subject).toBe(''); // Empty string for null template
+      expect(result.html).toBe('<p>Test</p>');
+      expect(result.text).toBe('Test');
+    });
+  });
+
+  describe('listTemplates with undefined filters', () => {
+    it('should handle listTemplates being called without any arguments', async () => {
+      const templates = [mockTemplate];
+      (prismaService.notificationTemplate.findMany as jest.Mock).mockResolvedValue(templates);
+
+      const result = await service.listTemplates();
+
+      expect(result).toEqual(templates);
+      expect(prismaService.notificationTemplate.findMany).toHaveBeenCalledWith({
+        where: {},
+        orderBy: { createdAt: 'desc' },
+      });
+    });
+
+    it('should handle filters object without any properties', async () => {
+      const templates = [mockTemplate];
+      (prismaService.notificationTemplate.findMany as jest.Mock).mockResolvedValue(templates);
+
+      const result = await service.listTemplates({});
+
+      expect(result).toEqual(templates);
+      expect(prismaService.notificationTemplate.findMany).toHaveBeenCalledWith({
+        where: {},
+        orderBy: { createdAt: 'desc' },
+      });
+    });
+  });
+
+  describe('Handlebars helpers edge cases', () => {
+    it('should handle null values in lowercase helper', async () => {
+      const template = {
+        ...mockTemplate,
+        subject: 'Value: {{lowercase nullValue}}',
+        bodyHtml: '<p>Value: {{lowercase nullValue}}</p>',
+        bodyText: 'Value: {{lowercase nullValue}}',
+      };
+      (prismaService.notificationTemplate.findFirst as jest.Mock).mockResolvedValue(template);
+
+      const result = await service.renderTemplate(
+        TemplateType.SECURITY_ALERT,
+        { nullValue: null },
+        'en',
+      );
+
+      expect(result.subject).toBe('Value: ');
+      expect(result.html).toBe('<p>Value: </p>');
+      expect(result.text).toBe('Value: ');
+    });
+
+    it('should handle null values in uppercase helper', async () => {
+      const template = {
+        ...mockTemplate,
+        subject: 'Value: {{uppercase nullValue}}',
+        bodyHtml: '<p>Value: {{uppercase nullValue}}</p>',
+        bodyText: 'Value: {{uppercase nullValue}}',
+      };
+      (prismaService.notificationTemplate.findFirst as jest.Mock).mockResolvedValue(template);
+
+      const result = await service.renderTemplate(
+        TemplateType.SECURITY_ALERT,
+        { nullValue: null },
+        'en',
+      );
+
+      expect(result.subject).toBe('Value: ');
+      expect(result.html).toBe('<p>Value: </p>');
+      expect(result.text).toBe('Value: ');
+    });
+
+    it('should handle invalid dates in date helper', async () => {
+      const template = {
+        ...mockTemplate,
+        subject: 'Date: {{date invalidDate}}',
+      };
+      (prismaService.notificationTemplate.findFirst as jest.Mock).mockResolvedValue(template);
+
+      const result = await service.renderTemplate(
+        TemplateType.SECURITY_ALERT,
+        { invalidDate: 'not-a-date' },
+        'en',
+      );
+
+      expect(result.subject).toBe('Date: Invalid Date');
+    });
+
+    it('should handle invalid dates in datetime helper', async () => {
+      const template = {
+        ...mockTemplate,
+        subject: 'DateTime: {{datetime invalidDate}}',
+      };
+      (prismaService.notificationTemplate.findFirst as jest.Mock).mockResolvedValue(template);
+
+      const result = await service.renderTemplate(
+        TemplateType.SECURITY_ALERT,
+        { invalidDate: 'not-a-date' },
+        'en',
+      );
+
+      expect(result.subject).toBe('DateTime: Invalid Date');
     });
   });
 });

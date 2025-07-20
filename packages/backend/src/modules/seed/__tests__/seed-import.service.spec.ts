@@ -370,8 +370,12 @@ describe('SeedImportService', () => {
       };
       const result = {
         einsaetzeCreated: 0,
+        einsaetzeUpdated: 0,
+        etbEntriesCreated: 0,
+        etbEntriesUpdated: 0,
+        attachmentsCreated: 0,
         createdEntities: { einsaetze: [], etbEntries: [] },
-      };
+      } as any;
 
       mockPrismaService.einsatz.findFirst.mockResolvedValue(null);
       mockPrismaService.einsatz.create.mockResolvedValue({
@@ -408,10 +412,12 @@ describe('SeedImportService', () => {
       const config = {};
       const result = {
         einsaetzeCreated: 0,
+        einsaetzeUpdated: 0,
         etbEntriesCreated: 0,
+        etbEntriesUpdated: 0,
         attachmentsCreated: 0,
         createdEntities: { einsaetze: [], etbEntries: [] },
-      };
+      } as any;
 
       mockPrismaService.einsatz.findFirst.mockResolvedValue(null);
       mockPrismaService.einsatz.create.mockResolvedValue({
@@ -515,8 +521,10 @@ describe('SeedImportService', () => {
       const config = { autoTimestamps: true };
       const result = {
         etbEntriesCreated: 0,
+        etbEntriesUpdated: 0,
+        attachmentsCreated: 0,
         createdEntities: { etbEntries: [] },
-      };
+      } as any;
 
       const mockDate = new Date('2024-01-01T12:00:00.000Z');
       jest.spyOn(global, 'Date').mockImplementation(() => mockDate);
@@ -557,8 +565,10 @@ describe('SeedImportService', () => {
       const config = { autoTimestamps: false };
       const result = {
         etbEntriesCreated: 0,
+        etbEntriesUpdated: 0,
+        attachmentsCreated: 0,
         createdEntities: { etbEntries: [] },
-      };
+      } as any;
 
       mockPrismaService.etbEntry.create.mockResolvedValue({
         id: 'etb-1',
@@ -653,6 +663,283 @@ describe('SeedImportService', () => {
 
       expect(result.success).toBe(false);
       expect(result.errors).toContain('Import-Fehler: Transaction failed');
+    });
+  });
+
+  describe('edge cases and additional branches', () => {
+    it('should handle pre-import setup without SQL commands but with warnings', async () => {
+      const data = {
+        preImportSetup: {
+          warnings: ['Warning without SQL'],
+        },
+        einsaetze: [],
+      };
+      const config = {};
+
+      mockErrorHandlingService.executeWithErrorHandling.mockImplementation(async (fn) => fn());
+      mockPrismaService.$transaction.mockImplementation(async (fn) => fn(mockPrismaService));
+
+      const result = await (service as any).importValidatedData(data, config, Date.now());
+
+      expect(result.success).toBe(true);
+      expect(result.warnings).toContain('Warning without SQL');
+      expect(mockPrismaService.$executeRawUnsafe).not.toHaveBeenCalled();
+    });
+
+    it('should handle ETB entries without anlagen', async () => {
+      const einsatzData = {
+        name: 'Test Einsatz',
+        beschreibung: 'Test',
+        etbEntries: [
+          {
+            laufendeNummer: 1,
+            kategorie: 'MELDUNG',
+            inhalt: 'Test Entry',
+            autorId: 'author-1',
+            // No anlagen array
+          },
+        ],
+      };
+      const config = {};
+      const result = {
+        einsaetzeCreated: 0,
+        einsaetzeUpdated: 0,
+        etbEntriesCreated: 0,
+        etbEntriesUpdated: 0,
+        attachmentsCreated: 0,
+        createdEntities: { einsaetze: [], etbEntries: [] },
+      } as any;
+
+      mockPrismaService.einsatz.findFirst.mockResolvedValue(null);
+      mockPrismaService.einsatz.create.mockResolvedValue({
+        id: '1',
+        name: 'Test Einsatz',
+      });
+      mockPrismaService.etbEntry.findFirst.mockResolvedValue(null);
+      mockPrismaService.etbEntry.create.mockResolvedValue({
+        id: 'etb-1',
+        laufendeNummer: 1,
+      });
+
+      await (service as any).importSingleEinsatz(einsatzData, config, result, mockPrismaService);
+
+      expect(result.etbEntriesCreated).toBe(1);
+      expect(result.attachmentsCreated).toBe(0);
+      expect(mockPrismaService.etbAttachment.create).not.toHaveBeenCalled();
+    });
+
+    it('should handle ETB entries with empty anlagen array', async () => {
+      const einsatzData = {
+        name: 'Test Einsatz',
+        beschreibung: 'Test',
+        etbEntries: [
+          {
+            laufendeNummer: 1,
+            kategorie: 'MELDUNG',
+            inhalt: 'Test Entry',
+            autorId: 'author-1',
+            anlagen: [], // Empty array
+          },
+        ],
+      };
+      const config = {};
+      const result = {
+        einsaetzeCreated: 0,
+        einsaetzeUpdated: 0,
+        etbEntriesCreated: 0,
+        etbEntriesUpdated: 0,
+        attachmentsCreated: 0,
+        createdEntities: { einsaetze: [], etbEntries: [] },
+      } as any;
+
+      mockPrismaService.einsatz.findFirst.mockResolvedValue(null);
+      mockPrismaService.einsatz.create.mockResolvedValue({
+        id: '1',
+        name: 'Test Einsatz',
+      });
+      mockPrismaService.etbEntry.findFirst.mockResolvedValue(null);
+      mockPrismaService.etbEntry.create.mockResolvedValue({
+        id: 'etb-1',
+        laufendeNummer: 1,
+      });
+
+      await (service as any).importSingleEinsatz(einsatzData, config, result, mockPrismaService);
+
+      expect(result.etbEntriesCreated).toBe(1);
+      expect(result.attachmentsCreated).toBe(0);
+      expect(mockPrismaService.etbAttachment.create).not.toHaveBeenCalled();
+    });
+
+    it('should handle existing ETB entry in dry run mode', async () => {
+      const data = {
+        einsaetze: [
+          {
+            name: 'Test Einsatz',
+            beschreibung: 'Test',
+            etbEntries: [
+              {
+                laufendeNummer: 1,
+                kategorie: 'MELDUNG',
+                inhalt: 'Test',
+                autorId: 'author-1',
+              },
+            ],
+          },
+        ],
+      };
+      const config = { dryRun: true };
+
+      const result = await (service as any).importValidatedData(data, config, Date.now());
+
+      // In dry run mode, it should count but not create
+      expect(result.success).toBe(true);
+      expect(result.etbEntriesCreated).toBe(1);
+      expect(result.warnings).toContain('Dry-Run durchgeführt - keine Datenbank-Änderungen');
+      expect(mockPrismaService.etbEntry.create).not.toHaveBeenCalled();
+    });
+
+    it('should handle progress callback being undefined', async () => {
+      const einsatzData = {
+        name: 'Test Einsatz',
+        beschreibung: 'Test',
+      };
+      const config = {
+        // No progressCallback defined
+      };
+      const result = {
+        einsaetzeCreated: 0,
+        einsaetzeUpdated: 0,
+        etbEntriesCreated: 0,
+        etbEntriesUpdated: 0,
+        attachmentsCreated: 0,
+        createdEntities: { einsaetze: [], etbEntries: [] },
+      } as any;
+
+      mockPrismaService.einsatz.findFirst.mockResolvedValue(null);
+      mockPrismaService.einsatz.create.mockResolvedValue({
+        id: '1',
+        name: 'Test Einsatz',
+      });
+
+      await (service as any).importSingleEinsatz(einsatzData, config, result, mockPrismaService);
+
+      expect(result.einsaetzeCreated).toBe(1);
+      // Should not throw error when progressCallback is undefined
+    });
+
+    it('should handle post-import cleanup without SQL commands', async () => {
+      const data = {
+        einsaetze: [],
+        postImportCleanup: {
+          validationSteps: ['Check data integrity'],
+          // No sqlCommands
+        },
+      };
+      const config = {};
+
+      mockErrorHandlingService.executeWithErrorHandling.mockImplementation(async (fn) => fn());
+      mockPrismaService.$transaction.mockImplementation(async (fn) => fn(mockPrismaService));
+
+      const result = await (service as any).importValidatedData(data, config, Date.now());
+
+      expect(result.success).toBe(true);
+      expect(mockPrismaService.$executeRawUnsafe).not.toHaveBeenCalled();
+    });
+
+    it('should handle post-import cleanup with empty SQL commands array', async () => {
+      const data = {
+        einsaetze: [],
+        postImportCleanup: {
+          sqlCommands: [], // Empty array
+          validationSteps: ['Check data integrity'],
+        },
+      };
+      const config = {};
+
+      mockErrorHandlingService.executeWithErrorHandling.mockImplementation(async (fn) => fn());
+      mockPrismaService.$transaction.mockImplementation(async (fn) => fn(mockPrismaService));
+
+      const result = await (service as any).importValidatedData(data, config, Date.now());
+
+      expect(result.success).toBe(true);
+      expect(mockPrismaService.$executeRawUnsafe).not.toHaveBeenCalled();
+    });
+
+    it('should handle data without preImportSetup and postImportCleanup', async () => {
+      const data = {
+        einsaetze: [
+          {
+            name: 'Test Einsatz',
+            beschreibung: 'Test',
+          },
+        ],
+        // No preImportSetup or postImportCleanup
+      };
+      const config = {};
+
+      mockErrorHandlingService.executeWithErrorHandling.mockImplementation(async (fn) => fn());
+      mockPrismaService.$transaction.mockImplementation(async (fn) => fn(mockPrismaService));
+      mockPrismaService.einsatz.findFirst.mockResolvedValue(null);
+      mockPrismaService.einsatz.create.mockResolvedValue({
+        id: '1',
+        name: 'Test Einsatz',
+      });
+
+      const result = await (service as any).importValidatedData(data, config, Date.now());
+
+      expect(result.success).toBe(true);
+      expect(result.einsaetzeCreated).toBe(1);
+      expect(mockPrismaService.$executeRawUnsafe).not.toHaveBeenCalled();
+    });
+
+    it('should handle existing Einsatz without etbEntries', async () => {
+      const einsatzData = {
+        name: 'Test Einsatz',
+        beschreibung: 'Test',
+        // No etbEntries
+      };
+      const config = {};
+      const result = {
+        einsaetzeCreated: 0,
+        einsaetzeUpdated: 0,
+        etbEntriesCreated: 0,
+        etbEntriesUpdated: 0,
+        attachmentsCreated: 0,
+        createdEntities: { einsaetze: [], etbEntries: [] },
+      } as any;
+
+      mockPrismaService.einsatz.findFirst.mockResolvedValue(null);
+      mockPrismaService.einsatz.create.mockResolvedValue({
+        id: '1',
+        name: 'Test Einsatz',
+      });
+
+      await (service as any).importSingleEinsatz(einsatzData, config, result, mockPrismaService);
+
+      expect(result.einsaetzeCreated).toBe(1);
+      expect(result.etbEntriesCreated).toBe(0);
+    });
+
+    it('should normalize empty data formats', () => {
+      // Test with empty einsaetze array
+      const data1 = {
+        einsaetze: [],
+      };
+      const result1 = (service as any).normalizeToEinsaetzeArray(data1);
+      expect(result1).toEqual([]);
+
+      // Test with undefined data
+      const data2 = {};
+      const result2 = (service as any).normalizeToEinsaetzeArray(data2);
+      expect(result2).toEqual([]);
+
+      // Test with null einsatz in simple format
+      const data3 = {
+        einsatz: null,
+        initialEtbEntries: [],
+      };
+      const result3 = (service as any).normalizeToEinsaetzeArray(data3);
+      expect(result3).toEqual([]);
     });
   });
 });

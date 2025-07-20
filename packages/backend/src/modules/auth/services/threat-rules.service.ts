@@ -2,7 +2,8 @@ import { Injectable, Logger, OnModuleInit } from '@nestjs/common';
 import { PrismaService } from '@/prisma/prisma.service';
 import { ThreatRuleFactory } from '../rules/rule.factory';
 import { RuleEngineService } from '../rules/rule-engine.service';
-import { ThreatSeverity, RuleStatus } from '@prisma/generated/prisma/enums';
+import { RuleStatus, ThreatSeverity } from '@prisma/generated/prisma/enums';
+import { ThreatDetectionRule } from '@prisma/generated/prisma';
 
 /**
  * Service zur Verwaltung von Threat Detection Rules
@@ -188,7 +189,7 @@ export class ThreatRulesService implements OnModuleInit {
   /**
    * Holt eine Regel aus der Datenbank
    */
-  async getRule(id: string): Promise<any> {
+  async getRule(id: string): Promise<ThreatDetectionRule | null> {
     return this.prisma.threatDetectionRule.findUnique({
       where: { id },
     });

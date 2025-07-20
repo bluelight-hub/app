@@ -84,7 +84,9 @@ export class LoginAttemptService {
           deviceType: deviceInfo.deviceType,
           browser: deviceInfo.browser,
           os: deviceInfo.os,
-          suspicious: riskScore > 70 || deviceInfo.isBot === true,
+          suspicious:
+            riskScore > this.authConfig.securityAlerts.thresholds.suspiciousLoginRiskScore ||
+            deviceInfo.isBot === true,
           riskScore,
           metadata: {
             ...data.metadata,
@@ -273,6 +275,11 @@ export class LoginAttemptService {
    * Überprüft IP-basierte Ratenbegrenzung
    */
   async checkIpRateLimit(ipAddress: string): Promise<boolean> {
+    // Skip rate limiting for empty or undefined IP addresses
+    if (!ipAddress) {
+      return false;
+    }
+
     // Skip rate limiting for local IPs (emergency service use case)
     if (this.isLocalIp(ipAddress)) {
       this.logger.debug(`Skipping IP rate limit for local IP: ${ipAddress}`);

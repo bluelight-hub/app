@@ -7,6 +7,7 @@ import { PrismaService } from '@/prisma/prisma.service';
 import { EmailChannel } from '../channels/email.channel';
 import { WebhookChannel } from '../channels/webhook.channel';
 import { NotificationPayload } from '../interfaces/notification-payload.interface';
+import { NotificationStatus } from '../../../../prisma/generated/prisma/enums';
 
 describe('NotificationService', () => {
   let service: NotificationService;
@@ -16,6 +17,19 @@ describe('NotificationService', () => {
   let prismaService: PrismaService;
   let eventEmitter: EventEmitter2;
   let templateService: NotificationTemplateService;
+
+  const mockNotificationLog = {
+    id: 'log-123',
+    channel: 'email',
+    recipient: '{"email":"test@example.com"}',
+    subject: 'Test Subject',
+    payload: '{}',
+    status: NotificationStatus.QUEUED,
+    priority: null,
+    metadata: null,
+    createdAt: new Date(),
+    updatedAt: new Date(),
+  };
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
@@ -57,7 +71,7 @@ describe('NotificationService', () => {
           provide: PrismaService,
           useValue: {
             notificationLog: {
-              create: jest.fn().mockResolvedValue({ id: 'log-123' }),
+              create: jest.fn().mockResolvedValue(mockNotificationLog),
               update: jest.fn(),
             },
           },
@@ -96,15 +110,29 @@ describe('NotificationService', () => {
       await service.send(payload);
 
       expect(emailChannel.send).toHaveBeenCalledWith(payload);
-      expect(prismaService.notificationLog.create).toHaveBeenCalled();
+      expect(prismaService.notificationLog.create).toHaveBeenCalledWith({
+        data: {
+          channel: 'email',
+          recipient: JSON.stringify(payload.recipient),
+          subject: 'Test Subject',
+          payload: JSON.stringify(payload),
+          status: NotificationStatus.QUEUED,
+          priority: undefined,
+          metadata: null,
+        },
+      });
       expect(prismaService.notificationLog.update).toHaveBeenCalledWith({
         where: { id: 'log-123' },
         data: {
-          status: 'SENT',
+          status: NotificationStatus.SENT,
           sentAt: expect.any(Date),
         },
       });
-      expect(eventEmitter.emit).toHaveBeenCalledWith('notification.sent', expect.any(Object));
+      expect(eventEmitter.emit).toHaveBeenCalledWith('notification.sent', {
+        channel: 'email',
+        recipient: payload.recipient,
+        notificationId: 'log-123',
+      });
     });
 
     it('should throw error for unknown channel', async () => {
@@ -136,11 +164,38 @@ describe('NotificationService', () => {
       expect(prismaService.notificationLog.update).toHaveBeenCalledWith({
         where: { id: 'log-123' },
         data: {
-          status: 'FAILED',
+          status: NotificationStatus.FAILED,
           error: 'Send failed',
         },
       });
-      expect(eventEmitter.emit).toHaveBeenCalledWith('notification.failed', expect.any(Object));
+      expect(eventEmitter.emit).toHaveBeenCalledWith('notification.failed', {
+        channel: 'email',
+        recipient: payload.recipient,
+        notificationId: 'log-123',
+        error: 'Send failed',
+      });
+    });
+
+    it('should handle payload with priority and metadata', async () => {
+      const payloadWithMeta: NotificationPayload = {
+        ...payload,
+        priority: 'HIGH',
+        metadata: { userId: '123', source: 'api' },
+      };
+
+      await service.send(payloadWithMeta);
+
+      expect(prismaService.notificationLog.create).toHaveBeenCalledWith({
+        data: {
+          channel: 'email',
+          recipient: JSON.stringify(payloadWithMeta.recipient),
+          subject: 'Test Subject',
+          payload: JSON.stringify(payloadWithMeta),
+          status: NotificationStatus.QUEUED,
+          priority: 'HIGH',
+          metadata: JSON.stringify({ userId: '123', source: 'api' }),
+        },
+      });
     });
   });
 
@@ -157,14 +212,29 @@ describe('NotificationService', () => {
 
       expect(id).toBe('log-123');
       expect(prismaService.notificationLog.create).toHaveBeenCalled();
-      expect(notificationQueue.add).toHaveBeenCalledWith(
-        expect.objectContaining({
-          ...payload,
-          metadata: {
-            notificationId: 'log-123',
-          },
-        }),
-      );
+      expect(notificationQueue.add).toHaveBeenCalledWith({
+        ...payload,
+        metadata: {
+          notificationId: 'log-123',
+        },
+      });
+    });
+
+    it('should preserve existing metadata when queuing', async () => {
+      const payloadWithMeta: NotificationPayload = {
+        ...payload,
+        metadata: { existingKey: 'value' },
+      };
+
+      await service.queue(payloadWithMeta);
+
+      expect(notificationQueue.add).toHaveBeenCalledWith({
+        ...payloadWithMeta,
+        metadata: {
+          existingKey: 'value',
+          notificationId: 'log-123',
+        },
+      });
     });
   });
 
@@ -189,16 +259,33 @@ describe('NotificationService', () => {
         { name: 'John' },
         'en',
       );
-      expect(emailChannel.send).toHaveBeenCalledWith(
-        expect.objectContaining({
-          channel: 'email',
-          recipient: { email: 'test@example.com' },
-          subject: 'Rendered Subject',
-          templates: {
-            html: '<p>Rendered HTML</p>',
-            text: 'Rendered text',
-          },
-        }),
+      expect(emailChannel.send).toHaveBeenCalledWith({
+        channel: 'email',
+        recipient: { email: 'test@example.com' },
+        subject: 'Rendered Subject',
+        templates: {
+          html: '<p>Rendered HTML</p>',
+          text: 'Rendered text',
+        },
+        data: { name: 'John' },
+      });
+    });
+
+    it('should use default locale if not provided', async () => {
+      (templateService.renderTemplate as jest.Mock).mockResolvedValue({
+        subject: 'Test',
+        html: '<p>Test</p>',
+        text: 'Test',
+      });
+
+      await service.sendWithTemplate('email', { email: 'test@example.com' }, 'WELCOME', {
+        name: 'John',
+      });
+
+      expect(templateService.renderTemplate).toHaveBeenCalledWith(
+        'WELCOME',
+        { name: 'John' },
+        'en',
       );
     });
   });
@@ -216,6 +303,19 @@ describe('NotificationService', () => {
 
       const channels = service.getEnabledChannels();
       expect(channels).toEqual(['email']);
+    });
+
+    it('should return all channels when all are enabled', () => {
+      const channels = service.getEnabledChannels();
+      expect(channels).toEqual(['email', 'webhook']);
+    });
+
+    it('should return empty array when all channels are disabled', () => {
+      (emailChannel.isEnabled as jest.Mock).mockReturnValue(false);
+      (webhookChannel.isEnabled as jest.Mock).mockReturnValue(false);
+
+      const channels = service.getEnabledChannels();
+      expect(channels).toEqual([]);
     });
   });
 

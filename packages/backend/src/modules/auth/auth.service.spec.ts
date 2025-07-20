@@ -758,5 +758,145 @@ describe('AuthService', () => {
         RefreshRateLimitExceededException,
       );
     });
+
+    it('should throw InvalidTokenException when refresh token not found', async () => {
+      const mockRefreshToken = 'non_existent_token';
+      mockJwtService.verify.mockReturnValue({});
+      mockPrismaService.refreshToken.findUnique.mockResolvedValue(null);
+
+      await expect(service.refreshTokens(mockRefreshToken)).rejects.toThrow(InvalidTokenException);
+    });
+  });
+
+  describe('login edge cases', () => {
+    const mockLoginDto = {
+      email: 'test@example.com',
+      password: 'password123',
+    };
+
+    const mockUser = {
+      id: '1',
+      email: 'test@example.com',
+      passwordHash: 'hashed_password',
+      role: UserRole.USER,
+      isActive: true,
+      failedLoginCount: 0,
+      lockedUntil: null,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    };
+
+    it('should check multiple failed attempts alert when reaching warning threshold', async () => {
+      mockPrismaService.user.findUnique.mockResolvedValue(mockUser);
+      mockLoginAttemptService.checkIpRateLimit.mockResolvedValue(false);
+      mockLoginAttemptService.isAccountLocked.mockResolvedValue(false);
+      mockLoginAttemptService.checkAndUpdateLockout.mockResolvedValue({ isLocked: false });
+      mockLoginAttemptService.checkMultipleFailedAttempts.mockResolvedValue(undefined);
+      mockPrismaService.loginAttempt.count.mockResolvedValue(3); // Warning threshold
+      (bcrypt.compare as jest.Mock).mockResolvedValue(false);
+
+      await expect(service.login(mockLoginDto, '127.0.0.1', 'test-agent')).rejects.toThrow(
+        InvalidCredentialsException,
+      );
+
+      expect(mockLoginAttemptService.checkMultipleFailedAttempts).toHaveBeenCalledWith(
+        mockLoginDto.email,
+        mockUser.id,
+        3,
+        2, // Remaining attempts
+        '127.0.0.1',
+      );
+    });
+
+    it('should login without IP address and user agent', async () => {
+      mockPrismaService.user.findUnique.mockResolvedValue(mockUser);
+      mockPrismaService.user.update.mockResolvedValue(mockUser);
+      mockPrismaService.rolePermission.findMany.mockResolvedValue([
+        { permission: Permission.USERS_READ },
+      ]);
+      mockPrismaService.session.create.mockResolvedValue({ jti: 'session-123' });
+      mockPrismaService.refreshToken.create.mockResolvedValue({});
+      mockSessionCleanupService.enforceSessionLimit.mockResolvedValue(undefined);
+      mockLoginAttemptService.isAccountLocked.mockResolvedValue(false);
+      mockLoginAttemptService.recordLoginAttempt.mockResolvedValue({});
+      mockLoginAttemptService.resetFailedAttempts.mockResolvedValue(undefined);
+      mockSessionService.enhanceSession.mockResolvedValue(undefined);
+      (bcrypt.compare as jest.Mock).mockResolvedValue(true);
+      mockJwtService.sign.mockReturnValueOnce('access_token').mockReturnValueOnce('refresh_token');
+
+      const result = await service.login(mockLoginDto); // No IP or user agent
+
+      expect(result).toHaveProperty('accessToken', 'access_token');
+      expect(mockLoginAttemptService.checkIpRateLimit).not.toHaveBeenCalled();
+      expect(mockSessionService.enhanceSession).not.toHaveBeenCalled();
+    });
+
+    it('should not check multiple failed attempts when below warning threshold', async () => {
+      mockPrismaService.user.findUnique.mockResolvedValue(mockUser);
+      mockLoginAttemptService.checkIpRateLimit.mockResolvedValue(false);
+      mockLoginAttemptService.isAccountLocked.mockResolvedValue(false);
+      mockLoginAttemptService.checkAndUpdateLockout.mockResolvedValue({ isLocked: false });
+      mockPrismaService.loginAttempt.count.mockResolvedValue(2); // Below warning threshold
+      (bcrypt.compare as jest.Mock).mockResolvedValue(false);
+
+      await expect(service.login(mockLoginDto, '127.0.0.1', 'test-agent')).rejects.toThrow(
+        InvalidCredentialsException,
+      );
+
+      expect(mockLoginAttemptService.checkMultipleFailedAttempts).not.toHaveBeenCalled();
+    });
+
+    it('should not check multiple failed attempts when no remaining attempts', async () => {
+      mockPrismaService.user.findUnique.mockResolvedValue(mockUser);
+      mockLoginAttemptService.checkIpRateLimit.mockResolvedValue(false);
+      mockLoginAttemptService.isAccountLocked.mockResolvedValue(false);
+      mockLoginAttemptService.checkAndUpdateLockout.mockResolvedValue({ isLocked: false });
+      mockPrismaService.loginAttempt.count.mockResolvedValue(5); // Max failed attempts
+      (bcrypt.compare as jest.Mock).mockResolvedValue(false);
+
+      await expect(service.login(mockLoginDto, '127.0.0.1', 'test-agent')).rejects.toThrow(
+        InvalidCredentialsException,
+      );
+
+      expect(mockLoginAttemptService.checkMultipleFailedAttempts).not.toHaveBeenCalled();
+    });
+
+    it('should enhance session when both IP and user agent are provided', async () => {
+      mockPrismaService.user.findUnique.mockResolvedValue(mockUser);
+      mockPrismaService.user.update.mockResolvedValue(mockUser);
+      mockPrismaService.rolePermission.findMany.mockResolvedValue([]);
+      mockPrismaService.session.create.mockResolvedValue({ jti: 'session-123' });
+      mockPrismaService.refreshToken.create.mockResolvedValue({});
+      mockSessionCleanupService.enforceSessionLimit.mockResolvedValue(undefined);
+      mockLoginAttemptService.checkIpRateLimit.mockResolvedValue(false);
+      mockLoginAttemptService.isAccountLocked.mockResolvedValue(false);
+      mockLoginAttemptService.recordLoginAttempt.mockResolvedValue({});
+      mockLoginAttemptService.resetFailedAttempts.mockResolvedValue(undefined);
+      mockSessionService.enhanceSession.mockResolvedValue(undefined);
+      (bcrypt.compare as jest.Mock).mockResolvedValue(true);
+      mockJwtService.sign.mockReturnValueOnce('access_token').mockReturnValueOnce('refresh_token');
+
+      await service.login(mockLoginDto, '192.168.1.1', 'Mozilla/5.0');
+
+      expect(mockSessionService.enhanceSession).toHaveBeenCalledWith(
+        expect.any(String),
+        '192.168.1.1',
+        'Mozilla/5.0',
+        'password',
+      );
+    });
+  });
+
+  describe('logout edge cases', () => {
+    it('should handle logout when no session found', async () => {
+      const sessionId = 'non-existent-session';
+
+      mockPrismaService.session.updateMany.mockResolvedValue({ count: 0 });
+      mockPrismaService.refreshToken.updateMany.mockResolvedValue({ count: 0 });
+
+      await service.logout(sessionId);
+
+      expect(mockPrismaService.session.findUnique).not.toHaveBeenCalled();
+    });
   });
 });

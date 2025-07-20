@@ -465,7 +465,7 @@ export class SeedImportService {
   private normalizeToEinsaetzeArray(data: SeedData | SimpleSeedData): SeedEinsatz[] {
     if ('einsaetze' in data) {
       return data.einsaetze;
-    } else {
+    } else if ('einsatz' in data && data.einsatz) {
       // Vereinfachtes Format zu vollständigem Format konvertieren
       const seedEinsatz: SeedEinsatz = {
         name: data.einsatz.name,
@@ -485,6 +485,9 @@ export class SeedImportService {
 
       return [seedEinsatz];
     }
+
+    // Leere Arrays für ungültige Daten
+    return [];
   }
 
   private getTotalEinsaetzeCount(_data: any): number {

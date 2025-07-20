@@ -219,7 +219,7 @@ describe('ThreatRulesSeedService', () => {
 
     it('sollte Fehler beim Import einzelner Regeln behandeln', async () => {
       // Arrange
-      const consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation();
+      const loggerErrorSpy = jest.spyOn(service['logger'], 'error').mockImplementation();
       prismaService.threatDetectionRule.findUnique.mockResolvedValue(null);
       prismaService.threatDetectionRule.create
         .mockRejectedValueOnce(new Error('Create failed'))
@@ -240,8 +240,8 @@ describe('ThreatRulesSeedService', () => {
         errors: 1,
         rules: [expect.objectContaining({ id: 'rule-2' })],
       });
-      expect(consoleErrorSpy).toHaveBeenCalled();
-      consoleErrorSpy.mockRestore();
+      expect(loggerErrorSpy).toHaveBeenCalled();
+      loggerErrorSpy.mockRestore();
     });
 
     it('sollte verschiedene Presets unterstützen', async () => {

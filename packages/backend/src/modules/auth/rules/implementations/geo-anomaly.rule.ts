@@ -77,7 +77,8 @@ export class GeoAnomalyRule implements GeoBasedRule {
     }
 
     // Prüfe verdächtige Länder
-    if (this.config.suspiciousCountries.includes(currentLocation.country)) {
+    const countryCode = this.getCountryCode(currentLocation.country);
+    if (this.config.suspiciousCountries.includes(countryCode)) {
       return {
         matched: true,
         severity: ThreatSeverity.MEDIUM,
@@ -226,9 +227,37 @@ export class GeoAnomalyRule implements GeoBasedRule {
    */
   private estimateDistance(location1: any, location2: any): number {
     // Vereinfachte Distanzschätzung basierend auf Ländern/Städten
+    const distanceMap: Record<string, Record<string, number>> = {
+      Germany: {
+        Japan: 8900, // Berlin - Tokyo
+        Australia: 16000, // Berlin - Sydney
+        'United States': 6400, // Berlin - New York
+        France: 880, // Berlin - Paris
+      },
+      Japan: {
+        Germany: 8900, // Tokyo - Berlin
+        Australia: 7800, // Tokyo - Sydney
+        'United States': 10800, // Tokyo - New York
+      },
+      'United States': {
+        Australia: 14400, // New York - Sydney
+        Germany: 6400, // New York - Berlin
+        Japan: 10800, // New York - Tokyo
+      },
+      Australia: {
+        'United States': 14400, // Sydney - New York
+        Germany: 16000, // Sydney - Berlin
+        Japan: 7800, // Sydney - Tokyo
+      },
+    };
+
     if (location1.country !== location2.country) {
-      // Verschiedene Länder: Mindestens 500km
-      return 1500;
+      // Versuche Distanz aus Tabelle zu ermitteln
+      const distance =
+        distanceMap[location1.country]?.[location2.country] ||
+        distanceMap[location2.country]?.[location1.country] ||
+        1500; // Standard für unbekannte Länder
+      return distance;
     }
 
     if (location1.city !== location2.city) {
@@ -276,11 +305,35 @@ export class GeoAnomalyRule implements GeoBasedRule {
     if (velocityCheck.evidence.velocityKmh > 2000) {
       // Definitiv unmöglich - sofortige Aktion
       actions.push('INVALIDATE_SESSIONS', 'BLOCK_IP');
+    } else if (velocityCheck.evidence.velocityKmh > 1000) {
+      // Sehr verdächtig - erhöhte Sicherheitsmaßnahmen
+      actions.push('REQUIRE_2FA', 'INCREASE_MONITORING');
     } else {
       // Verdächtig aber möglicherweise legitim (VPN, etc.)
-      actions.push('REQUIRE_2FA', 'INCREASE_MONITORING');
+      actions.push('REQUIRE_2FA');
     }
 
     return actions;
+  }
+
+  /**
+   * Konvertiert Ländernamen zu ISO-Code
+   */
+  private getCountryCode(country: string): string {
+    // Mapping der häufigsten Länder zu ISO-Codes
+    const countryMap: Record<string, string> = {
+      Iran: 'IR',
+      'North Korea': 'KP',
+      Syria: 'SY',
+      Germany: 'DE',
+      France: 'FR',
+      'United Kingdom': 'GB',
+      'United States': 'US',
+      Japan: 'JP',
+      Australia: 'AU',
+      // Weitere können bei Bedarf hinzugefügt werden
+    };
+
+    return countryMap[country] || country;
   }
 }

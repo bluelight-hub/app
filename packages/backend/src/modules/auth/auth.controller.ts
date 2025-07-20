@@ -43,7 +43,9 @@ export class AuthController {
     @Req() request: Request,
     @Res({ passthrough: true }) response: Response,
   ): Promise<LoginResponse> {
-    const ipAddress = request.ip || (request.headers['x-forwarded-for'] as string) || undefined;
+    const xForwardedFor = request.headers['x-forwarded-for'];
+    const ipAddress =
+      (Array.isArray(xForwardedFor) ? xForwardedFor[0] : xForwardedFor) || request.ip || undefined;
     const userAgent = request.headers['user-agent'] || undefined;
 
     const result = await this.authService.login(loginDto, ipAddress, userAgent);

@@ -435,5 +435,32 @@ describe('SuspiciousActivityService', () => {
 
       expect(securityLogService.logSecurityEvent).not.toHaveBeenCalled();
     });
+
+    it('should detect unusual login time (late night)', async () => {
+      // Mock Date to return late night hour
+      const mockDate = new Date('2024-01-01T23:30:00.000Z');
+      const mockDateConstructor = jest.fn(() => mockDate) as any;
+      mockDateConstructor.now = jest.fn(() => mockDate.getTime());
+      global.Date = mockDateConstructor;
+
+      // Mock getSecurityLogs to return empty array (no rapid login attempts)
+      securityLogService.getSecurityLogs.mockResolvedValue([]);
+
+      await service.checkLoginPatterns('user1', '192.168.1.1');
+
+      // Get the actual hour that was logged
+      const actualHour = mockDate.getHours();
+
+      expect(securityLogService.logSecurityEvent).toHaveBeenCalledWith({
+        eventType: SecurityEventType.SUSPICIOUS_ACTIVITY,
+        userId: 'user1',
+        ipAddress: '192.168.1.1',
+        metadata: expect.objectContaining({
+          type: 'unusual_login_time',
+          hour: actualHour, // Use the actual hour from the mocked date
+          ipAddress: '192.168.1.1',
+        }),
+      });
+    });
   });
 });

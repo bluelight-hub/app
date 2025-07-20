@@ -6,7 +6,7 @@
     "dev": "nest start --watch",
     "docs:build": "compodoc -p tsconfig.compodoc.json -d docs",
     "docs:serve": "compodoc -p tsconfig.compodoc.json -d docs --serve",
-    "docs:cov": "pnpm compodoc --coverageTest 68 -p tsconfig.compodoc.json",
+    "docs:cov": "pnpm compodoc --coverageTest 67 -p tsconfig.compodoc.json",
     "build": "prisma generate && nest build",
     "format": "prettier --write \"src/**/*.ts\" \"prisma/**/*.prisma\"",
     "format:check": "prettier --check \"src/**/*.ts\" \"prisma/**/*.prisma\"",

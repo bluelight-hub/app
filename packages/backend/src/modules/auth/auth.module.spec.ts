@@ -163,7 +163,7 @@ describe('AuthModule', () => {
       const providers = Reflect.getMetadata('providers', AuthModule);
       expect(providers).toBeDefined();
       expect(Array.isArray(providers)).toBe(true);
-      expect(providers).toHaveLength(19); // Updated for new threat detection services
+      expect(providers).toHaveLength(17);
       expect(providers).toContain(AuthService);
       expect(providers).toContain(JwtStrategy);
       expect(providers).toContain(PrismaService);

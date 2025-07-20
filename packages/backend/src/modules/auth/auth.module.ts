@@ -1,4 +1,4 @@
-import { Module, forwardRef } from '@nestjs/common';
+import { forwardRef, Module } from '@nestjs/common';
 import { JwtModule } from '@nestjs/jwt';
 import { PassportModule } from '@nestjs/passport';
 import { ConfigModule, ConfigService } from '@nestjs/config';
@@ -72,8 +72,6 @@ import { SecurityAlertServiceV2 } from './services/security-alert-v2.service';
     IpAllowlistGuard,
     RuleEngineService,
     RuleRepositoryService,
-    ThreatRuleFactory,
-    ThreatRulesService,
     ThreatRuleFactory,
     ThreatRulesService,
   ],

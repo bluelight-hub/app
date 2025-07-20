@@ -128,12 +128,17 @@ export class BruteForceRule implements ThresholdRule {
       [context.userAgent, ...failedAttempts.map((e) => e.metadata?.userAgent)].filter(Boolean),
     );
 
+    // Sort attempts by timestamp to get correct time span
+    const sortedAttempts = [...failedAttempts].sort(
+      (a, b) => a.timestamp.getTime() - b.timestamp.getTime(),
+    );
+
     const timeSpan =
-      failedAttempts.length > 0
-        ? context.timestamp.getTime() - failedAttempts[0].timestamp.getTime()
+      sortedAttempts.length > 0
+        ? context.timestamp.getTime() - sortedAttempts[0].timestamp.getTime()
         : 0;
 
-    const avgTimeBetweenAttempts = timeSpan / (failedAttempts.length + 1);
+    const avgTimeBetweenAttempts = sortedAttempts.length > 0 ? timeSpan / sortedAttempts.length : 0;
 
     return {
       uniqueIpCount: uniqueIps.size,
@@ -160,7 +165,7 @@ export class BruteForceRule implements ThresholdRule {
     }
 
     // Mittel bei moderaten Versuchen
-    if (attemptCount > 7) {
+    if (attemptCount >= 7) {
       return ThreatSeverity.MEDIUM;
     }
 

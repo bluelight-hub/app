@@ -8,6 +8,12 @@ import { DatabaseCheckService } from './database-check.service';
 import { Permission, UserRole, RuleStatus } from '@prisma/generated/prisma/enums';
 import * as bcrypt from 'bcrypt';
 import { DefaultRolePermissions, getRulesForPreset } from '@/modules/auth/constants';
+import type {
+  ThreatDetectionRuleData,
+  ThreatDetectionRuleDataWithAction,
+  ThreatRuleSeedResult,
+  ThreatRuleSeedOptions,
+} from '@/modules/auth/interfaces/threat-rule.interface';
 
 /**
  * Service für das Seeding der Datenbank mit initialen Daten
@@ -446,22 +452,7 @@ export class SeedService {
   /**
    * Seedet Threat Detection Rules basierend auf dem gewählten Preset
    */
-  async seedThreatDetectionRules(options: {
-    preset: 'minimal' | 'standard' | 'maximum' | 'development';
-    reset?: boolean;
-    dryRun?: boolean;
-    activate?: boolean;
-    skipExisting?: boolean;
-  }): Promise<{
-    imported?: number;
-    updated?: number;
-    skipped?: number;
-    errors?: number;
-    wouldImport?: number;
-    wouldUpdate?: number;
-    wouldSkip?: number;
-    rules?: any[];
-  }> {
+  async seedThreatDetectionRules(options: ThreatRuleSeedOptions): Promise<ThreatRuleSeedResult> {
     this.logger.log(`Seeding Threat Detection Rules mit Preset: ${options.preset}`);
 
     // Hole Regeln für das gewählte Preset
@@ -473,7 +464,7 @@ export class SeedService {
         wouldImport: 0,
         wouldUpdate: 0,
         wouldSkip: 0,
-        rules: [] as any[],
+        rules: [] as ThreatDetectionRuleDataWithAction[],
       };
 
       for (const ruleData of rulesToSeed) {
@@ -525,7 +516,7 @@ export class SeedService {
         updated: 0,
         skipped: 0,
         errors: 0,
-        rules: [] as any[],
+        rules: [] as ThreatDetectionRuleData[],
       };
 
       for (const ruleData of preparedRules) {

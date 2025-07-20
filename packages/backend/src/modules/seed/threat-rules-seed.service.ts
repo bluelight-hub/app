@@ -2,6 +2,12 @@ import { Injectable, Logger } from '@nestjs/common';
 import { PrismaService } from '@/prisma/prisma.service';
 import { getRulesForPreset } from '@/modules/auth/constants';
 import { RuleStatus } from '@prisma/generated/prisma/enums';
+import type {
+  ThreatDetectionRuleData,
+  ThreatDetectionRuleDataWithAction,
+  ThreatRuleSeedResult,
+  ThreatRuleSeedOptions,
+} from '@/modules/auth/interfaces/threat-rule.interface';
 
 /**
  * Minimaler Service für das Seeding von Threat Detection Rules
@@ -18,22 +24,7 @@ export class ThreatRulesSeedService {
   /**
    * Seedet Threat Detection Rules basierend auf dem gewählten Preset
    */
-  async seedThreatDetectionRules(options: {
-    preset: 'minimal' | 'standard' | 'maximum' | 'development';
-    reset?: boolean;
-    dryRun?: boolean;
-    activate?: boolean;
-    skipExisting?: boolean;
-  }): Promise<{
-    imported?: number;
-    updated?: number;
-    skipped?: number;
-    errors?: number;
-    wouldImport?: number;
-    wouldUpdate?: number;
-    wouldSkip?: number;
-    rules?: any[];
-  }> {
+  async seedThreatDetectionRules(options: ThreatRuleSeedOptions): Promise<ThreatRuleSeedResult> {
     this.logger.log(`Seeding Threat Detection Rules mit Preset: ${options.preset}`);
 
     // Hole Regeln für das gewählte Preset
@@ -45,7 +36,7 @@ export class ThreatRulesSeedService {
         wouldImport: 0,
         wouldUpdate: 0,
         wouldSkip: 0,
-        rules: [] as any[],
+        rules: [] as ThreatDetectionRuleDataWithAction[],
       };
 
       for (const ruleData of rulesToSeed) {
@@ -97,7 +88,7 @@ export class ThreatRulesSeedService {
         updated: 0,
         skipped: 0,
         errors: 0,
-        rules: [] as any[],
+        rules: [] as ThreatDetectionRuleData[],
       };
 
       for (const ruleData of preparedRules) {

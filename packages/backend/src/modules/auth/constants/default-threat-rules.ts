@@ -1,4 +1,5 @@
 import { ThreatSeverity, RuleStatus, ConditionType } from '@prisma/generated/prisma/enums';
+import type { ThreatDetectionRuleData } from '../interfaces/threat-rule.interface';
 
 /**
  * Standard Threat Detection Rules für das initiale Seeding
@@ -6,7 +7,7 @@ import { ThreatSeverity, RuleStatus, ConditionType } from '@prisma/generated/pri
  * Diese Regeln bieten eine Basis-Sicherheit für die Anwendung
  * und können über die API oder UI angepasst werden.
  */
-export const DefaultThreatRules = [
+export const DefaultThreatRules: ThreatDetectionRuleData[] = [
   {
     id: 'brute-force-detection',
     name: 'Brute Force Detection',
@@ -197,7 +198,7 @@ export const RulePresets = {
 /**
  * Gibt die Standard-Regeln für ein bestimmtes Preset zurück
  */
-export function getRulesForPreset(preset: keyof typeof RulePresets): typeof DefaultThreatRules {
+export function getRulesForPreset(preset: keyof typeof RulePresets): ThreatDetectionRuleData[] {
   const ruleIds = RulePresets[preset] || RulePresets.standard;
   return DefaultThreatRules.filter((rule) => ruleIds.includes(rule.id));
 }
@@ -212,6 +213,6 @@ export function getAllRuleIds(): string[] {
 /**
  * Gibt eine spezifische Regel zurück
  */
-export function getDefaultRule(ruleId: string): (typeof DefaultThreatRules)[0] | undefined {
+export function getDefaultRule(ruleId: string): ThreatDetectionRuleData | undefined {
   return DefaultThreatRules.find((rule) => rule.id === ruleId);
 }

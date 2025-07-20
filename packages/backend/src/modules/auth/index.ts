@@ -6,3 +6,4 @@ export * from './guards';
 export * from './strategies';
 export * from './types';
 export * from './dto';
+export * from './interfaces/threat-rule.interface';
