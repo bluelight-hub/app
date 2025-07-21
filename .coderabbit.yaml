@@ -32,7 +32,7 @@ reviews:
     ignore_title_keywords: []
     labels: []
     drafts: false
-    base_branches: []
+    base_branches: ['alpha', 'beta', 'release']
   finishing_touches:
     docstrings:
       enabled: true
