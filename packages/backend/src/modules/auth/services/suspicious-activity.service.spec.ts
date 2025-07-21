@@ -437,8 +437,8 @@ describe('SuspiciousActivityService', () => {
     });
 
     it('should detect unusual login time (late night)', async () => {
-      // Mock Date to return late night hour
-      const mockDate = new Date('2024-01-01T23:30:00.000Z');
+      // Mock Date to return early morning hour (within unusual time range)
+      const mockDate = new Date('2024-01-01T02:30:00.000Z');
       const mockDateConstructor = jest.fn(() => mockDate) as any;
       mockDateConstructor.now = jest.fn(() => mockDate.getTime());
       global.Date = mockDateConstructor;

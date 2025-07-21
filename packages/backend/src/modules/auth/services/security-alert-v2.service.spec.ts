@@ -358,7 +358,7 @@ describe('SecurityAlertServiceV2', () => {
             email,
             userId,
             ipAddress,
-            lockedUntil: '10.1.2024, 12:00:00',
+            lockedUntil: lockedUntil.toLocaleString('de-DE'),
             failedAttempts,
             alertType: SecurityAlertType.ACCOUNT_LOCKED,
             severity: 'high',
