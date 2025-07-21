@@ -1,15 +1,13 @@
 import { validate } from 'class-validator';
 import { plainToClass } from 'class-transformer';
 import {
-  SessionDto,
-  SessionActivityDto,
   CreateSessionActivityDto,
+  SessionActivityDto,
+  SessionDto,
   SessionFilterDto,
   SessionStatisticsDto,
-  DeviceType,
-  LoginMethod,
-  ActivityType,
 } from './session.dto';
+import { ActivityType, DeviceType, LoginMethod } from '@/modules/session/dto/enums.dto';
 
 describe('Session DTOs', () => {
   describe('SessionDto', () => {

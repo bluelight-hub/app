@@ -2,6 +2,7 @@ import dayjs, { Dayjs, isDayjs } from 'dayjs';
 import customParseFormat from 'dayjs/plugin/customParseFormat';
 import localizedFormat from 'dayjs/plugin/localizedFormat';
 import updateLocale from 'dayjs/plugin/updateLocale';
+import { logger } from '@/utils/logger.ts';
 
 // Plugin für benutzerdefiniertes Parsing registrieren
 dayjs.extend(customParseFormat);
@@ -64,7 +65,7 @@ export function formatNatoDateTime<DateType extends Date>(
 
     return `${day}${hour}${minute}${month}${year}`;
   } catch (error) {
-    console.error('Fehler beim Formatieren des Datums:', error);
+    logger.error('Fehler beim Formatieren des Datums:', error);
     return null;
   }
 }
@@ -87,7 +88,6 @@ export function parseNatoDateTime(input: string | undefined): Dayjs {
     if (natoRegex.test(input)) {
       const matches = input.match(natoRegex);
       if (matches) {
-        // eslint-disable-next-line @typescript-eslint/no-unused-vars
         const [_, dayStr, hourStr, minuteStr, monthStr, yearStr] = matches;
 
         const day = parseInt(dayStr, 10);
@@ -128,7 +128,7 @@ export function parseNatoDateTime(input: string | undefined): Dayjs {
     // Wenn beide Versuche fehlschlagen, wirf einen Fehler
     throw new Error('Datum konnte nicht geparst werden');
   } catch (error) {
-    console.error('Fehler beim Parsen des Datums:', error);
+    logger.error('Fehler beim Parsen des Datums:', error);
     throw new Error(`Ungültiges Datumsformat: ${input}`);
   }
 }

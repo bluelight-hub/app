@@ -5,30 +5,159 @@ import { SecurityEventType } from '../../enums/security-event-type.enum';
 /**
  * Regel zur Erkennung geografischer Anomalien
  *
- * Diese Regel erkennt:
- * - Logins aus gesperrten Ländern
- * - Logins außerhalb erlaubter Länder
- * - Ungewöhnliche geografische Muster für einen Benutzer
+ * Diese Regel erkennt verdächtige Login-Versuche basierend auf geografischen
+ * Mustern und Einschränkungen. Sie implementiert verschiedene Erkennungsmuster:
+ *
+ * **Hauptfunktionen:**
+ * - Blockiert Logins aus explizit gesperrten Ländern
+ * - Erlaubt nur Logins aus einer Whitelist von Ländern (falls konfiguriert)
+ * - Erkennt erste Logins aus neuen Ländern für bestehende Benutzer
+ * - Lernt Benutzerverhalten über einen konfigurierbaren Zeitraum
+ *
+ * **Sicherheitsstufen:**
+ * - CRITICAL: Login aus gesperrtem Land
+ * - HIGH: Login aus nicht-erlaubtem Land
+ * - MEDIUM: Login aus neuem Land oder nach Inaktivitätsperiode
+ *
+ * @class GeoAnomalyRule
+ * @implements {GeoBasedRule}
+ * @example
+ * ```typescript
+ * const rule = new GeoAnomalyRule({
+ *   config: {
+ *     blockedCountries: ['KP', 'IR'],
+ *     allowedCountries: ['DE', 'AT', 'CH'],
+ *     checkNewCountry: true,
+ *     learningPeriodDays: 30
+ *   }
+ * });
+ *
+ * const context: RuleContext = {
+ *   eventType: SecurityEventType.LOGIN_SUCCESS,
+ *   userId: 'user-123',
+ *   metadata: { country: 'DE', location: 'Berlin' }
+ * };
+ *
+ * const result = await rule.evaluate(context);
+ * logger.info(result.matched); // false (erlaubtes Land)
+ * ```
  */
 export class GeoAnomalyRule implements GeoBasedRule {
+  /**
+   * Eindeutige Regel-ID
+   * @property {string} id - Eindeutige Identifikation der Regel
+   */
   id: string;
+
+  /**
+   * Name der Regel
+   * @property {string} name - Benutzerfreundlicher Name
+   */
   name: string;
+
+  /**
+   * Beschreibung der Regel
+   * @property {string} description - Detaillierte Beschreibung der Funktionalität
+   */
   description: string;
+
+  /**
+   * Version der Regel
+   * @property {string} version - Semantic Versioning für Regel-Updates
+   */
   version: string;
+
+  /**
+   * Status der Regel
+   * @property {RuleStatus} status - ACTIVE, INACTIVE oder DEPRECATED
+   */
   status: RuleStatus;
+
+  /**
+   * Standard-Schweregrad der Regel
+   * @property {ThreatSeverity} severity - Basis-Schweregrad für Treffer
+   */
   severity: ThreatSeverity;
+
+  /**
+   * Typ der Regel-Bedingung
+   * @property {ConditionType} conditionType - Klassifizierung des Regel-Typs
+   */
   conditionType: ConditionType;
+
+  /**
+   * Konfiguration der geografischen Anomalie-Erkennung
+   * @property {object} config - Anpassbare Parameter für die Regel
+   */
   config: {
+    /**
+     * Liste erlaubter Ländercodes (ISO 3166-1 alpha-2)
+     * @property {string[]} [allowedCountries] - Wenn gesetzt, nur diese Länder sind erlaubt
+     */
     allowedCountries?: string[];
+
+    /**
+     * Liste gesperrter Ländercodes (ISO 3166-1 alpha-2)
+     * @property {string[]} [blockedCountries] - Diese Länder sind explizit verboten
+     */
     blockedCountries?: string[];
+
+    /**
+     * Maximale Entfernung vom gewöhnlichen Standort in Kilometern
+     * @property {number} [maxDistanceKm] - Für zukünftige Velocity-Checks
+     */
     maxDistanceKm?: number;
+
+    /**
+     * Aktiviert geografische Geschwindigkeitsprüfung
+     * @property {boolean} [checkVelocity] - Erkennt physisch unmögliche Ortswechsel
+     */
     checkVelocity?: boolean;
+
+    /**
+     * Prüft auf neue Länder für Benutzer
+     * @property {boolean} checkNewCountry - Warnt bei ersten Logins aus neuen Ländern
+     */
     checkNewCountry: boolean;
+
+    /**
+     * Aktiviert maschinelles Lernen von Benutzermustern
+     * @property {boolean} userPatternLearning - Lernt normale geografische Muster
+     */
     userPatternLearning: boolean;
+
+    /**
+     * Lernperiode für Benutzermuster in Tagen
+     * @property {number} learningPeriodDays - Zeitraum für historische Analyse
+     */
     learningPeriodDays: number;
   };
+
+  /**
+   * Tags zur Kategorisierung der Regel
+   * @property {string[]} tags - Schlagwörter für Filterung und Suche
+   */
   tags: string[];
 
+  /**
+   * Konstruktor für die GeoAnomalyRule
+   *
+   * Initialisiert die Regel mit Standard- oder benutzerdefinierten Werten.
+   * Die Konfiguration kann teilweise überschrieben werden, wobei sinnvolle
+   * Standardwerte für nicht spezifizierte Parameter verwendet werden.
+   *
+   * @param {Partial<GeoAnomalyRule>} data - Partielle Konfiguration der Regel
+   * @example
+   * ```typescript
+   * const rule = new GeoAnomalyRule({
+   *   config: {
+   *     blockedCountries: ['KP', 'IR', 'SY'],
+   *     checkNewCountry: true,
+   *     learningPeriodDays: 14
+   *   }
+   * });
+   * ```
+   */
   constructor(data: Partial<GeoAnomalyRule>) {
     this.id = data.id || 'geo-anomaly-default';
     this.name = data.name || 'Geographic Anomaly Detection';

@@ -17,13 +17,12 @@ import {
 } from './types/session.types';
 import { SessionNotFoundException } from './exceptions/session.exceptions';
 import {
-  ActivityType,
   CreateSessionActivityDto,
-  DeviceType,
   SessionActivityDto,
   SessionFilterDto,
   SessionStatisticsDto,
 } from './dto/session.dto';
+import { ActivityType, DeviceType } from '@/modules/session/dto/enums.dto';
 
 /**
  * Service für die Verwaltung und Überwachung von Benutzersitzungen

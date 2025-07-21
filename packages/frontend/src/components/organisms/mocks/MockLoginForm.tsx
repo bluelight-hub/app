@@ -3,6 +3,7 @@ import React, { useState } from 'react';
 import { PiEnvelope, PiLockKey } from 'react-icons/pi';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../../hooks/useAuth';
+import { logger } from '@/utils/logger.ts';
 
 interface LoginFormValues {
   email: string;
@@ -38,7 +39,7 @@ const MockLoginForm: React.FC = () => {
       }
     } catch (error) {
       message.error('Ein Fehler ist aufgetreten. Bitte versuchen Sie es später erneut.');
-      console.error(error);
+      logger.error(error);
     } finally {
       setLoading(false);
     }

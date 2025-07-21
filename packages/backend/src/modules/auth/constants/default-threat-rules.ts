@@ -1,4 +1,4 @@
-import { ThreatSeverity, RuleStatus, ConditionType } from '@prisma/generated/prisma/enums';
+import { ConditionType, RuleStatus, ThreatSeverity } from '@prisma/generated/prisma/enums';
 import type { ThreatDetectionRuleData } from '../interfaces/threat-rule.interface';
 
 /**
@@ -43,24 +43,6 @@ export const DefaultThreatRules: ThreatDetectionRuleData[] = [
       suspiciousCountries: ['KP', 'IR', 'SY'],
     },
     tags: ['geo-location', 'travel-speed', 'authentication', 'security'],
-  },
-  {
-    id: 'time-anomaly-detection',
-    name: 'Time-Based Anomaly Detection',
-    description: 'Detects login attempts during unusual hours or outside business hours',
-    version: '1.0.0',
-    status: RuleStatus.ACTIVE,
-    severity: ThreatSeverity.MEDIUM,
-    conditionType: ConditionType.TIME_BASED,
-    config: {
-      allowedHours: { start: 6, end: 22 },
-      allowedDays: [1, 2, 3, 4, 5], // Monday to Friday
-      timezone: 'Europe/Berlin',
-      checkUserPattern: true,
-      patternLookbackDays: 30,
-      deviationThreshold: 2,
-    },
-    tags: ['time-based', 'business-hours', 'authentication', 'security'],
   },
   {
     id: 'rapid-ip-change-detection',
@@ -184,7 +166,6 @@ export const RulePresets = {
   maximum: [
     'brute-force-detection',
     'geo-anomaly-detection',
-    'time-anomaly-detection',
     'rapid-ip-change-detection',
     'suspicious-user-agent-detection',
   ],

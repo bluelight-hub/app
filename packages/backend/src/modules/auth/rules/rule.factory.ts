@@ -1,13 +1,12 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { ThreatDetectionRule, RuleFactory } from './rule.interface';
+import { RuleFactory, ThreatDetectionRule } from './rule.interface';
 import {
   BruteForceRule,
   GeoAnomalyRule,
-  TimeAnomalyRule,
   RapidIpChangeRule,
   SuspiciousUserAgentRule,
 } from './implementations';
-import { ThreatSeverity, RuleStatus, ConditionType } from '@prisma/generated/prisma/enums';
+import { ConditionType, RuleStatus, ThreatSeverity } from '@prisma/generated/prisma/enums';
 
 /**
  * Factory für die Erstellung von Threat Detection Rules
@@ -25,7 +24,6 @@ export class ThreatRuleFactory implements RuleFactory {
   private readonly ruleClassMap = new Map<string, new () => ThreatDetectionRule>([
     ['brute-force-detection', BruteForceRule],
     ['geo-anomaly-detection', GeoAnomalyRule],
-    ['time-anomaly-detection', TimeAnomalyRule],
     ['rapid-ip-change-detection', RapidIpChangeRule],
     ['suspicious-user-agent-detection', SuspiciousUserAgentRule],
   ]);

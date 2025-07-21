@@ -6,11 +6,21 @@ export enum ChannelHealthStatus {
   UNHEALTHY = 'UNHEALTHY',
 }
 
+/**
+ * Informationen über den Gesundheitszustand eines Benachrichtigungskanals
+ *
+ * @interface ChannelHealthInfo
+ */
 export interface ChannelHealthInfo {
+  /** Aktueller Status des Kanals */
   status: ChannelHealthStatus;
+  /** Zeitpunkt der letzten Überprüfung */
   lastChecked: Date;
+  /** Optionale Statusmeldung */
   message?: string;
+  /** Fehlermeldung bei Problemen */
   error?: string;
+  /** Zusätzliche Details zum Kanalzustand */
   details?: Record<string, any>;
 }
 

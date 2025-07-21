@@ -58,11 +58,34 @@ interface SeedImportOptions {
 /**
  * CLI-Befehl zum Importieren von Seed-Daten aus JSON-Dateien.
  *
+ * Dieser Befehl bietet eine flexible CLI-Schnittstelle zum Importieren von
+ * Einsatzdaten aus JSON-Dateien. Er unterstützt verschiedene Modi wie Dry-Run,
+ * Validierung und bietet umfassende Fehlerbehandlung.
+ *
+ * Features:
+ * - Validierung von JSON-Dateien gegen definierte Schemas
+ * - Dry-Run-Modus zum Testen ohne Datenbankänderungen
+ * - Automatische Zeitstempel-Generierung für ETB-Einträge
+ * - Fortschrittsanzeige bei verbose-Modus
+ * - Auflistung verfügbarer Beispieldateien
+ *
  * Verwendung:
  * - npm run cli -- seed:import --file=seed-data/examples/simple-einsatz.json
  * - npm run cli -- seed:import --file=seed-data/examples/manv-scenario.json --dry-run
  * - npm run cli -- seed:import --validate --file=my-data.json
  * - npm run cli -- seed:import --list-examples
+ *
+ * @example
+ * ```bash
+ * # Import mit Fortschrittsanzeige
+ * npm run cli -- seed:import --file=data.json --verbose
+ *
+ * # Validierung ohne Import
+ * npm run cli -- seed:import --validate --file=data.json --validation-level=strict
+ *
+ * # Dry-Run mit Überschreiben
+ * npm run cli -- seed:import --file=data.json --dry-run --overwrite
+ * ```
  */
 @Injectable()
 @Command({
@@ -71,8 +94,14 @@ interface SeedImportOptions {
     'Importiert Seed-Daten aus JSON-Dateien mit umfassender Validierung und Fehlerbehandlung',
 })
 export class SeedImportCommand extends CommandRunner {
+  /** Logger-Instanz für Command-spezifische Ausgaben */
   private readonly logger = new Logger(SeedImportCommand.name);
 
+  /**
+   * Erstellt eine neue Instanz des SeedImportCommand
+   *
+   * @param seedImportService Service für den eigentlichen Import-Prozess
+   */
   constructor(private readonly seedImportService: SeedImportService) {
     super();
   }
@@ -80,8 +109,14 @@ export class SeedImportCommand extends CommandRunner {
   /**
    * Führt den Befehl aus.
    *
-   * @param _passedParams Übergebene Parameter
-   * @param options Übergebene Optionen
+   * Diese Methode ist der Haupteinstiegspunkt für den seed:import Befehl.
+   * Sie orchestriert die verschiedenen Modi (list-examples, validate, import)
+   * basierend auf den übergebenen Optionen.
+   *
+   * @param _passedParams Übergebene Parameter (nicht verwendet)
+   * @param options Übergebene Optionen mit Konfiguration für den Import
+   * @returns Promise<void>
+   * @throws Error bei fehlenden erforderlichen Parametern oder Ausführungsfehlern
    */
   async run(_passedParams: string[], options?: SeedImportOptions): Promise<void> {
     try {
@@ -117,6 +152,22 @@ export class SeedImportCommand extends CommandRunner {
    * Option Parser
    */
 
+  /**
+   * Parst die --file Option
+   *
+   * Verarbeitet den Pfad zur JSON-Datei, die importiert werden soll.
+   * Die Datei sollte entweder ein einzelner Einsatz oder eine
+   * Bulk-Import-Datei mit mehreren Einsätzen sein.
+   *
+   * @param {string} val - Der übergebene Dateipfad
+   * @returns {string} Der unveränderte Dateipfad
+   *
+   * @example
+   * ```bash
+   * npm run cli -- seed:import --file=seed-data/examples/manv-scenario.json
+   * npm run cli -- seed:import -f ./my-data.json
+   * ```
+   */
   @Option({
     flags: '-f, --file [file]',
     description: 'Pfad zur JSON-Datei die importiert werden soll',
@@ -126,6 +177,20 @@ export class SeedImportCommand extends CommandRunner {
     return val;
   }
 
+  /**
+   * Parst die --validate Option
+   *
+   * Aktiviert den Validierungs-Modus, in dem die JSON-Datei
+   * nur validiert, aber nicht importiert wird. Nützlich zum
+   * Testen von Dateien vor dem eigentlichen Import.
+   *
+   * @returns {boolean} Immer true wenn die Option gesetzt ist
+   *
+   * @example
+   * ```bash
+   * npm run cli -- seed:import --file=data.json --validate
+   * ```
+   */
   @Option({
     flags: '--validate',
     description: 'Validiert die JSON-Datei ohne Import durchzuführen',
@@ -134,6 +199,20 @@ export class SeedImportCommand extends CommandRunner {
     return true;
   }
 
+  /**
+   * Parst die --dry-run Option
+   *
+   * Aktiviert den Dry-Run-Modus, in dem der Import simuliert
+   * wird ohne tatsächliche Datenbank-Änderungen vorzunehmen.
+   * Zeigt an, was importiert würde.
+   *
+   * @returns {boolean} Immer true wenn die Option gesetzt ist
+   *
+   * @example
+   * ```bash
+   * npm run cli -- seed:import --file=data.json --dry-run
+   * ```
+   */
   @Option({
     flags: '--dry-run',
     description: 'Führt einen Dry-Run durch ohne Datenbank-Änderungen',
@@ -142,6 +221,20 @@ export class SeedImportCommand extends CommandRunner {
     return true;
   }
 
+  /**
+   * Parst die --overwrite Option
+   *
+   * Aktiviert das Überschreiben bestehender Einsätze bei
+   * Konflikten. Ohne diese Option werden Konflikte als
+   * Fehler gemeldet.
+   *
+   * @returns {boolean} Immer true wenn die Option gesetzt ist
+   *
+   * @example
+   * ```bash
+   * npm run cli -- seed:import --file=data.json --overwrite
+   * ```
+   */
   @Option({
     flags: '--overwrite',
     description: 'Überschreibt bestehende Einsätze bei Konflikten',
@@ -150,6 +243,23 @@ export class SeedImportCommand extends CommandRunner {
     return true;
   }
 
+  /**
+   * Parst die --validation-level Option
+   *
+   * Setzt das Validierungs-Level für den Import.
+   * - strict: Alle Regeln müssen erfüllt sein
+   * - moderate: Standard-Validierung mit Toleranzen
+   * - lenient: Minimale Validierung für flexible Imports
+   *
+   * @param {string} val - Das gewünschte Validierungs-Level
+   * @returns {string} Das validierte Level
+   * @throws {Error} Bei ungültigem Validierungs-Level
+   *
+   * @example
+   * ```bash
+   * npm run cli -- seed:import --file=data.json --validation-level=strict
+   * ```
+   */
   @Option({
     flags: '--validation-level [level]',
     description: 'Validierungs-Level: strict, moderate, lenient (Standard: moderate)',
@@ -161,6 +271,20 @@ export class SeedImportCommand extends CommandRunner {
     return val;
   }
 
+  /**
+   * Parst die --strict-warnings Option
+   *
+   * Aktiviert die strikte Behandlung von Warnungen.
+   * Wenn gesetzt, werden Warnungen als Fehler behandelt
+   * und der Import wird abgebrochen.
+   *
+   * @returns {boolean} Immer true wenn die Option gesetzt ist
+   *
+   * @example
+   * ```bash
+   * npm run cli -- seed:import --file=data.json --strict-warnings
+   * ```
+   */
   @Option({
     flags: '--strict-warnings',
     description: 'Behandelt Warnungen als Fehler',
@@ -169,6 +293,20 @@ export class SeedImportCommand extends CommandRunner {
     return true;
   }
 
+  /**
+   * Parst die --auto-timestamps Option
+   *
+   * Aktiviert die automatische Generierung von Zeitstempeln
+   * für ETB-Einträge, die keinen expliziten Zeitstempel haben.
+   * Standardmäßig aktiviert.
+   *
+   * @returns {boolean} Immer true wenn die Option gesetzt ist
+   *
+   * @example
+   * ```bash
+   * npm run cli -- seed:import --file=data.json --auto-timestamps
+   * ```
+   */
   @Option({
     flags: '--auto-timestamps',
     description:
@@ -178,6 +316,21 @@ export class SeedImportCommand extends CommandRunner {
     return true;
   }
 
+  /**
+   * Parst die --verbose Option
+   *
+   * Aktiviert die ausführliche Ausgabe mit detailliertem
+   * Fortschritt während des Imports. Zeigt einen
+   * Fortschrittsbalken und Zwischenschritte an.
+   *
+   * @returns {boolean} Immer true wenn die Option gesetzt ist
+   *
+   * @example
+   * ```bash
+   * npm run cli -- seed:import --file=data.json --verbose
+   * npm run cli -- seed:import --file=data.json -v
+   * ```
+   */
   @Option({
     flags: '-v, --verbose',
     description: 'Zeigt detaillierten Fortschritt während des Imports an',
@@ -186,6 +339,20 @@ export class SeedImportCommand extends CommandRunner {
     return true;
   }
 
+  /**
+   * Parst die --list-examples Option
+   *
+   * Zeigt alle verfügbaren Beispiel-JSON-Dateien im
+   * seed-data/examples Verzeichnis an. Nützlich zum
+   * Erkunden verfügbarer Import-Vorlagen.
+   *
+   * @returns {boolean} Immer true wenn die Option gesetzt ist
+   *
+   * @example
+   * ```bash
+   * npm run cli -- seed:import --list-examples
+   * ```
+   */
   @Option({
     flags: '--list-examples',
     description: 'Liste alle verfügbaren Beispiel-JSON-Dateien auf',
@@ -196,6 +363,23 @@ export class SeedImportCommand extends CommandRunner {
 
   /**
    * Führt den JSON-Import durch.
+   *
+   * Diese Methode koordiniert den eigentlichen Import-Prozess. Sie erstellt die
+   * Import-Konfiguration, ruft den Import-Service auf und gibt detailliertes
+   * Feedback über den Import-Verlauf und das Ergebnis.
+   *
+   * @param filePath Pfad zur zu importierenden JSON-Datei
+   * @param options Import-Optionen wie dry-run, overwrite, etc.
+   * @returns Promise<void>
+   * @private
+   * @example
+   * ```typescript
+   * await this.performImport('data.json', {
+   *   dryRun: true,
+   *   verbose: true,
+   *   validationLevel: 'strict'
+   * });
+   * ```
    */
   private async performImport(filePath: string, options?: SeedImportOptions): Promise<void> {
     this.logger.log(`📁 Starte Import aus Datei: ${filePath}`);
@@ -259,6 +443,22 @@ export class SeedImportCommand extends CommandRunner {
 
   /**
    * Validiert eine JSON-Datei ohne Import.
+   *
+   * Diese Methode führt eine umfassende Validierung der JSON-Datei durch,
+   * ohne Daten in die Datenbank zu schreiben. Sie prüft Schema-Konformität,
+   * Datenintegrität und gibt detaillierte Fehler- und Warnmeldungen aus.
+   *
+   * @param filePath Pfad zur zu validierenden JSON-Datei
+   * @param options Validierungs-Optionen wie validationLevel und strictWarnings
+   * @returns Promise<void>
+   * @private
+   * @example
+   * ```typescript
+   * await this.validateFile('data.json', {
+   *   validationLevel: 'strict',
+   *   strictWarnings: true
+   * });
+   * ```
    */
   private async validateFile(filePath: string, options?: SeedImportOptions): Promise<void> {
     this.logger.log(`🔍 Validiere JSON-Datei: ${filePath}`);
@@ -319,6 +519,14 @@ export class SeedImportCommand extends CommandRunner {
 
   /**
    * Zeigt alle verfügbaren Beispiel-Dateien an.
+   *
+   * Diese Methode listet alle JSON-Dateien im seed-data/examples Verzeichnis auf.
+   * Für jede Datei werden Metadaten wie Name, Beschreibung, Kategorie und Größe
+   * angezeigt. Zusätzlich wird der passende Import-Befehl für jede Datei generiert.
+   *
+   * @returns Promise<void>
+   * @private
+   * @throws Error bei Fehlern beim Lesen des Verzeichnisses oder der Dateien
    */
   private async showExampleFiles(): Promise<void> {
     this.logger.log('\n📋 Verfügbare Beispiel-JSON-Dateien:');
@@ -371,6 +579,19 @@ export class SeedImportCommand extends CommandRunner {
 
   /**
    * Erstellt einen Progress-Callback für verbose Ausgabe.
+   *
+   * Diese Methode generiert eine Callback-Funktion, die während des Imports
+   * aufgerufen wird, um den Fortschritt anzuzeigen. Die Ausgabe enthält einen
+   * visuellen Fortschrittsbalken und die aktuelle Verarbeitungsphase.
+   *
+   * @returns Callback-Funktion für Fortschrittsanzeige
+   * @private
+   * @example
+   * ```typescript
+   * const progressCallback = this.createProgressCallback();
+   * progressCallback('Einsätze werden importiert', 45.5);
+   * // Output: 📈 [█████████░░░░░░░░░░░] 45.5% - Einsätze werden importiert
+   * ```
    */
   private createProgressCallback() {
     return (step: string, progress: number) => {
@@ -382,6 +603,19 @@ export class SeedImportCommand extends CommandRunner {
 
   /**
    * Formatiert Bytes in menschenlesbare Größe.
+   *
+   * Diese Utility-Methode konvertiert Byte-Werte in eine für Menschen
+   * lesbare Form mit entsprechenden Einheiten (Bytes, KB, MB, GB).
+   *
+   * @param bytes Anzahl der Bytes
+   * @returns Formatierte Größenangabe als String
+   * @private
+   * @example
+   * ```typescript
+   * this.formatBytes(1024);     // "1 KB"
+   * this.formatBytes(1048576);  // "1 MB"
+   * this.formatBytes(2560);     // "2.5 KB"
+   * ```
    */
   private formatBytes(bytes: number): string {
     if (bytes === 0) return '0 Bytes';

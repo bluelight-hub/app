@@ -30,6 +30,19 @@ import { cookieConfig, refreshCookieConfig } from '../../config/security.config'
 export class AuthController {
   constructor(private authService: AuthService) {}
 
+  /**
+   * Authentifiziert einen Admin-Benutzer und erstellt eine neue Session.
+   *
+   * Führt eine Anmeldung mit E-Mail und Passwort durch, erstellt JWT-Token
+   * und setzt HTTP-Only Cookies für Access- und Refresh-Token.
+   *
+   * @param {LoginDto} loginDto - Anmeldedaten (E-Mail und Passwort)
+   * @param {Request} request - Express Request-Objekt für IP und User-Agent
+   * @param {Response} response - Express Response-Objekt für Cookie-Verwaltung
+   * @returns {Promise<LoginResponse>} Anmeldeantwort mit Token und Benutzerinformationen
+   * @throws {UnauthorizedException} Bei ungültigen Anmeldedaten
+   * @throws {TooManyRequestsException} Bei zu vielen Anmeldeversuchen
+   */
   @Public()
   @Post('login')
   @HttpCode(HttpStatus.OK)
@@ -59,6 +72,18 @@ export class AuthController {
     return result;
   }
 
+  /**
+   * Erneuert abgelaufene Access-Token mit einem gültigen Refresh-Token.
+   *
+   * Prüft den Refresh-Token aus Cookie oder Request-Body und erstellt
+   * neue Access- und Refresh-Token bei erfolgreicher Validierung.
+   *
+   * @param {RefreshTokenDto} refreshTokenDto - DTO mit Refresh-Token (optional, Fallback zu Cookie)
+   * @param {Request} request - Express Request-Objekt für Cookie-Zugriff
+   * @param {Response} response - Express Response-Objekt für Cookie-Updates
+   * @returns {Promise<TokenResponse>} Neue Token-Informationen
+   * @throws {UnauthorizedException} Bei fehlendem oder ungültigem Refresh-Token
+   */
   @Public()
   @Post('refresh')
   @HttpCode(HttpStatus.OK)
@@ -86,6 +111,16 @@ export class AuthController {
     return result;
   }
 
+  /**
+   * Ruft die Informationen des aktuell angemeldeten Benutzers ab.
+   *
+   * Gibt die Benutzerdaten basierend auf dem JWT-Token zurück.
+   * Erfordert eine gültige Authentifizierung.
+   *
+   * @param {JWTPayload} user - JWT-Payload des authentifizierten Benutzers
+   * @returns {Promise<AuthUserDto>} Benutzerinformationen ohne sensible Daten
+   * @throws {UnauthorizedException} Bei fehlender oder ungültiger Authentifizierung
+   */
   @UseGuards(JwtAuthGuard)
   @Get('me')
   @HttpCode(HttpStatus.OK)
@@ -97,6 +132,17 @@ export class AuthController {
     return await this.authService.getCurrentUser(user.sub);
   }
 
+  /**
+   * Meldet den aktuellen Benutzer ab und beendet die Session.
+   *
+   * Invalidiert die aktuelle Session und löscht die Authentication-Cookies.
+   * Erfordert eine gültige Authentifizierung.
+   *
+   * @param {JWTPayload} user - JWT-Payload mit Session-ID des Benutzers
+   * @param {Response} response - Express Response-Objekt zum Löschen der Cookies
+   * @returns {Promise<void>} Kein Rückgabewert (204 No Content)
+   * @throws {UnauthorizedException} Bei fehlender oder ungültiger Authentifizierung
+   */
   @UseGuards(JwtAuthGuard)
   @Post('logout')
   @HttpCode(HttpStatus.NO_CONTENT)

@@ -22,21 +22,44 @@ import { AuditLogQueue } from '@/modules/audit/queues';
 import { logger } from '@/logger/consola.logger';
 import { AuditActionType, AuditSeverity, UserRole } from '@prisma/generated/prisma/client';
 
-// Extend Express Request to include user and sessionID
+/**
+ * Erweiterte Request-Schnittstelle mit Benutzer- und Session-Informationen
+ *
+ * @interface AuditRequest
+ * @extends {Request}
+ */
 interface AuditRequest extends Request {
+  /**
+   * Der authentifizierte Benutzer
+   */
   user?: {
+    /** Eindeutige Benutzer-ID */
     id: string;
+    /** E-Mail-Adresse des Benutzers */
     email: string;
+    /** Rolle des Benutzers im System */
     role: UserRole;
   };
+  /** Session-ID für die Nachverfolgung von Benutzersitzungen */
   sessionID?: string;
 }
 
+/**
+ * Metadaten für die Audit-Protokollierung
+ *
+ * Enthält alle relevanten Informationen, die aus den Decorators extrahiert werden
+ * @interface AuditMetadata
+ */
 interface AuditMetadata {
+  /** Flag zum Überspringen der Audit-Protokollierung */
   skipAudit?: boolean;
+  /** Die durchgeführte Aktion */
   action?: AuditActionType;
+  /** Schweregrad der Aktion */
   severity?: AuditSeverity;
+  /** Typ der betroffenen Ressource */
   resourceType?: string;
+  /** Zusätzlicher Kontext für die Protokollierung */
   additionalContext?: Record<string, any>;
 }
 

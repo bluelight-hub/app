@@ -1,7 +1,16 @@
+/**
+ * Empfängerinformationen für Benachrichtigungen
+ *
+ * @interface NotificationRecipient
+ */
 export interface NotificationRecipient {
+  /** E-Mail-Adresse des Empfängers */
   email?: string;
+  /** Webhook-URL für externe Systeme */
   webhookUrl?: string;
+  /** Benutzer-ID für interne Referenzen */
   userId?: string;
+  /** Zusätzliche empfängerspezifische Metadaten */
   metadata?: Record<string, any>;
 }
 

@@ -288,11 +288,6 @@ export class RuleRepositoryService implements OnModuleInit {
         return IpHoppingRule;
       }
 
-      case ConditionType.TIME_BASED: {
-        const { TimeAnomalyRule } = await import('./definitions/time-anomaly.rule');
-        return TimeAnomalyRule;
-      }
-
       case ConditionType.GEO_BASED: {
         const { GeoAnomalyRule } = await import('./definitions/geo-anomaly.rule');
         return GeoAnomalyRule;

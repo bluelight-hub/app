@@ -8,19 +8,97 @@ import { SecurityEventType } from '../../enums/security-event-type.enum';
  *
  * Diese Regel überwacht fehlgeschlagene Login-Versuche und erkennt
  * potenzielle Brute-Force-Angriffe basierend auf konfigurierbaren
- * Schwellenwerten.
+ * Schwellenwerten. Sie analysiert Angriffsmuster, erkennt verteilte
+ * und automatisierte Angriffe und empfiehlt angemessene Gegenmaßnahmen.
+ *
+ * Features:
+ * - Zeitfenster-basierte Erkennung
+ * - Verteilte Angriffe (mehrere IPs)
+ * - Automatisierte Angriffe (schnelle Versuche)
+ * - User-Agent Variationen
+ * - Dynamische Schweregrad-Berechnung
+ *
+ * @class BruteForceRule
+ * @implements {ThresholdRule}
+ * @injectable
+ *
+ * @example
+ * ```typescript
+ * const rule = new BruteForceRule();
+ * const result = await rule.evaluate({
+ *   eventType: SecurityEventType.LOGIN_FAILED,
+ *   ipAddress: '192.168.1.100',
+ *   email: 'user@example.com',
+ *   recentEvents: [...] // Letzte Security Events
+ * });
+ *
+ * if (result.matched) {
+ *   logger.warn(`Brute-Force erkannt: ${result.reason}`);
+ *   logger.warn(`Schweregrad: ${result.severity}`);
+ *   logger.warn(`Empfohlene Aktionen: ${result.suggestedActions}`);
+ * }
+ * ```
  */
 @Injectable()
 export class BruteForceRule implements ThresholdRule {
+  /**
+   * Eindeutige ID der Regel
+   * @property {string} id
+   */
   id = 'brute-force-detection';
+
+  /**
+   * Anzeigename der Regel
+   * @property {string} name
+   */
   name = 'Brute Force Detection';
+
+  /**
+   * Beschreibung der Regel-Funktionalität
+   * @property {string} description
+   */
   description = 'Detects potential brute force attacks based on failed login attempts';
+
+  /**
+   * Versions-String der Regel
+   * @property {string} version
+   */
   version = '1.0.0';
+
+  /**
+   * Aktivierungsstatus der Regel
+   * @property {RuleStatus} status
+   */
   status = RuleStatus.ACTIVE;
+
+  /**
+   * Standard-Schweregrad bei Regel-Auslösung
+   * @property {ThreatSeverity} severity
+   */
   severity = ThreatSeverity.HIGH;
+
+  /**
+   * Typ der Bedingung (Schwellenwert-basiert)
+   * @property {ConditionType} conditionType
+   */
   conditionType = ConditionType.THRESHOLD;
+
+  /**
+   * Tags zur Kategorisierung der Regel
+   * @property {string[]} tags
+   */
   tags = ['brute-force', 'authentication', 'login'];
 
+  /**
+   * Konfiguration der Brute-Force-Erkennung
+   *
+   * @property {Object} config
+   * @property {number} config.threshold - Anzahl fehlgeschlagener Versuche bis zur Auslösung
+   * @property {number} config.timeWindowMinutes - Zeitfenster für die Zählung in Minuten
+   * @property {string} config.countField - Feld für die Zählung (für Metriken)
+   * @property {boolean} config.includeUserAgentVariations - User-Agent-Wechsel als Indikator
+   * @property {boolean} config.checkIpReputation - IP-Reputation prüfen (nicht implementiert)
+   */
   config = {
     threshold: 5, // Anzahl fehlgeschlagener Versuche
     timeWindowMinutes: 15, // Zeitfenster in Minuten
@@ -31,6 +109,27 @@ export class BruteForceRule implements ThresholdRule {
 
   /**
    * Evaluiert die Regel gegen den gegebenen Kontext
+   *
+   * Prüft ob die Anzahl fehlgeschlagener Login-Versuche im definierten
+   * Zeitfenster den Schwellenwert überschreitet. Analysiert zusätzlich
+   * Angriffsmuster wie verteilte IPs oder automatisierte Versuche.
+   *
+   * @param {RuleContext} context - Der zu evaluierende Sicherheitskontext
+   * @returns {Promise<RuleEvaluationResult>} Ergebnis der Regel-Evaluierung
+   *
+   * @example
+   * ```typescript
+   * const result = await rule.evaluate({
+   *   eventType: SecurityEventType.LOGIN_FAILED,
+   *   ipAddress: '192.168.1.100',
+   *   email: 'target@example.com',
+   *   timestamp: new Date(),
+   *   recentEvents: [
+   *     { eventType: SecurityEventType.LOGIN_FAILED, timestamp: new Date(Date.now() - 60000) },
+   *     { eventType: SecurityEventType.LOGIN_FAILED, timestamp: new Date(Date.now() - 120000) }
+   *   ]
+   * });
+   * ```
    */
   async evaluate(context: RuleContext): Promise<RuleEvaluationResult> {
     // Nur bei Login-Events evaluieren
@@ -79,6 +178,18 @@ export class BruteForceRule implements ThresholdRule {
 
   /**
    * Validiert die Regel-Konfiguration
+   *
+   * Prüft ob alle erforderlichen Konfigurationsparameter vorhanden
+   * und gültig sind.
+   *
+   * @returns {boolean} true wenn die Konfiguration gültig ist
+   *
+   * @example
+   * ```typescript
+   * if (!rule.validate()) {
+   *   throw new Error('Invalid rule configuration');
+   * }
+   * ```
    */
   validate(): boolean {
     return (
@@ -90,6 +201,17 @@ export class BruteForceRule implements ThresholdRule {
 
   /**
    * Gibt eine menschenlesbare Beschreibung der Regel zurück
+   *
+   * Generiert eine Beschreibung basierend auf der aktuellen Konfiguration,
+   * die für Logs oder UI-Anzeige verwendet werden kann.
+   *
+   * @returns {string} Beschreibung der Regel mit aktuellen Parametern
+   *
+   * @example
+   * ```typescript
+   * logger.info(rule.getDescription());
+   * // "Triggers when more than 5 failed login attempts occur within 15 minutes"
+   * ```
    */
   getDescription(): string {
     return `Triggers when more than ${this.config.threshold} failed login attempts occur within ${this.config.timeWindowMinutes} minutes`;
@@ -97,6 +219,29 @@ export class BruteForceRule implements ThresholdRule {
 
   /**
    * Prüft ob zwei Events das gleiche Ziel betreffen
+   *
+   * Vergleicht Events anhand verschiedener Identifikatoren (User-ID, E-Mail, IP)
+   * um festzustellen, ob sie sich auf dasselbe Angriffsziel beziehen.
+   *
+   * @private
+   * @param {any} event - Historisches Event aus recentEvents
+   * @param {RuleContext} context - Aktueller Kontext
+   * @returns {boolean} true wenn beide Events dasselbe Ziel haben
+   *
+   * @example
+   * ```typescript
+   * // Vergleich nach User-ID
+   * const sameUser = this.isSameTarget(
+   *   { metadata: { userId: 'user123' } },
+   *   { userId: 'user123' }
+   * ); // true
+   *
+   * // Vergleich nach E-Mail
+   * const sameEmail = this.isSameTarget(
+   *   { metadata: { email: 'test@example.com' } },
+   *   { email: 'test@example.com' }
+   * ); // true
+   * ```
    */
   private isSameTarget(event: any, context: RuleContext): boolean {
     // Prüfe verschiedene Kombinationen je nach Verfügbarkeit
@@ -118,6 +263,34 @@ export class BruteForceRule implements ThresholdRule {
 
   /**
    * Analysiert das Angriffsmuster
+   *
+   * Extrahiert charakteristische Merkmale des Angriffs wie die Anzahl
+   * unterschiedlicher IPs, User-Agents, Zeitabstände zwischen Versuchen
+   * und erkennt verteilte oder automatisierte Angriffe.
+   *
+   * @private
+   * @param {any[]} failedAttempts - Array vorheriger fehlgeschlagener Versuche
+   * @param {RuleContext} context - Aktueller Kontext
+   * @returns {Object} Analyse-Ergebnis mit folgenden Eigenschaften:
+   * @returns {number} uniqueIpCount - Anzahl unterschiedlicher IP-Adressen
+   * @returns {number} uniqueUserAgentCount - Anzahl unterschiedlicher User-Agents
+   * @returns {number} timeSpanMs - Zeitspanne aller Versuche in Millisekunden
+   * @returns {number} avgTimeBetweenAttemptsMs - Durchschnittliche Zeit zwischen Versuchen
+   * @returns {boolean} isDistributed - Indikator für verteilten Angriff (mehrere IPs)
+   * @returns {boolean} isAutomated - Indikator für automatisierten Angriff (<1s zwischen Versuchen)
+   *
+   * @example
+   * ```typescript
+   * const pattern = this.analyzeAttackPattern(failedAttempts, context);
+   * // {
+   * //   uniqueIpCount: 3,
+   * //   uniqueUserAgentCount: 1,
+   * //   timeSpanMs: 300000,
+   * //   avgTimeBetweenAttemptsMs: 500,
+   * //   isDistributed: true,
+   * //   isAutomated: true
+   * // }
+   * ```
    */
   private analyzeAttackPattern(failedAttempts: any[], context: RuleContext): any {
     const uniqueIps = new Set(
@@ -152,6 +325,25 @@ export class BruteForceRule implements ThresholdRule {
 
   /**
    * Berechnet die Schwere basierend auf dem Angriffsmuster
+   *
+   * Bestimmt den Schweregrad des erkannten Angriffs anhand verschiedener
+   * Faktoren wie Anzahl der Versuche, Verteilung und Automatisierung.
+   *
+   * @private
+   * @param {number} attemptCount - Anzahl der fehlgeschlagenen Versuche
+   * @param {any} pattern - Analysiertes Angriffsmuster
+   * @returns {ThreatSeverity} Berechneter Schweregrad
+   *
+   * @example
+   * ```typescript
+   * // Kritisch bei verteiltem Angriff
+   * const severity1 = this.calculateSeverity(10, { isDistributed: true });
+   * // ThreatSeverity.CRITICAL
+   *
+   * // Hoch bei automatisiertem Angriff
+   * const severity2 = this.calculateSeverity(8, { isAutomated: true });
+   * // ThreatSeverity.HIGH
+   * ```
    */
   private calculateSeverity(attemptCount: number, pattern: any): ThreatSeverity {
     // Kritisch bei verteilten oder automatisierten Angriffen
@@ -175,6 +367,25 @@ export class BruteForceRule implements ThresholdRule {
 
   /**
    * Berechnet einen Risiko-Score (0-100)
+   *
+   * Ermittelt einen numerischen Score basierend auf verschiedenen
+   * Risikofaktoren. Höhere Werte bedeuten höheres Risiko.
+   *
+   * @private
+   * @param {number} attemptCount - Anzahl der fehlgeschlagenen Versuche
+   * @param {any} pattern - Analysiertes Angriffsmuster
+   * @returns {number} Risiko-Score zwischen 0 und 100
+   *
+   * @example
+   * ```typescript
+   * // Hoher Score bei vielen Versuchen und verteiltem Angriff
+   * const score = this.calculateScore(15, {
+   *   isDistributed: true,
+   *   isAutomated: true,
+   *   uniqueUserAgentCount: 5
+   * });
+   * // score: 95
+   * ```
    */
   private calculateScore(attemptCount: number, pattern: any): number {
     let score = Math.min(attemptCount * 10, 50); // Basis-Score
@@ -190,6 +401,24 @@ export class BruteForceRule implements ThresholdRule {
 
   /**
    * Generiert eine Begründung für die Regel-Auslösung
+   *
+   * Erstellt eine aussagekräftige Beschreibung des erkannten Angriffs
+   * für Logs, Alerts und Benutzeroberflächen.
+   *
+   * @private
+   * @param {number} attemptCount - Anzahl der fehlgeschlagenen Versuche
+   * @param {any} pattern - Analysiertes Angriffsmuster
+   * @returns {string} Menschenlesbare Begründung
+   *
+   * @example
+   * ```typescript
+   * const reason = this.generateReason(10, {
+   *   isDistributed: true,
+   *   uniqueIpCount: 3,
+   *   isAutomated: true
+   * });
+   * // "10 failed login attempts detected within 15 minutes from 3 different IP addresses with automated pattern characteristics"
+   * ```
    */
   private generateReason(attemptCount: number, pattern: any): string {
     const parts = [
@@ -209,6 +438,24 @@ export class BruteForceRule implements ThresholdRule {
 
   /**
    * Bestimmt die vorgeschlagenen Aktionen
+   *
+   * Empfiehlt Gegenmaßnahmen basierend auf der Schwere und Art des
+   * erkannten Angriffs. Die Aktionen können von der Security-Alert
+   * Service verarbeitet werden.
+   *
+   * @private
+   * @param {number} attemptCount - Anzahl der fehlgeschlagenen Versuche
+   * @param {any} pattern - Analysiertes Angriffsmuster
+   * @returns {string[]} Array empfohlener Aktionen
+   *
+   * @example
+   * ```typescript
+   * const actions = this.determineSuggestedActions(20, {
+   *   isDistributed: true,
+   *   isAutomated: true
+   * });
+   * // ['BLOCK_IP', 'INVALIDATE_SESSIONS', 'REQUIRE_2FA', 'INCREASE_MONITORING']
+   * ```
    */
   private determineSuggestedActions(attemptCount: number, pattern: any): string[] {
     const actions: string[] = [];

@@ -1,10 +1,9 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { ThreatRuleFactory } from '../rule.factory';
-import { ThreatSeverity, RuleStatus, ConditionType } from '@prisma/generated/prisma/enums';
+import { ConditionType, RuleStatus, ThreatSeverity } from '@prisma/generated/prisma/enums';
 import {
   BruteForceRule,
   GeoAnomalyRule,
-  TimeAnomalyRule,
   RapidIpChangeRule,
   SuspiciousUserAgentRule,
 } from '../implementations';
@@ -25,10 +24,9 @@ describe('ThreatRuleFactory', () => {
       const types = factory.getAvailableRuleTypes();
       expect(types).toContain('brute-force-detection');
       expect(types).toContain('geo-anomaly-detection');
-      expect(types).toContain('time-anomaly-detection');
       expect(types).toContain('rapid-ip-change-detection');
       expect(types).toContain('suspicious-user-agent-detection');
-      expect(types.length).toBe(5);
+      expect(types.length).toBe(4);
     });
   });
 
@@ -278,7 +276,6 @@ describe('ThreatRuleFactory', () => {
       const expectations = [
         { type: 'brute-force-detection', class: BruteForceRule },
         { type: 'geo-anomaly-detection', class: GeoAnomalyRule },
-        { type: 'time-anomaly-detection', class: TimeAnomalyRule },
         { type: 'rapid-ip-change-detection', class: RapidIpChangeRule },
         { type: 'suspicious-user-agent-detection', class: SuspiciousUserAgentRule },
       ];

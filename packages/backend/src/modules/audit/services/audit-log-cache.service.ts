@@ -5,15 +5,73 @@ import { logger } from '../../../logger/consola.logger';
 
 /**
  * Cache-Service für Audit-Log-Statistiken
- * Verwendet Redis für schnellen Zugriff auf häufig abgerufene Daten
+ *
+ * Verwendet Redis für schnellen Zugriff auf häufig abgerufene Audit-Daten.
+ * Dieser Service verbessert die Performance bei wiederholten Abfragen von
+ * Statistiken und reduzierten Datenbanklasten durch intelligentes Caching.
+ *
+ * **Hauptfunktionen:**
+ * - Redis-basiertes Caching mit konfigurierbarer TTL
+ * - Structured Cache Keys für Statistiken und Queries
+ * - Pattern-basierte Invalidierung
+ * - Graceful Degradation bei Redis-Ausfällen
+ *
+ * **Konfiguration:**
+ * - AUDIT_CACHE_ENABLED: Aktiviert/deaktiviert Caching
+ * - AUDIT_CACHE_TTL: Standard Time-to-Live in Sekunden
+ * - REDIS_*: Redis-Verbindungsparameter
+ *
+ * @class AuditLogCacheService
+ * @implements {OnModuleInit}
+ * @example
+ * ```typescript
+ * // Statistiken cachen
+ * const statsKey = cacheService.generateStatisticsKey({ userId: '123', date: '2024-01' });
+ * await cacheService.set(statsKey, statistics, 300);
+ *
+ * // Aus Cache abrufen
+ * const cached = await cacheService.get<AuditStatistics>(statsKey);
+ * if (cached) return cached;
+ * ```
  */
 @Injectable()
 export class AuditLogCacheService implements OnModuleInit {
+  /**
+   * Redis-Client-Instanz
+   * @private
+   * @property {Redis} redis - ioredis Client für Cache-Operationen
+   */
   private redis: Redis;
+
+  /**
+   * Präfix für alle Cache-Schlüssel
+   * @private
+   * @readonly
+   * @property {string} cachePrefix - Namespace-Präfix für Audit-Cache-Keys
+   */
   private readonly cachePrefix = 'audit:';
+
+  /**
+   * Standard Time-to-Live in Sekunden
+   * @private
+   * @readonly
+   * @property {number} defaultTTL - Standard-Ablaufzeit für Cache-Einträge
+   */
   private readonly defaultTTL: number;
+
+  /**
+   * Cache-Aktivierungsstatus
+   * @private
+   * @readonly
+   * @property {boolean} isEnabled - Ob Caching aktiviert ist
+   */
   private readonly isEnabled: boolean;
 
+  /**
+   * Konstruktor des AuditLogCacheService
+   *
+   * @param {ConfigService} configService - Service für Konfigurationszugriff
+   */
   constructor(private readonly configService: ConfigService) {
     this.defaultTTL = this.configService.get<number>('AUDIT_CACHE_TTL', 300); // 5 minutes
     this.isEnabled = this.configService.get<boolean>('AUDIT_CACHE_ENABLED', true);
@@ -47,6 +105,18 @@ export class AuditLogCacheService implements OnModuleInit {
 
   /**
    * Generiert einen Cache-Schlüssel mit Präfix
+   *
+   * Erstellt einen namespaced Cache-Key durch Voranstellen des audit-Präfixes.
+   * Dies verhindert Kollisionen mit anderen Cache-Systemen.
+   *
+   * @param {string} key - Der Basis-Schlüssel ohne Präfix
+   * @returns {string} Der vollständige Cache-Schlüssel mit Präfix
+   * @private
+   * @example
+   * ```typescript
+   * const key = this.generateKey('stats:user123');
+   * // Ergebnis: 'audit:stats:user123'
+   * ```
    */
   private generateKey(key: string): string {
     return `${this.cachePrefix}${key}`;

@@ -34,6 +34,7 @@ const { TabPane } = Tabs;
 // Datei: SortableItem.tsx
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
+import { logger } from '@/utils/logger.ts';
 
 interface Props {
   id: string;
@@ -544,10 +545,10 @@ const ChecklistsManager: React.FC = () => {
   // --------------- EXPORT einzelner Checklisten ---------------
   const handleExport = useCallback((checklist: Checklist, type: 'pdf' | 'print') => {
     if (type === 'pdf') {
-      console.log('PDF Export der Checkliste:', checklist);
+      logger.log('PDF Export der Checkliste:', checklist);
       // TODO: PDF Export Implementierung
     } else {
-      console.log('Drucken der Checkliste:', checklist);
+      logger.log('Drucken der Checkliste:', checklist);
       window.print();
     }
   }, []);

@@ -149,7 +149,6 @@ describe('threat-rules.config', () => {
 
       expect(config.defaultRules.ipHopping).toBeDefined();
       expect(config.defaultRules.geoAnomaly).toBeDefined();
-      expect(config.defaultRules.timeAnomaly).toBeDefined();
       expect(config.defaultRules.credentialStuffing).toBeDefined();
       expect(config.defaultRules.accountEnumeration).toBeDefined();
       expect(config.defaultRules.sessionHijacking).toBeDefined();
@@ -161,13 +160,6 @@ describe('threat-rules.config', () => {
       expect(config.defaultRules.geoAnomaly.config.checkNewCountry).toBe(true);
       expect(config.defaultRules.geoAnomaly.config.userPatternLearning).toBe(true);
       expect(config.defaultRules.geoAnomaly.config.learningPeriodDays).toBe(30);
-    });
-
-    it('should have correct timeAnomaly configuration', () => {
-      const config = loadThreatRulesConfig();
-      expect(config.defaultRules.timeAnomaly.config.suspiciousHours).toEqual({ start: 0, end: 6 });
-      expect(config.defaultRules.timeAnomaly.config.checkUserPattern).toBe(true);
-      expect(config.defaultRules.timeAnomaly.config.patternLearningDays).toBe(30);
     });
 
     it('should have correct credentialStuffing configuration', () => {

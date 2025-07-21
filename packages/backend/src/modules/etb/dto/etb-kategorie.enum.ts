@@ -7,9 +7,14 @@ import { EtbKategorie as PrismaEtbKategorie } from '../../../../prisma/generated
  * Diese Kategorien ermöglichen eine strukturierte Klassifizierung
  * von Einträgen im elektronischen Einsatztagebuch.
  *
- * @enum {string} EtbKategorie
+ * @const
  */
 export const EtbKategorie = PrismaEtbKategorie;
+
+/**
+ * TypeScript-Typ für ETB-Kategorien
+ * @typedef {string} EtbKategorie
+ */
 export type EtbKategorie = (typeof PrismaEtbKategorie)[keyof typeof PrismaEtbKategorie];
 
 /**

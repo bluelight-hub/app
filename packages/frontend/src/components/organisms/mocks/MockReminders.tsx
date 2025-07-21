@@ -5,6 +5,7 @@ import dayjs, { Dayjs } from 'dayjs';
 import 'dayjs/locale/de';
 import { useState } from 'react';
 import { natoDateTime, parseNatoDateTime } from '../../../utils/date';
+import { logger } from '@/utils/logger.ts';
 
 interface RepeatConfig {
   intervalType: 'Minuten' | 'Stunden';
@@ -116,7 +117,7 @@ const WeckerUndErinnerungen = () => {
       const date = parseNatoDateTime(natoDate);
       return date.format('DD.MM.YYYY HH:mm');
     } catch {
-      console.warn('Ungültiges Datumsformat:', natoDate);
+      logger.warn('Ungültiges Datumsformat:', natoDate);
       return natoDate;
     }
   };

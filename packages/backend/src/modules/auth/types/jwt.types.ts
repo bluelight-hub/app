@@ -1,30 +1,106 @@
 /**
  * JWT-Payload-Struktur mit Benutzerauthentifizierungsdaten
  *
- * Wird für Access-Tokens mit Benutzeridentität und Berechtigungen verwendet
+ * Wird für Access-Tokens mit Benutzeridentität und Berechtigungen verwendet.
+ * Enthält alle notwendigen Informationen zur Autorisierung von API-Anfragen.
+ *
+ * @interface JWTPayload
  */
 export interface JWTPayload {
-  sub: string; // User ID
+  /**
+   * Subject - Benutzer-ID
+   * @example "user_abc123def456"
+   */
+  sub: string;
+
+  /**
+   * E-Mail-Adresse des Benutzers
+   * @example "admin@bluelight-hub.com"
+   */
   email: string;
+
+  /**
+   * Array der Benutzerrollen
+   * @example ["ADMIN", "USER"]
+   */
   roles: UserRole[];
+
+  /**
+   * Array der spezifischen Berechtigungen
+   * @example ["USERS_READ", "USERS_WRITE"]
+   */
   permissions: Permission[];
-  orgId?: string; // Organization ID if applicable
-  sessionId: string; // For session management
-  iat: number; // Issued at
-  exp: number; // Expiration
-  jti?: string; // JWT ID for revocation
+
+  /**
+   * Organisations-ID (falls zutreffend)
+   * @example "org_xyz789"
+   */
+  orgId?: string;
+
+  /**
+   * Session-ID für Session-Management
+   * @example "sess_1234567890"
+   */
+  sessionId: string;
+
+  /**
+   * Ausstellungszeitpunkt (Unix-Timestamp)
+   * @example 1642339200
+   */
+  iat: number;
+
+  /**
+   * Ablaufzeitpunkt (Unix-Timestamp)
+   * @example 1642342800
+   */
+  exp: number;
+
+  /**
+   * JWT-ID für Token-Widerruf
+   * @example "jti_unique123"
+   */
+  jti?: string;
 }
 
 /**
  * JWT-Refresh-Token-Payload für Token-Erneuerung
  *
- * Enthält minimale Daten für sichere Token-Aktualisierung
+ * Enthält minimale Daten für sichere Token-Aktualisierung.
+ * Refresh-Tokens haben eine längere Lebensdauer und werden nur
+ * für die Erneuerung von Access-Tokens verwendet.
+ *
+ * @interface JWTRefreshPayload
  */
 export interface JWTRefreshPayload {
+  /**
+   * Subject - Benutzer-ID
+   * @example "user_abc123def456"
+   */
   sub: string;
+
+  /**
+   * Session-ID zur Validierung
+   * @example "sess_1234567890"
+   */
   sessionId: string;
+
+  /**
+   * Ausstellungszeitpunkt (Unix-Timestamp)
+   * @example 1642339200
+   */
   iat: number;
+
+  /**
+   * Ablaufzeitpunkt (Unix-Timestamp)
+   * Optional für Refresh-Tokens ohne Ablauf
+   * @example 1673875200
+   */
   exp?: number;
+
+  /**
+   * JWT-ID für Token-Tracking und Widerruf
+   * @example "jti_refresh_unique456"
+   */
   jti: string;
 }
 

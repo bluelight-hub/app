@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
-import { RuleContext, RuleEvaluationResult, GeoBasedRule } from '../rule.interface';
-import { ThreatSeverity, RuleStatus, ConditionType } from '@prisma/generated/prisma/enums';
+import { GeoBasedRule, RuleContext, RuleEvaluationResult } from '../rule.interface';
+import { ConditionType, RuleStatus, ThreatSeverity } from '@prisma/generated/prisma/enums';
 import { SecurityEventType } from '../../enums/security-event-type.enum';
 
 /**
@@ -8,30 +8,173 @@ import { SecurityEventType } from '../../enums/security-event-type.enum';
  *
  * Diese Regel erkennt unmögliche Reisegeschwindigkeiten und
  * verdächtige geografische Muster in Login-Aktivitäten.
+ *
+ * Features:
+ * - Erkennung unmöglicher Reisegeschwindigkeiten
+ * - Länderspezifische Zugriffskontrolle (erlaubt/blockiert)
+ * - Erkennung von Logins aus verdächtigen Ländern
+ * - Berechnung von Distanzen zwischen Login-Standorten
+ * - Flexible Konfiguration von Schwellenwerten
+ *
+ * @class GeoAnomalyRule
+ * @implements {GeoBasedRule}
+ * @injectable
+ *
+ * @example
+ * ```typescript
+ * const rule = new GeoAnomalyRule();
+ * const result = await rule.evaluate({
+ *   eventType: SecurityEventType.LOGIN_SUCCESS,
+ *   userId: 'user123',
+ *   timestamp: new Date(),
+ *   metadata: {
+ *     location: 'Tokyo, Japan'
+ *   },
+ *   recentEvents: [
+ *     {
+ *       eventType: SecurityEventType.LOGIN_SUCCESS,
+ *       timestamp: new Date(Date.now() - 3600000), // 1 Stunde zuvor
+ *       metadata: { location: 'Berlin, Germany' }
+ *     }
+ *   ]
+ * });
+ *
+ * if (result.matched) {
+ *   // Unmögliche Reisegeschwindigkeit erkannt!
+ *   logger.log(result.reason); // "Impossible travel speed detected: 8900 km/h..."
+ * }
+ * ```
  */
 @Injectable()
 export class GeoAnomalyRule implements GeoBasedRule {
+  /**
+   * Eindeutige Regel-ID
+   * @property {string} id - Eindeutige Identifikation für geografische Anomalie-Erkennung
+   */
   id = 'geo-anomaly-detection';
+
+  /**
+   * Name der Regel
+   * @property {string} name - Benutzerfreundlicher Name der Regel
+   */
   name = 'Geographic Anomaly Detection';
+
+  /**
+   * Beschreibung der Regel
+   * @property {string} description - Detaillierte Beschreibung der Funktionalität
+   */
   description = 'Detects impossible travel speeds and suspicious geographic patterns';
+
+  /**
+   * Version der Regel
+   * @property {string} version - Semantic Versioning für Regel-Updates
+   */
   version = '1.0.0';
+
+  /**
+   * Status der Regel
+   * @property {RuleStatus} status - ACTIVE, INACTIVE oder DEPRECATED
+   */
   status = RuleStatus.ACTIVE;
+
+  /**
+   * Standard-Schweregrad der Regel
+   * @property {ThreatSeverity} severity - Basis-Schweregrad für Treffer
+   */
   severity = ThreatSeverity.CRITICAL;
+
+  /**
+   * Typ der Regel-Bedingung
+   * @property {ConditionType} conditionType - Klassifizierung als geografisch-basierte Regel
+   */
   conditionType = ConditionType.GEO_BASED;
+
+  /**
+   * Tags zur Kategorisierung der Regel
+   * @property {string[]} tags - Schlagwörter für Filterung und Gruppierung
+   */
   tags = ['geo-location', 'travel-speed', 'authentication'];
 
+  /**
+   * Konfiguration der geografischen Anomalie-Erkennung
+   * @property {object} config - Anpassbare Parameter für Velocity-Checks und Länder-Beschränkungen
+   */
   config = {
-    maxDistanceKm: 1000, // Maximale Distanz für normale Reisegeschwindigkeit
+    /**
+     * Maximale normale Reisedistanz in Kilometern
+     * @property {number} maxDistanceKm - Schwellenwert für normale Reiseentfernungen
+     */
+    maxDistanceKm: 1000,
+
+    /**
+     * Aktiviert Geschwindigkeitsprüfung
+     * @property {boolean} checkVelocity - Prüft auf unmögliche Reisegeschwindigkeiten
+     */
     checkVelocity: true,
-    maxVelocityKmh: 1000, // Maximale Reisegeschwindigkeit (ca. Flugzeuggeschwindigkeit)
-    timeWindowMinutes: 60, // Zeitfenster für Velocity-Check
-    allowedCountries: [], // Wenn leer, alle Länder erlaubt
-    blockedCountries: [], // Explizit blockierte Länder
-    suspiciousCountries: ['KP', 'IR', 'SY'], // Länder mit erhöhtem Risiko
+
+    /**
+     * Maximale realistische Reisegeschwindigkeit in km/h
+     * @property {number} maxVelocityKmh - Schwellenwert für physisch mögliche Geschwindigkeit
+     */
+    maxVelocityKmh: 1000,
+
+    /**
+     * Zeitfenster für Velocity-Check in Minuten
+     * @property {number} timeWindowMinutes - Wie weit zurück nach vorherigen Logins gesucht wird
+     */
+    timeWindowMinutes: 60,
+
+    /**
+     * Liste erlaubter Länder (leer = alle erlaubt)
+     * @property {string[]} allowedCountries - Whitelist von Ländercodes
+     */
+    allowedCountries: [],
+
+    /**
+     * Liste explizit blockierter Länder
+     * @property {string[]} blockedCountries - Blacklist von Ländercodes
+     */
+    blockedCountries: [],
+
+    /**
+     * Länder mit erhöhtem Risiko
+     * @property {string[]} suspiciousCountries - Länder die zusätzliche Überwachung auslösen
+     */
+    suspiciousCountries: ['KP', 'IR', 'SY'],
   };
 
   /**
    * Evaluiert die Regel gegen den gegebenen Kontext
+   *
+   * Prüft auf geografische Anomalien wie unmögliche Reisegeschwindigkeiten,
+   * blockierte Länder und verdächtige Standorte. Die Evaluierung erfolgt
+   * in folgender Reihenfolge:
+   * 1. Länderrestriktionen (blockiert/erlaubt)
+   * 2. Geschwindigkeitsprüfung (Velocity Check)
+   * 3. Verdächtige Länder
+   *
+   * @param {RuleContext} context - Der Evaluierungskontext mit Standortdaten
+   * @returns {Promise<RuleEvaluationResult>} Evaluierungsergebnis
+   *
+   * @example
+   * ```typescript
+   * // Blockiertes Land
+   * const result = await rule.evaluate({
+   *   eventType: SecurityEventType.LOGIN_SUCCESS,
+   *   metadata: { location: 'Pyongyang, KP' }
+   * });
+   * // result.matched: true, severity: CRITICAL
+   *
+   * // Unmögliche Geschwindigkeit
+   * const result = await rule.evaluate({
+   *   metadata: { location: 'Sydney, Australia' },
+   *   recentEvents: [{
+   *     timestamp: new Date(Date.now() - 3600000), // 1h zuvor
+   *     metadata: { location: 'Berlin, Germany' }
+   *   }]
+   * });
+   * // result.matched: true, reason: "Impossible travel speed detected: 16000 km/h..."
+   * ```
    */
   async evaluate(context: RuleContext): Promise<RuleEvaluationResult> {
     // Nur bei erfolgreichen Logins evaluieren
@@ -97,6 +240,18 @@ export class GeoAnomalyRule implements GeoBasedRule {
 
   /**
    * Validiert die Regel-Konfiguration
+   *
+   * Stellt sicher, dass alle erforderlichen Konfigurationsparameter
+   * vorhanden und gültig sind.
+   *
+   * @returns {boolean} true wenn die Konfiguration gültig ist
+   *
+   * @example
+   * ```typescript
+   * if (!rule.validate()) {
+   *   throw new Error('Invalid geo anomaly rule configuration');
+   * }
+   * ```
    */
   validate(): boolean {
     return (
@@ -108,6 +263,17 @@ export class GeoAnomalyRule implements GeoBasedRule {
 
   /**
    * Gibt eine menschenlesbare Beschreibung der Regel zurück
+   *
+   * Erstellt eine Beschreibung basierend auf der aktuellen Konfiguration
+   * mit den relevanten Schwellenwerten.
+   *
+   * @returns {string} Beschreibung der Regel
+   *
+   * @example
+   * ```typescript
+   * logger.log(rule.getDescription());
+   * // "Detects geographic anomalies including impossible travel speeds (>1000 km/h) and access from blocked/suspicious countries"
+   * ```
    */
   getDescription(): string {
     return `Detects geographic anomalies including impossible travel speeds (>${this.config.maxVelocityKmh} km/h) and access from blocked/suspicious countries`;
@@ -115,6 +281,22 @@ export class GeoAnomalyRule implements GeoBasedRule {
 
   /**
    * Extrahiert Standortinformationen aus dem Kontext
+   *
+   * Versucht Standortdaten aus den Metadaten zu extrahieren.
+   * In einer Produktionsumgebung würde hier ein GeoIP-Lookup
+   * basierend auf der IP-Adresse durchgeführt werden.
+   *
+   * @private
+   * @param {RuleContext} context - Der Evaluierungskontext
+   * @returns {any} Strukturierte Standortdaten oder null
+   *
+   * @example
+   * ```typescript
+   * const location = this.extractLocation({
+   *   metadata: { location: 'Berlin, Germany' }
+   * });
+   * // { city: 'Berlin', country: 'Germany', raw: 'Berlin, Germany' }
+   * ```
    */
   private extractLocation(context: RuleContext): any {
     // Versuche Location aus Metadaten zu extrahieren
@@ -128,6 +310,22 @@ export class GeoAnomalyRule implements GeoBasedRule {
 
   /**
    * Parst Location-String in strukturierte Daten
+   *
+   * Konvertiert einen Standort-String im Format "City, Country"
+   * oder "City, Region, Country" in ein strukturiertes Objekt.
+   *
+   * @private
+   * @param {string} location - Der zu parsende Standort-String
+   * @returns {any} Strukturiertes Standortobjekt oder null
+   *
+   * @example
+   * ```typescript
+   * const loc1 = this.parseLocation('Tokyo, Japan');
+   * // { city: 'Tokyo', country: 'Japan', raw: 'Tokyo, Japan' }
+   *
+   * const loc2 = this.parseLocation('San Francisco, California, United States');
+   * // { city: 'San Francisco', region: 'California', country: 'United States', raw: '...' }
+   * ```
    */
   private parseLocation(location: string): any {
     // Erwartetes Format: "City, Country" oder "City, Region, Country"
@@ -147,6 +345,24 @@ export class GeoAnomalyRule implements GeoBasedRule {
 
   /**
    * Prüft Länderbeschränkungen
+   *
+   * Überprüft ob das Land auf der Blockliste steht oder
+   * nicht in der Erlaubnisliste enthalten ist (falls definiert).
+   *
+   * @private
+   * @param {string} country - Der zu prüfende Ländername
+   * @returns {Object} Prüfergebnis mit blocked-Flag und Begründung
+   *
+   * @example
+   * ```typescript
+   * // Mit blockedCountries: ['North Korea', 'Iran']
+   * const check = this.checkCountryRestrictions('North Korea');
+   * // { blocked: true, reason: 'Access from blocked country: North Korea' }
+   *
+   * // Mit allowedCountries: ['Germany', 'France']
+   * const check = this.checkCountryRestrictions('Spain');
+   * // { blocked: true, reason: 'Access from non-allowed country: Spain' }
+   * ```
    */
   private checkCountryRestrictions(country: string): any {
     if (this.config.blockedCountries.includes(country)) {
@@ -171,6 +387,34 @@ export class GeoAnomalyRule implements GeoBasedRule {
 
   /**
    * Prüft auf unmögliche Reisegeschwindigkeiten
+   *
+   * Berechnet die Geschwindigkeit zwischen dem aktuellen und
+   * vorherigen Login-Standorten. Erkennt physikalisch unmögliche
+   * Reisegeschwindigkeiten als Indikator für kompromittierte Accounts.
+   *
+   * @private
+   * @param {any} currentLocation - Aktueller Standort
+   * @param {RuleContext} context - Evaluierungskontext mit historischen Events
+   * @returns {Object} Prüfergebnis mit Details zur erkannten Anomalie
+   *
+   * @example
+   * ```typescript
+   * const check = this.checkVelocity(
+   *   { city: 'Tokyo', country: 'Japan' },
+   *   {
+   *     timestamp: new Date(),
+   *     recentEvents: [{
+   *       timestamp: new Date(Date.now() - 3600000), // 1h zuvor
+   *       metadata: { location: 'Berlin, Germany' }
+   *     }]
+   *   }
+   * );
+   * // {
+   * //   anomalyDetected: true,
+   * //   reason: 'Impossible travel speed detected: 8900 km/h...',
+   * //   evidence: { velocityKmh: 8900, distanceKm: 8900, ... }
+   * // }
+   * ```
    */
   private checkVelocity(currentLocation: any, context: RuleContext): any {
     const cutoffTime = new Date(
@@ -223,7 +467,30 @@ export class GeoAnomalyRule implements GeoBasedRule {
 
   /**
    * Schätzt die Distanz zwischen zwei Standorten (vereinfacht)
-   * In Produktion würde man die Haversine-Formel mit echten Koordinaten verwenden
+   *
+   * Verwendet eine vordefinierte Distanztabelle für gängige
+   * Länderkombinationen. In einer Produktionsumgebung würde
+   * die Haversine-Formel mit echten GPS-Koordinaten verwendet.
+   *
+   * @private
+   * @param {any} location1 - Erster Standort
+   * @param {any} location2 - Zweiter Standort
+   * @returns {number} Geschätzte Distanz in Kilometern
+   *
+   * @example
+   * ```typescript
+   * const dist1 = this.estimateDistance(
+   *   { city: 'Berlin', country: 'Germany' },
+   *   { city: 'Tokyo', country: 'Japan' }
+   * );
+   * // 8900 (km)
+   *
+   * const dist2 = this.estimateDistance(
+   *   { city: 'Berlin', country: 'Germany' },
+   *   { city: 'Munich', country: 'Germany' }
+   * );
+   * // 300 (km - Standardwert für Städte im gleichen Land)
+   * ```
    */
   private estimateDistance(location1: any, location2: any): number {
     // Vereinfachte Distanzschätzung basierend auf Ländern/Städten
@@ -270,6 +537,29 @@ export class GeoAnomalyRule implements GeoBasedRule {
 
   /**
    * Berechnet die Schwere basierend auf der Anomalie
+   *
+   * Bestimmt den Schweregrad der Bedrohung anhand der
+   * erkannten Reisegeschwindigkeit. Je höher die unmögliche
+   * Geschwindigkeit, desto kritischer die Bewertung.
+   *
+   * @private
+   * @param {any} velocityCheck - Ergebnis der Geschwindigkeitsprüfung
+   * @returns {ThreatSeverity} Berechneter Schweregrad
+   *
+   * @example
+   * ```typescript
+   * // Bei extrem hoher Geschwindigkeit
+   * const severity = this.calculateSeverity({
+   *   evidence: { velocityKmh: 2500 }
+   * });
+   * // ThreatSeverity.CRITICAL
+   *
+   * // Bei hoher Geschwindigkeit
+   * const severity = this.calculateSeverity({
+   *   evidence: { velocityKmh: 1700 }
+   * });
+   * // ThreatSeverity.HIGH
+   * ```
    */
   private calculateSeverity(velocityCheck: any): ThreatSeverity {
     if (velocityCheck.evidence.velocityKmh > 2000) {
@@ -285,6 +575,22 @@ export class GeoAnomalyRule implements GeoBasedRule {
 
   /**
    * Berechnet einen Risiko-Score (0-100)
+   *
+   * Generiert einen numerischen Score basierend auf der
+   * Überschreitung der erlaubten Maximalgeschwindigkeit.
+   * Je höher die Überschreitung, desto höher der Score.
+   *
+   * @private
+   * @param {any} velocityCheck - Ergebnis der Geschwindigkeitsprüfung
+   * @returns {number} Risiko-Score zwischen 0 und 100
+   *
+   * @example
+   * ```typescript
+   * const score = this.calculateScore({
+   *   evidence: { velocityKmh: 1500 }
+   * });
+   * // Bei maxVelocityKmh=1000: score = 75 (50 + 500/20)
+   * ```
    */
   private calculateScore(velocityCheck: any): number {
     const velocity = velocityCheck.evidence.velocityKmh;
@@ -298,6 +604,29 @@ export class GeoAnomalyRule implements GeoBasedRule {
 
   /**
    * Bestimmt die vorgeschlagenen Aktionen
+   *
+   * Empfiehlt Sicherheitsmaßnahmen basierend auf der
+   * erkannten Reisegeschwindigkeit. Je unmöglicher die
+   * Geschwindigkeit, desto drastischer die Maßnahmen.
+   *
+   * @private
+   * @param {any} velocityCheck - Ergebnis der Geschwindigkeitsprüfung
+   * @returns {string[]} Array empfohlener Sicherheitsaktionen
+   *
+   * @example
+   * ```typescript
+   * // Bei extrem hoher Geschwindigkeit
+   * const actions = this.determineSuggestedActions({
+   *   evidence: { velocityKmh: 2500 }
+   * });
+   * // ['INVALIDATE_SESSIONS', 'BLOCK_IP']
+   *
+   * // Bei verdächtiger Geschwindigkeit
+   * const actions = this.determineSuggestedActions({
+   *   evidence: { velocityKmh: 800 }
+   * });
+   * // ['REQUIRE_2FA']
+   * ```
    */
   private determineSuggestedActions(velocityCheck: any): string[] {
     const actions: string[] = [];
@@ -318,6 +647,26 @@ export class GeoAnomalyRule implements GeoBasedRule {
 
   /**
    * Konvertiert Ländernamen zu ISO-Code
+   *
+   * Mappt gängige Ländernamen auf ihre ISO-3166-1 Alpha-2 Codes.
+   * Wird für die Überprüfung gegen die suspiciousCountries-Liste
+   * verwendet.
+   *
+   * @private
+   * @param {string} country - Der Ländername
+   * @returns {string} ISO-Ländercode oder Original-String
+   *
+   * @example
+   * ```typescript
+   * const code1 = this.getCountryCode('Germany');
+   * // 'DE'
+   *
+   * const code2 = this.getCountryCode('North Korea');
+   * // 'KP'
+   *
+   * const code3 = this.getCountryCode('Unknown Country');
+   * // 'Unknown Country' (kein Mapping vorhanden)
+   * ```
    */
   private getCountryCode(country: string): string {
     // Mapping der häufigsten Länder zu ISO-Codes

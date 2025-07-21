@@ -1,4 +1,5 @@
 import { isTauri } from '@tauri-apps/api/core';
+import { logger } from '@/utils/logger.ts';
 
 /**
  * Öffnet die Admin-Seite in einem neuen Fenster (Tauri) oder Tab (Browser)
@@ -31,15 +32,15 @@ export const openAdminWindow = async () => {
 
       // Event listener für Fehler
       adminWindow.once('tauri://error', (e) => {
-        console.error('Fehler beim Öffnen des Admin-Fensters:', e);
+        logger.error('Fehler beim Öffnen des Admin-Fensters:', e);
       });
 
       // Warte bis das Fenster bereit ist
       await adminWindow.once('tauri://created', () => {
-        console.log('Admin-Fenster wurde erstellt');
+        logger.log('Admin-Fenster wurde erstellt');
       });
     } catch (error) {
-      console.error('Fehler beim Erstellen des Admin-Fensters:', error);
+      logger.error('Fehler beim Erstellen des Admin-Fensters:', error);
       // Fallback: Im Browser öffnen
       window.open('/admin', '_blank');
     }
@@ -62,7 +63,7 @@ export const closeCurrentWindow = async () => {
       const currentWindow = getCurrentWebviewWindow();
       await currentWindow.close();
     } catch (error) {
-      console.error('Fehler beim Schließen des Fensters:', error);
+      logger.error('Fehler beim Schließen des Fensters:', error);
       window.close();
     }
   } else {

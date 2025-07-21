@@ -20,6 +20,7 @@ import React, { useState } from 'react';
 import './MockNotizen.css';
 
 import { PiPencil, PiPlus } from 'react-icons/pi';
+import { logger } from '@/utils/logger.ts';
 
 /**
  * Typ für eine Notiz
@@ -188,7 +189,7 @@ const NotizenPage: React.FC = () => {
       setModalOpen(false);
     } catch (err) {
       // Validierungsfehler
-      console.error(err);
+      logger.error(err);
     }
   };
 

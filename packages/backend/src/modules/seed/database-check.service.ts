@@ -3,14 +3,62 @@ import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 
 /**
- * Service für die Überprüfung des Datenbankstatus.
- * Bietet Methoden, um die Datenbank auf Existenz von Tabellen und Datensätzen zu prüfen.
+ * Service für die Überprüfung des Datenbankstatus
+ *
+ * Bietet robuste Methoden zur Überprüfung des Datenbankzustands, Tabellen-Existenz
+ * und Datensatz-Statistiken. Implementiert Timeout-Schutz und PostgreSQL-spezifische
+ * Optimierungen für zuverlässige Datenbankoperationen.
+ *
+ * **Hauptfunktionen:**
+ * - Datenbankverbindungs-Validierung mit Timeout-Schutz
+ * - Tabellen-Existenzprüfung über PostgreSQL information_schema
+ * - Datensatz-Zählung mit Fehlerbehandlung
+ * - Schema-Validierung für Seed-Operationen
+ *
+ * **Sicherheitsfeatures:**
+ * - 10-Sekunden Timeout für alle Datenbankoperationen
+ * - Sichere SQL-Abfragen mit Parameter-Binding
+ * - Comprehensive Error Handling und Logging
+ *
+ * @class DatabaseCheckService
+ * @example
+ * ```typescript
+ * const dbCheck = new DatabaseCheckService(prisma, config);
+ *
+ * // Verbindung prüfen
+ * const isReachable = await dbCheck.isDatabaseReachable();
+ *
+ * // Tabelle prüfen
+ * const hasTable = await dbCheck.doesTableExist('users');
+ *
+ * // Datensätze zählen
+ * const count = await dbCheck.countRecords('audit_logs');
+ * ```
  */
 @Injectable()
 export class DatabaseCheckService {
+  /**
+   * Logger-Instanz für Datenbankoperationen
+   * @private
+   * @readonly
+   * @property {Logger} logger - NestJS Logger für strukturierte Logs
+   */
   private readonly logger = new Logger(DatabaseCheckService.name);
+
+  /**
+   * Timeout für Datenbankabfragen in Millisekunden
+   * @private
+   * @readonly
+   * @property {number} queryTimeout - Verhindert hängende Verbindungen
+   */
   private readonly queryTimeout = 10000; // 10 Sekunden Timeout für Datenbankabfragen
 
+  /**
+   * Konstruktor des DatabaseCheckService
+   *
+   * @param {PrismaService} prisma - Prisma ORM Service für Datenbankzugriff
+   * @param {ConfigService} configService - NestJS Configuration Service
+   */
   constructor(
     private readonly prisma: PrismaService,
     private readonly configService: ConfigService,

@@ -1,5 +1,6 @@
 import { isTauri } from '@tauri-apps/api/core';
 import { load, type Store } from '@tauri-apps/plugin-store';
+import { logger } from '@/utils/logger.ts';
 
 interface AuthTokens {
   authToken: string | null;
@@ -14,26 +15,6 @@ class AuthStorage {
   private store: Store | null = null;
   private initialized = false;
   private isRunningInTauri = false;
-
-  private async ensureInitialized() {
-    if (this.initialized) {
-      return;
-    }
-
-    try {
-      this.isRunningInTauri = await isTauri();
-
-      if (this.isRunningInTauri) {
-        // Use the load function to create or load the store
-        this.store = await load('auth.json', { autoSave: true });
-      }
-    } catch (error) {
-      console.warn('Tauri Store initialization failed, using localStorage:', error);
-      this.store = null;
-    }
-
-    this.initialized = true;
-  }
 
   async setTokens(authToken: string, refreshToken?: string): Promise<void> {
     await this.ensureInitialized();
@@ -92,6 +73,26 @@ class AuthStorage {
   async hasValidTokens(): Promise<boolean> {
     const tokens = await this.getTokens();
     return tokens.authToken !== null;
+  }
+
+  private async ensureInitialized() {
+    if (this.initialized) {
+      return;
+    }
+
+    try {
+      this.isRunningInTauri = await isTauri();
+
+      if (this.isRunningInTauri) {
+        // Use the load function to create or load the store
+        this.store = await load('auth.json', { autoSave: true });
+      }
+    } catch (error) {
+      logger.warn('Tauri Store initialization failed, using localStorage:', error);
+      this.store = null;
+    }
+
+    this.initialized = true;
   }
 }
 

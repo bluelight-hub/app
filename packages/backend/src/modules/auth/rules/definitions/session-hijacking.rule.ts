@@ -8,26 +8,122 @@ import { ThreatSeverity, RuleStatus, ConditionType } from '@prisma/generated/pri
  * - Plötzliche IP-Änderungen innerhalb einer Session
  * - User-Agent-Änderungen
  * - Ungewöhnliche Session-Aktivitätsmuster
+ *
+ * @class SessionHijackingRule
+ * @implements {PatternRule}
  */
 export class SessionHijackingRule implements PatternRule {
+  /**
+   * Eindeutige Regel-ID
+   * @property {string} id - Eindeutige Identifikation der Regel
+   */
   id: string;
+
+  /**
+   * Name der Regel
+   * @property {string} name - Benutzerfreundlicher Name
+   */
   name: string;
+
+  /**
+   * Beschreibung der Regel
+   * @property {string} description - Detaillierte Beschreibung der Funktionalität
+   */
   description: string;
+
+  /**
+   * Version der Regel
+   * @property {string} version - Semantic Versioning für Regel-Updates
+   */
   version: string;
+
+  /**
+   * Status der Regel
+   * @property {RuleStatus} status - ACTIVE, INACTIVE oder DEPRECATED
+   */
   status: RuleStatus;
+
+  /**
+   * Standard-Schweregrad der Regel
+   * @property {ThreatSeverity} severity - Basis-Schweregrad für Treffer
+   */
   severity: ThreatSeverity;
+
+  /**
+   * Typ der Regel-Bedingung
+   * @property {ConditionType} conditionType - Klassifizierung des Regel-Typs
+   */
   conditionType: ConditionType;
+
+  /**
+   * Konfiguration für Session Hijacking Erkennung
+   * @property {object} config - Anpassbare Parameter der Regel
+   */
   config: {
+    /**
+     * Erkennungsmuster für Session Hijacking
+     * @property {string[]} patterns - Liste der zu erkennenden Hijacking-Muster
+     */
     patterns: string[];
+
+    /**
+     * Art der Muster-Übereinstimmung
+     * @property {'any' | 'all'} matchType - 'any' = eines der Muster, 'all' = alle Muster
+     */
     matchType: 'any' | 'all';
+
+    /**
+     * Zeitfenster für die Session-Analyse in Minuten
+     * @property {number} lookbackMinutes - Wie weit zurück Session-Events analysiert werden
+     */
     lookbackMinutes: number;
+
+    /**
+     * Aktiviert Prüfung auf IP-Adresswechsel
+     * @property {boolean} checkIpChange - Erkennt verdächtige IP-Änderungen in Sessions
+     */
     checkIpChange: boolean;
+
+    /**
+     * Aktiviert Prüfung auf User-Agent-Wechsel
+     * @property {boolean} checkUserAgentChange - Erkennt Browser/Client-Wechsel in Sessions
+     */
     checkUserAgentChange: boolean;
+
+    /**
+     * Aktiviert Prüfung auf geografische Sprünge
+     * @property {boolean} checkGeoJump - Erkennt unmögliche Ortswechsel in Sessions
+     */
     checkGeoJump: boolean;
+
+    /**
+     * Maximale erlaubte IP-Änderungen pro Session
+     * @property {number} maxSessionIpChanges - Schwellenwert für verdächtige IP-Wechsel
+     */
     maxSessionIpChanges: number;
   };
+
+  /**
+   * Tags zur Kategorisierung der Regel
+   * @property {string[]} tags - Schlagwörter für Filterung und Gruppierung
+   */
   tags: string[];
 
+  /**
+   * Erstellt eine neue Session Hijacking Regel
+   *
+   * @param data Konfigurationsdaten für die Regel
+   * @example
+   * ```typescript
+   * const rule = new SessionHijackingRule({
+   *   severity: ThreatSeverity.CRITICAL,
+   *   config: {
+   *     maxSessionIpChanges: 1,
+   *     checkGeoJump: true
+   *   }
+   * });
+   * ```
+   */
   constructor(data: Partial<SessionHijackingRule>) {
     this.id = data.id || 'session-hijacking-default';
     this.name = data.name || 'Session Hijacking Detection';
@@ -50,6 +146,22 @@ export class SessionHijackingRule implements PatternRule {
     };
   }
 
+  /**
+   * Evaluiert den Kontext auf Session Hijacking Versuche
+   *
+   * @param context Der Evaluierungskontext mit Session- und Ereignisdaten
+   * @returns Das Evaluierungsergebnis mit Übereinstimmungsstatus und Details
+   * @example
+   * ```typescript
+   * const result = await rule.evaluate({
+   *   metadata: { sessionId: 'sess_123' },
+   *   recentEvents: sessionEvents
+   * });
+   * if (result.matched) {
+   *   logger.warn('Session hijacking detected:', result.reason);
+   * }
+   * ```
+   */
   async evaluate(context: RuleContext): Promise<RuleEvaluationResult> {
     // This rule requires session context
     const sessionId = (context.metadata as any)?.sessionId;
@@ -132,6 +244,13 @@ export class SessionHijackingRule implements PatternRule {
     return { matched: false };
   }
 
+  /**
+   * Erkennt IP-Adresswechsel innerhalb einer Session
+   *
+   * @param events Array von Session-Ereignissen
+   * @returns Objekt mit Anzahl der Änderungen und Details
+   * @private
+   */
   private detectIpChanges(events: any[]): { count: number; changes: string[] } {
     const ips = new Set<string>();
     const changes: string[] = [];
@@ -151,6 +270,13 @@ export class SessionHijackingRule implements PatternRule {
     return { count: ips.size - 1, changes };
   }
 
+  /**
+   * Erkennt User-Agent-Wechsel innerhalb einer Session
+   *
+   * @param events Array von Session-Ereignissen
+   * @returns Objekt mit Änderungsstatus und User-Agent-Details
+   * @private
+   */
   private detectUserAgentChange(events: any[]): {
     changed: boolean;
     original?: string;
@@ -176,6 +302,13 @@ export class SessionHijackingRule implements PatternRule {
     return { changed: false };
   }
 
+  /**
+   * Erkennt verdächtige geografische Sprünge innerhalb einer Session
+   *
+   * @param events Array von Session-Ereignissen
+   * @returns Objekt mit Verdachtsstatus und geografischen Details
+   * @private
+   */
   private detectGeoJump(events: any[]): {
     suspicious: boolean;
     locations?: any[];
@@ -217,10 +350,20 @@ export class SessionHijackingRule implements PatternRule {
     return { suspicious: false };
   }
 
+  /**
+   * Validiert die Regelkonfiguration
+   *
+   * @returns true wenn die Konfiguration gültig ist, false sonst
+   */
   validate(): boolean {
     return this.config.lookbackMinutes > 0 && this.config.maxSessionIpChanges > 0;
   }
 
+  /**
+   * Gibt eine Beschreibung der Regel zurück
+   *
+   * @returns Beschreibung der Regel
+   */
   getDescription(): string {
     return `Detects session hijacking through IP changes, User-Agent changes, and geographic anomalies`;
   }

@@ -2,6 +2,7 @@ import { Button, Card, Form, Input, Modal, Radio, Select, Table, Tabs, message }
 import type { ColumnsType } from 'antd/es/table';
 import React, { useState } from 'react';
 import { PiPlusCircleBold, PiTruckBold, PiUserFill, PiUsersThreeBold } from 'react-icons/pi';
+import { logger } from '@/utils/logger.ts';
 
 /** -- 1) TYPEN -- **/
 
@@ -171,7 +172,7 @@ const KraefteUebersicht: React.FC = () => {
       }
       setKraftModalOpen(false);
     } catch (error) {
-      console.error(error);
+      logger.error(error);
     }
   };
 
@@ -201,7 +202,7 @@ const KraefteUebersicht: React.FC = () => {
       }
       setFahrzeugModalOpen(false);
     } catch (error) {
-      console.error(error);
+      logger.error(error);
     }
   };
 
@@ -231,7 +232,7 @@ const KraefteUebersicht: React.FC = () => {
       }
       setRollenModalOpen(false);
     } catch (error) {
-      console.error(error);
+      logger.error(error);
     }
   };
 

@@ -75,13 +75,63 @@ export interface ValidationWarning {
 }
 
 /**
- * Schema-Validator Klasse.
+ * Schema-Validator Klasse für Seed-Daten JSON-Import
+ *
+ * Diese Klasse bietet robuste Validierung von JSON-Seed-Daten mit
+ * automatischer Format-Erkennung, detaillierter Fehlerberichterstattung
+ * und semantischer Validierung über reine Schema-Prüfung hinaus.
+ *
+ * **Unterstützte Formate:**
+ * - Vollständiges Seed-Format mit Metadaten und mehreren Einsätzen
+ * - Vereinfachtes Format für einzelne Einsätze
+ *
+ * **Validierungs-Features:**
+ * - JSON Schema-Validierung mit AJV
+ * - Semantische Validierung (Eindeutigkeit, Chronologie)
+ * - Performance-Warnungen für große Datensätze
+ * - Benutzerfreundliche Fehlermeldungen
+ *
+ * @class SchemaValidator
+ * @example
+ * ```typescript
+ * const validator = new SchemaValidator();
+ * const result = validator.validate(jsonData);
+ *
+ * if (result.valid) {
+ *   logger.log(`Validierung erfolgreich: ${result.metadata.einsaetzeCount} Einsätze`);
+ * } else {
+ *   result.errors.forEach(error => logger.error(error.message));
+ * }
+ * ```
  */
 export class SchemaValidator {
+  /**
+   * AJV JSON Schema Validator-Instanz
+   * @private
+   * @property {Ajv} ajv - Konfiguriert mit Formaten und Fehlerdetails
+   */
   private ajv: Ajv;
+
+  /**
+   * Kompilierte Validator-Funktion für vollständiges Seed-Format
+   * @private
+   * @property {ValidateFunction} fullValidator - Validiert SEED_DATA_JSON_SCHEMA
+   */
   private fullValidator: ValidateFunction;
+
+  /**
+   * Kompilierte Validator-Funktion für vereinfachtes Seed-Format
+   * @private
+   * @property {ValidateFunction} simpleValidator - Validiert SIMPLE_SEED_DATA_JSON_SCHEMA
+   */
   private simpleValidator: ValidateFunction;
 
+  /**
+   * Konstruktor - Initialisiert AJV und kompiliert Schema-Validatoren
+   *
+   * Konfiguriert AJV mit allen Fehlern, ausführlichen Meldungen und
+   * zusätzlichen Format-Validatoren für robuste Schema-Prüfung.
+   */
   constructor() {
     // AJV mit Formaten initialisieren
     this.ajv = new Ajv({

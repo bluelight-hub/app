@@ -2,12 +2,43 @@ import { SetMetadata } from '@nestjs/common';
 import { AuditActionType, AuditSeverity } from '@prisma/generated/prisma/client';
 
 /**
- * Metadaten-Schlüssel für Audit-Decorators
+ * Metadaten-Schlüssel für die Audit-Aktion
+ *
+ * Wird verwendet, um die Art der Aktion zu identifizieren, die auditiert werden soll
+ * @const
  */
 export const AUDIT_ACTION_KEY = 'auditAction';
+
+/**
+ * Metadaten-Schlüssel für die Audit-Schwere
+ *
+ * Definiert die Wichtigkeit der Aktion für die Sicherheitsüberwachung
+ * @const
+ */
 export const AUDIT_SEVERITY_KEY = 'auditSeverity';
+
+/**
+ * Metadaten-Schlüssel für den Ressourcentyp
+ *
+ * Identifiziert den Typ der betroffenen Ressource (z.B. 'user', 'einsatz', 'fahrzeug')
+ * @const
+ */
 export const AUDIT_RESOURCE_TYPE_KEY = 'auditResourceType';
+
+/**
+ * Metadaten-Schlüssel für zusätzlichen Audit-Kontext
+ *
+ * Speichert zusätzliche Informationen, die für die Audit-Protokollierung relevant sind
+ * @const
+ */
 export const AUDIT_CONTEXT_KEY = 'auditContext';
+
+/**
+ * Metadaten-Schlüssel zum Überspringen des Audit-Loggings
+ *
+ * Wenn gesetzt, wird die Aktion nicht auditiert (z.B. für öffentliche Endpunkte)
+ * @const
+ */
 export const SKIP_AUDIT_KEY = 'skipAudit';
 
 /**

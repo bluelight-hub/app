@@ -9,6 +9,7 @@ module.exports = {
     '**/*.ts',
     '!migrations/**/*.ts',
     '!main.ts',
+    '!cli-threat-rules.ts',
     '!logger/**/*.ts',
     '!**/node_modules/**',
     '!dist/**',
@@ -44,7 +45,7 @@ module.exports = {
   },
   coverageThreshold: {
     global: {
-      branches: 75.5,
+      branches: 76,
       functions: 79,
       lines: 80,
       statements: 80,

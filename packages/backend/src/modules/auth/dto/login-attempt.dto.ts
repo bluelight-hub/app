@@ -2,142 +2,351 @@ import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { IsString, IsBoolean, IsOptional, IsNumber, IsDate } from 'class-validator';
 
 /**
- * DTO für Login-Versuche
+ * Data Transfer Object für Login-Versuche
  *
  * Repräsentiert einen einzelnen Login-Versuch mit allen relevanten
  * Informationen für Sicherheitsanalysen und Audit-Zwecke.
+ *
+ * @class LoginAttemptDto
  */
 export class LoginAttemptDto {
-  @ApiProperty({ description: 'Unique identifier of the login attempt' })
+  /**
+   * Eindeutige ID des Login-Versuchs
+   * @example "attempt_abc123def456"
+   */
+  @ApiProperty({
+    description: 'Eindeutige ID des Login-Versuchs',
+    example: 'attempt_abc123def456',
+  })
   id: string;
 
-  @ApiPropertyOptional({ description: 'User ID if the user exists' })
+  /**
+   * Benutzer-ID (falls der Benutzer existiert)
+   * @example "user_123456"
+   */
+  @ApiPropertyOptional({
+    description: 'Benutzer-ID (falls der Benutzer existiert)',
+    example: 'user_123456',
+  })
   @IsOptional()
   @IsString()
   userId?: string;
 
-  @ApiProperty({ description: 'Email used in the login attempt' })
+  /**
+   * E-Mail-Adresse, die beim Login-Versuch verwendet wurde
+   * @example "user@example.com"
+   */
+  @ApiProperty({
+    description: 'E-Mail-Adresse, die beim Login-Versuch verwendet wurde',
+    example: 'user@example.com',
+  })
   @IsString()
   email: string;
 
-  @ApiProperty({ description: 'Timestamp of the attempt' })
+  /**
+   * Zeitstempel des Login-Versuchs
+   * @example "2024-01-15T10:30:00Z"
+   */
+  @ApiProperty({
+    description: 'Zeitstempel des Login-Versuchs',
+    example: '2024-01-15T10:30:00Z',
+  })
   @IsDate()
   attemptAt: Date;
 
-  @ApiProperty({ description: 'IP address of the attempt' })
+  /**
+   * IP-Adresse, von der der Versuch ausging
+   * @example "192.168.1.100"
+   */
+  @ApiProperty({
+    description: 'IP-Adresse, von der der Versuch ausging',
+    example: '192.168.1.100',
+  })
   @IsString()
   ipAddress: string;
 
-  @ApiPropertyOptional({ description: 'User agent string' })
+  /**
+   * User-Agent-String des Browsers/Clients
+   * @example "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"
+   */
+  @ApiPropertyOptional({
+    description: 'User-Agent-String des Browsers/Clients',
+    example: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
+  })
   @IsOptional()
   @IsString()
   userAgent?: string;
 
-  @ApiProperty({ description: 'Whether the login attempt was successful' })
+  /**
+   * Erfolg des Login-Versuchs
+   * @example false
+   */
+  @ApiProperty({
+    description: 'Erfolg des Login-Versuchs',
+    example: false,
+  })
   @IsBoolean()
   success: boolean;
 
-  @ApiPropertyOptional({ description: 'Reason for failure' })
+  /**
+   * Grund für gescheiterten Login-Versuch
+   * @example "invalid_credentials"
+   */
+  @ApiPropertyOptional({
+    description: 'Grund für gescheiterten Login-Versuch',
+    example: 'invalid_credentials',
+  })
   @IsOptional()
   @IsString()
   failureReason?: string;
 
-  @ApiPropertyOptional({ description: 'Geolocation of the attempt' })
+  /**
+   * Geografischer Standort (aus IP abgeleitet)
+   * @example "Munich, Germany"
+   */
+  @ApiPropertyOptional({
+    description: 'Geografischer Standort (aus IP abgeleitet)',
+    example: 'Munich, Germany',
+  })
   @IsOptional()
   @IsString()
   location?: string;
 
-  @ApiPropertyOptional({ description: 'Device type' })
+  /**
+   * Gerätetyp
+   * @example "desktop"
+   */
+  @ApiPropertyOptional({
+    description: 'Gerätetyp',
+    example: 'desktop',
+  })
   @IsOptional()
   @IsString()
   deviceType?: string;
 
-  @ApiPropertyOptional({ description: 'Browser name' })
+  /**
+   * Browser-Name
+   * @example "Chrome"
+   */
+  @ApiPropertyOptional({
+    description: 'Browser-Name',
+    example: 'Chrome',
+  })
   @IsOptional()
   @IsString()
   browser?: string;
 
-  @ApiPropertyOptional({ description: 'Operating system' })
+  /**
+   * Betriebssystem
+   * @example "Windows 10"
+   */
+  @ApiPropertyOptional({
+    description: 'Betriebssystem',
+    example: 'Windows 10',
+  })
   @IsOptional()
   @IsString()
   os?: string;
 
-  @ApiProperty({ description: 'Whether the attempt is flagged as suspicious' })
+  /**
+   * Markierung für verdächtigen Login-Versuch
+   * @example true
+   */
+  @ApiProperty({
+    description: 'Markierung für verdächtigen Login-Versuch',
+    example: true,
+  })
   @IsBoolean()
   suspicious: boolean;
 
-  @ApiProperty({ description: 'Risk score (0-100)' })
+  /**
+   * Risiko-Score (0-100, höher = riskanter)
+   * @example 75
+   */
+  @ApiProperty({
+    description: 'Risiko-Score (0-100, höher = riskanter)',
+    example: 75,
+  })
   @IsNumber()
   riskScore: number;
 }
 
 /**
- * DTO für Login-Versuch-Statistiken
+ * Data Transfer Object für Login-Versuch-Statistiken
  *
  * Aggregierte Statistiken über Login-Versuche für einen bestimmten Zeitraum.
  * Wird für Dashboard-Anzeigen und Sicherheitsberichte verwendet.
+ *
+ * @class LoginAttemptStatsDto
  */
 export class LoginAttemptStatsDto {
-  @ApiProperty({ description: 'Total number of login attempts' })
+  /**
+   * Gesamtzahl aller Login-Versuche im Zeitraum
+   * @example 1543
+   */
+  @ApiProperty({
+    description: 'Gesamtzahl aller Login-Versuche im Zeitraum',
+    example: 1543,
+  })
   totalAttempts: number;
 
-  @ApiProperty({ description: 'Number of successful attempts' })
+  /**
+   * Anzahl erfolgreicher Login-Versuche
+   * @example 1200
+   */
+  @ApiProperty({
+    description: 'Anzahl erfolgreicher Login-Versuche',
+    example: 1200,
+  })
   successfulAttempts: number;
 
-  @ApiProperty({ description: 'Number of failed attempts' })
+  /**
+   * Anzahl fehlgeschlagener Login-Versuche
+   * @example 343
+   */
+  @ApiProperty({
+    description: 'Anzahl fehlgeschlagener Login-Versuche',
+    example: 343,
+  })
   failedAttempts: number;
 
-  @ApiProperty({ description: 'Number of unique IPs' })
+  /**
+   * Anzahl eindeutiger IP-Adressen
+   * @example 245
+   */
+  @ApiProperty({
+    description: 'Anzahl eindeutiger IP-Adressen',
+    example: 245,
+  })
   uniqueIps: number;
 
-  @ApiProperty({ description: 'Number of suspicious attempts' })
+  /**
+   * Anzahl verdächtiger Login-Versuche
+   * @example 12
+   */
+  @ApiProperty({
+    description: 'Anzahl verdächtiger Login-Versuche',
+    example: 12,
+  })
   suspiciousAttempts: number;
 
-  @ApiProperty({ description: 'Average risk score' })
+  /**
+   * Durchschnittlicher Risiko-Score aller Versuche
+   * @example 25.5
+   */
+  @ApiProperty({
+    description: 'Durchschnittlicher Risiko-Score aller Versuche',
+    example: 25.5,
+  })
   averageRiskScore: number;
 
-  @ApiProperty({ description: 'Time period start' })
+  /**
+   * Beginn des Auswertungszeitraums
+   * @example "2024-01-01T00:00:00Z"
+   */
+  @ApiProperty({
+    description: 'Beginn des Auswertungszeitraums',
+    example: '2024-01-01T00:00:00Z',
+  })
   periodStart: Date;
 
-  @ApiProperty({ description: 'Time period end' })
+  /**
+   * Ende des Auswertungszeitraums
+   * @example "2024-01-31T23:59:59Z"
+   */
+  @ApiProperty({
+    description: 'Ende des Auswertungszeitraums',
+    example: '2024-01-31T23:59:59Z',
+  })
   periodEnd: Date;
 }
 
 /**
- * DTO für die Erstellung eines neuen Login-Versuch-Eintrags
+ * Data Transfer Object für die Erstellung eines neuen Login-Versuch-Eintrags
  *
  * Wird verwendet, um neue Login-Versuche im System zu erfassen.
  * Enthält alle notwendigen Informationen für die Sicherheitsanalyse.
+ *
+ * @class CreateLoginAttemptDto
  */
 export class CreateLoginAttemptDto {
-  @ApiPropertyOptional({ description: 'User ID if the user exists' })
+  /**
+   * Benutzer-ID (falls der Benutzer existiert)
+   * @example "user_123456"
+   */
+  @ApiPropertyOptional({
+    description: 'Benutzer-ID (falls der Benutzer existiert)',
+    example: 'user_123456',
+  })
   @IsOptional()
   @IsString()
   userId?: string;
 
-  @ApiProperty({ description: 'Email used in the login attempt' })
+  /**
+   * E-Mail-Adresse, die beim Login-Versuch verwendet wurde
+   * @example "user@example.com"
+   */
+  @ApiProperty({
+    description: 'E-Mail-Adresse, die beim Login-Versuch verwendet wurde',
+    example: 'user@example.com',
+  })
   @IsString()
   email: string;
 
-  @ApiProperty({ description: 'IP address of the attempt' })
+  /**
+   * IP-Adresse, von der der Versuch ausging
+   * @example "192.168.1.100"
+   */
+  @ApiProperty({
+    description: 'IP-Adresse, von der der Versuch ausging',
+    example: '192.168.1.100',
+  })
   @IsString()
   ipAddress: string;
 
-  @ApiPropertyOptional({ description: 'User agent string' })
+  /**
+   * User-Agent-String des Browsers/Clients
+   * @example "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"
+   */
+  @ApiPropertyOptional({
+    description: 'User-Agent-String des Browsers/Clients',
+    example: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
+  })
   @IsOptional()
   @IsString()
   userAgent?: string;
 
-  @ApiProperty({ description: 'Whether the login attempt was successful' })
+  /**
+   * Erfolg des Login-Versuchs
+   * @example true
+   */
+  @ApiProperty({
+    description: 'Erfolg des Login-Versuchs',
+    example: true,
+  })
   @IsBoolean()
   success: boolean;
 
-  @ApiPropertyOptional({ description: 'Reason for failure' })
+  /**
+   * Grund für gescheiterten Login-Versuch
+   * @example "invalid_credentials"
+   */
+  @ApiPropertyOptional({
+    description: 'Grund für gescheiterten Login-Versuch',
+    example: 'invalid_credentials',
+  })
   @IsOptional()
   @IsString()
   failureReason?: string;
 
-  @ApiPropertyOptional({ description: 'Additional metadata' })
+  /**
+   * Zusätzliche Metadaten zum Login-Versuch
+   * @example { "loginMethod": "password", "attemptNumber": 3 }
+   */
+  @ApiPropertyOptional({
+    description: 'Zusätzliche Metadaten zum Login-Versuch',
+    example: { loginMethod: 'password', attemptNumber: 3 },
+  })
   @IsOptional()
   metadata?: Record<string, any>;
 }
