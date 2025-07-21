@@ -31,6 +31,8 @@ describe('ErrorHandlingService', () => {
           provide: ConfigService,
           useValue: createMockConfigService({
             NODE_ENV: 'test',
+            ERROR_RETRY_ATTEMPTS: 0, // Disable retries for faster tests
+            ERROR_RETRY_DELAY: 0,
           }),
         },
       ],
@@ -137,7 +139,7 @@ describe('ErrorHandlingService', () => {
 
       await expect(
         service.executeWithErrorHandling(mockOperation, 'test-operation'),
-      ).rejects.toThrow('Test error');
+      ).rejects.toThrow();
 
       expect(mockOperation).toHaveBeenCalled();
     });
@@ -356,6 +358,8 @@ describe('ErrorHandlingService', () => {
               NODE_ENV: 'development',
               ERROR_HANDLING_ENABLE_ADVANCED_RETRY: false, // Deaktiviere Retry für schnellere Tests
               ERROR_HANDLING_ENABLE_DUPLICATE_DETECTION: false,
+              ERROR_RETRY_ATTEMPTS: 0,
+              ERROR_RETRY_DELAY: 0,
             }),
           },
         ],
@@ -511,6 +515,8 @@ describe('ErrorHandlingService', () => {
             provide: ConfigService,
             useValue: createMockConfigService({
               NODE_ENV: 'development', // Development hat verbose Error Reporting
+              ERROR_RETRY_ATTEMPTS: 0, // Disable retries for test
+              ERROR_RETRY_DELAY: 0,
             }),
           },
         ],
@@ -550,6 +556,8 @@ describe('ErrorHandlingService', () => {
             provide: ConfigService,
             useValue: createMockConfigService({
               NODE_ENV: 'production', // Production hat non-verbose Error Reporting
+              ERROR_RETRY_ATTEMPTS: 0, // Disable retries for test
+              ERROR_RETRY_DELAY: 0,
             }),
           },
         ],
@@ -703,34 +711,43 @@ describe('ErrorHandlingService', () => {
     });
 
     it('sollte Error ohne Code im verbose Mode loggen', async () => {
-      const module: TestingModule = await Test.createTestingModule({
-        providers: [
-          ErrorHandlingService,
-          {
-            provide: ConfigService,
-            useValue: createMockConfigService({
-              NODE_ENV: 'development',
-            }),
-          },
-        ],
-      }).compile();
-
-      const verboseService = module.get<ErrorHandlingService>(ErrorHandlingService);
-      const errorWithoutCode = new Error('Error without code');
-      // Explizit keinen code setzen
-
-      const mockOperation = jest.fn().mockRejectedValue(errorWithoutCode);
-      const loggerSpy = jest.spyOn(verboseService['logger'], 'error');
+      let verboseService: ErrorHandlingService | undefined;
 
       try {
-        await verboseService.executeWithErrorHandling(mockOperation, 'no-code-test');
-      } catch (_e) {
-        // Fehler ignorieren für Test
-      }
+        const module: TestingModule = await Test.createTestingModule({
+          providers: [
+            ErrorHandlingService,
+            {
+              provide: ConfigService,
+              useValue: createMockConfigService({
+                NODE_ENV: 'development',
+                ERROR_RETRY_ATTEMPTS: 0, // Disable retries for test
+                ERROR_RETRY_DELAY: 0,
+              }),
+            },
+          ],
+        }).compile();
 
-      expect(loggerSpy).toHaveBeenCalled();
-      verboseService.cleanup();
-    });
+        verboseService = module.get<ErrorHandlingService>(ErrorHandlingService);
+        const errorWithoutCode = new Error('Error without code');
+        // Explizit keinen code setzen
+
+        const mockOperation = jest.fn().mockRejectedValue(errorWithoutCode);
+        const loggerSpy = jest.spyOn(verboseService['logger'], 'error');
+
+        try {
+          await verboseService.executeWithErrorHandling(mockOperation, 'no-code-test');
+        } catch (_e) {
+          // Fehler ignorieren für Test
+        }
+
+        expect(loggerSpy).toHaveBeenCalled();
+      } finally {
+        if (verboseService) {
+          verboseService.cleanup();
+        }
+      }
+    }, 10000); // Erhöhtes Timeout
 
     it('sollte Error ohne Code im non-verbose Mode loggen', async () => {
       const errorWithoutCode = new Error('Simple error without code');

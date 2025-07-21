@@ -1,4 +1,4 @@
-import { SecurityEventType } from '../enums/security-event-type.enum';
+import { SecurityEventType } from '../constants/auth.constants';
 import { ThreatSeverity, RuleStatus, ConditionType } from '@prisma/generated/prisma/enums';
 
 /**
@@ -65,6 +65,12 @@ export interface RuleContext {
    * @property {Record<string, any>} [metadata] - Ereignis-spezifische Daten
    */
   metadata?: Record<string, any>;
+
+  /**
+   * Session-ID des Benutzers
+   * @property {string} [sessionId] - Aktuelle Session-ID
+   */
+  sessionId?: string;
 
   /**
    * Historische Ereignisse für Musteranalyse
@@ -136,6 +142,24 @@ export interface RuleEvaluationResult {
    * @property {string[]} [suggestedActions] - Handlungsempfehlungen
    */
   suggestedActions?: string[];
+
+  /**
+   * ID der Regel, die das Ergebnis produziert hat
+   * @property {string} [ruleId] - Regel-ID
+   */
+  ruleId?: string;
+
+  /**
+   * Name der Regel, die das Ergebnis produziert hat
+   * @property {string} [ruleName] - Regelname
+   */
+  ruleName?: string;
+
+  /**
+   * Tags der Regel, die das Ergebnis produziert hat
+   * @property {string[]} [tags] - Regel-Tags
+   */
+  tags?: string[];
 }
 
 /**

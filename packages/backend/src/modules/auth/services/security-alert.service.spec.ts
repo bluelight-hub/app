@@ -5,6 +5,17 @@ import { SecurityAlertService, SecurityAlertType } from './security-alert.servic
 import { of, throwError } from 'rxjs';
 import { AxiosResponse } from 'axios';
 
+// Mock logger
+jest.mock('@/logger/consola.logger', () => ({
+  logger: {
+    info: jest.fn(),
+    error: jest.fn(),
+    warn: jest.fn(),
+    debug: jest.fn(),
+    log: jest.fn(),
+  },
+}));
+
 describe('SecurityAlertService', () => {
   let service: SecurityAlertService;
   let httpService: HttpService;
