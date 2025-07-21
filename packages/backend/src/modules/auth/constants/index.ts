@@ -1,5 +1,6 @@
 export * from './permissions.constants';
 export * from './auth.constants';
+export * from './default-threat-rules';
 
 /**
  * Version der Authentifizierungs-Module

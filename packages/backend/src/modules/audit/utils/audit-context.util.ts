@@ -4,16 +4,75 @@ import { nanoid } from 'nanoid';
 
 /**
  * Interface für Benutzer-Kontext aus dem Request
+ *
+ * Dieses Interface definiert die Struktur der Benutzerinformationen,
+ * die für Audit-Logs und Sicherheitsüberprüfungen benötigt werden.
+ *
+ * @interface UserContext
+ * @example
+ * ```typescript
+ * const userContext: UserContext = {
+ *   id: 'user-123',
+ *   email: 'user@example.com',
+ *   role: UserRole.USER,
+ *   sessionId: 'session-abc123'
+ * };
+ * ```
  */
 export interface UserContext {
+  /**
+   * Eindeutige Benutzer-ID
+   * @property {string} [id] - UUID oder andere eindeutige Kennung des Benutzers
+   */
   id?: string;
+
+  /**
+   * E-Mail-Adresse des Benutzers
+   * @property {string} [email] - Validierte E-Mail-Adresse
+   */
   email?: string;
+
+  /**
+   * Rolle des Benutzers im System
+   * @property {UserRole} [role] - Enum-Wert der Benutzerrolle (ADMIN, USER, etc.)
+   */
   role?: UserRole;
+
+  /**
+   * Session-ID des aktuellen Logins
+   * @property {string} [sessionId] - JWT Token ID (jti) oder Session-Cookie-ID
+   */
   sessionId?: string;
 }
 
 /**
  * Utility-Klasse für die Extraktion von Audit-relevanten Kontext-Informationen
+ *
+ * Diese Klasse stellt statische Methoden zur Verfügung, um aus HTTP-Requests
+ * alle für Audit-Logs relevanten Informationen zu extrahieren. Dies umfasst
+ * Benutzer-Kontext, Request-Details, IP-Adressen und Session-Informationen.
+ *
+ * Die Klasse unterstützt auch die Erstellung von Metadaten für spezielle
+ * Audit-Szenarien wie Bulk-Operationen und Systemkonfiguration-Änderungen.
+ *
+ * @class AuditContextUtil
+ * @example
+ * ```typescript
+ * // Request-Kontext extrahieren
+ * const context = AuditContextUtil.extractRequestContext(req);
+ * logger.info(context.ipAddress); // '192.168.1.1'
+ *
+ * // Benutzer-Kontext extrahieren
+ * const userContext = AuditContextUtil.extractUserContext(req);
+ * logger.info(userContext?.email); // 'user@example.com'
+ *
+ * // Sensible Daten sanitisieren
+ * const sanitized = AuditContextUtil.sanitizeSensitiveData({
+ *   email: 'user@example.com',
+ *   password: 'secret123'
+ * });
+ * logger.info(sanitized.password); // '[REDACTED]'
+ * ```
  */
 export class AuditContextUtil {
   /**

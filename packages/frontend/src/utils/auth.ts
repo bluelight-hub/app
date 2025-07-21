@@ -1,4 +1,5 @@
 import { message } from 'antd';
+import { logger } from '@/utils/logger.ts';
 
 /**
  * Zentrale Logout-Funktion
@@ -32,7 +33,7 @@ export const logout = async (clearEinsatz?: () => void): Promise<void> => {
     // Zur Login-Seite weiterleiten
     window.location.href = '/login';
   } catch (error) {
-    console.error('Logout error:', error);
+    logger.error('Logout error:', error);
     message.error('Fehler beim Ausloggen');
     throw error;
   }

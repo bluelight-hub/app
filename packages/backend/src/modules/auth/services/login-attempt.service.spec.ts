@@ -247,6 +247,101 @@ describe('LoginAttemptService', () => {
         'Suspicious activity',
       );
     });
+
+    it('should handle login attempt without user agent', async () => {
+      const createDto: CreateLoginAttemptDto = {
+        email: 'test@example.com',
+        ipAddress: '192.168.1.1',
+        userAgent: undefined,
+        success: false,
+        failureReason: 'Invalid password',
+      };
+
+      mockPrismaService.loginAttempt.findMany.mockResolvedValue([]);
+      mockPrismaService.loginAttempt.create.mockImplementation(async ({ data }) => {
+        return {
+          id: 'attempt-126',
+          userId: null,
+          email: data.email,
+          attemptAt: new Date(),
+          ipAddress: data.ipAddress,
+          userAgent: data.userAgent,
+          success: data.success,
+          failureReason: data.failureReason,
+          location: null,
+          deviceType: data.deviceType,
+          browser: data.browser,
+          os: data.os,
+          suspicious: data.suspicious,
+          riskScore: data.riskScore,
+          metadata: data.metadata,
+        } as LoginAttempt;
+      });
+
+      const result = await service.recordLoginAttempt(createDto);
+
+      expect(result.suspicious).toBe(true); // Bot detected (no user agent)
+      expect(result.riskScore).toBe(35); // 20 (failed) + 15 (no user agent)
+    });
+
+    it('should detect suspicious patterns in user agent', async () => {
+      const suspiciousUserAgents = [
+        'curl/7.64.1',
+        'wget/1.20.3',
+        'python-requests/2.25.1',
+        'Mozilla/5.0 (headless Chrome)',
+        'Mozilla/5.0 puppeteer/10.1.0',
+        'scrapy/2.5.0',
+      ];
+
+      for (const userAgent of suspiciousUserAgents) {
+        const createDto: CreateLoginAttemptDto = {
+          email: 'test@example.com',
+          ipAddress: '192.168.1.1',
+          userAgent,
+          success: false,
+          failureReason: 'Invalid password',
+        };
+
+        mockPrismaService.loginAttempt.findMany.mockResolvedValue([]);
+        mockPrismaService.loginAttempt.create.mockImplementation(async ({ data }) => {
+          return {
+            id: 'attempt-127',
+            userId: null,
+            email: data.email,
+            attemptAt: new Date(),
+            ipAddress: data.ipAddress,
+            userAgent: data.userAgent,
+            success: data.success,
+            failureReason: data.failureReason,
+            location: null,
+            deviceType: data.deviceType,
+            browser: data.browser,
+            os: data.os,
+            suspicious: data.suspicious,
+            riskScore: data.riskScore,
+            metadata: data.metadata,
+          } as LoginAttempt;
+        });
+
+        const result = await service.recordLoginAttempt(createDto);
+        expect(result.riskScore).toBeGreaterThanOrEqual(40); // 20 (failed) + 20 (suspicious pattern)
+      }
+    });
+
+    it('should handle error when recording login attempt', async () => {
+      const createDto: CreateLoginAttemptDto = {
+        email: 'test@example.com',
+        ipAddress: '192.168.1.1',
+        userAgent: 'Mozilla/5.0',
+        success: true,
+      };
+
+      const error = new Error('Database error');
+      mockPrismaService.loginAttempt.create.mockRejectedValue(error);
+
+      await expect(service.recordLoginAttempt(createDto)).rejects.toThrow('Database error');
+    });
   });
 
   describe('checkAndUpdateLockout', () => {
@@ -295,6 +390,25 @@ describe('LoginAttemptService', () => {
       expect(result.isLocked).toBe(false);
       expect(result.lockedUntil).toBeUndefined();
       expect(mockPrismaService.user.update).not.toHaveBeenCalled();
+    });
+
+    it('should handle lockout when user does not exist in database', async () => {
+      const email = 'nonexistent@example.com';
+
+      mockPrismaService.loginAttempt.count.mockResolvedValue(5); // Max attempts reached
+      mockPrismaService.user.findUnique.mockResolvedValue(null); // User not found
+
+      const result = await service.checkAndUpdateLockout(email);
+
+      expect(result.isLocked).toBe(true);
+      expect(result.lockedUntil).toBeInstanceOf(Date);
+      expect(mockPrismaService.user.update).not.toHaveBeenCalled(); // No update since user doesn't exist
+      expect(mockSecurityAlertService.sendAccountLockedAlert).toHaveBeenCalledWith(
+        email,
+        null,
+        expect.any(Date),
+        5,
+      );
     });
   });
 
@@ -383,6 +497,42 @@ describe('LoginAttemptService', () => {
 
       expect(result).toBe(false);
     });
+
+    it('should handle various IPv6 local addresses', async () => {
+      const ipv6LocalAddresses = [
+        'fe80::1', // Link-local
+        'fd00::1', // Unique local
+        'fdc0::1', // Unique local
+        'fd9a:1234:5678::1', // Unique local
+      ];
+
+      for (const ipAddress of ipv6LocalAddresses) {
+        const result = await service.checkIpRateLimit(ipAddress);
+        expect(result).toBe(false);
+      }
+
+      expect(mockPrismaService.loginAttempt.count).not.toHaveBeenCalled();
+    });
+
+    it('should handle private network class B addresses', async () => {
+      const classBAddresses = ['172.16.0.1', '172.20.1.1', '172.31.255.254'];
+
+      for (const ipAddress of classBAddresses) {
+        const result = await service.checkIpRateLimit(ipAddress);
+        expect(result).toBe(false);
+      }
+
+      expect(mockPrismaService.loginAttempt.count).not.toHaveBeenCalled();
+    });
+
+    it('should handle empty or undefined IP address', async () => {
+      const result1 = await service.checkIpRateLimit('');
+      const result2 = await service.checkIpRateLimit(undefined as any);
+
+      expect(result1).toBe(false);
+      expect(result2).toBe(false);
+      expect(mockPrismaService.loginAttempt.count).not.toHaveBeenCalled();
+    });
   });
 
   describe('getLoginStats', () => {
@@ -417,6 +567,26 @@ describe('LoginAttemptService', () => {
         periodStart: startDate,
         periodEnd: endDate,
       });
+    });
+
+    it('should handle null average risk score', async () => {
+      const startDate = new Date('2024-01-01');
+      const endDate = new Date('2024-01-31');
+
+      mockPrismaService.loginAttempt.count
+        .mockResolvedValueOnce(0) // total
+        .mockResolvedValueOnce(0) // successful
+        .mockResolvedValueOnce(0); // suspicious
+
+      mockPrismaService.loginAttempt.groupBy.mockResolvedValue([]);
+
+      mockPrismaService.loginAttempt.aggregate.mockResolvedValue({
+        _avg: { riskScore: null },
+      });
+
+      const result = await service.getLoginStats(startDate, endDate);
+
+      expect(result.averageRiskScore).toBe(0);
     });
   });
 

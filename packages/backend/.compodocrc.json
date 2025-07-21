@@ -1,0 +1,6 @@
+{
+  "theme": "gitbook",
+  "tsconfig": "tsconfig.compodoc.json",
+  "hideGenerator": true,
+  "disablePrivate": true
+}

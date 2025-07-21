@@ -14,15 +14,46 @@ import { NOTIFICATION_QUEUE } from '../constants/notification.constants';
 import { PrismaService } from '@/prisma/prisma.service';
 import { NotificationStatus } from '../../../../prisma/generated/prisma/enums';
 
+/**
+ * Prozessor für die asynchrone Verarbeitung von Benachrichtigungen
+ *
+ * Verarbeitet Benachrichtigungen aus der Bull-Queue und aktualisiert
+ * den Status in der Datenbank während des gesamten Lebenszyklus
+ *
+ * @class NotificationProcessor
+ */
 @Processor(NOTIFICATION_QUEUE)
 export class NotificationProcessor {
   private readonly logger = new Logger(NotificationProcessor.name);
 
+  /**
+   * Erstellt eine neue NotificationProcessor-Instanz
+   *
+   * @param notificationService Service für den Benachrichtigungsversand
+   * @param prismaService Service für Datenbankzugriffe
+   */
   constructor(
     private readonly notificationService: NotificationService,
     private readonly prismaService: PrismaService,
   ) {}
 
+  /**
+   * Verarbeitet einen Benachrichtigungs-Job aus der Queue
+   *
+   * @param job Der zu verarbeitende Job mit Benachrichtigungsdaten
+   * @throws Error wenn der Benachrichtigungsversand fehlschlägt
+   * @example
+   * ```typescript
+   * // Job wird automatisch von Bull Queue aufgerufen
+   * await processor.process({
+   *   data: {
+   *     recipient: { email: 'user@example.com' },
+   *     subject: 'Neue Nachricht',
+   *     data: { message: 'Hallo Welt' }
+   *   }
+   * });
+   * ```
+   */
   @Process()
   async process(job: Job<NotificationPayload>): Promise<void> {
     const { data } = job;
@@ -70,6 +101,11 @@ export class NotificationProcessor {
     }
   }
 
+  /**
+   * Wird aufgerufen, wenn ein Job aktiv verarbeitet wird
+   *
+   * @param job Der aktive Job
+   */
   @OnQueueActive()
   onActive(job: Job<NotificationPayload>): void {
     this.logger.log(
@@ -77,11 +113,22 @@ export class NotificationProcessor {
     );
   }
 
+  /**
+   * Wird aufgerufen, wenn ein Job erfolgreich abgeschlossen wurde
+   *
+   * @param job Der abgeschlossene Job
+   */
   @OnQueueCompleted()
   onCompleted(job: Job<NotificationPayload>): void {
     this.logger.log(`Notification job ${job.id} completed successfully`);
   }
 
+  /**
+   * Wird aufgerufen, wenn ein Job fehlgeschlagen ist
+   *
+   * @param job Der fehlgeschlagene Job
+   * @param error Der aufgetretene Fehler
+   */
   @OnQueueFailed()
   async onFailed(job: Job<NotificationPayload>, error: Error): Promise<void> {
     this.logger.error(`Notification job ${job.id} failed: ${error.message}`);
@@ -105,6 +152,11 @@ export class NotificationProcessor {
     }
   }
 
+  /**
+   * Wird aufgerufen, wenn ein Job blockiert ist
+   *
+   * @param job Der blockierte Job
+   */
   @OnQueueStalled()
   onStalled(job: Job<NotificationPayload>): void {
     this.logger.warn(`Notification job ${job.id} stalled`);

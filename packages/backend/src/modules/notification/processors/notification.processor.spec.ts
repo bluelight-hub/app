@@ -193,6 +193,25 @@ describe('NotificationProcessor', () => {
       });
     });
 
+    it('should handle notification without metadata on failure', async () => {
+      const jobWithoutMetadata = {
+        ...mockJob,
+        data: {
+          ...mockJob.data,
+          metadata: undefined,
+        },
+        attemptsMade: 3,
+        opts: {
+          attempts: 3,
+        },
+      };
+      const error = new Error('Final failure');
+
+      await processor.onFailed(jobWithoutMetadata as Job<NotificationPayload>, error);
+
+      expect(prismaService.notificationLog.update).not.toHaveBeenCalled();
+    });
+
     it('should handle database update errors gracefully', async () => {
       const failedJob = {
         ...mockJob,

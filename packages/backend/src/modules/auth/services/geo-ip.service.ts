@@ -2,22 +2,61 @@ import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 
 /**
- * Service zur Geolokalisierung von IP-Adressen.
- * Bietet Informationen über den geografischen Standort einer IP-Adresse.
+ * Service zur Geolokalisierung von IP-Adressen
  *
- * TODO: Integration mit einem GeoIP-Provider (z.B. MaxMind, IPStack, ipapi)
+ * Bietet Funktionen zur Ermittlung geografischer Informationen
+ * basierend auf IP-Adressen. Unterstützt die Erkennung von
+ * VPNs, Proxies und die Berechnung von Distanzen zwischen
+ * geografischen Punkten.
+ *
+ * @class GeoIpService
+ * @todo Integration mit einem GeoIP-Provider (z.B. MaxMind, IPStack, ipapi)
+ *
+ * @example
+ * ```typescript
+ * const location = await geoIpService.getLocationInfo('8.8.8.8');
+ * if (location) {
+ *   logger.info(`IP ist in ${location.city}, ${location.country}`);
+ * }
+ * ```
  */
 @Injectable()
 export class GeoIpService {
   private readonly logger = new Logger(GeoIpService.name);
+
+  /**
+   * Gibt an, ob der GeoIP-Service aktiviert ist
+   * @private
+   * @property {boolean} isEnabled
+   */
   private readonly isEnabled: boolean;
 
+  /**
+   * Konstruktor des GeoIpService
+   *
+   * @param {ConfigService} configService - NestJS ConfigService
+   */
   constructor(private configService: ConfigService) {
     this.isEnabled = this.configService.get<string>('GEOIP_ENABLED', 'false') === 'true';
   }
 
   /**
    * Ermittelt die geografischen Informationen zu einer IP-Adresse
+   *
+   * Gibt Informationen wie Land, Stadt, Zeitzone und VPN/Proxy-Status
+   * zurück. Private/lokale IPs werden speziell behandelt.
+   *
+   * @param {string} ipAddress - Die zu analysierende IP-Adresse
+   * @returns {Promise<GeoIpInfo | null>} Geografische Informationen oder null
+   *
+   * @example
+   * ```typescript
+   * const info = await geoIpService.getLocationInfo('192.168.1.1');
+   * // Returns: { ip: '192.168.1.1', country: 'Local', city: 'Local', ... }
+   *
+   * const info = await geoIpService.getLocationInfo('8.8.8.8');
+   * // Returns: { ip: '8.8.8.8', country: 'United States', city: 'Mountain View', ... }
+   * ```
    */
   async getLocationInfo(ipAddress: string): Promise<GeoIpInfo | null> {
     if (!this.isEnabled) {
@@ -55,6 +94,25 @@ export class GeoIpService {
 
   /**
    * Berechnet die Distanz zwischen zwei geografischen Punkten
+   *
+   * Verwendet die Haversine-Formel zur Berechnung der Großkreisentfernung
+   * zwischen zwei Punkten auf der Erdoberfläche.
+   *
+   * @param {number} lat1 - Breitengrad des ersten Punkts
+   * @param {number} lon1 - Längengrad des ersten Punkts
+   * @param {number} lat2 - Breitengrad des zweiten Punkts
+   * @param {number} lon2 - Längengrad des zweiten Punkts
+   * @returns {number} Distanz in Kilometern (gerundet)
+   *
+   * @example
+   * ```typescript
+   * // Distanz zwischen Berlin und München
+   * const distance = geoIpService.calculateDistance(
+   *   52.520008, 13.404954,  // Berlin
+   *   48.135125, 11.581981   // München
+   * );
+   * logger.info(`Distanz: ${distance} km`); // ~504 km
+   * ```
    */
   calculateDistance(lat1: number, lon1: number, lat2: number, lon2: number): number {
     const R = 6371; // Radius der Erde in km
@@ -76,6 +134,21 @@ export class GeoIpService {
 
   /**
    * Prüft ob eine IP-Adresse privat/lokal ist
+   *
+   * Erkennt private IPv4 und IPv6 Adressbereiche gemäß RFC 1918
+   * und RFC 4193.
+   *
+   * @private
+   * @param {string} ip - Zu prüfende IP-Adresse
+   * @returns {boolean} true wenn IP privat/lokal ist
+   *
+   * @example
+   * ```typescript
+   * this.isPrivateIp('192.168.1.1'); // true
+   * this.isPrivateIp('10.0.0.1');    // true
+   * this.isPrivateIp('8.8.8.8');     // false
+   * this.isPrivateIp('::1');         // true (IPv6 loopback)
+   * ```
    */
   private isPrivateIp(ip: string): boolean {
     const privateRanges = [
@@ -91,22 +164,124 @@ export class GeoIpService {
     return privateRanges.some((range) => range.test(ip));
   }
 
+  /**
+   * Konvertiert Grad in Radiant
+   *
+   * Hilfsfunktion für geografische Berechnungen.
+   *
+   * @private
+   * @param {number} deg - Wert in Grad
+   * @returns {number} Wert in Radiant
+   */
   private deg2rad(deg: number): number {
     return deg * (Math.PI / 180);
   }
 }
 
+/**
+ * Informationen über den geografischen Standort einer IP-Adresse
+ *
+ * Enthält alle relevanten geografischen und Netzwerk-Informationen
+ * zu einer IP-Adresse.
+ *
+ * @interface GeoIpInfo
+ *
+ * @example
+ * ```typescript
+ * const geoInfo: GeoIpInfo = {
+ *   ip: '8.8.8.8',
+ *   country: 'United States',
+ *   countryCode: 'US',
+ *   city: 'Mountain View',
+ *   region: 'California',
+ *   latitude: 37.4056,
+ *   longitude: -122.0775,
+ *   timezone: 'America/Los_Angeles',
+ *   isVpn: false,
+ *   isProxy: false,
+ *   isTor: false,
+ *   org: 'Google LLC'
+ * };
+ * ```
+ */
 export interface GeoIpInfo {
+  /**
+   * Die analysierte IP-Adresse
+   * @property {string} ip
+   */
   ip: string;
+
+  /**
+   * Name des Landes
+   * @property {string} country
+   * @example "Germany"
+   */
   country: string;
+
+  /**
+   * ISO-Ländercode (2 Zeichen)
+   * @property {string} [countryCode]
+   * @example "DE"
+   */
   countryCode?: string;
+
+  /**
+   * Name der Stadt
+   * @property {string} city
+   * @example "Berlin"
+   */
   city: string;
+
+  /**
+   * Region/Bundesland
+   * @property {string} region
+   * @example "Brandenburg"
+   */
   region: string;
+
+  /**
+   * Geografische Breite
+   * @property {number} [latitude]
+   * @example 52.520008
+   */
   latitude?: number;
+
+  /**
+   * Geografische Länge
+   * @property {number} [longitude]
+   * @example 13.404954
+   */
   longitude?: number;
+
+  /**
+   * Zeitzone des Standorts
+   * @property {string} timezone
+   * @example "Europe/Berlin"
+   */
   timezone: string;
+
+  /**
+   * Indikator ob die IP von einem VPN stammt
+   * @property {boolean} isVpn
+   */
   isVpn: boolean;
+
+  /**
+   * Indikator ob die IP von einem Proxy stammt
+   * @property {boolean} isProxy
+   */
   isProxy: boolean;
+
+  /**
+   * Indikator ob die IP vom Tor-Netzwerk stammt
+   * @property {boolean} [isTor]
+   */
   isTor?: boolean;
-  org?: string; // Organization/ISP
+
+  /**
+   * Organisation/Internet Service Provider
+   * @property {string} [org]
+   * @example "Deutsche Telekom AG"
+   */
+  org?: string;
 }

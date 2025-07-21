@@ -10,24 +10,204 @@ import { ConfigService } from '@nestjs/config';
 
 /**
  * Interface für vereinfachte Audit-Log-Erstellung
+ *
+ * Definiert die Struktur für Audit-Log-Eingaben mit allen notwendigen
+ * und optionalen Feldern zur Protokollierung von Systemaktionen.
+ * Wird verwendet, um Audit-Logs über den AuditLoggerUtil zu erstellen.
+ *
+ * @interface AuditLogInput
  */
 export interface AuditLogInput {
+  /**
+   * Spezifische Bezeichnung der durchgeführten Aktion
+   *
+   * Beschreibt die konkrete Aktion, die protokolliert wird
+   * Sollte präzise und konsistent benannt sein für bessere Suchbarkeit
+   *
+   * @example "create-user", "update-settings", "delete-record"
+   * @type {string}
+   * @required
+   */
   action: string;
+
+  /**
+   * Art der betroffenen Ressource
+   *
+   * Kategorie oder Typ der Ressource, auf die sich die Aktion bezieht
+   * Wird für Filterung und Kategorisierung von Audit-Logs verwendet
+   *
+   * @example "user", "organization", "settings"
+   * @type {string}
+   * @required
+   */
   resource: string;
+
+  /**
+   * Eindeutige ID der betroffenen Ressource
+   *
+   * Identifiziert die spezifische Instanz der Ressource
+   * Ermöglicht die Nachverfolgung von Änderungen an einzelnen Objekten
+   *
+   * @example "user_123", "org_456"
+   * @type {string}
+   */
   resourceId?: string;
+
+  /**
+   * Kategorie der Aktion gemäß Audit-Standards
+   *
+   * Standardisierte Klassifizierung der Aktion nach Audit-Richtlinien
+   * Wichtig für Compliance-Berichte und Sicherheitsanalysen
+   *
+   * @type {AuditActionType}
+   * @required
+   */
   actionType: AuditActionType;
+
+  /**
+   * Schweregrad der Aktion für Sicherheits- und Compliance-Bewertung
+   *
+   * Bestimmt die Wichtigkeit und Kritikalität der protokollierten Aktion
+   * Beeinflusst Alarmierungen und Priorisierung bei der Analyse
+   *
+   * @default AuditSeverity.MEDIUM
+   * @type {AuditSeverity}
+   */
   severity?: AuditSeverity;
+
+  /**
+   * Vorherige Werte vor der Änderung (für Updates/Deletes)
+   *
+   * Speichert den Zustand der Ressource vor der Änderung
+   * Sensible Daten werden automatisch maskiert
+   * Wichtig für Audit-Trails und Nachvollziehbarkeit von Änderungen
+   *
+   * @type {Record<string, any>}
+   */
   oldValues?: Record<string, any>;
+
+  /**
+   * Neue Werte nach der Änderung (für Creates/Updates)
+   *
+   * Speichert den Zustand der Ressource nach der Änderung
+   * Sensible Daten werden automatisch maskiert
+   * Ermöglicht den Vergleich mit dem vorherigen Zustand
+   *
+   * @type {Record<string, any>}
+   */
   newValues?: Record<string, any>;
+
+  /**
+   * Liste der geänderten Felder
+   *
+   * Enthält die Namen aller Attribute, die durch die Aktion geändert wurden
+   * Ermöglicht eine schnelle Übersicht über den Umfang der Änderungen
+   *
+   * @example ["email", "role", "permissions"]
+   * @type {string[]}
+   */
   affectedFields?: string[];
+
+  /**
+   * Zusätzliche Kontextinformationen zur Aktion
+   *
+   * Beliebige zusätzliche Daten, die für das Verständnis der Aktion relevant sind
+   * Kann spezifische Details enthalten, die nicht in anderen Feldern abgebildet werden
+   *
+   * @type {Record<string, any>}
+   */
   metadata?: Record<string, any>;
+
+  /**
+   * Dauer der Operation in Millisekunden
+   *
+   * Misst die Ausführungszeit der protokollierten Aktion
+   * Wichtig für Performance-Analysen und Optimierungen
+   *
+   * @example 1250
+   * @type {number}
+   * @minimum 0
+   */
   duration?: number;
+
+  /**
+   * Gibt an, ob die Operation erfolgreich war
+   *
+   * Flag zur Kennzeichnung erfolgreicher oder fehlgeschlagener Operationen
+   * Ermöglicht die Filterung nach Erfolgs- oder Fehlerszenarien
+   *
+   * @default true
+   * @type {boolean}
+   */
   success?: boolean;
+
+  /**
+   * Fehlermeldung bei fehlgeschlagenen Operationen
+   *
+   * Detaillierte Beschreibung des Fehlers, wenn die Operation fehlgeschlagen ist
+   * Wird nur gesetzt, wenn success = false
+   *
+   * @example "Validation failed: Email already exists"
+   * @type {string}
+   */
   errorMessage?: string;
+
+  /**
+   * HTTP-Statuscode der Operation
+   *
+   * Standardisierter HTTP-Statuscode, der das Ergebnis der Operation angibt
+   * Nützlich für API-bezogene Audit-Logs und Fehleranalysen
+   *
+   * @example 200, 400, 500
+   * @type {number}
+   * @minimum 100
+   * @maximum 599
+   */
   statusCode?: number;
+
+  /**
+   * Markiert, ob sensible Daten betroffen sind
+   *
+   * Flag zur Kennzeichnung von Operationen mit sensiblen oder personenbezogenen Daten
+   * Wichtig für Datenschutz-Compliance und spezielle Behandlung sensibler Informationen
+   *
+   * @default false
+   * @type {boolean}
+   */
   sensitiveData?: boolean;
+
+  /**
+   * Gibt an, ob eine manuelle Überprüfung erforderlich ist
+   *
+   * Flag zur Kennzeichnung von Operationen, die eine zusätzliche Prüfung benötigen
+   * Wird für kritische Änderungen oder potentiell riskante Operationen gesetzt
+   *
+   * @default false
+   * @type {boolean}
+   */
   requiresReview?: boolean;
+
+  /**
+   * Compliance-Tags für regulatorische Anforderungen
+   *
+   * Liste von Compliance-Standards, die für diese Aktion relevant sind
+   * Ermöglicht die Filterung und Berichterstattung nach regulatorischen Anforderungen
+   *
+   * @example ["GDPR", "HIPAA", "SOX"]
+   * @type {string[]}
+   */
   compliance?: string[];
+
+  /**
+   * Aufbewahrungsdauer in Tagen
+   *
+   * Bestimmt, wie lange der Audit-Log-Eintrag aufbewahrt werden soll
+   * Wichtig für Compliance-Anforderungen und Datenaufbewahrungsrichtlinien
+   *
+   * @example 365, 2555 (7 Jahre)
+   * @type {number}
+   * @minimum 1
+   */
   retentionPeriod?: number;
 }
 

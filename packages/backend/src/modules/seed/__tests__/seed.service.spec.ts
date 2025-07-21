@@ -7,10 +7,21 @@ import { EinsatzService } from '../../einsatz/einsatz.service';
 import { DatabaseCheckService } from '../database-check.service';
 import { SeedService } from '../seed.service';
 import * as bcrypt from 'bcrypt';
+import { RuleStatus } from '@prisma/generated/prisma/enums';
+import { getRulesForPreset } from '../../auth/constants';
 
 // Mock bcrypt
 jest.mock('bcrypt', () => ({
   hash: jest.fn().mockResolvedValue('$2b$10$mocked_hash'),
+}));
+
+// Mock auth constants
+jest.mock('../../auth/constants', () => ({
+  DefaultRolePermissions: {
+    USER: ['VIEW_EINSATZ'],
+    ADMIN: ['VIEW_EINSATZ', 'MANAGE_EINSATZ'],
+  },
+  getRulesForPreset: jest.fn(),
 }));
 
 describe('SeedService', () => {
@@ -551,6 +562,216 @@ describe('SeedService', () => {
       expect(Logger.prototype.warn).toHaveBeenCalledWith(
         'Benutzer wurden nicht erstellt (existieren bereits oder Fehler)',
       );
+    });
+  });
+
+  describe('seedThreatDetectionRules', () => {
+    beforeEach(() => {
+      // Setup mock for threatDetectionRule
+      (prismaService as any).threatDetectionRule = {
+        findUnique: jest.fn(),
+        create: jest.fn(),
+        update: jest.fn(),
+        deleteMany: jest.fn(),
+      };
+    });
+
+    const mockRules = [
+      {
+        id: 'rule-1',
+        name: 'Test Rule 1',
+        description: 'Test description 1',
+        version: '1.0.0',
+        status: RuleStatus.ACTIVE,
+        severity: 'HIGH',
+        conditionType: 'THRESHOLD',
+        config: { threshold: 5 },
+        tags: ['test'],
+      },
+      {
+        id: 'rule-2',
+        name: 'Test Rule 2',
+        description: 'Test description 2',
+        version: '1.0.0',
+        status: RuleStatus.ACTIVE,
+        severity: 'MEDIUM',
+        conditionType: 'PATTERN',
+        config: { patterns: ['test'] },
+        tags: ['test'],
+      },
+    ];
+
+    it('should import rules successfully', async () => {
+      (getRulesForPreset as jest.Mock).mockReturnValue(mockRules);
+      (prismaService as any).threatDetectionRule.findUnique.mockResolvedValue(null);
+      (prismaService as any).threatDetectionRule.create.mockImplementation((data) =>
+        Promise.resolve(data.data),
+      );
+
+      const result = await service.seedThreatDetectionRules({
+        preset: 'standard',
+        activate: true,
+        skipExisting: true,
+      });
+
+      expect(getRulesForPreset).toHaveBeenCalledWith('standard');
+      expect((prismaService as any).threatDetectionRule.create).toHaveBeenCalledTimes(2);
+      expect(result).toEqual({
+        imported: 2,
+        updated: 0,
+        skipped: 0,
+        errors: 0,
+        rules: expect.arrayContaining([
+          expect.objectContaining({ id: 'rule-1' }),
+          expect.objectContaining({ id: 'rule-2' }),
+        ]),
+      });
+    });
+
+    it('should handle dry run mode', async () => {
+      (getRulesForPreset as jest.Mock).mockReturnValue(mockRules);
+      (prismaService as any).threatDetectionRule.findUnique
+        .mockResolvedValueOnce({ id: 'rule-1' })
+        .mockResolvedValueOnce(null);
+
+      const result = await service.seedThreatDetectionRules({
+        preset: 'standard',
+        dryRun: true,
+        activate: true,
+        skipExisting: true,
+      });
+
+      expect((prismaService as any).threatDetectionRule.create).not.toHaveBeenCalled();
+      expect((prismaService as any).threatDetectionRule.update).not.toHaveBeenCalled();
+      expect((prismaService as any).threatDetectionRule.deleteMany).not.toHaveBeenCalled();
+      expect(result).toEqual({
+        wouldImport: 1,
+        wouldUpdate: 0,
+        wouldSkip: 1,
+        rules: expect.arrayContaining([
+          expect.objectContaining({ id: 'rule-1', wouldBe: 'skipped' }),
+          expect.objectContaining({ id: 'rule-2', wouldBe: 'imported' }),
+        ]),
+      });
+    });
+
+    it('should reset and import all rules when reset is true', async () => {
+      (getRulesForPreset as jest.Mock).mockReturnValue(mockRules);
+      (prismaService as any).threatDetectionRule.deleteMany.mockResolvedValue({ count: 5 });
+      (prismaService as any).threatDetectionRule.findUnique.mockResolvedValue(null);
+      (prismaService as any).threatDetectionRule.create.mockImplementation((data) =>
+        Promise.resolve(data.data),
+      );
+
+      const result = await service.seedThreatDetectionRules({
+        preset: 'standard',
+        reset: true,
+        activate: true,
+        skipExisting: true,
+      });
+
+      expect((prismaService as any).threatDetectionRule.deleteMany).toHaveBeenCalled();
+      expect((prismaService as any).threatDetectionRule.create).toHaveBeenCalledTimes(2);
+      expect(result).toEqual({
+        imported: 2,
+        updated: 0,
+        skipped: 0,
+        errors: 0,
+        rules: expect.arrayContaining([
+          expect.objectContaining({ id: 'rule-1' }),
+          expect.objectContaining({ id: 'rule-2' }),
+        ]),
+      });
+    });
+
+    it('should update existing rules when skipExisting is false', async () => {
+      (getRulesForPreset as jest.Mock).mockReturnValue(mockRules);
+      (prismaService as any).threatDetectionRule.findUnique
+        .mockResolvedValueOnce({ id: 'rule-1' })
+        .mockResolvedValueOnce(null);
+      (prismaService as any).threatDetectionRule.update.mockImplementation((data) =>
+        Promise.resolve(data.data),
+      );
+      (prismaService as any).threatDetectionRule.create.mockImplementation((data) =>
+        Promise.resolve(data.data),
+      );
+
+      const result = await service.seedThreatDetectionRules({
+        preset: 'standard',
+        activate: true,
+        skipExisting: false,
+      });
+
+      expect((prismaService as any).threatDetectionRule.update).toHaveBeenCalledTimes(1);
+      expect((prismaService as any).threatDetectionRule.create).toHaveBeenCalledTimes(1);
+      expect(result).toEqual({
+        imported: 1,
+        updated: 1,
+        skipped: 0,
+        errors: 0,
+        rules: expect.arrayContaining([
+          expect.objectContaining({ id: 'rule-1' }),
+          expect.objectContaining({ id: 'rule-2' }),
+        ]),
+      });
+    });
+
+    it('should handle errors during rule import', async () => {
+      (getRulesForPreset as jest.Mock).mockReturnValue(mockRules);
+      (prismaService as any).threatDetectionRule.findUnique.mockResolvedValue(null);
+      (prismaService as any).threatDetectionRule.create
+        .mockRejectedValueOnce(new Error('Create failed'))
+        .mockImplementation((data) => Promise.resolve(data.data));
+
+      const result = await service.seedThreatDetectionRules({
+        preset: 'standard',
+        activate: true,
+        skipExisting: true,
+      });
+
+      expect(result).toEqual({
+        imported: 1,
+        updated: 0,
+        skipped: 0,
+        errors: 1,
+        rules: [expect.objectContaining({ id: 'rule-2' })],
+      });
+      expect(Logger.prototype.error).toHaveBeenCalled();
+    });
+
+    it('should use inactive status when activate is false', async () => {
+      (getRulesForPreset as jest.Mock).mockReturnValue(mockRules);
+      (prismaService as any).threatDetectionRule.findUnique.mockResolvedValue(null);
+      (prismaService as any).threatDetectionRule.create.mockImplementation((data) =>
+        Promise.resolve(data.data),
+      );
+
+      await service.seedThreatDetectionRules({
+        preset: 'standard',
+        activate: false,
+        skipExisting: true,
+      });
+
+      expect((prismaService as any).threatDetectionRule.create).toHaveBeenCalledWith({
+        data: expect.objectContaining({
+          status: RuleStatus.INACTIVE,
+        }),
+      });
+    });
+
+    it('should handle general errors during seeding', async () => {
+      const error = new Error('General seeding error');
+      (getRulesForPreset as jest.Mock).mockImplementation(() => {
+        throw error;
+      });
+
+      await expect(
+        service.seedThreatDetectionRules({
+          preset: 'standard',
+          activate: true,
+          skipExisting: true,
+        }),
+      ).rejects.toThrow('General seeding error');
     });
   });
 

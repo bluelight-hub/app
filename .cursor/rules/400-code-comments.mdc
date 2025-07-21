@@ -130,7 +130,7 @@ class AuthenticationManager {
    * @example
    * const authResult = await authManager.login('user@example.com', 'password123');
    * if (authResult.success) {
-   *   console.log('Login successful:', authResult.token);
+   *   logger.log('Login successful:', authResult.token);
    * }
    */
   async login(username, password) {

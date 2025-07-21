@@ -9,25 +9,116 @@ import { SecurityEventType } from '../../enums/security-event-type.enum';
  * - Systematische Login-Versuche mit verschiedenen E-Mails
  * - Muster in Benutzernamen (sequenziell, ähnlich)
  * - Timing-Analyse-Angriffe
+ *
+ * @class AccountEnumerationRule
+ * @implements {PatternRule}
  */
 export class AccountEnumerationRule implements PatternRule {
+  /**
+   * Eindeutige Regel-ID
+   * @property {string} id - Eindeutige Identifikation der Regel
+   */
   id: string;
+
+  /**
+   * Name der Regel
+   * @property {string} name - Benutzerfreundlicher Name
+   */
   name: string;
+
+  /**
+   * Beschreibung der Regel
+   * @property {string} description - Detaillierte Beschreibung der Funktionalität
+   */
   description: string;
+
+  /**
+   * Version der Regel
+   * @property {string} version - Semantic Versioning für Regel-Updates
+   */
   version: string;
+
+  /**
+   * Status der Regel
+   * @property {RuleStatus} status - ACTIVE, INACTIVE oder DEPRECATED
+   */
   status: RuleStatus;
+
+  /**
+   * Standard-Schweregrad der Regel
+   * @property {ThreatSeverity} severity - Basis-Schweregrad für Treffer
+   */
   severity: ThreatSeverity;
+
+  /**
+   * Typ der Regel-Bedingung
+   * @property {ConditionType} conditionType - Klassifizierung des Regel-Typs
+   */
   conditionType: ConditionType;
+
+  /**
+   * Konfiguration für Account Enumeration Erkennung
+   * @property {object} config - Anpassbare Parameter der Regel
+   */
   config: {
+    /**
+     * Erkennungsmuster für Account Enumeration
+     * @property {string[]} patterns - Liste der zu erkennenden Angriffsmuster
+     */
     patterns: string[];
+
+    /**
+     * Art der Muster-Übereinstimmung
+     * @property {'any' | 'all'} matchType - 'any' = eines der Muster, 'all' = alle Muster
+     */
     matchType: 'any' | 'all';
+
+    /**
+     * Zeitfenster für die Analyse in Minuten
+     * @property {number} lookbackMinutes - Wie weit zurück Ereignisse analysiert werden
+     */
     lookbackMinutes: number;
+
+    /**
+     * Mindestanzahl Versuche für eine Warnung
+     * @property {number} minAttempts - Schwellenwert für verdächtige Aktivität
+     */
     minAttempts: number;
+
+    /**
+     * Schwellenwert für sequenzielle Benutzernamen
+     * @property {number} sequentialThreshold - Anzahl sequenzieller Muster für Alarm
+     */
     sequentialThreshold: number;
+
+    /**
+     * Schwellenwert für Benutzernamen-Ähnlichkeit
+     * @property {number} similarityThreshold - Ähnlichkeitswert 0-1 für verdächtige Muster
+     */
     similarityThreshold: number;
   };
+
+  /**
+   * Tags zur Kategorisierung der Regel
+   * @property {string[]} tags - Schlagwörter für Filterung und Gruppierung
+   */
   tags: string[];
 
+  /**
+   * Erstellt eine neue Account Enumeration Regel
+   *
+   * @param data Konfigurationsdaten für die Regel
+   * @example
+   * ```typescript
+   * const rule = new AccountEnumerationRule({
+   *   severity: ThreatSeverity.CRITICAL,
+   *   config: {
+   *     minAttempts: 10,
+   *     sequentialThreshold: 5
+   *   }
+   * });
+   * ```
+   */
   constructor(data: Partial<AccountEnumerationRule>) {
     this.id = data.id || 'account-enumeration-default';
     this.name = data.name || 'Account Enumeration Detection';
@@ -49,6 +140,22 @@ export class AccountEnumerationRule implements PatternRule {
     };
   }
 
+  /**
+   * Evaluiert den Kontext auf Account Enumeration Angriffe
+   *
+   * @param context Der Evaluierungskontext mit Ereignisdaten
+   * @returns Das Evaluierungsergebnis mit Übereinstimmungsstatus und Details
+   * @example
+   * ```typescript
+   * const result = await rule.evaluate({
+   *   ipAddress: '192.168.1.1',
+   *   recentEvents: failedLoginEvents
+   * });
+   * if (result.matched) {
+   *   logger.warn('Account enumeration detected:', result.reason);
+   * }
+   * ```
+   */
   async evaluate(context: RuleContext): Promise<RuleEvaluationResult> {
     if (!context.ipAddress || !context.recentEvents) {
       return { matched: false };
@@ -112,6 +219,19 @@ export class AccountEnumerationRule implements PatternRule {
     return { matched: false };
   }
 
+  /**
+   * Erkennt sequenzielle Muster in Benutzernamen
+   *
+   * @param usernames Array von Benutzernamen zur Analyse
+   * @returns Anzahl der gefundenen sequenziellen Muster
+   * @private
+   * @example
+   * ```typescript
+   * // Erkennt Muster wie: user1, user2, user3
+   * const count = this.detectSequentialPattern(['user1', 'user2', 'user3']);
+   * logger.info(count); // 2
+   * ```
+   */
   private detectSequentialPattern(usernames: string[]): number {
     let sequentialCount = 0;
     const numberPattern = /\d+/;
@@ -139,6 +259,13 @@ export class AccountEnumerationRule implements PatternRule {
     return sequentialCount;
   }
 
+  /**
+   * Berechnet die durchschnittliche Ähnlichkeit zwischen Benutzernamen
+   *
+   * @param usernames Array von Benutzernamen zur Analyse
+   * @returns Durchschnittlicher Ähnlichkeitswert zwischen 0 und 1
+   * @private
+   */
   private calculateSimilarityScore(usernames: string[]): number {
     if (usernames.length < 2) return 0;
 
@@ -155,6 +282,14 @@ export class AccountEnumerationRule implements PatternRule {
     return comparisons > 0 ? totalSimilarity / comparisons : 0;
   }
 
+  /**
+   * Berechnet die Ähnlichkeit zwischen zwei Strings basierend auf der Levenshtein-Distanz
+   *
+   * @param str1 Erster String
+   * @param str2 Zweiter String
+   * @returns Ähnlichkeitswert zwischen 0 (keine Ähnlichkeit) und 1 (identisch)
+   * @private
+   */
   private levenshteinSimilarity(str1: string, str2: string): number {
     const longer = str1.length > str2.length ? str1 : str2;
     const shorter = str1.length > str2.length ? str2 : str1;
@@ -165,6 +300,14 @@ export class AccountEnumerationRule implements PatternRule {
     return (longer.length - editDistance) / longer.length;
   }
 
+  /**
+   * Berechnet die Levenshtein-Distanz zwischen zwei Strings
+   *
+   * @param str1 Erster String
+   * @param str2 Zweiter String
+   * @returns Anzahl der benötigten Editieroperationen
+   * @private
+   */
   private levenshteinDistance(str1: string, str2: string): number {
     const matrix: number[][] = [];
 
@@ -193,6 +336,11 @@ export class AccountEnumerationRule implements PatternRule {
     return matrix[str2.length][str1.length];
   }
 
+  /**
+   * Validiert die Regelkonfiguration
+   *
+   * @returns true wenn die Konfiguration gültig ist, false sonst
+   */
   validate(): boolean {
     return (
       this.config.lookbackMinutes > 0 &&
@@ -203,6 +351,11 @@ export class AccountEnumerationRule implements PatternRule {
     );
   }
 
+  /**
+   * Gibt eine Beschreibung der Regel zurück
+   *
+   * @returns Beschreibung der Regel
+   */
   getDescription(): string {
     return `Detects account enumeration attempts through sequential or similar username patterns`;
   }

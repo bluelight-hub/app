@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Card, Form, Input, Switch, Button, Select, Tabs, message, Alert, Space, Divider } from 'antd';
 import { PiFloppyDisk, PiArrowClockwise, PiDatabase, PiShieldCheck, PiBell, PiEnvelope } from 'react-icons/pi';
+import { logger } from '@/utils/logger.ts';
 
 const { TabPane } = Tabs;
 const { Option } = Select;
@@ -13,7 +14,7 @@ const SystemPage: React.FC = () => {
     setLoading(true);
     try {
       // TODO: API-Call zum Speichern der Einstellungen
-      console.log('Saving settings:', values);
+      logger.log('Saving settings:', values);
       await new Promise((resolve) => setTimeout(resolve, 1000));
       message.success('Einstellungen wurden gespeichert');
     } catch (_error) {

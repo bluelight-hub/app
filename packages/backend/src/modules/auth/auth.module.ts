@@ -1,4 +1,4 @@
-import { Module, forwardRef } from '@nestjs/common';
+import { forwardRef, Module } from '@nestjs/common';
 import { JwtModule } from '@nestjs/jwt';
 import { PassportModule } from '@nestjs/passport';
 import { ConfigModule, ConfigService } from '@nestjs/config';
@@ -23,6 +23,8 @@ import { GeoIpService } from './services/geo-ip.service';
 import { IpAllowlistGuard } from './guards/ip-allowlist.guard';
 import { RuleEngineService } from './rules/rule-engine.service';
 import { RuleRepositoryService } from './rules/rule-repository.service';
+import { ThreatRuleFactory } from './rules/rule.factory';
+import { ThreatRulesService } from './services/threat-rules.service';
 import { SessionModule } from '../session/session.module';
 import { NotificationModule } from '../notification/notification.module';
 import { SecurityAlertServiceV2 } from './services/security-alert-v2.service';
@@ -70,6 +72,8 @@ import { SecurityAlertServiceV2 } from './services/security-alert-v2.service';
     IpAllowlistGuard,
     RuleEngineService,
     RuleRepositoryService,
+    ThreatRuleFactory,
+    ThreatRulesService,
   ],
   controllers: [AuthController, LoginAttemptController, SecurityController, ThreatRuleController],
   exports: [
@@ -84,6 +88,8 @@ import { SecurityAlertServiceV2 } from './services/security-alert-v2.service';
     GeoIpService,
     RuleEngineService,
     RuleRepositoryService,
+    ThreatRuleFactory,
+    ThreatRulesService,
   ],
 })
 export class AuthModule {}

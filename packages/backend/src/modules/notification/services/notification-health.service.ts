@@ -7,12 +7,36 @@ import {
   ChannelHealthStatus,
 } from '../interfaces/notification-channel.interface';
 
+/**
+ * Service zur Überwachung der Gesundheit von Benachrichtigungskanälen
+ *
+ * Überprüft regelmäßig die Verfügbarkeit und Funktionsfähigkeit aller
+ * konfigurierten Benachrichtigungskanäle (E-Mail, Webhook, etc.) und
+ * stellt aggregierte Gesundheitsinformationen bereit.
+ *
+ * @class NotificationHealthService
+ * @implements {OnModuleInit}
+ * @implements {OnModuleDestroy}
+ * @example
+ * ```typescript
+ * const health = await notificationHealthService.getHealthSummary();
+ * if (health.status === 'unhealthy') {
+ *   logger.warn('Notification channels need attention');
+ * }
+ * ```
+ */
 @Injectable()
 export class NotificationHealthService implements OnModuleInit, OnModuleDestroy {
   private readonly logger = new Logger(NotificationHealthService.name);
   private readonly channels: Map<string, NotificationChannel> = new Map();
   private healthCheckInterval: NodeJS.Timeout | null = null;
 
+  /**
+   * Erstellt eine neue NotificationHealthService-Instanz
+   *
+   * @param emailChannel Der E-Mail-Benachrichtigungskanal
+   * @param webhookChannel Der Webhook-Benachrichtigungskanal
+   */
   constructor(
     private readonly emailChannel: EmailChannel,
     private readonly webhookChannel: WebhookChannel,
@@ -21,6 +45,11 @@ export class NotificationHealthService implements OnModuleInit, OnModuleDestroy 
     this.channels.set(this.webhookChannel.name, this.webhookChannel);
   }
 
+  /**
+   * Initialisiert den Service beim Modulstart
+   *
+   * Startet die regelmäßigen Gesundheitsüberprüfungen im 5-Minuten-Intervall
+   */
   onModuleInit() {
     // Start scheduled health checks every 5 minutes
     this.healthCheckInterval = setInterval(
@@ -31,6 +60,11 @@ export class NotificationHealthService implements OnModuleInit, OnModuleDestroy 
     );
   }
 
+  /**
+   * Bereinigt Ressourcen beim Modul-Shutdown
+   *
+   * Stoppt die regelmäßigen Gesundheitsüberprüfungen
+   */
   onModuleDestroy() {
     if (this.healthCheckInterval) {
       clearInterval(this.healthCheckInterval);
@@ -38,7 +72,17 @@ export class NotificationHealthService implements OnModuleInit, OnModuleDestroy 
   }
 
   /**
-   * Check health of all notification channels
+   * Prüft die Gesundheit aller Benachrichtigungskanäle
+   *
+   * @returns Record mit Gesundheitsinformationen für jeden Kanal
+   * @example
+   * ```typescript
+   * const health = await service.checkHealth();
+   * // {
+   * //   email: { status: 'healthy', lastChecked: Date },
+   * //   webhook: { status: 'degraded', lastChecked: Date, error: '...' }
+   * // }
+   * ```
    */
   async checkHealth(): Promise<Record<string, ChannelHealthInfo>> {
     const healthStatus: Record<string, ChannelHealthInfo> = {};
@@ -64,7 +108,15 @@ export class NotificationHealthService implements OnModuleInit, OnModuleDestroy 
   }
 
   /**
-   * Get overall health summary
+   * Erstellt eine Gesamtübersicht des Systemzustands
+   *
+   * @returns Aggregierte Gesundheitsinformationen aller Kanäle
+   * @example
+   * ```typescript
+   * const summary = await service.getHealthSummary();
+   * logger.info(`Status: ${summary.status}`);
+   * logger.info(`Healthy channels: ${summary.summary.healthy}/${summary.summary.total}`);
+   * ```
    */
   async getHealthSummary(): Promise<{
     status: 'healthy' | 'degraded' | 'unhealthy';
@@ -116,7 +168,12 @@ export class NotificationHealthService implements OnModuleInit, OnModuleDestroy 
   }
 
   /**
-   * Perform scheduled health check
+   * Führt die geplante Gesundheitsüberprüfung durch
+   *
+   * Wird automatisch alle 5 Minuten ausgeführt und loggt Warnungen
+   * bei degradierten oder ungesunden Kanälen.
+   *
+   * @private
    */
   private async performScheduledHealthCheck(): Promise<void> {
     try {

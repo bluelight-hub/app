@@ -9,25 +9,115 @@ import { SecurityEventType } from '../../enums/security-event-type.enum';
  * - Viele verschiedene Benutzernamen von derselben IP
  * - Schnelle sequenzielle Login-Versuche
  * - Typische Bot-Muster
+ *
+ * @class CredentialStuffingRule
+ * @implements {PatternRule}
  */
 export class CredentialStuffingRule implements PatternRule {
+  /**
+   * Eindeutige Regel-ID
+   * @property {string} id - Eindeutige Identifikation der Regel im System
+   */
   id: string;
+
+  /**
+   * Name der Regel
+   * @property {string} name - Benutzerfreundlicher Name für die Regel
+   */
   name: string;
+
+  /**
+   * Beschreibung der Regel
+   * @property {string} description - Detaillierte Beschreibung der Regel-Funktionalität
+   */
   description: string;
+
+  /**
+   * Version der Regel
+   * @property {string} version - Semantic Versioning für Regel-Updates
+   */
   version: string;
+
+  /**
+   * Status der Regel
+   * @property {RuleStatus} status - ACTIVE, INACTIVE oder DEPRECATED
+   */
   status: RuleStatus;
+
+  /**
+   * Standard-Schweregrad
+   * @property {ThreatSeverity} severity - Basis-Schweregrad für Treffer dieser Regel
+   */
   severity: ThreatSeverity;
+
+  /**
+   * Typ der Regel-Bedingung
+   * @property {ConditionType} conditionType - Klassifizierung des Regel-Typs (PATTERN)
+   */
   conditionType: ConditionType;
+
+  /**
+   * Konfiguration für Credential Stuffing Erkennung
+   * @property {object} config - Anpassbare Parameter der Regel
+   */
   config: {
+    /**
+     * Erkennungsmuster für Credential Stuffing
+     * @property {string[]} patterns - Liste der zu erkennenden Angriffsmuster
+     */
     patterns: string[];
+
+    /**
+     * Art der Muster-Übereinstimmung
+     * @property {'any' | 'all'} matchType - 'any' = eines der Muster, 'all' = alle Muster
+     */
     matchType: 'any' | 'all';
+
+    /**
+     * Zeitfenster für die Analyse in Minuten
+     * @property {number} lookbackMinutes - Wie weit zurück in der Geschichte gesucht wird
+     */
     lookbackMinutes: number;
+
+    /**
+     * Mindestanzahl verschiedener Benutzer für einen Alarm
+     * @property {number} minUniqueUsers - Schwellenwert für verdächtige Aktivität
+     */
     minUniqueUsers: number;
+
+    /**
+     * Maximale Zeit zwischen Versuchen in Millisekunden
+     * @property {number} maxTimeBetweenAttempts - Definiert "schnelle" aufeinanderfolgende Versuche
+     */
     maxTimeBetweenAttempts: number;
+
+    /**
+     * Liste verdächtiger User-Agent Strings
+     * @property {string[]} suspiciousUserAgents - User-Agents die auf Bots hinweisen
+     */
     suspiciousUserAgents: string[];
   };
+
+  /**
+   * Tags zur Kategorisierung der Regel
+   * @property {string[]} tags - Schlagwörter für Filterung und Gruppierung
+   */
   tags: string[];
 
+  /**
+   * Erstellt eine neue Credential Stuffing Regel
+   *
+   * @param data Konfigurationsdaten für die Regel
+   * @example
+   * ```typescript
+   * const rule = new CredentialStuffingRule({
+   *   config: {
+   *     minUniqueUsers: 10,
+   *     maxTimeBetweenAttempts: 1000
+   *   }
+   * });
+   * ```
+   */
   constructor(data: Partial<CredentialStuffingRule>) {
     this.id = data.id || 'credential-stuffing-default';
     this.name = data.name || 'Credential Stuffing Detection';
@@ -50,6 +140,22 @@ export class CredentialStuffingRule implements PatternRule {
     };
   }
 
+  /**
+   * Evaluiert den Kontext auf Credential Stuffing Angriffe
+   *
+   * @param context Der Evaluierungskontext mit Ereignisdaten
+   * @returns Das Evaluierungsergebnis mit Übereinstimmungsstatus und Details
+   * @example
+   * ```typescript
+   * const result = await rule.evaluate({
+   *   ipAddress: '192.168.1.1',
+   *   recentEvents: loginEvents
+   * });
+   * if (result.matched) {
+   *   logger.warn('Credential stuffing detected:', result.reason);
+   * }
+   * ```
+   */
   async evaluate(context: RuleContext): Promise<RuleEvaluationResult> {
     if (!context.ipAddress || !context.recentEvents) {
       return { matched: false };
@@ -109,6 +215,11 @@ export class CredentialStuffingRule implements PatternRule {
     return { matched: false };
   }
 
+  /**
+   * Validiert die Regelkonfiguration
+   *
+   * @returns true wenn die Konfiguration gültig ist, false sonst
+   */
   validate(): boolean {
     return (
       this.config.lookbackMinutes > 0 &&
@@ -117,6 +228,11 @@ export class CredentialStuffingRule implements PatternRule {
     );
   }
 
+  /**
+   * Gibt eine Beschreibung der Regel zurück
+   *
+   * @returns Beschreibung der Regel
+   */
   getDescription(): string {
     return `Detects credential stuffing attacks when ${this.config.minUniqueUsers} or more users are attempted from the same IP within ${this.config.lookbackMinutes} minutes`;
   }

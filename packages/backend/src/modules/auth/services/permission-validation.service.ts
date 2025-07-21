@@ -213,31 +213,88 @@ export class PermissionValidationService implements OnModuleInit {
 
 /**
  * Validierungsbericht für die Berechtigungsmatrix
+ *
+ * Dokumentiert Inkonsistenzen zwischen Code-definierten und Datenbank-Berechtigungen
+ * zur Sicherstellung einer konsistenten Berechtigungsstruktur.
+ *
+ * @interface ValidationReport
+ * @example
+ * ```typescript
+ * const report: ValidationReport = {
+ *   isValid: false,
+ *   missingInDatabase: [
+ *     { role: UserRole.ADMIN, permission: Permission.MANAGE_USERS }
+ *   ],
+ *   extraInDatabase: [],
+ *   roleMismatches: [
+ *     { role: UserRole.USER, message: 'Hat unerwartete Admin-Berechtigung' }
+ *   ],
+ *   timestamp: new Date()
+ * };
+ * ```
  */
 interface ValidationReport {
+  /** Gesamtstatus der Validierung */
   isValid: boolean;
+  /** Berechtigungen, die im Code definiert aber nicht in der DB sind */
   missingInDatabase: Array<{ role: UserRole; permission: Permission }>;
+  /** Berechtigungen, die in der DB aber nicht im Code definiert sind */
   extraInDatabase: Array<{ role: UserRole; permission: Permission }>;
+  /** Rollen mit inkonsistenten Berechtigungen */
   roleMismatches: Array<{ role: UserRole; message: string }>;
+  /** Zeitstempel der Validierung */
   timestamp: Date;
+  /** Fehlermeldung bei Validierungsfehler */
   error?: string;
 }
 
 /**
  * Detaillierter Bericht über die Berechtigungsmatrix
+ *
+ * Bietet eine umfassende Übersicht über alle Rollen und deren Berechtigungen
+ * mit Metadaten zur Verwaltung und Auditierung.
+ *
+ * @interface PermissionReport
+ * @example
+ * ```typescript
+ * const report: PermissionReport = {
+ *   roles: {
+ *     ADMIN: {
+ *       permissions: [
+ *         {
+ *           permission: Permission.MANAGE_USERS,
+ *           grantedBy: 'system',
+ *           grantedAt: new Date('2024-01-01')
+ *         }
+ *       ],
+ *       count: 15
+ *     }
+ *   },
+ *   totalPermissions: 45,
+ *   lastSync: new Date()
+ * };
+ * ```
  */
 interface PermissionReport {
+  /** Übersicht aller Rollen mit ihren Berechtigungen */
   roles: Record<
     string,
     {
+      /** Detaillierte Liste der Berechtigungen */
       permissions: Array<{
+        /** Die Berechtigung */
         permission: Permission;
+        /** Wer hat die Berechtigung erteilt */
         grantedBy: string;
+        /** Wann wurde die Berechtigung erteilt */
         grantedAt: Date;
       }>;
+      /** Anzahl der Berechtigungen für diese Rolle */
       count: number;
     }
   >;
+  /** Gesamtanzahl aller Berechtigungen im System */
   totalPermissions: number;
+  /** Zeitstempel der letzten Synchronisation */
   lastSync: Date;
 }

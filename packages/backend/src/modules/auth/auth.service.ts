@@ -22,8 +22,26 @@ import { LoginAttemptService } from './services/login-attempt.service';
 import { SessionService } from '../session/session.service';
 
 /**
- * Service responsible for authentication operations including login, token refresh, and logout.
- * Handles JWT token generation and validation for users.
+ * Service für Authentifizierungsoperationen.
+ *
+ * Dieser Service ist verantwortlich für:
+ * - Benutzeranmeldung mit E-Mail und Passwort
+ * - JWT-Token-Generierung und -Validierung
+ * - Token-Refresh-Mechanismus
+ * - Session-Management
+ * - Sicherheitsfunktionen wie Account-Sperrung und Rate-Limiting
+ *
+ * @example
+ * ```typescript
+ * // Login eines Benutzers
+ * const loginResult = await authService.login({
+ *   email: 'user@example.com',
+ *   password: 'securePassword123'
+ * }, '192.168.1.1', 'Mozilla/5.0...');
+ *
+ * // Token erneuern
+ * const newTokens = await authService.refreshTokens(refreshToken);
+ * ```
  */
 @Injectable()
 export class AuthService {
@@ -39,6 +57,43 @@ export class AuthService {
     private sessionService: SessionService,
   ) {}
 
+  /**
+   * Führt die Benutzeranmeldung durch.
+   *
+   * Diese Methode:
+   * - Prüft IP-basiertes Rate-Limiting
+   * - Überprüft Account-Sperrungen
+   * - Validiert Benutzer-Credentials
+   * - Erstellt eine neue Session
+   * - Generiert JWT-Tokens (Access & Refresh)
+   * - Protokolliert Sicherheitsereignisse
+   *
+   * @param loginDto - Die Anmeldedaten (E-Mail und Passwort)
+   * @param ipAddress - IP-Adresse des Clients (optional, für Sicherheitsprüfungen)
+   * @param userAgent - User-Agent des Clients (optional, für Session-Tracking)
+   *
+   * @returns Ein LoginResponse-Objekt mit Tokens und Benutzerinformationen
+   *
+   * @throws {InvalidCredentialsException} - Bei ungültigen Anmeldedaten
+   * @throws {AccountLockedException} - Wenn der Account gesperrt ist
+   * @throws {AccountDisabledException} - Wenn der Account deaktiviert ist
+   *
+   * @example
+   * ```typescript
+   * try {
+   *   const result = await authService.login(
+   *     { email: 'user@example.com', password: 'password123' },
+   *     '192.168.1.1',
+   *     'Mozilla/5.0...'
+   *   );
+   *   logger.info('Login erfolgreich:', result.accessToken);
+   * } catch (error) {
+   *   if (error instanceof AccountLockedException) {
+   *     logger.warn('Account gesperrt bis:', error.lockedUntil);
+   *   }
+   * }
+   * ```
+   */
   async login(loginDto: LoginDto, ipAddress?: string, userAgent?: string): Promise<LoginResponse> {
     // Check IP rate limit first
     if (ipAddress) {
@@ -257,6 +312,39 @@ export class AuthService {
     };
   }
 
+  /**
+   * Erneuert das Token-Paar mittels eines gültigen Refresh-Tokens.
+   *
+   * Diese Methode implementiert Token-Rotation für erhöhte Sicherheit:
+   * - Markiert das alte Refresh-Token als verwendet
+   * - Generiert ein neues Token-Paar
+   * - Erstellt eine neue Session
+   * - Prüft auf Token-Wiederverwendung (Sicherheitsrisiko)
+   *
+   * @param refreshToken - Das aktuelle Refresh-Token
+   *
+   * @returns Ein neues Token-Paar (Access & Refresh Token)
+   *
+   * @throws {InvalidTokenException} - Bei ungültigem oder abgelaufenem Token
+   * @throws {TokenRevokedException} - Wenn das Token widerrufen wurde
+   * @throws {AccountDisabledException} - Wenn der Benutzer-Account deaktiviert ist
+   * @throws {RefreshRateLimitExceededException} - Bei zu vielen Refresh-Anfragen
+   *
+   * @example
+   * ```typescript
+   * try {
+   *   const newTokens = await authService.refreshTokens(oldRefreshToken);
+   *   // Neue Tokens im Client speichern
+   *   localStorage.setItem('accessToken', newTokens.accessToken);
+   *   localStorage.setItem('refreshToken', newTokens.refreshToken);
+   * } catch (error) {
+   *   if (error instanceof TokenRevokedException) {
+   *     // Benutzer muss sich neu anmelden
+   *     redirectToLogin();
+   *   }
+   * }
+   * ```
+   */
   async refreshTokens(refreshToken: string): Promise<TokenResponse> {
     try {
       this.jwtService.verify<JWTRefreshPayload>(refreshToken, {
@@ -382,6 +470,23 @@ export class AuthService {
     };
   }
 
+  /**
+   * Meldet einen Benutzer ab und invalidiert seine Session.
+   *
+   * Diese Methode:
+   * - Widerruft die aktuelle Session
+   * - Invalidiert alle zugehörigen Refresh-Tokens
+   * - Protokolliert das Logout-Ereignis
+   *
+   * @param sessionId - Die ID der zu beendenden Session
+   *
+   * @example
+   * ```typescript
+   * // Benutzer abmelden
+   * await authService.logout(currentSessionId);
+   * // Client-seitig: Tokens löschen und zur Login-Seite weiterleiten
+   * ```
+   */
   async logout(sessionId: string): Promise<void> {
     // Invalidate session and tokens in transaction
     const results = await this.prisma.$transaction([
@@ -425,6 +530,22 @@ export class AuthService {
     }
   }
 
+  /**
+   * Ruft die aktuellen Benutzerinformationen ab.
+   *
+   * @param userId - Die ID des Benutzers
+   *
+   * @returns Die Benutzerinformationen mit Rollen und Berechtigungen
+   *
+   * @throws {InvalidTokenException} - Wenn der Benutzer nicht gefunden wird oder inaktiv ist
+   *
+   * @example
+   * ```typescript
+   * const user = await authService.getCurrentUser(userId);
+   * logger.info('Benutzer-Email:', user.email);
+   * logger.info('Berechtigungen:', user.permissions);
+   * ```
+   */
   async getCurrentUser(userId: string): Promise<AuthUser> {
     const user = await this.prisma.user.findUnique({
       where: { id: userId },
@@ -449,7 +570,22 @@ export class AuthService {
 
   /**
    * Entsperrt einen gesperrten Account manuell.
-   * Sollte nur von Administratoren verwendet werden.
+   *
+   * Diese administrative Funktion:
+   * - Entfernt die Account-Sperrung
+   * - Setzt den Fehlversuchszähler zurück
+   * - Protokolliert die Entsperrung für Audit-Zwecke
+   *
+   * @param email - E-Mail-Adresse des zu entsperrenden Accounts
+   * @param adminId - ID des Administrators, der die Entsperrung durchführt
+   *
+   * @throws {InvalidCredentialsException} - Wenn der Benutzer nicht gefunden wird
+   *
+   * @example
+   * ```typescript
+   * // Admin entsperrt einen Account
+   * await authService.unlockAccount('user@example.com', adminUserId);
+   * ```
    */
   async unlockAccount(email: string, adminId: string): Promise<void> {
     const user = await this.prisma.user.findUnique({
@@ -488,8 +624,22 @@ export class AuthService {
   }
 
   /**
-   * Holt die Berechtigungen für eine Rolle aus der Datenbank oder verwendet Standardwerte.
-   * Zentralisierte Methode zur Vermeidung von Code-Duplikation.
+   * Ermittelt die Berechtigungen für eine bestimmte Benutzerrolle.
+   *
+   * Diese Methode:
+   * - Lädt Berechtigungen aus der Datenbank
+   * - Verwendet Standardberechtigungen als Fallback
+   * - Gewährleistet, dass jede Rolle immer Berechtigungen hat
+   *
+   * @param role - Die Benutzerrolle
+   *
+   * @returns Array von Berechtigungen für die Rolle
+   *
+   * @example
+   * ```typescript
+   * const permissions = await this.getUserPermissions(UserRole.ADMIN);
+   * // permissions: ['users.read', 'users.write', 'users.delete', ...]
+   * ```
    */
   private async getUserPermissions(role: UserRole): Promise<Permission[]> {
     // Get permissions from database
@@ -511,7 +661,32 @@ export class AuthService {
 
   /**
    * Generiert ein neues Token-Paar (Access und Refresh Token).
-   * Zentralisierte Token-Generierung für Konsistenz.
+   *
+   * Diese Methode erstellt:
+   * - Ein kurzlebiges Access-Token mit Benutzerdetails und Berechtigungen
+   * - Ein langlebiges Refresh-Token für Token-Erneuerung
+   *
+   * @param params - Die Parameter für die Token-Generierung
+   * @param params.userId - Die Benutzer-ID
+   * @param params.email - Die E-Mail-Adresse des Benutzers
+   * @param params.role - Die Rolle des Benutzers
+   * @param params.permissions - Array von Berechtigungen
+   * @param params.sessionId - Die Session-ID
+   * @param params.jti - Eindeutige Token-ID (JWT ID)
+   *
+   * @returns Ein Objekt mit Access- und Refresh-Token
+   *
+   * @example
+   * ```typescript
+   * const tokens = this.generateTokenPair({
+   *   userId: 'user123',
+   *   email: 'user@example.com',
+   *   role: UserRole.USER,
+   *   permissions: ['posts.read', 'posts.write'],
+   *   sessionId: 'session123',
+   *   jti: 'jti123'
+   * });
+   * ```
    */
   private generateTokenPair(params: {
     userId: string;
@@ -551,7 +726,22 @@ export class AuthService {
 
   /**
    * Protokolliert sicherheitsrelevante Ereignisse.
-   * Kann später mit einem Audit-Log-System verbunden werden.
+   *
+   * Diese Methode dient zur zentralen Erfassung von Sicherheitsereignissen
+   * und kann später mit einem Audit-Log-System verbunden werden.
+   *
+   * @param event - Der Typ des Sicherheitsereignisses
+   * @param userId - Die ID des betroffenen Benutzers
+   * @param details - Zusätzliche Details zum Ereignis (optional)
+   *
+   * @example
+   * ```typescript
+   * this.logSecurityEvent(
+   *   SecurityEventType.LOGIN_SUCCESS,
+   *   userId,
+   *   { ipAddress: '192.168.1.1', sessionId: 'abc123' }
+   * );
+   * ```
    */
   private logSecurityEvent(
     event: SecurityEventType,

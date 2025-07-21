@@ -335,6 +335,102 @@ flowchart LR
     class rollback,troubleshoot critical
 ....
 
+== Initiales Seeding beim Deployment
+
+Das Bluelight-Hub-System kann beim ersten Start automatisch mit essentiellen Daten befüllt werden. Dies umfasst:
+
+=== Automatisches Seeding beim Backend-Start
+
+Beim ersten Start des Backends im Entwicklungsmodus werden automatisch folgende Daten angelegt:
+
+[cols="2,3,2", options="header"]
+|===
+|Komponente |Beschreibung |Environment Variable
+|Admin-Benutzer |Erstellt Test-Benutzer für alle Rollen (SUPER_ADMIN, ADMIN, SUPPORT, USER) |`SEED_ADMIN_AUTH=true/false`
+|Initialer Einsatz |Erstellt einen Standard-Einsatz für die Entwicklung |`SEED_INITIAL_EINSATZ=true/false`
+|Threat Detection Rules |Lädt vordefinierte Sicherheitsregeln |`SEED_THREAT_RULES=true/false`
+|===
+
+=== Threat Detection Rules Seeding
+
+Die Threat Detection Rules sind ein essentieller Bestandteil der Sicherheitsarchitektur. Sie können automatisch oder manuell geladen werden:
+
+==== Automatisches Seeding (empfohlen)
+[source,bash]
+----
+# In .env konfigurieren:
+SEED_THREAT_RULES=true
+THREAT_RULES_PRESET=standard  # minimal, standard, maximum, development
+----
+
+==== Manuelles Seeding via CLI
+[source,bash]
+----
+# Standard-Regeln laden
+pnpm seed:threat-rules
+
+# Mit spezifischem Preset
+pnpm seed:threat-rules --preset=maximum
+
+# Dry-Run (zeigt was passieren würde)
+pnpm seed:threat-rules --dry-run
+
+# Alle Regeln zurücksetzen
+pnpm seed:threat-rules --reset
+----
+
+==== Verfügbare Regel-Presets
+
+[cols="1,3,2", options="header"]
+|===
+|Preset |Beschreibung |Enthaltene Regeln
+|`minimal` |Nur kritische Sicherheitsregeln |Brute Force, Geographic Anomaly
+|`standard` |Empfohlene Basis-Konfiguration |Brute Force, Geographic Anomaly, IP Change, User-Agent
+|`maximum` |Alle verfügbaren Regeln |Alle 5 Regeln inkl. Time-based Detection
+|`development` |Entwicklerfreundlich |Brute Force, User-Agent (keine störenden Regeln)
+|===
+
+==== Standard-Regeln im Detail
+
+1. **Brute Force Detection** (HIGH)
+   - Erkennt mehrfache Login-Versuche
+   - Schwellwert: 5 Versuche in 15 Minuten
+
+2. **Geographic Anomaly Detection** (CRITICAL)
+   - Unmögliche Reisegeschwindigkeiten
+   - Blockierte Länder: KP (Nordkorea)
+   - Max. Geschwindigkeit: 1000 km/h
+
+3. **Rapid IP Change Detection** (HIGH)
+   - Max. 3 IP-Wechsel in 30 Minuten
+   - Erkennt verdächtige Zugriffsmuster
+
+4. **Suspicious User-Agent Detection** (MEDIUM)
+   - Erkennt Bots, Scraper, Penetration Tools
+   - Whitelist für legitime Bots
+
+5. **Time-Based Anomaly Detection** (MEDIUM)
+   - Erkennt Zugriffe außerhalb üblicher Zeiten
+   - Lernfähig basierend auf Benutzerverhalten
+
+=== Deployment-Workflow mit Seeding
+
+[source,bash]
+----
+# 1. Docker-Container starten
+docker-compose up -d
+
+# 2. Datenbank-Migrationen ausführen
+docker-compose exec app pnpm prisma:deploy
+
+# 3. Initiales Seeding (falls nicht automatisch)
+docker-compose exec app pnpm seed:threat-rules
+docker-compose exec app pnpm seed:admin
+
+# 4. Verifizieren
+docker-compose exec app pnpm cli -- check:seed-status
+----
+
 == Offene Punkte
 
 * Detaillierte Anforderungen für Client-Hardware

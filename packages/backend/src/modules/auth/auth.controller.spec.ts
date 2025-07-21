@@ -156,6 +156,108 @@ describe('AuthController', () => {
       );
       expect(result).toBe(expectedResult);
     });
+
+    it('should handle login with IP but no x-forwarded-for', async () => {
+      const loginDto: LoginDto = {
+        email: 'test@example.com',
+        password: 'password123',
+        rememberMe: true,
+      };
+
+      const expectedResult = {
+        accessToken: 'access-token',
+        refreshToken: 'refresh-token',
+        user: {
+          id: '1',
+          email: 'test@example.com',
+          roles: [],
+          permissions: [],
+          isActive: true,
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        },
+      };
+
+      mockAuthService.login.mockResolvedValue(expectedResult);
+
+      const mockRequest = {
+        ip: '192.168.1.1',
+        headers: { 'user-agent': 'test-agent' },
+      } as any;
+      const result = await controller.login(loginDto, mockRequest, mockResponse);
+
+      expect(authService.login).toHaveBeenCalledWith(loginDto, '192.168.1.1', 'test-agent');
+      expect(result).toBe(expectedResult);
+    });
+
+    it('should handle login with x-forwarded-for array', async () => {
+      const loginDto: LoginDto = {
+        email: 'test@example.com',
+        password: 'password123',
+        rememberMe: true,
+      };
+
+      const expectedResult = {
+        accessToken: 'access-token',
+        refreshToken: 'refresh-token',
+        user: {
+          id: '1',
+          email: 'test@example.com',
+          roles: [],
+          permissions: [],
+          isActive: true,
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        },
+      };
+
+      mockAuthService.login.mockResolvedValue(expectedResult);
+
+      const mockRequest = {
+        ip: '127.0.0.1',
+        headers: { 'x-forwarded-for': '10.0.0.1, 10.0.0.2', 'user-agent': 'test-agent' },
+      } as any;
+      const result = await controller.login(loginDto, mockRequest, mockResponse);
+
+      expect(authService.login).toHaveBeenCalledWith(loginDto, '10.0.0.1, 10.0.0.2', 'test-agent');
+      expect(result).toBe(expectedResult);
+    });
+
+    it('should handle login with empty headers object', async () => {
+      const loginDto: LoginDto = {
+        email: 'test@example.com',
+        password: 'password123',
+        rememberMe: false,
+      };
+
+      const expectedResult = {
+        accessToken: 'access-token',
+        refreshToken: 'refresh-token',
+        user: {
+          id: '1',
+          email: 'test@example.com',
+          roles: [],
+          permissions: [],
+          isActive: true,
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        },
+      };
+
+      mockAuthService.login.mockResolvedValue(expectedResult);
+
+      const mockRequest = {
+        ip: '10.0.0.1',
+        headers: {
+          // Empty user-agent
+          'user-agent': '',
+        },
+      } as any;
+      const result = await controller.login(loginDto, mockRequest, mockResponse);
+
+      expect(authService.login).toHaveBeenCalledWith(loginDto, '10.0.0.1', undefined);
+      expect(result).toBe(expectedResult);
+    });
   });
 
   describe('refresh', () => {

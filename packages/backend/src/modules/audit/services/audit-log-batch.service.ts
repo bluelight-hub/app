@@ -8,30 +8,85 @@ import { Readable } from 'stream';
 
 /**
  * Interface für Batch-Ergebnisse
+ *
+ * Strukturiert die Ergebnisse einer Batch-Verarbeitung von Audit-Logs,
+ * einschließlich erfolgreicher und fehlgeschlagener Verarbeitungen.
+ *
+ * @interface BatchResult
+ * @example
+ * ```typescript
+ * const result: BatchResult = {
+ *   successful: [auditLog1, auditLog2],
+ *   failed: [{
+ *     index: 2,
+ *     data: failedDto,
+ *     error: 'Validation failed'
+ *   }],
+ *   totalProcessed: 3,
+ *   successCount: 2,
+ *   failureCount: 1
+ * };
+ * ```
  */
 export interface BatchResult {
+  /** Array erfolgreich verarbeiteter Audit-Logs */
   successful: AuditLog[];
+  /** Array fehlgeschlagener Verarbeitungen mit Details */
   failed: Array<{
+    /** Index des Eintrags im ursprünglichen Batch */
     index: number;
+    /** Die fehlgeschlagenen Daten */
     data: CreateAuditLogDto;
+    /** Fehlermeldung */
     error: string;
   }>;
+  /** Gesamtanzahl verarbeiteter Einträge */
   totalProcessed: number;
+  /** Anzahl erfolgreicher Verarbeitungen */
   successCount: number;
+  /** Anzahl fehlgeschlagener Verarbeitungen */
   failureCount: number;
 }
 
 /**
  * Interface für Retention-Konfiguration
+ *
+ * Definiert Aufbewahrungsfristen für Audit-Logs basierend auf
+ * Schweregrad und Compliance-Anforderungen.
+ *
+ * @interface RetentionConfig
+ * @example
+ * ```typescript
+ * const config: RetentionConfig = {
+ *   defaultRetentionDays: 90,
+ *   severityRetention: {
+ *     LOW: 30,
+ *     MEDIUM: 60,
+ *     HIGH: 180,
+ *     CRITICAL: 365
+ *   },
+ *   complianceRetention: {
+ *     'GDPR': 1095,  // 3 Jahre
+ *     'PCI': 365     // 1 Jahr
+ *   }
+ * };
+ * ```
  */
 export interface RetentionConfig {
+  /** Standard-Aufbewahrungsfrist in Tagen */
   defaultRetentionDays: number;
+  /** Aufbewahrungsfristen nach Schweregrad */
   severityRetention: {
+    /** Aufbewahrung für niedrigen Schweregrad */
     LOW: number;
+    /** Aufbewahrung für mittleren Schweregrad */
     MEDIUM: number;
+    /** Aufbewahrung für hohen Schweregrad */
     HIGH: number;
+    /** Aufbewahrung für kritischen Schweregrad */
     CRITICAL: number;
   };
+  /** Spezielle Aufbewahrungsfristen für Compliance */
   complianceRetention: {
     [key: string]: number;
   };

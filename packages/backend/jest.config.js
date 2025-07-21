@@ -9,6 +9,7 @@ module.exports = {
     '**/*.ts',
     '!migrations/**/*.ts',
     '!main.ts',
+    '!cli-threat-rules.ts',
     '!logger/**/*.ts',
     '!**/node_modules/**',
     '!dist/**',

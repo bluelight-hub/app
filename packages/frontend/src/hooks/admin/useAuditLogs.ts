@@ -1,8 +1,9 @@
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { api } from '../../api';
 import { AuditLogEntity } from '@bluelight-hub/shared/client/models';
 import { message } from 'antd';
 import { useState } from 'react';
+import { logger } from '@/utils/logger.ts';
 
 export interface AuditLogFilters {
   page?: number;
@@ -78,7 +79,7 @@ export function useAuditLogs(filters: AuditLogFilters = {}) {
           },
         } as AuditLogResponse;
       } catch (error) {
-        console.error('Failed to fetch audit logs:', error);
+        logger.error('Failed to fetch audit logs:', error);
         throw error;
       }
     },
@@ -137,7 +138,7 @@ export function useAuditLogStatistics(filters: Omit<AuditLogFilters, 'page' | 'l
               : 100,
         } as AuditLogStatistics;
       } catch (error) {
-        console.error('Failed to fetch audit log statistics:', error);
+        logger.error('Failed to fetch audit log statistics:', error);
         throw error;
       }
     },

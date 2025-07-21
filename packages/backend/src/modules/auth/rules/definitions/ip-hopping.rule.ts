@@ -9,27 +9,77 @@ import { SecurityEventType } from '../../enums/security-event-type.enum';
  * - Sich von mehreren IP-Adressen in kurzer Zeit anmeldet
  * - IP-Adressen in geografisch unmöglichen Distanzen wechselt
  * - Typische Proxy/VPN-Hopping-Muster zeigt
+ *
+ * Die Regel implementiert drei Haupterkennungsmuster:
+ * 1. **Rapid IP Change**: Erkennt schnelle Wechsel zwischen verschiedenen IP-Adressen
+ * 2. **Geo-Impossible Travel**: Identifiziert physisch unmögliche Ortswechsel
+ * 3. **Proxy Pattern**: Erkennt typische VPN/Proxy-Nutzungsmuster
+ *
+ * @example
+ * ```typescript
+ * const rule = new IpHoppingRule({
+ *   config: {
+ *     maxIpsThreshold: 5,
+ *     lookbackMinutes: 60,
+ *     maxVelocityKmPerHour: 1500
+ *   }
+ * });
+ * const result = await rule.evaluate(context);
+ * if (result.matched) {
+ *   logger.warn(`IP-Hopping erkannt: ${result.reason}`);
+ * }
+ * ```
  */
 export class IpHoppingRule implements PatternRule {
+  /** Eindeutige Regel-ID */
   id: string;
+
+  /** Menschenlesbarer Name der Regel */
   name: string;
+
+  /** Detaillierte Beschreibung der Regel-Funktionalität */
   description: string;
+
+  /** Versionsnummer der Regel-Implementierung */
   version: string;
+
+  /** Aktueller Status der Regel (ACTIVE, INACTIVE, etc.) */
   status: RuleStatus;
+
+  /** Schweregrad bei positivem Match */
   severity: ThreatSeverity;
+
+  /** Typ der Regel-Bedingung */
   conditionType: ConditionType;
+
+  /** Konfiguration der IP-Hopping-Erkennungsparameter */
   config: {
+    /** Liste der zu prüfenden Pattern-Typen */
     patterns: string[];
+    /** Verknüpfung der Pattern ('any' oder 'all') */
     matchType: 'any' | 'all';
+    /** Rückblickzeitraum in Minuten */
     lookbackMinutes: number;
+    /** Schwellenwert für maximale Anzahl verschiedener IPs */
     maxIpsThreshold: number;
+    /** Zeitfenster für verdächtige IP-Wechsel in Minuten */
     suspiciousIpChangeMinutes: number;
+    /** VPN/Proxy-Erkennung aktivieren */
     vpnDetection: boolean;
+    /** Geografische Geschwindigkeitsprüfung aktivieren */
     geoVelocityCheck: boolean;
+    /** Maximale realistische Reisegeschwindigkeit in km/h */
     maxVelocityKmPerHour: number;
   };
+
+  /** Kategorisierungs-Tags für die Regel */
   tags: string[];
 
+  /**
+   * Erstellt eine neue IP-Hopping-Regel mit den gegebenen Konfigurationsparametern
+   *
+   * @param data Partial-Konfiguration der Regel, fehlende Werte werden mit Defaults gefüllt
+   */
   constructor(data: Partial<IpHoppingRule>) {
     this.id = data.id || 'ip-hopping-default';
     this.name = data.name || 'IP Hopping Detection';
@@ -57,6 +107,23 @@ export class IpHoppingRule implements PatternRule {
 
   /**
    * Evaluiert die Regel gegen den gegebenen Kontext
+   *
+   * Diese Methode prüft den aktuellen Login-Kontext gegen alle konfigurierten
+   * IP-Hopping-Muster. Je nach `matchType` wird bei einem Treffer (any) sofort
+   * zurückgegeben oder alle Muster müssen zutreffen (all).
+   *
+   * @param context Der Sicherheitskontext mit Login-Informationen und Historie
+   * @returns Evaluierungsergebnis mit Match-Status, Schweregrad und Empfehlungen
+   * @example
+   * ```typescript
+   * const result = await rule.evaluate({
+   *   eventType: SecurityEventType.LOGIN_SUCCESS,
+   *   userId: 'user123',
+   *   ipAddress: '192.168.1.1',
+   *   recentEvents: [...],
+   *   timestamp: new Date()
+   * });
+   * ```
    */
   async evaluate(context: RuleContext): Promise<RuleEvaluationResult> {
     // Only check on successful login events
@@ -106,6 +173,18 @@ export class IpHoppingRule implements PatternRule {
 
   /**
    * Prüft auf schnelle IP-Wechsel
+   *
+   * Diese Methode analysiert die Login-Historie eines Benutzers und erkennt
+   * verdächtige Muster wie:
+   * - Mehr IP-Adressen als der konfigurierte Schwellenwert
+   * - Schnelle Wechsel zwischen verschiedenen IPs (innerhalb von Minuten)
+   *
+   * Der Score wird basierend auf der Anzahl der IPs und der Geschwindigkeit
+   * der Wechsel berechnet.
+   *
+   * @param context Der aktuelle Sicherheitskontext
+   * @returns Evaluierungsergebnis mit Details zu erkannten IP-Wechseln
+   * @private
    */
   private async checkRapidIpChange(context: RuleContext): Promise<RuleEvaluationResult> {
     const cutoffTime = new Date(Date.now() - this.config.lookbackMinutes * 60 * 1000);
@@ -174,6 +253,18 @@ export class IpHoppingRule implements PatternRule {
 
   /**
    * Prüft auf geografisch unmögliche Reisen
+   *
+   * Diese Methode berechnet die physische Reisegeschwindigkeit zwischen
+   * aufeinanderfolgenden Logins basierend auf den geografischen Koordinaten
+   * der IP-Adressen. Eine Geschwindigkeit über dem konfigurierten Maximum
+   * (z.B. 1000 km/h) wird als unmöglich eingestuft.
+   *
+   * Die Distanzberechnung erfolgt mittels der Haversine-Formel für
+   * Großkreisentfernungen auf der Erdkugel.
+   *
+   * @param context Der aktuelle Sicherheitskontext mit Geo-Informationen
+   * @returns Evaluierungsergebnis mit Details zu unmöglichen Reisen
+   * @private
    */
   private async checkGeoImpossibleTravel(context: RuleContext): Promise<RuleEvaluationResult> {
     if (!this.config.geoVelocityCheck) {
@@ -245,6 +336,18 @@ export class IpHoppingRule implements PatternRule {
 
   /**
    * Prüft auf typische Proxy/VPN-Muster
+   *
+   * Diese Methode erkennt charakteristische Muster von Proxy- und VPN-Nutzung:
+   * - Häufige Wechsel zwischen verschiedenen Ländern
+   * - Viele verschiedene Autonomous System Numbers (ASNs)
+   * - Hoher Anteil von Datacenter-IP-Adressen
+   *
+   * Ein Score wird basierend auf der Anzahl der Länder, ASNs und dem
+   * Datacenter-Verhältnis berechnet.
+   *
+   * @param context Der aktuelle Sicherheitskontext mit IP-Metadaten
+   * @returns Evaluierungsergebnis mit Details zu erkannten Proxy-Mustern
+   * @private
    */
   private async checkProxyPattern(context: RuleContext): Promise<RuleEvaluationResult> {
     if (!this.config.vpnDetection) {
@@ -316,6 +419,24 @@ export class IpHoppingRule implements PatternRule {
 
   /**
    * Berechnet die Entfernung zwischen zwei Koordinaten (Haversine-Formel)
+   *
+   * Die Haversine-Formel berechnet die kürzeste Entfernung zwischen zwei
+   * Punkten auf einer Kugeloberfläche (Großkreisentfernung). Diese Methode
+   * wird verwendet, um die physische Distanz zwischen zwei Login-Standorten
+   * zu ermitteln.
+   *
+   * @param loc1 Erste geografische Position mit Breiten- und Längengrad
+   * @param loc2 Zweite geografische Position mit Breiten- und Längengrad
+   * @returns Entfernung in Kilometern
+   * @private
+   * @example
+   * ```typescript
+   * const distance = this.calculateDistance(
+   *   { lat: 52.520008, lon: 13.404954 }, // Berlin
+   *   { lat: 48.856613, lon: 2.352222 }   // Paris
+   * );
+   * // Ergebnis: ~878 km
+   * ```
    */
   private calculateDistance(
     loc1: { lat: number; lon: number },
@@ -335,12 +456,29 @@ export class IpHoppingRule implements PatternRule {
     return R * c;
   }
 
+  /**
+   * Konvertiert Grad in Radianten
+   * @param deg Winkel in Grad
+   * @returns Winkel in Radianten
+   * @private
+   */
   private toRad(deg: number): number {
     return deg * (Math.PI / 180);
   }
 
   /**
    * Kombiniert mehrere Ergebnisse
+   *
+   * Diese Methode aggregiert die Ergebnisse mehrerer Pattern-Checks zu einem
+   * Gesamtergebnis. Dabei wird:
+   * - Der höchste Schweregrad ausgewählt
+   * - Der Durchschnitt der Scores berechnet
+   * - Alle Gründe und Empfehlungen kombiniert
+   * - Die Evidence-Daten aller Checks zusammengeführt
+   *
+   * @param results Array von Evaluierungsergebnissen der einzelnen Pattern-Checks
+   * @returns Kombiniertes Evaluierungsergebnis
+   * @private
    */
   private combineResults(results: RuleEvaluationResult[]): RuleEvaluationResult {
     const severities = results.map((r) => r.severity).filter(Boolean) as ThreatSeverity[];
@@ -361,6 +499,12 @@ export class IpHoppingRule implements PatternRule {
     };
   }
 
+  /**
+   * Ermittelt den höchsten Schweregrad aus einer Liste von Schweregraden
+   * @param severities Array von Threat-Severities
+   * @returns Der höchste Schweregrad
+   * @private
+   */
   private getHighestSeverity(severities: ThreatSeverity[]): ThreatSeverity {
     const order = {
       [ThreatSeverity.LOW]: 1,
@@ -377,6 +521,22 @@ export class IpHoppingRule implements PatternRule {
 
   /**
    * Validiert die Regel-Konfiguration
+   *
+   * Diese Methode stellt sicher, dass alle erforderlichen Konfigurationsparameter
+   * vorhanden und gültig sind. Die Validierung prüft:
+   * - Mindestens ein Pattern ist konfiguriert
+   * - Alle Zeitfenster sind positiv
+   * - Schwellenwerte sind gültig
+   * - MatchType ist entweder 'any' oder 'all'
+   *
+   * @returns true wenn die Konfiguration gültig ist, false sonst
+   * @example
+   * ```typescript
+   * const rule = new IpHoppingRule({ config: { patterns: [] } });
+   * if (!rule.validate()) {
+   *   throw new Error('Ungültige Regel-Konfiguration');
+   * }
+   * ```
    */
   validate(): boolean {
     return (
@@ -391,6 +551,20 @@ export class IpHoppingRule implements PatternRule {
 
   /**
    * Gibt eine menschenlesbare Beschreibung der Regel zurück
+   *
+   * Diese Methode generiert eine dynamische Beschreibung basierend auf der
+   * aktuellen Konfiguration. Die Beschreibung enthält die aktiven Pattern-Typen
+   * und das konfigurierte Zeitfenster.
+   *
+   * @returns Formatierte Beschreibung der Regel und ihrer Konfiguration
+   * @example
+   * ```typescript
+   * const rule = new IpHoppingRule({
+   *   config: { patterns: ['rapid-ip-change', 'geo-impossible'], lookbackMinutes: 30 }
+   * });
+   * logger.info(rule.getDescription());
+   * // Output: "Detects IP hopping patterns including rapid-ip-change, geo-impossible within 30 minutes"
+   * ```
    */
   getDescription(): string {
     const patterns = this.config.patterns.join(', ');

@@ -3,6 +3,7 @@ import { Table, Tag, Input, Select, DatePicker, Button, Card } from 'antd';
 import { PiMagnifyingGlass, PiArrowClockwise, PiDownloadSimple, PiFunnel } from 'react-icons/pi';
 import type { ColumnsType } from 'antd/es/table';
 import dayjs from 'dayjs';
+import { logger } from '@/utils/logger.ts';
 
 const { RangePicker } = DatePicker;
 const { Option } = Select;
@@ -97,7 +98,7 @@ const LogsPage: React.FC = () => {
 
     const handleExport = () => {
         // TODO: Export-Funktionalität implementieren
-        console.log('Exporting logs...');
+        logger.log('Exporting logs...');
     };
 
     const columns: ColumnsType<LogEntry> = [

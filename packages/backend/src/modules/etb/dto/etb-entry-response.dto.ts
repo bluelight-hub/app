@@ -4,23 +4,52 @@ import { ApiProperty } from '@nestjs/swagger';
 import { EtbEntryStatus } from '@prisma/generated/prisma/enums';
 import { EtbKategorie } from './etb-kategorie.enum';
 
-// Lokale Definition statt Import der Prisma-Models
+/**
+ * Data Transfer Object für ETB-Anlagen
+ *
+ * Repräsentiert eine Dateianlage zu einem Einsatztagebuch-Eintrag
+ * @class EtbAttachment
+ */
 export class EtbAttachment {
+  /**
+   * Eindeutige ID der Anlage
+   * @example '123e4567-e89b-12d3-a456-426614174000'
+   */
   @ApiProperty({ description: 'ID der Anlage', type: 'string', format: 'uuid' })
   id: string;
 
+  /**
+   * ID des zugehörigen ETB-Eintrags
+   * @example '456e7890-e89b-12d3-a456-426614174000'
+   */
   @ApiProperty({ description: 'ID des ETB-Eintrags', type: 'string', format: 'uuid' })
   etbEntryId: string;
 
+  /**
+   * Name der angehängten Datei
+   * @example 'einsatzplan_2024.pdf'
+   */
   @ApiProperty({ description: 'Dateiname der Anlage', type: 'string' })
   dateiname: string;
 
+  /**
+   * MIME-Type der Datei
+   * @example 'application/pdf'
+   */
   @ApiProperty({ description: 'Dateityp der Anlage', type: 'string' })
   dateityp: string;
 
+  /**
+   * Pfad oder URL zum Speicherort der Datei
+   * @example '/uploads/etb/2024/01/einsatzplan_2024.pdf'
+   */
   @ApiProperty({ description: 'Speicherort der Anlage', type: 'string' })
   speicherOrt: string;
 
+  /**
+   * Optionale Beschreibung der Anlage
+   * @example 'Detaillierter Einsatzplan mit Anfahrtswegen'
+   */
   @ApiProperty({ description: 'Beschreibung der Anlage', type: 'string', nullable: true })
   beschreibung?: string;
 }

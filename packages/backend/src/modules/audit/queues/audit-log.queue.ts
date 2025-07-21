@@ -4,16 +4,35 @@ import { Queue } from 'bull';
 import { CreateAuditLogDto } from '../dto';
 import { logger } from '../../../logger/consola.logger';
 
+/**
+ * Name der Bull-Queue für Audit-Logs
+ * @const
+ */
 export const AUDIT_LOG_QUEUE = 'audit-log';
 
+/**
+ * Aufgabentypen für die Audit-Log-Queue
+ *
+ * @enum {string}
+ */
 export enum AuditLogJobType {
+  /** Erstellt einen einzelnen Audit-Log-Eintrag */
   CREATE = 'create-audit-log',
+  /** Erstellt mehrere Audit-Log-Einträge in einem Batch */
   BATCH_CREATE = 'batch-create-audit-logs',
+  /** Bereinigt alte Audit-Logs gemäß Aufbewahrungsrichtlinien */
   CLEANUP = 'cleanup-audit-logs',
 }
 
+/**
+ * Datenstruktur für Audit-Log-Queue-Jobs
+ *
+ * @interface AuditLogJobData
+ */
 export interface AuditLogJobData {
+  /** Der Typ des auszuführenden Jobs */
   type: AuditLogJobType;
+  /** Die zu verarbeitenden Audit-Log-Daten */
   payload: CreateAuditLogDto | CreateAuditLogDto[];
 }
 

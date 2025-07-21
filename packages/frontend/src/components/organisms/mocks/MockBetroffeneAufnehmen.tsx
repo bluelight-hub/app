@@ -1,5 +1,6 @@
 import { Button, Form, Input, Select } from 'antd';
 import React from 'react';
+import { logger } from '@/utils/logger.ts';
 
 const { Option } = Select;
 
@@ -14,7 +15,7 @@ const PatientsCreate: React.FC = () => {
 
   const onFinish = (values: Patient) => {
     // hier würde man die Werte an den Server (NestJS) senden
-    console.log('Form data:', values);
+    logger.log('Form data:', values);
   };
 
   return (

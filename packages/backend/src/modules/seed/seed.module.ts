@@ -1,4 +1,3 @@
-import { CommonModule } from '@/common/common.module';
 import { EinsatzModule } from '@/modules/einsatz/einsatz.module';
 import { PrismaModule } from '@/prisma/prisma.module';
 import { DynamicModule, Module } from '@nestjs/common';
@@ -8,6 +7,8 @@ import { DevSeedService } from './dev-seed.service';
 import { ProfileService } from './profile.service';
 import { SeedImportService } from './seed-import.service';
 import { SeedService } from './seed.service';
+import { ThreatRulesSeedService } from './threat-rules-seed.service';
+import { ErrorHandlingService } from '@/common/services/error-handling.service';
 
 /**
  * Konfigurationsoptionen für das SeedModule
@@ -54,9 +55,17 @@ export interface SeedModuleOptions {
  * @module SeedModule
  */
 @Module({
-  imports: [PrismaModule, EinsatzModule, CommonModule, ConfigModule],
-  providers: [DatabaseCheckService, SeedService, DevSeedService, ProfileService, SeedImportService],
-  exports: [SeedService, DevSeedService, ProfileService, SeedImportService],
+  imports: [PrismaModule, EinsatzModule, ConfigModule],
+  providers: [
+    DatabaseCheckService,
+    SeedService,
+    DevSeedService,
+    ProfileService,
+    SeedImportService,
+    ThreatRulesSeedService,
+    ErrorHandlingService,
+  ],
+  exports: [SeedService, DevSeedService, ProfileService, SeedImportService, ThreatRulesSeedService],
 })
 export class SeedModule {
   /**
@@ -78,9 +87,17 @@ export class SeedModule {
         DevSeedService,
         ProfileService,
         SeedImportService,
+        ThreatRulesSeedService,
+        ErrorHandlingService,
         ...(SeedModule.shouldRegisterDevSeed(options) ? [DevSeedService] : []),
       ],
-      exports: [SeedService, DevSeedService, ProfileService, SeedImportService],
+      exports: [
+        SeedService,
+        DevSeedService,
+        ProfileService,
+        SeedImportService,
+        ThreatRulesSeedService,
+      ],
     };
   }
 
@@ -113,9 +130,17 @@ export class SeedModule {
         DevSeedService,
         ProfileService,
         SeedImportService,
+        ThreatRulesSeedService,
+        ErrorHandlingService,
         // DevSeedService is already included in the providers array above
       ],
-      exports: [SeedService, DevSeedService, ProfileService, SeedImportService],
+      exports: [
+        SeedService,
+        DevSeedService,
+        ProfileService,
+        SeedImportService,
+        ThreatRulesSeedService,
+      ],
     };
   }
 

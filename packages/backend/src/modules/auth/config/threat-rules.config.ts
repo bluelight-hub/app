@@ -2,19 +2,54 @@ import { ThreatSeverity } from '@prisma/generated/prisma';
 
 /**
  * Konfiguration für das Threat Detection System
+ *
+ * Zentrale Konfigurationsschnittstelle für alle Threat Detection Rules
+ * und das gesamte Sicherheitssystem. Definiert Engine-Einstellungen,
+ * Regel-Parameter und Reaktionsmaßnahmen.
+ *
+ * @interface ThreatRulesConfig
+ * @example
+ * ```typescript
+ * const config: ThreatRulesConfig = {
+ *   engine: {
+ *     enabled: true,
+ *     parallelExecution: true,
+ *     maxExecutionTime: 5000,
+ *     logDetailedMetrics: false
+ *   },
+ *   defaultRules: {
+ *     bruteForce: {
+ *       enabled: true,
+ *       severity: ThreatSeverity.HIGH,
+ *       config: { threshold: 5 }
+ *     }
+ *   },
+ *   alerts: {
+ *     enabledSeverities: [ThreatSeverity.HIGH],
+ *     deduplicationWindowMinutes: 15,
+ *     maxAlertsPerHour: 100
+ *   }
+ * };
+ * ```
  */
 export interface ThreatRulesConfig {
-  // Engine-Konfiguration
+  /** Engine-Konfiguration für das Threat Detection System */
   engine: {
+    /** Aktiviert/Deaktiviert das gesamte Threat Detection System */
     enabled: boolean;
+    /** Erlaubt parallele Ausführung von Regeln für bessere Performance */
     parallelExecution: boolean;
-    maxExecutionTime: number; // ms
+    /** Maximale Ausführungszeit pro Regel in Millisekunden */
+    maxExecutionTime: number;
+    /** Aktiviert detaillierte Metriken für Debugging */
     logDetailedMetrics: boolean;
   };
 
-  // Hot-Reload-Konfiguration
+  /** Hot-Reload-Konfiguration für dynamische Regel-Updates */
   hotReload: {
+    /** Aktiviert automatisches Neuladen von Regeln aus der Datenbank */
     enabled: boolean;
+    /** Reload-Intervall in Millisekunden */
     intervalMs: number;
   };
 
@@ -62,18 +97,6 @@ export interface ThreatRulesConfig {
       };
     };
 
-    timeAnomaly: {
-      enabled: boolean;
-      severity: ThreatSeverity;
-      config: {
-        suspiciousHours: { start: number; end: number };
-        allowedHours?: { start: number; end: number };
-        allowedDays?: number[];
-        checkUserPattern: boolean;
-        patternLearningDays: number;
-      };
-    };
-
     credentialStuffing: {
       enabled: boolean;
       severity: ThreatSeverity;
@@ -108,26 +131,39 @@ export interface ThreatRulesConfig {
     };
   };
 
-  // Alert-Konfiguration
+  /** Alert-Konfiguration für Benachrichtigungen */
   alerts: {
+    /** Schweregrade, für die Alerts erzeugt werden */
     enabledSeverities: ThreatSeverity[];
+    /** Zeitfenster für Deduplizierung in Minuten */
     deduplicationWindowMinutes: number;
+    /** Maximale Anzahl von Alerts pro Stunde */
     maxAlertsPerHour: number;
   };
 
-  // Aktion-Konfiguration
+  /** Aktion-Konfiguration für automatische Reaktionen */
   actions: {
+    /** Automatische IP-Blockierung bei Bedrohungen */
     autoBlock: {
+      /** Aktiviert automatische Blockierung */
       enabled: boolean;
+      /** Minimaler Schweregrad für Blockierung */
       severityThreshold: ThreatSeverity;
+      /** Dauer der Blockierung in Minuten */
       blockDurationMinutes: number;
     };
+    /** Erzwungene 2-Faktor-Authentifizierung */
     require2FA: {
+      /** Aktiviert erzwungene 2FA */
       enabled: boolean;
+      /** Minimaler Schweregrad für 2FA-Anforderung */
       severityThreshold: ThreatSeverity;
     };
+    /** Session-Invalidierung bei kritischen Bedrohungen */
     invalidateSessions: {
+      /** Aktiviert Session-Invalidierung */
       enabled: boolean;
+      /** Minimaler Schweregrad für Session-Invalidierung */
       severityThreshold: ThreatSeverity;
     };
   };
@@ -191,16 +227,6 @@ export const defaultThreatRulesConfig: ThreatRulesConfig = {
       },
     },
 
-    timeAnomaly: {
-      enabled: true,
-      severity: ThreatSeverity.MEDIUM,
-      config: {
-        suspiciousHours: { start: 0, end: 6 },
-        checkUserPattern: true,
-        patternLearningDays: 30,
-      },
-    },
-
     credentialStuffing: {
       enabled: true,
       severity: ThreatSeverity.CRITICAL,
@@ -260,6 +286,20 @@ export const defaultThreatRulesConfig: ThreatRulesConfig = {
 
 /**
  * Lädt die Threat Rules Konfiguration aus Umgebungsvariablen
+ *
+ * Überschreibt die Standardkonfiguration mit Werten aus Umgebungsvariablen,
+ * falls diese gesetzt sind. Ermöglicht flexible Konfiguration ohne Code-Änderungen.
+ *
+ * @returns {ThreatRulesConfig} Die geladene Konfiguration
+ * @example
+ * ```typescript
+ * // Mit Umgebungsvariablen:
+ * // THREAT_RULES_ENABLED=true
+ * // THREAT_RULE_BRUTE_FORCE_ENABLED=false
+ * const config = loadThreatRulesConfig();
+ * // config.engine.enabled === true
+ * // config.defaultRules.bruteForce.enabled === false
+ * ```
  */
 export function loadThreatRulesConfig(): ThreatRulesConfig {
   const config = { ...defaultThreatRulesConfig };
