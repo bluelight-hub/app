@@ -1,7 +1,7 @@
 import { Injectable, Logger, OnModuleInit } from '@nestjs/common';
 import { InjectQueue } from '@nestjs/bull';
 import { Queue } from 'bull';
-import { AlertStatus, SecurityAlert } from '@prisma/generated/prisma';
+import { AlertStatus, SecurityAlert, ThreatSeverity } from '@prisma/generated/prisma';
 import { AlertDispatcherService } from './alert-dispatcher.service';
 import { PrismaService } from '@/prisma/prisma.service';
 
@@ -268,13 +268,13 @@ export class AlertQueueService implements OnModuleInit {
   private calculatePriority(alert: SecurityAlert): number {
     // Higher priority = processed first (Bull uses lower numbers for higher priority)
     switch (alert.severity) {
-      case 'CRITICAL':
+      case ThreatSeverity.CRITICAL:
         return 1;
-      case 'HIGH':
+      case ThreatSeverity.HIGH:
         return 2;
-      case 'MEDIUM':
+      case ThreatSeverity.MEDIUM:
         return 3;
-      case 'LOW':
+      case ThreatSeverity.LOW:
         return 4;
       default:
         return 5;

@@ -2,8 +2,12 @@ import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { HttpService } from '@nestjs/axios';
 import { firstValueFrom } from 'rxjs';
-import { RetryConfig, RetryUtil } from '../../../common/utils/retry.util';
-import { CircuitBreaker, CircuitBreakerConfig } from '../../../common/utils/circuit-breaker.util';
+import { RetryConfig, RetryUtil } from '@/common/utils/retry.util';
+import {
+  CircuitBreaker,
+  CircuitBreakerConfig,
+  CircuitBreakerState,
+} from '../../../common/utils/circuit-breaker.util';
 
 /**
  * Enumeration representing the different types of security alerts that can be triggered
@@ -278,7 +282,7 @@ export class SecurityAlertService {
     try {
       // Prüfe Circuit Breaker Status
       const circuitStatus = this.circuitBreaker.getStatus();
-      if (circuitStatus.state === 'OPEN') {
+      if (circuitStatus.state === CircuitBreakerState.OPEN) {
         this.logger.warn(
           `Circuit breaker is OPEN, skipping alert. Last failure: ${circuitStatus.lastFailureTime}`,
         );

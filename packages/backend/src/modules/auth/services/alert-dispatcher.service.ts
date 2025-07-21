@@ -5,12 +5,16 @@ import { EventEmitter2 } from '@nestjs/event-emitter';
 import { PrismaService } from '@/prisma/prisma.service';
 import { NotificationService } from '@/modules/notification/services/notification.service';
 import {
-  SecurityAlert,
   AlertStatus,
-  ThreatSeverity,
   NotificationStatus,
+  SecurityAlert,
+  ThreatSeverity,
 } from '@prisma/generated/prisma';
-import { CircuitBreaker, CircuitBreakerConfig } from '@/common/utils/circuit-breaker.util';
+import {
+  CircuitBreaker,
+  CircuitBreakerConfig,
+  CircuitBreakerState,
+} from '@/common/utils/circuit-breaker.util';
 import { RetryUtil } from '@/common/utils/retry.util';
 import { AlertNotificationConfig } from '../interfaces/alert-context.interface';
 
@@ -59,55 +63,6 @@ export class AlertDispatcherService implements OnModuleInit {
     } catch (error) {
       this.logger.error('Failed to initialize notification service:', error);
     }
-  }
-
-  /**
-   * Initialisiert die Konfiguration
-   */
-  private initializeConfig(): void {
-    this.notificationConfig = {
-      channelsBySeverity: {
-        low: this.configService.get<string[]>('ALERT_CHANNELS_LOW', ['email']),
-        medium: this.configService.get<string[]>('ALERT_CHANNELS_MEDIUM', ['email']),
-        high: this.configService.get<string[]>('ALERT_CHANNELS_HIGH', ['email', 'webhook']),
-        critical: this.configService.get<string[]>('ALERT_CHANNELS_CRITICAL', ['email', 'webhook']),
-      },
-      rateLimiting: {
-        maxPerHourPerUser: this.configService.get<number>('ALERT_RATE_LIMIT_USER', 10),
-        maxPerHourGlobal: this.configService.get<number>('ALERT_RATE_LIMIT_GLOBAL', 100),
-      },
-      retryConfig: {
-        maxAttempts: this.configService.get<number>('ALERT_RETRY_MAX_ATTEMPTS', 3),
-        backoffMultiplier: this.configService.get<number>('ALERT_RETRY_BACKOFF', 2),
-        maxBackoffMs: this.configService.get<number>('ALERT_RETRY_MAX_BACKOFF', 30000),
-      },
-    };
-  }
-
-  /**
-   * Initialisiert Circuit Breaker für jeden Channel
-   */
-  private initializeCircuitBreakers(): void {
-    const channels = this.notificationService.getChannels();
-
-    channels.forEach((channel) => {
-      const config: Partial<CircuitBreakerConfig> = {
-        failureThreshold: this.configService.get<number>(
-          `ALERT_CB_${channel.toUpperCase()}_THRESHOLD`,
-          5,
-        ),
-        openStateDuration: this.configService.get<number>(
-          `ALERT_CB_${channel.toUpperCase()}_DURATION`,
-          60000,
-        ),
-        successThreshold: this.configService.get<number>(
-          `ALERT_CB_${channel.toUpperCase()}_SUCCESS`,
-          3,
-        ),
-      };
-
-      this.circuitBreakers.set(channel, new CircuitBreaker(`AlertDispatch-${channel}`, config));
-    });
   }
 
   /**
@@ -175,6 +130,142 @@ export class AlertDispatcherService implements OnModuleInit {
         errors: { system: error.message },
       };
     }
+  }
+
+  /**
+   * Retry failed dispatches
+   */
+  async retryFailedDispatches(since?: Date): Promise<{
+    processed: number;
+    succeeded: number;
+    failed: number;
+  }> {
+    const cutoffDate = since || new Date(Date.now() - 3600000); // 1 hour default
+
+    const failedAlerts = await this.prisma.securityAlert.findMany({
+      where: {
+        status: AlertStatus.FAILED,
+        lastDispatchAt: { gte: cutoffDate },
+        dispatchAttempts: { lt: this.notificationConfig.retryConfig.maxAttempts },
+      },
+      orderBy: { severity: 'desc' }, // Priority to high severity
+      take: 50, // Batch size
+    });
+
+    let succeeded = 0;
+    let failed = 0;
+
+    for (const alert of failedAlerts) {
+      const result = await this.dispatchAlert(alert);
+
+      if (result.success) {
+        succeeded++;
+      } else {
+        failed++;
+      }
+    }
+
+    return {
+      processed: failedAlerts.length,
+      succeeded,
+      failed,
+    };
+  }
+
+  /**
+   * Holt Dispatch-Statistiken
+   */
+  async getDispatchStatistics(): Promise<{
+    total: number;
+    byStatus: Record<string, number>;
+    byChannel: Record<string, number>;
+    avgDispatchTime: number;
+    successRate: number;
+  }> {
+    const [totalAlerts, dispatchedAlerts, notifications] = await Promise.all([
+      this.prisma.securityAlert.count(),
+      this.prisma.securityAlert.count({
+        where: { status: AlertStatus.DISPATCHED },
+      }),
+      this.prisma.alertNotification.groupBy({
+        by: ['channel', 'status'],
+        _count: true,
+      }),
+    ]);
+
+    const byChannel: Record<string, number> = {};
+    let totalNotifications = 0;
+    let successfulNotifications = 0;
+
+    notifications.forEach((item) => {
+      byChannel[item.channel] = (byChannel[item.channel] || 0) + item._count;
+      totalNotifications += item._count;
+
+      if (item.status === NotificationStatus.SENT) {
+        successfulNotifications += item._count;
+      }
+    });
+
+    return {
+      total: totalAlerts,
+      byStatus: {
+        dispatched: dispatchedAlerts,
+        pending: await this.prisma.securityAlert.count({ where: { status: AlertStatus.PENDING } }),
+        failed: await this.prisma.securityAlert.count({ where: { status: AlertStatus.FAILED } }),
+      },
+      byChannel,
+      avgDispatchTime: 0, // TODO: Implement time tracking
+      successRate: totalNotifications > 0 ? successfulNotifications / totalNotifications : 0,
+    };
+  }
+
+  /**
+   * Initialisiert die Konfiguration
+   */
+  private initializeConfig(): void {
+    this.notificationConfig = {
+      channelsBySeverity: {
+        low: this.configService.get<string[]>('ALERT_CHANNELS_LOW', ['email']),
+        medium: this.configService.get<string[]>('ALERT_CHANNELS_MEDIUM', ['email']),
+        high: this.configService.get<string[]>('ALERT_CHANNELS_HIGH', ['email', 'webhook']),
+        critical: this.configService.get<string[]>('ALERT_CHANNELS_CRITICAL', ['email', 'webhook']),
+      },
+      rateLimiting: {
+        maxPerHourPerUser: this.configService.get<number>('ALERT_RATE_LIMIT_USER', 10),
+        maxPerHourGlobal: this.configService.get<number>('ALERT_RATE_LIMIT_GLOBAL', 100),
+      },
+      retryConfig: {
+        maxAttempts: this.configService.get<number>('ALERT_RETRY_MAX_ATTEMPTS', 3),
+        backoffMultiplier: this.configService.get<number>('ALERT_RETRY_BACKOFF', 2),
+        maxBackoffMs: this.configService.get<number>('ALERT_RETRY_MAX_BACKOFF', 30000),
+      },
+    };
+  }
+
+  /**
+   * Initialisiert Circuit Breaker für jeden Channel
+   */
+  private initializeCircuitBreakers(): void {
+    const channels = this.notificationService.getChannels();
+
+    channels.forEach((channel) => {
+      const config: Partial<CircuitBreakerConfig> = {
+        failureThreshold: this.configService.get<number>(
+          `ALERT_CB_${channel.toUpperCase()}_THRESHOLD`,
+          5,
+        ),
+        openStateDuration: this.configService.get<number>(
+          `ALERT_CB_${channel.toUpperCase()}_DURATION`,
+          60000,
+        ),
+        successThreshold: this.configService.get<number>(
+          `ALERT_CB_${channel.toUpperCase()}_SUCCESS`,
+          3,
+        ),
+      };
+
+      this.circuitBreakers.set(channel, new CircuitBreaker(`AlertDispatch-${channel}`, config));
+    });
   }
 
   /**
@@ -287,7 +378,7 @@ export class AlertDispatcherService implements OnModuleInit {
 
     // Check circuit breaker status
     const cbStatus = circuitBreaker.getStatus();
-    if (cbStatus.state === 'OPEN') {
+    if (cbStatus.state === CircuitBreakerState.OPEN) {
       this.logger.warn(`Circuit breaker OPEN for ${channel}, skipping dispatch`);
       return false;
     }
@@ -637,92 +728,5 @@ This is an automated security alert.
       processingTime,
       timestamp: new Date(),
     });
-  }
-
-  /**
-   * Retry failed dispatches
-   */
-  async retryFailedDispatches(since?: Date): Promise<{
-    processed: number;
-    succeeded: number;
-    failed: number;
-  }> {
-    const cutoffDate = since || new Date(Date.now() - 3600000); // 1 hour default
-
-    const failedAlerts = await this.prisma.securityAlert.findMany({
-      where: {
-        status: AlertStatus.FAILED,
-        lastDispatchAt: { gte: cutoffDate },
-        dispatchAttempts: { lt: this.notificationConfig.retryConfig.maxAttempts },
-      },
-      orderBy: { severity: 'desc' }, // Priority to high severity
-      take: 50, // Batch size
-    });
-
-    let succeeded = 0;
-    let failed = 0;
-
-    for (const alert of failedAlerts) {
-      const result = await this.dispatchAlert(alert);
-
-      if (result.success) {
-        succeeded++;
-      } else {
-        failed++;
-      }
-    }
-
-    return {
-      processed: failedAlerts.length,
-      succeeded,
-      failed,
-    };
-  }
-
-  /**
-   * Holt Dispatch-Statistiken
-   */
-  async getDispatchStatistics(): Promise<{
-    total: number;
-    byStatus: Record<string, number>;
-    byChannel: Record<string, number>;
-    avgDispatchTime: number;
-    successRate: number;
-  }> {
-    const [totalAlerts, dispatchedAlerts, notifications] = await Promise.all([
-      this.prisma.securityAlert.count(),
-      this.prisma.securityAlert.count({
-        where: { status: AlertStatus.DISPATCHED },
-      }),
-      this.prisma.alertNotification.groupBy({
-        by: ['channel', 'status'],
-        _count: true,
-      }),
-    ]);
-
-    const byChannel: Record<string, number> = {};
-    let totalNotifications = 0;
-    let successfulNotifications = 0;
-
-    notifications.forEach((item) => {
-      byChannel[item.channel] = (byChannel[item.channel] || 0) + item._count;
-      totalNotifications += item._count;
-
-      if (item.status === NotificationStatus.SENT) {
-        successfulNotifications += item._count;
-      }
-    });
-
-    return {
-      total: totalAlerts,
-      byStatus: {
-        dispatched: dispatchedAlerts,
-        pending: await this.prisma.securityAlert.count({ where: { status: AlertStatus.PENDING } }),
-        failed: await this.prisma.securityAlert.count({ where: { status: AlertStatus.FAILED } }),
-      },
-      byChannel,
-      avgDispatchTime: 0, // TODO: Implement time tracking
-      successRate: totalNotifications > 0 ? successfulNotifications / totalNotifications : 0,
-    };
   }
 }
