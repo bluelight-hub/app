@@ -35,13 +35,14 @@ module.exports = {
   coverageDirectory: '../coverage',
   testEnvironment: 'node',
   setupFilesAfterEnv: ['<rootDir>/jest.setup.ts'],
-  transformIgnorePatterns: ['node_modules/(?!(nanoid)/)'],
+  transformIgnorePatterns: ['node_modules/(?!(nanoid|@bluelight-hub/shared)/)'],
   moduleNameMapper: {
     '^@/(.*)$': '<rootDir>/$1',
     '^@prisma/generated/prisma/enums$': '<rootDir>/__mocks__/prisma/enums.ts',
     '^@prisma/generated/prisma/client$': '<rootDir>/__mocks__/prisma/client.ts',
     '^@prisma/generated/prisma$': '<rootDir>/__mocks__/prisma/enums.ts',
     '^nanoid$': '<rootDir>/__mocks__/nanoid.ts',
+    '^@bluelight-hub/shared$': '<rootDir>/__mocks__/@bluelight-hub/shared.ts',
   },
   coverageThreshold: {
     global: {

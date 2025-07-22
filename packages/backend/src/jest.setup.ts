@@ -16,3 +16,13 @@ jest.mock(
 );
 
 // Andere globale Mocks können hier hinzugefügt werden
+
+// Global afterEach hook to clean up timers
+afterEach(() => {
+  jest.clearAllTimers();
+});
+
+// Global afterAll hook to ensure clean teardown
+afterAll(() => {
+  jest.useRealTimers();
+});

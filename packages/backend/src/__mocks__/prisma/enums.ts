@@ -102,3 +102,34 @@ export const ConditionType = {
 } as const;
 
 export type ConditionType = (typeof ConditionType)[keyof typeof ConditionType];
+
+export const AlertStatus = {
+  PENDING: 'PENDING',
+  PROCESSING: 'PROCESSING',
+  DISPATCHED: 'DISPATCHED',
+  FAILED: 'FAILED',
+  RESOLVED: 'RESOLVED',
+  SUPPRESSED: 'SUPPRESSED',
+} as const;
+
+export type AlertStatus = (typeof AlertStatus)[keyof typeof AlertStatus];
+
+export const AlertType = {
+  MULTIPLE_FAILED_ATTEMPTS: 'MULTIPLE_FAILED_ATTEMPTS',
+  BRUTE_FORCE_ATTEMPT: 'BRUTE_FORCE_ATTEMPT',
+  SUSPICIOUS_LOGIN: 'SUSPICIOUS_LOGIN',
+  ANOMALY_DETECTED: 'ANOMALY_DETECTED',
+  ACCOUNT_LOCKED: 'ACCOUNT_LOCKED',
+  THREAT_RULE_MATCH: 'THREAT_RULE_MATCH',
+  POLICY_VIOLATION: 'POLICY_VIOLATION',
+} as const;
+
+export type AlertType = (typeof AlertType)[keyof typeof AlertType];
+
+export const NotificationStatus = {
+  QUEUED: 'QUEUED',
+  SENT: 'SENT',
+  FAILED: 'FAILED',
+} as const;
+
+export type NotificationStatus = (typeof NotificationStatus)[keyof typeof NotificationStatus];

@@ -88,6 +88,7 @@ describe('SecurityAlertService', () => {
 
   afterEach(() => {
     jest.clearAllMocks();
+    jest.useRealTimers();
   });
 
   describe('sendAlert', () => {

@@ -2,7 +2,7 @@ import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { PrismaService } from '@/prisma/prisma.service';
 import { EventEmitter2 } from '@nestjs/event-emitter';
-import { SecurityAlert, ThreatSeverity, AlertStatus } from '@prisma/generated/prisma';
+import { AlertStatus, SecurityAlert, ThreatSeverity } from '@prisma/generated/prisma';
 import { AlertCorrelationConfig } from '../interfaces/alert-context.interface';
 import * as crypto from 'crypto';
 
@@ -108,6 +108,106 @@ export class AlertCorrelationService {
       this.logger.error(`Error correlating alert ${alert.id}:`, error);
       throw error;
     }
+  }
+
+  /**
+   * Holt alle Alerts einer Correlation Group
+   */
+  async getCorrelationGroup(correlationId: string): Promise<SecurityAlert[]> {
+    return await this.prisma.securityAlert.findMany({
+      where: {
+        correlationId,
+      },
+      orderBy: { createdAt: 'desc' },
+    });
+  }
+
+  /**
+   * Analysiert eine Correlation Group
+   */
+  async analyzeCorrelationGroup(correlationId: string): Promise<{
+    summary: {
+      totalAlerts: number;
+      timeSpan: { start: Date; end: Date };
+      severityBreakdown: Record<string, number>;
+      typeBreakdown: Record<string, number>;
+      affectedUsers: string[];
+      affectedIPs: string[];
+    };
+    patterns: string[];
+    riskScore: number;
+    recommendations: string[];
+  }> {
+    const alerts = await this.getCorrelationGroup(correlationId);
+
+    if (alerts.length === 0) {
+      throw new Error(`No alerts found for correlation ID: ${correlationId}`);
+    }
+
+    // Calculate summary
+    const summary = {
+      totalAlerts: alerts.length,
+      timeSpan: {
+        start: new Date(Math.min(...alerts.map((a) => a.createdAt.getTime()))),
+        end: new Date(Math.max(...alerts.map((a) => a.createdAt.getTime()))),
+      },
+      severityBreakdown: this.groupBy(alerts, 'severity'),
+      typeBreakdown: this.groupBy(alerts, 'type'),
+      affectedUsers: [...new Set(alerts.filter((a) => a.userId).map((a) => a.userId!))],
+      affectedIPs: [...new Set(alerts.filter((a) => a.ipAddress).map((a) => a.ipAddress!))],
+    };
+
+    // Detect patterns
+    const patterns = this.detectPatterns(alerts[0], alerts.slice(1));
+
+    // Calculate risk score
+    const riskScore = this.calculateGroupRiskScore(alerts, patterns);
+
+    // Generate recommendations
+    const recommendations = this.generateRecommendations(summary, patterns, riskScore);
+
+    return {
+      summary,
+      patterns,
+      riskScore,
+      recommendations,
+    };
+  }
+
+  /**
+   * Manuelles Mergen von Correlation Groups
+   */
+  async mergeCorrelationGroups(
+    correlationIds: string[],
+  ): Promise<{ newCorrelationId: string; affectedAlerts: number }> {
+    if (correlationIds.length < 2) {
+      throw new Error('At least 2 correlation IDs required for merge');
+    }
+
+    const newCorrelationId = crypto.randomUUID();
+
+    // Update all alerts to new correlation ID
+    const result = await this.prisma.securityAlert.updateMany({
+      where: {
+        correlationId: { in: correlationIds },
+      },
+      data: {
+        correlationId: newCorrelationId,
+      },
+    });
+
+    // Emit merge event
+    this.eventEmitter.emit('correlation.groups.merged', {
+      oldCorrelationIds: correlationIds,
+      newCorrelationId,
+      affectedAlerts: result.count,
+      timestamp: new Date(),
+    });
+
+    return {
+      newCorrelationId,
+      affectedAlerts: result.count,
+    };
   }
 
   /**
@@ -406,70 +506,6 @@ export class AlertCorrelationService {
   }
 
   /**
-   * Holt alle Alerts einer Correlation Group
-   */
-  async getCorrelationGroup(correlationId: string): Promise<SecurityAlert[]> {
-    return await this.prisma.securityAlert.findMany({
-      where: {
-        correlationId,
-      },
-      orderBy: { createdAt: 'desc' },
-    });
-  }
-
-  /**
-   * Analysiert eine Correlation Group
-   */
-  async analyzeCorrelationGroup(correlationId: string): Promise<{
-    summary: {
-      totalAlerts: number;
-      timeSpan: { start: Date; end: Date };
-      severityBreakdown: Record<string, number>;
-      typeBreakdown: Record<string, number>;
-      affectedUsers: string[];
-      affectedIPs: string[];
-    };
-    patterns: string[];
-    riskScore: number;
-    recommendations: string[];
-  }> {
-    const alerts = await this.getCorrelationGroup(correlationId);
-
-    if (alerts.length === 0) {
-      throw new Error(`No alerts found for correlation ID: ${correlationId}`);
-    }
-
-    // Calculate summary
-    const summary = {
-      totalAlerts: alerts.length,
-      timeSpan: {
-        start: new Date(Math.min(...alerts.map((a) => a.createdAt.getTime()))),
-        end: new Date(Math.max(...alerts.map((a) => a.createdAt.getTime()))),
-      },
-      severityBreakdown: this.groupBy(alerts, 'severity'),
-      typeBreakdown: this.groupBy(alerts, 'type'),
-      affectedUsers: [...new Set(alerts.filter((a) => a.userId).map((a) => a.userId!))],
-      affectedIPs: [...new Set(alerts.filter((a) => a.ipAddress).map((a) => a.ipAddress!))],
-    };
-
-    // Detect patterns
-    const patterns = this.detectPatterns(alerts[0], alerts.slice(1));
-
-    // Calculate risk score
-    const riskScore = this.calculateGroupRiskScore(alerts, patterns);
-
-    // Generate recommendations
-    const recommendations = this.generateRecommendations(summary, patterns, riskScore);
-
-    return {
-      summary,
-      patterns,
-      riskScore,
-      recommendations,
-    };
-  }
-
-  /**
    * Berechnet einen Risk Score für eine Correlation Group
    */
   private calculateGroupRiskScore(alerts: SecurityAlert[], patterns: string[]): number {
@@ -571,41 +607,5 @@ export class AlertCorrelationService {
       },
       {} as Record<string, number>,
     );
-  }
-
-  /**
-   * Manuelles Mergen von Correlation Groups
-   */
-  async mergeCorrelationGroups(
-    correlationIds: string[],
-  ): Promise<{ newCorrelationId: string; affectedAlerts: number }> {
-    if (correlationIds.length < 2) {
-      throw new Error('At least 2 correlation IDs required for merge');
-    }
-
-    const newCorrelationId = crypto.randomUUID();
-
-    // Update all alerts to new correlation ID
-    const result = await this.prisma.securityAlert.updateMany({
-      where: {
-        correlationId: { in: correlationIds },
-      },
-      data: {
-        correlationId: newCorrelationId,
-      },
-    });
-
-    // Emit merge event
-    this.eventEmitter.emit('correlation.groups.merged', {
-      oldCorrelationIds: correlationIds,
-      newCorrelationId,
-      affectedAlerts: result.count,
-      timestamp: new Date(),
-    });
-
-    return {
-      newCorrelationId,
-      affectedAlerts: result.count,
-    };
   }
 }

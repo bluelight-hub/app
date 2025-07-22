@@ -7,7 +7,9 @@ import { AppModule } from './app.module';
 import { logger } from './logger/consola.logger';
 import helmet from 'helmet';
 import * as cookieParser from 'cookie-parser';
-import { helmetConfig, corsConfig } from './config/security.config';
+import { corsConfig, helmetConfig } from './config/security.config';
+
+require('@dotenvx/dotenvx').config();
 
 /**
  * Bootstrap-Funktion zum Initialisieren und Starten der NestJS-Anwendung.

@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { api } from '../api';
 import { logger } from '../utils/logger';
 
@@ -22,36 +22,50 @@ export const useBackendHealth = (checkOnMount = true) => {
     isHealthy: false,
     isLoading: false,
   });
+  const isMountedRef = useRef(true);
 
   const checkHealth = async () => {
+    if (!isMountedRef.current) return;
+
     setState((prev) => ({ ...prev, isLoading: true, error: undefined }));
 
     try {
       await api.health.healthControllerCheckLiveness();
-      setState((prev) => ({
-        ...prev,
-        isHealthy: true,
-        isLoading: false,
-        lastChecked: new Date(),
-      }));
-      logger.debug('Backend health check passed');
+      if (isMountedRef.current) {
+        setState((prev) => ({
+          ...prev,
+          isHealthy: true,
+          isLoading: false,
+          lastChecked: new Date(),
+        }));
+        logger.debug('Backend health check passed');
+      }
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : 'Backend ist nicht erreichbar';
-      setState((prev) => ({
-        ...prev,
-        isHealthy: false,
-        isLoading: false,
-        error: errorMessage,
-        lastChecked: new Date(),
-      }));
-      logger.warn('Backend health check failed', { error: errorMessage });
+      if (isMountedRef.current) {
+        const errorMessage =
+          error instanceof Error ? error.message : 'Backend ist nicht erreichbar';
+        setState((prev) => ({
+          ...prev,
+          isHealthy: false,
+          isLoading: false,
+          error: errorMessage,
+          lastChecked: new Date(),
+        }));
+        logger.warn('Backend health check failed', { error: errorMessage });
+      }
     }
   };
 
   useEffect(() => {
+    isMountedRef.current = true;
+
     if (checkOnMount) {
       checkHealth();
     }
+
+    return () => {
+      isMountedRef.current = false;
+    };
   }, [checkOnMount]);
 
   // Zusätzliche Methoden für StatusIndicator-Kompatibilität

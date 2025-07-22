@@ -16,6 +16,7 @@ describe('CircuitBreaker', () => {
 
   afterEach(() => {
     circuitBreaker.reset();
+    jest.useRealTimers();
   });
 
   describe('State Transitions', () => {

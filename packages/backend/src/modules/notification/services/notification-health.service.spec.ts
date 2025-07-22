@@ -61,6 +61,7 @@ describe('NotificationHealthService', () => {
 
   afterEach(() => {
     jest.clearAllMocks();
+    jest.useRealTimers();
     service.onModuleDestroy();
   });
 
