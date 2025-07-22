@@ -1,225 +1,160 @@
-import { ThreatSeverity, AlertPriority, AlertStatus } from '@prisma/generated/prisma/enums';
-import { ThreatDetectionRule, RuleEvaluationResult, RuleContext } from '../rules/rule.interface';
+import { AlertType, ThreatSeverity } from '@prisma/generated/prisma';
 
 /**
- * Kontext für die Generierung von Sicherheitswarnungen
- *
- * Enthält alle notwendigen Informationen zur Erstellung und Verarbeitung
- * von Sicherheitswarnungen basierend auf erkannten Bedrohungen
- *
- * @interface SecurityAlertContext
- */
-export interface SecurityAlertContext {
-  // Source Information
-  /** Die Regel, die den Alert ausgelöst hat */
-  sourceRule?: ThreatDetectionRule;
-  /** ID des auslösenden Ereignisses */
-  sourceEventId?: string;
-  /** Ergebnis der Regel-Evaluierung */
-  ruleEvaluationResult: RuleEvaluationResult;
-  /** Kontext der Regel-Evaluierung */
-  ruleContext: RuleContext;
-
-  // Alert Metadata
-  /** Typ des Alerts (z.B. 'brute-force', 'session-hijacking') */
-  alertType: string;
-  /** Schweregrad der erkannten Bedrohung */
-  severity: ThreatSeverity;
-  /** Priorität für die Bearbeitung */
-  priority?: AlertPriority;
-  /** Überschrift des Alerts für die Anzeige */
-  title: string;
-  /** Detaillierte Beschreibung der Bedrohung */
-  description: string;
-
-  // Additional Context
-  /** Beweismaterial und zusätzliche Daten zur Bedrohung */
-  evidence: Record<string, any>;
-  /** Empfohlene Maßnahmen zur Behändlung */
-  suggestedActions?: string[];
-  /** Schlüssel zur Gruppierung zusammenhängender Alerts */
-  correlationKey?: string;
-  /** Automatisches Verwerfen nach X Minuten */
-  timeToLive?: number;
-}
-
-/**
- * Komponenten für Alert-Fingerprinting zur Duplikatserkennung
- *
- * Definiert die Felder, die zur Erstellung eines eindeutigen Fingerprints
- * für Alerts verwendet werden, um Duplikate zu erkennen und zu vermeiden
- *
- * @interface AlertFingerprintComponents
+ * Komponenten für die Generierung eines Alert-Fingerprints
+ * zur Deduplizierung von ähnlichen Alerts
  */
 export interface AlertFingerprintComponents {
-  /** Typ des Alerts für Fingerprinting */
-  alertType: string;
-  /** Benutzer-ID für benutzerspezifische Alerts */
+  /** Event-Typ oder Alert-Typ */
+  type: string;
+  /** Benutzer-ID (optional) */
   userId?: string;
-  /** IP-Adresse für IP-basierte Alerts */
+  /** IP-Adresse (optional) */
   ipAddress?: string;
-  /** Regel-ID für regelbasierte Alerts */
+  /** Rule-ID falls durch Rule ausgelöst (optional) */
   ruleId?: string;
-  /** Zeitfenster in Minuten für Duplikatserkennung */
-  timeWindow?: number;
-  /** Zusätzliche Schlüssel für erweiterte Fingerprints */
-  customKeys?: string[];
-}
-
-/**
- * Konfiguration für Alert-Korrelation
- *
- * Definiert, wie zusammenhängende Alerts erkannt und gruppiert werden,
- * um Alert-Fatigue zu reduzieren und zusammenhängende Vorfälle zu erkennen
- *
- * @interface AlertCorrelationConfig
- */
-export interface AlertCorrelationConfig {
-  /**
-   * Zeitfenster für Korrelation in Minuten
-   * Alerts innerhalb dieses Zeitfensters werden auf Zusammenhänge geprüft
-   * @example 15
-   */
-  correlationWindow: number;
-
-  /**
-   * Felder, die für die Korrelation übereinstimmen müssen
-   * @example ['userId', 'ipAddress', 'alertType']
-   */
-  correlationKeys: string[];
-
-  /**
-   * Maximale Anzahl von Child-Alerts pro Parent-Alert
-   * @example 100
-   */
-  maxChildAlerts: number;
-
-  /**
-   * Strategie für die Aggregation korrelierter Alerts
-   * - 'count': Nach Anzahl ähnlicher Alerts
-   * - 'time': Nach Zeitintervallen
-   * - 'severity': Nach höchster Schweregrad
-   */
-  aggregationStrategy: 'count' | 'time' | 'severity';
+  /** Zusätzliche Komponenten für spezifische Alert-Typen */
+  additionalComponents?: Record<string, string>;
 }
 
 /**
  * Ergebnis der Alert-Verarbeitung
- *
- * Enthält Informationen über den Verarbeitungsstatus eines Alerts,
- * einschließlich Duplikatserkennung und Korrelation mit anderen Alerts
- *
- * @interface AlertProcessingResult
  */
 export interface AlertProcessingResult {
-  /** ID des verarbeiteten Alerts */
+  /** ID des verarbeiteten oder deduplizierten Alerts */
   alertId: string;
-  /** Gibt an, ob dies ein neuer Alert ist */
-  isNew: boolean;
-  /** Gibt an, ob dies ein Duplikat eines bestehenden Alerts ist */
+  /** Status der Verarbeitung */
+  status: 'created' | 'deduplicated' | 'failed';
+  /** Ob es sich um ein Duplikat handelt */
   isDuplicate: boolean;
-  /** Gibt an, ob der Alert mit anderen korreliert wurde */
-  isCorrelated: boolean;
-  /** ID des übergeordneten Alerts bei Korrelation */
-  parentAlertId?: string;
-  /** Status der Benachrichtigungsversendung */
-  notificationsSent: boolean;
   /** Fehlermeldung bei Verarbeitungsfehlern */
   error?: string;
 }
 
 /**
- * Optionen für Alert-Abfragen
- *
- * Definiert Filter- und Sortieroptionen für die Abfrage von Sicherheitswarnungen
- * aus der Datenbank mit umfangreichen Filtermöglichkeiten
- *
- * @interface AlertQueryOptions
+ * Kontext für die manuelle Erstellung von Security Alerts
  */
-export interface AlertQueryOptions {
-  /** Filter nach Alert-Status */
-  status?: AlertStatus[];
-  /** Filter nach Schweregrad */
-  severity?: ThreatSeverity[];
-  /** Filter nach Priorität */
-  priority?: AlertPriority[];
-  /** Filter nach Alert-Typen */
-  alertTypes?: string[];
-  /** Filter nach Benutzer-ID */
+export interface SecurityAlertContext {
+  /** Alert-Typ */
+  type?: AlertType;
+  /** Schweregrad des Alerts */
+  severity: ThreatSeverity;
+  /** Titel des Alerts */
+  title: string;
+  /** Detaillierte Beschreibung */
+  description: string;
+  /** Benutzer-ID (optional) */
   userId?: string;
-  /** Filter nach IP-Adresse */
+  /** E-Mail-Adresse des Benutzers (optional) */
+  userEmail?: string;
+  /** IP-Adresse (optional) */
   ipAddress?: string;
-  /** Filter nach Korrelations-ID */
-  correlationId?: string;
-  /** Zeitbereichsfilter für Alert-Erstellung */
-  timeRange?: {
-    /** Startdatum des Zeitbereichs */
-    start: Date;
-    /** Enddatum des Zeitbereichs */
-    end: Date;
-  };
-  /** Gelöste Alerts einschließen */
-  includeResolved?: boolean;
-  /** Abgelaufene Alerts einschließen */
-  includeExpired?: boolean;
-  /** Maximale Anzahl der Ergebnisse */
-  limit?: number;
-  /** Offset für Paginierung */
-  offset?: number;
-  /** Sortierfeld */
-  orderBy?: 'createdAt' | 'severity' | 'priority';
-  /** Sortierrichtung */
-  orderDirection?: 'asc' | 'desc';
+  /** User-Agent (optional) */
+  userAgent?: string;
+  /** Session-ID (optional) */
+  sessionId?: string;
+  /** Beweise/Evidenz für den Alert */
+  evidence?: Record<string, any>;
+  /** Zusätzliche Metadaten */
+  metadata?: Record<string, any>;
+  /** Tags zur Kategorisierung */
+  tags?: string[];
 }
 
 /**
- * Statistische Auswertung von Sicherheitswarnungen
- *
- * Aggregierte Statistiken über Alerts für Reporting und Dashboard-Anzeigen
- *
- * @interface AlertStatistics
+ * Optionen für Alert-Abfragen
+ */
+export interface AlertQueryOptions {
+  /** Zeitbereich für die Abfrage */
+  timeRange?: {
+    start: Date;
+    end: Date;
+  };
+  /** Nach Benutzer-ID filtern */
+  userId?: string;
+  /** Nach IP-Adresse filtern */
+  ipAddress?: string;
+  /** Nach Schweregrad filtern */
+  severity?: ThreatSeverity;
+  /** Nach Alert-Typ filtern */
+  type?: AlertType;
+  /** Nach Status filtern */
+  status?: string;
+  /** Nach Tags filtern */
+  tags?: string[];
+  /** Nur korrelierte Alerts */
+  correlatedOnly?: boolean;
+  /** Pagination */
+  skip?: number;
+  take?: number;
+  /** Sortierung */
+  orderBy?: {
+    field: string;
+    direction: 'asc' | 'desc';
+  };
+}
+
+/**
+ * Alert-Statistiken
  */
 export interface AlertStatistics {
   /** Gesamtanzahl der Alerts */
   total: number;
-  /** Anzahl der Alerts nach Status */
-  byStatus: Record<AlertStatus, number>;
-  /** Anzahl der Alerts nach Schweregrad */
-  bySeverity: Record<ThreatSeverity, number>;
-  /** Anzahl der Alerts nach Priorität */
-  byPriority: Record<AlertPriority, number>;
-  /** Anzahl der Alerts nach Typ */
-  byAlertType: Record<string, number>;
-  /** Durchschnittliche Reaktionszeit in Minuten */
-  averageResponseTime?: number;
-  /** Durchschnittliche Lösungszeit in Minuten */
-  averageResolutionTime?: number;
+  /** Aufschlüsselung nach Schweregrad */
+  bySeverity: Record<string, number>;
+  /** Aufschlüsselung nach Typ */
+  byType: Record<string, number>;
+  /** Aufschlüsselung nach Status */
+  byStatus: Record<string, number>;
+  /** Zeitbereich der Statistik */
+  timeRange?: {
+    start: Date;
+    end: Date;
+  };
+}
+
+/**
+ * Konfiguration für Alert-Korrelation
+ */
+export interface AlertCorrelationConfig {
+  /** Zeitfenster für Korrelation in Millisekunden */
+  timeWindow: number;
+  /** Minimale Anzahl von Alerts für Korrelation */
+  minAlerts: number;
+  /** Felder die für Korrelation verwendet werden */
+  correlationFields: string[];
+  /** Automatische Eskalation bei Korrelation */
+  autoEscalate: boolean;
+  /** Eskalationsschwellwerte */
+  escalationThresholds: {
+    criticalCount: number;
+    highCount: number;
+    totalCount: number;
+  };
 }
 
 /**
  * Konfiguration für Alert-Benachrichtigungen
- *
- * Definiert wie und wann Benachrichtigungen für Sicherheitswarnungen
- * versendet werden sollen, einschließlich Eskalationsregeln
- *
- * @interface AlertNotificationConfig
  */
 export interface AlertNotificationConfig {
-  /** Benachrichtigungskanäle (z.B. ['email', 'webhook']) */
-  channels: string[];
-  /** Minimaler Schweregrad für Benachrichtigungen */
-  severityThreshold?: ThreatSeverity;
-  /** Minimale Priorität für Benachrichtigungen */
-  priorityThreshold?: AlertPriority;
-  /** Beweismaterial in Benachrichtigung einschließen */
-  includeEvidence?: boolean;
-  /** Benutzerdefinierte Benachrichtigungsvorlage */
-  customTemplate?: string;
-  /** Eskalationsregeln für unbehandelte Alerts */
-  escalationRules?: {
-    /** Zeitschwelle in Minuten bis zur Eskalation */
-    timeThreshold: number;
-    /** Empfänger der Eskalation */
-    escalateTo: string[];
-  }[];
+  /** Aktivierte Channels für verschiedene Severity-Level */
+  channelsBySeverity: {
+    low: string[];
+    medium: string[];
+    high: string[];
+    critical: string[];
+  };
+  /** Rate Limiting Konfiguration */
+  rateLimiting: {
+    /** Maximale Alerts pro Stunde pro Benutzer */
+    maxPerHourPerUser: number;
+    /** Maximale Alerts pro Stunde global */
+    maxPerHourGlobal: number;
+  };
+  /** Retry-Konfiguration */
+  retryConfig: {
+    maxAttempts: number;
+    backoffMultiplier: number;
+    maxBackoffMs: number;
+  };
 }

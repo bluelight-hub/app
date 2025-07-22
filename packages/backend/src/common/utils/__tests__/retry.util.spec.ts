@@ -1,5 +1,15 @@
 import { DEFAULT_RETRY_CONFIG, POSTGRES_RETRYABLE_ERRORS, RetryUtil } from '../retry.util';
 
+// Mock logger
+jest.mock('@/logger/consola.logger', () => ({
+  logger: {
+    info: jest.fn(),
+    error: jest.fn(),
+    warn: jest.fn(),
+    debug: jest.fn(),
+  },
+}));
+
 describe('RetryUtil', () => {
   let retryUtil: RetryUtil;
 
@@ -58,7 +68,7 @@ describe('RetryUtil', () => {
       // Act & Assert
       await expect(
         retryUtil.executeWithRetry(operation, { maxRetries: 2, baseDelay: 10 }),
-      ).rejects.toThrow('Serialization failure');
+      ).rejects.toThrow('All 2 retry attempts failed');
       expect(operation).toHaveBeenCalledTimes(3); // Initial + 2 retries (maxRetries + 1 total attempts)
     });
 
@@ -145,11 +155,11 @@ describe('RetryUtil', () => {
 
       // Assert
       expect(delays).toHaveLength(2);
-      // Erster Retry: ~100ms + jitter
-      expect(delays[0]).toBeGreaterThanOrEqual(100);
+      // Erster Retry: ~100ms ± 10% jitter
+      expect(delays[0]).toBeGreaterThanOrEqual(90);
       expect(delays[0]).toBeLessThanOrEqual(110);
-      // Zweiter Retry: ~200ms + jitter
-      expect(delays[1]).toBeGreaterThanOrEqual(200);
+      // Zweiter Retry: ~200ms ± 10% jitter
+      expect(delays[1]).toBeGreaterThanOrEqual(180);
       expect(delays[1]).toBeLessThanOrEqual(220);
 
       // Cleanup
@@ -189,7 +199,9 @@ describe('RetryUtil', () => {
 
     it('sollte Timeout für einzelne Operationen verwenden', async () => {
       // Arrange
-      const slowOperation = jest.fn(() => new Promise((resolve) => setTimeout(resolve, 200)));
+      const slowOperation = jest.fn(
+        () => new Promise((resolve) => setTimeout(() => resolve('slow'), 200)),
+      );
 
       // Act & Assert
       await expect(
@@ -197,7 +209,7 @@ describe('RetryUtil', () => {
           timeout: 100,
           maxRetries: 0, // Keine Retries für diesen Test
         }),
-      ).rejects.toThrow('Operation timeout after 100ms');
+      ).rejects.toThrow('Operation timed out after 100ms');
     });
 
     it('sollte Standard-Konfiguration verwenden wenn keine angegeben', async () => {
@@ -217,25 +229,34 @@ describe('RetryUtil', () => {
 
     it('sollte Kontext für Logging verwenden', async () => {
       // Arrange
-      const loggerSpy = jest.spyOn((retryUtil as any).logger, 'debug');
-      const operation = jest.fn().mockResolvedValue('success');
+      const { logger } = require('@/logger/consola.logger');
+      const retryableError = {
+        code: POSTGRES_RETRYABLE_ERRORS.DEADLOCK_DETECTED,
+        message: 'Test error',
+      };
+      const operation = jest
+        .fn()
+        .mockRejectedValueOnce(retryableError)
+        .mockResolvedValue('success');
 
       // Act
-      await retryUtil.executeWithRetry(operation, {}, 'test-context');
+      await retryUtil.executeWithRetry(operation, { maxRetries: 1, baseDelay: 10 }, 'test-context');
 
       // Assert
-      expect(loggerSpy).toHaveBeenCalledWith('test-context: Versuch 1/4');
+      expect(logger.info).toHaveBeenCalledWith(
+        expect.stringContaining('[test-context] Retry attempt 1/1'),
+      );
     });
   });
 
   describe('DEFAULT_RETRY_CONFIG', () => {
     it('sollte sinnvolle Standard-Werte haben', () => {
       expect(DEFAULT_RETRY_CONFIG.maxRetries).toBe(3);
-      expect(DEFAULT_RETRY_CONFIG.baseDelay).toBe(500);
-      expect(DEFAULT_RETRY_CONFIG.maxDelay).toBe(10000);
+      expect(DEFAULT_RETRY_CONFIG.baseDelay).toBe(1000);
+      expect(DEFAULT_RETRY_CONFIG.maxDelay).toBe(30000);
       expect(DEFAULT_RETRY_CONFIG.backoffMultiplier).toBe(2);
       expect(DEFAULT_RETRY_CONFIG.jitterFactor).toBe(0.1);
-      expect(DEFAULT_RETRY_CONFIG.timeout).toBe(30000);
+      expect(DEFAULT_RETRY_CONFIG.timeout).toBeUndefined();
     });
   });
 

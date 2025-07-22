@@ -5,6 +5,8 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { HttpModule } from '@nestjs/axios';
 import { ThrottlerModule } from '@nestjs/throttler';
 import { EventEmitterModule } from '@nestjs/event-emitter';
+import { RedisModule } from '@songkeys/nestjs-redis';
+import { BullModule } from '@nestjs/bull';
 import { JwtStrategy } from './strategies';
 import { AuthService } from './auth.service';
 import { AuthController } from './auth.controller';
@@ -28,6 +30,12 @@ import { ThreatRulesService } from './services/threat-rules.service';
 import { SessionModule } from '../session/session.module';
 import { NotificationModule } from '../notification/notification.module';
 import { SecurityAlertServiceV2 } from './services/security-alert-v2.service';
+import { SecurityAlertEngineService } from './services/security-alert-engine.service';
+import { AlertDeduplicationService } from './services/alert-deduplication.service';
+import { AlertCorrelationService } from './services/alert-correlation.service';
+import { AlertDispatcherService } from './services/alert-dispatcher.service';
+import { AlertQueueService } from './services/alert-queue.service';
+import { getBullConfig, ALERT_QUEUE_NAME } from './config/bull.config';
 
 /**
  * Authentication module that provides JWT-based authentication for the application.
@@ -53,6 +61,24 @@ import { SecurityAlertServiceV2 } from './services/security-alert-v2.service';
         limit: 10,
       },
     ]),
+    RedisModule.forRootAsync({
+      imports: [ConfigModule],
+      inject: [ConfigService],
+      useFactory: (configService: ConfigService) => ({
+        config: {
+          host: configService.get<string>('REDIS_HOST', 'localhost'),
+          port: configService.get<number>('REDIS_PORT', 6379),
+          password: configService.get<string>('REDIS_PASSWORD'),
+          db: configService.get<number>('REDIS_DB', 0),
+        },
+      }),
+    }),
+    BullModule.registerQueueAsync({
+      name: ALERT_QUEUE_NAME,
+      imports: [ConfigModule],
+      useFactory: (configService: ConfigService) => getBullConfig(configService),
+      inject: [ConfigService],
+    }),
     forwardRef(() => SessionModule),
     forwardRef(() => NotificationModule),
   ],
@@ -65,6 +91,11 @@ import { SecurityAlertServiceV2 } from './services/security-alert-v2.service';
     LoginAttemptService,
     SecurityAlertService,
     SecurityAlertServiceV2,
+    SecurityAlertEngineService,
+    AlertDeduplicationService,
+    AlertCorrelationService,
+    AlertDispatcherService,
+    AlertQueueService,
     SecurityMetricsService,
     SecurityLogService,
     SuspiciousActivityService,
@@ -90,6 +121,11 @@ import { SecurityAlertServiceV2 } from './services/security-alert-v2.service';
     RuleRepositoryService,
     ThreatRuleFactory,
     ThreatRulesService,
+    SecurityAlertEngineService,
+    AlertDeduplicationService,
+    AlertCorrelationService,
+    AlertDispatcherService,
+    AlertQueueService,
   ],
 })
 export class AuthModule {}

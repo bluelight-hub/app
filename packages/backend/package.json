@@ -35,6 +35,8 @@
   },
   "dependencies": {
     "@bluelight-hub/shared": "workspace:*",
+    "@dotenvx/dotenvx": "^1.48.3",
+    "@dotenvx/dotenvx-radar": "^0.14.2",
     "@nestjs/axios": "^4.0.1",
     "@nestjs/bull": "^11.0.2",
     "@nestjs/common": "^11.1.1",
@@ -50,6 +52,7 @@
     "@nestjs/terminus": "^11.0.0",
     "@nestjs/websockets": "^11.1.1",
     "@prisma/client": "^6.8.1",
+    "@songkeys/nestjs-redis": "^10.0.0",
     "ajv": "^8.17.1",
     "ajv-formats": "^3.0.1",
     "axios": "^1.10.0",

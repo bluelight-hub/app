@@ -178,7 +178,15 @@ export class DuplicateDetectionUtil {
 
     if (typeof data === 'object') {
       if (Array.isArray(data)) {
-        return data.map((item) => this.normalizeData(item)).sort();
+        // Preserve array order for semantic correctness and better performance
+        // Arrays like [1, 2, 3] and [3, 2, 1] often represent different operations
+        // Sorting would be O(n log n) for large arrays and could change semantics
+        // Instead, we create a normalized representation that preserves order
+        return {
+          __array: true,
+          __length: data.length,
+          __items: data.map((item) => this.normalizeData(item)),
+        };
       }
 
       const normalized: any = {};

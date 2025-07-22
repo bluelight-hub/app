@@ -3,13 +3,17 @@ import { ConfigService } from '@nestjs/config';
 import { HttpService } from '@nestjs/axios';
 import { firstValueFrom } from 'rxjs';
 import {
-  NotificationChannel,
   ChannelHealthInfo,
   ChannelHealthStatus,
+  NotificationChannel,
 } from '../interfaces/notification-channel.interface';
 import { NotificationPayload } from '../interfaces/notification-payload.interface';
-import { RetryUtil, RetryConfig } from '../../../common/utils/retry.util';
-import { CircuitBreaker, CircuitBreakerConfig } from '../../../common/utils/circuit-breaker.util';
+import { RetryConfig, RetryUtil } from '../../../common/utils/retry.util';
+import {
+  CircuitBreaker,
+  CircuitBreakerConfig,
+  CircuitBreakerState,
+} from '../../../common/utils/circuit-breaker.util';
 
 /**
  * Webhook-Benachrichtigungskanal
@@ -270,7 +274,7 @@ export class WebhookChannel implements NotificationChannel {
 
     const circuitStatus = this.circuitBreaker.getStatus();
 
-    if (circuitStatus.state === 'OPEN') {
+    if (circuitStatus.state === CircuitBreakerState.OPEN) {
       return {
         status: ChannelHealthStatus.UNHEALTHY,
         lastChecked: new Date(),

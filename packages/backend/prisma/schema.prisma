@@ -526,6 +526,8 @@ enum NotificationStatus {
   SENT
   FAILED
   CANCELLED
+  PENDING
+  RETRY
 }
 
 model NotificationChannel {
@@ -582,4 +584,147 @@ model NotificationLog {
   @@index([channel, createdAt], map: "idx_notification_log_channel_time")
   @@index([createdAt], map: "idx_notification_log_created")
   @@index([sentAt], map: "idx_notification_log_sent")
+}
+
+// ===== SECURITY ALERTS SYSTEM =====
+// Core engine for evaluating, correlating and dispatching security alerts
+
+enum AlertStatus {
+  PENDING
+  PROCESSING
+  DISPATCHED
+  ACKNOWLEDGED
+  RESOLVED
+  FAILED
+  SUPPRESSED
+}
+
+enum AlertType {
+  ACCOUNT_LOCKED
+  SUSPICIOUS_LOGIN
+  BRUTE_FORCE_ATTEMPT
+  MULTIPLE_FAILED_ATTEMPTS
+  THREAT_RULE_MATCH
+  ANOMALY_DETECTED
+  POLICY_VIOLATION
+}
+
+model SecurityAlert {
+  id String @id @default(nanoid())
+
+  // Alert identification
+  type         AlertType
+  severity     ThreatSeverity
+  title        String         @db.VarChar(255)
+  description  String         @db.Text
+  fingerprint  String         @db.VarChar(255) // For deduplication
+  status       AlertStatus    @default(PENDING)
+
+  // Alert source
+  ruleId      String? // If triggered by a rule
+  ruleName    String? @db.VarChar(255)
+  eventType   String? @db.VarChar(50) // Original security event type
+  
+  // User and session context
+  userId      String?  @db.VarChar(255)
+  userEmail   String?  @db.VarChar(255)
+  sessionId   String?  @db.VarChar(255)
+  ipAddress   String?  @db.VarChar(45)
+  userAgent   String?  @db.Text
+  location    String?  @db.VarChar(255)
+  
+  // Alert metadata
+  score       Int? // Risk score 0-100
+  evidence    Json? // Evidence that triggered the alert
+  context     Json? // Additional context data
+  tags        String[] @default([])
+  
+  // Correlation
+  correlationId   String? @db.VarChar(255) // Groups related alerts
+  correlatedAlerts String[] @default([]) // IDs of related alerts
+  isCorrelated    Boolean @default(false)
+  
+  // Deduplication
+  occurrenceCount Int      @default(1) // Times this alert was triggered
+  firstSeen       DateTime @default(now())
+  lastSeen        DateTime @default(now())
+  
+  // Dispatch information
+  dispatchedChannels String[] @default([]) // Channels alert was sent to
+  dispatchAttempts   Int      @default(0)
+  lastDispatchAt     DateTime?
+  dispatchErrors     Json?    // Errors during dispatch
+  
+  // Response tracking
+  acknowledgedBy    String?   @db.VarChar(255)
+  acknowledgedAt    DateTime?
+  resolvedBy        String?   @db.VarChar(255)
+  resolvedAt        DateTime?
+  resolutionNotes   String?   @db.Text
+  
+  // Suppression
+  suppressedUntil   DateTime?
+  suppressionReason String?   @db.Text
+  
+  // Timing
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  expiresAt DateTime? // For auto-cleanup
+  
+  // Relations
+  notifications AlertNotification[]
+  comments      AlertComment[]
+  
+  // Indexes for efficient queries
+  @@unique([fingerprint, suppressedUntil], map: "uk_alert_fingerprint_suppression")
+  @@index([type, severity, status], map: "idx_alert_type_severity_status")
+  @@index([userId, createdAt], map: "idx_alert_user_time")
+  @@index([ipAddress, createdAt], map: "idx_alert_ip_time")
+  @@index([correlationId], map: "idx_alert_correlation")
+  @@index([status, createdAt], map: "idx_alert_status_time")
+  @@index([fingerprint, lastSeen], map: "idx_alert_fingerprint_time")
+  @@index([severity, createdAt], map: "idx_alert_severity_time")
+  @@index([firstSeen, lastSeen], map: "idx_alert_time_range")
+  @@index([ruleId, createdAt], map: "idx_alert_rule_time")
+}
+
+model AlertNotification {
+  id String @id @default(nanoid())
+  
+  alertId String
+  alert   SecurityAlert @relation(fields: [alertId], references: [id], onDelete: Cascade)
+  
+  channel         String   @db.VarChar(50) // email, webhook, etc
+  recipient       String   @db.Text // JSON recipient info
+  status          NotificationStatus
+  attempts        Int      @default(0)
+  lastAttemptAt   DateTime?
+  sentAt          DateTime?
+  error           String?  @db.Text
+  
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  
+  // Indexes
+  @@index([alertId, channel], map: "idx_alert_notification_alert_channel")
+  @@index([status, createdAt], map: "idx_alert_notification_status_time")
+}
+
+model AlertComment {
+  id String @id @default(nanoid())
+  
+  alertId String
+  alert   SecurityAlert @relation(fields: [alertId], references: [id], onDelete: Cascade)
+  
+  authorId    String  @db.VarChar(255)
+  authorEmail String  @db.VarChar(255)
+  comment     String  @db.Text
+  metadata    Json?   // Additional comment metadata
+  
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  
+  // Indexes
+  @@index([alertId, createdAt], map: "idx_alert_comment_alert_time")
+  @@index([authorId, createdAt], map: "idx_alert_comment_author_time")
 }

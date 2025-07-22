@@ -1,4 +1,4 @@
-import { CircuitBreaker, CircuitState } from '../circuit-breaker.util';
+import { CircuitBreaker, CircuitBreakerState } from '../circuit-breaker.util';
 
 describe('CircuitBreaker', () => {
   let circuitBreaker: CircuitBreaker;
@@ -16,13 +16,14 @@ describe('CircuitBreaker', () => {
 
   afterEach(() => {
     circuitBreaker.reset();
+    jest.useRealTimers();
   });
 
   describe('State Transitions', () => {
     it('should start in CLOSED state', () => {
       const status = circuitBreaker.getStatus();
-      expect(status.state).toBe(CircuitState.CLOSED);
-      expect(status.failureCount).toBe(0);
+      expect(status.state).toBe(CircuitBreakerState.CLOSED);
+      expect(status.failures).toBe(0);
     });
 
     it('should transition to OPEN after reaching failure threshold', async () => {
@@ -34,7 +35,7 @@ describe('CircuitBreaker', () => {
       }
 
       const status = circuitBreaker.getStatus();
-      expect(status.state).toBe(CircuitState.OPEN);
+      expect(status.state).toBe(CircuitBreakerState.OPEN);
     });
 
     it('should block calls when in OPEN state', async () => {
@@ -49,7 +50,7 @@ describe('CircuitBreaker', () => {
 
       // Should block without calling operation
       await expect(circuitBreaker.execute(operation)).rejects.toThrow(
-        'Circuit breaker is OPEN for TestBreaker',
+        'Circuit breaker TestBreaker is OPEN',
       );
       expect(operation).not.toHaveBeenCalled();
     });
@@ -64,7 +65,7 @@ describe('CircuitBreaker', () => {
         ).rejects.toThrow();
       }
 
-      expect(circuitBreaker.getStatus().state).toBe(CircuitState.OPEN);
+      expect(circuitBreaker.getStatus().state).toBe(CircuitBreakerState.OPEN);
 
       // Fast forward past open duration
       jest.advanceTimersByTime(5001);
@@ -94,7 +95,7 @@ describe('CircuitBreaker', () => {
         await circuitBreaker.execute(() => Promise.resolve('success'));
       }
 
-      expect(circuitBreaker.getStatus().state).toBe(CircuitState.CLOSED);
+      expect(circuitBreaker.getStatus().state).toBe(CircuitBreakerState.CLOSED);
 
       jest.useRealTimers();
     });
@@ -117,7 +118,7 @@ describe('CircuitBreaker', () => {
         circuitBreaker.execute(() => Promise.reject(new Error('fail again'))),
       ).rejects.toThrow('fail again');
 
-      expect(circuitBreaker.getStatus().state).toBe(CircuitState.OPEN);
+      expect(circuitBreaker.getStatus().state).toBe(CircuitBreakerState.OPEN);
 
       jest.useRealTimers();
     });
@@ -136,8 +137,8 @@ describe('CircuitBreaker', () => {
 
       // 2/3 failures = 66% > 50% threshold
       const status = circuitBreaker.getStatus();
-      expect(status.state).toBe(CircuitState.OPEN);
-      expect(status.failureRate).toBeGreaterThan(50);
+      expect(status.state).toBe(CircuitBreakerState.OPEN);
+      expect(status.recentFailureRate).toBeGreaterThan(50);
     });
 
     it('should not open circuit if below minimum calls', async () => {
@@ -149,7 +150,7 @@ describe('CircuitBreaker', () => {
         circuitBreaker.execute(() => Promise.reject(new Error('fail'))),
       ).rejects.toThrow();
 
-      expect(circuitBreaker.getStatus().state).toBe(CircuitState.CLOSED);
+      expect(circuitBreaker.getStatus().state).toBe(CircuitBreakerState.CLOSED);
     });
   });
 
@@ -162,16 +163,16 @@ describe('CircuitBreaker', () => {
         ).rejects.toThrow();
       }
 
-      expect(circuitBreaker.getStatus().state).toBe(CircuitState.OPEN);
+      expect(circuitBreaker.getStatus().state).toBe(CircuitBreakerState.OPEN);
 
       // Reset
       circuitBreaker.reset();
 
       const status = circuitBreaker.getStatus();
-      expect(status.state).toBe(CircuitState.CLOSED);
-      expect(status.failureCount).toBe(0);
-      expect(status.failureRate).toBe(0);
-      expect(status.lastFailureTime).toBeNull();
+      expect(status.state).toBe(CircuitBreakerState.CLOSED);
+      expect(status.failures).toBe(0);
+      expect(status.recentFailureRate).toBe(0);
+      expect(status.lastFailureTime).toBeUndefined();
     });
   });
 
@@ -192,7 +193,7 @@ describe('CircuitBreaker', () => {
 
       // Should have only recent failure in history
       const status = circuitBreaker.getStatus();
-      expect(status.failureRate).toBe(100); // Only the recent failure counts
+      expect(status.recentFailureRate).toBe(100); // Only the recent failure counts
 
       jest.useRealTimers();
     });

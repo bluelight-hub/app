@@ -1,37 +1,7 @@
-import { Logger } from '@nestjs/common';
+import { logger } from '@/logger/consola.logger';
 
 /**
- * Konfiguration für Retry-Verhalten
- */
-export interface RetryConfig {
-  /** Maximale Anzahl der Wiederholungsversuche */
-  maxRetries: number;
-  /** Basis-Verzögerung in Millisekunden */
-  baseDelay: number;
-  /** Maximale Verzögerung in Millisekunden */
-  maxDelay: number;
-  /** Multiplikator für exponentielles Backoff */
-  backoffMultiplier: number;
-  /** Jitter-Faktor (0-1) für zufällige Verzögerung */
-  jitterFactor: number;
-  /** Timeout für einzelne Versuche in Millisekunden */
-  timeout?: number;
-}
-
-/**
- * Standard-Konfiguration für Retry-Verhalten
- */
-export const DEFAULT_RETRY_CONFIG: RetryConfig = {
-  maxRetries: 3,
-  baseDelay: 500,
-  maxDelay: 10000,
-  backoffMultiplier: 2,
-  jitterFactor: 0.1,
-  timeout: 30000,
-};
-
-/**
- * PostgreSQL-spezifische Fehlercodes, die einen Retry rechtfertigen
+ * PostgreSQL retryable error codes
  */
 export const POSTGRES_RETRYABLE_ERRORS = {
   UNIQUE_VIOLATION: '23505',
@@ -39,187 +9,273 @@ export const POSTGRES_RETRYABLE_ERRORS = {
   SERIALIZATION_FAILURE: '40001',
   QUERY_TIMEOUT: '57014',
   CONNECTION_FAILURE: '08000',
-  CONNECTION_EXCEPTION: '08001',
-  CONNECTION_DOES_NOT_EXIST: '08003',
-  CONNECTION_FAILURE_SQLCLIENT: '08006',
-  TRANSACTION_ROLLBACK: '40000',
-  TRANSACTION_ROLLBACK_SERIALIZATION: '40001',
-  TRANSACTION_ROLLBACK_DEADLOCK: '40P01',
 } as const;
 
 /**
- * Utility-Klasse für robuste Retry-Mechanismen mit exponential backoff
- *
- * Diese Klasse bietet Retry-Funktionalität für fehleranfällige Operationen
- * mit konfigurierbarem exponentiellen Backoff und Jitter.
- *
- * Features:
- * - Exponentielles Backoff mit konfigurierbarem Multiplikator
- * - Jitter zur Vermeidung von Thundering Herd
- * - Unterstützung für PostgreSQL- und Netzwerk-Fehler
- * - Konfigurierbare Timeouts pro Versuch
- *
- * @class RetryUtil
+ * Retry Configuration
  */
-export class RetryUtil {
-  private readonly logger = new Logger(RetryUtil.name);
+export interface RetryConfig {
+  /** Maximum number of retry attempts */
+  maxRetries: number;
+  /** Base delay in milliseconds between retries */
+  baseDelay: number;
+  /** Maximum delay in milliseconds */
+  maxDelay: number;
+  /** Backoff multiplier for exponential backoff */
+  backoffMultiplier: number;
+  /** Jitter factor (0-1) to add randomness */
+  jitterFactor: number;
+  /** Timeout in milliseconds for each attempt */
+  timeout?: number;
+  /** Function to determine if error is retryable */
+  isRetryable?: (error: any) => boolean;
+}
 
-  /**
-   * Führt eine Operation mit Retry-Logik aus
-   *
-   * @param operation Die auszuführende Operation
-   * @param config Retry-Konfiguration
-   * @param context Kontext für Logging
-   * @returns Das Ergebnis der Operation
-   */
-  async executeWithRetry<T>(
-    operation: () => Promise<T>,
-    config: Partial<RetryConfig> = {},
-    context = 'operation',
-  ): Promise<T> {
-    const finalConfig = { ...DEFAULT_RETRY_CONFIG, ...config };
-    let lastError: any = null;
-
-    for (let attempt = 0; attempt <= finalConfig.maxRetries; attempt++) {
-      try {
-        this.logger.debug(`${context}: Versuch ${attempt + 1}/${finalConfig.maxRetries + 1}`);
-
-        // Operation ausführen, optional mit Timeout
-        const operationPromise = operation();
-        const result = finalConfig.timeout
-          ? await this.withTimeout(operationPromise, finalConfig.timeout)
-          : await operationPromise;
-
-        return result;
-      } catch (error) {
-        lastError = error;
-
-        // Prüfen, ob der Fehler einen Retry rechtfertigt
-        if (!this.isRetryableError(error)) {
-          this.logger.warn(`${context}: Nicht-wiederholbarer Fehler erkannt`, error.message);
-          throw error;
-        }
-
-        // Wenn es der letzte Versuch war, Fehler werfen
-        if (attempt >= finalConfig.maxRetries) {
-          this.logger.error(
-            `${context}: Alle ${finalConfig.maxRetries + 1} Versuche fehlgeschlagen`,
-          );
-          throw lastError;
-        }
-
-        // Verzögerung berechnen und warten
-        const delay = this.calculateDelay(attempt + 1, finalConfig);
-        this.logger.warn(
-          `${context}: Versuch ${attempt + 1} fehlgeschlagen (${error.code || error.message}), ` +
-            `warte ${delay}ms vor nächstem Versuch`,
-        );
-
-        await this.delay(delay);
-      }
-    }
-
-    // Sollte nie erreicht werden, aber als Fallback
-    throw lastError;
-  }
-
-  /**
-   * Prüft, ob ein Fehler einen Retry rechtfertigt
-   *
-   * @param error Der zu prüfende Fehler
-   * @returns true, wenn der Fehler wiederholbar ist
-   */
-  private isRetryableError(error: any): boolean {
-    // PostgreSQL-spezifische Fehlercodes
+/**
+ * Default retry configuration
+ */
+export const DEFAULT_RETRY_CONFIG: RetryConfig = {
+  maxRetries: 3,
+  baseDelay: 1000,
+  maxDelay: 30000,
+  backoffMultiplier: 2,
+  jitterFactor: 0.1,
+  timeout: undefined,
+  isRetryable: (error: any) => {
+    // Check PostgreSQL error codes
     if (error.code && Object.values(POSTGRES_RETRYABLE_ERRORS).includes(error.code)) {
       return true;
     }
 
-    // Prisma-spezifische Fehler
+    // Check Prisma error codes
     if (error.code === 'P2002') {
-      // Unique constraint violation
       return true;
     }
 
-    // Netzwerk- und Verbindungsfehler
+    // Check network errors
     if (
-      error.message?.includes('ECONNRESET') ||
-      error.message?.includes('ENOTFOUND') ||
-      error.message?.includes('ETIMEDOUT') ||
-      error.message?.includes('ECONNREFUSED') ||
-      error.message?.includes('EHOSTUNREACH') ||
-      error.message?.includes('ENETUNREACH') ||
-      error.message?.includes('EPIPE') ||
-      error.message?.includes('timeout')
+      error.message &&
+      (error.message.includes('ECONNRESET') ||
+        error.message.includes('ENOTFOUND') ||
+        error.message.includes('ETIMEDOUT'))
     ) {
       return true;
     }
 
-    // HTTP-spezifische Fehler (Axios)
-    if (error.response) {
-      const status = error.response.status;
-      // Retry bei Server-Fehlern und einigen Client-Fehlern
-      if (
-        status === 408 || // Request Timeout
-        status === 429 || // Too Many Requests
-        status === 502 || // Bad Gateway
-        status === 503 || // Service Unavailable
-        status === 504 // Gateway Timeout
-      ) {
-        return true;
+    // By default, don't retry
+    return false;
+  },
+};
+
+/**
+ * Retry Utility for resilient operations
+ *
+ * Implements exponential backoff with jitter for optimal retry behavior
+ */
+export class RetryUtil {
+  /**
+   * Create a retry policy for specific error types
+   */
+  static createRetryPolicy(policies: {
+    [errorType: string]: Partial<RetryConfig>;
+  }): (error: any) => Partial<RetryConfig> | null {
+    return (error: any) => {
+      // Check error type/name
+      if (error.name && policies[error.name]) {
+        return policies[error.name];
+      }
+
+      // Check error code
+      if (error.code && policies[error.code]) {
+        return policies[error.code];
+      }
+
+      // Check HTTP status codes
+      if (error.status && policies[`HTTP_${error.status}`]) {
+        return policies[`HTTP_${error.status}`];
+      }
+
+      // Default policy
+      return policies.default || null;
+    };
+  }
+
+  /**
+   * Execute a function with retry logic
+   *
+   * @param fn - Function to execute
+   * @param config - Retry configuration
+   * @param context - Optional context for logging
+   * @returns Result of the function
+   * @throws Last error if all retries fail
+   */
+  async executeWithRetry<T>(
+    fn: () => Promise<T>,
+    config?: Partial<RetryConfig>,
+    context?: string,
+  ): Promise<T> {
+    const retryConfig = { ...DEFAULT_RETRY_CONFIG, ...config };
+    let lastError: any;
+
+    for (let attempt = 0; attempt <= retryConfig.maxRetries; attempt++) {
+      try {
+        // Execute with timeout if specified
+        if (retryConfig.timeout) {
+          return await this.executeWithTimeout(fn, retryConfig.timeout);
+        }
+
+        return await fn();
+      } catch (error) {
+        lastError = error;
+
+        // Check if error is retryable
+        if (!retryConfig.isRetryable!(error)) {
+          throw error;
+        }
+
+        // Don't retry on last attempt
+        if (attempt === retryConfig.maxRetries) {
+          break;
+        }
+
+        // Calculate delay with exponential backoff and jitter
+        const delay = this.calculateDelay(
+          attempt,
+          retryConfig.baseDelay,
+          retryConfig.maxDelay,
+          retryConfig.backoffMultiplier,
+          retryConfig.jitterFactor,
+        );
+
+        // Log retry attempt
+        if (context) {
+          logger.info(
+            `[${context}] Retry attempt ${attempt + 1}/${retryConfig.maxRetries} after ${delay}ms. Error: ${error.message}`,
+          );
+        }
+
+        // Wait before retry
+        await this.sleep(delay);
       }
     }
 
-    return false;
+    // All retries failed
+    const errorMessage = context
+      ? `[${context}] All ${retryConfig.maxRetries} retry attempts failed`
+      : `All ${retryConfig.maxRetries} retry attempts failed`;
+
+    const finalError = new Error(errorMessage);
+    (finalError as any).cause = lastError;
+    (finalError as any).attempts = retryConfig.maxRetries + 1;
+
+    throw finalError;
   }
 
   /**
-   * Berechnet die Verzögerung für den nächsten Versuch mit exponential backoff und jitter
+   * Create a retry wrapper for a function
    *
-   * @param attempt Aktuelle Versuchsnummer (1-basiert)
-   * @param config Retry-Konfiguration
-   * @returns Verzögerung in Millisekunden
+   * @param fn - Function to wrap
+   * @param config - Retry configuration
+   * @returns Wrapped function with retry logic
    */
-  private calculateDelay(attempt: number, config: RetryConfig): number {
-    // Exponential backoff
-    const exponentialDelay = config.baseDelay * Math.pow(config.backoffMultiplier, attempt - 1);
-
-    // Jitter hinzufügen (zufällige Variation)
-    const jitter = exponentialDelay * config.jitterFactor * Math.random();
-    const delayWithJitter = exponentialDelay + jitter;
-
-    // Maximale Verzögerung respektieren
-    return Math.min(delayWithJitter, config.maxDelay);
+  createRetryWrapper<T extends (...args: any[]) => Promise<any>>(
+    fn: T,
+    config?: Partial<RetryConfig>,
+  ): T {
+    return (async (...args: Parameters<T>) => {
+      return this.executeWithRetry(() => fn(...args), config);
+    }) as T;
   }
 
   /**
-   * Hilfsfunktion für Verzögerungen
+   * Execute multiple operations with retry
    *
-   * @param ms Verzögerung in Millisekunden
+   * @param operations - Array of operations to execute
+   * @param config - Retry configuration
+   * @param options - Execution options
+   * @returns Results of all operations
    */
-  private async delay(ms: number): Promise<void> {
-    return new Promise((resolve) => {
-      const timer = setTimeout(resolve, ms);
-      timer.unref(); // Timer soll den Prozess nicht am Beenden hindern
-    });
-  }
+  async executeMultipleWithRetry<T>(
+    operations: Array<() => Promise<T>>,
+    config?: Partial<RetryConfig>,
+    options?: {
+      /** Execute operations in parallel */
+      parallel?: boolean;
+      /** Stop on first error */
+      stopOnError?: boolean;
+    },
+  ): Promise<Array<{ success: boolean; result?: T; error?: any }>> {
+    const { parallel = true, stopOnError = false } = options || {};
 
-  /**
-   * Führt eine Operation mit Timeout aus
-   *
-   * @param promise Das auszuführende Promise
-   * @param timeoutMs Timeout in Millisekunden
-   * @returns Das Ergebnis der Operation
-   */
-  private async withTimeout<T>(promise: Promise<T>, timeoutMs: number): Promise<T> {
-    const timeoutPromise = new Promise<never>((_, reject) => {
-      const timer = setTimeout(
-        () => reject(new Error(`Operation timeout after ${timeoutMs}ms`)),
-        timeoutMs,
+    if (parallel) {
+      // Execute all operations in parallel
+      const promises = operations.map((op) =>
+        this.executeWithRetry(op, config)
+          .then((result) => ({ success: true, result }))
+          .catch((error) => ({ success: false, error })),
       );
-      timer.unref(); // Timer soll den Prozess nicht am Beenden hindern
-    });
 
-    return Promise.race([promise, timeoutPromise]);
+      return Promise.all(promises);
+    } else {
+      // Execute operations sequentially
+      const results: Array<{ success: boolean; result?: T; error?: any }> = [];
+
+      for (const op of operations) {
+        try {
+          const result = await this.executeWithRetry(op, config);
+          results.push({ success: true, result });
+        } catch (error) {
+          results.push({ success: false, error });
+
+          if (stopOnError) {
+            break;
+          }
+        }
+      }
+
+      return results;
+    }
+  }
+
+  /**
+   * Execute a function with timeout
+   */
+  private async executeWithTimeout<T>(fn: () => Promise<T>, timeout: number): Promise<T> {
+    return Promise.race([
+      fn(),
+      new Promise<never>((_, reject) =>
+        setTimeout(() => reject(new Error(`Operation timed out after ${timeout}ms`)), timeout),
+      ),
+    ]);
+  }
+
+  /**
+   * Calculate delay with exponential backoff and jitter
+   */
+  private calculateDelay(
+    attempt: number,
+    baseDelay: number,
+    maxDelay: number,
+    backoffMultiplier: number,
+    jitterFactor: number,
+  ): number {
+    // Exponential backoff
+    let delay = baseDelay * Math.pow(backoffMultiplier, attempt);
+
+    // Cap at max delay
+    delay = Math.min(delay, maxDelay);
+
+    // Add jitter (random factor to prevent thundering herd)
+    const jitter = delay * jitterFactor * (Math.random() * 2 - 1);
+    delay = Math.max(0, delay + jitter);
+
+    return Math.floor(delay);
+  }
+
+  /**
+   * Sleep for specified milliseconds
+   */
+  private sleep(ms: number): Promise<void> {
+    return new Promise((resolve) => setTimeout(resolve, ms));
   }
 }

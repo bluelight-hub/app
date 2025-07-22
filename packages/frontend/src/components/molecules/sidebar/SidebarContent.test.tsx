@@ -68,6 +68,20 @@ vi.mock('../../../hooks/useAuth', () => ({
   })),
 }));
 
+// Mock für useBackendHealth hook
+vi.mock('../../../hooks/useBackendHealth', () => ({
+  useBackendHealth: vi.fn(() => ({
+    isHealthy: true,
+    isLoading: false,
+    error: undefined,
+    lastChecked: new Date(),
+    checkHealth: vi.fn(),
+    getConnectionStatus: vi.fn(() => 'online'),
+    getSystemDetailsText: vi.fn(() => 'System healthy'),
+    getDebugInfo: vi.fn(() => '{}'),
+  })),
+}));
+
 describe('SidebarContent', () => {
   // TODO: Fix these tests after Zustand auth store migration
   let queryClient: QueryClient;
