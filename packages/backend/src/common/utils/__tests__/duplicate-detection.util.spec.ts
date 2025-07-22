@@ -201,9 +201,12 @@ describe('DuplicateDetectionUtil', () => {
       expect(mockOperation).toHaveBeenCalledTimes(1); // Nur einmal aufgerufen
     });
 
-    it('sollte Arrays normalisieren', async () => {
+    it('sollte Arrays mit unterschiedlicher Reihenfolge als verschieden erkennen', async () => {
       // Arrange
-      const mockOperation = jest.fn().mockResolvedValue('result');
+      const mockOperation = jest
+        .fn()
+        .mockResolvedValueOnce('result1')
+        .mockResolvedValueOnce('result2');
       const operationId = 'test-operation';
       const data1 = { items: [3, 1, 2] };
       const data2 = { items: [1, 2, 3] };
@@ -213,9 +216,26 @@ describe('DuplicateDetectionUtil', () => {
       const result2 = await util.executeIdempotent(operationId, mockOperation, data2);
 
       // Assert
+      expect(result1).toBe('result1');
+      expect(result2).toBe('result2');
+      expect(mockOperation).toHaveBeenCalledTimes(2); // Arrays mit unterschiedlicher Reihenfolge sind verschieden
+    });
+
+    it('sollte Arrays mit gleicher Reihenfolge als identisch erkennen', async () => {
+      // Arrange
+      const mockOperation = jest.fn().mockResolvedValue('result');
+      const operationId = 'test-operation';
+      const data1 = { items: [1, 2, 3] };
+      const data2 = { items: [1, 2, 3] };
+
+      // Act
+      const result1 = await util.executeIdempotent(operationId, mockOperation, data1);
+      const result2 = await util.executeIdempotent(operationId, mockOperation, data2);
+
+      // Assert
       expect(result1).toBe('result');
       expect(result2).toBe('result');
-      expect(mockOperation).toHaveBeenCalledTimes(1); // Arrays werden sortiert, daher identisch
+      expect(mockOperation).toHaveBeenCalledTimes(1); // Identische Arrays werden als gleich erkannt
     });
 
     it('sollte null und undefined korrekt handhaben', async () => {
