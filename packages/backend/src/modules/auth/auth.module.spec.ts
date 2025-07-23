@@ -163,7 +163,7 @@ describe('AuthModule', () => {
       const providers = Reflect.getMetadata('providers', AuthModule);
       expect(providers).toBeDefined();
       expect(Array.isArray(providers)).toBe(true);
-      expect(providers).toHaveLength(22); // Added SecurityAlertEngineService, AlertDeduplicationService, AlertCorrelationService, AlertDispatcherService, AlertQueueService
+      expect(providers).toHaveLength(23); // Added SecurityAlertEngineService, AlertDeduplicationService, AlertCorrelationService, AlertDispatcherService, AlertQueueService
       expect(providers).toContain(AuthService);
       expect(providers).toContain(JwtStrategy);
       expect(providers).toContain(PrismaService);
@@ -186,7 +186,7 @@ describe('AuthModule', () => {
       const exports = Reflect.getMetadata('exports', AuthModule);
       expect(exports).toBeDefined();
       expect(Array.isArray(exports)).toBe(true);
-      expect(exports).toHaveLength(18); // Added new security services to exports including RuleEngineService, RuleRepositoryService, ThreatRulesService, SecurityAlertEngineService, AlertDeduplicationService, AlertCorrelationService, AlertDispatcherService, AlertQueueService
+      expect(exports).toHaveLength(19); // Added new security services to exports including RuleEngineService, RuleRepositoryService, ThreatRulesService, SecurityAlertEngineService, AlertDeduplicationService, AlertCorrelationService, AlertDispatcherService, AlertQueueService
       expect(exports).toContain(AuthService);
       expect(exports).toContain(PermissionValidationService);
       expect(exports).toContain(SessionCleanupService);

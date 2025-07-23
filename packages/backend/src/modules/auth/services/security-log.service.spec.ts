@@ -2,18 +2,29 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { SecurityLogService } from './security-log.service';
 import { PrismaService } from '@/prisma/prisma.service';
 import { SecurityEventType } from '../enums/security-event-type.enum';
+import { SecurityLogHashService } from './security-log-hash.service';
 
 describe('SecurityLogService', () => {
   let service: SecurityLogService;
   let _prismaService: jest.Mocked<PrismaService>;
+  let _hashService: jest.Mocked<SecurityLogHashService>;
 
   const mockPrismaService = {
     securityLog: {
       create: jest.fn(),
       findMany: jest.fn(),
       deleteMany: jest.fn(),
+      findFirst: jest.fn().mockResolvedValue(null), // No previous log
     },
+    $transaction: jest.fn().mockImplementation(async (callback) => {
+      return callback(mockPrismaService);
+    }),
   } as any;
+
+  const mockHashService = {
+    calculateHash: jest.fn().mockReturnValue('mocked-hash'),
+    verifyHashChain: jest.fn().mockResolvedValue(true),
+  };
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
@@ -23,11 +34,16 @@ describe('SecurityLogService', () => {
           provide: PrismaService,
           useValue: mockPrismaService,
         },
+        {
+          provide: SecurityLogHashService,
+          useValue: mockHashService,
+        },
       ],
     }).compile();
 
     service = module.get<SecurityLogService>(SecurityLogService);
     _prismaService = module.get(PrismaService);
+    _hashService = module.get(SecurityLogHashService);
   });
 
   afterEach(() => {
@@ -46,6 +62,22 @@ describe('SecurityLogService', () => {
 
       await service.logSecurityEvent(params);
 
+      expect(mockHashService.calculateHash).toHaveBeenCalledWith(
+        expect.objectContaining({
+          eventType: params.eventType,
+          userId: params.userId,
+          ipAddress: params.ipAddress,
+          userAgent: params.userAgent,
+          metadata: params.metadata,
+          createdAt: expect.any(Date),
+          severity: 'INFO',
+          message: null,
+          sessionId: null,
+          sequenceNumber: 1n,
+        }),
+        null, // previousHash
+      );
+
       expect(mockPrismaService.securityLog.create).toHaveBeenCalledWith({
         data: {
           eventType: params.eventType,
@@ -54,6 +86,13 @@ describe('SecurityLogService', () => {
           userAgent: params.userAgent,
           metadata: params.metadata,
           createdAt: expect.any(Date),
+          severity: 'INFO',
+          message: null,
+          sessionId: null,
+          sequenceNumber: 1n,
+          currentHash: 'mocked-hash',
+          previousHash: null,
+          hashAlgorithm: 'SHA256',
         },
       });
     });

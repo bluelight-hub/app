@@ -3,6 +3,8 @@ import { SuspiciousActivityService } from './suspicious-activity.service';
 import { SecurityLogService } from './security-log.service';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import { SecurityEventType } from '../enums/security-event-type.enum';
+import { SecurityLog } from '@prisma/generated/prisma';
+import { UserRole } from '@/modules/auth';
 
 describe('SuspiciousActivityService', () => {
   let service: SuspiciousActivityService;
@@ -64,8 +66,18 @@ describe('SuspiciousActivityService', () => {
           metadata: {},
           message: null,
           createdAt: new Date(),
+          previousHash: '',
+          sequenceNumber: BigInt(1),
+          hashAlgorithm: '',
+          currentHash: '',
           user: null,
-        }));
+        })) as (SecurityLog & {
+        user: null | {
+          id: string;
+          email: string;
+          role: UserRole;
+        };
+      })[];
 
       securityLogService.getSecurityLogs.mockResolvedValue(failedAttempts);
 
@@ -103,6 +115,10 @@ describe('SuspiciousActivityService', () => {
           metadata: {},
           message: null,
           createdAt: new Date(),
+          previousHash: '',
+          sequenceNumber: BigInt(1),
+          hashAlgorithm: '',
+          currentHash: '',
           user: null,
         },
       ]);
@@ -133,6 +149,10 @@ describe('SuspiciousActivityService', () => {
           message: null,
           createdAt: new Date(),
           user: null,
+          previousHash: '',
+          sequenceNumber: BigInt(1),
+          hashAlgorithm: '',
+          currentHash: '',
         }));
 
       securityLogService.getSecurityLogs.mockResolvedValue(failedAttempts);
@@ -165,6 +185,10 @@ describe('SuspiciousActivityService', () => {
           message: null,
           createdAt: new Date(),
           user: null,
+          previousHash: '',
+          sequenceNumber: BigInt(1),
+          hashAlgorithm: '',
+          currentHash: '',
         }));
 
       securityLogService.getSecurityLogs.mockResolvedValue(failedAttempts);
@@ -189,6 +213,10 @@ describe('SuspiciousActivityService', () => {
           message: null,
           createdAt: new Date(),
           user: null,
+          previousHash: '',
+          sequenceNumber: BigInt(1),
+          hashAlgorithm: '',
+          currentHash: '',
         }));
 
       securityLogService.getSecurityLogs.mockResolvedValue(failedAttempts);
@@ -215,6 +243,10 @@ describe('SuspiciousActivityService', () => {
           message: null,
           createdAt: new Date(),
           user: null,
+          previousHash: '',
+          sequenceNumber: BigInt(1),
+          hashAlgorithm: '',
+          currentHash: '',
         }));
 
       securityLogService.getSecurityLogs.mockResolvedValue(recentLogins);
@@ -248,6 +280,10 @@ describe('SuspiciousActivityService', () => {
           message: null,
           createdAt: new Date(),
           user: null,
+          previousHash: '',
+          sequenceNumber: BigInt(1),
+          hashAlgorithm: '',
+          currentHash: '',
         }));
 
       securityLogService.getSecurityLogs.mockResolvedValue(recentLogins);
@@ -273,6 +309,10 @@ describe('SuspiciousActivityService', () => {
           message: null,
           createdAt: new Date(),
           user: null,
+          previousHash: '',
+          sequenceNumber: BigInt(1),
+          hashAlgorithm: '',
+          currentHash: '',
         },
         {
           id: '2',
@@ -286,6 +326,10 @@ describe('SuspiciousActivityService', () => {
           message: null,
           createdAt: new Date(),
           user: null,
+          previousHash: '',
+          sequenceNumber: BigInt(1),
+          hashAlgorithm: '',
+          currentHash: '',
         },
         {
           id: '3',
@@ -299,6 +343,10 @@ describe('SuspiciousActivityService', () => {
           message: null,
           createdAt: new Date(),
           user: null,
+          previousHash: '',
+          sequenceNumber: BigInt(1),
+          hashAlgorithm: '',
+          currentHash: '',
         },
       ];
 
@@ -332,6 +380,10 @@ describe('SuspiciousActivityService', () => {
           message: null,
           createdAt: new Date(),
           user: null,
+          previousHash: '',
+          sequenceNumber: BigInt(1),
+          hashAlgorithm: '',
+          currentHash: '',
         },
         {
           id: '2',
@@ -345,6 +397,10 @@ describe('SuspiciousActivityService', () => {
           message: null,
           createdAt: new Date(),
           user: null,
+          previousHash: '',
+          sequenceNumber: BigInt(1),
+          hashAlgorithm: '',
+          currentHash: '',
         },
       ];
 
@@ -371,6 +427,10 @@ describe('SuspiciousActivityService', () => {
           message: null,
           createdAt: new Date(),
           user: null,
+          previousHash: '',
+          sequenceNumber: BigInt(1),
+          hashAlgorithm: '',
+          currentHash: '',
         }));
 
       securityLogService.getSecurityLogs.mockResolvedValue(recentLogins);

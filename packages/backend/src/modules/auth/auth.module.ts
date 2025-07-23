@@ -20,6 +20,7 @@ import { LoginAttemptService } from './services/login-attempt.service';
 import { SecurityAlertService } from './services/security-alert.service';
 import { SecurityMetricsService } from './services/security-metrics.service';
 import { SecurityLogService } from './services/security-log.service';
+import { SecurityLogHashService } from './services/security-log-hash.service';
 import { SuspiciousActivityService } from './services/suspicious-activity.service';
 import { GeoIpService } from './services/geo-ip.service';
 import { IpAllowlistGuard } from './guards/ip-allowlist.guard';
@@ -98,6 +99,7 @@ import { getBullConfig, ALERT_QUEUE_NAME } from './config/bull.config';
     AlertQueueService,
     SecurityMetricsService,
     SecurityLogService,
+    SecurityLogHashService,
     SuspiciousActivityService,
     GeoIpService,
     IpAllowlistGuard,
@@ -115,6 +117,7 @@ import { getBullConfig, ALERT_QUEUE_NAME } from './config/bull.config';
     LoginAttemptService,
     SecurityMetricsService,
     SecurityLogService,
+    SecurityLogHashService,
     SuspiciousActivityService,
     GeoIpService,
     RuleEngineService,
