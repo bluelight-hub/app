@@ -7,6 +7,7 @@ import { SecurityLogProcessor } from './processors/security-log.processor';
 import { SecurityLogQueueService } from './services/security-log-queue.service';
 import { SecurityLogService } from './services/security-log.service';
 import { IntegrityService } from './services/integrity.service';
+import { SecurityLogController } from './controllers/security-log.controller';
 
 /**
  * Modul für das Security Logging System mit BullMQ Queue-Integration.
@@ -29,6 +30,7 @@ import { IntegrityService } from './services/integrity.service';
       },
     }),
   ],
+  controllers: [SecurityLogController],
   providers: [
     AuthSecurityLogService,
     SecurityLogHashService,

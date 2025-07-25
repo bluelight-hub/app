@@ -1,7 +1,7 @@
 ---
 name: commit-expert
 description: MUST BE USED before EVERY git commit in BlueLight Hub. Enforces strict emoji commit conventions, analyzes changes, creates perfect multi-line commit messages following 030-commit-rules.mdc. Expert in semantic release rules and breaking changes.
-tools: Bash, Glob, Grep, LS, ExitPlanMode, Read, Edit, MultiEdit, Write, NotebookRead, NotebookEdit, WebFetch, TodoWrite, WebSearch, ListMcpResourcesTool, ReadMcpResourceTool
+istools: Bash, Glob, Grep, LS, ExitPlanMode, Read, NotebookRead, WebFetch, TodoWrite, WebSearch, ListMcpResourcesTool, ReadMcpResourceTool,  mcp__jetbrains__get_project_vcs_status, mcp__github__list_commits, mcp__github__get_issue, mcp__github__list_issues
 color: green
 ---
 
