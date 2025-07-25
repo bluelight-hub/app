@@ -1,10 +1,11 @@
 import { Module } from '@nestjs/common';
 import { BullModule } from '@nestjs/bullmq';
 import { PrismaModule } from '../prisma/prisma.module';
-import { SecurityLogService } from '../modules/auth/services/security-log.service';
+import { SecurityLogService as AuthSecurityLogService } from '../modules/auth/services/security-log.service';
 import { SecurityLogHashService } from '../modules/auth/services/security-log-hash.service';
 import { SecurityLogProcessor } from './processors/security-log.processor';
 import { SecurityLogQueueService } from './services/security-log-queue.service';
+import { SecurityLogService } from './services/security-log.service';
 
 /**
  * Modul für das Security Logging System mit BullMQ Queue-Integration.
@@ -28,10 +29,11 @@ import { SecurityLogQueueService } from './services/security-log-queue.service';
     }),
   ],
   providers: [
-    SecurityLogService,
+    AuthSecurityLogService,
     SecurityLogHashService,
     SecurityLogProcessor,
     SecurityLogQueueService,
+    SecurityLogService,
   ],
   exports: [SecurityLogQueueService, SecurityLogService],
 })
