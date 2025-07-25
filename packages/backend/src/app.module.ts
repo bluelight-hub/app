@@ -4,6 +4,7 @@ import { APP_GUARD } from '@nestjs/core';
 import { ScheduleModule } from '@nestjs/schedule';
 import { EventEmitterModule } from '@nestjs/event-emitter';
 import { BullModule } from '@nestjs/bull';
+import { BullModule as BullMQModule } from '@nestjs/bullmq';
 import { CommonModule } from './common/common.module';
 import { HealthModule } from './health/health.module';
 // import { ConsolaLogger } from './logger/consola.logger';
@@ -44,6 +45,12 @@ import { SecurityLogModule } from './security/security-log.module';
     EventEmitterModule.forRoot(),
     BullModule.forRoot({
       redis: {
+        host: process.env.REDIS_HOST || 'localhost',
+        port: parseInt(process.env.REDIS_PORT || '6379', 10),
+      },
+    }),
+    BullMQModule.forRoot({
+      connection: {
         host: process.env.REDIS_HOST || 'localhost',
         port: parseInt(process.env.REDIS_PORT || '6379', 10),
       },
