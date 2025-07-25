@@ -16,6 +16,7 @@ import { JwtAuthGuard } from './modules/auth/guards';
 import { AuditModule } from './modules/audit';
 import { SessionModule } from './modules/session/session.module';
 import { NotificationModule } from './modules/notification/notification.module';
+import { SecurityLogModule } from './security/security-log.module';
 
 /**
  * Haupt-Anwendungsmodul der Bluelight Hub Backend-Anwendung
@@ -52,6 +53,7 @@ import { NotificationModule } from './modules/notification/notification.module';
     AuditModule,
     SessionModule,
     NotificationModule,
+    SecurityLogModule,
     HealthModule,
     EinsatzModule,
     EtbModule,
