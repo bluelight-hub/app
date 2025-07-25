@@ -1,9 +1,9 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { getQueueToken } from '@nestjs/bullmq';
-import { SecurityLogService } from '../services/security-log.service';
+import { SecurityLogService } from '@/security';
 import { PrismaService } from '@/prisma/prisma.service';
 import { SECURITY_LOG_QUEUE_CONFIG, SecurityEventTypeExtended } from '../constants/event-types';
-import { SecurityEventType } from '../../modules/auth/constants/auth.constants';
+import { SecurityEventType } from '@/modules/auth/constants';
 
 describe('SecurityLogService', () => {
   let service: SecurityLogService;
@@ -48,8 +48,9 @@ describe('SecurityLogService', () => {
     it('should add a security event to the queue', async () => {
       const eventType = SecurityEventType.LOGIN_SUCCESS;
       const payload = {
+        action: eventType,
         userId: 'user-123',
-        ipAddress: '192.168.1.1',
+        ip: '192.168.1.1',
         userAgent: 'Mozilla/5.0',
         metadata: { browser: 'Chrome' },
       };
@@ -78,8 +79,9 @@ describe('SecurityLogService', () => {
     it('should handle undefined values correctly', async () => {
       const eventType = SecurityEventType.LOGIN_FAILED;
       const payload = {
+        action: eventType,
         userId: undefined,
-        ipAddress: undefined,
+        ip: undefined,
         userAgent: undefined,
         metadata: undefined,
       };
@@ -105,7 +107,9 @@ describe('SecurityLogService', () => {
     it('should handle extended event types', async () => {
       const eventType = SecurityEventTypeExtended.PERMISSION_DENIED;
       const payload = {
+        action: eventType,
         userId: 'user-456',
+        ip: '127.0.0.1',
         metadata: { resource: 'admin-panel', action: 'access' },
       };
 
@@ -129,7 +133,7 @@ describe('SecurityLogService', () => {
       mockQueue.add.mockRejectedValueOnce(error);
 
       const eventType = SecurityEventType.LOGIN_SUCCESS;
-      const payload = { userId: 'user-789' };
+      const payload = { action: eventType, userId: 'user-789', ip: '127.0.0.1' };
 
       await expect(service.log(eventType, payload)).rejects.toThrow('Queue error');
     });
@@ -139,8 +143,9 @@ describe('SecurityLogService', () => {
     it('should add a critical event with priority 0 and lifo true', async () => {
       const eventType = SecurityEventType.SUSPICIOUS_ACTIVITY;
       const payload = {
+        action: eventType,
         userId: 'user-999',
-        ipAddress: '10.0.0.1',
+        ip: '10.0.0.1',
         metadata: { reason: 'Multiple failed attempts' },
       };
 
@@ -173,7 +178,7 @@ describe('SecurityLogService', () => {
       mockQueue.add.mockRejectedValueOnce(error);
 
       const eventType = SecurityEventType.ACCOUNT_LOCKED;
-      const payload = { userId: 'user-critical' };
+      const payload = { action: eventType, userId: 'user-critical', ip: '127.0.0.1' };
 
       await expect(service.logCritical(eventType, payload)).rejects.toThrow('Critical queue error');
     });
@@ -181,6 +186,9 @@ describe('SecurityLogService', () => {
     it('should add severity CRITICAL to the payload', async () => {
       const eventType = SecurityEventTypeExtended.QUEUE_JOB_FAILED;
       const payload = {
+        action: eventType,
+        userId: 'system',
+        ip: '127.0.0.1',
         metadata: { jobId: 'failed-job-123', error: 'Processing failed' },
       };
 
@@ -199,7 +207,7 @@ describe('SecurityLogService', () => {
   describe('edge cases', () => {
     it('should handle empty payload', async () => {
       const eventType = SecurityEventType.SYSTEM_CHECKPOINT;
-      const payload = {};
+      const payload = { action: eventType, userId: 'system', ip: '127.0.0.1' };
 
       const result = await service.log(eventType, payload);
 
@@ -222,7 +230,9 @@ describe('SecurityLogService', () => {
       }
 
       const payload = {
+        action: eventType,
         userId: 'user-large',
+        ip: '127.0.0.1',
         metadata: largeMetadata,
       };
 
@@ -237,7 +247,11 @@ describe('SecurityLogService', () => {
         id: 12345, // Numeric ID
       });
 
-      const result = await service.log(SecurityEventType.LOGIN_SUCCESS, {});
+      const result = await service.log(SecurityEventType.LOGIN_SUCCESS, {
+        action: SecurityEventType.LOGIN_SUCCESS,
+        userId: 'system',
+        ip: '127.0.0.1',
+      });
 
       expect(result.jobId).toBe('12345');
       expect(typeof result.jobId).toBe('string');

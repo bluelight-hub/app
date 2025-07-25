@@ -4,24 +4,49 @@
  */
 export interface SecurityLogPayload {
   /**
-   * Typ des Sicherheitsereignisses
+   * Die ausgeführte Aktion (eventType im SecurityLog Model)
    */
-  eventType: string;
+  action: string;
 
   /**
-   * ID des betroffenen Benutzers (optional)
+   * ID des betroffenen Benutzers
    */
-  userId?: string;
+  userId: string;
 
   /**
-   * IP-Adresse des Clients (optional)
+   * IP-Adresse des Clients
    */
-  ipAddress?: string;
+  ip: string;
+
+  /**
+   * HTTP-Methode (optional)
+   */
+  method?: string;
+
+  /**
+   * Request-Pfad (optional)
+   */
+  path?: string;
+
+  /**
+   * HTTP-Statuscode (optional)
+   */
+  statusCode?: number;
 
   /**
    * User-Agent String des Clients (optional)
    */
   userAgent?: string;
+
+  /**
+   * ID der Organisation (optional)
+   */
+  organizationId?: string;
+
+  /**
+   * ID des Tenants (optional)
+   */
+  tenantId?: string;
 
   /**
    * Zusätzliche Metadaten für das Event (optional)
