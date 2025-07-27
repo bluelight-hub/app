@@ -117,10 +117,14 @@ describe('SecurityLog Schema', () => {
   describe('Prisma schema validation', () => {
     it('should have valid Prisma schema syntax', () => {
       // This test validates that the schema can be parsed by Prisma
+      // Set a dummy DATABASE_URL for validation purposes only
+      const env = { ...process.env, DATABASE_URL: 'postgresql://dummy:dummy@localhost:5432/dummy' };
+
       try {
         execSync('npx prisma validate', {
           cwd: join(__dirname, '../../..'),
           stdio: 'pipe',
+          env,
         });
       } catch (error: any) {
         throw new Error(`Prisma schema validation failed: ${error.message}`);
