@@ -109,7 +109,7 @@ describe('SecurityLog Schema', () => {
         expect(migrationContent).toContain('CREATE INDEX "idx_security_log_hash"');
         expect(migrationContent).toContain('CREATE INDEX "idx_security_log_prev_hash"');
       } catch (_error) {
-        fail('Hash chain migration file not found');
+        throw new Error('Hash chain migration file not found');
       }
     });
   });
@@ -123,7 +123,7 @@ describe('SecurityLog Schema', () => {
           stdio: 'pipe',
         });
       } catch (error: any) {
-        fail(`Prisma schema validation failed: ${error.message}`);
+        throw new Error(`Prisma schema validation failed: ${error.message}`);
       }
     });
   });
