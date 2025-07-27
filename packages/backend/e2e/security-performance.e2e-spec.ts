@@ -1,15 +1,16 @@
 import { Test, TestingModule } from '@nestjs/testing';
+import { INestApplication } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { getQueueToken } from '@nestjs/bullmq';
 import { Queue, QueueEvents } from 'bullmq';
-import { PrismaService } from '../../prisma/prisma.service';
-import { SecurityLogService } from '../services/security-log.service';
-import { SecurityLogProcessor } from '../processors/security-log.processor';
-import { IntegrityService } from '../services/integrity.service';
-import { SecurityLogModule } from '../security-log.module';
+import { AppModule } from '@/app.module';
+import { PrismaService } from '@/prisma/prisma.service';
+import { SecurityLogService } from '@/security';
+import { SecurityLogProcessor } from '@/security/processors/security-log.processor';
+import { IntegrityService } from '@/security/services/integrity.service';
 
-describe('Security Logging Performance Tests', () => {
-  let module: TestingModule;
+describe('Security Logging Performance Tests (e2e)', () => {
+  let app: INestApplication;
   let securityLogService: SecurityLogService;
   let securityLogQueue: Queue;
   let queueEvents: QueueEvents;
@@ -17,20 +18,17 @@ describe('Security Logging Performance Tests', () => {
   let integrityService: IntegrityService;
 
   beforeAll(async () => {
-    module = await Test.createTestingModule({
-      imports: [
-        ConfigModule.forRoot({
-          isGlobal: true,
-          envFilePath: '.env.test',
-        }),
-        SecurityLogModule,
-      ],
+    const moduleFixture: TestingModule = await Test.createTestingModule({
+      imports: [AppModule],
     }).compile();
 
-    securityLogService = module.get<SecurityLogService>(SecurityLogService);
-    securityLogQueue = module.get<Queue>(getQueueToken('security-log'));
-    prisma = module.get<PrismaService>(PrismaService);
-    integrityService = module.get<IntegrityService>(IntegrityService);
+    app = moduleFixture.createNestApplication();
+    await app.init();
+
+    securityLogService = app.get<SecurityLogService>(SecurityLogService);
+    securityLogQueue = app.get<Queue>(getQueueToken('security-log'));
+    prisma = app.get<PrismaService>(PrismaService);
+    integrityService = app.get<IntegrityService>(IntegrityService);
 
     // Create queue events listener
     queueEvents = new QueueEvents('security-log', {
@@ -48,7 +46,7 @@ describe('Security Logging Performance Tests', () => {
   afterAll(async () => {
     await queueEvents.close();
     await securityLogQueue.close();
-    await module.close();
+    await app.close();
   });
 
   describe('Log Processing Performance', () => {
@@ -99,13 +97,13 @@ describe('Security Logging Performance Tests', () => {
         Math.floor(processingTimes.length * 0.95)
       ];
 
-      console.log('Processing Time Metrics:');
-      console.log(`  Total Time: ${totalTime}ms`);
-      console.log(`  Average: ${avgProcessingTime.toFixed(2)}ms`);
-      console.log(`  Min: ${minProcessingTime}ms`);
-      console.log(`  Max: ${maxProcessingTime}ms`);
-      console.log(`  P95: ${p95ProcessingTime}ms`);
-      console.log(`  Throughput: ${(numLogs / (totalTime / 1000)).toFixed(2)} logs/second`);
+      // Processing Time Metrics:
+      // Total Time: ${totalTime}ms
+      // Average: ${avgProcessingTime.toFixed(2)}ms
+      // Min: ${minProcessingTime}ms
+      // Max: ${maxProcessingTime}ms
+      // P95: ${p95ProcessingTime}ms
+      // Throughput: ${(numLogs / (totalTime / 1000)).toFixed(2)} logs/second
 
       // Performance assertions
       expect(avgProcessingTime).toBeLessThan(100); // Average should be under 100ms
@@ -183,12 +181,12 @@ describe('Security Logging Performance Tests', () => {
       const isValid = await integrityService.verifyChainIntegrity();
       expect(isValid).toBe(true);
 
-      console.log('Concurrent Load Test Results:');
-      console.log(`  Logs: ${numLogs}`);
-      console.log(`  Queue Time: ${queueTime}ms`);
-      console.log(`  Total Time: ${totalTime}ms`);
-      console.log(`  Max Queue Size: ${maxQueueSize}`);
-      console.log(`  Throughput: ${(numLogs / (totalTime / 1000)).toFixed(2)} logs/second`);
+      // Concurrent Load Test Results:
+      // Logs: ${numLogs}
+      // Queue Time: ${queueTime}ms
+      // Total Time: ${totalTime}ms
+      // Max Queue Size: ${maxQueueSize}
+      // Throughput: ${(numLogs / (totalTime / 1000)).toFixed(2)} logs/second
 
       // Performance assertions
       expect(queueTime).toBeLessThan(5000); // Should queue 1000 logs in under 5 seconds
@@ -244,10 +242,10 @@ describe('Security Logging Performance Tests', () => {
       await Promise.all(promises);
       clearInterval(metricsInterval);
 
-      console.log('Backpressure Test Results:');
-      console.log(`  Max Waiting: ${queueMetrics.maxWaiting}`);
-      console.log(`  Max Active: ${queueMetrics.maxActive}`);
-      console.log(`  Rejected: ${queueMetrics.rejected}`);
+      // Backpressure Test Results:
+      // Max Waiting: ${queueMetrics.maxWaiting}
+      // Max Active: ${queueMetrics.maxActive}
+      // Rejected: ${queueMetrics.rejected}
 
       // Verify queue handled backpressure without rejecting logs
       expect(queueMetrics.rejected).toBe(0);
@@ -328,10 +326,10 @@ describe('Security Logging Performance Tests', () => {
         Math.floor(responseTimes.length * 0.95)
       ];
 
-      console.log('API Response Time Metrics:');
-      console.log(`  Average: ${avgResponseTime.toFixed(2)}ms`);
-      console.log(`  Max: ${maxResponseTime}ms`);
-      console.log(`  P95: ${p95ResponseTime}ms`);
+      // API Response Time Metrics:
+      // Average: ${avgResponseTime.toFixed(2)}ms
+      // Max: ${maxResponseTime}ms
+      // P95: ${p95ResponseTime}ms
 
       // Performance assertions
       expect(avgResponseTime).toBeLessThan(100); // Average under 100ms
@@ -381,10 +379,10 @@ describe('Security Logging Performance Tests', () => {
         rss: finalMemory.rss - initialMemory.rss,
       };
 
-      console.log('Memory Usage Analysis:');
-      console.log(`  Heap Growth: ${(memoryGrowth.heapUsed / 1024 / 1024).toFixed(2)} MB`);
-      console.log(`  External Growth: ${(memoryGrowth.external / 1024 / 1024).toFixed(2)} MB`);
-      console.log(`  RSS Growth: ${(memoryGrowth.rss / 1024 / 1024).toFixed(2)} MB`);
+      // Memory Usage Analysis:
+      // Heap Growth: ${(memoryGrowth.heapUsed / 1024 / 1024).toFixed(2)} MB
+      // External Growth: ${(memoryGrowth.external / 1024 / 1024).toFixed(2)} MB
+      // RSS Growth: ${(memoryGrowth.rss / 1024 / 1024).toFixed(2)} MB
 
       // Check for memory leaks (growth should be reasonable)
       expect(memoryGrowth.heapUsed).toBeLessThan(100 * 1024 * 1024); // Less than 100MB growth
@@ -474,10 +472,10 @@ describe('Security Logging Performance Tests', () => {
 
       const results = await Promise.all(queries.map((q) => q()));
 
-      console.log('Index Performance Results:');
-      results.forEach((r) => {
-        console.log(`  ${r.name}: ${r.time}ms (${r.count} records)`);
-      });
+      // Index Performance Results:
+      // results.forEach((r) => {
+      //   ${r.name}: ${r.time}ms (${r.count} records)
+      // });
 
       // All indexed queries should be fast
       results.forEach((r) => {
@@ -514,10 +512,10 @@ describe('Security Logging Performance Tests', () => {
       const duration = Date.now() - startTime;
       const hashesPerSecond = iterations / (duration / 1000);
 
-      console.log('Hash Calculation Performance:');
-      console.log(`  Total Time: ${duration}ms`);
-      console.log(`  Hashes/Second: ${hashesPerSecond.toFixed(0)}`);
-      console.log(`  Time per Hash: ${(duration / iterations).toFixed(3)}ms`);
+      // Hash Calculation Performance:
+      // Total Time: ${duration}ms
+      // Hashes/Second: ${hashesPerSecond.toFixed(0)}
+      // Time per Hash: ${(duration / iterations).toFixed(3)}ms
 
       // Should be able to calculate many hashes per second
       expect(hashesPerSecond).toBeGreaterThan(1000);

@@ -27,6 +27,7 @@ describe('IntegrityService', () => {
 
   const mockFindMany = jest.fn();
   const mockFindFirst = jest.fn();
+  const mockFindUnique = jest.fn();
 
   beforeEach(async () => {
     const module = await Test.createTestingModule({
@@ -38,6 +39,7 @@ describe('IntegrityService', () => {
             securityLog: {
               findMany: mockFindMany,
               findFirst: mockFindFirst,
+              findUnique: mockFindUnique,
             },
           },
         },
@@ -49,6 +51,9 @@ describe('IntegrityService', () => {
 
   afterEach(() => {
     jest.clearAllMocks();
+    mockFindMany.mockReset();
+    mockFindFirst.mockReset();
+    mockFindUnique.mockReset();
   });
 
   describe('verifyChainIntegrity', () => {
@@ -148,7 +153,7 @@ describe('IntegrityService', () => {
       const result = await service.verifyChainIntegrity(2);
 
       expect(mockFindMany).toHaveBeenCalledWith({
-        orderBy: { id: 'asc' },
+        orderBy: { sequenceNumber: 'asc' },
         take: 2,
       });
 
@@ -165,21 +170,21 @@ describe('IntegrityService', () => {
         previousHash: 'somehash',
       };
 
-      jest.spyOn(service, 'verifyChainIntegrity').mockResolvedValue(true);
-
+      // Mock the findMany call for verifyChainIntegrityDetailed
+      mockFindMany.mockResolvedValue([]);
       mockFindFirst.mockResolvedValue(lastLog);
 
       const result = await service.findLastValidEntry();
 
       expect(result).toBe('10');
       expect(mockFindFirst).toHaveBeenCalledWith({
-        orderBy: { id: 'desc' },
+        orderBy: { sequenceNumber: 'desc' },
       });
     });
 
     it('should return null for empty chain', async () => {
-      jest.spyOn(service, 'verifyChainIntegrity').mockResolvedValue(true);
-
+      // Mock the findMany call for verifyChainIntegrityDetailed
+      mockFindMany.mockResolvedValue([]);
       mockFindFirst.mockResolvedValue(null);
 
       const result = await service.findLastValidEntry();
@@ -188,29 +193,55 @@ describe('IntegrityService', () => {
     });
 
     it('should return ID before broken entry', async () => {
-      jest.spyOn(service, 'verifyChainIntegrityDetailed').mockResolvedValue({
-        valid: false,
-        brokenAtId: '5',
-        totalChecked: 5,
+      const hash1 = crypto.randomBytes(32).toString('hex');
+      const hash2 = crypto.randomBytes(32).toString('hex');
+      const hash3 = crypto.randomBytes(32).toString('hex');
+      const hash4 = crypto.randomBytes(32).toString('hex');
+      const hash5 = crypto.randomBytes(32).toString('hex');
+
+      // Create mock logs with broken chain at log 5
+      const logs = [
+        { id: '1', currentHash: hash1, previousHash: null, sequenceNumber: 1n },
+        { id: '2', currentHash: hash2, previousHash: hash1, sequenceNumber: 2n },
+        { id: '3', currentHash: hash3, previousHash: hash2, sequenceNumber: 3n },
+        { id: '4', currentHash: hash4, previousHash: hash3, sequenceNumber: 4n },
+        { id: '5', currentHash: hash5, previousHash: 'wronghash', sequenceNumber: 5n }, // broken chain - should be hash4
+      ];
+
+      // Mock the findMany call for verifyChainIntegrityDetailed
+      mockFindMany.mockResolvedValue(logs);
+
+      // Mock the broken log with sequenceNumber
+      mockFindUnique.mockResolvedValue({
+        id: '5',
+        sequenceNumber: 5n,
       });
 
-      mockFindFirst.mockResolvedValue({ id: '4' });
+      // Mock the previous log
+      mockFindFirst.mockResolvedValue({
+        id: '4',
+        sequenceNumber: 4n,
+      });
 
       const result = await service.findLastValidEntry();
 
       expect(result).toBe('4');
+      expect(mockFindUnique).toHaveBeenCalledWith({
+        where: { id: '5' },
+      });
       expect(mockFindFirst).toHaveBeenCalledWith({
-        where: { id: { lt: '5' } },
-        orderBy: { id: 'desc' },
+        where: { sequenceNumber: 4n },
       });
     });
 
     it('should return null when first entry is broken', async () => {
-      jest.spyOn(service, 'verifyChainIntegrityDetailed').mockResolvedValue({
-        valid: false,
-        brokenAtId: '1',
-        totalChecked: 1,
-      });
+      // Create mock log with broken first entry (has previousHash when it shouldn't)
+      const logs = [
+        { id: '1', currentHash: 'hash1', previousHash: 'shouldbenull', sequenceNumber: 1n },
+      ];
+
+      // Mock the findMany call for verifyChainIntegrityDetailed
+      mockFindMany.mockResolvedValue(logs);
 
       const result = await service.findLastValidEntry();
 

@@ -32,7 +32,7 @@ export class IntegrityService {
     this.logger.log(`Starting chain integrity verification${limit ? ` with limit ${limit}` : ''}`);
 
     const logs = await this.prisma.securityLog.findMany({
-      orderBy: { id: 'asc' },
+      orderBy: { sequenceNumber: 'asc' },
       take: limit,
     });
 
@@ -119,18 +119,24 @@ export class IntegrityService {
 
     if (result.valid) {
       const lastLog = await this.prisma.securityLog.findFirst({
-        orderBy: { id: 'desc' },
+        orderBy: { sequenceNumber: 'desc' },
       });
       return lastLog?.id || null;
     }
 
     if (result.brokenAtId && result.totalChecked > 1) {
-      // Return the ID before the broken one
-      const previousLog = await this.prisma.securityLog.findFirst({
-        where: { id: { lt: result.brokenAtId } },
-        orderBy: { id: 'desc' },
+      // Get the log that's broken to find its sequence number
+      const brokenLog = await this.prisma.securityLog.findUnique({
+        where: { id: result.brokenAtId },
       });
-      return previousLog?.id || null;
+
+      if (brokenLog && brokenLog.sequenceNumber > 1) {
+        // Return the ID of the log before the broken one by sequence
+        const previousLog = await this.prisma.securityLog.findFirst({
+          where: { sequenceNumber: brokenLog.sequenceNumber - 1n },
+        });
+        return previousLog?.id || null;
+      }
     }
 
     return null;
