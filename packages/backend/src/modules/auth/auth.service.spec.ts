@@ -17,6 +17,7 @@ import {
   RefreshRateLimitExceededException,
 } from './exceptions/auth.exceptions';
 import { SecurityLogService } from '@/security/services/security-log.service';
+import { createMockSecurityLogService } from '@/test/mocks/security-log.service.mock';
 import * as bcrypt from 'bcryptjs';
 
 // Mock bcrypt
@@ -84,10 +85,7 @@ describe('AuthService', () => {
     checkMultipleFailedAttempts: jest.fn(),
   };
 
-  const mockSecurityLogService = {
-    log: jest.fn().mockResolvedValue({ jobId: 'test-job-id', queued: true }),
-    logCritical: jest.fn().mockResolvedValue({ jobId: 'test-job-id', queued: true }),
-  };
+  const mockSecurityLogService = createMockSecurityLogService();
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({

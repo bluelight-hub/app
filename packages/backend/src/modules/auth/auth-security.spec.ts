@@ -10,6 +10,8 @@ import { SessionService } from '../session/session.service';
 import { LoginAttemptService } from './services/login-attempt.service';
 import * as bcrypt from 'bcrypt';
 import { UserRole } from './types/jwt.types';
+import { SecurityLogService } from '@/security/services/security-log.service';
+import { createMockSecurityLogService } from '@/test/mocks/security-log.service.mock';
 
 describe('Auth Security', () => {
   let authService: AuthService;
@@ -126,6 +128,10 @@ describe('Auth Security', () => {
         {
           provide: LoginAttemptService,
           useValue: mockLoginAttemptService,
+        },
+        {
+          provide: SecurityLogService,
+          useValue: createMockSecurityLogService(),
         },
       ],
     }).compile();

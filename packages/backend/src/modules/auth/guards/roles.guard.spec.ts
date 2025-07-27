@@ -4,6 +4,7 @@ import { Reflector } from '@nestjs/core';
 import { RolesGuard } from './roles.guard';
 import { UserRole } from '../types/jwt.types';
 import { SecurityLogService } from '@/security/services/security-log.service';
+import { createMockSecurityLogService } from '@/test/mocks/security-log.service.mock';
 
 describe('RolesGuard', () => {
   let guard: RolesGuard;
@@ -12,10 +13,7 @@ describe('RolesGuard', () => {
     getAllAndOverride: jest.fn(),
   };
 
-  const mockSecurityLogService = {
-    log: jest.fn().mockResolvedValue({ jobId: 'test-job-id', queued: true }),
-    logCritical: jest.fn().mockResolvedValue({ jobId: 'test-job-id', queued: true }),
-  };
+  const mockSecurityLogService = createMockSecurityLogService();
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({

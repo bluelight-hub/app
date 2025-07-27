@@ -3,6 +3,7 @@ import { ExecutionContext, UnauthorizedException } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 import { JwtAuthGuard } from './jwt-auth.guard';
 import { SecurityLogService } from '@/security/services/security-log.service';
+import { createMockSecurityLogService } from '@/test/mocks/security-log.service.mock';
 
 describe('JwtAuthGuard', () => {
   let guard: JwtAuthGuard;
@@ -11,10 +12,7 @@ describe('JwtAuthGuard', () => {
     getAllAndOverride: jest.fn(),
   };
 
-  const mockSecurityLogService = {
-    log: jest.fn().mockResolvedValue({ jobId: 'test-job-id', queued: true }),
-    logCritical: jest.fn().mockResolvedValue({ jobId: 'test-job-id', queued: true }),
-  };
+  const mockSecurityLogService = createMockSecurityLogService();
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({

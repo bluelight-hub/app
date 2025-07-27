@@ -1,4 +1,4 @@
-import { Injectable, CanActivate, ExecutionContext, Logger } from '@nestjs/common';
+import { Injectable, CanActivate, ExecutionContext, Logger, Optional } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 import { UserRole } from '../types/jwt.types';
 import { ROLES_KEY } from '../decorators/roles.decorator';
@@ -42,11 +42,11 @@ export class RolesGuard implements CanActivate {
    * Konstruktor des RolesGuard
    *
    * @param {Reflector} reflector - NestJS Reflector Service zum Lesen von Route-Metadaten
-   * @param {SecurityLogService} securityLogService - Service für Security-Logging
+   * @param {SecurityLogService} securityLogService - Service für Security-Logging (optional)
    */
   constructor(
     private reflector: Reflector,
-    private securityLogService: SecurityLogService,
+    @Optional() private securityLogService: SecurityLogService,
   ) {}
 
   /**
@@ -118,19 +118,21 @@ export class RolesGuard implements CanActivate {
       const ipAddress = request.ip || request.connection?.remoteAddress;
       const userAgent = request.headers['user-agent'];
 
-      await this.securityLogService.log(SecurityEventTypeExtended.PERMISSION_DENIED, {
-        action: SecurityEventTypeExtended.PERMISSION_DENIED,
-        userId: user?.id || '',
-        ip: ipAddress || '',
-        userAgent,
-        metadata: {
-          reason,
-          path: request.path,
-          method: request.method,
-          requiredRoles,
-          userRoles: user?.roles || [],
-        },
-      });
+      if (this.securityLogService) {
+        await this.securityLogService.log(SecurityEventTypeExtended.PERMISSION_DENIED, {
+          action: SecurityEventTypeExtended.PERMISSION_DENIED,
+          userId: user?.id || '',
+          ip: ipAddress || '',
+          userAgent,
+          metadata: {
+            reason,
+            path: request.path,
+            method: request.method,
+            requiredRoles,
+            userRoles: user?.roles || [],
+          },
+        });
+      }
     } catch (error) {
       this.logger.error('Failed to log permission denied event', error);
     }

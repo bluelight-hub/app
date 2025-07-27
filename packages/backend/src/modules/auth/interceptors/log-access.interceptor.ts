@@ -1,4 +1,11 @@
-import { Injectable, NestInterceptor, ExecutionContext, CallHandler, Logger } from '@nestjs/common';
+import {
+  Injectable,
+  NestInterceptor,
+  ExecutionContext,
+  CallHandler,
+  Logger,
+  Optional,
+} from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 import { Observable } from 'rxjs';
 import { tap } from 'rxjs/operators';
@@ -42,7 +49,7 @@ export class LogAccessInterceptor implements NestInterceptor {
 
   constructor(
     private reflector: Reflector,
-    private securityLogService: SecurityLogService,
+    @Optional() private securityLogService: SecurityLogService,
   ) {}
 
   /**
@@ -58,7 +65,7 @@ export class LogAccessInterceptor implements NestInterceptor {
       context.getHandler(),
     );
 
-    if (!logAccessMetadata) {
+    if (!logAccessMetadata || !this.securityLogService) {
       return next.handle();
     }
 

@@ -38,6 +38,8 @@ import { AlertDispatcherService } from './services/alert-dispatcher.service';
 import { AlertQueueService } from './services/alert-queue.service';
 import { getBullConfig, ALERT_QUEUE_NAME } from './config/bull.config';
 import { SecurityLogModule } from '@/security/security-log.module';
+import { SecurityLogService } from './services/security-log.service';
+import { SecurityLogHashService } from './services/security-log-hash.service';
 
 /**
  * Authentication module that provides JWT-based authentication for the application.
@@ -108,6 +110,8 @@ import { SecurityLogModule } from '@/security/security-log.module';
     ThreatRuleFactory,
     ThreatRulesService,
     LogAccessInterceptor,
+    SecurityLogService,
+    SecurityLogHashService,
   ],
   controllers: [AuthController, LoginAttemptController, SecurityController, ThreatRuleController],
   exports: [

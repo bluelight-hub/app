@@ -1,4 +1,10 @@
-import { Injectable, ExecutionContext, UnauthorizedException, Logger } from '@nestjs/common';
+import {
+  Injectable,
+  ExecutionContext,
+  UnauthorizedException,
+  Logger,
+  Optional,
+} from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 import { Reflector } from '@nestjs/core';
 import { IS_PUBLIC_KEY } from '../decorators/public.decorator';
@@ -36,7 +42,7 @@ export class JwtAuthGuard extends AuthGuard('jwt') {
 
   constructor(
     private reflector: Reflector,
-    private securityLogService: SecurityLogService,
+    @Optional() private securityLogService: SecurityLogService,
   ) {
     super();
   }
@@ -99,7 +105,7 @@ export class JwtAuthGuard extends AuthGuard('jwt') {
     if (err || !user) {
       // Log authentication failure
       const request = context?.switchToHttp()?.getRequest();
-      if (request) {
+      if (request && this.securityLogService) {
         const ipAddress = request.ip || request.connection?.remoteAddress;
         const userAgent = request.headers['user-agent'];
 

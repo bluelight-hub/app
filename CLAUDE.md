@@ -129,6 +129,14 @@ This project uses semantic-release with gitmoji for automated versioning:
 
 ## Development Workflow
 
+### Subagents verwenden (WICHTIG!)
+
+- **IMMER Subagents nutzen** für spezielle Aufgaben - sie funktionieren besser als direkte Tool-Aufrufe
+- **Debugging:** Nutze den `debugging-expert` Agent bei Fehlern
+- **Code Review:** Nutze den `critical-code-reviewer` nach Implementierungen
+- **Test-Fehler:** Nutze den `test-failure-specialist` bei fehlschlagenden Tests
+- **Planung:** Nutze den `strategic-planning-architect` für größere Features
+
 ### Commit-Regeln (WICHTIG!)
 
 - **NIEMALS mit `--no-verify` committen!** Pre-commit hooks müssen IMMER durchlaufen
