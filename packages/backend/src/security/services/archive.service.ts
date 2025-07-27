@@ -24,9 +24,9 @@ export class ArchiveService {
    * Archiviert alle Security Logs vor einem bestimmten Datum.
    *
    * @param date - Datum vor dem Logs archiviert werden sollen
-   * @returns Pfad zur erstellten Archivdatei
+   * @returns Archivierungsergebnis mit Anzahl und Pfad
    */
-  async archiveBeforeDate(date: Date): Promise<string> {
+  async archiveBeforeDate(date: Date): Promise<{ count: number; path: string }> {
     const startTime = Date.now();
     this.logger.log(`Starting archive of security logs before ${date.toISOString()}`);
 
@@ -39,7 +39,7 @@ export class ArchiveService {
 
       if (logs.length === 0) {
         this.logger.log('No logs to archive');
-        return null;
+        return { count: 0, path: null };
       }
 
       // Create archive metadata
@@ -83,7 +83,7 @@ export class ArchiveService {
           `(${logs.length} logs, ${this.formatBytes(fileSize)}, ${duration}ms)`,
       );
 
-      return compressedPath;
+      return { count: logs.length, path: compressedPath };
     } catch (error) {
       this.logger.error(`Archive creation failed: ${error.message}`, error.stack);
       throw error;

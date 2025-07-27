@@ -16,9 +16,19 @@ export class IntegrityService {
   /**
    * Verifiziert die Integrität der Hash-Chain für SecurityLogs
    * @param limit - Maximale Anzahl der zu prüfenden Einträge (Standard: alle)
-   * @returns Ergebnis der Integritätsprüfung
+   * @returns boolean indicating if chain is valid
    */
-  async verifyChainIntegrity(limit?: number): Promise<ChainIntegrityResult> {
+  async verifyChainIntegrity(limit?: number): Promise<boolean> {
+    const result = await this.verifyChainIntegrityDetailed(limit);
+    return result.valid;
+  }
+
+  /**
+   * Verifiziert die Integrität der Hash-Chain für SecurityLogs mit Details
+   * @param limit - Maximale Anzahl der zu prüfenden Einträge (Standard: alle)
+   * @returns Detailliertes Ergebnis der Integritätsprüfung
+   */
+  async verifyChainIntegrityDetailed(limit?: number): Promise<ChainIntegrityResult> {
     this.logger.log(`Starting chain integrity verification${limit ? ` with limit ${limit}` : ''}`);
 
     const logs = await this.prisma.securityLog.findMany({
@@ -105,7 +115,7 @@ export class IntegrityService {
    * @returns ID des letzten gültigen Eintrags oder null
    */
   async findLastValidEntry(): Promise<string | null> {
-    const result = await this.verifyChainIntegrity();
+    const result = await this.verifyChainIntegrityDetailed();
 
     if (result.valid) {
       const lastLog = await this.prisma.securityLog.findFirst({

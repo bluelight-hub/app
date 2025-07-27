@@ -2,6 +2,7 @@ import { Test } from '@nestjs/testing';
 import { Job } from 'bullmq';
 import { SecurityLogProcessor } from '../processors/security-log.processor';
 import { PrismaService } from '../../prisma/prisma.service';
+import { SecurityMetricsService } from '../metrics/security-metrics.service';
 import { SecurityLogPayload } from '../interfaces/security-log.interface';
 import * as crypto from 'crypto';
 
@@ -18,6 +19,12 @@ describe('SecurityLogProcessor', () => {
   const mockTransaction = jest.fn();
   const mockQueryRaw = jest.fn();
   const mockCreate = jest.fn();
+  const mockMetricsService = {
+    recordProcessingTime: jest.fn(),
+    incrementEventCounter: jest.fn(),
+    recordFailedJob: jest.fn(),
+    recordSecurityEvent: jest.fn(),
+  };
 
   beforeEach(async () => {
     const module = await Test.createTestingModule({
@@ -28,6 +35,10 @@ describe('SecurityLogProcessor', () => {
           useValue: {
             $transaction: mockTransaction,
           },
+        },
+        {
+          provide: SecurityMetricsService,
+          useValue: mockMetricsService,
         },
       ],
     }).compile();

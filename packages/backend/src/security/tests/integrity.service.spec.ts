@@ -80,10 +80,7 @@ describe('IntegrityService', () => {
 
       const result = await service.verifyChainIntegrity();
 
-      expect(result).toEqual({
-        valid: true,
-        totalChecked: 0,
-      });
+      expect(result).toBe(true);
     });
 
     it('should verify a valid chain', async () => {
@@ -101,10 +98,7 @@ describe('IntegrityService', () => {
 
       const result = await service.verifyChainIntegrity();
 
-      expect(result).toEqual({
-        valid: true,
-        totalChecked: 3,
-      });
+      expect(result).toBe(true);
     });
 
     it('should detect broken chain when first entry has previousHash', async () => {
@@ -114,11 +108,7 @@ describe('IntegrityService', () => {
 
       const result = await service.verifyChainIntegrity();
 
-      expect(result).toEqual({
-        valid: false,
-        brokenAtId: '1',
-        totalChecked: 1,
-      });
+      expect(result).toBe(false);
     });
 
     it('should detect broken chain when previousHash mismatch', async () => {
@@ -134,11 +124,7 @@ describe('IntegrityService', () => {
 
       const result = await service.verifyChainIntegrity();
 
-      expect(result).toEqual({
-        valid: false,
-        brokenAtId: '2',
-        totalChecked: 2,
-      });
+      expect(result).toBe(false);
     });
 
     it('should detect invalid hash format', async () => {
@@ -148,11 +134,7 @@ describe('IntegrityService', () => {
 
       const result = await service.verifyChainIntegrity();
 
-      expect(result).toEqual({
-        valid: false,
-        brokenAtId: '1',
-        totalChecked: 1,
-      });
+      expect(result).toBe(false);
     });
 
     it('should respect limit parameter', async () => {
@@ -170,10 +152,7 @@ describe('IntegrityService', () => {
         take: 2,
       });
 
-      expect(result).toEqual({
-        valid: true,
-        totalChecked: 2,
-      });
+      expect(result).toBe(true);
     });
   });
 
@@ -186,10 +165,7 @@ describe('IntegrityService', () => {
         previousHash: 'somehash',
       };
 
-      jest.spyOn(service, 'verifyChainIntegrity').mockResolvedValue({
-        valid: true,
-        totalChecked: 10,
-      });
+      jest.spyOn(service, 'verifyChainIntegrity').mockResolvedValue(true);
 
       mockFindFirst.mockResolvedValue(lastLog);
 
@@ -202,10 +178,7 @@ describe('IntegrityService', () => {
     });
 
     it('should return null for empty chain', async () => {
-      jest.spyOn(service, 'verifyChainIntegrity').mockResolvedValue({
-        valid: true,
-        totalChecked: 0,
-      });
+      jest.spyOn(service, 'verifyChainIntegrity').mockResolvedValue(true);
 
       mockFindFirst.mockResolvedValue(null);
 
@@ -215,7 +188,7 @@ describe('IntegrityService', () => {
     });
 
     it('should return ID before broken entry', async () => {
-      jest.spyOn(service, 'verifyChainIntegrity').mockResolvedValue({
+      jest.spyOn(service, 'verifyChainIntegrityDetailed').mockResolvedValue({
         valid: false,
         brokenAtId: '5',
         totalChecked: 5,
@@ -233,7 +206,7 @@ describe('IntegrityService', () => {
     });
 
     it('should return null when first entry is broken', async () => {
-      jest.spyOn(service, 'verifyChainIntegrity').mockResolvedValue({
+      jest.spyOn(service, 'verifyChainIntegrityDetailed').mockResolvedValue({
         valid: false,
         brokenAtId: '1',
         totalChecked: 1,

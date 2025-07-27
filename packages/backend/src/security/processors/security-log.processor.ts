@@ -3,6 +3,7 @@ import { Injectable, Logger } from '@nestjs/common';
 import { Job } from 'bullmq';
 import { PrismaService } from '../../prisma/prisma.service';
 import { SecurityLogPayload } from '../interfaces/security-log.interface';
+import { SecurityMetricsService } from '../metrics/security-metrics.service';
 import * as crypto from 'crypto';
 
 @Injectable()
@@ -10,7 +11,10 @@ import * as crypto from 'crypto';
 export class SecurityLogProcessor extends WorkerHost {
   private readonly logger = new Logger(SecurityLogProcessor.name);
 
-  constructor(private readonly prisma: PrismaService) {
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly metricsService: SecurityMetricsService,
+  ) {
     super();
   }
 
@@ -63,12 +67,26 @@ export class SecurityLogProcessor extends WorkerHost {
 
         const processingTime = Date.now() - startTime;
         this.logger.log(`Successfully processed security log job ${job.id} in ${processingTime}ms`);
+
+        // Record metrics
+        this.metricsService.recordProcessingTime(job.data.action, processingTime);
+        this.metricsService.recordSecurityEvent(
+          job.data.action,
+          job.data.metadata?.severity || 'INFO',
+        );
       });
     } catch (error) {
       this.logger.error(
         `Failed to process security log job ${job.id}`,
         error instanceof Error ? error.stack : error,
       );
+
+      // Record failure metrics
+      this.metricsService.recordFailedJob(
+        job.data.action,
+        error instanceof Error ? error.message : 'Unknown error',
+      );
+
       // Let the job fail for retry
       throw error;
     }
