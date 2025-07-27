@@ -141,7 +141,7 @@ describe('AuthModule', () => {
       const imports = Reflect.getMetadata('imports', AuthModule);
       expect(imports).toBeDefined();
       expect(Array.isArray(imports)).toBe(true);
-      expect(imports).toHaveLength(10); // Added RedisModule and BullModule
+      expect(imports).toHaveLength(11); // Added RedisModule, BullModule, and SecurityLogModule
 
       // Check ConfigModule
       expect(imports[0]).toBeDefined();
@@ -163,7 +163,7 @@ describe('AuthModule', () => {
       const providers = Reflect.getMetadata('providers', AuthModule);
       expect(providers).toBeDefined();
       expect(Array.isArray(providers)).toBe(true);
-      expect(providers).toHaveLength(23); // Added SecurityAlertEngineService, AlertDeduplicationService, AlertCorrelationService, AlertDispatcherService, AlertQueueService
+      expect(providers).toHaveLength(21); // Removed SecurityLogService and SecurityLogHashService (now imported from SecurityLogModule), added LogAccessInterceptor
       expect(providers).toContain(AuthService);
       expect(providers).toContain(JwtStrategy);
       expect(providers).toContain(PrismaService);
@@ -186,7 +186,7 @@ describe('AuthModule', () => {
       const exports = Reflect.getMetadata('exports', AuthModule);
       expect(exports).toBeDefined();
       expect(Array.isArray(exports)).toBe(true);
-      expect(exports).toHaveLength(19); // Added new security services to exports including RuleEngineService, RuleRepositoryService, ThreatRulesService, SecurityAlertEngineService, AlertDeduplicationService, AlertCorrelationService, AlertDispatcherService, AlertQueueService
+      expect(exports).toHaveLength(18); // Removed SecurityLogService and SecurityLogHashService (now imported from SecurityLogModule), added LogAccessInterceptor
       expect(exports).toContain(AuthService);
       expect(exports).toContain(PermissionValidationService);
       expect(exports).toContain(SessionCleanupService);

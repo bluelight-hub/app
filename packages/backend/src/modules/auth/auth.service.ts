@@ -20,6 +20,7 @@ import {
 import { SessionCleanupService } from './services/session-cleanup.service';
 import { LoginAttemptService } from './services/login-attempt.service';
 import { SessionService } from '../session/session.service';
+import { SecurityLogService } from '@/security/services/security-log.service';
 
 /**
  * Service für Authentifizierungsoperationen.
@@ -55,6 +56,7 @@ export class AuthService {
     private loginAttemptService: LoginAttemptService,
     @Inject(forwardRef(() => SessionService))
     private sessionService: SessionService,
+    private securityLogService: SecurityLogService,
   ) {}
 
   /**
@@ -100,6 +102,16 @@ export class AuthService {
       const isIpRateLimited = await this.loginAttemptService.checkIpRateLimit(ipAddress);
       if (isIpRateLimited) {
         this.logger.warn(`IP rate limit exceeded for: ${ipAddress}`);
+        await this.logSecurityEvent(
+          SecurityEventType.LOGIN_FAILED,
+          '',
+          {
+            reason: 'IP rate limit exceeded',
+            email: loginDto.email,
+          },
+          ipAddress,
+          userAgent,
+        );
         throw new InvalidCredentialsException(
           0,
           'Too many attempts from this IP. Please try again later.',
@@ -143,6 +155,16 @@ export class AuthService {
       });
 
       this.logger.warn(`Failed login attempt for email: ${loginDto.email}`);
+      await this.logSecurityEvent(
+        SecurityEventType.LOGIN_FAILED,
+        '',
+        {
+          reason: 'User not found',
+          email: loginDto.email,
+        },
+        ipAddress,
+        userAgent,
+      );
       throw new InvalidCredentialsException();
     }
 
@@ -159,6 +181,16 @@ export class AuthService {
       });
 
       this.logger.warn(`Login attempt for disabled account: ${user.id}`);
+      await this.logSecurityEvent(
+        SecurityEventType.LOGIN_FAILED,
+        user.id,
+        {
+          reason: 'Account disabled',
+          email: loginDto.email,
+        },
+        ipAddress,
+        userAgent,
+      );
       throw new AccountDisabledException();
     }
 
@@ -179,9 +211,15 @@ export class AuthService {
       const lockoutResult = await this.loginAttemptService.checkAndUpdateLockout(loginDto.email);
 
       if (lockoutResult.isLocked) {
-        this.logSecurityEvent(SecurityEventType.ACCOUNT_LOCKED, user.id, {
-          lockedUntil: lockoutResult.lockedUntil,
-        });
+        await this.logSecurityEvent(
+          SecurityEventType.ACCOUNT_LOCKED,
+          user.id,
+          {
+            lockedUntil: lockoutResult.lockedUntil,
+          },
+          ipAddress,
+          userAgent,
+        );
         throw new AccountLockedException(lockoutResult.lockedUntil!);
       }
 
@@ -291,9 +329,15 @@ export class AuthService {
     }
 
     // Log successful login
-    this.logSecurityEvent(SecurityEventType.LOGIN_SUCCESS, user.id, {
-      sessionId,
-    });
+    await this.logSecurityEvent(
+      SecurityEventType.LOGIN_SUCCESS,
+      user.id,
+      {
+        sessionId,
+      },
+      ipAddress,
+      userAgent,
+    );
 
     const authUser: AuthUser = {
       id: user.id,
@@ -368,7 +412,7 @@ export class AuthService {
 
     if (storedToken.isRevoked) {
       this.logger.warn(`Attempt to use revoked refresh token for user: ${storedToken.userId}`);
-      this.logSecurityEvent(SecurityEventType.SUSPICIOUS_ACTIVITY, storedToken.userId, {
+      await this.logSecurityEvent(SecurityEventType.SUSPICIOUS_ACTIVITY, storedToken.userId, {
         reason: 'Attempted to use revoked token',
       });
       throw new TokenRevokedException();
@@ -377,7 +421,7 @@ export class AuthService {
     if (storedToken.isUsed) {
       // Token reuse detected - potential security breach
       this.logger.error(`Refresh token reuse detected for user: ${storedToken.userId}`);
-      this.logSecurityEvent(SecurityEventType.SUSPICIOUS_ACTIVITY, storedToken.userId, {
+      await this.logSecurityEvent(SecurityEventType.SUSPICIOUS_ACTIVITY, storedToken.userId, {
         reason: 'Token reuse detected',
       });
 
@@ -405,7 +449,7 @@ export class AuthService {
     const rateLimitCheck = await this.sessionCleanupService.checkRefreshRateLimit(user.id);
     if (!rateLimitCheck.allowed) {
       this.logger.warn(`Refresh rate limit exceeded for user: ${user.id}`);
-      this.logSecurityEvent(SecurityEventType.SUSPICIOUS_ACTIVITY, user.id, {
+      await this.logSecurityEvent(SecurityEventType.SUSPICIOUS_ACTIVITY, user.id, {
         reason: 'Refresh rate limit exceeded',
       });
       throw new RefreshRateLimitExceededException(rateLimitCheck.retryAfter!);
@@ -459,7 +503,7 @@ export class AuthService {
     ]);
 
     // Log successful token refresh
-    this.logSecurityEvent(SecurityEventType.TOKEN_REFRESH, user.id, {
+    await this.logSecurityEvent(SecurityEventType.TOKEN_REFRESH, user.id, {
       oldSessionId: storedToken.sessionJti,
       newSessionId: newSessionId,
     });
@@ -523,7 +567,7 @@ export class AuthService {
       });
 
       if (session) {
-        this.logSecurityEvent(SecurityEventType.LOGOUT, session.userId, {
+        await this.logSecurityEvent(SecurityEventType.LOGOUT, session.userId, {
           sessionId,
         });
       }
@@ -615,7 +659,7 @@ export class AuthService {
     await this.loginAttemptService.resetFailedAttempts(email);
 
     // Log the unlock event
-    this.logSecurityEvent(SecurityEventType.ACCOUNT_UNLOCKED, user.id, {
+    await this.logSecurityEvent(SecurityEventType.ACCOUNT_UNLOCKED, user.id, {
       unlockedBy: adminId,
       previousLockUntil: user.lockedUntil,
     });
@@ -728,31 +772,71 @@ export class AuthService {
    * Protokolliert sicherheitsrelevante Ereignisse.
    *
    * Diese Methode dient zur zentralen Erfassung von Sicherheitsereignissen
-   * und kann später mit einem Audit-Log-System verbunden werden.
+   * und nutzt den Queue-basierten SecurityLogService für asynchrone Verarbeitung.
    *
    * @param event - Der Typ des Sicherheitsereignisses
    * @param userId - Die ID des betroffenen Benutzers
    * @param details - Zusätzliche Details zum Ereignis (optional)
+   * @param ipAddress - IP-Adresse des Clients (optional)
+   * @param userAgent - User-Agent des Clients (optional)
    *
    * @example
    * ```typescript
-   * this.logSecurityEvent(
+   * await this.logSecurityEvent(
    *   SecurityEventType.LOGIN_SUCCESS,
    *   userId,
-   *   { ipAddress: '192.168.1.1', sessionId: 'abc123' }
+   *   { sessionId: 'abc123' },
+   *   '192.168.1.1',
+   *   'Mozilla/5.0...'
    * );
    * ```
    */
-  private logSecurityEvent(
+  private async logSecurityEvent(
     event: SecurityEventType,
     userId: string,
     details?: Record<string, any>,
-  ): void {
-    this.logger.log({
-      event,
-      userId,
-      timestamp: new Date().toISOString(),
-      ...details,
-    });
+    ipAddress?: string,
+    userAgent?: string,
+  ): Promise<void> {
+    try {
+      await this.securityLogService.log(event, {
+        action: event,
+        userId: userId || '',
+        ip: ipAddress || '',
+        userAgent,
+        metadata: {
+          ...details,
+          severity: this.getEventSeverity(event),
+        },
+      });
+    } catch (error) {
+      // Log locally if queue fails
+      this.logger.error(`Failed to queue security event: ${event}`, error);
+      this.logger.log({
+        event,
+        userId,
+        timestamp: new Date().toISOString(),
+        ...details,
+      });
+    }
+  }
+
+  /**
+   * Bestimmt die Schwere eines Sicherheitsereignisses.
+   *
+   * @param event - Der Typ des Sicherheitsereignisses
+   * @returns Die Schwere des Ereignisses
+   */
+  private getEventSeverity(event: SecurityEventType): string {
+    switch (event) {
+      case SecurityEventType.ACCOUNT_LOCKED:
+      case SecurityEventType.SUSPICIOUS_ACTIVITY:
+      case SecurityEventType.TOKEN_REFRESH_FAILED:
+        return 'WARNING';
+      case SecurityEventType.LOGIN_FAILED:
+        return 'INFO';
+      default:
+        return 'INFO';
+    }
   }
 }
