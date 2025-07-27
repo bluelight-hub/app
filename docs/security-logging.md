@@ -8,6 +8,8 @@
 4. [Performance Recommendations](#performance-recommendations)
 5. [API Reference](#api-reference)
 6. [Monitoring and Alerts](#monitoring-and-alerts)
+7. [Testing Strategy](#testing-strategy)
+8. [Deployment Guide](#deployment-guide)
 
 ## Architecture Overview
 
@@ -557,6 +559,250 @@ groups:
    - Redis memory usage
    - Disk space available
    - Worker status
+
+## Testing Strategy
+
+### Test Coverage Requirements
+
+The Security Logging System maintains comprehensive test coverage across multiple layers:
+
+1. **Unit Tests** (Target: >90%)
+
+   - Service layer tests
+   - Processor tests
+   - Integrity service tests
+   - Health check tests
+
+2. **Integration Tests** (Target: >85%)
+
+   - API endpoint tests
+   - Queue processing tests
+   - Database interaction tests
+
+3. **E2E Tests** (Target: >80%)
+
+   - Complete flow testing
+   - Multi-user scenarios
+   - Failure recovery tests
+
+4. **Performance Tests**
+   - Load testing (1000+ concurrent logs)
+   - Stress testing (queue backpressure)
+   - Endurance testing (memory leaks)
+
+### Running Tests
+
+```bash
+# Run all tests with coverage
+pnpm --filter @bluelight-hub/backend test:cov
+
+# Run specific test suites
+pnpm --filter @bluelight-hub/backend test security-log.service.spec
+pnpm --filter @bluelight-hub/backend test:e2e security-logging.e2e-spec
+
+# Run performance tests
+pnpm --filter @bluelight-hub/backend test performance.spec --runInBand
+```
+
+### Test Scenarios
+
+#### Critical Test Cases
+
+1. **Hash Chain Integrity**
+
+   ```typescript
+   // Verify chain remains intact under concurrent writes
+   it('should maintain chain integrity with concurrent logs', async () => {
+     const promises = Array(100)
+       .fill(0)
+       .map(() => securityLogService.log('LOGIN_SUCCESS', { userId: 'test' }));
+     await Promise.all(promises);
+     const isValid = await integrityService.verifyChain();
+     expect(isValid).toBe(true);
+   });
+   ```
+
+2. **Queue Resilience**
+
+   ```typescript
+   // Test queue recovery after Redis failure
+   it('should handle Redis disconnection gracefully', async () => {
+     await redisService.disconnect();
+     const result = await securityLogService.log('CRITICAL_EVENT', {});
+     expect(result.queued).toBe(false);
+     // Verify event is logged to fallback
+   });
+   ```
+
+3. **Performance Benchmarks**
+   - Log processing: < 50ms average
+   - API response: < 100ms P95
+   - Queue throughput: > 1000 logs/second
+
+## Deployment Guide
+
+### Prerequisites
+
+- PostgreSQL 14+ with pgcrypto extension
+- Redis 6+ with AOF persistence enabled
+- Node.js 18+ with pnpm
+- Minimum 4GB RAM, 2 CPU cores
+
+### Environment Configuration
+
+```env
+# Required Environment Variables
+NODE_ENV=production
+DATABASE_URL=postgresql://user:pass@localhost:5432/bluelight
+
+# Redis Configuration
+REDIS_HOST=localhost
+REDIS_PORT=6379
+REDIS_PASSWORD=strong-password-here
+REDIS_MAX_RETRIES=3
+REDIS_ENABLE_AOF=true
+
+# Security Log Configuration
+SECURITY_LOG_RETENTION_DAYS=90
+SECURITY_LOG_ARCHIVE_PATH=/var/lib/bluelight/archives
+SECURITY_LOG_BATCH_SIZE=100
+SECURITY_LOG_WORKERS=4
+SECURITY_LOG_CONCURRENCY=10
+
+# Monitoring
+PROMETHEUS_METRICS_PATH=/metrics
+HEALTH_CHECK_TIMEOUT=5000
+```
+
+### Deployment Steps
+
+1. **Database Setup**
+
+   ```sql
+   -- Create database and extensions
+   CREATE DATABASE bluelight;
+   \c bluelight;
+   CREATE EXTENSION IF NOT EXISTS pgcrypto;
+
+   -- Run migrations
+   pnpm --filter @bluelight-hub/backend prisma migrate deploy
+   ```
+
+2. **Redis Configuration**
+
+   ```conf
+   # redis.conf
+   appendonly yes
+   appendfsync everysec
+   maxmemory 2gb
+   maxmemory-policy allkeys-lru
+   ```
+
+3. **System Service**
+
+   ```ini
+   # /etc/systemd/system/bluelight-security.service
+   [Unit]
+   Description=BlueLight Security Logging Service
+   After=network.target postgresql.service redis.service
+
+   [Service]
+   Type=simple
+   User=bluelight
+   WorkingDirectory=/opt/bluelight
+   ExecStart=/usr/bin/node dist/main.js
+   Restart=always
+   RestartSec=10
+
+   [Install]
+   WantedBy=multi-user.target
+   ```
+
+4. **Monitoring Setup**
+   ```yaml
+   # prometheus.yml
+   scrape_configs:
+     - job_name: 'bluelight-security'
+       static_configs:
+         - targets: ['localhost:3000']
+       metrics_path: '/api/metrics/security-logs'
+   ```
+
+### Production Checklist
+
+- [ ] Enable Redis AOF persistence
+- [ ] Configure PostgreSQL backups
+- [ ] Set up log rotation for archives
+- [ ] Configure firewall rules
+- [ ] Enable TLS for all connections
+- [ ] Set up monitoring alerts
+- [ ] Test disaster recovery procedures
+- [ ] Document incident response plan
+
+### Scaling Considerations
+
+1. **Vertical Scaling**
+
+   - Increase Redis memory for larger queues
+   - Add CPU cores for more workers
+   - Use SSD storage for archives
+
+2. **Horizontal Scaling**
+
+   - Deploy multiple worker instances
+   - Use Redis Cluster for queue distribution
+   - Implement database read replicas
+
+3. **Performance Tuning**
+   - Adjust batch sizes based on load
+   - Optimize worker concurrency
+   - Enable connection pooling
+
+### Backup and Recovery
+
+1. **Backup Strategy**
+
+   ```bash
+   # Daily backup script
+   #!/bin/bash
+   BACKUP_DIR="/backup/security-logs"
+   DATE=$(date +%Y%m%d)
+
+   # Backup database
+   pg_dump bluelight -t security_logs > $BACKUP_DIR/db-$DATE.sql
+
+   # Backup Redis AOF
+   cp /var/lib/redis/appendonly.aof $BACKUP_DIR/redis-$DATE.aof
+
+   # Backup archives
+   tar -czf $BACKUP_DIR/archives-$DATE.tar.gz /var/lib/bluelight/archives
+   ```
+
+2. **Recovery Procedures**
+   - Stop all services
+   - Restore database from backup
+   - Verify chain integrity
+   - Restore Redis AOF if needed
+   - Restart services in order
+
+### Security Hardening
+
+1. **Network Security**
+
+   - Restrict Redis to localhost only
+   - Use VPN for cross-service communication
+   - Enable firewall rules
+
+2. **Access Control**
+
+   - Implement IP whitelisting
+   - Use strong JWT secrets
+   - Rotate credentials regularly
+
+3. **Audit Trail**
+   - Log all admin actions
+   - Monitor configuration changes
+   - Regular security audits
 
 ---
 
