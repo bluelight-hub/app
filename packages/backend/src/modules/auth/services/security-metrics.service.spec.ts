@@ -451,12 +451,14 @@ describe('SecurityMetricsService', () => {
       const failedLogins24h = failedLogins7d.slice(0, 4); // 4 in last 24h, average is 2 per day
 
       securityLogService.getSecurityLogs
-        .mockResolvedValueOnce(failedLogins24h)
-        .mockResolvedValueOnce(failedLogins7d)
-        .mockResolvedValueOnce([])
-        .mockResolvedValueOnce([])
-        .mockResolvedValueOnce([])
-        .mockResolvedValueOnce([]);
+        .mockResolvedValueOnce([]) // successful logins for getTotalLoginMetrics
+        .mockResolvedValueOnce(failedLogins24h) // failed logins for getTotalLoginMetrics
+        .mockResolvedValueOnce(failedLogins24h) // getFailedLoginMetrics 24h
+        .mockResolvedValueOnce(failedLogins7d) // getFailedLoginMetrics 7d
+        .mockResolvedValueOnce([]) // getAccountLockoutMetrics 24h
+        .mockResolvedValueOnce([]) // getAccountLockoutMetrics 7d
+        .mockResolvedValueOnce([]) // getSuspiciousActivityMetrics 24h
+        .mockResolvedValueOnce([]); // getSuspiciousActivityMetrics 7d
 
       const result = await service.getDashboardMetrics();
 

@@ -42,6 +42,29 @@ export interface DashboardMetrics {
   }>;
   avgSessionDuration: number;
   securityScore: number;
+  // Additional fields from backend
+  summary?: {
+    failedLogins?: {
+      last24Hours: number;
+      last7Days: number;
+      trend: number;
+    };
+    accountLockouts?: {
+      last24Hours: number;
+      last7Days: number;
+      trend: number;
+    };
+    suspiciousActivities?: {
+      last24Hours: number;
+      last7Days: number;
+      trend: number;
+    };
+  };
+  details?: {
+    topFailedLoginIps?: Array<{ ip: string; count: number }>;
+    topLockedUsers?: Array<{ userId: string; count: number }>;
+    suspiciousActivityTypes?: Array<{ type: string; count: number }>;
+  };
 }
 
 export interface IPWhitelistRule {

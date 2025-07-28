@@ -13,7 +13,7 @@ import {
 } from 'react-icons/pi';
 import { useQuery } from '@tanstack/react-query';
 import { securityApi } from '@/api/security';
-import { format, subDays, subHours } from 'date-fns';
+import { format, isValid, subDays, subHours } from 'date-fns';
 import { de } from 'date-fns/locale';
 
 const { Text, Paragraph } = Typography;
@@ -90,9 +90,13 @@ const SecurityDashboard: React.FC = () => {
   const getMetrics = () => {
     if (!metrics) return { failedLogins: 0, suspiciousActivities: 0, accountLockouts: 0, totalLogins: 0 };
 
+    // Ensure failed logins never exceed total logins
+    const failed = metrics.failedLoginAttempts || 0;
+    const total = metrics.totalLoginAttempts || 0;
+
     return {
-      failedLogins: metrics.failedLoginAttempts || 0,
-      totalLogins: metrics.totalLoginAttempts || 0,
+      failedLogins: failed,
+      totalLogins: Math.max(total, failed), // Ensure total is at least as much as failed
       suspiciousActivities: metrics.suspiciousActivities || 0,
       accountLockouts: metrics.summary?.accountLockouts?.last24Hours || 0,
       // Trends from backend
@@ -102,7 +106,8 @@ const SecurityDashboard: React.FC = () => {
   };
 
   const { failedLogins, totalLogins, suspiciousActivities, accountLockouts, suspiciousTrend } = getMetrics();
-  const successRate = totalLogins > 0 ? ((totalLogins - failedLogins) / totalLogins) * 100 : 100;
+  const successfulLogins = Math.max(0, totalLogins - failedLogins); // Ensure non-negative
+  const successRate = totalLogins > 0 ? (successfulLogins / totalLogins) * 100 : 100;
 
   return (
     <div className="p-6">
@@ -162,9 +167,11 @@ const SecurityDashboard: React.FC = () => {
               {criticalEvents.slice(0, 3).map((event) => (
                 <div key={event.id} className="flex items-center gap-2">
                   <Tag color={event.severity === 'CRITICAL' ? 'red' : 'orange'}>{event.eventType}</Tag>
-                  <Text>{event.message || 'Sicherheitsereignis aufgetreten'}</Text>
+                  <Text className="ml-2">{event.message || 'Sicherheitsereignis aufgetreten'}</Text>
                   <Text type="secondary" className="ml-auto">
-                    {format(new Date(event.createdAt), 'HH:mm', { locale: de })}
+                    {event.createdAt && isValid(new Date(event.createdAt))
+                      ? format(new Date(event.createdAt), 'HH:mm', { locale: de })
+                      : 'N/A'}
                   </Text>
                 </div>
               ))}
@@ -173,19 +180,19 @@ const SecurityDashboard: React.FC = () => {
           type="error"
           showIcon
           icon={<PiShieldWarning />}
-          className="mb-6"
+          className="mt-6 mb-6"
         />
       )}
 
       {/* Hauptmetriken - ECHTE BACKEND DATEN */}
-      <Row gutter={[16, 16]} className="mb-6">
+      <Row gutter={[16, 16]} className="mb-6 mt-6">
         <Col xs={24} sm={12} lg={6}>
           <Card>
             <Statistic title="Login-Versuche" value={totalLogins} prefix={<PiLockKey className="text-blue-500" />} />
             <div className="mt-2 space-y-1">
               <div className="flex justify-between text-sm">
                 <Text type="secondary">Erfolgreich:</Text>
-                <Text className="text-green-600">{totalLogins - failedLogins}</Text>
+                <Text className="text-green-600">{successfulLogins}</Text>
               </div>
               <div className="flex justify-between text-sm">
                 <Text type="secondary">Fehlgeschlagen:</Text>
@@ -263,7 +270,7 @@ const SecurityDashboard: React.FC = () => {
       </Row>
 
       {/* Details aus dem Backend */}
-      <Row gutter={[16, 16]}>
+      <Row gutter={[16, 16]} className="mt-6">
         {/* Top Failed Login IPs - ECHTE DATEN */}
         {metrics?.details?.topFailedLoginIps && metrics.details.topFailedLoginIps.length > 0 && (
           <Col xs={24} lg={12}>
@@ -342,7 +349,9 @@ const SecurityDashboard: React.FC = () => {
                           )}
                         </div>
                         <Text type="secondary" className="text-xs whitespace-nowrap ml-2">
-                          {format(new Date(event.createdAt), 'dd.MM HH:mm', { locale: de })}
+                          {event.createdAt && isValid(new Date(event.createdAt))
+                            ? format(new Date(event.createdAt), 'dd.MM HH:mm', { locale: de })
+                            : 'N/A'}
                         </Text>
                       </div>
                     </Card>

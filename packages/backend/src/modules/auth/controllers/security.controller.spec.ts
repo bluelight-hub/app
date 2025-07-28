@@ -76,6 +76,9 @@ describe('SecurityController', () => {
   describe('getDashboardMetrics', () => {
     it('should return dashboard metrics', async () => {
       const mockMetrics = {
+        totalLoginAttempts: 100,
+        failedLoginAttempts: 10,
+        suspiciousActivities: 5,
         summary: {
           failedLogins: {
             last24Hours: 10,

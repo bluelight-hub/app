@@ -50,6 +50,7 @@ export const securityApi = {
       const data = await response.json();
 
       // Transform the response to match our DashboardMetrics interface
+      // The backend returns a different structure, so we need to map it correctly
       return {
         totalLoginAttempts: data.totalLoginAttempts || 0,
         failedLoginAttempts: data.failedLoginAttempts || 0,
@@ -62,6 +63,9 @@ export const securityApi = {
         sessionsByLocation: data.sessionsByLocation || [],
         avgSessionDuration: data.avgSessionDuration || 0,
         securityScore: data.securityScore || 0,
+        // Add the full summary and details from backend
+        summary: data.summary,
+        details: data.details,
       };
     } catch (error) {
       console.error('Failed to fetch dashboard metrics:', error);
