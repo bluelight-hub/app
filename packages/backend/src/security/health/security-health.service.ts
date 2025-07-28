@@ -8,6 +8,7 @@ import { SECURITY_LOG_QUEUE_CONFIG } from '../constants/event-types';
 import * as fs from 'fs/promises';
 import * as path from 'path';
 import { ConfigService } from '@nestjs/config';
+import { execSync } from 'child_process';
 
 /**
  * Health Check Service für das Security Logging System.
@@ -256,15 +257,13 @@ export class SecurityHealthService extends HealthIndicator {
     // This is a simplified implementation. In production, you might want to use
     // a library like 'check-disk-space' for cross-platform compatibility
     try {
-      const { execSync } = require('child_process');
-
       if (process.platform === 'win32') {
         // Windows implementation would go here
         return { total: 100 * 1024 * 1024 * 1024, free: 50 * 1024 * 1024 * 1024 };
       } else {
         // Unix-like systems
         const output = execSync(`df -k "${path.resolve(dirPath)}" | tail -1`).toString();
-        const parts = output.split(/\s+/);
+        const parts = output.trim().split(/\s+/);
         const total = parseInt(parts[1]) * 1024;
         const available = parseInt(parts[3]) * 1024;
 

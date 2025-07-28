@@ -119,17 +119,7 @@ export class SecurityLogHashService {
       const currentLog = logs[i];
       const previousHash = i === 0 ? null : logs[i - 1].currentHash;
 
-      // Verifiziere Hash
-      if (!this.verifyLogIntegrity(currentLog, previousHash)) {
-        return {
-          isValid: false,
-          brokenAtIndex: i,
-          brokenAtSequence: currentLog.sequenceNumber,
-          error: `Hash mismatch at sequence ${currentLog.sequenceNumber}`,
-        };
-      }
-
-      // Verifiziere previousHash-Verknüpfung
+      // Verifiziere previousHash-Verknüpfung zuerst
       if (currentLog.previousHash !== previousHash) {
         return {
           isValid: false,
@@ -151,6 +141,16 @@ export class SecurityLogHashService {
           };
         }
       }
+
+      // Verifiziere Hash
+      if (!this.verifyLogIntegrity(currentLog, previousHash)) {
+        return {
+          isValid: false,
+          brokenAtIndex: i,
+          brokenAtSequence: currentLog.sequenceNumber,
+          error: `Hash mismatch at sequence ${currentLog.sequenceNumber}`,
+        };
+      }
     }
 
     return { isValid: true };
@@ -168,6 +168,12 @@ export class SecurityLogHashService {
       const currentLog = logs[i];
       const previousHash = i === 0 ? null : logs[i - 1].currentHash;
 
+      // Check chain linkage first
+      if (currentLog.previousHash !== previousHash) {
+        return i;
+      }
+
+      // Then check hash integrity
       if (!this.verifyLogIntegrity(currentLog, previousHash)) {
         return i;
       }

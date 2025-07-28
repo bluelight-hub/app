@@ -8,6 +8,7 @@ import { promisify } from 'util';
 import * as crypto from 'crypto';
 
 const gzip = promisify(zlib.gzip);
+const gunzip = promisify(zlib.gunzip);
 
 /**
  * Service zur Archivierung von Security Logs vor der Löschung.
@@ -19,6 +20,16 @@ export class ArchiveService {
   private readonly archivePath = 'archives';
 
   constructor(private readonly prisma: PrismaService) {}
+
+  /**
+   * Custom replacer function for JSON.stringify to handle BigInt values
+   */
+  private bigIntReplacer(key: string, value: any): any {
+    if (typeof value === 'bigint') {
+      return value.toString();
+    }
+    return value;
+  }
 
   /**
    * Archiviert alle Security Logs vor einem bestimmten Datum.
@@ -65,7 +76,7 @@ export class ArchiveService {
       const archivePath = path.join(this.archivePath, filename);
 
       // Write and compress archive
-      const jsonContent = JSON.stringify(archiveContent, null, 2);
+      const jsonContent = JSON.stringify(archiveContent, this.bigIntReplacer, 2);
       const compressed = await gzip(jsonContent);
 
       // Add .gz extension
@@ -173,8 +184,6 @@ export class ArchiveService {
    * @param originalContent - Original-Inhalt zum Vergleich
    */
   private async verifyArchiveIntegrity(archivePath: string, originalContent: any): Promise<void> {
-    const gunzip = promisify(zlib.gunzip);
-
     // Read and decompress archive
     const compressed = await fs.readFile(archivePath);
     const decompressed = await gunzip(compressed);
