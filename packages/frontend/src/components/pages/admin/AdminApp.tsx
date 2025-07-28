@@ -1,6 +1,6 @@
 import { Layout, Menu, MenuProps, Spin } from 'antd';
 import React, { Suspense } from 'react';
-import { PiChartBar, PiGear, PiHouse, PiScrollLight, PiUsers, PiX } from 'react-icons/pi';
+import { PiChartBar, PiGear, PiHouse, PiScrollLight, PiUsers, PiX, PiShieldCheck } from 'react-icons/pi';
 import { Navigate, Route, Routes, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth.tsx';
 import { useThemeInternal } from '@/hooks/useTheme.ts';
@@ -18,6 +18,7 @@ const AdminUsers = React.lazy(() => import('./users/page'));
 const AdminOrganizations = React.lazy(() => import('./organizations/page'));
 const AdminSystem = React.lazy(() => import('./system/page'));
 const AdminLogs = React.lazy(() => import('./logs/page'));
+const AdminSecurity = React.lazy(() => import('./security/page'));
 
 type MenuItem = Required<MenuProps>['items'][number];
 
@@ -34,6 +35,7 @@ const adminMenuItems: MenuItem[] = [
   getItem('Dashboard', '/admin', <PiHouse />),
   getItem('Benutzer', '/admin/users', <PiUsers />),
   getItem('Organisationen', '/admin/organizations', <PiChartBar />),
+  getItem('Sicherheit', '/admin/security', <PiShieldCheck />),
   getItem('System', '/admin/system', <PiGear />),
   getItem('Logs', '/admin/logs', <PiScrollLight />),
 ];
@@ -115,6 +117,7 @@ export const AdminApp: React.FC = () => {
               <Route path="/" element={<AdminDashboard />} />
               <Route path="/users" element={<AdminUsers />} />
               <Route path="/organizations" element={<AdminOrganizations />} />
+              <Route path="/security/*" element={<AdminSecurity />} />
               <Route path="/system" element={<AdminSystem />} />
               <Route path="/logs" element={<AdminLogs />} />
               <Route path="*" element={<Navigate to="/admin" replace />} />

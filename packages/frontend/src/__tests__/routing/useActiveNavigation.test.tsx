@@ -1,8 +1,9 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { beforeEach, describe, expect, it, Mock, vi } from 'vitest';
 import { renderHook } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
 import { useActiveNavigation, useNavigationUtils } from '@/hooks/useActiveNavigation';
-import { RouteUtils } from '@/config/routes';
+import { RouteDefinition, RouteUtils } from '@/config/routes';
+import React from 'react';
 
 // Mock RouteUtils
 vi.mock('@/config/routes', () => ({
@@ -125,7 +126,7 @@ describe('useActiveNavigation', () => {
         title: 'Users',
       };
 
-      (RouteUtils.findByPath as any).mockReturnValue(mockRoute);
+      (RouteUtils.findByPath as Mock).mockReturnValue(mockRoute);
 
       const wrapper = createWrapper(['/admin/users']);
       const { result } = renderHook(() => useActiveNavigation(), { wrapper });
@@ -181,8 +182,8 @@ describe('useNavigationUtils', () => {
 
   describe('getPathSegments', () => {
     it('should generate path segments correctly', () => {
-      (RouteUtils.findByPath as any).mockImplementation((path: string) => {
-        const routes: Record<string, any> = {
+      (RouteUtils.findByPath as Mock).mockImplementation((path: string) => {
+        const routes: Record<string, Partial<RouteDefinition>> = {
           '/admin': { title: 'Admin Dashboard' },
           '/admin/users': { title: 'User Management' },
         };
@@ -226,7 +227,7 @@ describe('useNavigationUtils', () => {
         { path: '/app/dashboard', showInNavigation: true, title: 'App Dashboard' },
       ];
 
-      (RouteUtils.getNavigationRoutes as any).mockReturnValue(mockRoutes);
+      (RouteUtils.getNavigationRoutes as Mock).mockReturnValue(mockRoutes);
 
       const wrapper = createWrapper(['/admin']);
       const { result } = renderHook(() => useNavigationUtils(), { wrapper });
@@ -241,7 +242,9 @@ describe('useNavigationUtils', () => {
   describe('getParentRoute', () => {
     it('should return parent route', () => {
       const mockRoute = { path: '/admin/users', title: 'Users' };
-      (RouteUtils.findByPath as any).mockImplementation((path: string) => (path === '/admin/users' ? mockRoute : null));
+      (RouteUtils.findByPath as Mock).mockImplementation((path: string) =>
+        path === '/admin/users' ? mockRoute : null,
+      );
 
       const wrapper = createWrapper(['/admin/users/details']);
       const { result } = renderHook(() => useNavigationUtils(), { wrapper });

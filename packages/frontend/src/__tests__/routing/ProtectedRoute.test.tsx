@@ -1,7 +1,7 @@
 import React from 'react';
 import { render, screen } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { AuthContext, AuthContextType } from '@/contexts/AuthContext';
 import ProtectedRoute from '@/components/guards/ProtectedRoute';
 import { AdminRole } from '@/config/routes';
@@ -80,7 +80,15 @@ describe('ProtectedRoute', () => {
       const authContext = createMockAuthContext({
         isAuthenticated: true,
         isLoading: false,
-        user: { id: '1', name: 'Test User', role: 'admin' } as any,
+        user: {
+          id: '1',
+          roles: ['ADMIN'],
+          email: '',
+          permissions: [],
+          isActive: false,
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        },
       });
 
       render(
@@ -98,7 +106,15 @@ describe('ProtectedRoute', () => {
       const authContext = createMockAuthContext({
         isAuthenticated: true,
         isLoading: false,
-        user: { id: '1', name: 'Test User', role: 'user' } as any,
+        user: {
+          id: '1',
+          roles: ['USER'],
+          email: '',
+          permissions: [],
+          isActive: false,
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        },
         isAdmin: vi.fn(() => false),
       });
 
@@ -116,7 +132,15 @@ describe('ProtectedRoute', () => {
       const authContext = createMockAuthContext({
         isAuthenticated: true,
         isLoading: false,
-        user: { id: '1', name: 'Admin User', role: 'admin' } as any,
+        user: {
+          id: '1',
+          roles: ['ADMIN'],
+          email: '',
+          permissions: [],
+          isActive: false,
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        },
         isAdmin: vi.fn(() => true),
       });
 
@@ -136,7 +160,15 @@ describe('ProtectedRoute', () => {
       const authContext = createMockAuthContext({
         isAuthenticated: true,
         isLoading: false,
-        user: { id: '1', name: 'Admin User', role: 'admin' } as any,
+        user: {
+          id: '1',
+          roles: ['ADMIN'],
+          email: '',
+          permissions: [],
+          isActive: false,
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        },
         hasRole: mockHasRole,
       });
 
@@ -155,7 +187,15 @@ describe('ProtectedRoute', () => {
       const authContext = createMockAuthContext({
         isAuthenticated: true,
         isLoading: false,
-        user: { id: '1', name: 'Admin User', role: 'admin' } as any,
+        user: {
+          id: '1',
+          roles: ['ADMIN'],
+          email: '',
+          permissions: [],
+          isActive: false,
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        },
         hasRole: mockHasRole,
       });
 
@@ -190,7 +230,15 @@ describe('ProtectedRoute', () => {
       const authContext = createMockAuthContext({
         isAuthenticated: true,
         isLoading: false,
-        user: { id: '1', name: 'User', role: 'user' } as any,
+        user: {
+          id: '1',
+          roles: ['USER'],
+          email: '',
+          permissions: [],
+          isActive: false,
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        },
         isAdmin: vi.fn(() => false),
       });
 
@@ -207,7 +255,15 @@ describe('ProtectedRoute', () => {
       const authContext = createMockAuthContext({
         isAuthenticated: true,
         isLoading: false,
-        user: { id: '1', name: 'User', role: 'user' } as any,
+        user: {
+          id: '1',
+          roles: ['USER'],
+          email: '',
+          permissions: [],
+          isActive: false,
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        },
         isAdmin: vi.fn(() => false),
       });
 
@@ -226,7 +282,15 @@ describe('ProtectedRoute', () => {
       const authContext = createMockAuthContext({
         isAuthenticated: true,
         isLoading: false,
-        user: { id: '1', name: 'User', role: 'user' } as any,
+        user: {
+          id: '1',
+          roles: ['USER'],
+          email: '',
+          permissions: [],
+          isActive: false,
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        },
         isAdmin: vi.fn(() => false),
       });
 

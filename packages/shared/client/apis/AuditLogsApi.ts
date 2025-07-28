@@ -13,12 +13,21 @@
  */
 
 import * as runtime from '../runtime';
-import type { AuditLogEntity, CreateAuditLogDto } from '../models/index';
+import type {
+  AuditLogEntity,
+  AuditLogStatisticsResponse,
+  CreateAuditLogDto,
+  PaginatedAuditLogResponse,
+} from '../models/index';
 import {
   AuditLogEntityFromJSON,
   AuditLogEntityToJSON,
+  AuditLogStatisticsResponseFromJSON,
+  AuditLogStatisticsResponseToJSON,
   CreateAuditLogDtoFromJSON,
   CreateAuditLogDtoToJSON,
+  PaginatedAuditLogResponseFromJSON,
+  PaginatedAuditLogResponseToJSON,
 } from '../models/index';
 
 export interface AuditLogControllerArchiveOldLogsV1Request {
@@ -96,32 +105,6 @@ export interface AuditLogControllerFindAllV1Request {
   sessionId?: string;
   requestId?: string;
   excludeArchived?: boolean;
-  page2?: number;
-  limit2?: number;
-  sortBy2?: string;
-  sortOrder2?: string;
-  actionType2?: string;
-  severity2?: string;
-  action2?: string;
-  resource2?: string;
-  resourceId2?: string;
-  userId2?: string;
-  userEmail2?: string;
-  userRole2?: string;
-  ipAddress2?: string;
-  success2?: boolean;
-  requiresReview2?: boolean;
-  sensitiveData2?: boolean;
-  startDate2?: string;
-  endDate2?: string;
-  search2?: string;
-  httpMethods2?: Array<string>;
-  compliance2?: Array<string>;
-  minDuration2?: number;
-  maxDuration2?: number;
-  sessionId2?: string;
-  requestId2?: string;
-  excludeArchived2?: boolean;
 }
 
 export interface AuditLogControllerFindOneV1Request {
@@ -550,7 +533,7 @@ export class AuditLogsApi extends runtime.BaseAPI {
   async auditLogControllerFindAllV1Raw(
     requestParameters: AuditLogControllerFindAllV1Request,
     initOverrides?: RequestInit | runtime.InitOverrideFunction,
-  ): Promise<runtime.ApiResponse<void>> {
+  ): Promise<runtime.ApiResponse<PaginatedAuditLogResponse>> {
     const queryParameters: any = {};
 
     if (requestParameters['page'] != null) {
@@ -657,110 +640,6 @@ export class AuditLogsApi extends runtime.BaseAPI {
       queryParameters['excludeArchived'] = requestParameters['excludeArchived'];
     }
 
-    if (requestParameters['page2'] != null) {
-      queryParameters['page'] = requestParameters['page2'];
-    }
-
-    if (requestParameters['limit2'] != null) {
-      queryParameters['limit'] = requestParameters['limit2'];
-    }
-
-    if (requestParameters['sortBy2'] != null) {
-      queryParameters['sortBy'] = requestParameters['sortBy2'];
-    }
-
-    if (requestParameters['sortOrder2'] != null) {
-      queryParameters['sortOrder'] = requestParameters['sortOrder2'];
-    }
-
-    if (requestParameters['actionType2'] != null) {
-      queryParameters['actionType'] = requestParameters['actionType2'];
-    }
-
-    if (requestParameters['severity2'] != null) {
-      queryParameters['severity'] = requestParameters['severity2'];
-    }
-
-    if (requestParameters['action2'] != null) {
-      queryParameters['action'] = requestParameters['action2'];
-    }
-
-    if (requestParameters['resource2'] != null) {
-      queryParameters['resource'] = requestParameters['resource2'];
-    }
-
-    if (requestParameters['resourceId2'] != null) {
-      queryParameters['resourceId'] = requestParameters['resourceId2'];
-    }
-
-    if (requestParameters['userId2'] != null) {
-      queryParameters['userId'] = requestParameters['userId2'];
-    }
-
-    if (requestParameters['userEmail2'] != null) {
-      queryParameters['userEmail'] = requestParameters['userEmail2'];
-    }
-
-    if (requestParameters['userRole2'] != null) {
-      queryParameters['userRole'] = requestParameters['userRole2'];
-    }
-
-    if (requestParameters['ipAddress2'] != null) {
-      queryParameters['ipAddress'] = requestParameters['ipAddress2'];
-    }
-
-    if (requestParameters['success2'] != null) {
-      queryParameters['success'] = requestParameters['success2'];
-    }
-
-    if (requestParameters['requiresReview2'] != null) {
-      queryParameters['requiresReview'] = requestParameters['requiresReview2'];
-    }
-
-    if (requestParameters['sensitiveData2'] != null) {
-      queryParameters['sensitiveData'] = requestParameters['sensitiveData2'];
-    }
-
-    if (requestParameters['startDate2'] != null) {
-      queryParameters['startDate'] = requestParameters['startDate2'];
-    }
-
-    if (requestParameters['endDate2'] != null) {
-      queryParameters['endDate'] = requestParameters['endDate2'];
-    }
-
-    if (requestParameters['search2'] != null) {
-      queryParameters['search'] = requestParameters['search2'];
-    }
-
-    if (requestParameters['httpMethods2'] != null) {
-      queryParameters['httpMethods'] = requestParameters['httpMethods2'];
-    }
-
-    if (requestParameters['compliance2'] != null) {
-      queryParameters['compliance'] = requestParameters['compliance2'];
-    }
-
-    if (requestParameters['minDuration2'] != null) {
-      queryParameters['minDuration'] = requestParameters['minDuration2'];
-    }
-
-    if (requestParameters['maxDuration2'] != null) {
-      queryParameters['maxDuration'] = requestParameters['maxDuration2'];
-    }
-
-    if (requestParameters['sessionId2'] != null) {
-      queryParameters['sessionId'] = requestParameters['sessionId2'];
-    }
-
-    if (requestParameters['requestId2'] != null) {
-      queryParameters['requestId'] = requestParameters['requestId2'];
-    }
-
-    if (requestParameters['excludeArchived2'] != null) {
-      queryParameters['excludeArchived'] = requestParameters['excludeArchived2'];
-    }
-
     const headerParameters: runtime.HTTPHeaders = {};
 
     if (this.configuration && this.configuration.accessToken) {
@@ -781,7 +660,9 @@ export class AuditLogsApi extends runtime.BaseAPI {
       initOverrides,
     );
 
-    return new runtime.VoidApiResponse(response);
+    return new runtime.JSONApiResponse(response, (jsonValue) =>
+      PaginatedAuditLogResponseFromJSON(jsonValue),
+    );
   }
 
   /**
@@ -790,8 +671,9 @@ export class AuditLogsApi extends runtime.BaseAPI {
   async auditLogControllerFindAllV1(
     requestParameters: AuditLogControllerFindAllV1Request = {},
     initOverrides?: RequestInit | runtime.InitOverrideFunction,
-  ): Promise<void> {
-    await this.auditLogControllerFindAllV1Raw(requestParameters, initOverrides);
+  ): Promise<PaginatedAuditLogResponse> {
+    const response = await this.auditLogControllerFindAllV1Raw(requestParameters, initOverrides);
+    return await response.value();
   }
 
   /**
@@ -853,7 +735,7 @@ export class AuditLogsApi extends runtime.BaseAPI {
   async auditLogControllerGetStatisticsV1Raw(
     requestParameters: AuditLogControllerGetStatisticsV1Request,
     initOverrides?: RequestInit | runtime.InitOverrideFunction,
-  ): Promise<runtime.ApiResponse<void>> {
+  ): Promise<runtime.ApiResponse<AuditLogStatisticsResponse>> {
     const queryParameters: any = {};
 
     if (requestParameters['startDate'] != null) {
@@ -888,7 +770,9 @@ export class AuditLogsApi extends runtime.BaseAPI {
       initOverrides,
     );
 
-    return new runtime.VoidApiResponse(response);
+    return new runtime.JSONApiResponse(response, (jsonValue) =>
+      AuditLogStatisticsResponseFromJSON(jsonValue),
+    );
   }
 
   /**
@@ -897,8 +781,12 @@ export class AuditLogsApi extends runtime.BaseAPI {
   async auditLogControllerGetStatisticsV1(
     requestParameters: AuditLogControllerGetStatisticsV1Request = {},
     initOverrides?: RequestInit | runtime.InitOverrideFunction,
-  ): Promise<void> {
-    await this.auditLogControllerGetStatisticsV1Raw(requestParameters, initOverrides);
+  ): Promise<AuditLogStatisticsResponse> {
+    const response = await this.auditLogControllerGetStatisticsV1Raw(
+      requestParameters,
+      initOverrides,
+    );
+    return await response.value();
   }
 
   /**
@@ -984,12 +872,19 @@ export const AuditLogControllerExportV1ActionTypeEnum = {
   Delete: 'DELETE',
   Login: 'LOGIN',
   Logout: 'LOGOUT',
+  FailedLogin: 'FAILED_LOGIN',
   PermissionChange: 'PERMISSION_CHANGE',
   RoleChange: 'ROLE_CHANGE',
   BulkOperation: 'BULK_OPERATION',
   SystemConfig: 'SYSTEM_CONFIG',
   Export: 'EXPORT',
   Import: 'IMPORT',
+  Approve: 'APPROVE',
+  Reject: 'REJECT',
+  Block: 'BLOCK',
+  Unblock: 'UNBLOCK',
+  Restore: 'RESTORE',
+  Backup: 'BACKUP',
 } as const;
 export type AuditLogControllerExportV1ActionTypeEnum =
   (typeof AuditLogControllerExportV1ActionTypeEnum)[keyof typeof AuditLogControllerExportV1ActionTypeEnum];
@@ -1001,6 +896,7 @@ export const AuditLogControllerExportV1SeverityEnum = {
   Medium: 'MEDIUM',
   High: 'HIGH',
   Critical: 'CRITICAL',
+  Error: 'ERROR',
 } as const;
 export type AuditLogControllerExportV1SeverityEnum =
   (typeof AuditLogControllerExportV1SeverityEnum)[keyof typeof AuditLogControllerExportV1SeverityEnum];
@@ -1045,12 +941,19 @@ export const AuditLogControllerFindAllV1ActionTypeEnum = {
   Delete: 'DELETE',
   Login: 'LOGIN',
   Logout: 'LOGOUT',
+  FailedLogin: 'FAILED_LOGIN',
   PermissionChange: 'PERMISSION_CHANGE',
   RoleChange: 'ROLE_CHANGE',
   BulkOperation: 'BULK_OPERATION',
   SystemConfig: 'SYSTEM_CONFIG',
   Export: 'EXPORT',
   Import: 'IMPORT',
+  Approve: 'APPROVE',
+  Reject: 'REJECT',
+  Block: 'BLOCK',
+  Unblock: 'UNBLOCK',
+  Restore: 'RESTORE',
+  Backup: 'BACKUP',
 } as const;
 export type AuditLogControllerFindAllV1ActionTypeEnum =
   (typeof AuditLogControllerFindAllV1ActionTypeEnum)[keyof typeof AuditLogControllerFindAllV1ActionTypeEnum];
@@ -1062,6 +965,7 @@ export const AuditLogControllerFindAllV1SeverityEnum = {
   Medium: 'MEDIUM',
   High: 'HIGH',
   Critical: 'CRITICAL',
+  Error: 'ERROR',
 } as const;
 export type AuditLogControllerFindAllV1SeverityEnum =
   (typeof AuditLogControllerFindAllV1SeverityEnum)[keyof typeof AuditLogControllerFindAllV1SeverityEnum];

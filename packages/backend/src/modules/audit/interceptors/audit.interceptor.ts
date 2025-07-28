@@ -445,6 +445,15 @@ export class AuditInterceptor implements NestInterceptor {
 
     const segments = path.split('/').filter(Boolean);
 
+    // Remove common API prefixes
+    if (segments[0] === 'api') {
+      segments.shift();
+      // Remove version prefix (v1, v2, etc.)
+      if (segments.length > 0 && segments[0].match(/^v\d+$/)) {
+        segments.shift();
+      }
+    }
+
     // Remove 'admin' prefix
     if (segments[0] === 'admin') {
       segments.shift();

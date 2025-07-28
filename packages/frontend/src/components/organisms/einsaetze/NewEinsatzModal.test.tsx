@@ -2,6 +2,12 @@ import { CreateEinsatzDto } from '@bluelight-hub/shared/client/models';
 import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { beforeEach, describe, expect, it, MockedFunction, vi } from 'vitest';
+import { useCreateEinsatz } from '@/hooks/einsatz/useEinsatzQueries.ts';
+import { logger } from '@/utils/logger.ts';
+import { NewEinsatzModal } from './NewEinsatzModal';
+
+// Get mocked notification functions
+import { notification } from 'antd';
 
 // Mock für useCreateEinsatz Hook
 vi.mock('../../../hooks/einsatz/useEinsatzQueries', () => ({
@@ -52,12 +58,6 @@ vi.mock('antd', async () => {
   };
 });
 
-import { useCreateEinsatz } from '../../../hooks/einsatz/useEinsatzQueries';
-import { logger } from '../../../utils/logger';
-import { NewEinsatzModal } from './NewEinsatzModal';
-
-// Get mocked notification functions
-import { notification } from 'antd';
 const mockNotification = notification as { success: any; error: any };
 
 describe('NewEinsatzModal', { timeout: 10000 }, () => {
@@ -267,7 +267,7 @@ describe('NewEinsatzModal', { timeout: 10000 }, () => {
       await waitFor(() => {
         expect(mockNotification.success).toHaveBeenCalledWith({
           message: 'Einsatz erstellt',
-          description: 'Der Einsatz \"Test Einsatz\" wurde erfolgreich erstellt und geöffnet.',
+          description: 'Der Einsatz "Test Einsatz" wurde erfolgreich erstellt und geöffnet.',
           duration: 4,
           placement: 'topRight',
         });

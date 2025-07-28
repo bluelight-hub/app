@@ -20,7 +20,7 @@ import { mapValues } from '../runtime';
  */
 export interface RefreshTokenDto {
   /**
-   *
+   * Gültiger Refresh-Token zur Token-Erneuerung
    * @type {string}
    * @memberof RefreshTokenDto
    */

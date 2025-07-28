@@ -13,7 +13,11 @@ import { test, expect, Page } from '@playwright/test';
  */
 
 class AuditLogPage {
-  constructor(private page: Page) {}
+  private page: Page;
+
+  constructor(page: Page) {
+    this.page = page;
+  }
 
   async goto() {
     await this.page.goto('/admin/audit-logs');

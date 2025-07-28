@@ -1,5 +1,5 @@
 import React from 'react';
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { beforeEach, describe, expect, it, Mock, vi } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
 import { AuthContext, AuthContextType } from '@/contexts/AuthContext';
@@ -21,7 +21,15 @@ vi.mock('@/hooks/useAuthorization', () => ({
 }));
 
 const mockAuthContext: AuthContextType = {
-  user: { id: '1', name: 'Test User', role: 'admin' } as any,
+  user: {
+    id: '1',
+    roles: ['ADMIN'],
+    email: '',
+    permissions: [],
+    isActive: false,
+    createdAt: new Date(),
+    updatedAt: new Date(),
+  },
   isAuthenticated: true,
   isLoading: false,
   login: vi.fn(),
@@ -51,7 +59,7 @@ describe('Breadcrumbs', () => {
       { label: 'Users', path: '/admin/users', clickable: false },
     ];
 
-    (RouteUtils.generateBreadcrumbs as any).mockReturnValue(mockBreadcrumbs);
+    (RouteUtils.generateBreadcrumbs as Mock).mockReturnValue(mockBreadcrumbs);
 
     render(
       <TestWrapper>
@@ -82,7 +90,7 @@ describe('Breadcrumbs', () => {
   it('should show home icon when showHomeIcon is true', () => {
     const mockBreadcrumbs = [{ label: 'Dashboard', path: '/admin', clickable: true }];
 
-    (RouteUtils.generateBreadcrumbs as any).mockReturnValue(mockBreadcrumbs);
+    (RouteUtils.generateBreadcrumbs as Mock).mockReturnValue(mockBreadcrumbs);
 
     render(
       <TestWrapper>
@@ -122,7 +130,7 @@ describe('Breadcrumbs', () => {
       { label: 'Current Page', path: '/admin/current', clickable: false },
     ];
 
-    (RouteUtils.generateBreadcrumbs as any).mockReturnValue(mockBreadcrumbs);
+    (RouteUtils.generateBreadcrumbs as Mock).mockReturnValue(mockBreadcrumbs);
 
     render(
       <TestWrapper>
@@ -146,7 +154,7 @@ describe('Breadcrumbs', () => {
       { label: 'Restricted', path: '/admin/restricted', clickable: true },
     ];
 
-    (RouteUtils.generateBreadcrumbs as any).mockReturnValue(mockBreadcrumbs);
+    (RouteUtils.generateBreadcrumbs as Mock).mockReturnValue(mockBreadcrumbs);
 
     render(
       <TestWrapper>
@@ -180,7 +188,7 @@ describe('Breadcrumbs', () => {
       { label: 'Users', path: '/admin/users', clickable: false },
     ];
 
-    (RouteUtils.generateBreadcrumbs as any).mockReturnValue(mockBreadcrumbs);
+    (RouteUtils.generateBreadcrumbs as Mock).mockReturnValue(mockBreadcrumbs);
 
     render(
       <TestWrapper>
@@ -197,7 +205,7 @@ describe('Breadcrumbs', () => {
     const mockOnItemClick = vi.fn();
     const mockBreadcrumbs = [{ label: 'Dashboard', path: '/admin', clickable: true }];
 
-    (RouteUtils.generateBreadcrumbs as any).mockReturnValue(mockBreadcrumbs);
+    (RouteUtils.generateBreadcrumbs as Mock).mockReturnValue(mockBreadcrumbs);
 
     render(
       <TestWrapper>
