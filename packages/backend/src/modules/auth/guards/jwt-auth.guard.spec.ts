@@ -2,6 +2,8 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { ExecutionContext, UnauthorizedException } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 import { JwtAuthGuard } from './jwt-auth.guard';
+import { SecurityLogService } from '@/security/services/security-log.service';
+import { createMockSecurityLogService } from '@/test/mocks/security-log.service.mock';
 
 describe('JwtAuthGuard', () => {
   let guard: JwtAuthGuard;
@@ -10,6 +12,8 @@ describe('JwtAuthGuard', () => {
     getAllAndOverride: jest.fn(),
   };
 
+  const mockSecurityLogService = createMockSecurityLogService();
+
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
@@ -17,6 +21,10 @@ describe('JwtAuthGuard', () => {
         {
           provide: Reflector,
           useValue: mockReflector,
+        },
+        {
+          provide: SecurityLogService,
+          useValue: mockSecurityLogService,
         },
       ],
     }).compile();
@@ -71,26 +79,51 @@ describe('JwtAuthGuard', () => {
   });
 
   describe('handleRequest', () => {
+    const mockContext = {
+      switchToHttp: jest.fn().mockReturnValue({
+        getRequest: jest.fn().mockReturnValue({
+          ip: '127.0.0.1',
+          headers: { 'user-agent': 'test-agent' },
+          path: '/test',
+          method: 'GET',
+        }),
+      }),
+    } as unknown as ExecutionContext;
+
     it('should return user when valid', () => {
       const user = { id: '1', email: 'test@example.com' };
 
-      const result = guard.handleRequest(null, user, null);
+      const result = guard.handleRequest(null, user, null, mockContext);
 
       expect(result).toBe(user);
+      expect(mockSecurityLogService.log).not.toHaveBeenCalled();
     });
 
     it('should throw UnauthorizedException when error exists', () => {
       const error = new Error('Auth error');
 
-      expect(() => guard.handleRequest(error, null, null)).toThrow(error);
+      expect(() => guard.handleRequest(error, null, null, mockContext)).toThrow(error);
+      expect(mockSecurityLogService.log).toHaveBeenCalled();
     });
 
     it('should throw UnauthorizedException when user is null', () => {
-      expect(() => guard.handleRequest(null, null, null)).toThrow(UnauthorizedException);
+      expect(() => guard.handleRequest(null, null, null, mockContext)).toThrow(
+        UnauthorizedException,
+      );
+      expect(mockSecurityLogService.log).toHaveBeenCalled();
     });
 
     it('should throw UnauthorizedException with message when no user', () => {
-      expect(() => guard.handleRequest(null, null, null)).toThrow('Authentication required');
+      expect(() => guard.handleRequest(null, null, null, mockContext)).toThrow(
+        'Authentication required',
+      );
+      expect(mockSecurityLogService.log).toHaveBeenCalled();
+    });
+
+    it('should handle missing context gracefully', () => {
+      expect(() => guard.handleRequest(null, null, null, undefined as any)).toThrow(
+        'Authentication required',
+      );
     });
   });
 });

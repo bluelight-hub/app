@@ -4,6 +4,7 @@ import { APP_GUARD } from '@nestjs/core';
 import { ScheduleModule } from '@nestjs/schedule';
 import { EventEmitterModule } from '@nestjs/event-emitter';
 import { BullModule } from '@nestjs/bull';
+import { BullModule as BullMQModule } from '@nestjs/bullmq';
 import { CommonModule } from './common/common.module';
 import { HealthModule } from './health/health.module';
 // import { ConsolaLogger } from './logger/consola.logger';
@@ -16,6 +17,7 @@ import { JwtAuthGuard } from './modules/auth/guards';
 import { AuditModule } from './modules/audit';
 import { SessionModule } from './modules/session/session.module';
 import { NotificationModule } from './modules/notification/notification.module';
+import { SecurityLogModule } from './security/security-log.module';
 
 /**
  * Haupt-Anwendungsmodul der Bluelight Hub Backend-Anwendung
@@ -47,11 +49,18 @@ import { NotificationModule } from './modules/notification/notification.module';
         port: parseInt(process.env.REDIS_PORT || '6379', 10),
       },
     }),
+    BullMQModule.forRoot({
+      connection: {
+        host: process.env.REDIS_HOST || 'localhost',
+        port: parseInt(process.env.REDIS_PORT || '6379', 10),
+      },
+    }),
     PrismaModule,
     AuthModule,
     AuditModule,
     SessionModule,
     NotificationModule,
+    SecurityLogModule,
     HealthModule,
     EinsatzModule,
     EtbModule,

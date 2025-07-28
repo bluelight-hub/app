@@ -5,6 +5,7 @@ import { AuthService } from './auth.service';
 import { LoginDto, RefreshTokenDto } from './dto';
 import { JWTPayload } from './types/jwt.types';
 import { Request, Response } from 'express';
+import { SecurityLogService } from '../../security/services/security-log.service';
 
 describe('AuthController', () => {
   let controller: AuthController;
@@ -19,6 +20,11 @@ describe('AuthController', () => {
     getCurrentUser: jest.fn(),
   };
 
+  const mockSecurityLogService = {
+    log: jest.fn(),
+    logCritical: jest.fn(),
+  };
+
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       controllers: [AuthController],
@@ -26,6 +32,10 @@ describe('AuthController', () => {
         {
           provide: AuthService,
           useValue: mockAuthService,
+        },
+        {
+          provide: SecurityLogService,
+          useValue: mockSecurityLogService,
         },
       ],
     }).compile();

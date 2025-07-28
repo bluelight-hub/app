@@ -3,6 +3,8 @@ import { ExecutionContext } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 import { RolesGuard } from './roles.guard';
 import { UserRole } from '../types/jwt.types';
+import { SecurityLogService } from '@/security/services/security-log.service';
+import { createMockSecurityLogService } from '@/test/mocks/security-log.service.mock';
 
 describe('RolesGuard', () => {
   let guard: RolesGuard;
@@ -11,6 +13,8 @@ describe('RolesGuard', () => {
     getAllAndOverride: jest.fn(),
   };
 
+  const mockSecurityLogService = createMockSecurityLogService();
+
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
@@ -18,6 +22,10 @@ describe('RolesGuard', () => {
         {
           provide: Reflector,
           useValue: mockReflector,
+        },
+        {
+          provide: SecurityLogService,
+          useValue: mockSecurityLogService,
         },
       ],
     }).compile();
@@ -33,86 +41,100 @@ describe('RolesGuard', () => {
         getHandler: jest.fn(),
         getClass: jest.fn(),
         switchToHttp: jest.fn().mockReturnValue({
-          getRequest: jest.fn().mockReturnValue({ user }),
+          getRequest: jest.fn().mockReturnValue({
+            user,
+            ip: '127.0.0.1',
+            headers: { 'user-agent': 'test-agent' },
+            path: '/test',
+            method: 'GET',
+          }),
         }),
       }) as unknown as ExecutionContext;
 
-    it('should return true when no roles are required', () => {
+    it('should return true when no roles are required', async () => {
       mockReflector.getAllAndOverride.mockReturnValue(null);
 
       const context = createMockContext();
-      const result = guard.canActivate(context);
+      const result = await guard.canActivate(context);
 
       expect(result).toBe(true);
+      expect(mockSecurityLogService.log).not.toHaveBeenCalled();
     });
 
-    it('should return true when user has required role', () => {
+    it('should return true when user has required role', async () => {
       mockReflector.getAllAndOverride.mockReturnValue([UserRole.ADMIN]);
 
       const user = { roles: [UserRole.ADMIN] };
       const context = createMockContext(user);
-      const result = guard.canActivate(context);
+      const result = await guard.canActivate(context);
 
       expect(result).toBe(true);
+      expect(mockSecurityLogService.log).not.toHaveBeenCalled();
     });
 
-    it('should return true when user has one of multiple required roles', () => {
+    it('should return true when user has one of multiple required roles', async () => {
       mockReflector.getAllAndOverride.mockReturnValue([UserRole.ADMIN, UserRole.SUPPORT]);
 
       const user = { roles: [UserRole.SUPPORT] };
       const context = createMockContext(user);
-      const result = guard.canActivate(context);
+      const result = await guard.canActivate(context);
 
       expect(result).toBe(true);
+      expect(mockSecurityLogService.log).not.toHaveBeenCalled();
     });
 
-    it('should return false when user does not have required role', () => {
+    it('should return false when user does not have required role', async () => {
       mockReflector.getAllAndOverride.mockReturnValue([UserRole.ADMIN]);
 
-      const user = { roles: [UserRole.USER] };
+      const user = { id: '123', roles: [UserRole.USER] };
       const context = createMockContext(user);
-      const result = guard.canActivate(context);
+      const result = await guard.canActivate(context);
 
       expect(result).toBe(false);
+      expect(mockSecurityLogService.log).toHaveBeenCalled();
     });
 
-    it('should return false when user has no roles', () => {
+    it('should return false when user has no roles', async () => {
       mockReflector.getAllAndOverride.mockReturnValue([UserRole.ADMIN]);
 
-      const user = { roles: [] };
+      const user = { id: '123', roles: [] };
       const context = createMockContext(user);
-      const result = guard.canActivate(context);
+      const result = await guard.canActivate(context);
 
       expect(result).toBe(false);
+      expect(mockSecurityLogService.log).toHaveBeenCalled();
     });
 
-    it('should return false when user is null', () => {
+    it('should return false when user is null', async () => {
       mockReflector.getAllAndOverride.mockReturnValue([UserRole.ADMIN]);
 
       const context = createMockContext(null);
-      const result = guard.canActivate(context);
+      const result = await guard.canActivate(context);
 
       expect(result).toBe(false);
+      expect(mockSecurityLogService.log).toHaveBeenCalled();
     });
 
-    it('should return false when user has no roles property', () => {
+    it('should return false when user has no roles property', async () => {
       mockReflector.getAllAndOverride.mockReturnValue([UserRole.ADMIN]);
 
       const user = { id: '1' };
       const context = createMockContext(user);
-      const result = guard.canActivate(context);
+      const result = await guard.canActivate(context);
 
       expect(result).toBe(false);
+      expect(mockSecurityLogService.log).toHaveBeenCalled();
     });
 
-    it('should handle SUPER_ADMIN role correctly', () => {
+    it('should handle SUPER_ADMIN role correctly', async () => {
       mockReflector.getAllAndOverride.mockReturnValue([UserRole.SUPER_ADMIN]);
 
       const user = { roles: [UserRole.SUPER_ADMIN] };
       const context = createMockContext(user);
-      const result = guard.canActivate(context);
+      const result = await guard.canActivate(context);
 
       expect(result).toBe(true);
+      expect(mockSecurityLogService.log).not.toHaveBeenCalled();
     });
   });
 });

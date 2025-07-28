@@ -132,7 +132,12 @@ describe('SeedEinsatzCommand', () => {
     });
 
     it('should create einsatz from profile', async () => {
-      const mockEinsatz = { id: '123', name: 'Test MANV', createdAt: new Date(), updatedAt: new Date() };
+      const mockEinsatz = {
+        id: '123',
+        name: 'Test MANV',
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      };
       profileService.createEinsatzFromProfile.mockResolvedValue(mockEinsatz);
       profileService.getProfile.mockReturnValue(mockProfile);
 
@@ -145,21 +150,24 @@ describe('SeedEinsatzCommand', () => {
     });
 
     it('should handle error when creating einsatz from invalid profile', async () => {
-      profileService.createEinsatzFromProfile.mockRejectedValue(
-        new Error('Profil nicht gefunden')
-      );
+      profileService.createEinsatzFromProfile.mockRejectedValue(new Error('Profil nicht gefunden'));
       profileService.getAllProfiles.mockReturnValue([mockProfile] as SeedProfile[]);
 
       await command.run([], { profile: 'invalid' });
 
       expect(errorSpy).toHaveBeenCalledWith(
-        '❌ Fehler beim Erstellen des Einsatzes aus Profil: Profil nicht gefunden'
+        '❌ Fehler beim Erstellen des Einsatzes aus Profil: Profil nicht gefunden',
       );
       expect(loggerSpy).toHaveBeenCalledWith('\n📋 Verfügbare DRK-Profile:');
     });
 
     it('should create custom einsatz with provided name', async () => {
-      const mockEinsatz = { id: '123', name: 'Custom Einsatz', createdAt: new Date(), updatedAt: new Date() };
+      const mockEinsatz = {
+        id: '123',
+        name: 'Custom Einsatz',
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      };
       einsatzService.create.mockResolvedValue(mockEinsatz);
 
       await command.run([], { name: 'Custom Einsatz', beschreibung: 'Test description' });
@@ -169,12 +177,17 @@ describe('SeedEinsatzCommand', () => {
         beschreibung: 'Test description',
       });
       expect(loggerSpy).toHaveBeenCalledWith(
-        `✅ Einsatz erfolgreich erstellt: ${mockEinsatz.name} (ID: ${mockEinsatz.id})`
+        `✅ Einsatz erfolgreich erstellt: ${mockEinsatz.name} (ID: ${mockEinsatz.id})`,
       );
     });
 
     it('should create custom einsatz with generated name', async () => {
-      const mockEinsatz = { id: '123', name: 'Test-Einsatz 2024-01-01 10:00', createdAt: new Date(), updatedAt: new Date() };
+      const mockEinsatz = {
+        id: '123',
+        name: 'Test-Einsatz 2024-01-01 10:00',
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      };
       einsatzService.create.mockResolvedValue(mockEinsatz);
 
       await command.run([]);
@@ -201,7 +214,9 @@ describe('SeedEinsatzCommand', () => {
 
       await command.run([], { name: 'Test' });
 
-      expect(errorSpy).toHaveBeenCalledWith('❌ Fehler beim Erstellen des Einsatzes: General error');
+      expect(errorSpy).toHaveBeenCalledWith(
+        '❌ Fehler beim Erstellen des Einsatzes: General error',
+      );
     });
   });
 
@@ -270,7 +285,9 @@ describe('SeedEinsatzCommand', () => {
       await command.run([], { profile: 'manv' });
 
       expect(profileService.createEinsatzFromProfile).toHaveBeenCalledWith('manv');
-      expect(loggerSpy).not.toHaveBeenCalledWith(expect.stringContaining('✅ DRK-Einsatz erfolgreich erstellt:'));
+      expect(loggerSpy).not.toHaveBeenCalledWith(
+        expect.stringContaining('✅ DRK-Einsatz erfolgreich erstellt:'),
+      );
     });
 
     it('should handle general error in run method', async () => {
@@ -294,7 +311,12 @@ describe('SeedEinsatzCommand', () => {
     });
 
     it('should handle when profile has no metadata in creation log', async () => {
-      const mockEinsatz = { id: '123', name: 'Test Einsatz', createdAt: new Date(), updatedAt: new Date() };
+      const mockEinsatz = {
+        id: '123',
+        name: 'Test Einsatz',
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      };
       profileService.createEinsatzFromProfile.mockResolvedValue(mockEinsatz);
       profileService.getProfile.mockReturnValue(null);
 
@@ -306,13 +328,13 @@ describe('SeedEinsatzCommand', () => {
     });
 
     it('should handle error that does not include "nicht gefunden" in message', async () => {
-      profileService.createEinsatzFromProfile.mockRejectedValue(
-        new Error('Connection timeout')
-      );
+      profileService.createEinsatzFromProfile.mockRejectedValue(new Error('Connection timeout'));
 
       await command.run([], { profile: 'manv' });
 
-      expect(errorSpy).toHaveBeenCalledWith('❌ Fehler beim Erstellen des Einsatzes aus Profil: Connection timeout');
+      expect(errorSpy).toHaveBeenCalledWith(
+        '❌ Fehler beim Erstellen des Einsatzes aus Profil: Connection timeout',
+      );
       expect(loggerSpy).not.toHaveBeenCalledWith('\n📋 Verfügbare DRK-Profile:');
     });
 
@@ -323,7 +345,9 @@ describe('SeedEinsatzCommand', () => {
 
       await command.run([], { name: 'Test' });
 
-      expect(errorSpy).toHaveBeenCalledWith('❌ Fehler beim Erstellen des Einsatzes: Validation error');
+      expect(errorSpy).toHaveBeenCalledWith(
+        '❌ Fehler beim Erstellen des Einsatzes: Validation error',
+      );
       expect(errorSpy).not.toHaveBeenCalledWith('Ein Einsatz mit diesem Namen existiert bereits');
     });
 
@@ -334,7 +358,9 @@ describe('SeedEinsatzCommand', () => {
 
       await command.run([]);
 
-      expect(errorSpy).toHaveBeenCalledWith('❌ Fehler beim Erstellen des Einsatzes: Database error');
+      expect(errorSpy).toHaveBeenCalledWith(
+        '❌ Fehler beim Erstellen des Einsatzes: Database error',
+      );
       expect(errorSpy).toHaveBeenCalledWith('Ein Einsatz mit diesem Namen existiert bereits');
     });
   });
@@ -343,7 +369,7 @@ describe('SeedEinsatzCommand', () => {
     it('should generate default name with current timestamp', () => {
       const generateDefaultName = (command as any).generateDefaultName.bind(command);
       const name = generateDefaultName();
-      
+
       expect(name).toMatch(/^Test-Einsatz \d{4}-\d{2}-\d{2} \d{2}:\d{2}$/);
     });
 
@@ -376,12 +402,17 @@ describe('SeedEinsatzCommand', () => {
       expect(profileService.getProfilesByCategory).toHaveBeenCalledWith('manv');
       expect(profileService.getProfilesByPriority).toHaveBeenCalledWith('critical');
       expect(loggerSpy).toHaveBeenCalledWith(
-        expect.stringContaining('Gefilterte DRK-Profile (manv Kategorien, critical Prioritäten)')
+        expect.stringContaining('Gefilterte DRK-Profile (manv Kategorien, critical Prioritäten)'),
       );
     });
 
     it('should handle successful einsatz creation from profile', async () => {
-      const mockEinsatz = { id: '123', name: 'Test MANV Einsatz', createdAt: new Date(), updatedAt: new Date() };
+      const mockEinsatz = {
+        id: '123',
+        name: 'Test MANV Einsatz',
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      };
       profileService.createEinsatzFromProfile.mockResolvedValue(mockEinsatz);
       profileService.getProfile.mockReturnValue({
         ...mockProfile,
@@ -434,7 +465,7 @@ describe('SeedEinsatzCommand', () => {
     it('should show profiles when error message contains "nicht gefunden"', async () => {
       const showProfileListSpy = jest.spyOn(command as any, 'showProfileList');
       profileService.createEinsatzFromProfile.mockRejectedValue(
-        new Error('Profil "xyz" nicht gefunden')
+        new Error('Profil "xyz" nicht gefunden'),
       );
       profileService.getAllProfiles.mockReturnValue([mockProfile] as SeedProfile[]);
 
@@ -467,14 +498,14 @@ describe('SeedEinsatzCommand', () => {
       await command.run([], { list: true });
 
       expect(showProfileListSpy).toHaveBeenCalled();
-      expect(loggerSpy).toHaveBeenCalledWith(
-        '   Personen: 1000 | Dauer: 12h'
-      );
+      expect(loggerSpy).toHaveBeenCalledWith('   Personen: 1000 | Dauer: 12h');
     });
 
     it('should handle showProfileInfo with details', async () => {
       const showProfileInfoSpy = jest.spyOn(command as any, 'showProfileInfo');
-      profileService.getProfileDetails.mockReturnValue('Detaillierte Profil-Informationen\nmit mehreren Zeilen');
+      profileService.getProfileDetails.mockReturnValue(
+        'Detaillierte Profil-Informationen\nmit mehreren Zeilen',
+      );
 
       await command.run([], { info: 'manv' });
 
@@ -491,11 +522,15 @@ describe('SeedEinsatzCommand', () => {
         description: 'Detaillierte Beschreibung des Profils',
       };
       profileService.getAllProfiles.mockReturnValue([profileWithDescription] as SeedProfile[]);
-      profileService.getProfilesByPriority.mockReturnValue([profileWithDescription] as SeedProfile[]);
+      profileService.getProfilesByPriority.mockReturnValue([
+        profileWithDescription,
+      ] as SeedProfile[]);
 
       await command.run([], { priority: 'high' });
 
-      expect(loggerSpy).toHaveBeenCalledWith(`🔹 ${profileWithDescription.key}: ${profileWithDescription.name}`);
+      expect(loggerSpy).toHaveBeenCalledWith(
+        `🔹 ${profileWithDescription.key}: ${profileWithDescription.name}`,
+      );
       expect(loggerSpy).toHaveBeenCalledWith(`   ${profileWithDescription.description}`);
     });
   });

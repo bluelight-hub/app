@@ -4,9 +4,9 @@ import { ConfigService } from '@nestjs/config';
 import { SecurityController } from './security.controller';
 import { SecurityMetricsService } from '../services/security-metrics.service';
 import { SecurityLogService } from '../services/security-log.service';
-import { AuthService } from '../auth.service';
-import { JWTPayload, UserRole } from '../types/jwt.types';
-import { SecurityEventType } from '../enums/security-event-type.enum';
+import { AuthService, JWTPayload, UserRole } from '@/modules/auth';
+import { SecurityEventType } from '@/modules/auth/constants';
+import { SecurityLog } from '@prisma/generated/prisma';
 
 describe('SecurityController', () => {
   let controller: SecurityController;
@@ -253,6 +253,10 @@ describe('SecurityController', () => {
           sessionId: 'session-123',
           message: 'Login failed',
           metadata: {},
+          previousHash: '',
+          currentHash: '',
+          hashAlgorithm: '',
+          sequenceNumber: BigInt(1),
           user: {
             id: 'user-123',
             email: 'user@example.com',
@@ -270,13 +274,17 @@ describe('SecurityController', () => {
           sessionId: 'session-456',
           message: 'Account locked',
           metadata: {},
+          previousHash: '',
+          currentHash: '',
+          hashAlgorithm: '',
+          sequenceNumber: BigInt(1),
           user: {
             id: 'user-456',
             email: 'user2@example.com',
             role: UserRole.USER,
           },
         },
-      ];
+      ] satisfies (SecurityLog & { user: { id: string; email: string; role: UserRole } })[];
       mockSecurityLogService.getSecurityLogs.mockResolvedValue(mockLogs);
 
       const result = await controller.getSecurityLogs();
@@ -305,13 +313,17 @@ describe('SecurityController', () => {
           sessionId: 'session-123',
           message: 'Login failed',
           metadata: {},
+          previousHash: '',
+          sequenceNumber: BigInt(1),
+          hashAlgorithm: '',
+          currentHash: '',
           user: {
             id: 'user-123',
             email: 'user@example.com',
             role: UserRole.USER,
           },
         },
-      ];
+      ] as (SecurityLog & { user: { id: string; email: string; role: UserRole } })[];
       mockSecurityLogService.getSecurityLogs.mockResolvedValue(mockLogs);
 
       const result = await controller.getSecurityLogs(

@@ -16,6 +16,8 @@ import {
   TokenRevokedException,
   RefreshRateLimitExceededException,
 } from './exceptions/auth.exceptions';
+import { SecurityLogService } from '@/security/services/security-log.service';
+import { createMockSecurityLogService } from '@/test/mocks/security-log.service.mock';
 import * as bcrypt from 'bcryptjs';
 
 // Mock bcrypt
@@ -83,6 +85,8 @@ describe('AuthService', () => {
     checkMultipleFailedAttempts: jest.fn(),
   };
 
+  const mockSecurityLogService = createMockSecurityLogService();
+
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
@@ -110,6 +114,10 @@ describe('AuthService', () => {
         {
           provide: LoginAttemptService,
           useValue: mockLoginAttemptService,
+        },
+        {
+          provide: SecurityLogService,
+          useValue: mockSecurityLogService,
         },
       ],
     }).compile();

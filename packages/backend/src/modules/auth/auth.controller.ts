@@ -10,16 +10,23 @@ import {
   UnauthorizedException,
   UseGuards,
 } from '@nestjs/common';
-import { ApiBearerAuth, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
+import {
+  ApiBearerAuth,
+  ApiOperation,
+  ApiResponse,
+  ApiTags,
+  ApiExcludeEndpoint,
+} from '@nestjs/swagger';
 import { Throttle } from '@nestjs/throttler';
 import { AuthService } from './auth.service';
 import { LoginDto, RefreshTokenDto, LoginResponseDto, TokenResponseDto, AuthUserDto } from './dto';
 import { LoginResponse, TokenResponse } from './types/auth.types';
-import { JwtAuthGuard } from './guards';
-import { CurrentUser, Public } from './decorators';
-import { JWTPayload } from './types/jwt.types';
+import { JwtAuthGuard, RolesGuard } from './guards';
+import { CurrentUser, Public, Roles } from './decorators';
+import { JWTPayload, UserRole } from './types/jwt.types';
 import { Request, Response } from 'express';
 import { cookieConfig, refreshCookieConfig } from '../../config/security.config';
+import { SecurityLogService } from '../../security/services/security-log.service';
 
 /**
  * Controller handling authentication endpoints for admin users.
@@ -28,7 +35,10 @@ import { cookieConfig, refreshCookieConfig } from '../../config/security.config'
 @ApiTags('Authentication')
 @Controller('api/auth')
 export class AuthController {
-  constructor(private authService: AuthService) {}
+  constructor(
+    private authService: AuthService,
+    private securityLogService: SecurityLogService,
+  ) {}
 
   /**
    * Authentifiziert einen Admin-Benutzer und erstellt eine neue Session.
@@ -158,5 +168,69 @@ export class AuthController {
     // Clear cookies
     response.clearCookie('access_token');
     response.clearCookie('refresh_token');
+  }
+
+  /**
+   * Test endpoint for E2E tests to create security log entries.
+   * Only available in test/development environments.
+   */
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRole.ADMIN)
+  @Post('test-log')
+  @HttpCode(HttpStatus.OK)
+  @ApiBearerAuth()
+  @ApiExcludeEndpoint()
+  async testLog(
+    @Body() body: { eventType: string; userId: string; metadata?: any },
+    @Req() request: Request,
+  ) {
+    if (process.env.NODE_ENV === 'production') {
+      throw new UnauthorizedException('Test endpoint not available in production');
+    }
+
+    const ipAddress = request.ip || '127.0.0.1';
+    const userAgent = request.headers['user-agent'] || 'Test Agent';
+
+    const result = await this.securityLogService.log(body.eventType as any, {
+      action: body.eventType,
+      userId: body.userId,
+      ip: ipAddress,
+      userAgent,
+      metadata: body.metadata || {},
+    });
+
+    return result;
+  }
+
+  /**
+   * Test endpoint for critical security log entries.
+   * Only available in test/development environments.
+   */
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRole.ADMIN)
+  @Post('test-log-critical')
+  @HttpCode(HttpStatus.OK)
+  @ApiBearerAuth()
+  @ApiExcludeEndpoint()
+  async testLogCritical(
+    @Body() body: { eventType: string; userId: string; metadata?: any },
+    @Req() request: Request,
+  ) {
+    if (process.env.NODE_ENV === 'production') {
+      throw new UnauthorizedException('Test endpoint not available in production');
+    }
+
+    const ipAddress = request.ip || '127.0.0.1';
+    const userAgent = request.headers['user-agent'] || 'Test Agent';
+
+    const result = await this.securityLogService.logCritical(body.eventType as any, {
+      action: body.eventType,
+      userId: body.userId,
+      ip: ipAddress,
+      userAgent,
+      metadata: body.metadata || {},
+    });
+
+    return result;
   }
 }

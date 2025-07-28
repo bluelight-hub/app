@@ -24,7 +24,8 @@ services:
       - redis_data:/data
     restart: unless-stopped
     ports:
-      - '6379:6379'
+      - '9036:6379'
+    command: redis-server --appendonly yes --appendfsync everysec
     healthcheck:
       test: ['CMD', 'redis-cli', 'ping']
       interval: 10s

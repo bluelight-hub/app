@@ -2,7 +2,7 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { SecurityMetricsService } from './security-metrics.service';
 import { SecurityLogService } from './security-log.service';
 import { EventEmitter2 } from '@nestjs/event-emitter';
-import { SecurityEventType } from '../enums/security-event-type.enum';
+import { SecurityEventType } from '@/modules/auth/constants';
 
 describe('SecurityMetricsService', () => {
   let service: SecurityMetricsService;
@@ -22,6 +22,10 @@ describe('SecurityMetricsService', () => {
       message: null,
       createdAt: new Date(),
       user: null,
+      previousHash: '',
+      sequenceNumber: BigInt(1),
+      hashAlgorithm: '',
+      currentHash: '',
     },
     {
       id: '2',
@@ -35,6 +39,10 @@ describe('SecurityMetricsService', () => {
       message: null,
       createdAt: new Date(),
       user: null,
+      previousHash: '',
+      sequenceNumber: BigInt(1),
+      hashAlgorithm: '',
+      currentHash: '',
     },
     {
       id: '3',
@@ -48,6 +56,10 @@ describe('SecurityMetricsService', () => {
       message: null,
       createdAt: new Date(),
       user: null,
+      previousHash: '',
+      sequenceNumber: BigInt(1),
+      hashAlgorithm: '',
+      currentHash: '',
     },
   ];
 
@@ -129,6 +141,10 @@ describe('SecurityMetricsService', () => {
           message: null,
           createdAt: new Date(),
           user: null,
+          previousHash: '',
+          sequenceNumber: BigInt(1),
+          hashAlgorithm: '',
+          currentHash: '',
         },
         {
           id: '2',
@@ -142,6 +158,10 @@ describe('SecurityMetricsService', () => {
           message: null,
           createdAt: new Date(),
           user: null,
+          previousHash: '',
+          sequenceNumber: BigInt(1),
+          hashAlgorithm: '',
+          currentHash: '',
         },
         {
           id: '3',
@@ -155,6 +175,10 @@ describe('SecurityMetricsService', () => {
           message: null,
           createdAt: new Date(),
           user: null,
+          previousHash: '',
+          sequenceNumber: BigInt(1),
+          hashAlgorithm: '',
+          currentHash: '',
         },
       ];
 
@@ -219,6 +243,10 @@ describe('SecurityMetricsService', () => {
           message: null,
           createdAt: new Date(),
           user: null,
+          previousHash: '',
+          sequenceNumber: BigInt(1),
+          hashAlgorithm: '',
+          currentHash: '',
         },
         {
           id: '2',
@@ -232,6 +260,10 @@ describe('SecurityMetricsService', () => {
           message: null,
           createdAt: new Date(),
           user: null,
+          previousHash: '',
+          sequenceNumber: BigInt(1),
+          hashAlgorithm: '',
+          currentHash: '',
         },
         {
           id: '3',
@@ -245,6 +277,10 @@ describe('SecurityMetricsService', () => {
           message: null,
           createdAt: new Date(),
           user: null,
+          previousHash: '',
+          sequenceNumber: BigInt(1),
+          hashAlgorithm: '',
+          currentHash: '',
         },
       ];
 
@@ -277,6 +313,10 @@ describe('SecurityMetricsService', () => {
           message: null,
           createdAt: new Date(),
           user: null,
+          previousHash: '',
+          sequenceNumber: BigInt(1),
+          hashAlgorithm: '',
+          currentHash: '',
         },
         {
           id: '2',
@@ -290,6 +330,10 @@ describe('SecurityMetricsService', () => {
           message: null,
           createdAt: new Date(),
           user: null,
+          previousHash: '',
+          sequenceNumber: BigInt(1),
+          hashAlgorithm: '',
+          currentHash: '',
         },
       ];
 
@@ -322,6 +366,10 @@ describe('SecurityMetricsService', () => {
           message: null,
           createdAt: new Date(),
           user: null,
+          previousHash: '',
+          sequenceNumber: BigInt(1),
+          hashAlgorithm: '',
+          currentHash: '',
         },
       ];
 
@@ -355,6 +403,10 @@ describe('SecurityMetricsService', () => {
           message: null,
           createdAt: new Date(),
           user: null,
+          previousHash: '',
+          sequenceNumber: BigInt(1),
+          hashAlgorithm: '',
+          currentHash: '',
         },
       ];
 
@@ -390,6 +442,10 @@ describe('SecurityMetricsService', () => {
           message: null,
           createdAt: new Date(),
           user: null,
+          previousHash: '',
+          sequenceNumber: BigInt(1),
+          hashAlgorithm: '',
+          currentHash: '',
         }));
 
       const failedLogins24h = failedLogins7d.slice(0, 4); // 4 in last 24h, average is 2 per day

@@ -183,7 +183,7 @@ describe('AuditTestUtils', () => {
       const duration = Date.now() - start;
 
       expect(duration).toBeGreaterThanOrEqual(40);
-      expect(duration).toBeLessThan(100);
+      expect(duration).toBeLessThan(150); // Increased tolerance for CI environments
     });
   });
 

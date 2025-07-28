@@ -1,7 +1,9 @@
-import { Injectable, CanActivate, ExecutionContext } from '@nestjs/common';
+import { Injectable, CanActivate, ExecutionContext, Logger, Optional } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 import { UserRole } from '../types/jwt.types';
 import { ROLES_KEY } from '../decorators/roles.decorator';
+import { SecurityLogService } from '@/security/services/security-log.service';
+import { SecurityEventTypeExtended } from '@/security/constants/event-types';
 
 /**
  * Guard für rollenbasierte Zugriffskontrolle (RBAC)
@@ -34,12 +36,18 @@ import { ROLES_KEY } from '../decorators/roles.decorator';
  */
 @Injectable()
 export class RolesGuard implements CanActivate {
+  private readonly logger = new Logger(RolesGuard.name);
+
   /**
    * Konstruktor des RolesGuard
    *
    * @param {Reflector} reflector - NestJS Reflector Service zum Lesen von Route-Metadaten
+   * @param {SecurityLogService} securityLogService - Service für Security-Logging (optional)
    */
-  constructor(private reflector: Reflector) {}
+  constructor(
+    private reflector: Reflector,
+    @Optional() private securityLogService: SecurityLogService,
+  ) {}
 
   /**
    * Prüft, ob der Benutzer eine der erforderlichen Rollen besitzt
@@ -65,7 +73,7 @@ export class RolesGuard implements CanActivate {
    * }
    * ```
    */
-  canActivate(context: ExecutionContext): boolean {
+  async canActivate(context: ExecutionContext): Promise<boolean> {
     const requiredRoles = this.reflector.getAllAndOverride<UserRole[]>(ROLES_KEY, [
       context.getHandler(),
       context.getClass(),
@@ -75,12 +83,58 @@ export class RolesGuard implements CanActivate {
       return true;
     }
 
-    const { user } = context.switchToHttp().getRequest();
+    const request = context.switchToHttp().getRequest();
+    const { user } = request;
 
     if (!user || !user.roles) {
+      await this.logPermissionDenied(request, user, requiredRoles, 'No user or roles');
       return false;
     }
 
-    return requiredRoles.some((role) => user.roles?.includes(role));
+    const hasRole = requiredRoles.some((role) => user.roles?.includes(role));
+
+    if (!hasRole) {
+      await this.logPermissionDenied(request, user, requiredRoles, 'Insufficient roles');
+    }
+
+    return hasRole;
+  }
+
+  /**
+   * Protokolliert einen Permission-Denied-Event
+   *
+   * @param request - Der HTTP-Request
+   * @param user - Der Benutzer (falls vorhanden)
+   * @param requiredRoles - Die erforderlichen Rollen
+   * @param reason - Der Grund für die Ablehnung
+   */
+  private async logPermissionDenied(
+    request: any,
+    user: any,
+    requiredRoles: UserRole[],
+    reason: string,
+  ): Promise<void> {
+    try {
+      const ipAddress = request.ip || request.connection?.remoteAddress;
+      const userAgent = request.headers['user-agent'];
+
+      if (this.securityLogService) {
+        await this.securityLogService.log(SecurityEventTypeExtended.PERMISSION_DENIED, {
+          action: SecurityEventTypeExtended.PERMISSION_DENIED,
+          userId: user?.id || '',
+          ip: ipAddress || '',
+          userAgent,
+          metadata: {
+            reason,
+            path: request.path,
+            method: request.method,
+            requiredRoles,
+            userRoles: user?.roles || [],
+          },
+        });
+      }
+    } catch (error) {
+      this.logger.error('Failed to log permission denied event', error);
+    }
   }
 }

@@ -19,7 +19,7 @@ import { SessionCleanupService } from './services/session-cleanup.service';
 import { LoginAttemptService } from './services/login-attempt.service';
 import { SecurityAlertService } from './services/security-alert.service';
 import { SecurityMetricsService } from './services/security-metrics.service';
-import { SecurityLogService } from './services/security-log.service';
+
 import { SuspiciousActivityService } from './services/suspicious-activity.service';
 import { GeoIpService } from './services/geo-ip.service';
 import { IpAllowlistGuard } from './guards/ip-allowlist.guard';
@@ -27,6 +27,7 @@ import { RuleEngineService } from './rules/rule-engine.service';
 import { RuleRepositoryService } from './rules/rule-repository.service';
 import { ThreatRuleFactory } from './rules/rule.factory';
 import { ThreatRulesService } from './services/threat-rules.service';
+import { LogAccessInterceptor } from './interceptors/log-access.interceptor';
 import { SessionModule } from '../session/session.module';
 import { NotificationModule } from '../notification/notification.module';
 import { SecurityAlertServiceV2 } from './services/security-alert-v2.service';
@@ -36,6 +37,9 @@ import { AlertCorrelationService } from './services/alert-correlation.service';
 import { AlertDispatcherService } from './services/alert-dispatcher.service';
 import { AlertQueueService } from './services/alert-queue.service';
 import { getBullConfig, ALERT_QUEUE_NAME } from './config/bull.config';
+import { SecurityLogModule } from '@/security/security-log.module';
+import { SecurityLogService } from './services/security-log.service';
+import { SecurityLogHashService } from './services/security-log-hash.service';
 
 /**
  * Authentication module that provides JWT-based authentication for the application.
@@ -81,6 +85,7 @@ import { getBullConfig, ALERT_QUEUE_NAME } from './config/bull.config';
     }),
     forwardRef(() => SessionModule),
     forwardRef(() => NotificationModule),
+    SecurityLogModule,
   ],
   providers: [
     AuthService,
@@ -97,7 +102,6 @@ import { getBullConfig, ALERT_QUEUE_NAME } from './config/bull.config';
     AlertDispatcherService,
     AlertQueueService,
     SecurityMetricsService,
-    SecurityLogService,
     SuspiciousActivityService,
     GeoIpService,
     IpAllowlistGuard,
@@ -105,6 +109,9 @@ import { getBullConfig, ALERT_QUEUE_NAME } from './config/bull.config';
     RuleRepositoryService,
     ThreatRuleFactory,
     ThreatRulesService,
+    LogAccessInterceptor,
+    SecurityLogService,
+    SecurityLogHashService,
   ],
   controllers: [AuthController, LoginAttemptController, SecurityController, ThreatRuleController],
   exports: [
@@ -114,7 +121,6 @@ import { getBullConfig, ALERT_QUEUE_NAME } from './config/bull.config';
     SessionCleanupService,
     LoginAttemptService,
     SecurityMetricsService,
-    SecurityLogService,
     SuspiciousActivityService,
     GeoIpService,
     RuleEngineService,
@@ -126,6 +132,7 @@ import { getBullConfig, ALERT_QUEUE_NAME } from './config/bull.config';
     AlertCorrelationService,
     AlertDispatcherService,
     AlertQueueService,
+    LogAccessInterceptor,
   ],
 })
 export class AuthModule {}
