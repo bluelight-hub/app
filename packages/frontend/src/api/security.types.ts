@@ -103,4 +103,8 @@ export interface SecurityLog {
   timestamp: Date;
   details: Record<string, unknown>;
   severity: 'low' | 'medium' | 'high' | 'critical';
+  sequenceNumber?: number;
+  createdAt?: string;
+  message?: string;
+  metadata?: Record<string, unknown>;
 }

@@ -297,6 +297,10 @@ export const securityApi = {
         timestamp: new Date(log.timestamp || Date.now()),
         details: log.details || {},
         severity: log.severity || 'medium',
+        sequenceNumber: log.sequenceNumber,
+        createdAt: log.createdAt || log.timestamp,
+        message: log.message,
+        metadata: log.metadata,
       }));
     } catch (error) {
       console.error('Failed to fetch security logs:', error);
