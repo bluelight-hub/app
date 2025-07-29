@@ -228,6 +228,21 @@ describe('SuspiciousActivityService', () => {
   });
 
   describe('checkRapidLoginAttempts', () => {
+    let originalDate: typeof Date;
+
+    beforeEach(() => {
+      originalDate = global.Date;
+      // Mock Date to return normal business hour (14:00) to avoid triggering unusual login time
+      const mockDate = new Date('2024-01-01T14:00:00.000Z');
+      const mockDateConstructor = jest.fn(() => mockDate) as any;
+      mockDateConstructor.now = jest.fn(() => mockDate.getTime());
+      global.Date = mockDateConstructor;
+    });
+
+    afterEach(() => {
+      global.Date = originalDate;
+    });
+
     it('should detect rapid login attempts', async () => {
       const recentLogins = Array(3)
         .fill(null)
@@ -295,6 +310,21 @@ describe('SuspiciousActivityService', () => {
   });
 
   describe('checkMultipleIpAddresses', () => {
+    let originalDate: typeof Date;
+
+    beforeEach(() => {
+      originalDate = global.Date;
+      // Mock Date to return normal business hour (14:00) to avoid triggering unusual login time
+      const mockDate = new Date('2024-01-01T14:00:00.000Z');
+      const mockDateConstructor = jest.fn(() => mockDate) as any;
+      mockDateConstructor.now = jest.fn(() => mockDate.getTime());
+      global.Date = mockDateConstructor;
+    });
+
+    afterEach(() => {
+      global.Date = originalDate;
+    });
+
     it('should detect multiple IP login attempts', async () => {
       const recentLogins = [
         {
