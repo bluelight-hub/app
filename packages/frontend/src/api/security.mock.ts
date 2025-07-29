@@ -162,3 +162,67 @@ export const mockIpWhitelist = [
     permanent: false,
   },
 ];
+
+export const mockSecurityMetrics = {
+  totalLoginAttempts: 1523,
+  failedLoginAttempts: 47,
+  activeSessions: 142,
+  suspiciousActivities: 12,
+  blockedIPs: 8,
+  alertsCount: 23,
+  loginAttemptsChart: [
+    { date: '2024-01-01', successful: 200, failed: 10 },
+    { date: '2024-01-02', successful: 220, failed: 15 },
+    { date: '2024-01-03', successful: 180, failed: 8 },
+  ],
+  threatDistribution: [
+    { type: 'brute_force', count: 5 },
+    { type: 'suspicious_ip', count: 3 },
+    { type: 'rapid_requests', count: 4 },
+  ],
+  sessionsByLocation: [
+    { location: 'Germany', count: 85 },
+    { location: 'United States', count: 42 },
+    { location: 'Unknown', count: 15 },
+  ],
+  avgSessionDuration: 3600,
+  securityScore: 85,
+};
+
+export const mockSecurityAlerts = [
+  {
+    id: 'alert1',
+    type: 'failed_login_attempts',
+    severity: 'HIGH',
+    message: 'Multiple failed login attempts detected',
+    timestamp: new Date().toISOString(),
+    metadata: { attempts: 5 },
+  },
+  {
+    id: 'alert2',
+    type: 'suspicious_activity',
+    severity: 'MEDIUM',
+    message: 'Unusual access pattern detected',
+    timestamp: new Date().toISOString(),
+    metadata: {},
+  },
+];
+
+export const mockActiveSessions = [
+  {
+    id: 'session1',
+    userId: 'user123',
+    ipAddress: '192.168.1.1',
+    userAgent: 'Mozilla/5.0',
+    lastActivity: new Date(),
+    createdAt: new Date(),
+  },
+  {
+    id: 'session2',
+    userId: 'user456',
+    ipAddress: '192.168.1.2',
+    userAgent: 'Chrome/96.0',
+    lastActivity: new Date(),
+    createdAt: new Date(),
+  },
+];

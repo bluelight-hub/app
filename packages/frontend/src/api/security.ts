@@ -93,7 +93,7 @@ export const securityApi = {
     limit?: number;
   }): Promise<SecurityAlert[]> => {
     try {
-      const response = await fetchWithAuth('/api/security/alerts', {
+      const response = await fetchWithAuth('/v1/api/security/alerts', {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
@@ -107,7 +107,7 @@ export const securityApi = {
       const data = await response.json();
 
       // Transform the response to match our SecurityAlert interface
-      return (data.alerts || []).map((alert: any) => ({
+      return (data || []).map((alert: any) => ({
         id: alert.id || '',
         type: alert.type || 'SUSPICIOUS_ACTIVITY',
         severity: alert.severity || 'medium',
@@ -308,9 +308,8 @@ export const securityApi = {
     }
   },
 
-  // IP Whitelist - delegated to helpers
-  ...ipWhitelistApi,
-
-  // Account Management - delegated to helpers
-  ...accountManagementApi,
+  // Helper APIs as properties
+  securityReports: securityReportsApi,
+  ipWhitelist: ipWhitelistApi,
+  accountManagement: accountManagementApi,
 };
