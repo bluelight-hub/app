@@ -10,8 +10,26 @@ describe('SuspiciousActivityService', () => {
   let service: SuspiciousActivityService;
   let securityLogService: jest.Mocked<SecurityLogService>;
   let eventEmitter: jest.Mocked<EventEmitter2>;
+  let originalDate: typeof Date;
+
+  beforeAll(() => {
+    originalDate = global.Date;
+  });
+
+  afterAll(() => {
+    global.Date = originalDate;
+  });
 
   beforeEach(async () => {
+    // Clear all mocks before each test
+    jest.clearAllMocks();
+
+    // Mock Date to return normal business hour (14:00) by default to avoid unusual login time detection
+    const mockDate = new Date('2024-01-01T14:00:00.000Z');
+    const mockDateConstructor = jest.fn(() => mockDate) as any;
+    mockDateConstructor.now = jest.fn(() => mockDate.getTime());
+    global.Date = mockDateConstructor;
+
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         SuspiciousActivityService,
@@ -228,21 +246,6 @@ describe('SuspiciousActivityService', () => {
   });
 
   describe('checkRapidLoginAttempts', () => {
-    let originalDate: typeof Date;
-
-    beforeEach(() => {
-      originalDate = global.Date;
-      // Mock Date to return normal business hour (14:00) to avoid triggering unusual login time
-      const mockDate = new Date('2024-01-01T14:00:00.000Z');
-      const mockDateConstructor = jest.fn(() => mockDate) as any;
-      mockDateConstructor.now = jest.fn(() => mockDate.getTime());
-      global.Date = mockDateConstructor;
-    });
-
-    afterEach(() => {
-      global.Date = originalDate;
-    });
-
     it('should detect rapid login attempts', async () => {
       const recentLogins = Array(3)
         .fill(null)
@@ -310,21 +313,6 @@ describe('SuspiciousActivityService', () => {
   });
 
   describe('checkMultipleIpAddresses', () => {
-    let originalDate: typeof Date;
-
-    beforeEach(() => {
-      originalDate = global.Date;
-      // Mock Date to return normal business hour (14:00) to avoid triggering unusual login time
-      const mockDate = new Date('2024-01-01T14:00:00.000Z');
-      const mockDateConstructor = jest.fn(() => mockDate) as any;
-      mockDateConstructor.now = jest.fn(() => mockDate.getTime());
-      global.Date = mockDateConstructor;
-    });
-
-    afterEach(() => {
-      global.Date = originalDate;
-    });
-
     it('should detect multiple IP login attempts', async () => {
       const recentLogins = [
         {
@@ -472,23 +460,13 @@ describe('SuspiciousActivityService', () => {
   });
 
   describe('checkUnusualLoginTime', () => {
-    let originalDate: typeof Date;
-
-    beforeEach(() => {
-      originalDate = global.Date;
-      // Clear mocks before each test
-      jest.clearAllMocks();
-    });
-
-    afterEach(() => {
-      global.Date = originalDate;
-    });
-
     it('should detect unusual login time (early morning)', async () => {
-      // Mock Date to return early morning hour
+      // Mock Date to return early morning hour (3 AM)
       const mockDate = new Date('2024-01-01T03:00:00.000Z');
       const mockDateConstructor = jest.fn(() => mockDate) as any;
       mockDateConstructor.now = jest.fn(() => mockDate.getTime());
+      // Override getHours to return the UTC hour directly
+      mockDate.getHours = jest.fn(() => 3);
       global.Date = mockDateConstructor;
 
       // Mock getSecurityLogs to return empty array (no rapid login attempts)
@@ -496,26 +474,25 @@ describe('SuspiciousActivityService', () => {
 
       await service.checkLoginPatterns('user1', '192.168.1.1');
 
-      // Get the actual hour that was logged
-      const actualHour = mockDate.getHours();
-
       expect(securityLogService.logSecurityEvent).toHaveBeenCalledWith({
         eventType: SecurityEventType.SUSPICIOUS_ACTIVITY,
         userId: 'user1',
         ipAddress: '192.168.1.1',
         metadata: expect.objectContaining({
           type: 'unusual_login_time',
-          hour: actualHour, // Use the actual hour from the mocked date
+          hour: 3,
           ipAddress: '192.168.1.1',
         }),
       });
     });
 
     it('should not report during normal hours', async () => {
-      // Mock Date to return normal business hour
+      // Mock Date to return normal business hour (2 PM)
       const mockDate = new Date('2024-01-01T14:00:00.000Z');
       const mockDateConstructor = jest.fn(() => mockDate) as any;
       mockDateConstructor.now = jest.fn(() => mockDate.getTime());
+      // Override getHours to return the UTC hour directly
+      mockDate.getHours = jest.fn(() => 14);
       global.Date = mockDateConstructor;
 
       // Mock getSecurityLogs to return empty array (no rapid login attempts)
@@ -527,10 +504,12 @@ describe('SuspiciousActivityService', () => {
     });
 
     it('should detect unusual login time (late night)', async () => {
-      // Mock Date to return early morning hour (within unusual time range)
+      // Mock Date to return late night hour (2:30 AM)
       const mockDate = new Date('2024-01-01T02:30:00.000Z');
       const mockDateConstructor = jest.fn(() => mockDate) as any;
       mockDateConstructor.now = jest.fn(() => mockDate.getTime());
+      // Override getHours to return the UTC hour directly
+      mockDate.getHours = jest.fn(() => 2);
       global.Date = mockDateConstructor;
 
       // Mock getSecurityLogs to return empty array (no rapid login attempts)
@@ -538,16 +517,13 @@ describe('SuspiciousActivityService', () => {
 
       await service.checkLoginPatterns('user1', '192.168.1.1');
 
-      // Get the actual hour that was logged
-      const actualHour = mockDate.getHours();
-
       expect(securityLogService.logSecurityEvent).toHaveBeenCalledWith({
         eventType: SecurityEventType.SUSPICIOUS_ACTIVITY,
         userId: 'user1',
         ipAddress: '192.168.1.1',
         metadata: expect.objectContaining({
           type: 'unusual_login_time',
-          hour: actualHour, // Use the actual hour from the mocked date
+          hour: 2,
           ipAddress: '192.168.1.1',
         }),
       });
