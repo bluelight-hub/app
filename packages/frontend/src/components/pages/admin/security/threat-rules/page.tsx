@@ -404,6 +404,13 @@ const ThreatRulesEditor: React.FC = () => {
           </div>
 
           {/* Konfiguration wurde in ThreatRuleForm verschoben */}
+          <Form.Item
+            name="config"
+            label="Konfiguration"
+            rules={[{ required: true, message: 'Bitte Konfiguration eingeben' }]}
+          >
+            <TextArea rows={4} placeholder='{"threshold": 5, "timeWindow": 300}' />
+          </Form.Item>
 
           <Form.Item name="isActive" label="Status" valuePropName="checked" initialValue={true}>
             <Switch checkedChildren="Aktiv" unCheckedChildren="Inaktiv" />
