@@ -7,6 +7,7 @@ import type {
   DashboardMetrics,
   Session,
   ThreatRule,
+  IPWhitelistRule,
 } from './security.types';
 
 // Re-export types
@@ -107,7 +108,7 @@ export const securityApi = {
       const data = await response.json();
 
       // Transform the response to match our SecurityAlert interface
-      return (data || []).map((alert: any) => ({
+      return (data || []).map((alert: SecurityAlert) => ({
         id: alert.id || '',
         type: alert.type || 'SUSPICIOUS_ACTIVITY',
         severity: alert.severity || 'medium',
@@ -123,10 +124,23 @@ export const securityApi = {
     }
   },
 
-  resolveAlert: async (alertId: string): Promise<void> => {
+  getRecentAlerts: async (params?: {
+    severity?: string;
+    resolved?: boolean;
+    limit?: number;
+  }): Promise<SecurityAlert[]> => {
+    // Use the same implementation as getSecurityAlerts for now
+    return securityApi.getSecurityAlerts(params);
+  },
+
+  resolveAlert: async (alertId: string, resolution?: string): Promise<void> => {
     try {
       const response = await fetchWithAuth(`/api/security/alerts/${alertId}/resolve`, {
         method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: resolution ? JSON.stringify({ resolution }) : undefined,
       });
 
       if (!response.ok) {
@@ -155,7 +169,23 @@ export const securityApi = {
     }
   },
 
-  revokeSession: async (sessionId: string): Promise<void> => {
+  getSessions: async (params?: { isActive?: boolean }): Promise<Session[]> => {
+    try {
+      const result = await api.sessions.sessionControllerGetSessionsV1({});
+
+      // Filter based on isActive if provided
+      if (params?.isActive !== undefined) {
+        return (result || []).filter((session) => session.isOnline === params.isActive);
+      }
+
+      return result || [];
+    } catch (error) {
+      console.error('Failed to fetch sessions:', error);
+      return [];
+    }
+  },
+
+  revokeSession: async (sessionId: string, _reason?: string): Promise<void> => {
     try {
       await api.sessions.sessionControllerRevokeSessionV1({ id: sessionId });
     } catch (error) {
@@ -288,7 +318,7 @@ export const securityApi = {
       });
 
       // Transform the response to match our SecurityLog interface
-      return (result.data || []).map((log: any) => ({
+      return (result.data || []).map((log: SecurityLog) => ({
         id: log.id || '',
         eventType: log.eventType || '',
         userId: log.user?.id,
@@ -305,6 +335,48 @@ export const securityApi = {
     } catch (error) {
       console.error('Failed to fetch security logs:', error);
       return [];
+    }
+  },
+
+  // IP Whitelist Management
+  getIPWhitelistRules: async (): Promise<IPWhitelistRule[]> => {
+    try {
+      return await ipWhitelistApi.getIpWhitelist();
+    } catch (error) {
+      console.error('Failed to fetch IP whitelist rules:', error);
+      return [];
+    }
+  },
+
+  createIPWhitelistRule: async (
+    rule: Omit<IPWhitelistRule, 'id' | 'createdAt'>,
+  ): Promise<IPWhitelistRule> => {
+    try {
+      return await ipWhitelistApi.addToWhitelist(rule);
+    } catch (error) {
+      console.error('Failed to create IP whitelist rule:', error);
+      throw error;
+    }
+  },
+
+  updateIPWhitelistRule: async (
+    id: string,
+    updates: Partial<IPWhitelistRule>,
+  ): Promise<IPWhitelistRule> => {
+    try {
+      return await ipWhitelistApi.updateWhitelistEntry(id, updates);
+    } catch (error) {
+      console.error('Failed to update IP whitelist rule:', error);
+      throw error;
+    }
+  },
+
+  deleteIPWhitelistRule: async (id: string): Promise<void> => {
+    try {
+      await ipWhitelistApi.removeFromWhitelist(id);
+    } catch (error) {
+      console.error('Failed to delete IP whitelist rule:', error);
+      throw error;
     }
   },
 

@@ -198,7 +198,13 @@ describe('securityApi - Dashboard & Alerts', () => {
 
       expect(vi.mocked(fetchWithAuth)).toHaveBeenCalledWith(
         '/api/security/alerts/alert123/resolve',
-        { method: 'POST' },
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: undefined,
+        },
       );
     });
 
