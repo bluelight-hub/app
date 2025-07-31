@@ -32,7 +32,6 @@
       "bcrypt",
       "es5-ext",
       "esbuild",
-      "prisma",
       "puppeteer",
       "unrs-resolver"
     ]
