@@ -4,7 +4,7 @@ import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
 import { Roles } from '../auth/decorators/roles.decorator';
 import { AdminService } from './admin.service';
-import { Role } from '@prisma/client';
+import { UserRole } from '@prisma/client';
 
 @ApiTags('Admin')
 @Controller('admin')
@@ -17,7 +17,7 @@ export class AdminController {
    * Ruft die letzten Aktivitäten ab
    */
   @Get('activities')
-  @Roles(Role.SUPER_ADMIN, Role.ADMIN)
+  @Roles(UserRole.SUPER_ADMIN, UserRole.ADMIN)
   @ApiOperation({ summary: 'Letzte Aktivitäten abrufen' })
   @ApiResponse({ status: 200, description: 'Aktivitäten erfolgreich abgerufen' })
   async getActivities(@Query('limit') limit?: number) {
@@ -28,7 +28,7 @@ export class AdminController {
    * Ruft Dashboard-Statistiken ab
    */
   @Get('stats')
-  @Roles(Role.SUPER_ADMIN, Role.ADMIN)
+  @Roles(UserRole.SUPER_ADMIN, UserRole.ADMIN)
   @ApiOperation({ summary: 'Dashboard-Statistiken abrufen' })
   @ApiResponse({ status: 200, description: 'Statistiken erfolgreich abgerufen' })
   async getDashboardStats() {

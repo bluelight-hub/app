@@ -29,17 +29,7 @@ export class AdminService {
     try {
       const logs = await this.prisma.auditLog.findMany({
         take: limit,
-        orderBy: { createdAt: 'desc' },
-        include: {
-          user: {
-            select: {
-              id: true,
-              email: true,
-              firstName: true,
-              lastName: true,
-            },
-          },
-        },
+        orderBy: { timestamp: 'desc' },
       });
 
       // Falls keine Logs vorhanden sind, geben wir Beispiel-Aktivitäten zurück
@@ -49,17 +39,15 @@ export class AdminService {
 
       return logs.map((log) => ({
         id: log.id,
-        action: this.mapEventToAction(log.event),
+        action: log.action,
         entityType: this.getEntityType(log.resource),
         entityId: log.resourceId,
         entityName: this.getEntityName(log),
-        userId: log.userId,
-        userName: log.user
-          ? `${log.user.firstName} ${log.user.lastName}`.trim() || log.user.email
-          : 'System',
-        metadata: log.metadata as Record<string, any>,
-        timestamp: log.createdAt.toISOString(),
-        severity: this.getSeverity(log.event),
+        userId: log.userId || 'system',
+        userName: log.userEmail || 'System',
+        metadata: log.metadata as Record<string, unknown>,
+        timestamp: log.timestamp.toISOString(),
+        severity: this.getSeverityFromAuditSeverity(log.severity),
       }));
     } catch (error) {
       console.error('Error fetching activities:', error);
@@ -71,41 +59,36 @@ export class AdminService {
    * Ruft Dashboard-Statistiken ab
    */
   async getDashboardStats() {
-    const [users, organizations, activeEinsaetze] = await Promise.all([
+    const [users, activeEinsaetze] = await Promise.all([
       this.prisma.user.count(),
-      this.prisma.organization.count(),
       this.prisma.einsatz.count({
         where: {
-          status: {
-            in: ['ALARMIERT', 'AUSGERUECKT', 'ANKUNFT', 'BEGONNEN'],
-          },
+          endeDatum: null,
         },
       }),
     ]);
 
     return {
       users,
-      organizations,
+      organizations: 0, // TODO: Organizations werden später implementiert
       activeEinsaetze,
       systemHealth: 'OK', // TODO: Implementiere echte System-Health-Prüfung
     };
   }
 
-  private mapEventToAction(event: string): string {
-    const eventMap: Record<string, string> = {
-      'user.login': 'login',
-      'user.logout': 'logout',
-      'user.created': 'create',
-      'user.updated': 'update',
-      'user.deleted': 'delete',
-      'organization.created': 'create',
-      'organization.updated': 'update',
-      'organization.deleted': 'delete',
-      'security.alert': 'security_alert',
-      'system.warning': 'warning',
-    };
-
-    return eventMap[event] || event;
+  private getSeverityFromAuditSeverity(severity: any): Activity['severity'] {
+    switch (severity) {
+      case 'LOW':
+        return 'info';
+      case 'MEDIUM':
+        return 'warning';
+      case 'HIGH':
+        return 'error';
+      case 'CRITICAL':
+        return 'error';
+      default:
+        return 'info';
+    }
   }
 
   private getEntityType(resource: string): Activity['entityType'] {
@@ -127,13 +110,6 @@ export class AdminService {
     }
 
     return undefined;
-  }
-
-  private getSeverity(event: string): Activity['severity'] {
-    if (event.includes('error') || event.includes('fail')) return 'error';
-    if (event.includes('warning') || event.includes('alert')) return 'warning';
-    if (event.includes('success') || event.includes('created')) return 'success';
-    return 'info';
   }
 
   private getMockActivities(): Activity[] {
