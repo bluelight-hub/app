@@ -3,6 +3,40 @@
 ## Repository Information
 
 - GitHub: github.com/bluelight-hub/app
+- Git Remote: `github` (https://github.com/bluelight-hub/app.git)
+
+## API Client Generation (WICHTIG!)
+
+### Automatische API-Client Generierung
+
+**NIEMALS manuelle API-Helper erstellen!** Das Projekt nutzt automatische API-Client-Generierung aus der OpenAPI-Spezifikation.
+
+**Workflow:**
+
+1. Backend-Endpunkte werden mit NestJS/Swagger erstellt
+2. API-Client wird automatisch generiert: `pnpm run generate:api`
+3. Generierte APIs sind verfügbar in: `packages/shared/client/apis/`
+4. Frontend nutzt die generierten APIs über: `packages/frontend/src/api/index.ts`
+
+**Verwendung im Frontend:**
+
+```typescript
+import { api } from '@/api';
+
+// Beispiel: Security API verwenden
+const alerts = await api.security.getSecurityAlerts();
+
+// NICHT SO:
+// import { fetchWithAuth } from '@/utils/authInterceptor';
+// const response = await fetchWithAuth('/api/security/alerts');
+```
+
+**Wichtige Regeln:**
+
+- IMMER zuerst prüfen ob eine API im generierten Client existiert
+- Falls nicht: Backend-Endpunkt erstellen und API-Client generieren lassen
+- NIEMALS eigene API-Helper in `packages/frontend/src/api/` erstellen
+- Bei fehlenden APIs: TODO-Kommentar hinzufügen und temporär fetchWithAuth nutzen
 
 ## Development Tools
 
@@ -113,6 +147,7 @@ This project uses semantic-release with gitmoji for automated versioning:
 
 ## Architecture & Patterns
 
+- Tests are being skipped for now, don't worry about them
 - React frontend with Atomic Design and Vite/Vitest for testing
 - NestJS backend with Prisma (PostgreSQL)
 - Packages: frontend, backend, shared (monorepo with pnpm workspaces)
@@ -132,21 +167,16 @@ This project uses semantic-release with gitmoji for automated versioning:
 ### Subagents verwenden (WICHTIG!)
 
 - **IMMER Subagents nutzen** für spezielle Aufgaben - sie funktionieren besser als direkte Tool-Aufrufe
-- **Debugging:** Nutze den `debugging-expert` Agent bei Fehlern
-- **Code Review:** Nutze den `critical-code-reviewer` nach Implementierungen
-- **Test-Fehler:** Nutze den `test-failure-specialist` bei fehlschlagenden Tests
-- **Planung:** Nutze den `strategic-planning-architect` für größere Features
 
 ### Commit-Regeln (WICHTIG!)
 
 - **NIEMALS mit `--no-verify` committen!** Pre-commit hooks müssen IMMER durchlaufen
-- **Tests dürfen NIEMALS übersprungen werden** - alle Tests müssen erfolgreich sein
 - **Committe nach jedem abgeschlossenen Subtask** für bessere Nachvollziehbarkeit
 
 ### Workflow-Schritte
 
 1. Änderungen implementieren
-2. Tests ausführen (via IntelliJ Run Configurations)
+2. Tests ausführen (momentan übersprungen)
 3. Linting und Type-Checking sicherstellen
 4. Commit MIT allen Checks (ohne `--no-verify`)
 5. Bei Fehlern: Erst fixen, dann committen

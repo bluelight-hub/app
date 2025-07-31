@@ -3,6 +3,11 @@ import { AuditLogsApi } from '@bluelight-hub/shared/client/apis/AuditLogsApi';
 import { EinsatzApi } from '@bluelight-hub/shared/client/apis/EinsatzApi';
 import { EinsatztagebuchApi } from '@bluelight-hub/shared/client/apis/EinsatztagebuchApi';
 import { HealthApi } from '@bluelight-hub/shared/client/apis/HealthApi';
+import { SecurityApi } from '@bluelight-hub/shared/client/apis/SecurityApi';
+import { SecurityLogsApi } from '@bluelight-hub/shared/client/apis/SecurityLogsApi';
+import { SecurityMetricsApi } from '@bluelight-hub/shared/client/apis/SecurityMetricsApi';
+import { SessionsApi } from '@bluelight-hub/shared/client/apis/SessionsApi';
+import { ThreatDetectionApi } from '@bluelight-hub/shared/client/apis/ThreatDetectionApi';
 import { apiConfiguration } from '../utils/fetch';
 import { logger } from '../utils/logger';
 
@@ -16,6 +21,11 @@ class API {
   private healthApi: HealthApi;
   private einsatztagebuchApi: EinsatztagebuchApi;
   private einsatzApi: EinsatzApi;
+  private securityApi: SecurityApi;
+  private securityLogsApi: SecurityLogsApi;
+  private securityMetricsApi: SecurityMetricsApi;
+  private sessionsApi: SessionsApi;
+  private threatDetectionApi: ThreatDetectionApi;
 
   private constructor() {
     try {
@@ -29,6 +39,11 @@ class API {
       this.healthApi = new HealthApi(apiConfiguration);
       this.einsatztagebuchApi = new EinsatztagebuchApi(apiConfiguration);
       this.einsatzApi = new EinsatzApi(apiConfiguration);
+      this.securityApi = new SecurityApi(apiConfiguration);
+      this.securityLogsApi = new SecurityLogsApi(apiConfiguration);
+      this.securityMetricsApi = new SecurityMetricsApi(apiConfiguration);
+      this.sessionsApi = new SessionsApi(apiConfiguration);
+      this.threatDetectionApi = new ThreatDetectionApi(apiConfiguration);
 
       if (!apiConfiguration.basePath || apiConfiguration.basePath.trim() === '') {
         throw new Error('API base path is not configured properly');
@@ -46,6 +61,11 @@ class API {
       this.healthApi = new HealthApi(apiConfiguration);
       this.einsatztagebuchApi = new EinsatztagebuchApi(apiConfiguration);
       this.einsatzApi = new EinsatzApi(apiConfiguration);
+      this.securityApi = new SecurityApi(apiConfiguration);
+      this.securityLogsApi = new SecurityLogsApi(apiConfiguration);
+      this.securityMetricsApi = new SecurityMetricsApi(apiConfiguration);
+      this.sessionsApi = new SessionsApi(apiConfiguration);
+      this.threatDetectionApi = new ThreatDetectionApi(apiConfiguration);
     }
   }
 
@@ -73,6 +93,26 @@ class API {
 
   public get einsatz() {
     return this.einsatzApi;
+  }
+
+  public get security() {
+    return this.securityApi;
+  }
+
+  public get securityLogs() {
+    return this.securityLogsApi;
+  }
+
+  public get securityMetrics() {
+    return this.securityMetricsApi;
+  }
+
+  public get sessions() {
+    return this.sessionsApi;
+  }
+
+  public get threatDetection() {
+    return this.threatDetectionApi;
   }
 
   public static getInstance(): API {

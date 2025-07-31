@@ -1,6 +1,6 @@
 import React from 'react';
 import { Card, Col, Row, Statistic } from 'antd';
-import { PiUser, PiUsersThree, PiGear, PiFileText, PiChartLine } from 'react-icons/pi';
+import { PiChartLine, PiFileText, PiGear, PiUser, PiUsersThree } from 'react-icons/pi';
 import { Link } from 'react-router-dom';
 
 const AdminDashboard: React.FC = () => {
@@ -25,14 +25,14 @@ const AdminDashboard: React.FC = () => {
       <Row gutter={[16, 16]} className="mb-6">
         <Col xs={24} sm={12} lg={6}>
           <Card hoverable>
-            <Link to="/app/admin/users">
+            <Link to="/admin/users">
               <Statistic title="Benutzer" value={stats.users} prefix={<PiUser />} valueStyle={{ color: '#1890ff' }} />
             </Link>
           </Card>
         </Col>
         <Col xs={24} sm={12} lg={6}>
           <Card hoverable>
-            <Link to="/app/admin/organizations">
+            <Link to="/admin/organizations">
               <Statistic
                 title="Organisationen"
                 value={stats.organizations}
@@ -44,7 +44,7 @@ const AdminDashboard: React.FC = () => {
         </Col>
         <Col xs={24} sm={12} lg={6}>
           <Card hoverable>
-            <Link to="/app/admin/logs">
+            <Link to="/admin/logs">
               <Statistic
                 title="Aktive Einsätze"
                 value={stats.activeEinsaetze}
@@ -56,7 +56,7 @@ const AdminDashboard: React.FC = () => {
         </Col>
         <Col xs={24} sm={12} lg={6}>
           <Card hoverable>
-            <Link to="/app/admin/system">
+            <Link to="/admin/system">
               <Statistic
                 title="System Status"
                 value={stats.systemHealth}
@@ -72,7 +72,7 @@ const AdminDashboard: React.FC = () => {
         <Col xs={24} lg={12}>
           <Card title="Schnellzugriff" className="h-full">
             <div className="space-y-3">
-              <Link to="/app/admin/users" className="block p-3 border rounded hover:bg-gray-50 transition-colors">
+              <Link to="/admin/users" className="block p-3 border rounded hover:bg-gray-50 transition-colors">
                 <div className="flex items-center gap-3">
                   <PiUser className="text-lg text-blue-500" />
                   <div>
@@ -81,10 +81,7 @@ const AdminDashboard: React.FC = () => {
                   </div>
                 </div>
               </Link>
-              <Link
-                to="/app/admin/organizations"
-                className="block p-3 border rounded hover:bg-gray-50 transition-colors"
-              >
+              <Link to="/admin/organizations" className="block p-3 border rounded hover:bg-gray-50 transition-colors">
                 <div className="flex items-center gap-3">
                   <PiUsersThree className="text-lg text-green-500" />
                   <div>
@@ -93,7 +90,7 @@ const AdminDashboard: React.FC = () => {
                   </div>
                 </div>
               </Link>
-              <Link to="/app/admin/system" className="block p-3 border rounded hover:bg-gray-50 transition-colors">
+              <Link to="/admin/system" className="block p-3 border rounded hover:bg-gray-50 transition-colors">
                 <div className="flex items-center gap-3">
                   <PiGear className="text-lg text-orange-500" />
                   <div>

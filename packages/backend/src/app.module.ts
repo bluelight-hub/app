@@ -18,6 +18,7 @@ import { AuditModule } from './modules/audit';
 import { SessionModule } from './modules/session/session.module';
 import { NotificationModule } from './modules/notification/notification.module';
 import { SecurityLogModule } from './security/security-log.module';
+import { AdminModule } from './modules/admin/admin.module';
 
 /**
  * Haupt-Anwendungsmodul der Bluelight Hub Backend-Anwendung
@@ -61,6 +62,7 @@ import { SecurityLogModule } from './security/security-log.module';
     SessionModule,
     NotificationModule,
     SecurityLogModule,
+    AdminModule,
     HealthModule,
     EinsatzModule,
     EtbModule,

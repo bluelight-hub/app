@@ -127,10 +127,11 @@ export function useAuditLogStatistics(filters: Omit<AuditLogFilters, 'page' | 'l
         // Transform backend response to frontend expected format
         // Backend returns: totalLogs, actionTypes, severities, successRate, topUsers, topResources
         // Frontend expects: total, errors, warnings, critical, successRate
+        // Note: Backend uses ERROR severity for errors, not HIGH
         return {
           total: stats.totalLogs || 0,
-          errors: stats.severities?.HIGH || 0,
-          warnings: stats.severities?.MEDIUM || 0,
+          errors: stats.severities?.ERROR || 0,
+          warnings: stats.severities?.HIGH || 0,
           critical: stats.severities?.CRITICAL || 0,
           successRate:
             stats.totalLogs > 0

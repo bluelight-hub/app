@@ -2,7 +2,7 @@ import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import { PrismaService } from '../../prisma/prisma.service';
-import { Prisma, SessionActivity } from '../../../prisma/generated/prisma';
+import { Prisma, SessionActivity } from '../../../prisma/generated/prisma/client';
 import { UAParser } from 'ua-parser-js';
 import {
   DeviceInfo,

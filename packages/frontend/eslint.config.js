@@ -6,10 +6,10 @@ import tseslint from 'typescript-eslint';
 import eslintConfigPrettier from 'eslint-config-prettier';
 
 export default tseslint.config(
-  { ignores: ['dist', '../shared/**/*', 'src-tauri/**/*'] },
+  { ignores: ['dist', '../shared/**/*', 'src-tauri/**/*', 'vite.config.ts', 'coverage/**/*'] },
   {
     extends: [js.configs.recommended, ...tseslint.configs.recommended],
-    files: ['src/**/*.{ts,tsx}'],
+    files: ['src/**/*.{ts,tsx}', 'e2e/**/*.{ts,tsx}'],
     languageOptions: {
       ecmaVersion: 2020,
       globals: globals.browser,
@@ -43,8 +43,14 @@ export default tseslint.config(
     },
   },
   {
+    files: ['src/**/*.test.{ts,tsx}'],
+    rules: {
+      '@typescript-eslint/no-explicit-any': 'off',
+    },
+  },
+  {
     files: ['src/**/*.{ts,tsx}'],
-    ignores: ['src/components/organisms/mocks/**/*.tsx', '**/*.test.tsx'],
+    ignores: ['src/components/organisms/mocks/**/*.tsx', '**/*.test.tsx', 'e2e/**/*.{ts,tsx}'],
     rules: {
       'max-lines': [
         'error',
@@ -62,6 +68,16 @@ export default tseslint.config(
           skipComments: false,
         },
       ],
+    },
+  },
+  // Add specific config for e2e files
+  {
+    files: ['e2e/**/*.{ts,tsx}'],
+    languageOptions: {
+      globals: {
+        ...globals.browser,
+        ...globals.node,
+      },
     },
   },
   // Add Prettier config at the end to override conflicting rules

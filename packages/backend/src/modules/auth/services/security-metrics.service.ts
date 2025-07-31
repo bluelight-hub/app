@@ -132,6 +132,30 @@ export class SecurityMetricsService {
   }
 
   /**
+   * Holt die Metriken für alle Login-Versuche (erfolgreich und fehlgeschlagen)
+   */
+  async getTotalLoginMetrics(timeRange: { start: Date; end: Date }) {
+    const [successfulLogs, failedLogs] = await Promise.all([
+      this.securityLogService.getSecurityLogs({
+        eventType: SecurityEventType.LOGIN_SUCCESS,
+        startDate: timeRange.start,
+        endDate: timeRange.end,
+      }),
+      this.securityLogService.getSecurityLogs({
+        eventType: SecurityEventType.LOGIN_FAILED,
+        startDate: timeRange.start,
+        endDate: timeRange.end,
+      }),
+    ]);
+
+    return {
+      successful: successfulLogs.length,
+      failed: failedLogs.length,
+      total: successfulLogs.length + failedLogs.length,
+    };
+  }
+
+  /**
    * Holt aggregierte Sicherheitsmetriken für Dashboard
    */
   async getDashboardMetrics() {
@@ -139,17 +163,30 @@ export class SecurityMetricsService {
     const last24Hours = new Date(now.getTime() - 24 * 60 * 60 * 1000);
     const last7Days = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
 
-    const [failedLogins24h, failedLogins7d, lockouts24h, lockouts7d, suspicious24h, suspicious7d] =
-      await Promise.all([
-        this.getFailedLoginMetrics({ start: last24Hours, end: now }),
-        this.getFailedLoginMetrics({ start: last7Days, end: now }),
-        this.getAccountLockoutMetrics({ start: last24Hours, end: now }),
-        this.getAccountLockoutMetrics({ start: last7Days, end: now }),
-        this.getSuspiciousActivityMetrics({ start: last24Hours, end: now }),
-        this.getSuspiciousActivityMetrics({ start: last7Days, end: now }),
-      ]);
+    const [
+      totalLogins24h,
+      failedLogins24h,
+      failedLogins7d,
+      lockouts24h,
+      lockouts7d,
+      suspicious24h,
+      suspicious7d,
+    ] = await Promise.all([
+      this.getTotalLoginMetrics({ start: last24Hours, end: now }),
+      this.getFailedLoginMetrics({ start: last24Hours, end: now }),
+      this.getFailedLoginMetrics({ start: last7Days, end: now }),
+      this.getAccountLockoutMetrics({ start: last24Hours, end: now }),
+      this.getAccountLockoutMetrics({ start: last7Days, end: now }),
+      this.getSuspiciousActivityMetrics({ start: last24Hours, end: now }),
+      this.getSuspiciousActivityMetrics({ start: last7Days, end: now }),
+    ]);
 
     return {
+      // Top-level metrics for easy access
+      totalLoginAttempts: totalLogins24h.total,
+      failedLoginAttempts: totalLogins24h.failed,
+      suspiciousActivities: suspicious24h.total,
+      // Detailed summary
       summary: {
         failedLogins: {
           last24Hours: failedLogins24h.total,

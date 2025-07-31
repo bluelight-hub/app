@@ -1,7 +1,7 @@
 import { Button, Card, Col, DatePicker, Form, Input, message, Modal, Row, Select } from 'antd';
 import { Dayjs } from 'dayjs';
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router';
+import { useNavigate } from 'react-router-dom';
 import { formatNatoDateTime, parseNatoDateTime } from '../../../utils/date';
 import { PiExclamationMark } from 'react-icons/pi';
 

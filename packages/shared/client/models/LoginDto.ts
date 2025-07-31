@@ -20,19 +20,19 @@ import { mapValues } from '../runtime';
  */
 export interface LoginDto {
   /**
-   *
+   * E-Mail-Adresse des Benutzers
    * @type {string}
    * @memberof LoginDto
    */
   email: string;
   /**
-   *
+   * Passwort des Benutzers (min. 8 Zeichen)
    * @type {string}
    * @memberof LoginDto
    */
   password: string;
   /**
-   *
+   * Verlängerte Session-Dauer wenn aktiviert
    * @type {boolean}
    * @memberof LoginDto
    */

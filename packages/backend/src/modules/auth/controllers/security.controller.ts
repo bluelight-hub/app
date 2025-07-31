@@ -40,7 +40,69 @@ export class SecurityController {
   @Get('metrics/dashboard')
   @Roles(UserRole.SUPER_ADMIN, UserRole.ADMIN)
   @ApiOperation({ summary: 'Get security dashboard metrics' })
-  @ApiResponse({ status: 200, description: 'Dashboard metrics retrieved successfully' })
+  @ApiResponse({
+    status: 200,
+    description: 'Dashboard metrics retrieved successfully',
+    schema: {
+      type: 'object',
+      properties: {
+        summary: {
+          type: 'object',
+          properties: {
+            failedLogins: {
+              type: 'object',
+              properties: {
+                last24Hours: { type: 'number' },
+                last7Days: { type: 'number' },
+                trend: { type: 'number' },
+              },
+            },
+            accountLockouts: {
+              type: 'object',
+              properties: {
+                last24Hours: { type: 'number' },
+                last7Days: { type: 'number' },
+                trend: { type: 'number' },
+              },
+            },
+            suspiciousActivities: {
+              type: 'object',
+              properties: {
+                last24Hours: { type: 'number' },
+                last7Days: { type: 'number' },
+                trend: { type: 'number' },
+              },
+            },
+          },
+        },
+        details: {
+          type: 'object',
+          properties: {
+            topFailedLoginIps: {
+              type: 'array',
+              items: {
+                type: 'object',
+                properties: {
+                  ip: { type: 'string' },
+                  count: { type: 'number' },
+                },
+              },
+            },
+            suspiciousActivityTypes: {
+              type: 'array',
+              items: {
+                type: 'object',
+                properties: {
+                  type: { type: 'string' },
+                  count: { type: 'number' },
+                },
+              },
+            },
+          },
+        },
+      },
+    },
+  })
   async getDashboardMetrics() {
     return await this.securityMetricsService.getDashboardMetrics();
   }

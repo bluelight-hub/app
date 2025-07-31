@@ -1,12 +1,13 @@
 import React, { useMemo } from 'react';
-import { Layout, Menu, Avatar, Dropdown, Typography } from 'antd';
-import { UserOutlined, LogoutOutlined, SettingOutlined, MenuFoldOutlined, MenuUnfoldOutlined } from '@ant-design/icons';
+import { Avatar, Dropdown, Layout, Menu, Typography } from 'antd';
+import { LogoutOutlined, MenuFoldOutlined, MenuUnfoldOutlined, SettingOutlined, UserOutlined } from '@ant-design/icons';
 import { useNavigate } from 'react-router-dom';
-import { RouteUtils, RouteDefinition } from '@/config/routes';
+import { RouteDefinition, RouteUtils } from '@/config/routes';
 import { useAuthorization } from '@/hooks/useAuthorization';
 import { useActiveNavigation } from '@/hooks/useActiveNavigation';
 import NavigationLink from './NavigationLink';
 import { useAuth } from '@/hooks/useAuth';
+import { MenuItem } from '@/utils/navigationConverter.ts';
 
 const { Sider } = Layout;
 const { Text } = Typography;
@@ -62,7 +63,7 @@ const AdminSidebar: React.FC<AdminSidebarProps> = ({
 
   // Konvertiere Routen zu Ant Design Menu Items
   const menuItems = useMemo(() => {
-    const items: any[] = [];
+    const items: MenuItem[] = [];
 
     navigationItems.forEach((group, groupIndex) => {
       if (!group) return;

@@ -13,6 +13,12 @@ coverage:
         target: 90%
         threshold: 5%
         base: auto
+      frontend:
+        target: 50%
+        threshold: 10%
+        base: auto
+        paths:
+          - packages/frontend/
 
 ignore:
   # Configuration files

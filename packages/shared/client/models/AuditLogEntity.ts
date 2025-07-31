@@ -223,12 +223,19 @@ export const AuditLogEntityActionTypeEnum = {
   Delete: 'DELETE',
   Login: 'LOGIN',
   Logout: 'LOGOUT',
+  FailedLogin: 'FAILED_LOGIN',
   PermissionChange: 'PERMISSION_CHANGE',
   RoleChange: 'ROLE_CHANGE',
   BulkOperation: 'BULK_OPERATION',
   SystemConfig: 'SYSTEM_CONFIG',
   Export: 'EXPORT',
   Import: 'IMPORT',
+  Approve: 'APPROVE',
+  Reject: 'REJECT',
+  Block: 'BLOCK',
+  Unblock: 'UNBLOCK',
+  Restore: 'RESTORE',
+  Backup: 'BACKUP',
 } as const;
 export type AuditLogEntityActionTypeEnum =
   (typeof AuditLogEntityActionTypeEnum)[keyof typeof AuditLogEntityActionTypeEnum];
@@ -241,6 +248,7 @@ export const AuditLogEntitySeverityEnum = {
   Medium: 'MEDIUM',
   High: 'HIGH',
   Critical: 'CRITICAL',
+  Error: 'ERROR',
 } as const;
 export type AuditLogEntitySeverityEnum =
   (typeof AuditLogEntitySeverityEnum)[keyof typeof AuditLogEntitySeverityEnum];

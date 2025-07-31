@@ -12,6 +12,18 @@ export default defineConfig({
     strictPort: true,
     host: host || false,
     port: 3001,
+    proxy: {
+      '/api': {
+        target: 'http://localhost:3000',
+        changeOrigin: true,
+        secure: false,
+      },
+      '/v1': {
+        target: 'http://localhost:3000',
+        changeOrigin: true,
+        secure: false,
+      },
+    },
   },
   envPrefix: ['VITE_', 'TAURI_ENV_*'],
   build: {

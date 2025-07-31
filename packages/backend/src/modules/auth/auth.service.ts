@@ -3,6 +3,7 @@ import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
 import * as bcrypt from 'bcryptjs';
 import { randomUUID } from 'crypto';
+import { User } from '@prisma/generated/prisma/client';
 import { LoginDto } from './dto';
 import { AuthUser, LoginResponse, TokenResponse } from './types/auth.types';
 import { JWTPayload, JWTRefreshPayload, Permission, UserRole } from './types/jwt.types';
@@ -97,6 +98,31 @@ export class AuthService {
    * ```
    */
   async login(loginDto: LoginDto, ipAddress?: string, userAgent?: string): Promise<LoginResponse> {
+    // Pre-validation checks
+    await this.validateLoginPreconditions(loginDto, ipAddress, userAgent);
+
+    // Find and validate user
+    const user = await this.findAndValidateUser(loginDto, ipAddress, userAgent);
+
+    // Verify password and handle failed attempts
+    await this.verifyPasswordAndHandleFailures(loginDto, user, ipAddress, userAgent);
+
+    // Process successful login
+    return await this.processSuccessfulLogin(loginDto, user, ipAddress, userAgent);
+  }
+
+  /**
+   * Führt Vorvalidierungen für den Login-Prozess durch.
+   *
+   * @param loginDto - Die Anmeldedaten
+   * @param ipAddress - IP-Adresse des Clients
+   * @param userAgent - User-Agent des Clients
+   */
+  private async validateLoginPreconditions(
+    loginDto: LoginDto,
+    ipAddress?: string,
+    userAgent?: string,
+  ): Promise<void> {
     // Check IP rate limit first
     if (ipAddress) {
       const isIpRateLimited = await this.loginAttemptService.checkIpRateLimit(ipAddress);
@@ -138,7 +164,21 @@ export class AuthService {
 
       throw new AccountLockedException(user?.lockedUntil || new Date());
     }
+  }
 
+  /**
+   * Findet und validiert den Benutzer für den Login.
+   *
+   * @param loginDto - Die Anmeldedaten
+   * @param ipAddress - IP-Adresse des Clients
+   * @param userAgent - User-Agent des Clients
+   * @returns Den validierten Benutzer
+   */
+  private async findAndValidateUser(
+    loginDto: LoginDto,
+    ipAddress?: string,
+    userAgent?: string,
+  ): Promise<User> {
     // Find user by email
     const user = await this.prisma.user.findUnique({
       where: { email: loginDto.email },
@@ -194,6 +234,23 @@ export class AuthService {
       throw new AccountDisabledException();
     }
 
+    return user;
+  }
+
+  /**
+   * Überprüft das Passwort und behandelt fehlgeschlagene Versuche.
+   *
+   * @param loginDto - Die Anmeldedaten
+   * @param user - Der zu validierende Benutzer
+   * @param ipAddress - IP-Adresse des Clients
+   * @param userAgent - User-Agent des Clients
+   */
+  private async verifyPasswordAndHandleFailures(
+    loginDto: LoginDto,
+    user: User,
+    ipAddress?: string,
+    userAgent?: string,
+  ): Promise<void> {
     // Verify password
     const isPasswordValid = await bcrypt.compare(loginDto.password, user.passwordHash);
     if (!isPasswordValid) {
@@ -258,7 +315,23 @@ export class AuthService {
       );
       throw new InvalidCredentialsException(remainingAttempts);
     }
+  }
 
+  /**
+   * Verarbeitet einen erfolgreichen Login und erstellt die Session.
+   *
+   * @param loginDto - Die Anmeldedaten
+   * @param user - Der erfolgreich authentifizierte Benutzer
+   * @param ipAddress - IP-Adresse des Clients
+   * @param userAgent - User-Agent des Clients
+   * @returns Das LoginResponse-Objekt
+   */
+  private async processSuccessfulLogin(
+    loginDto: LoginDto,
+    user: User,
+    ipAddress?: string,
+    userAgent?: string,
+  ): Promise<LoginResponse> {
     // Reset failed login count and update last login
     await this.prisma.user.update({
       where: { id: user.id },
