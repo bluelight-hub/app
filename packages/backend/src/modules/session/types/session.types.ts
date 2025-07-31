@@ -1,4 +1,4 @@
-import { Session, SessionActivity, User } from '../../../../prisma/generated/prisma';
+import { Session, SessionActivity, User } from '../../../../prisma/generated/prisma/client';
 
 /**
  * Session mit zugehörigem Benutzer
