@@ -20,10 +20,6 @@
     "noFallthroughCasesInSwitch": true,
     "noUncheckedSideEffectImports": true
   },
-  "include": [
-    "vite.config.ts"
-  ],
-  "exclude": [
-    "../shared/client/**/*.ts"
-  ]
+  "include": ["vite.config.ts"],
+  "exclude": ["../shared/client/**/*.ts"]
 }

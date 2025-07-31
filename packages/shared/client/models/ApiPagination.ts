@@ -12,7 +12,7 @@
  * Do not edit the class manually.
  */
 
-import { mapValues } from "../runtime";
+import { mapValues } from '../runtime';
 /**
  *
  * @export
@@ -49,11 +49,10 @@ export interface ApiPagination {
  * Check if a given object implements the ApiPagination interface.
  */
 export function instanceOfApiPagination(value: object): value is ApiPagination {
-  if (!("page" in value) || value["page"] === undefined) return false;
-  if (!("limit" in value) || value["limit"] === undefined) return false;
-  if (!("total" in value) || value["total"] === undefined) return false;
-  if (!("totalPages" in value) || value["totalPages"] === undefined)
-    return false;
+  if (!('page' in value) || value['page'] === undefined) return false;
+  if (!('limit' in value) || value['limit'] === undefined) return false;
+  if (!('total' in value) || value['total'] === undefined) return false;
+  if (!('totalPages' in value) || value['totalPages'] === undefined) return false;
   return true;
 }
 
@@ -61,18 +60,15 @@ export function ApiPaginationFromJSON(json: any): ApiPagination {
   return ApiPaginationFromJSONTyped(json, false);
 }
 
-export function ApiPaginationFromJSONTyped(
-  json: any,
-  ignoreDiscriminator: boolean,
-): ApiPagination {
+export function ApiPaginationFromJSONTyped(json: any, ignoreDiscriminator: boolean): ApiPagination {
   if (json == null) {
     return json;
   }
   return {
-    page: json["page"],
-    limit: json["limit"],
-    total: json["total"],
-    totalPages: json["totalPages"],
+    page: json['page'],
+    limit: json['limit'],
+    total: json['total'],
+    totalPages: json['totalPages'],
   };
 }
 
@@ -89,9 +85,9 @@ export function ApiPaginationToJSONTyped(
   }
 
   return {
-    page: value["page"],
-    limit: value["limit"],
-    total: value["total"],
-    totalPages: value["totalPages"],
+    page: value['page'],
+    limit: value['limit'],
+    total: value['total'],
+    totalPages: value['totalPages'],
   };
 }

@@ -2,13 +2,8 @@
   "$schema": "../gen/schemas/desktop-schema.json",
   "identifier": "default",
   "description": "enables the default permissions",
-  "windows": [
-    "main",
-    "etb-dashboard"
-  ],
-  "webviews": [
-    "etb-dashboard"
-  ],
+  "windows": ["main", "etb-dashboard", "admin"],
+  "webviews": ["etb-dashboard", "admin"],
   "permissions": [
     "core:default",
     {
@@ -27,16 +22,15 @@
     },
     {
       "identifier": "core:webview:default",
-      "allow": [
-        "create",
-        "webview-show"
-      ]
+      "allow": ["create", "webview-show"]
     },
     "core:window:allow-show",
     "core:window:allow-create",
     "core:window:allow-close",
     "core:window:allow-maximize",
     "core:window:allow-minimize",
-    "core:webview:allow-create-webview-window"
+    "core:webview:allow-create-webview-window",
+    "store:default",
+    "store:allow-get"
   ]
 }

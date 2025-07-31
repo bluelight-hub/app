@@ -35,15 +35,11 @@ export interface EtbEntriesResponseData {
 /**
  * Check if a given object implements the EtbEntriesResponseData interface.
  */
-export function instanceOfEtbEntriesResponseData(
-  value: object,
-): value is EtbEntriesResponseData {
+export function instanceOfEtbEntriesResponseData(value: object): value is EtbEntriesResponseData {
   return true;
 }
 
-export function EtbEntriesResponseDataFromJSON(
-  json: any,
-): EtbEntriesResponseData {
+export function EtbEntriesResponseDataFromJSON(json: any): EtbEntriesResponseData {
   return EtbEntriesResponseDataFromJSONTyped(json, false);
 }
 
@@ -55,14 +51,12 @@ export function EtbEntriesResponseDataFromJSONTyped(
     return json;
   }
   return {
-    entries: json["entries"] == null ? undefined : json["entries"],
-    total: json["total"] == null ? undefined : json["total"],
+    entries: json['entries'] == null ? undefined : json['entries'],
+    total: json['total'] == null ? undefined : json['total'],
   };
 }
 
-export function EtbEntriesResponseDataToJSON(
-  json: any,
-): EtbEntriesResponseData {
+export function EtbEntriesResponseDataToJSON(json: any): EtbEntriesResponseData {
   return EtbEntriesResponseDataToJSONTyped(json, false);
 }
 
@@ -75,7 +69,7 @@ export function EtbEntriesResponseDataToJSONTyped(
   }
 
   return {
-    entries: value["entries"],
-    total: value["total"],
+    entries: value['entries'],
+    total: value['total'],
   };
 }

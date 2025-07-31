@@ -1,7 +1,7 @@
-import tailwindcss from "@tailwindcss/vite";
-import react from "@vitejs/plugin-react-swc";
-import path from "path";
-import { defineConfig } from "vite";
+import tailwindcss from '@tailwindcss/vite';
+import react from '@vitejs/plugin-react-swc';
+import path from 'path';
+import { defineConfig } from 'vite';
 
 const host = process.env.TAURI_DEV_HOST;
 
@@ -12,6 +12,18 @@ export default defineConfig({
     strictPort: true,
     host: host || false,
     port: 3001,
+    proxy: {
+      '/api': {
+        target: 'http://localhost:3000',
+        changeOrigin: true,
+        secure: false,
+      },
+      '/v1': {
+        target: 'http://localhost:3000',
+        changeOrigin: true,
+        secure: false,
+      },
+    },
   },
   envPrefix: ['VITE_', 'TAURI_ENV_*'],
   build: {
@@ -26,7 +38,7 @@ export default defineConfig({
       '@molecules': path.resolve(__dirname, './src/components/molecules'),
       '@organisms': path.resolve(__dirname, './src/components/organisms'),
       '@templates': path.resolve(__dirname, './src/components/templates'),
-      '@pages': path.resolve(__dirname, './src/components/pages')
-    }
-  }
+      '@pages': path.resolve(__dirname, './src/components/pages'),
+    },
+  },
 });

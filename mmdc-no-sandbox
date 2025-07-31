@@ -6,9 +6,13 @@ const mmdcPath = path.join(__dirname, 'node_modules/.bin/mmdc');
 const args = process.argv.slice(2);
 
 // Füge die no-sandbox Optionen hinzu
-const child = spawn(mmdcPath, [...args, '--puppeteerConfigFile', path.join(__dirname, 'puppeteer.json')], {
-  stdio: 'inherit'
-});
+const child = spawn(
+    mmdcPath,
+    [...args, '--puppeteerConfigFile', path.join(__dirname, 'puppeteer.json')],
+    {
+      stdio: 'inherit'
+    }
+);
 
 child.on('exit', (code) => {
   process.exit(code);

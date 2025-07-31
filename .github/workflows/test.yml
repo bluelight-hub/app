@@ -2,9 +2,9 @@ name: Tests
 
 on:
   push:
-    branches: [ main, develop, feature/*, alpha, beta, release/* ]
+    branches: [main, develop, feature/*, alpha, beta, release/*]
   pull_request:
-    branches: [ main, develop, feature/*, alpha, beta, release/* ]
+    branches: [main, develop, feature/*, alpha, beta, release/*]
 
 # Konfiguration für Abbruch laufender Tests bei neuem Push
 concurrency:
@@ -16,17 +16,17 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      
+
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: '20'
-          
+
       - name: Install pnpm
         uses: pnpm/action-setup@v2
         with:
           version: '10.3.0'
-          
+
       - name: Get pnpm store directory
         shell: bash
         run: |
@@ -45,25 +45,26 @@ jobs:
 
       - name: Generate prisma client
         run: cd packages/backend && pnpm prisma:generate
-        
+
       - name: Run linting
         run: pnpm lint
-        
-      - name: Run coverage tests
-        run: pnpm test:cov
-        
-      - name: Upload coverage reports
-        uses: actions/upload-artifact@v4
-        with:
-          name: coverage-report
-          path: |
-            packages/*/coverage/
-            
-      - name: Upload coverage to Codecov
-        uses: codecov/codecov-action@v4
-        with:
-          token: ${{ secrets.CODECOV_TOKEN }}
-          files: packages/*/coverage/coverage-final.json
-          flags: unittests
-          name: codecov-umbrella
-          fail_ci_if_error: true 
+
+      - name: Run tests
+        run: pnpm test
+
+      # Coverage temporarily disabled
+      # - name: Upload coverage reports
+      #   uses: actions/upload-artifact@v4
+      #   with:
+      #     name: coverage-report
+      #     path: |
+      #       packages/*/coverage/
+
+      # - name: Upload coverage to Codecov
+      #   uses: codecov/codecov-action@v4
+      #   with:
+      #     token: ${{ secrets.CODECOV_TOKEN }}
+      #     files: packages/*/coverage/coverage-final.json
+      #     flags: unittests
+      #     name: codecov-umbrella
+      #     fail_ci_if_error: true

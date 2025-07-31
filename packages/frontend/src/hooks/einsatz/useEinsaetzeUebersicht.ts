@@ -10,160 +10,170 @@ import { useCreateEinsatz, useEinsaetze, useEinsatzOperations } from './useEinsa
  * Hook für die Einsätze-Übersicht mit Filterung, Sortierung und Paginierung
  */
 export const useEinsaetzeUebersicht = () => {
-    const [filters, setFilters] = useState<EinsaetzeFilterOptions>({});
-    const [sort, setSort] = useState<EinsaetzeSortOptions>({
-        field: 'createdAt',
-        direction: 'desc'
+  const [filters, setFilters] = useState<EinsaetzeFilterOptions>({});
+  const [sort, setSort] = useState<EinsaetzeSortOptions>({
+    field: 'createdAt',
+    direction: 'desc',
+  });
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize] = useState(20);
+
+  // Basis-Hooks verwenden
+  const einsaetzeQuery = useEinsaetze();
+  const createEinsatzMutation = useCreateEinsatz();
+  const { hasEinsatz } = useEinsatzOperations();
+
+  // Gefilterte und sortierte Einsätze
+  const processedEinsaetze = useMemo(() => {
+    if (!einsaetzeQuery.data) return [];
+
+    logger.debug('Processing Einsätze for overview', {
+      total: einsaetzeQuery.data.length,
+      filters,
+      sort,
     });
-    const [currentPage, setCurrentPage] = useState(1);
-    const [pageSize] = useState(20);
 
-    // Basis-Hooks verwenden
-    const einsaetzeQuery = useEinsaetze();
-    const createEinsatzMutation = useCreateEinsatz();
-    const { hasEinsatz } = useEinsatzOperations();
+    // Filterung
+    let filtered = filterEinsaetze(einsaetzeQuery.data, filters);
 
-    // Gefilterte und sortierte Einsätze
-    const processedEinsaetze = useMemo(() => {
-        if (!einsaetzeQuery.data) return [];
+    // Sortierung mit Utility-Funktion
+    if (sort.field) {
+      filtered = sortData(filtered, {
+        field: sort.field,
+        direction: sort.direction,
+        customCompare:
+          sort.field === 'createdAt' || sort.field === 'updatedAt'
+            ? (a, b) => {
+                const aDate = new Date(a[sort.field as keyof typeof a] as string);
+                const bDate = new Date(b[sort.field as keyof typeof b] as string);
+                return aDate.getTime() - bDate.getTime();
+              }
+            : undefined,
+      });
+    }
 
-        logger.debug('Processing Einsätze for overview', {
-            total: einsaetzeQuery.data.length,
-            filters,
-            sort
-        });
+    logger.debug('Processed Einsätze', {
+      filtered: filtered.length,
+      sorted: true,
+    });
 
-        // Filterung
-        let filtered = filterEinsaetze(einsaetzeQuery.data, filters);
+    return filtered;
+  }, [einsaetzeQuery.data, filters, sort]);
 
-        // Sortierung mit Utility-Funktion
-        if (sort.field) {
-            filtered = sortData(filtered, {
-                field: sort.field,
-                direction: sort.direction,
-                customCompare: sort.field === 'createdAt' || sort.field === 'updatedAt'
-                    ? (a, b) => {
-                        const aDate = new Date(a[sort.field as keyof typeof a] as string);
-                        const bDate = new Date(b[sort.field as keyof typeof b] as string);
-                        return aDate.getTime() - bDate.getTime();
-                    }
-                    : undefined
-            });
-        }
+  // Paginierte Daten mit Utility-Funktion
+  const paginatedData = useMemo(() => {
+    return paginate(processedEinsaetze, currentPage, pageSize);
+  }, [processedEinsaetze, currentPage, pageSize]);
 
-        logger.debug('Processed Einsätze', {
-            filtered: filtered.length,
-            sorted: true
-        });
+  // Filter-Funktionen
+  const updateFilters = useCallback((newFilters: Partial<EinsaetzeFilterOptions>) => {
+    setFilters((prev) => ({ ...prev, ...newFilters }));
+    setCurrentPage(1); // Reset to first page when filtering
+    logger.debug('Updated filters', { newFilters });
+  }, []);
 
-        return filtered;
-    }, [einsaetzeQuery.data, filters, sort]);
+  const clearFilters = useCallback(() => {
+    setFilters({});
+    setCurrentPage(1);
+    logger.debug('Cleared all filters');
+  }, []);
 
-    // Paginierte Daten mit Utility-Funktion
-    const paginatedData = useMemo(() => {
-        return paginate(processedEinsaetze, currentPage, pageSize);
-    }, [processedEinsaetze, currentPage, pageSize]);
+  // Sortier-Funktionen
+  const updateSort = useCallback((newSort: EinsaetzeSortOptions) => {
+    setSort(newSort);
+    setCurrentPage(1);
+    logger.debug('Updated sort', { newSort });
+  }, []);
 
-    // Filter-Funktionen
-    const updateFilters = useCallback((newFilters: Partial<EinsaetzeFilterOptions>) => {
-        setFilters(prev => ({ ...prev, ...newFilters }));
-        setCurrentPage(1); // Reset to first page when filtering
-        logger.debug('Updated filters', { newFilters });
-    }, []);
+  // Pagination-Funktionen
+  const goToPage = useCallback(
+    (page: number) => {
+      const totalPages = Math.ceil(processedEinsaetze.length / pageSize);
+      const validPage = validatePageNumber(page, totalPages);
+      setCurrentPage(validPage);
+      logger.debug('Changed page', { page: validPage, totalPages });
+    },
+    [processedEinsaetze.length, pageSize],
+  );
 
-    const clearFilters = useCallback(() => {
-        setFilters({});
-        setCurrentPage(1);
-        logger.debug('Cleared all filters');
-    }, []);
+  // Statistiken aus paginatedData verwenden
+  const stats = useMemo(
+    () => ({
+      totalEinsaetze: einsaetzeQuery.data?.length ?? 0,
+      filteredEinsaetze: processedEinsaetze.length,
+      currentPageItems: paginatedData.items.length,
+      totalPages: paginatedData.totalPages,
+      currentPage: paginatedData.currentPage,
+      pageSize: paginatedData.pageSize,
+      hasNextPage: paginatedData.hasNextPage,
+      hasPreviousPage: paginatedData.hasPreviousPage,
+    }),
+    [einsaetzeQuery.data, processedEinsaetze.length, paginatedData],
+  );
 
-    // Sortier-Funktionen
-    const updateSort = useCallback((newSort: EinsaetzeSortOptions) => {
-        setSort(newSort);
-        setCurrentPage(1);
-        logger.debug('Updated sort', { newSort });
-    }, []);
+  return {
+    // Daten
+    einsaetze: paginatedData.items,
+    allEinsaetze: processedEinsaetze,
 
-    // Pagination-Funktionen
-    const goToPage = useCallback((page: number) => {
-        const totalPages = Math.ceil(processedEinsaetze.length / pageSize);
-        const validPage = validatePageNumber(page, totalPages);
-        setCurrentPage(validPage);
-        logger.debug('Changed page', { page: validPage, totalPages });
-    }, [processedEinsaetze.length, pageSize]);
+    // Status
+    isLoading: einsaetzeQuery.isLoading,
+    isError: einsaetzeQuery.isError,
+    error: einsaetzeQuery.error,
 
-    // Statistiken aus paginatedData verwenden
-    const stats = useMemo(() => ({
-        totalEinsaetze: einsaetzeQuery.data?.length ?? 0,
-        filteredEinsaetze: processedEinsaetze.length,
-        currentPageItems: paginatedData.items.length,
-        totalPages: paginatedData.totalPages,
-        currentPage: paginatedData.currentPage,
-        pageSize: paginatedData.pageSize,
-        hasNextPage: paginatedData.hasNextPage,
-        hasPreviousPage: paginatedData.hasPreviousPage
-    }), [einsaetzeQuery.data, processedEinsaetze.length, paginatedData]);
+    // Filter & Sort
+    filters,
+    sort,
+    updateFilters,
+    clearFilters,
+    updateSort,
 
-    return {
-        // Daten
-        einsaetze: paginatedData.items,
-        allEinsaetze: processedEinsaetze,
+    // Pagination
+    ...stats,
+    goToPage,
+    nextPage: () => goToPage(currentPage + 1),
+    previousPage: () => goToPage(currentPage - 1),
 
-        // Status
-        isLoading: einsaetzeQuery.isLoading,
-        isError: einsaetzeQuery.isError,
-        error: einsaetzeQuery.error,
+    // Actions
+    createEinsatz: createEinsatzMutation.mutateAsync,
+    isCreating: createEinsatzMutation.isPending,
+    createError: createEinsatzMutation.error,
 
-        // Filter & Sort
-        filters,
-        sort,
-        updateFilters,
-        clearFilters,
-        updateSort,
-
-        // Pagination
-        ...stats,
-        goToPage,
-        nextPage: () => goToPage(currentPage + 1),
-        previousPage: () => goToPage(currentPage - 1),
-
-        // Actions
-        createEinsatz: createEinsatzMutation.mutateAsync,
-        isCreating: createEinsatzMutation.isPending,
-        createError: createEinsatzMutation.error,
-
-        // Utility
-        hasEinsatz,
-        refetch: einsaetzeQuery.refetch
-    };
+    // Utility
+    hasEinsatz,
+    refetch: einsaetzeQuery.refetch,
+  };
 };
 
 /**
  * Hook für Einsatz-Suche mit Debouncing
  */
 export const useEinsatzSearch = (delay: number = 300) => {
-    const [searchText, setSearchText] = useState('');
-    const [debouncedSearchText, setDebouncedSearchText] = useState('');
+  const [searchText, setSearchText] = useState('');
+  const [debouncedSearchText, setDebouncedSearchText] = useState('');
 
-    // Debounce implementation
-    const updateSearch = useCallback((text: string) => {
-        setSearchText(text);
+  // Debounce implementation
+  const updateSearch = useCallback(
+    (text: string) => {
+      setSearchText(text);
 
-        const timeoutId = setTimeout(() => {
-            setDebouncedSearchText(text);
-            logger.debug('Search debounced', { searchText: text });
-        }, delay);
+      const timeoutId = setTimeout(() => {
+        setDebouncedSearchText(text);
+        logger.debug('Search debounced', { searchText: text });
+      }, delay);
 
-        return () => clearTimeout(timeoutId);
-    }, [delay]);
+      return () => clearTimeout(timeoutId);
+    },
+    [delay],
+  );
 
-    return {
-        searchText,
-        debouncedSearchText,
-        updateSearch,
-        clearSearch: () => {
-            setSearchText('');
-            setDebouncedSearchText('');
-        }
-    };
-}; 
+  return {
+    searchText,
+    debouncedSearchText,
+    updateSearch,
+    clearSearch: () => {
+      setSearchText('');
+      setDebouncedSearchText('');
+    },
+  };
+};

@@ -12,14 +12,14 @@
  * Do not edit the class manually.
  */
 
-import { mapValues } from "../runtime";
-import type { EtbEntryDto } from "./EtbEntryDto";
+import { mapValues } from '../runtime';
+import type { EtbEntryDto } from './EtbEntryDto';
 import {
   EtbEntryDtoFromJSON,
   EtbEntryDtoFromJSONTyped,
   EtbEntryDtoToJSON,
   EtbEntryDtoToJSONTyped,
-} from "./EtbEntryDto";
+} from './EtbEntryDto';
 
 /**
  *
@@ -44,11 +44,9 @@ export interface EtbEntriesData {
 /**
  * Check if a given object implements the EtbEntriesData interface.
  */
-export function instanceOfEtbEntriesData(
-  value: object,
-): value is EtbEntriesData {
-  if (!("items" in value) || value["items"] === undefined) return false;
-  if (!("total" in value) || value["total"] === undefined) return false;
+export function instanceOfEtbEntriesData(value: object): value is EtbEntriesData {
+  if (!('items' in value) || value['items'] === undefined) return false;
+  if (!('total' in value) || value['total'] === undefined) return false;
   return true;
 }
 
@@ -64,8 +62,8 @@ export function EtbEntriesDataFromJSONTyped(
     return json;
   }
   return {
-    items: (json["items"] as Array<any>).map(EtbEntryDtoFromJSON),
-    total: json["total"],
+    items: (json['items'] as Array<any>).map(EtbEntryDtoFromJSON),
+    total: json['total'],
   };
 }
 
@@ -82,7 +80,7 @@ export function EtbEntriesDataToJSONTyped(
   }
 
   return {
-    items: (value["items"] as Array<any>).map(EtbEntryDtoToJSON),
-    total: value["total"],
+    items: (value['items'] as Array<any>).map(EtbEntryDtoToJSON),
+    total: value['total'],
   };
 }

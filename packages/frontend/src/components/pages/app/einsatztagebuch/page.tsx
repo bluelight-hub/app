@@ -5,9 +5,7 @@ import { ETBOverview } from './ETBOverview';
  * Seite für das Einsatztagebuch
  */
 export const EinsatztagebuchPage: React.FC = () => {
-  return (
-    <ETBOverview />
-  );
+  return <ETBOverview />;
 };
 
 export default EinsatztagebuchPage;

@@ -5,7 +5,7 @@
 // Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
 
 generator client {
-  provider = "prisma-client"
+  provider = "prisma-client-js"
   output   = "./generated/prisma"
 }
 
@@ -31,12 +31,12 @@ enum EtbEntryStatus {
 }
 
 model Einsatz {
-  id          String    @id @default(nanoid())
-  name        String    @unique @db.VarChar(255)
-  beschreibung String?  @db.Text
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
-  etbEntries  EtbEntry[]
+  id           String     @id @default(nanoid())
+  name         String     @unique @db.VarChar(255)
+  beschreibung String?    @db.Text
+  createdAt    DateTime   @default(now())
+  updatedAt    DateTime   @updatedAt
+  etbEntries   EtbEntry[]
 
   // Postgres-specific constraints and indexes
   @@index([createdAt], map: "idx_einsatz_created_at")
@@ -44,33 +44,33 @@ model Einsatz {
 }
 
 model EtbEntry {
-  id                      String           @id @default(nanoid())
-  laufendeNummer          Int
-  timestampErstellung     DateTime
-  timestampEreignis       DateTime
-  autorId                 String           @db.VarChar(255)
-  autorName               String?          @db.VarChar(255)
-  autorRolle              String?          @db.VarChar(100)
-  kategorie               EtbKategorie
-  inhalt                  String           @db.Text
-  referenzEinsatzId       String
-  einsatz                 Einsatz          @relation(fields: [referenzEinsatzId], references: [id], onDelete: Cascade, onUpdate: Cascade)
-  referenzPatientId       String?          @db.VarChar(255)
-  referenzEinsatzmittelId String?          @db.VarChar(255)
-  systemQuelle            String?          @db.VarChar(100)
-  version                 Int              @default(1)
-  status                  EtbEntryStatus   @default(AKTIV)
-  istAbgeschlossen        Boolean          @default(false)
-  timestampAbschluss      DateTime?
-  abgeschlossenVon        String?          @db.VarChar(255)
-  ueberschriebenDurch     EtbEntry?        @relation("UeberschriebenDurch", fields: [ueberschriebenDurchId], references: [id], onDelete: SetNull, onUpdate: Cascade)
-  ueberschriebenDurchId   String?
+  id                       String          @id @default(nanoid())
+  laufendeNummer           Int
+  timestampErstellung      DateTime
+  timestampEreignis        DateTime
+  autorId                  String          @db.VarChar(255)
+  autorName                String?         @db.VarChar(255)
+  autorRolle               String?         @db.VarChar(100)
+  kategorie                EtbKategorie
+  inhalt                   String          @db.Text
+  referenzEinsatzId        String
+  einsatz                  Einsatz         @relation(fields: [referenzEinsatzId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  referenzPatientId        String?         @db.VarChar(255)
+  referenzEinsatzmittelId  String?         @db.VarChar(255)
+  systemQuelle             String?         @db.VarChar(100)
+  version                  Int             @default(1)
+  status                   EtbEntryStatus  @default(AKTIV)
+  istAbgeschlossen         Boolean         @default(false)
+  timestampAbschluss       DateTime?
+  abgeschlossenVon         String?         @db.VarChar(255)
+  ueberschriebenDurch      EtbEntry?       @relation("UeberschriebenDurch", fields: [ueberschriebenDurchId], references: [id], onDelete: SetNull, onUpdate: Cascade)
+  ueberschriebenDurchId    String?
   ueberschriebeneEintraege EtbEntry[]      @relation("UeberschriebenDurch")
-  timestampUeberschrieben DateTime?
-  ueberschriebenVon       String?          @db.VarChar(255)
-  anlagen                 EtbAttachment[]
-  sender                  String?          @db.VarChar(255)
-  receiver                String?          @db.VarChar(255)
+  timestampUeberschrieben  DateTime?
+  ueberschriebenVon        String?         @db.VarChar(255)
+  anlagen                  EtbAttachment[]
+  sender                   String?         @db.VarChar(255)
+  receiver                 String?         @db.VarChar(255)
 
   // Postgres-specific constraints and indexes
   @@unique([referenzEinsatzId, laufendeNummer], map: "uk_etb_entry_einsatz_laufende_nummer")
@@ -81,15 +81,659 @@ model EtbEntry {
 }
 
 model EtbAttachment {
-  id          String   @id @default(nanoid())
-  etbEntryId  String
-  etbEntry    EtbEntry @relation(fields: [etbEntryId], references: [id], onDelete: Cascade, onUpdate: Cascade)
-  dateiname   String   @db.VarChar(255)
-  dateityp    String   @db.VarChar(50)
-  speicherOrt String   @db.VarChar(500)
-  beschreibung String? @db.Text
+  id           String   @id @default(nanoid())
+  etbEntryId   String
+  etbEntry     EtbEntry @relation(fields: [etbEntryId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  dateiname    String   @db.VarChar(255)
+  dateityp     String   @db.VarChar(50)
+  speicherOrt  String   @db.VarChar(500)
+  beschreibung String?  @db.Text
 
   // Postgres-specific constraints and indexes
   @@index([etbEntryId], map: "idx_etb_attachment_entry_id")
   @@index([dateityp], map: "idx_etb_attachment_dateityp")
+}
+
+// ===== USER AUTHENTICATION SYSTEM =====
+// User authentication system for all users including admins
+
+enum UserRole {
+  SUPER_ADMIN
+  ADMIN
+  MANAGER
+  SUPPORT
+  USER
+}
+
+enum Permission {
+  // User management
+  USERS_READ
+  USERS_WRITE
+  USERS_DELETE
+
+  // System settings
+  SYSTEM_SETTINGS_READ
+  SYSTEM_SETTINGS_WRITE
+
+  // Audit logs
+  AUDIT_LOG_READ
+  AUDIT_LOG_WRITE
+  AUDIT_LOG_DELETE
+  AUDIT_LOG_EXPORT
+
+  // Role management
+  ROLE_MANAGE
+
+  // Application permissions
+  ETB_READ
+  ETB_WRITE
+  ETB_DELETE
+  EINSATZ_READ
+  EINSATZ_WRITE
+  EINSATZ_DELETE
+}
+
+model User {
+  id               String    @id @default(nanoid())
+  email            String    @unique @db.VarChar(255)
+  username         String    @unique @db.VarChar(100)
+  passwordHash     String    @db.Text
+  role             UserRole  @default(USER)
+  isActive         Boolean   @default(true)
+  lastLoginAt      DateTime?
+  failedLoginCount Int       @default(0)
+  lockedUntil      DateTime?
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+
+  // Relations
+  sessions        Session[]
+  refreshTokens   RefreshToken[]
+  rolePermissions RolePermission[]
+  loginAttempts   LoginAttempt[]
+  securityLogs    SecurityLog[]
+
+  // Indexes
+  @@index([email], map: "idx_user_email")
+  @@index([role, isActive], map: "idx_user_role_active")
+  @@index([lastLoginAt], map: "idx_user_last_login")
+}
+
+model Session {
+  id             String    @id @default(nanoid())
+  jti            String    @unique // JWT ID for tracking
+  userId         String
+  user           User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  ipAddress      String?   @db.VarChar(45) // Supports IPv6
+  userAgent      String?   @db.Text
+  lastActivityAt DateTime  @default(now())
+  expiresAt      DateTime
+  isRevoked      Boolean   @default(false)
+  revokedAt      DateTime?
+  revokedReason  String?   @db.VarChar(255)
+  createdAt      DateTime  @default(now())
+
+  // Session monitoring fields
+  location        String?   @db.VarChar(255) // Geolocation (city, country)
+  deviceType      String?   @db.VarChar(50) // Device type (mobile, desktop, tablet)
+  browser         String?   @db.VarChar(50) // Browser name
+  browserVersion  String?   @db.VarChar(20) // Browser version
+  os              String?   @db.VarChar(50) // Operating system
+  osVersion       String?   @db.VarChar(20) // OS version
+  loginMethod     String?   @db.VarChar(50) // Login method (password, oauth, sso)
+  isOnline        Boolean   @default(true) // Current online status
+  lastHeartbeat   DateTime? @default(now()) // Last heartbeat for real-time tracking
+  activityCount   Int       @default(0) // Number of activities in this session
+  riskScore       Int       @default(0) // Security risk score (0-100)
+  suspiciousFlags String[]  @default([]) // Suspicious activity flags
+
+  // Relations
+  activities SessionActivity[]
+
+  // Indexes for session management
+  @@index([userId, isRevoked], map: "idx_session_user_active")
+  @@index([jti], map: "idx_session_jti")
+  @@index([expiresAt, isRevoked], map: "idx_session_expiry")
+  @@index([lastHeartbeat, isOnline], map: "idx_session_heartbeat")
+  @@index([riskScore], map: "idx_session_risk")
+}
+
+model RefreshToken {
+  id         String    @id @default(nanoid())
+  token      String    @unique @db.Text
+  userId     String
+  user       User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  sessionJti String? // Link to session JWT ID
+  expiresAt  DateTime
+  isUsed     Boolean   @default(false)
+  usedAt     DateTime?
+  isRevoked  Boolean   @default(false)
+  revokedAt  DateTime?
+  createdAt  DateTime  @default(now())
+
+  // Indexes
+  @@index([token], map: "idx_refresh_token")
+  @@index([userId, isRevoked, isUsed], map: "idx_refresh_user_status")
+  @@index([expiresAt], map: "idx_refresh_expiry")
+}
+
+// Session activity tracking for monitoring
+model SessionActivity {
+  id           String   @id @default(nanoid())
+  sessionId    String
+  session      Session  @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  timestamp    DateTime @default(now())
+  activityType String   @db.VarChar(50) // Type of activity (pageview, api_call, etc.)
+  resource     String?  @db.VarChar(255) // Resource accessed
+  method       String?  @db.VarChar(10) // HTTP method
+  statusCode   Int? // Response status code
+  duration     Int? // Request duration in ms
+  ipAddress    String?  @db.VarChar(45) // IP address at time of activity
+  metadata     Json? // Additional activity metadata
+
+  // Indexes
+  @@index([sessionId, timestamp], map: "idx_session_activity_session_time")
+  @@index([activityType, timestamp], map: "idx_session_activity_type_time")
+  @@index([timestamp], map: "idx_session_activity_timestamp")
+}
+
+model RolePermission {
+  id            String     @id @default(nanoid())
+  role          UserRole
+  permission    Permission
+  grantedBy     String? // User ID who granted this permission
+  grantedByUser User?      @relation(fields: [grantedBy], references: [id], onDelete: SetNull)
+  grantedAt     DateTime   @default(now())
+
+  // Unique constraint - one permission per role
+  @@unique([role, permission], map: "uk_role_permission")
+  @@index([role], map: "idx_role_permission_role")
+}
+
+// ===== AUDIT LOGGING SYSTEM =====
+// Comprehensive audit logging for all admin actions
+
+enum AuditActionType {
+  CREATE
+  READ
+  UPDATE
+  DELETE
+  LOGIN
+  LOGOUT
+  FAILED_LOGIN
+  PERMISSION_CHANGE
+  ROLE_CHANGE
+  BULK_OPERATION
+  SYSTEM_CONFIG
+  EXPORT
+  IMPORT
+  APPROVE
+  REJECT
+  BLOCK
+  UNBLOCK
+  RESTORE
+  BACKUP
+}
+
+enum AuditSeverity {
+  LOW
+  MEDIUM
+  HIGH
+  CRITICAL
+  ERROR
+}
+
+model AuditLog {
+  id String @id @default(nanoid())
+
+  // Action details
+  actionType AuditActionType
+  severity   AuditSeverity   @default(MEDIUM)
+  action     String          @db.VarChar(100) // Specific action name
+  resource   String          @db.VarChar(100) // Resource affected (e.g., "user", "einsatz")
+  resourceId String?         @db.VarChar(255) // ID of the specific resource
+
+  // User context
+  userId         String?   @db.VarChar(255) // Acting user ID
+  userEmail      String?   @db.VarChar(255) // Acting user email
+  userRole       UserRole? // Acting user role at time of action
+  impersonatedBy String?   @db.VarChar(255) // If action was performed via impersonation
+
+  // Request context
+  requestId  String? @db.VarChar(100) // Request correlation ID
+  sessionId  String? @db.VarChar(255) // Session identifier
+  ipAddress  String? @db.VarChar(45) // Client IP address (IPv6 compatible)
+  userAgent  String? @db.Text // Client user agent
+  endpoint   String? @db.VarChar(255) // API endpoint called
+  httpMethod String? @db.VarChar(10) // HTTP method (GET, POST, etc.)
+
+  // Data context
+  oldValues      Json? // Previous state (for updates/deletes)
+  newValues      Json? // New state (for creates/updates)
+  affectedFields String[] @default([]) // Fields that were modified
+  metadata       Json? // Additional context data
+
+  // Timing and result
+  timestamp    DateTime @default(now())
+  duration     Int? // Operation duration in milliseconds
+  success      Boolean  @default(true)
+  errorMessage String?  @db.Text // Error details if failed
+  statusCode   Int? // HTTP status code
+
+  // Security and compliance
+  compliance     String[]  @default([]) // Compliance tags (GDPR, HIPAA, etc.)
+  sensitiveData  Boolean   @default(false) // Flags if sensitive data was involved
+  requiresReview Boolean   @default(false) // Flags if action requires manual review
+  reviewedBy     String?   @db.VarChar(255) // User who reviewed this entry
+  reviewedAt     DateTime? // When the review was completed
+
+  // Retention and cleanup
+  retentionPeriod Int? // Days to retain this log entry
+  archivedAt      DateTime? // When this entry was archived
+
+  // Performance indexes
+  @@index([timestamp], map: "idx_audit_timestamp")
+  @@index([userId, timestamp], map: "idx_audit_user_timestamp")
+  @@index([actionType, timestamp], map: "idx_audit_action_timestamp")
+  @@index([resource, resourceId], map: "idx_audit_resource")
+  @@index([severity, timestamp], map: "idx_audit_severity")
+  @@index([success, timestamp], map: "idx_audit_success")
+  @@index([requiresReview], map: "idx_audit_review")
+  @@index([requestId], map: "idx_audit_request_id")
+  @@index([sessionId], map: "idx_audit_session")
+  @@index([ipAddress, timestamp], map: "idx_audit_ip")
+  // Composite indexes for common query patterns
+  @@index([timestamp, actionType, severity], map: "idx_audit_timestamp_action_severity")
+  @@index([archivedAt, timestamp], map: "idx_audit_archived_timestamp")
+  @@index([userEmail, timestamp], map: "idx_audit_user_email_timestamp")
+  @@index([resource, timestamp, success], map: "idx_audit_resource_timestamp_success")
+}
+
+// ===== LOGIN TRACKING SYSTEM =====
+// Track login attempts for security and lockout functionality
+
+model LoginAttempt {
+  id String @id @default(nanoid())
+
+  // User identification (optional for failed attempts with non-existent users)
+  userId String?
+  user   User?   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  email  String  @db.VarChar(255) // Email used in attempt
+
+  // Attempt details
+  attemptAt     DateTime @default(now())
+  ipAddress     String   @db.VarChar(45) // IPv6 compatible
+  userAgent     String?  @db.Text
+  success       Boolean  @default(false)
+  failureReason String?  @db.VarChar(255) // Invalid password, account locked, etc.
+
+  // Location and device info
+  location   String? @db.VarChar(255) // Geolocation
+  deviceType String? @db.VarChar(50)
+  browser    String? @db.VarChar(50)
+  os         String? @db.VarChar(50)
+
+  // Security metadata
+  suspicious Boolean @default(false) // Flag for suspicious attempts
+  riskScore  Int     @default(0) // 0-100 risk score
+  metadata   Json? // Additional security metadata
+
+  // Indexes for efficient queries
+  @@index([email, attemptAt], map: "idx_login_attempt_email_time")
+  @@index([userId, attemptAt], map: "idx_login_attempt_user_time")
+  @@index([ipAddress, attemptAt], map: "idx_login_attempt_ip_time")
+  @@index([success, attemptAt], map: "idx_login_attempt_success_time")
+  @@index([suspicious, attemptAt], map: "idx_login_attempt_suspicious")
+}
+
+// ===== SECURITY LOG SYSTEM =====
+// Track all security-related events for monitoring and compliance with hash-chain integrity
+
+model SecurityLog {
+  id String @id @default(nanoid())
+
+  // Event information
+  eventType String @db.VarChar(50) // LOGIN_SUCCESS, LOGIN_FAILED, etc.
+  severity  String @default("INFO") @db.VarChar(20) // INFO, WARN, ERROR, CRITICAL
+
+  // User context (optional for events without user)
+  userId String?
+  user   User?   @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  // Request context
+  ipAddress String? @db.VarChar(45) // IPv6 compatible
+  userAgent String? @db.Text
+  sessionId String? @db.VarChar(255)
+
+  // Event metadata
+  metadata Json? // Flexible data for different event types
+  message  String? @db.Text // Human-readable description
+
+  // Hash-chain fields for tamper-evident logging
+  sequenceNumber BigInt  @unique // Sequential counter for ordering
+  previousHash   String? @db.VarChar(64) // SHA-256 hash of previous log entry
+  currentHash    String  @db.VarChar(64) // SHA-256 hash of this log entry
+  hashAlgorithm  String  @default("SHA256") @db.VarChar(20) // Algorithm used for hashing
+
+  // Timing
+  createdAt DateTime @default(now())
+
+  // Indexes for efficient queries
+  @@index([eventType, createdAt], map: "idx_security_log_type_time")
+  @@index([userId, createdAt], map: "idx_security_log_user_time")
+  @@index([ipAddress, createdAt], map: "idx_security_log_ip_time")
+  @@index([severity, createdAt], map: "idx_security_log_severity_time")
+  @@index([sessionId], map: "idx_security_log_session")
+  @@index([sequenceNumber], map: "idx_security_log_sequence")
+  @@index([currentHash], map: "idx_security_log_hash")
+  @@index([previousHash], map: "idx_security_log_prev_hash")
+}
+
+// ===== THREAT DETECTION RULES =====
+// Dynamic threat detection rules for security monitoring
+
+enum ThreatSeverity {
+  LOW
+  MEDIUM
+  HIGH
+  CRITICAL
+}
+
+enum RuleStatus {
+  ACTIVE
+  INACTIVE
+  TESTING
+}
+
+enum ConditionType {
+  THRESHOLD // Threshold-based rules (e.g., X events in Y minutes)
+  PATTERN // Pattern matching rules
+  ANOMALY // Anomaly detection rules
+  TIME_BASED // Time-based rules (unusual hours)
+  GEO_BASED // Geography-based rules
+}
+
+model ThreatDetectionRule {
+  id String @id @default(nanoid())
+
+  // Rule metadata
+  name          String         @unique @db.VarChar(255)
+  description   String         @db.Text
+  version       String         @default("1.0.0") @db.VarChar(20)
+  status        RuleStatus     @default(INACTIVE)
+  severity      ThreatSeverity
+  conditionType ConditionType
+
+  // Rule configuration (JSON)
+  config Json // Rule-specific configuration
+
+  // Categorization
+  tags String[] @default([])
+
+  // Audit fields
+  createdBy String?  @db.VarChar(255)
+  createdAt DateTime @default(now())
+  updatedBy String?  @db.VarChar(255)
+  updatedAt DateTime @updatedAt
+
+  // Rule evaluation history
+  evaluations RuleEvaluation[]
+
+  // Indexes
+  @@index([status, severity], map: "idx_threat_rule_status_severity")
+  @@index([conditionType], map: "idx_threat_rule_condition_type")
+  @@index([tags], map: "idx_threat_rule_tags")
+  @@index([createdAt], map: "idx_threat_rule_created")
+}
+
+model RuleEvaluation {
+  id String @id @default(nanoid())
+
+  // Rule reference
+  ruleId String
+  rule   ThreatDetectionRule @relation(fields: [ruleId], references: [id], onDelete: Cascade)
+
+  // Evaluation context
+  userId    String? @db.VarChar(255)
+  ipAddress String? @db.VarChar(45)
+  sessionId String? @db.VarChar(255)
+
+  // Evaluation result
+  matched  Boolean         @default(false)
+  score    Int? // Risk score 0-100
+  severity ThreatSeverity?
+  reason   String?         @db.Text
+  evidence Json? // Evidence that triggered the rule
+
+  // Actions taken
+  actionsTriggered String[] @default([])
+  alertSent        Boolean  @default(false)
+
+  // Timing
+  evaluatedAt   DateTime @default(now())
+  executionTime Int? // Execution time in ms
+
+  // Indexes
+  @@index([ruleId, evaluatedAt], map: "idx_rule_eval_rule_time")
+  @@index([matched, evaluatedAt], map: "idx_rule_eval_matched_time")
+  @@index([userId, evaluatedAt], map: "idx_rule_eval_user_time")
+  @@index([ipAddress, evaluatedAt], map: "idx_rule_eval_ip_time")
+  @@index([severity, evaluatedAt], map: "idx_rule_eval_severity_time")
+}
+
+// ===== NOTIFICATION SYSTEM =====
+// Pluggable notification channels for security and system alerts
+
+enum ChannelType {
+  EMAIL
+  WEBHOOK
+}
+
+enum NotificationStatus {
+  QUEUED
+  PROCESSING
+  SENT
+  FAILED
+  CANCELLED
+  PENDING
+  RETRY
+}
+
+model NotificationChannel {
+  id           String      @id @default(nanoid())
+  name         String      @unique @db.VarChar(255)
+  type         ChannelType
+  config       Json // Encrypted channel-specific configuration
+  isActive     Boolean     @default(true)
+  priority     Int         @default(0) // Higher priority channels are tried first
+  healthStatus Json? // Last health check result
+  createdAt    DateTime    @default(now())
+  updatedAt    DateTime    @updatedAt
+
+  // Indexes
+  @@index([type, isActive], map: "idx_notification_channel_type_active")
+  @@index([priority], map: "idx_notification_channel_priority")
+}
+
+model NotificationTemplate {
+  id          String      @id @default(nanoid())
+  name        String      @unique @db.VarChar(255)
+  channelType ChannelType
+  subject     String?     @db.VarChar(255) // For email
+  bodyHtml    String?     @db.Text // For email HTML
+  bodyText    String      @db.Text // Plain text content
+  variables   Json // Available variables schema
+  language    String      @default("de") @db.VarChar(10)
+  isActive    Boolean     @default(true)
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+
+  // Indexes
+  @@index([channelType, isActive], map: "idx_notification_template_type_active")
+  @@index([name, language], map: "idx_notification_template_name_lang")
+}
+
+model NotificationLog {
+  id        String             @id @default(nanoid())
+  channel   String             @db.VarChar(255)
+  recipient String             @db.Text // JSON serialized recipient info
+  subject   String             @db.VarChar(255)
+  payload   Json // Full notification payload
+  status    NotificationStatus
+  priority  String?            @db.VarChar(50)
+  metadata  Json? // Additional metadata
+  attempts  Int                @default(0)
+  error     String?            @db.Text
+  sentAt    DateTime?
+  createdAt DateTime           @default(now())
+  updatedAt DateTime           @updatedAt
+
+  // Indexes for efficient queries
+  @@index([status, createdAt], map: "idx_notification_log_status_time")
+  @@index([channel, createdAt], map: "idx_notification_log_channel_time")
+  @@index([createdAt], map: "idx_notification_log_created")
+  @@index([sentAt], map: "idx_notification_log_sent")
+}
+
+// ===== SECURITY ALERTS SYSTEM =====
+// Core engine for evaluating, correlating and dispatching security alerts
+
+enum AlertStatus {
+  PENDING
+  PROCESSING
+  DISPATCHED
+  ACKNOWLEDGED
+  RESOLVED
+  FAILED
+  SUPPRESSED
+}
+
+enum AlertType {
+  ACCOUNT_LOCKED
+  SUSPICIOUS_LOGIN
+  BRUTE_FORCE_ATTEMPT
+  MULTIPLE_FAILED_ATTEMPTS
+  THREAT_RULE_MATCH
+  ANOMALY_DETECTED
+  POLICY_VIOLATION
+}
+
+model SecurityAlert {
+  id String @id @default(nanoid())
+
+  // Alert identification
+  type        AlertType
+  severity    ThreatSeverity
+  title       String         @db.VarChar(255)
+  description String         @db.Text
+  fingerprint String         @db.VarChar(255) // For deduplication
+  status      AlertStatus    @default(PENDING)
+
+  // Alert source
+  ruleId    String? // If triggered by a rule
+  ruleName  String? @db.VarChar(255)
+  eventType String? @db.VarChar(50) // Original security event type
+
+  // User and session context
+  userId    String? @db.VarChar(255)
+  userEmail String? @db.VarChar(255)
+  sessionId String? @db.VarChar(255)
+  ipAddress String? @db.VarChar(45)
+  userAgent String? @db.Text
+  location  String? @db.VarChar(255)
+
+  // Alert metadata
+  score    Int? // Risk score 0-100
+  evidence Json? // Evidence that triggered the alert
+  context  Json? // Additional context data
+  tags     String[] @default([])
+
+  // Correlation
+  correlationId    String?  @db.VarChar(255) // Groups related alerts
+  correlatedAlerts String[] @default([]) // IDs of related alerts
+  isCorrelated     Boolean  @default(false)
+
+  // Deduplication
+  occurrenceCount Int      @default(1) // Times this alert was triggered
+  firstSeen       DateTime @default(now())
+  lastSeen        DateTime @default(now())
+
+  // Dispatch information
+  dispatchedChannels String[]  @default([]) // Channels alert was sent to
+  dispatchAttempts   Int       @default(0)
+  lastDispatchAt     DateTime?
+  dispatchErrors     Json? // Errors during dispatch
+
+  // Response tracking
+  acknowledgedBy  String?   @db.VarChar(255)
+  acknowledgedAt  DateTime?
+  resolvedBy      String?   @db.VarChar(255)
+  resolvedAt      DateTime?
+  resolutionNotes String?   @db.Text
+
+  // Suppression
+  suppressedUntil   DateTime?
+  suppressionReason String?   @db.Text
+
+  // Timing
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  expiresAt DateTime? // For auto-cleanup
+
+  // Relations
+  notifications AlertNotification[]
+  comments      AlertComment[]
+
+  // Indexes for efficient queries
+  @@unique([fingerprint, suppressedUntil], map: "uk_alert_fingerprint_suppression")
+  @@index([type, severity, status], map: "idx_alert_type_severity_status")
+  @@index([userId, createdAt], map: "idx_alert_user_time")
+  @@index([ipAddress, createdAt], map: "idx_alert_ip_time")
+  @@index([correlationId], map: "idx_alert_correlation")
+  @@index([status, createdAt], map: "idx_alert_status_time")
+  @@index([fingerprint, lastSeen], map: "idx_alert_fingerprint_time")
+  @@index([severity, createdAt], map: "idx_alert_severity_time")
+  @@index([firstSeen, lastSeen], map: "idx_alert_time_range")
+  @@index([ruleId, createdAt], map: "idx_alert_rule_time")
+}
+
+model AlertNotification {
+  id String @id @default(nanoid())
+
+  alertId String
+  alert   SecurityAlert @relation(fields: [alertId], references: [id], onDelete: Cascade)
+
+  channel       String             @db.VarChar(50) // email, webhook, etc
+  recipient     String             @db.Text // JSON recipient info
+  status        NotificationStatus
+  attempts      Int                @default(0)
+  lastAttemptAt DateTime?
+  sentAt        DateTime?
+  error         String?            @db.Text
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Indexes
+  @@index([alertId, channel], map: "idx_alert_notification_alert_channel")
+  @@index([status, createdAt], map: "idx_alert_notification_status_time")
+}
+
+model AlertComment {
+  id String @id @default(nanoid())
+
+  alertId String
+  alert   SecurityAlert @relation(fields: [alertId], references: [id], onDelete: Cascade)
+
+  authorId    String @db.VarChar(255)
+  authorEmail String @db.VarChar(255)
+  comment     String @db.Text
+  metadata    Json? // Additional comment metadata
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Indexes
+  @@index([alertId, createdAt], map: "idx_alert_comment_alert_time")
+  @@index([authorId, createdAt], map: "idx_alert_comment_author_time")
 }

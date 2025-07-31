@@ -2,18 +2,18 @@
  * @type {import('semantic-release').GlobalConfig}
  */
 module.exports = {
-    repositoryUrl: 'https://github.com/bluelight-hub/app',
-    plugins: [
-        [
-            'semantic-release-gitmoji',
-            {
-                releaseRules: {
-                    major: ['💥'],
-                    minor: ['✨'],
-                    patch: ['🐛', '🚑', '🔒', '🧹', '♻️', '🔧'],
-                },
-                releaseNotes: {
-                    template: `{{#if compareUrl}}
+  repositoryUrl: 'https://github.com/bluelight-hub/app',
+  plugins: [
+    [
+      'semantic-release-gitmoji',
+      {
+        releaseRules: {
+          major: ['💥'],
+          minor: ['✨'],
+          patch: ['🐛', '🚑', '🔒', '🧹', '♻️', '🔧'],
+        },
+        releaseNotes: {
+          template: `{{#if compareUrl}}
 ## Version [v{{nextRelease.version}}]({{compareUrl}}) – Veröffentlicht am {{datetime "yyyy-mm-dd"}}
 {{else}}
 ## Version v{{nextRelease.version}} – Veröffentlicht am {{datetime "yyyy-mm-dd"}}
@@ -94,8 +94,8 @@ Bitte beachtet folgende Änderungen, die möglicherweise Anpassungen erfordern:
 {{/if}}
 
 {{/with}}`,
-                    partials: {
-                        commitTemplate: `[\`{{commit.short}}\`](https://github.com/{{owner}}/{{repo}}/commit/{{commit.short}}) {{subject}} 
+          partials: {
+            commitTemplate: `[\`{{commit.short}}\`](https://github.com/{{owner}}/{{repo}}/commit/{{commit.short}}) {{subject}} 
 {{#if issues}}(Zugehörige Issues: {{#each issues}}[\`{{text}}\`]({{link}}){{#unless @last}}, {{/unless}}{{/each}}){{/if}}
 {{#if wip}}
 WIP Änderungen:
@@ -103,73 +103,74 @@ WIP Änderungen:
 - [\`{{commit.short}}\`](https://github.com/{{owner}}/{{repo}}/commit/{{commit.short}}) {{subject}}
 {{/each}}
 {{/if}}`,
-                    },
-                    helpers: {
-                        datetime: function (format = 'dd.mm.yyyy') {
-                            const date = new Date();
-                            const utcDate = new Date(date.toUTCString().slice(0, -4));
-                            return format
-                                .replace('yyyy', utcDate.getUTCFullYear())
-                                .replace('mm', String(utcDate.getUTCMonth() + 1).padStart(2, '0'))
-                                .replace('dd', String(utcDate.getUTCDate()).padStart(2, '0'));
-                        },
-                    },
-                    issueResolution: {
-                        template: '{baseUrl}/{owner}/{repo}/issues/{ref}',
-                        baseUrl: 'https://github.com',
-                        source: 'github.com',
-                        removeFromCommit: false,
-                        regex: /#\d+/g,
-                    },
-                },
+          },
+          helpers: {
+            datetime: function (format = 'dd.mm.yyyy') {
+              const date = new Date();
+              const utcDate = new Date(date.toUTCString().slice(0, -4));
+              return format
+                .replace('yyyy', utcDate.getUTCFullYear())
+                .replace('mm', String(utcDate.getUTCMonth() + 1).padStart(2, '0'))
+                .replace('dd', String(utcDate.getUTCDate()).padStart(2, '0'));
             },
-        ],
-        '@semantic-release/release-notes-generator',
-        [
-            '@semantic-release/changelog',
-            {
-                changelogFile: 'CHANGELOG.md',
-            },
-        ],
-        [
-            '@semantic-release/exec',
-            {
-                prepareCmd: [
-                    'jq \'.version="${nextRelease.version}"\' packages/frontend/package.json > packages/frontend/package.json.tmp && mv packages/frontend/package.json.tmp packages/frontend/package.json',
-                    'jq \'.version="${nextRelease.version}"\' packages/backend/package.json > packages/backend/package.json.tmp && mv packages/backend/package.json.tmp packages/backend/package.json',
-                    'jq \'.version="${nextRelease.version}"\' packages/shared/package.json > packages/shared/package.json.tmp && mv packages/shared/package.json.tmp packages/shared/package.json',
-                ].join(' && '),
-                successCmd: 'cat RELEASE_NOTES.md >> $GITHUB_STEP_SUMMARY && echo "$(cat RELEASE_NOTES.md)\n\n$(cat RELEASE.md)" > RELEASE.md'
-            },
-        ],
-        [
-            '@semantic-release/git',
-            {
-                assets: [
-                    'CHANGELOG.md',
-                    'packages/frontend/package.json',
-                    'packages/backend/package.json',
-                    'packages/shared/package.json',
-                    'RELEASE.md'
-                ],
-                message: '🔖(release): ${nextRelease.version} [skip ci]\n\n${nextRelease.notes}',
-            },
-        ],
-        [
-            '@semantic-release/github',
-            {
-                assets: [
-                    'CHANGELOG.md',
-                    'frontend-artifacts/**/*.dmg',
-                    'frontend-artifacts/**/*.AppImage',
-                    'frontend-artifacts/**/*.msi',
-                    'frontend-artifacts/**/*.app',
-                    'frontend-artifacts/**/*.exe',
-                    'frontend-artifacts/**/*.deb'
-                ],
-                releaseAssets: true,
-                releaseNotesFile: 'RELEASE.md'
-            },
-        ],
+          },
+          issueResolution: {
+            template: '{baseUrl}/{owner}/{repo}/issues/{ref}',
+            baseUrl: 'https://github.com',
+            source: 'github.com',
+            removeFromCommit: false,
+            regex: /#\d+/g,
+          },
+        },
+      },
     ],
-}; 
+    '@semantic-release/release-notes-generator',
+    [
+      '@semantic-release/changelog',
+      {
+        changelogFile: 'CHANGELOG.md',
+      },
+    ],
+    [
+      '@semantic-release/exec',
+      {
+        prepareCmd: [
+          'jq \'.version="${nextRelease.version}"\' packages/frontend/package.json > packages/frontend/package.json.tmp && mv packages/frontend/package.json.tmp packages/frontend/package.json',
+          'jq \'.version="${nextRelease.version}"\' packages/backend/package.json > packages/backend/package.json.tmp && mv packages/backend/package.json.tmp packages/backend/package.json',
+          'jq \'.version="${nextRelease.version}"\' packages/shared/package.json > packages/shared/package.json.tmp && mv packages/shared/package.json.tmp packages/shared/package.json',
+        ].join(' && '),
+        successCmd:
+          'cat RELEASE_NOTES.md >> $GITHUB_STEP_SUMMARY && echo "$(cat RELEASE_NOTES.md)\n\n$(cat RELEASE.md)" > RELEASE.md',
+      },
+    ],
+    [
+      '@semantic-release/git',
+      {
+        assets: [
+          'CHANGELOG.md',
+          'packages/frontend/package.json',
+          'packages/backend/package.json',
+          'packages/shared/package.json',
+          'RELEASE.md',
+        ],
+        message: '🔖(release): ${nextRelease.version} [skip ci]\n\n${nextRelease.notes}',
+      },
+    ],
+    [
+      '@semantic-release/github',
+      {
+        assets: [
+          'CHANGELOG.md',
+          'frontend-artifacts/**/*.dmg',
+          'frontend-artifacts/**/*.AppImage',
+          'frontend-artifacts/**/*.msi',
+          'frontend-artifacts/**/*.app',
+          'frontend-artifacts/**/*.exe',
+          'frontend-artifacts/**/*.deb',
+        ],
+        releaseAssets: true,
+        releaseNotesFile: 'RELEASE.md',
+      },
+    ],
+  ],
+};

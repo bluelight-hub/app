@@ -1,0 +1,136 @@
+= ADR-010: Entfernung der Multi-Faktor-Authentifizierung (MFA/2FA)
+:author: Bluelight-Hub Team
+:revnumber: 1.0.0
+:revdate: 2025-06-25
+:
+
+== Status
+Akzeptiert (Stand: 2025-06-25)
+
+== Kontext
+Das Bluelight-Hub-System hatte eine vollständige Multi-Faktor-Authentifizierung (MFA) implementiert, die sowohl TOTP (Time-based One-Time Password) als auch WebAuthn unterstützte. Nach der initialen Implementierung wurde die Entscheidung getroffen, die gesamte MFA-Funktionalität wieder zu entfernen. Diese Entscheidung stellt einen Breaking Change dar und bedarf einer detaillierten Dokumentation.
+
+=== Ursprüngliche Implementierung
+Die MFA-Implementierung umfasste:
+* TOTP-basierte 2FA (Google Authenticator, Authy, etc.)
+* WebAuthn-Unterstützung für Hardware-Sicherheitsschlüssel
+* Vollständige Frontend-Integration mit MFA-Komponenten
+* Backend-Validierung und Session-Management
+* Recovery-Codes für Account-Wiederherstellung
+
+== Gründe für die Entfernung
+
+=== 1. Komplexität vs. Nutzen für Zielgruppe
+* *Zielgruppe*: Rettungsdienste und Einsatzorganisationen arbeiten primär in geschlossenen, physisch gesicherten Umgebungen
+* *Einsatzszenarien*: Schneller Zugriff in Notfallsituationen hat Priorität über zusätzliche Authentifizierungsschritte
+* *Nutzerfeedback*: MFA wurde als Hindernis in zeitkritischen Situationen wahrgenommen
+
+=== 2. Operationale Herausforderungen
+* *Support-Aufwand*: Häufige Account-Sperrungen durch verlorene 2FA-Geräte
+* *Einsatzbereitschaft*: MFA kann im Katastrophenfall (kein Mobilfunknetz, beschädigte Hardware) zum Zugangshindernis werden
+* *Schulungsaufwand*: Zusätzlicher Trainingsaufwand für nicht-technisches Personal
+
+=== 3. Alternative Sicherheitsmaßnahmen
+* *Netzwerk-Isolation*: Einsatz in geschlossenen Behördennetzen ohne Internetzugang
+* *Physische Sicherheit*: Zugang nur in gesicherten Leitstellen und Fahrzeugen
+* *Session-Management*: Verstärktes Monitoring und automatische Session-Timeouts
+* *IP-Whitelisting*: Beschränkung auf bekannte Netzwerke
+
+=== 4. Technische Überlegungen
+* *Wartungsaufwand*: MFA-Systeme erfordern kontinuierliche Updates und Sicherheitspatches
+* *Abhängigkeiten*: Reduzierung externer Abhängigkeiten (Authenticator-Apps, Hardware-Token)
+* *Offline-Fähigkeit*: Verbesserte Funktionalität in Offline-Szenarien
+
+== Entscheidung
+Wir haben uns für die vollständige Entfernung der MFA-Funktionalität entschieden und setzen stattdessen auf kompensatorische Sicherheitsmaßnahmen, die besser auf die spezifischen Anforderungen von Einsatzorganisationen zugeschnitten sind.
+
+== Kompensatorische Sicherheitsmaßnahmen
+
+=== Verstärkte Basis-Sicherheit
+* *Starke Passwort-Richtlinien*:
+  ** Mindestlänge: 12 Zeichen
+  ** Komplexitätsanforderungen
+  ** Regelmäßige Passwort-Rotation (90 Tage)
+  ** Passwort-Historie (keine Wiederverwendung der letzten 5 Passwörter)
+
+=== Netzwerk-basierte Sicherheit
+* *IP-Whitelisting*: Zugriff nur aus definierten Netzwerkbereichen
+* *VPN-Pflicht*: Für externe Zugriffe
+* *Geo-Blocking*: Beschränkung auf definierte geografische Regionen
+
+=== Erweitertes Session-Management
+* *Adaptive Session-Timeouts*:
+  ** Kurze Timeouts (15 Min) für administrative Funktionen
+  ** Standard-Timeouts (4 Stunden) für operative Nutzung
+  ** Verlängerte Sessions nur in gesicherten Umgebungen
+* *Device Fingerprinting*: Erkennung und Warnung bei neuen Geräten
+* *Concurrent Session Limits*: Maximale Anzahl gleichzeitiger Sessions pro Benutzer
+
+=== Monitoring und Audit
+* *Erweiterte Login-Protokollierung*:
+  ** Alle Login-Versuche (erfolgreich und fehlgeschlagen)
+  ** Device-Informationen und IP-Adressen
+  ** Geografische Anomalie-Erkennung
+* *Echtzeit-Alerts*:
+  ** Mehrfache fehlgeschlagene Login-Versuche
+  ** Logins von unbekannten Standorten
+  ** Verdächtige Aktivitätsmuster
+* *Regelmäßige Security-Audits*
+
+=== Organisatorische Maßnahmen
+* *Rollenbasierte Zugriffskontrolle (RBAC)*: Strikte Rechtevergabe nach Prinzip der minimalen Rechte
+* *Regelmäßige Zugriffsreviews*: Quartalsweise Überprüfung der Benutzerrechte
+* *Incident Response Plan*: Definierte Prozesse für Sicherheitsvorfälle
+
+== Breaking Change Dokumentation
+
+=== Betroffene Komponenten
+* *Frontend*:
+  ** Entfernung aller MFA-UI-Komponenten
+  ** Anpassung der Benutzereinstellungen
+  ** Vereinfachter Login-Flow
+* *Backend*:
+  ** Entfernung der MFA-Endpoints
+  ** Datenbank-Migration zur Entfernung von MFA-Feldern
+  ** Anpassung der Authentication-Middleware
+* *API*:
+  ** Breaking Change in der Authentication API
+  ** Entfernung von MFA-bezogenen Endpoints
+
+=== Migration
+* *Datenbank-Migration*: Automatisches Entfernen aller MFA-Daten
+* *Session-Invalidierung*: Alle bestehenden Sessions werden invalidiert
+* *Kommunikation*: Rechtzeitige Information aller Nutzer über die Änderung
+
+== Konsequenzen
+
+=== Positive Konsequenzen
+* *Verbesserte Einsatzbereitschaft*: Schnellerer Zugang in Notfallsituationen
+* *Reduzierte Komplexität*: Einfacherer Code, weniger Abhängigkeiten
+* *Geringerer Support-Aufwand*: Keine MFA-bedingten Zugriffsprobleme
+* *Bessere Offline-Fähigkeit*: Keine Abhängigkeit von externen Authentifikatoren
+* *Angepasste Sicherheit*: Maßnahmen, die besser zur Zielgruppe passen
+
+=== Negative Konsequenzen
+* *Reduzierte Account-Sicherheit*: Anfälliger für kompromittierte Passwörter
+* *Compliance-Herausforderungen*: Mögliche Konflikte mit Sicherheitsrichtlinien
+* *Wahrnehmung*: Könnte als Rückschritt in der Sicherheit wahrgenommen werden
+* *Breaking Change*: Erfordert Updates in allen Client-Anwendungen
+
+=== Risiko-Mitigation
+* Kontinuierliche Überwachung der Sicherheitslage
+* Regelmäßige Penetrationstests
+* Möglichkeit zur schnellen Wiedereinführung von MFA bei Bedarf
+* Verstärkte Schulung des Personals in Sicherheitsbewusstsein
+
+== Zukünftige Überlegungen
+Die Architektur bleibt flexibel genug, um MFA bei Bedarf wieder einzuführen. Folgende Szenarien könnten eine Neubewertung erfordern:
+* Änderung regulatorischer Anforderungen
+* Signifikante Sicherheitsvorfälle
+* Explizite Anforderung durch Kunden
+* Verfügbarkeit von einsatztauglichen MFA-Lösungen (z.B. biometrische Verfahren)
+
+== Referenzen
+* Commit "✨(frontend): Integrate MFA components in the user interface" - Initiale MFA-Implementierung
+* Commit "💥(auth): Remove MFA/2FA functionality completely" - Entfernung der MFA-Funktionalität
+* ADR-007: JWT für Authentifizierung - Basis-Authentifizierungsstrategie
