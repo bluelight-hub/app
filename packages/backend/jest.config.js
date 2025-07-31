@@ -41,6 +41,8 @@ module.exports = {
     '^@prisma/generated/prisma/enums$': '<rootDir>/__mocks__/prisma/enums.ts',
     '^@prisma/generated/prisma/client$': '<rootDir>/__mocks__/prisma/client.ts',
     '^@prisma/generated/prisma$': '<rootDir>/__mocks__/prisma/enums.ts',
+    '^../../prisma/generated/prisma/client$': '<rootDir>/__mocks__/prisma/client.ts',
+    '^../prisma/generated/prisma/client$': '<rootDir>/__mocks__/prisma/client.ts',
     '^nanoid$': '<rootDir>/__mocks__/nanoid.ts',
     '^@bluelight-hub/shared$': '<rootDir>/__mocks__/@bluelight-hub/shared.ts',
   },

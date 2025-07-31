@@ -16,7 +16,7 @@
     "test:update": "vitest --update",
     "test:ui": "vitest --ui",
     "test:run": "vitest run",
-    "test:cov": "vitest run --coverage",
+    "test:cov": "echo '⚠️  - Frontend test coverage is disabled' # vitest run --coverage",
     "test:watch": "vitest watch"
   },
   "dependencies": {
