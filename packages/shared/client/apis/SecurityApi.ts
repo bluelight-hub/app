@@ -13,6 +13,11 @@
  */
 
 import * as runtime from '../runtime';
+import type { SecurityControllerGetDashboardMetricsV1200Response } from '../models/index';
+import {
+  SecurityControllerGetDashboardMetricsV1200ResponseFromJSON,
+  SecurityControllerGetDashboardMetricsV1200ResponseToJSON,
+} from '../models/index';
 
 export interface SecurityControllerGetAccountLockoutMetricsV1Request {
   startDate?: string;
@@ -101,7 +106,7 @@ export class SecurityApi extends runtime.BaseAPI {
    */
   async securityControllerGetDashboardMetricsV1Raw(
     initOverrides?: RequestInit | runtime.InitOverrideFunction,
-  ): Promise<runtime.ApiResponse<void>> {
+  ): Promise<runtime.ApiResponse<SecurityControllerGetDashboardMetricsV1200Response>> {
     const queryParameters: any = {};
 
     const headerParameters: runtime.HTTPHeaders = {};
@@ -124,7 +129,9 @@ export class SecurityApi extends runtime.BaseAPI {
       initOverrides,
     );
 
-    return new runtime.VoidApiResponse(response);
+    return new runtime.JSONApiResponse(response, (jsonValue) =>
+      SecurityControllerGetDashboardMetricsV1200ResponseFromJSON(jsonValue),
+    );
   }
 
   /**
@@ -132,8 +139,9 @@ export class SecurityApi extends runtime.BaseAPI {
    */
   async securityControllerGetDashboardMetricsV1(
     initOverrides?: RequestInit | runtime.InitOverrideFunction,
-  ): Promise<void> {
-    await this.securityControllerGetDashboardMetricsV1Raw(initOverrides);
+  ): Promise<SecurityControllerGetDashboardMetricsV1200Response> {
+    const response = await this.securityControllerGetDashboardMetricsV1Raw(initOverrides);
+    return await response.value();
   }
 
   /**
