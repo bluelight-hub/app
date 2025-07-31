@@ -3,16 +3,13 @@ import { Card, Col, Row, Spin, Statistic } from 'antd';
 import { PiChartLine, PiFileText, PiGear, PiUser, PiUsersThree } from 'react-icons/pi';
 import { Link } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
-import { fetchWithAuth } from '@/utils/authInterceptor';
+import { adminApi } from '@/api/admin.helpers';
 import ActivityLog from '@molecules/admin/ActivityLog';
 
 const AdminDashboard: React.FC = () => {
   const { data: stats, isLoading } = useQuery({
     queryKey: ['admin-dashboard-stats'],
-    queryFn: async () => {
-      const response = await fetchWithAuth('/api/admin/stats');
-      return response.json();
-    },
+    queryFn: adminApi.getDashboardStats,
   });
 
   if (isLoading || !stats) {
