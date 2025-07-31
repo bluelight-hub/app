@@ -15,6 +15,47 @@ jest.mock('child_process', () => ({
   execSync: jest.fn(),
 }));
 
+// Mock get-platform to avoid the error
+jest.mock('@prisma/get-platform', () => ({
+  getPlatform: jest.fn().mockResolvedValue('darwin'),
+  platforms: ['darwin', 'linux', 'windows'],
+}));
+
+// Mock Prisma runtime library
+jest.mock('@prisma/client/runtime/library', () => {
+  const original = jest.requireActual('@prisma/client/runtime/library');
+  return {
+    ...original,
+    makeStrictEnum: jest.fn(),
+    Public: jest.fn(),
+    getRuntime: jest.fn(() => ({
+      libraryLoader: { loadLibrary: jest.fn() },
+    })),
+    defineDmmfProperty: jest.fn(),
+    makeDocument: jest.fn(),
+    unpack: jest.fn(),
+    deserializeRawResults: jest.fn(),
+    serializeJsonQuery: jest.fn(),
+    makeDataProxy: jest.fn(),
+    __esModule: true,
+  };
+});
+
+// Mock the generated Prisma client
+jest.mock('../../prisma/generated/prisma/client', () => ({
+  PrismaClient: jest.fn().mockImplementation(() => ({
+    $connect: jest.fn(),
+    $disconnect: jest.fn(),
+    securityLog: {
+      findFirst: jest.fn(),
+      findMany: jest.fn(),
+      create: jest.fn(),
+      update: jest.fn(),
+      delete: jest.fn(),
+    },
+  })),
+}));
+
 describe('SecurityHealthService', () => {
   let service: SecurityHealthService;
   let mockQueue: Partial<Queue>;

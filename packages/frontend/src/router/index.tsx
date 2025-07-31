@@ -1,5 +1,5 @@
 import React, { Suspense } from 'react';
-import { Route, Routes } from 'react-router';
+import { Route, Routes } from 'react-router-dom';
 import { AuthProvider } from '../contexts/AuthContext';
 import { EinsatzProvider } from '../contexts/EinsatzContext';
 import EinsatzGuard from './auth/EinsatzGuard';

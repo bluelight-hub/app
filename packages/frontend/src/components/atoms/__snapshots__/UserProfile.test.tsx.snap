@@ -3,13 +3,13 @@
 exports[`UserProfile > should match snapshot 1`] = `
 <div>
   <div
-    class="css-dev-only-do-not-override-ut69n1 ant-app"
+    class="css-dev-only-do-not-override-1vjf2v5 ant-app"
   >
     <div
       class="px-6 py-2"
     >
       <button
-        class="ant-btn css-dev-only-do-not-override-ut69n1 ant-btn-default ant-btn-color-default ant-btn-variant-outlined ant-dropdown-trigger w-full"
+        class="ant-btn css-dev-only-do-not-override-1vjf2v5 ant-btn-default ant-btn-color-default ant-btn-variant-outlined ant-dropdown-trigger w-full"
         data-testid="user-profile"
         type="button"
       >
@@ -42,13 +42,13 @@ exports[`UserProfile > should match snapshot 1`] = `
 exports[`UserProfile > should match snapshot with hidden text 1`] = `
 <div>
   <div
-    class="css-dev-only-do-not-override-ut69n1 ant-app"
+    class="css-dev-only-do-not-override-1vjf2v5 ant-app"
   >
     <div
       class=""
     >
       <button
-        class="ant-btn css-dev-only-do-not-override-ut69n1 ant-btn-default ant-btn-color-default ant-btn-variant-outlined ant-btn-icon-only ant-dropdown-trigger w-full"
+        class="ant-btn css-dev-only-do-not-override-1vjf2v5 ant-btn-default ant-btn-color-default ant-btn-variant-outlined ant-btn-icon-only ant-dropdown-trigger w-full"
         data-testid="user-profile"
         type="button"
       >

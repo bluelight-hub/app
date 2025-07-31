@@ -9,11 +9,15 @@ import { AuditActionType, AuditSeverity } from '@prisma/generated/prisma/enums';
 // Mock consola logger
 jest.mock('consola', () => ({
   __esModule: true,
-  default: {
-    debug: jest.fn(),
-    info: jest.fn(),
-    warn: jest.fn(),
-    error: jest.fn(),
+  consola: {
+    create: jest.fn(() => ({
+      debug: jest.fn(),
+      info: jest.fn(),
+      warn: jest.fn(),
+      error: jest.fn(),
+      log: jest.fn(),
+      trace: jest.fn(),
+    })),
   },
 }));
 

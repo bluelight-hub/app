@@ -3,7 +3,7 @@ import { vi } from 'vitest';
 import DashboardLayout from './DashboardLayout';
 
 // Mock für Outlet
-vi.mock('react-router', () => ({
+vi.mock('react-router-dom', () => ({
   Outlet: () => <div data-testid="outlet-content">Dashboard Content</div>,
 }));
 

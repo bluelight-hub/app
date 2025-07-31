@@ -17,7 +17,7 @@ import {
   PiUsersBold,
   PiUsersThreeBold,
 } from 'react-icons/pi';
-import { Link } from 'react-router';
+import { Link } from 'react-router-dom';
 
 /**
  * MOCK-DATEN: Bitte später durch echte Daten ersetzen!

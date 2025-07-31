@@ -2,7 +2,7 @@ import { CreateEinsatzDto } from '@bluelight-hub/shared/client/models';
 import { Alert, Button, Card, Form, Input, message } from 'antd';
 import React, { useEffect, useState } from 'react';
 import { PiPlus } from 'react-icons/pi';
-import { useNavigate } from 'react-router';
+import { useNavigate } from 'react-router-dom';
 import { useCreateEinsatz, useEinsatzOperations } from '../../../hooks/einsatz/useEinsatzQueries';
 
 /**

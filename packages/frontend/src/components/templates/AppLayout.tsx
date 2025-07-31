@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Outlet, useLocation, useNavigate } from 'react-router';
+import { Outlet, useLocation, useNavigate } from 'react-router-dom';
 import { findRouteTitle, mainNavigation } from '../../config/navigation';
 import useMediaQuery from '../../hooks/useMediaQuery';
 import MobileHeader from '../organisms/MobileHeader';

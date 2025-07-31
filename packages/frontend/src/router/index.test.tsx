@@ -1,8 +1,10 @@
 import { describe, expect, it, vi } from 'vitest';
 import React from 'react';
+import { render, screen } from '@testing-library/react';
+import { Router } from './index';
 
-// Mock react-router to avoid useRoutes errors
-vi.mock('react-router', () => ({
+// Mock react-router-dom to avoid useRoutes errors
+vi.mock('react-router-dom', () => ({
   Route: ({ element, children }: any) => children || element,
   Routes: ({ children }: any) => <div data-testid="routes">{children}</div>,
   Outlet: () => <div data-testid="outlet" />,
@@ -169,9 +171,6 @@ vi.mock('./auth/EinsatzGuard', async () => {
     default: () => <Outlet />,
   };
 });
-
-import { render, screen } from '@testing-library/react';
-import { Router } from './index';
 
 describe('Router', () => {
   it('should render AuthProvider and EinsatzProvider', () => {

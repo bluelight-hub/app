@@ -5,7 +5,7 @@ import { useEinsatzContext } from '../../contexts/EinsatzContext';
 import { useUserProfileStore } from '../../stores/useUserProfileStore';
 import { logout } from '../../utils/auth';
 import { BaseAtomProps } from '../../utils/types';
-import { useNavigate } from 'react-router';
+import { useNavigate } from 'react-router-dom';
 
 interface UserProfileProps extends BaseAtomProps {
   href: string;

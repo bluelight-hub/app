@@ -1,18 +1,18 @@
 import React, { useState } from 'react';
-import { Table, Card, Button, Space, Tag, Modal, message, Input, Select, Tooltip, Popconfirm } from 'antd';
+import { Button, Card, Input, message, Modal, Popconfirm, Select, Space, Table, Tag, Tooltip } from 'antd';
 import type { ColumnsType } from 'antd/es/table';
 import {
+  PiArrowsClockwise,
+  PiClock,
   PiDesktop,
   PiDeviceMobile,
+  PiDownload,
   PiGlobe,
-  PiClock,
+  PiMagnifyingGlass,
   PiTrash,
   PiWarning,
-  PiMagnifyingGlass,
-  PiDownload,
-  PiArrowsClockwise,
 } from 'react-icons/pi';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { securityApi, Session } from '@/api/security';
 import { format } from 'date-fns';
 import { de } from 'date-fns/locale';
@@ -75,7 +75,7 @@ const SessionsTable: React.FC = () => {
       searchText === '' ||
       session.username.toLowerCase().includes(searchText.toLowerCase()) ||
       session.email.toLowerCase().includes(searchText.toLowerCase()) ||
-      session.ipAddress.includes(searchText);
+      session.ipAddress?.includes(searchText);
 
     const matchesFilter =
       filterStatus === 'all' ||
