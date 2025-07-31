@@ -81,12 +81,12 @@ const AdminGuard = React.lazy(() => import('@/components/organisms/admin/AdminGu
 // Admin App (separate window)
 const AdminApp = React.lazy(() => import('@/components/pages/admin/AdminApp'));
 
-// Admin Pages (for main app integration)
-const AdminDashboard = React.lazy(() => import('@/components/pages/admin/dashboard/page'));
-const AdminUsers = React.lazy(() => import('@/components/pages/admin/users/page'));
-const AdminOrganizations = React.lazy(() => import('@/components/pages/admin/organizations/page'));
-const AdminSystem = React.lazy(() => import('@/components/pages/admin/system/page'));
-const AdminLogs = React.lazy(() => import('@/components/pages/admin/logs/page'));
+// Admin Pages (for main app integration) - currently only used in separate admin app
+// const AdminDashboard = React.lazy(() => import('@/components/pages/admin/dashboard/page'));
+// const AdminUsers = React.lazy(() => import('@/components/pages/admin/users/page'));
+// const AdminOrganizations = React.lazy(() => import('@/components/pages/admin/organizations/page'));
+// const AdminSystem = React.lazy(() => import('@/components/pages/admin/system/page'));
+// const AdminLogs = React.lazy(() => import('@/components/pages/admin/logs/page'));
 
 // NotFound Page
 const NotFoundPage = React.lazy(() => import('@/components/pages/not-found/page'));
@@ -176,15 +176,6 @@ export const Router = () => {
                   <Route path="schaden" element={<SchadenPage />} />
                   <Route path="gefahren" element={<GefahrenPage />} />
                   <Route path="notizen" element={<NotizenPage />} />
-
-                  {/* Admin Routes within main app */}
-                  <Route element={<AdminGuard />}>
-                    <Route path="admin" element={<AdminDashboard />} />
-                    <Route path="admin/users" element={<AdminUsers />} />
-                    <Route path="admin/organizations" element={<AdminOrganizations />} />
-                    <Route path="admin/system" element={<AdminSystem />} />
-                    <Route path="admin/logs" element={<AdminLogs />} />
-                  </Route>
                 </Route>
 
                 {/* Standalone Einsatz Management - außerhalb AppLayout */}

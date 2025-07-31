@@ -25,19 +25,28 @@ interface Activity {
   entityName?: string;
   userId: string;
   userName: string;
-  metadata?: Record<string, any>;
+  metadata?: Record<string, unknown>;
   timestamp: string;
   severity: 'info' | 'warning' | 'error' | 'success';
 }
 
 const ActivityLog: React.FC = () => {
-  const { data: activities, isLoading } = useQuery({
+  const {
+    data: activities = [],
+    isLoading,
+    error,
+  } = useQuery<Activity[]>({
     queryKey: ['admin-activities'],
     queryFn: async () => {
       const response = await fetchWithAuth('/api/admin/activities');
-      return response.json() as Promise<Activity[]>;
+      if (!response.ok) {
+        throw new Error('Failed to fetch activities');
+      }
+      const data = await response.json();
+      return Array.isArray(data) ? data : [];
     },
     refetchInterval: 30000, // Alle 30 Sekunden aktualisieren
+    retry: 1,
   });
 
   const getIcon = (activity: Activity) => {
@@ -114,9 +123,13 @@ const ActivityLog: React.FC = () => {
   if (isLoading) {
     return (
       <div className="flex justify-center items-center h-32">
-        <Spin tip="Lade Aktivitäten..." />
+        <Spin />
       </div>
     );
+  }
+
+  if (error) {
+    return <Empty description="Aktivitäten konnten nicht geladen werden" image={Empty.PRESENTED_IMAGE_SIMPLE} />;
   }
 
   if (!activities || activities.length === 0) {

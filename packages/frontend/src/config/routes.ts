@@ -20,7 +20,10 @@ export interface RouteDefinition {
   /** URL-Pfad der Route */
   path: string;
   /** React-Komponente für die Route */
-  element: LazyExoticComponent<ComponentType<any>> | ComponentType<any>;
+  element:
+    | LazyExoticComponent<ComponentType<unknown>>
+    | ComponentType<unknown>
+    | (() => Promise<unknown>);
   /** Titel der Seite für Breadcrumbs und Navigation */
   title: string;
   /** Beschreibung der Route */
