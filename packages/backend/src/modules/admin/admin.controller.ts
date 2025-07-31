@@ -1,10 +1,7 @@
-import { Controller, Get, UseGuards, Query } from '@nestjs/common';
-import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth } from '@nestjs/swagger';
-import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
-import { RolesGuard } from '../auth/guards/roles.guard';
-import { Roles } from '../auth/decorators/roles.decorator';
+import { Controller, Get, Query, UseGuards } from '@nestjs/common';
+import { ApiBearerAuth, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
+import { JwtAuthGuard, Roles, RolesGuard, UserRole } from '@/modules/auth';
 import { AdminService } from './admin.service';
-import { UserRole } from '@prisma/client';
 
 @ApiTags('Admin')
 @Controller('admin')

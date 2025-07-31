@@ -15,7 +15,20 @@ import {
 import { useQuery } from '@tanstack/react-query';
 import { formatDistanceToNow } from 'date-fns';
 import { de } from 'date-fns/locale';
-import { adminApi, type Activity } from '@/api/admin.helpers';
+import { fetchWithAuth } from '@/utils/authInterceptor';
+
+interface Activity {
+  id: string;
+  action: string;
+  entityType: 'user' | 'organization' | 'system' | 'security';
+  entityId?: string;
+  entityName?: string;
+  userId: string;
+  userName: string;
+  metadata?: Record<string, unknown>;
+  timestamp: string;
+  severity: 'info' | 'warning' | 'error' | 'success';
+}
 
 const ActivityLog: React.FC = () => {
   const {
@@ -24,7 +37,15 @@ const ActivityLog: React.FC = () => {
     error,
   } = useQuery<Activity[]>({
     queryKey: ['admin-activities'],
-    queryFn: () => adminApi.getActivities(20),
+    queryFn: async () => {
+      // TODO: Use api.admin.getActivities() when AdminApi is generated
+      const response = await fetchWithAuth('/api/admin/activities?limit=20');
+      if (!response.ok) {
+        throw new Error('Failed to fetch activities');
+      }
+      const data = await response.json();
+      return Array.isArray(data) ? data : [];
+    },
     refetchInterval: 30000, // Alle 30 Sekunden aktualisieren
     retry: 1,
   });

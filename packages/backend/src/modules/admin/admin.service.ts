@@ -61,11 +61,7 @@ export class AdminService {
   async getDashboardStats() {
     const [users, activeEinsaetze] = await Promise.all([
       this.prisma.user.count(),
-      this.prisma.einsatz.count({
-        where: {
-          endeDatum: null,
-        },
-      }),
+      this.prisma.einsatz.count(), // Alle Einsätze zählen, da kein Status-Feld vorhanden
     ]);
 
     return {

@@ -5,6 +5,39 @@
 - GitHub: github.com/bluelight-hub/app
 - Git Remote: `github` (https://github.com/bluelight-hub/app.git)
 
+## API Client Generation (WICHTIG!)
+
+### Automatische API-Client Generierung
+
+**NIEMALS manuelle API-Helper erstellen!** Das Projekt nutzt automatische API-Client-Generierung aus der OpenAPI-Spezifikation.
+
+**Workflow:**
+
+1. Backend-Endpunkte werden mit NestJS/Swagger erstellt
+2. API-Client wird automatisch generiert: `pnpm run generate:api`
+3. Generierte APIs sind verfügbar in: `packages/shared/client/apis/`
+4. Frontend nutzt die generierten APIs über: `packages/frontend/src/api/index.ts`
+
+**Verwendung im Frontend:**
+
+```typescript
+import { api } from '@/api';
+
+// Beispiel: Security API verwenden
+const alerts = await api.security.getSecurityAlerts();
+
+// NICHT SO:
+// import { fetchWithAuth } from '@/utils/authInterceptor';
+// const response = await fetchWithAuth('/api/security/alerts');
+```
+
+**Wichtige Regeln:**
+
+- IMMER zuerst prüfen ob eine API im generierten Client existiert
+- Falls nicht: Backend-Endpunkt erstellen und API-Client generieren lassen
+- NIEMALS eigene API-Helper in `packages/frontend/src/api/` erstellen
+- Bei fehlenden APIs: TODO-Kommentar hinzufügen und temporär fetchWithAuth nutzen
+
 ## Development Tools
 
 ### IntelliJ Run Configurations (Preferred)
