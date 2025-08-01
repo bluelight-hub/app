@@ -65,6 +65,9 @@ async function bootstrap() {
     }),
   );
 
+  // Set global prefix for all routes
+  app.setGlobalPrefix('api');
+
   const port = configService.get('BACKEND_PORT') || configService.get('PORT') || 3000;
 
   await app.listen(port);
