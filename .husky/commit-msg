@@ -71,11 +71,6 @@ fi
 
 echo "✅ Commit-Nachricht ist gültig!"
 
-# Führe Tests aus, wenn kein [skip ci] Flag gefunden wurde
-echo "🔍 Führe Tests aus..."
-pnpm test:cov
-
-# Wenn Tests fehlschlagen, verhindere den Commit
 echo "🔍 Führe Tests aus..."
 pnpm test:cov
 TEST_RESULT=$?
