@@ -7,9 +7,8 @@
   "types": "dist/index.d.ts",
   "scripts": {
     "format": "prettier --write .",
-    "generate-api": "openapi-generator-cli generate -g=typescript-fetch -i http://localhost:3000/api-json -o ./client --skip-validate-spec && pnpm format",
-    "build": "tsc -b",
-    "prebuild": "rimraf dist",
+    "generate-api": "rimraf dist client && openapi-generator-cli generate -g=typescript-fetch -i http://localhost:3000/api-json -o ./client --skip-validate-spec && pnpm format",
+    "build": "pnpm generate-api",
     "test": "echo 'No tests available for shared package'"
   },
   "devDependencies": {

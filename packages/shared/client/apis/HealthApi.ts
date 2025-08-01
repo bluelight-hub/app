@@ -13,16 +13,8 @@
  */
 
 import * as runtime from '../runtime';
-import type {
-  SecurityHealthControllerCheckSecurityLogsHealthV1200Response,
-  SecurityHealthControllerCheckSecurityLogsHealthV1503Response,
-} from '../models/index';
-import {
-  SecurityHealthControllerCheckSecurityLogsHealthV1200ResponseFromJSON,
-  SecurityHealthControllerCheckSecurityLogsHealthV1200ResponseToJSON,
-  SecurityHealthControllerCheckSecurityLogsHealthV1503ResponseFromJSON,
-  SecurityHealthControllerCheckSecurityLogsHealthV1503ResponseToJSON,
-} from '../models/index';
+import type { HealthControllerCheck200Response } from '../models/index';
+import { HealthControllerCheck200ResponseFromJSON } from '../models/index';
 
 /**
  *
@@ -32,7 +24,7 @@ export class HealthApi extends runtime.BaseAPI {
    */
   async healthControllerCheckRaw(
     initOverrides?: RequestInit | runtime.InitOverrideFunction,
-  ): Promise<runtime.ApiResponse<SecurityHealthControllerCheckSecurityLogsHealthV1200Response>> {
+  ): Promise<runtime.ApiResponse<HealthControllerCheck200Response>> {
     const queryParameters: any = {};
 
     const headerParameters: runtime.HTTPHeaders = {};
@@ -48,7 +40,7 @@ export class HealthApi extends runtime.BaseAPI {
     );
 
     return new runtime.JSONApiResponse(response, (jsonValue) =>
-      SecurityHealthControllerCheckSecurityLogsHealthV1200ResponseFromJSON(jsonValue),
+      HealthControllerCheck200ResponseFromJSON(jsonValue),
     );
   }
 
@@ -56,7 +48,7 @@ export class HealthApi extends runtime.BaseAPI {
    */
   async healthControllerCheck(
     initOverrides?: RequestInit | runtime.InitOverrideFunction,
-  ): Promise<SecurityHealthControllerCheckSecurityLogsHealthV1200Response> {
+  ): Promise<HealthControllerCheck200Response> {
     const response = await this.healthControllerCheckRaw(initOverrides);
     return await response.value();
   }
@@ -65,7 +57,7 @@ export class HealthApi extends runtime.BaseAPI {
    */
   async healthControllerCheckDatabaseRaw(
     initOverrides?: RequestInit | runtime.InitOverrideFunction,
-  ): Promise<runtime.ApiResponse<SecurityHealthControllerCheckSecurityLogsHealthV1200Response>> {
+  ): Promise<runtime.ApiResponse<HealthControllerCheck200Response>> {
     const queryParameters: any = {};
 
     const headerParameters: runtime.HTTPHeaders = {};
@@ -81,7 +73,7 @@ export class HealthApi extends runtime.BaseAPI {
     );
 
     return new runtime.JSONApiResponse(response, (jsonValue) =>
-      SecurityHealthControllerCheckSecurityLogsHealthV1200ResponseFromJSON(jsonValue),
+      HealthControllerCheck200ResponseFromJSON(jsonValue),
     );
   }
 
@@ -89,7 +81,7 @@ export class HealthApi extends runtime.BaseAPI {
    */
   async healthControllerCheckDatabase(
     initOverrides?: RequestInit | runtime.InitOverrideFunction,
-  ): Promise<SecurityHealthControllerCheckSecurityLogsHealthV1200Response> {
+  ): Promise<HealthControllerCheck200Response> {
     const response = await this.healthControllerCheckDatabaseRaw(initOverrides);
     return await response.value();
   }
@@ -98,7 +90,7 @@ export class HealthApi extends runtime.BaseAPI {
    */
   async healthControllerCheckLivenessRaw(
     initOverrides?: RequestInit | runtime.InitOverrideFunction,
-  ): Promise<runtime.ApiResponse<SecurityHealthControllerCheckSecurityLogsHealthV1200Response>> {
+  ): Promise<runtime.ApiResponse<HealthControllerCheck200Response>> {
     const queryParameters: any = {};
 
     const headerParameters: runtime.HTTPHeaders = {};
@@ -114,7 +106,7 @@ export class HealthApi extends runtime.BaseAPI {
     );
 
     return new runtime.JSONApiResponse(response, (jsonValue) =>
-      SecurityHealthControllerCheckSecurityLogsHealthV1200ResponseFromJSON(jsonValue),
+      HealthControllerCheck200ResponseFromJSON(jsonValue),
     );
   }
 
@@ -122,7 +114,7 @@ export class HealthApi extends runtime.BaseAPI {
    */
   async healthControllerCheckLiveness(
     initOverrides?: RequestInit | runtime.InitOverrideFunction,
-  ): Promise<SecurityHealthControllerCheckSecurityLogsHealthV1200Response> {
+  ): Promise<HealthControllerCheck200Response> {
     const response = await this.healthControllerCheckLivenessRaw(initOverrides);
     return await response.value();
   }
@@ -131,7 +123,7 @@ export class HealthApi extends runtime.BaseAPI {
    */
   async healthControllerCheckReadinessRaw(
     initOverrides?: RequestInit | runtime.InitOverrideFunction,
-  ): Promise<runtime.ApiResponse<SecurityHealthControllerCheckSecurityLogsHealthV1200Response>> {
+  ): Promise<runtime.ApiResponse<HealthControllerCheck200Response>> {
     const queryParameters: any = {};
 
     const headerParameters: runtime.HTTPHeaders = {};
@@ -147,7 +139,7 @@ export class HealthApi extends runtime.BaseAPI {
     );
 
     return new runtime.JSONApiResponse(response, (jsonValue) =>
-      SecurityHealthControllerCheckSecurityLogsHealthV1200ResponseFromJSON(jsonValue),
+      HealthControllerCheck200ResponseFromJSON(jsonValue),
     );
   }
 
@@ -155,7 +147,7 @@ export class HealthApi extends runtime.BaseAPI {
    */
   async healthControllerCheckReadiness(
     initOverrides?: RequestInit | runtime.InitOverrideFunction,
-  ): Promise<SecurityHealthControllerCheckSecurityLogsHealthV1200Response> {
+  ): Promise<HealthControllerCheck200Response> {
     const response = await this.healthControllerCheckReadinessRaw(initOverrides);
     return await response.value();
   }

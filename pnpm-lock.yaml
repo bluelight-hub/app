@@ -204,6 +204,9 @@ importers:
       '@tauri-apps/plugin-store':
         specifier: ^2.3.0
         version: 2.3.0
+      consola:
+        specifier: ^3.4.2
+        version: 3.4.2
       react:
         specifier: 19.1.1
         version: 19.1.1
