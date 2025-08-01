@@ -6,7 +6,9 @@
 
 
 == Übersicht
-Der Architecture Communication Canvas ist eine einseitige visuelle Zusammenfassung der gesamten Architektur des Bluelight-Hub-Systems. Er dient als Schnellreferenz für Entwickler, Stakeholder und neue Teammitglieder.
+
+Der Architecture Communication Canvas ist eine einseitige visuelle Zusammenfassung der gesamten Architektur des Bluelight-Hub-Systems.
+Er dient als Schnellreferenz für Entwickler, Stakeholder und neue Teammitglieder.
 
 == Systemkontext
 
@@ -95,7 +97,7 @@ pie showData
     "Sicherheit" : 5
 ....
 
-[cols="1,3", options="header"]
+[cols="1,3",options="header"]
 |===
 |Qualitätsziel |Bedeutung
 |Konnektivitätsresilienz |Funktionalität in verschiedenen Verbindungsszenarien (lokal, vollständig, autonom)
@@ -154,10 +156,10 @@ flowchart TB
     Mobile --> Tauri & WebView
 ....
 
-[cols="1,1,3", options="header"]
+[cols="1,1,3",options="header"]
 |===
 |Bereich |Technologie |Begründung
-|Frontend |React, TypeScript, Ant Design |Moderne, typsichere Entwicklung mit etabliertem UI-Framework
+|Frontend |React, TypeScript, Chakra UI |Moderne, typsichere Entwicklung mit etabliertem UI-Framework
 |Mobile App |Tauri v2 mit TypeScript |Plattformübergreifende Entwicklung, nativer Zugriff auf Systemfunktionen
 |Backend |NestJS |Strukturiertes, modulares Framework mit TypeScript
 |Datenbank |PostgreSQL, Prisma |Robuste, skalierbare SQL-Datenbank mit Prisma ORM
@@ -167,7 +169,7 @@ flowchart TB
 
 == Wichtige Architekturentscheidungen
 
-[cols="1,4", options="header"]
+[cols="1,4",options="header"]
 |===
 |ADR |Beschreibung
 |ADR-001 |Verbindungskonzept-Architektur: Unterstützung verschiedener Konnektivitätsszenarien
@@ -216,7 +218,7 @@ flowchart TB
 
 === Deployment-Prozess
 
-[cols="1,3", options="header"]
+[cols="1,3",options="header"]
 |===
 |Phase |Beschreibung
 |Entwicklung |Entwickler arbeiten in lokalen Umgebungen mit Hot-Reload; Pull Requests lösen CI-Tests aus
@@ -227,7 +229,7 @@ flowchart TB
 
 == Risiken und technische Schulden
 
-[cols="1,1,3", options="header"]
+[cols="1,1,3",options="header"]
 |===
 |Risiko |Kritikalität |Maßnahme
 |Instabile Netzwerkverbindung |Hoch |Robuste Offline-Funktionalität und Synchronisationsmechanismen implementieren
@@ -265,7 +267,8 @@ Dieses Kommunikationsmodell zeigt die grundlegenden Datenflüsse im System, eins
 
 == Zusammenfassung
 
-Das Bluelight-Hub-System ist eine moderne, resiliente Anwendung für das Einsatzmanagement der Feuerwehr und anderer Hilfsorganisationen. Die Architektur ist darauf ausgelegt, auch unter schwierigen Bedingungen zuverlässig zu funktionieren und eine nahtlose Zusammenarbeit zwischen allen Einsatzkräften zu ermöglichen.
+Das Bluelight-Hub-System ist eine moderne, resiliente Anwendung für das Einsatzmanagement der Feuerwehr und anderer Hilfsorganisationen.
+Die Architektur ist darauf ausgelegt, auch unter schwierigen Bedingungen zuverlässig zu funktionieren und eine nahtlose Zusammenarbeit zwischen allen Einsatzkräften zu ermöglichen.
 
 Die wichtigsten Merkmale sind:
 

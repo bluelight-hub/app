@@ -18,10 +18,6 @@ alwaysApply: false
      - Tag, Stunde, Minute, Monat (klein, 3 Buchstaben), Jahr (2-stellig)
      - Verwende dies für interne Darstellungen und APIs
    
-   - **ANT-Format**: `ddHHmmLLLyy` (Beispiel: `230800jan23`)
-     - Exakt wie NATO-Format, aber für Ant Design Komponenten
-     - Monat immer kleingeschrieben, keine Punkte
-
    - **Benutzerformat**: `DD.MM.YYYY HH:mm` (Beispiel: `23.01.2023 08:00`)
      - Verwende dies für alle benutzerorientierte Anzeigen
 
@@ -30,11 +26,6 @@ alwaysApply: false
      - Interne Datenübertragung (APIs)
      - Log-Dateien
      - Technische Berichte
-   
-   - **ANT-Format verwenden für**:
-     - Ant Design DatePicker-Komponenten (ConfigProvider)
-     - ThemeProvider-Konfiguration
-     - Internes Format bei Ant Design Datums-Widgets
    
    - **Benutzerformat verwenden für**:
      - Alle benutzerorientierten Anzeigen in der UI

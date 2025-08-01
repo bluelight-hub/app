@@ -1,15 +1,6 @@
 import { createFileRoute } from '@tanstack/react-router';
-import { ColorModeButton } from '@/components/ui/color-mode.tsx';
+import { lazy } from 'react';
 
 export const Route = createFileRoute('/')({
-  component: Index,
+  component: lazy(() => import('@pages/index.page.tsx').then((module) => ({ default: module.IndexPage }))),
 });
-
-function Index() {
-  return (
-    <>
-      <div>Hello "/"!</div>
-      <ColorModeButton />
-    </>
-  );
-}

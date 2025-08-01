@@ -13,7 +13,6 @@ function RootComponent() {
   return (
     <Provider>
       <QueryClientProvider client={queryClient}>
-        <div>Hello "__root"!</div>
         <Outlet />
         <ReactQueryDevtools />
       </QueryClientProvider>

@@ -38,7 +38,7 @@ src/components/
 
 4. **Icon-Nutzung**
 - Nutze ausschließlich Icons aus dem `react-icons/pi` Paket (Phosphor Icons)
-- Vermeiden von anderen Icon-Bibliotheken wie Ant Design Icons
+- Vermeiden von anderen Icon-Bibliotheken wie Ant Design Icons oder andere
 - Beispiel: `import { PiEnvelope, PiLockKey } from 'react-icons/pi';`
 
 5. **Testing**

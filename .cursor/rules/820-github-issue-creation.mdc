@@ -68,7 +68,7 @@ Implementierung einer zentralen Einsätze-Übersicht als Einstiegspunkt nach Log
 
 ### Technische Anforderungen:
 - [ ] React + TypeScript
-- [ ] Ant Design Komponenten
+- [ ] Chakra UI
 - [ ] Unit Tests >90% Coverage
 
 ## ✅ Definition of Done
