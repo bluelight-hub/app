@@ -1,11 +1,24 @@
 import '@fontsource-variable/nunito/index.css';
-import { StrictMode } from 'react';
-import { createRoot } from 'react-dom/client';
-import App from './App.tsx';
 import './index.css';
+import { createRouter, RouterProvider } from '@tanstack/react-router';
+import { routeTree } from '@/routeTree.gen.ts';
+import ReactDOM from 'react-dom/client';
+import { StrictMode } from 'react';
 
-createRoot(document.getElementById('root')!).render(
-  <StrictMode>
-    <App />
-  </StrictMode>,
-);
+const router = createRouter({ routeTree });
+
+declare module '@tanstack/react-router' {
+  interface Register {
+    router: typeof router;
+  }
+}
+
+const rootElement = document.getElementById('root')!;
+if (!rootElement.innerHTML) {
+  const root = ReactDOM.createRoot(rootElement);
+  root.render(
+    <StrictMode>
+      <RouterProvider router={router} />
+    </StrictMode>,
+  );
+}

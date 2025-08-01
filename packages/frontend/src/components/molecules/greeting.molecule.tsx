@@ -1,7 +1,8 @@
 import { useQuery } from '@tanstack/react-query';
 import { BackendApi } from '@/api/api.ts';
 import { useMemo } from 'react';
-import { ModeToggle } from '@/components/mode-toggle.tsx';
+import { Button, HStack } from '@chakra-ui/react';
+import { ColorModeButton } from '@/components/ui/color-mode.tsx';
 
 export function Greeting() {
   const healthApi = useMemo(() => {
@@ -16,7 +17,12 @@ export function Greeting() {
   return (
     <>
       <div>Hey Bluelight hub! -- {JSON.stringify(query.data)}</div>
-      <ModeToggle />
+      <HStack>
+        <Button>Hello</Button>
+        <Button>World</Button>
+
+        <ColorModeButton />
+      </HStack>
     </>
   );
 }
