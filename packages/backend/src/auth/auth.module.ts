@@ -1,7 +1,12 @@
 import { Module } from '@nestjs/common';
+import { JwtModule } from '@nestjs/jwt';
+import { PassportModule } from '@nestjs/passport';
+import { ConfigModule, ConfigService } from '@nestjs/config';
 import { AuthController } from './auth.controller';
 import { AuthService } from './auth.service';
 import { PrismaModule } from '../prisma/prisma.module';
+import { JwtStrategy } from './strategies/jwt.strategy';
+import { JwtRefreshStrategy } from './strategies/jwt-refresh.strategy';
 
 /**
  * Authentifizierungsmodul für BlueLight Hub
@@ -15,11 +20,23 @@ import { PrismaModule } from '../prisma/prisma.module';
  * - Benutzeranmeldung nur mit Benutzernamen
  * - Automatische SUPER_ADMIN-Zuweisung für ersten Benutzer
  * - Rollenbasierte Zugriffskontrolle
+ * - JWT-basierte Authentifizierung mit Access- und Refresh-Tokens
  */
 @Module({
-  imports: [PrismaModule],
+  imports: [
+    PrismaModule,
+    PassportModule,
+    JwtModule.registerAsync({
+      imports: [ConfigModule],
+      useFactory: async (configService: ConfigService) => ({
+        secret: configService.get<string>('JWT_SECRET'),
+        signOptions: { expiresIn: '15m' },
+      }),
+      inject: [ConfigService],
+    }),
+  ],
   controllers: [AuthController],
-  providers: [AuthService],
-  exports: [AuthService],
+  providers: [AuthService, JwtStrategy, JwtRefreshStrategy],
+  exports: [AuthService, JwtModule],
 })
 export class AuthModule {}

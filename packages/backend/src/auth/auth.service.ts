@@ -1,4 +1,5 @@
 import { Injectable, ConflictException, NotFoundException } from '@nestjs/common';
+import { JwtService } from '@nestjs/jwt';
 import { PrismaService } from '../prisma/prisma.service';
 import { User, UserRole } from '@prisma/client';
 import { RegisterUserDto } from './dto/register-user.dto';
@@ -12,7 +13,10 @@ import { LoginUserDto } from './dto/login-user.dto';
  */
 @Injectable()
 export class AuthService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly jwtService: JwtService,
+  ) {}
 
   /**
    * Registriert einen neuen Benutzer
@@ -81,5 +85,27 @@ export class AuthService {
     return this.prisma.user.findUnique({
       where: { id },
     });
+  }
+
+  /**
+   * Generiert ein Access-Token für einen Benutzer
+   *
+   * @param userId - Die ID des Benutzers
+   * @returns Das signierte JWT Access-Token
+   */
+  signAccessToken(userId: string): string {
+    const payload = { sub: userId };
+    return this.jwtService.sign(payload);
+  }
+
+  /**
+   * Generiert ein Refresh-Token für einen Benutzer
+   *
+   * @param userId - Die ID des Benutzers
+   * @returns Das signierte JWT Refresh-Token
+   */
+  signRefreshToken(userId: string): string {
+    const payload = { sub: userId };
+    return this.jwtService.sign(payload, { expiresIn: '7d' });
   }
 }
