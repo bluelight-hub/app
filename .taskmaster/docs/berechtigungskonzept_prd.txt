@@ -1,0 +1,202 @@
+<context>
+# Projektübersicht
+**Vision**: Ein flexibles Berechtigungssystem ohne vordefinierte Nutzer. Der erste registrierte Bearbeiter erhält die Möglichkeit, sich zum Administrator zu machen.
+
+**Zielgruppe**: 
+- Bearbeiter: Selbstregistrierende Nutzer, die sich nur mit Benutzernamen anmelden
+- Administrator: Der erste Bearbeiter kann sich zum Admin machen, indem er ein Admin-Passwort setzt
+
+**Business Value**: 
+- Selbstregistrierung für Bearbeiter (niedrige Einstiegshürde)
+- Einfacher Zugang für Bearbeiter (kein Passwort nötig)
+- Erster Nutzer kann sich zum Admin machen
+- Zero-Configuration: Keine vordefinierten User nötig
+
+# Kernfunktionen
+1. **Erste Registrierung**: Der erste Bearbeiter, der sich registriert, kann Admin werden
+2. **Admin-Aktivierung**: Jeder Bearbeiter kann Admin-Passwort setzen (wenn noch keins existiert)
+3. **Bearbeiter-Selbstregistrierung**: Neue Bearbeiter können sich selbst mit Benutzernamen registrieren
+4. **Bearbeiter-Login**: Anmeldung nur mit Benutzernamen (ohne Passwort)
+5. **Admin-Authentifizierung**: Nach Passwort-Setzung passwortgeschützt
+6. **Fenster-Management**: Separate Fenster für verschiedene Bereiche (Tauri)
+
+# Benutzererfahrung
+- **App-Start**: Ansprechendes Login-Fenster als erster Kontaktpunkt
+- **Bearbeiter-Workflow**: Selbstregistrierung oder Anmeldung mit existierendem Benutzernamen
+- **Admin-Werden**: Erster Bearbeiter (oder jeder, solange kein Admin existiert) kann Admin-Passwort setzen
+- **Admin-Workflow**: Kann als Bearbeiter arbeiten, bei Bedarf Admin-Rechte mit Passwort aktivieren
+- **Klare Trennung**: Admin-Bereich in separatem Fenster/Tab
+</context>
+
+<PRD>
+# Technische Architektur
+
+## Tech Stack
+- Frontend: React + TypeScript (bereits vorhanden)
+- UI Framework: Chakra UI v3 (bereits vorhanden)
+- Backend: NestJS (bereits vorhanden)
+- Desktop: Tauri (Window Management)
+- State Management: Zustand oder Context API
+- Auth: JWT für Sessions (Access Token: 15min, Refresh Token: 2h)
+- Database: PostgreSQL mit Prisma (bereits vorhanden)
+
+## Datenmodelle
+```typescript
+// Prisma Schema
+model User {
+  id        String   @id @default(uuid())
+  username  String   @unique
+  isAdmin   Boolean  @default(false)
+  password  String?  // Nur für Admins
+  createdAt DateTime @default(now())
+  createdBy String?  // Admin der den User erstellt hat
+}
+
+// Frontend Types
+interface User {
+  id: string;
+  username: string;
+  isAdmin: boolean;
+}
+
+interface AuthState {
+  currentUser: User | null;
+  isAdminAuthenticated: boolean;
+  adminToken?: string;
+}
+```
+
+## API Endpoints (Backend)
+- POST /api/auth/register - Bearbeiter-Registrierung (neuer Username)
+- POST /api/auth/login - Bearbeiter-Login (existierender Username)
+- POST /api/auth/admin/setup - Admin-System aktivieren (Passwort setzen + User zum Admin machen)
+- POST /api/auth/admin/login - Admin-Login (Username + Passwort)
+- POST /api/auth/admin/verify - Admin-Token verifizieren
+- GET /api/users - Alle Bearbeiter abrufen (Admin only)
+- POST /api/users - Neuen Bearbeiter anlegen (Admin only)
+- DELETE /api/users/:id - Bearbeiter löschen (Admin only)
+
+## Admin-System Logik
+```typescript
+// Prüfen ob Admin-System bereits aktiviert ist
+const adminExists = await prisma.user.findFirst({
+  where: { isAdmin: true, password: { not: null } }
+});
+
+// Bei Admin-Button-Klick
+if (!adminExists) {
+  // Jeder Bearbeiter kann Admin werden
+  showAdminSetupDialog();
+} else if (currentUser.isAdmin) {
+  // Existierender Admin
+  showAdminPasswordDialog();
+} else {
+  // Normaler Bearbeiter, Admin existiert bereits
+  showMessage("Admin-Rechte nur für autorisierte Nutzer");
+}
+```
+
+# Entwicklungs-Roadmap
+
+## MVP (Phase 1) - Version 1.0
+
+1. **Backend Auth-System**
+   - User-Model mit optionalem Passwort und Admin-Flag
+   - JWT-basierte Sessions (Access + Refresh Token)
+   - Auth-Endpoints mit Selbstregistrierung
+   - Admin-Setup-Endpoint für ersten Admin
+
+2. **Frontend Auth-State**
+   - AuthContext/Store einrichten
+   - Session-Management
+   - Protected Routes
+
+3. **Login-Fenster (UI/UX)**
+   - Modernes, ansprechendes Design als erster Eindruck
+   - Branding/Logo prominent platziert
+   - Zwei Modi: "Anmelden" und "Neu registrieren"
+   - Benutzerauswahl oder Eingabefeld für neuen Namen
+   - Keine Passwort-Eingabe für normale Bearbeiter
+   - Smooth Transitions und Animationen
+   - Nach Login: Eleganter Übergang zum Hauptfenster
+   - Responsive für verschiedene Bildschirmgrößen
+
+4. **Admin-Authentifizierung**
+   - Admin-Button im Hauptfenster
+   - Wenn kein Admin existiert: Admin-Setup-Dialog
+   - Wenn Admin existiert: Passwort-Eingabe-Dialog
+   - JWT-Token für Admin-Session
+
+5. **Window Management**
+   - Tauri: Neues Fenster für Admin-Bereich
+   - Web: Neuer Tab oder Modal
+
+6. **Admin-Dashboard (Basis)**
+   - Benutzer-Liste anzeigen
+   - Neuen Bearbeiter anlegen
+   - Bearbeiter löschen
+
+## Phase 2 - Erweiterte Features
+- Bearbeiter-Rechte granular verwalten
+- Admin-Passwort ändern
+- Mehrere Admins unterstützen
+- Audit-Log für Admin-Aktionen
+
+## Phase 3 - Enterprise Features
+- 2FA für Admins (nur zeitbasiertes OTP)
+- Session-Management (aktive Sessions anzeigen/beenden)
+
+# Logische Abhängigkeitskette
+
+1. **Database Schema** → User-Model mit Admin-Flag
+2. **Admin System Setup** → Erster Bearbeiter kann Admin werden
+3. **Backend Auth** → JWT-Generation und Validierung
+4. **API Endpoints** → Login und User-Management
+5. **Frontend Auth State** → Context/Store für User-Info
+6. **Login Window UI** → Ansprechendes Design und User-Auswahl
+7. **Protected Routes** → Hauptanwendung nach Login
+8. **Admin Auth Dialog** → Passwort-Eingabe für Admin
+9. **Window Manager** → Tauri/Web Abstraktion
+10. **Admin Dashboard** → User-Management UI
+
+# Risiken und Gegenmaßnahmen
+
+## Technische Risiken
+- **Initial-Passwort verloren**: Admin ausgesperrt
+  → CLI-Command für Passwort-Reset implementieren
+- **JWT-Token-Sicherheit**: Token könnte gestohlen werden
+  → Access Token: 15min, Refresh Token: 2h, HttpOnly Cookies
+
+## Business Risiken
+- **Admin-Passwort nie gesetzt**: Admin-Funktionen nicht nutzbar
+  → Klare UI-Hinweise beim ersten Admin-Button-Klick
+- **Admin löscht sich selbst**: System ohne Admin
+  → Letzten Admin nicht löschbar machen
+
+# Erfolgskriterien
+
+## MVP Success Metrics
+- Erster Bearbeiter kann sich zum Admin machen
+- Bearbeiter können sich selbst registrieren und anmelden
+- Admin-System funktioniert ohne vordefinierte User
+- Fenster-Management funktioniert plattformübergreifend
+- Keine Sicherheitslücken im Auth-System
+
+## User Stories
+
+**Als erster Bearbeiter** möchte ich die Möglichkeit haben, mich zum Administrator zu machen, damit das System einen Admin erhält.
+
+**Als neuer Bearbeiter** möchte ich mich selbst mit einem Benutzernamen registrieren können, damit ich sofort loslegen kann.
+
+**Als existierender Bearbeiter** möchte ich mich nur mit meinem Benutzernamen anmelden, damit ich schnell arbeiten kann.
+
+**Als Bearbeiter** möchte ich Admin werden können (solange noch kein Admin existiert), damit das System flexibel eingerichtet werden kann.
+
+**Als Administrator** möchte ich zusätzlich neue Bearbeiter anlegen können, falls gewünscht.
+
+**Als Administrator** möchte ich mich mit Passwort authentifizieren, um auf Admin-Funktionen zuzugreifen.
+
+**Als Administrator** möchte ich das Admin-Dashboard in einem separaten Fenster öffnen, damit ich übersichtlich arbeiten kann.
+
+**Als Nutzer** möchte ich beim Start der App ein ansprechendes Login-Fenster sehen, damit der erste Eindruck professionell ist.
+</PRD>

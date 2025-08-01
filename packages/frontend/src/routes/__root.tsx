@@ -1,19 +1,21 @@
+import { createRootRoute, Outlet } from '@tanstack/react-router';
+import { Provider } from '@/components/ui/provider.tsx';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
-import { Greeting } from '@molecules/greeting.molecule';
-import { Provider } from '@/components/ui/provider';
+
+export const Route = createRootRoute({
+  component: RootComponent,
+});
 
 const queryClient = new QueryClient();
 
-function App() {
+function RootComponent() {
   return (
     <Provider>
       <QueryClientProvider client={queryClient}>
-        <Greeting />
+        <Outlet />
         <ReactQueryDevtools />
       </QueryClientProvider>
     </Provider>
   );
 }
-
-export default App;

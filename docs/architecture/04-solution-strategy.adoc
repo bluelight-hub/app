@@ -6,7 +6,9 @@
 
 
 == Übersicht
-Dieser Abschnitt fasst die grundlegenden Entscheidungen und Lösungsansätze zusammen, die für die Architektur des Bluelight-Hub-Systems prägend sind. Er zeigt, wie die wichtigsten Qualitätsanforderungen und technischen Randbedingungen durch die gewählte Lösungsstrategie adressiert werden.
+
+Dieser Abschnitt fasst die grundlegenden Entscheidungen und Lösungsansätze zusammen, die für die Architektur des Bluelight-Hub-Systems prägend sind.
+Er zeigt, wie die wichtigsten Qualitätsanforderungen und technischen Randbedingungen durch die gewählte Lösungsstrategie adressiert werden.
 
 == Inhalt
 
@@ -14,10 +16,10 @@ Dieser Abschnitt fasst die grundlegenden Entscheidungen und Lösungsansätze zus
 
 Die folgenden Technologieentscheidungen bilden das Fundament der Architektur:
 
-[cols="1,2,3", options="header"]
+[cols="1,2,3",options="header"]
 |===
 |Bereich |Technologie |Begründung
-|Frontend |React, TypeScript, Ant Design |Moderne, typsichere Entwicklung mit etabliertem UI-Framework
+|Frontend |React, TypeScript, Chakra UI |Moderne, typsichere Entwicklung mit etabliertem UI-Framework
 |Mobile App |Tauri v2 mit TypeScript |Plattformübergreifende Entwicklung, nativer Zugriff auf Systemfunktionen
 |Backend |NestJS |Strukturiertes, modulares Framework mit TypeScript
 |Datenbank |PostgreSQL (Server) |Robuste, skalierbare SQL-Datenbank (PostgreSQL) auf dem Server
@@ -112,7 +114,7 @@ mindmap
 
 Die folgende Tabelle zeigt, wie die gewählten Architekturansätze die wichtigsten Qualitätsziele adressieren:
 
-[cols="1,2,2", options="header"]
+[cols="1,2,2",options="header"]
 |===
 |Qualitätsziel |Architekturansatz |Erwarteter Effekt
 |Zuverlässigkeit |Redundante Datenspeicherung, Robustes Error-Handling |Hohe Systemverfügbarkeit auch bei Teilausfällen
@@ -124,7 +126,9 @@ Die folgende Tabelle zeigt, wie die gewählten Architekturansätze die wichtigst
 |===
 
 == Offene Punkte
+
 * Detaillierte Spezifikation des Synchronisationsansatzes für Konfliktlösung
 * Evaluierung von WebSockets für zukünftige Echtzeitkommunikation
-* Finale Entscheidung zur Kartendarstellung (mapbox vs. Alternativen)
+* Finale Entscheidung zur Kartendarstellung (mapbox vs.
+Alternativen)
 * Bewertung von Kubernetes für zukünftige Skalierung und Deployment 

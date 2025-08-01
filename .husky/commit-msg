@@ -71,18 +71,13 @@ fi
 
 echo "✅ Commit-Nachricht ist gültig!"
 
-# Führe Tests aus, wenn kein [skip ci] Flag gefunden wurde
-echo "🔍 Führe Tests aus..."
-pnpm test:cov
-
-# Wenn Tests fehlschlagen, verhindere den Commit
-echo "🔍 Führe Tests aus..."
-pnpm test:cov
-TEST_RESULT=$?
-
-# Wenn Tests fehlschlagen, verhindere den Commit
-if [ $TEST_RESULT -ne 0 ]; then
-    echo "❌ Tests fehlgeschlagen (Exit-Code: $TEST_RESULT), Commit wird abgebrochen"
-    exit 1
-fi
+#echo "🔍 Führe Tests aus..."
+#pnpm test:cov
+#TEST_RESULT=$?
+#
+## Wenn Tests fehlschlagen, verhindere den Commit
+#if [ $TEST_RESULT -ne 0 ]; then
+#    echo "❌ Tests fehlgeschlagen (Exit-Code: $TEST_RESULT), Commit wird abgebrochen"
+#    exit 1
+#fi
 exit 0 

@@ -2,11 +2,21 @@ import tailwindcss from '@tailwindcss/vite';
 import react from '@vitejs/plugin-react-swc';
 import path from 'path';
 import { defineConfig } from 'vite';
+import tsconfigPaths from 'vite-tsconfig-paths';
+import tanstackRouter from '@tanstack/router-plugin/vite';
 
 const host = process.env.TAURI_DEV_HOST;
 
 export default defineConfig({
-  plugins: [tailwindcss(), react()],
+  plugins: [
+    tanstackRouter({
+      target: 'react',
+      autoCodeSplitting: true,
+    }),
+    tailwindcss(),
+    react(),
+    tsconfigPaths(),
+  ],
   clearScreen: false,
   server: {
     strictPort: true,
