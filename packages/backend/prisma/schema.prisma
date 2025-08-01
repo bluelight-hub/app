@@ -30,8 +30,11 @@ model User {
   lockedUntil      DateTime?
   createdAt        DateTime  @default(now())
   updatedAt        DateTime  @updatedAt
+  createdBy        String?   // nanoId reference to User who created this user
 
   // Relations
+  creator          User?     @relation("UserCreatedBy", fields: [createdBy], references: [id])
+  createdUsers     User[]    @relation("UserCreatedBy")
   // sessions        Session[]
   // refreshTokens   RefreshToken[]
   // rolePermissions RolePermission[]
@@ -42,4 +45,5 @@ model User {
   @@index([username], map: "idx_user_username")
   @@index([role, isActive], map: "idx_user_role_active")
   @@index([lastLoginAt], map: "idx_user_last_login")
+  @@index([createdBy], map: "idx_user_created_by")
 }
