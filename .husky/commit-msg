@@ -4,7 +4,7 @@
 # Basierend auf 030-commit-rules
 
 COMMIT_MSG_FILE=$1
-COMMIT_MSG=$(cat $COMMIT_MSG_FILE)
+COMMIT_MSG=$(cat "$COMMIT_MSG_FILE")
 
 if echo "$COMMIT_MSG" | grep -q "\[skip ci\]"; then
     echo "🔍 Skip-CI Flag erkannt, überspringe Validierung und Tests..."
@@ -25,6 +25,13 @@ if ! echo "$COMMIT_MSG" | head -n1 | grep -qE "$EMOJI_PATTERN"; then
     echo "❌ FEHLER: Commit-Nachricht entspricht nicht dem Format!"
     echo "📋 Erwartetes Format: <emoji>(<context>): <kurze Beschreibung>"
     echo "📚 Siehe .cursor/rules/030-commit-rules.mdc für Details"
+    echo ""
+    echo "📝 Erlaubte Emojis:"
+    echo "   💥 Breaking Changes    ✨ Neue Features      🐛 Bug Fixes         🚑 Hotfixes"
+    echo "   🔒 Security           🧹 Cleanup           ♻️  Refactoring       🔧 Configuration"
+    echo "   📦 Dependencies       📝 Documentation     💄 Styling/UI        ⚡ Performance"
+    echo "   🗑 Removal            🛠 Tooling           🚀 Deployment        🎉 Initial Commit"
+    echo "   🧪 Tests"
     echo ""
     echo "🔧 Beispiele:"
     echo "   ✨(frontend): Neue Benutzeroberfläche für Dashboard"
@@ -69,9 +76,13 @@ echo "🔍 Führe Tests aus..."
 pnpm test:cov
 
 # Wenn Tests fehlschlagen, verhindere den Commit
-if [ $? -ne 0 ]; then
-    echo "❌ Tests fehlgeschlagen, Commit wird abgebrochen"
+echo "🔍 Führe Tests aus..."
+pnpm test:cov
+TEST_RESULT=$?
+
+# Wenn Tests fehlschlagen, verhindere den Commit
+if [ $TEST_RESULT -ne 0 ]; then
+    echo "❌ Tests fehlgeschlagen (Exit-Code: $TEST_RESULT), Commit wird abgebrochen"
     exit 1
 fi
-
 exit 0 

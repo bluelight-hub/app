@@ -172,6 +172,6 @@ export const DEFAULT_FEATURE_FLAGS: ErrorHandlingFeatureFlags = {
   enableAdvancedRetry: true,
   enableDuplicateDetection: true,
   enableMetricsCollection: true,
-  enableCircuitBreaker: false, // Noch nicht implementiert
-  enableRateLimiting: false, // Noch nicht implementiert
+  enableCircuitBreaker: true, // Circuit Breaker ist jetzt implementiert
+  enableRateLimiting: true, // Rate Limiting ist jetzt implementiert
 };

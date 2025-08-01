@@ -1,7 +1,6 @@
 import { Module } from '@nestjs/common';
-import { ConfigModule } from '../config/config.module';
-import { PrismaModule } from '../prisma/prisma.module';
-import { AuditModule } from '../modules/audit/audit.module';
+import { ConfigModule } from '@/config/config.module';
+import { PrismaModule } from '@/prisma/prisma.module';
 import { ErrorHandlingService } from './services/error-handling.service';
 import { PaginationService } from './services/pagination.service';
 
@@ -17,8 +16,8 @@ import { PaginationService } from './services/pagination.service';
  * @module CommonModule
  */
 @Module({
-  imports: [ConfigModule, PrismaModule, AuditModule],
+  imports: [ConfigModule, PrismaModule],
   providers: [PaginationService, ErrorHandlingService],
-  exports: [PaginationService, ErrorHandlingService, AuditModule],
+  exports: [PaginationService, ErrorHandlingService],
 })
 export class CommonModule {}

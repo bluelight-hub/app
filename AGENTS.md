@@ -1,9 +1,5 @@
 # Agent Guidelines
 
-This repository is governed by the **Cursor rules** located in `.cursor/rules`.
-All contributors must read and follow those rules. They define commit message
-standards, code structure, testing, and other project conventions.
-
 ## Package Manager
 
 Use **pnpm** exclusively for all package management and script execution.

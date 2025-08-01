@@ -1,24 +1,8 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
-import { APP_GUARD } from '@nestjs/core';
-import { ScheduleModule } from '@nestjs/schedule';
-import { EventEmitterModule } from '@nestjs/event-emitter';
-import { BullModule } from '@nestjs/bull';
-import { BullModule as BullMQModule } from '@nestjs/bullmq';
 import { CommonModule } from './common/common.module';
 import { HealthModule } from './health/health.module';
-// import { ConsolaLogger } from './logger/consola.logger';
-import { EinsatzModule } from './modules/einsatz/einsatz.module';
-import { EtbModule } from './modules/etb/etb.module';
-import { SeedModule } from './modules/seed/seed.module';
 import { PrismaModule } from './prisma/prisma.module';
-import { AuthModule } from './modules/auth/auth.module';
-import { JwtAuthGuard } from './modules/auth/guards';
-import { AuditModule } from './modules/audit';
-import { SessionModule } from './modules/session/session.module';
-import { NotificationModule } from './modules/notification/notification.module';
-import { SecurityLogModule } from './security/security-log.module';
-import { AdminModule } from './modules/admin/admin.module';
 
 /**
  * Haupt-Anwendungsmodul der Bluelight Hub Backend-Anwendung
@@ -34,47 +18,16 @@ import { AdminModule } from './modules/admin/admin.module';
  * - JWT-basierte Authentifizierung als globaler Guard
  * - Datenbankanbindung über Prisma
  *
- * @module AppModule
- * @class AppModule
  */
 @Module({
   imports: [
     ConfigModule.forRoot({
       isGlobal: true,
     }),
-    ScheduleModule.forRoot(),
-    EventEmitterModule.forRoot(),
-    BullModule.forRoot({
-      redis: {
-        host: process.env.REDIS_HOST || 'localhost',
-        port: parseInt(process.env.REDIS_PORT || '6379', 10),
-      },
-    }),
-    BullMQModule.forRoot({
-      connection: {
-        host: process.env.REDIS_HOST || 'localhost',
-        port: parseInt(process.env.REDIS_PORT || '6379', 10),
-      },
-    }),
     PrismaModule,
-    AuthModule,
-    AuditModule,
-    SessionModule,
-    NotificationModule,
-    SecurityLogModule,
-    AdminModule,
     HealthModule,
-    EinsatzModule,
-    EtbModule,
     CommonModule,
-    SeedModule.registerAsync(),
   ],
   controllers: [],
-  providers: [
-    {
-      provide: APP_GUARD,
-      useClass: JwtAuthGuard,
-    },
-  ],
 })
 export class AppModule {}

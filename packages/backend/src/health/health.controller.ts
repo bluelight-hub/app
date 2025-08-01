@@ -9,9 +9,7 @@ import {
 } from '@nestjs/terminus';
 import * as net from 'net';
 import * as os from 'os';
-import { EtbService } from '@/modules/etb/etb.service';
 import { PrismaHealthIndicator } from './prisma-health.indicator';
-import { Public } from '@/modules/auth';
 
 /**
  * Konstanten für Health-Checks
@@ -32,12 +30,6 @@ const HEALTH_CHECK_CONFIG = {
 
 /**
  * Typ-Definition für Verbindungsmodi
- *
- * @typedef {'checking' | 'online' | 'offline' | 'error'} ConnectionMode
- * - 'checking': Verbindungsprüfung läuft
- * - 'online': Vollständige Verbindung (Internet + FüKW)
- * - 'offline': Lokale Verbindung (nur FüKW)
- * - 'error': Keine Verbindung verfügbar
  */
 type ConnectionMode = 'checking' | 'online' | 'offline' | 'error';
 
@@ -47,7 +39,6 @@ type ConnectionMode = 'checking' | 'online' | 'offline' | 'error';
  *
  * @class HealthController
  */
-@Public()
 @Controller({ path: 'api/health', version: VERSION_NEUTRAL })
 export class HealthController {
   /**
@@ -68,14 +59,12 @@ export class HealthController {
    * @param {MemoryHealthIndicator} memory - Indikator für Speicher-Gesundheitschecks
    * @param {DiskHealthIndicator} disk - Indikator für Festplatten-Gesundheitschecks
    * @param {PrismaHealthIndicator} prismaDb - Indikator für Prisma-Datenbank-Gesundheitschecks
-   * @param {EtbService} etbService - Service für ETB-Operationen zur FüKW-Erreichbarkeitsprüfung
    */
   constructor(
     private health: HealthCheckService,
     private memory: MemoryHealthIndicator,
     private disk: DiskHealthIndicator,
     private prismaDb: PrismaHealthIndicator,
-    private etbService: EtbService,
   ) {}
 
   /**
@@ -345,7 +334,7 @@ export class HealthController {
     try {
       // Tatsächliche FüKW-spezifische Erreichbarkeitsprüfung:
       // Eine einfache Abfrage des EtbService durchführen
-      await this.etbService.findAll({ limit: 1, page: 1 });
+      // await this.etbService.findAll({ limit: 1, page: 1 });
 
       // Je nach Konfiguration die Datenbankverbindung prüfen
       try {

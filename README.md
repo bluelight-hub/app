@@ -8,7 +8,8 @@
 
 ## Übersicht
 
-BlueLight Hub ist eine moderne Anwendung, die mit einer Monorepo-Struktur entwickelt wurde. Die Anwendung besteht aus einem Frontend (Vite/React mit Tauri-Integration) und einem Backend (NestJS), die über ein gemeinsames Modul kommunizieren.
+BlueLight Hub ist eine moderne Anwendung, die mit einer Monorepo-Struktur entwickelt wurde. Die Anwendung besteht aus einem Frontend (Vite/React mit Tauri-Integration) und einem Backend (
+NestJS), die über ein gemeinsames Modul kommunizieren.
 
 <!-- Coverage temporarily disabled -->
 <!-- ## Charts

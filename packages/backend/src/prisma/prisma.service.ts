@@ -1,5 +1,5 @@
 import { Injectable, OnModuleDestroy, OnModuleInit } from '@nestjs/common';
-import { PrismaClient } from '../../prisma/generated/prisma/client';
+import { PrismaClient } from '@prisma/client';
 
 /**
  * Service für Prisma-Datenbankoperationen

@@ -5,6 +5,13 @@
 - GitHub: github.com/bluelight-hub/app
 - Git Remote: `github` (https://github.com/bluelight-hub/app.git)
 
+## AI Documentation
+
+Der `ai-docs/` Ordner enthält potentiell hilfreiche Dokumentation für AI-Assistenten und Entwickler:
+
+- Commit Guidelines
+- Weitere relevante Dokumentationen (wird fortlaufend erweitert)
+
 ## API Client Generation (WICHTIG!)
 
 ### Automatische API-Client Generierung
@@ -167,6 +174,16 @@ This project uses semantic-release with gitmoji for automated versioning:
 ### Subagents verwenden (WICHTIG!)
 
 - **IMMER Subagents nutzen** für spezielle Aufgaben - sie funktionieren besser als direkte Tool-Aufrufe
+- **Verfügbare Subagents prüfen:** Nutze die Task-Tool mit den spezialisierten Agents aus der Tool-Beschreibung
+- **Proaktiv einsetzen:** Viele Agents sollten automatisch verwendet werden (z.B. whimsy-injector nach UI-Änderungen, test-writer-fixer nach Code-Änderungen)
+- **Bessere Ergebnisse:** Subagents sind für ihre jeweiligen Aufgaben optimiert und liefern bessere Ergebnisse als direkte Tool-Aufrufe
+- **Beispiele für wichtige Subagents:**
+  - `frontend-developer` für UI/UX-Implementierungen
+  - `backend-architect` für API-Design und Datenbank-Architektur
+  - `test-writer-fixer` nach jeder Code-Änderung für Tests
+  - `whimsy-injector` nach UI-Änderungen für Delightful Touches
+  - `commit-expert` vor jedem Git-Commit für perfekte Commit-Messages
+  - `sprint-prioritizer` für Task-Planung und Priorisierung
 
 ### Commit-Regeln (WICHTIG!)
 

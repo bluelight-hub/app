@@ -21,8 +21,9 @@ async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
   app.enableVersioning({
-    type: VersioningType.URI,
-    defaultVersion: '1',
+    type: VersioningType.MEDIA_TYPE,
+    key: 'version',
+    defaultVersion: '0.1',
   });
 
   const config = new DocumentBuilder()
