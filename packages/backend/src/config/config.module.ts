@@ -1,6 +1,5 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule as NestConfigModule } from '@nestjs/config';
-import { DatabaseConfig } from './database.config';
 
 /**
  * Konfigurationsmodul für die Anwendung
@@ -18,7 +17,5 @@ import { DatabaseConfig } from './database.config';
       envFilePath: '.env',
     }),
   ],
-  providers: [DatabaseConfig],
-  exports: [DatabaseConfig],
 })
 export class ConfigModule {}

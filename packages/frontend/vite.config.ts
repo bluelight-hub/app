@@ -18,11 +18,6 @@ export default defineConfig({
         changeOrigin: true,
         secure: false,
       },
-      '/v1': {
-        target: 'http://localhost:3000',
-        changeOrigin: true,
-        secure: false,
-      },
     },
   },
   envPrefix: ['VITE_', 'TAURI_ENV_*'],

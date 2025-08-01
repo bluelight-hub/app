@@ -1,10 +1,9 @@
-import { ValidationPipe, VersioningType } from '@nestjs/common';
+import { Logger, ValidationPipe, VersioningType } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { NestFactory } from '@nestjs/core';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import * as packageJson from '../package.json';
 import { AppModule } from './app.module';
-import { logger } from './logger/consola.logger';
 import helmet from 'helmet';
 import * as cookieParser from 'cookie-parser';
 import { corsConfig, helmetConfig } from './config/security.config';
@@ -21,8 +20,9 @@ async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
   app.enableVersioning({
-    type: VersioningType.URI,
-    defaultVersion: '1',
+    type: VersioningType.MEDIA_TYPE,
+    key: 'version',
+    defaultVersion: '0.1',
   });
 
   const config = new DocumentBuilder()
@@ -68,7 +68,11 @@ async function bootstrap() {
   const port = configService.get('BACKEND_PORT') || configService.get('PORT') || 3000;
 
   await app.listen(port);
-  logger.success(`Application is running on: http://localhost:${port}`);
+  Logger.log(
+    `Application is running in ${isProduction ? 'production' : 'development'} mode`,
+    'Bootstrap',
+  );
+  Logger.log(`Application is running on: http://localhost:${port}`);
 }
 
 bootstrap();

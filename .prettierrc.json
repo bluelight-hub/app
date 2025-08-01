@@ -11,7 +11,7 @@
     {
       "files": "*.tsx",
       "options": {
-        "printWidth": 120
+        "printWidth": 200
       }
     },
     {

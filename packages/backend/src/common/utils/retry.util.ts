@@ -1,4 +1,4 @@
-import { logger } from '@/logger/consola.logger';
+import { Logger } from '@nestjs/common';
 
 /**
  * PostgreSQL retryable error codes
@@ -73,6 +73,8 @@ export const DEFAULT_RETRY_CONFIG: RetryConfig = {
  * Implements exponential backoff with jitter for optimal retry behavior
  */
 export class RetryUtil {
+  private readonly logger = new Logger(RetryUtil.name);
+
   /**
    * Create a retry policy for specific error types
    */
@@ -149,7 +151,7 @@ export class RetryUtil {
 
         // Log retry attempt
         if (context) {
-          logger.info(
+          this.logger.log(
             `[${context}] Retry attempt ${attempt + 1}/${retryConfig.maxRetries} after ${delay}ms. Error: ${error.message}`,
           );
         }

@@ -22,6 +22,7 @@ export class PrismaHealthIndicator {
    * Konstruktor für den PrismaHealthIndicator
    *
    * @param prisma Der Prisma-Service für Datenbankzugriffe
+   * @param healthIndicatorService Der HealthIndicatorService von Terminus
    */
   constructor(
     private readonly prisma: PrismaService,

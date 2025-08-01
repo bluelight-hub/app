@@ -1,15 +1,15 @@
 import js from '@eslint/js';
 import globals from 'globals';
-import tseslint from 'typescript-eslint';
+import tsEslint from 'typescript-eslint';
 import eslintConfigPrettier from 'eslint-config-prettier';
 
-export default tseslint.config(
+export default tsEslint.config(
   { ignores: ['dist', 'coverage', 'node_modules'] },
   {
-    extends: [js.configs.recommended, ...tseslint.configs.recommended],
+    extends: [js.configs.recommended, ...tsEslint.configs.recommended],
     files: ['src/**/*.ts', 'test/**/*.ts', 'apps/**/*.ts', 'libs/**/*.ts'],
     languageOptions: {
-      ecmaVersion: 2020,
+      ecmaVersion: 'latest',
       globals: globals.node,
     },
     rules: {
@@ -33,7 +33,7 @@ export default tseslint.config(
         'error',
         {
           max: 1000,
-          skipBlankLines: false,
+          skipBlankLines: true,
           skipComments: false,
         },
       ],
@@ -41,7 +41,7 @@ export default tseslint.config(
         'warn',
         {
           max: 200,
-          skipBlankLines: false,
+          skipBlankLines: true,
           skipComments: false,
         },
       ],
