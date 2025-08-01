@@ -31,6 +31,7 @@
     "@bluelight-hub/shared": "workspace:*",
     "@dotenvx/dotenvx": "^1.48.4",
     "@dotenvx/dotenvx-radar": "^0.14.2",
+    "@nestjs/cache-manager": "^3.0.1",
     "@nestjs/common": "^11.1.5",
     "@nestjs/config": "^4.0.2",
     "@nestjs/core": "^11.1.5",
@@ -40,13 +41,15 @@
     "@nestjs/swagger": "^11.2.0",
     "@nestjs/terminus": "^11.0.0",
     "@prisma/client": "^6.13.0",
+    "cache-manager": "^7.1.0",
+    "cache-manager-redis-yet": "^5.1.5",
     "class-transformer": "^0.5.1",
     "class-validator": "^0.14.2",
-    "consola": "^3.4.2",
     "cookie-parser": "^1.4.7",
     "helmet": "^8.1.0",
     "nanoid": "^5.1.5",
-    "pg": "^8.16.3"
+    "pg": "^8.16.3",
+    "redis": "^5.7.0"
   },
   "devDependencies": {
     "@compodoc/compodoc": "^1.1.26",
