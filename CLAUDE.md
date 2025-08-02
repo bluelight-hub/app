@@ -16,12 +16,13 @@ Der `ai-docs/` Ordner enthält potentiell hilfreiche Dokumentation für AI-Assis
 
 ### Automatische API-Client Generierung
 
-**NIEMALS manuelle API-Helper erstellen!** Das Projekt nutzt automatische API-Client-Generierung aus der OpenAPI-Spezifikation.
+**NIEMALS manuelle API-Helper erstellen!** Das Projekt nutzt automatische API-Client-Generierung aus der
+OpenAPI-Spezifikation.
 
 **Workflow:**
 
 1. Backend-Endpunkte werden mit NestJS/Swagger erstellt
-2. API-Client wird automatisch generiert: `pnpm run generate:api`
+2. API-Client wird automatisch generiert: `pnpm run generate-api`
 3. Generierte APIs sind verfügbar in: `packages/shared/client/apis/`
 4. Frontend nutzt die generierten APIs über: `packages/frontend/src/api/index.ts`
 
@@ -169,14 +170,51 @@ This project uses semantic-release with gitmoji for automated versioning:
 - System design, security concepts, and technical decisions should be documented in the appropriate arc42 sections
 - Only create markdown files in `docs/` root for operational guides (deployment, migration, etc.)
 
+### arc42 Architecture Documentation (WICHTIG!)
+
+Das Projekt nutzt **arc42** für die Architekturdokumentation. Diese befindet sich unter `docs/architecture/`.
+
+**Struktur:**
+
+- `01-introduction-goals.adoc` - Einführung und Ziele
+- `02-constraints.adoc` - Randbedingungen
+- `03-context.adoc` - Kontextabgrenzung
+- `04-solution-strategy.adoc` - Lösungsstrategie
+- `05-building-block-view.adoc` - Bausteinsicht
+- `06-runtime-view.adoc` - Laufzeitsicht
+- `07-deployment-view.adoc` - Verteilungssicht
+- `08-concepts.adoc` - Querschnittliche Konzepte
+- `09-architecture-decisions.adoc` - Architekturentscheidungen
+- `10-quality-requirements.adoc` - Qualitätsanforderungen
+- `11-risks.adoc` - Risiken und technische Schulden
+- `12-glossary.adoc` - Glossar
+- `adr/` - Architecture Decision Records
+
+**Verwendung:**
+
+- **IMMER prüfen** ob relevante Dokumentation in arc42 existiert bevor neue Konzepte implementiert werden
+- **Bei Architekturänderungen:** Entsprechende arc42-Abschnitte aktualisieren
+- **Neue Architekturentscheidungen:** Als ADR unter `docs/architecture/adr/` dokumentieren
+- **Konzepte und Patterns:** In `08-concepts.adoc` dokumentieren
+- **Systemgrenzen und Integrationen:** In `03-context.adoc` pflegen
+
+**Wichtige Regeln:**
+
+- Architekturdokumentation MUSS in arc42 gepflegt werden
+- Keine separaten Architektur-Markdown-Dateien außerhalb von arc42 erstellen
+- Bei Unsicherheiten: Bestehende arc42-Dokumentation konsultieren
+- ADRs folgen dem Format: `XXX-entscheidungsname.adoc`
+
 ## Development Workflow
 
 ### Subagents verwenden (WICHTIG!)
 
 - **IMMER Subagents nutzen** für spezielle Aufgaben - sie funktionieren besser als direkte Tool-Aufrufe
 - **Verfügbare Subagents prüfen:** Nutze die Task-Tool mit den spezialisierten Agents aus der Tool-Beschreibung
-- **Proaktiv einsetzen:** Viele Agents sollten automatisch verwendet werden (z.B. whimsy-injector nach UI-Änderungen, test-writer-fixer nach Code-Änderungen)
-- **Bessere Ergebnisse:** Subagents sind für ihre jeweiligen Aufgaben optimiert und liefern bessere Ergebnisse als direkte Tool-Aufrufe
+- **Proaktiv einsetzen:** Viele Agents sollten automatisch verwendet werden (z.B. whimsy-injector nach UI-Änderungen,
+  test-writer-fixer nach Code-Änderungen)
+- **Bessere Ergebnisse:** Subagents sind für ihre jeweiligen Aufgaben optimiert und liefern bessere Ergebnisse als
+  direkte Tool-Aufrufe
 - **Beispiele für wichtige Subagents:**
   - `frontend-developer` für UI/UX-Implementierungen
   - `backend-architect` für API-Design und Datenbank-Architektur

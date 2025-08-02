@@ -1,23 +1,25 @@
 import {
-  Controller,
-  Post,
   Body,
+  Controller,
   HttpCode,
   HttpStatus,
+  NotFoundException,
+  Post,
+  Req,
   Res,
   UseGuards,
-  Req,
-  NotFoundException,
+  VERSION_NEUTRAL,
 } from '@nestjs/common';
-import { ApiTags, ApiOperation, ApiResponse, ApiCookieAuth } from '@nestjs/swagger';
-import { Response, Request } from 'express';
+import { ApiCookieAuth, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
+import { Request, Response } from 'express';
 import { AuthService } from './auth.service';
 import { RegisterUserDto } from './dto/register-user.dto';
 import { LoginUserDto } from './dto/login-user.dto';
-import { User } from '@prisma/client';
-import { setAuthCookies, clearAuthCookies } from './auth.utils';
+import { AuthResponseDto } from './dto/user-response.dto';
+import { clearAuthCookies, setAuthCookies } from './auth.utils';
 import { JwtRefreshGuard } from './guards/jwt-refresh.guard';
 import { ValidatedUser } from './strategies/jwt.strategy';
+import { toUserResponseDto } from './auth.mapper';
 
 /**
  * Controller für Authentifizierungs-Endpunkte
@@ -27,7 +29,10 @@ import { ValidatedUser } from './strategies/jwt.strategy';
  * für die Registrierung/Anmeldung erforderlich ist.
  */
 @ApiTags('auth')
-@Controller('auth')
+@Controller({
+  path: 'auth',
+  version: VERSION_NEUTRAL,
+})
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
@@ -38,6 +43,7 @@ export class AuthController {
    * Alle weiteren Benutzer erhalten die USER-Rolle.
    *
    * @param dto - Registrierungsdaten
+   * @param res - Express Response für Cookie-Verwaltung
    * @returns Der erstellte Benutzer
    */
   @Post('register')
@@ -49,6 +55,7 @@ export class AuthController {
   @ApiResponse({
     status: HttpStatus.CREATED,
     description: 'Benutzer erfolgreich registriert',
+    type: AuthResponseDto,
   })
   @ApiResponse({
     status: HttpStatus.CONFLICT,
@@ -57,7 +64,7 @@ export class AuthController {
   async register(
     @Body() dto: RegisterUserDto,
     @Res({ passthrough: true }) res: Response,
-  ): Promise<{ user: User; accessToken: string }> {
+  ): Promise<AuthResponseDto> {
     const user = await this.authService.register(dto);
 
     // JWT-Tokens generieren
@@ -68,7 +75,10 @@ export class AuthController {
     const isProduction = process.env.NODE_ENV === 'production';
     setAuthCookies(res, accessToken, refreshToken, isProduction);
 
-    return { user, accessToken };
+    return {
+      user: toUserResponseDto(user),
+      accessToken,
+    };
   }
 
   /**
@@ -77,6 +87,7 @@ export class AuthController {
    * Die Anmeldung erfolgt nur mit dem Benutzernamen, ohne Passwort.
    *
    * @param dto - Anmeldedaten
+   * @param res - Express Response für Cookie-Verwaltung
    * @returns Der angemeldete Benutzer
    */
   @Post('login')
@@ -88,6 +99,7 @@ export class AuthController {
   @ApiResponse({
     status: HttpStatus.OK,
     description: 'Erfolgreich angemeldet',
+    type: AuthResponseDto,
   })
   @ApiResponse({
     status: HttpStatus.NOT_FOUND,
@@ -96,7 +108,7 @@ export class AuthController {
   async login(
     @Body() dto: LoginUserDto,
     @Res({ passthrough: true }) res: Response,
-  ): Promise<{ user: User; accessToken: string }> {
+  ): Promise<AuthResponseDto> {
     const user = await this.authService.login(dto);
 
     // JWT-Tokens generieren
@@ -107,7 +119,10 @@ export class AuthController {
     const isProduction = process.env.NODE_ENV === 'production';
     setAuthCookies(res, accessToken, refreshToken, isProduction);
 
-    return { user, accessToken };
+    return {
+      user: toUserResponseDto(user),
+      accessToken,
+    };
   }
 
   /**

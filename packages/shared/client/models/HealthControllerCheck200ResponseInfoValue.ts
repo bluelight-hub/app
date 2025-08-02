@@ -1,6 +1,5 @@
 /* tslint:disable */
 /* eslint-disable */
-
 /**
  * BlueLight Hub API
  * BlueLight Hub API for the BlueLight Hub application
@@ -13,20 +12,20 @@
  * Do not edit the class manually.
  */
 
+import { mapValues } from '../runtime';
 /**
  *
  * @export
  * @interface HealthControllerCheck200ResponseInfoValue
  */
 export interface HealthControllerCheck200ResponseInfoValue {
+  [key: string]: any | any;
   /**
    *
    * @type {string}
    * @memberof HealthControllerCheck200ResponseInfoValue
    */
   status: string;
-
-  [key: string]: any | any;
 }
 
 /**

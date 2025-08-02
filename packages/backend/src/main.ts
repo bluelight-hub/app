@@ -20,9 +20,13 @@ async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
   app.enableVersioning({
-    type: VersioningType.MEDIA_TYPE,
-    key: 'version',
-    defaultVersion: '0.1',
+    type: VersioningType.URI,
+    prefix: 'v-',
+    defaultVersion: 'alpha',
+  });
+
+  app.setGlobalPrefix('api', {
+    exclude: ['/'],
   });
 
   const config = new DocumentBuilder()
@@ -32,19 +36,20 @@ async function bootstrap() {
     .addBearerAuth()
     .build();
 
+  // Get config service to determine environment
+  const configService = app.get(ConfigService);
+  const isProduction = configService.get('NODE_ENV') === 'production';
+  const appUrl = configService.get('APP_URL', 'http://localhost:3000');
+
   const document = SwaggerModule.createDocument(app, config);
   document.servers = [
     {
-      url: 'http://localhost:3000',
-      description: 'Local Environment',
+      url: appUrl,
+      description: isProduction ? 'Production Server' : 'Development Server',
     },
   ];
 
   SwaggerModule.setup('api', app, document, {});
-
-  // Get config service to determine environment
-  const configService = app.get(ConfigService);
-  const isProduction = configService.get('NODE_ENV') === 'production';
 
   // Apply Helmet middleware for security headers
   app.use(helmet(helmetConfig));
@@ -64,9 +69,6 @@ async function bootstrap() {
       forbidNonWhitelisted: true,
     }),
   );
-
-  // Set global prefix for all routes
-  app.setGlobalPrefix('api');
 
   const port = configService.get('BACKEND_PORT') || configService.get('PORT') || 3000;
 

@@ -1,5 +1,5 @@
-import { Controller, Get, Post, Delete, Body, Param, HttpCode, HttpStatus } from '@nestjs/common';
-import { ApiTags, ApiOperation, ApiResponse, ApiParam } from '@nestjs/swagger';
+import { Body, Controller, Delete, Get, HttpCode, HttpStatus, Param, Post } from '@nestjs/common';
+import { ApiOperation, ApiParam, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { UserService } from './user.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { User } from '@prisma/client';
@@ -13,7 +13,9 @@ import { User } from '@prisma/client';
  * Hinweis: Die Authentifizierung/Autorisierung wird in späteren Tasks implementiert.
  */
 @ApiTags('users')
-@Controller('users')
+@Controller({
+  path: 'users',
+})
 export class UserController {
   constructor(private readonly userService: UserService) {}
 

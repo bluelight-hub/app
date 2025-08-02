@@ -3,7 +3,6 @@
 import * as ts from 'typescript';
 import * as fs from 'fs';
 import * as path from 'path';
-import { logger } from '../src/logger/consola.logger';
 
 interface MethodInfo {
   fileName: string;
@@ -38,12 +37,12 @@ class JsDocChecker {
    * Hauptmethode zum Scannen aller TypeScript-Dateien
    */
   async scan(rootDir: string): Promise<void> {
-    logger.log('🔍 Scanning for methods without JSDoc...\n');
+    console.log('🔍 Scanning for methods without JSDoc...\n');
 
     // Find all TypeScript files, excluding tests and mocks
     const files = this.findTypeScriptFiles(rootDir);
 
-    logger.log(`Found ${files.length} TypeScript files to analyze\n`);
+    console.log(`Found ${files.length} TypeScript files to analyze\n`);
 
     for (const file of files) {
       this.checkFile(file);
@@ -323,7 +322,7 @@ class JsDocChecker {
     const totalMethods = this.methods.length;
 
     if (this.options.jsonReport) {
-      logger.log(JSON.stringify(methodsWithoutJsDoc, null, 2));
+      console.log(JSON.stringify(methodsWithoutJsDoc, null, 2));
       return;
     }
 
@@ -340,13 +339,13 @@ class JsDocChecker {
     );
 
     // Print results
-    logger.log('📊 Methods without JSDoc:\n');
+    console.log('📊 Methods without JSDoc:\n');
 
     Object.entries(byFile)
       .sort(([a], [b]) => a.localeCompare(b))
       .forEach(([fileName, methods]) => {
         const relativePath = path.relative(process.cwd(), fileName);
-        logger.log(`\n📄 ${relativePath}`);
+        console.log(`\n📄 ${relativePath}`);
 
         methods
           .sort((a, b) => a.line - b.line)
@@ -355,30 +354,30 @@ class JsDocChecker {
             const visibility = method.isPrivate ? '🔒' : method.isProtected ? '🔐' : '🌐';
             const lineInfo = `${relativePath}:${method.line}`;
 
-            logger.log(`  ${visibility} ${location} (${method.methodType}) - ${lineInfo}`);
+            console.log(`  ${visibility} ${location} (${method.methodType}) - ${lineInfo}`);
 
             if (this.options.verbose) {
-              logger.log(`     Line ${method.line}, Column ${method.column}`);
+              console.log(`     Line ${method.line}, Column ${method.column}`);
             }
           });
       });
 
     // Print summary
-    logger.log('\n' + '='.repeat(60));
-    logger.log('📈 Summary:');
-    logger.log('='.repeat(60));
-    logger.log(`Total methods without JSDoc: ${totalMethods}`);
-    logger.log(`Files affected: ${Object.keys(byFile).length}`);
+    console.log('\n' + '='.repeat(60));
+    console.log('📈 Summary:');
+    console.log('='.repeat(60));
+    console.log(`Total methods without JSDoc: ${totalMethods}`);
+    console.log(`Files affected: ${Object.keys(byFile).length}`);
 
     // Breakdown by visibility
     const publicMethods = methodsWithoutJsDoc.filter((m) => !m.isPrivate && !m.isProtected).length;
     const privateMethods = methodsWithoutJsDoc.filter((m) => m.isPrivate).length;
     const protectedMethods = methodsWithoutJsDoc.filter((m) => m.isProtected).length;
 
-    logger.log(`\nBy visibility:`);
-    logger.log(`  🌐 Public: ${publicMethods}`);
-    logger.log(`  🔐 Protected: ${protectedMethods}`);
-    logger.log(`  🔒 Private: ${privateMethods}`);
+    console.log(`\nBy visibility:`);
+    console.log(`  🌐 Public: ${publicMethods}`);
+    console.log(`  🔐 Protected: ${protectedMethods}`);
+    console.log(`  🔒 Private: ${privateMethods}`);
 
     // Breakdown by type
     const methodTypes = methodsWithoutJsDoc.reduce(
@@ -389,11 +388,11 @@ class JsDocChecker {
       {} as Record<string, number>,
     );
 
-    logger.log(`\nBy type:`);
+    console.log(`\nBy type:`);
     Object.entries(methodTypes)
       .sort(([a], [b]) => a.localeCompare(b))
       .forEach(([type, count]) => {
-        logger.log(`  ${type}: ${count}`);
+        console.log(`  ${type}: ${count}`);
       });
   }
 }
@@ -418,7 +417,7 @@ async function main() {
   const rootDir = path.join(__dirname, '..', 'src');
 
   if (!fs.existsSync(rootDir)) {
-    logger.error(`❌ Source directory not found: ${rootDir}`);
+    console.error(`❌ Source directory not found: ${rootDir}`);
     process.exit(1);
   }
 
@@ -427,6 +426,6 @@ async function main() {
 
 // Run the script
 main().catch((error) => {
-  logger.error('❌ Error:', error);
+  console.error('❌ Error:', error);
   process.exit(1);
 });

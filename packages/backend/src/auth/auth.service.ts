@@ -1,6 +1,6 @@
-import { Injectable, ConflictException, NotFoundException } from '@nestjs/common';
+import { ConflictException, Injectable, Logger, NotFoundException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
-import { PrismaService } from '../prisma/prisma.service';
+import { PrismaService } from '@/prisma/prisma.service';
 import { User, UserRole } from '@prisma/client';
 import { RegisterUserDto } from './dto/register-user.dto';
 import { LoginUserDto } from './dto/login-user.dto';
@@ -13,6 +13,8 @@ import { LoginUserDto } from './dto/login-user.dto';
  */
 @Injectable()
 export class AuthService {
+  private readonly logger = new Logger('AuthService');
+
   constructor(
     private readonly prisma: PrismaService,
     private readonly jwtService: JwtService,
@@ -47,6 +49,12 @@ export class AuthService {
       },
     });
 
+    if (isFirstUser) {
+      this.logger.warn(`🦁 Erster Benutzer registriert: ${user.username} (SUPER_ADMIN)`);
+    } else {
+      this.logger.debug(`⭐ Neuer Benutzer registriert: ${user.username} (USER)`);
+    }
+
     return user;
   }
 
@@ -63,6 +71,7 @@ export class AuthService {
     });
 
     if (!user) {
+      this.logger.warn(`🔍 Anmeldeversuch mit unbekanntem Benutzernamen: ${dto.username}`);
       throw new NotFoundException('Benutzer nicht gefunden');
     }
 
@@ -71,6 +80,8 @@ export class AuthService {
       where: { id: user.id },
       data: { lastLoginAt: new Date() },
     });
+
+    this.logger.debug(`🔑 Benutzer angemeldet: ${user.username} (Rolle: ${user.role})`);
 
     return user;
   }
@@ -95,6 +106,7 @@ export class AuthService {
    */
   signAccessToken(userId: string): string {
     const payload = { sub: userId };
+    this.logger.debug(`🔑 Generiere Access-Token für Benutzer: ${userId}`);
     return this.jwtService.sign(payload);
   }
 
@@ -106,6 +118,7 @@ export class AuthService {
    */
   signRefreshToken(userId: string): string {
     const payload = { sub: userId };
+    this.logger.debug(`🔄 Generiere Refresh-Token für Benutzer: ${userId}`);
     return this.jwtService.sign(payload, { expiresIn: '7d' });
   }
 }

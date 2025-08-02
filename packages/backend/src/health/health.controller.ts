@@ -39,7 +39,7 @@ type ConnectionMode = 'checking' | 'online' | 'offline' | 'error';
  *
  * @class HealthController
  */
-@Controller({ path: 'api/health', version: VERSION_NEUTRAL })
+@Controller({ path: 'health', version: VERSION_NEUTRAL })
 export class HealthController {
   /**
    * Liste von öffentlichen DNS-Servern für Internet-Erreichbarkeits-Tests

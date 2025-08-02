@@ -796,6 +796,21 @@ Das API-Design folgt den REST-Prinzipien mit folgenden Merkmalen:
 
 * **Ressourcenorientiert**: Endpunkte repräsentieren Ressourcen, nicht Aktionen
 * **HTTP-Verben**: Verwendung von GET, POST, PUT, DELETE für CRUD-Operationen
+* **Versionierung**: URI-basierte Versionierung (`/api/v1/...`) für maximale Kompatibilität
+* **Konsistente Pfade**: Pluralisierte Ressourcennamen, hierarchische Strukturen für Beziehungen
+
+===== API-Versionierung
+
+Die API verwendet URI/Path-Versionierung gemäß ADR-012:
+
+* **Format**: `/api/v{major}/resource`
+* **Beispiele**: `/api/v1/users`, `/api/v1/auth/register`
+* **Vorteile**:
+  - Maximale Kompatibilität mit allen HTTP-Clients und Tools
+  - Explizite Versionssichtbarkeit in der URL
+  - Einfache parallele Versionsverwaltung
+  - Vollständige OpenAPI/Swagger-Unterstützung
+* **Migration**: Neue Versionen werden bei Breaking Changes eingeführt
 * **Versionierung**: API-Versionen durch URI-Pfad (/api/v1/resource)
 * **Dokumentation**: OpenAPI/Swagger-Dokumentation für alle Endpunkte
 * **Validierung**: DTO-basierte Eingabevalidierung mit class-validator

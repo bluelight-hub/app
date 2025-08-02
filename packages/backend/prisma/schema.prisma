@@ -30,11 +30,11 @@ model User {
   lockedUntil      DateTime?
   createdAt        DateTime  @default(now())
   updatedAt        DateTime  @updatedAt
-  createdBy        String?   // nanoId reference to User who created this user
+  createdBy        String?
 
   // Relations
-  creator          User?     @relation("UserCreatedBy", fields: [createdBy], references: [id])
-  createdUsers     User[]    @relation("UserCreatedBy")
+  creator      User?  @relation("UserCreatedBy", fields: [createdBy], references: [id])
+  createdUsers User[] @relation("UserCreatedBy")
   // sessions        Session[]
   // refreshTokens   RefreshToken[]
   // rolePermissions RolePermission[]
