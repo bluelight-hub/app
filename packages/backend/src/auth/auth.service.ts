@@ -28,34 +28,46 @@ export class AuthService {
    * @throws ConflictException wenn der Benutzername bereits existiert
    */
   async register(dto: RegisterUserDto): Promise<User> {
-    // Prüfen, ob Benutzername bereits existiert
-    const existingUser = await this.prisma.user.findUnique({
-      where: { username: dto.username },
-    });
+    try {
+      const user = await this.prisma.$transaction(async (tx) => {
+        // Check if username already exists within the transaction
+        const existingUser = await tx.user.findUnique({
+          where: { username: dto.username },
+        });
 
-    if (existingUser) {
-      throw new ConflictException('Benutzername bereits vergeben');
+        if (existingUser) {
+          throw new ConflictException('Benutzername bereits vergeben');
+        }
+
+        // Check if this is the first user
+        const userCount = await tx.user.count();
+        const isFirstUser = userCount === 0;
+
+        // Create the user
+        return await tx.user.create({
+          data: {
+            username: dto.username,
+            role: isFirstUser ? UserRole.SUPER_ADMIN : UserRole.USER,
+          },
+        });
+      });
+
+      const isFirstUser = user.role === UserRole.SUPER_ADMIN;
+      if (isFirstUser) {
+        this.logger.warn(`🦁 Erster Benutzer registriert: ${user.username} (SUPER_ADMIN)`);
+      } else {
+        this.logger.debug(`⭐ Neuer Benutzer registriert: ${user.username} (USER)`);
+      }
+
+      return user;
+    } catch (error) {
+      // Handle Prisma unique constraint violation
+      if (error.code === 'P2002' && error.meta?.target?.includes('username')) {
+        throw new ConflictException('Benutzername bereits vergeben');
+      }
+      // Re-throw other errors
+      throw error;
     }
-
-    // Prüfen, ob dies der erste Benutzer ist
-    const userCount = await this.prisma.user.count();
-    const isFirstUser = userCount === 0;
-
-    // Benutzer erstellen
-    const user = await this.prisma.user.create({
-      data: {
-        username: dto.username,
-        role: isFirstUser ? UserRole.SUPER_ADMIN : UserRole.USER,
-      },
-    });
-
-    if (isFirstUser) {
-      this.logger.warn(`🦁 Erster Benutzer registriert: ${user.username} (SUPER_ADMIN)`);
-    } else {
-      this.logger.debug(`⭐ Neuer Benutzer registriert: ${user.username} (USER)`);
-    }
-
-    return user;
   }
 
   /**

@@ -85,6 +85,20 @@ Only use these shell commands if IntelliJ is not available:
 - Single test (frontend): `pnpm --filter @bluelight-hub/frontend test -- -t "test name"`
 - **Doc Coverage Check:** `pnpm --filter @bluelight-hub/backend check:jsdoc:public`
 
+### E2E Tests (Backend)
+
+**WICHTIG:** E2E-Tests nutzen eine separate Jest-Konfiguration und müssen mit `test:e2e` ausgeführt werden:
+
+- Run all e2e tests: `cd packages/backend && npm run test:e2e`
+- Run specific e2e test: `cd packages/backend && npm run test:e2e -- register.e2e-spec.ts`
+- Run e2e tests with coverage: `cd packages/backend && npm run test:e2e -- --coverage`
+- Run e2e tests with open handles detection: `cd packages/backend && npm run test:e2e -- --detectOpenHandles`
+
+**Hinweise:**
+
+- E2E-Tests starten automatisch einen PostgreSQL Docker Container
+- Container wird nach den Tests automatisch gestoppt
+
 ## Code Style Guidelines
 
 - TypeScript strict mode required throughout codebase
@@ -207,21 +221,23 @@ Das Projekt nutzt **arc42** für die Architekturdokumentation. Diese befindet si
 
 ## Development Workflow
 
-### Subagents verwenden (WICHTIG!)
+### Subagents verwenden (PFLICHT!)
 
-- **IMMER Subagents nutzen** für spezielle Aufgaben - sie funktionieren besser als direkte Tool-Aufrufe
-- **Verfügbare Subagents prüfen:** Nutze die Task-Tool mit den spezialisierten Agents aus der Tool-Beschreibung
-- **Proaktiv einsetzen:** Viele Agents sollten automatisch verwendet werden (z.B. whimsy-injector nach UI-Änderungen,
-  test-writer-fixer nach Code-Änderungen)
-- **Bessere Ergebnisse:** Subagents sind für ihre jeweiligen Aufgaben optimiert und liefern bessere Ergebnisse als
-  direkte Tool-Aufrufe
-- **Beispiele für wichtige Subagents:**
-  - `frontend-developer` für UI/UX-Implementierungen
-  - `backend-architect` für API-Design und Datenbank-Architektur
-  - `test-writer-fixer` nach jeder Code-Änderung für Tests
-  - `whimsy-injector` nach UI-Änderungen für Delightful Touches
-  - `commit-expert` vor jedem Git-Commit für perfekte Commit-Messages
-  - `sprint-prioritizer` für Task-Planung und Priorisierung
+- **PFLICHT: Du MUSST Subagents nutzen** für alle spezialisierten Aufgaben - direkte Tool-Aufrufe führen zu minderwertigen Ergebnissen
+- **Agent-Auswahl:** IMMER zuerst prüfen ob ein passender Agent für die Aufgabe verfügbar ist (siehe ~/.claude/CLAUDE.md)
+- **Proaktive Verwendung ERFORDERLICH:** Bestimmte Agents MÜSSEN automatisch verwendet werden:
+  - `test-writer-fixer` nach JEDER Code-Änderung
+  - `whimsy-injector` nach JEDER UI-Änderung
+  - `commit-expert` vor JEDEM Git-Commit
+  - `experiment-tracker` bei JEDEM Feature-Flag oder A/B-Test
+- **Keine Ausnahmen:** Subagents sind speziell für ihre Aufgaben optimiert. Das Umgehen dieser Regel ist nicht erlaubt
+- **Wichtige Subagents für dieses Projekt:**
+  - `frontend-developer` für ALLE UI/UX-Implementierungen
+  - `backend-architect` für ALLE API-Design und Datenbank-Architekturen
+  - `test-writer-fixer` nach JEDER Code-Änderung für Tests
+  - `whimsy-injector` nach JEDER UI-Änderung für Delightful Touches
+  - `commit-expert` vor JEDEM Git-Commit für perfekte Commit-Messages
+  - `sprint-prioritizer` für ALLE Task-Planungen und Priorisierungen
 
 ### Commit-Regeln (WICHTIG!)
 
