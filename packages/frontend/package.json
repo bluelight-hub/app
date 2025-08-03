@@ -44,13 +44,15 @@
     "class-variance-authority": "catalog:",
     "clsx": "catalog:",
     "consola": "catalog:",
+    "date-fns": "catalog:",
     "next-themes": "catalog:",
     "react": "catalog:",
     "react-dom": "catalog:",
     "react-icons": "catalog:",
     "tailwind-merge": "catalog:",
     "tailwindcss": "catalog:",
-    "vite-tsconfig-paths": "catalog:"
+    "vite-tsconfig-paths": "catalog:",
+    "zod": "catalog:"
   },
   "devDependencies": {
     "@eslint/js": "catalog:",

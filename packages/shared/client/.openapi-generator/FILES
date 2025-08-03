@@ -6,6 +6,7 @@ apis/UsersApi.ts
 apis/index.ts
 index.ts
 models/AdminSetupDto.ts
+models/AdminStatusDto.ts
 models/AuthResponseDto.ts
 models/CreateUserDto.ts
 models/HealthControllerCheck200Response.ts

@@ -17,6 +17,7 @@ import { AuthService } from './auth.service';
 import { RegisterUserDto } from './dto/register-user.dto';
 import { LoginUserDto } from './dto/login-user.dto';
 import { AdminSetupDto } from './dto/admin-setup.dto';
+import { AdminStatusDto } from './dto/admin-status.dto';
 import { AuthResponseDto, UserResponseDto } from './dto/user-response.dto';
 import { clearAuthCookies, setAuthCookies } from './auth.utils';
 import { JwtRefreshGuard } from './guards/jwt-refresh.guard';
@@ -24,6 +25,7 @@ import { JwtAuthGuard } from './guards/jwt-auth.guard';
 import { ValidatedUser } from './strategies/jwt.strategy';
 import { CurrentUser } from './decorators/current-user.decorator';
 import { toUserResponseDto } from './auth.mapper';
+import { milliseconds } from 'date-fns';
 
 /**
  * Controller für Authentifizierungs-Endpunkte
@@ -198,7 +200,8 @@ export class AuthController {
    *
    * @param dto - Admin-Setup-Daten mit Passwort
    * @param user - Der aktuelle authentifizierte Benutzer
-   * @returns Erfolgsmeldung
+   * @param res - Express Response für Cookie-Verwaltung
+   * @returns Erfolgsmeldung und optional das Admin-Token
    */
   @Post('admin/setup')
   @UseGuards(JwtAuthGuard)
@@ -223,8 +226,23 @@ export class AuthController {
   async adminSetup(
     @Body() dto: AdminSetupDto,
     @CurrentUser() user: ValidatedUser,
-  ): Promise<{ message: string }> {
-    return this.authService.adminSetup(dto, user);
+    @Res({ passthrough: true }) res: Response,
+  ): Promise<{ message: string; user: any; token?: string }> {
+    const result = await this.authService.adminSetup(dto, user);
+
+    // Setze Admin-Token als HttpOnly-Cookie
+    const isProduction = process.env.NODE_ENV === 'production';
+    res.cookie('adminToken', result.token, {
+      httpOnly: true,
+      secure: isProduction,
+      maxAge: milliseconds({ minutes: 15 }),
+      sameSite: 'lax',
+    });
+    return {
+      message: 'Admin-Setup erfolgreich durchgeführt',
+      user: result.user,
+      token: result.token, // Optional im Response-Body
+    };
   }
 
   /**
@@ -257,5 +275,45 @@ export class AuthController {
     }
 
     return toUserResponseDto(fullUser);
+  }
+
+  /**
+   * Prüft den Admin-Setup-Status
+   *
+   * @param user - Der aktuell authentifizierte Benutzer
+   * @returns Status-Informationen für das Admin-Setup
+   */
+  @Get('admin/status')
+  @UseGuards(JwtAuthGuard)
+  @ApiCookieAuth()
+  @ApiOperation({
+    summary: 'Admin-Setup-Status abrufen',
+    description:
+      'Prüft ob ein Admin-Setup verfügbar ist und ob der aktuelle Benutzer berechtigt ist',
+  })
+  @ApiResponse({
+    status: HttpStatus.OK,
+    description: 'Admin-Status erfolgreich abgerufen',
+    type: AdminStatusDto,
+  })
+  @ApiResponse({
+    status: HttpStatus.UNAUTHORIZED,
+    description: 'Keine gültige Authentifizierung',
+  })
+  async getAdminStatus(@CurrentUser() user: ValidatedUser): Promise<AdminStatusDto> {
+    const fullUser = await this.authService.findUserById(user.userId);
+    if (!fullUser) {
+      throw new NotFoundException('Benutzer nicht gefunden');
+    }
+
+    const adminExists = await this.authService.adminExists();
+    const isAdminRole = fullUser.role === 'ADMIN' || fullUser.role === 'SUPER_ADMIN';
+    const hasNoPassword = !fullUser.passwordHash;
+
+    return {
+      adminSetupAvailable: !adminExists && isAdminRole && hasNoPassword,
+      adminExists,
+      userEligible: isAdminRole && hasNoPassword,
+    };
   }
 }

@@ -15,6 +15,7 @@
 import * as runtime from '../runtime';
 import type {
   AdminSetupDto,
+  AdminStatusDto,
   AuthResponseDto,
   LoginUserDto,
   RegisterUserDto,
@@ -23,6 +24,8 @@ import type {
 import {
   AdminSetupDtoFromJSON,
   AdminSetupDtoToJSON,
+  AdminStatusDtoFromJSON,
+  AdminStatusDtoToJSON,
   AuthResponseDtoFromJSON,
   AuthResponseDtoToJSON,
   LoginUserDtoFromJSON,
@@ -93,6 +96,41 @@ export class AuthApi extends runtime.BaseAPI {
     initOverrides?: RequestInit | runtime.InitOverrideFunction,
   ): Promise<void> {
     await this.authControllerAdminSetupRaw(requestParameters, initOverrides);
+  }
+
+  /**
+   * Prüft ob ein Admin-Setup verfügbar ist und ob der aktuelle Benutzer berechtigt ist
+   * Admin-Setup-Status abrufen
+   */
+  async authControllerGetAdminStatusRaw(
+    initOverrides?: RequestInit | runtime.InitOverrideFunction,
+  ): Promise<runtime.ApiResponse<AdminStatusDto>> {
+    const queryParameters: any = {};
+
+    const headerParameters: runtime.HTTPHeaders = {};
+
+    const response = await this.request(
+      {
+        path: `/api/auth/admin/status`,
+        method: 'GET',
+        headers: headerParameters,
+        query: queryParameters,
+      },
+      initOverrides,
+    );
+
+    return new runtime.JSONApiResponse(response, (jsonValue) => AdminStatusDtoFromJSON(jsonValue));
+  }
+
+  /**
+   * Prüft ob ein Admin-Setup verfügbar ist und ob der aktuelle Benutzer berechtigt ist
+   * Admin-Setup-Status abrufen
+   */
+  async authControllerGetAdminStatus(
+    initOverrides?: RequestInit | runtime.InitOverrideFunction,
+  ): Promise<AdminStatusDto> {
+    const response = await this.authControllerGetAdminStatusRaw(initOverrides);
+    return await response.value();
   }
 
   /**

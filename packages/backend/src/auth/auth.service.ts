@@ -1,5 +1,6 @@
 import { ConflictException, Injectable, Logger, NotFoundException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
+import { ConfigService } from '@nestjs/config';
 import { PrismaService } from '@/prisma/prisma.service';
 import { User, UserRole } from '@prisma/client';
 import { RegisterUserDto } from './dto/register-user.dto';
@@ -21,6 +22,7 @@ export class AuthService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly jwtService: JwtService,
+    private readonly configService: ConfigService,
   ) {}
 
   /**
@@ -138,15 +140,35 @@ export class AuthService {
   }
 
   /**
-   * Prüft, ob bereits ein Admin-Benutzer existiert
+   * Generiert ein Admin-Token für einen Benutzer
    *
-   * @returns true wenn mindestens ein Benutzer mit Admin-Rolle existiert, sonst false
+   * @param userId - Die ID des Benutzers
+   * @returns Das signierte JWT Admin-Token mit 15 Minuten Gültigkeit
+   */
+  signAdminToken(userId: string): string {
+    const payload = { sub: userId, isAdmin: true };
+    const adminJwtSecret = this.configService.getOrThrow<string>('ADMIN_JWT_SECRET');
+
+    this.logger.debug(`🔐 Generiere Admin-Token für Benutzer: ${userId}`);
+    return this.jwtService.sign(payload, {
+      secret: adminJwtSecret,
+      expiresIn: '15m',
+    });
+  }
+
+  /**
+   * Prüft, ob bereits ein Admin-Benutzer mit Passwort existiert
+   *
+   * @returns true wenn mindestens ein Benutzer mit Admin-Rolle und Passwort existiert, sonst false
    */
   async adminExists(): Promise<boolean> {
     const adminCount = await this.prisma.user.count({
       where: {
         role: {
           in: [UserRole.ADMIN, UserRole.SUPER_ADMIN],
+        },
+        passwordHash: {
+          not: null,
         },
       },
     });
@@ -159,36 +181,48 @@ export class AuthService {
    *
    * @param dto - Admin-Setup-Daten mit Passwort
    * @param validatedUser - Der aktuelle authentifizierte Benutzer
-   * @returns Der aktualisierte Benutzer ohne Passwort-Hash
+   * @returns Der aktualisierte Benutzer ohne Passwort-Hash und optional das Admin-Token
    * @throws ConflictException wenn bereits ein Admin existiert
    */
   async adminSetup(
     dto: AdminSetupDto,
     validatedUser: ValidatedUser,
-  ): Promise<{ user: Omit<User, 'passwordHash'> }> {
-    // Prüfe ob bereits ein Admin existiert
+  ): Promise<{ user: Omit<User, 'passwordHash'>; token?: string }> {
+    const currentUser = await this.findUserById(validatedUser.userId);
+    if (!currentUser) {
+      throw new NotFoundException('Benutzer nicht gefunden');
+    }
+
+    if (currentUser.role !== UserRole.ADMIN && currentUser.role !== UserRole.SUPER_ADMIN) {
+      this.logger.warn(
+        `🚫 Admin-Setup verweigert: Keine Admin-Berechtigung für ${currentUser.username}`,
+      );
+      throw new ConflictException('Nur Admin-Benutzer können diese Funktion nutzen');
+    }
+
     if (await this.adminExists()) {
       this.logger.warn(`🚫 Admin-Setup verweigert: Admin existiert bereits`);
       throw new ConflictException('Ein Admin-Account existiert bereits');
     }
 
-    // Hash das Passwort mit bcrypt (10 salt rounds)
     const passwordHash = await bcrypt.hash(dto.password, 10);
 
-    // Aktualisiere den Benutzer mit isAdmin=true und dem gehashten Passwort
     const updatedUser = await this.prisma.user.update({
       where: { id: validatedUser.userId },
       data: {
-        role: UserRole.ADMIN,
         passwordHash: passwordHash,
       },
     });
 
     this.logger.warn(`✅ Admin-Setup erfolgreich für Benutzer: ${updatedUser.username}`);
 
-    // Entferne das Passwort-Hash aus der Antwort
+    const adminToken = this.signAdminToken(updatedUser.id);
+
     const { passwordHash: _, ...sanitizedUser } = updatedUser;
 
-    return { user: sanitizedUser };
+    return {
+      user: sanitizedUser,
+      token: adminToken,
+    };
   }
 }

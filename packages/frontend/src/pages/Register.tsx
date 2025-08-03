@@ -6,6 +6,7 @@ import { PiWarning } from 'react-icons/pi';
 import { BackendApi } from '../api/api';
 import { authActions } from '../stores/auth.store';
 import type { RegisterUserDto } from '@bluelight-hub/shared/client';
+import { logger } from '@/utils/logger.ts';
 
 /**
  * Registrierungsseite für neue Benutzer
@@ -40,7 +41,7 @@ export function Register() {
         });
 
         // Erfolgreiche Registrierung - speichere User im Store
-        console.log('Registrierung erfolgreich:', response);
+        logger.log('✅ Registrierung erfolgreich:', response);
 
         // Speichere den User im Auth Store
         authActions.loginSuccess(response.user);
@@ -48,7 +49,7 @@ export function Register() {
         // TODO: Redirect zu /dashboard statt / nach erfolgreicher Registrierung
         await navigate({ to: '/' });
       } catch (error) {
-        console.error('Registrierungsfehler:', error);
+        logger.error('🙀 Registrierungsfehler:', error);
 
         // API-Fehler behandeln
         if (error instanceof Error) {

@@ -35,6 +35,7 @@ catalog:
   class-variance-authority: ^0.7.1
   clsx: ^2.1.1
   consola: ^3.4.2
+  date-fns: ^4.1.0
   eslint: ^9.32.0
   eslint-plugin-react-hooks: ^5.2.0
   eslint-plugin-react-refresh: ^0.4.20
@@ -51,3 +52,4 @@ catalog:
   vite: ^7.0.6
   vite-tsconfig-paths: ^5.1.4
   vitest: ^3.2.4
+  zod: ^4.0.14
