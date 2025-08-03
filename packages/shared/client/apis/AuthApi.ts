@@ -13,15 +13,29 @@
  */
 
 import * as runtime from '../runtime';
-import type { AuthResponseDto, LoginUserDto, RegisterUserDto } from '../models/index';
+import type {
+  AdminSetupDto,
+  AuthResponseDto,
+  LoginUserDto,
+  RegisterUserDto,
+  UserResponseDto,
+} from '../models/index';
 import {
+  AdminSetupDtoFromJSON,
+  AdminSetupDtoToJSON,
   AuthResponseDtoFromJSON,
   AuthResponseDtoToJSON,
   LoginUserDtoFromJSON,
   LoginUserDtoToJSON,
   RegisterUserDtoFromJSON,
   RegisterUserDtoToJSON,
+  UserResponseDtoFromJSON,
+  UserResponseDtoToJSON,
 } from '../models/index';
+
+export interface AuthControllerAdminSetupRequest {
+  adminSetupDto: AdminSetupDto;
+}
 
 export interface AuthControllerLoginRequest {
   loginUserDto: LoginUserDto;
@@ -35,6 +49,87 @@ export interface AuthControllerRegisterRequest {
  *
  */
 export class AuthApi extends runtime.BaseAPI {
+  /**
+   * Richtet das Passwort für einen Admin-Account ein. Erfordert Authentifizierung.
+   * Admin-Passwort einrichten
+   */
+  async authControllerAdminSetupRaw(
+    requestParameters: AuthControllerAdminSetupRequest,
+    initOverrides?: RequestInit | runtime.InitOverrideFunction,
+  ): Promise<runtime.ApiResponse<void>> {
+    if (requestParameters['adminSetupDto'] == null) {
+      throw new runtime.RequiredError(
+        'adminSetupDto',
+        'Required parameter "adminSetupDto" was null or undefined when calling authControllerAdminSetup().',
+      );
+    }
+
+    const queryParameters: any = {};
+
+    const headerParameters: runtime.HTTPHeaders = {};
+
+    headerParameters['Content-Type'] = 'application/json';
+
+    const response = await this.request(
+      {
+        path: `/api/auth/admin/setup`,
+        method: 'POST',
+        headers: headerParameters,
+        query: queryParameters,
+        body: AdminSetupDtoToJSON(requestParameters['adminSetupDto']),
+      },
+      initOverrides,
+    );
+
+    return new runtime.VoidApiResponse(response);
+  }
+
+  /**
+   * Richtet das Passwort für einen Admin-Account ein. Erfordert Authentifizierung.
+   * Admin-Passwort einrichten
+   */
+  async authControllerAdminSetup(
+    requestParameters: AuthControllerAdminSetupRequest,
+    initOverrides?: RequestInit | runtime.InitOverrideFunction,
+  ): Promise<void> {
+    await this.authControllerAdminSetupRaw(requestParameters, initOverrides);
+  }
+
+  /**
+   * Gibt die Informationen des aktuell authentifizierten Benutzers zurück
+   * Aktuelle Benutzerinformationen abrufen
+   */
+  async authControllerGetCurrentUserRaw(
+    initOverrides?: RequestInit | runtime.InitOverrideFunction,
+  ): Promise<runtime.ApiResponse<UserResponseDto>> {
+    const queryParameters: any = {};
+
+    const headerParameters: runtime.HTTPHeaders = {};
+
+    const response = await this.request(
+      {
+        path: `/api/auth/me`,
+        method: 'GET',
+        headers: headerParameters,
+        query: queryParameters,
+      },
+      initOverrides,
+    );
+
+    return new runtime.JSONApiResponse(response, (jsonValue) => UserResponseDtoFromJSON(jsonValue));
+  }
+
+  /**
+   * Gibt die Informationen des aktuell authentifizierten Benutzers zurück
+   * Aktuelle Benutzerinformationen abrufen
+   */
+  async authControllerGetCurrentUser(
+    initOverrides?: RequestInit | runtime.InitOverrideFunction,
+  ): Promise<UserResponseDto> {
+    const response = await this.authControllerGetCurrentUserRaw(initOverrides);
+    return await response.value();
+  }
+
   /**
    * Meldet einen Benutzer nur mit Benutzernamen an (ohne Passwort)
    * Benutzer anmelden

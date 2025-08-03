@@ -203,6 +203,19 @@ export class TestDbUtils {
   }
 
   /**
+   * Löscht einen Benutzer anhand der ID
+   *
+   * @param userId Die ID des zu löschenden Benutzers
+   * @returns Der gelöschte Benutzer
+   */
+  static async deleteUser(userId: string) {
+    const prisma = this.getPrisma();
+    return prisma.user.delete({
+      where: { id: userId },
+    });
+  }
+
+  /**
    * Initialisiert die Test-Datenbank
    *
    * Startet Container, führt Migrationen aus und stellt Verbindung her.

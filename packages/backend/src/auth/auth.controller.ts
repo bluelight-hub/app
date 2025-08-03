@@ -1,6 +1,7 @@
 import {
   Body,
   Controller,
+  Get,
   HttpCode,
   HttpStatus,
   NotFoundException,
@@ -16,7 +17,7 @@ import { AuthService } from './auth.service';
 import { RegisterUserDto } from './dto/register-user.dto';
 import { LoginUserDto } from './dto/login-user.dto';
 import { AdminSetupDto } from './dto/admin-setup.dto';
-import { AuthResponseDto } from './dto/user-response.dto';
+import { AuthResponseDto, UserResponseDto } from './dto/user-response.dto';
 import { clearAuthCookies, setAuthCookies } from './auth.utils';
 import { JwtRefreshGuard } from './guards/jwt-refresh.guard';
 import { JwtAuthGuard } from './guards/jwt-auth.guard';
@@ -224,5 +225,37 @@ export class AuthController {
     @CurrentUser() user: ValidatedUser,
   ): Promise<{ message: string }> {
     return this.authService.adminSetup(dto, user);
+  }
+
+  /**
+   * Gibt die Informationen des aktuell authentifizierten Benutzers zurück
+   *
+   * @param user - Der aktuell authentifizierte Benutzer
+   * @returns Die Benutzerinformationen
+   */
+  @Get('me')
+  @UseGuards(JwtAuthGuard)
+  @ApiCookieAuth()
+  @ApiOperation({
+    summary: 'Aktuelle Benutzerinformationen abrufen',
+    description: 'Gibt die Informationen des aktuell authentifizierten Benutzers zurück',
+  })
+  @ApiResponse({
+    status: HttpStatus.OK,
+    description: 'Benutzerinformationen erfolgreich abgerufen',
+    type: UserResponseDto,
+  })
+  @ApiResponse({
+    status: HttpStatus.UNAUTHORIZED,
+    description: 'Keine gültige Authentifizierung',
+  })
+  async getCurrentUser(@CurrentUser() user: ValidatedUser): Promise<UserResponseDto> {
+    const fullUser = await this.authService.findUserById(user.userId);
+
+    if (!fullUser) {
+      throw new NotFoundException('Benutzer nicht gefunden');
+    }
+
+    return toUserResponseDto(fullUser);
   }
 }

@@ -137,6 +137,23 @@ export class AuthService {
   }
 
   /**
+   * Prüft, ob bereits ein Admin-Benutzer existiert
+   *
+   * @returns true wenn mindestens ein Benutzer mit Admin-Rolle existiert, sonst false
+   */
+  async adminExists(): Promise<boolean> {
+    const adminCount = await this.prisma.user.count({
+      where: {
+        role: {
+          in: [UserRole.ADMIN, UserRole.SUPER_ADMIN],
+        },
+      },
+    });
+
+    return adminCount > 0;
+  }
+
+  /**
    * Richtet das Passwort für einen Admin-Account ein
    *
    * @param dto - Admin-Setup-Daten mit Passwort
