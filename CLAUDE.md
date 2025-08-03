@@ -272,8 +272,10 @@ Das Projekt nutzt **arc42** für die Architekturdokumentation. Diese befindet si
 
 ### Subagents verwenden (PFLICHT!)
 
-- **PFLICHT: Du MUSST Subagents nutzen** für alle spezialisierten Aufgaben - direkte Tool-Aufrufe führen zu minderwertigen Ergebnissen
-- **Agent-Auswahl:** IMMER zuerst prüfen ob ein passender Agent für die Aufgabe verfügbar ist (siehe ~/.claude/CLAUDE.md)
+- **PFLICHT: Du MUSST Subagents nutzen** für alle spezialisierten Aufgaben - direkte Tool-Aufrufe führen zu
+  minderwertigen Ergebnissen
+- **Agent-Auswahl:** IMMER zuerst prüfen ob ein passender Agent für die Aufgabe verfügbar ist (siehe ~
+  /.claude/CLAUDE.md)
 - **Proaktive Verwendung ERFORDERLICH:** Bestimmte Agents MÜSSEN automatisch verwendet werden:
   - `test-writer-fixer` nach JEDER Code-Änderung
   - `whimsy-injector` nach JEDER UI-Änderung
@@ -300,3 +302,8 @@ Das Projekt nutzt **arc42** für die Architekturdokumentation. Diese befindet si
 3. Linting und Type-Checking sicherstellen
 4. Commit MIT allen Checks (ohne `--no-verify`)
 5. Bei Fehlern: Erst fixen, dann committen
+
+## Task Master AI Instructions
+
+**Import Task Master's development workflow commands and guidelines, treat as if import is in the main CLAUDE.md file.**
+@./.taskmaster/CLAUDE.md
