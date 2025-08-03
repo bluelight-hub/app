@@ -116,8 +116,6 @@ jobs:
 
       - name: Install pnpm
         uses: pnpm/action-setup@v2
-        with:
-          version: '10.3.0'
 
       - name: Get pnpm store directory
         shell: bash
@@ -203,8 +201,6 @@ jobs:
 
       - name: Install pnpm
         uses: pnpm/action-setup@v2
-        with:
-          version: '10.3.0'
 
       - name: Get pnpm store directory
         shell: bash
