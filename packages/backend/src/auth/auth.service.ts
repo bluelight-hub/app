@@ -6,6 +6,7 @@ import { RegisterUserDto } from './dto/register-user.dto';
 import { LoginUserDto } from './dto/login-user.dto';
 import { AdminSetupDto } from './dto/admin-setup.dto';
 import { ValidatedUser } from './strategies/jwt.strategy';
+import * as bcrypt from 'bcrypt';
 
 /**
  * Service für Authentifizierungslogik
@@ -158,14 +159,36 @@ export class AuthService {
    *
    * @param dto - Admin-Setup-Daten mit Passwort
    * @param validatedUser - Der aktuelle authentifizierte Benutzer
-   * @returns Erfolgsmeldung
-   * @throws ConflictException wenn der Benutzer kein Admin ist oder Setup bereits durchgeführt wurde
+   * @returns Der aktualisierte Benutzer ohne Passwort-Hash
+   * @throws ConflictException wenn bereits ein Admin existiert
    */
-  async adminSetup(dto: AdminSetupDto, validatedUser: ValidatedUser): Promise<{ message: string }> {
-    // TODO: Implementierung der adminSetup-Logik
-    // Diese Methode wird in den nächsten Tasks implementiert
-    this.logger.warn(`🔧 Admin-Setup angefordert für Benutzer: ${validatedUser.userId}`);
+  async adminSetup(
+    dto: AdminSetupDto,
+    validatedUser: ValidatedUser,
+  ): Promise<{ user: Omit<User, 'passwordHash'> }> {
+    // Prüfe ob bereits ein Admin existiert
+    if (await this.adminExists()) {
+      this.logger.warn(`🚫 Admin-Setup verweigert: Admin existiert bereits`);
+      throw new ConflictException('Ein Admin-Account existiert bereits');
+    }
 
-    return { message: 'Admin-Setup Endpoint erstellt - Implementierung folgt' };
+    // Hash das Passwort mit bcrypt (10 salt rounds)
+    const passwordHash = await bcrypt.hash(dto.password, 10);
+
+    // Aktualisiere den Benutzer mit isAdmin=true und dem gehashten Passwort
+    const updatedUser = await this.prisma.user.update({
+      where: { id: validatedUser.userId },
+      data: {
+        role: UserRole.ADMIN,
+        passwordHash: passwordHash,
+      },
+    });
+
+    this.logger.warn(`✅ Admin-Setup erfolgreich für Benutzer: ${updatedUser.username}`);
+
+    // Entferne das Passwort-Hash aus der Antwort
+    const { passwordHash: _, ...sanitizedUser } = updatedUser;
+
+    return { user: sanitizedUser };
   }
 }

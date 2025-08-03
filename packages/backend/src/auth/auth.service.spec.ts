@@ -1,8 +1,10 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { AuthService } from './auth.service';
-import { PrismaService } from '../prisma/prisma.service';
+import { PrismaService } from '@/prisma/prisma.service';
 import { JwtService } from '@nestjs/jwt';
 import { UserRole } from '@prisma/client';
+import { ConflictException } from '@nestjs/common';
+import * as bcrypt from 'bcrypt';
 
 describe('AuthService', () => {
   let service: AuthService;
@@ -87,6 +89,80 @@ describe('AuthService', () => {
           },
         },
       });
+    });
+  });
+
+  describe('adminSetup', () => {
+    const mockValidatedUser = { userId: 'user123' };
+    const mockAdminSetupDto = { password: 'SecurePassword123!' };
+    const mockUser = {
+      id: 'user123',
+      username: 'testuser',
+      passwordHash: null,
+      role: UserRole.USER,
+      isActive: true,
+      lastLoginAt: null,
+      failedLoginCount: 0,
+      lockedUntil: null,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+      createdBy: null,
+    };
+
+    beforeEach(() => {
+      jest
+        .spyOn(bcrypt, 'hash')
+        .mockImplementation((password: string, saltRounds: number) =>
+          Promise.resolve(`hashed_${password}_${saltRounds}`),
+        );
+    });
+
+    it('sollte den Benutzer erfolgreich zum Admin mit gehashtem Passwort aktualisieren, wenn kein Admin existiert', async () => {
+      const updatedUser = {
+        ...mockUser,
+        role: UserRole.ADMIN,
+        passwordHash: 'hashed_SecurePassword123!_10',
+      };
+
+      jest.spyOn(service, 'adminExists').mockResolvedValue(false);
+      mockPrismaService.user.update.mockResolvedValue(updatedUser);
+
+      const result = await service.adminSetup(mockAdminSetupDto, mockValidatedUser);
+
+      expect(service.adminExists).toHaveBeenCalled();
+      expect(bcrypt.hash).toHaveBeenCalledWith('SecurePassword123!', 10);
+      expect(mockPrismaService.user.update).toHaveBeenCalledWith({
+        where: { id: 'user123' },
+        data: {
+          role: UserRole.ADMIN,
+          passwordHash: 'hashed_SecurePassword123!_10',
+        },
+      });
+
+      // Verifiziere, dass das Passwort nicht in der Antwort enthalten ist
+      expect(result.user).not.toHaveProperty('passwordHash');
+      expect(result.user.role).toBe(UserRole.ADMIN);
+      expect(result.user.username).toBe('testuser');
+    });
+
+    it('sollte eine ConflictException werfen, wenn bereits ein Admin existiert', async () => {
+      jest.spyOn(service, 'adminExists').mockResolvedValue(true);
+
+      await expect(service.adminSetup(mockAdminSetupDto, mockValidatedUser)).rejects.toThrow(
+        ConflictException,
+      );
+
+      expect(service.adminExists).toHaveBeenCalled();
+      expect(bcrypt.hash).not.toHaveBeenCalled();
+      expect(mockPrismaService.user.update).not.toHaveBeenCalled();
+    });
+
+    it('sollte die richtige Fehlermeldung enthalten, wenn Admin bereits existiert', async () => {
+      jest.spyOn(service, 'adminExists').mockResolvedValue(true);
+
+      await expect(service.adminSetup(mockAdminSetupDto, mockValidatedUser)).rejects.toThrow(
+        'Ein Admin-Account existiert bereits',
+      );
     });
   });
 });
