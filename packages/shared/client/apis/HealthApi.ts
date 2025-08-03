@@ -13,8 +13,16 @@
  */
 
 import * as runtime from '../runtime';
-import type { HealthControllerCheck200Response } from '../models';
-import { HealthControllerCheck200ResponseFromJSON } from '../models';
+import type {
+  HealthControllerCheck200Response,
+  HealthControllerCheck503Response,
+} from '../models/index';
+import {
+  HealthControllerCheck200ResponseFromJSON,
+  HealthControllerCheck200ResponseToJSON,
+  HealthControllerCheck503ResponseFromJSON,
+  HealthControllerCheck503ResponseToJSON,
+} from '../models/index';
 
 /**
  *

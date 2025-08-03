@@ -5,16 +5,15 @@ import { useForm } from '@tanstack/react-form';
 import { PiWarning } from 'react-icons/pi';
 import { BackendApi } from '../api/api';
 import { authActions } from '../stores/auth.store';
-import type { RegisterUserDto } from '@bluelight-hub/shared/client';
+import type { LoginUserDto } from '@bluelight-hub/shared/client';
 
 /**
- * Registrierungsseite für neue Benutzer
+ * Anmeldeseite für bestehende Benutzer
  *
- * Ermöglicht die Selbstregistrierung ohne Passwort.
- * Benutzer müssen nur einen eindeutigen Benutzernamen angeben.
- * Nach erfolgreicher Registrierung wird der User im TanStack Store gespeichert.
+ * Ermöglicht die Anmeldung nur mit Benutzernamen (ohne Passwort).
+ * Nach erfolgreicher Anmeldung wird der User im TanStack Store gespeichert.
  */
-export function Register() {
+export function Login() {
   const navigate = useNavigate();
   const [apiError, setApiError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -31,28 +30,33 @@ export function Register() {
       setApiError(null);
 
       try {
-        const registerData: RegisterUserDto = {
+        const loginData: LoginUserDto = {
           username: value.username,
         };
 
-        const response = await api.auth().authControllerRegister({
-          registerUserDto: registerData,
+        const response = await api.auth().authControllerLogin({
+          loginUserDto: loginData,
         });
 
-        // Erfolgreiche Registrierung - speichere User im Store
-        console.log('Registrierung erfolgreich:', response);
+        // Erfolgreiche Anmeldung - speichere User im Store
+        console.log('Anmeldung erfolgreich:', response);
 
         // Speichere den User im Auth Store
         authActions.loginSuccess(response.user);
 
-        // TODO: Redirect zu /dashboard statt / nach erfolgreicher Registrierung
+        // TODO: Redirect zu /dashboard statt / nach erfolgreicher Anmeldung
         await navigate({ to: '/' });
       } catch (error) {
-        console.error('Registrierungsfehler:', error);
+        console.error('Anmeldefehler:', error);
 
         // API-Fehler behandeln
         if (error instanceof Error) {
-          setApiError(error.message);
+          // Prüfe auf 404 (Benutzer nicht gefunden)
+          if (error.message.includes('404') || error.message.includes('nicht gefunden')) {
+            setApiError('Benutzer nicht gefunden. Bitte überprüfen Sie den Benutzernamen.');
+          } else {
+            setApiError(error.message);
+          }
         } else {
           setApiError('Ein unerwarteter Fehler ist aufgetreten. Bitte versuchen Sie es erneut.');
         }
@@ -66,9 +70,9 @@ export function Register() {
     <Container maxW="lg" py={{ base: '12', md: '24' }} px={{ base: '0', sm: '8' }}>
       <VStack gap="8">
         <VStack gap="6">
-          <Heading size="2xl">Registrierung</Heading>
+          <Heading size="2xl">Anmeldung</Heading>
           <Text fontSize="lg" color="fg.muted">
-            Erstellen Sie einen neuen Account
+            Melden Sie sich mit Ihrem Benutzernamen an
           </Text>
         </VStack>
 
@@ -88,7 +92,7 @@ export function Register() {
                 <PiWarning />
               </Alert.Indicator>
               <Alert.Content>
-                <Alert.Title>Registrierung fehlgeschlagen!</Alert.Title>
+                <Alert.Title>Anmeldung fehlgeschlagen!</Alert.Title>
                 <Alert.Description>{apiError}</Alert.Description>
               </Alert.Content>
             </Alert.Root>
@@ -110,9 +114,6 @@ export function Register() {
                     if (!trimmedValue) {
                       return 'Benutzername ist erforderlich';
                     }
-                    if (trimmedValue.length < 3) {
-                      return 'Benutzername muss mindestens 3 Zeichen lang sein';
-                    }
                     return undefined;
                   },
                 }}
@@ -126,7 +127,7 @@ export function Register() {
                       type="text"
                       autoComplete="username"
                       spellCheck="false"
-                      placeholder="Wählen Sie einen Benutzernamen"
+                      placeholder="Geben Sie Ihren Benutzernamen ein"
                       value={field.state.value}
                       onChange={(e) => {
                         field.handleChange(e.target.value);
@@ -141,11 +142,9 @@ export function Register() {
 
               <form.Subscribe selector={(state) => [state.canSubmit, state.isSubmitting]}>
                 {([canSubmit, isFormSubmitting]) => {
-                  // Debug logging removed after fix
-
                   return (
                     <Button type="submit" colorPalette="primary" size="lg" fontSize="md" w="full" disabled={!canSubmit || isSubmitting || isFormSubmitting} loading={isSubmitting}>
-                      {isSubmitting ? 'Registriere...' : 'Registrieren'}
+                      {isSubmitting ? 'Melde an...' : 'Anmelden'}
                     </Button>
                   );
                 }}
@@ -154,9 +153,9 @@ export function Register() {
           </form>
 
           <Text mt="6" textAlign="center" fontSize="sm" color="fg.muted">
-            Bereits registriert?{' '}
+            Noch kein Account?{' '}
             <Link asChild colorPalette="primary">
-              <RouterLink to="/login">Jetzt anmelden</RouterLink>
+              <RouterLink to="/register">Jetzt registrieren</RouterLink>
             </Link>
           </Text>
         </Box>

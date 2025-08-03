@@ -13,8 +13,15 @@
  */
 
 import * as runtime from '../runtime';
-import type { AuthResponseDto, LoginUserDto, RegisterUserDto } from '../models';
-import { AuthResponseDtoFromJSON, LoginUserDtoToJSON, RegisterUserDtoToJSON } from '../models';
+import type { AuthResponseDto, LoginUserDto, RegisterUserDto } from '../models/index';
+import {
+  AuthResponseDtoFromJSON,
+  AuthResponseDtoToJSON,
+  LoginUserDtoFromJSON,
+  LoginUserDtoToJSON,
+  RegisterUserDtoFromJSON,
+  RegisterUserDtoToJSON,
+} from '../models/index';
 
 export interface AuthControllerLoginRequest {
   loginUserDto: LoginUserDto;

@@ -1,4 +1,5 @@
 .openapi-generator-ignore
+apis/AppApi.ts
 apis/AuthApi.ts
 apis/HealthApi.ts
 apis/UsersApi.ts

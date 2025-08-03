@@ -190,6 +190,19 @@ export class TestDbUtils {
   }
 
   /**
+   * Findet einen Benutzer anhand des Benutzernamens
+   *
+   * @param username Der Benutzername
+   * @returns Der gefundene Benutzer oder null
+   */
+  static async findUserByUsername(username: string) {
+    const prisma = this.getPrisma();
+    return prisma.user.findUnique({
+      where: { username },
+    });
+  }
+
+  /**
    * Initialisiert die Test-Datenbank
    *
    * Startet Container, führt Migrationen aus und stellt Verbindung her.
