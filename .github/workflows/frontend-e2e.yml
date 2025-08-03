@@ -56,7 +56,7 @@ jobs:
         run: pnpm install --frozen-lockfile
 
       - name: Build shared package
-        run: pnpm --filter @bluelight-hub/shared build
+        run: pnpm --filter @bluelight-hub/shared build:ci
 
       - name: Setup backend for E2E tests
         env:

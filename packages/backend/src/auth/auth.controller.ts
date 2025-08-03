@@ -15,10 +15,13 @@ import { Request, Response } from 'express';
 import { AuthService } from './auth.service';
 import { RegisterUserDto } from './dto/register-user.dto';
 import { LoginUserDto } from './dto/login-user.dto';
+import { AdminSetupDto } from './dto/admin-setup.dto';
 import { AuthResponseDto } from './dto/user-response.dto';
 import { clearAuthCookies, setAuthCookies } from './auth.utils';
 import { JwtRefreshGuard } from './guards/jwt-refresh.guard';
+import { JwtAuthGuard } from './guards/jwt-auth.guard';
 import { ValidatedUser } from './strategies/jwt.strategy';
+import { CurrentUser } from './decorators/current-user.decorator';
 import { toUserResponseDto } from './auth.mapper';
 
 /**
@@ -187,5 +190,39 @@ export class AuthController {
   async logout(@Res({ passthrough: true }) res: Response): Promise<{ message: string }> {
     clearAuthCookies(res);
     return { message: 'Erfolgreich abgemeldet' };
+  }
+
+  /**
+   * Richtet das Passwort für einen Admin-Account ein
+   *
+   * @param dto - Admin-Setup-Daten mit Passwort
+   * @param user - Der aktuelle authentifizierte Benutzer
+   * @returns Erfolgsmeldung
+   */
+  @Post('admin/setup')
+  @UseGuards(JwtAuthGuard)
+  @HttpCode(HttpStatus.CREATED)
+  @ApiCookieAuth()
+  @ApiOperation({
+    summary: 'Admin-Passwort einrichten',
+    description: 'Richtet das Passwort für einen Admin-Account ein. Erfordert Authentifizierung.',
+  })
+  @ApiResponse({
+    status: HttpStatus.CREATED,
+    description: 'Admin-Passwort erfolgreich eingerichtet',
+  })
+  @ApiResponse({
+    status: HttpStatus.CONFLICT,
+    description: 'Admin-Setup bereits durchgeführt oder Benutzer ist kein Admin',
+  })
+  @ApiResponse({
+    status: HttpStatus.UNAUTHORIZED,
+    description: 'Keine Authentifizierung',
+  })
+  async adminSetup(
+    @Body() dto: AdminSetupDto,
+    @CurrentUser() user: ValidatedUser,
+  ): Promise<{ message: string }> {
+    return this.authService.adminSetup(dto, user);
   }
 }

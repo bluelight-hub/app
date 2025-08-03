@@ -4,6 +4,8 @@ import { PrismaService } from '@/prisma/prisma.service';
 import { User, UserRole } from '@prisma/client';
 import { RegisterUserDto } from './dto/register-user.dto';
 import { LoginUserDto } from './dto/login-user.dto';
+import { AdminSetupDto } from './dto/admin-setup.dto';
+import { ValidatedUser } from './strategies/jwt.strategy';
 
 /**
  * Service für Authentifizierungslogik
@@ -132,5 +134,21 @@ export class AuthService {
     const payload = { sub: userId };
     this.logger.debug(`🔄 Generiere Refresh-Token für Benutzer: ${userId}`);
     return this.jwtService.sign(payload, { expiresIn: '7d' });
+  }
+
+  /**
+   * Richtet das Passwort für einen Admin-Account ein
+   *
+   * @param dto - Admin-Setup-Daten mit Passwort
+   * @param validatedUser - Der aktuelle authentifizierte Benutzer
+   * @returns Erfolgsmeldung
+   * @throws ConflictException wenn der Benutzer kein Admin ist oder Setup bereits durchgeführt wurde
+   */
+  async adminSetup(dto: AdminSetupDto, validatedUser: ValidatedUser): Promise<{ message: string }> {
+    // TODO: Implementierung der adminSetup-Logik
+    // Diese Methode wird in den nächsten Tasks implementiert
+    this.logger.warn(`🔧 Admin-Setup angefordert für Benutzer: ${validatedUser.userId}`);
+
+    return { message: 'Admin-Setup Endpoint erstellt - Implementierung folgt' };
   }
 }
