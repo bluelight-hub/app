@@ -2,12 +2,12 @@ name: Frontend E2E Tests
 
 on:
   push:
-    branches: [main, develop]
+    branches: [main, develop, feature/*, alpha, beta, release/*]
     paths:
       - 'packages/frontend/**'
       - '.github/workflows/frontend-e2e.yml'
   pull_request:
-    branches: [main, develop]
+    branches: [main, develop, feature/*, alpha, beta, release/*]
     paths:
       - 'packages/frontend/**'
       - '.github/workflows/frontend-e2e.yml'
