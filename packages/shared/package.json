@@ -12,9 +12,9 @@
     "test": "echo 'No tests available for shared package'"
   },
   "devDependencies": {
-    "@openapitools/openapi-generator-cli": "^2.19.1",
-    "prettier": "^3.5.3",
+    "@openapitools/openapi-generator-cli": "^2.21.4",
+    "prettier": "^3.6.2",
     "rimraf": "^6.0.1",
-    "typescript": "^5.8.3"
+    "typescript": "^5.9.2"
   }
 }

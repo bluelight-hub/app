@@ -1,8 +1,45 @@
 'use client';
 
-import { ChakraProvider, defaultSystem } from '@chakra-ui/react';
-import { type ColorModeProviderProps } from './color-mode';
+import { ChakraProvider, createSystem, defaultConfig, defineConfig, defineTokens } from '@chakra-ui/react';
+import type { ColorModeProviderProps } from './color-mode';
 import { ColorModeProvider } from '@/provider/color-mode.provider.tsx';
+
+const config = defineConfig({
+  theme: {
+    tokens: {
+      colors: defineTokens.colors({
+        primary: {
+          '50': { value: 'var(--color-red-50)' },
+          '100': { value: 'var(--color-red-100)' },
+          '200': { value: 'var(--color-red-200)' },
+          '300': { value: 'var(--color-red-300)' },
+          '400': { value: 'var(--color-red-400)' },
+          '500': { value: 'var(--color-red-500)' },
+          '600': { value: 'var(--color-red-600)' },
+          '700': { value: 'var(--color-red-700)' },
+          '800': { value: 'var(--color-red-800)' },
+          '900': { value: 'var(--color-red-900)' },
+          '950': { value: 'var(--color-red-950)' },
+        },
+      }),
+    },
+    semanticTokens: {
+      colors: {
+        primary: {
+          solid: { value: { _light: '{colors.primary.500}', _dark: '{colors.primary.700}' } },
+          contrast: { value: '{colors.primary.100}' },
+          fg: { value: { _light: '{colors.primary.700}', _dark: '{colors.primary.400}' } },
+          muted: { value: '{colors.primary.100}' },
+          subtle: { value: '{colors.primary.200}' },
+          emphasized: { value: '{colors.primary.300}' },
+          focusRing: { value: '{colors.primary.500}' },
+        },
+      },
+    },
+  },
+});
+
+const system = createSystem(defaultConfig, config);
 
 /**
  * Haupt-Provider-Komponente für die Anwendung.
@@ -21,7 +58,7 @@ import { ColorModeProvider } from '@/provider/color-mode.provider.tsx';
  */
 export function Provider(props: ColorModeProviderProps) {
   return (
-    <ChakraProvider value={defaultSystem}>
+    <ChakraProvider value={system}>
       <ColorModeProvider {...props} />
     </ChakraProvider>
   );

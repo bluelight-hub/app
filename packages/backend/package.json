@@ -46,7 +46,6 @@
     "@nestjs/terminus": "^11.0.0",
     "@prisma/client": "^6.13.0",
     "cache-manager": "^7.1.0",
-    "cache-manager-redis-yet": "^5.1.5",
     "class-transformer": "^0.5.1",
     "class-validator": "^0.14.2",
     "cookie-parser": "^1.4.7",
@@ -60,7 +59,7 @@
   "devDependencies": {
     "@compodoc/compodoc": "^1.1.26",
     "@eslint/js": "^9.32.0",
-    "@nestjs/cli": "^11.0.8",
+    "@nestjs/cli": "^11.0.10",
     "@nestjs/testing": "^11.1.5",
     "@testcontainers/postgresql": "^11.5.0",
     "@types/cookie-parser": "^1.4.9",
@@ -81,7 +80,7 @@
     "ts-jest": "^29.4.0",
     "ts-node": "^10.9.2",
     "ts-node-dev": "^2.0.0",
-    "typescript": "^5.8.3",
+    "typescript": "^5.9.2",
     "typescript-eslint": "8.38.0"
   },
   "prisma": {

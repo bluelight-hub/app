@@ -1,7 +1,8 @@
-import { ClientOnly, IconButton, IconButtonProps, Skeleton } from '@chakra-ui/react';
+import { ClientOnly, IconButton, Skeleton } from '@chakra-ui/react';
 import * as React from 'react';
-import { useColorMode } from '@/hooks/use-color-mode.ts';
 import { ColorModeIcon } from '@atoms/color-mode-icon.atom.tsx';
+import type { IconButtonProps } from '@chakra-ui/react';
+import { useColorMode } from '@/hooks/use-color-mode.ts';
 
 type ColorModeButtonProps = Omit<IconButtonProps, 'aria-label'>;
 export const ColorModeButton = React.forwardRef<HTMLButtonElement, ColorModeButtonProps>(function ColorModeButton(props, ref) {

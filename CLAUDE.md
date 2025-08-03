@@ -109,6 +109,55 @@ Only use these shell commands if IntelliJ is not available:
 - Use react-icons (phosphor-icons) when using icons
 - JSDoc sollte in deutsch geschrieben sein, die geht direkt in die technische Dokumentation (und die ist auf deutsch)
 
+## Frontend Libraries (WICHTIG!)
+
+### Forms - TanStack Form
+
+**Dieses Projekt nutzt @tanstack/react-form für ALLE Formulare!**
+
+- NIEMALS native HTML Forms oder andere Form-Libraries verwenden
+- TanStack Form bietet Type-Safety, Validation und Performance
+- Immer mit Zod-Schemas für Type-Safe Validation arbeiten
+
+### State Management - TanStack Store
+
+**@tanstack/react-store wird für Framework-agnostisches State Management verwendet**
+
+- Für globalen State der nicht in React Context passt
+- Bietet Type-Safety und Framework-Unabhängigkeit
+- Besonders für shared State zwischen Components
+
+### Execution Control - TanStack Pacer
+
+**@tanstack/pacer für kontrollierten Funktionsaufruf-Timing**
+
+- Debouncing, Throttling und andere Timing-Patterns
+- Verhindert Race Conditions und Performance-Probleme
+- Type-Safe und Tree-Shakeable
+- Bei User-Input, API-Calls und Heavy Computations verwenden
+
+## UI Framework (WICHTIG!)
+
+**Dieses Projekt nutzt Chakra UI v3 als UI-Framework!**
+
+### Chakra UI MCP Integration
+
+Bei ALLEN UI-Implementierungen MUSS der Chakra UI MCP Server verwendet werden:
+
+- **Theme abrufen:** `mcp__chakra-ui__get_theme` - Holt die aktuellen Theme-Definitionen (Farben, Fonts, etc.)
+- **Component Props:** `mcp__chakra-ui__get_component_props` - Zeigt alle verfügbaren Props für eine Komponente
+- **Component Beispiele:** `mcp__chakra-ui__get_component_example` - Liefert praktische Code-Beispiele
+- **Migration Check:** `mcp__chakra-ui__v2_to_v3_code_review` - Prüft Code auf v2→v3 Kompatibilität
+- **Komponenten-Liste:** `mcp__chakra-ui__list_components` - Zeigt alle verfügbaren Komponenten
+
+**Wichtige Regeln:**
+
+- IMMER Chakra UI Komponenten verwenden statt eigene zu bauen
+- IMMER die MCP Tools nutzen um korrekte Props und Patterns zu verwenden
+- NIEMALS Tailwind oder andere CSS-Frameworks mischen
+- Bei UI-Änderungen IMMER zuerst den Theme checken
+- Chakra UI v3 nutzt ein neues Theming-System - keine v2 Patterns!
+
 ## Commit Message Convention
 
 - Format: `<emoji>(<context>): <title>`

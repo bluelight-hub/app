@@ -1,25 +1,17 @@
 {
+  "extends": "./tsconfig.json",
   "compilerOptions": {
-    "tsBuildInfoFile": "./node_modules/.tmp/tsconfig.app.tsbuildinfo",
     "target": "ESNext",
-    "useDefineForClassFields": true,
     "lib": ["ESNext", "DOM", "DOM.Iterable"],
     "module": "ESNext",
-    "skipLibCheck": true,
-    /* Bundler mode */
     "moduleResolution": "bundler",
     "allowImportingTsExtensions": true,
     "isolatedModules": true,
     "moduleDetection": "force",
     "noEmit": true,
-    "jsx": "react-jsx",
-    /* Linting */
     "strict": true,
-    "noUnusedLocals": true,
-    "noUnusedParameters": true,
-    "noFallthroughCasesInSwitch": true,
-    "noUncheckedSideEffectImports": true,
-    /* Path Aliases for Atomic Design */
+    "skipLibCheck": true,
+    "types": ["@playwright/test"],
     "baseUrl": ".",
     "paths": {
       "@/*": ["src/*"],
@@ -30,6 +22,6 @@
       "@pages/*": ["src/components/pages/*"]
     }
   },
-  "include": ["src", "e2e", "playwright.config.ts"],
-  "exclude": ["../shared/client/**/*.ts"]
+  "include": ["e2e/**/*"],
+  "exclude": []
 }

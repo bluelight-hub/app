@@ -1,5 +1,5 @@
 import { useTheme } from 'next-themes';
-import { ColorMode, UseColorModeReturn } from '@/components/ui/color-mode';
+import type { ColorMode, UseColorModeReturn } from '@/components/ui/color-mode';
 
 /**
  * Hook zum Verwalten des Farbmodus (Hell/Dunkel-Theme).

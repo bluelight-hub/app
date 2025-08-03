@@ -1,4 +1,4 @@
-import { Configuration, HealthApi } from '@bluelight-hub/shared/client';
+import { AuthApi, Configuration, HealthApi } from '@bluelight-hub/shared/client';
 
 /**
  * Zentrale Backend-API-Klasse für die Kommunikation mit dem BlueLight Hub Backend
@@ -15,6 +15,7 @@ import { Configuration, HealthApi } from '@bluelight-hub/shared/client';
 export class BackendApi {
   private readonly configuration: Configuration;
   private readonly healthApi: HealthApi;
+  private readonly authApi: AuthApi;
 
   /**
    * Erstellt eine neue Instanz der BackendApi-Klasse
@@ -34,6 +35,7 @@ export class BackendApi {
 
     // API-Instanzen werden einmalig erstellt und gecacht
     this.healthApi = new HealthApi(this.configuration);
+    this.authApi = new AuthApi(this.configuration);
   }
 
   /**
@@ -43,5 +45,14 @@ export class BackendApi {
    */
   health(): HealthApi {
     return this.healthApi;
+  }
+
+  /**
+   * Gibt die gecachte Auth-API-Instanz zurück
+   *
+   * @returns Die Auth-API-Instanz für Authentifizierung und Benutzerregistrierung
+   */
+  auth(): AuthApi {
+    return this.authApi;
   }
 }

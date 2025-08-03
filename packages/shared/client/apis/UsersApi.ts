@@ -13,8 +13,8 @@
  */
 
 import * as runtime from '../runtime';
-import type { CreateUserDto } from '../models/index';
-import { CreateUserDtoFromJSON, CreateUserDtoToJSON } from '../models/index';
+import type { CreateUserDto } from '../models';
+import { CreateUserDtoToJSON } from '../models';
 
 export interface UserControllerCreateVAlphaRequest {
   createUserDto: CreateUserDto;
@@ -134,7 +134,7 @@ export class UsersApi extends runtime.BaseAPI {
     const response = await this.request(
       {
         path: `/api/v-alpha/users/{id}`.replace(
-          `{${'id'}}`,
+          `{id}`,
           encodeURIComponent(String(requestParameters['id'])),
         ),
         method: 'GET',
@@ -180,7 +180,7 @@ export class UsersApi extends runtime.BaseAPI {
     const response = await this.request(
       {
         path: `/api/v-alpha/users/{id}`.replace(
-          `{${'id'}}`,
+          `{id}`,
           encodeURIComponent(String(requestParameters['id'])),
         ),
         method: 'DELETE',

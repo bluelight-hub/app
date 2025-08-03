@@ -1,7 +1,9 @@
-import { createRootRoute, Outlet } from '@tanstack/react-router';
-import { Provider } from '@/components/ui/provider.tsx';
+import { Outlet, createRootRoute } from '@tanstack/react-router';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
+import { Provider } from '@/components/ui/provider.tsx';
+import { AuthProvider } from '@/provider/auth.provider.tsx';
+import { Toaster } from '@/components/ui/toaster.tsx';
 
 export const Route = createRootRoute({
   component: RootComponent,
@@ -12,10 +14,13 @@ const queryClient = new QueryClient();
 function RootComponent() {
   return (
     <Provider>
-      <QueryClientProvider client={queryClient}>
-        <Outlet />
-        <ReactQueryDevtools />
-      </QueryClientProvider>
+      <AuthProvider>
+        <QueryClientProvider client={queryClient}>
+          <Outlet />
+          <ReactQueryDevtools />
+          <Toaster />
+        </QueryClientProvider>
+      </AuthProvider>
     </Provider>
   );
 }
