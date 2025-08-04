@@ -23,7 +23,6 @@ export function AdminLogin() {
   const { user, isLoading } = useAuth();
   const api = new BackendApi();
 
-  // Redirect to login if not authenticated
   useEffect(() => {
     if (!isLoading && !user) {
       navigate({ to: '/login' });
@@ -32,8 +31,6 @@ export function AdminLogin() {
 
   const loginMutation = useMutation({
     mutationFn: async (password: string) => {
-      // Admin-Login erwartet nur das Passwort (AdminPasswordDto)
-      // Der Benutzer ist bereits angemeldet, daher wird die userId aus dem JWT Token verwendet
       return await api.auth().authControllerAdminLogin({
         adminPasswordDto: {
           password,
@@ -45,7 +42,7 @@ export function AdminLogin() {
 
       // Speichere den User im Auth Store
       if (response.user) {
-        authActions.loginSuccess(response.user);
+        authActions.loginSuccess(response.user); // todo: falscher typ
       }
 
       // Invalidiere relevante Queries
@@ -62,6 +59,7 @@ export function AdminLogin() {
       await navigate({ to: '/admin/dashboard' });
     },
     onError: (error: unknown) => {
+      // todo: types / unknown?
       console.error('Admin-Anmeldefehler:', error);
 
       // 401 Unauthorized - Falsche Anmeldedaten

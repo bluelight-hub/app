@@ -1,4 +1,5 @@
 import { Response } from 'express';
+import { milliseconds } from 'date-fns';
 
 /**
  * Cookie-Konfigurationsoptionen für Authentifizierungs-Cookies
@@ -22,7 +23,7 @@ export function getAccessTokenCookieOptions(isProduction: boolean): AuthCookieOp
     httpOnly: true,
     secure: isProduction,
     sameSite: 'lax',
-    maxAge: 15 * 60 * 1000, // 15 Minuten
+    maxAge: milliseconds({ minutes: 15 }),
     path: '/',
   };
 }
@@ -38,7 +39,7 @@ export function getRefreshTokenCookieOptions(isProduction: boolean): AuthCookieO
     httpOnly: true,
     secure: isProduction,
     sameSite: 'lax',
-    maxAge: 7 * 24 * 60 * 60 * 1000, // 7 Tage
+    maxAge: milliseconds({ days: 7 }),
     path: '/',
   };
 }
@@ -82,7 +83,7 @@ export function getAdminTokenCookieOptions(isProduction: boolean): AuthCookieOpt
     httpOnly: true,
     secure: isProduction,
     sameSite: 'lax',
-    maxAge: 15 * 60 * 1000, // 15 Minuten
+    maxAge: milliseconds({ minutes: 15 }),
     path: '/',
   };
 }

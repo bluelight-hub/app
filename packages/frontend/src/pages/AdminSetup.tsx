@@ -8,6 +8,7 @@ import { BackendApi } from '../api/api';
 import type { AdminSetupDto } from '@bluelight-hub/shared/client';
 import { useAuth } from '@/provider/auth.hooks.ts';
 import { useAdminStatus } from '@/hooks/useAdminStatus.ts';
+import { logger } from '@/utils/logger.ts';
 
 /**
  * Schema für die Validierung des Admin-Setup-Formulars
@@ -57,7 +58,7 @@ export function AdminSetup() {
         });
 
         // Erfolgreiche Einrichtung - zeige Erfolgsmeldung und leite weiter
-        console.log('Admin-Setup erfolgreich');
+        logger.log('Admin-Setup erfolgreich');
 
         // Lade den aktualisierten User (adminSetupAvailable sollte jetzt false sein)
         try {
@@ -66,7 +67,7 @@ export function AdminSetup() {
             setUser(updatedUser);
           });
         } catch (error) {
-          console.error('Fehler beim Laden des aktualisierten Users:', error);
+          logger.error('Fehler beim Laden des aktualisierten Users:', error);
           // Trotzdem weiterleiten, da das Setup erfolgreich war
         }
 
@@ -74,7 +75,7 @@ export function AdminSetup() {
         // Das adminToken Cookie wurde automatisch vom Backend gesetzt
         await navigate({ to: '/' });
       } catch (error) {
-        console.error('Admin-Setup-Fehler:', error);
+        logger.error('Admin-Setup-Fehler:', error);
 
         // API-Fehler behandeln
         if (error instanceof Error) {
