@@ -51,10 +51,24 @@ describe('AuthController (e2e) - Admin Login', () => {
         },
       });
 
+      // First, login as regular user to get JWT token
+      const loginResponse = await request(app.getHttpServer())
+        .post('/auth/login')
+        .send({ username: 'admin' })
+        .expect(200);
+
+      const loginCookies = loginResponse.headers['set-cookie'] as unknown as string[];
+      expect(loginCookies).toBeDefined();
+      expect(loginCookies.length).toBeGreaterThan(0);
+
+      const authToken = loginCookies?.find((cookie) => cookie.startsWith('accessToken='));
+      expect(authToken).toBeDefined();
+
+      // Then, activate admin rights with password
       const response = await request(app.getHttpServer())
         .post('/auth/admin/login')
+        .set('Cookie', authToken || '')
         .send({
-          username: 'admin',
           password: 'SecureAdminPassword123!',
         })
         .expect(200);
@@ -95,13 +109,24 @@ describe('AuthController (e2e) - Admin Login', () => {
 
       const originalLastLogin = admin.lastLoginAt;
 
+      // First, login as regular user to get JWT token
+      const loginResponse = await request(app.getHttpServer())
+        .post('/auth/login')
+        .send({ username: 'admin' })
+        .expect(200);
+
+      const authCookie = loginResponse.headers['set-cookie'] as unknown as string[];
+      const authToken = authCookie?.find((cookie) => cookie.startsWith('accessToken='));
+
+      expect(authToken).toBeDefined();
+
       // Wait a bit to ensure time difference
       await new Promise((resolve) => setTimeout(resolve, 100));
 
       await request(app.getHttpServer())
         .post('/auth/admin/login')
+        .set('Cookie', authToken || '')
         .send({
-          username: 'admin',
           password: 'SecureAdminPassword123!',
         })
         .expect(200);
@@ -130,15 +155,26 @@ describe('AuthController (e2e) - Admin Login', () => {
         },
       });
 
+      // First, login as regular user to get JWT token
+      const loginResponse = await request(app.getHttpServer())
+        .post('/auth/login')
+        .send({ username: 'admin' })
+        .expect(200);
+
+      const authCookie = loginResponse.headers['set-cookie'] as unknown as string[];
+      const authToken = authCookie?.find((cookie) => cookie.startsWith('accessToken='));
+
+      expect(authToken).toBeDefined();
+
       const response = await request(app.getHttpServer())
         .post('/auth/admin/login')
+        .set('Cookie', authToken || '')
         .send({
-          username: 'admin',
           password: 'WrongPassword',
         })
         .expect(401);
 
-      expect(response.body.message).toEqual('Ungültige Anmeldedaten');
+      expect(response.body.message).toEqual('Ungültiges Passwort');
 
       // Check no admin cookie is set
       const cookies = response.headers['set-cookie'] as unknown as string[];
@@ -148,7 +184,7 @@ describe('AuthController (e2e) - Admin Login', () => {
       }
     });
 
-    it('should return 401 for non-admin user', async () => {
+    it('should return 403 for non-admin user', async () => {
       // Create regular user with password
       const passwordHash = await bcrypt.hash('UserPassword123!', 10);
       await prisma.user.create({
@@ -159,27 +195,37 @@ describe('AuthController (e2e) - Admin Login', () => {
         },
       });
 
+      // First, login as regular user to get JWT token
+      const loginResponse = await request(app.getHttpServer())
+        .post('/auth/login')
+        .send({ username: 'regularuser' })
+        .expect(200);
+
+      const authCookie = loginResponse.headers['set-cookie'] as unknown as string[];
+      const authToken = authCookie?.find((cookie) => cookie.startsWith('accessToken='));
+
+      expect(authToken).toBeDefined();
+
       const response = await request(app.getHttpServer())
         .post('/auth/admin/login')
+        .set('Cookie', authToken || '')
         .send({
-          username: 'regularuser',
           password: 'UserPassword123!',
         })
-        .expect(401);
+        .expect(403);
 
-      expect(response.body.message).toEqual('Ungültige Anmeldedaten');
+      expect(response.body.message).toEqual('Benutzer hat keine Admin-Rechte');
     });
 
-    it('should return 401 for non-existent user', async () => {
+    it('should return 401 for unauthenticated request', async () => {
       const response = await request(app.getHttpServer())
         .post('/auth/admin/login')
         .send({
-          username: 'nonexistent',
           password: 'SomePassword123!',
         })
         .expect(401);
 
-      expect(response.body.message).toEqual('Ungültige Anmeldedaten');
+      expect(response.body.message).toEqual('Unauthorized');
     });
 
     it('should return 401 for admin without password', async () => {
@@ -192,64 +238,90 @@ describe('AuthController (e2e) - Admin Login', () => {
         },
       });
 
+      // First, login as regular user to get JWT token
+      const loginResponse = await request(app.getHttpServer())
+        .post('/auth/login')
+        .send({ username: 'admin' })
+        .expect(200);
+
+      const authCookie = loginResponse.headers['set-cookie'] as unknown as string[];
+      const authToken = authCookie?.find((cookie) => cookie.startsWith('accessToken='));
+
+      expect(authToken).toBeDefined();
+
       const response = await request(app.getHttpServer())
         .post('/auth/admin/login')
+        .set('Cookie', authToken || '')
         .send({
-          username: 'admin',
           password: 'SomePassword123!',
         })
         .expect(401);
 
-      expect(response.body.message).toEqual('Ungültige Anmeldedaten');
+      expect(response.body.message).toEqual('Ungültiges Passwort');
     });
   });
 
   describe('POST /auth/admin/login - Validation', () => {
     it('should validate required fields', async () => {
-      // Missing username
-      await request(app.getHttpServer())
-        .post('/auth/admin/login')
-        .send({
-          password: 'SomePassword123!',
-        })
-        .expect(400);
+      // Create admin user for authentication
+      await prisma.user.create({
+        data: {
+          username: 'admin',
+          role: UserRole.SUPER_ADMIN,
+          passwordHash: await bcrypt.hash('AdminPassword123!', 10),
+        },
+      });
+
+      // First, login to get JWT token
+      const loginResponse = await request(app.getHttpServer())
+        .post('/auth/login')
+        .send({ username: 'admin' })
+        .expect(200);
+
+      const authCookie = loginResponse.headers['set-cookie'] as unknown as string[];
+      const authToken = authCookie?.find((cookie) => cookie.startsWith('accessToken='));
+
+      expect(authToken).toBeDefined();
 
       // Missing password
       await request(app.getHttpServer())
         .post('/auth/admin/login')
-        .send({
-          username: 'admin',
-        })
+        .set('Cookie', authToken || '')
+        .send({})
         .expect(400);
-
-      // Empty body
-      await request(app.getHttpServer()).post('/auth/admin/login').send({}).expect(400);
     });
 
     it('should validate field constraints', async () => {
-      // Username too short
-      const response1 = await request(app.getHttpServer())
-        .post('/auth/admin/login')
-        .send({
-          username: 'ab',
-          password: 'SomePassword123!',
-        })
-        .expect(400);
+      // Create admin user for authentication
+      await prisma.user.create({
+        data: {
+          username: 'admin',
+          role: UserRole.SUPER_ADMIN,
+          passwordHash: await bcrypt.hash('AdminPassword123!', 10),
+        },
+      });
 
-      expect(response1.body.message).toContain(
-        'Der Benutzername muss mindestens 3 Zeichen lang sein',
-      );
+      // First, login to get JWT token
+      const loginResponse = await request(app.getHttpServer())
+        .post('/auth/login')
+        .send({ username: 'admin' })
+        .expect(200);
+
+      const authCookie = loginResponse.headers['set-cookie'] as unknown as string[];
+      const authToken = authCookie?.find((cookie) => cookie.startsWith('accessToken='));
+
+      expect(authToken).toBeDefined();
 
       // Password too short
-      const response2 = await request(app.getHttpServer())
+      const response = await request(app.getHttpServer())
         .post('/auth/admin/login')
+        .set('Cookie', authToken || '')
         .send({
-          username: 'admin',
           password: 'short',
         })
         .expect(400);
 
-      expect(response2.body.message).toContain('Das Passwort muss mindestens 8 Zeichen lang sein');
+      expect(response.body.message).toContain('Das Passwort muss mindestens 8 Zeichen lang sein');
     });
   });
 });

@@ -1,4 +1,10 @@
-import { ConflictException, Injectable, Logger, NotFoundException } from '@nestjs/common';
+import {
+  ConflictException,
+  ForbiddenException,
+  Injectable,
+  Logger,
+  NotFoundException,
+} from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
 import { PrismaService } from '@/prisma/prisma.service';
@@ -192,16 +198,24 @@ export class AuthService {
     const user = await this.prisma.user.findUnique({
       where: {
         id: userId,
-        role: {
-          in: [UserRole.ADMIN, UserRole.SUPER_ADMIN],
-        },
       },
     });
 
-    if (!user || !user.passwordHash) {
+    if (!user) {
+      this.logger.debug(`🔍 Admin-Login fehlgeschlagen: Benutzer nicht gefunden`);
+      return null;
+    }
+
+    // Check if user has admin rights
+    if (!user.role || (user.role !== UserRole.ADMIN && user.role !== UserRole.SUPER_ADMIN)) {
       this.logger.debug(
-        `🔍 Admin-Login fehlgeschlagen: Benutzer nicht gefunden oder kein Passwort`,
+        `🚫 Admin-Login fehlgeschlagen: Benutzer ${user.username} hat keine Admin-Rechte`,
       );
+      throw new ForbiddenException('Benutzer hat keine Admin-Rechte');
+    }
+
+    if (!user.passwordHash) {
+      this.logger.debug(`🔍 Admin-Login fehlgeschlagen: Kein Passwort für ${user.username}`);
       return null;
     }
 

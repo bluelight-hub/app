@@ -216,11 +216,11 @@ describe('AuthService', () => {
         lastLoginAt: new Date(),
       });
 
-      const result = await service.validateAdminCredentials('admin', 'correct_password');
+      const result = await service.validateAdminCredentials('admin123', 'correct_password');
 
       expect(mockPrismaService.user.findUnique).toHaveBeenCalledWith({
         where: {
-          username: 'admin',
+          id: 'admin123',
           role: {
             in: [UserRole.ADMIN, UserRole.SUPER_ADMIN],
           },
@@ -237,11 +237,11 @@ describe('AuthService', () => {
     it('sollte null zurückgeben, wenn der Benutzer nicht existiert', async () => {
       mockPrismaService.user.findUnique.mockResolvedValue(null);
 
-      const result = await service.validateAdminCredentials('nonexistent', 'any_password');
+      const result = await service.validateAdminCredentials('nonexistent-id', 'any_password');
 
       expect(mockPrismaService.user.findUnique).toHaveBeenCalledWith({
         where: {
-          username: 'nonexistent',
+          id: 'nonexistent-id',
           role: {
             in: [UserRole.ADMIN, UserRole.SUPER_ADMIN],
           },
@@ -283,11 +283,11 @@ describe('AuthService', () => {
         lastLoginAt: new Date(),
       });
 
-      const result = await service.validateAdminCredentials('admin', 'correct_password');
+      const result = await service.validateAdminCredentials('admin123', 'correct_password');
 
       expect(mockPrismaService.user.findUnique).toHaveBeenCalledWith({
         where: {
-          username: 'admin',
+          id: 'admin123',
           role: {
             in: [UserRole.ADMIN, UserRole.SUPER_ADMIN],
           },

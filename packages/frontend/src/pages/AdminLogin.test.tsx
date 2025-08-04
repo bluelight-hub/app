@@ -2,10 +2,13 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { ChakraProvider, createSystem, defaultConfig } from '@chakra-ui/react';
+import '@testing-library/jest-dom';
 import { authActions } from '../stores/auth.store';
 import { AuthContext } from '../provider/auth.context';
 import { AdminLogin } from './AdminLogin';
 import type { AuthContextType } from '../provider/auth.context';
+import type { AdminPasswordDto } from '@bluelight-hub/shared/client';
 
 // Mock dependencies
 vi.mock('@tanstack/react-router', () => ({
@@ -34,6 +37,8 @@ vi.mock('@/components/ui/toaster.instance', () => ({
 
 const mockUser = { id: '1', username: 'testuser', createdAt: new Date().toISOString() };
 
+const system = createSystem(defaultConfig);
+
 const createWrapper = () => {
   const queryClient = new QueryClient({
     defaultOptions: {
@@ -51,9 +56,11 @@ const createWrapper = () => {
   };
 
   return ({ children }: { children: React.ReactNode }) => (
-    <AuthContext.Provider value={authContextValue}>
-      <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
-    </AuthContext.Provider>
+    <ChakraProvider value={system}>
+      <AuthContext.Provider value={authContextValue}>
+        <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
+      </AuthContext.Provider>
+    </ChakraProvider>
   );
 };
 
@@ -61,7 +68,7 @@ describe('AdminLogin', () => {
   const user = userEvent.setup();
   let mockAuthControllerAdminLogin: ReturnType<typeof vi.fn>;
 
-  beforeEach(() => {
+  beforeEach(async () => {
     vi.clearAllMocks();
     const { BackendApi } = vi.mocked(await import('../api/api'));
     mockAuthControllerAdminLogin = vi.fn();
@@ -77,7 +84,7 @@ describe('AdminLogin', () => {
 
     expect(screen.getByText('Admin-Bereich')).toBeInTheDocument();
     expect(screen.getByText(/angemeldet als: testuser/i)).toBeInTheDocument();
-    expect(screen.getByLabelText('Passwort')).toBeInTheDocument();
+    expect(screen.getByPlaceholderText('Ihr Passwort')).toBeInTheDocument();
     expect(screen.getByRole('button', { name: /als admin anmelden/i })).toBeInTheDocument();
   });
 
@@ -89,21 +96,14 @@ describe('AdminLogin', () => {
     // Try to submit without entering any data
     await user.click(submitButton);
 
-    // Button should be disabled
+    // Button should be disabled when no password is entered
     expect(submitButton).toBeDisabled();
 
-    // Enter username only
-    await user.type(screen.getByLabelText('Benutzername'), 'admin');
+    // Enter password
+    await user.type(screen.getByPlaceholderText('Ihr Passwort'), 'password123');
 
-    // Button should still be disabled (password missing)
-    expect(submitButton).toBeDisabled();
-
-    // Clear and enter password only
-    await user.clear(screen.getByLabelText('Benutzername'));
-    await user.type(screen.getByLabelText('Passwort'), 'password123');
-
-    // Button should still be disabled (username missing)
-    expect(submitButton).toBeDisabled();
+    // Button should be enabled after entering password
+    expect(submitButton).not.toBeDisabled();
   });
 
   it('handles successful login', async () => {
@@ -113,9 +113,8 @@ describe('AdminLogin', () => {
 
     render(<AdminLogin />, { wrapper: createWrapper() });
 
-    // Fill in form
-    await user.type(screen.getByLabelText('Benutzername'), 'admin');
-    await user.type(screen.getByLabelText('Passwort'), 'SecurePassword123!');
+    // Fill in form - only password field since user is already logged in
+    await user.type(screen.getByPlaceholderText('Ihr Passwort'), 'SecurePassword123!');
 
     // Submit form
     await user.click(screen.getByRole('button', { name: /als admin anmelden/i }));
@@ -123,10 +122,9 @@ describe('AdminLogin', () => {
     // Wait for async operations
     await waitFor(() => {
       expect(mockAuthControllerAdminLogin).toHaveBeenCalledWith({
-        adminLoginDto: {
-          username: 'admin',
+        adminPasswordDto: {
           password: 'SecurePassword123!',
-        } as AdminLoginDto,
+        } as AdminPasswordDto,
       });
     });
 
@@ -140,16 +138,15 @@ describe('AdminLogin', () => {
 
     render(<AdminLogin />, { wrapper: createWrapper() });
 
-    // Fill in form
-    await user.type(screen.getByLabelText('Benutzername'), 'admin');
-    await user.type(screen.getByLabelText('Passwort'), 'wrongpassword');
+    // Fill in form - only password field
+    await user.type(screen.getByPlaceholderText('Ihr Passwort'), 'wrongpassword');
 
     // Submit form
     await user.click(screen.getByRole('button', { name: /als admin anmelden/i }));
 
     // Wait for error message
     await waitFor(() => {
-      expect(screen.getByText(/ungültiger benutzername oder passwort/i)).toBeInTheDocument();
+      expect(screen.getByText(/ungültiges passwort/i)).toBeInTheDocument();
     });
   });
 
@@ -160,9 +157,8 @@ describe('AdminLogin', () => {
 
     render(<AdminLogin />, { wrapper: createWrapper() });
 
-    // Fill in form
-    await user.type(screen.getByLabelText('Benutzername'), 'regularuser');
-    await user.type(screen.getByLabelText('Passwort'), 'password123');
+    // Fill in form - only password field
+    await user.type(screen.getByPlaceholderText('Ihr Passwort'), 'password123');
 
     // Submit form
     await user.click(screen.getByRole('button', { name: /als admin anmelden/i }));
@@ -179,19 +175,16 @@ describe('AdminLogin', () => {
 
     render(<AdminLogin />, { wrapper: createWrapper() });
 
-    const usernameInput = screen.getByLabelText('Benutzername');
-    const passwordInput = screen.getByLabelText('Passwort');
+    const passwordInput = screen.getByPlaceholderText('Ihr Passwort');
     const submitButton = screen.getByRole('button', { name: /als admin anmelden/i });
 
-    // Fill in form
-    await user.type(usernameInput, 'admin');
+    // Fill in form - only password field
     await user.type(passwordInput, 'password123');
 
     // Submit form
     await user.click(submitButton);
 
     // Check that form is disabled during submission
-    expect(usernameInput).toBeDisabled();
     expect(passwordInput).toBeDisabled();
     expect(submitButton).toBeDisabled();
     expect(screen.getByText(/melde an.../i)).toBeInTheDocument();

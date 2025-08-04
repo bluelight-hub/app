@@ -303,6 +303,85 @@ Das Projekt nutzt **arc42** für die Architekturdokumentation. Diese befindet si
 4. Commit MIT allen Checks (ohne `--no-verify`)
 5. Bei Fehlern: Erst fixen, dann committen
 
+## MCP Server Integration (WICHTIG!)
+
+### Serena MCP Server - Intelligent Code Analysis
+
+**Serena bietet semantische Code-Analyse und intelligente Navigation durch die Codebase.**
+
+Serena ist sehr sehr intelligent und kann Code-Strukturen verstehen, Symbole erkennen und komplexe Code-Interaktionen
+durchführen. Sie ist besonders nützlich für dich.
+
+#### Wann Serena verwenden:
+
+**IMMER Serena verwenden für:**
+
+- eigentlich alle Code-Interaktionen, die über einfache Textsuche hinausgehen
+- **Code-Exploration:** `mcp__serena__get_symbols_overview` statt ganze Dateien zu lesen
+- **Symbol-Suche:** `mcp__serena__find_symbol` für gezieltes Finden von Klassen, Methoden, etc.
+- **Referenz-Analyse:** `mcp__serena__find_referencing_symbols` vor Refactoring
+- **Pattern-Suche:** `mcp__serena__search_for_pattern` für komplexe Code-Suchen
+- **Symbol-Edits:** `mcp__serena__replace_symbol_body` für präzise Code-Änderungen
+
+**Serena Workflow:**
+
+1. `list_dir` oder `find_file` für Datei-Struktur
+2. `get_symbols_overview` für File/Directory Überblick
+3. `find_symbol` mit `include_body=False` für Symbol-Liste
+4. `find_symbol` mit `include_body=True` nur für benötigte Symbole
+5. `replace_symbol_body` oder `insert_*_symbol` für Änderungen
+
+**Wichtige Regeln:**
+
+- NIEMALS ganze Source-Files mit Read tool lesen wenn Serena verfügbar
+- IMMER Symbol-basierte Navigation für Token-Effizienz nutzen
+- Bei Refactoring IMMER `find_referencing_symbols` prüfen
+- Regex-Replace nur für kleine Änderungen innerhalb von Symbolen
+
+### Context7 MCP Server - Library Documentation
+
+**Context7 liefert aktuelle, strukturierte Dokumentation für externe Libraries und APIs.**
+
+#### Wann Context7 verwenden:
+
+**IMMER Context7 verwenden für:**
+
+- **Library Docs:** Bevor man eine externe Library verwendet
+- **API Referenz:** Für korrekte Verwendung von Third-Party APIs
+- **Version Updates:** Bei Library-Updates für Breaking Changes
+- **Best Practices:** Für offizielle Patterns und Beispiele
+
+**Context7 Workflow:**
+
+1. `mcp__context7__resolve-library-id` - Library Name zu ID konvertieren
+2. `mcp__context7__get-library-docs` - Dokumentation abrufen
+   - Optional: `topic` Parameter für spezifische Themen (z.B. "hooks", "routing")
+   - Optional: `tokens` Parameter für mehr/weniger Kontext
+
+**Beispiele:**
+
+```bash
+# Next.js Routing Docs
+resolve-library-id("next.js") → "/vercel/next.js"
+get-library-docs("/vercel/next.js", topic="routing")
+
+# Prisma Schema Docs
+resolve-library-id("prisma") → "/prisma/prisma"
+get-library-docs("/prisma/prisma", topic="schema")
+
+# React Hooks Docs
+resolve-library-id("react") → "/facebook/react"
+get-library-docs("/facebook/react", topic="hooks")
+```
+
+**Wichtige Regeln:**
+
+- IMMER Context7 checken bevor man neue Libraries einbindet
+- Bei Unsicherheit über API-Verwendung IMMER Context7 konsultieren
+- Für dieses Projekt relevante Libraries:
+  - NestJS, Prisma, React, Chakra UI, TanStack (Form, Store, Query)
+  - Zod, TypeScript, Vite, Vitest
+
 ## Task Master AI Instructions
 
 **Import Task Master's development workflow commands and guidelines, treat as if import is in the main CLAUDE.md file.**

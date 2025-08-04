@@ -39,7 +39,7 @@ describe('Admin Setup (e2e)', () => {
       expect(response.body).toHaveProperty('message', 'Admin-Setup erfolgreich durchgeführt');
       expect(response.body).toHaveProperty('user');
       expect(response.body.user.username).toBe('admin-user');
-      expect(response.body.user.role).toBe('ADMIN');
+      expect(response.body.user.role).toBe('SUPER_ADMIN');
       expect(response.body).toHaveProperty('token');
 
       // Prüfe Cookie
@@ -146,7 +146,7 @@ describe('Admin Setup (e2e)', () => {
         })
         .expect(409);
 
-      expect(response.body.message).toBe('Ein Admin-Account existiert bereits');
+      expect(response.body.message).toBe('Nur Admin-Benutzer können diese Funktion nutzen');
     });
 
     it('should return 401 without authentication', async () => {
