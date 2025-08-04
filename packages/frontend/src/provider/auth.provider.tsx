@@ -29,10 +29,12 @@ export function AuthProvider({ children }: AuthProviderProps) {
   // Subscribe to auth store state
   const user = useStore(authStore, (state) => state.user);
   const isLoading = useStore(authStore, (state) => state.isLoading);
+  const isAdminAuthenticated = useStore(authStore, (state) => state.isAdminAuthenticated);
 
   const contextValue: AuthContextType = {
     user,
     isLoading,
+    isAdminAuthenticated,
     setUser: authActions.setUser,
     setLoading: authActions.setLoading,
     logout: authActions.logout,

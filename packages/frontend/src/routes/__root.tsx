@@ -4,6 +4,7 @@ import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
 import { Provider } from '@/components/ui/provider.tsx';
 import { AuthProvider } from '@/provider/auth.provider.tsx';
 import { Toaster } from '@/components/ui/toaster.tsx';
+import { useAdminRefresh } from '@/hooks/useAdminRefresh';
 
 export const Route = createRootRoute({
   component: RootComponent,
@@ -16,11 +17,18 @@ function RootComponent() {
     <Provider>
       <AuthProvider>
         <QueryClientProvider client={queryClient}>
-          <Outlet />
+          <AppWithAdminRefresh />
           <ReactQueryDevtools />
           <Toaster />
         </QueryClientProvider>
       </AuthProvider>
     </Provider>
   );
+}
+
+function AppWithAdminRefresh() {
+  // Admin-Token-Verifizierung beim App-Start
+  useAdminRefresh();
+
+  return <Outlet />;
 }

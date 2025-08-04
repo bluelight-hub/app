@@ -11,6 +11,8 @@ export interface AuthState {
   isAuthenticated: boolean;
   /** Ob gerade eine Authentifizierung läuft */
   isLoading: boolean;
+  /** Ob der Benutzer als Admin authentifiziert ist */
+  isAdminAuthenticated: boolean;
 }
 
 /**
@@ -24,6 +26,7 @@ export const authStore = new Store<AuthState>({
   user: null,
   isAuthenticated: false,
   isLoading: false,
+  isAdminAuthenticated: false,
 });
 
 /**
@@ -65,6 +68,7 @@ export const authActions = {
       user: null,
       isAuthenticated: false,
       isLoading: false,
+      isAdminAuthenticated: false,
     }));
   },
 
@@ -75,10 +79,23 @@ export const authActions = {
    * @param user - Die Benutzerdaten nach erfolgreicher Authentifizierung
    */
   loginSuccess: (user: UserResponseDto) => {
-    authStore.setState(() => ({
+    authStore.setState((state) => ({
+      ...state,
       user,
       isAuthenticated: true,
       isLoading: false,
+    }));
+  },
+
+  /**
+   * Setzt den Admin-Authentifizierungsstatus
+   *
+   * @param isAdminAuthenticated - Ob der Benutzer als Admin authentifiziert ist
+   */
+  setAdminAuth: (isAdminAuthenticated: boolean) => {
+    authStore.setState((state) => ({
+      ...state,
+      isAdminAuthenticated,
     }));
   },
 };

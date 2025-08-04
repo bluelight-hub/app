@@ -9,6 +9,8 @@ export interface AuthContextType {
   user: UserResponseDto | null;
   /** Ob gerade eine Authentifizierung läuft */
   isLoading: boolean;
+  /** Ob der Benutzer als Admin authentifiziert ist */
+  isAdminAuthenticated: boolean;
   /** Speichert den Benutzer im Kontext nach erfolgreicher Anmeldung/Registrierung */
   setUser: (user: UserResponseDto | null) => void;
   /** Setzt den Loading-Status */

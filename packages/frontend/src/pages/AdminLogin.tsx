@@ -45,6 +45,9 @@ export function AdminLogin() {
         authActions.loginSuccess(response.user); // todo: falscher typ
       }
 
+      // Setze Admin-Authentifizierungsstatus
+      authActions.setAdminAuth(true);
+
       // Invalidiere relevante Queries
       await queryClient.invalidateQueries({ queryKey: ['me'] });
 
