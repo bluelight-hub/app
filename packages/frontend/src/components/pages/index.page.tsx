@@ -12,6 +12,8 @@ import { useAdminStatus } from '@/hooks/useAdminStatus';
  *
  * @returns Die Index-Page-Komponente
  */
+import { isAdmin } from '@/utils/auth';
+
 export function IndexPage() {
   const authContext = useAuth();
   const { navigate } = useRouter();
@@ -63,7 +65,7 @@ export function IndexPage() {
           </Box>
         )}
 
-        {(authContext.user.role === 'ADMIN' || authContext.user.role === 'SUPER_ADMIN') && !adminStatus?.adminSetupAvailable && (
+        {isAdmin(authContext.user.role) && !adminStatus?.adminSetupAvailable && (
           <Box p={4} borderWidth={1} borderRadius="md" bg="bg.subtle">
             <VStack gap={4} align="start">
               <Box>

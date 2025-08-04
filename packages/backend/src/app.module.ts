@@ -6,6 +6,7 @@ import { PrismaModule } from './prisma/prisma.module';
 import { AuthModule } from './auth/auth.module';
 import { UserModule } from './user/user.module';
 import { AppController } from './app.controller';
+import { UserManagementModule } from './user-management/user-management.module';
 
 /**
  * Haupt-Anwendungsmodul der Bluelight Hub Backend-Anwendung
@@ -32,6 +33,7 @@ import { AppController } from './app.controller';
     CommonModule,
     AuthModule,
     UserModule,
+    UserManagementModule,
   ],
   controllers: [AppController],
 })

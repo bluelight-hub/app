@@ -73,7 +73,7 @@ describe('AuthService - Admin Token', () => {
         {
           sub: mockUser.id,
           username: mockUser.username,
-          isAdmin: true,
+          role: mockUser.role,
         },
         {
           secret: mockAdminSecret,
@@ -103,7 +103,7 @@ describe('AuthService - Admin Token', () => {
       });
     });
 
-    it('should include isAdmin=true in the payload', () => {
+    it('should include role in the payload', () => {
       jest
         .spyOn(configService, 'getOrThrow')
         .mockReturnValueOnce('secret')
@@ -115,7 +115,7 @@ describe('AuthService - Admin Token', () => {
       const signCall = jest.mocked(jwtService.sign).mock.calls[0];
       const payload = signCall[0];
 
-      expect(payload).toHaveProperty('isAdmin', true);
+      expect(payload).toHaveProperty('role', mockUser.role);
       expect(payload).toHaveProperty('sub', mockUser.id);
       expect(payload).toHaveProperty('username', mockUser.username);
     });

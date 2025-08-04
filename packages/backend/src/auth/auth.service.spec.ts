@@ -221,9 +221,6 @@ describe('AuthService', () => {
       expect(mockPrismaService.user.findUnique).toHaveBeenCalledWith({
         where: {
           id: 'admin123',
-          role: {
-            in: [UserRole.ADMIN, UserRole.SUPER_ADMIN],
-          },
         },
       });
       expect(bcrypt.compare).toHaveBeenCalledWith('correct_password', 'hashed_password');
@@ -242,9 +239,6 @@ describe('AuthService', () => {
       expect(mockPrismaService.user.findUnique).toHaveBeenCalledWith({
         where: {
           id: 'nonexistent-id',
-          role: {
-            in: [UserRole.ADMIN, UserRole.SUPER_ADMIN],
-          },
         },
       });
       expect(bcrypt.compare).not.toHaveBeenCalled();
@@ -288,9 +282,6 @@ describe('AuthService', () => {
       expect(mockPrismaService.user.findUnique).toHaveBeenCalledWith({
         where: {
           id: 'admin123',
-          role: {
-            in: [UserRole.ADMIN, UserRole.SUPER_ADMIN],
-          },
         },
       });
       expect(result).toEqual(superAdminUser);

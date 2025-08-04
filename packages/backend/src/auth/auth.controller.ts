@@ -29,6 +29,7 @@ import { ValidatedUser } from './strategies/jwt.strategy';
 import { CurrentUser } from './decorators/current-user.decorator';
 import { toUserResponseDto } from './auth.mapper';
 import { milliseconds } from 'date-fns';
+import { UserRole } from '@prisma/client';
 
 /**
  * Controller für Authentifizierungs-Endpunkte
@@ -37,6 +38,8 @@ import { milliseconds } from 'date-fns';
  * Alle Endpunkte sind öffentlich zugänglich, da keine Authentifizierung
  * für die Registrierung/Anmeldung erforderlich ist.
  */
+import { isAdmin } from './utils/auth.utils';
+
 @ApiTags('auth')
 @Controller({
   path: 'auth',
@@ -77,7 +80,7 @@ export class AuthController {
     const user = await this.authService.register(dto);
 
     // JWT-Tokens generieren
-    const accessToken = this.authService.signAccessToken(user.id);
+    const accessToken = this.authService.signAccessToken(user);
     const refreshToken = this.authService.signRefreshToken(user.id);
 
     // Tokens als HTTP-Only Cookies setzen
@@ -121,7 +124,7 @@ export class AuthController {
     const user = await this.authService.login(dto);
 
     // JWT-Tokens generieren
-    const accessToken = this.authService.signAccessToken(user.id);
+    const accessToken = this.authService.signAccessToken(user);
     const refreshToken = this.authService.signRefreshToken(user.id);
 
     // Tokens als HTTP-Only Cookies setzen
@@ -165,7 +168,7 @@ export class AuthController {
           properties: {
             id: { type: 'string', example: '12345' },
             username: { type: 'string', example: 'admin' },
-            isAdmin: { type: 'boolean', example: true },
+            role: { type: 'string', enum: ['ADMIN', 'SUPER_ADMIN'], example: 'ADMIN' },
           },
         },
       },
@@ -183,7 +186,7 @@ export class AuthController {
     @Body() dto: AdminPasswordDto,
     @CurrentUser() currentUser: ValidatedUser,
     @Res({ passthrough: true }) res: Response,
-  ): Promise<{ user: { id: string; username: string; isAdmin: boolean } }> {
+  ): Promise<{ user: { id: string; username: string; role: UserRole } }> {
     // Validiere die Admin-Rechte mit dem aktuellen Benutzer
     const user = await this.authService.validateAdminCredentials(currentUser.userId, dto.password);
 
@@ -199,7 +202,7 @@ export class AuthController {
       user: {
         id: user.id,
         username: user.username,
-        isAdmin: true,
+        role: user.role,
       },
     };
   }
@@ -238,7 +241,7 @@ export class AuthController {
     }
 
     // Neue Tokens generieren
-    const accessToken = this.authService.signAccessToken(user.id);
+    const accessToken = this.authService.signAccessToken(user);
     const refreshToken = this.authService.signRefreshToken(user.id);
 
     // Tokens als HTTP-Only Cookies setzen
@@ -380,7 +383,7 @@ export class AuthController {
     }
 
     const adminExists = await this.authService.adminExists();
-    const isAdminRole = fullUser.role === 'ADMIN' || fullUser.role === 'SUPER_ADMIN';
+    const isAdminRole = isAdmin(fullUser.role);
     const hasNoPassword = !fullUser.passwordHash;
 
     return {

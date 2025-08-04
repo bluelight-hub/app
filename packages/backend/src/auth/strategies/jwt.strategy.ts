@@ -1,14 +1,17 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { PassportStrategy } from '@nestjs/passport';
 import { ExtractJwt, Strategy } from 'passport-jwt';
 import { Request } from 'express';
+import { UserRole } from '@prisma/client';
+import { AuthService } from '../auth.service';
 
 /**
  * JWT-Payload-Interface
  */
 export interface JwtPayload {
   sub: string;
+  role?: UserRole;
   iat?: number;
   exp?: number;
 }
@@ -18,6 +21,7 @@ export interface JwtPayload {
  */
 export interface ValidatedUser {
   userId: string;
+  role?: UserRole;
 }
 
 /**
@@ -28,15 +32,18 @@ export interface ValidatedUser {
  */
 @Injectable()
 export class JwtStrategy extends PassportStrategy(Strategy, 'jwt') {
-  constructor(configService: ConfigService) {
+  constructor(
+    configService: ConfigService,
+    private readonly authService: AuthService,
+  ) {
     super({
       jwtFromRequest: ExtractJwt.fromExtractors([
-        (request: Request) => {
-          return request?.cookies?.accessToken;
+        (req: Request) => {
+          return req?.cookies?.['auth-token'];
         },
       ]),
       ignoreExpiration: false,
-      secretOrKey: configService.get<string>('JWT_SECRET'),
+      secretOrKey: configService.get<string>('JWT_ACCESS_SECRET'),
     });
   }
 
@@ -44,9 +51,20 @@ export class JwtStrategy extends PassportStrategy(Strategy, 'jwt') {
    * Validiert das JWT-Payload und gibt den validierten Benutzer zurück
    *
    * @param payload - Das dekodierte JWT-Payload
-   * @returns Der validierte Benutzer mit userId
+   * @returns Der validierte Benutzer mit userId und role
+   * @throws UnauthorizedException wenn der Benutzer nicht mehr existiert
    */
   async validate(payload: JwtPayload): Promise<ValidatedUser> {
-    return { userId: payload.sub };
+    // Prüfe ob der Benutzer noch in der Datenbank existiert
+    const user = await this.authService.findUserById(payload.sub);
+
+    if (!user) {
+      throw new UnauthorizedException('User no longer exists');
+    }
+
+    return {
+      userId: payload.sub,
+      role: payload.role,
+    };
   }
 }

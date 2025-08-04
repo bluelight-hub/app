@@ -1,21 +1,24 @@
 import { PrismaClient } from '@prisma/client';
+import { Logger } from '@nestjs/common';
 
 const prisma = new PrismaClient();
 
+const logger = new Logger('Seed');
+
 async function main() {
-  console.log('Starting seed...');
+  logger.log('Starting seed...');
 
   // Bereinige alle Benutzer
   await prisma.user.deleteMany();
-  console.log('Cleared all users');
+  logger.log('Cleared all users');
 
   // Keine Default-User – erster registrierter Nutzer erhält automatisch die Rolle SUPER_ADMIN
-  console.log('No default users created. First registered user will become SUPER_ADMIN.');
+  logger.log('No default users created. First registered user will become SUPER_ADMIN.');
 }
 
 main()
   .catch((e) => {
-    console.error(e);
+    logger.error(e);
     process.exit(1);
   })
   .finally(async () => {

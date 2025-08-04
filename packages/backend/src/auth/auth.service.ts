@@ -127,9 +127,14 @@ export class AuthService {
    * @param userId - Die ID des Benutzers
    * @returns Das signierte JWT Access-Token
    */
-  signAccessToken(userId: string): string {
-    const payload = { sub: userId };
-    this.logger.debug(`🔑 Generiere Access-Token für Benutzer: ${userId}`);
+  signAccessToken(user: User): string {
+    const payload = {
+      sub: user.id,
+      role: user.role,
+    };
+    this.logger.debug(
+      `🔑 Generiere Access-Token für Benutzer: ${user.username} (${user.id}) mit Rolle: ${user.role}`,
+    );
     return this.jwtService.sign(payload);
   }
 
@@ -155,7 +160,7 @@ export class AuthService {
     const payload = {
       sub: user.id,
       username: user.username,
-      isAdmin: true,
+      role: user.role,
     };
     const adminJwtSecret = this.configService.getOrThrow<string>('ADMIN_JWT_SECRET');
     const adminJwtExpiration = this.configService.getOrThrow<string>('ADMIN_JWT_EXPIRATION');

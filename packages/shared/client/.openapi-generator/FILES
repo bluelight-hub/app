@@ -2,6 +2,7 @@
 apis/AppApi.ts
 apis/AuthApi.ts
 apis/HealthApi.ts
+apis/UserManagementApi.ts
 apis/UsersApi.ts
 apis/index.ts
 index.ts

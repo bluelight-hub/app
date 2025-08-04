@@ -20,13 +20,13 @@ import { mapValues } from '../runtime';
  */
 export interface CreateUserDto {
   /**
-   * Eindeutiger Benutzername
+   * Eindeutiger Benutzername für den neuen Benutzer
    * @type {string}
    * @memberof CreateUserDto
    */
   username: string;
   /**
-   * Rolle des Benutzers
+   * Rolle des neuen Benutzers (z.B. SUPER_ADMIN, ADMIN, USER). Ohne Angabe wird die Standardrolle USER vergeben.
    * @type {string}
    * @memberof CreateUserDto
    */

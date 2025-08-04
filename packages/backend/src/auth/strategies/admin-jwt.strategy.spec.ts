@@ -2,6 +2,7 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { ConfigService } from '@nestjs/config';
 import { UnauthorizedException } from '@nestjs/common';
 import { AdminJwtStrategy, AdminJwtPayload } from './admin-jwt.strategy';
+import { UserRole } from '@prisma/client';
 
 describe('AdminJwtStrategy', () => {
   let strategy: AdminJwtStrategy;
@@ -23,11 +24,11 @@ describe('AdminJwtStrategy', () => {
   });
 
   describe('validate', () => {
-    it('should return validated admin user when isAdmin is true', async () => {
+    it('should return validated admin user when role is ADMIN', async () => {
       const payload: AdminJwtPayload = {
         sub: 'user-id',
         username: 'adminuser',
-        isAdmin: true,
+        role: UserRole.ADMIN,
         iat: Date.now() / 1000,
         exp: Date.now() / 1000 + 900, // 15 minutes
       };
@@ -37,18 +38,48 @@ describe('AdminJwtStrategy', () => {
       expect(result).toEqual({
         userId: 'user-id',
         username: 'adminuser',
-        isAdmin: true,
+        role: UserRole.ADMIN,
       });
     });
 
-    it('should throw UnauthorizedException when isAdmin is false', async () => {
+    it('should return validated admin user when role is SUPER_ADMIN', async () => {
       const payload: AdminJwtPayload = {
         sub: 'user-id',
-        username: 'regularuser',
-        isAdmin: false,
+        username: 'superadmin',
+        role: UserRole.SUPER_ADMIN,
         iat: Date.now() / 1000,
         exp: Date.now() / 1000 + 900,
       };
+
+      const result = await strategy.validate(payload);
+
+      expect(result).toEqual({
+        userId: 'user-id',
+        username: 'superadmin',
+        role: UserRole.SUPER_ADMIN,
+      });
+    });
+
+    it('should throw UnauthorizedException when role is USER', async () => {
+      const payload: AdminJwtPayload = {
+        sub: 'user-id',
+        username: 'regularuser',
+        role: UserRole.USER,
+        iat: Date.now() / 1000,
+        exp: Date.now() / 1000 + 900,
+      };
+
+      await expect(strategy.validate(payload)).rejects.toThrow(UnauthorizedException);
+      await expect(strategy.validate(payload)).rejects.toThrow('Token is not an admin token');
+    });
+
+    it('should throw UnauthorizedException when role is missing', async () => {
+      const payload = {
+        sub: 'user-id',
+        username: 'regularuser',
+        iat: Date.now() / 1000,
+        exp: Date.now() / 1000 + 900,
+      } as AdminJwtPayload;
 
       await expect(strategy.validate(payload)).rejects.toThrow(UnauthorizedException);
       await expect(strategy.validate(payload)).rejects.toThrow('Token is not an admin token');

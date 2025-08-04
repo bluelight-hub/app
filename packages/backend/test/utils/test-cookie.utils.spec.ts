@@ -1,6 +1,6 @@
 import { Response } from 'express';
-import { setAdminTokenCookie, clearAdminTokenCookie } from './cookie.util';
-import { ADMIN_JWT_COOKIE, getAdminCookieOptions } from '../constants/auth.constants';
+import { setAdminTokenCookie, clearAdminTokenCookie } from './test-cookie.utils';
+import { ADMIN_JWT_COOKIE, getAdminCookieOptions } from '../../src/auth/constants/auth.constants';
 
 describe('Cookie Utilities', () => {
   let mockResponse: Partial<Response>;

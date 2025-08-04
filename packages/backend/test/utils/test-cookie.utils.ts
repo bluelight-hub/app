@@ -1,5 +1,5 @@
 import { Response } from 'express';
-import { ADMIN_JWT_COOKIE, getAdminCookieOptions } from '../constants/auth.constants';
+import { ADMIN_JWT_COOKIE, getAdminCookieOptions } from '../../src/auth/constants/auth.constants';
 
 /**
  * Setzt das Admin-Token als HttpOnly Cookie

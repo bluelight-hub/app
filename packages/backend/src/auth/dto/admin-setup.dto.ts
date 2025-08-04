@@ -1,4 +1,4 @@
-import { IsString, MinLength, MaxLength } from 'class-validator';
+import { IsString, IsStrongPassword, MaxLength } from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
 
 /**
@@ -20,7 +20,12 @@ export class AdminSetupDto {
     maxLength: 128,
   })
   @IsString()
-  @MinLength(8, { message: 'Das Passwort muss mindestens 8 Zeichen lang sein' })
   @MaxLength(128, { message: 'Das Passwort darf maximal 128 Zeichen lang sein' })
+  @IsStrongPassword({
+    minLength: 8,
+    minLowercase: 1,
+    minUppercase: 1,
+    minNumbers: 1,
+  })
   password: string;
 }
