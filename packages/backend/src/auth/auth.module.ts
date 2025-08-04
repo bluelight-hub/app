@@ -7,6 +7,8 @@ import { AuthService } from './auth.service';
 import { PrismaModule } from '@/prisma/prisma.module';
 import { JwtStrategy } from './strategies/jwt.strategy';
 import { JwtRefreshStrategy } from './strategies/jwt-refresh.strategy';
+import { AdminJwtStrategy } from './strategies/admin-jwt.strategy';
+import { AdminJwtAuthGuard } from './guards/admin-jwt-auth.guard';
 
 /**
  * Authentifizierungsmodul für BlueLight Hub
@@ -36,7 +38,7 @@ import { JwtRefreshStrategy } from './strategies/jwt-refresh.strategy';
     }),
   ],
   controllers: [AuthController],
-  providers: [AuthService, JwtStrategy, JwtRefreshStrategy],
-  exports: [AuthService, JwtModule],
+  providers: [AuthService, JwtStrategy, JwtRefreshStrategy, AdminJwtStrategy, AdminJwtAuthGuard],
+  exports: [AuthService, JwtModule, AdminJwtAuthGuard],
 })
 export class AuthModule {}

@@ -2,6 +2,7 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { AuthService } from './auth.service';
 import { PrismaService } from '@/prisma/prisma.service';
 import { JwtService } from '@nestjs/jwt';
+import { ConfigService } from '@nestjs/config';
 import { UserRole } from '@prisma/client';
 import { ConflictException } from '@nestjs/common';
 import * as bcrypt from 'bcrypt';
@@ -23,6 +24,11 @@ describe('AuthService', () => {
     sign: jest.fn(),
   };
 
+  const mockConfigService = {
+    get: jest.fn(),
+    getOrThrow: jest.fn(),
+  };
+
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
@@ -34,6 +40,10 @@ describe('AuthService', () => {
         {
           provide: JwtService,
           useValue: mockJwtService,
+        },
+        {
+          provide: ConfigService,
+          useValue: mockConfigService,
         },
       ],
     }).compile();
@@ -57,6 +67,9 @@ describe('AuthService', () => {
           role: {
             in: [UserRole.ADMIN, UserRole.SUPER_ADMIN],
           },
+          passwordHash: {
+            not: null,
+          },
         },
       });
     });
@@ -71,6 +84,9 @@ describe('AuthService', () => {
         where: {
           role: {
             in: [UserRole.ADMIN, UserRole.SUPER_ADMIN],
+          },
+          passwordHash: {
+            not: null,
           },
         },
       });
@@ -87,6 +103,9 @@ describe('AuthService', () => {
           role: {
             in: [UserRole.ADMIN, UserRole.SUPER_ADMIN],
           },
+          passwordHash: {
+            not: null,
+          },
         },
       });
     });
@@ -99,7 +118,7 @@ describe('AuthService', () => {
       id: 'user123',
       username: 'testuser',
       passwordHash: null,
-      role: UserRole.USER,
+      role: UserRole.ADMIN,
       isActive: true,
       lastLoginAt: null,
       failedLoginCount: 0,
@@ -120,11 +139,12 @@ describe('AuthService', () => {
     it('sollte den Benutzer erfolgreich zum Admin mit gehashtem Passwort aktualisieren, wenn kein Admin existiert', async () => {
       const updatedUser = {
         ...mockUser,
-        role: UserRole.ADMIN,
         passwordHash: 'hashed_SecurePassword123!_10',
       };
 
       jest.spyOn(service, 'adminExists').mockResolvedValue(false);
+      jest.spyOn(service, 'findUserById').mockResolvedValue(mockUser);
+      jest.spyOn(service, 'signAdminToken').mockReturnValue('admin_token_123');
       mockPrismaService.user.update.mockResolvedValue(updatedUser);
 
       const result = await service.adminSetup(mockAdminSetupDto, mockValidatedUser);
@@ -134,7 +154,6 @@ describe('AuthService', () => {
       expect(mockPrismaService.user.update).toHaveBeenCalledWith({
         where: { id: 'user123' },
         data: {
-          role: UserRole.ADMIN,
           passwordHash: 'hashed_SecurePassword123!_10',
         },
       });
@@ -143,10 +162,12 @@ describe('AuthService', () => {
       expect(result.user).not.toHaveProperty('passwordHash');
       expect(result.user.role).toBe(UserRole.ADMIN);
       expect(result.user.username).toBe('testuser');
+      expect(result.token).toBe('admin_token_123');
     });
 
     it('sollte eine ConflictException werfen, wenn bereits ein Admin existiert', async () => {
       jest.spyOn(service, 'adminExists').mockResolvedValue(true);
+      jest.spyOn(service, 'findUserById').mockResolvedValue(mockUser);
 
       await expect(service.adminSetup(mockAdminSetupDto, mockValidatedUser)).rejects.toThrow(
         ConflictException,
@@ -159,10 +180,120 @@ describe('AuthService', () => {
 
     it('sollte die richtige Fehlermeldung enthalten, wenn Admin bereits existiert', async () => {
       jest.spyOn(service, 'adminExists').mockResolvedValue(true);
+      jest.spyOn(service, 'findUserById').mockResolvedValue(mockUser);
 
       await expect(service.adminSetup(mockAdminSetupDto, mockValidatedUser)).rejects.toThrow(
         'Ein Admin-Account existiert bereits',
       );
+    });
+  });
+
+  describe('validateAdminCredentials', () => {
+    const mockAdminUser = {
+      id: 'admin123',
+      username: 'admin',
+      passwordHash: 'hashed_password',
+      role: UserRole.ADMIN,
+      isActive: true,
+      lastLoginAt: null,
+      failedLoginCount: 0,
+      lockedUntil: null,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+      createdBy: null,
+    };
+
+    beforeEach(() => {
+      jest.spyOn(bcrypt, 'compare').mockImplementation((password: string, hash: string) => {
+        return Promise.resolve(password === 'correct_password' && hash === 'hashed_password');
+      });
+    });
+
+    it('sollte den Admin-User zurückgeben, wenn die Anmeldedaten korrekt sind', async () => {
+      mockPrismaService.user.findUnique.mockResolvedValue(mockAdminUser);
+      mockPrismaService.user.update.mockResolvedValue({
+        ...mockAdminUser,
+        lastLoginAt: new Date(),
+      });
+
+      const result = await service.validateAdminCredentials('admin', 'correct_password');
+
+      expect(mockPrismaService.user.findUnique).toHaveBeenCalledWith({
+        where: {
+          username: 'admin',
+          role: {
+            in: [UserRole.ADMIN, UserRole.SUPER_ADMIN],
+          },
+        },
+      });
+      expect(bcrypt.compare).toHaveBeenCalledWith('correct_password', 'hashed_password');
+      expect(mockPrismaService.user.update).toHaveBeenCalledWith({
+        where: { id: 'admin123' },
+        data: { lastLoginAt: expect.any(Date) },
+      });
+      expect(result).toEqual(mockAdminUser);
+    });
+
+    it('sollte null zurückgeben, wenn der Benutzer nicht existiert', async () => {
+      mockPrismaService.user.findUnique.mockResolvedValue(null);
+
+      const result = await service.validateAdminCredentials('nonexistent', 'any_password');
+
+      expect(mockPrismaService.user.findUnique).toHaveBeenCalledWith({
+        where: {
+          username: 'nonexistent',
+          role: {
+            in: [UserRole.ADMIN, UserRole.SUPER_ADMIN],
+          },
+        },
+      });
+      expect(bcrypt.compare).not.toHaveBeenCalled();
+      expect(mockPrismaService.user.update).not.toHaveBeenCalled();
+      expect(result).toBeNull();
+    });
+
+    it('sollte null zurückgeben, wenn der Benutzer kein Passwort hat', async () => {
+      const userWithoutPassword = { ...mockAdminUser, passwordHash: null };
+      mockPrismaService.user.findUnique.mockResolvedValue(userWithoutPassword);
+
+      const result = await service.validateAdminCredentials('admin', 'any_password');
+
+      expect(mockPrismaService.user.findUnique).toHaveBeenCalled();
+      expect(bcrypt.compare).not.toHaveBeenCalled();
+      expect(mockPrismaService.user.update).not.toHaveBeenCalled();
+      expect(result).toBeNull();
+    });
+
+    it('sollte null zurückgeben, wenn das Passwort falsch ist', async () => {
+      mockPrismaService.user.findUnique.mockResolvedValue(mockAdminUser);
+
+      const result = await service.validateAdminCredentials('admin', 'wrong_password');
+
+      expect(mockPrismaService.user.findUnique).toHaveBeenCalled();
+      expect(bcrypt.compare).toHaveBeenCalledWith('wrong_password', 'hashed_password');
+      expect(mockPrismaService.user.update).not.toHaveBeenCalled();
+      expect(result).toBeNull();
+    });
+
+    it('sollte auch mit SUPER_ADMIN Rolle funktionieren', async () => {
+      const superAdminUser = { ...mockAdminUser, role: UserRole.SUPER_ADMIN };
+      mockPrismaService.user.findUnique.mockResolvedValue(superAdminUser);
+      mockPrismaService.user.update.mockResolvedValue({
+        ...superAdminUser,
+        lastLoginAt: new Date(),
+      });
+
+      const result = await service.validateAdminCredentials('admin', 'correct_password');
+
+      expect(mockPrismaService.user.findUnique).toHaveBeenCalledWith({
+        where: {
+          username: 'admin',
+          role: {
+            in: [UserRole.ADMIN, UserRole.SUPER_ADMIN],
+          },
+        },
+      });
+      expect(result).toEqual(superAdminUser);
     });
   });
 });

@@ -14,18 +14,24 @@
 
 import * as runtime from '../runtime';
 import type {
+  AdminPasswordDto,
   AdminSetupDto,
   AdminStatusDto,
+  AuthControllerAdminLogin200Response,
   AuthResponseDto,
   LoginUserDto,
   RegisterUserDto,
   UserResponseDto,
 } from '../models/index';
 import {
+  AdminPasswordDtoFromJSON,
+  AdminPasswordDtoToJSON,
   AdminSetupDtoFromJSON,
   AdminSetupDtoToJSON,
   AdminStatusDtoFromJSON,
   AdminStatusDtoToJSON,
+  AuthControllerAdminLogin200ResponseFromJSON,
+  AuthControllerAdminLogin200ResponseToJSON,
   AuthResponseDtoFromJSON,
   AuthResponseDtoToJSON,
   LoginUserDtoFromJSON,
@@ -35,6 +41,10 @@ import {
   UserResponseDtoFromJSON,
   UserResponseDtoToJSON,
 } from '../models/index';
+
+export interface AuthControllerAdminLoginRequest {
+  adminPasswordDto: AdminPasswordDto;
+}
 
 export interface AuthControllerAdminSetupRequest {
   adminSetupDto: AdminSetupDto;
@@ -52,6 +62,55 @@ export interface AuthControllerRegisterRequest {
  *
  */
 export class AuthApi extends runtime.BaseAPI {
+  /**
+   * Aktiviert Admin-Rechte für den aktuell angemeldeten Benutzer durch Passwort-Eingabe
+   * Admin-Rechte aktivieren
+   */
+  async authControllerAdminLoginRaw(
+    requestParameters: AuthControllerAdminLoginRequest,
+    initOverrides?: RequestInit | runtime.InitOverrideFunction,
+  ): Promise<runtime.ApiResponse<AuthControllerAdminLogin200Response>> {
+    if (requestParameters['adminPasswordDto'] == null) {
+      throw new runtime.RequiredError(
+        'adminPasswordDto',
+        'Required parameter "adminPasswordDto" was null or undefined when calling authControllerAdminLogin().',
+      );
+    }
+
+    const queryParameters: any = {};
+
+    const headerParameters: runtime.HTTPHeaders = {};
+
+    headerParameters['Content-Type'] = 'application/json';
+
+    const response = await this.request(
+      {
+        path: `/api/auth/admin/login`,
+        method: 'POST',
+        headers: headerParameters,
+        query: queryParameters,
+        body: AdminPasswordDtoToJSON(requestParameters['adminPasswordDto']),
+      },
+      initOverrides,
+    );
+
+    return new runtime.JSONApiResponse(response, (jsonValue) =>
+      AuthControllerAdminLogin200ResponseFromJSON(jsonValue),
+    );
+  }
+
+  /**
+   * Aktiviert Admin-Rechte für den aktuell angemeldeten Benutzer durch Passwort-Eingabe
+   * Admin-Rechte aktivieren
+   */
+  async authControllerAdminLogin(
+    requestParameters: AuthControllerAdminLoginRequest,
+    initOverrides?: RequestInit | runtime.InitOverrideFunction,
+  ): Promise<AuthControllerAdminLogin200Response> {
+    const response = await this.authControllerAdminLoginRaw(requestParameters, initOverrides);
+    return await response.value();
+  }
+
   /**
    * Richtet das Passwort für einen Admin-Account ein. Erfordert Authentifizierung.
    * Admin-Passwort einrichten
@@ -328,5 +387,39 @@ export class AuthApi extends runtime.BaseAPI {
   ): Promise<AuthResponseDto> {
     const response = await this.authControllerRegisterRaw(requestParameters, initOverrides);
     return await response.value();
+  }
+
+  /**
+   * Prüft, ob das Admin-Token im Cookie noch gültig ist.
+   * Admin-Token verifizieren
+   */
+  async authControllerVerifyAdminTokenRaw(
+    initOverrides?: RequestInit | runtime.InitOverrideFunction,
+  ): Promise<runtime.ApiResponse<void>> {
+    const queryParameters: any = {};
+
+    const headerParameters: runtime.HTTPHeaders = {};
+
+    const response = await this.request(
+      {
+        path: `/api/auth/admin/verify`,
+        method: 'GET',
+        headers: headerParameters,
+        query: queryParameters,
+      },
+      initOverrides,
+    );
+
+    return new runtime.VoidApiResponse(response);
+  }
+
+  /**
+   * Prüft, ob das Admin-Token im Cookie noch gültig ist.
+   * Admin-Token verifizieren
+   */
+  async authControllerVerifyAdminToken(
+    initOverrides?: RequestInit | runtime.InitOverrideFunction,
+  ): Promise<void> {
+    await this.authControllerVerifyAdminTokenRaw(initOverrides);
   }
 }

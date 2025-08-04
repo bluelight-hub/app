@@ -11,7 +11,7 @@
     "noEmit": true,
     "strict": true,
     "skipLibCheck": true,
-    "types": ["@playwright/test"],
+    "types": ["@playwright/test", "cypress"],
     "baseUrl": ".",
     "paths": {
       "@/*": ["src/*"],
@@ -22,6 +22,6 @@
       "@pages/*": ["src/components/pages/*"]
     }
   },
-  "include": ["e2e/**/*"],
+  "include": ["e2e/**/*", "cypress/**/*"],
   "exclude": []
 }

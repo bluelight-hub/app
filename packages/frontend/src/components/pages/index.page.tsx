@@ -1,7 +1,7 @@
 import { ColorModeButton } from '@molecules/color-mode-button.molecule.tsx';
 import { Link, useRouter } from '@tanstack/react-router';
 import { Box, Button, Spinner, Text, VStack } from '@chakra-ui/react';
-import { PiShieldCheck } from 'react-icons/pi';
+import { PiShieldCheck, PiSignIn } from 'react-icons/pi';
 import { useAuth } from '@/provider/auth.hooks';
 import { useAdminStatus } from '@/hooks/useAdminStatus';
 
@@ -57,6 +57,25 @@ export function IndexPage() {
                 <Link to="/admin/setup">
                   <PiShieldCheck />
                   Admin-Setup starten
+                </Link>
+              </Button>
+            </VStack>
+          </Box>
+        )}
+
+        {(authContext.user.role === 'ADMIN' || authContext.user.role === 'SUPER_ADMIN') && !adminStatus?.adminSetupAvailable && (
+          <Box p={4} borderWidth={1} borderRadius="md" bg="bg.subtle">
+            <VStack gap={4} align="start">
+              <Box>
+                <Text fontWeight="semibold">Admin-Bereich</Text>
+                <Text fontSize="sm" color="fg.muted">
+                  Zugang zum Admin-Bereich für berechtigte Benutzer.
+                </Text>
+              </Box>
+              <Button asChild colorPalette="primary" variant="outline" size="sm">
+                <Link to="/admin/login">
+                  <PiSignIn />
+                  Admin-Bereich
                 </Link>
               </Button>
             </VStack>

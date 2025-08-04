@@ -8,6 +8,7 @@ import {
   Post,
   Req,
   Res,
+  UnauthorizedException,
   UseGuards,
   VERSION_NEUTRAL,
 } from '@nestjs/common';
@@ -19,9 +20,11 @@ import { LoginUserDto } from './dto/login-user.dto';
 import { AdminSetupDto } from './dto/admin-setup.dto';
 import { AdminStatusDto } from './dto/admin-status.dto';
 import { AuthResponseDto, UserResponseDto } from './dto/user-response.dto';
-import { clearAuthCookies, setAuthCookies } from './auth.utils';
+import { AdminPasswordDto } from './dto/admin-password.dto';
+import { clearAuthCookies, setAdminCookie, setAuthCookies } from './auth.utils';
 import { JwtRefreshGuard } from './guards/jwt-refresh.guard';
 import { JwtAuthGuard } from './guards/jwt-auth.guard';
+import { AdminJwtAuthGuard } from './guards/admin-jwt-auth.guard';
 import { ValidatedUser } from './strategies/jwt.strategy';
 import { CurrentUser } from './decorators/current-user.decorator';
 import { toUserResponseDto } from './auth.mapper';
@@ -128,6 +131,76 @@ export class AuthController {
     return {
       user: toUserResponseDto(user),
       accessToken,
+    };
+  }
+
+  /**
+   * Aktiviert Admin-Rechte für den aktuell angemeldeten Benutzer
+   *
+   * Der angemeldete Benutzer muss sein Passwort eingeben, um seine
+   * Admin-Rechte zu aktivieren (sofern er welche besitzt).
+   *
+   * @param dto - Passwort-Daten
+   * @param currentUser - Der aktuell angemeldete Benutzer
+   * @param res - Express Response für Cookie-Verwaltung
+   * @returns Der Admin-Benutzer mit aktivierten Rechten
+   */
+  @Post('admin/login')
+  @UseGuards(JwtAuthGuard)
+  @HttpCode(HttpStatus.OK)
+  @ApiCookieAuth('auth-token')
+  @ApiOperation({
+    summary: 'Admin-Rechte aktivieren',
+    description:
+      'Aktiviert Admin-Rechte für den aktuell angemeldeten Benutzer durch Passwort-Eingabe',
+  })
+  @ApiResponse({
+    status: HttpStatus.OK,
+    description: 'Admin-Rechte erfolgreich aktiviert',
+    schema: {
+      type: 'object',
+      properties: {
+        user: {
+          type: 'object',
+          properties: {
+            id: { type: 'string', example: '12345' },
+            username: { type: 'string', example: 'admin' },
+            isAdmin: { type: 'boolean', example: true },
+          },
+        },
+      },
+    },
+  })
+  @ApiResponse({
+    status: HttpStatus.UNAUTHORIZED,
+    description: 'Ungültiges Passwort',
+  })
+  @ApiResponse({
+    status: HttpStatus.FORBIDDEN,
+    description: 'Benutzer hat keine Admin-Rechte',
+  })
+  async adminLogin(
+    @Body() dto: AdminPasswordDto,
+    @CurrentUser() currentUser: ValidatedUser,
+    @Res({ passthrough: true }) res: Response,
+  ): Promise<{ user: { id: string; username: string; isAdmin: boolean } }> {
+    // Validiere die Admin-Rechte mit dem aktuellen Benutzer
+    const user = await this.authService.validateAdminCredentials(currentUser.userId, dto.password);
+
+    if (!user) {
+      throw new UnauthorizedException('Ungültiges Passwort');
+    }
+
+    const token = this.authService.signAdminToken(user);
+    const isProduction = process.env.NODE_ENV === 'production';
+    setAdminCookie(res, token, isProduction);
+
+    return {
+      user: {
+        id: user.id,
+        username: user.username,
+        isAdmin: true,
+      },
     };
   }
 
@@ -315,5 +388,33 @@ export class AuthController {
       adminExists,
       userEligible: isAdminRole && hasNoPassword,
     };
+  }
+
+  /**
+   * Verifiziert die Gültigkeit eines Admin-Tokens
+   *
+   * Dieser Endpunkt wird vom Frontend beim App-Start aufgerufen,
+   * um zu prüfen, ob das gespeicherte Admin-Token noch gültig ist.
+   *
+   * @returns Status 200 wenn Token gültig, 401 wenn ungültig
+   */
+  @Get('admin/verify')
+  @UseGuards(AdminJwtAuthGuard)
+  @HttpCode(HttpStatus.OK)
+  @ApiCookieAuth()
+  @ApiOperation({
+    summary: 'Admin-Token verifizieren',
+    description: 'Prüft, ob das Admin-Token im Cookie noch gültig ist.',
+  })
+  @ApiResponse({
+    status: HttpStatus.OK,
+    description: 'Admin-Token ist gültig',
+  })
+  @ApiResponse({
+    status: HttpStatus.UNAUTHORIZED,
+    description: 'Admin-Token fehlt oder ist ungültig',
+  })
+  async verifyAdminToken(): Promise<{ ok: boolean }> {
+    return { ok: true };
   }
 }

@@ -23,7 +23,12 @@ export default tseslint.config(
   },
   {
     extends: [js.configs.recommended, ...tseslint.configs.recommended],
-    files: ['src/**/*.{ts,tsx}', 'e2e/**/*.{ts,tsx}', 'playwright.config.ts'],
+    files: [
+      'src/**/*.{ts,tsx}',
+      'e2e/**/*.{ts,tsx}',
+      'cypress/**/*.{ts,tsx}',
+      'playwright.config.ts',
+    ],
     languageOptions: {
       ecmaVersion: 2020,
       globals: globals.browser,
@@ -69,8 +74,20 @@ export default tseslint.config(
     },
   },
   {
+    files: ['cypress/**/*.{ts,tsx}'],
+    rules: {
+      '@typescript-eslint/no-explicit-any': 'off',
+      '@typescript-eslint/no-unused-vars': 'off',
+    },
+  },
+  {
     files: ['src/**/*.{ts,tsx}'],
-    ignores: ['src/components/organisms/mocks/**/*.tsx', '**/*.test.tsx', 'e2e/**/*.{ts,tsx}'],
+    ignores: [
+      'src/components/organisms/mocks/**/*.tsx',
+      '**/*.test.tsx',
+      'e2e/**/*.{ts,tsx}',
+      'cypress/**/*.{ts,tsx}',
+    ],
     rules: {
       'max-lines': [
         'error',

@@ -142,17 +142,22 @@ export class AuthService {
   /**
    * Generiert ein Admin-Token für einen Benutzer
    *
-   * @param userId - Die ID des Benutzers
+   * @param user - Der Benutzer für den das Token generiert werden soll
    * @returns Das signierte JWT Admin-Token mit 15 Minuten Gültigkeit
    */
-  signAdminToken(userId: string): string {
-    const payload = { sub: userId, isAdmin: true };
+  signAdminToken(user: User): string {
+    const payload = {
+      sub: user.id,
+      username: user.username,
+      isAdmin: true,
+    };
     const adminJwtSecret = this.configService.getOrThrow<string>('ADMIN_JWT_SECRET');
+    const adminJwtExpiration = this.configService.getOrThrow<string>('ADMIN_JWT_EXPIRATION');
 
-    this.logger.debug(`🔐 Generiere Admin-Token für Benutzer: ${userId}`);
+    this.logger.debug(`🔐 Generiere Admin-Token für Benutzer: ${user.username} (${user.id})`);
     return this.jwtService.sign(payload, {
       secret: adminJwtSecret,
-      expiresIn: '15m',
+      expiresIn: adminJwtExpiration,
     });
   }
 
@@ -174,6 +179,47 @@ export class AuthService {
     });
 
     return adminCount > 0;
+  }
+
+  /**
+   * Validiert die Anmeldedaten eines Admin-Benutzers
+   *
+   * @param userId - Die ID des Admin-Accounts
+   * @param password - Das Passwort des Admin-Accounts
+   * @returns Der validierte Admin-Benutzer oder null bei ungültigen Anmeldedaten
+   */
+  async validateAdminCredentials(userId: string, password: string): Promise<User | null> {
+    const user = await this.prisma.user.findUnique({
+      where: {
+        id: userId,
+        role: {
+          in: [UserRole.ADMIN, UserRole.SUPER_ADMIN],
+        },
+      },
+    });
+
+    if (!user || !user.passwordHash) {
+      this.logger.debug(
+        `🔍 Admin-Login fehlgeschlagen: Benutzer nicht gefunden oder kein Passwort`,
+      );
+      return null;
+    }
+
+    const isPasswordValid = await bcrypt.compare(password, user.passwordHash);
+
+    if (!isPasswordValid) {
+      this.logger.warn(`🚫 Admin-Login fehlgeschlagen: Ungültiges Passwort für ${user.username}`);
+      return null;
+    }
+
+    this.logger.debug(`✅ Admin-Login erfolgreich: ${user.username} (Rolle: ${user.role})`);
+
+    await this.prisma.user.update({
+      where: { id: user.id },
+      data: { lastLoginAt: new Date() },
+    });
+
+    return user;
   }
 
   /**
@@ -216,7 +262,7 @@ export class AuthService {
 
     this.logger.warn(`✅ Admin-Setup erfolgreich für Benutzer: ${updatedUser.username}`);
 
-    const adminToken = this.signAdminToken(updatedUser.id);
+    const adminToken = this.signAdminToken(updatedUser);
 
     const { passwordHash: _, ...sanitizedUser } = updatedUser;
 

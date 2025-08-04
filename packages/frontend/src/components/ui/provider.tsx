@@ -27,11 +27,12 @@ const config = defineConfig({
       colors: {
         primary: {
           solid: { value: { _light: '{colors.primary.500}', _dark: '{colors.primary.700}' } },
-          contrast: { value: '{colors.primary.100}' },
-          fg: { value: { _light: '{colors.primary.700}', _dark: '{colors.primary.400}' } },
-          muted: { value: '{colors.primary.100}' },
-          subtle: { value: '{colors.primary.200}' },
-          emphasized: { value: '{colors.primary.300}' },
+          contrast: { value: { _light: '{colors.primary.100}', _dark: '{colors.primary.900}' } },
+          bg: { value: { _light: '{colors.primary.50}', _dark: '{colors.primary.900}' } },
+          fg: { value: { _light: '{colors.primary.700}', _dark: '{colors.white}' } },
+          muted: { value: { _light: '{colors.primary.200}', _dark: '{colors.primary.600}' } },
+          subtle: { value: { _light: '{colors.primary.100}', _dark: '{colors.primary.950}' } },
+          emphasized: { value: { _light: '{colors.primary.300}', dark: '{colors.primary.700}' } },
           focusRing: { value: '{colors.primary.500}' },
         },
       },

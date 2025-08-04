@@ -70,3 +70,34 @@ export function clearAuthCookies(res: Response): void {
   res.clearCookie('accessToken', { path: '/' });
   res.clearCookie('refreshToken', { path: '/' });
 }
+
+/**
+ * Gibt die Standard-Cookie-Optionen für Admin-Tokens zurück
+ *
+ * @param isProduction - Ob die Anwendung in Produktion läuft
+ * @returns Cookie-Optionen für Admin-Tokens
+ */
+export function getAdminTokenCookieOptions(isProduction: boolean): AuthCookieOptions {
+  return {
+    httpOnly: true,
+    secure: isProduction,
+    sameSite: 'lax',
+    maxAge: 15 * 60 * 1000, // 15 Minuten
+    path: '/',
+  };
+}
+
+/**
+ * Setzt ein Admin-Token als HttpOnly-Cookie
+ *
+ * @param res - Express Response-Objekt
+ * @param adminToken - Das Admin-Token
+ * @param isProduction - Ob die Anwendung in Produktion läuft
+ */
+export function setAdminCookie(
+  res: Response,
+  adminToken: string,
+  isProduction: boolean = false,
+): void {
+  res.cookie('adminToken', adminToken, getAdminTokenCookieOptions(isProduction));
+}

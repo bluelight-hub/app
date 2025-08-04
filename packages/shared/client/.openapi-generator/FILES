@@ -5,8 +5,11 @@ apis/HealthApi.ts
 apis/UsersApi.ts
 apis/index.ts
 index.ts
+models/AdminPasswordDto.ts
 models/AdminSetupDto.ts
 models/AdminStatusDto.ts
+models/AuthControllerAdminLogin200Response.ts
+models/AuthControllerAdminLogin200ResponseUser.ts
 models/AuthResponseDto.ts
 models/CreateUserDto.ts
 models/HealthControllerCheck200Response.ts
