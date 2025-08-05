@@ -1,28 +1,28 @@
 import { useEffect, useState } from 'react';
-import { Alert, Box, Button, Container, Field, Heading, Text, VStack } from '@chakra-ui/react';
 import { useNavigate } from '@tanstack/react-router';
-import { useForm } from '@tanstack/react-form';
-import { PiWarning } from 'react-icons/pi';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { authActions } from '../stores/auth.store';
-import { PasswordInput } from '../components/ui/password-input';
-import { toaster } from '@/components/ui/toaster.instance';
-import { useAuth } from '@/provider/auth.hooks';
-import { BackendApi } from '@/api/api.ts';
 
-/**
- * Admin-Anmeldeseite für privilegierte Benutzer
- *
- * Der angemeldete Benutzer muss sein Passwort eingeben, um seine
- * Admin-Rechte zu aktivieren (sofern er welche besitzt).
- */
+import { api } from '@/api';
+import { useAuth } from '@/hooks/useAuth';
+import { authActions } from '@/stores/authStore';
+import { toaster } from '@/utils/toaster';
+
 export function AdminLogin() {
   const navigate = useNavigate();
-  const [apiError, setApiError] = useState<string | null>(null);
   const queryClient = useQueryClient();
   const { user, isLoading } = useAuth();
-  const api = new BackendApi();
 
+  const [password, setPassword] = useState('');
+  const [apiError, setApiError] = useState<string | null>(null);
+
+  // Clear API error when password changes
+  useEffect(() => {
+    if (apiError) {
+      setApiError(null);
+    }
+  }, [password, apiError]);
+
+  // Redirect to login if not authenticated
   useEffect(() => {
     if (!isLoading && !user) {
       navigate({ to: '/login' });
@@ -41,9 +41,7 @@ export function AdminLogin() {
       console.log('Admin-Anmeldung erfolgreich:', response);
 
       // Speichere den User im Auth Store
-      if (response.user) {
-        authActions.loginSuccess(response.user); // todo: falscher typ
-      }
+      authActions.loginSuccess(response.user); // todo: falscher typ
 
       // Setze Admin-Authentifizierungsstatus
       authActions.setAdminAuth(true);
@@ -85,141 +83,67 @@ export function AdminLogin() {
       }
       // Andere Fehler
       else {
-        const message = error?.message || 'Ein unerwarteter Fehler ist aufgetreten.';
-        setApiError(message);
+        setApiError('Ein unerwarteter Fehler ist aufgetreten.');
         toaster.create({
-          title: 'Login fehlgeschlagen',
-          description: message,
+          title: 'Fehler',
+          description: 'Ein unerwarteter Fehler ist aufgetreten.',
           type: 'error',
         });
       }
     },
   });
 
-  const form = useForm({
-    defaultValues: {
-      password: '',
-    },
-    onSubmit: ({ value }) => {
-      if (loginMutation.isPending) return;
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (password.trim()) {
+      loginMutation.mutate(password);
+    }
+  };
 
-      setApiError(null);
-      loginMutation.mutate(value.password);
-    },
-  });
-
-  // Show loading spinner while checking auth status
+  // Show loading state while checking authentication
   if (isLoading) {
-    return (
-      <Container maxW="lg" py={{ base: '12', md: '24' }} px={{ base: '0', sm: '8' }}>
-        <VStack gap="8">
-          <Text>Lade...</Text>
-        </VStack>
-      </Container>
-    );
-  }
-
-  // If not loading and no user, useEffect will redirect to login
-  if (!user) {
-    return null;
+    return <div>Laden...</div>;
   }
 
   return (
-    <Container maxW="lg" py={{ base: '12', md: '24' }} px={{ base: '0', sm: '8' }}>
-      <VStack gap="8">
-        <VStack gap="6">
-          <Heading size="2xl">Admin-Bereich</Heading>
-          <Text fontSize="lg" color="fg.muted">
-            Geben Sie Ihr Passwort ein, um Admin-Rechte zu aktivieren
-          </Text>
-          <Text fontSize="md" color="fg.subtle">
-            Angemeldet als: {user.username}
-          </Text>
-        </VStack>
+    <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
+      <div className="max-w-md w-full space-y-8">
+        <div>
+          <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">Administrator-Anmeldung</h2>
+          <p className="mt-2 text-center text-sm text-gray-600">Geben Sie Ihr Administrator-Passwort ein, um Zugriff auf den Admin-Bereich zu erhalten.</p>
+        </div>
+        <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
+          <div>
+            <label htmlFor="password" className="sr-only">
+              Administrator-Passwort
+            </label>
+            <input
+              id="password"
+              name="password"
+              type="password"
+              autoComplete="current-password"
+              required
+              className="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm"
+              placeholder="Administrator-Passwort"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              disabled={loginMutation.isPending}
+            />
+          </div>
 
-        <Box
-          py={{ base: '0', sm: '8' }}
-          px={{ base: '4', sm: '10' }}
-          bg={{ base: 'transparent', sm: 'bg.surface' }}
-          boxShadow={{ base: 'none', sm: 'md' }}
-          borderRadius={{ base: 'none', sm: 'xl' }}
-          w="full"
-          maxW="md"
-        >
-          {/* API-Fehlermeldung anzeigen */}
-          {apiError && (
-            <Alert.Root status="error" mb="6" borderRadius="md">
-              <Alert.Indicator>
-                <PiWarning />
-              </Alert.Indicator>
-              <Alert.Content>
-                <Alert.Title>Anmeldung fehlgeschlagen!</Alert.Title>
-                <Alert.Description>{apiError}</Alert.Description>
-              </Alert.Content>
-            </Alert.Root>
-          )}
+          {apiError && <div className="text-red-600 text-sm text-center">{apiError}</div>}
 
-          <form
-            onSubmit={(e) => {
-              e.preventDefault();
-              e.stopPropagation();
-              form.handleSubmit();
-            }}
-          >
-            <VStack gap="6">
-              <form.Field
-                name="password"
-                validators={{
-                  onChange: ({ value }) => {
-                    const trimmedValue = value.trim();
-                    if (!trimmedValue) {
-                      return 'Passwort ist erforderlich';
-                    }
-                    return undefined;
-                  },
-                }}
-              >
-                {(field) => (
-                  <Field.Root invalid={field.state.meta.isTouched && field.state.meta.errors.length > 0} w="full">
-                    <Field.Label fontWeight="medium">Passwort</Field.Label>
-                    <PasswordInput
-                      id="password"
-                      name="password"
-                      autoComplete="current-password"
-                      placeholder="Ihr Passwort"
-                      value={field.state.value}
-                      onChange={(e) => {
-                        field.handleChange(e.target.value);
-                      }}
-                      onBlur={field.handleBlur}
-                      disabled={loginMutation.isPending}
-                    />
-                    <Field.ErrorText>{field.state.meta.isTouched && field.state.meta.errors.length > 0 ? field.state.meta.errors[0] : null}</Field.ErrorText>
-                  </Field.Root>
-                )}
-              </form.Field>
-
-              <form.Subscribe selector={(state) => [state.canSubmit, state.isSubmitting]}>
-                {([canSubmit, isFormSubmitting]) => {
-                  return (
-                    <Button
-                      type="submit"
-                      colorPalette="primary"
-                      size="lg"
-                      fontSize="md"
-                      w="full"
-                      disabled={!canSubmit || loginMutation.isPending || isFormSubmitting}
-                      loading={loginMutation.isPending}
-                    >
-                      {loginMutation.isPending ? 'Melde an...' : 'Als Admin anmelden'}
-                    </Button>
-                  );
-                }}
-              </form.Subscribe>
-            </VStack>
-          </form>
-        </Box>
-      </VStack>
-    </Container>
+          <div>
+            <button
+              type="submit"
+              disabled={loginMutation.isPending || !password.trim()}
+              className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {loginMutation.isPending ? 'Anmeldung...' : 'Als Administrator anmelden'}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
   );
 }
