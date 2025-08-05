@@ -1,6 +1,6 @@
 import { Response } from 'express';
-import { setAdminTokenCookie, clearAdminTokenCookie } from './test-cookie.utils';
-import { ADMIN_JWT_COOKIE, getAdminCookieOptions } from '../../src/auth/constants/auth.constants';
+import { clearAdminTokenCookie, setAdminTokenCookie } from './test-cookie.utils';
+import { milliseconds } from 'date-fns';
 
 describe('Cookie Utilities', () => {
   let mockResponse: Partial<Response>;
@@ -18,11 +18,12 @@ describe('Cookie Utilities', () => {
 
       setAdminTokenCookie(mockResponse as Response, token);
 
-      expect(mockResponse.cookie).toHaveBeenCalledWith(
-        ADMIN_JWT_COOKIE,
-        token,
-        getAdminCookieOptions(),
-      );
+      expect(mockResponse.cookie).toHaveBeenCalledWith('adminToken', token, {
+        httpOnly: true,
+        maxAge: milliseconds({ minutes: 15 }),
+        sameSite: 'lax',
+        secure: false, // default in non-production
+      });
     });
 
     it('should use secure cookie in production', () => {
@@ -33,7 +34,7 @@ describe('Cookie Utilities', () => {
       setAdminTokenCookie(mockResponse as Response, token);
 
       expect(mockResponse.cookie).toHaveBeenCalledWith(
-        ADMIN_JWT_COOKIE,
+        'adminToken',
         token,
         expect.objectContaining({
           secure: true,
@@ -51,7 +52,7 @@ describe('Cookie Utilities', () => {
       setAdminTokenCookie(mockResponse as Response, token);
 
       expect(mockResponse.cookie).toHaveBeenCalledWith(
-        ADMIN_JWT_COOKIE,
+        'adminToken',
         token,
         expect.objectContaining({
           secure: false,
@@ -66,7 +67,7 @@ describe('Cookie Utilities', () => {
     it('should clear admin token cookie', () => {
       clearAdminTokenCookie(mockResponse as Response);
 
-      expect(mockResponse.clearCookie).toHaveBeenCalledWith(ADMIN_JWT_COOKIE);
+      expect(mockResponse.clearCookie).toHaveBeenCalledWith('adminToken');
     });
   });
 });

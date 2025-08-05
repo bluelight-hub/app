@@ -1,6 +1,7 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { Reflector } from '@nestjs/core';
 import { UserManagementController } from './user-management.controller';
+import { UserManagementService } from './user-management.service';
 import { AdminJwtAuthGuard } from '../auth/guards/admin-jwt-auth.guard';
 
 describe('UserManagementController', () => {
@@ -10,6 +11,16 @@ describe('UserManagementController', () => {
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       controllers: [UserManagementController],
+      providers: [
+        {
+          provide: UserManagementService,
+          useValue: {
+            findAll: jest.fn(),
+            create: jest.fn(),
+            remove: jest.fn(),
+          },
+        },
+      ],
     }).compile();
 
     controller = module.get<UserManagementController>(UserManagementController);

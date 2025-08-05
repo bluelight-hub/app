@@ -1,5 +1,5 @@
 import { Response } from 'express';
-import { ADMIN_JWT_COOKIE, getAdminCookieOptions } from '../../src/auth/constants/auth.constants';
+import { milliseconds } from 'date-fns';
 
 /**
  * Setzt das Admin-Token als HttpOnly Cookie
@@ -9,7 +9,12 @@ import { ADMIN_JWT_COOKIE, getAdminCookieOptions } from '../../src/auth/constant
  * @returns void
  */
 export function setAdminTokenCookie(res: Response, token: string): void {
-  res.cookie(ADMIN_JWT_COOKIE, token, getAdminCookieOptions());
+  res.cookie('adminToken', token, {
+    httpOnly: true,
+    maxAge: milliseconds({ minutes: 15 }),
+    sameSite: 'lax' as const,
+    secure: process.env.NODE_ENV === 'production',
+  });
 }
 
 /**
@@ -19,5 +24,5 @@ export function setAdminTokenCookie(res: Response, token: string): void {
  * @returns void
  */
 export function clearAdminTokenCookie(res: Response): void {
-  res.clearCookie(ADMIN_JWT_COOKIE);
+  res.clearCookie('adminToken');
 }

@@ -78,7 +78,7 @@ export function clearAuthCookies(res: Response): void {
  * @param isProduction - Ob die Anwendung in Produktion läuft
  * @returns Cookie-Optionen für Admin-Tokens
  */
-export function getAdminTokenCookieOptions(isProduction: boolean): AuthCookieOptions {
+function getAdminTokenCookieOptions(isProduction: boolean): AuthCookieOptions {
   return {
     httpOnly: true,
     secure: isProduction,

@@ -1,4 +1,27 @@
-import { AuthApi, Configuration, HealthApi } from '@bluelight-hub/shared/client';
+import { AuthApi, Configuration, HealthApi, UserManagementApi } from '@bluelight-hub/shared/client';
+import { logger } from '@/utils/logger';
+
+/**
+ * Ermittelt die Basis-URL für die API basierend auf der Umgebung
+ *
+ * @returns Die Basis-URL ohne abschließenden Slash
+ */
+export const getBaseUrl = (): string => {
+  const configuredUrl = import.meta.env.VITE_API_URL;
+  if (configuredUrl && configuredUrl.trim() !== '') {
+    logger.debug('Using configured API URL', { configuredUrl });
+
+    if (configuredUrl.endsWith('/')) {
+      return configuredUrl.slice(0, -1);
+    }
+
+    return configuredUrl;
+  }
+  // Fallback für Entwicklung
+  const fallbackUrl = 'http://localhost:3000';
+  logger.debug('Using fallback API URL', { fallbackUrl });
+  return fallbackUrl;
+};
 
 /**
  * Zentrale Backend-API-Klasse für die Kommunikation mit dem BlueLight Hub Backend
@@ -16,6 +39,7 @@ export class BackendApi {
   private readonly configuration: Configuration;
   private readonly healthApi: HealthApi;
   private readonly authApi: AuthApi;
+  private readonly userManagementApi: UserManagementApi;
 
   /**
    * Erstellt eine neue Instanz der BackendApi-Klasse
@@ -24,18 +48,16 @@ export class BackendApi {
    * und erstellt gecachte Instanzen der API-Clients für optimale Performance.
    */
   constructor() {
-    // Konfiguration mit der Backend-URL aus den Umgebungsvariablen
-    const baseUrl = import.meta.env.VITE_API_URL || 'http://localhost:3000';
-
     this.configuration = new Configuration({
-      basePath: baseUrl.endsWith('/') ? baseUrl.slice(0, -1) : baseUrl,
+      basePath: getBaseUrl(),
       fetchApi: fetch,
-      credentials: 'include', // Für Cookie-basierte Authentifizierung
+      credentials: 'include',
     });
 
     // API-Instanzen werden einmalig erstellt und gecacht
     this.healthApi = new HealthApi(this.configuration);
     this.authApi = new AuthApi(this.configuration);
+    this.userManagementApi = new UserManagementApi(this.configuration);
   }
 
   /**
@@ -55,4 +77,24 @@ export class BackendApi {
   auth(): AuthApi {
     return this.authApi;
   }
+
+  /**
+   * Gibt die gecachte UserManagement-API-Instanz zurück
+   *
+   * @returns Die UserManagement-API-Instanz für Benutzerverwaltung durch Administratoren
+   */
+  userManagement(): UserManagementApi {
+    return this.userManagementApi;
+  }
 }
+
+/**
+ * Globale API-Konfiguration für die Verwendung außerhalb der BackendApi-Klasse
+ *
+ * Diese Konfiguration kann verwendet werden, wenn API-Clients direkt instanziiert werden müssen.
+ */
+export const apiConfiguration = new Configuration({
+  basePath: getBaseUrl(),
+  fetchApi: fetch,
+  credentials: 'include',
+});

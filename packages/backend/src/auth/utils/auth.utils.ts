@@ -1,5 +1,7 @@
 import { UserRole } from '@prisma/client';
 
+export const adminRoles: Array<UserRole> = [UserRole.ADMIN, UserRole.SUPER_ADMIN];
+
 export const isAdmin = (role: UserRole | undefined): boolean => {
-  return role === UserRole.ADMIN || role === UserRole.SUPER_ADMIN;
+  return adminRoles.includes(role);
 };

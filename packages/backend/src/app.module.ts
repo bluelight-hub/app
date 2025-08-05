@@ -4,7 +4,6 @@ import { CommonModule } from './common/common.module';
 import { HealthModule } from './health/health.module';
 import { PrismaModule } from './prisma/prisma.module';
 import { AuthModule } from './auth/auth.module';
-import { UserModule } from './user/user.module';
 import { AppController } from './app.controller';
 import { UserManagementModule } from './user-management/user-management.module';
 
@@ -32,7 +31,6 @@ import { UserManagementModule } from './user-management/user-management.module';
     HealthModule,
     CommonModule,
     AuthModule,
-    UserModule,
     UserManagementModule,
   ],
   controllers: [AppController],

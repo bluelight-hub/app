@@ -31,6 +31,8 @@ export class UserManagementService {
         id: true,
         username: true,
         role: true,
+        createdAt: true,
+        updatedAt: true,
       },
       orderBy: {
         createdAt: 'desc',
@@ -65,6 +67,8 @@ export class UserManagementService {
         id: true,
         username: true,
         role: true,
+        createdAt: true,
+        updatedAt: true,
       },
     });
 

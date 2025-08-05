@@ -14,6 +14,7 @@ import { LoginUserDto } from './dto/login-user.dto';
 import { AdminSetupDto } from './dto/admin-setup.dto';
 import { ValidatedUser } from './strategies/jwt.strategy';
 import * as bcrypt from 'bcrypt';
+import { adminRoles, isAdmin } from '@/auth/utils/auth.utils';
 
 /**
  * Service für Authentifizierungslogik
@@ -55,16 +56,18 @@ export class AuthService {
         const isFirstUser = userCount === 0;
 
         // Create the user
-        return await tx.user.create({
-          data: {
-            username: dto.username,
-            role: isFirstUser ? UserRole.SUPER_ADMIN : UserRole.USER,
-          },
-        });
+        return {
+          ...(await tx.user.create({
+            data: {
+              username: dto.username,
+              role: isFirstUser ? UserRole.SUPER_ADMIN : UserRole.USER,
+            },
+          })),
+          isFirstUser,
+        };
       });
 
-      const isFirstUser = user.role === UserRole.SUPER_ADMIN;
-      if (isFirstUser) {
+      if (user.isFirstUser) {
         this.logger.warn(`🦁 Erster Benutzer registriert: ${user.username} (SUPER_ADMIN)`);
       } else {
         this.logger.debug(`⭐ Neuer Benutzer registriert: ${user.username} (USER)`);
@@ -124,8 +127,8 @@ export class AuthService {
   /**
    * Generiert ein Access-Token für einen Benutzer
    *
-   * @param userId - Die ID des Benutzers
    * @returns Das signierte JWT Access-Token
+   * @param user - Der Benutzer für den das Token generiert werden soll
    */
   signAccessToken(user: User): string {
     const payload = {
@@ -181,7 +184,7 @@ export class AuthService {
     const adminCount = await this.prisma.user.count({
       where: {
         role: {
-          in: [UserRole.ADMIN, UserRole.SUPER_ADMIN],
+          in: adminRoles,
         },
         passwordHash: {
           not: null,
@@ -212,7 +215,7 @@ export class AuthService {
     }
 
     // Check if user has admin rights
-    if (!user.role || (user.role !== UserRole.ADMIN && user.role !== UserRole.SUPER_ADMIN)) {
+    if (!isAdmin(user.role)) {
       this.logger.debug(
         `🚫 Admin-Login fehlgeschlagen: Benutzer ${user.username} hat keine Admin-Rechte`,
       );
@@ -258,7 +261,7 @@ export class AuthService {
       throw new NotFoundException('Benutzer nicht gefunden');
     }
 
-    if (currentUser.role !== UserRole.ADMIN && currentUser.role !== UserRole.SUPER_ADMIN) {
+    if (!isAdmin(currentUser.role)) {
       this.logger.warn(
         `🚫 Admin-Setup verweigert: Keine Admin-Berechtigung für ${currentUser.username}`,
       );

@@ -1,12 +1,13 @@
 import { Logger, ValidationPipe, VersioningType } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { NestFactory } from '@nestjs/core';
+import { NestFactory, Reflector } from '@nestjs/core';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import * as packageJson from '../package.json';
 import { AppModule } from './app.module';
 import helmet from 'helmet';
 import * as cookieParser from 'cookie-parser';
 import { corsConfig, helmetConfig } from './config/security.config';
+import { TransformInterceptor } from './common/interceptors/transform.interceptor';
 
 require('@dotenvx/dotenvx').config();
 
@@ -69,6 +70,10 @@ async function bootstrap() {
       forbidNonWhitelisted: true,
     }),
   );
+
+  // Enable transform interceptor globally
+  const reflector = app.get(Reflector);
+  app.useGlobalInterceptors(new TransformInterceptor(reflector));
 
   const port = configService.get('BACKEND_PORT') || configService.get('PORT') || 3000;
 

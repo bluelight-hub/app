@@ -10,6 +10,8 @@ import {
 } from '@nestjs/common';
 import {
   ApiBearerAuth,
+  ApiCreatedResponse,
+  ApiOkResponse,
   ApiOperation,
   ApiResponse,
   ApiTags,
@@ -18,6 +20,13 @@ import {
 import { AdminJwtAuthGuard } from '@/auth/guards/admin-jwt-auth.guard';
 import { UserManagementService } from './user-management.service';
 import { CreateUserDto } from './dto/create-user.dto';
+import {
+  DeleteUserResponse,
+  toUserDto,
+  UserResponse,
+  UsersListResponse,
+} from './dto/user-management-response.dto';
+import { toDeleteUserResponseDto } from './mappers/user-management.mapper';
 
 @ApiTags('user-management')
 @ApiBearerAuth('admin-jwt')
@@ -32,28 +41,31 @@ export class UserManagementController {
 
   @Get()
   @ApiOperation({ summary: 'Alle Benutzer auflisten' })
-  @ApiResponse({ status: 200, description: 'Liste aller Benutzer' })
-  findAll() {
-    return this.userManagementService.findAll();
+  @ApiOkResponse({ type: UsersListResponse, description: 'Liste aller Benutzer' })
+  async findAll() {
+    const users = await this.userManagementService.findAll();
+    return users.map(toUserDto);
   }
 
   @Post()
   @ApiOperation({ summary: 'Neuen Benutzer erstellen' })
-  @ApiResponse({ status: 201, description: 'Benutzer erfolgreich erstellt' })
+  @ApiCreatedResponse({ type: UserResponse, description: 'Benutzer erfolgreich erstellt' })
   @ApiResponse({ status: 400, description: 'Ungültige Eingabedaten' })
   @ApiResponse({ status: 409, description: 'Benutzername bereits vergeben' })
-  create(
+  async create(
     @Body(new ValidationPipe({ whitelist: true, forbidNonWhitelisted: true })) dto: CreateUserDto,
   ) {
-    return this.userManagementService.create(dto);
+    const user = await this.userManagementService.create(dto);
+    return toUserDto(user);
   }
 
   @Delete(':id')
   @ApiOperation({ summary: 'Benutzer löschen' })
-  @ApiResponse({ status: 200, description: 'Benutzer erfolgreich gelöscht' })
+  @ApiOkResponse({ type: DeleteUserResponse, description: 'Benutzer erfolgreich gelöscht' })
   @ApiResponse({ status: 404, description: 'Benutzer nicht gefunden' })
   @ApiResponse({ status: 400, description: 'Letzter SUPER_ADMIN kann nicht gelöscht werden' })
-  remove(@Param('id') id: string) {
-    return this.userManagementService.remove(id);
+  async remove(@Param('id') id: string) {
+    await this.userManagementService.remove(id);
+    return toDeleteUserResponseDto(id);
   }
 }

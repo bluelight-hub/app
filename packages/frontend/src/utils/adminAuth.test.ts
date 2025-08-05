@@ -15,7 +15,7 @@ describe('verifyAdmin', () => {
 
     // Setup mock API
     mockAuthApi = {
-      authControllerAdminVerify: vi.fn(),
+      authControllerVerifyAdminToken: vi.fn(),
     };
 
     const mockApi = {
@@ -27,17 +27,17 @@ describe('verifyAdmin', () => {
 
   it('should return true when admin verification succeeds', async () => {
     // Mock successful verification (no error thrown)
-    mockAuthApi.authControllerAdminVerify.mockResolvedValue({});
+    mockAuthApi.authControllerVerifyAdminToken.mockResolvedValue({});
 
     const result = await verifyAdmin();
 
     expect(result).toBe(true);
-    expect(mockAuthApi.authControllerAdminVerify).toHaveBeenCalledTimes(1);
+    expect(mockAuthApi.authControllerVerifyAdminToken).toHaveBeenCalledTimes(1);
   });
 
   it('should return false when admin verification returns 401', async () => {
     // Mock 401 unauthorized error
-    mockAuthApi.authControllerAdminVerify.mockRejectedValue({
+    mockAuthApi.authControllerVerifyAdminToken.mockRejectedValue({
       status: 401,
       message: 'Unauthorized',
     });
@@ -45,22 +45,22 @@ describe('verifyAdmin', () => {
     const result = await verifyAdmin();
 
     expect(result).toBe(false);
-    expect(mockAuthApi.authControllerAdminVerify).toHaveBeenCalledTimes(1);
+    expect(mockAuthApi.authControllerVerifyAdminToken).toHaveBeenCalledTimes(1);
   });
 
   it('should return false when admin verification throws any error', async () => {
     // Mock network error
-    mockAuthApi.authControllerAdminVerify.mockRejectedValue(new Error('Network error'));
+    mockAuthApi.authControllerVerifyAdminToken.mockRejectedValue(new Error('Network error'));
 
     const result = await verifyAdmin();
 
     expect(result).toBe(false);
-    expect(mockAuthApi.authControllerAdminVerify).toHaveBeenCalledTimes(1);
+    expect(mockAuthApi.authControllerVerifyAdminToken).toHaveBeenCalledTimes(1);
   });
 
   it('should return false when admin verification returns 403', async () => {
     // Mock 403 forbidden error
-    mockAuthApi.authControllerAdminVerify.mockRejectedValue({
+    mockAuthApi.authControllerVerifyAdminToken.mockRejectedValue({
       status: 403,
       message: 'Forbidden',
     });
@@ -68,6 +68,6 @@ describe('verifyAdmin', () => {
     const result = await verifyAdmin();
 
     expect(result).toBe(false);
-    expect(mockAuthApi.authControllerAdminVerify).toHaveBeenCalledTimes(1);
+    expect(mockAuthApi.authControllerVerifyAdminToken).toHaveBeenCalledTimes(1);
   });
 });

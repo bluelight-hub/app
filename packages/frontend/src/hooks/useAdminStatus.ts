@@ -16,8 +16,7 @@ export function useAdminStatus() {
   return useQuery<AdminStatusDto>({
     queryKey: ['admin', 'status'],
     queryFn: async () => {
-      const response = await api.auth().authControllerGetAdminStatus();
-      return response;
+      return await api.auth().authControllerGetAdminStatus();
     },
     // Nur alle 30 Sekunden neu abrufen, da sich der Status selten ändert
     staleTime: 30000,

@@ -20,6 +20,10 @@ import { LoginUserDto } from './dto/login-user.dto';
 import { AdminSetupDto } from './dto/admin-setup.dto';
 import { AdminStatusDto } from './dto/admin-status.dto';
 import { AuthResponseDto, UserResponseDto } from './dto/user-response.dto';
+import { AdminLoginResponseDto } from './dto/admin-login-response.dto';
+import { LogoutResponseDto } from './dto/logout-response.dto';
+import { RefreshResponseDto } from './dto/refresh-response.dto';
+import { AdminTokenVerificationDto } from './dto/admin-token-verification.dto';
 import { AdminPasswordDto } from './dto/admin-password.dto';
 import { clearAuthCookies, setAdminCookie, setAuthCookies } from './auth.utils';
 import { JwtRefreshGuard } from './guards/jwt-refresh.guard';
@@ -27,9 +31,17 @@ import { JwtAuthGuard } from './guards/jwt-auth.guard';
 import { AdminJwtAuthGuard } from './guards/admin-jwt-auth.guard';
 import { ValidatedUser } from './strategies/jwt.strategy';
 import { CurrentUser } from './decorators/current-user.decorator';
-import { toUserResponseDto } from './auth.mapper';
-import { milliseconds } from 'date-fns';
-import { UserRole } from '@prisma/client';
+import {
+  toAdminLoginResponseDto,
+  toAdminSetupResponseDto,
+  toAdminStatusResponseDto,
+  toAdminTokenVerificationDto,
+  toLogoutResponseDto,
+  toRefreshResponseDto,
+  toUserResponseDto,
+} from './auth.mapper';
+import { SkipTransform } from '@/common/decorators/skip-transform.decorator';
+import { isAdmin } from './utils/auth.utils';
 
 /**
  * Controller für Authentifizierungs-Endpunkte
@@ -38,7 +50,6 @@ import { UserRole } from '@prisma/client';
  * Alle Endpunkte sind öffentlich zugänglich, da keine Authentifizierung
  * für die Registrierung/Anmeldung erforderlich ist.
  */
-import { isAdmin } from './utils/auth.utils';
 
 @ApiTags('auth')
 @Controller({
@@ -160,19 +171,7 @@ export class AuthController {
   @ApiResponse({
     status: HttpStatus.OK,
     description: 'Admin-Rechte erfolgreich aktiviert',
-    schema: {
-      type: 'object',
-      properties: {
-        user: {
-          type: 'object',
-          properties: {
-            id: { type: 'string', example: '12345' },
-            username: { type: 'string', example: 'admin' },
-            role: { type: 'string', enum: ['ADMIN', 'SUPER_ADMIN'], example: 'ADMIN' },
-          },
-        },
-      },
-    },
+    type: AdminLoginResponseDto,
   })
   @ApiResponse({
     status: HttpStatus.UNAUTHORIZED,
@@ -186,7 +185,7 @@ export class AuthController {
     @Body() dto: AdminPasswordDto,
     @CurrentUser() currentUser: ValidatedUser,
     @Res({ passthrough: true }) res: Response,
-  ): Promise<{ user: { id: string; username: string; role: UserRole } }> {
+  ): Promise<AdminLoginResponseDto> {
     // Validiere die Admin-Rechte mit dem aktuellen Benutzer
     const user = await this.authService.validateAdminCredentials(currentUser.userId, dto.password);
 
@@ -198,13 +197,7 @@ export class AuthController {
     const isProduction = process.env.NODE_ENV === 'production';
     setAdminCookie(res, token, isProduction);
 
-    return {
-      user: {
-        id: user.id,
-        username: user.username,
-        role: user.role,
-      },
-    };
+    return toAdminLoginResponseDto(user);
   }
 
   /**
@@ -218,6 +211,7 @@ export class AuthController {
   @UseGuards(JwtRefreshGuard)
   @HttpCode(HttpStatus.OK)
   @ApiCookieAuth()
+  @SkipTransform()
   @ApiOperation({
     summary: 'Access-Token erneuern',
     description: 'Erneuert das Access-Token mit einem gültigen Refresh-Token aus dem Cookie',
@@ -225,6 +219,7 @@ export class AuthController {
   @ApiResponse({
     status: HttpStatus.OK,
     description: 'Token erfolgreich erneuert',
+    type: RefreshResponseDto,
   })
   @ApiResponse({
     status: HttpStatus.UNAUTHORIZED,
@@ -233,7 +228,7 @@ export class AuthController {
   async refresh(
     @Req() req: Request & { user: ValidatedUser },
     @Res({ passthrough: true }) res: Response,
-  ): Promise<{ accessToken: string }> {
+  ): Promise<RefreshResponseDto> {
     const user = await this.authService.findUserById(req.user.userId);
 
     if (!user) {
@@ -248,7 +243,7 @@ export class AuthController {
     const isProduction = process.env.NODE_ENV === 'production';
     setAuthCookies(res, accessToken, refreshToken, isProduction);
 
-    return { accessToken };
+    return toRefreshResponseDto(accessToken);
   }
 
   /**
@@ -258,6 +253,7 @@ export class AuthController {
    */
   @Post('logout')
   @HttpCode(HttpStatus.OK)
+  @SkipTransform()
   @ApiOperation({
     summary: 'Benutzer abmelden',
     description: 'Meldet den Benutzer ab und löscht alle Authentifizierungs-Cookies',
@@ -265,10 +261,11 @@ export class AuthController {
   @ApiResponse({
     status: HttpStatus.OK,
     description: 'Erfolgreich abgemeldet',
+    type: LogoutResponseDto,
   })
-  async logout(@Res({ passthrough: true }) res: Response): Promise<{ message: string }> {
+  async logout(@Res({ passthrough: true }) res: Response): Promise<LogoutResponseDto> {
     clearAuthCookies(res);
-    return { message: 'Erfolgreich abgemeldet' };
+    return toLogoutResponseDto();
   }
 
   /**
@@ -306,19 +303,9 @@ export class AuthController {
   ): Promise<{ message: string; user: any; token?: string }> {
     const result = await this.authService.adminSetup(dto, user);
 
-    // Setze Admin-Token als HttpOnly-Cookie
     const isProduction = process.env.NODE_ENV === 'production';
-    res.cookie('adminToken', result.token, {
-      httpOnly: true,
-      secure: isProduction,
-      maxAge: milliseconds({ minutes: 15 }),
-      sameSite: 'lax',
-    });
-    return {
-      message: 'Admin-Setup erfolgreich durchgeführt',
-      user: result.user,
-      token: result.token, // Optional im Response-Body
-    };
+    setAdminCookie(res, result.token, isProduction);
+    return toAdminSetupResponseDto(result.user, result.token);
   }
 
   /**
@@ -386,11 +373,7 @@ export class AuthController {
     const isAdminRole = isAdmin(fullUser.role);
     const hasNoPassword = !fullUser.passwordHash;
 
-    return {
-      adminSetupAvailable: !adminExists && isAdminRole && hasNoPassword,
-      adminExists,
-      userEligible: isAdminRole && hasNoPassword,
-    };
+    return toAdminStatusResponseDto(adminExists, isAdminRole && hasNoPassword);
   }
 
   /**
@@ -405,6 +388,7 @@ export class AuthController {
   @UseGuards(AdminJwtAuthGuard)
   @HttpCode(HttpStatus.OK)
   @ApiCookieAuth()
+  @SkipTransform()
   @ApiOperation({
     summary: 'Admin-Token verifizieren',
     description: 'Prüft, ob das Admin-Token im Cookie noch gültig ist.',
@@ -412,12 +396,13 @@ export class AuthController {
   @ApiResponse({
     status: HttpStatus.OK,
     description: 'Admin-Token ist gültig',
+    type: AdminTokenVerificationDto,
   })
   @ApiResponse({
     status: HttpStatus.UNAUTHORIZED,
     description: 'Admin-Token fehlt oder ist ungültig',
   })
-  async verifyAdminToken(): Promise<{ ok: boolean }> {
-    return { ok: true };
+  async verifyAdminToken(): Promise<AdminTokenVerificationDto> {
+    return toAdminTokenVerificationDto();
   }
 }
