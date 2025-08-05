@@ -14,7 +14,14 @@ import { api } from '@/api/api.ts';
  * Schema für die Validierung des Admin-Setup-Formulars
  */
 const adminSetupSchema = z.object({
-  password: z.string().min(8, 'Das Passwort muss mindestens 8 Zeichen lang sein').max(128, 'Das Passwort darf maximal 128 Zeichen lang sein'),
+  password: z
+    .string()
+    .min(8, 'Das Passwort muss mindestens 8 Zeichen lang sein')
+    .max(128, 'Das Passwort darf maximal 128 Zeichen lang sein')
+    .regex(/[a-z]/, 'Das Passwort muss mindestens einen Kleinbuchstaben enthalten')
+    .regex(/[A-Z]/, 'Das Passwort muss mindestens einen Großbuchstaben enthalten')
+    .regex(/[0-9]/, 'Das Passwort muss mindestens eine Zahl enthalten')
+    .regex(/[^a-zA-Z0-9]/, 'Das Passwort muss mindestens ein Sonderzeichen enthalten'),
 });
 
 /**
@@ -185,7 +192,7 @@ export function AdminSetup() {
                       disabled={isSubmitting}
                     />
                     <Field.ErrorText>{field.state.meta.isTouched && field.state.meta.errors.length > 0 ? field.state.meta.errors[0] : null}</Field.ErrorText>
-                    <Field.HelperText>Das Passwort muss mindestens 8 Zeichen lang sein</Field.HelperText>
+                    <Field.HelperText>Mind. 8 Zeichen, 1 Groß-, 1 Kleinbuchstabe, 1 Zahl, 1 Sonderzeichen</Field.HelperText>
                   </Field.Root>
                 )}
               </form.Field>

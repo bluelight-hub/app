@@ -29,7 +29,8 @@
     "prisma:seed": "prisma db seed",
     "check:jsdoc": "ts-node -r tsconfig-paths/register scripts/find-missing-jsdoc.ts",
     "check:jsdoc:public": "ts-node -r tsconfig-paths/register scripts/find-missing-jsdoc.ts --public-only",
-    "check:jsdoc:json": "ts-node -r tsconfig-paths/register scripts/find-missing-jsdoc.ts --json-report"
+    "check:jsdoc:json": "ts-node -r tsconfig-paths/register scripts/find-missing-jsdoc.ts --json-report",
+    "admin:reset": "ts-node -r tsconfig-paths/register src/main-cli.ts"
   },
   "dependencies": {
     "@bluelight-hub/shared": "workspace:*",
