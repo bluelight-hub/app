@@ -11,6 +11,7 @@ describe('AuthController (e2e) - Admin Verify', () => {
   let prisma: PrismaService;
   let validAdminToken: string;
   let expiredAdminToken: string;
+  let testAdminUser: any;
   const adminSecret = process.env.ADMIN_JWT_SECRET || 'test-admin-secret';
 
   beforeAll(async () => {
@@ -29,28 +30,6 @@ describe('AuthController (e2e) - Admin Verify', () => {
     await app.init();
 
     prisma = app.get(PrismaService);
-
-    // Erstelle gültiges Admin-Token
-    validAdminToken = jwt.sign(
-      {
-        sub: 'test-admin-id',
-        username: 'testadmin',
-        isAdmin: true,
-      },
-      adminSecret,
-      { expiresIn: '15m' },
-    );
-
-    // Erstelle abgelaufenes Admin-Token
-    expiredAdminToken = jwt.sign(
-      {
-        sub: 'test-admin-id',
-        username: 'testadmin',
-        isAdmin: true,
-      },
-      adminSecret,
-      { expiresIn: '-1h' }, // Bereits abgelaufen
-    );
   });
 
   afterAll(async () => {
@@ -61,6 +40,37 @@ describe('AuthController (e2e) - Admin Verify', () => {
   beforeEach(async () => {
     // Clean database
     await prisma.user.deleteMany();
+
+    // Erstelle Test-Admin-Benutzer in der Datenbank
+    testAdminUser = await prisma.user.create({
+      data: {
+        username: 'testadmin',
+        role: 'SUPER_ADMIN',
+        passwordHash: 'test-hash',
+      },
+    });
+
+    // Erstelle gültiges Admin-Token
+    validAdminToken = jwt.sign(
+      {
+        sub: testAdminUser.id,
+        username: testAdminUser.username,
+        role: testAdminUser.role,
+      },
+      adminSecret,
+      { expiresIn: '15m' },
+    );
+
+    // Erstelle abgelaufenes Admin-Token
+    expiredAdminToken = jwt.sign(
+      {
+        sub: testAdminUser.id,
+        username: testAdminUser.username,
+        role: testAdminUser.role,
+      },
+      adminSecret,
+      { expiresIn: '-1h' }, // Bereits abgelaufen
+    );
   });
 
   describe('GET /auth/admin/verify', () => {
@@ -93,12 +103,12 @@ describe('AuthController (e2e) - Admin Verify', () => {
         .expect(HttpStatus.UNAUTHORIZED);
     });
 
-    it('sollte 401 zurückgeben, wenn ein Token ohne isAdmin flag bereitgestellt wird', async () => {
+    it('sollte 401 zurückgeben, wenn ein Token ohne Admin-Rolle bereitgestellt wird', async () => {
       const nonAdminToken = jwt.sign(
         {
           sub: 'test-user-id',
           username: 'testuser',
-          isAdmin: false, // Kein Admin
+          role: 'USER', // Kein Admin
         },
         adminSecret,
         { expiresIn: '15m' },
@@ -115,7 +125,7 @@ describe('AuthController (e2e) - Admin Verify', () => {
         {
           sub: 'test-admin-id',
           username: 'testadmin',
-          isAdmin: true,
+          role: 'SUPER_ADMIN',
         },
         'wrong-secret', // Falsches Secret
         { expiresIn: '15m' },

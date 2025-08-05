@@ -197,3 +197,4 @@ tasks/
 /packages/backend/documentation/
 /old-projects/
 /.serena/cache
+/packages/backend/coverage-e2e/

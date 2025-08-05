@@ -78,7 +78,7 @@ describe('AuthController (e2e) - Admin Login', () => {
         user: {
           id: admin.id,
           username: 'admin',
-          isAdmin: true,
+          role: 'SUPER_ADMIN',
         },
       });
 

@@ -62,7 +62,7 @@ describe('Admin Setup (e2e)', () => {
       expect(adminTokenCookie).not.toContain('Secure');
     });
 
-    it('should create admin token with isAdmin claim and 15 minute expiry', async () => {
+    it('should create admin token with role claim and 15 minute expiry', async () => {
       // Registriere ersten Benutzer
       const registerResponse = await TestAuthUtils.register(app, 'admin-user');
       const { accessToken } = TestAuthUtils.extractCookies(registerResponse);
@@ -86,7 +86,8 @@ describe('Admin Setup (e2e)', () => {
 
       // Prüfe Token-Payload
       expect(decoded).toHaveProperty('sub', user.id);
-      expect(decoded).toHaveProperty('isAdmin', true);
+      expect(decoded).toHaveProperty('role', 'SUPER_ADMIN');
+      expect(decoded).toHaveProperty('username', 'admin-user');
       expect(decoded).toHaveProperty('exp');
       expect(decoded).toHaveProperty('iat');
 
@@ -117,7 +118,8 @@ describe('Admin Setup (e2e)', () => {
       const verified = jwt.verify(adminToken, adminJwtSecret) as any;
 
       expect(verified).toHaveProperty('sub', user.id);
-      expect(verified).toHaveProperty('isAdmin', true);
+      expect(verified).toHaveProperty('role', 'SUPER_ADMIN');
+      expect(verified).toHaveProperty('username', 'admin-user');
     });
 
     it('should return 409 if admin already exists', async () => {

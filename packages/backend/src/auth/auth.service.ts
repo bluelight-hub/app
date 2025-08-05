@@ -41,7 +41,7 @@ export class AuthService {
    */
   async register(dto: RegisterUserDto): Promise<User> {
     try {
-      const user = await this.prisma.$transaction(async (tx) => {
+      const { user, isFirstUser } = await this.prisma.$transaction(async (tx) => {
         // Check if username already exists within the transaction
         const existingUser = await tx.user.findUnique({
           where: { username: dto.username },
@@ -57,17 +57,17 @@ export class AuthService {
 
         // Create the user
         return {
-          ...(await tx.user.create({
+          user: await tx.user.create({
             data: {
               username: dto.username,
               role: isFirstUser ? UserRole.SUPER_ADMIN : UserRole.USER,
             },
-          })),
+          }),
           isFirstUser,
         };
       });
 
-      if (user.isFirstUser) {
+      if (isFirstUser) {
         this.logger.warn(`🦁 Erster Benutzer registriert: ${user.username} (SUPER_ADMIN)`);
       } else {
         this.logger.debug(`⭐ Neuer Benutzer registriert: ${user.username} (USER)`);

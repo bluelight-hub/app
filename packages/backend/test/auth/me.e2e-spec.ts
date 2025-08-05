@@ -164,7 +164,7 @@ describe('Auth Me Endpoint (e2e)', () => {
     });
 
     describe('User Not Found Edge Cases', () => {
-      it('should return 404 if authenticated user no longer exists in database', async () => {
+      it('should return 401 if authenticated user no longer exists in database', async () => {
         // Erstelle Benutzer und hole Token
         const username = 'user_to_delete';
         const authData = await TestAuthUtils.createAuthenticatedUser(app, username);
@@ -174,11 +174,11 @@ describe('Auth Me Endpoint (e2e)', () => {
 
         const response = await TestAuthUtils.authenticatedRequest(app, authData.tokens.accessToken!)
           .get('/api/auth/me')
-          .expect(404);
+          .expect(401);
 
         expect(response.body).toHaveProperty('message');
-        expect(response.body.message).toContain('nicht gefunden');
-        expect(response.body.statusCode).toBe(404);
+        expect(response.body.message).toContain('User no longer exists');
+        expect(response.body.statusCode).toBe(401);
       });
     });
 
