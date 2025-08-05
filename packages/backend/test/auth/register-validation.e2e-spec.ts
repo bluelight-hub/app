@@ -90,7 +90,7 @@ describe('Auth Register Validation (e2e)', () => {
           .send({ username })
           .expect(201);
 
-        expect(response.body.user.username).toBe(username);
+        expect(response.body.username).toBe(username);
         await TestDbUtils.cleanDatabase(); // Cleanup for next test
       }
     });

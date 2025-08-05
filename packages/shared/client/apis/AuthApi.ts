@@ -20,7 +20,6 @@ import type {
   AdminStatusDto,
   AdminTokenVerificationDto,
   AuthCheckResponseDto,
-  AuthResponseDto,
   LoginUserDto,
   LogoutResponseDto,
   RefreshResponseDto,
@@ -40,8 +39,6 @@ import {
   AdminTokenVerificationDtoToJSON,
   AuthCheckResponseDtoFromJSON,
   AuthCheckResponseDtoToJSON,
-  AuthResponseDtoFromJSON,
-  AuthResponseDtoToJSON,
   LoginUserDtoFromJSON,
   LoginUserDtoToJSON,
   LogoutResponseDtoFromJSON,
@@ -242,48 +239,13 @@ export class AuthApi extends runtime.BaseAPI {
   }
 
   /**
-   * Gibt die Informationen des aktuell authentifizierten Benutzers zurück
-   * Aktuelle Benutzerinformationen abrufen
-   */
-  async authControllerGetCurrentUserRaw(
-    initOverrides?: RequestInit | runtime.InitOverrideFunction,
-  ): Promise<runtime.ApiResponse<UserResponseDto>> {
-    const queryParameters: any = {};
-
-    const headerParameters: runtime.HTTPHeaders = {};
-
-    const response = await this.request(
-      {
-        path: `/api/auth/me`,
-        method: 'GET',
-        headers: headerParameters,
-        query: queryParameters,
-      },
-      initOverrides,
-    );
-
-    return new runtime.JSONApiResponse(response, (jsonValue) => UserResponseDtoFromJSON(jsonValue));
-  }
-
-  /**
-   * Gibt die Informationen des aktuell authentifizierten Benutzers zurück
-   * Aktuelle Benutzerinformationen abrufen
-   */
-  async authControllerGetCurrentUser(
-    initOverrides?: RequestInit | runtime.InitOverrideFunction,
-  ): Promise<UserResponseDto> {
-    const response = await this.authControllerGetCurrentUserRaw(initOverrides);
-    return await response.value();
-  }
-
-  /**
    * Meldet einen Benutzer nur mit Benutzernamen an (ohne Passwort)
    * Benutzer anmelden
    */
   async authControllerLoginRaw(
     requestParameters: AuthControllerLoginRequest,
     initOverrides?: RequestInit | runtime.InitOverrideFunction,
-  ): Promise<runtime.ApiResponse<AuthResponseDto>> {
+  ): Promise<runtime.ApiResponse<UserResponseDto>> {
     if (requestParameters['loginUserDto'] == null) {
       throw new runtime.RequiredError(
         'loginUserDto',
@@ -308,7 +270,7 @@ export class AuthApi extends runtime.BaseAPI {
       initOverrides,
     );
 
-    return new runtime.JSONApiResponse(response, (jsonValue) => AuthResponseDtoFromJSON(jsonValue));
+    return new runtime.JSONApiResponse(response, (jsonValue) => UserResponseDtoFromJSON(jsonValue));
   }
 
   /**
@@ -318,7 +280,7 @@ export class AuthApi extends runtime.BaseAPI {
   async authControllerLogin(
     requestParameters: AuthControllerLoginRequest,
     initOverrides?: RequestInit | runtime.InitOverrideFunction,
-  ): Promise<AuthResponseDto> {
+  ): Promise<UserResponseDto> {
     const response = await this.authControllerLoginRaw(requestParameters, initOverrides);
     return await response.value();
   }
@@ -404,7 +366,7 @@ export class AuthApi extends runtime.BaseAPI {
   async authControllerRegisterRaw(
     requestParameters: AuthControllerRegisterRequest,
     initOverrides?: RequestInit | runtime.InitOverrideFunction,
-  ): Promise<runtime.ApiResponse<AuthResponseDto>> {
+  ): Promise<runtime.ApiResponse<UserResponseDto>> {
     if (requestParameters['registerUserDto'] == null) {
       throw new runtime.RequiredError(
         'registerUserDto',
@@ -429,7 +391,7 @@ export class AuthApi extends runtime.BaseAPI {
       initOverrides,
     );
 
-    return new runtime.JSONApiResponse(response, (jsonValue) => AuthResponseDtoFromJSON(jsonValue));
+    return new runtime.JSONApiResponse(response, (jsonValue) => UserResponseDtoFromJSON(jsonValue));
   }
 
   /**
@@ -439,7 +401,7 @@ export class AuthApi extends runtime.BaseAPI {
   async authControllerRegister(
     requestParameters: AuthControllerRegisterRequest,
     initOverrides?: RequestInit | runtime.InitOverrideFunction,
-  ): Promise<AuthResponseDto> {
+  ): Promise<UserResponseDto> {
     const response = await this.authControllerRegisterRaw(requestParameters, initOverrides);
     return await response.value();
   }

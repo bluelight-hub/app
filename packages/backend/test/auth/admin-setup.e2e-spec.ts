@@ -40,7 +40,7 @@ describe('Admin Setup (e2e)', () => {
       expect(response.body).toHaveProperty('user');
       expect(response.body.user.username).toBe('admin-user');
       expect(response.body.user.role).toBe('SUPER_ADMIN');
-      expect(response.body).toHaveProperty('token');
+      expect(response.body).not.toHaveProperty('token'); // Token is now in cookies only
 
       // Prüfe Cookie
       const cookies = response.headers['set-cookie'];
@@ -66,7 +66,7 @@ describe('Admin Setup (e2e)', () => {
       // Registriere ersten Benutzer
       const registerResponse = await TestAuthUtils.register(app, 'admin-user');
       const { accessToken } = TestAuthUtils.extractCookies(registerResponse);
-      const user = registerResponse.body.user;
+      const user = registerResponse.body;
 
       // Admin-Setup durchführen
       const response = await request(app.getHttpServer())
@@ -77,8 +77,12 @@ describe('Admin Setup (e2e)', () => {
         })
         .expect(201);
 
-      // Extrahiere Token aus Response
-      const adminToken = response.body.token;
+      // Extrahiere Token aus Cookies
+      const cookies = response.headers['set-cookie'] as unknown as string[];
+      const adminTokenCookie = cookies.find((cookie) => cookie.startsWith('adminToken='));
+      expect(adminTokenCookie).toBeDefined();
+
+      const adminToken = adminTokenCookie!.split(';')[0].split('=')[1];
       expect(adminToken).toBeDefined();
 
       // Dekodiere Token ohne Verifikation (für Test-Zwecke)
@@ -100,7 +104,7 @@ describe('Admin Setup (e2e)', () => {
       // Registriere ersten Benutzer
       const registerResponse = await TestAuthUtils.register(app, 'admin-user');
       const { accessToken } = TestAuthUtils.extractCookies(registerResponse);
-      const user = registerResponse.body.user;
+      const user = registerResponse.body;
 
       // Admin-Setup durchführen
       const response = await request(app.getHttpServer())
@@ -111,7 +115,10 @@ describe('Admin Setup (e2e)', () => {
         })
         .expect(201);
 
-      const adminToken = response.body.token;
+      // Extrahiere Token aus Cookies
+      const cookies = response.headers['set-cookie'] as unknown as string[];
+      const adminTokenCookie = cookies.find((cookie) => cookie.startsWith('adminToken='));
+      const adminToken = adminTokenCookie!.split(';')[0].split('=')[1];
 
       // Verifiziere Token mit ADMIN_JWT_SECRET
       const adminJwtSecret = process.env.ADMIN_JWT_SECRET || 'test-admin-secret';

@@ -38,16 +38,6 @@ describe('Admin Login', () => {
       },
     }).as('adminLogin');
 
-    // Intercept the me endpoint for auth check
-    cy.intercept('GET', '/api/auth/me', {
-      statusCode: 200,
-      body: {
-        id: '1',
-        username: 'admin',
-        createdAt: new Date().toISOString(),
-      },
-    }).as('authCheck');
-
     cy.visit('/admin/login');
 
     // Fill in the form

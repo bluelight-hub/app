@@ -66,9 +66,9 @@ export function toLogoutResponseDto(): LogoutResponseDto {
  * @param accessToken - Das neue Access-Token
  * @returns Refresh-Response-DTO
  */
-export function toRefreshResponseDto(accessToken: string): RefreshResponseDto {
+export function toRefreshResponseDto(): RefreshResponseDto {
   return {
-    accessToken,
+    success: true,
   };
 }
 
@@ -79,11 +79,10 @@ export function toRefreshResponseDto(accessToken: string): RefreshResponseDto {
  * @param token - Das Admin-Token
  * @returns Admin-Setup-Response-DTO
  */
-export function toAdminSetupResponseDto(user: Partial<User>, token: string): AdminSetupResponseDto {
+export function toAdminSetupResponseDto(user: Partial<User>): AdminSetupResponseDto {
   return {
     message: 'Admin-Setup erfolgreich durchgeführt',
     user,
-    token,
   };
 }
 

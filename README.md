@@ -73,6 +73,53 @@ pnpm --filter @bluelight-hub/frontend dev
 pnpm --filter @bluelight-hub/backend dev
 ```
 
+## Authentication
+
+Die Anwendung verwendet JWT-basierte Authentifizierung mit httpOnly-Cookies für erhöhte Sicherheit.
+
+### Auth-Endpoints
+
+- `POST /api/auth/login` - Benutzer-Login
+  - Request: `{ username: string, password: string }`
+  - Response: `{ user: UserResponseDto }`
+- `POST /api/auth/register` - Benutzer-Registrierung
+  - Request: `{ username: string, password: string, email: string }`
+  - Response: `{ user: UserResponseDto }`
+- `POST /api/auth/refresh` - Token-Refresh
+  - Request: Keine (Refresh-Token wird aus Cookie gelesen)
+  - Response: `{ success: true }`
+- `POST /api/auth/admin/login` - Admin-Login
+  - Request: `{ username: string, password: string }`
+  - Response: `{ user: UserResponseDto }`
+
+### Cookie-Handling
+
+Alle Auth-Endpoints setzen JWT-Tokens als httpOnly-Cookies:
+
+- **accessToken**: Kurzlebiger Access-Token (15 Minuten)
+- **refreshToken**: Langlebiger Refresh-Token (7 Tage)
+
+Cookie-Eigenschaften:
+
+- `httpOnly: true` - Schutz vor XSS-Angriffen
+- `sameSite: strict` - CSRF-Schutz
+- `secure: true` - Nur über HTTPS (in Production)
+
+### Frontend-Integration
+
+```typescript
+// Login-Beispiel
+const response = await api.auth.login({
+  username: 'user@example.com',
+  password: 'password',
+});
+// Tokens werden automatisch als Cookies gesetzt
+// Response enthält nur User-Daten: { user: { id, username, email, ... } }
+
+// Authenticated Requests werden automatisch mit Cookies gesendet
+const userData = await api.users.getCurrentUser();
+```
+
 ## Tests
 
 Führe Tests für alle Pakete aus:

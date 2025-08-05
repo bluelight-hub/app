@@ -50,20 +50,3 @@ export class UserResponseDto {
   })
   updatedAt: Date;
 }
-
-/**
- * DTO für Auth-Responses mit Token
- */
-export class AuthResponseDto {
-  @ApiProperty({
-    description: 'Benutzerinformationen',
-    type: UserResponseDto,
-  })
-  user: UserResponseDto;
-
-  @ApiProperty({
-    description: 'JWT Access Token',
-    example: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...',
-  })
-  accessToken: string;
-}

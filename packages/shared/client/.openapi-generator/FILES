@@ -14,7 +14,6 @@ models/ApiLinks.ts
 models/ApiMeta.ts
 models/ApiPagination.ts
 models/AuthCheckResponseDto.ts
-models/AuthResponseDto.ts
 models/CreateUserDto.ts
 models/DeleteUserResponse.ts
 models/DeleteUserResponseData.ts

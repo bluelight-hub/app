@@ -15,10 +15,4 @@ export class AdminSetupResponseDto {
     description: 'Admin-Benutzerinformationen',
   })
   user: Partial<User>;
-
-  @ApiProperty({
-    description: 'Admin-Token für weitere Operationen',
-    example: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...',
-  })
-  token: string;
 }

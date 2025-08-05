@@ -20,18 +20,18 @@ import { mapValues } from '../runtime';
  */
 export interface RefreshResponseDto {
   /**
-   * Neues Access-Token
-   * @type {string}
+   * Erfolgreich aktualisiert
+   * @type {boolean}
    * @memberof RefreshResponseDto
    */
-  accessToken: string;
+  success: boolean;
 }
 
 /**
  * Check if a given object implements the RefreshResponseDto interface.
  */
 export function instanceOfRefreshResponseDto(value: object): value is RefreshResponseDto {
-  if (!('accessToken' in value) || value['accessToken'] === undefined) return false;
+  if (!('success' in value) || value['success'] === undefined) return false;
   return true;
 }
 
@@ -47,7 +47,7 @@ export function RefreshResponseDtoFromJSONTyped(
     return json;
   }
   return {
-    accessToken: json['accessToken'],
+    success: json['success'],
   };
 }
 
@@ -64,6 +64,6 @@ export function RefreshResponseDtoToJSONTyped(
   }
 
   return {
-    accessToken: value['accessToken'],
+    success: value['success'],
   };
 }

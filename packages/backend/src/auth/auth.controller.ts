@@ -19,9 +19,10 @@ import { RegisterUserDto } from './dto/register-user.dto';
 import { LoginUserDto } from './dto/login-user.dto';
 import { AdminSetupDto } from './dto/admin-setup.dto';
 import { AdminStatusDto } from './dto/admin-status.dto';
-import { AuthResponseDto, UserResponseDto } from './dto/user-response.dto';
+import { UserResponseDto } from './dto/user-response.dto';
 import { AuthCheckResponseDto } from './dto/auth-check-response.dto';
 import { AdminLoginResponseDto } from './dto/admin-login-response.dto';
+import { AdminSetupResponseDto } from './dto/admin-setup-response.dto';
 import { LogoutResponseDto } from './dto/logout-response.dto';
 import { RefreshResponseDto } from './dto/refresh-response.dto';
 import { AdminTokenVerificationDto } from './dto/admin-token-verification.dto';
@@ -80,7 +81,7 @@ export class AuthController {
   @ApiResponse({
     status: HttpStatus.CREATED,
     description: 'Benutzer erfolgreich registriert',
-    type: AuthResponseDto,
+    type: UserResponseDto,
   })
   @ApiResponse({
     status: HttpStatus.CONFLICT,
@@ -89,7 +90,7 @@ export class AuthController {
   async register(
     @Body() dto: RegisterUserDto,
     @Res({ passthrough: true }) res: Response,
-  ): Promise<AuthResponseDto> {
+  ): Promise<UserResponseDto> {
     const user = await this.authService.register(dto);
 
     // JWT-Tokens generieren
@@ -100,10 +101,7 @@ export class AuthController {
     const isProduction = process.env.NODE_ENV === 'production';
     setAuthCookies(res, accessToken, refreshToken, isProduction);
 
-    return {
-      user: toUserResponseDto(user),
-      accessToken,
-    };
+    return toUserResponseDto(user);
   }
 
   /**
@@ -124,7 +122,7 @@ export class AuthController {
   @ApiResponse({
     status: HttpStatus.OK,
     description: 'Erfolgreich angemeldet',
-    type: AuthResponseDto,
+    type: UserResponseDto,
   })
   @ApiResponse({
     status: HttpStatus.NOT_FOUND,
@@ -133,7 +131,7 @@ export class AuthController {
   async login(
     @Body() dto: LoginUserDto,
     @Res({ passthrough: true }) res: Response,
-  ): Promise<AuthResponseDto> {
+  ): Promise<UserResponseDto> {
     const user = await this.authService.login(dto);
 
     // JWT-Tokens generieren
@@ -144,10 +142,7 @@ export class AuthController {
     const isProduction = process.env.NODE_ENV === 'production';
     setAuthCookies(res, accessToken, refreshToken, isProduction);
 
-    return {
-      user: toUserResponseDto(user),
-      accessToken,
-    };
+    return toUserResponseDto(user);
   }
 
   /**
@@ -244,7 +239,7 @@ export class AuthController {
     const isProduction = process.env.NODE_ENV === 'production';
     setAuthCookies(res, accessToken, refreshToken, isProduction);
 
-    return toRefreshResponseDto(accessToken);
+    return toRefreshResponseDto();
   }
 
   /**
@@ -300,12 +295,12 @@ export class AuthController {
     @Body() dto: AdminSetupDto,
     @CurrentUser() user: ValidatedUser,
     @Res({ passthrough: true }) res: Response,
-  ): Promise<{ message: string; user: any; token?: string }> {
+  ): Promise<AdminSetupResponseDto> {
     const result = await this.authService.adminSetup(dto, user);
 
     const isProduction = process.env.NODE_ENV === 'production';
     setAdminCookie(res, result.token, isProduction);
-    return toAdminSetupResponseDto(result.user, result.token);
+    return toAdminSetupResponseDto(result.user);
   }
 
   /**
@@ -359,38 +354,6 @@ export class AuthController {
         authenticated: false,
       };
     }
-  }
-
-  /**
-   * Gibt die Informationen des aktuell authentifizierten Benutzers zurück
-   *
-   * @param user - Der aktuell authentifizierte Benutzer
-   * @returns Die Benutzerinformationen
-   */
-  @Get('me')
-  @UseGuards(JwtAuthGuard)
-  @ApiCookieAuth()
-  @ApiOperation({
-    summary: 'Aktuelle Benutzerinformationen abrufen',
-    description: 'Gibt die Informationen des aktuell authentifizierten Benutzers zurück',
-  })
-  @ApiResponse({
-    status: HttpStatus.OK,
-    description: 'Benutzerinformationen erfolgreich abgerufen',
-    type: UserResponseDto,
-  })
-  @ApiResponse({
-    status: HttpStatus.UNAUTHORIZED,
-    description: 'Keine gültige Authentifizierung',
-  })
-  async getCurrentUser(@CurrentUser() user: ValidatedUser): Promise<UserResponseDto> {
-    const fullUser = await this.authService.findUserById(user.userId);
-
-    if (!fullUser) {
-      throw new NotFoundException('Benutzer nicht gefunden');
-    }
-
-    return toUserResponseDto(fullUser);
   }
 
   /**

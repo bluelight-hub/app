@@ -135,14 +135,14 @@ export class TestAuthUtils {
       // Benutzer existiert bereits, versuche Login
       const loginResponse = await this.login(app, username);
       return {
-        user: loginResponse.body.user,
+        user: loginResponse.body, // Response body IS the user (UserResponseDto)
         tokens: this.extractCookies(loginResponse),
         response: loginResponse,
       };
     }
 
     return {
-      user: response.body.user,
+      user: response.body, // Response body IS the user (UserResponseDto)
       tokens: this.extractCookies(response),
       response,
     };

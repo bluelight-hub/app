@@ -31,15 +31,14 @@ describe('Auth Login Endpoint (e2e)', () => {
           .send({ username })
           .expect(200);
 
-        // Prüfe Response Body
-        expect(response.body).toHaveProperty('user');
-        expect(response.body).toHaveProperty('accessToken');
-        expect(response.body.user).toMatchObject({
+        // Prüfe Response Body (Response IS the user directly - UserResponseDto)
+        expect(response.body).toMatchObject({
           username,
           role: 'SUPER_ADMIN', // Erster Benutzer ist SUPER_ADMIN
         });
-        expect(response.body.user).toHaveProperty('id');
-        expect(response.body.user).not.toHaveProperty('passwordHash');
+        expect(response.body).toHaveProperty('id');
+        expect(response.body).not.toHaveProperty('passwordHash');
+        expect(response.body).not.toHaveProperty('accessToken'); // Tokens are now in cookies only
         // lastLoginAt sollte nicht in der Response sein
       });
 
@@ -75,16 +74,16 @@ describe('Auth Login Endpoint (e2e)', () => {
           .send({ username })
           .expect(200);
 
-        // Verifiziere Access Token
-        const accessToken = response.body.accessToken;
-        expect(accessToken).toBeDefined();
+        // Verifiziere Access Token aus Cookies
+        const cookies = TestAuthUtils.extractCookies(response);
+        expect(cookies.accessToken).toBeDefined();
 
-        const decoded = TestAuthUtils.decodeToken(accessToken) as any;
+        const decoded = TestAuthUtils.decodeToken(cookies.accessToken!) as any;
         expect(decoded).toHaveProperty('sub');
         expect(decoded.sub).toBeTruthy();
 
         // Verifiziere Token mit Secret
-        const verified = TestAuthUtils.verifyToken(accessToken);
+        const verified = TestAuthUtils.verifyToken(cookies.accessToken!);
         expect(verified).toBeDefined();
       });
 
@@ -153,7 +152,7 @@ describe('Auth Login Endpoint (e2e)', () => {
           .send({ username })
           .expect(200);
 
-        expect(response.body.user.role).toBe('SUPER_ADMIN');
+        expect(response.body.role).toBe('SUPER_ADMIN');
       });
 
       it('should login regular USER correctly', async () => {
@@ -169,7 +168,7 @@ describe('Auth Login Endpoint (e2e)', () => {
           .send({ username })
           .expect(200);
 
-        expect(response.body.user.role).toBe('USER');
+        expect(response.body.role).toBe('USER');
       });
     });
 
@@ -185,8 +184,9 @@ describe('Auth Login Endpoint (e2e)', () => {
             .send({ username })
             .expect(200);
 
-          expect(response.body.user.username).toBe(username);
-          expect(response.body.accessToken).toBeDefined();
+          expect(response.body.username).toBe(username);
+          const cookies = TestAuthUtils.extractCookies(response);
+          expect(cookies.accessToken).toBeDefined();
         }
       });
 
@@ -203,17 +203,19 @@ describe('Auth Login Endpoint (e2e)', () => {
             .send({ username })
             .expect(200);
 
-          tokens.push(response.body.accessToken);
+          const cookies = TestAuthUtils.extractCookies(response);
+          tokens.push(cookies.accessToken!);
         }
 
         // Prüfe, dass alle Tokens gültig sind
         for (const token of tokens) {
-          const decoded = TestAuthUtils.decodeToken(token) as any;
+          expect(token).toBeDefined();
+          const decoded = TestAuthUtils.decodeToken(token!) as any;
           expect(decoded).toHaveProperty('sub');
           expect(decoded.sub).toBeTruthy();
 
           // Verifiziere Token mit Secret
-          const verified = TestAuthUtils.verifyToken(token);
+          const verified = TestAuthUtils.verifyToken(token!);
           expect(verified).toBeDefined();
         }
       });

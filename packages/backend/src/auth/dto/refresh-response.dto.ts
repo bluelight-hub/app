@@ -5,8 +5,8 @@ import { ApiProperty } from '@nestjs/swagger';
  */
 export class RefreshResponseDto {
   @ApiProperty({
-    description: 'Neues Access-Token',
-    example: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...',
+    description: 'Erfolgreich aktualisiert',
+    example: true,
   })
-  accessToken: string;
+  success: boolean;
 }

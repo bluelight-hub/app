@@ -29,15 +29,14 @@ describe('Auth Register Endpoint (e2e)', () => {
           .send({ username })
           .expect(201);
 
-        // Prüfe Response Body
-        expect(response.body).toHaveProperty('user');
-        expect(response.body).toHaveProperty('accessToken');
-        expect(response.body.user).toMatchObject({
+        // Prüfe Response Body (Response IS the user directly - UserResponseDto)
+        expect(response.body).toMatchObject({
           username,
           role: 'SUPER_ADMIN', // Erster Benutzer ist SUPER_ADMIN
         });
-        expect(response.body.user).toHaveProperty('id');
-        expect(response.body.user).not.toHaveProperty('passwordHash');
+        expect(response.body).toHaveProperty('id');
+        expect(response.body).not.toHaveProperty('passwordHash');
+        expect(response.body).not.toHaveProperty('accessToken'); // Tokens are now in cookies only
       });
 
       it('should set HTTP-only cookies for tokens', async () => {
@@ -72,7 +71,7 @@ describe('Auth Register Endpoint (e2e)', () => {
           .send({ username: 'second_user' })
           .expect(201);
 
-        expect(response.body.user.role).toBe('USER');
+        expect(response.body.role).toBe('USER');
       });
 
       it('should return valid JWT tokens', async () => {
@@ -83,16 +82,16 @@ describe('Auth Register Endpoint (e2e)', () => {
           .send({ username })
           .expect(201);
 
-        // Verifiziere Access Token
-        const accessToken = response.body.accessToken;
-        expect(accessToken).toBeDefined();
+        // Verifiziere Access Token aus Cookies
+        const cookies = TestAuthUtils.extractCookies(response);
+        expect(cookies.accessToken).toBeDefined();
 
-        const decoded = TestAuthUtils.decodeToken(accessToken) as any;
+        const decoded = TestAuthUtils.decodeToken(cookies.accessToken!) as any;
         expect(decoded).toHaveProperty('sub');
         expect(decoded.sub).toBeTruthy();
 
         // Verifiziere Token mit Secret
-        const verified = TestAuthUtils.verifyToken(accessToken);
+        const verified = TestAuthUtils.verifyToken(cookies.accessToken!);
         expect(verified).toBeDefined();
       });
     });
