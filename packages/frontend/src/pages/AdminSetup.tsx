@@ -4,11 +4,11 @@ import { useNavigate } from '@tanstack/react-router';
 import { useForm } from '@tanstack/react-form';
 import { PiCheckCircle, PiWarning } from 'react-icons/pi';
 import { z } from 'zod';
-import { BackendApi } from '../api/api';
 import type { AdminSetupDto } from '@bluelight-hub/shared/client';
 import { useAuth } from '@/provider/auth.hooks.ts';
 import { useAdminStatus } from '@/hooks/useAdminStatus.ts';
 import { logger } from '@/utils/logger.ts';
+import { api } from '@/api/api.ts';
 
 /**
  * Schema für die Validierung des Admin-Setup-Formulars
@@ -27,7 +27,6 @@ export function AdminSetup() {
   const navigate = useNavigate();
   const [apiError, setApiError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const api = new BackendApi();
   const { user, setUser } = useAuth();
   const { refetch: refetchAdminStatus } = useAdminStatus();
 

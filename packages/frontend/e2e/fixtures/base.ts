@@ -2,14 +2,7 @@ import { test as base, expect } from '@playwright/test';
 import type { Page } from '@playwright/test';
 
 // Extend basic test by providing a "testWithAuth" fixture.
-export const test = base.extend({
-  // Add any custom fixtures here
-  storageState: async (_, use) => {
-    // Use the default storage state
-    // eslint-disable-next-line react-hooks/rules-of-hooks
-    await use(undefined);
-  },
-});
+export const test = base;
 
 export { expect };
 

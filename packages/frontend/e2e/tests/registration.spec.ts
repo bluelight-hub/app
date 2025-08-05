@@ -16,7 +16,7 @@ test.describe('Registration Flow', () => {
 
     // Check link to homepage
     await expect(page.getByText('Bereits registriert?')).toBeVisible();
-    await expect(page.getByRole('link', { name: 'Zur Startseite' })).toBeVisible();
+    await expect(page.getByRole('link', { name: 'Jetzt anmelden' })).toBeVisible();
   });
 
   test('should validate username field', async ({ page }) => {
@@ -84,9 +84,9 @@ test.describe('Registration Flow', () => {
     await expect(page.getByText('Registrierung fehlgeschlagen!')).toBeVisible();
   });
 
-  test('should navigate to homepage', async ({ page }) => {
-    await page.getByRole('link', { name: 'Zur Startseite' }).click();
-    await expect(page).toHaveURL('/');
+  test('should navigate to login page', async ({ page }) => {
+    await page.getByRole('link', { name: 'Jetzt anmelden' }).click();
+    await expect(page).toHaveURL('/login');
   });
 
   test('should handle loading state', async ({ page }) => {

@@ -1,6 +1,7 @@
 import { Box, Button, Container, Heading, Text, VStack } from '@chakra-ui/react';
 import { useNavigate } from '@tanstack/react-router';
-import { PiSignOut } from 'react-icons/pi';
+import { PiSignOut, PiUsers } from 'react-icons/pi';
+import { useCallback } from 'react';
 import { useAuth } from '@/provider/auth.hooks';
 
 /**
@@ -13,10 +14,14 @@ export function AdminDashboard() {
   const navigate = useNavigate();
   const { user, logout } = useAuth();
 
-  const handleLogout = async () => {
+  const handleLogout = useCallback(async () => {
     logout();
     await navigate({ to: '/' });
-  };
+  }, [logout, navigate]);
+
+  const handleNavigateToUsers = useCallback(async () => {
+    await navigate({ to: '/admin/users' });
+  }, [navigate]);
 
   return (
     <Container maxW="container.lg" py={8}>
@@ -32,8 +37,13 @@ export function AdminDashboard() {
           <VStack gap={4} align="start">
             <Text fontWeight="semibold">Admin-Funktionen</Text>
             <Text fontSize="sm" color="fg.muted">
-              Hier können Sie später Benutzer verwalten, Einstellungen konfigurieren und mehr.
+              Hier können Sie Benutzer verwalten, Einstellungen konfigurieren und mehr.
             </Text>
+
+            <Button colorPalette="blue" variant="solid" size="md" onClick={handleNavigateToUsers} w="full" maxW="sm">
+              <PiUsers />
+              Benutzerverwaltung
+            </Button>
           </VStack>
         </Box>
 

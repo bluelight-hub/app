@@ -56,6 +56,7 @@ import { isAdmin } from './utils/auth.utils';
   path: 'auth',
   version: VERSION_NEUTRAL,
 })
+@SkipTransform()
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
@@ -211,7 +212,6 @@ export class AuthController {
   @UseGuards(JwtRefreshGuard)
   @HttpCode(HttpStatus.OK)
   @ApiCookieAuth()
-  @SkipTransform()
   @ApiOperation({
     summary: 'Access-Token erneuern',
     description: 'Erneuert das Access-Token mit einem gültigen Refresh-Token aus dem Cookie',
@@ -253,7 +253,6 @@ export class AuthController {
    */
   @Post('logout')
   @HttpCode(HttpStatus.OK)
-  @SkipTransform()
   @ApiOperation({
     summary: 'Benutzer abmelden',
     description: 'Meldet den Benutzer ab und löscht alle Authentifizierungs-Cookies',
@@ -388,7 +387,6 @@ export class AuthController {
   @UseGuards(AdminJwtAuthGuard)
   @HttpCode(HttpStatus.OK)
   @ApiCookieAuth()
-  @SkipTransform()
   @ApiOperation({
     summary: 'Admin-Token verifizieren',
     description: 'Prüft, ob das Admin-Token im Cookie noch gültig ist.',

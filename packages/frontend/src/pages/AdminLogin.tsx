@@ -1,11 +1,15 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from '@tanstack/react-router';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { Alert, Box, Button, Container, Field, Heading, Input, Text, VStack } from '@chakra-ui/react';
+import { PiWarning } from 'react-icons/pi';
 
-import { api } from '@/api';
+import { ResponseError } from '@bluelight-hub/shared/client/runtime';
+import type { UserResponseDto } from '@bluelight-hub/shared/client';
+import { api } from '@/api/api';
 import { useAuth } from '@/hooks/useAuth';
-import { authActions } from '@/stores/authStore';
-import { toaster } from '@/utils/toaster';
+import { authActions } from '@/stores/auth.store';
+import { toaster } from '@/components/ui/toaster.instance';
 
 export function AdminLogin() {
   const navigate = useNavigate();
@@ -30,10 +34,10 @@ export function AdminLogin() {
   }, [user, isLoading, navigate]);
 
   const loginMutation = useMutation({
-    mutationFn: async (password: string) => {
+    mutationFn: async (adminPassword: string) => {
       return await api.auth().authControllerAdminLogin({
         adminPasswordDto: {
-          password,
+          password: adminPassword,
         },
       });
     },
@@ -41,7 +45,7 @@ export function AdminLogin() {
       console.log('Admin-Anmeldung erfolgreich:', response);
 
       // Speichere den User im Auth Store
-      authActions.loginSuccess(response.user); // todo: falscher typ
+      authActions.loginSuccess(response.user as UserResponseDto);
 
       // Setze Admin-Authentifizierungsstatus
       authActions.setAdminAuth(true);
@@ -59,34 +63,47 @@ export function AdminLogin() {
       // Navigiere zum Admin-Dashboard
       await navigate({ to: '/admin/dashboard' });
     },
-    onError: (error: unknown) => {
-      // todo: types / unknown?
+    onError: (error: Error) => {
       console.error('Admin-Anmeldefehler:', error);
 
-      // 401 Unauthorized - Falsche Anmeldedaten
-      if (error?.status === 401 || error?.message?.includes('401')) {
-        setApiError('Ungültiges Passwort.');
-        toaster.create({
-          title: 'Login fehlgeschlagen',
-          description: 'Ungültiges Passwort.',
-          type: 'error',
-        });
+      // Handle ResponseError from API
+      if (error instanceof ResponseError) {
+        const status = error.response.status;
+
+        // 401 Unauthorized - Falsche Anmeldedaten
+        if (status === 401) {
+          setApiError('Ungültiges Passwort.');
+          toaster.create({
+            title: 'Login fehlgeschlagen',
+            description: 'Ungültiges Passwort.',
+            type: 'error',
+          });
+        }
+        // 403 Forbidden - Kein Admin
+        else if (status === 403) {
+          setApiError('Sie haben keine Administratorrechte.');
+          toaster.create({
+            title: 'Zugriff verweigert',
+            description: 'Sie haben keine Administratorrechte.',
+            type: 'error',
+          });
+        }
+        // Andere HTTP-Fehler
+        else {
+          setApiError('Ein unerwarteter Fehler ist aufgetreten.');
+          toaster.create({
+            title: 'Fehler',
+            description: 'Ein unerwarteter Fehler ist aufgetreten.',
+            type: 'error',
+          });
+        }
       }
-      // 403 Forbidden - Kein Admin
-      else if (error?.status === 403 || error?.message?.includes('403')) {
-        setApiError('Sie haben keine Administratorrechte.');
-        toaster.create({
-          title: 'Zugriff verweigert',
-          description: 'Sie haben keine Administratorrechte.',
-          type: 'error',
-        });
-      }
-      // Andere Fehler
+      // Andere Fehler (Netzwerk, etc.)
       else {
         setApiError('Ein unerwarteter Fehler ist aufgetreten.');
         toaster.create({
           title: 'Fehler',
-          description: 'Ein unerwarteter Fehler ist aufgetreten.',
+          description: error.message || 'Ein unerwarteter Fehler ist aufgetreten.',
           type: 'error',
         });
       }
@@ -102,48 +119,68 @@ export function AdminLogin() {
 
   // Show loading state while checking authentication
   if (isLoading) {
-    return <div>Laden...</div>;
+    return (
+      <Container maxW="lg" py={{ base: '12', md: '24' }} px={{ base: '0', sm: '8' }}>
+        <Text textAlign="center">Laden...</Text>
+      </Container>
+    );
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-md w-full space-y-8">
-        <div>
-          <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">Administrator-Anmeldung</h2>
-          <p className="mt-2 text-center text-sm text-gray-600">Geben Sie Ihr Administrator-Passwort ein, um Zugriff auf den Admin-Bereich zu erhalten.</p>
-        </div>
-        <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
-          <div>
-            <label htmlFor="password" className="sr-only">
-              Administrator-Passwort
-            </label>
-            <input
-              id="password"
-              name="password"
-              type="password"
-              autoComplete="current-password"
-              required
-              className="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm"
-              placeholder="Administrator-Passwort"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              disabled={loginMutation.isPending}
-            />
-          </div>
+    <Container maxW="lg" py={{ base: '12', md: '24' }} px={{ base: '0', sm: '8' }}>
+      <VStack gap="8">
+        <VStack gap="6">
+          <Heading size="2xl">Administrator-Anmeldung</Heading>
+          <Text fontSize="lg" color="fg.muted">
+            Geben Sie Ihr Administrator-Passwort ein
+          </Text>
+        </VStack>
 
-          {apiError && <div className="text-red-600 text-sm text-center">{apiError}</div>}
+        <Box
+          py={{ base: '0', sm: '8' }}
+          px={{ base: '4', sm: '10' }}
+          bg={{ base: 'transparent', sm: 'bg.surface' }}
+          boxShadow={{ base: 'none', sm: 'md' }}
+          borderRadius={{ base: 'none', sm: 'xl' }}
+          w="full"
+          maxW="md"
+        >
+          {/* API-Fehlermeldung anzeigen */}
+          {apiError && (
+            <Alert.Root status="error" mb="6" borderRadius="md">
+              <Alert.Indicator>
+                <PiWarning />
+              </Alert.Indicator>
+              <Alert.Content>
+                <Alert.Title>Anmeldung fehlgeschlagen!</Alert.Title>
+                <Alert.Description>{apiError}</Alert.Description>
+              </Alert.Content>
+            </Alert.Root>
+          )}
 
-          <div>
-            <button
-              type="submit"
-              disabled={loginMutation.isPending || !password.trim()}
-              className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              {loginMutation.isPending ? 'Anmeldung...' : 'Als Administrator anmelden'}
-            </button>
-          </div>
-        </form>
-      </div>
-    </div>
+          <form onSubmit={handleSubmit}>
+            <VStack gap="6">
+              <Field.Root w="full">
+                <Field.Label fontWeight="medium">Administrator-Passwort</Field.Label>
+                <Input
+                  id="password"
+                  name="password"
+                  type="password"
+                  autoComplete="current-password"
+                  placeholder="Geben Sie Ihr Passwort ein"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  disabled={loginMutation.isPending}
+                />
+              </Field.Root>
+
+              <Button type="submit" colorPalette="primary" size="lg" fontSize="md" w="full" disabled={loginMutation.isPending || !password.trim()} loading={loginMutation.isPending}>
+                {loginMutation.isPending ? 'Anmeldung...' : 'Als Administrator anmelden'}
+              </Button>
+            </VStack>
+          </form>
+        </Box>
+      </VStack>
+    </Container>
   );
 }

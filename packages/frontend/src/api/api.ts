@@ -35,7 +35,7 @@ export const getBaseUrl = (): string => {
  * const healthStatus = await api.health().checkHealth();
  * ```
  */
-export class BackendApi {
+class BackendApi {
   private readonly configuration: Configuration;
   private readonly healthApi: HealthApi;
   private readonly authApi: AuthApi;
@@ -98,3 +98,14 @@ export const apiConfiguration = new Configuration({
   fetchApi: fetch,
   credentials: 'include',
 });
+
+/**
+ * Singleton-Instanz der BackendApi für die Verwendung in der gesamten Anwendung
+ *
+ * @example
+ * ```typescript
+ * import { api } from '@/api/api';
+ * const users = await api.userManagement().userManagementControllerFindAllVAlpha();
+ * ```
+ */
+export const api = new BackendApi();

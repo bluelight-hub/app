@@ -3,10 +3,10 @@ import { Alert, Box, Button, Container, Field, Heading, Input, Link, Text, VStac
 import { Link as RouterLink, useNavigate } from '@tanstack/react-router';
 import { useForm } from '@tanstack/react-form';
 import { PiWarning } from 'react-icons/pi';
-import { BackendApi } from '../api/api';
 import { authActions } from '../stores/auth.store';
 import type { RegisterUserDto } from '@bluelight-hub/shared/client';
 import { logger } from '@/utils/logger.ts';
+import { api } from '@/api/api.ts';
 
 /**
  * Registrierungsseite für neue Benutzer
@@ -19,7 +19,6 @@ export function Register() {
   const navigate = useNavigate();
   const [apiError, setApiError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const api = new BackendApi();
 
   const form = useForm({
     defaultValues: {

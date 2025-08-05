@@ -1,4 +1,4 @@
-import { BackendApi } from '@/api/api';
+import { api } from '@/api/api';
 
 /**
  * Verifiziert ob der aktuelle Benutzer Admin-Rechte hat
@@ -10,7 +10,6 @@ import { BackendApi } from '@/api/api';
  */
 export async function verifyAdmin(): Promise<boolean> {
   try {
-    const api = new BackendApi();
     // Der verify Endpoint gibt 200 zurück wenn das Admin-Cookie gültig ist
     await api.auth().authControllerVerifyAdminToken();
     return true;

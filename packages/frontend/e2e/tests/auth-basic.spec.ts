@@ -1,11 +1,11 @@
 import { expect, test } from '../fixtures/base';
 
 test.describe('Basic Navigation', () => {
-  test('should redirect to register when not authenticated', async ({ page }) => {
+  test('should redirect to login when not authenticated', async ({ page }) => {
     await page.goto('/');
 
-    // Should redirect to register page
-    await expect(page).toHaveURL(/\/register/);
+    // Should redirect to login page
+    await expect(page).toHaveURL(/\/login/);
   });
 
   test('should show register page elements', async ({ page }) => {
@@ -15,7 +15,7 @@ test.describe('Basic Navigation', () => {
     await expect(page.getByRole('heading', { name: /registrierung/i })).toBeVisible();
     await expect(page.getByPlaceholder('Wählen Sie einen Benutzernamen')).toBeVisible();
     await expect(page.getByRole('button', { name: /registrieren/i })).toBeVisible();
-    await expect(page.getByRole('link', { name: 'Zur Startseite' })).toBeVisible();
+    await expect(page.getByRole('link', { name: 'Jetzt anmelden' })).toBeVisible();
   });
 
   test('should validate registration form', async ({ page }) => {

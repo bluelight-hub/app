@@ -38,6 +38,8 @@
     "@tanstack/react-router": "catalog:",
     "@tanstack/react-router-devtools": "catalog:",
     "@tanstack/react-store": "catalog:",
+    "@tanstack/react-table": "catalog:",
+    "@tanstack/zod-form-adapter": "catalog:",
     "@tauri-apps/api": "catalog:",
     "@tauri-apps/plugin-http": "catalog:",
     "@tauri-apps/plugin-store": "catalog:",
