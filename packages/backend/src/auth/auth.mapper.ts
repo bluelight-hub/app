@@ -99,7 +99,7 @@ export function toAdminStatusResponseDto(
   userEligible: boolean,
 ): AdminStatusDto {
   return {
-    adminSetupAvailable: !adminExists && userEligible,
+    adminSetupAvailable: userEligible,
     adminExists,
     userEligible,
   };

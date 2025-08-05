@@ -16,7 +16,7 @@ export interface AuthContextType {
   /** Setzt den Loading-Status */
   setLoading: (loading: boolean) => void;
   /** Meldet den Benutzer ab und löscht den Kontext */
-  logout: () => void;
+  logout: () => Promise<void>;
 }
 
 /**

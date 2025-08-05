@@ -176,6 +176,17 @@ export class AuthService {
   }
 
   /**
+   * Verifiziert ein Access-Token und gibt die Payload zurück
+   *
+   * @param token - Das zu verifizierende JWT Access-Token
+   * @returns Die JWT-Payload
+   * @throws Error wenn das Token ungültig ist
+   */
+  async verifyAccessToken(token: string): Promise<any> {
+    return this.jwtService.verify(token);
+  }
+
+  /**
    * Prüft, ob bereits ein Admin-Benutzer mit Passwort existiert
    *
    * @returns true wenn mindestens ein Benutzer mit Admin-Rolle und Passwort existiert, sonst false
@@ -266,11 +277,6 @@ export class AuthService {
         `🚫 Admin-Setup verweigert: Keine Admin-Berechtigung für ${currentUser.username}`,
       );
       throw new ConflictException('Nur Admin-Benutzer können diese Funktion nutzen');
-    }
-
-    if (await this.adminExists()) {
-      this.logger.warn(`🚫 Admin-Setup verweigert: Admin existiert bereits`);
-      throw new ConflictException('Ein Admin-Account existiert bereits');
     }
 
     const passwordHash = await bcrypt.hash(dto.password, 10);

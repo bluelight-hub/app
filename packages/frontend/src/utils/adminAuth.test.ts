@@ -1,11 +1,19 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { verifyAdmin } from './adminAuth';
-import { BackendApi } from '@/api/api';
+import { api } from '@/api/api';
 
-// Mock the BackendApi
-vi.mock('@/api/api', () => ({
-  BackendApi: vi.fn(),
-}));
+// Mock the api module
+vi.mock('@/api/api', () => {
+  const mockAuthApi = {
+    authControllerVerifyAdminToken: vi.fn(),
+  };
+
+  return {
+    api: {
+      auth: () => mockAuthApi,
+    },
+  };
+});
 
 describe('verifyAdmin', () => {
   let mockAuthApi: any;
@@ -13,16 +21,8 @@ describe('verifyAdmin', () => {
   beforeEach(() => {
     vi.clearAllMocks();
 
-    // Setup mock API
-    mockAuthApi = {
-      authControllerVerifyAdminToken: vi.fn(),
-    };
-
-    const mockApi = {
-      auth: () => mockAuthApi,
-    };
-
-    vi.mocked(BackendApi).mockImplementation(() => mockApi as any);
+    // Get the mocked auth API
+    mockAuthApi = api.auth();
   });
 
   it('should return true when admin verification succeeds', async () => {

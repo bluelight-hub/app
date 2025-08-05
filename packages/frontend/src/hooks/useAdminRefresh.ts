@@ -12,21 +12,26 @@ import { verifyAdmin } from '@/utils/adminAuth';
  */
 export function useAdminRefresh() {
   useEffect(() => {
-    // Funktion zur Admin-Verifizierung
     const checkAdminStatus = async () => {
-      try {
-        // Versuche das Admin-Cookie zu verifizieren
-        const isAdminValid = await verifyAdmin();
+      // Prüfe ob adminToken Cookie existiert
+      const hasAdminCookie = document.cookie
+        .split('; ')
+        .some((row) => row.startsWith('adminToken='));
 
-        // Setze den Admin-Status im Store
+      if (!hasAdminCookie) {
+        // Kein Cookie vorhanden, setze auth auf false ohne API-Call
+        authActions.setAdminAuth(false);
+        return;
+      }
+
+      try {
+        const isAdminValid = await verifyAdmin();
         authActions.setAdminAuth(isAdminValid);
       } catch (_error) {
-        // Bei Fehlern ist der Benutzer nicht als Admin authentifiziert
         authActions.setAdminAuth(false);
       }
     };
 
-    // Führe die Verifizierung aus
     checkAdminStatus();
-  }, []); // Nur einmal beim Mount ausführen
+  }, []);
 }

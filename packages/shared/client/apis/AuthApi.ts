@@ -19,6 +19,7 @@ import type {
   AdminSetupDto,
   AdminStatusDto,
   AdminTokenVerificationDto,
+  AuthCheckResponseDto,
   AuthResponseDto,
   LoginUserDto,
   LogoutResponseDto,
@@ -37,6 +38,8 @@ import {
   AdminStatusDtoToJSON,
   AdminTokenVerificationDtoFromJSON,
   AdminTokenVerificationDtoToJSON,
+  AuthCheckResponseDtoFromJSON,
+  AuthCheckResponseDtoToJSON,
   AuthResponseDtoFromJSON,
   AuthResponseDtoToJSON,
   LoginUserDtoFromJSON,
@@ -164,6 +167,43 @@ export class AuthApi extends runtime.BaseAPI {
     initOverrides?: RequestInit | runtime.InitOverrideFunction,
   ): Promise<void> {
     await this.authControllerAdminSetupRaw(requestParameters, initOverrides);
+  }
+
+  /**
+   * Prüft ob ein Benutzer authentifiziert ist und gibt dessen Informationen zurück
+   * Authentifizierungsstatus prüfen
+   */
+  async authControllerCheckAuthRaw(
+    initOverrides?: RequestInit | runtime.InitOverrideFunction,
+  ): Promise<runtime.ApiResponse<AuthCheckResponseDto>> {
+    const queryParameters: any = {};
+
+    const headerParameters: runtime.HTTPHeaders = {};
+
+    const response = await this.request(
+      {
+        path: `/api/auth/check`,
+        method: 'GET',
+        headers: headerParameters,
+        query: queryParameters,
+      },
+      initOverrides,
+    );
+
+    return new runtime.JSONApiResponse(response, (jsonValue) =>
+      AuthCheckResponseDtoFromJSON(jsonValue),
+    );
+  }
+
+  /**
+   * Prüft ob ein Benutzer authentifiziert ist und gibt dessen Informationen zurück
+   * Authentifizierungsstatus prüfen
+   */
+  async authControllerCheckAuth(
+    initOverrides?: RequestInit | runtime.InitOverrideFunction,
+  ): Promise<AuthCheckResponseDto> {
+    const response = await this.authControllerCheckAuthRaw(initOverrides);
+    return await response.value();
   }
 
   /**

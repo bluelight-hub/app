@@ -5,10 +5,10 @@ import { useForm } from '@tanstack/react-form';
 import { PiCheckCircle, PiWarning } from 'react-icons/pi';
 import { z } from 'zod';
 import type { AdminSetupDto } from '@bluelight-hub/shared/client';
-import { useAuth } from '@/provider/auth.hooks.ts';
 import { useAdminStatus } from '@/hooks/useAdminStatus.ts';
 import { logger } from '@/utils/logger.ts';
 import { api } from '@/api/api.ts';
+import { useAuth } from '@/hooks/useAuth.ts';
 
 /**
  * Schema für die Validierung des Admin-Setup-Formulars

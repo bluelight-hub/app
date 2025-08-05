@@ -2,7 +2,6 @@ import { ColorModeButton } from '@molecules/color-mode-button.molecule.tsx';
 import { Link, useRouter } from '@tanstack/react-router';
 import { Box, Button, Spinner, Text, VStack } from '@chakra-ui/react';
 import { PiShieldCheck, PiSignIn } from 'react-icons/pi';
-import { useAuth } from '@/provider/auth.hooks';
 import { useAdminStatus } from '@/hooks/useAdminStatus';
 
 /**
@@ -13,6 +12,7 @@ import { useAdminStatus } from '@/hooks/useAdminStatus';
  * @returns Die Index-Page-Komponente
  */
 import { isAdmin } from '@/utils/auth';
+import { useAuth } from '@/hooks/useAuth.ts';
 
 export function IndexPage() {
   const authContext = useAuth();
@@ -83,6 +83,10 @@ export function IndexPage() {
             </VStack>
           </Box>
         )}
+
+        <Button colorPalette="primary" variant="outline" size="sm" onClick={() => authContext.logout()}>
+          Abmelden
+        </Button>
 
         <ColorModeButton />
       </VStack>

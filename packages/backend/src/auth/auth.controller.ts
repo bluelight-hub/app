@@ -20,6 +20,7 @@ import { LoginUserDto } from './dto/login-user.dto';
 import { AdminSetupDto } from './dto/admin-setup.dto';
 import { AdminStatusDto } from './dto/admin-status.dto';
 import { AuthResponseDto, UserResponseDto } from './dto/user-response.dto';
+import { AuthCheckResponseDto } from './dto/auth-check-response.dto';
 import { AdminLoginResponseDto } from './dto/admin-login-response.dto';
 import { LogoutResponseDto } from './dto/logout-response.dto';
 import { RefreshResponseDto } from './dto/refresh-response.dto';
@@ -305,6 +306,59 @@ export class AuthController {
     const isProduction = process.env.NODE_ENV === 'production';
     setAdminCookie(res, result.token, isProduction);
     return toAdminSetupResponseDto(result.user, result.token);
+  }
+
+  /**
+   * Prüft die aktuelle Authentifizierung und gibt Benutzerinformationen zurück
+   *
+   * Dieser Endpoint gibt immer 200 zurück, auch wenn kein User authentifiziert ist.
+   * Das verhindert 401-Fehler beim initialen App-Load.
+   *
+   * @param req - Express Request mit optionalem User
+   * @returns Die Benutzerinformationen oder null
+   */
+  @Get('check')
+  @ApiOperation({
+    summary: 'Authentifizierungsstatus prüfen',
+    description: 'Prüft ob ein Benutzer authentifiziert ist und gibt dessen Informationen zurück',
+  })
+  @ApiResponse({
+    status: HttpStatus.OK,
+    description: 'Authentifizierungsstatus abgerufen',
+    type: AuthCheckResponseDto,
+  })
+  async checkAuth(@Req() req: Request): Promise<AuthCheckResponseDto> {
+    // Versuche JWT aus Cookie zu extrahieren und validieren
+    try {
+      const token = req.cookies?.['accessToken'];
+      if (!token) {
+        return {
+          user: null,
+          authenticated: false,
+        };
+      }
+
+      const payload = await this.authService.verifyAccessToken(token);
+      const user = await this.authService.findUserById(payload.sub);
+
+      if (!user) {
+        return {
+          user: null,
+          authenticated: false,
+        };
+      }
+
+      return {
+        user: toUserResponseDto(user),
+        authenticated: true,
+      };
+    } catch (_error) {
+      // Bei jedem Fehler (ungültiges Token, abgelaufen, etc.) null zurückgeben
+      return {
+        user: null,
+        authenticated: false,
+      };
+    }
   }
 
   /**

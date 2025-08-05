@@ -1,5 +1,7 @@
 import { Store } from '@tanstack/react-store';
+import type { QueryClient } from '@tanstack/react-query';
 import type { UserResponseDto } from '@bluelight-hub/shared/client';
+import { api } from '@/api/api.ts';
 
 /**
  * Interface für den Authentifizierungs-Store
@@ -63,7 +65,9 @@ export const authActions = {
   /**
    * Meldet den Benutzer ab und löscht den Store
    */
-  logout: () => {
+  logout: (queryClient: QueryClient) => async () => {
+    await api.auth().authControllerLogout();
+    await queryClient.refetchQueries({ queryKey: ['auth-check'] });
     authStore.setState(() => ({
       user: null,
       isAuthenticated: false,

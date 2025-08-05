@@ -21,12 +21,16 @@ describe('AuthService', () => {
   };
 
   const mockJwtService = {
-    sign: jest.fn(),
+    sign: jest.fn().mockReturnValue('admin_token_123'),
   };
 
   const mockConfigService = {
     get: jest.fn(),
-    getOrThrow: jest.fn(),
+    getOrThrow: jest.fn().mockImplementation((key: string) => {
+      if (key === 'ADMIN_JWT_SECRET') return 'test-admin-secret';
+      if (key === 'ADMIN_JWT_EXPIRATION') return '15m';
+      throw new Error(`Config key not found: ${key}`);
+    }),
   };
 
   beforeEach(async () => {
@@ -136,20 +140,18 @@ describe('AuthService', () => {
         );
     });
 
-    it('sollte den Benutzer erfolgreich zum Admin mit gehashtem Passwort aktualisieren, wenn kein Admin existiert', async () => {
+    it('sollte den Benutzer erfolgreich zum Admin mit gehashtem Passwort aktualisieren', async () => {
       const updatedUser = {
         ...mockUser,
         passwordHash: 'hashed_SecurePassword123!_10',
       };
 
-      jest.spyOn(service, 'adminExists').mockResolvedValue(false);
       jest.spyOn(service, 'findUserById').mockResolvedValue(mockUser);
       jest.spyOn(service, 'signAdminToken').mockReturnValue('admin_token_123');
       mockPrismaService.user.update.mockResolvedValue(updatedUser);
 
       const result = await service.adminSetup(mockAdminSetupDto, mockValidatedUser);
 
-      expect(service.adminExists).toHaveBeenCalled();
       expect(bcrypt.hash).toHaveBeenCalledWith('SecurePassword123!', 10);
       expect(mockPrismaService.user.update).toHaveBeenCalledWith({
         where: { id: 'user123' },
@@ -165,25 +167,24 @@ describe('AuthService', () => {
       expect(result.token).toBe('admin_token_123');
     });
 
-    it('sollte eine ConflictException werfen, wenn bereits ein Admin existiert', async () => {
-      jest.spyOn(service, 'adminExists').mockResolvedValue(true);
-      jest.spyOn(service, 'findUserById').mockResolvedValue(mockUser);
+    it('sollte eine ConflictException werfen, wenn der Benutzer kein Admin ist', async () => {
+      const nonAdminUser = { ...mockUser, role: UserRole.USER };
+      jest.spyOn(service, 'findUserById').mockResolvedValue(nonAdminUser);
 
       await expect(service.adminSetup(mockAdminSetupDto, mockValidatedUser)).rejects.toThrow(
         ConflictException,
       );
 
-      expect(service.adminExists).toHaveBeenCalled();
       expect(bcrypt.hash).not.toHaveBeenCalled();
       expect(mockPrismaService.user.update).not.toHaveBeenCalled();
     });
 
-    it('sollte die richtige Fehlermeldung enthalten, wenn Admin bereits existiert', async () => {
-      jest.spyOn(service, 'adminExists').mockResolvedValue(true);
-      jest.spyOn(service, 'findUserById').mockResolvedValue(mockUser);
+    it('sollte die richtige Fehlermeldung enthalten, wenn Benutzer kein Admin ist', async () => {
+      const nonAdminUser = { ...mockUser, role: UserRole.USER };
+      jest.spyOn(service, 'findUserById').mockResolvedValue(nonAdminUser);
 
       await expect(service.adminSetup(mockAdminSetupDto, mockValidatedUser)).rejects.toThrow(
-        'Ein Admin-Account existiert bereits',
+        'Nur Admin-Benutzer können diese Funktion nutzen',
       );
     });
   });

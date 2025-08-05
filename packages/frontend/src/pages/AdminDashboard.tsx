@@ -2,7 +2,7 @@ import { Box, Button, Container, Heading, Text, VStack } from '@chakra-ui/react'
 import { useNavigate } from '@tanstack/react-router';
 import { PiSignOut, PiUsers } from 'react-icons/pi';
 import { useCallback } from 'react';
-import { useAuth } from '@/provider/auth.hooks';
+import { useAuth } from '@/hooks/useAuth.ts';
 
 /**
  * Admin-Dashboard für authentifizierte Administratoren
@@ -15,7 +15,7 @@ export function AdminDashboard() {
   const { user, logout } = useAuth();
 
   const handleLogout = useCallback(async () => {
-    logout();
+    await logout();
     await navigate({ to: '/' });
   }, [logout, navigate]);
 

@@ -4,28 +4,38 @@ import userEvent from '@testing-library/user-event';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { ChakraProvider, createSystem, defaultConfig } from '@chakra-ui/react';
 import '@testing-library/jest-dom';
+import { ResponseError } from '@bluelight-hub/shared/client';
 import { authActions } from '../stores/auth.store';
 import { AuthContext } from '../provider/auth.context';
 import { AdminLogin } from './AdminLogin';
 import type { AuthContextType } from '../provider/auth.context';
 import type { AdminPasswordDto } from '@bluelight-hub/shared/client';
+import { toaster } from '@/components/ui/toaster.instance';
 
 // Mock dependencies
 vi.mock('@tanstack/react-router', () => ({
   useNavigate: () => vi.fn(),
 }));
 
+// Use vi.hoisted to define the mock function before vi.mock
+const { mockAuthControllerAdminLogin } = vi.hoisted(() => {
+  return {
+    mockAuthControllerAdminLogin: vi.fn(),
+  };
+});
+
 vi.mock('../api/api', () => ({
-  BackendApi: vi.fn().mockImplementation(() => ({
+  api: {
     auth: () => ({
-      authControllerAdminLogin: vi.fn(),
+      authControllerAdminLogin: mockAuthControllerAdminLogin,
     }),
-  })),
+  },
 }));
 
 vi.mock('../stores/auth.store', () => ({
   authActions: {
     loginSuccess: vi.fn(),
+    setAdminAuth: vi.fn(),
   },
 }));
 
@@ -35,7 +45,14 @@ vi.mock('@/components/ui/toaster.instance', () => ({
   },
 }));
 
-const mockUser = { id: '1', username: 'testuser', createdAt: new Date().toISOString() };
+const mockUser = {
+  id: '1',
+  username: 'testuser',
+  createdAt: new Date(),
+  updatedAt: new Date(),
+  role: 'USER' as const,
+  isActive: true,
+};
 
 const system = createSystem(defaultConfig);
 
@@ -50,6 +67,7 @@ const createWrapper = () => {
   const authContextValue: AuthContextType = {
     user: mockUser,
     isLoading: false,
+    isAdminAuthenticated: false,
     setUser: vi.fn(),
     setLoading: vi.fn(),
     logout: vi.fn(),
@@ -66,32 +84,24 @@ const createWrapper = () => {
 
 describe('AdminLogin', () => {
   const user = userEvent.setup();
-  let mockAuthControllerAdminLogin: ReturnType<typeof vi.fn>;
 
-  beforeEach(async () => {
+  beforeEach(() => {
     vi.clearAllMocks();
-    const { BackendApi } = vi.mocked(await import('../api/api'));
-    mockAuthControllerAdminLogin = vi.fn();
-    (BackendApi as any).mockImplementation(() => ({
-      auth: () => ({
-        authControllerAdminLogin: mockAuthControllerAdminLogin,
-      }),
-    }));
   });
 
   it('renders admin login form', () => {
     render(<AdminLogin />, { wrapper: createWrapper() });
 
-    expect(screen.getByText('Admin-Bereich')).toBeInTheDocument();
-    expect(screen.getByText(/angemeldet als: testuser/i)).toBeInTheDocument();
-    expect(screen.getByPlaceholderText('Ihr Passwort')).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: /als admin anmelden/i })).toBeInTheDocument();
+    expect(screen.getByText('Administrator-Anmeldung')).toBeInTheDocument();
+    // User login status is not shown on admin login page anymore
+    expect(screen.getByPlaceholderText('Geben Sie Ihr Passwort ein')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Als Administrator anmelden' })).toBeInTheDocument();
   });
 
   it('validates required fields', async () => {
     render(<AdminLogin />, { wrapper: createWrapper() });
 
-    const submitButton = screen.getByRole('button', { name: /als admin anmelden/i });
+    const submitButton = screen.getByRole('button', { name: 'Als Administrator anmelden' });
 
     // Try to submit without entering any data
     await user.click(submitButton);
@@ -100,24 +110,31 @@ describe('AdminLogin', () => {
     expect(submitButton).toBeDisabled();
 
     // Enter password
-    await user.type(screen.getByPlaceholderText('Ihr Passwort'), 'password123');
+    await user.type(screen.getByPlaceholderText('Geben Sie Ihr Passwort ein'), 'password123');
 
     // Button should be enabled after entering password
     expect(submitButton).not.toBeDisabled();
   });
 
   it('handles successful login', async () => {
-    const adminUser = { id: '1', username: 'admin', createdAt: new Date().toISOString() };
+    const adminUser = {
+      id: '1',
+      username: 'admin',
+      createdAt: new Date(),
+      updatedAt: new Date(),
+      role: 'ADMIN' as const,
+      isActive: true,
+    };
     const mockResponse = { user: adminUser, token: 'mock-token' };
     mockAuthControllerAdminLogin.mockResolvedValueOnce(mockResponse);
 
     render(<AdminLogin />, { wrapper: createWrapper() });
 
     // Fill in form - only password field since user is already logged in
-    await user.type(screen.getByPlaceholderText('Ihr Passwort'), 'SecurePassword123!');
+    await user.type(screen.getByPlaceholderText('Geben Sie Ihr Passwort ein'), 'SecurePassword123!');
 
     // Submit form
-    await user.click(screen.getByRole('button', { name: /als admin anmelden/i }));
+    await user.click(screen.getByRole('button', { name: 'Als Administrator anmelden' }));
 
     // Wait for async operations
     await waitFor(() => {
@@ -132,40 +149,50 @@ describe('AdminLogin', () => {
   });
 
   it('handles login error - invalid credentials', async () => {
-    const error = new Error('401 Unauthorized');
-    (error as any).status = 401;
+    const error = new ResponseError(new Response(null, { status: 401, statusText: 'Unauthorized' }), '401 Unauthorized');
     mockAuthControllerAdminLogin.mockRejectedValueOnce(error);
 
     render(<AdminLogin />, { wrapper: createWrapper() });
 
     // Fill in form - only password field
-    await user.type(screen.getByPlaceholderText('Ihr Passwort'), 'wrongpassword');
+    await user.type(screen.getByPlaceholderText('Geben Sie Ihr Passwort ein'), 'wrongpassword');
 
     // Submit form
-    await user.click(screen.getByRole('button', { name: /als admin anmelden/i }));
+    await user.click(screen.getByRole('button', { name: 'Als Administrator anmelden' }));
 
-    // Wait for error message
+    // Wait for error handling
     await waitFor(() => {
-      expect(screen.getByText(/ungültiges passwort/i)).toBeInTheDocument();
+      expect(toaster.create).toHaveBeenCalledWith(
+        expect.objectContaining({
+          title: 'Login fehlgeschlagen',
+          description: 'Ungültiges Passwort.',
+          type: 'error',
+        }),
+      );
     });
   });
 
   it('handles login error - no admin rights', async () => {
-    const error = new Error('403 Forbidden');
-    (error as any).status = 403;
+    const error = new ResponseError(new Response(null, { status: 403, statusText: 'Forbidden' }), '403 Forbidden');
     mockAuthControllerAdminLogin.mockRejectedValueOnce(error);
 
     render(<AdminLogin />, { wrapper: createWrapper() });
 
     // Fill in form - only password field
-    await user.type(screen.getByPlaceholderText('Ihr Passwort'), 'password123');
+    await user.type(screen.getByPlaceholderText('Geben Sie Ihr Passwort ein'), 'password123');
 
     // Submit form
-    await user.click(screen.getByRole('button', { name: /als admin anmelden/i }));
+    await user.click(screen.getByRole('button', { name: 'Als Administrator anmelden' }));
 
-    // Wait for error message
+    // Wait for error handling
     await waitFor(() => {
-      expect(screen.getByText(/sie haben keine administratorrechte/i)).toBeInTheDocument();
+      expect(toaster.create).toHaveBeenCalledWith(
+        expect.objectContaining({
+          title: 'Zugriff verweigert',
+          description: 'Sie haben keine Administratorrechte.',
+          type: 'error',
+        }),
+      );
     });
   });
 
@@ -175,8 +202,8 @@ describe('AdminLogin', () => {
 
     render(<AdminLogin />, { wrapper: createWrapper() });
 
-    const passwordInput = screen.getByPlaceholderText('Ihr Passwort');
-    const submitButton = screen.getByRole('button', { name: /als admin anmelden/i });
+    const passwordInput = screen.getByPlaceholderText('Geben Sie Ihr Passwort ein');
+    const submitButton = screen.getByRole('button', { name: 'Als Administrator anmelden' });
 
     // Fill in form - only password field
     await user.type(passwordInput, 'password123');
@@ -184,9 +211,11 @@ describe('AdminLogin', () => {
     // Submit form
     await user.click(submitButton);
 
-    // Check that form is disabled during submission
-    expect(passwordInput).toBeDisabled();
-    expect(submitButton).toBeDisabled();
-    expect(screen.getByText(/melde an.../i)).toBeInTheDocument();
+    // Wait for and check that form is disabled during submission
+    await waitFor(() => {
+      expect(passwordInput).toBeDisabled();
+      expect(submitButton).toBeDisabled();
+      expect(screen.getByText('Anmeldung...')).toBeInTheDocument();
+    });
   });
 });

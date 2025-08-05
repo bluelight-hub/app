@@ -19,15 +19,53 @@ vi.mock('@/stores/auth.store', () => ({
 
 describe('useAdminRefresh', () => {
   let setAdminAuthSpy: MockInstance;
+  let originalCookie: PropertyDescriptor | undefined;
 
   beforeEach(() => {
     vi.clearAllMocks();
     // Reset auth store spy
     setAdminAuthSpy = vi.spyOn(authActions, 'setAdminAuth');
+
+    // Save original cookie descriptor
+    originalCookie = Object.getOwnPropertyDescriptor(document, 'cookie');
+
+    // Mock document.cookie to include adminToken by default
+    Object.defineProperty(document, 'cookie', {
+      writable: true,
+      configurable: true,
+      value: 'adminToken=test-token; Path=/; HttpOnly',
+    });
   });
 
   afterEach(() => {
     vi.restoreAllMocks();
+    // Restore original cookie behavior
+    if (originalCookie) {
+      Object.defineProperty(document, 'cookie', originalCookie);
+    } else {
+      // If no original descriptor, delete the property
+      delete (document as any).cookie;
+    }
+  });
+
+  it('should set admin auth to false when no cookie is present', async () => {
+    // Arrange
+    Object.defineProperty(document, 'cookie', {
+      writable: true,
+      configurable: true,
+      value: '', // No cookie
+    });
+
+    // Act
+    renderHook(() => useAdminRefresh());
+
+    // Wait for effect to complete
+    await waitFor(() => {
+      expect(setAdminAuthSpy).toHaveBeenCalledWith(false);
+    });
+
+    // Assert - verifyAdmin should not be called when no cookie
+    expect(mockVerifyAdmin).not.toHaveBeenCalled();
   });
 
   it('should set admin auth to true when verification succeeds', async () => {

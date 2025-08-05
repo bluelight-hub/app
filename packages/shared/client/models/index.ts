@@ -8,6 +8,7 @@ export * from './AdminTokenVerificationDto';
 export * from './ApiLinks';
 export * from './ApiMeta';
 export * from './ApiPagination';
+export * from './AuthCheckResponseDto';
 export * from './AuthResponseDto';
 export * from './CreateUserDto';
 export * from './DeleteUserResponse';

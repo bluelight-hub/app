@@ -51,7 +51,7 @@ export function AdminLogin() {
       authActions.setAdminAuth(true);
 
       // Invalidiere relevante Queries
-      await queryClient.invalidateQueries({ queryKey: ['me'] });
+      await queryClient.invalidateQueries({ queryKey: ['auth-check'] });
 
       // Zeige Erfolgs-Toast
       toaster.create({

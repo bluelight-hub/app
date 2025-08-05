@@ -1,8 +1,9 @@
 import { useStore } from '@tanstack/react-store';
+import { useQueryClient } from '@tanstack/react-query';
 import { authActions, authStore } from '../stores/auth.store';
 import { AuthContext } from './auth.context';
-import type { ReactNode } from 'react';
 import type { AuthContextType } from './auth.context';
+import type { ReactNode } from 'react';
 
 /**
  * Props für den AuthProvider
@@ -27,6 +28,7 @@ interface AuthProviderProps {
  */
 export function AuthProvider({ children }: AuthProviderProps) {
   // Subscribe to auth store state
+  const queryClient = useQueryClient();
   const user = useStore(authStore, (state) => state.user);
   const isLoading = useStore(authStore, (state) => state.isLoading);
   const isAdminAuthenticated = useStore(authStore, (state) => state.isAdminAuthenticated);
@@ -37,7 +39,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
     isAdminAuthenticated,
     setUser: authActions.setUser,
     setLoading: authActions.setLoading,
-    logout: authActions.logout,
+    logout: authActions.logout(queryClient),
   };
 
   return <AuthContext.Provider value={contextValue}>{children}</AuthContext.Provider>;
