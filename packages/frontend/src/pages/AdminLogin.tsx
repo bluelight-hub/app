@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from '@tanstack/react-router';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { Alert, Box, Button, Container, Field, Heading, Input, Text, VStack } from '@chakra-ui/react';
+import { Alert, Box, Button, Field, Input, Text, VStack } from '@chakra-ui/react';
 import { PiWarning } from 'react-icons/pi';
 
 import { ResponseError } from '@bluelight-hub/shared/client/runtime';
@@ -120,67 +120,62 @@ export function AdminLogin() {
   // Show loading state while checking authentication
   if (isLoading) {
     return (
-      <Container maxW="lg" py={{ base: '12', md: '24' }} px={{ base: '0', sm: '8' }}>
+      <VStack>
         <Text textAlign="center">Laden...</Text>
-      </Container>
+      </VStack>
     );
   }
 
   return (
-    <Container maxW="lg" py={{ base: '12', md: '24' }} px={{ base: '0', sm: '8' }}>
-      <VStack gap="8">
-        <VStack gap="6">
-          <Heading size="2xl">Administrator-Anmeldung</Heading>
-          <Text fontSize="lg" color="fg.muted">
-            Geben Sie Ihr Administrator-Passwort ein
-          </Text>
-        </VStack>
+    <VStack gap="8" align="stretch">
+      <Text fontSize="lg" color="fg.muted" textAlign="center">
+        Geben Sie Ihr Administrator-Passwort ein
+      </Text>
 
-        <Box
-          py={{ base: '0', sm: '8' }}
-          px={{ base: '4', sm: '10' }}
-          bg={{ base: 'transparent', sm: 'bg.surface' }}
-          boxShadow={{ base: 'none', sm: 'md' }}
-          borderRadius={{ base: 'none', sm: 'xl' }}
-          w="full"
-          maxW="md"
-        >
-          {/* API-Fehlermeldung anzeigen */}
-          {apiError && (
-            <Alert.Root status="error" mb="6" borderRadius="md">
-              <Alert.Indicator>
-                <PiWarning />
-              </Alert.Indicator>
-              <Alert.Content>
-                <Alert.Title>Anmeldung fehlgeschlagen!</Alert.Title>
-                <Alert.Description>{apiError}</Alert.Description>
-              </Alert.Content>
-            </Alert.Root>
-          )}
+      <Box
+        py={{ base: '0', sm: '8' }}
+        px={{ base: '4', sm: '10' }}
+        bg={{ base: 'transparent', sm: 'bg.surface' }}
+        boxShadow={{ base: 'none', sm: 'md' }}
+        borderRadius={{ base: 'none', sm: 'xl' }}
+        w="full"
+        maxW="md"
+      >
+        {/* API-Fehlermeldung anzeigen */}
+        {apiError && (
+          <Alert.Root status="error" mb="6" borderRadius="md">
+            <Alert.Indicator>
+              <PiWarning />
+            </Alert.Indicator>
+            <Alert.Content>
+              <Alert.Title>Anmeldung fehlgeschlagen!</Alert.Title>
+              <Alert.Description>{apiError}</Alert.Description>
+            </Alert.Content>
+          </Alert.Root>
+        )}
 
-          <form onSubmit={handleSubmit}>
-            <VStack gap="6">
-              <Field.Root w="full">
-                <Field.Label fontWeight="medium">Administrator-Passwort</Field.Label>
-                <Input
-                  id="password"
-                  name="password"
-                  type="password"
-                  autoComplete="current-password"
-                  placeholder="Geben Sie Ihr Passwort ein"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  disabled={loginMutation.isPending}
-                />
-              </Field.Root>
+        <form onSubmit={handleSubmit}>
+          <VStack gap="6">
+            <Field.Root w="full">
+              <Field.Label fontWeight="medium">Administrator-Passwort</Field.Label>
+              <Input
+                id="password"
+                name="password"
+                type="password"
+                autoComplete="current-password"
+                placeholder="Geben Sie Ihr Passwort ein"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                disabled={loginMutation.isPending}
+              />
+            </Field.Root>
 
-              <Button type="submit" colorPalette="primary" size="lg" fontSize="md" w="full" disabled={loginMutation.isPending || !password.trim()} loading={loginMutation.isPending}>
-                {loginMutation.isPending ? 'Anmeldung...' : 'Als Administrator anmelden'}
-              </Button>
-            </VStack>
-          </form>
-        </Box>
-      </VStack>
-    </Container>
+            <Button type="submit" colorPalette="primary" size="lg" fontSize="md" w="full" disabled={loginMutation.isPending || !password.trim()} loading={loginMutation.isPending}>
+              {loginMutation.isPending ? 'Anmeldung...' : 'Als Administrator anmelden'}
+            </Button>
+          </VStack>
+        </form>
+      </Box>
+    </VStack>
   );
 }

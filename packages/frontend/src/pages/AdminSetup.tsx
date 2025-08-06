@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Alert, Box, Button, Container, Field, Heading, Input, Text, VStack } from '@chakra-ui/react';
+import { Alert, Box, Button, Field, Input, Text, VStack } from '@chakra-ui/react';
 import { useNavigate } from '@tanstack/react-router';
 import { useForm } from '@tanstack/react-form';
 import { PiCheckCircle, PiWarning } from 'react-icons/pi';
@@ -110,139 +110,134 @@ export function AdminSetup() {
   }
 
   return (
-    <Container maxW="lg" py={{ base: '12', md: '24' }} px={{ base: '0', sm: '8' }}>
-      <VStack gap="8">
-        <VStack gap="6">
-          <Heading size="2xl">Admin-Setup</Heading>
-          <Text fontSize="lg" color="fg.muted" textAlign="center">
-            Richten Sie Ihren Admin-Account ein, indem Sie ein sicheres Passwort festlegen.
-          </Text>
-        </VStack>
+    <VStack gap="8" align="stretch">
+      <Text fontSize="lg" color="fg.muted" textAlign="center">
+        Richten Sie Ihren Admin-Account ein, indem Sie ein sicheres Passwort festlegen.
+      </Text>
 
-        <Box
-          py={{ base: '0', sm: '8' }}
-          px={{ base: '4', sm: '10' }}
-          bg={{ base: 'transparent', sm: 'bg.surface' }}
-          boxShadow={{ base: 'none', sm: 'md' }}
-          borderRadius={{ base: 'none', sm: 'xl' }}
-          w="full"
-          maxW="md"
-        >
-          <Alert.Root status="info" mb="6" borderRadius="md">
+      <Box
+        py={{ base: '0', sm: '8' }}
+        px={{ base: '4', sm: '10' }}
+        bg={{ base: 'transparent', sm: 'bg.surface' }}
+        boxShadow={{ base: 'none', sm: 'md' }}
+        borderRadius={{ base: 'none', sm: 'xl' }}
+        w="full"
+        maxW="md"
+      >
+        <Alert.Root status="info" mb="6" borderRadius="md">
+          <Alert.Indicator>
+            <PiCheckCircle />
+          </Alert.Indicator>
+          <Alert.Content>
+            <Alert.Title>Einmalige Einrichtung</Alert.Title>
+            <Alert.Description>Diese Funktion ist nur verfügbar, solange noch kein Admin-Account existiert.</Alert.Description>
+          </Alert.Content>
+        </Alert.Root>
+
+        {/* API-Fehlermeldung anzeigen */}
+        {apiError && (
+          <Alert.Root status="error" mb="6" borderRadius="md">
             <Alert.Indicator>
-              <PiCheckCircle />
+              <PiWarning />
             </Alert.Indicator>
             <Alert.Content>
-              <Alert.Title>Einmalige Einrichtung</Alert.Title>
-              <Alert.Description>Diese Funktion ist nur verfügbar, solange noch kein Admin-Account existiert.</Alert.Description>
+              <Alert.Title>Setup fehlgeschlagen!</Alert.Title>
+              <Alert.Description>{apiError}</Alert.Description>
             </Alert.Content>
           </Alert.Root>
+        )}
 
-          {/* API-Fehlermeldung anzeigen */}
-          {apiError && (
-            <Alert.Root status="error" mb="6" borderRadius="md">
-              <Alert.Indicator>
-                <PiWarning />
-              </Alert.Indicator>
-              <Alert.Content>
-                <Alert.Title>Setup fehlgeschlagen!</Alert.Title>
-                <Alert.Description>{apiError}</Alert.Description>
-              </Alert.Content>
-            </Alert.Root>
-          )}
-
-          <form
-            onSubmit={(e) => {
-              e.preventDefault();
-              e.stopPropagation();
-              form.handleSubmit();
-            }}
-          >
-            <VStack gap="6">
-              <form.Field
-                name="password"
-                validators={{
-                  onChange: ({ value }) => {
-                    try {
-                      adminSetupSchema.shape.password.parse(value);
-                      return undefined;
-                    } catch (error) {
-                      if (error instanceof z.ZodError) {
-                        return error.issues[0].message;
-                      }
-                      return 'Ungültiges Passwort';
-                    }
-                  },
-                }}
-              >
-                {(field) => (
-                  <Field.Root invalid={field.state.meta.isTouched && field.state.meta.errors.length > 0} w="full">
-                    <Field.Label fontWeight="medium">Passwort</Field.Label>
-                    <Input
-                      id="password"
-                      name="password"
-                      type="password"
-                      autoComplete="new-password"
-                      placeholder="Mindestens 8 Zeichen"
-                      value={field.state.value}
-                      onChange={(e) => {
-                        field.handleChange(e.target.value);
-                      }}
-                      onBlur={field.handleBlur}
-                      disabled={isSubmitting}
-                    />
-                    <Field.ErrorText>{field.state.meta.isTouched && field.state.meta.errors.length > 0 ? field.state.meta.errors[0] : null}</Field.ErrorText>
-                    <Field.HelperText>Mind. 8 Zeichen, 1 Groß-, 1 Kleinbuchstabe, 1 Zahl, 1 Sonderzeichen</Field.HelperText>
-                  </Field.Root>
-                )}
-              </form.Field>
-
-              <form.Field
-                name="confirmPassword"
-                validators={{
-                  onChange: ({ value, fieldApi }) => {
-                    const password = fieldApi.form.getFieldValue('password');
-                    if (value !== password) {
-                      return 'Die Passwörter stimmen nicht überein';
-                    }
+        <form
+          onSubmit={(e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            form.handleSubmit();
+          }}
+        >
+          <VStack gap="6">
+            <form.Field
+              name="password"
+              validators={{
+                onChange: ({ value }) => {
+                  try {
+                    adminSetupSchema.shape.password.parse(value);
                     return undefined;
-                  },
-                }}
-              >
-                {(field) => (
-                  <Field.Root invalid={field.state.meta.isTouched && field.state.meta.errors.length > 0} w="full">
-                    <Field.Label fontWeight="medium">Passwort bestätigen</Field.Label>
-                    <Input
-                      id="confirmPassword"
-                      name="confirmPassword"
-                      type="password"
-                      autoComplete="new-password"
-                      placeholder="Passwort wiederholen"
-                      value={field.state.value}
-                      onChange={(e) => {
-                        field.handleChange(e.target.value);
-                      }}
-                      onBlur={field.handleBlur}
-                      disabled={isSubmitting}
-                    />
-                    <Field.ErrorText>{field.state.meta.isTouched && field.state.meta.errors.length > 0 ? field.state.meta.errors[0] : null}</Field.ErrorText>
-                  </Field.Root>
-                )}
-              </form.Field>
+                  } catch (error) {
+                    if (error instanceof z.ZodError) {
+                      return error.issues[0].message;
+                    }
+                    return 'Ungültiges Passwort';
+                  }
+                },
+              }}
+            >
+              {(field) => (
+                <Field.Root invalid={field.state.meta.isTouched && field.state.meta.errors.length > 0} w="full">
+                  <Field.Label fontWeight="medium">Passwort</Field.Label>
+                  <Input
+                    id="password"
+                    name="password"
+                    type="password"
+                    autoComplete="new-password"
+                    placeholder="Mindestens 8 Zeichen"
+                    value={field.state.value}
+                    onChange={(e) => {
+                      field.handleChange(e.target.value);
+                    }}
+                    onBlur={field.handleBlur}
+                    disabled={isSubmitting}
+                  />
+                  <Field.ErrorText>{field.state.meta.isTouched && field.state.meta.errors.length > 0 ? field.state.meta.errors[0] : null}</Field.ErrorText>
+                  <Field.HelperText>Mind. 8 Zeichen, 1 Groß-, 1 Kleinbuchstabe, 1 Zahl, 1 Sonderzeichen</Field.HelperText>
+                </Field.Root>
+              )}
+            </form.Field>
 
-              <form.Subscribe selector={(state) => [state.canSubmit, state.isSubmitting]}>
-                {([canSubmit, isFormSubmitting]) => {
-                  return (
-                    <Button type="submit" colorPalette="primary" size="lg" fontSize="md" w="full" disabled={!canSubmit || isSubmitting || isFormSubmitting} loading={isSubmitting}>
-                      {isSubmitting ? 'Wird eingerichtet...' : 'Admin-Account einrichten'}
-                    </Button>
-                  );
-                }}
-              </form.Subscribe>
-            </VStack>
-          </form>
-        </Box>
-      </VStack>
-    </Container>
+            <form.Field
+              name="confirmPassword"
+              validators={{
+                onChange: ({ value, fieldApi }) => {
+                  const password = fieldApi.form.getFieldValue('password');
+                  if (value !== password) {
+                    return 'Die Passwörter stimmen nicht überein';
+                  }
+                  return undefined;
+                },
+              }}
+            >
+              {(field) => (
+                <Field.Root invalid={field.state.meta.isTouched && field.state.meta.errors.length > 0} w="full">
+                  <Field.Label fontWeight="medium">Passwort bestätigen</Field.Label>
+                  <Input
+                    id="confirmPassword"
+                    name="confirmPassword"
+                    type="password"
+                    autoComplete="new-password"
+                    placeholder="Passwort wiederholen"
+                    value={field.state.value}
+                    onChange={(e) => {
+                      field.handleChange(e.target.value);
+                    }}
+                    onBlur={field.handleBlur}
+                    disabled={isSubmitting}
+                  />
+                  <Field.ErrorText>{field.state.meta.isTouched && field.state.meta.errors.length > 0 ? field.state.meta.errors[0] : null}</Field.ErrorText>
+                </Field.Root>
+              )}
+            </form.Field>
+
+            <form.Subscribe selector={(state) => [state.canSubmit, state.isSubmitting]}>
+              {([canSubmit, isFormSubmitting]) => {
+                return (
+                  <Button type="submit" colorPalette="primary" size="lg" fontSize="md" w="full" disabled={!canSubmit || isSubmitting || isFormSubmitting} loading={isSubmitting}>
+                    {isSubmitting ? 'Wird eingerichtet...' : 'Admin-Account einrichten'}
+                  </Button>
+                );
+              }}
+            </form.Subscribe>
+          </VStack>
+        </form>
+      </Box>
+    </VStack>
   );
 }
