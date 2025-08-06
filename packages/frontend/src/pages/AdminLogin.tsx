@@ -29,7 +29,7 @@ export function AdminLogin() {
   // Redirect to login if not authenticated
   useEffect(() => {
     if (!isLoading && !user) {
-      navigate({ to: '/login' });
+      navigate({ to: '/auth' });
     }
   }, [user, isLoading, navigate]);
 

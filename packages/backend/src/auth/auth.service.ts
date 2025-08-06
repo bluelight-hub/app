@@ -299,4 +299,28 @@ export class AuthService {
       token: adminToken,
     };
   }
+
+  /**
+   * Gibt eine öffentliche Liste aller Benutzer zurück
+   *
+   * Diese Methode ist für den öffentlichen Login-Screen gedacht
+   * und gibt nur die Benutzernamen zurück.
+   *
+   * @returns Array mit öffentlichen Benutzerinformationen
+   */
+  async getPublicUsers(): Promise<Array<{ username: string }>> {
+    const users = await this.prisma.user.findMany({
+      select: {
+        username: true,
+        lastLoginAt: true,
+      },
+      orderBy: {
+        lastLoginAt: 'desc',
+      },
+    });
+
+    return users
+      .sort((a, b) => (a.lastLoginAt < b.lastLoginAt ? 1 : -1))
+      .map((user) => ({ username: user.username }));
+  }
 }

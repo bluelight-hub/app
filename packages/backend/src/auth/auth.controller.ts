@@ -27,6 +27,7 @@ import { LogoutResponseDto } from './dto/logout-response.dto';
 import { RefreshResponseDto } from './dto/refresh-response.dto';
 import { AdminTokenVerificationDto } from './dto/admin-token-verification.dto';
 import { AdminPasswordDto } from './dto/admin-password.dto';
+import { PublicUsersResponseDto } from './dto/public-users-response.dto';
 import { clearAuthCookies, setAdminCookie, setAuthCookies } from './auth.utils';
 import { JwtRefreshGuard } from './guards/jwt-refresh.guard';
 import { JwtAuthGuard } from './guards/jwt-auth.guard';
@@ -354,6 +355,30 @@ export class AuthController {
         authenticated: false,
       };
     }
+  }
+
+  /**
+   * Gibt eine öffentliche Liste aller Benutzer zurück
+   *
+   * Dieser Endpunkt ist öffentlich zugänglich und wird für
+   * den Login-Screen verwendet, um verfügbare Benutzer anzuzeigen.
+   *
+   * @returns Liste mit Benutzernamen und Vollnamen
+   */
+  @Get('users')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({
+    summary: 'Öffentliche Benutzerliste abrufen',
+    description: 'Gibt eine Liste aller verfügbaren Benutzer für den Login-Screen zurück',
+  })
+  @ApiResponse({
+    status: HttpStatus.OK,
+    description: 'Liste der verfügbaren Benutzer',
+    type: PublicUsersResponseDto,
+  })
+  async getPublicUsers(): Promise<PublicUsersResponseDto> {
+    const users = await this.authService.getPublicUsers();
+    return { users };
   }
 
   /**

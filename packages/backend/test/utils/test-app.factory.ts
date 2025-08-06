@@ -1,7 +1,8 @@
 import { INestApplication, ValidationPipe, VersioningType } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
-import { AppModule } from '@/app.module';
 import * as cookieParser from 'cookie-parser';
+import { TestDbUtils } from './test-db.utils';
+import { AppModule } from '../../src/app.module';
 
 /**
  * Factory für das Erstellen von Test-Applikationen
@@ -60,10 +61,12 @@ export class TestAppFactory {
   }
 
   /**
-   * Schließt die Test-Applikation
+   * Schließt die Test-Applikation und räumt Test-Benutzer auf
    */
   static async close(): Promise<void> {
     if (this.app) {
+      await TestDbUtils.cleanTestUsers(['loadingtest', 'testuser']);
+
       await this.app.close();
       this.app = null;
     }

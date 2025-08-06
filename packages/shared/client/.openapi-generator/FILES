@@ -22,6 +22,8 @@ models/HealthControllerCheck200ResponseInfoValue.ts
 models/HealthControllerCheck503Response.ts
 models/LoginUserDto.ts
 models/LogoutResponseDto.ts
+models/PublicUserDto.ts
+models/PublicUsersResponseDto.ts
 models/RefreshResponseDto.ts
 models/RegisterUserDto.ts
 models/UserDto.ts

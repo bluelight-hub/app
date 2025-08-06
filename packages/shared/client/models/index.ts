@@ -17,6 +17,8 @@ export * from './HealthControllerCheck200ResponseInfoValue';
 export * from './HealthControllerCheck503Response';
 export * from './LoginUserDto';
 export * from './LogoutResponseDto';
+export * from './PublicUserDto';
+export * from './PublicUsersResponseDto';
 export * from './RefreshResponseDto';
 export * from './RegisterUserDto';
 export * from './UserDto';

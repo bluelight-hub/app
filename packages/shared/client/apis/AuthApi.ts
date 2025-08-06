@@ -22,6 +22,7 @@ import type {
   AuthCheckResponseDto,
   LoginUserDto,
   LogoutResponseDto,
+  PublicUsersResponseDto,
   RefreshResponseDto,
   RegisterUserDto,
   UserResponseDto,
@@ -43,6 +44,8 @@ import {
   LoginUserDtoToJSON,
   LogoutResponseDtoFromJSON,
   LogoutResponseDtoToJSON,
+  PublicUsersResponseDtoFromJSON,
+  PublicUsersResponseDtoToJSON,
   RefreshResponseDtoFromJSON,
   RefreshResponseDtoToJSON,
   RegisterUserDtoFromJSON,
@@ -235,6 +238,43 @@ export class AuthApi extends runtime.BaseAPI {
     initOverrides?: RequestInit | runtime.InitOverrideFunction,
   ): Promise<AdminStatusDto> {
     const response = await this.authControllerGetAdminStatusRaw(initOverrides);
+    return await response.value();
+  }
+
+  /**
+   * Gibt eine Liste aller verfügbaren Benutzer für den Login-Screen zurück
+   * Öffentliche Benutzerliste abrufen
+   */
+  async authControllerGetPublicUsersRaw(
+    initOverrides?: RequestInit | runtime.InitOverrideFunction,
+  ): Promise<runtime.ApiResponse<PublicUsersResponseDto>> {
+    const queryParameters: any = {};
+
+    const headerParameters: runtime.HTTPHeaders = {};
+
+    const response = await this.request(
+      {
+        path: `/api/auth/users`,
+        method: 'GET',
+        headers: headerParameters,
+        query: queryParameters,
+      },
+      initOverrides,
+    );
+
+    return new runtime.JSONApiResponse(response, (jsonValue) =>
+      PublicUsersResponseDtoFromJSON(jsonValue),
+    );
+  }
+
+  /**
+   * Gibt eine Liste aller verfügbaren Benutzer für den Login-Screen zurück
+   * Öffentliche Benutzerliste abrufen
+   */
+  async authControllerGetPublicUsers(
+    initOverrides?: RequestInit | runtime.InitOverrideFunction,
+  ): Promise<PublicUsersResponseDto> {
+    const response = await this.authControllerGetPublicUsersRaw(initOverrides);
     return await response.value();
   }
 

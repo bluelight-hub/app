@@ -115,6 +115,37 @@ export class TestDbUtils {
   }
 
   /**
+   * Löscht spezifische Test-Benutzer nach Pattern
+   *
+   * Entfernt alle Benutzer, deren Username mit den angegebenen Patterns beginnt.
+   * Nützlich für das Aufräumen nach Tests, die dynamische Testbenutzer erstellen.
+   *
+   * @param patterns Array von Username-Präfixen, die gelöscht werden sollen
+   */
+  static async cleanTestUsers(patterns: string[] = ['loadingtest', 'testuser']): Promise<void> {
+    const prisma = this.getPrisma();
+
+    try {
+      for (const pattern of patterns) {
+        const deletedUsers = await prisma.user.deleteMany({
+          where: {
+            username: {
+              startsWith: pattern,
+            },
+          },
+        });
+
+        if (deletedUsers.count > 0) {
+          console.log(`Deleted ${deletedUsers.count} test users matching pattern '${pattern}*'`);
+        }
+      }
+    } catch (error) {
+      console.error('Failed to clean test users:', error);
+      throw error;
+    }
+  }
+
+  /**
    * Setzt die Datenbank zurück (clean + seed)
    *
    * Löscht alle Daten und fügt optional Seed-Daten ein.

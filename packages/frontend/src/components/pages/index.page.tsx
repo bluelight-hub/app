@@ -30,7 +30,7 @@ export function IndexPage() {
 
   if (!authContext.user) {
     navigate({
-      to: '/login',
+      to: '/auth',
     });
     return null;
   }

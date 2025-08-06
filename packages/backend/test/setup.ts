@@ -32,12 +32,12 @@ if (process.env.SUPPRESS_TEST_LOGS === 'true') {
 
 // Globale Test-Hooks für Container-Management
 beforeAll(async () => {
-  // Starte PostgreSQL Container und initialisiere Datenbank
   await TestDbUtils.initialize();
 });
 
 afterAll(async () => {
-  // Cleanup: Schließe Verbindungen und stoppe Container
+  await TestDbUtils.cleanTestUsers(['loadingtest', 'testuser']);
+
   await TestDbUtils.disconnect();
   await TestDbUtils.stopContainer();
 });
