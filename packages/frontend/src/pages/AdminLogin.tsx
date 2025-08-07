@@ -1,8 +1,8 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from '@tanstack/react-router';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { Alert, Box, Button, Field, Input, Text, VStack } from '@chakra-ui/react';
-import { PiWarning } from 'react-icons/pi';
+import { Alert, Box, Button, Field, Group, IconButton, Input, Text, VStack } from '@chakra-ui/react';
+import { PiEye, PiEyeClosed, PiWarning } from 'react-icons/pi';
 
 import { ResponseError } from '@bluelight-hub/shared/client/runtime';
 import type { UserResponseDto } from '@bluelight-hub/shared/client';
@@ -18,6 +18,8 @@ export function AdminLogin() {
 
   const [password, setPassword] = useState('');
   const [apiError, setApiError] = useState<string | null>(null);
+  const [showPassword, setShowPassword] = useState(false);
+  const [shouldShake, setShouldShake] = useState(false);
 
   // Clear API error when password changes
   useEffect(() => {
@@ -71,8 +73,12 @@ export function AdminLogin() {
         const status = error.response.status;
 
         // 401 Unauthorized - Falsche Anmeldedaten
-        if (status === 401) {
+        // 400 Bad Request - Validierungsfehler (z.B. zu kurzes Passwort)
+        // Beide Fälle werden als "falsches Passwort" behandelt für bessere Security
+        if (status === 401 || status === 400) {
           setApiError('Ungültiges Passwort.');
+          setShouldShake(true);
+          setTimeout(() => setShouldShake(false), 500);
           toaster.create({
             title: 'Login fehlgeschlagen',
             description: 'Ungültiges Passwort.',
@@ -90,10 +96,14 @@ export function AdminLogin() {
         }
         // Andere HTTP-Fehler
         else {
-          setApiError('Ein unerwarteter Fehler ist aufgetreten.');
+          // Bei allen anderen Fehlern auch Shake-Animation und "falsches Passwort"
+          // für bessere Security (keine Informationen preisgeben)
+          setApiError('Ungültiges Passwort.');
+          setShouldShake(true);
+          setTimeout(() => setShouldShake(false), 500);
           toaster.create({
-            title: 'Fehler',
-            description: 'Ein unerwarteter Fehler ist aufgetreten.',
+            title: 'Login fehlgeschlagen',
+            description: 'Ungültiges Passwort.',
             type: 'error',
           });
         }
@@ -158,16 +168,29 @@ export function AdminLogin() {
           <VStack gap="6">
             <Field.Root w="full">
               <Field.Label fontWeight="medium">Administrator-Passwort</Field.Label>
-              <Input
-                id="password"
-                name="password"
-                type="password"
-                autoComplete="current-password"
-                placeholder="Geben Sie Ihr Passwort ein"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                disabled={loginMutation.isPending}
-              />
+              <Box animation={shouldShake ? 'shake' : undefined} w="full">
+                <Group attached w="full">
+                  <Input
+                    id="password"
+                    name="password"
+                    type={showPassword ? 'text' : 'password'}
+                    autoComplete="current-password"
+                    placeholder="Geben Sie Ihr Passwort ein"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    disabled={loginMutation.isPending}
+                    flex="1"
+                  />
+                  <IconButton
+                    aria-label={showPassword ? 'Passwort verbergen' : 'Passwort anzeigen'}
+                    onClick={() => setShowPassword(!showPassword)}
+                    variant="outline"
+                    disabled={loginMutation.isPending}
+                  >
+                    {showPassword ? <PiEyeClosed /> : <PiEye />}
+                  </IconButton>
+                </Group>
+              </Box>
             </Field.Root>
 
             <Button type="submit" colorPalette="primary" size="lg" fontSize="md" w="full" disabled={loginMutation.isPending || !password.trim()} loading={loginMutation.isPending}>

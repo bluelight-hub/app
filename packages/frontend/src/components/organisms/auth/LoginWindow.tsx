@@ -30,7 +30,7 @@ export function LoginWindow() {
       });
     },
     onSuccess: async (response) => {
-      authActions.loginSuccess(response.user);
+      authActions.loginSuccess(response);
       await queryClient.invalidateQueries({ queryKey: ['auth-check'] });
 
       toaster.create({
@@ -75,7 +75,7 @@ export function LoginWindow() {
       });
     },
     onSuccess: async (response) => {
-      authActions.loginSuccess(response.user);
+      authActions.loginSuccess(response);
       await queryClient.invalidateQueries({ queryKey: ['auth-check'] });
 
       toaster.create({

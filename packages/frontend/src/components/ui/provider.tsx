@@ -22,10 +22,20 @@ const config = defineConfig({
           '950': { value: 'var(--color-red-950)' },
         },
       }),
+      animations: {
+        shake: { value: 'shake 0.5s ease-in-out' },
+      },
     },
     semanticTokens: {
       colors: {
         primary: defaultConfig.theme?.semanticTokens?.colors?.['red'] ?? {},
+      },
+    },
+    keyframes: {
+      shake: {
+        '0%, 100%': { transform: 'translateX(0)' },
+        '10%, 30%, 50%, 70%, 90%': { transform: 'translateX(-4px)' },
+        '20%, 40%, 60%, 80%': { transform: 'translateX(4px)' },
       },
     },
   },

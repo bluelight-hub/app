@@ -219,6 +219,55 @@ describe('AdminLogin', () => {
     });
   });
 
+  it('should toggle password visibility', async () => {
+    render(<AdminLogin />, { wrapper: createWrapper() });
+
+    const passwordInput = screen.getByPlaceholderText('Geben Sie Ihr Passwort ein');
+    const toggleButton = screen.getByLabelText('Passwort anzeigen');
+
+    // Initially password should be hidden
+    expect(passwordInput).toHaveAttribute('type', 'password');
+
+    // Click to show password
+    await user.click(toggleButton);
+    expect(passwordInput).toHaveAttribute('type', 'text');
+    expect(screen.getByLabelText('Passwort verbergen')).toBeInTheDocument();
+
+    // Click again to hide password
+    await user.click(screen.getByLabelText('Passwort verbergen'));
+    expect(passwordInput).toHaveAttribute('type', 'password');
+    expect(screen.getByLabelText('Passwort anzeigen')).toBeInTheDocument();
+  });
+
+  it('should apply shake animation on 401 error', async () => {
+    const error = new ResponseError(new Response(null, { status: 401, statusText: 'Unauthorized' }), '401 Unauthorized');
+    mockAuthControllerAdminLogin.mockRejectedValueOnce(error);
+
+    render(<AdminLogin />, { wrapper: createWrapper() });
+
+    const passwordInput = screen.getByPlaceholderText('Geben Sie Ihr Passwort ein');
+
+    // Fill in wrong password
+    await user.type(passwordInput, 'wrongpassword');
+
+    // Submit form
+    await user.click(screen.getByRole('button', { name: 'Als Administrator anmelden' }));
+
+    // Wait for error handling and check shake animation
+    await waitFor(() => {
+      // Check that the shake animation is applied
+      expect(passwordInput).toHaveAttribute('animation', 'shake 0.5s');
+    });
+
+    // Animation should be removed after timeout
+    await waitFor(
+      () => {
+        expect(passwordInput).not.toHaveAttribute('animation', 'shake 0.5s');
+      },
+      { timeout: 600 },
+    );
+  });
+
   it('should have a close button that navigates to home', async () => {
     render(<AdminLogin />, { wrapper: createWrapper() });
 

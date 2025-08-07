@@ -34,7 +34,7 @@ export function AdminSetup() {
   const navigate = useNavigate();
   const [apiError, setApiError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const { user, setUser } = useAuth();
+  const { user } = useAuth();
   const { refetch: refetchAdminStatus } = useAdminStatus();
 
   const form = useForm({
@@ -68,10 +68,7 @@ export function AdminSetup() {
 
         // Lade den aktualisierten User (adminSetupAvailable sollte jetzt false sein)
         try {
-          const updatedUser = await api.auth().authControllerGetCurrentUser();
-          refetchAdminStatus().then(() => {
-            setUser(updatedUser);
-          });
+          await refetchAdminStatus();
         } catch (error) {
           logger.error('Fehler beim Laden des aktualisierten Users:', error);
           // Trotzdem weiterleiten, da das Setup erfolgreich war
@@ -86,9 +83,7 @@ export function AdminSetup() {
         // API-Fehler behandeln
         if (error instanceof Error) {
           // Prüfe auf 409 (Admin existiert bereits)
-          if (error.message.includes('409') || error.message.includes('existiert bereits')) {
-            setApiError('Ein Admin-Account existiert bereits. Diese Funktion ist nicht mehr verfügbar.');
-          } else if (error.message.includes('401') || error.message.includes('Unauthorized')) {
+          if (error.message.includes('401') || error.message.includes('Unauthorized')) {
             setApiError('Sie sind nicht angemeldet. Bitte melden Sie sich zuerst an.');
           } else {
             setApiError(error.message);
