@@ -24,6 +24,10 @@ export function useAuthRefresh() {
         const response = await api.auth().authControllerCheckAuth();
         if (response.user) {
           logger.log('Auth refresh successful:', response.user);
+          // Admin-Auth-Status speichern, falls vorhanden
+          if (response.isAdminAuthenticated) {
+            authActions.setAdminAuth(true);
+          }
         }
         // Explizit null zurückgeben wenn kein User vorhanden
         return response.user ?? null;

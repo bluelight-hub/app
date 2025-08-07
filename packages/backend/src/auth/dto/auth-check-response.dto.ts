@@ -20,4 +20,11 @@ export class AuthCheckResponseDto {
     type: Boolean,
   })
   authenticated: boolean;
+
+  @ApiProperty({
+    description: 'Ob der Benutzer als Administrator authentifiziert ist',
+    type: Boolean,
+    required: false,
+  })
+  isAdminAuthenticated?: boolean;
 }

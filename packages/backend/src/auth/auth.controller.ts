@@ -344,9 +344,28 @@ export class AuthController {
         };
       }
 
+      // Prüfe ob Admin-Token vorhanden ist
+      const adminToken = req.cookies?.['adminToken'];
+      let isAdminAuthenticated = false;
+
+      if (adminToken) {
+        try {
+          // Verifiziere Admin-Token - verwende die gleiche Methode wie im verifyAdminToken Endpoint
+          const payload = await this.authService.verifyAccessToken(adminToken);
+          // Prüfe ob der Token gültig ist und der richtige Typ
+          if (payload && payload.type === 'admin') {
+            isAdminAuthenticated = true;
+          }
+        } catch {
+          // Admin-Token ungültig - ignorieren
+          isAdminAuthenticated = false;
+        }
+      }
+
       return {
         user: toUserResponseDto(user),
         authenticated: true,
+        isAdminAuthenticated,
       };
     } catch (_error) {
       // Bei jedem Fehler (ungültiges Token, abgelaufen, etc.) null zurückgeben

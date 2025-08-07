@@ -14,12 +14,13 @@ import { toaster } from '@/components/ui/toaster.instance';
 export function AdminLogin() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
-  const { user, isLoading } = useAuth();
+  const { user, isLoading, isAdminAuthenticated } = useAuth();
 
   const [password, setPassword] = useState('');
   const [apiError, setApiError] = useState<string | null>(null);
   const [showPassword, setShowPassword] = useState(false);
   const [shouldShake, setShouldShake] = useState(false);
+  const [hasCheckedAuth, setHasCheckedAuth] = useState(false);
 
   // Clear API error when password changes
   useEffect(() => {
@@ -28,12 +29,28 @@ export function AdminLogin() {
     }
   }, [password, apiError]);
 
-  // Redirect to login if not authenticated
+  // Track when auth check is complete
   useEffect(() => {
-    if (!isLoading && !user) {
-      navigate({ to: '/auth' });
+    if (!isLoading && !hasCheckedAuth) {
+      setHasCheckedAuth(true);
     }
-  }, [user, isLoading, navigate]);
+  }, [isLoading, hasCheckedAuth]);
+
+  // Redirect logic based on authentication state
+  useEffect(() => {
+    // Only redirect after we've completed the initial auth check
+    if (hasCheckedAuth) {
+      // If user has an active admin session, redirect to dashboard
+      if (user && isAdminAuthenticated) {
+        navigate({ to: '/admin/dashboard' });
+      }
+      // If user is not logged in at all, redirect to auth
+      else if (!user) {
+        navigate({ to: '/auth' });
+      }
+      // User is logged in but not admin authenticated - stay on this page
+    }
+  }, [user, hasCheckedAuth, isAdminAuthenticated, navigate]);
 
   const loginMutation = useMutation({
     mutationFn: async (adminPassword: string) => {
@@ -127,13 +144,21 @@ export function AdminLogin() {
     }
   };
 
-  // Show loading state while checking authentication
-  if (isLoading) {
-    return (
-      <VStack>
-        <Text textAlign="center">Laden...</Text>
-      </VStack>
-    );
+  // Don't render the form until we've checked authentication
+  // This prevents flashing of the form before redirect
+  if (!hasCheckedAuth) {
+    return null; // The loading state is handled by AdminLayout
+  }
+
+  // If user has admin session, don't show form (will redirect)
+  if (user && isAdminAuthenticated) {
+    return null;
+  }
+
+  // If user is not logged in at all, don't show the admin login form
+  // (useEffect will redirect to /auth)
+  if (!user) {
+    return null;
   }
 
   return (

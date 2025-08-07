@@ -12,8 +12,14 @@
  * Do not edit the class manually.
  */
 
+import { mapValues } from '../runtime';
 import type { PublicUserDto } from './PublicUserDto';
-import { PublicUserDtoFromJSON, PublicUserDtoToJSON } from './PublicUserDto';
+import {
+  PublicUserDtoFromJSON,
+  PublicUserDtoFromJSONTyped,
+  PublicUserDtoToJSON,
+  PublicUserDtoToJSONTyped,
+} from './PublicUserDto';
 
 /**
  *

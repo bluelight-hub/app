@@ -5,7 +5,6 @@ import type { ResponseError } from '@bluelight-hub/shared/client';
 import { Provider } from '@/components/ui/provider.tsx';
 import { AuthProvider } from '@/provider/auth.provider.tsx';
 import { Toaster } from '@/components/ui/toaster.tsx';
-import { useAdminRefresh } from '@/hooks/useAdminRefresh';
 import { useAuthRefresh } from '@/hooks/useAuthRefresh';
 
 export const Route = createRootRoute({
@@ -50,10 +49,8 @@ function RootComponent() {
 
 function AppWithAdminRefresh() {
   // User-Authentifizierung beim App-Start wiederherstellen
+  // Dies prüft auch den Admin-Status über das Backend
   useAuthRefresh();
-
-  // Admin-Token-Verifizierung beim App-Start
-  useAdminRefresh();
 
   return <Outlet />;
 }

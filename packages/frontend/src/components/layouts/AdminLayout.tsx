@@ -1,6 +1,7 @@
-import { Box, Container, HStack, Heading, IconButton, VStack } from '@chakra-ui/react';
+import { Box, Container, HStack, Heading, IconButton, Spinner, Text, VStack } from '@chakra-ui/react';
 import { Outlet, useLocation, useNavigate } from '@tanstack/react-router';
 import { PiX } from 'react-icons/pi';
+import { useAuth } from '@/hooks/useAuth';
 
 /**
  * Gemeinsames Layout für alle Admin-Seiten
@@ -11,6 +12,7 @@ import { PiX } from 'react-icons/pi';
 export function AdminLayout() {
   const navigate = useNavigate();
   const location = useLocation();
+  const { isLoading } = useAuth();
 
   /**
    * Ermittelt den Titel basierend auf der aktuellen Route
@@ -67,7 +69,16 @@ export function AdminLayout() {
 
         {/* Content der jeweiligen Admin-Seite */}
         <Box>
-          <Outlet />
+          {isLoading ? (
+            <VStack gap="4" py="12">
+              <Spinner size="xl" color="primary.500" />
+              <Text color="fg.muted" fontSize="lg">
+                Authentifizierung wird geprüft...
+              </Text>
+            </VStack>
+          ) : (
+            <Outlet />
+          )}
         </Box>
       </VStack>
     </Container>

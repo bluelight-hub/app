@@ -39,6 +39,12 @@ export interface AuthCheckResponseDto {
    * @memberof AuthCheckResponseDto
    */
   authenticated: boolean;
+  /**
+   * Ob der Benutzer als Administrator authentifiziert ist
+   * @type {boolean}
+   * @memberof AuthCheckResponseDto
+   */
+  isAdminAuthenticated?: boolean;
 }
 
 /**
@@ -63,6 +69,8 @@ export function AuthCheckResponseDtoFromJSONTyped(
   return {
     user: json['user'] == null ? undefined : UserResponseDtoFromJSON(json['user']),
     authenticated: json['authenticated'],
+    isAdminAuthenticated:
+      json['isAdminAuthenticated'] == null ? undefined : json['isAdminAuthenticated'],
   };
 }
 
@@ -81,5 +89,6 @@ export function AuthCheckResponseDtoToJSONTyped(
   return {
     user: UserResponseDtoToJSON(value['user']),
     authenticated: value['authenticated'],
+    isAdminAuthenticated: value['isAdminAuthenticated'],
   };
 }
