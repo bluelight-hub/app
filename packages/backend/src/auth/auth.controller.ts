@@ -13,6 +13,7 @@ import {
   VERSION_NEUTRAL,
 } from '@nestjs/common';
 import { ApiCookieAuth, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
+import { ConfigService } from '@nestjs/config';
 import { Request, Response } from 'express';
 import { AuthService } from './auth.service';
 import { RegisterUserDto } from './dto/register-user.dto';
@@ -61,7 +62,10 @@ import { isAdmin } from './utils/auth.utils';
 })
 @SkipTransform()
 export class AuthController {
-  constructor(private readonly authService: AuthService) {}
+  constructor(
+    private readonly authService: AuthService,
+    private readonly configService: ConfigService,
+  ) {}
 
   /**
    * Registriert einen neuen Benutzer
@@ -99,7 +103,7 @@ export class AuthController {
     const refreshToken = this.authService.signRefreshToken(user.id);
 
     // Tokens als HTTP-Only Cookies setzen
-    const isProduction = process.env.NODE_ENV === 'production';
+    const isProduction = this.configService.get<string>('NODE_ENV') === 'production';
     setAuthCookies(res, accessToken, refreshToken, isProduction);
 
     return toUserResponseDto(user);
@@ -140,7 +144,7 @@ export class AuthController {
     const refreshToken = this.authService.signRefreshToken(user.id);
 
     // Tokens als HTTP-Only Cookies setzen
-    const isProduction = process.env.NODE_ENV === 'production';
+    const isProduction = this.configService.get<string>('NODE_ENV') === 'production';
     setAuthCookies(res, accessToken, refreshToken, isProduction);
 
     return toUserResponseDto(user);
@@ -192,7 +196,7 @@ export class AuthController {
     }
 
     const token = this.authService.signAdminToken(user);
-    const isProduction = process.env.NODE_ENV === 'production';
+    const isProduction = this.configService.get<string>('NODE_ENV') === 'production';
     setAdminCookie(res, token, isProduction);
 
     return toAdminLoginResponseDto(user);
@@ -237,7 +241,7 @@ export class AuthController {
     const refreshToken = this.authService.signRefreshToken(user.id);
 
     // Tokens als HTTP-Only Cookies setzen
-    const isProduction = process.env.NODE_ENV === 'production';
+    const isProduction = this.configService.get<string>('NODE_ENV') === 'production';
     setAuthCookies(res, accessToken, refreshToken, isProduction);
 
     return toRefreshResponseDto();

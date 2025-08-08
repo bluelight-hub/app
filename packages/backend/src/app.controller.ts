@@ -1,7 +1,17 @@
 import { Controller, Get, VERSION_NEUTRAL } from '@nestjs/common';
-import * as packageJson from '../package.json';
+import { readFileSync } from 'node:fs';
+import { resolve } from 'node:path';
 import { ConfigService } from '@nestjs/config';
 import { SkipTransform } from './common/decorators/skip-transform.decorator';
+
+const packageJson = (() => {
+  try {
+    const file = readFileSync(resolve(__dirname, '..', 'package.json'), 'utf8');
+    return JSON.parse(file) as { version?: string };
+  } catch {
+    return {} as { version?: string };
+  }
+})();
 
 @Controller({
   version: VERSION_NEUTRAL,
