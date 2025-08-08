@@ -102,3 +102,12 @@ export function setAdminCookie(
 ): void {
   res.cookie('adminToken', adminToken, getAdminTokenCookieOptions(isProduction));
 }
+
+/**
+ * Löscht das Admin-Token-Cookie aus der Response
+ *
+ * @param res - Express Response-Objekt
+ */
+export function clearAdminCookie(res: Response): void {
+  res.clearCookie('adminToken', { path: '/' });
+}

@@ -40,6 +40,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
     setUser: authActions.setUser,
     setLoading: authActions.setLoading,
     logout: authActions.logout(queryClient),
+    logoutAdmin: authActions.logoutAdmin(queryClient),
   };
 
   return <AuthContext.Provider value={contextValue}>{children}</AuthContext.Provider>;

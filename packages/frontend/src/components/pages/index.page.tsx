@@ -1,6 +1,6 @@
 import { ColorModeButton } from '@molecules/color-mode-button.molecule.tsx';
 import { Link, useRouter } from '@tanstack/react-router';
-import { Box, Button, Spinner, Text, VStack } from '@chakra-ui/react';
+import { Box, Button, HStack, Spinner, Text, VStack } from '@chakra-ui/react';
 import { PiShieldCheck, PiSignIn } from 'react-icons/pi';
 import { useAdminStatus } from '@/hooks/useAdminStatus';
 
@@ -18,6 +18,12 @@ export function IndexPage() {
   const authContext = useAuth();
   const { navigate } = useRouter();
   const { data: adminStatus } = useAdminStatus();
+
+  // Admin-Fenster öffnen Handler
+  const handleOpenAdminWindow = async () => {
+    const { openAdmin } = await import('@/services/windowService');
+    await openAdmin();
+  };
 
   if (authContext.isLoading) {
     return (
@@ -74,12 +80,12 @@ export function IndexPage() {
                   Zugang zum Admin-Bereich für berechtigte Benutzer.
                 </Text>
               </Box>
-              <Button asChild colorPalette="primary" variant="outline" size="sm">
-                <Link to="/admin/login">
+              <HStack gap={2}>
+                <Button colorPalette="primary" variant="outline" size="sm" onClick={handleOpenAdminWindow} title="Admin-Dashboard in separatem Fenster öffnen">
                   <PiSignIn />
                   Admin-Bereich
-                </Link>
-              </Button>
+                </Button>
+              </HStack>
             </VStack>
           </Box>
         )}

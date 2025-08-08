@@ -102,4 +102,26 @@ export const authActions = {
       isAdminAuthenticated,
     }));
   },
+
+  /**
+   * Meldet nur den Admin ab, behält aber den normalen Benutzer eingeloggt
+   * Entfernt nur das Admin-Token, nicht die normale Session
+   */
+  logoutAdmin: (queryClient: QueryClient) => async () => {
+    try {
+      // API-Call zum Admin-Logout (entfernt nur Admin-Token)
+      await api.auth().authControllerAdminLogout();
+    } catch (error) {
+      console.error('Admin logout failed:', error);
+    }
+
+    // Setze nur Admin-Auth auf false, behalte User-Session
+    authStore.setState((state) => ({
+      ...state,
+      isAdminAuthenticated: false,
+    }));
+
+    // Refetch auth status to update permissions
+    await queryClient.refetchQueries({ queryKey: ['auth-check'] });
+  },
 };

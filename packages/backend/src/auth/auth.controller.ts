@@ -28,7 +28,7 @@ import { RefreshResponseDto } from './dto/refresh-response.dto';
 import { AdminTokenVerificationDto } from './dto/admin-token-verification.dto';
 import { AdminPasswordDto } from './dto/admin-password.dto';
 import { PublicUsersResponseDto } from './dto/public-users-response.dto';
-import { clearAuthCookies, setAdminCookie, setAuthCookies } from './auth.utils';
+import { clearAuthCookies, clearAdminCookie, setAdminCookie, setAuthCookies } from './auth.utils';
 import { JwtRefreshGuard } from './guards/jwt-refresh.guard';
 import { JwtAuthGuard } from './guards/jwt-auth.guard';
 import { AdminJwtAuthGuard } from './guards/admin-jwt-auth.guard';
@@ -261,6 +261,28 @@ export class AuthController {
   })
   async logout(@Res({ passthrough: true }) res: Response): Promise<LogoutResponseDto> {
     clearAuthCookies(res);
+    return toLogoutResponseDto();
+  }
+
+  /**
+   * Meldet einen Admin ab (entfernt nur das Admin-Token, behält normale Session)
+   *
+   * @param res - Express Response für Cookie-Verwaltung
+   */
+  @Post('admin/logout')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({
+    summary: 'Admin abmelden',
+    description: 'Entfernt nur das Admin-Token, behält die normale Benutzer-Session',
+  })
+  @ApiResponse({
+    status: HttpStatus.OK,
+    description: 'Admin erfolgreich abgemeldet',
+    type: LogoutResponseDto,
+  })
+  async adminLogout(@Res({ passthrough: true }) res: Response): Promise<LogoutResponseDto> {
+    // Nur Admin-Cookie löschen, normale Auth-Cookies behalten
+    clearAdminCookie(res);
     return toLogoutResponseDto();
   }
 

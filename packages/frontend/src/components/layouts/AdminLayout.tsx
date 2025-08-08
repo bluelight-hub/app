@@ -1,7 +1,11 @@
 import { Box, Container, HStack, Heading, IconButton, Spinner, Text, VStack } from '@chakra-ui/react';
 import { Outlet, useLocation, useNavigate } from '@tanstack/react-router';
 import { PiX } from 'react-icons/pi';
+import { isTauri } from '@tauri-apps/api/core';
+import { useEffect } from 'react';
 import { useAuth } from '@/hooks/useAuth';
+import { useAdminAuth } from '@/hooks/useAdminAuth';
+import { logger } from '@/utils/logger.ts';
 
 /**
  * Gemeinsames Layout für alle Admin-Seiten
@@ -12,7 +16,35 @@ import { useAuth } from '@/hooks/useAuth';
 export function AdminLayout() {
   const navigate = useNavigate();
   const location = useLocation();
-  const { isLoading } = useAuth();
+  const { user } = useAuth();
+  const { isAdmin, isLoading } = useAdminAuth();
+
+  // Prüfe Admin-Authentifizierung
+  useEffect(() => {
+    // Warte bis Loading fertig ist
+    if (isLoading) return;
+
+    // Spezielle Behandlung für Admin-Setup und Admin-Login Seiten
+    const isSetupPage = location.pathname.includes('/admin/setup');
+    const isLoginPage = location.pathname.includes('/admin/login');
+
+    // Setup und Login-Seiten benötigen keine Admin-Authentifizierung
+    if (isSetupPage || isLoginPage) {
+      return;
+    }
+
+    // Für alle anderen Admin-Seiten: Prüfe Admin-Authentifizierung
+    if (!isAdmin) {
+      // Wenn Benutzer eingeloggt ist aber keine Admin-Rechte aktiviert hat,
+      // leite zu Admin-Login weiter
+      if (user) {
+        navigate({ to: '/admin/login' });
+      } else {
+        // Kein Benutzer eingeloggt - zurück zur Startseite
+        navigate({ to: '/' });
+      }
+    }
+  }, [isLoading, isAdmin, user, location.pathname, navigate]);
 
   /**
    * Ermittelt den Titel basierend auf der aktuellen Route
@@ -36,13 +68,19 @@ export function AdminLayout() {
   /**
    * Schließt das Fenster oder Tab
    */
-  const handleClose = () => {
+  const handleClose = async () => {
     // Prüfe ob wir in Tauri laufen
-    if (window.__TAURI__) {
+    if (isTauri()) {
       // In Tauri: Fenster schließen
-      import('@tauri-apps/api/window').then(({ appWindow }) => {
-        appWindow.close();
-      });
+      try {
+        const { getCurrentWebviewWindow } = await import('@tauri-apps/api/webviewWindow');
+        const currentWindow = getCurrentWebviewWindow();
+        await currentWindow.close();
+      } catch (error) {
+        logger.error('Fehler beim Schließen des Fensters:', error);
+        // Fallback: Navigiere zur Startseite
+        navigate({ to: '/' });
+      }
     } else {
       // Im Browser: Versuche Tab zu schließen oder zur Startseite navigieren
       if (window.opener) {

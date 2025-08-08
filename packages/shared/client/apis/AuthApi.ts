@@ -124,6 +124,43 @@ export class AuthApi extends runtime.BaseAPI {
   }
 
   /**
+   * Entfernt nur das Admin-Token, behält die normale Benutzer-Session
+   * Admin abmelden
+   */
+  async authControllerAdminLogoutRaw(
+    initOverrides?: RequestInit | runtime.InitOverrideFunction,
+  ): Promise<runtime.ApiResponse<LogoutResponseDto>> {
+    const queryParameters: any = {};
+
+    const headerParameters: runtime.HTTPHeaders = {};
+
+    const response = await this.request(
+      {
+        path: `/api/auth/admin/logout`,
+        method: 'POST',
+        headers: headerParameters,
+        query: queryParameters,
+      },
+      initOverrides,
+    );
+
+    return new runtime.JSONApiResponse(response, (jsonValue) =>
+      LogoutResponseDtoFromJSON(jsonValue),
+    );
+  }
+
+  /**
+   * Entfernt nur das Admin-Token, behält die normale Benutzer-Session
+   * Admin abmelden
+   */
+  async authControllerAdminLogout(
+    initOverrides?: RequestInit | runtime.InitOverrideFunction,
+  ): Promise<LogoutResponseDto> {
+    const response = await this.authControllerAdminLogoutRaw(initOverrides);
+    return await response.value();
+  }
+
+  /**
    * Richtet das Passwort für einen Admin-Account ein. Erfordert Authentifizierung.
    * Admin-Passwort einrichten
    */

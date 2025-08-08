@@ -2,6 +2,7 @@ import { Box, Button, Container, Heading, Text, VStack } from '@chakra-ui/react'
 import { useNavigate } from '@tanstack/react-router';
 import { PiSignOut, PiUsers } from 'react-icons/pi';
 import { useCallback } from 'react';
+import { isTauri } from '@tauri-apps/api/core';
 import { useAuth } from '@/hooks/useAuth.ts';
 
 /**
@@ -12,12 +13,27 @@ import { useAuth } from '@/hooks/useAuth.ts';
  */
 export function AdminDashboard() {
   const navigate = useNavigate();
-  const { user, logout } = useAuth();
+  const { user, logoutAdmin } = useAuth();
 
   const handleLogout = useCallback(async () => {
-    await logout();
-    await navigate({ to: '/' });
-  }, [logout, navigate]);
+    await logoutAdmin();
+
+    // In Tauri: Fenster schließen
+    if (isTauri()) {
+      try {
+        const { getCurrentWebviewWindow } = await import('@tauri-apps/api/webviewWindow');
+        const currentWindow = getCurrentWebviewWindow();
+        await currentWindow.close();
+      } catch (error) {
+        console.error('Fehler beim Schließen des Admin-Fensters:', error);
+        // Fallback: zur Startseite navigieren
+        await navigate({ to: '/' });
+      }
+    } else {
+      // Im Browser: zur Startseite navigieren
+      await navigate({ to: '/' });
+    }
+  }, [logoutAdmin, navigate]);
 
   const handleNavigateToUsers = useCallback(async () => {
     await navigate({ to: '/admin/users' });
@@ -50,7 +66,7 @@ export function AdminDashboard() {
         <Box>
           <Button colorPalette="red" variant="outline" size="sm" onClick={handleLogout}>
             <PiSignOut />
-            Abmelden
+            Admin-Bereich verlassen
           </Button>
         </Box>
       </VStack>

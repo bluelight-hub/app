@@ -17,6 +17,8 @@ export interface AuthContextType {
   setLoading: (loading: boolean) => void;
   /** Meldet den Benutzer ab und löscht den Kontext */
   logout: () => Promise<void>;
+  /** Meldet nur den Admin ab, behält aber den normalen Benutzer eingeloggt */
+  logoutAdmin: () => Promise<void>;
 }
 
 /**
