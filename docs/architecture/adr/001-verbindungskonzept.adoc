@@ -10,11 +10,13 @@ In Prüfung (Stand: 2025-03-23)
 
 == Kontext
 
-Bluelight-Hub muss in Einsatzszenarien funktionieren, in denen verschiedene Konnektivitätsszenarien auftreten können.
-Das System muss in lokalen Netzwerken (FüKW) funktionieren und optional erweiterte Funktionen bieten, wenn Internetverbindung besteht.
+Bluelight-Hub muss in Einsatzszenarien funktionieren, in denen verschiedene Konnektivitätsszenarien auftreten können:
 
-Es ist wichtig zu beachten, dass "Offline-First" in diesem Kontext bedeutet, dass der FüKW-Server nicht immer mit dem Internet verbunden ist, aber eine Verbindung der Clients zum FüKW-Server in der aktuellen Implementierung vorausgesetzt wird.
-Eine vollständige Client-Autonomie ohne FüKW-Verbindung ist für zukünftige Versionen geplant.
+* *Lokales Verbindungsszenario*: Konnektivitätszustand, bei dem ein Client mit dem FüKW-Server verbunden ist, aber keine Internetverbindung besteht. Dies ist der Standardmodus im Einsatz und wird auch als "FüKW-verbunden" bezeichnet. In diesem Modus ist die volle lokale Funktionalität verfügbar.
+
+* *Vollständiges Verbindungsszenario*: Konnektivitätszustand, bei dem der FüKW-Server mit dem Internet verbunden ist und dadurch erweiterte Online-Funktionen zur Verfügung stehen. Wird auch als "Online-Modus" bezeichnet.
+
+* *Autonomes Verbindungsszenario* (geplant): Zustand eines Clients, wenn keine Verbindung zum FüKW-Server besteht. In diesem Modus arbeitet der Client mit reduziertem Funktionsumfang und speichert Daten lokal, bis eine Verbindung wiederhergestellt werden kann.
 
 == Optionen
 

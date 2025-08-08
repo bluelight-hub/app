@@ -6,16 +6,15 @@ import { z } from 'zod';
  * Regeln:
  * - Mindestens 3 Zeichen
  * - Maximal 30 Zeichen
- * - Nur alphanumerische Zeichen und Unterstriche
- * - Muss mit einem Buchstaben beginnen
+ * - Nur Buchstaben, Zahlen, Unterstriche und Bindestriche
  */
 export const usernameSchema = z
   .string()
   .min(3, 'Benutzername muss mindestens 3 Zeichen lang sein')
   .max(30, 'Benutzername darf maximal 30 Zeichen lang sein')
   .regex(
-    /^[a-zA-Z][a-zA-Z0-9_]*$/,
-    'Benutzername darf nur Buchstaben, Zahlen und Unterstriche enthalten und muss mit einem Buchstaben beginnen',
+    /^[a-zA-Z0-9_-]+$/,
+    'Benutzername darf nur Buchstaben, Zahlen, Unterstriche und Bindestriche enthalten',
   );
 
 /**

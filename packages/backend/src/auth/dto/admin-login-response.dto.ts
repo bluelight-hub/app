@@ -1,4 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
+import { AdminUserDto } from './admin-user.dto';
 
 /**
  * DTO für die Admin-Login-Response
@@ -6,15 +7,7 @@ import { ApiProperty } from '@nestjs/swagger';
 export class AdminLoginResponseDto {
   @ApiProperty({
     description: 'Admin-Benutzerinformationen',
-    example: {
-      id: '123e4567-e89b-12d3-a456-426614174000',
-      username: 'admin',
-      role: 'ADMIN',
-    },
+    type: AdminUserDto,
   })
-  user: {
-    id: string;
-    username: string;
-    role: string;
-  };
+  user: AdminUserDto;
 }

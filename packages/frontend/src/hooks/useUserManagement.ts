@@ -15,6 +15,14 @@ interface ApiError extends Error {
   };
 }
 
+/**
+ * Hook zum Abrufen aller Benutzer aus dem System
+ *
+ * Lädt die Liste aller Benutzer über die User Management API und
+ * cached die Daten mit React Query für optimale Performance.
+ *
+ * @returns {UseQueryResult<UsersListResponse>} Query-Objekt mit Benutzerliste, Ladezustand und Fehlerinformationen
+ */
 export const useUsers = () => {
   return useQuery<UsersListResponse>({
     queryKey: ['users'],

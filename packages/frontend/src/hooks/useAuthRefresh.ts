@@ -4,6 +4,8 @@ import { api } from '@/api/api';
 import { authActions } from '@/stores/auth.store';
 import { logger } from '@/utils/logger';
 
+const AUTH_CHECK_QUERY_KEY = 'auth-check';
+
 /**
  * Hook für die automatische Wiederherstellung der Authentifizierung beim App-Start
  *
@@ -18,7 +20,7 @@ export function useAuthRefresh() {
   // ob gültige Cookies vorhanden sind.
 
   const { data: currentUser = null, isLoading } = useQuery({
-    queryKey: ['auth-check'],
+    queryKey: [AUTH_CHECK_QUERY_KEY],
     queryFn: async () => {
       try {
         const response = await api.auth().authControllerCheckAuth();

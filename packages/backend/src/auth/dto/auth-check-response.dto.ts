@@ -13,7 +13,7 @@ export class AuthCheckResponseDto {
     nullable: true,
     required: false,
   })
-  user: UserResponseDto | null;
+  user?: UserResponseDto | null;
 
   @ApiProperty({
     description: 'Ob ein Benutzer authentifiziert ist',

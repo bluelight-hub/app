@@ -4,6 +4,7 @@ import { AdminLoginResponseDto } from './dto/admin-login-response.dto';
 import { LogoutResponseDto } from './dto/logout-response.dto';
 import { RefreshResponseDto } from './dto/refresh-response.dto';
 import { AdminSetupResponseDto } from './dto/admin-setup-response.dto';
+import { AdminSetupUserDto } from './dto/admin-user.dto';
 import { AdminStatusDto } from './dto/admin-status.dto';
 import { AdminTokenVerificationDto } from './dto/admin-token-verification.dto';
 
@@ -75,14 +76,23 @@ export function toRefreshResponseDto(): RefreshResponseDto {
 /**
  * Erstellt eine Admin-Setup-Response
  *
- * @param user - Der Admin-Benutzer
- * @param token - Das Admin-Token
+ * @param user - Der Admin-Benutzer (ohne passwordHash)
  * @returns Admin-Setup-Response-DTO
  */
-export function toAdminSetupResponseDto(user: Partial<User>): AdminSetupResponseDto {
+export function toAdminSetupResponseDto(user: Omit<User, 'passwordHash'>): AdminSetupResponseDto {
+  const setupUser: AdminSetupUserDto = {
+    id: user.id,
+    username: user.username,
+    role: user.role,
+    fullName: '', // This would need to be added to the User model if required
+    email: undefined, // This would need to be added to the User model if required
+    createdAt: user.createdAt,
+    updatedAt: user.updatedAt,
+  };
+
   return {
     message: 'Admin-Setup erfolgreich durchgeführt',
-    user,
+    user: setupUser,
   };
 }
 

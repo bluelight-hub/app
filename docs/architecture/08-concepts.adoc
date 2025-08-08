@@ -214,7 +214,10 @@ Anstelle einer vollständigen CQRS-Implementierung, die für die aktuelle Anwend
 * *Repositories*: Abstrahieren den Datenzugriff und ermöglichen eine klare Trennung der Datenpersistenz
 
 Diese vereinfachte Struktur ermöglicht:
-* Einfachere Implementierung und Wartung * Bessere Verständlichkeit für neue Entwickler * Ausreichende Trennung der Zuständigkeiten * Skalierbarkeit für die aktuelle Anwendungsgröße
+* Einfachere Implementierung und Wartung
+* Bessere Verständlichkeit für neue Entwickler
+* Ausreichende Trennung der Zuständigkeiten
+* Skalierbarkeit für die aktuelle Anwendungsgröße
 
 ==== Eventbasierte Kommunikation
 
@@ -449,7 +452,12 @@ app.use(helmet({
 ----
 
 *Zusätzliche Sicherheitsheader*:
-* `X-Content-Type-Options: nosniff` - Verhindert MIME-Type-Sniffing * `X-Frame-Options: DENY` - Schutz vor Clickjacking * `X-XSS-Protection: 1; mode=block` - XSS-Schutz (Legacy-Browser) * `Referrer-Policy: strict-origin-when-cross-origin` - Kontrollierte Referrer-Informationen * `Permissions-Policy` - Einschränkung von Browser-Features
+
+* `X-Content-Type-Options: nosniff` - Verhindert MIME-Type-Sniffing
+* `X-Frame-Options: DENY` - Schutz vor Clickjacking
+* `X-XSS-Protection: 1; mode=block` - XSS-Schutz (Legacy-Browser)
+* `Referrer-Policy: strict-origin-when-cross-origin` - Kontrollierte Referrer-Informationen
+* `Permissions-Policy` - Einschränkung von Browser-Features
 
 ===== Account-Lockout-Mechanismus
 
@@ -800,7 +808,7 @@ Das API-Design folgt den REST-Prinzipien mit folgenden Merkmalen:
 
 * **Ressourcenorientiert**: Endpunkte repräsentieren Ressourcen, nicht Aktionen
 * **HTTP-Verben**: Verwendung von GET, POST, PUT, DELETE für CRUD-Operationen
-* **Versionierung**: URI-basierte Versionierung (`/api/v-1/...`) für maximale Kompatibilität
+* **Versionierung**: Siehe detaillierte Beschreibung unter "API-Versionierung" unten
 * **Konsistente Pfade**: Pluralisierte Ressourcennamen, hierarchische Strukturen für Beziehungen
 
 ===== API-Versionierung

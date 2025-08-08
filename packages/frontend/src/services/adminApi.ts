@@ -1,5 +1,7 @@
+import { FetchError, ResponseError } from '@bluelight-hub/shared/client';
 import type { AdminPasswordDto, AdminSetupDto } from '@bluelight-hub/shared/client';
 import { api } from '@/api/api';
+import { logger } from '@/utils/logger.ts';
 
 /**
  * Überprüft, ob ein Admin-Account existiert
@@ -9,9 +11,22 @@ export async function verifyAdmin(): Promise<boolean> {
   try {
     const response = await api.auth().authControllerVerifyAdmin();
     return response.exists;
-  } catch (_error) {
-    // Bei Fehler nehmen wir an, dass kein Admin existiert
-    return false;
+  } catch (error) {
+    // Spezifische Behandlung basierend auf HTTP-Statuscodes
+    if (error instanceof ResponseError) {
+      const status = error.response.status;
+      // 404 bedeutet: kein Admin existiert
+      if (status === 404) return false;
+      // Serverfehler (5xx) sollen nicht als "kein Admin" fehlinterpretiert werden
+      if (status >= 500) throw error;
+      // Andere Client-Fehler sind unerwartet -> eskalieren, um Fehldiagnosen zu vermeiden
+      throw error;
+    }
+    // Netzwerkfehler etc. nicht verschlucken
+    if (error instanceof FetchError || error instanceof Error) {
+      throw error;
+    }
+    throw error;
   }
 }
 
@@ -29,7 +44,7 @@ export async function setupAdmin(password: string): Promise<boolean> {
     // Backend setzt httpOnly Cookie, kein Token im Response
     return true;
   } catch (error) {
-    console.error('Admin setup failed:', error);
+    logger.error('Admin setup failed:', error);
     return false;
   }
 }
@@ -48,7 +63,7 @@ export async function loginAdmin(password: string): Promise<boolean> {
     // Backend setzt httpOnly Cookie, kein Token im Response
     return true;
   } catch (error) {
-    console.error('Admin login failed:', error);
+    logger.error('Admin login failed:', error);
     return false;
   }
 }

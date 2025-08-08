@@ -1,18 +1,22 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { User } from '@prisma/client';
+import { AdminSetupUserDto } from './admin-user.dto';
 
 /**
- * DTO für die Admin-Setup-Response
+ * Response DTO für die Admin-Setup-Operation
+ *
+ * Wird zurückgegeben, wenn das Admin-Passwort erfolgreich eingerichtet wurde.
+ * Enthält die Erfolgsmeldung und die aktualisierten Benutzerdaten.
  */
 export class AdminSetupResponseDto {
   @ApiProperty({
-    description: 'Erfolgsmeldung',
+    description: 'Erfolgsmeldung für das Admin-Setup',
     example: 'Admin-Setup erfolgreich durchgeführt',
   })
   message: string;
 
   @ApiProperty({
-    description: 'Admin-Benutzerinformationen',
+    description: 'Aktualisierte Admin-Benutzerdaten ohne sensitive Informationen',
+    type: AdminSetupUserDto,
   })
-  user: Partial<User>;
+  user: AdminSetupUserDto;
 }

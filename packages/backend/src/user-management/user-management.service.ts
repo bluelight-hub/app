@@ -7,6 +7,7 @@ import {
 import { PrismaService } from '@/prisma/prisma.service';
 import { UserRole } from '@prisma/client';
 import { CreateUserDto } from './dto/create-user.dto';
+import { toUserDto } from './mappers/user.mapper';
 
 /**
  * Service für die Benutzerverwaltung durch Administratoren
@@ -26,7 +27,7 @@ export class UserManagementService {
    * @returns Array von Benutzern mit id, username und role
    */
   async findAll() {
-    return this.prisma.user.findMany({
+    const users = await this.prisma.user.findMany({
       select: {
         id: true,
         username: true,
@@ -38,6 +39,7 @@ export class UserManagementService {
         createdAt: 'desc',
       },
     });
+    return users.map(toUserDto);
   }
 
   /**
@@ -71,8 +73,7 @@ export class UserManagementService {
         updatedAt: true,
       },
     });
-
-    return user;
+    return toUserDto(user);
   }
 
   /**

@@ -11,6 +11,48 @@ import { api } from '@/api/api';
 import { useAuth } from '@/hooks/useAuth';
 import { toaster } from '@/components/ui/toaster.instance';
 
+type AuthContext = 'login' | 'register';
+
+/**
+ * Zentrale Fehlerbehandlung für Auth-Operationen (Login/Registrierung)
+ */
+function handleAuthError(error: unknown, context: AuthContext) {
+  if (error instanceof ResponseError) {
+    const status = error.response.status;
+
+    if (context === 'login' && status === 404) {
+      toaster.create({
+        title: 'Login fehlgeschlagen',
+        description: 'Benutzer nicht gefunden. Bitte überprüfen Sie den Benutzernamen.',
+        type: 'error',
+      });
+      return;
+    }
+
+    if (context === 'register' && status === 409) {
+      toaster.create({
+        title: 'Registrierung fehlgeschlagen',
+        description: 'Dieser Benutzername ist bereits vergeben.',
+        type: 'error',
+      });
+      return;
+    }
+
+    toaster.create({
+      title: 'Fehler',
+      description: 'Ein unerwarteter Fehler ist aufgetreten.',
+      type: 'error',
+    });
+    return;
+  }
+
+  toaster.create({
+    title: 'Fehler',
+    description: 'Ein unerwarteter Fehler ist aufgetreten. Bitte versuchen Sie es erneut.',
+    type: 'error',
+  });
+}
+
 /**
  * Zweistufiges Login/Register-Fenster mit Tabs
  *
@@ -41,30 +83,7 @@ export function LoginWindow() {
 
       await navigate({ to: '/' });
     },
-    onError: (error: Error) => {
-      if (error instanceof ResponseError) {
-        const status = error.response.status;
-        if (status === 404) {
-          toaster.create({
-            title: 'Login fehlgeschlagen',
-            description: 'Benutzer nicht gefunden. Bitte überprüfen Sie den Benutzernamen.',
-            type: 'error',
-          });
-        } else {
-          toaster.create({
-            title: 'Fehler',
-            description: 'Ein unerwarteter Fehler ist aufgetreten.',
-            type: 'error',
-          });
-        }
-      } else {
-        toaster.create({
-          title: 'Fehler',
-          description: 'Ein unerwarteter Fehler ist aufgetreten. Bitte versuchen Sie es erneut.',
-          type: 'error',
-        });
-      }
-    },
+    onError: (error: Error) => handleAuthError(error, 'login'),
   });
 
   // Register Mutation
@@ -86,30 +105,7 @@ export function LoginWindow() {
 
       await navigate({ to: '/' });
     },
-    onError: (error: Error) => {
-      if (error instanceof ResponseError) {
-        const status = error.response.status;
-        if (status === 409) {
-          toaster.create({
-            title: 'Registrierung fehlgeschlagen',
-            description: 'Dieser Benutzername ist bereits vergeben.',
-            type: 'error',
-          });
-        } else {
-          toaster.create({
-            title: 'Fehler',
-            description: 'Ein unerwarteter Fehler ist aufgetreten.',
-            type: 'error',
-          });
-        }
-      } else {
-        toaster.create({
-          title: 'Fehler',
-          description: 'Ein unerwarteter Fehler ist aufgetreten. Bitte versuchen Sie es erneut.',
-          type: 'error',
-        });
-      }
-    },
+    onError: (error: Error) => handleAuthError(error, 'register'),
   });
 
   if (!isLoading && user) {

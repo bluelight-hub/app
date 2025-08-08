@@ -2,6 +2,7 @@ import { CallHandler, ExecutionContext, Injectable, NestInterceptor } from '@nes
 import { Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
 import { Reflector } from '@nestjs/core';
+import { ConfigService } from '@nestjs/config';
 import { Request } from 'express';
 import { nanoid } from 'nanoid';
 
@@ -93,7 +94,15 @@ function isTransformedResponse<T>(data: unknown): data is TransformedResponse<T>
 export class TransformInterceptor<T = any>
   implements NestInterceptor<T, TransformedResponse<T> | any>
 {
-  constructor(private reflector: Reflector) {}
+  private readonly appUrl: string;
+
+  constructor(
+    private reflector: Reflector,
+    private configService: ConfigService,
+  ) {
+    // Cache the APP_URL at initialization to avoid repeated config lookups
+    this.appUrl = this.configService.get<string>('APP_URL', 'http://localhost:3000');
+  }
 
   intercept(
     context: ExecutionContext,
@@ -140,8 +149,13 @@ export class TransformInterceptor<T = any>
             totalPages: Math.ceil(total / limit),
           };
 
-          // Generiere Links für Pagination
-          const baseUrl = `${request.protocol}://${request.get('host')}${request.originalUrl.split('?')[0]}`;
+          // Generiere Links für Pagination mit sicherer Base-URL aus Konfiguration
+          // Verwende nur den Pfad aus der Request-URL, nicht den Host-Header
+          const pathname = request.originalUrl.split('?')[0];
+          // Ensure we don't duplicate /api if it's already in the pathname
+          const apiPath = pathname.startsWith('/api') ? pathname : `/api${pathname}`;
+          const baseUrl = `${this.appUrl}${apiPath}`;
+
           transformed.links = {
             self: `${baseUrl}?page=${page}&limit=${limit}`,
           };

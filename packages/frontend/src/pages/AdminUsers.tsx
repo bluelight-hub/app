@@ -32,7 +32,6 @@ export default function AdminUsers() {
   };
 
   const handleDeleteUser = (user: UserDto) => {
-    console.log('Delete user clicked:', user);
     setDeleteTarget(user);
   };
 

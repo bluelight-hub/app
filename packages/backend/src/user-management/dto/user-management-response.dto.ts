@@ -1,6 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { ApiResponse } from '@/common/interfaces/api-response.interface';
-import { User } from '@prisma/client';
+import { UserRole } from '@prisma/client';
 
 /**
  * DTO für einen einzelnen Benutzer
@@ -20,7 +20,7 @@ export class UserDto {
     enum: ['USER', 'ADMIN', 'SUPER_ADMIN'],
     example: 'USER',
   })
-  role: string;
+  role: UserRole;
 
   @ApiProperty({ description: 'Erstellungsdatum', example: '2024-01-01T12:00:00.000Z' })
   createdAt: Date;
@@ -38,7 +38,8 @@ export class UserDto {
 export class UsersListResponse extends ApiResponse<UserDto[]> {
   @ApiProperty({
     description: 'Liste der Benutzer',
-    type: [UserDto],
+    type: UserDto,
+    isArray: true,
   })
   data: UserDto[];
 }
@@ -67,19 +68,4 @@ export class DeleteUserResponse extends ApiResponse<{ id: string; deleted: boole
     },
   })
   data: { id: string; deleted: boolean };
-}
-
-/**
- * Mapper-Funktion für User zu UserDto
- */
-export function toUserDto(
-  user: Pick<User, 'id' | 'username' | 'role' | 'createdAt' | 'updatedAt'>,
-): UserDto {
-  return {
-    id: user.id,
-    username: user.username,
-    role: user.role,
-    createdAt: user.createdAt,
-    updatedAt: user.updatedAt,
-  };
 }

@@ -5,11 +5,12 @@ import { Alert, Box, Button, Field, Group, IconButton, Input, Text, VStack } fro
 import { PiEye, PiEyeClosed, PiWarning } from 'react-icons/pi';
 
 import { ResponseError } from '@bluelight-hub/shared/client/runtime';
-import type { UserResponseDto } from '@bluelight-hub/shared/client';
+import { instanceOfUserResponseDto } from '@bluelight-hub/shared/client/models/UserResponseDto';
 import { api } from '@/api/api';
 import { useAuth } from '@/hooks/useAuth';
 import { authActions } from '@/stores/auth.store';
 import { toaster } from '@/components/ui/toaster.instance';
+import { logger } from '@/utils/logger.ts';
 
 export function AdminLogin() {
   const navigate = useNavigate();
@@ -61,10 +62,15 @@ export function AdminLogin() {
       });
     },
     onSuccess: async (response) => {
-      console.log('Admin-Anmeldung erfolgreich:', response);
+      logger.log('Admin-Anmeldung erfolgreich:', response);
 
-      // Speichere den User im Auth Store
-      authActions.loginSuccess(response.user as UserResponseDto);
+      // Validiere Struktur, bevor der User in den Auth Store gesetzt wird
+      const maybeUser = response.user as unknown;
+      if (maybeUser && typeof maybeUser === 'object' && instanceOfUserResponseDto(maybeUser)) {
+        authActions.loginSuccess(maybeUser);
+      } else {
+        logger.warn('Unerwartete User-Payload beim Admin-Login – überspringe loginSuccess()', response.user);
+      }
 
       // Setze Admin-Authentifizierungsstatus
       authActions.setAdminAuth(true);
@@ -83,7 +89,7 @@ export function AdminLogin() {
       await navigate({ to: '/admin/dashboard' });
     },
     onError: (error: Error) => {
-      console.error('Admin-Anmeldefehler:', error);
+      logger.error('Admin-Anmeldefehler:', error);
 
       // Handle ResponseError from API
       if (error instanceof ResponseError) {

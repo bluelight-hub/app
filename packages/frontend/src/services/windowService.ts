@@ -1,6 +1,7 @@
 import { isTauri } from '@tauri-apps/api/core';
 import { WebviewWindow } from '@tauri-apps/api/webviewWindow';
 import { toaster } from '@/components/ui/toaster.instance';
+import { logger } from '@/utils/logger.ts';
 
 /**
  * Optionen für das Öffnen des Admin-Fensters
@@ -35,7 +36,7 @@ class WindowService {
         this.openAdminInBrowser();
       }
     } catch (error) {
-      console.error('Fehler beim Öffnen des Admin-Fensters:', error);
+      logger.error('Fehler beim Öffnen des Admin-Fensters:', error);
       toaster.create({
         title: 'Fehler',
         description: 'Das Admin-Fenster konnte nicht geöffnet werden.',
@@ -49,7 +50,7 @@ class WindowService {
    */
   async focusAdmin(): Promise<void> {
     if (!isTauri()) {
-      console.warn('focusAdmin ist nur in Tauri verfügbar');
+      logger.warn('focusAdmin ist nur in Tauri verfügbar');
       return;
     }
 
@@ -65,7 +66,7 @@ class WindowService {
    */
   async closeAdmin(): Promise<void> {
     if (!isTauri()) {
-      console.warn('closeAdmin ist nur in Tauri verfügbar');
+      logger.warn('closeAdmin ist nur in Tauri verfügbar');
       return;
     }
 
@@ -105,7 +106,7 @@ class WindowService {
     // Navigiere direkt zu /admin/login - diese Seite kann die Auth prüfen
     // und bei Bedarf weiterleiten, ohne dass die Index-Route dazwischenfunkt
     const adminUrl = `${window.location.origin}/admin/login`;
-    console.log('Öffne Admin-Fenster mit URL:', adminUrl);
+    logger.log('Öffne Admin-Fenster mit URL:', adminUrl);
 
     const adminWindow = new WebviewWindow(this.ADMIN_WINDOW_LABEL, {
       url: adminUrl,
@@ -121,12 +122,12 @@ class WindowService {
 
     // Warte bis Fenster erstellt wurde
     await adminWindow.once('tauri://created', () => {
-      console.log('Admin-Fenster erfolgreich erstellt');
+      logger.log('Admin-Fenster erfolgreich erstellt');
     });
 
     // Error Handler für Fenster-Ereignisse
     await adminWindow.once('tauri://error', (error) => {
-      console.error('Fehler beim Erstellen des Admin-Fensters:', error);
+      logger.error('Fehler beim Erstellen des Admin-Fensters:', error);
       toaster.create({
         title: 'Fehler',
         description: 'Das Admin-Fenster konnte nicht erstellt werden.',
@@ -146,7 +147,7 @@ class WindowService {
 
     if (!newWindow) {
       // Popup-Blocker oder andere Einschränkung
-      console.warn(
+      logger.warn(
         'Fenster konnte nicht geöffnet werden - möglicherweise durch Popup-Blocker verhindert',
       );
       toaster.create({

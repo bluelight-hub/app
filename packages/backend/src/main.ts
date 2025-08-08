@@ -73,7 +73,7 @@ async function bootstrap() {
 
   // Enable transform interceptor globally
   const reflector = app.get(Reflector);
-  app.useGlobalInterceptors(new TransformInterceptor(reflector));
+  app.useGlobalInterceptors(new TransformInterceptor(reflector, configService));
 
   const port = configService.get('BACKEND_PORT') || configService.get('PORT') || 3000;
 

@@ -22,7 +22,6 @@ import { UserManagementService } from './user-management.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import {
   DeleteUserResponse,
-  toUserDto,
   UserResponse,
   UsersListResponse,
 } from './dto/user-management-response.dto';
@@ -43,8 +42,7 @@ export class UserManagementController {
   @ApiOperation({ summary: 'Alle Benutzer auflisten' })
   @ApiOkResponse({ type: UsersListResponse, description: 'Liste aller Benutzer' })
   async findAll() {
-    const users = await this.userManagementService.findAll();
-    return users.map(toUserDto);
+    return await this.userManagementService.findAll();
   }
 
   @Post()
@@ -55,8 +53,7 @@ export class UserManagementController {
   async create(
     @Body(new ValidationPipe({ whitelist: true, forbidNonWhitelisted: true })) dto: CreateUserDto,
   ) {
-    const user = await this.userManagementService.create(dto);
-    return toUserDto(user);
+    return await this.userManagementService.create(dto);
   }
 
   @Delete(':id')

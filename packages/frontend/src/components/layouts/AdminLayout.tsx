@@ -5,7 +5,7 @@ import { isTauri } from '@tauri-apps/api/core';
 import { useEffect } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { useAdminAuth } from '@/hooks/useAdminAuth';
-import { logger } from '@/utils/logger.ts';
+import { logger } from '@/utils/logger';
 
 /**
  * Gemeinsames Layout für alle Admin-Seiten

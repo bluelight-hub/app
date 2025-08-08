@@ -68,8 +68,13 @@ export function setAuthCookies(
  * @param res - Express Response-Objekt
  */
 export function clearAuthCookies(res: Response): void {
-  res.clearCookie('accessToken', { path: '/' });
-  res.clearCookie('refreshToken', { path: '/' });
+  const isProduction = process.env.NODE_ENV === 'production';
+  res.clearCookie('accessToken', {
+    ...getAccessTokenCookieOptions(isProduction),
+  });
+  res.clearCookie('refreshToken', {
+    ...getRefreshTokenCookieOptions(isProduction),
+  });
 }
 
 /**
@@ -109,5 +114,8 @@ export function setAdminCookie(
  * @param res - Express Response-Objekt
  */
 export function clearAdminCookie(res: Response): void {
-  res.clearCookie('adminToken', { path: '/' });
+  const isProduction = process.env.NODE_ENV === 'production';
+  res.clearCookie('adminToken', {
+    ...getAdminTokenCookieOptions(isProduction),
+  });
 }

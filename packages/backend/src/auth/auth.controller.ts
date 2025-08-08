@@ -4,6 +4,7 @@ import {
   Get,
   HttpCode,
   HttpStatus,
+  Logger,
   NotFoundException,
   Post,
   Req,
@@ -12,7 +13,7 @@ import {
   UseGuards,
   VERSION_NEUTRAL,
 } from '@nestjs/common';
-import { ApiCookieAuth, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
+import { ApiCookieAuth, ApiOkResponse, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { ConfigService } from '@nestjs/config';
 import { Request, Response } from 'express';
 import { AuthService } from './auth.service';
@@ -62,6 +63,8 @@ import { isAdmin } from './utils/auth.utils';
 })
 @SkipTransform()
 export class AuthController {
+  private readonly logger = new Logger(AuthController.name);
+
   constructor(
     private readonly authService: AuthService,
     private readonly configService: ConfigService,
@@ -100,7 +103,7 @@ export class AuthController {
 
     // JWT-Tokens generieren
     const accessToken = this.authService.signAccessToken(user);
-    const refreshToken = this.authService.signRefreshToken(user.id);
+    const refreshToken = this.authService.signRefreshToken(user);
 
     // Tokens als HTTP-Only Cookies setzen
     const isProduction = this.configService.get<string>('NODE_ENV') === 'production';
@@ -141,7 +144,7 @@ export class AuthController {
 
     // JWT-Tokens generieren
     const accessToken = this.authService.signAccessToken(user);
-    const refreshToken = this.authService.signRefreshToken(user.id);
+    const refreshToken = this.authService.signRefreshToken(user);
 
     // Tokens als HTTP-Only Cookies setzen
     const isProduction = this.configService.get<string>('NODE_ENV') === 'production';
@@ -238,7 +241,7 @@ export class AuthController {
 
     // Neue Tokens generieren
     const accessToken = this.authService.signAccessToken(user);
-    const refreshToken = this.authService.signRefreshToken(user.id);
+    const refreshToken = this.authService.signRefreshToken(user);
 
     // Tokens als HTTP-Only Cookies setzen
     const isProduction = this.configService.get<string>('NODE_ENV') === 'production';
@@ -309,6 +312,7 @@ export class AuthController {
   @ApiResponse({
     status: HttpStatus.CREATED,
     description: 'Admin-Passwort erfolgreich eingerichtet',
+    type: AdminSetupResponseDto,
   })
   @ApiResponse({
     status: HttpStatus.CONFLICT,
@@ -344,8 +348,7 @@ export class AuthController {
     summary: 'Authentifizierungsstatus prüfen',
     description: 'Prüft ob ein Benutzer authentifiziert ist und gibt dessen Informationen zurück',
   })
-  @ApiResponse({
-    status: HttpStatus.OK,
+  @ApiOkResponse({
     description: 'Authentifizierungsstatus abgerufen',
     type: AuthCheckResponseDto,
   })
@@ -393,8 +396,9 @@ export class AuthController {
         authenticated: true,
         isAdminAuthenticated,
       };
-    } catch (_error) {
+    } catch (error) {
       // Bei jedem Fehler (ungültiges Token, abgelaufen, etc.) null zurückgeben
+      this.logger.error('Error checking authentication status', error);
       return {
         user: null,
         authenticated: false,

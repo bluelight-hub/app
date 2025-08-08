@@ -19,6 +19,9 @@ process.env.JWT_REFRESH_EXPIRES_IN = '7d';
 // Erweitere Jest Timeouts für E2E Tests (Container-Start kann dauern)
 jest.setTimeout(60000);
 
+// Original-Console speichern, falls Logs unterdrückt werden
+const originalConsole = global.console;
+
 // Unterdrücke Console-Logs während Tests (außer Errors)
 if (process.env.SUPPRESS_TEST_LOGS === 'true') {
   global.console = {
@@ -40,4 +43,9 @@ afterAll(async () => {
 
   await TestDbUtils.disconnect();
   await TestDbUtils.stopContainer();
+
+  // Ursprüngliche Console wiederherstellen
+  if (process.env.SUPPRESS_TEST_LOGS === 'true') {
+    global.console = originalConsole;
+  }
 });

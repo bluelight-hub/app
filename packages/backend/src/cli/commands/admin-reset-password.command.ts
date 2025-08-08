@@ -24,8 +24,8 @@ export class AdminResetPasswordCommand {
       // Placeholder - will be replaced with actual implementation
       await this.resetAdminPassword(username, newPassword);
 
-      console.log(`✅ Passwort erfolgreich zurückgesetzt für Admin: ${username}`);
-      console.log(`📅 Zeitstempel: ${new Date().toISOString()}`);
+      this.logger.log(`✅ Passwort erfolgreich zurückgesetzt für Admin: ${username}`);
+      this.logger.log(`📅 Zeitstempel: ${new Date().toISOString()}`);
     } catch (error) {
       this.logger.error(`Failed to reset password for ${username}`, error.stack);
       throw error;
@@ -40,16 +40,16 @@ export class AdminResetPasswordCommand {
 
     if (!user) {
       this.logger.error(`User not found: ${username}`);
-      console.error(`❌ Fehler: Benutzer "${username}" wurde nicht gefunden.`);
-      process.exit(1);
+      this.logger.error(`❌ Fehler: Benutzer "${username}" wurde nicht gefunden.`);
+      throw new Error(`Benutzer "${username}" wurde nicht gefunden.`);
     }
 
     if (!isAdmin(user.role)) {
       this.logger.error(`User is not an admin: ${username} (role: ${user.role})`);
-      console.error(
+      this.logger.error(
         `❌ Fehler: Benutzer "${username}" ist kein Administrator (Rolle: ${user.role}).`,
       );
-      process.exit(1);
+      throw new Error(`Benutzer "${username}" ist kein Administrator (Rolle: ${user.role}).`);
     }
 
     // Subtask 31.3: Neues Passwort hashen & speichern

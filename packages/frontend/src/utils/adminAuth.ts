@@ -14,7 +14,6 @@ export async function verifyAdmin(): Promise<boolean> {
     await api.auth().authControllerVerifyAdminToken();
     return true;
   } catch (_error) {
-    // Bei 401 oder anderen Fehlern ist das Token ungültig
     return false;
   }
 }

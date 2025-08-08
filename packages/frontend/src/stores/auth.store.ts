@@ -1,7 +1,8 @@
 import { Store } from '@tanstack/react-store';
 import type { QueryClient } from '@tanstack/react-query';
 import type { UserResponseDto } from '@bluelight-hub/shared/client';
-import { api } from '@/api/api.ts';
+import { api } from '@/api/api';
+import { logger } from '@/utils/logger.ts';
 
 /**
  * Interface für den Authentifizierungs-Store
@@ -112,7 +113,7 @@ export const authActions = {
       // API-Call zum Admin-Logout (entfernt nur Admin-Token)
       await api.auth().authControllerAdminLogout();
     } catch (error) {
-      console.error('Admin logout failed:', error);
+      logger.error('Admin logout failed:', error);
     }
 
     // Setze nur Admin-Auth auf false, behalte User-Session

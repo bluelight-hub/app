@@ -1,4 +1,5 @@
 import { isTauri } from '@tauri-apps/api/core';
+import { logger } from '@/utils/logger.ts';
 
 /**
  * Hook zur Erkennung der Tauri-Runtime
@@ -23,7 +24,7 @@ export function useIsTauri(): { isTauri: boolean } {
     return { isTauri: isTauri() };
   } catch (error) {
     // Fallback für den Fall, dass Tauri API nicht verfügbar ist
-    console.warn('Tauri API not available, falling back to browser mode', error);
+    logger.debug('Tauri API not available, falling back to browser mode', error);
     return { isTauri: false };
   }
 }

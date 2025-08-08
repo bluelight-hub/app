@@ -17,6 +17,7 @@ import type {
   AdminLoginResponseDto,
   AdminPasswordDto,
   AdminSetupDto,
+  AdminSetupResponseDto,
   AdminStatusDto,
   AdminTokenVerificationDto,
   AuthCheckResponseDto,
@@ -34,6 +35,8 @@ import {
   AdminPasswordDtoToJSON,
   AdminSetupDtoFromJSON,
   AdminSetupDtoToJSON,
+  AdminSetupResponseDtoFromJSON,
+  AdminSetupResponseDtoToJSON,
   AdminStatusDtoFromJSON,
   AdminStatusDtoToJSON,
   AdminTokenVerificationDtoFromJSON,
@@ -167,7 +170,7 @@ export class AuthApi extends runtime.BaseAPI {
   async authControllerAdminSetupRaw(
     requestParameters: AuthControllerAdminSetupRequest,
     initOverrides?: RequestInit | runtime.InitOverrideFunction,
-  ): Promise<runtime.ApiResponse<void>> {
+  ): Promise<runtime.ApiResponse<AdminSetupResponseDto>> {
     if (requestParameters['adminSetupDto'] == null) {
       throw new runtime.RequiredError(
         'adminSetupDto',
@@ -192,7 +195,9 @@ export class AuthApi extends runtime.BaseAPI {
       initOverrides,
     );
 
-    return new runtime.VoidApiResponse(response);
+    return new runtime.JSONApiResponse(response, (jsonValue) =>
+      AdminSetupResponseDtoFromJSON(jsonValue),
+    );
   }
 
   /**
@@ -202,8 +207,9 @@ export class AuthApi extends runtime.BaseAPI {
   async authControllerAdminSetup(
     requestParameters: AuthControllerAdminSetupRequest,
     initOverrides?: RequestInit | runtime.InitOverrideFunction,
-  ): Promise<void> {
-    await this.authControllerAdminSetupRaw(requestParameters, initOverrides);
+  ): Promise<AdminSetupResponseDto> {
+    const response = await this.authControllerAdminSetupRaw(requestParameters, initOverrides);
+    return await response.value();
   }
 
   /**

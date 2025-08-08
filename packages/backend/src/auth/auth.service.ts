@@ -4,6 +4,7 @@ import {
   Injectable,
   Logger,
   NotFoundException,
+  UnauthorizedException,
 } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
@@ -133,6 +134,7 @@ export class AuthService {
   signAccessToken(user: User): string {
     const payload = {
       sub: user.id,
+      username: user.username,
       role: user.role,
     };
     this.logger.debug(
@@ -147,9 +149,13 @@ export class AuthService {
    * @param userId - Die ID des Benutzers
    * @returns Das signierte JWT Refresh-Token
    */
-  signRefreshToken(userId: string): string {
-    const payload = { sub: userId };
-    this.logger.debug(`🔄 Generiere Refresh-Token für Benutzer: ${userId}`);
+  signRefreshToken(user: User): string {
+    const payload = {
+      sub: user.id,
+      username: user.username,
+      role: user.role,
+    };
+    this.logger.debug(`🔄 Generiere Refresh-Token für Benutzer: ${user.username} (${user.id})`);
     return this.jwtService.sign(payload, { expiresIn: '7d' });
   }
 
@@ -211,9 +217,12 @@ export class AuthService {
    *
    * @param userId - Die ID des Admin-Accounts
    * @param password - Das Passwort des Admin-Accounts
-   * @returns Der validierte Admin-Benutzer oder null bei ungültigen Anmeldedaten
+   * @returns Der validierte Admin-Benutzer
+   * @throws NotFoundException wenn der Benutzer nicht existiert
+   * @throws ForbiddenException wenn der Benutzer keine Admin-Rechte hat
+   * @throws UnauthorizedException wenn kein Passwort gesetzt ist oder das Passwort ungültig ist
    */
-  async validateAdminCredentials(userId: string, password: string): Promise<User | null> {
+  async validateAdminCredentials(userId: string, password: string): Promise<User> {
     const user = await this.prisma.user.findUnique({
       where: {
         id: userId,
@@ -222,7 +231,7 @@ export class AuthService {
 
     if (!user) {
       this.logger.debug(`🔍 Admin-Login fehlgeschlagen: Benutzer nicht gefunden`);
-      return null;
+      throw new NotFoundException('Benutzer nicht gefunden');
     }
 
     // Check if user has admin rights
@@ -235,14 +244,14 @@ export class AuthService {
 
     if (!user.passwordHash) {
       this.logger.debug(`🔍 Admin-Login fehlgeschlagen: Kein Passwort für ${user.username}`);
-      return null;
+      throw new UnauthorizedException('Ungültiges Passwort');
     }
 
     const isPasswordValid = await bcrypt.compare(password, user.passwordHash);
 
     if (!isPasswordValid) {
       this.logger.warn(`🚫 Admin-Login fehlgeschlagen: Ungültiges Passwort für ${user.username}`);
-      return null;
+      throw new UnauthorizedException('Ungültiges Passwort');
     }
 
     this.logger.debug(`✅ Admin-Login erfolgreich: ${user.username} (Rolle: ${user.role})`);

@@ -78,7 +78,23 @@ jobs:
           NODE_ENV: test
         run: |
           pnpm --filter @bluelight-hub/backend start:prod &
-          sleep 10
+          # Wait for backend to become healthy instead of a fixed sleep
+          echo "Waiting for backend to be ready..."
+          ATTEMPTS=60
+          SLEEP_SECONDS=2
+          for i in $(seq 1 $ATTEMPTS); do
+            if curl -fsS http://localhost:3000/api/health/liveness > /dev/null; then
+              echo "Backend is ready (attempt $i)."
+              break
+            fi
+            echo "Attempt $i/$ATTEMPTS: Backend not ready yet. Retrying in ${SLEEP_SECONDS}s..."
+            sleep $SLEEP_SECONDS
+          done
+          # Final check to fail fast if backend is still not ready
+          if ! curl -fsS http://localhost:3000/api/health/liveness > /dev/null; then
+            echo "Backend failed to become ready within $((ATTEMPTS * SLEEP_SECONDS)) seconds."
+            exit 1
+          fi
 
       - name: Install Playwright Browsers
         run: pnpm --filter @bluelight-hub/frontend exec playwright install --with-deps

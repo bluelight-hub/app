@@ -53,20 +53,18 @@ export const CreateUserDialog = ({ isOpen, onClose, onSubmit, isSubmitting }: Cr
             >
               <Dialog.Body>
                 <VStack>
-                  <form.Field
-                    name="username"
-                    children={(field) => (
+                  <form.Field name="username">
+                    {(field) => (
                       <Field.Root>
                         <Field.Label>Benutzername</Field.Label>
                         <Input name={field.name} value={field.state.value} onBlur={field.handleBlur} onChange={(e) => field.handleChange(e.target.value)} placeholder="z.B. max.mustermann" />
                         {field.state.meta.errors.length > 0 && <Field.ErrorText>{field.state.meta.errors[0]}</Field.ErrorText>}
                       </Field.Root>
                     )}
-                  />
+                  </form.Field>
 
-                  <form.Field
-                    name="role"
-                    children={(field) => (
+                  <form.Field name="role">
+                    {(field) => (
                       <Field.Root>
                         <Field.Label>Rolle</Field.Label>
                         <NativeSelect.Root>
@@ -80,7 +78,7 @@ export const CreateUserDialog = ({ isOpen, onClose, onSubmit, isSubmitting }: Cr
                         {field.state.meta.errors.length > 0 && <Field.ErrorText>{field.state.meta.errors[0]}</Field.ErrorText>}
                       </Field.Root>
                     )}
-                  />
+                  </form.Field>
                 </VStack>
               </Dialog.Body>
 
@@ -88,14 +86,13 @@ export const CreateUserDialog = ({ isOpen, onClose, onSubmit, isSubmitting }: Cr
                 <Button variant="ghost" onClick={handleClose} disabled={isSubmitting}>
                   Abbrechen
                 </Button>
-                <form.Subscribe
-                  selector={(state) => [state.canSubmit, state.isSubmitting]}
-                  children={([canSubmit, isFormSubmitting]) => (
+                <form.Subscribe selector={(state) => [state.canSubmit, state.isSubmitting]}>
+                  {([canSubmit, isFormSubmitting]) => (
                     <Button type="submit" colorPalette="blue" disabled={!canSubmit || isFormSubmitting} loading={isSubmitting}>
                       Benutzer erstellen
                     </Button>
                   )}
-                />
+                </form.Subscribe>
               </Dialog.Footer>
             </form>
           </Dialog.Content>

@@ -8,8 +8,11 @@ index.ts
 models/AdminLoginResponseDto.ts
 models/AdminPasswordDto.ts
 models/AdminSetupDto.ts
+models/AdminSetupResponseDto.ts
+models/AdminSetupUserDto.ts
 models/AdminStatusDto.ts
 models/AdminTokenVerificationDto.ts
+models/AdminUserDto.ts
 models/ApiLinks.ts
 models/ApiMeta.ts
 models/ApiPagination.ts

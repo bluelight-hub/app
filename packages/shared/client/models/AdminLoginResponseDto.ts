@@ -13,6 +13,14 @@
  */
 
 import { mapValues } from '../runtime';
+import type { AdminUserDto } from './AdminUserDto';
+import {
+  AdminUserDtoFromJSON,
+  AdminUserDtoFromJSONTyped,
+  AdminUserDtoToJSON,
+  AdminUserDtoToJSONTyped,
+} from './AdminUserDto';
+
 /**
  *
  * @export
@@ -21,10 +29,10 @@ import { mapValues } from '../runtime';
 export interface AdminLoginResponseDto {
   /**
    * Admin-Benutzerinformationen
-   * @type {object}
+   * @type {AdminUserDto}
    * @memberof AdminLoginResponseDto
    */
-  user: object;
+  user: AdminUserDto;
 }
 
 /**
@@ -47,7 +55,7 @@ export function AdminLoginResponseDtoFromJSONTyped(
     return json;
   }
   return {
-    user: json['user'],
+    user: AdminUserDtoFromJSON(json['user']),
   };
 }
 
@@ -64,6 +72,6 @@ export function AdminLoginResponseDtoToJSONTyped(
   }
 
   return {
-    user: value['user'],
+    user: AdminUserDtoToJSON(value['user']),
   };
 }

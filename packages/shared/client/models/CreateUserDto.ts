@@ -20,7 +20,7 @@ import { mapValues } from '../runtime';
  */
 export interface CreateUserDto {
   /**
-   * Eindeutiger Benutzername für den neuen Benutzer
+   * Eindeutiger Benutzername für den neuen Benutzer (nur Buchstaben, Zahlen, Unterstriche und Punkte erlaubt)
    * @type {string}
    * @memberof CreateUserDto
    */
