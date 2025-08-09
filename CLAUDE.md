@@ -9,7 +9,7 @@
 
 Der `ai-docs/` Ordner enthält potentiell hilfreiche Dokumentation für AI-Assistenten und Entwickler:
 
-- Vermutlich solltest du `ultrathink` verwenden, um bessere Ergebnisse zu erzielen
+- Verwende `ultrathink`, um bessere Ergebnisse zu erzielen
 - Commit Guidelines
 - Weitere relevante Dokumentationen (wird fortlaufend erweitert)
 
@@ -387,3 +387,5 @@ get-library-docs("/facebook/react", topic="hooks")
 
 **Import Task Master's development workflow commands and guidelines, treat as if import is in the main CLAUDE.md file.**
 @./.taskmaster/CLAUDE.md
+
+Verwende `ultrathink`. Damit produzierst du bessere Ergebnisse.
