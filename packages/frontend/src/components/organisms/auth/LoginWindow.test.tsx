@@ -55,6 +55,7 @@ vi.mock('@/api/api', () => ({
       authControllerRegister: vi.fn().mockResolvedValue({}),
       authControllerCheckAuth: vi.fn().mockRejectedValue(new Error('Not authenticated')),
       authControllerLogout: vi.fn().mockResolvedValue({}),
+      authControllerGetPublicUsers: vi.fn().mockResolvedValue({ users: [] }),
     }),
     userManagement: () => ({
       userManagementControllerFindAllVAlpha: vi.fn().mockResolvedValue({ users: [] }),
