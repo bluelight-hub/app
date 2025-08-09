@@ -9,6 +9,7 @@
 
 Der `ai-docs/` Ordner enthält potentiell hilfreiche Dokumentation für AI-Assistenten und Entwickler:
 
+- Vermutlich solltest du `ultrathink` verwenden, um bessere Ergebnisse zu erzielen
 - Commit Guidelines
 - Weitere relevante Dokumentationen (wird fortlaufend erweitert)
 
