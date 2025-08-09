@@ -6,15 +6,20 @@
 
 
 == Übersicht
-Dieser Abschnitt beschreibt übergreifende Konzepte und Prinzipien, die in der Architektur des Bluelight-Hub-Systems verankert sind. Diese Konzepte bilden die Grundlage für Entwurfsentscheidungen und erstrecken sich über mehrere Bausteine des Systems.
+
+Dieser Abschnitt beschreibt übergreifende Konzepte und Prinzipien, die in der Architektur des Bluelight-Hub-Systems verankert sind.
+Diese Konzepte bilden die Grundlage für Entwurfsentscheidungen und erstrecken sich über mehrere Bausteine des Systems.
 
 == Inhalt
 
 === Domänenmodell
 
-Das Domänenmodell des Bluelight-Hub-Systems basiert auf dem "Einsatz" als zentraler Entität und den damit verbundenen Templates für wiederverwendbare Elemente. In der aktuellen Konzeption ist die Anwendung primär für die Verwaltung eines konkreten Einsatzes zuständig, wobei in den meisten Anwendungsfällen nicht mehr als ein Einsatz gleichzeitig aktiv ist.
+Das Domänenmodell des Bluelight-Hub-Systems basiert auf dem "Einsatz" als zentraler Entität und den damit verbundenen Templates für wiederverwendbare Elemente.
+In der aktuellen Konzeption ist die Anwendung primär für die Verwaltung eines konkreten Einsatzes zuständig, wobei in den meisten Anwendungsfällen nicht mehr als ein Einsatz gleichzeitig aktiv ist.
 
-Das grundlegende Konzept besteht darin, dass Templates für wiederverwendbare Elemente wie Personal, Fahrzeuge und Material existieren. Ein Einsatz wandelt diese Templates in konkrete Instanzen um und persistiert diese. Dadurch wird eine effiziente Erstellung und Verwaltung von Einsätzen ermöglicht, ohne jedes Mal alle Daten neu eingeben zu müssen.
+Das grundlegende Konzept besteht darin, dass Templates für wiederverwendbare Elemente wie Personal, Fahrzeuge und Material existieren.
+Ein Einsatz wandelt diese Templates in konkrete Instanzen um und persistiert diese.
+Dadurch wird eine effiziente Erstellung und Verwaltung von Einsätzen ermöglicht, ohne jedes Mal alle Daten neu eingeben zu müssen.
 
 [dbml]
 ....
@@ -159,7 +164,8 @@ Das Template-Konzept ist ein zentrales Merkmal des Domänenmodells:
 
 ==== Vereinfachte Schichtenarchitektur
 
-Die Architektur folgt einem pragmatischen Schichtenmodell, das die Trennung von Zuständigkeiten gewährleistet, ohne unnötige Komplexität einzuführen. Statt einer vollständigen hexagonalen Architektur, die derzeit als zu komplex für die Anforderungen des Systems betrachtet wird, nutzt das System eine klare Trennung der Verantwortlichkeiten mit definierten Schichten.
+Die Architektur folgt einem pragmatischen Schichtenmodell, das die Trennung von Zuständigkeiten gewährleistet, ohne unnötige Komplexität einzuführen.
+Statt einer vollständigen hexagonalen Architektur, die derzeit als zu komplex für die Anforderungen des Systems betrachtet wird, nutzt das System eine klare Trennung der Verantwortlichkeiten mit definierten Schichten.
 
 [mermaid]
 ....
@@ -361,11 +367,13 @@ sequenceDiagram
 
 ==== Admin-Authentifizierung und Sicherheit
 
-Das Bluelight-Hub-System implementiert ein umfassendes Sicherheitskonzept für die Authentifizierung und Autorisierung von Administratoren. Die Implementierung basiert auf modernen Sicherheitsstandards und -praktiken, die in mehreren Architekturentscheidungen (ADRs) dokumentiert sind.
+Das Bluelight-Hub-System implementiert ein umfassendes Sicherheitskonzept für die Authentifizierung und Autorisierung von Administratoren.
+Die Implementierung basiert auf modernen Sicherheitsstandards und -praktiken, die in mehreren Architekturentscheidungen (ADRs) dokumentiert sind.
 
 ===== JWT-basierte Authentifizierung
 
-Das System nutzt JSON Web Tokens (JWT) für die Authentifizierung, wie in <<../adr/007-auth-refresh-tokens.adoc>> dokumentiert. Die JWT-Implementierung bietet:
+Das System nutzt JSON Web Tokens (JWT) für die Authentifizierung, wie in <<../adr/007-auth-refresh-tokens.adoc>> dokumentiert.
+Die JWT-Implementierung bietet:
 
 * *Zugriffstokens*: Kurzlebige Tokens (15 Minuten Gültigkeit) für API-Zugriffe
 * *Refresh-Tokens*: Langlebige Tokens (7 Tage Gültigkeit) für Token-Erneuerung
@@ -418,6 +426,7 @@ model Session {
 Das System implementiert umfassende Sicherheitsheader, wie in <<../adr/010-security-headers.adoc>> spezifiziert:
 
 *Helmet.js Integration*:
+
 [source,typescript]
 ----
 app.use(helmet({
@@ -443,6 +452,7 @@ app.use(helmet({
 ----
 
 *Zusätzliche Sicherheitsheader*:
+
 * `X-Content-Type-Options: nosniff` - Verhindert MIME-Type-Sniffing
 * `X-Frame-Options: DENY` - Schutz vor Clickjacking
 * `X-XSS-Protection: 1; mode=block` - XSS-Schutz (Legacy-Browser)
@@ -617,7 +627,8 @@ flowchart TD
     class Stats,Tables,RefreshMech comp
 ....
 
-Die Dashboard-Architektur nutzt Tauri Webviews für leichtgewichtige, separate Fenster, die dennoch eng mit der Hauptanwendung integriert sind. Die vollständige Begründung und technische Details sind in <<../adr/009-dashboard-architektur.adoc>> dokumentiert.
+Die Dashboard-Architektur nutzt Tauri Webviews für leichtgewichtige, separate Fenster, die dennoch eng mit der Hauptanwendung integriert sind.
+Die vollständige Begründung und technische Details sind in <<../adr/009-dashboard-architektur.adoc>> dokumentiert.
 
 ==== Kontextbezogene Benutzeroberfläche
 
@@ -642,7 +653,8 @@ Die Dashboard-Architektur nutzt Tauri Webviews für leichtgewichtige, separate F
 
 ==== Übersicht und Prinzipien
 
-Das Backend des Bluelight-Hub-Systems basiert auf dem NestJS-Framework und folgt der modularen Architektur, die dieses Framework vorgibt. NestJS wurde gewählt, da es eine strukturierte, modulare und gut skalierbare Codebasis ermöglicht, die auf bewährten Konzepten wie Dependency Injection, AOP (Aspect-Oriented Programming) und dem SOLID-Prinzip basiert.
+Das Backend des Bluelight-Hub-Systems basiert auf dem NestJS-Framework und folgt der modularen Architektur, die dieses Framework vorgibt.
+NestJS wurde gewählt, da es eine strukturierte, modulare und gut skalierbare Codebasis ermöglicht, die auf bewährten Konzepten wie Dependency Injection, AOP (Aspect-Oriented Programming) und dem SOLID-Prinzip basiert.
 
 Die Hauptprinzipien unserer Backend-Architektur sind:
 
@@ -760,7 +772,7 @@ NestJS bietet einen leistungsfähigen DI-Container:
 
 Die Backend-Architektur umfasst folgende Hauptkomponententypen:
 
-[cols="1,3,2", options="header"]
+[cols="1,3,2",options="header"]
 |===
 |Komponente |Verantwortlichkeit |Pattern/Prinzip
 |Controller |Definieren der HTTP-Endpunkte und Routing |MVC Controller
@@ -796,14 +808,30 @@ Das API-Design folgt den REST-Prinzipien mit folgenden Merkmalen:
 
 * **Ressourcenorientiert**: Endpunkte repräsentieren Ressourcen, nicht Aktionen
 * **HTTP-Verben**: Verwendung von GET, POST, PUT, DELETE für CRUD-Operationen
-* **Versionierung**: API-Versionen durch URI-Pfad (/api/v1/resource)
+* **Versionierung**: Siehe detaillierte Beschreibung unter "API-Versionierung" unten
+* **Konsistente Pfade**: Pluralisierte Ressourcennamen, hierarchische Strukturen für Beziehungen
+
+===== API-Versionierung
+
+Die API verwendet URI/Path-Versionierung gemäß ADR-012:
+
+* **Format**: `/api/v-{major}/resource`
+* **Beispiele**: `/api/v-1/users`, `/api/v-1/auth/register`
+* **Vorteile**:
+- Maximale Kompatibilität mit allen HTTP-Clients und Tools
+- Explizite Versionssichtbarkeit in der URL
+- Einfache parallele Versionsverwaltung
+- Vollständige OpenAPI/Swagger-Unterstützung
+* **Migration**: Neue Versionen werden bei Breaking Changes eingeführt
+* **Versionierung**: API-Versionen durch URI-Pfad (/api/v-1/resource)
 * **Dokumentation**: OpenAPI/Swagger-Dokumentation für alle Endpunkte
 * **Validierung**: DTO-basierte Eingabevalidierung mit class-validator
 * **Fehlerformate**: Einheitliches Fehlerformat mit HTTP-Statuscodes
 
 ==== Standardisierte API-Antwortstruktur
 
-Eine der wichtigsten Architekturentscheidungen im Backend ist die Verwendung einer standardisierten API-Antwortstruktur. Diese gewährleistet ein konsistentes Format für alle API-Antworten und verbessert die Nutzererfahrung, Wartbarkeit und Testbarkeit.
+Eine der wichtigsten Architekturentscheidungen im Backend ist die Verwendung einer standardisierten API-Antwortstruktur.
+Diese gewährleistet ein konsistentes Format für alle API-Antworten und verbessert die Nutzererfahrung, Wartbarkeit und Testbarkeit.
 
 ===== ApiResponse<T> Basisklasse
 
@@ -823,13 +851,12 @@ export class ApiMeta {
 ----
 
 Diese Struktur stellt sicher, dass jede API-Antwort folgendes enthält:
-* **data**: Die eigentlichen Antwortdaten mit spezifischem Typ
-* **meta**: Metadaten wie Zeitstempel oder Paginierungsinformationen
-* **message**: Optionale Nachricht für zusätzliche Informationen
+* **data**: Die eigentlichen Antwortdaten mit spezifischem Typ * **meta**: Metadaten wie Zeitstempel oder Paginierungsinformationen * **message**: Optionale Nachricht für zusätzliche Informationen
 
 ===== Integration mit TransformInterceptor
 
-Die standardisierte Antwortstruktur wird durch einen `TransformInterceptor` automatisiert, der jeden Controller-Rückgabewert in das definierte Format umwandelt. Dies vereinfacht die Controller-Implementierung und stellt gleichzeitig Konsistenz sicher.
+Die standardisierte Antwortstruktur wird durch einen `TransformInterceptor` automatisiert, der jeden Controller-Rückgabewert in das definierte Format umwandelt.
+Dies vereinfacht die Controller-Implementierung und stellt gleichzeitig Konsistenz sicher.
 
 Der Interceptor kann auf Controller- oder Routenebene angewendet werden:
 
@@ -848,6 +875,7 @@ export class BeispielController {
 Für verschiedene Anwendungsfälle werden spezialisierte Response-DTOs erstellt, die von `ApiResponse<T>` ableiten:
 
 * **Einzelobjekt-Antworten**:
+
 [source,typescript]
 ----
 export class EntityResponse extends ApiResponse<EntityDto> {
@@ -857,6 +885,7 @@ export class EntityResponse extends ApiResponse<EntityDto> {
 ----
 
 * **Listen-Antworten**:
+
 [source,typescript]
 ----
 export class EntitiesResponse extends ApiResponse<EntityDto[]> {
@@ -869,6 +898,7 @@ export class EntitiesResponse extends ApiResponse<EntityDto[]> {
 ----
 
 * **Paginierte Antworten**:
+
 [source,typescript]
 ----
 export class PaginatedResponse<T> {
@@ -898,15 +928,18 @@ Die einheitliche API-Antwortstruktur bietet mehrere Vorteile:
 
 ===== Integration mit Frontend
 
-Das Frontend kann sich auf diese konsistente Struktur verlassen und generische Komponenten für das Handling von API-Antworten implementieren. Die OpenAPI-generierte Client-Bibliothek spiegelt diese Struktur im Frontend wider.
+Das Frontend kann sich auf diese konsistente Struktur verlassen und generische Komponenten für das Handling von API-Antworten implementieren.
+Die OpenAPI-generierte Client-Bibliothek spiegelt diese Struktur im Frontend wider.
 
 ==== Standardisierte Validierungs-Dekoratoren
 
-Das Backend des Bluelight-Hub-Systems verwendet eine Reihe standardisierter Validierungs-Dekoratoren, um die Gültigkeit von Eingabedaten sicherzustellen. Neben den von class-validator bereitgestellten Standard-Dekoratoren wurden verschiedene benutzerdefinierte Validierungs-Dekoratoren entwickelt, um projektspezifische Validierungsanforderungen zu erfüllen.
+Das Backend des Bluelight-Hub-Systems verwendet eine Reihe standardisierter Validierungs-Dekoratoren, um die Gültigkeit von Eingabedaten sicherzustellen.
+Neben den von class-validator bereitgestellten Standard-Dekoratoren wurden verschiedene benutzerdefinierte Validierungs-Dekoratoren entwickelt, um projektspezifische Validierungsanforderungen zu erfüllen.
 
 ===== IsNanoId Validator
 
-Die `IsNanoId`-Validierung ist ein benutzerdefinierter Decorator, der die Gültigkeit von NanoID-Strings überprüft. NanoIDs werden im System als ID-Format für verschiedene Entitäten verwendet und bieten eine Alternative zu UUIDs mit kürzeren, URL-freundlichen IDs.
+Die `IsNanoId`-Validierung ist ein benutzerdefinierter Decorator, der die Gültigkeit von NanoID-Strings überprüft.
+NanoIDs werden im System als ID-Format für verschiedene Entitäten verwendet und bieten eine Alternative zu UUIDs mit kürzeren, URL-freundlichen IDs.
 
 *Implementierung:*
 
@@ -946,7 +979,8 @@ Folgende Querschnittskonzepte ziehen sich durch die gesamte Backend-Architektur:
 
 ===== Logging-Konzept
 
-Das Bluelight-Hub-System setzt auf ein strukturiertes Logging-Konzept, das auf der consola-Bibliothek basiert. Dies bietet mehrere Vorteile gegenüber der direkten Verwendung von console.log:
+Das Bluelight-Hub-System setzt auf ein strukturiertes Logging-Konzept, das auf der consola-Bibliothek basiert.
+Dies bietet mehrere Vorteile gegenüber der direkten Verwendung von console.log:
 
 [source]
 ----
@@ -964,27 +998,27 @@ logger.trace('Detaillierte Trace-Information');
 *Hauptmerkmale des Logging-Konzepts:*
 
 1. **Zentrale Logger-Implementation**: `packages/backend/src/logger/consola.logger.ts` stellt einen einheitlichen Logger bereit:
-   * Als direkt importierbarer `logger`
-   * Als `ConsolaLogger`-Klasse für die NestJS LoggerService-Integration
+* Als direkt importierbarer `logger`
+* Als `ConsolaLogger`-Klasse für die NestJS LoggerService-Integration
 
 2. **Umgebungsabhängige Log-Level-Konfiguration**:
-   * Produktion: Log-Level 3 (info) - Nur wichtige Nachrichten
-   * Entwicklung: Log-Level 4 (debug) - Detailliertere Informationen
+* Produktion: Log-Level 3 (info) - Nur wichtige Nachrichten
+* Entwicklung: Log-Level 4 (debug) - Detailliertere Informationen
 
 3. **Architekturelle Vorgaben**:
-   * Verwendung von `console.*` ist nicht erlaubt und wird durch Architekturtests verhindert
-   * Einheitliche Logger-Integration für konsistente Ausgabeformate
+* Verwendung von `console.*` ist nicht erlaubt und wird durch Architekturtests verhindert
+* Einheitliche Logger-Integration für konsistente Ausgabeformate
 
 4. **Verfügbare Log-Level**:
-   * `error`: Kritische Fehler, die Aufmerksamkeit erfordern
-   * `warn`: Warnungen über potenzielle Probleme
-   * `info`: Allgemeine Informationen zum Programmablauf
-   * `debug`: Ausführliche Informationen für Entwickler
-   * `trace`: Detaillierte Nachverfolgung für tiefergehende Analyse
+* `error`: Kritische Fehler, die Aufmerksamkeit erfordern
+* `warn`: Warnungen über potenzielle Probleme
+* `info`: Allgemeine Informationen zum Programmablauf
+* `debug`: Ausführliche Informationen für Entwickler
+* `trace`: Detaillierte Nachverfolgung für tiefergehende Analyse
 
 5. **Integration mit NestJS**:
-   * Bereitstellung als Provider in der Anwendung: `{ provide: 'Logger', useClass: ConsolaLogger }`
-   * Konsistente Verwendung in allen Modulen durch Dependency Injection
+* Bereitstellung als Provider in der Anwendung: `{ provide: 'Logger', useClass: ConsolaLogger }`
+* Konsistente Verwendung in allen Modulen durch Dependency Injection
 
 *Vorteile des strukturierten Loggings:*
 
@@ -1067,7 +1101,8 @@ graph TD
 
 === Seeding- und Profile-System
 
-Das Seeding- und Profile-System ist ein spezialisiertes Subsystem für die Erstellung und Verwaltung von Test- und Entwicklungsdaten. Es ermöglicht die schnelle Generierung realistischer DRK-Einsatzszenarien für Entwicklung, Testing und Demonstrations-zwecke.
+Das Seeding- und Profile-System ist ein spezialisiertes Subsystem für die Erstellung und Verwaltung von Test- und Entwicklungsdaten.
+Es ermöglicht die schnelle Generierung realistischer DRK-Einsatzszenarien für Entwicklung, Testing und Demonstrations-zwecke.
 
 ==== Konzept und Motivation
 
@@ -1139,7 +1174,7 @@ interface SeedProfile {
 Das System bietet vordefinierte Profile für typische DRK-Einsatzbereiche:
 
 * *MANV (Massenanfall von Verletzten)*: Großschadensereignisse mit vielen Verletzten
-* *Sanitätsdienst*: Medizinische Betreuung bei Veranstaltungen  
+* *Sanitätsdienst*: Medizinische Betreuung bei Veranstaltungen
 * *Katastrophenschutz*: Naturkatastrophen und Großschadensereignisse
 * *Betreuung*: Soziale Betreuung und Versorgung von Evakuierten
 * *Rettungsdienst*: Reguläre medizinische Notfallversorgung
@@ -1149,16 +1184,19 @@ Das System bietet vordefinierte Profile für typische DRK-Einsatzbereiche:
 ==== Verwendungsszenarien
 
 ===== Entwicklungsumgebung
+
 * Automatische Initialisierung mit Standard-Einsatz beim App-Start
 * Schnelle Erstellung verschiedener Testszenarien
 * Konsistente Ausgangslage für Feature-Entwicklung
 
 ===== Testing
+
 * Reproduzierbare Testdaten für Unit- und Integrationstests
 * Stress-Testing mit verschiedenen Einsatzgrößen
 * Grenzfall-Tests mit komplexen Szenarien
 
 ===== Präsentationen und Demos
+
 * Realistische Daten für Stakeholder-Präsentationen
 * Verschiedene Einsatztypen für Feature-Demonstrationen
 * Schneller Wechsel zwischen Szenarien
@@ -1166,6 +1204,7 @@ Das System bietet vordefinierte Profile für typische DRK-Einsatzbereiche:
 ==== Schnittstellen und Zugriffsmethoden
 
 ===== CLI-Interface
+
 Das Command-Line-Interface bietet direkten Zugriff für Entwickler:
 
 [source,bash]
@@ -1184,6 +1223,7 @@ npm run cli seed:einsatz --category katastrophenschutz
 ----
 
 ===== Admin-Panel-Integration (geplant)
+
 Web-basierte Oberfläche für erweiterte Profile-Verwaltung:
 * Visual Profile-Browser mit Filterung und Suche
 * Bulk-Operations für mehrere Profile
@@ -1191,6 +1231,7 @@ Web-basierte Oberfläche für erweiterte Profile-Verwaltung:
 * Import/Export von Profile-Sets
 
 ===== Programmatische API
+
 Direkte Integration in Backend-Services:
 
 [source,typescript]
@@ -1213,23 +1254,26 @@ const recommended = profileService.getRecommendedProfiles({
 Das Seeding-System nutzt erweiterte Fehlerbehandlung für robuste Operation in verschiedenen Umgebungen:
 
 * *Retry-Mechanismus*: Exponential Backoff für transiente Fehler
-* *Duplicate Detection*: Verhindert doppelte Einsätze bei parallelen Operationen  
+* *Duplicate Detection*: Verhindert doppelte Einsätze bei parallelen Operationen
 * *Umgebungsspezifisches Verhalten*: Angepasste Strategien für Dev/Test/Prod
 * *PostgreSQL-spezifische Optimierungen*: Nutzt DB-Features für Konsistenz
 
 ==== Erweiterbarkeit und Anpassung
 
 ===== Custom-Profile
+
 * Projektspezifische Profile zusätzlich zu Standard-DRK-Profilen
 * Template-basierte Profile-Erstellung
 * Versionierung und Migration von Profilen
 
 ===== Plugin-Architektur
+
 * Erweiterbare Profile-Generatoren
 * Custom-Metadata-Provider
 * Integration mit externen Datenquellen
 
 ===== Konfigurierbarkeit
+
 * Umgebungsabhängige Profile-Sets
 * Konfigurierbare Default-Profile
 * Feature-Flags für verschiedene Profile-Features
@@ -1245,11 +1289,13 @@ Dieses System stellt sicher, dass realistische und konsistente Testdaten für al
 
 === Rollenbasiertes Administrationssystem
 
-Das Bluelight-Hub-System implementiert ein umfassendes rollenbasiertes Administrationssystem, das verschiedene Zugriffsebenen basierend auf Benutzerrollen bietet. Dies gewährleistet die Sicherheit und Kontrolle über administrative Funktionen.
+Das Bluelight-Hub-System implementiert ein umfassendes rollenbasiertes Administrationssystem, das verschiedene Zugriffsebenen basierend auf Benutzerrollen bietet.
+Dies gewährleistet die Sicherheit und Kontrolle über administrative Funktionen.
 
 ==== Übersicht
 
-Das System nutzt ein granulares berechtigungsbasiertes Zugriffskontrollsystem (Permission-based Access Control). Jede Rolle hat spezifische Berechtigungen, die den Zugriff auf verschiedene Teile des Systems steuern.
+Das System nutzt ein granulares berechtigungsbasiertes Zugriffskontrollsystem (Permission-based Access Control).
+Jede Rolle hat spezifische Berechtigungen, die den Zugriff auf verschiedene Teile des Systems steuern.
 
 ==== Benutzerrollen
 
@@ -1263,17 +1309,20 @@ Das System unterstützt vier verschiedene Benutzerrollen:
 ==== Berechtigungskategorien
 
 ===== Benutzerverwaltung
+
 * `USERS_READ`: Benutzerdaten und Listen anzeigen
 * `USERS_WRITE`: Benutzer erstellen und bearbeiten
 * `USERS_DELETE`: Benutzer löschen
 
 ===== Systemeinstellungen
+
 * `SYSTEM_SETTINGS_READ`: Systemeinstellungen anzeigen
 * `SYSTEM_SETTINGS_WRITE`: Systemeinstellungen ändern
 * `AUDIT_LOG_READ`: Audit-Logs und Systemprotokolle anzeigen
 * `ROLE_MANAGE`: Rollen und Berechtigungen verwalten
 
 ===== Anwendungsberechtigungen
+
 * `ETB_READ`: Einsatztagebuch-Einträge anzeigen
 * `ETB_WRITE`: ETB-Einträge erstellen und bearbeiten
 * `ETB_DELETE`: ETB-Einträge löschen
@@ -1283,7 +1332,7 @@ Das System unterstützt vier verschiedene Benutzerrollen:
 
 ==== Rollen-Berechtigungs-Matrix
 
-[cols="3,1,1,1,1", options="header"]
+[cols="3,1,1,1,1",options="header"]
 |===
 |Berechtigung |SUPER_ADMIN |ADMIN |SUPPORT |USER
 
@@ -1320,35 +1369,35 @@ Die folgenden Berechtigungen werden als kritisch eingestuft und sollten nur vert
 ===== Backend-Architektur
 
 1. *Datenbankschema*: Nutzt PostgreSQL mit Prisma ORM
-   * User-Modell mit Rollenfeld
-   * RolePermission-Modell für Rollen-zu-Berechtigungs-Zuordnung
-   * JWT-Tokens enthalten Rollen und Berechtigungen
+* User-Modell mit Rollenfeld
+* RolePermission-Modell für Rollen-zu-Berechtigungs-Zuordnung
+* JWT-Tokens enthalten Rollen und Berechtigungen
 
 2. *Guards*:
-   * `RolesGuard`: Prüft, ob Benutzer die erforderliche Rolle hat
-   * `PermissionsGuard`: Prüft auf spezifische Berechtigungen
-   * `JwtAuthGuard`: Validiert JWT-Tokens
+* `RolesGuard`: Prüft, ob Benutzer die erforderliche Rolle hat
+* `PermissionsGuard`: Prüft auf spezifische Berechtigungen
+* `JwtAuthGuard`: Validiert JWT-Tokens
 
 3. *Decorators*:
-   * `@Roles()`: Erforderliche Rollen für Endpoints spezifizieren
-   * `@RequirePermissions()`: Erforderliche Berechtigungen spezifizieren
-   * `@Public()`: Endpoints als öffentlich zugänglich markieren
+* `@Roles()`: Erforderliche Rollen für Endpoints spezifizieren
+* `@RequirePermissions()`: Erforderliche Berechtigungen spezifizieren
+* `@Public()`: Endpoints als öffentlich zugänglich markieren
 
 ===== Frontend-Integration
 
 1. *AuthContext*:
-   * `hasRole(role: string)`: Prüft, ob Benutzer eine bestimmte Rolle hat
-   * `hasPermission(permission: string)`: Prüft, ob Benutzer eine bestimmte Berechtigung hat
-   * `isAdmin()`: Prüft, ob Benutzer ein Admin ist (SUPER_ADMIN, ADMIN oder SUPPORT)
+* `hasRole(role: string)`: Prüft, ob Benutzer eine bestimmte Rolle hat
+* `hasPermission(permission: string)`: Prüft, ob Benutzer eine bestimmte Berechtigung hat
+* `isAdmin()`: Prüft, ob Benutzer ein Admin ist (SUPER_ADMIN, ADMIN oder SUPPORT)
 
 2. *Navigation*:
-   * Normale Benutzer sehen nur Haupt-Navigationselemente
-   * Admin-Benutzer sehen sowohl Haupt- als auch Admin-Navigationselemente
-   * Admin-Panel kann in einem separaten Fenster geöffnet werden
+* Normale Benutzer sehen nur Haupt-Navigationselemente
+* Admin-Benutzer sehen sowohl Haupt- als auch Admin-Navigationselemente
+* Admin-Panel kann in einem separaten Fenster geöffnet werden
 
 3. *Routen-Schutz*:
-   * Admin-Routen sind durch `AdminGuard` geschützt
-   * Routen können sowohl in der Haupt-App als auch im separaten Admin-Fenster aufgerufen werden
+* Admin-Routen sind durch `AdminGuard` geschützt
+* Routen können sowohl in der Haupt-App als auch im separaten Admin-Fenster aufgerufen werden
 
 ==== Berechtigungsverwaltung
 
@@ -1367,7 +1416,8 @@ npm run cli -- seed:admin --password="secure-password"
 
 ===== Berechtigungs-Konstanten
 
-Alle Berechtigungen sind in `packages/backend/src/modules/auth/constants/permissions.constants.ts` definiert. Diese Datei enthält:
+Alle Berechtigungen sind in `packages/backend/src/modules/auth/constants/permissions.constants.ts` definiert.
+Diese Datei enthält:
 
 * Berechtigungsgruppen für einfacheres Management
 * Standard-Rollen-Berechtigungs-Zuordnungen
@@ -1376,7 +1426,8 @@ Alle Berechtigungen sind in `packages/backend/src/modules/auth/constants/permiss
 
 ===== Fallback-Mechanismus
 
-Wenn keine Berechtigungen in der Datenbank gefunden werden, fällt das System auf die im Code definierten Standardberechtigungen zurück. Dies stellt sicher, dass das System auch ohne durchgeführtes Datenbank-Seeding weiter funktioniert.
+Wenn keine Berechtigungen in der Datenbank gefunden werden, fällt das System auf die im Code definierten Standardberechtigungen zurück.
+Dies stellt sicher, dass das System auch ohne durchgeführtes Datenbank-Seeding weiter funktioniert.
 
 ==== Berechtigungsvalidierung
 
@@ -1406,11 +1457,13 @@ Das System ist für zukünftige Erweiterungen ausgelegt:
 
 === Audit-Logging-System
 
-Das Bluelight-Hub-System implementiert ein umfassendes Audit-Logging-System zur Nachverfolgung aller sicherheitsrelevanten und administrativen Aktionen. Dieses System ist essentiell für Compliance, Security-Monitoring und forensische Analysen.
+Das Bluelight-Hub-System implementiert ein umfassendes Audit-Logging-System zur Nachverfolgung aller sicherheitsrelevanten und administrativen Aktionen.
+Dieses System ist essentiell für Compliance, Security-Monitoring und forensische Analysen.
 
 ==== Übersicht und Architektur
 
-Das Audit-System basiert auf einem konfigurierbaren Interceptor-Pattern, das automatisch alle API-Aufrufe erfasst und strukturiert protokolliert. Die Architektur nutzt asynchrone Verarbeitung über Message Queues für optimale Performance.
+Das Audit-System basiert auf einem konfigurierbaren Interceptor-Pattern, das automatisch alle API-Aufrufe erfasst und strukturiert protokolliert.
+Die Architektur nutzt asynchrone Verarbeitung über Message Queues für optimale Performance.
 
 [mermaid]
 ....

@@ -1,0 +1,62 @@
+import { useEffect } from 'react';
+import { useQuery } from '@tanstack/react-query';
+import { api } from '@/api/api';
+import { authActions } from '@/stores/auth.store';
+import { logger } from '@/utils/logger';
+
+const AUTH_CHECK_QUERY_KEY = 'auth-check';
+
+/**
+ * Hook für die automatische Wiederherstellung der Authentifizierung beim App-Start
+ *
+ * Dieser Hook prüft beim ersten Laden der App, ob der Benutzer noch über
+ * gültige Cookies authentifiziert ist und stellt die Session wieder her.
+ *
+ * Das läuft im Hintergrund (Silent-Refresh) ohne die UI zu blockieren.
+ */
+export function useAuthRefresh() {
+  // WICHTIG: HttpOnly Cookies (accessToken, refreshToken) sind im JavaScript nicht sichtbar!
+  // Wir müssen immer versuchen, den User zu laden und das Backend entscheiden lassen,
+  // ob gültige Cookies vorhanden sind.
+
+  const { data: currentUser = null, isLoading } = useQuery({
+    queryKey: [AUTH_CHECK_QUERY_KEY],
+    queryFn: async () => {
+      try {
+        const response = await api.auth().authControllerCheckAuth();
+        // Admin-Auth-Status immer explizit setzen
+        authActions.setAdminAuth(response.isAdminAuthenticated === true);
+
+        if (response.user) {
+          logger.log('Auth refresh successful:', response.user);
+        }
+        // Explizit null zurückgeben wenn kein User vorhanden
+        return response.user ?? null;
+      } catch (error) {
+        logger.error('Auth check failed:', error);
+        // Bei Fehler Admin-Status sicherheitshalber auf false setzen
+        authActions.setAdminAuth(false);
+        return null;
+      }
+    },
+    enabled: true,
+    // Nur beim ersten Mount ausführen
+    staleTime: Infinity,
+    retry: false,
+    throwOnError: false,
+  });
+  useEffect(() => {
+    if (!isLoading) {
+      if (currentUser) {
+        // User erfolgreich geladen - im Store speichern
+        authActions.loginSuccess(currentUser);
+        logger.log('User restored from session:', currentUser);
+      }
+    }
+  }, [currentUser, isLoading]);
+
+  // Setze den Loading-Status im Store
+  useEffect(() => {
+    authActions.setLoading(isLoading);
+  }, [isLoading]);
+}

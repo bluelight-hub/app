@@ -25,6 +25,8 @@
       "allow": ["create", "webview-show"]
     },
     "core:window:allow-show",
+    "core:window:allow-set-focus",
+    "core:window:allow-unminimize",
     "core:window:allow-create",
     "core:window:allow-close",
     "core:window:allow-maximize",

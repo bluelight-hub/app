@@ -1,12 +1,13 @@
 import { Logger, ValidationPipe, VersioningType } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { NestFactory } from '@nestjs/core';
+import { NestFactory, Reflector } from '@nestjs/core';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import * as packageJson from '../package.json';
 import { AppModule } from './app.module';
 import helmet from 'helmet';
 import * as cookieParser from 'cookie-parser';
 import { corsConfig, helmetConfig } from './config/security.config';
+import { TransformInterceptor } from './common/interceptors/transform.interceptor';
 
 require('@dotenvx/dotenvx').config();
 
@@ -20,9 +21,13 @@ async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
   app.enableVersioning({
-    type: VersioningType.MEDIA_TYPE,
-    key: 'version',
-    defaultVersion: '0.1',
+    type: VersioningType.URI,
+    prefix: 'v-',
+    defaultVersion: 'alpha',
+  });
+
+  app.setGlobalPrefix('api', {
+    exclude: ['/'],
   });
 
   const config = new DocumentBuilder()
@@ -32,19 +37,20 @@ async function bootstrap() {
     .addBearerAuth()
     .build();
 
+  // Get config service to determine environment
+  const configService = app.get(ConfigService);
+  const isProduction = configService.get('NODE_ENV') === 'production';
+  const appUrl = configService.get('APP_URL', 'http://localhost:3000');
+
   const document = SwaggerModule.createDocument(app, config);
   document.servers = [
     {
-      url: 'http://localhost:3000',
-      description: 'Local Environment',
+      url: appUrl,
+      description: isProduction ? 'Production Server' : 'Development Server',
     },
   ];
 
   SwaggerModule.setup('api', app, document, {});
-
-  // Get config service to determine environment
-  const configService = app.get(ConfigService);
-  const isProduction = configService.get('NODE_ENV') === 'production';
 
   // Apply Helmet middleware for security headers
   app.use(helmet(helmetConfig));
@@ -64,6 +70,10 @@ async function bootstrap() {
       forbidNonWhitelisted: true,
     }),
   );
+
+  // Enable transform interceptor globally
+  const reflector = app.get(Reflector);
+  app.useGlobalInterceptors(new TransformInterceptor(reflector, configService));
 
   const port = configService.get('BACKEND_PORT') || configService.get('PORT') || 3000;
 

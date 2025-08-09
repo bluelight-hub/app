@@ -1,0 +1,145 @@
+== ADR-012: API-Versionierungsstrategie
+
+=== Status
+
+Akzeptiert
+
+=== Kontext
+
+Die BlueLight Hub API benötigt eine Versionierungsstrategie, um zukünftige Änderungen ohne Breaking Changes für bestehende Clients zu ermöglichen.
+
+Bei der initialen Implementierung traten folgende Herausforderungen auf:
+
+* Kompatibilitätsprobleme zwischen NestJS Media Type-Versionierung und OpenAPI/Swagger
+* 404-Fehler bei API-Aufrufen trotz korrekter Route-Definition
+* Generierte API-Clients konnten nicht mit der Media Type-Versionierung umgehen
+
+NestJS unterstützt verschiedene Versionierungsstrategien:
+
+* **URI/Path-Versionierung**: `/api/v1/users`
+* **Header-Versionierung**: `X-API-Version: 1`
+* **Media Type-Versionierung**: `Accept: application/json;version=1`
+* **Query Parameter-Versionierung**: `/api/users?version=1`
+
+=== Entscheidung
+
+Wir verwenden **URI/Path-Versionierung** für die BlueLight Hub API.
+
+==== Implementierung
+
+[source,typescript]
+----
+// main.ts
+import {Controller, VersioningType} from "@nestjs/common";
+app.enableVersioning({
+  type: VersioningType.URI,
+});
+app.setGlobalPrefix('api');
+
+// Controller
+@Controller({
+  path: 'users',
+  version: '1',
+})
+export class UserController { }
+----
+
+Dies resultiert in URLs wie:
+* `/api/v1/users`
+* `/api/v1/auth/register`
+* `/api/v1/health`
+
+=== Begründung
+
+==== Vorteile der URI-Versionierung
+
+1. **Maximale Kompatibilität**: Funktioniert mit allen HTTP-Clients, Proxies, Load Balancern und API-Tools
+2. **OpenAPI/Swagger-Support**: Vollständige Unterstützung ohne zusätzliche Konfiguration
+3. **Explizit und sichtbar**: Version ist in der URL klar erkennbar
+4. **Cache-freundlich**: Verschiedene Versionen haben unterschiedliche URLs, keine Cache-Invalidierung nötig
+5. **Browser-testbar**: APIs können direkt im Browser getestet werden
+6. **Industrie-Standard**: Weit verbreitet (GitHub, Stripe, Twitter, Google APIs)
+7. **Tool-Support**: Alle API-Testing-Tools (Postman, Insomnia, curl) funktionieren ohne Spezialheader
+
+==== Nachteile anderer Ansätze
+
+* **Media Type**:
+- Inkompatibel mit OpenAPI-generierten Clients
+- Komplexe Header-Syntax
+- Schwierig zu debuggen
+* **Header-Versionierung**:
+- Nicht im Browser testbar
+- Version weniger sichtbar
+- Zusätzliche Header-Konfiguration in Clients nötig
+* **Query Parameter**:
+- Kann mit anderen Query-Parametern kollidieren
+- Nicht RESTful
+- Probleme mit URL-Encoding
+
+=== Konsequenzen
+
+==== Positiv
+
+* Einfache Client-Implementierung ohne spezielle Header
+* Klare Trennung verschiedener API-Versionen
+* Parallelbetrieb mehrerer Versionen problemlos möglich
+* Einfaches Routing und Load Balancing auf Infrastruktur-Ebene
+* Klare Deprecation-Pfade möglich
+
+==== Negativ
+
+* URLs werden länger (zusätzlich `/v1`)
+* Versionsnummer ist Teil der URL (weniger "RESTful" nach puristischer Sicht)
+* Bei vielen Versionen kann die URL-Struktur unübersichtlich werden
+
+==== Migrationsstrategien
+
+* Neue Versionen werden als neue Controller-Version hinzugefügt
+* Alte Versionen laufen parallel weiter mit Deprecation-Hinweisen
+* Sunset-Header für End-of-Life-Ankündigungen: `Sunset: Sat, 31 Dec 2025 23:59:59 GMT`
+* Versionswechsel erfolgt client-seitig durch URL-Änderung
+
+=== Implementierungsrichtlinien
+
+==== Versionierung
+
+* **Major Versions** nur bei Breaking Changes (v1, v2, v3)
+* Keine Minor/Patch-Versionen in der URL (1.2.3 → v1)
+* Beta/Alpha-Versionen als separate Pfade: `/api/beta/...`
+
+==== Controller-Organisation
+
+[source,typescript]
+----
+// Für Version 1
+@Controller({ path: 'users', version: '1' })
+export class UserV1Controller { }
+
+// Für Version 2 (bei Breaking Changes)
+@Controller({ path: 'users', version: '2' })
+export class UserV2Controller { }
+----
+
+==== API-Client-Generierung
+
+* OpenAPI-Spec enthält Versionsnummer
+* Generierte Clients verwenden versionierte Base-URLs
+* Client-Updates bei neuen Versionen explizit
+
+==== Dokumentation
+
+* Jede Version hat eigene Swagger-UI: `/api/v1/docs`, `/api/v2/docs`
+* Changelog zwischen Versionen pflegen
+* Migration Guides für Version-Updates
+
+=== Offene Punkte
+
+* Strategie für Version-Sunset (wie lange alte Versionen unterstützt werden)
+* Automatisierte Tests für Rückwärtskompatibilität
+* Monitoring von Version-Nutzung für Deprecation-Entscheidungen
+
+=== Referenzen
+
+* https://docs.nestjs.com/techniques/versioning[NestJS Versioning Documentation]
+* https://www.baeldung.com/rest-versioning[REST API Versioning Best Practices]
+* https://github.com/microsoft/api-guidelines/blob/vNext/Guidelines.md#12-versioning[Microsoft REST API Guidelines]

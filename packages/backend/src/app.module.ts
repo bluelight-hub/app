@@ -3,6 +3,9 @@ import { ConfigModule } from '@nestjs/config';
 import { CommonModule } from './common/common.module';
 import { HealthModule } from './health/health.module';
 import { PrismaModule } from './prisma/prisma.module';
+import { AuthModule } from './auth/auth.module';
+import { AppController } from './app.controller';
+import { UserManagementModule } from './user-management/user-management.module';
 
 /**
  * Haupt-Anwendungsmodul der Bluelight Hub Backend-Anwendung
@@ -27,7 +30,9 @@ import { PrismaModule } from './prisma/prisma.module';
     PrismaModule,
     HealthModule,
     CommonModule,
+    AuthModule,
+    UserManagementModule,
   ],
-  controllers: [],
+  controllers: [AppController],
 })
 export class AppModule {}

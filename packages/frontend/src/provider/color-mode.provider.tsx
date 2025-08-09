@@ -1,5 +1,5 @@
 import { ThemeProvider } from 'next-themes';
-import { ColorModeProviderProps } from '@/components/ui/color-mode';
+import type { ColorModeProviderProps } from '@/components/ui/color-mode';
 
 /**
  * Provider-Komponente für den Color-Mode (Hell/Dunkel-Modus).

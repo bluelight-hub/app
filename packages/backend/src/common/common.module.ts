@@ -1,8 +1,6 @@
 import { Global, Module } from '@nestjs/common';
 import { ConfigModule } from '@/config/config.module';
 import { PrismaModule } from '@/prisma/prisma.module';
-import { ErrorHandlingService } from './services/error-handling.service';
-import { PaginationService } from './services/pagination.service';
 import { RedisService } from './services/redis.service';
 
 /**
@@ -21,7 +19,7 @@ import { RedisService } from './services/redis.service';
 @Global()
 @Module({
   imports: [ConfigModule, PrismaModule],
-  providers: [PaginationService, ErrorHandlingService, RedisService],
-  exports: [PaginationService, ErrorHandlingService, RedisService],
+  providers: [RedisService],
+  exports: [RedisService],
 })
 export class CommonModule {}

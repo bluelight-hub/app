@@ -1,0 +1,35 @@
+{
+  "moduleFileExtensions": ["js", "json", "ts"],
+  "rootDir": "../",
+  "testEnvironment": "node",
+  "testRegex": ".*\\.e2e-spec\\.ts$",
+  "transform": {
+    "^.+\\.(t|j)s$": [
+      "ts-jest",
+      {
+        "tsconfig": {
+          "allowJs": true,
+          "esModuleInterop": true
+        }
+      }
+    ]
+  },
+  "collectCoverageFrom": [
+    "src/**/*.ts",
+    "!src/main.ts",
+    "!src/**/*.dto.ts",
+    "!src/**/*.interface.ts",
+    "!src/**/*.entity.ts",
+    "!src/**/*.enum.ts",
+    "!src/**/*.module.ts"
+  ],
+  "coverageDirectory": "./coverage-e2e",
+  "testPathIgnorePatterns": ["/node_modules/", "/dist/"],
+  "moduleNameMapper": {
+    "^@/(.*)$": "<rootDir>/src/$1",
+    "^nanoid$": "<rootDir>/test/mocks/nanoid.mock.js"
+  },
+  "setupFilesAfterEnv": ["<rootDir>/test/setup.ts"],
+  "testTimeout": 30000,
+  "transformIgnorePatterns": ["node_modules/(?!(nanoid)/)"]
+}

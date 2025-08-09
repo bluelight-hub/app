@@ -1,8 +1,47 @@
 'use client';
 
-import { ChakraProvider, defaultSystem } from '@chakra-ui/react';
-import { type ColorModeProviderProps } from './color-mode';
+import { ChakraProvider, createSystem, defaultConfig, defineConfig, defineTokens } from '@chakra-ui/react';
+import type { ColorModeProviderProps } from './color-mode';
 import { ColorModeProvider } from '@/provider/color-mode.provider.tsx';
+
+const config = defineConfig({
+  theme: {
+    tokens: {
+      colors: defineTokens.colors({
+        primary: {
+          '50': { value: 'var(--color-red-50)' },
+          '100': { value: 'var(--color-red-100)' },
+          '200': { value: 'var(--color-red-200)' },
+          '300': { value: 'var(--color-red-300)' },
+          '400': { value: 'var(--color-red-400)' },
+          '500': { value: 'var(--color-red-500)' },
+          '600': { value: 'var(--color-red-600)' },
+          '700': { value: 'var(--color-red-700)' },
+          '800': { value: 'var(--color-red-800)' },
+          '900': { value: 'var(--color-red-900)' },
+          '950': { value: 'var(--color-red-950)' },
+        },
+      }),
+      animations: {
+        shake: { value: 'shake 0.5s ease-in-out' },
+      },
+    },
+    semanticTokens: {
+      colors: {
+        primary: defaultConfig.theme?.semanticTokens?.colors?.['red'] ?? {},
+      },
+    },
+    keyframes: {
+      shake: {
+        '0%, 100%': { transform: 'translateX(0)' },
+        '10%, 30%, 50%, 70%, 90%': { transform: 'translateX(-4px)' },
+        '20%, 40%, 60%, 80%': { transform: 'translateX(4px)' },
+      },
+    },
+  },
+});
+
+const system = createSystem(defaultConfig, config);
 
 /**
  * Haupt-Provider-Komponente für die Anwendung.
@@ -21,7 +60,7 @@ import { ColorModeProvider } from '@/provider/color-mode.provider.tsx';
  */
 export function Provider(props: ColorModeProviderProps) {
   return (
-    <ChakraProvider value={defaultSystem}>
+    <ChakraProvider value={system}>
       <ColorModeProvider {...props} />
     </ChakraProvider>
   );

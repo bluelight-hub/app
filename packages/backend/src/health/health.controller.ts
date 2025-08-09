@@ -10,6 +10,7 @@ import {
 import * as net from 'net';
 import * as os from 'os';
 import { PrismaHealthIndicator } from './prisma-health.indicator';
+import { SkipTransform } from '@/common/decorators/skip-transform.decorator';
 
 /**
  * Konstanten für Health-Checks
@@ -39,7 +40,8 @@ type ConnectionMode = 'checking' | 'online' | 'offline' | 'error';
  *
  * @class HealthController
  */
-@Controller({ path: 'api/health', version: VERSION_NEUTRAL })
+@SkipTransform()
+@Controller({ path: 'health', version: VERSION_NEUTRAL })
 export class HealthController {
   /**
    * Liste von öffentlichen DNS-Servern für Internet-Erreichbarkeits-Tests
