@@ -47,6 +47,7 @@ Erstelle einen professionellen Git Commit mit perfekter Commit-Message nach den 
 
 ## Wichtige Regeln:
 
+- Denke nach, verwende dabei `ultrathink`
 - NIEMALS `--no-verify` verwenden
 - Bei fehlenden Änderungen keinen leeren Commit erstellen
 - Commit-Message auf Englisch verfassen
