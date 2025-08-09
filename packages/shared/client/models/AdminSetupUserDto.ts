@@ -38,18 +38,6 @@ export interface AdminSetupUserDto {
    */
   role: AdminSetupUserDtoRoleEnum;
   /**
-   * Vollständiger Name des Benutzers
-   * @type {string}
-   * @memberof AdminSetupUserDto
-   */
-  fullName: string;
-  /**
-   * E-Mail-Adresse des Benutzers
-   * @type {string}
-   * @memberof AdminSetupUserDto
-   */
-  email?: string;
-  /**
    * Zeitpunkt der Kontoerstellung
    * @type {Date}
    * @memberof AdminSetupUserDto
@@ -81,7 +69,6 @@ export function instanceOfAdminSetupUserDto(value: object): value is AdminSetupU
   if (!('id' in value) || value['id'] === undefined) return false;
   if (!('username' in value) || value['username'] === undefined) return false;
   if (!('role' in value) || value['role'] === undefined) return false;
-  if (!('fullName' in value) || value['fullName'] === undefined) return false;
   if (!('createdAt' in value) || value['createdAt'] === undefined) return false;
   if (!('updatedAt' in value) || value['updatedAt'] === undefined) return false;
   return true;
@@ -102,8 +89,6 @@ export function AdminSetupUserDtoFromJSONTyped(
     id: json['id'],
     username: json['username'],
     role: json['role'],
-    fullName: json['fullName'],
-    email: json['email'] == null ? undefined : json['email'],
     createdAt: new Date(json['createdAt']),
     updatedAt: new Date(json['updatedAt']),
   };
@@ -125,8 +110,6 @@ export function AdminSetupUserDtoToJSONTyped(
     id: value['id'],
     username: value['username'],
     role: value['role'],
-    fullName: value['fullName'],
-    email: value['email'],
     createdAt: value['createdAt'].toISOString(),
     updatedAt: value['updatedAt'].toISOString(),
   };
