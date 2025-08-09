@@ -1,5 +1,5 @@
 import { INestApplication } from '@nestjs/common';
-import * as request from 'supertest';
+import request from 'supertest';
 import * as jwt from 'jsonwebtoken';
 import { TestAppFactory } from '../utils/test-app.factory';
 import { TestDbUtils } from '../utils/test-db.utils';

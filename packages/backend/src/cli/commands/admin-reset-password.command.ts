@@ -1,4 +1,5 @@
 import { Injectable, Logger } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { PrismaService } from '@/prisma/prisma.service';
 import * as bcrypt from 'bcrypt';
 import { isAdmin } from '@/auth/utils/auth.utils';
@@ -7,7 +8,10 @@ import { isAdmin } from '@/auth/utils/auth.utils';
 export class AdminResetPasswordCommand {
   private readonly logger = new Logger(AdminResetPasswordCommand.name);
 
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly configService: ConfigService,
+  ) {}
 
   async run(args: string[]): Promise<void> {
     const [username, newPassword] = args;
@@ -21,7 +25,6 @@ export class AdminResetPasswordCommand {
       // For now, just basic structure
       this.logger.log(`Resetting password for user: ${username}`);
 
-      // Placeholder - will be replaced with actual implementation
       await this.resetAdminPassword(username, newPassword);
 
       this.logger.log(`✅ Passwort erfolgreich zurückgesetzt für Admin: ${username}`);
@@ -33,7 +36,6 @@ export class AdminResetPasswordCommand {
   }
 
   private async resetAdminPassword(username: string, newPassword: string): Promise<void> {
-    // Subtask 31.2: Nutzer-Lookup & Admin-Validierung
     const user = await this.prisma.user.findUnique({
       where: { username },
     });
@@ -52,9 +54,21 @@ export class AdminResetPasswordCommand {
       throw new Error(`Benutzer "${username}" ist kein Administrator (Rolle: ${user.role}).`);
     }
 
-    // Subtask 31.3: Neues Passwort hashen & speichern
-    const saltRounds = parseInt(process.env.BCRYPT_SALT_ROUNDS ?? '10');
-    const hash = await bcrypt.hash(newPassword, saltRounds);
+    // Get salt rounds from ConfigService with validation
+    const configuredSaltRounds = this.configService.get<string>('BCRYPT_SALT_ROUNDS', '10');
+    const saltRounds = parseInt(configuredSaltRounds, 10);
+
+    // Validate salt rounds and provide fallback
+    const validSaltRounds =
+      !isNaN(saltRounds) && saltRounds > 0 && saltRounds <= 31 ? saltRounds : 10;
+
+    if (saltRounds !== validSaltRounds) {
+      this.logger.warn(
+        `Invalid BCRYPT_SALT_ROUNDS value: ${configuredSaltRounds}. Using default: ${validSaltRounds}`,
+      );
+    }
+
+    const hash = await bcrypt.hash(newPassword, validSaltRounds);
 
     await this.prisma.user.update({
       where: { id: user.id },

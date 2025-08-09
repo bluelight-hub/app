@@ -14,8 +14,9 @@ async function bootstrap() {
     const args = process.argv.slice(2);
 
     if (args.length < 2) {
-      logger.error('Usage: npm run admin:reset -- <username> <newPassword>');
-      logger.error('Example: npm run admin:reset -- admin NewSecurePassword123!');
+      logger.error('Usage: pnpm run admin:reset -- <username> <newPassword>');
+      logger.error('Example: pnpm run admin:reset -- admin NewSecurePassword123!');
+      await app.close();
       process.exit(1);
     }
 
@@ -26,14 +27,13 @@ async function bootstrap() {
     const command = app.get(AdminResetPasswordCommand);
 
     await command.run(args);
+    await app.close();
     process.exit(0);
   } catch (error) {
-    const logger = new Logger('CLI');
     logger.error('Command execution failed:', error.stack);
     logger.error(`❌ Fehler: ${error.message}`);
-    process.exit(1);
-  } finally {
     await app.close();
+    process.exit(1);
   }
 }
 

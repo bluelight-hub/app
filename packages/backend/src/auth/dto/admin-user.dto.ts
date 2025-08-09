@@ -31,22 +31,9 @@ export class AdminUserDto {
 /**
  * Erweiterte Admin-Benutzerinformationen für Setup-Responses
  *
- * Enthält zusätzliche Felder, die nur beim Admin-Setup relevant sind.
+ * Enthält zusätzliche Zeitstempel-Felder, die beim Admin-Setup relevant sind.
  */
 export class AdminSetupUserDto extends AdminUserDto {
-  @ApiProperty({
-    description: 'Vollständiger Name des Benutzers',
-    example: 'Max Mustermann',
-  })
-  fullName: string;
-
-  @ApiProperty({
-    description: 'E-Mail-Adresse des Benutzers',
-    example: 'admin@example.com',
-    required: false,
-  })
-  email?: string;
-
   @ApiProperty({
     description: 'Zeitpunkt der Kontoerstellung',
     example: '2024-01-01T12:00:00Z',

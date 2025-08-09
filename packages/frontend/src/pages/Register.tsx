@@ -5,7 +5,7 @@ import { useForm } from '@tanstack/react-form';
 import { PiWarning } from 'react-icons/pi';
 import { authActions } from '../stores/auth.store';
 import type { RegisterUserDto } from '@bluelight-hub/shared/client';
-import { logger } from '@/utils/logger.ts';
+import { logger } from '@/utils/logger';
 import { api } from '@/api/api.ts';
 
 /**

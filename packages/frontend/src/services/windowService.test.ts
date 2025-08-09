@@ -2,6 +2,8 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { windowService } from './windowService';
 import { toaster } from '@/components/ui/toaster.instance';
 
+import { logger } from '@/utils/logger';
+
 // Mock Tauri APIs
 vi.mock('@tauri-apps/api/core', () => ({
   isTauri: vi.fn(),
@@ -24,6 +26,16 @@ vi.mock('@/components/ui/toaster.instance', () => ({
   },
 }));
 
+// Mock logger
+vi.mock('@/utils/logger', () => ({
+  logger: {
+    debug: vi.fn(),
+    warn: vi.fn(),
+    error: vi.fn(),
+    log: vi.fn(),
+  },
+}));
+
 describe('WindowService', () => {
   beforeEach(() => {
     vi.clearAllMocks();
@@ -32,7 +44,7 @@ describe('WindowService', () => {
     window.open = vi.fn();
     // Reset window.location
     delete (window as any).location;
-    window.location = { href: '' } as any;
+    window.location = { href: '', origin: 'http://localhost' } as any;
   });
 
   afterEach(() => {
@@ -64,7 +76,7 @@ describe('WindowService', () => {
       expect(WebviewWindow).toHaveBeenCalledWith(
         'admin',
         expect.objectContaining({
-          url: '/admin/dashboard',
+          url: expect.stringContaining('/admin/login'),
           title: 'BlueLight Hub - Admin Dashboard',
           width: 1200,
           height: 800,
@@ -104,7 +116,7 @@ describe('WindowService', () => {
 
       await windowService.openAdmin();
 
-      expect(window.open).toHaveBeenCalledWith('/admin/dashboard', '_blank', 'noopener,noreferrer');
+      expect(window.open).toHaveBeenCalledWith('/admin/login', '_blank', 'noopener,noreferrer');
     });
 
     it('should fallback to location.href when popup is blocked', async () => {
@@ -112,8 +124,6 @@ describe('WindowService', () => {
       isTauri.mockReturnValue(false);
 
       window.open = vi.fn().mockReturnValue(null);
-      const consoleWarnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
-
       await windowService.openAdmin();
 
       expect(window.open).toHaveBeenCalled();
@@ -123,9 +133,10 @@ describe('WindowService', () => {
           type: 'warning',
         }),
       );
-      expect(window.location.href).toBe('/admin/dashboard');
-
-      consoleWarnSpy.mockRestore();
+      expect(window.location.href).toBe('/admin/login');
+      expect(vi.mocked(logger.warn)).toHaveBeenCalledWith(
+        'Fenster konnte nicht geöffnet werden - möglicherweise durch Popup-Blocker verhindert',
+      );
     });
 
     it('should handle errors gracefully', async () => {
@@ -134,11 +145,9 @@ describe('WindowService', () => {
         throw new Error('Test error');
       });
 
-      const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
-
       await windowService.openAdmin();
 
-      expect(consoleErrorSpy).toHaveBeenCalledWith(
+      expect(vi.mocked(logger.error)).toHaveBeenCalledWith(
         'Fehler beim Öffnen des Admin-Fensters:',
         expect.any(Error),
       );
@@ -148,8 +157,6 @@ describe('WindowService', () => {
           type: 'error',
         }),
       );
-
-      consoleErrorSpy.mockRestore();
     });
   });
 
@@ -178,13 +185,9 @@ describe('WindowService', () => {
       const { isTauri } = vi.mocked(await import('@tauri-apps/api/core'));
       isTauri.mockReturnValue(false);
 
-      const consoleWarnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
-
       await windowService.focusAdmin();
 
-      expect(consoleWarnSpy).toHaveBeenCalledWith('focusAdmin ist nur in Tauri verfügbar');
-
-      consoleWarnSpy.mockRestore();
+      expect(vi.mocked(logger.warn)).toHaveBeenCalledWith('focusAdmin ist nur in Tauri verfügbar');
     });
   });
 

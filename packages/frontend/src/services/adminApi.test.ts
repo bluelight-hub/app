@@ -8,6 +8,8 @@ import {
   verifyAdmin,
 } from './adminApi';
 
+import { logger } from '@/utils/logger';
+
 // Create mock functions
 const mockVerifyAdmin = vi.fn();
 const mockAdminSetup = vi.fn();
@@ -21,6 +23,16 @@ vi.mock('@/api/api', () => ({
       authControllerAdminSetup: mockAdminSetup,
       authControllerAdminLogin: mockAdminLogin,
     }),
+  },
+}));
+
+// Mock logger
+vi.mock('@/utils/logger', () => ({
+  logger: {
+    debug: vi.fn(),
+    warn: vi.fn(),
+    error: vi.fn(),
+    log: vi.fn(),
   },
 }));
 
@@ -45,11 +57,10 @@ describe('adminApi', () => {
       expect(result).toBe(false);
     });
 
-    it('should return false on error', async () => {
+    it('should throw on network or unexpected errors', async () => {
       mockVerifyAdmin.mockRejectedValueOnce(new Error('Network error'));
 
-      const result = await verifyAdmin();
-      expect(result).toBe(false);
+      await expect(verifyAdmin()).rejects.toThrow('Network error');
     });
   });
 
@@ -66,14 +77,13 @@ describe('adminApi', () => {
 
     it('should return false on setup failure', async () => {
       mockAdminSetup.mockRejectedValueOnce(new Error('Setup failed'));
-
-      const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
       const result = await setupAdmin('password');
 
       expect(result).toBe(false);
-      expect(consoleSpy).toHaveBeenCalledWith('Admin setup failed:', expect.any(Error));
-
-      consoleSpy.mockRestore();
+      expect(vi.mocked(logger.error)).toHaveBeenCalledWith(
+        'Admin setup failed:',
+        expect.any(Error),
+      );
     });
   });
 
@@ -90,14 +100,13 @@ describe('adminApi', () => {
 
     it('should return false on login failure', async () => {
       mockAdminLogin.mockRejectedValueOnce(new Error('Invalid credentials'));
-
-      const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
       const result = await loginAdmin('wrongpassword');
 
       expect(result).toBe(false);
-      expect(consoleSpy).toHaveBeenCalledWith('Admin login failed:', expect.any(Error));
-
-      consoleSpy.mockRestore();
+      expect(vi.mocked(logger.error)).toHaveBeenCalledWith(
+        'Admin login failed:',
+        expect.any(Error),
+      );
     });
   });
 

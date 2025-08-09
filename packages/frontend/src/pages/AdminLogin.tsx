@@ -10,7 +10,7 @@ import { api } from '@/api/api';
 import { useAuth } from '@/hooks/useAuth';
 import { authActions } from '@/stores/auth.store';
 import { toaster } from '@/components/ui/toaster.instance';
-import { logger } from '@/utils/logger.ts';
+import { logger } from '@/utils/logger';
 
 export function AdminLogin() {
   const navigate = useNavigate();

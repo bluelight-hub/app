@@ -13,6 +13,9 @@ import { toaster } from '@/components/ui/toaster.instance';
 
 type AuthContext = 'login' | 'register';
 
+// Props for the LoginWindow component (currently empty)
+export type Props = Record<string, never>;
+
 /**
  * Zentrale Fehlerbehandlung für Auth-Operationen (Login/Registrierung)
  */
@@ -59,7 +62,7 @@ function handleAuthError(error: unknown, context: AuthContext) {
  * Bietet eine kombinierte Oberfläche für Anmeldung bestehender
  * und Registrierung neuer Benutzer ohne Passwort.
  */
-export function LoginWindow() {
+export function LoginWindow(_props: Props) {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const { user, isLoading } = useAuth();
@@ -143,3 +146,5 @@ export function LoginWindow() {
     </Container>
   );
 }
+
+export default LoginWindow;

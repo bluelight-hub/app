@@ -16,7 +16,8 @@ import { expect, test } from '@playwright/test';
 // Skip diese Tests wenn nicht in Tauri-Umgebung
 const isTauriTest = process.env.TAURI_TEST === 'true';
 
-test.describe.skipIf(!isTauriTest)('Tauri Window Management', () => {
+test.describe('Tauri Window Management', () => {
+  test.skip(!isTauriTest, 'Nur in Tauri-Umgebung ausführen');
   let tauriProcess;
   let page;
 

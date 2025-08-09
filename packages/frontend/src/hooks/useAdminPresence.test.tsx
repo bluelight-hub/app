@@ -80,15 +80,20 @@ describe('useAdminPresence', () => {
 
   it('should handle errors gracefully', async () => {
     const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
-    vi.mocked(adminApi.verifyAdmin).mockRejectedValueOnce(new Error('Network error'));
+    // Mock to always reject to handle React Query retries
+    vi.mocked(adminApi.verifyAdmin).mockRejectedValue(new Error('Network error'));
 
     const { result } = renderHook(() => useAdminPresence(), { wrapper });
 
-    await waitFor(() => {
-      // When error occurs, React Query retries, so we need to wait for it to finish
-      expect(result.current.hasAdmin).toBeUndefined();
-    });
+    await waitFor(
+      () => {
+        expect(result.current.loading).toBe(false);
+      },
+      { timeout: 2000 },
+    );
 
+    // When error occurs, hasAdmin should be undefined
+    expect(result.current.hasAdmin).toBeUndefined();
     expect(result.current.loading).toBe(false);
 
     consoleSpy.mockRestore();

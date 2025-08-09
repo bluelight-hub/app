@@ -1,6 +1,6 @@
 import { INestApplication, ValidationPipe, VersioningType } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
-import * as cookieParser from 'cookie-parser';
+import cookieParser from 'cookie-parser';
 import { TestDbUtils } from './test-db.utils';
 import { AppModule } from '../../src/app.module';
 

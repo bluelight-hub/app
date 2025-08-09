@@ -24,17 +24,18 @@ export function useAuthRefresh() {
     queryFn: async () => {
       try {
         const response = await api.auth().authControllerCheckAuth();
+        // Admin-Auth-Status immer explizit setzen
+        authActions.setAdminAuth(response.isAdminAuthenticated === true);
+
         if (response.user) {
           logger.log('Auth refresh successful:', response.user);
-          // Admin-Auth-Status speichern, falls vorhanden
-          if (response.isAdminAuthenticated) {
-            authActions.setAdminAuth(true);
-          }
         }
         // Explizit null zurückgeben wenn kein User vorhanden
         return response.user ?? null;
       } catch (error) {
         logger.error('Auth check failed:', error);
+        // Bei Fehler Admin-Status sicherheitshalber auf false setzen
+        authActions.setAdminAuth(false);
         return null;
       }
     },

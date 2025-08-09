@@ -1,7 +1,7 @@
 import { isTauri } from '@tauri-apps/api/core';
 import { WebviewWindow } from '@tauri-apps/api/webviewWindow';
 import { toaster } from '@/components/ui/toaster.instance';
-import { logger } from '@/utils/logger.ts';
+import { logger } from '@/utils/logger';
 
 /**
  * Optionen für das Öffnen des Admin-Fensters

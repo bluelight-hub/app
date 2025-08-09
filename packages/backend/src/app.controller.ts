@@ -3,6 +3,7 @@ import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { ConfigService } from '@nestjs/config';
 import { SkipTransform } from './common/decorators/skip-transform.decorator';
+import { trimTrailingSlash } from './common/utils/url.util';
 
 const packageJson = (() => {
   try {
@@ -20,7 +21,8 @@ export class AppController {
   private readonly url: string;
 
   constructor(configService: ConfigService) {
-    this.url = configService.get<string>('APP_URL', 'http://localhost:3000');
+    const rawUrl = configService.get<string>('APP_URL', 'http://localhost:3000');
+    this.url = trimTrailingSlash(rawUrl);
   }
 
   @Get()

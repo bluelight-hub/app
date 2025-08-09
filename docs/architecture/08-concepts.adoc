@@ -1109,7 +1109,10 @@ Es ermöglicht die schnelle Generierung realistischer DRK-Einsatzszenarien für 
 Das System adressiert die Herausforderung, dass Entwickler und Tester konsistente, realistische Daten für ihre Arbeit benötigen, ohne jedes Mal manuell komplexe Einsatzszenarien erstellen zu müssen.
 
 *Hauptziele:*
-* Standardisierte, wiederverwendbare Einsatzszenarien für das DRK * Reduzierte Einrichtungszeit für Entwicklungs- und Testumgebungen * Konsistente Testdaten für reproduzierbare Tests * Realistische Demo-Daten für Präsentationen und Schulungen
+* Standardisierte, wiederverwendbare Einsatzszenarien für das DRK
+* Reduzierte Einrichtungszeit für Entwicklungs- und Testumgebungen
+* Konsistente Testdaten für reproduzierbare Tests
+* Realistische Demo-Daten für Präsentationen und Schulungen
 
 ==== Architektur des Profile-Systems
 
@@ -1222,7 +1225,10 @@ npm run cli seed:einsatz --category katastrophenschutz
 ===== Admin-Panel-Integration (geplant)
 
 Web-basierte Oberfläche für erweiterte Profile-Verwaltung:
-* Visual Profile-Browser mit Filterung und Suche * Bulk-Operations für mehrere Profile * Custom-Profile-Editor für projektspezifische Szenarien * Import/Export von Profile-Sets
+* Visual Profile-Browser mit Filterung und Suche
+* Bulk-Operations für mehrere Profile
+* Custom-Profile-Editor für projektspezifische Szenarien
+* Import/Export von Profile-Sets
 
 ===== Programmatische API
 

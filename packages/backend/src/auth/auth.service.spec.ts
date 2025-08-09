@@ -4,7 +4,7 @@ import { PrismaService } from '@/prisma/prisma.service';
 import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
 import { UserRole } from '@prisma/client';
-import { ConflictException } from '@nestjs/common';
+import { ConflictException, NotFoundException, UnauthorizedException } from '@nestjs/common';
 import * as bcrypt from 'bcrypt';
 
 describe('AuthService', () => {
@@ -232,10 +232,12 @@ describe('AuthService', () => {
       expect(result).toEqual(mockAdminUser);
     });
 
-    it('sollte null zurückgeben, wenn der Benutzer nicht existiert', async () => {
+    it('sollte NotFoundException werfen, wenn der Benutzer nicht existiert', async () => {
       mockPrismaService.user.findUnique.mockResolvedValue(null);
 
-      const result = await service.validateAdminCredentials('nonexistent-id', 'any_password');
+      await expect(
+        service.validateAdminCredentials('nonexistent-id', 'any_password'),
+      ).rejects.toThrow(NotFoundException);
 
       expect(mockPrismaService.user.findUnique).toHaveBeenCalledWith({
         where: {
@@ -244,30 +246,31 @@ describe('AuthService', () => {
       });
       expect(bcrypt.compare).not.toHaveBeenCalled();
       expect(mockPrismaService.user.update).not.toHaveBeenCalled();
-      expect(result).toBeNull();
     });
 
-    it('sollte null zurückgeben, wenn der Benutzer kein Passwort hat', async () => {
+    it('sollte UnauthorizedException werfen, wenn der Benutzer kein Passwort hat', async () => {
       const userWithoutPassword = { ...mockAdminUser, passwordHash: null };
       mockPrismaService.user.findUnique.mockResolvedValue(userWithoutPassword);
 
-      const result = await service.validateAdminCredentials('admin', 'any_password');
+      await expect(service.validateAdminCredentials('admin', 'any_password')).rejects.toThrow(
+        UnauthorizedException,
+      );
 
       expect(mockPrismaService.user.findUnique).toHaveBeenCalled();
       expect(bcrypt.compare).not.toHaveBeenCalled();
       expect(mockPrismaService.user.update).not.toHaveBeenCalled();
-      expect(result).toBeNull();
     });
 
-    it('sollte null zurückgeben, wenn das Passwort falsch ist', async () => {
+    it('sollte UnauthorizedException werfen, wenn das Passwort falsch ist', async () => {
       mockPrismaService.user.findUnique.mockResolvedValue(mockAdminUser);
 
-      const result = await service.validateAdminCredentials('admin', 'wrong_password');
+      await expect(service.validateAdminCredentials('admin', 'wrong_password')).rejects.toThrow(
+        UnauthorizedException,
+      );
 
       expect(mockPrismaService.user.findUnique).toHaveBeenCalled();
       expect(bcrypt.compare).toHaveBeenCalledWith('wrong_password', 'hashed_password');
       expect(mockPrismaService.user.update).not.toHaveBeenCalled();
-      expect(result).toBeNull();
     });
 
     it('sollte auch mit SUPER_ADMIN Rolle funktionieren', async () => {

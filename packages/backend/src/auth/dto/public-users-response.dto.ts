@@ -17,9 +17,13 @@ export class PublicUserDto {
  * DTO für die Antwort der öffentlichen Benutzerliste
  */
 export class PublicUsersResponseDto {
+  /**
+   * Liste der verfügbaren Benutzer
+   */
   @ApiProperty({
     description: 'Liste der verfügbaren Benutzer',
-    type: [PublicUserDto],
+    type: PublicUserDto,
+    isArray: true,
     example: [{ username: 'max.mustermann' }, { username: 'erika.musterfrau' }],
   })
   users: PublicUserDto[];

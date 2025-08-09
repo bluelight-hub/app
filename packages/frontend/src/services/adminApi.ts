@@ -1,7 +1,7 @@
 import { FetchError, ResponseError } from '@bluelight-hub/shared/client';
 import type { AdminPasswordDto, AdminSetupDto } from '@bluelight-hub/shared/client';
 import { api } from '@/api/api';
-import { logger } from '@/utils/logger.ts';
+import { logger } from '@/utils/logger';
 
 /**
  * Überprüft, ob ein Admin-Account existiert

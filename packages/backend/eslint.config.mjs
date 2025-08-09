@@ -49,7 +49,7 @@ export default tsEslint.config(
   },
   // Separate config for test files with more lenient rules
   {
-    files: ['**/*.spec.ts', '**/*.test.ts'],
+    files: ['**/*.{spec,test}.ts', '**/*.e2e-spec.ts'],
     rules: {
       'max-lines': 'off',
       'max-lines-per-function': 'off',

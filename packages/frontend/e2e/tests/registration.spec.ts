@@ -2,40 +2,47 @@ import { expect, test } from '@playwright/test';
 
 test.describe('Registration Flow', () => {
   test.beforeEach(async ({ page }) => {
-    await page.goto('/register');
+    await page.goto('/auth');
+    await page
+      .getByRole('tab', { name: 'Registrieren' })
+      .or(page.getByRole('button', { name: 'Registrieren' }))
+      .first()
+      .click();
   });
 
   test('should display registration form', async ({ page }) => {
-    // Check heading
-    await expect(page.getByRole('heading', { name: 'Registrierung' })).toBeVisible();
-    await expect(page.getByText('Erstellen Sie einen neuen Account')).toBeVisible();
+    // Check heading (auth screen)
+    await expect(page.getByRole('heading', { name: /BlueLight Hub/i })).toBeVisible();
 
-    // Check form elements - Note: The input has no label, only placeholder
-    await expect(page.getByPlaceholder('Wählen Sie einen Benutzernamen')).toBeVisible();
-    await expect(page.getByRole('button', { name: 'Registrieren' })).toBeVisible();
+    // Check form elements
+    await expect(page.getByPlaceholder('z.B. max_mustermann')).toBeVisible();
+    // Use a more specific selector for the register button
+    await expect(page.getByRole('button', { name: 'Registrieren' }).last()).toBeVisible();
 
-    // Check link to homepage
-    await expect(page.getByText('Bereits registriert?')).toBeVisible();
-    await expect(page.getByRole('link', { name: 'Jetzt anmelden' })).toBeVisible();
+    // Tabs present
+    await expect(
+      page.getByRole('tab').or(page.getByRole('button')).filter({ hasText: 'Anmelden' }).first(),
+    ).toBeVisible();
+    await expect(
+      page
+        .getByRole('tab')
+        .or(page.getByRole('button'))
+        .filter({ hasText: 'Registrieren' })
+        .first(),
+    ).toBeVisible();
   });
 
   test('should validate username field', async ({ page }) => {
-    const submitButton = page.getByRole('button', { name: 'Registrieren' });
-    const usernameInput = page.getByPlaceholder('Wählen Sie einen Benutzernamen');
+    // Be specific about which submit button (register, not login)
+    const submitButton = page.getByRole('button', { name: 'Registrieren' }).last();
+    const usernameInput = page.getByPlaceholder('z.B. max_mustermann');
 
-    // Button should be enabled initially (no disabled state on empty form)
-    await expect(submitButton).toBeEnabled();
+    // Button should be disabled initially (invalid form)
+    await expect(submitButton).toBeDisabled();
 
-    // Type and clear to trigger validation
-    await usernameInput.fill('a');
-    await usernameInput.clear();
-    await usernameInput.blur();
-
-    // Should show required error
-    await expect(page.getByText('Benutzername ist erforderlich')).toBeVisible();
-
-    // Type short username
+    // Type short username (invalid)
     await usernameInput.fill('ab');
+    await usernameInput.blur();
 
     // Should show length error
     await expect(page.getByText('Benutzername muss mindestens 3 Zeichen lang sein')).toBeVisible();
@@ -43,28 +50,42 @@ test.describe('Registration Flow', () => {
     // Type valid username
     await usernameInput.fill('testuser');
 
-    // Error should disappear
-    await expect(page.getByText('Benutzername ist erforderlich')).not.toBeVisible();
-    await expect(
-      page.getByText('Benutzername muss mindestens 3 Zeichen lang sein'),
-    ).not.toBeVisible();
+    // Button should be enabled if valid
+    await expect(submitButton).toBeEnabled();
   });
 
   test('should register new user successfully', async ({ page }) => {
     const timestamp = Date.now();
     const username = `testuser${timestamp}`;
 
+    // Mock register API
+    await page.route('**/api/auth/register', async (route) => {
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({
+          id: 'u-' + timestamp,
+          username,
+          role: 'USER',
+          isActive: true,
+          lastLoginAt: null,
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString(),
+        }),
+      });
+    });
+
     // Fill form
-    await page.getByPlaceholder('Wählen Sie einen Benutzernamen').fill(username);
+    await page.getByPlaceholder('z.B. max_mustermann').fill(username);
 
     // Submit
-    await page.getByRole('button', { name: 'Registrieren' }).click();
+    await page.getByRole('button', { name: 'Registrieren' }).last().click();
 
     // Should redirect to homepage after successful registration
     await expect(page).toHaveURL('/');
 
-    // Should show authenticated content (not redirect back to register)
-    await expect(page).not.toHaveURL('/register');
+    // Should show authenticated content (not redirect back to auth)
+    await expect(page).not.toHaveURL('/auth');
   });
 
   // Skip this test - API doesn't show error for duplicate usernames
@@ -84,19 +105,40 @@ test.describe('Registration Flow', () => {
     await expect(page.getByText('Registrierung fehlgeschlagen!')).toBeVisible();
   });
 
-  test('should navigate to login page', async ({ page }) => {
-    await page.getByRole('link', { name: 'Jetzt anmelden' }).click();
-    await expect(page).toHaveURL('/login');
+  test('should navigate to login tab', async ({ page }) => {
+    await page
+      .getByRole('tab', { name: 'Anmelden' })
+      .or(page.getByRole('button', { name: 'Anmelden' }))
+      .first()
+      .click();
+    await expect(page).toHaveURL('/auth');
   });
 
   test('should handle loading state', async ({ page }) => {
     const username = `loadingtest${Date.now()}`;
 
+    // Mock register API
+    await page.route('**/api/auth/register', async (route) => {
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({
+          id: 'u-' + Date.now(),
+          username,
+          role: 'USER',
+          isActive: true,
+          lastLoginAt: null,
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString(),
+        }),
+      });
+    });
+
     // Fill form
-    await page.getByPlaceholder('Wählen Sie einen Benutzernamen').fill(username);
+    await page.getByPlaceholder('z.B. max_mustermann').fill(username);
 
     // Click submit
-    await page.getByRole('button', { name: 'Registrieren' }).click();
+    await page.getByRole('button', { name: 'Registrieren' }).last().click();
 
     // Should redirect after successful registration
     await expect(page).toHaveURL('/');

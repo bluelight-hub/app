@@ -4,7 +4,15 @@
   "testEnvironment": "node",
   "testRegex": ".*\\.e2e-spec\\.ts$",
   "transform": {
-    "^.+\\.(t|j)s$": "ts-jest"
+    "^.+\\.(t|j)s$": [
+      "ts-jest",
+      {
+        "tsconfig": {
+          "allowJs": true,
+          "esModuleInterop": true
+        }
+      }
+    ]
   },
   "collectCoverageFrom": [
     "src/**/*.ts",
@@ -18,7 +26,8 @@
   "coverageDirectory": "./coverage-e2e",
   "testPathIgnorePatterns": ["/node_modules/", "/dist/"],
   "moduleNameMapper": {
-    "^@/(.*)$": "<rootDir>/src/$1"
+    "^@/(.*)$": "<rootDir>/src/$1",
+    "^nanoid$": "<rootDir>/test/mocks/nanoid.mock.js"
   },
   "setupFilesAfterEnv": ["<rootDir>/test/setup.ts"],
   "testTimeout": 30000,

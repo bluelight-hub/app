@@ -26,6 +26,7 @@ import {
   UsersListResponse,
 } from './dto/user-management-response.dto';
 import { toDeleteUserResponseDto } from './mappers/user-management.mapper';
+import { ParseNanoIdPipe } from '@/common/pipes/parse-nanoid.pipe';
 
 @ApiTags('user-management')
 @ApiBearerAuth('admin-jwt')
@@ -51,7 +52,8 @@ export class UserManagementController {
   @ApiResponse({ status: 400, description: 'Ungültige Eingabedaten' })
   @ApiResponse({ status: 409, description: 'Benutzername bereits vergeben' })
   async create(
-    @Body(new ValidationPipe({ whitelist: true, forbidNonWhitelisted: true })) dto: CreateUserDto,
+    @Body(new ValidationPipe({ whitelist: true, forbidNonWhitelisted: true, transform: true }))
+    dto: CreateUserDto,
   ) {
     return await this.userManagementService.create(dto);
   }
@@ -61,7 +63,7 @@ export class UserManagementController {
   @ApiOkResponse({ type: DeleteUserResponse, description: 'Benutzer erfolgreich gelöscht' })
   @ApiResponse({ status: 404, description: 'Benutzer nicht gefunden' })
   @ApiResponse({ status: 400, description: 'Letzter SUPER_ADMIN kann nicht gelöscht werden' })
-  async remove(@Param('id') id: string) {
+  async remove(@Param('id', new ParseNanoIdPipe()) id: string) {
     await this.userManagementService.remove(id);
     return toDeleteUserResponseDto(id);
   }

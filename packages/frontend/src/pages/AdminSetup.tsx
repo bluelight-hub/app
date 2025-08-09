@@ -6,7 +6,7 @@ import { PiCheckCircle, PiWarning } from 'react-icons/pi';
 import { z } from 'zod';
 import type { AdminSetupDto } from '@bluelight-hub/shared/client';
 import { useAdminStatus } from '@/hooks/useAdminStatus.ts';
-import { logger } from '@/utils/logger.ts';
+import { logger } from '@/utils/logger';
 import { api } from '@/api/api.ts';
 import { useAuth } from '@/hooks/useAuth.ts';
 

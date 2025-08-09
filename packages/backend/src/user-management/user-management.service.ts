@@ -7,7 +7,7 @@ import {
 import { PrismaService } from '@/prisma/prisma.service';
 import { UserRole } from '@prisma/client';
 import { CreateUserDto } from './dto/create-user.dto';
-import { toUserDto } from './mappers/user.mapper';
+import { UserMapper } from './mappers/user.mapper';
 
 /**
  * Service für die Benutzerverwaltung durch Administratoren
@@ -39,7 +39,7 @@ export class UserManagementService {
         createdAt: 'desc',
       },
     });
-    return users.map(toUserDto);
+    return users.map(UserMapper.toUserDto);
   }
 
   /**
@@ -73,7 +73,7 @@ export class UserManagementService {
         updatedAt: true,
       },
     });
-    return toUserDto(user);
+    return UserMapper.toUserDto(user);
   }
 
   /**

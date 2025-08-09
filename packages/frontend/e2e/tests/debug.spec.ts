@@ -1,8 +1,13 @@
 import { test } from '@playwright/test';
 
 test.describe('Debug Tests', () => {
-  test('take screenshot of register page', async ({ page }) => {
-    await page.goto('/register');
+  test('take screenshot of register tab', async ({ page }) => {
+    await page.goto('/auth');
+    await page
+      .getByRole('tab', { name: 'Registrieren' })
+      .or(page.getByRole('button', { name: 'Registrieren' }))
+      .first()
+      .click();
 
     // Wait for page to load
     await page.waitForLoadState('networkidle');

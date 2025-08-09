@@ -1,6 +1,17 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import * as tauriCore from '@tauri-apps/api/core';
 import { useIsTauri } from './useIsTauri';
+import { logger } from '@/utils/logger';
+
+// Mock logger
+vi.mock('@/utils/logger', () => ({
+  logger: {
+    debug: vi.fn(),
+    warn: vi.fn(),
+    error: vi.fn(),
+    log: vi.fn(),
+  },
+}));
 
 // Mock Tauri API
 vi.mock('@tauri-apps/api/core', () => ({
@@ -38,17 +49,12 @@ describe('useIsTauri', () => {
     vi.mocked(tauriCore.isTauri).mockImplementation(() => {
       throw new Error('Tauri API not available');
     });
-
-    const consoleWarnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
-
     const { isTauri } = useIsTauri();
 
     expect(isTauri).toBe(false);
-    expect(consoleWarnSpy).toHaveBeenCalledWith(
-      'Tauri API not available, falling back to browser mode',
+    expect(vi.mocked(logger.debug)).toHaveBeenCalledWith(
       expect.any(Error),
+      'Tauri API not available, falling back to browser mode',
     );
-
-    consoleWarnSpy.mockRestore();
   });
 });

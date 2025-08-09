@@ -1,4 +1,4 @@
-import * as request from 'supertest';
+import request from 'supertest';
 import { INestApplication } from '@nestjs/common';
 import { TestAppFactory } from '../utils/test-app.factory';
 import { TestDbUtils } from '../utils/test-db.utils';

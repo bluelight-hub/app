@@ -1,4 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { ResponseError } from '@bluelight-hub/shared/client/runtime';
 import { verifyAdmin } from './adminAuth';
 import { api } from '@/api/api';
 
@@ -37,10 +38,13 @@ describe('verifyAdmin', () => {
 
   it('should return false when admin verification returns 401', async () => {
     // Mock 401 unauthorized error
-    mockAuthApi.authControllerVerifyAdminToken.mockRejectedValue({
-      status: 401,
-      message: 'Unauthorized',
-    });
+    const error = new ResponseError(
+      new Response(JSON.stringify({ message: 'Unauthorized' }), {
+        status: 401,
+        headers: new Headers({ 'content-type': 'application/json' }),
+      }),
+    );
+    mockAuthApi.authControllerVerifyAdminToken.mockRejectedValue(error);
 
     const result = await verifyAdmin();
 
@@ -48,22 +52,24 @@ describe('verifyAdmin', () => {
     expect(mockAuthApi.authControllerVerifyAdminToken).toHaveBeenCalledTimes(1);
   });
 
-  it('should return false when admin verification throws any error', async () => {
+  it('should throw error when admin verification throws unexpected error', async () => {
     // Mock network error
-    mockAuthApi.authControllerVerifyAdminToken.mockRejectedValue(new Error('Network error'));
+    const networkError = new Error('Network error');
+    mockAuthApi.authControllerVerifyAdminToken.mockRejectedValue(networkError);
 
-    const result = await verifyAdmin();
-
-    expect(result).toBe(false);
+    await expect(verifyAdmin()).rejects.toThrow('Network error');
     expect(mockAuthApi.authControllerVerifyAdminToken).toHaveBeenCalledTimes(1);
   });
 
   it('should return false when admin verification returns 403', async () => {
     // Mock 403 forbidden error
-    mockAuthApi.authControllerVerifyAdminToken.mockRejectedValue({
-      status: 403,
-      message: 'Forbidden',
-    });
+    const error = new ResponseError(
+      new Response(JSON.stringify({ message: 'Forbidden' }), {
+        status: 403,
+        headers: new Headers({ 'content-type': 'application/json' }),
+      }),
+    );
+    mockAuthApi.authControllerVerifyAdminToken.mockRejectedValue(error);
 
     const result = await verifyAdmin();
 

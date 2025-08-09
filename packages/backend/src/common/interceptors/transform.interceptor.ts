@@ -5,6 +5,7 @@ import { Reflector } from '@nestjs/core';
 import { ConfigService } from '@nestjs/config';
 import { Request } from 'express';
 import { nanoid } from 'nanoid';
+import { trimTrailingSlash } from '../utils/url.util';
 
 /**
  * Interface für paginierte Daten vom Controller
@@ -101,7 +102,9 @@ export class TransformInterceptor<T = any>
     private configService: ConfigService,
   ) {
     // Cache the APP_URL at initialization to avoid repeated config lookups
-    this.appUrl = this.configService.get<string>('APP_URL', 'http://localhost:3000');
+    this.appUrl = trimTrailingSlash(
+      this.configService.get<string>('APP_URL', 'http://localhost:3000'),
+    );
   }
 
   intercept(

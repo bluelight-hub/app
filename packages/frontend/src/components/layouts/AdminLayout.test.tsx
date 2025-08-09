@@ -25,6 +25,23 @@ vi.mock('@tanstack/react-router', () => ({
   Outlet: () => <div>Outlet Content</div>,
 }));
 
+// Mock useAuth hook
+vi.mock('@/hooks/useAuth', () => ({
+  useAuth: () => ({
+    user: null,
+    isAuthenticated: false,
+    logout: vi.fn(),
+  }),
+}));
+
+// Mock useAdminAuth hook
+vi.mock('@/hooks/useAdminAuth', () => ({
+  useAdminAuth: () => ({
+    isAdmin: false,
+    isLoading: false,
+  }),
+}));
+
 // Mock Tauri
 vi.mock('@tauri-apps/api/window', () => ({
   appWindow: {

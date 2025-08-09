@@ -5,7 +5,7 @@ import { useCallback } from 'react';
 import { isTauri } from '@tauri-apps/api/core';
 import { useAuth } from '@/hooks/useAuth';
 import { DashboardLayout } from '@/components/templates/DashboardLayout';
-import { logger } from '@/utils/logger.ts';
+import { logger } from '@/utils/logger';
 
 /**
  * Admin-Dashboard Seite

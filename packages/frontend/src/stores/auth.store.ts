@@ -2,7 +2,7 @@ import { Store } from '@tanstack/react-store';
 import type { QueryClient } from '@tanstack/react-query';
 import type { UserResponseDto } from '@bluelight-hub/shared/client';
 import { api } from '@/api/api';
-import { logger } from '@/utils/logger.ts';
+import { logger } from '@/utils/logger';
 
 /**
  * Interface für den Authentifizierungs-Store

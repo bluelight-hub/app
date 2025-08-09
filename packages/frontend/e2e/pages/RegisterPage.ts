@@ -6,17 +6,27 @@ export class RegisterPage {
   readonly submitButton: Locator;
   readonly errorMessage: Locator;
   readonly homeLink: Locator;
+  readonly registerTab: Locator;
 
   constructor(page: Page) {
     this.page = page;
-    this.usernameInput = page.getByPlaceholder('Wählen Sie einen Benutzernamen');
-    this.submitButton = page.getByRole('button', { name: /registrieren/i });
+    // New auth screen is under /auth with tabs. The register input placeholder changed.
+    this.registerTab = page
+      .getByRole('tab', { name: 'Registrieren' })
+      .or(page.getByRole('button', { name: 'Registrieren' }));
+    this.usernameInput = page.getByPlaceholder('z.B. max_mustermann');
+    // Be more specific to avoid conflicts with login form submit button
+    this.submitButton = page
+      .getByRole('button', { name: 'Registrieren' })
+      .filter({ hasText: 'Registrieren' });
     this.errorMessage = page.getByRole('alert');
     this.homeLink = page.getByRole('link', { name: 'Zur Startseite' });
   }
 
   async goto() {
     await this.page.goto('/auth');
+    // Switch to Register tab so inputs are visible
+    await this.registerTab.first().click();
   }
 
   async register(username: string) {

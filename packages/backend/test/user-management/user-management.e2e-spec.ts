@@ -1,12 +1,13 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { INestApplication, ValidationPipe, VersioningType } from '@nestjs/common';
-import * as request from 'supertest';
+import request from 'supertest';
 import { AppModule } from '@/app.module';
 import { PrismaService } from '@/prisma/prisma.service';
 import { UserRole } from '@prisma/client';
 import * as bcrypt from 'bcrypt';
-import * as cookieParser from 'cookie-parser';
+import cookieParser from 'cookie-parser';
 import { TestAuthUtils } from '../utils/test-auth.utils';
+import { nanoid } from 'nanoid';
 
 describe('UserManagementController (e2e)', () => {
   let app: INestApplication;
@@ -304,7 +305,8 @@ describe('UserManagementController (e2e)', () => {
     });
 
     it('should return 404 when user does not exist', async () => {
-      const nonExistentId = 'non-existent-id';
+      // Use a valid-looking NanoID to pass param validation but miss DB
+      const nonExistentId = nanoid();
 
       await request(app.getHttpServer())
         .delete(`/api/v-alpha/admin/users/${nonExistentId}`)

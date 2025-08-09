@@ -84,8 +84,6 @@ export function toAdminSetupResponseDto(user: Omit<User, 'passwordHash'>): Admin
     id: user.id,
     username: user.username,
     role: user.role,
-    fullName: '', // This would need to be added to the User model if required
-    email: undefined, // This would need to be added to the User model if required
     createdAt: user.createdAt,
     updatedAt: user.updatedAt,
   };

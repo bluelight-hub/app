@@ -1,5 +1,5 @@
 import { createFileRoute } from '@tanstack/react-router';
-import { lazy } from 'react';
+import { Suspense, lazy } from 'react';
 
 const AdminDashboard = lazy(() =>
   import('@/components/pages/dashboard/admin/page').then((m) => ({
@@ -8,5 +8,9 @@ const AdminDashboard = lazy(() =>
 );
 
 export const Route = createFileRoute('/admin/dashboard')({
-  component: AdminDashboard,
+  component: () => (
+    <Suspense fallback={null}>
+      <AdminDashboard />
+    </Suspense>
+  ),
 });

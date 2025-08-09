@@ -1,20 +1,12 @@
-/**
- * Benutzer-Interface für die Authentifizierung
- */
-export interface User {
-  id: string;
-  username: string;
-  roles: Array<string>;
-  createdAt: string;
-}
+import type { UserResponseDto } from '@bluelight-hub/shared/client';
 
 /**
- * Auth-State Interface für den TanStack Store
+ * Auth-Context State Interface für den React Context
  */
-export interface AuthState {
-  currentUser: User | null;
+export interface AuthContextState {
+  currentUser: UserResponseDto | null;
   isAdminAuthenticated: boolean;
-  login: (user: User) => void;
+  login: (user: UserResponseDto) => void;
   logout: () => void;
   adminLogin: () => void;
   adminLogout: () => void;

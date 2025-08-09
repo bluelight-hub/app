@@ -19,6 +19,7 @@ vi.mock('@/stores/auth.store', () => ({
   authActions: {
     loginSuccess: vi.fn(),
     setLoading: vi.fn(),
+    setAdminAuth: vi.fn(),
   },
 }));
 
