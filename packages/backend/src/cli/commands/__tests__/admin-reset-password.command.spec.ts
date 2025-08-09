@@ -1,6 +1,6 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { Logger } from '@nestjs/common';
-import { CliModule } from '../../cli.module';
+import { ConfigService } from '@nestjs/config';
 import { AdminResetPasswordCommand } from '../admin-reset-password.command';
 import { PrismaService } from '../../../prisma/prisma.service';
 import { UserRole } from '@prisma/client';
@@ -12,25 +12,45 @@ describe('AdminResetPasswordCommand', () => {
   let command: AdminResetPasswordCommand;
   let module: TestingModule;
   let prismaService: any;
+  let configService: any;
 
   beforeEach(async () => {
-    module = await Test.createTestingModule({
-      imports: [CliModule],
-    })
-      .overrideProvider(PrismaService)
-      .useValue({
-        // Mock PrismaService for unit tests
-        user: {
-          findUnique: jest.fn(),
-          update: jest.fn(),
-        },
+    // Create mock PrismaService
+    const mockPrismaService = {
+      user: {
+        findUnique: jest.fn(),
+        update: jest.fn(),
+      },
+      $transaction: jest.fn(),
+    };
 
-        $transaction: jest.fn(),
-      })
-      .compile();
+    // Create mock ConfigService
+    const mockConfigService = {
+      get: jest.fn((key: string, defaultValue?: string) => {
+        if (key === 'BCRYPT_SALT_ROUNDS') {
+          return process.env.BCRYPT_SALT_ROUNDS || defaultValue || '10';
+        }
+        return defaultValue;
+      }),
+    };
+
+    module = await Test.createTestingModule({
+      providers: [
+        AdminResetPasswordCommand,
+        {
+          provide: PrismaService,
+          useValue: mockPrismaService,
+        },
+        {
+          provide: ConfigService,
+          useValue: mockConfigService,
+        },
+      ],
+    }).compile();
 
     command = module.get<AdminResetPasswordCommand>(AdminResetPasswordCommand);
     prismaService = module.get<PrismaService>(PrismaService);
+    configService = module.get<ConfigService>(ConfigService);
   });
 
   afterEach(async () => {
@@ -218,10 +238,18 @@ describe('AdminResetPasswordCommand', () => {
       loggerLogSpy.mockRestore();
       loggerErrorSpy.mockRestore();
       delete process.env.BCRYPT_SALT_ROUNDS;
+      jest.clearAllMocks();
     });
 
     it('should use custom salt rounds from environment', async () => {
       process.env.BCRYPT_SALT_ROUNDS = '12';
+      // Reset the mock to ensure it picks up the new env value
+      (configService.get as jest.Mock).mockImplementation((key: string, defaultValue?: string) => {
+        if (key === 'BCRYPT_SALT_ROUNDS') {
+          return process.env.BCRYPT_SALT_ROUNDS || defaultValue || '10';
+        }
+        return defaultValue;
+      });
 
       const mockUser = {
         id: '123',
@@ -241,6 +269,15 @@ describe('AdminResetPasswordCommand', () => {
     });
 
     it('should use default salt rounds when env not set', async () => {
+      delete process.env.BCRYPT_SALT_ROUNDS;
+      // Reset the mock to ensure it uses the default value
+      (configService.get as jest.Mock).mockImplementation((key: string, defaultValue?: string) => {
+        if (key === 'BCRYPT_SALT_ROUNDS') {
+          return defaultValue || '10';
+        }
+        return defaultValue;
+      });
+
       const mockUser = {
         id: '123',
         username: 'adminuser',
