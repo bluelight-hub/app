@@ -22,7 +22,7 @@ const packageJson = (() => {
   version: VERSION_NEUTRAL,
 })
 export class AppController {
-  private readonly logger = new Logger(AppController.name);
+  private readonly logger: Logger;
   private readonly url: string;
 
   /**
@@ -30,11 +30,17 @@ export class AppController {
    * Initialisiert die Basis-URL der Anwendung und den Logger für diese Klasse.
    *
    * @param configService - Service zum Abrufen von Konfigurationswerten aus der Umgebung
+   * @param logger - Logger-Service für diese Klasse
    */
-  constructor(private readonly configService: ConfigService) {
+  constructor(
+    private readonly configService: ConfigService,
+    logger: Logger,
+  ) {
+    this.logger = logger;
+    this.logger.setContext(AppController.name);
     const rawUrl = this.configService.get<string>('APP_URL', 'http://localhost:3000');
     this.url = trimTrailingSlash(rawUrl);
-    this.logger.log(`AppController initialisiert mit URL: ${this.url}`);
+    this.logger.debug(`AppController initialisiert mit URL: ${this.url}`);
   }
 
   @Get()

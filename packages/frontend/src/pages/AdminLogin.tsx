@@ -1,10 +1,10 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useNavigate } from '@tanstack/react-router';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { Alert, Box, Button, Field, Group, IconButton, Input, Text, VStack } from '@chakra-ui/react';
 import { PiEye, PiEyeClosed, PiWarning } from 'react-icons/pi';
 
-import { ResponseError } from '@bluelight-hub/shared/client/runtime';
+import { ResponseError } from '@bluelight-hub/shared/client';
 import { instanceOfUserResponseDto } from '@bluelight-hub/shared/client/models/UserResponseDto';
 import { api } from '@/api/api';
 import { useAuth } from '@/hooks/useAuth';
@@ -23,6 +23,16 @@ export function AdminLogin() {
   const [showPassword, setShowPassword] = useState(false);
   const [shouldShake, setShouldShake] = useState(false);
   const [hasCheckedAuth, setHasCheckedAuth] = useState(false);
+  const shakeTimerRef = useRef<NodeJS.Timeout | null>(null);
+
+  // Cleanup timer on unmount
+  useEffect(() => {
+    return () => {
+      if (shakeTimerRef.current) {
+        clearTimeout(shakeTimerRef.current);
+      }
+    };
+  }, []);
 
   // Clear API error when password changes
   useEffect(() => {
@@ -102,7 +112,15 @@ export function AdminLogin() {
         if (status === 401 || status === 400) {
           setApiError('Ungültiges Passwort.');
           setShouldShake(true);
-          setTimeout(() => setShouldShake(false), 500);
+          // Clear any existing timer
+          if (shakeTimerRef.current) {
+            clearTimeout(shakeTimerRef.current);
+          }
+          // Set new timer with cleanup ref
+          shakeTimerRef.current = setTimeout(() => {
+            setShouldShake(false);
+            shakeTimerRef.current = null;
+          }, 500);
           toaster.create({
             title: 'Login fehlgeschlagen',
             description: 'Ungültiges Passwort.',
@@ -124,7 +142,15 @@ export function AdminLogin() {
           // für bessere Security (keine Informationen preisgeben)
           setApiError('Ungültiges Passwort.');
           setShouldShake(true);
-          setTimeout(() => setShouldShake(false), 500);
+          // Clear any existing timer
+          if (shakeTimerRef.current) {
+            clearTimeout(shakeTimerRef.current);
+          }
+          // Set new timer with cleanup ref
+          shakeTimerRef.current = setTimeout(() => {
+            setShouldShake(false);
+            shakeTimerRef.current = null;
+          }, 500);
           toaster.create({
             title: 'Login fehlgeschlagen',
             description: 'Ungültiges Passwort.',

@@ -1,8 +1,8 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Box, Container, Heading, Tabs, Text, VStack } from '@chakra-ui/react';
 import { useNavigate } from '@tanstack/react-router';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { ResponseError } from '@bluelight-hub/shared/client/runtime';
+import { ResponseError } from '@bluelight-hub/shared/client';
 import { LoginTab } from './LoginTab';
 import { RegisterTab } from './RegisterTab';
 import type { LoginUserDto, RegisterUserDto } from '@bluelight-hub/shared/client';
@@ -112,10 +112,11 @@ export function LoginWindow(_props: Props) {
     onError: (error: Error) => handleAuthError(error, 'register'),
   });
 
-  if (!isLoading && user) {
-    void navigate({ to: '/' });
-    return null;
-  }
+  useEffect(() => {
+    if (!isLoading && user) {
+      void navigate({ to: '/' });
+    }
+  }, [isLoading, user, navigate]);
 
   return (
     <Container maxW={{ base: '400px', md: '600px' }} py={{ base: '12', md: '24' }} px={{ base: '4', sm: '8' }}>

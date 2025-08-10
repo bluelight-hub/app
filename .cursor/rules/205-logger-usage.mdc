@@ -24,7 +24,7 @@ alwaysApply: false
     Via DI (constructor(@Inject('Logger') private logger: LoggerService))
     Oder direkter Import (import { logger } from '@/logger/consola.logger';)
 4. **Log Level**
-    error, warn, info, debug, trace
+    error, warn, info, debug, trace, log
 5. **Konfiguration**
     Produktion: mind. Level 3 (info)
     Entwicklung: Level 4-5 (debug/trace)

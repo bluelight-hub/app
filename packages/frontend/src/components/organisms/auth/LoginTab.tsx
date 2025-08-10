@@ -1,7 +1,7 @@
 import { useMemo, useState } from 'react';
 import { Alert, Button, Field, VStack, createListCollection } from '@chakra-ui/react';
 import { PiCaretUpDown, PiWarning, PiX } from 'react-icons/pi';
-import { ResponseError } from '@bluelight-hub/shared/client/runtime';
+import { ResponseError } from '@bluelight-hub/shared/client';
 import { usePublicUsers } from '@/hooks/usePublicUsers';
 import {
   ComboboxClearTrigger,

@@ -41,13 +41,11 @@ export class AdminResetPasswordCommand {
     });
 
     if (!user) {
-      this.logger.error(`User not found: ${username}`);
       this.logger.error(`❌ Fehler: Benutzer "${username}" wurde nicht gefunden.`);
       throw new Error(`Benutzer "${username}" wurde nicht gefunden.`);
     }
 
     if (!isAdmin(user.role)) {
-      this.logger.error(`User is not an admin: ${username} (role: ${user.role})`);
       this.logger.error(
         `❌ Fehler: Benutzer "${username}" ist kein Administrator (Rolle: ${user.role}).`,
       );
@@ -58,13 +56,13 @@ export class AdminResetPasswordCommand {
     const configuredSaltRounds = this.configService.get<string>('BCRYPT_SALT_ROUNDS', '10');
     const saltRounds = parseInt(configuredSaltRounds, 10);
 
-    // Validate salt rounds and provide fallback
+    // Validate salt rounds and provide fallback (capped at 14 for security)
     const validSaltRounds =
-      !isNaN(saltRounds) && saltRounds > 0 && saltRounds <= 31 ? saltRounds : 10;
+      !isNaN(saltRounds) && saltRounds > 0 && saltRounds <= 14 ? saltRounds : 10;
 
     if (saltRounds !== validSaltRounds) {
       this.logger.warn(
-        `Invalid BCRYPT_SALT_ROUNDS value: ${configuredSaltRounds}. Using default: ${validSaltRounds}`,
+        `Invalid BCRYPT_SALT_ROUNDS value: ${configuredSaltRounds}. Must be between 1-14 (recommended: 10-12). Using: ${validSaltRounds}`,
       );
     }
 

@@ -4,6 +4,7 @@ import { useNavigate } from '@tanstack/react-router';
 import { useForm } from '@tanstack/react-form';
 import { PiCheckCircle, PiWarning } from 'react-icons/pi';
 import { z } from 'zod';
+import { ResponseError } from '@bluelight-hub/shared/client';
 import type { AdminSetupDto } from '@bluelight-hub/shared/client';
 import { useAdminStatus } from '@/hooks/useAdminStatus.ts';
 import { logger } from '@/utils/logger';
@@ -33,7 +34,6 @@ const adminSetupSchema = z.object({
 export function AdminSetup() {
   const navigate = useNavigate();
   const [apiError, setApiError] = useState<string | null>(null);
-  const [isSubmitting, setIsSubmitting] = useState(false);
   const { user } = useAuth();
   const { refetch: refetchAdminStatus } = useAdminStatus();
 
@@ -43,15 +43,12 @@ export function AdminSetup() {
       confirmPassword: '',
     },
     onSubmit: async ({ value }) => {
-      if (isSubmitting) return;
-
       // Validate password confirmation
       if (value.password !== value.confirmPassword) {
         setApiError('Die Passwörter stimmen nicht überein');
         return;
       }
 
-      setIsSubmitting(true);
       setApiError(null);
 
       try {
@@ -81,18 +78,18 @@ export function AdminSetup() {
         logger.error('Admin-Setup-Fehler:', error);
 
         // API-Fehler behandeln
-        if (error instanceof Error) {
-          // Prüfe auf 409 (Admin existiert bereits)
-          if (error.message.includes('401') || error.message.includes('Unauthorized')) {
+        if (error instanceof ResponseError) {
+          // Prüfe auf HTTP Status Code
+          if (error.response.status === 401) {
             setApiError('Sie sind nicht angemeldet. Bitte melden Sie sich zuerst an.');
           } else {
             setApiError(error.message);
           }
+        } else if (error instanceof Error) {
+          setApiError(error.message);
         } else {
           setApiError('Ein unerwarteter Fehler ist aufgetreten. Bitte versuchen Sie es erneut.');
         }
-      } finally {
-        setIsSubmitting(false);
       }
     },
   });
@@ -186,7 +183,7 @@ export function AdminSetup() {
                       field.handleChange(e.target.value);
                     }}
                     onBlur={field.handleBlur}
-                    disabled={isSubmitting}
+                    disabled={form.state.isSubmitting}
                   />
                   <Field.ErrorText>{field.state.meta.isTouched && field.state.meta.errors.length > 0 ? field.state.meta.errors[0] : null}</Field.ErrorText>
                   <Field.HelperText>Mind. 8 Zeichen, 1 Groß-, 1 Kleinbuchstabe, 1 Zahl, 1 Sonderzeichen</Field.HelperText>
@@ -220,7 +217,7 @@ export function AdminSetup() {
                       field.handleChange(e.target.value);
                     }}
                     onBlur={field.handleBlur}
-                    disabled={isSubmitting}
+                    disabled={form.state.isSubmitting}
                   />
                   <Field.ErrorText>{field.state.meta.isTouched && field.state.meta.errors.length > 0 ? field.state.meta.errors[0] : null}</Field.ErrorText>
                 </Field.Root>

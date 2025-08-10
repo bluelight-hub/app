@@ -19,6 +19,8 @@ export function useAdminStatus() {
     },
     // Nur alle 30 Sekunden neu abrufen, da sich der Status selten ändert
     staleTime: 30000,
+    // Automatisch alle 30 Sekunden im Hintergrund aktualisieren
+    refetchInterval: 30000,
     // Fehler still behandeln (z.B. wenn User nicht eingeloggt ist)
     throwOnError: false,
   });

@@ -249,7 +249,7 @@ dto/       # Data Transfer Objects
 1. Backend-Endpoint mit NestJS/Swagger erstellen
 2. API-Client generieren lassen
 3. Frontend nutzt generierten Client
-4. Bei fehlenden APIs: TODO-Kommentar + temporär fetchWithAuth
+4. Bei fehlenden APIs: Backend-Endpoint erstellen → `pnpm run generate-api` → generierten Client nutzen
 
 ## 🔍 QUICK REFERENCE
 

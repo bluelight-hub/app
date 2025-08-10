@@ -1,4 +1,4 @@
-import { ResponseError } from '@bluelight-hub/shared/client/runtime';
+import { ResponseError } from '@bluelight-hub/shared/client';
 import { api } from '@/api/api';
 
 /**

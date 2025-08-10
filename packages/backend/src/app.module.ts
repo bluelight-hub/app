@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { Module, Logger } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { CommonModule } from './common/common.module';
 import { HealthModule } from './health/health.module';
@@ -34,5 +34,6 @@ import { UserManagementModule } from './user-management/user-management.module';
     UserManagementModule,
   ],
   controllers: [AppController],
+  providers: [Logger],
 })
 export class AppModule {}

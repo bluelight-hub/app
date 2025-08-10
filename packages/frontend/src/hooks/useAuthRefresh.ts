@@ -18,23 +18,36 @@ export function useAuthRefresh() {
   // Wir müssen immer versuchen, den User zu laden und das Backend entscheiden lassen,
   // ob gültige Cookies vorhanden sind.
 
-  const { data: currentUser = null, isLoading } = useQuery({
+  const { data: _currentUser = null, isLoading } = useQuery({
     queryKey: QUERY_KEYS.auth.authCheck,
     queryFn: async () => {
+      // Set loading state when query starts
+      authActions.setLoading(true);
+
       try {
         const response = await api.auth().authControllerCheckAuth();
-        // Admin-Auth-Status immer explizit setzen
-        authActions.setAdminAuth(response.isAdminAuthenticated === true);
 
+        // Handle successful response
         if (response.user) {
-          logger.log('Auth refresh successful:', response.user);
+          // Admin-Auth-Status setzen
+          authActions.setAdminAuth(response.isAdminAuthenticated === true);
+          // User im Store speichern
+          authActions.loginSuccess(response.user);
+          logger.log('Auth refresh successful, user restored from session:', response.user);
+          return response.user;
+        } else {
+          // Kein User vorhanden - Store zurücksetzen
+          authActions.clearAuth();
+          authActions.setAdminAuth(false);
+          logger.log('No active session found, user state cleared');
+          return null;
         }
-        // Explizit null zurückgeben wenn kein User vorhanden
-        return response.user ?? null;
       } catch (error) {
         logger.error('Auth check failed:', error);
-        // Bei Fehler Admin-Status sicherheitshalber auf false setzen
+        // Bei Fehler Store zurücksetzen
+        authActions.clearAuth();
         authActions.setAdminAuth(false);
+        authActions.setLoading(false);
         return null;
       }
     },
@@ -44,22 +57,11 @@ export function useAuthRefresh() {
     retry: false,
     throwOnError: false,
   });
+
+  // Nur noch Loading-Status synchronisieren wenn die Query läuft
   useEffect(() => {
     if (!isLoading) {
-      if (currentUser) {
-        // User erfolgreich geladen - im Store speichern
-        authActions.loginSuccess(currentUser);
-        logger.log('User restored from session:', currentUser);
-      } else {
-        // Kein User vorhanden - Store explizit zurücksetzen um veraltete Daten zu vermeiden
-        authActions.clearAuth();
-        logger.log('No active session found, user state cleared');
-      }
+      authActions.setLoading(false);
     }
-  }, [currentUser, isLoading]);
-
-  // Setze den Loading-Status im Store
-  useEffect(() => {
-    authActions.setLoading(isLoading);
   }, [isLoading]);
 }

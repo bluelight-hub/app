@@ -2,7 +2,7 @@ import { Alert, Button, Field, Input, VStack } from '@chakra-ui/react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { PiInfo, PiWarning } from 'react-icons/pi';
-import { ResponseError } from '@bluelight-hub/shared/client/runtime';
+import { ResponseError } from '@bluelight-hub/shared/client';
 import type { RegisterFormData } from '@/schemas/auth.schema';
 import { registerFormSchema } from '@/schemas/auth.schema';
 import { Tooltip } from '@/components/ui/tooltip';

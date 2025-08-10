@@ -4,7 +4,7 @@ import { Link as RouterLink, useNavigate } from '@tanstack/react-router';
 import { useForm } from '@tanstack/react-form';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { PiWarning } from 'react-icons/pi';
-import { ResponseError } from '@bluelight-hub/shared/client/runtime';
+import { ResponseError } from '@bluelight-hub/shared/client';
 import { authActions } from '../stores/auth.store';
 import type { LoginUserDto } from '@bluelight-hub/shared/client';
 import { api } from '@/api/api.ts';
@@ -17,6 +17,7 @@ import { QUERY_KEYS } from '@/queryKeys';
  *
  * Ermöglicht die Anmeldung nur mit Benutzernamen (ohne Passwort).
  * Nach erfolgreicher Anmeldung wird der User im TanStack Store gespeichert.
+ * @returns {JSX.Element} Die Login-Seite
  */
 export function Login() {
   const navigate = useNavigate();
@@ -27,7 +28,7 @@ export function Login() {
     if (!isLoading && user) {
       void navigate({ to: '/' });
     }
-  });
+  }, [isLoading, user, navigate]);
 
   const loginMutation = useMutation({
     mutationFn: async (loginData: LoginUserDto) => {

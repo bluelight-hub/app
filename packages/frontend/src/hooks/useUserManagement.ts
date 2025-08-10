@@ -7,6 +7,7 @@ import type {
 import { api } from '@/api/api';
 import { toaster } from '@/components/ui/toaster.instance';
 import { QUERY_KEYS } from '@/queryKeys';
+import { logger } from '@/utils/logger';
 
 interface ApiError extends Error {
   response?: {
@@ -52,6 +53,7 @@ export const useCreateUser = () => {
     },
     onError: (error: ApiError) => {
       const message = error.response?.data?.message || error.message;
+      logger.error('Failed to create user', error);
       toaster.create({
         title: 'Fehler',
         description:
@@ -95,6 +97,7 @@ export const useDeleteUser = () => {
       queryClient.setQueryData(QUERY_KEYS.user.users, context?.previousUsers);
 
       const message = error.response?.data?.message || error.message;
+      logger.error('Failed to delete user', error);
       toaster.create({
         title: 'Fehler',
         description: message.includes('Super-Admin')

@@ -8,6 +8,7 @@ import { authActions } from '@/stores/auth.store';
  *
  * - Wenn kein `adminToken` Cookie vorhanden ist, wird synchron auf `false` gesetzt
  * - Wenn ein Cookie vorhanden ist, wird einmalig eine Server-Verifikation durchgeführt
+ * @returns {void}
  */
 export function useAdminRefresh() {
   // Synchronous path: if no admin cookie, set to false immediately
@@ -28,7 +29,7 @@ export function useAdminRefresh() {
     const run = async () => {
       try {
         const ok = await verifyAdminToken();
-        authActions.setAdminAuth(ok === true);
+        authActions.setAdminAuth(ok);
       } catch {
         authActions.setAdminAuth(false);
       }
