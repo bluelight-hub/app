@@ -24,7 +24,7 @@ export function useIsTauri(): { isTauri: boolean } {
     return { isTauri: isTauri() };
   } catch (error) {
     // Fallback für den Fall, dass Tauri API nicht verfügbar ist
-    logger.debug(error, 'Tauri API not available, falling back to browser mode');
+    logger.warn(error, 'Tauri API nicht verfügbar, Fallback auf Browser-Modus');
     return { isTauri: false };
   }
 }

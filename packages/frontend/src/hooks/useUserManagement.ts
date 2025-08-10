@@ -6,6 +6,7 @@ import type {
 } from '@bluelight-hub/shared/client';
 import { api } from '@/api/api';
 import { toaster } from '@/components/ui/toaster.instance';
+import { QUERY_KEYS } from '@/queryKeys';
 
 interface ApiError extends Error {
   response?: {
@@ -25,7 +26,7 @@ interface ApiError extends Error {
  */
 export const useUsers = () => {
   return useQuery<UsersListResponse>({
-    queryKey: ['users'],
+    queryKey: QUERY_KEYS.user.users,
     queryFn: async () => {
       return await api.userManagement().userManagementControllerFindAllVAlpha();
     },
@@ -42,7 +43,7 @@ export const useCreateUser = () => {
       });
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['users'] });
+      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.user.users });
       toaster.create({
         title: 'Benutzer erstellt',
         description: 'Der Benutzer wurde erfolgreich erstellt.',
@@ -76,11 +77,11 @@ export const useDeleteUser = () => {
       return await api.userManagement().userManagementControllerRemoveVAlpha({ id });
     },
     onMutate: async (id) => {
-      await queryClient.cancelQueries({ queryKey: ['users'] });
+      await queryClient.cancelQueries({ queryKey: QUERY_KEYS.user.users });
 
-      const previousUsers = queryClient.getQueryData<UsersListResponse>(['users']);
+      const previousUsers = queryClient.getQueryData<UsersListResponse>(QUERY_KEYS.user.users);
 
-      queryClient.setQueryData<UsersListResponse>(['users'], (old) => {
+      queryClient.setQueryData<UsersListResponse>(QUERY_KEYS.user.users, (old) => {
         if (!old) return old;
         return {
           ...old,
@@ -91,7 +92,7 @@ export const useDeleteUser = () => {
       return { previousUsers };
     },
     onError: (error: ApiError, _id, context) => {
-      queryClient.setQueryData(['users'], context?.previousUsers);
+      queryClient.setQueryData(QUERY_KEYS.user.users, context?.previousUsers);
 
       const message = error.response?.data?.message || error.message;
       toaster.create({
@@ -110,7 +111,7 @@ export const useDeleteUser = () => {
       });
     },
     onSettled: () => {
-      queryClient.invalidateQueries({ queryKey: ['users'] });
+      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.user.users });
     },
   });
 };

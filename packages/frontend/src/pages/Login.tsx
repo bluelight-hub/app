@@ -10,6 +10,7 @@ import type { LoginUserDto } from '@bluelight-hub/shared/client';
 import { api } from '@/api/api.ts';
 import { useAuth } from '@/hooks/useAuth.ts';
 import { toaster } from '@/components/ui/toaster.instance';
+import { QUERY_KEYS } from '@/queryKeys';
 
 /**
  * Anmeldeseite für bestehende Benutzer
@@ -41,7 +42,7 @@ export function Login() {
       authActions.loginSuccess(response.user);
 
       // Invalidiere relevante Queries
-      await queryClient.invalidateQueries({ queryKey: ['auth-check'] });
+      await queryClient.invalidateQueries({ queryKey: QUERY_KEYS.auth.authCheck });
 
       // Zeige Erfolgs-Toast
       toaster.create({

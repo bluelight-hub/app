@@ -2,7 +2,7 @@ import { renderHook, waitFor } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { useAdminRefresh } from '@/hooks/useAdminRefresh';
 import { authActions } from '@/stores/auth.store';
-import { verifyAdmin } from '@/utils/adminAuth';
+import { verifyAdminToken } from '@/utils/adminAuth';
 
 // Mocks
 vi.mock('@/stores/auth.store', () => ({
@@ -12,19 +12,20 @@ vi.mock('@/stores/auth.store', () => ({
 }));
 
 vi.mock('@/utils/adminAuth', () => ({
-  verifyAdmin: vi.fn(),
+  verifyAdminToken: vi.fn(),
 }));
 
 describe('useAdminRefresh', () => {
   const mockSetAdminAuth = vi.mocked(authActions.setAdminAuth);
-  const mockVerifyAdmin = vi.mocked(verifyAdmin);
+  const mockVerifyAdminToken = vi.mocked(verifyAdminToken);
 
   beforeEach(() => {
     vi.clearAllMocks();
 
-    // Mock document.cookie
+    // Reset document.cookie for each test
     Object.defineProperty(document, 'cookie', {
       writable: true,
+      configurable: true,
       value: '',
     });
   });
@@ -34,34 +35,45 @@ describe('useAdminRefresh', () => {
 
     // Der Hook setzt den Status sofort synchron
     expect(mockSetAdminAuth).toHaveBeenCalledWith(false);
-    expect(mockVerifyAdmin).not.toHaveBeenCalled();
+    expect(mockVerifyAdminToken).not.toHaveBeenCalled();
   });
 
   it('should set admin auth to true when verification succeeds', async () => {
-    document.cookie = 'adminToken=test-admin-token';
-    mockVerifyAdmin.mockResolvedValueOnce(true);
+    // Set cookie before rendering
+    Object.defineProperty(document, 'cookie', {
+      writable: true,
+      configurable: true,
+      value: 'adminToken=test-admin-token',
+    });
+    mockVerifyAdminToken.mockResolvedValueOnce(true);
 
     renderHook(() => useAdminRefresh());
 
-    // Wait for effect to complete
+    // Wait for verification to be called
     await waitFor(() => {
-      expect(mockVerifyAdmin).toHaveBeenCalledTimes(1);
+      expect(mockVerifyAdminToken).toHaveBeenCalledTimes(1);
     });
 
+    // Wait for setAdminAuth to be called with true
     await waitFor(() => {
       expect(mockSetAdminAuth).toHaveBeenCalledWith(true);
     });
   });
 
   it('should set admin auth to false when verification fails', async () => {
-    document.cookie = 'adminToken=invalid-admin-token';
-    mockVerifyAdmin.mockResolvedValueOnce(false);
+    // Set cookie before rendering
+    Object.defineProperty(document, 'cookie', {
+      writable: true,
+      configurable: true,
+      value: 'adminToken=invalid-admin-token',
+    });
+    mockVerifyAdminToken.mockResolvedValueOnce(false);
 
     renderHook(() => useAdminRefresh());
 
     // Wait for effect to complete
     await waitFor(() => {
-      expect(mockVerifyAdmin).toHaveBeenCalledTimes(1);
+      expect(mockVerifyAdminToken).toHaveBeenCalledTimes(1);
     });
 
     await waitFor(() => {
@@ -70,14 +82,19 @@ describe('useAdminRefresh', () => {
   });
 
   it('should set admin auth to false when verification throws an error', async () => {
-    document.cookie = 'adminToken=test-admin-token';
-    mockVerifyAdmin.mockRejectedValueOnce(new Error('Verification failed'));
+    // Set cookie before rendering
+    Object.defineProperty(document, 'cookie', {
+      writable: true,
+      configurable: true,
+      value: 'adminToken=test-admin-token',
+    });
+    mockVerifyAdminToken.mockRejectedValueOnce(new Error('Verification failed'));
 
     renderHook(() => useAdminRefresh());
 
     // Wait for effect to complete
     await waitFor(() => {
-      expect(mockVerifyAdmin).toHaveBeenCalledTimes(1);
+      expect(mockVerifyAdminToken).toHaveBeenCalledTimes(1);
     });
 
     await waitFor(() => {
@@ -86,25 +103,35 @@ describe('useAdminRefresh', () => {
   });
 
   it('should only verify admin once on mount', async () => {
-    document.cookie = 'adminToken=test-admin-token';
-    mockVerifyAdmin.mockResolvedValueOnce(true);
+    // Set cookie before rendering
+    Object.defineProperty(document, 'cookie', {
+      writable: true,
+      configurable: true,
+      value: 'adminToken=test-admin-token',
+    });
+    mockVerifyAdminToken.mockResolvedValueOnce(true);
 
     const { rerender } = renderHook(() => useAdminRefresh());
 
     // Wait for effect to complete
     await waitFor(() => {
-      expect(mockVerifyAdmin).toHaveBeenCalledTimes(1);
+      expect(mockVerifyAdminToken).toHaveBeenCalledTimes(1);
     });
 
     // Re-render the hook
     rerender();
 
     // Verify admin should not be called again
-    expect(mockVerifyAdmin).toHaveBeenCalledTimes(1);
+    expect(mockVerifyAdminToken).toHaveBeenCalledTimes(1);
   });
 
   it('should handle async verification correctly', async () => {
-    document.cookie = 'adminToken=test-admin-token';
+    // Set cookie before rendering
+    Object.defineProperty(document, 'cookie', {
+      writable: true,
+      configurable: true,
+      value: 'adminToken=test-admin-token',
+    });
 
     // Create a promise that we control
     let resolveVerify: (value: boolean) => void;
@@ -112,12 +139,12 @@ describe('useAdminRefresh', () => {
       resolveVerify = resolve;
     });
 
-    mockVerifyAdmin.mockReturnValueOnce(verifyPromise);
+    mockVerifyAdminToken.mockReturnValueOnce(verifyPromise);
 
     renderHook(() => useAdminRefresh());
 
     // Verify admin should be called immediately
-    expect(mockVerifyAdmin).toHaveBeenCalledTimes(1);
+    expect(mockVerifyAdminToken).toHaveBeenCalledTimes(1);
 
     // But setAdminAuth should not be called yet (except the initial false for no cookie check)
     expect(mockSetAdminAuth).toHaveBeenCalledTimes(0);

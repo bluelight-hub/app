@@ -3,6 +3,7 @@ import type { QueryClient } from '@tanstack/react-query';
 import type { UserResponseDto } from '@bluelight-hub/shared/client';
 import { api } from '@/api/api';
 import { logger } from '@/utils/logger';
+import { QUERY_KEYS } from '@/queryKeys';
 
 /**
  * Interface für den Authentifizierungs-Store
@@ -67,8 +68,27 @@ export const authActions = {
    * Meldet den Benutzer ab und löscht den Store
    */
   logout: (queryClient: QueryClient) => async () => {
-    await api.auth().authControllerLogout();
-    await queryClient.refetchQueries({ queryKey: ['auth-check'] });
+    try {
+      await api.auth().authControllerLogout();
+    } catch (error) {
+      logger.error('Failed to logout from server:', error);
+      // Continue with local logout even if server logout fails
+    }
+
+    await queryClient.refetchQueries({ queryKey: QUERY_KEYS.auth.authCheck });
+    authStore.setState(() => ({
+      user: null,
+      isAuthenticated: false,
+      isLoading: false,
+      isAdminAuthenticated: false,
+    }));
+  },
+
+  /**
+   * Löscht den Authentifizierungszustand ohne API-Call
+   * Wird verwendet wenn kein aktiver User gefunden wurde (z.B. beim App-Start)
+   */
+  clearAuth: () => {
     authStore.setState(() => ({
       user: null,
       isAuthenticated: false,
@@ -123,6 +143,6 @@ export const authActions = {
     }));
 
     // Refetch auth status to update permissions
-    await queryClient.refetchQueries({ queryKey: ['auth-check'] });
+    await queryClient.refetchQueries({ queryKey: QUERY_KEYS.auth.authCheck });
   },
 };

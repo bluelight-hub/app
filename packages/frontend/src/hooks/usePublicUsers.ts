@@ -3,9 +3,7 @@ import type { UseQueryResult } from '@tanstack/react-query';
 import type { PublicUserDto } from '@bluelight-hub/shared/client';
 import { api } from '@/api/api';
 import { logger } from '@/utils/logger';
-
-// Query Key constant for public users
-export const PUBLIC_USERS_QUERY_KEY = ['public-users'] as const;
+import { QUERY_KEYS } from '@/queryKeys';
 
 /**
  * Hook zum Abrufen der öffentlichen Benutzerliste
@@ -16,7 +14,7 @@ export const PUBLIC_USERS_QUERY_KEY = ['public-users'] as const;
  */
 export function usePublicUsers(): UseQueryResult<Array<PublicUserDto>, Error> {
   return useQuery({
-    queryKey: PUBLIC_USERS_QUERY_KEY,
+    queryKey: QUERY_KEYS.user.publicUsers,
     queryFn: async () => {
       try {
         const response = await api.auth().authControllerGetPublicUsers();

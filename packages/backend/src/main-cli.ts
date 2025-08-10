@@ -32,12 +32,22 @@ async function bootstrap() {
   } catch (error) {
     logger.error('Command execution failed:', error.stack);
     logger.error(`❌ Fehler: ${error.message}`);
-    await app.close();
-    process.exit(1);
+
+    // Ensure app is closed properly, even if it fails
+    try {
+      await app.close();
+      logger.debug('Application closed successfully');
+    } catch (closeError) {
+      logger.error('Failed to close application gracefully:', closeError);
+    }
+
+    // Re-throw the original error to let the shell wrapper handle the exit code
+    throw error;
   }
 }
 
 bootstrap().catch((error) => {
   logger.error('❌ CLI Bootstrap failed:', error);
-  process.exit(1);
+  // Let the process exit naturally with the error code
+  throw error;
 });

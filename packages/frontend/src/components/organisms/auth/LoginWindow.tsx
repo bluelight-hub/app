@@ -10,6 +10,7 @@ import { authActions } from '@/stores/auth.store';
 import { api } from '@/api/api';
 import { useAuth } from '@/hooks/useAuth';
 import { toaster } from '@/components/ui/toaster.instance';
+import { QUERY_KEYS } from '@/queryKeys';
 
 type AuthContext = 'login' | 'register';
 
@@ -76,7 +77,7 @@ export function LoginWindow(_props: Props) {
     },
     onSuccess: async (response) => {
       authActions.loginSuccess(response);
-      await queryClient.invalidateQueries({ queryKey: ['auth-check'] });
+      await queryClient.invalidateQueries({ queryKey: QUERY_KEYS.auth.authCheck });
 
       toaster.create({
         title: 'Anmeldung erfolgreich',
@@ -98,7 +99,7 @@ export function LoginWindow(_props: Props) {
     },
     onSuccess: async (response) => {
       authActions.loginSuccess(response);
-      await queryClient.invalidateQueries({ queryKey: ['auth-check'] });
+      await queryClient.invalidateQueries({ queryKey: QUERY_KEYS.auth.authCheck });
 
       toaster.create({
         title: 'Registrierung erfolgreich',

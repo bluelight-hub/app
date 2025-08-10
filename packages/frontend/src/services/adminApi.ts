@@ -18,14 +18,20 @@ export async function verifyAdmin(): Promise<boolean> {
       // 404 bedeutet: kein Admin existiert
       if (status === 404) return false;
       // Serverfehler (5xx) sollen nicht als "kein Admin" fehlinterpretiert werden
-      if (status >= 500) throw error;
+      if (status >= 500) {
+        logger.error('Admin verification server error', { status, error });
+        throw error;
+      }
       // Andere Client-Fehler sind unerwartet -> eskalieren, um Fehldiagnosen zu vermeiden
+      logger.error('Admin verification unexpected client error', { status, error });
       throw error;
     }
     // Netzwerkfehler etc. nicht verschlucken
     if (error instanceof FetchError || error instanceof Error) {
+      logger.error('Admin verification network/fetch error', { error });
       throw error;
     }
+    logger.error('Admin verification unknown error', { error });
     throw error;
   }
 }

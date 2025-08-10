@@ -11,6 +11,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { authActions } from '@/stores/auth.store';
 import { toaster } from '@/components/ui/toaster.instance';
 import { logger } from '@/utils/logger';
+import { AUTH_QUERY_KEYS } from '@/queryKeys';
 
 export function AdminLogin() {
   const navigate = useNavigate();
@@ -76,7 +77,7 @@ export function AdminLogin() {
       authActions.setAdminAuth(true);
 
       // Invalidiere relevante Queries
-      await queryClient.invalidateQueries({ queryKey: ['auth-check'] });
+      await queryClient.invalidateQueries({ queryKey: AUTH_QUERY_KEYS.authCheck });
 
       // Zeige Erfolgs-Toast
       toaster.create({
@@ -213,6 +214,7 @@ export function AdminLogin() {
                     flex="1"
                   />
                   <IconButton
+                    type="button"
                     aria-label={showPassword ? 'Passwort verbergen' : 'Passwort anzeigen'}
                     onClick={() => setShowPassword(!showPassword)}
                     variant="outline"

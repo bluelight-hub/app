@@ -1,5 +1,6 @@
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { verifyAdmin } from '@/services/adminApi';
+import { QUERY_KEYS } from '@/queryKeys';
 
 /**
  * Hook zur Überprüfung der Admin-Präsenz
@@ -16,7 +17,7 @@ export function useAdminPresence() {
     isLoading: loading,
     refetch,
   } = useQuery({
-    queryKey: ['admin-presence'],
+    queryKey: QUERY_KEYS.auth.adminPresence,
     queryFn: verifyAdmin,
     staleTime: 5 * 60 * 1000, // 5 Minuten
     gcTime: 10 * 60 * 1000, // 10 Minuten (früheter cacheTime)
@@ -27,7 +28,7 @@ export function useAdminPresence() {
    * Erzwingt eine Aktualisierung des Admin-Status
    */
   const refresh = async (): Promise<void> => {
-    await queryClient.invalidateQueries({ queryKey: ['admin-presence'] });
+    await queryClient.invalidateQueries({ queryKey: QUERY_KEYS.auth.adminPresence });
     await refetch();
   };
 

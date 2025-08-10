@@ -52,9 +52,9 @@ describe('useIsTauri', () => {
     const { isTauri } = useIsTauri();
 
     expect(isTauri).toBe(false);
-    expect(vi.mocked(logger.debug)).toHaveBeenCalledWith(
+    expect(vi.mocked(logger.warn)).toHaveBeenCalledWith(
       expect.any(Error),
-      'Tauri API not available, falling back to browser mode',
+      'Tauri API nicht verfügbar, Fallback auf Browser-Modus',
     );
   });
 });

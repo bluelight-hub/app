@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { ResponseError } from '@bluelight-hub/shared/client/runtime';
-import { verifyAdmin } from './adminAuth';
+import { verifyAdminToken } from './adminAuth';
 import { api } from '@/api/api';
 
 // Mock the api module
@@ -16,7 +16,7 @@ vi.mock('@/api/api', () => {
   };
 });
 
-describe('verifyAdmin', () => {
+describe('verifyAdminToken', () => {
   let mockAuthApi: any;
 
   beforeEach(() => {
@@ -30,7 +30,7 @@ describe('verifyAdmin', () => {
     // Mock successful verification (no error thrown)
     mockAuthApi.authControllerVerifyAdminToken.mockResolvedValue({});
 
-    const result = await verifyAdmin();
+    const result = await verifyAdminToken();
 
     expect(result).toBe(true);
     expect(mockAuthApi.authControllerVerifyAdminToken).toHaveBeenCalledTimes(1);
@@ -46,7 +46,7 @@ describe('verifyAdmin', () => {
     );
     mockAuthApi.authControllerVerifyAdminToken.mockRejectedValue(error);
 
-    const result = await verifyAdmin();
+    const result = await verifyAdminToken();
 
     expect(result).toBe(false);
     expect(mockAuthApi.authControllerVerifyAdminToken).toHaveBeenCalledTimes(1);
@@ -57,7 +57,7 @@ describe('verifyAdmin', () => {
     const networkError = new Error('Network error');
     mockAuthApi.authControllerVerifyAdminToken.mockRejectedValue(networkError);
 
-    await expect(verifyAdmin()).rejects.toThrow('Network error');
+    await expect(verifyAdminToken()).rejects.toThrow('Network error');
     expect(mockAuthApi.authControllerVerifyAdminToken).toHaveBeenCalledTimes(1);
   });
 
@@ -71,7 +71,7 @@ describe('verifyAdmin', () => {
     );
     mockAuthApi.authControllerVerifyAdminToken.mockRejectedValue(error);
 
-    const result = await verifyAdmin();
+    const result = await verifyAdminToken();
 
     expect(result).toBe(false);
     expect(mockAuthApi.authControllerVerifyAdminToken).toHaveBeenCalledTimes(1);

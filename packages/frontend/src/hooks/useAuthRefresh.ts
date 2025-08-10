@@ -3,8 +3,7 @@ import { useQuery } from '@tanstack/react-query';
 import { api } from '@/api/api';
 import { authActions } from '@/stores/auth.store';
 import { logger } from '@/utils/logger';
-
-const AUTH_CHECK_QUERY_KEY = 'auth-check';
+import { QUERY_KEYS } from '@/queryKeys';
 
 /**
  * Hook für die automatische Wiederherstellung der Authentifizierung beim App-Start
@@ -20,7 +19,7 @@ export function useAuthRefresh() {
   // ob gültige Cookies vorhanden sind.
 
   const { data: currentUser = null, isLoading } = useQuery({
-    queryKey: [AUTH_CHECK_QUERY_KEY],
+    queryKey: QUERY_KEYS.auth.authCheck,
     queryFn: async () => {
       try {
         const response = await api.auth().authControllerCheckAuth();
@@ -51,6 +50,10 @@ export function useAuthRefresh() {
         // User erfolgreich geladen - im Store speichern
         authActions.loginSuccess(currentUser);
         logger.log('User restored from session:', currentUser);
+      } else {
+        // Kein User vorhanden - Store explizit zurücksetzen um veraltete Daten zu vermeiden
+        authActions.clearAuth();
+        logger.log('No active session found, user state cleared');
       }
     }
   }, [currentUser, isLoading]);

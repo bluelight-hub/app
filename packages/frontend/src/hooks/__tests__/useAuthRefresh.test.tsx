@@ -20,6 +20,7 @@ vi.mock('@/stores/auth.store', () => ({
     loginSuccess: vi.fn(),
     setLoading: vi.fn(),
     setAdminAuth: vi.fn(),
+    clearAuth: vi.fn(),
   },
 }));
 
@@ -34,6 +35,8 @@ describe('useAuthRefresh', () => {
   let queryClient: QueryClient;
   const mockLoginSuccess = vi.mocked(authActions.loginSuccess);
   const mockSetLoading = vi.mocked(authActions.setLoading);
+  const mockClearAuth = vi.mocked(authActions.clearAuth);
+  const mockSetAdminAuth = vi.mocked(authActions.setAdminAuth);
 
   const wrapper = ({ children }: { children: ReactNode }) => <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>;
 
@@ -47,12 +50,20 @@ describe('useAuthRefresh', () => {
   });
 
   it('should handle case when no user is authenticated', async () => {
-    mockCheckAuth.mockResolvedValueOnce({ user: null });
+    mockCheckAuth.mockResolvedValueOnce({ user: null, isAdminAuthenticated: false });
 
     renderHook(() => useAuthRefresh(), { wrapper });
 
     await waitFor(() => {
       expect(mockCheckAuth).toHaveBeenCalledTimes(1);
+    });
+
+    await waitFor(() => {
+      expect(mockSetAdminAuth).toHaveBeenCalledWith(false);
+    });
+
+    await waitFor(() => {
+      expect(mockClearAuth).toHaveBeenCalled();
     });
 
     await waitFor(() => {
@@ -64,12 +75,16 @@ describe('useAuthRefresh', () => {
 
   it('should call API and set user when authenticated', async () => {
     const mockUser = { id: '1', username: 'testuser', createdAt: new Date().toISOString() };
-    mockCheckAuth.mockResolvedValueOnce({ user: mockUser });
+    mockCheckAuth.mockResolvedValueOnce({ user: mockUser, isAdminAuthenticated: false });
 
     renderHook(() => useAuthRefresh(), { wrapper });
 
     await waitFor(() => {
       expect(mockCheckAuth).toHaveBeenCalledTimes(1);
+    });
+
+    await waitFor(() => {
+      expect(mockSetAdminAuth).toHaveBeenCalledWith(false);
     });
 
     await waitFor(() => {
@@ -81,14 +96,18 @@ describe('useAuthRefresh', () => {
     });
   });
 
-  it('should handle successful auth check with user data', async () => {
+  it('should handle successful auth check with user data and admin auth', async () => {
     const mockUser = { id: '2', username: 'anotheruser', createdAt: new Date().toISOString() };
-    mockCheckAuth.mockResolvedValueOnce({ user: mockUser });
+    mockCheckAuth.mockResolvedValueOnce({ user: mockUser, isAdminAuthenticated: true });
 
     renderHook(() => useAuthRefresh(), { wrapper });
 
     await waitFor(() => {
       expect(mockCheckAuth).toHaveBeenCalledTimes(1);
+    });
+
+    await waitFor(() => {
+      expect(mockSetAdminAuth).toHaveBeenCalledWith(true);
     });
 
     await waitFor(() => {
@@ -112,6 +131,14 @@ describe('useAuthRefresh', () => {
     });
 
     await waitFor(() => {
+      expect(mockSetAdminAuth).toHaveBeenCalledWith(false);
+    });
+
+    await waitFor(() => {
+      expect(mockClearAuth).toHaveBeenCalled();
+    });
+
+    await waitFor(() => {
       expect(mockSetLoading).toHaveBeenCalledWith(false);
     });
 
@@ -127,6 +154,14 @@ describe('useAuthRefresh', () => {
 
     await waitFor(() => {
       expect(mockCheckAuth).toHaveBeenCalledTimes(1);
+    });
+
+    await waitFor(() => {
+      expect(mockSetAdminAuth).toHaveBeenCalledWith(false);
+    });
+
+    await waitFor(() => {
+      expect(mockClearAuth).toHaveBeenCalled();
     });
 
     await waitFor(() => {

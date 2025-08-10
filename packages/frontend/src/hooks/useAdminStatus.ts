@@ -1,6 +1,7 @@
 import { useQuery } from '@tanstack/react-query';
 import type { AdminStatusDto } from '@bluelight-hub/shared/client';
 import { api } from '@/api/api';
+import { QUERY_KEYS } from '@/queryKeys';
 
 /**
  * Hook zum Abrufen des Admin-Setup-Status
@@ -12,7 +13,7 @@ import { api } from '@/api/api';
  */
 export function useAdminStatus() {
   return useQuery<AdminStatusDto>({
-    queryKey: ['admin', 'status'],
+    queryKey: QUERY_KEYS.auth.adminStatus,
     queryFn: async () => {
       return await api.auth().authControllerGetAdminStatus();
     },

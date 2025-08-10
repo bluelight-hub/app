@@ -3,6 +3,7 @@ import { useMemo } from 'react';
 import { Button, HStack } from '@chakra-ui/react';
 import { ColorModeButton } from '@molecules/color-mode-button.molecule.tsx';
 import { api } from '@/api/api.ts';
+import { QUERY_KEYS } from '@/queryKeys';
 
 export function Greeting() {
   const healthApi = useMemo(() => {
@@ -10,7 +11,7 @@ export function Greeting() {
   }, []);
 
   const query = useQuery({
-    queryKey: ['health'],
+    queryKey: QUERY_KEYS.health.health,
     queryFn: () => healthApi.healthControllerCheck(),
   });
 

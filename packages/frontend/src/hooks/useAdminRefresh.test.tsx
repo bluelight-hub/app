@@ -6,9 +6,9 @@ import type { MockInstance } from 'vitest';
 import { authActions } from '@/stores/auth.store';
 
 // Mock dependencies
-const mockVerifyAdmin = vi.fn();
+const mockVerifyAdminToken = vi.fn();
 vi.mock('@/utils/adminAuth', () => ({
-  verifyAdmin: () => mockVerifyAdmin(),
+  verifyAdminToken: () => mockVerifyAdminToken(),
 }));
 
 vi.mock('@/stores/auth.store', () => ({
@@ -64,20 +64,20 @@ describe('useAdminRefresh', () => {
       expect(setAdminAuthSpy).toHaveBeenCalledWith(false);
     });
 
-    // Assert - verifyAdmin should not be called when no cookie
-    expect(mockVerifyAdmin).not.toHaveBeenCalled();
+    // Assert - verifyAdminToken should not be called when no cookie
+    expect(mockVerifyAdminToken).not.toHaveBeenCalled();
   });
 
   it('should set admin auth to true when verification succeeds', async () => {
     // Arrange
-    mockVerifyAdmin.mockResolvedValueOnce(true);
+    mockVerifyAdminToken.mockResolvedValueOnce(true);
 
     // Act
     renderHook(() => useAdminRefresh());
 
     // Wait for effect to complete
     await waitFor(() => {
-      expect(mockVerifyAdmin).toHaveBeenCalledTimes(1);
+      expect(mockVerifyAdminToken).toHaveBeenCalledTimes(1);
     });
 
     // Assert
@@ -86,14 +86,14 @@ describe('useAdminRefresh', () => {
 
   it('should set admin auth to false when verification fails', async () => {
     // Arrange
-    mockVerifyAdmin.mockResolvedValueOnce(false);
+    mockVerifyAdminToken.mockResolvedValueOnce(false);
 
     // Act
     renderHook(() => useAdminRefresh());
 
     // Wait for effect to complete
     await waitFor(() => {
-      expect(mockVerifyAdmin).toHaveBeenCalledTimes(1);
+      expect(mockVerifyAdminToken).toHaveBeenCalledTimes(1);
     });
 
     // Assert
@@ -102,14 +102,14 @@ describe('useAdminRefresh', () => {
 
   it('should set admin auth to false when verification throws an error', async () => {
     // Arrange
-    mockVerifyAdmin.mockRejectedValueOnce(new Error('Network error'));
+    mockVerifyAdminToken.mockRejectedValueOnce(new Error('Network error'));
 
     // Act
     renderHook(() => useAdminRefresh());
 
     // Wait for effect to complete
     await waitFor(() => {
-      expect(mockVerifyAdmin).toHaveBeenCalledTimes(1);
+      expect(mockVerifyAdminToken).toHaveBeenCalledTimes(1);
     });
 
     // Assert
@@ -118,21 +118,21 @@ describe('useAdminRefresh', () => {
 
   it('should only verify admin once on mount', async () => {
     // Arrange
-    mockVerifyAdmin.mockResolvedValue(true);
+    mockVerifyAdminToken.mockResolvedValue(true);
 
     // Act
     const { rerender } = renderHook(() => useAdminRefresh());
 
     // Wait for initial effect
     await waitFor(() => {
-      expect(mockVerifyAdmin).toHaveBeenCalledTimes(1);
+      expect(mockVerifyAdminToken).toHaveBeenCalledTimes(1);
     });
 
     // Rerender component
     rerender();
 
     // Assert - should not call again
-    expect(mockVerifyAdmin).toHaveBeenCalledTimes(1);
+    expect(mockVerifyAdminToken).toHaveBeenCalledTimes(1);
   });
 
   it('should handle async verification correctly', async () => {
@@ -143,18 +143,18 @@ describe('useAdminRefresh', () => {
       resolveVerification = resolve;
     });
 
-    mockVerifyAdmin.mockReturnValueOnce(verificationPromise);
+    mockVerifyAdminToken.mockReturnValueOnce(verificationPromise);
 
     // Act - render the hook
     const { rerender } = renderHook(() => useAdminRefresh());
 
     // Verify that verification was initiated but not completed yet
-    expect(mockVerifyAdmin).toHaveBeenCalledTimes(1);
+    expect(mockVerifyAdminToken).toHaveBeenCalledTimes(1);
     expect(setAdminAuthSpy).not.toHaveBeenCalled();
 
     // Re-render shouldn't trigger another verification
     rerender();
-    expect(mockVerifyAdmin).toHaveBeenCalledTimes(1);
+    expect(mockVerifyAdminToken).toHaveBeenCalledTimes(1);
 
     // Resolve the verification
     resolveVerification!(true);
@@ -165,7 +165,7 @@ describe('useAdminRefresh', () => {
     });
 
     // Assert - verification only happened once, auth was set once
-    expect(mockVerifyAdmin).toHaveBeenCalledTimes(1);
+    expect(mockVerifyAdminToken).toHaveBeenCalledTimes(1);
     expect(setAdminAuthSpy).toHaveBeenCalledTimes(1);
     expect(setAdminAuthSpy).toHaveBeenCalledWith(true);
   });

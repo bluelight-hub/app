@@ -214,10 +214,7 @@ Anstelle einer vollständigen CQRS-Implementierung, die für die aktuelle Anwend
 * *Repositories*: Abstrahieren den Datenzugriff und ermöglichen eine klare Trennung der Datenpersistenz
 
 Diese vereinfachte Struktur ermöglicht:
-* Einfachere Implementierung und Wartung
-* Bessere Verständlichkeit für neue Entwickler
-* Ausreichende Trennung der Zuständigkeiten
-* Skalierbarkeit für die aktuelle Anwendungsgröße
+* Einfachere Implementierung und Wartung * Bessere Verständlichkeit für neue Entwickler * Ausreichende Trennung der Zuständigkeiten * Skalierbarkeit für die aktuelle Anwendungsgröße
 
 ==== Eventbasierte Kommunikation
 
@@ -851,7 +848,10 @@ export class ApiMeta {
 ----
 
 Diese Struktur stellt sicher, dass jede API-Antwort folgendes enthält:
-* **data**: Die eigentlichen Antwortdaten mit spezifischem Typ * **meta**: Metadaten wie Zeitstempel oder Paginierungsinformationen * **message**: Optionale Nachricht für zusätzliche Informationen
+
+* **data**: Die eigentlichen Antwortdaten mit spezifischem Typ
+* **meta**: Metadaten wie Zeitstempel oder Paginierungsinformationen
+* **message**: Optionale Nachricht für zusätzliche Informationen
 
 ===== Integration mit TransformInterceptor
 
@@ -1109,10 +1109,7 @@ Es ermöglicht die schnelle Generierung realistischer DRK-Einsatzszenarien für 
 Das System adressiert die Herausforderung, dass Entwickler und Tester konsistente, realistische Daten für ihre Arbeit benötigen, ohne jedes Mal manuell komplexe Einsatzszenarien erstellen zu müssen.
 
 *Hauptziele:*
-* Standardisierte, wiederverwendbare Einsatzszenarien für das DRK
-* Reduzierte Einrichtungszeit für Entwicklungs- und Testumgebungen
-* Konsistente Testdaten für reproduzierbare Tests
-* Realistische Demo-Daten für Präsentationen und Schulungen
+* Standardisierte, wiederverwendbare Einsatzszenarien für das DRK * Reduzierte Einrichtungszeit für Entwicklungs- und Testumgebungen * Konsistente Testdaten für reproduzierbare Tests * Realistische Demo-Daten für Präsentationen und Schulungen
 
 ==== Architektur des Profile-Systems
 
@@ -1225,10 +1222,7 @@ npm run cli seed:einsatz --category katastrophenschutz
 ===== Admin-Panel-Integration (geplant)
 
 Web-basierte Oberfläche für erweiterte Profile-Verwaltung:
-* Visual Profile-Browser mit Filterung und Suche
-* Bulk-Operations für mehrere Profile
-* Custom-Profile-Editor für projektspezifische Szenarien
-* Import/Export von Profile-Sets
+* Visual Profile-Browser mit Filterung und Suche * Bulk-Operations für mehrere Profile * Custom-Profile-Editor für projektspezifische Szenarien * Import/Export von Profile-Sets
 
 ===== Programmatische API
 

@@ -69,7 +69,7 @@ test.describe('Basic Navigation', () => {
     // Mock register API to avoid backend dependency
     await page.route('**/api/auth/register', async (route) => {
       await route.fulfill({
-        status: 200,
+        status: 201,
         contentType: 'application/json',
         body: JSON.stringify({
           id: 'u-' + timestamp,

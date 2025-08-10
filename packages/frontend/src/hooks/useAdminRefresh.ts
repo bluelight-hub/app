@@ -1,5 +1,5 @@
 import { useEffect, useRef } from 'react';
-import { verifyAdmin } from '@/utils/adminAuth';
+import { verifyAdminToken } from '@/utils/adminAuth';
 import { authActions } from '@/stores/auth.store';
 
 /**
@@ -27,7 +27,7 @@ export function useAdminRefresh() {
 
     const run = async () => {
       try {
-        const ok = await verifyAdmin();
+        const ok = await verifyAdminToken();
         authActions.setAdminAuth(ok === true);
       } catch {
         authActions.setAdminAuth(false);

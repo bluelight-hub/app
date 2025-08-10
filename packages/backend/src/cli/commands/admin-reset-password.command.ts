@@ -75,8 +75,8 @@ export class AdminResetPasswordCommand {
       data: { passwordHash: hash },
     });
 
-    // Optional: Alle aktiven Sessions/Tokens des Users invalidieren
-    // Sessions are currently not implemented in the schema
+    // TODO: Implement session invalidation when sessions are added to the schema
+    // This will ensure all active sessions are terminated after password reset
     // await this.prisma.session.deleteMany({
     //   where: { userId: user.id },
     // });

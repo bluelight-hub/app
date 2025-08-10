@@ -8,6 +8,7 @@ import { PrismaService } from '@/prisma/prisma.service';
 import { UserRole } from '@prisma/client';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UserMapper } from './mappers/user.mapper';
+import { UserDto } from './dto/user-management-response.dto';
 
 /**
  * Service für die Benutzerverwaltung durch Administratoren
@@ -26,7 +27,7 @@ export class UserManagementService {
    *
    * @returns Array von Benutzern mit id, username und role
    */
-  async findAll() {
+  async findAll(): Promise<UserDto[]> {
     const users = await this.prisma.user.findMany({
       select: {
         id: true,
@@ -50,30 +51,30 @@ export class UserManagementService {
    * @throws ConflictException wenn der Benutzername bereits existiert
    */
   async create(dto: CreateUserDto) {
-    // Prüfen, ob Benutzername bereits existiert
-    const existingUser = await this.prisma.user.findUnique({
-      where: { username: dto.username },
-    });
-
-    if (existingUser) {
-      throw new ConflictException('Benutzername bereits vergeben');
+    try {
+      // Benutzer erstellen mit Standardrolle USER
+      const user = await this.prisma.user.create({
+        data: {
+          username: dto.username,
+          role: dto.role || UserRole.USER,
+        },
+        select: {
+          id: true,
+          username: true,
+          role: true,
+          createdAt: true,
+          updatedAt: true,
+        },
+      });
+      return UserMapper.toUserDto(user);
+    } catch (error) {
+      // Handle Prisma unique constraint violation
+      if (error.code === 'P2002') {
+        throw new ConflictException('Benutzername bereits vergeben');
+      }
+      // Re-throw other errors
+      throw error;
     }
-
-    // Benutzer erstellen mit Standardrolle USER
-    const user = await this.prisma.user.create({
-      data: {
-        username: dto.username,
-        role: dto.role || UserRole.USER,
-      },
-      select: {
-        id: true,
-        username: true,
-        role: true,
-        createdAt: true,
-        updatedAt: true,
-      },
-    });
-    return UserMapper.toUserDto(user);
   }
 
   /**

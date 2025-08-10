@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Alert, Box, Button, Field, Input, Text, VStack } from '@chakra-ui/react';
 import { useNavigate } from '@tanstack/react-router';
 import { useForm } from '@tanstack/react-form';
@@ -99,8 +99,14 @@ export function AdminSetup() {
 
   // Navigation zur Startseite nur wenn kein User angemeldet ist
   // Die adminSetupAvailable Prüfung erfolgt bereits auf der Index-Seite
+  useEffect(() => {
+    if (!user) {
+      navigate({ to: '/' });
+    }
+  }, [user, navigate]);
+
+  // Early return nach useEffect, um Hooks-Regeln einzuhalten
   if (!user) {
-    navigate({ to: '/' });
     return null;
   }
 

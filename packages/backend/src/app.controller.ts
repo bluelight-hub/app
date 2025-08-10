@@ -1,4 +1,4 @@
-import { Controller, Get, VERSION_NEUTRAL } from '@nestjs/common';
+import { Controller, Get, Logger, VERSION_NEUTRAL } from '@nestjs/common';
 import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { ConfigService } from '@nestjs/config';
@@ -14,15 +14,27 @@ const packageJson = (() => {
   }
 })();
 
+/**
+ * Haupt-Controller für die Anwendung, der grundlegende API-Informationen bereitstellt.
+ * Dieser Controller stellt den Root-Endpunkt zur Verfügung, der Metadaten über die API liefert.
+ */
 @Controller({
   version: VERSION_NEUTRAL,
 })
 export class AppController {
+  private readonly logger = new Logger(AppController.name);
   private readonly url: string;
 
-  constructor(configService: ConfigService) {
-    const rawUrl = configService.get<string>('APP_URL', 'http://localhost:3000');
+  /**
+   * Konstruktor des AppControllers.
+   * Initialisiert die Basis-URL der Anwendung und den Logger für diese Klasse.
+   *
+   * @param configService - Service zum Abrufen von Konfigurationswerten aus der Umgebung
+   */
+  constructor(private readonly configService: ConfigService) {
+    const rawUrl = this.configService.get<string>('APP_URL', 'http://localhost:3000');
     this.url = trimTrailingSlash(rawUrl);
+    this.logger.log(`AppController initialisiert mit URL: ${this.url}`);
   }
 
   @Get()

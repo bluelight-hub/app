@@ -6,6 +6,7 @@ import { PrismaService } from '@/prisma/prisma.service';
 import { UserRole } from '@prisma/client';
 import * as bcrypt from 'bcrypt';
 import cookieParser from 'cookie-parser';
+import { TestAuthUtils } from '../utils/test-auth.utils';
 
 describe('AuthController (e2e) - Admin Login', () => {
   let app: INestApplication;
@@ -61,8 +62,9 @@ describe('AuthController (e2e) - Admin Login', () => {
       expect(loginCookies).toBeDefined();
       expect(loginCookies.length).toBeGreaterThan(0);
 
-      const authToken = loginCookies?.find((cookie) => cookie.startsWith('accessToken='));
-      expect(authToken).toBeDefined();
+      const { accessToken } = TestAuthUtils.extractCookies(loginResponse);
+      expect(accessToken).toBeDefined();
+      const authToken = `accessToken=${accessToken}`;
 
       // Then, activate admin rights with password
       const response = await request(app.getHttpServer())
@@ -115,10 +117,9 @@ describe('AuthController (e2e) - Admin Login', () => {
         .send({ username: 'admin' })
         .expect(200);
 
-      const authCookie = loginResponse.headers['set-cookie'] as unknown as string[];
-      const authToken = authCookie?.find((cookie) => cookie.startsWith('accessToken='));
-
-      expect(authToken).toBeDefined();
+      const { accessToken } = TestAuthUtils.extractCookies(loginResponse);
+      expect(accessToken).toBeDefined();
+      const authToken = `accessToken=${accessToken}`;
 
       // Wait a bit to ensure time difference
       await new Promise((resolve) => setTimeout(resolve, 100));
@@ -161,10 +162,9 @@ describe('AuthController (e2e) - Admin Login', () => {
         .send({ username: 'admin' })
         .expect(200);
 
-      const authCookie = loginResponse.headers['set-cookie'] as unknown as string[];
-      const authToken = authCookie?.find((cookie) => cookie.startsWith('accessToken='));
-
-      expect(authToken).toBeDefined();
+      const { accessToken } = TestAuthUtils.extractCookies(loginResponse);
+      expect(accessToken).toBeDefined();
+      const authToken = `accessToken=${accessToken}`;
 
       const response = await request(app.getHttpServer())
         .post('/auth/admin/login')
@@ -201,10 +201,9 @@ describe('AuthController (e2e) - Admin Login', () => {
         .send({ username: 'regularuser' })
         .expect(200);
 
-      const authCookie = loginResponse.headers['set-cookie'] as unknown as string[];
-      const authToken = authCookie?.find((cookie) => cookie.startsWith('accessToken='));
-
-      expect(authToken).toBeDefined();
+      const { accessToken } = TestAuthUtils.extractCookies(loginResponse);
+      expect(accessToken).toBeDefined();
+      const authToken = `accessToken=${accessToken}`;
 
       const response = await request(app.getHttpServer())
         .post('/auth/admin/login')
@@ -244,10 +243,9 @@ describe('AuthController (e2e) - Admin Login', () => {
         .send({ username: 'admin' })
         .expect(200);
 
-      const authCookie = loginResponse.headers['set-cookie'] as unknown as string[];
-      const authToken = authCookie?.find((cookie) => cookie.startsWith('accessToken='));
-
-      expect(authToken).toBeDefined();
+      const { accessToken } = TestAuthUtils.extractCookies(loginResponse);
+      expect(accessToken).toBeDefined();
+      const authToken = `accessToken=${accessToken}`;
 
       const response = await request(app.getHttpServer())
         .post('/auth/admin/login')
@@ -278,10 +276,9 @@ describe('AuthController (e2e) - Admin Login', () => {
         .send({ username: 'admin' })
         .expect(200);
 
-      const authCookie = loginResponse.headers['set-cookie'] as unknown as string[];
-      const authToken = authCookie?.find((cookie) => cookie.startsWith('accessToken='));
-
-      expect(authToken).toBeDefined();
+      const { accessToken } = TestAuthUtils.extractCookies(loginResponse);
+      expect(accessToken).toBeDefined();
+      const authToken = `accessToken=${accessToken}`;
 
       // Missing password
       await request(app.getHttpServer())
@@ -307,10 +304,9 @@ describe('AuthController (e2e) - Admin Login', () => {
         .send({ username: 'admin' })
         .expect(200);
 
-      const authCookie = loginResponse.headers['set-cookie'] as unknown as string[];
-      const authToken = authCookie?.find((cookie) => cookie.startsWith('accessToken='));
-
-      expect(authToken).toBeDefined();
+      const { accessToken } = TestAuthUtils.extractCookies(loginResponse);
+      expect(accessToken).toBeDefined();
+      const authToken = `accessToken=${accessToken}`;
 
       // Password too short
       const response = await request(app.getHttpServer())
