@@ -14,7 +14,6 @@ CREATE TABLE "public"."User"
     "lockedUntil"      TIMESTAMP(3),
     "createdAt"        TIMESTAMP(3)        NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt"        TIMESTAMP(3)        NOT NULL,
-    "createdBy"        TEXT,
 
     CONSTRAINT "User_pkey" PRIMARY KEY ("id")
 );
@@ -30,10 +29,3 @@ CREATE INDEX "idx_user_role_active" ON "public"."User" ("role", "isActive");
 
 -- CreateIndex
 CREATE INDEX "idx_user_last_login" ON "public"."User" ("lastLoginAt");
-
--- CreateIndex
-CREATE INDEX "idx_user_created_by" ON "public"."User" ("createdBy");
-
--- AddForeignKey
-ALTER TABLE "public"."User"
-    ADD CONSTRAINT "User_createdBy_fkey" FOREIGN KEY ("createdBy") REFERENCES "public"."User" ("id") ON DELETE SET NULL ON UPDATE CASCADE;

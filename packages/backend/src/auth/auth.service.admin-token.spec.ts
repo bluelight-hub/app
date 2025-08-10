@@ -21,7 +21,6 @@ describe('AuthService - Admin Token', () => {
     lockedUntil: null,
     createdAt: new Date(),
     updatedAt: new Date(),
-    createdBy: null,
   };
 
   beforeEach(async () => {

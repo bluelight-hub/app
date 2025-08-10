@@ -129,7 +129,6 @@ describe('AuthService', () => {
       lockedUntil: null,
       createdAt: new Date(),
       updatedAt: new Date(),
-      createdBy: null,
     };
 
     beforeEach(() => {
@@ -201,7 +200,6 @@ describe('AuthService', () => {
       lockedUntil: null,
       createdAt: new Date(),
       updatedAt: new Date(),
-      createdBy: null,
     };
 
     beforeEach(() => {

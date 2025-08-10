@@ -15,7 +15,6 @@ import { AdminTokenVerificationDto } from './dto/admin-token-verification.dto';
  * - passwordHash
  * - failedLoginCount
  * - lockedUntil
- * - createdBy
  *
  * @param user - Das vollständige User-Objekt aus der Datenbank
  * @returns Gefiltertes User-Objekt für API-Responses

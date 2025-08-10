@@ -143,7 +143,7 @@ pnpm --filter @bluelight-hub/backend dev      # Nur Backend
 pnpm --filter @bluelight-hub/frontend dev     # Nur Frontend
 
 # E2E Tests (separates Jest-Config!)
-cd packages/backend && npm run test:e2e       # NICHT "test" verwenden!
+cd packages/backend && pnpm run test:e2e       # NICHT "test" verwenden!
 ```
 
 ## 🔧 MCP SERVER INTEGRATION

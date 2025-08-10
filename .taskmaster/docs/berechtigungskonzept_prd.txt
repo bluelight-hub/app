@@ -49,7 +49,6 @@ model User {
   isAdmin   Boolean  @default(false)
   password  String?  // Nur für Admins
   createdAt DateTime @default(now())
-  createdBy String?  // Admin der den User erstellt hat
 }
 
 // Frontend Types
