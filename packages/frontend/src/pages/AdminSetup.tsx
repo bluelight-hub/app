@@ -82,8 +82,30 @@ export function AdminSetup() {
           // Prüfe auf HTTP Status Code
           if (error.response.status === 401) {
             setApiError('Sie sind nicht angemeldet. Bitte melden Sie sich zuerst an.');
+          } else if (error.response.status === 409) {
+            // Admin bereits eingerichtet
+            setApiError('Ein Administrator wurde bereits eingerichtet. Bitte melden Sie sich mit dem bestehenden Admin-Konto an.');
           } else {
-            setApiError(error.message);
+            // Versuche Server-Nachricht zu extrahieren
+            let serverMessage: string | undefined;
+
+            try {
+              // Versuche Response-Body als JSON zu parsen
+              const responseBody = await error.response.json();
+              serverMessage = responseBody?.message || responseBody?.error;
+            } catch {
+              // Falls JSON-Parsing fehlschlägt, versuche als Text
+              try {
+                const responseText = await error.response.text();
+                if (responseText && responseText.length < 200) {
+                  serverMessage = responseText;
+                }
+              } catch {
+                // Ignoriere Parsing-Fehler
+              }
+            }
+
+            setApiError(serverMessage || error.message || 'Ein Fehler ist aufgetreten. Bitte versuchen Sie es erneut.');
           }
         } else if (error instanceof Error) {
           setApiError(error.message);

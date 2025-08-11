@@ -15,14 +15,18 @@ on:
 jobs:
   qodana:
     runs-on: ubuntu-latest
+    timeout-minutes: 30
+    concurrency:
+      group: qodana-${{ github.workflow }}-${{ github.ref }}
+      cancel-in-progress: true
     permissions:
-      contents: write
+      contents: read
       pull-requests: write
       checks: write
     steps:
       - uses: actions/checkout@v4
         with:
-          ref: ${{ github.event.pull_request.head.sha }}
+          ref: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.sha || github.sha }}
           fetch-depth: 0
       - name: 'Qodana Scan'
         uses: JetBrains/qodana-action@main
@@ -30,8 +34,8 @@ jobs:
           QODANA_TOKEN: ${{ secrets.QODANA_TOKEN }}
           QODANA_ENDPOINT: 'https://qodana.cloud'
         with:
-          # In pr-mode: 'true' Qodana checks only changed files
-          pr-mode: false
+          pr-mode: ${{ github.event_name == 'pull_request' }}
           use-caches: true
-          post-pr-comment: true
+          post-pr-comment: ${{ github.event_name == 'pull_request' && !github.event.pull_request.head.repo.fork }}
           use-annotations: true
+          upload-result: true

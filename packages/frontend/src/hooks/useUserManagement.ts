@@ -1,14 +1,16 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { ResponseError } from '@bluelight-hub/shared/client';
 import type {
   CreateUserDto,
   DeleteUserResponse,
+  ResponseError,
+  UserResponse,
   UsersListResponse,
 } from '@bluelight-hub/shared/client';
 import { api } from '@/api/api';
 import { toaster } from '@/components/ui/toaster.instance';
 import { QUERY_KEYS } from '@/queryKeys';
 import { logger } from '@/utils/logger';
+import { getApiErrorMessage } from '@/utils/apiErrorHandler';
 
 /**
  * Hook zum Abrufen aller Benutzer aus dem System
@@ -30,7 +32,7 @@ export const useUsers = () => {
 export const useCreateUser = () => {
   const queryClient = useQueryClient();
 
-  return useMutation({
+  return useMutation<UserResponse, ResponseError, CreateUserDto>({
     mutationFn: async (data: CreateUserDto) => {
       return await api.userManagement().userManagementControllerCreateVAlpha({
         createUserDto: data,
@@ -44,27 +46,17 @@ export const useCreateUser = () => {
         type: 'success',
       });
     },
-    onError: async (error: unknown) => {
-      let message = 'Der Benutzer konnte nicht erstellt werden.';
-
-      if (error instanceof ResponseError) {
-        try {
-          const errorData = await error.response.json();
-          message = errorData.message || message;
-        } catch {
-          // Falls Response nicht als JSON geparst werden kann
-        }
-      } else if (error instanceof Error) {
-        message = error.message;
-      }
+    onError: async (error: ResponseError) => {
+      const message = await getApiErrorMessage(
+        error,
+        'Der Benutzer konnte nicht erstellt werden.',
+        'createUser',
+      );
 
       logger.error('Failed to create user', error);
       toaster.create({
         title: 'Fehler',
-        description:
-          message.includes('duplicate') || message.includes('unique')
-            ? 'Ein Benutzer mit diesem Namen existiert bereits.'
-            : message,
+        description: message,
         type: 'error',
       });
     },
@@ -76,7 +68,7 @@ export const useDeleteUser = () => {
 
   return useMutation<
     DeleteUserResponse,
-    Error,
+    ResponseError,
     string,
     { previousUsers: UsersListResponse | undefined }
   >({
@@ -98,28 +90,19 @@ export const useDeleteUser = () => {
 
       return { previousUsers };
     },
-    onError: async (error: unknown, _id, context) => {
+    onError: async (error: ResponseError, _id, context) => {
       queryClient.setQueryData(QUERY_KEYS.user.users, context?.previousUsers);
 
-      let message = 'Der Benutzer konnte nicht gelöscht werden.';
-
-      if (error instanceof ResponseError) {
-        try {
-          const errorData = await error.response.json();
-          message = errorData.message || message;
-        } catch {
-          // Falls Response nicht als JSON geparst werden kann
-        }
-      } else if (error instanceof Error) {
-        message = error.message;
-      }
+      const message = await getApiErrorMessage(
+        error,
+        'Der Benutzer konnte nicht gelöscht werden.',
+        'deleteUser',
+      );
 
       logger.error('Failed to delete user', error);
       toaster.create({
         title: 'Fehler',
-        description: message.includes('Super-Admin')
-          ? 'Der letzte Super-Admin kann nicht gelöscht werden.'
-          : message,
+        description: message,
         type: 'error',
       });
     },

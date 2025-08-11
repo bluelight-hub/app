@@ -1,7 +1,7 @@
 = Architecture Communication Canvas
 :author: Bluelight-Hub Team
-:revnumber: 1.0.0
-:revdate: 2025-03-23
+:revnumber: 1.1.0
+:revdate: 2025-08-11
 
 
 
@@ -278,4 +278,13 @@ Die wichtigsten Merkmale sind:
 * *Benutzerfreundlichkeit:* Intuitive Bedienung auch unter Stress
 * *Moderne Technologien:* React, TypeScript, NestJS, PostgreSQL, Docker
 
-Das Bluelight-Hub-System wird kontinuierlich weiterentwickelt, um den sich ändernden Anforderungen der Einsatzkräfte gerecht zu werden und die neuesten Technologien und Best Practices zu integrieren. 
+Das Bluelight-Hub-System wird kontinuierlich weiterentwickelt, um den sich ändernden Anforderungen der Einsatzkräfte gerecht zu werden und die neuesten Technologien und Best Practices zu integrieren.
+
+== Änderungshistorie
+
+[cols="1,1,3",options="header"]
+|===
+|Datum |Version |Beschreibung
+|2025-03-23 |1.0.0 |Initiale Version des Architecture Communication Canvas
+|2025-08-11 |1.1.0 |Aktualisierung des Technology-Stacks auf React, TypeScript & Chakra UI
+|=== 
