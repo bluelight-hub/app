@@ -149,7 +149,7 @@ Das Verbindungskonzept unterstützt drei Konnektivitätsszenarien:
 [mermaid]
 ....
 flowchart TB
-    Frontend --> React & TypeScript & AntDesign
+    Frontend --> React & TypeScript & Chakra UI
     Backend --> NestJS & Node.js
     Daten --> PostgreSQL & Prisma
     API --> REST & JWT

@@ -1,0 +1,37 @@
+---
+#-------------------------------------------------------------------------------#
+#            Discover all capabilities of Qodana in our documentation           #
+#             https://www.jetbrains.com/help/qodana/about-qodana.html           #
+#-------------------------------------------------------------------------------#
+
+name: Qodana
+on:
+  workflow_dispatch:
+  push:
+    branches: [main, develop, feature/*, alpha, beta, release/*]
+  pull_request:
+    branches: [main, develop, feature/*, alpha, beta, release/*]
+
+jobs:
+  qodana:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+      checks: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          fetch-depth: 0
+      - name: 'Qodana Scan'
+        uses: JetBrains/qodana-action@v2025.2
+        env:
+          QODANA_TOKEN: ${{ secrets.QODANA_TOKEN }}
+          QODANA_ENDPOINT: 'https://qodana.cloud'
+        with:
+          # In pr-mode: 'true' Qodana checks only changed files
+          pr-mode: false
+          use-caches: true
+          post-pr-comment: true
+          use-annotations: true

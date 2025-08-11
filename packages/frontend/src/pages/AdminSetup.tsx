@@ -227,8 +227,8 @@ export function AdminSetup() {
             <form.Subscribe selector={(state) => [state.canSubmit, state.isSubmitting]}>
               {([canSubmit, isFormSubmitting]) => {
                 return (
-                  <Button type="submit" colorPalette="primary" size="lg" fontSize="md" w="full" disabled={!canSubmit || isSubmitting || isFormSubmitting} loading={isSubmitting}>
-                    {isSubmitting ? 'Wird eingerichtet...' : 'Admin-Account einrichten'}
+                  <Button type="submit" colorPalette="primary" size="lg" fontSize="md" w="full" disabled={!canSubmit || isFormSubmitting} loading={isFormSubmitting}>
+                    {isFormSubmitting ? 'Wird eingerichtet...' : 'Admin-Account einrichten'}
                   </Button>
                 );
               }}

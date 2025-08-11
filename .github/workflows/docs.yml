@@ -1,16 +1,15 @@
 name: Documentation Build
 
-# Standardberechtigungen für alle Jobs (Prinzip der geringsten Berechtigung)
 permissions: read-all
 
 on:
   push:
-    branches: [main]
+    branches: [main, develop, feature/*, alpha, beta, release/*]
     paths:
       - 'docs/**'
       - '.github/workflows/docs.yml'
   pull_request:
-    branches: [main]
+    branches: [main, develop, feature/*, alpha, beta, release/*]
     paths:
       - 'docs/**'
   workflow_dispatch:

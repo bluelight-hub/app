@@ -22,9 +22,6 @@ CREATE TABLE "public"."User"
 CREATE UNIQUE INDEX "User_username_key" ON "public"."User" ("username");
 
 -- CreateIndex
-CREATE INDEX "idx_user_username" ON "public"."User" ("username");
-
--- CreateIndex
 CREATE INDEX "idx_user_role_active" ON "public"."User" ("role", "isActive");
 
 -- CreateIndex
