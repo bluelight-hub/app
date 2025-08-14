@@ -1,8 +1,7 @@
 import * as React from 'react';
 import { useMemo, useState } from 'react';
-import { Alert, Button, Field, VStack, createListCollection } from '@chakra-ui/react';
-import { PiCaretUpDown, PiWarning, PiX } from 'react-icons/pi';
-import { ResponseError } from '@bluelight-hub/shared/client';
+import { Alert, Box, Button, Field, VStack, createListCollection } from '@chakra-ui/react';
+import { PiCaretUpDown, PiUser, PiWarning, PiX } from 'react-icons/pi';
 import { usePublicUsers } from '@/hooks/usePublicUsers';
 import {
   ComboboxClearTrigger,
@@ -69,11 +68,7 @@ export function LoginTab({ onSubmit, isLoading, error }: LoginTabProps) {
             </Alert.Indicator>
             <Alert.Content>
               <Alert.Title>Anmeldung fehlgeschlagen!</Alert.Title>
-              <Alert.Description>
-                {error instanceof ResponseError && error.response.status === 404
-                  ? 'Benutzer nicht gefunden. Bitte überprüfen Sie Ihre Auswahl.'
-                  : 'Ein unerwarteter Fehler ist aufgetreten. Bitte versuchen Sie es erneut.'}
-              </Alert.Description>
+              <Alert.Description>{error.message || 'Ein unerwarteter Fehler ist aufgetreten. Bitte versuchen Sie es erneut.'}</Alert.Description>
             </Alert.Content>
           </Alert.Root>
         )}
@@ -91,8 +86,27 @@ export function LoginTab({ onSubmit, isLoading, error }: LoginTabProps) {
             allowCustomValue
           >
             <ComboboxLabel fontWeight="medium">Benutzername</ComboboxLabel>
-            <ComboboxControl>
-              <ComboboxInput placeholder={isLoadingUsers ? 'Lade Benutzer...' : 'Benutzername eingeben oder auswählen...'} />
+            <ComboboxControl position="relative">
+              {/* User Icon */}
+              <Box position="absolute" left="4" top="50%" transform="translateY(-50%)" zIndex="1" color="fg.muted" pointerEvents="none">
+                <PiUser size="18" />
+              </Box>
+              <ComboboxInput
+                placeholder={isLoadingUsers ? 'Lade Benutzer...' : 'Benutzername auswählen...'}
+                pl="12"
+                pr="8"
+                bg="bg.muted"
+                border="2px solid"
+                borderColor="border.muted"
+                borderRadius="12px"
+                fontSize="16px"
+                py="3.5"
+                _focus={{
+                  borderColor: 'blue.solid',
+                  bg: 'bg.subtle',
+                  boxShadow: '0 0 0 4px rgba(59, 130, 246, 0.1)',
+                }}
+              />
               <ComboboxIndicatorGroup>
                 {inputValue && (
                   <ComboboxClearTrigger>
@@ -121,8 +135,29 @@ export function LoginTab({ onSubmit, isLoading, error }: LoginTabProps) {
         </Field.Root>
 
         {/* Submit Button */}
-        <Button type="submit" colorPalette="primary" size="lg" fontSize="md" w="full" disabled={isDisabled} loading={isLoading}>
-          {isLoading ? 'Melde an...' : 'Anmelden'}
+        <Button
+          type="submit"
+          colorPalette="red"
+          size="lg"
+          fontSize="16px"
+          fontWeight="semibold"
+          w="full"
+          disabled={isDisabled}
+          loading={isLoading}
+          py="4"
+          borderRadius="12px"
+          bgGradient="linear(135deg, red.500 0%, red.600 100%)"
+          boxShadow="0 10px 25px rgba(239, 68, 68, 0.25)"
+          _hover={{
+            transform: 'translateY(-2px)',
+            boxShadow: '0 15px 35px rgba(239, 68, 68, 0.3)',
+          }}
+          _active={{
+            transform: 'translateY(0)',
+          }}
+          transition="all 0.3s ease"
+        >
+          {isLoading ? 'Melde an...' : 'Sicher anmelden'}
         </Button>
       </VStack>
     </form>

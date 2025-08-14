@@ -5,15 +5,20 @@
  * und wartbare Verwendung im gesamten Frontend.
  */
 
-export const AUTH_QUERY_KEYS = {
-  authCheck: ['auth-check'] as const,
-  adminStatus: ['admin', 'status'] as const,
-  adminPresence: ['admin-presence'] as const,
-} as const;
+const AUTH_QUERY_KEYS = (base: [string]) =>
+  ({
+    authCheck: [...base, 'check'] as const,
+    adminStatus: [...base, 'admin', 'status'] as const,
+    adminPresence: [...base, 'admin', 'presence'] as const,
+  }) as const;
 
 export const USER_QUERY_KEYS = {
   users: ['users'] as const,
   publicUsers: ['public-users'] as const,
+} as const;
+
+export const ADMIN_QUERY_KEYS = {
+  users: ['admin', 'users'] as const,
 } as const;
 
 export const HEALTH_QUERY_KEYS = {
@@ -22,7 +27,11 @@ export const HEALTH_QUERY_KEYS = {
 
 // Export all query keys grouped for easier access
 export const QUERY_KEYS = {
-  auth: AUTH_QUERY_KEYS,
+  auth: {
+    queryKey: ['auth'],
+    queries: AUTH_QUERY_KEYS(['auth']),
+  },
   user: USER_QUERY_KEYS,
+  admin: ADMIN_QUERY_KEYS,
   health: HEALTH_QUERY_KEYS,
 } as const;

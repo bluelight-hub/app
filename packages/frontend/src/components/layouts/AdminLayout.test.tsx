@@ -17,11 +17,13 @@ declare global {
 // Create mocks before module mocking
 const mockNavigate = vi.fn();
 const mockUseLocation = vi.fn();
+const mockUseRouterState = vi.fn();
 
 // Mock TanStack Router
 vi.mock('@tanstack/react-router', () => ({
   useNavigate: () => mockNavigate,
   useLocation: () => mockUseLocation(),
+  useRouterState: () => mockUseRouterState(),
   Outlet: () => <div>Outlet Content</div>,
 }));
 
@@ -38,7 +40,10 @@ vi.mock('@/hooks/useAuth', () => ({
 vi.mock('@/hooks/useAdminAuth', () => ({
   useAdminAuth: () => ({
     isAdmin: false,
+    hasAdminSession: false,
+    isAdminAuthenticated: false,
     isLoading: false,
+    user: null,
   }),
 }));
 
@@ -62,10 +67,36 @@ describe('AdminLayout', () => {
       writable: true,
     });
     mockUseLocation.mockReturnValue({ pathname: '/admin/setup' });
+    // Default router state mock
+    mockUseRouterState.mockReturnValue({
+      matches: [
+        {
+          meta: [{ title: 'Admin-Setup' }],
+        },
+      ],
+    });
   });
 
-  const renderComponent = (pathname: string = '/admin/setup') => {
+  const renderComponent = (pathname: string = '/admin/setup', title?: string) => {
     mockUseLocation.mockReturnValue({ pathname });
+
+    // Set router state based on pathname or custom title
+    const getTitleForPath = (path: string) => {
+      if (path.includes('/admin/setup')) return 'Admin-Setup';
+      if (path.includes('/admin/login')) return 'Administrator-Anmeldung';
+      if (path.includes('/admin/dashboard')) return 'Admin-Dashboard';
+      if (path.includes('/admin/users')) return 'Benutzerverwaltung';
+      return 'Admin-Bereich';
+    };
+
+    mockUseRouterState.mockReturnValue({
+      matches: [
+        {
+          meta: [{ title: title || getTitleForPath(pathname) }],
+        },
+      ],
+    });
+
     render(
       <ChakraProvider value={system}>
         <AdminLayout />
@@ -94,7 +125,18 @@ describe('AdminLayout', () => {
   });
 
   it('renders with default title for unknown route', () => {
-    renderComponent('/admin/unknown');
+    // Mock no meta data for unknown route
+    mockUseLocation.mockReturnValue({ pathname: '/admin/unknown' });
+    mockUseRouterState.mockReturnValue({
+      matches: [{ meta: undefined }],
+    });
+
+    render(
+      <ChakraProvider value={system}>
+        <AdminLayout />
+      </ChakraProvider>,
+    );
+
     expect(screen.getByText('Admin-Bereich')).toBeInTheDocument();
   });
 

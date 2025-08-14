@@ -4,12 +4,9 @@ import { useNavigate } from '@tanstack/react-router';
 import { useForm } from '@tanstack/react-form';
 import { PiCheckCircle, PiWarning } from 'react-icons/pi';
 import { z } from 'zod';
-import { ResponseError } from '@bluelight-hub/shared/client';
-import type { AdminSetupDto } from '@bluelight-hub/shared/client';
-import { useAdminStatus } from '@/hooks/useAdminStatus.ts';
 import { logger } from '@/utils/logger';
-import { api } from '@/api/api.ts';
 import { useAuth } from '@/hooks/useAuth.ts';
+import { getApiErrorMessage } from '@/utils/apiErrorHandler.ts';
 
 /**
  * Schema für die Validierung des Admin-Setup-Formulars
@@ -34,8 +31,7 @@ const adminSetupSchema = z.object({
 export function AdminSetup() {
   const navigate = useNavigate();
   const [apiError, setApiError] = useState<string | null>(null);
-  const { user } = useAuth();
-  const { refetch: refetchAdminStatus } = useAdminStatus();
+  const { user, adminSetup } = useAuth();
 
   const form = useForm({
     defaultValues: {
@@ -51,68 +47,19 @@ export function AdminSetup() {
 
       setApiError(null);
 
-      try {
-        const setupData: AdminSetupDto = {
-          password: value.password,
-        };
-
-        await api.auth().authControllerAdminSetup({
-          adminSetupDto: setupData,
-        });
-
-        // Erfolgreiche Einrichtung - zeige Erfolgsmeldung und leite weiter
-        logger.log('Admin-Setup erfolgreich');
-
-        // Lade den aktualisierten User (adminSetupAvailable sollte jetzt false sein)
-        try {
-          await refetchAdminStatus();
-        } catch (error) {
-          logger.error('Fehler beim Laden des aktualisierten Users:', error);
-          // Trotzdem weiterleiten, da das Setup erfolgreich war
-        }
-
-        // Redirect zur Startseite (Dashboard existiert noch nicht)
-        // Das adminToken Cookie wurde automatisch vom Backend gesetzt
-        await navigate({ to: '/' });
-      } catch (error) {
-        logger.error('Admin-Setup-Fehler:', error);
-
-        // API-Fehler behandeln
-        if (error instanceof ResponseError) {
-          // Prüfe auf HTTP Status Code
-          if (error.response.status === 401) {
-            setApiError('Sie sind nicht angemeldet. Bitte melden Sie sich zuerst an.');
-          } else if (error.response.status === 409) {
-            // Admin bereits eingerichtet
-            setApiError('Ein Administrator wurde bereits eingerichtet. Bitte melden Sie sich mit dem bestehenden Admin-Konto an.');
-          } else {
-            // Versuche Server-Nachricht zu extrahieren
-            let serverMessage: string | undefined;
-
-            try {
-              // Versuche Response-Body als JSON zu parsen
-              const responseBody = await error.response.json();
-              serverMessage = responseBody?.message || responseBody?.error;
-            } catch {
-              // Falls JSON-Parsing fehlschlägt, versuche als Text
-              try {
-                const responseText = await error.response.text();
-                if (responseText && responseText.length < 200) {
-                  serverMessage = responseText;
-                }
-              } catch {
-                // Ignoriere Parsing-Fehler
-              }
-            }
-
-            setApiError(serverMessage || error.message || 'Ein Fehler ist aufgetreten. Bitte versuchen Sie es erneut.');
-          }
-        } else if (error instanceof Error) {
-          setApiError(error.message);
-        } else {
-          setApiError('Ein unerwarteter Fehler ist aufgetreten. Bitte versuchen Sie es erneut.');
-        }
-      }
+      adminSetup.mutate(
+        { password: value.password },
+        {
+          onSuccess: async () => {
+            logger.log('Admin-Setup erfolgreich');
+            await navigate({ to: '/admin/dashboard' });
+          },
+          onError: async (error) => {
+            const message = await getApiErrorMessage(error, 'Ein Fehler ist aufgetreten. Bitte versuchen Sie es erneut.', 'adminSetup');
+            setApiError(message);
+          },
+        },
+      );
     },
   });
 
@@ -138,7 +85,7 @@ export function AdminSetup() {
       <Box
         py={{ base: '0', sm: '8' }}
         px={{ base: '4', sm: '10' }}
-        bg={{ base: 'transparent', sm: 'bg.surface' }}
+        bg={{ base: 'transparent', sm: 'bg.panel' }}
         boxShadow={{ base: 'none', sm: 'md' }}
         borderRadius={{ base: 'none', sm: 'xl' }}
         w="full"
@@ -205,7 +152,7 @@ export function AdminSetup() {
                       field.handleChange(e.target.value);
                     }}
                     onBlur={field.handleBlur}
-                    disabled={form.state.isSubmitting}
+                    disabled={adminSetup.isPending}
                   />
                   <Field.ErrorText>{field.state.meta.isTouched && field.state.meta.errors.length > 0 ? field.state.meta.errors[0] : null}</Field.ErrorText>
                   <Field.HelperText>Mind. 8 Zeichen, 1 Groß-, 1 Kleinbuchstabe, 1 Zahl, 1 Sonderzeichen</Field.HelperText>
@@ -239,18 +186,18 @@ export function AdminSetup() {
                       field.handleChange(e.target.value);
                     }}
                     onBlur={field.handleBlur}
-                    disabled={form.state.isSubmitting}
+                    disabled={adminSetup.isPending}
                   />
                   <Field.ErrorText>{field.state.meta.isTouched && field.state.meta.errors.length > 0 ? field.state.meta.errors[0] : null}</Field.ErrorText>
                 </Field.Root>
               )}
             </form.Field>
 
-            <form.Subscribe selector={(state) => [state.canSubmit, state.isSubmitting]}>
-              {([canSubmit, isFormSubmitting]) => {
+            <form.Subscribe selector={(state) => [state.canSubmit]}>
+              {([canSubmit]) => {
                 return (
-                  <Button type="submit" colorPalette="primary" size="lg" fontSize="md" w="full" disabled={!canSubmit || isFormSubmitting} loading={isFormSubmitting}>
-                    {isFormSubmitting ? 'Wird eingerichtet...' : 'Admin-Account einrichten'}
+                  <Button type="submit" colorPalette="primary" size="lg" fontSize="md" w="full" disabled={!canSubmit || adminSetup.isPending} loading={adminSetup.isPending}>
+                    {adminSetup.isPending ? 'Wird eingerichtet...' : 'Admin-Account einrichten'}
                   </Button>
                 );
               }}

@@ -33,6 +33,7 @@
     "@hookform/resolvers": "catalog:",
     "@tailwindcss/vite": "catalog:",
     "@tanstack/pacer": "catalog:",
+    "@tanstack/react-devtools": "catalog:",
     "@tanstack/react-form": "catalog:",
     "@tanstack/react-query": "catalog:",
     "@tanstack/react-query-devtools": "catalog:",

@@ -2,7 +2,6 @@ import { ColorModeButton } from '@molecules/color-mode-button.molecule.tsx';
 import { Link, useRouter } from '@tanstack/react-router';
 import { Box, Button, HStack, Spinner, Text, VStack } from '@chakra-ui/react';
 import { PiShieldCheck, PiSignIn } from 'react-icons/pi';
-import { useAdminStatus } from '@/hooks/useAdminStatus';
 
 /**
  * Startseite der Anwendung.
@@ -15,9 +14,9 @@ import { isAdmin } from '@/utils/auth';
 import { useAuth } from '@/hooks/useAuth.ts';
 
 export function IndexPage() {
-  const authContext = useAuth();
+  const { isLoading, logout, user } = useAuth();
   const { navigate } = useRouter();
-  const { data: adminStatus } = useAdminStatus();
+  const { adminStatus } = useAuth();
 
   // Admin-Fenster öffnen Handler
   const handleOpenAdminWindow = async () => {
@@ -25,7 +24,9 @@ export function IndexPage() {
     await openAdmin();
   };
 
-  if (authContext.isLoading) {
+  // WICHTIG: Warte immer auf den initialen Auth-Check bevor wir redirecten
+  // Dies verhindert Race Conditions beim Page Reload
+  if (isLoading) {
     return (
       <VStack colorPalette="teal" className="flex flex-col items-center justify-center min-h-screen">
         <Spinner color="colorPalette.fg" />
@@ -34,7 +35,9 @@ export function IndexPage() {
     );
   }
 
-  if (!authContext.user) {
+  // Nach dem Loading: Prüfe ob User vorhanden ist
+  // Nur redirecten wenn wirklich kein User da ist nach dem Auth-Check
+  if (!user) {
     navigate({
       to: '/auth',
     });
@@ -48,7 +51,7 @@ export function IndexPage() {
           <Text fontSize="2xl" fontWeight="bold">
             Willkommen bei BlueLight Hub
           </Text>
-          <Text color="fg.muted">Sie sind angemeldet als: {authContext.user.username}</Text>
+          <Text color="fg.muted">Sie sind angemeldet als: {user.username}</Text>
         </Box>
 
         {/* Admin Setup Link - nur anzeigen wenn adminSetupAvailable true ist */}
@@ -71,7 +74,7 @@ export function IndexPage() {
           </Box>
         )}
 
-        {isAdmin(authContext.user.role) && !adminStatus?.adminSetupAvailable && (
+        {isAdmin(user.role) && !adminStatus?.adminSetupAvailable && (
           <Box p={4} borderWidth={1} borderRadius="md" bg="bg.subtle">
             <VStack gap={4} align="start">
               <Box>
@@ -90,7 +93,7 @@ export function IndexPage() {
           </Box>
         )}
 
-        <Button colorPalette="primary" variant="outline" size="sm" onClick={() => authContext.logout()}>
+        <Button colorPalette="primary" variant="outline" size="sm" onClick={() => logout.mutateAsync()}>
           Abmelden
         </Button>
 

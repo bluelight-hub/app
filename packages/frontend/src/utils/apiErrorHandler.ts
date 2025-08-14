@@ -65,7 +65,14 @@ const ERROR_MESSAGES: Record<number, Record<string, string>> = {
 export async function getApiErrorMessage(
   error: unknown,
   fallbackMessage: string,
-  context?: 'createUser' | 'deleteUser' | 'updateUser',
+  context?:
+    | 'createUser'
+    | 'deleteUser'
+    | 'updateUser'
+    | 'adminSetup'
+    | 'adminLogin'
+    | 'userLogin'
+    | 'userRegister',
 ): Promise<string> {
   // Handle non-ResponseError cases
   if (!(error instanceof ResponseError)) {
@@ -152,7 +159,14 @@ export async function getApiErrorMessage(
 function getContextSpecificMessage(
   status: number,
   errorData: ApiErrorResponse,
-  context: 'createUser' | 'deleteUser' | 'updateUser',
+  context:
+    | 'createUser'
+    | 'deleteUser'
+    | 'updateUser'
+    | 'adminSetup'
+    | 'adminLogin'
+    | 'userLogin'
+    | 'userRegister',
 ): string | null {
   switch (context) {
     case 'createUser':
@@ -176,6 +190,45 @@ function getContextSpecificMessage(
       }
       if (status === 404) {
         return 'Der zu bearbeitende Benutzer wurde nicht gefunden.';
+      }
+      break;
+
+    case 'adminSetup':
+      if (status === 409) {
+        return 'Ein Administrator wurde bereits eingerichtet. Bitte melden Sie sich mit dem bestehenden Admin-Konto an.';
+      }
+      if (status === 401) {
+        return 'Sie sind nicht angemeldet. Bitte melden Sie sich zuerst an.';
+      }
+      if (status === 403) {
+        return 'Sie haben keine Berechtigung, einen Admin-Account einzurichten.';
+      }
+      break;
+
+    case 'adminLogin':
+      if (status === 401 || status === 400) {
+        return 'Ungültiges Administrator-Passwort.';
+      }
+      if (status === 403) {
+        return 'Sie haben keine Administratorrechte.';
+      }
+      break;
+
+    case 'userLogin':
+      if (status === 404) {
+        return 'Benutzer nicht gefunden. Bitte überprüfen Sie den Benutzernamen.';
+      }
+      if (status === 401) {
+        return 'Anmeldung fehlgeschlagen. Bitte versuchen Sie es erneut.';
+      }
+      break;
+
+    case 'userRegister':
+      if (status === 409) {
+        return 'Dieser Benutzername ist bereits vergeben. Bitte wählen Sie einen anderen.';
+      }
+      if (status === 400) {
+        return 'Ungültige Eingabe. Bitte überprüfen Sie den Benutzernamen.';
       }
       break;
   }

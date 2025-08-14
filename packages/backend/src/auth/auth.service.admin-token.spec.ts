@@ -73,6 +73,7 @@ describe('AuthService - Admin Token', () => {
           sub: mockUser.id,
           username: mockUser.username,
           role: mockUser.role,
+          type: 'admin',
         },
         {
           secret: mockAdminSecret,

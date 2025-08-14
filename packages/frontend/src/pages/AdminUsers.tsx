@@ -4,16 +4,14 @@ import { FiAlertTriangle, FiPlus } from 'react-icons/fi';
 import { Navigate } from '@tanstack/react-router';
 import type { CreateUserDto, UserDto } from '@bluelight-hub/shared/client';
 import { UsersTable } from '@/components/organisms/admin/UsersTable';
-import { useCreateUser, useDeleteUser, useUsers } from '@/hooks/useUserManagement';
+import { useAdminUserManagement } from '@/hooks/useAdminUserManagement';
 import { CreateUserDialog } from '@/components/organisms/admin/CreateUserDialog';
 import { ConfirmDeleteDialog } from '@/components/organisms/admin/ConfirmDeleteDialog';
 import { useAdminAuth } from '@/hooks/useAdminAuth';
 
 export default function AdminUsers() {
   const { isAdmin, isLoading: isAuthLoading } = useAdminAuth();
-  const { data: usersData, isLoading: isUsersLoading, error } = useUsers();
-  const createUserMutation = useCreateUser();
-  const deleteUserMutation = useDeleteUser();
+  const { usersData, isLoading: isUsersLoading, error, createUser, deleteUser } = useAdminUserManagement();
 
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [deleteTarget, setDeleteTarget] = useState<UserDto | null>(null);
@@ -24,7 +22,7 @@ export default function AdminUsers() {
   }
 
   const handleCreateUser = (data: CreateUserDto) => {
-    createUserMutation.mutate(data, {
+    createUser(data, {
       onSuccess: () => {
         setIsCreateDialogOpen(false);
       },
@@ -37,7 +35,7 @@ export default function AdminUsers() {
 
   const confirmDelete = () => {
     if (deleteTarget) {
-      deleteUserMutation.mutate(deleteTarget.id, {
+      deleteUser(deleteTarget.id, {
         onSettled: () => {
           setDeleteTarget(null);
         },

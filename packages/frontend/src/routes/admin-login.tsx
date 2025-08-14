@@ -4,12 +4,13 @@ import { Center, Spinner } from '@chakra-ui/react';
 
 const AdminLogin = lazy(() => import('@/pages/AdminLogin').then((m) => ({ default: m.AdminLogin })));
 
-export const Route = createFileRoute('/admin/login')({
+// Separate Route für Admin-Login, die das AdminLayout umgeht
+export const Route = createFileRoute('/admin-login')({
   component: () => (
     <Suspense
       fallback={
-        <Center py={8}>
-          <Spinner size="lg" thickness="3px" />
+        <Center minH="100vh" display="flex" alignItems="center" justifyContent="center">
+          <Spinner size="lg" borderWidth="3px" />
         </Center>
       }
     >

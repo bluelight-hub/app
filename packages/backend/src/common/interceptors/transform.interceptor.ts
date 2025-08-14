@@ -5,7 +5,7 @@ import { Reflector } from '@nestjs/core';
 import { ConfigService } from '@nestjs/config';
 import { Request } from 'express';
 import { nanoid } from 'nanoid';
-import { trimTrailingSlash } from '../utils/url.util';
+import { trimTrailingSlash } from '@/utils/url.util';
 
 /**
  * Interface für paginierte Daten vom Controller

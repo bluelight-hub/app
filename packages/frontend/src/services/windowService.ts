@@ -103,9 +103,9 @@ class WindowService {
     }
 
     // Erstelle neues Admin-Fenster
-    // Navigiere direkt zu /admin/login - diese Seite kann die Auth prüfen
+    // Navigiere direkt zu /admin-login - diese Seite kann die Auth prüfen
     // und bei Bedarf weiterleiten, ohne dass die Index-Route dazwischenfunkt
-    const adminUrl = `${window.location.origin}/admin/login`;
+    const adminUrl = `${window.location.origin}/admin-login`;
     logger.log('Öffne Admin-Fenster mit URL:', adminUrl);
 
     const adminWindow = new WebviewWindow(this.ADMIN_WINDOW_LABEL, {
@@ -140,7 +140,7 @@ class WindowService {
    * Öffnet Admin-Dashboard in neuem Browser-Tab
    */
   private openAdminInBrowser(): void {
-    const adminUrl = '/admin/login';
+    const adminUrl = '/admin-login';
     const windowFeatures = 'noopener,noreferrer';
 
     const newWindow = window.open(adminUrl, '_blank', windowFeatures);

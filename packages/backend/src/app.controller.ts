@@ -3,7 +3,7 @@ import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { ConfigService } from '@nestjs/config';
 import { SkipTransform } from './common/decorators/skip-transform.decorator';
-import { trimTrailingSlash } from './common/utils/url.util';
+import { trimTrailingSlash } from './utils/url.util';
 
 const packageJson = (() => {
   try {
@@ -32,12 +32,8 @@ export class AppController {
    * @param configService - Service zum Abrufen von Konfigurationswerten aus der Umgebung
    * @param logger - Logger-Service für diese Klasse
    */
-  constructor(
-    private readonly configService: ConfigService,
-    logger: Logger,
-  ) {
-    this.logger = logger;
-    this.logger.setContext(AppController.name);
+  constructor(private readonly configService: ConfigService) {
+    this.logger = new Logger(AppController.name);
     const rawUrl = this.configService.get<string>('APP_URL', 'http://localhost:3000');
     this.url = trimTrailingSlash(rawUrl);
     this.logger.debug(`AppController initialisiert mit URL: ${this.url}`);

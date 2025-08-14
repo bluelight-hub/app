@@ -1,8 +1,7 @@
-import { Alert, Button, Field, Input, VStack } from '@chakra-ui/react';
+import { Alert, Box, Button, Field, Input, VStack } from '@chakra-ui/react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { PiInfo, PiWarning } from 'react-icons/pi';
-import { ResponseError } from '@bluelight-hub/shared/client';
+import { PiInfo, PiUser, PiWarning } from 'react-icons/pi';
 import type { RegisterFormData } from '@/schemas/auth.schema';
 import { registerFormSchema } from '@/schemas/auth.schema';
 import { Tooltip } from '@/components/ui/tooltip';
@@ -46,11 +45,7 @@ export function RegisterTab({ onSubmit, isLoading, error }: RegisterTabProps) {
             </Alert.Indicator>
             <Alert.Content>
               <Alert.Title>Registrierung fehlgeschlagen!</Alert.Title>
-              <Alert.Description>
-                {error instanceof ResponseError && error.response.status === 409
-                  ? 'Dieser Benutzername ist bereits vergeben. Bitte wählen Sie einen anderen.'
-                  : 'Ein unerwarteter Fehler ist aufgetreten. Bitte versuchen Sie es erneut.'}
-              </Alert.Description>
+              <Alert.Description>{error.message || 'Ein unerwarteter Fehler ist aufgetreten. Bitte versuchen Sie es erneut.'}</Alert.Description>
             </Alert.Content>
           </Alert.Root>
         )}
@@ -65,7 +60,34 @@ export function RegisterTab({ onSubmit, isLoading, error }: RegisterTabProps) {
               </span>
             </Tooltip>
           </Field.Label>
-          <Input {...register('username')} type="text" autoComplete="username" spellCheck="false" placeholder="z.B. max_mustermann" disabled={isLoading} />
+          <Box position="relative" w="full">
+            {/* User Icon */}
+            <Box position="absolute" left="4" top="50%" transform="translateY(-50%)" zIndex="1" color="fg.muted" pointerEvents="none">
+              <PiUser size="18" />
+            </Box>
+            <Input
+              {...register('username')}
+              type="text"
+              autoComplete="username"
+              spellCheck="false"
+              placeholder="z.B. max_mustermann"
+              disabled={isLoading}
+              w="full"
+              pl="12"
+              pr="4"
+              bg="bg.muted"
+              border="2px solid"
+              borderColor="border.muted"
+              borderRadius="12px"
+              fontSize="16px"
+              py="3.5"
+              _focus={{
+                borderColor: 'blue.solid',
+                bg: 'bg.subtle',
+                boxShadow: '0 0 0 4px rgba(59, 130, 246, 0.1)',
+              }}
+            />
+          </Box>
           {hasUsernameError && <Field.ErrorText>{errors.username?.message}</Field.ErrorText>}
           {!hasUsernameError && <Field.HelperText>3-30 Zeichen, beginnt mit Buchstabe, erlaubt: a-z, A-Z, 0-9, _</Field.HelperText>}
         </Field.Root>

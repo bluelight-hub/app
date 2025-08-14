@@ -30,21 +30,13 @@ import { RefreshResponseDto } from './dto/refresh-response.dto';
 import { AdminTokenVerificationDto } from './dto/admin-token-verification.dto';
 import { AdminPasswordDto } from './dto/admin-password.dto';
 import { PublicUsersResponseDto } from './dto/public-users-response.dto';
-import { clearAuthCookies, clearAdminCookie, setAdminCookie, setAuthCookies } from './auth.utils';
+import { clearAdminCookie, clearAuthCookies, setAdminCookie, setAuthCookies } from './auth.utils';
 import { JwtRefreshGuard } from './guards/jwt-refresh.guard';
 import { JwtAuthGuard } from './guards/jwt-auth.guard';
 import { AdminJwtAuthGuard } from './guards/admin-jwt-auth.guard';
 import { ValidatedUser } from './strategies/jwt.strategy';
 import { CurrentUser } from './decorators/current-user.decorator';
-import {
-  toAdminLoginResponseDto,
-  toAdminSetupResponseDto,
-  toAdminStatusResponseDto,
-  toAdminTokenVerificationDto,
-  toLogoutResponseDto,
-  toRefreshResponseDto,
-  toUserResponseDto,
-} from './auth.mapper';
+import { AdminAuthMapper, AuthResponseMapper, UserResponseMapper } from '@/auth/mappers';
 import { SkipTransform } from '@/common/decorators/skip-transform.decorator';
 import { isAdmin } from './utils/auth.utils';
 
@@ -109,7 +101,7 @@ export class AuthController {
     const isProduction = this.configService.get<string>('NODE_ENV') === 'production';
     setAuthCookies(res, accessToken, refreshToken, isProduction);
 
-    return toUserResponseDto(user);
+    return UserResponseMapper.toUserResponseDto(user);
   }
 
   /**
@@ -150,7 +142,7 @@ export class AuthController {
     const isProduction = this.configService.get<string>('NODE_ENV') === 'production';
     setAuthCookies(res, accessToken, refreshToken, isProduction);
 
-    return toUserResponseDto(user);
+    return UserResponseMapper.toUserResponseDto(user);
   }
 
   /**
@@ -202,7 +194,7 @@ export class AuthController {
     const isProduction = this.configService.get<string>('NODE_ENV') === 'production';
     setAdminCookie(res, token, isProduction);
 
-    return toAdminLoginResponseDto(user);
+    return AdminAuthMapper.toAdminLoginResponseDto(user);
   }
 
   /**
@@ -247,7 +239,7 @@ export class AuthController {
     const isProduction = this.configService.get<string>('NODE_ENV') === 'production';
     setAuthCookies(res, accessToken, refreshToken, isProduction);
 
-    return toRefreshResponseDto();
+    return AuthResponseMapper.toRefreshResponseDto();
   }
 
   /**
@@ -268,7 +260,7 @@ export class AuthController {
   })
   async logout(@Res({ passthrough: true }) res: Response): Promise<LogoutResponseDto> {
     clearAuthCookies(res);
-    return toLogoutResponseDto();
+    return AuthResponseMapper.toLogoutResponseDto();
   }
 
   /**
@@ -290,7 +282,7 @@ export class AuthController {
   async adminLogout(@Res({ passthrough: true }) res: Response): Promise<LogoutResponseDto> {
     // Nur Admin-Cookie löschen, normale Auth-Cookies behalten
     clearAdminCookie(res);
-    return toLogoutResponseDto();
+    return AuthResponseMapper.toLogoutResponseDto();
   }
 
   /**
@@ -331,7 +323,7 @@ export class AuthController {
 
     const isProduction = process.env.NODE_ENV === 'production';
     setAdminCookie(res, result.token, isProduction);
-    return toAdminSetupResponseDto(result.user);
+    return AdminAuthMapper.toAdminSetupResponseDto(result.user);
   }
 
   /**
@@ -353,7 +345,6 @@ export class AuthController {
     type: AuthCheckResponseDto,
   })
   async checkAuth(@Req() req: Request): Promise<AuthCheckResponseDto> {
-    // Versuche JWT aus Cookie zu extrahieren und validieren
     try {
       const token = req.cookies?.['accessToken'];
       if (!token) {
@@ -379,20 +370,25 @@ export class AuthController {
 
       if (adminToken) {
         try {
-          // Verifiziere Admin-Token - verwende die gleiche Methode wie im verifyAdminToken Endpoint
-          const payload = await this.authService.verifyAccessToken(adminToken);
+          // Verifiziere Admin-Token mit dem richtigen Secret
+          const payload = await this.authService.verifyAdminToken(adminToken);
           // Prüfe ob der Token gültig ist und der richtige Typ
+          this.logger.log('Admin-Token verifiziert', { payload });
           if (payload && payload.type === 'admin') {
             isAdminAuthenticated = true;
+          } else {
+            this.logger.warn(`⚠️ Invalid admin token: ${adminToken}`);
           }
-        } catch {
+        } catch (error) {
+          this.logger.warn(`🍪 Invalid admin token: ${adminToken}`, { error });
           // Admin-Token ungültig - ignorieren
           isAdminAuthenticated = false;
         }
       }
 
+      this.logger.log('Auth-Check ok', { user, isAdminAuthenticated });
       return {
-        user: toUserResponseDto(user),
+        user: UserResponseMapper.toUserResponseDto(user),
         authenticated: true,
         isAdminAuthenticated,
       };
@@ -463,7 +459,7 @@ export class AuthController {
     const isAdminRole = isAdmin(fullUser.role);
     const hasNoPassword = !fullUser.passwordHash;
 
-    return toAdminStatusResponseDto(adminExists, isAdminRole && hasNoPassword);
+    return AdminAuthMapper.toAdminStatusResponseDto(adminExists, isAdminRole && hasNoPassword);
   }
 
   /**
@@ -492,6 +488,6 @@ export class AuthController {
     description: 'Admin-Token fehlt oder ist ungültig',
   })
   async verifyAdminToken(): Promise<AdminTokenVerificationDto> {
-    return toAdminTokenVerificationDto();
+    return AdminAuthMapper.toAdminTokenVerificationDto();
   }
 }

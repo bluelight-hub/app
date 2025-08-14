@@ -170,6 +170,7 @@ export class AuthService {
       sub: user.id,
       username: user.username,
       role: user.role,
+      type: 'admin', // Wichtig: Markiert dies als Admin-Token
     };
     const adminJwtSecret = this.configService.getOrThrow<string>('ADMIN_JWT_SECRET');
     const adminJwtExpiration = this.configService.getOrThrow<string>('ADMIN_JWT_EXPIRATION');
@@ -190,6 +191,17 @@ export class AuthService {
    */
   async verifyAccessToken(token: string): Promise<any> {
     return this.jwtService.verify(token);
+  }
+
+  /**
+   * Verifiziert ein Admin-JWT-Token
+   * @param token Der zu verifizierende Admin-Token
+   * @returns Token-Payload
+   * @throws Error wenn das Token ungültig ist
+   */
+  async verifyAdminToken(token: string): Promise<any> {
+    const adminJwtSecret = this.configService.getOrThrow<string>('ADMIN_JWT_SECRET');
+    return this.jwtService.verify(token, { secret: adminJwtSecret });
   }
 
   /**

@@ -6,19 +6,24 @@
 
 **NIEMALS manuelle API-Helper erstellen!**
 
+Nutze IMMER TanStack Query Hooks mit generiertem API-Client:
+
 ```typescript
 // ✅ RICHTIG:
-import { api } from '@/api';
-
-const alerts = await api.security.getSecurityAlerts();
+const useSecurityAlerts = () => {
+  return useQuery({
+    queryKey: QUERY_KEYS.security.alerts,
+    queryFn: () => api.security().getSecurityAlerts(),
+  });
+};
 
 // ❌ FALSCH:
-import { fetchWithAuth } from '@/utils/authInterceptor';
-
-const response = await fetchWithAuth('/api/security/alerts');
+const fetchAlerts = async () => {
+  return await fetch('/api/security/alerts');
+};
 ```
 
-**Workflow:** Backend-Endpunkt → `pnpm run generate-api` → Nutze generierten Client
+**Workflow:** Backend-Endpunkt → `pnpm run generate-api` → TanStack Query Hook → Komponente
 
 ### UI Framework
 

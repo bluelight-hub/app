@@ -19,7 +19,7 @@ export function AdminDashboard() {
   const { user, logoutAdmin } = useAuth();
 
   const handleLogout = useCallback(async () => {
-    await logoutAdmin();
+    await logoutAdmin.mutateAsync();
 
     // In Tauri: Fenster schließen
     if (isTauri()) {

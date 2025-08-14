@@ -13,38 +13,40 @@ import { logger } from '@/utils/logger';
 import { getApiErrorMessage } from '@/utils/apiErrorHandler';
 
 /**
- * Hook zum Abrufen aller Benutzer aus dem System
+ * Hook für Admin-Benutzerverwaltung
  *
- * Lädt die Liste aller Benutzer über die User Management API und
- * cached die Daten mit React Query für optimale Performance.
+ * Stellt alle Funktionen für Admin-Benutzerverwaltung bereit:
+ * - Laden der Benutzerliste
+ * - Erstellen neuer Benutzer
+ * - Löschen von Benutzern
  *
- * @returns {UseQueryResult<UsersListResponse>} Query-Objekt mit Benutzerliste, Ladezustand und Fehlerinformationen
+ * @returns Objekt mit Benutzerdaten, Ladezuständen und Aktionen
  */
-export const useUsers = () => {
-  return useQuery<UsersListResponse>({
-    queryKey: QUERY_KEYS.user.users,
+export const useAdminUserManagement = () => {
+  const queryClient = useQueryClient();
+
+  // Query für Benutzerliste
+  const usersQuery = useQuery<UsersListResponse>({
+    queryKey: QUERY_KEYS.admin.users,
     queryFn: async () => {
       return await api.userManagement().userManagementControllerFindAllVAlpha();
     },
   });
-};
 
-export const useCreateUser = () => {
-  const queryClient = useQueryClient();
-
-  return useMutation<UserResponse, ResponseError, CreateUserDto>({
+  // Mutation für Benutzer erstellen
+  const createUserMutation = useMutation<UserResponse, ResponseError, CreateUserDto>({
     mutationFn: async (data: CreateUserDto) => {
       return await api.userManagement().userManagementControllerCreateVAlpha({
         createUserDto: data,
       });
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.user.users });
+    onSuccess: async () => {
       toaster.create({
         title: 'Benutzer erstellt',
         description: 'Der Benutzer wurde erfolgreich erstellt.',
         type: 'success',
       });
+      await queryClient.invalidateQueries({ queryKey: QUERY_KEYS.admin.users });
     },
     onError: async (error: ResponseError) => {
       const message = await getApiErrorMessage(
@@ -61,12 +63,9 @@ export const useCreateUser = () => {
       });
     },
   });
-};
 
-export const useDeleteUser = () => {
-  const queryClient = useQueryClient();
-
-  return useMutation<
+  // Mutation für Benutzer löschen
+  const deleteUserMutation = useMutation<
     DeleteUserResponse,
     ResponseError,
     string,
@@ -76,11 +75,11 @@ export const useDeleteUser = () => {
       return await api.userManagement().userManagementControllerRemoveVAlpha({ id });
     },
     onMutate: async (id) => {
-      await queryClient.cancelQueries({ queryKey: QUERY_KEYS.user.users });
+      await queryClient.cancelQueries({ queryKey: QUERY_KEYS.admin.users });
 
-      const previousUsers = queryClient.getQueryData<UsersListResponse>(QUERY_KEYS.user.users);
+      const previousUsers = queryClient.getQueryData<UsersListResponse>(QUERY_KEYS.admin.users);
 
-      queryClient.setQueryData<UsersListResponse>(QUERY_KEYS.user.users, (old) => {
+      queryClient.setQueryData<UsersListResponse>(QUERY_KEYS.admin.users, (old) => {
         if (!old) return old;
         return {
           ...old,
@@ -91,7 +90,7 @@ export const useDeleteUser = () => {
       return { previousUsers };
     },
     onError: async (error: ResponseError, _id, context) => {
-      queryClient.setQueryData(QUERY_KEYS.user.users, context?.previousUsers);
+      queryClient.setQueryData(QUERY_KEYS.admin.users, context?.previousUsers);
 
       const message = await getApiErrorMessage(
         error,
@@ -114,7 +113,26 @@ export const useDeleteUser = () => {
       });
     },
     onSettled: () => {
-      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.user.users });
+      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.admin.users });
     },
   });
+
+  return {
+    // Benutzerdaten und Ladezustände
+    users: usersQuery.data?.data,
+    usersData: usersQuery.data,
+    isLoading: usersQuery.isLoading,
+    error: usersQuery.error,
+    refetch: usersQuery.refetch,
+
+    // Aktionen
+    createUser: createUserMutation.mutate,
+    deleteUser: deleteUserMutation.mutate,
+
+    // Mutation-Zustände
+    isCreating: createUserMutation.isPending,
+    isDeleting: deleteUserMutation.isPending,
+    createUserError: createUserMutation.error,
+    deleteUserError: deleteUserMutation.error,
+  };
 };

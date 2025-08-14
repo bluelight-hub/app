@@ -1,13 +1,17 @@
-import { Outlet, createRootRoute } from '@tanstack/react-router';
+import { Outlet, createRootRouteWithContext } from '@tanstack/react-router';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
+import { TanstackDevtools } from '@tanstack/react-devtools';
+import { ReactQueryDevtoolsPanel } from '@tanstack/react-query-devtools';
+import { TanStackRouterDevtoolsPanel } from '@tanstack/react-router-devtools';
 import type { ResponseError } from '@bluelight-hub/shared/client';
 import { Provider } from '@/components/ui/provider.tsx';
-import { AuthProvider } from '@/provider/auth.provider.tsx';
 import { Toaster } from '@/components/ui/toaster.tsx';
-import { useAuthRefresh } from '@/hooks/useAuthRefresh';
 
-export const Route = createRootRoute({
+interface RootContext {
+  pageTitle?: string;
+}
+
+export const Route = createRootRouteWithContext<RootContext>()({
   component: RootComponent,
 });
 
@@ -37,20 +41,21 @@ function RootComponent() {
   return (
     <Provider>
       <QueryClientProvider client={queryClient}>
-        <AuthProvider>
-          <AppWithAdminRefresh />
-          <ReactQueryDevtools />
-          <Toaster />
-        </AuthProvider>
+        <Outlet />
+        <TanstackDevtools
+          plugins={[
+            {
+              name: 'Tanstack Query',
+              render: <ReactQueryDevtoolsPanel />,
+            },
+            {
+              name: 'Tanstack Router',
+              render: <TanStackRouterDevtoolsPanel />,
+            },
+          ]}
+        />
+        <Toaster />
       </QueryClientProvider>
     </Provider>
   );
-}
-
-function AppWithAdminRefresh() {
-  // User-Authentifizierung beim App-Start wiederherstellen
-  // Dies prüft auch den Admin-Status über das Backend
-  useAuthRefresh();
-
-  return <Outlet />;
 }
