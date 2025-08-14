@@ -76,7 +76,7 @@ describe('WindowService', () => {
       expect(WebviewWindow).toHaveBeenCalledWith(
         'admin',
         expect.objectContaining({
-          url: expect.stringContaining('/admin/login'),
+          url: expect.stringContaining('/admin-login'),
           title: 'BlueLight Hub - Admin Dashboard',
           width: 1200,
           height: 800,
@@ -116,7 +116,7 @@ describe('WindowService', () => {
 
       await windowService.openAdmin();
 
-      expect(window.open).toHaveBeenCalledWith('/admin/login', '_blank', 'noopener,noreferrer');
+      expect(window.open).toHaveBeenCalledWith('/admin-login', '_blank', 'noopener,noreferrer');
     });
 
     it('should fallback to location.href when popup is blocked', async () => {
@@ -133,7 +133,7 @@ describe('WindowService', () => {
           type: 'warning',
         }),
       );
-      expect(window.location.href).toBe('/admin/login');
+      expect(window.location.href).toBe('/admin-login');
       expect(vi.mocked(logger.warn)).toHaveBeenCalledWith(
         'Fenster konnte nicht geöffnet werden - möglicherweise durch Popup-Blocker verhindert',
       );

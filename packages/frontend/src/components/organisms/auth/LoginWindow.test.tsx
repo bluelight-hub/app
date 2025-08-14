@@ -5,7 +5,6 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { ChakraProvider, createSystem, defaultConfig } from '@chakra-ui/react';
 import { LoginWindow } from './LoginWindow';
 import type { ReactNode } from 'react';
-import { AuthProvider } from '@/provider/auth.provider';
 import '@testing-library/jest-dom';
 
 // Mock router
@@ -81,9 +80,7 @@ describe('LoginWindow', () => {
     const system = createSystem(defaultConfig);
     const Wrapper = ({ children }: { children: ReactNode }) => (
       <ChakraProvider value={system}>
-        <QueryClientProvider client={queryClient}>
-          <AuthProvider>{children}</AuthProvider>
-        </QueryClientProvider>
+        <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
       </ChakraProvider>
     );
 
