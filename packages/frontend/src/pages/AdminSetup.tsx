@@ -1,0 +1,210 @@
+import { useEffect, useState } from 'react';
+import { Alert, Box, Button, Field, Input, Text, VStack } from '@chakra-ui/react';
+import { useNavigate } from '@tanstack/react-router';
+import { useForm } from '@tanstack/react-form';
+import { PiCheckCircle, PiWarning } from 'react-icons/pi';
+import { z } from 'zod';
+import { logger } from '@/utils/logger';
+import { useAuth } from '@/hooks/useAuth.ts';
+import { getApiErrorMessage } from '@/utils/apiErrorHandler.ts';
+
+/**
+ * Schema für die Validierung des Admin-Setup-Formulars
+ */
+const adminSetupSchema = z.object({
+  password: z
+    .string()
+    .min(8, 'Das Passwort muss mindestens 8 Zeichen lang sein')
+    .max(128, 'Das Passwort darf maximal 128 Zeichen lang sein')
+    .regex(/[a-z]/, 'Das Passwort muss mindestens einen Kleinbuchstaben enthalten')
+    .regex(/[A-Z]/, 'Das Passwort muss mindestens einen Großbuchstaben enthalten')
+    .regex(/[0-9]/, 'Das Passwort muss mindestens eine Zahl enthalten')
+    .regex(/[^a-zA-Z0-9]/, 'Das Passwort muss mindestens ein Sonderzeichen enthalten'),
+});
+
+/**
+ * Admin-Setup-Seite für die Ersteinrichtung eines Admin-Accounts
+ *
+ * Ermöglicht es Benutzern, ein Admin-Passwort zu setzen, solange noch kein Admin existiert.
+ * Nach erfolgreicher Einrichtung wird der Benutzer zum Dashboard weitergeleitet.
+ */
+export function AdminSetup() {
+  const navigate = useNavigate();
+  const [apiError, setApiError] = useState<string | null>(null);
+  const { user, adminSetup } = useAuth();
+
+  const form = useForm({
+    defaultValues: {
+      password: '',
+      confirmPassword: '',
+    },
+    onSubmit: async ({ value }) => {
+      // Validate password confirmation
+      if (value.password !== value.confirmPassword) {
+        setApiError('Die Passwörter stimmen nicht überein');
+        return;
+      }
+
+      setApiError(null);
+
+      adminSetup.mutate(
+        { password: value.password },
+        {
+          onSuccess: async () => {
+            logger.log('Admin-Setup erfolgreich');
+            await navigate({ to: '/admin/dashboard' });
+          },
+          onError: async (error) => {
+            const message = await getApiErrorMessage(error, 'Ein Fehler ist aufgetreten. Bitte versuchen Sie es erneut.', 'adminSetup');
+            setApiError(message);
+          },
+        },
+      );
+    },
+  });
+
+  // Navigation zur Startseite nur wenn kein User angemeldet ist
+  // Die adminSetupAvailable Prüfung erfolgt bereits auf der Index-Seite
+  useEffect(() => {
+    if (!user) {
+      navigate({ to: '/' });
+    }
+  }, [user, navigate]);
+
+  // Early return nach useEffect, um Hooks-Regeln einzuhalten
+  if (!user) {
+    return null;
+  }
+
+  return (
+    <VStack gap="8" align="stretch">
+      <Text fontSize="lg" color="fg.muted" textAlign="center">
+        Richten Sie Ihren Admin-Account ein, indem Sie ein sicheres Passwort festlegen.
+      </Text>
+
+      <Box
+        py={{ base: '0', sm: '8' }}
+        px={{ base: '4', sm: '10' }}
+        bg={{ base: 'transparent', sm: 'bg.panel' }}
+        boxShadow={{ base: 'none', sm: 'md' }}
+        borderRadius={{ base: 'none', sm: 'xl' }}
+        w="full"
+        maxW="md"
+      >
+        <Alert.Root status="info" mb="6" borderRadius="md">
+          <Alert.Indicator>
+            <PiCheckCircle />
+          </Alert.Indicator>
+          <Alert.Content>
+            <Alert.Title>Einmalige Einrichtung</Alert.Title>
+            <Alert.Description>Diese Funktion ist nur verfügbar, solange noch kein Admin-Account existiert.</Alert.Description>
+          </Alert.Content>
+        </Alert.Root>
+
+        {/* API-Fehlermeldung anzeigen */}
+        {apiError && (
+          <Alert.Root status="error" mb="6" borderRadius="md">
+            <Alert.Indicator>
+              <PiWarning />
+            </Alert.Indicator>
+            <Alert.Content>
+              <Alert.Title>Setup fehlgeschlagen!</Alert.Title>
+              <Alert.Description>{apiError}</Alert.Description>
+            </Alert.Content>
+          </Alert.Root>
+        )}
+
+        <form
+          onSubmit={(e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            form.handleSubmit();
+          }}
+        >
+          <VStack gap="6">
+            <form.Field
+              name="password"
+              validators={{
+                onChange: ({ value }) => {
+                  try {
+                    adminSetupSchema.shape.password.parse(value);
+                    return undefined;
+                  } catch (error) {
+                    if (error instanceof z.ZodError) {
+                      return error.issues[0].message;
+                    }
+                    return 'Ungültiges Passwort';
+                  }
+                },
+              }}
+            >
+              {(field) => (
+                <Field.Root invalid={field.state.meta.isTouched && field.state.meta.errors.length > 0} w="full">
+                  <Field.Label fontWeight="medium">Passwort</Field.Label>
+                  <Input
+                    id="password"
+                    name="password"
+                    type="password"
+                    autoComplete="new-password"
+                    placeholder="Mindestens 8 Zeichen"
+                    value={field.state.value}
+                    onChange={(e) => {
+                      field.handleChange(e.target.value);
+                    }}
+                    onBlur={field.handleBlur}
+                    disabled={adminSetup.isPending}
+                  />
+                  <Field.ErrorText>{field.state.meta.isTouched && field.state.meta.errors.length > 0 ? field.state.meta.errors[0] : null}</Field.ErrorText>
+                  <Field.HelperText>Mind. 8 Zeichen, 1 Groß-, 1 Kleinbuchstabe, 1 Zahl, 1 Sonderzeichen</Field.HelperText>
+                </Field.Root>
+              )}
+            </form.Field>
+
+            <form.Field
+              name="confirmPassword"
+              validators={{
+                onChange: ({ value, fieldApi }) => {
+                  const password = fieldApi.form.getFieldValue('password');
+                  if (value !== password) {
+                    return 'Die Passwörter stimmen nicht überein';
+                  }
+                  return undefined;
+                },
+              }}
+            >
+              {(field) => (
+                <Field.Root invalid={field.state.meta.isTouched && field.state.meta.errors.length > 0} w="full">
+                  <Field.Label fontWeight="medium">Passwort bestätigen</Field.Label>
+                  <Input
+                    id="confirmPassword"
+                    name="confirmPassword"
+                    type="password"
+                    autoComplete="new-password"
+                    placeholder="Passwort wiederholen"
+                    value={field.state.value}
+                    onChange={(e) => {
+                      field.handleChange(e.target.value);
+                    }}
+                    onBlur={field.handleBlur}
+                    disabled={adminSetup.isPending}
+                  />
+                  <Field.ErrorText>{field.state.meta.isTouched && field.state.meta.errors.length > 0 ? field.state.meta.errors[0] : null}</Field.ErrorText>
+                </Field.Root>
+              )}
+            </form.Field>
+
+            <form.Subscribe selector={(state) => [state.canSubmit]}>
+              {([canSubmit]) => {
+                return (
+                  <Button type="submit" colorPalette="primary" size="lg" fontSize="md" w="full" disabled={!canSubmit || adminSetup.isPending} loading={adminSetup.isPending}>
+                    {adminSetup.isPending ? 'Wird eingerichtet...' : 'Admin-Account einrichten'}
+                  </Button>
+                );
+              }}
+            </form.Subscribe>
+          </VStack>
+        </form>
+      </Box>
+    </VStack>
+  );
+}

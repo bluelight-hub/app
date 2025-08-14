@@ -87,33 +87,3 @@ export const corsConfig = {
     exposedHeaders: ['X-Total-Count'],
   },
 };
-
-/**
- * Cookie-Konfiguration für JWT-Tokens
- *
- * Sicherheitseinstellungen für HTTP-Only Cookies,
- * die für die Speicherung von JWT-Tokens verwendet werden.
- *
- * @constant
- */
-export const cookieConfig = {
-  httpOnly: true,
-  secure: process.env.NODE_ENV === 'production',
-  sameSite: 'strict' as const,
-  maxAge: 7 * 24 * 60 * 60 * 1000, // 7 Tage
-  path: '/',
-};
-
-/**
- * Refresh-Token Cookie-Konfiguration
- *
- * Erweiterte Cookie-Konfiguration speziell für Refresh-Tokens
- * mit längerer Gültigkeit und eingeschränktem Pfad.
- *
- * @constant
- */
-export const refreshCookieConfig = {
-  ...cookieConfig,
-  maxAge: 30 * 24 * 60 * 60 * 1000, // 30 Tage
-  path: '/api/auth/refresh',
-};

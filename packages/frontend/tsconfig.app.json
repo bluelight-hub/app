@@ -30,6 +30,6 @@
       "@pages/*": ["src/components/pages/*"]
     }
   },
-  "include": ["src"],
+  "include": ["src", "e2e", "playwright.config.ts"],
   "exclude": ["../shared/client/**/*.ts"]
 }

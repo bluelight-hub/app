@@ -37,16 +37,16 @@ module.exports = {
   // setupFilesAfterEnv: ['<rootDir>/jest.setup.ts'],
   transformIgnorePatterns: ['node_modules/(?!(nanoid|@bluelight-hub/shared)/)'],
   // moduleNameMapper temporarily disabled
-  // moduleNameMapper: {
-  //   '^@/(.*)$': '<rootDir>/$1',
-  //   '^@prisma/generated/prisma/enums$': '<rootDir>/__mocks__/prisma/enums.ts',
-  //   '^@prisma/generated/prisma/client$': '<rootDir>/__mocks__/prisma/client.ts',
-  //   '^@prisma/generated/prisma$': '<rootDir>/__mocks__/prisma/enums.ts',
-  //   '^../../prisma/generated/prisma/client$': '<rootDir>/__mocks__/prisma/client.ts',
-  //   '^../prisma/generated/prisma/client$': '<rootDir>/__mocks__/prisma/client.ts',
-  //   '^nanoid$': '<rootDir>/__mocks__/nanoid.ts',
-  //   '^@bluelight-hub/shared$': '<rootDir>/__mocks__/@bluelight-hub/shared.ts',
-  // },
+  moduleNameMapper: {
+    '^@/(.*)$': '<rootDir>/$1',
+    //   '^@prisma/generated/prisma/enums$': '<rootDir>/__mocks__/prisma/enums.ts',
+    //   '^@prisma/generated/prisma/client$': '<rootDir>/__mocks__/prisma/client.ts',
+    //   '^@prisma/generated/prisma$': '<rootDir>/__mocks__/prisma/enums.ts',
+    //   '^../../prisma/generated/prisma/client$': '<rootDir>/__mocks__/prisma/client.ts',
+    //   '^../prisma/generated/prisma/client$': '<rootDir>/__mocks__/prisma/client.ts',
+    //   '^nanoid$': '<rootDir>/__mocks__/nanoid.ts',
+    //   '^@bluelight-hub/shared$': '<rootDir>/__mocks__/@bluelight-hub/shared.ts',
+  },
   // Coverage temporarily disabled due to CI issues
   // coverageThreshold: {
   //   global: {

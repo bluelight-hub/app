@@ -1,0 +1,12 @@
+<component name="ProjectRunConfigurationManager">
+  <configuration default="false" name="frontend e2e:ui" type="JavaScriptTestRunnerPlaywright">
+    <config value="$PROJECT_DIR$/packages/frontend/playwright.config.ts" />
+    <node-interpreter value="project" />
+    <playwright-package value="$PROJECT_DIR$/packages/frontend/node_modules/@playwright/test" />
+    <working-dir value="$PROJECT_DIR$/packages/frontend" />
+    <cli-options value="--ui" />
+    <envs />
+    <scope-kind value="ALL" />
+    <method v="2" />
+  </configuration>
+</component>

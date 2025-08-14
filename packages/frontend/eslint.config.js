@@ -4,15 +4,38 @@ import reactRefresh from 'eslint-plugin-react-refresh';
 import globals from 'globals';
 import tseslint from 'typescript-eslint';
 import eslintConfigPrettier from 'eslint-config-prettier';
+import { tanstackConfig } from '@tanstack/eslint-config';
 
 export default tseslint.config(
-  { ignores: ['dist', '../shared/**/*', 'src-tauri/**/*', 'vite.config.ts', 'coverage/**/*'] },
+  ...tanstackConfig,
+  {
+    ignores: [
+      'dist',
+      '../shared/**/*',
+      'src-tauri/**/*',
+      'vite.config.ts',
+      'vitest.config.ts',
+      'coverage/**/*',
+      'test-results/**/*',
+      'playwright-report/**/*',
+      'eslint.config.js',
+    ],
+  },
   {
     extends: [js.configs.recommended, ...tseslint.configs.recommended],
-    files: ['src/**/*.{ts,tsx}', 'e2e/**/*.{ts,tsx}'],
+    files: [
+      'src/**/*.{ts,tsx}',
+      'e2e/**/*.{ts,tsx}',
+      'cypress/**/*.{ts,tsx}',
+      'playwright.config.ts',
+    ],
     languageOptions: {
       ecmaVersion: 2020,
       globals: globals.browser,
+      parserOptions: {
+        project: ['./tsconfig.app.json', './tsconfig.e2e.json', './tsconfig.node.json'],
+        tsconfigRootDir: import.meta.dirname,
+      },
     },
     plugins: {
       'react-hooks': reactHooks,
@@ -40,6 +63,8 @@ export default tseslint.config(
         },
       ],
       'no-useless-escape': 'warn',
+      // Temporarily disable pnpm catalog enforcement for new dependencies
+      'pnpm/json-enforce-catalog': 'off',
     },
   },
   {
@@ -49,8 +74,20 @@ export default tseslint.config(
     },
   },
   {
+    files: ['cypress/**/*.{ts,tsx}'],
+    rules: {
+      '@typescript-eslint/no-explicit-any': 'off',
+      '@typescript-eslint/no-unused-vars': 'off',
+    },
+  },
+  {
     files: ['src/**/*.{ts,tsx}'],
-    ignores: ['src/components/organisms/mocks/**/*.tsx', '**/*.test.tsx', 'e2e/**/*.{ts,tsx}'],
+    ignores: [
+      'src/components/organisms/mocks/**/*.tsx',
+      '**/*.test.tsx',
+      'e2e/**/*.{ts,tsx}',
+      'cypress/**/*.{ts,tsx}',
+    ],
     rules: {
       'max-lines': [
         'error',
@@ -68,16 +105,6 @@ export default tseslint.config(
           skipComments: false,
         },
       ],
-    },
-  },
-  // Add specific config for e2e files
-  {
-    files: ['e2e/**/*.{ts,tsx}'],
-    languageOptions: {
-      globals: {
-        ...globals.browser,
-        ...globals.node,
-      },
     },
   },
   // Add Prettier config at the end to override conflicting rules

@@ -3,7 +3,7 @@
 import * as ts from 'typescript';
 import * as fs from 'fs';
 import * as path from 'path';
-import { logger } from '../src/logger/consola.logger';
+import { Logger } from '@nestjs/common';
 
 interface MethodInfo {
   fileName: string;
@@ -25,6 +25,8 @@ interface Options {
   jsonReport: boolean;
   verbose: boolean;
 }
+
+const logger = new Logger('JsDocChecker');
 
 class JsDocChecker {
   private methods: MethodInfo[] = [];

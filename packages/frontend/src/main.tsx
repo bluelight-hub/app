@@ -1,11 +1,14 @@
 import '@fontsource-variable/nunito/index.css';
 import './index.css';
-import { createRouter, RouterProvider } from '@tanstack/react-router';
-import { routeTree } from '@/routeTree.gen.ts';
+import { RouterProvider, createRouter } from '@tanstack/react-router';
 import ReactDOM from 'react-dom/client';
 import { StrictMode } from 'react';
+import { routeTree } from '@/routeTree.gen';
 
-const router = createRouter({ routeTree });
+const router = createRouter({
+  routeTree,
+  defaultPreload: 'intent',
+});
 
 declare module '@tanstack/react-router' {
   interface Register {

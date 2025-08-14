@@ -1,199 +1,291 @@
-# CLAUDE.md - Repository Guide
+# CLAUDE.md - AI Agent Instructions
 
-## Repository Information
+## 🚫 BREAKING RULES (NIEMALS brechen!)
 
-- GitHub: github.com/bluelight-hub/app
-- Git Remote: `github` (https://github.com/bluelight-hub/app.git)
+### API-Client Generation
 
-## AI Documentation
+**NIEMALS manuelle API-Helper erstellen!**
 
-Der `ai-docs/` Ordner enthält potentiell hilfreiche Dokumentation für AI-Assistenten und Entwickler:
-
-- Commit Guidelines
-- Weitere relevante Dokumentationen (wird fortlaufend erweitert)
-
-## API Client Generation (WICHTIG!)
-
-### Automatische API-Client Generierung
-
-**NIEMALS manuelle API-Helper erstellen!** Das Projekt nutzt automatische API-Client-Generierung aus der OpenAPI-Spezifikation.
-
-**Workflow:**
-
-1. Backend-Endpunkte werden mit NestJS/Swagger erstellt
-2. API-Client wird automatisch generiert: `pnpm run generate:api`
-3. Generierte APIs sind verfügbar in: `packages/shared/client/apis/`
-4. Frontend nutzt die generierten APIs über: `packages/frontend/src/api/index.ts`
-
-**Verwendung im Frontend:**
+Nutze IMMER TanStack Query Hooks mit generiertem API-Client:
 
 ```typescript
-import { api } from '@/api';
+// ✅ RICHTIG:
+const useSecurityAlerts = () => {
+  return useQuery({
+    queryKey: QUERY_KEYS.security.alerts,
+    queryFn: () => api.security().getSecurityAlerts(),
+  });
+};
 
-// Beispiel: Security API verwenden
-const alerts = await api.security.getSecurityAlerts();
-
-// NICHT SO:
-// import { fetchWithAuth } from '@/utils/authInterceptor';
-// const response = await fetchWithAuth('/api/security/alerts');
+// ❌ FALSCH:
+const fetchAlerts = async () => {
+  return await fetch('/api/security/alerts');
+};
 ```
 
-**Wichtige Regeln:**
+**Workflow:** Backend-Endpunkt → `pnpm run generate-api` → TanStack Query Hook → Komponente
 
-- IMMER zuerst prüfen ob eine API im generierten Client existiert
-- Falls nicht: Backend-Endpunkt erstellen und API-Client generieren lassen
-- NIEMALS eigene API-Helper in `packages/frontend/src/api/` erstellen
-- Bei fehlenden APIs: TODO-Kommentar hinzufügen und temporär fetchWithAuth nutzen
+### UI Framework
 
-## Development Tools
+**NUR Chakra UI v3** - keine anderen Frameworks!
 
-### IntelliJ Run Configurations (Preferred)
+- IMMER MCP Server nutzen: `mcp__chakra-ui__get_component_props`
+- NIEMALS Tailwind oder natives CSS mischen
+- Bei UI-Änderungen IMMER Theme checken
 
-Use IntelliJ run configurations instead of shell commands for better IDE integration:
+### Forms & State
 
-**Development:**
+- **Forms:** NUR @tanstack/react-form mit Zod-Schemas
+- **State:** @tanstack/react-store für globalen State
+- **Timing:** @tanstack/pacer für Debouncing/Throttling
+- **NIEMALS:** HTML Forms, Redux, oder andere Libraries
 
-- `backend > dev` - Start backend development server
-- `frontend > dev` - Start frontend development server
+### Commit Rules
 
-**Testing:**
-
-- `Backend Tests (All)` - Run all backend tests
-- `Backend Tests (Watch)` - Run backend tests in watch mode
-- `Backend Tests (Coverage)` - Run backend tests with coverage
-- `Frontend Tests (All)` - Run all frontend tests
-- `Frontend Tests (Watch)` - Run frontend tests in watch mode
-- `Frontend Tests (Coverage)` - Run frontend tests with coverage
-- `All Tests (pnpm)` - Run all tests across the monorepo
-- `All Tests Coverage (pnpm)` - Run all tests with coverage
-
-**Infrastructure (you may not use these, the user should have started those):**
-
-- `docker-compose.yml: Compose Deployment` - Start all services
-- `docker-compose.yml.postgres: Compose Deployment` - Start PostgreSQL
-- `docker-compose.yml.redis: Compose Deployment` - Start Redis
-
-### Build Commands (Fallback)
-
-Only use these shell commands if IntelliJ is not available:
-
-- Project-wide: `pnpm -r dev`, `pnpm -r build`, `pnpm -r test`, `pnpm -r test:cov`
-- Backend: `pnpm --filter @bluelight-hub/backend dev`, `pnpm --filter @bluelight-hub/backend test`
-- Frontend: `pnpm --filter @bluelight-hub/frontend dev`, `pnpm --filter @bluelight-hub/frontend test`
-- Single test (backend): `pnpm --filter @bluelight-hub/backend test -- -t "test name"`
-- Single test (frontend): `pnpm --filter @bluelight-hub/frontend test -- -t "test name"`
-- **Doc Coverage Check:** `pnpm --filter @bluelight-hub/backend check:jsdoc:public`
-
-## Code Style Guidelines
-
-- TypeScript strict mode required throughout codebase
-- Frontend: Atomic Design (atoms, molecules, organisms, templates, pages)
-- Backend: NestJS modular architecture (controller, service, repository)
-- File naming: PascalCase for components, camelCase for others
-- Comments: Explain "why" not "what", JSDoc for public APIs
-- Use react-icons (phosphor-icons) when using icons
-- JSDoc sollte in deutsch geschrieben sein, die geht direkt in die technische Dokumentation (und die ist auf deutsch)
-
-## Commit Message Convention
-
+- **NIEMALS** `--no-verify` verwenden
+- **IMMER** nach jedem Subtask committen
 - Format: `<emoji>(<context>): <title>`
-- Context: `frontend`, `backend`, `shared`, `release`, or other module names
-- Title: Short summary (50-72 characters), use imperative mood
-- Body (optional): Detailed explanation after blank line
 
-### Commit Message Structure
+## 🤖 MANDATORY WORKFLOWS
 
+Verwende ultrathink, also denke nach bevor du handelst. Hier sind die wichtigsten Workflows.
+
+| Trigger            | Agent                | Beschreibung                  |
+| ------------------ | -------------------- | ----------------------------- |
+| Nach Code-Änderung | `test-writer-fixer`  | Tests schreiben/anpassen      |
+| Nach UI-Änderung   | `whimsy-injector`    | Delightful touches hinzufügen |
+| Vor jedem Commit   | `commit-expert`      | Perfekte Commit-Message       |
+| Bei Feature-Flags  | `experiment-tracker` | A/B-Test Tracking             |
+| Bei Task-Planung   | `sprint-prioritizer` | Priorisierung                 |
+| Bei Frontend-Work  | `frontend-developer` | UI/UX Implementation          |
+| Bei Backend-Work   | `backend-architect`  | API-Design & DB-Architektur   |
+
+## 📚 VERFÜGBARE DEVELOPMENT AGENTS
+
+### 🔧 Engineering
+
+| Agent                | Verwendung                    | Priorität    |
+| -------------------- | ----------------------------- | ------------ |
+| `rapid-prototyper`   | MVPs in 6 Tagen bauen         | **KRITISCH** |
+| `backend-architect`  | APIs, Datenbanken, Server     | **KRITISCH** |
+| `frontend-developer` | React, Vue, UI Implementation | **KRITISCH** |
+| `test-writer-fixer`  | Tests schreiben & fixen       | **KRITISCH** |
+| `devops-automator`   | CI/CD, Deployment, Docker     | HOCH         |
+| `ai-engineer`        | LLM Integration, ML Features  | HOCH         |
+| `mobile-app-builder` | iOS/Android Native Apps       | MITTEL       |
+
+### 🧪 Testing & Quality
+
+| Agent                     | Verwendung                  | Priorität    |
+| ------------------------- | --------------------------- | ------------ |
+| `api-tester`              | Load Testing, Performance   | **KRITISCH** |
+| `performance-benchmarker` | Speed Optimization          | HOCH         |
+| `test-results-analyzer`   | Test Patterns erkennen      | HOCH         |
+| `tool-evaluator`          | Framework/Library Bewertung | MITTEL       |
+| `workflow-optimizer`      | Dev-Workflow verbessern     | MITTEL       |
+
+### 🎨 Design & UX (Technisch)
+
+| Agent             | Verwendung                       | Priorität |
+| ----------------- | -------------------------------- | --------- |
+| `ui-designer`     | Component Design, Design Systems | HOCH      |
+| `ux-researcher`   | User Feedback → Features         | HOCH      |
+| `whimsy-injector` | Micro-Interactions, Delight      | MITTEL    |
+
+### 📦 Product & Planning
+
+| Agent                  | Verwendung               | Priorität    |
+| ---------------------- | ------------------------ | ------------ |
+| `sprint-prioritizer`   | 6-Day Sprint Planning    | **KRITISCH** |
+| `feedback-synthesizer` | Bug Reports analysieren  | HOCH         |
+| `experiment-tracker`   | A/B Tests, Feature Flags | HOCH         |
+| `trend-researcher`     | Tech Trends für Features | MITTEL       |
+
+### 🚀 Deployment & Operations
+
+| Agent                       | Verwendung                  | Priorität    |
+| --------------------------- | --------------------------- | ------------ |
+| `infrastructure-maintainer` | Scaling, Performance        | **KRITISCH** |
+| `project-shipper`           | Release Coordination        | HOCH         |
+| `studio-producer`           | Team & Sprint Orchestration | HOCH         |
+| `analytics-reporter`        | Performance Metriken        | MITTEL       |
+| `legal-compliance-checker`  | GDPR, Security              | MITTEL       |
+
+### 🎯 Special Agents
+
+| Agent           | Verwendung               | Priorität |
+| --------------- | ------------------------ | --------- |
+| `studio-coach`  | Multi-Agent Koordination | HOCH      |
+| `commit-expert` | Git Commit Messages      | HOCH      |
+
+## 📁 PROJECT STRUCTURE
+
+```text
+app/
+├── packages/
+│   ├── frontend/          # React + Vite + Atomic Design
+│   ├── backend/           # NestJS + Prisma + PostgreSQL
+│   └── shared/
+│       └── client/apis/   # Generierte API-Clients (nicht manuell ändern!)
+├── docs/
+│   └── architecture/      # arc42 Dokumentation (PFLICHT für Architektur)
+├── ai-docs/              # AI-spezifische Dokumentation
+└── .taskmaster/          # Task-Management & Workflows
 ```
-<emoji>(<context>): <title>
 
-<optional body>
+## 🛠️ ESSENTIAL COMMANDS
+
+### Development
+
+```bash
+# Projekt-weit
+pnpm -r dev                                    # Alle Services starten
+pnpm -r build                                  # Alles bauen
+pnpm run generate-api                          # API-Client generieren (WICHTIG!)
+
+# Package-spezifisch
+pnpm --filter @bluelight-hub/backend dev      # Nur Backend
+pnpm --filter @bluelight-hub/frontend dev     # Nur Frontend
+
+# E2E Tests (separates Jest-Config!)
+cd packages/backend && pnpm run test:e2e       # NICHT "test" verwenden!
 ```
 
-### Examples
+## 🔧 MCP SERVER INTEGRATION
 
-Single-line commits:
+### Serena - Code Intelligence (IMMER nutzen für Code-Navigation!)
 
-- `✨(frontend): Add user dashboard`
-- `🐛(backend): Fix database connection timeout`
-- `♻️(shared): Refactor date utility functions`
-
-Multi-line commit:
-
-```
-💥(backend): Change API response format
-
-BREAKING CHANGE: The API now returns data in a nested structure
-instead of flat objects. This improves consistency but requires
-frontend updates.
-
-Affected endpoints:
-- GET /api/users
-- GET /api/organizations
+```text
+# Workflow für effiziente Code-Exploration:
+1. get_symbols_overview      # Statt ganze Files lesen
+2. find_symbol               # Gezielt Symbole finden
+3. find_referencing_symbols  # VOR Refactoring prüfen!
+4. replace_symbol_body       # Präzise Änderungen
 ```
 
-### Semantic Release Emojis
+### Context7 - Library Docs (VOR Library-Nutzung!)
 
-This project uses semantic-release with gitmoji for automated versioning:
+```text
+# Beispiel:
+resolve-library-id("prisma") → "/prisma/prisma"
+get-library-docs("/prisma/prisma", topic="schema")
+```
 
-**Major Version (Breaking Changes):**
+### Chakra UI - Component System
 
-- 💥 Breaking changes
+- `get_theme` - Theme-Definitionen abrufen
+- `get_component_props` - Props für Komponente
+- `get_component_example` - Code-Beispiele
+- `v2_to_v3_code_review` - Migration Check
 
-**Minor Version (New Features):**
+## 📚 ARCHITECTURE & DOCUMENTATION
 
-- ✨ New features/functionality
+### arc42 (PFLICHT für Architektur!)
 
-**Patch Version (Fixes & Improvements):**
+Architekturdokumentation MUSS in `docs/architecture/` gepflegt werden:
 
-- 🐛 Bug fixes
-- 🚑 Critical hotfixes
-- 🔒 Security fixes
-- 🧹 Code cleanup/chore
-- ♻️ Code refactoring
-- 🔧 Configuration/tooling changes
+- Neue Konzepte → `08-concepts.adoc`
+- Architekturentscheidungen → `adr/XXX-entscheidungsname.adoc`
+- Systemgrenzen → `03-context.adoc`
+- **NIEMALS** separate Architektur-Markdown außerhalb arc42!
 
-## Architecture & Patterns
+### JSDoc Requirements
 
-- Tests are being skipped for now, don't worry about them
-- React frontend with Atomic Design and Vite/Vitest for testing
-- NestJS backend with Prisma (PostgreSQL)
-- Packages: frontend, backend, shared (monorepo with pnpm workspaces)
-- DRY code with clear separation of concerns
-- Single Responsibility Principle for components (<150 lines)
-- Full test coverage for new features
+- **Sprache:** Deutsch (für technische Dokumentation)
+- **Coverage Check:** `pnpm --filter @bluelight-hub/backend check:jsdoc:public`
+- Erkläre "warum", nicht "was"
 
-### Documentation Guidelines
+## 🏗️ CODE PATTERNS
 
-- **Architectural documentation** belongs in `docs/architecture/` following the arc42 template
-- Do NOT create separate markdown files in the `docs/` root directory for architectural concepts
-- System design, security concepts, and technical decisions should be documented in the appropriate arc42 sections
-- Only create markdown files in `docs/` root for operational guides (deployment, migration, etc.)
+### Frontend (Atomic Design)
 
-## Development Workflow
+```text
+// Component-Struktur
+atoms/      # Basis-Komponenten
+molecules/  # Kombinierte Komponenten
+organisms/  # Komplexe Module
+templates/  # Seiten-Layouts
+pages/      # Route-Komponenten
 
-### Subagents verwenden (WICHTIG!)
+// IMMER Chakra UI v3 Komponenten verwenden!
+```
 
-- **IMMER Subagents nutzen** für spezielle Aufgaben - sie funktionieren besser als direkte Tool-Aufrufe
-- **Verfügbare Subagents prüfen:** Nutze die Task-Tool mit den spezialisierten Agents aus der Tool-Beschreibung
-- **Proaktiv einsetzen:** Viele Agents sollten automatisch verwendet werden (z.B. whimsy-injector nach UI-Änderungen, test-writer-fixer nach Code-Änderungen)
-- **Bessere Ergebnisse:** Subagents sind für ihre jeweiligen Aufgaben optimiert und liefern bessere Ergebnisse als direkte Tool-Aufrufe
-- **Beispiele für wichtige Subagents:**
-  - `frontend-developer` für UI/UX-Implementierungen
-  - `backend-architect` für API-Design und Datenbank-Architektur
-  - `test-writer-fixer` nach jeder Code-Änderung für Tests
-  - `whimsy-injector` nach UI-Änderungen für Delightful Touches
-  - `commit-expert` vor jedem Git-Commit für perfekte Commit-Messages
-  - `sprint-prioritizer` für Task-Planung und Priorisierung
+### Backend (NestJS Modular)
 
-### Commit-Regeln (WICHTIG!)
+```text
+// Module-Struktur
+controller/ # REST Endpoints
+service/    # Business Logic
+repository/ # Data Access
+dto/       # Data Transfer Objects
 
-- **NIEMALS mit `--no-verify` committen!** Pre-commit hooks müssen IMMER durchlaufen
-- **Committe nach jedem abgeschlossenen Subtask** für bessere Nachvollziehbarkeit
+// IMMER OpenAPI decorators für API-Generation!
+```
 
-### Workflow-Schritte
+## 🎯 COMMIT EMOJIS
 
-1. Änderungen implementieren
-2. Tests ausführen (momentan übersprungen)
-3. Linting und Type-Checking sicherstellen
-4. Commit MIT allen Checks (ohne `--no-verify`)
-5. Bei Fehlern: Erst fixen, dann committen
+### Semantic Release Triggers
+
+| Emoji | Typ      | Version | Verwendung       |
+| ----- | -------- | ------- | ---------------- |
+| 💥    | Breaking | Major   | Breaking Changes |
+| ✨    | Feature  | Minor   | Neue Features    |
+| 🐛    | Fix      | Patch   | Bug Fixes        |
+| 🚑    | Hotfix   | Patch   | Kritische Fixes  |
+| 🔒    | Security | Patch   | Security Fixes   |
+| ♻️    | Refactor | Patch   | Code Refactoring |
+
+## ⚠️ KLARSTELLUNGEN
+
+### Tests
+
+- Tests werden AKTUELL übersprungen (temporär)
+- Trotzdem: `test-writer-fixer` Agent nutzen für zukünftige Tests
+- E2E-Tests nutzen separates Config: `test:e2e` nicht `test`
+
+### Subagents
+
+- **Location:** Definiert in `.taskmaster/` Verzeichnis
+- **Verwendung:** PFLICHT für spezialisierte Aufgaben
+- **Keine Ausnahmen:** Direkte Tool-Aufrufe vermeiden
+
+### API Development
+
+1. Backend-Endpoint mit NestJS/Swagger erstellen
+2. API-Client generieren lassen
+3. Frontend nutzt generierten Client
+4. Bei fehlenden APIs: Backend-Endpoint erstellen → `pnpm run generate-api` → generierten Client nutzen
+
+## 🔍 QUICK REFERENCE
+
+| Was                 | Wo       | Tool/Command                  | Agent                     |
+| ------------------- | -------- | ----------------------------- | ------------------------- |
+| **Neues Projekt**   | -        | `pnpm create vite`            | `rapid-prototyper`        |
+| **API erstellen**   | Backend  | NestJS + Swagger              | `backend-architect`       |
+| **API nutzen**      | Frontend | Generierter Client in `@/api` | -                         |
+| **UI Component**    | Frontend | Chakra UI v3 via MCP          | `frontend-developer`      |
+| **Form erstellen**  | Frontend | TanStack Form + Zod           | `frontend-developer`      |
+| **Tests schreiben** | Überall  | Jest/Vitest                   | `test-writer-fixer`       |
+| **Performance**     | -        | Lighthouse, DevTools          | `performance-benchmarker` |
+| **Deployment**      | -        | Docker, CI/CD                 | `devops-automator`        |
+| **Code finden**     | Überall  | Serena MCP `find_symbol`      | -                         |
+| **Library Docs**    | -        | Context7 MCP                  | -                         |
+| **Architektur**     | docs/    | arc42 Template                | `backend-architect`       |
+| **Sprint Planning** | -        | RICE/Value Matrix             | `sprint-prioritizer`      |
+| **Commit**          | -        | Semantic Emojis               | `commit-expert`           |
+
+## 🚀 DEVELOPMENT WORKFLOW CHECKLIST
+
+- [ ] **Start**: `rapid-prototyper` für MVP Setup
+- [ ] **Backend**: `backend-architect` für API Design
+- [ ] **Frontend**: `frontend-developer` für UI
+- [ ] **Testing**: `test-writer-fixer` nach jeder Änderung
+- [ ] **Performance**: `performance-benchmarker` vor Release
+- [ ] **Deploy**: `devops-automator` für CI/CD
+- [ ] **Monitor**: `infrastructure-maintainer` für Scaling
+- [ ] **Commit**: `commit-expert` für Git Messages
+
+---
+
+_Repository:_ github.com/bluelight-hub/app
+_Import zusätzliche Workflows:_ @./.taskmaster/CLAUDE.md

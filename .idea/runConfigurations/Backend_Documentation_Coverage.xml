@@ -1,0 +1,12 @@
+<component name="ProjectRunConfigurationManager">
+  <configuration default="false" name="Backend Documentation Coverage" type="js.build_tools.npm">
+    <package-json value="$PROJECT_DIR$/packages/backend/package.json" />
+    <command value="run" />
+    <scripts>
+      <script value="docs:cov" />
+    </scripts>
+    <node-interpreter value="project" />
+    <envs />
+    <method v="2" />
+  </configuration>
+</component>

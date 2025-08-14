@@ -1,18 +1,7 @@
 'use client';
 
-import { createToaster, Portal, Spinner, Stack, Toast, Toaster as ChakraToaster } from '@chakra-ui/react';
-
-/**
- * Globale Toaster-Instanz für Benachrichtigungen.
- *
- * Konfiguriert mit:
- * - Positionierung unten rechts
- * - Pausiert automatisch bei Inaktivität der Seite
- */
-export const toaster = createToaster({
-  placement: 'bottom-end',
-  pauseOnPageIdle: true,
-});
+import { Toaster as ChakraToaster, Portal, Spinner, Stack, Toast } from '@chakra-ui/react';
+import { toaster } from './toaster.instance';
 
 /**
  * Toaster-Komponente für die Anzeige von Benachrichtigungen.
@@ -25,8 +14,8 @@ export const toaster = createToaster({
  * - Responsive Darstellung mit angepassten Abständen auf mobilen Geräten
  *
  * Diese Komponente sollte einmal in der Anwendung (typischerweise im Root-Layout)
- * eingebunden werden. Die Benachrichtigungen werden dann über die exportierte
- * `toaster`-Instanz ausgelöst.
+ * eingebunden werden. Die Benachrichtigungen werden dann über die `toaster`-Instanz
+ * aus './toaster.instance' ausgelöst.
  *
  * @returns Die Toaster-Komponente mit Portal-Rendering
  *
@@ -35,6 +24,7 @@ export const toaster = createToaster({
  * <Toaster />
  *
  * // Verwendung der toaster-Instanz:
+ * import { toaster } from './toaster.instance';
  * toaster.create({
  *   title: 'Erfolgreich gespeichert',
  *   description: 'Die Änderungen wurden übernommen.',

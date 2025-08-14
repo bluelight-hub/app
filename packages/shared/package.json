@@ -3,18 +3,21 @@
   "version": "1.0.0-alpha.21",
   "private": true,
   "type": "module",
-  "main": "dist/index.js",
-  "types": "dist/index.d.ts",
+  "main": "index.ts",
+  "types": "index.ts",
   "scripts": {
     "format": "prettier --write .",
-    "generate-api": "rimraf dist client && openapi-generator-cli generate -g=typescript-fetch -i http://localhost:3000/api-json -o ./client --skip-validate-spec && pnpm format",
-    "build": "pnpm generate-api",
+    "generate-api": "rimraf client && openapi-generator-cli generate -g=typescript-fetch -i http://localhost:3000/api-json -o ./client --skip-validate-spec && pnpm format",
+    "build:tsc": "tsc",
+    "build": "pnpm build:tsc",
+    "build:with-api": "pnpm generate-api && pnpm build:tsc",
+    "build:ci": "echo 'Skipping API generation in CI - using pre-generated clients'",
     "test": "echo 'No tests available for shared package'"
   },
   "devDependencies": {
-    "@openapitools/openapi-generator-cli": "^2.19.1",
-    "prettier": "^3.5.3",
+    "@openapitools/openapi-generator-cli": "^2.21.4",
+    "prettier": "^3.6.2",
     "rimraf": "^6.0.1",
-    "typescript": "^5.8.3"
+    "typescript": "^5.9.2"
   }
 }

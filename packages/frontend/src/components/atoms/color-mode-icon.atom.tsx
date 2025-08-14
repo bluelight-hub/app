@@ -1,6 +1,5 @@
-import { useColorMode } from '@/hooks/use-color-mode.ts';
 import { PiMoon, PiSun } from 'react-icons/pi';
-import * as React from 'react';
+import { useColorMode } from '@/hooks/use-color-mode.ts';
 
 export function ColorModeIcon() {
   const { colorMode } = useColorMode();

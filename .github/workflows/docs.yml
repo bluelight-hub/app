@@ -1,16 +1,15 @@
 name: Documentation Build
 
-# Standardberechtigungen für alle Jobs (Prinzip der geringsten Berechtigung)
 permissions: read-all
 
 on:
   push:
-    branches: [main]
+    branches: [main, develop, feature/*, alpha, beta, release/*]
     paths:
       - 'docs/**'
       - '.github/workflows/docs.yml'
   pull_request:
-    branches: [main]
+    branches: [main, develop, feature/*, alpha, beta, release/*]
     paths:
       - 'docs/**'
   workflow_dispatch:
@@ -31,15 +30,16 @@ jobs:
         with:
           fetch-depth: 0
 
+      - name: Install pnpm
+        uses: pnpm/action-setup@v2
+        with:
+          version: 10.14.0
+
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: '20'
-
-      - name: Install pnpm
-        uses: pnpm/action-setup@v2
-        with:
-          version: '10.5.2'
+          cache: 'pnpm'
 
       - name: Get pnpm store directory
         shell: bash

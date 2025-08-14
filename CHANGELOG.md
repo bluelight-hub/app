@@ -1,3 +1,33 @@
+## Version [Unreleased]
+
+## 💥 Breaking Changes
+
+**BREAKING CHANGE: Auth-Endpoints geben keine Tokens mehr im JSON-Body zurück**
+
+Die folgenden Auth-Endpoints liefern künftig keine Access- oder Refresh-Tokens mehr im JSON-Body, sondern setzen sie ausschließlich als httpOnly-Cookies:
+
+- `POST /api/auth/login` - Gibt jetzt `{ user: UserResponseDto }` zurück (vorher: `{ user, accessToken, refreshToken }`)
+- `POST /api/auth/register` - Gibt jetzt `{ user: UserResponseDto }` zurück (vorher: `{ user, accessToken, refreshToken }`)
+- `POST /api/auth/refresh` - Gibt jetzt `{ success: true }` zurück (vorher: `{ accessToken, refreshToken }`)
+- `POST /api/auth/admin/login` - Gibt jetzt `{ user: UserResponseDto }` zurück (vorher: `{ user, accessToken, refreshToken }`)
+
+**Migration:**
+
+- Frontend-Clients müssen so angepasst werden, dass sie keine Token-Felder mehr aus dem Response-Body erwarten
+- Tokens werden automatisch als httpOnly-Cookies gesetzt und bei nachfolgenden Requests mitgesendet
+- Die Cookie-Namen sind `accessToken` und `refreshToken`
+- Cookies haben die Attribute: `httpOnly=true`, `sameSite=strict`, `secure=true` (in Production)
+
+## 🔧 Refactoring
+
+**Entfernung des redundanten /auth/me Endpoints**
+
+- Der `/api/auth/me` Endpoint wurde entfernt, da er nicht verwendet wurde
+- Stattdessen sollte der `/api/auth/check` Endpoint genutzt werden, der zusätzlich:
+  - Nie 401 wirft (immer 200 mit `authenticated: false` bei fehlender Auth)
+  - Ein `authenticated` boolean-Flag mitliefert
+  - Besser für initiale App-Checks geeignet ist
+
 ## Version [v1.0.0-alpha.21](https://github.com/bluelight-hub/app/compare/v1.0.0-alpha.20...v1.0.0-alpha.21) – Veröffentlicht am 2025-06-16
 
 ## 🔧 Tool Verbesserungen
