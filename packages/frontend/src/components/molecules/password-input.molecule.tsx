@@ -10,6 +10,7 @@ import { cn } from '@/utils/cn.ts';
 interface PasswordInputProps extends Omit<InputProps, 'type' | 'leftIcon' | 'rightElement'> {
   showLockIcon?: boolean;
   shouldShake?: boolean;
+  wrapperClassName?: string;
 }
 
 /**
@@ -17,16 +18,17 @@ interface PasswordInputProps extends Omit<InputProps, 'type' | 'leftIcon' | 'rig
  *
  * Kombination aus Input und IconButton für Passwort-Eingaben mit Show/Hide-Funktionalität
  */
-export const PasswordInput = React.forwardRef<HTMLInputElement, PasswordInputProps>(({ showLockIcon = true, shouldShake = false, className, ...props }, ref) => {
+export const PasswordInput = React.forwardRef<HTMLInputElement, PasswordInputProps>(({ showLockIcon = true, shouldShake = false, wrapperClassName, className, ...props }, ref) => {
   const [showPassword, setShowPassword] = useState(false);
 
   const shakeStyles = shouldShake ? 'animate-shake' : '';
 
   return (
-    <div className={cn(shakeStyles, className)}>
+    <div className={cn(shakeStyles, wrapperClassName)}>
       <Input
         ref={ref}
         type={showPassword ? 'text' : 'password'}
+        className={className}
         leftIcon={showLockIcon ? <PiLock size={18} /> : undefined}
         rightElement={
           <IconButton

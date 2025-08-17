@@ -148,7 +148,7 @@ class WindowService {
     });
 
     // Error Handler für Fenster-Ereignisse
-    await adminWindow.once('tauri://error', (error) => {
+    adminWindow.once('tauri://error', (error) => {
       logger.error('Fehler beim Erstellen des Admin-Fensters:', error);
       toast.error('Fehler', {
         description: 'Das Admin-Fenster konnte nicht erstellt werden.',
@@ -175,6 +175,8 @@ class WindowService {
 
         window.location.href = adminUrl;
       } else {
+        // Neutralize window.opener to prevent reverse-tabnabbing
+        newWindow.opener = null;
         logger.log('Admin-Dashboard in neuem Tab geöffnet');
       }
     } catch (error) {

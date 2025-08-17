@@ -95,11 +95,14 @@ export const CreateUserDialog = ({ isOpen, onClose, onSubmit, isSubmitting }: Cr
             Abbrechen
           </Button>
           <form.Subscribe selector={(state) => [state.canSubmit, state.isSubmitting]}>
-            {([canSubmit, isFormSubmitting]) => (
-              <Button type="submit" variant="primary" disabled={!canSubmit || isFormSubmitting} loading={isSubmitting}>
-                Benutzer erstellen
-              </Button>
-            )}
+            {([canSubmit, isFormSubmitting]) => {
+              const submitting = isFormSubmitting || isSubmitting;
+              return (
+                <Button type="submit" variant="primary" disabled={!canSubmit || submitting} loading={submitting}>
+                  Benutzer erstellen
+                </Button>
+              );
+            }}
           </form.Subscribe>
         </Dialog.Footer>
       </form>

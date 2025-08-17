@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react';
 import { createColumnHelper, flexRender, getCoreRowModel, getSortedRowModel, useReactTable } from '@tanstack/react-table';
-import { FiTrash2 } from 'react-icons/fi';
+import { PiTrash } from 'react-icons/pi';
 import { UserDtoRoleEnum } from '@bluelight-hub/shared/client';
 import type { UserDto } from '@bluelight-hub/shared/client';
 import type { SortingState } from '@tanstack/react-table';
@@ -58,7 +58,7 @@ export const UsersTable = ({ users, isLoading, onDelete }: UsersTableProps) => {
               aria-label="Benutzer löschen"
               className="text-red-600 hover:bg-red-50 hover:text-red-700 dark:text-red-400 dark:hover:bg-red-900/20 dark:hover:text-red-300"
             >
-              <FiTrash2 />
+              <PiTrash />
             </IconButton>
           </div>
         ),

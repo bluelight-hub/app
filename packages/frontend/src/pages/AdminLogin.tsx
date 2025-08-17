@@ -137,9 +137,8 @@ export function AdminLogin() {
               }}
             >
               <div className="flex flex-col gap-6">
-                <form.Field
-                  name="password"
-                  children={(field) => (
+                <form.Field name="password">
+                  {(field) => (
                     <FormField label="Administrator-Passwort" className="w-full" error={field.state.meta.errors.length > 0 ? field.state.meta.errors.join(', ') : undefined}>
                       <PasswordInput
                         id="password"
@@ -156,7 +155,7 @@ export function AdminLogin() {
                       />
                     </FormField>
                   )}
-                />
+                </form.Field>
 
                 <form.Subscribe
                   selector={(state) => [state.canSubmit, state.isSubmitting]}

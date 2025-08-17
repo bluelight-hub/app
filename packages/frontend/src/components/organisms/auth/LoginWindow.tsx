@@ -84,11 +84,11 @@ export function LoginWindow(_props: Props) {
   const tabItems = [
     {
       label: 'Anmelden',
-      content: <LoginTab onSubmit={(username) => loginUser(username)} isLoading={login.isPending} error={login.error} />,
+      content: <LoginTab onSubmit={(username) => loginUser(username)} isLoading={login.isPending} error={login.error ?? null} />,
     },
     {
       label: 'Registrieren',
-      content: <RegisterTab onSubmit={(username) => registerUser({ username })} isLoading={register.isPending} error={register.error} />,
+      content: <RegisterTab onSubmit={(username) => registerUser({ username })} isLoading={register.isPending} error={register.error ?? null} />,
     },
   ];
 

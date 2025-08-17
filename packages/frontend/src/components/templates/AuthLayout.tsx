@@ -2,6 +2,7 @@ import { useEffect } from 'react';
 import type { ReactNode } from 'react';
 import { ColorModeButton } from '@/components/molecules/color-mode-button.molecule';
 import { useTimeBasedBackground } from '@/utils/timeBasedBackground';
+import { cn } from '@/utils/cn.ts';
 
 interface AuthLayoutProps {
   children: ReactNode;
@@ -28,10 +29,12 @@ export function AuthLayout({ children, className }: AuthLayoutProps) {
     };
   }, []);
 
+  const backgroundStyle = backgroundImage ? { backgroundImage: `url(${backgroundImage})` } : undefined;
+
   return (
-    <div className={`login-background relative flex min-h-screen items-center justify-center overflow-hidden ${className || ''}`}>
+    <div className={cn('login-background relative flex min-h-screen items-center justify-center overflow-hidden', className)}>
       {/* Background with blur effect */}
-      <div className="absolute inset-0 -z-20 bg-cover bg-center bg-no-repeat blur-md" style={{ backgroundImage: `url(${backgroundImage})` }} />
+      <div className="absolute inset-0 -z-20 bg-cover bg-center bg-no-repeat blur-md" style={backgroundStyle} />
 
       {/* Background overlay */}
       <div className="absolute inset-0 -z-10 bg-gradient-to-br from-blue-800/80 via-blue-800/40 to-red-600/30 dark:from-blue-900/40 dark:via-blue-900/20 dark:to-red-900/15" />

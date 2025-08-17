@@ -2,7 +2,7 @@
 
 import { ComboboxButton, ComboboxInput, ComboboxOption, ComboboxOptions, Combobox as HeadlessCombobox, Label } from '@headlessui/react';
 import * as React from 'react';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { PiCaretDown, PiX } from 'react-icons/pi';
 
 import { cn } from '@/utils/cn.ts';
@@ -43,6 +43,7 @@ export function Combobox({
 }: ComboboxProps) {
   const [query, setQuery] = useState('');
   const [selectedItem, setSelectedItem] = useState<ComboboxItem | null>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
 
   // Handle controlled value
   useEffect(() => {
@@ -79,6 +80,12 @@ export function Combobox({
     setSelectedItem(null);
     onChange?.('');
     onInputChange?.('');
+
+    if (inputRef.current) {
+      inputRef.current.value = '';
+      const event = new Event('input', { bubbles: true });
+      inputRef.current.dispatchEvent(event);
+    }
   };
 
   return (
@@ -88,15 +95,16 @@ export function Combobox({
         <div className="relative mt-2">
           {leadingIcon && <div className="pointer-events-none absolute inset-y-0 left-4 flex items-center text-gray-500 dark:text-gray-400">{leadingIcon}</div>}
           <ComboboxInput
+            ref={inputRef}
             className={cn(
               'block w-full rounded-lg border-2 bg-gray-50 px-4 py-3 pr-12 text-base font-medium text-gray-900',
               'transition-all duration-200',
               'border-gray-200',
               'placeholder:text-gray-400',
-              'focus:border-blue-500 focus:bg-white focus:outline-none focus:ring-4 focus:ring-blue-500 focus:ring-opacity-20',
+              'focus:border-primary-500 focus:ring-primary-500 focus:bg-white focus:outline-none focus:ring-4 focus:ring-opacity-20',
               'sm:text-sm/6',
               'dark:border-gray-700 dark:bg-gray-900 dark:text-white',
-              'dark:placeholder:text-gray-500 dark:focus:border-blue-400 dark:focus:bg-gray-800 dark:focus:ring-blue-400',
+              'dark:focus:border-primary-400 dark:focus:ring-primary-400 dark:placeholder:text-gray-500 dark:focus:bg-gray-800',
               'disabled:cursor-not-allowed disabled:opacity-50',
               leadingIcon && 'pl-12',
               showClearButton && 'pr-20',
@@ -110,13 +118,32 @@ export function Combobox({
                 setQuery('');
               }
             }}
-            displayValue={(item: ComboboxItem | null) => item?.label || query}
+            displayValue={(item: ComboboxItem | null) => {
+              if (item) return item.label;
+              return query;
+            }}
             disabled={disabled}
           />
 
           <div className="absolute inset-y-0 right-0 flex items-center">
             {showClearButton && !disabled && (
-              <button type="button" onClick={handleClear} className="p-2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300">
+              <button
+                type="button"
+                onClick={handleClear}
+                onMouseDown={(e) => {
+                  e.preventDefault();
+                }}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    handleClear();
+                  }
+                }}
+                className="focus:ring-primary-500 rounded p-2 text-gray-400 hover:text-gray-600 focus:outline-none focus:ring-2 focus:ring-offset-2 dark:hover:text-gray-300 dark:focus:ring-offset-gray-900"
+                aria-label="Clear selection"
+                tabIndex={0}
+              >
                 <PiX className="h-4 w-4" />
               </button>
             )}

@@ -41,39 +41,39 @@ export const useAuth = () => {
     queryFn: () => api.auth().authControllerGetAdminStatus(),
   });
 
-  const logoutMutation = useMutation({
+  const logoutMutation = useMutation<void, Error, void>({
     mutationFn: () => api.auth().authControllerLogout(),
     onSuccess: async () => {
       await queryClient.invalidateQueries({ queryKey: QUERY_KEYS.auth.queryKey });
     },
   });
-  const logoutAdminMutation = useMutation({
+  const logoutAdminMutation = useMutation<void, Error, void>({
     mutationFn: () => api.auth().authControllerAdminLogout(),
     onSuccess: async () => {
       await queryClient.invalidateQueries({ queryKey: QUERY_KEYS.auth.queryKey });
     },
   });
-  const loginMutation = useMutation({
+  const loginMutation = useMutation<any, Error, LoginUserDto>({
     mutationFn: (loginUserDto: LoginUserDto) => api.auth().authControllerLogin({ loginUserDto }),
     onSuccess: () => {
       void authCheckQuery.refetch();
     },
   });
-  const loginAdminMutation = useMutation({
+  const loginAdminMutation = useMutation<any, Error, AdminPasswordDto>({
     mutationFn: (adminPasswordDto: AdminPasswordDto) =>
       api.auth().authControllerAdminLogin({ adminPasswordDto }),
     onSuccess: () => {
       void authCheckQuery.refetch();
     },
   });
-  const registerMutation = useMutation({
+  const registerMutation = useMutation<any, Error, RegisterUserDto>({
     mutationFn: (registerUserDto: RegisterUserDto) =>
       api.auth().authControllerRegister({ registerUserDto }),
     onSuccess: () => {
       void authCheckQuery.refetch();
     },
   });
-  const adminSetupMutation = useMutation({
+  const adminSetupMutation = useMutation<any, Error, AdminSetupDto>({
     mutationFn: (adminSetupDto: AdminSetupDto) =>
       api.auth().authControllerAdminSetup({ adminSetupDto }),
     onSuccess: async () => {

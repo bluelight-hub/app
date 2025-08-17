@@ -1,6 +1,6 @@
 import * as React from 'react';
 import { DialogPanel, DialogTitle, Dialog as HeadlessDialog, Transition, TransitionChild } from '@headlessui/react';
-import { FiX } from 'react-icons/fi';
+import { PiX } from 'react-icons/pi';
 
 import { cn } from '@/utils/cn.ts';
 
@@ -77,8 +77,12 @@ Dialog.Footer = ({ children, className }: DialogFooterProps) => {
 
 Dialog.CloseButton = ({ onClose }: { onClose: () => void }) => {
   return (
-    <button onClick={onClose} className="absolute right-4 top-4 rounded-lg p-1 text-gray-400 transition-colors hover:bg-gray-100 hover:text-gray-500 dark:hover:bg-gray-700 dark:hover:text-gray-300">
-      <FiX className="h-5 w-5" />
+    <button
+      type="button"
+      onClick={onClose}
+      className="absolute right-4 top-4 rounded-lg p-1 text-gray-400 transition-colors hover:bg-gray-100 hover:text-gray-500 dark:hover:bg-gray-700 dark:hover:text-gray-300"
+    >
+      <PiX className="h-5 w-5" />
     </button>
   );
 };

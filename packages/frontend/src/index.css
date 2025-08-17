@@ -91,6 +91,52 @@ body {
     }
 }
 
+@keyframes wave {
+    0% {
+        transform: scale(0);
+        filter: hue-rotate(90deg) blur(100px);
+    }
+    25% {
+        transform: scale(0);
+        filter: hue-rotate(120deg) blur(50px);
+    }
+    50% {
+        transform: scale(1);
+        filter: hue-rotate(180deg) blur(25px);
+    }
+    75% {
+        transform: scale(0);
+        filter: hue-rotate(360deg) blur(2px);
+    }
+    100% {
+        transform: scale(0);
+        filter: hue-rotate(0deg) blur(0);
+    }
+}
+
+@keyframes wave-clean {
+    0% {
+        transform: scale(0);
+        filter: hue-rotate(90deg) blur(8px);
+    }
+    25% {
+        transform: scale(0);
+        filter: hue-rotate(120deg) blur(6px);
+    }
+    50% {
+        transform: scale(1);
+        filter: hue-rotate(180deg) blur(3px);
+    }
+    75% {
+        transform: scale(0);
+        filter: hue-rotate(360deg) blur(1px);
+    }
+    100% {
+        transform: scale(0);
+        filter: hue-rotate(0deg) blur(0);
+    }
+}
+
 .animate-card-entry {
     animation: card-entry 0.8s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
@@ -105,4 +151,40 @@ body {
 
 .animate-shake {
     animation: shake 0.5s ease-in-out;
+}
+
+.animate-wave {
+    animation: wave 1.5s linear infinite;
+}
+
+.animate-wave-clean {
+    animation: wave-clean 1.5s ease-in-out infinite;
+    animation-fill-mode: both;
+}
+
+/* Respect prefers-reduced-motion for accessibility */
+@media (prefers-reduced-motion: reduce) {
+    .animate-card-entry,
+    .animate-stripe-move,
+    .animate-pulse-shadow,
+    .animate-shake,
+    .animate-wave {
+        animation: none !important;
+        transition: none !important;
+    }
+    
+    /* Provide subtle alternatives for essential feedback */
+    .animate-card-entry {
+        opacity: 1 !important;
+        transform: none !important;
+    }
+    
+    .animate-wave,
+    .animate-wave-clean,
+    .animate-dot-bounce,
+    .animate-pulse-ring {
+        opacity: 0.7 !important;
+        transform: none !important;
+        filter: none !important;
+    }
 }

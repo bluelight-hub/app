@@ -1,5 +1,5 @@
-import { FiAlertTriangle } from 'react-icons/fi';
 import { UserDtoRoleEnum } from '@bluelight-hub/shared/client';
+import { PiShieldWarning } from 'react-icons/pi';
 import { Dialog } from '@/components/molecules/dialog.molecule';
 import { Button } from '@/components/atoms/button.atom';
 import { Badge } from '@/components/atoms/badge.atom';
@@ -9,11 +9,16 @@ interface ConfirmDeleteDialogProps {
   onClose: () => void;
   onConfirm: () => void;
   userName: string;
-  userRole: string;
+  userRole: UserDtoRoleEnum;
   isDeleting: boolean;
 }
 
-const getRoleBadgeVariant = (role: string): 'error' | 'warning' | 'info' | 'default' => {
+/**
+ * Bestimmt die Badge-Variante basierend auf der Benutzerrolle.
+ * @param role - Die Benutzerrolle als UserDtoRoleEnum
+ * @returns Die entsprechende Badge-Variante für die visuelle Darstellung
+ */
+const getRoleBadgeVariant = (role: UserDtoRoleEnum): 'error' | 'warning' | 'info' | 'default' => {
   switch (role) {
     case UserDtoRoleEnum.SuperAdmin:
       return 'error';
@@ -36,7 +41,7 @@ export const ConfirmDeleteDialog = ({ isOpen, onClose, onConfirm, userName, user
 
         <Dialog.Body>
           <div className="flex flex-col items-center space-y-4 text-center">
-            <FiAlertTriangle className="h-12 w-12 text-orange-500" />
+            <PiShieldWarning className="h-12 w-12 text-orange-500" />
 
             <p className="text-gray-700 dark:text-gray-300">Möchten Sie den Benutzer wirklich löschen?</p>
 

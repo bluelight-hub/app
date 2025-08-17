@@ -25,7 +25,6 @@
   },
   "dependencies": {
     "@bluelight-hub/shared": "workspace:*",
-    "@emotion/react": "catalog:",
     "@fontsource-variable/inter": "catalog:",
     "@fontsource-variable/montserrat": "catalog:",
     "@fontsource-variable/nunito": "catalog:",

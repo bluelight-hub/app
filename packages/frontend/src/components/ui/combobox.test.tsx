@@ -148,4 +148,36 @@ describe('Combobox', () => {
       expect(mockOnInputChange).toHaveBeenCalledWith('');
     }
   });
+
+  it('clears value when Enter is pressed on clear button', async () => {
+    render(<Combobox items={sampleItems} value="option1" placeholder="Select an option..." onChange={mockOnChange} onInputChange={mockOnInputChange} />);
+
+    // Find the clear button
+    const clearButtons = screen.getAllByRole('button');
+    const clearButton = clearButtons.find((button) => button.innerHTML.includes('PiX') || button.querySelector('svg'));
+
+    if (clearButton) {
+      // Focus the clear button and press Enter
+      clearButton.focus();
+      await user.keyboard('{Enter}');
+      expect(mockOnChange).toHaveBeenCalledWith('');
+      expect(mockOnInputChange).toHaveBeenCalledWith('');
+    }
+  });
+
+  it('clears value when Space is pressed on clear button', async () => {
+    render(<Combobox items={sampleItems} value="option1" placeholder="Select an option..." onChange={mockOnChange} onInputChange={mockOnInputChange} />);
+
+    // Find the clear button
+    const clearButtons = screen.getAllByRole('button');
+    const clearButton = clearButtons.find((button) => button.innerHTML.includes('PiX') || button.querySelector('svg'));
+
+    if (clearButton) {
+      // Focus the clear button and press Space
+      clearButton.focus();
+      await user.keyboard(' ');
+      expect(mockOnChange).toHaveBeenCalledWith('');
+      expect(mockOnInputChange).toHaveBeenCalledWith('');
+    }
+  });
 });

@@ -1,3 +1,5 @@
+'use client';
+
 import type { ColorModeProviderProps } from './color-mode';
 import { ColorModeProvider } from '@/provider/color-mode.provider.tsx';
 

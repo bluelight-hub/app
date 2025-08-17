@@ -17,11 +17,20 @@ Dieses Glossar definiert die wichtigsten Fachbegriffe, Abkürzungen und technisc
 |API
 |Application Programming Interface; Schnittstelle, die von anderen Programmen oder Systemkomponenten genutzt werden kann, um mit dem Bluelight-Hub-System zu kommunizieren.
 
+|[[atomic-design]]Atomic Design
+|Entwurfsmethodik für UI-Komponenten, die diese hierarchisch in Atoms (kleinste Bausteine), Molecules (einfache Kombinationen), Organisms (komplexe Komponenten), Templates (Seitenlayouts) und Pages (konkrete Instanzen) unterteilt.
+
 |Backend
 |Serverseite des Bluelight-Hub-Systems, implementiert mit NestJS, die für die Geschäftslogik, Datenverwaltung und API-Bereitstellung verantwortlich ist.
 
+|[[bundle-size]]Bundle Size
+|Gesamtgröße aller JavaScript-, CSS- und anderen Asset-Dateien, die an den Browser ausgeliefert werden. Kleinere Bundle Sizes führen zu schnelleren Ladezeiten und besserer Performance.
+
 |CQRS
 |Command Query Responsibility Segregation; Architekturmuster, das die lesenden (Queries) von den schreibenden (Commands) Operationen trennt, um Komplexität zu reduzieren und Skalierbarkeit zu verbessern.
+
+|[[css-in-js]]CSS-in-JS
+|Ansatz, bei dem CSS-Styles direkt in JavaScript definiert werden. Wurde im Bluelight-Hub-System durch Tailwind CSS ersetzt, um Runtime-Overhead zu vermeiden und die Performance zu verbessern.
 
 |DDD
 |Domain-Driven Design; Ansatz zur Softwareentwicklung, der komplexe Systeme durch enge Zusammenarbeit von Fachexperten und Entwicklern modelliert und dabei den Fokus auf die Kerndomäne und -logik legt.
@@ -52,6 +61,12 @@ Dieses Glossar definiert die wichtigsten Fachbegriffe, Abkürzungen und technisc
 
 |FüKW
 |Führungskraftwagen; mobile Führungseinrichtung zur Koordination von Einsätzen, auf dem das Backend des Bluelight-Hub-Systems läuft. Der FüKW dient als lokaler Kommunikationsknoten für alle verbundenen Clients im Einsatzgebiet.
+
+|[[headless-ui]]Headless UI
+|Sammlung von vollständig ungestylten, aber voll funktionsfähigen und barrierefreien UI-Komponenten für React und Vue. Im Bluelight-Hub-System verwendet für komplexe, interaktive UI-Patterns wie Dialoge, Dropdowns und Tabs.
+
+|[[hmr]]HMR
+|Hot Module Replacement; Entwicklungsfunktion, die es ermöglicht, Module in einer laufenden Anwendung zu aktualisieren, ohne die gesamte Seite neu zu laden, was zu schnelleren Entwicklungszyklen führt.
 
 |JWT
 |JSON Web Token; Standard zur sicheren Übertragung von Informationen zwischen Parteien als JSON-Objekt, verwendet für die Authentifizierung und Autorisierung im Bluelight-Hub-System.
@@ -89,17 +104,29 @@ Dieses Glossar definiert die wichtigsten Fachbegriffe, Abkürzungen und technisc
 |REST
 |Representational State Transfer; Architekturstil für verteilte Systeme, der für die API des Bluelight-Hub-Systems verwendet wird.
 
+|[[tailwind-css]]Tailwind CSS
+|Utility-First CSS-Framework, das vordefinierte Utility-Klassen bereitstellt, um direkt im HTML/JSX Styles zu definieren, ohne separate CSS-Dateien schreiben zu müssen. Ermöglicht schnelle Entwicklung und konsistentes Design.
+
+|[[tanstack]]TanStack
+|Sammlung von modernen React-Bibliotheken für State Management (Store), Routing (Router), Forms (Form), Data Fetching (Query) und mehr. Im Bluelight-Hub-System als Hauptbibliotheken für diese Bereiche verwendet.
+
 |Tauri
 |Framework für die Entwicklung von Desktop-Anwendungen mit Webtechnologien, das für die Erstellung der plattformübergreifenden Client-Anwendung des Bluelight-Hub-Systems verwendet wird.
 
 |TETRA
 |Terrestrial Trunked Radio; Standard für digitalen Bündelfunk, der für den Digitalfunk der Behörden und Organisationen mit Sicherheitsaufgaben (BOS) verwendet wird.
 
+|[[tree-shaking]]Tree-Shaking
+|Optimierungstechnik beim Build-Prozess, die ungenutzten Code automatisch entfernt, um die finale Bundle Size zu reduzieren.
+
 |TypeScript
 |Programmiersprache, die JavaScript um statische Typisierung erweitert und für die Entwicklung des Bluelight-Hub-Systems verwendet wird.
 
 |UI
 |User Interface; Benutzeroberfläche, über die Anwender mit dem Bluelight-Hub-System interagieren.
+
+|[[utility-first-css]]Utility-First CSS
+|CSS-Ansatz, bei dem kleine, einzweckige Utility-Klassen (wie "text-center", "bg-red-500") direkt im Markup verwendet werden, anstatt semantische CSS-Klassen mit vielen Eigenschaften zu schreiben.
 
 |UX
 |User Experience; Gesamtheit der Erfahrungen, die ein Benutzer bei der Interaktion mit dem Bluelight-Hub-System macht.
@@ -206,36 +233,6 @@ Die hier aufgeführten Diagrammsymbole sind für zukünftige Implementierungen g
 
 |Zwei-Faktor-Authentifizierung
 |Sicherheitsverfahren, bei dem der Benutzer zwei verschiedene Authentifizierungsfaktoren vorlegen muss, um Zugang zu einem System zu erhalten.
-
-|Atomic Design
-|Entwurfsmethodik für UI-Komponenten, die diese hierarchisch in Atoms (kleinste Bausteine), Molecules (einfache Kombinationen), Organisms (komplexe Komponenten), Templates (Seitenlayouts) und Pages (konkrete Instanzen) unterteilt.
-
-|Headless UI
-|Sammlung von vollständig ungestylten, aber voll funktionsfähigen und barrierefreien UI-Komponenten für React und Vue. Im Bluelight-Hub-System verwendet für komplexe, interaktive UI-Patterns wie Dialoge, Dropdowns und Tabs.
-
-|Tailwind CSS
-|Utility-First CSS-Framework, das vordefinierte Utility-Klassen bereitstellt, um direkt im HTML/JSX Styles zu definieren, ohne separate CSS-Dateien schreiben zu müssen. Ermöglicht schnelle Entwicklung und konsistentes Design.
-
-|Utility-First CSS
-|CSS-Ansatz, bei dem kleine, einzweckige Utility-Klassen (wie "text-center", "bg-red-500") direkt im Markup verwendet werden, anstatt semantische CSS-Klassen mit vielen Eigenschaften zu schreiben.
-
-|TanStack
-|Sammlung von modernen React-Bibliotheken für State Management (Store), Routing (Router), Forms (Form), Data Fetching (Query) und mehr. Im Bluelight-Hub-System als Hauptbibliotheken für diese Bereiche verwendet.
-
-|CSS-in-JS
-|Ansatz, bei dem CSS-Styles direkt in JavaScript definiert werden. Wurde im Bluelight-Hub-System durch Tailwind CSS ersetzt, um Runtime-Overhead zu vermeiden und die Performance zu verbessern.
-
-|HMR
-|Hot Module Replacement; Entwicklungsfunktion, die es ermöglicht, Module in einer laufenden Anwendung zu aktualisieren, ohne die gesamte Seite neu zu laden, was zu schnelleren Entwicklungszyklen führt.
-
-|Bundle-Size
-|Gesamtgröße aller JavaScript-, CSS- und anderen Asset-Dateien, die an den Browser ausgeliefert werden. Kleinere Bundle-Sizes führen zu schnelleren Ladezeiten und besserer Performance.
-
-|Tree-Shaking
-|Optimierungstechnik beim Build-Prozess, die ungenutzten Code automatisch entfernt, um die finale Bundle-Size zu reduzieren.
-
-|Vite
-|Modernes Build-Tool für Webanwendungen, das schnelles HMR und optimierte Production-Builds bietet. Wird im Bluelight-Hub-System als Build-Tool für das Frontend verwendet.
 |===
 
 == Offene Punkte

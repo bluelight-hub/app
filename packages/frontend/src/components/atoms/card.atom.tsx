@@ -1,3 +1,4 @@
+import { forwardRef } from 'react';
 import type { ReactNode } from 'react';
 
 import { cn } from '@/utils/cn.ts';
@@ -13,7 +14,7 @@ interface CardProps {
  *
  * Bietet eine konsistente Card-Darstellung mit verschiedenen Padding-Optionen.
  */
-export function Card({ children, className, padding = 'md' }: CardProps) {
+export const Card = forwardRef<HTMLDivElement, CardProps>(({ children, className, padding = 'md' }, ref) => {
   const paddingClasses = {
     none: '',
     sm: 'p-4',
@@ -22,5 +23,11 @@ export function Card({ children, className, padding = 'md' }: CardProps) {
     xl: 'p-10 sm:p-14',
   };
 
-  return <div className={cn('relative rounded-2xl bg-white shadow-xl dark:bg-gray-800', 'border border-gray-200 dark:border-gray-700', paddingClasses[padding], className)}>{children}</div>;
-}
+  return (
+    <div ref={ref} className={cn('relative rounded-2xl bg-white shadow-xl dark:bg-gray-800', 'border border-gray-200 dark:border-gray-700', paddingClasses[padding], className)}>
+      {children}
+    </div>
+  );
+});
+
+Card.displayName = 'Card';

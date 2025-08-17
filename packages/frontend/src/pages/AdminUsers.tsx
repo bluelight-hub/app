@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { FiAlertTriangle, FiPlus } from 'react-icons/fi';
+import { PiPlus, PiWarning } from 'react-icons/pi';
 import { Navigate } from '@tanstack/react-router';
 import type { CreateUserDto, UserDto } from '@bluelight-hub/shared/client';
 import { Button } from '@/components/atoms/button.atom';
@@ -62,7 +62,7 @@ export default function AdminUsers() {
     return (
       <Container maxWidth="6xl" className="py-8">
         <div className="flex h-[50vh] items-center justify-center">
-          <Alert status="error" title="Fehler beim Laden der Benutzer" description={error.message} icon={<FiAlertTriangle className="h-6 w-6" />} />
+          <Alert status="error" title="Fehler beim Laden der Benutzer" description={error.message} icon={<PiWarning className="h-6 w-6" />} />
         </div>
       </Container>
     );
@@ -76,7 +76,7 @@ export default function AdminUsers() {
             Benutzerverwaltung
           </Heading>
           <Button onClick={() => setIsCreateDialogOpen(true)} variant="primary">
-            <FiPlus className="mr-2" />
+            <PiPlus className="mr-2" />
             Benutzer hinzufügen
           </Button>
         </div>
