@@ -1,5 +1,6 @@
 import * as React from 'react';
-import { cn } from '@/lib/utils';
+
+import { cn } from '@/utils/cn.ts';
 
 interface ImageProps extends React.ImgHTMLAttributes<HTMLImageElement> {
   size?: 'xs' | 'sm' | 'md' | 'lg' | 'xl' | 'auto';

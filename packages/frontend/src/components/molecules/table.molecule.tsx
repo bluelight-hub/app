@@ -1,6 +1,7 @@
 import { forwardRef } from 'react';
 import type { HTMLAttributes, ReactNode, TdHTMLAttributes, ThHTMLAttributes } from 'react';
-import { cn } from '@/lib/utils';
+
+import { cn } from '@/utils/cn.ts';
 
 /**
  * Table Root Component

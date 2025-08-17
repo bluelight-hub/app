@@ -4,7 +4,8 @@ import { PiEye, PiEyeClosed, PiLock } from 'react-icons/pi';
 import { Input } from '@atoms/input.atom';
 import { IconButton } from '@atoms/icon-button.atom';
 import type { InputProps } from '@atoms/input.atom';
-import { cn } from '@/lib/utils';
+
+import { cn } from '@/utils/cn.ts';
 
 interface PasswordInputProps extends Omit<InputProps, 'type' | 'leftIcon' | 'rightElement'> {
   showLockIcon?: boolean;

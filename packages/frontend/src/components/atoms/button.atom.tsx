@@ -1,6 +1,7 @@
 import * as React from 'react';
 import { Button as HeadlessButton } from '@headlessui/react';
-import { cn } from '@/lib/utils';
+
+import { cn } from '@/utils/cn.ts';
 
 interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   variant?: 'primary' | 'secondary' | 'ghost' | 'danger';

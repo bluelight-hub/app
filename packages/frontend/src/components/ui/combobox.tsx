@@ -4,7 +4,8 @@ import { ComboboxButton, ComboboxInput, ComboboxOption, ComboboxOptions, Combobo
 import * as React from 'react';
 import { useEffect, useState } from 'react';
 import { PiCaretDown, PiX } from 'react-icons/pi';
-import { cn } from '@/lib/utils';
+
+import { cn } from '@/utils/cn.ts';
 
 export interface ComboboxItem {
   value: string;

@@ -1,6 +1,7 @@
 import * as React from 'react';
 import { PiCaretDown } from 'react-icons/pi';
-import { cn } from '@/lib/utils';
+
+import { cn } from '@/utils/cn.ts';
 
 export interface SelectProps extends React.SelectHTMLAttributes<HTMLSelectElement> {
   variant?: 'default' | 'error';

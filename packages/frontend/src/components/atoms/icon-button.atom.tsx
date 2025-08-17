@@ -1,6 +1,7 @@
 import { forwardRef } from 'react';
 import type { ButtonHTMLAttributes, ReactNode } from 'react';
-import { cn } from '@/lib/utils';
+
+import { cn } from '@/utils/cn.ts';
 
 export interface IconButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
   variant?: 'ghost' | 'solid' | 'outline';
