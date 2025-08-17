@@ -206,6 +206,36 @@ Die hier aufgeführten Diagrammsymbole sind für zukünftige Implementierungen g
 
 |Zwei-Faktor-Authentifizierung
 |Sicherheitsverfahren, bei dem der Benutzer zwei verschiedene Authentifizierungsfaktoren vorlegen muss, um Zugang zu einem System zu erhalten.
+
+|Atomic Design
+|Entwurfsmethodik für UI-Komponenten, die diese hierarchisch in Atoms (kleinste Bausteine), Molecules (einfache Kombinationen), Organisms (komplexe Komponenten), Templates (Seitenlayouts) und Pages (konkrete Instanzen) unterteilt.
+
+|Headless UI
+|Sammlung von vollständig ungestylten, aber voll funktionsfähigen und barrierefreien UI-Komponenten für React und Vue. Im Bluelight-Hub-System verwendet für komplexe, interaktive UI-Patterns wie Dialoge, Dropdowns und Tabs.
+
+|Tailwind CSS
+|Utility-First CSS-Framework, das vordefinierte Utility-Klassen bereitstellt, um direkt im HTML/JSX Styles zu definieren, ohne separate CSS-Dateien schreiben zu müssen. Ermöglicht schnelle Entwicklung und konsistentes Design.
+
+|Utility-First CSS
+|CSS-Ansatz, bei dem kleine, einzweckige Utility-Klassen (wie "text-center", "bg-red-500") direkt im Markup verwendet werden, anstatt semantische CSS-Klassen mit vielen Eigenschaften zu schreiben.
+
+|TanStack
+|Sammlung von modernen React-Bibliotheken für State Management (Store), Routing (Router), Forms (Form), Data Fetching (Query) und mehr. Im Bluelight-Hub-System als Hauptbibliotheken für diese Bereiche verwendet.
+
+|CSS-in-JS
+|Ansatz, bei dem CSS-Styles direkt in JavaScript definiert werden. Wurde im Bluelight-Hub-System durch Tailwind CSS ersetzt, um Runtime-Overhead zu vermeiden und die Performance zu verbessern.
+
+|HMR
+|Hot Module Replacement; Entwicklungsfunktion, die es ermöglicht, Module in einer laufenden Anwendung zu aktualisieren, ohne die gesamte Seite neu zu laden, was zu schnelleren Entwicklungszyklen führt.
+
+|Bundle-Size
+|Gesamtgröße aller JavaScript-, CSS- und anderen Asset-Dateien, die an den Browser ausgeliefert werden. Kleinere Bundle-Sizes führen zu schnelleren Ladezeiten und besserer Performance.
+
+|Tree-Shaking
+|Optimierungstechnik beim Build-Prozess, die ungenutzten Code automatisch entfernt, um die finale Bundle-Size zu reduzieren.
+
+|Vite
+|Modernes Build-Tool für Webanwendungen, das schnelles HMR und optimierte Production-Builds bietet. Wird im Bluelight-Hub-System als Build-Tool für das Frontend verwendet.
 |===
 
 == Offene Punkte

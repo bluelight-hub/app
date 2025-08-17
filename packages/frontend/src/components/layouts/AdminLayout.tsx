@@ -1,4 +1,3 @@
-import { Box, Container, HStack, Heading, IconButton, Spinner, Text, VStack } from '@chakra-ui/react';
 import { Outlet, useLocation, useNavigate, useRouterState } from '@tanstack/react-router';
 import { PiX } from 'react-icons/pi';
 import { isTauri } from '@tauri-apps/api/core';
@@ -6,6 +5,10 @@ import { useCallback, useEffect, useMemo } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { useAdminAuth } from '@/hooks/useAdminAuth';
 import { logger } from '@/utils/logger';
+import { Container } from '@/components/atoms/container.atom';
+import { Heading } from '@/components/atoms/heading.atom';
+import { IconButton } from '@/components/atoms/icon-button.atom';
+import { Spinner } from '@/components/atoms/spinner.atom';
 
 /**
  * Gemeinsames Layout für alle Admin-Seiten
@@ -21,29 +24,45 @@ export function AdminLayout() {
 
   // Prüfe Admin-Authentifizierung
   useEffect(() => {
-    // WICHTIG: Warte immer bis der initiale Auth-Check abgeschlossen ist
-    // Dies verhindert falsche Redirects beim Page Reload
     if (isLoading) return;
 
-    // Spezielle Behandlung für Admin-Setup Seiten
     const isSetupPage = location.pathname.includes('/admin/setup');
 
-    // Setup-Seiten benötigen keine Admin-Authentifizierung
     if (isSetupPage) {
       return;
     }
 
-    // Für alle anderen Admin-Seiten: Prüfe ob Admin-Session vorhanden ist
-    // Nur redirecten wenn der Auth-Check abgeschlossen ist (isLoading = false)
     if (!hasAdminSession) {
-      // Wenn Benutzer eingeloggt ist aber keine Admin-Session hat,
-      // leite zu Admin-Login weiter
-      if (user) {
-        void navigate({ to: '/admin-login' });
-      } else {
-        // Kein Benutzer eingeloggt - zurück zur Startseite
-        void navigate({ to: '/' });
-      }
+      const handleNoAdminSession = async () => {
+        if (isTauri()) {
+          const { isInAdminWindow } = await import('@/services/windowService');
+          const inAdminWindow = await isInAdminWindow();
+
+          if (inAdminWindow) {
+            // Wir sind im Admin-Fenster - schließe es immer wenn keine Admin-Session
+            try {
+              const { getCurrentWebviewWindow } = await import('@tauri-apps/api/webviewWindow');
+              const currentWindow = getCurrentWebviewWindow();
+              await currentWindow.close();
+              // Das Fenster wird geschlossen, keine weitere Navigation nötig
+              return;
+            } catch (error) {
+              logger.error('Fehler beim Schließen des Admin-Fensters:', error);
+            }
+          }
+        }
+
+        // Wir sind im Hauptfenster oder Browser
+        if (user) {
+          // Benutzer eingeloggt aber keine Admin-Session - zu Admin-Login
+          void navigate({ to: '/admin-login' });
+        } else {
+          // Kein Benutzer eingeloggt - zur Startseite
+          void navigate({ to: '/' });
+        }
+      };
+
+      void handleNoAdminSession();
     }
   }, [isLoading, hasAdminSession, user, location.pathname, navigate]);
 
@@ -86,32 +105,32 @@ export function AdminLayout() {
   }, [navigate]);
 
   return (
-    <Container maxW="6xl" py={{ base: '12', md: '24' }} px={{ base: '4', sm: '8' }}>
-      <VStack gap="8" align="stretch">
+    <Container maxWidth="6xl" className="py-12 md:py-24">
+      <div className="flex flex-col gap-8">
         {/* Header mit Titel und Close-Button */}
-        <Box borderBottomWidth="1px" borderColor="border.default" pb="4" mb="4">
-          <HStack justify="space-between" align="start">
-            <Heading size="2xl">{pageTitle}</Heading>
+        <div className="mb-4 border-b border-gray-200 pb-4 dark:border-gray-800">
+          <div className="flex items-start justify-between">
+            <Heading size="2xl" as="h1">
+              {pageTitle}
+            </Heading>
             <IconButton aria-label="Fenster schließen" variant="ghost" size="lg" onClick={handleClose}>
               <PiX />
             </IconButton>
-          </HStack>
-        </Box>
+          </div>
+        </div>
 
         {/* Content der jeweiligen Admin-Seite */}
-        <Box>
+        <div>
           {isLoading ? (
-            <VStack gap="4" py="12">
-              <Spinner size="xl" color="primary.500" />
-              <Text color="fg.muted" fontSize="lg">
-                Authentifizierung wird geprüft...
-              </Text>
-            </VStack>
+            <div className="flex flex-col items-center gap-4 py-12">
+              <Spinner size="xl" />
+              <p className="text-lg text-gray-600 dark:text-gray-400">Authentifizierung wird geprüft...</p>
+            </div>
           ) : (
             <Outlet />
           )}
-        </Box>
-      </VStack>
+        </div>
+      </div>
     </Container>
   );
 }

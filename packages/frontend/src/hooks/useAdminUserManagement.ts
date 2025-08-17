@@ -1,4 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { toast } from 'sonner';
 import type {
   CreateUserDto,
   DeleteUserResponse,
@@ -7,7 +8,6 @@ import type {
   UsersListResponse,
 } from '@bluelight-hub/shared/client';
 import { api } from '@/api/api';
-import { toaster } from '@/components/ui/toaster.instance';
 import { QUERY_KEYS } from '@/queryKeys';
 import { logger } from '@/utils/logger';
 import { getApiErrorMessage } from '@/utils/apiErrorHandler';
@@ -41,10 +41,8 @@ export const useAdminUserManagement = () => {
       });
     },
     onSuccess: async () => {
-      toaster.create({
-        title: 'Benutzer erstellt',
+      toast.success('Benutzer erstellt', {
         description: 'Der Benutzer wurde erfolgreich erstellt.',
-        type: 'success',
       });
       await queryClient.invalidateQueries({ queryKey: QUERY_KEYS.admin.users });
     },
@@ -56,10 +54,8 @@ export const useAdminUserManagement = () => {
       );
 
       logger.error('Failed to create user', error);
-      toaster.create({
-        title: 'Fehler',
+      toast.error('Fehler', {
         description: message,
-        type: 'error',
       });
     },
   });
@@ -99,21 +95,17 @@ export const useAdminUserManagement = () => {
       );
 
       logger.error('Failed to delete user', error);
-      toaster.create({
-        title: 'Fehler',
+      toast.error('Fehler', {
         description: message,
-        type: 'error',
       });
     },
     onSuccess: () => {
-      toaster.create({
-        title: 'Benutzer gelöscht',
+      toast.success('Benutzer gelöscht', {
         description: 'Der Benutzer wurde erfolgreich gelöscht.',
-        type: 'success',
       });
     },
     onSettled: () => {
-      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.admin.users });
+      void queryClient.invalidateQueries({ queryKey: QUERY_KEYS.admin.users });
     },
   });
 

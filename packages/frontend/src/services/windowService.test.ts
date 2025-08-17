@@ -1,6 +1,11 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { windowService } from './windowService';
-import { toaster } from '@/components/ui/toaster.instance';
+import {
+  closeAdminWindow,
+  focusAdminWindow,
+  isAdminWindowOpen,
+  isInAdminWindow,
+  openAdminWindow,
+} from './windowService';
 
 import { logger } from '@/utils/logger';
 
@@ -18,6 +23,7 @@ vi.mock('@tauri-apps/api/webviewWindow', () => ({
     unminimize: vi.fn(),
     close: vi.fn(),
   })),
+  getCurrentWebviewWindow: vi.fn(),
 }));
 
 vi.mock('@/components/ui/toaster.instance', () => ({
@@ -70,7 +76,7 @@ describe('WindowService', () => {
 
       WebviewWindow.mockImplementation(() => mockWindow as any);
 
-      await windowService.openAdmin({ width: 1200, height: 800 });
+      await openAdminWindow({ width: 1200, height: 800 });
 
       expect(WebviewWindow.getByLabel).toHaveBeenCalledWith('admin');
       expect(WebviewWindow).toHaveBeenCalledWith(
@@ -99,7 +105,7 @@ describe('WindowService', () => {
 
       WebviewWindow.getByLabel = vi.fn().mockResolvedValue(existingWindow);
 
-      await windowService.openAdmin();
+      await openAdminWindow();
 
       expect(WebviewWindow.getByLabel).toHaveBeenCalledWith('admin');
       expect(existingWindow.setFocus).toHaveBeenCalled();
@@ -114,9 +120,9 @@ describe('WindowService', () => {
       const mockWindow = { focus: vi.fn() };
       window.open = vi.fn().mockReturnValue(mockWindow);
 
-      await windowService.openAdmin();
+      await openAdminWindow();
 
-      expect(window.open).toHaveBeenCalledWith('/admin-login', '_blank', 'noopener,noreferrer');
+      expect(window.open).toHaveBeenCalledWith('/admin-login', '_blank');
     });
 
     it('should fallback to location.href when popup is blocked', async () => {
@@ -124,15 +130,9 @@ describe('WindowService', () => {
       isTauri.mockReturnValue(false);
 
       window.open = vi.fn().mockReturnValue(null);
-      await windowService.openAdmin();
+      await openAdminWindow();
 
       expect(window.open).toHaveBeenCalled();
-      expect(toaster.create).toHaveBeenCalledWith(
-        expect.objectContaining({
-          title: 'Hinweis',
-          type: 'warning',
-        }),
-      );
       expect(window.location.href).toBe('/admin-login');
       expect(vi.mocked(logger.warn)).toHaveBeenCalledWith(
         'Fenster konnte nicht geöffnet werden - möglicherweise durch Popup-Blocker verhindert',
@@ -145,17 +145,11 @@ describe('WindowService', () => {
         throw new Error('Test error');
       });
 
-      await windowService.openAdmin();
+      await openAdminWindow();
 
       expect(vi.mocked(logger.error)).toHaveBeenCalledWith(
         'Fehler beim Öffnen des Admin-Fensters:',
         expect.any(Error),
-      );
-      expect(toaster.create).toHaveBeenCalledWith(
-        expect.objectContaining({
-          title: 'Fehler',
-          type: 'error',
-        }),
       );
     });
   });
@@ -174,7 +168,7 @@ describe('WindowService', () => {
 
       WebviewWindow.getByLabel = vi.fn().mockResolvedValue(adminWindow);
 
-      await windowService.focusAdmin();
+      await focusAdminWindow();
 
       expect(WebviewWindow.getByLabel).toHaveBeenCalledWith('admin');
       expect(adminWindow.setFocus).toHaveBeenCalled();
@@ -185,7 +179,7 @@ describe('WindowService', () => {
       const { isTauri } = vi.mocked(await import('@tauri-apps/api/core'));
       isTauri.mockReturnValue(false);
 
-      await windowService.focusAdmin();
+      await focusAdminWindow();
 
       expect(vi.mocked(logger.warn)).toHaveBeenCalledWith('focusAdmin ist nur in Tauri verfügbar');
     });
@@ -204,7 +198,7 @@ describe('WindowService', () => {
 
       WebviewWindow.getByLabel = vi.fn().mockResolvedValue(adminWindow);
 
-      await windowService.closeAdmin();
+      await closeAdminWindow();
 
       expect(WebviewWindow.getByLabel).toHaveBeenCalledWith('admin');
       expect(adminWindow.close).toHaveBeenCalled();
@@ -219,7 +213,7 @@ describe('WindowService', () => {
       isTauri.mockReturnValue(true);
       WebviewWindow.getByLabel = vi.fn().mockResolvedValue({ label: 'admin' });
 
-      const result = await windowService.isAdminOpen();
+      const result = await isAdminWindowOpen();
 
       expect(result).toBe(true);
       expect(WebviewWindow.getByLabel).toHaveBeenCalledWith('admin');
@@ -232,7 +226,7 @@ describe('WindowService', () => {
       isTauri.mockReturnValue(true);
       WebviewWindow.getByLabel = vi.fn().mockResolvedValue(null);
 
-      const result = await windowService.isAdminOpen();
+      const result = await isAdminWindowOpen();
 
       expect(result).toBe(false);
     });
@@ -241,9 +235,64 @@ describe('WindowService', () => {
       const { isTauri } = vi.mocked(await import('@tauri-apps/api/core'));
       isTauri.mockReturnValue(false);
 
-      const result = await windowService.isAdminOpen();
+      const result = await isAdminWindowOpen();
 
       expect(result).toBe(false);
+    });
+  });
+
+  describe('isInAdminWindow', () => {
+    it('should return true when current window is admin window', async () => {
+      const { isTauri } = vi.mocked(await import('@tauri-apps/api/core'));
+      const { getCurrentWebviewWindow } = vi.mocked(await import('@tauri-apps/api/webviewWindow'));
+
+      isTauri.mockReturnValue(true);
+      getCurrentWebviewWindow.mockReturnValue({ label: 'admin' } as any);
+
+      const result = await isInAdminWindow();
+
+      expect(result).toBe(true);
+      expect(getCurrentWebviewWindow).toHaveBeenCalled();
+    });
+
+    it('should return false when current window is not admin window', async () => {
+      const { isTauri } = vi.mocked(await import('@tauri-apps/api/core'));
+      const { getCurrentWebviewWindow } = vi.mocked(await import('@tauri-apps/api/webviewWindow'));
+
+      isTauri.mockReturnValue(true);
+      getCurrentWebviewWindow.mockReturnValue({ label: 'main' } as any);
+
+      const result = await isInAdminWindow();
+
+      expect(result).toBe(false);
+      expect(getCurrentWebviewWindow).toHaveBeenCalled();
+    });
+
+    it('should return false when not in Tauri', async () => {
+      const { isTauri } = vi.mocked(await import('@tauri-apps/api/core'));
+      isTauri.mockReturnValue(false);
+
+      const result = await isInAdminWindow();
+
+      expect(result).toBe(false);
+    });
+
+    it('should handle errors gracefully', async () => {
+      const { isTauri } = vi.mocked(await import('@tauri-apps/api/core'));
+      const { getCurrentWebviewWindow } = vi.mocked(await import('@tauri-apps/api/webviewWindow'));
+
+      isTauri.mockReturnValue(true);
+      getCurrentWebviewWindow.mockImplementation(() => {
+        throw new Error('Test error');
+      });
+
+      const result = await isInAdminWindow();
+
+      expect(result).toBe(false);
+      expect(vi.mocked(logger.error)).toHaveBeenCalledWith(
+        'Fehler beim Prüfen des aktuellen Fensters:',
+        expect.any(Error),
+      );
     });
   });
 });

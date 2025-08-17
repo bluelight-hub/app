@@ -1,6 +1,8 @@
-import { Badge, Button, Dialog, Portal, Text, VStack } from '@chakra-ui/react';
 import { FiAlertTriangle } from 'react-icons/fi';
 import { UserDtoRoleEnum } from '@bluelight-hub/shared/client';
+import { Dialog } from '@/components/molecules/dialog.molecule';
+import { Button } from '@/components/atoms/button.atom';
+import { Badge } from '@/components/atoms/badge.atom';
 
 interface ConfirmDeleteDialogProps {
   isOpen: boolean;
@@ -11,61 +13,51 @@ interface ConfirmDeleteDialogProps {
   isDeleting: boolean;
 }
 
-const getRoleBadgeColor = (role: string): string => {
+const getRoleBadgeVariant = (role: string): 'error' | 'warning' | 'info' | 'default' => {
   switch (role) {
     case UserDtoRoleEnum.SuperAdmin:
-      return 'red';
+      return 'error';
     case UserDtoRoleEnum.Admin:
-      return 'orange';
+      return 'warning';
     case UserDtoRoleEnum.User:
-      return 'blue';
+      return 'info';
     default:
-      return 'gray';
+      return 'default';
   }
 };
 
 export const ConfirmDeleteDialog = ({ isOpen, onClose, onConfirm, userName, userRole, isDeleting }: ConfirmDeleteDialogProps) => {
   return (
-    <Dialog.Root open={isOpen} onOpenChange={(e) => !e.open && onClose()}>
-      <Portal>
-        <Dialog.Backdrop />
-        <Dialog.Positioner>
-          <Dialog.Content>
-            <Dialog.Header>
-              <Dialog.Title>Benutzer löschen</Dialog.Title>
-              <Dialog.CloseTrigger />
-            </Dialog.Header>
+    <Dialog isOpen={isOpen} onClose={onClose}>
+      <div className="relative">
+        <Dialog.CloseButton onClose={onClose} />
 
-            <Dialog.Body>
-              <VStack align="center">
-                <FiAlertTriangle size={48} color="var(--colors-orange-500)" />
+        <Dialog.Title>Benutzer löschen</Dialog.Title>
 
-                <Text textAlign="center">Möchten Sie den Benutzer wirklich löschen?</Text>
+        <Dialog.Body>
+          <div className="flex flex-col items-center space-y-4 text-center">
+            <FiAlertTriangle className="h-12 w-12 text-orange-500" />
 
-                <VStack align="center">
-                  <Text fontWeight="semibold" fontSize="lg">
-                    {userName}
-                  </Text>
-                  <Badge colorPalette={getRoleBadgeColor(userRole)}>{userRole}</Badge>
-                </VStack>
+            <p className="text-gray-700 dark:text-gray-300">Möchten Sie den Benutzer wirklich löschen?</p>
 
-                <Text fontSize="sm" color="fg.muted" textAlign="center">
-                  Diese Aktion kann nicht rückgängig gemacht werden.
-                </Text>
-              </VStack>
-            </Dialog.Body>
+            <div className="flex flex-col items-center space-y-2">
+              <p className="text-lg font-semibold text-gray-900 dark:text-white">{userName}</p>
+              <Badge variant={getRoleBadgeVariant(userRole)}>{userRole}</Badge>
+            </div>
 
-            <Dialog.Footer>
-              <Button variant="ghost" onClick={onClose} disabled={isDeleting}>
-                Abbrechen
-              </Button>
-              <Button colorPalette="red" onClick={onConfirm} loading={isDeleting} disabled={isDeleting}>
-                Löschen
-              </Button>
-            </Dialog.Footer>
-          </Dialog.Content>
-        </Dialog.Positioner>
-      </Portal>
-    </Dialog.Root>
+            <p className="text-sm text-gray-500 dark:text-gray-400">Diese Aktion kann nicht rückgängig gemacht werden.</p>
+          </div>
+        </Dialog.Body>
+
+        <Dialog.Footer>
+          <Button variant="ghost" onClick={onClose} disabled={isDeleting}>
+            Abbrechen
+          </Button>
+          <Button variant="danger" onClick={onConfirm} loading={isDeleting} disabled={isDeleting}>
+            Löschen
+          </Button>
+        </Dialog.Footer>
+      </div>
+    </Dialog>
   );
 };

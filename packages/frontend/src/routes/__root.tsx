@@ -3,9 +3,9 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { TanstackDevtools } from '@tanstack/react-devtools';
 import { ReactQueryDevtoolsPanel } from '@tanstack/react-query-devtools';
 import { TanStackRouterDevtoolsPanel } from '@tanstack/react-router-devtools';
+import { Toaster } from 'sonner';
 import type { ResponseError } from '@bluelight-hub/shared/client';
 import { Provider } from '@/components/ui/provider.tsx';
-import { Toaster } from '@/components/ui/toaster.tsx';
 
 interface RootContext {
   pageTitle?: string;
@@ -42,19 +42,21 @@ function RootComponent() {
     <Provider>
       <QueryClientProvider client={queryClient}>
         <Outlet />
-        <TanstackDevtools
-          plugins={[
-            {
-              name: 'Tanstack Query',
-              render: <ReactQueryDevtoolsPanel />,
-            },
-            {
-              name: 'Tanstack Router',
-              render: <TanStackRouterDevtoolsPanel />,
-            },
-          ]}
-        />
-        <Toaster />
+        <div className="absolute">
+          <TanstackDevtools
+            plugins={[
+              {
+                name: 'Tanstack Query',
+                render: <ReactQueryDevtoolsPanel />,
+              },
+              {
+                name: 'Tanstack Router',
+                render: <TanStackRouterDevtoolsPanel />,
+              },
+            ]}
+          />
+        </div>
+        <Toaster duration={5000} position="bottom-right" closeButton />
       </QueryClientProvider>
     </Provider>
   );

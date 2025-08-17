@@ -19,7 +19,7 @@ Die folgenden Technologieentscheidungen bilden das Fundament der Architektur:
 [cols="1,2,3",options="header"]
 |===
 |Bereich |Technologie |Begründung
-|Frontend |React, TypeScript, Chakra UI |Moderne, typsichere Entwicklung mit etabliertem UI-Framework
+|Frontend |React, TypeScript, Tailwind CSS + Headless UI |Moderne, typsichere Entwicklung mit Utility-First CSS und accessible UI-Komponenten
 |Mobile App |Tauri v2 mit TypeScript |Plattformübergreifende Entwicklung, nativer Zugriff auf Systemfunktionen
 |Backend |NestJS |Strukturiertes, modulares Framework mit TypeScript
 |Datenbank |PostgreSQL (Server) |Robuste, skalierbare SQL-Datenbank (PostgreSQL) auf dem Server

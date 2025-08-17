@@ -1,12 +1,17 @@
 import { useEffect, useState } from 'react';
-import { Alert, Box, Button, Field, Input, Text, VStack } from '@chakra-ui/react';
 import { useNavigate } from '@tanstack/react-router';
 import { useForm } from '@tanstack/react-form';
 import { PiCheckCircle, PiWarning } from 'react-icons/pi';
 import { z } from 'zod';
-import { logger } from '@/utils/logger';
-import { useAuth } from '@/hooks/useAuth.ts';
+import { Alert } from '@atoms/alert.atom';
+import { Button } from '@atoms/button.atom';
+import { Card } from '@atoms/card.atom';
+import { FormField } from '@atoms/form-field.atom';
+import { Text } from '@atoms/text.atom';
+import { PasswordInput } from '@molecules/password-input.molecule';
 import { getApiErrorMessage } from '@/utils/apiErrorHandler.ts';
+import { useAuth } from '@/hooks/useAuth.ts';
+import { logger } from '@/utils/logger';
 
 /**
  * Schema für die Validierung des Admin-Setup-Formulars
@@ -47,7 +52,7 @@ export function AdminSetup() {
 
       setApiError(null);
 
-      adminSetup.mutate(
+      return adminSetup.mutateAsync(
         { password: value.password },
         {
           onSuccess: async () => {
@@ -77,42 +82,16 @@ export function AdminSetup() {
   }
 
   return (
-    <VStack gap="8" align="stretch">
-      <Text fontSize="lg" color="fg.muted" textAlign="center">
+    <div className="flex flex-col items-center gap-8">
+      <Text size="lg" color="muted" className="text-center">
         Richten Sie Ihren Admin-Account ein, indem Sie ein sicheres Passwort festlegen.
       </Text>
 
-      <Box
-        py={{ base: '0', sm: '8' }}
-        px={{ base: '4', sm: '10' }}
-        bg={{ base: 'transparent', sm: 'bg.panel' }}
-        boxShadow={{ base: 'none', sm: 'md' }}
-        borderRadius={{ base: 'none', sm: 'xl' }}
-        w="full"
-        maxW="md"
-      >
-        <Alert.Root status="info" mb="6" borderRadius="md">
-          <Alert.Indicator>
-            <PiCheckCircle />
-          </Alert.Indicator>
-          <Alert.Content>
-            <Alert.Title>Einmalige Einrichtung</Alert.Title>
-            <Alert.Description>Diese Funktion ist nur verfügbar, solange noch kein Admin-Account existiert.</Alert.Description>
-          </Alert.Content>
-        </Alert.Root>
+      <Card className="w-full max-w-md" padding="lg">
+        <Alert status="info" title="Einmalige Einrichtung" description="Diese Funktion ist nur verfügbar, solange noch kein Admin-Account existiert." icon={<PiCheckCircle />} className="mb-6" />
 
         {/* API-Fehlermeldung anzeigen */}
-        {apiError && (
-          <Alert.Root status="error" mb="6" borderRadius="md">
-            <Alert.Indicator>
-              <PiWarning />
-            </Alert.Indicator>
-            <Alert.Content>
-              <Alert.Title>Setup fehlgeschlagen!</Alert.Title>
-              <Alert.Description>{apiError}</Alert.Description>
-            </Alert.Content>
-          </Alert.Root>
-        )}
+        {apiError && <Alert status="error" title="Setup fehlgeschlagen!" description={apiError} icon={<PiWarning />} className="mb-6" />}
 
         <form
           onSubmit={(e) => {
@@ -121,7 +100,7 @@ export function AdminSetup() {
             form.handleSubmit();
           }}
         >
-          <VStack gap="6">
+          <div className="flex flex-col gap-6">
             <form.Field
               name="password"
               validators={{
@@ -139,12 +118,15 @@ export function AdminSetup() {
               }}
             >
               {(field) => (
-                <Field.Root invalid={field.state.meta.isTouched && field.state.meta.errors.length > 0} w="full">
-                  <Field.Label fontWeight="medium">Passwort</Field.Label>
-                  <Input
+                <FormField
+                  label="Passwort"
+                  error={field.state.meta.isTouched && field.state.meta.errors.length > 0 ? field.state.meta.errors[0] : undefined}
+                  helperText={field.state.meta.errors.length === 0 ? 'Mind. 8 Zeichen, 1 Groß-, 1 Kleinbuchstabe, 1 Zahl, 1 Sonderzeichen' : undefined}
+                  required
+                >
+                  <PasswordInput
                     id="password"
                     name="password"
-                    type="password"
                     autoComplete="new-password"
                     placeholder="Mindestens 8 Zeichen"
                     value={field.state.value}
@@ -153,10 +135,10 @@ export function AdminSetup() {
                     }}
                     onBlur={field.handleBlur}
                     disabled={adminSetup.isPending}
+                    variant={field.state.meta.isTouched && field.state.meta.errors.length > 0 ? 'error' : 'default'}
+                    fullWidth
                   />
-                  <Field.ErrorText>{field.state.meta.isTouched && field.state.meta.errors.length > 0 ? field.state.meta.errors[0] : null}</Field.ErrorText>
-                  <Field.HelperText>Mind. 8 Zeichen, 1 Groß-, 1 Kleinbuchstabe, 1 Zahl, 1 Sonderzeichen</Field.HelperText>
-                </Field.Root>
+                </FormField>
               )}
             </form.Field>
 
@@ -173,12 +155,10 @@ export function AdminSetup() {
               }}
             >
               {(field) => (
-                <Field.Root invalid={field.state.meta.isTouched && field.state.meta.errors.length > 0} w="full">
-                  <Field.Label fontWeight="medium">Passwort bestätigen</Field.Label>
-                  <Input
+                <FormField label="Passwort bestätigen" error={field.state.meta.isTouched && field.state.meta.errors.length > 0 ? field.state.meta.errors[0] : undefined} required>
+                  <PasswordInput
                     id="confirmPassword"
                     name="confirmPassword"
-                    type="password"
                     autoComplete="new-password"
                     placeholder="Passwort wiederholen"
                     value={field.state.value}
@@ -187,24 +167,25 @@ export function AdminSetup() {
                     }}
                     onBlur={field.handleBlur}
                     disabled={adminSetup.isPending}
+                    variant={field.state.meta.isTouched && field.state.meta.errors.length > 0 ? 'error' : 'default'}
+                    fullWidth
                   />
-                  <Field.ErrorText>{field.state.meta.isTouched && field.state.meta.errors.length > 0 ? field.state.meta.errors[0] : null}</Field.ErrorText>
-                </Field.Root>
+                </FormField>
               )}
             </form.Field>
 
             <form.Subscribe selector={(state) => [state.canSubmit]}>
               {([canSubmit]) => {
                 return (
-                  <Button type="submit" colorPalette="primary" size="lg" fontSize="md" w="full" disabled={!canSubmit || adminSetup.isPending} loading={adminSetup.isPending}>
+                  <Button type="submit" variant="primary" size="lg" fullWidth disabled={!canSubmit || adminSetup.isPending} loading={adminSetup.isPending}>
                     {adminSetup.isPending ? 'Wird eingerichtet...' : 'Admin-Account einrichten'}
                   </Button>
                 );
               }}
             </form.Subscribe>
-          </VStack>
+          </div>
         </form>
-      </Box>
-    </VStack>
+      </Card>
+    </div>
   );
 }

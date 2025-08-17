@@ -27,11 +27,14 @@ const fetchAlerts = async () => {
 
 ### UI Framework
 
-**NUR Chakra UI v3** - keine anderen Frameworks!
+**NUR Tailwind CSS + Headless UI** - keine anderen Frameworks!
 
-- IMMER MCP Server nutzen: `mcp__chakra-ui__get_component_props`
-- NIEMALS Tailwind oder natives CSS mischen
-- Bei UI-Änderungen IMMER Theme checken
+- NIEMALS andere CSS-Frameworks oder CSS-in-JS mischen
+- Bei UI-Änderungen IMMER Tailwind-Klassen und Headless UI-Komponenten verwenden
+- **Tailwind Plus (TailwindUI):** Premium-Komponenten
+  - IMMER beim User anfragen!
+  - Der User muss die Komponenten manuell von TailwindUI kopieren und bereitstellen
+  - NIEMALS selbst TailwindUI-Komponenten erfinden oder raten
 
 ### Forms & State
 
@@ -153,14 +156,124 @@ cd packages/backend && pnpm run test:e2e       # NICHT "test" verwenden!
 
 ## 🔧 MCP SERVER INTEGRATION
 
-### Serena - Code Intelligence (IMMER nutzen für Code-Navigation!)
+### 🌟 Serena - Code Intelligence (PRIORITÄT #1 für Code-Navigation!)
+
+**WICHTIG: Serena MUSS als primäres Tool für Code-Navigation und -Manipulation verwendet werden!**
+
+Serena bietet über 30 spezialisierte Tools für effiziente Code-Arbeit. Die Verwendung von Serena ist PFLICHT, außer es gibt einen triftigen Grund dagegen.
+
+#### Warum Serena verwenden?
+
+- **Token-Effizienz:** Liest nur relevante Code-Teile statt ganzer Dateien
+- **Präzision:** Arbeitet auf Symbol-Ebene (Klassen, Methoden, Funktionen)
+- **Sicherheit:** Findet automatisch alle Referenzen vor Refactoring
+- **Performance:** Schnellere Navigation durch semantische Suche
+
+#### Serena Core Tools (IMMER verwenden!)
 
 ```text
-# Workflow für effiziente Code-Exploration:
-1. get_symbols_overview      # Statt ganze Files lesen
-2. find_symbol               # Gezielt Symbole finden
-3. find_referencing_symbols  # VOR Refactoring prüfen!
-4. replace_symbol_body       # Präzise Änderungen
+# PFLICHT-Workflow für Code-Exploration:
+1. get_symbols_overview      # IMMER zuerst! Überblick über Datei-Struktur
+2. find_symbol               # Gezielt Symbole finden (Klassen, Methoden, etc.)
+3. find_referencing_symbols  # VOR jeder Änderung: Wer nutzt dieses Symbol?
+4. replace_symbol_body       # Präzise Symbol-Änderungen
+5. search_for_pattern        # Flexibles Pattern-Matching wenn Symbol unbekannt
+```
+
+#### Vollständige Serena Tool-Liste
+
+**Datei-Operationen:**
+
+- `list_dir` - Verzeichnisse auflisten (gitignore-aware)
+- `find_file` - Dateien nach Maske suchen
+- `create_text_file` - Neue Dateien erstellen
+- `read_file` - NUR wenn Symbol-Tools nicht ausreichen!
+
+**Symbol-Navigation (PRIORITÄT!):**
+
+- `get_symbols_overview` - Top-Level Symbole einer Datei
+- `find_symbol` - Symbol nach Name/Pfad finden
+- `find_referencing_symbols` - Alle Referenzen finden
+- `jet_brains_find_symbol` - JetBrains IDE Integration
+- `jet_brains_get_symbols_overview` - IDE Symbol-Überblick
+
+**Symbol-Manipulation:**
+
+- `replace_symbol_body` - Ganzes Symbol ersetzen
+- `insert_after_symbol` - Nach Symbol einfügen
+- `insert_before_symbol` - Vor Symbol einfügen (z.B. Imports)
+
+**Pattern-basierte Suche:**
+
+- `search_for_pattern` - Regex-Suche in Codebase
+- `replace_regex` - Regex-basiertes Ersetzen
+- `replace_lines` - Zeilen ersetzen
+- `insert_at_line` - An Zeile einfügen
+- `delete_lines` - Zeilen löschen
+
+**Memory-System:**
+
+- `write_memory` - Projekt-Kontext speichern
+- `read_memory` - Gespeicherten Kontext abrufen
+- `list_memories` - Verfügbare Memories anzeigen
+- `delete_memory` - Memory löschen
+
+**Projekt-Management:**
+
+- `activate_project` - Projekt aktivieren
+- `check_onboarding_performed` - Onboarding-Status prüfen
+- `onboarding` - Projekt-Onboarding durchführen
+
+**Thinking Tools (für komplexe Aufgaben):**
+
+- `think_about_collected_information` - Nach Recherche reflektieren
+- `think_about_task_adherence` - Vor Code-Änderungen prüfen
+- `think_about_whether_you_are_done` - Aufgaben-Vollständigkeit prüfen
+
+#### Serena Best Practices
+
+**DO's:**
+
+- ✅ IMMER `get_symbols_overview` vor dem Lesen ganzer Files
+- ✅ IMMER `find_referencing_symbols` vor Refactoring
+- ✅ Symbol-Tools für Navigation verwenden
+- ✅ `search_for_pattern` wenn Symbol-Name unbekannt
+- ✅ Memory-System für Projekt-Kontext nutzen
+
+**DON'Ts:**
+
+- ❌ NIEMALS ganze Files lesen wenn Symbol-Tools reichen
+- ❌ NIEMALS Refactoring ohne Referenz-Check
+- ❌ NIEMALS manuelle Suche statt Serena-Tools
+- ❌ NIEMALS Symbol-Tools nach `read_file` auf gleicher Datei
+
+#### Typische Serena Workflows
+
+**Code verstehen:**
+
+```text
+1. list_dir                    # Projekt-Struktur verstehen
+2. get_symbols_overview        # Datei-Struktur analysieren
+3. find_symbol mit depth=1     # Methoden einer Klasse finden
+4. find_symbol mit include_body=true  # Spezifische Implementation lesen
+```
+
+**Refactoring:**
+
+```text
+1. find_symbol                 # Symbol lokalisieren
+2. find_referencing_symbols    # Alle Verwendungen finden
+3. replace_symbol_body         # Symbol ändern
+4. replace_regex               # Referenzen anpassen
+```
+
+**Neue Features:**
+
+```text
+1. get_symbols_overview        # Struktur verstehen
+2. insert_before_symbol        # Imports hinzufügen
+3. insert_after_symbol         # Neue Methode/Klasse einfügen
+4. write_memory                # Kontext für später speichern
 ```
 
 ### Context7 - Library Docs (VOR Library-Nutzung!)
@@ -171,12 +284,14 @@ resolve-library-id("prisma") → "/prisma/prisma"
 get-library-docs("/prisma/prisma", topic="schema")
 ```
 
-### Chakra UI - Component System
+### Tailwind CSS + Headless UI - Component System
 
-- `get_theme` - Theme-Definitionen abrufen
-- `get_component_props` - Props für Komponente
-- `get_component_example` - Code-Beispiele
-- `v2_to_v3_code_review` - Migration Check
+- **Tailwind CSS:** Utility-first CSS Framework für Styling
+- **Headless UI:** Unstyled, accessible Komponenten (Dialogs, Dropdowns, etc.)
+- **Tailwind Plus/TailwindUI:** Premium-Komponenten
+  - WICHTIG: Komponenten müssen vom User bereitgestellt werden
+  - Workflow: Frage User nach benötigter Komponente → User kopiert von TailwindUI → Integration
+- **Tailwind Config:** Zentrale Theme-Konfiguration in `tailwind.config.js`
 
 ## 📚 ARCHITECTURE & DOCUMENTATION
 
@@ -201,13 +316,14 @@ Architekturdokumentation MUSS in `docs/architecture/` gepflegt werden:
 
 ```text
 // Component-Struktur
-atoms/      # Basis-Komponenten
-molecules/  # Kombinierte Komponenten
-organisms/  # Komplexe Module
+atoms/      # Basis-Komponenten (Tailwind Utilities)
+molecules/  # Kombinierte Komponenten (Headless UI + Tailwind)
+organisms/  # Komplexe Module (TailwindUI Komponenten vom User)
 templates/  # Seiten-Layouts
 pages/      # Route-Komponenten
 
-// IMMER Chakra UI v3 Komponenten verwenden!
+// IMMER Tailwind CSS Classes + Headless UI verwenden!
+// TailwindUI-Komponenten: User nach Code fragen, NICHT selbst erstellen!
 ```
 
 ### Backend (NestJS Modular)
@@ -258,21 +374,21 @@ dto/       # Data Transfer Objects
 
 ## 🔍 QUICK REFERENCE
 
-| Was                 | Wo       | Tool/Command                  | Agent                     |
-| ------------------- | -------- | ----------------------------- | ------------------------- |
-| **Neues Projekt**   | -        | `pnpm create vite`            | `rapid-prototyper`        |
-| **API erstellen**   | Backend  | NestJS + Swagger              | `backend-architect`       |
-| **API nutzen**      | Frontend | Generierter Client in `@/api` | -                         |
-| **UI Component**    | Frontend | Chakra UI v3 via MCP          | `frontend-developer`      |
-| **Form erstellen**  | Frontend | TanStack Form + Zod           | `frontend-developer`      |
-| **Tests schreiben** | Überall  | Jest/Vitest                   | `test-writer-fixer`       |
-| **Performance**     | -        | Lighthouse, DevTools          | `performance-benchmarker` |
-| **Deployment**      | -        | Docker, CI/CD                 | `devops-automator`        |
-| **Code finden**     | Überall  | Serena MCP `find_symbol`      | -                         |
-| **Library Docs**    | -        | Context7 MCP                  | -                         |
-| **Architektur**     | docs/    | arc42 Template                | `backend-architect`       |
-| **Sprint Planning** | -        | RICE/Value Matrix             | `sprint-prioritizer`      |
-| **Commit**          | -        | Semantic Emojis               | `commit-expert`           |
+| Was                 | Wo       | Tool/Command                      | Agent                     |
+| ------------------- | -------- | --------------------------------- | ------------------------- |
+| **Neues Projekt**   | -        | `pnpm create vite`                | `rapid-prototyper`        |
+| **API erstellen**   | Backend  | NestJS + Swagger                  | `backend-architect`       |
+| **API nutzen**      | Frontend | Generierter Client in `@/api`     | -                         |
+| **UI Component**    | Frontend | Tailwind/Headless UI/TailwindUI\* | `frontend-developer`      |
+| **Form erstellen**  | Frontend | TanStack Form + Zod               | `frontend-developer`      |
+| **Tests schreiben** | Überall  | Jest/Vitest                       | `test-writer-fixer`       |
+| **Performance**     | -        | Lighthouse, DevTools              | `performance-benchmarker` |
+| **Deployment**      | -        | Docker, CI/CD                     | `devops-automator`        |
+| **Code finden**     | Überall  | Serena MCP `find_symbol`          | -                         |
+| **Library Docs**    | -        | Context7 MCP                      | -                         |
+| **Architektur**     | docs/    | arc42 Template                    | `backend-architect`       |
+| **Sprint Planning** | -        | RICE/Value Matrix                 | `sprint-prioritizer`      |
+| **Commit**          | -        | Semantic Emojis                   | `commit-expert`           |
 
 ## 🚀 DEVELOPMENT WORKFLOW CHECKLIST
 

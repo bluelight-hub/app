@@ -1,10 +1,12 @@
 import { useMemo, useState } from 'react';
 import { createColumnHelper, flexRender, getCoreRowModel, getSortedRowModel, useReactTable } from '@tanstack/react-table';
-import { Badge, HStack, IconButton, Skeleton, Table } from '@chakra-ui/react';
 import { FiTrash2 } from 'react-icons/fi';
 import { UserDtoRoleEnum } from '@bluelight-hub/shared/client';
 import type { UserDto } from '@bluelight-hub/shared/client';
 import type { SortingState } from '@tanstack/react-table';
+import { Badge } from '@/components/atoms/badge.atom';
+import { IconButton } from '@/components/atoms/icon-button.atom';
+import { Table } from '@/components/molecules/table.molecule';
 
 interface UsersTableProps {
   users: Array<UserDto> | undefined;
@@ -14,16 +16,16 @@ interface UsersTableProps {
 
 const columnHelper = createColumnHelper<UserDto>();
 
-const getRoleBadgeColor = (role: UserDtoRoleEnum): string => {
+const getRoleBadgeVariant = (role: UserDtoRoleEnum): 'error' | 'warning' | 'info' | 'default' => {
   switch (role) {
     case UserDtoRoleEnum.SuperAdmin:
-      return 'red';
+      return 'error';
     case UserDtoRoleEnum.Admin:
-      return 'orange';
+      return 'warning';
     case UserDtoRoleEnum.User:
-      return 'blue';
+      return 'info';
     default:
-      return 'gray';
+      return 'default';
   }
 };
 
@@ -38,21 +40,27 @@ export const UsersTable = ({ users, isLoading, onDelete }: UsersTableProps) => {
       }),
       columnHelper.accessor('role', {
         header: 'Rolle',
-        cell: ({ row }) => <Badge colorPalette={getRoleBadgeColor(row.original.role)}>{row.original.role}</Badge>,
+        cell: ({ row }) => <Badge variant={getRoleBadgeVariant(row.original.role)}>{row.original.role}</Badge>,
       }),
       columnHelper.accessor('id', {
         header: 'ID',
-        cell: (info) => <span style={{ fontFamily: 'monospace', fontSize: '0.875rem' }}>{info.getValue()}</span>,
+        cell: (info) => <span className="font-mono text-sm text-gray-600 dark:text-gray-400">{info.getValue()}</span>,
       }),
       columnHelper.display({
         id: 'actions',
         header: 'Aktionen',
         cell: ({ row }) => (
-          <HStack>
-            <IconButton size="sm" variant="ghost" colorPalette="red" onClick={() => onDelete(row.original)} aria-label="Benutzer löschen">
+          <div className="flex items-center gap-2">
+            <IconButton
+              size="sm"
+              variant="ghost"
+              onClick={() => onDelete(row.original)}
+              aria-label="Benutzer löschen"
+              className="text-red-600 hover:bg-red-50 hover:text-red-700 dark:text-red-400 dark:hover:bg-red-900/20 dark:hover:text-red-300"
+            >
               <FiTrash2 />
             </IconButton>
-          </HStack>
+          </div>
         ),
       }),
     ],
@@ -75,30 +83,13 @@ export const UsersTable = ({ users, isLoading, onDelete }: UsersTableProps) => {
       <Table.Root>
         <Table.Header>
           <Table.Row>
-            <Table.ColumnHeader>Benutzername</Table.ColumnHeader>
-            <Table.ColumnHeader>Rolle</Table.ColumnHeader>
-            <Table.ColumnHeader>ID</Table.ColumnHeader>
-            <Table.ColumnHeader>Aktionen</Table.ColumnHeader>
+            <Table.Head>Benutzername</Table.Head>
+            <Table.Head>Rolle</Table.Head>
+            <Table.Head>ID</Table.Head>
+            <Table.Head>Aktionen</Table.Head>
           </Table.Row>
         </Table.Header>
-        <Table.Body>
-          {[...Array(5)].map((_, index) => (
-            <Table.Row key={index}>
-              <Table.Cell>
-                <Skeleton height="20px" />
-              </Table.Cell>
-              <Table.Cell>
-                <Skeleton height="20px" width="80px" />
-              </Table.Cell>
-              <Table.Cell>
-                <Skeleton height="20px" width="120px" />
-              </Table.Cell>
-              <Table.Cell>
-                <Skeleton height="20px" width="40px" />
-              </Table.Cell>
-            </Table.Row>
-          ))}
-        </Table.Body>
+        <Table.Skeleton rows={5} columns={4} />
       </Table.Root>
     );
   }
@@ -109,10 +100,9 @@ export const UsersTable = ({ users, isLoading, onDelete }: UsersTableProps) => {
         {table.getHeaderGroups().map((headerGroup) => (
           <Table.Row key={headerGroup.id}>
             {headerGroup.headers.map((header) => (
-              <Table.ColumnHeader key={header.id} onClick={header.column.getToggleSortingHandler()} style={{ cursor: header.column.getCanSort() ? 'pointer' : 'default' }}>
+              <Table.Head key={header.id} onClick={header.column.getToggleSortingHandler()} sortable={header.column.getCanSort()} sorted={header.column.getIsSorted()}>
                 {header.isPlaceholder ? null : flexRender(header.column.columnDef.header, header.getContext())}
-                {header.column.getIsSorted() && <span>{header.column.getIsSorted() === 'asc' ? ' ↑' : ' ↓'}</span>}
-              </Table.ColumnHeader>
+              </Table.Head>
             ))}
           </Table.Row>
         ))}
