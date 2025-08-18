@@ -35,7 +35,7 @@ export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
     };
 
     return (
-      <HeadlessButton className={cn(baseStyles, variants[variant], sizes[size], fullWidth && 'w-full', className)} disabled={disabled || loading} type={type} ref={ref} {...props}>
+      <HeadlessButton aria-busy={loading} className={cn(baseStyles, variants[variant], sizes[size], fullWidth && 'w-full', className)} disabled={disabled || loading} type={type} ref={ref} {...props}>
         {loading ? <InlineSpinner /> : children}
       </HeadlessButton>
     );

@@ -26,7 +26,7 @@ export const useAdminUserManagement = () => {
   const queryClient = useQueryClient();
 
   // Query für Benutzerliste
-  const usersQuery = useQuery<UsersListResponse>({
+  const usersQuery = useQuery<UsersListResponse, ResponseError>({
     queryKey: QUERY_KEYS.admin.users,
     queryFn: async () => {
       return await api.userManagement().userManagementControllerFindAllVAlpha();
