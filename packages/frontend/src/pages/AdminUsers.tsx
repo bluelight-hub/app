@@ -1,8 +1,13 @@
 import { useState } from 'react';
-import { Box, Button, Center, Container, HStack, Heading, Spinner, Text, VStack } from '@chakra-ui/react';
-import { FiAlertTriangle, FiPlus } from 'react-icons/fi';
+import { PiPlus, PiWarning } from 'react-icons/pi';
 import { Navigate } from '@tanstack/react-router';
 import type { CreateUserDto, UserDto } from '@bluelight-hub/shared/client';
+import { Button } from '@/components/atoms/button.atom';
+import { Container } from '@/components/atoms/container.atom';
+import { Heading } from '@/components/atoms/heading.atom';
+import { Spinner } from '@/components/atoms/spinner.atom';
+import { Alert } from '@/components/atoms/alert.atom';
+import { Card } from '@/components/atoms/card.atom';
 import { UsersTable } from '@/components/organisms/admin/UsersTable';
 import { useAdminUserManagement } from '@/hooks/useAdminUserManagement';
 import { CreateUserDialog } from '@/components/organisms/admin/CreateUserDialog';
@@ -11,14 +16,14 @@ import { useAdminAuth } from '@/hooks/useAdminAuth';
 
 export default function AdminUsers() {
   const { isAdmin, isLoading: isAuthLoading } = useAdminAuth();
-  const { usersData, isLoading: isUsersLoading, error, createUser, deleteUser } = useAdminUserManagement();
+  const { usersData, isLoading: isUsersLoading, error, createUser, deleteUser, isCreating, isDeleting } = useAdminUserManagement();
 
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [deleteTarget, setDeleteTarget] = useState<UserDto | null>(null);
 
   // Redirect if not admin
   if (!isAuthLoading && !isAdmin) {
-    return <Navigate to="/admin/login" />;
+    return <Navigate to="/admin-login" />;
   }
 
   const handleCreateUser = (data: CreateUserDto) => {
@@ -45,47 +50,43 @@ export default function AdminUsers() {
 
   if (isAuthLoading || isUsersLoading) {
     return (
-      <Container py={8}>
-        <Center h="50vh">
+      <Container maxWidth="6xl" className="py-8">
+        <div className="flex h-[50vh] items-center justify-center">
           <Spinner size="xl" />
-        </Center>
+        </div>
       </Container>
     );
   }
 
   if (error) {
     return (
-      <Container py={8}>
-        <Center h="50vh">
-          <VStack>
-            <FiAlertTriangle size={48} color="var(--colors-red-500)" />
-            <Text>Fehler beim Laden der Benutzer</Text>
-            <Text fontSize="sm" color="fg.muted">
-              {error.message}
-            </Text>
-          </VStack>
-        </Center>
+      <Container maxWidth="6xl" className="py-8">
+        <div className="flex h-[50vh] items-center justify-center">
+          <Alert status="error" title="Fehler beim Laden der Benutzer" description={error.message} icon={<PiWarning className="h-6 w-6" />} />
+        </div>
       </Container>
     );
   }
 
   return (
-    <Container maxW="6xl" py={8}>
-      <VStack align="stretch">
-        <HStack justify="space-between">
-          <Heading size="lg">Benutzerverwaltung</Heading>
-          <Button onClick={() => setIsCreateDialogOpen(true)} colorPalette="blue">
-            <FiPlus />
+    <Container maxWidth="6xl" className="py-8">
+      <div className="flex flex-col gap-6">
+        <div className="flex items-center justify-between">
+          <Heading size="lg" as="h1">
+            Benutzerverwaltung
+          </Heading>
+          <Button onClick={() => setIsCreateDialogOpen(true)} variant="primary">
+            <PiPlus className="mr-2" />
             Benutzer hinzufügen
           </Button>
-        </HStack>
+        </div>
 
-        <Box bg="bg.panel" borderRadius="lg" p={6} shadow="sm">
+        <Card padding="md">
           <UsersTable users={usersData?.data} isLoading={isUsersLoading} onDelete={handleDeleteUser} />
-        </Box>
-      </VStack>
+        </Card>
+      </div>
 
-      <CreateUserDialog isOpen={isCreateDialogOpen} onClose={() => setIsCreateDialogOpen(false)} onSubmit={handleCreateUser} isSubmitting={createUserMutation.isPending} />
+      <CreateUserDialog isOpen={isCreateDialogOpen} onClose={() => setIsCreateDialogOpen(false)} onSubmit={handleCreateUser} isSubmitting={isCreating} />
 
       <ConfirmDeleteDialog
         isOpen={!!deleteTarget}
@@ -93,7 +94,7 @@ export default function AdminUsers() {
         onConfirm={confirmDelete}
         userName={deleteTarget?.username || ''}
         userRole={deleteTarget?.role || ''}
-        isDeleting={deleteUserMutation.isPending}
+        isDeleting={isDeleting}
       />
     </Container>
   );

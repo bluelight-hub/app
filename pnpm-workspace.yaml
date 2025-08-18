@@ -3,12 +3,11 @@ packages:
   - .
 
 catalog:
-  '@chakra-ui/react': ^3.24.0
-  '@emotion/react': ^11.14.0
   '@eslint/js': ^9.32.0
   '@fontsource-variable/inter': ^5.2.6
   '@fontsource-variable/montserrat': ^5.2.6
   '@fontsource-variable/nunito': ^5.2.6
+  '@headlessui/react': ^2.2.7
   '@hookform/resolvers': ^5.2.1
   '@playwright/test': ^1.54.2
   '@playwright/test-runner': ^0.9.24
@@ -53,6 +52,7 @@ catalog:
   react-dom: 19.1.1
   react-hook-form: ^7.62.0
   react-icons: ^5.5.0
+  sonner: ^2.0.7
   tailwind-merge: 3.3.1
   tailwindcss: ^4.1.11
   typescript: ^5.9.2

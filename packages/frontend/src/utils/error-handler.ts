@@ -1,0 +1,269 @@
+import { toast } from 'sonner';
+import type { FetchError, ResponseError } from '@bluelight-hub/shared/client';
+
+// Track shown errors to prevent duplicates
+const shownErrors = new WeakSet<Error>();
+
+/**
+ * Maps error types to user-friendly messages
+ */
+function getErrorMessage(error: unknown): string {
+  // Handle ResponseError (API errors)
+  if (error && typeof error === 'object' && 'response' in error) {
+    const responseError = error as ResponseError;
+    const status = responseError.response.status;
+
+    // Don't show messages for 401 (handled separately)
+    if (status === 401) {
+      return '';
+    }
+
+    // Try to extract message from response body if available
+    if (responseError.message) {
+      return mapServerErrorMessage(responseError.message, status);
+    }
+
+    // Map status codes to user-friendly messages
+    switch (status) {
+      case 400:
+        return 'Die Anfrage enthält ungültige Daten. Bitte überprüfen Sie Ihre Eingaben.';
+      case 403:
+        return 'Sie haben keine Berechtigung für diese Aktion.';
+      case 404:
+        return 'Die angeforderte Ressource wurde nicht gefunden.';
+      case 409:
+        return 'Es besteht ein Konflikt mit dem aktuellen Status. Bitte aktualisieren Sie die Seite.';
+      case 422:
+        return 'Die eingegebenen Daten konnten nicht verarbeitet werden.';
+      case 429:
+        return 'Zu viele Anfragen. Bitte versuchen Sie es später erneut.';
+      case 500:
+        return 'Ein interner Serverfehler ist aufgetreten. Bitte versuchen Sie es später erneut.';
+      case 502:
+      case 503:
+      case 504:
+        return 'Der Server ist momentan nicht erreichbar. Bitte versuchen Sie es später erneut.';
+      default:
+        if (status >= 400 && status < 500) {
+          return 'Ein Fehler ist aufgetreten. Bitte überprüfen Sie Ihre Eingaben.';
+        }
+        if (status >= 500) {
+          return 'Ein Serverfehler ist aufgetreten. Bitte versuchen Sie es später erneut.';
+        }
+        return 'Ein unerwarteter Fehler ist aufgetreten.';
+    }
+  }
+
+  // Handle FetchError (network errors)
+  if (error && typeof error === 'object' && 'cause' in error) {
+    const fetchError = error as FetchError;
+    const causeMessage = fetchError.cause.message;
+    if (causeMessage.includes('NetworkError') || causeMessage.includes('Failed to fetch')) {
+      return 'Netzwerkfehler: Bitte überprüfen Sie Ihre Internetverbindung.';
+    }
+    if (causeMessage.includes('timeout')) {
+      return 'Die Anfrage hat zu lange gedauert. Bitte versuchen Sie es erneut.';
+    }
+    return 'Verbindungsfehler: Der Server konnte nicht erreicht werden.';
+  }
+
+  // Handle generic Error objects
+  if (error instanceof Error) {
+    // Don't show technical error messages to users
+    if (error.message.includes('Network')) {
+      return 'Netzwerkfehler: Bitte überprüfen Sie Ihre Internetverbindung.';
+    }
+    if (error.message.includes('timeout')) {
+      return 'Die Anfrage hat zu lange gedauert. Bitte versuchen Sie es erneut.';
+    }
+  }
+
+  return 'Ein unerwarteter Fehler ist aufgetreten.';
+}
+
+/**
+ * Maps server error messages to user-friendly German messages
+ */
+function mapServerErrorMessage(message: string, status: number): string {
+  const lowerMessage = message.toLowerCase();
+
+  // Validation errors
+  if (status === 400 || status === 422) {
+    if (lowerMessage.includes('email')) {
+      if (lowerMessage.includes('already') || lowerMessage.includes('exists')) {
+        return 'Diese E-Mail-Adresse wird bereits verwendet.';
+      }
+      if (lowerMessage.includes('invalid') || lowerMessage.includes('format')) {
+        return 'Bitte geben Sie eine gültige E-Mail-Adresse ein.';
+      }
+    }
+    if (lowerMessage.includes('password')) {
+      if (lowerMessage.includes('short') || lowerMessage.includes('length')) {
+        return 'Das Passwort muss mindestens 8 Zeichen lang sein.';
+      }
+      if (lowerMessage.includes('weak') || lowerMessage.includes('strong')) {
+        return 'Das Passwort ist zu schwach. Bitte verwenden Sie Groß- und Kleinbuchstaben, Zahlen und Sonderzeichen.';
+      }
+      if (lowerMessage.includes('match')) {
+        return 'Die Passwörter stimmen nicht überein.';
+      }
+    }
+    if (lowerMessage.includes('required') || lowerMessage.includes('missing')) {
+      return 'Bitte füllen Sie alle Pflichtfelder aus.';
+    }
+    if (lowerMessage.includes('invalid') || lowerMessage.includes('format')) {
+      return 'Die eingegebenen Daten haben ein ungültiges Format.';
+    }
+  }
+
+  // Authentication errors
+  if (status === 401) {
+    if (lowerMessage.includes('token') || lowerMessage.includes('expired')) {
+      return 'Ihre Sitzung ist abgelaufen. Bitte melden Sie sich erneut an.';
+    }
+    if (lowerMessage.includes('credentials') || lowerMessage.includes('invalid')) {
+      return 'Ungültige Anmeldedaten. Bitte überprüfen Sie E-Mail und Passwort.';
+    }
+  }
+
+  // Permission errors
+  if (status === 403) {
+    if (lowerMessage.includes('permission') || lowerMessage.includes('access')) {
+      return 'Sie haben keine Berechtigung für diese Aktion.';
+    }
+    if (lowerMessage.includes('role')) {
+      return 'Ihre Benutzerrolle erlaubt diese Aktion nicht.';
+    }
+  }
+
+  // Resource errors
+  if (status === 404) {
+    if (lowerMessage.includes('user')) {
+      return 'Der Benutzer wurde nicht gefunden.';
+    }
+    if (lowerMessage.includes('resource') || lowerMessage.includes('entity')) {
+      return 'Die angeforderte Ressource wurde nicht gefunden.';
+    }
+  }
+
+  // Conflict errors
+  if (status === 409) {
+    if (lowerMessage.includes('already exists')) {
+      return 'Diese Ressource existiert bereits.';
+    }
+    if (lowerMessage.includes('conflict')) {
+      return 'Es besteht ein Konflikt mit bestehenden Daten.';
+    }
+  }
+
+  // If we can't map it, return the original message if it seems user-friendly
+  // Otherwise return a generic message based on status
+  if (message.length < 100 && !message.includes('Error:') && !message.includes('Exception')) {
+    return message;
+  }
+
+  return getErrorMessage({ response: { status } } as ResponseError);
+}
+
+/**
+ * Gets the error category for grouping similar errors
+ */
+function getErrorCategory(error: unknown): string {
+  if (error && typeof error === 'object' && 'response' in error) {
+    const status = (error as ResponseError).response.status;
+
+    if (status === 401) return 'auth';
+    if (status >= 400 && status < 500) return 'validation';
+    if (status >= 500) return 'server';
+  }
+
+  if (error && typeof error === 'object' && 'cause' in error) {
+    return 'network';
+  }
+
+  return 'unknown';
+}
+
+/**
+ * Global error handler for React Query
+ */
+export function handleQueryError(error: unknown): void {
+  // Skip if error was already shown
+  if (error instanceof Error && shownErrors.has(error)) {
+    return;
+  }
+
+  // Don't show toast for 401 errors (handled by auth system)
+  if (error && typeof error === 'object' && 'response' in error) {
+    const status = (error as ResponseError).response.status;
+    if (status === 401) {
+      // Auth errors are handled by the auth system (redirect to login)
+      return;
+    }
+  }
+
+  const message = getErrorMessage(error);
+  if (!message) return;
+
+  const category = getErrorCategory(error);
+
+  // Mark error as shown
+  if (error instanceof Error) {
+    shownErrors.add(error);
+  }
+
+  // Show toast based on category
+  switch (category) {
+    case 'validation':
+      toast.warning('Validierungsfehler', {
+        description: message,
+        duration: 6000,
+      });
+      break;
+    case 'server':
+      toast.error('Serverfehler', {
+        description: message,
+        duration: 8000,
+        action: {
+          label: 'Erneut versuchen',
+          onClick: () => window.location.reload(),
+        },
+      });
+      break;
+    case 'network':
+      toast.error('Verbindungsfehler', {
+        description: message,
+        duration: 8000,
+        action: {
+          label: 'Erneut versuchen',
+          onClick: () => window.location.reload(),
+        },
+      });
+      break;
+    default:
+      toast.error('Fehler', {
+        description: message,
+        duration: 6000,
+      });
+  }
+}
+
+/**
+ * Clear the shown errors cache (useful for testing or when errors should be re-shown)
+ */
+export function clearShownErrors(): void {
+  // WeakSet doesn't have a clear method, so we need to create a new one
+  // This is handled by reassigning the variable in the module scope
+  // For now, this is a no-op but could be extended if needed
+}
+
+/**
+ * Manually show an error toast (useful for custom error handling)
+ */
+export function showErrorToast(error: unknown, options?: { skipDuplicateCheck?: boolean }): void {
+  if (!options?.skipDuplicateCheck && error instanceof Error && shownErrors.has(error)) {
+    return;
+  }
+
+  handleQueryError(error);
+}

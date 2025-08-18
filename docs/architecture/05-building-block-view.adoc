@@ -48,7 +48,7 @@ flowchart TB
 [cols="1,3", options="header"]
 |===
 |Komponente |Verantwortlichkeit
-|Frontend |Benutzeroberfläche mit React und TypeScript, UI-Komponenten nach Atomic Design, Client-seitige Logik, State Management mit Zustand, Routing und API-Services für Backend-Kommunikation
+|Frontend |Benutzeroberfläche mit React und TypeScript, UI-Komponenten nach Atomic Design mit Tailwind CSS + Headless UI, Client-seitige Logik, State Management mit TanStack Store, Routing mit TanStack Router und API-Services für Backend-Kommunikation
 |Backend |Server-seitige Geschäftslogik mit NestJS, API-Endpunkte, Authentifizierung, Datenbankzugriff, Modul-basierte Architektur, Integration mit externen Systemen
 |Shared Package |Gemeinsam genutzte Typendefinitionen, DTOs für den Datenaustausch, Konstanten, Interfaces und Utilities, die sowohl vom Frontend als auch vom Backend verwendet werden. *Diese werden durch die OpenAPI-Definition des Backends automatisch generiert.*
 |===
@@ -80,7 +80,7 @@ flowchart TB
         end
         
         subgraph State[State Management]
-            Zustand[Zustand Stores]
+            TanStackStore[TanStack Store]
             Contexts[Context Provider]
             Hooks[Custom Hooks]
         end
@@ -130,15 +130,15 @@ flowchart TB
 
 ==== Atomic Design-Komponenten
 
-* *Atoms*: Grundlegende UI-Elemente wie Button, Input, Icon
-* *Molecules*: Kombinationen aus Atoms wie FormField, Card, Notification
-* *Organisms*: Komplexe UI-Komponenten wie Header, Sidebar, Modal
-* *Templates*: Seitenlayouts und -strukturen
+* *Atoms*: Grundlegende UI-Elemente wie Button, Input, Icon (mit Tailwind CSS Utilities)
+* *Molecules*: Kombinationen aus Atoms wie PasswordInput, Tabs, Dialog (mit Headless UI)
+* *Organisms*: Komplexe UI-Komponenten wie LoginWindow, UsersTable, AdminPanel
+* *Templates*: Seitenlayouts wie DashboardLayout, AuthLayout
 * *Pages*: Vollständige Ansichten für bestimmte Routen
 
 ==== State Management
 
-* *Zustand Stores*: Zentrale Zustandsverwaltung für globale Daten
+* *TanStack Store*: Zentrale Zustandsverwaltung für globale Daten
 * *Context Provider*: Bereichsspezifische Zustandsverwaltung
 * *Custom Hooks*: Wiederverwendbare Logik für Zustandszugriff
 

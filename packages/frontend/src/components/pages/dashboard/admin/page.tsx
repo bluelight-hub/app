@@ -1,4 +1,3 @@
-import { Box, Button, Heading, Text, VStack } from '@chakra-ui/react';
 import { useNavigate } from '@tanstack/react-router';
 import { PiSignOut, PiUsers } from 'react-icons/pi';
 import { useCallback } from 'react';
@@ -6,6 +5,10 @@ import { isTauri } from '@tauri-apps/api/core';
 import { useAuth } from '@/hooks/useAuth';
 import { DashboardLayout } from '@/components/templates/DashboardLayout';
 import { logger } from '@/utils/logger';
+import { Button } from '@/components/atoms/button.atom';
+import { Heading } from '@/components/atoms/heading.atom';
+import { Text } from '@/components/atoms/text.atom';
+import { Card } from '@/components/atoms/card.atom';
 
 /**
  * Admin-Dashboard Seite
@@ -45,39 +48,37 @@ export function AdminDashboard() {
   return (
     <DashboardLayout maxWidth="lg">
       {/* Dashboard Header */}
-      <Box>
-        <Heading size="xl" mb={2}>
+      <div>
+        <Heading size="xl" className="mb-2">
           Admin-Dashboard
         </Heading>
-        <Text color="fg.muted">Willkommen im Admin-Bereich, {user?.username}</Text>
-      </Box>
+        <Text color="muted">Willkommen im Admin-Bereich, {user?.username}</Text>
+      </div>
 
       {/* Admin Functions Card */}
-      <Box p={6} borderWidth={1} borderRadius="md" bg="bg.subtle" borderColor="border.default">
-        <VStack gap={4} align="start">
-          <Box>
-            <Text fontWeight="semibold" fontSize="lg">
-              Admin-Funktionen
-            </Text>
-            <Text fontSize="sm" color="fg.muted" mt={1}>
+      <Card padding="md">
+        <div className="flex flex-col items-start gap-4">
+          <div>
+            <Text className="text-lg font-semibold">Admin-Funktionen</Text>
+            <Text size="sm" color="muted" className="mt-1">
               Hier können Sie Benutzer verwalten, Einstellungen konfigurieren und mehr.
             </Text>
-          </Box>
+          </div>
 
-          <Button colorPalette="blue" variant="solid" size="md" onClick={handleNavigateToUsers} w="full" maxW="sm">
-            <PiUsers />
+          <Button variant="primary" size="md" onClick={handleNavigateToUsers} fullWidth className="max-w-sm">
+            <PiUsers className="mr-2" />
             Benutzerverwaltung
           </Button>
-        </VStack>
-      </Box>
+        </div>
+      </Card>
 
       {/* Logout Section */}
-      <Box>
-        <Button colorPalette="red" variant="outline" size="sm" onClick={handleLogout}>
-          <PiSignOut />
+      <div>
+        <Button variant="danger" size="sm" onClick={handleLogout} className="border border-red-600 bg-transparent hover:bg-red-50 dark:hover:bg-red-900/20">
+          <PiSignOut className="mr-2" />
           Admin-Bereich verlassen
         </Button>
-      </Box>
+      </div>
     </DashboardLayout>
   );
 }

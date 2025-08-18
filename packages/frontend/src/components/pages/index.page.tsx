@@ -1,7 +1,11 @@
 import { ColorModeButton } from '@molecules/color-mode-button.molecule.tsx';
 import { Link, useRouter } from '@tanstack/react-router';
-import { Box, Button, HStack, Spinner, Text, VStack } from '@chakra-ui/react';
 import { PiShieldCheck, PiSignIn } from 'react-icons/pi';
+import { Button } from '@atoms/button.atom';
+import { Spinner } from '@atoms/spinner.atom';
+import { Text } from '@atoms/text.atom';
+import { Heading } from '@atoms/heading.atom';
+import { Card } from '@atoms/card.atom';
 
 /**
  * Startseite der Anwendung.
@@ -20,85 +24,85 @@ export function IndexPage() {
 
   // Admin-Fenster öffnen Handler
   const handleOpenAdminWindow = async () => {
-    const { openAdmin } = await import('@/services/windowService');
-    await openAdmin();
+    const { openAdminWindow } = await import('@/services/windowService');
+    await openAdminWindow();
   };
 
   // WICHTIG: Warte immer auf den initialen Auth-Check bevor wir redirecten
   // Dies verhindert Race Conditions beim Page Reload
   if (isLoading) {
     return (
-      <VStack colorPalette="teal" className="flex flex-col items-center justify-center min-h-screen">
-        <Spinner color="colorPalette.fg" />
-        <Text color="colorPalette.fg">Authentifizierung wird geladen...</Text>
-      </VStack>
+      <div className="flex min-h-screen flex-col items-center justify-center gap-4">
+        <Spinner size="lg" className="text-red-500" />
+        <Text color="muted">Authentifizierung wird geladen...</Text>
+      </div>
     );
   }
 
   // Nach dem Loading: Prüfe ob User vorhanden ist
   // Nur redirecten wenn wirklich kein User da ist nach dem Auth-Check
   if (!user) {
-    navigate({
+    void navigate({
       to: '/auth',
     });
     return null;
   }
 
   return (
-    <Box p={8}>
-      <VStack gap={8} align="stretch">
-        <Box>
-          <Text fontSize="2xl" fontWeight="bold">
+    <div className="p-8">
+      <div className="flex flex-col gap-8">
+        <div>
+          <Heading size="2xl" as="h1">
             Willkommen bei BlueLight Hub
-          </Text>
-          <Text color="fg.muted">Sie sind angemeldet als: {user.username}</Text>
-        </Box>
+          </Heading>
+          <Text color="muted">Sie sind angemeldet als: {user.username}</Text>
+        </div>
 
         {/* Admin Setup Link - nur anzeigen wenn adminSetupAvailable true ist */}
         {adminStatus?.adminSetupAvailable && (
-          <Box p={4} borderWidth={1} borderRadius="md" bg="bg.subtle">
-            <VStack gap={4} align="start">
-              <Box>
-                <Text fontWeight="semibold">Admin-Setup verfügbar</Text>
-                <Text fontSize="sm" color="fg.muted">
+          <Card padding="sm" className="bg-gray-50 dark:bg-gray-900">
+            <div className="flex flex-col gap-4">
+              <div>
+                <Text className="font-semibold">Admin-Setup verfügbar</Text>
+                <Text size="sm" color="muted">
                   Sie können einen Admin-Account einrichten, solange noch kein Admin existiert.
                 </Text>
-              </Box>
-              <Button asChild colorPalette="primary" variant="solid" size="sm">
-                <Link to="/admin/setup">
-                  <PiShieldCheck />
+              </div>
+              <Link to="/admin/setup" className="inline-block">
+                <Button variant="primary" size="sm">
+                  <PiShieldCheck className="mr-2" />
                   Admin-Setup starten
-                </Link>
-              </Button>
-            </VStack>
-          </Box>
+                </Button>
+              </Link>
+            </div>
+          </Card>
         )}
 
         {isAdmin(user.role) && !adminStatus?.adminSetupAvailable && (
-          <Box p={4} borderWidth={1} borderRadius="md" bg="bg.subtle">
-            <VStack gap={4} align="start">
-              <Box>
-                <Text fontWeight="semibold">Admin-Bereich</Text>
-                <Text fontSize="sm" color="fg.muted">
+          <Card padding="sm" className="bg-gray-50 dark:bg-gray-900">
+            <div className="flex flex-col gap-4">
+              <div>
+                <Text className="font-semibold">Admin-Bereich</Text>
+                <Text size="sm" color="muted">
                   Zugang zum Admin-Bereich für berechtigte Benutzer.
                 </Text>
-              </Box>
-              <HStack gap={2}>
-                <Button colorPalette="primary" variant="outline" size="sm" onClick={handleOpenAdminWindow} title="Admin-Dashboard in separatem Fenster öffnen">
-                  <PiSignIn />
+              </div>
+              <div className="flex gap-2">
+                <Button variant="secondary" size="sm" onClick={handleOpenAdminWindow} title="Admin-Dashboard in separatem Fenster öffnen">
+                  <PiSignIn className="mr-2" />
                   Admin-Bereich
                 </Button>
-              </HStack>
-            </VStack>
-          </Box>
+              </div>
+            </div>
+          </Card>
         )}
 
-        <Button colorPalette="primary" variant="outline" size="sm" onClick={() => logout.mutateAsync()}>
+        <Button variant="secondary" size="sm" onClick={() => logout.mutateAsync()}>
           Abmelden
         </Button>
 
         <ColorModeButton />
-      </VStack>
-    </Box>
+      </div>
+    </div>
   );
 }

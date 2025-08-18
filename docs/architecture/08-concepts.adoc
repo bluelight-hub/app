@@ -1833,3 +1833,319 @@ Das Audit-System kann mit Monitoring-Tools integriert werden:
 * *Enhanced Analytics*: Erweiterte Analyse- und Visualisierungsmöglichkeiten
 
 Dieses umfassende Audit-System stellt sicher, dass alle relevanten Aktionen im Bluelight-Hub-System nachvollziehbar protokolliert werden und erfüllt dabei höchste Standards für Security, Compliance und Performance.
+
+=== Frontend-Architektur und Component-System
+
+Das Frontend des Bluelight-Hub-Systems basiert auf einer modernen, komponentenbasierten Architektur mit Fokus auf Performance, Wartbarkeit und Developer Experience. Die Architektur nutzt das Atomic Design Pattern in Kombination mit einem Utility-First CSS-Ansatz.
+
+==== Technology Stack
+
+[cols="1,2,3",options="header"]
+|===
+|Bereich |Technologie |Zweck
+|Framework |React 18 + TypeScript |Type-safe Component Development
+|Styling |Tailwind CSS |Utility-First CSS ohne Runtime-Overhead
+|Components |Headless UI |Accessible, unstyled UI-Komponenten
+|State |TanStack Store |Globales State Management
+|Forms |TanStack Form + Zod |Type-safe Form Handling mit Validation
+|Routing |TanStack Router |Type-safe Routing mit File-based Routes
+|API |TanStack Query |Data Fetching und Caching
+|Build |Vite |Schnelles HMR und optimierte Builds
+|===
+
+==== Atomic Design Pattern
+
+Das Frontend folgt dem Atomic Design Pattern für eine strukturierte und skalierbare Component-Hierarchie:
+
+[mermaid]
+....
+graph TD
+    A[Atoms] --> M[Molecules]
+    M --> O[Organisms]
+    O --> T[Templates]
+    T --> P[Pages]
+    
+    A --> |Button, Input, Text| Base[Base Components]
+    M --> |PasswordInput, Tabs| Composite[Composite Components]
+    O --> |LoginWindow, UsersTable| Complex[Complex Modules]
+    T --> |DashboardLayout| Layouts[Page Layouts]
+    P --> |AdminPage, Dashboard| Routes[Route Components]
+....
+
+===== Component-Struktur
+
+```
+src/components/
+├── atoms/           # Basis-Komponenten
+│   ├── button.atom.tsx
+│   ├── input.atom.tsx
+│   ├── text.atom.tsx
+│   └── ...
+├── molecules/       # Kombinierte Komponenten
+│   ├── password-input.molecule.tsx
+│   ├── tabs.molecule.tsx
+│   └── ...
+├── organisms/       # Komplexe Module
+│   ├── auth/
+│   │   ├── LoginWindow.tsx
+│   │   └── RegisterTab.tsx
+│   └── admin/
+│       └── UsersTable.tsx
+├── templates/       # Seiten-Layouts
+│   ├── DashboardLayout.tsx
+│   └── AuthLayout.tsx
+└── pages/          # Route-Komponenten
+    └── index.page.tsx
+```
+
+===== Design-Prinzipien
+
+1. **Single Responsibility**: Jede Komponente hat eine klar definierte Aufgabe
+2. **Composition over Inheritance**: Komponenten werden durch Komposition aufgebaut
+3. **Props over State**: State wird minimal gehalten und nach oben delegiert
+4. **Type Safety**: Vollständige TypeScript-Typisierung für alle Props und Events
+
+==== Tailwind CSS Integration
+
+Das Styling basiert vollständig auf Tailwind CSS für optimale Performance und Wartbarkeit:
+
+===== Utility-First Ansatz
+
+[source,tsx]
+----
+// Statt CSS-in-JS oder externe Stylesheets
+export const Button = ({ variant = 'primary', size = 'md', children }) => {
+  const baseStyles = 'inline-flex items-center justify-center font-semibold transition-all';
+  
+  const variants = {
+    primary: 'bg-red-500 text-white hover:bg-red-600',
+    secondary: 'bg-gray-200 text-gray-900 hover:bg-gray-300',
+  };
+  
+  const sizes = {
+    sm: 'text-sm px-3 py-1.5',
+    md: 'text-base px-4 py-2',
+    lg: 'text-lg px-6 py-3',
+  };
+  
+  return (
+    <button className={cn(baseStyles, variants[variant], sizes[size])}>
+      {children}
+    </button>
+  );
+};
+----
+
+===== Theme-Konfiguration
+
+Die zentrale Theme-Konfiguration erfolgt in Tailwind CSS v4 direkt über CSS mit dem `@theme` Directive in `index.css`:
+
+[source,css]
+----
+@import 'tailwindcss';
+
+@theme {
+  --color-primary-50: var(--color-sky-50);
+  --color-primary-500: var(--color-sky-500);
+  --color-primary-600: var(--color-sky-600);
+  // weitere Theme-Variablen...
+}
+----
+
+==== Headless UI Integration
+
+Für komplexe, accessible UI-Patterns nutzen wir Headless UI:
+
+[source,tsx]
+----
+import { Dialog } from '@headlessui/react';
+
+export const Modal = ({ isOpen, onClose, children }) => {
+  return (
+    <Dialog
+      open={isOpen}
+      onClose={onClose}
+      className="relative z-50"
+    >
+      <div className="fixed inset-0 bg-black/30" aria-hidden="true" />
+      <div className="fixed inset-0 flex items-center justify-center p-4">
+        <Dialog.Panel className="bg-white rounded-xl p-6 max-w-md">
+          {children}
+        </Dialog.Panel>
+      </div>
+    </Dialog>
+  );
+};
+----
+
+===== Vorteile
+
+* **Accessibility**: WCAG-konform out-of-the-box
+* **Keyboard Navigation**: Vollständige Tastatur-Unterstützung
+* **Focus Management**: Automatisches Focus-Trapping
+* **Screen Reader Support**: ARIA-Attribute voronfiguriert
+
+==== Performance-Optimierung
+
+===== Bundle-Size-Optimierung
+
+* **Tree-Shaking**: Nur verwendete Utilities werden gebündelt
+* **PurgeCSS**: Automatische Entfernung ungenutzter Styles
+* **Code-Splitting**: Route-basiertes Lazy Loading
+* **Zero Runtime**: Keine CSS-in-JS Runtime-Overhead
+
+===== Rendering-Optimierung
+
+[source,tsx]
+----
+// Memoization für expensive Berechnungen
+const MemoizedComponent = React.memo(({ data }) => {
+  const processedData = useMemo(
+    () => expensiveOperation(data),
+    [data]
+  );
+  
+  return <div>{processedData}</div>;
+});
+
+// Virtual Scrolling für große Listen
+import { useVirtualizer } from '@tanstack/react-virtual';
+
+export const VirtualList = ({ items }) => {
+  const virtualizer = useVirtualizer({
+    count: items.length,
+    getScrollElement: () => parentRef.current,
+    estimateSize: () => 50,
+  });
+  
+  return (
+    <div ref={parentRef} className="h-full overflow-auto">
+      {virtualizer.getVirtualItems().map((virtualItem) => (
+        <div key={virtualItem.key}>
+          {items[virtualItem.index]}
+        </div>
+      ))}
+    </div>
+  );
+};
+----
+
+==== State Management
+
+===== TanStack Store
+
+Globaler State wird mit TanStack Store verwaltet:
+
+[source,typescript]
+----
+// stores/app.store.ts
+import { Store } from '@tanstack/react-store';
+
+export const appStore = new Store({
+  user: null,
+  theme: 'light',
+  sidebarOpen: true,
+});
+
+// Verwendung in Komponenten
+import { useStore } from '@tanstack/react-store';
+
+export const Component = () => {
+  const user = useStore(appStore, (state) => state.user);
+  
+  return <div>Welcome, {user?.name}</div>;
+};
+----
+
+===== Form State mit TanStack Form
+
+[source,tsx]
+----
+import { useForm } from '@tanstack/react-form';
+import { zodValidator } from '@tanstack/zod-form-adapter';
+import { z } from 'zod';
+
+const schema = z.object({
+  email: z.string().email(),
+  password: z.string().min(8),
+});
+
+export const LoginForm = () => {
+  const form = useForm({
+    defaultValues: { email: '', password: '' },
+    onSubmit: async ({ value }) => {
+      await api.auth.login(value);
+    },
+    validatorAdapter: zodValidator,
+    validators: {
+      onChange: schema,
+    },
+  });
+  
+  return (
+    <form onSubmit={form.handleSubmit}>
+      <form.Field name="email">
+        {(field) => (
+          <Input
+            value={field.state.value}
+            onChange={(e) => field.handleChange(e.target.value)}
+            error={field.state.meta.errors?.[0]}
+          />
+        )}
+      </form.Field>
+    </form>
+  );
+};
+----
+
+==== Testing-Strategie
+
+===== Component Testing
+
+[source,typescript]
+----
+import { render, screen } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
+
+describe('Button', () => {
+  it('should handle click events', async () => {
+    const handleClick = vi.fn();
+    render(<Button onClick={handleClick}>Click me</Button>);
+    
+    await userEvent.click(screen.getByText('Click me'));
+    expect(handleClick).toHaveBeenCalledOnce();
+  });
+});
+----
+
+===== Accessibility Testing
+
+[source,typescript]
+----
+import { axe } from '@axe-core/react';
+
+it('should not have accessibility violations', async () => {
+  const { container } = render(<LoginWindow />);
+  const results = await axe(container);
+  expect(results).toHaveNoViolations();
+});
+----
+
+==== Migration von Chakra UI
+
+Die Migration von Chakra UI zu Tailwind CSS + Headless UI wurde aus folgenden Gründen durchgeführt:
+
+1. **Performance**: Elimination der CSS-in-JS Runtime
+2. **Bundle-Size**: Reduktion um ~60% 
+3. **Developer Experience**: Schnelleres HMR und bessere IDE-Unterstützung
+4. **Wartbarkeit**: Weniger Dependencies und einfachere Updates
+
+Details zur Migration sind in <<../adr/013-tailwind-migration.adoc>> dokumentiert.
+
+==== Best Practices
+
+1. **Component Composition**: Kleine, wiederverwendbare Komponenten
+2. **Prop Types**: Vollständige TypeScript-Typisierung
+3. **Accessibility First**: ARIA-Attribute und Keyboard-Support
+4. **Performance**: Memoization und Code-Splitting wo sinnvoll
+5. **Testing**: Unit- und Integration-Tests für kritische Komponenten

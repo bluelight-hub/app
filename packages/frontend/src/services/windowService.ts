@@ -1,6 +1,6 @@
 import { isTauri } from '@tauri-apps/api/core';
 import { WebviewWindow } from '@tauri-apps/api/webviewWindow';
-import { toaster } from '@/components/ui/toaster.instance';
+import { toast } from 'sonner';
 import { logger } from '@/utils/logger';
 
 /**
@@ -37,10 +37,8 @@ class WindowService {
       }
     } catch (error) {
       logger.error('Fehler beim Öffnen des Admin-Fensters:', error);
-      toaster.create({
-        title: 'Fehler',
+      toast.error('Fehler', {
         description: 'Das Admin-Fenster konnte nicht geöffnet werden.',
-        type: 'error',
       });
     }
   }
@@ -89,6 +87,30 @@ class WindowService {
   }
 
   /**
+   * Prüft, ob das aktuelle Fenster das Admin-Fenster ist
+   * @returns Promise<boolean> - true wenn im Admin-Fenster, sonst false
+   */
+  async isInAdminWindow(): Promise<boolean> {
+    if (!isTauri()) {
+      logger.debug('isInAdminWindow: Nicht in Tauri');
+      return false;
+    }
+
+    try {
+      const { getCurrentWebviewWindow } = await import('@tauri-apps/api/webviewWindow');
+      const currentWindow = getCurrentWebviewWindow();
+      const isAdmin = currentWindow.label === this.ADMIN_WINDOW_LABEL;
+
+      logger.debug('isInAdminWindow: Window Label =', currentWindow.label, '| Is Admin =', isAdmin);
+
+      return isAdmin;
+    } catch (error) {
+      logger.error('Fehler beim Prüfen des aktuellen Fensters:', error);
+      return false;
+    }
+  }
+
+  /**
    * Öffnet Admin-Dashboard in Tauri WebviewWindow
    */
   private async openAdminInTauri(opts?: OpenAdminOptions): Promise<void> {
@@ -126,12 +148,10 @@ class WindowService {
     });
 
     // Error Handler für Fenster-Ereignisse
-    await adminWindow.once('tauri://error', (error) => {
+    adminWindow.once('tauri://error', (error) => {
       logger.error('Fehler beim Erstellen des Admin-Fensters:', error);
-      toaster.create({
-        title: 'Fehler',
+      toast.error('Fehler', {
         description: 'Das Admin-Fenster konnte nicht erstellt werden.',
-        type: 'error',
       });
     });
   }
@@ -141,33 +161,36 @@ class WindowService {
    */
   private openAdminInBrowser(): void {
     const adminUrl = '/admin-login';
-    const windowFeatures = 'noopener,noreferrer';
 
-    const newWindow = window.open(adminUrl, '_blank', windowFeatures);
+    try {
+      const newWindow = window.open(adminUrl, '_blank');
 
-    if (!newWindow) {
-      // Popup-Blocker oder andere Einschränkung
-      logger.warn(
-        'Fenster konnte nicht geöffnet werden - möglicherweise durch Popup-Blocker verhindert',
-      );
-      toaster.create({
-        title: 'Hinweis',
-        description:
-          'Bitte erlauben Sie Pop-ups für diese Seite, um das Admin-Dashboard zu öffnen.',
-        type: 'warning',
-      });
+      if (newWindow === null) {
+        logger.warn(
+          'Fenster konnte nicht geöffnet werden - möglicherweise durch Popup-Blocker verhindert',
+        );
+        toast.warning('Hinweis', {
+          description: 'Das Admin-Dashboard wird im aktuellen Fenster geöffnet.',
+        });
 
-      // Fallback: Navigation in aktuellem Tab
+        window.location.href = adminUrl;
+      } else {
+        // Neutralize window.opener to prevent reverse-tabnabbing
+        newWindow.opener = null;
+        logger.log('Admin-Dashboard in neuem Tab geöffnet');
+      }
+    } catch (error) {
+      logger.error('Fehler beim Öffnen des neuen Tabs:', error);
       window.location.href = adminUrl;
     }
   }
 }
 
 // Singleton-Instanz exportieren
-export const windowService = new WindowService();
+const service = new WindowService();
 
-// Convenience-Funktionen exportieren
-export const openAdmin = (opts?: OpenAdminOptions) => windowService.openAdmin(opts);
-export const focusAdmin = () => windowService.focusAdmin();
-export const closeAdmin = () => windowService.closeAdmin();
-export const isAdminOpen = () => windowService.isAdminOpen();
+export const openAdminWindow = (opts?: OpenAdminOptions) => service.openAdmin(opts);
+export const focusAdminWindow = () => service.focusAdmin();
+export const closeAdminWindow = () => service.closeAdmin();
+export const isAdminWindowOpen = () => service.isAdminOpen();
+export const isInAdminWindow = () => service.isInAdminWindow();

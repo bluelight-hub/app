@@ -1,6 +1,7 @@
-import { Box, Container, Flex, Spacer, VStack } from '@chakra-ui/react';
-import { SystemStatus } from '../atoms/system-status.atom';
 import type { ReactNode } from 'react';
+import { Container } from '@/components/atoms/container.atom';
+
+import { cn } from '@/utils/cn.ts';
 
 /**
  * Layout-Template für Dashboard-Seiten
@@ -10,24 +11,31 @@ import type { ReactNode } from 'react';
  */
 interface DashboardLayoutProps {
   children: ReactNode;
-  maxWidth?: 'sm' | 'md' | 'lg' | 'xl' | '2xl' | 'full';
+  maxWidth?: 'sm' | 'md' | 'lg' | 'xl' | '2xl' | '3xl' | '4xl' | '5xl' | '6xl' | '7xl' | 'full';
   padding?: number;
+  className?: string;
 }
 
-export function DashboardLayout({ children, maxWidth = 'lg', padding = 8 }: DashboardLayoutProps) {
+export function DashboardLayout({ children, maxWidth = 'lg', padding = 8, className }: DashboardLayoutProps) {
+  const paddingClasses = {
+    4: 'py-4',
+    6: 'py-6',
+    8: 'py-8',
+    10: 'py-10',
+    12: 'py-12',
+  };
+
   return (
-    <Box minH="100vh" bg="bg.canvas">
-      <Container maxW={`container.${maxWidth}`} py={padding}>
-        <VStack gap={8} align="stretch">
-          {/* System Status Header */}
-          <Flex align="center" minH="32px">
-            <Spacer />
-            <SystemStatus />
-          </Flex>
+    <div className={cn('min-h-screen bg-gray-50 dark:bg-gray-900', className)}>
+      <Container maxWidth={maxWidth} className={cn(paddingClasses[padding as keyof typeof paddingClasses] || 'py-8')}>
+        <div className="flex flex-col gap-8">
+          <div className="flex min-h-[32px] items-center">
+            <div className="flex-1" />
+          </div>
 
           {children}
-        </VStack>
+        </div>
       </Container>
-    </Box>
+    </div>
   );
 }

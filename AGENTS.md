@@ -32,7 +32,7 @@
 - API access: NEVER hand-roll helpers. Use generated clients in `packages/shared/client/` via
   `packages/frontend/src/api/`.
 - Forms/State/Timing: Use TanStack Form (+ Zod), TanStack Store, and TanStack Pacer.
-- UI: Chakra UI v3 only; do not mix CSS frameworks. Prefer official components and theme tokens.
+- UI: Tailwindcss; do not mix CSS frameworks. Prefer official components and theme tokens.
 - Docs: arc42 lives under `docs/architecture/`; update ADRs in `docs/architecture/adr/` with architectural changes.
 
 ## MCP Integration
@@ -40,10 +40,7 @@
 - Serena: Symbol-basierte Navigation statt Ganzdatei-Reads; nutze `mcp__serena__get_symbols_overview`, `find_symbol`,
   `find_referencing_symbols` vor Refactors; für präzise Edits `replace_symbol_body`.
 - Context7: Vor Einsatz/Update externer Libs offizielle Doku holen (`mcp__context7__resolve-library-id` →
-  `mcp__context7__get-library-docs`); relevant: NestJS, Prisma, React, Chakra, TanStack, Zod.
-- Chakra MCP: UI-Implementierungen mit `mcp__chakra-ui__get_theme`, `mcp__chakra-ui__get_component_props`,
-  `mcp__chakra-ui__get_component_example`, Migration-Check `mcp__chakra-ui__v2_to_v3_code_review`, Komponentenliste
-  `mcp__chakra-ui__list_components`.
+  `mcp__context7__get-library-docs`); relevant: NestJS, Prisma, React, Tailwind, HeadlessUI, TanStack, Zod.
 
 ## Testing Guidelines
 
