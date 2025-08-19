@@ -9,9 +9,9 @@ import {
 import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
 import { PrismaService } from '@/prisma/prisma.service';
-import { User, UserRole } from '@prisma/client';
-import { RegisterUserDto } from './dto/register-user.dto';
-import { LoginUserDto } from './dto/login-user.dto';
+import { User } from '@prisma/client';
+import { AuthRequestDto } from './dto/auth-request.dto';
+import { AuthResponseDto } from './dto/auth-response.dto';
 import { AdminSetupDto } from './dto/admin-setup.dto';
 import { ValidatedUser } from './strategies/jwt.strategy';
 import * as bcrypt from 'bcrypt';
@@ -34,83 +34,84 @@ export class AuthService {
   ) {}
 
   /**
-   * Registriert einen neuen Benutzer
+   * Unified Auth - Kombiniert Login und automatische Registrierung
    *
-   * @param dto - Registrierungsdaten
-   * @returns Der erstellte Benutzer
-   * @throws ConflictException wenn der Benutzername bereits existiert
-   */
-  async register(dto: RegisterUserDto): Promise<User> {
-    try {
-      const { user, isFirstUser } = await this.prisma.$transaction(async (tx) => {
-        // Check if username already exists within the transaction
-        const existingUser = await tx.user.findUnique({
-          where: { username: dto.username },
-        });
-
-        if (existingUser) {
-          throw new ConflictException('Benutzername bereits vergeben');
-        }
-
-        // Check if this is the first user
-        const userCount = await tx.user.count();
-        const isFirstUser = userCount === 0;
-
-        // Create the user
-        return {
-          user: await tx.user.create({
-            data: {
-              username: dto.username,
-              role: isFirstUser ? UserRole.SUPER_ADMIN : UserRole.USER,
-            },
-          }),
-          isFirstUser,
-        };
-      });
-
-      if (isFirstUser) {
-        this.logger.warn(`🦁 Erster Benutzer registriert: ${user.username} (SUPER_ADMIN)`);
-      } else {
-        this.logger.debug(`⭐ Neuer Benutzer registriert: ${user.username} (USER)`);
-      }
-
-      return user;
-    } catch (error) {
-      // Handle Prisma unique constraint violation
-      if (error.code === 'P2002' && error.meta?.target?.includes('username')) {
-        throw new ConflictException('Benutzername bereits vergeben');
-      }
-      // Re-throw other errors
-      throw error;
-    }
-  }
-
-  /**
-   * Meldet einen Benutzer an
+   * Logik:
+   * 1. Benutzer existiert + hat Passwort (Admin) → Passwort prüfen
+   * 2. Benutzer existiert + kein Passwort (Normal) → Sofort einloggen
+   * 3. Benutzer existiert nicht → Automatisch anlegen ohne Passwort
    *
-   * @param dto - Anmeldedaten
-   * @returns Der angemeldete Benutzer
-   * @throws NotFoundException wenn der Benutzer nicht existiert
+   * @param dto - Auth Request mit Username und optionalem Passwort
+   * @returns Auth Response mit Token und User-Info
+   * @throws UnauthorizedException bei falschen Admin-Credentials
    */
-  async login(dto: LoginUserDto): Promise<User> {
+  async unifiedAuth(dto: AuthRequestDto): Promise<AuthResponseDto> {
     const user = await this.prisma.user.findUnique({
       where: { username: dto.username },
     });
 
-    if (!user) {
-      this.logger.warn(`🔍 Anmeldeversuch mit unbekanntem Benutzernamen: ${dto.username}`);
-      throw new NotFoundException('Benutzer nicht gefunden');
+    // 1) USER EXISTIERT
+    if (user) {
+      // Admin-Account mit Passwort → Vergleich durchführen
+      if (user.passwordHash) {
+        const valid = await bcrypt.compare(dto.password ?? '', user.passwordHash);
+        if (!valid) {
+          // Generische Fehlermeldung für Sicherheit
+          this.logger.warn(`🚫 Auth fehlgeschlagen für Admin: ${dto.username}`);
+          throw new UnauthorizedException('Ungültige Zugangsdaten');
+        }
+        this.logger.debug(`✅ Admin-Login erfolgreich: ${user.username}`);
+      } else {
+        // Normale Accounts haben kein Passwort → sofort akzeptieren
+        this.logger.debug(`🔑 User-Login erfolgreich: ${user.username}`);
+      }
+
+      // Update lastLoginAt
+      await this.prisma.user.update({
+        where: { id: user.id },
+        data: { lastLoginAt: new Date() },
+      });
+
+      // Sanitize user data (remove passwordHash)
+      const { passwordHash: _, ...sanitizedUser } = user;
+
+      return {
+        accessToken: this.signAccessToken(user),
+        refreshToken: this.signRefreshToken(user),
+        isNewUser: false,
+        user: sanitizedUser,
+      };
     }
 
-    // Update lastLoginAt
-    await this.prisma.user.update({
-      where: { id: user.id },
-      data: { lastLoginAt: new Date() },
-    });
+    // 2) USER EXISTIERT NICHT → automatisch anlegen (ohne Passwort)
+    try {
+      const newUser = await this.prisma.user.create({
+        data: {
+          username: dto.username,
+          passwordHash: null, // explizit null für normale User
+          role: 'USER', // Neue User sind immer normale USER
+        },
+      });
 
-    this.logger.debug(`🔑 Benutzer angemeldet: ${user.username} (Rolle: ${user.role})`);
+      this.logger.log(`⭐ Neuer Benutzer automatisch angelegt: ${newUser.username}`);
 
-    return user;
+      // Sanitize user data
+      const { passwordHash: _, ...sanitizedUser } = newUser;
+
+      return {
+        accessToken: this.signAccessToken(newUser),
+        refreshToken: this.signRefreshToken(newUser),
+        isNewUser: true,
+        user: sanitizedUser,
+      };
+    } catch (error) {
+      // Handle race condition wenn zwei Requests gleichzeitig denselben User anlegen
+      if (error.code === 'P2002' && error.meta?.target?.includes('username')) {
+        // Retry login da User jetzt existiert
+        return this.unifiedAuth(dto);
+      }
+      throw error;
+    }
   }
 
   /**

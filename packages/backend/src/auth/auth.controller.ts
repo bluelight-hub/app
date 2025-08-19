@@ -15,8 +15,11 @@ import {
 } from '@nestjs/common';
 import { ApiCookieAuth, ApiOkResponse, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { ConfigService } from '@nestjs/config';
+import { Throttle } from '@nestjs/throttler';
 import { Request, Response } from 'express';
 import { AuthService } from './auth.service';
+import { AuthRequestDto } from './dto/auth-request.dto';
+import { AuthResponseDto } from './dto/auth-response.dto';
 import { RegisterUserDto } from './dto/register-user.dto';
 import { LoginUserDto } from './dto/login-user.dto';
 import { AdminSetupDto } from './dto/admin-setup.dto';
@@ -72,11 +75,60 @@ export class AuthController {
    * @param res - Express Response für Cookie-Verwaltung
    * @returns Der erstellte Benutzer
    */
+  /**
+   * Unified Auth - Kombiniert Login und automatische Registrierung
+   *
+   * Wenn der Benutzer existiert:
+   * - Mit Passwort (Admin): Passwort wird geprüft
+   * - Ohne Passwort (Normal): Sofortiger Login
+   *
+   * Wenn der Benutzer nicht existiert:
+   * - Automatische Registrierung ohne Passwort
+   *
+   * @param dto - Auth Request mit Username und optionalem Passwort
+   * @param res - Express Response für Cookie-Verwaltung
+   * @returns Auth Response mit Token und User-Info
+   */
+  @Post('unified')
+  @HttpCode(HttpStatus.OK)
+  @Throttle({ default: { limit: 5, ttl: 60000 } }) // 5 Anfragen pro Minute
+  @ApiOperation({
+    summary: 'Unified Authentication',
+    description:
+      'Vereinheitlichter Endpunkt für Login und automatische Registrierung. Wenn der Benutzer nicht existiert, wird er automatisch angelegt.',
+  })
+  @ApiResponse({
+    status: HttpStatus.OK,
+    description: 'Authentifizierung erfolgreich',
+    type: AuthResponseDto,
+  })
+  @ApiResponse({
+    status: HttpStatus.UNAUTHORIZED,
+    description: 'Ungültige Zugangsdaten (nur für Admin-Accounts mit falschem Passwort)',
+  })
+  @ApiResponse({
+    status: HttpStatus.TOO_MANY_REQUESTS,
+    description: 'Zu viele Anfragen - bitte später erneut versuchen',
+  })
+  async unifiedAuth(
+    @Body() dto: AuthRequestDto,
+    @Res({ passthrough: true }) res: Response,
+  ): Promise<AuthResponseDto> {
+    const result = await this.authService.unifiedAuth(dto);
+
+    // Tokens als HTTP-Only Cookies setzen
+    const isProduction = this.configService.get<string>('NODE_ENV') === 'production';
+    setAuthCookies(res, result.accessToken, result.refreshToken, isProduction);
+
+    return result;
+  }
+
   @Post('register')
   @ApiOperation({
-    summary: 'Neuen Benutzer registrieren',
+    summary: '[DEPRECATED] Neuen Benutzer registrieren',
     description:
-      'Registriert einen neuen Benutzer ohne Passwort. Der erste Benutzer wird automatisch SUPER_ADMIN.',
+      'VERALTET: Bitte /auth/unified verwenden. Dieser Endpunkt leitet zur neuen unified auth weiter.',
+    deprecated: true,
   })
   @ApiResponse({
     status: HttpStatus.CREATED,
@@ -91,17 +143,20 @@ export class AuthController {
     @Body() dto: RegisterUserDto,
     @Res({ passthrough: true }) res: Response,
   ): Promise<UserResponseDto> {
-    const user = await this.authService.register(dto);
+    // Weiterleitung an unified auth
+    const authDto: AuthRequestDto = {
+      username: dto.username,
+    };
 
-    // JWT-Tokens generieren
-    const accessToken = this.authService.signAccessToken(user);
-    const refreshToken = this.authService.signRefreshToken(user);
+    const result = await this.authService.unifiedAuth(authDto);
 
     // Tokens als HTTP-Only Cookies setzen
     const isProduction = this.configService.get<string>('NODE_ENV') === 'production';
-    setAuthCookies(res, accessToken, refreshToken, isProduction);
+    setAuthCookies(res, result.accessToken, result.refreshToken, isProduction);
 
-    return UserResponseMapper.toUserResponseDto(user);
+    // Konvertiere AuthResponse zu UserResponse für Rückwärtskompatibilität
+    // result.user ist bereits ohne passwordHash, wir geben es direkt zurück
+    return result.user as UserResponseDto;
   }
 
   /**
@@ -116,8 +171,10 @@ export class AuthController {
   @Post('login')
   @HttpCode(HttpStatus.OK)
   @ApiOperation({
-    summary: 'Benutzer anmelden',
-    description: 'Meldet einen Benutzer nur mit Benutzernamen an (ohne Passwort)',
+    summary: '[DEPRECATED] Benutzer anmelden',
+    description:
+      'VERALTET: Bitte /auth/unified verwenden. Dieser Endpunkt leitet zur neuen unified auth weiter.',
+    deprecated: true,
   })
   @ApiResponse({
     status: HttpStatus.OK,
@@ -132,17 +189,20 @@ export class AuthController {
     @Body() dto: LoginUserDto,
     @Res({ passthrough: true }) res: Response,
   ): Promise<UserResponseDto> {
-    const user = await this.authService.login(dto);
+    // Weiterleitung an unified auth
+    const authDto: AuthRequestDto = {
+      username: dto.username,
+    };
 
-    // JWT-Tokens generieren
-    const accessToken = this.authService.signAccessToken(user);
-    const refreshToken = this.authService.signRefreshToken(user);
+    const result = await this.authService.unifiedAuth(authDto);
 
     // Tokens als HTTP-Only Cookies setzen
     const isProduction = this.configService.get<string>('NODE_ENV') === 'production';
-    setAuthCookies(res, accessToken, refreshToken, isProduction);
+    setAuthCookies(res, result.accessToken, result.refreshToken, isProduction);
 
-    return UserResponseMapper.toUserResponseDto(user);
+    // Konvertiere AuthResponse zu UserResponse für Rückwärtskompatibilität
+    // result.user ist bereits ohne passwordHash, wir geben es direkt zurück
+    return result.user as UserResponseDto;
   }
 
   /**
