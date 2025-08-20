@@ -20,11 +20,8 @@ import { Request, Response } from 'express';
 import { AuthService } from './auth.service';
 import { AuthRequestDto } from './dto/auth-request.dto';
 import { AuthResponseDto } from './dto/auth-response.dto';
-import { RegisterUserDto } from './dto/register-user.dto';
-import { LoginUserDto } from './dto/login-user.dto';
 import { AdminSetupDto } from './dto/admin-setup.dto';
 import { AdminStatusDto } from './dto/admin-status.dto';
-import { UserResponseDto } from './dto/user-response.dto';
 import { AuthCheckResponseDto } from './dto/auth-check-response.dto';
 import { AdminLoginResponseDto } from './dto/admin-login-response.dto';
 import { AdminSetupResponseDto } from './dto/admin-setup-response.dto';
@@ -116,93 +113,13 @@ export class AuthController {
   ): Promise<AuthResponseDto> {
     const result = await this.authService.unifiedAuth(dto);
 
-    // Tokens als HTTP-Only Cookies setzen
+    // Tokens extrahieren und als HTTP-Only Cookies setzen
+    const { accessToken, refreshToken, ...responseDto } = result;
     const isProduction = this.configService.get<string>('NODE_ENV') === 'production';
-    setAuthCookies(res, result.accessToken, result.refreshToken, isProduction);
+    setAuthCookies(res, accessToken, refreshToken, isProduction);
 
-    return result;
-  }
-
-  @Post('register')
-  @ApiOperation({
-    summary: '[DEPRECATED] Neuen Benutzer registrieren',
-    description:
-      'VERALTET: Bitte /auth/unified verwenden. Dieser Endpunkt leitet zur neuen unified auth weiter.',
-    deprecated: true,
-  })
-  @ApiResponse({
-    status: HttpStatus.CREATED,
-    description: 'Benutzer erfolgreich registriert',
-    type: UserResponseDto,
-  })
-  @ApiResponse({
-    status: HttpStatus.CONFLICT,
-    description: 'Benutzername bereits vergeben',
-  })
-  async register(
-    @Body() dto: RegisterUserDto,
-    @Res({ passthrough: true }) res: Response,
-  ): Promise<UserResponseDto> {
-    // Weiterleitung an unified auth
-    const authDto: AuthRequestDto = {
-      username: dto.username,
-    };
-
-    const result = await this.authService.unifiedAuth(authDto);
-
-    // Tokens als HTTP-Only Cookies setzen
-    const isProduction = this.configService.get<string>('NODE_ENV') === 'production';
-    setAuthCookies(res, result.accessToken, result.refreshToken, isProduction);
-
-    // Konvertiere AuthResponse zu UserResponse für Rückwärtskompatibilität
-    // result.user ist bereits ohne passwordHash, wir geben es direkt zurück
-    return result.user as UserResponseDto;
-  }
-
-  /**
-   * Meldet einen Benutzer an
-   *
-   * Die Anmeldung erfolgt nur mit dem Benutzernamen, ohne Passwort.
-   *
-   * @param dto - Anmeldedaten
-   * @param res - Express Response für Cookie-Verwaltung
-   * @returns Der angemeldete Benutzer
-   */
-  @Post('login')
-  @HttpCode(HttpStatus.OK)
-  @ApiOperation({
-    summary: '[DEPRECATED] Benutzer anmelden',
-    description:
-      'VERALTET: Bitte /auth/unified verwenden. Dieser Endpunkt leitet zur neuen unified auth weiter.',
-    deprecated: true,
-  })
-  @ApiResponse({
-    status: HttpStatus.OK,
-    description: 'Erfolgreich angemeldet',
-    type: UserResponseDto,
-  })
-  @ApiResponse({
-    status: HttpStatus.NOT_FOUND,
-    description: 'Benutzer nicht gefunden',
-  })
-  async login(
-    @Body() dto: LoginUserDto,
-    @Res({ passthrough: true }) res: Response,
-  ): Promise<UserResponseDto> {
-    // Weiterleitung an unified auth
-    const authDto: AuthRequestDto = {
-      username: dto.username,
-    };
-
-    const result = await this.authService.unifiedAuth(authDto);
-
-    // Tokens als HTTP-Only Cookies setzen
-    const isProduction = this.configService.get<string>('NODE_ENV') === 'production';
-    setAuthCookies(res, result.accessToken, result.refreshToken, isProduction);
-
-    // Konvertiere AuthResponse zu UserResponse für Rückwärtskompatibilität
-    // result.user ist bereits ohne passwordHash, wir geben es direkt zurück
-    return result.user as UserResponseDto;
+    // Nur DTO-konforme Daten zurückgeben (ohne Tokens)
+    return responseDto;
   }
 
   /**
@@ -415,7 +332,7 @@ export class AuthController {
       }
 
       const payload = await this.authService.verifyAccessToken(token);
-      const user = await this.authService.findUserById(payload.sub);
+      const user = await this.authService.findUserById(payload.userId);
 
       if (!user) {
         return {

@@ -3,8 +3,8 @@ import { milliseconds } from 'date-fns';
 import type {
   AdminPasswordDto,
   AdminSetupDto,
-  LoginUserDto,
-  RegisterUserDto,
+  AuthRequestDto,
+  AuthResponseDto,
 } from '@bluelight-hub/shared/dist';
 import { QUERY_KEYS } from '@/queryKeys.ts';
 import { api } from '@/api/api.ts';
@@ -53,8 +53,9 @@ export const useAuth = () => {
       await queryClient.invalidateQueries({ queryKey: QUERY_KEYS.auth.queryKey });
     },
   });
-  const loginMutation = useMutation<any, Error, LoginUserDto>({
-    mutationFn: (loginUserDto: LoginUserDto) => api.auth().authControllerLogin({ loginUserDto }),
+  const unifiedAuthMutation = useMutation<AuthResponseDto, Error, AuthRequestDto>({
+    mutationFn: (authRequestDto: AuthRequestDto) =>
+      api.auth().authControllerUnifiedAuth({ authRequestDto }),
     onSuccess: () => {
       void authCheckQuery.refetch();
     },
@@ -62,13 +63,6 @@ export const useAuth = () => {
   const loginAdminMutation = useMutation<any, Error, AdminPasswordDto>({
     mutationFn: (adminPasswordDto: AdminPasswordDto) =>
       api.auth().authControllerAdminLogin({ adminPasswordDto }),
-    onSuccess: () => {
-      void authCheckQuery.refetch();
-    },
-  });
-  const registerMutation = useMutation<any, Error, RegisterUserDto>({
-    mutationFn: (registerUserDto: RegisterUserDto) =>
-      api.auth().authControllerRegister({ registerUserDto }),
     onSuccess: () => {
       void authCheckQuery.refetch();
     },
@@ -90,9 +84,8 @@ export const useAuth = () => {
     isAdminAuthenticated: authCheckQuery.data?.isAdminAuthenticated,
     logoutAdmin: logoutAdminMutation,
     logout: logoutMutation,
-    login: loginMutation,
+    unifiedAuth: unifiedAuthMutation,
     loginAdmin: loginAdminMutation,
-    register: registerMutation,
     adminSetup: adminSetupMutation,
     adminStatus: adminStatusQuery.isFetched
       ? {

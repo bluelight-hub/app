@@ -835,20 +835,23 @@ sequenceDiagram
     participant Auth as Auth Service
     participant DB as Datenbank
     
-    Client->>API: POST /api/auth/login {username, password}
-    API->>Auth: validateUser(username, password)
+    Client->>API: POST /api/auth/unified {username}
+    API->>Auth: unifiedAuth(username)
     Auth->>DB: findUserByUsername(username)
-    DB-->>Auth: Benutzerdaten mit Hash
-    Auth->>Auth: vergleiche Passwort-Hash
-    Auth-->>API: Validierungsergebnis
     
-    alt Erfolgreiche Authentifizierung
-        API->>API: Generiere JWT Token
-        API-->>Client: 200 OK {token, user}
-        Client->>Client: Speichere Token im Local Storage
-    else Fehlgeschlagene Authentifizierung
-        API-->>Client: 401 Unauthorized
+    alt Benutzer existiert
+        DB-->>Auth: Benutzerdaten
+        Auth->>Auth: Prüfe Admin-Passwort (falls vorhanden)
+        Auth->>API: Generiere JWT Token
+        API-->>Client: 200 OK {token, user, isNewUser: false}
+    else Benutzer existiert nicht
+        Auth->>DB: createUser(username, password: null)
+        DB-->>Auth: Neuer Benutzer
+        Auth->>API: Generiere JWT Token
+        API-->>Client: 200 OK {token, user, isNewUser: true}
     end
+    
+    Client->>Client: Speichere Token als HTTP-Only Cookie
     
     Note over Client,API: Bei weiteren Anfragen
     

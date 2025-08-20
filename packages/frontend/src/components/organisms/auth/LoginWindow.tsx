@@ -3,7 +3,7 @@ import { useNavigate } from '@tanstack/react-router';
 import { toast } from 'sonner';
 import { LoginTab } from './LoginTab';
 import { RegisterTab } from './RegisterTab';
-import type { RegisterUserDto } from '@bluelight-hub/shared/client';
+import type { AuthRequestDto } from '@bluelight-hub/shared/client';
 import { useAuth } from '@/hooks/useAuth';
 import { getApiErrorMessage } from '@/utils/apiErrorHandler';
 import { Heading } from '@/components/atoms/heading.atom';
@@ -25,16 +25,18 @@ export type Props = Record<string, never>;
  */
 export function LoginWindow(_props: Props) {
   const navigate = useNavigate();
-  const { user, isLoading, login, register } = useAuth();
+  const { user, isLoading, unifiedAuth } = useAuth();
 
   const loginUser = useCallback(
     (username: string) => {
-      login.mutate(
+      unifiedAuth.mutate(
         { username },
         {
-          onSuccess: async () => {
-            toast.success('Anmeldung erfolgreich', {
-              description: 'Sie wurden erfolgreich angemeldet.',
+          onSuccess: async (response) => {
+            const successMessage = response.isNewUser ? 'Willkommen! Ihr Account wurde erfolgreich erstellt.' : 'Sie wurden erfolgreich angemeldet.';
+
+            toast.success('Erfolgreich', {
+              description: successMessage,
             });
 
             await navigate({ to: '/' });
@@ -49,15 +51,17 @@ export function LoginWindow(_props: Props) {
         },
       );
     },
-    [login, navigate],
+    [unifiedAuth, navigate],
   );
 
   const registerUser = useCallback(
-    (registerData: RegisterUserDto) => {
-      register.mutate(registerData, {
-        onSuccess: async () => {
-          toast.success('Registrierung erfolgreich', {
-            description: 'Ihr Account wurde erfolgreich erstellt.',
+    (registerData: AuthRequestDto) => {
+      unifiedAuth.mutate(registerData, {
+        onSuccess: async (response) => {
+          const successMessage = response.isNewUser ? 'Ihr Account wurde erfolgreich erstellt.' : 'Sie wurden erfolgreich angemeldet.';
+
+          toast.success('Erfolgreich', {
+            description: successMessage,
           });
 
           await navigate({ to: '/' });
@@ -71,7 +75,7 @@ export function LoginWindow(_props: Props) {
         },
       });
     },
-    [register, navigate],
+    [unifiedAuth, navigate],
   );
 
   useEffect(() => {
@@ -84,11 +88,11 @@ export function LoginWindow(_props: Props) {
   const tabItems = [
     {
       label: 'Anmelden',
-      content: <LoginTab onSubmit={(username) => loginUser(username)} isLoading={login.isPending} error={login.error ?? null} />,
+      content: <LoginTab onSubmit={(username) => loginUser(username)} isLoading={unifiedAuth.isPending} error={unifiedAuth.error ?? null} />,
     },
     {
       label: 'Registrieren',
-      content: <RegisterTab onSubmit={(username) => registerUser({ username })} isLoading={register.isPending} error={register.error ?? null} />,
+      content: <RegisterTab onSubmit={(username) => registerUser({ username })} isLoading={unifiedAuth.isPending} error={unifiedAuth.error ?? null} />,
     },
   ];
 

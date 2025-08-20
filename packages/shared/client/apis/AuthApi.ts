@@ -21,12 +21,11 @@ import type {
   AdminStatusDto,
   AdminTokenVerificationDto,
   AuthCheckResponseDto,
-  LoginUserDto,
+  AuthRequestDto,
+  AuthResponseDto,
   LogoutResponseDto,
   PublicUsersResponseDto,
   RefreshResponseDto,
-  RegisterUserDto,
-  UserResponseDto,
 } from '../models/index';
 import {
   AdminLoginResponseDtoFromJSON,
@@ -43,18 +42,16 @@ import {
   AdminTokenVerificationDtoToJSON,
   AuthCheckResponseDtoFromJSON,
   AuthCheckResponseDtoToJSON,
-  LoginUserDtoFromJSON,
-  LoginUserDtoToJSON,
+  AuthRequestDtoFromJSON,
+  AuthRequestDtoToJSON,
+  AuthResponseDtoFromJSON,
+  AuthResponseDtoToJSON,
   LogoutResponseDtoFromJSON,
   LogoutResponseDtoToJSON,
   PublicUsersResponseDtoFromJSON,
   PublicUsersResponseDtoToJSON,
   RefreshResponseDtoFromJSON,
   RefreshResponseDtoToJSON,
-  RegisterUserDtoFromJSON,
-  RegisterUserDtoToJSON,
-  UserResponseDtoFromJSON,
-  UserResponseDtoToJSON,
 } from '../models/index';
 
 export interface AuthControllerAdminLoginRequest {
@@ -65,12 +62,8 @@ export interface AuthControllerAdminSetupRequest {
   adminSetupDto: AdminSetupDto;
 }
 
-export interface AuthControllerLoginRequest {
-  loginUserDto: LoginUserDto;
-}
-
-export interface AuthControllerRegisterRequest {
-  registerUserDto: RegisterUserDto;
+export interface AuthControllerUnifiedAuthRequest {
+  authRequestDto: AuthRequestDto;
 }
 
 /**
@@ -322,53 +315,6 @@ export class AuthApi extends runtime.BaseAPI {
   }
 
   /**
-   * Meldet einen Benutzer nur mit Benutzernamen an (ohne Passwort)
-   * Benutzer anmelden
-   */
-  async authControllerLoginRaw(
-    requestParameters: AuthControllerLoginRequest,
-    initOverrides?: RequestInit | runtime.InitOverrideFunction,
-  ): Promise<runtime.ApiResponse<UserResponseDto>> {
-    if (requestParameters['loginUserDto'] == null) {
-      throw new runtime.RequiredError(
-        'loginUserDto',
-        'Required parameter "loginUserDto" was null or undefined when calling authControllerLogin().',
-      );
-    }
-
-    const queryParameters: any = {};
-
-    const headerParameters: runtime.HTTPHeaders = {};
-
-    headerParameters['Content-Type'] = 'application/json';
-
-    const response = await this.request(
-      {
-        path: `/api/auth/login`,
-        method: 'POST',
-        headers: headerParameters,
-        query: queryParameters,
-        body: LoginUserDtoToJSON(requestParameters['loginUserDto']),
-      },
-      initOverrides,
-    );
-
-    return new runtime.JSONApiResponse(response, (jsonValue) => UserResponseDtoFromJSON(jsonValue));
-  }
-
-  /**
-   * Meldet einen Benutzer nur mit Benutzernamen an (ohne Passwort)
-   * Benutzer anmelden
-   */
-  async authControllerLogin(
-    requestParameters: AuthControllerLoginRequest,
-    initOverrides?: RequestInit | runtime.InitOverrideFunction,
-  ): Promise<UserResponseDto> {
-    const response = await this.authControllerLoginRaw(requestParameters, initOverrides);
-    return await response.value();
-  }
-
-  /**
    * Meldet den Benutzer ab und löscht alle Authentifizierungs-Cookies
    * Benutzer abmelden
    */
@@ -443,17 +389,17 @@ export class AuthApi extends runtime.BaseAPI {
   }
 
   /**
-   * Registriert einen neuen Benutzer ohne Passwort. Der erste Benutzer wird automatisch SUPER_ADMIN.
-   * Neuen Benutzer registrieren
+   * Vereinheitlichter Endpunkt für Login und automatische Registrierung. Wenn der Benutzer nicht existiert, wird er automatisch angelegt.
+   * Unified Authentication
    */
-  async authControllerRegisterRaw(
-    requestParameters: AuthControllerRegisterRequest,
+  async authControllerUnifiedAuthRaw(
+    requestParameters: AuthControllerUnifiedAuthRequest,
     initOverrides?: RequestInit | runtime.InitOverrideFunction,
-  ): Promise<runtime.ApiResponse<UserResponseDto>> {
-    if (requestParameters['registerUserDto'] == null) {
+  ): Promise<runtime.ApiResponse<AuthResponseDto>> {
+    if (requestParameters['authRequestDto'] == null) {
       throw new runtime.RequiredError(
-        'registerUserDto',
-        'Required parameter "registerUserDto" was null or undefined when calling authControllerRegister().',
+        'authRequestDto',
+        'Required parameter "authRequestDto" was null or undefined when calling authControllerUnifiedAuth().',
       );
     }
 
@@ -465,27 +411,27 @@ export class AuthApi extends runtime.BaseAPI {
 
     const response = await this.request(
       {
-        path: `/api/auth/register`,
+        path: `/api/auth/unified`,
         method: 'POST',
         headers: headerParameters,
         query: queryParameters,
-        body: RegisterUserDtoToJSON(requestParameters['registerUserDto']),
+        body: AuthRequestDtoToJSON(requestParameters['authRequestDto']),
       },
       initOverrides,
     );
 
-    return new runtime.JSONApiResponse(response, (jsonValue) => UserResponseDtoFromJSON(jsonValue));
+    return new runtime.JSONApiResponse(response, (jsonValue) => AuthResponseDtoFromJSON(jsonValue));
   }
 
   /**
-   * Registriert einen neuen Benutzer ohne Passwort. Der erste Benutzer wird automatisch SUPER_ADMIN.
-   * Neuen Benutzer registrieren
+   * Vereinheitlichter Endpunkt für Login und automatische Registrierung. Wenn der Benutzer nicht existiert, wird er automatisch angelegt.
+   * Unified Authentication
    */
-  async authControllerRegister(
-    requestParameters: AuthControllerRegisterRequest,
+  async authControllerUnifiedAuth(
+    requestParameters: AuthControllerUnifiedAuthRequest,
     initOverrides?: RequestInit | runtime.InitOverrideFunction,
-  ): Promise<UserResponseDto> {
-    const response = await this.authControllerRegisterRaw(requestParameters, initOverrides);
+  ): Promise<AuthResponseDto> {
+    const response = await this.authControllerUnifiedAuthRaw(requestParameters, initOverrides);
     return await response.value();
   }
 

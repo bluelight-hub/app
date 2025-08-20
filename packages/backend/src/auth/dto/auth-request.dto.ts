@@ -1,4 +1,4 @@
-import { IsString, IsNotEmpty, IsOptional, MinLength, MaxLength, Matches } from 'class-validator';
+import { IsNotEmpty, IsOptional, IsString, Matches, MaxLength, MinLength } from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
 
 /**
@@ -31,13 +31,4 @@ export class AuthRequestDto {
   @IsString()
   @IsOptional()
   password?: string;
-
-  @ApiProperty({
-    description: 'E-Mail-Adresse (optional, für neue Benutzer)',
-    example: 'max@example.com',
-    required: false,
-  })
-  @IsString()
-  @IsOptional()
-  email?: string;
 }
