@@ -184,6 +184,7 @@ dev-debug.log
 # Task files
 tasks.json
 tasks/
+!.claude/commands/BMad/tasks
 
 # Cursor MCP (enthält API-Schlüssel)
 .cursor/mcp.json
