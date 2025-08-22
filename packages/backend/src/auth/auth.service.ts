@@ -228,38 +228,38 @@ export class AuthService {
   /**
    * Validiert Admin-Credentials
    *
-   * @param username - Admin-Benutzername
+   * @param userId - Admin-Benutzername
    * @param password - Admin-Passwort
    * @returns Der validierte Admin-User
    * @throws UnauthorizedException bei ungültigen Credentials
    */
-  async validateAdminCredentials(username: string, password: string): Promise<User> {
+  async validateAdminCredentials(userId: string, password: string): Promise<User> {
     const user = await this.prisma.user.findUnique({
-      where: { username },
+      where: { id: userId },
     });
 
     if (!user) {
-      this.logger.warn(`🚫 Admin-Login fehlgeschlagen: User nicht gefunden (${username})`);
+      this.logger.warn(`🚫 Admin-Login fehlgeschlagen: User nicht gefunden (${userId})`);
       throw new UnauthorizedException('Ungültige Admin-Zugangsdaten');
     }
 
     if (!isAdmin(user.role)) {
-      this.logger.warn(`🚫 Admin-Login fehlgeschlagen: Keine Admin-Rechte (${username})`);
+      this.logger.warn(`🚫 Admin-Login fehlgeschlagen: Keine Admin-Rechte (${user.username})`);
       throw new UnauthorizedException('Keine Admin-Berechtigung');
     }
 
     if (!user.passwordHash) {
-      this.logger.warn(`🚫 Admin-Login fehlgeschlagen: Kein Passwort gesetzt (${username})`);
+      this.logger.warn(`🚫 Admin-Login fehlgeschlagen: Kein Passwort gesetzt (${user.username})`);
       throw new UnauthorizedException('Admin-Account nicht korrekt konfiguriert');
     }
 
     const isValid = await bcrypt.compare(password, user.passwordHash);
     if (!isValid) {
-      this.logger.warn(`🚫 Admin-Login fehlgeschlagen: Falsches Passwort (${username})`);
+      this.logger.warn(`🚫 Admin-Login fehlgeschlagen: Falsches Passwort (${user.username})`);
       throw new UnauthorizedException('Ungültige Admin-Zugangsdaten');
     }
 
-    this.logger.log(`✅ Admin-Login erfolgreich: ${username}`);
+    this.logger.log(`✅ Admin-Login erfolgreich: ${user.username}`);
     return user;
   }
 

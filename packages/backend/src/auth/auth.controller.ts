@@ -13,7 +13,15 @@ import {
   UseGuards,
   VERSION_NEUTRAL,
 } from '@nestjs/common';
-import { ApiCookieAuth, ApiOkResponse, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
+import {
+  ApiCookieAuth,
+  ApiCreatedResponse,
+  ApiOkResponse,
+  ApiOperation,
+  ApiResponse,
+  ApiTags,
+  ApiUnauthorizedResponse,
+} from '@nestjs/swagger';
 import { ConfigService } from '@nestjs/config';
 import { Throttle } from '@nestjs/throttler';
 import { Request, Response } from 'express';
@@ -90,18 +98,20 @@ export class AuthController {
   @HttpCode(HttpStatus.OK)
   @Throttle({ default: { limit: 5, ttl: 60000 } }) // 5 Anfragen pro Minute
   @ApiOperation({
-    summary: 'Unified Authentication',
+    summary: 'Unified Login & Auto-Register',
     description:
       'Vereinheitlichter Endpunkt für Login und automatische Registrierung. Wenn der Benutzer nicht existiert, wird er automatisch angelegt.',
   })
-  @ApiResponse({
-    status: HttpStatus.OK,
-    description: 'Authentifizierung erfolgreich',
+  @ApiCreatedResponse({
+    description: 'Neuer User angelegt',
     type: AuthResponseDto,
   })
-  @ApiResponse({
-    status: HttpStatus.UNAUTHORIZED,
-    description: 'Ungültige Zugangsdaten (nur für Admin-Accounts mit falschem Passwort)',
+  @ApiOkResponse({
+    description: 'Erfolgreicher Login',
+    type: AuthResponseDto,
+  })
+  @ApiUnauthorizedResponse({
+    description: 'Ungültige Credentials',
   })
   @ApiResponse({
     status: HttpStatus.TOO_MANY_REQUESTS,
@@ -349,9 +359,9 @@ export class AuthController {
         try {
           // Verifiziere Admin-Token mit dem richtigen Secret
           const payload = await this.authService.verifyAdminToken(adminToken);
-          // Prüfe ob der Token gültig ist und der richtige Typ
+          // Prüfe ob der Token gültig ist und isAdmin true ist
           this.logger.log('Admin-Token verifiziert', { payload });
-          if (payload && payload.type === 'admin') {
+          if (payload && payload.isAdmin === true) {
             isAdminAuthenticated = true;
           } else {
             this.logger.warn(`⚠️ Invalid admin token: ${adminToken}`);
@@ -363,7 +373,7 @@ export class AuthController {
         }
       }
 
-      this.logger.log('Auth-Check ok', { user, isAdminAuthenticated });
+      this.logger.debug('Auth-Check ok', { user: user.username, isAdminAuthenticated });
       return {
         user: UserResponseMapper.toUserResponseDto(user),
         authenticated: true,

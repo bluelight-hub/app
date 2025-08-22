@@ -59,7 +59,7 @@ pnpm test:e2e:cov
 ### Einzelne Test-Datei
 
 ```bash
-pnpm test:e2e -- auth/register.e2e-spec.ts
+pnpm test:e2e -- auth/unified-auth.e2e-spec.ts
 ```
 
 ## Test-Struktur
@@ -67,7 +67,10 @@ pnpm test:e2e -- auth/register.e2e-spec.ts
 ```
 test/
 ├── auth/                    # Auth-bezogene E2E-Tests
-│   └── register.e2e-spec.ts
+│   ├── unified-auth.e2e-spec.ts  # Unified Auth Tests
+│   ├── admin-login.e2e-spec.ts
+│   ├── admin-setup.e2e-spec.ts
+│   └── admin-verify.e2e-spec.ts
 ├── utils/                   # Test-Utilities
 │   ├── test-app.factory.ts  # NestJS App Factory
 │   ├── test-auth.utils.ts   # Auth Helpers

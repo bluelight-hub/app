@@ -9,32 +9,36 @@ import * as jwt from 'jsonwebtoken';
  */
 export class TestAuthUtils {
   /**
-   * Registriert einen neuen Benutzer
+   * Unified Auth - Login oder automatische Registrierung
    *
    * @param app NestJS Test-Applikation
-   * @param username Benutzername für die Registrierung
+   * @param username Benutzername für Auth
+   * @param password Optionales Passwort (für Admin-Accounts)
    * @returns Response-Objekt mit User-Daten und Tokens
    */
-  static async register(app: INestApplication, username: string) {
-    return request(app.getHttpServer())
-      .post('/api/auth/register')
-      .send({ username })
-      .expect((res) => {
-        if (res.status !== 201 && res.status !== 409) {
-          throw new Error(`Expected 201 or 409, got ${res.status}`);
-        }
-      });
+  static async unifiedAuth(app: INestApplication, username: string, password?: string) {
+    const payload: any = { username };
+    if (password) {
+      payload.password = password;
+    }
+
+    return request(app.getHttpServer()).post('/api/auth/unified').send(payload).expect(200);
   }
 
   /**
-   * Meldet einen Benutzer an
-   *
-   * @param app NestJS Test-Applikation
-   * @param username Benutzername für die Anmeldung
-   * @returns Response-Objekt mit User-Daten und Tokens
+   * @deprecated Use unifiedAuth instead
+   * Legacy-Wrapper für Kompatibilität
+   */
+  static async register(app: INestApplication, username: string) {
+    return this.unifiedAuth(app, username);
+  }
+
+  /**
+   * @deprecated Use unifiedAuth instead
+   * Legacy-Wrapper für Kompatibilität
    */
   static async login(app: INestApplication, username: string) {
-    return request(app.getHttpServer()).post('/api/auth/login').send({ username }).expect(200);
+    return this.unifiedAuth(app, username);
   }
 
   /**
@@ -123,26 +127,19 @@ export class TestAuthUtils {
    *
    * @param app NestJS Test-Applikation
    * @param username Benutzername (optional, default: zufällig)
+   * @param password Optionales Passwort (für Admin-Accounts)
    * @returns Objekt mit User-Daten und Tokens
    */
   static async createAuthenticatedUser(
     app: INestApplication,
     username: string = `test_user_${Date.now()}`,
+    password?: string,
   ) {
-    const response = await this.register(app, username);
-
-    if (response.status === 409) {
-      // Benutzer existiert bereits, versuche Login
-      const loginResponse = await this.login(app, username);
-      return {
-        user: loginResponse.body, // Response body IS the user (UserResponseDto)
-        tokens: this.extractCookies(loginResponse),
-        response: loginResponse,
-      };
-    }
+    const response = await this.unifiedAuth(app, username, password);
 
     return {
-      user: response.body, // Response body IS the user (UserResponseDto)
+      user: response.body.user, // Extract user from AuthResponseDto
+      isNewUser: response.body.isNewUser,
       tokens: this.extractCookies(response),
       response,
     };
