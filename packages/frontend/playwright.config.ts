@@ -1,10 +1,15 @@
+import * as path from 'node:path';
+import { fileURLToPath } from 'node:url';
 import { defineConfig, devices } from '@playwright/test';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 /**
  * Read environment variables from file.
  * https://github.com/motdotla/dotenv
  */
-// require('dotenv').config({ path: path.resolve(__dirname, '.env') });
+// import('dotenv').then(dotenv => dotenv.config({ path: new URL('.env', import.meta.url).pathname }));
 
 /**
  * See https://playwright.dev/docs/test-configuration.
@@ -15,19 +20,26 @@ export default defineConfig({
   fullyParallel: true,
   /* Fail the build on CI if you accidentally left test.only in the source code. */
   forbidOnly: !!process.env.CI,
-  /* Retry on CI only */
-  retries: process.env.CI ? 2 : 0,
+  /* Retry on CI only - increased to 3 for flaky test detection */
+  retries: process.env.CI ? 3 : 0,
+  /* Maximum time for the whole test run */
+  maxFailures: process.env.CI ? 5 : undefined,
   /* Opt out of parallel tests on CI. */
   workers: process.env.CI ? 1 : undefined,
   /* Reporter to use. See https://playwright.dev/docs/test-reporters */
-  reporter: 'html',
+  reporter: process.env.CI ? 'list' : 'html',
+  /* Global timeout per test */
+  timeout: 30 * 1000,
+  /* Global setup and teardown for test containers */
+  globalSetup: path.join(__dirname, './e2e/setup/global-setup.ts'),
+  globalTeardown: path.join(__dirname, './e2e/setup/global-teardown.ts'),
   /* Shared settings for all the projects below. See https://playwright.dev/docs/api/class-testoptions. */
   use: {
     /* Base URL to use in actions like `await page.goto('/')`. */
     baseURL: 'http://localhost:3001',
 
     /* Collect trace when retrying the failed test. See https://playwright.dev/docs/trace-viewer */
-    trace: 'on-first-retry',
+    trace: 'retain-on-failure',
 
     /* Take screenshot on failure */
     screenshot: 'only-on-failure',
