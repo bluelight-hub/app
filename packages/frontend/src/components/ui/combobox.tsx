@@ -162,19 +162,6 @@ export function Combobox({
               'dark:border-gray-700 dark:bg-gray-800 dark:shadow-none',
             )}
           >
-            {allowCustomValue && query.length > 0 && !items.some((item) => item.label.toLowerCase() === query.toLowerCase()) && (
-              <ComboboxOption
-                value={{ value: query, label: query }}
-                className={cn(
-                  'cursor-default select-none px-3 py-2 text-gray-900',
-                  'data-[focus]:bg-primary-600 data-[focus]:text-white data-[focus]:outline-none',
-                  'dark:data-[focus]:bg-primary-500 dark:text-gray-300',
-                )}
-              >
-                <span className="block truncate">"{query}" (neu erstellen)</span>
-              </ComboboxOption>
-            )}
-
             {filteredItems.length === 0 && query !== '' ? (
               <div className="px-3 py-2 text-sm text-gray-500 dark:text-gray-400">{allowCustomValue ? `Keine Übereinstimmung für "${query}"` : 'Keine Ergebnisse gefunden'}</div>
             ) : (
@@ -191,6 +178,18 @@ export function Combobox({
                   <span className="block truncate">{item.label}</span>
                 </ComboboxOption>
               ))
+            )}
+            {allowCustomValue && query.length > 0 && !items.some((item) => item.label.toLowerCase() === query.toLowerCase()) && (
+              <ComboboxOption
+                value={{ value: query, label: query }}
+                className={cn(
+                  'cursor-default select-none px-3 py-2 text-gray-900',
+                  'data-[focus]:bg-primary-600 data-[focus]:text-white data-[focus]:outline-none',
+                  'dark:data-[focus]:bg-primary-500 dark:text-gray-300',
+                )}
+              >
+                <span className="block truncate">"{query}" (neu erstellen)</span>
+              </ComboboxOption>
             )}
           </ComboboxOptions>
         </div>
