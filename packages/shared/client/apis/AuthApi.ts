@@ -390,7 +390,7 @@ export class AuthApi extends runtime.BaseAPI {
 
   /**
    * Vereinheitlichter Endpunkt für Login und automatische Registrierung. Wenn der Benutzer nicht existiert, wird er automatisch angelegt.
-   * Unified Authentication
+   * Unified Login & Auto-Register
    */
   async authControllerUnifiedAuthRaw(
     requestParameters: AuthControllerUnifiedAuthRequest,
@@ -425,7 +425,7 @@ export class AuthApi extends runtime.BaseAPI {
 
   /**
    * Vereinheitlichter Endpunkt für Login und automatische Registrierung. Wenn der Benutzer nicht existiert, wird er automatisch angelegt.
-   * Unified Authentication
+   * Unified Login & Auto-Register
    */
   async authControllerUnifiedAuth(
     requestParameters: AuthControllerUnifiedAuthRequest,
