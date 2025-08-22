@@ -199,3 +199,10 @@ tasks/
 /old-projects/
 /.serena/cache
 /packages/backend/coverage-e2e/
+
+# Dev Tools
+.bmad-core/
+
+# Debug files
+*-debug.png
+auth-page-debug.png
