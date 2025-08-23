@@ -10,6 +10,7 @@ import { Button } from '@/components/atoms/button.atom';
 import { Combobox } from '@/components/ui/combobox';
 import { cn } from '@/utils/cn';
 import { api } from '@/api/api.ts';
+import { QUERY_KEYS } from '@/queryKeys.ts';
 
 // Zod Schema für Validierung
 const authSchema = z.object({
@@ -35,7 +36,7 @@ export function UnifiedAuthForm({ onSubmit, isLoading = false, error, className 
 
   // Lade verfügbare Benutzer
   const { data: usersData } = useQuery({
-    queryKey: ['auth', 'users'],
+    queryKey: QUERY_KEYS.auth.queries.users,
     queryFn: async () => {
       const response = await api.auth().authControllerGetPublicUsers();
       return response.users;

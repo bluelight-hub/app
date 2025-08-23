@@ -47,7 +47,7 @@ import { useQuery } from '@tanstack/react-query';
 
 export const HealthCheck = () => {
   const { data, isError, isLoading } = useQuery({
-    queryKey: ['health'],
+    queryKey: QUERY_KEYS.health,
     queryFn: () => api.health.healthControllerCheck(),
     refetchInterval: 30000,
   });

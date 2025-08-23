@@ -205,7 +205,7 @@ describe('AuthService', () => {
 
       expect(mockPrismaService.user.findUnique).toHaveBeenCalledWith({
         where: {
-          username: 'admin',
+          id: 'admin',
         },
       });
       expect(bcrypt.compare).toHaveBeenCalledWith('correct_password', 'hashed_password');
@@ -221,7 +221,7 @@ describe('AuthService', () => {
 
       expect(mockPrismaService.user.findUnique).toHaveBeenCalledWith({
         where: {
-          username: 'nonexistent',
+          id: 'nonexistent',
         },
       });
       expect(bcrypt.compare).not.toHaveBeenCalled();
@@ -258,7 +258,7 @@ describe('AuthService', () => {
 
       expect(mockPrismaService.user.findUnique).toHaveBeenCalledWith({
         where: {
-          username: 'admin',
+          id: 'admin',
         },
       });
       expect(result).toEqual(superAdminUser);
