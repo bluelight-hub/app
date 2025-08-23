@@ -231,7 +231,7 @@ jobs:
       - name: Run TypeScript compiler check
         run: |
           pnpm install --frozen-lockfile
-          pnpm typecheck || true
+          pnpm format:check
 
       # Additional quality checks can be added here
       # - SonarCloud, CodeQL, etc.
