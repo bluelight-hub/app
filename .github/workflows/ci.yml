@@ -18,7 +18,7 @@ jobs:
 
     strategy:
       matrix:
-        node-version: [18, 20]
+        node-version: [22, 24]
 
     services:
       postgres:
@@ -148,7 +148,7 @@ jobs:
         run: pnpm --filter @bluelight-hub/frontend test:e2e:auth
 
       # Upload test artifacts on failure
-      - uses: actions/upload-artifact@v3
+      - uses: actions/upload-artifact@v4
         if: failure()
         with:
           name: playwright-traces-${{ matrix.node-version }}
