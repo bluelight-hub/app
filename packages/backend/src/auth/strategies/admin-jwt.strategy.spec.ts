@@ -1,15 +1,24 @@
 import { UnauthorizedException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { Test, type TestingModule } from '@nestjs/testing';
-import { UserRole } from '@prisma/client';
+import { type User, UserRole } from '@prisma/client';
+import type { Request } from 'express';
 import { AuthService } from '../auth.service';
 import { type AdminJwtPayload, AdminJwtStrategy } from './admin-jwt.strategy';
 
 describe('AdminJwtStrategy', () => {
   let strategy: AdminJwtStrategy;
   let authService: AuthService;
+  let mockReq: Partial<Request>;
 
   beforeEach(async () => {
+    mockReq = {
+      cookies: {
+        accessToken: 'valid-access-token',
+        adminToken: 'valid-admin-token',
+      },
+    };
+
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         AdminJwtStrategy,
@@ -27,6 +36,7 @@ describe('AdminJwtStrategy', () => {
               username: 'testuser',
               role: UserRole.ADMIN,
             }),
+            verifyAccessToken: jest.fn().mockResolvedValue(true),
           },
         },
       ],
@@ -46,7 +56,7 @@ describe('AdminJwtStrategy', () => {
         exp: Date.now() / 1000 + 900, // 15 minutes
       };
 
-      const result = await strategy.validate(payload);
+      const result = await strategy.validate(mockReq as Request, payload);
 
       expect(result).toEqual({
         userId: 'user-id',
@@ -64,7 +74,7 @@ describe('AdminJwtStrategy', () => {
         exp: Date.now() / 1000 + 900,
       };
 
-      const result = await strategy.validate(payload);
+      const result = await strategy.validate(mockReq as Request, payload);
 
       expect(result).toEqual({
         userId: 'user-id',
@@ -82,8 +92,8 @@ describe('AdminJwtStrategy', () => {
         exp: Date.now() / 1000 + 900,
       };
 
-      await expect(strategy.validate(payload)).rejects.toThrow(UnauthorizedException);
-      await expect(strategy.validate(payload)).rejects.toThrow('Token is not an admin token');
+      await expect(strategy.validate(mockReq as Request, payload)).rejects.toThrow(UnauthorizedException);
+      await expect(strategy.validate(mockReq as Request, payload)).rejects.toThrow('Token is not an admin token');
     });
 
     it('should throw UnauthorizedException when role is missing', async () => {
@@ -94,8 +104,8 @@ describe('AdminJwtStrategy', () => {
         exp: Date.now() / 1000 + 900,
       } as AdminJwtPayload;
 
-      await expect(strategy.validate(payload)).rejects.toThrow(UnauthorizedException);
-      await expect(strategy.validate(payload)).rejects.toThrow('Token is not an admin token');
+      await expect(strategy.validate(mockReq as Request, payload)).rejects.toThrow(UnauthorizedException);
+      await expect(strategy.validate(mockReq as Request, payload)).rejects.toThrow('Token is not an admin token');
     });
 
     it('should throw UnauthorizedException when isAdmin is undefined', async () => {
@@ -106,8 +116,8 @@ describe('AdminJwtStrategy', () => {
         exp: Date.now() / 1000 + 900,
       } as AdminJwtPayload; // Force type to test undefined case
 
-      await expect(strategy.validate(payload)).rejects.toThrow(UnauthorizedException);
-      await expect(strategy.validate(payload)).rejects.toThrow('Token is not an admin token');
+      await expect(strategy.validate(mockReq as Request, payload)).rejects.toThrow(UnauthorizedException);
+      await expect(strategy.validate(mockReq as Request, payload)).rejects.toThrow('Token is not an admin token');
     });
 
     it('should throw UnauthorizedException when user no longer exists', async () => {
@@ -122,7 +132,7 @@ describe('AdminJwtStrategy', () => {
         exp: Date.now() / 1000 + 900,
       };
 
-      await expect(strategy.validate(payload)).rejects.toThrow(new UnauthorizedException('User no longer exists'));
+      await expect(strategy.validate(mockReq as Request, payload)).rejects.toThrow(new UnauthorizedException('User no longer exists'));
     });
 
     it('should throw UnauthorizedException when user is no longer an admin', async () => {
@@ -148,7 +158,7 @@ describe('AdminJwtStrategy', () => {
         exp: Date.now() / 1000 + 900,
       };
 
-      await expect(strategy.validate(payload)).rejects.toThrow(new UnauthorizedException('User is no longer an admin'));
+      await expect(strategy.validate(mockReq as Request, payload)).rejects.toThrow(new UnauthorizedException('User is no longer an admin'));
     });
   });
 });

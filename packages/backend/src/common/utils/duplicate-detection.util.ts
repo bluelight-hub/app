@@ -87,7 +87,7 @@ export class DuplicateDetectionUtil {
         throw existing.error;
       }
 
-      return existing.result;
+      return existing.result as T;
     }
 
     try {

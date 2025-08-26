@@ -42,7 +42,8 @@ export class PrismaHealthIndicator {
 
       return this.healthIndicatorService.check(key).up();
     } catch (error) {
-      return this.healthIndicatorService.check(key).down(error instanceof Error ? error : new Error(String(error)));
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      return this.healthIndicatorService.check(key).down(errorMessage);
     }
   }
 
@@ -60,7 +61,8 @@ export class PrismaHealthIndicator {
         connected: connectionStatus !== null,
       });
     } catch (error) {
-      return this.healthIndicatorService.check(key).down(error instanceof Error ? error : new Error(String(error)));
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      return this.healthIndicatorService.check(key).down(errorMessage);
     }
   }
 }

@@ -105,7 +105,7 @@ export class TransformInterceptor<T = unknown> implements NestInterceptor<T, Tra
       map((responseData): TransformedResponse<T> => {
         // Wenn data bereits das korrekte Format hat, nicht nochmal wrappen
         if (isTransformedResponse(responseData)) {
-          return responseData;
+          return responseData as TransformedResponse<T>;
         }
 
         // Basis-Transformation
@@ -121,7 +121,7 @@ export class TransformInterceptor<T = unknown> implements NestInterceptor<T, Tra
         // Prüfe auf paginierte Daten
         if (isPaginatedData(responseData)) {
           const { items, total, page = 1, limit = 20 } = responseData;
-          transformed.data = items;
+          transformed.data = items as T;
           transformed.pagination = {
             page,
             limit,
@@ -156,13 +156,13 @@ export class TransformInterceptor<T = unknown> implements NestInterceptor<T, Tra
 
           // Wenn es auch ein data-Feld gibt, verwende das
           if ('data' in responseData) {
-            transformed.data = (responseData as ResponseWithMessage).data;
+            transformed.data = (responseData as ResponseWithMessage).data as T;
           } else {
             // Entferne message aus dem data-Objekt
             const { message: _, ...restData } = responseData as Record<string, unknown> & {
               message?: string;
             };
-            transformed.data = restData;
+            transformed.data = restData as T;
           }
         }
 

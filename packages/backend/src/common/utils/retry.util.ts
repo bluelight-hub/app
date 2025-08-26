@@ -44,7 +44,7 @@ export const DEFAULT_RETRY_CONFIG: RetryConfig = {
   isRetryable: (error: unknown) => {
     // Check PostgreSQL error codes
     const errorWithCode = error as { code?: string; message?: string };
-    if (errorWithCode.code && Object.values(POSTGRES_RETRYABLE_ERRORS).includes(errorWithCode.code)) {
+    if (errorWithCode.code && Object.values(POSTGRES_RETRYABLE_ERRORS).includes(errorWithCode.code as any)) {
       return true;
     }
 

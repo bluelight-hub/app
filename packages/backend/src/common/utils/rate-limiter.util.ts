@@ -210,7 +210,7 @@ export class RateLimiter {
   private inMemoryFallback: InMemoryStorageAdapter;
 
   constructor(
-    private readonly config: RateLimiterConfig,
+    public readonly config: RateLimiterConfig,
     redisService?: RedisService,
   ) {
     // Setup storage adapter
@@ -546,13 +546,14 @@ export function generateSecureRateLimitKey(req: RequestLike): string {
   factors.push(`fp:${fingerprintHash}`);
 
   // 4. IP address as fallback (still useful but not primary)
-  const ip = req.ip || req.headers['x-forwarded-for']?.split(',')[0] || req.connection.remoteAddress || 'no-ip';
+  const xForwardedFor = req.headers['x-forwarded-for'];
+  const ip = req.ip || (typeof xForwardedFor === 'string' ? xForwardedFor.split(',')[0] : xForwardedFor?.[0]) || req.connection.remoteAddress || 'no-ip';
   factors.push(`ip:${ip}`);
 
   // 5. API key or OAuth client ID (for API endpoints)
   if (req.headers['x-api-key']) {
     factors.push(`api:${req.headers['x-api-key']}`);
-  } else if (req.headers.authorization?.startsWith('Bearer ')) {
+  } else if (typeof req.headers.authorization === 'string' && req.headers.authorization.startsWith('Bearer ')) {
     // Extract token identifier (first 8 chars of token)
     const token = req.headers.authorization.substring(7, 15);
     factors.push(`token:${token}`);
