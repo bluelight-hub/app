@@ -1,5 +1,5 @@
 import { Global, Module } from '@nestjs/common';
-import { ConfigModule } from '@/config/config.module';
+import { ConfigModule } from '@nestjs/config';
 import { PrismaModule } from '@/prisma/prisma.module';
 import { AppConfigService } from './services/app-config.service';
 import { RedisService } from './services/redis.service';

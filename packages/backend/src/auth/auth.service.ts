@@ -1,10 +1,10 @@
 import { ConflictException, ForbiddenException, Injectable, Logger, NotFoundException, UnauthorizedException } from '@nestjs/common';
-import type { ConfigService } from '@nestjs/config';
-import type { JwtService } from '@nestjs/jwt';
+import { ConfigService } from '@nestjs/config';
+import { JwtService } from '@nestjs/jwt';
 import type { User } from '@prisma/client';
 import * as bcrypt from 'bcrypt';
 import { adminRoles, isAdmin } from '@/auth/utils/auth.utils';
-import type { PrismaService } from '@/prisma/prisma.service';
+import { PrismaService } from '@/prisma/prisma.service';
 import type { AdminSetupDto } from './dto/admin-setup.dto';
 import type { AuthRequestDto } from './dto/auth-request.dto';
 import type { AuthResponseDto } from './dto/auth-response.dto';
@@ -165,7 +165,9 @@ export class AuthService {
    */
   async verifyAdminToken(token: string): Promise<{ userId: string; username: string; isAdmin: boolean }> {
     const config = this.getAdminTokenConfig();
-    const decoded = await this.jwtService.verify(token, { secret: config.secret });
+    const decoded = await this.jwtService.verify(token, {
+      secret: config.secret,
+    });
     if (!decoded.isAdmin) throw new UnauthorizedException('Kein gültiges Admin-Token');
     return decoded;
   }
@@ -440,7 +442,10 @@ export class AuthService {
    */
   private isUniqueConstraintError(error: unknown): boolean {
     if (error && typeof error === 'object' && 'code' in error && 'meta' in error) {
-      const prismaError = error as { code: string; meta?: { target?: string[] } };
+      const prismaError = error as {
+        code: string;
+        meta?: { target?: string[] };
+      };
       return prismaError.code === 'P2002' && (prismaError.meta?.target?.includes('username') ?? false);
     }
     return false;

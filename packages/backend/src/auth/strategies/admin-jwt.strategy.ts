@@ -1,14 +1,15 @@
 import { Injectable, UnauthorizedException } from '@nestjs/common';
-import type { ConfigService } from '@nestjs/config';
+import { ConfigService } from '@nestjs/config';
 import { PassportStrategy } from '@nestjs/passport';
 import type { UserRole } from '@prisma/client';
 import type { Request } from 'express';
 import { ExtractJwt, Strategy } from 'passport-jwt';
+import { AuthService } from '../auth.service';
+import { isAdmin } from '../utils/auth.utils';
+
 /**
  * Admin JWT-Payload-Interface
  */
-import type { AuthService } from '../auth.service';
-import { isAdmin } from '../utils/auth.utils';
 
 export interface AdminJwtPayload {
   sub: string;
@@ -74,7 +75,9 @@ export class AdminJwtStrategy extends PassportStrategy(Strategy, 'admin-jwt') {
     }
 
     // For testing, check if isAdmin is present in payload (new format) or check role (old format)
-    const payloadWithIsAdmin = payload as AdminJwtPayload & { isAdmin?: boolean };
+    const payloadWithIsAdmin = payload as AdminJwtPayload & {
+      isAdmin?: boolean;
+    };
 
     // Accept both formats: new tokens with isAdmin field, and legacy check based on role
     if (!payloadWithIsAdmin.isAdmin && (!payload.role || !isAdmin(payload.role))) {

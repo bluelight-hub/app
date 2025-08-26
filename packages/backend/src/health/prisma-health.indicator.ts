@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
-import type { HealthIndicatorResult, HealthIndicatorService } from '@nestjs/terminus';
-import type { PrismaService } from '@/prisma/prisma.service';
+import { type HealthIndicatorResult, HealthIndicatorService } from '@nestjs/terminus';
+import { PrismaService } from '@/prisma/prisma.service';
 
 /**
  * Health Indicator für Prisma-Datenbankverbindungen

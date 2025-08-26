@@ -1,9 +1,9 @@
 import * as net from 'node:net';
 import * as os from 'node:os';
 import { Controller, Get, VERSION_NEUTRAL } from '@nestjs/common';
-import { type DiskHealthIndicator, HealthCheck, type HealthCheckResult, type HealthCheckService, type HealthIndicatorResult, type MemoryHealthIndicator } from '@nestjs/terminus';
+import { DiskHealthIndicator, HealthCheck, type HealthCheckResult, HealthCheckService, type HealthIndicatorResult, MemoryHealthIndicator } from '@nestjs/terminus';
 import { SkipTransform } from '@/common/decorators/skip-transform.decorator';
-import type { PrismaHealthIndicator } from './prisma-health.indicator';
+import { PrismaHealthIndicator } from './prisma-health.indicator';
 
 /**
  * Konstanten für Health-Checks

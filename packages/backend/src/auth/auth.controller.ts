@@ -1,12 +1,12 @@
 import { Body, Controller, Get, HttpCode, HttpStatus, Logger, NotFoundException, Post, Req, Res, UnauthorizedException, UseGuards, VERSION_NEUTRAL } from '@nestjs/common';
-import type { ConfigService } from '@nestjs/config';
+import { ConfigService } from '@nestjs/config';
 import { ApiCookieAuth, ApiOkResponse, ApiOperation, ApiResponse, ApiTags, ApiUnauthorizedResponse } from '@nestjs/swagger';
 import { Throttle } from '@nestjs/throttler';
 import type { Request, Response } from 'express';
 import { toAdminLoginResponseDto, toAdminSetupResponseDto, toAdminStatusResponseDto, toAdminTokenVerificationDto, toLogoutResponseDto, toRefreshResponseDto, toUserResponseDto } from '@/auth/mappers';
 import { SkipTransform } from '@/common/decorators/skip-transform.decorator';
-import type { AppConfigService } from '@/common/services/app-config.service';
-import type { AuthService } from './auth.service';
+import { AppConfigService } from '@/common/services/app-config.service';
+import { AuthService } from './auth.service';
 import { clearAdminCookie, clearAuthCookies, setAdminCookie, setAuthCookies } from './auth.utils';
 import { CurrentUser } from './decorators/current-user.decorator';
 import { AdminLoginResponseDto } from './dto/admin-login-response.dto';
@@ -339,7 +339,10 @@ export class AuthController {
         }
       }
 
-      this.logger.debug('Auth-Check ok', { user: user.username, isAdminAuthenticated });
+      this.logger.debug('Auth-Check ok', {
+        user: user.username,
+        isAdminAuthenticated,
+      });
       return {
         user: toUserResponseDto(user),
         authenticated: true,
