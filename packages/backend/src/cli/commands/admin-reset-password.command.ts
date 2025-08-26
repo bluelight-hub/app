@@ -46,9 +46,7 @@ export class AdminResetPasswordCommand {
     }
 
     if (!isAdmin(user.role)) {
-      this.logger.error(
-        `❌ Fehler: Benutzer "${username}" ist kein Administrator (Rolle: ${user.role}).`,
-      );
+      this.logger.error(`❌ Fehler: Benutzer "${username}" ist kein Administrator (Rolle: ${user.role}).`);
       throw new Error(`Benutzer "${username}" ist kein Administrator (Rolle: ${user.role}).`);
     }
 
@@ -57,13 +55,10 @@ export class AdminResetPasswordCommand {
     const saltRounds = parseInt(configuredSaltRounds, 10);
 
     // Validate salt rounds and provide fallback (capped at 14 for security)
-    const validSaltRounds =
-      !Number.isNaN(saltRounds) && saltRounds > 0 && saltRounds <= 14 ? saltRounds : 10;
+    const validSaltRounds = !Number.isNaN(saltRounds) && saltRounds > 0 && saltRounds <= 14 ? saltRounds : 10;
 
     if (saltRounds !== validSaltRounds) {
-      this.logger.warn(
-        `Invalid BCRYPT_SALT_ROUNDS value: ${configuredSaltRounds}. Must be between 1-14 (recommended: 10-12). Using: ${validSaltRounds}`,
-      );
+      this.logger.warn(`Invalid BCRYPT_SALT_ROUNDS value: ${configuredSaltRounds}. Must be between 1-14 (recommended: 10-12). Using: ${validSaltRounds}`);
     }
 
     const hash = await bcrypt.hash(newPassword, validSaltRounds);

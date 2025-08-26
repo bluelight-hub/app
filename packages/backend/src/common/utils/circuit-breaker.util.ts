@@ -74,9 +74,7 @@ export class CircuitBreaker {
       const openDuration = now - (this.openedAt?.getTime() || 0);
 
       if (openDuration < this.config.openStateDuration) {
-        throw new CircuitBreakerOpenError(
-          `Circuit breaker ${this.name} is OPEN. Retry after ${Math.ceil((this.config.openStateDuration - openDuration) / 1000)} seconds`,
-        );
+        throw new CircuitBreakerOpenError(`Circuit breaker ${this.name} is OPEN. Retry after ${Math.ceil((this.config.openStateDuration - openDuration) / 1000)} seconds`);
       }
 
       // Transition to half-open

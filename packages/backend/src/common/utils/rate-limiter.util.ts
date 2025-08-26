@@ -256,9 +256,7 @@ export class RateLimiter {
       // Fallback to in-memory on Redis error
       if (this.storage.isAvailable()) {
         console.error('Rate limiter Redis error, falling back to in-memory:', error);
-        return this.inMemoryFallback
-          .incr(fullKey)
-          .then((count) => count <= this.config.maxRequests);
+        return this.inMemoryFallback.incr(fullKey).then((count) => count <= this.config.maxRequests);
       }
       throw error;
     }
@@ -279,14 +277,9 @@ export class RateLimiter {
       try {
         const storage = this.getActiveStorage();
         const windowStart = await storage.get(windowKey);
-        const retryAfter = windowStart
-          ? Math.ceil((parseInt(windowStart, 10) + this.config.windowMs - Date.now()) / 1000)
-          : 0;
+        const retryAfter = windowStart ? Math.ceil((parseInt(windowStart, 10) + this.config.windowMs - Date.now()) / 1000) : 0;
 
-        throw new RateLimitExceededError(
-          `Rate limit exceeded. Try again in ${retryAfter} seconds`,
-          retryAfter,
-        );
+        throw new RateLimitExceededError(`Rate limit exceeded. Try again in ${retryAfter} seconds`, retryAfter);
       } catch (error) {
         if (error instanceof RateLimitExceededError) throw error;
         throw new RateLimitExceededError('Rate limit exceeded', 0);
@@ -548,20 +541,12 @@ export function generateSecureRateLimitKey(req: RequestLike): string {
   ].join('|');
 
   // Hash the fingerprint to keep keys shorter
-  const fingerprintHash = crypto
-    .createHash('sha256')
-    .update(fingerprint)
-    .digest('hex')
-    .substring(0, 16); // Use first 16 chars of hash
+  const fingerprintHash = crypto.createHash('sha256').update(fingerprint).digest('hex').substring(0, 16); // Use first 16 chars of hash
 
   factors.push(`fp:${fingerprintHash}`);
 
   // 4. IP address as fallback (still useful but not primary)
-  const ip =
-    req.ip ||
-    req.headers['x-forwarded-for']?.split(',')[0] ||
-    req.connection.remoteAddress ||
-    'no-ip';
+  const ip = req.ip || req.headers['x-forwarded-for']?.split(',')[0] || req.connection.remoteAddress || 'no-ip';
   factors.push(`ip:${ip}`);
 
   // 5. API key or OAuth client ID (for API endpoints)
@@ -592,10 +577,7 @@ interface ResponseLike {
   setHeader(name: string, value: string | number): void;
 }
 
-export function createRateLimiterMiddleware(
-  config: RateLimiterConfig,
-  redisService?: RedisService,
-) {
+export function createRateLimiterMiddleware(config: RateLimiterConfig, redisService?: RedisService) {
   const limiter = new RateLimiter(config, redisService);
 
   return async (req: RequestLike, res: ResponseLike, next: NextFunction) => {

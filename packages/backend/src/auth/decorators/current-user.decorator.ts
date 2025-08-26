@@ -16,9 +16,7 @@ import type { ValidatedUser } from '../strategies/jwt.strategy';
  * }
  * ```
  */
-export const CurrentUser = createParamDecorator(
-  (_data: unknown, ctx: ExecutionContext): ValidatedUser => {
-    const request = ctx.switchToHttp().getRequest();
-    return request.user;
-  },
-);
+export const CurrentUser = createParamDecorator((_data: unknown, ctx: ExecutionContext): ValidatedUser => {
+  const request = ctx.switchToHttp().getRequest();
+  return request.user;
+});

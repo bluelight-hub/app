@@ -94,8 +94,7 @@ async function globalSetup(_config: FullConfig) {
   } else {
     console.log('ℹ️ Running in CI - using GitHub Actions services');
     // CI environment variables should be set by GitHub Actions
-    process.env.DATABASE_URL =
-      process.env.DATABASE_URL || 'postgresql://postgres:postgres@localhost:5432/bluelight_test';
+    process.env.DATABASE_URL = process.env.DATABASE_URL || 'postgresql://postgres:postgres@localhost:5432/bluelight_test';
     process.env.REDIS_URL = process.env.REDIS_URL || 'redis://localhost:6379';
   }
 

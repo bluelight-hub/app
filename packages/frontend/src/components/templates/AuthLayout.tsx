@@ -34,13 +34,13 @@ export function AuthLayout({ children, className }: AuthLayoutProps) {
   return (
     <div className={cn('login-background relative flex min-h-screen items-center justify-center overflow-hidden', className)}>
       {/* Background with blur effect */}
-      <div className="absolute inset-0 -z-20 bg-cover bg-center bg-no-repeat blur-md" style={backgroundStyle} />
+      <div className="-z-20 absolute inset-0 bg-center bg-cover bg-no-repeat blur-md" style={backgroundStyle} />
 
       {/* Background overlay */}
-      <div className="absolute inset-0 -z-10 bg-gradient-to-br from-blue-800/80 via-blue-800/40 to-red-600/30 dark:from-blue-900/40 dark:via-blue-900/20 dark:to-red-900/15" />
+      <div className="-z-10 absolute inset-0 bg-gradient-to-br from-blue-800/80 via-blue-800/40 to-red-600/30 dark:from-blue-900/40 dark:via-blue-900/20 dark:to-red-900/15" />
 
       {/* Dark Mode Switch */}
-      <div className="absolute right-6 top-6 z-10">
+      <div className="absolute top-6 right-6 z-10">
         <ColorModeButton />
       </div>
 

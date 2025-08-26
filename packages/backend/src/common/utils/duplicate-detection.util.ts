@@ -75,11 +75,7 @@ export class DuplicateDetectionUtil {
    * @param data Daten für Hash-Generierung
    * @returns Das Ergebnis der Operation
    */
-  async executeIdempotent<T>(
-    operationId: string,
-    operation: () => Promise<T>,
-    data: unknown,
-  ): Promise<T> {
+  async executeIdempotent<T>(operationId: string, operation: () => Promise<T>, data: unknown): Promise<T> {
     const hash = this.generateOperationHash(operationId, data);
     const existing = this.operationCache.get(hash);
 
@@ -222,9 +218,7 @@ export class DuplicateDetectionUtil {
     }
 
     // Älteste Einträge entfernen
-    const entries = Array.from(this.operationCache.entries()).sort(
-      ([, a], [, b]) => a.timestamp - b.timestamp,
-    );
+    const entries = Array.from(this.operationCache.entries()).sort(([, a], [, b]) => a.timestamp - b.timestamp);
 
     const toRemove = entries.slice(0, entries.length - this.config.maxCacheSize);
 

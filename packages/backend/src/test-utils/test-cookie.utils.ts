@@ -9,11 +9,7 @@ import type { Response } from 'express';
  * @param isProduction - Ob die App in Produktion läuft
  * @returns void
  */
-export function setAdminTokenCookie(
-  res: Response,
-  token: string,
-  isProduction: boolean = false,
-): void {
+export function setAdminTokenCookie(res: Response, token: string, isProduction: boolean = false): void {
   res.cookie('adminToken', token, {
     httpOnly: true,
     maxAge: milliseconds({ minutes: 15 }),

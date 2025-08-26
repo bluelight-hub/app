@@ -135,10 +135,7 @@ export function getUserIdFromToken(token: string): string | null {
  * @param usernames Array von Benutzernamen
  * @returns Array von Response-Objekten
  */
-export async function registerMultipleUsers(
-  app: INestApplication,
-  usernames: string[],
-): Promise<request.Response[]> {
+export async function registerMultipleUsers(app: INestApplication, usernames: string[]): Promise<request.Response[]> {
   return Promise.all(usernames.map((username) => unifiedAuth(app, username)));
 }
 
@@ -151,10 +148,7 @@ export async function registerMultipleUsers(
  * @returns Response-Objekt mit Admin-Token
  */
 export async function adminLogin(app: INestApplication, username: string, password: string) {
-  return request(app.getHttpServer())
-    .post('/api/auth/admin/login')
-    .send({ username, password })
-    .expect(200);
+  return request(app.getHttpServer()).post('/api/auth/admin/login').send({ username, password }).expect(200);
 }
 
 /**
@@ -165,16 +159,8 @@ export async function adminLogin(app: INestApplication, username: string, passwo
  * @param userCookie Cookie eines authentifizierten Users (erster User wird Admin)
  * @returns Response-Objekt
  */
-export async function adminSetup(
-  app: INestApplication,
-  setupData: { username: string; password: string; role?: string },
-  userCookie: string,
-) {
-  return request(app.getHttpServer())
-    .post('/api/auth/admin/setup')
-    .set('Cookie', userCookie)
-    .send(setupData)
-    .expect(201);
+export async function adminSetup(app: INestApplication, setupData: { username: string; password: string; role?: string }, userCookie: string) {
+  return request(app.getHttpServer()).post('/api/auth/admin/setup').set('Cookie', userCookie).send(setupData).expect(201);
 }
 
 /**
@@ -185,10 +171,7 @@ export async function adminSetup(
  * @returns Response-Objekt
  */
 export async function verifyAdminToken(app: INestApplication, adminToken: string) {
-  return request(app.getHttpServer())
-    .get('/api/auth/admin/verify')
-    .set('Cookie', `adminToken=${adminToken}`)
-    .expect(200);
+  return request(app.getHttpServer()).get('/api/auth/admin/verify').set('Cookie', `adminToken=${adminToken}`).expect(200);
 }
 
 /**
@@ -242,10 +225,7 @@ export async function logout(app: INestApplication, accessToken?: string) {
  * @param cookies Optionale Cookies (access + admin tokens)
  * @returns Response-Objekt mit Auth-Status
  */
-export async function checkAuthStatus(
-  app: INestApplication,
-  cookies?: { accessToken?: string; adminToken?: string },
-) {
+export async function checkAuthStatus(app: INestApplication, cookies?: { accessToken?: string; adminToken?: string }) {
   const req = request(app.getHttpServer()).get('/api/auth/check');
 
   if (cookies) {

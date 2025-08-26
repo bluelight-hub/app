@@ -166,7 +166,7 @@ export function AdminLogin() {
                       fullWidth
                       disabled={!canSubmit || isSubmitting}
                       loading={isSubmitting}
-                      className="bg-gradient-to-r from-red-500 to-red-600 shadow-lg shadow-red-500/25 transition-all hover:-translate-y-0.5 hover:shadow-xl hover:shadow-red-500/30 active:translate-y-0"
+                      className="hover:-translate-y-0.5 bg-gradient-to-r from-red-500 to-red-600 shadow-lg shadow-red-500/25 transition-all hover:shadow-red-500/30 hover:shadow-xl active:translate-y-0"
                     >
                       {isSubmitting ? 'Anmeldung...' : 'Sicher anmelden'}
                     </Button>

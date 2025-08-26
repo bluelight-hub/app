@@ -84,9 +84,7 @@ describe('Architecture Test: No Direct process.env Access', () => {
     }
 
     if (violations.length > 0) {
-      const errorMessage = violations
-        .map((v) => `\nFile: ${v.file}\n${v.violations.join('\n')}`)
-        .join('\n');
+      const errorMessage = violations.map((v) => `\nFile: ${v.file}\n${v.violations.join('\n')}`).join('\n');
 
       throw new Error(
         `Found direct process.env access in the following files. ` +
@@ -118,9 +116,7 @@ describe('Architecture Test: No Direct process.env Access', () => {
           allowedFile.includes('cli.module.ts');
 
         if (!isValid) {
-          throw new Error(
-            `File ${allowedFile} is in whitelist but doesn't seem to be a valid config file`,
-          );
+          throw new Error(`File ${allowedFile} is in whitelist but doesn't seem to be a valid config file`);
         }
       }
     }

@@ -44,7 +44,7 @@ export const UsersTable = ({ users, isLoading, onDelete }: UsersTableProps) => {
       }),
       columnHelper.accessor('id', {
         header: 'ID',
-        cell: (info) => <span className="font-mono text-sm text-gray-600 dark:text-gray-400">{info.getValue()}</span>,
+        cell: (info) => <span className="font-mono text-gray-600 text-sm dark:text-gray-400">{info.getValue()}</span>,
       }),
       columnHelper.display({
         id: 'actions',

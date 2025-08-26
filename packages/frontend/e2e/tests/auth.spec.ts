@@ -132,10 +132,7 @@ test.describe('Authentication Flow', () => {
           },
         }),
         headers: {
-          'Set-Cookie': [
-            `accessToken=mock-access-token; Path=/; HttpOnly; SameSite=Strict`,
-            `refreshToken=mock-refresh-token; Path=/; HttpOnly; SameSite=Strict`,
-          ].join(', '),
+          'Set-Cookie': [`accessToken=mock-access-token; Path=/; HttpOnly; SameSite=Strict`, `refreshToken=mock-refresh-token; Path=/; HttpOnly; SameSite=Strict`].join(', '),
         },
       });
     });

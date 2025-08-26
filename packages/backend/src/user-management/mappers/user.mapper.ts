@@ -7,9 +7,7 @@ import type { UserDto } from '../dto/user-management-response.dto';
  * Entfernt implizit sensitive Felder, indem nur explizit erlaubte Felder
  * in das DTO übernommen werden.
  */
-export function toUserDto(
-  user: Pick<User, 'id' | 'username' | 'role' | 'createdAt' | 'updatedAt'>,
-): UserDto {
+export function toUserDto(user: Pick<User, 'id' | 'username' | 'role' | 'createdAt' | 'updatedAt'>): UserDto {
   return {
     id: user.id,
     username: user.username,

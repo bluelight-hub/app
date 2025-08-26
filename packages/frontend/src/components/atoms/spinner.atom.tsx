@@ -50,7 +50,7 @@ function WaveSpinner({ size = 'md', className }: Omit<SpinnerProps, 'type'>) {
       {waves.map((index) => (
         <div
           key={index}
-          className={cn('animate-wave-clean bg-primary-600 dark:bg-primary-500 origin-center rounded-sm', config.width, config.height)}
+          className={cn('origin-center animate-wave-clean rounded-sm bg-primary-600 dark:bg-primary-500', config.width, config.height)}
           style={{
             animationDelay: `${index * 0.1}s`,
             // Initialer Filter-Zustand für sofortigen Effekt
@@ -124,7 +124,7 @@ function RingSpinner({ size = 'md', className }: Omit<SpinnerProps, 'type'>) {
   return (
     <div className={cn('relative', ringSize, className)}>
       <div className={cn('absolute inset-0 rounded-full border-2 border-gray-200 dark:border-gray-700', ringSize)} />
-      <div className={cn('border-t-primary-600 dark:border-t-primary-500 absolute inset-0 animate-spin rounded-full border-2', ringSize)} />
+      <div className={cn('absolute inset-0 animate-spin rounded-full border-2 border-t-primary-600 dark:border-t-primary-500', ringSize)} />
     </div>
   );
 }

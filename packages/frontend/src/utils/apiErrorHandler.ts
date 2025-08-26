@@ -65,15 +65,7 @@ const ERROR_MESSAGES: Record<number, Record<string, string>> = {
 export async function getApiErrorMessage(
   error: unknown,
   fallbackMessage: string,
-  context?:
-    | 'createUser'
-    | 'deleteUser'
-    | 'updateUser'
-    | 'adminSetup'
-    | 'adminLogin'
-    | 'userLogin'
-    | 'userRegister'
-    | 'userAuth',
+  context?: 'createUser' | 'deleteUser' | 'updateUser' | 'adminSetup' | 'adminLogin' | 'userLogin' | 'userRegister' | 'userAuth',
 ): Promise<string> {
   // Handle non-ResponseError cases
   if (!(error instanceof ResponseError)) {
@@ -119,14 +111,8 @@ export async function getApiErrorMessage(
         const lowerMessage = errorData.message.toLowerCase();
 
         if (status === 409) {
-          if (
-            lowerMessage.includes('duplicate') ||
-            lowerMessage.includes('unique') ||
-            lowerMessage.includes('exists')
-          ) {
-            return (
-              statusMessages.USER_EXISTS || statusMessages.DUPLICATE_ENTRY || statusMessages.default
-            );
+          if (lowerMessage.includes('duplicate') || lowerMessage.includes('unique') || lowerMessage.includes('exists')) {
+            return statusMessages.USER_EXISTS || statusMessages.DUPLICATE_ENTRY || statusMessages.default;
           }
         }
 
@@ -160,15 +146,7 @@ export async function getApiErrorMessage(
 function getContextSpecificMessage(
   status: number,
   errorData: ApiErrorResponse,
-  context:
-    | 'createUser'
-    | 'deleteUser'
-    | 'updateUser'
-    | 'adminSetup'
-    | 'adminLogin'
-    | 'userLogin'
-    | 'userRegister'
-    | 'userAuth',
+  context: 'createUser' | 'deleteUser' | 'updateUser' | 'adminSetup' | 'adminLogin' | 'userLogin' | 'userRegister' | 'userAuth',
 ): string | null {
   switch (context) {
     case 'createUser':

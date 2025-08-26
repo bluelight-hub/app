@@ -61,7 +61,7 @@ export const Dialog = ({ isOpen, onClose, children, className }: DialogProps) =>
 
 Dialog.Title = ({ children, className }: DialogTitleProps) => {
   return (
-    <DialogTitle as="h3" className={cn('text-lg font-semibold leading-6 text-gray-900 dark:text-white', className)}>
+    <DialogTitle as="h3" className={cn('font-semibold text-gray-900 text-lg leading-6 dark:text-white', className)}>
       {children}
     </DialogTitle>
   );
@@ -80,7 +80,7 @@ Dialog.CloseButton = ({ onClose }: { onClose: () => void }) => {
     <button
       type="button"
       onClick={onClose}
-      className="absolute right-4 top-4 rounded-lg p-1 text-gray-400 transition-colors hover:bg-gray-100 hover:text-gray-500 dark:hover:bg-gray-700 dark:hover:text-gray-300"
+      className="absolute top-4 right-4 rounded-lg p-1 text-gray-400 transition-colors hover:bg-gray-100 hover:text-gray-500 dark:hover:bg-gray-700 dark:hover:text-gray-300"
     >
       <PiX className="h-5 w-5" />
     </button>

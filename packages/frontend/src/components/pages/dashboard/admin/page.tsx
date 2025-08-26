@@ -59,7 +59,7 @@ export function AdminDashboard() {
       <Card padding="md">
         <div className="flex flex-col items-start gap-4">
           <div>
-            <Text className="text-lg font-semibold">Admin-Funktionen</Text>
+            <Text className="font-semibold text-lg">Admin-Funktionen</Text>
             <Text size="sm" color="muted" className="mt-1">
               Hier können Sie Benutzer verwalten, Einstellungen konfigurieren und mehr.
             </Text>

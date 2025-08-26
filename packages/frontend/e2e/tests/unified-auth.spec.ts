@@ -40,19 +40,14 @@ test.describe('Unified Auth Flow @auth', () => {
             message: 'Benutzer erfolgreich erstellt',
           }),
           headers: {
-            'Set-Cookie': [
-              `accessToken=mock_token; Path=/; HttpOnly; SameSite=Strict`,
-              `refreshToken=mock_refresh; Path=/; HttpOnly; SameSite=Strict`,
-            ].join(', '),
+            'Set-Cookie': [`accessToken=mock_token; Path=/; HttpOnly; SameSite=Strict`, `refreshToken=mock_refresh; Path=/; HttpOnly; SameSite=Strict`].join(', '),
           },
         });
       }
     });
 
     // Use the correct placeholder text and wait pattern
-    const usernameInput = page.locator(
-      'input[placeholder="Benutzername eingeben oder auswählen..."]',
-    );
+    const usernameInput = page.locator('input[placeholder="Benutzername eingeben oder auswählen..."]');
     await usernameInput.click();
     await usernameInput.fill(username);
     await usernameInput.press('Tab');
@@ -95,19 +90,14 @@ test.describe('Unified Auth Flow @auth', () => {
             message: 'Erfolgreich angemeldet',
           }),
           headers: {
-            'Set-Cookie': [
-              `accessToken=mock_token; Path=/; HttpOnly; SameSite=Strict`,
-              `refreshToken=mock_refresh; Path=/; HttpOnly; SameSite=Strict`,
-            ].join(', '),
+            'Set-Cookie': [`accessToken=mock_token; Path=/; HttpOnly; SameSite=Strict`, `refreshToken=mock_refresh; Path=/; HttpOnly; SameSite=Strict`].join(', '),
           },
         });
       }
     });
 
     // Use the correct placeholder text and wait pattern
-    const usernameInput = page.locator(
-      'input[placeholder="Benutzername eingeben oder auswählen..."]',
-    );
+    const usernameInput = page.locator('input[placeholder="Benutzername eingeben oder auswählen..."]');
     await usernameInput.click();
     await usernameInput.fill(existingUsername);
     await usernameInput.press('Tab');
@@ -135,9 +125,7 @@ test.describe('Unified Auth Flow @auth', () => {
 
   test('Should validate username length (min 3 characters)', async ({ page }) => {
     // Try with short username
-    const usernameInput = page.locator(
-      'input[placeholder="Benutzername eingeben oder auswählen..."]',
-    );
+    const usernameInput = page.locator('input[placeholder="Benutzername eingeben oder auswählen..."]');
     await usernameInput.click();
     await usernameInput.fill('ab');
     await usernameInput.press('Tab');

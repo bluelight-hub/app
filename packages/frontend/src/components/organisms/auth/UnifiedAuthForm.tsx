@@ -104,7 +104,7 @@ export function UnifiedAuthForm({ onSubmit, isLoading = false, error, className 
 
       {error && (
         <div className="rounded-lg bg-red-50 p-4 dark:bg-red-900/20">
-          <p className="text-sm text-red-800 dark:text-red-200">{error.message || 'Ein Fehler ist aufgetreten. Bitte versuchen Sie es erneut.'}</p>
+          <p className="text-red-800 text-sm dark:text-red-200">{error.message || 'Ein Fehler ist aufgetreten. Bitte versuchen Sie es erneut.'}</p>
         </div>
       )}
     </form>

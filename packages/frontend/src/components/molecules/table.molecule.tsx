@@ -65,7 +65,7 @@ interface TableRowProps extends HTMLAttributes<HTMLTableRowElement> {
 
 export const TableRow = forwardRef<HTMLTableRowElement, TableRowProps>(({ className, children, ...props }, ref) => {
   return (
-    <tr ref={ref} className={cn('border-b transition-colors hover:bg-gray-50 data-[state=selected]:bg-gray-100 dark:hover:bg-gray-900 dark:data-[state=selected]:bg-gray-800', className)} {...props}>
+    <tr ref={ref} className={cn('border-b transition-colors hover:bg-gray-50 data-[state=selected]:bg-gray-100 dark:data-[state=selected]:bg-gray-800 dark:hover:bg-gray-900', className)} {...props}>
       {children}
     </tr>
   );
@@ -129,7 +129,7 @@ interface TableCaptionProps extends HTMLAttributes<HTMLTableCaptionElement> {
 
 export const TableCaption = forwardRef<HTMLTableCaptionElement, TableCaptionProps>(({ className, children, ...props }, ref) => {
   return (
-    <caption ref={ref} className={cn('mt-4 text-sm text-gray-500 dark:text-gray-400', className)} {...props}>
+    <caption ref={ref} className={cn('mt-4 text-gray-500 text-sm dark:text-gray-400', className)} {...props}>
       {children}
     </caption>
   );

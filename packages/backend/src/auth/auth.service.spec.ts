@@ -123,11 +123,7 @@ describe('AuthService', () => {
     };
 
     beforeEach(() => {
-      jest
-        .spyOn(bcrypt, 'hash')
-        .mockImplementation((password: string, saltRounds: number) =>
-          Promise.resolve(`hashed_${password}_${saltRounds}`),
-        );
+      jest.spyOn(bcrypt, 'hash').mockImplementation((password: string, saltRounds: number) => Promise.resolve(`hashed_${password}_${saltRounds}`));
     });
 
     it('sollte den Benutzer erfolgreich zum Admin mit gehashtem Passwort aktualisieren', async () => {
@@ -161,9 +157,7 @@ describe('AuthService', () => {
       const nonAdminUser = { ...mockUser, role: UserRole.USER };
       mockPrismaService.user.findUnique.mockResolvedValue(nonAdminUser);
 
-      await expect(service.adminSetup(mockAdminSetupDto, mockValidatedUser)).rejects.toThrow(
-        ForbiddenException,
-      );
+      await expect(service.adminSetup(mockAdminSetupDto, mockValidatedUser)).rejects.toThrow(ForbiddenException);
 
       expect(bcrypt.hash).not.toHaveBeenCalled();
     });
@@ -172,9 +166,7 @@ describe('AuthService', () => {
       const nonAdminUser = { ...mockUser, role: UserRole.USER };
       mockPrismaService.user.findUnique.mockResolvedValue(nonAdminUser);
 
-      await expect(service.adminSetup(mockAdminSetupDto, mockValidatedUser)).rejects.toThrow(
-        'Nur Admins können ein Passwort setzen',
-      );
+      await expect(service.adminSetup(mockAdminSetupDto, mockValidatedUser)).rejects.toThrow('Nur Admins können ein Passwort setzen');
     });
   });
 
@@ -215,9 +207,7 @@ describe('AuthService', () => {
     it('sollte NotFoundException werfen, wenn der Benutzer nicht existiert', async () => {
       mockPrismaService.user.findUnique.mockResolvedValue(null);
 
-      await expect(service.validateAdminCredentials('nonexistent', 'any_password')).rejects.toThrow(
-        UnauthorizedException,
-      );
+      await expect(service.validateAdminCredentials('nonexistent', 'any_password')).rejects.toThrow(UnauthorizedException);
 
       expect(mockPrismaService.user.findUnique).toHaveBeenCalledWith({
         where: {
@@ -231,9 +221,7 @@ describe('AuthService', () => {
       const userWithoutPassword = { ...mockAdminUser, passwordHash: null };
       mockPrismaService.user.findUnique.mockResolvedValue(userWithoutPassword);
 
-      await expect(service.validateAdminCredentials('admin', 'any_password')).rejects.toThrow(
-        UnauthorizedException,
-      );
+      await expect(service.validateAdminCredentials('admin', 'any_password')).rejects.toThrow(UnauthorizedException);
 
       expect(mockPrismaService.user.findUnique).toHaveBeenCalled();
       expect(bcrypt.compare).not.toHaveBeenCalled();
@@ -242,9 +230,7 @@ describe('AuthService', () => {
     it('sollte UnauthorizedException werfen, wenn das Passwort falsch ist', async () => {
       mockPrismaService.user.findUnique.mockResolvedValue(mockAdminUser);
 
-      await expect(service.validateAdminCredentials('admin', 'wrong_password')).rejects.toThrow(
-        UnauthorizedException,
-      );
+      await expect(service.validateAdminCredentials('admin', 'wrong_password')).rejects.toThrow(UnauthorizedException);
 
       expect(mockPrismaService.user.findUnique).toHaveBeenCalled();
       expect(bcrypt.compare).toHaveBeenCalledWith('wrong_password', 'hashed_password');

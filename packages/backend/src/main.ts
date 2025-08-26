@@ -37,12 +37,7 @@ async function bootstrap() {
     exclude: ['/'],
   });
 
-  const config = new DocumentBuilder()
-    .setTitle('BlueLight Hub API')
-    .setDescription('BlueLight Hub API for the BlueLight Hub application')
-    .setVersion(packageJson.version)
-    .addBearerAuth()
-    .build();
+  const config = new DocumentBuilder().setTitle('BlueLight Hub API').setDescription('BlueLight Hub API for the BlueLight Hub application').setVersion(packageJson.version).addBearerAuth().build();
 
   // Get config service to determine environment
   const configService = app.get(ConfigService);
@@ -85,10 +80,7 @@ async function bootstrap() {
   const port = configService.get('BACKEND_PORT') || configService.get('PORT') || 3000;
 
   await app.listen(port);
-  Logger.log(
-    `Application is running in ${isProduction ? 'production' : 'development'} mode`,
-    'Bootstrap',
-  );
+  Logger.log(`Application is running in ${isProduction ? 'production' : 'development'} mode`, 'Bootstrap');
   Logger.log(`Application is running on: http://localhost:${port}`);
 }
 

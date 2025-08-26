@@ -46,11 +46,7 @@ describe('Admin Setup (e2e)', () => {
       const cookies = response.headers['set-cookie'];
       expect(cookies).toBeDefined();
 
-      const adminTokenCookie = Array.isArray(cookies)
-        ? cookies.find((cookie) => cookie.startsWith('adminToken='))
-        : (cookies as string).startsWith('adminToken=')
-          ? cookies
-          : undefined;
+      const adminTokenCookie = Array.isArray(cookies) ? cookies.find((cookie) => cookie.startsWith('adminToken=')) : (cookies as string).startsWith('adminToken=') ? cookies : undefined;
       expect(adminTokenCookie).toBeDefined();
 
       // Prüfe Cookie-Eigenschaften

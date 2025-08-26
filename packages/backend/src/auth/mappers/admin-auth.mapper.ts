@@ -11,9 +11,7 @@ import type { AdminSetupUserDto } from '../dto/admin-user.dto';
  * @param user - Der eingeloggte Admin-Benutzer
  * @returns Admin-Login-Response-DTO
  */
-export function toAdminLoginResponseDto(
-  user: Pick<User, 'id' | 'username' | 'role'>,
-): AdminLoginResponseDto {
+export function toAdminLoginResponseDto(user: Pick<User, 'id' | 'username' | 'role'>): AdminLoginResponseDto {
   return {
     user: {
       id: user.id,
@@ -51,10 +49,7 @@ export function toAdminSetupResponseDto(user: Omit<User, 'passwordHash'>): Admin
  * @param userEligible - Ob der Benutzer berechtigt ist
  * @returns Admin-Status-Response-DTO
  */
-export function toAdminStatusResponseDto(
-  adminExists: boolean,
-  userEligible: boolean,
-): AdminStatusDto {
+export function toAdminStatusResponseDto(adminExists: boolean, userEligible: boolean): AdminStatusDto {
   return {
     adminSetupAvailable: userEligible,
     adminExists,

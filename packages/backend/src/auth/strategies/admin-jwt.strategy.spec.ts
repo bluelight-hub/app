@@ -122,9 +122,7 @@ describe('AdminJwtStrategy', () => {
         exp: Date.now() / 1000 + 900,
       };
 
-      await expect(strategy.validate(payload)).rejects.toThrow(
-        new UnauthorizedException('User no longer exists'),
-      );
+      await expect(strategy.validate(payload)).rejects.toThrow(new UnauthorizedException('User no longer exists'));
     });
 
     it('should throw UnauthorizedException when user is no longer an admin', async () => {
@@ -150,9 +148,7 @@ describe('AdminJwtStrategy', () => {
         exp: Date.now() / 1000 + 900,
       };
 
-      await expect(strategy.validate(payload)).rejects.toThrow(
-        new UnauthorizedException('User is no longer an admin'),
-      );
+      await expect(strategy.validate(payload)).rejects.toThrow(new UnauthorizedException('User is no longer an admin'));
     });
   });
 });

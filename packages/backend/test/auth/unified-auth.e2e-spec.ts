@@ -49,10 +49,7 @@ describe('Unified Auth (E2E)', () => {
       it('sollte einen neuen Benutzer ohne Passwort anlegen', async () => {
         const username = `test_user_${Date.now()}`;
 
-        const response = await request(app.getHttpServer())
-          .post('/api/auth/unified')
-          .send({ username })
-          .expect(200);
+        const response = await request(app.getHttpServer()).post('/api/auth/unified').send({ username }).expect(200);
 
         // Response validieren
         // Der erste User wird SUPER_ADMIN
@@ -83,10 +80,7 @@ describe('Unified Auth (E2E)', () => {
       it('sollte isNewUser=true für neue Benutzer zurückgeben', async () => {
         const username = `test_new_${Date.now()}`;
 
-        const response = await request(app.getHttpServer())
-          .post('/api/auth/unified')
-          .send({ username })
-          .expect(200);
+        const response = await request(app.getHttpServer()).post('/api/auth/unified').send({ username }).expect(200);
 
         expect(response.body.isNewUser).toBe(true);
       });
@@ -97,18 +91,12 @@ describe('Unified Auth (E2E)', () => {
         const username = `test_existing_${Date.now()}`;
 
         // Benutzer anlegen
-        const firstResponse = await request(app.getHttpServer())
-          .post('/api/auth/unified')
-          .send({ username })
-          .expect(200);
+        const firstResponse = await request(app.getHttpServer()).post('/api/auth/unified').send({ username }).expect(200);
 
         expect(firstResponse.body.isNewUser).toBe(true);
 
         // Erneut einloggen
-        const secondResponse = await request(app.getHttpServer())
-          .post('/api/auth/unified')
-          .send({ username })
-          .expect(200);
+        const secondResponse = await request(app.getHttpServer()).post('/api/auth/unified').send({ username }).expect(200);
 
         expect(secondResponse.body.isNewUser).toBe(false);
         expect(secondResponse.body.user.username).toBe(username);
@@ -118,19 +106,14 @@ describe('Unified Auth (E2E)', () => {
         const username = `test_exist_${Date.now() % 100000}`; // Kürzerer Username
 
         // Ersten Call (Registrierung)
-        const firstResponse = await request(app.getHttpServer())
-          .post('/api/auth/unified')
-          .send({ username });
+        const firstResponse = await request(app.getHttpServer()).post('/api/auth/unified').send({ username });
         if (firstResponse.status !== 200) {
           console.error('First response error:', firstResponse.body);
         }
         expect(firstResponse.status).toBe(200);
 
         // Zweiten Call (Login)
-        const response = await request(app.getHttpServer())
-          .post('/api/auth/unified')
-          .send({ username })
-          .expect(200);
+        const response = await request(app.getHttpServer()).post('/api/auth/unified').send({ username }).expect(200);
 
         expect(response.body.isNewUser).toBe(false);
       });
@@ -148,10 +131,7 @@ describe('Unified Auth (E2E)', () => {
         });
 
         // Login ohne Passwort
-        const response = await request(app.getHttpServer())
-          .post('/api/auth/unified')
-          .send({ username })
-          .expect(200);
+        const response = await request(app.getHttpServer()).post('/api/auth/unified').send({ username }).expect(200);
 
         expect(response.body.isNewUser).toBe(false);
         expect(response.body.user.username).toBe(username);
@@ -174,10 +154,7 @@ describe('Unified Auth (E2E)', () => {
         });
 
         // Login OHNE Passwort sollte trotzdem funktionieren
-        const responseWithoutPassword = await request(app.getHttpServer())
-          .post('/api/auth/unified')
-          .send({ username })
-          .expect(200);
+        const responseWithoutPassword = await request(app.getHttpServer()).post('/api/auth/unified').send({ username }).expect(200);
 
         expect(responseWithoutPassword.body.isNewUser).toBe(false);
         expect(responseWithoutPassword.body.user.username).toBe(username);
@@ -185,10 +162,7 @@ describe('Unified Auth (E2E)', () => {
 
         // Login MIT falschem Passwort sollte auch funktionieren
         // (Passwort wird bei unified NICHT geprüft)
-        const responseWithWrongPassword = await request(app.getHttpServer())
-          .post('/api/auth/unified')
-          .send({ username, password: 'wrong-password' })
-          .expect(200);
+        const responseWithWrongPassword = await request(app.getHttpServer()).post('/api/auth/unified').send({ username, password: 'wrong-password' }).expect(200);
 
         expect(responseWithWrongPassword.body.isNewUser).toBe(false);
       });
@@ -196,34 +170,21 @@ describe('Unified Auth (E2E)', () => {
 
     describe('Validierung', () => {
       it('sollte bei fehlendem Username einen Fehler zurückgeben', async () => {
-        const response = await request(app.getHttpServer())
-          .post('/api/auth/unified')
-          .send({})
-          .expect(400);
+        const response = await request(app.getHttpServer()).post('/api/auth/unified').send({}).expect(400);
 
         expect(response.body.message).toContainEqual(expect.stringContaining('Benutzername'));
       });
 
       it('sollte bei zu kurzem Username einen Fehler zurückgeben', async () => {
-        const response = await request(app.getHttpServer())
-          .post('/api/auth/unified')
-          .send({ username: 'ab' })
-          .expect(400);
+        const response = await request(app.getHttpServer()).post('/api/auth/unified').send({ username: 'ab' }).expect(400);
 
-        expect(response.body.message).toContainEqual(
-          expect.stringContaining('mindestens 3 Zeichen'),
-        );
+        expect(response.body.message).toContainEqual(expect.stringContaining('mindestens 3 Zeichen'));
       });
 
       it('sollte bei ungültigen Zeichen im Username einen Fehler zurückgeben', async () => {
-        const response = await request(app.getHttpServer())
-          .post('/api/auth/unified')
-          .send({ username: 'test@user' })
-          .expect(400);
+        const response = await request(app.getHttpServer()).post('/api/auth/unified').send({ username: 'test@user' }).expect(400);
 
-        expect(response.body.message).toContainEqual(
-          expect.stringContaining('Buchstaben, Zahlen, Unterstriche und Bindestriche'),
-        );
+        expect(response.body.message).toContainEqual(expect.stringContaining('Buchstaben, Zahlen, Unterstriche und Bindestriche'));
       });
     });
 
@@ -239,9 +200,7 @@ describe('Unified Auth (E2E)', () => {
 
         // 4 weitere erfolgreiche Login-Anfragen mit demselben User
         for (let i = 0; i < 4; i++) {
-          const response = await request(app.getHttpServer())
-            .post('/api/auth/unified')
-            .send({ username });
+          const response = await request(app.getHttpServer()).post('/api/auth/unified').send({ username });
           expect(response.status).toBe(200);
         }
 
@@ -254,10 +213,7 @@ describe('Unified Auth (E2E)', () => {
       it('sollte HTTP-Only Cookies setzen', async () => {
         const username = `test_cookies_${Date.now()}`;
 
-        const response = await request(app.getHttpServer())
-          .post('/api/auth/unified')
-          .send({ username })
-          .expect(200);
+        const response = await request(app.getHttpServer()).post('/api/auth/unified').send({ username }).expect(200);
 
         const security = TestAuthUtils.analyzeCookieSecurity(response);
         expect(security.accessToken.httpOnly).toBe(true);
@@ -267,10 +223,7 @@ describe('Unified Auth (E2E)', () => {
       it('sollte SameSite=Strict für Cookies setzen', async () => {
         const username = `test_samesite_${Date.now()}`;
 
-        const response = await request(app.getHttpServer())
-          .post('/api/auth/unified')
-          .send({ username })
-          .expect(200);
+        const response = await request(app.getHttpServer()).post('/api/auth/unified').send({ username }).expect(200);
 
         const security = TestAuthUtils.analyzeCookieSecurity(response);
         expect(security.accessToken.sameSite).toBe('strict');
@@ -293,9 +246,7 @@ describe('Unified Auth (E2E)', () => {
         expect(response2.status).toBe(200);
 
         // Einer sollte neu sein, der andere nicht (oder beide nicht, falls Retry)
-        const newUserCount = [response1.body.isNewUser, response2.body.isNewUser].filter(
-          (isNew) => isNew === true,
-        ).length;
+        const newUserCount = [response1.body.isNewUser, response2.body.isNewUser].filter((isNew) => isNew === true).length;
 
         expect(newUserCount).toBeLessThanOrEqual(1);
 
@@ -335,9 +286,7 @@ describe('Unified Auth (E2E)', () => {
         expect(secondLoginTime.lastLoginAt).toBeDefined();
         expect(secondLoginTime.lastLoginAt).not.toBeNull();
         expect(secondLoginTime.lastLoginAt).not.toEqual(firstLoginTime.lastLoginAt);
-        expect(secondLoginTime.lastLoginAt.getTime()).toBeGreaterThan(
-          firstLoginTime.lastLoginAt.getTime(),
-        );
+        expect(secondLoginTime.lastLoginAt.getTime()).toBeGreaterThan(firstLoginTime.lastLoginAt.getTime());
       });
     });
   });

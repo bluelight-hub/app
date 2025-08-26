@@ -1,12 +1,4 @@
-import type {
-  AdminLoginResponseDto,
-  AdminPasswordDto,
-  AdminSetupDto,
-  AdminSetupResponseDto,
-  AuthRequestDto,
-  AuthResponseDto,
-  LogoutResponseDto,
-} from '@bluelight-hub/shared/dist';
+import type { AdminLoginResponseDto, AdminPasswordDto, AdminSetupDto, AdminSetupResponseDto, AuthRequestDto, AuthResponseDto, LogoutResponseDto } from '@bluelight-hub/shared/dist';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { milliseconds } from 'date-fns';
 import { api } from '@/api';
@@ -57,22 +49,19 @@ export const useAuth = () => {
     },
   });
   const unifiedAuthMutation = useMutation<AuthResponseDto, Error, AuthRequestDto>({
-    mutationFn: (authRequestDto: AuthRequestDto) =>
-      api.auth().authControllerUnifiedAuth({ authRequestDto }),
+    mutationFn: (authRequestDto: AuthRequestDto) => api.auth().authControllerUnifiedAuth({ authRequestDto }),
     onSuccess: () => {
       void authCheckQuery.refetch();
     },
   });
   const loginAdminMutation = useMutation<AdminLoginResponseDto, Error, AdminPasswordDto>({
-    mutationFn: (adminPasswordDto: AdminPasswordDto) =>
-      api.auth().authControllerAdminLogin({ adminPasswordDto }),
+    mutationFn: (adminPasswordDto: AdminPasswordDto) => api.auth().authControllerAdminLogin({ adminPasswordDto }),
     onSuccess: () => {
       void authCheckQuery.refetch();
     },
   });
   const adminSetupMutation = useMutation<AdminSetupResponseDto, Error, AdminSetupDto>({
-    mutationFn: (adminSetupDto: AdminSetupDto) =>
-      api.auth().authControllerAdminSetup({ adminSetupDto }),
+    mutationFn: (adminSetupDto: AdminSetupDto) => api.auth().authControllerAdminSetup({ adminSetupDto }),
     onSuccess: async () => {
       await queryClient.invalidateQueries({
         queryKey: QUERY_KEYS.auth.queries.adminStatus,
@@ -81,8 +70,7 @@ export const useAuth = () => {
   });
 
   return {
-    isLoading:
-      authCheckQuery.isLoading || adminStatusQuery.isLoading || adminPresenceQuery.isLoading,
+    isLoading: authCheckQuery.isLoading || adminStatusQuery.isLoading || adminPresenceQuery.isLoading,
     user: authCheckQuery.data?.user,
     isAdminAuthenticated: authCheckQuery.data?.isAdminAuthenticated,
     logoutAdmin: logoutAdminMutation,

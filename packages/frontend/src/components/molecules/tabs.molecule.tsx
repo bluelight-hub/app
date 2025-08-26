@@ -29,7 +29,7 @@ export function Tabs({ items, defaultIndex = 0, onChange, className }: TabsProps
             key={item.label}
             className={({ selected }) =>
               cn(
-                'w-full rounded-lg py-2.5 text-sm font-medium leading-5',
+                'w-full rounded-lg py-2.5 font-medium text-sm leading-5',
                 'ring-white/60 ring-offset-2 ring-offset-blue-400 focus:outline-none focus:ring-2',
                 selected ? 'bg-white text-blue-700 shadow dark:bg-gray-800 dark:text-blue-400' : 'text-gray-600 hover:bg-white/[0.12] hover:text-gray-800 dark:text-gray-400 dark:hover:text-white',
               )

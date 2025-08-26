@@ -52,12 +52,7 @@ export function getRefreshTokenCookieOptions(isProduction: boolean): AuthCookieO
  * @param refreshToken - Das Refresh-Token
  * @param isProduction - Ob die Anwendung in Produktion läuft
  */
-export function setAuthCookies(
-  res: Response,
-  accessToken: string,
-  refreshToken: string,
-  isProduction: boolean = false,
-): void {
+export function setAuthCookies(res: Response, accessToken: string, refreshToken: string, isProduction: boolean = false): void {
   res.cookie('accessToken', accessToken, getAccessTokenCookieOptions(isProduction));
   res.cookie('refreshToken', refreshToken, getRefreshTokenCookieOptions(isProduction));
 }
@@ -100,11 +95,7 @@ function getAdminTokenCookieOptions(isProduction: boolean): AuthCookieOptions {
  * @param adminToken - Das Admin-Token
  * @param isProduction - Ob die Anwendung in Produktion läuft
  */
-export function setAdminCookie(
-  res: Response,
-  adminToken: string,
-  isProduction: boolean = false,
-): void {
+export function setAdminCookie(res: Response, adminToken: string, isProduction: boolean = false): void {
   res.cookie('adminToken', adminToken, getAdminTokenCookieOptions(isProduction));
 }
 

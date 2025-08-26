@@ -1,9 +1,4 @@
-import {
-  type CallHandler,
-  type ExecutionContext,
-  Injectable,
-  type NestInterceptor,
-} from '@nestjs/common';
+import { type CallHandler, type ExecutionContext, Injectable, type NestInterceptor } from '@nestjs/common';
 import type { ConfigService } from '@nestjs/config';
 import type { Reflector } from '@nestjs/core';
 import type { Request } from 'express';
@@ -58,14 +53,7 @@ export interface TransformedResponse<T = unknown> {
  * Type Guard für paginierte Daten
  */
 function isPaginatedData<T>(data: unknown): data is PaginatedData<T> {
-  return (
-    data !== null &&
-    typeof data === 'object' &&
-    'items' in data &&
-    Array.isArray((data as { items: unknown }).items) &&
-    'total' in data &&
-    typeof (data as { total: unknown }).total === 'number'
-  );
+  return data !== null && typeof data === 'object' && 'items' in data && Array.isArray((data as { items: unknown }).items) && 'total' in data && typeof (data as { total: unknown }).total === 'number';
 }
 
 /**
@@ -79,13 +67,7 @@ function hasMessage(data: unknown): data is { message: string } {
  * Type Guard für bereits transformierte Response
  */
 function isTransformedResponse<T>(data: unknown): data is TransformedResponse<T> {
-  return (
-    data !== null &&
-    typeof data === 'object' &&
-    'data' in data &&
-    'meta' in data &&
-    typeof (data as { meta: unknown }).meta === 'object'
-  );
+  return data !== null && typeof data === 'object' && 'data' in data && 'meta' in data && typeof (data as { meta: unknown }).meta === 'object';
 }
 
 /**
@@ -97,9 +79,7 @@ function isTransformedResponse<T>(data: unknown): data is TransformedResponse<T>
  * - Erlaubt Transformation von Response-Daten im Stream
  */
 @Injectable()
-export class TransformInterceptor<T = unknown>
-  implements NestInterceptor<T, TransformedResponse<T> | T>
-{
+export class TransformInterceptor<T = unknown> implements NestInterceptor<T, TransformedResponse<T> | T> {
   private readonly appUrl: string;
 
   constructor(
@@ -107,20 +87,12 @@ export class TransformInterceptor<T = unknown>
     private configService: ConfigService,
   ) {
     // Cache the APP_URL at initialization to avoid repeated config lookups
-    this.appUrl = trimTrailingSlash(
-      this.configService.get<string>('APP_URL', 'http://localhost:3000'),
-    );
+    this.appUrl = trimTrailingSlash(this.configService.get<string>('APP_URL', 'http://localhost:3000'));
   }
 
-  intercept(
-    context: ExecutionContext,
-    next: CallHandler<T>,
-  ): Observable<TransformedResponse<T> | T> {
+  intercept(context: ExecutionContext, next: CallHandler<T>): Observable<TransformedResponse<T> | T> {
     // Prüfe ob Transform übersprungen werden soll
-    const skipTransform = this.reflector.getAllAndOverride<boolean>('skipTransform', [
-      context.getHandler(),
-      context.getClass(),
-    ]);
+    const skipTransform = this.reflector.getAllAndOverride<boolean>('skipTransform', [context.getHandler(), context.getClass()]);
 
     if (skipTransform) {
       return next.handle();

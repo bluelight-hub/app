@@ -101,28 +101,18 @@ class JsDocChecker {
   /**
    * Rekursiv durch den AST traversieren
    */
-  private visitNode(
-    node: ts.Node,
-    sourceFile: ts.SourceFile,
-    fileName: string,
-    className?: string,
-    interfaceName?: string,
-  ): void {
+  private visitNode(node: ts.Node, sourceFile: ts.SourceFile, fileName: string, className?: string, interfaceName?: string): void {
     // Check class declarations
     if (ts.isClassDeclaration(node) && node.name) {
       const currentClassName = node.name.text;
-      node.forEachChild((child) =>
-        this.visitNode(child, sourceFile, fileName, currentClassName, undefined),
-      );
+      node.forEachChild((child) => this.visitNode(child, sourceFile, fileName, currentClassName, undefined));
       return;
     }
 
     // Check interface declarations
     if (ts.isInterfaceDeclaration(node) && node.name) {
       const currentInterfaceName = node.name.text;
-      node.forEachChild((child) =>
-        this.visitNode(child, sourceFile, fileName, undefined, currentInterfaceName),
-      );
+      node.forEachChild((child) => this.visitNode(child, sourceFile, fileName, undefined, currentInterfaceName));
       return;
     }
 
@@ -130,33 +120,18 @@ class JsDocChecker {
     this.checkMethod(node, sourceFile, fileName, className, interfaceName);
 
     // Continue traversing
-    node.forEachChild((child) =>
-      this.visitNode(child, sourceFile, fileName, className, interfaceName),
-    );
+    node.forEachChild((child) => this.visitNode(child, sourceFile, fileName, className, interfaceName));
   }
 
   /**
    * Prüft, ob ein Knoten eine Methode ist und ob sie JSDoc hat
    */
-  private checkMethod(
-    node: ts.Node,
-    sourceFile: ts.SourceFile,
-    fileName: string,
-    className?: string,
-    interfaceName?: string,
-  ): void {
+  private checkMethod(node: ts.Node, sourceFile: ts.SourceFile, fileName: string, className?: string, interfaceName?: string): void {
     let methodInfo: MethodInfo | null = null;
 
     // Method declaration in class
     if (ts.isMethodDeclaration(node)) {
-      methodInfo = this.extractMethodInfo(
-        node,
-        sourceFile,
-        fileName,
-        'method',
-        className,
-        interfaceName,
-      );
+      methodInfo = this.extractMethodInfo(node, sourceFile, fileName, 'method', className, interfaceName);
     }
     // Constructor
     else if (ts.isConstructorDeclaration(node)) {
@@ -176,40 +151,15 @@ class JsDocChecker {
     }
     // Getter
     else if (ts.isGetAccessorDeclaration(node)) {
-      methodInfo = this.extractMethodInfo(
-        node,
-        sourceFile,
-        fileName,
-        'getter',
-        className,
-        interfaceName,
-      );
+      methodInfo = this.extractMethodInfo(node, sourceFile, fileName, 'getter', className, interfaceName);
     }
     // Setter
     else if (ts.isSetAccessorDeclaration(node)) {
-      methodInfo = this.extractMethodInfo(
-        node,
-        sourceFile,
-        fileName,
-        'setter',
-        className,
-        interfaceName,
-      );
+      methodInfo = this.extractMethodInfo(node, sourceFile, fileName, 'setter', className, interfaceName);
     }
     // Arrow function property
-    else if (
-      ts.isPropertyDeclaration(node) &&
-      node.initializer &&
-      ts.isArrowFunction(node.initializer)
-    ) {
-      methodInfo = this.extractMethodInfo(
-        node,
-        sourceFile,
-        fileName,
-        'arrow',
-        className,
-        interfaceName,
-      );
+    else if (ts.isPropertyDeclaration(node) && node.initializer && ts.isArrowFunction(node.initializer)) {
+      methodInfo = this.extractMethodInfo(node, sourceFile, fileName, 'arrow', className, interfaceName);
     }
     // Function declaration
     else if (ts.isFunctionDeclaration(node) && node.name) {
@@ -249,11 +199,7 @@ class JsDocChecker {
    * Extrahiert Informationen über eine Methode
    */
   private extractMethodInfo(
-    node:
-      | ts.MethodDeclaration
-      | ts.GetAccessorDeclaration
-      | ts.SetAccessorDeclaration
-      | ts.PropertyDeclaration,
+    node: ts.MethodDeclaration | ts.GetAccessorDeclaration | ts.SetAccessorDeclaration | ts.PropertyDeclaration,
     sourceFile: ts.SourceFile,
     fileName: string,
     methodType: MethodInfo['methodType'],

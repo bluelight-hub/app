@@ -1,11 +1,4 @@
-import {
-  ConflictException,
-  ForbiddenException,
-  Injectable,
-  Logger,
-  NotFoundException,
-  UnauthorizedException,
-} from '@nestjs/common';
+import { ConflictException, ForbiddenException, Injectable, Logger, NotFoundException, UnauthorizedException } from '@nestjs/common';
 import type { ConfigService } from '@nestjs/config';
 import type { JwtService } from '@nestjs/jwt';
 import type { User } from '@prisma/client';
@@ -46,9 +39,7 @@ export class AuthService {
    * @returns Auth Response mit Token und User-Info
    * @throws UnauthorizedException bei falschen Admin-Credentials
    */
-  async unifiedAuth(
-    dto: AuthRequestDto,
-  ): Promise<AuthResponseDto & { accessToken: string; refreshToken: string }> {
+  async unifiedAuth(dto: AuthRequestDto): Promise<AuthResponseDto & { accessToken: string; refreshToken: string }> {
     const user = await this.findUserByUsername(dto.username);
 
     // User existiert → Login durchführen
@@ -172,9 +163,7 @@ export class AuthService {
    * @returns Die dekodierten Token-Daten
    * @throws UnauthorizedException wenn das Token ungültig ist oder keine Admin-Rechte hat
    */
-  async verifyAdminToken(
-    token: string,
-  ): Promise<{ userId: string; username: string; isAdmin: boolean }> {
+  async verifyAdminToken(token: string): Promise<{ userId: string; username: string; isAdmin: boolean }> {
     const config = this.getAdminTokenConfig();
     const decoded = await this.jwtService.verify(token, { secret: config.secret });
     if (!decoded.isAdmin) throw new UnauthorizedException('Kein gültiges Admin-Token');
@@ -247,10 +236,7 @@ export class AuthService {
    * @throws ForbiddenException If the authenticated user lacks administrative privileges.
    * @throws ConflictException If the user already has a password set up.
    */
-  async adminSetup(
-    dto: AdminSetupDto,
-    user: ValidatedUser,
-  ): Promise<{ token: string; user: User }> {
+  async adminSetup(dto: AdminSetupDto, user: ValidatedUser): Promise<{ token: string; user: User }> {
     // Finde den aktuellen User
     const currentUser = await this.prisma.user.findUnique({
       where: { id: user.userId },
@@ -328,20 +314,7 @@ export class AuthService {
    * Example: 011200ZJAN24 for January 1, 2024, 12:00 UTC
    */
   private toNatoDateTimeGroup(date: Date): string {
-    const months = [
-      'JAN',
-      'FEB',
-      'MAR',
-      'APR',
-      'MAY',
-      'JUN',
-      'JUL',
-      'AUG',
-      'SEP',
-      'OCT',
-      'NOV',
-      'DEC',
-    ];
+    const months = ['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC'];
 
     const day = date.getUTCDate().toString().padStart(2, '0');
     const hours = date.getUTCHours().toString().padStart(2, '0');
@@ -368,9 +341,7 @@ export class AuthService {
    * @param user - Der existierende Benutzer
    * @returns Auth Response mit Tokens und User-Info
    */
-  private async loginExistingUser(
-    user: User,
-  ): Promise<AuthResponseDto & { accessToken: string; refreshToken: string }> {
+  private async loginExistingUser(user: User): Promise<AuthResponseDto & { accessToken: string; refreshToken: string }> {
     // Normale Login - KEIN Passwort-Check für Admin-Accounts
     // Admin-Passwort wird nur bei /admin/login geprüft
     this.logger.debug(`🔑 User-Login erfolgreich: ${user.username} (Role: ${user.role})`);
@@ -386,9 +357,7 @@ export class AuthService {
    * @param username - Der Username des neuen Benutzers
    * @returns Auth Response mit Tokens und User-Info
    */
-  private async autoRegisterUser(
-    username: string,
-  ): Promise<AuthResponseDto & { accessToken: string; refreshToken: string }> {
+  private async autoRegisterUser(username: string): Promise<AuthResponseDto & { accessToken: string; refreshToken: string }> {
     try {
       const newUser = await this.createUser(username);
       this.logger.log(`⭐ Neuer Benutzer automatisch angelegt: ${newUser.username}`);
@@ -455,10 +424,7 @@ export class AuthService {
    * @param isNewUser - Ob es ein neuer Benutzer ist
    * @returns Auth Response mit Tokens und User-Info
    */
-  private createAuthResponse(
-    user: User,
-    isNewUser: boolean,
-  ): AuthResponseDto & { accessToken: string; refreshToken: string } {
+  private createAuthResponse(user: User, isNewUser: boolean): AuthResponseDto & { accessToken: string; refreshToken: string } {
     return {
       accessToken: this.signAccessToken(user),
       refreshToken: this.signRefreshToken(user),
@@ -475,9 +441,7 @@ export class AuthService {
   private isUniqueConstraintError(error: unknown): boolean {
     if (error && typeof error === 'object' && 'code' in error && 'meta' in error) {
       const prismaError = error as { code: string; meta?: { target?: string[] } };
-      return (
-        prismaError.code === 'P2002' && (prismaError.meta?.target?.includes('username') ?? false)
-      );
+      return prismaError.code === 'P2002' && (prismaError.meta?.target?.includes('username') ?? false);
     }
     return false;
   }

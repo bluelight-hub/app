@@ -76,10 +76,7 @@ describe('AuthController (e2e) - Admin Verify', () => {
 
   describe('GET /auth/admin/verify', () => {
     it('sollte 200 zurückgeben, wenn ein gültiges Admin-Token bereitgestellt wird', async () => {
-      const response = await request(app.getHttpServer())
-        .get('/auth/admin/verify')
-        .set('Cookie', `adminToken=${validAdminToken}`)
-        .expect(HttpStatus.OK);
+      const response = await request(app.getHttpServer()).get('/auth/admin/verify').set('Cookie', `adminToken=${validAdminToken}`).expect(HttpStatus.OK);
 
       expect(response.body).toEqual({ ok: true });
     });
@@ -89,19 +86,13 @@ describe('AuthController (e2e) - Admin Verify', () => {
     });
 
     it('sollte 401 zurückgeben, wenn ein abgelaufenes Token bereitgestellt wird', async () => {
-      await request(app.getHttpServer())
-        .get('/auth/admin/verify')
-        .set('Cookie', `adminToken=${expiredAdminToken}`)
-        .expect(HttpStatus.UNAUTHORIZED);
+      await request(app.getHttpServer()).get('/auth/admin/verify').set('Cookie', `adminToken=${expiredAdminToken}`).expect(HttpStatus.UNAUTHORIZED);
     });
 
     it('sollte 401 zurückgeben, wenn ein ungültiges Token bereitgestellt wird', async () => {
       const invalidToken = 'invalid.token.here';
 
-      await request(app.getHttpServer())
-        .get('/auth/admin/verify')
-        .set('Cookie', `adminToken=${invalidToken}`)
-        .expect(HttpStatus.UNAUTHORIZED);
+      await request(app.getHttpServer()).get('/auth/admin/verify').set('Cookie', `adminToken=${invalidToken}`).expect(HttpStatus.UNAUTHORIZED);
     });
 
     it('sollte 401 zurückgeben, wenn ein Token ohne Admin-Rolle bereitgestellt wird', async () => {
@@ -115,10 +106,7 @@ describe('AuthController (e2e) - Admin Verify', () => {
         { expiresIn: '15m' },
       );
 
-      await request(app.getHttpServer())
-        .get('/auth/admin/verify')
-        .set('Cookie', `adminToken=${nonAdminToken}`)
-        .expect(HttpStatus.UNAUTHORIZED);
+      await request(app.getHttpServer()).get('/auth/admin/verify').set('Cookie', `adminToken=${nonAdminToken}`).expect(HttpStatus.UNAUTHORIZED);
     });
 
     it('sollte 401 zurückgeben, wenn ein Token mit falschem Secret signiert wurde', async () => {
@@ -132,10 +120,7 @@ describe('AuthController (e2e) - Admin Verify', () => {
         { expiresIn: '15m' },
       );
 
-      await request(app.getHttpServer())
-        .get('/auth/admin/verify')
-        .set('Cookie', `adminToken=${wrongSecretToken}`)
-        .expect(HttpStatus.UNAUTHORIZED);
+      await request(app.getHttpServer()).get('/auth/admin/verify').set('Cookie', `adminToken=${wrongSecretToken}`).expect(HttpStatus.UNAUTHORIZED);
     });
   });
 });

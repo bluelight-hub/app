@@ -39,13 +39,7 @@ beforeAll(async () => {
 });
 
 afterAll(async () => {
-  await TestDbUtils.cleanTestUsers([
-    'loadingtest',
-    'testuser',
-    'test_',
-    'logout_test',
-    'logout-test',
-  ]);
+  await TestDbUtils.cleanTestUsers(['loadingtest', 'testuser', 'test_', 'logout_test', 'logout-test']);
 
   await TestDbUtils.disconnect();
   await TestDbUtils.stopContainer();

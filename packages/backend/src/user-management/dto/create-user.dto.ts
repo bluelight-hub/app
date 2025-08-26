@@ -17,8 +17,7 @@ export class CreateUserDto {
    * @example "max_mustermann"
    */
   @ApiProperty({
-    description:
-      'Eindeutiger Benutzername für den neuen Benutzer (nur Buchstaben, Zahlen, Unterstriche und Punkte erlaubt)',
+    description: 'Eindeutiger Benutzername für den neuen Benutzer (nur Buchstaben, Zahlen, Unterstriche und Punkte erlaubt)',
     example: 'max_mustermann',
     minLength: 3,
     maxLength: 30,
@@ -40,8 +39,7 @@ export class CreateUserDto {
    */
   @ApiPropertyOptional({
     enum: UserRole,
-    description:
-      'Rolle des neuen Benutzers (z.B. SUPER_ADMIN, ADMIN, USER). Ohne Angabe wird die Standardrolle USER vergeben.',
+    description: 'Rolle des neuen Benutzers (z.B. SUPER_ADMIN, ADMIN, USER). Ohne Angabe wird die Standardrolle USER vergeben.',
     example: UserRole.USER,
     default: UserRole.USER,
   })

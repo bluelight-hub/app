@@ -27,9 +27,7 @@ async function bootstrap() {
 
   try {
     // Dynamic import to avoid circular dependencies
-    const { AdminResetPasswordCommand } = await import(
-      './cli/commands/admin-reset-password.command'
-    );
+    const { AdminResetPasswordCommand } = await import('./cli/commands/admin-reset-password.command');
     const command = app.get(AdminResetPasswordCommand);
 
     await command.run(args);

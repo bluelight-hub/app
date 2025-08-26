@@ -34,10 +34,7 @@ test.describe.skip('Admin Window Management', () => {
   }
 
   test.describe('Browser Environment', () => {
-    test('should open admin dashboard in new tab when clicking "Admin-Bereich" button', async ({
-      page,
-      context,
-    }) => {
+    test('should open admin dashboard in new tab when clicking "Admin-Bereich" button', async ({ page, context }) => {
       await loginAsAdmin(page);
 
       // Listen for new page/tab
@@ -80,9 +77,7 @@ test.describe.skip('Admin Window Management', () => {
         .or(page.getByRole('button', { name: 'Anmelden' }))
         .first()
         .click();
-      const loginInput = page
-        .getByPlaceholder('Benutzername eingeben oder auswählen...')
-        .or(page.getByRole('combobox'));
+      const loginInput = page.getByPlaceholder('Benutzername eingeben oder auswählen...').or(page.getByRole('combobox'));
       await loginInput.fill('user');
       // Click the login submit button specifically (not the tab)
       await page.getByRole('button', { name: 'Anmelden' }).last().click();
@@ -119,10 +114,7 @@ test.describe.skip('Admin Window Management', () => {
       await expect(adminWindowButton).toBeVisible();
 
       // Verify button has proper attributes
-      await expect(adminWindowButton).toHaveAttribute(
-        'title',
-        'Admin-Dashboard in separatem Fenster öffnen',
-      );
+      await expect(adminWindowButton).toHaveAttribute('title', 'Admin-Dashboard in separatem Fenster öffnen');
 
       // Verify button has icon (PiDesktop icon should be present)
       const icon = adminWindowButton.locator('svg');
@@ -212,10 +204,7 @@ test.describe.skip('Admin Window Management', () => {
       await expect(adminArea).toHaveScreenshot('admin-area-with-button.png');
     });
 
-    test('should match visual snapshot of admin dashboard in new window', async ({
-      page,
-      context,
-    }) => {
+    test('should match visual snapshot of admin dashboard in new window', async ({ page, context }) => {
       await loginAsAdmin(page);
 
       // Open new window

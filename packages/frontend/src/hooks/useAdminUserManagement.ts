@@ -1,10 +1,4 @@
-import type {
-  CreateUserDto,
-  DeleteUserResponse,
-  ResponseError,
-  UserResponse,
-  UsersListResponse,
-} from '@bluelight-hub/shared/client';
+import type { CreateUserDto, DeleteUserResponse, ResponseError, UserResponse, UsersListResponse } from '@bluelight-hub/shared/client';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import { api } from '@/api';
@@ -47,11 +41,7 @@ export const useAdminUserManagement = () => {
       await queryClient.invalidateQueries({ queryKey: QUERY_KEYS.admin.users });
     },
     onError: async (error: ResponseError) => {
-      const message = await getApiErrorMessage(
-        error,
-        'Der Benutzer konnte nicht erstellt werden.',
-        'createUser',
-      );
+      const message = await getApiErrorMessage(error, 'Der Benutzer konnte nicht erstellt werden.', 'createUser');
 
       logger.error('Failed to create user', error);
       toast.error('Fehler', {
@@ -61,12 +51,7 @@ export const useAdminUserManagement = () => {
   });
 
   // Mutation für Benutzer löschen
-  const deleteUserMutation = useMutation<
-    DeleteUserResponse,
-    ResponseError,
-    string,
-    { previousUsers: UsersListResponse | undefined }
-  >({
+  const deleteUserMutation = useMutation<DeleteUserResponse, ResponseError, string, { previousUsers: UsersListResponse | undefined }>({
     mutationFn: async (id: string) => {
       return await api.userManagement().userManagementControllerRemoveVAlpha({ id });
     },
@@ -88,11 +73,7 @@ export const useAdminUserManagement = () => {
     onError: async (error: ResponseError, _id, context) => {
       queryClient.setQueryData(QUERY_KEYS.admin.users, context?.previousUsers);
 
-      const message = await getApiErrorMessage(
-        error,
-        'Der Benutzer konnte nicht gelöscht werden.',
-        'deleteUser',
-      );
+      const message = await getApiErrorMessage(error, 'Der Benutzer konnte nicht gelöscht werden.', 'deleteUser');
 
       logger.error('Failed to delete user', error);
       toast.error('Fehler', {

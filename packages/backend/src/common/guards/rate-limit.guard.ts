@@ -1,11 +1,7 @@
 import { type CanActivate, type ExecutionContext, Injectable } from '@nestjs/common';
 import type { Reflector } from '@nestjs/core';
 import type { RedisService } from '../services/redis.service';
-import {
-  generateSecureRateLimitKey,
-  RateLimiter,
-  type RateLimiterConfig,
-} from '../utils/rate-limiter.util';
+import { generateSecureRateLimitKey, RateLimiter, type RateLimiterConfig } from '../utils/rate-limiter.util';
 
 export const RATE_LIMIT_KEY = 'rateLimit';
 
@@ -46,10 +42,7 @@ export class RateLimitGuard implements CanActivate {
   ) {}
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
-    const rateLimitOptions = this.reflector.getAllAndOverride<RateLimitOptions>(RATE_LIMIT_KEY, [
-      context.getHandler(),
-      context.getClass(),
-    ]);
+    const rateLimitOptions = this.reflector.getAllAndOverride<RateLimitOptions>(RATE_LIMIT_KEY, [context.getHandler(), context.getClass()]);
 
     if (!rateLimitOptions) {
       return true; // No rate limit configured
@@ -75,9 +68,7 @@ export class RateLimitGuard implements CanActivate {
 
     try {
       // Generate key for this request
-      const key = limiter.config.keyGenerator
-        ? limiter.config.keyGenerator(request)
-        : generateSecureRateLimitKey(request);
+      const key = limiter.config.keyGenerator ? limiter.config.keyGenerator(request) : generateSecureRateLimitKey(request);
 
       // Check rate limit
       await limiter.consume(key);
@@ -93,10 +84,7 @@ export class RateLimitGuard implements CanActivate {
       if (error.name === 'RateLimitExceededError') {
         response.setHeader('X-RateLimit-Limit', limiter.config.maxRequests);
         response.setHeader('X-RateLimit-Remaining', 0);
-        response.setHeader(
-          'X-RateLimit-Reset',
-          new Date(Date.now() + limiter.config.windowMs).toISOString(),
-        );
+        response.setHeader('X-RateLimit-Reset', new Date(Date.now() + limiter.config.windowMs).toISOString());
 
         if (error.retryAfter) {
           response.setHeader('Retry-After', error.retryAfter);

@@ -25,12 +25,7 @@ export async function startContainer(): Promise<string> {
 
   console.log('Starting PostgreSQL test container...');
 
-  container = await new PostgreSqlContainer('postgres:17-alpine')
-    .withDatabase('bluelight_test')
-    .withUsername('test')
-    .withPassword('test')
-    .withExposedPorts(5432)
-    .start();
+  container = await new PostgreSqlContainer('postgres:17-alpine').withDatabase('bluelight_test').withUsername('test').withPassword('test').withExposedPorts(5432).start();
 
   databaseUrl = `postgresql://${container.getUsername()}:${container.getPassword()}@${container.getHost()}:${container.getMappedPort(5432)}/${container.getDatabase()}`;
 
@@ -268,9 +263,7 @@ export async function waitForDatabase(maxRetries = 10, delayMs = 1000): Promise<
  *
  * @param seedData Optionale Seed-Daten
  */
-export async function seedDatabase(seedData?: {
-  users?: Array<{ username: string; role?: string }>;
-}): Promise<void> {
+export async function seedDatabase(seedData?: { users?: Array<{ username: string; role?: string }> }): Promise<void> {
   const prismaClient = getPrisma();
 
   if (seedData?.users) {

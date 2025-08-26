@@ -1,38 +1,9 @@
-import {
-  Body,
-  Controller,
-  Get,
-  HttpCode,
-  HttpStatus,
-  Logger,
-  NotFoundException,
-  Post,
-  Req,
-  Res,
-  UnauthorizedException,
-  UseGuards,
-  VERSION_NEUTRAL,
-} from '@nestjs/common';
+import { Body, Controller, Get, HttpCode, HttpStatus, Logger, NotFoundException, Post, Req, Res, UnauthorizedException, UseGuards, VERSION_NEUTRAL } from '@nestjs/common';
 import type { ConfigService } from '@nestjs/config';
-import {
-  ApiCookieAuth,
-  ApiOkResponse,
-  ApiOperation,
-  ApiResponse,
-  ApiTags,
-  ApiUnauthorizedResponse,
-} from '@nestjs/swagger';
+import { ApiCookieAuth, ApiOkResponse, ApiOperation, ApiResponse, ApiTags, ApiUnauthorizedResponse } from '@nestjs/swagger';
 import { Throttle } from '@nestjs/throttler';
 import type { Request, Response } from 'express';
-import {
-  toAdminLoginResponseDto,
-  toAdminSetupResponseDto,
-  toAdminStatusResponseDto,
-  toAdminTokenVerificationDto,
-  toLogoutResponseDto,
-  toRefreshResponseDto,
-  toUserResponseDto,
-} from '@/auth/mappers';
+import { toAdminLoginResponseDto, toAdminSetupResponseDto, toAdminStatusResponseDto, toAdminTokenVerificationDto, toLogoutResponseDto, toRefreshResponseDto, toUserResponseDto } from '@/auth/mappers';
 import { SkipTransform } from '@/common/decorators/skip-transform.decorator';
 import type { AppConfigService } from '@/common/services/app-config.service';
 import type { AuthService } from './auth.service';
@@ -108,12 +79,10 @@ export class AuthController {
   @Throttle({ default: { limit: 5, ttl: 60000 } }) // 5 Anfragen pro Minute
   @ApiOperation({
     summary: 'Unified Login & Auto-Register',
-    description:
-      'Vereinheitlichter Endpunkt für Login und automatische Registrierung. Wenn der Benutzer nicht existiert, wird er automatisch angelegt.',
+    description: 'Vereinheitlichter Endpunkt für Login und automatische Registrierung. Wenn der Benutzer nicht existiert, wird er automatisch angelegt.',
   })
   @ApiOkResponse({
-    description:
-      'Erfolgreiche Authentifizierung (Login oder Auto-Registrierung), Tokens werden via Set-Cookie (HTTP-Only) gesetzt: accessToken, refreshToken',
+    description: 'Erfolgreiche Authentifizierung (Login oder Auto-Registrierung), Tokens werden via Set-Cookie (HTTP-Only) gesetzt: accessToken, refreshToken',
     type: AuthResponseDto,
   })
   @ApiUnauthorizedResponse({
@@ -123,10 +92,7 @@ export class AuthController {
     status: HttpStatus.TOO_MANY_REQUESTS,
     description: 'Zu viele Anfragen - bitte später erneut versuchen',
   })
-  async unifiedAuth(
-    @Body() dto: AuthRequestDto,
-    @Res({ passthrough: true }) res: Response,
-  ): Promise<AuthResponseDto> {
+  async unifiedAuth(@Body() dto: AuthRequestDto, @Res({ passthrough: true }) res: Response): Promise<AuthResponseDto> {
     const result = await this.authService.unifiedAuth(dto);
 
     // Tokens extrahieren und als HTTP-Only Cookies setzen
@@ -155,8 +121,7 @@ export class AuthController {
   @ApiCookieAuth('auth-token')
   @ApiOperation({
     summary: 'Admin-Rechte aktivieren',
-    description:
-      'Aktiviert Admin-Rechte für den aktuell angemeldeten Benutzer durch Passwort-Eingabe',
+    description: 'Aktiviert Admin-Rechte für den aktuell angemeldeten Benutzer durch Passwort-Eingabe',
   })
   @ApiResponse({
     status: HttpStatus.OK,
@@ -171,11 +136,7 @@ export class AuthController {
     status: HttpStatus.FORBIDDEN,
     description: 'Benutzer hat keine Admin-Rechte',
   })
-  async adminLogin(
-    @Body() dto: AdminPasswordDto,
-    @CurrentUser() currentUser: ValidatedUser,
-    @Res({ passthrough: true }) res: Response,
-  ): Promise<AdminLoginResponseDto> {
+  async adminLogin(@Body() dto: AdminPasswordDto, @CurrentUser() currentUser: ValidatedUser, @Res({ passthrough: true }) res: Response): Promise<AdminLoginResponseDto> {
     // Validiere die Admin-Rechte mit dem aktuellen Benutzer
     const user = await this.authService.validateAdminCredentials(currentUser.userId, dto.password);
 
@@ -214,10 +175,7 @@ export class AuthController {
     status: HttpStatus.UNAUTHORIZED,
     description: 'Ungültiges oder abgelaufenes Refresh-Token',
   })
-  async refresh(
-    @Req() req: Request & { user: ValidatedUser },
-    @Res({ passthrough: true }) res: Response,
-  ): Promise<RefreshResponseDto> {
+  async refresh(@Req() req: Request & { user: ValidatedUser }, @Res({ passthrough: true }) res: Response): Promise<RefreshResponseDto> {
     const user = await this.authService.findUserById(req.user.userId);
 
     if (!user) {
@@ -307,11 +265,7 @@ export class AuthController {
     status: HttpStatus.UNAUTHORIZED,
     description: 'Keine Authentifizierung',
   })
-  async adminSetup(
-    @Body() dto: AdminSetupDto,
-    @CurrentUser() user: ValidatedUser,
-    @Res({ passthrough: true }) res: Response,
-  ): Promise<AdminSetupResponseDto> {
+  async adminSetup(@Body() dto: AdminSetupDto, @CurrentUser() user: ValidatedUser, @Res({ passthrough: true }) res: Response): Promise<AdminSetupResponseDto> {
     const result = await this.authService.adminSetup(dto, user);
 
     const isProduction = this.appConfig.isProduction();
@@ -436,8 +390,7 @@ export class AuthController {
   @ApiCookieAuth()
   @ApiOperation({
     summary: 'Admin-Setup-Status abrufen',
-    description:
-      'Prüft ob ein Admin-Setup verfügbar ist und ob der aktuelle Benutzer berechtigt ist',
+    description: 'Prüft ob ein Admin-Setup verfügbar ist und ob der aktuelle Benutzer berechtigt ist',
   })
   @ApiResponse({
     status: HttpStatus.OK,

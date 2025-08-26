@@ -119,10 +119,7 @@ describe('UserManagementController (e2e)', () => {
         ],
       });
 
-      const response = await request(app.getHttpServer())
-        .get('/api/v-alpha/admin/users')
-        .set('Cookie', adminCookie)
-        .expect(200);
+      const response = await request(app.getHttpServer()).get('/api/v-alpha/admin/users').set('Cookie', adminCookie).expect(200);
 
       expect(response.body).toHaveLength(3);
       expect(response.body).toContainEqual(
@@ -170,10 +167,7 @@ describe('UserManagementController (e2e)', () => {
       const { accessToken } = TestAuthUtils.extractCookies(loginResponse);
       const userCookie = accessToken ? `accessToken=${accessToken}` : '';
 
-      await request(app.getHttpServer())
-        .get('/api/v-alpha/admin/users')
-        .set('Cookie', userCookie)
-        .expect(401);
+      await request(app.getHttpServer()).get('/api/v-alpha/admin/users').set('Cookie', userCookie).expect(401);
     });
   });
 
@@ -235,11 +229,7 @@ describe('UserManagementController (e2e)', () => {
     });
 
     it('should return 400 for invalid request body', async () => {
-      await request(app.getHttpServer())
-        .post('/api/v-alpha/admin/users')
-        .set('Cookie', adminCookie)
-        .send({})
-        .expect(400);
+      await request(app.getHttpServer()).post('/api/v-alpha/admin/users').set('Cookie', adminCookie).send({}).expect(400);
 
       await request(app.getHttpServer())
         .post('/api/v-alpha/admin/users')
@@ -266,10 +256,7 @@ describe('UserManagementController (e2e)', () => {
         data: { username: 'userToDelete', role: UserRole.USER },
       });
 
-      const response = await request(app.getHttpServer())
-        .delete(`/api/v-alpha/admin/users/${user.id}`)
-        .set('Cookie', adminCookie)
-        .expect(200);
+      const response = await request(app.getHttpServer()).delete(`/api/v-alpha/admin/users/${user.id}`).set('Cookie', adminCookie).expect(200);
 
       // Check response format
       expect(response.body).toMatchObject({
@@ -295,10 +282,7 @@ describe('UserManagementController (e2e)', () => {
         data: { username: 'adminToDelete', role: UserRole.SUPER_ADMIN },
       });
 
-      await request(app.getHttpServer())
-        .delete(`/api/v-alpha/admin/users/${adminToDelete.id}`)
-        .set('Cookie', adminCookie)
-        .expect(200);
+      await request(app.getHttpServer()).delete(`/api/v-alpha/admin/users/${adminToDelete.id}`).set('Cookie', adminCookie).expect(200);
 
       // Verify admin was deleted
       const deletedAdmin = await prisma.user.findUnique({
@@ -308,10 +292,7 @@ describe('UserManagementController (e2e)', () => {
     });
 
     it('should return 400 when trying to delete the last super admin', async () => {
-      const response = await request(app.getHttpServer())
-        .delete(`/api/v-alpha/admin/users/${superAdminId}`)
-        .set('Cookie', adminCookie)
-        .expect(400);
+      const response = await request(app.getHttpServer()).delete(`/api/v-alpha/admin/users/${superAdminId}`).set('Cookie', adminCookie).expect(400);
 
       expect(response.body.message).toContain('Der letzte SUPER_ADMIN kann nicht gelöscht werden');
 
@@ -326,10 +307,7 @@ describe('UserManagementController (e2e)', () => {
       // Use a valid-looking NanoID to pass param validation but miss DB
       const nonExistentId = nanoid();
 
-      await request(app.getHttpServer())
-        .delete(`/api/v-alpha/admin/users/${nonExistentId}`)
-        .set('Cookie', adminCookie)
-        .expect(404);
+      await request(app.getHttpServer()).delete(`/api/v-alpha/admin/users/${nonExistentId}`).set('Cookie', adminCookie).expect(404);
     });
 
     it('should return 401 when not authenticated', async () => {
@@ -349,12 +327,8 @@ describe('UserManagementController (e2e)', () => {
 
       // Send two delete requests concurrently
       const [response1, response2] = await Promise.all([
-        request(app.getHttpServer())
-          .delete(`/api/v-alpha/admin/users/${user.id}`)
-          .set('Cookie', adminCookie),
-        request(app.getHttpServer())
-          .delete(`/api/v-alpha/admin/users/${user.id}`)
-          .set('Cookie', adminCookie),
+        request(app.getHttpServer()).delete(`/api/v-alpha/admin/users/${user.id}`).set('Cookie', adminCookie),
+        request(app.getHttpServer()).delete(`/api/v-alpha/admin/users/${user.id}`).set('Cookie', adminCookie),
       ]);
 
       // One should succeed, one should fail with 404
@@ -365,10 +339,7 @@ describe('UserManagementController (e2e)', () => {
     it('should maintain transaction integrity when deleting last admin fails', async () => {
       const initialCount = await prisma.user.count();
 
-      await request(app.getHttpServer())
-        .delete(`/api/v-alpha/admin/users/${superAdminId}`)
-        .set('Cookie', adminCookie)
-        .expect(400);
+      await request(app.getHttpServer()).delete(`/api/v-alpha/admin/users/${superAdminId}`).set('Cookie', adminCookie).expect(400);
 
       const finalCount = await prisma.user.count();
       expect(finalCount).toBe(initialCount);

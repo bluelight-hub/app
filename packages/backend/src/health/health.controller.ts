@@ -1,14 +1,7 @@
 import * as net from 'node:net';
 import * as os from 'node:os';
 import { Controller, Get, VERSION_NEUTRAL } from '@nestjs/common';
-import {
-  type DiskHealthIndicator,
-  HealthCheck,
-  type HealthCheckResult,
-  type HealthCheckService,
-  type HealthIndicatorResult,
-  type MemoryHealthIndicator,
-} from '@nestjs/terminus';
+import { type DiskHealthIndicator, HealthCheck, type HealthCheckResult, type HealthCheckService, type HealthIndicatorResult, type MemoryHealthIndicator } from '@nestjs/terminus';
 import { SkipTransform } from '@/common/decorators/skip-transform.decorator';
 import type { PrismaHealthIndicator } from './prisma-health.indicator';
 
@@ -147,10 +140,7 @@ export class HealthController {
   @Get('db')
   @HealthCheck()
   async checkDatabase(): Promise<HealthCheckResult> {
-    return this.health.check([
-      () => this.prismaDb.pingCheck('database'),
-      () => this.prismaDb.isConnected('database_connections'),
-    ]);
+    return this.health.check([() => this.prismaDb.pingCheck('database'), () => this.prismaDb.isConnected('database_connections')]);
   }
 
   /**
@@ -207,8 +197,7 @@ export class HealthController {
       return {
         fuekw: {
           status: isConnected && isPingable ? 'up' : 'down',
-          message:
-            isConnected && isPingable ? 'FüKW-Verbindung aktiv' : 'FüKW-Verbindung nicht verfügbar',
+          message: isConnected && isPingable ? 'FüKW-Verbindung aktiv' : 'FüKW-Verbindung nicht verfügbar',
           details: {
             dbInitialized: isConnected,
             networkReachable: isPingable,
@@ -274,11 +263,7 @@ export class HealthController {
   private async checkInternetConnectivity(): Promise<boolean> {
     for (const server of this.CONNECTIVITY_CHECKS) {
       try {
-        await this.testTcpConnectionWithTimeout(
-          server.host,
-          server.port,
-          HEALTH_CHECK_CONFIG.CONNECTIVITY.TIMEOUT_MS,
-        );
+        await this.testTcpConnectionWithTimeout(server.host, server.port, HEALTH_CHECK_CONFIG.CONNECTIVITY.TIMEOUT_MS);
         return true; // Erfolgreich verbunden
       } catch (_error) {
         // Versuche den nächsten Server

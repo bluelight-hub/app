@@ -1,10 +1,5 @@
 import { type User, UserRole } from '@prisma/client';
-import {
-  toAdminLoginResponseDto,
-  toAdminSetupResponseDto,
-  toAdminStatusResponseDto,
-  toAdminTokenVerificationDto,
-} from './admin-auth.mapper';
+import { toAdminLoginResponseDto, toAdminSetupResponseDto, toAdminStatusResponseDto, toAdminTokenVerificationDto } from './admin-auth.mapper';
 
 describe('Admin Auth Mapper Functions', () => {
   const mockFullUser: User = {
