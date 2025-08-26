@@ -1,11 +1,11 @@
+import { UserDtoRoleEnum } from '@bluelight-hub/shared/client';
 import { useForm } from '@tanstack/react-form';
 import { z } from 'zod';
-import { UserDtoRoleEnum } from '@bluelight-hub/shared/client';
-import { Dialog } from '@/components/molecules/dialog.molecule';
 import { Button } from '@/components/atoms/button.atom';
+import { FormField } from '@/components/atoms/form-field.atom';
 import { Input } from '@/components/atoms/input.atom';
 import { Select } from '@/components/atoms/select.atom';
-import { FormField } from '@/components/atoms/form-field.atom';
+import { Dialog } from '@/components/molecules/dialog.molecule';
 
 const _createUserSchema = z.object({
   username: z.string().min(3, 'Benutzername muss mindestens 3 Zeichen lang sein'),

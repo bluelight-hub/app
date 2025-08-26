@@ -1,6 +1,6 @@
+import { execSync } from 'node:child_process';
 import { PrismaClient } from '@prisma/client';
-import { execSync } from 'child_process';
-import { PostgreSqlContainer, StartedPostgreSqlContainer } from '@testcontainers/postgresql';
+import { PostgreSqlContainer, type StartedPostgreSqlContainer } from '@testcontainers/postgresql';
 
 /**
  * Test-Datenbank-Utilities
@@ -8,255 +8,325 @@ import { PostgreSqlContainer, StartedPostgreSqlContainer } from '@testcontainers
  * Hilfsfunktionen für das Management der Test-Datenbank während E2E-Tests.
  * Nutzt Testcontainers für automatische PostgreSQL-Container-Verwaltung.
  */
-export class TestDbUtils {
-  private static prisma: PrismaClient;
-  private static container: StartedPostgreSqlContainer;
-  private static databaseUrl: string;
 
-  /**
-   * Startet einen PostgreSQL-Container für Tests
-   *
-   * @returns Database URL für den gestarteten Container
-   */
-  static async startContainer(): Promise<string> {
-    if (this.container) {
-      return this.databaseUrl;
-    }
+let prisma: PrismaClient | null = null;
+let container: StartedPostgreSqlContainer | null = null;
+let databaseUrl: string | null = null;
 
-    console.log('Starting PostgreSQL test container...');
-
-    this.container = await new PostgreSqlContainer('postgres:17-alpine')
-      .withDatabase('bluelight_test')
-      .withUsername('test')
-      .withPassword('test')
-      .withExposedPorts(5432)
-      .start();
-
-    this.databaseUrl = `postgresql://${this.container.getUsername()}:${this.container.getPassword()}@${this.container.getHost()}:${this.container.getMappedPort(5432)}/${this.container.getDatabase()}`;
-
-    // Setze DATABASE_URL für Prisma
-    process.env.DATABASE_URL = this.databaseUrl;
-
-    console.log('PostgreSQL test container started successfully');
-    return this.databaseUrl;
+/**
+ * Startet einen PostgreSQL-Container für Tests
+ *
+ * @returns Database URL für den gestarteten Container
+ */
+export async function startContainer(): Promise<string> {
+  if (container && databaseUrl) {
+    return databaseUrl;
   }
 
-  /**
-   * Stoppt den PostgreSQL-Container
-   */
-  static async stopContainer(): Promise<void> {
-    if (this.container) {
-      console.log('Stopping PostgreSQL test container...');
-      await this.container.stop();
-      this.container = null;
-      this.databaseUrl = null;
-    }
-  }
+  console.log('Starting PostgreSQL test container...');
 
-  /**
-   * Initialisiert die Prisma-Client-Instanz
-   */
-  static getPrisma(): PrismaClient {
-    if (!this.prisma) {
-      this.prisma = new PrismaClient({
-        datasources: {
-          db: {
-            url: this.databaseUrl || process.env.DATABASE_URL,
-          },
-        },
-      });
-    }
-    return this.prisma;
-  }
+  container = await new PostgreSqlContainer('postgres:17-alpine')
+    .withDatabase('bluelight_test')
+    .withUsername('test')
+    .withPassword('test')
+    .withExposedPorts(5432)
+    .start();
 
-  /**
-   * Führt Datenbank-Migrationen aus
-   *
-   * Wendet alle ausstehenden Migrationen auf die Test-Datenbank an.
-   */
-  static async runMigrations(): Promise<void> {
-    if (!this.databaseUrl) {
-      throw new Error('Database container not started. Call startContainer() first.');
-    }
+  databaseUrl = `postgresql://${container.getUsername()}:${container.getPassword()}@${container.getHost()}:${container.getMappedPort(5432)}/${container.getDatabase()}`;
 
-    try {
-      console.log('Running database migrations...');
-      execSync('pnpm prisma migrate deploy', {
-        env: {
-          ...process.env,
-          DATABASE_URL: this.databaseUrl,
-        },
-        stdio: 'pipe', // Unterdrücke Output für sauberere Test-Logs
-      });
-      console.log('Migrations completed successfully');
-    } catch (error) {
-      console.error('Failed to run migrations:', error);
-      throw error;
-    }
-  }
+  // Setze DATABASE_URL für Prisma
+  process.env.DATABASE_URL = databaseUrl;
 
-  /**
-   * Löscht alle Daten aus der Datenbank
-   *
-   * Entfernt alle Datensätze aus allen Tabellen in der richtigen Reihenfolge,
-   * um Foreign Key Constraints zu respektieren.
-   */
-  static async cleanDatabase(): Promise<void> {
-    const prisma = this.getPrisma();
+  console.log('PostgreSQL test container started successfully');
+  return databaseUrl;
+}
 
-    try {
-      // Lösche alle Daten in der richtigen Reihenfolge (abhängige Tabellen zuerst)
-      // Füge hier weitere Tabellen hinzu, wenn das Schema erweitert wird
-      await prisma.user.deleteMany();
-    } catch (error) {
-      console.error('Failed to clean database:', error);
-      throw error;
-    }
-  }
-
-  /**
-   * Löscht spezifische Test-Benutzer nach Pattern
-   *
-   * Entfernt alle Benutzer, deren Username mit den angegebenen Patterns beginnt.
-   * Nützlich für das Aufräumen nach Tests, die dynamische Testbenutzer erstellen.
-   *
-   * @param patterns Array von Username-Präfixen, die gelöscht werden sollen
-   */
-  static async cleanTestUsers(patterns: string[] = ['loadingtest', 'testuser']): Promise<void> {
-    const prisma = this.getPrisma();
-
-    try {
-      for (const pattern of patterns) {
-        const deletedUsers = await prisma.user.deleteMany({
-          where: {
-            username: {
-              startsWith: pattern,
-            },
-          },
-        });
-
-        if (deletedUsers.count > 0) {
-          console.log(`Deleted ${deletedUsers.count} test users matching pattern '${pattern}*'`);
-        }
-      }
-    } catch (error) {
-      console.error('Failed to clean test users:', error);
-      throw error;
-    }
-  }
-
-  /**
-   * Setzt die Datenbank zurück (clean + seed)
-   *
-   * Löscht alle Daten und fügt optional Seed-Daten ein.
-   */
-  static async resetDatabase(): Promise<void> {
-    await this.cleanDatabase();
-    // Optional: Seed-Daten einfügen
-    // await this.seedDatabase();
-  }
-
-  /**
-   * Fügt Seed-Daten für Tests ein
-   *
-   * Erstellt Standarddaten, die für Tests benötigt werden.
-   */
-  static async seedDatabase(): Promise<void> {
-    const prisma = this.getPrisma();
-
-    try {
-      // Beispiel: Erstelle Test-Benutzer
-      await prisma.user.create({
-        data: {
-          username: 'test_admin',
-          role: 'SUPER_ADMIN',
-        },
-      });
-
-      await prisma.user.create({
-        data: {
-          username: 'test_user',
-          role: 'USER',
-        },
-      });
-    } catch (error) {
-      console.error('Failed to seed database:', error);
-      throw error;
-    }
-  }
-
-  /**
-   * Schließt die Datenbankverbindung
-   */
-  static async disconnect(): Promise<void> {
-    if (this.prisma) {
-      await this.prisma.$disconnect();
-      this.prisma = null;
-    }
-  }
-
-  /**
-   * Erstellt einen Transaktions-Wrapper für Tests
-   *
-   * Führt den Test in einer Transaktion aus und macht alle Änderungen
-   * am Ende rückgängig.
-   *
-   * @param testFn Die Test-Funktion, die in der Transaktion ausgeführt wird
-   */
-  static async runInTransaction<T>(testFn: (prisma: PrismaClient) => Promise<T>): Promise<T> {
-    const prisma = this.getPrisma();
-
-    return prisma
-      .$transaction(async (tx) => {
-        const _result = await testFn(tx as PrismaClient);
-        // Transaktion wird automatisch zurückgerollt, wenn ein Fehler geworfen wird
-        throw new Error('Rollback transaction');
-      })
-      .catch((error) => {
-        if (error.message === 'Rollback transaction') {
-          return null;
-        }
-        throw error;
-      });
-  }
-
-  /**
-   * Findet einen Benutzer anhand des Benutzernamens
-   *
-   * @param username Der Benutzername
-   * @returns Der gefundene Benutzer oder null
-   */
-  static async findUserByUsername(username: string) {
-    const prisma = this.getPrisma();
-    return prisma.user.findUnique({
-      where: { username },
-    });
-  }
-
-  /**
-   * Löscht einen Benutzer anhand der ID
-   *
-   * @param userId Die ID des zu löschenden Benutzers
-   * @returns Der gelöschte Benutzer
-   */
-  static async deleteUser(userId: string) {
-    const prisma = this.getPrisma();
-    return prisma.user.delete({
-      where: { id: userId },
-    });
-  }
-
-  /**
-   * Initialisiert die Test-Datenbank
-   *
-   * Startet Container, führt Migrationen aus und stellt Verbindung her.
-   */
-  static async initialize(): Promise<void> {
-    await this.startContainer();
-    await this.runMigrations();
-
-    // Stelle sicher, dass Prisma verbunden ist
-    const prisma = this.getPrisma();
-    await prisma.$connect();
+/**
+ * Stoppt den PostgreSQL-Container
+ */
+export async function stopContainer(): Promise<void> {
+  if (container) {
+    console.log('Stopping PostgreSQL test container...');
+    await container.stop();
+    container = null;
+    databaseUrl = null;
   }
 }
+
+/**
+ * Initialisiert die Prisma-Client-Instanz
+ */
+export function getPrisma(): PrismaClient {
+  if (!prisma) {
+    prisma = new PrismaClient({
+      datasources: {
+        db: {
+          url: databaseUrl || process.env.DATABASE_URL,
+        },
+      },
+    });
+  }
+  return prisma;
+}
+
+/**
+ * Führt Prisma-Migrationen aus
+ */
+export async function runMigrations(): Promise<void> {
+  if (!databaseUrl) {
+    throw new Error('Database container not started. Call startContainer() first.');
+  }
+
+  console.log('Running Prisma migrations...');
+  execSync('pnpm exec prisma migrate deploy', {
+    env: {
+      ...process.env,
+      DATABASE_URL: databaseUrl,
+    },
+  });
+  console.log('Migrations completed');
+}
+
+/**
+ * Setzt die Datenbank zurück (löscht alle Daten)
+ */
+export async function resetDatabase(): Promise<void> {
+  const prismaClient = getPrisma();
+
+  // Lösche alle Daten in der richtigen Reihenfolge (wegen Foreign Keys)
+  await prismaClient.user.deleteMany();
+
+  console.log('Database reset completed');
+}
+
+/**
+ * Löscht Test-Benutzer anhand von Präfix-Mustern
+ *
+ * @param prefixes Array von Benutzernamen-Präfixen die gelöscht werden sollen
+ */
+export async function cleanTestUsers(prefixes: string[]): Promise<void> {
+  const prismaClient = getPrisma();
+
+  for (const prefix of prefixes) {
+    try {
+      const result = await prismaClient.user.deleteMany({
+        where: {
+          username: {
+            startsWith: prefix,
+          },
+        },
+      });
+      if (result.count > 0) {
+        console.log(`Cleaned ${result.count} test users with prefix: ${prefix}`);
+      }
+    } catch (error) {
+      console.error(`Error cleaning test users with prefix ${prefix}:`, error);
+    }
+  }
+}
+
+/**
+ * Prüft ob ein Benutzer in der Datenbank existiert
+ *
+ * @param username Benutzername
+ * @returns true wenn der Benutzer existiert
+ */
+export async function userExists(username: string): Promise<boolean> {
+  const prismaClient = getPrisma();
+  const user = await prismaClient.user.findUnique({
+    where: { username },
+  });
+  return !!user;
+}
+
+/**
+ * Holt einen Benutzer aus der Datenbank
+ *
+ * @param username Benutzername
+ * @returns User-Objekt oder null
+ */
+export async function getUser(username: string) {
+  const prismaClient = getPrisma();
+  return prismaClient.user.findUnique({
+    where: { username },
+  });
+}
+
+/**
+ * Erstellt einen Admin-Benutzer direkt in der Datenbank
+ *
+ * @param username Admin-Benutzername
+ * @param passwordHash Gehashtes Passwort
+ * @returns Erstellter Admin-User
+ */
+export async function createAdminUser(username: string, passwordHash: string) {
+  const prismaClient = getPrisma();
+  return prismaClient.user.create({
+    data: {
+      username,
+      passwordHash,
+      role: 'SUPER_ADMIN',
+      isActive: true,
+    },
+  });
+}
+
+/**
+ * Zählt alle Benutzer in der Datenbank
+ *
+ * @returns Anzahl der Benutzer
+ */
+export async function countUsers(): Promise<number> {
+  const prismaClient = getPrisma();
+  return prismaClient.user.count();
+}
+
+/**
+ * Löscht einen spezifischen Benutzer
+ *
+ * @param username Benutzername
+ */
+export async function deleteUser(username: string): Promise<void> {
+  const prismaClient = getPrisma();
+  await prismaClient.user.delete({
+    where: { username },
+  });
+}
+
+/**
+ * Aktualisiert die Rolle eines Benutzers
+ *
+ * @param username Benutzername
+ * @param role Neue Rolle
+ */
+export async function updateUserRole(username: string, role: string) {
+  const prismaClient = getPrisma();
+  return prismaClient.user.update({
+    where: { username },
+    data: { role },
+  });
+}
+
+/**
+ * Holt alle Benutzer aus der Datenbank
+ *
+ * @returns Array aller Benutzer
+ */
+export async function getAllUsers() {
+  const prismaClient = getPrisma();
+  return prismaClient.user.findMany();
+}
+
+/**
+ * Initialisiert die Test-Datenbank komplett (Container + Migrationen)
+ *
+ * @returns Database URL
+ */
+export async function initTestDatabase(): Promise<string> {
+  const url = await startContainer();
+  await runMigrations();
+  return url;
+}
+
+/**
+ * Beendet die Test-Datenbank komplett
+ */
+export async function teardownTestDatabase(): Promise<void> {
+  if (prisma) {
+    await prisma.$disconnect();
+    prisma = null;
+  }
+  await stopContainer();
+}
+
+/**
+ * Wartet bis die Datenbank bereit ist
+ *
+ * @param maxRetries Maximale Anzahl von Versuchen
+ * @param delayMs Verzögerung zwischen Versuchen in Millisekunden
+ */
+export async function waitForDatabase(maxRetries = 10, delayMs = 1000): Promise<void> {
+  const prismaClient = getPrisma();
+
+  for (let i = 0; i < maxRetries; i++) {
+    try {
+      await prismaClient.$connect();
+      console.log('Database connection established');
+      return;
+    } catch (error) {
+      if (i === maxRetries - 1) {
+        throw error;
+      }
+      console.log(`Waiting for database... (${i + 1}/${maxRetries})`);
+      await new Promise((resolve) => setTimeout(resolve, delayMs));
+    }
+  }
+}
+
+/**
+ * Führt ein Datenbank-Seeding aus
+ *
+ * @param seedData Optionale Seed-Daten
+ */
+export async function seedDatabase(seedData?: {
+  users?: Array<{ username: string; role?: string }>;
+}): Promise<void> {
+  const prismaClient = getPrisma();
+
+  if (seedData?.users) {
+    for (const userData of seedData.users) {
+      await prismaClient.user.create({
+        data: {
+          username: userData.username,
+          role: userData.role || 'USER',
+          isActive: true,
+        },
+      });
+    }
+  }
+}
+
+/**
+ * Führt Prisma Studio für Debugging aus
+ */
+export function openPrismaStudio(): void {
+  console.log('Opening Prisma Studio...');
+  execSync('pnpm exec prisma studio', {
+    env: {
+      ...process.env,
+      DATABASE_URL: databaseUrl || process.env.DATABASE_URL,
+    },
+    stdio: 'inherit',
+  });
+}
+
+/**
+ * Verbindet zur Datenbank
+ */
+export async function connectDatabase(): Promise<void> {
+  const prismaClient = getPrisma();
+  await prismaClient.$connect();
+}
+
+// Export für Backward Compatibility
+export const TestDbUtils = {
+  startContainer,
+  stopContainer,
+  getPrisma,
+  runMigrations,
+  resetDatabase,
+  cleanTestUsers,
+  userExists,
+  getUser,
+  createAdminUser,
+  countUsers,
+  deleteUser,
+  updateUserRole,
+  getAllUsers,
+  initTestDatabase,
+  teardownTestDatabase,
+  waitForDatabase,
+  seedDatabase,
+  openPrismaStudio,
+  connectDatabase,
+};

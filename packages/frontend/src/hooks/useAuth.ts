@@ -1,13 +1,16 @@
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { milliseconds } from 'date-fns';
 import type {
+  AdminLoginResponseDto,
   AdminPasswordDto,
   AdminSetupDto,
+  AdminSetupResponseDto,
   AuthRequestDto,
   AuthResponseDto,
+  LogoutResponseDto,
 } from '@bluelight-hub/shared/dist';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { milliseconds } from 'date-fns';
+import { api } from '@/api';
 import { QUERY_KEYS } from '@/queryKeys.ts';
-import { api } from '@/api/api.ts';
 
 /**
  * Provides authentication-related functionality and state handling.
@@ -41,13 +44,13 @@ export const useAuth = () => {
     queryFn: () => api.auth().authControllerGetAdminStatus(),
   });
 
-  const logoutMutation = useMutation<void, Error, void>({
+  const logoutMutation = useMutation<LogoutResponseDto, Error, void>({
     mutationFn: () => api.auth().authControllerLogout(),
     onSuccess: async () => {
       await queryClient.invalidateQueries({ queryKey: QUERY_KEYS.auth.queryKey });
     },
   });
-  const logoutAdminMutation = useMutation<void, Error, void>({
+  const logoutAdminMutation = useMutation<LogoutResponseDto, Error, void>({
     mutationFn: () => api.auth().authControllerAdminLogout(),
     onSuccess: async () => {
       await queryClient.invalidateQueries({ queryKey: QUERY_KEYS.auth.queryKey });
@@ -60,14 +63,14 @@ export const useAuth = () => {
       void authCheckQuery.refetch();
     },
   });
-  const loginAdminMutation = useMutation<any, Error, AdminPasswordDto>({
+  const loginAdminMutation = useMutation<AdminLoginResponseDto, Error, AdminPasswordDto>({
     mutationFn: (adminPasswordDto: AdminPasswordDto) =>
       api.auth().authControllerAdminLogin({ adminPasswordDto }),
     onSuccess: () => {
       void authCheckQuery.refetch();
     },
   });
-  const adminSetupMutation = useMutation<any, Error, AdminSetupDto>({
+  const adminSetupMutation = useMutation<AdminSetupResponseDto, Error, AdminSetupDto>({
     mutationFn: (adminSetupDto: AdminSetupDto) =>
       api.auth().authControllerAdminSetup({ adminSetupDto }),
     onSuccess: async () => {

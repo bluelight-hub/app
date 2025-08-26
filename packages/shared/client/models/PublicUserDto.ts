@@ -52,10 +52,7 @@ export function PublicUserDtoToJSON(json: any): PublicUserDto {
   return PublicUserDtoToJSONTyped(json, false);
 }
 
-export function PublicUserDtoToJSONTyped(
-  value?: PublicUserDto | null,
-  ignoreDiscriminator: boolean = false,
-): any {
+export function PublicUserDtoToJSONTyped(value?: PublicUserDto | null, ignoreDiscriminator: boolean = false): any {
   if (value == null) {
     return value;
   }

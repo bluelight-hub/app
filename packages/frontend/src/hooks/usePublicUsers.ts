@@ -1,9 +1,9 @@
-import { useQuery } from '@tanstack/react-query';
-import type { UseQueryResult } from '@tanstack/react-query';
 import type { PublicUserDto } from '@bluelight-hub/shared/client';
-import { api } from '@/api/api';
-import { logger } from '@/utils/logger';
+import type { UseQueryResult } from '@tanstack/react-query';
+import { useQuery } from '@tanstack/react-query';
+import { api } from '@/api';
 import { QUERY_KEYS } from '@/queryKeys';
+import { logger } from '@/utils/logger';
 
 /**
  * Hook zum Abrufen der öffentlichen Benutzerliste

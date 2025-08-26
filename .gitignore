@@ -184,7 +184,11 @@ dev-debug.log
 # Task files
 tasks.json
 tasks/
-!.claude/commands/BMad/tasks
+# Un-ignore .claude/commands/BMad/tasks/ directory hierarchy
+!.claude/
+!.claude/commands/
+!.claude/commands/BMad/
+!.claude/commands/BMad/tasks/
 
 # Cursor MCP (enthält API-Schlüssel)
 .cursor/mcp.json
@@ -197,7 +201,6 @@ tasks/
 .roo*
 /packages/backend/documentation/
 /old-projects/
-/.serena/cache
 /packages/backend/coverage-e2e/
 
 # Dev Tools

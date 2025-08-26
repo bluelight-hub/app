@@ -1,6 +1,6 @@
-import { createFileRoute } from '@tanstack/react-router';
-import { Suspense, lazy } from 'react';
 import { Spinner } from '@atoms/spinner.atom.tsx';
+import { createFileRoute } from '@tanstack/react-router';
+import { lazy, Suspense } from 'react';
 
 const AdminLogin = lazy(() => import('@/pages/AdminLogin').then((m) => ({ default: m.AdminLogin })));
 

@@ -1,10 +1,9 @@
 'use client';
 
 import { ComboboxButton, ComboboxInput, ComboboxOption, ComboboxOptions, Combobox as HeadlessCombobox, Label } from '@headlessui/react';
-import * as React from 'react';
-import { useEffect, useRef, useState } from 'react';
+import type * as React from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { PiCaretDown, PiX } from 'react-icons/pi';
-
 import { cn } from '@/utils/cn.ts';
 
 export interface ComboboxItem {
@@ -32,7 +31,7 @@ export function Combobox({
   value: controlledValue,
   onChange,
   onInputChange,
-  placeholder = 'Select an option...',
+  placeholder = 'Wählen Sie eine Option',
   label,
   helperText,
   disabled = false,
@@ -53,17 +52,21 @@ export function Combobox({
     }
   }, [controlledValue, items, allowCustomValue]);
 
-  const filteredItems =
-    query === ''
+  const filteredItems = useMemo(() => {
+    return query === ''
       ? items
       : items.filter((item) => {
           return item.label.toLowerCase().includes(query.toLowerCase());
         });
+  }, [query, items]);
 
-  const handleQueryChange = (value: string) => {
-    setQuery(value);
-    onInputChange?.(value);
-  };
+  const handleQueryChange = useCallback(
+    (value: string) => {
+      setQuery(value);
+      onInputChange?.(value);
+    },
+    [onInputChange],
+  );
 
   const handleSelectionChange = (item: ComboboxItem | null) => {
     setSelectedItem(item);

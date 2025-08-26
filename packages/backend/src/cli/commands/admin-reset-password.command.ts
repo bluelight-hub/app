@@ -1,8 +1,8 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
-import { PrismaService } from '@/prisma/prisma.service';
+import type { ConfigService } from '@nestjs/config';
 import * as bcrypt from 'bcrypt';
 import { isAdmin } from '@/auth/utils/auth.utils';
+import type { PrismaService } from '@/prisma/prisma.service';
 
 @Injectable()
 export class AdminResetPasswordCommand {
@@ -58,7 +58,7 @@ export class AdminResetPasswordCommand {
 
     // Validate salt rounds and provide fallback (capped at 14 for security)
     const validSaltRounds =
-      !isNaN(saltRounds) && saltRounds > 0 && saltRounds <= 14 ? saltRounds : 10;
+      !Number.isNaN(saltRounds) && saltRounds > 0 && saltRounds <= 14 ? saltRounds : 10;
 
     if (saltRounds !== validSaltRounds) {
       this.logger.warn(

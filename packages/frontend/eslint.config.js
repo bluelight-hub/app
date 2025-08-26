@@ -1,10 +1,10 @@
 import js from '@eslint/js';
+import { tanstackConfig } from '@tanstack/eslint-config';
+import eslintConfigPrettier from 'eslint-config-prettier';
 import reactHooks from 'eslint-plugin-react-hooks';
 import reactRefresh from 'eslint-plugin-react-refresh';
 import globals from 'globals';
 import tseslint from 'typescript-eslint';
-import eslintConfigPrettier from 'eslint-config-prettier';
-import { tanstackConfig } from '@tanstack/eslint-config';
 
 export default tseslint.config(
   ...tanstackConfig,

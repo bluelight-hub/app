@@ -3,8 +3,8 @@ import userEvent from '@testing-library/user-event';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import '@testing-library/jest-dom';
 
-import { Combobox } from './combobox';
 import type { ComboboxItem } from './combobox';
+import { Combobox } from './combobox';
 
 describe('Combobox', () => {
   const user = userEvent.setup();

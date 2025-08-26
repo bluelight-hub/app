@@ -1,10 +1,15 @@
-import { CallHandler, ExecutionContext, Injectable, NestInterceptor } from '@nestjs/common';
-import { Observable } from 'rxjs';
-import { map } from 'rxjs/operators';
-import { Reflector } from '@nestjs/core';
-import { ConfigService } from '@nestjs/config';
-import { Request } from 'express';
+import {
+  type CallHandler,
+  type ExecutionContext,
+  Injectable,
+  type NestInterceptor,
+} from '@nestjs/common';
+import type { ConfigService } from '@nestjs/config';
+import type { Reflector } from '@nestjs/core';
+import type { Request } from 'express';
 import { nanoid } from 'nanoid';
+import type { Observable } from 'rxjs';
+import { map } from 'rxjs/operators';
 import { trimTrailingSlash } from '@/utils/url.util';
 
 /**
@@ -20,7 +25,7 @@ export interface PaginatedData<T> {
 /**
  * Interface für Antworten mit Message
  */
-export interface ResponseWithMessage<T = any> {
+export interface ResponseWithMessage<T = unknown> {
   data?: T;
   message: string;
 }
@@ -28,7 +33,7 @@ export interface ResponseWithMessage<T = any> {
 /**
  * Interface für die transformierte API-Antwort
  */
-export interface TransformedResponse<T = any> {
+export interface TransformedResponse<T = unknown> {
   data: T;
   meta: {
     timestamp: string;
@@ -57,9 +62,9 @@ function isPaginatedData<T>(data: unknown): data is PaginatedData<T> {
     data !== null &&
     typeof data === 'object' &&
     'items' in data &&
-    Array.isArray((data as any).items) &&
+    Array.isArray((data as { items: unknown }).items) &&
     'total' in data &&
-    typeof (data as any).total === 'number'
+    typeof (data as { total: unknown }).total === 'number'
   );
 }
 
@@ -79,7 +84,7 @@ function isTransformedResponse<T>(data: unknown): data is TransformedResponse<T>
     typeof data === 'object' &&
     'data' in data &&
     'meta' in data &&
-    typeof (data as any).meta === 'object'
+    typeof (data as { meta: unknown }).meta === 'object'
   );
 }
 
@@ -92,8 +97,8 @@ function isTransformedResponse<T>(data: unknown): data is TransformedResponse<T>
  * - Erlaubt Transformation von Response-Daten im Stream
  */
 @Injectable()
-export class TransformInterceptor<T = any>
-  implements NestInterceptor<T, TransformedResponse<T> | any>
+export class TransformInterceptor<T = unknown>
+  implements NestInterceptor<T, TransformedResponse<T> | T>
 {
   private readonly appUrl: string;
 
@@ -110,7 +115,7 @@ export class TransformInterceptor<T = any>
   intercept(
     context: ExecutionContext,
     next: CallHandler<T>,
-  ): Observable<TransformedResponse<T> | any> {
+  ): Observable<TransformedResponse<T> | T> {
     // Prüfe ob Transform übersprungen werden soll
     const skipTransform = this.reflector.getAllAndOverride<boolean>('skipTransform', [
       context.getHandler(),
@@ -125,15 +130,15 @@ export class TransformInterceptor<T = any>
     const requestId = (request.headers['x-request-id'] as string) || nanoid();
 
     return next.handle().pipe(
-      map((responseData): TransformedResponse<any> => {
+      map((responseData): TransformedResponse<T> => {
         // Wenn data bereits das korrekte Format hat, nicht nochmal wrappen
         if (isTransformedResponse(responseData)) {
           return responseData;
         }
 
         // Basis-Transformation
-        const transformed: TransformedResponse<any> = {
-          data: responseData as any,
+        const transformed: TransformedResponse<T> = {
+          data: responseData as T,
           meta: {
             timestamp: new Date().toISOString(),
             version: 'alpha',
@@ -182,7 +187,9 @@ export class TransformInterceptor<T = any>
             transformed.data = (responseData as ResponseWithMessage).data;
           } else {
             // Entferne message aus dem data-Objekt
-            const { message: _, ...restData } = responseData as any;
+            const { message: _, ...restData } = responseData as Record<string, unknown> & {
+              message?: string;
+            };
             transformed.data = restData;
           }
         }

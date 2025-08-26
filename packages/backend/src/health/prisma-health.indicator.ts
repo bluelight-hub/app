@@ -1,6 +1,6 @@
-import { PrismaService } from '@/prisma/prisma.service';
 import { Injectable } from '@nestjs/common';
-import { HealthIndicatorResult, HealthIndicatorService } from '@nestjs/terminus';
+import type { HealthIndicatorResult, HealthIndicatorService } from '@nestjs/terminus';
+import type { PrismaService } from '@/prisma/prisma.service';
 
 /**
  * Health Indicator für Prisma-Datenbankverbindungen
@@ -41,8 +41,10 @@ export class PrismaHealthIndicator {
       await this.prisma.$queryRaw`SELECT 1`;
 
       return this.healthIndicatorService.check(key).up();
-    } catch (error: any) {
-      return this.healthIndicatorService.check(key).down(error);
+    } catch (error) {
+      return this.healthIndicatorService
+        .check(key)
+        .down(error instanceof Error ? error : new Error(String(error)));
     }
   }
 
@@ -59,8 +61,10 @@ export class PrismaHealthIndicator {
       return this.healthIndicatorService.check(key).up({
         connected: connectionStatus !== null,
       });
-    } catch (error: any) {
-      return this.healthIndicatorService.check(key).down(error);
+    } catch (error) {
+      return this.healthIndicatorService
+        .check(key)
+        .down(error instanceof Error ? error : new Error(String(error)));
     }
   }
 }

@@ -66,10 +66,7 @@ export function ApiMetaToJSON(json: any): ApiMeta {
   return ApiMetaToJSONTyped(json, false);
 }
 
-export function ApiMetaToJSONTyped(
-  value?: ApiMeta | null,
-  ignoreDiscriminator: boolean = false,
-): any {
+export function ApiMetaToJSONTyped(value?: ApiMeta | null, ignoreDiscriminator: boolean = false): any {
   if (value == null) {
     return value;
   }

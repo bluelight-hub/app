@@ -1,14 +1,14 @@
 import { Module } from '@nestjs/common';
+import { ConfigModule, ConfigService } from '@nestjs/config';
 import { JwtModule } from '@nestjs/jwt';
 import { PassportModule } from '@nestjs/passport';
-import { ConfigModule, ConfigService } from '@nestjs/config';
+import { PrismaModule } from '@/prisma/prisma.module';
 import { AuthController } from './auth.controller';
 import { AuthService } from './auth.service';
-import { PrismaModule } from '@/prisma/prisma.module';
+import { AdminJwtAuthGuard } from './guards/admin-jwt-auth.guard';
+import { AdminJwtStrategy } from './strategies/admin-jwt.strategy';
 import { JwtStrategy } from './strategies/jwt.strategy';
 import { JwtRefreshStrategy } from './strategies/jwt-refresh.strategy';
-import { AdminJwtStrategy } from './strategies/admin-jwt.strategy';
-import { AdminJwtAuthGuard } from './guards/admin-jwt-auth.guard';
 
 /**
  * Authentifizierungsmodul für BlueLight Hub

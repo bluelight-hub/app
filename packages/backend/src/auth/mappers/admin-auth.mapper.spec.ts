@@ -1,7 +1,12 @@
-import { User, UserRole } from '@prisma/client';
-import { AdminAuthMapper } from './admin-auth.mapper';
+import { type User, UserRole } from '@prisma/client';
+import {
+  toAdminLoginResponseDto,
+  toAdminSetupResponseDto,
+  toAdminStatusResponseDto,
+  toAdminTokenVerificationDto,
+} from './admin-auth.mapper';
 
-describe('AdminAuthMapper', () => {
+describe('Admin Auth Mapper Functions', () => {
   const mockFullUser: User = {
     id: '453GsDyW0KssEuIW2lo2G',
     username: 'admin',
@@ -23,7 +28,7 @@ describe('AdminAuthMapper', () => {
         role: mockFullUser.role,
       };
 
-      const result = AdminAuthMapper.toAdminLoginResponseDto(userPick);
+      const result = toAdminLoginResponseDto(userPick);
 
       expect(result).toEqual({
         user: {
@@ -41,7 +46,7 @@ describe('AdminAuthMapper', () => {
         role: UserRole.USER,
       };
 
-      const result = AdminAuthMapper.toAdminLoginResponseDto(userPick);
+      const result = toAdminLoginResponseDto(userPick);
 
       expect(result.user.role).toBe(UserRole.USER);
     });
@@ -61,7 +66,7 @@ describe('AdminAuthMapper', () => {
     };
 
     it('should map user to AdminSetupResponseDto correctly', () => {
-      const result = AdminAuthMapper.toAdminSetupResponseDto(userWithoutPassword);
+      const result = toAdminSetupResponseDto(userWithoutPassword);
 
       expect(result).toEqual({
         message: 'Admin-Setup erfolgreich durchgeführt',
@@ -76,7 +81,7 @@ describe('AdminAuthMapper', () => {
     });
 
     it('should exclude non-required fields from user object', () => {
-      const result = AdminAuthMapper.toAdminSetupResponseDto(userWithoutPassword);
+      const result = toAdminSetupResponseDto(userWithoutPassword);
 
       expect(result.user).not.toHaveProperty('isActive');
       expect(result.user).not.toHaveProperty('lastLoginAt');
@@ -86,7 +91,7 @@ describe('AdminAuthMapper', () => {
     });
 
     it('should preserve date objects in user', () => {
-      const result = AdminAuthMapper.toAdminSetupResponseDto(userWithoutPassword);
+      const result = toAdminSetupResponseDto(userWithoutPassword);
 
       expect(result.user.createdAt).toBeInstanceOf(Date);
       expect(result.user.updatedAt).toBeInstanceOf(Date);
@@ -95,7 +100,7 @@ describe('AdminAuthMapper', () => {
 
   describe('toAdminStatusResponseDto', () => {
     it('should map to AdminStatusDto when admin exists and user eligible', () => {
-      const result = AdminAuthMapper.toAdminStatusResponseDto(true, true);
+      const result = toAdminStatusResponseDto(true, true);
 
       expect(result).toEqual({
         adminSetupAvailable: true,
@@ -105,7 +110,7 @@ describe('AdminAuthMapper', () => {
     });
 
     it('should map to AdminStatusDto when admin does not exist and user not eligible', () => {
-      const result = AdminAuthMapper.toAdminStatusResponseDto(false, false);
+      const result = toAdminStatusResponseDto(false, false);
 
       expect(result).toEqual({
         adminSetupAvailable: false,
@@ -115,7 +120,7 @@ describe('AdminAuthMapper', () => {
     });
 
     it('should map to AdminStatusDto when admin exists but user not eligible', () => {
-      const result = AdminAuthMapper.toAdminStatusResponseDto(true, false);
+      const result = toAdminStatusResponseDto(true, false);
 
       expect(result).toEqual({
         adminSetupAvailable: false,
@@ -125,7 +130,7 @@ describe('AdminAuthMapper', () => {
     });
 
     it('should map to AdminStatusDto when admin does not exist but user eligible', () => {
-      const result = AdminAuthMapper.toAdminStatusResponseDto(false, true);
+      const result = toAdminStatusResponseDto(false, true);
 
       expect(result).toEqual({
         adminSetupAvailable: true,
@@ -137,7 +142,7 @@ describe('AdminAuthMapper', () => {
 
   describe('toAdminTokenVerificationDto', () => {
     it('should return ok: true by default', () => {
-      const result = AdminAuthMapper.toAdminTokenVerificationDto();
+      const result = toAdminTokenVerificationDto();
 
       expect(result).toEqual({
         ok: true,
@@ -145,7 +150,7 @@ describe('AdminAuthMapper', () => {
     });
 
     it('should return ok: true when explicitly passed true', () => {
-      const result = AdminAuthMapper.toAdminTokenVerificationDto(true);
+      const result = toAdminTokenVerificationDto(true);
 
       expect(result).toEqual({
         ok: true,
@@ -153,7 +158,7 @@ describe('AdminAuthMapper', () => {
     });
 
     it('should return ok: false when explicitly passed false', () => {
-      const result = AdminAuthMapper.toAdminTokenVerificationDto(false);
+      const result = toAdminTokenVerificationDto(false);
 
       expect(result).toEqual({
         ok: false,

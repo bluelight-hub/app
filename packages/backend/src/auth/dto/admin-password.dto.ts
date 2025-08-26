@@ -1,5 +1,5 @@
-import { IsString, MinLength } from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
+import { IsString, MinLength } from 'class-validator';
 
 /**
  * Data Transfer Object für die Admin-Anmeldung nur mit Passwort

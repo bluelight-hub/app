@@ -1,4 +1,4 @@
-import * as React from 'react';
+import type * as React from 'react';
 
 import { cn } from '@/utils/cn.ts';
 
@@ -9,7 +9,6 @@ interface FormFieldProps {
   required?: boolean;
   className?: string;
   children: React.ReactNode;
-  autoCorrect?: 'on' | 'off';
 }
 
 /**
@@ -17,14 +16,14 @@ interface FormFieldProps {
  *
  * Wrapper für Formularfelder mit Label und Hilfetexten
  */
-export function FormField({ label, helperText, error, required, className, children, autoCorrect = 'off' }: FormFieldProps) {
+export function FormField({ label, helperText, error, required, className, children }: FormFieldProps) {
   return (
     <div className={cn('space-y-2', className)}>
       {label && (
-        <label autoCorrect={autoCorrect} className="block text-sm font-medium text-gray-700">
+        <div className="block text-sm font-medium text-gray-700">
           {label}
           {required && <span className="ml-1 text-red-500">*</span>}
-        </label>
+        </div>
       )}
       {children}
       {(helperText || error) && <p className={cn('mt-1 text-sm', error ? 'text-red-600' : 'text-gray-500')}>{error || helperText}</p>}

@@ -14,12 +14,7 @@
 
 import { mapValues } from '../runtime';
 import type { PublicUserDto } from './PublicUserDto';
-import {
-  PublicUserDtoFromJSON,
-  PublicUserDtoFromJSONTyped,
-  PublicUserDtoToJSON,
-  PublicUserDtoToJSONTyped,
-} from './PublicUserDto';
+import { PublicUserDtoFromJSON, PublicUserDtoFromJSONTyped, PublicUserDtoToJSON, PublicUserDtoToJSONTyped } from './PublicUserDto';
 
 /**
  *
@@ -47,10 +42,7 @@ export function PublicUsersResponseDtoFromJSON(json: any): PublicUsersResponseDt
   return PublicUsersResponseDtoFromJSONTyped(json, false);
 }
 
-export function PublicUsersResponseDtoFromJSONTyped(
-  json: any,
-  ignoreDiscriminator: boolean,
-): PublicUsersResponseDto {
+export function PublicUsersResponseDtoFromJSONTyped(json: any, ignoreDiscriminator: boolean): PublicUsersResponseDto {
   if (json == null) {
     return json;
   }
@@ -63,10 +55,7 @@ export function PublicUsersResponseDtoToJSON(json: any): PublicUsersResponseDto 
   return PublicUsersResponseDtoToJSONTyped(json, false);
 }
 
-export function PublicUsersResponseDtoToJSONTyped(
-  value?: PublicUsersResponseDto | null,
-  ignoreDiscriminator: boolean = false,
-): any {
+export function PublicUsersResponseDtoToJSONTyped(value?: PublicUsersResponseDto | null, ignoreDiscriminator: boolean = false): any {
   if (value == null) {
     return value;
   }

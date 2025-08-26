@@ -1,20 +1,20 @@
+import type { CreateUserDto, UserDto } from '@bluelight-hub/shared/client';
+import { Navigate } from '@tanstack/react-router';
 import { useState } from 'react';
 import { PiPlus, PiWarning } from 'react-icons/pi';
-import { Navigate } from '@tanstack/react-router';
-import type { CreateUserDto, UserDto } from '@bluelight-hub/shared/client';
+import { Alert } from '@/components/atoms/alert.atom';
 import { Button } from '@/components/atoms/button.atom';
+import { Card } from '@/components/atoms/card.atom';
 import { Container } from '@/components/atoms/container.atom';
 import { Heading } from '@/components/atoms/heading.atom';
 import { Spinner } from '@/components/atoms/spinner.atom';
-import { Alert } from '@/components/atoms/alert.atom';
-import { Card } from '@/components/atoms/card.atom';
-import { UsersTable } from '@/components/organisms/admin/UsersTable';
-import { useAdminUserManagement } from '@/hooks/useAdminUserManagement';
-import { CreateUserDialog } from '@/components/organisms/admin/CreateUserDialog';
 import { ConfirmDeleteDialog } from '@/components/organisms/admin/ConfirmDeleteDialog';
+import { CreateUserDialog } from '@/components/organisms/admin/CreateUserDialog';
+import { UsersTable } from '@/components/organisms/admin/UsersTable';
 import { useAdminAuth } from '@/hooks/useAdminAuth';
+import { useAdminUserManagement } from '@/hooks/useAdminUserManagement';
 
-export default function AdminUsers() {
+export function AdminUsers() {
   const { isAdmin, isLoading: isAuthLoading } = useAdminAuth();
   const { usersData, isLoading: isUsersLoading, error, createUser, deleteUser, isCreating, isDeleting } = useAdminUserManagement();
 
@@ -93,7 +93,7 @@ export default function AdminUsers() {
         onClose={() => setDeleteTarget(null)}
         onConfirm={confirmDelete}
         userName={deleteTarget?.username || ''}
-        userRole={deleteTarget?.role || ''}
+        userRole={deleteTarget?.role || 'user'}
         isDeleting={isDeleting}
       />
     </Container>

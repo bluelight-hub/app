@@ -12,13 +12,7 @@
  * Do not edit the class manually.
  */
 
-import * as runtime from '../runtime';
-import type {
-  CreateUserDto,
-  DeleteUserResponse,
-  UserResponse,
-  UsersListResponse,
-} from '../models/index';
+import type { CreateUserDto, DeleteUserResponse, UserResponse, UsersListResponse } from '../models/index';
 import {
   CreateUserDtoFromJSON,
   CreateUserDtoToJSON,
@@ -29,6 +23,7 @@ import {
   UsersListResponseFromJSON,
   UsersListResponseToJSON,
 } from '../models/index';
+import * as runtime from '../runtime';
 
 export interface UserManagementControllerCreateVAlphaRequest {
   createUserDto: CreateUserDto;
@@ -50,10 +45,7 @@ export class UserManagementApi extends runtime.BaseAPI {
     initOverrides?: RequestInit | runtime.InitOverrideFunction,
   ): Promise<runtime.ApiResponse<UserResponse>> {
     if (requestParameters['createUserDto'] == null) {
-      throw new runtime.RequiredError(
-        'createUserDto',
-        'Required parameter "createUserDto" was null or undefined when calling userManagementControllerCreateVAlpha().',
-      );
+      throw new runtime.RequiredError('createUserDto', 'Required parameter "createUserDto" was null or undefined when calling userManagementControllerCreateVAlpha().');
     }
 
     const queryParameters: any = {};
@@ -79,23 +71,15 @@ export class UserManagementApi extends runtime.BaseAPI {
   /**
    * Neuen Benutzer erstellen
    */
-  async userManagementControllerCreateVAlpha(
-    requestParameters: UserManagementControllerCreateVAlphaRequest,
-    initOverrides?: RequestInit | runtime.InitOverrideFunction,
-  ): Promise<UserResponse> {
-    const response = await this.userManagementControllerCreateVAlphaRaw(
-      requestParameters,
-      initOverrides,
-    );
+  async userManagementControllerCreateVAlpha(requestParameters: UserManagementControllerCreateVAlphaRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<UserResponse> {
+    const response = await this.userManagementControllerCreateVAlphaRaw(requestParameters, initOverrides);
     return await response.value();
   }
 
   /**
    * Alle Benutzer auflisten
    */
-  async userManagementControllerFindAllVAlphaRaw(
-    initOverrides?: RequestInit | runtime.InitOverrideFunction,
-  ): Promise<runtime.ApiResponse<UsersListResponse>> {
+  async userManagementControllerFindAllVAlphaRaw(initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<UsersListResponse>> {
     const queryParameters: any = {};
 
     const headerParameters: runtime.HTTPHeaders = {};
@@ -110,17 +94,13 @@ export class UserManagementApi extends runtime.BaseAPI {
       initOverrides,
     );
 
-    return new runtime.JSONApiResponse(response, (jsonValue) =>
-      UsersListResponseFromJSON(jsonValue),
-    );
+    return new runtime.JSONApiResponse(response, (jsonValue) => UsersListResponseFromJSON(jsonValue));
   }
 
   /**
    * Alle Benutzer auflisten
    */
-  async userManagementControllerFindAllVAlpha(
-    initOverrides?: RequestInit | runtime.InitOverrideFunction,
-  ): Promise<UsersListResponse> {
+  async userManagementControllerFindAllVAlpha(initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<UsersListResponse> {
     const response = await this.userManagementControllerFindAllVAlphaRaw(initOverrides);
     return await response.value();
   }
@@ -133,10 +113,7 @@ export class UserManagementApi extends runtime.BaseAPI {
     initOverrides?: RequestInit | runtime.InitOverrideFunction,
   ): Promise<runtime.ApiResponse<DeleteUserResponse>> {
     if (requestParameters['id'] == null) {
-      throw new runtime.RequiredError(
-        'id',
-        'Required parameter "id" was null or undefined when calling userManagementControllerRemoveVAlpha().',
-      );
+      throw new runtime.RequiredError('id', 'Required parameter "id" was null or undefined when calling userManagementControllerRemoveVAlpha().');
     }
 
     const queryParameters: any = {};
@@ -145,10 +122,7 @@ export class UserManagementApi extends runtime.BaseAPI {
 
     const response = await this.request(
       {
-        path: `/api/v-alpha/admin/users/{id}`.replace(
-          `{${'id'}}`,
-          encodeURIComponent(String(requestParameters['id'])),
-        ),
+        path: `/api/v-alpha/admin/users/{id}`.replace(`{${'id'}}`, encodeURIComponent(String(requestParameters['id']))),
         method: 'DELETE',
         headers: headerParameters,
         query: queryParameters,
@@ -156,22 +130,14 @@ export class UserManagementApi extends runtime.BaseAPI {
       initOverrides,
     );
 
-    return new runtime.JSONApiResponse(response, (jsonValue) =>
-      DeleteUserResponseFromJSON(jsonValue),
-    );
+    return new runtime.JSONApiResponse(response, (jsonValue) => DeleteUserResponseFromJSON(jsonValue));
   }
 
   /**
    * Benutzer löschen
    */
-  async userManagementControllerRemoveVAlpha(
-    requestParameters: UserManagementControllerRemoveVAlphaRequest,
-    initOverrides?: RequestInit | runtime.InitOverrideFunction,
-  ): Promise<DeleteUserResponse> {
-    const response = await this.userManagementControllerRemoveVAlphaRaw(
-      requestParameters,
-      initOverrides,
-    );
+  async userManagementControllerRemoveVAlpha(requestParameters: UserManagementControllerRemoveVAlphaRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<DeleteUserResponse> {
+    const response = await this.userManagementControllerRemoveVAlphaRaw(requestParameters, initOverrides);
     return await response.value();
   }
 }

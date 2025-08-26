@@ -1,5 +1,5 @@
-import { forwardRef } from 'react';
 import type { HTMLAttributes, ReactNode, TdHTMLAttributes, ThHTMLAttributes } from 'react';
+import { forwardRef } from 'react';
 
 import { cn } from '@/utils/cn.ts';
 
@@ -149,15 +149,21 @@ export function TableSkeleton({ rows = 5, columns = 4 }: TableSkeletonProps) {
   return (
     <TableRoot>
       <TableBody>
-        {Array.from({ length: rows }).map((_, rowIndex) => (
-          <TableRow key={rowIndex}>
-            {Array.from({ length: columns }).map((__, colIndex) => (
-              <TableCell key={colIndex}>
-                <div className="h-4 w-full animate-pulse rounded bg-gray-200 dark:bg-gray-700" />
-              </TableCell>
-            ))}
-          </TableRow>
-        ))}
+        {Array.from({ length: rows }).map((_, rowIndex) => {
+          const rowKey = `skeleton-${rows}-${columns}-row-${rowIndex}`;
+          return (
+            <TableRow key={rowKey}>
+              {Array.from({ length: columns }).map((__, colIndex) => {
+                const cellKey = `skeleton-${rows}-${columns}-cell-${rowIndex}-${colIndex}`;
+                return (
+                  <TableCell key={cellKey}>
+                    <div className="h-4 w-full animate-pulse rounded bg-gray-200 dark:bg-gray-700" />
+                  </TableCell>
+                );
+              })}
+            </TableRow>
+          );
+        })}
       </TableBody>
     </TableRoot>
   );

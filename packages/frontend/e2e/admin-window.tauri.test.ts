@@ -1,6 +1,6 @@
-import { spawn } from 'node:child_process';
+import { type ChildProcess, spawn } from 'node:child_process';
 import { platform } from 'node:os';
-import { expect, test } from '@playwright/test';
+import { type Page, expect, test } from '@playwright/test';
 
 /**
  * E2E Tests für Tauri-spezifisches Fenster-Management
@@ -18,8 +18,8 @@ const isTauriTest = process.env.TAURI_TEST === 'true';
 
 test.describe('Tauri Window Management', () => {
   test.skip(!isTauriTest, 'Nur in Tauri-Umgebung ausführen');
-  let tauriProcess;
-  let page;
+  let tauriProcess: ChildProcess | undefined;
+  let page: Page | undefined;
 
   test.beforeAll(async ({ browser }) => {
     // Start Tauri app

@@ -35,13 +35,6 @@
 - UI: Tailwindcss; do not mix CSS frameworks. Prefer official components and theme tokens.
 - Docs: arc42 lives under `docs/architecture/`; update ADRs in `docs/architecture/adr/` with architectural changes.
 
-## MCP Integration
-
-- Serena: Symbol-basierte Navigation statt Ganzdatei-Reads; nutze `mcp__serena__get_symbols_overview`, `find_symbol`,
-  `find_referencing_symbols` vor Refactors; für präzise Edits `replace_symbol_body`.
-- Context7: Vor Einsatz/Update externer Libs offizielle Doku holen (`mcp__context7__resolve-library-id` →
-  `mcp__context7__get-library-docs`); relevant: NestJS, Prisma, React, Tailwind, HeadlessUI, TanStack, Zod.
-
 ## Testing Guidelines
 
 - Backend: Jest (`pnpm --filter @bluelight-hub/backend test`), coverage via `test:cov`.

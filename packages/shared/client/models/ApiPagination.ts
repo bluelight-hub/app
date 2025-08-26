@@ -76,10 +76,7 @@ export function ApiPaginationToJSON(json: any): ApiPagination {
   return ApiPaginationToJSONTyped(json, false);
 }
 
-export function ApiPaginationToJSONTyped(
-  value?: ApiPagination | null,
-  ignoreDiscriminator: boolean = false,
-): any {
+export function ApiPaginationToJSONTyped(value?: ApiPagination | null, ignoreDiscriminator: boolean = false): any {
   if (value == null) {
     return value;
   }

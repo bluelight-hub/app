@@ -1,5 +1,5 @@
 import { SetMetadata } from '@nestjs/common';
-import { RATE_LIMIT_KEY, RateLimitOptions } from '../guards/rate-limit.guard';
+import { RATE_LIMIT_KEY, type RateLimitOptions } from '../guards/rate-limit.guard';
 
 /**
  * Rate Limit Decorator

@@ -1,23 +1,9 @@
 {
   "mcpServers": {
     "task-master": {
-      "command": "npx",
+      "command": "pnpx",
       "args": ["-y", "--package=task-master-ai", "task-master-ai"],
       "env": {}
-    },
-    "context7": {
-      "command": "npx",
-      "args": ["-y", "context7-mcp"]
-    },
-    "serena": {
-      "command": "uvx",
-      "args": [
-        "--from",
-        "git+https://github.com/aurelio-labs/serena",
-        "serena",
-        "--root-dir",
-        "/Users/rubeen/dev/personal/bluelight-hub"
-      ]
     },
     "browser-use": {
       "command": "uvx",

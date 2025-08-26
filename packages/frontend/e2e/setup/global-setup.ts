@@ -1,15 +1,19 @@
 import { exec } from 'node:child_process';
-import { promisify } from 'node:util';
 import * as path from 'node:path';
-import { GenericContainer } from 'testcontainers';
-import * as dotenv from 'dotenv';
-import type { StartedTestContainer } from 'testcontainers';
+import { fileURLToPath } from 'node:url';
+import { promisify } from 'node:util';
+import { config } from '@dotenvx/dotenvx';
 import type { FullConfig } from '@playwright/test';
+import type { StartedTestContainer } from 'testcontainers';
+import { GenericContainer } from 'testcontainers';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 const execAsync = promisify(exec);
 
 // Load test environment variables
-dotenv.config({ path: path.join(__dirname, '../../.env.test') });
+config({ path: path.join(__dirname, '../../.env.test') });
 
 let postgresContainer: StartedTestContainer;
 let redisContainer: StartedTestContainer;

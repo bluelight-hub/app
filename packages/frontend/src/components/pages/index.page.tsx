@@ -1,12 +1,12 @@
+import { Button } from '@atoms/button.atom';
+import { Card } from '@atoms/card.atom';
+import { Heading } from '@atoms/heading.atom';
+import { Spinner } from '@atoms/spinner.atom';
+import { Text } from '@atoms/text.atom';
 import { ColorModeButton } from '@molecules/color-mode-button.molecule.tsx';
 import { Link, useRouter } from '@tanstack/react-router';
 import { PiShieldCheck, PiSignIn } from 'react-icons/pi';
-import { Button } from '@atoms/button.atom';
-import { Spinner } from '@atoms/spinner.atom';
-import { Text } from '@atoms/text.atom';
-import { Heading } from '@atoms/heading.atom';
-import { Card } from '@atoms/card.atom';
-
+import { useAuth } from '@/hooks/useAuth.ts';
 /**
  * Startseite der Anwendung.
  *
@@ -15,7 +15,6 @@ import { Card } from '@atoms/card.atom';
  * @returns Die Index-Page-Komponente
  */
 import { isAdmin } from '@/utils/auth';
-import { useAuth } from '@/hooks/useAuth.ts';
 
 export function IndexPage() {
   const { isLoading, logout, user } = useAuth();

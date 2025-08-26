@@ -1,4 +1,4 @@
-import * as React from 'react';
+import type * as React from 'react';
 import { PiCheckCircleFill, PiInfoFill, PiWarningFill, PiXCircleFill } from 'react-icons/pi';
 
 import { cn } from '@/utils/cn.ts';

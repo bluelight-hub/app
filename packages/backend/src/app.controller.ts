@@ -1,7 +1,7 @@
-import { Controller, Get, Logger, VERSION_NEUTRAL } from '@nestjs/common';
 import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
-import { ConfigService } from '@nestjs/config';
+import { Controller, Get, Logger, VERSION_NEUTRAL } from '@nestjs/common';
+import type { ConfigService } from '@nestjs/config';
 import { SkipTransform } from './common/decorators/skip-transform.decorator';
 import { trimTrailingSlash } from './utils/url.util';
 
@@ -46,7 +46,7 @@ export class AppController {
       message: 'Bluelight Hub API',
       version: packageJson.version,
       endpoints: {
-        api: this.url + '/api',
+        api: `${this.url}/api`,
       },
     };
   }

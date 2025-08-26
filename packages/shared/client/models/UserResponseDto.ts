@@ -71,8 +71,7 @@ export const UserResponseDtoRoleEnum = {
   Admin: 'ADMIN',
   User: 'USER',
 } as const;
-export type UserResponseDtoRoleEnum =
-  (typeof UserResponseDtoRoleEnum)[keyof typeof UserResponseDtoRoleEnum];
+export type UserResponseDtoRoleEnum = (typeof UserResponseDtoRoleEnum)[keyof typeof UserResponseDtoRoleEnum];
 
 /**
  * Check if a given object implements the UserResponseDto interface.
@@ -91,10 +90,7 @@ export function UserResponseDtoFromJSON(json: any): UserResponseDto {
   return UserResponseDtoFromJSONTyped(json, false);
 }
 
-export function UserResponseDtoFromJSONTyped(
-  json: any,
-  ignoreDiscriminator: boolean,
-): UserResponseDto {
+export function UserResponseDtoFromJSONTyped(json: any, ignoreDiscriminator: boolean): UserResponseDto {
   if (json == null) {
     return json;
   }
@@ -113,10 +109,7 @@ export function UserResponseDtoToJSON(json: any): UserResponseDto {
   return UserResponseDtoToJSONTyped(json, false);
 }
 
-export function UserResponseDtoToJSONTyped(
-  value?: UserResponseDto | null,
-  ignoreDiscriminator: boolean = false,
-): any {
+export function UserResponseDtoToJSONTyped(value?: UserResponseDto | null, ignoreDiscriminator: boolean = false): any {
   if (value == null) {
     return value;
   }
@@ -126,8 +119,7 @@ export function UserResponseDtoToJSONTyped(
     username: value['username'],
     role: value['role'],
     isActive: value['isActive'],
-    lastLoginAt:
-      value['lastLoginAt'] == null ? undefined : (value['lastLoginAt'] as any).toISOString(),
+    lastLoginAt: value['lastLoginAt'] == null ? undefined : (value['lastLoginAt'] as any).toISOString(),
     createdAt: value['createdAt'].toISOString(),
     updatedAt: value['updatedAt'].toISOString(),
   };

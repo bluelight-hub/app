@@ -1,9 +1,9 @@
 #!/usr/bin/env ts-node
 
-import * as ts from 'typescript';
-import * as fs from 'fs';
-import * as path from 'path';
+import * as fs from 'node:fs';
+import * as path from 'node:path';
 import { Logger } from '@nestjs/common';
+import * as ts from 'typescript';
 
 interface MethodInfo {
   fileName: string;
@@ -366,7 +366,7 @@ class JsDocChecker {
       });
 
     // Print summary
-    logger.log('\n' + '='.repeat(60));
+    logger.log(`\n${'='.repeat(60)}`);
     logger.log('📈 Summary:');
     logger.log('='.repeat(60));
     logger.log(`Total methods without JSDoc: ${totalMethods}`);

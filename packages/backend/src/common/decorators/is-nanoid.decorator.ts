@@ -1,4 +1,8 @@
-import { registerDecorator, ValidationArguments, ValidationOptions } from 'class-validator';
+import {
+  registerDecorator,
+  type ValidationArguments,
+  type ValidationOptions,
+} from 'class-validator';
 
 /**
  * Validiert, dass ein String im NanoID-Format ist.
@@ -10,7 +14,7 @@ import { registerDecorator, ValidationArguments, ValidationOptions } from 'class
  * @returns PropertyDecorator für class-validator
  */
 export function IsNanoId(validationOptions?: ValidationOptions, length: number = 21) {
-  return function (object: object, propertyName: string) {
+  return (object: object, propertyName: string) => {
     registerDecorator({
       name: 'isNanoId',
       target: object.constructor,
@@ -18,7 +22,7 @@ export function IsNanoId(validationOptions?: ValidationOptions, length: number =
       options: validationOptions,
       constraints: [length],
       validator: {
-        validate(value: any, args: ValidationArguments) {
+        validate(value: unknown, args: ValidationArguments) {
           if (value === undefined || value === null) {
             return true; // Optional-Validierung überlassen wir @IsOptional
           }

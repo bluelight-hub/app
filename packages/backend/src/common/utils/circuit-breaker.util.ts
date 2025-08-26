@@ -75,9 +75,7 @@ export class CircuitBreaker {
 
       if (openDuration < this.config.openStateDuration) {
         throw new CircuitBreakerOpenError(
-          `Circuit breaker ${this.name} is OPEN. Retry after ${Math.ceil(
-            (this.config.openStateDuration - openDuration) / 1000,
-          )} seconds`,
+          `Circuit breaker ${this.name} is OPEN. Retry after ${Math.ceil((this.config.openStateDuration - openDuration) / 1000)} seconds`,
         );
       }
 

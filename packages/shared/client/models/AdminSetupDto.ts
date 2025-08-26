@@ -52,10 +52,7 @@ export function AdminSetupDtoToJSON(json: any): AdminSetupDto {
   return AdminSetupDtoToJSONTyped(json, false);
 }
 
-export function AdminSetupDtoToJSONTyped(
-  value?: AdminSetupDto | null,
-  ignoreDiscriminator: boolean = false,
-): any {
+export function AdminSetupDtoToJSONTyped(value?: AdminSetupDto | null, ignoreDiscriminator: boolean = false): any {
   if (value == null) {
     return value;
   }

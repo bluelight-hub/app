@@ -1,5 +1,5 @@
+import type { INestApplication } from '@nestjs/common';
 import request from 'supertest';
-import { INestApplication } from '@nestjs/common';
 import { TestAppFactory } from './utils/test-app.factory';
 
 describe('AppController (e2e)', () => {

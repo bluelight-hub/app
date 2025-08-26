@@ -1,6 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger';
+import type { UserRole } from '@prisma/client';
 import { ApiResponse } from '@/common/interfaces/api-response.interface';
-import { UserRole } from '@prisma/client';
 
 /**
  * DTO für einen einzelnen Benutzer

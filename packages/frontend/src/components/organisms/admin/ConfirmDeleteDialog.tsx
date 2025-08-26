@@ -1,8 +1,8 @@
 import { UserDtoRoleEnum } from '@bluelight-hub/shared/client';
 import { PiShieldWarning } from 'react-icons/pi';
-import { Dialog } from '@/components/molecules/dialog.molecule';
-import { Button } from '@/components/atoms/button.atom';
 import { Badge } from '@/components/atoms/badge.atom';
+import { Button } from '@/components/atoms/button.atom';
+import { Dialog } from '@/components/molecules/dialog.molecule';
 
 interface ConfirmDeleteDialogProps {
   isOpen: boolean;

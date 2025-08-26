@@ -1,4 +1,4 @@
-import { DeleteUserResponseData } from '@bluelight-hub/shared/client';
+import type { DeleteUserResponseData } from '@bluelight-hub/shared/client';
 
 /**
  * Erstellt eine Lösch-Response für einen Benutzer

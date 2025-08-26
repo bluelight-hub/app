@@ -12,7 +12,7 @@ process.env.NODE_ENV = 'test';
 process.env.JWT_SECRET = 'test-access-secret';
 process.env.JWT_REFRESH_SECRET = 'test-refresh-secret';
 process.env.ADMIN_JWT_SECRET = 'test-admin-secret';
-process.env.ADMIN_JWT_EXPIRATION = '15m';
+process.env.JWT_ADMIN_EXPIRES_IN = '15m';
 process.env.JWT_ACCESS_EXPIRES_IN = '15m';
 process.env.JWT_REFRESH_EXPIRES_IN = '7d';
 
@@ -39,7 +39,13 @@ beforeAll(async () => {
 });
 
 afterAll(async () => {
-  await TestDbUtils.cleanTestUsers(['loadingtest', 'testuser']);
+  await TestDbUtils.cleanTestUsers([
+    'loadingtest',
+    'testuser',
+    'test_',
+    'logout_test',
+    'logout-test',
+  ]);
 
   await TestDbUtils.disconnect();
   await TestDbUtils.stopContainer();

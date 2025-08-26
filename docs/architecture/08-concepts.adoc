@@ -1836,7 +1836,8 @@ Dieses umfassende Audit-System stellt sicher, dass alle relevanten Aktionen im B
 
 === Frontend-Architektur und Component-System
 
-Das Frontend des Bluelight-Hub-Systems basiert auf einer modernen, komponentenbasierten Architektur mit Fokus auf Performance, Wartbarkeit und Developer Experience. Die Architektur nutzt das Atomic Design Pattern in Kombination mit einem Utility-First CSS-Ansatz.
+Das Frontend des Bluelight-Hub-Systems basiert auf einer modernen, komponentenbasierten Architektur mit Fokus auf Performance, Wartbarkeit und Developer Experience.
+Die Architektur nutzt das Atomic Design Pattern in Kombination mit einem Utility-First CSS-Ansatz.
 
 ==== Technology Stack
 
@@ -1904,6 +1905,7 @@ src/components/
 2. **Composition over Inheritance**: Komponenten werden durch Komposition aufgebaut
 3. **Props over State**: State wird minimal gehalten und nach oben delegiert
 4. **Type Safety**: Vollständige TypeScript-Typisierung für alle Props und Events
+5. **Named Exports**: Alle Komponenten verwenden Named Exports statt Default Exports für bessere Refactoring-Unterstützung und explizite Imports
 
 ==== Tailwind CSS Integration
 
@@ -1936,9 +1938,36 @@ export const Button = ({ variant = 'primary', size = 'md', children }) => {
 };
 ----
 
+===== Export-Konventionen
+
+Alle React-Komponenten im Projekt verwenden **Named Exports** für konsistente und explizite Imports:
+
+[source,tsx]
+----
+// ✅ RICHTIG: Named Export
+export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
+  ({ children, ...props }, ref) => {
+    return <button ref={ref} {...props}>{children}</button>;
+  }
+);
+
+// ❌ FALSCH: Default Export (nicht verwenden!)
+export default function Button({ children, ...props }) {
+  return <button {...props}>{children}</button>;
+}
+
+// Import-Beispiel mit Named Export:
+import { Button } from '@/components/atoms/button.atom';
+import { Dialog } from '@/components/molecules/dialog.molecule';
+import { LoginWindow } from '@/components/organisms/auth/LoginWindow';
+----
+
+**Vorteile der Named Exports:**
+- Explizite und eindeutige Imports - Bessere IDE-Unterstützung für Refactoring und Auto-Imports - Konsistente Import-Statements über das gesamte Projekt - Möglichkeit mehrerer Exports aus einer Datei (z.B. Komponente + Utility-Funktionen)
+
 ===== Theme-Konfiguration
 
-Die zentrale Theme-Konfiguration erfolgt in Tailwind CSS v4 direkt über CSS mit dem `@theme` Directive in `index.css`:
+Die zentrale Theme-Konfiguration erfolgt in Tailwind CSS v4 direkt über CSS mit dem `@theme` Directive in `index.tailwind.css`:
 
 [source,css]
 ----
@@ -2076,7 +2105,6 @@ export const LoginForm = () => {
     onSubmit: async ({ value }) => {
       await api.auth.login(value);
     },
-    validatorAdapter: zodValidator,
     validators: {
       onChange: schema,
     },
@@ -2136,7 +2164,7 @@ it('should not have accessibility violations', async () => {
 Die Migration von Chakra UI zu Tailwind CSS + Headless UI wurde aus folgenden Gründen durchgeführt:
 
 1. **Performance**: Elimination der CSS-in-JS Runtime
-2. **Bundle-Size**: Reduktion um ~60% 
+2. **Bundle-Size**: Reduktion um ~60%
 3. **Developer Experience**: Schnelleres HMR und bessere IDE-Unterstützung
 4. **Wartbarkeit**: Weniger Dependencies und einfachere Updates
 

@@ -6,31 +6,35 @@ export class RegisterPage {
   readonly submitButton: Locator;
   readonly errorMessage: Locator;
   readonly homeLink: Locator;
-  readonly registerTab: Locator;
+  readonly comboboxButton: Locator;
+  readonly comboboxInput: Locator;
 
   constructor(page: Page) {
     this.page = page;
-    // New auth screen is under /auth with tabs. The register input placeholder changed.
-    this.registerTab = page
-      .getByRole('tab', { name: 'Registrieren' })
-      .or(page.getByRole('button', { name: 'Registrieren' }));
-    this.usernameInput = page.getByPlaceholder('z.B. max_mustermann');
-    // Be more specific to avoid conflicts with login form submit button
-    this.submitButton = page
-      .getByRole('button', { name: 'Registrieren' })
-      .filter({ hasText: 'Registrieren' });
+    // New unified auth uses a combobox instead of tabs
+    // The combobox allows both selecting existing users and entering new usernames
+    this.comboboxButton = page.getByRole('combobox', { name: /Benutzername/i });
+    this.comboboxInput = page.getByPlaceholder('Benutzername eingeben oder auswählen...');
+    this.usernameInput = page.getByPlaceholder('Benutzername eingeben oder auswählen...');
+    // Button now says "Anmelden" (Login) for unified auth
+    this.submitButton = page.getByRole('button', { name: 'Anmelden' });
     this.errorMessage = page.getByRole('alert');
     this.homeLink = page.getByRole('link', { name: 'Zur Startseite' });
   }
 
   async goto() {
     await this.page.goto('/auth');
-    // Switch to Register tab so inputs are visible
-    await this.registerTab.first().click();
+    // No need to switch tabs anymore - unified form is always visible
   }
 
   async register(username: string) {
-    await this.usernameInput.fill(username);
+    // Click on the combobox to open it
+    await this.comboboxButton.click();
+    // Type the username in the combobox input
+    await this.comboboxInput.fill(username);
+    // Close the combobox by pressing Enter or clicking outside
+    await this.page.keyboard.press('Enter');
+    // Click the submit button
     await this.submitButton.click();
   }
 

@@ -56,69 +56,39 @@ export interface HealthControllerCheck503Response {
 /**
  * Check if a given object implements the HealthControllerCheck503Response interface.
  */
-export function instanceOfHealthControllerCheck503Response(
-  value: object,
-): value is HealthControllerCheck503Response {
+export function instanceOfHealthControllerCheck503Response(value: object): value is HealthControllerCheck503Response {
   return true;
 }
 
-export function HealthControllerCheck503ResponseFromJSON(
-  json: any,
-): HealthControllerCheck503Response {
+export function HealthControllerCheck503ResponseFromJSON(json: any): HealthControllerCheck503Response {
   return HealthControllerCheck503ResponseFromJSONTyped(json, false);
 }
 
-export function HealthControllerCheck503ResponseFromJSONTyped(
-  json: any,
-  ignoreDiscriminator: boolean,
-): HealthControllerCheck503Response {
+export function HealthControllerCheck503ResponseFromJSONTyped(json: any, ignoreDiscriminator: boolean): HealthControllerCheck503Response {
   if (json == null) {
     return json;
   }
   return {
     status: json['status'] == null ? undefined : json['status'],
-    info:
-      json['info'] == null
-        ? undefined
-        : mapValues(json['info'], HealthControllerCheck200ResponseInfoValueFromJSON),
-    error:
-      json['error'] == null
-        ? undefined
-        : mapValues(json['error'], HealthControllerCheck200ResponseInfoValueFromJSON),
-    details:
-      json['details'] == null
-        ? undefined
-        : mapValues(json['details'], HealthControllerCheck200ResponseInfoValueFromJSON),
+    info: json['info'] == null ? undefined : mapValues(json['info'], HealthControllerCheck200ResponseInfoValueFromJSON),
+    error: json['error'] == null ? undefined : mapValues(json['error'], HealthControllerCheck200ResponseInfoValueFromJSON),
+    details: json['details'] == null ? undefined : mapValues(json['details'], HealthControllerCheck200ResponseInfoValueFromJSON),
   };
 }
 
-export function HealthControllerCheck503ResponseToJSON(
-  json: any,
-): HealthControllerCheck503Response {
+export function HealthControllerCheck503ResponseToJSON(json: any): HealthControllerCheck503Response {
   return HealthControllerCheck503ResponseToJSONTyped(json, false);
 }
 
-export function HealthControllerCheck503ResponseToJSONTyped(
-  value?: HealthControllerCheck503Response | null,
-  ignoreDiscriminator: boolean = false,
-): any {
+export function HealthControllerCheck503ResponseToJSONTyped(value?: HealthControllerCheck503Response | null, ignoreDiscriminator: boolean = false): any {
   if (value == null) {
     return value;
   }
 
   return {
     status: value['status'],
-    info:
-      value['info'] == null
-        ? undefined
-        : mapValues(value['info'], HealthControllerCheck200ResponseInfoValueToJSON),
-    error:
-      value['error'] == null
-        ? undefined
-        : mapValues(value['error'], HealthControllerCheck200ResponseInfoValueToJSON),
-    details:
-      value['details'] == null
-        ? undefined
-        : mapValues(value['details'], HealthControllerCheck200ResponseInfoValueToJSON),
+    info: value['info'] == null ? undefined : mapValues(value['info'], HealthControllerCheck200ResponseInfoValueToJSON),
+    error: value['error'] == null ? undefined : mapValues(value['error'], HealthControllerCheck200ResponseInfoValueToJSON),
+    details: value['details'] == null ? undefined : mapValues(value['details'], HealthControllerCheck200ResponseInfoValueToJSON),
   };
 }

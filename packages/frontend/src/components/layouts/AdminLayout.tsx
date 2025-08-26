@@ -1,14 +1,14 @@
 import { Outlet, useLocation, useNavigate, useRouterState } from '@tanstack/react-router';
-import { PiX } from 'react-icons/pi';
 import { isTauri } from '@tauri-apps/api/core';
 import { useCallback, useEffect, useMemo } from 'react';
-import { useAuth } from '@/hooks/useAuth';
-import { useAdminAuth } from '@/hooks/useAdminAuth';
-import { logger } from '@/utils/logger';
+import { PiX } from 'react-icons/pi';
 import { Container } from '@/components/atoms/container.atom';
 import { Heading } from '@/components/atoms/heading.atom';
 import { IconButton } from '@/components/atoms/icon-button.atom';
 import { Spinner } from '@/components/atoms/spinner.atom';
+import { useAdminAuth } from '@/hooks/useAdminAuth';
+import { useAuth } from '@/hooks/useAuth';
+import { logger } from '@/utils/logger';
 
 /**
  * Gemeinsames Layout für alle Admin-Seiten

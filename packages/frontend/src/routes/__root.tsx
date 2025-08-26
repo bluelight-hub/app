@@ -1,7 +1,7 @@
-import { Outlet, createRootRouteWithContext } from '@tanstack/react-router';
-import { MutationCache, QueryCache, QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { TanstackDevtools } from '@tanstack/react-devtools';
+import { MutationCache, QueryCache, QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { ReactQueryDevtoolsPanel } from '@tanstack/react-query-devtools';
+import { createRootRouteWithContext, Outlet } from '@tanstack/react-router';
 import { TanStackRouterDevtoolsPanel } from '@tanstack/react-router-devtools';
 import { Toaster } from 'sonner';
 import { Provider } from '@/components/ui/provider.tsx';
@@ -32,8 +32,7 @@ const queryClient = new QueryClient({
     queries: {
       retry: (failureCount, error) => {
         // Try to get status from error if it's a ResponseError
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const status = (error as any)?.response?.status;
+        const status = (error as { response?: { status?: number } })?.response?.status;
 
         // Don't retry on 401 (authentication) errors
         if (status === 401) {

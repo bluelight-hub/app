@@ -26,7 +26,7 @@ export interface AuthRequestDto {
    */
   username: string;
   /**
-   * Passwort (nur für Admin-Accounts erforderlich)
+   * Passwort (nur für Admin-Account Login erforderlich)
    * @type {string}
    * @memberof AuthRequestDto
    */
@@ -45,10 +45,7 @@ export function AuthRequestDtoFromJSON(json: any): AuthRequestDto {
   return AuthRequestDtoFromJSONTyped(json, false);
 }
 
-export function AuthRequestDtoFromJSONTyped(
-  json: any,
-  ignoreDiscriminator: boolean,
-): AuthRequestDto {
+export function AuthRequestDtoFromJSONTyped(json: any, ignoreDiscriminator: boolean): AuthRequestDto {
   if (json == null) {
     return json;
   }
@@ -62,10 +59,7 @@ export function AuthRequestDtoToJSON(json: any): AuthRequestDto {
   return AuthRequestDtoToJSONTyped(json, false);
 }
 
-export function AuthRequestDtoToJSONTyped(
-  value?: AuthRequestDto | null,
-  ignoreDiscriminator: boolean = false,
-): any {
+export function AuthRequestDtoToJSONTyped(value?: AuthRequestDto | null, ignoreDiscriminator: boolean = false): any {
   if (value == null) {
     return value;
   }

@@ -1,11 +1,11 @@
-import { Module, Logger } from '@nestjs/common';
+import { Logger, Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { ThrottlerModule } from '@nestjs/throttler';
+import { AppController } from './app.controller';
+import { AuthModule } from './auth/auth.module';
 import { CommonModule } from './common/common.module';
 import { HealthModule } from './health/health.module';
 import { PrismaModule } from './prisma/prisma.module';
-import { AuthModule } from './auth/auth.module';
-import { AppController } from './app.controller';
 import { UserManagementModule } from './user-management/user-management.module';
 
 /**

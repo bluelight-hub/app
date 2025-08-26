@@ -1,13 +1,13 @@
-import { Test, TestingModule } from '@nestjs/testing';
-import { INestApplication, ValidationPipe, VersioningType } from '@nestjs/common';
-import request from 'supertest';
-import { AppModule } from '@/app.module';
-import { PrismaService } from '@/prisma/prisma.service';
+import { type INestApplication, ValidationPipe, VersioningType } from '@nestjs/common';
+import { Test, type TestingModule } from '@nestjs/testing';
 import { UserRole } from '@prisma/client';
 import * as bcrypt from 'bcrypt';
 import cookieParser from 'cookie-parser';
-import { TestAuthUtils } from '../utils/test-auth.utils';
 import { nanoid } from 'nanoid';
+import request from 'supertest';
+import { AppModule } from '@/app.module';
+import { PrismaService } from '@/prisma/prisma.service';
+import { TestAuthUtils } from '../utils/test-auth.utils';
 
 describe('UserManagementController (e2e)', () => {
   let app: INestApplication;
@@ -65,30 +65,48 @@ describe('UserManagementController (e2e)', () => {
     });
     superAdminId = superAdmin.id;
 
-    // First, login as regular user to get JWT token
+    // First, login as regular user to get JWT token using unified auth
     const loginResponse = await request(app.getHttpServer())
-      .post('/api/auth/login')
-      .send({ username: 'superadmin' })
+      .post('/api/auth/unified')
+      .send({
+        username: 'superadmin',
+      })
       .expect(200);
 
     const loginCookies = loginResponse.headers['set-cookie'] as unknown as string[];
-    const authToken = loginCookies?.find((cookie) => cookie.startsWith('accessToken='));
+
+    // Extract both accessToken and refreshToken for admin login
+    const accessTokenCookie = loginCookies?.find((cookie) => cookie.startsWith('accessToken='));
+    const refreshTokenCookie = loginCookies?.find((cookie) => cookie.startsWith('refreshToken='));
+
+    if (!accessTokenCookie) {
+      throw new Error('No accessToken cookie found after login');
+    }
+
+    // Combine cookies for admin login request
+    const authCookies = [accessTokenCookie, refreshTokenCookie].filter(Boolean).join('; ');
 
     // Then, activate admin rights with password
     const adminLoginResponse = await request(app.getHttpServer())
       .post('/api/auth/admin/login')
-      .set('Cookie', authToken || '')
+      .set('Cookie', authCookies)
       .send({
         password: 'SuperSecurePassword123!',
-      });
+      })
+      .expect(200);
 
-    if (adminLoginResponse.status !== 200) {
-      console.error('Admin login failed:', adminLoginResponse.status, adminLoginResponse.body);
+    const adminCookies = adminLoginResponse.headers['set-cookie'] as unknown as string[];
+    const adminTokenCookie = adminCookies?.find((cookie) => cookie.startsWith('adminToken='));
+
+    if (!adminTokenCookie) {
+      throw new Error('Admin token cookie not found');
     }
 
-    const cookies = adminLoginResponse.headers['set-cookie'] as unknown as string[];
-    const adminTokenCookie = cookies.find((cookie) => cookie.startsWith('adminToken='));
-    adminCookie = adminTokenCookie ? adminTokenCookie.split(';')[0] : '';
+    // For subsequent requests, we need both the accessToken and adminToken
+    // Extract only the name=value part of the cookies, not the full cookie string with attributes
+    const accessTokenValue = accessTokenCookie.split(';')[0];
+    const adminTokenValue = adminTokenCookie.split(';')[0];
+    adminCookie = `${accessTokenValue}; ${adminTokenValue}`;
   });
 
   describe('GET /api/users', () => {
@@ -143,7 +161,7 @@ describe('UserManagementController (e2e)', () => {
       });
 
       const loginResponse = await request(app.getHttpServer())
-        .post('/api/auth/login')
+        .post('/api/auth/unified')
         .send({
           username: 'regularuser',
         })

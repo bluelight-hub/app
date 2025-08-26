@@ -1,17 +1,18 @@
-import { Test, TestingModule } from '@nestjs/testing';
-import { INestApplication, ValidationPipe, HttpStatus } from '@nestjs/common';
-import request from 'supertest';
+import { HttpStatus, type INestApplication, ValidationPipe } from '@nestjs/common';
+import { Test, type TestingModule } from '@nestjs/testing';
+import type { User } from '@prisma/client';
+import cookieParser from 'cookie-parser';
 import * as jwt from 'jsonwebtoken';
+import request from 'supertest';
 import { AppModule } from '@/app.module';
 import { PrismaService } from '@/prisma/prisma.service';
-import cookieParser from 'cookie-parser';
 
 describe('AuthController (e2e) - Admin Verify', () => {
   let app: INestApplication;
   let prisma: PrismaService;
   let validAdminToken: string;
   let expiredAdminToken: string;
-  let testAdminUser: any;
+  let testAdminUser: User;
   const adminSecret = process.env.ADMIN_JWT_SECRET || 'test-admin-secret';
 
   beforeAll(async () => {

@@ -1,9 +1,9 @@
-import { Test, TestingModule } from '@nestjs/testing';
-import { ConfigService } from '@nestjs/config';
 import { UnauthorizedException } from '@nestjs/common';
-import { AdminJwtStrategy, AdminJwtPayload } from './admin-jwt.strategy';
-import { AuthService } from '../auth.service';
+import { ConfigService } from '@nestjs/config';
+import { Test, type TestingModule } from '@nestjs/testing';
 import { UserRole } from '@prisma/client';
+import { AuthService } from '../auth.service';
+import { type AdminJwtPayload, AdminJwtStrategy } from './admin-jwt.strategy';
 
 describe('AdminJwtStrategy', () => {
   let strategy: AdminJwtStrategy;
@@ -133,7 +133,14 @@ describe('AdminJwtStrategy', () => {
         id: 'user-id',
         username: 'demoteduser',
         role: UserRole.USER, // User was demoted from admin
-      } as any);
+        isActive: true,
+        passwordHash: 'hash',
+        failedLoginCount: 0,
+        lockedUntil: null,
+        lastLoginAt: null,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      } as User);
 
       const payload: AdminJwtPayload = {
         sub: 'user-id',

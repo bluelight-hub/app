@@ -12,6 +12,10 @@ concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
+permissions:
+  contents: read
+  security-events: write
+
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -91,8 +95,8 @@ jobs:
           JWT_REFRESH_SECRET: test-refresh-secret
           NODE_ENV: test
         run: |
-          pnpm --filter @bluelight-hub/backend test:cov || true
-          pnpm --filter @bluelight-hub/frontend test:cov || true
+          pnpm --filter @bluelight-hub/backend test:cov
+          pnpm --filter @bluelight-hub/frontend test:cov
 
       # E2E Tests
       - name: Build backend for production
@@ -160,7 +164,7 @@ jobs:
       # Coverage upload (nur für Node 22)
       - name: Upload coverage to Codecov
         if: matrix.node-version == 22
-        uses: codecov/codecov-action@v3
+        uses: codecov/codecov-action@v5
         with:
           files: |
             packages/backend/coverage/lcov.info

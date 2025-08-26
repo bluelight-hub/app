@@ -1,18 +1,18 @@
-import { Test, TestingModule } from '@nestjs/testing';
 import { Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { AdminResetPasswordCommand } from '../admin-reset-password.command';
-import { PrismaService } from '../../../prisma/prisma.service';
+import { Test, type TestingModule } from '@nestjs/testing';
 import { UserRole } from '@prisma/client';
 import * as bcrypt from 'bcrypt';
+import { PrismaService } from '../../../prisma/prisma.service';
+import { AdminResetPasswordCommand } from '../admin-reset-password.command';
 
 jest.mock('bcrypt');
 
 describe('AdminResetPasswordCommand', () => {
   let command: AdminResetPasswordCommand;
   let module: TestingModule;
-  let prismaService: any;
-  let configService: any;
+  let prismaService: jest.Mocked<PrismaService>;
+  let configService: jest.Mocked<ConfigService>;
 
   beforeEach(async () => {
     // Create mock PrismaService
@@ -49,8 +49,8 @@ describe('AdminResetPasswordCommand', () => {
     }).compile();
 
     command = module.get<AdminResetPasswordCommand>(AdminResetPasswordCommand);
-    prismaService = module.get<PrismaService>(PrismaService);
-    configService = module.get<ConfigService>(ConfigService);
+    prismaService = module.get<PrismaService>(PrismaService) as jest.Mocked<PrismaService>;
+    configService = module.get<ConfigService>(ConfigService) as jest.Mocked<ConfigService>;
   });
 
   afterEach(async () => {
@@ -107,7 +107,7 @@ describe('AdminResetPasswordCommand', () => {
     let loggerErrorSpy: jest.SpyInstance;
 
     beforeEach(() => {
-      loggerErrorSpy = jest.spyOn(Logger.prototype as any, 'error').mockImplementation();
+      loggerErrorSpy = jest.spyOn(Logger.prototype, 'error' as never).mockImplementation();
     });
 
     afterEach(() => {
@@ -161,7 +161,7 @@ describe('AdminResetPasswordCommand', () => {
         passwordHash: '$2b$10$hashedPassword123',
       });
 
-      const loggerLogSpy = jest.spyOn(Logger.prototype as any, 'log').mockImplementation();
+      const loggerLogSpy = jest.spyOn(Logger.prototype, 'log' as never).mockImplementation();
 
       await command.run(['adminuser', 'newPassword']);
 
@@ -192,7 +192,7 @@ describe('AdminResetPasswordCommand', () => {
         passwordHash: '$2b$10$hashedPassword456',
       });
 
-      const loggerLogSpy = jest.spyOn(Logger.prototype as any, 'log').mockImplementation();
+      const loggerLogSpy = jest.spyOn(Logger.prototype, 'log' as never).mockImplementation();
 
       await command.run(['superadminuser', 'newPassword']);
 
@@ -230,8 +230,8 @@ describe('AdminResetPasswordCommand', () => {
     let loggerErrorSpy: jest.SpyInstance;
 
     beforeEach(() => {
-      loggerLogSpy = jest.spyOn(Logger.prototype as any, 'log').mockImplementation();
-      loggerErrorSpy = jest.spyOn(Logger.prototype as any, 'error').mockImplementation();
+      loggerLogSpy = jest.spyOn(Logger.prototype, 'log' as never).mockImplementation();
+      loggerErrorSpy = jest.spyOn(Logger.prototype, 'error' as never).mockImplementation();
     });
 
     afterEach(() => {

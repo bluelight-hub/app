@@ -1,16 +1,16 @@
-import { useCallback, useEffect } from 'react';
-import { useNavigate } from '@tanstack/react-router';
-import { toast } from 'sonner';
-import { UnifiedAuthForm } from './UnifiedAuthForm';
 import type { AuthRequestDto } from '@bluelight-hub/shared/client';
-import { useAuth } from '@/hooks/useAuth';
-import { getApiErrorMessage } from '@/utils/apiErrorHandler';
+import { useNavigate } from '@tanstack/react-router';
+import { useCallback, useEffect } from 'react';
+import { toast } from 'sonner';
 import { Heading } from '@/components/atoms/heading.atom';
 import { Text } from '@/components/atoms/text.atom';
-import { AuthLayout } from '@/components/templates/AuthLayout';
 import { AuthCard } from '@/components/molecules/auth-card.molecule';
-import { LogoWithIndicator } from '@/components/molecules/logo-with-indicator.molecule';
 import { AuthFooter } from '@/components/molecules/auth-footer.molecule';
+import { LogoWithIndicator } from '@/components/molecules/logo-with-indicator.molecule';
+import { AuthLayout } from '@/components/templates/AuthLayout';
+import { useAuth } from '@/hooks/useAuth';
+import { getApiErrorMessage } from '@/utils/apiErrorHandler';
+import { UnifiedAuthForm } from './UnifiedAuthForm';
 
 // Props for the LoginWindow component (currently empty)
 export type Props = Record<string, never>;

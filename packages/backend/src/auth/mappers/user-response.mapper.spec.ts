@@ -1,4 +1,4 @@
-import { User, UserRole } from '@prisma/client';
+import { type User, UserRole } from '@prisma/client';
 import { UserResponseMapper } from './user-response.mapper';
 
 describe('UserResponseMapper', () => {

@@ -1,8 +1,8 @@
-import { Test, TestingModule } from '@nestjs/testing';
 import { Reflector } from '@nestjs/core';
+import { Test, type TestingModule } from '@nestjs/testing';
+import { AdminJwtAuthGuard } from '../auth/guards/admin-jwt-auth.guard';
 import { UserManagementController } from './user-management.controller';
 import { UserManagementService } from './user-management.service';
-import { AdminJwtAuthGuard } from '../auth/guards/admin-jwt-auth.guard';
 
 describe('UserManagementController', () => {
   let controller: UserManagementController;
@@ -41,15 +41,15 @@ describe('UserManagementController', () => {
 
   describe('Guards', () => {
     it('should have AdminJwtAuthGuard applied at controller level', () => {
-      const guards = reflector.get<any[]>('__guards__', UserManagementController);
+      const guards = reflector.get<unknown[]>('__guards__', UserManagementController);
       expect(guards).toBeDefined();
       expect(guards[0]).toBe(AdminJwtAuthGuard);
     });
 
     it('should not have additional guards on individual methods', () => {
-      const findAllGuards = reflector.get<any[]>('__guards__', controller.findAll);
-      const createGuards = reflector.get<any[]>('__guards__', controller.create);
-      const removeGuards = reflector.get<any[]>('__guards__', controller.remove);
+      const findAllGuards = reflector.get<unknown[]>('__guards__', controller.findAll);
+      const createGuards = reflector.get<unknown[]>('__guards__', controller.create);
+      const removeGuards = reflector.get<unknown[]>('__guards__', controller.remove);
 
       expect(findAllGuards).toBeUndefined();
       expect(createGuards).toBeUndefined();

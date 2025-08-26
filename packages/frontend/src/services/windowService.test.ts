@@ -1,4 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { logger } from '@/utils/logger';
 import {
   closeAdminWindow,
   focusAdminWindow,
@@ -6,8 +7,6 @@ import {
   isInAdminWindow,
   openAdminWindow,
 } from './windowService';
-
-import { logger } from '@/utils/logger';
 
 // Mock Tauri APIs
 vi.mock('@tauri-apps/api/core', () => ({
@@ -46,11 +45,11 @@ describe('WindowService', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     // Reset window.open
-    delete (window as any).open;
+    delete (window as { open?: unknown }).open;
     window.open = vi.fn();
     // Reset window.location
-    delete (window as any).location;
-    window.location = { href: '', origin: 'http://localhost' } as any;
+    delete (window as { location?: unknown }).location;
+    window.location = { href: '', origin: 'http://localhost' } as Location;
   });
 
   afterEach(() => {
@@ -74,7 +73,9 @@ describe('WindowService', () => {
         }),
       };
 
-      WebviewWindow.mockImplementation(() => mockWindow as any);
+      WebviewWindow.mockImplementation(
+        () => mockWindow as unknown as ReturnType<typeof WebviewWindow>,
+      );
 
       await openAdminWindow({ width: 1200, height: 800 });
 
@@ -247,7 +248,9 @@ describe('WindowService', () => {
       const { getCurrentWebviewWindow } = vi.mocked(await import('@tauri-apps/api/webviewWindow'));
 
       isTauri.mockReturnValue(true);
-      getCurrentWebviewWindow.mockReturnValue({ label: 'admin' } as any);
+      getCurrentWebviewWindow.mockReturnValue({ label: 'admin' } as unknown as ReturnType<
+        typeof getCurrentWebviewWindow
+      >);
 
       const result = await isInAdminWindow();
 
@@ -260,7 +263,9 @@ describe('WindowService', () => {
       const { getCurrentWebviewWindow } = vi.mocked(await import('@tauri-apps/api/webviewWindow'));
 
       isTauri.mockReturnValue(true);
-      getCurrentWebviewWindow.mockReturnValue({ label: 'main' } as any);
+      getCurrentWebviewWindow.mockReturnValue({ label: 'main' } as unknown as ReturnType<
+        typeof getCurrentWebviewWindow
+      >);
 
       const result = await isInAdminWindow();
 

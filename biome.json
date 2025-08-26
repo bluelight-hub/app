@@ -1,0 +1,107 @@
+{
+  "formatter": {
+    "enabled": true,
+    "formatWithErrors": false,
+    "indentStyle": "space",
+    "indentWidth": 2,
+    "lineEnding": "lf",
+    "lineWidth": 200,
+    "attributePosition": "auto",
+    "bracketSameLine": false,
+    "bracketSpacing": true,
+    "expand": "auto",
+    "useEditorconfig": true,
+    "includes": [
+      "**",
+      "!**/node_modules/**",
+      "!**/pnpm-lock.yaml",
+      "!old-projects/**",
+      "!dist/**",
+      "!out/**",
+      "!venv/**",
+      "!.husky/**",
+      "!**/*.sqlite",
+      "!**/*.db",
+      "!**/.DS_Store",
+      "!**/.idea/",
+      "!**/.vscode/",
+      "!**/.env*",
+      "!**/Gemfile.lock",
+      "!**/repomix-output.xml",
+      "!**/*.min.js",
+      "!**/*.min.css",
+      "!**/*.tailwind.css"
+    ]
+  },
+  "linter": {
+    "enabled": true,
+    "rules": {
+      "recommended": true,
+      "nursery": {
+        "useSortedClasses": "on",
+        "noShadow": "on"
+      }
+    },
+    "includes": [
+      "**",
+      "!**/node_modules/**",
+      "!**/pnpm-lock.yaml",
+      "!old-projects/**",
+      "!dist/**",
+      "!out/**",
+      "!venv/**",
+      "!.husky/**",
+      "!**/*.sqlite",
+      "!**/*.db",
+      "!**/.DS_Store",
+      "!**/.idea/",
+      "!**/.vscode/",
+      "!**/.env*",
+      "!**/Gemfile.lock",
+      "!**/repomix-output.xml",
+      "!**/*.min.js",
+      "!**/*.min.css",
+      "!**/*.tailwind.css"
+    ]
+  },
+  "assist": {
+    "enabled": true,
+    "includes": [
+      "**",
+      "!**/node_modules/**",
+      "!**/pnpm-lock.yaml",
+      "!packages/**",
+      "!old-projects/**",
+      "!dist/**",
+      "!out/**",
+      "!venv/**",
+      "!.husky/**",
+      "!**/*.sqlite",
+      "!**/*.db",
+      "!**/.DS_Store",
+      "!**/.idea/",
+      "!**/.vscode/",
+      "!**/.env*",
+      "!**/Gemfile.lock",
+      "!**/repomix-output.xml",
+      "!**/*.min.js",
+      "!**/*.min.css",
+      "!**/*.tailwind.css"
+    ]
+  },
+  "javascript": {
+    "formatter": {
+      "jsxQuoteStyle": "double",
+      "quoteProperties": "asNeeded",
+      "trailingCommas": "all",
+      "semicolons": "always",
+      "arrowParentheses": "always",
+      "bracketSameLine": false,
+      "quoteStyle": "single",
+      "attributePosition": "auto",
+      "bracketSpacing": true
+    }
+  },
+  "html": { "formatter": { "selfCloseVoidElements": "always" } },
+  "overrides": [{ "includes": ["*.json", "*.yml", "*.yaml"], "formatter": { "indentWidth": 2 } }]
+}

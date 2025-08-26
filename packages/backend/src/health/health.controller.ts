@@ -1,16 +1,16 @@
+import * as net from 'node:net';
+import * as os from 'node:os';
 import { Controller, Get, VERSION_NEUTRAL } from '@nestjs/common';
 import {
-  DiskHealthIndicator,
+  type DiskHealthIndicator,
   HealthCheck,
-  HealthCheckResult,
-  HealthCheckService,
-  HealthIndicatorResult,
-  MemoryHealthIndicator,
+  type HealthCheckResult,
+  type HealthCheckService,
+  type HealthIndicatorResult,
+  type MemoryHealthIndicator,
 } from '@nestjs/terminus';
-import * as net from 'net';
-import * as os from 'os';
-import { PrismaHealthIndicator } from './prisma-health.indicator';
 import { SkipTransform } from '@/common/decorators/skip-transform.decorator';
+import type { PrismaHealthIndicator } from './prisma-health.indicator';
 
 /**
  * Konstanten für Health-Checks
@@ -215,12 +215,12 @@ export class HealthController {
           },
         },
       };
-    } catch (error: any) {
+    } catch (error) {
       return {
         fuekw: {
           status: 'down',
           message: 'Fehler bei FüKW-Verbindungsprüfung',
-          error: error.message,
+          error: error instanceof Error ? error.message : String(error),
         },
       };
     }

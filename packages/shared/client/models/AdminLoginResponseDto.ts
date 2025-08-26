@@ -14,12 +14,7 @@
 
 import { mapValues } from '../runtime';
 import type { AdminUserDto } from './AdminUserDto';
-import {
-  AdminUserDtoFromJSON,
-  AdminUserDtoFromJSONTyped,
-  AdminUserDtoToJSON,
-  AdminUserDtoToJSONTyped,
-} from './AdminUserDto';
+import { AdminUserDtoFromJSON, AdminUserDtoFromJSONTyped, AdminUserDtoToJSON, AdminUserDtoToJSONTyped } from './AdminUserDto';
 
 /**
  *
@@ -47,10 +42,7 @@ export function AdminLoginResponseDtoFromJSON(json: any): AdminLoginResponseDto 
   return AdminLoginResponseDtoFromJSONTyped(json, false);
 }
 
-export function AdminLoginResponseDtoFromJSONTyped(
-  json: any,
-  ignoreDiscriminator: boolean,
-): AdminLoginResponseDto {
+export function AdminLoginResponseDtoFromJSONTyped(json: any, ignoreDiscriminator: boolean): AdminLoginResponseDto {
   if (json == null) {
     return json;
   }
@@ -63,10 +55,7 @@ export function AdminLoginResponseDtoToJSON(json: any): AdminLoginResponseDto {
   return AdminLoginResponseDtoToJSONTyped(json, false);
 }
 
-export function AdminLoginResponseDtoToJSONTyped(
-  value?: AdminLoginResponseDto | null,
-  ignoreDiscriminator: boolean = false,
-): any {
+export function AdminLoginResponseDtoToJSONTyped(value?: AdminLoginResponseDto | null, ignoreDiscriminator: boolean = false): any {
   if (value == null) {
     return value;
   }

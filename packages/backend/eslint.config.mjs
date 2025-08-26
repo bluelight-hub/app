@@ -1,7 +1,7 @@
 import js from '@eslint/js';
+import eslintConfigPrettier from 'eslint-config-prettier';
 import globals from 'globals';
 import tsEslint from 'typescript-eslint';
-import eslintConfigPrettier from 'eslint-config-prettier';
 
 export default tsEslint.config(
   { ignores: ['dist', 'coverage', 'node_modules'] },

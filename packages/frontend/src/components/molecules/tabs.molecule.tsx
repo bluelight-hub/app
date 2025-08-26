@@ -40,8 +40,8 @@ export function Tabs({ items, defaultIndex = 0, onChange, className }: TabsProps
         ))}
       </TabList>
       <TabPanels className="mt-2">
-        {items.map((item, idx) => (
-          <TabPanel key={idx} className={cn('rounded-xl p-3', 'ring-white/60 ring-offset-2 ring-offset-blue-400 focus:outline-none focus:ring-2')}>
+        {items.map((item) => (
+          <TabPanel key={item.label} className={cn('rounded-xl p-3', 'ring-white/60 ring-offset-2 ring-offset-blue-400 focus:outline-none focus:ring-2')}>
             {item.content}
           </TabPanel>
         ))}

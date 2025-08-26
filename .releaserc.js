@@ -105,7 +105,7 @@ WIP Änderungen:
 {{/if}}`,
           },
           helpers: {
-            datetime: function (format = 'dd.mm.yyyy') {
+            datetime: (format = 'dd.mm.yyyy') => {
               const date = new Date();
               const utcDate = new Date(date.toUTCString().slice(0, -4));
               return format

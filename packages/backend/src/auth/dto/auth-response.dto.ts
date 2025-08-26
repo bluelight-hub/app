@@ -1,5 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { User } from '@prisma/client';
+import { AuthUserDto } from './auth-user.dto';
 
 /**
  * Unified Auth Response DTO
@@ -15,12 +15,7 @@ export class AuthResponseDto {
 
   @ApiProperty({
     description: 'Benutzerinformationen (ohne sensible Daten)',
-    example: {
-      id: 'user_123',
-      username: 'max_mustermann',
-      role: 'USER',
-      createdAt: '2024-01-01T00:00:00Z',
-    },
+    type: AuthUserDto,
   })
-  user: Omit<User, 'passwordHash'>;
+  user: AuthUserDto;
 }

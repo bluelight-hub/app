@@ -1,9 +1,9 @@
-import { INestApplication } from '@nestjs/common';
-import request from 'supertest';
+import type { INestApplication } from '@nestjs/common';
 import * as jwt from 'jsonwebtoken';
+import request from 'supertest';
 import { TestAppFactory } from '../utils/test-app.factory';
-import { TestDbUtils } from '../utils/test-db.utils';
 import { TestAuthUtils } from '../utils/test-auth.utils';
+import { TestDbUtils } from '../utils/test-db.utils';
 
 describe('Admin Setup (e2e)', () => {
   let app: INestApplication;
@@ -66,7 +66,7 @@ describe('Admin Setup (e2e)', () => {
       // Registriere ersten Benutzer
       const registerResponse = await TestAuthUtils.register(app, 'admin-user');
       const { accessToken } = TestAuthUtils.extractCookies(registerResponse);
-      const user = registerResponse.body;
+      const user = registerResponse.body.user;
 
       // Admin-Setup durchführen
       const response = await request(app.getHttpServer())
@@ -82,11 +82,11 @@ describe('Admin Setup (e2e)', () => {
       const adminTokenCookie = cookies.find((cookie) => cookie.startsWith('adminToken='));
       expect(adminTokenCookie).toBeDefined();
 
-      const adminToken = adminTokenCookie!.split(';')[0].split('=')[1];
+      const adminToken = adminTokenCookie?.split(';')[0].split('=')[1];
       expect(adminToken).toBeDefined();
 
       // Dekodiere Token ohne Verifikation (für Test-Zwecke)
-      const decoded = jwt.decode(adminToken) as any;
+      const decoded = jwt.decode(adminToken) as jwt.JwtPayload;
 
       // Prüfe Token-Payload
       expect(decoded).toHaveProperty('sub', user.id);
@@ -104,7 +104,7 @@ describe('Admin Setup (e2e)', () => {
       // Registriere ersten Benutzer
       const registerResponse = await TestAuthUtils.register(app, 'admin-user');
       const { accessToken } = TestAuthUtils.extractCookies(registerResponse);
-      const user = registerResponse.body;
+      const user = registerResponse.body.user;
 
       // Admin-Setup durchführen
       const response = await request(app.getHttpServer())
@@ -118,18 +118,18 @@ describe('Admin Setup (e2e)', () => {
       // Extrahiere Token aus Cookies
       const cookies = response.headers['set-cookie'] as unknown as string[];
       const adminTokenCookie = cookies.find((cookie) => cookie.startsWith('adminToken='));
-      const adminToken = adminTokenCookie!.split(';')[0].split('=')[1];
+      const adminToken = adminTokenCookie?.split(';')[0].split('=')[1];
 
       // Verifiziere Token mit ADMIN_JWT_SECRET
       const adminJwtSecret = process.env.ADMIN_JWT_SECRET || 'test-admin-secret';
-      const verified = jwt.verify(adminToken, adminJwtSecret) as any;
+      const verified = jwt.verify(adminToken, adminJwtSecret) as jwt.JwtPayload;
 
       expect(verified).toHaveProperty('sub', user.id);
       expect(verified).toHaveProperty('role', 'SUPER_ADMIN');
       expect(verified).toHaveProperty('username', 'admin-user');
     });
 
-    it('should return 409 if admin already exists', async () => {
+    it('should return 403 if non-admin user tries admin setup', async () => {
       // Registriere ersten Admin
       const firstRegisterResponse = await TestAuthUtils.register(app, 'first-admin');
       const { accessToken: firstToken } = TestAuthUtils.extractCookies(firstRegisterResponse);
@@ -142,20 +142,20 @@ describe('Admin Setup (e2e)', () => {
         })
         .expect(201);
 
-      // Registriere zweiten Benutzer
+      // Registriere zweiten Benutzer (wird normale USER-Rolle haben)
       const secondRegisterResponse = await TestAuthUtils.register(app, 'second-user');
       const { accessToken: secondToken } = TestAuthUtils.extractCookies(secondRegisterResponse);
 
-      // Versuche zweites Admin-Setup
+      // Versuche Admin-Setup als normaler User (sollte fehlschlagen)
       const response = await request(app.getHttpServer())
         .post('/api/auth/admin/setup')
         .set('Cookie', [`accessToken=${secondToken}`])
         .send({
           password: 'SecondPassword123!',
         })
-        .expect(409);
+        .expect(403);
 
-      expect(response.body.message).toBe('Nur Admin-Benutzer können diese Funktion nutzen');
+      expect(response.body.message).toBe('Nur Admins können ein Passwort setzen');
     });
 
     it('should return 401 without authentication', async () => {

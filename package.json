@@ -6,9 +6,7 @@
     "dev": "pnpm -r dev",
     "build": "pnpm -r build",
     "generate-api": "pnpm -r generate-api",
-    "lint": "pnpm -r lint",
-    "format": "prettier --write .",
-    "format:check": "prettier --check .",
+    "lint": "biome check --write && pnpm -r lint",
     "test": "pnpm -r test",
     "test:ui": "pnpm -r test:ui",
     "test:cov": "pnpm -r test:cov",
@@ -32,6 +30,7 @@
       "bcrypt",
       "es5-ext",
       "esbuild",
+      "prisma",
       "puppeteer",
       "unrs-resolver"
     ]
@@ -48,6 +47,7 @@
     ]
   },
   "devDependencies": {
+    "@biomejs/biome": "2.2.2",
     "@mermaid-js/mermaid-cli": "^11.9.0",
     "@semantic-release/changelog": "^6.0.3",
     "@semantic-release/exec": "^7.1.0",

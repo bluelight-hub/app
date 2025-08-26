@@ -272,8 +272,13 @@ pnpm --filter @bluelight-hub/frontend test:ui  # Vitest UI mode
 - **Modular Architecture**: Each feature in its own NestJS module
 - **Repository Pattern**: Not used - Prisma service injected directly
 - **DTO Pattern**: Class-validator for request validation
-- **Guards**: JWT authentication guard, role-based access control planned
-- **Interceptors**: Not yet implemented
+- **Guard-based Authentication/Authorization**:
+  - Authentication logic implemented via JWT Guard (`JwtAuthGuard`)
+  - Role-based access control (RBAC) implemented via `RolesGuard`
+  - Guards applied at controller-level (`@UseGuards()`) or route-level for granular control
+  - Public routes marked with `@Public()` decorator to bypass auth
+  - Permission-based authorization through `@RequirePermissions()` decorator
+- **Interceptors**: Audit logging interceptor for tracking critical operations (planned)
 - **Exception Filters**: Global exception handling via NestJS
 
 ### Frontend Patterns

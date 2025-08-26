@@ -72,7 +72,8 @@ export async function getApiErrorMessage(
     | 'adminSetup'
     | 'adminLogin'
     | 'userLogin'
-    | 'userRegister',
+    | 'userRegister'
+    | 'userAuth',
 ): Promise<string> {
   // Handle non-ResponseError cases
   if (!(error instanceof ResponseError)) {
@@ -166,7 +167,8 @@ function getContextSpecificMessage(
     | 'adminSetup'
     | 'adminLogin'
     | 'userLogin'
-    | 'userRegister',
+    | 'userRegister'
+    | 'userAuth',
 ): string | null {
   switch (context) {
     case 'createUser':
@@ -229,6 +231,25 @@ function getContextSpecificMessage(
       }
       if (status === 400) {
         return 'Ungültige Eingabe. Bitte überprüfen Sie den Benutzernamen.';
+      }
+      break;
+
+    case 'userAuth':
+      // Unified authentication endpoint that handles both login and registration
+      if (status === 401) {
+        return 'Anmeldung fehlgeschlagen. Bitte überprüfen Sie Ihre Eingaben.';
+      }
+      if (status === 409) {
+        return 'Der Benutzername ist bereits vergeben. Bitte wählen Sie einen anderen.';
+      }
+      if (status === 400) {
+        return 'Ungültige Eingabe. Bitte überprüfen Sie Ihren Benutzernamen.';
+      }
+      if (status === 403) {
+        return 'Sie haben keine Berechtigung für diese Aktion.';
+      }
+      if (status === 500) {
+        return 'Ein Serverfehler ist aufgetreten. Bitte versuchen Sie es später erneut.';
       }
       break;
   }

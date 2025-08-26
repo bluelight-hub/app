@@ -50,7 +50,7 @@ function WaveSpinner({ size = 'md', className }: Omit<SpinnerProps, 'type'>) {
       {waves.map((index) => (
         <div
           key={index}
-          className={cn('bg-primary-600 dark:bg-primary-500 animate-wave-clean origin-center rounded-sm', config.width, config.height)}
+          className={cn('animate-wave-clean bg-primary-600 dark:bg-primary-500 origin-center rounded-sm', config.width, config.height)}
           style={{
             animationDelay: `${index * 0.1}s`,
             // Initialer Filter-Zustand für sofortigen Effekt

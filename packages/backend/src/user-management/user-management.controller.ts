@@ -18,15 +18,15 @@ import {
   ApiUnauthorizedResponse,
 } from '@nestjs/swagger';
 import { AdminJwtAuthGuard } from '@/auth/guards/admin-jwt-auth.guard';
-import { UserManagementService } from './user-management.service';
-import { CreateUserDto } from './dto/create-user.dto';
+import { ParseNanoIdPipe } from '@/common/pipes/parse-nanoid.pipe';
+import type { CreateUserDto } from './dto/create-user.dto';
 import {
   DeleteUserResponse,
   UserResponse,
   UsersListResponse,
 } from './dto/user-management-response.dto';
 import { toDeleteUserResponseDto } from './mappers/user-management.mapper';
-import { ParseNanoIdPipe } from '@/common/pipes/parse-nanoid.pipe';
+import type { UserManagementService } from './user-management.service';
 
 @ApiTags('user-management')
 @ApiBearerAuth('admin-jwt')

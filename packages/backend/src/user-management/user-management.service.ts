@@ -1,14 +1,14 @@
 import {
+  BadRequestException,
   ConflictException,
   Injectable,
   NotFoundException,
-  BadRequestException,
 } from '@nestjs/common';
-import { PrismaService } from '@/prisma/prisma.service';
 import { UserRole } from '@prisma/client';
-import { CreateUserDto } from './dto/create-user.dto';
-import { UserMapper } from './mappers/user.mapper';
-import { UserDto } from './dto/user-management-response.dto';
+import type { PrismaService } from '@/prisma/prisma.service';
+import type { CreateUserDto } from './dto/create-user.dto';
+import type { UserDto } from './dto/user-management-response.dto';
+import { toUserDto } from './mappers/user.mapper';
 
 /**
  * Service für die Benutzerverwaltung durch Administratoren
@@ -40,7 +40,7 @@ export class UserManagementService {
         createdAt: 'desc',
       },
     });
-    return users.map(UserMapper.toUserDto);
+    return users.map(toUserDto);
   }
 
   /**
@@ -66,7 +66,7 @@ export class UserManagementService {
           updatedAt: true,
         },
       });
-      return UserMapper.toUserDto(user);
+      return toUserDto(user);
     } catch (error) {
       // Handle Prisma unique constraint violation
       if (error.code === 'P2002') {

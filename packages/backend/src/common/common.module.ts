@@ -1,6 +1,7 @@
 import { Global, Module } from '@nestjs/common';
 import { ConfigModule } from '@/config/config.module';
 import { PrismaModule } from '@/prisma/prisma.module';
+import { AppConfigService } from './services/app-config.service';
 import { RedisService } from './services/redis.service';
 
 /**
@@ -19,7 +20,7 @@ import { RedisService } from './services/redis.service';
 @Global()
 @Module({
   imports: [ConfigModule, PrismaModule],
-  providers: [RedisService],
-  exports: [RedisService],
+  providers: [RedisService, AppConfigService],
+  exports: [RedisService, AppConfigService],
 })
 export class CommonModule {}

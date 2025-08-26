@@ -16,9 +16,8 @@ Das System erkennt automatisch, ob ein Benutzername bereits existiert und führt
 ## Automatische Benutzeranlage
 
 - Bei nicht existierendem Benutzernamen wird automatisch ein neuer Account erstellt
-- Passwort-Validierung mit Stärke-Indikator für neue Accounts
 - Optional: E-Mail-Eingabe für Account-Recovery
-- Sichere Passwort-Hashing mit bcrypt
+- Password-based authentication deferred to Phase 2
 
 ## Backend-Integration
 
@@ -102,8 +101,11 @@ Das System erkennt automatisch, ob ein Benutzername bereits existiert und führt
 
 ## Erweiterte Funktionen (Phase 2)
 
+- **Password-Based Authentication Implementation**
+  - Passwort-Validierung mit Stärke-Indikator für neue Accounts
+  - Sichere Passwort-Hashing mit bcrypt
+  - Passwort-Stärke-Indikator UI-Komponente
 - E-Mail-Verifikation für neue Accounts
-- Passwort-Stärke-Indikator
 - Remember-Me Funktionalität
 - Social Login Integration vorbereiten
 

@@ -1,5 +1,5 @@
-import { IsString, IsStrongPassword, MaxLength } from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
+import { IsString, IsStrongPassword, MaxLength } from 'class-validator';
 
 /**
  * Data Transfer Object für die Admin-Setup-Konfiguration

@@ -14,6 +14,7 @@ export * from './ApiPagination';
 export * from './AuthCheckResponseDto';
 export * from './AuthRequestDto';
 export * from './AuthResponseDto';
+export * from './AuthUserDto';
 export * from './CreateUserDto';
 export * from './DeleteUserResponse';
 export * from './DeleteUserResponseData';

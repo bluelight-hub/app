@@ -13,6 +13,9 @@
  */
 
 import { mapValues } from '../runtime';
+import type { AuthUserDto } from './AuthUserDto';
+import { AuthUserDtoFromJSON, AuthUserDtoFromJSONTyped, AuthUserDtoToJSON, AuthUserDtoToJSONTyped } from './AuthUserDto';
+
 /**
  *
  * @export
@@ -27,10 +30,10 @@ export interface AuthResponseDto {
   isNewUser: boolean;
   /**
    * Benutzerinformationen (ohne sensible Daten)
-   * @type {object}
+   * @type {AuthUserDto}
    * @memberof AuthResponseDto
    */
-  user: object;
+  user: AuthUserDto;
 }
 
 /**
@@ -46,16 +49,13 @@ export function AuthResponseDtoFromJSON(json: any): AuthResponseDto {
   return AuthResponseDtoFromJSONTyped(json, false);
 }
 
-export function AuthResponseDtoFromJSONTyped(
-  json: any,
-  ignoreDiscriminator: boolean,
-): AuthResponseDto {
+export function AuthResponseDtoFromJSONTyped(json: any, ignoreDiscriminator: boolean): AuthResponseDto {
   if (json == null) {
     return json;
   }
   return {
     isNewUser: json['isNewUser'],
-    user: json['user'],
+    user: AuthUserDtoFromJSON(json['user']),
   };
 }
 
@@ -63,16 +63,13 @@ export function AuthResponseDtoToJSON(json: any): AuthResponseDto {
   return AuthResponseDtoToJSONTyped(json, false);
 }
 
-export function AuthResponseDtoToJSONTyped(
-  value?: AuthResponseDto | null,
-  ignoreDiscriminator: boolean = false,
-): any {
+export function AuthResponseDtoToJSONTyped(value?: AuthResponseDto | null, ignoreDiscriminator: boolean = false): any {
   if (value == null) {
     return value;
   }
 
   return {
     isNewUser: value['isNewUser'],
-    user: value['user'],
+    user: AuthUserDtoToJSON(value['user']),
   };
 }

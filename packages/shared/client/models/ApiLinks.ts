@@ -66,10 +66,7 @@ export function ApiLinksToJSON(json: any): ApiLinks {
   return ApiLinksToJSONTyped(json, false);
 }
 
-export function ApiLinksToJSONTyped(
-  value?: ApiLinks | null,
-  ignoreDiscriminator: boolean = false,
-): any {
+export function ApiLinksToJSONTyped(value?: ApiLinks | null, ignoreDiscriminator: boolean = false): any {
   if (value == null) {
     return value;
   }

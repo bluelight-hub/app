@@ -1,5 +1,5 @@
-import * as crypto from 'crypto';
-import { RedisService } from '../services/redis.service';
+import * as crypto from 'node:crypto';
+import type { RedisService } from '../services/redis.service';
 
 /**
  * Rate Limiter Configuration
@@ -16,7 +16,7 @@ export interface RateLimiterConfig {
   /** Whether to skip failed requests */
   skipFailedRequests?: boolean;
   /** Optional custom key generator */
-  keyGenerator?: (context: any) => string;
+  keyGenerator?: (context: unknown) => string;
 }
 
 /**
@@ -214,7 +214,7 @@ export class RateLimiter {
     redisService?: RedisService,
   ) {
     // Setup storage adapter
-    if (redisService && redisService.isAvailable()) {
+    if (redisService?.isAvailable()) {
       this.storage = new RedisStorageAdapter(redisService);
     } else {
       this.storage = new InMemoryStorageAdapter();
@@ -516,7 +516,15 @@ export class RateLimiter {
  * // Anonymous user: "fp:a1b2c3d4:ip:192.168.1.1"
  * // API request: "api:key123:fp:a1b2c3d4:ip:192.168.1.1"
  */
-export function generateSecureRateLimitKey(req: any): string {
+interface RequestLike {
+  session?: { id?: string };
+  user?: { id?: string };
+  headers?: Record<string, string | string[] | undefined>;
+  ip?: string;
+  connection?: { remoteAddress?: string };
+}
+
+export function generateSecureRateLimitKey(req: RequestLike): string {
   const factors: string[] = [];
 
   // 1. Session ID (if available)
@@ -576,13 +584,21 @@ export function generateSecureRateLimitKey(req: any): string {
  * @param redisService Optional Redis service for distributed rate limiting
  * @returns Express-style middleware function
  */
+type NextFunction = (err?: unknown) => void;
+
+interface ResponseLike {
+  status(code: number): ResponseLike;
+  json(data: unknown): ResponseLike;
+  setHeader(name: string, value: string | number): void;
+}
+
 export function createRateLimiterMiddleware(
   config: RateLimiterConfig,
   redisService?: RedisService,
 ) {
   const limiter = new RateLimiter(config, redisService);
 
-  return async (req: any, res: any, next: any) => {
+  return async (req: RequestLike, res: ResponseLike, next: NextFunction) => {
     try {
       // Generate key from request using secure multi-factor approach
       const key = config.keyGenerator ? config.keyGenerator(req) : generateSecureRateLimitKey(req);

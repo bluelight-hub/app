@@ -1,5 +1,6 @@
+import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
+import { Transform } from 'class-transformer';
 import { IsNotEmpty, IsOptional, IsString, Matches, MaxLength, MinLength } from 'class-validator';
-import { ApiProperty } from '@nestjs/swagger';
 
 /**
  * Unified Auth Request DTO
@@ -13,18 +14,20 @@ export class AuthRequestDto {
     example: 'max_mustermann',
     minLength: 3,
     maxLength: 30,
+    pattern: '^[A-Za-z0-9_-]+$',
   })
-  @IsString()
+  @IsString({ message: 'Benutzername muss ein Text sein' })
   @IsNotEmpty({ message: 'Benutzername darf nicht leer sein' })
   @MinLength(3, { message: 'Benutzername muss mindestens 3 Zeichen lang sein' })
   @MaxLength(30, { message: 'Benutzername darf maximal 30 Zeichen lang sein' })
   @Matches(/^[a-zA-Z0-9_-]+$/, {
     message: 'Benutzername darf nur Buchstaben, Zahlen, Unterstriche und Bindestriche enthalten',
   })
+  @Transform(({ value }) => (typeof value === 'string' ? value.trim() : value))
   username: string;
 
-  @ApiProperty({
-    description: 'Passwort (nur für Admin-Accounts erforderlich)',
+  @ApiPropertyOptional({
+    description: 'Passwort (nur für Admin-Account Login erforderlich)',
     example: 'admin-password-123',
     required: false,
   })

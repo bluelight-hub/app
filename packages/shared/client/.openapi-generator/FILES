@@ -19,6 +19,7 @@ models/ApiPagination.ts
 models/AuthCheckResponseDto.ts
 models/AuthRequestDto.ts
 models/AuthResponseDto.ts
+models/AuthUserDto.ts
 models/CreateUserDto.ts
 models/DeleteUserResponse.ts
 models/DeleteUserResponseData.ts

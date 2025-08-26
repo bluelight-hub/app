@@ -1,6 +1,6 @@
-import { useColorModeValue } from '@/hooks/use-color-mode';
 import mobileLogo from '@/assets/brandbook/mobile-logo.png';
 import mobileLogoWhite from '@/assets/brandbook/mobile-white.png';
+import { useColorModeValue } from '@/hooks/use-color-mode';
 
 interface LogoWithIndicatorProps {
   size?: 'sm' | 'md' | 'lg' | 'xl';

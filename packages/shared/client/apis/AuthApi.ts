@@ -12,7 +12,6 @@
  * Do not edit the class manually.
  */
 
-import * as runtime from '../runtime';
 import type {
   AdminLoginResponseDto,
   AdminPasswordDto,
@@ -53,6 +52,7 @@ import {
   RefreshResponseDtoFromJSON,
   RefreshResponseDtoToJSON,
 } from '../models/index';
+import * as runtime from '../runtime';
 
 export interface AuthControllerAdminLoginRequest {
   adminPasswordDto: AdminPasswordDto;
@@ -79,10 +79,7 @@ export class AuthApi extends runtime.BaseAPI {
     initOverrides?: RequestInit | runtime.InitOverrideFunction,
   ): Promise<runtime.ApiResponse<AdminLoginResponseDto>> {
     if (requestParameters['adminPasswordDto'] == null) {
-      throw new runtime.RequiredError(
-        'adminPasswordDto',
-        'Required parameter "adminPasswordDto" was null or undefined when calling authControllerAdminLogin().',
-      );
+      throw new runtime.RequiredError('adminPasswordDto', 'Required parameter "adminPasswordDto" was null or undefined when calling authControllerAdminLogin().');
     }
 
     const queryParameters: any = {};
@@ -102,19 +99,14 @@ export class AuthApi extends runtime.BaseAPI {
       initOverrides,
     );
 
-    return new runtime.JSONApiResponse(response, (jsonValue) =>
-      AdminLoginResponseDtoFromJSON(jsonValue),
-    );
+    return new runtime.JSONApiResponse(response, (jsonValue) => AdminLoginResponseDtoFromJSON(jsonValue));
   }
 
   /**
    * Aktiviert Admin-Rechte für den aktuell angemeldeten Benutzer durch Passwort-Eingabe
    * Admin-Rechte aktivieren
    */
-  async authControllerAdminLogin(
-    requestParameters: AuthControllerAdminLoginRequest,
-    initOverrides?: RequestInit | runtime.InitOverrideFunction,
-  ): Promise<AdminLoginResponseDto> {
+  async authControllerAdminLogin(requestParameters: AuthControllerAdminLoginRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<AdminLoginResponseDto> {
     const response = await this.authControllerAdminLoginRaw(requestParameters, initOverrides);
     return await response.value();
   }
@@ -123,9 +115,7 @@ export class AuthApi extends runtime.BaseAPI {
    * Entfernt nur das Admin-Token, behält die normale Benutzer-Session
    * Admin abmelden
    */
-  async authControllerAdminLogoutRaw(
-    initOverrides?: RequestInit | runtime.InitOverrideFunction,
-  ): Promise<runtime.ApiResponse<LogoutResponseDto>> {
+  async authControllerAdminLogoutRaw(initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<LogoutResponseDto>> {
     const queryParameters: any = {};
 
     const headerParameters: runtime.HTTPHeaders = {};
@@ -140,18 +130,14 @@ export class AuthApi extends runtime.BaseAPI {
       initOverrides,
     );
 
-    return new runtime.JSONApiResponse(response, (jsonValue) =>
-      LogoutResponseDtoFromJSON(jsonValue),
-    );
+    return new runtime.JSONApiResponse(response, (jsonValue) => LogoutResponseDtoFromJSON(jsonValue));
   }
 
   /**
    * Entfernt nur das Admin-Token, behält die normale Benutzer-Session
    * Admin abmelden
    */
-  async authControllerAdminLogout(
-    initOverrides?: RequestInit | runtime.InitOverrideFunction,
-  ): Promise<LogoutResponseDto> {
+  async authControllerAdminLogout(initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<LogoutResponseDto> {
     const response = await this.authControllerAdminLogoutRaw(initOverrides);
     return await response.value();
   }
@@ -165,10 +151,7 @@ export class AuthApi extends runtime.BaseAPI {
     initOverrides?: RequestInit | runtime.InitOverrideFunction,
   ): Promise<runtime.ApiResponse<AdminSetupResponseDto>> {
     if (requestParameters['adminSetupDto'] == null) {
-      throw new runtime.RequiredError(
-        'adminSetupDto',
-        'Required parameter "adminSetupDto" was null or undefined when calling authControllerAdminSetup().',
-      );
+      throw new runtime.RequiredError('adminSetupDto', 'Required parameter "adminSetupDto" was null or undefined when calling authControllerAdminSetup().');
     }
 
     const queryParameters: any = {};
@@ -188,19 +171,14 @@ export class AuthApi extends runtime.BaseAPI {
       initOverrides,
     );
 
-    return new runtime.JSONApiResponse(response, (jsonValue) =>
-      AdminSetupResponseDtoFromJSON(jsonValue),
-    );
+    return new runtime.JSONApiResponse(response, (jsonValue) => AdminSetupResponseDtoFromJSON(jsonValue));
   }
 
   /**
    * Richtet das Passwort für einen Admin-Account ein. Erfordert Authentifizierung.
    * Admin-Passwort einrichten
    */
-  async authControllerAdminSetup(
-    requestParameters: AuthControllerAdminSetupRequest,
-    initOverrides?: RequestInit | runtime.InitOverrideFunction,
-  ): Promise<AdminSetupResponseDto> {
+  async authControllerAdminSetup(requestParameters: AuthControllerAdminSetupRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<AdminSetupResponseDto> {
     const response = await this.authControllerAdminSetupRaw(requestParameters, initOverrides);
     return await response.value();
   }
@@ -209,9 +187,7 @@ export class AuthApi extends runtime.BaseAPI {
    * Prüft ob ein Benutzer authentifiziert ist und gibt dessen Informationen zurück
    * Authentifizierungsstatus prüfen
    */
-  async authControllerCheckAuthRaw(
-    initOverrides?: RequestInit | runtime.InitOverrideFunction,
-  ): Promise<runtime.ApiResponse<AuthCheckResponseDto>> {
+  async authControllerCheckAuthRaw(initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<AuthCheckResponseDto>> {
     const queryParameters: any = {};
 
     const headerParameters: runtime.HTTPHeaders = {};
@@ -226,18 +202,14 @@ export class AuthApi extends runtime.BaseAPI {
       initOverrides,
     );
 
-    return new runtime.JSONApiResponse(response, (jsonValue) =>
-      AuthCheckResponseDtoFromJSON(jsonValue),
-    );
+    return new runtime.JSONApiResponse(response, (jsonValue) => AuthCheckResponseDtoFromJSON(jsonValue));
   }
 
   /**
    * Prüft ob ein Benutzer authentifiziert ist und gibt dessen Informationen zurück
    * Authentifizierungsstatus prüfen
    */
-  async authControllerCheckAuth(
-    initOverrides?: RequestInit | runtime.InitOverrideFunction,
-  ): Promise<AuthCheckResponseDto> {
+  async authControllerCheckAuth(initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<AuthCheckResponseDto> {
     const response = await this.authControllerCheckAuthRaw(initOverrides);
     return await response.value();
   }
@@ -246,9 +218,7 @@ export class AuthApi extends runtime.BaseAPI {
    * Prüft ob ein Admin-Setup verfügbar ist und ob der aktuelle Benutzer berechtigt ist
    * Admin-Setup-Status abrufen
    */
-  async authControllerGetAdminStatusRaw(
-    initOverrides?: RequestInit | runtime.InitOverrideFunction,
-  ): Promise<runtime.ApiResponse<AdminStatusDto>> {
+  async authControllerGetAdminStatusRaw(initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<AdminStatusDto>> {
     const queryParameters: any = {};
 
     const headerParameters: runtime.HTTPHeaders = {};
@@ -270,9 +240,7 @@ export class AuthApi extends runtime.BaseAPI {
    * Prüft ob ein Admin-Setup verfügbar ist und ob der aktuelle Benutzer berechtigt ist
    * Admin-Setup-Status abrufen
    */
-  async authControllerGetAdminStatus(
-    initOverrides?: RequestInit | runtime.InitOverrideFunction,
-  ): Promise<AdminStatusDto> {
+  async authControllerGetAdminStatus(initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<AdminStatusDto> {
     const response = await this.authControllerGetAdminStatusRaw(initOverrides);
     return await response.value();
   }
@@ -281,9 +249,7 @@ export class AuthApi extends runtime.BaseAPI {
    * Gibt eine Liste aller verfügbaren Benutzer für den Login-Screen zurück
    * Öffentliche Benutzerliste abrufen
    */
-  async authControllerGetPublicUsersRaw(
-    initOverrides?: RequestInit | runtime.InitOverrideFunction,
-  ): Promise<runtime.ApiResponse<PublicUsersResponseDto>> {
+  async authControllerGetPublicUsersRaw(initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<PublicUsersResponseDto>> {
     const queryParameters: any = {};
 
     const headerParameters: runtime.HTTPHeaders = {};
@@ -298,18 +264,14 @@ export class AuthApi extends runtime.BaseAPI {
       initOverrides,
     );
 
-    return new runtime.JSONApiResponse(response, (jsonValue) =>
-      PublicUsersResponseDtoFromJSON(jsonValue),
-    );
+    return new runtime.JSONApiResponse(response, (jsonValue) => PublicUsersResponseDtoFromJSON(jsonValue));
   }
 
   /**
    * Gibt eine Liste aller verfügbaren Benutzer für den Login-Screen zurück
    * Öffentliche Benutzerliste abrufen
    */
-  async authControllerGetPublicUsers(
-    initOverrides?: RequestInit | runtime.InitOverrideFunction,
-  ): Promise<PublicUsersResponseDto> {
+  async authControllerGetPublicUsers(initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<PublicUsersResponseDto> {
     const response = await this.authControllerGetPublicUsersRaw(initOverrides);
     return await response.value();
   }
@@ -318,9 +280,7 @@ export class AuthApi extends runtime.BaseAPI {
    * Meldet den Benutzer ab und löscht alle Authentifizierungs-Cookies
    * Benutzer abmelden
    */
-  async authControllerLogoutRaw(
-    initOverrides?: RequestInit | runtime.InitOverrideFunction,
-  ): Promise<runtime.ApiResponse<LogoutResponseDto>> {
+  async authControllerLogoutRaw(initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<LogoutResponseDto>> {
     const queryParameters: any = {};
 
     const headerParameters: runtime.HTTPHeaders = {};
@@ -335,18 +295,14 @@ export class AuthApi extends runtime.BaseAPI {
       initOverrides,
     );
 
-    return new runtime.JSONApiResponse(response, (jsonValue) =>
-      LogoutResponseDtoFromJSON(jsonValue),
-    );
+    return new runtime.JSONApiResponse(response, (jsonValue) => LogoutResponseDtoFromJSON(jsonValue));
   }
 
   /**
    * Meldet den Benutzer ab und löscht alle Authentifizierungs-Cookies
    * Benutzer abmelden
    */
-  async authControllerLogout(
-    initOverrides?: RequestInit | runtime.InitOverrideFunction,
-  ): Promise<LogoutResponseDto> {
+  async authControllerLogout(initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<LogoutResponseDto> {
     const response = await this.authControllerLogoutRaw(initOverrides);
     return await response.value();
   }
@@ -355,9 +311,7 @@ export class AuthApi extends runtime.BaseAPI {
    * Erneuert das Access-Token mit einem gültigen Refresh-Token aus dem Cookie
    * Access-Token erneuern
    */
-  async authControllerRefreshRaw(
-    initOverrides?: RequestInit | runtime.InitOverrideFunction,
-  ): Promise<runtime.ApiResponse<RefreshResponseDto>> {
+  async authControllerRefreshRaw(initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<RefreshResponseDto>> {
     const queryParameters: any = {};
 
     const headerParameters: runtime.HTTPHeaders = {};
@@ -372,18 +326,14 @@ export class AuthApi extends runtime.BaseAPI {
       initOverrides,
     );
 
-    return new runtime.JSONApiResponse(response, (jsonValue) =>
-      RefreshResponseDtoFromJSON(jsonValue),
-    );
+    return new runtime.JSONApiResponse(response, (jsonValue) => RefreshResponseDtoFromJSON(jsonValue));
   }
 
   /**
    * Erneuert das Access-Token mit einem gültigen Refresh-Token aus dem Cookie
    * Access-Token erneuern
    */
-  async authControllerRefresh(
-    initOverrides?: RequestInit | runtime.InitOverrideFunction,
-  ): Promise<RefreshResponseDto> {
+  async authControllerRefresh(initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<RefreshResponseDto> {
     const response = await this.authControllerRefreshRaw(initOverrides);
     return await response.value();
   }
@@ -392,15 +342,9 @@ export class AuthApi extends runtime.BaseAPI {
    * Vereinheitlichter Endpunkt für Login und automatische Registrierung. Wenn der Benutzer nicht existiert, wird er automatisch angelegt.
    * Unified Login & Auto-Register
    */
-  async authControllerUnifiedAuthRaw(
-    requestParameters: AuthControllerUnifiedAuthRequest,
-    initOverrides?: RequestInit | runtime.InitOverrideFunction,
-  ): Promise<runtime.ApiResponse<AuthResponseDto>> {
+  async authControllerUnifiedAuthRaw(requestParameters: AuthControllerUnifiedAuthRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<AuthResponseDto>> {
     if (requestParameters['authRequestDto'] == null) {
-      throw new runtime.RequiredError(
-        'authRequestDto',
-        'Required parameter "authRequestDto" was null or undefined when calling authControllerUnifiedAuth().',
-      );
+      throw new runtime.RequiredError('authRequestDto', 'Required parameter "authRequestDto" was null or undefined when calling authControllerUnifiedAuth().');
     }
 
     const queryParameters: any = {};
@@ -427,10 +371,7 @@ export class AuthApi extends runtime.BaseAPI {
    * Vereinheitlichter Endpunkt für Login und automatische Registrierung. Wenn der Benutzer nicht existiert, wird er automatisch angelegt.
    * Unified Login & Auto-Register
    */
-  async authControllerUnifiedAuth(
-    requestParameters: AuthControllerUnifiedAuthRequest,
-    initOverrides?: RequestInit | runtime.InitOverrideFunction,
-  ): Promise<AuthResponseDto> {
+  async authControllerUnifiedAuth(requestParameters: AuthControllerUnifiedAuthRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<AuthResponseDto> {
     const response = await this.authControllerUnifiedAuthRaw(requestParameters, initOverrides);
     return await response.value();
   }
@@ -439,9 +380,7 @@ export class AuthApi extends runtime.BaseAPI {
    * Prüft, ob das Admin-Token im Cookie noch gültig ist.
    * Admin-Token verifizieren
    */
-  async authControllerVerifyAdminTokenRaw(
-    initOverrides?: RequestInit | runtime.InitOverrideFunction,
-  ): Promise<runtime.ApiResponse<AdminTokenVerificationDto>> {
+  async authControllerVerifyAdminTokenRaw(initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<AdminTokenVerificationDto>> {
     const queryParameters: any = {};
 
     const headerParameters: runtime.HTTPHeaders = {};
@@ -456,18 +395,14 @@ export class AuthApi extends runtime.BaseAPI {
       initOverrides,
     );
 
-    return new runtime.JSONApiResponse(response, (jsonValue) =>
-      AdminTokenVerificationDtoFromJSON(jsonValue),
-    );
+    return new runtime.JSONApiResponse(response, (jsonValue) => AdminTokenVerificationDtoFromJSON(jsonValue));
   }
 
   /**
    * Prüft, ob das Admin-Token im Cookie noch gültig ist.
    * Admin-Token verifizieren
    */
-  async authControllerVerifyAdminToken(
-    initOverrides?: RequestInit | runtime.InitOverrideFunction,
-  ): Promise<AdminTokenVerificationDto> {
+  async authControllerVerifyAdminToken(initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<AdminTokenVerificationDto> {
     const response = await this.authControllerVerifyAdminTokenRaw(initOverrides);
     return await response.value();
   }

@@ -39,10 +39,7 @@ export function RefreshResponseDtoFromJSON(json: any): RefreshResponseDto {
   return RefreshResponseDtoFromJSONTyped(json, false);
 }
 
-export function RefreshResponseDtoFromJSONTyped(
-  json: any,
-  ignoreDiscriminator: boolean,
-): RefreshResponseDto {
+export function RefreshResponseDtoFromJSONTyped(json: any, ignoreDiscriminator: boolean): RefreshResponseDto {
   if (json == null) {
     return json;
   }
@@ -55,10 +52,7 @@ export function RefreshResponseDtoToJSON(json: any): RefreshResponseDto {
   return RefreshResponseDtoToJSONTyped(json, false);
 }
 
-export function RefreshResponseDtoToJSONTyped(
-  value?: RefreshResponseDto | null,
-  ignoreDiscriminator: boolean = false,
-): any {
+export function RefreshResponseDtoToJSONTyped(value?: RefreshResponseDto | null, ignoreDiscriminator: boolean = false): any {
   if (value == null) {
     return value;
   }

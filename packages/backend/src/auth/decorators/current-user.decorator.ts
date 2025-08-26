@@ -1,5 +1,5 @@
-import { createParamDecorator, ExecutionContext } from '@nestjs/common';
-import { ValidatedUser } from '../strategies/jwt.strategy';
+import { createParamDecorator, type ExecutionContext } from '@nestjs/common';
+import type { ValidatedUser } from '../strategies/jwt.strategy';
 
 /**
  * Custom Parameter Decorator zum Abrufen des aktuellen Benutzers
@@ -17,7 +17,7 @@ import { ValidatedUser } from '../strategies/jwt.strategy';
  * ```
  */
 export const CurrentUser = createParamDecorator(
-  (data: unknown, ctx: ExecutionContext): ValidatedUser => {
+  (_data: unknown, ctx: ExecutionContext): ValidatedUser => {
     const request = ctx.switchToHttp().getRequest();
     return request.user;
   },

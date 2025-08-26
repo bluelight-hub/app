@@ -59,8 +59,7 @@ export const AdminSetupUserDtoRoleEnum = {
   Admin: 'ADMIN',
   User: 'USER',
 } as const;
-export type AdminSetupUserDtoRoleEnum =
-  (typeof AdminSetupUserDtoRoleEnum)[keyof typeof AdminSetupUserDtoRoleEnum];
+export type AdminSetupUserDtoRoleEnum = (typeof AdminSetupUserDtoRoleEnum)[keyof typeof AdminSetupUserDtoRoleEnum];
 
 /**
  * Check if a given object implements the AdminSetupUserDto interface.
@@ -78,10 +77,7 @@ export function AdminSetupUserDtoFromJSON(json: any): AdminSetupUserDto {
   return AdminSetupUserDtoFromJSONTyped(json, false);
 }
 
-export function AdminSetupUserDtoFromJSONTyped(
-  json: any,
-  ignoreDiscriminator: boolean,
-): AdminSetupUserDto {
+export function AdminSetupUserDtoFromJSONTyped(json: any, ignoreDiscriminator: boolean): AdminSetupUserDto {
   if (json == null) {
     return json;
   }
@@ -98,10 +94,7 @@ export function AdminSetupUserDtoToJSON(json: any): AdminSetupUserDto {
   return AdminSetupUserDtoToJSONTyped(json, false);
 }
 
-export function AdminSetupUserDtoToJSONTyped(
-  value?: AdminSetupUserDto | null,
-  ignoreDiscriminator: boolean = false,
-): any {
+export function AdminSetupUserDtoToJSONTyped(value?: AdminSetupUserDto | null, ignoreDiscriminator: boolean = false): any {
   if (value == null) {
     return value;
   }

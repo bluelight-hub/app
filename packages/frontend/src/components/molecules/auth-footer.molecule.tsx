@@ -26,8 +26,8 @@ export function AuthFooter({ badges = [{ label: 'System online', variant: 'defau
       {/* Status Pills */}
       {badges.length > 0 && (
         <div className="flex justify-center gap-4">
-          {badges.map((badge, index) => (
-            <Badge key={index} variant={badge.variant || 'default'} dot dotColor={badge.dotColor}>
+          {badges.map((badge) => (
+            <Badge key={`${badge.label}-${badge.variant || 'default'}`} variant={badge.variant || 'default'} dot dotColor={badge.dotColor}>
               {badge.label}
             </Badge>
           ))}
