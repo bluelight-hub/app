@@ -3,7 +3,7 @@ import { Logger } from '@nestjs/common';
 /**
  * PostgreSQL retryable error codes
  */
-export const POSTGRES_RETRYABLE_ERRORS = {
+export const POSTGRES_RETRYABLE_ERRORS: Record<string, string> = {
   UNIQUE_VIOLATION: '23505',
   DEADLOCK_DETECTED: '40P01',
   SERIALIZATION_FAILURE: '40001',
@@ -44,7 +44,7 @@ export const DEFAULT_RETRY_CONFIG: RetryConfig = {
   isRetryable: (error: unknown) => {
     // Check PostgreSQL error codes
     const errorWithCode = error as { code?: string; message?: string };
-    if (errorWithCode.code && Object.values(POSTGRES_RETRYABLE_ERRORS).includes(errorWithCode.code as any)) {
+    if (errorWithCode.code && Object.values(POSTGRES_RETRYABLE_ERRORS).includes(errorWithCode.code)) {
       return true;
     }
 
