@@ -118,6 +118,17 @@ h6 {
   margin-bottom: 1em;
 }
 
+/* Links - Allgemeine Regeln zuerst */
+a {
+  color: var(--primary-color);
+  text-decoration: none;
+}
+
+a:hover {
+  text-decoration: underline;
+}
+
+/* Spezifischere Link-Regeln für TOC */
 #toc a {
   color: var(--primary-color);
   text-decoration: none;
@@ -127,6 +138,19 @@ h6 {
   text-decoration: underline;
 }
 
+/* Listen - Allgemeine Regeln zuerst */
+ul,
+ol {
+  padding-left: 1.5em;
+  margin: 1em 0;
+}
+
+ul li,
+ol li {
+  margin-bottom: 0.5em;
+}
+
+/* Spezifischere Listen-Regeln für TOC */
 #toc ul {
   margin-left: 1em;
   padding-left: 0;
@@ -134,16 +158,6 @@ h6 {
 
 #toc ul li {
   margin-bottom: 0.5em;
-}
-
-/* Links */
-a {
-  color: var(--primary-color);
-  text-decoration: none;
-}
-
-a:hover {
-  text-decoration: underline;
 }
 
 /* Tabellen */
@@ -227,18 +241,6 @@ code {
   color: var(--primary-dark);
 }
 
-/* Listen */
-ul,
-ol {
-  padding-left: 1.5em;
-  margin: 1em 0;
-}
-
-ul li,
-ol li {
-  margin-bottom: 0.5em;
-}
-
 /* Fußnoten */
 .footnote {
   font-size: 9pt;
@@ -283,16 +285,21 @@ h2 {
 
 /* Druckoptimierungen */
 @page {
-  margin: 2cm;
+  margin-top: 2cm;
+  margin-right: 2cm;
+  margin-bottom: 2cm;
+  margin-left: 2cm;
 }
 
 @media print {
-  a {
+  /* Höhere Spezifität für Print-Regeln */
+  body a,
+  #content a {
     color: var(--primary-dark);
   }
 
   pre,
   code {
-    background-color: #f8f8f8 !important;
+    background-color: #f8f8f8;
   }
 }

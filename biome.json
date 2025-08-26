@@ -61,7 +61,8 @@
       "!**/repomix-output.xml",
       "!**/*.min.js",
       "!**/*.min.css",
-      "!**/*.tailwind.css"
+      "!**/*.tailwind.css",
+      "!.releaserc.js"
     ]
   },
   "assist": {
@@ -86,7 +87,8 @@
       "!**/repomix-output.xml",
       "!**/*.min.js",
       "!**/*.min.css",
-      "!**/*.tailwind.css"
+      "!**/*.tailwind.css",
+      "!.releaserc.js"
     ]
   },
   "javascript": {
