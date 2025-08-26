@@ -1,14 +1,14 @@
 import { useNavigate } from '@tanstack/react-router';
-import { PiSignOut, PiUsers } from 'react-icons/pi';
-import { useCallback } from 'react';
 import { isTauri } from '@tauri-apps/api/core';
-import { useAuth } from '@/hooks/useAuth';
-import { DashboardLayout } from '@/components/templates/DashboardLayout';
-import { logger } from '@/utils/logger';
+import { useCallback } from 'react';
+import { PiSignOut, PiUsers } from 'react-icons/pi';
 import { Button } from '@/components/atoms/button.atom';
+import { Card } from '@/components/atoms/card.atom';
 import { Heading } from '@/components/atoms/heading.atom';
 import { Text } from '@/components/atoms/text.atom';
-import { Card } from '@/components/atoms/card.atom';
+import { DashboardLayout } from '@/components/templates/DashboardLayout';
+import { useAuth } from '@/hooks/useAuth';
+import { logger } from '@/utils/logger';
 
 /**
  * Admin-Dashboard Seite
@@ -59,7 +59,7 @@ export function AdminDashboard() {
       <Card padding="md">
         <div className="flex flex-col items-start gap-4">
           <div>
-            <Text className="text-lg font-semibold">Admin-Funktionen</Text>
+            <Text className="font-semibold text-lg">Admin-Funktionen</Text>
             <Text size="sm" color="muted" className="mt-1">
               Hier können Sie Benutzer verwalten, Einstellungen konfigurieren und mehr.
             </Text>

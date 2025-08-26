@@ -93,7 +93,7 @@ export const appConfigValidationSchema = Joi.object({
 /**
  * Definiert die Anwendungskonfiguration.
  */
-export default registerAs('app', () => ({
+export registerAs('app', () => ({
   env: process.env.NODE_ENV || 'development',
   port: parseInt(process.env.PORT, 10) || 3000,
   apiPrefix: process.env.API_PREFIX || 'api',
@@ -135,7 +135,7 @@ export const databaseConfigValidationSchema = Joi.object({
 /**
  * Definiert die Datenbankkonfiguration.
  */
-export default registerAs('database', () => ({
+export registerAs('database', () => ({
   host: process.env.DATABASE_HOST,
   port: parseInt(process.env.DATABASE_PORT, 10) || 5432,
   username: process.env.DATABASE_USERNAME,

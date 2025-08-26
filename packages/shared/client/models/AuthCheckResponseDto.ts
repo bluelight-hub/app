@@ -14,12 +14,7 @@
 
 import { mapValues } from '../runtime';
 import type { UserResponseDto } from './UserResponseDto';
-import {
-  UserResponseDtoFromJSON,
-  UserResponseDtoFromJSONTyped,
-  UserResponseDtoToJSON,
-  UserResponseDtoToJSONTyped,
-} from './UserResponseDto';
+import { UserResponseDtoFromJSON, UserResponseDtoFromJSONTyped, UserResponseDtoToJSON, UserResponseDtoToJSONTyped } from './UserResponseDto';
 
 /**
  *
@@ -59,18 +54,14 @@ export function AuthCheckResponseDtoFromJSON(json: any): AuthCheckResponseDto {
   return AuthCheckResponseDtoFromJSONTyped(json, false);
 }
 
-export function AuthCheckResponseDtoFromJSONTyped(
-  json: any,
-  ignoreDiscriminator: boolean,
-): AuthCheckResponseDto {
+export function AuthCheckResponseDtoFromJSONTyped(json: any, ignoreDiscriminator: boolean): AuthCheckResponseDto {
   if (json == null) {
     return json;
   }
   return {
     user: json['user'] == null ? undefined : UserResponseDtoFromJSON(json['user']),
     authenticated: json['authenticated'],
-    isAdminAuthenticated:
-      json['isAdminAuthenticated'] == null ? undefined : json['isAdminAuthenticated'],
+    isAdminAuthenticated: json['isAdminAuthenticated'] == null ? undefined : json['isAdminAuthenticated'],
   };
 }
 
@@ -78,10 +69,7 @@ export function AuthCheckResponseDtoToJSON(json: any): AuthCheckResponseDto {
   return AuthCheckResponseDtoToJSONTyped(json, false);
 }
 
-export function AuthCheckResponseDtoToJSONTyped(
-  value?: AuthCheckResponseDto | null,
-  ignoreDiscriminator: boolean = false,
-): any {
+export function AuthCheckResponseDtoToJSONTyped(value?: AuthCheckResponseDto | null, ignoreDiscriminator: boolean = false): any {
   if (value == null) {
     return value;
   }

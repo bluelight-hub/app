@@ -1,11 +1,11 @@
-import { Test, TestingModule } from '@nestjs/testing';
-import { INestApplication, ValidationPipe } from '@nestjs/common';
-import request from 'supertest';
-import { AppModule } from '@/app.module';
-import { PrismaService } from '@/prisma/prisma.service';
+import { type INestApplication, ValidationPipe, VersioningType } from '@nestjs/common';
+import { Test, type TestingModule } from '@nestjs/testing';
 import { UserRole } from '@prisma/client';
 import * as bcrypt from 'bcrypt';
 import cookieParser from 'cookie-parser';
+import request from 'supertest';
+import { AppModule } from '@/app.module';
+import { PrismaService } from '@/prisma/prisma.service';
 import { TestAuthUtils } from '../utils/test-auth.utils';
 
 describe('AuthController (e2e) - Admin Login', () => {
@@ -19,6 +19,18 @@ describe('AuthController (e2e) - Admin Login', () => {
     }).compile();
 
     app = moduleFixture.createNestApplication();
+
+    // Configure app to match main.ts
+    app.enableVersioning({
+      type: VersioningType.URI,
+      prefix: 'v-',
+      defaultVersion: 'alpha',
+    });
+
+    app.setGlobalPrefix('api', {
+      exclude: ['/'],
+    });
+
     app.use(cookieParser());
     app.useGlobalPipes(
       new ValidationPipe({
@@ -53,10 +65,7 @@ describe('AuthController (e2e) - Admin Login', () => {
       });
 
       // First, login as regular user to get JWT token
-      const loginResponse = await request(app.getHttpServer())
-        .post('/auth/login')
-        .send({ username: 'admin' })
-        .expect(200);
+      const loginResponse = await request(app.getHttpServer()).post('/api/auth/unified').send({ username: 'admin' }).expect(200);
 
       const loginCookies = loginResponse.headers['set-cookie'] as unknown as string[];
       expect(loginCookies).toBeDefined();
@@ -68,7 +77,7 @@ describe('AuthController (e2e) - Admin Login', () => {
 
       // Then, activate admin rights with password
       const response = await request(app.getHttpServer())
-        .post('/auth/admin/login')
+        .post('/api/auth/admin/login')
         .set('Cookie', authToken || '')
         .send({
           password: 'SecureAdminPassword123!',
@@ -112,10 +121,7 @@ describe('AuthController (e2e) - Admin Login', () => {
       const originalLastLogin = admin.lastLoginAt;
 
       // First, login as regular user to get JWT token
-      const loginResponse = await request(app.getHttpServer())
-        .post('/auth/login')
-        .send({ username: 'admin' })
-        .expect(200);
+      const loginResponse = await request(app.getHttpServer()).post('/api/auth/unified').send({ username: 'admin' }).expect(200);
 
       const { accessToken } = TestAuthUtils.extractCookies(loginResponse);
       expect(accessToken).toBeDefined();
@@ -125,7 +131,7 @@ describe('AuthController (e2e) - Admin Login', () => {
       await new Promise((resolve) => setTimeout(resolve, 100));
 
       await request(app.getHttpServer())
-        .post('/auth/admin/login')
+        .post('/api/auth/admin/login')
         .set('Cookie', authToken || '')
         .send({
           password: 'SecureAdminPassword123!',
@@ -138,9 +144,7 @@ describe('AuthController (e2e) - Admin Login', () => {
       });
 
       expect(updatedAdmin?.lastLoginAt).toBeDefined();
-      expect(updatedAdmin?.lastLoginAt?.getTime()).toBeGreaterThan(
-        originalLastLogin?.getTime() || 0,
-      );
+      expect(updatedAdmin?.lastLoginAt?.getTime()).toBeGreaterThan(originalLastLogin?.getTime() || 0);
     });
   });
 
@@ -157,24 +161,21 @@ describe('AuthController (e2e) - Admin Login', () => {
       });
 
       // First, login as regular user to get JWT token
-      const loginResponse = await request(app.getHttpServer())
-        .post('/auth/login')
-        .send({ username: 'admin' })
-        .expect(200);
+      const loginResponse = await request(app.getHttpServer()).post('/api/auth/unified').send({ username: 'admin' }).expect(200);
 
       const { accessToken } = TestAuthUtils.extractCookies(loginResponse);
       expect(accessToken).toBeDefined();
       const authToken = `accessToken=${accessToken}`;
 
       const response = await request(app.getHttpServer())
-        .post('/auth/admin/login')
+        .post('/api/auth/admin/login')
         .set('Cookie', authToken || '')
         .send({
           password: 'WrongPassword',
         })
         .expect(401);
 
-      expect(response.body.message).toEqual('Ungültiges Passwort');
+      expect(response.body.message).toEqual('Ungültige Admin-Zugangsdaten');
 
       // Check no admin cookie is set
       const cookies = response.headers['set-cookie'] as unknown as string[];
@@ -196,29 +197,26 @@ describe('AuthController (e2e) - Admin Login', () => {
       });
 
       // First, login as regular user to get JWT token
-      const loginResponse = await request(app.getHttpServer())
-        .post('/auth/login')
-        .send({ username: 'regularuser' })
-        .expect(200);
+      const loginResponse = await request(app.getHttpServer()).post('/api/auth/unified').send({ username: 'regularuser' }).expect(200);
 
       const { accessToken } = TestAuthUtils.extractCookies(loginResponse);
       expect(accessToken).toBeDefined();
       const authToken = `accessToken=${accessToken}`;
 
       const response = await request(app.getHttpServer())
-        .post('/auth/admin/login')
+        .post('/api/auth/admin/login')
         .set('Cookie', authToken || '')
         .send({
           password: 'UserPassword123!',
         })
-        .expect(403);
+        .expect(401);
 
-      expect(response.body.message).toEqual('Benutzer hat keine Admin-Rechte');
+      expect(response.body.message).toEqual('Keine Admin-Berechtigung');
     });
 
     it('should return 401 for unauthenticated request', async () => {
       const response = await request(app.getHttpServer())
-        .post('/auth/admin/login')
+        .post('/api/auth/admin/login')
         .send({
           password: 'SomePassword123!',
         })
@@ -238,24 +236,21 @@ describe('AuthController (e2e) - Admin Login', () => {
       });
 
       // First, login as regular user to get JWT token
-      const loginResponse = await request(app.getHttpServer())
-        .post('/auth/login')
-        .send({ username: 'admin' })
-        .expect(200);
+      const loginResponse = await request(app.getHttpServer()).post('/api/auth/unified').send({ username: 'admin' }).expect(200);
 
       const { accessToken } = TestAuthUtils.extractCookies(loginResponse);
       expect(accessToken).toBeDefined();
       const authToken = `accessToken=${accessToken}`;
 
       const response = await request(app.getHttpServer())
-        .post('/auth/admin/login')
+        .post('/api/auth/admin/login')
         .set('Cookie', authToken || '')
         .send({
           password: 'SomePassword123!',
         })
         .expect(401);
 
-      expect(response.body.message).toEqual('Ungültiges Passwort');
+      expect(response.body.message).toEqual('Admin-Account nicht korrekt konfiguriert');
     });
   });
 
@@ -271,10 +266,7 @@ describe('AuthController (e2e) - Admin Login', () => {
       });
 
       // First, login to get JWT token
-      const loginResponse = await request(app.getHttpServer())
-        .post('/auth/login')
-        .send({ username: 'admin' })
-        .expect(200);
+      const loginResponse = await request(app.getHttpServer()).post('/api/auth/unified').send({ username: 'admin' }).expect(200);
 
       const { accessToken } = TestAuthUtils.extractCookies(loginResponse);
       expect(accessToken).toBeDefined();
@@ -282,7 +274,7 @@ describe('AuthController (e2e) - Admin Login', () => {
 
       // Missing password
       await request(app.getHttpServer())
-        .post('/auth/admin/login')
+        .post('/api/auth/admin/login')
         .set('Cookie', authToken || '')
         .send({})
         .expect(400);
@@ -299,10 +291,7 @@ describe('AuthController (e2e) - Admin Login', () => {
       });
 
       // First, login to get JWT token
-      const loginResponse = await request(app.getHttpServer())
-        .post('/auth/login')
-        .send({ username: 'admin' })
-        .expect(200);
+      const loginResponse = await request(app.getHttpServer()).post('/api/auth/unified').send({ username: 'admin' }).expect(200);
 
       const { accessToken } = TestAuthUtils.extractCookies(loginResponse);
       expect(accessToken).toBeDefined();
@@ -310,7 +299,7 @@ describe('AuthController (e2e) - Admin Login', () => {
 
       // Password too short
       const response = await request(app.getHttpServer())
-        .post('/auth/admin/login')
+        .post('/api/auth/admin/login')
         .set('Cookie', authToken || '')
         .send({
           password: 'short',

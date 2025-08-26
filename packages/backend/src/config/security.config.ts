@@ -1,4 +1,5 @@
-import { HelmetOptions } from 'helmet';
+import type { CorsOptions } from '@nestjs/common/interfaces/external/cors-options.interface';
+import type { HelmetOptions } from 'helmet';
 
 /**
  * Sicherheitskonfiguration für die Anwendung.
@@ -67,23 +68,17 @@ export const helmetConfig: HelmetOptions = {
  */
 export const corsConfig = {
   development: {
-    origin: [
-      process.env.ALLOWED_ORIGINS?.split(',') || false,
-      'http://localhost:3000',
-      'http://localhost:3001',
-      'http://localhost:5173',
-      'http://localhost:5174',
-    ],
+    origin: [...(process.env.ALLOWED_ORIGINS?.split(',') || []), 'http://localhost:3000', 'http://localhost:3001', 'http://localhost:5173', 'http://localhost:5174'],
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept', 'Origin'],
     exposedHeaders: ['X-Total-Count'],
-  },
+  } satisfies CorsOptions,
   production: {
     origin: process.env.ALLOWED_ORIGINS?.split(',') || false,
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept', 'Origin'],
     exposedHeaders: ['X-Total-Count'],
-  },
+  } satisfies CorsOptions,
 };

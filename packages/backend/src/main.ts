@@ -1,13 +1,15 @@
+import * as process from 'node:process';
 import { Logger, ValidationPipe, VersioningType } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { NestFactory, Reflector } from '@nestjs/core';
+import type { NestExpressApplication } from '@nestjs/platform-express';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
+import cookieParser from 'cookie-parser';
+import helmet from 'helmet';
 import * as packageJson from '../package.json';
 import { AppModule } from './app.module';
-import helmet from 'helmet';
-import * as cookieParser from 'cookie-parser';
-import { corsConfig, helmetConfig } from './config/security.config';
 import { TransformInterceptor } from './common/interceptors/transform.interceptor';
+import { corsConfig, helmetConfig } from './config/security.config';
 
 require('@dotenvx/dotenvx').config();
 
@@ -18,7 +20,12 @@ require('@dotenvx/dotenvx').config();
  * @returns {Promise<void>} Promise, das aufgelöst wird, wenn die Anwendung gestartet ist
  */
 async function bootstrap() {
-  const app = await NestFactory.create(AppModule);
+  const logger = new Logger('Bootstrap');
+  const trustProxy = process.env.TRUSTED_PROXIES?.split(',').map((value) => value.trim()) || false;
+  logger.log(`TRUSTED_PROXIES: ${trustProxy}`);
+  const app = await NestFactory.create<NestExpressApplication>(AppModule);
+
+  app.set('trust proxy', trustProxy);
 
   app.enableVersioning({
     type: VersioningType.URI,
@@ -30,12 +37,7 @@ async function bootstrap() {
     exclude: ['/'],
   });
 
-  const config = new DocumentBuilder()
-    .setTitle('BlueLight Hub API')
-    .setDescription('BlueLight Hub API for the BlueLight Hub application')
-    .setVersion(packageJson.version)
-    .addBearerAuth()
-    .build();
+  const config = new DocumentBuilder().setTitle('BlueLight Hub API').setDescription('BlueLight Hub API for the BlueLight Hub application').setVersion(packageJson.version).addBearerAuth().build();
 
   // Get config service to determine environment
   const configService = app.get(ConfigService);
@@ -78,10 +80,7 @@ async function bootstrap() {
   const port = configService.get('BACKEND_PORT') || configService.get('PORT') || 3000;
 
   await app.listen(port);
-  Logger.log(
-    `Application is running in ${isProduction ? 'production' : 'development'} mode`,
-    'Bootstrap',
-  );
+  Logger.log(`Application is running in ${isProduction ? 'production' : 'development'} mode`, 'Bootstrap');
   Logger.log(`Application is running on: http://localhost:${port}`);
 }
 

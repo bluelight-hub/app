@@ -166,9 +166,7 @@ class WindowService {
       const newWindow = window.open(adminUrl, '_blank');
 
       if (newWindow === null) {
-        logger.warn(
-          'Fenster konnte nicht geöffnet werden - möglicherweise durch Popup-Blocker verhindert',
-        );
+        logger.warn('Fenster konnte nicht geöffnet werden - möglicherweise durch Popup-Blocker verhindert');
         toast.warning('Hinweis', {
           description: 'Das Admin-Dashboard wird im aktuellen Fenster geöffnet.',
         });

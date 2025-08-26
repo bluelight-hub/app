@@ -1,10 +1,10 @@
 import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { PassportStrategy } from '@nestjs/passport';
+import type { Request } from 'express';
 import { ExtractJwt, Strategy } from 'passport-jwt';
-import { Request } from 'express';
-import { JwtPayload, ValidatedUser } from './jwt.strategy';
 import { AuthService } from '../auth.service';
+import type { JwtPayload, ValidatedUser } from './jwt.strategy';
 
 /**
  * JWT-Strategie für Refresh-Tokens

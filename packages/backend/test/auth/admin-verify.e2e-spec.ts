@@ -1,17 +1,18 @@
-import { Test, TestingModule } from '@nestjs/testing';
-import { INestApplication, ValidationPipe, HttpStatus } from '@nestjs/common';
-import request from 'supertest';
+import { HttpStatus, type INestApplication, ValidationPipe } from '@nestjs/common';
+import { Test, type TestingModule } from '@nestjs/testing';
+import type { User } from '@prisma/client';
+import cookieParser from 'cookie-parser';
 import * as jwt from 'jsonwebtoken';
+import request from 'supertest';
 import { AppModule } from '@/app.module';
 import { PrismaService } from '@/prisma/prisma.service';
-import cookieParser from 'cookie-parser';
 
 describe('AuthController (e2e) - Admin Verify', () => {
   let app: INestApplication;
   let prisma: PrismaService;
   let validAdminToken: string;
   let expiredAdminToken: string;
-  let testAdminUser: any;
+  let testAdminUser: User;
   const adminSecret = process.env.ADMIN_JWT_SECRET || 'test-admin-secret';
 
   beforeAll(async () => {
@@ -75,10 +76,7 @@ describe('AuthController (e2e) - Admin Verify', () => {
 
   describe('GET /auth/admin/verify', () => {
     it('sollte 200 zurückgeben, wenn ein gültiges Admin-Token bereitgestellt wird', async () => {
-      const response = await request(app.getHttpServer())
-        .get('/auth/admin/verify')
-        .set('Cookie', `adminToken=${validAdminToken}`)
-        .expect(HttpStatus.OK);
+      const response = await request(app.getHttpServer()).get('/auth/admin/verify').set('Cookie', `adminToken=${validAdminToken}`).expect(HttpStatus.OK);
 
       expect(response.body).toEqual({ ok: true });
     });
@@ -88,19 +86,13 @@ describe('AuthController (e2e) - Admin Verify', () => {
     });
 
     it('sollte 401 zurückgeben, wenn ein abgelaufenes Token bereitgestellt wird', async () => {
-      await request(app.getHttpServer())
-        .get('/auth/admin/verify')
-        .set('Cookie', `adminToken=${expiredAdminToken}`)
-        .expect(HttpStatus.UNAUTHORIZED);
+      await request(app.getHttpServer()).get('/auth/admin/verify').set('Cookie', `adminToken=${expiredAdminToken}`).expect(HttpStatus.UNAUTHORIZED);
     });
 
     it('sollte 401 zurückgeben, wenn ein ungültiges Token bereitgestellt wird', async () => {
       const invalidToken = 'invalid.token.here';
 
-      await request(app.getHttpServer())
-        .get('/auth/admin/verify')
-        .set('Cookie', `adminToken=${invalidToken}`)
-        .expect(HttpStatus.UNAUTHORIZED);
+      await request(app.getHttpServer()).get('/auth/admin/verify').set('Cookie', `adminToken=${invalidToken}`).expect(HttpStatus.UNAUTHORIZED);
     });
 
     it('sollte 401 zurückgeben, wenn ein Token ohne Admin-Rolle bereitgestellt wird', async () => {
@@ -114,10 +106,7 @@ describe('AuthController (e2e) - Admin Verify', () => {
         { expiresIn: '15m' },
       );
 
-      await request(app.getHttpServer())
-        .get('/auth/admin/verify')
-        .set('Cookie', `adminToken=${nonAdminToken}`)
-        .expect(HttpStatus.UNAUTHORIZED);
+      await request(app.getHttpServer()).get('/auth/admin/verify').set('Cookie', `adminToken=${nonAdminToken}`).expect(HttpStatus.UNAUTHORIZED);
     });
 
     it('sollte 401 zurückgeben, wenn ein Token mit falschem Secret signiert wurde', async () => {
@@ -131,10 +120,7 @@ describe('AuthController (e2e) - Admin Verify', () => {
         { expiresIn: '15m' },
       );
 
-      await request(app.getHttpServer())
-        .get('/auth/admin/verify')
-        .set('Cookie', `adminToken=${wrongSecretToken}`)
-        .expect(HttpStatus.UNAUTHORIZED);
+      await request(app.getHttpServer()).get('/auth/admin/verify').set('Cookie', `adminToken=${wrongSecretToken}`).expect(HttpStatus.UNAUTHORIZED);
     });
   });
 });

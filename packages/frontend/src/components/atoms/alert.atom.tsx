@@ -1,4 +1,4 @@
-import * as React from 'react';
+import type * as React from 'react';
 import { PiCheckCircleFill, PiInfoFill, PiWarningFill, PiXCircleFill } from 'react-icons/pi';
 
 import { cn } from '@/utils/cn.ts';
@@ -36,7 +36,7 @@ function Alert({ status = 'info', title, description, icon, className, children 
     <div className={cn('flex gap-3 rounded-lg border p-4', statusStyles[status], className)}>
       <div className="flex-shrink-0">{icon || defaultIcons[status]}</div>
       <div className="flex-1">
-        {title && <h3 className="mb-1 text-sm font-medium">{title}</h3>}
+        {title && <h3 className="mb-1 font-medium text-sm">{title}</h3>}
         {description && <div className="text-sm">{description}</div>}
         {children}
       </div>

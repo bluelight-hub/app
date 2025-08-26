@@ -13,34 +13,14 @@
  */
 
 import { mapValues } from '../runtime';
-import type { ApiMeta } from './ApiMeta';
-import {
-  ApiMetaFromJSON,
-  ApiMetaFromJSONTyped,
-  ApiMetaToJSON,
-  ApiMetaToJSONTyped,
-} from './ApiMeta';
-import type { ApiPagination } from './ApiPagination';
-import {
-  ApiPaginationFromJSON,
-  ApiPaginationFromJSONTyped,
-  ApiPaginationToJSON,
-  ApiPaginationToJSONTyped,
-} from './ApiPagination';
-import type { UserDto } from './UserDto';
-import {
-  UserDtoFromJSON,
-  UserDtoFromJSONTyped,
-  UserDtoToJSON,
-  UserDtoToJSONTyped,
-} from './UserDto';
 import type { ApiLinks } from './ApiLinks';
-import {
-  ApiLinksFromJSON,
-  ApiLinksFromJSONTyped,
-  ApiLinksToJSON,
-  ApiLinksToJSONTyped,
-} from './ApiLinks';
+import { ApiLinksFromJSON, ApiLinksFromJSONTyped, ApiLinksToJSON, ApiLinksToJSONTyped } from './ApiLinks';
+import type { ApiMeta } from './ApiMeta';
+import { ApiMetaFromJSON, ApiMetaFromJSONTyped, ApiMetaToJSON, ApiMetaToJSONTyped } from './ApiMeta';
+import type { ApiPagination } from './ApiPagination';
+import { ApiPaginationFromJSON, ApiPaginationFromJSONTyped, ApiPaginationToJSON, ApiPaginationToJSONTyped } from './ApiPagination';
+import type { UserDto } from './UserDto';
+import { UserDtoFromJSON, UserDtoFromJSONTyped, UserDtoToJSON, UserDtoToJSONTyped } from './UserDto';
 
 /**
  *
@@ -110,10 +90,7 @@ export function UserResponseToJSON(json: any): UserResponse {
   return UserResponseToJSONTyped(json, false);
 }
 
-export function UserResponseToJSONTyped(
-  value?: UserResponse | null,
-  ignoreDiscriminator: boolean = false,
-): any {
+export function UserResponseToJSONTyped(value?: UserResponse | null, ignoreDiscriminator: boolean = false): any {
   if (value == null) {
     return value;
   }

@@ -1,14 +1,14 @@
 import { Outlet, useLocation, useNavigate, useRouterState } from '@tanstack/react-router';
-import { PiX } from 'react-icons/pi';
 import { isTauri } from '@tauri-apps/api/core';
 import { useCallback, useEffect, useMemo } from 'react';
-import { useAuth } from '@/hooks/useAuth';
-import { useAdminAuth } from '@/hooks/useAdminAuth';
-import { logger } from '@/utils/logger';
+import { PiX } from 'react-icons/pi';
 import { Container } from '@/components/atoms/container.atom';
 import { Heading } from '@/components/atoms/heading.atom';
 import { IconButton } from '@/components/atoms/icon-button.atom';
 import { Spinner } from '@/components/atoms/spinner.atom';
+import { useAdminAuth } from '@/hooks/useAdminAuth';
+import { useAuth } from '@/hooks/useAuth';
+import { logger } from '@/utils/logger';
 
 /**
  * Gemeinsames Layout für alle Admin-Seiten
@@ -108,7 +108,7 @@ export function AdminLayout() {
     <Container maxWidth="6xl" className="py-12 md:py-24">
       <div className="flex flex-col gap-8">
         {/* Header mit Titel und Close-Button */}
-        <div className="mb-4 border-b border-gray-200 pb-4 dark:border-gray-800">
+        <div className="mb-4 border-gray-200 border-b pb-4 dark:border-gray-800">
           <div className="flex items-start justify-between">
             <Heading size="2xl" as="h1">
               {pageTitle}
@@ -124,7 +124,7 @@ export function AdminLayout() {
           {isLoading ? (
             <div className="flex flex-col items-center gap-4 py-12">
               <Spinner size="xl" />
-              <p className="text-lg text-gray-600 dark:text-gray-400">Authentifizierung wird geprüft...</p>
+              <p className="text-gray-600 text-lg dark:text-gray-400">Authentifizierung wird geprüft...</p>
             </div>
           ) : (
             <Outlet />

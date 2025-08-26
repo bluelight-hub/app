@@ -7,6 +7,7 @@
 
 const AUTH_QUERY_KEYS = (base: [string]) =>
   ({
+    users: [...base, 'users'] as const,
     authCheck: [...base, 'check'] as const,
     adminStatus: [...base, 'admin', 'status'] as const,
     adminPresence: [...base, 'admin', 'presence'] as const,

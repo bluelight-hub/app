@@ -5,7 +5,10 @@
 ### Core Workflow Commands
 
 ```bash
+# Project Setup
+task-master init                                    # Initialize Task Master in current project
 task-master parse-prd .taskmaster/docs/prd.txt      # Generate tasks from PRD document
+task-master models --setup                        # Configure AI models interactively
 
 # Daily Development Workflow
 task-master list                                   # Show all tasks with status
@@ -47,6 +50,7 @@ task-master generate                                         # Update task markd
 - `CLAUDE.md` - Auto-loaded context for Claude Code (this file)
 - `.claude/settings.json` - Claude Code tool allowlist and preferences
 - `.claude/commands/` - Custom slash commands for repeated workflows
+- `.mcp.json` - MCP server configuration (project-specific)
 
 ### Directory Structure
 
@@ -68,18 +72,42 @@ project/
 │   ├── settings.json      # Claude Code configuration
 │   └── commands/         # Custom slash commands
 ├── .env                  # API keys
+├── .mcp.json            # MCP configuration
 └── CLAUDE.md            # This file - auto-loaded by Claude Code
 ```
 
 ## MCP Integration
 
-Task Master provides an MCP server that Claude Code can connect to.
+Task Master provides an MCP server that Claude Code can connect to. Configure in `.mcp.json`:
+
+```json
+{
+  "mcpServers": {
+    "task-master-ai": {
+      "command": "pnpx",
+      "args": ["-y", "--package=task-master-ai", "task-master-ai"],
+      "env": {
+        "ANTHROPIC_API_KEY": "your_key_here",
+        "PERPLEXITY_API_KEY": "your_key_here",
+        "OPENAI_API_KEY": "OPENAI_API_KEY_HERE",
+        "GOOGLE_API_KEY": "GOOGLE_API_KEY_HERE",
+        "XAI_API_KEY": "XAI_API_KEY_HERE",
+        "OPENROUTER_API_KEY": "OPENROUTER_API_KEY_HERE",
+        "MISTRAL_API_KEY": "MISTRAL_API_KEY_HERE",
+        "AZURE_OPENAI_API_KEY": "AZURE_OPENAI_API_KEY_HERE",
+        "OLLAMA_API_KEY": "OLLAMA_API_KEY_HERE"
+      }
+    }
+  }
+}
+```
 
 ### Essential MCP Tools
 
 ```javascript
 help; // = shows available taskmaster commands
 // Project setup
+initialize_project; // = task-master init
 parse_prd; // = task-master parse-prd
 
 // Daily workflow
@@ -107,6 +135,9 @@ complexity_report; // = task-master complexity-report
 #### 1. Project Initialization
 
 ```bash
+# Initialize Task Master
+task-master init
+
 # Create or obtain PRD, then parse it
 task-master parse-prd .taskmaster/docs/prd.txt
 
@@ -194,6 +225,32 @@ Add to `.claude/settings.json`:
 ```
 
 ## Configuration & Setup
+
+### API Keys Required
+
+At least **one** of these API keys must be configured:
+
+- `ANTHROPIC_API_KEY` (Claude models) - **Recommended**
+- `PERPLEXITY_API_KEY` (Research features) - **Highly recommended**
+- `OPENAI_API_KEY` (GPT models)
+- `GOOGLE_API_KEY` (Gemini models)
+- `MISTRAL_API_KEY` (Mistral models)
+- `OPENROUTER_API_KEY` (Multiple models)
+- `XAI_API_KEY` (Grok models)
+
+An API key is required for any provider used across any of the 3 roles defined in the `models` command.
+
+### Model Configuration
+
+```bash
+# Interactive setup (recommended)
+task-master models --setup
+
+# Set specific models
+task-master models --set-main claude-3-5-sonnet-20241022
+task-master models --set-research perplexity-llama-3.1-sonar-large-128k-online
+task-master models --set-fallback gpt-4o-mini
+```
 
 ## Task Structure & IDs
 

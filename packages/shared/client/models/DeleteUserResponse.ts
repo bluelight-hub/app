@@ -13,34 +13,14 @@
  */
 
 import { mapValues } from '../runtime';
-import type { ApiMeta } from './ApiMeta';
-import {
-  ApiMetaFromJSON,
-  ApiMetaFromJSONTyped,
-  ApiMetaToJSON,
-  ApiMetaToJSONTyped,
-} from './ApiMeta';
-import type { ApiPagination } from './ApiPagination';
-import {
-  ApiPaginationFromJSON,
-  ApiPaginationFromJSONTyped,
-  ApiPaginationToJSON,
-  ApiPaginationToJSONTyped,
-} from './ApiPagination';
-import type { DeleteUserResponseData } from './DeleteUserResponseData';
-import {
-  DeleteUserResponseDataFromJSON,
-  DeleteUserResponseDataFromJSONTyped,
-  DeleteUserResponseDataToJSON,
-  DeleteUserResponseDataToJSONTyped,
-} from './DeleteUserResponseData';
 import type { ApiLinks } from './ApiLinks';
-import {
-  ApiLinksFromJSON,
-  ApiLinksFromJSONTyped,
-  ApiLinksToJSON,
-  ApiLinksToJSONTyped,
-} from './ApiLinks';
+import { ApiLinksFromJSON, ApiLinksFromJSONTyped, ApiLinksToJSON, ApiLinksToJSONTyped } from './ApiLinks';
+import type { ApiMeta } from './ApiMeta';
+import { ApiMetaFromJSON, ApiMetaFromJSONTyped, ApiMetaToJSON, ApiMetaToJSONTyped } from './ApiMeta';
+import type { ApiPagination } from './ApiPagination';
+import { ApiPaginationFromJSON, ApiPaginationFromJSONTyped, ApiPaginationToJSON, ApiPaginationToJSONTyped } from './ApiPagination';
+import type { DeleteUserResponseData } from './DeleteUserResponseData';
+import { DeleteUserResponseDataFromJSON, DeleteUserResponseDataFromJSONTyped, DeleteUserResponseDataToJSON, DeleteUserResponseDataToJSONTyped } from './DeleteUserResponseData';
 
 /**
  *
@@ -93,10 +73,7 @@ export function DeleteUserResponseFromJSON(json: any): DeleteUserResponse {
   return DeleteUserResponseFromJSONTyped(json, false);
 }
 
-export function DeleteUserResponseFromJSONTyped(
-  json: any,
-  ignoreDiscriminator: boolean,
-): DeleteUserResponse {
+export function DeleteUserResponseFromJSONTyped(json: any, ignoreDiscriminator: boolean): DeleteUserResponse {
   if (json == null) {
     return json;
   }
@@ -113,10 +90,7 @@ export function DeleteUserResponseToJSON(json: any): DeleteUserResponse {
   return DeleteUserResponseToJSONTyped(json, false);
 }
 
-export function DeleteUserResponseToJSONTyped(
-  value?: DeleteUserResponse | null,
-  ignoreDiscriminator: boolean = false,
-): any {
+export function DeleteUserResponseToJSONTyped(value?: DeleteUserResponse | null, ignoreDiscriminator: boolean = false): any {
   if (value == null) {
     return value;
   }

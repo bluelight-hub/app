@@ -12,10 +12,7 @@ export const usernameSchema = z
   .string()
   .min(3, 'Benutzername muss mindestens 3 Zeichen lang sein')
   .max(30, 'Benutzername darf maximal 30 Zeichen lang sein')
-  .regex(
-    /^[a-zA-Z0-9_-]+$/,
-    'Benutzername darf nur Buchstaben, Zahlen, Unterstriche und Bindestriche enthalten',
-  );
+  .regex(/^[a-zA-Z0-9_-]+$/, 'Benutzername darf nur Buchstaben, Zahlen, Unterstriche und Bindestriche enthalten');
 
 /**
  * Schema für das Registrierungsformular

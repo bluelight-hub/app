@@ -20,9 +20,7 @@ import * as runtime from '../runtime';
 export class AppApi extends runtime.BaseAPI {
   /**
    */
-  async appControllerGetRootRaw(
-    initOverrides?: RequestInit | runtime.InitOverrideFunction,
-  ): Promise<runtime.ApiResponse<void>> {
+  async appControllerGetRootRaw(initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<void>> {
     const queryParameters: any = {};
 
     const headerParameters: runtime.HTTPHeaders = {};
@@ -42,9 +40,7 @@ export class AppApi extends runtime.BaseAPI {
 
   /**
    */
-  async appControllerGetRoot(
-    initOverrides?: RequestInit | runtime.InitOverrideFunction,
-  ): Promise<void> {
+  async appControllerGetRoot(initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<void> {
     await this.appControllerGetRootRaw(initOverrides);
   }
 }

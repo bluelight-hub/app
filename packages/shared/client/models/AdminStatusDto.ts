@@ -53,10 +53,7 @@ export function AdminStatusDtoFromJSON(json: any): AdminStatusDto {
   return AdminStatusDtoFromJSONTyped(json, false);
 }
 
-export function AdminStatusDtoFromJSONTyped(
-  json: any,
-  ignoreDiscriminator: boolean,
-): AdminStatusDto {
+export function AdminStatusDtoFromJSONTyped(json: any, ignoreDiscriminator: boolean): AdminStatusDto {
   if (json == null) {
     return json;
   }
@@ -71,10 +68,7 @@ export function AdminStatusDtoToJSON(json: any): AdminStatusDto {
   return AdminStatusDtoToJSONTyped(json, false);
 }
 
-export function AdminStatusDtoToJSONTyped(
-  value?: AdminStatusDto | null,
-  ignoreDiscriminator: boolean = false,
-): any {
+export function AdminStatusDtoToJSONTyped(value?: AdminStatusDto | null, ignoreDiscriminator: boolean = false): any {
   if (value == null) {
     return value;
   }

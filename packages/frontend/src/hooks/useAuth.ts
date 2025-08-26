@@ -1,13 +1,8 @@
+import type { AdminLoginResponseDto, AdminPasswordDto, AdminSetupDto, AdminSetupResponseDto, AuthRequestDto, AuthResponseDto, LogoutResponseDto } from '@bluelight-hub/shared/dist';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { milliseconds } from 'date-fns';
-import type {
-  AdminPasswordDto,
-  AdminSetupDto,
-  LoginUserDto,
-  RegisterUserDto,
-} from '@bluelight-hub/shared/dist';
+import { api } from '@/api';
 import { QUERY_KEYS } from '@/queryKeys.ts';
-import { api } from '@/api/api.ts';
 
 /**
  * Provides authentication-related functionality and state handling.
@@ -41,41 +36,32 @@ export const useAuth = () => {
     queryFn: () => api.auth().authControllerGetAdminStatus(),
   });
 
-  const logoutMutation = useMutation<void, Error, void>({
+  const logoutMutation = useMutation<LogoutResponseDto, Error, void>({
     mutationFn: () => api.auth().authControllerLogout(),
     onSuccess: async () => {
       await queryClient.invalidateQueries({ queryKey: QUERY_KEYS.auth.queryKey });
     },
   });
-  const logoutAdminMutation = useMutation<void, Error, void>({
+  const logoutAdminMutation = useMutation<LogoutResponseDto, Error, void>({
     mutationFn: () => api.auth().authControllerAdminLogout(),
     onSuccess: async () => {
       await queryClient.invalidateQueries({ queryKey: QUERY_KEYS.auth.queryKey });
     },
   });
-  const loginMutation = useMutation<any, Error, LoginUserDto>({
-    mutationFn: (loginUserDto: LoginUserDto) => api.auth().authControllerLogin({ loginUserDto }),
+  const unifiedAuthMutation = useMutation<AuthResponseDto, Error, AuthRequestDto>({
+    mutationFn: (authRequestDto: AuthRequestDto) => api.auth().authControllerUnifiedAuth({ authRequestDto }),
     onSuccess: () => {
       void authCheckQuery.refetch();
     },
   });
-  const loginAdminMutation = useMutation<any, Error, AdminPasswordDto>({
-    mutationFn: (adminPasswordDto: AdminPasswordDto) =>
-      api.auth().authControllerAdminLogin({ adminPasswordDto }),
+  const loginAdminMutation = useMutation<AdminLoginResponseDto, Error, AdminPasswordDto>({
+    mutationFn: (adminPasswordDto: AdminPasswordDto) => api.auth().authControllerAdminLogin({ adminPasswordDto }),
     onSuccess: () => {
       void authCheckQuery.refetch();
     },
   });
-  const registerMutation = useMutation<any, Error, RegisterUserDto>({
-    mutationFn: (registerUserDto: RegisterUserDto) =>
-      api.auth().authControllerRegister({ registerUserDto }),
-    onSuccess: () => {
-      void authCheckQuery.refetch();
-    },
-  });
-  const adminSetupMutation = useMutation<any, Error, AdminSetupDto>({
-    mutationFn: (adminSetupDto: AdminSetupDto) =>
-      api.auth().authControllerAdminSetup({ adminSetupDto }),
+  const adminSetupMutation = useMutation<AdminSetupResponseDto, Error, AdminSetupDto>({
+    mutationFn: (adminSetupDto: AdminSetupDto) => api.auth().authControllerAdminSetup({ adminSetupDto }),
     onSuccess: async () => {
       await queryClient.invalidateQueries({
         queryKey: QUERY_KEYS.auth.queries.adminStatus,
@@ -84,15 +70,13 @@ export const useAuth = () => {
   });
 
   return {
-    isLoading:
-      authCheckQuery.isLoading || adminStatusQuery.isLoading || adminPresenceQuery.isLoading,
+    isLoading: authCheckQuery.isLoading || adminStatusQuery.isLoading || adminPresenceQuery.isLoading,
     user: authCheckQuery.data?.user,
     isAdminAuthenticated: authCheckQuery.data?.isAdminAuthenticated,
     logoutAdmin: logoutAdminMutation,
     logout: logoutMutation,
-    login: loginMutation,
+    unifiedAuth: unifiedAuthMutation,
     loginAdmin: loginAdminMutation,
-    register: registerMutation,
     adminSetup: adminSetupMutation,
     adminStatus: adminStatusQuery.isFetched
       ? {

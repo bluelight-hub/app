@@ -41,8 +41,7 @@ export const CreateUserDtoRoleEnum = {
   Admin: 'ADMIN',
   User: 'USER',
 } as const;
-export type CreateUserDtoRoleEnum =
-  (typeof CreateUserDtoRoleEnum)[keyof typeof CreateUserDtoRoleEnum];
+export type CreateUserDtoRoleEnum = (typeof CreateUserDtoRoleEnum)[keyof typeof CreateUserDtoRoleEnum];
 
 /**
  * Check if a given object implements the CreateUserDto interface.
@@ -70,10 +69,7 @@ export function CreateUserDtoToJSON(json: any): CreateUserDto {
   return CreateUserDtoToJSONTyped(json, false);
 }
 
-export function CreateUserDtoToJSONTyped(
-  value?: CreateUserDto | null,
-  ignoreDiscriminator: boolean = false,
-): any {
+export function CreateUserDtoToJSONTyped(value?: CreateUserDto | null, ignoreDiscriminator: boolean = false): any {
   if (value == null) {
     return value;
   }

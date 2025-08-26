@@ -60,7 +60,7 @@ label: string;
 onClick: () => void;
 }
 
-export default function Button({ label, onClick }: ButtonProps) {
+export function Button({ label, onClick }: ButtonProps) {
 return <button onClick={onClick}>{label}</button>;
 }
 </example>
@@ -81,7 +81,7 @@ export const HomePage: React.FC = () => {
   );
 };
 
-export default HomePage;
+export HomePage;
 </example>
 
 <example>
@@ -104,5 +104,5 @@ const LoginForm: React.FC = () => {
   );
 };
 
-export default LoginForm;
+export LoginForm;
 </example>

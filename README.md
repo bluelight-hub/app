@@ -77,19 +77,27 @@ pnpm --filter @bluelight-hub/backend dev
 
 Die Anwendung verwendet JWT-basierte Authentifizierung mit httpOnly-Cookies für erhöhte Sicherheit.
 
+### Unified Auth System
+
+BlueLight Hub nutzt ein vereinheitlichtes Authentifizierungssystem, das Login und Registrierung in einem einzigen Endpunkt kombiniert:
+
+- **Automatische Registrierung**: Neue Benutzer werden automatisch angelegt, wenn sie sich zum ersten Mal anmelden
+- **Passwortlose Benutzer**: Normale Benutzer haben kein Passwort - nur Admin-Accounts verwenden Passwörter
+- **Rate Limiting**: 5 Anfragen pro Minute zum Schutz vor Brute-Force-Angriffen
+
 ### Auth-Endpoints
 
-- `POST /api/auth/login` - Benutzer-Login
-  - Request: `{ username: string, password: string }`
-  - Response: `{ user: UserResponseDto }`
-- `POST /api/auth/register` - Benutzer-Registrierung
-  - Request: `{ username: string, password: string, email: string }`
-  - Response: `{ user: UserResponseDto }`
+- `POST /api/auth/unified` - Unified Authentication (Login/Auto-Registrierung)
+  - Request: `{ username: string }`
+  - Response: `{ user: UserResponseDto, isNewUser: boolean }`
+  - Verhalten:
+    - Existierender Benutzer → Login
+    - Neuer Benutzername → Automatische Registrierung
 - `POST /api/auth/refresh` - Token-Refresh
   - Request: Keine (Refresh-Token wird aus Cookie gelesen)
   - Response: `{ success: true }`
-- `POST /api/auth/admin/login` - Admin-Login
-  - Request: `{ username: string, password: string }`
+- `POST /api/auth/admin/login` - Admin-Login (mit Passwort)
+  - Request: `{ password: string }`
   - Response: `{ user: UserResponseDto }`
 
 ### Cookie-Handling
@@ -108,14 +116,21 @@ Cookie-Eigenschaften:
 ### Frontend-Integration
 
 ```typescript
-// Login-Beispiel
-const response = await api.auth.login({
-  username: 'user@example.com',
-  password: 'password',
+// Unified Auth - Login oder automatische Registrierung
+const response = await api.auth.unifiedAuth({
+  username: 'benutzername',
 });
-// Tokens werden automatisch als Cookies gesetzt
-// Response enthält nur User-Daten: { user: { id, username, email, ... } }
 
+// Response enthält:
+// - user: Benutzerdaten
+// - isNewUser: true bei neuer Registrierung, false bei Login
+if (response.isNewUser) {
+  console.log('Willkommen! Ihr Account wurde erstellt.');
+} else {
+  console.log('Willkommen zurück!');
+}
+
+// Tokens werden automatisch als httpOnly-Cookies gesetzt
 // Authenticated Requests werden automatisch mit Cookies gesendet
 const userData = await api.users.getCurrentUser();
 ```

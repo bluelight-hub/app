@@ -1,7 +1,7 @@
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import * as tauriCore from '@tauri-apps/api/core';
-import { useIsTauri } from './useIsTauri';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { logger } from '@/utils/logger';
+import { useIsTauri } from './useIsTauri';
 
 // Mock logger
 vi.mock('@/utils/logger', () => ({
@@ -52,9 +52,6 @@ describe('useIsTauri', () => {
     const { isTauri } = useIsTauri();
 
     expect(isTauri).toBe(false);
-    expect(vi.mocked(logger.warn)).toHaveBeenCalledWith(
-      expect.any(Error),
-      'Tauri API nicht verfügbar, Fallback auf Browser-Modus',
-    );
+    expect(vi.mocked(logger.warn)).toHaveBeenCalledWith(expect.any(Error), 'Tauri API nicht verfügbar, Fallback auf Browser-Modus');
   });
 });

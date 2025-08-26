@@ -1,5 +1,5 @@
-import { NestFactory } from '@nestjs/core';
 import { Logger } from '@nestjs/common';
+import { NestFactory } from '@nestjs/core';
 import { CliModule } from './cli/cli.module';
 
 const logger = new Logger('CLI');
@@ -27,9 +27,7 @@ async function bootstrap() {
 
   try {
     // Dynamic import to avoid circular dependencies
-    const { AdminResetPasswordCommand } = await import(
-      './cli/commands/admin-reset-password.command'
-    );
+    const { AdminResetPasswordCommand } = await import('./cli/commands/admin-reset-password.command');
     const command = app.get(AdminResetPasswordCommand);
 
     await command.run(args);

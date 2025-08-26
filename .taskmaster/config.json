@@ -1,22 +1,22 @@
 {
   "models": {
     "main": {
-      "provider": "openai",
-      "modelId": "o3",
-      "maxTokens": 64000,
+      "provider": "claude-code",
+      "modelId": "sonnet",
+      "maxTokens": 200000,
       "temperature": 0.2
     },
     "research": {
-      "provider": "openai",
-      "modelId": "o3",
-      "maxTokens": 64000,
+      "provider": "claude-code",
+      "modelId": "opus",
+      "maxTokens": 800000,
       "temperature": 0.1
     },
     "fallback": {
-      "provider": "anthropic",
-      "modelId": "claude-sonnet-4-0",
-      "maxTokens": 64000,
-      "temperature": 0.1
+      "provider": "claude-code",
+      "modelId": "sonnet",
+      "maxTokens": 200000,
+      "temperature": 0.2
     }
   },
   "global": {
@@ -33,5 +33,31 @@
     "userId": "1234567890",
     "defaultTag": "master"
   },
-  "claudeCode": {}
+  "claudeCode": {
+    "maxTurns": 10,
+    "permissionMode": "default",
+    "appendSystemPrompt": "Always follow the project's coding conventions and best practices. Use German for technical documentation and comments."
+  },
+  "commandSpecific": {
+    "parse-prd": {
+      "maxTurns": 15,
+      "appendSystemPrompt": "Focus on creating actionable, well-structured tasks with clear dependencies"
+    },
+    "analyze-complexity": {
+      "maxTurns": 5,
+      "appendSystemPrompt": "Identify bottlenecks and suggest optimal task breakdown strategies"
+    },
+    "expand": {
+      "maxTurns": 8,
+      "appendSystemPrompt": "Create detailed subtasks that are specific and implementable"
+    },
+    "update-task": {
+      "maxTurns": 5,
+      "appendSystemPrompt": "Preserve existing task structure while incorporating new requirements"
+    },
+    "add-task": {
+      "maxTurns": 5,
+      "appendSystemPrompt": "Ensure new tasks align with existing project structure and dependencies"
+    }
+  }
 }

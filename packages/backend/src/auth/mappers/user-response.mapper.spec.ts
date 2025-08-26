@@ -1,5 +1,5 @@
-import { User, UserRole } from '@prisma/client';
-import { UserResponseMapper } from './user-response.mapper';
+import { toUserResponseDto } from '@/auth/mappers/user-response.mapper';
+import { type User, UserRole } from '@prisma/client';
 
 describe('UserResponseMapper', () => {
   describe('toUserResponseDto', () => {
@@ -18,7 +18,7 @@ describe('UserResponseMapper', () => {
     };
 
     it('should map user to UserResponseDto with all required fields', () => {
-      const result = UserResponseMapper.toUserResponseDto(mockUser);
+      const result = toUserResponseDto(mockUser);
 
       expect(result).toEqual({
         id: '453GsDyW0KssEuIW2lo2G',
@@ -32,7 +32,7 @@ describe('UserResponseMapper', () => {
     });
 
     it('should exclude sensitive fields like passwordHash, failedLoginCount, lockedUntil', () => {
-      const result = UserResponseMapper.toUserResponseDto(mockUser);
+      const result = toUserResponseDto(mockUser);
 
       expect(result).not.toHaveProperty('passwordHash');
       expect(result).not.toHaveProperty('failedLoginCount');
@@ -45,7 +45,7 @@ describe('UserResponseMapper', () => {
         lastLoginAt: null,
       };
 
-      const result = UserResponseMapper.toUserResponseDto(userWithNullLastLogin);
+      const result = toUserResponseDto(userWithNullLastLogin);
 
       expect(result.lastLoginAt).toBeNull();
     });
@@ -56,7 +56,7 @@ describe('UserResponseMapper', () => {
         role: UserRole.ADMIN,
       };
 
-      const result = UserResponseMapper.toUserResponseDto(adminUser);
+      const result = toUserResponseDto(adminUser);
 
       expect(result.role).toBe(UserRole.ADMIN);
     });
@@ -67,13 +67,13 @@ describe('UserResponseMapper', () => {
         isActive: false,
       };
 
-      const result = UserResponseMapper.toUserResponseDto(inactiveUser);
+      const result = toUserResponseDto(inactiveUser);
 
       expect(result.isActive).toBe(false);
     });
 
     it('should preserve date objects as Date instances', () => {
-      const result = UserResponseMapper.toUserResponseDto(mockUser);
+      const result = toUserResponseDto(mockUser);
 
       expect(result.createdAt).toBeInstanceOf(Date);
       expect(result.updatedAt).toBeInstanceOf(Date);

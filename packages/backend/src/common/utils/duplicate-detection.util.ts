@@ -1,5 +1,5 @@
+import { createHash } from 'node:crypto';
 import { Logger } from '@nestjs/common';
-import { createHash } from 'crypto';
 
 /**
  * Konfiguration für Duplicate Detection
@@ -32,15 +32,15 @@ export const DEFAULT_DUPLICATE_CONFIG: DuplicateDetectionConfig = {
  * @interface OperationMetadata
  * @description Speichert Informationen über ausgeführte Operationen zur Duplikatserkennung
  */
-export interface OperationMetadata {
+export interface OperationMetadata<T = unknown> {
   /** SHA-256 Hash der Operation für eindeutige Identifikation */
   hash: string;
   /** Zeitstempel der Operation (Unix-Timestamp in Millisekunden) */
   timestamp: number;
   /** Ergebnis der erfolgreichen Operation (falls vorhanden) */
-  result?: any;
+  result?: T;
   /** Fehler der fehlgeschlagenen Operation (falls vorhanden) */
-  error?: any;
+  error?: Error;
 }
 
 /**
@@ -60,7 +60,7 @@ export interface OperationMetadata {
  */
 export class DuplicateDetectionUtil {
   private readonly logger = new Logger(DuplicateDetectionUtil.name);
-  private readonly operationCache = new Map<string, OperationMetadata>();
+  private readonly operationCache = new Map<string, OperationMetadata<unknown>>();
   private cleanupTimer?: NodeJS.Timeout;
 
   constructor(private readonly config: DuplicateDetectionConfig = DEFAULT_DUPLICATE_CONFIG) {
@@ -75,11 +75,7 @@ export class DuplicateDetectionUtil {
    * @param data Daten für Hash-Generierung
    * @returns Das Ergebnis der Operation
    */
-  async executeIdempotent<T>(
-    operationId: string,
-    operation: () => Promise<T>,
-    data: any,
-  ): Promise<T> {
+  async executeIdempotent<T>(operationId: string, operation: () => Promise<T>, data: unknown): Promise<T> {
     const hash = this.generateOperationHash(operationId, data);
     const existing = this.operationCache.get(hash);
 
@@ -91,7 +87,7 @@ export class DuplicateDetectionUtil {
         throw existing.error;
       }
 
-      return existing.result;
+      return existing.result as T;
     }
 
     try {
@@ -102,7 +98,7 @@ export class DuplicateDetectionUtil {
       this.operationCache.set(hash, {
         hash,
         timestamp: Date.now(),
-        result,
+        result: result as unknown,
       });
 
       this.ensureCacheSize();
@@ -112,7 +108,7 @@ export class DuplicateDetectionUtil {
       this.operationCache.set(hash, {
         hash,
         timestamp: Date.now(),
-        error,
+        error: error as Error,
       });
 
       this.ensureCacheSize();
@@ -156,7 +152,7 @@ export class DuplicateDetectionUtil {
    * @param data Daten für Hash-Generierung
    * @returns SHA-256 Hash
    */
-  private generateOperationHash(operationId: string, data: any): string {
+  private generateOperationHash(operationId: string, data: unknown): string {
     const hashInput = JSON.stringify({
       operationId,
       data: this.normalizeData(data),
@@ -171,7 +167,7 @@ export class DuplicateDetectionUtil {
    * @param data Zu normalisierende Daten
    * @returns Normalisierte Daten
    */
-  private normalizeData(data: any): any {
+  private normalizeData(data: unknown): unknown {
     if (data === null || data === undefined) {
       return null;
     }
@@ -189,11 +185,12 @@ export class DuplicateDetectionUtil {
         };
       }
 
-      const normalized: any = {};
-      const sortedKeys = Object.keys(data).sort();
+      const normalized: Record<string, unknown> = {};
+      const dataObj = data as Record<string, unknown>;
+      const sortedKeys = Object.keys(dataObj).sort();
 
       for (const key of sortedKeys) {
-        normalized[key] = this.normalizeData(data[key]);
+        normalized[key] = this.normalizeData(dataObj[key]);
       }
 
       return normalized;
@@ -221,9 +218,7 @@ export class DuplicateDetectionUtil {
     }
 
     // Älteste Einträge entfernen
-    const entries = Array.from(this.operationCache.entries()).sort(
-      ([, a], [, b]) => a.timestamp - b.timestamp,
-    );
+    const entries = Array.from(this.operationCache.entries()).sort(([, a], [, b]) => a.timestamp - b.timestamp);
 
     const toRemove = entries.slice(0, entries.length - this.config.maxCacheSize);
 

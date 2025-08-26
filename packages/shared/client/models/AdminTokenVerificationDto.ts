@@ -30,9 +30,7 @@ export interface AdminTokenVerificationDto {
 /**
  * Check if a given object implements the AdminTokenVerificationDto interface.
  */
-export function instanceOfAdminTokenVerificationDto(
-  value: object,
-): value is AdminTokenVerificationDto {
+export function instanceOfAdminTokenVerificationDto(value: object): value is AdminTokenVerificationDto {
   if (!('ok' in value) || value['ok'] === undefined) return false;
   return true;
 }
@@ -41,10 +39,7 @@ export function AdminTokenVerificationDtoFromJSON(json: any): AdminTokenVerifica
   return AdminTokenVerificationDtoFromJSONTyped(json, false);
 }
 
-export function AdminTokenVerificationDtoFromJSONTyped(
-  json: any,
-  ignoreDiscriminator: boolean,
-): AdminTokenVerificationDto {
+export function AdminTokenVerificationDtoFromJSONTyped(json: any, ignoreDiscriminator: boolean): AdminTokenVerificationDto {
   if (json == null) {
     return json;
   }
@@ -57,10 +52,7 @@ export function AdminTokenVerificationDtoToJSON(json: any): AdminTokenVerificati
   return AdminTokenVerificationDtoToJSONTyped(json, false);
 }
 
-export function AdminTokenVerificationDtoToJSONTyped(
-  value?: AdminTokenVerificationDto | null,
-  ignoreDiscriminator: boolean = false,
-): any {
+export function AdminTokenVerificationDtoToJSONTyped(value?: AdminTokenVerificationDto | null, ignoreDiscriminator: boolean = false): any {
   if (value == null) {
     return value;
   }

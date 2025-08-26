@@ -3,7 +3,7 @@ import { Logger } from '@nestjs/common';
 /**
  * PostgreSQL retryable error codes
  */
-export const POSTGRES_RETRYABLE_ERRORS = {
+export const POSTGRES_RETRYABLE_ERRORS: Record<string, string> = {
   UNIQUE_VIOLATION: '23505',
   DEADLOCK_DETECTED: '40P01',
   SERIALIZATION_FAILURE: '40001',
@@ -28,7 +28,7 @@ export interface RetryConfig {
   /** Timeout in milliseconds for each attempt */
   timeout?: number;
   /** Function to determine if error is retryable */
-  isRetryable?: (error: any) => boolean;
+  isRetryable?: (error: unknown) => boolean;
 }
 
 /**
@@ -41,24 +41,20 @@ export const DEFAULT_RETRY_CONFIG: RetryConfig = {
   backoffMultiplier: 2,
   jitterFactor: 0.1,
   timeout: undefined,
-  isRetryable: (error: any) => {
+  isRetryable: (error: unknown) => {
     // Check PostgreSQL error codes
-    if (error.code && Object.values(POSTGRES_RETRYABLE_ERRORS).includes(error.code)) {
+    const errorWithCode = error as { code?: string; message?: string };
+    if (errorWithCode.code && Object.values(POSTGRES_RETRYABLE_ERRORS).includes(errorWithCode.code)) {
       return true;
     }
 
     // Check Prisma error codes
-    if (error.code === 'P2002') {
+    if (errorWithCode.code === 'P2002') {
       return true;
     }
 
     // Check network errors
-    if (
-      error.message &&
-      (error.message.includes('ECONNRESET') ||
-        error.message.includes('ENOTFOUND') ||
-        error.message.includes('ETIMEDOUT'))
-    ) {
+    if (errorWithCode.message && (errorWithCode.message.includes('ECONNRESET') || errorWithCode.message.includes('ENOTFOUND') || errorWithCode.message.includes('ETIMEDOUT'))) {
       return true;
     }
 
@@ -78,23 +74,24 @@ export class RetryUtil {
   /**
    * Create a retry policy for specific error types
    */
-  static createRetryPolicy(policies: {
-    [errorType: string]: Partial<RetryConfig>;
-  }): (error: any) => Partial<RetryConfig> | null {
-    return (error: any) => {
+  static createRetryPolicy(policies: { [errorType: string]: Partial<RetryConfig> }): (error: unknown) => Partial<RetryConfig> | null {
+    return (error: unknown) => {
+      // Type guard for error object
+      const errorObj = error as { name?: string; code?: string; status?: number };
+
       // Check error type/name
-      if (error.name && policies[error.name]) {
-        return policies[error.name];
+      if (errorObj.name && policies[errorObj.name]) {
+        return policies[errorObj.name];
       }
 
       // Check error code
-      if (error.code && policies[error.code]) {
-        return policies[error.code];
+      if (errorObj.code && policies[errorObj.code]) {
+        return policies[errorObj.code];
       }
 
       // Check HTTP status codes
-      if (error.status && policies[`HTTP_${error.status}`]) {
-        return policies[`HTTP_${error.status}`];
+      if (errorObj.status && policies[`HTTP_${errorObj.status}`]) {
+        return policies[`HTTP_${errorObj.status}`];
       }
 
       // Default policy
@@ -111,13 +108,9 @@ export class RetryUtil {
    * @returns Result of the function
    * @throws Last error if all retries fail
    */
-  async executeWithRetry<T>(
-    fn: () => Promise<T>,
-    config?: Partial<RetryConfig>,
-    context?: string,
-  ): Promise<T> {
+  async executeWithRetry<T>(fn: () => Promise<T>, config?: Partial<RetryConfig>, context?: string): Promise<T> {
     const retryConfig = { ...DEFAULT_RETRY_CONFIG, ...config };
-    let lastError: any;
+    let lastError: unknown;
 
     for (let attempt = 0; attempt <= retryConfig.maxRetries; attempt++) {
       try {
@@ -131,7 +124,7 @@ export class RetryUtil {
         lastError = error;
 
         // Check if error is retryable
-        if (!retryConfig.isRetryable!(error)) {
+        if (!retryConfig.isRetryable?.(error)) {
           throw error;
         }
 
@@ -141,19 +134,12 @@ export class RetryUtil {
         }
 
         // Calculate delay with exponential backoff and jitter
-        const delay = this.calculateDelay(
-          attempt,
-          retryConfig.baseDelay,
-          retryConfig.maxDelay,
-          retryConfig.backoffMultiplier,
-          retryConfig.jitterFactor,
-        );
+        const delay = this.calculateDelay(attempt, retryConfig.baseDelay, retryConfig.maxDelay, retryConfig.backoffMultiplier, retryConfig.jitterFactor);
 
         // Log retry attempt
         if (context) {
-          this.logger.log(
-            `[${context}] Retry attempt ${attempt + 1}/${retryConfig.maxRetries} after ${delay}ms. Error: ${error.message}`,
-          );
+          const errorMessage = error instanceof Error ? error.message : String(error);
+          this.logger.log(`[${context}] Retry attempt ${attempt + 1}/${retryConfig.maxRetries} after ${delay}ms. Error: ${errorMessage}`);
         }
 
         // Wait before retry
@@ -162,13 +148,15 @@ export class RetryUtil {
     }
 
     // All retries failed
-    const errorMessage = context
-      ? `[${context}] All ${retryConfig.maxRetries} retry attempts failed`
-      : `All ${retryConfig.maxRetries} retry attempts failed`;
+    const errorMessage = context ? `[${context}] All ${retryConfig.maxRetries} retry attempts failed` : `All ${retryConfig.maxRetries} retry attempts failed`;
 
-    const finalError = new Error(errorMessage);
-    (finalError as any).cause = lastError;
-    (finalError as any).attempts = retryConfig.maxRetries + 1;
+    interface RetryError extends Error {
+      cause?: unknown;
+      attempts?: number;
+    }
+    const finalError = new Error(errorMessage) as RetryError;
+    finalError.cause = lastError;
+    finalError.attempts = retryConfig.maxRetries + 1;
 
     throw finalError;
   }
@@ -180,10 +168,7 @@ export class RetryUtil {
    * @param config - Retry configuration
    * @returns Wrapped function with retry logic
    */
-  createRetryWrapper<T extends (...args: any[]) => Promise<any>>(
-    fn: T,
-    config?: Partial<RetryConfig>,
-  ): T {
+  createRetryWrapper<T extends (...args: unknown[]) => Promise<unknown>>(fn: T, config?: Partial<RetryConfig>): T {
     return (async (...args: Parameters<T>) => {
       return this.executeWithRetry(() => fn(...args), config);
     }) as T;
@@ -206,7 +191,7 @@ export class RetryUtil {
       /** Stop on first error */
       stopOnError?: boolean;
     },
-  ): Promise<Array<{ success: boolean; result?: T; error?: any }>> {
+  ): Promise<Array<{ success: boolean; result?: T; error?: unknown }>> {
     const { parallel = true, stopOnError = false } = options || {};
 
     if (parallel) {
@@ -214,13 +199,13 @@ export class RetryUtil {
       const promises = operations.map((op) =>
         this.executeWithRetry(op, config)
           .then((result) => ({ success: true, result }))
-          .catch((error) => ({ success: false, error })),
+          .catch((error: unknown) => ({ success: false, error })),
       );
 
       return Promise.all(promises);
     } else {
       // Execute operations sequentially
-      const results: Array<{ success: boolean; result?: T; error?: any }> = [];
+      const results: Array<{ success: boolean; result?: T; error?: unknown }> = [];
 
       for (const op of operations) {
         try {
@@ -243,26 +228,15 @@ export class RetryUtil {
    * Execute a function with timeout
    */
   private async executeWithTimeout<T>(fn: () => Promise<T>, timeout: number): Promise<T> {
-    return Promise.race([
-      fn(),
-      new Promise<never>((_, reject) =>
-        setTimeout(() => reject(new Error(`Operation timed out after ${timeout}ms`)), timeout),
-      ),
-    ]);
+    return Promise.race([fn(), new Promise<never>((_, reject) => setTimeout(() => reject(new Error(`Operation timed out after ${timeout}ms`)), timeout))]);
   }
 
   /**
    * Calculate delay with exponential backoff and jitter
    */
-  private calculateDelay(
-    attempt: number,
-    baseDelay: number,
-    maxDelay: number,
-    backoffMultiplier: number,
-    jitterFactor: number,
-  ): number {
+  private calculateDelay(attempt: number, baseDelay: number, maxDelay: number, backoffMultiplier: number, jitterFactor: number): number {
     // Exponential backoff
-    let delay = baseDelay * Math.pow(backoffMultiplier, attempt);
+    let delay = baseDelay * backoffMultiplier ** attempt;
 
     // Cap at max delay
     delay = Math.min(delay, maxDelay);

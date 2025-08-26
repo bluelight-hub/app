@@ -14,12 +14,7 @@
 
 import { mapValues } from '../runtime';
 import type { AdminSetupUserDto } from './AdminSetupUserDto';
-import {
-  AdminSetupUserDtoFromJSON,
-  AdminSetupUserDtoFromJSONTyped,
-  AdminSetupUserDtoToJSON,
-  AdminSetupUserDtoToJSONTyped,
-} from './AdminSetupUserDto';
+import { AdminSetupUserDtoFromJSON, AdminSetupUserDtoFromJSONTyped, AdminSetupUserDtoToJSON, AdminSetupUserDtoToJSONTyped } from './AdminSetupUserDto';
 
 /**
  *
@@ -54,10 +49,7 @@ export function AdminSetupResponseDtoFromJSON(json: any): AdminSetupResponseDto 
   return AdminSetupResponseDtoFromJSONTyped(json, false);
 }
 
-export function AdminSetupResponseDtoFromJSONTyped(
-  json: any,
-  ignoreDiscriminator: boolean,
-): AdminSetupResponseDto {
+export function AdminSetupResponseDtoFromJSONTyped(json: any, ignoreDiscriminator: boolean): AdminSetupResponseDto {
   if (json == null) {
     return json;
   }
@@ -71,10 +63,7 @@ export function AdminSetupResponseDtoToJSON(json: any): AdminSetupResponseDto {
   return AdminSetupResponseDtoToJSONTyped(json, false);
 }
 
-export function AdminSetupResponseDtoToJSONTyped(
-  value?: AdminSetupResponseDto | null,
-  ignoreDiscriminator: boolean = false,
-): any {
+export function AdminSetupResponseDtoToJSONTyped(value?: AdminSetupResponseDto | null, ignoreDiscriminator: boolean = false): any {
   if (value == null) {
     return value;
   }

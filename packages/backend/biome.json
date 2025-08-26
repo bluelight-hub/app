@@ -1,0 +1,29 @@
+{
+  "extends": "//",
+  "formatter": {
+    "enabled": true,
+    "includes": ["!coverage/**", "!coverage-e2e/**", "!dist/**", "!node_modules/**"]
+  },
+  "linter": {
+    "enabled": true,
+    "rules": {},
+    "includes": ["!coverage/**", "!coverage-e2e/**", "!dist/**", "!node_modules/**"]
+  },
+  "javascript": {
+    "parser": {
+      "unsafeParameterDecoratorsEnabled": true
+    }
+  },
+  "overrides": [
+    {
+      "includes": ["src/**/*.service.ts", "src/**/*.controller.ts", "src/**/*.indicator.ts", "src/**/*.strategy.ts"],
+      "linter": {
+        "rules": {
+          "style": {
+            "useImportType": "off"
+          }
+        }
+      }
+    }
+  ]
+}

@@ -39,10 +39,7 @@ export function AdminPasswordDtoFromJSON(json: any): AdminPasswordDto {
   return AdminPasswordDtoFromJSONTyped(json, false);
 }
 
-export function AdminPasswordDtoFromJSONTyped(
-  json: any,
-  ignoreDiscriminator: boolean,
-): AdminPasswordDto {
+export function AdminPasswordDtoFromJSONTyped(json: any, ignoreDiscriminator: boolean): AdminPasswordDto {
   if (json == null) {
     return json;
   }
@@ -55,10 +52,7 @@ export function AdminPasswordDtoToJSON(json: any): AdminPasswordDto {
   return AdminPasswordDtoToJSONTyped(json, false);
 }
 
-export function AdminPasswordDtoToJSONTyped(
-  value?: AdminPasswordDto | null,
-  ignoreDiscriminator: boolean = false,
-): any {
+export function AdminPasswordDtoToJSONTyped(value?: AdminPasswordDto | null, ignoreDiscriminator: boolean = false): any {
   if (value == null) {
     return value;
   }

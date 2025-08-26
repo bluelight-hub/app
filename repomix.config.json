@@ -16,17 +16,7 @@
   "ignore": {
     "useGitignore": true,
     "useDefaultPatterns": true,
-    "customPatterns": [
-      "**/LICENSE.md",
-      "**/Cargo.lock",
-      "**/node_modules/**",
-      "**/*spec*",
-      "**/fonts/**",
-      "**/*.svg",
-      "**/*.iml",
-      "**/*.pdf",
-      "**/*.jpg"
-    ]
+    "customPatterns": ["**/LICENSE.md", "**/Cargo.lock", "**/node_modules/**", "**/*spec*", "**/fonts/**", "**/*.svg", "**/*.iml", "**/*.pdf", "**/*.jpg"]
   },
   "security": {
     "enableSecurityCheck": true

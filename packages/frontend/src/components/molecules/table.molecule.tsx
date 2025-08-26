@@ -1,5 +1,5 @@
-import { forwardRef } from 'react';
 import type { HTMLAttributes, ReactNode, TdHTMLAttributes, ThHTMLAttributes } from 'react';
+import { forwardRef } from 'react';
 
 import { cn } from '@/utils/cn.ts';
 
@@ -65,7 +65,7 @@ interface TableRowProps extends HTMLAttributes<HTMLTableRowElement> {
 
 export const TableRow = forwardRef<HTMLTableRowElement, TableRowProps>(({ className, children, ...props }, ref) => {
   return (
-    <tr ref={ref} className={cn('border-b transition-colors hover:bg-gray-50 data-[state=selected]:bg-gray-100 dark:hover:bg-gray-900 dark:data-[state=selected]:bg-gray-800', className)} {...props}>
+    <tr ref={ref} className={cn('border-b transition-colors hover:bg-gray-50 data-[state=selected]:bg-gray-100 dark:data-[state=selected]:bg-gray-800 dark:hover:bg-gray-900', className)} {...props}>
       {children}
     </tr>
   );
@@ -129,7 +129,7 @@ interface TableCaptionProps extends HTMLAttributes<HTMLTableCaptionElement> {
 
 export const TableCaption = forwardRef<HTMLTableCaptionElement, TableCaptionProps>(({ className, children, ...props }, ref) => {
   return (
-    <caption ref={ref} className={cn('mt-4 text-sm text-gray-500 dark:text-gray-400', className)} {...props}>
+    <caption ref={ref} className={cn('mt-4 text-gray-500 text-sm dark:text-gray-400', className)} {...props}>
       {children}
     </caption>
   );
@@ -149,15 +149,21 @@ export function TableSkeleton({ rows = 5, columns = 4 }: TableSkeletonProps) {
   return (
     <TableRoot>
       <TableBody>
-        {Array.from({ length: rows }).map((_, rowIndex) => (
-          <TableRow key={rowIndex}>
-            {Array.from({ length: columns }).map((__, colIndex) => (
-              <TableCell key={colIndex}>
-                <div className="h-4 w-full animate-pulse rounded bg-gray-200 dark:bg-gray-700" />
-              </TableCell>
-            ))}
-          </TableRow>
-        ))}
+        {Array.from({ length: rows }).map((_, rowIndex) => {
+          const rowKey = `skeleton-${rows}-${columns}-row-${rowIndex}`;
+          return (
+            <TableRow key={rowKey}>
+              {Array.from({ length: columns }).map((__, colIndex) => {
+                const cellKey = `skeleton-${rows}-${columns}-cell-${rowIndex}-${colIndex}`;
+                return (
+                  <TableCell key={cellKey}>
+                    <div className="h-4 w-full animate-pulse rounded bg-gray-200 dark:bg-gray-700" />
+                  </TableCell>
+                );
+              })}
+            </TableRow>
+          );
+        })}
       </TableBody>
     </TableRoot>
   );

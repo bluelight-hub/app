@@ -13,34 +13,14 @@
  */
 
 import { mapValues } from '../runtime';
-import type { ApiMeta } from './ApiMeta';
-import {
-  ApiMetaFromJSON,
-  ApiMetaFromJSONTyped,
-  ApiMetaToJSON,
-  ApiMetaToJSONTyped,
-} from './ApiMeta';
-import type { ApiPagination } from './ApiPagination';
-import {
-  ApiPaginationFromJSON,
-  ApiPaginationFromJSONTyped,
-  ApiPaginationToJSON,
-  ApiPaginationToJSONTyped,
-} from './ApiPagination';
-import type { UserDto } from './UserDto';
-import {
-  UserDtoFromJSON,
-  UserDtoFromJSONTyped,
-  UserDtoToJSON,
-  UserDtoToJSONTyped,
-} from './UserDto';
 import type { ApiLinks } from './ApiLinks';
-import {
-  ApiLinksFromJSON,
-  ApiLinksFromJSONTyped,
-  ApiLinksToJSON,
-  ApiLinksToJSONTyped,
-} from './ApiLinks';
+import { ApiLinksFromJSON, ApiLinksFromJSONTyped, ApiLinksToJSON, ApiLinksToJSONTyped } from './ApiLinks';
+import type { ApiMeta } from './ApiMeta';
+import { ApiMetaFromJSON, ApiMetaFromJSONTyped, ApiMetaToJSON, ApiMetaToJSONTyped } from './ApiMeta';
+import type { ApiPagination } from './ApiPagination';
+import { ApiPaginationFromJSON, ApiPaginationFromJSONTyped, ApiPaginationToJSON, ApiPaginationToJSONTyped } from './ApiPagination';
+import type { UserDto } from './UserDto';
+import { UserDtoFromJSON, UserDtoFromJSONTyped, UserDtoToJSON, UserDtoToJSONTyped } from './UserDto';
 
 /**
  *
@@ -93,10 +73,7 @@ export function UsersListResponseFromJSON(json: any): UsersListResponse {
   return UsersListResponseFromJSONTyped(json, false);
 }
 
-export function UsersListResponseFromJSONTyped(
-  json: any,
-  ignoreDiscriminator: boolean,
-): UsersListResponse {
+export function UsersListResponseFromJSONTyped(json: any, ignoreDiscriminator: boolean): UsersListResponse {
   if (json == null) {
     return json;
   }
@@ -113,10 +90,7 @@ export function UsersListResponseToJSON(json: any): UsersListResponse {
   return UsersListResponseToJSONTyped(json, false);
 }
 
-export function UsersListResponseToJSONTyped(
-  value?: UsersListResponse | null,
-  ignoreDiscriminator: boolean = false,
-): any {
+export function UsersListResponseToJSONTyped(value?: UsersListResponse | null, ignoreDiscriminator: boolean = false): any {
   if (value == null) {
     return value;
   }

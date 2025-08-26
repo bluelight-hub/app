@@ -14,7 +14,7 @@
 - Install: `pnpm install` (pnpm only). Prefer IDE run configurations; CLI is the fallback.
 - Dev (all): `pnpm dev` — backend (Nest watch) + frontend (Tauri/Vite).
 - Build: `pnpm build`; or per package via `pnpm --filter <pkg> build`.
-- Lint/Format: `pnpm lint`, `pnpm format`, `pnpm format:check`.
+- Lint/Format: `pnpm lint`, `pnpm lint:check`.
 - Tests (all): `pnpm test` | Coverage: `pnpm test:cov` | UI: `pnpm test:ui`.
 - Backend E2E: `pnpm --filter @bluelight-hub/backend test:e2e` (add `:watch`/`:cov` as needed).
 - Docs: `pnpm docs:build` → `dist/docs/`.
@@ -35,13 +35,6 @@
 - UI: Tailwindcss; do not mix CSS frameworks. Prefer official components and theme tokens.
 - Docs: arc42 lives under `docs/architecture/`; update ADRs in `docs/architecture/adr/` with architectural changes.
 
-## MCP Integration
-
-- Serena: Symbol-basierte Navigation statt Ganzdatei-Reads; nutze `mcp__serena__get_symbols_overview`, `find_symbol`,
-  `find_referencing_symbols` vor Refactors; für präzise Edits `replace_symbol_body`.
-- Context7: Vor Einsatz/Update externer Libs offizielle Doku holen (`mcp__context7__resolve-library-id` →
-  `mcp__context7__get-library-docs`); relevant: NestJS, Prisma, React, Tailwind, HeadlessUI, TanStack, Zod.
-
 ## Testing Guidelines
 
 - Backend: Jest (`pnpm --filter @bluelight-hub/backend test`), coverage via `test:cov`.
@@ -53,7 +46,7 @@
 
 - Commits: follow `.cursor/rules/030-commit-rules.mdc` (gitmoji + concise context).
 - PRs: include summary, linked issues, reproduction/validation steps, and screenshots for UI changes.
-- Require green checks: `pnpm lint`, `pnpm format:check`, `pnpm test`. Update docs and `.env.example` when configs
+- Require green checks: `pnpm lint`, `pnpm lint:check`, `pnpm test`. Update docs and `.env.example` when configs
   change.
 
 ## Security & Configuration Tips

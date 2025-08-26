@@ -1,4 +1,4 @@
-import { Test, TestingModule } from '@nestjs/testing';
+import { Test, type TestingModule } from '@nestjs/testing';
 import { AdminJwtAuthGuard } from './admin-jwt-auth.guard';
 
 describe('AdminJwtAuthGuard', () => {

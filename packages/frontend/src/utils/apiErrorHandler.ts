@@ -65,14 +65,7 @@ const ERROR_MESSAGES: Record<number, Record<string, string>> = {
 export async function getApiErrorMessage(
   error: unknown,
   fallbackMessage: string,
-  context?:
-    | 'createUser'
-    | 'deleteUser'
-    | 'updateUser'
-    | 'adminSetup'
-    | 'adminLogin'
-    | 'userLogin'
-    | 'userRegister',
+  context?: 'createUser' | 'deleteUser' | 'updateUser' | 'adminSetup' | 'adminLogin' | 'userLogin' | 'userRegister' | 'userAuth',
 ): Promise<string> {
   // Handle non-ResponseError cases
   if (!(error instanceof ResponseError)) {
@@ -118,14 +111,8 @@ export async function getApiErrorMessage(
         const lowerMessage = errorData.message.toLowerCase();
 
         if (status === 409) {
-          if (
-            lowerMessage.includes('duplicate') ||
-            lowerMessage.includes('unique') ||
-            lowerMessage.includes('exists')
-          ) {
-            return (
-              statusMessages.USER_EXISTS || statusMessages.DUPLICATE_ENTRY || statusMessages.default
-            );
+          if (lowerMessage.includes('duplicate') || lowerMessage.includes('unique') || lowerMessage.includes('exists')) {
+            return statusMessages.USER_EXISTS || statusMessages.DUPLICATE_ENTRY || statusMessages.default;
           }
         }
 
@@ -159,14 +146,7 @@ export async function getApiErrorMessage(
 function getContextSpecificMessage(
   status: number,
   errorData: ApiErrorResponse,
-  context:
-    | 'createUser'
-    | 'deleteUser'
-    | 'updateUser'
-    | 'adminSetup'
-    | 'adminLogin'
-    | 'userLogin'
-    | 'userRegister',
+  context: 'createUser' | 'deleteUser' | 'updateUser' | 'adminSetup' | 'adminLogin' | 'userLogin' | 'userRegister' | 'userAuth',
 ): string | null {
   switch (context) {
     case 'createUser':
@@ -229,6 +209,25 @@ function getContextSpecificMessage(
       }
       if (status === 400) {
         return 'Ungültige Eingabe. Bitte überprüfen Sie den Benutzernamen.';
+      }
+      break;
+
+    case 'userAuth':
+      // Unified authentication endpoint that handles both login and registration
+      if (status === 401) {
+        return 'Anmeldung fehlgeschlagen. Bitte überprüfen Sie Ihre Eingaben.';
+      }
+      if (status === 409) {
+        return 'Der Benutzername ist bereits vergeben. Bitte wählen Sie einen anderen.';
+      }
+      if (status === 400) {
+        return 'Ungültige Eingabe. Bitte überprüfen Sie Ihren Benutzernamen.';
+      }
+      if (status === 403) {
+        return 'Sie haben keine Berechtigung für diese Aktion.';
+      }
+      if (status === 500) {
+        return 'Ein Serverfehler ist aufgetreten. Bitte versuchen Sie es später erneut.';
       }
       break;
   }

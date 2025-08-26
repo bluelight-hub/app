@@ -1,10 +1,9 @@
 'use client';
 
 import { ComboboxButton, ComboboxInput, ComboboxOption, ComboboxOptions, Combobox as HeadlessCombobox, Label } from '@headlessui/react';
-import * as React from 'react';
-import { useEffect, useRef, useState } from 'react';
+import type * as React from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { PiCaretDown, PiX } from 'react-icons/pi';
-
 import { cn } from '@/utils/cn.ts';
 
 export interface ComboboxItem {
@@ -32,7 +31,7 @@ export function Combobox({
   value: controlledValue,
   onChange,
   onInputChange,
-  placeholder = 'Select an option...',
+  placeholder = 'Wählen Sie eine Option',
   label,
   helperText,
   disabled = false,
@@ -53,17 +52,21 @@ export function Combobox({
     }
   }, [controlledValue, items, allowCustomValue]);
 
-  const filteredItems =
-    query === ''
+  const filteredItems = useMemo(() => {
+    return query === ''
       ? items
       : items.filter((item) => {
           return item.label.toLowerCase().includes(query.toLowerCase());
         });
+  }, [query, items]);
 
-  const handleQueryChange = (value: string) => {
-    setQuery(value);
-    onInputChange?.(value);
-  };
+  const handleQueryChange = useCallback(
+    (value: string) => {
+      setQuery(value);
+      onInputChange?.(value);
+    },
+    [onInputChange],
+  );
 
   const handleSelectionChange = (item: ComboboxItem | null) => {
     setSelectedItem(item);
@@ -91,20 +94,20 @@ export function Combobox({
   return (
     <div className={cn('w-full', className)}>
       <HeadlessCombobox as="div" value={selectedItem} onChange={handleSelectionChange} disabled={disabled}>
-        {label && <Label className="block text-sm/6 font-medium text-gray-900 dark:text-white">{label}</Label>}
+        {label && <Label className="block font-medium text-gray-900 text-sm/6 dark:text-white">{label}</Label>}
         <div className="relative mt-2">
           {leadingIcon && <div className="pointer-events-none absolute inset-y-0 left-4 flex items-center text-gray-500 dark:text-gray-400">{leadingIcon}</div>}
           <ComboboxInput
             ref={inputRef}
             className={cn(
-              'block w-full rounded-lg border-2 bg-gray-50 px-4 py-3 pr-12 text-base font-medium text-gray-900',
+              'block w-full rounded-lg border-2 bg-gray-50 px-4 py-3 pr-12 font-medium text-base text-gray-900',
               'transition-all duration-200',
               'border-gray-200',
               'placeholder:text-gray-400',
-              'focus:border-primary-500 focus:ring-primary-500 focus:bg-white focus:outline-none focus:ring-4 focus:ring-opacity-20',
+              'focus:border-primary-500 focus:bg-white focus:outline-none focus:ring-4 focus:ring-primary-500 focus:ring-opacity-20',
               'sm:text-sm/6',
               'dark:border-gray-700 dark:bg-gray-900 dark:text-white',
-              'dark:focus:border-primary-400 dark:focus:ring-primary-400 dark:placeholder:text-gray-500 dark:focus:bg-gray-800',
+              'dark:focus:border-primary-400 dark:focus:bg-gray-800 dark:focus:ring-primary-400 dark:placeholder:text-gray-500',
               'disabled:cursor-not-allowed disabled:opacity-50',
               leadingIcon && 'pl-12',
               showClearButton && 'pr-20',
@@ -140,7 +143,7 @@ export function Combobox({
                     handleClear();
                   }
                 }}
-                className="focus:ring-primary-500 rounded p-2 text-gray-400 hover:text-gray-600 focus:outline-none focus:ring-2 focus:ring-offset-2 dark:hover:text-gray-300 dark:focus:ring-offset-gray-900"
+                className="rounded p-2 text-gray-400 hover:text-gray-600 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 dark:focus:ring-offset-gray-900 dark:hover:text-gray-300"
                 aria-label="Clear selection"
                 tabIndex={0}
               >
@@ -162,21 +165,8 @@ export function Combobox({
               'dark:border-gray-700 dark:bg-gray-800 dark:shadow-none',
             )}
           >
-            {allowCustomValue && query.length > 0 && !items.some((item) => item.label.toLowerCase() === query.toLowerCase()) && (
-              <ComboboxOption
-                value={{ value: query, label: query }}
-                className={cn(
-                  'cursor-default select-none px-3 py-2 text-gray-900',
-                  'data-[focus]:bg-primary-600 data-[focus]:text-white data-[focus]:outline-none',
-                  'dark:data-[focus]:bg-primary-500 dark:text-gray-300',
-                )}
-              >
-                <span className="block truncate">"{query}" (neu erstellen)</span>
-              </ComboboxOption>
-            )}
-
             {filteredItems.length === 0 && query !== '' ? (
-              <div className="px-3 py-2 text-sm text-gray-500 dark:text-gray-400">{allowCustomValue ? `Keine Übereinstimmung für "${query}"` : 'Keine Ergebnisse gefunden'}</div>
+              <div className="px-3 py-2 text-gray-500 text-sm dark:text-gray-400">{allowCustomValue ? `Keine Übereinstimmung für "${query}"` : 'Keine Ergebnisse gefunden'}</div>
             ) : (
               filteredItems.map((item) => (
                 <ComboboxOption
@@ -185,12 +175,24 @@ export function Combobox({
                   className={cn(
                     'cursor-default select-none px-3 py-2 text-gray-900',
                     'data-[focus]:bg-primary-600 data-[focus]:text-white data-[focus]:outline-none',
-                    'dark:data-[focus]:bg-primary-500 dark:text-gray-300',
+                    'dark:text-gray-300 dark:data-[focus]:bg-primary-500',
                   )}
                 >
                   <span className="block truncate">{item.label}</span>
                 </ComboboxOption>
               ))
+            )}
+            {allowCustomValue && query.length > 0 && !items.some((item) => item.label.toLowerCase() === query.toLowerCase()) && (
+              <ComboboxOption
+                value={{ value: query, label: query }}
+                className={cn(
+                  'cursor-default select-none px-3 py-2 text-gray-900',
+                  'data-[focus]:bg-primary-600 data-[focus]:text-white data-[focus]:outline-none',
+                  'dark:text-gray-300 dark:data-[focus]:bg-primary-500',
+                )}
+              >
+                <span className="block truncate">"{query}" (neu erstellen)</span>
+              </ComboboxOption>
             )}
           </ComboboxOptions>
         </div>

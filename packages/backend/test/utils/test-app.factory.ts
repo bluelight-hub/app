@@ -1,8 +1,8 @@
-import { INestApplication, ValidationPipe, VersioningType } from '@nestjs/common';
-import { Test, TestingModule } from '@nestjs/testing';
+import { type INestApplication, ValidationPipe, VersioningType } from '@nestjs/common';
+import { Test, type TestingModule } from '@nestjs/testing';
 import cookieParser from 'cookie-parser';
-import { TestDbUtils } from './test-db.utils';
 import { AppModule } from '../../src/app.module';
+import { cleanTestUsers } from './test-db.utils';
 
 /**
  * Factory für das Erstellen von Test-Applikationen
@@ -10,74 +10,80 @@ import { AppModule } from '../../src/app.module';
  * Erstellt eine vollständig konfigurierte NestJS-Applikation für E2E-Tests
  * mit allen notwendigen Middlewares und Pipes.
  */
-export class TestAppFactory {
-  private static app: INestApplication;
 
-  /**
-   * Erstellt und initialisiert eine Test-Applikation
-   *
-   * @returns Initialisierte NestJS-Applikation für Tests
-   */
-  static async create(): Promise<INestApplication> {
-    const moduleFixture: TestingModule = await Test.createTestingModule({
-      imports: [AppModule],
-    }).compile();
+let app: INestApplication | null = null;
 
-    const app = moduleFixture.createNestApplication();
+/**
+ * Erstellt und initialisiert eine Test-Applikation
+ *
+ * @returns Initialisierte NestJS-Applikation für Tests
+ */
+export async function createTestApp(): Promise<INestApplication> {
+  const moduleFixture: TestingModule = await Test.createTestingModule({
+    imports: [AppModule],
+  }).compile();
 
-    // Konfiguriere App wie in main.ts
-    app.enableVersioning({
-      type: VersioningType.URI,
-      prefix: 'v-',
-      defaultVersion: 'alpha',
-    });
+  const testApp = moduleFixture.createNestApplication();
 
-    app.setGlobalPrefix('api', {
-      exclude: ['/'],
-    });
+  // Konfiguriere App wie in main.ts
+  testApp.enableVersioning({
+    type: VersioningType.URI,
+    prefix: 'v-',
+    defaultVersion: 'alpha',
+  });
 
-    // Apply cookie parser middleware
-    app.use(cookieParser());
+  testApp.setGlobalPrefix('api', {
+    exclude: ['/'],
+  });
 
-    // Enable validation pipes globally
-    app.useGlobalPipes(
-      new ValidationPipe({
-        whitelist: true,
-        transform: true,
-        forbidNonWhitelisted: true,
-      }),
-    );
+  // Apply cookie parser middleware
+  testApp.use(cookieParser());
 
-    // CORS für Tests aktivieren
-    app.enableCors({
-      origin: true,
-      credentials: true,
-    });
+  // Enable validation pipes globally
+  testApp.useGlobalPipes(
+    new ValidationPipe({
+      whitelist: true,
+      transform: true,
+      forbidNonWhitelisted: true,
+    }),
+  );
 
-    await app.init();
-    this.app = app;
+  // CORS für Tests aktivieren
+  testApp.enableCors({
+    origin: true,
+    credentials: true,
+  });
 
-    return app;
-  }
+  await testApp.init();
+  app = testApp;
 
-  /**
-   * Schließt die Test-Applikation und räumt Test-Benutzer auf
-   */
-  static async close(): Promise<void> {
-    if (this.app) {
-      await TestDbUtils.cleanTestUsers(['loadingtest', 'testuser']);
+  return testApp;
+}
 
-      await this.app.close();
-      this.app = null;
-    }
-  }
+/**
+ * Schließt die Test-Applikation und räumt Test-Benutzer auf
+ */
+export async function closeTestApp(): Promise<void> {
+  if (app) {
+    await cleanTestUsers(['loadingtest', 'testuser', 'test_', 'logout_test', 'logout-test']);
 
-  /**
-   * Gibt die aktuelle Test-Applikation zurück
-   *
-   * @returns Aktuelle Test-Applikation oder null
-   */
-  static getApp(): INestApplication | null {
-    return this.app;
+    await app.close();
+    app = null;
   }
 }
+
+/**
+ * Gibt die aktuelle Test-Applikation zurück
+ *
+ * @returns Aktuelle Test-Applikation oder null
+ */
+export function getTestApp(): INestApplication | null {
+  return app;
+}
+
+// Export für Backward Compatibility
+export const TestAppFactory = {
+  create: createTestApp,
+  close: closeTestApp,
+  getApp: getTestApp,
+};

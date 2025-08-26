@@ -1,21 +1,15 @@
-import {
-  ConflictException,
-  ForbiddenException,
-  Injectable,
-  Logger,
-  NotFoundException,
-  UnauthorizedException,
-} from '@nestjs/common';
-import { JwtService } from '@nestjs/jwt';
+import { ConflictException, ForbiddenException, Injectable, Logger, NotFoundException, UnauthorizedException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { PrismaService } from '@/prisma/prisma.service';
-import { User, UserRole } from '@prisma/client';
-import { RegisterUserDto } from './dto/register-user.dto';
-import { LoginUserDto } from './dto/login-user.dto';
-import { AdminSetupDto } from './dto/admin-setup.dto';
-import { ValidatedUser } from './strategies/jwt.strategy';
+import { JwtService } from '@nestjs/jwt';
+import type { User } from '@prisma/client';
 import * as bcrypt from 'bcrypt';
 import { adminRoles, isAdmin } from '@/auth/utils/auth.utils';
+import { PrismaService } from '@/prisma/prisma.service';
+import type { AdminSetupDto } from './dto/admin-setup.dto';
+import type { AuthRequestDto } from './dto/auth-request.dto';
+import type { AuthResponseDto } from './dto/auth-response.dto';
+import type { AuthUserDto, Role } from './dto/auth-user.dto';
+import type { ValidatedUser } from './strategies/jwt.strategy';
 
 /**
  * Service für Authentifizierungslogik
@@ -34,180 +28,154 @@ export class AuthService {
   ) {}
 
   /**
-   * Registriert einen neuen Benutzer
+   * Unified Auth - Kombiniert Login und automatische Registrierung
    *
-   * @param dto - Registrierungsdaten
-   * @returns Der erstellte Benutzer
-   * @throws ConflictException wenn der Benutzername bereits existiert
+   * Logik:
+   * 1. Benutzer existiert + hat Passwort (Admin) → Passwort prüfen
+   * 2. Benutzer existiert + kein Passwort (Normal) → Sofort einloggen
+   * 3. Benutzer existiert nicht → Automatisch anlegen ohne Passwort
+   *
+   * @param dto - Auth Request mit Username und optionalem Passwort
+   * @returns Auth Response mit Token und User-Info
+   * @throws UnauthorizedException bei falschen Admin-Credentials
    */
-  async register(dto: RegisterUserDto): Promise<User> {
-    try {
-      const { user, isFirstUser } = await this.prisma.$transaction(async (tx) => {
-        // Check if username already exists within the transaction
-        const existingUser = await tx.user.findUnique({
-          where: { username: dto.username },
-        });
+  async unifiedAuth(dto: AuthRequestDto): Promise<AuthResponseDto & { accessToken: string; refreshToken: string }> {
+    const user = await this.findUserByUsername(dto.username);
 
-        if (existingUser) {
-          throw new ConflictException('Benutzername bereits vergeben');
-        }
-
-        // Check if this is the first user
-        const userCount = await tx.user.count();
-        const isFirstUser = userCount === 0;
-
-        // Create the user
-        return {
-          user: await tx.user.create({
-            data: {
-              username: dto.username,
-              role: isFirstUser ? UserRole.SUPER_ADMIN : UserRole.USER,
-            },
-          }),
-          isFirstUser,
-        };
-      });
-
-      if (isFirstUser) {
-        this.logger.warn(`🦁 Erster Benutzer registriert: ${user.username} (SUPER_ADMIN)`);
-      } else {
-        this.logger.debug(`⭐ Neuer Benutzer registriert: ${user.username} (USER)`);
-      }
-
-      return user;
-    } catch (error) {
-      // Handle Prisma unique constraint violation
-      if (error.code === 'P2002' && error.meta?.target?.includes('username')) {
-        throw new ConflictException('Benutzername bereits vergeben');
-      }
-      // Re-throw other errors
-      throw error;
+    // User existiert → Login durchführen
+    if (user) {
+      return this.loginExistingUser(user);
     }
+
+    // User existiert nicht → Auto-Registrierung
+    return this.autoRegisterUser(dto.username);
   }
 
   /**
-   * Meldet einen Benutzer an
-   *
-   * @param dto - Anmeldedaten
-   * @returns Der angemeldete Benutzer
+   * Findet einen Benutzer anhand seiner ID
+   * @param userId - Die ID des Benutzers
+   * @returns Der gefundene Benutzer
    * @throws NotFoundException wenn der Benutzer nicht existiert
    */
-  async login(dto: LoginUserDto): Promise<User> {
-    const user = await this.prisma.user.findUnique({
-      where: { username: dto.username },
-    });
-
-    if (!user) {
-      this.logger.warn(`🔍 Anmeldeversuch mit unbekanntem Benutzernamen: ${dto.username}`);
-      throw new NotFoundException('Benutzer nicht gefunden');
-    }
-
-    // Update lastLoginAt
-    await this.prisma.user.update({
-      where: { id: user.id },
-      data: { lastLoginAt: new Date() },
-    });
-
-    this.logger.debug(`🔑 Benutzer angemeldet: ${user.username} (Rolle: ${user.role})`);
-
+  async findUserById(userId: string): Promise<User> {
+    const user = await this.prisma.user.findUnique({ where: { id: userId } });
+    if (!user) throw new NotFoundException('Benutzer nicht gefunden');
     return user;
   }
 
   /**
-   * Findet einen Benutzer anhand der ID
+   * Erstellt ein neues Access Token für einen Benutzer
    *
-   * @param id - Benutzer-ID
-   * @returns Der gefundene Benutzer oder null
-   */
-  async findUserById(id: string): Promise<User | null> {
-    return this.prisma.user.findUnique({
-      where: { id },
-    });
-  }
-
-  /**
-   * Generiert ein Access-Token für einen Benutzer
+   * Das Token enthält die Benutzer-ID (sub), den Benutzernamen
+   * und die Rolle des Benutzers. Es ist für kurze Zeit gültig
+   * (standardmäßig 15 Minuten).
    *
-   * @returns Das signierte JWT Access-Token
-   * @param user - Der Benutzer für den das Token generiert werden soll
+   * @param user - Der Benutzer für den das Token erstellt wird
+   * @returns Das signierte JWT Access Token mit Benutzer-ID, Benutzername und Rolle
    */
   signAccessToken(user: User): string {
     const payload = {
       sub: user.id,
       username: user.username,
-      role: user.role,
+      role: user.role, // Include role in token payload
     };
-    this.logger.debug(
-      `🔑 Generiere Access-Token für Benutzer: ${user.username} (${user.id}) mit Rolle: ${user.role}`,
-    );
-    return this.jwtService.sign(payload);
-  }
-
-  /**
-   * Generiert ein Refresh-Token für einen Benutzer
-   *
-   * @param userId - Die ID des Benutzers
-   * @returns Das signierte JWT Refresh-Token
-   */
-  signRefreshToken(user: User): string {
-    const payload = {
-      sub: user.id,
-      username: user.username,
-      role: user.role,
-    };
-    this.logger.debug(`🔄 Generiere Refresh-Token für Benutzer: ${user.username} (${user.id})`);
-    return this.jwtService.sign(payload, { expiresIn: '7d' });
-  }
-
-  /**
-   * Generiert ein Admin-Token für einen Benutzer
-   *
-   * @param user - Der Benutzer für den das Token generiert werden soll
-   * @returns Das signierte JWT Admin-Token mit 15 Minuten Gültigkeit
-   */
-  signAdminToken(user: User): string {
-    const payload = {
-      sub: user.id,
-      username: user.username,
-      role: user.role,
-      type: 'admin', // Wichtig: Markiert dies als Admin-Token
-    };
-    const adminJwtSecret = this.configService.getOrThrow<string>('ADMIN_JWT_SECRET');
-    const adminJwtExpiration = this.configService.getOrThrow<string>('ADMIN_JWT_EXPIRATION');
-
-    this.logger.debug(`🔐 Generiere Admin-Token für Benutzer: ${user.username} (${user.id})`);
     return this.jwtService.sign(payload, {
-      secret: adminJwtSecret,
-      expiresIn: adminJwtExpiration,
+      expiresIn: this.configService.get<string>('JWT_ACCESS_EXPIRES_IN', '15m'),
     });
   }
 
   /**
-   * Verifiziert ein Access-Token und gibt die Payload zurück
+   * Erstellt ein neues Refresh Token für einen Benutzer
    *
-   * @param token - Das zu verifizierende JWT Access-Token
-   * @returns Die JWT-Payload
-   * @throws Error wenn das Token ungültig ist
+   * Das Token ist länger gültig als das Access Token
+   * und wird verwendet, um neue Access Tokens zu generieren.
+   *
+   * @param user - Der Benutzer für den das Token erstellt wird
+   * @returns Das signierte JWT Refresh Token
    */
-  async verifyAccessToken(token: string): Promise<any> {
-    return this.jwtService.verify(token);
+  signRefreshToken(user: User): string {
+    const payload = { sub: user.id };
+    return this.jwtService.sign(payload, {
+      expiresIn: this.configService.get<string>('JWT_REFRESH_EXPIRES_IN', '7d'),
+    });
   }
 
   /**
-   * Verifiziert ein Admin-JWT-Token
-   * @param token Der zu verifizierende Admin-Token
-   * @returns Token-Payload
-   * @throws Error wenn das Token ungültig ist
+   * Gibt die Admin-Token-Konfiguration zurück
+   *
+   * @returns Konfigurationsobjekt mit secret und expiresIn
    */
-  async verifyAdminToken(token: string): Promise<any> {
-    const adminJwtSecret = this.configService.getOrThrow<string>('ADMIN_JWT_SECRET');
-    return this.jwtService.verify(token, { secret: adminJwtSecret });
+  private getAdminTokenConfig(): { secret: string; expiresIn: string } {
+    const adminSecret = this.configService.get<string>('ADMIN_JWT_SECRET');
+    if (!adminSecret) {
+      throw new Error('ADMIN_JWT_SECRET is not configured');
+    }
+
+    return {
+      secret: adminSecret,
+      expiresIn: this.configService.get<string>('JWT_ADMIN_EXPIRES_IN', '15m'),
+    };
   }
 
   /**
-   * Prüft, ob bereits ein Admin-Benutzer mit Passwort existiert
+   * Erstellt ein spezielles Admin-Token mit erweiterten Berechtigungen
    *
-   * @returns true wenn mindestens ein Benutzer mit Admin-Rolle und Passwort existiert, sonst false
+   * @param user - Der Admin-Benutzer
+   * @returns Das signierte Admin-Token mit erweiterten Claims
+   * @throws ForbiddenException wenn der Benutzer kein Admin ist
+   */
+  signAdminToken(user: User): string {
+    if (!isAdmin(user.role)) {
+      throw new ForbiddenException('Nur Admins können Admin-Tokens erhalten');
+    }
+
+    const payload = {
+      sub: user.id,
+      username: user.username,
+      role: user.role,
+      isAdmin: true,
+      permissions: this.getAdminPermissions(user.role),
+    };
+
+    const config = this.getAdminTokenConfig();
+    return this.jwtService.sign(payload, config);
+  }
+
+  /**
+   * Verifiziert ein Access Token
+   *
+   * @param token - Das zu verifizierende Token
+   * @returns Die dekodierten Token-Daten
+   */
+  async verifyAccessToken(token: string): Promise<ValidatedUser> {
+    const decoded = await this.jwtService.verify(token);
+    // Map JWT payload to ValidatedUser format
+    return {
+      userId: decoded.sub,
+      role: decoded.role,
+    };
+  }
+
+  /**
+   * Verifiziert ein Admin-Token und prüft Admin-Rechte
+   *
+   * @param token - Das zu verifizierende Admin-Token
+   * @returns Die dekodierten Token-Daten
+   * @throws UnauthorizedException wenn das Token ungültig ist oder keine Admin-Rechte hat
+   */
+  async verifyAdminToken(token: string): Promise<{ userId: string; username: string; isAdmin: boolean }> {
+    const config = this.getAdminTokenConfig();
+    const decoded = await this.jwtService.verify(token, {
+      secret: config.secret,
+    });
+    if (!decoded.isAdmin) throw new UnauthorizedException('Kein gültiges Admin-Token');
+    return decoded;
+  }
+
+  /**
+   * Prüft, ob bereits ein Admin-Account existiert
+   *
+   * @returns true wenn mindestens ein Admin existiert
    */
   async adminExists(): Promise<boolean> {
     const adminCount = await this.prisma.user.count({
@@ -215,133 +183,287 @@ export class AuthService {
         role: {
           in: adminRoles,
         },
-        passwordHash: {
-          not: null,
-        },
       },
     });
 
+    this.logger.debug(`🔍 Admin-Check: ${adminCount} Admin(s) gefunden`);
     return adminCount > 0;
   }
 
   /**
-   * Validiert die Anmeldedaten eines Admin-Benutzers
+   * Validiert Admin-Credentials
    *
-   * @param userId - Die ID des Admin-Accounts
-   * @param password - Das Passwort des Admin-Accounts
-   * @returns Der validierte Admin-Benutzer
-   * @throws NotFoundException wenn der Benutzer nicht existiert
-   * @throws ForbiddenException wenn der Benutzer keine Admin-Rechte hat
-   * @throws UnauthorizedException wenn kein Passwort gesetzt ist oder das Passwort ungültig ist
+   * @param userId - Admin-Benutzername
+   * @param password - Admin-Passwort
+   * @returns Der validierte Admin-User
+   * @throws UnauthorizedException bei ungültigen Credentials
    */
   async validateAdminCredentials(userId: string, password: string): Promise<User> {
     const user = await this.prisma.user.findUnique({
-      where: {
-        id: userId,
-      },
+      where: { id: userId },
     });
 
     if (!user) {
-      this.logger.debug(`🔍 Admin-Login fehlgeschlagen: Benutzer nicht gefunden`);
-      throw new NotFoundException('Benutzer nicht gefunden');
+      this.logger.warn(`🚫 Admin-Login fehlgeschlagen: User nicht gefunden (${userId})`);
+      throw new UnauthorizedException('Ungültige Admin-Zugangsdaten');
     }
 
-    // Check if user has admin rights
     if (!isAdmin(user.role)) {
-      this.logger.debug(
-        `🚫 Admin-Login fehlgeschlagen: Benutzer ${user.username} hat keine Admin-Rechte`,
-      );
-      throw new ForbiddenException('Benutzer hat keine Admin-Rechte');
+      this.logger.warn(`🚫 Admin-Login fehlgeschlagen: Keine Admin-Rechte (${user.username})`);
+      throw new UnauthorizedException('Keine Admin-Berechtigung');
     }
 
     if (!user.passwordHash) {
-      this.logger.debug(`🔍 Admin-Login fehlgeschlagen: Kein Passwort für ${user.username}`);
-      throw new UnauthorizedException('Ungültiges Passwort');
+      this.logger.warn(`🚫 Admin-Login fehlgeschlagen: Kein Passwort gesetzt (${user.username})`);
+      throw new UnauthorizedException('Admin-Account nicht korrekt konfiguriert');
     }
 
-    const isPasswordValid = await bcrypt.compare(password, user.passwordHash);
-
-    if (!isPasswordValid) {
-      this.logger.warn(`🚫 Admin-Login fehlgeschlagen: Ungültiges Passwort für ${user.username}`);
-      throw new UnauthorizedException('Ungültiges Passwort');
+    const isValid = await bcrypt.compare(password, user.passwordHash);
+    if (!isValid) {
+      this.logger.warn(`🚫 Admin-Login fehlgeschlagen: Falsches Passwort (${user.username})`);
+      throw new UnauthorizedException('Ungültige Admin-Zugangsdaten');
     }
 
-    this.logger.debug(`✅ Admin-Login erfolgreich: ${user.username} (Rolle: ${user.role})`);
-
-    await this.prisma.user.update({
-      where: { id: user.id },
-      data: { lastLoginAt: new Date() },
-    });
-
+    this.logger.log(`✅ Admin-Login erfolgreich: ${user.username}`);
     return user;
   }
 
   /**
-   * Richtet das Passwort für einen Admin-Account ein
+   * Sets up an admin account by allowing an admin to set a password if not already set, and generates a new admin token for authentication.
    *
-   * @param dto - Admin-Setup-Daten mit Passwort
-   * @param validatedUser - Der aktuelle authentifizierte Benutzer
-   * @returns Der aktualisierte Benutzer ohne Passwort-Hash und optional das Admin-Token
-   * @throws ConflictException wenn bereits ein Admin existiert
+   * @param dto Object containing the password details required for setting up the admin account.
+   * @param user The currently authenticated and validated user attempting the admin setup.
+   * @return A promise resolving to an object containing the generated admin token and the updated user data (excluding password hash).
+   * @throws NotFoundException If the authenticated user is not found in the database.
+   * @throws ForbiddenException If the authenticated user lacks administrative privileges.
+   * @throws ConflictException If the user already has a password set up.
    */
-  async adminSetup(
-    dto: AdminSetupDto,
-    validatedUser: ValidatedUser,
-  ): Promise<{ user: Omit<User, 'passwordHash'>; token?: string }> {
-    const currentUser = await this.findUserById(validatedUser.userId);
+  async adminSetup(dto: AdminSetupDto, user: ValidatedUser): Promise<{ token: string; user: User }> {
+    // Finde den aktuellen User
+    const currentUser = await this.prisma.user.findUnique({
+      where: { id: user.userId },
+    });
+
     if (!currentUser) {
       throw new NotFoundException('Benutzer nicht gefunden');
     }
 
+    // Prüfe ob der User Admin-Rechte hat
     if (!isAdmin(currentUser.role)) {
-      this.logger.warn(
-        `🚫 Admin-Setup verweigert: Keine Admin-Berechtigung für ${currentUser.username}`,
-      );
-      throw new ConflictException('Nur Admin-Benutzer können diese Funktion nutzen');
+      throw new ForbiddenException('Nur Admins können ein Passwort setzen');
     }
 
+    // Prüfe ob bereits ein Passwort gesetzt ist
+    if (currentUser.passwordHash) {
+      throw new ConflictException('Passwort bereits gesetzt');
+    }
+
+    // Hash das Passwort
     const passwordHash = await bcrypt.hash(dto.password, 10);
 
+    // Update den User mit dem Passwort
     const updatedUser = await this.prisma.user.update({
-      where: { id: validatedUser.userId },
-      data: {
-        passwordHash: passwordHash,
-      },
+      where: { id: currentUser.id },
+      data: { passwordHash },
     });
 
-    this.logger.warn(`✅ Admin-Setup erfolgreich für Benutzer: ${updatedUser.username}`);
+    this.logger.log(`🔐 Admin-Passwort gesetzt für: ${updatedUser.username}`);
 
-    const adminToken = this.signAdminToken(updatedUser);
+    // Erstelle ein neues Admin-Token
+    const token = this.signAdminToken(updatedUser);
 
-    const { passwordHash: _, ...sanitizedUser } = updatedUser;
-
+    // Return ohne passwordHash
+    const { passwordHash: _, ...userWithoutPassword } = updatedUser;
     return {
-      user: sanitizedUser,
-      token: adminToken,
+      token,
+      user: userWithoutPassword as User,
     };
   }
 
   /**
-   * Gibt eine öffentliche Liste aller Benutzer zurück
+   * Gibt eine Liste aller Benutzer ohne sensible Daten zurück
    *
-   * Diese Methode ist für den öffentlichen Login-Screen gedacht
-   * und gibt nur die Benutzernamen zurück.
-   *
-   * @returns Array mit öffentlichen Benutzerinformationen
+   * @returns Array von Benutzern ohne passwordHash
    */
-  async getPublicUsers(): Promise<Array<{ username: string }>> {
+  async getPublicUsers(): Promise<Omit<User, 'passwordHash'>[]> {
     const users = await this.prisma.user.findMany({
-      select: {
-        username: true,
-        lastLoginAt: true,
-      },
-      orderBy: {
-        lastLoginAt: 'desc',
+      orderBy: { createdAt: 'desc' },
+    });
+
+    // Entferne passwordHash von jedem User
+    return users.map(({ passwordHash: _, ...user }) => user);
+  }
+
+  /**
+   * Convert Prisma User to AuthUserDto
+   * Strips sensitive data and formats dates properly
+   */
+  private toAuthUserDto(user: User): AuthUserDto {
+    return {
+      id: user.id,
+      username: user.username,
+      role: user.role as Role,
+      isActive: user.isActive,
+      createdAt: user.createdAt.toISOString(),
+      // Optional: Add NATO format for backward compatibility
+      createdAtNato: this.toNatoDateTimeGroup(user.createdAt),
+    };
+  }
+
+  /**
+   * Convert Date to NATO Date Time Group format
+   * Format: DDHHmmZMONYY
+   * Example: 011200ZJAN24 for January 1, 2024, 12:00 UTC
+   */
+  private toNatoDateTimeGroup(date: Date): string {
+    const months = ['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC'];
+
+    const day = date.getUTCDate().toString().padStart(2, '0');
+    const hours = date.getUTCHours().toString().padStart(2, '0');
+    const minutes = date.getUTCMinutes().toString().padStart(2, '0');
+    const month = months[date.getUTCMonth()];
+    const year = date.getUTCFullYear().toString().slice(-2);
+
+    return `${day}${hours}${minutes}Z${month}${year}`;
+  }
+
+  /**
+   * Findet einen Benutzer anhand seines Usernamens
+   * @param username - Der Username des Benutzers
+   * @returns Der gefundene Benutzer oder null
+   */
+  private async findUserByUsername(username: string): Promise<User | null> {
+    return this.prisma.user.findUnique({
+      where: { username },
+    });
+  }
+
+  /**
+   * Führt Login für existierenden Benutzer durch
+   * @param user - Der existierende Benutzer
+   * @returns Auth Response mit Tokens und User-Info
+   */
+  private async loginExistingUser(user: User): Promise<AuthResponseDto & { accessToken: string; refreshToken: string }> {
+    // Normale Login - KEIN Passwort-Check für Admin-Accounts
+    // Admin-Passwort wird nur bei /admin/login geprüft
+    this.logger.debug(`🔑 User-Login erfolgreich: ${user.username} (Role: ${user.role})`);
+
+    // Update lastLoginAt
+    await this.updateLastLogin(user.id);
+
+    return this.createAuthResponse(user, false);
+  }
+
+  /**
+   * Registriert automatisch einen neuen Benutzer
+   * @param username - Der Username des neuen Benutzers
+   * @returns Auth Response mit Tokens und User-Info
+   */
+  private async autoRegisterUser(username: string): Promise<AuthResponseDto & { accessToken: string; refreshToken: string }> {
+    try {
+      const newUser = await this.createUser(username);
+      this.logger.log(`⭐ Neuer Benutzer automatisch angelegt: ${newUser.username}`);
+
+      // Update lastLoginAt for new user as well
+      await this.updateLastLogin(newUser.id);
+
+      return this.createAuthResponse(newUser, true);
+    } catch (error) {
+      // Handle race condition wenn zwei Requests gleichzeitig denselben User anlegen
+      if (this.isUniqueConstraintError(error)) {
+        // Retry login da User jetzt existiert
+        const existingUser = await this.findUserByUsername(username);
+        if (existingUser) {
+          return this.loginExistingUser(existingUser);
+        }
+      }
+      throw error;
+    }
+  }
+
+  /**
+   * Erstellt einen neuen Benutzer
+   * @param username - Der Username des neuen Benutzers
+   * @returns Der erstellte Benutzer
+   */
+  private async createUser(username: string): Promise<User> {
+    // Prüfe ob bereits ein Admin existiert
+    const adminCount = await this.prisma.user.count({
+      where: {
+        role: {
+          in: ['ADMIN', 'SUPER_ADMIN'],
+        },
       },
     });
 
-    return users
-      .sort((a, b) => (a.lastLoginAt < b.lastLoginAt ? 1 : -1))
-      .map((user) => ({ username: user.username }));
+    // Der erste Benutzer wird automatisch SUPER_ADMIN
+    const role = adminCount === 0 ? 'SUPER_ADMIN' : 'USER';
+
+    return this.prisma.user.create({
+      data: {
+        username,
+        passwordHash: null, // explizit null für normale User
+        role,
+        lastLoginAt: new Date(), // Set initial login time
+      },
+    });
+  }
+
+  /**
+   * Aktualisiert den lastLoginAt Zeitstempel
+   * @param userId - Die ID des Benutzers
+   */
+  private async updateLastLogin(userId: string): Promise<void> {
+    await this.prisma.user.update({
+      where: { id: userId },
+      data: { lastLoginAt: new Date() },
+    });
+  }
+
+  /**
+   * Erstellt die Auth Response mit Tokens
+   * @param user - Der Benutzer
+   * @param isNewUser - Ob es ein neuer Benutzer ist
+   * @returns Auth Response mit Tokens und User-Info
+   */
+  private createAuthResponse(user: User, isNewUser: boolean): AuthResponseDto & { accessToken: string; refreshToken: string } {
+    return {
+      accessToken: this.signAccessToken(user),
+      refreshToken: this.signRefreshToken(user),
+      isNewUser,
+      user: this.toAuthUserDto(user),
+    };
+  }
+
+  /**
+   * Prüft ob ein Fehler ein Unique Constraint Fehler ist
+   * @param error - Der zu prüfende Fehler
+   * @returns true wenn es ein Unique Constraint Fehler für username ist
+   */
+  private isUniqueConstraintError(error: unknown): boolean {
+    if (error && typeof error === 'object' && 'code' in error && 'meta' in error) {
+      const prismaError = error as {
+        code: string;
+        meta?: { target?: string[] };
+      };
+      return prismaError.code === 'P2002' && (prismaError.meta?.target?.includes('username') ?? false);
+    }
+    return false;
+  }
+
+  /**
+   * Helper: Gibt Admin-Permissions basierend auf der Rolle zurück
+   */
+  private getAdminPermissions(role: string): string[] {
+    switch (role) {
+      case 'SUPER_ADMIN':
+        return ['*']; // Alle Permissions
+      case 'ADMIN':
+        return ['users:*', 'system:read'];
+      case 'MODERATOR':
+        return ['users:read', 'users:update'];
+      default:
+        return [];
+    }
   }
 }

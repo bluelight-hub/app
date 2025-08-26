@@ -105,7 +105,7 @@ WIP Änderungen:
 {{/if}}`,
           },
           helpers: {
-            datetime: function (format = 'dd.mm.yyyy') {
+            datetime: (format = 'dd.mm.yyyy') => {
               const date = new Date();
               const utcDate = new Date(date.toUTCString().slice(0, -4));
               return format
@@ -139,20 +139,13 @@ WIP Änderungen:
           'jq \'.version="${nextRelease.version}"\' packages/backend/package.json > packages/backend/package.json.tmp && mv packages/backend/package.json.tmp packages/backend/package.json',
           'jq \'.version="${nextRelease.version}"\' packages/shared/package.json > packages/shared/package.json.tmp && mv packages/shared/package.json.tmp packages/shared/package.json',
         ].join(' && '),
-        successCmd:
-          'cat RELEASE_NOTES.md >> $GITHUB_STEP_SUMMARY && echo "$(cat RELEASE_NOTES.md)\n\n$(cat RELEASE.md)" > RELEASE.md',
+        successCmd: 'cat RELEASE_NOTES.md >> $GITHUB_STEP_SUMMARY && echo "$(cat RELEASE_NOTES.md)\n\n$(cat RELEASE.md)" > RELEASE.md',
       },
     ],
     [
       '@semantic-release/git',
       {
-        assets: [
-          'CHANGELOG.md',
-          'packages/frontend/package.json',
-          'packages/backend/package.json',
-          'packages/shared/package.json',
-          'RELEASE.md',
-        ],
+        assets: ['CHANGELOG.md', 'packages/frontend/package.json', 'packages/backend/package.json', 'packages/shared/package.json', 'RELEASE.md'],
         message: '🔖(release): ${nextRelease.version} [skip ci]\n\n${nextRelease.notes}',
       },
     ],

@@ -1,43 +1,30 @@
-import {
-  Body,
-  Controller,
-  Get,
-  HttpCode,
-  HttpStatus,
-  Logger,
-  NotFoundException,
-  Post,
-  Req,
-  Res,
-  UnauthorizedException,
-  UseGuards,
-  VERSION_NEUTRAL,
-} from '@nestjs/common';
-import { ApiCookieAuth, ApiOkResponse, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
+import { Body, Controller, Get, HttpCode, HttpStatus, Logger, NotFoundException, Post, Req, Res, UnauthorizedException, UseGuards, VERSION_NEUTRAL } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { Request, Response } from 'express';
-import { AuthService } from './auth.service';
-import { RegisterUserDto } from './dto/register-user.dto';
-import { LoginUserDto } from './dto/login-user.dto';
-import { AdminSetupDto } from './dto/admin-setup.dto';
-import { AdminStatusDto } from './dto/admin-status.dto';
-import { UserResponseDto } from './dto/user-response.dto';
-import { AuthCheckResponseDto } from './dto/auth-check-response.dto';
-import { AdminLoginResponseDto } from './dto/admin-login-response.dto';
-import { AdminSetupResponseDto } from './dto/admin-setup-response.dto';
-import { LogoutResponseDto } from './dto/logout-response.dto';
-import { RefreshResponseDto } from './dto/refresh-response.dto';
-import { AdminTokenVerificationDto } from './dto/admin-token-verification.dto';
-import { AdminPasswordDto } from './dto/admin-password.dto';
-import { PublicUsersResponseDto } from './dto/public-users-response.dto';
-import { clearAdminCookie, clearAuthCookies, setAdminCookie, setAuthCookies } from './auth.utils';
-import { JwtRefreshGuard } from './guards/jwt-refresh.guard';
-import { JwtAuthGuard } from './guards/jwt-auth.guard';
-import { AdminJwtAuthGuard } from './guards/admin-jwt-auth.guard';
-import { ValidatedUser } from './strategies/jwt.strategy';
-import { CurrentUser } from './decorators/current-user.decorator';
-import { AdminAuthMapper, AuthResponseMapper, UserResponseMapper } from '@/auth/mappers';
+import { ApiCookieAuth, ApiOkResponse, ApiOperation, ApiResponse, ApiTags, ApiUnauthorizedResponse } from '@nestjs/swagger';
+import { Throttle } from '@nestjs/throttler';
+import type { Request, Response } from 'express';
+import { toAdminLoginResponseDto, toAdminSetupResponseDto, toAdminStatusResponseDto, toAdminTokenVerificationDto, toLogoutResponseDto, toRefreshResponseDto, toUserResponseDto } from '@/auth/mappers';
 import { SkipTransform } from '@/common/decorators/skip-transform.decorator';
+import { AppConfigService } from '@/common/services/app-config.service';
+import { AuthService } from './auth.service';
+import { clearAdminCookie, clearAuthCookies, setAdminCookie, setAuthCookies } from './auth.utils';
+import { CurrentUser } from './decorators/current-user.decorator';
+import { AdminLoginResponseDto } from './dto/admin-login-response.dto';
+import type { AdminPasswordDto } from './dto/admin-password.dto';
+import type { AdminSetupDto } from './dto/admin-setup.dto';
+import { AdminSetupResponseDto } from './dto/admin-setup-response.dto';
+import { AdminStatusDto } from './dto/admin-status.dto';
+import { AdminTokenVerificationDto } from './dto/admin-token-verification.dto';
+import { AuthCheckResponseDto } from './dto/auth-check-response.dto';
+import type { AuthRequestDto } from './dto/auth-request.dto';
+import { AuthResponseDto } from './dto/auth-response.dto';
+import { LogoutResponseDto } from './dto/logout-response.dto';
+import { PublicUsersResponseDto } from './dto/public-users-response.dto';
+import { RefreshResponseDto } from './dto/refresh-response.dto';
+import { AdminJwtAuthGuard } from './guards/admin-jwt-auth.guard';
+import { JwtAuthGuard } from './guards/jwt-auth.guard';
+import { JwtRefreshGuard } from './guards/jwt-refresh.guard';
+import type { ValidatedUser } from './strategies/jwt.strategy';
 import { isAdmin } from './utils/auth.utils';
 
 /**
@@ -60,6 +47,7 @@ export class AuthController {
   constructor(
     private readonly authService: AuthService,
     private readonly configService: ConfigService,
+    private readonly appConfig: AppConfigService,
   ) {}
 
   /**
@@ -72,77 +60,48 @@ export class AuthController {
    * @param res - Express Response für Cookie-Verwaltung
    * @returns Der erstellte Benutzer
    */
-  @Post('register')
-  @ApiOperation({
-    summary: 'Neuen Benutzer registrieren',
-    description:
-      'Registriert einen neuen Benutzer ohne Passwort. Der erste Benutzer wird automatisch SUPER_ADMIN.',
-  })
-  @ApiResponse({
-    status: HttpStatus.CREATED,
-    description: 'Benutzer erfolgreich registriert',
-    type: UserResponseDto,
-  })
-  @ApiResponse({
-    status: HttpStatus.CONFLICT,
-    description: 'Benutzername bereits vergeben',
-  })
-  async register(
-    @Body() dto: RegisterUserDto,
-    @Res({ passthrough: true }) res: Response,
-  ): Promise<UserResponseDto> {
-    const user = await this.authService.register(dto);
-
-    // JWT-Tokens generieren
-    const accessToken = this.authService.signAccessToken(user);
-    const refreshToken = this.authService.signRefreshToken(user);
-
-    // Tokens als HTTP-Only Cookies setzen
-    const isProduction = this.configService.get<string>('NODE_ENV') === 'production';
-    setAuthCookies(res, accessToken, refreshToken, isProduction);
-
-    return UserResponseMapper.toUserResponseDto(user);
-  }
-
   /**
-   * Meldet einen Benutzer an
+   * Unified Auth - Kombiniert Login und automatische Registrierung
    *
-   * Die Anmeldung erfolgt nur mit dem Benutzernamen, ohne Passwort.
+   * Wenn der Benutzer existiert:
+   * - Mit Passwort (Admin): Passwort wird geprüft
+   * - Ohne Passwort (Normal): Sofortiger Login
    *
-   * @param dto - Anmeldedaten
+   * Wenn der Benutzer nicht existiert:
+   * - Automatische Registrierung ohne Passwort
+   *
+   * @param dto - Auth Request mit Username und optionalem Passwort
    * @param res - Express Response für Cookie-Verwaltung
-   * @returns Der angemeldete Benutzer
+   * @returns Auth Response mit Token und User-Info
    */
-  @Post('login')
+  @Post('unified')
   @HttpCode(HttpStatus.OK)
+  @Throttle({ default: { limit: 5, ttl: 60000 } }) // 5 Anfragen pro Minute
   @ApiOperation({
-    summary: 'Benutzer anmelden',
-    description: 'Meldet einen Benutzer nur mit Benutzernamen an (ohne Passwort)',
+    summary: 'Unified Login & Auto-Register',
+    description: 'Vereinheitlichter Endpunkt für Login und automatische Registrierung. Wenn der Benutzer nicht existiert, wird er automatisch angelegt.',
+  })
+  @ApiOkResponse({
+    description: 'Erfolgreiche Authentifizierung (Login oder Auto-Registrierung), Tokens werden via Set-Cookie (HTTP-Only) gesetzt: accessToken, refreshToken',
+    type: AuthResponseDto,
+  })
+  @ApiUnauthorizedResponse({
+    description: 'Ungültige Credentials',
   })
   @ApiResponse({
-    status: HttpStatus.OK,
-    description: 'Erfolgreich angemeldet',
-    type: UserResponseDto,
+    status: HttpStatus.TOO_MANY_REQUESTS,
+    description: 'Zu viele Anfragen - bitte später erneut versuchen',
   })
-  @ApiResponse({
-    status: HttpStatus.NOT_FOUND,
-    description: 'Benutzer nicht gefunden',
-  })
-  async login(
-    @Body() dto: LoginUserDto,
-    @Res({ passthrough: true }) res: Response,
-  ): Promise<UserResponseDto> {
-    const user = await this.authService.login(dto);
+  async unifiedAuth(@Body() dto: AuthRequestDto, @Res({ passthrough: true }) res: Response): Promise<AuthResponseDto> {
+    const result = await this.authService.unifiedAuth(dto);
 
-    // JWT-Tokens generieren
-    const accessToken = this.authService.signAccessToken(user);
-    const refreshToken = this.authService.signRefreshToken(user);
-
-    // Tokens als HTTP-Only Cookies setzen
-    const isProduction = this.configService.get<string>('NODE_ENV') === 'production';
+    // Tokens extrahieren und als HTTP-Only Cookies setzen
+    const { accessToken, refreshToken, ...responseDto } = result;
+    const isProduction = this.appConfig.isProduction();
     setAuthCookies(res, accessToken, refreshToken, isProduction);
 
-    return UserResponseMapper.toUserResponseDto(user);
+    // Nur DTO-konforme Daten zurückgeben (ohne Tokens)
+    return responseDto;
   }
 
   /**
@@ -162,8 +121,7 @@ export class AuthController {
   @ApiCookieAuth('auth-token')
   @ApiOperation({
     summary: 'Admin-Rechte aktivieren',
-    description:
-      'Aktiviert Admin-Rechte für den aktuell angemeldeten Benutzer durch Passwort-Eingabe',
+    description: 'Aktiviert Admin-Rechte für den aktuell angemeldeten Benutzer durch Passwort-Eingabe',
   })
   @ApiResponse({
     status: HttpStatus.OK,
@@ -178,11 +136,7 @@ export class AuthController {
     status: HttpStatus.FORBIDDEN,
     description: 'Benutzer hat keine Admin-Rechte',
   })
-  async adminLogin(
-    @Body() dto: AdminPasswordDto,
-    @CurrentUser() currentUser: ValidatedUser,
-    @Res({ passthrough: true }) res: Response,
-  ): Promise<AdminLoginResponseDto> {
+  async adminLogin(@Body() dto: AdminPasswordDto, @CurrentUser() currentUser: ValidatedUser, @Res({ passthrough: true }) res: Response): Promise<AdminLoginResponseDto> {
     // Validiere die Admin-Rechte mit dem aktuellen Benutzer
     const user = await this.authService.validateAdminCredentials(currentUser.userId, dto.password);
 
@@ -194,7 +148,7 @@ export class AuthController {
     const isProduction = this.configService.get<string>('NODE_ENV') === 'production';
     setAdminCookie(res, token, isProduction);
 
-    return AdminAuthMapper.toAdminLoginResponseDto(user);
+    return toAdminLoginResponseDto(user);
   }
 
   /**
@@ -221,10 +175,7 @@ export class AuthController {
     status: HttpStatus.UNAUTHORIZED,
     description: 'Ungültiges oder abgelaufenes Refresh-Token',
   })
-  async refresh(
-    @Req() req: Request & { user: ValidatedUser },
-    @Res({ passthrough: true }) res: Response,
-  ): Promise<RefreshResponseDto> {
+  async refresh(@Req() req: Request & { user: ValidatedUser }, @Res({ passthrough: true }) res: Response): Promise<RefreshResponseDto> {
     const user = await this.authService.findUserById(req.user.userId);
 
     if (!user) {
@@ -236,10 +187,10 @@ export class AuthController {
     const refreshToken = this.authService.signRefreshToken(user);
 
     // Tokens als HTTP-Only Cookies setzen
-    const isProduction = this.configService.get<string>('NODE_ENV') === 'production';
+    const isProduction = this.appConfig.isProduction();
     setAuthCookies(res, accessToken, refreshToken, isProduction);
 
-    return AuthResponseMapper.toRefreshResponseDto();
+    return toRefreshResponseDto();
   }
 
   /**
@@ -259,8 +210,8 @@ export class AuthController {
     type: LogoutResponseDto,
   })
   async logout(@Res({ passthrough: true }) res: Response): Promise<LogoutResponseDto> {
-    clearAuthCookies(res);
-    return AuthResponseMapper.toLogoutResponseDto();
+    clearAuthCookies(res, this.appConfig.isProduction());
+    return toLogoutResponseDto();
   }
 
   /**
@@ -281,8 +232,8 @@ export class AuthController {
   })
   async adminLogout(@Res({ passthrough: true }) res: Response): Promise<LogoutResponseDto> {
     // Nur Admin-Cookie löschen, normale Auth-Cookies behalten
-    clearAdminCookie(res);
-    return AuthResponseMapper.toLogoutResponseDto();
+    clearAdminCookie(res, this.appConfig.isProduction());
+    return toLogoutResponseDto();
   }
 
   /**
@@ -314,16 +265,12 @@ export class AuthController {
     status: HttpStatus.UNAUTHORIZED,
     description: 'Keine Authentifizierung',
   })
-  async adminSetup(
-    @Body() dto: AdminSetupDto,
-    @CurrentUser() user: ValidatedUser,
-    @Res({ passthrough: true }) res: Response,
-  ): Promise<AdminSetupResponseDto> {
+  async adminSetup(@Body() dto: AdminSetupDto, @CurrentUser() user: ValidatedUser, @Res({ passthrough: true }) res: Response): Promise<AdminSetupResponseDto> {
     const result = await this.authService.adminSetup(dto, user);
 
-    const isProduction = process.env.NODE_ENV === 'production';
+    const isProduction = this.appConfig.isProduction();
     setAdminCookie(res, result.token, isProduction);
-    return AdminAuthMapper.toAdminSetupResponseDto(result.user);
+    return toAdminSetupResponseDto(result.user);
   }
 
   /**
@@ -346,7 +293,7 @@ export class AuthController {
   })
   async checkAuth(@Req() req: Request): Promise<AuthCheckResponseDto> {
     try {
-      const token = req.cookies?.['accessToken'];
+      const token = req.cookies?.accessToken;
       if (!token) {
         return {
           user: null,
@@ -355,7 +302,13 @@ export class AuthController {
       }
 
       const payload = await this.authService.verifyAccessToken(token);
-      const user = await this.authService.findUserById(payload.sub);
+      if (!payload.userId) {
+        return {
+          user: null,
+          authenticated: false,
+        };
+      }
+      const user = await this.authService.findUserById(payload.userId);
 
       if (!user) {
         return {
@@ -365,16 +318,16 @@ export class AuthController {
       }
 
       // Prüfe ob Admin-Token vorhanden ist
-      const adminToken = req.cookies?.['adminToken'];
+      const adminToken = req.cookies?.adminToken;
       let isAdminAuthenticated = false;
 
       if (adminToken) {
         try {
           // Verifiziere Admin-Token mit dem richtigen Secret
-          const payload = await this.authService.verifyAdminToken(adminToken);
-          // Prüfe ob der Token gültig ist und der richtige Typ
-          this.logger.log('Admin-Token verifiziert', { payload });
-          if (payload && payload.type === 'admin') {
+          const adminPayload = await this.authService.verifyAdminToken(adminToken);
+          // Prüfe ob der Token gültig ist und isAdmin true ist
+          this.logger.log('Admin-Token verifiziert', { payload: adminPayload });
+          if (adminPayload && adminPayload.isAdmin === true) {
             isAdminAuthenticated = true;
           } else {
             this.logger.warn(`⚠️ Invalid admin token: ${adminToken}`);
@@ -386,9 +339,12 @@ export class AuthController {
         }
       }
 
-      this.logger.log('Auth-Check ok', { user, isAdminAuthenticated });
+      this.logger.debug('Auth-Check ok', {
+        user: user.username,
+        isAdminAuthenticated,
+      });
       return {
-        user: UserResponseMapper.toUserResponseDto(user),
+        user: toUserResponseDto(user),
         authenticated: true,
         isAdminAuthenticated,
       };
@@ -437,8 +393,7 @@ export class AuthController {
   @ApiCookieAuth()
   @ApiOperation({
     summary: 'Admin-Setup-Status abrufen',
-    description:
-      'Prüft ob ein Admin-Setup verfügbar ist und ob der aktuelle Benutzer berechtigt ist',
+    description: 'Prüft ob ein Admin-Setup verfügbar ist und ob der aktuelle Benutzer berechtigt ist',
   })
   @ApiResponse({
     status: HttpStatus.OK,
@@ -459,7 +414,7 @@ export class AuthController {
     const isAdminRole = isAdmin(fullUser.role);
     const hasNoPassword = !fullUser.passwordHash;
 
-    return AdminAuthMapper.toAdminStatusResponseDto(adminExists, isAdminRole && hasNoPassword);
+    return toAdminStatusResponseDto(adminExists, isAdminRole && hasNoPassword);
   }
 
   /**
@@ -488,6 +443,6 @@ export class AuthController {
     description: 'Admin-Token fehlt oder ist ungültig',
   })
   async verifyAdminToken(): Promise<AdminTokenVerificationDto> {
-    return AdminAuthMapper.toAdminTokenVerificationDto();
+    return toAdminTokenVerificationDto();
   }
 }

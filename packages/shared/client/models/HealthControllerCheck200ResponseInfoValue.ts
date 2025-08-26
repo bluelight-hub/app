@@ -31,23 +31,16 @@ export interface HealthControllerCheck200ResponseInfoValue {
 /**
  * Check if a given object implements the HealthControllerCheck200ResponseInfoValue interface.
  */
-export function instanceOfHealthControllerCheck200ResponseInfoValue(
-  value: object,
-): value is HealthControllerCheck200ResponseInfoValue {
+export function instanceOfHealthControllerCheck200ResponseInfoValue(value: object): value is HealthControllerCheck200ResponseInfoValue {
   if (!('status' in value) || value['status'] === undefined) return false;
   return true;
 }
 
-export function HealthControllerCheck200ResponseInfoValueFromJSON(
-  json: any,
-): HealthControllerCheck200ResponseInfoValue {
+export function HealthControllerCheck200ResponseInfoValueFromJSON(json: any): HealthControllerCheck200ResponseInfoValue {
   return HealthControllerCheck200ResponseInfoValueFromJSONTyped(json, false);
 }
 
-export function HealthControllerCheck200ResponseInfoValueFromJSONTyped(
-  json: any,
-  ignoreDiscriminator: boolean,
-): HealthControllerCheck200ResponseInfoValue {
+export function HealthControllerCheck200ResponseInfoValueFromJSONTyped(json: any, ignoreDiscriminator: boolean): HealthControllerCheck200ResponseInfoValue {
   if (json == null) {
     return json;
   }
@@ -57,16 +50,11 @@ export function HealthControllerCheck200ResponseInfoValueFromJSONTyped(
   };
 }
 
-export function HealthControllerCheck200ResponseInfoValueToJSON(
-  json: any,
-): HealthControllerCheck200ResponseInfoValue {
+export function HealthControllerCheck200ResponseInfoValueToJSON(json: any): HealthControllerCheck200ResponseInfoValue {
   return HealthControllerCheck200ResponseInfoValueToJSONTyped(json, false);
 }
 
-export function HealthControllerCheck200ResponseInfoValueToJSONTyped(
-  value?: HealthControllerCheck200ResponseInfoValue | null,
-  ignoreDiscriminator: boolean = false,
-): any {
+export function HealthControllerCheck200ResponseInfoValueToJSONTyped(value?: HealthControllerCheck200ResponseInfoValue | null, ignoreDiscriminator: boolean = false): any {
   if (value == null) {
     return value;
   }

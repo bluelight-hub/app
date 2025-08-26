@@ -6,8 +6,9 @@
   "main": "index.ts",
   "types": "index.ts",
   "scripts": {
-    "format": "prettier --write .",
-    "generate-api": "rimraf client && openapi-generator-cli generate -g=typescript-fetch -i http://localhost:3000/api-json -o ./client --skip-validate-spec && pnpm format",
+    "lint": "biome check --write",
+    "lint:check": "biome check",
+    "generate-api": "rimraf client && openapi-generator-cli generate -g=typescript-fetch -i http://localhost:3000/api-json -o ./client --skip-validate-spec && pnpm lint",
     "build:tsc": "tsc",
     "build": "pnpm build:tsc",
     "build:with-api": "pnpm generate-api && pnpm build:tsc",
@@ -16,7 +17,6 @@
   },
   "devDependencies": {
     "@openapitools/openapi-generator-cli": "^2.21.4",
-    "prettier": "^3.6.2",
     "rimraf": "^6.0.1",
     "typescript": "^5.9.2"
   }

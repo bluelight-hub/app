@@ -1,8 +1,8 @@
 import { UserDtoRoleEnum } from '@bluelight-hub/shared/client';
 import { PiShieldWarning } from 'react-icons/pi';
-import { Dialog } from '@/components/molecules/dialog.molecule';
-import { Button } from '@/components/atoms/button.atom';
 import { Badge } from '@/components/atoms/badge.atom';
+import { Button } from '@/components/atoms/button.atom';
+import { Dialog } from '@/components/molecules/dialog.molecule';
 
 interface ConfirmDeleteDialogProps {
   isOpen: boolean;
@@ -46,11 +46,11 @@ export const ConfirmDeleteDialog = ({ isOpen, onClose, onConfirm, userName, user
             <p className="text-gray-700 dark:text-gray-300">Möchten Sie den Benutzer wirklich löschen?</p>
 
             <div className="flex flex-col items-center space-y-2">
-              <p className="text-lg font-semibold text-gray-900 dark:text-white">{userName}</p>
+              <p className="font-semibold text-gray-900 text-lg dark:text-white">{userName}</p>
               <Badge variant={getRoleBadgeVariant(userRole)}>{userRole}</Badge>
             </div>
 
-            <p className="text-sm text-gray-500 dark:text-gray-400">Diese Aktion kann nicht rückgängig gemacht werden.</p>
+            <p className="text-gray-500 text-sm dark:text-gray-400">Diese Aktion kann nicht rückgängig gemacht werden.</p>
           </div>
         </Dialog.Body>
 

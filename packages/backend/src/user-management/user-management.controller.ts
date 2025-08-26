@@ -1,36 +1,17 @@
-import {
-  Body,
-  Controller,
-  Delete,
-  Get,
-  Param,
-  Post,
-  UseGuards,
-  ValidationPipe,
-} from '@nestjs/common';
-import {
-  ApiBearerAuth,
-  ApiCreatedResponse,
-  ApiOkResponse,
-  ApiOperation,
-  ApiResponse,
-  ApiTags,
-  ApiUnauthorizedResponse,
-} from '@nestjs/swagger';
 import { AdminJwtAuthGuard } from '@/auth/guards/admin-jwt-auth.guard';
-import { UserManagementService } from './user-management.service';
-import { CreateUserDto } from './dto/create-user.dto';
-import {
-  DeleteUserResponse,
-  UserResponse,
-  UsersListResponse,
-} from './dto/user-management-response.dto';
-import { toDeleteUserResponseDto } from './mappers/user-management.mapper';
 import { ParseNanoIdPipe } from '@/common/pipes/parse-nanoid.pipe';
+import { Body, Controller, Delete, Get, Param, Post, UseGuards, ValidationPipe } from '@nestjs/common';
+import { ApiBearerAuth, ApiCreatedResponse, ApiOkResponse, ApiOperation, ApiResponse, ApiTags, ApiUnauthorizedResponse } from '@nestjs/swagger';
+import type { CreateUserDto } from './dto/create-user.dto';
+import { DeleteUserResponse, UserResponse, UsersListResponse } from './dto/user-management-response.dto';
+import { toDeleteUserResponseDto } from './mappers/user-management.mapper';
+import { UserManagementService } from './user-management.service';
 
 @ApiTags('user-management')
 @ApiBearerAuth('admin-jwt')
-@ApiUnauthorizedResponse({ description: 'Keine gültige Admin-Authentifizierung' })
+@ApiUnauthorizedResponse({
+  description: 'Keine gültige Admin-Authentifizierung',
+})
 @Controller({
   path: 'admin/users',
   version: 'alpha',
@@ -41,18 +22,30 @@ export class UserManagementController {
 
   @Get()
   @ApiOperation({ summary: 'Alle Benutzer auflisten' })
-  @ApiOkResponse({ type: UsersListResponse, description: 'Liste aller Benutzer' })
+  @ApiOkResponse({
+    type: UsersListResponse,
+    description: 'Liste aller Benutzer',
+  })
   async findAll() {
     return await this.userManagementService.findAll();
   }
 
   @Post()
   @ApiOperation({ summary: 'Neuen Benutzer erstellen' })
-  @ApiCreatedResponse({ type: UserResponse, description: 'Benutzer erfolgreich erstellt' })
+  @ApiCreatedResponse({
+    type: UserResponse,
+    description: 'Benutzer erfolgreich erstellt',
+  })
   @ApiResponse({ status: 400, description: 'Ungültige Eingabedaten' })
   @ApiResponse({ status: 409, description: 'Benutzername bereits vergeben' })
   async create(
-    @Body(new ValidationPipe({ whitelist: true, forbidNonWhitelisted: true, transform: true }))
+    @Body(
+      new ValidationPipe({
+        whitelist: true,
+        forbidNonWhitelisted: true,
+        transform: true,
+      }),
+    )
     dto: CreateUserDto,
   ) {
     return await this.userManagementService.create(dto);
@@ -60,9 +53,15 @@ export class UserManagementController {
 
   @Delete(':id')
   @ApiOperation({ summary: 'Benutzer löschen' })
-  @ApiOkResponse({ type: DeleteUserResponse, description: 'Benutzer erfolgreich gelöscht' })
+  @ApiOkResponse({
+    type: DeleteUserResponse,
+    description: 'Benutzer erfolgreich gelöscht',
+  })
   @ApiResponse({ status: 404, description: 'Benutzer nicht gefunden' })
-  @ApiResponse({ status: 400, description: 'Letzter SUPER_ADMIN kann nicht gelöscht werden' })
+  @ApiResponse({
+    status: 400,
+    description: 'Letzter SUPER_ADMIN kann nicht gelöscht werden',
+  })
   async remove(@Param('id', new ParseNanoIdPipe()) id: string) {
     await this.userManagementService.remove(id);
     return toDeleteUserResponseDto(id);

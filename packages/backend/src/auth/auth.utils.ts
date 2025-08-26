@@ -1,5 +1,5 @@
-import { Response } from 'express';
 import { milliseconds } from 'date-fns';
+import type { Response } from 'express';
 
 /**
  * Cookie-Konfigurationsoptionen für Authentifizierungs-Cookies
@@ -22,7 +22,7 @@ export function getAccessTokenCookieOptions(isProduction: boolean): AuthCookieOp
   return {
     httpOnly: true,
     secure: isProduction,
-    sameSite: 'lax',
+    sameSite: 'strict',
     maxAge: milliseconds({ minutes: 15 }),
     path: '/',
   };
@@ -38,7 +38,7 @@ export function getRefreshTokenCookieOptions(isProduction: boolean): AuthCookieO
   return {
     httpOnly: true,
     secure: isProduction,
-    sameSite: 'lax',
+    sameSite: 'strict',
     maxAge: milliseconds({ days: 7 }),
     path: '/',
   };
@@ -52,12 +52,7 @@ export function getRefreshTokenCookieOptions(isProduction: boolean): AuthCookieO
  * @param refreshToken - Das Refresh-Token
  * @param isProduction - Ob die Anwendung in Produktion läuft
  */
-export function setAuthCookies(
-  res: Response,
-  accessToken: string,
-  refreshToken: string,
-  isProduction: boolean = false,
-): void {
+export function setAuthCookies(res: Response, accessToken: string, refreshToken: string, isProduction: boolean = false): void {
   res.cookie('accessToken', accessToken, getAccessTokenCookieOptions(isProduction));
   res.cookie('refreshToken', refreshToken, getRefreshTokenCookieOptions(isProduction));
 }
@@ -66,9 +61,9 @@ export function setAuthCookies(
  * Löscht Authentifizierungs-Cookies aus der Response
  *
  * @param res - Express Response-Objekt
+ * @param isProduction - Ob die Anwendung in Produktion läuft
  */
-export function clearAuthCookies(res: Response): void {
-  const isProduction = process.env.NODE_ENV === 'production';
+export function clearAuthCookies(res: Response, isProduction: boolean = false): void {
   res.clearCookie('accessToken', {
     ...getAccessTokenCookieOptions(isProduction),
   });
@@ -88,7 +83,7 @@ function getAdminTokenCookieOptions(isProduction: boolean): AuthCookieOptions {
     httpOnly: true,
     secure: isProduction,
     sameSite: 'lax',
-    maxAge: milliseconds({ minutes: 15 }),
+    maxAge: 900000, // 15 minutes in milliseconds
     path: '/',
   };
 }
@@ -100,11 +95,7 @@ function getAdminTokenCookieOptions(isProduction: boolean): AuthCookieOptions {
  * @param adminToken - Das Admin-Token
  * @param isProduction - Ob die Anwendung in Produktion läuft
  */
-export function setAdminCookie(
-  res: Response,
-  adminToken: string,
-  isProduction: boolean = false,
-): void {
+export function setAdminCookie(res: Response, adminToken: string, isProduction: boolean = false): void {
   res.cookie('adminToken', adminToken, getAdminTokenCookieOptions(isProduction));
 }
 
@@ -112,9 +103,9 @@ export function setAdminCookie(
  * Löscht das Admin-Token-Cookie aus der Response
  *
  * @param res - Express Response-Objekt
+ * @param isProduction - Ob die Anwendung in Produktion läuft
  */
-export function clearAdminCookie(res: Response): void {
-  const isProduction = process.env.NODE_ENV === 'production';
+export function clearAdminCookie(res: Response, isProduction: boolean = false): void {
   res.clearCookie('adminToken', {
     ...getAdminTokenCookieOptions(isProduction),
   });

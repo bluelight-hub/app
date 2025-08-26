@@ -1,7 +1,7 @@
 'use client';
 
-import type { ColorModeProviderProps } from './color-mode';
 import { ColorModeProvider } from '@/provider/color-mode.provider.tsx';
+import type { ColorModeProviderProps } from './color-mode';
 
 /**
  * A functional component that provides color mode context to its children.

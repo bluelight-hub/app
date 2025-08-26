@@ -44,10 +44,7 @@ export function DeleteUserResponseDataFromJSON(json: any): DeleteUserResponseDat
   return DeleteUserResponseDataFromJSONTyped(json, false);
 }
 
-export function DeleteUserResponseDataFromJSONTyped(
-  json: any,
-  ignoreDiscriminator: boolean,
-): DeleteUserResponseData {
+export function DeleteUserResponseDataFromJSONTyped(json: any, ignoreDiscriminator: boolean): DeleteUserResponseData {
   if (json == null) {
     return json;
   }
@@ -61,10 +58,7 @@ export function DeleteUserResponseDataToJSON(json: any): DeleteUserResponseData 
   return DeleteUserResponseDataToJSONTyped(json, false);
 }
 
-export function DeleteUserResponseDataToJSONTyped(
-  value?: DeleteUserResponseData | null,
-  ignoreDiscriminator: boolean = false,
-): any {
+export function DeleteUserResponseDataToJSONTyped(value?: DeleteUserResponseData | null, ignoreDiscriminator: boolean = false): any {
   if (value == null) {
     return value;
   }

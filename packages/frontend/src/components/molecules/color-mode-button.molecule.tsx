@@ -1,8 +1,8 @@
+import { ColorModeIcon } from '@atoms/color-mode-icon.atom';
+import type { IconButtonProps } from '@atoms/icon-button.atom';
+import { IconButton } from '@atoms/icon-button.atom';
 import * as React from 'react';
 import { useEffect, useState } from 'react';
-import { ColorModeIcon } from '@atoms/color-mode-icon.atom';
-import { IconButton } from '@atoms/icon-button.atom';
-import type { IconButtonProps } from '@atoms/icon-button.atom';
 import { useColorMode } from '@/hooks/use-color-mode';
 
 type ColorModeButtonProps = Omit<IconButtonProps, 'aria-label' | 'children'>;
@@ -13,7 +13,7 @@ type ColorModeButtonProps = Omit<IconButtonProps, 'aria-label' | 'children'>;
  * Diese Komponente ist ein Molecule, da sie aus mehreren Atoms besteht
  * (IconButton + ColorModeIcon) und spezifische Logik enthält.
  */
-export const ColorModeButton = React.forwardRef<HTMLButtonElement, ColorModeButtonProps>(function ColorModeButton(props, ref) {
+export const ColorModeButton = React.forwardRef<HTMLButtonElement, ColorModeButtonProps>(function ColorModeButtonComponent(props, ref) {
   const { toggleColorMode } = useColorMode();
   const [mounted, setMounted] = useState(false);
 

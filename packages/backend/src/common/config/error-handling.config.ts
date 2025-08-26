@@ -1,5 +1,5 @@
-import { DuplicateDetectionConfig } from '../utils/duplicate-detection.util';
-import { RetryConfig } from '../utils/retry.util';
+import type { DuplicateDetectionConfig } from '../utils/duplicate-detection.util';
+import type { RetryConfig } from '../utils/retry.util';
 
 /**
  * Umgebungsspezifische Konfiguration für Error Handling

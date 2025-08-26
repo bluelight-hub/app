@@ -78,10 +78,7 @@ export function AdminUserDtoToJSON(json: any): AdminUserDto {
   return AdminUserDtoToJSONTyped(json, false);
 }
 
-export function AdminUserDtoToJSONTyped(
-  value?: AdminUserDto | null,
-  ignoreDiscriminator: boolean = false,
-): any {
+export function AdminUserDtoToJSONTyped(value?: AdminUserDto | null, ignoreDiscriminator: boolean = false): any {
   if (value == null) {
     return value;
   }

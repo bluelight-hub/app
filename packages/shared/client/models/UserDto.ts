@@ -94,10 +94,7 @@ export function UserDtoToJSON(json: any): UserDto {
   return UserDtoToJSONTyped(json, false);
 }
 
-export function UserDtoToJSONTyped(
-  value?: UserDto | null,
-  ignoreDiscriminator: boolean = false,
-): any {
+export function UserDtoToJSONTyped(value?: UserDto | null, ignoreDiscriminator: boolean = false): any {
   if (value == null) {
     return value;
   }

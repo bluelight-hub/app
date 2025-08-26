@@ -1,6 +1,6 @@
-import { Response } from 'express';
-import { clearAdminTokenCookie, setAdminTokenCookie } from './test-cookie.utils';
 import { milliseconds } from 'date-fns';
+import type { Response } from 'express';
+import { clearAdminTokenCookie, setAdminTokenCookie } from './test-cookie.utils';
 
 describe('Cookie Utilities', () => {
   let mockResponse: Partial<Response>;
@@ -26,12 +26,9 @@ describe('Cookie Utilities', () => {
       });
     });
 
-    it('should use secure cookie in production', () => {
-      const originalEnv = process.env.NODE_ENV;
-      process.env.NODE_ENV = 'production';
-
+    it('should use secure cookie when isProduction is true', () => {
       const token = 'test-admin-token';
-      setAdminTokenCookie(mockResponse as Response, token);
+      setAdminTokenCookie(mockResponse as Response, token, true);
 
       expect(mockResponse.cookie).toHaveBeenCalledWith(
         'adminToken',
@@ -40,16 +37,11 @@ describe('Cookie Utilities', () => {
           secure: true,
         }),
       );
-
-      process.env.NODE_ENV = originalEnv;
     });
 
-    it('should not use secure cookie in development', () => {
-      const originalEnv = process.env.NODE_ENV;
-      process.env.NODE_ENV = 'development';
-
+    it('should not use secure cookie when isProduction is false', () => {
       const token = 'test-admin-token';
-      setAdminTokenCookie(mockResponse as Response, token);
+      setAdminTokenCookie(mockResponse as Response, token, false);
 
       expect(mockResponse.cookie).toHaveBeenCalledWith(
         'adminToken',
@@ -58,8 +50,6 @@ describe('Cookie Utilities', () => {
           secure: false,
         }),
       );
-
-      process.env.NODE_ENV = originalEnv;
     });
   });
 

@@ -39,10 +39,7 @@ export function LogoutResponseDtoFromJSON(json: any): LogoutResponseDto {
   return LogoutResponseDtoFromJSONTyped(json, false);
 }
 
-export function LogoutResponseDtoFromJSONTyped(
-  json: any,
-  ignoreDiscriminator: boolean,
-): LogoutResponseDto {
+export function LogoutResponseDtoFromJSONTyped(json: any, ignoreDiscriminator: boolean): LogoutResponseDto {
   if (json == null) {
     return json;
   }
@@ -55,10 +52,7 @@ export function LogoutResponseDtoToJSON(json: any): LogoutResponseDto {
   return LogoutResponseDtoToJSONTyped(json, false);
 }
 
-export function LogoutResponseDtoToJSONTyped(
-  value?: LogoutResponseDto | null,
-  ignoreDiscriminator: boolean = false,
-): any {
+export function LogoutResponseDtoToJSONTyped(value?: LogoutResponseDto | null, ignoreDiscriminator: boolean = false): any {
   if (value == null) {
     return value;
   }

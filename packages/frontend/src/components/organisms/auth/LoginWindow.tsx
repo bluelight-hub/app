@@ -1,77 +1,52 @@
-import { useCallback, useEffect } from 'react';
+import type { AuthRequestDto } from '@bluelight-hub/shared/client';
 import { useNavigate } from '@tanstack/react-router';
+import { useCallback, useEffect } from 'react';
 import { toast } from 'sonner';
-import { LoginTab } from './LoginTab';
-import { RegisterTab } from './RegisterTab';
-import type { RegisterUserDto } from '@bluelight-hub/shared/client';
-import { useAuth } from '@/hooks/useAuth';
-import { getApiErrorMessage } from '@/utils/apiErrorHandler';
 import { Heading } from '@/components/atoms/heading.atom';
 import { Text } from '@/components/atoms/text.atom';
-import { Tabs } from '@/components/molecules/tabs.molecule';
-import { AuthLayout } from '@/components/templates/AuthLayout';
 import { AuthCard } from '@/components/molecules/auth-card.molecule';
-import { LogoWithIndicator } from '@/components/molecules/logo-with-indicator.molecule';
 import { AuthFooter } from '@/components/molecules/auth-footer.molecule';
+import { LogoWithIndicator } from '@/components/molecules/logo-with-indicator.molecule';
+import { AuthLayout } from '@/components/templates/AuthLayout';
+import { useAuth } from '@/hooks/useAuth';
+import { getApiErrorMessage } from '@/utils/apiErrorHandler';
+import { UnifiedAuthForm } from './UnifiedAuthForm';
 
 // Props for the LoginWindow component (currently empty)
 export type Props = Record<string, never>;
 
 /**
- * Zweistufiges Login/Register-Fenster mit Tabs
+ * Vereinheitlichtes Login-Fenster mit Combobox
  *
- * Bietet eine kombinierte Oberfläche für Anmeldung bestehender
- * und Registrierung neuer Benutzer ohne Passwort.
+ * Bietet eine einzelne Combobox für Anmeldung bestehender
+ * und automatische Registrierung neuer Benutzer.
  */
 export function LoginWindow(_props: Props) {
   const navigate = useNavigate();
-  const { user, isLoading, login, register } = useAuth();
+  const { user, isLoading, unifiedAuth } = useAuth();
 
-  const loginUser = useCallback(
-    (username: string) => {
-      login.mutate(
-        { username },
-        {
-          onSuccess: async () => {
-            toast.success('Anmeldung erfolgreich', {
-              description: 'Sie wurden erfolgreich angemeldet.',
-            });
+  const handleAuth = useCallback(
+    (authData: AuthRequestDto) => {
+      unifiedAuth.mutate(authData, {
+        onSuccess: async (response) => {
+          const successMessage = response.isNewUser ? 'Willkommen! Ihr Account wurde erfolgreich erstellt.' : 'Sie wurden erfolgreich angemeldet.';
 
-            await navigate({ to: '/' });
-          },
-          onError: async (error: Error) => {
-            const message = await getApiErrorMessage(error, 'Ein unerwarteter Fehler ist aufgetreten.', 'userLogin');
-
-            toast.error('Anmeldung fehlgeschlagen', {
-              description: message,
-            });
-          },
-        },
-      );
-    },
-    [login, navigate],
-  );
-
-  const registerUser = useCallback(
-    (registerData: RegisterUserDto) => {
-      register.mutate(registerData, {
-        onSuccess: async () => {
-          toast.success('Registrierung erfolgreich', {
-            description: 'Ihr Account wurde erfolgreich erstellt.',
+          toast.success('Erfolgreich', {
+            description: successMessage,
           });
 
           await navigate({ to: '/' });
         },
         onError: async (error: Error) => {
-          const message = await getApiErrorMessage(error, 'Ein unerwarteter Fehler ist aufgetreten.', 'userRegister');
+          const message = await getApiErrorMessage(error, 'Ein unerwarteter Fehler ist aufgetreten.', 'userAuth');
 
-          toast.error('Registrierung fehlgeschlagen', {
+          toast.error('Authentifizierung fehlgeschlagen', {
             description: message,
           });
         },
       });
     },
-    [register, navigate],
+    [unifiedAuth, navigate],
   );
 
   useEffect(() => {
@@ -79,18 +54,6 @@ export function LoginWindow(_props: Props) {
       void navigate({ to: '/' });
     }
   }, [isLoading, user, navigate]);
-
-  // Tab items for the Tabs component
-  const tabItems = [
-    {
-      label: 'Anmelden',
-      content: <LoginTab onSubmit={(username) => loginUser(username)} isLoading={login.isPending} error={login.error ?? null} />,
-    },
-    {
-      label: 'Registrieren',
-      content: <RegisterTab onSubmit={(username) => registerUser({ username })} isLoading={register.isPending} error={register.error ?? null} />,
-    },
-  ];
 
   return (
     <AuthLayout>
@@ -109,11 +72,11 @@ export function LoginWindow(_props: Props) {
 
           {/* Form Container */}
           <div className="w-full">
-            <Tabs items={tabItems} defaultIndex={0} />
+            <UnifiedAuthForm onSubmit={handleAuth} isLoading={unifiedAuth.isPending} error={unifiedAuth.error ?? null} />
           </div>
 
           {/* Footer */}
-          <AuthFooter badges={[{ label: 'System online (TODO)', variant: 'default', dotColor: 'green' }]} version="TODO" />
+          <AuthFooter badges={[{ label: 'System online', variant: 'default', dotColor: 'green' }]} version="v1.0.0" />
         </div>
       </AuthCard>
     </AuthLayout>

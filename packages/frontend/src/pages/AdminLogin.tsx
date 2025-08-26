@@ -1,21 +1,21 @@
-import { useEffect, useState } from 'react';
-import { useNavigate } from '@tanstack/react-router';
-import { useForm } from '@tanstack/react-form';
-import { z } from 'zod';
-import { PiWarning } from 'react-icons/pi';
-import { PasswordInput } from '@molecules/password-input.molecule';
-import { Button } from '@atoms/button.atom';
 import { Alert } from '@atoms/alert.atom';
+import { Button } from '@atoms/button.atom';
+import { FormField } from '@atoms/form-field.atom';
 import { Heading } from '@atoms/heading.atom';
 import { Text } from '@atoms/text.atom';
-import { FormField } from '@atoms/form-field.atom';
+import { PasswordInput } from '@molecules/password-input.molecule';
+import { useForm } from '@tanstack/react-form';
+import { useNavigate } from '@tanstack/react-router';
+import { useEffect, useState } from 'react';
+import { PiWarning } from 'react-icons/pi';
 import { toast } from 'sonner';
-import { getApiErrorMessage } from '@/utils/apiErrorHandler.ts';
-import { useAuth } from '@/hooks/useAuth.ts';
-import { AuthLayout } from '@/components/templates/AuthLayout';
+import { z } from 'zod';
 import { AuthCard } from '@/components/molecules/auth-card.molecule';
-import { LogoWithIndicator } from '@/components/molecules/logo-with-indicator.molecule';
 import { AuthFooter } from '@/components/molecules/auth-footer.molecule';
+import { LogoWithIndicator } from '@/components/molecules/logo-with-indicator.molecule';
+import { AuthLayout } from '@/components/templates/AuthLayout';
+import { useAuth } from '@/hooks/useAuth.ts';
+import { getApiErrorMessage } from '@/utils/apiErrorHandler.ts';
 
 const adminLoginSchema = z.object({
   password: z.string().min(1, 'Passwort ist erforderlich'),
@@ -157,9 +157,8 @@ export function AdminLogin() {
                   )}
                 </form.Field>
 
-                <form.Subscribe
-                  selector={(state) => [state.canSubmit, state.isSubmitting]}
-                  children={([canSubmit, isSubmitting]) => (
+                <form.Subscribe selector={(state) => [state.canSubmit, state.isSubmitting]}>
+                  {([canSubmit, isSubmitting]) => (
                     <Button
                       type="submit"
                       variant="danger"
@@ -167,12 +166,12 @@ export function AdminLogin() {
                       fullWidth
                       disabled={!canSubmit || isSubmitting}
                       loading={isSubmitting}
-                      className="bg-gradient-to-r from-red-500 to-red-600 shadow-lg shadow-red-500/25 transition-all hover:-translate-y-0.5 hover:shadow-xl hover:shadow-red-500/30 active:translate-y-0"
+                      className="hover:-translate-y-0.5 bg-gradient-to-r from-red-500 to-red-600 shadow-lg shadow-red-500/25 transition-all hover:shadow-red-500/30 hover:shadow-xl active:translate-y-0"
                     >
                       {isSubmitting ? 'Anmeldung...' : 'Sicher anmelden'}
                     </Button>
                   )}
-                />
+                </form.Subscribe>
               </div>
             </form>
           </div>

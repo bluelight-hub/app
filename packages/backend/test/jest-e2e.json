@@ -14,15 +14,7 @@
       }
     ]
   },
-  "collectCoverageFrom": [
-    "src/**/*.ts",
-    "!src/main.ts",
-    "!src/**/*.dto.ts",
-    "!src/**/*.interface.ts",
-    "!src/**/*.entity.ts",
-    "!src/**/*.enum.ts",
-    "!src/**/*.module.ts"
-  ],
+  "collectCoverageFrom": ["src/**/*.ts", "!src/main.ts", "!src/**/*.dto.ts", "!src/**/*.interface.ts", "!src/**/*.entity.ts", "!src/**/*.enum.ts", "!src/**/*.module.ts"],
   "coverageDirectory": "./coverage-e2e",
   "testPathIgnorePatterns": ["/node_modules/", "/dist/"],
   "moduleNameMapper": {

@@ -807,7 +807,7 @@ Das Backend stellt eine RESTful API bereit, die vom Frontend genutzt wird. Hier 
 [cols="2,2,4", options="header"]
 |===
 |Endpoint |HTTP Methode |Beschreibung
-|`/api/auth/login` |POST |Authentifizierung eines Benutzers mit Benutzername und Passwort
+|`/api/auth/unified` |POST |Vereinheitlichte Authentifizierung (automatischer Login oder Registrierung)
 |`/api/auth/refresh` |POST |Erneuern eines JWT-Tokens
 |`/api/auth/me` |GET |Abrufen der Benutzerinformationen des aktuell authentifizierten Benutzers
 |`/api/einsatz` |GET |Abrufen aller Einsätze (mit Paginierung und Filteroptionen)
@@ -835,19 +835,22 @@ sequenceDiagram
     participant Auth as Auth Service
     participant DB as Datenbank
     
-    Client->>API: POST /api/auth/login {username, password}
-    API->>Auth: validateUser(username, password)
+    Client->>API: POST /api/auth/unified {username}
+    API->>Auth: unifiedAuth(username)
     Auth->>DB: findUserByUsername(username)
-    DB-->>Auth: Benutzerdaten mit Hash
-    Auth->>Auth: vergleiche Passwort-Hash
-    Auth-->>API: Validierungsergebnis
     
-    alt Erfolgreiche Authentifizierung
-        API->>API: Generiere JWT Token
-        API-->>Client: 200 OK {token, user}
-        Client->>Client: Speichere Token im Local Storage
-    else Fehlgeschlagene Authentifizierung
-        API-->>Client: 401 Unauthorized
+    alt Benutzer existiert
+        DB-->>Auth: Benutzerdaten
+        Auth->>Auth: Prüfe Admin-Passwort (falls vorhanden)
+        Auth->>API: Generiere JWT Token
+        API-->>Client: 200 OK {user, isNewUser: false}
+        API-->>Client: Set-Cookie: token=...; HttpOnly; Secure; SameSite=Strict
+    else Benutzer existiert nicht
+        Auth->>DB: createUser(username, password: null)
+        DB-->>Auth: Neuer Benutzer
+        Auth->>API: Generiere JWT Token
+        API-->>Client: 200 OK {user, isNewUser: true}
+        API-->>Client: Set-Cookie: token=...; HttpOnly; Secure; SameSite=Strict
     end
     
     Note over Client,API: Bei weiteren Anfragen

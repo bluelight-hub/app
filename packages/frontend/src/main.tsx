@@ -1,8 +1,8 @@
 import '@fontsource-variable/nunito/index.css';
-import './index.css';
-import { RouterProvider, createRouter } from '@tanstack/react-router';
-import ReactDOM from 'react-dom/client';
+import './index.tailwind.css';
+import { createRouter, RouterProvider } from '@tanstack/react-router';
 import { StrictMode } from 'react';
+import ReactDOM from 'react-dom/client';
 import { routeTree } from '@/routeTree.gen';
 
 const router = createRouter({
@@ -16,7 +16,10 @@ declare module '@tanstack/react-router' {
   }
 }
 
-const rootElement = document.getElementById('root')!;
+const rootElement = document.getElementById('root');
+if (!rootElement) {
+  throw new Error('Root element not found');
+}
 const root = ReactDOM.createRoot(rootElement);
 root.render(
   <StrictMode>

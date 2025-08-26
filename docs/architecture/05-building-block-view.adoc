@@ -216,7 +216,7 @@ Das Auth Module ist für die Authentifizierung und Autorisierung der Benutzer zu
 [cols="1,3", options="header"]
 |===
 |Komponente |Verantwortlichkeit
-|auth.controller.ts |Stellt Endpunkte für Login, Logout und Tokenvalidierung bereit
+|auth.controller.ts |Stellt Endpunkte für Unified Auth (Login/Auto-Registrierung), Logout und Tokenvalidierung bereit
 |auth.service.ts |Authentifizierungslogik, JWT-Token-Erstellung und -Validierung
 |auth.guards.ts |Guards für geschützte Routen
 |user.entity.ts |Datenmodell für Benutzer

@@ -1,8 +1,9 @@
 /// <reference types="vitest" />
+
+// @ts-expect-error
+import path from 'node:path';
 import react from '@vitejs/plugin-react-swc';
 import { defineConfig } from 'vite';
-// @ts-ignore
-import path from 'path';
 
 export default defineConfig({
   plugins: [react()],
@@ -11,7 +12,7 @@ export default defineConfig({
     environment: 'jsdom',
     setupFiles: ['./src/test/setup.ts'],
     include: ['src/**/*.{test,spec}.{js,mjs,cjs,ts,mts,cts,jsx,tsx}'],
-    // @ts-ignore
+    // @ts-expect-error
     coverage: {
       reporter: ['text', 'json', 'html'],
       exclude: [

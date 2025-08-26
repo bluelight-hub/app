@@ -1,18 +1,18 @@
-import { Test, TestingModule } from '@nestjs/testing';
 import { Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { AdminResetPasswordCommand } from '../admin-reset-password.command';
-import { PrismaService } from '../../../prisma/prisma.service';
+import { Test, type TestingModule } from '@nestjs/testing';
 import { UserRole } from '@prisma/client';
 import * as bcrypt from 'bcrypt';
+import { PrismaService } from '../../../prisma/prisma.service';
+import { AdminResetPasswordCommand } from '../admin-reset-password.command';
 
 jest.mock('bcrypt');
 
 describe('AdminResetPasswordCommand', () => {
   let command: AdminResetPasswordCommand;
   let module: TestingModule;
-  let prismaService: any;
-  let configService: any;
+  let prismaService: jest.Mocked<PrismaService>;
+  let configService: jest.Mocked<ConfigService>;
 
   beforeEach(async () => {
     // Create mock PrismaService
@@ -49,8 +49,8 @@ describe('AdminResetPasswordCommand', () => {
     }).compile();
 
     command = module.get<AdminResetPasswordCommand>(AdminResetPasswordCommand);
-    prismaService = module.get<PrismaService>(PrismaService);
-    configService = module.get<ConfigService>(ConfigService);
+    prismaService = module.get<PrismaService>(PrismaService) as jest.Mocked<PrismaService>;
+    configService = module.get<ConfigService>(ConfigService) as jest.Mocked<ConfigService>;
   });
 
   afterEach(async () => {
@@ -68,21 +68,15 @@ describe('AdminResetPasswordCommand', () => {
     });
 
     it('should throw error when no arguments provided', async () => {
-      await expect(command.run([])).rejects.toThrow(
-        'Benutzername und neues Passwort müssen angegeben werden',
-      );
+      await expect(command.run([])).rejects.toThrow('Benutzername und neues Passwort müssen angegeben werden');
     });
 
     it('should throw error when only username provided', async () => {
-      await expect(command.run(['admin'])).rejects.toThrow(
-        'Benutzername und neues Passwort müssen angegeben werden',
-      );
+      await expect(command.run(['admin'])).rejects.toThrow('Benutzername und neues Passwort müssen angegeben werden');
     });
 
     it('should throw error when only password provided', async () => {
-      await expect(command.run([undefined, 'password'])).rejects.toThrow(
-        'Benutzername und neues Passwort müssen angegeben werden',
-      );
+      await expect(command.run([undefined, 'password'])).rejects.toThrow('Benutzername und neues Passwort müssen angegeben werden');
     });
   });
 
@@ -107,7 +101,7 @@ describe('AdminResetPasswordCommand', () => {
     let loggerErrorSpy: jest.SpyInstance;
 
     beforeEach(() => {
-      loggerErrorSpy = jest.spyOn(Logger.prototype as any, 'error').mockImplementation();
+      loggerErrorSpy = jest.spyOn(Logger.prototype, 'error' as never).mockImplementation();
     });
 
     afterEach(() => {
@@ -117,16 +111,12 @@ describe('AdminResetPasswordCommand', () => {
     it('should throw error when user not found', async () => {
       (prismaService.user.findUnique as jest.Mock).mockResolvedValue(null);
 
-      await expect(command.run(['nonexistent', 'newPassword'])).rejects.toThrow(
-        'Benutzer "nonexistent" wurde nicht gefunden.',
-      );
+      await expect(command.run(['nonexistent', 'newPassword'])).rejects.toThrow('Benutzer "nonexistent" wurde nicht gefunden.');
 
       expect(prismaService.user.findUnique).toHaveBeenCalledWith({
         where: { username: 'nonexistent' },
       });
-      expect(loggerErrorSpy).toHaveBeenCalledWith(
-        '❌ Fehler: Benutzer "nonexistent" wurde nicht gefunden.',
-      );
+      expect(loggerErrorSpy).toHaveBeenCalledWith('❌ Fehler: Benutzer "nonexistent" wurde nicht gefunden.');
     });
 
     it('should throw error when user is not admin', async () => {
@@ -136,16 +126,12 @@ describe('AdminResetPasswordCommand', () => {
         role: UserRole.USER,
       });
 
-      await expect(command.run(['regularuser', 'newPassword'])).rejects.toThrow(
-        'Benutzer "regularuser" ist kein Administrator (Rolle: USER).',
-      );
+      await expect(command.run(['regularuser', 'newPassword'])).rejects.toThrow('Benutzer "regularuser" ist kein Administrator (Rolle: USER).');
 
       expect(prismaService.user.findUnique).toHaveBeenCalledWith({
         where: { username: 'regularuser' },
       });
-      expect(loggerErrorSpy).toHaveBeenCalledWith(
-        '❌ Fehler: Benutzer "regularuser" ist kein Administrator (Rolle: USER).',
-      );
+      expect(loggerErrorSpy).toHaveBeenCalledWith('❌ Fehler: Benutzer "regularuser" ist kein Administrator (Rolle: USER).');
     });
 
     it('should proceed with admin user', async () => {
@@ -161,7 +147,7 @@ describe('AdminResetPasswordCommand', () => {
         passwordHash: '$2b$10$hashedPassword123',
       });
 
-      const loggerLogSpy = jest.spyOn(Logger.prototype as any, 'log').mockImplementation();
+      const loggerLogSpy = jest.spyOn(Logger.prototype, 'log' as never).mockImplementation();
 
       await command.run(['adminuser', 'newPassword']);
 
@@ -173,9 +159,7 @@ describe('AdminResetPasswordCommand', () => {
         where: { id: '456' },
         data: { passwordHash: '$2b$10$hashedPassword123' },
       });
-      expect(loggerLogSpy).toHaveBeenCalledWith(
-        '✅ Passwort erfolgreich zurückgesetzt für Admin: adminuser',
-      );
+      expect(loggerLogSpy).toHaveBeenCalledWith('✅ Passwort erfolgreich zurückgesetzt für Admin: adminuser');
       loggerLogSpy.mockRestore();
     });
 
@@ -192,7 +176,7 @@ describe('AdminResetPasswordCommand', () => {
         passwordHash: '$2b$10$hashedPassword456',
       });
 
-      const loggerLogSpy = jest.spyOn(Logger.prototype as any, 'log').mockImplementation();
+      const loggerLogSpy = jest.spyOn(Logger.prototype, 'log' as never).mockImplementation();
 
       await command.run(['superadminuser', 'newPassword']);
 
@@ -204,20 +188,14 @@ describe('AdminResetPasswordCommand', () => {
         where: { id: '789' },
         data: { passwordHash: '$2b$10$hashedPassword456' },
       });
-      expect(loggerLogSpy).toHaveBeenCalledWith(
-        '✅ Passwort erfolgreich zurückgesetzt für Admin: superadminuser',
-      );
+      expect(loggerLogSpy).toHaveBeenCalledWith('✅ Passwort erfolgreich zurückgesetzt für Admin: superadminuser');
       loggerLogSpy.mockRestore();
     });
 
     it('should handle database errors gracefully', async () => {
-      (prismaService.user.findUnique as jest.Mock).mockRejectedValue(
-        new Error('Database connection failed'),
-      );
+      (prismaService.user.findUnique as jest.Mock).mockRejectedValue(new Error('Database connection failed'));
 
-      await expect(command.run(['adminuser', 'newPassword'])).rejects.toThrow(
-        'Database connection failed',
-      );
+      await expect(command.run(['adminuser', 'newPassword'])).rejects.toThrow('Database connection failed');
 
       expect(prismaService.user.findUnique).toHaveBeenCalledWith({
         where: { username: 'adminuser' },
@@ -230,8 +208,8 @@ describe('AdminResetPasswordCommand', () => {
     let loggerErrorSpy: jest.SpyInstance;
 
     beforeEach(() => {
-      loggerLogSpy = jest.spyOn(Logger.prototype as any, 'log').mockImplementation();
-      loggerErrorSpy = jest.spyOn(Logger.prototype as any, 'error').mockImplementation();
+      loggerLogSpy = jest.spyOn(Logger.prototype, 'log' as never).mockImplementation();
+      loggerErrorSpy = jest.spyOn(Logger.prototype, 'error' as never).mockImplementation();
     });
 
     afterEach(() => {

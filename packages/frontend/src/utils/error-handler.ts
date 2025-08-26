@@ -1,5 +1,5 @@
-import { toast } from 'sonner';
 import type { FetchError, ResponseError } from '@bluelight-hub/shared/client';
+import { toast } from 'sonner';
 
 // Track shown errors to prevent duplicates
 const shownErrors = new WeakSet<Error>();

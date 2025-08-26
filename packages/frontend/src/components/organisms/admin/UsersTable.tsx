@@ -1,9 +1,9 @@
-import { useMemo, useState } from 'react';
-import { createColumnHelper, flexRender, getCoreRowModel, getSortedRowModel, useReactTable } from '@tanstack/react-table';
-import { PiTrash } from 'react-icons/pi';
-import { UserDtoRoleEnum } from '@bluelight-hub/shared/client';
 import type { UserDto } from '@bluelight-hub/shared/client';
+import { UserDtoRoleEnum } from '@bluelight-hub/shared/client';
 import type { SortingState } from '@tanstack/react-table';
+import { createColumnHelper, flexRender, getCoreRowModel, getSortedRowModel, useReactTable } from '@tanstack/react-table';
+import { useMemo, useState } from 'react';
+import { PiTrash } from 'react-icons/pi';
 import { Badge } from '@/components/atoms/badge.atom';
 import { IconButton } from '@/components/atoms/icon-button.atom';
 import { Table } from '@/components/molecules/table.molecule';
@@ -44,7 +44,7 @@ export const UsersTable = ({ users, isLoading, onDelete }: UsersTableProps) => {
       }),
       columnHelper.accessor('id', {
         header: 'ID',
-        cell: (info) => <span className="font-mono text-sm text-gray-600 dark:text-gray-400">{info.getValue()}</span>,
+        cell: (info) => <span className="font-mono text-gray-600 text-sm dark:text-gray-400">{info.getValue()}</span>,
       }),
       columnHelper.display({
         id: 'actions',
