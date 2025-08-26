@@ -8,6 +8,7 @@
     "dev:vite": "vite",
     "build": "tsc --skipLibCheck --noEmit && vite build",
     "lint": "biome check --write",
+    "lint:check": "biome check",
     "preview": "vite preview",
     "tauri": "tauri",
     "test": "vitest run",

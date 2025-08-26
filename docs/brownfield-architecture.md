@@ -2,11 +2,14 @@
 
 ## Introduction
 
-This document captures the CURRENT STATE of the BlueLight Hub codebase, including technical debt, workarounds, and real-world patterns. It serves as a reference for AI agents working on enhancements to this emergency services support application.
+This document captures the CURRENT STATE of the BlueLight Hub codebase, including technical debt, workarounds, and
+real-world patterns. It serves as a reference for AI agents working on enhancements to this emergency services support
+application.
 
 ### Document Scope
 
-Comprehensive documentation of entire system - a monorepo-based emergency services platform with offline capabilities, real-time communication, and resource management features.
+Comprehensive documentation of entire system - a monorepo-based emergency services platform with offline capabilities,
+real-time communication, and resource management features.
 
 ### Change Log
 
@@ -390,7 +393,6 @@ pnpm dev                    # Start all services
 pnpm build                  # Build all packages
 pnpm generate-api           # Regenerate API clients
 pnpm lint                   # Lint all packages
-pnpm format                 # Format code
 
 # Database
 pnpm --filter @bluelight-hub/backend prisma:studio   # Prisma Studio GUI

@@ -7,6 +7,7 @@
     "build": "pnpm -r build",
     "generate-api": "pnpm -r generate-api",
     "lint": "biome check --write && pnpm -r lint",
+    "lint:check": "biome check && pnpm -r lint:check",
     "test": "pnpm -r test",
     "test:ui": "pnpm -r test:ui",
     "test:cov": "pnpm -r test:cov",

@@ -14,7 +14,7 @@
 - Install: `pnpm install` (pnpm only). Prefer IDE run configurations; CLI is the fallback.
 - Dev (all): `pnpm dev` — backend (Nest watch) + frontend (Tauri/Vite).
 - Build: `pnpm build`; or per package via `pnpm --filter <pkg> build`.
-- Lint/Format: `pnpm lint`, `pnpm format`, `pnpm format:check`.
+- Lint/Format: `pnpm lint`, `pnpm lint:check`.
 - Tests (all): `pnpm test` | Coverage: `pnpm test:cov` | UI: `pnpm test:ui`.
 - Backend E2E: `pnpm --filter @bluelight-hub/backend test:e2e` (add `:watch`/`:cov` as needed).
 - Docs: `pnpm docs:build` → `dist/docs/`.
@@ -46,7 +46,7 @@
 
 - Commits: follow `.cursor/rules/030-commit-rules.mdc` (gitmoji + concise context).
 - PRs: include summary, linked issues, reproduction/validation steps, and screenshots for UI changes.
-- Require green checks: `pnpm lint`, `pnpm format:check`, `pnpm test`. Update docs and `.env.example` when configs
+- Require green checks: `pnpm lint`, `pnpm lint:check`, `pnpm test`. Update docs and `.env.example` when configs
   change.
 
 ## Security & Configuration Tips
