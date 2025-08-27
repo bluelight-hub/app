@@ -183,12 +183,7 @@ dev-debug.log
 # OS specific
 # Task files
 tasks.json
-tasks/
-# Un-ignore .claude/commands/BMad/tasks/ directory hierarchy
-!.claude/
-!.claude/commands/
-!.claude/commands/BMad/
-!.claude/commands/BMad/tasks/
+.taskmaster/tasks
 
 # Cursor MCP (enthält API-Schlüssel)
 .cursor/mcp.json

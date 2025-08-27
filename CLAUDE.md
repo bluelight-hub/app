@@ -11,15 +11,15 @@ Nutze IMMER TanStack Query Hooks mit generiertem API-Client:
 ```typescript
 // ✅ RICHTIG:
 const useSecurityAlerts = () => {
-  return useQuery({
-    queryKey: QUERY_KEYS.security.alerts,
-    queryFn: () => api.security().getSecurityAlerts(),
-  });
+    return useQuery({
+        queryKey: QUERY_KEYS.security.alerts,
+        queryFn: () => api.security().getSecurityAlerts(),
+    });
 };
 
 // ❌ FALSCH:
 const fetchAlerts = async () => {
-  return await fetch('/api/security/alerts');
+    return await fetch('/api/security/alerts');
 };
 ```
 
@@ -32,9 +32,9 @@ const fetchAlerts = async () => {
 - NIEMALS andere CSS-Frameworks oder CSS-in-JS mischen
 - Bei UI-Änderungen IMMER Tailwind-Klassen und Headless UI-Komponenten verwenden
 - **Tailwind Plus (TailwindUI):** Premium-Komponenten
-  - IMMER beim User anfragen!
-  - Der User muss die Komponenten manuell von TailwindUI kopieren und bereitstellen
-  - NIEMALS selbst TailwindUI-Komponenten erfinden oder raten
+    - IMMER beim User anfragen!
+    - Der User muss die Komponenten manuell von TailwindUI kopieren und bereitstellen
+    - NIEMALS selbst TailwindUI-Komponenten erfinden oder raten
 
 ### Forms & State
 
@@ -54,7 +54,7 @@ const fetchAlerts = async () => {
 Verwende ultrathink, also denke nach bevor du handelst. Hier sind die wichtigsten Workflows.
 
 | Trigger            | Agent                | Beschreibung                  |
-| ------------------ | -------------------- | ----------------------------- |
+|--------------------|----------------------|-------------------------------|
 | Nach Code-Änderung | `test-writer-fixer`  | Tests schreiben/anpassen      |
 | Nach UI-Änderung   | `whimsy-injector`    | Delightful touches hinzufügen |
 | Vor jedem Commit   | `commit-expert`      | Perfekte Commit-Message       |
@@ -68,7 +68,7 @@ Verwende ultrathink, also denke nach bevor du handelst. Hier sind die wichtigste
 ### 🔧 Engineering
 
 | Agent                | Verwendung                    | Priorität    |
-| -------------------- | ----------------------------- | ------------ |
+|----------------------|-------------------------------|--------------|
 | `rapid-prototyper`   | MVPs in 6 Tagen bauen         | **KRITISCH** |
 | `backend-architect`  | APIs, Datenbanken, Server     | **KRITISCH** |
 | `frontend-developer` | React, Vue, UI Implementation | **KRITISCH** |
@@ -80,7 +80,7 @@ Verwende ultrathink, also denke nach bevor du handelst. Hier sind die wichtigste
 ### 🧪 Testing & Quality
 
 | Agent                     | Verwendung                  | Priorität    |
-| ------------------------- | --------------------------- | ------------ |
+|---------------------------|-----------------------------|--------------|
 | `api-tester`              | Load Testing, Performance   | **KRITISCH** |
 | `performance-benchmarker` | Speed Optimization          | HOCH         |
 | `test-results-analyzer`   | Test Patterns erkennen      | HOCH         |
@@ -90,7 +90,7 @@ Verwende ultrathink, also denke nach bevor du handelst. Hier sind die wichtigste
 ### 🎨 Design & UX (Technisch)
 
 | Agent             | Verwendung                       | Priorität |
-| ----------------- | -------------------------------- | --------- |
+|-------------------|----------------------------------|-----------|
 | `ui-designer`     | Component Design, Design Systems | HOCH      |
 | `ux-researcher`   | User Feedback → Features         | HOCH      |
 | `whimsy-injector` | Micro-Interactions, Delight      | MITTEL    |
@@ -98,7 +98,7 @@ Verwende ultrathink, also denke nach bevor du handelst. Hier sind die wichtigste
 ### 📦 Product & Planning
 
 | Agent                  | Verwendung               | Priorität    |
-| ---------------------- | ------------------------ | ------------ |
+|------------------------|--------------------------|--------------|
 | `sprint-prioritizer`   | 6-Day Sprint Planning    | **KRITISCH** |
 | `feedback-synthesizer` | Bug Reports analysieren  | HOCH         |
 | `experiment-tracker`   | A/B Tests, Feature Flags | HOCH         |
@@ -107,7 +107,7 @@ Verwende ultrathink, also denke nach bevor du handelst. Hier sind die wichtigste
 ### 🚀 Deployment & Operations
 
 | Agent                       | Verwendung                  | Priorität    |
-| --------------------------- | --------------------------- | ------------ |
+|-----------------------------|-----------------------------|--------------|
 | `infrastructure-maintainer` | Scaling, Performance        | **KRITISCH** |
 | `project-shipper`           | Release Coordination        | HOCH         |
 | `studio-producer`           | Team & Sprint Orchestration | HOCH         |
@@ -117,7 +117,7 @@ Verwende ultrathink, also denke nach bevor du handelst. Hier sind die wichtigste
 ### 🎯 Special Agents
 
 | Agent           | Verwendung               | Priorität |
-| --------------- | ------------------------ | --------- |
+|-----------------|--------------------------|-----------|
 | `studio-coach`  | Multi-Agent Koordination | HOCH      |
 | `commit-expert` | Git Commit Messages      | HOCH      |
 
@@ -161,8 +161,8 @@ cd packages/backend && pnpm run test:e2e       # NICHT "test" verwenden!
 - **Tailwind CSS:** Utility-first CSS Framework für Styling
 - **Headless UI:** Unstyled, accessible Komponenten (Dialogs, Dropdowns, etc.)
 - **Tailwind Plus/TailwindUI:** Premium-Komponenten
-  - WICHTIG: Komponenten müssen vom User bereitgestellt werden
-  - Workflow: Frage User nach benötigter Komponente → User kopiert von TailwindUI → Integration
+    - WICHTIG: Komponenten müssen vom User bereitgestellt werden
+    - Workflow: Frage User nach benötigter Komponente → User kopiert von TailwindUI → Integration
 - **Tailwind Config:** Zentrale Theme-Konfiguration in `tailwind.config.js`
 
 ## 📚 ARCHITECTURE & DOCUMENTATION
@@ -215,9 +215,9 @@ dto/       # Data Transfer Objects
 ### Semantic Release Triggers
 
 | Emoji | Typ      | Version | Verwendung       |
-| ----- | -------- | ------- | ---------------- |
+|-------|----------|---------|------------------|
 | 💥    | Breaking | Major   | Breaking Changes |
-| ✨    | Feature  | Minor   | Neue Features    |
+| ✨     | Feature  | Minor   | Neue Features    |
 | 🐛    | Fix      | Patch   | Bug Fixes        |
 | 🚑    | Hotfix   | Patch   | Kritische Fixes  |
 | 🔒    | Security | Patch   | Security Fixes   |
@@ -247,7 +247,7 @@ dto/       # Data Transfer Objects
 ## 🔍 QUICK REFERENCE
 
 | Was                 | Wo       | Tool/Command                      | Agent                     |
-| ------------------- | -------- | --------------------------------- | ------------------------- |
+|---------------------|----------|-----------------------------------|---------------------------|
 | **Neues Projekt**   | -        | `pnpm create vite`                | `rapid-prototyper`        |
 | **API erstellen**   | Backend  | NestJS + Swagger                  | `backend-architect`       |
 | **API nutzen**      | Frontend | Generierter Client in `@/api`     | -                         |
@@ -272,6 +272,8 @@ dto/       # Data Transfer Objects
 - [ ] **Commit**: `commit-expert` für Git Messages
 
 ---
+
+Mandatory: Spreche Deutsch mit mir, produziere Englischen Code, aber deutsche Dokumentation!
 
 _Repository:_ github.com/bluelight-hub/app
 _Import zusätzliche Workflows:_ @./.taskmaster/CLAUDE.md

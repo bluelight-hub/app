@@ -105,5 +105,11 @@
     }
   },
   "html": { "formatter": { "selfCloseVoidElements": "always" } },
-  "overrides": [{ "includes": ["*.json", "*.yml", "*.yaml"], "formatter": { "indentWidth": 2 } }]
+  "overrides": [
+    { "includes": ["*.json", "*.yml", "*.yaml"], "formatter": { "indentWidth": 2 } },
+    {
+      "includes": ["*.md"],
+      "formatter": { "lineWidth": 300 }
+    }
+  ]
 }
