@@ -2,7 +2,7 @@ name: Release
 run-name: Release ${{ github.ref_name }}#${{ github.run_number }}
 on:
   workflow_run:
-    workflows: ['Tests']
+    workflows: ['CI Pipeline']
     branches: [main, alpha, beta, next]
     types:
       - completed
