@@ -38,8 +38,43 @@ model User {
   // loginAttempts   LoginAttempt[]
   // securityLogs    SecurityLog[]
 
+  // Einsatz Relations
+  createdEinsaetze Einsatz[] @relation("EinsatzCreator")
+  updatedEinsaetze Einsatz[] @relation("EinsatzUpdater")
+
   // Indexes
   @@index([username], map: "idx_user_username")
   @@index([role, isActive], map: "idx_user_role_active")
   @@index([lastLoginAt], map: "idx_user_last_login")
+}
+
+// Einsatz Status Enum
+enum EinsatzStatus {
+  ANGELEGT
+  IN_BEARBEITUNG
+  ABGESCHLOSSEN
+  ARCHIVIERT
+}
+
+// Einsatz Model
+model Einsatz {
+  id               String        @id @default(cuid())
+  alarmstichwort   String?       @db.VarChar(255)
+  alarmierungszeit DateTime?
+  status           EinsatzStatus @default(ANGELEGT)
+  metadata         Json?         @db.JsonB
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  createdBy String   @db.VarChar(100)
+  updatedBy String?  @db.VarChar(100)
+
+  // Relations
+  creator User  @relation("EinsatzCreator", fields: [createdBy], references: [id])
+  updater User? @relation("EinsatzUpdater", fields: [updatedBy], references: [id])
+
+  // Indexes
+  @@index([status, createdAt])
+  @@index([createdBy])
+  @@map("einsaetze")
 }
