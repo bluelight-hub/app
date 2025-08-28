@@ -1,4 +1,4 @@
-import type { DeleteUserResponseData } from '@bluelight-hub/shared/client';
+import type { DeleteUserResponseDto } from '../dto/delete-user-response.dto';
 
 /**
  * Erstellt eine Lösch-Response für einen Benutzer
@@ -6,7 +6,7 @@ import type { DeleteUserResponseData } from '@bluelight-hub/shared/client';
  * @param id - Die ID des gelöschten Benutzers
  * @returns Lösch-Response-DTO
  */
-export function toDeleteUserResponseDto(id: string): DeleteUserResponseData {
+export function toDeleteUserResponseDto(id: string): DeleteUserResponseDto {
   return {
     id,
     deleted: true,

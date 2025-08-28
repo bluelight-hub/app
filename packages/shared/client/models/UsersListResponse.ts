@@ -13,14 +13,14 @@
  */
 
 import { mapValues } from '../runtime';
-import type { ApiLinks } from './ApiLinks';
-import { ApiLinksFromJSON, ApiLinksFromJSONTyped, ApiLinksToJSON, ApiLinksToJSONTyped } from './ApiLinks';
 import type { ApiMeta } from './ApiMeta';
 import { ApiMetaFromJSON, ApiMetaFromJSONTyped, ApiMetaToJSON, ApiMetaToJSONTyped } from './ApiMeta';
 import type { ApiPagination } from './ApiPagination';
 import { ApiPaginationFromJSON, ApiPaginationFromJSONTyped, ApiPaginationToJSON, ApiPaginationToJSONTyped } from './ApiPagination';
 import type { UserDto } from './UserDto';
 import { UserDtoFromJSON, UserDtoFromJSONTyped, UserDtoToJSON, UserDtoToJSONTyped } from './UserDto';
+import type { ApiLinks } from './ApiLinks';
+import { ApiLinksFromJSON, ApiLinksFromJSONTyped, ApiLinksToJSON, ApiLinksToJSONTyped } from './ApiLinks';
 
 /**
  *

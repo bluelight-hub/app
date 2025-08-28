@@ -12,21 +12,12 @@
  * Do not edit the class manually.
  */
 
-import type { CreateUserDto, DeleteUserResponse, UserResponse, UsersListResponse } from '../models/index';
-import {
-  CreateUserDtoFromJSON,
-  CreateUserDtoToJSON,
-  DeleteUserResponseFromJSON,
-  DeleteUserResponseToJSON,
-  UserResponseFromJSON,
-  UserResponseToJSON,
-  UsersListResponseFromJSON,
-  UsersListResponseToJSON,
-} from '../models/index';
 import * as runtime from '../runtime';
+import type { DeleteUserResponse, UserResponse, UsersListResponse } from '../models/index';
+import { DeleteUserResponseFromJSON, DeleteUserResponseToJSON, UserResponseFromJSON, UserResponseToJSON, UsersListResponseFromJSON, UsersListResponseToJSON } from '../models/index';
 
 export interface UserManagementControllerCreateVAlphaRequest {
-  createUserDto: CreateUserDto;
+  body: object;
 }
 
 export interface UserManagementControllerRemoveVAlphaRequest {
@@ -44,8 +35,8 @@ export class UserManagementApi extends runtime.BaseAPI {
     requestParameters: UserManagementControllerCreateVAlphaRequest,
     initOverrides?: RequestInit | runtime.InitOverrideFunction,
   ): Promise<runtime.ApiResponse<UserResponse>> {
-    if (requestParameters['createUserDto'] == null) {
-      throw new runtime.RequiredError('createUserDto', 'Required parameter "createUserDto" was null or undefined when calling userManagementControllerCreateVAlpha().');
+    if (requestParameters['body'] == null) {
+      throw new runtime.RequiredError('body', 'Required parameter "body" was null or undefined when calling userManagementControllerCreateVAlpha().');
     }
 
     const queryParameters: any = {};
@@ -60,7 +51,7 @@ export class UserManagementApi extends runtime.BaseAPI {
         method: 'POST',
         headers: headerParameters,
         query: queryParameters,
-        body: CreateUserDtoToJSON(requestParameters['createUserDto']),
+        body: requestParameters['body'] as any,
       },
       initOverrides,
     );
