@@ -89,7 +89,7 @@ export const DefaultConfig = new Configuration();
  * This is the base class for all generated API classes.
  */
 export class BaseAPI {
-  private static readonly jsonRegex = /^(:?application\/json|[^;/ \t]+\/[^;/ \t]+[+]json)[ \t]*(:?;.*)?$/i;
+  private static readonly jsonRegex = new RegExp('^(:?application\/json|[^;/ \t]+\/[^;/ \t]+[+]json)[ \t]*(:?;.*)?$', 'i');
   private middleware: Middleware[];
 
   constructor(protected configuration = DefaultConfig) {
@@ -195,7 +195,7 @@ export class BaseAPI {
           })) || fetchParams;
       }
     }
-    let response: Response | undefined;
+    let response: Response | undefined = undefined;
     try {
       response = await (this.configuration.fetchApi || fetch)(fetchParams.url, fetchParams.init);
     } catch (e) {
@@ -295,16 +295,9 @@ export type FetchAPI = WindowOrWorkerGlobalScope['fetch'];
 export type Json = any;
 export type HTTPMethod = 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE' | 'OPTIONS' | 'HEAD';
 export type HTTPHeaders = { [key: string]: string };
-export type HTTPQuery = {
-  [key: string]: string | number | null | boolean | Array<string | number | null | boolean> | Set<string | number | null | boolean> | HTTPQuery;
-};
+export type HTTPQuery = { [key: string]: string | number | null | boolean | Array<string | number | null | boolean> | Set<string | number | null | boolean> | HTTPQuery };
 export type HTTPBody = Json | FormData | URLSearchParams;
-export type HTTPRequestInit = {
-  headers?: HTTPHeaders;
-  method: HTTPMethod;
-  credentials?: RequestCredentials;
-  body?: HTTPBody;
-};
+export type HTTPRequestInit = { headers?: HTTPHeaders; method: HTTPMethod; credentials?: RequestCredentials; body?: HTTPBody };
 export type ModelPropertyNaming = 'camelCase' | 'snake_case' | 'PascalCase' | 'original';
 
 export type InitOverrideFunction = (requestContext: { init: HTTPRequestInit; context: RequestOpts }) => Promise<RequestInit>;
@@ -406,7 +399,9 @@ export interface ApiResponse<T> {
   value(): Promise<T>;
 }
 
-export type ResponseTransformer<T> = (json: any) => T;
+export interface ResponseTransformer<T> {
+  (json: any): T;
+}
 
 export class JSONApiResponse<T> {
   constructor(

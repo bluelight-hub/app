@@ -40,6 +40,9 @@
       "nursery": {
         "useSortedClasses": "on",
         "noShadow": "on"
+      },
+      "complexity": {
+        "noStaticOnlyClass": "off"
       }
     },
     "includes": [

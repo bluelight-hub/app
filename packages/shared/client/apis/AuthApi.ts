@@ -12,15 +12,13 @@
  * Do not edit the class manually.
  */
 
+import * as runtime from '../runtime';
 import type {
   AdminLoginResponseDto,
-  AdminPasswordDto,
-  AdminSetupDto,
   AdminSetupResponseDto,
   AdminStatusDto,
   AdminTokenVerificationDto,
   AuthCheckResponseDto,
-  AuthRequestDto,
   AuthResponseDto,
   LogoutResponseDto,
   PublicUsersResponseDto,
@@ -29,10 +27,6 @@ import type {
 import {
   AdminLoginResponseDtoFromJSON,
   AdminLoginResponseDtoToJSON,
-  AdminPasswordDtoFromJSON,
-  AdminPasswordDtoToJSON,
-  AdminSetupDtoFromJSON,
-  AdminSetupDtoToJSON,
   AdminSetupResponseDtoFromJSON,
   AdminSetupResponseDtoToJSON,
   AdminStatusDtoFromJSON,
@@ -41,8 +35,6 @@ import {
   AdminTokenVerificationDtoToJSON,
   AuthCheckResponseDtoFromJSON,
   AuthCheckResponseDtoToJSON,
-  AuthRequestDtoFromJSON,
-  AuthRequestDtoToJSON,
   AuthResponseDtoFromJSON,
   AuthResponseDtoToJSON,
   LogoutResponseDtoFromJSON,
@@ -52,18 +44,17 @@ import {
   RefreshResponseDtoFromJSON,
   RefreshResponseDtoToJSON,
 } from '../models/index';
-import * as runtime from '../runtime';
 
 export interface AuthControllerAdminLoginRequest {
-  adminPasswordDto: AdminPasswordDto;
+  body: object;
 }
 
 export interface AuthControllerAdminSetupRequest {
-  adminSetupDto: AdminSetupDto;
+  body: object;
 }
 
 export interface AuthControllerUnifiedAuthRequest {
-  authRequestDto: AuthRequestDto;
+  body: object;
 }
 
 /**
@@ -78,8 +69,8 @@ export class AuthApi extends runtime.BaseAPI {
     requestParameters: AuthControllerAdminLoginRequest,
     initOverrides?: RequestInit | runtime.InitOverrideFunction,
   ): Promise<runtime.ApiResponse<AdminLoginResponseDto>> {
-    if (requestParameters['adminPasswordDto'] == null) {
-      throw new runtime.RequiredError('adminPasswordDto', 'Required parameter "adminPasswordDto" was null or undefined when calling authControllerAdminLogin().');
+    if (requestParameters['body'] == null) {
+      throw new runtime.RequiredError('body', 'Required parameter "body" was null or undefined when calling authControllerAdminLogin().');
     }
 
     const queryParameters: any = {};
@@ -94,7 +85,7 @@ export class AuthApi extends runtime.BaseAPI {
         method: 'POST',
         headers: headerParameters,
         query: queryParameters,
-        body: AdminPasswordDtoToJSON(requestParameters['adminPasswordDto']),
+        body: requestParameters['body'] as any,
       },
       initOverrides,
     );
@@ -150,8 +141,8 @@ export class AuthApi extends runtime.BaseAPI {
     requestParameters: AuthControllerAdminSetupRequest,
     initOverrides?: RequestInit | runtime.InitOverrideFunction,
   ): Promise<runtime.ApiResponse<AdminSetupResponseDto>> {
-    if (requestParameters['adminSetupDto'] == null) {
-      throw new runtime.RequiredError('adminSetupDto', 'Required parameter "adminSetupDto" was null or undefined when calling authControllerAdminSetup().');
+    if (requestParameters['body'] == null) {
+      throw new runtime.RequiredError('body', 'Required parameter "body" was null or undefined when calling authControllerAdminSetup().');
     }
 
     const queryParameters: any = {};
@@ -166,7 +157,7 @@ export class AuthApi extends runtime.BaseAPI {
         method: 'POST',
         headers: headerParameters,
         query: queryParameters,
-        body: AdminSetupDtoToJSON(requestParameters['adminSetupDto']),
+        body: requestParameters['body'] as any,
       },
       initOverrides,
     );
@@ -343,8 +334,8 @@ export class AuthApi extends runtime.BaseAPI {
    * Unified Login & Auto-Register
    */
   async authControllerUnifiedAuthRaw(requestParameters: AuthControllerUnifiedAuthRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<AuthResponseDto>> {
-    if (requestParameters['authRequestDto'] == null) {
-      throw new runtime.RequiredError('authRequestDto', 'Required parameter "authRequestDto" was null or undefined when calling authControllerUnifiedAuth().');
+    if (requestParameters['body'] == null) {
+      throw new runtime.RequiredError('body', 'Required parameter "body" was null or undefined when calling authControllerUnifiedAuth().');
     }
 
     const queryParameters: any = {};
@@ -359,7 +350,7 @@ export class AuthApi extends runtime.BaseAPI {
         method: 'POST',
         headers: headerParameters,
         query: queryParameters,
-        body: AuthRequestDtoToJSON(requestParameters['authRequestDto']),
+        body: requestParameters['body'] as any,
       },
       initOverrides,
     );
