@@ -4,6 +4,7 @@ import { ConfigModule } from '@nestjs/config';
 import { CacheModule } from '@nestjs/cache-manager';
 import { AppConfigService } from './services/app-config.service';
 import { CacheConfigService } from './config/cache-config.service';
+import { CacheRateLimiterService } from './services/cache-rate-limiter.service';
 
 /**
  * Gemeinsames Modul für anwendungsübergreifende Funktionalitäten
@@ -29,7 +30,7 @@ import { CacheConfigService } from './config/cache-config.service';
       isGlobal: true,
     }),
   ],
-  providers: [AppConfigService, CacheConfigService],
-  exports: [AppConfigService, CacheConfigService, CacheModule],
+  providers: [AppConfigService, CacheConfigService, CacheRateLimiterService],
+  exports: [AppConfigService, CacheConfigService, CacheRateLimiterService, CacheModule],
 })
 export class CommonModule {}
