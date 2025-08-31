@@ -3,6 +3,7 @@ import { JwtAuthGuard } from '@/auth/guards/jwt-auth.guard';
 import type { ValidatedUser } from '@/auth/strategies/jwt.strategy';
 import { ApiWrappedResponse } from '@/common/decorators/api-wrapped-response.decorator';
 import type { PaginatedData } from '@/common/interceptors/transform.interceptor';
+import { CacheDuplicateDetectionService } from '@/common/services/cache-duplicate-detection.service';
 import { CreateEinsatzDto, EinsatzQueryDto, EinsatzResponseDto, UpdateEinsatzDto } from '@/einsatz/dto';
 import { Body, Controller, Get, Logger, Param, Patch, Post, Query, UseGuards, ValidationPipe } from '@nestjs/common';
 import { ApiBadRequestResponse, ApiBearerAuth, ApiForbiddenResponse, ApiNotFoundResponse, ApiOkResponse, ApiOperation, ApiQuery, ApiTags, ApiUnauthorizedResponse } from '@nestjs/swagger';
@@ -41,7 +42,10 @@ import { EinsatzService } from './einsatz.service';
 export class EinsatzController {
   private readonly logger = new Logger(EinsatzController.name);
 
-  constructor(private readonly einsatzService: EinsatzService) {}
+  constructor(
+    private readonly einsatzService: EinsatzService,
+    private readonly duplicateDetectionService: CacheDuplicateDetectionService,
+  ) {}
 
   @Post()
   @ApiOperation({
@@ -56,7 +60,15 @@ export class EinsatzController {
     @CurrentUser() user: ValidatedUser,
   ): Promise<EinsatzResponseDto> {
     this.logger.log(`Creating new Einsatz for user ${user.userId}`);
-    return await this.einsatzService.create(createEinsatzDto, user.userId);
+
+    // Generiere Cache-Key basierend auf Eingabedaten und User
+    const cacheKey = `einsatz:create:${user.userId}:${JSON.stringify(createEinsatzDto)}`;
+
+    return await this.duplicateDetectionService.executeIdempotent(
+      cacheKey,
+      () => this.einsatzService.create(createEinsatzDto, user.userId),
+      60000, // 1 Minute TTL
+    );
   }
 
   @Get()
@@ -107,7 +119,15 @@ export class EinsatzController {
     @CurrentUser() user: ValidatedUser,
   ): Promise<EinsatzResponseDto> {
     this.logger.log(`Updating Einsatz ${id} by user ${user.userId}`);
-    return await this.einsatzService.update(id, updateEinsatzDto, user.userId);
+
+    // Generiere Cache-Key basierend auf ID, Eingabedaten und User
+    const cacheKey = `einsatz:update:${id}:${user.userId}:${JSON.stringify(updateEinsatzDto)}`;
+
+    return await this.duplicateDetectionService.executeIdempotent(
+      cacheKey,
+      () => this.einsatzService.update(id, updateEinsatzDto, user.userId),
+      60000, // 1 Minute TTL
+    );
   }
 
   /**

@@ -5,6 +5,7 @@ import { CacheModule } from '@nestjs/cache-manager';
 import { AppConfigService } from './services/app-config.service';
 import { CacheConfigService } from './config/cache-config.service';
 import { CacheRateLimiterService } from './services/cache-rate-limiter.service';
+import { CacheDuplicateDetectionService } from './services/cache-duplicate-detection.service';
 
 /**
  * Gemeinsames Modul für anwendungsübergreifende Funktionalitäten
@@ -30,7 +31,7 @@ import { CacheRateLimiterService } from './services/cache-rate-limiter.service';
       isGlobal: true,
     }),
   ],
-  providers: [AppConfigService, CacheConfigService, CacheRateLimiterService],
-  exports: [AppConfigService, CacheConfigService, CacheRateLimiterService, CacheModule],
+  providers: [AppConfigService, CacheConfigService, CacheRateLimiterService, CacheDuplicateDetectionService],
+  exports: [AppConfigService, CacheConfigService, CacheRateLimiterService, CacheDuplicateDetectionService, CacheModule],
 })
 export class CommonModule {}
