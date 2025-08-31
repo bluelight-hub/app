@@ -1,66 +1,124 @@
-# Git Commit erstellen
+# /git-commit Command
 
-Erstelle einen professionellen Git Commit mit perfekter Commit-Message nach den Projekt-Standards.
+When this command is used, execute the following workflow:
 
-## Schritte:
+<!-- BlueLight Hub Git Commit Workflow -->
 
-1. **Status prüfen**: Führe parallel aus:
-   - `git status` - Zeige alle ungetrackten Dateien
-   - `git diff` - Zeige staged und unstaged Änderungen
-   - `git log --oneline -5` - Zeige letzte Commits für Stil-Referenz
+# git-commit
 
-2. **Änderungen analysieren**:
-   - Identifiziere Art der Änderungen (Feature, Fix, Refactoring, etc.)
-   - Prüfe auf sensitive Informationen
-   - Bestimme das passende Emoji und den Kontext
+ACTIVATION-NOTICE: This file contains the complete git commit workflow. Execute immediately upon invocation.
 
-3. **Commit vorbereiten**:
-   - Stage relevante Dateien mit `git add`
-   - Erstelle Commit-Message im Format: `<emoji>(<context>): <title>`
+CRITICAL: Read and execute the workflow defined in the YAML block below:
 
-   **Emoji-Auswahl:**
-   - 💥 Breaking Changes (Major Version)
-   - ✨ Neue Features (Minor Version)
-   - 🐛 Bug Fixes (Patch Version)
-   - 🚑 Critical Hotfixes
-   - 🔒 Security Fixes
-   - ♻️ Code Refactoring
-   - 🔧 Configuration Changes
-   - 📝 Documentation
-   - ✅ Tests
-   - 🎨 UI/Style Updates
+## COMPLETE WORKFLOW DEFINITION - NO INTERACTION REQUIRED
 
-4. **Commit erstellen** mit HEREDOC für korrekte Formatierung:
+```yaml
+activation-instructions:
+  - STEP 1: Execute this workflow immediately without user interaction
+  - STEP 2: Create a professional git commit following project standards
+  - STEP 3: Complete the commit and report results
+  - NO USER INTERACTION: Execute all steps automatically
 
-   ```bash
-   git commit -m "$(cat <<'EOF'
-   <emoji>(<context>): <title>
+workflow:
+  name: Git Commit
+  id: git-commit
+  title: Professional Git Commit Creator
+  icon: 📝
+  purpose: Create perfect git commits with semantic versioning emojis
 
-   <optional detailed description>
-   EOF
-   )"
-   ```
+execution_steps:
+  1_analyze:
+    parallel_commands:
+      - git status
+      - git diff --staged
+      - git diff
+      - git log --oneline -5
+    purpose: Gather all information about changes
 
-5. **Verifizieren**:
-   - `git status` - Bestätige erfolgreichen Commit
-   - Bei Pre-commit Hook Änderungen: Commit erneut ausführen
+  2_process:
+    actions:
+      - Analyze all staged and unstaged changes
+      - Identify change type (feature/fix/refactor/etc)
+      - Check for sensitive information
+      - Determine appropriate emoji and context
 
-## Wichtige Regeln:
+  3_prepare:
+    actions:
+      - Stage relevant untracked files with git add
+      - Generate commit message following format
 
-- Denke nach, verwende dabei `ultrathink`
-- NIEMALS `--no-verify` verwenden
-- Bei fehlenden Änderungen keinen leeren Commit erstellen
-- Commit-Message auf Englisch verfassen
-- Imperative Mood verwenden ("Add" nicht "Added")
-- Titel: 50-72 Zeichen
-- Body: Optional, nach Leerzeile
-- Schlagen Tests fehl, orientiere dich an folgendem Vorgehen:
-  - Simple Fixes & Linting: Direkt beheben
-  - Komplexe Fixes & Linting: Zurückmelden und Commit abbrechen
+  4_commit:
+    format: |
+      git commit -m "$(cat <<'EOF'
+      <emoji>(<context>): <title>
 
-## Beispiele für die erste Zeile der Commit-Message:
+      <optional description if complex changes>
 
-- `✨(frontend): Add user dashboard`
-- `🐛(backend): Fix database connection timeout`
-- `♻️(shared): Refactor date utility functions`
-- `💥(api): Change response format to nested structure`
+      🤖 Generated with Claude Code
+
+      Co-Authored-By: Claude <noreply@anthropic.com>
+      EOF
+      )"
+
+  5_verify:
+    actions:
+      - Run git status to confirm success
+      - If pre-commit hooks modify files, amend commit
+      - Report completion status
+
+commit_rules:
+  format: "<emoji>(<context>): <title>"
+  language: English
+  mood: Imperative ("Add" not "Added")
+  title_length: 50-72 characters
+
+emoji_reference:
+  breaking: "💥 - Breaking Changes (Major)"
+  feature: "✨ - New Features (Minor)"
+  fix: "🐛 - Bug Fixes (Patch)"
+  hotfix: "🚑 - Critical Hotfixes"
+  security: "🔒 - Security Fixes"
+  refactor: "♻️ - Code Refactoring"
+  config: "🔧 - Configuration"
+  docs: "📝 - Documentation"
+  test: "✅ - Tests"
+  style: "🎨 - UI/Style Updates"
+  perf: "⚡ - Performance"
+  ci: "👷 - CI/CD Changes"
+  chore: "🔨 - Build/Dev Tools"
+  wip: "🚧 - Work in Progress"
+  revert: "⏪ - Revert Changes"
+
+context_mapping:
+  frontend: React/Vite UI components
+  backend: NestJS API services
+  shared: Shared utilities/types
+  db: Database/Prisma changes
+  auth: Authentication system
+  api: API client/generation
+  config: Configuration files
+  docs: Documentation
+  tests: Test files
+  ci: CI/CD pipeline
+
+critical_rules:
+  - NEVER use --no-verify flag
+  - NEVER use HUSKY=0
+  - NEVER create empty commits
+  - NEVER commit secrets or API keys
+  - ALWAYS include Claude attribution in footer
+  - If tests fail on simple fixes → fix directly
+  - If tests fail on complex issues → abort and report
+
+completion:
+  success: "✅ Commit created successfully"
+  failure: "❌ Commit failed - check errors above"
+
+examples:
+  - "✨(frontend): Add user dashboard with activity feed"
+  - "🐛(backend): Fix JWT token expiration handling"
+  - "♻️(shared): Refactor date utilities for better performance"
+  - "💥(api): Change response format to nested structure"
+  - "🔒(auth): Fix SQL injection vulnerability in login"
+  - "⚡(frontend): Optimize bundle size with lazy loading"
+```
