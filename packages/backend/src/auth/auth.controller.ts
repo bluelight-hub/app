@@ -1,6 +1,7 @@
 import { toAdminLoginResponseDto, toAdminSetupResponseDto, toAdminStatusResponseDto, toAdminTokenVerificationDto, toLogoutResponseDto, toRefreshResponseDto, toUserResponseDto } from '@/auth/mappers';
 import { SkipTransform } from '@/common/decorators/skip-transform.decorator';
 import { AppConfigService } from '@/common/services/app-config.service';
+import { CacheDuplicateDetectionService } from '@/common/services/cache-duplicate-detection.service';
 import { Body, Controller, Get, HttpCode, HttpStatus, Logger, NotFoundException, Post, Req, Res, UnauthorizedException, UseGuards, VERSION_NEUTRAL } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { ApiBody, ApiCookieAuth, ApiOkResponse, ApiOperation, ApiResponse, ApiTags, ApiUnauthorizedResponse } from '@nestjs/swagger';
@@ -48,6 +49,7 @@ export class AuthController {
     private readonly authService: AuthService,
     private readonly configService: ConfigService,
     private readonly appConfig: AppConfigService,
+    private readonly duplicateDetectionService: CacheDuplicateDetectionService,
   ) {}
 
   /**
@@ -97,7 +99,14 @@ export class AuthController {
     description: 'Zu viele Anfragen - bitte später erneut versuchen',
   })
   async unifiedAuth(@Body() dto: AuthRequestDto, @Res({ passthrough: true }) res: Response): Promise<AuthResponseDto> {
-    const result = await this.authService.unifiedAuth(dto);
+    // Generiere Cache-Key basierend auf Username (nicht Passwort für Sicherheit)
+    const cacheKey = `auth:unified:${dto.username}`;
+
+    const result = await this.duplicateDetectionService.executeIdempotent(
+      cacheKey,
+      () => this.authService.unifiedAuth(dto),
+      30000, // 30 Sekunden TTL für Auth
+    );
 
     // Tokens extrahieren und als HTTP-Only Cookies setzen
     const { accessToken, refreshToken, ...responseDto } = result;
