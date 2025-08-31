@@ -1,10 +1,11 @@
+import { adminRoles, isAdmin } from '@/auth/utils/auth.utils';
+import { PrismaService } from '@/prisma/prisma.service';
+import { toNatDateTime } from '@/utils/date.util';
 import { ConflictException, ForbiddenException, Injectable, Logger, NotFoundException, UnauthorizedException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
 import type { User } from '@prisma/client';
 import * as bcrypt from 'bcrypt';
-import { adminRoles, isAdmin } from '@/auth/utils/auth.utils';
-import { PrismaService } from '@/prisma/prisma.service';
 import type { AdminSetupDto } from './dto/admin-setup.dto';
 import type { AuthRequestDto } from './dto/auth-request.dto';
 import type { AuthResponseDto } from './dto/auth-response.dto';
@@ -64,20 +65,20 @@ export class AuthService {
   }
 
   /**
-   * Erstellt ein neues Access Token für einen Benutzer
+   * Erstellt ein neues access Token für einen Benutzer
    *
    * Das Token enthält die Benutzer-ID (sub), den Benutzernamen
    * und die Rolle des Benutzers. Es ist für kurze Zeit gültig
    * (standardmäßig 15 Minuten).
    *
-   * @param user - Der Benutzer für den das Token erstellt wird
-   * @returns Das signierte JWT Access Token mit Benutzer-ID, Benutzername und Rolle
+   * @param user - Der Benutzer, für den das Token erstellt wird
+   * @returns Das signierte JWT access Token mit Benutzer-ID, Benutzername und Rolle
    */
   signAccessToken(user: User): string {
     const payload = {
       sub: user.id,
       username: user.username,
-      role: user.role, // Include role in token payload
+      role: user.role, // Include a role in token payload
     };
     return this.jwtService.sign(payload, {
       expiresIn: this.configService.get<string>('JWT_ACCESS_EXPIRES_IN', '15m'),
@@ -85,12 +86,12 @@ export class AuthService {
   }
 
   /**
-   * Erstellt ein neues Refresh Token für einen Benutzer
+   * Erstellt ein neues Refreshtoken für einen Benutzer
    *
-   * Das Token ist länger gültig als das Access Token
-   * und wird verwendet, um neue Access Tokens zu generieren.
+   * Das Token ist länger gültig als das access Token
+   * und wird verwendet, um neue access Tokens zu generieren.
    *
-   * @param user - Der Benutzer für den das Token erstellt wird
+   * @param user - Der Benutzer, für den das Token erstellt wird
    * @returns Das signierte JWT Refresh Token
    */
   signRefreshToken(user: User): string {
@@ -98,23 +99,6 @@ export class AuthService {
     return this.jwtService.sign(payload, {
       expiresIn: this.configService.get<string>('JWT_REFRESH_EXPIRES_IN', '7d'),
     });
-  }
-
-  /**
-   * Gibt die Admin-Token-Konfiguration zurück
-   *
-   * @returns Konfigurationsobjekt mit secret und expiresIn
-   */
-  private getAdminTokenConfig(): { secret: string; expiresIn: string } {
-    const adminSecret = this.configService.get<string>('ADMIN_JWT_SECRET');
-    if (!adminSecret) {
-      throw new Error('ADMIN_JWT_SECRET is not configured');
-    }
-
-    return {
-      secret: adminSecret,
-      expiresIn: this.configService.get<string>('JWT_ADMIN_EXPIRES_IN', '15m'),
-    };
   }
 
   /**
@@ -142,7 +126,7 @@ export class AuthService {
   }
 
   /**
-   * Verifiziert ein Access Token
+   * Verifiziert ein access Token
    *
    * @param token - Das zu verifizierende Token
    * @returns Die dekodierten Token-Daten
@@ -209,7 +193,7 @@ export class AuthService {
     }
 
     if (!isAdmin(user.role)) {
-      this.logger.warn(`🚫 Admin-Login fehlgeschlagen: Keine Admin-Rechte (${user.username})`);
+      this.logger.warn(`🚫 Admin-Login fehlgeschlagen: keine Admin-Rechte (${user.username})`);
       throw new UnauthorizedException('Keine Admin-Berechtigung');
     }
 
@@ -218,7 +202,7 @@ export class AuthService {
       throw new UnauthorizedException('Admin-Account nicht korrekt konfiguriert');
     }
 
-    const isValid = await bcrypt.compare(password, user.passwordHash);
+    const isValid = bcrypt.compare(password, user.passwordHash);
     if (!isValid) {
       this.logger.warn(`🚫 Admin-Login fehlgeschlagen: Falsches Passwort (${user.username})`);
       throw new UnauthorizedException('Ungültige Admin-Zugangsdaten');
@@ -248,12 +232,12 @@ export class AuthService {
       throw new NotFoundException('Benutzer nicht gefunden');
     }
 
-    // Prüfe ob der User Admin-Rechte hat
+    // Prüfe, ob der User Admin-Rechte hat
     if (!isAdmin(currentUser.role)) {
       throw new ForbiddenException('Nur Admins können ein Passwort setzen');
     }
 
-    // Prüfe ob bereits ein Passwort gesetzt ist
+    // Prüfe, ob bereits ein Passwort gesetzt ist
     if (currentUser.passwordHash) {
       throw new ConflictException('Passwort bereits gesetzt');
     }
@@ -281,17 +265,38 @@ export class AuthService {
   }
 
   /**
-   * Gibt eine Liste aller Benutzer ohne sensible Daten zurück
+   * Gibt eine Liste aller Benutzenden ohne sensible Daten zurück
    *
-   * @returns Array von Benutzern ohne passwordHash
+   * @returns Array von Benutzenden ohne passwordHash
    */
-  async getPublicUsers(): Promise<Omit<User, 'passwordHash'>[]> {
-    const users = await this.prisma.user.findMany({
+  async getPublicUsers(): Promise<Pick<User, 'username'>[]> {
+    // Entferne passwordHash von jedem User
+    return await this.prisma.user.findMany({
+      select: {
+        username: true,
+      },
+      where: {
+        isActive: true,
+      },
       orderBy: { createdAt: 'desc' },
     });
+  }
 
-    // Entferne passwordHash von jedem User
-    return users.map(({ passwordHash: _, ...user }) => user);
+  /**
+   * Gibt die Admin-Token-Konfiguration zurück
+   *
+   * @returns Konfigurationsobjekt mit secret und expiresIn
+   */
+  private getAdminTokenConfig(): { secret: string; expiresIn: string } {
+    const adminSecret = this.configService.get<string>('ADMIN_JWT_SECRET');
+    if (!adminSecret) {
+      throw new Error('ADMIN_JWT_SECRET is not configured');
+    }
+
+    return {
+      secret: adminSecret,
+      expiresIn: this.configService.get<string>('JWT_ADMIN_EXPIRES_IN', '15m'),
+    };
   }
 
   /**
@@ -305,26 +310,8 @@ export class AuthService {
       role: user.role as Role,
       isActive: user.isActive,
       createdAt: user.createdAt.toISOString(),
-      // Optional: Add NATO format for backward compatibility
-      createdAtNato: this.toNatoDateTimeGroup(user.createdAt),
+      createdAtNato: toNatDateTime(user.createdAt),
     };
-  }
-
-  /**
-   * Convert Date to NATO Date Time Group format
-   * Format: DDHHmmZMONYY
-   * Example: 011200ZJAN24 for January 1, 2024, 12:00 UTC
-   */
-  private toNatoDateTimeGroup(date: Date): string {
-    const months = ['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC'];
-
-    const day = date.getUTCDate().toString().padStart(2, '0');
-    const hours = date.getUTCHours().toString().padStart(2, '0');
-    const minutes = date.getUTCMinutes().toString().padStart(2, '0');
-    const month = months[date.getUTCMonth()];
-    const year = date.getUTCFullYear().toString().slice(-2);
-
-    return `${day}${hours}${minutes}Z${month}${year}`;
   }
 
   /**
@@ -387,7 +374,7 @@ export class AuthService {
    * @returns Der erstellte Benutzer
    */
   private async createUser(username: string): Promise<User> {
-    // Prüfe ob bereits ein Admin existiert
+    // Prüfe, ob bereits ein Admin existiert
     const adminCount = await this.prisma.user.count({
       where: {
         role: {
@@ -404,7 +391,7 @@ export class AuthService {
         username,
         passwordHash: null, // explizit null für normale User
         role,
-        lastLoginAt: new Date(), // Set initial login time
+        lastLoginAt: new Date(), // Set the initial login time
       },
     });
   }
@@ -436,7 +423,7 @@ export class AuthService {
   }
 
   /**
-   * Prüft ob ein Fehler ein Unique Constraint Fehler ist
+   * Prüft, ob ein Fehler ein Unique Constraint Fehler ist
    * @param error - Der zu prüfende Fehler
    * @returns true wenn es ein Unique Constraint Fehler für username ist
    */

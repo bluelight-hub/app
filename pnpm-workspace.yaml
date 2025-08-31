@@ -30,7 +30,6 @@ catalog:
   '@tauri-apps/plugin-http': ^2.5.1
   '@tauri-apps/plugin-store': ^2.3.0
   '@testcontainers/postgresql': ^11.5.0
-  '@testcontainers/redis': ^11.5.1
   '@testing-library/jest-dom': ^6.6.3
   '@testing-library/react': ^16.1.0
   '@testing-library/user-event': ^14.6.1

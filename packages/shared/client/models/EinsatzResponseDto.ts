@@ -91,12 +91,6 @@ export interface EinsatzResponseDto {
    * @memberof EinsatzResponseDto
    */
   nameComponents?: { [key: string]: any };
-  /**
-   * HATEOAS Links
-   * @type {{ [key: string]: any; }}
-   * @memberof EinsatzResponseDto
-   */
-  links?: { [key: string]: any };
 }
 
 /**
@@ -144,7 +138,6 @@ export function EinsatzResponseDtoFromJSONTyped(json: any, ignoreDiscriminator: 
     name: json['name'],
     completeness: json['completeness'] == null ? undefined : json['completeness'],
     nameComponents: json['nameComponents'] == null ? undefined : json['nameComponents'],
-    links: json['_links'] == null ? undefined : json['_links'],
   };
 }
 
@@ -170,6 +163,5 @@ export function EinsatzResponseDtoToJSONTyped(value?: EinsatzResponseDto | null,
     name: value['name'],
     completeness: value['completeness'],
     nameComponents: value['nameComponents'],
-    _links: value['links'],
   };
 }

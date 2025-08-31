@@ -2,7 +2,7 @@ import { createFileRoute } from '@tanstack/react-router';
 import { lazy, Suspense } from 'react';
 
 const AdminDashboard = lazy(() =>
-  import('@/components/pages/dashboard/admin/page').then((m) => ({
+  import('@pages/admin/dashboard/page').then((m) => ({
     default: m.AdminDashboard,
   })),
 );

@@ -1,8 +1,8 @@
+import { api } from '@/api';
+import { QUERY_KEYS } from '@/queryKeys.ts';
 import type { AdminLoginResponseDto, AdminPasswordDto, AdminSetupDto, AdminSetupResponseDto, AuthRequestDto, AuthResponseDto, LogoutResponseDto } from '@bluelight-hub/shared/dist';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { milliseconds } from 'date-fns';
-import { api } from '@/api';
-import { QUERY_KEYS } from '@/queryKeys.ts';
 
 /**
  * Provides authentication-related functionality and state handling.

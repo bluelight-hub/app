@@ -19,8 +19,6 @@ import type { ApiPagination } from './ApiPagination';
 import { ApiPaginationFromJSON, ApiPaginationFromJSONTyped, ApiPaginationToJSON, ApiPaginationToJSONTyped } from './ApiPagination';
 import type { UserDto } from './UserDto';
 import { UserDtoFromJSON, UserDtoFromJSONTyped, UserDtoToJSON, UserDtoToJSONTyped } from './UserDto';
-import type { ApiLinks } from './ApiLinks';
-import { ApiLinksFromJSON, ApiLinksFromJSONTyped, ApiLinksToJSON, ApiLinksToJSONTyped } from './ApiLinks';
 
 /**
  *
@@ -46,12 +44,6 @@ export interface UserResponse {
    * @memberof UserResponse
    */
   pagination?: ApiPagination;
-  /**
-   * HATEOAS-Links
-   * @type {ApiLinks}
-   * @memberof UserResponse
-   */
-  links?: ApiLinks;
   /**
    * Benutzerdaten
    * @type {UserDto}
@@ -81,7 +73,6 @@ export function UserResponseFromJSONTyped(json: any, ignoreDiscriminator: boolea
     meta: ApiMetaFromJSON(json['meta']),
     message: json['message'] == null ? undefined : json['message'],
     pagination: json['pagination'] == null ? undefined : ApiPaginationFromJSON(json['pagination']),
-    links: json['links'] == null ? undefined : ApiLinksFromJSON(json['links']),
     data: UserDtoFromJSON(json['data']),
   };
 }
@@ -99,7 +90,6 @@ export function UserResponseToJSONTyped(value?: UserResponse | null, ignoreDiscr
     meta: ApiMetaToJSON(value['meta']),
     message: value['message'],
     pagination: ApiPaginationToJSON(value['pagination']),
-    links: ApiLinksToJSON(value['links']),
     data: UserDtoToJSON(value['data']),
   };
 }

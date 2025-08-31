@@ -1,5 +1,5 @@
-import { ResponseError } from '@bluelight-hub/shared/client';
 import { logger } from '@/utils/logger';
+import { ResponseError } from '@bluelight-hub/shared/client';
 
 /**
  * Structured error response from the API
@@ -65,7 +65,7 @@ const ERROR_MESSAGES: Record<number, Record<string, string>> = {
 export async function getApiErrorMessage(
   error: unknown,
   fallbackMessage: string,
-  context?: 'createUser' | 'deleteUser' | 'updateUser' | 'adminSetup' | 'adminLogin' | 'userLogin' | 'userRegister' | 'userAuth',
+  context?: 'createUser' | 'deleteUser' | 'updateUser' | 'adminSetup' | 'adminLogin' | 'userLogin' | 'userRegister' | 'userAuth' | 'createEinsatz' | 'updateEinsatz',
 ): Promise<string> {
   // Handle non-ResponseError cases
   if (!(error instanceof ResponseError)) {
@@ -146,7 +146,7 @@ export async function getApiErrorMessage(
 function getContextSpecificMessage(
   status: number,
   errorData: ApiErrorResponse,
-  context: 'createUser' | 'deleteUser' | 'updateUser' | 'adminSetup' | 'adminLogin' | 'userLogin' | 'userRegister' | 'userAuth',
+  context: 'createUser' | 'deleteUser' | 'updateUser' | 'adminSetup' | 'adminLogin' | 'userLogin' | 'userRegister' | 'userAuth' | 'createEinsatz' | 'updateEinsatz',
 ): string | null {
   switch (context) {
     case 'createUser':
@@ -228,6 +228,18 @@ function getContextSpecificMessage(
       }
       if (status === 500) {
         return 'Ein Serverfehler ist aufgetreten. Bitte versuchen Sie es später erneut.';
+      }
+      break;
+
+    case 'createEinsatz':
+      if (status === 400) {
+        return 'Beim Erstellen des Einsatzes ist ein Validierungsfehler aufgetreten.';
+      }
+      break;
+
+    case 'updateEinsatz':
+      if (status === 400) {
+        return 'Beim Aktualisieren des Einsatzes ist ein Validierungsfehler aufgetreten.';
       }
       break;
   }

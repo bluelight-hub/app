@@ -1,9 +1,7 @@
-import type { RedisService } from '../services/redis.service';
-import { RateLimitExceededError, RateLimiter, type RateLimiterConfig } from './rate-limiter.util';
+import { RateLimiter, type RateLimiterConfig, RateLimitExceededError } from './rate-limiter.util';
 
 describe('RateLimiter', () => {
   let rateLimiter: RateLimiter;
-  let mockRedisService: RedisService;
   let config: RateLimiterConfig;
 
   beforeEach(() => {
@@ -12,12 +10,6 @@ describe('RateLimiter', () => {
       windowMs: 1000, // 1 second
       keyPrefix: 'test',
     };
-
-    // Mock Redis service
-    mockRedisService = {
-      isAvailable: jest.fn().mockReturnValue(false),
-      getClient: jest.fn().mockReturnValue(null),
-    } as unknown as RedisService;
   });
 
   afterEach(() => {
@@ -142,22 +134,6 @@ describe('RateLimiter', () => {
       expect((await rateLimiter.getStatus('user1')).remaining).toBe(config.maxRequests);
       expect((await rateLimiter.getStatus('user2')).remaining).toBe(config.maxRequests);
       expect((await rateLimiter.getStatus('user3')).remaining).toBe(config.maxRequests);
-    });
-  });
-
-  describe('With Redis (Distributed)', () => {
-    beforeEach(() => {
-      // Mock Redis service as available
-      mockRedisService.isAvailable = jest.fn().mockReturnValue(true);
-      rateLimiter = new RateLimiter(config, mockRedisService);
-    });
-
-    it('should use Redis storage adapter when Redis is available', async () => {
-      // The implementation should work the same way
-      // RedisStorageAdapter when Redis is available
-      // Note: Since storage is private, we can only test behavior, not implementation
-      // The test passes if no errors are thrown during creation
-      expect(rateLimiter).toBeDefined();
     });
   });
 });

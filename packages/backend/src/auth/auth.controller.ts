@@ -1,22 +1,22 @@
-import { Body, Controller, Get, HttpCode, HttpStatus, Logger, NotFoundException, Post, Req, Res, UnauthorizedException, UseGuards, VERSION_NEUTRAL } from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
-import { ApiCookieAuth, ApiOkResponse, ApiOperation, ApiResponse, ApiTags, ApiUnauthorizedResponse } from '@nestjs/swagger';
-import { Throttle } from '@nestjs/throttler';
-import type { Request, Response } from 'express';
 import { toAdminLoginResponseDto, toAdminSetupResponseDto, toAdminStatusResponseDto, toAdminTokenVerificationDto, toLogoutResponseDto, toRefreshResponseDto, toUserResponseDto } from '@/auth/mappers';
 import { SkipTransform } from '@/common/decorators/skip-transform.decorator';
 import { AppConfigService } from '@/common/services/app-config.service';
+import { Body, Controller, Get, HttpCode, HttpStatus, Logger, NotFoundException, Post, Req, Res, UnauthorizedException, UseGuards, VERSION_NEUTRAL } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
+import { ApiBody, ApiCookieAuth, ApiOkResponse, ApiOperation, ApiResponse, ApiTags, ApiUnauthorizedResponse } from '@nestjs/swagger';
+import { Throttle } from '@nestjs/throttler';
+import type { Request, Response } from 'express';
 import { AuthService } from './auth.service';
 import { clearAdminCookie, clearAuthCookies, setAdminCookie, setAuthCookies } from './auth.utils';
 import { CurrentUser } from './decorators/current-user.decorator';
 import { AdminLoginResponseDto } from './dto/admin-login-response.dto';
-import type { AdminPasswordDto } from './dto/admin-password.dto';
-import type { AdminSetupDto } from './dto/admin-setup.dto';
+import { AdminPasswordDto } from './dto/admin-password.dto';
 import { AdminSetupResponseDto } from './dto/admin-setup-response.dto';
+import { AdminSetupDto } from './dto/admin-setup.dto';
 import { AdminStatusDto } from './dto/admin-status.dto';
 import { AdminTokenVerificationDto } from './dto/admin-token-verification.dto';
 import { AuthCheckResponseDto } from './dto/auth-check-response.dto';
-import type { AuthRequestDto } from './dto/auth-request.dto';
+import { AuthRequestDto } from './dto/auth-request.dto';
 import { AuthResponseDto } from './dto/auth-response.dto';
 import { LogoutResponseDto } from './dto/logout-response.dto';
 import { PublicUsersResponseDto } from './dto/public-users-response.dto';
@@ -28,7 +28,7 @@ import type { ValidatedUser } from './strategies/jwt.strategy';
 import { isAdmin } from './utils/auth.utils';
 
 /**
- * Controller für Authentifizierungs-Endpunkte
+ * Controller für Authentifizierung-Endpunkte
  *
  * Stellt REST-API-Endpunkte für Benutzerregistrierung und -anmeldung bereit.
  * Alle Endpunkte sind öffentlich zugänglich, da keine Authentifizierung
@@ -54,7 +54,7 @@ export class AuthController {
    * Registriert einen neuen Benutzer
    *
    * Der erste registrierte Benutzer erhält automatisch die SUPER_ADMIN-Rolle.
-   * Alle weiteren Benutzer erhalten die USER-Rolle.
+   * Alle weiteren Benutzenden erhalten die USER-Rolle.
    *
    * @param dto - Registrierungsdaten
    * @param res - Express Response für Cookie-Verwaltung
@@ -80,6 +80,10 @@ export class AuthController {
   @ApiOperation({
     summary: 'Unified Login & Auto-Register',
     description: 'Vereinheitlichter Endpunkt für Login und automatische Registrierung. Wenn der Benutzer nicht existiert, wird er automatisch angelegt.',
+  })
+  @ApiBody({
+    type: AuthRequestDto,
+    description: 'Auth Request mit Username und optionalem Passwort',
   })
   @ApiOkResponse({
     description: 'Erfolgreiche Authentifizierung (Login oder Auto-Registrierung), Tokens werden via Set-Cookie (HTTP-Only) gesetzt: accessToken, refreshToken',
@@ -123,6 +127,10 @@ export class AuthController {
     summary: 'Admin-Rechte aktivieren',
     description: 'Aktiviert Admin-Rechte für den aktuell angemeldeten Benutzer durch Passwort-Eingabe',
   })
+  @ApiBody({
+    type: AdminPasswordDto,
+    description: 'Admin-Passwort zur Aktivierung der Admin-Rechte',
+  })
   @ApiResponse({
     status: HttpStatus.OK,
     description: 'Admin-Rechte erfolgreich aktiviert',
@@ -154,7 +162,7 @@ export class AuthController {
   /**
    * Erneuert Access-Token mit einem gültigen Refresh-Token
    *
-   * @param req - Express Request mit authentifiziertem Benutzer
+   * @param req - Express request mit authentifiziertem Benutzer
    * @param res - Express Response für Cookie-Verwaltung
    * @returns Neues Access-Token
    */
@@ -194,7 +202,7 @@ export class AuthController {
   }
 
   /**
-   * Meldet einen Benutzer ab und löscht die Authentifizierungs-Cookies
+   * Meldet einen Benutzer ab und löscht die Authentifizierung-Cookies
    *
    * @param res - Express Response für Cookie-Verwaltung
    */
@@ -202,7 +210,7 @@ export class AuthController {
   @HttpCode(HttpStatus.OK)
   @ApiOperation({
     summary: 'Benutzer abmelden',
-    description: 'Meldet den Benutzer ab und löscht alle Authentifizierungs-Cookies',
+    description: 'Meldet den Benutzer ab und löscht alle Authentifizierung-Cookies',
   })
   @ApiResponse({
     status: HttpStatus.OK,
@@ -231,7 +239,7 @@ export class AuthController {
     type: LogoutResponseDto,
   })
   async adminLogout(@Res({ passthrough: true }) res: Response): Promise<LogoutResponseDto> {
-    // Nur Admin-Cookie löschen, normale Auth-Cookies behalten
+    // Nur Admin-Cookies löschen, normale Auth-Cookies behalten
     clearAdminCookie(res, this.appConfig.isProduction());
     return toLogoutResponseDto();
   }
@@ -252,6 +260,10 @@ export class AuthController {
     summary: 'Admin-Passwort einrichten',
     description: 'Richtet das Passwort für einen Admin-Account ein. Erfordert Authentifizierung.',
   })
+  @ApiBody({
+    type: AdminSetupDto,
+    description: 'Admin-Setup-Daten mit dem zu setzenden Passwort',
+  })
   @ApiResponse({
     status: HttpStatus.CREATED,
     description: 'Admin-Passwort erfolgreich eingerichtet',
@@ -259,7 +271,7 @@ export class AuthController {
   })
   @ApiResponse({
     status: HttpStatus.CONFLICT,
-    description: 'Admin-Setup bereits durchgeführt oder Benutzer ist kein Admin',
+    description: 'Admin-Setup bereits durchgeführt oder ein Benutzer ist kein Admin',
   })
   @ApiResponse({
     status: HttpStatus.UNAUTHORIZED,
@@ -279,13 +291,13 @@ export class AuthController {
    * Dieser Endpoint gibt immer 200 zurück, auch wenn kein User authentifiziert ist.
    * Das verhindert 401-Fehler beim initialen App-Load.
    *
-   * @param req - Express Request mit optionalem User
+   * @param req - Express request mit optionalem User
    * @returns Die Benutzerinformationen oder null
    */
   @Get('check')
   @ApiOperation({
     summary: 'Authentifizierungsstatus prüfen',
-    description: 'Prüft ob ein Benutzer authentifiziert ist und gibt dessen Informationen zurück',
+    description: 'Prüft, ob ein Benutzer authentifiziert ist, und gibt dessen Informationen zurück',
   })
   @ApiOkResponse({
     description: 'Authentifizierungsstatus abgerufen',
@@ -317,7 +329,7 @@ export class AuthController {
         };
       }
 
-      // Prüfe ob Admin-Token vorhanden ist
+      // Prüfe, ob ein Admin-Token vorhanden ist
       const adminToken = req.cookies?.adminToken;
       let isAdminAuthenticated = false;
 
@@ -349,7 +361,7 @@ export class AuthController {
         isAdminAuthenticated,
       };
     } catch (error) {
-      // Bei jedem Fehler (ungültiges Token, abgelaufen, etc.) null zurückgeben
+      // Bei jedem Fehler (ungültiges Token, abgelaufen etc.) null zurückgeben
       this.logger.error('Error checking authentication status', error);
       return {
         user: null,
@@ -359,10 +371,10 @@ export class AuthController {
   }
 
   /**
-   * Gibt eine öffentliche Liste aller Benutzer zurück
+   * Gibt eine öffentliche Liste aller Benutzenden zurück
    *
    * Dieser Endpunkt ist öffentlich zugänglich und wird für
-   * den Login-Screen verwendet, um verfügbare Benutzer anzuzeigen.
+   * den Login-Screen verwendet, um verfügbare Benutzende anzuzeigen.
    *
    * @returns Liste mit Benutzernamen und Vollnamen
    */
@@ -370,11 +382,11 @@ export class AuthController {
   @HttpCode(HttpStatus.OK)
   @ApiOperation({
     summary: 'Öffentliche Benutzerliste abrufen',
-    description: 'Gibt eine Liste aller verfügbaren Benutzer für den Login-Screen zurück',
+    description: 'Gibt eine Liste aller verfügbaren Benutzenden für den Login-Screen zurück',
   })
   @ApiResponse({
     status: HttpStatus.OK,
-    description: 'Liste der verfügbaren Benutzer',
+    description: 'Liste der verfügbaren Benutzenden',
     type: PublicUsersResponseDto,
   })
   async getPublicUsers(): Promise<PublicUsersResponseDto> {
@@ -393,7 +405,7 @@ export class AuthController {
   @ApiCookieAuth()
   @ApiOperation({
     summary: 'Admin-Setup-Status abrufen',
-    description: 'Prüft ob ein Admin-Setup verfügbar ist und ob der aktuelle Benutzer berechtigt ist',
+    description: 'Prüft, ob ein Admin-Setup verfügbar ist und ob der aktuelle Benutzer berechtigt ist',
   })
   @ApiResponse({
     status: HttpStatus.OK,
@@ -423,7 +435,7 @@ export class AuthController {
    * Dieser Endpunkt wird vom Frontend beim App-Start aufgerufen,
    * um zu prüfen, ob das gespeicherte Admin-Token noch gültig ist.
    *
-   * @returns Status 200 wenn Token gültig, 401 wenn ungültig
+   * @returns Status 200, wenn Token gültig ist, 401, wenn ungültig
    */
   @Get('admin/verify')
   @UseGuards(AdminJwtAuthGuard)

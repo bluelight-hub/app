@@ -1,5 +1,4 @@
 import * as crypto from 'node:crypto';
-import type { RedisService } from '../services/redis.service';
 
 /**
  * Rate Limiter Configuration
@@ -63,45 +62,6 @@ interface StorageAdapter {
   deletePattern(pattern: string): Promise<void>;
 
   isAvailable(): boolean;
-}
-
-/**
- * Redis Storage Adapter
- */
-class RedisStorageAdapter implements StorageAdapter {
-  constructor(private readonly redisService: RedisService) {}
-
-  async get(key: string): Promise<string | null> {
-    return await this.redisService.get(key);
-  }
-
-  async set(key: string, value: string, ttlMs?: number): Promise<void> {
-    await this.redisService.set(key, value, ttlMs);
-  }
-
-  async del(key: string): Promise<void> {
-    await this.redisService.del(key);
-  }
-
-  async incr(key: string): Promise<number> {
-    return await this.redisService.incr(key);
-  }
-
-  async expire(key: string, seconds: number): Promise<void> {
-    await this.redisService.expire(key, seconds);
-  }
-
-  async ttl(key: string): Promise<number> {
-    return await this.redisService.ttl(key);
-  }
-
-  async deletePattern(pattern: string): Promise<void> {
-    await this.redisService.deletePattern(pattern);
-  }
-
-  isAvailable(): boolean {
-    return this.redisService.isAvailable();
-  }
 }
 
 /**
@@ -199,29 +159,16 @@ class InMemoryStorageAdapter implements StorageAdapter {
 }
 
 /**
- * Rate Limiter Implementation
- *
- * Provides both fixed window and token bucket algorithms for rate limiting.
- * Automatically uses Redis when available for distributed rate limiting,
- * falls back to in-memory storage when Redis is not available.
+ * A class implementing rate limiting functionality using various storage adapters, supporting both fixed window and
+ * token bucket algorithms. Rate limiting prevents excessive requests and provides mechanisms for tracking, consuming,
+ * and resetting rate limits.
  */
 export class RateLimiter {
   private storage: StorageAdapter;
-  private inMemoryFallback: InMemoryStorageAdapter;
 
-  constructor(
-    public readonly config: RateLimiterConfig,
-    redisService?: RedisService,
-  ) {
+  constructor(public readonly config: RateLimiterConfig) {
     // Setup storage adapter
-    if (redisService?.isAvailable()) {
-      this.storage = new RedisStorageAdapter(redisService);
-    } else {
-      this.storage = new InMemoryStorageAdapter();
-    }
-
-    // Always keep in-memory fallback ready
-    this.inMemoryFallback = new InMemoryStorageAdapter();
+    this.storage = new InMemoryStorageAdapter();
   }
 
   /**
@@ -235,31 +182,22 @@ export class RateLimiter {
     const windowKey = `${fullKey}:window`;
     const countKey = `${fullKey}:count`;
 
-    try {
-      const storage = this.getActiveStorage();
+    const storage = this.getActiveStorage();
 
-      // Get current window
-      const currentWindow = await storage.get(windowKey);
-      const now = Date.now();
+    // Get current window
+    const currentWindow = await storage.get(windowKey);
+    const now = Date.now();
 
-      if (!currentWindow || parseInt(currentWindow, 10) + this.config.windowMs < now) {
-        // New window
-        await storage.set(windowKey, now.toString(), this.config.windowMs);
-        await storage.set(countKey, '1', this.config.windowMs);
-        return true;
-      }
-
-      // Within current window
-      const count = await storage.incr(countKey);
-      return count <= this.config.maxRequests;
-    } catch (error) {
-      // Fallback to in-memory on Redis error
-      if (this.storage.isAvailable()) {
-        console.error('Rate limiter Redis error, falling back to in-memory:', error);
-        return this.inMemoryFallback.incr(fullKey).then((count) => count <= this.config.maxRequests);
-      }
-      throw error;
+    if (!currentWindow || parseInt(currentWindow, 10) + this.config.windowMs < now) {
+      // New window
+      await storage.set(windowKey, now.toString(), this.config.windowMs);
+      await storage.set(countKey, '1', this.config.windowMs);
+      return true;
     }
+
+    // Within current window
+    const count = await storage.incr(countKey);
+    return count <= this.config.maxRequests;
   }
 
   /**
@@ -461,9 +399,6 @@ export class RateLimiter {
    * Stop cleanup interval
    */
   destroy(): void {
-    if (this.inMemoryFallback instanceof InMemoryStorageAdapter) {
-      this.inMemoryFallback.destroy();
-    }
     if (this.storage instanceof InMemoryStorageAdapter) {
       (this.storage as InMemoryStorageAdapter).destroy();
     }
@@ -481,7 +416,7 @@ export class RateLimiter {
    * Get active storage adapter
    */
   private getActiveStorage(): StorageAdapter {
-    return this.storage.isAvailable() ? this.storage : this.inMemoryFallback;
+    return this.storage;
   }
 }
 
@@ -567,7 +502,6 @@ export function generateSecureRateLimitKey(req: RequestLike): string {
  * Create a rate limiter middleware factory
  *
  * @param config Rate limiter configuration
- * @param redisService Optional Redis service for distributed rate limiting
  * @returns Express-style middleware function
  */
 type NextFunction = (err?: unknown) => void;
@@ -578,8 +512,8 @@ interface ResponseLike {
   setHeader(name: string, value: string | number): void;
 }
 
-export function createRateLimiterMiddleware(config: RateLimiterConfig, redisService?: RedisService) {
-  const limiter = new RateLimiter(config, redisService);
+export function createRateLimiterMiddleware(config: RateLimiterConfig) {
+  const limiter = new RateLimiter(config);
 
   return async (req: RequestLike, res: ResponseLike, next: NextFunction) => {
     try {

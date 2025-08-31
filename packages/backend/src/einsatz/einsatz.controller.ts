@@ -1,17 +1,25 @@
 import { CurrentUser } from '@/auth/decorators/current-user.decorator';
 import { JwtAuthGuard } from '@/auth/guards/jwt-auth.guard';
 import type { ValidatedUser } from '@/auth/strategies/jwt.strategy';
-import { CreateEinsatzDto, EinsatzResponseDto, UpdateEinsatzDto } from '@/einsatz/dto';
-import { Body, Controller, Delete, Get, HttpCode, HttpStatus, Param, Patch, Post, Query, UseGuards, ValidationPipe } from '@nestjs/common';
-import { ApiBearerAuth, ApiCreatedResponse, ApiNoContentResponse, ApiNotFoundResponse, ApiOkResponse, ApiOperation, ApiQuery, ApiTags } from '@nestjs/swagger';
-import { EinsatzStatus } from '@prisma/client';
+import { ApiWrappedResponse } from '@/common/decorators/api-wrapped-response.decorator';
+import type { PaginatedData } from '@/common/interceptors/transform.interceptor';
+import { CreateEinsatzDto, EinsatzQueryDto, EinsatzResponseDto, UpdateEinsatzDto } from '@/einsatz/dto';
+import { Body, Controller, Get, Logger, Param, Patch, Post, Query, UseGuards, ValidationPipe } from '@nestjs/common';
+import { ApiBadRequestResponse, ApiBearerAuth, ApiForbiddenResponse, ApiNotFoundResponse, ApiOkResponse, ApiOperation, ApiQuery, ApiTags, ApiUnauthorizedResponse } from '@nestjs/swagger';
 import { EinsatzService } from './einsatz.service';
 
 @ApiTags('Einsatz')
 @ApiBearerAuth()
 @UseGuards(JwtAuthGuard)
-@Controller('api/einsatz')
+@ApiUnauthorizedResponse({ description: 'Nicht authentifiziert - JWT Token fehlt oder ungültig' })
+@ApiForbiddenResponse({ description: 'Keine Berechtigung für diese Aktion' })
+@Controller({
+  path: 'einsatz',
+  version: 'alpha',
+})
 export class EinsatzController {
+  private readonly logger = new Logger(EinsatzController.name);
+
   constructor(private readonly einsatzService: EinsatzService) {}
 
   @Post()
@@ -19,63 +27,30 @@ export class EinsatzController {
     summary: 'Neuen Einsatz erstellen',
     description: 'Erstellt einen neuen Einsatz mit automatisch generiertem Namen. Alle Felder sind optional.',
   })
-  @ApiCreatedResponse({
-    description: 'Einsatz erfolgreich erstellt',
-    type: EinsatzResponseDto,
-  })
+  @ApiWrappedResponse(EinsatzResponseDto, { description: 'Einsatz erfolgreich erstellt' })
+  @ApiBadRequestResponse({ description: 'Validierungsfehler in den Eingabedaten' })
   async create(
     @Body(new ValidationPipe({ transform: true, whitelist: true }))
     createEinsatzDto: CreateEinsatzDto,
     @CurrentUser() user: ValidatedUser,
   ): Promise<EinsatzResponseDto> {
-    return this.einsatzService.create(createEinsatzDto, user.userId);
+    this.logger.log(`Creating new Einsatz for user ${user.userId}`);
+    return await this.einsatzService.create(createEinsatzDto, user.userId);
   }
 
   @Get()
   @ApiOperation({
     summary: 'Alle Einsätze abrufen',
-    description: 'Gibt eine Liste aller Einsätze zurück, optional gefiltert nach Status.',
+    description: 'Gibt eine paginierte Liste aller Einsätze zurück, optional gefiltert nach Status.',
   })
-  @ApiQuery({
-    name: 'status',
-    required: false,
-    enum: EinsatzStatus,
-    description: 'Filter nach Einsatz-Status',
-  })
-  @ApiQuery({
-    name: 'includeCompleteness',
-    required: false,
-    type: Boolean,
-    description: 'Vollständigkeits-Information einschließen',
-  })
-  @ApiQuery({
-    name: 'page',
-    required: false,
-    type: Number,
-    description: 'Seitennummer für Pagination',
-  })
-  @ApiQuery({
-    name: 'limit',
-    required: false,
-    type: Number,
-    description: 'Anzahl Einträge pro Seite',
-  })
-  @ApiOkResponse({
-    description: 'Liste aller Einsätze',
-    type: [EinsatzResponseDto],
-  })
+  @ApiWrappedResponse(EinsatzResponseDto, { description: 'Paginierte Liste der Einsätze', isArray: true })
+  @ApiBadRequestResponse({ description: 'Ungültige Query-Parameter' })
   async findAll(
-    @Query('status') status?: EinsatzStatus,
-    @Query('includeCompleteness') includeCompleteness?: string,
-    @Query('page') page?: string,
-    @Query('limit') limit?: string,
-  ): Promise<EinsatzResponseDto[]> {
-    return this.einsatzService.findAll({
-      status,
-      includeCompleteness: includeCompleteness === 'true',
-      page: page ? Number(page) : undefined,
-      limit: limit ? Number(limit) : undefined,
-    });
+    @Query(new ValidationPipe({ transform: true, whitelist: true }))
+    query: EinsatzQueryDto,
+  ): Promise<PaginatedData<EinsatzResponseDto>> {
+    this.logger.log(`Fetching Einsätze with filters: ${JSON.stringify(query)}`);
+    return await this.einsatzService.findAll(query);
   }
 
   @Get(':id')
@@ -83,15 +58,14 @@ export class EinsatzController {
     summary: 'Einzelnen Einsatz abrufen',
     description: 'Gibt einen einzelnen Einsatz mit allen Details zurück.',
   })
-  @ApiOkResponse({
-    description: 'Einsatz gefunden',
-    type: EinsatzResponseDto,
-  })
+  @ApiWrappedResponse(EinsatzResponseDto, { description: 'Einsatz gefunden' })
   @ApiNotFoundResponse({
     description: 'Einsatz nicht gefunden',
   })
+  @ApiBadRequestResponse({ description: 'Ungültige Einsatz-ID' })
   async findOne(@Param('id') id: string): Promise<EinsatzResponseDto> {
-    return this.einsatzService.findOne(id);
+    this.logger.log(`Fetching Einsatz ${id}`);
+    return await this.einsatzService.findOne(id);
   }
 
   @Patch(':id')
@@ -99,36 +73,19 @@ export class EinsatzController {
     summary: 'Einsatz aktualisieren',
     description: 'Aktualisiert einen bestehenden Einsatz. Der Name wird automatisch neu generiert.',
   })
-  @ApiOkResponse({
-    description: 'Einsatz erfolgreich aktualisiert',
-    type: EinsatzResponseDto,
-  })
+  @ApiWrappedResponse(EinsatzResponseDto, { description: 'Einsatz erfolgreich aktualisiert' })
   @ApiNotFoundResponse({
     description: 'Einsatz nicht gefunden',
   })
+  @ApiBadRequestResponse({ description: 'Validierungsfehler in den Eingabedaten' })
   async update(
     @Param('id') id: string,
     @Body(new ValidationPipe({ transform: true, whitelist: true }))
     updateEinsatzDto: UpdateEinsatzDto,
     @CurrentUser() user: ValidatedUser,
   ): Promise<EinsatzResponseDto> {
-    return this.einsatzService.update(id, updateEinsatzDto, user.userId);
-  }
-
-  @Delete(':id')
-  @HttpCode(HttpStatus.NO_CONTENT)
-  @ApiOperation({
-    summary: 'Einsatz löschen',
-    description: 'Löscht einen Einsatz permanent aus dem System.',
-  })
-  @ApiNoContentResponse({
-    description: 'Einsatz erfolgreich gelöscht',
-  })
-  @ApiNotFoundResponse({
-    description: 'Einsatz nicht gefunden',
-  })
-  async remove(@Param('id') id: string, @CurrentUser() user: ValidatedUser): Promise<void> {
-    return this.einsatzService.remove(id, user.userId);
+    this.logger.log(`Updating Einsatz ${id} by user ${user.userId}`);
+    return await this.einsatzService.update(id, updateEinsatzDto, user.userId);
   }
 
   @Get(':id/completeness')
@@ -168,7 +125,18 @@ export class EinsatzController {
   @ApiNotFoundResponse({
     description: 'Einsatz nicht gefunden',
   })
+  @ApiBadRequestResponse({ description: 'Ungültige Einsatz-ID oder Query-Parameter' })
   async getCompleteness(@Param('id') id: string, @Query('refresh') refresh?: string) {
-    return this.einsatzService.getCompleteness(id, refresh === 'true');
+    const useRefresh = refresh === 'true';
+    this.logger.log(`Getting completeness for Einsatz ${id} (refresh: ${useRefresh})`);
+
+    try {
+      const result = await this.einsatzService.getCompleteness(id, useRefresh);
+      this.logger.log(`Completeness for Einsatz ${id}: ${result.score}% complete`);
+      return result;
+    } catch (error) {
+      this.logger.error(`Failed to get completeness for Einsatz ${id}: ${error.message}`);
+      throw error;
+    }
   }
 }

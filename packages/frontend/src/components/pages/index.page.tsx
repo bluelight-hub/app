@@ -1,11 +1,3 @@
-import { Button } from '@atoms/button.atom';
-import { Card } from '@atoms/card.atom';
-import { Heading } from '@atoms/heading.atom';
-import { Spinner } from '@atoms/spinner.atom';
-import { Text } from '@atoms/text.atom';
-import { ColorModeButton } from '@molecules/color-mode-button.molecule.tsx';
-import { Link, useRouter } from '@tanstack/react-router';
-import { PiShieldCheck, PiSignIn } from 'react-icons/pi';
 import { useAuth } from '@/hooks/useAuth.ts';
 /**
  * Startseite der Anwendung.
@@ -15,6 +7,15 @@ import { useAuth } from '@/hooks/useAuth.ts';
  * @returns Die Index-Page-Komponente
  */
 import { isAdmin } from '@/utils/auth';
+import { Button } from '@atoms/button.atom';
+import { Card } from '@atoms/card.atom';
+import { Heading } from '@atoms/heading.atom';
+import { Spinner } from '@atoms/spinner.atom';
+import { Text } from '@atoms/text.atom';
+import { ColorModeButton } from '@molecules/color-mode-button.molecule.tsx';
+import { EinsatzExample } from '@organisms/EinsatzExample';
+import { Link, useRouter } from '@tanstack/react-router';
+import { PiShieldCheck, PiSignIn } from 'react-icons/pi';
 
 export function IndexPage() {
   const { isLoading, logout, user } = useAuth();
@@ -27,7 +28,7 @@ export function IndexPage() {
     await openAdminWindow();
   };
 
-  // WICHTIG: Warte immer auf den initialen Auth-Check bevor wir redirecten
+  // WICHTIG: Warte immer auf den initialen Auth-Check bevor wir weiterleiten
   // Dies verhindert Race Conditions beim Page Reload
   if (isLoading) {
     return (
@@ -38,8 +39,8 @@ export function IndexPage() {
     );
   }
 
-  // Nach dem Loading: Prüfe ob User vorhanden ist
-  // Nur redirecten wenn wirklich kein User da ist nach dem Auth-Check
+  // Nach dem Loading: Prüfe, ob der User vorhanden ist.
+  // Nur weiterleiten, wenn wirklich kein User da ist nach dem Auth-Check
   if (!user) {
     void navigate({
       to: '/auth',
@@ -95,6 +96,8 @@ export function IndexPage() {
             </div>
           </Card>
         )}
+
+        <EinsatzExample />
 
         <Button variant="secondary" size="sm" onClick={() => logout.mutateAsync()}>
           Abmelden

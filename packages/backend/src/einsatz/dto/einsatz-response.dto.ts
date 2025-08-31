@@ -109,11 +109,4 @@ export class EinsatzResponseDto implements Einsatz {
     additionalProperties: true,
   })
   nameComponents?: NameComponents;
-
-  @ApiPropertyOptional({
-    description: 'HATEOAS Links',
-    type: 'object',
-    additionalProperties: true,
-  })
-  _links?: EinsatzLinks;
 }

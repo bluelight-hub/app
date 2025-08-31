@@ -147,14 +147,4 @@ export abstract class ApiResponse<T> {
     required: false,
   })
   pagination?: ApiPagination;
-
-  /**
-   * Optionale HATEOAS-Links
-   */
-  @ApiProperty({
-    description: 'HATEOAS-Links',
-    type: ApiLinks,
-    required: false,
-  })
-  links?: ApiLinks;
 }
