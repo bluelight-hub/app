@@ -57,4 +57,15 @@ export class EinsatzQueryDto {
   @IsOptional()
   @IsString()
   search?: string;
+
+  @ApiPropertyOptional({
+    description: 'Archivierte Einsätze einschließen (Standard: false - gemäß No-Delete Policy)',
+    example: false,
+    type: Boolean,
+    default: false,
+  })
+  @IsOptional()
+  @IsBoolean()
+  @Transform(({ value }) => value === 'true' || value === true)
+  includeArchived?: boolean = false;
 }

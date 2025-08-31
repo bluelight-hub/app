@@ -74,6 +74,18 @@ export interface EinsatzResponseDto {
    */
   updatedBy?: string;
   /**
+   * Zeitpunkt der Archivierung (No-Delete Policy)
+   * @type {Date}
+   * @memberof EinsatzResponseDto
+   */
+  archivedAt?: Date;
+  /**
+   * User ID des Archivierers (No-Delete Policy)
+   * @type {string}
+   * @memberof EinsatzResponseDto
+   */
+  archivedBy?: string;
+  /**
    * Automatisch generierter Name des Einsatzes
    * @type {string}
    * @memberof EinsatzResponseDto
@@ -135,6 +147,8 @@ export function EinsatzResponseDtoFromJSONTyped(json: any, ignoreDiscriminator: 
     updatedAt: new Date(json['updatedAt']),
     createdBy: json['createdBy'],
     updatedBy: json['updatedBy'] == null ? undefined : json['updatedBy'],
+    archivedAt: json['archivedAt'] == null ? undefined : new Date(json['archivedAt']),
+    archivedBy: json['archivedBy'] == null ? undefined : json['archivedBy'],
     name: json['name'],
     completeness: json['completeness'] == null ? undefined : json['completeness'],
     nameComponents: json['nameComponents'] == null ? undefined : json['nameComponents'],
@@ -160,6 +174,8 @@ export function EinsatzResponseDtoToJSONTyped(value?: EinsatzResponseDto | null,
     updatedAt: value['updatedAt'].toISOString(),
     createdBy: value['createdBy'],
     updatedBy: value['updatedBy'],
+    archivedAt: value['archivedAt'] == null ? undefined : value['archivedAt'].toISOString(),
+    archivedBy: value['archivedBy'],
     name: value['name'],
     completeness: value['completeness'],
     nameComponents: value['nameComponents'],

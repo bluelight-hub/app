@@ -362,6 +362,77 @@ sequenceDiagram
 * *Datenschutz*: Verschlüsselung sensibler Daten in Rest und während der Übertragung
 * *Auditierung*: Logging aller sicherheitsrelevanten Ereignisse für spätere Analyse
 
+==== No-Delete Policy für Einsätze
+
+Das Bluelight-Hub-System implementiert eine strikte No-Delete Policy für Einsätze aus rechtlichen und Compliance-Gründen:
+
+===== Rechtliche Anforderungen
+
+Einsatzdaten unterliegen besonderen rechtlichen Aufbewahrungspflichten:
+
+* *Gesetzliche Aufbewahrungsfristen*: Einsatzdokumentationen müssen gemäß relevanten Vorschriften (u.a. Datenschutz, Haftungsrecht) für mindestens 10 Jahre aufbewahrt werden
+* *Audit-Trail*: Vollständige Nachvollziehbarkeit aller Einsatzaktivitäten für rechtliche Überprüfungen
+* *Beweissicherung*: Einsatzdaten können als Beweismittel in rechtlichen Verfahren dienen
+* *Compliance*: Erfüllung regulatorischer Anforderungen für Rettungsorganisationen
+
+===== Technische Implementierung
+
+Die No-Delete Policy wird auf mehreren Ebenen durchgesetzt:
+
+[source,typescript]
+----
+// Beispiel: EinsatzController - KEIN Delete-Endpoint vorhanden
+@Controller('einsatz')
+export class EinsatzController {
+  // ✅ Erlaubte Operationen
+  @Post() create() { /* ... */ }
+  @Get() findAll() { /* ... */ }
+  @Get(':id') findOne() { /* ... */ }
+  @Patch(':id') update() { /* ... */ }
+  
+  // ❌ VERBOTEN: Delete-Operationen
+  // @Delete(':id') - NIEMALS implementieren!
+}
+----
+
+===== Archivierungs-Strategie
+
+Anstelle physischer Löschungen nutzt das System einen Archivierungs-Ansatz:
+
+* *Status ARCHIVIERT*: Einsätze werden als "archiviert" markiert statt gelöscht
+* *Soft-Delete Pattern*: Datensätze bleiben in der Datenbank erhalten
+* *Filterung*: Archivierte Einsätze werden standardmäßig in Abfragen ausgeblendet
+
+[source,typescript]
+----
+// Status-Enum für Einsätze
+enum EinsatzStatus {
+  PENDING = 'pending',
+  IN_PROGRESS = 'in_progress',
+  COMPLETED = 'completed',
+  ARCHIVIERT = 'archiviert'  // Statt physischer Löschung
+}
+----
+
+===== Sicherheitsmaßnahmen
+
+Zusätzliche Schutzmaßnahmen gegen versehentliche Löschungen:
+
+* *Keine DELETE-Endpoints*: API bietet keine Lösch-Funktionalität
+* *Datenbank-Constraints*: Foreign Key Constraints mit RESTRICT/NO ACTION
+* *Berechtigungssystem*: Selbst Super-Admins können Einsätze nicht löschen
+* *Code-Reviews*: Automatische Überprüfung auf DELETE-Operationen in CI/CD
+
+===== Ausnahmen und Sonderfälle
+
+Die einzigen Szenarien für Datenentfernung:
+
+* *Anonymisierung*: Personenbezogene Daten nach DSGVO-Anforderung
+* *Datenbank-Migration*: Nur mit expliziter Genehmigung und Backup
+* *Testdaten*: Nur in Entwicklungs- und Testumgebungen
+
+Diese Policy stellt sicher, dass alle Einsatzdaten für rechtliche, operative und historische Zwecke dauerhaft verfügbar bleiben.
+
 ==== Admin-Authentifizierung und Sicherheit
 
 Das Bluelight-Hub-System implementiert ein umfassendes Sicherheitskonzept für die Authentifizierung und Autorisierung von Administratoren.
@@ -401,7 +472,7 @@ Die Session-Verwaltung kombiniert die Vorteile von JWT mit server-seitiger Kontr
 * *Geräte-Identifikation*: User-Agent und IP-Adresse werden für Session-Tracking gespeichert
 * *Session-Limits*: Konfigurierbare Limits für gleichzeitige Sessions pro Benutzer
 
-[source,typescript]
+[source,prisma]
 ----
 // Session-Schema (Prisma)
 model Session {
