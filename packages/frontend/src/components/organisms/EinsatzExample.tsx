@@ -2,14 +2,20 @@ import { useEinsaetze, useEinsatz } from '@/hooks/useEinsaetze';
 import { useEinsatzStore } from '@/stores/einsatzStore';
 import { Button } from '@atoms/button.atom';
 import { Card } from '@atoms/card.atom';
+import { useCallback } from 'react';
 
 export function EinsatzExample() {
-  const { einsaetze } = useEinsaetze({
-    search: 'wohn',
+  const { einsaetze, createEinsatz } = useEinsaetze({
+    //search: 'wohn',
   });
 
   const { selectedEinsatzId, setSelectedEinsatzId, clearSelectedEinsatzId } = useEinsatzStore();
   const { einsatz } = useEinsatz(selectedEinsatzId);
+  const createNewEinsatz = useCallback(() => {
+    createEinsatz.mutateAsync({
+      alarmstichwort: 'Test-Einsatz',
+    });
+  }, [createEinsatz.mutateAsync]);
 
   if (!einsaetze) {
     return <div>Loading...</div>;
@@ -24,6 +30,9 @@ export function EinsatzExample() {
           Auswahl leeren
         </Button>
       )}
+      <Button variant="primary" onClick={createNewEinsatz}>
+        Einsatz erstellen
+      </Button>
       <div>
         <ul>
           {einsaetze.map((einsatz) => (

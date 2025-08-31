@@ -30,8 +30,10 @@ export const EINSATZ_QUERY_KEYS = {
   all: ['einsatz'] as const,
   lists: () => [...EINSATZ_QUERY_KEYS.all, 'list'] as const,
   list: (filters?: Record<string, unknown>) => [...EINSATZ_QUERY_KEYS.lists(), filters].filter((value) => value),
+  infiniteLists: () => [...EINSATZ_QUERY_KEYS.all, 'infinite'] as const,
+  infinite: (filters?: Record<string, unknown>) => [...EINSATZ_QUERY_KEYS.infiniteLists(), filters].filter((value) => value),
   details: () => [...EINSATZ_QUERY_KEYS.all, 'detail'] as const,
-  detail: (id: string) => [...EINSATZ_QUERY_KEYS.details(), id] as const,
+  detail: (id: string | null) => [...EINSATZ_QUERY_KEYS.details(), id] as const,
   completeness: (id: string) => [...EINSATZ_QUERY_KEYS.detail(id), 'completeness'] as const,
 } as const;
 
