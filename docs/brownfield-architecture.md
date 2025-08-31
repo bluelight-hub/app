@@ -14,7 +14,7 @@ real-time communication, and resource management features.
 ### Change Log
 
 | Date       | Version | Description                 | Author      |
-| ---------- | ------- | --------------------------- | ----------- |
+|------------|---------|-----------------------------|-------------|
 | 2025-01-18 | 1.0     | Initial brownfield analysis | BMad Master |
 
 ## Quick Reference - Key Files and Entry Points
@@ -24,11 +24,11 @@ real-time communication, and resource management features.
 - **Main Entry (Backend)**: `packages/backend/src/main.ts` - NestJS application bootstrap
 - **Main Entry (Frontend)**: `packages/frontend/src/main.tsx` - React application entry
 - **Configuration**:
-  - Backend: `packages/backend/src/config/`, `.env` files
-  - Frontend: `packages/frontend/vite.config.ts`, `packages/frontend/src-tauri/tauri.conf.json`
+    - Backend: `packages/backend/src/config/`, `.env` files
+    - Frontend: `packages/frontend/vite.config.ts`, `packages/frontend/src-tauri/tauri.conf.json`
 - **Core Business Logic**:
-  - `packages/backend/src/auth/` - Authentication system
-  - `packages/backend/src/user-management/` - User management
+    - `packages/backend/src/auth/` - Authentication system
+    - `packages/backend/src/user-management/` - User management
 - **API Definitions**: `packages/shared/client/apis/` - Generated API clients
 - **Database Models**: `packages/backend/prisma/schema.prisma`
 - **Key Algorithms**: Authentication in `packages/backend/src/auth/auth.service.ts`
@@ -47,7 +47,7 @@ BlueLight Hub is a modern emergency services support application built as a mono
 ### Actual Tech Stack (from package.json)
 
 | Category           | Technology        | Version      | Notes                                      |
-| ------------------ | ----------------- | ------------ | ------------------------------------------ |
+|--------------------|-------------------|--------------|--------------------------------------------|
 | Runtime            | Node.js           | LTS          | Required for all packages                  |
 | Package Manager    | pnpm              | 10.14.0      | Workspace-based monorepo management        |
 | Frontend Framework | React             | catalog:     | Using pnpm catalogs for version management |
@@ -69,9 +69,9 @@ BlueLight Hub is a modern emergency services support application built as a mono
 - Type: **Monorepo** using pnpm workspaces
 - Package Manager: **pnpm** with catalog-based dependency management
 - Notable:
-  - Shared package for API client generation
-  - Separation between old-projects (legacy) and current packages
-  - Heavy use of code generation for API clients
+    - Shared package for API client generation
+    - Separation between old-projects (legacy) and current packages
+    - Heavy use of code generation for API clients
 
 ## Source Tree and Module Organization
 
@@ -138,20 +138,20 @@ bluelight-hub/
 **Core models in Prisma schema:**
 
 - **User Model**: See `packages/backend/prisma/schema.prisma`
-  - Supports three roles: SUPER_ADMIN, ADMIN, USER
-  - Password hash only for admin users
-  - Account locking mechanism with failedLoginCount
-  - Soft delete via isActive flag
+    - Supports three roles: SUPER_ADMIN, ADMIN, USER
+    - Password hash only for admin users
+    - Account locking mechanism with failedLoginCount
+    - Soft delete via isActive flag
 
 ### API Specifications
 
 - **OpenAPI Generation**: Backend controllers use NestJS Swagger decorators
 - **Generated Clients**: `packages/shared/client/apis/` contains TypeScript clients
 - **API Endpoints**:
-  - `/api/auth/*` - Authentication endpoints
-  - `/api/users/*` - User management
-  - `/api/health/*` - Health checks
-  - `/api/app/*` - Application info
+    - `/api/auth/*` - Authentication endpoints
+    - `/api/users/*` - User management
+    - `/api/health/*` - Health checks
+    - `/api/app/*` - Application info
 
 **API Generation Workflow:**
 
@@ -167,9 +167,9 @@ bluelight-hub/
 1. **Test Coverage Disabled**: Frontend test coverage temporarily disabled (see package.json line 19)
 2. **Session Management**: Sessions and refresh tokens commented out in User model - not yet implemented
 3. **TODO Items**:
-   - Session invalidation not implemented (`packages/backend/src/cli/commands/admin-reset-password.command.ts`)
-   - System status badge hardcoded as "TODO" in login window
-   - Version number hardcoded as "TODO" in auth footer
+    - Session invalidation not implemented (`packages/backend/src/cli/commands/admin-reset-password.command.ts`)
+    - System status badge hardcoded as "TODO" in login window
+    - Version number hardcoded as "TODO" in auth footer
 4. **Legacy Code**: `old-projects/` directory contains previous implementations - unclear if safe to remove
 5. **Migration from Chakra to Tailwind**: ADR-013 indicates ongoing UI framework migration
 
@@ -186,11 +186,10 @@ bluelight-hub/
 
 ### External Services
 
-| Service    | Purpose           | Integration Type | Key Files                          |
-| ---------- | ----------------- | ---------------- | ---------------------------------- |
-| PostgreSQL | Primary database  | Prisma ORM       | `packages/backend/prisma/`         |
-| Redis      | Caching (planned) | Direct client    | Dependency installed, not yet used |
-| Tauri      | Desktop app shell | Native API       | `packages/frontend/src-tauri/`     |
+| Service    | Purpose           | Integration Type | Key Files                      |
+|------------|-------------------|------------------|--------------------------------|
+| PostgreSQL | Primary database  | Prisma ORM       | `packages/backend/prisma/`     |
+| Tauri      | Desktop app shell | Native API       | `packages/frontend/src-tauri/` |
 
 ### Internal Integration Points
 
@@ -276,11 +275,11 @@ pnpm --filter @bluelight-hub/frontend test:ui  # Vitest UI mode
 - **Repository Pattern**: Not used - Prisma service injected directly
 - **DTO Pattern**: Class-validator for request validation
 - **Guard-based Authentication/Authorization**:
-  - Authentication logic implemented via JWT Guard (`JwtAuthGuard`)
-  - Role-based access control (RBAC) implemented via `RolesGuard`
-  - Guards applied at controller-level (`@UseGuards()`) or route-level for granular control
-  - Public routes marked with `@Public()` decorator to bypass auth
-  - Permission-based authorization through `@RequirePermissions()` decorator
+    - Authentication logic implemented via JWT Guard (`JwtAuthGuard`)
+    - Role-based access control (RBAC) implemented via `RolesGuard`
+    - Guards applied at controller-level (`@UseGuards()`) or route-level for granular control
+    - Public routes marked with `@Public()` decorator to bypass auth
+    - Permission-based authorization through `@RequirePermissions()` decorator
 - **Interceptors**: Audit logging interceptor for tracking critical operations (planned)
 - **Exception Filters**: Global exception handling via NestJS
 
@@ -413,9 +412,9 @@ pnpm --filter @bluelight-hub/backend admin:reset     # Reset admin password
 - **Logs**: Console output only (no log files)
 - **Debug Mode**: `nest start --debug` for backend
 - **Common Issues**:
-  - Prisma client not generated: Run `pnpm --filter @bluelight-hub/backend prisma:generate`
-  - API types outdated: Run `pnpm generate-api`
-  - Tauri build fails: Check platform-specific dependencies
+    - Prisma client not generated: Run `pnpm --filter @bluelight-hub/backend prisma:generate`
+    - API types outdated: Run `pnpm generate-api`
+    - Tauri build fails: Check platform-specific dependencies
 
 ## Critical Notes for AI Agents
 

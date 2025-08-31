@@ -1,5 +1,5 @@
-import { AuthApi, Configuration, HealthApi, UserManagementApi } from '@bluelight-hub/shared/client';
 import { logger } from '@/utils/logger';
+import { AuthApi, Configuration, EinsatzApi, HealthApi, UserManagementApi } from '@bluelight-hub/shared/client';
 
 /**
  * Ermittelt die Basis-URL für die API basierend auf der Umgebung
@@ -40,6 +40,7 @@ class BackendApi {
   private readonly healthApi: HealthApi;
   private readonly authApi: AuthApi;
   private readonly userManagementApi: UserManagementApi;
+  private readonly einsatzApi: EinsatzApi;
 
   /**
    * Erstellt eine neue Instanz der BackendApi-Klasse
@@ -58,6 +59,7 @@ class BackendApi {
     this.healthApi = new HealthApi(this.configuration);
     this.authApi = new AuthApi(this.configuration);
     this.userManagementApi = new UserManagementApi(this.configuration);
+    this.einsatzApi = new EinsatzApi(this.configuration);
   }
 
   /**
@@ -86,25 +88,23 @@ class BackendApi {
   userManagement(): UserManagementApi {
     return this.userManagementApi;
   }
-}
 
-/**
- * Globale API-Konfiguration für die Verwendung außerhalb der BackendApi-Klasse
- *
- * Diese Konfiguration kann verwendet werden, wenn API-Clients direkt instanziiert werden müssen.
- */
-export const apiConfiguration = new Configuration({
-  basePath: getBaseUrl(),
-  fetchApi: fetch,
-  credentials: 'include',
-});
+  /**
+   * Gibt die gecachte Einsatz-API-Instanz zurück
+   *
+   * @returns Die Einsatz-API-Instanz für Einsatz-Management
+   */
+  einsatz(): EinsatzApi {
+    return this.einsatzApi;
+  }
+}
 
 /**
  * Singleton-Instanz der BackendApi für die Verwendung in der gesamten Anwendung
  *
  * @example
  * ```typescript
- * import { api } from '@/api';
+ * import {api} from '@/api';
  * const users = await api.userManagement().userManagementControllerFindAllVAlpha();
  * ```
  */

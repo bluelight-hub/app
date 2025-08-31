@@ -26,6 +26,15 @@ export const HEALTH_QUERY_KEYS = {
   health: ['health'] as const,
 } as const;
 
+export const EINSATZ_QUERY_KEYS = {
+  all: ['einsatz'] as const,
+  lists: () => [...EINSATZ_QUERY_KEYS.all, 'list'] as const,
+  list: (filters?: Record<string, unknown>) => [...EINSATZ_QUERY_KEYS.lists(), filters].filter((value) => value),
+  details: () => [...EINSATZ_QUERY_KEYS.all, 'detail'] as const,
+  detail: (id: string) => [...EINSATZ_QUERY_KEYS.details(), id] as const,
+  completeness: (id: string) => [...EINSATZ_QUERY_KEYS.detail(id), 'completeness'] as const,
+} as const;
+
 // Export all query keys grouped for easier access
 export const QUERY_KEYS = {
   auth: {
@@ -35,4 +44,5 @@ export const QUERY_KEYS = {
   user: USER_QUERY_KEYS,
   admin: ADMIN_QUERY_KEYS,
   health: HEALTH_QUERY_KEYS,
+  einsatz: EINSATZ_QUERY_KEYS,
 } as const;

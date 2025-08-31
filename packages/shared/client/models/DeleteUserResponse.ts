@@ -19,8 +19,6 @@ import type { ApiPagination } from './ApiPagination';
 import { ApiPaginationFromJSON, ApiPaginationFromJSONTyped, ApiPaginationToJSON, ApiPaginationToJSONTyped } from './ApiPagination';
 import type { DeleteUserResponseData } from './DeleteUserResponseData';
 import { DeleteUserResponseDataFromJSON, DeleteUserResponseDataFromJSONTyped, DeleteUserResponseDataToJSON, DeleteUserResponseDataToJSONTyped } from './DeleteUserResponseData';
-import type { ApiLinks } from './ApiLinks';
-import { ApiLinksFromJSON, ApiLinksFromJSONTyped, ApiLinksToJSON, ApiLinksToJSONTyped } from './ApiLinks';
 
 /**
  *
@@ -46,12 +44,6 @@ export interface DeleteUserResponse {
    * @memberof DeleteUserResponse
    */
   pagination?: ApiPagination;
-  /**
-   * HATEOAS-Links
-   * @type {ApiLinks}
-   * @memberof DeleteUserResponse
-   */
-  links?: ApiLinks;
   /**
    *
    * @type {DeleteUserResponseData}
@@ -81,7 +73,6 @@ export function DeleteUserResponseFromJSONTyped(json: any, ignoreDiscriminator: 
     meta: ApiMetaFromJSON(json['meta']),
     message: json['message'] == null ? undefined : json['message'],
     pagination: json['pagination'] == null ? undefined : ApiPaginationFromJSON(json['pagination']),
-    links: json['links'] == null ? undefined : ApiLinksFromJSON(json['links']),
     data: DeleteUserResponseDataFromJSON(json['data']),
   };
 }
@@ -99,7 +90,6 @@ export function DeleteUserResponseToJSONTyped(value?: DeleteUserResponse | null,
     meta: ApiMetaToJSON(value['meta']),
     message: value['message'],
     pagination: ApiPaginationToJSON(value['pagination']),
-    links: ApiLinksToJSON(value['links']),
     data: DeleteUserResponseDataToJSON(value['data']),
   };
 }

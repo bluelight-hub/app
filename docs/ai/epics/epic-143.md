@@ -214,11 +214,6 @@ interface EinsatzResponseDto extends Einsatz {
         zeit?: string;
         datum: string;
     };
-    _links?: {
-        self: string;
-        update: string;
-        completeness: string;
-    };
 }
 ```
 

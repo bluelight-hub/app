@@ -12,23 +12,7 @@ services:
     ports:
       - '${DATABASE_PORT:-9053}:5432'
     healthcheck:
-      test: ['CMD-SHELL', 'pg_isready -U bluelight']
-      interval: 10s
-      timeout: 5s
-      retries: 5
-      start_period: 10s
-
-  redis:
-    image: redis:latest
-    container_name: bluelight-hub-redis
-    volumes:
-      - redis_data:/data
-    restart: unless-stopped
-    ports:
-      - '${REDIS_PORT:-9036}:6379'
-    command: redis-server --appendonly yes --appendfsync everysec
-    healthcheck:
-      test: ['CMD', 'redis-cli', 'ping']
+      test: [ 'CMD-SHELL', 'pg_isready -U bluelight' ]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -52,7 +36,7 @@ services:
         condition: service_healthy
     restart: unless-stopped
     healthcheck:
-      test: ['CMD', 'wget', '--spider', '-q', 'http://localhost:3000/api/health']
+      test: [ 'CMD', 'wget', '--spider', '-q', 'http://localhost:3000/api/health' ]
       interval: 30s
       timeout: 10s
       retries: 3
@@ -67,5 +51,3 @@ services:
 volumes:
   postgres_data:
     name: bluelight-hub-postgres-data
-  redis_data:
-    name: bluelight-hub-redis-data

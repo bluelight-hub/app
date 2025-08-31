@@ -1,6 +1,7 @@
-import { CreateEinsatzDto, EinsatzCompleteness, EinsatzResponseDto, UpdateEinsatzDto } from '@/einsatz/dto';
+import { CreateEinsatzDto, EinsatzCompleteness, EinsatzQueryDto, EinsatzResponseDto, UpdateEinsatzDto } from '@/einsatz/dto';
+import type { PaginatedData } from '@/common/interceptors/transform.interceptor';
 import { Injectable, Logger } from '@nestjs/common';
-import { Einsatz, EinsatzStatus, Prisma } from '@prisma/client';
+import { Einsatz, Prisma } from '@prisma/client';
 import { EinsatzRepository } from './einsatz.repository';
 import { EinsatzNotFoundException } from './exceptions/einsatz-not-found.exception';
 import { EinsatzCompletenessCalculator } from './utils/completeness.util';
@@ -29,28 +30,43 @@ export class EinsatzService {
     };
 
     const einsatz = await this.repository.create(einsatzData);
-    this.logger.log(`Einsatz ${einsatz.id} erstellt von User ${userId}`);
+    this.logger.log(`🚨 Einsatz ${einsatz.id} erstellt von User ${userId}`);
 
     return this.toResponseDto(einsatz);
   }
 
   /**
-   * Gibt alle Einsätze zurück mit optionalem Status-Filter
+   * Gibt alle Einsätze zurück mit optionalem Status-Filter, Suchbegriff und Pagination
    */
-  async findAll(params?: { status?: EinsatzStatus; includeCompleteness?: boolean; page?: number; limit?: number }): Promise<EinsatzResponseDto[]> {
-    const { status, includeCompleteness = false, page, limit } = params || {};
+  async findAll(params?: EinsatzQueryDto): Promise<PaginatedData<EinsatzResponseDto>> {
+    const { status, search, includeCompleteness = false, page = 1, limit = 10 } = params || {};
 
-    let einsaetze: Einsatz[];
-    if (page && limit) {
-      const result = await this.repository.findWithPagination(page, limit, status ? { status } : undefined);
-      einsaetze = result.items;
-    } else if (status) {
-      einsaetze = await this.repository.findByStatus(status);
-    } else {
-      einsaetze = await this.repository.findAll();
+    // Build where conditions
+    const where: Prisma.EinsatzWhereInput = {};
+
+    if (status) {
+      where.status = status;
     }
 
-    return Promise.all(einsaetze.map((e: Einsatz) => this.toResponseDto(e, includeCompleteness)));
+    if (search) {
+      const searchTerm = search.trim();
+      if (searchTerm) {
+        // Note: Since 'name' is generated, we search in the fields that compose it
+        where.OR = [{ alarmstichwort: { contains: searchTerm, mode: 'insensitive' } }, { id: { contains: searchTerm, mode: 'insensitive' } }];
+      }
+    }
+
+    const result = await this.repository.findWithPagination(page, limit, where);
+    const items = await Promise.all(result.items.map((e: Einsatz) => this.toResponseDto(e, includeCompleteness)));
+
+    this.logger.log(`Found ${result.total} Einsätze (showing ${items.length}) with filters: status=${status}, search='${search}'`);
+
+    return {
+      items,
+      total: result.total,
+      page,
+      limit,
+    };
   }
 
   /**
@@ -101,23 +117,6 @@ export class EinsatzService {
   }
 
   /**
-   * Löscht einen Einsatz
-   */
-  async remove(id: string, userId: string): Promise<void> {
-    const existing = await this.repository.findOne(id);
-
-    if (!existing) {
-      throw new EinsatzNotFoundException(id);
-    }
-
-    await this.repository.delete(id);
-    this.logger.log(`Einsatz ${id} gelöscht von User ${userId}`);
-
-    // Cache bereinigen
-    this.completenessCache.delete(id);
-  }
-
-  /**
    * Berechnet die Vollständigkeit eines Einsatzes
    */
   async getCompleteness(id: string, refresh = false) {
@@ -160,11 +159,6 @@ export class EinsatzService {
       ...einsatz,
       name,
       nameComponents,
-      _links: {
-        self: `/api/einsatz/${einsatz.id}`,
-        update: `/api/einsatz/${einsatz.id}`,
-        completeness: `/api/einsatz/${einsatz.id}/completeness`,
-      },
     };
 
     if (includeCompleteness) {

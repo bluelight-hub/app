@@ -1,21 +1,21 @@
+import { useAuth } from '@/hooks/useAuth.ts';
+import { getApiErrorMessage } from '@/utils/apiErrorHandler.ts';
 import { Alert } from '@atoms/alert.atom';
 import { Button } from '@atoms/button.atom';
 import { FormField } from '@atoms/form-field.atom';
 import { Heading } from '@atoms/heading.atom';
 import { Text } from '@atoms/text.atom';
+import { AuthCard } from '@molecules/auth-card.molecule';
+import { AuthFooter } from '@molecules/auth-footer.molecule';
+import { LogoWithIndicator } from '@molecules/logo-with-indicator.molecule';
 import { PasswordInput } from '@molecules/password-input.molecule';
 import { useForm } from '@tanstack/react-form';
 import { useNavigate } from '@tanstack/react-router';
+import { AuthLayout } from '@templates/AuthLayout';
 import { useEffect, useState } from 'react';
 import { PiWarning } from 'react-icons/pi';
 import { toast } from 'sonner';
 import { z } from 'zod';
-import { AuthCard } from '@/components/molecules/auth-card.molecule';
-import { AuthFooter } from '@/components/molecules/auth-footer.molecule';
-import { LogoWithIndicator } from '@/components/molecules/logo-with-indicator.molecule';
-import { AuthLayout } from '@/components/templates/AuthLayout';
-import { useAuth } from '@/hooks/useAuth.ts';
-import { getApiErrorMessage } from '@/utils/apiErrorHandler.ts';
 
 const adminLoginSchema = z.object({
   password: z.string().min(1, 'Passwort ist erforderlich'),

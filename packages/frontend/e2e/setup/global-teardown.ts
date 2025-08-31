@@ -6,17 +6,12 @@ async function globalTeardown(_config: FullConfig) {
   // Only stop containers if they were started (not in CI)
   if (!process.env.CI) {
     const postgresContainer = (global as unknown as Record<string, unknown>).__POSTGRES_CONTAINER__;
-    const redisContainer = (global as unknown as Record<string, unknown>).__REDIS_CONTAINER__;
 
     try {
       if (postgresContainer) {
         console.log('🛑 Stopping PostgreSQL container...');
+        // @ts-expect-error
         await postgresContainer.stop();
-      }
-
-      if (redisContainer) {
-        console.log('🛑 Stopping Redis container...');
-        await redisContainer.stop();
       }
 
       console.log('✅ Test containers stopped successfully');

@@ -1,8 +1,8 @@
 import { AdminJwtAuthGuard } from '@/auth/guards/admin-jwt-auth.guard';
 import { ParseNanoIdPipe } from '@/common/pipes/parse-nanoid.pipe';
 import { Body, Controller, Delete, Get, Param, Post, UseGuards, ValidationPipe } from '@nestjs/common';
-import { ApiBearerAuth, ApiCreatedResponse, ApiOkResponse, ApiOperation, ApiResponse, ApiTags, ApiUnauthorizedResponse } from '@nestjs/swagger';
-import type { CreateUserDto } from './dto/create-user.dto';
+import { ApiBearerAuth, ApiBody, ApiCreatedResponse, ApiOkResponse, ApiOperation, ApiResponse, ApiTags, ApiUnauthorizedResponse } from '@nestjs/swagger';
+import { CreateUserDto } from './dto/create-user.dto';
 import { DeleteUserResponse, UserResponse, UsersListResponse } from './dto/user-management-response.dto';
 import { toDeleteUserResponseDto } from './mappers/user-management.mapper';
 import { UserManagementService } from './user-management.service';
@@ -32,6 +32,10 @@ export class UserManagementController {
 
   @Post()
   @ApiOperation({ summary: 'Neuen Benutzer erstellen' })
+  @ApiBody({
+    type: CreateUserDto,
+    description: 'Daten für den neuen Benutzer',
+  })
   @ApiCreatedResponse({
     type: UserResponse,
     description: 'Benutzer erfolgreich erstellt',

@@ -1,8 +1,12 @@
 # Projektübersicht
 
-Dieses Feature vereinheitlicht die Authentifizierung der BlueLight Hub App durch ein kombiniertes Login/Register-Formular. Statt zwischen separaten Login- und Registrierungs-Formularen zu wechseln, wird ein einziges, intelligentes Formular implementiert, das automatisch zwischen Login und Registrierung unterscheidet. Dies verbessert die User Experience erheblich und reduziert Verwirrung bei neuen und wiederkehrenden Benutzern.
+Dieses Feature vereinheitlicht die Authentifizierung der BlueLight Hub App durch ein kombiniertes
+Login/Register-Formular. Statt zwischen separaten Login- und Registrierungs-Formularen zu wechseln, wird ein einziges,
+intelligentes Formular implementiert, das automatisch zwischen Login und Registrierung unterscheidet. Dies verbessert
+die User Experience erheblich und reduziert Verwirrung bei neuen und wiederkehrenden Benutzern.
 
-Das System erkennt automatisch, ob ein Benutzername bereits existiert und führt entweder einen Login durch oder erstellt einen neuen Account. Dies eliminiert die Notwendigkeit für Benutzer, sich zu erinnern, ob sie bereits registriert sind.
+Das System erkennt automatisch, ob ein Benutzername bereits existiert und führt entweder einen Login durch oder erstellt
+einen neuen Account. Dies eliminiert die Notwendigkeit für Benutzer, sich zu erinnern, ob sie bereits registriert sind.
 
 # Kernfunktionen
 
@@ -36,7 +40,8 @@ Das System erkennt automatisch, ob ein Benutzername bereits existiert und führt
 
 ## Hauptabläufe
 
-- **Erster Besuch**: Benutzer gibt Username und Passwort ein → Account wird automatisch erstellt → Direkte Weiterleitung zur App
+- **Erster Besuch**: Benutzer gibt Username und Passwort ein → Account wird automatisch erstellt → Direkte Weiterleitung
+  zur App
 - **Wiederkehrender Besuch**: Benutzer gibt Credentials ein → Login erfolgt → Zugang zur App
 - **Falsches Passwort**: Klare Fehlermeldung ohne Preisgabe ob Account existiert (Security)
 
@@ -53,21 +58,21 @@ Das System erkennt automatisch, ob ein Benutzername bereits existiert und führt
 ## Systemkomponenten
 
 - **Frontend**: React + Vite mit TanStack Form
-  - AuthForm Komponente mit Tailwind Styling
-  - Zod-Schema für Validierung
-  - TanStack Query für API-Calls
-  - Optimistische UI-Updates
+    - AuthForm Komponente mit Tailwind Styling
+    - Zod-Schema für Validierung
+    - TanStack Query für API-Calls
+    - Optimistische UI-Updates
 
 - **Backend**: NestJS mit Prisma
-  - Unified Auth Controller
-  - Auth Service mit Login/Register-Logik
-  - JWT-Token-Generation
-  - Prisma User-Model Updates
+    - Unified Auth Controller
+    - Auth Service mit Login/Register-Logik
+    - JWT-Token-Generation
+    - Prisma User-Model Updates
 
 - **Shared Package**: API-Client Generation
-  - OpenAPI Schema für Auth-Endpoint
-  - Generierte TypeScript-Types
-  - Shared Validation Schemas
+    - OpenAPI Schema für Auth-Endpoint
+    - Generierte TypeScript-Types
+    - Shared Validation Schemas
 
 ## Datenmodelle
 
@@ -87,7 +92,6 @@ Das System erkennt automatisch, ob ein Benutzername bereits existiert und führt
 - **Datenbank**: PostgreSQL mit User-Table Updates
 - **Security**: Rate-Limiting für Auth-Endpoint
 - **Monitoring**: Logging für neue Registrierungen
-- **Cache**: Redis für Session-Management (optional)
 
 # Entwicklungs-Roadmap
 
@@ -102,9 +106,9 @@ Das System erkennt automatisch, ob ein Benutzername bereits existiert und führt
 ## Erweiterte Funktionen (Phase 2)
 
 - **Password-Based Authentication Implementation**
-  - Passwort-Validierung mit Stärke-Indikator für neue Accounts
-  - Sichere Passwort-Hashing mit bcrypt
-  - Passwort-Stärke-Indikator UI-Komponente
+    - Passwort-Validierung mit Stärke-Indikator für neue Accounts
+    - Sichere Passwort-Hashing mit bcrypt
+    - Passwort-Stärke-Indikator UI-Komponente
 - E-Mail-Verifikation für neue Accounts
 - Remember-Me Funktionalität
 - Social Login Integration vorbereiten

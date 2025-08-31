@@ -1,10 +1,10 @@
-import type { CreateUserDto, DeleteUserResponse, ResponseError, UserResponse, UsersListResponse } from '@bluelight-hub/shared/client';
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { toast } from 'sonner';
 import { api } from '@/api';
 import { QUERY_KEYS } from '@/queryKeys';
 import { getApiErrorMessage } from '@/utils/apiErrorHandler';
 import { logger } from '@/utils/logger';
+import type { CreateUserDto, DeleteUserResponse, ResponseError, UserResponse, UsersListResponse } from '@bluelight-hub/shared/client';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { toast } from 'sonner';
 
 /**
  * Hook für Admin-Benutzerverwaltung
@@ -43,7 +43,7 @@ export const useAdminUserManagement = () => {
     onError: async (error: ResponseError) => {
       const message = await getApiErrorMessage(error, 'Der Benutzer konnte nicht erstellt werden.', 'createUser');
 
-      logger.error('Failed to create user', error);
+      logger.error('Failed to create a user', error);
       toast.error('Fehler', {
         description: message,
       });

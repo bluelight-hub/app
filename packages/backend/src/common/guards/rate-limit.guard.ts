@@ -1,6 +1,5 @@
 import { type CanActivate, type ExecutionContext, Injectable } from '@nestjs/common';
 import type { Reflector } from '@nestjs/core';
-import type { RedisService } from '../services/redis.service';
 import { generateSecureRateLimitKey, RateLimiter, type RateLimiterConfig } from '../utils/rate-limiter.util';
 
 export const RATE_LIMIT_KEY = 'rateLimit';
@@ -17,7 +16,7 @@ export interface RateLimitOptions extends Omit<RateLimiterConfig, 'keyPrefix'> {
  * Rate Limit Guard
  *
  * Schützt Endpunkte vor übermäßigen Anfragen durch Rate Limiting.
- * Nutzt Redis für verteilte Systeme, fällt auf In-Memory zurück wenn Redis nicht verfügbar ist.
+ * Nutzt In-Memory Cache
  *
  * @example
  * ```typescript
@@ -36,10 +35,7 @@ export interface RateLimitOptions extends Omit<RateLimiterConfig, 'keyPrefix'> {
 export class RateLimitGuard implements CanActivate {
   private rateLimiters = new Map<string, RateLimiter>();
 
-  constructor(
-    private readonly reflector: Reflector,
-    private readonly redisService: RedisService,
-  ) {}
+  constructor(private readonly reflector: Reflector) {}
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
     const rateLimitOptions = this.reflector.getAllAndOverride<RateLimitOptions>(RATE_LIMIT_KEY, [context.getHandler(), context.getClass()]);
@@ -62,7 +58,7 @@ export class RateLimitGuard implements CanActivate {
         keyGenerator: rateLimitOptions.keyGenerator || generateSecureRateLimitKey,
       };
 
-      limiter = new RateLimiter(config, this.redisService);
+      limiter = new RateLimiter(config);
       this.rateLimiters.set(limiterKey, limiter);
     }
 
@@ -104,13 +100,6 @@ export class RateLimitGuard implements CanActivate {
   }
 
   /**
-   * Generate a unique key for rate limiter instances
-   */
-  private getLimiterKey(options: RateLimitOptions): string {
-    return `${options.prefix || 'api'}:${options.maxRequests}:${options.windowMs}`;
-  }
-
-  /**
    * Clean up rate limiters on module destroy
    */
   onModuleDestroy() {
@@ -118,5 +107,12 @@ export class RateLimitGuard implements CanActivate {
       limiter.destroy();
     }
     this.rateLimiters.clear();
+  }
+
+  /**
+   * Generate a unique key for rate limiter instances
+   */
+  private getLimiterKey(options: RateLimitOptions): string {
+    return `${options.prefix || 'api'}:${options.maxRequests}:${options.windowMs}`;
   }
 }

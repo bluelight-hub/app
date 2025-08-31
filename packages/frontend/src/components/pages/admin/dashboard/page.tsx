@@ -1,14 +1,14 @@
-import { useNavigate } from '@tanstack/react-router';
-import { isTauri } from '@tauri-apps/api/core';
-import { useCallback } from 'react';
-import { PiSignOut, PiUsers } from 'react-icons/pi';
-import { Button } from '@/components/atoms/button.atom';
-import { Card } from '@/components/atoms/card.atom';
-import { Heading } from '@/components/atoms/heading.atom';
-import { Text } from '@/components/atoms/text.atom';
-import { DashboardLayout } from '@/components/templates/DashboardLayout';
 import { useAuth } from '@/hooks/useAuth';
 import { logger } from '@/utils/logger';
+import { Button } from '@atoms/button.atom';
+import { Card } from '@atoms/card.atom';
+import { Heading } from '@atoms/heading.atom';
+import { Text } from '@atoms/text.atom';
+import { useNavigate } from '@tanstack/react-router';
+import { isTauri } from '@tauri-apps/api/core';
+import { DashboardLayout } from '@templates/DashboardLayout';
+import { useCallback } from 'react';
+import { PiSignOut, PiUsers } from 'react-icons/pi';
 
 /**
  * Admin-Dashboard Seite

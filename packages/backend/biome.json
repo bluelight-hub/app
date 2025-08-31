@@ -16,7 +16,16 @@
   },
   "overrides": [
     {
-      "includes": ["src/**/*.service.ts", "src/**/*.controller.ts", "src/**/*.indicator.ts", "src/**/*.strategy.ts", "src/**/*.repository.ts"],
+      "includes": [
+        "src/**/*.service.ts",
+        "src/**/*.controller.ts",
+        "src/**/*.indicator.ts",
+        "src/**/*.strategy.ts",
+        "src/**/*.repository.ts",
+        "src/**/*.module.ts",
+        "src/**/*.resolver.ts",
+        "src/**/*.interceptor.ts"
+      ],
       "linter": {
         "rules": {
           "style": {

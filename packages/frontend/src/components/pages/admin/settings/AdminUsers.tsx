@@ -1,18 +1,18 @@
-import type { CreateUserDto, UserDto } from '@bluelight-hub/shared/client';
+import { useAdminAuth } from '@/hooks/useAdminAuth';
+import { useAdminUserManagement } from '@/hooks/useAdminUserManagement';
+import { Alert } from '@atoms/alert.atom';
+import { Button } from '@atoms/button.atom';
+import { Card } from '@atoms/card.atom';
+import { Container } from '@atoms/container.atom';
+import { Heading } from '@atoms/heading.atom';
+import { Spinner } from '@atoms/spinner.atom';
+import type { CreateUserDto, UserDto } from '@bluelight-hub/shared/dist';
+import { ConfirmDeleteDialog } from '@organisms/admin/ConfirmDeleteDialog';
+import { CreateUserDialog } from '@organisms/admin/CreateUserDialog';
+import { UsersTable } from '@organisms/admin/UsersTable';
 import { Navigate } from '@tanstack/react-router';
 import { useState } from 'react';
 import { PiPlus, PiWarning } from 'react-icons/pi';
-import { Alert } from '@/components/atoms/alert.atom';
-import { Button } from '@/components/atoms/button.atom';
-import { Card } from '@/components/atoms/card.atom';
-import { Container } from '@/components/atoms/container.atom';
-import { Heading } from '@/components/atoms/heading.atom';
-import { Spinner } from '@/components/atoms/spinner.atom';
-import { ConfirmDeleteDialog } from '@/components/organisms/admin/ConfirmDeleteDialog';
-import { CreateUserDialog } from '@/components/organisms/admin/CreateUserDialog';
-import { UsersTable } from '@/components/organisms/admin/UsersTable';
-import { useAdminAuth } from '@/hooks/useAdminAuth';
-import { useAdminUserManagement } from '@/hooks/useAdminUserManagement';
 
 export function AdminUsers() {
   const { isAdmin, isLoading: isAuthLoading } = useAdminAuth();

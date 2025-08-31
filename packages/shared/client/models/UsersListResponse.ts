@@ -19,8 +19,6 @@ import type { ApiPagination } from './ApiPagination';
 import { ApiPaginationFromJSON, ApiPaginationFromJSONTyped, ApiPaginationToJSON, ApiPaginationToJSONTyped } from './ApiPagination';
 import type { UserDto } from './UserDto';
 import { UserDtoFromJSON, UserDtoFromJSONTyped, UserDtoToJSON, UserDtoToJSONTyped } from './UserDto';
-import type { ApiLinks } from './ApiLinks';
-import { ApiLinksFromJSON, ApiLinksFromJSONTyped, ApiLinksToJSON, ApiLinksToJSONTyped } from './ApiLinks';
 
 /**
  *
@@ -46,12 +44,6 @@ export interface UsersListResponse {
    * @memberof UsersListResponse
    */
   pagination?: ApiPagination;
-  /**
-   * HATEOAS-Links
-   * @type {ApiLinks}
-   * @memberof UsersListResponse
-   */
-  links?: ApiLinks;
   /**
    * Liste der Benutzer
    * @type {Array<UserDto>}
@@ -81,7 +73,6 @@ export function UsersListResponseFromJSONTyped(json: any, ignoreDiscriminator: b
     meta: ApiMetaFromJSON(json['meta']),
     message: json['message'] == null ? undefined : json['message'],
     pagination: json['pagination'] == null ? undefined : ApiPaginationFromJSON(json['pagination']),
-    links: json['links'] == null ? undefined : ApiLinksFromJSON(json['links']),
     data: (json['data'] as Array<any>).map(UserDtoFromJSON),
   };
 }
@@ -99,7 +90,6 @@ export function UsersListResponseToJSONTyped(value?: UsersListResponse | null, i
     meta: ApiMetaToJSON(value['meta']),
     message: value['message'],
     pagination: ApiPaginationToJSON(value['pagination']),
-    links: ApiLinksToJSON(value['links']),
     data: (value['data'] as Array<any>).map(UserDtoToJSON),
   };
 }

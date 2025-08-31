@@ -1,11 +1,11 @@
-import { type CallHandler, type ExecutionContext, Injectable, type NestInterceptor } from '@nestjs/common';
+import { trimTrailingSlash } from '@/utils/url.util';
+import { type CallHandler, type ExecutionContext, Injectable, Logger, type NestInterceptor } from '@nestjs/common';
 import type { ConfigService } from '@nestjs/config';
 import type { Reflector } from '@nestjs/core';
 import type { Request } from 'express';
 import { nanoid } from 'nanoid';
 import type { Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
-import { trimTrailingSlash } from '@/utils/url.util';
 
 /**
  * Interface für paginierte Daten vom Controller
@@ -42,11 +42,6 @@ export interface TransformedResponse<T = unknown> {
     total: number;
     totalPages: number;
   };
-  links?: {
-    self: string;
-    next?: string;
-    prev?: string;
-  };
 }
 
 /**
@@ -81,6 +76,7 @@ function isTransformedResponse<T>(data: unknown): data is TransformedResponse<T>
 @Injectable()
 export class TransformInterceptor<T = unknown> implements NestInterceptor<T, TransformedResponse<T> | T> {
   private readonly appUrl: string;
+  private readonly logger = new Logger('TransformInterceptor');
 
   constructor(
     private reflector: Reflector,
@@ -128,25 +124,6 @@ export class TransformInterceptor<T = unknown> implements NestInterceptor<T, Tra
             total,
             totalPages: Math.ceil(total / limit),
           };
-
-          // Generiere Links für Pagination mit sicherer Base-URL aus Konfiguration
-          // Verwende nur den Pfad aus der Request-URL, nicht den Host-Header
-          const pathname = request.originalUrl.split('?')[0];
-          // Ensure we don't duplicate /api if it's already in the pathname
-          const apiPath = pathname.startsWith('/api') ? pathname : `/api${pathname}`;
-          const baseUrl = `${this.appUrl}${apiPath}`;
-
-          transformed.links = {
-            self: `${baseUrl}?page=${page}&limit=${limit}`,
-          };
-
-          if (page < transformed.pagination.totalPages) {
-            transformed.links.next = `${baseUrl}?page=${page + 1}&limit=${limit}`;
-          }
-
-          if (page > 1) {
-            transformed.links.prev = `${baseUrl}?page=${page - 1}&limit=${limit}`;
-          }
         }
 
         // Füge message hinzu, wenn vorhanden

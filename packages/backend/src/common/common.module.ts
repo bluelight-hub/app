@@ -1,8 +1,7 @@
+import { PrismaModule } from '@/prisma/prisma.module';
 import { Global, Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
-import { PrismaModule } from '@/prisma/prisma.module';
 import { AppConfigService } from './services/app-config.service';
-import { RedisService } from './services/redis.service';
 
 /**
  * Gemeinsames Modul für anwendungsübergreifende Funktionalitäten
@@ -12,7 +11,6 @@ import { RedisService } from './services/redis.service';
  * - Paginierung für Datenbankabfragen
  * - Fehlerbehandlung mit Retry-Logik
  * - Audit-Logging-Funktionalität
- * - Redis-Service für Caching und verteilte Rate-Limits
  * - Rate-Limiting für API-Endpunkte
  *
  * @module CommonModule
@@ -20,7 +18,7 @@ import { RedisService } from './services/redis.service';
 @Global()
 @Module({
   imports: [ConfigModule, PrismaModule],
-  providers: [RedisService, AppConfigService],
-  exports: [RedisService, AppConfigService],
+  providers: [AppConfigService],
+  exports: [AppConfigService],
 })
 export class CommonModule {}

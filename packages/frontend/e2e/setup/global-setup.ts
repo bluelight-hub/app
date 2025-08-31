@@ -1,9 +1,9 @@
+import { config } from '@dotenvx/dotenvx';
+import type { FullConfig } from '@playwright/test';
 import { exec } from 'node:child_process';
 import * as path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { promisify } from 'node:util';
-import { config } from '@dotenvx/dotenvx';
-import type { FullConfig } from '@playwright/test';
 import type { StartedTestContainer } from 'testcontainers';
 import { GenericContainer } from 'testcontainers';
 
@@ -16,7 +16,6 @@ const execAsync = promisify(exec);
 config({ path: path.join(__dirname, '../../.env.test') });
 
 let postgresContainer: StartedTestContainer;
-let redisContainer: StartedTestContainer;
 
 async function globalSetup(_config: FullConfig) {
   console.log('🚀 Starting test containers...');
@@ -44,28 +43,11 @@ async function globalSetup(_config: FullConfig) {
       const pgPort = postgresContainer.getMappedPort(5432);
       const pgHost = postgresContainer.getHost();
 
-      // Start Redis container
-      console.log('📦 Starting Redis container...');
-      redisContainer = await new GenericContainer('redis:7-alpine')
-        .withExposedPorts(6379)
-        .withHealthCheck({
-          test: ['CMD', 'redis-cli', 'ping'],
-          interval: 10000,
-          timeout: 5000,
-          retries: 5,
-        })
-        .start();
-
-      const redisPort = redisContainer.getMappedPort(6379);
-      const redisHost = redisContainer.getHost();
-
       // Set environment variables for the backend
       process.env.DATABASE_URL = `postgresql://testuser:testpass@${pgHost}:${pgPort}/bluelight_test`;
-      process.env.REDIS_URL = `redis://${redisHost}:${redisPort}`;
 
       console.log('✅ Test containers started successfully');
       console.log(`📍 PostgreSQL: ${pgHost}:${pgPort}`);
-      console.log(`📍 Redis: ${redisHost}:${redisPort}`);
 
       // Run Prisma migrations
       console.log('🔄 Running database migrations...');
@@ -95,12 +77,10 @@ async function globalSetup(_config: FullConfig) {
     console.log('ℹ️ Running in CI - using GitHub Actions services');
     // CI environment variables should be set by GitHub Actions
     process.env.DATABASE_URL = process.env.DATABASE_URL || 'postgresql://postgres:postgres@localhost:5432/bluelight_test';
-    process.env.REDIS_URL = process.env.REDIS_URL || 'redis://localhost:6379';
   }
 
   // Store container references for teardown
   (global as unknown as Record<string, unknown>).__POSTGRES_CONTAINER__ = postgresContainer;
-  (global as unknown as Record<string, unknown>).__REDIS_CONTAINER__ = redisContainer;
 }
 
 export default globalSetup;

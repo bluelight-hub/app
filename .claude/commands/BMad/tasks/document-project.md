@@ -8,13 +8,16 @@ When this command is used, execute the following task:
 
 ## Purpose
 
-Generate comprehensive documentation for existing projects optimized for AI development agents. This task creates structured reference materials that enable AI agents to understand project context, conventions, and patterns for effective contribution to any codebase.
+Generate comprehensive documentation for existing projects optimized for AI development agents. This task creates
+structured reference materials that enable AI agents to understand project context, conventions, and patterns for
+effective contribution to any codebase.
 
 ## Task Instructions
 
 ### 1. Initial Project Analysis
 
-**CRITICAL:** First, check if a PRD or requirements document exists in context. If yes, use it to focus your documentation efforts on relevant areas only.
+**CRITICAL:** First, check if a PRD or requirements document exists in context. If yes, use it to focus your
+documentation efforts on relevant areas only.
 
 **IF PRD EXISTS**:
 
@@ -26,18 +29,21 @@ Generate comprehensive documentation for existing projects optimized for AI deve
 **IF NO PRD EXISTS**:
 Ask the user:
 
-"I notice you haven't provided a PRD or requirements document. To create more focused and useful documentation, I recommend one of these options:
+"I notice you haven't provided a PRD or requirements document. To create more focused and useful documentation, I
+recommend one of these options:
 
-1. **Create a PRD first** - Would you like me to help create a brownfield PRD before documenting? This helps focus documentation on relevant areas.
+1. **Create a PRD first** - Would you like me to help create a brownfield PRD before documenting? This helps focus
+   documentation on relevant areas.
 
 2. **Provide existing requirements** - Do you have a requirements document, epic, or feature description you can share?
 
 3. **Describe the focus** - Can you briefly describe what enhancement or feature you're planning? For example:
-   - 'Adding payment processing to the user service'
-   - 'Refactoring the authentication module'
-   - 'Integrating with a new third-party API'
+    - 'Adding payment processing to the user service'
+    - 'Refactoring the authentication module'
+    - 'Integrating with a new third-party API'
 
-4. **Document everything** - Or should I proceed with comprehensive documentation of the entire codebase? (Note: This may create excessive documentation for large projects)
+4. **Document everything** - Or should I proceed with comprehensive documentation of the entire codebase? (Note: This
+   may create excessive documentation for large projects)
 
 Please let me know your preference, or I can proceed with full documentation if you prefer."
 
@@ -48,17 +54,21 @@ Based on their response:
 
 Begin by conducting analysis of the existing project. Use available tools to:
 
-1. **Project Structure Discovery**: Examine the root directory structure, identify main folders, and understand the overall organization
-2. **Technology Stack Identification**: Look for package.json, requirements.txt, Cargo.toml, pom.xml, etc. to identify languages, frameworks, and dependencies
+1. **Project Structure Discovery**: Examine the root directory structure, identify main folders, and understand the
+   overall organization
+2. **Technology Stack Identification**: Look for package.json, requirements.txt, Cargo.toml, pom.xml, etc. to identify
+   languages, frameworks, and dependencies
 3. **Build System Analysis**: Find build scripts, CI/CD configurations, and development commands
 4. **Existing Documentation Review**: Check for README files, docs folders, and any existing documentation
-5. **Code Pattern Analysis**: Sample key files to understand coding patterns, naming conventions, and architectural approaches
+5. **Code Pattern Analysis**: Sample key files to understand coding patterns, naming conventions, and architectural
+   approaches
 
 Ask the user these elicitation questions to better understand their needs:
 
 - What is the primary purpose of this project?
 - Are there any specific areas of the codebase that are particularly complex or important for agents to understand?
-- What types of tasks do you expect AI agents to perform on this project? (e.g., bug fixes, feature additions, refactoring, testing)
+- What types of tasks do you expect AI agents to perform on this project? (e.g., bug fixes, feature additions,
+  refactoring, testing)
 - Are there any existing documentation standards or formats you prefer?
 - What level of technical detail should the documentation target? (junior developers, senior developers, mixed team)
 - Is there a specific feature or enhancement you're planning? (This helps focus documentation)
@@ -68,25 +78,25 @@ Ask the user these elicitation questions to better understand their needs:
 CRITICAL: Before generating documentation, conduct extensive analysis of the existing codebase:
 
 1. **Explore Key Areas**:
-   - Entry points (main files, index files, app initializers)
-   - Configuration files and environment setup
-   - Package dependencies and versions
-   - Build and deployment configurations
-   - Test suites and coverage
+    - Entry points (main files, index files, app initializers)
+    - Configuration files and environment setup
+    - Package dependencies and versions
+    - Build and deployment configurations
+    - Test suites and coverage
 
 2. **Ask Clarifying Questions**:
-   - "I see you're using [technology X]. Are there any custom patterns or conventions I should document?"
-   - "What are the most critical/complex parts of this system that developers struggle with?"
-   - "Are there any undocumented 'tribal knowledge' areas I should capture?"
-   - "What technical debt or known issues should I document?"
-   - "Which parts of the codebase change most frequently?"
+    - "I see you're using [technology X]. Are there any custom patterns or conventions I should document?"
+    - "What are the most critical/complex parts of this system that developers struggle with?"
+    - "Are there any undocumented 'tribal knowledge' areas I should capture?"
+    - "What technical debt or known issues should I document?"
+    - "Which parts of the codebase change most frequently?"
 
 3. **Map the Reality**:
-   - Identify ACTUAL patterns used (not theoretical best practices)
-   - Find where key business logic lives
-   - Locate integration points and external dependencies
-   - Document workarounds and technical debt
-   - Note areas that differ from standard patterns
+    - Identify ACTUAL patterns used (not theoretical best practices)
+    - Find where key business logic lives
+    - Locate integration points and external dependencies
+    - Document workarounds and technical debt
+    - Note areas that differ from standard patterns
 
 **IF PRD PROVIDED**: Also analyze what would need to change for the enhancement
 
@@ -108,7 +118,8 @@ CRITICAL: Before generating documentation, conduct extensive analysis of the exi
 
 ## Introduction
 
-This document captures the CURRENT STATE of the [Project Name] codebase, including technical debt, workarounds, and real-world patterns. It serves as a reference for AI agents working on enhancements.
+This document captures the CURRENT STATE of the [Project Name] codebase, including technical debt, workarounds, and
+real-world patterns. It serves as a reference for AI agents working on enhancements.
 
 ### Document Scope
 
@@ -118,7 +129,7 @@ This document captures the CURRENT STATE of the [Project Name] codebase, includi
 ### Change Log
 
 | Date   | Version | Description                 | Author    |
-| ------ | ------- | --------------------------- | --------- |
+|--------|---------|-----------------------------|-----------|
 | [Date] | 1.0     | Initial brownfield analysis | [Analyst] |
 
 ## Quick Reference - Key Files and Entry Points
@@ -143,7 +154,7 @@ This document captures the CURRENT STATE of the [Project Name] codebase, includi
 ### Actual Tech Stack (from package.json/requirements.txt)
 
 | Category  | Technology | Version | Notes                      |
-| --------- | ---------- | ------- | -------------------------- |
+|-----------|------------|---------|----------------------------|
 | Runtime   | Node.js    | 16.x    | [Any constraints]          |
 | Framework | Express    | 4.18.2  | [Custom middleware?]       |
 | Database  | PostgreSQL | 13      | [Connection pooling setup] |
@@ -216,7 +227,7 @@ Instead of duplicating, reference actual model files:
 ### External Services
 
 | Service  | Purpose  | Integration Type | Key Files                      |
-| -------- | -------- | ---------------- | ------------------------------ |
+|----------|----------|------------------|--------------------------------|
 | Stripe   | Payments | REST API         | `src/integrations/stripe/`     |
 | SendGrid | Emails   | SDK              | `src/services/emailService.js` |
 
@@ -225,7 +236,6 @@ etc...
 ### Internal Integration Points
 
 - **Frontend Communication**: REST API on port 3000, expects specific headers
-- **Background Jobs**: Redis queue, see `src/workers/`
 - **[Other integrations]**
 
 ## Development and Deployment
@@ -301,14 +311,14 @@ npm run seed        # Seed test data
 ### 4. Document Delivery
 
 1. **In Web UI (Gemini, ChatGPT, Claude)**:
-   - Present the entire document in one response (or multiple if too long)
-   - Tell user to copy and save as `docs/brownfield-architecture.md` or `docs/project-architecture.md`
-   - Mention it can be sharded later in IDE if needed
+    - Present the entire document in one response (or multiple if too long)
+    - Tell user to copy and save as `docs/brownfield-architecture.md` or `docs/project-architecture.md`
+    - Mention it can be sharded later in IDE if needed
 
 2. **In IDE Environment**:
-   - Create the document as `docs/brownfield-architecture.md`
-   - Inform user this single document contains all architectural information
-   - Can be sharded later using PO agent if desired
+    - Create the document as `docs/brownfield-architecture.md`
+    - Inform user this single document contains all architectural information
+    - Can be sharded later using PO agent if desired
 
 The document should be comprehensive enough that future agents can understand:
 

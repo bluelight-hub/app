@@ -2,7 +2,7 @@ name: CI Pipeline
 
 on:
   pull_request:
-    branches: [main, develop, feature/*, alpha, beta, release/*]
+    branches: [ main, develop, feature/*, alpha, beta, release/* ]
   push:
     branches: [main, develop, feature/*, alpha, beta, release/*]
     # Only on push to main branches for continuous monitoring
@@ -22,7 +22,7 @@ jobs:
 
     strategy:
       matrix:
-        node-version: [22, 24]
+        node-version: [ 22, 24 ]
 
     services:
       postgres:
@@ -35,16 +35,6 @@ jobs:
           - 5432:5432
         options: >-
           --health-cmd="pg_isready"
-          --health-interval=10s
-          --health-timeout=5s
-          --health-retries=5
-
-      redis:
-        image: redis:7
-        ports:
-          - 6379:6379
-        options: >-
-          --health-cmd="redis-cli ping"
           --health-interval=10s
           --health-timeout=5s
           --health-retries=5
@@ -90,7 +80,6 @@ jobs:
       - name: Run unit tests with coverage
         env:
           DATABASE_URL: postgresql://postgres:postgres@localhost:5432/bluelight_test
-          REDIS_URL: redis://localhost:6379
           JWT_SECRET: test-secret
           JWT_REFRESH_SECRET: test-refresh-secret
           NODE_ENV: test
@@ -108,7 +97,6 @@ jobs:
       - name: Start backend server
         env:
           DATABASE_URL: postgresql://postgres:postgres@localhost:5432/bluelight_test
-          REDIS_URL: redis://localhost:6379
           JWT_SECRET: test-secret
           JWT_REFRESH_SECRET: test-refresh-secret
           NODE_ENV: test
@@ -242,7 +230,7 @@ jobs:
 
   # Summary job for branch protection
   summary:
-    needs: [build]
+    needs: [ build ]
     runs-on: ubuntu-latest
     if: always()
     steps:
