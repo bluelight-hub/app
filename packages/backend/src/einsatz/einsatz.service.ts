@@ -1,11 +1,12 @@
 import type { PaginatedData } from '@/common/interceptors/transform.interceptor';
 import { CreateEinsatzDto, EinsatzCompleteness, EinsatzQueryDto, EinsatzResponseDto, UpdateEinsatzDto } from '@/einsatz/dto';
-import { Injectable, Logger } from '@nestjs/common';
+import { Injectable, Logger, BadRequestException } from '@nestjs/common';
 import { Einsatz, Prisma } from '@prisma/client';
 import { EinsatzRepository } from './einsatz.repository';
 import { EinsatzNotFoundException } from './exceptions/einsatz-not-found.exception';
 import { EinsatzCompletenessCalculator } from './utils/completeness.util';
 import { EinsatzNameGenerator } from './utils/name-generator.util';
+import { EinsatzStatusTransitions } from './utils/status-transitions.util';
 
 @Injectable()
 export class EinsatzService {
@@ -100,6 +101,17 @@ export class EinsatzService {
       throw new EinsatzNotFoundException(id);
     }
 
+    // Schutz vor Bearbeitung archivierter Einsätze
+    if (!EinsatzStatusTransitions.canEdit(existing.status)) {
+      throw new BadRequestException(`Einsatz ${id} ist archiviert und kann nicht mehr bearbeitet werden. ` + `Nur Lesezugriff ist erlaubt.`);
+    }
+
+    // Status-Übergang validieren wenn Status geändert wird
+    if (dto.status && dto.status !== existing.status) {
+      EinsatzStatusTransitions.validateTransition(existing.status, dto.status);
+      this.logger.log(`Status-Übergang für Einsatz ${id}: ${existing.status} → ${dto.status}`);
+    }
+
     const updateData: Prisma.EinsatzUpdateInput = {
       alarmstichwort: dto.alarmstichwort,
       status: dto.status,
@@ -144,6 +156,11 @@ export class EinsatzService {
     if (existing.status === 'ARCHIVIERT') {
       this.logger.warn(`Einsatz ${id} ist bereits archiviert`);
       return this.toResponseDto(existing);
+    }
+
+    // Business-Rule: Nur ABGESCHLOSSEN kann archiviert werden
+    if (!EinsatzStatusTransitions.canArchive(existing.status)) {
+      throw new BadRequestException(`Einsatz ${id} kann nicht archiviert werden. ` + `Nur Einsätze mit Status ABGESCHLOSSEN können archiviert werden. ` + `Aktueller Status: ${existing.status}`);
     }
 
     const updateData: Prisma.EinsatzUpdateInput = {
