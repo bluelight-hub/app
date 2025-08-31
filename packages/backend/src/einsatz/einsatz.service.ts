@@ -1,5 +1,5 @@
-import { CreateEinsatzDto, EinsatzCompleteness, EinsatzQueryDto, EinsatzResponseDto, UpdateEinsatzDto } from '@/einsatz/dto';
 import type { PaginatedData } from '@/common/interceptors/transform.interceptor';
+import { CreateEinsatzDto, EinsatzCompleteness, EinsatzQueryDto, EinsatzResponseDto, UpdateEinsatzDto } from '@/einsatz/dto';
 import { Injectable, Logger } from '@nestjs/common';
 import { Einsatz, Prisma } from '@prisma/client';
 import { EinsatzRepository } from './einsatz.repository';
@@ -37,16 +37,24 @@ export class EinsatzService {
 
   /**
    * Gibt alle Einsätze zurück mit optionalem Status-Filter, Suchbegriff und Pagination
+   *
+   * WICHTIG: Archivierte Einsätze werden standardmäßig ausgeschlossen (No-Delete Policy)
+   * Verwende includeArchived=true um auch archivierte Einsätze anzuzeigen
    */
   async findAll(params?: EinsatzQueryDto): Promise<PaginatedData<EinsatzResponseDto>> {
-    const { status, search, includeCompleteness = false, page = 1, limit = 10 } = params || {};
+    const { status, search, includeCompleteness = false, includeArchived = false, page = 1, limit = 10 } = params || {};
 
     // Build where conditions
     const where: Prisma.EinsatzWhereInput = {};
 
-    if (status) {
+    // No-Delete Policy: Filter archivierte Einsätze standardmäßig aus
+    if (!includeArchived && !status) {
+      // Wenn kein spezifischer Status angefragt wurde UND archivierte nicht eingeschlossen werden sollen
+      where.status = { not: 'ARCHIVIERT' };
+    } else if (status) {
       where.status = status;
     }
+    // Wenn includeArchived=true und kein spezifischer Status, zeige alle (kein Filter)
 
     if (search) {
       const searchTerm = search.trim();
@@ -59,7 +67,7 @@ export class EinsatzService {
     const result = await this.repository.findWithPagination(page, limit, where);
     const items = await Promise.all(result.items.map((e: Einsatz) => this.toResponseDto(e, includeCompleteness)));
 
-    this.logger.log(`Found ${result.total} Einsätze (showing ${items.length}) with filters: status=${status}, search='${search}'`);
+    this.logger.log(`Found ${result.total} Einsätze (showing ${items.length}) with filters: status=${status}, search='${search}', includeArchived=${includeArchived}`);
 
     return {
       items,
@@ -114,6 +122,52 @@ export class EinsatzService {
     this.completenessCache.delete(id);
 
     return this.toResponseDto(updated);
+  }
+
+  /**
+   * Archiviert einen Einsatz (Soft-Delete)
+   *
+   * WICHTIG: Einsätze werden niemals physisch gelöscht!
+   * Diese Methode setzt den Status auf ARCHIVIERT und dokumentiert
+   * wann und von wem die Archivierung durchgeführt wurde.
+   *
+   * @security No-Delete Policy - siehe arc42 Dokumentation
+   */
+  async archive(id: string, userId: string): Promise<EinsatzResponseDto> {
+    const existing = await this.repository.findOne(id);
+
+    if (!existing) {
+      throw new EinsatzNotFoundException(id);
+    }
+
+    // Verhindere mehrfache Archivierung
+    if (existing.status === 'ARCHIVIERT') {
+      this.logger.warn(`Einsatz ${id} ist bereits archiviert`);
+      return this.toResponseDto(existing);
+    }
+
+    const updateData: Prisma.EinsatzUpdateInput = {
+      status: 'ARCHIVIERT',
+      archivedAt: new Date(),
+      archiver: {
+        connect: {
+          id: userId,
+        },
+      },
+      updater: {
+        connect: {
+          id: userId,
+        },
+      },
+    };
+
+    const archived = await this.repository.update(id, updateData);
+    this.logger.warn(`⚠️ Einsatz ${id} wurde ARCHIVIERT von User ${userId} am ${new Date().toISOString()} (No-Delete Policy)`);
+
+    // Cache invalidieren
+    this.completenessCache.delete(id);
+
+    return this.toResponseDto(archived);
   }
 
   /**

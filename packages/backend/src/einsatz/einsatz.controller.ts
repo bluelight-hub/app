@@ -8,6 +8,27 @@ import { Body, Controller, Get, Logger, Param, Patch, Post, Query, UseGuards, Va
 import { ApiBadRequestResponse, ApiBearerAuth, ApiForbiddenResponse, ApiNotFoundResponse, ApiOkResponse, ApiOperation, ApiQuery, ApiTags, ApiUnauthorizedResponse } from '@nestjs/swagger';
 import { EinsatzService } from './einsatz.service';
 
+/**
+ * Controller für Einsatzverwaltung
+ *
+ * SICHERHEITSKRITISCH: No-Delete Policy
+ * =====================================
+ * Einsätze dürfen aus rechtlichen und Compliance-Gründen NIEMALS physisch gelöscht werden!
+ *
+ * Gründe:
+ * - Gesetzliche Aufbewahrungspflichten (mind. 10 Jahre)
+ * - Audit-Trail und Nachvollziehbarkeit
+ * - Beweissicherung für rechtliche Verfahren
+ * - Compliance-Anforderungen für Rettungsorganisationen
+ *
+ * Archivierung statt Löschung:
+ * - Verwende Status 'ARCHIVIERT' für "gelöschte" Einsätze
+ * - Soft-Delete Pattern mit Filterung in Abfragen
+ * - Keine DELETE-Endpoints implementieren
+ *
+ * @security Diese Policy ist in arc42 Kapitel 08-concepts dokumentiert
+ * @see docs/architecture/08-concepts.adoc#no-delete-policy-für-einsätze
+ */
 @ApiTags('Einsatz')
 @ApiBearerAuth()
 @UseGuards(JwtAuthGuard)
@@ -41,9 +62,10 @@ export class EinsatzController {
   @Get()
   @ApiOperation({
     summary: 'Alle Einsätze abrufen',
-    description: 'Gibt eine paginierte Liste aller Einsätze zurück, optional gefiltert nach Status.',
+    description:
+      'Gibt eine paginierte Liste aller Einsätze zurück. WICHTIG: Archivierte Einsätze werden gemäß No-Delete Policy standardmäßig ausgeschlossen. Verwende includeArchived=true um archivierte Einsätze einzuschließen.',
   })
-  @ApiWrappedResponse(EinsatzResponseDto, { description: 'Paginierte Liste der Einsätze', isArray: true })
+  @ApiWrappedResponse(EinsatzResponseDto, { description: 'Paginierte Liste der Einsätze (ohne archivierte, außer explizit angefordert)', isArray: true })
   @ApiBadRequestResponse({ description: 'Ungültige Query-Parameter' })
   async findAll(
     @Query(new ValidationPipe({ transform: true, whitelist: true }))
@@ -86,6 +108,26 @@ export class EinsatzController {
   ): Promise<EinsatzResponseDto> {
     this.logger.log(`Updating Einsatz ${id} by user ${user.userId}`);
     return await this.einsatzService.update(id, updateEinsatzDto, user.userId);
+  }
+
+  /**
+   * Archiviert einen Einsatz (Soft-Delete gemäß No-Delete Policy)
+   *
+   * @security Verwende diesen Endpoint statt DELETE!
+   * Einsätze werden nicht gelöscht, sondern als ARCHIVIERT markiert.
+   */
+  @Patch(':id/archive')
+  @ApiOperation({
+    summary: 'Einsatz archivieren (Soft-Delete)',
+    description: 'Markiert einen Einsatz als ARCHIVIERT. Einsätze werden gemäß No-Delete Policy niemals physisch gelöscht.',
+  })
+  @ApiWrappedResponse(EinsatzResponseDto, { description: 'Einsatz erfolgreich archiviert' })
+  @ApiNotFoundResponse({
+    description: 'Einsatz nicht gefunden',
+  })
+  async archive(@Param('id') id: string, @CurrentUser() user: ValidatedUser): Promise<EinsatzResponseDto> {
+    this.logger.warn(`Archiving Einsatz ${id} by user ${user.userId} (No-Delete Policy)`);
+    return await this.einsatzService.archive(id, user.userId);
   }
 
   @Get(':id/completeness')

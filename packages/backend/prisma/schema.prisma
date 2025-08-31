@@ -39,8 +39,9 @@ model User {
   // securityLogs    SecurityLog[]
 
   // Einsatz Relations
-  createdEinsaetze Einsatz[] @relation("EinsatzCreator")
-  updatedEinsaetze Einsatz[] @relation("EinsatzUpdater")
+  createdEinsaetze  Einsatz[] @relation("EinsatzCreator")
+  updatedEinsaetze  Einsatz[] @relation("EinsatzUpdater")
+  archivedEinsaetze Einsatz[] @relation("EinsatzArchiver")
 
   // Indexes
   @@index([username], map: "idx_user_username")
@@ -68,10 +69,15 @@ model Einsatz {
   updatedAt DateTime @updatedAt
   createdBy String   @db.VarChar(100)
   updatedBy String?  @db.VarChar(100)
+  
+  // Archivierung (No-Delete Policy)
+  archivedAt DateTime? // Zeitpunkt der Archivierung
+  archivedBy String?   @db.VarChar(100) // Wer hat archiviert
 
-  // Relations
-  creator User  @relation("EinsatzCreator", fields: [createdBy], references: [id])
-  updater User? @relation("EinsatzUpdater", fields: [updatedBy], references: [id])
+  // Relations mit expliziten onDelete Direktiven
+  creator User  @relation("EinsatzCreator", fields: [createdBy], references: [id], onDelete: Restrict)
+  updater User? @relation("EinsatzUpdater", fields: [updatedBy], references: [id], onDelete: SetNull)
+  archiver User? @relation("EinsatzArchiver", fields: [archivedBy], references: [id], onDelete: SetNull)
 
   // Indexes
   @@index([status, createdAt])

@@ -33,6 +33,10 @@ import {
   UpdateEinsatzDtoToJSON,
 } from '../models/index';
 
+export interface EinsatzControllerArchiveVAlphaRequest {
+  id: string;
+}
+
 export interface EinsatzControllerCreateVAlphaRequest {
   createEinsatzDto: CreateEinsatzDto;
 }
@@ -63,6 +67,55 @@ export interface EinsatzControllerUpdateVAlphaRequest {
  *
  */
 export class EinsatzApi extends runtime.BaseAPI {
+  /**
+   * Markiert einen Einsatz als ARCHIVIERT. Einsätze werden gemäß No-Delete Policy niemals physisch gelöscht.
+   * Einsatz archivieren (Soft-Delete)
+   */
+  async einsatzControllerArchiveVAlphaRaw(
+    requestParameters: EinsatzControllerArchiveVAlphaRequest,
+    initOverrides?: RequestInit | runtime.InitOverrideFunction,
+  ): Promise<runtime.ApiResponse<EinsatzControllerCreateVAlpha200Response>> {
+    if (requestParameters['id'] == null) {
+      throw new runtime.RequiredError('id', 'Required parameter "id" was null or undefined when calling einsatzControllerArchiveVAlpha().');
+    }
+
+    const queryParameters: any = {};
+
+    const headerParameters: runtime.HTTPHeaders = {};
+
+    if (this.configuration && this.configuration.accessToken) {
+      const token = this.configuration.accessToken;
+      const tokenString = await token('bearer', []);
+
+      if (tokenString) {
+        headerParameters['Authorization'] = `Bearer ${tokenString}`;
+      }
+    }
+    const response = await this.request(
+      {
+        path: `/api/v-alpha/einsatz/{id}/archive`.replace(`{${'id'}}`, encodeURIComponent(String(requestParameters['id']))),
+        method: 'PATCH',
+        headers: headerParameters,
+        query: queryParameters,
+      },
+      initOverrides,
+    );
+
+    return new runtime.JSONApiResponse(response, (jsonValue) => EinsatzControllerCreateVAlpha200ResponseFromJSON(jsonValue));
+  }
+
+  /**
+   * Markiert einen Einsatz als ARCHIVIERT. Einsätze werden gemäß No-Delete Policy niemals physisch gelöscht.
+   * Einsatz archivieren (Soft-Delete)
+   */
+  async einsatzControllerArchiveVAlpha(
+    requestParameters: EinsatzControllerArchiveVAlphaRequest,
+    initOverrides?: RequestInit | runtime.InitOverrideFunction,
+  ): Promise<EinsatzControllerCreateVAlpha200Response> {
+    const response = await this.einsatzControllerArchiveVAlphaRaw(requestParameters, initOverrides);
+    return await response.value();
+  }
+
   /**
    * Erstellt einen neuen Einsatz mit automatisch generiertem Namen. Alle Felder sind optional.
    * Neuen Einsatz erstellen

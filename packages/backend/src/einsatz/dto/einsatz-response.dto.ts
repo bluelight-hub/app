@@ -90,6 +90,20 @@ export class EinsatzResponseDto implements Einsatz {
   })
   updatedBy: string | null;
 
+  @ApiPropertyOptional({
+    description: 'Zeitpunkt der Archivierung (No-Delete Policy)',
+    example: '2025-01-27T16:30:00.000Z',
+    type: String,
+    format: 'date-time',
+  })
+  archivedAt: Date | null;
+
+  @ApiPropertyOptional({
+    description: 'User ID des Archivierers (No-Delete Policy)',
+    example: 'user789',
+  })
+  archivedBy: string | null;
+
   @ApiProperty({
     description: 'Automatisch generierter Name des Einsatzes',
     example: 'Brand 3 - 27.01.2025 14:30',
