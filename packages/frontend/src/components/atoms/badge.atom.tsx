@@ -7,7 +7,7 @@ export type BadgeVariant = 'default' | 'success' | 'error' | 'warning' | 'info';
 interface BadgeProps {
   children: ReactNode;
   variant?: BadgeVariant;
-  size?: 'sm' | 'md';
+  size?: 'sm' | 'md' | 'lg';
   className?: string;
   dot?: boolean;
   dotColor?: 'green' | 'red' | 'yellow' | 'blue';
@@ -30,6 +30,7 @@ export function Badge({ children, variant = 'default', size = 'md', className, d
   const sizeClasses = {
     sm: 'px-2 py-0.5 text-xs',
     md: 'px-3 py-1.5 text-xs',
+    lg: 'px-4 py-2 text-sm',
   };
 
   const dotColors = {
