@@ -2,6 +2,8 @@ import { useEinsaetze, useEinsatz } from '@/hooks/useEinsaetze';
 import { useEinsatzStore } from '@/stores/einsatzStore';
 import { Button } from '@atoms/button.atom';
 import { Card } from '@atoms/card.atom';
+import { EinsatzCompletenessBar } from '@molecules/einsatz/einsatz-completeness-bar.molecule';
+import { EinsatzStatusBadge } from '@molecules/einsatz/einsatz-status-badge.molecule';
 import { useCallback } from 'react';
 
 export function EinsatzExample() {
@@ -39,6 +41,8 @@ export function EinsatzExample() {
             <li key={einsatz.id}>
               <h3>{einsatz.name}</h3>
               <p>{einsatz.alarmstichwort}</p>
+              <EinsatzStatusBadge status={einsatz.status} />
+              <EinsatzCompletenessBar einsatz={einsatz} />
               <Button onClick={() => setSelectedEinsatzId(einsatz.id)}>Auswählen</Button>
             </li>
           ))}
