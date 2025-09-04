@@ -18,6 +18,7 @@ import type {
   EinsatzControllerCreateVAlpha200Response,
   EinsatzControllerFindAllVAlpha200Response,
   EinsatzControllerGetCompletenessVAlpha200Response,
+  EinsatzControllerGetStatusCountsVAlpha200Response,
   UpdateEinsatzDto,
 } from '../models/index';
 import {
@@ -29,6 +30,8 @@ import {
   EinsatzControllerFindAllVAlpha200ResponseToJSON,
   EinsatzControllerGetCompletenessVAlpha200ResponseFromJSON,
   EinsatzControllerGetCompletenessVAlpha200ResponseToJSON,
+  EinsatzControllerGetStatusCountsVAlpha200ResponseFromJSON,
+  EinsatzControllerGetStatusCountsVAlpha200ResponseToJSON,
   UpdateEinsatzDtoFromJSON,
   UpdateEinsatzDtoToJSON,
 } from '../models/index';
@@ -47,6 +50,9 @@ export interface EinsatzControllerFindAllVAlphaRequest {
   page?: number;
   limit?: number;
   search?: string;
+  includeArchived?: boolean;
+  orderBy?: EinsatzControllerFindAllVAlphaOrderByEnum;
+  orderDirection?: EinsatzControllerFindAllVAlphaOrderDirectionEnum;
 }
 
 export interface EinsatzControllerFindOneVAlphaRequest {
@@ -56,6 +62,10 @@ export interface EinsatzControllerFindOneVAlphaRequest {
 export interface EinsatzControllerGetCompletenessVAlphaRequest {
   id: string;
   refresh?: boolean;
+}
+
+export interface EinsatzControllerGetStatusCountsVAlphaRequest {
+  includeArchived?: boolean;
 }
 
 export interface EinsatzControllerUpdateVAlphaRequest {
@@ -169,7 +179,7 @@ export class EinsatzApi extends runtime.BaseAPI {
   }
 
   /**
-   * Gibt eine paginierte Liste aller Einsätze zurück, optional gefiltert nach Status.
+   * Gibt eine paginierte Liste aller Einsätze zurück. WICHTIG: Archivierte Einsätze werden gemäß No-Delete Policy standardmäßig ausgeschlossen. Verwende includeArchived=true um archivierte Einsätze einzuschließen.
    * Alle Einsätze abrufen
    */
   async einsatzControllerFindAllVAlphaRaw(
@@ -198,6 +208,18 @@ export class EinsatzApi extends runtime.BaseAPI {
       queryParameters['search'] = requestParameters['search'];
     }
 
+    if (requestParameters['includeArchived'] != null) {
+      queryParameters['includeArchived'] = requestParameters['includeArchived'];
+    }
+
+    if (requestParameters['orderBy'] != null) {
+      queryParameters['orderBy'] = requestParameters['orderBy'];
+    }
+
+    if (requestParameters['orderDirection'] != null) {
+      queryParameters['orderDirection'] = requestParameters['orderDirection'];
+    }
+
     const headerParameters: runtime.HTTPHeaders = {};
 
     if (this.configuration && this.configuration.accessToken) {
@@ -222,7 +244,7 @@ export class EinsatzApi extends runtime.BaseAPI {
   }
 
   /**
-   * Gibt eine paginierte Liste aller Einsätze zurück, optional gefiltert nach Status.
+   * Gibt eine paginierte Liste aller Einsätze zurück. WICHTIG: Archivierte Einsätze werden gemäß No-Delete Policy standardmäßig ausgeschlossen. Verwende includeArchived=true um archivierte Einsätze einzuschließen.
    * Alle Einsätze abrufen
    */
   async einsatzControllerFindAllVAlpha(
@@ -336,6 +358,55 @@ export class EinsatzApi extends runtime.BaseAPI {
   }
 
   /**
+   * Gibt die Anzahl der Einsätze pro Status zurück.
+   * Status-Statistiken abrufen
+   */
+  async einsatzControllerGetStatusCountsVAlphaRaw(
+    requestParameters: EinsatzControllerGetStatusCountsVAlphaRequest,
+    initOverrides?: RequestInit | runtime.InitOverrideFunction,
+  ): Promise<runtime.ApiResponse<EinsatzControllerGetStatusCountsVAlpha200Response>> {
+    const queryParameters: any = {};
+
+    if (requestParameters['includeArchived'] != null) {
+      queryParameters['includeArchived'] = requestParameters['includeArchived'];
+    }
+
+    const headerParameters: runtime.HTTPHeaders = {};
+
+    if (this.configuration && this.configuration.accessToken) {
+      const token = this.configuration.accessToken;
+      const tokenString = await token('bearer', []);
+
+      if (tokenString) {
+        headerParameters['Authorization'] = `Bearer ${tokenString}`;
+      }
+    }
+    const response = await this.request(
+      {
+        path: `/api/v-alpha/einsatz/stats/status-counts`,
+        method: 'GET',
+        headers: headerParameters,
+        query: queryParameters,
+      },
+      initOverrides,
+    );
+
+    return new runtime.JSONApiResponse(response, (jsonValue) => EinsatzControllerGetStatusCountsVAlpha200ResponseFromJSON(jsonValue));
+  }
+
+  /**
+   * Gibt die Anzahl der Einsätze pro Status zurück.
+   * Status-Statistiken abrufen
+   */
+  async einsatzControllerGetStatusCountsVAlpha(
+    requestParameters: EinsatzControllerGetStatusCountsVAlphaRequest = {},
+    initOverrides?: RequestInit | runtime.InitOverrideFunction,
+  ): Promise<EinsatzControllerGetStatusCountsVAlpha200Response> {
+    const response = await this.einsatzControllerGetStatusCountsVAlphaRaw(requestParameters, initOverrides);
+    return await response.value();
+  }
+
+  /**
    * Aktualisiert einen bestehenden Einsatz. Der Name wird automatisch neu generiert.
    * Einsatz aktualisieren
    */
@@ -402,3 +473,22 @@ export const EinsatzControllerFindAllVAlphaStatusEnum = {
   Archiviert: 'ARCHIVIERT',
 } as const;
 export type EinsatzControllerFindAllVAlphaStatusEnum = (typeof EinsatzControllerFindAllVAlphaStatusEnum)[keyof typeof EinsatzControllerFindAllVAlphaStatusEnum];
+/**
+ * @export
+ */
+export const EinsatzControllerFindAllVAlphaOrderByEnum = {
+  CreatedAt: 'createdAt',
+  UpdatedAt: 'updatedAt',
+  Alarmstichwort: 'alarmstichwort',
+  Status: 'status',
+  Name: 'name',
+} as const;
+export type EinsatzControllerFindAllVAlphaOrderByEnum = (typeof EinsatzControllerFindAllVAlphaOrderByEnum)[keyof typeof EinsatzControllerFindAllVAlphaOrderByEnum];
+/**
+ * @export
+ */
+export const EinsatzControllerFindAllVAlphaOrderDirectionEnum = {
+  Asc: 'asc',
+  Desc: 'desc',
+} as const;
+export type EinsatzControllerFindAllVAlphaOrderDirectionEnum = (typeof EinsatzControllerFindAllVAlphaOrderDirectionEnum)[keyof typeof EinsatzControllerFindAllVAlphaOrderDirectionEnum];

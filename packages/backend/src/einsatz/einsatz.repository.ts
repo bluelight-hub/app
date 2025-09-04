@@ -69,7 +69,12 @@ export class EinsatzRepository {
     });
   }
 
-  async findWithPagination(page: number = 1, limit: number = 10, where?: Prisma.EinsatzWhereInput): Promise<{ items: Einsatz[]; total: number; page: number; limit: number }> {
+  async findWithPagination(
+    page: number = 1,
+    limit: number = 10,
+    where?: Prisma.EinsatzWhereInput,
+    orderBy: Prisma.EinsatzOrderByWithRelationInput = { createdAt: 'desc' },
+  ): Promise<{ items: Einsatz[]; total: number; page: number; limit: number }> {
     const skip = (page - 1) * limit;
 
     const [items, total] = await Promise.all([
@@ -77,7 +82,7 @@ export class EinsatzRepository {
         where,
         skip,
         take: limit,
-        orderBy: { createdAt: 'desc' },
+        orderBy: orderBy,
       }),
       this.prisma.einsatz.count({ where }),
     ]);
@@ -87,6 +92,33 @@ export class EinsatzRepository {
       total,
       page,
       limit,
+    };
+  }
+
+  async countByStatus(includeArchived = false): Promise<{
+    angelegt: number;
+    inBearbeitung: number;
+    abgeschlossen: number;
+    archiviert: number;
+  }> {
+    const [angelegt, inBearbeitung, abgeschlossen, archiviert] = await Promise.all([
+      this.prisma.einsatz.count({
+        where: { status: 'ANGELEGT' },
+      }),
+      this.prisma.einsatz.count({
+        where: { status: 'IN_BEARBEITUNG' },
+      }),
+      this.prisma.einsatz.count({
+        where: { status: 'ABGESCHLOSSEN' },
+      }),
+      includeArchived ? this.prisma.einsatz.count({ where: { status: 'ARCHIVIERT' } }) : Promise.resolve(0),
+    ]);
+
+    return {
+      angelegt,
+      inBearbeitung,
+      abgeschlossen,
+      archiviert,
     };
   }
 }

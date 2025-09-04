@@ -15,9 +15,13 @@
         "label": "main",
         "title": "[DEV] Bluelight Hub",
         "width": 800,
-        "height": 600,
+        "height": 1000,
         "resizable": true,
         "fullscreen": false
+      },
+      {
+        "label": "admin",
+        "title": "[DEV] Bluelight Hub Administration"
       }
     ],
     "security": {

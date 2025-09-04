@@ -1,17 +1,17 @@
+import { useAuth } from '@/hooks/useAuth.ts';
+import { getApiErrorMessage } from '@/utils/apiErrorHandler.ts';
+import { logger } from '@/utils/logger';
 import { Alert } from '@atoms/alert.atom';
 import { Button } from '@atoms/button.atom';
 import { Card } from '@atoms/card.atom';
-import { FormField } from '@atoms/form-field.atom';
 import { Text } from '@atoms/text.atom';
+import { FormFieldWrapper } from '@molecules/form/FormFieldWrapper';
 import { PasswordInput } from '@molecules/password-input.molecule';
 import { useForm } from '@tanstack/react-form';
 import { useNavigate } from '@tanstack/react-router';
 import { useEffect, useState } from 'react';
 import { PiCheckCircle, PiWarning } from 'react-icons/pi';
 import { z } from 'zod';
-import { useAuth } from '@/hooks/useAuth.ts';
-import { getApiErrorMessage } from '@/utils/apiErrorHandler.ts';
-import { logger } from '@/utils/logger';
 
 /**
  * Schema für die Validierung des Admin-Setup-Formulars
@@ -88,7 +88,13 @@ export function AdminSetup() {
       </Text>
 
       <Card className="w-full max-w-md" padding="lg">
-        <Alert status="info" title="Einmalige Einrichtung" description="Diese Funktion ist nur verfügbar, solange noch kein Admin-Account existiert." icon={<PiCheckCircle />} className="mb-6" />
+        <Alert
+          status="info"
+          title="Einmalige Einrichtung"
+          description="Diese Funktion ist nur verfügbar, solange noch kein Passwort für den aktuellen Nutzer vergeben wurde."
+          icon={<PiCheckCircle />}
+          className="mb-6"
+        />
 
         {/* API-Fehlermeldung anzeigen */}
         {apiError && <Alert status="error" title="Setup fehlgeschlagen!" description={apiError} icon={<PiWarning />} className="mb-6" />}
@@ -118,10 +124,10 @@ export function AdminSetup() {
               }}
             >
               {(field) => (
-                <FormField
-                  label="Passwort"
-                  error={field.state.meta.isTouched && field.state.meta.errors.length > 0 ? field.state.meta.errors[0] : undefined}
-                  helperText={field.state.meta.errors.length === 0 ? 'Mind. 8 Zeichen, 1 Groß-, 1 Kleinbuchstabe, 1 Zahl, 1 Sonderzeichen' : undefined}
+                <FormFieldWrapper
+                  field={field}
+                  label={'Passwort'}
+                  helpText={field.state.meta.errors.length === 0 ? 'Mind. 8 Zeichen, 1 Groß-, 1 Kleinbuchstabe, 1 Zahl, 1 Sonderzeichen' : undefined}
                   required
                 >
                   <PasswordInput
@@ -138,7 +144,7 @@ export function AdminSetup() {
                     variant={field.state.meta.isTouched && field.state.meta.errors.length > 0 ? 'error' : 'default'}
                     fullWidth
                   />
-                </FormField>
+                </FormFieldWrapper>
               )}
             </form.Field>
 
@@ -155,7 +161,7 @@ export function AdminSetup() {
               }}
             >
               {(field) => (
-                <FormField label="Passwort bestätigen" error={field.state.meta.isTouched && field.state.meta.errors.length > 0 ? field.state.meta.errors[0] : undefined} required>
+                <FormFieldWrapper field={field} label="Passwort bestätigen" required>
                   <PasswordInput
                     id="confirmPassword"
                     name="confirmPassword"
@@ -170,7 +176,7 @@ export function AdminSetup() {
                     variant={field.state.meta.isTouched && field.state.meta.errors.length > 0 ? 'error' : 'default'}
                     fullWidth
                   />
-                </FormField>
+                </FormFieldWrapper>
               )}
             </form.Field>
 

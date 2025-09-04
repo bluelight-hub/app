@@ -1,6 +1,6 @@
 import type { PaginatedData } from '@/common/interceptors/transform.interceptor';
-import { CreateEinsatzDto, EinsatzCompleteness, EinsatzQueryDto, EinsatzResponseDto, UpdateEinsatzDto } from '@/einsatz/dto';
-import { Injectable, Logger, BadRequestException } from '@nestjs/common';
+import { CreateEinsatzDto, EinsatzCompleteness, EinsatzQueryDto, EinsatzResponseDto, StatusCountsResponseDto, UpdateEinsatzDto } from '@/einsatz/dto';
+import { BadRequestException, Injectable, Logger } from '@nestjs/common';
 import { Einsatz, Prisma } from '@prisma/client';
 import { EinsatzRepository } from './einsatz.repository';
 import { EinsatzNotFoundException } from './exceptions/einsatz-not-found.exception';
@@ -43,7 +43,7 @@ export class EinsatzService {
    * Verwende includeArchived=true um auch archivierte Einsätze anzuzeigen
    */
   async findAll(params?: EinsatzQueryDto): Promise<PaginatedData<EinsatzResponseDto>> {
-    const { status, search, includeCompleteness = false, includeArchived = false, page = 1, limit = 10 } = params || {};
+    const { status, search, includeCompleteness = false, includeArchived = false, page = 1, limit = 10, orderBy = 'createdAt', orderDirection = 'desc' } = params || {};
 
     // Build where conditions
     const where: Prisma.EinsatzWhereInput = {};
@@ -65,7 +65,9 @@ export class EinsatzService {
       }
     }
 
-    const result = await this.repository.findWithPagination(page, limit, where);
+    const result = await this.repository.findWithPagination(page, limit, where, {
+      [orderBy]: orderDirection,
+    });
     const items = await Promise.all(result.items.map((e: Einsatz) => this.toResponseDto(e, includeCompleteness)));
 
     this.logger.log(`Found ${result.total} Einsätze (showing ${items.length}) with filters: status=${status}, search='${search}', includeArchived=${includeArchived}`);
@@ -217,6 +219,20 @@ export class EinsatzService {
     }
 
     return completeness;
+  }
+
+  /**
+   * Gibt die Anzahl der Einsätze pro Status zurück
+   */
+  async getStatusCounts(includeArchived = false): Promise<StatusCountsResponseDto> {
+    const counts = await this.repository.countByStatus(includeArchived);
+
+    const total = Object.values(counts).reduce((sum, count) => sum + count, 0);
+
+    return {
+      total,
+      counts,
+    };
   }
 
   /**

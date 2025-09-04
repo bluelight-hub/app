@@ -23,7 +23,7 @@ const adminLoginSchema = z.object({
 
 export function AdminLogin() {
   const navigate = useNavigate();
-  const { user, isLoading, isAdminAuthenticated, loginAdmin } = useAuth();
+  const { user, isLoading, isAdminAuthenticated, loginAdmin, adminStatus } = useAuth();
   const [hasCheckedAuth, setHasCheckedAuth] = useState(false);
   const [shouldShake, setShouldShake] = useState(false);
   const [apiError, setApiError] = useState<string | null>(null);
@@ -87,9 +87,13 @@ export function AdminLogin() {
       else if (!user) {
         void navigate({ to: '/auth' });
       }
+      // If user needs to set up admin password, redirect to setup
+      else if (user && adminStatus?.adminSetupAvailable) {
+        void navigate({ to: '/admin/setup' });
+      }
       // User is logged in but not admin authenticated - stay on this page
     }
-  }, [user, hasCheckedAuth, isAdminAuthenticated, navigate]);
+  }, [user, hasCheckedAuth, isAdminAuthenticated, adminStatus?.adminSetupAvailable, navigate]);
 
   // Don't render the form until we've checked authentication
   // This prevents flashing of the form before redirect
@@ -105,6 +109,12 @@ export function AdminLogin() {
   // If user is not logged in at all, don't show the admin login form
   // (useEffect will redirect to /auth)
   if (!user) {
+    return null;
+  }
+
+  // If user needs to set up admin password, don't show login form
+  // (useEffect will redirect to /admin/setup)
+  if (adminStatus?.adminSetupAvailable) {
     return null;
   }
 
