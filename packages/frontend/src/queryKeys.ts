@@ -35,6 +35,7 @@ export const EINSATZ_QUERY_KEYS = {
   details: () => [...EINSATZ_QUERY_KEYS.all, 'detail'] as const,
   detail: (id: string | null) => [...EINSATZ_QUERY_KEYS.details(), id] as const,
   completeness: (id: string) => [...EINSATZ_QUERY_KEYS.detail(id), 'completeness'] as const,
+  statusCounts: (includeArchived = false) => [...EINSATZ_QUERY_KEYS.all, 'statusCounts', includeArchived] as const,
 } as const;
 
 // Export all query keys grouped for easier access

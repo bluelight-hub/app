@@ -30,6 +30,7 @@ models/EinsatzControllerFindAllVAlpha200ResponseMeta.ts
 models/EinsatzControllerFindAllVAlpha200ResponsePagination.ts
 models/EinsatzControllerGetCompletenessVAlpha200Response.ts
 models/EinsatzControllerGetCompletenessVAlpha200ResponseMissingFieldsInner.ts
+models/EinsatzControllerGetStatusCountsVAlpha200Response.ts
 models/EinsatzResponseDto.ts
 models/HealthControllerCheck200Response.ts
 models/HealthControllerCheck200ResponseInfoValue.ts
@@ -38,6 +39,8 @@ models/LogoutResponseDto.ts
 models/PublicUserDto.ts
 models/PublicUsersResponseDto.ts
 models/RefreshResponseDto.ts
+models/StatusCountsDto.ts
+models/StatusCountsResponseDto.ts
 models/UpdateEinsatzDto.ts
 models/UserDto.ts
 models/UserResponse.ts

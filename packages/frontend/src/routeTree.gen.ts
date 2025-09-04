@@ -9,6 +9,7 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as EinsaetzeRouteImport } from './routes/einsaetze'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AdminLoginRouteImport } from './routes/admin-login'
 import { Route as AdminRouteImport } from './routes/admin'
@@ -18,6 +19,11 @@ import { Route as AdminUsersRouteImport } from './routes/admin/users'
 import { Route as AdminSetupRouteImport } from './routes/admin/setup'
 import { Route as AdminDashboardRouteImport } from './routes/admin/dashboard'
 
+const EinsaetzeRoute = EinsaetzeRouteImport.update({
+  id: '/einsaetze',
+  path: '/einsaetze',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AuthRoute = AuthRouteImport.update({
   id: '/auth',
   path: '/auth',
@@ -64,6 +70,7 @@ export interface FileRoutesByFullPath {
   '/admin': typeof AdminRouteWithChildren
   '/admin-login': typeof AdminLoginRoute
   '/auth': typeof AuthRoute
+  '/einsaetze': typeof EinsaetzeRoute
   '/admin/dashboard': typeof AdminDashboardRoute
   '/admin/setup': typeof AdminSetupRoute
   '/admin/users': typeof AdminUsersRoute
@@ -73,6 +80,7 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/admin-login': typeof AdminLoginRoute
   '/auth': typeof AuthRoute
+  '/einsaetze': typeof EinsaetzeRoute
   '/admin/dashboard': typeof AdminDashboardRoute
   '/admin/setup': typeof AdminSetupRoute
   '/admin/users': typeof AdminUsersRoute
@@ -84,6 +92,7 @@ export interface FileRoutesById {
   '/admin': typeof AdminRouteWithChildren
   '/admin-login': typeof AdminLoginRoute
   '/auth': typeof AuthRoute
+  '/einsaetze': typeof EinsaetzeRoute
   '/admin/dashboard': typeof AdminDashboardRoute
   '/admin/setup': typeof AdminSetupRoute
   '/admin/users': typeof AdminUsersRoute
@@ -96,6 +105,7 @@ export interface FileRouteTypes {
     | '/admin'
     | '/admin-login'
     | '/auth'
+    | '/einsaetze'
     | '/admin/dashboard'
     | '/admin/setup'
     | '/admin/users'
@@ -105,6 +115,7 @@ export interface FileRouteTypes {
     | '/'
     | '/admin-login'
     | '/auth'
+    | '/einsaetze'
     | '/admin/dashboard'
     | '/admin/setup'
     | '/admin/users'
@@ -115,6 +126,7 @@ export interface FileRouteTypes {
     | '/admin'
     | '/admin-login'
     | '/auth'
+    | '/einsaetze'
     | '/admin/dashboard'
     | '/admin/setup'
     | '/admin/users'
@@ -126,10 +138,18 @@ export interface RootRouteChildren {
   AdminRoute: typeof AdminRouteWithChildren
   AdminLoginRoute: typeof AdminLoginRoute
   AuthRoute: typeof AuthRoute
+  EinsaetzeRoute: typeof EinsaetzeRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/einsaetze': {
+      id: '/einsaetze'
+      path: '/einsaetze'
+      fullPath: '/einsaetze'
+      preLoaderRoute: typeof EinsaetzeRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/auth': {
       id: '/auth'
       path: '/auth'
@@ -210,6 +230,7 @@ const rootRouteChildren: RootRouteChildren = {
   AdminRoute: AdminRouteWithChildren,
   AdminLoginRoute: AdminLoginRoute,
   AuthRoute: AuthRoute,
+  EinsaetzeRoute: EinsaetzeRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

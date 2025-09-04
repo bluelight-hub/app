@@ -4,7 +4,7 @@ import type { ValidatedUser } from '@/auth/strategies/jwt.strategy';
 import { ApiWrappedResponse } from '@/common/decorators/api-wrapped-response.decorator';
 import type { PaginatedData } from '@/common/interceptors/transform.interceptor';
 import { CacheDuplicateDetectionService } from '@/common/services/cache-duplicate-detection.service';
-import { CreateEinsatzDto, EinsatzQueryDto, EinsatzResponseDto, UpdateEinsatzDto } from '@/einsatz/dto';
+import { CreateEinsatzDto, EinsatzQueryDto, EinsatzResponseDto, StatusCountsResponseDto, UpdateEinsatzDto } from '@/einsatz/dto';
 import { Body, Controller, Get, Logger, Param, Patch, Post, Query, UseGuards, ValidationPipe } from '@nestjs/common';
 import { ApiBadRequestResponse, ApiBearerAuth, ApiForbiddenResponse, ApiNotFoundResponse, ApiOkResponse, ApiOperation, ApiQuery, ApiTags, ApiUnauthorizedResponse } from '@nestjs/swagger';
 import { EinsatzService } from './einsatz.service';
@@ -148,6 +148,23 @@ export class EinsatzController {
   async archive(@Param('id') id: string, @CurrentUser() user: ValidatedUser): Promise<EinsatzResponseDto> {
     this.logger.warn(`Archiving Einsatz ${id} by user ${user.userId} (No-Delete Policy)`);
     return await this.einsatzService.archive(id, user.userId);
+  }
+
+  @Get('stats/status-counts')
+  @ApiOperation({
+    summary: 'Status-Statistiken abrufen',
+    description: 'Gibt die Anzahl der Einsätze pro Status zurück.',
+  })
+  @ApiQuery({
+    name: 'includeArchived',
+    required: false,
+    type: Boolean,
+    description: 'Archivierte Einsätze in die Zählung einbeziehen',
+  })
+  @ApiWrappedResponse(StatusCountsResponseDto, { description: 'Status-Statistiken erfolgreich abgerufen' })
+  async getStatusCounts(@Query('includeArchived') includeArchived?: boolean): Promise<StatusCountsResponseDto> {
+    this.logger.log(`Getting status counts (includeArchived: ${includeArchived})`);
+    return await this.einsatzService.getStatusCounts(includeArchived);
   }
 
   @Get(':id/completeness')

@@ -8,13 +8,12 @@ import { useAuth } from '@/hooks/useAuth.ts';
  */
 import { isAdmin } from '@/utils/auth';
 import { Button } from '@atoms/button.atom';
-import { Card } from '@atoms/card.atom';
 import { Heading } from '@atoms/heading.atom';
 import { Spinner } from '@atoms/spinner.atom';
 import { Text } from '@atoms/text.atom';
 import { ColorModeButton } from '@molecules/color-mode-button.molecule.tsx';
-import { EinsatzExample } from '@organisms/EinsatzExample';
-import { Link, useRouter } from '@tanstack/react-router';
+import { EinsatzDashboard } from '@organisms/einsatz/EinsatzDashboard';
+import { useRouter } from '@tanstack/react-router';
 import { PiShieldCheck, PiSignIn } from 'react-icons/pi';
 
 export function IndexPage() {
@@ -49,61 +48,47 @@ export function IndexPage() {
   }
 
   return (
-    <div className="p-8">
-      <div className="flex flex-col gap-8">
-        <div>
+    <div className="flex h-screen flex-col overflow-hidden p-4 sm:p-6 lg:p-8">
+      <div className="flex min-h-0 flex-1 flex-col gap-4">
+        <div className="flex-shrink-0">
           <Heading size="2xl" as="h1">
             Willkommen bei BlueLight Hub
           </Heading>
           <Text color="muted">Sie sind angemeldet als: {user.username}</Text>
         </div>
 
-        {/* Admin Setup Link - nur anzeigen wenn adminSetupAvailable true ist */}
-        {adminStatus?.adminSetupAvailable && (
-          <Card padding="sm" className="bg-gray-50 dark:bg-gray-900">
-            <div className="flex flex-col gap-4">
-              <div>
-                <Text className="font-semibold">Admin-Setup verfügbar</Text>
-                <Text size="sm" color="muted">
-                  Sie können einen Admin-Account einrichten, solange noch kein Admin existiert.
-                </Text>
-              </div>
-              <Link to="/admin/setup" className="inline-block">
-                <Button variant="primary" size="sm">
-                  <PiShieldCheck className="mr-2" />
-                  Admin-Setup starten
-                </Button>
-              </Link>
-            </div>
-          </Card>
-        )}
+        <div className="flex min-h-0 flex-1 flex-col gap-4 lg:grid lg:gap-6">
+          <div className="flex h-full min-h-0 flex-col lg:col-span-2">
+            <EinsatzDashboard />
+          </div>
+        </div>
 
-        {isAdmin(user.role) && !adminStatus?.adminSetupAvailable && (
-          <Card padding="sm" className="bg-gray-50 dark:bg-gray-900">
-            <div className="flex flex-col gap-4">
-              <div>
-                <Text className="font-semibold">Admin-Bereich</Text>
-                <Text size="sm" color="muted">
-                  Zugang zum Admin-Bereich für berechtigte Benutzer.
-                </Text>
-              </div>
-              <div className="flex gap-2">
-                <Button variant="secondary" size="sm" onClick={handleOpenAdminWindow} title="Admin-Dashboard in separatem Fenster öffnen">
-                  <PiSignIn className="mr-2" />
-                  Admin-Bereich
-                </Button>
-              </div>
-            </div>
-          </Card>
-        )}
+        <div className="flex flex-shrink-0 items-center justify-between pt-4">
+          <div className="flex gap-4">
+            <Button variant="secondary" size="sm" onClick={() => logout.mutateAsync()}>
+              Abmelden
+            </Button>
+            <ColorModeButton />
+          </div>
 
-        <EinsatzExample />
+          <div className="flex gap-2">
+            {/* Admin Setup Link - nur anzeigen wenn adminSetupAvailable true ist */}
+            {adminStatus?.adminSetupAvailable && (
+              <Button variant="danger" size="sm" onClick={handleOpenAdminWindow}>
+                <PiShieldCheck className="mr-2" />
+                Admin-Setup
+              </Button>
+            )}
 
-        <Button variant="secondary" size="sm" onClick={() => logout.mutateAsync()}>
-          Abmelden
-        </Button>
-
-        <ColorModeButton />
+            {/* Admin-Bereich Button für berechtigte Benutzer */}
+            {isAdmin(user.role) && !adminStatus?.adminSetupAvailable && (
+              <Button variant="secondary" size="sm" onClick={handleOpenAdminWindow} title="Admin-Dashboard in separatem Fenster öffnen">
+                <PiSignIn className="mr-2" />
+                Admin-Bereich
+              </Button>
+            )}
+          </div>
+        </div>
       </div>
     </div>
   );

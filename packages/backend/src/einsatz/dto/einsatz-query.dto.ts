@@ -68,4 +68,22 @@ export class EinsatzQueryDto {
   @IsBoolean()
   @Transform(({ value }) => value === 'true' || value === true)
   includeArchived?: boolean = false;
+
+  @ApiPropertyOptional({
+    description: 'Sortierfeld',
+    example: 'createdAt',
+    enum: ['createdAt', 'updatedAt', 'alarmstichwort', 'status', 'name'],
+  })
+  @IsOptional()
+  @IsString()
+  orderBy?: 'createdAt' | 'updatedAt' | 'alarmstichwort' | 'status' | 'name';
+
+  @ApiPropertyOptional({
+    description: 'Sortierrichtung',
+    example: 'desc',
+    enum: ['asc', 'desc'],
+  })
+  @IsOptional()
+  @IsString()
+  orderDirection?: 'asc' | 'desc';
 }

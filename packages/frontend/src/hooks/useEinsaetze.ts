@@ -13,7 +13,7 @@ import type {
   UpdateEinsatzDto,
 } from '@bluelight-hub/shared/client';
 import { EinsatzResponseDtoStatusEnum } from '@bluelight-hub/shared/client';
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { useMutation, useQuery, useQueryClient, useInfiniteQuery } from '@tanstack/react-query';
 import { useMemo } from 'react';
 import { toast } from 'sonner';
 
@@ -24,23 +24,39 @@ function calculateRetryDelay(attemptIndex: number): number {
   return Math.min(1000 * 2 ** attemptIndex, 30000);
 }
 
+interface UseEinsaetzeFilters {
+  status?: EinsatzControllerFindAllVAlphaStatusEnum;
+  search?: string;
+  page?: number;
+  limit?: number;
+  orderBy?: 'createdAt' | 'updatedAt' | 'alarmstichwort' | 'status' | 'name';
+  orderDirection?: 'asc' | 'desc';
+}
+
+interface UseEinsaetzeOptions extends UseEinsaetzeFilters {
+  infinite?: boolean;
+}
+
 /**
  * Hook für Einsatz-API-Operationen
  *
  * Stellt alle API-Funktionen für Einsatz-Verwaltung bereit:
- * - Laden der Einsatzliste
+ * - Laden der Einsatzliste (paginiert oder infinite scroll)
  * - Erstellen neuer Einsätze
  * - Aktualisieren von Einsätzen
  * - Löschen von Einsätzen
  *
- * @param filters - Optionale Filter für die Einsatzliste
+ * @param options - Optionen mit Filtern und infinite scroll toggle
  * @returns Objekt mit Einsatzdaten, Ladezuständen und API-Aktionen
  */
-export const useEinsaetze = (filters?: { status?: EinsatzControllerFindAllVAlphaStatusEnum; search?: string; page?: number; limit?: number }) => {
+export const useEinsaetze = (options?: UseEinsaetzeOptions) => {
   const queryClient = useQueryClient();
+  const { infinite = false, ...filters } = options || {};
+  const limit = filters?.limit || 20;
 
-  // Query für Einsatzliste mit verbessertem Caching und Backend-Filtering
-  const einsaetzeQuery = useQuery<EinsatzControllerFindAllVAlpha200Response, ResponseError>({
+  // Standard Query für paginierte Liste
+  const standardQuery = useQuery<EinsatzControllerFindAllVAlpha200Response, ResponseError>({
+    enabled: !infinite,
     queryKey: QUERY_KEYS.einsatz.list(filters),
     queryFn: async () => {
       try {
@@ -49,15 +65,54 @@ export const useEinsaetze = (filters?: { status?: EinsatzControllerFindAllVAlpha
           page: filters?.page,
           search: filters?.search,
           status: filters?.status,
+          orderBy: filters?.orderBy,
+          orderDirection: filters?.orderDirection,
         });
       } catch (error) {
         logger.error('Failed to fetch einsaetze', error);
         throw error;
       }
     },
-    // Stale time für bessere Performance bei wiederholten Anfragen
-    staleTime: 30000, // 30 seconds
-    // Retry-Logic mit exponential backoff
+    staleTime: 30000,
+    retry: 3,
+    retryDelay: calculateRetryDelay,
+  });
+
+  // Infinite Query für Infinite Scrolling
+  const infiniteQuery = useInfiniteQuery<EinsatzControllerFindAllVAlpha200Response, ResponseError>({
+    enabled: infinite,
+    queryKey: QUERY_KEYS.einsatz.infinite(filters),
+    initialPageParam: 1,
+    queryFn: async ({ pageParam }) => {
+      try {
+        const response = await api.einsatz().einsatzControllerFindAllVAlpha({
+          limit,
+          page: pageParam as number,
+          search: filters?.search,
+          status: filters?.status,
+          orderBy: filters?.orderBy,
+          orderDirection: filters?.orderDirection,
+        });
+
+        logger.debug(`Fetched page ${pageParam} with ${response.data?.length || 0} items`);
+        return response;
+      } catch (error) {
+        const message = await getApiErrorMessage(error as ResponseError, 'Fehler beim Laden der Einsätze');
+        logger.error('Failed to fetch einsaetze', error);
+        toast.error('Fehler', { description: message });
+        throw error;
+      }
+    },
+    getNextPageParam: (lastPage) => {
+      const currentPage = lastPage.pagination?.page || 1;
+      const totalPages = Math.ceil((lastPage.pagination?.total || 0) / limit);
+
+      if (currentPage < totalPages) {
+        return currentPage + 1;
+      }
+      return undefined;
+    },
+    staleTime: 30000,
     retry: 3,
     retryDelay: calculateRetryDelay,
   });
@@ -71,13 +126,10 @@ export const useEinsaetze = (filters?: { status?: EinsatzControllerFindAllVAlpha
       return response.data;
     },
     onMutate: async (newEinsatz) => {
-      // Cancel any outgoing refetches
       await queryClient.cancelQueries({ queryKey: QUERY_KEYS.einsatz.all });
 
-      // Snapshot the previous value
       const previousEinsaetze = queryClient.getQueryData<EinsatzControllerFindAllVAlpha200Response>(QUERY_KEYS.einsatz.list(filters));
 
-      // Optimistically update to the new value
       const optimisticEinsatz: EinsatzResponseDto = {
         id: `temp-${Date.now()}`,
         ...newEinsatz,
@@ -97,20 +149,16 @@ export const useEinsaetze = (filters?: { status?: EinsatzControllerFindAllVAlpha
         };
       });
 
-      // Return a context with the previous and new data
       return { previousEinsaetze, optimisticEinsatz };
     },
     onError: async (error: ResponseError, _newEinsatz, context) => {
-      // If the mutation fails, use the context to roll back
       if (context && typeof context === 'object' && 'previousEinsaetze' in context && context.previousEinsaetze) {
         queryClient.setQueryData(QUERY_KEYS.einsatz.list(filters), context.previousEinsaetze);
       }
 
       const message = await getApiErrorMessage(error, 'Der Einsatz konnte nicht erstellt werden.', 'createEinsatz');
       logger.error('Failed to create einsatz', error);
-      toast.error('Fehler', {
-        description: message,
-      });
+      toast.error('Fehler', { description: message });
     },
     onSuccess: async () => {
       toast.success('Einsatz erstellt', {
@@ -118,7 +166,6 @@ export const useEinsaetze = (filters?: { status?: EinsatzControllerFindAllVAlpha
       });
     },
     onSettled: async () => {
-      // Always refetch after an error or success
       await queryClient.invalidateQueries({ queryKey: QUERY_KEYS.einsatz.all });
     },
     retry: 3,
@@ -135,15 +182,12 @@ export const useEinsaetze = (filters?: { status?: EinsatzControllerFindAllVAlpha
       return response.data;
     },
     onMutate: async ({ id, data }) => {
-      // Cancel any outgoing refetches
       await queryClient.cancelQueries({ queryKey: QUERY_KEYS.einsatz.detail(id) });
       await queryClient.cancelQueries({ queryKey: QUERY_KEYS.einsatz.all });
 
-      // Snapshot the previous values
       const previousEinsatz = queryClient.getQueryData<EinsatzControllerCreateVAlpha200Response>(QUERY_KEYS.einsatz.detail(id));
       const previousEinsaetze = queryClient.getQueryData<EinsatzControllerFindAllVAlpha200Response>(QUERY_KEYS.einsatz.list(filters));
 
-      // Optimistically update the single einsatz
       if (previousEinsatz?.data) {
         const updatedEinsatz: EinsatzResponseDto = {
           ...previousEinsatz.data,
@@ -157,7 +201,6 @@ export const useEinsaetze = (filters?: { status?: EinsatzControllerFindAllVAlpha
           meta: previousEinsatz.meta || {},
         });
 
-        // Also update in the list
         queryClient.setQueryData<EinsatzControllerFindAllVAlpha200Response>(QUERY_KEYS.einsatz.list(filters), (old) => {
           if (!old) return old;
           return {
@@ -170,7 +213,6 @@ export const useEinsaetze = (filters?: { status?: EinsatzControllerFindAllVAlpha
       return { previousEinsatz, previousEinsaetze };
     },
     onError: async (error: ResponseError, { id }, context) => {
-      // Roll back on error
       if (context && typeof context === 'object' && 'previousEinsatz' in context && context.previousEinsatz) {
         queryClient.setQueryData(QUERY_KEYS.einsatz.detail(id), context.previousEinsatz);
       }
@@ -180,9 +222,7 @@ export const useEinsaetze = (filters?: { status?: EinsatzControllerFindAllVAlpha
 
       const message = await getApiErrorMessage(error, 'Der Einsatz konnte nicht aktualisiert werden.', 'updateEinsatz');
       logger.error('Failed to update einsatz', error);
-      toast.error('Fehler', {
-        description: message,
-      });
+      toast.error('Fehler', { description: message });
     },
     onSuccess: async () => {
       toast.success('Einsatz aktualisiert', {
@@ -190,7 +230,6 @@ export const useEinsaetze = (filters?: { status?: EinsatzControllerFindAllVAlpha
       });
     },
     onSettled: async (_, __, { id }) => {
-      // Always refetch after error or success
       await queryClient.invalidateQueries({ queryKey: QUERY_KEYS.einsatz.detail(id) });
       await queryClient.invalidateQueries({ queryKey: QUERY_KEYS.einsatz.all });
     },
@@ -198,17 +237,30 @@ export const useEinsaetze = (filters?: { status?: EinsatzControllerFindAllVAlpha
     retryDelay: calculateRetryDelay,
   });
 
-  return {
-    // Einsatzdaten und Ladezustände
-    einsaetze: einsaetzeQuery.data?.data || [],
-    // total: einsaetzeQuery.data?.total || 0,
-    // page: einsaetzeQuery.data?.page || 1,
-    // limit: einsaetzeQuery.data?.limit || 10,
-    isLoading: einsaetzeQuery.isLoading,
-    error: einsaetzeQuery.error,
-    refetch: einsaetzeQuery.refetch,
+  // Daten je nach Modus aufbereiten
+  const allEinsaetze = infinite ? infiniteQuery.data?.pages.flatMap((page) => page.data || []) || [] : standardQuery.data?.data || [];
 
-    // API-Aktionen
+  const total = infinite ? infiniteQuery.data?.pages[0]?.pagination?.total || 0 : standardQuery.data?.pagination?.total || 0;
+
+  return {
+    // Einsatzdaten
+    einsaetze: allEinsaetze,
+    total,
+    pagination: infinite ? undefined : standardQuery.data?.pagination,
+
+    // Lade-Zustände
+    isLoading: infinite ? infiniteQuery.isLoading : standardQuery.isLoading,
+    error: infinite ? infiniteQuery.error : standardQuery.error,
+
+    // Infinite Scrolling (nur wenn aktiviert)
+    ...(infinite && {
+      isFetchingNextPage: infiniteQuery.isFetchingNextPage,
+      hasNextPage: infiniteQuery.hasNextPage,
+      fetchNextPage: infiniteQuery.fetchNextPage,
+    }),
+
+    // Gemeinsame Aktionen
+    refetch: infinite ? infiniteQuery.refetch : standardQuery.refetch,
     createEinsatz: createEinsatzMutation,
     updateEinsatz: updateEinsatzMutation,
   };
@@ -254,13 +306,10 @@ export const useEinsatz = (id: string | null) => {
     onMutate: async ({ data }) => {
       if (!id) return;
 
-      // Cancel any outgoing refetches
       await queryClient.cancelQueries({ queryKey: QUERY_KEYS.einsatz.detail(id) });
 
-      // Snapshot the previous value
       const previousEinsatz = queryClient.getQueryData<EinsatzControllerCreateVAlpha200Response>(QUERY_KEYS.einsatz.detail(id));
 
-      // Optimistically update to the new value
       if (previousEinsatz?.data) {
         const updatedEinsatz: EinsatzResponseDto = {
           ...previousEinsatz.data,
@@ -278,16 +327,13 @@ export const useEinsatz = (id: string | null) => {
       return { previousEinsatz };
     },
     onError: async (error: ResponseError, _, context) => {
-      // Roll back on error
       if (context && typeof context === 'object' && 'previousEinsatz' in context && context.previousEinsatz && id) {
         queryClient.setQueryData(QUERY_KEYS.einsatz.detail(id), context.previousEinsatz);
       }
 
       const message = await getApiErrorMessage(error, 'Der Einsatz konnte nicht aktualisiert werden.', 'updateEinsatz');
       logger.error('Failed to update einsatz', error);
-      toast.error('Fehler', {
-        description: message,
-      });
+      toast.error('Fehler', { description: message });
     },
     onSuccess: async () => {
       toast.success('Einsatz aktualisiert', {
