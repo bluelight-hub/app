@@ -1,5 +1,5 @@
 import { cn } from '@/utils/cn';
-import { forwardRef } from 'react';
+import { forwardRef, type ComponentRef } from 'react';
 import DatePicker from 'react-datepicker';
 import 'react-datepicker/dist/react-datepicker.css';
 import { PiCalendar } from 'react-icons/pi';
@@ -25,7 +25,7 @@ export interface DateInputProps {
  * Advanced date/time picker with NATO DateTime format support
  * Uses react-datepicker with custom styling
  */
-export const DateInput = forwardRef<any, DateInputProps>(
+export const DateInput = forwardRef<ComponentRef<typeof DatePicker>, DateInputProps>(
   ({ value, onChange, onBlur, showIcon = true, includeTime = false, showNatoFormat = false, min, max, placeholder, className, id, disabled = false, ...props }, ref) => {
     // Convert string value to Date object if needed
     const dateValue = value ? (typeof value === 'string' ? new Date(value) : value) : null;

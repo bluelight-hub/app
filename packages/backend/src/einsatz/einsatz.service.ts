@@ -105,7 +105,7 @@ export class EinsatzService {
 
     // Schutz vor Bearbeitung archivierter Einsätze
     if (!EinsatzStatusTransitions.canEdit(existing.status)) {
-      throw new BadRequestException(`Einsatz ${id} ist archiviert und kann nicht mehr bearbeitet werden. ` + `Nur Lesezugriff ist erlaubt.`);
+      throw new BadRequestException(`Einsatz ${id} ist archiviert und kann nicht mehr bearbeitet werden. Nur Lesezugriff ist erlaubt.`);
     }
 
     // Status-Übergang validieren wenn Status geändert wird
@@ -162,7 +162,7 @@ export class EinsatzService {
 
     // Business-Rule: Nur ABGESCHLOSSEN kann archiviert werden
     if (!EinsatzStatusTransitions.canArchive(existing.status)) {
-      throw new BadRequestException(`Einsatz ${id} kann nicht archiviert werden. ` + `Nur Einsätze mit Status ABGESCHLOSSEN können archiviert werden. ` + `Aktueller Status: ${existing.status}`);
+      throw new BadRequestException(`Einsatz ${id} kann nicht archiviert werden. Nur Einsätze mit Status ABGESCHLOSSEN können archiviert werden. Aktueller Status: ${existing.status}`);
     }
 
     const updateData: Prisma.EinsatzUpdateInput = {

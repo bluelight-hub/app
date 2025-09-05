@@ -60,7 +60,7 @@ export class EinsatzResponseDto implements Einsatz {
     type: 'object',
     additionalProperties: true,
   })
-  metadata: any;
+  metadata: Record<string, unknown> | null;
 
   @ApiProperty({
     description: 'Erstellungszeitpunkt',

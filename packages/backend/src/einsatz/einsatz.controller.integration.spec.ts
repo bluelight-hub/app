@@ -9,8 +9,8 @@ import { JwtAuthGuard } from '@/auth/guards/jwt-auth.guard';
 
 describe('EinsatzController Integration - Duplicate Detection', () => {
   let app: INestApplication;
-  let einsatzService: EinsatzService;
-  let duplicateDetectionService: CacheDuplicateDetectionService;
+  let _einsatzService: EinsatzService;
+  let _duplicateDetectionService: CacheDuplicateDetectionService;
 
   const mockEinsatzService = {
     create: jest.fn(),
@@ -29,9 +29,9 @@ describe('EinsatzController Integration - Duplicate Detection', () => {
   // Mock JwtAuthGuard to bypass authentication and set user
   const mockJwtAuthGuard = {
     canActivate: jest.fn((context) => {
-      const request = context.switchToHttp().getRequest();
+      const req = context.switchToHttp().getRequest();
       // Set a mock user in the request
-      request.user = {
+      req.user = {
         userId: 'test-user-id',
         username: 'testuser',
         roles: ['USER'],
@@ -62,8 +62,8 @@ describe('EinsatzController Integration - Duplicate Detection', () => {
     app = moduleFixture.createNestApplication();
     await app.init();
 
-    einsatzService = moduleFixture.get<EinsatzService>(EinsatzService);
-    duplicateDetectionService = moduleFixture.get<CacheDuplicateDetectionService>(CacheDuplicateDetectionService);
+    _einsatzService = moduleFixture.get<EinsatzService>(EinsatzService);
+    _duplicateDetectionService = moduleFixture.get<CacheDuplicateDetectionService>(CacheDuplicateDetectionService);
   });
 
   afterAll(async () => {

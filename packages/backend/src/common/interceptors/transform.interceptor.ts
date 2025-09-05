@@ -1,5 +1,5 @@
 import { trimTrailingSlash } from '@/utils/url.util';
-import { type CallHandler, type ExecutionContext, Injectable, Logger, type NestInterceptor } from '@nestjs/common';
+import { type CallHandler, type ExecutionContext, Injectable, type NestInterceptor } from '@nestjs/common';
 import type { ConfigService } from '@nestjs/config';
 import type { Reflector } from '@nestjs/core';
 import type { Request } from 'express';
@@ -75,9 +75,6 @@ function isTransformedResponse<T>(data: unknown): data is TransformedResponse<T>
  */
 @Injectable()
 export class TransformInterceptor<T = unknown> implements NestInterceptor<T, TransformedResponse<T> | T> {
-  private readonly appUrl: string;
-  private readonly logger = new Logger('TransformInterceptor');
-
   constructor(
     private reflector: Reflector,
     private configService: ConfigService,

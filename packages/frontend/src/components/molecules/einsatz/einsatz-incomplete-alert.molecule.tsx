@@ -92,15 +92,15 @@ export function EinsatzIncompleteAlert({
               <Dialog.Panel
                 className={cn(
                   'relative transform overflow-hidden rounded-lg bg-white dark:bg-gray-800',
-                  'px-4 pb-4 pt-5 text-left shadow-xl transition-all',
+                  'px-4 pt-5 pb-4 text-left shadow-xl transition-all',
                   'sm:my-8 sm:w-full sm:max-w-lg sm:p-6',
                   className,
                 )}
               >
-                <div className="absolute right-0 top-0 hidden pr-4 pt-4 sm:block">
+                <div className="absolute top-0 right-0 hidden pt-4 pr-4 sm:block">
                   <button
                     type="button"
-                    className="rounded-md bg-white dark:bg-gray-800 text-gray-400 hover:text-gray-500 dark:hover:text-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:ring-offset-2 dark:focus:ring-offset-gray-800"
+                    className="rounded-md bg-white text-gray-400 hover:text-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 dark:bg-gray-800 dark:focus:ring-blue-400 dark:focus:ring-offset-gray-800 dark:hover:text-gray-300"
                     onClick={handleClose}
                   >
                     <span className="sr-only">Schließen</span>
@@ -109,22 +109,22 @@ export function EinsatzIncompleteAlert({
                 </div>
 
                 <div className="sm:flex sm:items-start">
-                  <div className="mx-auto flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-full bg-yellow-100 dark:bg-yellow-900/30 sm:mx-0 sm:h-10 sm:w-10">
+                  <div className="mx-auto flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-full bg-yellow-100 sm:mx-0 sm:h-10 sm:w-10 dark:bg-yellow-900/30">
                     <ExclamationTriangleIcon className="h-6 w-6 text-yellow-600 dark:text-yellow-500" aria-hidden="true" />
                   </div>
 
-                  <div className="mt-3 text-center sm:ml-4 sm:mt-0 sm:text-left">
-                    <Dialog.Title as="h3" className="text-base font-semibold leading-6 text-gray-900 dark:text-gray-100">
+                  <div className="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left">
+                    <Dialog.Title as="h3" className="font-semibold text-base text-gray-900 leading-6 dark:text-gray-100">
                       {title}
                     </Dialog.Title>
 
                     <div className="mt-2">
-                      <p className="text-sm text-gray-500 dark:text-gray-400">{message}</p>
+                      <p className="text-gray-500 text-sm dark:text-gray-400">{message}</p>
 
                       {missingFields.length > 0 && (
                         <div className="mt-3">
-                          <p className="text-sm font-medium text-gray-700 dark:text-gray-300">Fehlende Felder:</p>
-                          <ul className="mt-1 list-inside list-disc text-sm text-gray-600 dark:text-gray-400">
+                          <p className="font-medium text-gray-700 text-sm dark:text-gray-300">Fehlende Felder:</p>
+                          <ul className="mt-1 list-inside list-disc text-gray-600 text-sm dark:text-gray-400">
                             {missingFields.map((field) => (
                               <li key={field}>{field}</li>
                             ))}
@@ -139,7 +139,7 @@ export function EinsatzIncompleteAlert({
                   {onComplete && (
                     <button
                       type="button"
-                      className="inline-flex w-full justify-center rounded-md bg-blue-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 dark:focus:ring-offset-gray-800 sm:ml-3 sm:w-auto"
+                      className="inline-flex w-full justify-center rounded-md bg-blue-600 px-3 py-2 font-semibold text-sm text-white shadow-sm hover:bg-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 sm:ml-3 sm:w-auto dark:focus:ring-offset-gray-800"
                       onClick={handleComplete}
                     >
                       {completeButtonText}
@@ -149,7 +149,7 @@ export function EinsatzIncompleteAlert({
                   {onIgnore && (
                     <button
                       type="button"
-                      className="mt-3 inline-flex w-full justify-center rounded-md bg-white dark:bg-gray-700 px-3 py-2 text-sm font-semibold text-gray-900 dark:text-gray-100 shadow-sm ring-1 ring-inset ring-gray-300 dark:ring-gray-600 hover:bg-gray-50 dark:hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:ring-offset-2 dark:focus:ring-offset-gray-800 sm:mt-0 sm:w-auto"
+                      className="mt-3 inline-flex w-full justify-center rounded-md bg-white px-3 py-2 font-semibold text-gray-900 text-sm shadow-sm ring-1 ring-gray-300 ring-inset hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 sm:mt-0 sm:w-auto dark:bg-gray-700 dark:text-gray-100 dark:ring-gray-600 dark:focus:ring-blue-400 dark:focus:ring-offset-gray-800 dark:hover:bg-gray-600"
                       onClick={handleIgnore}
                     >
                       {ignoreButtonText}
@@ -159,7 +159,7 @@ export function EinsatzIncompleteAlert({
                   {!onComplete && !onIgnore && (
                     <button
                       type="button"
-                      className="inline-flex w-full justify-center rounded-md bg-white dark:bg-gray-700 px-3 py-2 text-sm font-semibold text-gray-900 dark:text-gray-100 shadow-sm ring-1 ring-inset ring-gray-300 dark:ring-gray-600 hover:bg-gray-50 dark:hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:ring-offset-2 dark:focus:ring-offset-gray-800 sm:w-auto"
+                      className="inline-flex w-full justify-center rounded-md bg-white px-3 py-2 font-semibold text-gray-900 text-sm shadow-sm ring-1 ring-gray-300 ring-inset hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 sm:w-auto dark:bg-gray-700 dark:text-gray-100 dark:ring-gray-600 dark:focus:ring-blue-400 dark:focus:ring-offset-gray-800 dark:hover:bg-gray-600"
                       onClick={handleClose}
                     >
                       Schließen

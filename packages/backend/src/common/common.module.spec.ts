@@ -1,10 +1,9 @@
 import { Test, type TestingModule } from '@nestjs/testing';
 import { CommonModule } from './common.module';
-import { CacheModule, CACHE_MANAGER } from '@nestjs/cache-manager';
+import { CACHE_MANAGER } from '@nestjs/cache-manager';
 import { CacheConfigService } from './config/cache-config.service';
 import { AppConfigService } from './services/app-config.service';
 import { ConfigModule } from '@nestjs/config';
-import { PrismaModule } from '@/prisma/prisma.module';
 import type { Cache } from 'cache-manager';
 
 describe('CommonModule', () => {
