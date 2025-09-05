@@ -45,13 +45,28 @@ Dieses Glossar definiert die wichtigsten Fachbegriffe, Abkürzungen und technisc
 |Einsatzleitwagen; Ältere, inzwischen nicht mehr gebräuchliche Bezeichnung für den Führungskraftwagen (FüKW). In der Dokumentation wurde dieser Begriff durch FüKW ersetzt.
 
 |Einsatz
-|Organisierter Einsatz von Kräften und Mitteln zur Bewältigung einer Gefahr oder eines Notfalls; zentrale Entität im Bluelight-Hub-System.
+|Organisierter Einsatz von Kräften und Mitteln zur Bewältigung einer Gefahr oder eines Notfalls; zentrale Entität im Bluelight-Hub-System. Kann ohne Pflichtparameter angelegt werden (siehe Epic-143).
 
 |Einsatzabschnitt
 |Räumlich oder funktional definierter Teilbereich eines Einsatzes mit eigener Führung.
 
 |Einsatzleiter
 |Person, die die Gesamtverantwortung für einen Einsatz trägt und alle Einsatzmaßnahmen koordiniert.
+
+|[[alarmstichwort]]Alarmstichwort
+|Standardisierte Bezeichnung für eine Einsatzart oder einen Alarmgrund (z.B. "Brand 3", "H1", "THL"). Optionales Feld bei der Einsatzerstellung.
+
+|[[alarmierungszeit]]Alarmierungszeit
+|Zeitpunkt, zu dem die Alarmierung der Einsatzkräfte erfolgte. Optionales Feld bei der Einsatzerstellung.
+
+|[[computed-fields]]Computed Fields
+|Dynamisch berechnete Felder, die niemals in der Datenbank gespeichert werden, sondern zur Laufzeit aus vorhandenen Daten generiert werden. Beispiele: Einsatzname und Vollständigkeitsscore.
+
+|[[completeness-score]]Completeness Score
+|Prozentuale Bewertung (0-100%) der Vollständigkeit eines Einsatzdatensatzes, berechnet aus kritischen (40%), wichtigen (30%) und optionalen (30%) Feldern.
+
+|[[in-memory-cache]]In-Memory Cache
+|Zwischenspeicher im Arbeitsspeicher für häufig abgerufene Berechnungen wie Vollständigkeitsanalysen, mit kurzer TTL (Time-to-Live, meist 60 Sekunden).
 
 |Einheit
 |Organisatorisch zusammengehörige Gruppe von Einsatzkräften mit definierter Führungsstruktur und Aufgabe (z.B. Sanitätsgruppe, Betreuungszug).
@@ -80,8 +95,14 @@ Dieses Glossar definiert die wichtigsten Fachbegriffe, Abkürzungen und technisc
 |Material
 |Ausrüstung, Fahrzeuge und sonstige Ressourcen, die im Einsatz zur Verfügung stehen.
 
+|[[minimale-einsatzerstellung]]Minimale Einsatzerstellung
+|Konzept aus Epic-143, bei dem Einsätze ohne jegliche Pflichtparameter angelegt werden können, um schnelle Erfassung in Stresssituationen zu ermöglichen.
+
 |NestJS
 |TypeScript-basiertes Node.js-Framework für serverseitige Anwendungen, das im Backend des Bluelight-Hub-Systems verwendet wird.
+
+|[[optimistic-updates]]Optimistic Updates
+|UI-Pattern, bei dem Benutzeraktionen sofort in der Oberfläche reflektiert werden, noch bevor die Server-Antwort eintrifft. Bei Fehlern erfolgt automatischer Rollback.
 
 |Lokales Verbindungsszenario
 |Konnektivitätszustand, bei dem ein Client mit dem FüKW-Server verbunden ist, aber keine Internetverbindung besteht. Dies ist der Standardmodus im Einsatz und wird auch als "FüKW-verbunden" bezeichnet. In diesem Modus ist die volle lokale Funktionalität verfügbar.

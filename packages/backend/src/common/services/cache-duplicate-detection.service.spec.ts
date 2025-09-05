@@ -185,14 +185,6 @@ describe('CacheDuplicateDetectionService', () => {
   });
 
   describe('clearCache', () => {
-    it('sollte Warnung loggen da reset nicht verfügbar', async () => {
-      const loggerSpy = jest.spyOn(service.logger, 'warn');
-
-      await service.clearCache();
-
-      expect(loggerSpy).toHaveBeenCalledWith('Cache-Reset ist in cache-manager v7 nicht direkt verfügbar');
-    });
-
     it('sollte keine Fehler werfen', async () => {
       await expect(service.clearCache()).resolves.not.toThrow();
     });

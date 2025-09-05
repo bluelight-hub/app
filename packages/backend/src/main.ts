@@ -1,4 +1,3 @@
-import * as process from 'node:process';
 import { Logger, ValidationPipe, VersioningType } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { NestFactory, Reflector } from '@nestjs/core';
@@ -6,11 +5,12 @@ import type { NestExpressApplication } from '@nestjs/platform-express';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import cookieParser from 'cookie-parser';
 import helmet from 'helmet';
+import * as process from 'node:process';
 import * as packageJson from '../package.json';
 import { AppModule } from './app.module';
-import { TransformInterceptor } from './common/interceptors/transform.interceptor';
-import { PerformanceInterceptor } from './common/interceptors/performance.interceptor';
 import { HttpExceptionLoggingFilter } from './common/filters/http-exception-logging.filter';
+import { PerformanceInterceptor } from './common/interceptors/performance.interceptor';
+import { TransformInterceptor } from './common/interceptors/transform.interceptor';
 import { corsConfig, helmetConfig } from './config/security.config';
 
 require('@dotenvx/dotenvx').config();
@@ -77,7 +77,7 @@ async function bootstrap() {
 
   // Enable interceptors globally
   const reflector = app.get(Reflector);
-  app.useGlobalInterceptors(new TransformInterceptor(reflector, configService), new PerformanceInterceptor());
+  app.useGlobalInterceptors(new TransformInterceptor(reflector), new PerformanceInterceptor());
 
   // Enable exception filter for logging errors with performance metrics
   app.useGlobalFilters(new HttpExceptionLoggingFilter());

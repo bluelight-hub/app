@@ -13,13 +13,15 @@
  */
 
 import { mapValues } from '../runtime';
-import type { EinsatzControllerGetCompletenessVAlpha200ResponseMissingFieldsInner } from './EinsatzControllerGetCompletenessVAlpha200ResponseMissingFieldsInner';
+import type { EinsatzControllerFindAllVAlpha200ResponseMeta } from './EinsatzControllerFindAllVAlpha200ResponseMeta';
 import {
-  EinsatzControllerGetCompletenessVAlpha200ResponseMissingFieldsInnerFromJSON,
-  EinsatzControllerGetCompletenessVAlpha200ResponseMissingFieldsInnerFromJSONTyped,
-  EinsatzControllerGetCompletenessVAlpha200ResponseMissingFieldsInnerToJSON,
-  EinsatzControllerGetCompletenessVAlpha200ResponseMissingFieldsInnerToJSONTyped,
-} from './EinsatzControllerGetCompletenessVAlpha200ResponseMissingFieldsInner';
+  EinsatzControllerFindAllVAlpha200ResponseMetaFromJSON,
+  EinsatzControllerFindAllVAlpha200ResponseMetaFromJSONTyped,
+  EinsatzControllerFindAllVAlpha200ResponseMetaToJSON,
+  EinsatzControllerFindAllVAlpha200ResponseMetaToJSONTyped,
+} from './EinsatzControllerFindAllVAlpha200ResponseMeta';
+import type { CompletenessResponseDto } from './CompletenessResponseDto';
+import { CompletenessResponseDtoFromJSON, CompletenessResponseDtoFromJSONTyped, CompletenessResponseDtoToJSON, CompletenessResponseDtoToJSONTyped } from './CompletenessResponseDto';
 
 /**
  *
@@ -29,28 +31,24 @@ import {
 export interface EinsatzControllerGetCompletenessVAlpha200Response {
   /**
    *
-   * @type {number}
+   * @type {CompletenessResponseDto}
    * @memberof EinsatzControllerGetCompletenessVAlpha200Response
    */
-  score?: number;
+  data: CompletenessResponseDto;
   /**
    *
-   * @type {boolean}
+   * @type {EinsatzControllerFindAllVAlpha200ResponseMeta}
    * @memberof EinsatzControllerGetCompletenessVAlpha200Response
    */
-  isComplete?: boolean;
-  /**
-   *
-   * @type {Array<EinsatzControllerGetCompletenessVAlpha200ResponseMissingFieldsInner>}
-   * @memberof EinsatzControllerGetCompletenessVAlpha200Response
-   */
-  missingFields?: Array<EinsatzControllerGetCompletenessVAlpha200ResponseMissingFieldsInner>;
+  meta: EinsatzControllerFindAllVAlpha200ResponseMeta;
 }
 
 /**
  * Check if a given object implements the EinsatzControllerGetCompletenessVAlpha200Response interface.
  */
 export function instanceOfEinsatzControllerGetCompletenessVAlpha200Response(value: object): value is EinsatzControllerGetCompletenessVAlpha200Response {
+  if (!('data' in value) || value['data'] === undefined) return false;
+  if (!('meta' in value) || value['meta'] === undefined) return false;
   return true;
 }
 
@@ -63,9 +61,8 @@ export function EinsatzControllerGetCompletenessVAlpha200ResponseFromJSONTyped(j
     return json;
   }
   return {
-    score: json['score'] == null ? undefined : json['score'],
-    isComplete: json['isComplete'] == null ? undefined : json['isComplete'],
-    missingFields: json['missingFields'] == null ? undefined : (json['missingFields'] as Array<any>).map(EinsatzControllerGetCompletenessVAlpha200ResponseMissingFieldsInnerFromJSON),
+    data: CompletenessResponseDtoFromJSON(json['data']),
+    meta: EinsatzControllerFindAllVAlpha200ResponseMetaFromJSON(json['meta']),
   };
 }
 
@@ -79,8 +76,7 @@ export function EinsatzControllerGetCompletenessVAlpha200ResponseToJSONTyped(val
   }
 
   return {
-    score: value['score'],
-    isComplete: value['isComplete'],
-    missingFields: value['missingFields'] == null ? undefined : (value['missingFields'] as Array<any>).map(EinsatzControllerGetCompletenessVAlpha200ResponseMissingFieldsInnerToJSON),
+    data: CompletenessResponseDtoToJSON(value['data']),
+    meta: EinsatzControllerFindAllVAlpha200ResponseMetaToJSON(value['meta']),
   };
 }

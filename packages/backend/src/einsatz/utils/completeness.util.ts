@@ -35,7 +35,7 @@ export class EinsatzCompletenessCalculator {
     // Prüfe Alarmierungszeit
     const alarmierungszeitConfig = EinsatzCompletenessCalculator.FIELD_WEIGHTS.alarmierungszeit;
     totalWeight += alarmierungszeitConfig.weight;
-    if (!einsatz.alarmierungszeit) {
+    if (!(einsatz.alarmierungszeit instanceof Date) || Number.isNaN(einsatz.alarmierungszeit.getTime())) {
       missingFields.push({
         field: 'alarmierungszeit',
         fieldPath: 'alarmierungszeit',

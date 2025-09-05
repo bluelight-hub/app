@@ -196,7 +196,14 @@ export class EinsatzService {
     if (!refresh) {
       const cached = this.completenessCache.get(id);
       if (cached && cached.expires > Date.now()) {
-        return cached.data;
+        // Ensure cached data also has suggestedAction
+        return {
+          ...cached.data,
+          missingFields: cached.data.missingFields.map((field) => ({
+            ...field,
+            suggestedAction: field.suggestedAction || field.message,
+          })),
+        };
       }
     }
 
@@ -207,9 +214,18 @@ export class EinsatzService {
 
     const completeness = EinsatzCompletenessCalculator.calculate(einsatz);
 
+    // Ensure all fields have suggestedAction (required by CompletenessResponseDto)
+    const responseData = {
+      ...completeness,
+      missingFields: completeness.missingFields.map((field) => ({
+        ...field,
+        suggestedAction: field.suggestedAction || field.message,
+      })),
+    };
+
     // Cache speichern
     this.completenessCache.set(id, {
-      data: completeness,
+      data: responseData,
       expires: Date.now() + this.CACHE_TTL,
     });
 
@@ -218,7 +234,7 @@ export class EinsatzService {
       this.cleanupExpiredCacheEntries();
     }
 
-    return completeness;
+    return responseData;
   }
 
   /**

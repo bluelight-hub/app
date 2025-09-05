@@ -1,6 +1,4 @@
-import { trimTrailingSlash } from '@/utils/url.util';
 import { type CallHandler, type ExecutionContext, Injectable, type NestInterceptor } from '@nestjs/common';
-import type { ConfigService } from '@nestjs/config';
 import type { Reflector } from '@nestjs/core';
 import type { Request } from 'express';
 import { nanoid } from 'nanoid';
@@ -75,13 +73,7 @@ function isTransformedResponse<T>(data: unknown): data is TransformedResponse<T>
  */
 @Injectable()
 export class TransformInterceptor<T = unknown> implements NestInterceptor<T, TransformedResponse<T> | T> {
-  constructor(
-    private reflector: Reflector,
-    private configService: ConfigService,
-  ) {
-    // Cache the APP_URL at initialization to avoid repeated config lookups
-    this.appUrl = trimTrailingSlash(this.configService.get<string>('APP_URL', 'http://localhost:3000'));
-  }
+  constructor(private reflector: Reflector) {}
 
   intercept(context: ExecutionContext, next: CallHandler<T>): Observable<TransformedResponse<T> | T> {
     // Prüfe ob Transform übersprungen werden soll
