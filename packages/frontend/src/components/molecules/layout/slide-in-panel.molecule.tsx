@@ -51,13 +51,13 @@ export function SlideInPanel({ isOpen, onClose, title, description, children, si
                 leaveTo={slideFrom}
               >
                 <DialogPanel className={cn('pointer-events-auto relative w-screen', sizeClasses[size], className)}>
-                  <div className="flex h-full flex-col bg-white dark:bg-gray-900 shadow-2xl">
+                  <div className="flex h-full flex-col bg-white shadow-2xl dark:bg-gray-900">
                     {/* Header */}
-                    <div className="border-gray-200 dark:border-gray-700 border-b px-6 py-4">
+                    <div className="border-gray-200 border-b px-6 py-4 dark:border-gray-700">
                       <div className="flex items-start justify-between">
                         <div className="flex-1">
-                          <DialogTitle className="font-semibold text-gray-900 dark:text-white text-xl leading-6">{title}</DialogTitle>
-                          {description && <Description className="mt-1 text-gray-500 dark:text-gray-400 text-sm">{description}</Description>}
+                          <DialogTitle className="font-semibold text-gray-900 text-xl leading-6 dark:text-white">{title}</DialogTitle>
+                          {description && <Description className="mt-1 text-gray-500 text-sm dark:text-gray-400">{description}</Description>}
                         </div>
                         {showCloseButton && (
                           <Button variant="minimal" size="icon" className="ml-4" onClick={onClose} aria-label="Schließen">

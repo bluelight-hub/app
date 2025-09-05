@@ -1,21 +1,13 @@
-import { useMemo } from 'react';
-import { ProgressBar } from '@/components/atoms/progress-bar.atom';
 import type { ProgressBarVariant } from '@/components/atoms/progress-bar.atom';
+import { ProgressBar } from '@/components/atoms/progress-bar.atom';
+import type { EinsatzResponseDto } from '@bluelight-hub/shared/client';
+import { useMemo } from 'react';
 
-interface EinsatzData {
-  alarmstichwort?: string | null;
-  alarmierungszeit?: string | Date | null;
-  einsatzort?: string | null;
-  einsatzleiter?: string | null;
-  fahrzeuge?: any[] | null;
-  mannschaft?: any[] | null;
-  bemerkungen?: string | null;
-  [key: string]: any;
-}
+type EinsatzFields = 'alarmstichwort' | 'alarmierungszeit' | 'einsatzort' | 'einsatzleiter' | 'fahrzeuge' | 'mannschaft' | 'bemerkungen';
 
 interface EinsatzCompletenessBarProps {
-  einsatz: EinsatzData;
-  requiredFields?: (keyof EinsatzData)[];
+  einsatz: Pick<EinsatzResponseDto, EinsatzFields | 'id'>;
+  requiredFields?: EinsatzFields[];
   showTooltip?: boolean;
   showPercentage?: boolean;
   size?: 'sm' | 'md' | 'lg';
@@ -40,7 +32,7 @@ export function EinsatzCompletenessBar({
     let filledCount = 0;
 
     requiredFields.forEach((field) => {
-      const value = einsatz[field];
+      const value = einsatz[field as keyof typeof einsatz];
       const isFilled = value !== null && value !== undefined && value !== '' && (!Array.isArray(value) || value.length > 0);
 
       if (isFilled) {
@@ -69,7 +61,7 @@ export function EinsatzCompletenessBar({
     <div className={className}>
       <ProgressBar value={completeness} max={100} variant={getVariant()} size={size} label={label} showPercentage={showPercentage} animated />
       {showTooltip && missingFields.length > 0 && (
-        <div className="mt-1 text-xs text-gray-600 dark:text-gray-400">
+        <div className="mt-1 text-gray-600 text-xs dark:text-gray-400">
           <span className="font-medium">Fehlende Felder:</span> {missingFields.join(', ')}
         </div>
       )}

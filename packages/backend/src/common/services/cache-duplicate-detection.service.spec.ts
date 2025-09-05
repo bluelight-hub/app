@@ -5,7 +5,7 @@ import { CacheDuplicateDetectionService } from './cache-duplicate-detection.serv
 
 describe('CacheDuplicateDetectionService', () => {
   let service: CacheDuplicateDetectionService;
-  let cacheManager: Cache;
+  let _cacheManager: Cache;
 
   const mockCacheManager = {
     get: jest.fn(),
@@ -25,7 +25,7 @@ describe('CacheDuplicateDetectionService', () => {
     }).compile();
 
     service = module.get<CacheDuplicateDetectionService>(CacheDuplicateDetectionService);
-    cacheManager = module.get<Cache>(CACHE_MANAGER);
+    _cacheManager = module.get<Cache>(CACHE_MANAGER);
 
     // Reset mocks
     jest.clearAllMocks();
@@ -186,7 +186,7 @@ describe('CacheDuplicateDetectionService', () => {
 
   describe('clearCache', () => {
     it('sollte Warnung loggen da reset nicht verfügbar', async () => {
-      const loggerSpy = jest.spyOn(service['logger'], 'warn');
+      const loggerSpy = jest.spyOn(service.logger, 'warn');
 
       await service.clearCache();
 

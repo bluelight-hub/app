@@ -184,7 +184,7 @@ export function EinsatzCreateForm({ isOpen, onClose, onSuccess }: EinsatzCreateF
         </form.Field>
 
         {/* Actions */}
-        <div className="flex justify-end gap-3 pt-6 border-t">
+        <div className="flex justify-end gap-3 border-t pt-6">
           <Button type="button" variant="secondary" onClick={handleClose}>
             Abbrechen
           </Button>
@@ -194,8 +194,8 @@ export function EinsatzCreateForm({ isOpen, onClose, onSuccess }: EinsatzCreateF
         </div>
 
         {/* Keyboard Hint */}
-        <div className="text-xs text-gray-500 text-center">
-          <kbd className="px-2 py-1 text-xs font-semibold text-gray-800 bg-gray-100 border border-gray-200 rounded-lg">{navigator.platform.includes('Mac') ? '⌘' : 'Ctrl'}+Enter</kbd> zum schnellen
+        <div className="text-center text-gray-500 text-xs">
+          <kbd className="rounded-lg border border-gray-200 bg-gray-100 px-2 py-1 font-semibold text-gray-800 text-xs">{navigator.platform.includes('Mac') ? '⌘' : 'Ctrl'}+Enter</kbd> zum schnellen
           Erstellen
         </div>
       </form>
