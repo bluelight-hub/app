@@ -204,3 +204,5 @@ tasks.json
 # Debug files
 *-debug.png
 auth-page-debug.png
+# BMAD (local only)
+.bmad-*/

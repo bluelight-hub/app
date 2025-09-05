@@ -12,7 +12,7 @@
     "expand": "auto",
     "useEditorconfig": true,
     "includes": [
-      "**",
+      "**/*.{js,ts,tsx,json,md,yml,yaml}",
       "!**/node_modules/**",
       "!**/pnpm-lock.yaml",
       "!old-projects/**",
@@ -46,7 +46,7 @@
       }
     },
     "includes": [
-      "**",
+      "**/*.{js,ts,tsx,json,md,yml,yaml}",
       "!**/node_modules/**",
       "!**/pnpm-lock.yaml",
       "!old-projects/**",
