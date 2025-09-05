@@ -1,0 +1,189 @@
+= ADR-019: Computed Fields für Einsatzdaten
+:author: Bluelight-Hub Team  
+:revnumber: 1.0.0
+:revdate: 2025-01-27
+:status: Akzeptiert
+
+== Status
+
+Akzeptiert
+
+== Kontext
+
+Mit der Einführung der minimalen Einsatzerstellung (ADR-018) müssen bestimmte Felder wie der Einsatzname und die Vollständigkeitsbewertung dynamisch aus den vorhandenen Daten berechnet werden.
+
+Die Herausforderungen:
+* Konsistenz zwischen verschiedenen Berechnungen sicherstellen
+* Performance bei häufigen Berechnungen
+* Vermeidung von Inkonsistenzen zwischen gespeicherten und berechneten Werten
+* Cache-Invalidierung bei Datenänderungen
+
+== Entscheidung
+
+Wir implementieren ein System von Computed Fields, die niemals in der Datenbank gespeichert, sondern immer zur Laufzeit berechnet werden:
+
+=== Computed Fields
+
+1. **Einsatz-Name**: Generiert aus verfügbaren Eigenschaften
+2. **Vollständigkeits-Score**: Prozentuale Bewertung (0-100%)
+3. **Vollständigkeits-Details**: Detaillierte Analyse fehlender Felder
+4. **Name-Komponenten**: Aufschlüsselung der Name-Bestandteile
+
+=== Implementierungsstrategie
+
+[source,typescript]
+----
+interface ComputedField<T> {
+  compute: (entity: any) => T;
+  cache?: boolean;
+  ttl?: number;
+}
+
+class ComputedFieldService {
+  private cache = new Map<string, CachedValue>();
+  
+  compute<T>(
+    entity: any, 
+    field: ComputedField<T>, 
+    cacheKey?: string
+  ): T {
+    if (field.cache && cacheKey) {
+      const cached = this.cache.get(cacheKey);
+      if (cached && !this.isExpired(cached)) {
+        return cached.value;
+      }
+    }
+    
+    const value = field.compute(entity);
+    
+    if (field.cache && cacheKey) {
+      this.cache.set(cacheKey, {
+        value,
+        expires: Date.now() + (field.ttl || 60000)
+      });
+    }
+    
+    return value;
+  }
+}
+----
+
+=== Caching-Strategie
+
+* **In-Memory Cache**: Kurzlebiger Cache (60s TTL) für häufig abgerufene Werte
+* **Request-Scope Cache**: Cache innerhalb eines API-Requests
+* **Keine persistente Speicherung**: Vermeidung von Konsistenzproblemen
+
+== Konsequenzen
+
+=== Positive
+
+* **Garantierte Konsistenz**: Keine Sync-Probleme zwischen gespeicherten und berechneten Werten
+* **Reduzierter Speicherbedarf**: Keine redundanten Daten in der DB
+* **Einfache Wartung**: Berechnungslogik zentral an einer Stelle
+* **Flexibilität**: Berechnungslogik kann jederzeit angepasst werden
+* **Keine Migration erforderlich**: Bei Änderungen der Berechnungslogik
+
+=== Negative
+
+* **Performance-Overhead**: Berechnung bei jedem Abruf (mitigiert durch Cache)
+* **Komplexere Queries**: Keine direkten DB-Queries auf computed fields
+* **Sortierung/Filterung**: Muss in-memory erfolgen für computed fields
+
+=== Neutral
+
+* **API-Response-Struktur**: Computed fields werden zur Response hinzugefügt
+* **Testing**: Berechnungslogik muss separat getestet werden
+
+== Risiken und Mitigationen
+
+[cols="1,1,2", options="header"]
+|===
+|Risiko |Wahrscheinlichkeit |Mitigation
+
+|Performance-Degradation
+|Niedrig
+|Effiziente Algorithmen (< 1ms), In-Memory Cache
+
+|Cache-Inkonsistenz
+|Niedrig
+|Kurze TTL (60s), Cache-Invalidierung bei Updates
+
+|Komplexe Berechnungen
+|Mittel
+|Modularisierung, Unit-Tests, Performance-Monitoring
+|===
+
+== Beispiele
+
+=== Name-Generierung
+
+[source,typescript]
+----
+const nameField: ComputedField<string> = {
+  compute: (einsatz) => {
+    if (einsatz.alarmstichwort && einsatz.alarmierungszeit) {
+      return `${einsatz.alarmstichwort} - ${formatDateTime(einsatz.alarmierungszeit)}`;
+    }
+    if (einsatz.alarmstichwort) {
+      return `${einsatz.alarmstichwort} - ${formatDate(new Date())}`;
+    }
+    if (einsatz.alarmierungszeit) {
+      return `Einsatz vom ${formatDateTime(einsatz.alarmierungszeit)}`;
+    }
+    return `Einsatz vom ${formatDateTime(new Date())}`;
+  },
+  cache: true,
+  ttl: 60000
+};
+----
+
+=== Vollständigkeitsberechnung
+
+[source,typescript]
+----
+const completenessField: ComputedField<EinsatzCompleteness> = {
+  compute: (einsatz) => {
+    const fields = [
+      { name: 'alarmstichwort', priority: 'critical', weight: 0.4 },
+      { name: 'alarmierungszeit', priority: 'important', weight: 0.3 },
+      { name: 'einsatzort', priority: 'optional', weight: 0.3 }
+    ];
+    
+    const score = fields.reduce((acc, field) => {
+      return acc + (einsatz[field.name] ? field.weight : 0);
+    }, 0) * 100;
+    
+    return {
+      score,
+      isComplete: score >= 70,
+      missingFields: fields
+        .filter(f => !einsatz[f.name])
+        .map(f => ({
+          field: f.name,
+          priority: f.priority,
+          message: `${f.name} fehlt`
+        }))
+    };
+  },
+  cache: true,
+  ttl: 30000
+};
+----
+
+== Alternativen
+
+1. **Materialized Views**: Vorberechnete Werte in der DB
+   - Verworfen: Sync-Probleme, zusätzliche Komplexität
+
+2. **Trigger-basierte Berechnung**: DB-Trigger für Berechnungen
+   - Verworfen: Logik in DB, schwer testbar
+
+3. **Event-basierte Updates**: Events bei Änderungen
+   - Verworfen: Zusätzliche Infrastruktur erforderlich
+
+== Referenzen
+
+* ADR-018: Minimale Einsatzerstellung ohne Pflichtparameter
+* ADR-020: Optimistic UI Updates
+* Epic-143: Einsatz ohne Pflichtparameter

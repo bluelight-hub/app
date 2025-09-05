@@ -4,9 +4,9 @@ import type { ValidatedUser } from '@/auth/strategies/jwt.strategy';
 import { ApiWrappedResponse } from '@/common/decorators/api-wrapped-response.decorator';
 import type { PaginatedData } from '@/common/interceptors/transform.interceptor';
 import { CacheDuplicateDetectionService } from '@/common/services/cache-duplicate-detection.service';
-import { CreateEinsatzDto, EinsatzQueryDto, EinsatzResponseDto, StatusCountsResponseDto, UpdateEinsatzDto } from '@/einsatz/dto';
+import { CompletenessQueryDto, CompletenessResponseDto, CreateEinsatzDto, EinsatzQueryDto, EinsatzResponseDto, StatusCountsQueryDto, StatusCountsResponseDto, UpdateEinsatzDto } from '@/einsatz/dto';
 import { Body, Controller, Get, Logger, Param, Patch, Post, Query, UseGuards, ValidationPipe } from '@nestjs/common';
-import { ApiBadRequestResponse, ApiBearerAuth, ApiForbiddenResponse, ApiNotFoundResponse, ApiOkResponse, ApiOperation, ApiQuery, ApiTags, ApiUnauthorizedResponse } from '@nestjs/swagger';
+import { ApiBadRequestResponse, ApiBearerAuth, ApiForbiddenResponse, ApiNotFoundResponse, ApiOperation, ApiTags, ApiUnauthorizedResponse } from '@nestjs/swagger';
 import { EinsatzService } from './einsatz.service';
 
 /**
@@ -155,16 +155,13 @@ export class EinsatzController {
     summary: 'Status-Statistiken abrufen',
     description: 'Gibt die Anzahl der Einsätze pro Status zurück.',
   })
-  @ApiQuery({
-    name: 'includeArchived',
-    required: false,
-    type: Boolean,
-    description: 'Archivierte Einsätze in die Zählung einbeziehen',
-  })
   @ApiWrappedResponse(StatusCountsResponseDto, { description: 'Status-Statistiken erfolgreich abgerufen' })
-  async getStatusCounts(@Query('includeArchived') includeArchived?: boolean): Promise<StatusCountsResponseDto> {
-    this.logger.log(`Getting status counts (includeArchived: ${includeArchived})`);
-    return await this.einsatzService.getStatusCounts(includeArchived);
+  async getStatusCounts(
+    @Query(new ValidationPipe({ transform: true, whitelist: true }))
+    query: StatusCountsQueryDto,
+  ): Promise<StatusCountsResponseDto> {
+    this.logger.log(`Getting status counts (includeArchived: ${query.includeArchived})`);
+    return await this.einsatzService.getStatusCounts(query.includeArchived);
   }
 
   @Get(':id/completeness')
@@ -172,45 +169,20 @@ export class EinsatzController {
     summary: 'Vollständigkeits-Check für Einsatz',
     description: 'Berechnet und gibt die Vollständigkeit eines Einsatzes zurück.',
   })
-  @ApiQuery({
-    name: 'refresh',
-    required: false,
-    type: Boolean,
-    description: 'Cache umgehen und neu berechnen',
-  })
-  @ApiOkResponse({
-    description: 'Vollständigkeits-Information',
-    schema: {
-      type: 'object',
-      properties: {
-        score: { type: 'number', example: 75 },
-        isComplete: { type: 'boolean', example: false },
-        missingFields: {
-          type: 'array',
-          items: {
-            type: 'object',
-            properties: {
-              field: { type: 'string' },
-              fieldPath: { type: 'string' },
-              priority: { type: 'string', enum: ['critical', 'important', 'optional'] },
-              message: { type: 'string' },
-              suggestedAction: { type: 'string' },
-            },
-          },
-        },
-      },
-    },
-  })
+  @ApiWrappedResponse(CompletenessResponseDto, { description: 'Vollständigkeits-Information erfolgreich abgerufen' })
   @ApiNotFoundResponse({
     description: 'Einsatz nicht gefunden',
   })
   @ApiBadRequestResponse({ description: 'Ungültige Einsatz-ID oder Query-Parameter' })
-  async getCompleteness(@Param('id') id: string, @Query('refresh') refresh?: string) {
-    const useRefresh = refresh === 'true';
-    this.logger.log(`Getting completeness for Einsatz ${id} (refresh: ${useRefresh})`);
+  async getCompleteness(
+    @Param('id') id: string,
+    @Query(new ValidationPipe({ transform: true, whitelist: true }))
+    query: CompletenessQueryDto,
+  ): Promise<CompletenessResponseDto> {
+    this.logger.log(`Getting completeness for Einsatz ${id} (refresh: ${query.refresh})`);
 
     try {
-      const result = await this.einsatzService.getCompleteness(id, useRefresh);
+      const result = await this.einsatzService.getCompleteness(id, query.refresh);
       this.logger.log(`Completeness for Einsatz ${id}: ${result.score}% complete`);
       return result;
     } catch (error) {

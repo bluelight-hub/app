@@ -1,5 +1,6 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { type Einsatz, EinsatzStatus } from '@prisma/client';
+import { type Einsatz, EinsatzStatus, type Prisma } from '@prisma/client';
+import { IsEnum } from 'class-validator';
 
 export interface EinsatzCompleteness {
   score: number;
@@ -53,6 +54,7 @@ export class EinsatzResponseDto implements Einsatz {
     enum: EinsatzStatus,
     example: EinsatzStatus.ANGELEGT,
   })
+  @IsEnum(EinsatzStatus)
   status: EinsatzStatus;
 
   @ApiPropertyOptional({
@@ -60,7 +62,7 @@ export class EinsatzResponseDto implements Einsatz {
     type: 'object',
     additionalProperties: true,
   })
-  metadata: Record<string, unknown> | null;
+  metadata: Prisma.JsonValue | null;
 
   @ApiProperty({
     description: 'Erstellungszeitpunkt',

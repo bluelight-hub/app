@@ -17,7 +17,7 @@ export class EinsatzRepository {
     take?: number;
     cursor?: Prisma.EinsatzWhereUniqueInput;
     where?: Prisma.EinsatzWhereInput;
-    orderBy?: Prisma.EinsatzOrderByWithRelationInput;
+    orderBy?: Prisma.EinsatzOrderByWithRelationInput | Prisma.EinsatzOrderByWithRelationInput[];
   }): Promise<Einsatz[]> {
     const { skip, take, cursor, where, orderBy } = params || {};
 
@@ -26,7 +26,7 @@ export class EinsatzRepository {
       take,
       cursor,
       where,
-      orderBy: orderBy || { createdAt: 'desc' },
+      orderBy: orderBy ?? { createdAt: 'desc' },
     });
   }
 
@@ -74,7 +74,7 @@ export class EinsatzRepository {
     limit: number = 10,
     where?: Prisma.EinsatzWhereInput,
     orderBy: Prisma.EinsatzOrderByWithRelationInput = { createdAt: 'desc' },
-  ): Promise<{ items: Einsatz[]; total: number; page: number; limit: number }> {
+  ): Promise<{ items: Einsatz[]; total: number; page: number; limit: number; totalPages: number }> {
     const skip = (page - 1) * limit;
 
     const [items, total] = await Promise.all([
@@ -92,6 +92,7 @@ export class EinsatzRepository {
       total,
       page,
       limit,
+      totalPages: Math.ceil(total / Math.max(1, limit)),
     };
   }
 

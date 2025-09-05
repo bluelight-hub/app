@@ -1,0 +1,98 @@
+= ADR-018: Minimale Einsatzerstellung ohne Pflichtparameter
+:author: Bluelight-Hub Team  
+:revnumber: 1.0.0
+:revdate: 2025-01-27
+:status: Akzeptiert
+
+== Status
+
+Akzeptiert
+
+== Kontext
+
+Im operativen Einsatzgeschehen müssen Einsätze häufig sehr schnell angelegt werden, bevor alle relevanten Informationen verfügbar sind. 
+Die bisherige Praxis mit Pflichtfeldern führte zu:
+
+* Verzögerungen bei der Einsatzerfassung
+* Eingabe von Platzhalter-Daten, die später korrigiert werden müssen
+* Frustration bei Anwendern im Stress-Szenario
+* Inkonsistente Datenqualität durch erzwungene Falscheingaben
+
+Epic-143 adressiert diese Problematik durch ein flexibles System ohne Pflichtparameter.
+
+== Entscheidung
+
+Wir implementieren ein System, bei dem Einsätze komplett ohne Pflichtfelder angelegt werden können:
+
+1. **Keine Pflichtfelder**: Alle Felder sind optional, einschließlich `alarmstichwort` und `alarmierungszeit`
+2. **Automatische Namengenerierung**: Das System generiert automatisch einen sinnvollen Namen aus verfügbaren Daten
+3. **Inkrementelle Vervollständigung**: Daten können schrittweise während des Einsatzes ergänzt werden
+4. **Vollständigkeitsindikator**: Visuelles Feedback zeigt den Vervollständigungsgrad (0-100%)
+
+=== Name-Generierungs-Hierarchie
+
+[source,typescript]
+----
+// Prioritätsbasierte Namengenerierung
+1. Alarmstichwort + Alarmierungszeit: "Brand 3 - 27.01.2025 14:30"
+2. Nur Alarmstichwort: "Brand 3 - 27.01.2025"
+3. Nur Alarmierungszeit: "Einsatz vom 27.01.2025 14:30"
+4. Fallback: "Einsatz vom 27.01.2025 14:30" (aktuelles Datum/Zeit)
+----
+
+== Konsequenzen
+
+=== Positive
+
+* **Schnellere Einsatzerfassung**: Keine Blockierung durch fehlende Informationen
+* **Bessere Datenqualität**: Keine erzwungenen Falscheingaben mehr
+* **Flexibilität**: Anpassung an verschiedene Einsatzszenarien
+* **User Experience**: Reduzierter Stress in kritischen Situationen
+* **Progressive Enhancement**: System wächst mit verfügbaren Informationen
+
+=== Negative
+
+* **Unvollständige Datensätze**: Mehr Einsätze mit fehlenden Informationen
+* **Nacharbeit erforderlich**: Vervollständigung muss aktiv verfolgt werden
+* **Komplexität**: Zusätzliche Logik für Name-Generierung und Vollständigkeitsberechnung
+
+=== Neutral
+
+* **Änderung der Arbeitsweise**: Nutzer müssen sich an neues Konzept gewöhnen
+* **Monitoring erforderlich**: Vollständigkeitsmetriken müssen überwacht werden
+
+== Risiken und Mitigationen
+
+[cols="1,1,2", options="header"]
+|===
+|Risiko |Wahrscheinlichkeit |Mitigation
+
+|Vergessene Datenvervollständigung
+|Mittel
+|Visuelle Indikatoren, Dashboard-Widgets, Erinnerungen
+
+|Schwierige Einsatzidentifikation
+|Niedrig
+|Intelligente Namengenerierung, eindeutige IDs
+
+|Performance bei Berechnung
+|Niedrig
+|In-Memory Cache, Optimierte Algorithmen
+|===
+
+== Alternativen
+
+1. **Minimale Pflichtfelder**: Nur 1-2 kritische Felder als Pflicht
+   - Verworfen: Selbst minimale Pflichtfelder können blockieren
+
+2. **Template-basierte Erstellung**: Vordefinierte Einsatztypen
+   - Verworfen: Zu unflexibel für verschiedene Szenarien
+
+3. **Wizard-basierte Erfassung**: Schritt-für-Schritt Anleitung
+   - Verworfen: Zu zeitaufwändig im Einsatz
+
+== Referenzen
+
+* Epic-143: Einsatz ohne Pflichtparameter
+* ADR-019: Computed Fields für Einsatzdaten
+* ADR-020: Optimistic UI Updates

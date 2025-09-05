@@ -12,9 +12,100 @@ Die Laufzeitsicht beschreibt das Verhalten und die Interaktionen der Systembaust
 
 === Wichtige Szenarien
 
-==== Einsatz anlegen und verfolgen
+==== Minimale Einsatzerstellung (Epic-143)
 
-Dieses Szenario beschreibt den Prozess der manuellen Anlage und Verfolgung eines Einsatzes im FüKW.
+Dieses Szenario beschreibt die schnelle Einsatzerstellung ohne Pflichtparameter mit automatischer Namengenerierung und Optimistic Updates.
+
+[mermaid]
+....
+sequenceDiagram
+    participant User as Personal FüKW
+    participant UI as Frontend
+    participant Store as TanStack Store
+    participant API as API Client
+    participant Backend
+    participant Cache as In-Memory Cache
+    participant DB as Datenbank
+    
+    User->>UI: Klick "Neuer Einsatz" (Quick-Create)
+    UI->>UI: Öffne minimales Modal
+    User->>UI: Klick "Erstellen" (ohne Daten!)
+    
+    Note over UI,Store: Optimistic Update
+    UI->>Store: Lokale Einsatz-Erstellung
+    Store->>UI: Sofortige UI-Aktualisierung
+    UI-->>User: "Einsatz wird angelegt..."
+    
+    Note over API,DB: Parallel: Server-Verarbeitung
+    UI->>API: POST /api/einsatz {}
+    API->>Backend: createEinsatz(empty)
+    Backend->>Backend: generateName(createdAt)
+    Backend->>Backend: calculateCompleteness(0%)
+    Backend->>DB: INSERT mit generierten Werten
+    DB-->>Backend: Einsatz persistiert
+    Backend->>Cache: Cache Completeness (60s TTL)
+    Backend-->>API: EinsatzResponseDto
+    API-->>Store: Server-Daten ersetzen Temp-Daten
+    Store-->>UI: Finalisierte Anzeige
+    UI-->>User: "Einsatz '27.01.2025 14:30' erstellt"
+    
+    Note over User,UI: Inkrementelle Vervollständigung
+    
+    User->>UI: Alarmstichwort eingeben
+    UI->>Store: Optimistic Update
+    Store->>UI: Sofortige Name-Neuberechnung
+    UI-->>User: Name: "Brand 3 - 27.01.2025"
+    UI->>API: PATCH /api/einsatz/{id}
+    API->>Backend: updateEinsatz(alarmstichwort)
+    Backend->>Backend: regenerateName()
+    Backend->>Backend: recalculateCompleteness(30%)
+    Backend->>Cache: Invalidate & Update Cache
+    Backend->>DB: UPDATE Einsatz
+    Backend-->>API: Updated EinsatzResponseDto
+    API-->>Store: Bestätigung Server-Daten
+....
+
+==== Vollständigkeitsanalyse-Workflow
+
+Dieses Szenario zeigt, wie die Vollständigkeit eines Einsatzes berechnet und gecacht wird:
+
+[mermaid]
+....
+sequenceDiagram
+    participant UI as Frontend
+    participant API as API Client
+    participant Backend
+    participant Cache as In-Memory Cache
+    participant Service as CompletenessService
+    
+    UI->>API: GET /api/einsatz/{id}/completeness
+    API->>Backend: getCompleteness(id)
+    
+    alt Cache Hit
+        Backend->>Cache: get(einsatz:{id}:completeness)
+        Cache-->>Backend: Cached Result (if not expired)
+        Backend-->>API: Cached EinsatzCompleteness
+    else Cache Miss
+        Backend->>Service: calculateCompleteness(einsatz)
+        Service->>Service: checkFields(critical: 40%)
+        Service->>Service: checkFields(important: 30%)
+        Service->>Service: checkFields(optional: 30%)
+        Service-->>Backend: score: 65%, missing: [...]
+        Backend->>Cache: set(key, result, ttl: 60s)
+        
+        Note over Cache: Auto-Cleanup bei > 100 Einträgen
+        
+        Backend-->>API: Fresh EinsatzCompleteness
+    end
+    
+    API-->>UI: Completeness Response
+    UI->>UI: Zeige Fortschrittsbalken (65%)
+    UI->>UI: Zeige Hinweise für fehlende Felder
+....
+
+==== Einsatz anlegen und verfolgen (Standard-Workflow)
+
+Dieses Szenario beschreibt den klassischen Prozess der Anlage und Verfolgung eines Einsatzes im FüKW.
 
 [mermaid]
 ....

@@ -2248,3 +2248,246 @@ Details zur Migration sind in <<../adr/013-tailwind-migration.adoc>> dokumentier
 3. **Accessibility First**: ARIA-Attribute und Keyboard-Support
 4. **Performance**: Memoization und Code-Splitting wo sinnvoll
 5. **Testing**: Unit- und Integration-Tests für kritische Komponenten
+
+=== Einsatz-Management-System (Epic-143)
+
+Das Einsatz-Management-System implementiert ein flexibles Konzept für die Verwaltung von Einsätzen ohne Pflichtparameter.
+Dies ermöglicht eine schnelle Einsatzerstellung und schrittweise Vervollständigung der Daten während des laufenden Einsatzes.
+
+==== Kernkonzepte
+
+===== Minimale Einsatzerstellung
+
+Einsätze können ohne jegliche Pflichtfelder angelegt werden. Das System generiert automatisch einen sinnvollen Namen aus den verfügbaren Informationen:
+
+[source,typescript]
+----
+// Name-Generierung Hierarchie
+interface NameGenerationStrategy {
+  priority: number;
+  generate: (einsatz: Partial<Einsatz>) => string | null;
+}
+
+const strategies = [
+  { // Priorität 1: Alarmstichwort + Zeit
+    generate: (e) => e.alarmstichwort && e.alarmierungszeit
+      ? `${e.alarmstichwort} - ${formatDateTime(e.alarmierungszeit)}`
+      : null
+  },
+  { // Priorität 2: Nur Alarmstichwort
+    generate: (e) => e.alarmstichwort
+      ? `${e.alarmstichwort} - ${formatDate(new Date())}`
+      : null
+  },
+  { // Priorität 3: Nur Zeit
+    generate: (e) => e.alarmierungszeit
+      ? `Einsatz vom ${formatDateTime(e.alarmierungszeit)}`
+      : null
+  },
+  { // Fallback: Aktuelles Datum/Zeit
+    generate: () => `Einsatz vom ${formatDateTime(new Date())}`
+  }
+];
+----
+
+===== Vollständigkeitsanalyse
+
+Das System berechnet kontinuierlich die Vollständigkeit jedes Einsatzes und gibt Hinweise auf fehlende Informationen:
+
+[mermaid]
+....
+graph LR
+    subgraph "Vollständigkeits-Score"
+        Check[Prüfung aller Felder]
+        Check --> Critical[Kritische Felder: 40%]
+        Check --> Important[Wichtige Felder: 30%]
+        Check --> Optional[Optionale Felder: 30%]
+        Critical --> Score[Gesamtscore 0-100%]
+        Important --> Score
+        Optional --> Score
+    end
+    
+    Score --> Feedback[User Feedback]
+    Feedback --> Visual[Visuelle Indikatoren]
+    Feedback --> Hints[Verbesserungshinweise]
+....
+
+[source,typescript]
+----
+interface EinsatzCompleteness {
+  score: number;              // 0-100
+  isComplete: boolean;        // score >= 70
+  missingFields: MissingField[];
+}
+
+interface MissingField {
+  field: string;
+  fieldPath: string;
+  priority: 'critical' | 'important' | 'optional';
+  message: string;
+  suggestedAction?: string;
+}
+
+// Beispiel-Berechnung
+const calculateCompleteness = (einsatz: Einsatz): EinsatzCompleteness => {
+  const weights = {
+    critical: 0.4,    // 40% Gewichtung
+    important: 0.3,   // 30% Gewichtung
+    optional: 0.3     // 30% Gewichtung
+  };
+  
+  // Feldprüfung und Score-Berechnung
+  const missingFields = checkMissingFields(einsatz);
+  const score = calculateWeightedScore(missingFields, weights);
+  
+  return {
+    score,
+    isComplete: score >= 70,
+    missingFields
+  };
+};
+----
+
+===== Optimistic Updates
+
+Alle UI-Interaktionen werden optimistisch aktualisiert für sofortiges Feedback:
+
+[mermaid]
+....
+sequenceDiagram
+    participant User
+    participant UI
+    participant Store
+    participant API
+    participant DB
+    
+    User->>UI: Aktion ausführen
+    UI->>Store: Optimistic Update
+    Store->>UI: Sofortige UI-Aktualisierung
+    UI->>API: Request senden
+    API->>DB: Persistieren
+    DB-->>API: Response
+    
+    alt Erfolg
+        API-->>Store: Server-Daten
+        Store-->>UI: Bestätigung
+    else Fehler
+        API-->>Store: Error
+        Store-->>UI: Rollback
+        UI-->>User: Fehlermeldung
+    end
+....
+
+==== Performance-Optimierungen
+
+===== In-Memory Cache ohne Redis
+
+Statt externer Cache-Systeme nutzt das System einen effizienten In-Memory Cache:
+
+[source,typescript]
+----
+class InMemoryCache<T> {
+  private cache = new Map<string, { data: T; expires: number }>();
+  private maxSize = 100;
+  private ttl = 60000; // 60 Sekunden
+  
+  set(key: string, data: T): void {
+    // Automatisches Cleanup bei Überschreitung
+    if (this.cache.size >= this.maxSize) {
+      this.cleanupExpiredEntries();
+    }
+    
+    this.cache.set(key, {
+      data,
+      expires: Date.now() + this.ttl
+    });
+  }
+  
+  get(key: string): T | null {
+    const entry = this.cache.get(key);
+    if (!entry || entry.expires < Date.now()) {
+      this.cache.delete(key);
+      return null;
+    }
+    return entry.data;
+  }
+}
+----
+
+===== Computed Fields
+
+Name und Vollständigkeit werden niemals in der Datenbank gespeichert, sondern immer zur Laufzeit berechnet:
+
+* **Vorteile**: Garantierte Konsistenz, keine Sync-Probleme, reduzierter Speicherbedarf
+* **Performance**: Berechnung < 1ms durch effiziente Algorithmen
+* **Caching**: Kurzzeit-Cache für häufig abgerufene Werte
+
+==== Status-Management
+
+Das System implementiert einen klaren Status-Lifecycle mit definierten Transitionen:
+
+[mermaid]
+....
+stateDiagram-v2
+    [*] --> ANGELEGT: Erstellen
+    ANGELEGT --> IN_BEARBEITUNG: Starten
+    IN_BEARBEITUNG --> ABGESCHLOSSEN: Beenden
+    ABGESCHLOSSEN --> ARCHIVIERT: Archivieren
+    
+    IN_BEARBEITUNG --> ANGELEGT: Zurücksetzen
+    ABGESCHLOSSEN --> IN_BEARBEITUNG: Wiedereröffnen
+    
+    note right of ARCHIVIERT: Keine Änderungen mehr möglich
+....
+
+==== API-Design-Prinzipien
+
+===== RESTful mit OpenAPI
+
+Alle Endpoints folgen REST-Prinzipien und sind vollständig in OpenAPI dokumentiert:
+
+[source,yaml]
+----
+/api/einsatz:
+  post:
+    summary: Einsatz erstellen (ohne Pflichtfelder)
+    requestBody:
+      required: false  # Kein Body erforderlich!
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              alarmstichwort:
+                type: string
+                required: false
+              alarmierungszeit:
+                type: string
+                format: date-time
+                required: false
+----
+
+===== Generierte Type-Safe Clients
+
+Frontend nutzt ausschließlich generierte API-Clients:
+
+[source,typescript]
+----
+// NIEMALS manuell erstellen:
+// ❌ const response = await fetch('/api/einsatz');
+
+// IMMER generiert nutzen:
+// ✅ import { EinsatzApi } from '@bluelight-hub/shared/client';
+const api = new EinsatzApi();
+const response = await api.createEinsatz({}); // Type-safe!
+----
+
+==== Architektur-Entscheidungen
+
+Die wichtigsten Entscheidungen für das Einsatz-Management:
+
+1. **Keine Pflichtfelder**: Maximale Flexibilität im Einsatz
+2. **Computed Fields**: Konsistenz über Performance
+3. **In-Memory Cache**: Einfachheit über Skalierung (für den Anwendungsfall ausreichend)
+4. **Optimistic Updates**: User Experience über Datenkonsistenz (mit Rollback)
+5. **Generierte API Clients**: Type-Safety über Flexibilität

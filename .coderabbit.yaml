@@ -23,16 +23,16 @@ reviews:
   suggested_reviewers: true
   auto_assign_reviewers: false
   poem: true
-  path_filters: []
+  path_filters: [ '!packages/shared/**' ]
   abort_on_close: true
   disable_cache: false
   auto_review:
     enabled: true
     auto_incremental_review: true
-    ignore_title_keywords: []
-    labels: []
+    ignore_title_keywords: [ ]
+    labels: [ ]
     drafts: false
-    base_branches: ['alpha', 'beta', 'release']
+    base_branches: [ 'alpha', 'beta', 'release' ]
   finishing_touches:
     docstrings:
       enabled: true
@@ -40,10 +40,10 @@ reviews:
       enabled: true
   tools:
     ast-grep:
-      rule_dirs: []
-      util_dirs: []
+      rule_dirs: [ ]
+      util_dirs: [ ]
       essential_rules: true
-      packages: []
+      packages: [ ]
     shellcheck:
       enabled: true
     ruff:
@@ -55,10 +55,10 @@ reviews:
       timeout_ms: 90000
     languagetool:
       enabled: true
-      enabled_rules: []
-      disabled_rules: []
-      enabled_categories: []
-      disabled_categories: []
+      enabled_rules: [ ]
+      disabled_rules: [ ]
+      enabled_categories: [ ]
+      disabled_categories: [ ]
       enabled_only: false
       level: default
     biome:
@@ -144,17 +144,17 @@ knowledge_base:
     enabled: true
   code_guidelines:
     enabled: true
-    filePatterns: []
+    filePatterns: [ ]
   learnings:
     scope: auto
   issues:
     scope: auto
   jira:
     usage: auto
-    project_keys: []
+    project_keys: [ ]
   linear:
     usage: auto
-    team_keys: []
+    team_keys: [ ]
   pull_requests:
     scope: auto
 code_generation:

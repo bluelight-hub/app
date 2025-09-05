@@ -224,17 +224,25 @@ Das Auth Module ist für die Authentifizierung und Autorisierung der Benutzer zu
 
 ==== Einsatz Module
 
-Das Einsatz Module verwaltet alle einsatzbezogenen Daten und Prozesse.
+Das Einsatz Module verwaltet alle einsatzbezogenen Daten und Prozesse. Es implementiert ein flexibles System mit optionalen Parametern gemäß Epic-143, bei dem Einsätze ohne Pflichtfelder angelegt und inkrementell vervollständigt werden können.
 
 [cols="1,3", options="header"]
 |===
 |Komponente |Verantwortlichkeit
-|einsatz.controller.ts |REST API für Einsatzverwaltung
-|einsatz.service.ts |Geschäftslogik für Einsätze
-|einsatz.repository.ts |Datenbankoperationen für Einsätze
-|einsatz.entity.ts |Datenmodell für Einsätze
+|einsatz.controller.ts |REST API für Einsatzverwaltung mit OpenAPI-Dokumentation. Stellt Endpunkte für CRUD-Operationen, Vollständigkeitsanalyse und Status-Management bereit. Unterstützt minimale Einsatzerstellung ohne Pflichtparameter.
+|einsatz.service.ts |Geschäftslogik für Einsätze, inklusive automatischer Namengenerierung aus verfügbaren Eigenschaften, Vollständigkeitsberechnung und Status-Transitionen. Implementiert Optimistic Updates und In-Memory Caching für Performance.
+|einsatz.repository.ts |Datenbankoperationen für Einsätze mit Prisma ORM. Implementiert Soft-Delete gemäß No-Delete Policy, Query-Optimierungen und Batch-Operationen.
+|einsatz.entity.ts |Datenmodell für Einsätze mit optionalen Feldern (alarmstichwort, alarmierungszeit), Computed Fields (name, completeness) und Metadaten-Support
 |einsatz-abschnitt.entity.ts |Datenmodell für Einsatzabschnitte
 |einsatzort.entity.ts |Datenmodell für Einsatzorte
+|DTOs/ |Data Transfer Objects für Type-Safety
+|├── create-einsatz.dto.ts |DTO für Einsatzerstellung ohne Pflichtfelder
+|├── update-einsatz.dto.ts |DTO für Einsatz-Updates mit partiellen Feldern  
+|├── einsatz-response.dto.ts |Response DTO mit computed fields (name, completeness)
+|└── einsatz-query.dto.ts |Query-Parameter für Filterung und Pagination
+|Utils/ |Utility-Funktionen für das Modul
+|├── name-generator.util.ts |Deterministischer Name-Generator basierend auf verfügbaren Feldern
+|└── completeness.util.ts |Berechnung der Einsatz-Vollständigkeit (0-100% Score)
 |===
 
 ==== Ressource Module

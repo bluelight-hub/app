@@ -1,0 +1,225 @@
+= ADR-020: Optimistic UI Updates für Einsatz-Management
+:author: Bluelight-Hub Team  
+:revnumber: 1.0.0
+:revdate: 2025-01-27
+:status: Akzeptiert
+
+== Status
+
+Akzeptiert
+
+== Kontext
+
+Im Einsatz-Management-System ist sofortiges Feedback für Benutzeraktionen kritisch. Nutzer erwarten, dass ihre Eingaben unmittelbar reflektiert werden, ohne auf Server-Antworten warten zu müssen.
+
+Herausforderungen:
+* Netzwerk-Latenz kann zu spürbaren Verzögerungen führen
+* Benutzer könnten denken, ihre Aktion wurde nicht registriert
+* Mehrfache Klicks/Eingaben durch fehlende sofortige Rückmeldung
+* Schlechte User Experience in Stress-Situationen
+
+== Entscheidung
+
+Wir implementieren Optimistic UI Updates für alle Einsatz-bezogenen Aktionen:
+
+=== Kernprinzipien
+
+1. **Sofortige UI-Aktualisierung**: State wird lokal aktualisiert, bevor der Server antwortet
+2. **Rollback bei Fehler**: Automatisches Zurücksetzen bei Server-Fehlern
+3. **Visuelle Indikatoren**: Subtile Hinweise für pending/confirmed Status
+4. **Konfliktauflösung**: Strategien für konkurrierende Updates
+
+=== Implementierung mit TanStack Query
+
+[source,typescript]
+----
+const useCreateEinsatz = () => {
+  const queryClient = useQueryClient();
+  
+  return useMutation({
+    mutationFn: (data: CreateEinsatzDto) => 
+      api.einsatz.create(data),
+    
+    // Optimistic Update
+    onMutate: async (newEinsatz) => {
+      // Cancel in-flight queries
+      await queryClient.cancelQueries({ 
+        queryKey: ['einsätze'] 
+      });
+      
+      // Snapshot previous value
+      const previousEinsätze = queryClient.getQueryData(['einsätze']);
+      
+      // Optimistically update
+      queryClient.setQueryData(['einsätze'], (old) => [
+        ...old,
+        {
+          ...newEinsatz,
+          id: `temp-${Date.now()}`, // Temporary ID
+          status: 'ANGELEGT',
+          createdAt: new Date()
+        }
+      ]);
+      
+      // Return context for rollback
+      return { previousEinsätze };
+    },
+    
+    // Rollback on error
+    onError: (err, newEinsatz, context) => {
+      queryClient.setQueryData(
+        ['einsätze'], 
+        context.previousEinsätze
+      );
+      
+      // Show error notification
+      toast.error('Einsatz konnte nicht erstellt werden');
+    },
+    
+    // Replace optimistic data with server data
+    onSuccess: (data) => {
+      queryClient.setQueryData(['einsätze'], (old) =>
+        old.map(e => 
+          e.id.startsWith('temp-') ? data : e
+        )
+      );
+    },
+    
+    // Always refetch after error or success
+    onSettled: () => {
+      queryClient.invalidateQueries({ 
+        queryKey: ['einsätze'] 
+      });
+    }
+  });
+};
+----
+
+=== Store-basierte Optimistic Updates
+
+[source,typescript]
+----
+// TanStack Store Implementation
+class EinsatzStore {
+  private optimisticUpdates = new Map<string, any>();
+  
+  updateOptimistic(id: string, updates: Partial<Einsatz>) {
+    // Store original state
+    const original = this.getEinsatz(id);
+    this.optimisticUpdates.set(id, original);
+    
+    // Apply optimistic update
+    this.store.setState((state) => ({
+      ...state,
+      einsätze: state.einsätze.map(e =>
+        e.id === id ? { ...e, ...updates, pending: true } : e
+      )
+    }));
+    
+    // Return rollback function
+    return () => this.rollback(id);
+  }
+  
+  rollback(id: string) {
+    const original = this.optimisticUpdates.get(id);
+    if (original) {
+      this.store.setState((state) => ({
+        ...state,
+        einsätze: state.einsätze.map(e =>
+          e.id === id ? original : e
+        )
+      }));
+      this.optimisticUpdates.delete(id);
+    }
+  }
+  
+  confirm(id: string, serverData: Einsatz) {
+    this.optimisticUpdates.delete(id);
+    this.store.setState((state) => ({
+      ...state,
+      einsätze: state.einsätze.map(e =>
+        e.id === id ? { ...serverData, pending: false } : e
+      )
+    }));
+  }
+}
+----
+
+== Konsequenzen
+
+=== Positive
+
+* **Verbesserte UX**: Sofortiges Feedback für alle Aktionen
+* **Gefühlte Performance**: App wirkt schneller und responsiver
+* **Reduzierte Doppelklicks**: Nutzer sehen sofort, dass Aktion registriert wurde
+* **Offline-Fähigkeit**: Grundlage für Offline-First-Ansatz
+
+=== Negative
+
+* **Komplexität**: Zusätzliche Logik für Rollback und Konfliktauflösung
+* **Inkonsistenz-Risiko**: Kurzzeitige Anzeige von Daten, die nicht persistiert sind
+* **Testing-Aufwand**: Rollback-Szenarien müssen getestet werden
+
+=== Neutral
+
+* **Visuelle Indikatoren**: UI muss pending/confirmed Status anzeigen können
+* **Error Handling**: Klare Fehlerkommunikation bei Rollback erforderlich
+
+== Risiken und Mitigationen
+
+[cols="1,1,2", options="header"]
+|===
+|Risiko |Wahrscheinlichkeit |Mitigation
+
+|Verwirrung durch Rollback
+|Niedrig
+|Klare visuelle Indikatoren, Toast-Notifications
+
+|Race Conditions
+|Mittel
+|Request-Cancellation, Versionierung
+
+|Datenverlust bei Rollback
+|Niedrig
+|Lokale Backup-Kopie, Retry-Mechanismus
+|===
+
+== Anwendungsfälle
+
+=== Einsatz erstellen
+1. User klickt "Neuer Einsatz"
+2. UI zeigt sofort neuen Einsatz (mit Pending-Indikator)
+3. API-Request läuft im Hintergrund
+4. Bei Erfolg: Indikator verschwindet, Server-ID ersetzt Temp-ID
+5. Bei Fehler: Rollback mit Error-Message
+
+=== Status ändern
+1. User ändert Status auf "IN_BEARBEITUNG"
+2. UI aktualisiert sofort (mit Pending-Badge)
+3. Server validiert und persistiert
+4. Bei Erfolg: Badge verschwindet
+5. Bei Fehler: Alter Status wiederhergestellt
+
+=== Bulk-Updates
+1. User wählt mehrere Einsätze
+2. Aktion wird auf alle angewendet
+3. Optimistic Updates für alle Items
+4. Partial Rollback bei teilweisen Fehlern
+
+== Alternativen
+
+1. **Pessimistic Updates**: Warten auf Server-Response
+   - Verworfen: Schlechte UX, besonders bei langsamen Netzwerken
+
+2. **Loading States**: Spinner während Server-Request
+   - Verworfen: Unterbricht User-Flow, wirkt langsam
+
+3. **Hybrid Approach**: Optimistic für unkritische, Pessimistic für kritische Aktionen
+   - Teilweise übernommen: Löschaktionen bleiben pessimistisch
+
+== Referenzen
+
+* ADR-018: Minimale Einsatzerstellung ohne Pflichtparameter
+* ADR-019: Computed Fields für Einsatzdaten
+* TanStack Query Documentation
+* Epic-143: Einsatz ohne Pflichtparameter
