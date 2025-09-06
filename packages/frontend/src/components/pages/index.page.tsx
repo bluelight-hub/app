@@ -11,7 +11,7 @@ import { Button } from '@atoms/button.atom';
 import { Heading } from '@atoms/heading.atom';
 import { Spinner } from '@atoms/spinner.atom';
 import { Text } from '@atoms/text.atom';
-import { ColorModeButton } from '@molecules/color-mode-button.molecule.tsx';
+import { ColorModeMenu } from '@molecules/color-mode-menu.molecule';
 import { EinsatzDashboard } from '@organisms/einsatz/EinsatzDashboard';
 import { useRouter } from '@tanstack/react-router';
 import { PiShieldCheck, PiSignIn } from 'react-icons/pi';
@@ -68,7 +68,7 @@ export function IndexPage() {
             <Button variant="secondary" size="sm" onClick={() => logout.mutateAsync()}>
               Abmelden
             </Button>
-            <ColorModeButton />
+            <ColorModeMenu placement="top" />
           </div>
 
           <div className="flex gap-2">
