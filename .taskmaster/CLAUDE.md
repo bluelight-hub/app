@@ -76,32 +76,6 @@ project/
 └── CLAUDE.md            # This file - auto-loaded by Claude Code
 ```
 
-## MCP Integration
-
-Task Master provides an MCP server that Claude Code can connect to. Configure in `.mcp.json`:
-
-```json
-{
-  "mcpServers": {
-    "task-master-ai": {
-      "command": "pnpx",
-      "args": ["-y", "--package=task-master-ai", "task-master-ai"],
-      "env": {
-        "ANTHROPIC_API_KEY": "your_key_here",
-        "PERPLEXITY_API_KEY": "your_key_here",
-        "OPENAI_API_KEY": "OPENAI_API_KEY_HERE",
-        "GOOGLE_API_KEY": "GOOGLE_API_KEY_HERE",
-        "XAI_API_KEY": "XAI_API_KEY_HERE",
-        "OPENROUTER_API_KEY": "OPENROUTER_API_KEY_HERE",
-        "MISTRAL_API_KEY": "MISTRAL_API_KEY_HERE",
-        "AZURE_OPENAI_API_KEY": "AZURE_OPENAI_API_KEY_HERE",
-        "OLLAMA_API_KEY": "OLLAMA_API_KEY_HERE"
-      }
-    }
-  }
-}
-```
-
 ### Essential MCP Tools
 
 ```javascript
@@ -207,51 +181,6 @@ Steps:
 5. Show the next available task with `task-master next`
 ```
 
-## Tool Allowlist Recommendations
-
-Add to `.claude/settings.json`:
-
-```json
-{
-  "allowedTools": [
-    "Edit",
-    "Bash(task-master *)",
-    "Bash(git commit:*)",
-    "Bash(git add:*)",
-    "Bash(npm run *)",
-    "mcp__task_master_ai__*"
-  ]
-}
-```
-
-## Configuration & Setup
-
-### API Keys Required
-
-At least **one** of these API keys must be configured:
-
-- `ANTHROPIC_API_KEY` (Claude models) - **Recommended**
-- `PERPLEXITY_API_KEY` (Research features) - **Highly recommended**
-- `OPENAI_API_KEY` (GPT models)
-- `GOOGLE_API_KEY` (Gemini models)
-- `MISTRAL_API_KEY` (Mistral models)
-- `OPENROUTER_API_KEY` (Multiple models)
-- `XAI_API_KEY` (Grok models)
-
-An API key is required for any provider used across any of the 3 roles defined in the `models` command.
-
-### Model Configuration
-
-```bash
-# Interactive setup (recommended)
-task-master models --setup
-
-# Set specific models
-task-master models --set-main claude-3-5-sonnet-20241022
-task-master models --set-research perplexity-llama-3.1-sonar-large-128k-online
-task-master models --set-fallback gpt-4o-mini
-```
-
 ## Task Structure & IDs
 
 ### Task ID Format
@@ -278,7 +207,9 @@ task-master models --set-fallback gpt-4o-mini
   "description": "Set up JWT-based auth system",
   "status": "pending",
   "priority": "high",
-  "dependencies": ["1.1"],
+  "dependencies": [
+    "1.1"
+  ],
   "details": "Use bcrypt for hashing, JWT for tokens...",
   "testStrategy": "Unit tests for auth functions, integration tests for login flow",
   "subtasks": []
@@ -289,7 +220,6 @@ task-master models --set-fallback gpt-4o-mini
 
 ### Context Management
 
-- Use `/clear` between different tasks to maintain focus
 - This CLAUDE.md file is automatically loaded for context
 - Use `task-master show <id>` to pull specific task context when needed
 
@@ -315,43 +245,13 @@ For large migrations or multi-step processes:
 5. Use `task-master update-subtask` to log progress on each task/subtask and/or updating/researching them before/during
    implementation if getting stuck
 
-### Git Integration
-
-Task Master works well with `gh` CLI:
-
-```bash
-# Create PR for completed task
-gh pr create --title "Complete task 1.2: User authentication" --body "Implements JWT auth system as specified in task 1.2"
-
-# Reference task in commits
-git commit -m "feat: implement JWT auth (task 1.2)"
-```
-
-### Parallel Development with Git Worktrees
-
-```bash
-# Create worktrees for parallel task development
-git worktree add ../project-auth feature/auth-system
-git worktree add ../project-api feature/api-refactor
-
-# Run Claude Code in each worktree
-cd ../project-auth && claude    # Terminal 1: Auth work
-cd ../project-api && claude     # Terminal 2: API work
-```
-
 ## Troubleshooting
 
 ### AI Commands Failing
 
 ```bash
-# Check API keys are configured
-cat .env                           # For CLI usage
-
 # Verify model configuration
 task-master models
-
-# Test with different model
-task-master models --set-fallback gpt-4o-mini
 ```
 
 ### MCP Connection Issues

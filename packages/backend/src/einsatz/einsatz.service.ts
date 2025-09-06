@@ -61,7 +61,15 @@ export class EinsatzService {
       const searchTerm = search.trim();
       if (searchTerm) {
         // Note: Since 'name' is generated, we search in the fields that compose it
-        where.OR = [{ alarmstichwort: { contains: searchTerm, mode: 'insensitive' } }, { id: { contains: searchTerm, mode: 'insensitive' } }];
+        where.OR = [
+          { alarmstichwort: { contains: searchTerm, mode: 'insensitive' } },
+          {
+            id: {
+              contains: searchTerm,
+              mode: 'insensitive',
+            },
+          },
+        ];
       }
     }
 
@@ -117,6 +125,7 @@ export class EinsatzService {
     const updateData: Prisma.EinsatzUpdateInput = {
       alarmstichwort: dto.alarmstichwort,
       status: dto.status,
+      beschreibung: dto.beschreibung,
       metadata: dto.metadata as Prisma.InputJsonValue,
       updater: {
         connect: {
@@ -252,6 +261,32 @@ export class EinsatzService {
   }
 
   /**
+   * Gibt die ID des vorherigen Einsatzes basierend auf createdAt zurück
+   */
+  async getPreviousId(id: string): Promise<NavigationResponseDto> {
+    const currentEinsatz = await this.repository.findOne(id);
+    if (!currentEinsatz) {
+      throw new EinsatzNotFoundException(id);
+    }
+
+    const previousId = await this.repository.findPreviousId(currentEinsatz.createdAt);
+    return { id: previousId };
+  }
+
+  /**
+   * Gibt die ID des nächsten Einsatzes basierend auf createdAt zurück
+   */
+  async getNextId(id: string): Promise<NavigationResponseDto> {
+    const currentEinsatz = await this.repository.findOne(id);
+    if (!currentEinsatz) {
+      throw new EinsatzNotFoundException(id);
+    }
+
+    const nextId = await this.repository.findNextId(currentEinsatz.createdAt);
+    return { id: nextId };
+  }
+
+  /**
    * Konvertiert ein Einsatz-Entity zu einem ResponseDTO mit computed fields
    */
   private async toResponseDto(einsatz: Einsatz, includeCompleteness = false): Promise<EinsatzResponseDto> {
@@ -281,31 +316,5 @@ export class EinsatzService {
         this.completenessCache.delete(key);
       }
     }
-  }
-
-  /**
-   * Gibt die ID des vorherigen Einsatzes basierend auf createdAt zurück
-   */
-  async getPreviousId(id: string): Promise<NavigationResponseDto> {
-    const currentEinsatz = await this.repository.findOne(id);
-    if (!currentEinsatz) {
-      throw new EinsatzNotFoundException(id);
-    }
-
-    const previousId = await this.repository.findPreviousId(currentEinsatz.createdAt);
-    return { id: previousId };
-  }
-
-  /**
-   * Gibt die ID des nächsten Einsatzes basierend auf createdAt zurück
-   */
-  async getNextId(id: string): Promise<NavigationResponseDto> {
-    const currentEinsatz = await this.repository.findOne(id);
-    if (!currentEinsatz) {
-      throw new EinsatzNotFoundException(id);
-    }
-
-    const nextId = await this.repository.findNextId(currentEinsatz.createdAt);
-    return { id: nextId };
   }
 }

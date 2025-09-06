@@ -1,8 +1,8 @@
-import { Test, type TestingModule } from '@nestjs/testing';
-import { EinsatzService } from './einsatz.service';
-import { EinsatzRepository } from './einsatz.repository';
 import { BadRequestException } from '@nestjs/common';
+import { Test, type TestingModule } from '@nestjs/testing';
 import { EinsatzStatus } from '@prisma/client';
+import { EinsatzRepository } from './einsatz.repository';
+import { EinsatzService } from './einsatz.service';
 import { EinsatzNotFoundException } from './exceptions/einsatz-not-found.exception';
 
 describe('EinsatzService', () => {
@@ -16,6 +16,9 @@ describe('EinsatzService', () => {
     id: mockEinsatzId,
     alarmstichwort: 'Brand 3',
     alarmierungszeit: new Date('2025-01-27T14:30:00.000Z'),
+    beschreibung: 'Beschreibung des Einsatzes',
+    einsatzleiter: 'Einsatzleiter',
+    einsatzort: 'Einsatzort',
     status: EinsatzStatus.ANGELEGT,
     metadata: {},
     createdAt: new Date(),

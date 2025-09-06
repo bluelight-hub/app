@@ -49,7 +49,7 @@ export class AuthController {
     private readonly authService: AuthService,
     private readonly configService: ConfigService,
     private readonly appConfig: AppConfigService,
-    private readonly duplicateDetectionService: CacheDuplicateDetectionService,
+    readonly _duplicateDetectionService: CacheDuplicateDetectionService,
   ) {}
 
   /**
@@ -99,17 +99,9 @@ export class AuthController {
     description: 'Zu viele Anfragen - bitte später erneut versuchen',
   })
   async unifiedAuth(@Body() dto: AuthRequestDto, @Res({ passthrough: true }) res: Response): Promise<AuthResponseDto> {
-    // Generiere Cache-Key basierend auf Username (nicht Passwort für Sicherheit)
-    const cacheKey = `auth:unified:${dto.username}`;
-
-    const result = await this.duplicateDetectionService.executeIdempotent(
-      cacheKey,
-      () => this.authService.unifiedAuth(dto),
-      30000, // 30 Sekunden TTL für Auth
-    );
+    const { accessToken, refreshToken, ...responseDto } = await this.authService.unifiedAuth(dto);
 
     // Tokens extrahieren und als HTTP-Only Cookies setzen
-    const { accessToken, refreshToken, ...responseDto } = result;
     const isProduction = this.appConfig.isProduction();
     setAuthCookies(res, accessToken, refreshToken, isProduction);
 
@@ -193,15 +185,19 @@ export class AuthController {
     description: 'Ungültiges oder abgelaufenes Refresh-Token',
   })
   async refresh(@Req() req: Request & { user: ValidatedUser }, @Res({ passthrough: true }) res: Response): Promise<RefreshResponseDto> {
+    this.logger.debug('Refreshing token for user', { userId: req.user.userId });
     const user = await this.authService.findUserById(req.user.userId);
 
     if (!user) {
       throw new NotFoundException('Benutzer nicht gefunden');
     }
 
+    this.logger.debug('User found, generating new tokens.');
     // Neue Tokens generieren
     const accessToken = this.authService.signAccessToken(user);
     const refreshToken = this.authService.signRefreshToken(user);
+
+    this.logger.debug('Tokens generated, setting cookies.');
 
     // Tokens als HTTP-Only Cookies setzen
     const isProduction = this.appConfig.isProduction();
@@ -228,6 +224,7 @@ export class AuthController {
   })
   async logout(@Res({ passthrough: true }) res: Response): Promise<LogoutResponseDto> {
     clearAuthCookies(res, this.appConfig.isProduction());
+    this.logger.debug('Logout successful');
     return toLogoutResponseDto();
   }
 
@@ -301,6 +298,7 @@ export class AuthController {
    * Das verhindert 401-Fehler beim initialen App-Load.
    *
    * @param req - Express request mit optionalem User
+   * @param res
    * @returns Die Benutzerinformationen oder null
    */
   @Get('check')
@@ -370,12 +368,8 @@ export class AuthController {
         isAdminAuthenticated,
       };
     } catch (error) {
-      // Bei jedem Fehler (ungültiges Token, abgelaufen etc.) null zurückgeben
-      this.logger.error('Error checking authentication status', error);
-      return {
-        user: null,
-        authenticated: false,
-      };
+      this.logger.warn('Auth-Check failed', { error });
+      throw new UnauthorizedException();
     }
   }
 

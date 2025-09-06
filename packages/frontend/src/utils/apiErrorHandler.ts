@@ -21,11 +21,13 @@ const ERROR_MESSAGES: Record<number, Record<string, string>> = {
   },
   401: {
     default: 'Sie sind nicht authentifiziert. Bitte melden Sie sich erneut an.',
+    TOKEN_EXPIRED: 'Ihre Sitzung ist abgelaufen. Bitte melden Sie sich erneut an.',
+    REFRESH_FAILED: 'Die Sitzung konnte nicht verlängert werden. Bitte melden Sie sich erneut an.',
   },
   403: {
     default: 'Sie haben keine Berechtigung für diese Aktion.',
     SUPER_ADMIN_PROTECTED: 'Der letzte Super-Admin kann nicht gelöscht oder geändert werden.',
-    CANNOT_MODIFY_SUPER_ADMIN: 'Super-Admin Benutzer können nicht modifiziert werden.',
+    CANNOT_MODIFY_SUPER_ADMIN: 'Super-Admin-Benutzer können nicht modifiziert werden.',
   },
   404: {
     default: 'Die angeforderte Ressource wurde nicht gefunden.',
@@ -255,6 +257,14 @@ export function isErrorType(error: unknown, statusCode: number): boolean {
 }
 
 /**
+ * Prüft ob ein Fehler ein Token-Refresh-Fehler ist
+ */
+export function isTokenRefreshError(error: unknown): boolean {
+  if (!(error instanceof Error)) return false;
+  return error.message === 'Token refresh failed' || error.message === 'Authentication failed after refresh';
+}
+
+/**
  * Common error type checks for convenience
  */
 export const errorChecks = {
@@ -267,4 +277,5 @@ export const errorChecks = {
     if (!(error instanceof ResponseError)) return false;
     return error.response.status >= 500;
   },
+  isTokenRefreshError,
 };

@@ -1,11 +1,11 @@
+import { Provider } from '@/components/ui/provider.tsx';
+import { handleQueryError } from '@/utils/error-handler';
 import { TanstackDevtools } from '@tanstack/react-devtools';
 import { MutationCache, QueryCache, QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { ReactQueryDevtoolsPanel } from '@tanstack/react-query-devtools';
 import { createRootRouteWithContext, Outlet } from '@tanstack/react-router';
 import { TanStackRouterDevtoolsPanel } from '@tanstack/react-router-devtools';
 import { Toaster } from 'sonner';
-import { Provider } from '@/components/ui/provider.tsx';
-import { handleQueryError } from '@/utils/error-handler';
 
 interface RootContext {
   pageTitle?: string;
@@ -17,28 +17,46 @@ export const Route = createRootRouteWithContext<RootContext>()({
 
 const queryClient = new QueryClient({
   queryCache: new QueryCache({
-    onError: (error) => {
-      // Handle all query errors globally
-      handleQueryError(error);
+    onError: async (error, query) => {
+      // Handle all query errors globally (with query context for 401 handling)
+      await handleQueryError(error, query);
+
+      // If it was a 401 error and token refresh was successful, retry the query
+      const status = (error as { response?: { status?: number } })?.response?.status;
+      if (status === 401) {
+        // Small delay to ensure cookies are updated
+        setTimeout(() => {
+          queryClient.invalidateQueries({ queryKey: query.queryKey });
+        }, 100);
+      }
     },
   }),
   mutationCache: new MutationCache({
-    onError: (error) => {
+    onError: async (error) => {
       // Handle all mutation errors globally
-      handleQueryError(error);
+      await handleQueryError(error);
     },
   }),
   defaultOptions: {
     queries: {
       retry: (failureCount, error) => {
         // Try to get status from error if it's a ResponseError
-        const status = (error as { response?: { status?: number } })?.response?.status;
+        const response = (error as { response?: { status?: number; url: string } })?.response;
+        const status = response?.status;
 
-        // Don't retry on 401 (authentication) errors
-        if (status === 401) {
+        // Check if this is an auth-related query
+        const isAuthQuery = response?.url.includes('auth');
+
+        // Never retry auth-related queries
+        if (isAuthQuery) {
           return false;
         }
-        // Don't retry on 4xx client errors
+
+        // Allow one retry for 401 errors (after token refresh) for non-auth queries
+        if (status === 401) {
+          return failureCount < 1;
+        }
+        // Don't retry on other 4xx client errors
         if (status && status >= 400 && status < 500) {
           return false;
         }

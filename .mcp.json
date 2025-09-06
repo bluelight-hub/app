@@ -2,15 +2,7 @@
   "mcpServers": {
     "task-master": {
       "command": "pnpx",
-      "args": ["-y", "--package=task-master-ai", "task-master-ai"],
-      "env": {}
-    },
-    "browser-use": {
-      "command": "uvx",
-      "args": ["browser-use[cli]", "--mcp"],
-      "env": {
-        "OPENAI_API_KEY": "${OPENAI_KEY}"
-      }
+      "args": ["task-master-ai"]
     }
   }
 }

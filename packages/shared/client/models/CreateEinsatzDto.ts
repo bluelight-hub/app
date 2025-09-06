@@ -26,11 +26,29 @@ export interface CreateEinsatzDto {
    */
   alarmstichwort?: string;
   /**
+   * Der initiale Einsatzort
+   * @type {string}
+   * @memberof CreateEinsatzDto
+   */
+  einsatzort?: string;
+  /**
+   * Beschreibung des Einsatzes
+   * @type {string}
+   * @memberof CreateEinsatzDto
+   */
+  beschreibung?: string;
+  /**
    * Zeitpunkt der Alarmierung
    * @type {Date}
    * @memberof CreateEinsatzDto
    */
   alarmierungszeit?: Date;
+  /**
+   * Name des Einsatzleiters
+   * @type {string}
+   * @memberof CreateEinsatzDto
+   */
+  einsatzleiter?: string;
 }
 
 /**
@@ -50,7 +68,10 @@ export function CreateEinsatzDtoFromJSONTyped(json: any, ignoreDiscriminator: bo
   }
   return {
     alarmstichwort: json['alarmstichwort'] == null ? undefined : json['alarmstichwort'],
+    einsatzort: json['einsatzort'] == null ? undefined : json['einsatzort'],
+    beschreibung: json['beschreibung'] == null ? undefined : json['beschreibung'],
     alarmierungszeit: json['alarmierungszeit'] == null ? undefined : new Date(json['alarmierungszeit']),
+    einsatzleiter: json['einsatzleiter'] == null ? undefined : json['einsatzleiter'],
   };
 }
 
@@ -65,6 +86,9 @@ export function CreateEinsatzDtoToJSONTyped(value?: CreateEinsatzDto | null, ign
 
   return {
     alarmstichwort: value['alarmstichwort'],
+    einsatzort: value['einsatzort'],
+    beschreibung: value['beschreibung'],
     alarmierungszeit: value['alarmierungszeit'] == null ? undefined : value['alarmierungszeit'].toISOString(),
+    einsatzleiter: value['einsatzleiter'],
   };
 }

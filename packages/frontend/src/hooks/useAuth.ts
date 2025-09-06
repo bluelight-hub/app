@@ -1,5 +1,6 @@
 import { api } from '@/api';
 import { QUERY_KEYS } from '@/queryKeys.ts';
+import { resetTokenRefreshHandler } from '@/utils/error-handler';
 import type { AdminLoginResponseDto, AdminPasswordDto, AdminSetupDto, AdminSetupResponseDto, AuthRequestDto, AuthResponseDto, LogoutResponseDto } from '@bluelight-hub/shared/dist';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { milliseconds } from 'date-fns';
@@ -23,28 +24,36 @@ export const useAuth = () => {
   const authCheckQuery = useQuery({
     queryKey: QUERY_KEYS.auth.queries.authCheck,
     queryFn: () => api.auth().authControllerCheckAuth(),
+    retry: 2,
   });
+  // Admin-Status nur für eingeloggte Admins abfragen
+  const isAdmin = !!authCheckQuery.data?.user && authCheckQuery.data.user.role?.includes('ADMIN') === true;
+
   const adminStatusQuery = useQuery({
     queryKey: QUERY_KEYS.auth.queries.adminStatus,
     queryFn: () => api.auth().authControllerGetAdminStatus(),
     staleTime: milliseconds({ seconds: 30 }),
-    refetchInterval: milliseconds({ seconds: 30 }),
+    // refetchInterval nur wenn Admin eingeloggt ist
+    refetchInterval: isAdmin ? milliseconds({ seconds: 30 }) : false,
     throwOnError: false,
-  });
-  const adminPresenceQuery = useQuery({
-    queryKey: QUERY_KEYS.auth.queries.adminPresence,
-    queryFn: () => api.auth().authControllerGetAdminStatus(),
+    retry: false,
+    enabled: isAdmin,
   });
 
   const logoutMutation = useMutation<LogoutResponseDto, Error, void>({
     mutationFn: () => api.auth().authControllerLogout(),
     onSuccess: async () => {
-      await queryClient.invalidateQueries({ queryKey: QUERY_KEYS.auth.queryKey });
+      // Reset Token-Refresh-Handler bei Logout
+      resetTokenRefreshHandler();
+      await queryClient.cancelQueries();
+      queryClient.clear();
     },
   });
   const logoutAdminMutation = useMutation<LogoutResponseDto, Error, void>({
     mutationFn: () => api.auth().authControllerAdminLogout(),
     onSuccess: async () => {
+      // Reset Token-Refresh-Handler auch bei Admin-Logout
+      resetTokenRefreshHandler();
       await queryClient.invalidateQueries({ queryKey: QUERY_KEYS.auth.queryKey });
     },
   });
@@ -70,7 +79,7 @@ export const useAuth = () => {
   });
 
   return {
-    isLoading: authCheckQuery.isLoading || adminStatusQuery.isLoading || adminPresenceQuery.isLoading,
+    isLoading: authCheckQuery.isLoading || adminStatusQuery.isLoading,
     user: authCheckQuery.data?.user,
     isAdminAuthenticated: authCheckQuery.data?.isAdminAuthenticated,
     logoutAdmin: logoutAdminMutation,

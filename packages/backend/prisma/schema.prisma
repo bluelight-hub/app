@@ -61,7 +61,10 @@ enum EinsatzStatus {
 model Einsatz {
   id               String        @id @default(cuid())
   alarmstichwort   String?       @db.VarChar(255)
+  einsatzort       String?       @db.VarChar(500)
+  beschreibung     String?       @db.Text
   alarmierungszeit DateTime?
+  einsatzleiter    String?       @db.VarChar(255)
   status           EinsatzStatus @default(ANGELEGT)
   metadata         Json?         @db.JsonB
 
@@ -69,14 +72,14 @@ model Einsatz {
   updatedAt DateTime @updatedAt
   createdBy String   @db.VarChar(100)
   updatedBy String?  @db.VarChar(100)
-  
+
   // Archivierung (No-Delete Policy)
   archivedAt DateTime? // Zeitpunkt der Archivierung
   archivedBy String?   @db.VarChar(100) // Wer hat archiviert
 
   // Relations mit expliziten onDelete Direktiven
-  creator User  @relation("EinsatzCreator", fields: [createdBy], references: [id], onDelete: Restrict)
-  updater User? @relation("EinsatzUpdater", fields: [updatedBy], references: [id], onDelete: SetNull)
+  creator  User  @relation("EinsatzCreator", fields: [createdBy], references: [id], onDelete: Restrict)
+  updater  User? @relation("EinsatzUpdater", fields: [updatedBy], references: [id], onDelete: SetNull)
   archiver User? @relation("EinsatzArchiver", fields: [archivedBy], references: [id], onDelete: SetNull)
 
   // Indexes

@@ -13,7 +13,7 @@ import { Dialog } from '@headlessui/react';
 import { useQuery } from '@tanstack/react-query';
 import { Link } from '@tanstack/react-router';
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { PiFunnel, PiFunnelX, PiPlus, PiSpinner, PiTrendDown, PiTrendUp, PiX } from 'react-icons/pi';
+import { PiArchive, PiFunnel, PiFunnelX, PiPlus, PiSpinner, PiTrendDown, PiTrendUp, PiX } from 'react-icons/pi';
 
 interface SortOption {
   key: EinsatzControllerFindAllVAlphaOrderByEnum;
@@ -30,10 +30,31 @@ export function EinsatzDashboard() {
   const [isFilterPanelOpen, setIsFilterPanelOpen] = useState(false);
   const [isMobileFilterOpen, setIsMobileFilterOpen] = useState(false);
   const [isCreatePanelOpen, setIsCreatePanelOpen] = useState(false);
+  const [showArchived, setShowArchived] = useState(false);
   const listContainerRef = useRef<HTMLDivElement>(null);
 
-  const { einsaetze, isLoading, isFetchingNextPage, hasNextPage, error, fetchNextPage, refetch } = useEinsaetze({
-    status: statusFilter,
+  // Füge Filter-Logik für archivierte Einsätze hinzu
+  const effectiveStatusFilter = useMemo(() => {
+    // Wenn showArchived aktiv ist und kein spezifischer Status-Filter gesetzt ist
+    if (showArchived && !statusFilter) {
+      // Wir können hier nicht direkt mehrere Status filtern,
+      // daher müssen wir die Einsätze später clientseitig filtern
+      return undefined;
+    }
+    // Wenn ein spezifischer Status-Filter gesetzt ist, verwende ihn
+    return statusFilter;
+  }, [showArchived, statusFilter]);
+
+  const {
+    einsaetze: rawEinsaetze,
+    isLoading,
+    isFetchingNextPage,
+    hasNextPage,
+    error,
+    fetchNextPage,
+    refetch,
+  } = useEinsaetze({
+    status: effectiveStatusFilter,
     search: searchTerm,
     orderBy: sortOption.key,
     orderDirection: sortOption.direction,
@@ -41,10 +62,18 @@ export function EinsatzDashboard() {
     infinite: true,
   });
 
-  // Hole Status-Counts vom Backend
+  // Clientseitige Filterung für archivierte Einsätze
+  const einsaetze = useMemo(() => {
+    if (showArchived && !statusFilter) {
+      return rawEinsaetze.filter((e) => e.status !== EinsatzResponseDtoStatusEnum.Archiviert);
+    }
+    return rawEinsaetze;
+  }, [rawEinsaetze, showArchived, statusFilter]);
+
+  // Hole Status-Counts vom Backend (immer alle für korrekte Anzeige)
   const { data: statusCounts } = useQuery({
-    queryKey: ['einsatz', 'status-counts', false],
-    queryFn: () => api.einsatz().einsatzControllerGetStatusCountsVAlpha({ includeArchived: false }),
+    queryKey: ['einsatz', 'status-counts', true],
+    queryFn: () => api.einsatz().einsatzControllerGetStatusCountsVAlpha({ includeArchived: true }),
   });
 
   // Status-Statistiken aus Backend-Daten
@@ -253,25 +282,48 @@ export function EinsatzDashboard() {
 
             <div className="space-y-4">
               {/* Status Filter */}
-              <div>
-                <label htmlFor="status-filter-desktop" className="mb-2 block font-medium text-gray-700 text-sm dark:text-gray-300">
-                  Status filtern
-                </label>
-                <Select
-                  id="status-filter-desktop"
-                  value={statusFilter || ''}
-                  onChange={(e) => setStatusFilter((e.target.value as EinsatzResponseDtoStatusEnum) || undefined)}
-                  selectSize="sm"
-                  fullWidth
-                  placeholder="Alle Status"
-                  options={[
-                    { value: '', label: 'Alle Status' },
-                    { value: EinsatzResponseDtoStatusEnum.Angelegt, label: 'Angelegt' },
-                    { value: EinsatzResponseDtoStatusEnum.InBearbeitung, label: 'In Bearbeitung' },
-                    { value: EinsatzResponseDtoStatusEnum.Abgeschlossen, label: 'Abgeschlossen' },
-                    { value: EinsatzResponseDtoStatusEnum.Archiviert, label: 'Archiviert' },
-                  ]}
-                />
+              {!showArchived && (
+                <div>
+                  <label htmlFor="status-filter-desktop" className="mb-2 block font-medium text-gray-700 text-sm dark:text-gray-300">
+                    Status filtern
+                  </label>
+                  <Select
+                    id="status-filter-desktop"
+                    value={statusFilter || ''}
+                    onChange={(e) => setStatusFilter((e.target.value as EinsatzResponseDtoStatusEnum) || undefined)}
+                    selectSize="sm"
+                    fullWidth
+                    options={[
+                      { value: '', label: 'Alle Status' },
+                      { value: EinsatzResponseDtoStatusEnum.Angelegt, label: 'Angelegt' },
+                      { value: EinsatzResponseDtoStatusEnum.InBearbeitung, label: 'In Bearbeitung' },
+                      { value: EinsatzResponseDtoStatusEnum.Abgeschlossen, label: 'Abgeschlossen' },
+                    ]}
+                  />
+                </div>
+              )}
+
+              {/* Archiv-Ansicht Toggle */}
+              <div className="border-gray-200 border-t pt-4 dark:border-gray-700">
+                <Button
+                  variant={!showArchived ? 'secondary' : 'ghost'}
+                  size="sm"
+                  onClick={() => {
+                    setShowArchived(!showArchived);
+                    if (!showArchived) {
+                      // Wenn wir zum Archiv wechseln, setze Status-Filter auf Archiviert
+                      setStatusFilter(EinsatzResponseDtoStatusEnum.Archiviert);
+                    } else {
+                      // Wenn wir zu aktiven wechseln, entferne Filter
+                      setStatusFilter(undefined);
+                    }
+                  }}
+                  className="w-full"
+                >
+                  <PiArchive className="mr-2 h-4 w-4" />
+                  {showArchived ? 'Archiv anzeigen' : 'Aktive Einsätze'}
+                </Button>
+                {!showArchived && <p className="mt-2 text-gray-600 text-xs dark:text-gray-400">Zeigt nur archivierte Einsätze</p>}
               </div>
 
               {/* Sortierung */}
@@ -391,29 +443,29 @@ export function EinsatzDashboard() {
 
             <div className="max-h-[60vh] space-y-4 overflow-y-auto p-4">
               {/* Status Filter */}
-              <div>
-                <label htmlFor="status-filter-mobile" className="mb-2 block font-medium text-gray-700 text-sm dark:text-gray-300">
-                  Status filtern
-                </label>
-                <Select
-                  id="status-filter-mobile"
-                  value={statusFilter || ''}
-                  onChange={(e) => {
-                    setStatusFilter((e.target.value as EinsatzResponseDtoStatusEnum) || undefined);
-                    setIsMobileFilterOpen(false);
-                  }}
-                  selectSize="md"
-                  fullWidth
-                  placeholder="Alle Status"
-                  options={[
-                    { value: '', label: 'Alle Status' },
-                    { value: EinsatzResponseDtoStatusEnum.Angelegt, label: 'Angelegt' },
-                    { value: EinsatzResponseDtoStatusEnum.InBearbeitung, label: 'In Bearbeitung' },
-                    { value: EinsatzResponseDtoStatusEnum.Abgeschlossen, label: 'Abgeschlossen' },
-                    { value: EinsatzResponseDtoStatusEnum.Archiviert, label: 'Archiviert' },
-                  ]}
-                />
-              </div>
+              {!showArchived && (
+                <div>
+                  <label htmlFor="status-filter-mobile" className="mb-2 block font-medium text-gray-700 text-sm dark:text-gray-300">
+                    Status filtern
+                  </label>
+                  <Select
+                    id="status-filter-mobile"
+                    value={statusFilter || ''}
+                    onChange={(e) => {
+                      setStatusFilter((e.target.value as EinsatzResponseDtoStatusEnum) || undefined);
+                      setIsMobileFilterOpen(false);
+                    }}
+                    selectSize="md"
+                    fullWidth
+                    options={[
+                      { value: '', label: 'Alle Status' },
+                      { value: EinsatzResponseDtoStatusEnum.Angelegt, label: 'Angelegt' },
+                      { value: EinsatzResponseDtoStatusEnum.InBearbeitung, label: 'In Bearbeitung' },
+                      { value: EinsatzResponseDtoStatusEnum.Abgeschlossen, label: 'Abgeschlossen' },
+                    ]}
+                  />
+                </div>
+              )}
 
               {/* Sortierung */}
               <div>

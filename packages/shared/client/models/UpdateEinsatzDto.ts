@@ -26,11 +26,29 @@ export interface UpdateEinsatzDto {
    */
   alarmstichwort?: string;
   /**
+   * Der Einsatzort
+   * @type {string}
+   * @memberof UpdateEinsatzDto
+   */
+  einsatzort?: string;
+  /**
+   * Beschreibung des Einsatzes
+   * @type {string}
+   * @memberof UpdateEinsatzDto
+   */
+  beschreibung?: string;
+  /**
    * Zeitpunkt der Alarmierung
    * @type {Date}
    * @memberof UpdateEinsatzDto
    */
   alarmierungszeit?: Date;
+  /**
+   * Name des Einsatzleiters
+   * @type {string}
+   * @memberof UpdateEinsatzDto
+   */
+  einsatzleiter?: string;
   /**
    * Status des Einsatzes
    * @type {string}
@@ -73,7 +91,10 @@ export function UpdateEinsatzDtoFromJSONTyped(json: any, ignoreDiscriminator: bo
   }
   return {
     alarmstichwort: json['alarmstichwort'] == null ? undefined : json['alarmstichwort'],
+    einsatzort: json['einsatzort'] == null ? undefined : json['einsatzort'],
+    beschreibung: json['beschreibung'] == null ? undefined : json['beschreibung'],
     alarmierungszeit: json['alarmierungszeit'] == null ? undefined : new Date(json['alarmierungszeit']),
+    einsatzleiter: json['einsatzleiter'] == null ? undefined : json['einsatzleiter'],
     status: json['status'] == null ? undefined : json['status'],
     metadata: json['metadata'] == null ? undefined : json['metadata'],
   };
@@ -90,7 +111,10 @@ export function UpdateEinsatzDtoToJSONTyped(value?: UpdateEinsatzDto | null, ign
 
   return {
     alarmstichwort: value['alarmstichwort'],
+    einsatzort: value['einsatzort'],
+    beschreibung: value['beschreibung'],
     alarmierungszeit: value['alarmierungszeit'] == null ? undefined : value['alarmierungszeit'].toISOString(),
+    einsatzleiter: value['einsatzleiter'],
     status: value['status'],
     metadata: value['metadata'],
   };

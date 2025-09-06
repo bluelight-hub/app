@@ -1,8 +1,36 @@
+import { api } from '@/api';
+import { logger } from '@/utils/logger';
 import type { FetchError, ResponseError } from '@bluelight-hub/shared/client';
 import { toast } from 'sonner';
 
 // Track shown errors to prevent duplicates
 const shownErrors = new WeakSet<Error>();
+
+// Token refresh queue to prevent multiple simultaneous refreshes
+class TokenRefreshQueue {
+  private refreshPromise: Promise<boolean> | null = null;
+
+  async startRefresh(refreshFn: () => Promise<boolean>): Promise<boolean> {
+    if (this.refreshPromise) {
+      return this.refreshPromise;
+    }
+
+    this.isRefreshing = true;
+    this.refreshPromise = refreshFn().finally(() => {
+      this.isRefreshing = false;
+      this.refreshPromise = null;
+    });
+
+    return this.refreshPromise;
+  }
+
+  reset(): void {
+    this.isRefreshing = false;
+    this.refreshPromise = null;
+  }
+}
+
+const tokenRefreshQueue = new TokenRefreshQueue();
 
 /**
  * Maps error types to user-friendly messages
@@ -185,19 +213,71 @@ function getErrorCategory(error: unknown): string {
 }
 
 /**
+ * Performs token refresh
+ */
+async function performTokenRefresh(): Promise<boolean> {
+  try {
+    logger.debug('Attempting token refresh');
+    const refreshResponseDto = await api.auth().authControllerRefresh();
+    logger.info('Token refresh response', refreshResponseDto);
+    return refreshResponseDto.success;
+  } catch (error) {
+    logger.error('Token refresh error', error);
+    return false;
+  }
+}
+
+/**
  * Global error handler for React Query
  */
-export function handleQueryError(error: unknown): void {
+export async function handleQueryError(error: unknown, _query?: unknown): Promise<void> {
   // Skip if error was already shown
   if (error instanceof Error && shownErrors.has(error)) {
     return;
   }
 
-  // Don't show toast for 401 errors (handled by auth system)
+  // Handle 401 errors with token refresh
   if (error && typeof error === 'object' && 'response' in error) {
-    const status = (error as ResponseError).response.status;
+    const responseError = error as ResponseError;
+    const status = responseError.response.status;
     if (status === 401) {
-      // Auth errors are handled by the auth system (redirect to login)
+      // Check if we're already on the auth page to prevent redirect loops
+      const isOnAuthPage = window.location.pathname.startsWith('/auth');
+
+      // Get the URL from the error response to check if it's an auth endpoint
+      const errorUrl = responseError.response.url || '';
+      const isAuthEndpoint = errorUrl.includes('/auth/refresh');
+
+      if (isAuthEndpoint) {
+        logger.warn('Auth endpoint failed with 401, not attempting refresh', { errorUrl });
+        // Only redirect to login if we're not already there
+        if (!isOnAuthPage) {
+          window.location.href = '/auth';
+        }
+        return;
+      }
+
+      // Don't attempt refresh if we're on the auth page
+      if (isOnAuthPage) {
+        logger.debug('On auth page, skipping token refresh attempt');
+        return;
+      }
+
+      logger.debug('Got 401 on non-auth endpoint, attempting token refresh', { errorUrl });
+
+      // Try to refresh the token
+      const refreshSuccess = await tokenRefreshQueue.startRefresh(performTokenRefresh);
+
+      if (!refreshSuccess) {
+        logger.warn('Token refresh failed, redirecting to login');
+        tokenRefreshQueue.reset();
+        // Redirect to login (we already checked we're not on auth page)
+        window.location.href = '/auth';
+        return;
+      }
+
+      logger.debug('Token refresh successful, error will be retried');
+      // Don't show error toast, the query will be retried
       return;
     }
   }
@@ -246,6 +326,13 @@ export function handleQueryError(error: unknown): void {
         duration: 6000,
       });
   }
+}
+
+/**
+ * Reset token refresh handler (call on logout)
+ */
+export function resetTokenRefreshHandler(): void {
+  tokenRefreshQueue.reset();
 }
 
 /**

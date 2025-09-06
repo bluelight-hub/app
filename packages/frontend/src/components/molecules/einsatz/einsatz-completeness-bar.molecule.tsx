@@ -3,7 +3,7 @@ import { ProgressBar } from '@/components/atoms/progress-bar.atom';
 import type { EinsatzResponseDto } from '@bluelight-hub/shared/client';
 import { useMemo } from 'react';
 
-type EinsatzFields = 'alarmstichwort' | 'alarmierungszeit' | 'einsatzort' | 'einsatzleiter' | 'fahrzeuge' | 'mannschaft' | 'bemerkungen';
+type EinsatzFields = 'alarmstichwort' | 'alarmierungszeit' | 'einsatzort' | 'einsatzleiter';
 
 interface EinsatzCompletenessBarProps {
   einsatz: Pick<EinsatzResponseDto, EinsatzFields | 'id'>;
