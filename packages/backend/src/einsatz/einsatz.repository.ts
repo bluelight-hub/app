@@ -1,6 +1,6 @@
 import { PrismaService } from '@/prisma/prisma.service';
 import { Injectable } from '@nestjs/common';
-import type { Einsatz, EinsatzStatus, Prisma } from '@prisma/client';
+import { Einsatz, EinsatzStatus, Prisma } from '@prisma/client';
 
 @Injectable()
 export class EinsatzRepository {
@@ -121,5 +121,45 @@ export class EinsatzRepository {
       abgeschlossen,
       archiviert,
     };
+  }
+
+  async findPreviousId(createdAt: Date): Promise<string | null> {
+    const result = await this.prisma.einsatz.findFirst({
+      where: {
+        createdAt: {
+          lt: createdAt,
+        },
+        status: {
+          not: EinsatzStatus.ARCHIVIERT,
+        },
+      },
+      orderBy: {
+        createdAt: 'desc',
+      },
+      select: {
+        id: true,
+      },
+    });
+    return result?.id || null;
+  }
+
+  async findNextId(createdAt: Date): Promise<string | null> {
+    const result = await this.prisma.einsatz.findFirst({
+      where: {
+        createdAt: {
+          gt: createdAt,
+        },
+        status: {
+          not: EinsatzStatus.ARCHIVIERT,
+        },
+      },
+      orderBy: {
+        createdAt: 'asc',
+      },
+      select: {
+        id: true,
+      },
+    });
+    return result?.id || null;
   }
 }

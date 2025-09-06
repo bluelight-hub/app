@@ -4,7 +4,17 @@ import type { ValidatedUser } from '@/auth/strategies/jwt.strategy';
 import { ApiWrappedResponse } from '@/common/decorators/api-wrapped-response.decorator';
 import type { PaginatedData } from '@/common/interceptors/transform.interceptor';
 import { CacheDuplicateDetectionService } from '@/common/services/cache-duplicate-detection.service';
-import { CompletenessQueryDto, CompletenessResponseDto, CreateEinsatzDto, EinsatzQueryDto, EinsatzResponseDto, StatusCountsQueryDto, StatusCountsResponseDto, UpdateEinsatzDto } from '@/einsatz/dto';
+import {
+  CompletenessQueryDto,
+  CompletenessResponseDto,
+  CreateEinsatzDto,
+  EinsatzQueryDto,
+  EinsatzResponseDto,
+  NavigationResponseDto,
+  StatusCountsQueryDto,
+  StatusCountsResponseDto,
+  UpdateEinsatzDto,
+} from '@/einsatz/dto';
 import { Body, Controller, Get, Logger, Param, Patch, Post, Query, UseGuards, ValidationPipe } from '@nestjs/common';
 import { ApiBadRequestResponse, ApiBearerAuth, ApiForbiddenResponse, ApiNotFoundResponse, ApiOperation, ApiTags, ApiUnauthorizedResponse } from '@nestjs/swagger';
 import { EinsatzService } from './einsatz.service';
@@ -87,6 +97,75 @@ export class EinsatzController {
     return await this.einsatzService.findAll(query);
   }
 
+  @Get('stats/status-counts')
+  @ApiOperation({
+    summary: 'Status-Statistiken abrufen',
+    description: 'Gibt die Anzahl der Einsätze pro Status zurück.',
+  })
+  @ApiWrappedResponse(StatusCountsResponseDto, { description: 'Status-Statistiken erfolgreich abgerufen' })
+  async getStatusCounts(
+    @Query(new ValidationPipe({ transform: true, whitelist: true }))
+    query: StatusCountsQueryDto,
+  ): Promise<StatusCountsResponseDto> {
+    this.logger.log(`Getting status counts (includeArchived: ${query.includeArchived})`);
+    return await this.einsatzService.getStatusCounts(query.includeArchived);
+  }
+
+  @Get(':id/navigation/previous')
+  @ApiOperation({
+    summary: 'ID des vorherigen Einsatzes abrufen',
+    description: 'Gibt nur die ID des vorherigen Einsatzes basierend auf createdAt zurück. Effizient für Navigation.',
+  })
+  @ApiWrappedResponse(NavigationResponseDto, { description: 'ID des vorherigen Einsatzes oder null' })
+  @ApiNotFoundResponse({
+    description: 'Einsatz mit der angegebenen ID nicht gefunden',
+  })
+  async getPrevious(@Param('id') id: string): Promise<NavigationResponseDto> {
+    this.logger.log(`Getting previous Einsatz ID for ${id}`);
+    return await this.einsatzService.getPreviousId(id);
+  }
+
+  @Get(':id/navigation/next')
+  @ApiOperation({
+    summary: 'ID des nächsten Einsatzes abrufen',
+    description: 'Gibt nur die ID des nächsten Einsatzes basierend auf createdAt zurück. Effizient für Navigation.',
+  })
+  @ApiWrappedResponse(NavigationResponseDto, { description: 'ID des nächsten Einsatzes oder null' })
+  @ApiNotFoundResponse({
+    description: 'Einsatz mit der angegebenen ID nicht gefunden',
+  })
+  async getNext(@Param('id') id: string): Promise<NavigationResponseDto> {
+    this.logger.log(`Getting next Einsatz ID for ${id}`);
+    return await this.einsatzService.getNextId(id);
+  }
+
+  @Get(':id/completeness')
+  @ApiOperation({
+    summary: 'Vollständigkeits-Check für Einsatz',
+    description: 'Berechnet und gibt die Vollständigkeit eines Einsatzes zurück.',
+  })
+  @ApiWrappedResponse(CompletenessResponseDto, { description: 'Vollständigkeits-Information erfolgreich abgerufen' })
+  @ApiNotFoundResponse({
+    description: 'Einsatz nicht gefunden',
+  })
+  @ApiBadRequestResponse({ description: 'Ungültige Einsatz-ID oder Query-Parameter' })
+  async getCompleteness(
+    @Param('id') id: string,
+    @Query(new ValidationPipe({ transform: true, whitelist: true }))
+    query: CompletenessQueryDto,
+  ): Promise<CompletenessResponseDto> {
+    this.logger.log(`Getting completeness for Einsatz ${id} (refresh: ${query.refresh})`);
+
+    try {
+      const result = await this.einsatzService.getCompleteness(id, query.refresh);
+      this.logger.log(`Completeness for Einsatz ${id}: ${result.score}% complete`);
+      return result;
+    } catch (error) {
+      this.logger.error(`Failed to get completeness for Einsatz ${id}: ${error.message}`);
+      throw error;
+    }
+  }
+
   @Get(':id')
   @ApiOperation({
     summary: 'Einzelnen Einsatz abrufen',
@@ -148,46 +227,5 @@ export class EinsatzController {
   async archive(@Param('id') id: string, @CurrentUser() user: ValidatedUser): Promise<EinsatzResponseDto> {
     this.logger.warn(`Archiving Einsatz ${id} by user ${user.userId} (No-Delete Policy)`);
     return await this.einsatzService.archive(id, user.userId);
-  }
-
-  @Get('stats/status-counts')
-  @ApiOperation({
-    summary: 'Status-Statistiken abrufen',
-    description: 'Gibt die Anzahl der Einsätze pro Status zurück.',
-  })
-  @ApiWrappedResponse(StatusCountsResponseDto, { description: 'Status-Statistiken erfolgreich abgerufen' })
-  async getStatusCounts(
-    @Query(new ValidationPipe({ transform: true, whitelist: true }))
-    query: StatusCountsQueryDto,
-  ): Promise<StatusCountsResponseDto> {
-    this.logger.log(`Getting status counts (includeArchived: ${query.includeArchived})`);
-    return await this.einsatzService.getStatusCounts(query.includeArchived);
-  }
-
-  @Get(':id/completeness')
-  @ApiOperation({
-    summary: 'Vollständigkeits-Check für Einsatz',
-    description: 'Berechnet und gibt die Vollständigkeit eines Einsatzes zurück.',
-  })
-  @ApiWrappedResponse(CompletenessResponseDto, { description: 'Vollständigkeits-Information erfolgreich abgerufen' })
-  @ApiNotFoundResponse({
-    description: 'Einsatz nicht gefunden',
-  })
-  @ApiBadRequestResponse({ description: 'Ungültige Einsatz-ID oder Query-Parameter' })
-  async getCompleteness(
-    @Param('id') id: string,
-    @Query(new ValidationPipe({ transform: true, whitelist: true }))
-    query: CompletenessQueryDto,
-  ): Promise<CompletenessResponseDto> {
-    this.logger.log(`Getting completeness for Einsatz ${id} (refresh: ${query.refresh})`);
-
-    try {
-      const result = await this.einsatzService.getCompleteness(id, query.refresh);
-      this.logger.log(`Completeness for Einsatz ${id}: ${result.score}% complete`);
-      return result;
-    } catch (error) {
-      this.logger.error(`Failed to get completeness for Einsatz ${id}: ${error.message}`);
-      throw error;
-    }
   }
 }
