@@ -172,6 +172,67 @@ export const useEinsaetze = (options?: UseEinsaetzeOptions) => {
     retryDelay: calculateRetryDelay,
   });
 
+  // Mutation für Einsatz archivieren mit Optimistic Updates
+  const archiveEinsatzMutation = useMutation<EinsatzResponseDto, ResponseError, { id: string }>({
+    mutationFn: async ({ id }) => {
+      const response = await api.einsatz().einsatzControllerArchiveVAlpha({ id });
+      return response.data;
+    },
+    onMutate: async ({ id }) => {
+      await queryClient.cancelQueries({ queryKey: QUERY_KEYS.einsatz.detail(id) });
+      await queryClient.cancelQueries({ queryKey: QUERY_KEYS.einsatz.all });
+
+      const previousEinsatz = queryClient.getQueryData<EinsatzControllerCreateVAlpha200Response>(QUERY_KEYS.einsatz.detail(id));
+      const previousEinsaetze = queryClient.getQueryData<EinsatzControllerFindAllVAlpha200Response>(QUERY_KEYS.einsatz.list(filters));
+
+      if (previousEinsatz?.data) {
+        const archivedEinsatz: EinsatzResponseDto = {
+          ...previousEinsatz.data,
+          status: EinsatzResponseDtoStatusEnum.Archiviert,
+          updatedAt: new Date(),
+        };
+
+        queryClient.setQueryData<EinsatzControllerCreateVAlpha200Response>(QUERY_KEYS.einsatz.detail(id), {
+          data: archivedEinsatz,
+          meta: previousEinsatz.meta || {},
+        });
+
+        queryClient.setQueryData<EinsatzControllerFindAllVAlpha200Response>(QUERY_KEYS.einsatz.list(filters), (old) => {
+          if (!old) return old;
+          return {
+            ...old,
+            data: old.data?.map((e) => (e.id === id ? archivedEinsatz : e)) || [],
+          };
+        });
+      }
+
+      return { previousEinsatz, previousEinsaetze };
+    },
+    onError: async (error: ResponseError, { id }, context) => {
+      if (context && typeof context === 'object' && 'previousEinsatz' in context && context.previousEinsatz) {
+        queryClient.setQueryData(QUERY_KEYS.einsatz.detail(id), context.previousEinsatz);
+      }
+      if (context && typeof context === 'object' && 'previousEinsaetze' in context && context.previousEinsaetze) {
+        queryClient.setQueryData(QUERY_KEYS.einsatz.list(filters), context.previousEinsaetze);
+      }
+
+      const message = await getApiErrorMessage(error, 'Der Einsatz konnte nicht archiviert werden.', 'archiveEinsatz');
+      logger.error('Failed to archive einsatz', error);
+      toast.error('Fehler', { description: message });
+    },
+    onSuccess: async () => {
+      toast.success('Einsatz archiviert', {
+        description: 'Der Einsatz wurde erfolgreich archiviert.',
+      });
+    },
+    onSettled: async (_, __, { id }) => {
+      await queryClient.invalidateQueries({ queryKey: QUERY_KEYS.einsatz.detail(id) });
+      await queryClient.invalidateQueries({ queryKey: QUERY_KEYS.einsatz.all });
+    },
+    retry: 3,
+    retryDelay: calculateRetryDelay,
+  });
+
   // Mutation für Einsatz aktualisieren mit Optimistic Updates
   const updateEinsatzMutation = useMutation<EinsatzResponseDto, ResponseError, { id: string; data: UpdateEinsatzDto }>({
     mutationFn: async ({ id, data }) => {
@@ -263,6 +324,7 @@ export const useEinsaetze = (options?: UseEinsaetzeOptions) => {
     refetch: infinite ? infiniteQuery.refetch : standardQuery.refetch,
     createEinsatz: createEinsatzMutation,
     updateEinsatz: updateEinsatzMutation,
+    archiveEinsatz: archiveEinsatzMutation,
   };
 };
 

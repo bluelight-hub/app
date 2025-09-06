@@ -70,6 +70,9 @@ export function clearAuthCookies(res: Response, isProduction: boolean = false): 
   res.clearCookie('refreshToken', {
     ...getRefreshTokenCookieOptions(isProduction),
   });
+  res.clearCookie('adminToken', {
+    ...getAdminTokenCookieOptions(isProduction),
+  });
 }
 
 /**

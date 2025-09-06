@@ -42,12 +42,30 @@ export class EinsatzResponseDto implements Einsatz {
   alarmstichwort: string | null;
 
   @ApiPropertyOptional({
+    description: 'Der Einsatzort',
+    example: 'Musterstraße 123, 12345 Musterstadt',
+  })
+  einsatzort: string | null;
+
+  @ApiPropertyOptional({
+    description: 'Beschreibung des Einsatzes',
+    example: 'Rauchentwicklung im 2. OG, keine Personen in Gefahr',
+  })
+  beschreibung: string | null;
+
+  @ApiPropertyOptional({
     description: 'Zeitpunkt der Alarmierung',
     example: '2025-01-27T14:30:00.000Z',
     type: String,
     format: 'date-time',
   })
   alarmierungszeit: Date | null;
+
+  @ApiPropertyOptional({
+    description: 'Name des Einsatzleiters',
+    example: 'Max Mustermann',
+  })
+  einsatzleiter: string | null;
 
   @ApiProperty({
     description: 'Status des Einsatzes',

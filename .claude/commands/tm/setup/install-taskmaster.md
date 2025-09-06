@@ -53,19 +53,6 @@ This command helps you get Task Master set up globally on your system.
 6. **Configure AI Provider**
    Ensure you have at least one AI provider API key set:
 
-   ```bash
-   # Check current configuration
-   task-master models --status
-
-   # If no API keys found, guide setup
-   echo "You'll need at least one API key:"
-   echo "- ANTHROPIC_API_KEY for Claude"
-   echo "- OPENAI_API_KEY for GPT models"
-   echo "- PERPLEXITY_API_KEY for research"
-   echo ""
-   echo "Set them in your shell profile or .env file"
-   ```
-
 7. **Quick Test**
 
    ```bash
