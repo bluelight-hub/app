@@ -1,4 +1,3 @@
-import type { DuplicateDetectionConfig } from '../utils/duplicate-detection.util';
 import type { RetryConfig } from '../utils/retry.util';
 
 /**
@@ -7,8 +6,6 @@ import type { RetryConfig } from '../utils/retry.util';
 export interface EnvironmentErrorConfig {
   /** Retry-Konfiguration für diese Umgebung */
   retryConfig: RetryConfig;
-  /** Duplicate Detection Konfiguration */
-  duplicateDetectionConfig: DuplicateDetectionConfig;
   /** Ob detaillierte Fehlerberichte aktiviert sind */
   verboseErrorReporting: boolean;
   /** Ob strikte Validierung aktiviert ist */
@@ -35,11 +32,6 @@ export const DEVELOPMENT_ERROR_CONFIG: EnvironmentErrorConfig = {
     jitterFactor: 0.2,
     timeout: 60000, // Längere Timeouts für Debugging
   },
-  duplicateDetectionConfig: {
-    timeWindow: 120000, // 2 Minuten für Entwicklung
-    maxCacheSize: 500,
-    cleanupInterval: 60000, // 1 Minute
-  },
   verboseErrorReporting: true,
   strictValidation: false, // Weniger strikt für Entwicklung
   enableFeatureFlags: true,
@@ -59,11 +51,6 @@ export const TEST_ERROR_CONFIG: EnvironmentErrorConfig = {
     backoffMultiplier: 2,
     jitterFactor: 0.1,
     timeout: 5000, // Kurze Timeouts für Tests
-  },
-  duplicateDetectionConfig: {
-    timeWindow: 10000, // 10 Sekunden für Tests
-    maxCacheSize: 100,
-    cleanupInterval: 5000, // 5 Sekunden
   },
   verboseErrorReporting: false,
   strictValidation: true, // Strikt für Tests
@@ -85,11 +72,6 @@ export const PRODUCTION_ERROR_CONFIG: EnvironmentErrorConfig = {
     jitterFactor: 0.15,
     timeout: 30000, // Standard Timeouts
   },
-  duplicateDetectionConfig: {
-    timeWindow: 60000, // 1 Minute für Production
-    maxCacheSize: 1000,
-    cleanupInterval: 300000, // 5 Minuten
-  },
   verboseErrorReporting: false, // Keine detaillierten Fehler in Production
   strictValidation: true,
   enableFeatureFlags: true,
@@ -109,11 +91,6 @@ export const STAGING_ERROR_CONFIG: EnvironmentErrorConfig = {
     backoffMultiplier: 2,
     jitterFactor: 0.15,
     timeout: 45000,
-  },
-  duplicateDetectionConfig: {
-    timeWindow: 90000, // 1.5 Minuten für Staging
-    maxCacheSize: 750,
-    cleanupInterval: 180000, // 3 Minuten
   },
   verboseErrorReporting: true, // Detaillierte Fehler für Staging
   strictValidation: true,

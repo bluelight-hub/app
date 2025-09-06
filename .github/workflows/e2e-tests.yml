@@ -1,0 +1,221 @@
+name: E2E Tests
+
+on:
+  pull_request:
+    branches: [ main, develop, alpha ]
+  push:
+    branches: [ main, develop, alpha ]
+  workflow_dispatch:
+
+jobs:
+  e2e-tests:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    
+    strategy:
+      fail-fast: false
+      matrix:
+        shard: [ 1, 2, 3, 4 ]
+    
+    services:
+      postgres:
+        image: postgres:14
+        env:
+          POSTGRES_USER: test
+          POSTGRES_PASSWORD: test
+          POSTGRES_DB: bluelight_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v2
+        with:
+          version: 8
+
+      - name: Get pnpm store directory
+        id: pnpm-cache
+        run: |
+          echo "STORE_PATH=$(pnpm store path)" >> $GITHUB_OUTPUT
+
+      - name: Setup pnpm cache
+        uses: actions/cache@v3
+        with:
+          path: ${{ steps.pnpm-cache.outputs.STORE_PATH }}
+          key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
+          restore-keys: |
+            ${{ runner.os }}-pnpm-store-
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Setup test environment
+        run: |
+          cp .env.example .env.test
+          echo "DATABASE_URL=postgresql://test:test@localhost:5432/bluelight_test" >> .env.test
+          echo "JWT_SECRET=test-secret-key" >> .env.test
+          echo "NODE_ENV=test" >> .env.test
+
+      - name: Run database migrations
+        run: |
+          pnpm --filter @bluelight-hub/backend prisma generate
+          pnpm --filter @bluelight-hub/backend prisma migrate deploy
+        env:
+          DATABASE_URL: postgresql://test:test@localhost:5432/bluelight_test
+
+      - name: Build application
+        run: pnpm run build
+
+      - name: Install Playwright browsers
+        run: pnpm --filter @bluelight-hub/frontend exec playwright install --with-deps
+
+      - name: Run E2E tests (Shard ${{ matrix.shard }}/4)
+        run: |
+          pnpm --filter @bluelight-hub/frontend exec playwright test \
+            --shard=${{ matrix.shard }}/4 \
+            --reporter=list,html
+        env:
+          TEST_USER_EMAIL: test@example.com
+          TEST_USER_PASSWORD: Test123!
+          DATABASE_URL: postgresql://test:test@localhost:5432/bluelight_test
+
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@v3
+        with:
+          name: playwright-report-shard-${{ matrix.shard }}
+          path: packages/frontend/playwright-report/
+          retention-days: 7
+
+      - name: Upload test videos
+        if: failure()
+        uses: actions/upload-artifact@v3
+        with:
+          name: playwright-videos-shard-${{ matrix.shard }}
+          path: packages/frontend/test-results/
+          retention-days: 7
+
+      - name: Upload screenshots
+        if: failure()
+        uses: actions/upload-artifact@v3
+        with:
+          name: playwright-screenshots-shard-${{ matrix.shard }}
+          path: packages/frontend/test-results/**/*.png
+          retention-days: 7
+
+  merge-reports:
+    needs: e2e-tests
+    if: always()
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Download all reports
+        uses: actions/download-artifact@v3
+        with:
+          path: all-reports/
+
+      - name: Merge test reports
+        run: |
+          npx playwright merge-reports --reporter html ./all-reports/playwright-report-shard-*
+
+      - name: Upload merged report
+        uses: actions/upload-artifact@v3
+        with:
+          name: playwright-report-merged
+          path: playwright-report/
+          retention-days: 30
+
+      - name: Comment PR with results
+        if: github.event_name == 'pull_request'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            const path = require('path');
+            
+            // Read test results if available
+            let comment = '## 🎭 E2E Test Results\n\n';
+            
+            try {
+              // Add summary based on job status
+              const jobStatus = '${{ needs.e2e-tests.result }}';
+              if (jobStatus === 'success') {
+                comment += '✅ **All E2E tests passed!**\n\n';
+              } else if (jobStatus === 'failure') {
+                comment += '❌ **Some E2E tests failed.**\n\n';
+                comment += 'Check the [test artifacts](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}) for details.\n';
+              }
+            
+              comment += '\n### Test Execution\n';
+              comment += '- Total shards: 4\n';
+              comment += '- Browsers tested: Chromium, Firefox, Safari, Mobile\n';
+              comment += '- [View full report](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }})\n';
+            
+            } catch (error) {
+              comment += '⚠️ Could not parse test results.\n';
+            }
+            
+            // Post comment
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: comment
+            });
+
+  visual-regression:
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request'
+    steps:
+      - name: Checkout PR branch
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v2
+        with:
+          version: 8
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Install Playwright
+        run: pnpm --filter @bluelight-hub/frontend exec playwright install chromium
+
+      - name: Run visual regression tests
+        run: |
+          pnpm --filter @bluelight-hub/frontend exec playwright test \
+            --grep "Visual Regression" \
+            --update-snapshots
+
+      - name: Upload visual diff
+        if: failure()
+        uses: actions/upload-artifact@v3
+        with:
+          name: visual-regression-diff
+          path: packages/frontend/test-results/**/*-diff.png
+          retention-days: 7

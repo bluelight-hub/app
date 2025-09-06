@@ -21,7 +21,11 @@
     "test:e2e:ui": "playwright test --ui",
     "test:e2e:debug": "playwright test --debug",
     "test:e2e:report": "playwright show-report",
-    "test:e2e:auth": "playwright test --project=chromium --grep @auth"
+    "test:e2e:auth": "playwright test --project=chromium --grep @auth",
+    "test:e2e:einsatz": "playwright test einsatz-workflow",
+    "test:e2e:performance": "playwright test einsatz-performance",
+    "test:e2e:a11y": "playwright test einsatz-accessibility",
+    "test:e2e:update-snapshots": "playwright test --update-snapshots"
   },
   "dependencies": {
     "@bluelight-hub/shared": "workspace:*",
@@ -63,6 +67,7 @@
     "zod": "catalog:"
   },
   "devDependencies": {
+    "@axe-core/playwright": "^4.10.2",
     "@eslint/js": "catalog:",
     "@playwright/test": "catalog:",
     "@playwright/test-runner": "catalog:",
@@ -80,6 +85,7 @@
     "@vitejs/plugin-react-swc": "catalog:",
     "@vitest/coverage-v8": "catalog:",
     "@vitest/ui": "catalog:",
+    "axe-playwright": "^2.1.0",
     "dotenv": "^17.2.1",
     "globals": "catalog:",
     "jsdom": "catalog:",
