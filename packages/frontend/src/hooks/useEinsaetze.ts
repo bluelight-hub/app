@@ -12,8 +12,8 @@ import type {
   ResponseError,
   UpdateEinsatzDto,
 } from '@bluelight-hub/shared/client';
-import { EinsatzResponseDtoStatusEnum } from '@bluelight-hub/shared/client';
-import { useMutation, useQuery, useQueryClient, useInfiniteQuery } from '@tanstack/react-query';
+import { type EinsatzControllerFindAllVAlphaOrderByEnum, type EinsatzControllerFindAllVAlphaOrderDirectionEnum, EinsatzResponseDtoStatusEnum } from '@bluelight-hub/shared/client';
+import { useInfiniteQuery, useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useMemo } from 'react';
 import { toast } from 'sonner';
 
@@ -29,8 +29,8 @@ interface UseEinsaetzeFilters {
   search?: string;
   page?: number;
   limit?: number;
-  orderBy?: 'createdAt' | 'updatedAt' | 'alarmstichwort' | 'status' | 'name';
-  orderDirection?: 'asc' | 'desc';
+  orderBy?: EinsatzControllerFindAllVAlphaOrderByEnum;
+  orderDirection?: EinsatzControllerFindAllVAlphaOrderDirectionEnum;
 }
 
 interface UseEinsaetzeOptions extends UseEinsaetzeFilters {

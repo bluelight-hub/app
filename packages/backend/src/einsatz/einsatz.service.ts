@@ -1,5 +1,5 @@
 import type { PaginatedData } from '@/common/interceptors/transform.interceptor';
-import { CreateEinsatzDto, EinsatzCompleteness, EinsatzQueryDto, EinsatzResponseDto, StatusCountsResponseDto, UpdateEinsatzDto } from '@/einsatz/dto';
+import { CreateEinsatzDto, EinsatzCompleteness, EinsatzQueryDto, EinsatzResponseDto, NavigationResponseDto, StatusCountsResponseDto, UpdateEinsatzDto } from '@/einsatz/dto';
 import { BadRequestException, Injectable, Logger } from '@nestjs/common';
 import { Einsatz, Prisma } from '@prisma/client';
 import { EinsatzRepository } from './einsatz.repository';
@@ -281,5 +281,31 @@ export class EinsatzService {
         this.completenessCache.delete(key);
       }
     }
+  }
+
+  /**
+   * Gibt die ID des vorherigen Einsatzes basierend auf createdAt zurück
+   */
+  async getPreviousId(id: string): Promise<NavigationResponseDto> {
+    const currentEinsatz = await this.repository.findOne(id);
+    if (!currentEinsatz) {
+      throw new EinsatzNotFoundException(id);
+    }
+
+    const previousId = await this.repository.findPreviousId(currentEinsatz.createdAt);
+    return { id: previousId };
+  }
+
+  /**
+   * Gibt die ID des nächsten Einsatzes basierend auf createdAt zurück
+   */
+  async getNextId(id: string): Promise<NavigationResponseDto> {
+    const currentEinsatz = await this.repository.findOne(id);
+    if (!currentEinsatz) {
+      throw new EinsatzNotFoundException(id);
+    }
+
+    const nextId = await this.repository.findNextId(currentEinsatz.createdAt);
+    return { id: nextId };
   }
 }

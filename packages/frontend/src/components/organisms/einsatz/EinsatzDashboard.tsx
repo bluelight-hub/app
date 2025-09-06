@@ -8,21 +8,25 @@ import { Button } from '@atoms/button.atom';
 import { Input } from '@atoms/input.atom';
 import { Select } from '@atoms/select.atom';
 import type { EinsatzResponseDto } from '@bluelight-hub/shared/client';
-import { EinsatzResponseDtoStatusEnum } from '@bluelight-hub/shared/client';
+import { EinsatzControllerFindAllVAlphaOrderByEnum, EinsatzControllerFindAllVAlphaOrderDirectionEnum, EinsatzResponseDtoStatusEnum } from '@bluelight-hub/shared/client';
 import { Dialog } from '@headlessui/react';
 import { useQuery } from '@tanstack/react-query';
+import { Link } from '@tanstack/react-router';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { PiFunnel, PiFunnelX, PiPlus, PiSpinner, PiTrendDown, PiTrendUp, PiX } from 'react-icons/pi';
 
 interface SortOption {
-  key: 'createdAt' | 'alarmstichwort' | 'status';
-  direction: 'asc' | 'desc';
+  key: EinsatzControllerFindAllVAlphaOrderByEnum;
+  direction: EinsatzControllerFindAllVAlphaOrderDirectionEnum;
 }
 
 export function EinsatzDashboard() {
   const [statusFilter, setStatusFilter] = useState<EinsatzResponseDtoStatusEnum | undefined>(undefined);
   const [searchTerm, setSearchTerm] = useState('');
-  const [sortOption, setSortOption] = useState<SortOption>({ key: 'createdAt', direction: 'desc' });
+  const [sortOption, setSortOption] = useState<SortOption>({
+    key: EinsatzControllerFindAllVAlphaOrderByEnum.CreatedAt,
+    direction: EinsatzControllerFindAllVAlphaOrderDirectionEnum.Desc,
+  });
   const [isFilterPanelOpen, setIsFilterPanelOpen] = useState(false);
   const [isMobileFilterOpen, setIsMobileFilterOpen] = useState(false);
   const [isCreatePanelOpen, setIsCreatePanelOpen] = useState(false);
@@ -116,7 +120,10 @@ export function EinsatzDashboard() {
   const handleSort = (key: SortOption['key']) => {
     setSortOption((prev) => ({
       key,
-      direction: prev.key === key && prev.direction === 'asc' ? 'desc' : 'asc',
+      direction:
+        prev.key === key && prev.direction === EinsatzControllerFindAllVAlphaOrderDirectionEnum.Asc
+          ? EinsatzControllerFindAllVAlphaOrderDirectionEnum.Desc
+          : EinsatzControllerFindAllVAlphaOrderDirectionEnum.Asc,
     }));
   };
 
@@ -128,7 +135,7 @@ export function EinsatzDashboard() {
     setIsCreatePanelOpen(false);
     refetch();
     // Optional: Navigiere zum neuen Einsatz
-    // navigate({ to: `/einsaetze/$einsatzId`, params: { einsatzId } });
+    // navigate({ to: `/app/einsaetze/$einsatzId`, params: { einsatzId } });
   };
 
   if (error) {
@@ -273,30 +280,38 @@ export function EinsatzDashboard() {
                 <div className="space-y-2">
                   <Button
                     variant={'ghost'}
-                    onClick={() => handleSort('createdAt')}
+                    onClick={() => handleSort(EinsatzControllerFindAllVAlphaOrderByEnum.CreatedAt)}
                     className={`w-full rounded-md px-3 py-2 text-left text-sm ${
-                      sortOption.key === 'createdAt' ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300' : 'hover:bg-gray-100 dark:hover:bg-gray-800'
+                      sortOption.key === EinsatzControllerFindAllVAlphaOrderByEnum.CreatedAt
+                        ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300'
+                        : 'hover:bg-gray-100 dark:hover:bg-gray-800'
                     }`}
                   >
-                    Erstellungsdatum {sortOption.key === 'createdAt' && (sortOption.direction === 'asc' ? '↑' : '↓')}
+                    Erstellungsdatum{' '}
+                    {sortOption.key === EinsatzControllerFindAllVAlphaOrderByEnum.CreatedAt && (sortOption.direction === EinsatzControllerFindAllVAlphaOrderDirectionEnum.Asc ? '↑' : '↓')}
                   </Button>
                   <Button
                     variant={'ghost'}
-                    onClick={() => handleSort('alarmstichwort')}
+                    onClick={() => handleSort(EinsatzControllerFindAllVAlphaOrderByEnum.Alarmstichwort)}
                     className={`w-full rounded-md px-3 py-2 text-left text-sm ${
-                      sortOption.key === 'alarmstichwort' ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300' : 'hover:bg-gray-100 dark:hover:bg-gray-800'
+                      sortOption.key === EinsatzControllerFindAllVAlphaOrderByEnum.Alarmstichwort
+                        ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300'
+                        : 'hover:bg-gray-100 dark:hover:bg-gray-800'
                     }`}
                   >
-                    Alarmstichwort {sortOption.key === 'alarmstichwort' && (sortOption.direction === 'asc' ? '↑' : '↓')}
+                    Alarmstichwort{' '}
+                    {sortOption.key === EinsatzControllerFindAllVAlphaOrderByEnum.Alarmstichwort && (sortOption.direction === EinsatzControllerFindAllVAlphaOrderDirectionEnum.Asc ? '↑' : '↓')}
                   </Button>
                   <Button
                     variant={'ghost'}
-                    onClick={() => handleSort('status')}
+                    onClick={() => handleSort(EinsatzControllerFindAllVAlphaOrderByEnum.Status)}
                     className={`w-full rounded-md px-3 py-2 text-left text-sm ${
-                      sortOption.key === 'status' ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300' : 'hover:bg-gray-100 dark:hover:bg-gray-800'
+                      sortOption.key === EinsatzControllerFindAllVAlphaOrderByEnum.Status
+                        ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300'
+                        : 'hover:bg-gray-100 dark:hover:bg-gray-800'
                     }`}
                   >
-                    Status {sortOption.key === 'status' && (sortOption.direction === 'asc' ? '↑' : '↓')}
+                    Status {sortOption.key === EinsatzControllerFindAllVAlphaOrderByEnum.Status && (sortOption.direction === EinsatzControllerFindAllVAlphaOrderDirectionEnum.Asc ? '↑' : '↓')}
                   </Button>
                 </div>
               </div>
@@ -333,9 +348,14 @@ export function EinsatzDashboard() {
           ) : (
             <div className="min-h-0 space-y-2 p-3 sm:p-4">
               {einsaetze.map((einsatz) => (
-                <div key={einsatz.id} className="rounded-lg border border-gray-200 bg-white shadow-sm dark:border-gray-700 dark:bg-gray-800">
+                <Link
+                  key={einsatz.id}
+                  to="/app/einsaetze/$einsatzId"
+                  params={{ einsatzId: einsatz.id }}
+                  className="block rounded-lg border border-gray-200 bg-white shadow-sm transition-all hover:shadow-md dark:border-gray-700 dark:bg-gray-800"
+                >
                   <EinsatzListItem einsatz={einsatz} />
-                </div>
+                </Link>
               ))}
 
               {/* Load More Trigger & Indicator */}
@@ -402,38 +422,46 @@ export function EinsatzDashboard() {
                   <Button
                     variant={'ghost'}
                     onClick={() => {
-                      handleSort('createdAt');
+                      handleSort(EinsatzControllerFindAllVAlphaOrderByEnum.CreatedAt);
                       setIsMobileFilterOpen(false);
                     }}
                     className={`w-full rounded-md px-3 py-2 text-left text-sm ${
-                      sortOption.key === 'createdAt' ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300' : 'hover:bg-gray-100 dark:hover:bg-gray-800'
+                      sortOption.key === EinsatzControllerFindAllVAlphaOrderByEnum.CreatedAt
+                        ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300'
+                        : 'hover:bg-gray-100 dark:hover:bg-gray-800'
                     }`}
                   >
-                    Erstellungsdatum {sortOption.key === 'createdAt' && (sortOption.direction === 'asc' ? '↑' : '↓')}
+                    Erstellungsdatum{' '}
+                    {sortOption.key === EinsatzControllerFindAllVAlphaOrderByEnum.CreatedAt && (sortOption.direction === EinsatzControllerFindAllVAlphaOrderDirectionEnum.Asc ? '↑' : '↓')}
                   </Button>
                   <Button
                     variant={'ghost'}
                     onClick={() => {
-                      handleSort('alarmstichwort');
+                      handleSort(EinsatzControllerFindAllVAlphaOrderByEnum.Alarmstichwort);
                       setIsMobileFilterOpen(false);
                     }}
                     className={`w-full rounded-md px-3 py-2 text-left text-sm ${
-                      sortOption.key === 'alarmstichwort' ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300' : 'hover:bg-gray-100 dark:hover:bg-gray-800'
+                      sortOption.key === EinsatzControllerFindAllVAlphaOrderByEnum.Alarmstichwort
+                        ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300'
+                        : 'hover:bg-gray-100 dark:hover:bg-gray-800'
                     }`}
                   >
-                    Alarmstichwort {sortOption.key === 'alarmstichwort' && (sortOption.direction === 'asc' ? '↑' : '↓')}
+                    Alarmstichwort{' '}
+                    {sortOption.key === EinsatzControllerFindAllVAlphaOrderByEnum.Alarmstichwort && (sortOption.direction === EinsatzControllerFindAllVAlphaOrderDirectionEnum.Asc ? '↑' : '↓')}
                   </Button>
                   <Button
                     variant={'ghost'}
                     onClick={() => {
-                      handleSort('status');
+                      handleSort(EinsatzControllerFindAllVAlphaOrderByEnum.Status);
                       setIsMobileFilterOpen(false);
                     }}
                     className={`w-full rounded-md px-3 py-2 text-left text-sm ${
-                      sortOption.key === 'status' ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300' : 'hover:bg-gray-100 dark:hover:bg-gray-800'
+                      sortOption.key === EinsatzControllerFindAllVAlphaOrderByEnum.Status
+                        ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300'
+                        : 'hover:bg-gray-100 dark:hover:bg-gray-800'
                     }`}
                   >
-                    Status {sortOption.key === 'status' && (sortOption.direction === 'asc' ? '↑' : '↓')}
+                    Status {sortOption.key === EinsatzControllerFindAllVAlphaOrderByEnum.Status && (sortOption.direction === EinsatzControllerFindAllVAlphaOrderDirectionEnum.Asc ? '↑' : '↓')}
                   </Button>
                 </div>
               </div>
@@ -443,7 +471,10 @@ export function EinsatzDashboard() {
                 variant="secondary"
                 onClick={() => {
                   setStatusFilter(undefined);
-                  setSortOption({ key: 'createdAt', direction: 'desc' });
+                  setSortOption({
+                    key: EinsatzControllerFindAllVAlphaOrderByEnum.CreatedAt,
+                    direction: EinsatzControllerFindAllVAlphaOrderDirectionEnum.Desc,
+                  });
                   setIsMobileFilterOpen(false);
                 }}
                 className="w-full"
@@ -464,7 +495,7 @@ interface EinsatzListItemProps {
 
 function EinsatzListItem({ einsatz }: EinsatzListItemProps) {
   return (
-    <div className="cursor-pointer px-3 py-3 transition-all hover:bg-gray-50 hover:shadow-md sm:px-4 sm:py-4 dark:hover:bg-gray-700/50">
+    <div className="cursor-pointer px-3 py-3 transition-all hover:bg-gray-50 sm:px-4 sm:py-4 dark:hover:bg-gray-700/50">
       <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
         <div className="min-w-0 flex-1">
           <div className="mb-1 flex items-start justify-between gap-2 sm:mb-2 sm:items-center">

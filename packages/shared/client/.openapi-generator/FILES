@@ -30,12 +30,14 @@ models/EinsatzControllerFindAllVAlpha200Response.ts
 models/EinsatzControllerFindAllVAlpha200ResponseMeta.ts
 models/EinsatzControllerFindAllVAlpha200ResponsePagination.ts
 models/EinsatzControllerGetCompletenessVAlpha200Response.ts
+models/EinsatzControllerGetPreviousVAlpha200Response.ts
 models/EinsatzControllerGetStatusCountsVAlpha200Response.ts
 models/EinsatzResponseDto.ts
 models/HealthControllerCheck200Response.ts
 models/HealthControllerCheck200ResponseInfoValue.ts
 models/HealthControllerCheck503Response.ts
 models/LogoutResponseDto.ts
+models/NavigationResponseDto.ts
 models/PublicUserDto.ts
 models/PublicUsersResponseDto.ts
 models/RefreshResponseDto.ts

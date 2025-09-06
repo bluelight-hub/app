@@ -18,6 +18,7 @@ import type {
   EinsatzControllerCreateVAlpha200Response,
   EinsatzControllerFindAllVAlpha200Response,
   EinsatzControllerGetCompletenessVAlpha200Response,
+  EinsatzControllerGetPreviousVAlpha200Response,
   EinsatzControllerGetStatusCountsVAlpha200Response,
   UpdateEinsatzDto,
 } from '../models/index';
@@ -30,6 +31,8 @@ import {
   EinsatzControllerFindAllVAlpha200ResponseToJSON,
   EinsatzControllerGetCompletenessVAlpha200ResponseFromJSON,
   EinsatzControllerGetCompletenessVAlpha200ResponseToJSON,
+  EinsatzControllerGetPreviousVAlpha200ResponseFromJSON,
+  EinsatzControllerGetPreviousVAlpha200ResponseToJSON,
   EinsatzControllerGetStatusCountsVAlpha200ResponseFromJSON,
   EinsatzControllerGetStatusCountsVAlpha200ResponseToJSON,
   UpdateEinsatzDtoFromJSON,
@@ -62,6 +65,14 @@ export interface EinsatzControllerFindOneVAlphaRequest {
 export interface EinsatzControllerGetCompletenessVAlphaRequest {
   id: string;
   refresh?: boolean;
+}
+
+export interface EinsatzControllerGetNextVAlphaRequest {
+  id: string;
+}
+
+export interface EinsatzControllerGetPreviousVAlphaRequest {
+  id: string;
 }
 
 export interface EinsatzControllerGetStatusCountsVAlphaRequest {
@@ -354,6 +365,104 @@ export class EinsatzApi extends runtime.BaseAPI {
     initOverrides?: RequestInit | runtime.InitOverrideFunction,
   ): Promise<EinsatzControllerGetCompletenessVAlpha200Response> {
     const response = await this.einsatzControllerGetCompletenessVAlphaRaw(requestParameters, initOverrides);
+    return await response.value();
+  }
+
+  /**
+   * Gibt nur die ID des nächsten Einsatzes basierend auf createdAt zurück. Effizient für Navigation.
+   * ID des nächsten Einsatzes abrufen
+   */
+  async einsatzControllerGetNextVAlphaRaw(
+    requestParameters: EinsatzControllerGetNextVAlphaRequest,
+    initOverrides?: RequestInit | runtime.InitOverrideFunction,
+  ): Promise<runtime.ApiResponse<EinsatzControllerGetPreviousVAlpha200Response>> {
+    if (requestParameters['id'] == null) {
+      throw new runtime.RequiredError('id', 'Required parameter "id" was null or undefined when calling einsatzControllerGetNextVAlpha().');
+    }
+
+    const queryParameters: any = {};
+
+    const headerParameters: runtime.HTTPHeaders = {};
+
+    if (this.configuration && this.configuration.accessToken) {
+      const token = this.configuration.accessToken;
+      const tokenString = await token('bearer', []);
+
+      if (tokenString) {
+        headerParameters['Authorization'] = `Bearer ${tokenString}`;
+      }
+    }
+    const response = await this.request(
+      {
+        path: `/api/v-alpha/einsatz/{id}/navigation/next`.replace(`{${'id'}}`, encodeURIComponent(String(requestParameters['id']))),
+        method: 'GET',
+        headers: headerParameters,
+        query: queryParameters,
+      },
+      initOverrides,
+    );
+
+    return new runtime.JSONApiResponse(response, (jsonValue) => EinsatzControllerGetPreviousVAlpha200ResponseFromJSON(jsonValue));
+  }
+
+  /**
+   * Gibt nur die ID des nächsten Einsatzes basierend auf createdAt zurück. Effizient für Navigation.
+   * ID des nächsten Einsatzes abrufen
+   */
+  async einsatzControllerGetNextVAlpha(
+    requestParameters: EinsatzControllerGetNextVAlphaRequest,
+    initOverrides?: RequestInit | runtime.InitOverrideFunction,
+  ): Promise<EinsatzControllerGetPreviousVAlpha200Response> {
+    const response = await this.einsatzControllerGetNextVAlphaRaw(requestParameters, initOverrides);
+    return await response.value();
+  }
+
+  /**
+   * Gibt nur die ID des vorherigen Einsatzes basierend auf createdAt zurück. Effizient für Navigation.
+   * ID des vorherigen Einsatzes abrufen
+   */
+  async einsatzControllerGetPreviousVAlphaRaw(
+    requestParameters: EinsatzControllerGetPreviousVAlphaRequest,
+    initOverrides?: RequestInit | runtime.InitOverrideFunction,
+  ): Promise<runtime.ApiResponse<EinsatzControllerGetPreviousVAlpha200Response>> {
+    if (requestParameters['id'] == null) {
+      throw new runtime.RequiredError('id', 'Required parameter "id" was null or undefined when calling einsatzControllerGetPreviousVAlpha().');
+    }
+
+    const queryParameters: any = {};
+
+    const headerParameters: runtime.HTTPHeaders = {};
+
+    if (this.configuration && this.configuration.accessToken) {
+      const token = this.configuration.accessToken;
+      const tokenString = await token('bearer', []);
+
+      if (tokenString) {
+        headerParameters['Authorization'] = `Bearer ${tokenString}`;
+      }
+    }
+    const response = await this.request(
+      {
+        path: `/api/v-alpha/einsatz/{id}/navigation/previous`.replace(`{${'id'}}`, encodeURIComponent(String(requestParameters['id']))),
+        method: 'GET',
+        headers: headerParameters,
+        query: queryParameters,
+      },
+      initOverrides,
+    );
+
+    return new runtime.JSONApiResponse(response, (jsonValue) => EinsatzControllerGetPreviousVAlpha200ResponseFromJSON(jsonValue));
+  }
+
+  /**
+   * Gibt nur die ID des vorherigen Einsatzes basierend auf createdAt zurück. Effizient für Navigation.
+   * ID des vorherigen Einsatzes abrufen
+   */
+  async einsatzControllerGetPreviousVAlpha(
+    requestParameters: EinsatzControllerGetPreviousVAlphaRequest,
+    initOverrides?: RequestInit | runtime.InitOverrideFunction,
+  ): Promise<EinsatzControllerGetPreviousVAlpha200Response> {
+    const response = await this.einsatzControllerGetPreviousVAlphaRaw(requestParameters, initOverrides);
     return await response.value();
   }
 

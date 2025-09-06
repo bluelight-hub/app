@@ -52,7 +52,7 @@ export function EinsatzCreateForm({ isOpen, onClose, onSuccess }: EinsatzCreateF
           id: toastId,
           action: {
             label: 'Bearbeiten',
-            onClick: () => navigate({ to: `/einsaetze/${result.id}` }),
+            onClick: () => navigate({ to: `/app/einsaetze/${result.id}` }),
           },
         });
 

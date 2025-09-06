@@ -9,24 +9,27 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
-import { Route as EinsaetzeRouteImport } from './routes/einsaetze'
 import { Route as AuthRouteImport } from './routes/auth'
+import { Route as AppRouteImport } from './routes/app'
 import { Route as AdminLoginRouteImport } from './routes/admin-login'
 import { Route as AdminRouteImport } from './routes/admin'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AdminIndexRouteImport } from './routes/admin/index'
+import { Route as AppEinsaetzeRouteImport } from './routes/app/einsaetze'
 import { Route as AdminUsersRouteImport } from './routes/admin/users'
 import { Route as AdminSetupRouteImport } from './routes/admin/setup'
 import { Route as AdminDashboardRouteImport } from './routes/admin/dashboard'
+import { Route as AppEinsaetzeIndexRouteImport } from './routes/app/einsaetze/index'
+import { Route as AppEinsaetzeEinsatzIdRouteImport } from './routes/app/einsaetze/$einsatzId'
 
-const EinsaetzeRoute = EinsaetzeRouteImport.update({
-  id: '/einsaetze',
-  path: '/einsaetze',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const AuthRoute = AuthRouteImport.update({
   id: '/auth',
   path: '/auth',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AppRoute = AppRouteImport.update({
+  id: '/app',
+  path: '/app',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AdminLoginRoute = AdminLoginRouteImport.update({
@@ -49,6 +52,11 @@ const AdminIndexRoute = AdminIndexRouteImport.update({
   path: '/',
   getParentRoute: () => AdminRoute,
 } as any)
+const AppEinsaetzeRoute = AppEinsaetzeRouteImport.update({
+  id: '/einsaetze',
+  path: '/einsaetze',
+  getParentRoute: () => AppRoute,
+} as any)
 const AdminUsersRoute = AdminUsersRouteImport.update({
   id: '/users',
   path: '/users',
@@ -64,39 +72,57 @@ const AdminDashboardRoute = AdminDashboardRouteImport.update({
   path: '/dashboard',
   getParentRoute: () => AdminRoute,
 } as any)
+const AppEinsaetzeIndexRoute = AppEinsaetzeIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => AppEinsaetzeRoute,
+} as any)
+const AppEinsaetzeEinsatzIdRoute = AppEinsaetzeEinsatzIdRouteImport.update({
+  id: '/$einsatzId',
+  path: '/$einsatzId',
+  getParentRoute: () => AppEinsaetzeRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/admin': typeof AdminRouteWithChildren
   '/admin-login': typeof AdminLoginRoute
+  '/app': typeof AppRouteWithChildren
   '/auth': typeof AuthRoute
-  '/einsaetze': typeof EinsaetzeRoute
   '/admin/dashboard': typeof AdminDashboardRoute
   '/admin/setup': typeof AdminSetupRoute
   '/admin/users': typeof AdminUsersRoute
+  '/app/einsaetze': typeof AppEinsaetzeRouteWithChildren
   '/admin/': typeof AdminIndexRoute
+  '/app/einsaetze/$einsatzId': typeof AppEinsaetzeEinsatzIdRoute
+  '/app/einsaetze/': typeof AppEinsaetzeIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/admin-login': typeof AdminLoginRoute
+  '/app': typeof AppRouteWithChildren
   '/auth': typeof AuthRoute
-  '/einsaetze': typeof EinsaetzeRoute
   '/admin/dashboard': typeof AdminDashboardRoute
   '/admin/setup': typeof AdminSetupRoute
   '/admin/users': typeof AdminUsersRoute
   '/admin': typeof AdminIndexRoute
+  '/app/einsaetze/$einsatzId': typeof AppEinsaetzeEinsatzIdRoute
+  '/app/einsaetze': typeof AppEinsaetzeIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/admin': typeof AdminRouteWithChildren
   '/admin-login': typeof AdminLoginRoute
+  '/app': typeof AppRouteWithChildren
   '/auth': typeof AuthRoute
-  '/einsaetze': typeof EinsaetzeRoute
   '/admin/dashboard': typeof AdminDashboardRoute
   '/admin/setup': typeof AdminSetupRoute
   '/admin/users': typeof AdminUsersRoute
+  '/app/einsaetze': typeof AppEinsaetzeRouteWithChildren
   '/admin/': typeof AdminIndexRoute
+  '/app/einsaetze/$einsatzId': typeof AppEinsaetzeEinsatzIdRoute
+  '/app/einsaetze/': typeof AppEinsaetzeIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -104,57 +130,65 @@ export interface FileRouteTypes {
     | '/'
     | '/admin'
     | '/admin-login'
+    | '/app'
     | '/auth'
-    | '/einsaetze'
     | '/admin/dashboard'
     | '/admin/setup'
     | '/admin/users'
+    | '/app/einsaetze'
     | '/admin/'
+    | '/app/einsaetze/$einsatzId'
+    | '/app/einsaetze/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
     | '/admin-login'
+    | '/app'
     | '/auth'
-    | '/einsaetze'
     | '/admin/dashboard'
     | '/admin/setup'
     | '/admin/users'
     | '/admin'
+    | '/app/einsaetze/$einsatzId'
+    | '/app/einsaetze'
   id:
     | '__root__'
     | '/'
     | '/admin'
     | '/admin-login'
+    | '/app'
     | '/auth'
-    | '/einsaetze'
     | '/admin/dashboard'
     | '/admin/setup'
     | '/admin/users'
+    | '/app/einsaetze'
     | '/admin/'
+    | '/app/einsaetze/$einsatzId'
+    | '/app/einsaetze/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AdminRoute: typeof AdminRouteWithChildren
   AdminLoginRoute: typeof AdminLoginRoute
+  AppRoute: typeof AppRouteWithChildren
   AuthRoute: typeof AuthRoute
-  EinsaetzeRoute: typeof EinsaetzeRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
-    '/einsaetze': {
-      id: '/einsaetze'
-      path: '/einsaetze'
-      fullPath: '/einsaetze'
-      preLoaderRoute: typeof EinsaetzeRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/auth': {
       id: '/auth'
       path: '/auth'
       fullPath: '/auth'
       preLoaderRoute: typeof AuthRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/app': {
+      id: '/app'
+      path: '/app'
+      fullPath: '/app'
+      preLoaderRoute: typeof AppRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/admin-login': {
@@ -185,6 +219,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminIndexRouteImport
       parentRoute: typeof AdminRoute
     }
+    '/app/einsaetze': {
+      id: '/app/einsaetze'
+      path: '/einsaetze'
+      fullPath: '/app/einsaetze'
+      preLoaderRoute: typeof AppEinsaetzeRouteImport
+      parentRoute: typeof AppRoute
+    }
     '/admin/users': {
       id: '/admin/users'
       path: '/users'
@@ -206,6 +247,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminDashboardRouteImport
       parentRoute: typeof AdminRoute
     }
+    '/app/einsaetze/': {
+      id: '/app/einsaetze/'
+      path: '/'
+      fullPath: '/app/einsaetze/'
+      preLoaderRoute: typeof AppEinsaetzeIndexRouteImport
+      parentRoute: typeof AppEinsaetzeRoute
+    }
+    '/app/einsaetze/$einsatzId': {
+      id: '/app/einsaetze/$einsatzId'
+      path: '/$einsatzId'
+      fullPath: '/app/einsaetze/$einsatzId'
+      preLoaderRoute: typeof AppEinsaetzeEinsatzIdRouteImport
+      parentRoute: typeof AppEinsaetzeRoute
+    }
   }
 }
 
@@ -225,12 +280,36 @@ const AdminRouteChildren: AdminRouteChildren = {
 
 const AdminRouteWithChildren = AdminRoute._addFileChildren(AdminRouteChildren)
 
+interface AppEinsaetzeRouteChildren {
+  AppEinsaetzeEinsatzIdRoute: typeof AppEinsaetzeEinsatzIdRoute
+  AppEinsaetzeIndexRoute: typeof AppEinsaetzeIndexRoute
+}
+
+const AppEinsaetzeRouteChildren: AppEinsaetzeRouteChildren = {
+  AppEinsaetzeEinsatzIdRoute: AppEinsaetzeEinsatzIdRoute,
+  AppEinsaetzeIndexRoute: AppEinsaetzeIndexRoute,
+}
+
+const AppEinsaetzeRouteWithChildren = AppEinsaetzeRoute._addFileChildren(
+  AppEinsaetzeRouteChildren,
+)
+
+interface AppRouteChildren {
+  AppEinsaetzeRoute: typeof AppEinsaetzeRouteWithChildren
+}
+
+const AppRouteChildren: AppRouteChildren = {
+  AppEinsaetzeRoute: AppEinsaetzeRouteWithChildren,
+}
+
+const AppRouteWithChildren = AppRoute._addFileChildren(AppRouteChildren)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AdminRoute: AdminRouteWithChildren,
   AdminLoginRoute: AdminLoginRoute,
+  AppRoute: AppRouteWithChildren,
   AuthRoute: AuthRoute,
-  EinsaetzeRoute: EinsaetzeRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
