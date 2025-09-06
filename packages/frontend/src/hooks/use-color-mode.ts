@@ -2,38 +2,54 @@ import { useTheme } from 'next-themes';
 import type { ColorMode, UseColorModeReturn } from '@/components/ui/color-mode';
 
 /**
- * Hook zum Verwalten des Farbmodus (Hell/Dunkel-Theme).
+ * Hook zum Verwalten des Farbmodus (Hell/Dunkel/System-Theme).
  *
  * Bietet eine einfache API zum Lesen und Ändern des aktuellen Themes.
+ * Unterstützt automatische Anpassung an Systemeinstellungen.
  * Validiert die Theme-Werte und stellt sicher, dass nur gültige
  * Farbmodi verwendet werden.
  *
- * @returns Objekt mit colorMode, setColorMode und toggleColorMode Funktionen
+ * @returns Objekt mit colorMode, resolvedColorMode, setColorMode und toggleColorMode Funktionen
  */
 export function useColorMode(): UseColorModeReturn {
-  const { resolvedTheme, setTheme, forcedTheme } = useTheme();
+  const { theme, resolvedTheme, setTheme, forcedTheme } = useTheme();
 
   // Validierung der Theme-Werte
-  const rawColorMode = forcedTheme || resolvedTheme;
   const isValidColorMode = (mode: unknown): mode is ColorMode => {
+    return mode === 'light' || mode === 'dark' || mode === 'system';
+  };
+
+  const isValidResolvedMode = (mode: unknown): mode is 'light' | 'dark' => {
     return mode === 'light' || mode === 'dark';
   };
 
-  // Fallback auf 'light' wenn ungültiger Wert
-  const colorMode: ColorMode = isValidColorMode(rawColorMode) ? rawColorMode : 'light';
+  // Der aktuelle Modus (kann 'system' sein)
+  const rawColorMode = forcedTheme || theme;
+  const colorMode: ColorMode = isValidColorMode(rawColorMode) ? rawColorMode : 'system';
+
+  // Der tatsächlich angezeigte Modus (immer 'light' oder 'dark')
+  const resolvedColorMode: 'light' | 'dark' = isValidResolvedMode(resolvedTheme) ? resolvedTheme : 'light';
 
   // Warnung bei ungültigem Theme-Wert
   if (rawColorMode && !isValidColorMode(rawColorMode)) {
-    console.warn(`Ungültiger Theme-Wert: "${rawColorMode}". Verwende "light" als Fallback.`);
+    console.warn(`Ungültiger Theme-Wert: "${rawColorMode}". Verwende "system" als Fallback.`);
   }
 
   const toggleColorMode = () => {
-    setTheme(resolvedTheme === 'dark' ? 'light' : 'dark');
+    // Zyklus: light -> dark -> system -> light
+    if (theme === 'light') {
+      setTheme('dark');
+    } else if (theme === 'dark') {
+      setTheme('system');
+    } else {
+      setTheme('light');
+    }
   };
 
   return {
     colorMode,
-    setColorMode: setTheme,
+    resolvedColorMode,
+    setColorMode: setTheme as (colorMode: ColorMode) => void,
     toggleColorMode,
   };
 }
@@ -42,7 +58,8 @@ export function useColorMode(): UseColorModeReturn {
  * Hook zum Auswählen von Werten basierend auf dem aktuellen Farbmodus.
  *
  * Ermöglicht die bedingte Verwendung von Werten abhängig vom
- * Hell- oder Dunkel-Modus.
+ * Hell- oder Dunkel-Modus. Verwendet den tatsächlich angezeigten Modus,
+ * auch wenn 'system' ausgewählt ist.
  *
  * @param light - Wert für den hellen Modus
  * @param dark - Wert für den dunklen Modus
@@ -53,6 +70,6 @@ export function useColorMode(): UseColorModeReturn {
  * const textColor = useColorModeValue('gray.900', 'white');
  */
 export function useColorModeValue<T>(light: T, dark: T) {
-  const { colorMode } = useColorMode();
-  return colorMode === 'dark' ? dark : light;
+  const { resolvedColorMode } = useColorMode();
+  return resolvedColorMode === 'dark' ? dark : light;
 }
