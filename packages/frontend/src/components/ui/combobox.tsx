@@ -1,10 +1,10 @@
 'use client';
 
-import { ComboboxButton, ComboboxInput, ComboboxOption, ComboboxOptions, Combobox as HeadlessCombobox, Label } from '@headlessui/react';
+import { cn } from '@/utils/cn';
+import { Combobox as HeadlessCombobox, ComboboxButton, ComboboxInput, ComboboxOption, ComboboxOptions, Label } from '@headlessui/react';
 import type * as React from 'react';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { PiCaretDown, PiX } from 'react-icons/pi';
-import { cn } from '@/utils/cn.ts';
 
 export interface ComboboxItem {
   value: string;

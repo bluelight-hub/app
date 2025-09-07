@@ -1,6 +1,5 @@
+import { cn } from '@/utils/cn';
 import type { ReactNode } from 'react';
-
-import { cn } from '@/utils/cn.ts';
 
 interface TextProps {
   children: ReactNode;

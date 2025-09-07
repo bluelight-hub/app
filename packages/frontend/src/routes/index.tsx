@@ -1,6 +1,9 @@
-import { createFileRoute } from '@tanstack/react-router';
-import { lazy } from 'react';
+import { createFileRoute, redirect } from '@tanstack/react-router';
 
 export const Route = createFileRoute('/')({
-  component: lazy(() => import('@pages/index.page.tsx').then((module) => ({ default: module.IndexPage }))),
+  beforeLoad() {
+    throw redirect({
+      to: '/app/einsaetze',
+    });
+  },
 });

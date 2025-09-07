@@ -55,6 +55,7 @@ export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
     return (
       <HeadlessButton
         aria-busy={loading}
+        aria-live={loading ? 'polite' : undefined}
         className={cn(baseStyles, variants[variant], sizes[size], animationStyles, fullWidth && 'w-full', className)}
         disabled={disabled || loading}
         type={type}
@@ -68,9 +69,19 @@ export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
             {children}
             {kbd && (
               <kbd className={cn('ml-2 inline-flex items-center gap-0.5 rounded px-1.5 py-0.5 font-medium text-xs', kbdStyles[variant])}>
-                {kbd.split('+').map((key) => (
-                  <span key={key}>{key === 'cmd' || key === 'Cmd' ? '⌘' : key}</span>
-                ))}
+                {kbd.split('+').map((key) => {
+                  const normalizedKey = key.trim().toLowerCase();
+                  const keyMap: Record<string, string> = {
+                    cmd: '⌘',
+                    ctrl: 'Ctrl',
+                    shift: '⇧',
+                    alt: '⌥',
+                    option: '⌥',
+                    enter: '↩︎',
+                  };
+                  const displayKey = keyMap[normalizedKey] || key.charAt(0).toUpperCase() + key.slice(1).toLowerCase();
+                  return <span key={key}>{displayKey}</span>;
+                })}
               </kbd>
             )}
           </>

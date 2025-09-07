@@ -15,7 +15,10 @@
         "label": "main",
         "title": "[DEV] Bluelight Hub",
         "width": 800,
-        "height": 1000,
+        "height": 800,
+        "minWidth": 600,
+        "minHeight": 700,
+        "center": true,
         "resizable": true,
         "fullscreen": false
       }

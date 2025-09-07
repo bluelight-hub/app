@@ -1,8 +1,7 @@
-import { DialogPanel, DialogTitle, Dialog as HeadlessDialog, Transition, TransitionChild } from '@headlessui/react';
+import { cn } from '@/utils/cn';
+import { Dialog as HeadlessDialog, DialogPanel, DialogTitle, Transition, TransitionChild } from '@headlessui/react';
 import * as React from 'react';
 import { PiX } from 'react-icons/pi';
-
-import { cn } from '@/utils/cn.ts';
 
 interface DialogProps {
   isOpen: boolean;

@@ -1,7 +1,6 @@
+import { cn } from '@/utils/cn';
 import { Tab, TabGroup, TabList, TabPanel, TabPanels } from '@headlessui/react';
 import type { ReactNode } from 'react';
-
-import { cn } from '@/utils/cn.ts';
 
 interface TabItem {
   label: string;

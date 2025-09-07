@@ -43,12 +43,6 @@ export class EinsatzRepository {
     });
   }
 
-  async delete(id: string): Promise<Einsatz> {
-    return this.prisma.einsatz.delete({
-      where: { id },
-    });
-  }
-
   async findByStatus(status: EinsatzStatus): Promise<Einsatz[]> {
     return this.prisma.einsatz.findMany({
       where: { status },
@@ -104,15 +98,15 @@ export class EinsatzRepository {
   }> {
     const [angelegt, inBearbeitung, abgeschlossen, archiviert] = await Promise.all([
       this.prisma.einsatz.count({
-        where: { status: 'ANGELEGT' },
+        where: { status: EinsatzStatus.ANGELEGT },
       }),
       this.prisma.einsatz.count({
-        where: { status: 'IN_BEARBEITUNG' },
+        where: { status: EinsatzStatus.IN_BEARBEITUNG },
       }),
       this.prisma.einsatz.count({
-        where: { status: 'ABGESCHLOSSEN' },
+        where: { status: EinsatzStatus.ABGESCHLOSSEN },
       }),
-      includeArchived ? this.prisma.einsatz.count({ where: { status: 'ARCHIVIERT' } }) : Promise.resolve(0),
+      includeArchived ? this.prisma.einsatz.count({ where: { status: EinsatzStatus.ARCHIVIERT } }) : Promise.resolve(0),
     ]);
 
     return {

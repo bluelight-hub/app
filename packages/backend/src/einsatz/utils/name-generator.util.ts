@@ -1,4 +1,4 @@
-import { toNatDateTime } from '@/utils/date.util';
+import { formatNatoDateTime } from '@/utils/date.util';
 import type { Einsatz } from '@prisma/client';
 
 /**
@@ -45,7 +45,7 @@ export class EinsatzNameGenerator {
   }
 
   private static formatDateTime(date: Date): string {
-    return toNatDateTime(date);
+    return formatNatoDateTime(date);
   }
 
   private static formatDate(date: Date): string {

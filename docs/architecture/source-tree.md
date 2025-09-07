@@ -74,7 +74,6 @@ packages/frontend/
 │   │   │   ├── useEinsatz.ts
 │   │   │   └── useEinsaetze.ts
 │   │   └── common/
-│   │       ├── useDebounce.ts
 │   │       └── useLocalStorage.ts
 │   │
 │   ├── 📡 api/                     # API Integration
@@ -373,6 +372,7 @@ bluelight-hub/
 ### Module Structure (Backend)
 
 Each module follows this pattern:
+
 - **controllers/**: HTTP endpoints
 - **services/**: Business logic
 - **repositories/**: Data access
@@ -416,16 +416,16 @@ types.ts            # Type definitions
 ### Frontend (`@/`)
 
 ```typescript
-import { Button } from '@/components/atoms/Button';
-import { useAuth } from '@/hooks/auth/useAuth';
-import { api } from '@/api/generated';
+import {Button} from '@/components/atoms/Button';
+import {useAuth} from '@/hooks/auth/useAuth';
+import {api} from '@/api/generated';
 ```
 
 ### Backend (`@modules/`, `@utils/`)
 
 ```typescript
-import { AuthService } from '@modules/auth/services/auth.service';
-import { Logger } from '@utils/logger';
+import {AuthService} from '@modules/auth/services/auth.service';
+import {Logger} from '@utils/logger';
 ```
 
 ## 📈 Directory Size Guidelines

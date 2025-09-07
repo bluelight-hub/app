@@ -382,8 +382,7 @@ enum EinsatzStatus {
 
 ```typescript
 // Simple In-Memory Cache
-private
-completenessCache = new Map<string, {
+private const completenessCache = new Map<string, {
     data: EinsatzCompleteness;
     expires: number;
 }>();
@@ -482,7 +481,7 @@ interface ApiError {
 
 ```bash
 # Prisma Migration
-npx prisma migrate dev --name add_einsatz_module
+pnpx prisma migrate dev --name add_einsatz_module
 
 # API-Client generieren
 pnpm run generate-api

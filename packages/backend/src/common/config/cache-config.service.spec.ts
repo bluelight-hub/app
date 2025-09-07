@@ -1,26 +1,30 @@
-import { ConfigService } from '@nestjs/config';
 import { Test, type TestingModule } from '@nestjs/testing';
 import { CacheConfigService } from './cache-config.service';
+import { cacheConfig } from './cache.config';
 
 describe('CacheConfigService', () => {
   let service: CacheConfigService;
-  let configService: ConfigService;
+  let mockConfig: any;
 
   beforeEach(async () => {
+    mockConfig = {
+      ttl: 60000,
+      max: 100,
+      store: 'memory',
+      isGlobal: true,
+    };
+
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         CacheConfigService,
         {
-          provide: ConfigService,
-          useValue: {
-            get: jest.fn(),
-          },
+          provide: cacheConfig.KEY,
+          useValue: mockConfig,
         },
       ],
     }).compile();
 
     service = module.get<CacheConfigService>(CacheConfigService);
-    configService = module.get<ConfigService>(ConfigService);
   });
 
   afterEach(() => {
@@ -28,130 +32,100 @@ describe('CacheConfigService', () => {
   });
 
   describe('getCacheTtl', () => {
-    it('sollte TTL aus Environment-Variable zurückgeben', () => {
-      jest.spyOn(configService, 'get').mockReturnValue(7200);
+    it('sollte TTL aus Konfiguration zurückgeben', () => {
+      mockConfig.ttl = 7200000;
 
       const ttl = service.getCacheTtl();
 
-      expect(ttl).toBe(7200);
-      expect(configService.get).toHaveBeenCalledWith('CACHE_TTL_SECONDS', 3600);
-    });
-
-    it('sollte Default-TTL bei fehlender Environment-Variable verwenden', () => {
-      jest.spyOn(configService, 'get').mockReturnValue(undefined);
-
-      const ttl = service.getCacheTtl();
-
-      expect(ttl).toBe(3600);
+      expect(ttl).toBe(7200000);
     });
 
     it('sollte Default-TTL bei ungültigem Wert verwenden', () => {
-      const consoleSpy = jest.spyOn(console, 'warn').mockImplementation();
-      jest.spyOn(configService, 'get').mockReturnValue(-100);
+      const loggerSpy = jest.spyOn(service['logger'], 'warn').mockImplementation();
+      mockConfig.ttl = -100;
 
       const ttl = service.getCacheTtl();
 
-      expect(ttl).toBe(3600);
-      expect(consoleSpy).toHaveBeenCalledWith('Invalid CACHE_TTL_SECONDS value: -100. Using default: 3600');
-      consoleSpy.mockRestore();
+      expect(ttl).toBe(60000);
+      expect(loggerSpy).toHaveBeenCalledWith('Invalid CACHE_TTL value: -100. Using default: 60000');
+      loggerSpy.mockRestore();
     });
 
     it('sollte Default-TTL bei Nicht-Integer-Wert verwenden', () => {
-      const consoleSpy = jest.spyOn(console, 'warn').mockImplementation();
-      jest.spyOn(configService, 'get').mockReturnValue(3.14);
+      const loggerSpy = jest.spyOn(service['logger'], 'warn').mockImplementation();
+      mockConfig.ttl = 3.14;
 
       const ttl = service.getCacheTtl();
 
-      expect(ttl).toBe(3600);
-      expect(consoleSpy).toHaveBeenCalled();
-      consoleSpy.mockRestore();
+      expect(ttl).toBe(60000);
+      expect(loggerSpy).toHaveBeenCalled();
+      loggerSpy.mockRestore();
     });
   });
 
   describe('getCacheMaxItems', () => {
-    it('sollte MAX_ITEMS aus Environment-Variable zurückgeben', () => {
-      jest.spyOn(configService, 'get').mockReturnValue(2000);
+    it('sollte MAX_ITEMS aus Konfiguration zurückgeben', () => {
+      mockConfig.max = 2000;
 
       const maxItems = service.getCacheMaxItems();
 
       expect(maxItems).toBe(2000);
-      expect(configService.get).toHaveBeenCalledWith('CACHE_MAX_ITEMS', 1000);
-    });
-
-    it('sollte Default-MAX_ITEMS bei fehlender Environment-Variable verwenden', () => {
-      jest.spyOn(configService, 'get').mockReturnValue(undefined);
-
-      const maxItems = service.getCacheMaxItems();
-
-      expect(maxItems).toBe(1000);
     });
 
     it('sollte Default-MAX_ITEMS bei ungültigem Wert verwenden', () => {
-      const consoleSpy = jest.spyOn(console, 'warn').mockImplementation();
-      jest.spyOn(configService, 'get').mockReturnValue(0);
+      const loggerSpy = jest.spyOn(service['logger'], 'warn').mockImplementation();
+      mockConfig.max = 0;
 
       const maxItems = service.getCacheMaxItems();
 
-      expect(maxItems).toBe(1000);
-      expect(consoleSpy).toHaveBeenCalledWith('Invalid CACHE_MAX_ITEMS value: 0. Using default: 1000');
-      consoleSpy.mockRestore();
+      expect(maxItems).toBe(100);
+      expect(loggerSpy).toHaveBeenCalledWith('Invalid CACHE_MAX_ITEMS value: 0. Using default: 100');
+      loggerSpy.mockRestore();
     });
   });
 
   describe('createCacheOptions', () => {
     it('sollte vollständige Cache-Konfiguration erstellen', () => {
-      jest
-        .spyOn(configService, 'get')
-        .mockReturnValueOnce(7200) // TTL
-        .mockReturnValueOnce(2000); // MAX_ITEMS
+      mockConfig.ttl = 7200000;
+      mockConfig.max = 2000;
 
       const options = service.createCacheOptions();
 
       expect(options).toEqual({
         store: 'memory',
-        ttl: 7200,
+        ttl: 7200000,
         max: 2000,
-        isGlobal: true,
       });
     });
 
-    it('sollte Default-Werte bei fehlenden Environment-Variables verwenden', () => {
-      jest.spyOn(configService, 'get').mockReturnValue(undefined);
-
+    it('sollte Default-Werte verwenden', () => {
       const options = service.createCacheOptions();
 
       expect(options).toEqual({
         store: 'memory',
-        ttl: 3600,
-        max: 1000,
-        isGlobal: true,
+        ttl: 60000,
+        max: 100,
       });
     });
   });
 
   describe('getCacheConfig', () => {
     it('sollte aktuelle Cache-Konfiguration zurückgeben', () => {
-      jest
-        .spyOn(configService, 'get')
-        .mockReturnValueOnce(1800) // TTL
-        .mockReturnValueOnce(500); // MAX_ITEMS
+      mockConfig.ttl = 1800000;
+      mockConfig.max = 500;
 
       const config = service.getCacheConfig();
 
       expect(config).toEqual({
         store: 'memory',
-        ttl: 1800,
+        ttl: 1800000,
         max: 500,
       });
     });
 
     it('sollte konsistente Werte zwischen getCacheConfig und createCacheOptions liefern', () => {
-      jest
-        .spyOn(configService, 'get')
-        .mockReturnValueOnce(4800) // TTL für getCacheConfig
-        .mockReturnValueOnce(1500) // MAX_ITEMS für getCacheConfig
-        .mockReturnValueOnce(4800) // TTL für createCacheOptions
-        .mockReturnValueOnce(1500); // MAX_ITEMS für createCacheOptions
+      mockConfig.ttl = 4800000;
+      mockConfig.max = 1500;
 
       const config = service.getCacheConfig();
       const options = service.createCacheOptions();
@@ -168,30 +142,30 @@ describe('CacheConfigService', () => {
 
       envs.forEach((env) => {
         process.env.NODE_ENV = env;
-        jest.spyOn(configService, 'get').mockReturnValue(3600);
+        mockConfig.ttl = 3600000;
 
         const ttl = service.getCacheTtl();
 
-        expect(ttl).toBe(3600);
+        expect(ttl).toBe(3600000);
       });
     });
 
     it('sollte große Werte korrekt verarbeiten', () => {
-      jest.spyOn(configService, 'get').mockReturnValue(86400); // 24 Stunden
+      mockConfig.ttl = 86400000; // 24 Stunden in ms
 
       const ttl = service.getCacheTtl();
 
-      expect(ttl).toBe(86400);
+      expect(ttl).toBe(86400000);
     });
 
     it('sollte Null-Werte als ungültig behandeln', () => {
-      const consoleSpy = jest.spyOn(console, 'warn').mockImplementation();
-      jest.spyOn(configService, 'get').mockReturnValue(null);
+      const loggerSpy = jest.spyOn(service['logger'], 'warn').mockImplementation();
+      mockConfig.ttl = null;
 
       const ttl = service.getCacheTtl();
 
-      expect(ttl).toBe(3600);
-      consoleSpy.mockRestore();
+      expect(ttl).toBe(60000);
+      loggerSpy.mockRestore();
     });
   });
 });

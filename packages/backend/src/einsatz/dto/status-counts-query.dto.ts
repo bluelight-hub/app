@@ -13,7 +13,11 @@ export class StatusCountsQueryDto {
     default: false,
   })
   @IsOptional()
+  @Transform(({ value }) => {
+    if (value === 'true' || value === true || value === '1' || value === 1) return true;
+    if (value === 'false' || value === false || value === '0' || value === 0) return false;
+    return false; // Default to false for any other value
+  })
   @IsBoolean()
-  @Transform(({ value }) => value === 'true' || value === true)
   includeArchived?: boolean = false;
 }

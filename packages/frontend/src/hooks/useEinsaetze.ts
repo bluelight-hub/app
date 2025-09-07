@@ -14,7 +14,7 @@ import type {
 } from '@bluelight-hub/shared/client';
 import { type EinsatzControllerFindAllVAlphaOrderByEnum, type EinsatzControllerFindAllVAlphaOrderDirectionEnum, EinsatzResponseDtoStatusEnum } from '@bluelight-hub/shared/client';
 import { useInfiniteQuery, useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { useMemo } from 'react';
+import { useEffect } from 'react';
 import { toast } from 'sonner';
 
 /**
@@ -348,7 +348,7 @@ export const useEinsatz = (id: string | null) => {
   });
 
   // Sync mit einsatzStore wenn sich selectedEinsatzId ändert
-  useMemo(() => {
+  useEffect(() => {
     if (id && id !== selectedEinsatzId) {
       setSelectedEinsatzId(id);
     }

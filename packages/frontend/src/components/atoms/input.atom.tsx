@@ -37,7 +37,7 @@ export const Input = React.forwardRef<HTMLInputElement, InputProps>(
       return (
         <div className="relative">
           {leftIcon && <div className="-translate-y-1/2 pointer-events-none absolute top-1/2 left-4 text-gray-500 dark:text-gray-400">{leftIcon}</div>}
-          <input ref={ref} className={inputClasses} {...props} />
+          <input ref={ref} className={inputClasses} autoCorrect={autoCorrect} {...props} />
           {rightElement && <div className="absolute top-0 right-0 flex h-full items-center pr-1">{rightElement}</div>}
         </div>
       );

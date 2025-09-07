@@ -1,6 +1,5 @@
+import { cn } from '@/utils/cn';
 import type { ReactNode } from 'react';
-
-import { cn } from '@/utils/cn.ts';
 
 export type BadgeVariant = 'default' | 'success' | 'error' | 'warning' | 'info';
 

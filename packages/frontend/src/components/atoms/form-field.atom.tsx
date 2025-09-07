@@ -1,6 +1,5 @@
+import { cn } from '@/utils/cn';
 import type * as React from 'react';
-
-import { cn } from '@/utils/cn.ts';
 
 interface FormFieldProps {
   label?: string | React.ReactNode;

@@ -6,7 +6,7 @@ import { Card } from '@atoms/card.atom';
 import { Container } from '@atoms/container.atom';
 import { Heading } from '@atoms/heading.atom';
 import { Spinner } from '@atoms/spinner.atom';
-import type { CreateUserDto, UserDto } from '@bluelight-hub/shared/dist';
+import type { CreateUserDto, UserDto } from '@bluelight-hub/shared/client';
 import { ConfirmDeleteDialog } from '@organisms/admin/ConfirmDeleteDialog';
 import { CreateUserDialog } from '@organisms/admin/CreateUserDialog';
 import { UsersTable } from '@organisms/admin/UsersTable';

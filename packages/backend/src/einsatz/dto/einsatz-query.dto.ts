@@ -4,6 +4,25 @@ import { Transform } from 'class-transformer';
 import { IsBoolean, IsEnum, IsInt, IsOptional, IsString, Max, Min } from 'class-validator';
 
 /**
+ * Enum für Sortierfelder
+ */
+export enum EinsatzOrderByField {
+  createdAt = 'createdAt',
+  updatedAt = 'updatedAt',
+  alarmstichwort = 'alarmstichwort',
+  status = 'status',
+  name = 'name',
+}
+
+/**
+ * Enum für Sortierrichtung
+ */
+export enum OrderDirection {
+  asc = 'asc',
+  desc = 'desc',
+}
+
+/**
  * DTO für Query-Parameter beim Abrufen von Einsätzen
  */
 export class EinsatzQueryDto {
@@ -22,8 +41,12 @@ export class EinsatzQueryDto {
     type: Boolean,
   })
   @IsOptional()
+  @Transform(({ value }) => {
+    if (value === 'true' || value === true || value === '1' || value === 1) return true;
+    if (value === 'false' || value === false || value === '0' || value === 0) return false;
+    return undefined; // Keep undefined for optional field
+  })
   @IsBoolean()
-  @Transform(({ value }) => value === 'true' || value === true)
   includeCompleteness?: boolean;
 
   @ApiPropertyOptional({
@@ -65,25 +88,29 @@ export class EinsatzQueryDto {
     default: false,
   })
   @IsOptional()
+  @Transform(({ value }) => {
+    if (value === 'true' || value === true || value === '1' || value === 1) return true;
+    if (value === 'false' || value === false || value === '0' || value === 0) return false;
+    return false; // Default to false for includeArchived
+  })
   @IsBoolean()
-  @Transform(({ value }) => value === 'true' || value === true)
   includeArchived?: boolean = false;
 
   @ApiPropertyOptional({
     description: 'Sortierfeld',
     example: 'createdAt',
-    enum: ['createdAt', 'updatedAt', 'alarmstichwort', 'status', 'name'],
+    enum: EinsatzOrderByField,
   })
   @IsOptional()
-  @IsString()
-  orderBy?: 'createdAt' | 'updatedAt' | 'alarmstichwort' | 'status' | 'name';
+  @IsEnum(EinsatzOrderByField, { message: 'orderBy muss eines der definierten Felder sein' })
+  orderBy?: EinsatzOrderByField;
 
   @ApiPropertyOptional({
     description: 'Sortierrichtung',
     example: 'desc',
-    enum: ['asc', 'desc'],
+    enum: OrderDirection,
   })
   @IsOptional()
-  @IsString()
-  orderDirection?: 'asc' | 'desc';
+  @IsEnum(OrderDirection, { message: 'orderDirection muss "asc" oder "desc" sein' })
+  orderDirection?: OrderDirection;
 }

@@ -4,6 +4,7 @@ import { ConfigModule } from '@nestjs/config';
 import { CacheModule } from '@nestjs/cache-manager';
 import { AppConfigService } from './services/app-config.service';
 import { CacheConfigService } from './config/cache-config.service';
+import { cacheConfig } from './config/cache.config';
 import { CacheRateLimiterService } from './services/cache-rate-limiter.service';
 import { CacheDuplicateDetectionService } from './services/cache-duplicate-detection.service';
 
@@ -23,12 +24,12 @@ import { CacheDuplicateDetectionService } from './services/cache-duplicate-detec
 @Global()
 @Module({
   imports: [
-    ConfigModule,
+    ConfigModule.forFeature(cacheConfig),
     PrismaModule,
     CacheModule.registerAsync({
-      imports: [ConfigModule],
+      imports: [ConfigModule.forFeature(cacheConfig)],
       useClass: CacheConfigService,
-      isGlobal: true,
+      // isGlobal wird über das @Global() Decorator am CommonModule gewährleistet
     }),
   ],
   providers: [AppConfigService, CacheConfigService, CacheRateLimiterService, CacheDuplicateDetectionService],

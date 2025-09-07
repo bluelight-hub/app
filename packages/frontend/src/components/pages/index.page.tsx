@@ -49,7 +49,7 @@ export function IndexPage() {
 
   return (
     <div className="flex h-screen flex-col overflow-hidden p-4 sm:p-6 lg:p-8">
-      <div className="flex min-h-0 flex-1 flex-col gap-4">
+      <div className="flex min-h-0 flex-1 flex-col gap-4 overflow-hidden">
         <div className="flex-shrink-0">
           <Heading size="2xl" as="h1">
             Willkommen bei BlueLight Hub
@@ -57,8 +57,8 @@ export function IndexPage() {
           <Text color="muted">Sie sind angemeldet als: {user.username}</Text>
         </div>
 
-        <div className="flex min-h-0 flex-1 flex-col gap-4 lg:grid lg:gap-6">
-          <div className="flex h-full min-h-0 flex-col lg:col-span-2">
+        <div className="flex min-h-0 flex-1 flex-col gap-4 overflow-hidden lg:grid lg:gap-6">
+          <div className="flex h-full min-h-0 flex-col overflow-hidden lg:col-span-2">
             <EinsatzDashboard />
           </div>
         </div>

@@ -1,7 +1,8 @@
 import type { PaginatedData } from '@/common/interceptors/transform.interceptor';
 import { CreateEinsatzDto, EinsatzCompleteness, EinsatzQueryDto, EinsatzResponseDto, NavigationResponseDto, StatusCountsResponseDto, UpdateEinsatzDto } from '@/einsatz/dto';
 import { BadRequestException, Injectable, Logger } from '@nestjs/common';
-import { Einsatz, Prisma } from '@prisma/client';
+import { Einsatz, EinsatzStatus, Prisma } from '@prisma/client';
+import { milliseconds } from 'date-fns';
 import { EinsatzRepository } from './einsatz.repository';
 import { EinsatzNotFoundException } from './exceptions/einsatz-not-found.exception';
 import { EinsatzCompletenessCalculator } from './utils/completeness.util';
@@ -12,7 +13,9 @@ import { EinsatzStatusTransitions } from './utils/status-transitions.util';
 export class EinsatzService {
   private readonly logger = new Logger(EinsatzService.name);
   private readonly completenessCache = new Map<string, { data: EinsatzCompleteness; expires: number }>();
-  private readonly CACHE_TTL = 60000; // 60 seconds
+  private readonly CACHE_TTL = milliseconds({ minutes: 1 });
+  private lastCleanup = Date.now();
+  private readonly CLEANUP_INTERVAL = milliseconds({ minutes: 5 }); // 5 Minuten
 
   constructor(private readonly repository: EinsatzRepository) {}
 
@@ -51,7 +54,7 @@ export class EinsatzService {
     // No-Delete Policy: Filter archivierte Einsätze standardmäßig aus
     if (!includeArchived && !status) {
       // Wenn kein spezifischer Status angefragt wurde UND archivierte nicht eingeschlossen werden sollen
-      where.status = { not: 'ARCHIVIERT' };
+      where.status = { not: EinsatzStatus.ARCHIVIERT };
     } else if (status) {
       where.status = status;
     }
@@ -175,7 +178,7 @@ export class EinsatzService {
     }
 
     const updateData: Prisma.EinsatzUpdateInput = {
-      status: 'ARCHIVIERT',
+      status: EinsatzStatus.ARCHIVIERT,
       archivedAt: new Date(),
       archiver: {
         connect: {
@@ -238,9 +241,11 @@ export class EinsatzService {
       expires: Date.now() + this.CACHE_TTL,
     });
 
-    // Cleanup bei zu vielen Einträgen
-    if (this.completenessCache.size > 100) {
+    // Cleanup mit kombinierter Strategie: Zeit- und größenbasiert
+    const now = Date.now();
+    if (now - this.lastCleanup > this.CLEANUP_INTERVAL || this.completenessCache.size > 100) {
       this.cleanupExpiredCacheEntries();
+      this.lastCleanup = now;
     }
 
     return responseData;

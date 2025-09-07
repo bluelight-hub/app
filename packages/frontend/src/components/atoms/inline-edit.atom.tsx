@@ -1,4 +1,4 @@
-import { cn } from '@/utils/cn.ts';
+import { cn } from '@/utils/cn';
 import { Button } from '@atoms/button.atom';
 import { type KeyboardEvent, useEffect, useRef, useState } from 'react';
 
@@ -115,34 +115,32 @@ export function InlineEdit({
     );
   }
 
-  const InputComponent = multiline ? 'textarea' : 'input';
+  const sharedProps = {
+    value: editValue,
+    onChange: (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+      setEditValue(e.target.value);
+      setError(null);
+    },
+    onBlur: handleSave,
+    onKeyDown: handleKeyDown,
+    maxLength: maxLength,
+    disabled: isSaving,
+    className: cn(
+      'w-full rounded border px-2 py-1',
+      'focus:outline-none focus:ring-2',
+      error ? 'border-red-500 focus:ring-red-500 dark:border-red-400 dark:focus:ring-red-400' : 'border-gray-300 focus:ring-primary-500 dark:border-gray-600 dark:focus:ring-primary-400',
+      'bg-white dark:bg-gray-900',
+      'text-gray-900 dark:text-gray-100',
+      'disabled:cursor-not-allowed disabled:opacity-50',
+      multiline && 'resize-none',
+      editClassName,
+    ),
+    placeholder: placeholder,
+  };
 
   return (
     <div className="relative">
-      <InputComponent
-        ref={inputRef as React.Ref<HTMLInputElement | HTMLTextAreaElement>}
-        value={editValue}
-        onChange={(e) => {
-          setEditValue(e.target.value);
-          setError(null);
-        }}
-        onBlur={handleSave}
-        onKeyDown={handleKeyDown}
-        maxLength={maxLength}
-        disabled={isSaving}
-        className={cn(
-          'w-full rounded border px-2 py-1',
-          'focus:outline-none focus:ring-2',
-          error ? 'border-red-500 focus:ring-red-500 dark:border-red-400 dark:focus:ring-red-400' : 'border-gray-300 focus:ring-primary-500 dark:border-gray-600 dark:focus:ring-primary-400',
-          'bg-white dark:bg-gray-900',
-          'text-gray-900 dark:text-gray-100',
-          'disabled:cursor-not-allowed disabled:opacity-50',
-          multiline && 'resize-none',
-          editClassName,
-        )}
-        rows={multiline ? 3 : undefined}
-        placeholder={placeholder}
-      />
+      {multiline ? <textarea {...sharedProps} ref={inputRef as React.RefObject<HTMLTextAreaElement>} rows={3} /> : <input {...sharedProps} ref={inputRef as React.RefObject<HTMLInputElement>} />}
       {error && <div className="absolute top-full left-0 mt-1 text-red-600 text-sm dark:text-red-400">{error}</div>}
       {multiline && <div className="mt-1 text-gray-500 text-xs dark:text-gray-400">Strg+Enter zum Speichern, Esc zum Abbrechen</div>}
     </div>

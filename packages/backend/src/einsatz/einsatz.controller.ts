@@ -93,7 +93,15 @@ export class EinsatzController {
     @Query(new ValidationPipe({ transform: true, whitelist: true }))
     query: EinsatzQueryDto,
   ): Promise<PaginatedData<EinsatzResponseDto>> {
-    this.logger.log(`Fetching Einsätze with filters: ${JSON.stringify(query)}`);
+    const sanitizedQuery = {
+      status: query.status,
+      page: query.page,
+      limit: query.limit,
+      includeArchived: query.includeArchived,
+      sortBy: query.orderBy,
+      sortOrder: query.orderDirection,
+    };
+    this.logger.log(`Fetching Einsätze with filters: ${JSON.stringify(sanitizedQuery)}`);
     return await this.einsatzService.findAll(query);
   }
 
