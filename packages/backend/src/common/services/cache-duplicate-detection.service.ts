@@ -1,5 +1,6 @@
 import { Cache, CACHE_MANAGER } from '@nestjs/cache-manager';
 import { Inject, Injectable, Logger } from '@nestjs/common';
+import { milliseconds } from 'date-fns';
 import { createHash } from 'node:crypto';
 
 /**
@@ -19,7 +20,7 @@ import { createHash } from 'node:crypto';
 @Injectable()
 export class CacheDuplicateDetectionService {
   private readonly logger = new Logger(CacheDuplicateDetectionService.name);
-  private readonly DEFAULT_TTL = 60000; // 1 Minute in Millisekunden
+  private readonly DEFAULT_TTL = milliseconds({ minutes: 1 }); // 1 Minute in Millisekunden
 
   constructor(@Inject(CACHE_MANAGER) private readonly cacheManager: Cache) {}
 

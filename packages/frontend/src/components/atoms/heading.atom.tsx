@@ -1,6 +1,5 @@
+import { cn } from '@/utils/cn';
 import type { ReactNode } from 'react';
-
-import { cn } from '@/utils/cn.ts';
 
 interface HeadingProps {
   size?: 'xs' | 'sm' | 'md' | 'lg' | 'xl' | '2xl' | '3xl';

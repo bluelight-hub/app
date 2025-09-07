@@ -62,7 +62,7 @@ cohesive and user-centered experience.
 - **Rollenbasierte Interfaces:** Jede Nutzergruppe sieht nur relevante Funktionen
 - **Ein-Einsatz-Fokus:** System optimiert für EINEN aktiven Einsatz (keine Multi-Einsatz-Verwaltung)
 - **Stress-resistente Bedienung:** Große Buttons für Handschuh-Bedienung, klare Farbcodierung
-- **Offline-Fähigkeit:** Kritische Funktionen müssen auch bei Verbindungsproblemen funktionieren
+- **Autonomes Verbindungsszenario (Offline):** Kritische Funktionen müssen auch bei Verbindungsproblemen funktionieren
 - **Schnelle Kontextwechsel:** Zwischen verschiedenen Ansichten ohne Datenverlust wechseln
 - **Geschwindigkeit:** Kritische Aktionen in unter 3 Sekunden ausführbar
 - **Fehlerprävention:** Klare Bestätigungen für kritische Statusänderungen
@@ -283,7 +283,7 @@ style ETBAuto3 fill: #ffcccc
 │heute  │ │      vermisst, Rauchentwicklung stark          ││
 │       │ │      [System] #alarm #initial                  ││
 │[🔍]   │ ├─────────────────────────────────────────────────┤│
-│Suche  │ │14:29 🟡 KRÄFTE: HLF 1, DLK, ELW vor Ort       ││
+│Suche  │ │14:29 🟡 KRÄFTE: HLF 1, DLK, FüKW vor Ort      ││
 │       │ │      [FüKw-Schmidt] #kräfte #ankunft           ││
 │[📑]   │ ├─────────────────────────────────────────────────┤│
 │Kateg. │ │14:31 🔴 MELDUNG: Person am Fenster 3.OG        ││
@@ -843,7 +843,7 @@ interface ETBEntry {
 
 **Version:** 1.0  
 **Status:** Review Ready  
-**Last Updated:** 2024-01-09  
+**Last Updated:** 2025-09-07
 **Author:** Sally (UX Expert)  
 **Next Review:** Nach Stakeholder Feedback
 

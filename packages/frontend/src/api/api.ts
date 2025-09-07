@@ -1,5 +1,6 @@
 import { logger } from '@/utils/logger';
 import { AuthApi, Configuration, EinsatzApi, HealthApi, UserManagementApi } from '@bluelight-hub/shared/client';
+import { fetchWithRefresh } from './fetchWithRefresh';
 
 /**
  * Ermittelt die Basis-URL für die API basierend auf der Umgebung
@@ -47,11 +48,13 @@ class BackendApi {
    *
    * Initialisiert die Konfiguration mit der Backend-URL aus den Umgebungsvariablen
    * und erstellt gecachte Instanzen der API-Clients für optimale Performance.
+   *
+   * Verwendet einen custom fetch wrapper der automatisches Token-Refresh bei 401 handhabt.
    */
   constructor() {
     this.configuration = new Configuration({
       basePath: getBaseUrl(),
-      fetchApi: fetch,
+      fetchApi: fetchWithRefresh, // Use our custom fetch with refresh logic
       credentials: 'include',
     });
 

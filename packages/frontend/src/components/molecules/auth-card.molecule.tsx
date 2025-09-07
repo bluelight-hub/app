@@ -1,6 +1,6 @@
-import type { ReactNode } from 'react';
 import { Card } from '@/components/atoms/card.atom';
-import { cn } from '@/utils/cn.ts';
+import { cn } from '@/utils/cn';
+import type { ReactNode } from 'react';
 
 interface AuthCardProps {
   children: ReactNode;

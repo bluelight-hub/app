@@ -7,11 +7,13 @@
 
 == Status
 
-Accepted
+Angenommen (2025-09-07)
 
 == Kontext
 
-Das Bluelight-Hub-System verwaltet kritische Einsatzdaten für Rettungsorganisationen. Diese Daten unterliegen strengen rechtlichen und regulatorischen Anforderungen bezüglich ihrer Aufbewahrung und Nachvollziehbarkeit. Es besteht die Notwendigkeit, eine klare Policy für den Umgang mit der "Löschung" von Einsatzdaten zu definieren.
+Das Bluelight-Hub-System verwaltet kritische Einsatzdaten für Rettungsorganisationen.
+Diese Daten unterliegen strengen rechtlichen und regulatorischen Anforderungen bezüglich ihrer Aufbewahrung und Nachvollziehbarkeit.
+Es besteht die Notwendigkeit, eine klare Policy für den Umgang mit der "Löschung" von Einsatzdaten zu definieren.
 
 === Problemstellung
 
@@ -36,16 +38,39 @@ Wir implementieren eine strikte **No-Delete Policy** für Einsätze:
 ----
 // ❌ VERBOTEN: Physische Löschung
 @Delete(':id')
-async delete(@Param('id') id: string) {
+async delete(@Param('id') string) {
   // NIEMALS IMPLEMENTIEREN!
 }
 
 // ✅ ERLAUBT: Archivierung
 @Patch(':id/archive')
-async archive(@Param('id') id: string) {
+async archive(@Param('id') string) {
   return this.einsatzService.archive(id); // Setzt Status auf ARCHIVIERT
 }
 ----
+
+== Begründung
+
+Die No-Delete Policy wurde aus mehreren kritischen Gründen gewählt:
+
+**Hauptmotivationen:**
+* **Datenintegrität**: Garantiert vollständige, unveränderliche Historie aller Einsätze
+* **Auditierbarkeit**: Ermöglicht lückenlose Nachvollziehbarkeit für Compliance-Audits
+* **Rechtliche Anforderungen**: Erfüllt gesetzliche Aufbewahrungspflichten für Rettungsdienste
+* **Einfache Wiederherstellung**: Archivierte Einsätze können bei Bedarf reaktiviert werden
+
+**Betrachtete Alternativen:**
+* **Hard Delete**: Verworfen wegen rechtlicher Risiken und unwiederbringlichem Datenverlust
+* **TTL-basierte Löschung**: Verworfen wegen komplexer Fristenverwaltung und unterschiedlicher Aufbewahrungsfristen
+* **Partielle Löschung**: Verworfen wegen Inkonsistenzrisiken und erhöhter Komplexität
+
+**Trade-offs und Risikominderung:**
+* Der erhöhte Speicherbedarf wird durch moderne Cloud-Storage-Kosten relativiert
+* Performance-Einbußen werden durch gezielte Indizierung und Query-Optimierung adressiert
+* DSGVO-Konformität wird durch Anonymisierung statt Löschung erreicht
+* Die zusätzliche Query-Komplexität wird durch standardisierte Filter-Patterns abgefedert
+
+Diese Entscheidung priorisiert Datensicherheit und rechtliche Compliance über minimale technische Vereinfachungen, was für ein kritisches Rettungssystem angemessen ist.
 
 == Konsequenzen
 
@@ -64,15 +89,18 @@ async archive(@Param('id') id: string) {
 * **Datenschutz**: Spezielle Prozesse für DSGVO-konforme Löschung personenbezogener Daten erforderlich
 * **Komplexität**: Filterlogik für archivierte Daten in allen Abfragen notwendig
 
-== Alternativen
+== Optionen
 
-=== Alternative 1: Physische Löschung nach Aufbewahrungsfrist
+=== Option 1: Physische Löschung nach Aufbewahrungsfrist
+
 * **Verworfen**: Zu hohes rechtliches Risiko, komplexe Fristenverwaltung
 
-=== Alternative 2: Separate Archiv-Datenbank
+=== Option 2: Separate Archiv-Datenbank
+
 * **Verworfen**: Erhöhte Komplexität, erschwerte Wiederherstellung
 
-=== Alternative 3: Event Sourcing
+=== Option 3: Event Sourcing
+
 * **Verworfen**: Zu komplex für aktuelle Anforderungen, kann später ergänzt werden
 
 == Implementierungsdetails
@@ -90,9 +118,9 @@ CREATE TYPE einsatz_status AS ENUM (
 
 -- Kein CASCADE DELETE auf Foreign Keys
 ALTER TABLE related_table
-  ADD CONSTRAINT fk_einsatz
+  ADD CONSTRAINT fk_einsaetze
   FOREIGN KEY (einsatz_id)
-  REFERENCES einsatz(id)
+  REFERENCES einsaetze(id)
   ON DELETE RESTRICT;  -- Verhindert Löschung
 ----
 
@@ -138,4 +166,5 @@ const activeEinsaetze = await prisma.einsatz.findMany({
 
 == Notizen
 
-Diese Entscheidung wurde getroffen, um höchste Standards für Datensicherheit und Compliance in einem kritischen Rettungssystem zu gewährleisten. Die Policy sollte allen Entwicklern klar kommuniziert und in Code-Reviews durchgesetzt werden.
+Diese Entscheidung wurde getroffen, um höchste Standards für Datensicherheit und Compliance in einem kritischen Rettungssystem zu gewährleisten.
+Die Policy sollte allen Entwicklern klar kommuniziert und in Code-Reviews durchgesetzt werden.

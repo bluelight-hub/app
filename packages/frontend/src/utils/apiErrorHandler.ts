@@ -67,7 +67,7 @@ const ERROR_MESSAGES: Record<number, Record<string, string>> = {
 export async function getApiErrorMessage(
   error: unknown,
   fallbackMessage: string,
-  context?: 'createUser' | 'deleteUser' | 'updateUser' | 'adminSetup' | 'adminLogin' | 'userLogin' | 'userRegister' | 'userAuth' | 'createEinsatz' | 'updateEinsatz',
+  context?: 'createUser' | 'deleteUser' | 'updateUser' | 'adminSetup' | 'adminLogin' | 'userLogin' | 'userRegister' | 'userAuth' | 'createEinsatz' | 'updateEinsatz' | 'archiveEinsatz',
 ): Promise<string> {
   // Handle non-ResponseError cases
   if (!(error instanceof ResponseError)) {
@@ -148,7 +148,7 @@ export async function getApiErrorMessage(
 function getContextSpecificMessage(
   status: number,
   errorData: ApiErrorResponse,
-  context: 'createUser' | 'deleteUser' | 'updateUser' | 'adminSetup' | 'adminLogin' | 'userLogin' | 'userRegister' | 'userAuth' | 'createEinsatz' | 'updateEinsatz',
+  context: 'createUser' | 'deleteUser' | 'updateUser' | 'adminSetup' | 'adminLogin' | 'userLogin' | 'userRegister' | 'userAuth' | 'createEinsatz' | 'updateEinsatz' | 'archiveEinsatz',
 ): string | null {
   switch (context) {
     case 'createUser':
@@ -244,6 +244,11 @@ function getContextSpecificMessage(
         return 'Beim Aktualisieren des Einsatzes ist ein Validierungsfehler aufgetreten.';
       }
       break;
+
+    case 'archiveEinsatz':
+      if (status === 400) {
+        return 'Beim Archivieren des Einsatzes ist ein Validierungsfehler aufgetreten.';
+      }
   }
 
   return null;

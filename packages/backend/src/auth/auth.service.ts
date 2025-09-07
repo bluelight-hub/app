@@ -1,6 +1,6 @@
 import { adminRoles, isAdmin } from '@/auth/utils/auth.utils';
 import { PrismaService } from '@/prisma/prisma.service';
-import { toNatDateTime } from '@/utils/date.util';
+import { formatNatoDateTime } from '@/utils/date.util';
 import { ConflictException, ForbiddenException, Injectable, Logger, NotFoundException, UnauthorizedException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
@@ -311,7 +311,7 @@ export class AuthService {
       role: user.role as Role,
       isActive: user.isActive,
       createdAt: user.createdAt.toISOString(),
-      createdAtNato: toNatDateTime(user.createdAt),
+      createdAtNato: formatNatoDateTime(user.createdAt),
     };
   }
 

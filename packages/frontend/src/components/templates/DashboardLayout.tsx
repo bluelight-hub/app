@@ -1,7 +1,7 @@
-import type { ReactNode } from 'react';
 import { Container } from '@/components/atoms/container.atom';
 
-import { cn } from '@/utils/cn.ts';
+import { cn } from '@/utils/cn';
+import type { ReactNode } from 'react';
 
 /**
  * Layout-Template für Dashboard-Seiten

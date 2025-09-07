@@ -76,13 +76,14 @@ async function bootstrap() {
 
   // Enable interceptors globally
   const reflector = app.get(Reflector);
-  app.useGlobalInterceptors(new TransformInterceptor(reflector), new PerformanceInterceptor());
+  app.useGlobalInterceptors(new PerformanceInterceptor(), new TransformInterceptor(reflector));
 
   const port = configService.get('BACKEND_PORT') || configService.get('PORT') || 3000;
 
   await app.listen(port);
+  const url = await app.getUrl();
   Logger.log(`Application is running in ${isProduction ? 'production' : 'development'} mode`, 'Bootstrap');
-  Logger.log(`Application is running on: http://localhost:${port}`);
+  Logger.log(`Application is running on: ${url}`);
 }
 
 bootstrap();

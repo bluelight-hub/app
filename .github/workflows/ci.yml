@@ -4,7 +4,7 @@ on:
   pull_request:
     branches: [ main, develop, feature/*, alpha, beta, release/* ]
   push:
-    branches: [main, develop, feature/*, alpha, beta, release/*]
+    branches: [ main, develop, feature/*, alpha, beta, release/* ]
     # Only on push to main branches for continuous monitoring
 
 # Cancel in-progress runs when new commit is pushed

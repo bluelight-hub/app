@@ -9,6 +9,7 @@ const shownErrors = new WeakSet<Error>();
 // Token refresh queue to prevent multiple simultaneous refreshes
 class TokenRefreshQueue {
   private refreshPromise: Promise<boolean> | null = null;
+  private isRefreshing = false;
 
   async startRefresh(refreshFn: () => Promise<boolean>): Promise<boolean> {
     if (this.refreshPromise) {
@@ -22,6 +23,10 @@ class TokenRefreshQueue {
     });
 
     return this.refreshPromise;
+  }
+
+  getIsRefreshing(): boolean {
+    return this.isRefreshing;
   }
 
   reset(): void {
@@ -252,7 +257,12 @@ export async function handleQueryError(error: unknown, _query?: unknown): Promis
         logger.warn('Auth endpoint failed with 401, not attempting refresh', { errorUrl });
         // Only redirect to login if we're not already there
         if (!isOnAuthPage) {
-          window.location.href = '/auth';
+          // Delay redirect to avoid race conditions with other failing queries
+          setTimeout(() => {
+            if (!tokenRefreshQueue.getIsRefreshing()) {
+              window.location.href = '/auth';
+            }
+          }, 100);
         }
         return;
       }
@@ -263,21 +273,19 @@ export async function handleQueryError(error: unknown, _query?: unknown): Promis
         return;
       }
 
-      logger.debug('Got 401 on non-auth endpoint, attempting token refresh', { errorUrl });
+      logger.warn('Token refresh failed, redirecting to login');
+      tokenRefreshQueue.reset();
 
-      // Try to refresh the token
-      const refreshSuccess = await tokenRefreshQueue.startRefresh(performTokenRefresh);
+      // Show a toast before redirecting
+      toast.warning('Sitzung abgelaufen', {
+        description: 'Ihre Sitzung ist abgelaufen. Sie werden zur Anmeldung weitergeleitet.',
+        duration: 3000,
+      });
 
-      if (!refreshSuccess) {
-        logger.warn('Token refresh failed, redirecting to login');
-        tokenRefreshQueue.reset();
-        // Redirect to login (we already checked we're not on auth page)
+      // Small delay to let the toast show
+      setTimeout(() => {
         window.location.href = '/auth';
-        return;
-      }
-
-      logger.debug('Token refresh successful, error will be retried');
-      // Don't show error toast, the query will be retried
+      }, 500);
       return;
     }
   }
@@ -333,24 +341,4 @@ export async function handleQueryError(error: unknown, _query?: unknown): Promis
  */
 export function resetTokenRefreshHandler(): void {
   tokenRefreshQueue.reset();
-}
-
-/**
- * Clear the shown errors cache (useful for testing or when errors should be re-shown)
- */
-export function clearShownErrors(): void {
-  // WeakSet doesn't have a clear method, so we need to create a new one
-  // This is handled by reassigning the variable in the module scope
-  // For now, this is a no-op but could be extended if needed
-}
-
-/**
- * Manually show an error toast (useful for custom error handling)
- */
-export function showErrorToast(error: unknown, options?: { skipDuplicateCheck?: boolean }): void {
-  if (!options?.skipDuplicateCheck && error instanceof Error && shownErrors.has(error)) {
-    return;
-  }
-
-  handleQueryError(error);
 }

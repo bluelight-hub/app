@@ -364,7 +364,9 @@ sequenceDiagram
 
 ==== No-Delete Policy für Einsätze
 
-Das Bluelight-Hub-System implementiert eine strikte No-Delete Policy für Einsätze aus rechtlichen und Compliance-Gründen:
+Das Bluelight-Hub-System implementiert eine strikte No-Delete Policy für Einsätze aus rechtlichen und Compliance-Gründen.
+
+Siehe auch <<../adr/017-no-delete-policy-einsaetze.adoc#,ADR-017: No-Delete Policy für Einsätze>>.
 
 ===== Rechtliche Anforderungen
 
@@ -407,10 +409,10 @@ Anstelle physischer Löschungen nutzt das System einen Archivierungs-Ansatz:
 ----
 // Status-Enum für Einsätze
 enum EinsatzStatus {
-  PENDING = 'pending',
-  IN_PROGRESS = 'in_progress',
-  COMPLETED = 'completed',
-  ARCHIVIERT = 'archiviert'  // Statt physischer Löschung
+  ANGELEGT = 'ANGELEGT',
+  IN_BEARBEITUNG = 'IN_BEARBEITUNG',
+  ABGESCHLOSSEN = 'ABGESCHLOSSEN',
+  ARCHIVIERT = 'ARCHIVIERT'  // Statt physischer Löschung
 }
 ----
 

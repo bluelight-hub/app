@@ -1,7 +1,6 @@
+import { cn } from '@/utils/cn';
 import type { ReactNode } from 'react';
 import { forwardRef } from 'react';
-
-import { cn } from '@/utils/cn.ts';
 
 interface CardProps {
   children: ReactNode;

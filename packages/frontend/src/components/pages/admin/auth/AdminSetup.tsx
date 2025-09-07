@@ -1,5 +1,5 @@
 import { useAuth } from '@/hooks/useAuth.ts';
-import { getApiErrorMessage } from '@/utils/apiErrorHandler.ts';
+import { getApiErrorMessage } from '@/utils/apiErrorHandler';
 import { logger } from '@/utils/logger';
 import { Alert } from '@atoms/alert.atom';
 import { Button } from '@atoms/button.atom';

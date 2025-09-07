@@ -53,5 +53,4 @@ networks:
 # Default (persistent storage): docker-compose -f docker-compose.test.yml up
 # Ephemeral (in-memory storage): docker-compose -f docker-compose.test.yml --profile ephemeral up
 #
-# The ephemeral profile uses tmpfs for PostgreSQL,
-# providing faster test execution and ensuring no state leaks between test runs.
+# The ephemeral profile uses tmpfs for PostgreSQL, providing faster test execution and ensuring no state leaks between test runs.

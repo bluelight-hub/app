@@ -7,7 +7,8 @@ import { EinsatzResponseDto } from './einsatz-response.dto';
 export class EinsatzListResponseDto {
   @ApiProperty({
     description: 'Die Liste der Einsätze',
-    type: [EinsatzResponseDto],
+    type: EinsatzResponseDto,
+    isArray: true,
   })
   data: EinsatzResponseDto[];
 

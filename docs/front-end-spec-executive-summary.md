@@ -11,7 +11,7 @@ Interfaces für verschiedene Nutzergruppen.
 - **7 Nutzergruppen** definiert (Einsatzleiter bis Drohnen-Operator)
 - **< 3 Sekunden** für kritische Aktionen
 - **60px Touch-Targets** für Handschuh-Bedienung
-- **100% Offline-Fähigkeit** für Kernfunktionen
+- **100% Autonomes Verbindungsszenario (Offline)** für Kernfunktionen
 - **WCAG AA** Accessibility-Standard
 
 ## 🚀 Zentrale Innovation: Einsatztagebuch (ETB)
@@ -133,7 +133,7 @@ Das **Einsatztagebuch** ist das Herzstück der Anwendung:
 **UX Lead:** Sally (UX Expert)  
 **Dokument:** `docs/front-end-spec.md` (832 Zeilen)  
 **Version:** 1.0 - Review Ready  
-**Datum:** 09.01.2024
+**Datum:** 07.09.2025
 
 ---
 

@@ -15,6 +15,8 @@ export class PerformanceInterceptor implements NestInterceptor {
 
     const request = context.switchToHttp().getRequest();
     const { method, url } = request;
+    // Remove query parameters to avoid logging PII/tokens
+    const path = typeof url === 'string' ? url.split('?')[0] : url;
     const className = context.getClass().name;
     const handlerName = context.getHandler().name;
 
@@ -28,13 +30,13 @@ export class PerformanceInterceptor implements NestInterceptor {
           const duration = Date.now() - now;
           const statusCode = response.statusCode;
 
-          PerformanceLogger.logHttpRequest(method, url, statusCode, duration, `${className}/${handlerName}`);
+          PerformanceLogger.logHttpRequest(method, path, statusCode, duration, `${className}/${handlerName}`);
         },
         error: (error) => {
           const duration = Date.now() - now;
           const statusCode = error.status || error.statusCode || 500;
 
-          PerformanceLogger.logHttpRequest(method, url, statusCode, duration, `${className}/${handlerName}`, error.message);
+          PerformanceLogger.logHttpRequest(method, path, statusCode, duration, `${className}/${handlerName}`, error.message);
         },
       }),
     );

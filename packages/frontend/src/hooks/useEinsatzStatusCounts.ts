@@ -3,6 +3,7 @@ import { QUERY_KEYS } from '@/queryKeys';
 import { logger } from '@/utils/logger';
 import type { EinsatzControllerGetStatusCountsVAlpha200Response, ResponseError } from '@bluelight-hub/shared/client';
 import { useQuery } from '@tanstack/react-query';
+import { milliseconds } from 'date-fns';
 
 /**
  * Hook für Einsatz-Status-Counts
@@ -25,7 +26,7 @@ export const useEinsatzStatusCounts = (includeArchived = false) => {
         throw error;
       }
     },
-    staleTime: 30000, // 30 seconds
+    staleTime: milliseconds({ seconds: 30 }),
     retry: 3,
     retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000),
   });

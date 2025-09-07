@@ -72,18 +72,16 @@ export function EinsatzCreateForm({ isOpen, onClose, onSuccess }: EinsatzCreateF
     },
   });
 
-  // Keyboard Shortcut: Enter zum Absenden
-  useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (isOpen && e.key === 'Enter' && (e.metaKey || e.ctrlKey)) {
+  // Keyboard Shortcut: Enter zum Absenden (Panel-scoped)
+  const handleKeyDown = useCallback(
+    (e: React.KeyboardEvent) => {
+      if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) {
         e.preventDefault();
         form.handleSubmit();
       }
-    };
-
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [isOpen, form]);
+    },
+    [form],
+  );
 
   // Reset form wenn Panel geschlossen wird
   useEffect(() => {
@@ -111,6 +109,7 @@ export function EinsatzCreateForm({ isOpen, onClose, onSuccess }: EinsatzCreateF
           e.stopPropagation();
           form.handleSubmit();
         }}
+        onKeyDown={handleKeyDown}
         className="space-y-6"
       >
         {/* Alarmstichwort */}
