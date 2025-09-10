@@ -1,6 +1,6 @@
 import { cn } from '@/utils/cn';
 import { Button } from '@atoms/button.atom';
-import { Dialog, DialogPanel, DialogTitle, Transition, TransitionChild } from '@headlessui/react';
+import { Description, Dialog, DialogPanel, DialogTitle, Transition, TransitionChild } from '@headlessui/react';
 import { Fragment, useState } from 'react';
 import { PiWarning, PiX } from 'react-icons/pi';
 
@@ -103,7 +103,7 @@ export function EinsatzIncompleteAlert({
                     </DialogTitle>
 
                     <div className="mt-2">
-                      <p className="text-gray-500 text-sm dark:text-gray-400">{message}</p>
+                      <Description className="text-gray-500 text-sm dark:text-gray-400">{message}</Description>
 
                       {missingFields.length > 0 && (
                         <div className="mt-3">
@@ -121,33 +121,21 @@ export function EinsatzIncompleteAlert({
 
                 <div className="mt-5 sm:mt-4 sm:flex sm:flex-row-reverse">
                   {onComplete && (
-                    <button
-                      type="button"
-                      className="inline-flex w-full justify-center rounded-md bg-blue-600 px-3 py-2 font-semibold text-sm text-white shadow-sm hover:bg-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 sm:ml-3 sm:w-auto dark:focus:ring-offset-gray-800"
-                      onClick={handleComplete}
-                    >
+                    <Button type="button" variant="primary" onClick={handleComplete} className="w-full sm:ml-3 sm:w-auto">
                       {completeButtonText}
-                    </button>
+                    </Button>
                   )}
 
                   {onIgnore && (
-                    <button
-                      type="button"
-                      className="mt-3 inline-flex w-full justify-center rounded-md bg-white px-3 py-2 font-semibold text-gray-900 text-sm shadow-sm ring-1 ring-gray-300 ring-inset hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 sm:mt-0 sm:w-auto dark:bg-gray-700 dark:text-gray-100 dark:ring-gray-600 dark:focus:ring-blue-400 dark:focus:ring-offset-gray-800 dark:hover:bg-gray-600"
-                      onClick={handleIgnore}
-                    >
+                    <Button type="button" variant="secondary" onClick={handleIgnore} className="mt-3 w-full sm:mt-0 sm:w-auto">
                       {ignoreButtonText}
-                    </button>
+                    </Button>
                   )}
 
                   {!onComplete && !onIgnore && (
-                    <button
-                      type="button"
-                      className="inline-flex w-full justify-center rounded-md bg-white px-3 py-2 font-semibold text-gray-900 text-sm shadow-sm ring-1 ring-gray-300 ring-inset hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 sm:w-auto dark:bg-gray-700 dark:text-gray-100 dark:ring-gray-600 dark:focus:ring-blue-400 dark:focus:ring-offset-gray-800 dark:hover:bg-gray-600"
-                      onClick={handleClose}
-                    >
+                    <Button type="button" variant="secondary" onClick={handleClose} className="w-full sm:w-auto">
                       Schließen
-                    </button>
+                    </Button>
                   )}
                 </div>
               </DialogPanel>

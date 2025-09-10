@@ -30,6 +30,12 @@ bluelight-hub/
 └── ...
 ```
 
+### Paketspezifische READMEs
+
+- Frontend (React/Vite/Tauri): [packages/frontend/README.md](packages/frontend/README.md)
+- Backend (NestJS/Prisma): [packages/backend/README.md](packages/backend/README.md)
+- Shared (OpenAPI TypeScript Client): [packages/shared/README.md](packages/shared/README.md)
+
 ## Voraussetzungen
 
 - Node.js (LTS Version)
@@ -71,6 +77,17 @@ pnpm --filter @bluelight-hub/frontend dev
 
 # Nur Backend
 pnpm --filter @bluelight-hub/backend dev
+```
+
+## API-Client generieren
+
+Das Frontend nutzt ausschließlich den generierten OpenAPI-Client aus `packages/shared/client/`.
+
+1. Backend starten (Swagger verfügbar unter `http://localhost:3000/api-json`)
+2. Client generieren:
+
+```bash
+pnpm --filter @bluelight-hub/shared generate-api
 ```
 
 ## Authentication

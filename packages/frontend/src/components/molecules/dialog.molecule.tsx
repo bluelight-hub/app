@@ -1,4 +1,5 @@
 import { cn } from '@/utils/cn';
+import { Button } from '@atoms/button.atom';
 import { Dialog as HeadlessDialog, DialogPanel, DialogTitle, Transition, TransitionChild } from '@headlessui/react';
 import * as React from 'react';
 import { PiX } from 'react-icons/pi';
@@ -76,12 +77,13 @@ Dialog.Footer = ({ children, className }: DialogFooterProps) => {
 
 Dialog.CloseButton = ({ onClose }: { onClose: () => void }) => {
   return (
-    <button
-      type="button"
+    <Button
+      variant={'minimal'}
+      size={'icon'}
       onClick={onClose}
-      className="absolute top-4 right-4 rounded-lg p-1 text-gray-400 transition-colors hover:bg-gray-100 hover:text-gray-500 dark:hover:bg-gray-700 dark:hover:text-gray-300"
+      className="-top-2 absolute right-0 rounded-lg p-1 text-gray-400 transition-colors hover:bg-gray-100 hover:text-gray-500 dark:hover:bg-gray-700 dark:hover:text-gray-300"
     >
       <PiX className="h-5 w-5" />
-    </button>
+    </Button>
   );
 };

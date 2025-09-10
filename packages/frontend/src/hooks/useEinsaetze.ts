@@ -135,19 +135,38 @@ export const useEinsaetze = (options?: UseEinsaetzeOptions) => {
         ...newEinsatz,
         status: ('status' in newEinsatz ? newEinsatz.status : undefined) || EinsatzResponseDtoStatusEnum.Angelegt,
         createdBy: 'current-user',
-        name: `${newEinsatz.alarmstichwort} (wird erstellt)`,
+        name: `${newEinsatz.alarmstichwort || 'Einsatz'} (wird erstellt)`,
         completeness: undefined,
         createdAt: new Date(),
         updatedAt: new Date(),
-      } as EinsatzResponseDto;
+      };
 
       queryClient.setQueryData<EinsatzControllerFindAllVAlpha200Response>(QUERY_KEYS.einsatz.list(filters), (old) => {
         if (!old) return old;
         return {
           ...old,
           data: [optimisticEinsatz, ...(old.data || [])],
+          pagination: old.pagination ? { ...old.pagination, total: (old.pagination.total || 0) + 1 } : old.pagination,
         };
       });
+
+      // Also update infinite query cache if it exists
+      const infiniteData = queryClient.getQueryData<any>(QUERY_KEYS.einsatz.infinite(filters));
+      if (infiniteData?.pages) {
+        queryClient.setQueryData<any>(QUERY_KEYS.einsatz.infinite(filters), {
+          ...infiniteData,
+          pages: infiniteData.pages.map((page: any, index: number) => {
+            if (index === 0) {
+              return {
+                ...page,
+                data: [optimisticEinsatz, ...(page.data || [])],
+                pagination: page.pagination ? { ...page.pagination, total: (page.pagination.total || 0) + 1 } : page.pagination,
+              };
+            }
+            return page;
+          }),
+        });
+      }
 
       return { previousEinsaetze, optimisticEinsatz };
     },
@@ -204,6 +223,18 @@ export const useEinsaetze = (options?: UseEinsaetzeOptions) => {
             data: old.data?.map((e) => (e.id === id ? archivedEinsatz : e)) || [],
           };
         });
+
+        // Also update infinite query cache if it exists
+        const infiniteData = queryClient.getQueryData<any>(QUERY_KEYS.einsatz.infinite(filters));
+        if (infiniteData?.pages) {
+          queryClient.setQueryData<any>(QUERY_KEYS.einsatz.infinite(filters), {
+            ...infiniteData,
+            pages: infiniteData.pages.map((page: any) => ({
+              ...page,
+              data: page.data?.map((e: any) => (e.id === id ? archivedEinsatz : e)) || [],
+            })),
+          });
+        }
       }
 
       return { previousEinsatz, previousEinsaetze };
@@ -269,6 +300,18 @@ export const useEinsaetze = (options?: UseEinsaetzeOptions) => {
             data: old.data?.map((e) => (e.id === id ? updatedEinsatz : e)) || [],
           };
         });
+
+        // Also update infinite query cache if it exists
+        const infiniteData = queryClient.getQueryData<any>(QUERY_KEYS.einsatz.infinite(filters));
+        if (infiniteData?.pages) {
+          queryClient.setQueryData<any>(QUERY_KEYS.einsatz.infinite(filters), {
+            ...infiniteData,
+            pages: infiniteData.pages.map((page: any) => ({
+              ...page,
+              data: page.data?.map((e: any) => (e.id === id ? updatedEinsatz : e)) || [],
+            })),
+          });
+        }
       }
 
       return { previousEinsatz, previousEinsaetze };
@@ -369,6 +412,7 @@ export const useEinsatz = (id: string | null) => {
       if (!id) return;
 
       await queryClient.cancelQueries({ queryKey: QUERY_KEYS.einsatz.detail(id) });
+      await queryClient.cancelQueries({ queryKey: QUERY_KEYS.einsatz.all });
 
       const previousEinsatz = queryClient.getQueryData<EinsatzControllerCreateVAlpha200Response>(QUERY_KEYS.einsatz.detail(id));
 
@@ -380,9 +424,39 @@ export const useEinsatz = (id: string | null) => {
           updatedAt: new Date(),
         };
 
+        // Update detail cache
         queryClient.setQueryData<EinsatzControllerCreateVAlpha200Response>(QUERY_KEYS.einsatz.detail(id), {
           data: updatedEinsatz,
           meta: previousEinsatz.meta || {},
+        });
+
+        // Update all existing list caches
+        const queryCache = queryClient.getQueryCache();
+        queryCache.getAll().forEach((query) => {
+          const queryKey = query.queryKey;
+          // Check if this is an einsatz list query
+          if (Array.isArray(queryKey) && queryKey[0] === 'einsatz' && queryKey[1] === 'list') {
+            queryClient.setQueryData<EinsatzControllerFindAllVAlpha200Response>(queryKey, (old) => {
+              if (!old) return old;
+              return {
+                ...old,
+                data: old.data?.map((e) => (e.id === id ? updatedEinsatz : e)) || [],
+              };
+            });
+          }
+          // Check if this is an infinite query
+          if (Array.isArray(queryKey) && queryKey[0] === 'einsatz' && queryKey[1] === 'infinite') {
+            queryClient.setQueryData<any>(queryKey, (old) => {
+              if (!old?.pages) return old;
+              return {
+                ...old,
+                pages: old.pages.map((page: any) => ({
+                  ...page,
+                  data: page.data?.map((e: any) => (e.id === id ? updatedEinsatz : e)) || [],
+                })),
+              };
+            });
+          }
         });
       }
 

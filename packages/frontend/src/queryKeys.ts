@@ -34,6 +34,8 @@ export const EINSATZ_QUERY_KEYS = {
   infinite: (filters?: Record<string, unknown>) => [...EINSATZ_QUERY_KEYS.infiniteLists(), filters].filter((value) => value),
   details: () => [...EINSATZ_QUERY_KEYS.all, 'detail'] as const,
   detail: (id: string | null) => [...EINSATZ_QUERY_KEYS.details(), id] as const,
+  previous: (id: string) => [...EINSATZ_QUERY_KEYS.all, 'previous', id] as const,
+  next: (id: string) => [...EINSATZ_QUERY_KEYS.all, 'next', id] as const,
   completeness: (id: string) => [...EINSATZ_QUERY_KEYS.detail(id), 'completeness'] as const,
   statusCounts: (includeArchived = false) => [...EINSATZ_QUERY_KEYS.all, 'statusCounts', includeArchived] as const,
 } as const;

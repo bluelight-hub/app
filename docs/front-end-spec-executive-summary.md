@@ -29,7 +29,7 @@ Das **Einsatztagebuch** ist das Herzstück der Anwendung:
 | Rolle               | Hauptanforderung | Kritische Features                 |
 |---------------------|------------------|------------------------------------|
 | **Einsatzleiter**   | Gesamtüberblick  | Dashboard, Ressourcenmanagement    |
-| **FüKw-Personal**   | Datenverwaltung  | Vollzugriff, Analysewerkzeuge      |
+| **FüKW-Personal**   | Datenverwaltung  | Vollzugriff, Analysewerkzeuge      |
 | **Gruppenführer**   | Bereichsführung  | Aufgabenverwaltung, Status-Updates |
 | **Helfer**          | Schnelle Eingabe | Vereinfachte Patientenverwaltung   |
 | **Flight Operator** | Drohnensteuerung | Fluglogbuch, Checklisten           |

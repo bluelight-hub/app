@@ -2,21 +2,26 @@
 :author: Bluelight-Hub Team  
 :revnumber: 1.0.0
 :revdate: 2025-01-27
-:status: Akzeptiert
+:status: Angenommen
 
 == Status
 
-Akzeptiert
+Angenommen (2025-09-07)
 
 == Kontext
 
-Im Einsatz-Management-System ist sofortiges Feedback für Benutzeraktionen kritisch. Nutzer erwarten, dass ihre Eingaben unmittelbar reflektiert werden, ohne auf Server-Antworten warten zu müssen.
+Im Einsatz-Management-System ist sofortiges Feedback für Benutzeraktionen kritisch.
+Nutzer erwarten, dass ihre Eingaben unmittelbar reflektiert werden, ohne auf Server-Antworten warten zu müssen.
 
 Herausforderungen:
-* Netzwerk-Latenz kann zu spürbaren Verzögerungen führen
-* Benutzer könnten denken, ihre Aktion wurde nicht registriert
-* Mehrfache Klicks/Eingaben durch fehlende sofortige Rückmeldung
-* Schlechte User Experience in Stress-Situationen
+* Netzwerk-Latenz kann zu spürbaren Verzögerungen führen * Benutzer könnten denken, ihre Aktion wurde nicht registriert * Mehrfache Klicks/Eingaben durch fehlende sofortige Rückmeldung * Schlechte User Experience in Stress-Situationen
+
+== Optionen
+
+1. **Optimistic Updates**: Sofortige UI-Aktualisierung mit Rollback bei Fehlern
+2. **Pessimistic Updates**: Warten auf Server-Response vor UI-Update
+3. **Loading States**: Spinner/Skeleton während Server-Request
+4. **Hybrid Approach**: Optimistic für unkritische, Pessimistic für kritische Aktionen
 
 == Entscheidung
 
@@ -145,6 +150,19 @@ class EinsatzStore {
 }
 ----
 
+== Begründung
+
+Die Optimistic-UI-Strategie (Option 1) wurde gewählt, weil sie:
+* **Beste UX** bietet durch sofortiges Feedback ohne Wartezeiten
+* **Gefühlte Performance** drastisch verbessert, besonders bei langsamen Netzwerken
+* **User-Flow** nicht unterbricht und kontinuierliches Arbeiten ermöglicht
+* **Stresssituationen** berücksichtigt, wo jede Sekunde zählt
+
+Die anderen Optionen wurden verworfen oder angepasst:
+* **Pessimistic Updates**: Zu langsam, unterbricht Arbeitsfluss, frustrierend bei Latenz
+* **Loading States**: Lenkt ab, wirkt träge, verhindert kontinuierliche Eingaben
+* **Hybrid Approach**: Teilweise übernommen für destruktive Aktionen (Löschen bleibt pessimistisch)
+
 == Konsequenzen
 
 === Positive
@@ -167,7 +185,7 @@ class EinsatzStore {
 
 == Risiken und Mitigationen
 
-[cols="1,1,2", options="header"]
+[cols="1,1,2",options="header"]
 |===
 |Risiko |Wahrscheinlichkeit |Mitigation
 
@@ -187,6 +205,7 @@ class EinsatzStore {
 == Anwendungsfälle
 
 === Einsatz erstellen
+
 1. User klickt "Neuer Einsatz"
 2. UI zeigt sofort neuen Einsatz (mit Pending-Indikator)
 3. API-Request läuft im Hintergrund
@@ -194,6 +213,7 @@ class EinsatzStore {
 5. Bei Fehler: Rollback mit Error-Message
 
 === Status ändern
+
 1. User ändert Status auf "IN_BEARBEITUNG"
 2. UI aktualisiert sofort (mit Pending-Badge)
 3. Server validiert und persistiert
@@ -201,21 +221,11 @@ class EinsatzStore {
 5. Bei Fehler: Alter Status wiederhergestellt
 
 === Bulk-Updates
+
 1. User wählt mehrere Einsätze
 2. Aktion wird auf alle angewendet
 3. Optimistic Updates für alle Items
 4. Partial Rollback bei teilweisen Fehlern
-
-== Alternativen
-
-1. **Pessimistic Updates**: Warten auf Server-Response
-   - Verworfen: Schlechte UX, besonders bei langsamen Netzwerken
-
-2. **Loading States**: Spinner während Server-Request
-   - Verworfen: Unterbricht User-Flow, wirkt langsam
-
-3. **Hybrid Approach**: Optimistic für unkritische, Pessimistic für kritische Aktionen
-   - Teilweise übernommen: Löschaktionen bleiben pessimistisch
 
 == Referenzen
 

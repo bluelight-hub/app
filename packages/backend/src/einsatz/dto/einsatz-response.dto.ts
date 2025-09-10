@@ -1,5 +1,5 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { type Einsatz, EinsatzStatus, type Prisma } from '@prisma/client';
+import { EinsatzStatus, type Prisma } from '@prisma/client';
 import { IsEnum } from 'class-validator';
 
 export interface EinsatzCompleteness {
@@ -28,7 +28,15 @@ export interface EinsatzLinks {
   completeness: string;
 }
 
-export class EinsatzResponseDto implements Einsatz {
+/**
+ * Response-DTO für einen Einsatz.
+ *
+ * Zweck: Entkoppelt die persistente Entität (Prisma) von der API-Antwort
+ * und erlaubt ergänzende/berechnete Felder ohne DB-spezifische Logik.
+ * Dieses DTO beschreibt ausschließlich die nach außen exponierten Felder
+ * und enthält keine Geschäfts- oder Persistenzlogik.
+ */
+export class EinsatzResponseDto {
   @ApiProperty({
     description: 'Eindeutige ID des Einsatzes',
     example: 'cm4xyzabc123456789',
@@ -79,6 +87,7 @@ export class EinsatzResponseDto implements Einsatz {
     description: 'Zusätzliche Metadaten als JSON',
     type: 'object',
     additionalProperties: true,
+    nullable: true,
   })
   metadata: Prisma.JsonValue | null;
 

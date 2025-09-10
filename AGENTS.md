@@ -784,12 +784,12 @@ dependencies:
     - project-brief-tmpl.yaml
     - story-tmpl.yaml
   workflows:
-    - brownfield-fullstack.md
-    - brownfield-service.md
-    - brownfield-ui.md
-    - greenfield-fullstack.md
-    - greenfield-service.md
-    - greenfield-ui.md
+    - brownfield-fullstack.yaml
+    - brownfield-service.yaml
+    - brownfield-ui.yaml
+    - greenfield-fullstack.yaml
+    - greenfield-service.yaml
+    - greenfield-ui.yaml
 ```
 
 ### Architect (id: architect)
@@ -987,7 +987,7 @@ To comprehensively validate a story draft before implementation begins, ensuring
 
 ### 1. Template Completeness Validation
 
-- Load `bmad-core/templates/story-tmpl.md` and extract all section headings from the template
+- Load `.bmad-core/templates/story-tmpl.yaml` and extract all section headings from the template
 - **Missing sections check**: Compare story sections against template sections to verify all required sections are present
 - **Placeholder validation**: Ensure no template placeholders remain unfilled (e.g., `{{EpicNum}}`, `{{role}}`, `_TBD_`)
 - **Agent section verification**: Confirm all sections from template exist for future agent use
@@ -5404,3 +5404,4 @@ Choose a number (0-8) or 9 to proceed:
 ```
 
 <!-- END: BMAD-AGENTS -->
+

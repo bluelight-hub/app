@@ -1,5 +1,5 @@
-import { PiMoon, PiSun, PiDesktop } from 'react-icons/pi';
-import { useColorMode } from '@/hooks/use-color-mode.ts';
+import { useColorMode } from '@/hooks/use-color-mode';
+import { PiDesktop, PiMoon, PiSun } from 'react-icons/pi';
 
 /**
  * Icon-Komponente für den aktuellen Color Mode.
@@ -10,7 +10,7 @@ import { useColorMode } from '@/hooks/use-color-mode.ts';
  * - Monitor für System Mode
  */
 export function ColorModeIcon() {
-  const { colorMode, resolvedColorMode } = useColorMode();
+  const { colorMode } = useColorMode();
 
   // Wenn System-Modus aktiv ist, zeige Monitor-Icon
   if (colorMode === 'system') {

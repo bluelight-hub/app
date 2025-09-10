@@ -34,9 +34,28 @@ export class PerformanceInterceptor implements NestInterceptor {
         },
         error: (error) => {
           const duration = Date.now() - now;
-          const statusCode = error.status || error.statusCode || 500;
+          type ErrorLike = { status?: unknown; statusCode?: unknown; message?: unknown };
 
-          PerformanceLogger.logHttpRequest(method, path, statusCode, duration, `${className}/${handlerName}`, error.message);
+          let statusCode = 500;
+          if (typeof error === 'object' && error !== null) {
+            const maybe = error as ErrorLike;
+            const code = (typeof maybe.status === 'number' ? maybe.status : undefined) ?? (typeof maybe.statusCode === 'number' ? maybe.statusCode : undefined);
+            if (typeof code === 'number') {
+              statusCode = code;
+            }
+          }
+
+          let logMessage: string | undefined;
+          if (statusCode < 500) {
+            if (typeof error === 'string') {
+              logMessage = error.slice(0, 200);
+            } else if (typeof error === 'object' && error !== null) {
+              const maybe = error as ErrorLike;
+              logMessage = typeof maybe.message === 'string' ? maybe.message.slice(0, 200) : undefined;
+            }
+          }
+
+          PerformanceLogger.logHttpRequest(method, path, statusCode, duration, `${className}/${handlerName}`, logMessage);
         },
       }),
     );

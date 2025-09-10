@@ -54,17 +54,20 @@ async archive(@Param('id') string) {
 Die No-Delete Policy wurde aus mehreren kritischen Gründen gewählt:
 
 **Hauptmotivationen:**
+
 * **Datenintegrität**: Garantiert vollständige, unveränderliche Historie aller Einsätze
 * **Auditierbarkeit**: Ermöglicht lückenlose Nachvollziehbarkeit für Compliance-Audits
 * **Rechtliche Anforderungen**: Erfüllt gesetzliche Aufbewahrungspflichten für Rettungsdienste
 * **Einfache Wiederherstellung**: Archivierte Einsätze können bei Bedarf reaktiviert werden
 
 **Betrachtete Alternativen:**
+
 * **Hard Delete**: Verworfen wegen rechtlicher Risiken und unwiederbringlichem Datenverlust
 * **TTL-basierte Löschung**: Verworfen wegen komplexer Fristenverwaltung und unterschiedlicher Aufbewahrungsfristen
 * **Partielle Löschung**: Verworfen wegen Inkonsistenzrisiken und erhöhter Komplexität
 
 **Trade-offs und Risikominderung:**
+
 * Der erhöhte Speicherbedarf wird durch moderne Cloud-Storage-Kosten relativiert
 * Performance-Einbußen werden durch gezielte Indizierung und Query-Optimierung adressiert
 * DSGVO-Konformität wird durch Anonymisierung statt Löschung erreicht

@@ -1,50 +1,53 @@
-# React + TypeScript + Vite
+# Bluelight Hub – Frontend (React + Vite + Tauri)
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+## Überblick
 
-Currently, two official plugins are available:
+- React 19, Vite, Tauri Desktop-Shell
+- UI: Tailwind CSS, Atomic Design (atoms/molecules/organisms)
+- State/Form/Async: TanStack Query, TanStack Form (+ Zod), TanStack Store, TanStack Pacer
+- API-Zugriff: ausschließlich über den generierten OpenAPI-Client aus `packages/shared/client`
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react/README.md) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+## Schnellstart
 
-## Expanding the ESLint configuration
+- Voraussetzungen: pnpm, Node LTS, Tauri-Prereqs (Rust, OS-Toolchain)
+- Installation im Monorepo: `pnpm install`
+- Dev (App + Backend via Root-Skript): `pnpm dev` (empfohlen) oder nur Frontend:
+  `pnpm --filter @bluelight-hub/frontend dev:vite`
+- Build: `pnpm --filter @bluelight-hub/frontend build`
 
-If you are developing a production application, we recommend updating the configuration to enable type aware lint rules:
+## Wichtige Skripte (package.json)
 
-- Configure the top-level `parserOptions` property like this:
+- `dev`: Tauri Dev (Vite + Tauri)
+- `dev:vite`: nur Vite-Dev-Server
+- `build`: TypeScript-Check und Vite-Build
+- Tests: Vitest (`test`, `test:ui`, `test:watch`), E2E via Playwright (`test:e2e*`)
+- Lint: `pnpm --filter @bluelight-hub/frontend lint` | Check: `lint:check`
 
-```js
-export default tseslint.config({
-  languageOptions: {
-    // other options...
-    parserOptions: {
-      project: ['./tsconfig.node.json', './tsconfig.app.json'],
-      tsconfigRootDir: import.meta.dirname,
-    },
-  },
-});
-```
+## Konventionen
 
-- Replace `tseslint.configs.recommended` to `tseslint.configs.recommendedTypeChecked` or `tseslint.configs.strictTypeChecked`
-- Optionally add `...tseslint.configs.stylisticTypeChecked`
-- Install [eslint-plugin-react](https://github.com/jsx-eslint/eslint-plugin-react) and update the config:
+- TypeScript strikt, 2-Spaces, Prettier über Biome
+- React-Komponenten: PascalCase, Hooks/Kleinteile: camelCase
+- Keine DIY-API-Helper; nutze `@/api` mit dem generierten Client aus `packages/shared/client`
 
-```js
-// eslint.config.js
-import react from 'eslint-plugin-react';
+## API-Client verwenden
 
-export default tseslint.config({
-  // Set the react version
-  settings: { react: { version: '18.3' } },
-  plugins: {
-    // Add the react plugin
-    react,
-  },
-  rules: {
-    // other rules...
-    // Enable its recommended rules
-    ...react.configs.recommended.rules,
-    ...react.configs['jsx-runtime'].rules,
-  },
-});
-```
+- Beispiel: `import { api } from '@/api'` und dann `api.einsatz().einsatzControllerFindAllVAlpha({...})`
+- Bei Änderungen im Backend-Swagger: Backend starten und im Repo-Root ausführen:
+  `pnpm --filter @bluelight-hub/shared generate-api`
+
+## Architekturhinweise
+
+- Query Keys zentral in `src/queryKeys.ts`
+- Fehlerbehandlung zentral in `src/utils/apiErrorHandler.ts` bzw. `src/utils/error-handler.ts`
+- Authentifizierung: Cookie-basiert; Fetch-Wrapper `src/api/fetchWithRefresh.ts` handhabt 401/Refresh
+
+## Tests
+
+- Unit: Vitest (`pnpm --filter @bluelight-hub/frontend test`)
+- E2E: Playwright (`test:e2e`, `test:e2e:ui`)
+- Aktuell ist FE-Coverage deaktiviert (siehe Scripts)
+
+## Troubleshooting
+
+- „Client nicht aktuell“: API neu generieren (siehe oben)
+- 401-Schleifen: Cookies prüfen, ggf. Backend/Frontend-Base-URL (`getBaseUrl`) anpassen

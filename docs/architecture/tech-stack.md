@@ -76,11 +76,10 @@ graph TB
 
 ### Validation & Forms
 
-| Technology              | Version | Verwendung             | Begründung                  |
-|-------------------------|---------|------------------------|-----------------------------|
-| **Zod**                 | 3.x     | Schema Validation      | TypeScript-first validation |
-| **React Hook Form**     | 7.x     | Form Handling          | Performante Form-Verwaltung |
-| **@hookform/resolvers** | Latest  | Validation Integration | Zod + React Hook Form       |
+| Technology               | Version | Verwendung        | Begründung                                |
+|--------------------------|---------|-------------------|-------------------------------------------|
+| **Zod**                  | 3.x     | Schema Validation | TypeScript-first validation               |
+| **@tanstack/react-form** | 1.x     | Form Handling     | Zod-Integration; gemäß Projekt-Guidelines |
 
 ### Development Tools
 
@@ -165,11 +164,20 @@ graph TB
 
 ### Utilities
 
-| Technology   | Version | Verwendung         | Begründung                |
-|--------------|---------|--------------------|---------------------------|
-| **date-fns** | 4.x     | Date Manipulation  | Modular, tree-shakeable   |
-| **nanoid**   | 5.x     | ID Generation      | URL-safe unique IDs       |
-| **consola**  | Latest  | Logging (Frontend) | Beautiful console logging |
+| Technology   | Version | Verwendung         | Begründung                                             |
+|--------------|---------|--------------------|--------------------------------------------------------|
+| **date-fns** | 4.x     | Date Manipulation  | Modular, tree-shakeable                                |
+| **nanoid**   | 5.x     | ID Generation      | URL-safe unique IDs                                    |
+| **consola**  | Latest  | Logging (Frontend) | Beautiful console logging (use via app logger wrapper) |
+
+#### Frontend Logging Strategy
+
+- Preferred default: Use `consola` for browser console logging in local development.
+- Production: Route logs via centralized logger hooks (e.g., Sentry/ELK) through an app-level logger adapter.
+- Wrapper/adapter: Expose a single logger surface at `packages/frontend/src/logger/index.ts` with
+  `debug/info/warn/error`.
+- Usage rule: Do not call `console.*` or raw `consola` in components; always import the shared `logger`.
+- Environment routing: `logger` delegates to `consola` in `development` and to configured hooks in `production`.
 
 ## 🛠️ Development Tools
 
@@ -304,12 +312,16 @@ NODE_ENV=development
 
 ### Semantic Versioning
 
+Hinweis: Die folgenden Versionsangaben sind Beispiele. Die tatsächlich aktuelle Version wird durch CI/Semantic Release
+bestimmt und sollte hier nicht hart codiert werden. Dieses Dokument ist mit der Semantic-Release-Pipeline zu
+synchronisieren.
+
 ```
 MAJOR.MINOR.PATCH-PRERELEASE
 
-1.0.0-alpha.21  → Current version
-1.0.0-beta.1    → Beta release
-1.0.0           → First stable release
+1.0.0-alpha.21  → Beispiel: aktueller Pre-Release
+1.0.0-beta.1    → Beispiel: Beta-Release
+1.0.0           → Beispiel: erste stabile Version
 ```
 
 ### Breaking Change Policy

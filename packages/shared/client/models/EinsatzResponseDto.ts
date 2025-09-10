@@ -66,7 +66,7 @@ export interface EinsatzResponseDto {
    * @type {{ [key: string]: any; }}
    * @memberof EinsatzResponseDto
    */
-  metadata?: { [key: string]: any };
+  metadata?: { [key: string]: any } | null;
   /**
    * Erstellungszeitpunkt
    * @type {Date}

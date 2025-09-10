@@ -17,6 +17,7 @@ import {
 } from '@/einsatz/dto';
 import { Body, Controller, Get, Logger, Param, Patch, Post, Query, UseGuards, ValidationPipe } from '@nestjs/common';
 import { ApiBadRequestResponse, ApiBearerAuth, ApiForbiddenResponse, ApiNotFoundResponse, ApiOperation, ApiTags, ApiUnauthorizedResponse } from '@nestjs/swagger';
+import * as util from 'node:util';
 import { EinsatzService } from './einsatz.service';
 
 /**
@@ -101,7 +102,7 @@ export class EinsatzController {
       sortBy: query.orderBy,
       sortOrder: query.orderDirection,
     };
-    this.logger.log(`Fetching Einsätze with filters: ${JSON.stringify(sanitizedQuery)}`);
+    this.logger.log(`Fetching Einsätze with filters: ${util.inspect(sanitizedQuery)}`);
     return await this.einsatzService.findAll(query);
   }
 

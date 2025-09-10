@@ -1,5 +1,6 @@
-import { useTheme } from 'next-themes';
 import type { ColorMode, UseColorModeReturn } from '@/components/ui/color-mode';
+import { logger } from '@/utils/logger';
+import { useTheme } from 'next-themes';
 
 /**
  * Hook zum Verwalten des Farbmodus (Hell/Dunkel/System-Theme).
@@ -32,7 +33,7 @@ export function useColorMode(): UseColorModeReturn {
 
   // Warnung bei ungültigem Theme-Wert
   if (rawColorMode && !isValidColorMode(rawColorMode)) {
-    console.warn(`Ungültiger Theme-Wert: "${rawColorMode}". Verwende "system" als Fallback.`);
+    logger.warn(`Ungültiger Theme-Wert: "${rawColorMode}". Verwende "system" als Fallback.`);
   }
 
   const toggleColorMode = () => {
