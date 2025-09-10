@@ -1,4 +1,6 @@
 name: E2E Tests
+permissions:
+  contents: read
 
 on:
   pull_request:
@@ -120,6 +122,9 @@ jobs:
     needs: e2e-tests
     if: always()
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
