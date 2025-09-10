@@ -71,7 +71,7 @@ echo "test message" | .husky/commit-msg /dev/stdin
 
 ```bash
 # Neuen Hook erstellen
-npx husky add .husky/pre-push "pnpm build"
+pnpx husky add .husky/pre-push "pnpm build"
 ```
 
 ## 📖 Weitere Informationen

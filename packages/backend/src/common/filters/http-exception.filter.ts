@@ -1,6 +1,7 @@
 import { type ArgumentsHost, Catch, type ExceptionFilter, HttpException, HttpStatus, Logger } from '@nestjs/common';
 import type { Request, Response } from 'express';
 import { nanoid } from 'nanoid';
+import * as util from 'node:util';
 import { PerformanceLogger } from '../utils/performance-logger.util';
 
 interface RequestWithStartTime extends Request {
@@ -32,7 +33,7 @@ export class HttpExceptionFilter implements ExceptionFilter {
       // Log the actual error internally for debugging
       const actualError = exception instanceof HttpException ? exception.getResponse() : exception;
 
-      this.logger.error(`[${requestId}] Internal Server Error: ${JSON.stringify(actualError)}`, exception instanceof Error ? exception.stack : undefined);
+      this.logger.error(`[${requestId}] Internal Server Error: ${util.inspect(actualError)}`, exception instanceof Error ? exception.stack : undefined);
     } else {
       // For client errors (4xx), provide the actual error message
       if (exception instanceof HttpException) {
@@ -51,7 +52,8 @@ export class HttpExceptionFilter implements ExceptionFilter {
       }
     }
 
-    const duration = Date.now() - (request.startTime || Date.now());
+    const start = request.startTime ?? response.locals?.startTime ?? Date.now();
+    const duration = Date.now() - start;
 
     // Log request with correlation ID
     PerformanceLogger.logHttpRequest(request.method, request.url, status, duration, 'ExceptionFilter', `[${requestId}] ${message}`);

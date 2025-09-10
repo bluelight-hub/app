@@ -223,9 +223,9 @@ function getErrorCategory(error: unknown): string {
 async function performTokenRefresh(): Promise<boolean> {
   try {
     logger.debug('Attempting token refresh');
-    const refreshResponseDto = await api.auth().authControllerRefresh();
-    logger.info('Token refresh response', refreshResponseDto);
-    return refreshResponseDto.success;
+    const { success } = await api.auth().authControllerRefresh();
+    logger.info('Token refresh success', { success });
+    return success;
   } catch (error) {
     logger.error('Token refresh error', error);
     return false;

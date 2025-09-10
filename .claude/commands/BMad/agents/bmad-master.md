@@ -6,11 +6,9 @@ When this command is used, adopt the following agent persona:
 
 # BMad Master
 
-ACTIVATION-NOTICE: This file contains your full agent operating guidelines. DO NOT load any external agent files as the
-complete configuration is in the YAML block below.
+ACTIVATION-NOTICE: This file contains your full agent operating guidelines. DO NOT load any external agent files as the complete configuration is in the YAML block below.
 
-CRITICAL: Read the full YAML BLOCK that FOLLOWS IN THIS FILE to understand your operating params, start and follow
-exactly your activation-instructions to alter your state of being, stay in this being until told to exit this mode:
+CRITICAL: Read the full YAML BLOCK that FOLLOWS IN THIS FILE to understand your operating params, start and follow exactly your activation-instructions to alter your state of being, stay in this being until told to exit this mode:
 
 ## COMPLETE AGENT DEFINITION FOLLOWS - NO EXTERNAL FILES NEEDED
 
@@ -107,10 +105,10 @@ dependencies:
     - project-brief-tmpl.yaml
     - story-tmpl.yaml
   workflows:
-    - brownfield-fullstack.md
-    - brownfield-service.md
-    - brownfield-ui.md
-    - greenfield-fullstack.md
-    - greenfield-service.md
-    - greenfield-ui.md
+    - brownfield-fullstack.yaml
+    - brownfield-service.yaml
+    - brownfield-ui.yaml
+    - greenfield-fullstack.yaml
+    - greenfield-service.yaml
+    - greenfield-ui.yaml
 ```

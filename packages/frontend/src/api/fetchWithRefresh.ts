@@ -64,10 +64,23 @@ export async function fetchWithRefresh(input: RequestInfo | URL, init?: RequestI
       refreshPromise = refreshAccessToken();
     }
 
-    // Wait for the refresh to complete
-    const refreshSuccess = await refreshPromise;
-    isRefreshing = false;
-    refreshPromise = null;
+    // Wait for the refresh to complete with robust state reset
+    let refreshSuccess = false;
+    try {
+      if (refreshPromise) {
+        refreshSuccess = await refreshPromise;
+      } else {
+        refreshSuccess = false;
+      }
+    } catch (error) {
+      // Guard against unexpected throws from refreshAccessToken
+      logger.warn('Token refresh threw an error', { error });
+      refreshSuccess = false;
+    } finally {
+      // Always clear refresh state
+      isRefreshing = false;
+      refreshPromise = null;
+    }
 
     if (refreshSuccess) {
       // Retry the original request with the new token

@@ -1,5 +1,6 @@
 import { formatNatoDateTime } from '@/utils/date.util';
 import type { Einsatz } from '@prisma/client';
+import { format } from 'date-fns';
 
 /**
  * Generiert einen deterministischen Namen für einen Einsatz
@@ -17,16 +18,16 @@ export class EinsatzNameGenerator {
     // Priorität 2: Alarmierungszeit
     if (einsatz.alarmierungszeit) {
       const date = new Date(einsatz.alarmierungszeit);
-      const dateStr = EinsatzNameGenerator.formatDateTime(date);
+      const dateStr = formatNatoDateTime(date);
       components.push(dateStr);
     } else if (einsatz.createdAt) {
       // Fallback: Erstellungszeit
       const date = new Date(einsatz.createdAt);
-      const dateStr = EinsatzNameGenerator.formatDateTime(date);
+      const dateStr = formatNatoDateTime(date);
       components.push(dateStr);
     } else {
       // Letzter Fallback: Aktuelle Zeit
-      const dateStr = EinsatzNameGenerator.formatDateTime(new Date());
+      const dateStr = formatNatoDateTime(new Date());
       components.push(dateStr);
     }
 
@@ -43,17 +44,8 @@ export class EinsatzNameGenerator {
       datum: EinsatzNameGenerator.formatDate(dateObj),
     };
   }
-
-  private static formatDateTime(date: Date): string {
-    return formatNatoDateTime(date);
-  }
-
   private static formatDate(date: Date): string {
-    const day = date.getDate().toString().padStart(2, '0');
-    const month = (date.getMonth() + 1).toString().padStart(2, '0');
-    const year = date.getFullYear();
-
-    return `${day}.${month}.${year}`;
+    return format(date, 'dd.MM.yyyy');
   }
 
   private static formatTime(date: Date): string {

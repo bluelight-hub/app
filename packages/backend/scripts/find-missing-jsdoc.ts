@@ -1,8 +1,9 @@
 #!/usr/bin/env ts-node
 
+import { Logger } from '@nestjs/common';
 import * as fs from 'node:fs';
 import * as path from 'node:path';
-import { Logger } from '@nestjs/common';
+import * as util from 'node:util';
 import * as ts from 'typescript';
 
 interface MethodInfo {
@@ -271,7 +272,7 @@ class JsDocChecker {
     const totalMethods = this.methods.length;
 
     if (this.options.jsonReport) {
-      logger.log(JSON.stringify(methodsWithoutJsDoc, null, 2));
+      logger.log(util.inspect(methodsWithoutJsDoc, { depth: 2 }));
       return;
     }
 

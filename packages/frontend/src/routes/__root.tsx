@@ -44,8 +44,8 @@ const queryClient = new QueryClient({
         const response = (error as { response?: { status?: number; url: string } })?.response;
         const status = response?.status;
 
-        // Check if this is an auth-related query
-        const isAuthQuery = response?.url.includes('auth');
+        // Check if this is an auth-related query with robust path boundary detection
+        const isAuthQuery = !!response?.url && /\/auth(\/|$)/i.test(response.url);
 
         // Never retry auth-related queries
         if (isAuthQuery) {

@@ -68,7 +68,7 @@ export function InlineEdit({
       await onSave(editValue);
       setIsEditing(false);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Save failed');
+      setError(err instanceof Error ? err.message : 'Speichern fehlgeschlagen');
     } finally {
       setIsSaving(false);
     }
@@ -80,16 +80,16 @@ export function InlineEdit({
     setIsEditing(false);
   };
 
-  const handleKeyDown = (e: KeyboardEvent) => {
+  const handleKeyDown = (e: KeyboardEvent<HTMLInputElement>) => {
     if (e.key === 'Escape') {
       e.preventDefault();
       handleCancel();
     } else if (e.key === 'Enter' && !multiline) {
       e.preventDefault();
-      handleSave();
+      void handleSave();
     } else if (e.key === 'Enter' && multiline && (e.ctrlKey || e.metaKey)) {
       e.preventDefault();
-      handleSave();
+      void handleSave();
     }
   };
 

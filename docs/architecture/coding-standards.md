@@ -258,10 +258,10 @@ enum EinsatzStatus {
 
 ```bash
 # ✅ RICHTIG: Descriptive migration names
-npx prisma migrate dev --name add_einsatz_status_field
+pnpx prisma migrate dev --name add_einsatz_status_field
 
 # ❌ FALSCH: Generic names
-npx prisma migrate dev --name update
+pnpx prisma migrate dev --name update
 ```
 
 ## 🧪 Testing Standards
@@ -353,31 +353,14 @@ hotfix/APP-789-critical-db-issue
 
 ## 🚨 Error Handling
 
-### Frontend Error Boundaries
-
-```tsx
-// ✅ RICHTIG: Error Boundary für robuste Apps
-export class ErrorBoundary extends Component {
-    componentDidCatch(error: Error, errorInfo: ErrorInfo) {
-        console.error('Error caught by boundary:', error, errorInfo);
-        // Send to monitoring service
-    }
-
-    render() {
-        if (this.state.hasError) {
-            return <ErrorFallback/>;
-        }
-        return this.props.children;
-    }
-}
-```
-
 ### Backend Exception Handling
 
 ```typescript
 // ✅ RICHTIG: Custom exceptions mit proper HTTP codes
 @Catch()
 export class AllExceptionsFilter implements ExceptionFilter {
+    private readonly logger = new Logger(AllExceptionsFilter.name);
+
     catch(exception: unknown, host: ArgumentsHost) {
         const ctx = host.switchToHttp();
         const response = ctx.getResponse<Response>();
@@ -390,8 +373,11 @@ export class AllExceptionsFilter implements ExceptionFilter {
             });
         }
 
-        // Log unknown errors
-        console.error('Unhandled exception:', exception);
+        // Log unknown errors via NestJS Logger
+        this.logger.error(
+            'Unhandled exception',
+            exception instanceof Error ? exception.stack : (exception as any)?.toString?.() ?? String(exception)
+        );
         return response.status(500).json({
             statusCode: 500,
             message: 'Internal server error',

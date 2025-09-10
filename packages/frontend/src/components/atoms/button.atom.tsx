@@ -1,4 +1,4 @@
-import { cn } from '@/utils/cn.ts';
+import { cn } from '@/utils/cn';
 import { InlineSpinner } from '@atoms/spinner.atom.tsx';
 import { Button as HeadlessButton } from '@headlessui/react';
 import * as React from 'react';

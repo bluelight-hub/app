@@ -6,17 +6,21 @@
 
 == Status
 
-Akzeptiert
+Angenommen (2025-09-07)
 
 == Kontext
 
 Mit der Einführung der minimalen Einsatzerstellung (ADR-018) müssen bestimmte Felder wie der Einsatzname und die Vollständigkeitsbewertung dynamisch aus den vorhandenen Daten berechnet werden.
 
 Die Herausforderungen:
-* Konsistenz zwischen verschiedenen Berechnungen sicherstellen
-* Performance bei häufigen Berechnungen
-* Vermeidung von Inkonsistenzen zwischen gespeicherten und berechneten Werten
-* Cache-Invalidierung bei Datenänderungen
+* Konsistenz zwischen verschiedenen Berechnungen sicherstellen * Performance bei häufigen Berechnungen * Vermeidung von Inkonsistenzen zwischen gespeicherten und berechneten Werten * Cache-Invalidierung bei Datenänderungen
+
+== Optionen
+
+1. **Berechnung zur Laufzeit (In-Memory + TTL-Cache)**: Felder werden bei jedem Zugriff berechnet und temporär gecacht
+2. **Materialized Views mit periodischer Aktualisierung**: Vorberechnete Werte in der Datenbank mit regelmäßiger Aktualisierung
+3. **Trigger-/Stored-Procedure-basierte Berechnung**: Automatische Berechnung bei Datenänderungen in der DB
+4. **Event-basierte Vorberechnung**: Berechnung und Speicherung bei Domain-Events
 
 == Entscheidung
 
@@ -74,6 +78,19 @@ class ComputedFieldService {
 * **Request-Scope Cache**: Cache innerhalb eines API-Requests
 * **Keine persistente Speicherung**: Vermeidung von Konsistenzproblemen
 
+== Begründung
+
+Die Laufzeitberechnung (Option 1) wurde gewählt, weil sie:
+* **Garantierte Konsistenz** zwischen gespeicherten und berechneten Werten bietet
+* **Reduzierte Komplexität** durch Vermeidung von Synchronisationslogik
+* **Zentrale Wartbarkeit** der Berechnungslogik im Code statt in der DB
+* **Performance** durch kurze TTLs (5-10 Sekunden) optimiert wird
+
+Die anderen Optionen wurden verworfen:
+* **Materialized Views**: Sync-Probleme bei hoher Update-Frequenz, zusätzliche DB-Komplexität
+* **Trigger-basierte Berechnung**: Logik in DB schwer testbar, Vendor-Lock-in
+* **Event-basierte Updates**: Zusätzliche Infrastruktur und Fehlerbehandlung erforderlich
+
 == Konsequenzen
 
 === Positive
@@ -97,7 +114,7 @@ class ComputedFieldService {
 
 == Risiken und Mitigationen
 
-[cols="1,1,2", options="header"]
+[cols="1,1,2",options="header"]
 |===
 |Risiko |Wahrscheinlichkeit |Mitigation
 
@@ -170,17 +187,6 @@ const completenessField: ComputedField<EinsatzCompleteness> = {
   ttl: 30000
 };
 ----
-
-== Alternativen
-
-1. **Materialized Views**: Vorberechnete Werte in der DB
-   - Verworfen: Sync-Probleme, zusätzliche Komplexität
-
-2. **Trigger-basierte Berechnung**: DB-Trigger für Berechnungen
-   - Verworfen: Logik in DB, schwer testbar
-
-3. **Event-basierte Updates**: Events bei Änderungen
-   - Verworfen: Zusätzliche Infrastruktur erforderlich
 
 == Referenzen
 

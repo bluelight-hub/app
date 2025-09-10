@@ -1,4 +1,5 @@
 import { useEinsaetze } from '@/hooks/useEinsaetze';
+import type { CreateEinsatzDto } from '@bluelight-hub/shared/client';
 import { Button } from '@atoms/button.atom';
 import { DateInput } from '@atoms/date-input.atom';
 import { Input } from '@atoms/input.atom';
@@ -15,8 +16,9 @@ import { z } from 'zod';
 const createEinsatzSchema = z.object({
   alarmstichwort: z.string().optional(),
   beschreibung: z.string().optional(),
-  ort: z.string().optional(),
-  datum: z.string().optional(),
+  einsatzort: z.string().optional(),
+  // Im Formular als ISO-String, später in Date konvertiert
+  alarmierungszeit: z.string().optional(),
 });
 
 type CreateEinsatzFormData = z.infer<typeof createEinsatzSchema>;
@@ -35,16 +37,23 @@ export function EinsatzCreateForm({ isOpen, onClose, onSuccess }: EinsatzCreateF
     defaultValues: {
       alarmstichwort: '',
       beschreibung: '',
-      ort: '',
-      datum: new Date().toISOString().split('T')[0], // Heutiges Datum als Default
+      einsatzort: '',
+      alarmierungszeit: new Date().toISOString(),
     } as CreateEinsatzFormData,
     onSubmit: async ({ value }) => {
       try {
         // Optimistic UI: Toast zeigt sofort Erfolg
         const toastId = toast.loading('Einsatz wird erstellt…');
 
-        // Filtere leere Strings raus
-        const payload = Object.fromEntries(Object.entries(value).filter(([_, v]) => v && v !== ''));
+        // Werte für API-Payload aufbereiten (Trim + Typwandlung)
+        const payload: CreateEinsatzDto = {};
+        if (value.alarmstichwort && value.alarmstichwort.trim() !== '') payload.alarmstichwort = value.alarmstichwort.trim();
+        if (value.beschreibung && value.beschreibung.trim() !== '') payload.beschreibung = value.beschreibung.trim();
+        if (value.einsatzort && value.einsatzort.trim() !== '') payload.einsatzort = value.einsatzort.trim();
+        if (value.alarmierungszeit && value.alarmierungszeit !== '') {
+          const d = new Date(value.alarmierungszeit);
+          if (!Number.isNaN(d.valueOf())) payload.alarmierungszeit = d;
+        }
 
         const result = await createEinsatz.mutateAsync(payload.alarmstichwort ? payload : { alarmstichwort: 'Neuer Einsatz' });
 
@@ -131,7 +140,7 @@ export function EinsatzCreateForm({ isOpen, onClose, onSuccess }: EinsatzCreateF
         </form.Field>
 
         {/* Ort */}
-        <form.Field name="ort">
+        <form.Field name="einsatzort">
           {(field) => (
             <FormFieldWrapper field={field} label="Einsatzort" optional>
               <Input
@@ -165,7 +174,7 @@ export function EinsatzCreateForm({ isOpen, onClose, onSuccess }: EinsatzCreateF
         </form.Field>
 
         {/* Datum */}
-        <form.Field name="datum">
+        <form.Field name="alarmierungszeit">
           {(field) => (
             <FormFieldWrapper field={field} label="Einsatzdatum" optional>
               <DateInput

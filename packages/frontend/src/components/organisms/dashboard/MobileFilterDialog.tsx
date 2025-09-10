@@ -78,9 +78,9 @@ export const MobileFilterDialog = ({ isOpen, onClose, statusFilter, sortOption, 
                 className="w-full"
               >
                 <PiArchive className="mr-2 h-4 w-4" />
-                {showArchived ? 'Archiv anzeigen' : 'Aktive Einsätze'}
+                {showArchived ? 'Aktive Einsätze' : 'Archiv anzeigen'}
               </Button>
-              {!showArchived && <p className="mt-2 text-gray-600 text-xs dark:text-gray-400">Zeigt nur archivierte Einsätze</p>}
+              {showArchived && <p className="mt-2 text-gray-600 text-xs dark:text-gray-400">Zeigt nur archivierte Einsätze</p>}
             </div>
 
             {!showArchived && (

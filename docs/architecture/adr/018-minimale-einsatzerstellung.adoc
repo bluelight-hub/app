@@ -6,11 +6,11 @@
 
 == Status
 
-Akzeptiert
+Angenommen (2025-09-07)
 
 == Kontext
 
-Im operativen Einsatzgeschehen müssen Einsätze häufig sehr schnell angelegt werden, bevor alle relevanten Informationen verfügbar sind. 
+Im operativen Einsatzgeschehen müssen Einsätze häufig sehr schnell angelegt werden, bevor alle relevanten Informationen verfügbar sind.
 Die bisherige Praxis mit Pflichtfeldern führte zu:
 
 * Verzögerungen bei der Einsatzerfassung
@@ -35,9 +35,9 @@ Wir implementieren ein System, bei dem Einsätze komplett ohne Pflichtfelder ang
 ----
 // Prioritätsbasierte Namengenerierung
 1. Alarmstichwort + Alarmierungszeit: "Brand 3 - 27.01.2025 14:30"
-2. Nur Alarmstichwort: "Brand 3 - 27.01.2025"
-3. Nur Alarmierungszeit: "Einsatz vom 27.01.2025 14:30"
-4. Fallback: "Einsatz vom 27.01.2025 14:30" (aktuelles Datum/Zeit)
+2. Nur "Brand 3 - 27.01.2025"
+3. Nur "Einsatz vom 27.01.2025 14:30"
+4. "Einsatz vom 27.01.2025 14:30" (aktuelles Datum/Zeit)
 ----
 
 == Konsequenzen
@@ -63,7 +63,7 @@ Wir implementieren ein System, bei dem Einsätze komplett ohne Pflichtfelder ang
 
 == Risiken und Mitigationen
 
-[cols="1,1,2", options="header"]
+[cols="1,1,2",options="header"]
 |===
 |Risiko |Wahrscheinlichkeit |Mitigation
 
@@ -83,13 +83,13 @@ Wir implementieren ein System, bei dem Einsätze komplett ohne Pflichtfelder ang
 == Alternativen
 
 1. **Minimale Pflichtfelder**: Nur 1-2 kritische Felder als Pflicht
-   - Verworfen: Selbst minimale Pflichtfelder können blockieren
+- Verworfen: Selbst minimale Pflichtfelder können blockieren
 
 2. **Template-basierte Erstellung**: Vordefinierte Einsatztypen
-   - Verworfen: Zu unflexibel für verschiedene Szenarien
+- Verworfen: Zu unflexibel für verschiedene Szenarien
 
 3. **Wizard-basierte Erfassung**: Schritt-für-Schritt Anleitung
-   - Verworfen: Zu zeitaufwändig im Einsatz
+- Verworfen: Zu zeitaufwändig im Einsatz
 
 == Referenzen
 

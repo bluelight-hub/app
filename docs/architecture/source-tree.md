@@ -2,7 +2,7 @@
 
 ## 📁 Projekt-Struktur Übersicht
 
-```
+```text
 bluelight-hub/
 ├── 📦 packages/                    # Monorepo Workspace Packages
 │   ├── frontend/                   # React + Vite Frontend Application
@@ -22,7 +22,7 @@ bluelight-hub/
 
 ### Frontend Package (`packages/frontend/`)
 
-```
+```text
 packages/frontend/
 ├── src/
 │   ├── 🎨 components/              # UI Components (Atomic Design)
@@ -141,7 +141,7 @@ packages/frontend/
 
 ### Backend Package (`packages/backend/`)
 
-```
+```text
 packages/backend/
 ├── src/
 │   ├── 📦 modules/                 # Feature modules
@@ -240,7 +240,7 @@ packages/backend/
 
 ### Shared Package (`packages/shared/`)
 
-```
+```text
 packages/shared/
 ├── src/
 │   ├── 📡 client/                  # Generated API clients
@@ -276,7 +276,7 @@ packages/shared/
 
 ## 📚 Documentation Structure
 
-```
+```text
 docs/
 ├── architecture/                   # arc42 Architecture Documentation
 │   ├── 01-introduction-goals.adoc
@@ -308,7 +308,7 @@ docs/
 
 ## 🤖 Task Management & AI
 
-```
+```text
 .taskmaster/
 ├── tasks/                         # Task definitions
 │   ├── tasks.json                # Main task database
@@ -323,7 +323,7 @@ docs/
 
 ## 🔧 Configuration Files (Root)
 
-```
+```text
 bluelight-hub/
 ├── 📦 Package Management
 │   ├── package.json              # Root workspace config
@@ -391,7 +391,7 @@ Each module follows this pattern:
 
 ### TypeScript/JavaScript
 
-```
+```text
 component.tsx         # React component
 component.spec.tsx    # Component test
 use-hook.ts          # React hook
@@ -455,7 +455,7 @@ import {Logger} from '@utils/logger';
 
 ## 🔄 Data Flow
 
-```
+```text
 User Interaction (Frontend)
     ↓
 TanStack Query Hook

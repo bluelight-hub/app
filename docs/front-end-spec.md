@@ -22,7 +22,7 @@ cohesive and user-centered experience.
 - **Kontext:** Mobil im Einsatzgebiet unterwegs
 - **Kritische Features:** Gruppenspezifische Ansichten, Aufgabenverwaltung, Status-Updates
 
-#### 📋 FüKw-Personal (Führungskraftwagen)
+#### 📋 FüKW-Personal (Führungskraftwagen)
 
 - **Rolle:** Hauptnutzer des Systems - Datenerfassung, Analyse, Dokumentation
 - **Bedürfnisse:** Effiziente Dateneingabe, Analysewerkzeuge, Berichtserstellung
@@ -47,7 +47,7 @@ cohesive and user-centered experience.
 
 - **Rolle:** Passive Beobachter des Drohneneinsatzes
 - **Bedürfnisse:** Live-Überblick über Drohnenoperationen ohne Eingriffsmöglichkeit
-- **Kontext:** Großbildschirm im FüKw oder mobile Geräte im Feld
+- **Kontext:** Großbildschirm im FüKW oder mobile Geräte im Feld
 - **Kritische Features:** Live-Video-Feed, Flugstatus, Einsatzdauer, Read-only Ansicht
 
 #### ⚙️ Administratoren
@@ -69,7 +69,7 @@ cohesive and user-centered experience.
 
 ### Design Principles
 
-1. **Progressive Disclosure nach Rolle** - FüKw sieht alles, Helfer nur das Nötige
+1. **Progressive Disclosure nach Rolle** - FüKW sieht alles, Helfer nur das Nötige
 2. **Ein-Einsatz-Paradigma** - Keine Ablenkung durch andere Einsätze
 3. **Kontext-sensitive Vereinfachung** - Interface passt sich an Nutzerrolle an
 4. **Robuste Dateneingabe** - Automatisches Speichern, Fehlertoleranz
@@ -174,12 +174,12 @@ graph TD
 #### Edge Cases & Error Handling:
 
 - Doppelte Einsatz-Erstellung wird verhindert
-- Offline-Start möglich mit späterer Synchronisation
+- Verbindungsabbruch/Offline-Start möglich, spätere Synchronisation
 - Fehlende Pflichtfelder werden validiert
 
 **Notes:** Soft-Switch zwischen Einsätzen wird unterstützt, Trainingsmodus in Entwicklung (Issue #207)
 
-### Flow: ETB-Eintrag durch FüKw-Personal
+### Flow: ETB-Eintrag durch FüKW-Personal
 
 **User Goal:** Wichtiges Ereignis im Einsatztagebuch dokumentieren
 
@@ -251,7 +251,7 @@ style ETBAuto3 fill: #ffcccc
 
 #### Edge Cases & Error Handling:
 
-- Verbindungsabbruch: Lokale Speicherung
+- Verbindungsabbruch/Offline-Start: Lokale Speicherung
 - Drohnenverlust: Automatischer ETB-Eintrag mit letzter Position
 - Akku-Warnung: Prioritäts-ETB-Eintrag
 
@@ -269,7 +269,7 @@ style ETBAuto3 fill: #ffcccc
 
 **Layout Structure:**
 
-```
+```text
 ┌─────────────────────────────────────────────────────────────┐
 │ [Einsatz: Wohnungsbrand Hauptstr.] │ 🔴 LIVE │ 14:32:15    │
 ├─────────────────────────────────────────────────────────────┤
@@ -284,7 +284,7 @@ style ETBAuto3 fill: #ffcccc
 │       │ │      [System] #alarm #initial                  ││
 │[🔍]   │ ├─────────────────────────────────────────────────┤│
 │Suche  │ │14:29 🟡 KRÄFTE: HLF 1, DLK, FüKW vor Ort      ││
-│       │ │      [FüKw-Schmidt] #kräfte #ankunft           ││
+│       │ │      [FüKW-Schmidt] #kräfte #ankunft           ││
 │[📑]   │ ├─────────────────────────────────────────────────┤│
 │Kateg. │ │14:31 🔴 MELDUNG: Person am Fenster 3.OG        ││
 │├─P1   │ │      sichtbar, Rettung über DLK eingeleitet    ││
@@ -358,7 +358,7 @@ style ETBAuto3 fill: #ffcccc
 
 **Layout Structure:**
 
-```
+```text
 ┌──────────────────────────────────────────────┐
 │ Neuer ETB-Eintrag              [ESC] Abbruch │
 ├──────────────────────────────────────────────┤
@@ -669,7 +669,7 @@ interface ETBEntry {
 
 ### Iconography
 
-**Icon Library:** React-Icons (PI)
+**Icon Library:** react-icons/pi (Phosphor Icons)
 
 **Usage Guidelines:**
 
@@ -851,3 +851,4 @@ interface ETBEntry {
 
 _This UI/UX specification serves as the single source of truth for the Bluelight Hub frontend development. All design
 decisions should reference this document._
+

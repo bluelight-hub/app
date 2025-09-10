@@ -1,8 +1,8 @@
 import { EinsatzCreateForm } from '@/components/organisms/einsatz/EinsatzCreateForm';
 import { useEinsaetze } from '@/hooks/useEinsaetze';
 import { useEinsatzStatusCounts } from '@/hooks/useEinsatzStatusCounts';
+import { SearchInput } from '@/components/molecules/search-input.molecule';
 import { Button } from '@atoms/button.atom';
-import { Input } from '@atoms/input.atom';
 import { EinsatzControllerFindAllVAlphaOrderByEnum, EinsatzControllerFindAllVAlphaOrderDirectionEnum, EinsatzResponseDtoStatusEnum } from '@bluelight-hub/shared/client';
 import { Link } from '@tanstack/react-router';
 import { useEffect, useMemo, useRef, useState } from 'react';
@@ -174,7 +174,7 @@ export function EinsatzDashboard() {
       <div className="flex-shrink-0 border-gray-200 border-b bg-white px-2 py-2 sm:px-4 sm:py-3 lg:px-6 dark:border-gray-700 dark:bg-gray-800">
         <div className="flex flex-col gap-2 sm:flex-row sm:gap-3">
           <div className="flex-1">
-            <Input type="text" placeholder="Einsätze durchsuchen..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} />
+            <SearchInput placeholder="Einsätze durchsuchen..." onDebouncedChange={setSearchTerm} delay={300} />
           </div>
           {/* Desktop Filter Button */}
           <Button onClick={() => setIsFilterPanelOpen(!isFilterPanelOpen)} variant="secondary" className="hidden sm:flex">
