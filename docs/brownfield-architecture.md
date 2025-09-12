@@ -13,9 +13,10 @@ real-time communication, and resource management features.
 
 ### Change Log
 
-| Date       | Version | Description                 | Author      |
-|------------|---------|-----------------------------|-------------|
-| 2025-01-18 | 1.0     | Initial brownfield analysis | BMad Master |
+| Date       | Version | Description                              | Author      |
+| ---------- | ------- | ---------------------------------------- | ----------- |
+| 2025-01-18 | 1.0     | Initial brownfield analysis              | BMad Master |
+| 2025-09-10 | 1.1     | Aktualisierung basierend auf Code-Realität | Architect   |
 
 ## Quick Reference - Key Files and Entry Points
 
@@ -49,13 +50,13 @@ BlueLight Hub is a modern emergency services support application built as a mono
 | Category           | Technology        | Version      | Notes                                      |
 |--------------------|-------------------|--------------|--------------------------------------------|
 | Runtime            | Node.js           | LTS          | Required for all packages                  |
-| Package Manager    | pnpm              | 10.14.0      | Workspace-based monorepo management        |
+| Package Manager    | pnpm              | 10.x         | Workspace-based monorepo management        |
 | Frontend Framework | React             | catalog:     | Using pnpm catalogs for version management |
 | Build Tool         | Vite              | catalog:     | Fast HMR for development                   |
 | Desktop Framework  | Tauri             | catalog:     | Native desktop app capabilities            |
-| Backend Framework  | NestJS            | 11.1.5       | Enterprise-grade Node.js framework         |
+| Backend Framework  | NestJS            | 11.1.6       | Enterprise-grade Node.js framework         |
 | Database           | PostgreSQL        | via Prisma   | Relational database                        |
-| ORM                | Prisma            | 6.13.0       | Type-safe database access                  |
+| ORM                | Prisma            | 6.14.0       | Type-safe database access                  |
 | CSS Framework      | Tailwind CSS      | catalog:     | Utility-first CSS with Headless UI         |
 | State Management   | TanStack Store    | catalog:     | Global state management                    |
 | API Client Gen     | OpenAPI Generator | -            | Generates TypeScript clients from Swagger  |
@@ -181,20 +182,22 @@ bluelight-hub/
 - **Build Order**: Must run `prisma generate` before building backend
 - **API Client Generation**: Must manually run `pnpm generate-api` after backend API changes
 - **Tauri Desktop App**: Requires platform-specific build setup for native features
+ - **Rate Limiting Headers**: Backend sets `X-RateLimit-*` headers when limits apply (see RateLimitGuard)
 
 ## Integration Points and External Dependencies
 
 ### External Services
 
-| Service    | Purpose           | Integration Type | Key Files                      |
-|------------|-------------------|------------------|--------------------------------|
-| PostgreSQL | Primary database  | Prisma ORM       | `packages/backend/prisma/`     |
-| Tauri      | Desktop app shell | Native API       | `packages/frontend/src-tauri/` |
+| Service    | Purpose                    | Integration Type            | Key Files                                          |
+| ---------- | -------------------------- | --------------------------- | -------------------------------------------------- |
+| PostgreSQL | Primary database           | Prisma ORM                  | `packages/backend/prisma/`                         |
+| Tauri      | Desktop app shell          | Native API                  | `packages/frontend/src-tauri/`                     |
 
 ### Internal Integration Points
 
 - **Frontend ↔ Backend**: REST API with generated TypeScript clients
 - **Authentication**: JWT in httpOnly cookies, automatic refresh mechanism
+- **Rate Limiting**: Global throttling via `ThrottlerModule` plus granular `RateLimitGuard` (optional Redis)
 - **Real-time**: Not yet implemented (EventEmitter module present but unused)
 - **Offline Mode**: Tauri provides local storage capabilities
 
@@ -233,7 +236,7 @@ pnpm dev  # Starts all packages in dev mode
 - **Build Command**: `pnpm build` (builds all packages)
 - **Docker Support**: `docker-compose.yml` available for containerized deployment
 - **Environments**: Development, Production (no staging mentioned)
-- **CI/CD**: GitHub Actions configured (`.github/workflows/test.yml`)
+- **CI/CD**: GitHub Actions configured (`.github/workflows/ci.yml`)
 
 ## Testing Reality
 
@@ -308,13 +311,12 @@ pnpm --filter @bluelight-hub/frontend test:ui  # Vitest UI mode
 - **Password Storage**: bcrypt hashing for admin passwords
 - **CORS**: Handled by NestJS
 - **Helmet**: Security headers configured
-- **Rate Limiting**: Not implemented
-- **Input Validation**: class-validator on DTOs
+- **Rate Limiting**: Implementiert via `@nestjs/throttler` (global 10 req/min) und optional `RateLimitGuard` mit Redis-Unterstützung
+- **Input Validation**: class-validator auf DTOs, globale `ValidationPipe`
 
 ### Security Gaps
 
 - Session management not fully implemented
-- No rate limiting
 - No API key authentication
 - No audit logging
 - MFA removed (see ADR-010)
@@ -323,8 +325,8 @@ pnpm --filter @bluelight-hub/frontend test:ui  # Vitest UI mode
 
 ### Current State
 
-- **Database**: Single PostgreSQL instance, no connection pooling configured
-- **Caching**: Cache manager installed but not implemented
+- **Database**: Single PostgreSQL instance
+- **Caching**: Cache manager dependency vorhanden, aktuell nicht verwendet
 - **API Response**: No pagination implemented yet
 - **Frontend Bundle**: Vite for optimized builds
 - **Desktop App**: Tauri for native performance
