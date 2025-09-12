@@ -5,12 +5,50 @@
 :
 
 == Status
-In Prüfung (Stand: 2025-03-23)
+
+Angenommen (Stand: 2025-01-09)
 
 == Kontext
-Das Einsatztagebuch (ETB) ist eine kritische Komponente, bei der die Nachvollziehbarkeit und zeitliche Dokumentation aller Einträge essentiell ist.
 
-== Optionen
-. *CRUD-basierter Ansatz*: Direkte Speicherung des aktuellen Zustands.
-. *Event Sourcing*: Speicherung aller Ereignisse als unveränderliche Sequenz.
-. *Hybrid-Ansatz*: CRUD mit separatem Audit-Log.
+Das Einsatztagebuch (ETB) ist eine kritische Komponente, bei der die Nachvollziehbarkeit und zeitliche Dokumentation aller Einträge essentiell ist.
+Nach Analyse der Anforderungen und des bestehenden Tech-Stacks wurde eine Entscheidung getroffen.
+
+== Entscheidung
+
+Wir verwenden einen *CRUD-basierten Ansatz mit Versionierung und Audit-Log* für das Einsatztagebuch.
+
+== Begründung
+
+* *Konsistenz mit bestehendem Stack*: Passt zum Prisma/PostgreSQL Setup
+* *Einfachere Implementierung*: Schnellere Time-to-Market
+* *Bewährtes Muster*: CRUD mit Audit-Trail ist ein etabliertes Pattern
+* *Flexibilität*: Migration zu Event Sourcing später möglich falls nötig
+* *Performance*: Direkte Queries ohne Event-Replay
+
+== Implementierungsdetails
+
+* Soft-Delete only (keine physischen Löschungen)
+* Versionierte Einträge bei Änderungen (EtbEintragHistorie)
+* Separater Audit-Table für alle Aktionen (EtbAuditLog)
+* Status-Feld für ETB (DRAFT → ACTIVE → LOCKED)
+* Datenbank-Constraints für Unveränderbarkeit nach LOCKED-Status
+
+== Konsequenzen
+
+=== Positiv
+
+* Schnelle Implementierung möglich
+* Geringere Komplexität
+* Bekannte Patterns für Entwickler
+* Einfaches Backup und Restore
+
+=== Negativ
+
+* Kein automatisches Event-Replay
+* Audit-Trail muss manuell gepflegt werden
+* Versionierung erfordert zusätzliche Logik
+
+== Optionen (verworfen)
+
+. *Event Sourcing*: Zu komplex für initialen Release
+. *Hybrid-Ansatz*: Unnötige Komplexität ohne klaren Mehrwert

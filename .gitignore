@@ -199,10 +199,10 @@ tasks.json
 /packages/backend/coverage-e2e/
 
 # Dev Tools
-.bmad-core/
 
 # Debug files
 *-debug.png
 auth-page-debug.png
+# BMAD (local only)
 # BMAD (local only)
 .bmad-*/
