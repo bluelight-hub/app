@@ -4,12 +4,12 @@ permissions: read-all
 
 on:
   push:
-    branches: [main, develop, feature/*, alpha, beta, release/*]
+    branches: [ main, develop, feature/*, alpha, beta, release/* ]
     paths:
       - 'docs/**'
       - '.github/workflows/docs.yml'
   pull_request:
-    branches: [main, develop, feature/*, alpha, beta, release/*]
+    branches: [ main, develop, feature/*, alpha, beta, release/* ]
     paths:
       - 'docs/**'
   workflow_dispatch:
@@ -26,19 +26,17 @@ jobs:
     permissions:
       contents: read
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
         with:
           fetch-depth: 0
 
       - name: Install pnpm
-        uses: pnpm/action-setup@v2
-        with:
-          version: 10.14.0
+        uses: pnpm/action-setup@v4
 
       - name: Setup Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v5
         with:
-          node-version: '20'
+          node-version-file: 'package.json'
           cache: 'pnpm'
 
       - name: Get pnpm store directory
@@ -46,7 +44,7 @@ jobs:
         run: |
           echo "STORE_PATH=$(pnpm store path --silent)" >> $GITHUB_ENV
 
-      - uses: actions/cache@v3
+      - uses: actions/cache@v4
         name: Setup pnpm cache
         with:
           path: ${{ env.STORE_PATH }}
@@ -58,19 +56,7 @@ jobs:
       - name: Set up Ruby
         uses: ruby/setup-ruby@v1
         with:
-          ruby-version: '3.2'
           bundler-cache: true
-
-      # Installiere Java für PlantUML
-      - name: Set up Java
-        uses: actions/setup-java@v3
-        with:
-          distribution: 'temurin'
-          java-version: '17'
-
-      # Installiere Graphviz für PlantUML
-      - name: Install Graphviz
-        run: sudo apt-get update && sudo apt-get install -y graphviz
 
       # Installiere Asciidoctor und Diagramm-Tools
       - name: Install Asciidoctor and diagram tools
@@ -78,9 +64,6 @@ jobs:
           gem install asciidoctor
           gem install asciidoctor-diagram
           gem install asciidoctor-pdf
-
-          # PlantUML-spezifische Pakete
-          gem install asciidoctor-plantuml
 
           # Mermaid-spezifische Pakete
           npm install -g @mermaid-js/mermaid-cli
@@ -169,7 +152,7 @@ jobs:
       deployments: write
     steps:
       - name: Download documentation artifacts
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v5
         with:
           name: documentation
           path: dist/docs/
