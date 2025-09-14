@@ -19,6 +19,7 @@ jobs:
   build-and-test:
     name: Build and Test (${{ matrix.os }})
     runs-on: ${{ matrix.os }}
+    timeout-minutes: 30
 
     strategy:
       fail-fast: false
@@ -32,89 +33,14 @@ jobs:
           - os: windows-latest
             platform_name: 'Windows'
 
-    # PostgreSQL service disabled - not needed without E2E tests
-    # services:
-    #   postgres:
-    #     image: ${{ matrix.os == 'ubuntu-latest' && 'postgres:17' || '' }}
-    #     env:
-    #       POSTGRES_USER: postgres
-    #       POSTGRES_PASSWORD: postgres
-    #       POSTGRES_DB: bluelight_test
-    #     ports:
-    #       - 5432:5432
-    #     options: >-
-    #       --health-cmd="pg_isready"
-    #       --health-interval=10s
-    #       --health-timeout=5s
-    #       --health-retries=5
-
     steps:
       - uses: actions/checkout@v5
-
-      # Setup PostgreSQL for non-Linux platforms
-      - name: Setup PostgreSQL (macOS)
-        if: false && matrix.os == 'macos-latest'
-        run: |
-          brew install postgresql@17
-          brew services start postgresql@17
-          sleep 3
-          createuser -s postgres || true
-          createdb -U postgres bluelight_test || true
-
-      - name: Setup PostgreSQL (Windows)
-        if: false && matrix.os == 'windows-latest'
-        shell: pwsh
-        run: |
-          # Install PostgreSQL using Chocolatey
-          choco install postgresql17 --params '/Password:postgres' -y
-          # Wait for service to start
-          Start-Sleep -Seconds 10
-          # Create test database
-          & "C:\Program Files\PostgreSQL\17\bin\psql.exe" -U postgres -c "CREATE DATABASE bluelight_test;" 2>$null
 
       # Use our reusable build action
       - name: Build and Test
         uses: ./.github/actions/build-and-test
         with:
-          platform: ${{ matrix.os }}
           skip-tests: ${{ matrix.os == 'windows-latest' && 'true' || 'false' }}
-
-      # E2E Tests (nur auf Linux)
-      - name: Run E2E Tests
-        if: false && matrix.os == 'ubuntu-latest'
-        env:
-          DATABASE_URL: postgresql://postgres:postgres@localhost:5432/bluelight_test
-          JWT_SECRET: test-secret
-          JWT_REFRESH_SECRET: test-refresh-secret
-          NODE_ENV: test
-        run: |
-          # Start backend server
-          pnpm --filter @bluelight-hub/backend start:prod &
-          # Wait for backend to be ready
-          echo "Waiting for backend to be ready..."
-          ATTEMPTS=30
-          for i in $(seq 1 $ATTEMPTS); do
-            if curl -fsS http://localhost:3000/api/health/liveness > /dev/null 2>&1; then
-              echo "Backend is ready (attempt $i)."
-              break
-            fi
-            echo "Attempt $i/$ATTEMPTS: Backend not ready yet. Retrying..."
-            sleep 2
-          done
-
-          # Start frontend server
-          pnpm --filter @bluelight-hub/frontend preview --port 5173 &
-          # Wait for frontend to be ready
-          echo "Waiting for frontend to be ready..."
-          ATTEMPTS=30
-          for i in $(seq 1 $ATTEMPTS); do
-            if curl -fsS http://localhost:5173 > /dev/null 2>&1; then
-              echo "Frontend is ready (attempt $i)."
-              break
-            fi
-            echo "Attempt $i/$ATTEMPTS: Frontend not ready yet. Retrying..."
-            sleep 2
-          done
 
       # Upload test artifacts on failure
       - uses: actions/upload-artifact@v4
@@ -158,7 +84,6 @@ jobs:
 
       - name: Install dependencies
         run: |
-          export PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=true
           pnpm install --frozen-lockfile
 
       - name: Generate Prisma Client
