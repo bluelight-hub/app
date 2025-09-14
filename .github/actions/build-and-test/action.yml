@@ -18,10 +18,6 @@ inputs:
     description: 'Skip backend build'
     required: false
     default: 'false'
-  database-url:
-    description: 'Database URL for tests'
-    required: false
-    default: 'postgresql://postgres:postgres@localhost:5432/bluelight_test'
 
 runs:
   using: 'composite'
@@ -48,12 +44,13 @@ runs:
       shell: bash
       run: pnpm --filter @bluelight-hub/backend prisma:generate
 
-    - name: Run database migrations
-      if: inputs.skip-backend-build == 'false' && inputs.skip-tests == 'false'
-      shell: bash
-      env:
-        DATABASE_URL: ${{ inputs.database-url }}
-      run: pnpm --filter @bluelight-hub/backend prisma migrate deploy
+    # Database migrations disabled - not needed without E2E tests
+    # - name: Run database migrations
+    #   if: inputs.skip-backend-build == 'false' && inputs.skip-tests == 'false'
+    #   shell: bash
+    #   env:
+    #     DATABASE_URL: ${{ inputs.database-url }}
+    #   run: pnpm --filter @bluelight-hub/backend prisma migrate deploy
 
     - name: Build shared package
       shell: bash
@@ -78,7 +75,6 @@ runs:
       if: inputs.skip-tests == 'false'
       shell: bash
       env:
-        DATABASE_URL: ${{ inputs.database-url }}
         JWT_SECRET: test-secret
         JWT_REFRESH_SECRET: test-refresh-secret
         NODE_ENV: test
