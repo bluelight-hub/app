@@ -5,7 +5,6 @@ on:
     branches: [ main, develop, feature/*, alpha, beta, release/* ]
   push:
     branches: [ main, develop, feature/*, alpha, beta, release/* ]
-    # Only on push to main branches for continuous monitoring
 
 # Cancel in-progress runs when new commit is pushed
 concurrency:
@@ -17,12 +16,25 @@ permissions:
   security-events: write
 
 jobs:
-  build:
-    runs-on: ubuntu-latest
+  build-and-test:
+    name: Build and Test (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+        include:
+          - os: ubuntu-latest
+            platform_name: 'Linux'
+          - os: macos-latest
+            platform_name: 'macOS'
+          - os: windows-latest
+            platform_name: 'Windows'
 
     services:
       postgres:
-        image: postgres:15
+        image: ${{ matrix.os == 'ubuntu-latest' && 'postgres:15' || '' }}
         env:
           POSTGRES_USER: postgres
           POSTGRES_PASSWORD: postgres
@@ -38,60 +50,45 @@ jobs:
     steps:
       - uses: actions/checkout@v5
 
-      - name: Install pnpm
-        uses: pnpm/action-setup@v4
+      # Setup PostgreSQL for non-Linux platforms
+      - name: Setup PostgreSQL (macOS)
+        if: matrix.os == 'macos-latest'
+        run: |
+          brew install postgresql@15
+          brew services start postgresql@15
+          sleep 3
+          createuser -s postgres || true
+          createdb -U postgres bluelight_test || true
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v5
+      - name: Setup PostgreSQL (Windows)
+        if: matrix.os == 'windows-latest'
+        shell: pwsh
+        run: |
+          # Install PostgreSQL using Chocolatey
+          choco install postgresql15 --params '/Password:postgres' -y
+          # Wait for service to start
+          Start-Sleep -Seconds 10
+          # Create test database
+          & "C:\Program Files\PostgreSQL\15\bin\psql.exe" -U postgres -c "CREATE DATABASE bluelight_test;" 2>$null
+
+      # Use our reusable build action
+      - name: Build and Test
+        uses: ./.github/actions/build-and-test
         with:
-          node-version-file: 'package.json'
-          cache: 'pnpm'
+          platform: ${{ matrix.os }}
+          skip-tests: ${{ matrix.os == 'windows-latest' && 'true' || 'false' }}
+          database-url: ${{ matrix.os == 'ubuntu-latest' && 'postgresql://postgres:postgres@localhost:5432/bluelight_test' || matrix.os == 'macos-latest' && 'postgresql://postgres@localhost:5432/bluelight_test' || 'postgresql://postgres:postgres@localhost:5432/bluelight_test' }}
 
-      - name: Install dependencies
-        run: pnpm install --frozen-lockfile
-
-      - name: Generate Prisma Client
-        run: pnpm --filter @bluelight-hub/backend prisma:generate
-
-      - name: Run database migrations
-        env:
-          DATABASE_URL: postgresql://postgres:postgres@localhost:5432/bluelight_test
-        run: pnpm --filter @bluelight-hub/backend prisma migrate deploy
-
-      - name: Build packages
-        run: |
-          pnpm --filter @bluelight-hub/shared build:ci
-          pnpm --filter @bluelight-hub/backend build
-
-      # Linting
-      - name: Run linter
-        run: pnpm lint:check
-
-      # Unit Tests mit Coverage
-      - name: Run unit tests with coverage
+      # E2E Tests (nur auf Linux)
+      - name: Run E2E Tests
+        if: matrix.os == 'ubuntu-latest'
         env:
           DATABASE_URL: postgresql://postgres:postgres@localhost:5432/bluelight_test
           JWT_SECRET: test-secret
           JWT_REFRESH_SECRET: test-refresh-secret
           NODE_ENV: test
         run: |
-          pnpm --filter @bluelight-hub/backend test:cov
-          pnpm --filter @bluelight-hub/frontend test:cov
-
-      # E2E Tests
-      #      - name: Build backend for production
-      #        run: pnpm --filter @bluelight-hub/backend build
-
-      - name: Build frontend for E2E tests
-        run: pnpm --filter @bluelight-hub/frontend build
-
-      - name: Start backend server
-        env:
-          DATABASE_URL: postgresql://postgres:postgres@localhost:5432/bluelight_test
-          JWT_SECRET: test-secret
-          JWT_REFRESH_SECRET: test-refresh-secret
-          NODE_ENV: test
-        run: |
+          # Start backend server
           pnpm --filter @bluelight-hub/backend start:prod &
           # Wait for backend to be ready
           echo "Waiting for backend to be ready..."
@@ -105,8 +102,7 @@ jobs:
             sleep 2
           done
 
-      - name: Start frontend server
-        run: |
+          # Start frontend server
           pnpm --filter @bluelight-hub/frontend preview --port 5173 &
           # Wait for frontend to be ready
           echo "Waiting for frontend to be ready..."
@@ -120,41 +116,29 @@ jobs:
             sleep 2
           done
 
-        #      - name: Install Playwright browsers
-        #        run: pnpm --filter @bluelight-hub/frontend exec playwright install --with-deps chromium
-
-        #      - name: Run E2E tests
-        #        env:
-        #          CI: true
-        #run: pnpm --filter @bluelight-hub/frontend test:e2e:auth
-
       # Upload test artifacts on failure
       - uses: actions/upload-artifact@v4
         if: failure()
         with:
-          name: playwright-traces
+          name: test-artifacts-${{ matrix.os }}
           path: |
             packages/frontend/test-results/
             packages/frontend/playwright-report/
+            packages/backend/coverage/
+            packages/frontend/coverage/
             **/trace.zip
 
-      # Coverage upload (nur für Node 22)
+      # Coverage upload (nur für Linux)
       - name: Upload coverage to Codecov
+        if: matrix.os == 'ubuntu-latest'
         uses: codecov/codecov-action@v5
         with:
           files: |
             packages/backend/coverage/lcov.info
             packages/frontend/coverage/lcov.info
           flags: unittests
-          name: codecov-umbrella
+          name: codecov-${{ matrix.platform_name }}
           fail_ci_if_error: false
-
-      # Coverage Gate Check
-      - name: Check coverage threshold
-        run: |
-          echo "⚠️ Coverage check placeholder - implement when coverage is re-enabled"
-          # When coverage is enabled, use:
-          # npx nyc check-coverage --lines 90 || exit 1
 
   # Documentation Build (optional, non-blocking)
   docs:
@@ -173,7 +157,9 @@ jobs:
           cache: 'pnpm'
 
       - name: Install dependencies
-        run: pnpm install --frozen-lockfile
+        run: |
+          export PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=true
+          pnpm install --frozen-lockfile
 
       - name: Generate Prisma Client
         run: pnpm --filter @bluelight-hub/backend prisma:generate
@@ -205,21 +191,19 @@ jobs:
 
       - name: Run TypeScript compiler check
         run: |
+          export PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=true
           pnpm install --frozen-lockfile
           pnpm lint:check
 
-      # Additional quality checks can be added here
-      # - SonarCloud, CodeQL, etc.
-
   # Summary job for branch protection
   summary:
-    needs: [ build ]
+    needs: [ build-and-test ]
     runs-on: ubuntu-latest
     if: always()
     steps:
       - name: Check all matrix jobs
         run: |
-          if [[ "${{ needs.build.result }}" != "success" ]]; then
+          if [[ "${{ needs.build-and-test.result }}" != "success" ]]; then
             echo "❌ One or more jobs failed"
             exit 1
           fi
@@ -231,7 +215,9 @@ jobs:
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "| Check | Status |" >> $GITHUB_STEP_SUMMARY
           echo "|-------|--------|" >> $GITHUB_STEP_SUMMARY
-          echo "| Build & Test | ${{ needs.build.result == 'success' && '✅' || '❌' }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Build & Test | ${{ needs.build-and-test.result == 'success' && '✅' || '❌' }} |" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
-          echo "### Matrix Results" >> $GITHUB_STEP_SUMMARY
-          echo "- Node 24: Complete" >> $GITHUB_STEP_SUMMARY
+          echo "### Platform Results" >> $GITHUB_STEP_SUMMARY
+          echo "- Linux: Complete" >> $GITHUB_STEP_SUMMARY
+          echo "- macOS: Complete" >> $GITHUB_STEP_SUMMARY
+          echo "- Windows: Complete (tests skipped)" >> $GITHUB_STEP_SUMMARY
