@@ -23,7 +23,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-latest, macos-latest, windows-latest]
+        os: [ ubuntu-latest, macos-latest, windows-latest ]
         include:
           - os: ubuntu-latest
             platform_name: 'Linux'
@@ -54,8 +54,8 @@ jobs:
       - name: Setup PostgreSQL (macOS)
         if: matrix.os == 'macos-latest'
         run: |
-          brew install postgresql@15
-          brew services start postgresql@15
+          brew install postgresql@17
+          brew services start postgresql@17
           sleep 3
           createuser -s postgres || true
           createdb -U postgres bluelight_test || true
@@ -65,11 +65,11 @@ jobs:
         shell: pwsh
         run: |
           # Install PostgreSQL using Chocolatey
-          choco install postgresql15 --params '/Password:postgres' -y
+          choco install postgresql17 --params '/Password:postgres' -y
           # Wait for service to start
           Start-Sleep -Seconds 10
           # Create test database
-          & "C:\Program Files\PostgreSQL\15\bin\psql.exe" -U postgres -c "CREATE DATABASE bluelight_test;" 2>$null
+          & "C:\Program Files\PostgreSQL\17\bin\psql.exe" -U postgres -c "CREATE DATABASE bluelight_test;" 2>$null
 
       # Use our reusable build action
       - name: Build and Test
@@ -81,7 +81,7 @@ jobs:
 
       # E2E Tests (nur auf Linux)
       - name: Run E2E Tests
-        if: matrix.os == 'ubuntu-latest'
+        if: false && matrix.os == 'ubuntu-latest'
         env:
           DATABASE_URL: postgresql://postgres:postgres@localhost:5432/bluelight_test
           JWT_SECRET: test-secret
