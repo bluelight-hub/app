@@ -31,6 +31,8 @@ jobs:
     name: Build Backend
     needs: [ check-test-success ]
     runs-on: ubuntu-latest
+    env:
+      PUPPETEER_SKIP_CHROMIUM_DOWNLOAD: true
     steps:
       - name: Checkout repository
         uses: actions/checkout@v5
@@ -131,8 +133,6 @@ jobs:
 
       - name: Install dependencies
         run: pnpm install
-        env:
-          PUPPETEER_SKIP_CHROMIUM_DOWNLOAD: true
 
       - name: Prepare Windows Version (Windows only)
         if: matrix.platform == 'windows-latest'
@@ -194,9 +194,7 @@ jobs:
           cache: 'pnpm'
 
       - name: Install dependencies
-        run: pnpm install
-        env:
-          PUPPETEER_SKIP_CHROMIUM_DOWNLOAD: true
+        run: pnpm install --frozen-lockfile
 
       - name: Download Backend Image Tags
         uses: actions/download-artifact@v5

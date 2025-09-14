@@ -49,7 +49,7 @@ bluelight-hub/
 
    ```bash
    git clone https://github.com/rubenvitt/bluelight-hub.git
-   cd app
+   cd bluelight-hub
    ```
 
 2. Abhängigkeiten installieren:
