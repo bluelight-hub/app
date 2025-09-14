@@ -1,7 +1,8 @@
-import path from 'node:path';
 import tailwindcss from '@tailwindcss/vite';
 import tanstackRouter from '@tanstack/router-plugin/vite';
 import react from '@vitejs/plugin-react-swc';
+import path from 'node:path';
+import * as process from 'node:process';
 import { defineConfig } from 'vite';
 import tsconfigPaths from 'vite-tsconfig-paths';
 
@@ -20,11 +21,12 @@ export default defineConfig({
   clearScreen: false,
   server: {
     strictPort: true,
-    host: host || false,
+    host: host || true,
+    allowedHosts: true, // allow access from all hosts
     port: 3001,
     proxy: {
       '/api': {
-        target: 'http://localhost:3000',
+        target: process.env.VITE_API_URL || 'http://localhost:3000',
         changeOrigin: true,
         secure: false,
       },

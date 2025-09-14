@@ -66,16 +66,38 @@ export const helmetConfig: HelmetOptions = {
  *
  * @constant
  */
+/**
+ * Dynamische Origin-Validierung für Tauri und Development
+ */
+const corsOriginHandler = (origin: string | undefined, callback: (err: Error | null, allow?: boolean) => void) => {
+  // Erlaubte Patterns für Tauri und Development
+  const allowedPatterns = [
+    /^https?:\/\/localhost(:\d+)?$/, // localhost mit beliebigem Port
+    /^https?:\/\/127\.0\.0\.1(:\d+)?$/, // 127.0.0.1 mit beliebigem Port
+    /^tauri:\/\/localhost/, // Tauri v1
+    /^https:\/\/tauri\.localhost/, // Tauri v2
+    /^https?:\/\/\[::1\](:\d+)?$/, // IPv6 localhost
+  ];
+
+  // Zusätzliche Origins aus Umgebungsvariablen
+  const envOrigins = process.env.ALLOWED_ORIGINS?.split(',').filter(Boolean) || [];
+
+  // Prüfe ob Origin erlaubt ist
+  const isAllowed = !origin || envOrigins.includes(origin) || allowedPatterns.some((pattern) => pattern.test(origin));
+
+  callback(null, isAllowed);
+};
+
 export const corsConfig = {
   development: {
-    origin: [...(process.env.ALLOWED_ORIGINS?.split(',') || []), 'http://localhost:3000', 'http://localhost:3001', 'http://localhost:5173', 'http://localhost:5174'],
+    origin: corsOriginHandler,
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept', 'Origin'],
     exposedHeaders: ['X-Total-Count'],
   } satisfies CorsOptions,
   production: {
-    origin: process.env.ALLOWED_ORIGINS?.split(',') || false,
+    origin: corsOriginHandler, // Gleiche Handler für Production wegen Tauri
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept', 'Origin'],
