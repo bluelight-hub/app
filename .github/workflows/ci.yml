@@ -20,10 +20,6 @@ jobs:
   build:
     runs-on: ubuntu-latest
 
-    strategy:
-      matrix:
-        node-version: [ 22, 24 ]
-
     services:
       postgres:
         image: postgres:15
@@ -39,20 +35,16 @@ jobs:
           --health-timeout=5s
           --health-retries=5
 
-    name: Node ${{ matrix.node-version }}
-
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
       - name: Install pnpm
-        uses: pnpm/action-setup@v2
-        with:
-          version: 10.14.0
+        uses: pnpm/action-setup@v4
 
-      - name: Setup Node.js ${{ matrix.node-version }}
-        uses: actions/setup-node@v4
+      - name: Setup Node.js
+        uses: actions/setup-node@v5
         with:
-          node-version: ${{ matrix.node-version }}
+          node-version-file: 'package.json'
           cache: 'pnpm'
 
       - name: Install dependencies
@@ -71,10 +63,9 @@ jobs:
           pnpm --filter @bluelight-hub/shared build:ci
           pnpm --filter @bluelight-hub/backend build
 
-      # Linting (nur einmal in Node 22)
+      # Linting
       - name: Run linter
-        if: matrix.node-version == 22
-        run: pnpm lint
+        run: pnpm lint:check
 
       # Unit Tests mit Coverage
       - name: Run unit tests with coverage
@@ -130,11 +121,9 @@ jobs:
           done
 
       - name: Install Playwright browsers
-        if: matrix.node-version == 22
         run: pnpm --filter @bluelight-hub/frontend exec playwright install --with-deps chromium
 
       - name: Run E2E tests
-        if: matrix.node-version == 22
         env:
           CI: true
         run: pnpm --filter @bluelight-hub/frontend test:e2e:auth
@@ -143,7 +132,7 @@ jobs:
       - uses: actions/upload-artifact@v4
         if: failure()
         with:
-          name: playwright-traces-${{ matrix.node-version }}
+          name: playwright-traces
           path: |
             packages/frontend/test-results/
             packages/frontend/playwright-report/
@@ -151,7 +140,6 @@ jobs:
 
       # Coverage upload (nur für Node 22)
       - name: Upload coverage to Codecov
-        if: matrix.node-version == 22
         uses: codecov/codecov-action@v5
         with:
           files: |
@@ -163,7 +151,6 @@ jobs:
 
       # Coverage Gate Check
       - name: Check coverage threshold
-        if: matrix.node-version == 22
         run: |
           echo "⚠️ Coverage check placeholder - implement when coverage is re-enabled"
           # When coverage is enabled, use:
@@ -174,17 +161,15 @@ jobs:
     runs-on: ubuntu-latest
     continue-on-error: true
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
       - name: Install pnpm
-        uses: pnpm/action-setup@v2
-        with:
-          version: 10.14.0
+        uses: pnpm/action-setup@v4
 
       - name: Setup Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v5
         with:
-          node-version: '22'
+          node-version-file: 'package.json'
           cache: 'pnpm'
 
       - name: Install dependencies
@@ -207,17 +192,17 @@ jobs:
       contents: read
       security-events: write
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
       - name: Install pnpm
-        uses: pnpm/action-setup@v2
+        uses: pnpm/action-setup@v4
         with:
           version: 10.14.0
 
       - name: Setup Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v5
         with:
-          node-version: '22'
+          node-version-file: 'package.json'
           cache: 'pnpm'
 
       - name: Run TypeScript compiler check
@@ -237,7 +222,7 @@ jobs:
       - name: Check all matrix jobs
         run: |
           if [[ "${{ needs.build.result }}" != "success" ]]; then
-            echo "❌ One or more matrix jobs failed"
+            echo "❌ One or more jobs failed"
             exit 1
           fi
           echo "✅ All CI checks passed"
@@ -251,5 +236,4 @@ jobs:
           echo "| Build & Test | ${{ needs.build.result == 'success' && '✅' || '❌' }} |" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "### Matrix Results" >> $GITHUB_STEP_SUMMARY
-          echo "- Node 22: Complete" >> $GITHUB_STEP_SUMMARY
           echo "- Node 24: Complete" >> $GITHUB_STEP_SUMMARY

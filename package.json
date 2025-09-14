@@ -7,7 +7,7 @@
     "build": "pnpm -r build",
     "generate-api": "pnpm -r generate-api",
     "lint": "biome check --write",
-    "lint:check": "biome check && pnpm -r lint:check",
+    "lint:check": "biome check",
     "test": "pnpm -r test",
     "test:ui": "pnpm -r test:ui",
     "test:cov": "pnpm -r test:cov",
@@ -43,6 +43,9 @@
     "**/*.{js,ts,tsx,json,md,yml,yaml}": ["biome check --write"],
     "packages/backend/**/*.ts": ["pnpm --filter @bluelight-hub/backend lint"],
     "packages/frontend/**/*.{ts,tsx}": ["pnpm --filter @bluelight-hub/frontend lint"]
+  },
+  "engines": {
+    "node": ">=24.0.0"
   },
   "devDependencies": {
     "@biomejs/biome": "2.2.2",

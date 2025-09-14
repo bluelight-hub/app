@@ -12,9 +12,8 @@ Bei der Erstellung von Diagrammen in der Dokumentation sind folgende Richtlinien
 Folgende Diagrammtypen werden unterstützt:
 
 1. **Mermaid** - für einfache, webbasierte Diagramme
-2. **PlantUML** - für komplexere UML Diagramme
-3. **BPMN** - für Geschäftsprozessmodellierung
-4. **DBML** - für Datenbankmodellierung
+2. **BPMN** - für Geschäftsprozessmodellierung
+3. **DBML** - für Datenbankmodellierung
 
 ## Allgemeine Richtlinien
 
@@ -23,11 +22,6 @@ Folgende Diagrammtypen werden unterstützt:
    [mermaid]
    ....
    // Mermaid-Diagramm-Code hier
-   ....
-   
-   [plantuml]
-   ....
-   // PlantUML-Diagramm-Code hier
    ....
    
    [bpmn]
@@ -175,39 +169,6 @@ erDiagram
 - Verwende ER-Diagramme für Datenmodelle
 - Zeige Kardinalitäten korrekt an
 - Beschrifte Beziehungen
-
-## PlantUML Diagramme
-
-PlantUML eignet sich besonders gut für komplexere UML-Diagramme wie:
-
-- Detaillierte Klassendiagramme
-- Komponentendiagramme
-- Verteilungsdiagramme (Deployment)
-- Anwendungsfalldiagramme (Use Cases)
-
-[plantuml]
-....
-@startuml
-package "Frontend" {
-  [UI Components] as UI
-  [State Management] as State
-}
-
-package "Backend" {
-  [API Gateway] as API
-  [Service Layer] as Service
-  [Data Access] as DAO
-}
-
-database "Database" as DB
-
-UI --> State
-State --> API
-API --> Service
-Service --> DAO
-DAO --> DB
-@enduml
-....
 
 ## BPMN Diagramme
 
