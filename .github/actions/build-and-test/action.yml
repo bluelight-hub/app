@@ -1,0 +1,87 @@
+name: 'Build and Test'
+description: 'Reusable build and test steps for CI and Release workflows'
+
+inputs:
+  platform:
+    description: 'Platform to build on'
+    required: false
+    default: 'ubuntu-latest'
+  skip-tests:
+    description: 'Skip running tests'
+    required: false
+    default: 'false'
+  skip-frontend-build:
+    description: 'Skip frontend build'
+    required: false
+    default: 'false'
+  skip-backend-build:
+    description: 'Skip backend build'
+    required: false
+    default: 'false'
+  database-url:
+    description: 'Database URL for tests'
+    required: false
+    default: 'postgresql://postgres:postgres@localhost:5432/bluelight_test'
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Install pnpm
+      uses: pnpm/action-setup@v4
+
+    - name: Setup Node.js
+      uses: actions/setup-node@v5
+      with:
+        node-version-file: 'package.json'
+        cache: 'pnpm'
+
+    - name: Install dependencies
+      shell: bash
+      run: |
+        # Set environment variable to skip Puppeteer download
+        export PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=true
+        export PUPPETEER_SKIP_DOWNLOAD=true
+        pnpm install --frozen-lockfile
+
+    - name: Generate Prisma Client
+      if: inputs.skip-backend-build == 'false'
+      shell: bash
+      run: pnpm --filter @bluelight-hub/backend prisma:generate
+
+    - name: Run database migrations
+      if: inputs.skip-backend-build == 'false' && inputs.skip-tests == 'false'
+      shell: bash
+      env:
+        DATABASE_URL: ${{ inputs.database-url }}
+      run: pnpm --filter @bluelight-hub/backend prisma migrate deploy
+
+    - name: Build shared package
+      shell: bash
+      run: pnpm --filter @bluelight-hub/shared build:ci
+
+    - name: Build backend
+      if: inputs.skip-backend-build == 'false'
+      shell: bash
+      run: pnpm --filter @bluelight-hub/backend build
+
+    - name: Build frontend
+      if: inputs.skip-frontend-build == 'false'
+      shell: bash
+      run: pnpm --filter @bluelight-hub/frontend build
+
+    - name: Run linter
+      if: inputs.skip-tests == 'false'
+      shell: bash
+      run: pnpm lint:check
+
+    - name: Run unit tests with coverage
+      if: inputs.skip-tests == 'false'
+      shell: bash
+      env:
+        DATABASE_URL: ${{ inputs.database-url }}
+        JWT_SECRET: test-secret
+        JWT_REFRESH_SECRET: test-refresh-secret
+        NODE_ENV: test
+      run: |
+        pnpm --filter @bluelight-hub/backend test:cov
+        pnpm --filter @bluelight-hub/frontend test:cov
