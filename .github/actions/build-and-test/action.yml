@@ -2,10 +2,6 @@ name: 'Build and Test'
 description: 'Reusable build and test steps for CI and Release workflows'
 
 inputs:
-  platform:
-    description: 'Platform to build on'
-    required: false
-    default: 'ubuntu-latest'
   skip-tests:
     description: 'Skip running tests'
     required: false
@@ -35,22 +31,12 @@ runs:
       shell: bash
       run: |
         # Set environment variable to skip Puppeteer download
-        export PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=true
-        export PUPPETEER_SKIP_DOWNLOAD=true
         pnpm install --frozen-lockfile
 
     - name: Generate Prisma Client
       if: inputs.skip-backend-build == 'false'
       shell: bash
       run: pnpm --filter @bluelight-hub/backend prisma:generate
-
-    # Database migrations disabled - not needed without E2E tests
-    # - name: Run database migrations
-    #   if: inputs.skip-backend-build == 'false' && inputs.skip-tests == 'false'
-    #   shell: bash
-    #   env:
-    #     DATABASE_URL: ${{ inputs.database-url }}
-    #   run: pnpm --filter @bluelight-hub/backend prisma migrate deploy
 
     - name: Build shared package
       shell: bash
