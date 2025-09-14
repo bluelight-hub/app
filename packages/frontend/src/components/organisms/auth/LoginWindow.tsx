@@ -1,7 +1,3 @@
-import type { AuthRequestDto } from '@bluelight-hub/shared/client';
-import { useNavigate } from '@tanstack/react-router';
-import { useCallback, useEffect } from 'react';
-import { toast } from 'sonner';
 import { Heading } from '@/components/atoms/heading.atom';
 import { Text } from '@/components/atoms/text.atom';
 import { AuthCard } from '@/components/molecules/auth-card.molecule';
@@ -10,6 +6,10 @@ import { LogoWithIndicator } from '@/components/molecules/logo-with-indicator.mo
 import { AuthLayout } from '@/components/templates/AuthLayout';
 import { useAuth } from '@/hooks/useAuth';
 import { getApiErrorMessage } from '@/utils/apiErrorHandler';
+import type { AuthRequestDto } from '@bluelight-hub/shared/client';
+import { useNavigate } from '@tanstack/react-router';
+import { useCallback, useEffect } from 'react';
+import { toast } from 'sonner';
 import { UnifiedAuthForm } from './UnifiedAuthForm';
 
 // Props for the LoginWindow component (currently empty)
