@@ -79,8 +79,8 @@ jobs:
           pnpm --filter @bluelight-hub/frontend test:cov
 
       # E2E Tests
-      - name: Build backend for production
-        run: pnpm --filter @bluelight-hub/backend build
+      #      - name: Build backend for production
+      #        run: pnpm --filter @bluelight-hub/backend build
 
       - name: Build frontend for E2E tests
         run: pnpm --filter @bluelight-hub/frontend build
