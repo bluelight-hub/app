@@ -1,14 +1,15 @@
 # BlueLight Hub
 
 <!-- Coverage temporarily disabled -->
-<!-- [![codecov](https://codecov.io/gh/bluelight-hub/app/graph/badge.svg?token=I5Z3C0FSLL)](https://codecov.io/gh/bluelight-hub/app) -->
+<!-- [![codecov](https://codecov.io/gh/rubenvitt/bluelight-hub/graph/badge.svg?token=I5Z3C0FSLL)](https://codecov.io/gh/rubenvitt/bluelight-hub) -->
 
-[![GitHub Actions](https://github.com/bluelight-hub/app/actions/workflows/test.yml/badge.svg)](https://github.com/bluelight-hub/app/actions/workflows/test.yml)
+[![GitHub Actions](https://github.com/rubenvitt/bluelight-hub/actions/workflows/test.yml/badge.svg)](https://github.com/rubenvitt/bluelight-hub/actions/workflows/test.yml)
 [![doccov](https://backend-docs.bluelight-hub.rubeen.dev/images/coverage-badge-documentation.svg)](https://backend-docs.bluelight-hub.rubeen.dev)
 
 ## Übersicht
 
-BlueLight Hub ist eine moderne Anwendung, die mit einer Monorepo-Struktur entwickelt wurde. Die Anwendung besteht aus einem Frontend (Vite/React mit Tauri-Integration) und einem Backend (
+BlueLight Hub ist eine moderne Anwendung, die mit einer Monorepo-Struktur entwickelt wurde. Die Anwendung besteht aus
+einem Frontend (Vite/React mit Tauri-Integration) und einem Backend (
 NestJS), die über ein gemeinsames Modul kommunizieren.
 
 <!-- Coverage temporarily disabled -->
@@ -16,7 +17,7 @@ NestJS), die über ein gemeinsames Modul kommunizieren.
 
 ### Coverage
 
-![Coverage](https://codecov.io/gh/bluelight-hub/app/graphs/sunburst.svg?token=I5Z3C0FSLL) -->
+![Coverage](https://codecov.io/gh/rubenvitt/bluelight-hub/graphs/sunburst.svg?token=I5Z3C0FSLL) -->
 
 ## Projektstruktur
 
@@ -47,7 +48,7 @@ bluelight-hub/
 1. Repository klonen:
 
    ```bash
-   git clone https://github.com/bluelight-hub/app.git
+   git clone https://github.com/rubenvitt/bluelight-hub.git
    cd app
    ```
 
@@ -58,8 +59,8 @@ bluelight-hub/
    ```
 
 3. Umgebungsvariablen konfigurieren:
-   - Kopiere `.env.example` zu `.env` (falls vorhanden)
-   - Passe die Konfiguration nach Bedarf an
+    - Kopiere `.env.example` zu `.env` (falls vorhanden)
+    - Passe die Konfiguration nach Bedarf an
 
 ## Entwicklung
 
@@ -96,7 +97,8 @@ Die Anwendung verwendet JWT-basierte Authentifizierung mit httpOnly-Cookies für
 
 ### Unified Auth System
 
-BlueLight Hub nutzt ein vereinheitlichtes Authentifizierungssystem, das Login und Registrierung in einem einzigen Endpunkt kombiniert:
+BlueLight Hub nutzt ein vereinheitlichtes Authentifizierungssystem, das Login und Registrierung in einem einzigen
+Endpunkt kombiniert:
 
 - **Automatische Registrierung**: Neue Benutzer werden automatisch angelegt, wenn sie sich zum ersten Mal anmelden
 - **Passwortlose Benutzer**: Normale Benutzer haben kein Passwort - nur Admin-Accounts verwenden Passwörter
@@ -105,17 +107,17 @@ BlueLight Hub nutzt ein vereinheitlichtes Authentifizierungssystem, das Login un
 ### Auth-Endpoints
 
 - `POST /api/auth/unified` - Unified Authentication (Login/Auto-Registrierung)
-  - Request: `{ username: string }`
-  - Response: `{ user: UserResponseDto, isNewUser: boolean }`
-  - Verhalten:
-    - Existierender Benutzer → Login
-    - Neuer Benutzername → Automatische Registrierung
+    - Request: `{ username: string }`
+    - Response: `{ user: UserResponseDto, isNewUser: boolean }`
+    - Verhalten:
+        - Existierender Benutzer → Login
+        - Neuer Benutzername → Automatische Registrierung
 - `POST /api/auth/refresh` - Token-Refresh
-  - Request: Keine (Refresh-Token wird aus Cookie gelesen)
-  - Response: `{ success: true }`
+    - Request: Keine (Refresh-Token wird aus Cookie gelesen)
+    - Response: `{ success: true }`
 - `POST /api/auth/admin/login` - Admin-Login (mit Passwort)
-  - Request: `{ password: string }`
-  - Response: `{ user: UserResponseDto }`
+    - Request: `{ password: string }`
+    - Response: `{ user: UserResponseDto }`
 
 ### Cookie-Handling
 
@@ -135,16 +137,16 @@ Cookie-Eigenschaften:
 ```typescript
 // Unified Auth - Login oder automatische Registrierung
 const response = await api.auth.unifiedAuth({
-  username: 'benutzername',
+    username: 'benutzername',
 });
 
 // Response enthält:
 // - user: Benutzerdaten
 // - isNewUser: true bei neuer Registrierung, false bei Login
 if (response.isNewUser) {
-  console.log('Willkommen! Ihr Account wurde erstellt.');
+    console.log('Willkommen! Ihr Account wurde erstellt.');
 } else {
-  console.log('Willkommen zurück!');
+    console.log('Willkommen zurück!');
 }
 
 // Tokens werden automatisch als httpOnly-Cookies gesetzt

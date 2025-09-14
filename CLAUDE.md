@@ -275,5 +275,5 @@ dto/       # Data Transfer Objects
 
 Mandatory: Spreche Deutsch mit mir, produziere Englischen Code, aber deutsche Dokumentation!
 
-_Repository:_ github.com/bluelight-hub/app
+_Repository:_ github.com/rubenvitt/bluelight-hub
 _Import zusätzliche Workflows:_ @./.taskmaster/CLAUDE.md
