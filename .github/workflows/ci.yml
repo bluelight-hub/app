@@ -120,8 +120,8 @@ jobs:
             sleep 2
           done
 
-      - name: Install Playwright browsers
-        run: pnpm --filter @bluelight-hub/frontend exec playwright install --with-deps chromium
+        #      - name: Install Playwright browsers
+        #        run: pnpm --filter @bluelight-hub/frontend exec playwright install --with-deps chromium
 
         #      - name: Run E2E tests
         #        env:
