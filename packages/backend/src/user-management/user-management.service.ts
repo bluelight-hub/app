@@ -1,6 +1,6 @@
 import { BadRequestException, ConflictException, Injectable, NotFoundException } from '@nestjs/common';
 import { UserRole } from '@prisma/client';
-import { PrismaService } from '@/prisma/prisma.service';
+import { UserRepository } from './user.repository';
 import type { CreateUserDto } from './dto/create-user.dto';
 import type { UpdateUserDto } from './dto/update-user.dto';
 import type { UserDto } from './dto/user-management-response.dto';
@@ -16,7 +16,7 @@ import { toUserDto } from './mappers/user.mapper';
  */
 @Injectable()
 export class UserManagementService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(private readonly userRepository: UserRepository) {}
 
   /**
    * Gibt alle Benutzer mit nur den wichtigsten Feldern zurück
@@ -24,18 +24,7 @@ export class UserManagementService {
    * @returns Array von Benutzern mit id, username und role
    */
   async findAll(): Promise<UserDto[]> {
-    const users = await this.prisma.user.findMany({
-      select: {
-        id: true,
-        username: true,
-        role: true,
-        createdAt: true,
-        updatedAt: true,
-      },
-      orderBy: {
-        createdAt: 'desc',
-      },
-    });
+    const users = await this.userRepository.findAllLite();
     return users.map(toUserDto);
   }
 
@@ -49,19 +38,19 @@ export class UserManagementService {
   async create(dto: CreateUserDto) {
     try {
       // Benutzer erstellen mit Standardrolle USER
-      const user = await this.prisma.user.create({
-        data: {
+      const user = await this.userRepository.create(
+        {
           username: dto.username,
           role: dto.role || UserRole.USER,
         },
-        select: {
+        {
           id: true,
           username: true,
           role: true,
           createdAt: true,
           updatedAt: true,
         },
-      });
+      );
       return toUserDto(user);
     } catch (error) {
       // Handle Prisma unique constraint violation
@@ -84,7 +73,7 @@ export class UserManagementService {
    * @throws BadRequestException wenn versucht wird, den letzten SUPER_ADMIN herabzustufen
    */
   async update(id: string, dto: UpdateUserDto): Promise<UserDto> {
-    return await this.prisma.$transaction(async (prisma) => {
+    return await this.userRepository.transaction(async (prisma) => {
       // Prüfen ob Benutzer existiert
       const existingUser = await prisma.user.findUnique({
         where: { id },
@@ -150,7 +139,7 @@ export class UserManagementService {
    * @throws BadRequestException wenn versucht wird, den letzten SUPER_ADMIN zu löschen
    */
   async remove(id: string): Promise<void> {
-    await this.prisma.$transaction(async (prisma) => {
+    await this.userRepository.transaction(async (prisma) => {
       // Benutzer finden
       const userToDelete = await prisma.user.findUnique({
         where: { id },
