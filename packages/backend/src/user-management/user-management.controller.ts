@@ -1,8 +1,9 @@
 import { AdminJwtAuthGuard } from '@/auth/guards/admin-jwt-auth.guard';
 import { ParseNanoIdPipe } from '@/common/pipes/parse-nanoid.pipe';
-import { Body, Controller, Delete, Get, Param, Post, UseGuards, ValidationPipe } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, Patch, Post, UseGuards, ValidationPipe } from '@nestjs/common';
 import { ApiBearerAuth, ApiBody, ApiCreatedResponse, ApiOkResponse, ApiOperation, ApiResponse, ApiTags, ApiUnauthorizedResponse } from '@nestjs/swagger';
 import { CreateUserDto } from './dto/create-user.dto';
+import { UpdateUserDto } from './dto/update-user.dto';
 import { DeleteUserResponse, UserResponse, UsersListResponse } from './dto/user-management-response.dto';
 import { toDeleteUserResponseDto } from './mappers/user-management.mapper';
 import { UserManagementService } from './user-management.service';
@@ -53,6 +54,33 @@ export class UserManagementController {
     dto: CreateUserDto,
   ) {
     return await this.userManagementService.create(dto);
+  }
+
+  @Patch(':id')
+  @ApiOperation({ summary: 'Benutzer aktualisieren' })
+  @ApiBody({
+    type: UpdateUserDto,
+    description: 'Zu aktualisierende Benutzerdaten',
+  })
+  @ApiOkResponse({
+    type: UserResponse,
+    description: 'Benutzer erfolgreich aktualisiert',
+  })
+  @ApiResponse({ status: 400, description: 'Ungültige Eingabedaten' })
+  @ApiResponse({ status: 404, description: 'Benutzer nicht gefunden' })
+  @ApiResponse({ status: 409, description: 'Benutzername bereits vergeben' })
+  async update(
+    @Param('id', new ParseNanoIdPipe()) id: string,
+    @Body(
+      new ValidationPipe({
+        whitelist: true,
+        forbidNonWhitelisted: true,
+        transform: true,
+      }),
+    )
+    dto: UpdateUserDto,
+  ) {
+    return await this.userManagementService.update(id, dto);
   }
 
   @Delete(':id')

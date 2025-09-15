@@ -6,9 +6,10 @@ import { Card } from '@atoms/card.atom';
 import { Container } from '@atoms/container.atom';
 import { Heading } from '@atoms/heading.atom';
 import { Spinner } from '@atoms/spinner.atom';
-import type { CreateUserDto, UserDto } from '@bluelight-hub/shared/client';
+import type { CreateUserDto, UpdateUserDto, UserDto } from '@bluelight-hub/shared/client';
 import { ConfirmDeleteDialog } from '@organisms/admin/ConfirmDeleteDialog';
 import { CreateUserDialog } from '@organisms/admin/CreateUserDialog';
+import { EditUserDialog } from '@organisms/admin/EditUserDialog';
 import { UsersTable } from '@organisms/admin/UsersTable';
 import { Navigate } from '@tanstack/react-router';
 import { useState } from 'react';
@@ -16,9 +17,11 @@ import { PiPlus, PiWarning } from 'react-icons/pi';
 
 export function AdminUsers() {
   const { isAdmin, isLoading: isAuthLoading } = useAdminAuth();
-  const { usersData, isLoading: isUsersLoading, error, createUser, deleteUser, isCreating, isDeleting } = useAdminUserManagement();
+  const { usersData, isLoading: isUsersLoading, error, createUser, updateUser, deleteUser, isCreating, isUpdating, isDeleting } = useAdminUserManagement();
 
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
+  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+  const [editTarget, setEditTarget] = useState<UserDto | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<UserDto | null>(null);
 
   // Redirect if not admin
@@ -32,6 +35,23 @@ export function AdminUsers() {
         setIsCreateDialogOpen(false);
       },
     });
+  };
+
+  const handleEditUser = (user: UserDto) => {
+    setEditTarget(user);
+    setIsEditDialogOpen(true);
+  };
+
+  const handleUpdateUser = (id: string, data: UpdateUserDto) => {
+    updateUser(
+      { id, data },
+      {
+        onSuccess: () => {
+          setIsEditDialogOpen(false);
+          setEditTarget(null);
+        },
+      },
+    );
   };
 
   const handleDeleteUser = (user: UserDto) => {
@@ -82,18 +102,29 @@ export function AdminUsers() {
         </div>
 
         <Card padding="md">
-          <UsersTable users={usersData?.data} isLoading={isUsersLoading} onDelete={handleDeleteUser} />
+          <UsersTable users={usersData?.data} isLoading={isUsersLoading} onEdit={handleEditUser} onDelete={handleDeleteUser} />
         </Card>
       </div>
 
       <CreateUserDialog isOpen={isCreateDialogOpen} onClose={() => setIsCreateDialogOpen(false)} onSubmit={handleCreateUser} isSubmitting={isCreating} />
+
+      <EditUserDialog
+        isOpen={isEditDialogOpen}
+        onClose={() => {
+          setIsEditDialogOpen(false);
+          setEditTarget(null);
+        }}
+        onSubmit={handleUpdateUser}
+        isSubmitting={isUpdating}
+        user={editTarget}
+      />
 
       <ConfirmDeleteDialog
         isOpen={!!deleteTarget}
         onClose={() => setDeleteTarget(null)}
         onConfirm={confirmDelete}
         userName={deleteTarget?.username || ''}
-        userRole={deleteTarget?.role || 'user'}
+        userRole={deleteTarget?.role || 'USER'}
         isDeleting={isDeleting}
       />
     </Container>

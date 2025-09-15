@@ -2,7 +2,7 @@ import { api } from '@/api';
 import { QUERY_KEYS } from '@/queryKeys';
 import { getApiErrorMessage } from '@/utils/apiErrorHandler';
 import { logger } from '@/utils/logger';
-import type { CreateUserDto, DeleteUserResponse, ResponseError, UserResponse, UsersListResponse } from '@bluelight-hub/shared/client';
+import type { CreateUserDto, DeleteUserResponse, ResponseError, UpdateUserDto, UserResponse, UsersListResponse } from '@bluelight-hub/shared/client';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 
@@ -44,6 +44,30 @@ export const useAdminUserManagement = () => {
       const message = await getApiErrorMessage(error, 'Der Benutzer konnte nicht erstellt werden.', 'createUser');
 
       logger.error('Failed to create a user', error);
+      toast.error('Fehler', {
+        description: message,
+      });
+    },
+  });
+
+  // Mutation für Benutzer aktualisieren
+  const updateUserMutation = useMutation<UserResponse, ResponseError, { id: string; data: UpdateUserDto }>({
+    mutationFn: async ({ id, data }) => {
+      return await api.userManagement().userManagementControllerUpdateVAlpha({
+        id,
+        updateUserDto: data,
+      });
+    },
+    onSuccess: async () => {
+      toast.success('Benutzer aktualisiert', {
+        description: 'Die Änderungen wurden erfolgreich gespeichert.',
+      });
+      await queryClient.invalidateQueries({ queryKey: QUERY_KEYS.admin.users });
+    },
+    onError: async (error: ResponseError) => {
+      const message = await getApiErrorMessage(error, 'Der Benutzer konnte nicht aktualisiert werden.', 'updateUser');
+
+      logger.error('Failed to update user', error);
       toast.error('Fehler', {
         description: message,
       });
@@ -100,12 +124,15 @@ export const useAdminUserManagement = () => {
 
     // Aktionen
     createUser: createUserMutation.mutate,
+    updateUser: updateUserMutation.mutate,
     deleteUser: deleteUserMutation.mutate,
 
     // Mutation-Zustände
     isCreating: createUserMutation.isPending,
+    isUpdating: updateUserMutation.isPending,
     isDeleting: deleteUserMutation.isPending,
     createUserError: createUserMutation.error,
+    updateUserError: updateUserMutation.error,
     deleteUserError: deleteUserMutation.error,
   };
 };

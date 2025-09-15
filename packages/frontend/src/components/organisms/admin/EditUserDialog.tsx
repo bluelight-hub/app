@@ -1,34 +1,46 @@
-import { UserDtoRoleEnum } from '@bluelight-hub/shared/client';
-import { useForm } from '@tanstack/react-form';
-import { z } from 'zod';
 import { Button } from '@/components/atoms/button.atom';
 import { Dialog } from '@/components/molecules/dialog.molecule';
 import { UsernameField, RoleField } from '@/components/molecules/admin/UserFormFields';
+import { type UserDto, UserDtoRoleEnum } from '@bluelight-hub/shared/client';
+import { useForm } from '@tanstack/react-form';
+import { useEffect } from 'react';
+import { z } from 'zod';
 
-const _createUserSchema = z.object({
+const _editUserSchema = z.object({
   username: z.string().min(3, 'Benutzername muss mindestens 3 Zeichen lang sein'),
   role: z.enum(Object.values(UserDtoRoleEnum) as [UserDtoRoleEnum, ...UserDtoRoleEnum[]]),
 });
 
-type CreateUserFormData = z.infer<typeof _createUserSchema>;
+type EditUserFormData = z.infer<typeof _editUserSchema>;
 
-interface CreateUserDialogProps {
+interface EditUserDialogProps {
   isOpen: boolean;
   onClose: () => void;
-  onSubmit: (data: CreateUserFormData) => void;
+  onSubmit: (id: string, data: EditUserFormData) => void;
   isSubmitting: boolean;
+  user: UserDto | null;
 }
 
-export const CreateUserDialog = ({ isOpen, onClose, onSubmit, isSubmitting }: CreateUserDialogProps) => {
+export const EditUserDialog = ({ isOpen, onClose, onSubmit, isSubmitting, user }: EditUserDialogProps) => {
   const form = useForm({
     defaultValues: {
-      username: '',
-      role: UserDtoRoleEnum.User as UserDtoRoleEnum,
+      username: user?.username || '',
+      role: (user?.role || UserDtoRoleEnum.User) as UserDtoRoleEnum,
     },
     onSubmit: ({ value }) => {
-      onSubmit(value);
+      if (user) {
+        onSubmit(user.id, value);
+      }
     },
   });
+
+  // Update form when user changes
+  useEffect(() => {
+    if (user) {
+      form.setFieldValue('username', user.username);
+      form.setFieldValue('role', user.role);
+    }
+  }, [user, form]);
 
   const handleClose = () => {
     form.reset();
@@ -38,7 +50,7 @@ export const CreateUserDialog = ({ isOpen, onClose, onSubmit, isSubmitting }: Cr
   return (
     <Dialog isOpen={isOpen} onClose={handleClose}>
       <div className="relative">
-        <Dialog.Title>Neuen Benutzer erstellen</Dialog.Title>
+        <Dialog.Title>Benutzer bearbeiten</Dialog.Title>
         <Dialog.CloseButton onClose={handleClose} />
       </div>
 
@@ -66,7 +78,7 @@ export const CreateUserDialog = ({ isOpen, onClose, onSubmit, isSubmitting }: Cr
               const submitting = isFormSubmitting || isSubmitting;
               return (
                 <Button type="submit" variant="primary" disabled={!canSubmit || submitting} loading={submitting}>
-                  Benutzer erstellen
+                  Änderungen speichern
                 </Button>
               );
             }}
