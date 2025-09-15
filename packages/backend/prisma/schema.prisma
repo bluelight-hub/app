@@ -44,9 +44,9 @@ model User {
   archivedEinsaetze Einsatz[] @relation("EinsatzArchiver")
 
   // ETB Relations
-  createdEtbs  Einsatztagebuch[] @relation("EtbCreator")
-  updatedEtbs  Einsatztagebuch[] @relation("EtbUpdater")
-  lockedEtbs   Einsatztagebuch[] @relation("EtbLocker")
+  createdEtbs Einsatztagebuch[] @relation("EtbCreator")
+  updatedEtbs Einsatztagebuch[] @relation("EtbUpdater")
+  lockedEtbs  Einsatztagebuch[] @relation("EtbLocker")
 
   // ETB Eintrag Relations
   createdEtbEintraege EtbEintrag[] @relation("EtbEintragCreator")
@@ -117,33 +117,33 @@ model Einsatz {
 
 // ETB Status Enum
 enum EtbStatus {
-  DRAFT   // Entwurf - kann bearbeitet werden
-  ACTIVE  // Aktiv - wird aktiv gepflegt
-  LOCKED  // Gesperrt - keine Änderungen mehr möglich
+  DRAFT // Entwurf - kann bearbeitet werden
+  ACTIVE // Aktiv - wird aktiv gepflegt
+  LOCKED // Gesperrt - keine Änderungen mehr möglich
 }
 
 // Einsatztagebuch Model (1:1 mit Einsatz)
 model Einsatztagebuch {
-  id         String     @id @default(cuid())
-  einsatzId  String     @unique
-  status     EtbStatus  @default(DRAFT)
-  lockedAt   DateTime?  // Zeitpunkt der Sperrung
-  lockedBy   String?    @db.VarChar(100) // User ID der Sperrung
+  id        String    @id @default(cuid())
+  einsatzId String    @unique
+  status    EtbStatus @default(DRAFT)
+  lockedAt  DateTime? // Zeitpunkt der Sperrung
+  lockedBy  String?   @db.VarChar(100) // User ID der Sperrung
 
   // Zeitstempel
-  createdAt  DateTime   @default(now())
-  updatedAt  DateTime   @updatedAt
-  createdBy  String     @db.VarChar(100)
-  updatedBy  String?    @db.VarChar(100)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  createdBy String   @db.VarChar(100)
+  updatedBy String?  @db.VarChar(100)
 
   // Relations
-  einsatz    Einsatz    @relation(fields: [einsatzId], references: [id], onDelete: Restrict)
-  creator    User       @relation("EtbCreator", fields: [createdBy], references: [id], onDelete: Restrict)
-  updater    User?      @relation("EtbUpdater", fields: [updatedBy], references: [id], onDelete: SetNull)
-  locker     User?      @relation("EtbLocker", fields: [lockedBy], references: [id], onDelete: SetNull)
+  einsatz Einsatz @relation(fields: [einsatzId], references: [id], onDelete: Restrict)
+  creator User    @relation("EtbCreator", fields: [createdBy], references: [id], onDelete: Restrict)
+  updater User?   @relation("EtbUpdater", fields: [updatedBy], references: [id], onDelete: SetNull)
+  locker  User?   @relation("EtbLocker", fields: [lockedBy], references: [id], onDelete: SetNull)
 
   // ETB Einträge
-  eintraege  EtbEintrag[]
+  eintraege EtbEintrag[]
 
   // Indexes
   @@index([status, createdAt])
@@ -152,48 +152,48 @@ model Einsatztagebuch {
   @@map("einsatztagebuecher")
 }
 
-// ETB Kategorie Enum für Einträge
+// ETB Kategorie Enum für Einträge (DRK-spezifisch)
 enum EtbKategorie {
-  ALARMIERUNG        // Alarmierungsmeldung
-  ANKUNFT           // Ankunft am Einsatzort
-  BEFEHL            // Befehle und Anweisungen
-  ERKUNDUNG         // Erkundungsergebnisse
-  LAGE              // Lagemeldungen
-  MASSNAHME         // Durchgeführte Maßnahmen
-  PERSONAL          // Personaländerungen
-  FAHRZEUG          // Fahrzeugbewegungen
-  GERAET            // Geräteeinsatz
-  KOMMUNIKATION     // Kommunikation mit anderen Stellen
-  WETTER            // Wetteränderungen
-  SONSTIGES         // Sonstige Einträge
-  SYSTEM            // Systemeinträge (automatisch)
+  ALARMIERUNG // Alarmierungsmeldung
+  ANKUNFT // Ankunft am Einsatzort
+  BEFEHL // Befehle und Anweisungen
+  ERKUNDUNG // Erkundungsergebnisse
+  LAGE // Lagemeldungen
+  MASSNAHME // Durchgeführte Maßnahmen
+  PERSONAL // Personaländerungen
+  FAHRZEUG // Fahrzeugbewegungen
+  MATERIAL // Material- und Ausrüstungseinsatz
+  KOMMUNIKATION // Kommunikation mit anderen Stellen
+  WETTER // Wetteränderungen
+  SONSTIGES // Sonstige Einträge
+  SYSTEM // Systemeinträge (automatisch)
 }
 
 // ETB Eintrag Model (n:1 mit Einsatztagebuch)
 model EtbEintrag {
-  id              String       @id @default(cuid())
-  etbId           String       // Einsatztagebuch ID
-  timestamp       DateTime     @default(now()) // Zeitstempel des Eintrags
-  sequenceNumber  Int          // Laufende Nummer innerhalb des ETB
-  kategorie       EtbKategorie // Kategorie des Eintrags
-  text            String       @db.Text // Eintragstext
-  version         Int          @default(1) // Versionsnummer für Historie
+  id             String       @id @default(cuid())
+  etbId          String // Einsatztagebuch ID
+  timestamp      DateTime     @default(now()) // Zeitstempel des Eintrags
+  sequenceNumber Int // Laufende Nummer innerhalb des ETB
+  kategorie      EtbKategorie // Kategorie des Eintrags
+  text           String       @db.Text // Eintragstext
+  version        Int          @default(1) // Versionsnummer für Historie
 
   // Metadaten
-  funkrufname     String?      @db.VarChar(100) // Optionaler Funkrufname
-  standort        String?      @db.VarChar(255) // Optionaler Standort
-  isAutomatic     Boolean      @default(false) // Automatisch generierter Eintrag
-  metadata        Json?        @db.JsonB // Zusätzliche strukturierte Daten
+  funkrufname String? @db.VarChar(100) // Optionaler Funkrufname
+  standort    String? @db.VarChar(255) // Optionaler Standort
+  isAutomatic Boolean @default(false) // Automatisch generierter Eintrag
+  metadata    Json?   @db.JsonB // Zusätzliche strukturierte Daten
 
   // Zeitstempel
-  createdAt       DateTime     @default(now())
-  updatedAt       DateTime     @updatedAt
-  createdBy       String       @db.VarChar(100)
-  updatedBy       String?      @db.VarChar(100)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  createdBy String   @db.VarChar(100)
+  updatedBy String?  @db.VarChar(100)
 
   // Soft Delete
-  deletedAt       DateTime?    // Soft Delete Zeitstempel
-  deletedBy       String?      @db.VarChar(100) // User ID der Löschung
+  deletedAt DateTime? // Soft Delete Zeitstempel
+  deletedBy String?   @db.VarChar(100) // User ID der Löschung
 
   // Relations
   einsatztagebuch Einsatztagebuch @relation(fields: [etbId], references: [id], onDelete: Cascade)
@@ -202,7 +202,7 @@ model EtbEintrag {
   deleter         User?           @relation("EtbEintragDeleter", fields: [deletedBy], references: [id], onDelete: SetNull)
 
   // Historie
-  historie        EtbEintragHistorie[]
+  historie EtbEintragHistorie[]
 
   // Indexes
   @@unique([etbId, sequenceNumber]) // Eindeutige laufende Nummer pro ETB
@@ -215,27 +215,27 @@ model EtbEintrag {
 
 // ETB Eintrag Historie Model (n:1 mit EtbEintrag)
 model EtbEintragHistorie {
-  id             String   @id @default(cuid())
-  eintragId      String   // ETB Eintrag ID
-  version        Int      // Versionsnummer
+  id        String @id @default(cuid())
+  eintragId String // ETB Eintrag ID
+  version   Int // Versionsnummer
 
   // Snapshot der Daten
   timestamp      DateTime // Original Zeitstempel
-  sequenceNumber Int      // Original laufende Nummer
+  sequenceNumber Int // Original laufende Nummer
   kategorie      EtbKategorie // Original Kategorie
-  text           String   @db.Text // Original Text
-  funkrufname    String?  @db.VarChar(100)
-  standort       String?  @db.VarChar(255)
-  metadata       Json?    @db.JsonB
+  text           String       @db.Text // Original Text
+  funkrufname    String?      @db.VarChar(100)
+  standort       String?      @db.VarChar(255)
+  metadata       Json?        @db.JsonB
 
   // Änderungsinformationen
-  changeReason   String?  @db.Text // Grund der Änderung
-  changedAt      DateTime @default(now()) // Zeitpunkt der Änderung
-  changedBy      String   @db.VarChar(100) // User ID der Änderung
+  changeReason String?  @db.Text // Grund der Änderung
+  changedAt    DateTime @default(now()) // Zeitpunkt der Änderung
+  changedBy    String   @db.VarChar(100) // User ID der Änderung
 
   // Relations
-  eintrag        EtbEintrag @relation(fields: [eintragId], references: [id], onDelete: Cascade)
-  modifier       User       @relation("EtbHistorieModifier", fields: [changedBy], references: [id], onDelete: Restrict)
+  eintrag  EtbEintrag @relation(fields: [eintragId], references: [id], onDelete: Cascade)
+  modifier User       @relation("EtbHistorieModifier", fields: [changedBy], references: [id], onDelete: Restrict)
 
   // Indexes
   @@unique([eintragId, version]) // Eindeutige Version pro Eintrag
@@ -246,27 +246,28 @@ model EtbEintragHistorie {
 
 // ETB Textbaustein Model (für Quick-Entry Templates)
 model EtbTextbaustein {
-  id           String       @id @default(cuid())
-  kategorie    EtbKategorie // Kategorie für den Textbaustein
-  kurztext     String       @db.VarChar(100) // Kurzbeschreibung
-  volltext     String       @db.Text // Vollständiger Text
-  isActive     Boolean      @default(true) // Aktiv/Inaktiv
-  sortOrder    Int          @default(0) // Sortierreihenfolge
+  id        String       @id @default(cuid())
+  kategorie EtbKategorie // Kategorie für den Textbaustein
+  kurztext  String       @db.VarChar(100) // Kurzbeschreibung
+  volltext  String       @db.Text // Vollständiger Text
+  isActive  Boolean      @default(true) // Aktiv/Inaktiv
+  sortOrder Int          @default(0) // Sortierreihenfolge
 
   // Metadaten
-  verwendungen Int          @default(0) // Anzahl der Verwendungen
-  letztGenutzt DateTime?    // Letzte Verwendung
+  verwendungen Int       @default(0) // Anzahl der Verwendungen
+  letztGenutzt DateTime? // Letzte Verwendung
 
   // Zeitstempel
-  createdAt    DateTime     @default(now())
-  updatedAt    DateTime     @updatedAt
-  createdBy    String       @db.VarChar(100)
-  updatedBy    String?      @db.VarChar(100)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  createdBy String   @db.VarChar(100)
+  updatedBy String?  @db.VarChar(100)
 
   // Relations
-  creator      User         @relation("EtbTextbausteinCreator", fields: [createdBy], references: [id], onDelete: Restrict)
-  updater      User?        @relation("EtbTextbausteinUpdater", fields: [updatedBy], references: [id], onDelete: SetNull)
+  creator User  @relation("EtbTextbausteinCreator", fields: [createdBy], references: [id], onDelete: Restrict)
+  updater User? @relation("EtbTextbausteinUpdater", fields: [updatedBy], references: [id], onDelete: SetNull)
 
+  @@unique([kategorie, kurztext])
   // Indexes
   @@index([kategorie, isActive, sortOrder])
   @@index([createdBy])
@@ -275,39 +276,39 @@ model EtbTextbaustein {
 
 // ETB Archiv Model (für 10-Jahre Aufbewahrung)
 model EtbArchiv {
-  id                String   @id @default(cuid())
-  einsatzId         String   // Original Einsatz ID
-  etbId             String   // Original ETB ID
+  id        String @id @default(cuid())
+  einsatzId String // Original Einsatz ID
+  etbId     String // Original ETB ID
 
   // Archivdaten
-  archiveDatum      DateTime @default(now()) // Datum der Archivierung
-  aufbewahrungBis   DateTime // Datum bis zur Aufbewahrung (10 Jahre)
+  archiveDatum    DateTime @default(now()) // Datum der Archivierung
+  aufbewahrungBis DateTime // Datum bis zur Aufbewahrung (10 Jahre)
 
   // Vollständiger Export
-  etbData           Json     @db.JsonB // Komplettes ETB als JSON
-  eintraegeData     Json     @db.JsonB // Alle Einträge als JSON
-  historieData      Json     @db.JsonB // Komplette Historie als JSON
+  etbData       Json @db.JsonB // Komplettes ETB als JSON
+  eintraegeData Json @db.JsonB // Alle Einträge als JSON
+  historieData  Json @db.JsonB // Komplette Historie als JSON
 
   // Checksums für Integrität
-  dataChecksum      String   @db.VarChar(64) // SHA-256 Hash
+  dataChecksum String @db.VarChar(64) // SHA-256 Hash
 
   // Speicherort (falls extern)
-  storagePath       String?  @db.VarChar(500) // Pfad zu externem Archiv
-  storageType       String   @default("database") @db.VarChar(50) // database/filesystem/s3
+  storagePath String? @db.VarChar(500) // Pfad zu externem Archiv
+  storageType String  @default("database") @db.VarChar(50) // database/filesystem/s3
 
   // Metadaten
-  alarmstichwort    String?  @db.VarChar(255)
-  einsatzort        String?  @db.VarChar(500)
-  alarmierungszeit  DateTime?
-  einsatzleiter     String?  @db.VarChar(255)
-  anzahlEintraege   Int      // Anzahl der Einträge
+  alarmstichwort   String?   @db.VarChar(255)
+  einsatzort       String?   @db.VarChar(500)
+  alarmierungszeit DateTime?
+  einsatzleiter    String?   @db.VarChar(255)
+  anzahlEintraege  Int // Anzahl der Einträge
 
   // Archivierungsinformationen
-  archivedBy        String   @db.VarChar(100)
-  archiveReason     String?  @db.Text // Grund der Archivierung
+  archivedBy    String  @db.VarChar(100)
+  archiveReason String? @db.Text // Grund der Archivierung
 
   // Relations
-  archiver          User     @relation("EtbArchivArchiver", fields: [archivedBy], references: [id], onDelete: Restrict)
+  archiver User @relation("EtbArchivArchiver", fields: [archivedBy], references: [id], onDelete: Restrict)
 
   // Indexes
   @@index([einsatzId])
