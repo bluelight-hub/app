@@ -13,9 +13,19 @@ import type {
   UpdateEinsatzDto,
 } from '@bluelight-hub/shared/client';
 import { type EinsatzControllerFindAllVAlphaOrderByEnum, type EinsatzControllerFindAllVAlphaOrderDirectionEnum, EinsatzResponseDtoStatusEnum } from '@bluelight-hub/shared/client';
-import { useInfiniteQuery, useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { type InfiniteData, useInfiniteQuery, useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useEffect } from 'react';
 import { toast } from 'sonner';
+
+// Type for infinite query data structure
+type InfiniteEinsatzData = InfiniteData<EinsatzControllerFindAllVAlpha200Response>;
+
+// Type for mutation context
+interface MutationContext {
+  previousEinsatz?: EinsatzControllerCreateVAlpha200Response;
+  previousEinsaetze?: EinsatzControllerFindAllVAlpha200Response;
+  optimisticEinsatz?: EinsatzResponseDto;
+}
 
 /**
  * Exponential Backoff Retry-Verzögerung berechnen
@@ -151,11 +161,11 @@ export const useEinsaetze = (options?: UseEinsaetzeOptions) => {
       });
 
       // Also update infinite query cache if it exists
-      const infiniteData = queryClient.getQueryData<any>(QUERY_KEYS.einsatz.infinite(filters));
+      const infiniteData = queryClient.getQueryData<InfiniteEinsatzData>(QUERY_KEYS.einsatz.infinite(filters));
       if (infiniteData?.pages) {
-        queryClient.setQueryData<any>(QUERY_KEYS.einsatz.infinite(filters), {
+        queryClient.setQueryData<InfiniteEinsatzData>(QUERY_KEYS.einsatz.infinite(filters), {
           ...infiniteData,
-          pages: infiniteData.pages.map((page: any, index: number) => {
+          pages: infiniteData.pages.map((page, index) => {
             if (index === 0) {
               return {
                 ...page,
@@ -170,8 +180,8 @@ export const useEinsaetze = (options?: UseEinsaetzeOptions) => {
 
       return { previousEinsaetze, optimisticEinsatz };
     },
-    onError: async (error: ResponseError, _newEinsatz, context) => {
-      if (context && typeof context === 'object' && 'previousEinsaetze' in context && context.previousEinsaetze) {
+    onError: async (error: ResponseError, _newEinsatz, context?: MutationContext) => {
+      if (context?.previousEinsaetze) {
         queryClient.setQueryData(QUERY_KEYS.einsatz.list(filters), context.previousEinsaetze);
       }
 
@@ -225,13 +235,13 @@ export const useEinsaetze = (options?: UseEinsaetzeOptions) => {
         });
 
         // Also update infinite query cache if it exists
-        const infiniteData = queryClient.getQueryData<any>(QUERY_KEYS.einsatz.infinite(filters));
+        const infiniteData = queryClient.getQueryData<InfiniteEinsatzData>(QUERY_KEYS.einsatz.infinite(filters));
         if (infiniteData?.pages) {
-          queryClient.setQueryData<any>(QUERY_KEYS.einsatz.infinite(filters), {
+          queryClient.setQueryData<InfiniteEinsatzData>(QUERY_KEYS.einsatz.infinite(filters), {
             ...infiniteData,
-            pages: infiniteData.pages.map((page: any) => ({
+            pages: infiniteData.pages.map((page) => ({
               ...page,
-              data: page.data?.map((e: any) => (e.id === id ? archivedEinsatz : e)) || [],
+              data: page.data?.map((e) => (e.id === id ? archivedEinsatz : e)) || [],
             })),
           });
         }
@@ -239,11 +249,11 @@ export const useEinsaetze = (options?: UseEinsaetzeOptions) => {
 
       return { previousEinsatz, previousEinsaetze };
     },
-    onError: async (error: ResponseError, { id }, context) => {
-      if (context && typeof context === 'object' && 'previousEinsatz' in context && context.previousEinsatz) {
+    onError: async (error: ResponseError, { id }, context?: MutationContext) => {
+      if (context?.previousEinsatz) {
         queryClient.setQueryData(QUERY_KEYS.einsatz.detail(id), context.previousEinsatz);
       }
-      if (context && typeof context === 'object' && 'previousEinsaetze' in context && context.previousEinsaetze) {
+      if (context?.previousEinsaetze) {
         queryClient.setQueryData(QUERY_KEYS.einsatz.list(filters), context.previousEinsaetze);
       }
 
@@ -302,13 +312,13 @@ export const useEinsaetze = (options?: UseEinsaetzeOptions) => {
         });
 
         // Also update infinite query cache if it exists
-        const infiniteData = queryClient.getQueryData<any>(QUERY_KEYS.einsatz.infinite(filters));
+        const infiniteData = queryClient.getQueryData<InfiniteEinsatzData>(QUERY_KEYS.einsatz.infinite(filters));
         if (infiniteData?.pages) {
-          queryClient.setQueryData<any>(QUERY_KEYS.einsatz.infinite(filters), {
+          queryClient.setQueryData<InfiniteEinsatzData>(QUERY_KEYS.einsatz.infinite(filters), {
             ...infiniteData,
-            pages: infiniteData.pages.map((page: any) => ({
+            pages: infiniteData.pages.map((page) => ({
               ...page,
-              data: page.data?.map((e: any) => (e.id === id ? updatedEinsatz : e)) || [],
+              data: page.data?.map((e) => (e.id === id ? updatedEinsatz : e)) || [],
             })),
           });
         }
@@ -316,11 +326,11 @@ export const useEinsaetze = (options?: UseEinsaetzeOptions) => {
 
       return { previousEinsatz, previousEinsaetze };
     },
-    onError: async (error: ResponseError, { id }, context) => {
-      if (context && typeof context === 'object' && 'previousEinsatz' in context && context.previousEinsatz) {
+    onError: async (error: ResponseError, { id }, context?: MutationContext) => {
+      if (context?.previousEinsatz) {
         queryClient.setQueryData(QUERY_KEYS.einsatz.detail(id), context.previousEinsatz);
       }
-      if (context && typeof context === 'object' && 'previousEinsaetze' in context && context.previousEinsaetze) {
+      if (context?.previousEinsaetze) {
         queryClient.setQueryData(QUERY_KEYS.einsatz.list(filters), context.previousEinsaetze);
       }
 
@@ -446,13 +456,13 @@ export const useEinsatz = (id: string | null) => {
           }
           // Check if this is an infinite query
           if (Array.isArray(queryKey) && queryKey[0] === 'einsatz' && queryKey[1] === 'infinite') {
-            queryClient.setQueryData<any>(queryKey, (old) => {
+            queryClient.setQueryData<InfiniteEinsatzData>(queryKey, (old) => {
               if (!old?.pages) return old;
               return {
                 ...old,
-                pages: old.pages.map((page: any) => ({
+                pages: old.pages.map((page) => ({
                   ...page,
-                  data: page.data?.map((e: any) => (e.id === id ? updatedEinsatz : e)) || [],
+                  data: page.data?.map((e) => (e.id === id ? updatedEinsatz : e)) || [],
                 })),
               };
             });
@@ -462,8 +472,8 @@ export const useEinsatz = (id: string | null) => {
 
       return { previousEinsatz };
     },
-    onError: async (error: ResponseError, _, context) => {
-      if (context && typeof context === 'object' && 'previousEinsatz' in context && context.previousEinsatz && id) {
+    onError: async (error: ResponseError, _, context?: MutationContext) => {
+      if (context?.previousEinsatz && id) {
         queryClient.setQueryData(QUERY_KEYS.einsatz.detail(id), context.previousEinsatz);
       }
 
