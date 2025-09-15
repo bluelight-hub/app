@@ -1,3 +1,27 @@
+## Version [v1.0.0-alpha.23](https://github.com/rubenvitt/bluelight-hub/compare/v1.0.0-alpha.22...v1.0.0-alpha.23) – Veröffentlicht am 2025-09-15
+
+## ✨ Neue Funktionen
+Die folgenden neuen Features wurden hinzugefügt:
+- [`c5d5f04`](https://github.com/rubenvitt/bluelight-hub/commit/c5d5f04) (db): Add ETB database schema with comprehensive models 
+
+- [`ce1c954`](https://github.com/rubenvitt/bluelight-hub/commit/ce1c954) (admin): Add user edit functionality with role management 
+
+## 🐛 Fehlerbehebungen
+Diese Probleme wurden behoben:
+- [`94f3621`](https://github.com/rubenvitt/bluelight-hub/commit/94f3621) (frontend): Fix admin user dialog validation and submission issues 
+
+## ♻ Refactoring
+Struktur- oder Code-Verbesserungen:
+- [`53dd442`](https://github.com/rubenvitt/bluelight-hub/commit/53dd442) (db): Refactor ETB migration with improved formatting and constraints 
+
+- [`f1f3925`](https://github.com/rubenvitt/bluelight-hub/commit/f1f3925) (frontend): Refactor import statements and improve user role handling 
+
+- [`eab9e24`](https://github.com/rubenvitt/bluelight-hub/commit/eab9e24) (backend): Implement repository pattern for user management 
+
+
+
+# [1.0.0-alpha.23](https://github.com/rubenvitt/bluelight-hub/compare/v1.0.0-alpha.22...v1.0.0-alpha.23) (2025-09-15)
+
 ## Version [v1.0.0-alpha.22](https://github.com/rubenvitt/bluelight-hub/compare/v1.0.0-alpha.21...v1.0.0-alpha.22) – Veröffentlicht am 2025-09-14
 
 ## ✨ Neue Funktionen
