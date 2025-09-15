@@ -13,12 +13,14 @@
  */
 
 import * as runtime from '../runtime';
-import type { CreateUserDto, DeleteUserResponse, UserResponse, UsersListResponse } from '../models/index';
+import type { CreateUserDto, DeleteUserResponse, UpdateUserDto, UserResponse, UsersListResponse } from '../models/index';
 import {
   CreateUserDtoFromJSON,
   CreateUserDtoToJSON,
   DeleteUserResponseFromJSON,
   DeleteUserResponseToJSON,
+  UpdateUserDtoFromJSON,
+  UpdateUserDtoToJSON,
   UserResponseFromJSON,
   UserResponseToJSON,
   UsersListResponseFromJSON,
@@ -31,6 +33,11 @@ export interface UserManagementControllerCreateVAlphaRequest {
 
 export interface UserManagementControllerRemoveVAlphaRequest {
   id: string;
+}
+
+export interface UserManagementControllerUpdateVAlphaRequest {
+  id: string;
+  updateUserDto: UpdateUserDto;
 }
 
 /**
@@ -138,6 +145,49 @@ export class UserManagementApi extends runtime.BaseAPI {
    */
   async userManagementControllerRemoveVAlpha(requestParameters: UserManagementControllerRemoveVAlphaRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<DeleteUserResponse> {
     const response = await this.userManagementControllerRemoveVAlphaRaw(requestParameters, initOverrides);
+    return await response.value();
+  }
+
+  /**
+   * Benutzer aktualisieren
+   */
+  async userManagementControllerUpdateVAlphaRaw(
+    requestParameters: UserManagementControllerUpdateVAlphaRequest,
+    initOverrides?: RequestInit | runtime.InitOverrideFunction,
+  ): Promise<runtime.ApiResponse<UserResponse>> {
+    if (requestParameters['id'] == null) {
+      throw new runtime.RequiredError('id', 'Required parameter "id" was null or undefined when calling userManagementControllerUpdateVAlpha().');
+    }
+
+    if (requestParameters['updateUserDto'] == null) {
+      throw new runtime.RequiredError('updateUserDto', 'Required parameter "updateUserDto" was null or undefined when calling userManagementControllerUpdateVAlpha().');
+    }
+
+    const queryParameters: any = {};
+
+    const headerParameters: runtime.HTTPHeaders = {};
+
+    headerParameters['Content-Type'] = 'application/json';
+
+    const response = await this.request(
+      {
+        path: `/api/v-alpha/admin/users/{id}`.replace(`{${'id'}}`, encodeURIComponent(String(requestParameters['id']))),
+        method: 'PATCH',
+        headers: headerParameters,
+        query: queryParameters,
+        body: UpdateUserDtoToJSON(requestParameters['updateUserDto']),
+      },
+      initOverrides,
+    );
+
+    return new runtime.JSONApiResponse(response, (jsonValue) => UserResponseFromJSON(jsonValue));
+  }
+
+  /**
+   * Benutzer aktualisieren
+   */
+  async userManagementControllerUpdateVAlpha(requestParameters: UserManagementControllerUpdateVAlphaRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<UserResponse> {
+    const response = await this.userManagementControllerUpdateVAlphaRaw(requestParameters, initOverrides);
     return await response.value();
   }
 }

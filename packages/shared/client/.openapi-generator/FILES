@@ -44,6 +44,7 @@ models/RefreshResponseDto.ts
 models/StatusCountsDto.ts
 models/StatusCountsResponseDto.ts
 models/UpdateEinsatzDto.ts
+models/UpdateUserDto.ts
 models/UserDto.ts
 models/UserResponse.ts
 models/UserResponseDto.ts

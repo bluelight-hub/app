@@ -3,7 +3,7 @@ import { UserDtoRoleEnum } from '@bluelight-hub/shared/client';
 import type { SortingState } from '@tanstack/react-table';
 import { createColumnHelper, flexRender, getCoreRowModel, getSortedRowModel, useReactTable } from '@tanstack/react-table';
 import { useMemo, useState } from 'react';
-import { PiTrash } from 'react-icons/pi';
+import { PiPencilSimple, PiTrash } from 'react-icons/pi';
 import { Badge } from '@/components/atoms/badge.atom';
 import { IconButton } from '@/components/atoms/icon-button.atom';
 import { Table } from '@/components/molecules/table.molecule';
@@ -12,6 +12,7 @@ interface UsersTableProps {
   users: Array<UserDto> | undefined;
   isLoading: boolean;
   onDelete: (user: UserDto) => void;
+  onEdit: (user: UserDto) => void;
 }
 
 const columnHelper = createColumnHelper<UserDto>();
@@ -29,7 +30,7 @@ const getRoleBadgeVariant = (role: UserDtoRoleEnum): 'error' | 'warning' | 'info
   }
 };
 
-export const UsersTable = ({ users, isLoading, onDelete }: UsersTableProps) => {
+export const UsersTable = ({ users, isLoading, onDelete, onEdit }: UsersTableProps) => {
   const [sorting, setSorting] = useState<SortingState>([]);
 
   const columns = useMemo(
@@ -54,6 +55,15 @@ export const UsersTable = ({ users, isLoading, onDelete }: UsersTableProps) => {
             <IconButton
               size="sm"
               variant="ghost"
+              onClick={() => onEdit(row.original)}
+              aria-label="Benutzer bearbeiten"
+              className="text-blue-600 hover:bg-blue-50 hover:text-blue-700 dark:text-blue-400 dark:hover:bg-blue-900/20 dark:hover:text-blue-300"
+            >
+              <PiPencilSimple />
+            </IconButton>
+            <IconButton
+              size="sm"
+              variant="ghost"
               onClick={() => onDelete(row.original)}
               aria-label="Benutzer löschen"
               className="text-red-600 hover:bg-red-50 hover:text-red-700 dark:text-red-400 dark:hover:bg-red-900/20 dark:hover:text-red-300"
@@ -64,7 +74,7 @@ export const UsersTable = ({ users, isLoading, onDelete }: UsersTableProps) => {
         ),
       }),
     ],
-    [onDelete],
+    [onDelete, onEdit],
   );
 
   const table = useReactTable({

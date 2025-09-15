@@ -2,6 +2,7 @@ import { BadRequestException, ConflictException, Injectable, NotFoundException }
 import { UserRole } from '@prisma/client';
 import { PrismaService } from '@/prisma/prisma.service';
 import type { CreateUserDto } from './dto/create-user.dto';
+import type { UpdateUserDto } from './dto/update-user.dto';
 import type { UserDto } from './dto/user-management-response.dto';
 import { toUserDto } from './mappers/user.mapper';
 
@@ -70,6 +71,73 @@ export class UserManagementService {
       // Re-throw other errors
       throw error;
     }
+  }
+
+  /**
+   * Aktualisiert einen bestehenden Benutzer
+   *
+   * @param id - ID des zu aktualisierenden Benutzers
+   * @param dto - Zu aktualisierende Felder
+   * @returns Der aktualisierte Benutzer
+   * @throws NotFoundException wenn der Benutzer nicht existiert
+   * @throws ConflictException wenn der neue Benutzername bereits existiert
+   * @throws BadRequestException wenn versucht wird, den letzten SUPER_ADMIN herabzustufen
+   */
+  async update(id: string, dto: UpdateUserDto): Promise<UserDto> {
+    return await this.prisma.$transaction(async (prisma) => {
+      // Prüfen ob Benutzer existiert
+      const existingUser = await prisma.user.findUnique({
+        where: { id },
+        select: {
+          id: true,
+          role: true,
+        },
+      });
+
+      if (!existingUser) {
+        throw new NotFoundException('Benutzer nicht gefunden');
+      }
+
+      // Wenn Rolle geändert wird und der Benutzer ist SUPER_ADMIN
+      if (dto.role && dto.role !== existingUser.role && existingUser.role === UserRole.SUPER_ADMIN) {
+        // Prüfen ob dies der letzte SUPER_ADMIN wäre
+        const superAdminCount = await prisma.user.count({
+          where: {
+            role: UserRole.SUPER_ADMIN,
+          },
+        });
+
+        if (superAdminCount <= 1) {
+          throw new BadRequestException('Der letzte SUPER_ADMIN kann nicht herabgestuft werden');
+        }
+      }
+
+      try {
+        // Benutzer aktualisieren
+        const updatedUser = await prisma.user.update({
+          where: { id },
+          data: {
+            ...(dto.username && { username: dto.username }),
+            ...(dto.role && { role: dto.role }),
+          },
+          select: {
+            id: true,
+            username: true,
+            role: true,
+            createdAt: true,
+            updatedAt: true,
+          },
+        });
+
+        return toUserDto(updatedUser);
+      } catch (error) {
+        // Handle Prisma unique constraint violation
+        if (error.code === 'P2002') {
+          throw new ConflictException('Benutzername bereits vergeben');
+        }
+        throw error;
+      }
+    });
   }
 
   /**

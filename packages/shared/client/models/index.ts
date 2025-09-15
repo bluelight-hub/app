@@ -38,6 +38,7 @@ export * from './RefreshResponseDto';
 export * from './StatusCountsDto';
 export * from './StatusCountsResponseDto';
 export * from './UpdateEinsatzDto';
+export * from './UpdateUserDto';
 export * from './UserDto';
 export * from './UserResponse';
 export * from './UserResponseDto';
