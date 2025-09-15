@@ -6,8 +6,12 @@ import { Dialog } from '@/components/molecules/dialog.molecule';
 import { UsernameField, RoleField } from '@/components/molecules/admin/UserFormFields';
 
 const _createUserSchema = z.object({
-  username: z.string().min(3, 'Benutzername muss mindestens 3 Zeichen lang sein'),
-  role: z.enum(Object.values(UserDtoRoleEnum) as [UserDtoRoleEnum, ...UserDtoRoleEnum[]]),
+  username: z
+    .string()
+    .min(3, 'Benutzername muss mindestens 3 Zeichen lang sein')
+    .max(30, 'Benutzername darf maximal 30 Zeichen lang sein')
+    .regex(/^[a-zA-Z0-9._]+$/, 'Benutzername darf nur Buchstaben, Zahlen, Unterstriche und Punkte enthalten'),
+  role: z.nativeEnum(UserDtoRoleEnum),
 });
 
 type CreateUserFormData = z.infer<typeof _createUserSchema>;

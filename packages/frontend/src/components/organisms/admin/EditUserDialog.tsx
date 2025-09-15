@@ -7,8 +7,12 @@ import { useEffect } from 'react';
 import { z } from 'zod';
 
 const _editUserSchema = z.object({
-  username: z.string().min(3, 'Benutzername muss mindestens 3 Zeichen lang sein'),
-  role: z.enum(Object.values(UserDtoRoleEnum) as [UserDtoRoleEnum, ...UserDtoRoleEnum[]]),
+  username: z
+    .string()
+    .min(3, 'Benutzername muss mindestens 3 Zeichen lang sein')
+    .max(30, 'Benutzername darf maximal 30 Zeichen lang sein')
+    .regex(/^[a-zA-Z0-9._]+$/, 'Benutzername darf nur Buchstaben, Zahlen, Unterstriche und Punkte enthalten'),
+  role: z.nativeEnum(UserDtoRoleEnum),
 });
 
 type EditUserFormData = z.infer<typeof _editUserSchema>;
@@ -43,6 +47,10 @@ export const EditUserDialog = ({ isOpen, onClose, onSubmit, isSubmitting, user }
   }, [user, form]);
 
   const handleClose = () => {
+    // Prevent closing during form submission
+    if (form.state.isSubmitting || isSubmitting) {
+      return;
+    }
     form.reset();
     onClose();
   };
