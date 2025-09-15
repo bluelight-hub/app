@@ -6,7 +6,7 @@ import { Card } from '@atoms/card.atom';
 import { Container } from '@atoms/container.atom';
 import { Heading } from '@atoms/heading.atom';
 import { Spinner } from '@atoms/spinner.atom';
-import type { CreateUserDto, UpdateUserDto, UserDto } from '@bluelight-hub/shared/client';
+import { type CreateUserDto, type UpdateUserDto, type UserDto, UserDtoRoleEnum } from '@bluelight-hub/shared/client';
 import { ConfirmDeleteDialog } from '@organisms/admin/ConfirmDeleteDialog';
 import { CreateUserDialog } from '@organisms/admin/CreateUserDialog';
 import { EditUserDialog } from '@organisms/admin/EditUserDialog';
@@ -124,7 +124,7 @@ export function AdminUsers() {
         onClose={() => setDeleteTarget(null)}
         onConfirm={confirmDelete}
         userName={deleteTarget?.username || ''}
-        userRole={deleteTarget?.role || 'USER'}
+        userRole={deleteTarget?.role || UserDtoRoleEnum.User}
         isDeleting={isDeleting}
       />
     </Container>
