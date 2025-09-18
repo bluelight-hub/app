@@ -84,7 +84,7 @@ export const SearchInput = forwardRef<HTMLInputElement, SearchInputProps>(
 
         {showClearButton && localValue && !disabled && (
           <Button
-            variant="minimal"
+            appearance="minimal"
             size="icon"
             onClick={handleClear}
             className="absolute inset-y-0 right-0 flex items-center pr-3 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"

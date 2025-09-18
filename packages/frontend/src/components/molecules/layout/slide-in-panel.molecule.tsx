@@ -1,8 +1,7 @@
 import { cn } from '@/utils/cn';
-import { Button } from '@atoms/button.atom';
+import { CloseButton } from '@atoms/close-button.atom';
 import { Description, Dialog, DialogPanel, DialogTitle, Transition, TransitionChild } from '@headlessui/react';
 import { Fragment, type ReactNode } from 'react';
-import { PiX } from 'react-icons/pi';
 
 interface SlideInPanelProps {
   isOpen: boolean;
@@ -59,11 +58,7 @@ export function SlideInPanel({ isOpen, onClose, title, description, children, si
                           <DialogTitle className="font-semibold text-gray-900 text-xl leading-6 dark:text-white">{title}</DialogTitle>
                           {description && <Description className="mt-1 text-gray-500 text-sm dark:text-gray-400">{description}</Description>}
                         </div>
-                        {showCloseButton && (
-                          <Button variant="minimal" size="icon" className="ml-4" onClick={onClose} aria-label="Schließen">
-                            <PiX className="h-6 w-6" aria-hidden="true" />
-                          </Button>
-                        )}
+                        {showCloseButton && <CloseButton onClick={onClose} size="lg" appearance="minimal" className="ml-4" />}
                       </div>
                     </div>
 

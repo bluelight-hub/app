@@ -65,7 +65,7 @@ export function IndexPage() {
 
         <div className="flex flex-shrink-0 items-center justify-between pt-4">
           <div className="flex gap-4">
-            <Button variant="secondary" size="sm" onClick={() => logout.mutateAsync()}>
+            <Button appearance="outline" intent="danger" size="sm" onClick={() => logout.mutateAsync()}>
               Abmelden
             </Button>
             <ColorModeMenu placement="top" />
@@ -74,7 +74,7 @@ export function IndexPage() {
           <div className="flex gap-2">
             {/* Admin Setup Link - nur anzeigen wenn adminSetupAvailable true ist */}
             {adminStatus?.adminSetupAvailable && (
-              <Button variant="danger" size="sm" onClick={handleOpenAdminWindow}>
+              <Button intent="danger" size="sm" onClick={handleOpenAdminWindow}>
                 <PiShieldCheck className="mr-2" />
                 Admin-Setup
               </Button>
@@ -82,7 +82,7 @@ export function IndexPage() {
 
             {/* Admin-Bereich Button für berechtigte Benutzer */}
             {isAdmin(user.role) && !adminStatus?.adminSetupAvailable && (
-              <Button variant="secondary" size="sm" onClick={handleOpenAdminWindow} title="Admin-Dashboard in separatem Fenster öffnen">
+              <Button appearance="outline" intent="secondary" size="sm" onClick={handleOpenAdminWindow} title="Admin-Dashboard in separatem Fenster öffnen">
                 <PiSignIn className="mr-2" />
                 Admin-Bereich
               </Button>

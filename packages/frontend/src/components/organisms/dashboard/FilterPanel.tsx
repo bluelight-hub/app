@@ -1,8 +1,8 @@
+import { cn } from '@/utils/cn';
 import { Button } from '@atoms/button.atom';
 import { Select } from '@atoms/select.atom';
 import { EinsatzControllerFindAllVAlphaOrderByEnum, EinsatzControllerFindAllVAlphaOrderDirectionEnum, EinsatzResponseDtoStatusEnum } from '@bluelight-hub/shared/client';
 import { PiArchive } from 'react-icons/pi';
-import { cn } from '@/utils/cn';
 
 interface SortOption {
   key: EinsatzControllerFindAllVAlphaOrderByEnum;
@@ -62,7 +62,7 @@ export const FilterPanel = ({ statusFilter, sortOption, showArchived, onStatusFi
         )}
 
         <div className="border-gray-200 border-t pt-4 dark:border-gray-700">
-          <Button variant={!showArchived ? 'secondary' : 'ghost'} size="sm" onClick={onArchiveToggle} className="w-full">
+          <Button intent={!showArchived ? 'secondary' : 'primary'} appearance={!showArchived ? 'outline' : 'ghost'} size="sm" onClick={onArchiveToggle} className="w-full">
             <PiArchive className="mr-2 h-4 w-4" />
             {showArchived ? 'Aktive Einsätze' : 'Archiv anzeigen'}
           </Button>
@@ -75,7 +75,7 @@ export const FilterPanel = ({ statusFilter, sortOption, showArchived, onStatusFi
             {sortOptions.map(({ key, label }) => (
               <Button
                 key={key}
-                variant="ghost"
+                appearance="ghost"
                 onClick={() => onSortChange(key)}
                 className={cn(
                   'w-full rounded-md px-3 py-2 text-left text-sm',

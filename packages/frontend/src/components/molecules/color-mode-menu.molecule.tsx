@@ -83,7 +83,7 @@ export function ColorModeMenu({ placement = 'bottom', align = 'right' }: ColorMo
         )}
       >
         <CurrentIcon className="h-4 w-4" />
-        <span className="text-sm font-medium">{currentOption.label}</span>
+        <span className="font-medium text-sm">{currentOption.label}</span>
         <PiCaretDown className="h-3 w-3" />
       </MenuButton>
 
@@ -109,7 +109,7 @@ export function ColorModeMenu({ placement = 'bottom', align = 'right' }: ColorMo
               <MenuItem key={option.value}>
                 {({ focus }) => (
                   <Button
-                    variant="minimal"
+                    appearance="minimal"
                     onClick={() => setColorMode(option.value)}
                     className={cn(
                       'flex w-full items-center gap-3 rounded-md px-3 py-2 text-sm',

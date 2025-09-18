@@ -41,7 +41,7 @@ describe('CacheConfigService', () => {
     });
 
     it('sollte Default-TTL bei ungültigem Wert verwenden', () => {
-      const loggerSpy = jest.spyOn(service['logger'], 'warn').mockImplementation();
+      const loggerSpy = jest.spyOn(service.logger, 'warn').mockImplementation();
       mockConfig.ttl = -100;
 
       const ttl = service.getCacheTtl();
@@ -52,7 +52,7 @@ describe('CacheConfigService', () => {
     });
 
     it('sollte Default-TTL bei Nicht-Integer-Wert verwenden', () => {
-      const loggerSpy = jest.spyOn(service['logger'], 'warn').mockImplementation();
+      const loggerSpy = jest.spyOn(service.logger, 'warn').mockImplementation();
       mockConfig.ttl = 3.14;
 
       const ttl = service.getCacheTtl();
@@ -73,7 +73,7 @@ describe('CacheConfigService', () => {
     });
 
     it('sollte Default-MAX_ITEMS bei ungültigem Wert verwenden', () => {
-      const loggerSpy = jest.spyOn(service['logger'], 'warn').mockImplementation();
+      const loggerSpy = jest.spyOn(service.logger, 'warn').mockImplementation();
       mockConfig.max = 0;
 
       const maxItems = service.getCacheMaxItems();
@@ -159,7 +159,7 @@ describe('CacheConfigService', () => {
     });
 
     it('sollte Null-Werte als ungültig behandeln', () => {
-      const loggerSpy = jest.spyOn(service['logger'], 'warn').mockImplementation();
+      const loggerSpy = jest.spyOn(service.logger, 'warn').mockImplementation();
       mockConfig.ttl = null;
 
       const ttl = service.getCacheTtl();

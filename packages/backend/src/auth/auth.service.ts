@@ -29,6 +29,40 @@ export class AuthService {
   ) {}
 
   /**
+   * Erneuert abgelaufene Access Tokens mittels Refresh Token
+   *
+   * @param refreshToken - Der Refresh Token aus dem Cookie
+   * @returns Neue Tokens und User-Daten oder null bei Fehler
+   */
+  async refreshTokens(refreshToken: string): Promise<{
+    accessToken: string;
+    refreshToken: string;
+    user: User;
+  } | null> {
+    try {
+      const refreshPayload = await this.verifyRefreshToken(refreshToken);
+      const user = await this.findUserById(refreshPayload.userId);
+
+      if (!user) {
+        return null;
+      }
+
+      // Generiere neue Tokens
+      const newAccessToken = this.signAccessToken(user);
+      const newRefreshToken = this.signRefreshToken(user);
+
+      return {
+        accessToken: newAccessToken,
+        refreshToken: newRefreshToken,
+        user,
+      };
+    } catch (error) {
+      this.logger.debug('Refresh token invalid', error);
+      return null;
+    }
+  }
+
+  /**
    * Unified Auth - Kombiniert Login und automatische Registrierung
    *
    * Logik:
@@ -138,6 +172,22 @@ export class AuthService {
     return {
       userId: decoded.sub,
       role: decoded.role,
+    };
+  }
+
+  /**
+   * Verifiziert ein Refresh Token
+   *
+   * @param token - Das zu verifizierende Refresh Token
+   * @returns Die dekodierten Token-Daten mit userId
+   */
+  async verifyRefreshToken(token: string): Promise<ValidatedUser> {
+    const decoded = await this.jwtService.verify(token, {
+      secret: this.configService.get<string>('JWT_REFRESH_SECRET'),
+    });
+    // Map JWT payload to ValidatedUser format
+    return {
+      userId: decoded.sub,
     };
   }
 

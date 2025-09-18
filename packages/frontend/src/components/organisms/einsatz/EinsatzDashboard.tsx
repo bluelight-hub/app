@@ -1,17 +1,18 @@
+import { MobileStatusBar } from '@/components/molecules/dashboard/MobileStatusBar';
+import { StatusCard } from '@/components/molecules/dashboard/StatusCard';
+import { EinsatzListItem } from '@/components/molecules/einsatz/EinsatzListItem';
+import { SearchInput } from '@/components/molecules/search-input.molecule';
+import { FilterPanel } from '@/components/organisms/dashboard/FilterPanel';
+import { MobileFilterDialog } from '@/components/organisms/dashboard/MobileFilterDialog';
 import { EinsatzCreateForm } from '@/components/organisms/einsatz/EinsatzCreateForm';
 import { useEinsaetze } from '@/hooks/useEinsaetze';
 import { useEinsatzStatusCounts } from '@/hooks/useEinsatzStatusCounts';
-import { SearchInput } from '@/components/molecules/search-input.molecule';
 import { Button } from '@atoms/button.atom';
 import { EinsatzControllerFindAllVAlphaOrderByEnum, EinsatzControllerFindAllVAlphaOrderDirectionEnum, EinsatzResponseDtoStatusEnum } from '@bluelight-hub/shared/client';
 import { Link } from '@tanstack/react-router';
 import { useEffect, useMemo, useRef, useState } from 'react';
+import { useHotkeys } from 'react-hotkeys-hook';
 import { PiFunnel, PiFunnelX, PiPlus, PiSpinner } from 'react-icons/pi';
-import { StatusCard } from '@/components/molecules/dashboard/StatusCard';
-import { MobileStatusBar } from '@/components/molecules/dashboard/MobileStatusBar';
-import { FilterPanel } from '@/components/organisms/dashboard/FilterPanel';
-import { MobileFilterDialog } from '@/components/organisms/dashboard/MobileFilterDialog';
-import { EinsatzListItem } from '@/components/molecules/einsatz/EinsatzListItem';
 
 interface SortOption {
   key: EinsatzControllerFindAllVAlphaOrderByEnum;
@@ -83,20 +84,10 @@ export function EinsatzDashboard() {
     return () => observer.disconnect();
   }, [hasNextPage, isFetchingNextPage, fetchNextPage]);
 
-  useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if ((e.metaKey || e.ctrlKey) && e.key === 'n') {
-        e.preventDefault();
-        setIsCreatePanelOpen(true);
-      }
-      if (e.key === 'Escape' && isCreatePanelOpen) {
-        setIsCreatePanelOpen(false);
-      }
-    };
-
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [isCreatePanelOpen]);
+  useHotkeys('mod+n', (e: KeyboardEvent) => {
+    e.preventDefault();
+    setIsCreatePanelOpen(true);
+  });
 
   const handleSort = (key: SortOption['key']) => {
     setSortOption((prev) => ({
@@ -177,12 +168,12 @@ export function EinsatzDashboard() {
             <SearchInput placeholder="Einsätze durchsuchen..." onDebouncedChange={setSearchTerm} delay={300} />
           </div>
           {/* Desktop Filter Button */}
-          <Button onClick={() => setIsFilterPanelOpen(!isFilterPanelOpen)} variant="secondary" className="hidden sm:flex">
+          <Button onClick={() => setIsFilterPanelOpen(!isFilterPanelOpen)} intent="secondary" appearance="outline" className="hidden sm:flex">
             <PiFunnel className="mr-2 h-5 w-5" />
             Filter & Sortierung
           </Button>
           {/* Mobile Filter Button */}
-          <Button onClick={() => setIsMobileFilterOpen(true)} variant="secondary" className="sm:hidden">
+          <Button onClick={() => setIsMobileFilterOpen(true)} intent="secondary" appearance="outline" className="sm:hidden">
             <PiFunnel className="mr-2 h-5 w-5" />
             Filter
           </Button>
@@ -220,7 +211,7 @@ export function EinsatzDashboard() {
                     Ersten Einsatz erstellen
                   </Button>
                 ) : (
-                  <Button variant="ghost" onClick={() => setStatusFilter(undefined)}>
+                  <Button appearance="ghost" onClick={() => setStatusFilter(undefined)}>
                     <PiFunnelX className="mr-2 h-5 w-5" />
                     Filter entfernen
                   </Button>

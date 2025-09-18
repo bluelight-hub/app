@@ -6,7 +6,7 @@ import { Heading } from '@atoms/heading.atom';
 import { Text } from '@atoms/text.atom';
 import { useNavigate } from '@tanstack/react-router';
 import { isTauri } from '@tauri-apps/api/core';
-import { DashboardLayout } from '@templates/DashboardLayout';
+import { AdminDashboardLayout } from '@templates/AdminDashboardLayout';
 import { useCallback } from 'react';
 import { PiSignOut, PiUsers } from 'react-icons/pi';
 
@@ -46,7 +46,7 @@ export function AdminDashboard() {
   }, [navigate]);
 
   return (
-    <DashboardLayout maxWidth="lg">
+    <AdminDashboardLayout maxWidth="lg">
       {/* Dashboard Header */}
       <div>
         <Heading size="xl" className="mb-2">
@@ -65,7 +65,7 @@ export function AdminDashboard() {
             </Text>
           </div>
 
-          <Button variant="primary" size="md" onClick={handleNavigateToUsers} fullWidth className="max-w-sm">
+          <Button intent="primary" size="md" onClick={handleNavigateToUsers} fullWidth className="max-w-sm">
             <PiUsers className="mr-2" />
             Benutzerverwaltung
           </Button>
@@ -74,11 +74,11 @@ export function AdminDashboard() {
 
       {/* Logout Section */}
       <div>
-        <Button variant="danger" size="sm" onClick={handleLogout} className="border border-red-600 bg-transparent hover:bg-red-50 dark:hover:bg-red-900/20">
+        <Button appearance="ghost" intent="danger" size="sm" onClick={handleLogout}>
           <PiSignOut className="mr-2" />
           Admin-Bereich verlassen
         </Button>
       </div>
-    </DashboardLayout>
+    </AdminDashboardLayout>
   );
 }

@@ -34,7 +34,7 @@ export const PasswordInput = React.forwardRef<HTMLInputElement, PasswordInputPro
             type="button"
             aria-label={showPassword ? 'Passwort verbergen' : 'Passwort anzeigen'}
             onClick={() => setShowPassword(!showPassword)}
-            variant="ghost"
+            appearance="ghost"
             size="sm"
             className="mr-1"
             disabled={props.disabled}

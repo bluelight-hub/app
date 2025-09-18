@@ -56,7 +56,7 @@ export function ProgressBar({ value, max = 100, variant = 'default', size = 'md'
       <div className={cn('w-full overflow-hidden rounded-full', backgroundClasses[variant], sizeClasses[size])} role="progressbar" aria-valuenow={value} aria-valuemin={0} aria-valuemax={max}>
         <Transition show={true} appear={animated} enter="transition-transform duration-500 ease-out" enterFrom="scale-x-0" enterTo="scale-x-100">
           <div
-            className={cn('h-full rounded-full transition-all duration-300 ease-out origin-left transform', variantClasses[variant], animated && 'animate-pulse')}
+            className={cn('h-full origin-left transform rounded-full transition-all duration-300 ease-out', variantClasses[variant], animated && 'animate-pulse')}
             style={{ width: `${percentage}%` }}
           />
         </Transition>

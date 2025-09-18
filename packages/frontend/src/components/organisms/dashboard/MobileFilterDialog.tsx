@@ -1,9 +1,10 @@
+import { cn } from '@/utils/cn';
 import { Button } from '@atoms/button.atom';
+import { CloseButton } from '@atoms/close-button.atom';
 import { Select } from '@atoms/select.atom';
 import { EinsatzControllerFindAllVAlphaOrderByEnum, EinsatzControllerFindAllVAlphaOrderDirectionEnum, EinsatzResponseDtoStatusEnum } from '@bluelight-hub/shared/client';
 import { Dialog, DialogPanel } from '@headlessui/react';
-import { PiArchive, PiX } from 'react-icons/pi';
-import { cn } from '@/utils/cn';
+import { PiArchive } from 'react-icons/pi';
 
 interface SortOption {
   key: EinsatzControllerFindAllVAlphaOrderByEnum;
@@ -61,15 +62,14 @@ export const MobileFilterDialog = ({ isOpen, onClose, statusFilter, sortOption, 
         <DialogPanel className="max-h-[80vh] w-full rounded-t-2xl bg-white shadow-xl dark:bg-gray-800">
           <div className="flex items-center justify-between border-gray-200 border-b p-4 dark:border-gray-700">
             <Dialog.Title className="font-medium text-gray-900 text-lg dark:text-white">Filter & Sortierung</Dialog.Title>
-            <Button variant="ghost" size="sm" onClick={onClose} className="rounded-full">
-              <PiX className="h-5 w-5" />
-            </Button>
+            <CloseButton onClick={onClose} />
           </div>
 
           <div className="max-h-[60vh] space-y-4 overflow-y-auto p-4">
             <div className="border-gray-200 border-b pb-4 dark:border-gray-700">
               <Button
-                variant={!showArchived ? 'secondary' : 'ghost'}
+                intent={!showArchived ? 'secondary' : 'primary'}
+                appearance={!showArchived ? 'outline' : 'ghost'}
                 size="md"
                 onClick={() => {
                   onArchiveToggle();
@@ -110,7 +110,7 @@ export const MobileFilterDialog = ({ isOpen, onClose, statusFilter, sortOption, 
                 {sortOptions.map(({ key, label }) => (
                   <Button
                     key={key}
-                    variant="ghost"
+                    appearance="ghost"
                     onClick={() => handleSortChange(key)}
                     className={cn(
                       'w-full rounded-md px-3 py-2 text-left text-sm',
@@ -123,7 +123,7 @@ export const MobileFilterDialog = ({ isOpen, onClose, statusFilter, sortOption, 
               </div>
             </div>
 
-            <Button variant="secondary" onClick={handleReset} className="w-full">
+            <Button intent="secondary" onClick={handleReset} className="w-full">
               Filter zurücksetzen
             </Button>
           </div>

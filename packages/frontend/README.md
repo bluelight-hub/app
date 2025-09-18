@@ -20,7 +20,6 @@
 - `dev`: Tauri Dev (Vite + Tauri)
 - `dev:vite`: nur Vite-Dev-Server
 - `build`: TypeScript-Check und Vite-Build
-- Tests: Vitest (`test`, `test:ui`, `test:watch`), E2E via Playwright (`test:e2e*`)
 - Lint: `pnpm --filter @bluelight-hub/frontend lint` | Check: `lint:check`
 
 ## Konventionen
@@ -44,7 +43,6 @@
 ## Tests
 
 - Unit: Vitest (`pnpm --filter @bluelight-hub/frontend test`)
-- E2E: Playwright (`test:e2e`, `test:e2e:ui`)
 - Aktuell ist FE-Coverage deaktiviert (siehe Scripts)
 
 ## Troubleshooting

@@ -15,12 +15,43 @@ import { Route as AdminLoginRouteImport } from './routes/admin-login'
 import { Route as AdminRouteImport } from './routes/admin'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AdminIndexRouteImport } from './routes/admin/index'
+import { Route as AppEinsatzRouteImport } from './routes/app/einsatz'
 import { Route as AppEinsaetzeRouteImport } from './routes/app/einsaetze'
 import { Route as AdminUsersRouteImport } from './routes/admin/users'
 import { Route as AdminSetupRouteImport } from './routes/admin/setup'
 import { Route as AdminDashboardRouteImport } from './routes/admin/dashboard'
 import { Route as AppEinsaetzeIndexRouteImport } from './routes/app/einsaetze/index'
+import { Route as AppEinsatzEinsatzIdRouteImport } from './routes/app/einsatz/$einsatzId'
 import { Route as AppEinsaetzeEinsatzIdRouteImport } from './routes/app/einsaetze/$einsatzId'
+import { Route as AppEinsatzEinsatzIdIndexRouteImport } from './routes/app/einsatz/$einsatzId/index'
+import { Route as AppEinsatzEinsatzIdChar220bersichtIndexRouteImport } from './routes/app/einsatz/$einsatzId/übersicht/index'
+import { Route as AppEinsatzEinsatzIdPatientenIndexRouteImport } from './routes/app/einsatz/$einsatzId/patienten/index'
+import { Route as AppEinsatzEinsatzIdChar220bersichtStatistikRouteImport } from './routes/app/einsatz/$einsatzId/übersicht/statistik'
+import { Route as AppEinsatzEinsatzIdChar220bersichtKarteRouteImport } from './routes/app/einsatz/$einsatzId/übersicht/karte'
+import { Route as AppEinsatzEinsatzIdSicherheitHygieneRouteImport } from './routes/app/einsatz/$einsatzId/sicherheit/hygiene'
+import { Route as AppEinsatzEinsatzIdSicherheitGefahrenRouteImport } from './routes/app/einsatz/$einsatzId/sicherheit/gefahren'
+import { Route as AppEinsatzEinsatzIdSicherheitEigenschutzRouteImport } from './routes/app/einsatz/$einsatzId/sicherheit/eigenschutz'
+import { Route as AppEinsatzEinsatzIdPatientenTriageRouteImport } from './routes/app/einsatz/$einsatzId/patienten/triage'
+import { Route as AppEinsatzEinsatzIdPatientenTransportRouteImport } from './routes/app/einsatz/$einsatzId/patienten/transport'
+import { Route as AppEinsatzEinsatzIdLogistikVerbrauchRouteImport } from './routes/app/einsatz/$einsatzId/logistik/verbrauch'
+import { Route as AppEinsatzEinsatzIdLogistikNachschubRouteImport } from './routes/app/einsatz/$einsatzId/logistik/nachschub'
+import { Route as AppEinsatzEinsatzIdLogistikMaterialRouteImport } from './routes/app/einsatz/$einsatzId/logistik/material'
+import { Route as AppEinsatzEinsatzIdKrChar228ftePersonalRouteImport } from './routes/app/einsatz/$einsatzId/kräfte/personal'
+import { Route as AppEinsatzEinsatzIdKrChar228fteFahrzeugeRouteImport } from './routes/app/einsatz/$einsatzId/kräfte/fahrzeuge'
+import { Route as AppEinsatzEinsatzIdKrChar228fteEinheitenRouteImport } from './routes/app/einsatz/$einsatzId/kräfte/einheiten'
+import { Route as AppEinsatzEinsatzIdKommunikationMeldungenRouteImport } from './routes/app/einsatz/$einsatzId/kommunikation/meldungen'
+import { Route as AppEinsatzEinsatzIdKommunikationFunkRouteImport } from './routes/app/einsatz/$einsatzId/kommunikation/funk'
+import { Route as AppEinsatzEinsatzIdKommunikationAlarmierungRouteImport } from './routes/app/einsatz/$einsatzId/kommunikation/alarmierung'
+import { Route as AppEinsatzEinsatzIdFChar252hrungProtokollRouteImport } from './routes/app/einsatz/$einsatzId/führung/protokoll'
+import { Route as AppEinsatzEinsatzIdFChar252hrungEtbRouteImport } from './routes/app/einsatz/$einsatzId/führung/etb'
+import { Route as AppEinsatzEinsatzIdFChar252hrungBerichteRouteImport } from './routes/app/einsatz/$einsatzId/führung/berichte'
+import { Route as AppEinsatzEinsatzIdFChar252hrungBefehleRouteImport } from './routes/app/einsatz/$einsatzId/führung/befehle'
+import { Route as AppEinsatzEinsatzIdDrohneSteuerungRouteImport } from './routes/app/einsatz/$einsatzId/drohne/steuerung'
+import { Route as AppEinsatzEinsatzIdDrohneLuftbilderRouteImport } from './routes/app/einsatz/$einsatzId/drohne/luftbilder'
+import { Route as AppEinsatzEinsatzIdDrohneLiveFeedRouteImport } from './routes/app/einsatz/$einsatzId/drohne/live-feed'
+import { Route as AppEinsatzEinsatzIdBetreuungVerpflegungRouteImport } from './routes/app/einsatz/$einsatzId/betreuung/verpflegung'
+import { Route as AppEinsatzEinsatzIdBetreuungUnterkunftRouteImport } from './routes/app/einsatz/$einsatzId/betreuung/unterkunft'
+import { Route as AppEinsatzEinsatzIdBetreuungBetroffeneRouteImport } from './routes/app/einsatz/$einsatzId/betreuung/betroffene'
 
 const AuthRoute = AuthRouteImport.update({
   id: '/auth',
@@ -52,6 +83,11 @@ const AdminIndexRoute = AdminIndexRouteImport.update({
   path: '/',
   getParentRoute: () => AdminRoute,
 } as any)
+const AppEinsatzRoute = AppEinsatzRouteImport.update({
+  id: '/einsatz',
+  path: '/einsatz',
+  getParentRoute: () => AppRoute,
+} as any)
 const AppEinsaetzeRoute = AppEinsaetzeRouteImport.update({
   id: '/einsaetze',
   path: '/einsaetze',
@@ -77,11 +113,190 @@ const AppEinsaetzeIndexRoute = AppEinsaetzeIndexRouteImport.update({
   path: '/',
   getParentRoute: () => AppEinsaetzeRoute,
 } as any)
+const AppEinsatzEinsatzIdRoute = AppEinsatzEinsatzIdRouteImport.update({
+  id: '/$einsatzId',
+  path: '/$einsatzId',
+  getParentRoute: () => AppEinsatzRoute,
+} as any)
 const AppEinsaetzeEinsatzIdRoute = AppEinsaetzeEinsatzIdRouteImport.update({
   id: '/$einsatzId',
   path: '/$einsatzId',
   getParentRoute: () => AppEinsaetzeRoute,
 } as any)
+const AppEinsatzEinsatzIdIndexRoute =
+  AppEinsatzEinsatzIdIndexRouteImport.update({
+    id: '/',
+    path: '/',
+    getParentRoute: () => AppEinsatzEinsatzIdRoute,
+  } as any)
+const AppEinsatzEinsatzIdChar220bersichtIndexRoute =
+  AppEinsatzEinsatzIdChar220bersichtIndexRouteImport.update({
+    id: '/übersicht/',
+    path: '/übersicht/',
+    getParentRoute: () => AppEinsatzEinsatzIdRoute,
+  } as any)
+const AppEinsatzEinsatzIdPatientenIndexRoute =
+  AppEinsatzEinsatzIdPatientenIndexRouteImport.update({
+    id: '/patienten/',
+    path: '/patienten/',
+    getParentRoute: () => AppEinsatzEinsatzIdRoute,
+  } as any)
+const AppEinsatzEinsatzIdChar220bersichtStatistikRoute =
+  AppEinsatzEinsatzIdChar220bersichtStatistikRouteImport.update({
+    id: '/übersicht/statistik',
+    path: '/übersicht/statistik',
+    getParentRoute: () => AppEinsatzEinsatzIdRoute,
+  } as any)
+const AppEinsatzEinsatzIdChar220bersichtKarteRoute =
+  AppEinsatzEinsatzIdChar220bersichtKarteRouteImport.update({
+    id: '/übersicht/karte',
+    path: '/übersicht/karte',
+    getParentRoute: () => AppEinsatzEinsatzIdRoute,
+  } as any)
+const AppEinsatzEinsatzIdSicherheitHygieneRoute =
+  AppEinsatzEinsatzIdSicherheitHygieneRouteImport.update({
+    id: '/sicherheit/hygiene',
+    path: '/sicherheit/hygiene',
+    getParentRoute: () => AppEinsatzEinsatzIdRoute,
+  } as any)
+const AppEinsatzEinsatzIdSicherheitGefahrenRoute =
+  AppEinsatzEinsatzIdSicherheitGefahrenRouteImport.update({
+    id: '/sicherheit/gefahren',
+    path: '/sicherheit/gefahren',
+    getParentRoute: () => AppEinsatzEinsatzIdRoute,
+  } as any)
+const AppEinsatzEinsatzIdSicherheitEigenschutzRoute =
+  AppEinsatzEinsatzIdSicherheitEigenschutzRouteImport.update({
+    id: '/sicherheit/eigenschutz',
+    path: '/sicherheit/eigenschutz',
+    getParentRoute: () => AppEinsatzEinsatzIdRoute,
+  } as any)
+const AppEinsatzEinsatzIdPatientenTriageRoute =
+  AppEinsatzEinsatzIdPatientenTriageRouteImport.update({
+    id: '/patienten/triage',
+    path: '/patienten/triage',
+    getParentRoute: () => AppEinsatzEinsatzIdRoute,
+  } as any)
+const AppEinsatzEinsatzIdPatientenTransportRoute =
+  AppEinsatzEinsatzIdPatientenTransportRouteImport.update({
+    id: '/patienten/transport',
+    path: '/patienten/transport',
+    getParentRoute: () => AppEinsatzEinsatzIdRoute,
+  } as any)
+const AppEinsatzEinsatzIdLogistikVerbrauchRoute =
+  AppEinsatzEinsatzIdLogistikVerbrauchRouteImport.update({
+    id: '/logistik/verbrauch',
+    path: '/logistik/verbrauch',
+    getParentRoute: () => AppEinsatzEinsatzIdRoute,
+  } as any)
+const AppEinsatzEinsatzIdLogistikNachschubRoute =
+  AppEinsatzEinsatzIdLogistikNachschubRouteImport.update({
+    id: '/logistik/nachschub',
+    path: '/logistik/nachschub',
+    getParentRoute: () => AppEinsatzEinsatzIdRoute,
+  } as any)
+const AppEinsatzEinsatzIdLogistikMaterialRoute =
+  AppEinsatzEinsatzIdLogistikMaterialRouteImport.update({
+    id: '/logistik/material',
+    path: '/logistik/material',
+    getParentRoute: () => AppEinsatzEinsatzIdRoute,
+  } as any)
+const AppEinsatzEinsatzIdKrChar228ftePersonalRoute =
+  AppEinsatzEinsatzIdKrChar228ftePersonalRouteImport.update({
+    id: '/kräfte/personal',
+    path: '/kräfte/personal',
+    getParentRoute: () => AppEinsatzEinsatzIdRoute,
+  } as any)
+const AppEinsatzEinsatzIdKrChar228fteFahrzeugeRoute =
+  AppEinsatzEinsatzIdKrChar228fteFahrzeugeRouteImport.update({
+    id: '/kräfte/fahrzeuge',
+    path: '/kräfte/fahrzeuge',
+    getParentRoute: () => AppEinsatzEinsatzIdRoute,
+  } as any)
+const AppEinsatzEinsatzIdKrChar228fteEinheitenRoute =
+  AppEinsatzEinsatzIdKrChar228fteEinheitenRouteImport.update({
+    id: '/kräfte/einheiten',
+    path: '/kräfte/einheiten',
+    getParentRoute: () => AppEinsatzEinsatzIdRoute,
+  } as any)
+const AppEinsatzEinsatzIdKommunikationMeldungenRoute =
+  AppEinsatzEinsatzIdKommunikationMeldungenRouteImport.update({
+    id: '/kommunikation/meldungen',
+    path: '/kommunikation/meldungen',
+    getParentRoute: () => AppEinsatzEinsatzIdRoute,
+  } as any)
+const AppEinsatzEinsatzIdKommunikationFunkRoute =
+  AppEinsatzEinsatzIdKommunikationFunkRouteImport.update({
+    id: '/kommunikation/funk',
+    path: '/kommunikation/funk',
+    getParentRoute: () => AppEinsatzEinsatzIdRoute,
+  } as any)
+const AppEinsatzEinsatzIdKommunikationAlarmierungRoute =
+  AppEinsatzEinsatzIdKommunikationAlarmierungRouteImport.update({
+    id: '/kommunikation/alarmierung',
+    path: '/kommunikation/alarmierung',
+    getParentRoute: () => AppEinsatzEinsatzIdRoute,
+  } as any)
+const AppEinsatzEinsatzIdFChar252hrungProtokollRoute =
+  AppEinsatzEinsatzIdFChar252hrungProtokollRouteImport.update({
+    id: '/führung/protokoll',
+    path: '/führung/protokoll',
+    getParentRoute: () => AppEinsatzEinsatzIdRoute,
+  } as any)
+const AppEinsatzEinsatzIdFChar252hrungEtbRoute =
+  AppEinsatzEinsatzIdFChar252hrungEtbRouteImport.update({
+    id: '/führung/etb',
+    path: '/führung/etb',
+    getParentRoute: () => AppEinsatzEinsatzIdRoute,
+  } as any)
+const AppEinsatzEinsatzIdFChar252hrungBerichteRoute =
+  AppEinsatzEinsatzIdFChar252hrungBerichteRouteImport.update({
+    id: '/führung/berichte',
+    path: '/führung/berichte',
+    getParentRoute: () => AppEinsatzEinsatzIdRoute,
+  } as any)
+const AppEinsatzEinsatzIdFChar252hrungBefehleRoute =
+  AppEinsatzEinsatzIdFChar252hrungBefehleRouteImport.update({
+    id: '/führung/befehle',
+    path: '/führung/befehle',
+    getParentRoute: () => AppEinsatzEinsatzIdRoute,
+  } as any)
+const AppEinsatzEinsatzIdDrohneSteuerungRoute =
+  AppEinsatzEinsatzIdDrohneSteuerungRouteImport.update({
+    id: '/drohne/steuerung',
+    path: '/drohne/steuerung',
+    getParentRoute: () => AppEinsatzEinsatzIdRoute,
+  } as any)
+const AppEinsatzEinsatzIdDrohneLuftbilderRoute =
+  AppEinsatzEinsatzIdDrohneLuftbilderRouteImport.update({
+    id: '/drohne/luftbilder',
+    path: '/drohne/luftbilder',
+    getParentRoute: () => AppEinsatzEinsatzIdRoute,
+  } as any)
+const AppEinsatzEinsatzIdDrohneLiveFeedRoute =
+  AppEinsatzEinsatzIdDrohneLiveFeedRouteImport.update({
+    id: '/drohne/live-feed',
+    path: '/drohne/live-feed',
+    getParentRoute: () => AppEinsatzEinsatzIdRoute,
+  } as any)
+const AppEinsatzEinsatzIdBetreuungVerpflegungRoute =
+  AppEinsatzEinsatzIdBetreuungVerpflegungRouteImport.update({
+    id: '/betreuung/verpflegung',
+    path: '/betreuung/verpflegung',
+    getParentRoute: () => AppEinsatzEinsatzIdRoute,
+  } as any)
+const AppEinsatzEinsatzIdBetreuungUnterkunftRoute =
+  AppEinsatzEinsatzIdBetreuungUnterkunftRouteImport.update({
+    id: '/betreuung/unterkunft',
+    path: '/betreuung/unterkunft',
+    getParentRoute: () => AppEinsatzEinsatzIdRoute,
+  } as any)
+const AppEinsatzEinsatzIdBetreuungBetroffeneRoute =
+  AppEinsatzEinsatzIdBetreuungBetroffeneRouteImport.update({
+    id: '/betreuung/betroffene',
+    path: '/betreuung/betroffene',
+    getParentRoute: () => AppEinsatzEinsatzIdRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -93,9 +308,40 @@ export interface FileRoutesByFullPath {
   '/admin/setup': typeof AdminSetupRoute
   '/admin/users': typeof AdminUsersRoute
   '/app/einsaetze': typeof AppEinsaetzeRouteWithChildren
+  '/app/einsatz': typeof AppEinsatzRouteWithChildren
   '/admin/': typeof AdminIndexRoute
   '/app/einsaetze/$einsatzId': typeof AppEinsaetzeEinsatzIdRoute
+  '/app/einsatz/$einsatzId': typeof AppEinsatzEinsatzIdRouteWithChildren
   '/app/einsaetze/': typeof AppEinsaetzeIndexRoute
+  '/app/einsatz/$einsatzId/': typeof AppEinsatzEinsatzIdIndexRoute
+  '/app/einsatz/$einsatzId/betreuung/betroffene': typeof AppEinsatzEinsatzIdBetreuungBetroffeneRoute
+  '/app/einsatz/$einsatzId/betreuung/unterkunft': typeof AppEinsatzEinsatzIdBetreuungUnterkunftRoute
+  '/app/einsatz/$einsatzId/betreuung/verpflegung': typeof AppEinsatzEinsatzIdBetreuungVerpflegungRoute
+  '/app/einsatz/$einsatzId/drohne/live-feed': typeof AppEinsatzEinsatzIdDrohneLiveFeedRoute
+  '/app/einsatz/$einsatzId/drohne/luftbilder': typeof AppEinsatzEinsatzIdDrohneLuftbilderRoute
+  '/app/einsatz/$einsatzId/drohne/steuerung': typeof AppEinsatzEinsatzIdDrohneSteuerungRoute
+  '/app/einsatz/$einsatzId/führung/befehle': typeof AppEinsatzEinsatzIdFChar252hrungBefehleRoute
+  '/app/einsatz/$einsatzId/führung/berichte': typeof AppEinsatzEinsatzIdFChar252hrungBerichteRoute
+  '/app/einsatz/$einsatzId/führung/etb': typeof AppEinsatzEinsatzIdFChar252hrungEtbRoute
+  '/app/einsatz/$einsatzId/führung/protokoll': typeof AppEinsatzEinsatzIdFChar252hrungProtokollRoute
+  '/app/einsatz/$einsatzId/kommunikation/alarmierung': typeof AppEinsatzEinsatzIdKommunikationAlarmierungRoute
+  '/app/einsatz/$einsatzId/kommunikation/funk': typeof AppEinsatzEinsatzIdKommunikationFunkRoute
+  '/app/einsatz/$einsatzId/kommunikation/meldungen': typeof AppEinsatzEinsatzIdKommunikationMeldungenRoute
+  '/app/einsatz/$einsatzId/kräfte/einheiten': typeof AppEinsatzEinsatzIdKrChar228fteEinheitenRoute
+  '/app/einsatz/$einsatzId/kräfte/fahrzeuge': typeof AppEinsatzEinsatzIdKrChar228fteFahrzeugeRoute
+  '/app/einsatz/$einsatzId/kräfte/personal': typeof AppEinsatzEinsatzIdKrChar228ftePersonalRoute
+  '/app/einsatz/$einsatzId/logistik/material': typeof AppEinsatzEinsatzIdLogistikMaterialRoute
+  '/app/einsatz/$einsatzId/logistik/nachschub': typeof AppEinsatzEinsatzIdLogistikNachschubRoute
+  '/app/einsatz/$einsatzId/logistik/verbrauch': typeof AppEinsatzEinsatzIdLogistikVerbrauchRoute
+  '/app/einsatz/$einsatzId/patienten/transport': typeof AppEinsatzEinsatzIdPatientenTransportRoute
+  '/app/einsatz/$einsatzId/patienten/triage': typeof AppEinsatzEinsatzIdPatientenTriageRoute
+  '/app/einsatz/$einsatzId/sicherheit/eigenschutz': typeof AppEinsatzEinsatzIdSicherheitEigenschutzRoute
+  '/app/einsatz/$einsatzId/sicherheit/gefahren': typeof AppEinsatzEinsatzIdSicherheitGefahrenRoute
+  '/app/einsatz/$einsatzId/sicherheit/hygiene': typeof AppEinsatzEinsatzIdSicherheitHygieneRoute
+  '/app/einsatz/$einsatzId/übersicht/karte': typeof AppEinsatzEinsatzIdChar220bersichtKarteRoute
+  '/app/einsatz/$einsatzId/übersicht/statistik': typeof AppEinsatzEinsatzIdChar220bersichtStatistikRoute
+  '/app/einsatz/$einsatzId/patienten': typeof AppEinsatzEinsatzIdPatientenIndexRoute
+  '/app/einsatz/$einsatzId/übersicht': typeof AppEinsatzEinsatzIdChar220bersichtIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -105,9 +351,39 @@ export interface FileRoutesByTo {
   '/admin/dashboard': typeof AdminDashboardRoute
   '/admin/setup': typeof AdminSetupRoute
   '/admin/users': typeof AdminUsersRoute
+  '/app/einsatz': typeof AppEinsatzRouteWithChildren
   '/admin': typeof AdminIndexRoute
   '/app/einsaetze/$einsatzId': typeof AppEinsaetzeEinsatzIdRoute
   '/app/einsaetze': typeof AppEinsaetzeIndexRoute
+  '/app/einsatz/$einsatzId': typeof AppEinsatzEinsatzIdIndexRoute
+  '/app/einsatz/$einsatzId/betreuung/betroffene': typeof AppEinsatzEinsatzIdBetreuungBetroffeneRoute
+  '/app/einsatz/$einsatzId/betreuung/unterkunft': typeof AppEinsatzEinsatzIdBetreuungUnterkunftRoute
+  '/app/einsatz/$einsatzId/betreuung/verpflegung': typeof AppEinsatzEinsatzIdBetreuungVerpflegungRoute
+  '/app/einsatz/$einsatzId/drohne/live-feed': typeof AppEinsatzEinsatzIdDrohneLiveFeedRoute
+  '/app/einsatz/$einsatzId/drohne/luftbilder': typeof AppEinsatzEinsatzIdDrohneLuftbilderRoute
+  '/app/einsatz/$einsatzId/drohne/steuerung': typeof AppEinsatzEinsatzIdDrohneSteuerungRoute
+  '/app/einsatz/$einsatzId/führung/befehle': typeof AppEinsatzEinsatzIdFChar252hrungBefehleRoute
+  '/app/einsatz/$einsatzId/führung/berichte': typeof AppEinsatzEinsatzIdFChar252hrungBerichteRoute
+  '/app/einsatz/$einsatzId/führung/etb': typeof AppEinsatzEinsatzIdFChar252hrungEtbRoute
+  '/app/einsatz/$einsatzId/führung/protokoll': typeof AppEinsatzEinsatzIdFChar252hrungProtokollRoute
+  '/app/einsatz/$einsatzId/kommunikation/alarmierung': typeof AppEinsatzEinsatzIdKommunikationAlarmierungRoute
+  '/app/einsatz/$einsatzId/kommunikation/funk': typeof AppEinsatzEinsatzIdKommunikationFunkRoute
+  '/app/einsatz/$einsatzId/kommunikation/meldungen': typeof AppEinsatzEinsatzIdKommunikationMeldungenRoute
+  '/app/einsatz/$einsatzId/kräfte/einheiten': typeof AppEinsatzEinsatzIdKrChar228fteEinheitenRoute
+  '/app/einsatz/$einsatzId/kräfte/fahrzeuge': typeof AppEinsatzEinsatzIdKrChar228fteFahrzeugeRoute
+  '/app/einsatz/$einsatzId/kräfte/personal': typeof AppEinsatzEinsatzIdKrChar228ftePersonalRoute
+  '/app/einsatz/$einsatzId/logistik/material': typeof AppEinsatzEinsatzIdLogistikMaterialRoute
+  '/app/einsatz/$einsatzId/logistik/nachschub': typeof AppEinsatzEinsatzIdLogistikNachschubRoute
+  '/app/einsatz/$einsatzId/logistik/verbrauch': typeof AppEinsatzEinsatzIdLogistikVerbrauchRoute
+  '/app/einsatz/$einsatzId/patienten/transport': typeof AppEinsatzEinsatzIdPatientenTransportRoute
+  '/app/einsatz/$einsatzId/patienten/triage': typeof AppEinsatzEinsatzIdPatientenTriageRoute
+  '/app/einsatz/$einsatzId/sicherheit/eigenschutz': typeof AppEinsatzEinsatzIdSicherheitEigenschutzRoute
+  '/app/einsatz/$einsatzId/sicherheit/gefahren': typeof AppEinsatzEinsatzIdSicherheitGefahrenRoute
+  '/app/einsatz/$einsatzId/sicherheit/hygiene': typeof AppEinsatzEinsatzIdSicherheitHygieneRoute
+  '/app/einsatz/$einsatzId/übersicht/karte': typeof AppEinsatzEinsatzIdChar220bersichtKarteRoute
+  '/app/einsatz/$einsatzId/übersicht/statistik': typeof AppEinsatzEinsatzIdChar220bersichtStatistikRoute
+  '/app/einsatz/$einsatzId/patienten': typeof AppEinsatzEinsatzIdPatientenIndexRoute
+  '/app/einsatz/$einsatzId/übersicht': typeof AppEinsatzEinsatzIdChar220bersichtIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -120,9 +396,40 @@ export interface FileRoutesById {
   '/admin/setup': typeof AdminSetupRoute
   '/admin/users': typeof AdminUsersRoute
   '/app/einsaetze': typeof AppEinsaetzeRouteWithChildren
+  '/app/einsatz': typeof AppEinsatzRouteWithChildren
   '/admin/': typeof AdminIndexRoute
   '/app/einsaetze/$einsatzId': typeof AppEinsaetzeEinsatzIdRoute
+  '/app/einsatz/$einsatzId': typeof AppEinsatzEinsatzIdRouteWithChildren
   '/app/einsaetze/': typeof AppEinsaetzeIndexRoute
+  '/app/einsatz/$einsatzId/': typeof AppEinsatzEinsatzIdIndexRoute
+  '/app/einsatz/$einsatzId/betreuung/betroffene': typeof AppEinsatzEinsatzIdBetreuungBetroffeneRoute
+  '/app/einsatz/$einsatzId/betreuung/unterkunft': typeof AppEinsatzEinsatzIdBetreuungUnterkunftRoute
+  '/app/einsatz/$einsatzId/betreuung/verpflegung': typeof AppEinsatzEinsatzIdBetreuungVerpflegungRoute
+  '/app/einsatz/$einsatzId/drohne/live-feed': typeof AppEinsatzEinsatzIdDrohneLiveFeedRoute
+  '/app/einsatz/$einsatzId/drohne/luftbilder': typeof AppEinsatzEinsatzIdDrohneLuftbilderRoute
+  '/app/einsatz/$einsatzId/drohne/steuerung': typeof AppEinsatzEinsatzIdDrohneSteuerungRoute
+  '/app/einsatz/$einsatzId/führung/befehle': typeof AppEinsatzEinsatzIdFChar252hrungBefehleRoute
+  '/app/einsatz/$einsatzId/führung/berichte': typeof AppEinsatzEinsatzIdFChar252hrungBerichteRoute
+  '/app/einsatz/$einsatzId/führung/etb': typeof AppEinsatzEinsatzIdFChar252hrungEtbRoute
+  '/app/einsatz/$einsatzId/führung/protokoll': typeof AppEinsatzEinsatzIdFChar252hrungProtokollRoute
+  '/app/einsatz/$einsatzId/kommunikation/alarmierung': typeof AppEinsatzEinsatzIdKommunikationAlarmierungRoute
+  '/app/einsatz/$einsatzId/kommunikation/funk': typeof AppEinsatzEinsatzIdKommunikationFunkRoute
+  '/app/einsatz/$einsatzId/kommunikation/meldungen': typeof AppEinsatzEinsatzIdKommunikationMeldungenRoute
+  '/app/einsatz/$einsatzId/kräfte/einheiten': typeof AppEinsatzEinsatzIdKrChar228fteEinheitenRoute
+  '/app/einsatz/$einsatzId/kräfte/fahrzeuge': typeof AppEinsatzEinsatzIdKrChar228fteFahrzeugeRoute
+  '/app/einsatz/$einsatzId/kräfte/personal': typeof AppEinsatzEinsatzIdKrChar228ftePersonalRoute
+  '/app/einsatz/$einsatzId/logistik/material': typeof AppEinsatzEinsatzIdLogistikMaterialRoute
+  '/app/einsatz/$einsatzId/logistik/nachschub': typeof AppEinsatzEinsatzIdLogistikNachschubRoute
+  '/app/einsatz/$einsatzId/logistik/verbrauch': typeof AppEinsatzEinsatzIdLogistikVerbrauchRoute
+  '/app/einsatz/$einsatzId/patienten/transport': typeof AppEinsatzEinsatzIdPatientenTransportRoute
+  '/app/einsatz/$einsatzId/patienten/triage': typeof AppEinsatzEinsatzIdPatientenTriageRoute
+  '/app/einsatz/$einsatzId/sicherheit/eigenschutz': typeof AppEinsatzEinsatzIdSicherheitEigenschutzRoute
+  '/app/einsatz/$einsatzId/sicherheit/gefahren': typeof AppEinsatzEinsatzIdSicherheitGefahrenRoute
+  '/app/einsatz/$einsatzId/sicherheit/hygiene': typeof AppEinsatzEinsatzIdSicherheitHygieneRoute
+  '/app/einsatz/$einsatzId/übersicht/karte': typeof AppEinsatzEinsatzIdChar220bersichtKarteRoute
+  '/app/einsatz/$einsatzId/übersicht/statistik': typeof AppEinsatzEinsatzIdChar220bersichtStatistikRoute
+  '/app/einsatz/$einsatzId/patienten/': typeof AppEinsatzEinsatzIdPatientenIndexRoute
+  '/app/einsatz/$einsatzId/übersicht/': typeof AppEinsatzEinsatzIdChar220bersichtIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -136,9 +443,40 @@ export interface FileRouteTypes {
     | '/admin/setup'
     | '/admin/users'
     | '/app/einsaetze'
+    | '/app/einsatz'
     | '/admin/'
     | '/app/einsaetze/$einsatzId'
+    | '/app/einsatz/$einsatzId'
     | '/app/einsaetze/'
+    | '/app/einsatz/$einsatzId/'
+    | '/app/einsatz/$einsatzId/betreuung/betroffene'
+    | '/app/einsatz/$einsatzId/betreuung/unterkunft'
+    | '/app/einsatz/$einsatzId/betreuung/verpflegung'
+    | '/app/einsatz/$einsatzId/drohne/live-feed'
+    | '/app/einsatz/$einsatzId/drohne/luftbilder'
+    | '/app/einsatz/$einsatzId/drohne/steuerung'
+    | '/app/einsatz/$einsatzId/führung/befehle'
+    | '/app/einsatz/$einsatzId/führung/berichte'
+    | '/app/einsatz/$einsatzId/führung/etb'
+    | '/app/einsatz/$einsatzId/führung/protokoll'
+    | '/app/einsatz/$einsatzId/kommunikation/alarmierung'
+    | '/app/einsatz/$einsatzId/kommunikation/funk'
+    | '/app/einsatz/$einsatzId/kommunikation/meldungen'
+    | '/app/einsatz/$einsatzId/kräfte/einheiten'
+    | '/app/einsatz/$einsatzId/kräfte/fahrzeuge'
+    | '/app/einsatz/$einsatzId/kräfte/personal'
+    | '/app/einsatz/$einsatzId/logistik/material'
+    | '/app/einsatz/$einsatzId/logistik/nachschub'
+    | '/app/einsatz/$einsatzId/logistik/verbrauch'
+    | '/app/einsatz/$einsatzId/patienten/transport'
+    | '/app/einsatz/$einsatzId/patienten/triage'
+    | '/app/einsatz/$einsatzId/sicherheit/eigenschutz'
+    | '/app/einsatz/$einsatzId/sicherheit/gefahren'
+    | '/app/einsatz/$einsatzId/sicherheit/hygiene'
+    | '/app/einsatz/$einsatzId/übersicht/karte'
+    | '/app/einsatz/$einsatzId/übersicht/statistik'
+    | '/app/einsatz/$einsatzId/patienten'
+    | '/app/einsatz/$einsatzId/übersicht'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -148,9 +486,39 @@ export interface FileRouteTypes {
     | '/admin/dashboard'
     | '/admin/setup'
     | '/admin/users'
+    | '/app/einsatz'
     | '/admin'
     | '/app/einsaetze/$einsatzId'
     | '/app/einsaetze'
+    | '/app/einsatz/$einsatzId'
+    | '/app/einsatz/$einsatzId/betreuung/betroffene'
+    | '/app/einsatz/$einsatzId/betreuung/unterkunft'
+    | '/app/einsatz/$einsatzId/betreuung/verpflegung'
+    | '/app/einsatz/$einsatzId/drohne/live-feed'
+    | '/app/einsatz/$einsatzId/drohne/luftbilder'
+    | '/app/einsatz/$einsatzId/drohne/steuerung'
+    | '/app/einsatz/$einsatzId/führung/befehle'
+    | '/app/einsatz/$einsatzId/führung/berichte'
+    | '/app/einsatz/$einsatzId/führung/etb'
+    | '/app/einsatz/$einsatzId/führung/protokoll'
+    | '/app/einsatz/$einsatzId/kommunikation/alarmierung'
+    | '/app/einsatz/$einsatzId/kommunikation/funk'
+    | '/app/einsatz/$einsatzId/kommunikation/meldungen'
+    | '/app/einsatz/$einsatzId/kräfte/einheiten'
+    | '/app/einsatz/$einsatzId/kräfte/fahrzeuge'
+    | '/app/einsatz/$einsatzId/kräfte/personal'
+    | '/app/einsatz/$einsatzId/logistik/material'
+    | '/app/einsatz/$einsatzId/logistik/nachschub'
+    | '/app/einsatz/$einsatzId/logistik/verbrauch'
+    | '/app/einsatz/$einsatzId/patienten/transport'
+    | '/app/einsatz/$einsatzId/patienten/triage'
+    | '/app/einsatz/$einsatzId/sicherheit/eigenschutz'
+    | '/app/einsatz/$einsatzId/sicherheit/gefahren'
+    | '/app/einsatz/$einsatzId/sicherheit/hygiene'
+    | '/app/einsatz/$einsatzId/übersicht/karte'
+    | '/app/einsatz/$einsatzId/übersicht/statistik'
+    | '/app/einsatz/$einsatzId/patienten'
+    | '/app/einsatz/$einsatzId/übersicht'
   id:
     | '__root__'
     | '/'
@@ -162,9 +530,40 @@ export interface FileRouteTypes {
     | '/admin/setup'
     | '/admin/users'
     | '/app/einsaetze'
+    | '/app/einsatz'
     | '/admin/'
     | '/app/einsaetze/$einsatzId'
+    | '/app/einsatz/$einsatzId'
     | '/app/einsaetze/'
+    | '/app/einsatz/$einsatzId/'
+    | '/app/einsatz/$einsatzId/betreuung/betroffene'
+    | '/app/einsatz/$einsatzId/betreuung/unterkunft'
+    | '/app/einsatz/$einsatzId/betreuung/verpflegung'
+    | '/app/einsatz/$einsatzId/drohne/live-feed'
+    | '/app/einsatz/$einsatzId/drohne/luftbilder'
+    | '/app/einsatz/$einsatzId/drohne/steuerung'
+    | '/app/einsatz/$einsatzId/führung/befehle'
+    | '/app/einsatz/$einsatzId/führung/berichte'
+    | '/app/einsatz/$einsatzId/führung/etb'
+    | '/app/einsatz/$einsatzId/führung/protokoll'
+    | '/app/einsatz/$einsatzId/kommunikation/alarmierung'
+    | '/app/einsatz/$einsatzId/kommunikation/funk'
+    | '/app/einsatz/$einsatzId/kommunikation/meldungen'
+    | '/app/einsatz/$einsatzId/kräfte/einheiten'
+    | '/app/einsatz/$einsatzId/kräfte/fahrzeuge'
+    | '/app/einsatz/$einsatzId/kräfte/personal'
+    | '/app/einsatz/$einsatzId/logistik/material'
+    | '/app/einsatz/$einsatzId/logistik/nachschub'
+    | '/app/einsatz/$einsatzId/logistik/verbrauch'
+    | '/app/einsatz/$einsatzId/patienten/transport'
+    | '/app/einsatz/$einsatzId/patienten/triage'
+    | '/app/einsatz/$einsatzId/sicherheit/eigenschutz'
+    | '/app/einsatz/$einsatzId/sicherheit/gefahren'
+    | '/app/einsatz/$einsatzId/sicherheit/hygiene'
+    | '/app/einsatz/$einsatzId/übersicht/karte'
+    | '/app/einsatz/$einsatzId/übersicht/statistik'
+    | '/app/einsatz/$einsatzId/patienten/'
+    | '/app/einsatz/$einsatzId/übersicht/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -219,6 +618,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminIndexRouteImport
       parentRoute: typeof AdminRoute
     }
+    '/app/einsatz': {
+      id: '/app/einsatz'
+      path: '/einsatz'
+      fullPath: '/app/einsatz'
+      preLoaderRoute: typeof AppEinsatzRouteImport
+      parentRoute: typeof AppRoute
+    }
     '/app/einsaetze': {
       id: '/app/einsaetze'
       path: '/einsaetze'
@@ -254,12 +660,222 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppEinsaetzeIndexRouteImport
       parentRoute: typeof AppEinsaetzeRoute
     }
+    '/app/einsatz/$einsatzId': {
+      id: '/app/einsatz/$einsatzId'
+      path: '/$einsatzId'
+      fullPath: '/app/einsatz/$einsatzId'
+      preLoaderRoute: typeof AppEinsatzEinsatzIdRouteImport
+      parentRoute: typeof AppEinsatzRoute
+    }
     '/app/einsaetze/$einsatzId': {
       id: '/app/einsaetze/$einsatzId'
       path: '/$einsatzId'
       fullPath: '/app/einsaetze/$einsatzId'
       preLoaderRoute: typeof AppEinsaetzeEinsatzIdRouteImport
       parentRoute: typeof AppEinsaetzeRoute
+    }
+    '/app/einsatz/$einsatzId/': {
+      id: '/app/einsatz/$einsatzId/'
+      path: '/'
+      fullPath: '/app/einsatz/$einsatzId/'
+      preLoaderRoute: typeof AppEinsatzEinsatzIdIndexRouteImport
+      parentRoute: typeof AppEinsatzEinsatzIdRoute
+    }
+    '/app/einsatz/$einsatzId/übersicht/': {
+      id: '/app/einsatz/$einsatzId/übersicht/'
+      path: '/übersicht'
+      fullPath: '/app/einsatz/$einsatzId/übersicht'
+      preLoaderRoute: typeof AppEinsatzEinsatzIdChar220bersichtIndexRouteImport
+      parentRoute: typeof AppEinsatzEinsatzIdRoute
+    }
+    '/app/einsatz/$einsatzId/patienten/': {
+      id: '/app/einsatz/$einsatzId/patienten/'
+      path: '/patienten'
+      fullPath: '/app/einsatz/$einsatzId/patienten'
+      preLoaderRoute: typeof AppEinsatzEinsatzIdPatientenIndexRouteImport
+      parentRoute: typeof AppEinsatzEinsatzIdRoute
+    }
+    '/app/einsatz/$einsatzId/übersicht/statistik': {
+      id: '/app/einsatz/$einsatzId/übersicht/statistik'
+      path: '/übersicht/statistik'
+      fullPath: '/app/einsatz/$einsatzId/übersicht/statistik'
+      preLoaderRoute: typeof AppEinsatzEinsatzIdChar220bersichtStatistikRouteImport
+      parentRoute: typeof AppEinsatzEinsatzIdRoute
+    }
+    '/app/einsatz/$einsatzId/übersicht/karte': {
+      id: '/app/einsatz/$einsatzId/übersicht/karte'
+      path: '/übersicht/karte'
+      fullPath: '/app/einsatz/$einsatzId/übersicht/karte'
+      preLoaderRoute: typeof AppEinsatzEinsatzIdChar220bersichtKarteRouteImport
+      parentRoute: typeof AppEinsatzEinsatzIdRoute
+    }
+    '/app/einsatz/$einsatzId/sicherheit/hygiene': {
+      id: '/app/einsatz/$einsatzId/sicherheit/hygiene'
+      path: '/sicherheit/hygiene'
+      fullPath: '/app/einsatz/$einsatzId/sicherheit/hygiene'
+      preLoaderRoute: typeof AppEinsatzEinsatzIdSicherheitHygieneRouteImport
+      parentRoute: typeof AppEinsatzEinsatzIdRoute
+    }
+    '/app/einsatz/$einsatzId/sicherheit/gefahren': {
+      id: '/app/einsatz/$einsatzId/sicherheit/gefahren'
+      path: '/sicherheit/gefahren'
+      fullPath: '/app/einsatz/$einsatzId/sicherheit/gefahren'
+      preLoaderRoute: typeof AppEinsatzEinsatzIdSicherheitGefahrenRouteImport
+      parentRoute: typeof AppEinsatzEinsatzIdRoute
+    }
+    '/app/einsatz/$einsatzId/sicherheit/eigenschutz': {
+      id: '/app/einsatz/$einsatzId/sicherheit/eigenschutz'
+      path: '/sicherheit/eigenschutz'
+      fullPath: '/app/einsatz/$einsatzId/sicherheit/eigenschutz'
+      preLoaderRoute: typeof AppEinsatzEinsatzIdSicherheitEigenschutzRouteImport
+      parentRoute: typeof AppEinsatzEinsatzIdRoute
+    }
+    '/app/einsatz/$einsatzId/patienten/triage': {
+      id: '/app/einsatz/$einsatzId/patienten/triage'
+      path: '/patienten/triage'
+      fullPath: '/app/einsatz/$einsatzId/patienten/triage'
+      preLoaderRoute: typeof AppEinsatzEinsatzIdPatientenTriageRouteImport
+      parentRoute: typeof AppEinsatzEinsatzIdRoute
+    }
+    '/app/einsatz/$einsatzId/patienten/transport': {
+      id: '/app/einsatz/$einsatzId/patienten/transport'
+      path: '/patienten/transport'
+      fullPath: '/app/einsatz/$einsatzId/patienten/transport'
+      preLoaderRoute: typeof AppEinsatzEinsatzIdPatientenTransportRouteImport
+      parentRoute: typeof AppEinsatzEinsatzIdRoute
+    }
+    '/app/einsatz/$einsatzId/logistik/verbrauch': {
+      id: '/app/einsatz/$einsatzId/logistik/verbrauch'
+      path: '/logistik/verbrauch'
+      fullPath: '/app/einsatz/$einsatzId/logistik/verbrauch'
+      preLoaderRoute: typeof AppEinsatzEinsatzIdLogistikVerbrauchRouteImport
+      parentRoute: typeof AppEinsatzEinsatzIdRoute
+    }
+    '/app/einsatz/$einsatzId/logistik/nachschub': {
+      id: '/app/einsatz/$einsatzId/logistik/nachschub'
+      path: '/logistik/nachschub'
+      fullPath: '/app/einsatz/$einsatzId/logistik/nachschub'
+      preLoaderRoute: typeof AppEinsatzEinsatzIdLogistikNachschubRouteImport
+      parentRoute: typeof AppEinsatzEinsatzIdRoute
+    }
+    '/app/einsatz/$einsatzId/logistik/material': {
+      id: '/app/einsatz/$einsatzId/logistik/material'
+      path: '/logistik/material'
+      fullPath: '/app/einsatz/$einsatzId/logistik/material'
+      preLoaderRoute: typeof AppEinsatzEinsatzIdLogistikMaterialRouteImport
+      parentRoute: typeof AppEinsatzEinsatzIdRoute
+    }
+    '/app/einsatz/$einsatzId/kräfte/personal': {
+      id: '/app/einsatz/$einsatzId/kräfte/personal'
+      path: '/kräfte/personal'
+      fullPath: '/app/einsatz/$einsatzId/kräfte/personal'
+      preLoaderRoute: typeof AppEinsatzEinsatzIdKrChar228ftePersonalRouteImport
+      parentRoute: typeof AppEinsatzEinsatzIdRoute
+    }
+    '/app/einsatz/$einsatzId/kräfte/fahrzeuge': {
+      id: '/app/einsatz/$einsatzId/kräfte/fahrzeuge'
+      path: '/kräfte/fahrzeuge'
+      fullPath: '/app/einsatz/$einsatzId/kräfte/fahrzeuge'
+      preLoaderRoute: typeof AppEinsatzEinsatzIdKrChar228fteFahrzeugeRouteImport
+      parentRoute: typeof AppEinsatzEinsatzIdRoute
+    }
+    '/app/einsatz/$einsatzId/kräfte/einheiten': {
+      id: '/app/einsatz/$einsatzId/kräfte/einheiten'
+      path: '/kräfte/einheiten'
+      fullPath: '/app/einsatz/$einsatzId/kräfte/einheiten'
+      preLoaderRoute: typeof AppEinsatzEinsatzIdKrChar228fteEinheitenRouteImport
+      parentRoute: typeof AppEinsatzEinsatzIdRoute
+    }
+    '/app/einsatz/$einsatzId/kommunikation/meldungen': {
+      id: '/app/einsatz/$einsatzId/kommunikation/meldungen'
+      path: '/kommunikation/meldungen'
+      fullPath: '/app/einsatz/$einsatzId/kommunikation/meldungen'
+      preLoaderRoute: typeof AppEinsatzEinsatzIdKommunikationMeldungenRouteImport
+      parentRoute: typeof AppEinsatzEinsatzIdRoute
+    }
+    '/app/einsatz/$einsatzId/kommunikation/funk': {
+      id: '/app/einsatz/$einsatzId/kommunikation/funk'
+      path: '/kommunikation/funk'
+      fullPath: '/app/einsatz/$einsatzId/kommunikation/funk'
+      preLoaderRoute: typeof AppEinsatzEinsatzIdKommunikationFunkRouteImport
+      parentRoute: typeof AppEinsatzEinsatzIdRoute
+    }
+    '/app/einsatz/$einsatzId/kommunikation/alarmierung': {
+      id: '/app/einsatz/$einsatzId/kommunikation/alarmierung'
+      path: '/kommunikation/alarmierung'
+      fullPath: '/app/einsatz/$einsatzId/kommunikation/alarmierung'
+      preLoaderRoute: typeof AppEinsatzEinsatzIdKommunikationAlarmierungRouteImport
+      parentRoute: typeof AppEinsatzEinsatzIdRoute
+    }
+    '/app/einsatz/$einsatzId/führung/protokoll': {
+      id: '/app/einsatz/$einsatzId/führung/protokoll'
+      path: '/führung/protokoll'
+      fullPath: '/app/einsatz/$einsatzId/führung/protokoll'
+      preLoaderRoute: typeof AppEinsatzEinsatzIdFChar252hrungProtokollRouteImport
+      parentRoute: typeof AppEinsatzEinsatzIdRoute
+    }
+    '/app/einsatz/$einsatzId/führung/etb': {
+      id: '/app/einsatz/$einsatzId/führung/etb'
+      path: '/führung/etb'
+      fullPath: '/app/einsatz/$einsatzId/führung/etb'
+      preLoaderRoute: typeof AppEinsatzEinsatzIdFChar252hrungEtbRouteImport
+      parentRoute: typeof AppEinsatzEinsatzIdRoute
+    }
+    '/app/einsatz/$einsatzId/führung/berichte': {
+      id: '/app/einsatz/$einsatzId/führung/berichte'
+      path: '/führung/berichte'
+      fullPath: '/app/einsatz/$einsatzId/führung/berichte'
+      preLoaderRoute: typeof AppEinsatzEinsatzIdFChar252hrungBerichteRouteImport
+      parentRoute: typeof AppEinsatzEinsatzIdRoute
+    }
+    '/app/einsatz/$einsatzId/führung/befehle': {
+      id: '/app/einsatz/$einsatzId/führung/befehle'
+      path: '/führung/befehle'
+      fullPath: '/app/einsatz/$einsatzId/führung/befehle'
+      preLoaderRoute: typeof AppEinsatzEinsatzIdFChar252hrungBefehleRouteImport
+      parentRoute: typeof AppEinsatzEinsatzIdRoute
+    }
+    '/app/einsatz/$einsatzId/drohne/steuerung': {
+      id: '/app/einsatz/$einsatzId/drohne/steuerung'
+      path: '/drohne/steuerung'
+      fullPath: '/app/einsatz/$einsatzId/drohne/steuerung'
+      preLoaderRoute: typeof AppEinsatzEinsatzIdDrohneSteuerungRouteImport
+      parentRoute: typeof AppEinsatzEinsatzIdRoute
+    }
+    '/app/einsatz/$einsatzId/drohne/luftbilder': {
+      id: '/app/einsatz/$einsatzId/drohne/luftbilder'
+      path: '/drohne/luftbilder'
+      fullPath: '/app/einsatz/$einsatzId/drohne/luftbilder'
+      preLoaderRoute: typeof AppEinsatzEinsatzIdDrohneLuftbilderRouteImport
+      parentRoute: typeof AppEinsatzEinsatzIdRoute
+    }
+    '/app/einsatz/$einsatzId/drohne/live-feed': {
+      id: '/app/einsatz/$einsatzId/drohne/live-feed'
+      path: '/drohne/live-feed'
+      fullPath: '/app/einsatz/$einsatzId/drohne/live-feed'
+      preLoaderRoute: typeof AppEinsatzEinsatzIdDrohneLiveFeedRouteImport
+      parentRoute: typeof AppEinsatzEinsatzIdRoute
+    }
+    '/app/einsatz/$einsatzId/betreuung/verpflegung': {
+      id: '/app/einsatz/$einsatzId/betreuung/verpflegung'
+      path: '/betreuung/verpflegung'
+      fullPath: '/app/einsatz/$einsatzId/betreuung/verpflegung'
+      preLoaderRoute: typeof AppEinsatzEinsatzIdBetreuungVerpflegungRouteImport
+      parentRoute: typeof AppEinsatzEinsatzIdRoute
+    }
+    '/app/einsatz/$einsatzId/betreuung/unterkunft': {
+      id: '/app/einsatz/$einsatzId/betreuung/unterkunft'
+      path: '/betreuung/unterkunft'
+      fullPath: '/app/einsatz/$einsatzId/betreuung/unterkunft'
+      preLoaderRoute: typeof AppEinsatzEinsatzIdBetreuungUnterkunftRouteImport
+      parentRoute: typeof AppEinsatzEinsatzIdRoute
+    }
+    '/app/einsatz/$einsatzId/betreuung/betroffene': {
+      id: '/app/einsatz/$einsatzId/betreuung/betroffene'
+      path: '/betreuung/betroffene'
+      fullPath: '/app/einsatz/$einsatzId/betreuung/betroffene'
+      preLoaderRoute: typeof AppEinsatzEinsatzIdBetreuungBetroffeneRouteImport
+      parentRoute: typeof AppEinsatzEinsatzIdRoute
     }
   }
 }
@@ -294,12 +910,121 @@ const AppEinsaetzeRouteWithChildren = AppEinsaetzeRoute._addFileChildren(
   AppEinsaetzeRouteChildren,
 )
 
+interface AppEinsatzEinsatzIdRouteChildren {
+  AppEinsatzEinsatzIdIndexRoute: typeof AppEinsatzEinsatzIdIndexRoute
+  AppEinsatzEinsatzIdBetreuungBetroffeneRoute: typeof AppEinsatzEinsatzIdBetreuungBetroffeneRoute
+  AppEinsatzEinsatzIdBetreuungUnterkunftRoute: typeof AppEinsatzEinsatzIdBetreuungUnterkunftRoute
+  AppEinsatzEinsatzIdBetreuungVerpflegungRoute: typeof AppEinsatzEinsatzIdBetreuungVerpflegungRoute
+  AppEinsatzEinsatzIdDrohneLiveFeedRoute: typeof AppEinsatzEinsatzIdDrohneLiveFeedRoute
+  AppEinsatzEinsatzIdDrohneLuftbilderRoute: typeof AppEinsatzEinsatzIdDrohneLuftbilderRoute
+  AppEinsatzEinsatzIdDrohneSteuerungRoute: typeof AppEinsatzEinsatzIdDrohneSteuerungRoute
+  AppEinsatzEinsatzIdFChar252hrungBefehleRoute: typeof AppEinsatzEinsatzIdFChar252hrungBefehleRoute
+  AppEinsatzEinsatzIdFChar252hrungBerichteRoute: typeof AppEinsatzEinsatzIdFChar252hrungBerichteRoute
+  AppEinsatzEinsatzIdFChar252hrungEtbRoute: typeof AppEinsatzEinsatzIdFChar252hrungEtbRoute
+  AppEinsatzEinsatzIdFChar252hrungProtokollRoute: typeof AppEinsatzEinsatzIdFChar252hrungProtokollRoute
+  AppEinsatzEinsatzIdKommunikationAlarmierungRoute: typeof AppEinsatzEinsatzIdKommunikationAlarmierungRoute
+  AppEinsatzEinsatzIdKommunikationFunkRoute: typeof AppEinsatzEinsatzIdKommunikationFunkRoute
+  AppEinsatzEinsatzIdKommunikationMeldungenRoute: typeof AppEinsatzEinsatzIdKommunikationMeldungenRoute
+  AppEinsatzEinsatzIdKrChar228fteEinheitenRoute: typeof AppEinsatzEinsatzIdKrChar228fteEinheitenRoute
+  AppEinsatzEinsatzIdKrChar228fteFahrzeugeRoute: typeof AppEinsatzEinsatzIdKrChar228fteFahrzeugeRoute
+  AppEinsatzEinsatzIdKrChar228ftePersonalRoute: typeof AppEinsatzEinsatzIdKrChar228ftePersonalRoute
+  AppEinsatzEinsatzIdLogistikMaterialRoute: typeof AppEinsatzEinsatzIdLogistikMaterialRoute
+  AppEinsatzEinsatzIdLogistikNachschubRoute: typeof AppEinsatzEinsatzIdLogistikNachschubRoute
+  AppEinsatzEinsatzIdLogistikVerbrauchRoute: typeof AppEinsatzEinsatzIdLogistikVerbrauchRoute
+  AppEinsatzEinsatzIdPatientenTransportRoute: typeof AppEinsatzEinsatzIdPatientenTransportRoute
+  AppEinsatzEinsatzIdPatientenTriageRoute: typeof AppEinsatzEinsatzIdPatientenTriageRoute
+  AppEinsatzEinsatzIdSicherheitEigenschutzRoute: typeof AppEinsatzEinsatzIdSicherheitEigenschutzRoute
+  AppEinsatzEinsatzIdSicherheitGefahrenRoute: typeof AppEinsatzEinsatzIdSicherheitGefahrenRoute
+  AppEinsatzEinsatzIdSicherheitHygieneRoute: typeof AppEinsatzEinsatzIdSicherheitHygieneRoute
+  AppEinsatzEinsatzIdChar220bersichtKarteRoute: typeof AppEinsatzEinsatzIdChar220bersichtKarteRoute
+  AppEinsatzEinsatzIdChar220bersichtStatistikRoute: typeof AppEinsatzEinsatzIdChar220bersichtStatistikRoute
+  AppEinsatzEinsatzIdPatientenIndexRoute: typeof AppEinsatzEinsatzIdPatientenIndexRoute
+  AppEinsatzEinsatzIdChar220bersichtIndexRoute: typeof AppEinsatzEinsatzIdChar220bersichtIndexRoute
+}
+
+const AppEinsatzEinsatzIdRouteChildren: AppEinsatzEinsatzIdRouteChildren = {
+  AppEinsatzEinsatzIdIndexRoute: AppEinsatzEinsatzIdIndexRoute,
+  AppEinsatzEinsatzIdBetreuungBetroffeneRoute:
+    AppEinsatzEinsatzIdBetreuungBetroffeneRoute,
+  AppEinsatzEinsatzIdBetreuungUnterkunftRoute:
+    AppEinsatzEinsatzIdBetreuungUnterkunftRoute,
+  AppEinsatzEinsatzIdBetreuungVerpflegungRoute:
+    AppEinsatzEinsatzIdBetreuungVerpflegungRoute,
+  AppEinsatzEinsatzIdDrohneLiveFeedRoute:
+    AppEinsatzEinsatzIdDrohneLiveFeedRoute,
+  AppEinsatzEinsatzIdDrohneLuftbilderRoute:
+    AppEinsatzEinsatzIdDrohneLuftbilderRoute,
+  AppEinsatzEinsatzIdDrohneSteuerungRoute:
+    AppEinsatzEinsatzIdDrohneSteuerungRoute,
+  AppEinsatzEinsatzIdFChar252hrungBefehleRoute:
+    AppEinsatzEinsatzIdFChar252hrungBefehleRoute,
+  AppEinsatzEinsatzIdFChar252hrungBerichteRoute:
+    AppEinsatzEinsatzIdFChar252hrungBerichteRoute,
+  AppEinsatzEinsatzIdFChar252hrungEtbRoute:
+    AppEinsatzEinsatzIdFChar252hrungEtbRoute,
+  AppEinsatzEinsatzIdFChar252hrungProtokollRoute:
+    AppEinsatzEinsatzIdFChar252hrungProtokollRoute,
+  AppEinsatzEinsatzIdKommunikationAlarmierungRoute:
+    AppEinsatzEinsatzIdKommunikationAlarmierungRoute,
+  AppEinsatzEinsatzIdKommunikationFunkRoute:
+    AppEinsatzEinsatzIdKommunikationFunkRoute,
+  AppEinsatzEinsatzIdKommunikationMeldungenRoute:
+    AppEinsatzEinsatzIdKommunikationMeldungenRoute,
+  AppEinsatzEinsatzIdKrChar228fteEinheitenRoute:
+    AppEinsatzEinsatzIdKrChar228fteEinheitenRoute,
+  AppEinsatzEinsatzIdKrChar228fteFahrzeugeRoute:
+    AppEinsatzEinsatzIdKrChar228fteFahrzeugeRoute,
+  AppEinsatzEinsatzIdKrChar228ftePersonalRoute:
+    AppEinsatzEinsatzIdKrChar228ftePersonalRoute,
+  AppEinsatzEinsatzIdLogistikMaterialRoute:
+    AppEinsatzEinsatzIdLogistikMaterialRoute,
+  AppEinsatzEinsatzIdLogistikNachschubRoute:
+    AppEinsatzEinsatzIdLogistikNachschubRoute,
+  AppEinsatzEinsatzIdLogistikVerbrauchRoute:
+    AppEinsatzEinsatzIdLogistikVerbrauchRoute,
+  AppEinsatzEinsatzIdPatientenTransportRoute:
+    AppEinsatzEinsatzIdPatientenTransportRoute,
+  AppEinsatzEinsatzIdPatientenTriageRoute:
+    AppEinsatzEinsatzIdPatientenTriageRoute,
+  AppEinsatzEinsatzIdSicherheitEigenschutzRoute:
+    AppEinsatzEinsatzIdSicherheitEigenschutzRoute,
+  AppEinsatzEinsatzIdSicherheitGefahrenRoute:
+    AppEinsatzEinsatzIdSicherheitGefahrenRoute,
+  AppEinsatzEinsatzIdSicherheitHygieneRoute:
+    AppEinsatzEinsatzIdSicherheitHygieneRoute,
+  AppEinsatzEinsatzIdChar220bersichtKarteRoute:
+    AppEinsatzEinsatzIdChar220bersichtKarteRoute,
+  AppEinsatzEinsatzIdChar220bersichtStatistikRoute:
+    AppEinsatzEinsatzIdChar220bersichtStatistikRoute,
+  AppEinsatzEinsatzIdPatientenIndexRoute:
+    AppEinsatzEinsatzIdPatientenIndexRoute,
+  AppEinsatzEinsatzIdChar220bersichtIndexRoute:
+    AppEinsatzEinsatzIdChar220bersichtIndexRoute,
+}
+
+const AppEinsatzEinsatzIdRouteWithChildren =
+  AppEinsatzEinsatzIdRoute._addFileChildren(AppEinsatzEinsatzIdRouteChildren)
+
+interface AppEinsatzRouteChildren {
+  AppEinsatzEinsatzIdRoute: typeof AppEinsatzEinsatzIdRouteWithChildren
+}
+
+const AppEinsatzRouteChildren: AppEinsatzRouteChildren = {
+  AppEinsatzEinsatzIdRoute: AppEinsatzEinsatzIdRouteWithChildren,
+}
+
+const AppEinsatzRouteWithChildren = AppEinsatzRoute._addFileChildren(
+  AppEinsatzRouteChildren,
+)
+
 interface AppRouteChildren {
   AppEinsaetzeRoute: typeof AppEinsaetzeRouteWithChildren
+  AppEinsatzRoute: typeof AppEinsatzRouteWithChildren
 }
 
 const AppRouteChildren: AppRouteChildren = {
   AppEinsaetzeRoute: AppEinsaetzeRouteWithChildren,
+  AppEinsatzRoute: AppEinsatzRouteWithChildren,
 }
 
 const AppRouteWithChildren = AppRoute._addFileChildren(AppRouteChildren)

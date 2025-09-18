@@ -132,11 +132,6 @@ packages/frontend/
 │   ├── vite.config.ts              # Vite configuration
 │   ├── tailwind.config.js          # Tailwind configuration
 │   ├── vitest.config.ts            # Vitest configuration
-│   └── playwright.config.ts        # Playwright E2E config
-│
-└── 🧪 e2e/                         # E2E test files
-    ├── auth.spec.ts
-    └── einsatz.spec.ts
 ```
 
 ### Backend Package (`packages/backend/`)
