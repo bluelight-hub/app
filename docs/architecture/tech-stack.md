@@ -87,7 +87,6 @@ graph TB
 |-----------------------|---------|-------------------|--------------------------------|
 | **TanStack DevTools** | Latest  | Debugging         | Query, Router, Store debugging |
 | **Vitest**            | 2.x     | Unit Testing      | Vite-native testing            |
-| **Playwright**        | Latest  | E2E Testing       | Cross-browser testing          |
 | **Testing Library**   | Latest  | Component Testing | User-centric testing           |
 
 ### Fonts & Icons

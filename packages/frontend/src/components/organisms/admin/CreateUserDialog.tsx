@@ -1,9 +1,9 @@
+import { Button } from '@/components/atoms/button.atom';
+import { RoleField, UsernameField } from '@/components/molecules/admin/UserFormFields';
+import { Dialog } from '@/components/molecules/dialog.molecule';
 import { UserDtoRoleEnum } from '@bluelight-hub/shared/client';
 import { useForm } from '@tanstack/react-form';
 import { z } from 'zod';
-import { Button } from '@/components/atoms/button.atom';
-import { Dialog } from '@/components/molecules/dialog.molecule';
-import { UsernameField, RoleField } from '@/components/molecules/admin/UserFormFields';
 
 const _createUserSchema = z.object({
   username: z
@@ -43,7 +43,6 @@ export const CreateUserDialog = ({ isOpen, onClose, onSubmit, isSubmitting }: Cr
     <Dialog isOpen={isOpen} onClose={handleClose}>
       <div className="relative">
         <Dialog.Title>Neuen Benutzer erstellen</Dialog.Title>
-        <Dialog.CloseButton onClose={handleClose} />
       </div>
 
       <form
@@ -62,14 +61,14 @@ export const CreateUserDialog = ({ isOpen, onClose, onSubmit, isSubmitting }: Cr
         </Dialog.Body>
 
         <Dialog.Footer>
-          <Button variant="ghost" onClick={handleClose} disabled={isSubmitting}>
+          <Button intent="secondary" appearance="ghost" onClick={handleClose} disabled={isSubmitting}>
             Abbrechen
           </Button>
           <form.Subscribe selector={(state) => [state.canSubmit, state.isSubmitting]}>
             {([canSubmit, isFormSubmitting]) => {
               const submitting = isFormSubmitting || isSubmitting;
               return (
-                <Button type="submit" variant="primary" disabled={!canSubmit || submitting} loading={submitting}>
+                <Button type="submit" disabled={!canSubmit || submitting} loading={submitting}>
                   Benutzer erstellen
                 </Button>
               );

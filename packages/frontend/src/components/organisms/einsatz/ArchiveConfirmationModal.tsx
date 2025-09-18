@@ -1,4 +1,5 @@
 import { Button } from '@/components/atoms/button.atom';
+import { CloseButton } from '@/components/atoms/close-button.atom';
 import { Dialog } from '@/components/molecules/dialog.molecule';
 import { useState } from 'react';
 import { PiArchive, PiWarning } from 'react-icons/pi';
@@ -33,8 +34,6 @@ export const ArchiveConfirmationModal = ({ isOpen, onClose, onConfirm, einsatzNa
   return (
     <Dialog isOpen={isOpen} onClose={handleClose}>
       <div className="relative">
-        <Dialog.CloseButton onClose={handleClose} />
-
         <Dialog.Title>
           <div className="flex items-center gap-2">
             <PiArchive className="h-5 w-5" />
@@ -79,10 +78,8 @@ export const ArchiveConfirmationModal = ({ isOpen, onClose, onConfirm, einsatzNa
         </Dialog.Body>
 
         <Dialog.Footer>
-          <Button variant="ghost" onClick={handleClose} disabled={isArchiving}>
-            Abbrechen
-          </Button>
-          <Button variant="danger" onClick={handleConfirm} loading={isArchiving} disabled={!isConfirmed || isArchiving}>
+          <CloseButton onClick={handleClose} disabled={isArchiving} label="Abbrechen" />
+          <Button intent="danger" onClick={handleConfirm} loading={isArchiving} disabled={!isConfirmed || isArchiving}>
             <PiArchive className="mr-2 h-4 w-4" />
             Archivieren
           </Button>

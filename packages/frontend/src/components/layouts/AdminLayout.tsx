@@ -1,14 +1,15 @@
-import { Outlet, useLocation, useNavigate, useRouterState } from '@tanstack/react-router';
-import { isTauri } from '@tauri-apps/api/core';
-import { useCallback, useEffect, useMemo } from 'react';
-import { PiX } from 'react-icons/pi';
+import { CloseButton } from '@/components/atoms/close-button.atom';
 import { Container } from '@/components/atoms/container.atom';
 import { Heading } from '@/components/atoms/heading.atom';
-import { IconButton } from '@/components/atoms/icon-button.atom';
 import { Spinner } from '@/components/atoms/spinner.atom';
 import { useAdminAuth } from '@/hooks/useAdminAuth';
 import { useAuth } from '@/hooks/useAuth';
 import { logger } from '@/utils/logger';
+import { IconButton } from '@atoms/icon-button.atom';
+import { Link, Outlet, useLocation, useMatchRoute, useNavigate, useRouterState } from '@tanstack/react-router';
+import { isTauri } from '@tauri-apps/api/core';
+import { useCallback, useEffect, useMemo } from 'react';
+import { PiArrowLeft } from 'react-icons/pi';
 
 /**
  * Gemeinsames Layout für alle Admin-Seiten
@@ -104,18 +105,28 @@ export function AdminLayout() {
     }
   }, [navigate]);
 
+  const matchRoute = useMatchRoute();
+
   return (
-    <Container maxWidth="6xl" className="py-12 md:py-24">
-      <div className="flex flex-col gap-8">
+    <Container maxWidth="6xl" className="py-12">
+      <div className="flex flex-col gap-4">
         {/* Header mit Titel und Close-Button */}
-        <div className="mb-4 border-gray-200 border-b pb-4 dark:border-gray-800">
+        <div className="border-gray-200 border-b pb-4 dark:border-gray-800">
           <div className="flex items-start justify-between">
-            <Heading size="2xl" as="h1">
-              {pageTitle}
-            </Heading>
-            <IconButton aria-label="Fenster schließen" variant="ghost" size="lg" onClick={handleClose}>
-              <PiX />
-            </IconButton>
+            <div className="flex">
+              {!matchRoute({ to: '/admin/dashboard' }) && (
+                <Link to="/admin/dashboard">
+                  <IconButton size="lg" className="h-full">
+                    <PiArrowLeft />
+                  </IconButton>
+                </Link>
+              )}
+
+              <Heading size="2xl" as="h1">
+                {pageTitle}
+              </Heading>
+            </div>
+            <CloseButton className="h-full" onClick={handleClose} size="lg" />
           </div>
         </div>
 

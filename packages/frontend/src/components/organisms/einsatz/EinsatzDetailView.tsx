@@ -119,7 +119,7 @@ export function EinsatzDetailView() {
       await archiveEinsatz.mutateAsync({ id: einsatz.id });
       setShowArchiveModal(false);
       // Navigate back to list after successful archive
-      navigate({ to: '/app/einsaetze' });
+      await navigate({ to: '/app/einsaetze' });
     }
   };
 

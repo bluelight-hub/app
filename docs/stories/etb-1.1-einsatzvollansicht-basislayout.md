@@ -1,6 +1,7 @@
 # Story 1.1: Einsatzvollansicht Basislayout und Routing
 
 ## Story Details
+
 - **Story ID**: ETB-1.1
 - **Epic**: Digitales Einsatztagebuch mit Einsatzvollansicht
 - **Priority**: HIGH
@@ -8,11 +9,13 @@
 - **Sprint**: Phase 1
 
 ## User Story
+
 **Als** Einsatzkraft  
 **möchte ich** von der Einsatzliste zu einer detaillierten Einsatzansicht navigieren  
 **damit** ich alle Informationen zentral einsehen kann
 
 ## Acceptance Criteria
+
 - [ ] Klick auf Einsatz öffnet `/einsaetze/:id`
 - [ ] Basislayout mit Header und Menü-Navigation implementiert
 - [ ] Menü enthält Optionen für "Details", "ETB", etc.
@@ -25,6 +28,7 @@
 ## Technical Implementation Guide
 
 ### 1. Router Setup (TanStack Router)
+
 ```typescript
 // packages/frontend/src/routes/einsaetze/$einsatzId.tsx
 import { createFileRoute } from '@tanstack/react-router'
@@ -41,6 +45,7 @@ export const Route = createFileRoute('/einsaetze/$einsatzId')({
 ```
 
 ### 2. Layout Component Structure
+
 ```typescript
 // packages/frontend/src/components/templates/EinsatzVollansicht.tsx
 export const EinsatzVollansicht: React.FC = () => {
@@ -63,6 +68,7 @@ export const EinsatzVollansicht: React.FC = () => {
 ```
 
 ### 3. Navigation Component
+
 ```typescript
 // packages/frontend/src/components/molecules/EinsatzNavigation.tsx
 import { Tab } from '@headlessui/react'
@@ -97,6 +103,7 @@ export const EinsatzNavigation = () => {
 ```
 
 ### 4. Responsive Design Tokens
+
 ```css
 /* Tailwind Breakpoints zu nutzen */
 /* sm: 640px, md: 768px (Tablet), lg: 1024px, xl: 1280px */
@@ -109,6 +116,7 @@ export const EinsatzNavigation = () => {
 ```
 
 ## Technical Requirements
+
 - **Router**: TanStack Router (NICHT React Router!)
 - **UI Components**: Tailwind CSS + Headless UI
 - **Data Fetching**: TanStack Query mit generierten API Clients
@@ -116,6 +124,7 @@ export const EinsatzNavigation = () => {
 - **Mobile-first**: Start bei 375px, optimiert für 768px+
 
 ## Definition of Done
+
 - [ ] Code implementiert und getestet
 - [ ] Unit Tests geschrieben (min. 80% Coverage)
 - [ ] E2E Test für Navigation
@@ -125,9 +134,11 @@ export const EinsatzNavigation = () => {
 - [ ] Accessibility geprüft (WCAG 2.1 AA)
 
 ## Dependencies
+
 - Keine
 
 ## Notes
+
 - Basis für alle weiteren ETB-Features
 - Erweiterbar für zukünftige Module
 - Konsistenz mit bestehender Navigation wichtig

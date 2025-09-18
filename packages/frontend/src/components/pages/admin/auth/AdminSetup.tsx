@@ -183,7 +183,7 @@ export function AdminSetup() {
             <form.Subscribe selector={(state) => [state.canSubmit]}>
               {([canSubmit]) => {
                 return (
-                  <Button type="submit" variant="primary" size="lg" fullWidth disabled={!canSubmit || adminSetup.isPending} loading={adminSetup.isPending}>
+                  <Button type="submit" intent="primary" size="lg" fullWidth disabled={!canSubmit || adminSetup.isPending} loading={adminSetup.isPending}>
                     {adminSetup.isPending ? 'Wird eingerichtet...' : 'Admin-Account einrichten'}
                   </Button>
                 );

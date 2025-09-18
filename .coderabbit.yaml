@@ -32,7 +32,7 @@ reviews:
     ignore_title_keywords: [ ]
     labels: [ ]
     drafts: false
-    base_branches: [ 'alpha', 'beta', 'release' ]
+    base_branches: [ 'alpha', 'beta', 'release', 'main' ]
   finishing_touches:
     docstrings:
       enabled: true
@@ -75,7 +75,7 @@ reviews:
       enabled: true
       config_file: ''
     yamllint:
-      enabled: true
+      enabled: false
     gitleaks:
       enabled: true
     checkov:

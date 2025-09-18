@@ -96,7 +96,7 @@ export function UnifiedAuthForm({ onSubmit, isLoading = false, error, className 
 
       <form.Subscribe selector={(state) => [state.canSubmit, state.isSubmitting]}>
         {([canSubmit, isSubmitting]) => (
-          <Button type="submit" variant="primary" size="lg" className="w-full" disabled={!canSubmit || isLoading || isSubmitting} loading={isLoading || isSubmitting}>
+          <Button type="submit" size="lg" className="w-full" disabled={!canSubmit || isLoading || isSubmitting} loading={isLoading || isSubmitting}>
             {isLoading || isSubmitting ? 'Wird verarbeitet...' : 'Anmelden'}
           </Button>
         )}

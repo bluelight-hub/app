@@ -63,7 +63,6 @@ BlueLight Hub is a modern emergency services support application built as a mono
 | Authentication     | JWT               | via Passport | httpOnly cookies for security              |
 | Testing (Frontend) | Vitest            | catalog:     | Unit testing framework                     |
 | Testing (Backend)  | Jest              | 30.0.5       | Unit and integration testing               |
-| E2E Testing        | Playwright        | catalog:     | Browser automation testing                 |
 
 ### Repository Structure Reality Check
 
@@ -252,7 +251,6 @@ pnpm dev  # Starts all packages in dev mode
 
 - Unit Tests: Vitest configured but **coverage disabled** (technical debt)
 - Component Tests: Testing Library configured
-- E2E Tests: Playwright configured
 
 ### Running Tests
 

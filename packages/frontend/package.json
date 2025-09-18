@@ -16,16 +16,7 @@
     "test:ui": "vitest --ui",
     "test:run": "vitest run",
     "test:cov": "echo '⚠️  - Frontend test coverage is disabled' # vitest run --coverage",
-    "test:watch": "vitest watch",
-    "test:e2e": "playwright test",
-    "test:e2e:ui": "playwright test --ui",
-    "test:e2e:debug": "playwright test --debug",
-    "test:e2e:report": "playwright show-report",
-    "test:e2e:auth": "playwright test --project=chromium --grep @auth",
-    "test:e2e:einsatz": "playwright test einsatz-workflow",
-    "test:e2e:performance": "playwright test einsatz-performance",
-    "test:e2e:a11y": "playwright test einsatz-accessibility",
-    "test:e2e:update-snapshots": "playwright test --update-snapshots"
+    "test:watch": "vitest watch"
   },
   "dependencies": {
     "@bluelight-hub/shared": "workspace:*",
@@ -52,6 +43,7 @@
     "@types/react-datepicker": "^7.0.0",
     "class-variance-authority": "catalog:",
     "clsx": "catalog:",
+    "cmdk": "^1.1.1",
     "consola": "catalog:",
     "date-fns": "catalog:",
     "next-themes": "catalog:",
@@ -59,6 +51,7 @@
     "react-datepicker": "^8.7.0",
     "react-dom": "catalog:",
     "react-hook-form": "catalog:",
+    "react-hotkeys-hook": "^5.1.0",
     "react-icons": "catalog:",
     "sonner": "catalog:",
     "tailwind-merge": "catalog:",
@@ -67,10 +60,7 @@
     "zod": "catalog:"
   },
   "devDependencies": {
-    "@axe-core/playwright": "^4.10.2",
     "@eslint/js": "catalog:",
-    "@playwright/test": "catalog:",
-    "@playwright/test-runner": "catalog:",
     "@tanstack/eslint-config": "catalog:",
     "@tanstack/router-plugin": "catalog:",
     "@tauri-apps/cli": "catalog:",
@@ -85,7 +75,6 @@
     "@vitejs/plugin-react-swc": "catalog:",
     "@vitest/coverage-v8": "catalog:",
     "@vitest/ui": "catalog:",
-    "axe-playwright": "^2.1.0",
     "dotenv": "^17.2.1",
     "globals": "catalog:",
     "jsdom": "catalog:",

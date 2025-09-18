@@ -1,7 +1,6 @@
 import { toAdminLoginResponseDto, toAdminSetupResponseDto, toAdminStatusResponseDto, toAdminTokenVerificationDto, toLogoutResponseDto, toRefreshResponseDto, toUserResponseDto } from '@/auth/mappers';
 import { SkipTransform } from '@/common/decorators/skip-transform.decorator';
 import { AppConfigService } from '@/common/services/app-config.service';
-import { CacheDuplicateDetectionService } from '@/common/services/cache-duplicate-detection.service';
 import { Body, Controller, Get, HttpCode, HttpStatus, Logger, NotFoundException, Post, Req, Res, UnauthorizedException, UseGuards, VERSION_NEUTRAL } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { ApiBody, ApiCookieAuth, ApiOkResponse, ApiOperation, ApiResponse, ApiTags, ApiUnauthorizedResponse } from '@nestjs/swagger';
@@ -49,7 +48,6 @@ export class AuthController {
     private readonly authService: AuthService,
     private readonly configService: ConfigService,
     private readonly appConfig: AppConfigService,
-    readonly _duplicateDetectionService: CacheDuplicateDetectionService,
   ) {}
 
   /**
@@ -310,13 +308,40 @@ export class AuthController {
     description: 'Authentifizierungsstatus abgerufen',
     type: AuthCheckResponseDto,
   })
-  async checkAuth(@Req() req: Request): Promise<AuthCheckResponseDto> {
+  async checkAuth(@Req() req: Request, @Res({ passthrough: true }) res: Response): Promise<AuthCheckResponseDto> {
     try {
       const token = req.cookies?.accessToken;
+
       if (!token) {
+        const refreshToken = req.cookies?.refreshToken;
+        if (!refreshToken) {
+          return {
+            user: null,
+            authenticated: false,
+          };
+        }
+
+        // Versuche Token-Refresh
+        const refreshResult = await this.authService.refreshTokens(refreshToken);
+
+        if (!refreshResult) {
+          return {
+            user: null,
+            authenticated: false,
+          };
+        }
+
+        // Setze neue Cookies
+        const isProduction = this.appConfig.isProduction();
+        setAuthCookies(res, refreshResult.accessToken, refreshResult.refreshToken, isProduction);
+
+        // Prüfe Admin-Status
+        const isAdminAuthenticated = await this.checkAdminToken(req.cookies?.adminToken);
+
         return {
-          user: null,
-          authenticated: false,
+          user: toUserResponseDto(refreshResult.user),
+          authenticated: true,
+          isAdminAuthenticated,
         };
       }
 
@@ -336,27 +361,8 @@ export class AuthController {
         };
       }
 
-      // Prüfe, ob ein Admin-Token vorhanden ist
-      const adminToken = req.cookies?.adminToken;
-      let isAdminAuthenticated = false;
-
-      if (adminToken) {
-        try {
-          // Verifiziere Admin-Token mit dem richtigen Secret
-          const adminPayload = await this.authService.verifyAdminToken(adminToken);
-          // Prüfe ob der Token gültig ist und isAdmin true ist
-          this.logger.log('Admin-Token verifiziert', { payload: adminPayload });
-          if (adminPayload && adminPayload.isAdmin === true) {
-            isAdminAuthenticated = true;
-          } else {
-            this.logger.warn(`⚠️ Invalid admin token: ${adminToken}`);
-          }
-        } catch (error) {
-          this.logger.warn(`🍪 Invalid admin token: ${adminToken}`, { error });
-          // Admin-Token ungültig - ignorieren
-          isAdminAuthenticated = false;
-        }
-      }
+      // Prüfe Admin-Status
+      const isAdminAuthenticated = await this.checkAdminToken(req.cookies?.adminToken);
 
       this.logger.debug('Auth-Check ok', {
         user: user.username,
@@ -459,5 +465,30 @@ export class AuthController {
   })
   async verifyAdminToken(): Promise<AdminTokenVerificationDto> {
     return toAdminTokenVerificationDto();
+  }
+
+  /**
+   * Prüft ob ein Admin-Token gültig ist
+   *
+   * @param adminToken - Der Admin-Token aus dem Cookie
+   * @returns True wenn Admin authentifiziert, sonst false
+   */
+  private async checkAdminToken(adminToken: string | undefined): Promise<boolean> {
+    if (!adminToken) {
+      return false;
+    }
+
+    try {
+      const adminPayload = await this.authService.verifyAdminToken(adminToken);
+      if (adminPayload?.isAdmin === true) {
+        this.logger.debug('Admin-Token verifiziert', { payload: adminPayload });
+        return true;
+      }
+      this.logger.warn(`⚠️ Invalid admin token: ${adminToken}`);
+      return false;
+    } catch (error) {
+      this.logger.warn(`🍪 Invalid admin token: ${adminToken}`, { error });
+      return false;
+    }
   }
 }

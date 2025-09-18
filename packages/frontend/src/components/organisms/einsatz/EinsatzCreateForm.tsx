@@ -1,16 +1,18 @@
 import { useEinsaetze } from '@/hooks/useEinsaetze';
-import type { CreateEinsatzDto } from '@bluelight-hub/shared/client';
 import { Button } from '@atoms/button.atom';
+import { CloseButton } from '@atoms/close-button.atom';
 import { DateInput } from '@atoms/date-input.atom';
 import { Input } from '@atoms/input.atom';
 import { Textarea } from '@atoms/textarea.atom';
+import type { CreateEinsatzDto } from '@bluelight-hub/shared/client';
 import { FormFieldWrapper } from '@molecules/form/FormFieldWrapper';
 import { SlideInPanel } from '@molecules/layout/slide-in-panel.molecule';
 import { useForm } from '@tanstack/react-form';
 import { useNavigate } from '@tanstack/react-router';
 import { useCallback, useEffect } from 'react';
+import { useHotkeys } from 'react-hotkeys-hook';
 import { toast } from 'sonner';
-import { z } from 'zod';
+import { z } from 'zod'; // Schema für minimale Einsatz-Erstellung (alle Felder optional)
 
 // Schema für minimale Einsatz-Erstellung (alle Felder optional)
 const createEinsatzSchema = z.object({
@@ -81,13 +83,15 @@ export function EinsatzCreateForm({ isOpen, onClose, onSuccess }: EinsatzCreateF
     },
   });
 
-  // Keyboard Shortcut: Enter zum Absenden (Panel-scoped)
-  const handleKeyDown = useCallback(
-    (e: React.KeyboardEvent) => {
-      if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) {
-        e.preventDefault();
-        form.handleSubmit();
-      }
+  useHotkeys('esc', () => {
+    onClose();
+  });
+
+  useHotkeys(
+    'mod+enter',
+    (e: KeyboardEvent) => {
+      e.preventDefault();
+      form.handleSubmit();
     },
     [form],
   );
@@ -118,7 +122,6 @@ export function EinsatzCreateForm({ isOpen, onClose, onSuccess }: EinsatzCreateF
           e.stopPropagation();
           form.handleSubmit();
         }}
-        onKeyDown={handleKeyDown}
         className="space-y-6"
       >
         {/* Alarmstichwort */}
@@ -193,10 +196,8 @@ export function EinsatzCreateForm({ isOpen, onClose, onSuccess }: EinsatzCreateF
 
         {/* Actions */}
         <div className="flex justify-end gap-3 border-t pt-6">
-          <Button type="button" variant="secondary" onClick={handleClose}>
-            Abbrechen
-          </Button>
-          <Button type="submit" variant="primary" disabled={form.state.isSubmitting}>
+          <CloseButton onClick={handleClose} label="Abbrechen" />
+          <Button type="submit" disabled={form.state.isSubmitting}>
             {form.state.isSubmitting ? 'Erstelle...' : 'Einsatz erstellen'}
           </Button>
         </div>

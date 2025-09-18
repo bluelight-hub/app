@@ -1,4 +1,3 @@
-import { api } from '@/api';
 import { logger } from '@/utils/logger';
 import type { FetchError, ResponseError } from '@bluelight-hub/shared/client';
 import { toast } from 'sonner';
@@ -215,21 +214,6 @@ function getErrorCategory(error: unknown): string {
   }
 
   return 'unknown';
-}
-
-/**
- * Performs token refresh
- */
-async function performTokenRefresh(): Promise<boolean> {
-  try {
-    logger.debug('Attempting token refresh');
-    const { success } = await api.auth().authControllerRefresh();
-    logger.info('Token refresh success', { success });
-    return success;
-  } catch (error) {
-    logger.error('Token refresh error', error);
-    return false;
-  }
 }
 
 /**

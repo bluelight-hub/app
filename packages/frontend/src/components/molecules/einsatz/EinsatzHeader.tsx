@@ -1,8 +1,13 @@
+import { useActiveEinsatz } from '@/hooks/useActiveEinsatz';
+import { logger } from '@/utils/logger';
 import { Button } from '@atoms/button.atom';
+import { CloseButton } from '@atoms/close-button.atom';
 import type { EinsatzResponseDto } from '@bluelight-hub/shared/client';
 import { EinsatzResponseDtoStatusEnum } from '@bluelight-hub/shared/client';
 import { Link, useNavigate } from '@tanstack/react-router';
-import { PiArchive, PiArrowLeft, PiCaretLeft, PiCaretRight, PiFloppyDisk, PiPencilSimple, PiSpinner, PiX } from 'react-icons/pi';
+import { useHotkeys } from 'react-hotkeys-hook';
+import { PiArchive, PiArrowLeft, PiCaretLeft, PiCaretRight, PiCheckCircle, PiFloppyDisk, PiLightning, PiPencilSimple, PiSpinner } from 'react-icons/pi';
+import { toast } from 'sonner';
 
 interface EinsatzHeaderProps {
   einsatz: EinsatzResponseDto;
@@ -18,8 +23,42 @@ interface EinsatzHeaderProps {
   isFormDirty?: boolean;
 }
 
-export function EinsatzHeader({ einsatz, isArchived, isEditing, previousEinsatzId, nextEinsatzId, onEdit, onSave, onCancel, onArchive, isSaving, isFormDirty = false }: EinsatzHeaderProps) {
+export function EinsatzHeader({ einsatz, isEditing, previousEinsatzId, nextEinsatzId, onEdit, onSave, onCancel, onArchive, isSaving, isFormDirty = false }: EinsatzHeaderProps) {
   const navigate = useNavigate();
+  const { activeEinsatz, setActiveEinsatz, clearActiveEinsatz } = useActiveEinsatz();
+  const isCurrentlyActive = activeEinsatz?.id === einsatz.id;
+  const canBeActive = einsatz.status === EinsatzResponseDtoStatusEnum.Angelegt || einsatz.status === EinsatzResponseDtoStatusEnum.InBearbeitung;
+
+  const handleActivateEinsatz = async () => {
+    try {
+      await setActiveEinsatz(einsatz.id);
+      await navigate({ to: '/app/einsatz/$einsatzId', params: { einsatzId: einsatz.id } });
+    } catch (error) {
+      toast.error('Fehler beim Aktivieren des Einsatzes');
+      logger.error('Fehler beim Aktivieren des Einsatzes:', error);
+    }
+  };
+
+  const handleDeactivateEinsatz = () => {
+    clearActiveEinsatz();
+    toast.info('Einsatz deaktiviert', {
+      description: 'Der Einsatz ist nicht mehr aktiv.',
+    });
+  };
+
+  useHotkeys('esc', () => {
+    navigate({ to: '/app/einsaetze' });
+  });
+
+  useHotkeys(
+    'mod+o',
+    async (e) => {
+      e.preventDefault();
+      if (!einsatz) return;
+      await handleActivateEinsatz();
+    },
+    [einsatz],
+  );
 
   return (
     <div className="flex-shrink-0 border-gray-200 border-b bg-white dark:border-gray-700 dark:bg-gray-800">
@@ -27,14 +66,14 @@ export function EinsatzHeader({ einsatz, isArchived, isEditing, previousEinsatzI
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-4">
             <Link to="/app/einsaetze">
-              <Button variant="ghost" size="sm">
+              <Button appearance="ghost" size="sm">
                 <PiArrowLeft className="h-5 w-5" />
                 <span className="ml-2 hidden sm:inline">Zurück zur Übersicht</span>
               </Button>
             </Link>
             <div className="flex items-center space-x-2">
               <Button
-                variant="ghost"
+                appearance="ghost"
                 size="sm"
                 onClick={() => previousEinsatzId && navigate({ to: '/app/einsaetze/$einsatzId', params: { einsatzId: previousEinsatzId } })}
                 disabled={!previousEinsatzId}
@@ -43,7 +82,7 @@ export function EinsatzHeader({ einsatz, isArchived, isEditing, previousEinsatzI
                 <PiCaretLeft className="h-5 w-5" />
               </Button>
               <Button
-                variant="ghost"
+                appearance="ghost"
                 size="sm"
                 onClick={() => nextEinsatzId && navigate({ to: '/app/einsaetze/$einsatzId', params: { einsatzId: nextEinsatzId } })}
                 disabled={!nextEinsatzId}
@@ -56,14 +95,26 @@ export function EinsatzHeader({ einsatz, isArchived, isEditing, previousEinsatzI
           <div className="flex items-center space-x-2">
             {!isEditing ? (
               <>
+                {canBeActive && !isCurrentlyActive && (
+                  <Button onClick={handleActivateEinsatz} size="lg">
+                    <PiLightning className="mr-2 h-5 w-5" />
+                    Einsatz starten
+                  </Button>
+                )}
+                {isCurrentlyActive && (
+                  <Button onClick={handleDeactivateEinsatz} intent="secondary">
+                    <PiCheckCircle className="mr-2 h-5 w-5" />
+                    Aktiv
+                  </Button>
+                )}
                 {einsatz.status === EinsatzResponseDtoStatusEnum.Abgeschlossen && (
-                  <Button variant="secondary" onClick={onArchive} className="border-amber-500 text-amber-600 hover:bg-amber-50 dark:border-amber-400 dark:text-amber-400 dark:hover:bg-amber-900/20">
+                  <Button appearance="outline" intent="warning" onClick={onArchive}>
                     <PiArchive className="mr-2 h-5 w-5" />
                     Archivieren
                   </Button>
                 )}
                 {einsatz.status !== EinsatzResponseDtoStatusEnum.Archiviert && (
-                  <Button onClick={onEdit}>
+                  <Button onClick={onEdit} appearance="ghost">
                     <PiPencilSimple className="mr-2 h-5 w-5" />
                     Bearbeiten
                   </Button>
@@ -71,10 +122,7 @@ export function EinsatzHeader({ einsatz, isArchived, isEditing, previousEinsatzI
               </>
             ) : (
               <>
-                <Button variant="ghost" onClick={onCancel}>
-                  <PiX className="mr-2 h-5 w-5" />
-                  Abbrechen
-                </Button>
+                <CloseButton onClick={onCancel} label="Abbrechen" />
                 <Button onClick={onSave} disabled={isSaving || !isFormDirty}>
                   {isSaving ? <PiSpinner className="mr-2 h-5 w-5 animate-spin" /> : <PiFloppyDisk className="mr-2 h-5 w-5" />}
                   Speichern

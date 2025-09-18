@@ -289,17 +289,7 @@ describe('EinsatzService', () => {
 
 ### E2E Tests
 
-```typescript
-// ✅ RICHTIG: Playwright für E2E
-import {test, expect} from '@playwright/test';
-
-test('Einsatz creation flow', async ({page}) => {
-    await page.goto('/einsaetze/neu');
-    await page.fill('[name="bezeichnung"]', 'Test Einsatz');
-    await page.click('button[type="submit"]');
-    await expect(page).toHaveURL('/einsaetze/[^/]+');
-});
-```
+Existieren momentan nicht.
 
 ## 📝 Code Documentation
 

@@ -1,9 +1,9 @@
+import { useColorMode } from '@/hooks/use-color-mode';
 import { ColorModeIcon } from '@atoms/color-mode-icon.atom';
 import type { IconButtonProps } from '@atoms/icon-button.atom';
 import { IconButton } from '@atoms/icon-button.atom';
 import * as React from 'react';
 import { useEffect, useState } from 'react';
-import { useColorMode } from '@/hooks/use-color-mode';
 
 type ColorModeButtonProps = Omit<IconButtonProps, 'aria-label' | 'children'>;
 
@@ -46,7 +46,7 @@ export const ColorModeButton = React.forwardRef<HTMLButtonElement, ColorModeButt
   return (
     <IconButton
       onClick={toggleColorMode}
-      variant="outline"
+      appearance="outline"
       aria-label={getAriaLabel()}
       title={getAriaLabel()}
       size="md"

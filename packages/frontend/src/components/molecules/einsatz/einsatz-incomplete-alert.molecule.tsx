@@ -82,7 +82,7 @@ export function EinsatzIncompleteAlert({
               >
                 <div className="absolute top-0 right-0 hidden pt-4 pr-4 sm:block">
                   <Button
-                    variant="minimal"
+                    appearance="minimal"
                     size="icon"
                     className="rounded-md bg-white text-gray-400 hover:text-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 dark:bg-gray-800 dark:focus:ring-blue-400 dark:focus:ring-offset-gray-800 dark:hover:text-gray-300"
                     onClick={handleClose}
@@ -121,19 +121,19 @@ export function EinsatzIncompleteAlert({
 
                 <div className="mt-5 sm:mt-4 sm:flex sm:flex-row-reverse">
                   {onComplete && (
-                    <Button type="button" variant="primary" onClick={handleComplete} className="w-full sm:ml-3 sm:w-auto">
+                    <Button type="button" onClick={handleComplete} className="w-full sm:ml-3 sm:w-auto">
                       {completeButtonText}
                     </Button>
                   )}
 
                   {onIgnore && (
-                    <Button type="button" variant="secondary" onClick={handleIgnore} className="mt-3 w-full sm:mt-0 sm:w-auto">
+                    <Button type="button" intent="secondary" onClick={handleIgnore} className="mt-3 w-full sm:mt-0 sm:w-auto">
                       {ignoreButtonText}
                     </Button>
                   )}
 
                   {!onComplete && !onIgnore && (
-                    <Button type="button" variant="secondary" onClick={handleClose} className="w-full sm:w-auto">
+                    <Button type="button" intent="secondary" onClick={handleClose} className="w-full sm:w-auto">
                       Schließen
                     </Button>
                   )}

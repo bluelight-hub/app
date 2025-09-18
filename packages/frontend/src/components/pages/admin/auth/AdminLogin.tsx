@@ -169,15 +169,7 @@ export function AdminLogin() {
 
                 <form.Subscribe selector={(state) => [state.canSubmit, state.isSubmitting]}>
                   {([canSubmit, isSubmitting]) => (
-                    <Button
-                      type="submit"
-                      variant="danger"
-                      size="lg"
-                      fullWidth
-                      disabled={!canSubmit || isSubmitting}
-                      loading={isSubmitting}
-                      className="hover:-translate-y-0.5 bg-gradient-to-r from-red-500 to-red-600 shadow-lg shadow-red-500/25 transition-all hover:shadow-red-500/30 hover:shadow-xl active:translate-y-0"
-                    >
+                    <Button type="submit" intent="danger" size="lg" fullWidth disabled={!canSubmit || isSubmitting} loading={isSubmitting}>
                       {isSubmitting ? 'Anmeldung...' : 'Sicher anmelden'}
                     </Button>
                   )}

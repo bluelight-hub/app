@@ -1,8 +1,8 @@
-import { UserDtoRoleEnum } from '@bluelight-hub/shared/client';
-import { PiShieldWarning } from 'react-icons/pi';
 import { Badge } from '@/components/atoms/badge.atom';
 import { Button } from '@/components/atoms/button.atom';
 import { Dialog } from '@/components/molecules/dialog.molecule';
+import { UserDtoRoleEnum } from '@bluelight-hub/shared/client';
+import { PiShieldWarning } from 'react-icons/pi';
 
 interface ConfirmDeleteDialogProps {
   isOpen: boolean;
@@ -35,8 +35,6 @@ export const ConfirmDeleteDialog = ({ isOpen, onClose, onConfirm, userName, user
   return (
     <Dialog isOpen={isOpen} onClose={onClose}>
       <div className="relative">
-        <Dialog.CloseButton onClose={onClose} />
-
         <Dialog.Title>Benutzer löschen</Dialog.Title>
 
         <Dialog.Body>
@@ -55,10 +53,10 @@ export const ConfirmDeleteDialog = ({ isOpen, onClose, onConfirm, userName, user
         </Dialog.Body>
 
         <Dialog.Footer>
-          <Button variant="ghost" onClick={onClose} disabled={isDeleting}>
+          <Button intent="secondary" appearance="ghost" onClick={onClose} disabled={isDeleting}>
             Abbrechen
           </Button>
-          <Button variant="danger" onClick={onConfirm} loading={isDeleting} disabled={isDeleting}>
+          <Button intent="danger" onClick={onConfirm} loading={isDeleting} disabled={isDeleting}>
             Löschen
           </Button>
         </Dialog.Footer>

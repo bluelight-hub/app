@@ -95,7 +95,7 @@ export function AdminUsers() {
           <Heading size="lg" as="h1">
             Benutzerverwaltung
           </Heading>
-          <Button onClick={() => setIsCreateDialogOpen(true)} variant="primary">
+          <Button onClick={() => setIsCreateDialogOpen(true)} intent="primary" appearance="outline">
             <PiPlus className="mr-2" />
             Benutzer hinzufügen
           </Button>

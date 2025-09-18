@@ -6,20 +6,17 @@
     "lib": ["ESNext", "DOM", "DOM.Iterable"],
     "module": "ESNext",
     "skipLibCheck": true,
-    /* Bundler mode */
     "moduleResolution": "bundler",
     "allowImportingTsExtensions": true,
     "isolatedModules": true,
     "moduleDetection": "force",
     "noEmit": true,
     "jsx": "react-jsx",
-    /* Linting */
     "strict": true,
     "noUnusedLocals": true,
     "noUnusedParameters": true,
     "noFallthroughCasesInSwitch": true,
     "noUncheckedSideEffectImports": true,
-    /* Path Aliases for Atomic Design */
     "baseUrl": ".",
     "paths": {
       "@/*": ["src/*"],
@@ -30,6 +27,6 @@
       "@pages/*": ["src/components/pages/*"]
     }
   },
-  "include": ["src", "e2e", "playwright.config.ts"],
+  "include": ["src", "e2e"],
   "exclude": ["../shared/client/**/*.ts"]
 }

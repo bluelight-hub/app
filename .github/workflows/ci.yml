@@ -49,7 +49,6 @@ jobs:
           name: test-artifacts-${{ matrix.os }}
           path: |
             packages/frontend/test-results/
-            packages/frontend/playwright-report/
             packages/backend/coverage/
             packages/frontend/coverage/
             **/trace.zip
