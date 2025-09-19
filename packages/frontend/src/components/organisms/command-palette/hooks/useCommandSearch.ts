@@ -42,6 +42,25 @@ function generatePageId(page: { id?: string; slug?: string; href?: string; name:
   return generateSlug(page.name);
 }
 
+/**
+ * Hook für die Command-Suche in der Command Palette.
+ *
+ * Verarbeitet Module und Suchbegriff, um gefilterte Befehle
+ * und gruppierte Darstellung zu erzeugen.
+ *
+ * @param props - Die Suchparameter
+ * @param props.modules - Array von Modul-Konfigurationen
+ * @param props.search - Aktueller Suchbegriff
+ * @returns Alle Befehle, gefilterte Befehle und gruppierte Befehle
+ *
+ * @example
+ * ```tsx
+ * const { filteredCommands, commandGroups } = useCommandSearch({
+ *   modules: moduleConfigs,
+ *   search: searchTerm
+ * });
+ * ```
+ */
 export function useCommandSearch({ modules, search }: UseCommandSearchProps): UseCommandSearchResult {
   // Flatten all navigation items
   const allCommands = useMemo(

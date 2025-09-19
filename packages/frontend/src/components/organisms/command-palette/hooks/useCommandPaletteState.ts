@@ -1,4 +1,5 @@
-import { useCallback, useEffect, useReducer } from 'react';
+import { useCallback, useEffect, useReducer, useState } from 'react';
+import { debounce } from '@tanstack/pacer';
 import type { CommandPaletteAction, CommandPaletteState, NavigationCommand } from '../types';
 
 const initialState: CommandPaletteState = {
@@ -54,19 +55,50 @@ interface UseCommandPaletteStateProps {
   open: boolean;
 }
 
+/**
+ * State-Management-Hook für die Command Palette.
+ *
+ * Verwaltet den Zustand der Command Palette, einschließlich Suche,
+ * Navigation und Command-Stack mit debounced search Unterstützung.
+ *
+ * @param props - Die Hook-Parameter
+ * @param props.open - Ob die Command Palette geöffnet ist
+ * @returns State-Objekt und Aktionen zur State-Manipulation
+ *
+ * @example
+ * ```tsx
+ * const { state, actions } = useCommandPaletteState({ open: true });
+ * // state.immediateSearch für Input-Anzeige
+ * // state.search für gefilterte Ergebnisse (debounced)
+ * ```
+ */
 export function useCommandPaletteState({ open }: UseCommandPaletteStateProps) {
   const [state, dispatch] = useReducer(commandPaletteReducer, initialState);
+  const [immediateSearch, setImmediateSearch] = useState('');
+
+  // Create debounced search update
+  const debouncedSetSearch = useCallback(
+    debounce((value: string) => {
+      dispatch({ type: 'SET_SEARCH', payload: value });
+    }, 200), // 200ms debounce delay for search
+    [],
+  );
 
   // Reset state when closed
   useEffect(() => {
     if (!open) {
       dispatch({ type: 'RESET' });
+      setImmediateSearch('');
     }
   }, [open]);
 
-  const setSearch = useCallback((search: string) => {
-    dispatch({ type: 'SET_SEARCH', payload: search });
-  }, []);
+  const setSearch = useCallback(
+    (search: string) => {
+      setImmediateSearch(search);
+      debouncedSetSearch(search);
+    },
+    [debouncedSetSearch],
+  );
 
   const selectCommand = useCallback((command: NavigationCommand | null) => {
     if (!command) {
@@ -89,7 +121,10 @@ export function useCommandPaletteState({ open }: UseCommandPaletteStateProps) {
   }, []);
 
   return {
-    state,
+    state: {
+      ...state,
+      immediateSearch, // Use immediate search for input display
+    },
     actions: {
       setSearch,
       selectCommand,

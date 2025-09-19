@@ -6,6 +6,7 @@ import { EinsatzStatusBadge } from '@/components/molecules/einsatz/einsatz-statu
 import { ModuleButton } from '@/components/molecules/einsatz/ModuleButton';
 import { ModuleOverviewCard } from '@/components/molecules/einsatz/ModuleOverviewCard';
 import { CommandPalette } from '@/components/organisms/command-palette';
+import { CommandPaletteErrorBoundary } from '@/components/organisms/command-palette/CommandPaletteErrorBoundary';
 import { useEinsatzModules } from '@/hooks/einsatz/useEinsatzModules';
 import { QUERY_KEYS } from '@/queryKeys';
 import { cn } from '@/utils/cn';
@@ -357,17 +358,19 @@ export function SingleEinsatzLayout({ className }: SingleEinsatzLayoutProps) {
       </div>
 
       {/* Command Palette Modal */}
-      <CommandPalette
-        modules={modules.map((module) => ({
-          ...module,
-          subPages: module.subPages.map((page) => ({
-            ...page,
-            badge: page.badge?.toString(), // Convert number to string if needed
-          })),
-        }))}
-        open={commandPaletteOpen}
-        onOpenChange={setCommandPaletteOpen}
-      />
+      <CommandPaletteErrorBoundary>
+        <CommandPalette
+          modules={modules.map((module) => ({
+            ...module,
+            subPages: module.subPages.map((page) => ({
+              ...page,
+              badge: page.badge?.toString(), // Convert number to string if needed
+            })),
+          }))}
+          open={commandPaletteOpen}
+          onOpenChange={setCommandPaletteOpen}
+        />
+      </CommandPaletteErrorBoundary>
 
       {/* Einsatz beenden Confirmation Dialog */}
       <Dialog isOpen={showEndConfirmation} onClose={() => !endEinsatzMutation.isPending && setShowEndConfirmation(false)} className="max-w-md">
