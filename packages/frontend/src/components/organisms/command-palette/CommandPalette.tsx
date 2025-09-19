@@ -109,8 +109,8 @@ export function CommandPalette({ modules = [], open, onOpenChange }: CommandPale
               <Command
                 className="overflow-hidden [&_[cmdk-group-heading]]:mb-2 [&_[cmdk-group-heading]]:px-2 [&_[cmdk-group-heading]]:font-semibold [&_[cmdk-group-heading]]:text-gray-500 [&_[cmdk-group-heading]]:text-xs dark:[&_[cmdk-group-heading]]:text-gray-400"
                 onKeyDown={(e) => {
-                  // Handle arrow key navigation edge cases
-                  if (filteredCommands.length === 0 && (e.key === 'ArrowUp' || e.key === 'ArrowDown')) {
+                  // Handle navigation edge cases when no results
+                  if (filteredCommands.length === 0 && (e.key === 'ArrowUp' || e.key === 'ArrowDown' || e.key === 'Tab')) {
                     e.preventDefault();
                     e.stopPropagation();
                     return;

@@ -1,5 +1,5 @@
 import { useMemo } from 'react';
-import type { NavigationCommand, ModuleConfig } from '../types';
+import type { ModuleConfig, NavigationCommand } from '../types';
 
 interface UseCommandSearchProps {
   modules: ModuleConfig[];
@@ -87,13 +87,25 @@ export function useCommandSearch({ modules, search }: UseCommandSearchProps): Us
     [modules],
   );
 
+  // Pre-compute lowercase versions for better performance with large lists
+  const commandsWithLowerCase = useMemo(
+    () =>
+      allCommands.map((cmd) => ({
+        ...cmd,
+        nameLower: cmd.name.toLowerCase(),
+        moduleLower: cmd.module.toLowerCase(),
+      })),
+    [allCommands],
+  );
+
   // Filter commands based on search
   const filteredCommands = useMemo(() => {
     if (!search) return allCommands;
 
     const searchLower = search.toLowerCase();
-    return allCommands.filter((cmd) => cmd.name.toLowerCase().includes(searchLower) || cmd.module.toLowerCase().includes(searchLower));
-  }, [allCommands, search]);
+    // Use pre-computed lowercase values to avoid repeated toLowerCase() calls
+    return commandsWithLowerCase.filter((cmd) => cmd.nameLower.includes(searchLower) || cmd.moduleLower.includes(searchLower)).map(({ nameLower, moduleLower, ...originalCmd }) => originalCmd);
+  }, [allCommands, commandsWithLowerCase, search]);
 
   // Group commands by module for display
   const commandGroups = useMemo(
