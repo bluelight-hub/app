@@ -7,6 +7,7 @@ import { EinsatzTimelineWidget } from '@/components/molecules/einsatz/EinsatzTim
 import { useActiveEinsatz } from '@/hooks/useActiveEinsatz';
 import { QUERY_KEYS } from '@/queryKeys';
 import { formatNatoDateTime } from '@/utils/dateFormatter';
+import { logger } from '@/utils/logger';
 import { Button } from '@atoms/button.atom';
 import { useQuery } from '@tanstack/react-query';
 import { useParams } from '@tanstack/react-router';
@@ -193,7 +194,7 @@ export function SingleEinsatzDashboard() {
         {/* Rechte Spalte - Ressourcen und Status */}
         <div className="space-y-6">
           {/* Eingesetzte Kräfte */}
-          <EinsatzResourceWidget resources={mockResources} onAddResource={() => console.log('Add resource')} />
+          <EinsatzResourceWidget resources={mockResources} onAddResource={() => logger.log('Add resource')} />
 
           {/* Wichtige Kontakte */}
           <div className="rounded-lg bg-white p-6 shadow-sm dark:bg-gray-800">

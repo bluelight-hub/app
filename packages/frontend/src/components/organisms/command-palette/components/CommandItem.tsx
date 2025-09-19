@@ -1,16 +1,59 @@
 import { cn } from '@/utils/cn';
+import type { NavigationCommand } from '@organisms/command-palette';
+import { commandItemClasses, getModuleColorClass } from '@organisms/command-palette/utils';
 import { Command } from 'cmdk';
+import { useMemo } from 'react';
+import { useHotkeys } from 'react-hotkeys-hook';
 import { PiArrowRight, PiArrowUpRight, PiCaretRight } from 'react-icons/pi';
-import type { NavigationCommand } from '../types';
-import { commandItemClasses, getModuleColorClass } from '../utils';
 
 interface CommandItemProps {
   command: NavigationCommand;
   onSelect: (command: NavigationCommand) => void;
+  isActive?: boolean; // Track if command palette is open
 }
 
-export function CommandItem({ command, onSelect }: CommandItemProps) {
+export function CommandItem({ command, onSelect, isActive = true }: CommandItemProps) {
   const Icon = command.icon || PiCaretRight;
+
+  // Convert shortcut array to hotkey string (e.g., ['⌘', 'K'] -> 'mod+k')
+  const hotkeyString = useMemo(
+    () =>
+      command.shortcut
+        ?.map((key) => {
+          switch (key) {
+            case '⌘':
+            case 'Ctrl':
+              return 'mod';
+            case '⇧':
+            case 'Shift':
+              return 'shift';
+            case '⌥':
+            case 'Alt':
+              return 'alt';
+            case '↵':
+            case 'Enter':
+              return 'enter';
+            default:
+              return key.toLowerCase();
+          }
+        })
+        .join('+'),
+    [command.shortcut],
+  );
+
+  // Register hotkey when command has a shortcut
+  useHotkeys(
+    hotkeyString || '',
+    () => {
+      onSelect(command);
+    },
+    {
+      enabled: isActive && !!hotkeyString,
+      enableOnFormTags: ['INPUT', 'TEXTAREA', 'SELECT'],
+      preventDefault: true,
+    },
+    [command, onSelect, isActive],
+  );
 
   return (
     <Command.Item value={`${command.module} ${command.name}`} onSelect={() => onSelect(command)} className={cn(commandItemClasses.base, command.destructive && commandItemClasses.destructive)}>
@@ -35,7 +78,7 @@ export function CommandItem({ command, onSelect }: CommandItemProps) {
         {command.shortcut && (
           <div className="hidden items-center gap-1 sm:flex">
             {command.shortcut.map((key, idx) => (
-              <kbd key={idx} className={commandItemClasses.kbd}>
+              <kbd key={`${command.id}-${key}-${idx}`} className={commandItemClasses.kbd}>
                 {key}
               </kbd>
             ))}

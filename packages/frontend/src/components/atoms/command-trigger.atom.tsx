@@ -1,6 +1,6 @@
 import { cn } from '@/utils/cn';
 import { Button } from '@atoms/button.atom';
-import { PiCommand, PiMagnifyingGlass } from 'react-icons/pi';
+import { PiMagnifyingGlass } from 'react-icons/pi';
 
 interface CommandTriggerProps {
   onClick: () => void;
@@ -13,6 +13,7 @@ export function CommandTrigger({ onClick, className, variant = 'default' }: Comm
     <Button
       intent="info"
       appearance="outline"
+      kbd="cmd+K"
       onClick={onClick}
       className={cn(
         'inline-flex items-center gap-2 px-3 py-1.5 font-medium text-sm',
@@ -27,18 +28,6 @@ export function CommandTrigger({ onClick, className, variant = 'default' }: Comm
     >
       <PiMagnifyingGlass className="h-4 w-4" />
       {variant === 'default' && <span className="hidden sm:inline">Befehle & Navigation</span>}
-      <kbd
-        className={cn(
-          'inline-flex items-center gap-1 px-1.5 py-0.5',
-          'font-sans font-semibold text-xs',
-          'text-gray-600 dark:text-gray-400',
-          'rounded bg-gray-100 dark:bg-gray-700',
-          variant === 'compact' && 'hidden sm:inline-flex',
-          variant === 'default' && 'hidden sm:inline-flex',
-        )}
-      >
-        <PiCommand className="h-3 w-3" />K
-      </kbd>
     </Button>
   );
 }

@@ -150,8 +150,7 @@ pnpm run generate-api                          # API-Client generieren (WICHTIG!
 pnpm --filter @bluelight-hub/backend dev      # Nur Backend
 pnpm --filter @bluelight-hub/frontend dev     # Nur Frontend
 
-# E2E Tests (separates Jest-Config!)
-cd packages/backend && pnpm run test:e2e       # NICHT "test" verwenden!
+# E2E Tests wurden entfernt
 ```
 
 ## 🔧 MCP SERVER INTEGRATION
@@ -229,7 +228,7 @@ dto/       # Data Transfer Objects
 
 - Tests werden AKTUELL übersprungen (temporär)
 - Trotzdem: `test-writer-fixer` Agent nutzen für zukünftige Tests
-- E2E-Tests nutzen separates Config: `test:e2e` nicht `test`
+- E2E-Tests wurden entfernt
 
 ### Subagents
 

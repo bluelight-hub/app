@@ -1,7 +1,6 @@
 import { cn } from '@/utils/cn';
-import { format } from 'date-fns';
-import { de } from 'date-fns/locale';
-import { PiSiren, PiTruck, PiMapPin, PiCheckCircle, PiClock, PiRadio } from 'react-icons/pi';
+import { formatNatoDateTime } from '@/utils/dateFormatter';
+import { PiCheckCircle, PiClock, PiMapPin, PiRadio, PiSiren, PiTruck } from 'react-icons/pi';
 
 interface TimelineEvent {
   id: string;
@@ -74,7 +73,7 @@ export function EinsatzTimelineWidget({ events, className }: EinsatzTimelineWidg
                     <p className="font-medium text-gray-900 dark:text-gray-100">{event.title}</p>
                     {event.description && <p className="mt-1 text-gray-600 text-sm dark:text-gray-400">{event.description}</p>}
                   </div>
-                  <time className="text-gray-500 text-xs dark:text-gray-400">{format(event.time, 'HH:mm', { locale: de })}</time>
+                  <time className="text-gray-500 text-xs dark:text-gray-400">{formatNatoDateTime(event.time)}</time>
                 </div>
               </div>
             </div>

@@ -52,12 +52,12 @@ export function EinsatzHeader({ einsatz, isEditing, previousEinsatzId, nextEinsa
 
   useHotkeys(
     'mod+o',
-    async (e) => {
-      e.preventDefault();
+    async () => {
       if (!einsatz) return;
       await handleActivateEinsatz();
     },
-    [einsatz],
+    [einsatz, handleActivateEinsatz],
+    { preventDefault: true },
   );
 
   return (

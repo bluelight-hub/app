@@ -1,6 +1,6 @@
 import { cn } from '@/utils/cn';
 import { Button } from '@atoms/button.atom';
-import { PiCheckCircle, PiClock, PiPhone, PiTruck, PiUserPlus, PiUsers, PiWarning } from 'react-icons/pi';
+import { PiCheckCircle, PiClock, PiPhone, PiTruck, PiUser, PiUserPlus, PiUsers, PiWarning } from 'react-icons/pi';
 
 interface Resource {
   id: string;
@@ -49,6 +49,13 @@ export function EinsatzResourceWidget({ resources, className, onAddResource }: E
             Nicht verfügbar
           </span>
         );
+      default:
+        return (
+          <span className="inline-flex items-center gap-1 rounded-full bg-gray-100 px-2 py-1 font-medium text-gray-700 text-xs dark:bg-gray-800 dark:text-gray-400">
+            <PiWarning className="h-3 w-3" />
+            Unbekannt
+          </span>
+        );
     }
   };
 
@@ -59,9 +66,12 @@ export function EinsatzResourceWidget({ resources, className, onAddResource }: E
       case 'fahrzeug':
         return <PiTruck className="h-5 w-5 text-gray-400" />;
       case 'person':
-        return <PiUsers className="h-5 w-5 text-gray-400" />;
+        return <PiUser className="h-5 w-5 text-gray-400" />;
     }
   };
+
+  // Define fixed type order for consistent rendering
+  const typeOrder: Resource['type'][] = ['einheit', 'fahrzeug', 'person'];
 
   // Group resources by type
   const groupedResources = resources.reduce(
@@ -94,7 +104,7 @@ export function EinsatzResourceWidget({ resources, className, onAddResource }: E
       <div className="mb-6 grid grid-cols-3 gap-4">
         <div className="text-center">
           <p className="font-bold text-2xl text-gray-900 dark:text-gray-100">{resources.length}</p>
-          <p className="text-gray-500 text-xs dark:text-gray-400">Einheiten</p>
+          <p className="text-gray-500 text-xs dark:text-gray-400">Ressourcen</p>
         </div>
         <div className="text-center">
           <p className="font-bold text-2xl text-gray-900 dark:text-gray-100">{totalPersonnel}</p>
@@ -108,44 +118,46 @@ export function EinsatzResourceWidget({ resources, className, onAddResource }: E
 
       {/* Resource List */}
       <div className="space-y-4">
-        {Object.entries(groupedResources).map(([type, typeResources]) => (
-          <div key={type}>
-            <h4 className="mb-2 font-semibold text-gray-500 text-xs uppercase dark:text-gray-400">{type === 'einheit' ? 'Einheiten' : type === 'fahrzeug' ? 'Fahrzeuge' : 'Personal'}</h4>
-            <div className="space-y-2">
-              {typeResources.map((resource) => (
-                <div key={resource.id} className="flex items-center justify-between rounded-lg bg-gray-50 p-3 transition-colors hover:bg-gray-100 dark:bg-gray-700/50 dark:hover:bg-gray-700">
-                  <div className="flex items-center gap-3">
-                    {getResourceIcon(resource.type)}
-                    <div>
-                      <p className="font-medium text-gray-900 text-sm dark:text-gray-100">{resource.name}</p>
-                      <div className="mt-1 flex flex-col items-start">
-                        {resource.funkrufname && (
-                          <span className="text-gray-500 text-xs dark:text-gray-400">
-                            <PiPhone className="mr-1 inline h-3 w-3" />
-                            {resource.funkrufname}
-                          </span>
-                        )}
-                        {resource.personnel && (
-                          <span className="text-gray-500 text-xs dark:text-gray-400">
-                            <PiUsers className="mr-1 inline h-3 w-3" />
-                            {resource.personnel} Personen
-                          </span>
-                        )}
-                        {resource.arrivalTime && (
-                          <span className="text-gray-500 text-xs dark:text-gray-400">
-                            <PiClock className="mr-1 inline h-3 w-3" />
-                            ETA: {resource.arrivalTime}
-                          </span>
-                        )}
+        {typeOrder
+          .filter((type) => groupedResources[type])
+          .map((type) => (
+            <div key={type}>
+              <h4 className="mb-2 font-semibold text-gray-500 text-xs uppercase dark:text-gray-400">{type === 'einheit' ? 'Einheiten' : type === 'fahrzeug' ? 'Fahrzeuge' : 'Personal'}</h4>
+              <div className="space-y-2">
+                {groupedResources[type].map((resource) => (
+                  <div key={resource.id} className="flex items-center justify-between rounded-lg bg-gray-50 p-3 transition-colors hover:bg-gray-100 dark:bg-gray-700/50 dark:hover:bg-gray-700">
+                    <div className="flex items-center gap-3">
+                      {getResourceIcon(resource.type)}
+                      <div>
+                        <p className="font-medium text-gray-900 text-sm dark:text-gray-100">{resource.name}</p>
+                        <div className="mt-1 flex flex-col items-start">
+                          {resource.funkrufname && (
+                            <span className="text-gray-500 text-xs dark:text-gray-400">
+                              <PiPhone className="mr-1 inline h-3 w-3" />
+                              {resource.funkrufname}
+                            </span>
+                          )}
+                          {resource.personnel && (
+                            <span className="text-gray-500 text-xs dark:text-gray-400">
+                              <PiUsers className="mr-1 inline h-3 w-3" />
+                              {resource.personnel} Personen
+                            </span>
+                          )}
+                          {resource.arrivalTime && (
+                            <span className="text-gray-500 text-xs dark:text-gray-400">
+                              <PiClock className="mr-1 inline h-3 w-3" />
+                              ETA: {resource.arrivalTime}
+                            </span>
+                          )}
+                        </div>
                       </div>
                     </div>
+                    {getStatusBadge(resource.status)}
                   </div>
-                  {getStatusBadge(resource.status)}
-                </div>
-              ))}
+                ))}
+              </div>
             </div>
-          </div>
-        ))}
+          ))}
 
         {resources.length === 0 && (
           <div className="py-8 text-center text-gray-500 dark:text-gray-400">

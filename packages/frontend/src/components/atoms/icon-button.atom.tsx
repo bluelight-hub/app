@@ -5,6 +5,7 @@ import { forwardRef } from 'react';
 
 export interface IconButtonProps extends Omit<ComponentProps<typeof Button>, 'size' | 'fullWidth'> {
   size?: 'sm' | 'md' | 'lg';
+  'aria-label': string;
 }
 
 /**

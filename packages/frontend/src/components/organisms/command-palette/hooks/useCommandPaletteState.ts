@@ -1,5 +1,5 @@
-import { useReducer, useCallback, useEffect } from 'react';
-import type { CommandPaletteState, CommandPaletteAction, NavigationCommand } from '../types';
+import { useCallback, useEffect, useReducer } from 'react';
+import type { CommandPaletteAction, CommandPaletteState, NavigationCommand } from '../types';
 
 const initialState: CommandPaletteState = {
   search: '',
@@ -34,7 +34,7 @@ function commandPaletteReducer(state: CommandPaletteState, action: CommandPalett
       };
     }
     case 'NAVIGATE_TO': {
-      const targetIndex = action.payload;
+      const targetIndex = Math.min(Math.max(action.payload, 0), state.commandStack.length - 1);
       const newStack = state.commandStack.slice(0, targetIndex + 1);
       return {
         ...state,
@@ -68,7 +68,11 @@ export function useCommandPaletteState({ open }: UseCommandPaletteStateProps) {
     dispatch({ type: 'SET_SEARCH', payload: search });
   }, []);
 
-  const selectCommand = useCallback((command: NavigationCommand) => {
+  const selectCommand = useCallback((command: NavigationCommand | null) => {
+    if (!command) {
+      dispatch({ type: 'SELECT_COMMAND', payload: null });
+      return;
+    }
     if (command.subCommands && command.subCommands.length > 0) {
       dispatch({ type: 'PUSH_COMMAND', payload: command });
     } else {

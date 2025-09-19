@@ -22,7 +22,9 @@ export const useQuickActionsModule = (): ModuleConfig => {
           name: 'Einstellungen',
           icon: PiGear,
           shortcut: ['⌘', ','],
-          action: () => toast.info('Einstellungen sind nicht implementiert'),
+          action: () => {
+            toast.info('Einstellungen sind nicht implementiert');
+          },
         },
         {
           name: 'In Zwischenablage kopieren',

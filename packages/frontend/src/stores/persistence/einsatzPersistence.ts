@@ -103,23 +103,38 @@ export function subscribeToStorageChanges(callback: (einsatzId: string | null) =
  * Diese Funktion sollte beim App-Start aufgerufen werden,
  * um den gespeicherten aktiven Einsatz wiederherzustellen.
  *
- * @param validateCallback - Optional: Callback zur Validierung der gespeicherten ID
+ * @param id - Die zu validierende Einsatz-ID (wenn nicht übergeben, wird sie aus dem Storage geladen)
+ * @param validateCallback - Optional: Callback zur Validierung der ID
  * @returns Promise mit der validierten Einsatz-ID oder null
  */
-export async function rehydrateActiveEinsatz(validateCallback?: (id: string) => Promise<boolean>): Promise<string | null> {
-  const storedId = loadActiveEinsatzId();
+export async function rehydrateActiveEinsatz(idOrCallback?: string | ((id: string) => Promise<boolean>), validateCallback?: (id: string) => Promise<boolean>): Promise<string | null> {
+  // Handle overloaded parameters for backward compatibility
+  let storedId: string | null;
+  let validationFn: ((id: string) => Promise<boolean>) | undefined;
+
+  if (typeof idOrCallback === 'string') {
+    // New signature: ID passed directly
+    storedId = idOrCallback;
+    validationFn = validateCallback;
+  } else {
+    // Legacy signature: callback only, read ID from storage
+    storedId = loadActiveEinsatzId();
+    validationFn = idOrCallback;
+  }
 
   if (!storedId) {
     return null;
   }
 
   // Wenn Validierungs-Callback vorhanden, ID validieren
-  if (validateCallback) {
+  if (validationFn) {
     try {
-      const isValid = await validateCallback(storedId);
+      const isValid = await validationFn(storedId);
       if (!isValid) {
-        // Ungültige ID aus Storage entfernen
-        clearActiveEinsatz();
+        // Ungültige ID aus Storage entfernen - only if we're using stored ID
+        if (typeof idOrCallback !== 'string') {
+          clearActiveEinsatz();
+        }
         return null;
       }
     } catch (error) {

@@ -12,7 +12,7 @@ export function useCommandPaletteKeyboard({ open, onOpenChange, onBack, hasSelec
   useHotkeys(
     'mod+k',
     (e) => {
-      e.preventDefault();
+      e.stopPropagation();
       onOpenChange(!open);
     },
     {
@@ -43,8 +43,7 @@ export function useCommandPaletteKeyboard({ open, onOpenChange, onBack, hasSelec
   // Additional shortcuts for navigation
   useHotkeys(
     'mod+shift+k',
-    (e) => {
-      e.preventDefault();
+    () => {
       if (open && onBack) {
         onBack();
       }
@@ -52,6 +51,7 @@ export function useCommandPaletteKeyboard({ open, onOpenChange, onBack, hasSelec
     {
       enabled: open,
       enableOnFormTags: true,
+      preventDefault: true,
     },
     [open, onBack],
   );
