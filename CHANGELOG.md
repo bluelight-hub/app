@@ -1,3 +1,13 @@
+## Version [v1.0.0-alpha.24](https://github.com/rubenvitt/bluelight-hub/compare/v1.0.0-alpha.23...v1.0.0-alpha.24) – Veröffentlicht am 2025-09-19
+
+## 🔒 Sicherheitsverbesserungen
+Sicherheitsrelevante Änderungen:
+- [`326df75`](https://github.com/rubenvitt/bluelight-hub/commit/326df75) (ci): Add security and rate limiting to Claude workflows 
+
+
+
+# [1.0.0-alpha.24](https://github.com/rubenvitt/bluelight-hub/compare/v1.0.0-alpha.23...v1.0.0-alpha.24) (2025-09-19)
+
 ## Version [v1.0.0-alpha.23](https://github.com/rubenvitt/bluelight-hub/compare/v1.0.0-alpha.22...v1.0.0-alpha.23) – Veröffentlicht am 2025-09-15
 
 ## ✨ Neue Funktionen
