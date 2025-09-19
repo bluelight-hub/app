@@ -1,5 +1,5 @@
-import { useCallback, useEffect, useReducer, useState } from 'react';
 import { debounce } from '@tanstack/pacer';
+import { useCallback, useEffect, useReducer, useState } from 'react';
 import type { CommandPaletteAction, CommandPaletteState, NavigationCommand } from '../types';
 
 const initialState: CommandPaletteState = {
@@ -78,9 +78,14 @@ export function useCommandPaletteState({ open }: UseCommandPaletteStateProps) {
 
   // Create debounced search update
   const debouncedSetSearch = useCallback(
-    debounce((value: string) => {
-      dispatch({ type: 'SET_SEARCH', payload: value });
-    }, 200), // 200ms debounce delay for search
+    debounce(
+      (value: string) => {
+        dispatch({ type: 'SET_SEARCH', payload: value });
+      },
+      {
+        wait: 200,
+      },
+    ),
     [],
   );
 

@@ -1,7 +1,7 @@
-import { useDebouncedState } from '@/hooks/useDebounce';
 import { Button } from '@atoms/button.atom';
 import { Input } from '@atoms/input.atom';
-import { forwardRef, useEffect } from 'react';
+import { debounce } from '@tanstack/pacer';
+import { forwardRef, useCallback, useEffect, useState } from 'react';
 import { PiMagnifyingGlass, PiX } from 'react-icons/pi';
 
 interface SearchInputProps {
@@ -27,21 +27,32 @@ interface SearchInputProps {
  */
 export const SearchInput = forwardRef<HTMLInputElement, SearchInputProps>(
   ({ value: controlledValue, onChange, onDebouncedChange, placeholder = 'Suchen...', delay = 300, showSearchIcon = true, showClearButton = true, className, autoFocus, disabled }, ref) => {
-    const [localValue, debouncedValue, setLocalValue] = useDebouncedState(controlledValue || '', delay);
+    const [localValue, setLocalValue] = useState(controlledValue || '');
+
+    // Create debounced callback for search
+    const debouncedSearch = useCallback(
+      debounce(
+        (value: string) => {
+          if (onDebouncedChange) {
+            onDebouncedChange(value);
+          }
+        },
+        { wait: delay },
+      ),
+      [], // Empty deps since debounce creates stable function
+    );
 
     // Sync mit kontrolliertem Wert
     useEffect(() => {
       if (controlledValue !== undefined && controlledValue !== localValue) {
         setLocalValue(controlledValue);
       }
-    }, [controlledValue, localValue, setLocalValue]);
+    }, [controlledValue, localValue]);
 
-    // Debounced Callback
+    // Trigger debounced callback when local value changes
     useEffect(() => {
-      if (onDebouncedChange) {
-        onDebouncedChange(debouncedValue);
-      }
-    }, [debouncedValue, onDebouncedChange]);
+      debouncedSearch(localValue);
+    }, [localValue, debouncedSearch]);
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
       const newValue = e.target.value;
