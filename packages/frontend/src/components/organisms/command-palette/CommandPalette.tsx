@@ -19,6 +19,27 @@ import { useQuickActionsModule } from './hooks/useQuickActionsModule';
 import { useThemeCommands } from './hooks/useThemeCommands';
 import type { CommandPaletteProps } from './types';
 
+/**
+ * Command Palette Komponente für schnelle Navigation und Aktionen.
+ *
+ * Bietet eine durchsuchbare, tastaturgesteuerte Oberfläche für
+ * die Navigation zwischen Modulen und das Ausführen von Befehlen.
+ * Unterstützt verschachtelte Commands, Tastaturkürzel und Theming.
+ *
+ * @param props - Die Komponenten-Props
+ * @param props.modules - Array von Modul-Konfigurationen
+ * @param props.open - Ob die Palette geöffnet ist
+ * @param props.onOpenChange - Callback zum Ändern des Öffnungszustands
+ *
+ * @example
+ * ```tsx
+ * <CommandPalette
+ *   modules={moduleConfigs}
+ *   open={isOpen}
+ *   onOpenChange={setIsOpen}
+ * />
+ * ```
+ */
 export function CommandPalette({ modules = [], open, onOpenChange }: CommandPaletteProps) {
   // Focus management
   const inputRef = useFocusManagement(open);
@@ -85,7 +106,17 @@ export function CommandPalette({ modules = [], open, onOpenChange }: CommandPale
                 'shadow-2xl ring-1 ring-gray-900/10 dark:ring-white/10',
               )}
             >
-              <Command className="overflow-hidden [&_[cmdk-group-heading]]:mb-2 [&_[cmdk-group-heading]]:px-2 [&_[cmdk-group-heading]]:font-semibold [&_[cmdk-group-heading]]:text-gray-500 [&_[cmdk-group-heading]]:text-xs dark:[&_[cmdk-group-heading]]:text-gray-400">
+              <Command
+                className="overflow-hidden [&_[cmdk-group-heading]]:mb-2 [&_[cmdk-group-heading]]:px-2 [&_[cmdk-group-heading]]:font-semibold [&_[cmdk-group-heading]]:text-gray-500 [&_[cmdk-group-heading]]:text-xs dark:[&_[cmdk-group-heading]]:text-gray-400"
+                onKeyDown={(e) => {
+                  // Handle arrow key navigation edge cases
+                  if (filteredCommands.length === 0 && (e.key === 'ArrowUp' || e.key === 'ArrowDown')) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    return;
+                  }
+                }}
+              >
                 {/* Search Input */}
                 <div className="relative">
                   <div className="-translate-y-1/2 absolute top-1/2 left-4">
@@ -93,7 +124,7 @@ export function CommandPalette({ modules = [], open, onOpenChange }: CommandPale
                   </div>
                   <Command.Input
                     ref={inputRef}
-                    value={state.search}
+                    value={state.immediateSearch}
                     onValueChange={actions.setSearch}
                     className={cn(
                       'w-full bg-transparent py-4 pr-12 pl-12',
@@ -105,7 +136,7 @@ export function CommandPalette({ modules = [], open, onOpenChange }: CommandPale
                     placeholder="Suche nach Befehlen oder springe zu..."
                     autoFocus
                   />
-                  {state.search && (
+                  {state.immediateSearch && (
                     <CloseButton onClick={() => actions.setSearch('')} className="-translate-y-1/2 absolute top-1/2 right-4" aria-label="Suche löschen">
                       <PiX className="h-4 w-4 text-gray-400 dark:text-gray-500" />
                     </CloseButton>
@@ -119,7 +150,7 @@ export function CommandPalette({ modules = [], open, onOpenChange }: CommandPale
                 <Command.List className="max-h-[calc(100vh-24rem)] overflow-y-auto scroll-smooth p-2">
                   <Command.Empty className="flex flex-col items-center justify-center px-4 py-12">
                     <PiWarning className="mb-3 h-10 w-10 text-gray-300 dark:text-gray-600" />
-                    <p className="text-gray-500 text-sm dark:text-gray-400">Keine Ergebnisse für "{state.search}"</p>
+                    <p className="text-gray-500 text-sm dark:text-gray-400">Keine Ergebnisse für "{state.immediateSearch}"</p>
                   </Command.Empty>
 
                   {/* Show subcommands or regular commands */}
@@ -134,7 +165,13 @@ export function CommandPalette({ modules = [], open, onOpenChange }: CommandPale
                       className="mb-3"
                     >
                       {state.selectedCommand.subCommands.map((subCmd) => (
-                        <SubCommandItem key={subCmd.id} subCommand={subCmd} onSelect={(sub) => handleSubCommand(state.selectedCommand!, sub)} currentValue={colorMode} isActive={open} />
+                        <SubCommandItem
+                          key={subCmd.id}
+                          subCommand={subCmd}
+                          onSelect={(sub) => state.selectedCommand && handleSubCommand(state.selectedCommand, sub)}
+                          currentValue={colorMode}
+                          isActive={open}
+                        />
                       ))}
                     </Command.Group>
                   ) : (

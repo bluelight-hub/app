@@ -7,6 +7,28 @@ interface UseCommandPaletteKeyboardProps {
   hasSelectedCommand?: boolean;
 }
 
+/**
+ * Keyboard-Shortcut-Hook für die Command Palette.
+ *
+ * Registriert und verwaltet Tastaturkürzel für die Navigation
+ * und Steuerung der Command Palette.
+ *
+ * @param props - Die Hook-Parameter
+ * @param props.open - Ob die Command Palette geöffnet ist
+ * @param props.onOpenChange - Callback zum Öffnen/Schließen
+ * @param props.onBack - Callback für Navigation zurück
+ * @param props.hasSelectedCommand - Ob ein Command ausgewählt ist
+ * @returns Objekt mit verfügbaren Tastaturkürzeln
+ *
+ * @example
+ * ```tsx
+ * const { shortcuts } = useCommandPaletteKeyboard({
+ *   open: isOpen,
+ *   onOpenChange: setOpen,
+ *   onBack: handleBack
+ * });
+ * ```
+ */
 export function useCommandPaletteKeyboard({ open, onOpenChange, onBack, hasSelectedCommand = false }: UseCommandPaletteKeyboardProps) {
   // Toggle command palette with Cmd+K (open and close)
   useHotkeys(

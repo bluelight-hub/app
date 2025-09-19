@@ -39,7 +39,9 @@ describe('useCommandPaletteState', () => {
       result.current.actions.setSearch('test search');
     });
 
-    expect(result.current.state.search).toBe('test search');
+    // Check immediate search updates immediately
+    expect(result.current.state.immediateSearch).toBe('test search');
+    // Debounced search will update after delay
     expect(result.current.state.selectedIndex).toBe(0); // Reset index on search
   });
 
@@ -105,12 +107,13 @@ describe('useCommandPaletteState', () => {
       result.current.actions.selectCommand(mockCommand);
     });
 
-    expect(result.current.state.search).toBe('test');
+    expect(result.current.state.immediateSearch).toBe('test');
     expect(result.current.state.selectedCommand).toEqual(mockCommand);
 
     // Close dialog
     rerender({ open: false });
 
+    expect(result.current.state.immediateSearch).toBe('');
     expect(result.current.state.search).toBe('');
     expect(result.current.state.selectedCommand).toBeNull();
     expect(result.current.state.commandStack).toEqual([]);

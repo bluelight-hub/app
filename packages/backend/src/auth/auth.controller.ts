@@ -51,16 +51,6 @@ export class AuthController {
   ) {}
 
   /**
-   * Registriert einen neuen Benutzer
-   *
-   * Der erste registrierte Benutzer erhält automatisch die SUPER_ADMIN-Rolle.
-   * Alle weiteren Benutzenden erhalten die USER-Rolle.
-   *
-   * @param dto - Registrierungsdaten
-   * @param res - Express Response für Cookie-Verwaltung
-   * @returns Der erstellte Benutzer
-   */
-  /**
    * Unified Auth - Kombiniert Login und automatische Registrierung
    *
    * Wenn der Benutzer existiert:
@@ -70,6 +60,7 @@ export class AuthController {
    * Wenn der Benutzer nicht existiert:
    * - Automatische Registrierung ohne Passwort
    *
+   * @param req - Express Request
    * @param dto - Auth Request mit Username und optionalem Passwort
    * @param res - Express Response für Cookie-Verwaltung
    * @returns Auth Response mit Token und User-Info
@@ -96,15 +87,45 @@ export class AuthController {
     status: HttpStatus.TOO_MANY_REQUESTS,
     description: 'Zu viele Anfragen - bitte später erneut versuchen',
   })
-  async unifiedAuth(@Body() dto: AuthRequestDto, @Res({ passthrough: true }) res: Response): Promise<AuthResponseDto> {
-    const { accessToken, refreshToken, ...responseDto } = await this.authService.unifiedAuth(dto);
+  async unifiedAuth(@Body() dto: AuthRequestDto, @Req() req: Request, @Res({ passthrough: true }) res: Response): Promise<AuthResponseDto> {
+    // Audit-Log für Login-Versuch
+    this.logger.log('Authentication attempt initiated', {
+      username: dto.username,
+      ip: req.ip,
+      userAgent: req.headers['user-agent'],
+      timestamp: new Date().toISOString(),
+    });
 
-    // Tokens extrahieren und als HTTP-Only Cookies setzen
-    const isProduction = this.appConfig.isProduction();
-    setAuthCookies(res, accessToken, refreshToken, isProduction);
+    try {
+      const { accessToken, refreshToken, ...responseDto } = await this.authService.unifiedAuth(dto);
 
-    // Nur DTO-konforme Daten zurückgeben (ohne Tokens)
-    return responseDto;
+      // Tokens extrahieren und als HTTP-Only Cookies setzen
+      const isProduction = this.appConfig.isProduction();
+      setAuthCookies(res, accessToken, refreshToken, isProduction);
+
+      // Audit-Log für erfolgreiche Authentifizierung
+      this.logger.log('Authentication successful', {
+        userId: responseDto.user.id,
+        username: responseDto.user.username,
+        isNewUser: responseDto.isNewUser,
+        ip: req.ip,
+        userAgent: req.headers['user-agent'],
+        timestamp: new Date().toISOString(),
+      });
+
+      // Nur DTO-konforme Daten zurückgeben (ohne Tokens)
+      return responseDto;
+    } catch (error) {
+      // Audit-Log für fehlgeschlagene Authentifizierung
+      this.logger.warn('Authentication failed', {
+        username: dto.username,
+        ip: req.ip,
+        userAgent: req.headers['user-agent'],
+        error: error.message,
+        timestamp: new Date().toISOString(),
+      });
+      throw error;
+    }
   }
 
   /**
@@ -300,6 +321,7 @@ export class AuthController {
    * @returns Die Benutzerinformationen oder null
    */
   @Get('check')
+  @Throttle({ default: { limit: 10, ttl: 60000 } }) // 10 Anfragen pro Minute für Token-Refresh
   @ApiOperation({
     summary: 'Authentifizierungsstatus prüfen',
     description: 'Prüft, ob ein Benutzer authentifiziert ist, und gibt dessen Informationen zurück',
@@ -322,9 +344,19 @@ export class AuthController {
         }
 
         // Versuche Token-Refresh
+        this.logger.log('Token-Refresh attempt initiated from checkAuth endpoint', {
+          hasRefreshToken: !!refreshToken,
+          ip: req.ip,
+          userAgent: req.headers['user-agent'],
+        });
+
         const refreshResult = await this.authService.refreshTokens(refreshToken);
 
         if (!refreshResult) {
+          this.logger.warn('Token-Refresh failed - invalid or expired refresh token', {
+            ip: req.ip,
+            userAgent: req.headers['user-agent'],
+          });
           return {
             user: null,
             authenticated: false,
@@ -334,6 +366,15 @@ export class AuthController {
         // Setze neue Cookies
         const isProduction = this.appConfig.isProduction();
         setAuthCookies(res, refreshResult.accessToken, refreshResult.refreshToken, isProduction);
+
+        // Audit-Log für erfolgreichen Token-Refresh
+        this.logger.log('Token-Refresh successful', {
+          userId: refreshResult.user.id,
+          username: refreshResult.user.username,
+          ip: req.ip,
+          userAgent: req.headers['user-agent'],
+          timestamp: new Date().toISOString(),
+        });
 
         // Prüfe Admin-Status
         const isAdminAuthenticated = await this.checkAdminToken(req.cookies?.adminToken);
