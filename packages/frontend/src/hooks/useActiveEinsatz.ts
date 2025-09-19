@@ -80,10 +80,14 @@ export function useActiveEinsatz() {
 
   // Rehydration beim App-Start
   useEffect(() => {
+    // Skip if activeEinsatz already exists
+    if (activeEinsatz) return;
+
     const initializeActiveEinsatz = async () => {
+      // Read storage once
       const storedId = loadActiveEinsatzId();
 
-      if (storedId && !activeEinsatz) {
+      if (storedId) {
         setLoadingState(true);
 
         try {
@@ -93,7 +97,15 @@ export function useActiveEinsatz() {
               const response = await api.einsatz().einsatzControllerFindOneVAlpha({ id });
               // Wenn erfolgreich, setze den Einsatz direkt
               if (response.data) {
+                // Synchronize both the activeEinsatz and selectedEinsatzId
                 storeSetActiveEinsatz(response.data);
+                // Ensure the selectedEinsatzId is also set in the store
+                einsatzStore.setState((state) => ({
+                  ...state,
+                  selectedEinsatzId: id,
+                }));
+                // Cache the data in query client
+                queryClient.setQueryData(QUERY_KEYS.einsatz.detail(id), response.data);
                 return true;
               }
               return false;
@@ -102,10 +114,17 @@ export function useActiveEinsatz() {
             }
           };
 
-          await rehydrateActiveEinsatz(validateId);
+          // Pass the storedId directly instead of having rehydrateActiveEinsatz read it again
+          const validatedId = await rehydrateActiveEinsatz(storedId, validateId);
+
+          // If validation failed, clear the persisted ID
+          if (!validatedId) {
+            clearPersistedEinsatz();
+          }
         } catch (error) {
           logger.error('Failed to rehydrate active Einsatz', error);
           setError('Gespeicherter Einsatz konnte nicht geladen werden');
+          clearPersistedEinsatz();
         } finally {
           setLoadingState(false);
         }
@@ -114,7 +133,13 @@ export function useActiveEinsatz() {
 
     // Nur beim ersten Mount ausführen
     void initializeActiveEinsatz();
-  }, [activeEinsatz, setError, setLoadingState, storeSetActiveEinsatz]);
+  }, [
+    activeEinsatz,
+    queryClient,
+    setError,
+    setLoadingState, // Synchronize both the activeEinsatz and selectedEinsatzId
+    storeSetActiveEinsatz,
+  ]); // Only re-run if activeEinsatz changes (for early return check)
 
   /**
    * Setzt einen neuen aktiven Einsatz

@@ -89,11 +89,13 @@ export function EinsatzCreateForm({ isOpen, onClose, onSuccess }: EinsatzCreateF
 
   useHotkeys(
     'mod+enter',
-    (e: KeyboardEvent) => {
-      e.preventDefault();
+    () => {
       form.handleSubmit();
     },
     [form],
+    {
+      preventDefault: true,
+    },
   );
 
   // Reset form wenn Panel geschlossen wird

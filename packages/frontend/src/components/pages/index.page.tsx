@@ -74,7 +74,7 @@ export function IndexPage() {
           <div className="flex gap-2">
             {/* Admin Setup Link - nur anzeigen wenn adminSetupAvailable true ist */}
             {adminStatus?.adminSetupAvailable && (
-              <Button intent="danger" size="sm" onClick={handleOpenAdminWindow}>
+              <Button intent="primary" size="sm" onClick={handleOpenAdminWindow}>
                 <PiShieldCheck className="mr-2" />
                 Admin-Setup
               </Button>

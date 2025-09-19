@@ -10,8 +10,6 @@ catalog:
   '@fontsource-variable/nunito': ^5.2.6
   '@headlessui/react': ^2.2.7
   '@hookform/resolvers': ^5.2.1
-  '@playwright/test': ^1.54.2
-  '@playwright/test-runner': ^0.9.24
   '@tailwindcss/vite': ^4.1.11
   '@tanstack/eslint-config': ^0.3.0
   '@tanstack/pacer': ^0.13.0

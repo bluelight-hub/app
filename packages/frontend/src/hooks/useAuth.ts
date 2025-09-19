@@ -36,6 +36,7 @@ export const useAuth = () => {
     // refetchInterval nur wenn Admin eingeloggt ist
     refetchInterval: isAdmin ? milliseconds({ seconds: 30 }) : false,
     throwOnError: false,
+    refetchOnWindowFocus: true,
     retry: false,
     enabled: isAdmin,
   });

@@ -1,34 +1,42 @@
-import type { ColorMode } from '@/components/ui/color-mode';
-import { useColorMode } from '@/hooks/use-color-mode';
-import { useAuth } from '@/hooks/useAuth';
 import { cn } from '@/utils/cn';
 import { CloseButton } from '@atoms/close-button.atom';
 import { Dialog, DialogPanel, Transition, TransitionChild } from '@headlessui/react';
-import { useNavigate } from '@tanstack/react-router';
 import { Command } from 'cmdk';
-import { Fragment, useCallback, useEffect, useMemo, useRef } from 'react';
-import { PiCaretRight, PiClipboard, PiGear, PiPalette, PiSignOut, PiTerminal, PiWarning, PiX } from 'react-icons/pi';
-import { toast } from 'sonner';
+import { Fragment, useMemo } from 'react';
+import { PiTerminal, PiWarning, PiX } from 'react-icons/pi';
 
 import { CommandBreadcrumb } from './components/CommandBreadcrumb';
 import { CommandFooter } from './components/CommandFooter';
 import { CommandItem } from './components/CommandItem';
 import { SubCommandItem } from './components/SubCommandItem';
+import { useCommandHandlers } from './hooks/useCommandHandlers';
 import { useCommandPaletteKeyboard } from './hooks/useCommandPaletteKeyboard';
 import { useCommandPaletteState } from './hooks/useCommandPaletteState';
 import { useCommandSearch } from './hooks/useCommandSearch';
-import type { CommandPaletteProps, ModuleConfig, NavigationCommand, SubCommand, ThemeOption } from './types';
+import { useFocusManagement } from './hooks/useFocusManagement';
+import { useGlobalThemeHotkeys } from './hooks/useGlobalThemeHotkeys';
+import { useQuickActionsModule } from './hooks/useQuickActionsModule';
+import { useThemeCommands } from './hooks/useThemeCommands';
+import type { CommandPaletteProps } from './types';
 
 export function CommandPalette({ modules = [], open, onOpenChange }: CommandPaletteProps) {
-  const navigate = useNavigate();
-  const inputRef = useRef<HTMLInputElement>(null);
-  const listRef = useRef<HTMLDivElement>(null);
-
-  const { logout } = useAuth();
-  const { toggleColorMode, colorMode, setColorMode } = useColorMode();
+  // Focus management
+  const inputRef = useFocusManagement(open);
 
   // State management
   const { state, actions } = useCommandPaletteState({ open });
+
+  // Get theme-related data
+  const { colorMode } = useThemeCommands();
+
+  // Get quick actions module
+  const quickActions = useQuickActionsModule();
+
+  // Command handlers
+  const { handleSelect, handleSubCommand } = useCommandHandlers({
+    onOpenChange,
+    selectCommand: actions.selectCommand,
+  });
 
   // Keyboard shortcuts
   const { shortcuts } = useCommandPaletteKeyboard({
@@ -38,83 +46,8 @@ export function CommandPalette({ modules = [], open, onOpenChange }: CommandPale
     hasSelectedCommand: !!state.selectedCommand,
   });
 
-  // Theme options for subcommands
-  const themeOptions: ThemeOption[] = useMemo(
-    () => [
-      {
-        id: 'theme-light',
-        name: 'Hell',
-        value: 'light' as ColorMode,
-        icon: PiPalette,
-        description: 'Helles Theme aktivieren',
-      },
-      {
-        id: 'theme-dark',
-        name: 'Dunkel',
-        value: 'dark' as ColorMode,
-        icon: PiPalette,
-        description: 'Dunkles Theme aktivieren',
-      },
-      {
-        id: 'theme-system',
-        name: 'System',
-        value: 'system' as ColorMode,
-        icon: PiPalette,
-        description: 'Systemeinstellung folgen',
-      },
-    ],
-    [],
-  );
-
-  // Quick actions module
-  const quickActions: ModuleConfig = useMemo(
-    () => ({
-      id: 'quick-actions',
-      name: 'Schnellaktionen',
-      color: 'primary',
-      icon: PiCaretRight,
-      subPages: [
-        {
-          name: 'Einstellungen',
-          icon: PiGear,
-          shortcut: ['⌘', ','],
-          action: () => toast.info('Einstellungen sind nicht implementiert'),
-        },
-        {
-          name: 'In Zwischenablage kopieren',
-          icon: PiClipboard,
-          action: () => {
-            navigator.clipboard
-              .writeText(window.location.href)
-              .then(() => toast.success('URL kopiert'))
-              .catch(() => toast.error('Kopieren fehlgeschlagen'));
-          },
-        },
-        {
-          name: 'Theme wechseln',
-          icon: PiPalette,
-          shortcut: ['⌘', 'T'],
-          action: (theme?: unknown) => {
-            if (theme && typeof theme === 'string') {
-              setColorMode(theme as ColorMode);
-            } else {
-              toggleColorMode();
-            }
-          },
-          subCommands: themeOptions,
-        },
-        {
-          name: 'Abmelden',
-          icon: PiSignOut,
-          destructive: true,
-          action: () => {
-            logout.mutateAsync().then(() => navigate({ to: '/' }));
-          },
-        },
-      ],
-    }),
-    [logout, navigate, setColorMode, themeOptions, toggleColorMode],
-  );
+  // Global theme hotkeys (work even when palette is closed)
+  useGlobalThemeHotkeys();
 
   // Combine modules with quick actions
   const allModules = useMemo(() => [quickActions, ...modules], [quickActions, modules]);
@@ -124,47 +57,6 @@ export function CommandPalette({ modules = [], open, onOpenChange }: CommandPale
     modules: allModules,
     search: state.search,
   });
-
-  // Focus management
-  useEffect(() => {
-    if (open) {
-      const timer = setTimeout(() => inputRef.current?.focus(), 50);
-      return () => clearTimeout(timer);
-    }
-  }, [open]);
-
-  // Handle command selection
-  const handleSelect = useCallback(
-    (command: NavigationCommand) => {
-      actions.selectCommand(command);
-
-      // If it has subcommands, they will be shown
-      if (command.subCommands && command.subCommands.length > 0) {
-        return;
-      }
-
-      // Execute the command
-      if (command.action) {
-        command.action();
-      } else if (command.href) {
-        navigate({ to: command.href });
-      }
-
-      onOpenChange(false);
-    },
-    [actions, navigate, onOpenChange],
-  );
-
-  // Handle subcommand selection
-  const handleSubCommand = useCallback(
-    (parent: NavigationCommand, subCommand: SubCommand) => {
-      if (parent.action) {
-        parent.action(subCommand.value);
-      }
-      onOpenChange(false);
-    },
-    [onOpenChange],
-  );
 
   return (
     <Transition show={open} as={Fragment}>
@@ -224,7 +116,7 @@ export function CommandPalette({ modules = [], open, onOpenChange }: CommandPale
                 <CommandBreadcrumb commandStack={state.commandStack} onBack={actions.goBack} onNavigateTo={actions.navigateTo} />
 
                 {/* Command List */}
-                <Command.List ref={listRef} className="max-h-[calc(100vh-24rem)] overflow-y-auto scroll-smooth p-2">
+                <Command.List className="max-h-[calc(100vh-24rem)] overflow-y-auto scroll-smooth p-2">
                   <Command.Empty className="flex flex-col items-center justify-center px-4 py-12">
                     <PiWarning className="mb-3 h-10 w-10 text-gray-300 dark:text-gray-600" />
                     <p className="text-gray-500 text-sm dark:text-gray-400">Keine Ergebnisse für "{state.search}"</p>
@@ -242,7 +134,7 @@ export function CommandPalette({ modules = [], open, onOpenChange }: CommandPale
                       className="mb-3"
                     >
                       {state.selectedCommand.subCommands.map((subCmd) => (
-                        <SubCommandItem key={subCmd.id} subCommand={subCmd} onSelect={(sub) => handleSubCommand(state.selectedCommand!, sub)} currentValue={colorMode} />
+                        <SubCommandItem key={subCmd.id} subCommand={subCmd} onSelect={(sub) => handleSubCommand(state.selectedCommand!, sub)} currentValue={colorMode} isActive={open} />
                       ))}
                     </Command.Group>
                   ) : (
@@ -258,7 +150,7 @@ export function CommandPalette({ modules = [], open, onOpenChange }: CommandPale
                         className="mb-3 last:mb-0"
                       >
                         {group.commands.map((command) => (
-                          <CommandItem key={command.id} command={command} onSelect={handleSelect} />
+                          <CommandItem key={command.id} command={command} onSelect={handleSelect} isActive={open} />
                         ))}
                       </Command.Group>
                     ))

@@ -41,9 +41,14 @@ export class AuthService {
   } | null> {
     try {
       const refreshPayload = await this.verifyRefreshToken(refreshToken);
-      const user = await this.findUserById(refreshPayload.userId);
+
+      // Direkt mit Prisma abfragen - gibt null statt Exception zurück
+      const user = await this.prisma.user.findUnique({
+        where: { id: refreshPayload.userId },
+      });
 
       if (!user) {
+        this.logger.warn(`Refresh mit unbekanntem Benutzer: userId=${refreshPayload.userId}`);
         return null;
       }
 
@@ -57,7 +62,7 @@ export class AuthService {
         user,
       };
     } catch (error) {
-      this.logger.debug('Refresh token invalid', error);
+      this.logger.warn(`Refresh-Token ungültig oder Verifikation fehlgeschlagen: ${error instanceof Error ? error.message : String(error)}`);
       return null;
     }
   }
@@ -182,9 +187,20 @@ export class AuthService {
    * @returns Die dekodierten Token-Daten mit userId
    */
   async verifyRefreshToken(token: string): Promise<ValidatedUser> {
-    const decoded = await this.jwtService.verify(token, {
+    const decoded = await this.jwtService.verifyAsync(token, {
       secret: this.configService.get<string>('JWT_REFRESH_SECRET'),
     });
+
+    // Validate the decoded payload structure
+    if (!decoded || typeof decoded !== 'object') {
+      throw new UnauthorizedException('Invalid token payload');
+    }
+
+    // Validate required properties
+    if (!decoded.sub || typeof decoded.sub !== 'string') {
+      throw new UnauthorizedException('Invalid token: missing or invalid subject');
+    }
+
     // Map JWT payload to ValidatedUser format
     return {
       userId: decoded.sub,

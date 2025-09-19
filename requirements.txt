@@ -1,5 +1,4 @@
 # Web scraping
-playwright>=1.41.0
 html5lib>=1.1
 
 # Search engine

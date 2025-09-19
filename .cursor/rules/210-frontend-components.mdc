@@ -24,7 +24,6 @@ src/components/
 2. **Ein-Komponente-Pro-Datei**
 - Dateiname = Komponentennamen (PascalCase)
 - Props-Interface definieren
-- Default export
 
 3. **Import-Verwendung**
 - Verwende stets die konfigurierten Pfad-Aliase:

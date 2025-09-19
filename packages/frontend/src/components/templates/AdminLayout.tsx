@@ -1,11 +1,11 @@
-import { CloseButton } from '@/components/atoms/close-button.atom';
-import { Container } from '@/components/atoms/container.atom';
-import { Heading } from '@/components/atoms/heading.atom';
-import { Spinner } from '@/components/atoms/spinner.atom';
 import { useAdminAuth } from '@/hooks/useAdminAuth';
 import { useAuth } from '@/hooks/useAuth';
 import { logger } from '@/utils/logger';
+import { CloseButton } from '@atoms/close-button.atom';
+import { Container } from '@atoms/container.atom';
+import { Heading } from '@atoms/heading.atom';
 import { IconButton } from '@atoms/icon-button.atom';
+import { Spinner } from '@atoms/spinner.atom';
 import { Link, Outlet, useLocation, useMatchRoute, useNavigate, useRouterState } from '@tanstack/react-router';
 import { isTauri } from '@tauri-apps/api/core';
 import { useCallback, useEffect, useMemo } from 'react';
@@ -116,7 +116,7 @@ export function AdminLayout() {
             <div className="flex">
               {!matchRoute({ to: '/admin/dashboard' }) && (
                 <Link to="/admin/dashboard">
-                  <IconButton size="lg" className="h-full">
+                  <IconButton aria-label="Zurück zum Dashboard" size="lg" className="h-full">
                     <PiArrowLeft />
                   </IconButton>
                 </Link>

@@ -84,10 +84,14 @@ export function EinsatzDashboard() {
     return () => observer.disconnect();
   }, [hasNextPage, isFetchingNextPage, fetchNextPage]);
 
-  useHotkeys('mod+n', (e: KeyboardEvent) => {
-    e.preventDefault();
-    setIsCreatePanelOpen(true);
-  });
+  useHotkeys(
+    'mod+n',
+    () => {
+      setIsCreatePanelOpen(true);
+    },
+    [setIsCreatePanelOpen],
+    { preventDefault: true },
+  );
 
   const handleSort = (key: SortOption['key']) => {
     setSortOption((prev) => ({

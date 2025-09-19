@@ -1,8 +1,8 @@
-import { Dialog, DialogBackdrop, DialogPanel } from '@headlessui/react';
-import { Link } from '@tanstack/react-router';
 import { cn } from '@/utils/cn';
-import { PiX } from 'react-icons/pi';
+import { CloseButton } from '@atoms/close-button.atom';
+import { Link } from '@tanstack/react-router';
 import type { ComponentType } from 'react';
+import { Dialog } from '../dialog.molecule';
 
 interface Module {
   id: string;
@@ -42,49 +42,43 @@ export function ModuleOverviewCard({ modules, currentModuleId, einsatzId, open, 
   };
 
   return (
-    <Dialog open={open} onClose={onClose} className="relative z-50">
-      <DialogBackdrop className="fixed inset-0 bg-black/30 backdrop-blur-sm" />
+    <Dialog isOpen={open} onClose={onClose} className="max-w-2xl p-0">
+      <div className="relative">
+        {/* Header */}
+        <div className="flex items-center justify-between border-gray-200 border-b p-4 dark:border-gray-700">
+          <h2 className="font-semibold text-gray-900 text-lg dark:text-gray-100">Module wählen</h2>
+          <CloseButton onClick={onClose} />
+        </div>
 
-      <div className="fixed inset-0 flex items-center justify-center p-4">
-        <DialogPanel className="mx-auto w-full max-w-2xl overflow-hidden rounded-xl bg-white shadow-2xl dark:bg-gray-800">
-          {/* Header */}
-          <div className="flex items-center justify-between border-gray-200 border-b p-4 dark:border-gray-700">
-            <h2 className="font-semibold text-gray-900 text-lg dark:text-gray-100">Module wählen</h2>
-            <button type="button" onClick={onClose} className="rounded-lg p-2 transition-colors hover:bg-gray-100 dark:hover:bg-gray-700">
-              <PiX className="h-5 w-5 text-gray-500 dark:text-gray-400" />
-            </button>
-          </div>
+        {/* Module Grid */}
+        <div className="grid grid-cols-2 gap-3 p-4 sm:grid-cols-3">
+          {modules.map((module, index) => {
+            const isActive = module.id === currentModuleId;
+            const hotkey = index < 9 ? index + 1 : null;
 
-          {/* Module Grid */}
-          <div className="grid grid-cols-2 gap-3 p-4 sm:grid-cols-3">
-            {modules.map((module, index) => {
-              const isActive = module.id === currentModuleId;
-              const hotkey = index < 9 ? index + 1 : null;
+            return (
+              <Link
+                key={module.id}
+                to={module.subPages[0].href}
+                params={{ einsatzId }}
+                onClick={onClose}
+                className={cn('relative flex flex-col items-center gap-2 rounded-lg p-4 transition-all', getModuleColor(module.color), isActive && 'ring-2 ring-blue-500 ring-offset-2')}
+              >
+                {/* Hotkey Badge */}
+                {hotkey && <span className="absolute top-2 right-2 font-mono text-xs opacity-50">⌥{hotkey}</span>}
 
-              return (
-                <Link
-                  key={module.id}
-                  to={module.subPages[0].href}
-                  params={{ einsatzId }}
-                  onClick={onClose}
-                  className={cn('relative flex flex-col items-center gap-2 rounded-lg p-4 transition-all', getModuleColor(module.color), isActive && 'ring-2 ring-blue-500 ring-offset-2')}
-                >
-                  {/* Hotkey Badge */}
-                  {hotkey && <span className="absolute top-2 right-2 font-mono text-xs opacity-50">⌥{hotkey}</span>}
+                {/* Icon */}
+                <module.icon className="h-8 w-8" />
 
-                  {/* Icon */}
-                  <module.icon className="h-8 w-8" />
+                {/* Name */}
+                <span className="text-center font-medium text-sm">{module.name}</span>
 
-                  {/* Name */}
-                  <span className="text-center font-medium text-sm">{module.name}</span>
-
-                  {/* Description */}
-                  {module.description && <span className="line-clamp-2 text-center text-xs opacity-75">{module.description}</span>}
-                </Link>
-              );
-            })}
-          </div>
-        </DialogPanel>
+                {/* Description */}
+                {module.description && <span className="line-clamp-2 text-center text-xs opacity-75">{module.description}</span>}
+              </Link>
+            );
+          })}
+        </div>
       </div>
     </Dialog>
   );

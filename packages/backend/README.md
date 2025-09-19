@@ -19,7 +19,6 @@
 
 - `dev`/`start:dev`: Watch-Mode
 - `test`, `test:watch`, `test:cov`: Jest Unit-Tests
-- `test:e2e`, `test:e2e:watch`, `test:e2e:cov`: E2E-Tests
 - Prisma: `prisma:migrate`, `prisma:deploy`, `prisma:seed`, `prisma:studio`
 - Docs: `docs:build` (Compodoc), `docs:serve`
 

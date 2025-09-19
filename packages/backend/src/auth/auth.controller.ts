@@ -484,10 +484,10 @@ export class AuthController {
         this.logger.debug('Admin-Token verifiziert', { payload: adminPayload });
         return true;
       }
-      this.logger.warn(`⚠️ Invalid admin token: ${adminToken}`);
+      this.logger.warn(`⚠️ Invalid admin token found`);
       return false;
     } catch (error) {
-      this.logger.warn(`🍪 Invalid admin token: ${adminToken}`, { error });
+      this.logger.warn(`🍪 Invalid admin token found`, { error });
       return false;
     }
   }

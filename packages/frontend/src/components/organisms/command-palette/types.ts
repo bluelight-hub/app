@@ -8,6 +8,7 @@ export interface SubCommand {
   value?: unknown;
   icon?: ComponentType<{ className?: string }>;
   description?: string;
+  shortcut?: string[];
 }
 
 export type CommandAction = (value?: unknown) => void | Promise<void>;
@@ -28,6 +29,8 @@ export interface NavigationCommand {
 }
 
 export interface ModuleSubPage {
+  id?: string; // Optional stable identifier for the page
+  slug?: string; // Optional URL slug for the page
   name: string;
   href?: string;
   action?: CommandAction;

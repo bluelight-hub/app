@@ -261,7 +261,7 @@ pnpm test:cov       # With coverage (frontend coverage disabled)
 
 # Backend specific
 pnpm --filter @bluelight-hub/backend test
-pnpm --filter @bluelight-hub/backend test:e2e
+# E2E Tests wurden entfernt
 
 # Frontend specific
 pnpm --filter @bluelight-hub/frontend test
@@ -401,7 +401,7 @@ pnpm --filter @bluelight-hub/backend prisma:seed     # Seed database
 # Testing
 pnpm test                   # Run all tests
 pnpm test:ui                # Vitest UI
-pnpm test:e2e               # E2E tests
+# E2E Tests wurden entfernt
 
 # Admin CLI
 pnpm --filter @bluelight-hub/backend admin:reset     # Reset admin password
