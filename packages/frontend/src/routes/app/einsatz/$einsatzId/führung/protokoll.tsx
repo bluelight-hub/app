@@ -4,6 +4,10 @@ export const Route = createFileRoute('/app/einsatz/$einsatzId/führung/protokoll
   component: RouteComponent,
 });
 
+/**
+ * Platzhalteransicht für Führungsprotokoll.
+ * @returns {JSX.Element}
+ */
 function RouteComponent() {
   return <div>Hello "/app/einsatz/$einsatzId/führung/protokoll"!</div>;
 }
