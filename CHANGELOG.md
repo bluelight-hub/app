@@ -1,3 +1,23 @@
+## Version [v1.0.0-alpha.25](https://github.com/rubenvitt/bluelight-hub/compare/v1.0.0-alpha.24...v1.0.0-alpha.25) – Veröffentlicht am 2025-09-19
+
+## ✨ Neue Funktionen
+Die folgenden neuen Features wurden hinzugefügt:
+- [`c798157`](https://github.com/rubenvitt/bluelight-hub/commit/c798157) (frontend): Add Command Palette with keyboard shortcuts 
+
+- [`b1cd850`](https://github.com/rubenvitt/bluelight-hub/commit/b1cd850) (frontend): Add error boundary and improve Command Palette stability 
+
+## ♻ Refactoring
+Struktur- oder Code-Verbesserungen:
+- [`0317e2d`](https://github.com/rubenvitt/bluelight-hub/commit/0317e2d) (frontend): Extract Command Palette hooks into separate modules 
+
+- [`7fbc19f`](https://github.com/rubenvitt/bluelight-hub/commit/7fbc19f) (project): Major refactoring and cleanup of code structure 
+
+- [`85dcfa6`](https://github.com/rubenvitt/bluelight-hub/commit/85dcfa6) (frontend): Replace custom debounce hook with @tanstack/pacer 
+
+
+
+# [1.0.0-alpha.25](https://github.com/rubenvitt/bluelight-hub/compare/v1.0.0-alpha.24...v1.0.0-alpha.25) (2025-09-19)
+
 ## Version [v1.0.0-alpha.24](https://github.com/rubenvitt/bluelight-hub/compare/v1.0.0-alpha.23...v1.0.0-alpha.24) – Veröffentlicht am 2025-09-19
 
 ## 🔒 Sicherheitsverbesserungen
