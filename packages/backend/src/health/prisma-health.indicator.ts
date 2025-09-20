@@ -41,7 +41,7 @@ export class PrismaHealthIndicator {
       await this.prisma.$queryRaw`SELECT 1`;
 
       return this.healthIndicatorService.check(key).up();
-    } catch (error) {
+    } catch (error: unknown) {
       const errorMessage = error instanceof Error ? error.message : String(error);
       return this.healthIndicatorService.check(key).down(errorMessage);
     }
@@ -60,7 +60,7 @@ export class PrismaHealthIndicator {
       return this.healthIndicatorService.check(key).up({
         connected: connectionStatus !== null,
       });
-    } catch (error) {
+    } catch (error: unknown) {
       const errorMessage = error instanceof Error ? error.message : String(error);
       return this.healthIndicatorService.check(key).down(errorMessage);
     }

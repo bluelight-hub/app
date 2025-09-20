@@ -90,7 +90,7 @@ export class RateLimitGuard implements CanActivate {
       response.setHeader('X-RateLimit-Reset', status.resetTime.toISOString());
 
       return true;
-    } catch (error) {
+    } catch (error: unknown) {
       // Log error but allow request on cache failures (graceful degradation)
       this.logger.error('Rate limiter error:', error);
       return true;

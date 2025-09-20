@@ -51,7 +51,7 @@ export class CacheRateLimiterService {
       await this.cacheManager.set(cacheKey, newCount, ttl);
 
       return true;
-    } catch (error) {
+    } catch (error: unknown) {
       // Log error but don't block requests on cache failures
       this.logger.error(`Rate limiter cache error for key ${key}:`, error);
       // Return true to allow request on cache failure (graceful degradation)
@@ -84,7 +84,7 @@ export class CacheRateLimiterService {
         resetTime,
         remaining,
       };
-    } catch (error) {
+    } catch (error: unknown) {
       this.logger.error(`Rate limiter status error for key ${key}:`, error);
       // Return safe defaults on error
       return {
