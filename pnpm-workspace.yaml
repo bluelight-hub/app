@@ -1,6 +1,5 @@
 packages:
   - packages/*
-  - .
 
 catalog:
   '@dotenvx/dotenvx': ^1.49.0
