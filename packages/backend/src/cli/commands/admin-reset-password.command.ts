@@ -29,8 +29,8 @@ export class AdminResetPasswordCommand {
 
       this.logger.log(`✅ Passwort erfolgreich zurückgesetzt für Admin: ${username}`);
       this.logger.log(`📅 Zeitstempel: ${new Date().toISOString()}`);
-    } catch (error) {
-      this.logger.error(`Failed to reset password for ${username}`, error.stack);
+    } catch (error: unknown) {
+      this.logger.error(`Failed to reset password for ${username}`, error instanceof Error ? error.stack : String(error));
       throw error;
     }
   }

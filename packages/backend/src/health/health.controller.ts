@@ -204,7 +204,7 @@ export class HealthController {
           },
         },
       };
-    } catch (error) {
+    } catch (error: unknown) {
       return {
         fuekw: {
           status: 'down',

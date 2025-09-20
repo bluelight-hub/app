@@ -61,7 +61,7 @@ export class AuthService {
         refreshToken: newRefreshToken,
         user,
       };
-    } catch (error) {
+    } catch (error: unknown) {
       this.logger.warn(`Refresh-Token ungültig oder Verifikation fehlgeschlagen: ${error instanceof Error ? error.message : String(error)}`);
       return null;
     }
@@ -422,7 +422,7 @@ export class AuthService {
       await this.updateLastLogin(newUser.id);
 
       return this.createAuthResponse(newUser, true);
-    } catch (error) {
+    } catch (error: unknown) {
       // Handle race condition wenn zwei Requests gleichzeitig denselben User anlegen
       if (this.isUniqueConstraintError(error)) {
         // Retry login da User jetzt existiert

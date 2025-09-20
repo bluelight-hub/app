@@ -52,9 +52,9 @@ export class UserManagementService {
         },
       );
       return toUserDto(user);
-    } catch (error) {
+    } catch (error: unknown) {
       // Handle Prisma unique constraint violation
-      if (error.code === 'P2002') {
+      if (error instanceof Object && 'code' in error && error.code === 'P2002') {
         throw new ConflictException('Benutzername bereits vergeben');
       }
       // Re-throw other errors
@@ -119,9 +119,9 @@ export class UserManagementService {
         });
 
         return toUserDto(updatedUser);
-      } catch (error) {
+      } catch (error: unknown) {
         // Handle Prisma unique constraint violation
-        if (error.code === 'P2002') {
+        if (error instanceof Object && 'code' in error && error.code === 'P2002') {
           throw new ConflictException('Benutzername bereits vergeben');
         }
         throw error;

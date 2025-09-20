@@ -115,13 +115,13 @@ export class AuthController {
 
       // Nur DTO-konforme Daten zurückgeben (ohne Tokens)
       return responseDto;
-    } catch (error) {
+    } catch (error: unknown) {
       // Audit-Log für fehlgeschlagene Authentifizierung
       this.logger.warn('Authentication failed', {
         username: dto.username,
         ip: req.ip,
         userAgent: req.headers['user-agent'],
-        error: error.message,
+        error: error instanceof Error ? error.message : String(error),
         timestamp: new Date().toISOString(),
       });
       throw error;
@@ -414,7 +414,7 @@ export class AuthController {
         authenticated: true,
         isAdminAuthenticated,
       };
-    } catch (error) {
+    } catch (error: unknown) {
       this.logger.warn('Auth-Check failed', { error });
       throw new UnauthorizedException();
     }
@@ -527,7 +527,7 @@ export class AuthController {
       }
       this.logger.warn(`⚠️ Invalid admin token found`);
       return false;
-    } catch (error) {
+    } catch (error: unknown) {
       this.logger.warn(`🍪 Invalid admin token found`, { error });
       return false;
     }
