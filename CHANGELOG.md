@@ -1,3 +1,21 @@
+## Version [v1.0.0-alpha.26](https://github.com/rubenvitt/bluelight-hub/compare/v1.0.0-alpha.25...v1.0.0-alpha.26) – Veröffentlicht am 2025-09-21
+
+## ✨ Neue Funktionen
+Die folgenden neuen Features wurden hinzugefügt:
+- [`8381717`](https://github.com/rubenvitt/bluelight-hub/commit/8381717) (frontend): erweitere Dialog Component um Varianten und vereinfachte API 
+
+## 🐛 Fehlerbehebungen
+Diese Probleme wurden behoben:
+- [`dba7d73`](https://github.com/rubenvitt/bluelight-hub/commit/dba7d73) (frontend): Fix enum value handling in MobileFilterDialog 
+
+## ♻ Refactoring
+Struktur- oder Code-Verbesserungen:
+- [`4886895`](https://github.com/rubenvitt/bluelight-hub/commit/4886895) (frontend): Migrate SlideInPanel to Dialog.SlideIn variant 
+
+
+
+# [1.0.0-alpha.26](https://github.com/rubenvitt/bluelight-hub/compare/v1.0.0-alpha.25...v1.0.0-alpha.26) (2025-09-21)
+
 ## Version [v1.0.0-alpha.25](https://github.com/rubenvitt/bluelight-hub/compare/v1.0.0-alpha.24...v1.0.0-alpha.25) – Veröffentlicht am 2025-09-19
 
 ## ✨ Neue Funktionen
