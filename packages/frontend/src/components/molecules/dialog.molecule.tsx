@@ -44,6 +44,7 @@ interface ConfirmDialogProps {
   variant?: 'danger' | 'warning' | 'info';
   isProcessing?: boolean;
   requireConfirmation?: boolean;
+  size?: 'sm' | 'md' | 'lg' | 'xl' | 'full';
 }
 
 interface AlertDialogProps {
@@ -55,42 +56,43 @@ interface AlertDialogProps {
   icon?: React.ComponentType<{ className?: string }>;
 }
 
+interface SlideInDialogProps {
+  isOpen: boolean;
+  onClose: () => void;
+  title: string;
+  description?: string;
+  children: React.ReactNode;
+  size?: 'sm' | 'md' | 'lg' | 'xl' | 'full';
+  position?: 'left' | 'right';
+  showCloseButton?: boolean;
+  closeOnBackdropClick?: boolean;
+  className?: string;
+}
+
 /**
  * Dialog Molecule Component
  *
  * Wiederverwendbare Dialog-Komponente basierend auf Headless UI
  */
-export const Dialog = ({
-  isOpen,
-  onClose,
-  children,
-  className,
-  size = 'md',
-  closeOnEscape = true,
-  closeOnClickOutside = true,
-  initialFocus
-}: DialogProps) => {
+export const Dialog = ({ isOpen, onClose, children, className, size = 'md', closeOnEscape = true, closeOnClickOutside = true, initialFocus }: DialogProps) => {
   const sizeClasses = {
-    sm: 'max-w-sm',  // 384px
-    md: 'max-w-md',  // 448px - default
-    lg: 'max-w-lg',  // 512px
-    xl: 'max-w-xl',  // 576px
-    full: 'max-w-2xl' // 672px
+    sm: 'max-w-md', // 448px (was 384px)
+    md: 'max-w-lg', // 512px (was 448px)
+    lg: 'max-w-xl', // 576px (was 512px)
+    xl: 'max-w-2xl', // 672px (was 576px)
+    full: 'max-w-4xl', // 896px (was 672px)
   };
 
+  // Handle custom close behavior
   const handleClose = React.useCallback(() => {
-    if (closeOnClickOutside) {
+    if (closeOnClickOutside || closeOnEscape) {
       onClose();
     }
-  }, [closeOnClickOutside, onClose]);
+  }, [closeOnClickOutside, closeOnEscape, onClose]);
+
   return (
     <Transition appear show={isOpen} as={React.Fragment}>
-      <HeadlessDialog
-        as="div"
-        className="relative z-50"
-        onClose={handleClose}
-        initialFocus={initialFocus}
-      >
+      <HeadlessDialog as="div" className="relative z-50" onClose={handleClose} initialFocus={initialFocus}>
         <TransitionChild as={React.Fragment} enter="ease-out duration-300" enterFrom="opacity-0" enterTo="opacity-100" leave="ease-in duration-200" leaveFrom="opacity-100" leaveTo="opacity-0">
           <div className="fixed inset-0 bg-black/25 backdrop-blur-sm" />
         </TransitionChild>
@@ -160,7 +162,8 @@ Dialog.Confirm = ({
   cancelLabel = 'Abbrechen',
   variant = 'info',
   isProcessing = false,
-  requireConfirmation = false
+  requireConfirmation = false,
+  size = 'md',
 }: ConfirmDialogProps) => {
   const [isConfirmed, setIsConfirmed] = React.useState(false);
 
@@ -168,18 +171,18 @@ Dialog.Confirm = ({
     danger: {
       icon: PiWarning,
       iconColor: 'text-red-500',
-      buttonIntent: 'danger' as const
+      buttonIntent: 'danger' as const,
     },
     warning: {
       icon: PiWarning,
       iconColor: 'text-amber-500',
-      buttonIntent: 'warning' as const
+      buttonIntent: 'warning' as const,
     },
     info: {
       icon: PiInfo,
       iconColor: 'text-blue-500',
-      buttonIntent: 'primary' as const
-    }
+      buttonIntent: 'primary' as const,
+    },
   };
 
   const config = variantConfig[variant];
@@ -198,8 +201,10 @@ Dialog.Confirm = ({
   }, [onConfirm, requireConfirmation, isConfirmed]);
 
   React.useEffect(() => {
+    if (!isOpen) return;
+
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (isOpen && e.key === 'Enter' && (!requireConfirmation || isConfirmed)) {
+      if (e.key === 'Enter' && (!requireConfirmation || isConfirmed)) {
         e.preventDefault();
         handleConfirm();
       }
@@ -210,18 +215,12 @@ Dialog.Confirm = ({
   }, [isOpen, handleConfirm, requireConfirmation, isConfirmed]);
 
   return (
-    <Dialog isOpen={isOpen} onClose={handleClose} size="sm">
+    <Dialog isOpen={isOpen} onClose={handleClose} size={size}>
       <Dialog.Title>{title}</Dialog.Title>
       <Dialog.Body>
         <div className="flex items-start space-x-3">
           <Icon className={cn('mt-0.5 h-6 w-6 flex-shrink-0', config.iconColor)} />
-          <div className="flex-1">
-            {typeof message === 'string' ? (
-              <p className="text-gray-700 dark:text-gray-300">{message}</p>
-            ) : (
-              message
-            )}
-          </div>
+          <div className="flex-1">{typeof message === 'string' ? <p className="text-gray-700 dark:text-gray-300">{message}</p> : message}</div>
         </div>
         {requireConfirmation && (
           <div className="mt-4 border-t pt-4 dark:border-gray-700">
@@ -233,28 +232,16 @@ Dialog.Confirm = ({
                 className="mt-1 h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700"
                 disabled={isProcessing}
               />
-              <span className="select-none text-gray-700 text-sm dark:text-gray-300">
-                Ich bestätige diese Aktion
-              </span>
+              <span className="select-none text-gray-700 text-sm dark:text-gray-300">Ich bestätige diese Aktion</span>
             </label>
           </div>
         )}
       </Dialog.Body>
       <Dialog.Footer loading={isProcessing}>
-        <Button
-          intent="secondary"
-          appearance="ghost"
-          onClick={handleClose}
-          disabled={isProcessing}
-        >
+        <Button intent="secondary" appearance="ghost" onClick={handleClose} disabled={isProcessing}>
           {cancelLabel}
         </Button>
-        <Button
-          intent={config.buttonIntent}
-          onClick={handleConfirm}
-          loading={isProcessing}
-          disabled={isProcessing || (requireConfirmation && !isConfirmed)}
-        >
+        <Button intent={config.buttonIntent} onClick={handleConfirm} loading={isProcessing} disabled={isProcessing || (requireConfirmation && !isConfirmed)}>
           {confirmLabel}
         </Button>
       </Dialog.Footer>
@@ -267,47 +254,42 @@ Dialog.Confirm = ({
  *
  * Vordefinierte Dialog-Variante für Benachrichtigungen
  */
-Dialog.Alert = ({
-  isOpen,
-  onClose,
-  title,
-  message,
-  variant = 'info',
-  icon
-}: AlertDialogProps) => {
+Dialog.Alert = ({ isOpen, onClose, title, message, variant = 'info', icon }: AlertDialogProps) => {
   const variantConfig = {
     success: {
       icon: icon || PiCheckCircle,
       iconColor: 'text-green-500',
       bgColor: 'bg-green-50 dark:bg-green-900/20',
-      borderColor: 'border-green-200 dark:border-green-800'
+      borderColor: 'border-green-200 dark:border-green-800',
     },
     error: {
       icon: icon || PiXCircle,
       iconColor: 'text-red-500',
       bgColor: 'bg-red-50 dark:bg-red-900/20',
-      borderColor: 'border-red-200 dark:border-red-800'
+      borderColor: 'border-red-200 dark:border-red-800',
     },
     warning: {
       icon: icon || PiWarning,
       iconColor: 'text-amber-500',
       bgColor: 'bg-amber-50 dark:bg-amber-900/20',
-      borderColor: 'border-amber-200 dark:border-amber-800'
+      borderColor: 'border-amber-200 dark:border-amber-800',
     },
     info: {
       icon: icon || PiInfo,
       iconColor: 'text-blue-500',
       bgColor: 'bg-blue-50 dark:bg-blue-900/20',
-      borderColor: 'border-blue-200 dark:border-blue-800'
-    }
+      borderColor: 'border-blue-200 dark:border-blue-800',
+    },
   };
 
   const config = variantConfig[variant];
   const Icon = config.icon;
 
   React.useEffect(() => {
+    if (!isOpen) return;
+
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (isOpen && (e.key === 'Enter' || e.key === ' ')) {
+      if (e.key === 'Enter' || e.key === ' ') {
         e.preventDefault();
         onClose();
       }
@@ -327,11 +309,7 @@ Dialog.Alert = ({
       </Dialog.Title>
       <Dialog.Body>
         <div className={cn('rounded-lg border p-4', config.bgColor, config.borderColor)}>
-          {typeof message === 'string' ? (
-            <p className="text-gray-700 text-sm dark:text-gray-300">{message}</p>
-          ) : (
-            message
-          )}
+          {typeof message === 'string' ? <p className="text-gray-700 text-sm dark:text-gray-300">{message}</p> : message}
         </div>
       </Dialog.Body>
       <Dialog.Footer>
@@ -340,5 +318,69 @@ Dialog.Alert = ({
         </Button>
       </Dialog.Footer>
     </Dialog>
+  );
+};
+
+/**
+ * SlideIn Dialog Variant
+ *
+ * Vordefinierte Dialog-Variante für Slide-In-Panels von der Seite
+ */
+Dialog.SlideIn = ({ isOpen, onClose, title, description, children, size = 'lg', position = 'right', showCloseButton = true, closeOnBackdropClick = true, className }: SlideInDialogProps) => {
+  const sizeClasses = {
+    sm: 'max-w-md',
+    md: 'max-w-2xl',
+    lg: 'max-w-4xl',
+    xl: 'max-w-6xl',
+    full: 'max-w-full',
+  };
+
+  const slideFrom = position === 'right' ? 'translate-x-full' : '-translate-x-full';
+  const positionClasses = position === 'right' ? 'right-0' : 'left-0';
+
+  return (
+    <Transition show={isOpen} as={React.Fragment}>
+      <HeadlessDialog as="div" className="relative z-50" onClose={closeOnBackdropClick ? onClose : () => {}}>
+        {/* Backdrop */}
+        <TransitionChild as={React.Fragment} enter="ease-in-out duration-300" enterFrom="opacity-0" enterTo="opacity-100" leave="ease-in-out duration-300" leaveFrom="opacity-100" leaveTo="opacity-0">
+          <div className="fixed inset-0 bg-gray-900/60 backdrop-blur-sm transition-opacity" />
+        </TransitionChild>
+
+        {/* Panel */}
+        <div className="fixed inset-0 overflow-hidden">
+          <div className="absolute inset-0 overflow-hidden">
+            <div className={cn('pointer-events-none fixed inset-y-0 flex', positionClasses, sizeClasses[size])}>
+              <TransitionChild
+                as={React.Fragment}
+                enter="transform transition ease-in-out duration-300"
+                enterFrom={slideFrom}
+                enterTo="translate-x-0"
+                leave="transform transition ease-in-out duration-300"
+                leaveFrom="translate-x-0"
+                leaveTo={slideFrom}
+              >
+                <DialogPanel className={cn('pointer-events-auto relative w-screen', sizeClasses[size], className)}>
+                  <div className="flex h-full flex-col bg-white shadow-2xl dark:bg-gray-900">
+                    {/* Header */}
+                    <div className="border-gray-200 border-b px-6 py-4 dark:border-gray-700">
+                      <div className="flex items-start justify-between">
+                        <div className="flex-1">
+                          <DialogTitle className="font-semibold text-gray-900 text-xl leading-6 dark:text-white">{title}</DialogTitle>
+                          {description && <p className="mt-1 text-gray-500 text-sm dark:text-gray-400">{description}</p>}
+                        </div>
+                        {showCloseButton && <CloseButton onClick={onClose} size="lg" appearance="minimal" className="ml-4" />}
+                      </div>
+                    </div>
+
+                    {/* Content */}
+                    <div className="relative flex-1 overflow-y-auto px-6 py-6">{children}</div>
+                  </div>
+                </DialogPanel>
+              </TransitionChild>
+            </div>
+          </div>
+        </div>
+      </HeadlessDialog>
+    </Transition>
   );
 };

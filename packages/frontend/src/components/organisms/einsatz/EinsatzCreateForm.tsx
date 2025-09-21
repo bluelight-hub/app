@@ -6,7 +6,7 @@ import { Input } from '@atoms/input.atom';
 import { Textarea } from '@atoms/textarea.atom';
 import type { CreateEinsatzDto } from '@bluelight-hub/shared/client';
 import { FormFieldWrapper } from '@molecules/form/FormFieldWrapper';
-import { SlideInPanel } from '@molecules/layout/slide-in-panel.molecule';
+import { Dialog } from '@/components/molecules/dialog.molecule';
 import { useForm } from '@tanstack/react-form';
 import { useNavigate } from '@tanstack/react-router';
 import { useCallback, useEffect } from 'react';
@@ -111,7 +111,7 @@ export function EinsatzCreateForm({ isOpen, onClose, onSuccess }: EinsatzCreateF
   }, [form, onClose]);
 
   return (
-    <SlideInPanel
+    <Dialog.SlideIn
       isOpen={isOpen}
       onClose={handleClose}
       title="Neuen Einsatz erstellen"
@@ -210,6 +210,6 @@ export function EinsatzCreateForm({ isOpen, onClose, onSuccess }: EinsatzCreateF
           Erstellen
         </div>
       </form>
-    </SlideInPanel>
+    </Dialog.SlideIn>
   );
 }
