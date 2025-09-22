@@ -3,14 +3,14 @@
   "version": "0.0.0",
   "private": true,
   "scripts": {
-    "dev": "pnpm -r --filter \"./packages/*\" dev",
-    "build": "pnpm -r --filter \"./packages/*\" build",
-    "generate-api": "pnpm -r --filter \"./packages/*\" generate-api",
+    "dev": "pnpm -r --filter '@bluelight-hub/*' dev",
+    "build": "pnpm -r --filter '@bluelight-hub/*' build",
+    "generate-api": "pnpm -r --filter '@bluelight-hub/*' --if-present generate-api",
     "lint": "biome check --write",
-    "lint:check": "biome check && pnpm -r --filter \"./packages/*\" lint:check",
-    "test": "pnpm -r --filter \"./packages/*\" test",
-    "test:ui": "pnpm -r --filter \"./packages/*\" test:ui",
-    "test:cov": "pnpm -r --filter \"./packages/*\" test:cov",
+    "lint:check": "biome check && pnpm -r --filter '@bluelight-hub/*' lint:check",
+    "test": "pnpm -r --filter '@bluelight-hub/*' test",
+    "test:ui": "pnpm -r --filter '@bluelight-hub/*' test:ui",
+    "test:cov": "pnpm -r --filter '@bluelight-hub/*' test:cov",
     "docs:html": "asciidoctor -r asciidoctor-diagram -a mmdc=./mmdc-no-sandbox docs/index.adoc -o dist/docs/index.html",
     "docs:pdf": "asciidoctor-pdf -r asciidoctor-diagram -a mmdc=./mmdc-no-sandbox -s docs/styles/bluelight-pdf.css docs/index.adoc -o dist/docs/bluelight-hub-architecture.pdf",
     "docs:build": "mkdir -p dist/docs && pnpm docs:html && pnpm docs:pdf",
@@ -20,7 +20,7 @@
     "bmad:list": "bmad-method list:agents",
     "bmad:validate": "bmad-method validate"
   },
-  "packageManager": "pnpm@10.16.0+sha512.8066e7b034217b700a9a4dbb3a005061d641ba130a89915213a10b3ca4919c19c037bec8066afdc559b89635fdb806b16ea673f2468fbb28aabfa13c53e3f769",
+  "packageManager": "pnpm@10.17.1+sha512.17c560fca4867ae9473a3899ad84a88334914f379be46d455cbf92e5cf4b39d34985d452d2583baf19967fa76cb5c17bc9e245529d0b98745721aa7200ecaf7a",
   "pnpm": {
     "onlyBuiltDependencies": [
       "@compodoc/compodoc",
