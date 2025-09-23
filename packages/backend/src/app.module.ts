@@ -7,6 +7,7 @@ import { AppController } from './app.controller';
 import { AuthModule } from './auth/auth.module';
 import { CommonModule } from './common/common.module';
 import { EinsatzModule } from './einsatz/einsatz.module';
+import { EtbModule } from './etb/etb.module';
 import { HealthModule } from './health/health.module';
 import { PrismaModule } from './prisma/prisma.module';
 import { UserManagementModule } from './user-management/user-management.module';
@@ -43,6 +44,7 @@ import { UserManagementModule } from './user-management/user-management.module';
     AuthModule,
     UserManagementModule,
     EinsatzModule,
+    EtbModule,
   ],
   controllers: [AppController],
   providers: [
