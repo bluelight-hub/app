@@ -7,6 +7,7 @@ import { Card } from '@atoms/card.atom';
 import { Text } from '@atoms/text.atom';
 import { FormFieldWrapper } from '@molecules/form/FormFieldWrapper';
 import { PasswordInput } from '@molecules/password-input.molecule';
+import { PasswordStrengthIndicator } from '@molecules/password-strength-indicator.molecule';
 import { useForm } from '@tanstack/react-form';
 import { useNavigate } from '@tanstack/react-router';
 import { useEffect, useState } from 'react';
@@ -130,20 +131,28 @@ export function AdminSetup() {
                   helpText={field.state.meta.errors.length === 0 ? 'Mind. 8 Zeichen, 1 Groß-, 1 Kleinbuchstabe, 1 Zahl, 1 Sonderzeichen' : undefined}
                   required
                 >
-                  <PasswordInput
-                    id="password"
-                    name="password"
-                    autoComplete="new-password"
-                    placeholder="Mindestens 8 Zeichen"
-                    value={field.state.value}
-                    onChange={(e) => {
-                      field.handleChange(e.target.value);
-                    }}
-                    onBlur={field.handleBlur}
-                    disabled={adminSetup.isPending}
-                    variant={field.state.meta.isTouched && field.state.meta.errors.length > 0 ? 'error' : 'default'}
-                    fullWidth
-                  />
+                  <div className="space-y-3">
+                    <PasswordInput
+                      id="password"
+                      name="password"
+                      autoComplete="new-password"
+                      placeholder="Mindestens 8 Zeichen"
+                      value={field.state.value}
+                      onChange={(e) => {
+                        field.handleChange(e.target.value);
+                      }}
+                      onBlur={field.handleBlur}
+                      disabled={adminSetup.isPending}
+                      variant={field.state.meta.isTouched && field.state.meta.errors.length > 0 ? 'error' : 'default'}
+                      fullWidth
+                    />
+                    <PasswordStrengthIndicator
+                      password={field.state.value}
+                      showLabel={true}
+                      showCriteria={true}
+                      minScore={3}
+                    />
+                  </div>
                 </FormFieldWrapper>
               )}
             </form.Field>
