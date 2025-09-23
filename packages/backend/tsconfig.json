@@ -24,6 +24,7 @@
     "noUncheckedIndexedAccess": true,
     "forceConsistentCasingInFileNames": true,
     "noFallthroughCasesInSwitch": true,
+    "useUnknownInCatchVariables": true,
     "resolveJsonModule": true,
     "paths": {
       "@/*": ["src/*"]

@@ -122,7 +122,7 @@ describe('AdminJwtStrategy', () => {
 
     it('should throw UnauthorizedException when user no longer exists', async () => {
       // Mock user not found
-      jest.spyOn(authService, 'findUserById').mockResolvedValue(null);
+      jest.spyOn(authService, 'findUserById').mockResolvedValue(null as never);
 
       const payload: AdminJwtPayload = {
         sub: 'deleted-user-id',

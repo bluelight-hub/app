@@ -11,7 +11,7 @@ export class ApiMeta {
     description: 'Zeitstempel der Antwort',
     example: '2023-01-01T12:00:00.000Z',
   })
-  timestamp: string;
+  timestamp!: string;
 
   /**
    * API-Version
@@ -45,7 +45,7 @@ export class ApiPagination {
     description: 'Aktuelle Seite',
     example: 1,
   })
-  page: number;
+  page!: number;
 
   /**
    * Anzahl der Elemente pro Seite
@@ -54,7 +54,7 @@ export class ApiPagination {
     description: 'Anzahl der Elemente pro Seite',
     example: 20,
   })
-  limit: number;
+  limit!: number;
 
   /**
    * Gesamtanzahl der Elemente
@@ -63,7 +63,7 @@ export class ApiPagination {
     description: 'Gesamtanzahl der Elemente',
     example: 100,
   })
-  total: number;
+  total!: number;
 
   /**
    * Gesamtanzahl der Seiten
@@ -72,7 +72,7 @@ export class ApiPagination {
     description: 'Gesamtanzahl der Seiten',
     example: 5,
   })
-  totalPages: number;
+  totalPages!: number;
 }
 
 /**
@@ -86,7 +86,7 @@ export class ApiLinks {
     description: 'Link zur aktuellen Ressource',
     example: '/api/v-alpha/users?page=1&limit=20',
   })
-  self: string;
+  self!: string;
 
   /**
    * Link zur nächsten Seite
@@ -126,7 +126,7 @@ export abstract class ApiResponse<T> {
     description: 'Metadaten zur Antwort',
     type: ApiMeta,
   })
-  meta: ApiMeta;
+  meta!: ApiMeta;
 
   /**
    * Optionale Nachricht

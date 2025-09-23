@@ -24,7 +24,7 @@ export class AuthRequestDto {
     message: 'Benutzername darf nur Buchstaben, Zahlen, Unterstriche und Bindestriche enthalten',
   })
   @Transform(({ value }) => (typeof value === 'string' ? value.trim() : value))
-  username: string;
+  username!: string;
 
   @ApiPropertyOptional({
     description: 'Passwort (nur für Admin-Account Login erforderlich)',

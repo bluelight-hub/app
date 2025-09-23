@@ -97,7 +97,7 @@ describe('AuthService - Admin Token', () => {
       service.signAdminToken(mockUser);
 
       const signCall = jest.mocked(jwtService.sign).mock.calls[0];
-      expect(signCall[1]).toEqual({
+      expect(signCall?.[1]).toEqual({
         secret: 'test-admin-secret',
         expiresIn: mockAdminExpiration,
       });
@@ -113,7 +113,7 @@ describe('AuthService - Admin Token', () => {
       service.signAdminToken(mockUser);
 
       const signCall = jest.mocked(jwtService.sign).mock.calls[0];
-      const payload = signCall[0];
+      const payload = signCall?.[0];
 
       expect(payload).toHaveProperty('role', mockUser.role);
       expect(payload).toHaveProperty('sub', mockUser.id);

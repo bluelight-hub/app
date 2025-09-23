@@ -12,41 +12,41 @@ export class UserResponseDto {
     description: 'Eindeutige ID des Benutzers',
     example: '453GsDyW0KssEuIW2lo2G',
   })
-  id: string;
+  id!: string;
 
   @ApiProperty({
     description: 'Benutzername',
     example: 'max_mustermann',
   })
-  username: string;
+  username!: string;
 
   @ApiProperty({
     description: 'Rolle des Benutzers',
     enum: UserRole,
     example: UserRole.USER,
   })
-  role: UserRole;
+  role!: UserRole;
 
   @ApiProperty({
     description: 'Gibt an, ob der Benutzer aktiv ist',
     example: true,
   })
-  isActive: boolean;
+  isActive!: boolean;
 
   @ApiProperty({
     description: 'Zeitpunkt der letzten Anmeldung',
     required: false,
     nullable: true,
   })
-  lastLoginAt: Date | null;
+  lastLoginAt!: Date | null;
 
   @ApiProperty({
     description: 'Zeitpunkt der Erstellung',
   })
-  createdAt: Date;
+  createdAt!: Date;
 
   @ApiProperty({
     description: 'Zeitpunkt der letzten Aktualisierung',
   })
-  updatedAt: Date;
+  updatedAt!: Date;
 }

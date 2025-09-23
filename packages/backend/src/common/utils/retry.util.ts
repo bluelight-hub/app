@@ -1,4 +1,5 @@
 import { Logger } from '@nestjs/common';
+import { isPrismaP2002 } from './prisma.util';
 
 /**
  * PostgreSQL retryable error codes
@@ -49,7 +50,7 @@ export const DEFAULT_RETRY_CONFIG: RetryConfig = {
     }
 
     // Check Prisma error codes
-    if (errorWithCode.code === 'P2002') {
+    if (isPrismaP2002(error)) {
       return true;
     }
 
@@ -74,7 +75,7 @@ export class RetryUtil {
   /**
    * Create a retry policy for specific error types
    */
-  static createRetryPolicy(policies: { [errorType: string]: Partial<RetryConfig> }): (error: unknown) => Partial<RetryConfig> | null {
+  static createRetryPolicy(policies: { [errorType: string]: Partial<RetryConfig> }): (error: unknown) => Partial<RetryConfig> | null | undefined {
     return (error: unknown) => {
       // Type guard for error object
       const errorObj = error as { name?: string; code?: string; status?: number };

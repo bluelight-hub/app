@@ -5,32 +5,32 @@ class CompletenessFieldInfo {
     description: 'Der Name des Feldes',
     example: 'ansprechpartner',
   })
-  field: string;
+  field!: string;
 
   @ApiProperty({
     description: 'Der vollständige Pfad zum Feld',
     example: 'einsatz.ansprechpartner',
   })
-  fieldPath: string;
+  fieldPath!: string;
 
   @ApiProperty({
     description: 'Die Priorität des fehlenden Feldes',
     enum: ['critical', 'important', 'optional'],
     example: 'critical',
   })
-  priority: 'critical' | 'important' | 'optional';
+  priority!: 'critical' | 'important' | 'optional';
 
   @ApiProperty({
     description: 'Beschreibung des fehlenden Feldes',
     example: 'Kein Ansprechpartner definiert',
   })
-  message: string;
+  message!: string;
 
   @ApiProperty({
     description: 'Empfohlene Aktion zur Behebung',
     example: 'Fügen Sie einen Ansprechpartner mit Name und Kontaktdaten hinzu',
   })
-  suggestedAction: string;
+  suggestedAction!: string;
 }
 
 export class CompletenessResponseDto {
@@ -40,18 +40,18 @@ export class CompletenessResponseDto {
     minimum: 0,
     maximum: 100,
   })
-  score: number;
+  score!: number;
 
   @ApiProperty({
     description: 'Gibt an, ob der Einsatz vollständig ist',
     example: false,
   })
-  isComplete: boolean;
+  isComplete!: boolean;
 
   @ApiProperty({
     description: 'Liste der fehlenden oder unvollständigen Felder',
     type: [CompletenessFieldInfo],
     isArray: true,
   })
-  missingFields: CompletenessFieldInfo[];
+  missingFields!: CompletenessFieldInfo[];
 }

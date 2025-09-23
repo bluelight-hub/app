@@ -416,7 +416,10 @@ export class AuthController {
       };
     } catch (error: unknown) {
       this.logger.warn('Auth-Check failed', { error });
-      throw new UnauthorizedException();
+      return {
+        user: null,
+        authenticated: false,
+      };
     }
   }
 

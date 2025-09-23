@@ -5,11 +5,11 @@ export class DeleteUserResponseDto {
     description: 'ID des gelöschten Benutzers',
     example: 'user123',
   })
-  id: string;
+  id!: string;
 
   @ApiProperty({
     description: 'Bestätigung der Löschung',
     example: true,
   })
-  deleted: boolean;
+  deleted!: boolean;
 }

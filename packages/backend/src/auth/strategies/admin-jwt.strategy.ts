@@ -47,9 +47,9 @@ export class AdminJwtStrategy extends PassportStrategy(Strategy, 'admin-jwt') {
         },
       ]),
       ignoreExpiration: false,
-      secretOrKey: configService.get<string>('ADMIN_JWT_SECRET'),
+      secretOrKey: configService.get<string>('ADMIN_JWT_SECRET') || 'fallback-secret',
       passReqToCallback: true, // Pass the request to the validate method
-    });
+    } as never);
   }
 
   /**

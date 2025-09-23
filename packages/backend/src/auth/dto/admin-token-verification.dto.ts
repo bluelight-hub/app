@@ -8,5 +8,5 @@ export class AdminTokenVerificationDto {
     description: 'Bestätigung, dass das Admin-Token gültig ist',
     example: true,
   })
-  ok: boolean;
+  ok!: boolean;
 }

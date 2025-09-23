@@ -12,11 +12,11 @@ export class AdminSetupResponseDto {
     description: 'Erfolgsmeldung für das Admin-Setup',
     example: 'Admin-Setup erfolgreich durchgeführt',
   })
-  message: string;
+  message!: string;
 
   @ApiProperty({
     description: 'Aktualisierte Admin-Benutzerdaten ohne sensitive Informationen',
     type: AdminSetupUserDto,
   })
-  user: AdminSetupUserDto;
+  user!: AdminSetupUserDto;
 }

@@ -109,7 +109,7 @@ describe('CacheRateLimiterService', () => {
 
   describe('reset', () => {
     it('should delete the cache key', async () => {
-      jest.spyOn(cacheManager, 'del').mockResolvedValue(undefined);
+      jest.spyOn(cacheManager, 'del').mockResolvedValue(undefined as never);
 
       await service.reset('test-key', 60000);
 
@@ -174,12 +174,12 @@ describe('CacheRateLimiterService', () => {
       // First call - baseTime
       jest.spyOn(Date, 'now').mockReturnValue(baseTime);
       await service.isAllowed('test-key', 10, windowMs);
-      const firstKey = spy.mock.calls[0][0];
+      const firstKey = spy.mock.calls[0]?.[0];
 
       // Second call - next window (baseTime + windowMs + 1)
       jest.spyOn(Date, 'now').mockReturnValue(baseTime + windowMs + 1);
       await service.isAllowed('test-key', 10, windowMs);
-      const secondKey = spy.mock.calls[1][0];
+      const secondKey = spy.mock.calls[1]?.[0];
 
       expect(firstKey).not.toBe(secondKey);
       expect(firstKey).toContain('ratelimit:test-key:');

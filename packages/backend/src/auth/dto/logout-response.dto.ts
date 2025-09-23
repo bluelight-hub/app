@@ -8,5 +8,5 @@ export class LogoutResponseDto {
     description: 'Erfolgsmeldung nach dem Logout',
     example: 'Erfolgreich abgemeldet',
   })
-  message: string;
+  message!: string;
 }
