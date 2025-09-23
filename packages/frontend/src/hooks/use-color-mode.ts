@@ -50,7 +50,7 @@ export function useColorMode(): UseColorModeReturn {
   return {
     colorMode,
     resolvedColorMode,
-    setColorMode: setTheme as (colorMode: ColorMode) => void,
+    setColorMode: setTheme as (mode: ColorMode) => void,
     toggleColorMode,
   };
 }

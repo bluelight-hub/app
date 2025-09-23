@@ -5,25 +5,25 @@ export class StatusCountsDto {
     description: 'Anzahl der Einsätze mit Status ANGELEGT',
     example: 10,
   })
-  angelegt: number;
+  angelegt!: number;
 
   @ApiProperty({
     description: 'Anzahl der Einsätze mit Status IN_BEARBEITUNG',
     example: 5,
   })
-  inBearbeitung: number;
+  inBearbeitung!: number;
 
   @ApiProperty({
     description: 'Anzahl der Einsätze mit Status ABGESCHLOSSEN',
     example: 8,
   })
-  abgeschlossen: number;
+  abgeschlossen!: number;
 
   @ApiProperty({
     description: 'Anzahl der Einsätze mit Status ARCHIVIERT',
     example: 12,
   })
-  archiviert: number;
+  archiviert!: number;
 }
 
 export class StatusCountsResponseDto {
@@ -31,11 +31,11 @@ export class StatusCountsResponseDto {
     description: 'Gesamtanzahl aller Einsätze',
     example: 35,
   })
-  total: number;
+  total!: number;
 
   @ApiProperty({
     description: 'Anzahl der Einsätze pro Status',
     type: StatusCountsDto,
   })
-  counts: StatusCountsDto;
+  counts!: StatusCountsDto;
 }

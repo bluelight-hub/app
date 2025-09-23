@@ -12,20 +12,20 @@ export class AdminUserDto {
     description: 'Eindeutige ID des Admin-Benutzers',
     example: '123e4567-e89b-12d3-a456-426614174000',
   })
-  id: string;
+  id!: string;
 
   @ApiProperty({
     description: 'Benutzername des Admins',
     example: 'admin',
   })
-  username: string;
+  username!: string;
 
   @ApiProperty({
     description: 'Rolle des Benutzers',
     enum: UserRole,
     example: UserRole.ADMIN,
   })
-  role: UserRole;
+  role!: UserRole;
 }
 
 /**
@@ -38,11 +38,11 @@ export class AdminSetupUserDto extends AdminUserDto {
     description: 'Zeitpunkt der Kontoerstellung',
     example: '2024-01-01T12:00:00Z',
   })
-  createdAt: Date;
+  createdAt!: Date;
 
   @ApiProperty({
     description: 'Zeitpunkt der letzten Aktualisierung',
     example: '2024-01-01T12:00:00Z',
   })
-  updatedAt: Date;
+  updatedAt!: Date;
 }

@@ -8,17 +8,17 @@ export class AdminStatusDto {
     description: 'Gibt an, ob ein Admin-Setup verfügbar ist',
     example: true,
   })
-  adminSetupAvailable: boolean;
+  adminSetupAvailable!: boolean;
 
   @ApiProperty({
     description: 'Gibt an, ob bereits ein Admin mit Passwort existiert',
     example: false,
   })
-  adminExists: boolean;
+  adminExists!: boolean;
 
   @ApiProperty({
     description: 'Gibt an, ob der aktuelle Benutzer für Admin-Setup berechtigt ist',
     example: true,
   })
-  userEligible: boolean;
+  userEligible!: boolean;
 }

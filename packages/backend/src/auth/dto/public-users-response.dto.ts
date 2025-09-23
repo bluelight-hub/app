@@ -10,7 +10,7 @@ export class PublicUserDto {
     description: 'Eindeutiger Benutzername',
     example: 'max.mustermann',
   })
-  username: string;
+  username!: string;
 }
 
 /**
@@ -26,5 +26,5 @@ export class PublicUsersResponseDto {
     isArray: true,
     example: [{ username: 'max.mustermann' }, { username: 'erika.musterfrau' }],
   })
-  users: PublicUserDto[];
+  users!: PublicUserDto[];
 }

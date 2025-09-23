@@ -170,7 +170,7 @@ export class EinsatzController {
       this.logger.log(`Completeness for Einsatz ${id}: ${result.score}% complete`);
       return result;
     } catch (error) {
-      this.logger.error(`Failed to get completeness for Einsatz ${id}: ${error.message}`);
+      this.logger.error(`Failed to get completeness for Einsatz ${id}: ${(error as Error).message}`);
       throw error;
     }
   }

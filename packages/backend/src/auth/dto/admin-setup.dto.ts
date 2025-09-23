@@ -27,5 +27,5 @@ export class AdminSetupDto {
     minUppercase: 1,
     minNumbers: 1,
   })
-  password: string;
+  password!: string;
 }

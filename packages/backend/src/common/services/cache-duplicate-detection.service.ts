@@ -45,13 +45,14 @@ export class CacheDuplicateDetectionService {
 
     try {
       // Versuche Ergebnis aus Cache zu laden
-      cached = await this.cacheManager.get<{
-        result?: T;
-        error?: string;
-      }>(cacheKey);
+      cached =
+        (await this.cacheManager.get<{
+          result?: T;
+          error?: string;
+        }>(cacheKey)) ?? null;
     } catch (cacheError) {
       // Cache-Fehler sollen Operation nicht blockieren
-      this.logger.warn(`Cache-Zugriff fehlgeschlagen für ${key}: ${cacheError.message}`);
+      this.logger.warn(`Cache-Zugriff fehlgeschlagen für ${key}: ${(cacheError as Error).message}`);
     }
 
     if (cached) {
@@ -75,7 +76,7 @@ export class CacheDuplicateDetectionService {
         await this.cacheManager.set(cacheKey, { result }, effectiveTtl);
       } catch (cacheError) {
         // Cache-Fehler beim Speichern ignorieren
-        this.logger.warn(`Cache-Speicherung fehlgeschlagen für ${key}: ${cacheError.message}`);
+        this.logger.warn(`Cache-Speicherung fehlgeschlagen für ${key}: ${(cacheError as Error).message}`);
       }
 
       return result;
@@ -87,7 +88,7 @@ export class CacheDuplicateDetectionService {
         await this.cacheManager.set(cacheKey, { error: errorMessage }, effectiveTtl);
       } catch (cacheError) {
         // Cache-Fehler beim Speichern ignorieren
-        this.logger.warn(`Cache-Speicherung von Fehler fehlgeschlagen für ${key}: ${cacheError.message}`);
+        this.logger.warn(`Cache-Speicherung von Fehler fehlgeschlagen für ${key}: ${(cacheError as Error).message}`);
       }
 
       throw error;
@@ -106,7 +107,7 @@ export class CacheDuplicateDetectionService {
       await this.cacheManager.del(cacheKey);
       this.logger.debug(`Cache-Eintrag gelöscht: ${key}`);
     } catch (error) {
-      this.logger.warn(`Fehler beim Löschen des Cache-Eintrags ${key}: ${error.message}`);
+      this.logger.warn(`Fehler beim Löschen des Cache-Eintrags ${key}: ${(error as Error).message}`);
     }
   }
 
@@ -125,7 +126,7 @@ export class CacheDuplicateDetectionService {
       await this.cacheManager.clear();
       this.logger.debug('Cache geleert');
     } catch (error) {
-      this.logger.warn(`Fehler beim Leeren des Caches: ${error.message}`);
+      this.logger.warn(`Fehler beim Leeren des Caches: ${(error as Error).message}`);
     }
   }
 

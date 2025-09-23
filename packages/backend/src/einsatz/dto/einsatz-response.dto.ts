@@ -41,25 +41,25 @@ export class EinsatzResponseDto {
     description: 'Eindeutige ID des Einsatzes',
     example: 'cm4xyzabc123456789',
   })
-  id: string;
+  id!: string;
 
   @ApiPropertyOptional({
     description: 'Das Alarmstichwort des Einsatzes',
     example: 'Brand 3',
   })
-  alarmstichwort: string | null;
+  alarmstichwort!: string | null;
 
   @ApiPropertyOptional({
     description: 'Der Einsatzort',
     example: 'Musterstraße 123, 12345 Musterstadt',
   })
-  einsatzort: string | null;
+  einsatzort!: string | null;
 
   @ApiPropertyOptional({
     description: 'Beschreibung des Einsatzes',
     example: 'Rauchentwicklung im 2. OG, keine Personen in Gefahr',
   })
-  beschreibung: string | null;
+  beschreibung!: string | null;
 
   @ApiPropertyOptional({
     description: 'Zeitpunkt der Alarmierung',
@@ -67,13 +67,13 @@ export class EinsatzResponseDto {
     type: String,
     format: 'date-time',
   })
-  alarmierungszeit: Date | null;
+  alarmierungszeit!: Date | null;
 
   @ApiPropertyOptional({
     description: 'Name des Einsatzleiters',
     example: 'Max Mustermann',
   })
-  einsatzleiter: string | null;
+  einsatzleiter!: string | null;
 
   @ApiProperty({
     description: 'Status des Einsatzes',
@@ -81,7 +81,7 @@ export class EinsatzResponseDto {
     example: EinsatzStatus.ANGELEGT,
   })
   @IsEnum(EinsatzStatus)
-  status: EinsatzStatus;
+  status!: EinsatzStatus;
 
   @ApiPropertyOptional({
     description: 'Zusätzliche Metadaten als JSON',
@@ -89,7 +89,7 @@ export class EinsatzResponseDto {
     additionalProperties: true,
     nullable: true,
   })
-  metadata: Prisma.JsonValue | null;
+  metadata!: Prisma.JsonValue | null;
 
   @ApiProperty({
     description: 'Erstellungszeitpunkt',
@@ -97,7 +97,7 @@ export class EinsatzResponseDto {
     type: String,
     format: 'date-time',
   })
-  createdAt: Date;
+  createdAt!: Date;
 
   @ApiProperty({
     description: 'Zeitpunkt der letzten Aktualisierung',
@@ -105,19 +105,19 @@ export class EinsatzResponseDto {
     type: String,
     format: 'date-time',
   })
-  updatedAt: Date;
+  updatedAt!: Date;
 
   @ApiProperty({
     description: 'User ID des Erstellers',
     example: 'user123',
   })
-  createdBy: string;
+  createdBy!: string;
 
   @ApiPropertyOptional({
     description: 'User ID des letzten Bearbeiters',
     example: 'user456',
   })
-  updatedBy: string | null;
+  updatedBy!: string | null;
 
   @ApiPropertyOptional({
     description: 'Zeitpunkt der Archivierung (No-Delete Policy)',
@@ -125,19 +125,19 @@ export class EinsatzResponseDto {
     type: String,
     format: 'date-time',
   })
-  archivedAt: Date | null;
+  archivedAt!: Date | null;
 
   @ApiPropertyOptional({
     description: 'User ID des Archivierers (No-Delete Policy)',
     example: 'user789',
   })
-  archivedBy: string | null;
+  archivedBy!: string | null;
 
   @ApiProperty({
     description: 'Automatisch generierter Name des Einsatzes',
     example: 'Brand 3 - 27.01.2025 14:30',
   })
-  name: string;
+  name!: string;
 
   @ApiPropertyOptional({
     description: 'Vollständigkeits-Information',

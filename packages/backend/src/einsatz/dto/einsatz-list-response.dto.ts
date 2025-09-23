@@ -10,7 +10,7 @@ export class EinsatzListResponseDto {
     type: EinsatzResponseDto,
     isArray: true,
   })
-  data: EinsatzResponseDto[];
+  data!: EinsatzResponseDto[];
 
   @ApiProperty({
     description: 'Metainformationen zur Response',
@@ -20,7 +20,7 @@ export class EinsatzListResponseDto {
       requestId: 'abc123',
     },
   })
-  meta: {
+  meta!: {
     timestamp: string;
     version: string;
     requestId: string;

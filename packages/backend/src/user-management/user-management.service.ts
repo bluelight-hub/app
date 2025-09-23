@@ -5,6 +5,7 @@ import type { CreateUserDto } from './dto/create-user.dto';
 import type { UpdateUserDto } from './dto/update-user.dto';
 import type { UserDto } from './dto/user-management-response.dto';
 import { toUserDto } from './mappers/user.mapper';
+import { isPrismaP2002 } from '@/common/utils/prisma.util';
 
 /**
  * Service für die Benutzerverwaltung durch Administratoren
@@ -54,7 +55,7 @@ export class UserManagementService {
       return toUserDto(user);
     } catch (error: unknown) {
       // Handle Prisma unique constraint violation
-      if (error instanceof Object && 'code' in error && error.code === 'P2002') {
+      if (isPrismaP2002(error)) {
         throw new ConflictException('Benutzername bereits vergeben');
       }
       // Re-throw other errors
@@ -121,7 +122,7 @@ export class UserManagementService {
         return toUserDto(updatedUser);
       } catch (error: unknown) {
         // Handle Prisma unique constraint violation
-        if (error instanceof Object && 'code' in error && error.code === 'P2002') {
+        if (isPrismaP2002(error)) {
           throw new ConflictException('Benutzername bereits vergeben');
         }
         throw error;

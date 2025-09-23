@@ -8,5 +8,5 @@ export class RefreshResponseDto {
     description: 'Erfolgreich aktualisiert',
     example: true,
   })
-  success: boolean;
+  success!: boolean;
 }

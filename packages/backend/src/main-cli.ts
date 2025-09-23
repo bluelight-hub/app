@@ -34,8 +34,8 @@ async function bootstrap() {
     await app.close();
     process.exit(0);
   } catch (error) {
-    logger.error('Command execution failed:', error.stack);
-    logger.error(`❌ Fehler: ${error.message}`);
+    logger.error('Command execution failed:', (error as Error).stack);
+    logger.error(`❌ Fehler: ${(error as Error).message}`);
 
     // Ensure app is closed properly, even if it fails
     try {

@@ -29,7 +29,7 @@ export class CreateUserDto {
   @Matches(/^[a-zA-Z0-9._]+$/, {
     message: 'Benutzername darf nur Buchstaben, Zahlen, Unterstriche und Punkte enthalten',
   })
-  username: string;
+  username!: string;
 
   /**
    * Die Rolle des neuen Benutzers im System

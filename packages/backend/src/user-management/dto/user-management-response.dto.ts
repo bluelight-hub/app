@@ -10,26 +10,26 @@ export class UserDto {
     description: 'Eindeutige ID des Benutzers',
     example: '123e4567-e89b-12d3-a456-426614174000',
   })
-  id: string;
+  id!: string;
 
   @ApiProperty({ description: 'Benutzername', example: 'max.mustermann' })
-  username: string;
+  username!: string;
 
   @ApiProperty({
     description: 'Rolle des Benutzers',
     enum: ['USER', 'ADMIN', 'SUPER_ADMIN'],
     example: 'USER',
   })
-  role: UserRole;
+  role!: UserRole;
 
   @ApiProperty({ description: 'Erstellungsdatum', example: '2024-01-01T12:00:00.000Z' })
-  createdAt: Date;
+  createdAt!: Date;
 
   @ApiProperty({
     description: 'Datum der letzten Aktualisierung',
     example: '2024-01-01T12:00:00.000Z',
   })
-  updatedAt: Date;
+  updatedAt!: Date;
 }
 
 /**
@@ -41,7 +41,7 @@ export class UsersListResponse extends ApiResponse<UserDto[]> {
     type: UserDto,
     isArray: true,
   })
-  data: UserDto[];
+  data!: UserDto[];
 }
 
 /**
@@ -52,7 +52,7 @@ export class UserResponse extends ApiResponse<UserDto> {
     description: 'Benutzerdaten',
     type: UserDto,
   })
-  data: UserDto;
+  data!: UserDto;
 }
 
 /**
@@ -67,5 +67,5 @@ export class DeleteUserResponse extends ApiResponse<{ id: string; deleted: boole
       deleted: { type: 'boolean', description: 'Bestätigung der Löschung' },
     },
   })
-  data: { id: string; deleted: boolean };
+  data!: { id: string; deleted: boolean };
 }

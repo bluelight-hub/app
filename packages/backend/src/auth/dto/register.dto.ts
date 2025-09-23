@@ -23,5 +23,5 @@ export class RegisterDto {
   @Matches(/^[a-zA-Z0-9_-]+$/, {
     message: 'Benutzername darf nur Buchstaben, Zahlen, Unterstriche und Bindestriche enthalten',
   })
-  username: string;
+  username!: string;
 }

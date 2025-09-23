@@ -9,5 +9,5 @@ export class AdminLoginResponseDto {
     description: 'Admin-Benutzerinformationen',
     type: AdminUserDto,
   })
-  user: AdminUserDto;
+  user!: AdminUserDto;
 }

@@ -21,14 +21,14 @@ export class AuthUserDto {
     example: '453GsDyW0KssEuIW2lo2G',
   })
   @IsString()
-  id: string;
+  id!: string;
 
   @ApiProperty({
     description: 'Benutzername',
     example: 'max_mustermann',
   })
   @IsString()
-  username: string;
+  username!: string;
 
   @ApiProperty({
     description: 'Rolle des Benutzers',
@@ -36,14 +36,14 @@ export class AuthUserDto {
     example: Role.USER,
   })
   @IsEnum(Role)
-  role: Role;
+  role!: Role;
 
   @ApiProperty({
     description: 'Gibt an, ob der Benutzer aktiv ist',
     example: true,
   })
   @IsBoolean()
-  isActive: boolean;
+  isActive!: boolean;
 
   @ApiProperty({
     description: 'Zeitpunkt der Erstellung (ISO 8601)',
@@ -51,7 +51,7 @@ export class AuthUserDto {
   })
   @Transform(({ value }) => (value instanceof Date ? value.toISOString() : value))
   @IsDateString()
-  createdAt: string;
+  createdAt!: string;
 
   @ApiPropertyOptional({
     description: 'Zeitpunkt der Erstellung (NATO DTG Format für Rückwärtskompatibilität)',

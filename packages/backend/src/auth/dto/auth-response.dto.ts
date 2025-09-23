@@ -11,11 +11,11 @@ export class AuthResponseDto {
     description: 'Gibt an, ob ein neuer Benutzer angelegt wurde',
     example: false,
   })
-  isNewUser: boolean;
+  isNewUser!: boolean;
 
   @ApiProperty({
     description: 'Benutzerinformationen (ohne sensible Daten)',
     type: AuthUserDto,
   })
-  user: AuthUserDto;
+  user!: AuthUserDto;
 }
