@@ -1,6 +1,7 @@
 .openapi-generator-ignore
 apis/AppApi.ts
 apis/AuthApi.ts
+apis/ETBApi.ts
 apis/EinsatzApi.ts
 apis/HealthApi.ts
 apis/UserManagementApi.ts
@@ -22,6 +23,8 @@ models/AuthResponseDto.ts
 models/AuthUserDto.ts
 models/CompletenessResponseDto.ts
 models/CreateEinsatzDto.ts
+models/CreateEtbDto.ts
+models/CreateEtbEintragDto.ts
 models/CreateUserDto.ts
 models/DeleteUserResponse.ts
 models/DeleteUserResponseData.ts
@@ -44,6 +47,7 @@ models/RefreshResponseDto.ts
 models/StatusCountsDto.ts
 models/StatusCountsResponseDto.ts
 models/UpdateEinsatzDto.ts
+models/UpdateEtbEintragDto.ts
 models/UpdateUserDto.ts
 models/UserDto.ts
 models/UserResponse.ts
