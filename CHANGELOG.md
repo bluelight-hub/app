@@ -1,3 +1,16 @@
+## Version [v1.0.0-alpha.28](https://github.com/rubenvitt/bluelight-hub/compare/v1.0.0-alpha.27...v1.0.0-alpha.28) – Veröffentlicht am 2025-09-23
+
+## 🔧 Tool Verbesserungen
+Verbesserungen an den Werkzeugen:
+- [`590bbcf`](https://github.com/rubenvitt/bluelight-hub/commit/590bbcf) (backend): TypeScript-Strenge erhöht &amp; Type-Fehler behoben 
+(Zugehörige Issues: [`#214`](https://github.com/rubenvitt/bluelight-hub/issues/))
+
+- [`368c709`](https://github.com/rubenvitt/bluelight-hub/commit/368c709) (backend): Complete TypeScript strict mode migration 
+
+
+
+# [1.0.0-alpha.28](https://github.com/rubenvitt/bluelight-hub/compare/v1.0.0-alpha.27...v1.0.0-alpha.28) (2025-09-23)
+
 ## Version [v1.0.0-alpha.27](https://github.com/rubenvitt/bluelight-hub/compare/v1.0.0-alpha.26...v1.0.0-alpha.27) – Veröffentlicht am 2025-09-23
 
 ## ♻ Refactoring
