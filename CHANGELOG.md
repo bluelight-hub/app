@@ -1,3 +1,16 @@
+## Version [v1.0.0-alpha.27](https://github.com/rubenvitt/bluelight-hub/compare/v1.0.0-alpha.26...v1.0.0-alpha.27) – Veröffentlicht am 2025-09-23
+
+## ♻ Refactoring
+Struktur- oder Code-Verbesserungen:
+- [`32622d3`](https://github.com/rubenvitt/bluelight-hub/commit/32622d3) (workspace): Stabilisiere pnpm-Workspace-Ausführung 
+(Zugehörige Issues: [`#212`](https://github.com/rubenvitt/bluelight-hub/issues/))
+
+- [`c26c364`](https://github.com/rubenvitt/bluelight-hub/commit/c26c364) (workspace): Stabilisiere pnpm-Workspace-Ausführung 
+
+
+
+# [1.0.0-alpha.27](https://github.com/rubenvitt/bluelight-hub/compare/v1.0.0-alpha.26...v1.0.0-alpha.27) (2025-09-23)
+
 ## Version [v1.0.0-alpha.26](https://github.com/rubenvitt/bluelight-hub/compare/v1.0.0-alpha.25...v1.0.0-alpha.26) – Veröffentlicht am 2025-09-21
 
 ## ✨ Neue Funktionen
