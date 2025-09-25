@@ -13,8 +13,34 @@
  */
 
 import * as runtime from '../runtime';
-import type { CreateEtbDto, CreateEtbEintragDto, UpdateEtbEintragDto } from '../models/index';
-import { CreateEtbDtoFromJSON, CreateEtbDtoToJSON, CreateEtbEintragDtoFromJSON, CreateEtbEintragDtoToJSON, UpdateEtbEintragDtoFromJSON, UpdateEtbEintragDtoToJSON } from '../models/index';
+import type {
+  CreateEtbDto,
+  CreateEtbEintragDto,
+  CreateEtbEintragResponse,
+  CreateEtbResponse,
+  GetEtbResponse,
+  TextbausteinListResponse,
+  UpdateEtbEintragDto,
+  UpdateEtbEintragResponse,
+} from '../models/index';
+import {
+  CreateEtbDtoFromJSON,
+  CreateEtbDtoToJSON,
+  CreateEtbEintragDtoFromJSON,
+  CreateEtbEintragDtoToJSON,
+  CreateEtbEintragResponseFromJSON,
+  CreateEtbEintragResponseToJSON,
+  CreateEtbResponseFromJSON,
+  CreateEtbResponseToJSON,
+  GetEtbResponseFromJSON,
+  GetEtbResponseToJSON,
+  TextbausteinListResponseFromJSON,
+  TextbausteinListResponseToJSON,
+  UpdateEtbEintragDtoFromJSON,
+  UpdateEtbEintragDtoToJSON,
+  UpdateEtbEintragResponseFromJSON,
+  UpdateEtbEintragResponseToJSON,
+} from '../models/index';
 
 export interface EtbControllerCreateEintragVAlphaRequest {
   id: string;
@@ -31,8 +57,8 @@ export interface EtbControllerDeleteEintragVAlphaRequest {
 
 export interface EtbControllerGetEtbByEinsatzIdVAlphaRequest {
   einsatzId: string;
-  limit: string;
-  offset: string;
+  page?: number;
+  limit?: number;
 }
 
 export interface EtbControllerUpdateEintragVAlphaRequest {
@@ -50,7 +76,7 @@ export class ETBApi extends runtime.BaseAPI {
   async etbControllerCreateEintragVAlphaRaw(
     requestParameters: EtbControllerCreateEintragVAlphaRequest,
     initOverrides?: RequestInit | runtime.InitOverrideFunction,
-  ): Promise<runtime.ApiResponse<void>> {
+  ): Promise<runtime.ApiResponse<CreateEtbEintragResponse>> {
     if (requestParameters['id'] == null) {
       throw new runtime.RequiredError('id', 'Required parameter "id" was null or undefined when calling etbControllerCreateEintragVAlpha().');
     }
@@ -84,20 +110,24 @@ export class ETBApi extends runtime.BaseAPI {
       initOverrides,
     );
 
-    return new runtime.VoidApiResponse(response);
+    return new runtime.JSONApiResponse(response, (jsonValue) => CreateEtbEintragResponseFromJSON(jsonValue));
   }
 
   /**
    * Create new ETB entry
    */
-  async etbControllerCreateEintragVAlpha(requestParameters: EtbControllerCreateEintragVAlphaRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<void> {
-    await this.etbControllerCreateEintragVAlphaRaw(requestParameters, initOverrides);
+  async etbControllerCreateEintragVAlpha(requestParameters: EtbControllerCreateEintragVAlphaRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<CreateEtbEintragResponse> {
+    const response = await this.etbControllerCreateEintragVAlphaRaw(requestParameters, initOverrides);
+    return await response.value();
   }
 
   /**
    * Create new ETB for an Einsatz
    */
-  async etbControllerCreateEtbVAlphaRaw(requestParameters: EtbControllerCreateEtbVAlphaRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<void>> {
+  async etbControllerCreateEtbVAlphaRaw(
+    requestParameters: EtbControllerCreateEtbVAlphaRequest,
+    initOverrides?: RequestInit | runtime.InitOverrideFunction,
+  ): Promise<runtime.ApiResponse<CreateEtbResponse>> {
     if (requestParameters['createEtbDto'] == null) {
       throw new runtime.RequiredError('createEtbDto', 'Required parameter "createEtbDto" was null or undefined when calling etbControllerCreateEtbVAlpha().');
     }
@@ -127,14 +157,15 @@ export class ETBApi extends runtime.BaseAPI {
       initOverrides,
     );
 
-    return new runtime.VoidApiResponse(response);
+    return new runtime.JSONApiResponse(response, (jsonValue) => CreateEtbResponseFromJSON(jsonValue));
   }
 
   /**
    * Create new ETB for an Einsatz
    */
-  async etbControllerCreateEtbVAlpha(requestParameters: EtbControllerCreateEtbVAlphaRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<void> {
-    await this.etbControllerCreateEtbVAlphaRaw(requestParameters, initOverrides);
+  async etbControllerCreateEtbVAlpha(requestParameters: EtbControllerCreateEtbVAlphaRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<CreateEtbResponse> {
+    const response = await this.etbControllerCreateEtbVAlphaRaw(requestParameters, initOverrides);
+    return await response.value();
   }
 
   /**
@@ -186,27 +217,19 @@ export class ETBApi extends runtime.BaseAPI {
   async etbControllerGetEtbByEinsatzIdVAlphaRaw(
     requestParameters: EtbControllerGetEtbByEinsatzIdVAlphaRequest,
     initOverrides?: RequestInit | runtime.InitOverrideFunction,
-  ): Promise<runtime.ApiResponse<void>> {
+  ): Promise<runtime.ApiResponse<GetEtbResponse>> {
     if (requestParameters['einsatzId'] == null) {
       throw new runtime.RequiredError('einsatzId', 'Required parameter "einsatzId" was null or undefined when calling etbControllerGetEtbByEinsatzIdVAlpha().');
     }
 
-    if (requestParameters['limit'] == null) {
-      throw new runtime.RequiredError('limit', 'Required parameter "limit" was null or undefined when calling etbControllerGetEtbByEinsatzIdVAlpha().');
-    }
-
-    if (requestParameters['offset'] == null) {
-      throw new runtime.RequiredError('offset', 'Required parameter "offset" was null or undefined when calling etbControllerGetEtbByEinsatzIdVAlpha().');
-    }
-
     const queryParameters: any = {};
+
+    if (requestParameters['page'] != null) {
+      queryParameters['page'] = requestParameters['page'];
+    }
 
     if (requestParameters['limit'] != null) {
       queryParameters['limit'] = requestParameters['limit'];
-    }
-
-    if (requestParameters['offset'] != null) {
-      queryParameters['offset'] = requestParameters['offset'];
     }
 
     const headerParameters: runtime.HTTPHeaders = {};
@@ -229,20 +252,21 @@ export class ETBApi extends runtime.BaseAPI {
       initOverrides,
     );
 
-    return new runtime.VoidApiResponse(response);
+    return new runtime.JSONApiResponse(response, (jsonValue) => GetEtbResponseFromJSON(jsonValue));
   }
 
   /**
    * Get ETB by Einsatz ID
    */
-  async etbControllerGetEtbByEinsatzIdVAlpha(requestParameters: EtbControllerGetEtbByEinsatzIdVAlphaRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<void> {
-    await this.etbControllerGetEtbByEinsatzIdVAlphaRaw(requestParameters, initOverrides);
+  async etbControllerGetEtbByEinsatzIdVAlpha(requestParameters: EtbControllerGetEtbByEinsatzIdVAlphaRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<GetEtbResponse> {
+    const response = await this.etbControllerGetEtbByEinsatzIdVAlphaRaw(requestParameters, initOverrides);
+    return await response.value();
   }
 
   /**
    * Get all text templates
    */
-  async etbControllerGetTextbausteineVAlphaRaw(initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<void>> {
+  async etbControllerGetTextbausteineVAlphaRaw(initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<TextbausteinListResponse>> {
     const queryParameters: any = {};
 
     const headerParameters: runtime.HTTPHeaders = {};
@@ -265,14 +289,15 @@ export class ETBApi extends runtime.BaseAPI {
       initOverrides,
     );
 
-    return new runtime.VoidApiResponse(response);
+    return new runtime.JSONApiResponse(response, (jsonValue) => TextbausteinListResponseFromJSON(jsonValue));
   }
 
   /**
    * Get all text templates
    */
-  async etbControllerGetTextbausteineVAlpha(initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<void> {
-    await this.etbControllerGetTextbausteineVAlphaRaw(initOverrides);
+  async etbControllerGetTextbausteineVAlpha(initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<TextbausteinListResponse> {
+    const response = await this.etbControllerGetTextbausteineVAlphaRaw(initOverrides);
+    return await response.value();
   }
 
   /**
@@ -281,7 +306,7 @@ export class ETBApi extends runtime.BaseAPI {
   async etbControllerUpdateEintragVAlphaRaw(
     requestParameters: EtbControllerUpdateEintragVAlphaRequest,
     initOverrides?: RequestInit | runtime.InitOverrideFunction,
-  ): Promise<runtime.ApiResponse<void>> {
+  ): Promise<runtime.ApiResponse<UpdateEtbEintragResponse>> {
     if (requestParameters['id'] == null) {
       throw new runtime.RequiredError('id', 'Required parameter "id" was null or undefined when calling etbControllerUpdateEintragVAlpha().');
     }
@@ -315,13 +340,14 @@ export class ETBApi extends runtime.BaseAPI {
       initOverrides,
     );
 
-    return new runtime.VoidApiResponse(response);
+    return new runtime.JSONApiResponse(response, (jsonValue) => UpdateEtbEintragResponseFromJSON(jsonValue));
   }
 
   /**
    * Update ETB entry
    */
-  async etbControllerUpdateEintragVAlpha(requestParameters: EtbControllerUpdateEintragVAlphaRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<void> {
-    await this.etbControllerUpdateEintragVAlphaRaw(requestParameters, initOverrides);
+  async etbControllerUpdateEintragVAlpha(requestParameters: EtbControllerUpdateEintragVAlphaRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<UpdateEtbEintragResponse> {
+    const response = await this.etbControllerUpdateEintragVAlphaRaw(requestParameters, initOverrides);
+    return await response.value();
   }
 }

@@ -20,19 +20,19 @@ import { mapValues } from '../runtime';
  */
 export interface UpdateEtbEintragDto {
   /**
-   * Updated timestamp of the entry
+   * Timestamp of the entry (defaults to current time)
    * @type {Date}
    * @memberof UpdateEtbEintragDto
    */
   timestamp?: Date;
   /**
-   * Updated category of the ETB entry
+   * Category of the ETB entry
    * @type {string}
    * @memberof UpdateEtbEintragDto
    */
   kategorie?: UpdateEtbEintragDtoKategorieEnum;
   /**
-   * Updated text content of the entry
+   * Text content of the entry
    * @type {string}
    * @memberof UpdateEtbEintragDto
    */

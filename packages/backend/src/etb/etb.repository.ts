@@ -71,6 +71,15 @@ export class EtbRepository {
     });
   }
 
+  async countEintraege(etbId: string): Promise<number> {
+    return this.prisma.etbEintrag.count({
+      where: {
+        etbId,
+        deletedAt: null,
+      },
+    });
+  }
+
   async getNextSequenceNumber(etbId: string): Promise<number> {
     // Use transaction to prevent race conditions
     return await this.prisma.$transaction(async (tx) => {
