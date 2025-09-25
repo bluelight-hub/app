@@ -1,14 +1,19 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { IsString, IsNotEmpty, IsEnum, IsOptional, IsDateString } from 'class-validator';
+import { IsString, IsNotEmpty, IsEnum, IsOptional, IsDate, MaxLength } from 'class-validator';
 import { EtbKategorie } from '@prisma/client';
+import { Type } from 'class-transformer';
 
+/**
+ * DTO zum Anlegen eines neuen ETB-Eintrags.
+ */
 export class CreateEtbEintragDto {
   @ApiPropertyOptional({
     description: 'Timestamp of the entry (defaults to current time)',
     example: '2024-01-15T10:30:00Z',
   })
   @IsOptional()
-  @IsDateString()
+  @Type(() => Date)
+  @IsDate({ message: 'timestamp muss ein gültiges Datum sein' })
   timestamp?: Date;
 
   @ApiProperty({
@@ -16,15 +21,16 @@ export class CreateEtbEintragDto {
     enum: EtbKategorie,
     example: EtbKategorie.LAGE,
   })
-  @IsEnum(EtbKategorie)
-  @IsNotEmpty()
+  @IsEnum(EtbKategorie, { message: 'kategorie ist ungültig' })
+  @IsNotEmpty({ message: 'kategorie darf nicht leer sein' })
   kategorie!: EtbKategorie;
 
   @ApiProperty({
     description: 'Text content of the entry',
     example: 'Erste Erkundung abgeschlossen, Brand im 2. OG lokalisiert',
   })
-  @IsString()
-  @IsNotEmpty()
+  @IsString({ message: 'text muss eine Zeichenkette sein' })
+  @IsNotEmpty({ message: 'text darf nicht leer sein' })
+  @MaxLength(2000, { message: 'text darf maximal 2000 Zeichen lang sein' })
   text!: string;
 }

@@ -276,3 +276,6 @@ Mandatory: Spreche Deutsch mit mir, produziere Englischen Code, aber deutsche Do
 
 _Repository:_ github.com/rubenvitt/bluelight-hub
 _Import zusätzliche Workflows:_ @./.taskmaster/CLAUDE.md
+
+---
+- Verwende die Chrome-Dev Tools um die Anwendung auszuprobieren - die läuft wahrscheinlich auf :3001

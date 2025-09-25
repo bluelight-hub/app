@@ -25,6 +25,8 @@ models/CompletenessResponseDto.ts
 models/CreateEinsatzDto.ts
 models/CreateEtbDto.ts
 models/CreateEtbEintragDto.ts
+models/CreateEtbEintragResponse.ts
+models/CreateEtbResponse.ts
 models/CreateUserDto.ts
 models/DeleteUserResponse.ts
 models/DeleteUserResponseData.ts
@@ -36,6 +38,9 @@ models/EinsatzControllerGetCompletenessVAlpha200Response.ts
 models/EinsatzControllerGetPreviousVAlpha200Response.ts
 models/EinsatzControllerGetStatusCountsVAlpha200Response.ts
 models/EinsatzResponseDto.ts
+models/EtbDto.ts
+models/EtbEintragDto.ts
+models/GetEtbResponse.ts
 models/HealthControllerCheck200Response.ts
 models/HealthControllerCheck200ResponseInfoValue.ts
 models/HealthControllerCheck503Response.ts
@@ -46,8 +51,11 @@ models/PublicUsersResponseDto.ts
 models/RefreshResponseDto.ts
 models/StatusCountsDto.ts
 models/StatusCountsResponseDto.ts
+models/TextbausteinDto.ts
+models/TextbausteinListResponse.ts
 models/UpdateEinsatzDto.ts
 models/UpdateEtbEintragDto.ts
+models/UpdateEtbEintragResponse.ts
 models/UpdateUserDto.ts
 models/UserDto.ts
 models/UserResponse.ts
