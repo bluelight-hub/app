@@ -1,3 +1,17 @@
+## Version [v1.0.0-alpha.31](https://github.com/rubenvitt/bluelight-hub/compare/v1.0.0-alpha.30...v1.0.0-alpha.31) – Veröffentlicht am 2025-09-26
+
+## ✨ Neue Funktionen
+Die folgenden neuen Features wurden hinzugefügt:
+- [`0173652`](https://github.com/rubenvitt/bluelight-hub/commit/0173652) (frontend): Add ETB hooks with TanStack Query integration 
+
+## 🔧 Tool Verbesserungen
+Verbesserungen an den Werkzeugen:
+- [`a5987b9`](https://github.com/rubenvitt/bluelight-hub/commit/a5987b9) (api): Update generated API clients and query keys 
+
+
+
+# [1.0.0-alpha.31](https://github.com/rubenvitt/bluelight-hub/compare/v1.0.0-alpha.30...v1.0.0-alpha.31) (2025-09-26)
+
 ## Version [v1.0.0-alpha.30](https://github.com/rubenvitt/bluelight-hub/compare/v1.0.0-alpha.29...v1.0.0-alpha.30) – Veröffentlicht am 2025-09-26
 
 ## ♻ Refactoring
