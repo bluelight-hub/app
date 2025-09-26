@@ -67,7 +67,24 @@ const ERROR_MESSAGES: Record<number, Record<string, string>> = {
 export async function getApiErrorMessage(
   error: unknown,
   fallbackMessage: string,
-  context?: 'createUser' | 'deleteUser' | 'updateUser' | 'adminSetup' | 'adminLogin' | 'userLogin' | 'userRegister' | 'userAuth' | 'createEinsatz' | 'updateEinsatz' | 'archiveEinsatz',
+  context?:
+    | 'createUser'
+    | 'deleteUser'
+    | 'updateUser'
+    | 'adminSetup'
+    | 'adminLogin'
+    | 'userLogin'
+    | 'userRegister'
+    | 'userAuth'
+    | 'createEinsatz'
+    | 'updateEinsatz'
+    | 'archiveEinsatz'
+    | 'createEtb'
+    | 'updateEtb'
+    | 'deleteEtb'
+    | 'createEtbEintrag'
+    | 'updateEtbEintrag'
+    | 'deleteEtbEintrag',
 ): Promise<string> {
   // Handle non-ResponseError cases
   if (!(error instanceof ResponseError)) {
@@ -148,7 +165,24 @@ export async function getApiErrorMessage(
 function getContextSpecificMessage(
   status: number,
   errorData: ApiErrorResponse,
-  context: 'createUser' | 'deleteUser' | 'updateUser' | 'adminSetup' | 'adminLogin' | 'userLogin' | 'userRegister' | 'userAuth' | 'createEinsatz' | 'updateEinsatz' | 'archiveEinsatz',
+  context:
+    | 'createUser'
+    | 'deleteUser'
+    | 'updateUser'
+    | 'adminSetup'
+    | 'adminLogin'
+    | 'userLogin'
+    | 'userRegister'
+    | 'userAuth'
+    | 'createEinsatz'
+    | 'updateEinsatz'
+    | 'archiveEinsatz'
+    | 'createEtb'
+    | 'updateEtb'
+    | 'deleteEtb'
+    | 'createEtbEintrag'
+    | 'updateEtbEintrag'
+    | 'deleteEtbEintrag',
 ): string | null {
   switch (context) {
     case 'createUser':
@@ -248,6 +282,60 @@ function getContextSpecificMessage(
     case 'archiveEinsatz':
       if (status === 400) {
         return 'Beim Archivieren des Einsatzes ist ein Validierungsfehler aufgetreten.';
+      }
+      break;
+
+    case 'createEtb':
+      if (status === 400) {
+        return 'Beim Erstellen des Einsatztagebuchs ist ein Validierungsfehler aufgetreten.';
+      }
+      if (status === 409) {
+        return 'Ein Einsatztagebuch existiert bereits für diesen Einsatz.';
+      }
+      break;
+
+    case 'updateEtb':
+      if (status === 400) {
+        return 'Beim Aktualisieren des Einsatztagebuchs ist ein Validierungsfehler aufgetreten.';
+      }
+      if (status === 404) {
+        return 'Das Einsatztagebuch wurde nicht gefunden.';
+      }
+      break;
+
+    case 'deleteEtb':
+      if (status === 404) {
+        return 'Das zu löschende Einsatztagebuch wurde nicht gefunden.';
+      }
+      if (status === 403) {
+        return 'Sie haben keine Berechtigung, dieses Einsatztagebuch zu löschen.';
+      }
+      break;
+
+    case 'createEtbEintrag':
+      if (status === 400) {
+        return 'Beim Erstellen des ETB-Eintrags ist ein Validierungsfehler aufgetreten.';
+      }
+      if (status === 404) {
+        return 'Das zugehörige Einsatztagebuch wurde nicht gefunden.';
+      }
+      break;
+
+    case 'updateEtbEintrag':
+      if (status === 400) {
+        return 'Beim Aktualisieren des ETB-Eintrags ist ein Validierungsfehler aufgetreten.';
+      }
+      if (status === 404) {
+        return 'Der ETB-Eintrag wurde nicht gefunden.';
+      }
+      break;
+
+    case 'deleteEtbEintrag':
+      if (status === 404) {
+        return 'Der zu löschende ETB-Eintrag wurde nicht gefunden.';
+      }
+      if (status === 403) {
+        return 'Sie haben keine Berechtigung, diesen ETB-Eintrag zu löschen.';
       }
   }
 
