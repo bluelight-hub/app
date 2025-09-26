@@ -1,3 +1,15 @@
+## Version [v1.0.0-alpha.29](https://github.com/rubenvitt/bluelight-hub/compare/v1.0.0-alpha.28...v1.0.0-alpha.29) – Veröffentlicht am 2025-09-26
+
+## ✨ Neue Funktionen
+Die folgenden neuen Features wurden hinzugefügt:
+- [`4d4386c`](https://github.com/rubenvitt/bluelight-hub/commit/4d4386c) (backend): Add ETB (Einsatztagebuch) module with full CRUD operations 
+
+- [`2874b41`](https://github.com/rubenvitt/bluelight-hub/commit/2874b41) (backend): Add comprehensive ETB response DTOs with validation 
+
+
+
+# [1.0.0-alpha.29](https://github.com/rubenvitt/bluelight-hub/compare/v1.0.0-alpha.28...v1.0.0-alpha.29) (2025-09-26)
+
 ## Version [v1.0.0-alpha.28](https://github.com/rubenvitt/bluelight-hub/compare/v1.0.0-alpha.27...v1.0.0-alpha.28) – Veröffentlicht am 2025-09-23
 
 ## 🔧 Tool Verbesserungen
