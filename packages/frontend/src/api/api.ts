@@ -1,5 +1,5 @@
 import { logger } from '@/utils/logger';
-import { AuthApi, Configuration, EinsatzApi, HealthApi, UserManagementApi } from '@bluelight-hub/shared/client';
+import { AuthApi, Configuration, EinsatzApi, ETBApi, HealthApi, UserManagementApi } from '@bluelight-hub/shared/client';
 import { fetchWithRefresh } from './fetchWithRefresh';
 
 /**
@@ -42,6 +42,7 @@ class BackendApi {
   private readonly authApi: AuthApi;
   private readonly userManagementApi: UserManagementApi;
   private readonly einsatzApi: EinsatzApi;
+  private readonly etbApi: ETBApi;
 
   /**
    * Erstellt eine neue Instanz der BackendApi-Klasse
@@ -63,6 +64,7 @@ class BackendApi {
     this.authApi = new AuthApi(this.configuration);
     this.userManagementApi = new UserManagementApi(this.configuration);
     this.einsatzApi = new EinsatzApi(this.configuration);
+    this.etbApi = new ETBApi(this.configuration);
   }
 
   /**
@@ -99,6 +101,15 @@ class BackendApi {
    */
   einsatz(): EinsatzApi {
     return this.einsatzApi;
+  }
+
+  /**
+   * Gibt die gecachte ETB-API-Instanz zurück
+   *
+   * @returns Die ETB-API-Instanz für Einsatztagebuch-Management
+   */
+  etb(): ETBApi {
+    return this.etbApi;
   }
 }
 
