@@ -40,6 +40,14 @@ export const EINSATZ_QUERY_KEYS = {
   statusCounts: (includeArchived = false) => [...EINSATZ_QUERY_KEYS.all, 'statusCounts', includeArchived] as const,
 } as const;
 
+export const ETB_QUERY_KEYS = {
+  all: ['etb'] as const,
+  byEinsatz: (einsatzId?: string, page?: number, limit?: number) => [...ETB_QUERY_KEYS.all, 'einsatz', einsatzId, { page, limit }] as const,
+  eintraege: (etbId: string) => [...ETB_QUERY_KEYS.all, etbId, 'eintraege'] as const,
+  eintrag: (eintragId: string) => [...ETB_QUERY_KEYS.all, 'eintrag', eintragId] as const,
+  textbausteine: () => [...ETB_QUERY_KEYS.all, 'textbausteine'] as const,
+} as const;
+
 // Export all query keys grouped for easier access
 export const QUERY_KEYS = {
   auth: {
@@ -50,4 +58,5 @@ export const QUERY_KEYS = {
   admin: ADMIN_QUERY_KEYS,
   health: HEALTH_QUERY_KEYS,
   einsatz: EINSATZ_QUERY_KEYS,
+  etb: ETB_QUERY_KEYS,
 } as const;
