@@ -1,5 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { EtbStatus } from '@prisma/client';
+import { EtbStatus, EtbKategorie } from '@prisma/client';
 import { ApiResponse, ApiPagination } from '@/common/interfaces/api-response.interface';
 
 /**
@@ -14,9 +14,10 @@ export class TextbausteinDto {
 
   @ApiProperty({
     description: 'Kategorie des Textbausteins',
-    example: 'LAGE',
+    enum: EtbKategorie,
+    example: EtbKategorie.LAGE,
   })
-  kategorie!: string;
+  kategorie!: EtbKategorie;
 
   @ApiProperty({
     description: 'Kurzbeschreibung des Textbausteins',
@@ -86,9 +87,10 @@ export class EtbEintragDto {
 
   @ApiProperty({
     description: 'Kategorie des Eintrags',
-    example: 'LAGE',
+    enum: EtbKategorie,
+    example: EtbKategorie.LAGE,
   })
-  kategorie!: string;
+  kategorie!: EtbKategorie;
 
   @ApiProperty({
     description: 'Text des Eintrags',
@@ -129,7 +131,7 @@ export class EtbEintragDto {
     required: false,
     nullable: true,
   })
-  metadata?: any;
+  metadata?: Record<string, unknown>;
 
   @ApiProperty({
     description: 'ID des Erstellers',
@@ -217,7 +219,8 @@ export class EtbDto {
 
   @ApiProperty({
     description: 'Einträge des ETB',
-    type: [EtbEintragDto],
+    type: () => EtbEintragDto,
+    isArray: true,
     required: false,
   })
   eintraege?: EtbEintragDto[];
@@ -280,7 +283,8 @@ export class UpdateEtbEintragResponse extends ApiResponse<EtbEintragDto> {
 export class TextbausteinListResponse extends ApiResponse<TextbausteinDto[]> {
   @ApiProperty({
     description: 'Liste der verfügbaren Textbausteine',
-    type: [TextbausteinDto],
+    type: () => TextbausteinDto,
+    isArray: true,
   })
   data!: TextbausteinDto[];
 }

@@ -1,5 +1,4 @@
 import { Dialog } from '@/components/molecules/dialog.molecule';
-import { PiArchive } from 'react-icons/pi';
 
 interface ArchiveConfirmationModalProps {
   isOpen: boolean;

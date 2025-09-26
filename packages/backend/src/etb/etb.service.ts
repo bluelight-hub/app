@@ -1,15 +1,102 @@
 import { Injectable, NotFoundException, ConflictException, BadRequestException } from '@nestjs/common';
-import { EtbStatus } from '@prisma/client';
+import { EtbStatus, Einsatztagebuch, EtbEintrag, EtbTextbaustein, Einsatz, User } from '@prisma/client';
 import { ValidatedUser } from '@/auth/strategies/jwt.strategy';
 import { EtbRepository } from './etb.repository';
 import { CreateEtbDto } from './dto/create-etb.dto';
 import { CreateEtbEintragDto } from './dto/create-etb-eintrag.dto';
 import { UpdateEtbEintragDto } from './dto/update-etb-eintrag.dto';
-import { CreateEtbResponse, GetEtbResponse, CreateEtbEintragResponse, UpdateEtbEintragResponse, TextbausteinListResponse } from './dto/etb-response.dto';
+import { CreateEtbResponse, GetEtbResponse, CreateEtbEintragResponse, UpdateEtbEintragResponse, TextbausteinListResponse, EtbDto, EtbEintragDto, TextbausteinDto } from './dto/etb-response.dto';
 
 @Injectable()
 export class EtbService {
   constructor(private readonly etbRepository: EtbRepository) {}
+
+  /**
+   * Maps a Prisma EtbEintrag to EtbEintragDto
+   */
+  private toEtbEintragDto(
+    eintrag: EtbEintrag & {
+      creator?: Partial<User> | null;
+      updater?: Partial<User> | null;
+      historie?: Array<{ id: string; version: number; changedAt: Date }> | null;
+    },
+  ): EtbEintragDto {
+    return {
+      id: eintrag.id,
+      etbId: eintrag.etbId,
+      timestamp: eintrag.timestamp,
+      sequenceNumber: eintrag.sequenceNumber,
+      kategorie: eintrag.kategorie,
+      text: eintrag.text,
+      version: eintrag.version,
+      funkrufname: eintrag.funkrufname ?? undefined,
+      standort: eintrag.standort ?? undefined,
+      isAutomatic: eintrag.isAutomatic ?? false,
+      metadata: eintrag.metadata ? (eintrag.metadata as Record<string, unknown>) : undefined,
+      createdBy: eintrag.createdBy,
+      createdAt: eintrag.createdAt,
+      updatedBy: eintrag.updatedBy ?? undefined,
+      updatedAt: eintrag.updatedAt,
+      deletedAt: eintrag.deletedAt ?? undefined,
+      deletedBy: eintrag.deletedBy ?? undefined,
+    };
+  }
+
+  /**
+   * Maps a Prisma Einsatztagebuch to EtbDto
+   */
+  private toEtbDto(
+    etb: Einsatztagebuch & {
+      einsatz?: Partial<Einsatz> | null;
+      creator?: Partial<User> | null;
+      updater?: Partial<User> | null;
+      locker?: Partial<User> | null;
+      eintraege?: Array<
+        EtbEintrag & {
+          creator?: Partial<User> | null;
+          updater?: Partial<User> | null;
+          historie?: Array<{ id: string; version: number; changedAt: Date }> | null;
+        }
+      > | null;
+    },
+  ): EtbDto {
+    const dto: EtbDto = {
+      id: etb.id,
+      einsatzId: etb.einsatzId,
+      status: etb.status,
+      createdBy: etb.createdBy,
+      createdAt: etb.createdAt,
+      updatedAt: etb.updatedAt,
+    };
+
+    // Only include eintraege if they are loaded
+    if (etb.eintraege) {
+      dto.eintraege = etb.eintraege.map((e) => this.toEtbEintragDto(e));
+    }
+
+    return dto;
+  }
+
+  /**
+   * Maps a Prisma EtbTextbaustein to TextbausteinDto
+   */
+  private toTextbausteinDto(
+    baustein: EtbTextbaustein & {
+      creator?: Partial<User> | null;
+      updater?: Partial<User> | null;
+    },
+  ): TextbausteinDto {
+    return {
+      id: baustein.id,
+      kategorie: baustein.kategorie,
+      kurztext: baustein.kurztext,
+      volltext: baustein.volltext,
+      isActive: baustein.isActive ?? true,
+      sortOrder: baustein.sortOrder ?? 0,
+      verwendungen: baustein.verwendungen ?? 0,
+      letztGenutzt: baustein.letztGenutzt ?? undefined,
+    };
+  }
 
   async createEtb(createEtbDto: CreateEtbDto, user: ValidatedUser): Promise<CreateEtbResponse> {
     // Check if ETB already exists for this Einsatz
@@ -25,7 +112,7 @@ export class EtbService {
     });
 
     return {
-      data: etb,
+      data: this.toEtbDto(etb),
       meta: {
         timestamp: new Date().toISOString(),
       },
@@ -45,7 +132,7 @@ export class EtbService {
     const totalPages = Math.ceil(total / limit);
 
     return {
-      data: etb,
+      data: this.toEtbDto(etb),
       meta: {
         timestamp: new Date().toISOString(),
       },
@@ -68,13 +155,10 @@ export class EtbService {
       throw new BadRequestException('Cannot add entries to locked ETB');
     }
 
-    // Get next sequence number
-    const nextSequence = await this.etbRepository.getNextSequenceNumber(etbId);
-
-    const eintrag = await this.etbRepository.createEintrag({
+    // Use atomic method to prevent race conditions
+    const eintrag = await this.etbRepository.createEintragAtomic({
       etbId,
       timestamp: createEintragDto.timestamp || new Date(),
-      sequenceNumber: nextSequence,
       kategorie: createEintragDto.kategorie,
       text: createEintragDto.text,
       createdBy: user.userId,
@@ -82,7 +166,7 @@ export class EtbService {
     });
 
     return {
-      data: eintrag,
+      data: this.toEtbEintragDto(eintrag),
       meta: {
         timestamp: new Date().toISOString(),
       },
@@ -126,7 +210,7 @@ export class EtbService {
     });
 
     return {
-      data: updatedEintrag,
+      data: this.toEtbEintragDto(updatedEintrag),
       meta: {
         timestamp: new Date().toISOString(),
       },
@@ -158,7 +242,7 @@ export class EtbService {
     const textbausteine = await this.etbRepository.findAllTextbausteine();
 
     return {
-      data: textbausteine,
+      data: textbausteine.map((baustein) => this.toTextbausteinDto(baustein)),
       meta: {
         timestamp: new Date().toISOString(),
       },
