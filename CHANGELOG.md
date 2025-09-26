@@ -1,3 +1,13 @@
+## Version [v1.0.0-alpha.30](https://github.com/rubenvitt/bluelight-hub/compare/v1.0.0-alpha.29...v1.0.0-alpha.30) – Veröffentlicht am 2025-09-26
+
+## ♻ Refactoring
+Struktur- oder Code-Verbesserungen:
+- [`c991cc7`](https://github.com/rubenvitt/bluelight-hub/commit/c991cc7) (backend): Refactor ETB module with type safety and atomic operations 
+
+
+
+# [1.0.0-alpha.30](https://github.com/rubenvitt/bluelight-hub/compare/v1.0.0-alpha.29...v1.0.0-alpha.30) (2025-09-26)
+
 ## Version [v1.0.0-alpha.29](https://github.com/rubenvitt/bluelight-hub/compare/v1.0.0-alpha.28...v1.0.0-alpha.29) – Veröffentlicht am 2025-09-26
 
 ## ✨ Neue Funktionen
