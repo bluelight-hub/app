@@ -1,6 +1,6 @@
+import { PrismaService } from '@/prisma/prisma.service';
 import { Injectable } from '@nestjs/common';
-import { PrismaService } from '../prisma/prisma.service';
-import { EtbStatus, EtbKategorie } from '@prisma/client';
+import { EtbKategorie, EtbStatus, Prisma } from '@prisma/client';
 
 @Injectable()
 export class EtbRepository {
@@ -80,38 +80,63 @@ export class EtbRepository {
     });
   }
 
-  async getNextSequenceNumber(etbId: string): Promise<number> {
-    // Use transaction to prevent race conditions
-    return await this.prisma.$transaction(async (tx) => {
-      const lastEntry = await tx.etbEintrag.findFirst({
-        where: { etbId },
-        orderBy: { sequenceNumber: 'desc' },
-      });
-      return lastEntry ? lastEntry.sequenceNumber + 1 : 1;
-    });
-  }
+  /**
+   * Atomically allocates a sequence number and creates an ETB entry
+   * This prevents race conditions when multiple entries are created concurrently
+   */
+  async createEintragAtomic(data: {
+    etbId: string;
+    timestamp: Date;
+    kategorie: EtbKategorie;
+    text: string;
+    createdBy: string;
+    version: number;
+    funkrufname?: string;
+    standort?: string;
+    isAutomatic?: boolean;
+    metadata?: Record<string, unknown>;
+  }) {
+    return this.prisma.$transaction(
+      async (tx) => {
+        // Get the next sequence number within the transaction
+        const lastEntry = await tx.etbEintrag.findFirst({
+          where: { etbId: data.etbId },
+          orderBy: { sequenceNumber: 'desc' },
+          select: { sequenceNumber: true },
+        });
 
-  async createEintrag(data: { etbId: string; timestamp: Date; sequenceNumber: number; kategorie: EtbKategorie; text: string; createdBy: string; version: number }) {
-    return this.prisma.etbEintrag.create({
-      data: {
-        etbId: data.etbId,
-        timestamp: data.timestamp,
-        sequenceNumber: data.sequenceNumber,
-        kategorie: data.kategorie,
-        text: data.text,
-        createdBy: data.createdBy,
-        version: data.version,
-      },
-      include: {
-        creator: {
-          select: {
-            id: true,
-            username: true,
-            role: true,
+        const nextSequenceNumber = lastEntry ? lastEntry.sequenceNumber + 1 : 1;
+
+        // Create the entry with the allocated sequence number
+        return tx.etbEintrag.create({
+          data: {
+            etbId: data.etbId,
+            timestamp: data.timestamp,
+            sequenceNumber: nextSequenceNumber,
+            kategorie: data.kategorie,
+            text: data.text,
+            createdBy: data.createdBy,
+            version: data.version,
+            funkrufname: data.funkrufname,
+            standort: data.standort,
+            isAutomatic: data.isAutomatic ?? false,
+            metadata: data.metadata as Prisma.InputJsonValue,
           },
-        },
+          include: {
+            creator: {
+              select: {
+                id: true,
+                username: true,
+                role: true,
+              },
+            },
+          },
+        });
       },
-    });
+      {
+        isolationLevel: 'Serializable', // Ensures strict isolation to prevent sequence number conflicts
+      },
+    );
   }
 
   async findEintragById(id: string) {

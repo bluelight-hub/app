@@ -33,14 +33,14 @@ export class EtbController {
    * @returns Das erstellte ETB
    */
   @Post()
-  @ApiOperation({ summary: 'Create new ETB for an Einsatz' })
+  @ApiOperation({ summary: 'Neues ETB für einen Einsatz erstellen' })
   @ApiResponse({
     status: HttpStatus.CREATED,
-    description: 'ETB created successfully',
+    description: 'ETB erfolgreich erstellt',
     type: CreateEtbResponse,
   })
-  @ApiResponse({ status: HttpStatus.BAD_REQUEST, description: 'Invalid input' })
-  @ApiResponse({ status: HttpStatus.CONFLICT, description: 'ETB already exists for this Einsatz' })
+  @ApiResponse({ status: HttpStatus.BAD_REQUEST, description: 'Ungültige Eingaben' })
+  @ApiResponse({ status: HttpStatus.CONFLICT, description: 'Für diesen Einsatz existiert bereits ein ETB' })
   async createEtb(@Body() createEtbDto: CreateEtbDto, @CurrentUser() user: ValidatedUser): Promise<CreateEtbResponse> {
     return this.etbService.createEtb(createEtbDto, user);
   }
@@ -53,13 +53,13 @@ export class EtbController {
    * @returns Das ETB mit paginierten Einträgen
    */
   @Get(':einsatzId')
-  @ApiOperation({ summary: 'Get ETB by Einsatz ID' })
+  @ApiOperation({ summary: 'ETB anhand der Einsatz-ID abrufen' })
   @ApiResponse({
     status: HttpStatus.OK,
-    description: 'ETB found',
+    description: 'ETB gefunden',
     type: GetEtbResponse,
   })
-  @ApiResponse({ status: HttpStatus.NOT_FOUND, description: 'ETB not found' })
+  @ApiResponse({ status: HttpStatus.NOT_FOUND, description: 'ETB nicht gefunden' })
   async getEtbByEinsatzId(@Param('einsatzId') einsatzId: string, @Query() paginationQuery: FilterPaginationDto): Promise<GetEtbResponse> {
     return this.etbService.getEtbByEinsatzId(einsatzId, paginationQuery.limit, paginationQuery.page);
   }
@@ -73,14 +73,14 @@ export class EtbController {
    * @returns Der erstellte ETB-Eintrag
    */
   @Post(':id/eintraege')
-  @ApiOperation({ summary: 'Create new ETB entry' })
+  @ApiOperation({ summary: 'Neuen ETB-Eintrag erstellen' })
   @ApiResponse({
     status: HttpStatus.CREATED,
-    description: 'Entry created successfully',
+    description: 'Eintrag erfolgreich erstellt',
     type: CreateEtbEintragResponse,
   })
-  @ApiResponse({ status: HttpStatus.BAD_REQUEST, description: 'Invalid input' })
-  @ApiResponse({ status: HttpStatus.NOT_FOUND, description: 'ETB not found' })
+  @ApiResponse({ status: HttpStatus.BAD_REQUEST, description: 'Ungültige Eingaben' })
+  @ApiResponse({ status: HttpStatus.NOT_FOUND, description: 'ETB nicht gefunden' })
   async createEintrag(@Param('id') etbId: string, @Body() createEintragDto: CreateEtbEintragDto, @CurrentUser() user: ValidatedUser): Promise<CreateEtbEintragResponse> {
     return this.etbService.createEintrag(etbId, createEintragDto, user);
   }
@@ -94,14 +94,14 @@ export class EtbController {
    * @returns Der aktualisierte ETB-Eintrag
    */
   @Put('eintraege/:id')
-  @ApiOperation({ summary: 'Update ETB entry' })
+  @ApiOperation({ summary: 'ETB-Eintrag aktualisieren' })
   @ApiResponse({
     status: HttpStatus.OK,
-    description: 'Entry updated successfully',
+    description: 'Eintrag erfolgreich aktualisiert',
     type: UpdateEtbEintragResponse,
   })
-  @ApiResponse({ status: HttpStatus.BAD_REQUEST, description: 'Invalid input' })
-  @ApiResponse({ status: HttpStatus.NOT_FOUND, description: 'Entry not found' })
+  @ApiResponse({ status: HttpStatus.BAD_REQUEST, description: 'Ungültige Eingaben' })
+  @ApiResponse({ status: HttpStatus.NOT_FOUND, description: 'Eintrag nicht gefunden' })
   async updateEintrag(@Param('id') eintragId: string, @Body() updateEintragDto: UpdateEtbEintragDto, @CurrentUser() user: ValidatedUser): Promise<UpdateEtbEintragResponse> {
     return this.etbService.updateEintrag(eintragId, updateEintragDto, user);
   }
@@ -114,9 +114,9 @@ export class EtbController {
    */
   @Delete('eintraege/:id')
   @HttpCode(HttpStatus.NO_CONTENT)
-  @ApiOperation({ summary: 'Soft delete ETB entry' })
-  @ApiResponse({ status: HttpStatus.NO_CONTENT, description: 'Entry deleted successfully' })
-  @ApiResponse({ status: HttpStatus.NOT_FOUND, description: 'Entry not found' })
+  @ApiOperation({ summary: 'ETB-Eintrag soft löschen' })
+  @ApiResponse({ status: HttpStatus.NO_CONTENT, description: 'Eintrag erfolgreich gelöscht' })
+  @ApiResponse({ status: HttpStatus.NOT_FOUND, description: 'Eintrag nicht gefunden' })
   async deleteEintrag(@Param('id') eintragId: string, @CurrentUser() user: ValidatedUser): Promise<void> {
     await this.etbService.deleteEintrag(eintragId, user);
   }
@@ -127,9 +127,9 @@ export class EtbController {
    * @returns Liste aller aktiven Textbausteine
    */
   @Get('textbausteine')
-  @ApiOperation({ summary: 'Get all text templates' })
+  @ApiOperation({ summary: 'Alle Textbausteine abrufen' })
   @ApiOkResponse({
-    description: 'Text templates retrieved',
+    description: 'Textbausteine abgerufen',
     type: TextbausteinListResponse,
   })
   async getTextbausteine(): Promise<TextbausteinListResponse> {
