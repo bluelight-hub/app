@@ -15,13 +15,13 @@
 import { mapValues } from '../runtime';
 import type { StatusCountsResponseDto } from './StatusCountsResponseDto';
 import { StatusCountsResponseDtoFromJSON, StatusCountsResponseDtoFromJSONTyped, StatusCountsResponseDtoToJSON, StatusCountsResponseDtoToJSONTyped } from './StatusCountsResponseDto';
-import type { EinsatzControllerFindAllVAlpha200ResponseMeta } from './EinsatzControllerFindAllVAlpha200ResponseMeta';
+import type { UserControllerFindOneVAlpha200ResponseMeta } from './UserControllerFindOneVAlpha200ResponseMeta';
 import {
-  EinsatzControllerFindAllVAlpha200ResponseMetaFromJSON,
-  EinsatzControllerFindAllVAlpha200ResponseMetaFromJSONTyped,
-  EinsatzControllerFindAllVAlpha200ResponseMetaToJSON,
-  EinsatzControllerFindAllVAlpha200ResponseMetaToJSONTyped,
-} from './EinsatzControllerFindAllVAlpha200ResponseMeta';
+  UserControllerFindOneVAlpha200ResponseMetaFromJSON,
+  UserControllerFindOneVAlpha200ResponseMetaFromJSONTyped,
+  UserControllerFindOneVAlpha200ResponseMetaToJSON,
+  UserControllerFindOneVAlpha200ResponseMetaToJSONTyped,
+} from './UserControllerFindOneVAlpha200ResponseMeta';
 
 /**
  *
@@ -37,10 +37,10 @@ export interface EinsatzControllerGetStatusCountsVAlpha200Response {
   data: StatusCountsResponseDto;
   /**
    *
-   * @type {EinsatzControllerFindAllVAlpha200ResponseMeta}
+   * @type {UserControllerFindOneVAlpha200ResponseMeta}
    * @memberof EinsatzControllerGetStatusCountsVAlpha200Response
    */
-  meta: EinsatzControllerFindAllVAlpha200ResponseMeta;
+  meta: UserControllerFindOneVAlpha200ResponseMeta;
 }
 
 /**
@@ -62,7 +62,7 @@ export function EinsatzControllerGetStatusCountsVAlpha200ResponseFromJSONTyped(j
   }
   return {
     data: StatusCountsResponseDtoFromJSON(json['data']),
-    meta: EinsatzControllerFindAllVAlpha200ResponseMetaFromJSON(json['meta']),
+    meta: UserControllerFindOneVAlpha200ResponseMetaFromJSON(json['meta']),
   };
 }
 
@@ -77,6 +77,6 @@ export function EinsatzControllerGetStatusCountsVAlpha200ResponseToJSONTyped(val
 
   return {
     data: StatusCountsResponseDtoToJSON(value['data']),
-    meta: EinsatzControllerFindAllVAlpha200ResponseMetaToJSON(value['meta']),
+    meta: UserControllerFindOneVAlpha200ResponseMetaToJSON(value['meta']),
   };
 }

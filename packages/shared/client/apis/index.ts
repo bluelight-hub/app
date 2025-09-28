@@ -6,3 +6,4 @@ export * from './ETBApi';
 export * from './EinsatzApi';
 export * from './HealthApi';
 export * from './UserManagementApi';
+export * from './UsersApi';

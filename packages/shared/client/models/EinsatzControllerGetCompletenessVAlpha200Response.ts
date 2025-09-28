@@ -13,15 +13,15 @@
  */
 
 import { mapValues } from '../runtime';
-import type { EinsatzControllerFindAllVAlpha200ResponseMeta } from './EinsatzControllerFindAllVAlpha200ResponseMeta';
-import {
-  EinsatzControllerFindAllVAlpha200ResponseMetaFromJSON,
-  EinsatzControllerFindAllVAlpha200ResponseMetaFromJSONTyped,
-  EinsatzControllerFindAllVAlpha200ResponseMetaToJSON,
-  EinsatzControllerFindAllVAlpha200ResponseMetaToJSONTyped,
-} from './EinsatzControllerFindAllVAlpha200ResponseMeta';
 import type { CompletenessResponseDto } from './CompletenessResponseDto';
 import { CompletenessResponseDtoFromJSON, CompletenessResponseDtoFromJSONTyped, CompletenessResponseDtoToJSON, CompletenessResponseDtoToJSONTyped } from './CompletenessResponseDto';
+import type { UserControllerFindOneVAlpha200ResponseMeta } from './UserControllerFindOneVAlpha200ResponseMeta';
+import {
+  UserControllerFindOneVAlpha200ResponseMetaFromJSON,
+  UserControllerFindOneVAlpha200ResponseMetaFromJSONTyped,
+  UserControllerFindOneVAlpha200ResponseMetaToJSON,
+  UserControllerFindOneVAlpha200ResponseMetaToJSONTyped,
+} from './UserControllerFindOneVAlpha200ResponseMeta';
 
 /**
  *
@@ -37,10 +37,10 @@ export interface EinsatzControllerGetCompletenessVAlpha200Response {
   data: CompletenessResponseDto;
   /**
    *
-   * @type {EinsatzControllerFindAllVAlpha200ResponseMeta}
+   * @type {UserControllerFindOneVAlpha200ResponseMeta}
    * @memberof EinsatzControllerGetCompletenessVAlpha200Response
    */
-  meta: EinsatzControllerFindAllVAlpha200ResponseMeta;
+  meta: UserControllerFindOneVAlpha200ResponseMeta;
 }
 
 /**
@@ -62,7 +62,7 @@ export function EinsatzControllerGetCompletenessVAlpha200ResponseFromJSONTyped(j
   }
   return {
     data: CompletenessResponseDtoFromJSON(json['data']),
-    meta: EinsatzControllerFindAllVAlpha200ResponseMetaFromJSON(json['meta']),
+    meta: UserControllerFindOneVAlpha200ResponseMetaFromJSON(json['meta']),
   };
 }
 
@@ -77,6 +77,6 @@ export function EinsatzControllerGetCompletenessVAlpha200ResponseToJSONTyped(val
 
   return {
     data: CompletenessResponseDtoToJSON(value['data']),
-    meta: EinsatzControllerFindAllVAlpha200ResponseMetaToJSON(value['meta']),
+    meta: UserControllerFindOneVAlpha200ResponseMetaToJSON(value['meta']),
   };
 }

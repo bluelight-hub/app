@@ -15,13 +15,13 @@
 import { mapValues } from '../runtime';
 import type { EinsatzResponseDto } from './EinsatzResponseDto';
 import { EinsatzResponseDtoFromJSON, EinsatzResponseDtoFromJSONTyped, EinsatzResponseDtoToJSON, EinsatzResponseDtoToJSONTyped } from './EinsatzResponseDto';
-import type { EinsatzControllerFindAllVAlpha200ResponseMeta } from './EinsatzControllerFindAllVAlpha200ResponseMeta';
+import type { UserControllerFindOneVAlpha200ResponseMeta } from './UserControllerFindOneVAlpha200ResponseMeta';
 import {
-  EinsatzControllerFindAllVAlpha200ResponseMetaFromJSON,
-  EinsatzControllerFindAllVAlpha200ResponseMetaFromJSONTyped,
-  EinsatzControllerFindAllVAlpha200ResponseMetaToJSON,
-  EinsatzControllerFindAllVAlpha200ResponseMetaToJSONTyped,
-} from './EinsatzControllerFindAllVAlpha200ResponseMeta';
+  UserControllerFindOneVAlpha200ResponseMetaFromJSON,
+  UserControllerFindOneVAlpha200ResponseMetaFromJSONTyped,
+  UserControllerFindOneVAlpha200ResponseMetaToJSON,
+  UserControllerFindOneVAlpha200ResponseMetaToJSONTyped,
+} from './UserControllerFindOneVAlpha200ResponseMeta';
 
 /**
  *
@@ -37,10 +37,10 @@ export interface EinsatzControllerCreateVAlpha200Response {
   data: EinsatzResponseDto;
   /**
    *
-   * @type {EinsatzControllerFindAllVAlpha200ResponseMeta}
+   * @type {UserControllerFindOneVAlpha200ResponseMeta}
    * @memberof EinsatzControllerCreateVAlpha200Response
    */
-  meta: EinsatzControllerFindAllVAlpha200ResponseMeta;
+  meta: UserControllerFindOneVAlpha200ResponseMeta;
 }
 
 /**
@@ -62,7 +62,7 @@ export function EinsatzControllerCreateVAlpha200ResponseFromJSONTyped(json: any,
   }
   return {
     data: EinsatzResponseDtoFromJSON(json['data']),
-    meta: EinsatzControllerFindAllVAlpha200ResponseMetaFromJSON(json['meta']),
+    meta: UserControllerFindOneVAlpha200ResponseMetaFromJSON(json['meta']),
   };
 }
 
@@ -77,6 +77,6 @@ export function EinsatzControllerCreateVAlpha200ResponseToJSONTyped(value?: Eins
 
   return {
     data: EinsatzResponseDtoToJSON(value['data']),
-    meta: EinsatzControllerFindAllVAlpha200ResponseMetaToJSON(value['meta']),
+    meta: UserControllerFindOneVAlpha200ResponseMetaToJSON(value['meta']),
   };
 }

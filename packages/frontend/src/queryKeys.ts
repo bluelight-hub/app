@@ -18,6 +18,11 @@ export const USER_QUERY_KEYS = {
   publicUsers: ['public-users'] as const,
 } as const;
 
+export const USERS_QUERY_KEYS = {
+  all: ['users'] as const,
+  byId: (id?: string) => ['users', id] as const,
+} as const;
+
 export const ADMIN_QUERY_KEYS = {
   users: ['admin', 'users'] as const,
 } as const;
@@ -55,6 +60,7 @@ export const QUERY_KEYS = {
     queries: AUTH_QUERY_KEYS(['auth']),
   },
   user: USER_QUERY_KEYS,
+  users: USERS_QUERY_KEYS,
   admin: ADMIN_QUERY_KEYS,
   health: HEALTH_QUERY_KEYS,
   einsatz: EINSATZ_QUERY_KEYS,

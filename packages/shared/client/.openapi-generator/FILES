@@ -5,6 +5,7 @@ apis/ETBApi.ts
 apis/EinsatzApi.ts
 apis/HealthApi.ts
 apis/UserManagementApi.ts
+apis/UsersApi.ts
 apis/index.ts
 index.ts
 models/AdminLoginResponseDto.ts
@@ -32,8 +33,6 @@ models/DeleteUserResponse.ts
 models/DeleteUserResponseData.ts
 models/EinsatzControllerCreateVAlpha200Response.ts
 models/EinsatzControllerFindAllVAlpha200Response.ts
-models/EinsatzControllerFindAllVAlpha200ResponseMeta.ts
-models/EinsatzControllerFindAllVAlpha200ResponsePagination.ts
 models/EinsatzControllerGetCompletenessVAlpha200Response.ts
 models/EinsatzControllerGetPreviousVAlpha200Response.ts
 models/EinsatzControllerGetStatusCountsVAlpha200Response.ts
@@ -57,6 +56,11 @@ models/UpdateEinsatzDto.ts
 models/UpdateEtbEintragDto.ts
 models/UpdateEtbEintragResponse.ts
 models/UpdateUserDto.ts
+models/UserBasicDto.ts
+models/UserBasicListResponse.ts
+models/UserControllerFindOneVAlpha200Response.ts
+models/UserControllerFindOneVAlpha200ResponseMeta.ts
+models/UserControllerFindOneVAlpha200ResponsePagination.ts
 models/UserDto.ts
 models/UserResponse.ts
 models/UserResponseDto.ts
