@@ -13,8 +13,8 @@
  */
 
 import { mapValues } from '../runtime';
-import type { EinsatzResponseDto } from './EinsatzResponseDto';
-import { EinsatzResponseDtoFromJSON, EinsatzResponseDtoFromJSONTyped, EinsatzResponseDtoToJSON, EinsatzResponseDtoToJSONTyped } from './EinsatzResponseDto';
+import type { UserResponse } from './UserResponse';
+import { UserResponseFromJSON, UserResponseFromJSONTyped, UserResponseToJSON, UserResponseToJSONTyped } from './UserResponse';
 import type { UserControllerFindOneVAlpha200ResponseMeta } from './UserControllerFindOneVAlpha200ResponseMeta';
 import {
   UserControllerFindOneVAlpha200ResponseMetaFromJSON,
@@ -33,64 +33,64 @@ import {
 /**
  *
  * @export
- * @interface EinsatzControllerFindAllVAlpha200Response
+ * @interface UserControllerFindOneVAlpha200Response
  */
-export interface EinsatzControllerFindAllVAlpha200Response {
+export interface UserControllerFindOneVAlpha200Response {
   /**
    *
-   * @type {Array<EinsatzResponseDto>}
-   * @memberof EinsatzControllerFindAllVAlpha200Response
+   * @type {Array<UserResponse>}
+   * @memberof UserControllerFindOneVAlpha200Response
    */
-  data: Array<EinsatzResponseDto>;
+  data: Array<UserResponse>;
   /**
    *
    * @type {UserControllerFindOneVAlpha200ResponseMeta}
-   * @memberof EinsatzControllerFindAllVAlpha200Response
+   * @memberof UserControllerFindOneVAlpha200Response
    */
   meta: UserControllerFindOneVAlpha200ResponseMeta;
   /**
    *
    * @type {UserControllerFindOneVAlpha200ResponsePagination}
-   * @memberof EinsatzControllerFindAllVAlpha200Response
+   * @memberof UserControllerFindOneVAlpha200Response
    */
   pagination?: UserControllerFindOneVAlpha200ResponsePagination;
 }
 
 /**
- * Check if a given object implements the EinsatzControllerFindAllVAlpha200Response interface.
+ * Check if a given object implements the UserControllerFindOneVAlpha200Response interface.
  */
-export function instanceOfEinsatzControllerFindAllVAlpha200Response(value: object): value is EinsatzControllerFindAllVAlpha200Response {
+export function instanceOfUserControllerFindOneVAlpha200Response(value: object): value is UserControllerFindOneVAlpha200Response {
   if (!('data' in value) || value['data'] === undefined) return false;
   if (!('meta' in value) || value['meta'] === undefined) return false;
   return true;
 }
 
-export function EinsatzControllerFindAllVAlpha200ResponseFromJSON(json: any): EinsatzControllerFindAllVAlpha200Response {
-  return EinsatzControllerFindAllVAlpha200ResponseFromJSONTyped(json, false);
+export function UserControllerFindOneVAlpha200ResponseFromJSON(json: any): UserControllerFindOneVAlpha200Response {
+  return UserControllerFindOneVAlpha200ResponseFromJSONTyped(json, false);
 }
 
-export function EinsatzControllerFindAllVAlpha200ResponseFromJSONTyped(json: any, ignoreDiscriminator: boolean): EinsatzControllerFindAllVAlpha200Response {
+export function UserControllerFindOneVAlpha200ResponseFromJSONTyped(json: any, ignoreDiscriminator: boolean): UserControllerFindOneVAlpha200Response {
   if (json == null) {
     return json;
   }
   return {
-    data: (json['data'] as Array<any>).map(EinsatzResponseDtoFromJSON),
+    data: (json['data'] as Array<any>).map(UserResponseFromJSON),
     meta: UserControllerFindOneVAlpha200ResponseMetaFromJSON(json['meta']),
     pagination: json['pagination'] == null ? undefined : UserControllerFindOneVAlpha200ResponsePaginationFromJSON(json['pagination']),
   };
 }
 
-export function EinsatzControllerFindAllVAlpha200ResponseToJSON(json: any): EinsatzControllerFindAllVAlpha200Response {
-  return EinsatzControllerFindAllVAlpha200ResponseToJSONTyped(json, false);
+export function UserControllerFindOneVAlpha200ResponseToJSON(json: any): UserControllerFindOneVAlpha200Response {
+  return UserControllerFindOneVAlpha200ResponseToJSONTyped(json, false);
 }
 
-export function EinsatzControllerFindAllVAlpha200ResponseToJSONTyped(value?: EinsatzControllerFindAllVAlpha200Response | null, ignoreDiscriminator: boolean = false): any {
+export function UserControllerFindOneVAlpha200ResponseToJSONTyped(value?: UserControllerFindOneVAlpha200Response | null, ignoreDiscriminator: boolean = false): any {
   if (value == null) {
     return value;
   }
 
   return {
-    data: (value['data'] as Array<any>).map(EinsatzResponseDtoToJSON),
+    data: (value['data'] as Array<any>).map(UserResponseToJSON),
     meta: UserControllerFindOneVAlpha200ResponseMetaToJSON(value['meta']),
     pagination: UserControllerFindOneVAlpha200ResponsePaginationToJSON(value['pagination']),
   };

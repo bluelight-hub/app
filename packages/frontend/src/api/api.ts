@@ -1,5 +1,5 @@
 import { logger } from '@/utils/logger';
-import { AuthApi, Configuration, EinsatzApi, ETBApi, HealthApi, UserManagementApi } from '@bluelight-hub/shared/client';
+import { AuthApi, Configuration, EinsatzApi, ETBApi, HealthApi, UserManagementApi, UsersApi } from '@bluelight-hub/shared/client';
 import { fetchWithRefresh } from './fetchWithRefresh';
 
 /**
@@ -41,6 +41,7 @@ class BackendApi {
   private readonly healthApi: HealthApi;
   private readonly authApi: AuthApi;
   private readonly userManagementApi: UserManagementApi;
+  private readonly usersApi: UsersApi;
   private readonly einsatzApi: EinsatzApi;
   private readonly etbApi: ETBApi;
 
@@ -63,6 +64,7 @@ class BackendApi {
     this.healthApi = new HealthApi(this.configuration);
     this.authApi = new AuthApi(this.configuration);
     this.userManagementApi = new UserManagementApi(this.configuration);
+    this.usersApi = new UsersApi(this.configuration);
     this.einsatzApi = new EinsatzApi(this.configuration);
     this.etbApi = new ETBApi(this.configuration);
   }
@@ -92,6 +94,15 @@ class BackendApi {
    */
   userManagement(): UserManagementApi {
     return this.userManagementApi;
+  }
+
+  /**
+   * Gibt die gecachte Users-API-Instanz zurück
+   *
+   * @returns Die Users-API-Instanz für öffentliche Benutzerabfragen
+   */
+  users(): UsersApi {
+    return this.usersApi;
   }
 
   /**

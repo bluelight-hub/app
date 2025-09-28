@@ -46,6 +46,21 @@ export class EtbController {
   }
 
   /**
+   * Ruft alle verfügbaren Textbausteine ab
+   *
+   * @returns Liste aller aktiven Textbausteine
+   */
+  @Get('textbausteine')
+  @ApiOperation({ summary: 'Alle Textbausteine abrufen' })
+  @ApiOkResponse({
+    description: 'Textbausteine abgerufen',
+    type: TextbausteinListResponse,
+  })
+  async getTextbausteine(): Promise<TextbausteinListResponse> {
+    return this.etbService.getTextbausteine();
+  }
+
+  /**
    * Ruft ein ETB anhand der Einsatz-ID ab
    *
    * @param einsatzId - Die ID des Einsatzes
@@ -119,20 +134,5 @@ export class EtbController {
   @ApiResponse({ status: HttpStatus.NOT_FOUND, description: 'Eintrag nicht gefunden' })
   async deleteEintrag(@Param('id') eintragId: string, @CurrentUser() user: ValidatedUser): Promise<void> {
     await this.etbService.deleteEintrag(eintragId, user);
-  }
-
-  /**
-   * Ruft alle verfügbaren Textbausteine ab
-   *
-   * @returns Liste aller aktiven Textbausteine
-   */
-  @Get('textbausteine')
-  @ApiOperation({ summary: 'Alle Textbausteine abrufen' })
-  @ApiOkResponse({
-    description: 'Textbausteine abgerufen',
-    type: TextbausteinListResponse,
-  })
-  async getTextbausteine(): Promise<TextbausteinListResponse> {
-    return this.etbService.getTextbausteine();
   }
 }

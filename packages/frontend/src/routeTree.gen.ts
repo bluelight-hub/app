@@ -52,6 +52,7 @@ import { Route as AppEinsatzEinsatzIdDrohneLiveFeedRouteImport } from './routes/
 import { Route as AppEinsatzEinsatzIdBetreuungVerpflegungRouteImport } from './routes/app/einsatz/$einsatzId/betreuung/verpflegung'
 import { Route as AppEinsatzEinsatzIdBetreuungUnterkunftRouteImport } from './routes/app/einsatz/$einsatzId/betreuung/unterkunft'
 import { Route as AppEinsatzEinsatzIdBetreuungBetroffeneRouteImport } from './routes/app/einsatz/$einsatzId/betreuung/betroffene'
+import { Route as AppEinsatzEinsatzIdFChar252hrungEtbIndexRouteImport } from './routes/app/einsatz/$einsatzId/führung/etb/index'
 
 const AuthRoute = AuthRouteImport.update({
   id: '/auth',
@@ -297,6 +298,12 @@ const AppEinsatzEinsatzIdBetreuungBetroffeneRoute =
     path: '/betreuung/betroffene',
     getParentRoute: () => AppEinsatzEinsatzIdRoute,
   } as any)
+const AppEinsatzEinsatzIdFChar252hrungEtbIndexRoute =
+  AppEinsatzEinsatzIdFChar252hrungEtbIndexRouteImport.update({
+    id: '/',
+    path: '/',
+    getParentRoute: () => AppEinsatzEinsatzIdFChar252hrungEtbRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -322,7 +329,7 @@ export interface FileRoutesByFullPath {
   '/app/einsatz/$einsatzId/drohne/steuerung': typeof AppEinsatzEinsatzIdDrohneSteuerungRoute
   '/app/einsatz/$einsatzId/führung/befehle': typeof AppEinsatzEinsatzIdFChar252hrungBefehleRoute
   '/app/einsatz/$einsatzId/führung/berichte': typeof AppEinsatzEinsatzIdFChar252hrungBerichteRoute
-  '/app/einsatz/$einsatzId/führung/etb': typeof AppEinsatzEinsatzIdFChar252hrungEtbRoute
+  '/app/einsatz/$einsatzId/führung/etb': typeof AppEinsatzEinsatzIdFChar252hrungEtbRouteWithChildren
   '/app/einsatz/$einsatzId/führung/protokoll': typeof AppEinsatzEinsatzIdFChar252hrungProtokollRoute
   '/app/einsatz/$einsatzId/kommunikation/alarmierung': typeof AppEinsatzEinsatzIdKommunikationAlarmierungRoute
   '/app/einsatz/$einsatzId/kommunikation/funk': typeof AppEinsatzEinsatzIdKommunikationFunkRoute
@@ -342,6 +349,7 @@ export interface FileRoutesByFullPath {
   '/app/einsatz/$einsatzId/übersicht/statistik': typeof AppEinsatzEinsatzIdChar220bersichtStatistikRoute
   '/app/einsatz/$einsatzId/patienten': typeof AppEinsatzEinsatzIdPatientenIndexRoute
   '/app/einsatz/$einsatzId/übersicht': typeof AppEinsatzEinsatzIdChar220bersichtIndexRoute
+  '/app/einsatz/$einsatzId/führung/etb/': typeof AppEinsatzEinsatzIdFChar252hrungEtbIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -364,7 +372,6 @@ export interface FileRoutesByTo {
   '/app/einsatz/$einsatzId/drohne/steuerung': typeof AppEinsatzEinsatzIdDrohneSteuerungRoute
   '/app/einsatz/$einsatzId/führung/befehle': typeof AppEinsatzEinsatzIdFChar252hrungBefehleRoute
   '/app/einsatz/$einsatzId/führung/berichte': typeof AppEinsatzEinsatzIdFChar252hrungBerichteRoute
-  '/app/einsatz/$einsatzId/führung/etb': typeof AppEinsatzEinsatzIdFChar252hrungEtbRoute
   '/app/einsatz/$einsatzId/führung/protokoll': typeof AppEinsatzEinsatzIdFChar252hrungProtokollRoute
   '/app/einsatz/$einsatzId/kommunikation/alarmierung': typeof AppEinsatzEinsatzIdKommunikationAlarmierungRoute
   '/app/einsatz/$einsatzId/kommunikation/funk': typeof AppEinsatzEinsatzIdKommunikationFunkRoute
@@ -384,6 +391,7 @@ export interface FileRoutesByTo {
   '/app/einsatz/$einsatzId/übersicht/statistik': typeof AppEinsatzEinsatzIdChar220bersichtStatistikRoute
   '/app/einsatz/$einsatzId/patienten': typeof AppEinsatzEinsatzIdPatientenIndexRoute
   '/app/einsatz/$einsatzId/übersicht': typeof AppEinsatzEinsatzIdChar220bersichtIndexRoute
+  '/app/einsatz/$einsatzId/führung/etb': typeof AppEinsatzEinsatzIdFChar252hrungEtbIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -410,7 +418,7 @@ export interface FileRoutesById {
   '/app/einsatz/$einsatzId/drohne/steuerung': typeof AppEinsatzEinsatzIdDrohneSteuerungRoute
   '/app/einsatz/$einsatzId/führung/befehle': typeof AppEinsatzEinsatzIdFChar252hrungBefehleRoute
   '/app/einsatz/$einsatzId/führung/berichte': typeof AppEinsatzEinsatzIdFChar252hrungBerichteRoute
-  '/app/einsatz/$einsatzId/führung/etb': typeof AppEinsatzEinsatzIdFChar252hrungEtbRoute
+  '/app/einsatz/$einsatzId/führung/etb': typeof AppEinsatzEinsatzIdFChar252hrungEtbRouteWithChildren
   '/app/einsatz/$einsatzId/führung/protokoll': typeof AppEinsatzEinsatzIdFChar252hrungProtokollRoute
   '/app/einsatz/$einsatzId/kommunikation/alarmierung': typeof AppEinsatzEinsatzIdKommunikationAlarmierungRoute
   '/app/einsatz/$einsatzId/kommunikation/funk': typeof AppEinsatzEinsatzIdKommunikationFunkRoute
@@ -430,6 +438,7 @@ export interface FileRoutesById {
   '/app/einsatz/$einsatzId/übersicht/statistik': typeof AppEinsatzEinsatzIdChar220bersichtStatistikRoute
   '/app/einsatz/$einsatzId/patienten/': typeof AppEinsatzEinsatzIdPatientenIndexRoute
   '/app/einsatz/$einsatzId/übersicht/': typeof AppEinsatzEinsatzIdChar220bersichtIndexRoute
+  '/app/einsatz/$einsatzId/führung/etb/': typeof AppEinsatzEinsatzIdFChar252hrungEtbIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -477,6 +486,7 @@ export interface FileRouteTypes {
     | '/app/einsatz/$einsatzId/übersicht/statistik'
     | '/app/einsatz/$einsatzId/patienten'
     | '/app/einsatz/$einsatzId/übersicht'
+    | '/app/einsatz/$einsatzId/führung/etb/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -499,7 +509,6 @@ export interface FileRouteTypes {
     | '/app/einsatz/$einsatzId/drohne/steuerung'
     | '/app/einsatz/$einsatzId/führung/befehle'
     | '/app/einsatz/$einsatzId/führung/berichte'
-    | '/app/einsatz/$einsatzId/führung/etb'
     | '/app/einsatz/$einsatzId/führung/protokoll'
     | '/app/einsatz/$einsatzId/kommunikation/alarmierung'
     | '/app/einsatz/$einsatzId/kommunikation/funk'
@@ -519,6 +528,7 @@ export interface FileRouteTypes {
     | '/app/einsatz/$einsatzId/übersicht/statistik'
     | '/app/einsatz/$einsatzId/patienten'
     | '/app/einsatz/$einsatzId/übersicht'
+    | '/app/einsatz/$einsatzId/führung/etb'
   id:
     | '__root__'
     | '/'
@@ -564,6 +574,7 @@ export interface FileRouteTypes {
     | '/app/einsatz/$einsatzId/übersicht/statistik'
     | '/app/einsatz/$einsatzId/patienten/'
     | '/app/einsatz/$einsatzId/übersicht/'
+    | '/app/einsatz/$einsatzId/führung/etb/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -877,6 +888,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppEinsatzEinsatzIdBetreuungBetroffeneRouteImport
       parentRoute: typeof AppEinsatzEinsatzIdRoute
     }
+    '/app/einsatz/$einsatzId/führung/etb/': {
+      id: '/app/einsatz/$einsatzId/führung/etb/'
+      path: '/'
+      fullPath: '/app/einsatz/$einsatzId/führung/etb/'
+      preLoaderRoute: typeof AppEinsatzEinsatzIdFChar252hrungEtbIndexRouteImport
+      parentRoute: typeof AppEinsatzEinsatzIdFChar252hrungEtbRoute
+    }
   }
 }
 
@@ -910,6 +928,21 @@ const AppEinsaetzeRouteWithChildren = AppEinsaetzeRoute._addFileChildren(
   AppEinsaetzeRouteChildren,
 )
 
+interface AppEinsatzEinsatzIdFChar252hrungEtbRouteChildren {
+  AppEinsatzEinsatzIdFChar252hrungEtbIndexRoute: typeof AppEinsatzEinsatzIdFChar252hrungEtbIndexRoute
+}
+
+const AppEinsatzEinsatzIdFChar252hrungEtbRouteChildren: AppEinsatzEinsatzIdFChar252hrungEtbRouteChildren =
+  {
+    AppEinsatzEinsatzIdFChar252hrungEtbIndexRoute:
+      AppEinsatzEinsatzIdFChar252hrungEtbIndexRoute,
+  }
+
+const AppEinsatzEinsatzIdFChar252hrungEtbRouteWithChildren =
+  AppEinsatzEinsatzIdFChar252hrungEtbRoute._addFileChildren(
+    AppEinsatzEinsatzIdFChar252hrungEtbRouteChildren,
+  )
+
 interface AppEinsatzEinsatzIdRouteChildren {
   AppEinsatzEinsatzIdIndexRoute: typeof AppEinsatzEinsatzIdIndexRoute
   AppEinsatzEinsatzIdBetreuungBetroffeneRoute: typeof AppEinsatzEinsatzIdBetreuungBetroffeneRoute
@@ -920,7 +953,7 @@ interface AppEinsatzEinsatzIdRouteChildren {
   AppEinsatzEinsatzIdDrohneSteuerungRoute: typeof AppEinsatzEinsatzIdDrohneSteuerungRoute
   AppEinsatzEinsatzIdFChar252hrungBefehleRoute: typeof AppEinsatzEinsatzIdFChar252hrungBefehleRoute
   AppEinsatzEinsatzIdFChar252hrungBerichteRoute: typeof AppEinsatzEinsatzIdFChar252hrungBerichteRoute
-  AppEinsatzEinsatzIdFChar252hrungEtbRoute: typeof AppEinsatzEinsatzIdFChar252hrungEtbRoute
+  AppEinsatzEinsatzIdFChar252hrungEtbRoute: typeof AppEinsatzEinsatzIdFChar252hrungEtbRouteWithChildren
   AppEinsatzEinsatzIdFChar252hrungProtokollRoute: typeof AppEinsatzEinsatzIdFChar252hrungProtokollRoute
   AppEinsatzEinsatzIdKommunikationAlarmierungRoute: typeof AppEinsatzEinsatzIdKommunikationAlarmierungRoute
   AppEinsatzEinsatzIdKommunikationFunkRoute: typeof AppEinsatzEinsatzIdKommunikationFunkRoute
@@ -961,7 +994,7 @@ const AppEinsatzEinsatzIdRouteChildren: AppEinsatzEinsatzIdRouteChildren = {
   AppEinsatzEinsatzIdFChar252hrungBerichteRoute:
     AppEinsatzEinsatzIdFChar252hrungBerichteRoute,
   AppEinsatzEinsatzIdFChar252hrungEtbRoute:
-    AppEinsatzEinsatzIdFChar252hrungEtbRoute,
+    AppEinsatzEinsatzIdFChar252hrungEtbRouteWithChildren,
   AppEinsatzEinsatzIdFChar252hrungProtokollRoute:
     AppEinsatzEinsatzIdFChar252hrungProtokollRoute,
   AppEinsatzEinsatzIdKommunikationAlarmierungRoute:

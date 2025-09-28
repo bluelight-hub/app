@@ -12,6 +12,28 @@ interface ApiErrorResponse {
 }
 
 /**
+ * Context type for API error handling
+ */
+export type ApiErrorContext =
+  | 'createUser'
+  | 'deleteUser'
+  | 'updateUser'
+  | 'adminSetup'
+  | 'adminLogin'
+  | 'userLogin'
+  | 'userRegister'
+  | 'userAuth'
+  | 'createEinsatz'
+  | 'updateEinsatz'
+  | 'archiveEinsatz'
+  | 'createEtb'
+  | 'updateEtb'
+  | 'deleteEtb'
+  | 'createEtbEintrag'
+  | 'updateEtbEintrag'
+  | 'deleteEtbEintrag';
+
+/**
  * Error message mappings based on HTTP status codes and error codes
  */
 const ERROR_MESSAGES: Record<number, Record<string, string>> = {
@@ -64,28 +86,7 @@ const ERROR_MESSAGES: Record<number, Record<string, string>> = {
  * @param context - Optional context for error-specific messages (e.g., 'createUser', 'deleteUser')
  * @returns Promise resolving to a user-friendly error message
  */
-export async function getApiErrorMessage(
-  error: unknown,
-  fallbackMessage: string,
-  context?:
-    | 'createUser'
-    | 'deleteUser'
-    | 'updateUser'
-    | 'adminSetup'
-    | 'adminLogin'
-    | 'userLogin'
-    | 'userRegister'
-    | 'userAuth'
-    | 'createEinsatz'
-    | 'updateEinsatz'
-    | 'archiveEinsatz'
-    | 'createEtb'
-    | 'updateEtb'
-    | 'deleteEtb'
-    | 'createEtbEintrag'
-    | 'updateEtbEintrag'
-    | 'deleteEtbEintrag',
-): Promise<string> {
+export async function getApiErrorMessage(error: unknown, fallbackMessage: string, context?: ApiErrorContext): Promise<string> {
   // Handle non-ResponseError cases
   if (!(error instanceof ResponseError)) {
     if (error instanceof Error) {
@@ -162,28 +163,7 @@ export async function getApiErrorMessage(
 /**
  * Gets context-specific error messages based on the operation being performed
  */
-function getContextSpecificMessage(
-  status: number,
-  errorData: ApiErrorResponse,
-  context:
-    | 'createUser'
-    | 'deleteUser'
-    | 'updateUser'
-    | 'adminSetup'
-    | 'adminLogin'
-    | 'userLogin'
-    | 'userRegister'
-    | 'userAuth'
-    | 'createEinsatz'
-    | 'updateEinsatz'
-    | 'archiveEinsatz'
-    | 'createEtb'
-    | 'updateEtb'
-    | 'deleteEtb'
-    | 'createEtbEintrag'
-    | 'updateEtbEintrag'
-    | 'deleteEtbEintrag',
-): string | null {
+function getContextSpecificMessage(status: number, errorData: ApiErrorResponse, context: ApiErrorContext): string | null {
   switch (context) {
     case 'createUser':
       if (status === 409) {

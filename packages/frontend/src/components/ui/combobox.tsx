@@ -24,6 +24,7 @@ export interface ComboboxProps {
   leadingIcon?: React.ReactNode;
   className?: string;
   error?: string;
+  openOnFocus?: boolean;
 }
 
 export function Combobox({
@@ -39,6 +40,7 @@ export function Combobox({
   leadingIcon,
   className,
   error,
+  openOnFocus = false,
 }: ComboboxProps) {
   const [query, setQuery] = useState('');
   const [selectedItem, setSelectedItem] = useState<ComboboxItem | null>(null);
@@ -93,7 +95,7 @@ export function Combobox({
 
   return (
     <div className={cn('w-full', className)}>
-      <HeadlessCombobox as="div" value={selectedItem} onChange={handleSelectionChange} disabled={disabled}>
+      <HeadlessCombobox as="div" value={selectedItem} onChange={handleSelectionChange} disabled={disabled} immediate={openOnFocus}>
         {label && <Label className="block font-medium text-gray-900 text-sm/6 dark:text-white">{label}</Label>}
         <div className="relative mt-2">
           {leadingIcon && <div className="pointer-events-none absolute inset-y-0 left-4 flex items-center text-gray-500 dark:text-gray-400">{leadingIcon}</div>}
@@ -114,6 +116,7 @@ export function Combobox({
               error && 'border-red-300 focus:border-red-500 focus:ring-red-500 dark:border-red-700 dark:focus:border-red-400 dark:focus:ring-red-400',
             )}
             autoCorrect={'off'}
+            autoComplete={'off'}
             placeholder={placeholder}
             onChange={(event) => handleQueryChange(event.target.value)}
             onBlur={() => {
