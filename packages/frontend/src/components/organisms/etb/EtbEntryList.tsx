@@ -125,11 +125,11 @@ export function EtbEntryList({
       if (confirmed) {
         deleteEintrag.mutate({
           eintragId: entry.id,
-          einsatzId: entry.etbId,
+          einsatzId,
         });
       }
     },
-    [confirm, deleteEintrag],
+    [confirm, deleteEintrag, einsatzId],
   );
 
   // Column Definitions - Using extracted hook
