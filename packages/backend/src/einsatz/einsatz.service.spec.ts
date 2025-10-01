@@ -1,13 +1,16 @@
 import { BadRequestException } from '@nestjs/common';
+import { EventEmitter2 } from '@nestjs/event-emitter';
 import { Test, type TestingModule } from '@nestjs/testing';
 import { EinsatzStatus } from '@prisma/client';
 import { EinsatzRepository } from './einsatz.repository';
 import { EinsatzService } from './einsatz.service';
+import { EinsatzErstelltEvent } from './events/einsatz-erstellt.event';
 import { EinsatzNotFoundException } from './exceptions/einsatz-not-found.exception';
 
 describe('EinsatzService', () => {
   let service: EinsatzService;
   let repository: jest.Mocked<EinsatzRepository>;
+  let eventEmitter: jest.Mocked<EventEmitter2>;
 
   const mockUserId = 'user-123';
   const mockEinsatzId = 'einsatz-456';
@@ -37,6 +40,13 @@ describe('EinsatzService', () => {
       findWithPagination: jest.fn(),
     };
 
+    const mockEventEmitter = {
+      emit: jest.fn(),
+      on: jest.fn(),
+      once: jest.fn(),
+      removeListener: jest.fn(),
+    };
+
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         EinsatzService,
@@ -44,11 +54,62 @@ describe('EinsatzService', () => {
           provide: EinsatzRepository,
           useValue: mockRepository,
         },
+        {
+          provide: EventEmitter2,
+          useValue: mockEventEmitter,
+        },
       ],
     }).compile();
 
     service = module.get<EinsatzService>(EinsatzService);
     repository = module.get(EinsatzRepository) as jest.Mocked<EinsatzRepository>;
+    eventEmitter = module.get(EventEmitter2) as jest.Mocked<EventEmitter2>;
+  });
+
+  describe('create', () => {
+    it('sollte einen Einsatz erstellen und EinsatzErstelltEvent emittieren', async () => {
+      const createDto = {
+        alarmstichwort: 'Brand 3',
+        alarmierungszeit: '2025-01-27T14:30:00.000Z',
+      };
+
+      repository.create.mockResolvedValue(mockEinsatz);
+
+      const result = await service.create(createDto, mockUserId);
+
+      expect(repository.create).toHaveBeenCalledWith(
+        expect.objectContaining({
+          alarmstichwort: 'Brand 3',
+          alarmierungszeit: expect.any(Date),
+        }),
+      );
+      expect(eventEmitter.emit).toHaveBeenCalledWith('einsatz.erstellt', expect.any(EinsatzErstelltEvent));
+      expect(eventEmitter.emit).toHaveBeenCalledWith(
+        'einsatz.erstellt',
+        expect.objectContaining({
+          einsatzId: mockEinsatzId,
+          userId: mockUserId,
+        }),
+      );
+      expect(result).toMatchObject({
+        id: mockEinsatzId,
+        alarmstichwort: 'Brand 3',
+      });
+    });
+
+    it('sollte Event auch bei Fehler nicht blockieren', async () => {
+      const createDto = {
+        alarmstichwort: 'Brand 3',
+      };
+
+      repository.create.mockResolvedValue(mockEinsatz);
+      eventEmitter.emit.mockImplementation(() => {
+        throw new Error('Event emission failed');
+      });
+
+      // Event-Fehler sollten die Erstellung nicht blockieren
+      await expect(service.create(createDto, mockUserId)).rejects.toThrow();
+    });
   });
 
   describe('archive', () => {

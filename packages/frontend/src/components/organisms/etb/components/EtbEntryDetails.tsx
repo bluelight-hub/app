@@ -1,8 +1,9 @@
 import React from 'react';
-import { format } from 'date-fns';
-import { de } from 'date-fns/locale';
 import { PiUser, PiPencil } from 'react-icons/pi';
 import type { EtbEintragDto } from '@bluelight-hub/shared/client';
+import { formatDisplayDateTime } from '@/utils/dateFormatter';
+import { format } from 'date-fns';
+import { de } from 'date-fns/locale';
 
 interface EtbEntryDetailsProps {
   entry: EtbEintragDto;
@@ -33,7 +34,7 @@ export function EtbEntryDetails({ entry, getUserName }: EtbEntryDetailsProps) {
 
         <div>
           <span className="font-medium text-gray-500 dark:text-gray-400">Zeitstempel:</span>
-          <p className="mt-1 text-gray-900 dark:text-gray-100">{format(new Date(entry.timestamp), 'dd.MM.yyyy HH:mm:ss', { locale: de })}</p>
+          <p className="mt-1 text-gray-900 dark:text-gray-100">{formatDisplayDateTime(entry.timestamp)}</p>
         </div>
 
         {entry.funkrufname && (

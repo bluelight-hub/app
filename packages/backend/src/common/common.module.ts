@@ -2,11 +2,13 @@ import { PrismaModule } from '@/prisma/prisma.module';
 import { Global, Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { CacheModule } from '@nestjs/cache-manager';
+import { APP_INTERCEPTOR, Reflector } from '@nestjs/core';
 import { AppConfigService } from './services/app-config.service';
 import { CacheConfigService } from './config/cache-config.service';
 import { cacheConfig } from './config/cache.config';
 import { CacheRateLimiterService } from './services/cache-rate-limiter.service';
 import { CacheDuplicateDetectionService } from './services/cache-duplicate-detection.service';
+import { TransformInterceptor } from './interceptors/transform.interceptor';
 
 /**
  * Gemeinsames Modul für anwendungsübergreifende Funktionalitäten
@@ -32,7 +34,17 @@ import { CacheDuplicateDetectionService } from './services/cache-duplicate-detec
       // isGlobal wird über das @Global() Decorator am CommonModule gewährleistet
     }),
   ],
-  providers: [AppConfigService, CacheConfigService, CacheRateLimiterService, CacheDuplicateDetectionService],
+  providers: [
+    AppConfigService,
+    CacheConfigService,
+    CacheRateLimiterService,
+    CacheDuplicateDetectionService,
+    {
+      provide: APP_INTERCEPTOR,
+      useFactory: (reflector: Reflector) => new TransformInterceptor(reflector),
+      inject: [Reflector],
+    },
+  ],
   exports: [AppConfigService, CacheConfigService, CacheRateLimiterService, CacheDuplicateDetectionService, CacheModule],
 })
 export class CommonModule {}

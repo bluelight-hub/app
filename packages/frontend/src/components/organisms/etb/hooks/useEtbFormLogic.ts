@@ -1,13 +1,6 @@
 import type { CreateEtbEintragDtoKategorieEnum as EtbKategorie } from '@bluelight-hub/shared/client';
 import { useCallback, useState } from 'react';
-
-interface TextbausteinData {
-  id: string;
-  kurztext: string;
-  volltext: string;
-  kategorie: EtbKategorie;
-  isActive: boolean;
-}
+import type { TextbausteinData } from '../types';
 
 /**
  * Custom Hook für ETB-Formular-Logik

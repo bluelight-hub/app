@@ -2,6 +2,7 @@ import { HttpExceptionFilter } from '@/common/filters/http-exception.filter';
 import { Logger, Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { APP_FILTER } from '@nestjs/core';
+import { EventEmitterModule } from '@nestjs/event-emitter';
 import { ThrottlerModule } from '@nestjs/throttler';
 import { AppController } from './app.controller';
 import { AuthModule } from './auth/auth.module';
@@ -31,6 +32,12 @@ import { UserManagementModule } from './user-management/user-management.module';
   imports: [
     ConfigModule.forRoot({
       isGlobal: true,
+    }),
+    EventEmitterModule.forRoot({
+      // Event-basierte Kommunikation zwischen Modulen
+      wildcard: false,
+      delimiter: '.',
+      maxListeners: 10,
     }),
     ThrottlerModule.forRoot([
       {

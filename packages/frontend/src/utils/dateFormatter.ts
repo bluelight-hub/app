@@ -15,3 +15,18 @@ export function formatNatoDateTime(date: string | Date | null | undefined): stri
   // Format: dd HHmm MMM yy
   return format(d, 'dd HHmm MMM yy').toUpperCase();
 }
+
+/**
+ * Benutzerfreundliches DateTime Format
+ * Format: DD.MM.YYYY HH:mm
+ * Example: 03.12.2024 16:00
+ */
+export function formatDisplayDateTime(date: string | Date | null | undefined): string {
+  if (!date) return '';
+
+  const d = typeof date === 'string' ? parseISO(date) : date;
+
+  if (!isValid(d)) return '';
+
+  return format(d, 'dd.MM.yyyy HH:mm');
+}

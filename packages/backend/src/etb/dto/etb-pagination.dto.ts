@@ -2,6 +2,7 @@ import { ApiPropertyOptional } from '@nestjs/swagger';
 import { IsBoolean, IsEnum, IsIn, IsOptional, IsString } from 'class-validator';
 import { Transform } from 'class-transformer';
 import { FilterPaginationDto } from '@/common/dto/pagination.dto';
+import { ETB_SORT_FIELDS, type EtbSortBy } from '../etb.constants';
 
 /**
  * DTO für ETB-Abfragen mit erweiterten Paginierungs- und Sortieroptionen
@@ -14,14 +15,14 @@ export class EtbPaginationDto extends FilterPaginationDto {
     description: 'Feld nach dem sortiert werden soll',
     default: 'timestamp',
     example: 'timestamp',
-    enum: ['timestamp', 'sequenceNumber', 'kategorie', 'text'],
+    enum: ETB_SORT_FIELDS,
   })
   @IsOptional()
   @IsString()
-  @IsIn(['timestamp', 'sequenceNumber', 'kategorie', 'text'], {
-    message: 'Sortierfeld muss eines von: timestamp, sequenceNumber, kategorie, text sein',
+  @IsIn(ETB_SORT_FIELDS as readonly string[], {
+    message: `Sortierfeld muss eines von: ${ETB_SORT_FIELDS.join(', ')} sein`,
   })
-  sortBy?: string = 'timestamp';
+  sortBy?: EtbSortBy = 'timestamp';
 
   /**
    * Sortierreihenfolge

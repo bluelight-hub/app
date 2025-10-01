@@ -30,14 +30,14 @@ export function useEtbColumns({ onEditEntry, handleDelete, onShowHistory }: UseE
             {row.getIsExpanded() ? <PiCaretDown className="h-4 w-4" /> : <PiCaretRight className="h-4 w-4" />}
           </IconButton>
         ),
-        size: 40,
+        size: 48,
       },
       {
         id: 'sequenceNumber',
         accessorKey: 'sequenceNumber',
         header: '#',
         cell: ({ getValue }) => <span className="font-mono text-gray-500 text-xs dark:text-gray-400">#{getValue<number>()}</span>,
-        size: 60,
+        size: 70,
         enableSorting: true,
       },
       {
@@ -66,7 +66,7 @@ export function useEtbColumns({ onEditEntry, handleDelete, onShowHistory }: UseE
             </time>
           );
         },
-        size: 100,
+        size: 90,
         enableSorting: true,
       },
       {
@@ -75,13 +75,15 @@ export function useEtbColumns({ onEditEntry, handleDelete, onShowHistory }: UseE
         header: 'Kategorie',
         enableSorting: true,
         cell: ({ getValue }) => <EtbKategorieBadge kategorie={getValue<EtbEintragDtoKategorieEnum>()} />,
-        size: 120,
+        size: 150,
       },
       {
         id: 'text',
         accessorKey: 'text',
         header: 'Eintrag',
-        cell: ({ getValue }) => <p className="line-clamp-2 text-gray-900 text-sm dark:text-gray-100">{getValue<string>()}</p>,
+        cell: ({ getValue }) => <p className="whitespace-pre-wrap break-words text-gray-900 text-sm leading-relaxed dark:text-gray-100">{getValue<string>()}</p>,
+        size: 600,
+        minSize: 400,
       },
       {
         id: 'actions',
@@ -115,7 +117,7 @@ export function useEtbColumns({ onEditEntry, handleDelete, onShowHistory }: UseE
             </div>
           );
         },
-        size: 100,
+        size: 110,
       },
     ],
     [onEditEntry, handleDelete, onShowHistory],

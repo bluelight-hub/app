@@ -1,10 +1,15 @@
-import { Injectable, NotFoundException, ConflictException, BadRequestException } from '@nestjs/common';
+import { Injectable, NotFoundException, ConflictException, BadRequestException, Logger } from '@nestjs/common';
+import { OnEvent } from '@nestjs/event-emitter';
 import { EtbStatus, Einsatztagebuch, EtbEintrag, EtbTextbaustein, EtbEintragHistorie, Einsatz, User } from '@prisma/client';
+import type { PaginatedData } from '@/common/interceptors/transform.interceptor';
 import { ValidatedUser } from '@/auth/strategies/jwt.strategy';
+import { EinsatzErstelltEvent } from '@/einsatz/events/einsatz-erstellt.event';
+import { FilterPaginationDto } from '@/common/dto/pagination.dto';
 import { EtbRepository } from './etb.repository';
 import { CreateEtbDto } from './dto/create-etb.dto';
 import { CreateEtbEintragDto } from './dto/create-etb-eintrag.dto';
 import { UpdateEtbEintragDto } from './dto/update-etb-eintrag.dto';
+import { EtbPaginationDto } from './dto/etb-pagination.dto';
 import {
   CreateEtbResponse,
   GetEtbResponse,
@@ -15,12 +20,32 @@ import {
   EtbEintragDto,
   TextbausteinDto,
   EtbHistoryEntryDto,
-  EtbHistoryListResponse,
 } from './dto/etb-response.dto';
 
 @Injectable()
 export class EtbService {
+  private readonly logger = new Logger(EtbService.name);
+
   constructor(private readonly etbRepository: EtbRepository) {}
+
+  /**
+   * Event-Listener: Reagiert auf Einsatz-Erstellung und legt automatisch ETB an
+   *
+   * Dieser Listener wird automatisch aufgerufen, wenn ein neuer Einsatz erstellt wurde.
+   * Er entkoppelt das EtbModule vom EinsatzModule und verhindert zyklische Abhängigkeiten.
+   *
+   * @param event - Das EinsatzErstelltEvent mit einsatzId und userId
+   */
+  @OnEvent('einsatz.erstellt')
+  async handleEinsatzErstellt(event: EinsatzErstelltEvent): Promise<void> {
+    try {
+      await this.createEtbForEinsatz(event.einsatzId, event.userId);
+      this.logger.log(`📖 ETB für Einsatz ${event.einsatzId} automatisch erstellt (DRAFT) - Event-basiert`);
+    } catch (error) {
+      this.logger.warn(`⚠️ ETB-Erstellung für Einsatz ${event.einsatzId} fehlgeschlagen:`, error);
+      // Nicht kritisch - ETB kann später noch angelegt werden
+    }
+  }
 
   /**
    * Maps a Prisma EtbEintrag to EtbEintragDto
@@ -134,25 +159,53 @@ export class EtbService {
   /**
    * Creates ETB for a new Einsatz (called internally during Einsatz creation)
    * ETB is initially DRAFT and ready for entries
+   *
+   * Implements idempotent find-or-create pattern to prevent race conditions
+   * when multiple event handlers process the same Einsatz creation event.
    */
   async createEtbForEinsatz(einsatzId: string, userId: string): Promise<EtbDto> {
-    const etb = await this.etbRepository.create({
-      einsatzId,
-      status: EtbStatus.DRAFT,
-      createdBy: userId,
-    });
+    // Try to find existing ETB first (find-or-create pattern)
+    const existingEtb = await this.etbRepository.findByEinsatzId(einsatzId);
+    if (existingEtb) {
+      this.logger.debug(`ETB für Einsatz ${einsatzId} existiert bereits - skip creation`);
+      return this.toEtbDto(existingEtb);
+    }
 
-    return this.toEtbDto(etb);
+    try {
+      const etb = await this.etbRepository.create({
+        einsatzId,
+        status: EtbStatus.DRAFT,
+        createdBy: userId,
+      });
+
+      return this.toEtbDto(etb);
+    } catch (error: unknown) {
+      // Handle P2002: Unique constraint violation (race condition)
+      if (error && typeof error === 'object' && 'code' in error && error.code === 'P2002') {
+        this.logger.warn(`Race condition detected: ETB für Einsatz ${einsatzId} wurde parallel erstellt`);
+        // Fetch the ETB that was created by the concurrent request
+        const etb = await this.etbRepository.findByEinsatzId(einsatzId);
+        if (!etb) {
+          // This should never happen, but handle it gracefully
+          throw new ConflictException('ETB creation race condition - unable to retrieve existing ETB');
+        }
+        return this.toEtbDto(etb);
+      }
+      // Re-throw other errors
+      throw error;
+    }
   }
 
-  async getEtbByEinsatzId(
-    einsatzId: string,
-    limit: number = 10,
-    page: number = 1,
-    sortBy: string = 'timestamp',
-    sortOrder: 'asc' | 'desc' = 'desc',
-    includeDeleted: boolean = false,
-  ): Promise<GetEtbResponse> {
+  /**
+   * Ruft ein ETB anhand der Einsatz-ID mit paginierten Einträgen ab
+   *
+   * @param einsatzId - Die ID des Einsatzes
+   * @param paginationDto - DTO mit Paginierungs- und Sortieroptionen
+   * @returns Das ETB mit paginierten Einträgen
+   */
+  async getEtbByEinsatzId(einsatzId: string, paginationDto: EtbPaginationDto): Promise<GetEtbResponse> {
+    const { limit = 10, page = 1, sortBy = 'timestamp', sortOrder = 'desc', includeDeleted = false } = paginationDto;
+
     const offset = (page - 1) * limit;
     const etb = await this.etbRepository.findByEinsatzIdWithEntries(einsatzId, limit, offset, sortBy, sortOrder, includeDeleted);
     if (!etb) {
@@ -311,11 +364,12 @@ export class EtbService {
    * Ruft die Versionshistorie eines ETB-Eintrags ab
    *
    * @param eintragId - ID des ETB-Eintrags
-   * @param limit - Maximale Anzahl der Historie-Einträge pro Seite
-   * @param page - Seitenzahl
+   * @param paginationDto - DTO mit Paginierungsoptionen
    * @returns Versionshistorie mit Paginierung
    */
-  async getEintragHistory(eintragId: string, limit: number = 10, page: number = 1): Promise<EtbHistoryListResponse> {
+  async getEintragHistory(eintragId: string, paginationDto: FilterPaginationDto): Promise<PaginatedData<EtbHistoryEntryDto>> {
+    const { limit = 10, page = 1 } = paginationDto;
+
     // Verify entry exists
     const eintrag = await this.etbRepository.findEintragById(eintragId);
     if (!eintrag) {
@@ -325,19 +379,12 @@ export class EtbService {
     const offset = (page - 1) * limit;
     const history = await this.etbRepository.findEintragHistoryById(eintragId, limit, offset);
     const total = await this.etbRepository.countEintragHistory(eintragId);
-    const totalPages = Math.ceil(total / limit);
 
     return {
-      data: history.map((entry) => this.toHistoryEntryDto(entry)),
-      meta: {
-        timestamp: new Date().toISOString(),
-      },
-      pagination: {
-        page,
-        limit,
-        total,
-        totalPages,
-      },
+      items: history.map((entry) => this.toHistoryEntryDto(entry)),
+      total,
+      page,
+      limit,
     };
   }
 }
