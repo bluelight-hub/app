@@ -18,22 +18,3 @@ export const kategorieFarben: Record<EtbKategorie, string> = {
   [EtbKategorie.Sonstiges]: 'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-200',
   [EtbKategorie.System]: 'bg-slate-100 text-slate-800 dark:bg-slate-900 dark:text-slate-200',
 };
-
-/**
- * Kategorie-Labels für bessere Lesbarkeit
- */
-export const kategorieLabels: Record<EtbKategorie, string> = {
-  [EtbKategorie.Alarmierung]: 'Alarmierung',
-  [EtbKategorie.Ankunft]: 'Ankunft',
-  [EtbKategorie.Befehl]: 'Befehl',
-  [EtbKategorie.Erkundung]: 'Erkundung',
-  [EtbKategorie.Lage]: 'Lage',
-  [EtbKategorie.Massnahme]: 'Maßnahme',
-  [EtbKategorie.Personal]: 'Personal',
-  [EtbKategorie.Fahrzeug]: 'Fahrzeug',
-  [EtbKategorie.Material]: 'Material',
-  [EtbKategorie.Kommunikation]: 'Kommunikation',
-  [EtbKategorie.Wetter]: 'Wetter',
-  [EtbKategorie.Sonstiges]: 'Sonstiges',
-  [EtbKategorie.System]: 'System',
-};

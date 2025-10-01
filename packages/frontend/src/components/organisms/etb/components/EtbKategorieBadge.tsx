@@ -1,7 +1,8 @@
 import { Badge } from '@/components/atoms/badge.atom';
 import { cn } from '@/utils/cn';
 import type { EtbEintragDtoKategorieEnum as EtbKategorie } from '@bluelight-hub/shared/client';
-import { kategorieFarben, kategorieLabels } from '../constants/kategorie.constants';
+import { kategorieFarben } from '../constants/kategorie.constants';
+import { kategorieLabels } from '../types';
 
 interface EtbKategorieBadgeProps {
   kategorie: EtbKategorie;
