@@ -1,15 +1,7 @@
 import { Combobox, type ComboboxItem } from '@/components/ui/combobox';
 import type { CreateEtbEintragDtoKategorieEnum as EtbKategorie } from '@bluelight-hub/shared/client';
 import { useCallback, useMemo } from 'react';
-import { kategorieLabels } from './types';
-
-interface TextbausteinData {
-  id: string;
-  kurztext: string;
-  volltext: string;
-  kategorie: EtbKategorie;
-  isActive: boolean;
-}
+import { kategorieLabels, type TextbausteinData } from './types';
 
 interface EtbTextbausteinSelectProps {
   kategorie: EtbKategorie;

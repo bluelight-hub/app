@@ -18,7 +18,7 @@ export function EtbPage() {
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
   const [showDeleted, setShowDeleted] = useState<boolean>(false);
 
-  const { data, isLoading, error, refetch, fetchNextPage, hasNextPage, isFetchingNextPage } = useEtbInfinite(einsatzId, 30, sortBy, sortOrder, showDeleted); // 30 Einträge pro Seite
+  const { data, isLoading, error, fetchNextPage, hasNextPage, isFetchingNextPage } = useEtbInfinite(einsatzId, 30, sortBy, sortOrder, showDeleted); // 30 Einträge pro Seite
 
   const [editingEntry, setEditingEntry] = useState<EtbEintragDto | null>(null);
 
@@ -77,8 +77,6 @@ export function EtbPage() {
             editingEntry={editingEntry}
             onSuccess={() => {
               setEditingEntry(null);
-              // Bei neuen Einträgen die erste Seite neu laden
-              refetch();
             }}
             onCancel={() => setEditingEntry(null)}
           />
