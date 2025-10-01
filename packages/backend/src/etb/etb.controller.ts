@@ -1,13 +1,14 @@
 import { CurrentUser } from '@/auth/decorators/current-user.decorator';
 import { JwtAuthGuard } from '@/auth/guards/jwt-auth.guard';
 import { ValidatedUser } from '@/auth/strategies/jwt.strategy';
-import { FilterPaginationDto } from '@/common/dto/pagination.dto';
 import { Body, Controller, Delete, Get, HttpCode, HttpStatus, Param, Post, Put, Query, UseGuards } from '@nestjs/common';
 import { ApiBearerAuth, ApiOkResponse, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { CreateEtbEintragDto } from './dto/create-etb-eintrag.dto';
 import { CreateEtbDto } from './dto/create-etb.dto';
-import { CreateEtbEintragResponse, CreateEtbResponse, GetEtbResponse, TextbausteinListResponse, UpdateEtbEintragResponse } from './dto/etb-response.dto';
+import { CreateEtbEintragResponse, CreateEtbResponse, GetEtbResponse, TextbausteinListResponse, UpdateEtbEintragResponse, EtbHistoryListResponse } from './dto/etb-response.dto';
 import { UpdateEtbEintragDto } from './dto/update-etb-eintrag.dto';
+import { EtbPaginationDto } from './dto/etb-pagination.dto';
+import { FilterPaginationDto } from '@/common/dto/pagination.dto';
 import { EtbService } from './etb.service';
 
 /**
@@ -64,7 +65,7 @@ export class EtbController {
    * Ruft ein ETB anhand der Einsatz-ID ab
    *
    * @param einsatzId - Die ID des Einsatzes
-   * @param paginationQuery - Query-Parameter für Paginierung
+   * @param paginationQuery - Query-Parameter für Paginierung und Sortierung
    * @returns Das ETB mit paginierten Einträgen
    */
   @Get(':einsatzId')
@@ -75,8 +76,8 @@ export class EtbController {
     type: GetEtbResponse,
   })
   @ApiResponse({ status: HttpStatus.NOT_FOUND, description: 'ETB nicht gefunden' })
-  async getEtbByEinsatzId(@Param('einsatzId') einsatzId: string, @Query() paginationQuery: FilterPaginationDto): Promise<GetEtbResponse> {
-    return this.etbService.getEtbByEinsatzId(einsatzId, paginationQuery.limit, paginationQuery.page);
+  async getEtbByEinsatzId(@Param('einsatzId') einsatzId: string, @Query() paginationQuery: EtbPaginationDto): Promise<GetEtbResponse> {
+    return this.etbService.getEtbByEinsatzId(einsatzId, paginationQuery.limit, paginationQuery.page, paginationQuery.sortBy, paginationQuery.sortOrder, paginationQuery.includeDeleted);
   }
 
   /**
@@ -119,6 +120,25 @@ export class EtbController {
   @ApiResponse({ status: HttpStatus.NOT_FOUND, description: 'Eintrag nicht gefunden' })
   async updateEintrag(@Param('id') eintragId: string, @Body() updateEintragDto: UpdateEtbEintragDto, @CurrentUser() user: ValidatedUser): Promise<UpdateEtbEintragResponse> {
     return this.etbService.updateEintrag(eintragId, updateEintragDto, user);
+  }
+
+  /**
+   * Ruft die Versionshistorie eines ETB-Eintrags ab
+   *
+   * @param eintragId - Die ID des ETB-Eintrags
+   * @param paginationQuery - Query-Parameter für Paginierung
+   * @returns Versionshistorie des Eintrags
+   */
+  @Get('eintraege/:id/history')
+  @ApiOperation({ summary: 'Versionshistorie eines ETB-Eintrags abrufen' })
+  @ApiResponse({
+    status: HttpStatus.OK,
+    description: 'Historie erfolgreich abgerufen',
+    type: EtbHistoryListResponse,
+  })
+  @ApiResponse({ status: HttpStatus.NOT_FOUND, description: 'Eintrag nicht gefunden' })
+  async getEintragHistory(@Param('id') eintragId: string, @Query() paginationQuery: FilterPaginationDto): Promise<EtbHistoryListResponse> {
+    return this.etbService.getEintragHistory(eintragId, paginationQuery.limit, paginationQuery.page);
   }
 
   /**

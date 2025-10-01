@@ -55,15 +55,16 @@ export const useUserNames = () => {
 
   const getUserName = (userId: string) => {
     // Direkte Übereinstimmung
-    if (userMap.has(userId)) {
-      return userMap.get(userId)!;
+    const username = userMap.get(userId);
+    if (username) {
+      return username;
     }
 
     // Suche nach Benutzer, dessen ID mit der gegebenen userId beginnt
     // (für den Fall, dass nur ein Teil der ID übergeben wird)
-    for (const [id, username] of userMap.entries()) {
+    for (const [id, name] of userMap.entries()) {
       if (id.startsWith(userId)) {
-        return username;
+        return name;
       }
     }
 

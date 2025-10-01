@@ -48,8 +48,11 @@ export const EINSATZ_QUERY_KEYS = {
 export const ETB_QUERY_KEYS = {
   all: ['etb'] as const,
   byEinsatz: (einsatzId?: string, page?: number, limit?: number) => [...ETB_QUERY_KEYS.all, 'einsatz', einsatzId, { page, limit }] as const,
+  infinite: (einsatzId?: string, limit?: number, sortBy?: string, sortOrder?: 'asc' | 'desc', includeDeleted?: boolean) =>
+    [...ETB_QUERY_KEYS.all, 'infinite', einsatzId, { limit, sortBy, sortOrder, includeDeleted }] as const,
   eintraege: (etbId: string) => [...ETB_QUERY_KEYS.all, etbId, 'eintraege'] as const,
   eintrag: (eintragId: string) => [...ETB_QUERY_KEYS.all, 'eintrag', eintragId] as const,
+  eintragHistory: (eintragId: string, page?: number, limit?: number) => [...ETB_QUERY_KEYS.all, 'eintrag', eintragId, 'history', { page, limit }] as const,
   textbausteine: () => [...ETB_QUERY_KEYS.all, 'textbausteine'] as const,
 } as const;
 

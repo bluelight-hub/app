@@ -1,11 +1,22 @@
 import { Injectable, NotFoundException, ConflictException, BadRequestException } from '@nestjs/common';
-import { EtbStatus, Einsatztagebuch, EtbEintrag, EtbTextbaustein, Einsatz, User } from '@prisma/client';
+import { EtbStatus, Einsatztagebuch, EtbEintrag, EtbTextbaustein, EtbEintragHistorie, Einsatz, User } from '@prisma/client';
 import { ValidatedUser } from '@/auth/strategies/jwt.strategy';
 import { EtbRepository } from './etb.repository';
 import { CreateEtbDto } from './dto/create-etb.dto';
 import { CreateEtbEintragDto } from './dto/create-etb-eintrag.dto';
 import { UpdateEtbEintragDto } from './dto/update-etb-eintrag.dto';
-import { CreateEtbResponse, GetEtbResponse, CreateEtbEintragResponse, UpdateEtbEintragResponse, TextbausteinListResponse, EtbDto, EtbEintragDto, TextbausteinDto } from './dto/etb-response.dto';
+import {
+  CreateEtbResponse,
+  GetEtbResponse,
+  CreateEtbEintragResponse,
+  UpdateEtbEintragResponse,
+  TextbausteinListResponse,
+  EtbDto,
+  EtbEintragDto,
+  TextbausteinDto,
+  EtbHistoryEntryDto,
+  EtbHistoryListResponse,
+} from './dto/etb-response.dto';
 
 @Injectable()
 export class EtbService {
@@ -120,15 +131,36 @@ export class EtbService {
     };
   }
 
-  async getEtbByEinsatzId(einsatzId: string, limit: number = 10, page: number = 1): Promise<GetEtbResponse> {
+  /**
+   * Creates ETB for a new Einsatz (called internally during Einsatz creation)
+   * ETB is initially DRAFT and ready for entries
+   */
+  async createEtbForEinsatz(einsatzId: string, userId: string): Promise<EtbDto> {
+    const etb = await this.etbRepository.create({
+      einsatzId,
+      status: EtbStatus.DRAFT,
+      createdBy: userId,
+    });
+
+    return this.toEtbDto(etb);
+  }
+
+  async getEtbByEinsatzId(
+    einsatzId: string,
+    limit: number = 10,
+    page: number = 1,
+    sortBy: string = 'timestamp',
+    sortOrder: 'asc' | 'desc' = 'desc',
+    includeDeleted: boolean = false,
+  ): Promise<GetEtbResponse> {
     const offset = (page - 1) * limit;
-    const etb = await this.etbRepository.findByEinsatzIdWithEntries(einsatzId, limit, offset);
+    const etb = await this.etbRepository.findByEinsatzIdWithEntries(einsatzId, limit, offset, sortBy, sortOrder, includeDeleted);
     if (!etb) {
       throw new NotFoundException('ETB not found for this Einsatz');
     }
 
     // Get total count for pagination
-    const total = await this.etbRepository.countEintraege(etb.id);
+    const total = await this.etbRepository.countEintraege(etb.id, includeDeleted);
     const totalPages = Math.ceil(total / limit);
 
     return {
@@ -245,6 +277,66 @@ export class EtbService {
       data: textbausteine.map((baustein) => this.toTextbausteinDto(baustein)),
       meta: {
         timestamp: new Date().toISOString(),
+      },
+    };
+  }
+
+  /**
+   * Maps a Prisma EtbEintragHistorie to EtbHistoryEntryDto
+   */
+  private toHistoryEntryDto(
+    historyEntry: EtbEintragHistorie & {
+      modifier?: Partial<User> | null;
+    },
+  ): EtbHistoryEntryDto {
+    return {
+      id: historyEntry.id,
+      eintragId: historyEntry.eintragId,
+      version: historyEntry.version,
+      timestamp: historyEntry.timestamp,
+      sequenceNumber: historyEntry.sequenceNumber,
+      kategorie: historyEntry.kategorie,
+      text: historyEntry.text,
+      funkrufname: historyEntry.funkrufname ?? undefined,
+      standort: historyEntry.standort ?? undefined,
+      metadata: historyEntry.metadata ? (historyEntry.metadata as Record<string, unknown>) : undefined,
+      changeReason: historyEntry.changeReason ?? undefined,
+      changedAt: historyEntry.changedAt,
+      changedBy: historyEntry.changedBy,
+      changedByUsername: historyEntry.modifier?.username,
+    };
+  }
+
+  /**
+   * Ruft die Versionshistorie eines ETB-Eintrags ab
+   *
+   * @param eintragId - ID des ETB-Eintrags
+   * @param limit - Maximale Anzahl der Historie-Einträge pro Seite
+   * @param page - Seitenzahl
+   * @returns Versionshistorie mit Paginierung
+   */
+  async getEintragHistory(eintragId: string, limit: number = 10, page: number = 1): Promise<EtbHistoryListResponse> {
+    // Verify entry exists
+    const eintrag = await this.etbRepository.findEintragById(eintragId);
+    if (!eintrag) {
+      throw new NotFoundException('ETB entry not found');
+    }
+
+    const offset = (page - 1) * limit;
+    const history = await this.etbRepository.findEintragHistoryById(eintragId, limit, offset);
+    const total = await this.etbRepository.countEintragHistory(eintragId);
+    const totalPages = Math.ceil(total / limit);
+
+    return {
+      data: history.map((entry) => this.toHistoryEntryDto(entry)),
+      meta: {
+        timestamp: new Date().toISOString(),
+      },
+      pagination: {
+        page,
+        limit,
+        total,
+        totalPages,
       },
     };
   }

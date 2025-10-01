@@ -31,6 +31,8 @@ export * from './EinsatzControllerGetStatusCountsVAlpha200Response';
 export * from './EinsatzResponseDto';
 export * from './EtbDto';
 export * from './EtbEintragDto';
+export * from './EtbHistoryEntryDto';
+export * from './EtbHistoryListResponse';
 export * from './GetEtbResponse';
 export * from './HealthControllerCheck200Response';
 export * from './HealthControllerCheck200ResponseInfoValue';

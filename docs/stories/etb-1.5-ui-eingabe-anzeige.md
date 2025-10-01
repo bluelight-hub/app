@@ -230,7 +230,7 @@ export const EtbEntryList: React.FC<{ etbId: string }> = ({ etbId }) => {
     count: eintraege.length,
     getScrollElement: () => parentRef.current,
     estimateSize: () => 80, // Estimated height of each entry
-    overscan: 5,
+    overscan: 20,
   })
   
   if (eintraege.length === 0) {

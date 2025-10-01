@@ -39,6 +39,8 @@ models/EinsatzControllerGetStatusCountsVAlpha200Response.ts
 models/EinsatzResponseDto.ts
 models/EtbDto.ts
 models/EtbEintragDto.ts
+models/EtbHistoryEntryDto.ts
+models/EtbHistoryListResponse.ts
 models/GetEtbResponse.ts
 models/HealthControllerCheck200Response.ts
 models/HealthControllerCheck200ResponseInfoValue.ts

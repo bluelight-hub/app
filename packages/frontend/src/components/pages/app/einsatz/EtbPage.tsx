@@ -2,10 +2,10 @@ import { ErrorState } from '@/components/atoms/ErrorState';
 import { LoadingState } from '@/components/atoms/LoadingState';
 import { EtbEntryForm } from '@/components/organisms/etb/EtbEntryForm';
 import { EtbEntryList } from '@/components/organisms/etb/EtbEntryList';
-import { useCreateEtb, useEtb } from '@/hooks/useEtb';
+import { useEtbInfinite } from '@/hooks/useEtb';
 import type { EtbEintragDto } from '@bluelight-hub/shared/client';
 import { useParams } from '@tanstack/react-router';
-import { useEffect, useState } from 'react';
+import { useMemo, useState } from 'react';
 
 /**
  * ETB-Seite mit Eingabeformular und Eintragliste
@@ -14,43 +14,43 @@ import { useEffect, useState } from 'react';
  */
 export function EtbPage() {
   const { einsatzId } = useParams({ from: '/app/einsatz/$einsatzId/führung/etb' });
-  const { data: etbResponse, isLoading, error, refetch } = useEtb(einsatzId, 1, 50);
-  const createEtb = useCreateEtb();
+  const [sortBy, setSortBy] = useState<string>('timestamp');
+  const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
+  const [showDeleted, setShowDeleted] = useState<boolean>(false);
+
+  const { data, isLoading, error, refetch, fetchNextPage, hasNextPage, isFetchingNextPage } = useEtbInfinite(einsatzId, 30, sortBy, sortOrder, showDeleted); // 30 Einträge pro Seite
+
   const [editingEntry, setEditingEntry] = useState<EtbEintragDto | null>(null);
 
-  // Erstelle automatisch ein ETB, wenn noch keins existiert (404 bedeutet kein ETB vorhanden)
-  useEffect(() => {
-    if (!isLoading && error && (error as any)?.response?.status === 404 && !createEtb.isPending && !createEtb.isSuccess) {
-      createEtb.mutate(
-        {
-          einsatzId,
-        },
-        {
-          onSuccess: () => {
-            // Nach Erstellung das ETB neu laden
-            refetch();
-          },
-        },
-      );
-    }
-  }, [isLoading, error, einsatzId, createEtb, refetch]);
+  // Handler für Sortierungsänderung
+  const handleSortChange = (field: string, order: 'asc' | 'desc') => {
+    setSortBy(field);
+    setSortOrder(order);
+  };
 
-  if (isLoading || createEtb.isPending) {
+  const allEntries = useMemo(() => {
+    if (!data?.pages) return [];
+    return data.pages.flatMap((page) => page.data?.eintraege || []);
+  }, [data]);
+
+  const etb = data?.pages?.[0]?.data;
+
+  if (isLoading) {
     return (
-      <div className="flex h-96 items-center justify-center">
-        <LoadingState message="Lade Einsatztagebuch..." />
+      <div className="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
+        <div className="flex h-96 items-center justify-center">
+          <LoadingState message="Lade Einsatztagebuch..." />
+        </div>
       </div>
     );
   }
 
-  if (error && (error as any)?.response?.status !== 404) {
+  if (error) {
     return <ErrorState title="Fehler beim Laden" description="Das Einsatztagebuch konnte nicht geladen werden." />;
   }
 
-  const etb = etbResponse?.data;
-
   if (!etb) {
-    return <ErrorState title="ETB nicht verfügbar" description="Das Einsatztagebuch konnte nicht erstellt werden." />;
+    return <ErrorState title="ETB nicht verfügbar" description="Das Einsatztagebuch existiert nicht. Es sollte automatisch bei der Einsatz-Erstellung angelegt worden sein." />;
   }
 
   return (
@@ -64,7 +64,7 @@ export function EtbPage() {
 
         {/* Eingabeformular */}
         <div className="rounded-lg bg-white p-6 shadow dark:bg-gray-800">
-          <div className="flex items-center justify-between mb-4">
+          <div className="mb-4 flex items-center justify-between">
             <h2 className="font-medium text-gray-900 text-lg dark:text-gray-100">{editingEntry ? 'Eintrag bearbeiten' : 'Neuer Eintrag'}</h2>
             {editingEntry && (
               <button type="button" onClick={() => setEditingEntry(null)} className="text-gray-500 text-sm hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200">
@@ -72,15 +72,49 @@ export function EtbPage() {
               </button>
             )}
           </div>
-          <EtbEntryForm etbId={etb.id} editingEntry={editingEntry} onSuccess={() => setEditingEntry(null)} onCancel={() => setEditingEntry(null)} />
+          <EtbEntryForm
+            etbId={etb?.id || ''}
+            editingEntry={editingEntry}
+            onSuccess={() => {
+              setEditingEntry(null);
+              // Bei neuen Einträgen die erste Seite neu laden
+              refetch();
+            }}
+            onCancel={() => setEditingEntry(null)}
+          />
         </div>
 
-        {/* Eintragliste */}
-        <div className="rounded-lg bg-white shadow dark:bg-gray-800">
+        {/* Eintragliste mit Infinite Scrolling */}
+        <div className="overflow-hidden rounded-lg bg-white shadow dark:bg-gray-800">
           <div className="border-gray-200 border-b px-6 py-4 dark:border-gray-700">
-            <h2 className="font-medium text-gray-900 text-lg dark:text-gray-100">Einträge ({etb.eintraege?.length || 0})</h2>
+            <h2 className="font-medium text-gray-900 text-lg dark:text-gray-100">
+              Einträge
+              {data?.pages?.[0]?.pagination?.total ? (
+                <span className="ml-2 text-gray-500 text-sm dark:text-gray-400">
+                  ({allEntries.length} von {data.pages[0].pagination.total} geladen)
+                </span>
+              ) : (
+                <span className="ml-2 text-gray-500 text-sm dark:text-gray-400">({allEntries.length})</span>
+              )}
+            </h2>
           </div>
-          <EtbEntryList entries={etb.eintraege || []} isLoading={isLoading} onEditEntry={(entry) => setEditingEntry(entry)} />
+          <div className="p-6" style={{ minHeight: '700px' }}>
+            <EtbEntryList
+              entries={allEntries}
+              einsatzId={einsatzId}
+              isLoading={isLoading}
+              hasNextPage={hasNextPage}
+              fetchNextPage={fetchNextPage}
+              isFetchingNextPage={isFetchingNextPage}
+              onEditEntry={(entry) => setEditingEntry(entry)}
+              onSortChange={handleSortChange}
+              sortBy={sortBy}
+              sortOrder={sortOrder}
+              enableInlineEdit={true}
+              showDeleted={showDeleted}
+              onShowDeletedChange={setShowDeleted}
+            />
+          </div>
         </div>
       </div>
     </div>

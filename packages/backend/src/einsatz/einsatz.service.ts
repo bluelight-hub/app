@@ -19,8 +19,15 @@ export class EinsatzService {
 
   constructor(private readonly repository: EinsatzRepository) {}
 
+  // Setter für ETB-Service (Circular Dependency Workaround)
+  private etbService?: any;
+  setEtbService(etbService: any) {
+    this.etbService = etbService;
+  }
+
   /**
    * Erstellt einen neuen Einsatz mit automatisch generiertem Namen
+   * und legt automatisch ein gesperrtes ETB an
    */
   async create(dto: CreateEinsatzDto, userId: string): Promise<EinsatzResponseDto> {
     const einsatzData = {
@@ -35,6 +42,17 @@ export class EinsatzService {
 
     const einsatz = await this.repository.create(einsatzData);
     this.logger.log(`🚨 Einsatz ${einsatz.id} erstellt von User ${userId}`);
+
+    // ETB direkt mit Einsatz erstellen (initial DRAFT, sofort beschreibbar)
+    if (this.etbService) {
+      try {
+        await this.etbService.createEtbForEinsatz(einsatz.id, userId);
+        this.logger.log(`📖 ETB für Einsatz ${einsatz.id} automatisch erstellt (DRAFT)`);
+      } catch (error) {
+        this.logger.warn(`⚠️ ETB-Erstellung für Einsatz ${einsatz.id} fehlgeschlagen:`, error);
+        // Nicht kritisch - ETB kann später noch angelegt werden
+      }
+    }
 
     return this.toResponseDto(einsatz);
   }
