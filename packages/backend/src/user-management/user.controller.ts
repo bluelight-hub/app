@@ -4,7 +4,7 @@ import { ParseNanoIdPipe } from '@/common/pipes/parse-nanoid.pipe';
 import { Controller, Get, Param, UseGuards } from '@nestjs/common';
 import { ApiBearerAuth, ApiOkResponse, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { UserBasicDto, UserBasicListResponse } from './dto/user-basic-response.dto';
-import { UserResponse } from './dto/user-management-response.dto';
+import { UserDto, UserResponse } from './dto/user-management-response.dto';
 import { UserManagementService } from './user-management.service';
 
 @ApiTags('users')
@@ -19,9 +19,9 @@ export class UserController {
 
   @Get(':id')
   @ApiOperation({ summary: 'Benutzerinformationen abrufen' })
-  @ApiWrappedResponse(UserResponse, { description: 'Benutzerinformationen', isArray: true })
+  @ApiWrappedResponse(UserResponse, { description: 'Benutzerinformationen' })
   @ApiResponse({ status: 404, description: 'Benutzer nicht gefunden' })
-  async findOne(@Param('id', new ParseNanoIdPipe()) id: string): Promise<UserResponse> {
+  async findOne(@Param('id', new ParseNanoIdPipe()) id: string): Promise<UserDto> {
     return await this.userManagementService.findOne(id);
   }
 
@@ -32,8 +32,8 @@ export class UserController {
     description: 'Liste von Benutzer-IDs und Namen für UI-Anzeige',
   })
   async findAllBasic(): Promise<UserBasicDto[]> {
-    const response = await this.userManagementService.findAll();
-    return response.data.map((user) => ({
+    const users = await this.userManagementService.findAll();
+    return users.map((user) => ({
       id: user.id,
       username: user.username,
     }));

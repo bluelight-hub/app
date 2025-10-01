@@ -1,6 +1,7 @@
 import { PrismaService } from '@/prisma/prisma.service';
 import { Injectable } from '@nestjs/common';
 import { EtbKategorie, EtbStatus, Prisma } from '@prisma/client';
+import { EtbSortBy } from './etb.constants';
 
 @Injectable()
 export class EtbRepository {
@@ -38,17 +39,17 @@ export class EtbRepository {
     });
   }
 
-  async findByEinsatzIdWithEntries(einsatzId: string, limit?: number, offset?: number, sortBy: string = 'timestamp', sortOrder: 'asc' | 'desc' = 'desc', includeDeleted: boolean = false) {
-    // Mapping der erlaubten Sortierfelder
-    const sortFieldMap: Record<string, { [key: string]: 'asc' | 'desc' }> = {
+  async findByEinsatzIdWithEntries(einsatzId: string, limit?: number, offset?: number, sortBy: EtbSortBy = 'timestamp', sortOrder: 'asc' | 'desc' = 'desc', includeDeleted: boolean = false) {
+    // Mapping der erlaubten Sortierfelder (aus ETB_SORT_FIELDS)
+    // TypeScript garantiert zur Compile-Zeit, dass nur EtbSortBy-Werte verwendet werden
+    const sortFieldMap: Record<EtbSortBy, { [key: string]: 'asc' | 'desc' }> = {
       timestamp: { timestamp: sortOrder },
       sequenceNumber: { sequenceNumber: sortOrder },
       kategorie: { kategorie: sortOrder },
       text: { text: sortOrder },
     };
 
-    // Fallback auf timestamp wenn ungültiges Feld
-    const primarySort = sortFieldMap[sortBy] || { timestamp: sortOrder };
+    const primarySort = sortFieldMap[sortBy];
     // Sekundäre Sortierung für Stabilität
     const secondarySort = sortBy !== 'sequenceNumber' ? { sequenceNumber: sortOrder } : { timestamp: sortOrder };
 

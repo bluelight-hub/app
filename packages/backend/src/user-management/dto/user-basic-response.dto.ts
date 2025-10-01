@@ -24,7 +24,8 @@ export class UserBasicDto {
 export class UserBasicListResponse extends ApiResponse<UserBasicDto[]> {
   @ApiProperty({
     description: 'Liste der Basis-Benutzerinformationen',
-    type: [UserBasicDto],
+    type: UserBasicDto,
+    isArray: true,
   })
   data!: UserBasicDto[];
 }

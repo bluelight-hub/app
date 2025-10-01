@@ -3,7 +3,7 @@ import { UserRole } from '@prisma/client';
 import { UserRepository } from './user.repository';
 import type { CreateUserDto } from './dto/create-user.dto';
 import type { UpdateUserDto } from './dto/update-user.dto';
-import type { UserResponse, UsersListResponse } from './dto/user-management-response.dto';
+import type { UserDto } from './dto/user-management-response.dto';
 import { toUserDto } from './mappers/user.mapper';
 import { isPrismaP2002 } from '@/common/utils/prisma.util';
 
@@ -24,14 +24,9 @@ export class UserManagementService {
    *
    * @returns Liste von Benutzern
    */
-  async findAll(): Promise<UsersListResponse> {
+  async findAll(): Promise<UserDto[]> {
     const users = await this.userRepository.findAllLite();
-    return {
-      data: users.map(toUserDto),
-      meta: {
-        timestamp: new Date().toISOString(),
-      },
-    };
+    return users.map(toUserDto);
   }
 
   /**
@@ -41,7 +36,7 @@ export class UserManagementService {
    * @returns Benutzer mit id, username, name und role
    * @throws NotFoundException wenn der Benutzer nicht existiert
    */
-  async findOne(id: string): Promise<UserResponse> {
+  async findOne(id: string): Promise<UserDto> {
     const user = await this.userRepository.findById(id, {
       id: true,
       username: true,
@@ -52,12 +47,7 @@ export class UserManagementService {
     if (!user) {
       throw new NotFoundException('Benutzer nicht gefunden');
     }
-    return {
-      data: toUserDto(user),
-      meta: {
-        timestamp: new Date().toISOString(),
-      },
-    };
+    return toUserDto(user);
   }
 
   /**
@@ -104,7 +94,7 @@ export class UserManagementService {
    * @throws ConflictException wenn der neue Benutzername bereits existiert
    * @throws BadRequestException wenn versucht wird, den letzten SUPER_ADMIN herabzustufen
    */
-  async update(id: string, dto: UpdateUserDto): Promise<UserResponse> {
+  async update(id: string, dto: UpdateUserDto): Promise<UserDto> {
     return await this.userRepository.transaction(async (prisma) => {
       // Prüfen ob Benutzer existiert
       const existingUser = await prisma.user.findUnique({
@@ -150,12 +140,7 @@ export class UserManagementService {
           },
         });
 
-        return {
-          data: toUserDto(updatedUser),
-          meta: {
-            timestamp: new Date().toISOString(),
-          },
-        };
+        return toUserDto(updatedUser);
       } catch (error: unknown) {
         // Handle Prisma unique constraint violation
         if (isPrismaP2002(error)) {

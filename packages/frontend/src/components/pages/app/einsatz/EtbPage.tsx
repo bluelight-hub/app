@@ -2,6 +2,7 @@ import { ErrorState } from '@/components/atoms/ErrorState';
 import { LoadingState } from '@/components/atoms/LoadingState';
 import { EtbEntryForm } from '@/components/organisms/etb/EtbEntryForm';
 import { EtbEntryList } from '@/components/organisms/etb/EtbEntryList';
+import { EditEtbEntryModal } from '@/components/organisms/etb/EditEtbEntryModal';
 import { useEtbInfinite } from '@/hooks/useEtb';
 import type { EtbEintragDto } from '@bluelight-hub/shared/client';
 import { useParams } from '@tanstack/react-router';
@@ -21,11 +22,24 @@ export function EtbPage() {
   const { data, isLoading, error, fetchNextPage, hasNextPage, isFetchingNextPage } = useEtbInfinite(einsatzId, 30, sortBy, sortOrder, showDeleted); // 30 Einträge pro Seite
 
   const [editingEntry, setEditingEntry] = useState<EtbEintragDto | null>(null);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
 
   // Handler für Sortierungsänderung
   const handleSortChange = (field: string, order: 'asc' | 'desc') => {
     setSortBy(field);
     setSortOrder(order);
+  };
+
+  // Handler für Edit-Button
+  const handleEditEntry = (entry: EtbEintragDto) => {
+    setEditingEntry(entry);
+    setIsEditModalOpen(true);
+  };
+
+  // Handler für Modal-Close
+  const handleCloseEditModal = () => {
+    setIsEditModalOpen(false);
+    setEditingEntry(null);
   };
 
   const allEntries = useMemo(() => {
@@ -62,22 +76,10 @@ export function EtbPage() {
 
         {/* Eingabeformular */}
         <div className="rounded-lg bg-white p-6 shadow dark:bg-gray-800">
-          <div className="mb-4 flex items-center justify-between">
-            <h2 className="font-medium text-gray-900 text-lg dark:text-gray-100">{editingEntry ? 'Eintrag bearbeiten' : 'Neuer Eintrag'}</h2>
-            {editingEntry && (
-              <button type="button" onClick={() => setEditingEntry(null)} className="text-gray-500 text-sm hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200">
-                Abbrechen
-              </button>
-            )}
+          <div className="mb-4">
+            <h2 className="font-medium text-gray-900 text-lg dark:text-gray-100">Neuer Eintrag</h2>
           </div>
-          <EtbEntryForm
-            etbId={etb?.id || ''}
-            editingEntry={editingEntry}
-            onSuccess={() => {
-              setEditingEntry(null);
-            }}
-            onCancel={() => setEditingEntry(null)}
-          />
+          <EtbEntryForm etbId={etb?.id || ''} />
         </div>
 
         {/* Eintragliste mit Infinite Scrolling */}
@@ -102,17 +104,20 @@ export function EtbPage() {
               hasNextPage={hasNextPage}
               fetchNextPage={fetchNextPage}
               isFetchingNextPage={isFetchingNextPage}
-              onEditEntry={(entry) => setEditingEntry(entry)}
+              onEditEntry={handleEditEntry}
               onSortChange={handleSortChange}
               sortBy={sortBy}
               sortOrder={sortOrder}
-              enableInlineEdit={true}
+              enableInlineEdit={false}
               showDeleted={showDeleted}
               onShowDeletedChange={setShowDeleted}
             />
           </div>
         </div>
       </div>
+
+      {/* Edit Modal */}
+      <EditEtbEntryModal entry={editingEntry} isOpen={isEditModalOpen} onClose={handleCloseEditModal} />
     </div>
   );
 }

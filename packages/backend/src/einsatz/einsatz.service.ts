@@ -1,9 +1,11 @@
 import type { PaginatedData } from '@/common/interceptors/transform.interceptor';
 import { CreateEinsatzDto, EinsatzCompleteness, EinsatzQueryDto, EinsatzResponseDto, NavigationResponseDto, StatusCountsResponseDto, UpdateEinsatzDto } from '@/einsatz/dto';
 import { BadRequestException, Injectable, Logger } from '@nestjs/common';
+import { EventEmitter2 } from '@nestjs/event-emitter';
 import { Einsatz, EinsatzStatus, Prisma } from '@prisma/client';
 import { milliseconds } from 'date-fns';
 import { EinsatzRepository } from './einsatz.repository';
+import { EinsatzErstelltEvent } from './events/einsatz-erstellt.event';
 import { EinsatzNotFoundException } from './exceptions/einsatz-not-found.exception';
 import { EinsatzCompletenessCalculator } from './utils/completeness.util';
 import { EinsatzNameGenerator } from './utils/name-generator.util';
@@ -17,17 +19,14 @@ export class EinsatzService {
   private lastCleanup = Date.now();
   private readonly CLEANUP_INTERVAL = milliseconds({ minutes: 5 }); // 5 Minuten
 
-  constructor(private readonly repository: EinsatzRepository) {}
-
-  // Setter für ETB-Service (Circular Dependency Workaround)
-  private etbService?: any;
-  setEtbService(etbService: any) {
-    this.etbService = etbService;
-  }
+  constructor(
+    private readonly repository: EinsatzRepository,
+    private readonly eventEmitter: EventEmitter2,
+  ) {}
 
   /**
    * Erstellt einen neuen Einsatz mit automatisch generiertem Namen
-   * und legt automatisch ein gesperrtes ETB an
+   * und emittiert ein Domain-Event für automatische ETB-Erstellung
    */
   async create(dto: CreateEinsatzDto, userId: string): Promise<EinsatzResponseDto> {
     const einsatzData = {
@@ -43,16 +42,10 @@ export class EinsatzService {
     const einsatz = await this.repository.create(einsatzData);
     this.logger.log(`🚨 Einsatz ${einsatz.id} erstellt von User ${userId}`);
 
-    // ETB direkt mit Einsatz erstellen (initial DRAFT, sofort beschreibbar)
-    if (this.etbService) {
-      try {
-        await this.etbService.createEtbForEinsatz(einsatz.id, userId);
-        this.logger.log(`📖 ETB für Einsatz ${einsatz.id} automatisch erstellt (DRAFT)`);
-      } catch (error) {
-        this.logger.warn(`⚠️ ETB-Erstellung für Einsatz ${einsatz.id} fehlgeschlagen:`, error);
-        // Nicht kritisch - ETB kann später noch angelegt werden
-      }
-    }
+    // Domain-Event emittieren für lose gekoppelte ETB-Erstellung
+    const event = new EinsatzErstelltEvent(einsatz.id, userId);
+    this.eventEmitter.emit('einsatz.erstellt', event);
+    this.logger.debug(`📨 Event 'einsatz.erstellt' emittiert für Einsatz ${einsatz.id}`);
 
     return this.toResponseDto(einsatz);
   }

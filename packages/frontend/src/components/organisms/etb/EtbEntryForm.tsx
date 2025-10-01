@@ -1,15 +1,14 @@
 import { useCreateEtbEintrag, useTextbausteine, useUpdateEtbEintrag } from '@/hooks/useEtb';
-import { Button } from '@atoms/button.atom';
-import { Spinner } from '@atoms/spinner.atom';
 import { CreateEtbEintragDtoKategorieEnum as EtbKategorie, type EtbEintragDto } from '@bluelight-hub/shared/client';
+import { EtbFormActions } from '@molecules/etb/EtbFormActions';
+import { EtbTextbausteinPreview } from '@molecules/etb/EtbTextbausteinPreview';
+import { EtbKategorieSelect } from '@organisms/etb/EtbKategorieSelect';
+import { EtbTextbausteinSelect } from '@organisms/etb/EtbTextbausteinSelect';
+import { EtbTextInput } from '@organisms/etb/EtbTextInput';
+import { useEtbFormLogic } from '@organisms/etb/hooks/useEtbFormLogic';
 import { useForm } from '@tanstack/react-form';
 import { useEffect, useState } from 'react';
-import { PiArrowCounterClockwise, PiCheckCircle, PiPaperPlaneTilt, PiWarningCircle, PiX } from 'react-icons/pi';
 import { z } from 'zod';
-import { EtbKategorieSelect } from './EtbKategorieSelect';
-import { EtbTextbausteinSelect } from './EtbTextbausteinSelect';
-import { EtbTextInput } from './EtbTextInput';
-import { useEtbFormLogic } from './hooks/useEtbFormLogic';
 
 const etbEntrySchema = z.object({
   kategorie: z.enum(EtbKategorie),
@@ -190,98 +189,44 @@ export function EtbEntryForm({ etbId, editingEntry, onSuccess, onCancel, classNa
         </div>
 
         {/* Preview Banner */}
-        {pendingTextbaustein && (
-          <div className="rounded-lg border border-yellow-200 bg-yellow-50 p-3">
-            <div className="flex items-start gap-2">
-              <PiWarningCircle className="mt-0.5 h-5 w-5 flex-shrink-0 text-yellow-600" />
-              <div className="flex-grow">
-                <p className="font-medium text-sm text-yellow-800">Textbaustein-Vorschau</p>
-                <p className="mt-1 text-sm text-yellow-700">Der vorhandene Text wird ersetzt mit:</p>
-                <div className="mt-2 rounded border border-yellow-200 bg-white p-2">
-                  <p className="line-clamp-2 text-gray-700 text-sm">{pendingTextbaustein.text}</p>
-                </div>
-                <div className="mt-3 flex gap-2">
-                  <Button type="button" size="sm" intent="primary" onClick={applyPendingTextbaustein}>
-                    <PiCheckCircle className="mr-1 h-4 w-4" />
-                    Text übernehmen
-                  </Button>
-                  <Button type="button" size="sm" intent="secondary" onClick={cancelPendingTextbaustein}>
-                    <PiX className="mr-1 h-4 w-4" />
-                    Abbrechen
-                  </Button>
-                </div>
-              </div>
-            </div>
-          </div>
-        )}
+        {pendingTextbaustein && <EtbTextbausteinPreview text={pendingTextbaustein.text} onApply={applyPendingTextbaustein} onCancel={cancelPendingTextbaustein} />}
 
         <form.Field name="text">
           {(field) => <EtbTextInput value={field.state.value} onChange={field.handleChange} onBlur={field.handleBlur} error={field.state.meta.errors?.[0]?.message} maxLength={2000} />}
         </form.Field>
 
-        <div className="flex justify-end gap-3">
-          <form.Subscribe selector={(state) => ({ textValue: state.values.text })}>
-            {({ textValue }) => {
-              const hasContent = (textValue || '').trim() !== '';
-              return (
-                <>
-                  {showResetConfirm ? (
-                    <div className="flex items-center gap-2 rounded-lg border border-yellow-200 bg-yellow-50 px-3 py-1.5">
-                      <span className="text-sm text-yellow-700">{editingEntry ? 'Wirklich abbrechen?' : 'Wirklich zurücksetzen?'}</span>
-                      <Button type="button" size="sm" intent="warning" onClick={handleReset} disabled={createEintrag.isPending || updateEintrag.isPending}>
-                        {editingEntry ? 'Ja, abbrechen' : 'Ja, löschen'}
-                      </Button>
-                      <Button type="button" size="sm" intent="secondary" onClick={() => setShowResetConfirm(false)} disabled={createEintrag.isPending || updateEintrag.isPending}>
-                        Behalten
-                      </Button>
-                    </div>
-                  ) : (
-                    <Button
-                      type="button"
-                      intent="secondary"
-                      size="sm"
-                      onClick={() => {
-                        if (hasContent) {
-                          setShowResetConfirm(true);
-                        } else {
-                          handleReset();
-                        }
-                      }}
-                      disabled={createEintrag.isPending || updateEintrag.isPending}
-                      title={editingEntry ? 'Bearbeitung abbrechen' : hasContent ? 'Formular zurücksetzen' : 'Nichts zum Zurücksetzen'}
-                    >
-                      <PiArrowCounterClockwise className="mr-1.5 h-4 w-4" />
-                      {editingEntry ? 'Abbrechen' : 'Zurücksetzen'}
-                    </Button>
-                  )}
-                </>
-              );
-            }}
-          </form.Subscribe>
+        <form.Subscribe
+          selector={(state) => ({
+            textValue: state.values.text,
+            canSubmit: state.canSubmit,
+            isSubmitting: state.isSubmitting,
+          })}
+        >
+          {({ textValue, canSubmit, isSubmitting }) => {
+            const hasContent = (textValue || '').trim() !== '';
+            const isPending = editingEntry ? updateEintrag.isPending : createEintrag.isPending;
 
-          <form.Subscribe
-            selector={(state) => ({
-              canSubmit: state.canSubmit,
-              isSubmitting: state.isSubmitting,
-            })}
-          >
-            {({ canSubmit, isSubmitting }) => (
-              <Button type="submit" intent="primary" size="sm" disabled={!canSubmit || (editingEntry ? updateEintrag.isPending : createEintrag.isPending) || isSubmitting}>
-                {(editingEntry ? updateEintrag.isPending : createEintrag.isPending) ? (
-                  <>
-                    <Spinner className="mr-2 h-4 w-4" />
-                    <span>Wird gespeichert...</span>
-                  </>
-                ) : (
-                  <>
-                    <PiPaperPlaneTilt className="mr-2 h-4 w-4" />
-                    <span>{editingEntry ? 'Eintrag aktualisieren' : 'Eintrag speichern'}</span>
-                  </>
-                )}
-              </Button>
-            )}
-          </form.Subscribe>
-        </div>
+            return (
+              <EtbFormActions
+                isEditing={!!editingEntry}
+                hasContent={hasContent}
+                canSubmit={canSubmit}
+                isSubmitting={isSubmitting}
+                isPending={isPending}
+                showResetConfirm={showResetConfirm}
+                onReset={() => {
+                  if (hasContent) {
+                    setShowResetConfirm(true);
+                  } else {
+                    handleReset();
+                  }
+                }}
+                onResetConfirm={handleReset}
+                onResetCancel={() => setShowResetConfirm(false)}
+              />
+            );
+          }}
+        </form.Subscribe>
       </div>
     </form>
   );

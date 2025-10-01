@@ -1,6 +1,6 @@
 import { Dialog } from '@/components/molecules/dialog.molecule';
 import type React from 'react';
-import { createContext, useCallback, useContext, useRef, useState } from 'react';
+import { createContext, useCallback, useContext, useEffect, useRef, useState } from 'react';
 
 interface ConfirmOptions {
   title?: string;
@@ -30,9 +30,15 @@ export const ConfirmProvider: React.FC<{ children: React.ReactNode }> = ({ child
   });
 
   const promiseResolveRef = useRef<((value: boolean) => void) | null>(null);
+  const pendingPromiseRef = useRef<Promise<boolean> | null>(null);
 
   const confirm = useCallback((messageOrOptions: string | ConfirmOptions): Promise<boolean> => {
-    return new Promise((resolve) => {
+    // Wenn bereits ein Dialog offen ist, gib das bestehende Promise zurück
+    if (pendingPromiseRef.current) {
+      return pendingPromiseRef.current;
+    }
+
+    const promise = new Promise<boolean>((resolve) => {
       promiseResolveRef.current = resolve;
 
       const options = typeof messageOrOptions === 'string' ? { message: messageOrOptions } : messageOrOptions;
@@ -47,6 +53,9 @@ export const ConfirmProvider: React.FC<{ children: React.ReactNode }> = ({ child
         ...options,
       });
     });
+
+    pendingPromiseRef.current = promise;
+    return promise;
   }, []);
 
   const handleConfirm = useCallback(() => {
@@ -54,6 +63,7 @@ export const ConfirmProvider: React.FC<{ children: React.ReactNode }> = ({ child
       promiseResolveRef.current(true);
       promiseResolveRef.current = null;
     }
+    pendingPromiseRef.current = null;
     setState((prev) => ({ ...prev, isOpen: false }));
   }, []);
 
@@ -62,7 +72,19 @@ export const ConfirmProvider: React.FC<{ children: React.ReactNode }> = ({ child
       promiseResolveRef.current(false);
       promiseResolveRef.current = null;
     }
+    pendingPromiseRef.current = null;
     setState((prev) => ({ ...prev, isOpen: false }));
+  }, []);
+
+  // Cleanup bei unmount: resolve ausstehende Promises mit false
+  useEffect(() => {
+    return () => {
+      if (promiseResolveRef.current) {
+        promiseResolveRef.current(false);
+        promiseResolveRef.current = null;
+      }
+      pendingPromiseRef.current = null;
+    };
   }, []);
 
   return (

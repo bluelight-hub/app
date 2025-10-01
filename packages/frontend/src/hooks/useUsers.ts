@@ -2,6 +2,7 @@ import { api } from '@/api';
 import { QUERY_KEYS } from '@/queryKeys';
 import type { UserBasicDto, UserResponse } from '@bluelight-hub/shared/client';
 import { useQuery } from '@tanstack/react-query';
+import { useCallback, useMemo } from 'react';
 
 /**
  * Hook zum Abrufen aller Benutzer (Basis-Informationen)
@@ -43,41 +44,49 @@ export const useUser = (userId?: string) => {
 export const useUserNames = () => {
   const { data: users } = useUsers();
 
-  const userMap = new Map<string, string>();
-
-  if (users && Array.isArray(users)) {
-    for (const user of users) {
-      if (user.id && user.username) {
-        userMap.set(user.id, user.username);
+  const userMap = useMemo(() => {
+    const m = new Map<string, string>();
+    if (users && Array.isArray(users)) {
+      for (const user of users) {
+        if (user.id && user.username) {
+          m.set(user.id, user.username);
+        }
       }
     }
-  }
+    return m;
+  }, [users]);
 
-  const getUserName = (userId: string) => {
-    // Direkte Übereinstimmung
-    const username = userMap.get(userId);
-    if (username) {
-      return username;
-    }
-
-    // Suche nach Benutzer, dessen ID mit der gegebenen userId beginnt
-    // (für den Fall, dass nur ein Teil der ID übergeben wird)
-    for (const [id, name] of userMap.entries()) {
-      if (id.startsWith(userId)) {
-        return name;
+  const getUserName = useCallback(
+    (userId: string) => {
+      // Direkte Übereinstimmung
+      const username = userMap.get(userId);
+      if (username) {
+        return username;
       }
-    }
 
-    // Fallback
-    return `User #${userId.slice(0, 8)}`;
-  };
+      // Suche nach Benutzer, dessen ID mit der gegebenen userId beginnt
+      // (für den Fall, dass nur ein Teil der ID übergeben wird)
+      for (const [id, name] of userMap.entries()) {
+        if (id.startsWith(userId)) {
+          return name;
+        }
+      }
 
-  const getUserNames = (ids: string | string[]) => {
-    if (typeof ids === 'string') {
-      return getUserName(ids);
-    }
-    return ids.map((id) => getUserName(id));
-  };
+      // Fallback
+      return `User #${userId.slice(0, 8)}`;
+    },
+    [userMap],
+  );
+
+  const getUserNames = useCallback(
+    (ids: string | string[]) => {
+      if (typeof ids === 'string') {
+        return getUserName(ids);
+      }
+      return ids.map((id) => getUserName(id));
+    },
+    [getUserName],
+  );
 
   return {
     userMap,

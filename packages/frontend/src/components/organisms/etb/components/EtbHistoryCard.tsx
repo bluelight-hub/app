@@ -1,9 +1,8 @@
-import { format } from 'date-fns';
-import { de } from 'date-fns/locale';
 import { cn } from '@/utils/cn';
 import type { CreateEtbEintragDtoKategorieEnum as EtbKategorie } from '@bluelight-hub/shared/client';
 import { EtbVersionBadge } from './EtbVersionBadge';
 import { EtbKategorieBadge } from './EtbKategorieBadge';
+import { formatDisplayDateTime } from '@/utils/dateFormatter';
 
 interface EtbHistoryCardProps {
   version: number;
@@ -40,7 +39,7 @@ export function EtbHistoryCard({ version, timestamp, text, kategorie, isCurrent 
       {/* Header mit Version und Timestamp */}
       <div className="mb-2 flex items-center gap-2">
         <EtbVersionBadge version={version} isCurrent={isCurrent} variant="solid" />
-        <span className="text-gray-500 text-sm dark:text-gray-400">{format(timestamp, 'dd.MM.yyyy HH:mm', { locale: de })}</span>
+        <span className="text-gray-500 text-sm dark:text-gray-400">{formatDisplayDateTime(timestamp)}</span>
       </div>
 
       {/* Username */}
