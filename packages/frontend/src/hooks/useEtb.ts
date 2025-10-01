@@ -13,7 +13,7 @@ import type {
   UpdateEtbEintragDto,
   UpdateEtbEintragResponse,
 } from '@bluelight-hub/shared/client';
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { useMutation, useQuery, useQueryClient, useInfiniteQuery } from '@tanstack/react-query';
 import { toast } from 'sonner';
 
 /**
@@ -53,6 +53,58 @@ export const useEtb = (einsatzId?: string, page?: number, limit?: number) => {
     staleTime: 30000,
     retry: 3,
     retryDelay: calculateRetryDelay,
+  });
+};
+
+/**
+ * Hook für ETB-Abfrage mit Infinite Scrolling
+ *
+ * @param einsatzId - Die ID des Einsatzes
+ * @param limit - Anzahl der Einträge pro Seite (Standard: 20)
+ * @param sortBy - Feld nach dem sortiert wird (Standard: 'timestamp')
+ * @param sortOrder - Sortierreihenfolge (Standard: 'desc' = neueste zuerst)
+ * @param includeDeleted - Gelöschte Einträge einschließen (Standard: false)
+ * @returns ETB-Daten mit Infinite Scrolling Support
+ */
+export const useEtbInfinite = (einsatzId?: string, limit: number = 20, sortBy: string = 'timestamp', sortOrder: 'asc' | 'desc' = 'desc', includeDeleted: boolean = false) => {
+  return useInfiniteQuery({
+    enabled: !!einsatzId,
+    queryKey: QUERY_KEYS.etb.infinite(einsatzId, limit, sortBy, sortOrder, includeDeleted),
+    initialPageParam: 1,
+    queryFn: async ({ pageParam }) => {
+      if (!einsatzId) {
+        throw new Error('einsatzId must be provided');
+      }
+      try {
+        return await api.etb().etbControllerGetEtbByEinsatzIdVAlpha({
+          einsatzId,
+          page: pageParam,
+          limit,
+          sortBy: sortBy as 'timestamp' | 'sequenceNumber' | 'kategorie' | 'text',
+          sortOrder,
+          includeDeleted,
+        });
+      } catch (error) {
+        logger.error('Failed to fetch ETB', error);
+        throw error;
+      }
+    },
+    getNextPageParam: (lastPage) => {
+      if (!lastPage.pagination) return undefined;
+      const { page, totalPages } = lastPage.pagination;
+      return page < totalPages ? page + 1 : undefined;
+    },
+    getPreviousPageParam: (firstPage) => {
+      if (!firstPage.pagination) return undefined;
+      const { page } = firstPage.pagination;
+      return page > 1 ? page - 1 : undefined;
+    },
+    staleTime: 30000,
+    retry: 3,
+    retryDelay: calculateRetryDelay,
+    refetchOnWindowFocus: false,
+    // Behalte alte Daten während des Nachladens
+    placeholderData: (previousData) => previousData,
   });
 };
 
@@ -277,6 +329,39 @@ export const useDeleteEtbEintrag = () => {
     onSettled: async () => {
       await queryClient.invalidateQueries({ queryKey: QUERY_KEYS.etb.all });
     },
+    retry: 3,
+    retryDelay: calculateRetryDelay,
+  });
+};
+
+/**
+ * Hook für ETB-Eintrag-Historie
+ *
+ * @param eintragId - Die ID des ETB-Eintrags
+ * @param page - Seitenzahl für Paginierung (optional)
+ * @param limit - Anzahl der Historie-Einträge pro Seite (optional)
+ * @returns Historie-Daten mit Ladezustand und Fehler
+ */
+export const useEtbEntryHistory = (eintragId?: string, page?: number, limit?: number) => {
+  return useQuery({
+    enabled: !!eintragId,
+    queryKey: QUERY_KEYS.etb.eintragHistory(eintragId || '', page, limit),
+    queryFn: async () => {
+      if (!eintragId) {
+        throw new Error('eintragId must be provided');
+      }
+      try {
+        return await api.etb().etbControllerGetEintragHistoryVAlpha({
+          id: eintragId,
+          page,
+          limit,
+        });
+      } catch (error) {
+        logger.error('Failed to fetch ETB entry history', error);
+        throw error;
+      }
+    },
+    staleTime: 60000, // Historie ändert sich selten, längere stale time
     retry: 3,
     retryDelay: calculateRetryDelay,
   });

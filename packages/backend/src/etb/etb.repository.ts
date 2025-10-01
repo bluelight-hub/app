@@ -38,20 +38,41 @@ export class EtbRepository {
     });
   }
 
-  async findByEinsatzIdWithEntries(einsatzId: string, limit?: number, offset?: number) {
+  async findByEinsatzIdWithEntries(einsatzId: string, limit?: number, offset?: number, sortBy: string = 'timestamp', sortOrder: 'asc' | 'desc' = 'desc', includeDeleted: boolean = false) {
+    // Mapping der erlaubten Sortierfelder
+    const sortFieldMap: Record<string, { [key: string]: 'asc' | 'desc' }> = {
+      timestamp: { timestamp: sortOrder },
+      sequenceNumber: { sequenceNumber: sortOrder },
+      kategorie: { kategorie: sortOrder },
+      text: { text: sortOrder },
+    };
+
+    // Fallback auf timestamp wenn ungültiges Feld
+    const primarySort = sortFieldMap[sortBy] || { timestamp: sortOrder };
+    // Sekundäre Sortierung für Stabilität
+    const secondarySort = sortBy !== 'sequenceNumber' ? { sequenceNumber: sortOrder } : { timestamp: sortOrder };
+
+    // Bedingtes Filtering für gelöschte Einträge
+    const whereClause = includeDeleted ? {} : { deletedAt: null };
+
     return this.prisma.einsatztagebuch.findUnique({
       where: { einsatzId },
       include: {
         einsatz: true,
         eintraege: {
-          where: {
-            deletedAt: null,
-          },
-          orderBy: [{ timestamp: 'asc' }, { sequenceNumber: 'asc' }],
+          where: whereClause,
+          orderBy: [primarySort, secondarySort],
           take: limit,
           skip: offset,
           include: {
             creator: {
+              select: {
+                id: true,
+                username: true,
+                role: true,
+              },
+            },
+            deleter: {
               select: {
                 id: true,
                 username: true,
@@ -71,12 +92,10 @@ export class EtbRepository {
     });
   }
 
-  async countEintraege(etbId: string): Promise<number> {
+  async countEintraege(etbId: string, includeDeleted: boolean = false): Promise<number> {
+    const whereClause = includeDeleted ? { etbId } : { etbId, deletedAt: null };
     return this.prisma.etbEintrag.count({
-      where: {
-        etbId,
-        deletedAt: null,
-      },
+      where: whereClause,
     });
   }
 
@@ -208,6 +227,44 @@ export class EtbRepository {
   async findAllTextbausteine() {
     return this.prisma.etbTextbaustein.findMany({
       orderBy: [{ kategorie: 'asc' }, { kurztext: 'asc' }],
+    });
+  }
+
+  /**
+   * Ruft die Versionshistorie eines ETB-Eintrags ab
+   *
+   * @param eintragId - ID des ETB-Eintrags
+   * @param limit - Maximale Anzahl der Historie-Einträge
+   * @param offset - Offset für Paginierung
+   * @returns Liste der Historie-Einträge sortiert nach Version (neueste zuerst)
+   */
+  async findEintragHistoryById(eintragId: string, limit?: number, offset?: number) {
+    return this.prisma.etbEintragHistorie.findMany({
+      where: { eintragId },
+      orderBy: { version: 'desc' },
+      take: limit,
+      skip: offset,
+      include: {
+        modifier: {
+          select: {
+            id: true,
+            username: true,
+            role: true,
+          },
+        },
+      },
+    });
+  }
+
+  /**
+   * Zählt die Anzahl der Historie-Einträge für einen ETB-Eintrag
+   *
+   * @param eintragId - ID des ETB-Eintrags
+   * @returns Anzahl der Historie-Einträge
+   */
+  async countEintragHistory(eintragId: string): Promise<number> {
+    return this.prisma.etbEintragHistorie.count({
+      where: { eintragId },
     });
   }
 }

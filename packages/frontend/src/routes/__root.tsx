@@ -1,4 +1,5 @@
 import { Provider } from '@/components/ui/provider.tsx';
+import { ConfirmProvider } from '@/hooks/useConfirm';
 import { handleQueryError } from '@/utils/error-handler';
 import { TanstackDevtools } from '@tanstack/react-devtools';
 import { MutationCache, QueryCache, QueryClient, QueryClientProvider } from '@tanstack/react-query';
@@ -78,22 +79,24 @@ function RootComponent() {
   return (
     <Provider>
       <QueryClientProvider client={queryClient}>
-        <Outlet />
-        <div className="absolute">
-          <TanstackDevtools
-            plugins={[
-              {
-                name: 'Tanstack Query',
-                render: <ReactQueryDevtoolsPanel />,
-              },
-              {
-                name: 'Tanstack Router',
-                render: <TanStackRouterDevtoolsPanel />,
-              },
-            ]}
-          />
-        </div>
-        <Toaster duration={5000} position="bottom-right" closeButton />
+        <ConfirmProvider>
+          <Outlet />
+          <div className="absolute">
+            <TanstackDevtools
+              plugins={[
+                {
+                  name: 'Tanstack Query',
+                  render: <ReactQueryDevtoolsPanel />,
+                },
+                {
+                  name: 'Tanstack Router',
+                  render: <TanStackRouterDevtoolsPanel />,
+                },
+              ]}
+            />
+          </div>
+          <Toaster duration={5000} position="bottom-right" closeButton />
+        </ConfirmProvider>
       </QueryClientProvider>
     </Provider>
   );

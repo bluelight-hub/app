@@ -1,6 +1,6 @@
+import { ApiPagination, ApiResponse } from '@/common/interfaces/api-response.interface';
 import { ApiProperty } from '@nestjs/swagger';
-import { EtbStatus, EtbKategorie } from '@prisma/client';
-import { ApiResponse, ApiPagination } from '@/common/interfaces/api-response.interface';
+import { EtbKategorie, EtbStatus } from '@prisma/client';
 
 /**
  * DTO für einen ETB-Textbaustein
@@ -150,6 +150,7 @@ export class EtbEintragDto {
     example: '123e4567-e89b-12d3-a456-426614174000',
     required: false,
     nullable: true,
+    type: 'string',
   })
   updatedBy?: string | null;
 
@@ -287,4 +288,122 @@ export class TextbausteinListResponse extends ApiResponse<TextbausteinDto[]> {
     isArray: true,
   })
   data!: TextbausteinDto[];
+}
+
+/**
+ * DTO für einen Eintrag in der ETB-Versionshistorie
+ */
+export class EtbHistoryEntryDto {
+  @ApiProperty({
+    description: 'Eindeutige ID des Historie-Eintrags',
+    example: '123e4567-e89b-12d3-a456-426614174000',
+  })
+  id!: string;
+
+  @ApiProperty({
+    description: 'ID des zugehörigen ETB-Eintrags',
+    example: '123e4567-e89b-12d3-a456-426614174000',
+  })
+  eintragId!: string;
+
+  @ApiProperty({
+    description: 'Versionsnummer',
+    example: 1,
+  })
+  version!: number;
+
+  @ApiProperty({
+    description: 'Zeitstempel des Eintrags (Snapshot)',
+    example: '2024-01-01T12:00:00.000Z',
+  })
+  timestamp!: Date;
+
+  @ApiProperty({
+    description: 'Fortlaufende Nummer (Snapshot)',
+    example: 1,
+  })
+  sequenceNumber!: number;
+
+  @ApiProperty({
+    description: 'Kategorie (Snapshot)',
+    enum: EtbKategorie,
+    example: EtbKategorie.LAGE,
+  })
+  kategorie!: EtbKategorie;
+
+  @ApiProperty({
+    description: 'Text (Snapshot)',
+    example: 'Erste Erkundung abgeschlossen',
+  })
+  text!: string;
+
+  @ApiProperty({
+    description: 'Optionaler Funkrufname (Snapshot)',
+    example: 'Florian Hamburg 1',
+    required: false,
+    nullable: true,
+  })
+  funkrufname?: string | null;
+
+  @ApiProperty({
+    description: 'Optionaler Standort (Snapshot)',
+    example: 'Einsatzstelle',
+    required: false,
+    nullable: true,
+  })
+  standort?: string | null;
+
+  @ApiProperty({
+    description: 'Zusätzliche Metadaten (Snapshot)',
+    required: false,
+    nullable: true,
+  })
+  metadata?: Record<string, unknown>;
+
+  @ApiProperty({
+    description: 'Grund der Änderung',
+    example: 'Rechtschreibkorrektur',
+    required: false,
+    nullable: true,
+    type: 'string',
+  })
+  changeReason?: string | null;
+
+  @ApiProperty({
+    description: 'Zeitpunkt der Änderung',
+    example: '2024-01-01T12:00:00.000Z',
+  })
+  changedAt!: Date;
+
+  @ApiProperty({
+    description: 'ID des Bearbeiters',
+    example: '123e4567-e89b-12d3-a456-426614174000',
+  })
+  changedBy!: string;
+
+  @ApiProperty({
+    description: 'Username des Bearbeiters',
+    example: 'max.mustermann',
+    required: false,
+  })
+  changedByUsername?: string;
+}
+
+/**
+ * Response-DTO für die Versionshistorie eines ETB-Eintrags
+ */
+export class EtbHistoryListResponse extends ApiResponse<EtbHistoryEntryDto[]> {
+  @ApiProperty({
+    description: 'Liste der Historie-Einträge',
+    type: () => EtbHistoryEntryDto,
+    isArray: true,
+  })
+  data!: EtbHistoryEntryDto[];
+
+  @ApiProperty({
+    description: 'Paginierungs-Informationen',
+    type: ApiPagination,
+    required: false,
+  })
+  declare pagination?: ApiPagination;
 }
