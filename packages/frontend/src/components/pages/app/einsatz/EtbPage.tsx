@@ -38,9 +38,7 @@ export function EtbPage() {
   if (isLoading) {
     return (
       <div className="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
-        <div className="flex h-96 items-center justify-center">
-          <LoadingState message="Lade Einsatztagebuch..." />
-        </div>
+        <LoadingState message="Lade Einsatztagebuch..." fullScreen={false} />
       </div>
     );
   }
