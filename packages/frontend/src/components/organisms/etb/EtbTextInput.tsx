@@ -31,14 +31,8 @@ export function EtbTextInput({ value, onChange, onBlur, error, maxLength = 2000,
         onBlur={onBlur}
         rows={3}
         disabled={disabled}
-        className={cn(
-          'block w-full rounded-md border-gray-300 shadow-sm',
-          'focus:border-primary-500 focus:ring-primary-500',
-          'dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100',
-          'disabled:cursor-not-allowed disabled:bg-gray-100 dark:disabled:bg-gray-800',
-          'sm:text-sm',
-          error && 'border-red-500 focus:border-red-500 focus:ring-red-500',
-        )}
+        variant={error ? 'error' : 'default'}
+        textareaSize="sm"
         placeholder="Beschreiben Sie das Ereignis oder die Maßnahme..."
         maxLength={maxLength}
       />
