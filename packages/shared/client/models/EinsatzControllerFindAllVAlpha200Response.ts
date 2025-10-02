@@ -15,6 +15,13 @@
 import { mapValues } from '../runtime';
 import type { EinsatzResponseDto } from './EinsatzResponseDto';
 import { EinsatzResponseDtoFromJSON, EinsatzResponseDtoFromJSONTyped, EinsatzResponseDtoToJSON, EinsatzResponseDtoToJSONTyped } from './EinsatzResponseDto';
+import type { EinsatzControllerFindAllVAlpha200ResponsePagination } from './EinsatzControllerFindAllVAlpha200ResponsePagination';
+import {
+  EinsatzControllerFindAllVAlpha200ResponsePaginationFromJSON,
+  EinsatzControllerFindAllVAlpha200ResponsePaginationFromJSONTyped,
+  EinsatzControllerFindAllVAlpha200ResponsePaginationToJSON,
+  EinsatzControllerFindAllVAlpha200ResponsePaginationToJSONTyped,
+} from './EinsatzControllerFindAllVAlpha200ResponsePagination';
 import type { UserControllerFindOneVAlpha200ResponseMeta } from './UserControllerFindOneVAlpha200ResponseMeta';
 import {
   UserControllerFindOneVAlpha200ResponseMetaFromJSON,
@@ -22,13 +29,6 @@ import {
   UserControllerFindOneVAlpha200ResponseMetaToJSON,
   UserControllerFindOneVAlpha200ResponseMetaToJSONTyped,
 } from './UserControllerFindOneVAlpha200ResponseMeta';
-import type { UserControllerFindOneVAlpha200ResponsePagination } from './UserControllerFindOneVAlpha200ResponsePagination';
-import {
-  UserControllerFindOneVAlpha200ResponsePaginationFromJSON,
-  UserControllerFindOneVAlpha200ResponsePaginationFromJSONTyped,
-  UserControllerFindOneVAlpha200ResponsePaginationToJSON,
-  UserControllerFindOneVAlpha200ResponsePaginationToJSONTyped,
-} from './UserControllerFindOneVAlpha200ResponsePagination';
 
 /**
  *
@@ -50,10 +50,10 @@ export interface EinsatzControllerFindAllVAlpha200Response {
   meta: UserControllerFindOneVAlpha200ResponseMeta;
   /**
    *
-   * @type {UserControllerFindOneVAlpha200ResponsePagination}
+   * @type {EinsatzControllerFindAllVAlpha200ResponsePagination}
    * @memberof EinsatzControllerFindAllVAlpha200Response
    */
-  pagination?: UserControllerFindOneVAlpha200ResponsePagination;
+  pagination?: EinsatzControllerFindAllVAlpha200ResponsePagination;
 }
 
 /**
@@ -76,7 +76,7 @@ export function EinsatzControllerFindAllVAlpha200ResponseFromJSONTyped(json: any
   return {
     data: (json['data'] as Array<any>).map(EinsatzResponseDtoFromJSON),
     meta: UserControllerFindOneVAlpha200ResponseMetaFromJSON(json['meta']),
-    pagination: json['pagination'] == null ? undefined : UserControllerFindOneVAlpha200ResponsePaginationFromJSON(json['pagination']),
+    pagination: json['pagination'] == null ? undefined : EinsatzControllerFindAllVAlpha200ResponsePaginationFromJSON(json['pagination']),
   };
 }
 
@@ -92,6 +92,6 @@ export function EinsatzControllerFindAllVAlpha200ResponseToJSONTyped(value?: Ein
   return {
     data: (value['data'] as Array<any>).map(EinsatzResponseDtoToJSON),
     meta: UserControllerFindOneVAlpha200ResponseMetaToJSON(value['meta']),
-    pagination: UserControllerFindOneVAlpha200ResponsePaginationToJSON(value['pagination']),
+    pagination: EinsatzControllerFindAllVAlpha200ResponsePaginationToJSON(value['pagination']),
   };
 }

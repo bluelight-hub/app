@@ -18,7 +18,7 @@ import type {
   CreateEtbEintragDto,
   CreateEtbEintragResponse,
   CreateEtbResponse,
-  EtbHistoryListResponse,
+  EtbHistoryEntryDto,
   GetEtbResponse,
   TextbausteinListResponse,
   UpdateEtbEintragDto,
@@ -33,8 +33,8 @@ import {
   CreateEtbEintragResponseToJSON,
   CreateEtbResponseFromJSON,
   CreateEtbResponseToJSON,
-  EtbHistoryListResponseFromJSON,
-  EtbHistoryListResponseToJSON,
+  EtbHistoryEntryDtoFromJSON,
+  EtbHistoryEntryDtoToJSON,
   GetEtbResponseFromJSON,
   GetEtbResponseToJSON,
   TextbausteinListResponseFromJSON,
@@ -229,7 +229,7 @@ export class ETBApi extends runtime.BaseAPI {
   async etbControllerGetEintragHistoryVAlphaRaw(
     requestParameters: EtbControllerGetEintragHistoryVAlphaRequest,
     initOverrides?: RequestInit | runtime.InitOverrideFunction,
-  ): Promise<runtime.ApiResponse<EtbHistoryListResponse>> {
+  ): Promise<runtime.ApiResponse<Array<EtbHistoryEntryDto>>> {
     if (requestParameters['id'] == null) {
       throw new runtime.RequiredError('id', 'Required parameter "id" was null or undefined when calling etbControllerGetEintragHistoryVAlpha().');
     }
@@ -264,7 +264,7 @@ export class ETBApi extends runtime.BaseAPI {
       initOverrides,
     );
 
-    return new runtime.JSONApiResponse(response, (jsonValue) => EtbHistoryListResponseFromJSON(jsonValue));
+    return new runtime.JSONApiResponse(response, (jsonValue) => jsonValue.map(EtbHistoryEntryDtoFromJSON));
   }
 
   /**
@@ -273,7 +273,7 @@ export class ETBApi extends runtime.BaseAPI {
   async etbControllerGetEintragHistoryVAlpha(
     requestParameters: EtbControllerGetEintragHistoryVAlphaRequest,
     initOverrides?: RequestInit | runtime.InitOverrideFunction,
-  ): Promise<EtbHistoryListResponse> {
+  ): Promise<Array<EtbHistoryEntryDto>> {
     const response = await this.etbControllerGetEintragHistoryVAlphaRaw(requestParameters, initOverrides);
     return await response.value();
   }

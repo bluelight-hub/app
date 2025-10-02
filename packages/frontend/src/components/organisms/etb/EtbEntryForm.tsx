@@ -1,4 +1,5 @@
 import { useCreateEtbEintrag, useTextbausteine, useUpdateEtbEintrag } from '@/hooks/useEtb';
+import { getApiErrorMessage } from '@/utils/apiErrorHandler';
 import { CreateEtbEintragDtoKategorieEnum as EtbKategorie, type EtbEintragDto } from '@bluelight-hub/shared/client';
 import { EtbFormActions } from '@molecules/etb/EtbFormActions';
 import { EtbTextbausteinPreview } from '@molecules/etb/EtbTextbausteinPreview';
@@ -8,6 +9,7 @@ import { EtbTextInput } from '@organisms/etb/EtbTextInput';
 import { useEtbFormLogic } from '@organisms/etb/hooks/useEtbFormLogic';
 import { useForm } from '@tanstack/react-form';
 import { useEffect, useState } from 'react';
+import { toast } from 'sonner';
 import { z } from 'zod';
 
 const etbEntrySchema = z.object({
@@ -82,7 +84,18 @@ export function EtbEntryForm({ etbId, editingEntry, onSuccess, onCancel, classNa
         setPendingTextbaustein(null);
         setLastAppliedTextbausteinText(null);
         onSuccess?.();
-      } catch (_error) {}
+      } catch (error) {
+        console.error('Failed to save ETB entry:', error);
+
+        const context = editingEntry ? 'updateEtbEintrag' : 'createEtbEintrag';
+        const fallbackMessage = editingEntry ? 'Beim Aktualisieren des ETB-Eintrags ist ein Fehler aufgetreten.' : 'Beim Erstellen des ETB-Eintrags ist ein Fehler aufgetreten.';
+
+        const errorMessage = await getApiErrorMessage(error, fallbackMessage, context);
+
+        toast.error(editingEntry ? 'Aktualisierung fehlgeschlagen' : 'Erstellung fehlgeschlagen', {
+          description: errorMessage,
+        });
+      }
     },
   });
 

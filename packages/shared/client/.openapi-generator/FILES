@@ -33,6 +33,7 @@ models/DeleteUserResponse.ts
 models/DeleteUserResponseData.ts
 models/EinsatzControllerCreateVAlpha200Response.ts
 models/EinsatzControllerFindAllVAlpha200Response.ts
+models/EinsatzControllerFindAllVAlpha200ResponsePagination.ts
 models/EinsatzControllerGetCompletenessVAlpha200Response.ts
 models/EinsatzControllerGetPreviousVAlpha200Response.ts
 models/EinsatzControllerGetStatusCountsVAlpha200Response.ts
@@ -40,7 +41,6 @@ models/EinsatzResponseDto.ts
 models/EtbDto.ts
 models/EtbEintragDto.ts
 models/EtbHistoryEntryDto.ts
-models/EtbHistoryListResponse.ts
 models/GetEtbResponse.ts
 models/HealthControllerCheck200Response.ts
 models/HealthControllerCheck200ResponseInfoValue.ts
@@ -62,7 +62,6 @@ models/UserBasicDto.ts
 models/UserBasicListResponse.ts
 models/UserControllerFindOneVAlpha200Response.ts
 models/UserControllerFindOneVAlpha200ResponseMeta.ts
-models/UserControllerFindOneVAlpha200ResponsePagination.ts
 models/UserDto.ts
 models/UserResponse.ts
 models/UserResponseDto.ts

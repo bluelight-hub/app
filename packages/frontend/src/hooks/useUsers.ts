@@ -1,6 +1,6 @@
 import { api } from '@/api';
 import { QUERY_KEYS } from '@/queryKeys';
-import type { UserBasicDto, UserResponse } from '@bluelight-hub/shared/client';
+import type { UserBasicDto, UserControllerFindOneVAlpha200Response } from '@bluelight-hub/shared/client';
 import { useQuery } from '@tanstack/react-query';
 import { useCallback, useMemo } from 'react';
 
@@ -24,7 +24,7 @@ export const useUsers = () => {
  * Hook zum Abrufen eines einzelnen Benutzers
  */
 export const useUser = (userId?: string) => {
-  return useQuery<UserResponse>({
+  return useQuery<UserControllerFindOneVAlpha200Response>({
     queryKey: QUERY_KEYS.users.byId(userId),
     queryFn: async () => {
       if (!userId) throw new Error('User ID is required');

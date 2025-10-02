@@ -22,13 +22,6 @@ import {
   UserControllerFindOneVAlpha200ResponseMetaToJSON,
   UserControllerFindOneVAlpha200ResponseMetaToJSONTyped,
 } from './UserControllerFindOneVAlpha200ResponseMeta';
-import type { UserControllerFindOneVAlpha200ResponsePagination } from './UserControllerFindOneVAlpha200ResponsePagination';
-import {
-  UserControllerFindOneVAlpha200ResponsePaginationFromJSON,
-  UserControllerFindOneVAlpha200ResponsePaginationFromJSONTyped,
-  UserControllerFindOneVAlpha200ResponsePaginationToJSON,
-  UserControllerFindOneVAlpha200ResponsePaginationToJSONTyped,
-} from './UserControllerFindOneVAlpha200ResponsePagination';
 
 /**
  *
@@ -38,22 +31,16 @@ import {
 export interface UserControllerFindOneVAlpha200Response {
   /**
    *
-   * @type {Array<UserResponse>}
+   * @type {UserResponse}
    * @memberof UserControllerFindOneVAlpha200Response
    */
-  data: Array<UserResponse>;
+  data: UserResponse;
   /**
    *
    * @type {UserControllerFindOneVAlpha200ResponseMeta}
    * @memberof UserControllerFindOneVAlpha200Response
    */
   meta: UserControllerFindOneVAlpha200ResponseMeta;
-  /**
-   *
-   * @type {UserControllerFindOneVAlpha200ResponsePagination}
-   * @memberof UserControllerFindOneVAlpha200Response
-   */
-  pagination?: UserControllerFindOneVAlpha200ResponsePagination;
 }
 
 /**
@@ -74,9 +61,8 @@ export function UserControllerFindOneVAlpha200ResponseFromJSONTyped(json: any, i
     return json;
   }
   return {
-    data: (json['data'] as Array<any>).map(UserResponseFromJSON),
+    data: UserResponseFromJSON(json['data']),
     meta: UserControllerFindOneVAlpha200ResponseMetaFromJSON(json['meta']),
-    pagination: json['pagination'] == null ? undefined : UserControllerFindOneVAlpha200ResponsePaginationFromJSON(json['pagination']),
   };
 }
 
@@ -90,8 +76,7 @@ export function UserControllerFindOneVAlpha200ResponseToJSONTyped(value?: UserCo
   }
 
   return {
-    data: (value['data'] as Array<any>).map(UserResponseToJSON),
+    data: UserResponseToJSON(value['data']),
     meta: UserControllerFindOneVAlpha200ResponseMetaToJSON(value['meta']),
-    pagination: UserControllerFindOneVAlpha200ResponsePaginationToJSON(value['pagination']),
   };
 }
