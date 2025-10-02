@@ -1,15 +1,17 @@
 import { CurrentUser } from '@/auth/decorators/current-user.decorator';
 import { JwtAuthGuard } from '@/auth/guards/jwt-auth.guard';
 import { ValidatedUser } from '@/auth/strategies/jwt.strategy';
+import { FilterPaginationDto } from '@/common/dto/pagination.dto';
 import type { PaginatedData } from '@/common/interceptors/transform.interceptor';
 import { Body, Controller, Delete, Get, HttpCode, HttpStatus, Param, Post, Put, Query, UseGuards } from '@nestjs/common';
 import { ApiBearerAuth, ApiOkResponse, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
+import { Throttle, ThrottlerGuard } from '@nestjs/throttler';
+import { milliseconds } from 'date-fns';
 import { CreateEtbEintragDto } from './dto/create-etb-eintrag.dto';
 import { CreateEtbDto } from './dto/create-etb.dto';
-import { CreateEtbEintragResponse, CreateEtbResponse, GetEtbResponse, TextbausteinListResponse, UpdateEtbEintragResponse, EtbHistoryEntryDto } from './dto/etb-response.dto';
-import { UpdateEtbEintragDto } from './dto/update-etb-eintrag.dto';
 import { EtbPaginationDto } from './dto/etb-pagination.dto';
-import { FilterPaginationDto } from '@/common/dto/pagination.dto';
+import { CreateEtbEintragResponse, CreateEtbResponse, EtbHistoryEntryDto, GetEtbResponse, TextbausteinListResponse, UpdateEtbEintragResponse } from './dto/etb-response.dto';
+import { UpdateEtbEintragDto } from './dto/update-etb-eintrag.dto';
 import { EtbService } from './etb.service';
 
 /**
@@ -19,10 +21,15 @@ import { EtbService } from './etb.service';
  * - Erstellung und Verwaltung von ETBs
  * - Verwaltung von ETB-Einträgen
  * - Abruf von Textbausteinen
+ *
+ * Rate Limiting:
+ * - Standard: 100 Requests pro Minute
+ * - Write-Operationen (create/update/delete): 20 Requests pro Minute
  */
 @ApiTags('ETB')
 @ApiBearerAuth()
-@UseGuards(JwtAuthGuard)
+@UseGuards(JwtAuthGuard, ThrottlerGuard)
+@Throttle({ default: { limit: 100, ttl: milliseconds({ minutes: 1 }) } })
 @Controller('etb')
 export class EtbController {
   constructor(private readonly etbService: EtbService) {}
@@ -90,6 +97,7 @@ export class EtbController {
    * @returns Der erstellte ETB-Eintrag
    */
   @Post(':id/eintraege')
+  @Throttle({ default: { limit: 20, ttl: milliseconds({ minutes: 1 }) } })
   @ApiOperation({ summary: 'Neuen ETB-Eintrag erstellen' })
   @ApiResponse({
     status: HttpStatus.CREATED,
@@ -111,6 +119,7 @@ export class EtbController {
    * @returns Der aktualisierte ETB-Eintrag
    */
   @Put('eintraege/:id')
+  @Throttle({ default: { limit: 20, ttl: milliseconds({ minutes: 1 }) } })
   @ApiOperation({ summary: 'ETB-Eintrag aktualisieren' })
   @ApiResponse({
     status: HttpStatus.OK,
@@ -149,6 +158,7 @@ export class EtbController {
    * @param user - Der authentifizierte Benutzer
    */
   @Delete('eintraege/:id')
+  @Throttle({ default: { limit: 20, ttl: milliseconds({ minutes: 1 }) } })
   @HttpCode(HttpStatus.NO_CONTENT)
   @ApiOperation({ summary: 'ETB-Eintrag soft löschen' })
   @ApiResponse({ status: HttpStatus.NO_CONTENT, description: 'Eintrag erfolgreich gelöscht' })

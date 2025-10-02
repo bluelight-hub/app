@@ -1,26 +1,26 @@
-import { Injectable, NotFoundException, ConflictException, BadRequestException, Logger } from '@nestjs/common';
-import { OnEvent } from '@nestjs/event-emitter';
-import { EtbStatus, Einsatztagebuch, EtbEintrag, EtbTextbaustein, EtbEintragHistorie, Einsatz, User } from '@prisma/client';
-import type { PaginatedData } from '@/common/interceptors/transform.interceptor';
 import { ValidatedUser } from '@/auth/strategies/jwt.strategy';
-import { EinsatzErstelltEvent } from '@/einsatz/events/einsatz-erstellt.event';
 import { FilterPaginationDto } from '@/common/dto/pagination.dto';
-import { EtbRepository } from './etb.repository';
-import { CreateEtbDto } from './dto/create-etb.dto';
+import type { PaginatedData } from '@/common/interceptors/transform.interceptor';
+import { EinsatzErstelltEvent } from '@/einsatz/events/einsatz-erstellt.event';
+import { BadRequestException, ConflictException, Injectable, Logger, NotFoundException } from '@nestjs/common';
+import { OnEvent } from '@nestjs/event-emitter';
+import { Einsatz, Einsatztagebuch, EtbEintrag, EtbEintragHistorie, EtbStatus, EtbTextbaustein, User } from '@prisma/client';
 import { CreateEtbEintragDto } from './dto/create-etb-eintrag.dto';
-import { UpdateEtbEintragDto } from './dto/update-etb-eintrag.dto';
+import { CreateEtbDto } from './dto/create-etb.dto';
 import { EtbPaginationDto } from './dto/etb-pagination.dto';
 import {
-  CreateEtbResponse,
-  GetEtbResponse,
   CreateEtbEintragResponse,
-  UpdateEtbEintragResponse,
-  TextbausteinListResponse,
+  CreateEtbResponse,
   EtbDto,
   EtbEintragDto,
-  TextbausteinDto,
   EtbHistoryEntryDto,
+  GetEtbResponse,
+  TextbausteinDto,
+  TextbausteinListResponse,
+  UpdateEtbEintragResponse,
 } from './dto/etb-response.dto';
+import { UpdateEtbEintragDto } from './dto/update-etb-eintrag.dto';
+import { EtbRepository } from './etb.repository';
 
 @Injectable()
 export class EtbService {
@@ -42,96 +42,23 @@ export class EtbService {
       await this.createEtbForEinsatz(event.einsatzId, event.userId);
       this.logger.log(`📖 ETB für Einsatz ${event.einsatzId} automatisch erstellt (DRAFT) - Event-basiert`);
     } catch (error) {
-      this.logger.warn(`⚠️ ETB-Erstellung für Einsatz ${event.einsatzId} fehlgeschlagen:`, error);
+      this.logger.error(`⚠️ ETB-Erstellung fehlgeschlagen für Einsatz ${event.einsatzId}`, {
+        einsatzId: event.einsatzId,
+        userId: event.userId,
+        error: error instanceof Error ? error.message : String(error),
+        stack: error instanceof Error ? error.stack : undefined,
+      });
+
+      // Optional: Sentry/Monitoring Integration
+      // await this.monitoringService?.captureException(error, {
+      //   tags: { einsatzId: event.einsatzId, eventType: 'einsatz.erstellt' }
+      // });
+
+      // Optional: Dead Letter Queue für manuelle Nachbearbeitung
+      // await this.dlqService?.push('etb.creation.failed', event);
+
       // Nicht kritisch - ETB kann später noch angelegt werden
     }
-  }
-
-  /**
-   * Maps a Prisma EtbEintrag to EtbEintragDto
-   */
-  private toEtbEintragDto(
-    eintrag: EtbEintrag & {
-      creator?: Partial<User> | null;
-      updater?: Partial<User> | null;
-      historie?: Array<{ id: string; version: number; changedAt: Date }> | null;
-    },
-  ): EtbEintragDto {
-    return {
-      id: eintrag.id,
-      etbId: eintrag.etbId,
-      timestamp: eintrag.timestamp,
-      sequenceNumber: eintrag.sequenceNumber,
-      kategorie: eintrag.kategorie,
-      text: eintrag.text,
-      version: eintrag.version,
-      funkrufname: eintrag.funkrufname ?? undefined,
-      standort: eintrag.standort ?? undefined,
-      isAutomatic: eintrag.isAutomatic ?? false,
-      metadata: eintrag.metadata ? (eintrag.metadata as Record<string, unknown>) : undefined,
-      createdBy: eintrag.createdBy,
-      createdAt: eintrag.createdAt,
-      updatedBy: eintrag.updatedBy ?? undefined,
-      updatedAt: eintrag.updatedAt,
-      deletedAt: eintrag.deletedAt ?? undefined,
-      deletedBy: eintrag.deletedBy ?? undefined,
-    };
-  }
-
-  /**
-   * Maps a Prisma Einsatztagebuch to EtbDto
-   */
-  private toEtbDto(
-    etb: Einsatztagebuch & {
-      einsatz?: Partial<Einsatz> | null;
-      creator?: Partial<User> | null;
-      updater?: Partial<User> | null;
-      locker?: Partial<User> | null;
-      eintraege?: Array<
-        EtbEintrag & {
-          creator?: Partial<User> | null;
-          updater?: Partial<User> | null;
-          historie?: Array<{ id: string; version: number; changedAt: Date }> | null;
-        }
-      > | null;
-    },
-  ): EtbDto {
-    const dto: EtbDto = {
-      id: etb.id,
-      einsatzId: etb.einsatzId,
-      status: etb.status,
-      createdBy: etb.createdBy,
-      createdAt: etb.createdAt,
-      updatedAt: etb.updatedAt,
-    };
-
-    // Only include eintraege if they are loaded
-    if (etb.eintraege) {
-      dto.eintraege = etb.eintraege.map((e) => this.toEtbEintragDto(e));
-    }
-
-    return dto;
-  }
-
-  /**
-   * Maps a Prisma EtbTextbaustein to TextbausteinDto
-   */
-  private toTextbausteinDto(
-    baustein: EtbTextbaustein & {
-      creator?: Partial<User> | null;
-      updater?: Partial<User> | null;
-    },
-  ): TextbausteinDto {
-    return {
-      id: baustein.id,
-      kategorie: baustein.kategorie,
-      kurztext: baustein.kurztext,
-      volltext: baustein.volltext,
-      isActive: baustein.isActive ?? true,
-      sortOrder: baustein.sortOrder ?? 0,
-      verwendungen: baustein.verwendungen ?? 0,
-      letztGenutzt: baustein.letztGenutzt ?? undefined,
-    };
   }
 
   async createEtb(createEtbDto: CreateEtbDto, user: ValidatedUser): Promise<CreateEtbResponse> {
@@ -335,32 +262,6 @@ export class EtbService {
   }
 
   /**
-   * Maps a Prisma EtbEintragHistorie to EtbHistoryEntryDto
-   */
-  private toHistoryEntryDto(
-    historyEntry: EtbEintragHistorie & {
-      modifier?: Partial<User> | null;
-    },
-  ): EtbHistoryEntryDto {
-    return {
-      id: historyEntry.id,
-      eintragId: historyEntry.eintragId,
-      version: historyEntry.version,
-      timestamp: historyEntry.timestamp,
-      sequenceNumber: historyEntry.sequenceNumber,
-      kategorie: historyEntry.kategorie,
-      text: historyEntry.text,
-      funkrufname: historyEntry.funkrufname ?? undefined,
-      standort: historyEntry.standort ?? undefined,
-      metadata: historyEntry.metadata ? (historyEntry.metadata as Record<string, unknown>) : undefined,
-      changeReason: historyEntry.changeReason ?? undefined,
-      changedAt: historyEntry.changedAt,
-      changedBy: historyEntry.changedBy,
-      changedByUsername: historyEntry.modifier?.username,
-    };
-  }
-
-  /**
    * Ruft die Versionshistorie eines ETB-Eintrags ab
    *
    * @param eintragId - ID des ETB-Eintrags
@@ -385,6 +286,122 @@ export class EtbService {
       total,
       page,
       limit,
+    };
+  }
+
+  /**
+   * Maps a Prisma EtbEintrag to EtbEintragDto
+   */
+  private toEtbEintragDto(
+    eintrag: EtbEintrag & {
+      creator?: Partial<User> | null;
+      updater?: Partial<User> | null;
+      deleter?: Partial<User> | null;
+      historie?: Array<{ id: string; version: number; changedAt: Date }> | null;
+    },
+  ): EtbEintragDto {
+    return {
+      id: eintrag.id,
+      etbId: eintrag.etbId,
+      timestamp: eintrag.timestamp,
+      sequenceNumber: eintrag.sequenceNumber,
+      kategorie: eintrag.kategorie,
+      text: eintrag.text,
+      version: eintrag.version,
+      funkrufname: eintrag.funkrufname ?? undefined,
+      standort: eintrag.standort ?? undefined,
+      isAutomatic: eintrag.isAutomatic ?? false,
+      metadata: eintrag.metadata ? (eintrag.metadata as Record<string, unknown>) : undefined,
+      createdBy: eintrag.createdBy,
+      createdAt: eintrag.createdAt,
+      updatedBy: eintrag.updatedBy ?? undefined,
+      updatedAt: eintrag.updatedAt,
+      deletedAt: eintrag.deletedAt ?? undefined,
+      deletedBy: eintrag.deletedBy ?? undefined,
+      deleterUsername: eintrag.deleter?.username,
+    };
+  }
+
+  /**
+   * Maps a Prisma Einsatztagebuch to EtbDto
+   */
+  private toEtbDto(
+    etb: Einsatztagebuch & {
+      einsatz?: Partial<Einsatz> | null;
+      creator?: Partial<User> | null;
+      updater?: Partial<User> | null;
+      locker?: Partial<User> | null;
+      eintraege?: Array<
+        EtbEintrag & {
+          creator?: Partial<User> | null;
+          updater?: Partial<User> | null;
+          deleter?: Partial<User> | null;
+          historie?: Array<{ id: string; version: number; changedAt: Date }> | null;
+        }
+      > | null;
+    },
+  ): EtbDto {
+    const dto: EtbDto = {
+      id: etb.id,
+      einsatzId: etb.einsatzId,
+      status: etb.status,
+      createdBy: etb.createdBy,
+      createdAt: etb.createdAt,
+      updatedAt: etb.updatedAt,
+    };
+
+    // Only include eintraege if they are loaded
+    if (etb.eintraege) {
+      dto.eintraege = etb.eintraege.map((e) => this.toEtbEintragDto(e));
+    }
+
+    return dto;
+  }
+
+  /**
+   * Maps a Prisma EtbTextbaustein to TextbausteinDto
+   */
+  private toTextbausteinDto(
+    baustein: EtbTextbaustein & {
+      creator?: Partial<User> | null;
+      updater?: Partial<User> | null;
+    },
+  ): TextbausteinDto {
+    return {
+      id: baustein.id,
+      kategorie: baustein.kategorie,
+      kurztext: baustein.kurztext,
+      volltext: baustein.volltext,
+      isActive: baustein.isActive ?? true,
+      sortOrder: baustein.sortOrder ?? 0,
+      verwendungen: baustein.verwendungen ?? 0,
+      letztGenutzt: baustein.letztGenutzt ?? undefined,
+    };
+  }
+
+  /**
+   * Maps a Prisma EtbEintragHistorie to EtbHistoryEntryDto
+   */
+  private toHistoryEntryDto(
+    historyEntry: EtbEintragHistorie & {
+      modifier?: Partial<User> | null;
+    },
+  ): EtbHistoryEntryDto {
+    return {
+      id: historyEntry.id,
+      eintragId: historyEntry.eintragId,
+      version: historyEntry.version,
+      timestamp: historyEntry.timestamp,
+      sequenceNumber: historyEntry.sequenceNumber,
+      kategorie: historyEntry.kategorie,
+      text: historyEntry.text,
+      funkrufname: historyEntry.funkrufname ?? undefined,
+      standort: historyEntry.standort ?? undefined,
+      metadata: historyEntry.metadata ? (historyEntry.metadata as Record<string, unknown>) : undefined,
+      changeReason: historyEntry.changeReason ?? undefined,
+      changedAt: historyEntry.changedAt,
+      changedBy: historyEntry.changedBy,
+      changedByUsername: historyEntry.modifier?.username,
     };
   }
 }

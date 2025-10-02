@@ -175,6 +175,13 @@ export class EtbEintragDto {
     nullable: true,
   })
   deletedBy?: string | null;
+
+  @ApiProperty({
+    description: 'Username des Löschenden',
+    example: 'max.mustermann',
+    required: false,
+  })
+  deleterUsername?: string;
 }
 
 /**

@@ -121,6 +121,12 @@ export interface EtbEintragDto {
    * @memberof EtbEintragDto
    */
   deletedBy?: object | null;
+  /**
+   * Username des Löschenden
+   * @type {string}
+   * @memberof EtbEintragDto
+   */
+  deleterUsername?: string;
 }
 
 /**
@@ -187,6 +193,7 @@ export function EtbEintragDtoFromJSONTyped(json: any, ignoreDiscriminator: boole
     updatedAt: new Date(json['updatedAt']),
     deletedAt: json['deletedAt'] == null ? undefined : json['deletedAt'],
     deletedBy: json['deletedBy'] == null ? undefined : json['deletedBy'],
+    deleterUsername: json['deleterUsername'] == null ? undefined : json['deleterUsername'],
   };
 }
 
@@ -217,5 +224,6 @@ export function EtbEintragDtoToJSONTyped(value?: EtbEintragDto | null, ignoreDis
     updatedAt: value['updatedAt'].toISOString(),
     deletedAt: value['deletedAt'],
     deletedBy: value['deletedBy'],
+    deleterUsername: value['deleterUsername'],
   };
 }
