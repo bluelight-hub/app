@@ -58,7 +58,8 @@
     "tailwind-merge": "catalog:",
     "tailwindcss": "catalog:",
     "vite-tsconfig-paths": "catalog:",
-    "zod": "catalog:"
+    "zod": "catalog:",
+    "zxcvbn": "^4.4.2"
   },
   "devDependencies": {
     "@eslint/js": "catalog:",
@@ -73,6 +74,7 @@
     "@types/node": "catalog:",
     "@types/react": "catalog:",
     "@types/react-dom": "catalog:",
+    "@types/zxcvbn": "^4.4.5",
     "@vitejs/plugin-react-swc": "catalog:",
     "@vitest/coverage-v8": "catalog:",
     "@vitest/ui": "catalog:",
