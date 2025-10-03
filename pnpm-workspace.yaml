@@ -7,6 +7,7 @@ catalog:
   '@fontsource-variable/inter': ^5.2.6
   '@fontsource-variable/montserrat': ^5.2.6
   '@fontsource-variable/nunito': ^5.2.6
+  '@fontsource/nanum-square': ^5.1.0
   '@headlessui/react': ^2.2.7
   '@hookform/resolvers': ^5.2.1
   '@tailwindcss/vite': ^4.1.11

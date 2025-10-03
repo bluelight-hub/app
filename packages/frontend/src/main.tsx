@@ -1,4 +1,6 @@
 import '@fontsource-variable/nunito/index.css';
+import '@fontsource/nanum-square/400.css';
+import '@fontsource/nanum-square/700.css';
 import './index.tailwind.css';
 import { createRouter, RouterProvider } from '@tanstack/react-router';
 import { StrictMode } from 'react';

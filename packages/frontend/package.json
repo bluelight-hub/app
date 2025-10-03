@@ -24,6 +24,7 @@
     "@fontsource-variable/inter": "catalog:",
     "@fontsource-variable/montserrat": "catalog:",
     "@fontsource-variable/nunito": "catalog:",
+    "@fontsource/nanum-square": "catalog:",
     "@headlessui/react": "catalog:",
     "@hookform/resolvers": "catalog:",
     "@tailwindcss/vite": "catalog:",
