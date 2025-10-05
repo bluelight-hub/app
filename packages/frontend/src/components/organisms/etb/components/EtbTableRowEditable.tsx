@@ -45,7 +45,7 @@ export const EtbTableRowEditable: React.FC<EtbTableRowEditableProps> = ({ row, s
     <tr
       className={cn(
         'transition-colors',
-        row.original.deletedAt ? 'opacity-60 border-l-2 border-l-red-500 bg-red-50/30 dark:bg-red-900/10' : 'hover:bg-gray-50 dark:hover:bg-gray-900/50',
+        row.original.deletedAt ? 'border-l-2 border-l-red-500 bg-red-50/30 opacity-60 dark:bg-red-900/10' : 'hover:bg-gray-50 dark:hover:bg-gray-900/50',
         isEditing && 'bg-blue-50 dark:bg-blue-900/20',
         className,
       )}
@@ -61,7 +61,7 @@ export const EtbTableRowEditable: React.FC<EtbTableRowEditableProps> = ({ row, s
               <textarea
                 value={editText}
                 onChange={(e) => setEditText(e.target.value)}
-                className={cn('w-full rounded-md border-gray-300 shadow-sm', 'focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm', 'dark:bg-gray-800 dark:border-gray-600 dark:text-gray-100')}
+                className={cn('w-full rounded-md border-gray-300 shadow-sm', 'focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm', 'dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100')}
                 rows={2}
               />
             </td>

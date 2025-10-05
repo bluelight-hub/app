@@ -50,7 +50,7 @@ export function EtbVersionBadge({ version, variant = 'solid', isCurrent = false,
         <Badge
           size="sm"
           className={cn(
-            'rounded-full gap-1 cursor-pointer transition-colors',
+            'cursor-pointer gap-1 rounded-full transition-colors',
             isCurrent ? variantClasses.current : variantClasses.old,
             isCurrent ? variantClasses.currentHover : variantClasses.oldHover,
             className,
@@ -63,7 +63,7 @@ export function EtbVersionBadge({ version, variant = 'solid', isCurrent = false,
   }
 
   return (
-    <Badge size="sm" className={cn('rounded-full gap-1', isCurrent ? variantClasses.current : variantClasses.old, className)}>
+    <Badge size="sm" className={cn('gap-1 rounded-full', isCurrent ? variantClasses.current : variantClasses.old, className)}>
       {content}
     </Badge>
   );

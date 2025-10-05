@@ -11,9 +11,9 @@
     "declarationMap": true,
     "composite": true,
     "outDir": "./dist",
-    "rootDir": "./client",
+    "rootDir": "./src",
     "baseUrl": "."
   },
-  "include": ["client/**/*"],
-  "exclude": ["node_modules", "client/.openapi-generator/**/*"]
+  "include": ["src/**/*"],
+  "exclude": ["node_modules"]
 }

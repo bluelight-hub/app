@@ -40,9 +40,9 @@ export class AdminResetPasswordCommand {
       where: { username },
     });
 
-    if (!user) {
-      this.logger.error(`❌ Fehler: Benutzer "${username}" wurde nicht gefunden.`);
-      throw new Error(`Benutzer "${username}" wurde nicht gefunden.`);
+    if (!user || user.isDeleted) {
+      this.logger.error(`❌ Fehler: Benutzer "${username}" wurde nicht gefunden oder ist gelöscht.`);
+      throw new Error(`Benutzer "${username}" wurde nicht gefunden oder ist gelöscht.`);
     }
 
     if (!isAdmin(user.role)) {

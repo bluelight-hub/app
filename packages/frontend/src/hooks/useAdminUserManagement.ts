@@ -74,12 +74,15 @@ export const useAdminUserManagement = () => {
     },
   });
 
-  // Mutation für Benutzer löschen
-  const deleteUserMutation = useMutation<DeleteUserResponse, ResponseError, string, { previousUsers: UsersListResponse | undefined }>({
-    mutationFn: async (id: string) => {
-      return await api.userManagement().userManagementControllerRemoveVAlpha({ id });
+  // Mutation für Benutzer löschen (mit optionalem Downgrade)
+  const deleteUserMutation = useMutation<DeleteUserResponse, ResponseError, { id: string; downgradeAdmin?: boolean }, { previousUsers: UsersListResponse | undefined }>({
+    mutationFn: async ({ id, downgradeAdmin }) => {
+      return await api.userManagement().userManagementControllerRemoveVAlpha({
+        id,
+        deleteUserDto: downgradeAdmin ? { downgradeAdmin } : undefined,
+      });
     },
-    onMutate: async (id) => {
+    onMutate: async ({ id }) => {
       await queryClient.cancelQueries({ queryKey: QUERY_KEYS.admin.users });
 
       const previousUsers = queryClient.getQueryData<UsersListResponse>(QUERY_KEYS.admin.users);
@@ -104,13 +107,64 @@ export const useAdminUserManagement = () => {
         description: message,
       });
     },
-    onSuccess: () => {
-      toast.success('Benutzer gelöscht', {
-        description: 'Der Benutzer wurde erfolgreich gelöscht.',
-      });
+    onSuccess: (_, { downgradeAdmin }) => {
+      if (downgradeAdmin) {
+        toast.success('Admin herabgestuft', {
+          description: 'Der Admin wurde erfolgreich zu einem normalen Benutzer herabgestuft.',
+        });
+      } else {
+        toast.success('Benutzer gelöscht', {
+          description: 'Der Benutzer wurde erfolgreich gelöscht.',
+        });
+      }
     },
     onSettled: () => {
       void queryClient.invalidateQueries({ queryKey: QUERY_KEYS.admin.users });
+    },
+  });
+
+  // Mutation für Benutzer sperren
+  const lockUserMutation = useMutation<UserResponse, ResponseError, { id: string; reason?: string }>({
+    mutationFn: async ({ id, reason }) => {
+      return await api.userManagement().userManagementControllerLockVAlpha({
+        id,
+        lockUserDto: reason ? { reason } : undefined,
+      });
+    },
+    onSuccess: async () => {
+      toast.success('Benutzer gesperrt', {
+        description: 'Der Benutzer wurde erfolgreich gesperrt.',
+      });
+      await queryClient.invalidateQueries({ queryKey: QUERY_KEYS.admin.users });
+    },
+    onError: async (error: ResponseError) => {
+      const message = await getApiErrorMessage(error, 'Der Benutzer konnte nicht gesperrt werden.', 'lockUser');
+
+      logger.error('Failed to lock user', error);
+      toast.error('Fehler', {
+        description: message,
+      });
+    },
+  });
+
+  // Mutation für Benutzer entsperren
+  const unlockUserMutation = useMutation<UserResponse, ResponseError, string>({
+    mutationFn: async (id: string) => {
+      return await api.userManagement().userManagementControllerUnlockVAlpha({ id });
+    },
+    onSuccess: async () => {
+      toast.success('Benutzer entsperrt', {
+        description: 'Der Benutzer wurde erfolgreich entsperrt.',
+      });
+      await queryClient.invalidateQueries({ queryKey: QUERY_KEYS.admin.users });
+    },
+    onError: async (error: ResponseError) => {
+      const message = await getApiErrorMessage(error, 'Der Benutzer konnte nicht entsperrt werden.', 'unlockUser');
+
+      logger.error('Failed to unlock user', error);
+      toast.error('Fehler', {
+        description: message,
+      });
     },
   });
 
@@ -126,13 +180,19 @@ export const useAdminUserManagement = () => {
     createUser: createUserMutation.mutate,
     updateUser: updateUserMutation.mutate,
     deleteUser: deleteUserMutation.mutate,
+    lockUser: lockUserMutation.mutate,
+    unlockUser: unlockUserMutation.mutate,
 
     // Mutation-Zustände
     isCreating: createUserMutation.isPending,
     isUpdating: updateUserMutation.isPending,
     isDeleting: deleteUserMutation.isPending,
+    isLocking: lockUserMutation.isPending,
+    isUnlocking: unlockUserMutation.isPending,
     createUserError: createUserMutation.error,
     updateUserError: updateUserMutation.error,
     deleteUserError: deleteUserMutation.error,
+    lockUserError: lockUserMutation.error,
+    unlockUserError: unlockUserMutation.error,
   };
 };

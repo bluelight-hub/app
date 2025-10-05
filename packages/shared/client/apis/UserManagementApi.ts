@@ -13,12 +13,16 @@
  */
 
 import * as runtime from '../runtime';
-import type { CreateUserDto, DeleteUserResponse, UpdateUserDto, UserResponse, UsersListResponse } from '../models/index';
+import type { CreateUserDto, DeleteUserDto, DeleteUserResponse, LockUserDto, UpdateUserDto, UserResponse, UsersListResponse } from '../models/index';
 import {
   CreateUserDtoFromJSON,
   CreateUserDtoToJSON,
+  DeleteUserDtoFromJSON,
+  DeleteUserDtoToJSON,
   DeleteUserResponseFromJSON,
   DeleteUserResponseToJSON,
+  LockUserDtoFromJSON,
+  LockUserDtoToJSON,
   UpdateUserDtoFromJSON,
   UpdateUserDtoToJSON,
   UserResponseFromJSON,
@@ -31,7 +35,17 @@ export interface UserManagementControllerCreateVAlphaRequest {
   createUserDto: CreateUserDto;
 }
 
+export interface UserManagementControllerLockVAlphaRequest {
+  id: string;
+  lockUserDto?: LockUserDto;
+}
+
 export interface UserManagementControllerRemoveVAlphaRequest {
+  id: string;
+  deleteUserDto?: DeleteUserDto;
+}
+
+export interface UserManagementControllerUnlockVAlphaRequest {
   id: string;
 }
 
@@ -113,7 +127,46 @@ export class UserManagementApi extends runtime.BaseAPI {
   }
 
   /**
-   * Benutzer löschen
+   * Benutzer manuell sperren
+   */
+  async userManagementControllerLockVAlphaRaw(
+    requestParameters: UserManagementControllerLockVAlphaRequest,
+    initOverrides?: RequestInit | runtime.InitOverrideFunction,
+  ): Promise<runtime.ApiResponse<UserResponse>> {
+    if (requestParameters['id'] == null) {
+      throw new runtime.RequiredError('id', 'Required parameter "id" was null or undefined when calling userManagementControllerLockVAlpha().');
+    }
+
+    const queryParameters: any = {};
+
+    const headerParameters: runtime.HTTPHeaders = {};
+
+    headerParameters['Content-Type'] = 'application/json';
+
+    const response = await this.request(
+      {
+        path: `/api/v-alpha/admin/users/{id}/lock`.replace(`{${'id'}}`, encodeURIComponent(String(requestParameters['id']))),
+        method: 'PUT',
+        headers: headerParameters,
+        query: queryParameters,
+        body: LockUserDtoToJSON(requestParameters['lockUserDto']),
+      },
+      initOverrides,
+    );
+
+    return new runtime.JSONApiResponse(response, (jsonValue) => UserResponseFromJSON(jsonValue));
+  }
+
+  /**
+   * Benutzer manuell sperren
+   */
+  async userManagementControllerLockVAlpha(requestParameters: UserManagementControllerLockVAlphaRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<UserResponse> {
+    const response = await this.userManagementControllerLockVAlphaRaw(requestParameters, initOverrides);
+    return await response.value();
+  }
+
+  /**
+   * Benutzer löschen oder herabstufen
    */
   async userManagementControllerRemoveVAlphaRaw(
     requestParameters: UserManagementControllerRemoveVAlphaRequest,
@@ -127,12 +180,15 @@ export class UserManagementApi extends runtime.BaseAPI {
 
     const headerParameters: runtime.HTTPHeaders = {};
 
+    headerParameters['Content-Type'] = 'application/json';
+
     const response = await this.request(
       {
         path: `/api/v-alpha/admin/users/{id}`.replace(`{${'id'}}`, encodeURIComponent(String(requestParameters['id']))),
         method: 'DELETE',
         headers: headerParameters,
         query: queryParameters,
+        body: DeleteUserDtoToJSON(requestParameters['deleteUserDto']),
       },
       initOverrides,
     );
@@ -141,10 +197,46 @@ export class UserManagementApi extends runtime.BaseAPI {
   }
 
   /**
-   * Benutzer löschen
+   * Benutzer löschen oder herabstufen
    */
   async userManagementControllerRemoveVAlpha(requestParameters: UserManagementControllerRemoveVAlphaRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<DeleteUserResponse> {
     const response = await this.userManagementControllerRemoveVAlphaRaw(requestParameters, initOverrides);
+    return await response.value();
+  }
+
+  /**
+   * Benutzer entsperren
+   */
+  async userManagementControllerUnlockVAlphaRaw(
+    requestParameters: UserManagementControllerUnlockVAlphaRequest,
+    initOverrides?: RequestInit | runtime.InitOverrideFunction,
+  ): Promise<runtime.ApiResponse<UserResponse>> {
+    if (requestParameters['id'] == null) {
+      throw new runtime.RequiredError('id', 'Required parameter "id" was null or undefined when calling userManagementControllerUnlockVAlpha().');
+    }
+
+    const queryParameters: any = {};
+
+    const headerParameters: runtime.HTTPHeaders = {};
+
+    const response = await this.request(
+      {
+        path: `/api/v-alpha/admin/users/{id}/unlock`.replace(`{${'id'}}`, encodeURIComponent(String(requestParameters['id']))),
+        method: 'PUT',
+        headers: headerParameters,
+        query: queryParameters,
+      },
+      initOverrides,
+    );
+
+    return new runtime.JSONApiResponse(response, (jsonValue) => UserResponseFromJSON(jsonValue));
+  }
+
+  /**
+   * Benutzer entsperren
+   */
+  async userManagementControllerUnlockVAlpha(requestParameters: UserManagementControllerUnlockVAlphaRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<UserResponse> {
+    const response = await this.userManagementControllerUnlockVAlphaRaw(requestParameters, initOverrides);
     return await response.value();
   }
 

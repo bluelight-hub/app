@@ -7,7 +7,7 @@ import { Container } from '@atoms/container.atom';
 import { Heading } from '@atoms/heading.atom';
 import { Spinner } from '@atoms/spinner.atom';
 import { type CreateUserDto, type UpdateUserDto, type UserDto, UserDtoRoleEnum } from '@bluelight-hub/shared/client';
-import { ConfirmDeleteDialog } from '@organisms/admin/ConfirmDeleteDialog';
+import { ConfirmDeleteDialog, type UserActionType } from '@organisms/admin/ConfirmDeleteDialog';
 import { CreateUserDialog } from '@organisms/admin/CreateUserDialog';
 import { EditUserDialog } from '@organisms/admin/EditUserDialog';
 import { UsersTable } from '@organisms/admin/UsersTable';
@@ -17,7 +17,21 @@ import { PiPlus, PiWarning } from 'react-icons/pi';
 
 export function AdminUsers() {
   const { isAdmin, isLoading: isAuthLoading } = useAdminAuth();
-  const { usersData, isLoading: isUsersLoading, error, createUser, updateUser, deleteUser, isCreating, isUpdating, isDeleting } = useAdminUserManagement();
+  const {
+    usersData,
+    isLoading: isUsersLoading,
+    error,
+    createUser,
+    updateUser,
+    deleteUser,
+    lockUser,
+    unlockUser,
+    isCreating,
+    isUpdating,
+    isDeleting,
+    isLocking,
+    isUnlocking,
+  } = useAdminUserManagement();
 
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
@@ -58,13 +72,44 @@ export function AdminUsers() {
     setDeleteTarget(user);
   };
 
-  const confirmDelete = () => {
-    if (deleteTarget) {
-      deleteUser(deleteTarget.id, {
-        onSettled: () => {
-          setDeleteTarget(null);
-        },
-      });
+  const handleUnlockUser = (user: UserDto) => {
+    unlockUser(user.id);
+  };
+
+  const confirmDelete = (action: UserActionType, lockReason?: string) => {
+    if (!deleteTarget) return;
+
+    switch (action) {
+      case 'delete':
+        deleteUser(
+          { id: deleteTarget.id, downgradeAdmin: false },
+          {
+            onSettled: () => {
+              setDeleteTarget(null);
+            },
+          },
+        );
+        break;
+      case 'downgrade':
+        deleteUser(
+          { id: deleteTarget.id, downgradeAdmin: true },
+          {
+            onSettled: () => {
+              setDeleteTarget(null);
+            },
+          },
+        );
+        break;
+      case 'lock':
+        lockUser(
+          { id: deleteTarget.id, reason: lockReason },
+          {
+            onSettled: () => {
+              setDeleteTarget(null);
+            },
+          },
+        );
+        break;
     }
   };
 
@@ -102,7 +147,7 @@ export function AdminUsers() {
         </div>
 
         <Card padding="md">
-          <UsersTable users={usersData?.data} isLoading={isUsersLoading} onEdit={handleEditUser} onDelete={handleDeleteUser} />
+          <UsersTable users={usersData?.data} isLoading={isUsersLoading} onEdit={handleEditUser} onDelete={handleDeleteUser} onUnlock={handleUnlockUser} />
         </Card>
       </div>
 
@@ -125,7 +170,7 @@ export function AdminUsers() {
         onConfirm={confirmDelete}
         userName={deleteTarget?.username || ''}
         userRole={deleteTarget?.role || UserDtoRoleEnum.User}
-        isDeleting={isDeleting}
+        isDeleting={isDeleting || isLocking || isUnlocking}
       />
     </Container>
   );

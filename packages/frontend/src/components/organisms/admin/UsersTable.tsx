@@ -6,13 +6,14 @@ import { UserDtoRoleEnum } from '@bluelight-hub/shared/client';
 import type { SortingState } from '@tanstack/react-table';
 import { createColumnHelper, flexRender, getCoreRowModel, getSortedRowModel, useReactTable } from '@tanstack/react-table';
 import { useMemo, useState } from 'react';
-import { PiPencilSimple, PiTrash } from 'react-icons/pi';
+import { PiLockKey, PiLockKeyOpen, PiPencilSimple, PiTrash } from 'react-icons/pi';
 
 interface UsersTableProps {
   users: Array<UserDto> | undefined;
   isLoading: boolean;
   onDelete: (user: UserDto) => void;
   onEdit: (user: UserDto) => void;
+  onUnlock: (user: UserDto) => void;
 }
 
 const columnHelper = createColumnHelper<UserDto>();
@@ -30,7 +31,7 @@ const getRoleBadgeVariant = (role: UserDtoRoleEnum): 'error' | 'warning' | 'info
   }
 };
 
-export const UsersTable = ({ users, isLoading, onDelete, onEdit }: UsersTableProps) => {
+export const UsersTable = ({ users, isLoading, onDelete, onEdit, onUnlock }: UsersTableProps) => {
   const [sorting, setSorting] = useState<SortingState>([]);
 
   const columns = useMemo(
@@ -43,6 +44,28 @@ export const UsersTable = ({ users, isLoading, onDelete, onEdit }: UsersTablePro
         header: 'Rolle',
         cell: ({ row }) => <Badge variant={getRoleBadgeVariant(row.original.role)}>{row.original.role}</Badge>,
       }),
+      columnHelper.accessor('isLocked', {
+        header: 'Status',
+        cell: ({ row }) => {
+          if (row.original.isLocked) {
+            const lockReason = row.original.lockReason;
+            return (
+              <div className="flex items-center gap-2">
+                <Badge variant="warning" className="flex items-center gap-1">
+                  <PiLockKey className="h-3 w-3" />
+                  Gesperrt
+                </Badge>
+                {lockReason && (
+                  <span className="text-gray-500 text-xs dark:text-gray-400" title={lockReason}>
+                    ({lockReason.length > 20 ? `${lockReason.substring(0, 20)}...` : lockReason})
+                  </span>
+                )}
+              </div>
+            );
+          }
+          return <Badge variant="success">Aktiv</Badge>;
+        },
+      }),
       columnHelper.accessor('id', {
         header: 'ID',
         cell: (info) => <span className="font-mono text-gray-600 text-sm dark:text-gray-400">{info.getValue()}</span>,
@@ -52,6 +75,11 @@ export const UsersTable = ({ users, isLoading, onDelete, onEdit }: UsersTablePro
         header: 'Aktionen',
         cell: ({ row }) => (
           <div className="flex items-center gap-2">
+            {row.original.isLocked && (
+              <IconButton size="sm" intent="success" appearance="minimal" onClick={() => onUnlock(row.original)} aria-label="Benutzer entsperren">
+                <PiLockKeyOpen />
+              </IconButton>
+            )}
             <IconButton size="sm" appearance="minimal" onClick={() => onEdit(row.original)} aria-label="Benutzer bearbeiten">
               <PiPencilSimple />
             </IconButton>
@@ -62,7 +90,7 @@ export const UsersTable = ({ users, isLoading, onDelete, onEdit }: UsersTablePro
         ),
       }),
     ],
-    [onDelete, onEdit],
+    [onDelete, onEdit, onUnlock],
   );
 
   const table = useReactTable({
@@ -83,11 +111,12 @@ export const UsersTable = ({ users, isLoading, onDelete, onEdit }: UsersTablePro
           <Table.Row>
             <Table.Head>Benutzername</Table.Head>
             <Table.Head>Rolle</Table.Head>
+            <Table.Head>Status</Table.Head>
             <Table.Head>ID</Table.Head>
             <Table.Head>Aktionen</Table.Head>
           </Table.Row>
         </Table.Header>
-        <Table.Skeleton rows={5} columns={4} />
+        <Table.Skeleton rows={5} columns={5} />
       </Table.Root>
     );
   }

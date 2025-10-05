@@ -1,7 +1,7 @@
 import { cn } from '@/utils/cn';
 import type { ReactNode } from 'react';
 
-interface TextProps {
+export interface TextProps {
   children: ReactNode;
   size?: 'xs' | 'sm' | 'md' | 'lg' | 'xl';
   color?: 'default' | 'muted' | 'success' | 'error' | 'warning';
