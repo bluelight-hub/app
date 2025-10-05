@@ -1,4 +1,3 @@
-import React from 'react';
 import { PiUser, PiPencil } from 'react-icons/pi';
 import type { EtbEintragDto } from '@bluelight-hub/shared/client';
 import { formatDisplayDateTime } from '@/utils/dateFormatter';
@@ -7,7 +6,7 @@ import { de } from 'date-fns/locale';
 
 interface EtbEntryDetailsProps {
   entry: EtbEintragDto;
-  getUserName: (id: string) => string;
+  getUserName: (id: string) => string | undefined;
 }
 
 /**
@@ -28,7 +27,7 @@ export function EtbEntryDetails({ entry, getUserName }: EtbEntryDetailsProps) {
           <span className="font-medium text-gray-500 dark:text-gray-400">Erstellt von:</span>
           <p className="mt-1 flex items-center gap-1 text-gray-900 dark:text-gray-100">
             <PiUser className="h-3 w-3" />
-            {getUserName(entry.createdBy)}
+            {getUserName(entry.createdBy) ?? 'Unbekannt'}
           </p>
         </div>
 
@@ -56,7 +55,7 @@ export function EtbEntryDetails({ entry, getUserName }: EtbEntryDetailsProps) {
             <span className="font-medium text-gray-500 dark:text-gray-400">Bearbeitet von:</span>
             <p className="mt-1 flex items-center gap-1 text-gray-900 dark:text-gray-100">
               <PiPencil className="h-3 w-3" />
-              {getUserName(entry.updatedBy)}
+              {getUserName(entry.updatedBy) ?? 'Unbekannt'}
               <span className="text-gray-500 dark:text-gray-400">({format(new Date(entry.updatedAt), 'HH:mm', { locale: de })})</span>
             </p>
           </div>

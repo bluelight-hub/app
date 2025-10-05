@@ -30,6 +30,21 @@ export class UserDto {
     example: '2024-01-01T12:00:00.000Z',
   })
   updatedAt!: Date;
+
+  @ApiProperty({
+    description: 'Gibt an, ob der Benutzer gesperrt ist',
+    example: false,
+  })
+  isLocked!: boolean;
+
+  @ApiProperty({
+    description: 'Grund der Sperrung (optional)',
+    type: String,
+    example: 'Verstoß gegen Nutzungsbedingungen',
+    required: false,
+    nullable: true,
+  })
+  lockReason!: string | null;
 }
 
 /**

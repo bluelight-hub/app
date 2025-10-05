@@ -49,6 +49,18 @@ export interface UserDto {
    * @memberof UserDto
    */
   updatedAt: Date;
+  /**
+   * Gibt an, ob der Benutzer gesperrt ist
+   * @type {boolean}
+   * @memberof UserDto
+   */
+  isLocked: boolean;
+  /**
+   * Grund der Sperrung (optional)
+   * @type {string}
+   * @memberof UserDto
+   */
+  lockReason?: string | null;
 }
 
 /**
@@ -70,6 +82,7 @@ export function instanceOfUserDto(value: object): value is UserDto {
   if (!('role' in value) || value['role'] === undefined) return false;
   if (!('createdAt' in value) || value['createdAt'] === undefined) return false;
   if (!('updatedAt' in value) || value['updatedAt'] === undefined) return false;
+  if (!('isLocked' in value) || value['isLocked'] === undefined) return false;
   return true;
 }
 
@@ -87,6 +100,8 @@ export function UserDtoFromJSONTyped(json: any, ignoreDiscriminator: boolean): U
     role: json['role'],
     createdAt: new Date(json['createdAt']),
     updatedAt: new Date(json['updatedAt']),
+    isLocked: json['isLocked'],
+    lockReason: json['lockReason'] == null ? undefined : json['lockReason'],
   };
 }
 
@@ -105,5 +120,7 @@ export function UserDtoToJSONTyped(value?: UserDto | null, ignoreDiscriminator: 
     role: value['role'],
     createdAt: value['createdAt'].toISOString(),
     updatedAt: value['updatedAt'].toISOString(),
+    isLocked: value['isLocked'],
+    lockReason: value['lockReason'],
   };
 }

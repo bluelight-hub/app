@@ -3,8 +3,18 @@
   "version": "1.0.0-alpha.31",
   "private": true,
   "type": "module",
-  "main": "index.ts",
-  "types": "index.ts",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    },
+    "./client": {
+      "types": "./client/index.ts",
+      "import": "./client/index.ts"
+    }
+  },
   "scripts": {
     "lint": "biome check --write",
     "lint:check": "biome check",
@@ -17,7 +27,11 @@
   },
   "devDependencies": {
     "@openapitools/openapi-generator-cli": "^2.21.4",
+    "@types/zxcvbn": "^4.4.5",
     "rimraf": "^6.0.1",
     "typescript": "^5.9.2"
+  },
+  "dependencies": {
+    "zxcvbn": "^4.4.2"
   }
 }

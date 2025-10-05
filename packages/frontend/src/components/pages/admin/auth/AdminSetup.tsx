@@ -7,26 +7,12 @@ import { Card } from '@atoms/card.atom';
 import { Text } from '@atoms/text.atom';
 import { FormFieldWrapper } from '@molecules/form/FormFieldWrapper';
 import { PasswordInput } from '@molecules/password-input.molecule';
-import { PasswordStrengthIndicator } from '@molecules/password-strength-indicator.molecule';
+import { PasswordStrengthIndicator } from '@molecules/password-strength-indicator.lazy';
+import { PASSWORD_MIN_SCORE, validatePasswordCriteria } from '@bluelight-hub/shared';
 import { useForm } from '@tanstack/react-form';
 import { useNavigate } from '@tanstack/react-router';
 import { useEffect, useState } from 'react';
 import { PiCheckCircle, PiWarning } from 'react-icons/pi';
-import { z } from 'zod';
-
-/**
- * Schema für die Validierung des Admin-Setup-Formulars
- */
-const adminSetupSchema = z.object({
-  password: z
-    .string()
-    .min(8, 'Das Passwort muss mindestens 8 Zeichen lang sein')
-    .max(128, 'Das Passwort darf maximal 128 Zeichen lang sein')
-    .regex(/[a-z]/, 'Das Passwort muss mindestens einen Kleinbuchstaben enthalten')
-    .regex(/[A-Z]/, 'Das Passwort muss mindestens einen Großbuchstaben enthalten')
-    .regex(/[0-9]/, 'Das Passwort muss mindestens eine Zahl enthalten')
-    .regex(/[^a-zA-Z0-9]/, 'Das Passwort muss mindestens ein Sonderzeichen enthalten'),
-});
 
 /**
  * Admin-Setup-Seite für die Ersteinrichtung eines Admin-Accounts
@@ -112,15 +98,11 @@ export function AdminSetup() {
               name="password"
               validators={{
                 onChange: ({ value }) => {
-                  try {
-                    adminSetupSchema.shape.password.parse(value);
-                    return undefined;
-                  } catch (error) {
-                    if (error instanceof z.ZodError) {
-                      return error.issues[0].message;
-                    }
-                    return 'Ungültiges Passwort';
+                  const result = validatePasswordCriteria(value);
+                  if (!result.isValid) {
+                    return result.error;
                   }
+                  return undefined;
                 },
               }}
             >
@@ -128,7 +110,7 @@ export function AdminSetup() {
                 <FormFieldWrapper
                   field={field}
                   label={'Passwort'}
-                  helpText={field.state.meta.errors.length === 0 ? 'Mind. 8 Zeichen, 1 Groß-, 1 Kleinbuchstabe, 1 Zahl, 1 Sonderzeichen' : undefined}
+                  helpText={field.state.meta.errors.length === 0 ? 'Mind. 8 Zeichen, 1 Groß-, 1 Kleinbuchstabe, 1 Zahl, 1 Sonderzeichen, Score ≥ 3' : undefined}
                   required
                 >
                   <div className="space-y-3">
@@ -146,12 +128,7 @@ export function AdminSetup() {
                       variant={field.state.meta.isTouched && field.state.meta.errors.length > 0 ? 'error' : 'default'}
                       fullWidth
                     />
-                    <PasswordStrengthIndicator
-                      password={field.state.value}
-                      showLabel={true}
-                      showCriteria={true}
-                      minScore={3}
-                    />
+                    <PasswordStrengthIndicator password={field.state.value} showLabel={true} showCriteria={true} minScore={PASSWORD_MIN_SCORE} />
                   </div>
                 </FormFieldWrapper>
               )}

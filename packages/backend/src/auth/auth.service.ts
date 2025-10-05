@@ -47,8 +47,8 @@ export class AuthService {
         where: { id: refreshPayload.userId },
       });
 
-      if (!user) {
-        this.logger.warn(`Refresh mit unbekanntem Benutzer: userId=${refreshPayload.userId}`);
+      if (!user || user.isDeleted || user.isLocked) {
+        this.logger.warn(`Refresh mit unbekanntem, gelöschtem oder gesperrtem Benutzer: userId=${refreshPayload.userId}`);
         return null;
       }
 
@@ -99,7 +99,7 @@ export class AuthService {
    */
   async findUserById(userId: string): Promise<User> {
     const user = await this.prisma.user.findUnique({ where: { id: userId } });
-    if (!user) throw new NotFoundException('Benutzer nicht gefunden');
+    if (!user || user.isDeleted || user.isLocked) throw new NotFoundException('Benutzer nicht gefunden');
     return user;
   }
 
@@ -234,6 +234,8 @@ export class AuthService {
         role: {
           in: adminRoles,
         },
+        isDeleted: false,
+        isLocked: false,
       },
     });
 
@@ -254,9 +256,14 @@ export class AuthService {
       where: { id: userId },
     });
 
-    if (!user) {
-      this.logger.warn(`🚫 Admin-Login fehlgeschlagen: User nicht gefunden (${userId})`);
+    if (!user || user.isDeleted) {
+      this.logger.warn(`🚫 Admin-Login fehlgeschlagen: User nicht gefunden oder gelöscht (${userId})`);
       throw new UnauthorizedException('Ungültige Admin-Zugangsdaten');
+    }
+
+    if (user.isLocked) {
+      this.logger.warn(`🚫 Admin-Login fehlgeschlagen: User ist gesperrt (${user.username})`);
+      throw new UnauthorizedException('Benutzer ist gesperrt');
     }
 
     if (!isAdmin(user.role)) {
@@ -295,7 +302,7 @@ export class AuthService {
       where: { id: user.userId },
     });
 
-    if (!currentUser) {
+    if (!currentUser || currentUser.isDeleted) {
       throw new NotFoundException('Benutzer nicht gefunden');
     }
 
@@ -337,13 +344,14 @@ export class AuthService {
    * @returns Array von Benutzenden ohne passwordHash
    */
   async getPublicUsers(): Promise<Pick<User, 'username'>[]> {
-    // Entferne passwordHash von jedem User
+    // Entferne passwordHash von jedem User und filtere gelöschte User
     return await this.prisma.user.findMany({
       select: {
         username: true,
       },
       where: {
         isActive: true,
+        isDeleted: false,
       },
       orderBy: { createdAt: 'desc' },
     });
@@ -382,14 +390,30 @@ export class AuthService {
   }
 
   /**
-   * Findet einen Benutzer anhand seines Usernamens
+   * Findet einen aktiven Benutzer anhand seines Usernamens
    * @param username - Der Username des Benutzers
-   * @returns Der gefundene Benutzer oder null
+   * @returns Der gefundene aktive Benutzer oder null
+   * @throws UnauthorizedException wenn der Benutzer gesperrt ist
    */
   private async findUserByUsername(username: string): Promise<User | null> {
-    return this.prisma.user.findUnique({
+    const user = await this.prisma.user.findUnique({
       where: { username },
     });
+
+    // Gelöschte User als nicht gefunden behandeln
+    if (user?.isDeleted) {
+      return null;
+    }
+
+    // Gesperrte User: Spezifische Exception mit Sperrgrund
+    if (user?.isLocked) {
+      const message = user.lockReason ? `Ihr Benutzerkonto wurde gesperrt. Grund: ${user.lockReason}` : 'Ihr Benutzerkonto wurde gesperrt. Bitte kontaktieren Sie einen Administrator.';
+
+      this.logger.warn(`🚫 Login-Versuch mit gesperrtem Account: ${user.username}`);
+      throw new UnauthorizedException(message);
+    }
+
+    return user;
   }
 
   /**
@@ -436,17 +460,43 @@ export class AuthService {
   }
 
   /**
-   * Erstellt einen neuen Benutzer
+   * Erstellt einen neuen Benutzer oder reaktiviert einen gelöschten
    * @param username - Der Username des neuen Benutzers
-   * @returns Der erstellte Benutzer
+   * @returns Der erstellte oder reaktivierte Benutzer
    */
   private async createUser(username: string): Promise<User> {
-    // Prüfe, ob bereits ein Admin existiert
+    // Prüfe ob ein gelöschter User existiert
+    const deletedUser = await this.prisma.user.findFirst({
+      where: {
+        username,
+        isDeleted: true,
+      },
+    });
+
+    // Wenn gelöschter User existiert, reaktivieren
+    if (deletedUser) {
+      return this.prisma.user.update({
+        where: { id: deletedUser.id },
+        data: {
+          isDeleted: false,
+          deletedAt: null,
+          deletedBy: null,
+          isActive: true,
+          lastLoginAt: new Date(),
+          failedLoginCount: 0,
+          lockedUntil: null,
+        },
+      });
+    }
+
+    // Prüfe, ob bereits ein Admin existiert (nur nicht-gelöschte und nicht-gesperrte)
     const adminCount = await this.prisma.user.count({
       where: {
         role: {
           in: ['ADMIN', 'SUPER_ADMIN'],
         },
+        isDeleted: false,
+        isLocked: false,
       },
     });
 

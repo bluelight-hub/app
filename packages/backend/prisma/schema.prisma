@@ -31,6 +31,17 @@ model User {
   createdAt        DateTime  @default(now())
   updatedAt        DateTime  @updatedAt
 
+  // Soft Delete Fields
+  isDeleted        Boolean   @default(false)
+  deletedAt        DateTime?
+  deletedBy        String?   @db.VarChar(100)
+
+  // Manual Lock Fields (admin-initiated, separate from auto-lock after failed logins)
+  isLocked         Boolean   @default(false)
+  lockedManuallyAt DateTime?
+  lockedManuallyBy String?   @db.VarChar(100)
+  lockReason       String?   @db.Text
+
   // Relations
   // sessions        Session[]
   // refreshTokens   RefreshToken[]
@@ -67,6 +78,10 @@ model User {
   @@index([username], map: "idx_user_username")
   @@index([role, isActive], map: "idx_user_role_active")
   @@index([lastLoginAt], map: "idx_user_last_login")
+  @@index([isDeleted], map: "idx_user_is_deleted")
+  @@index([username, isDeleted], map: "idx_user_username_deleted")
+  @@index([isLocked], map: "idx_user_is_locked")
+  @@index([isActive, isDeleted, isLocked], map: "idx_user_status")
 }
 
 // Einsatz Status Enum

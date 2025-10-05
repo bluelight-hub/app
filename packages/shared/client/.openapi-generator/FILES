@@ -29,6 +29,7 @@ models/CreateEtbEintragDto.ts
 models/CreateEtbEintragResponse.ts
 models/CreateEtbResponse.ts
 models/CreateUserDto.ts
+models/DeleteUserDto.ts
 models/DeleteUserResponse.ts
 models/DeleteUserResponseData.ts
 models/EinsatzControllerCreateVAlpha200Response.ts
@@ -45,6 +46,7 @@ models/GetEtbResponse.ts
 models/HealthControllerCheck200Response.ts
 models/HealthControllerCheck200ResponseInfoValue.ts
 models/HealthControllerCheck503Response.ts
+models/LockUserDto.ts
 models/LogoutResponseDto.ts
 models/NavigationResponseDto.ts
 models/PublicUserDto.ts

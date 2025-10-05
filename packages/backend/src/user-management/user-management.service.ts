@@ -30,11 +30,11 @@ export class UserManagementService {
   }
 
   /**
-   * Gibt einen einzelnen Benutzer zurück
+   * Gibt einen einzelnen aktiven Benutzer zurück
    *
    * @param id - ID des Benutzers
    * @returns Benutzer mit id, username, name und role
-   * @throws NotFoundException wenn der Benutzer nicht existiert
+   * @throws NotFoundException wenn der Benutzer nicht existiert, gelöscht oder gesperrt ist
    */
   async findOne(id: string): Promise<UserDto> {
     const user = await this.userRepository.findById(id, {
@@ -43,54 +43,106 @@ export class UserManagementService {
       role: true,
       createdAt: true,
       updatedAt: true,
+      isDeleted: true,
+      isLocked: true,
+      lockReason: true,
     });
-    if (!user) {
+    if (!user || user.isDeleted || user.isLocked) {
       throw new NotFoundException('Benutzer nicht gefunden');
     }
     return toUserDto(user);
   }
 
   /**
-   * Erstellt einen neuen Benutzer
+   * Erstellt einen neuen Benutzer oder reaktiviert einen gelöschten Benutzer
+   *
+   * Wenn ein gelöschter Benutzer mit gleichem Username existiert, wird dieser
+   * automatisch reaktiviert statt einen neuen Benutzer zu erstellen.
    *
    * @param dto - Benutzerdaten (username und optionale role)
-   * @returns Der erstellte Benutzer mit id, username und role
-   * @throws ConflictException wenn der Benutzername bereits existiert
+   * @returns Der erstellte oder reaktivierte Benutzer
+   * @throws ConflictException wenn der Benutzername bereits von einem aktiven Benutzer verwendet wird
    */
   async create(dto: CreateUserDto) {
-    try {
-      // Benutzer erstellen mit Standardrolle USER
-      const user = await this.userRepository.create(
-        {
+    return await this.userRepository.transaction(async (prisma) => {
+      // Prüfen ob ein gelöschter Benutzer mit diesem Username existiert
+      const deletedUser = await prisma.user.findFirst({
+        where: {
           username: dto.username,
-          role: dto.role || UserRole.USER,
+          isDeleted: true,
         },
-        {
+        select: {
           id: true,
           username: true,
           role: true,
           createdAt: true,
           updatedAt: true,
+          isLocked: true,
+          lockReason: true,
         },
-      );
-      return toUserDto(user);
-    } catch (error: unknown) {
-      // Handle Prisma unique constraint violation
-      if (isPrismaP2002(error)) {
-        throw new ConflictException('Benutzername bereits vergeben');
+      });
+
+      // Wenn gelöschter User existiert, reaktivieren
+      if (deletedUser) {
+        const reactivatedUser = await prisma.user.update({
+          where: { id: deletedUser.id },
+          data: {
+            isDeleted: false,
+            deletedAt: null,
+            deletedBy: null,
+            isActive: true,
+            role: dto.role || deletedUser.role, // Neue Rolle oder alte beibehalten
+            failedLoginCount: 0,
+            lockedUntil: null,
+          },
+          select: {
+            id: true,
+            username: true,
+            role: true,
+            createdAt: true,
+            updatedAt: true,
+            isLocked: true,
+            lockReason: true,
+          },
+        });
+        return toUserDto(reactivatedUser);
       }
-      // Re-throw other errors
-      throw error;
-    }
+
+      // Neuen Benutzer erstellen
+      try {
+        const user = await prisma.user.create({
+          data: {
+            username: dto.username,
+            role: dto.role || UserRole.USER,
+          },
+          select: {
+            id: true,
+            username: true,
+            role: true,
+            createdAt: true,
+            updatedAt: true,
+            isLocked: true,
+            lockReason: true,
+          },
+        });
+        return toUserDto(user);
+      } catch (error: unknown) {
+        // Handle Prisma unique constraint violation (aktiver User existiert bereits)
+        if (isPrismaP2002(error)) {
+          throw new ConflictException('Benutzername bereits vergeben');
+        }
+        throw error;
+      }
+    });
   }
 
   /**
-   * Aktualisiert einen bestehenden Benutzer
+   * Aktualisiert einen bestehenden aktiven Benutzer
    *
    * @param id - ID des zu aktualisierenden Benutzers
    * @param dto - Zu aktualisierende Felder
    * @returns Der aktualisierte Benutzer
-   * @throws NotFoundException wenn der Benutzer nicht existiert
+   * @throws NotFoundException wenn der Benutzer nicht existiert, gelöscht oder gesperrt ist
    * @throws ConflictException wenn der neue Benutzername bereits existiert
    * @throws BadRequestException wenn versucht wird, den letzten SUPER_ADMIN herabzustufen
    */
@@ -102,10 +154,12 @@ export class UserManagementService {
         select: {
           id: true,
           role: true,
+          isDeleted: true,
+          isLocked: true,
         },
       });
 
-      if (!existingUser) {
+      if (!existingUser || existingUser.isDeleted || existingUser.isLocked) {
         throw new NotFoundException('Benutzer nicht gefunden');
       }
 
@@ -137,6 +191,8 @@ export class UserManagementService {
             role: true,
             createdAt: true,
             updatedAt: true,
+            isLocked: true,
+            lockReason: true,
           },
         });
 
@@ -152,15 +208,138 @@ export class UserManagementService {
   }
 
   /**
-   * Löscht einen Benutzer mit Transaktionssicherheit
+   * Sperrt einen Benutzer manuell
    *
+   * @param id - ID des zu sperrenden Benutzers
+   * @param reason - Grund der Sperrung
+   * @param lockedBy - ID des Admin-Benutzers der die Sperre durchführt
+   * @throws NotFoundException wenn der Benutzer nicht existiert oder bereits gelöscht ist
+   * @throws BadRequestException wenn versucht wird, den letzten SUPER_ADMIN zu sperren
+   */
+  async lock(id: string, reason?: string, lockedBy?: string): Promise<UserDto> {
+    return await this.userRepository.transaction(async (prisma) => {
+      const user = await prisma.user.findUnique({
+        where: { id },
+        select: {
+          id: true,
+          role: true,
+          isDeleted: true,
+          isLocked: true,
+        },
+      });
+
+      if (!user || user.isDeleted) {
+        throw new NotFoundException('Benutzer nicht gefunden');
+      }
+
+      if (user.isLocked) {
+        throw new BadRequestException('Benutzer ist bereits gesperrt');
+      }
+
+      // Prüfen, ob dies der letzte SUPER_ADMIN ist
+      if (user.role === UserRole.SUPER_ADMIN) {
+        const superAdminCount = await prisma.user.count({
+          where: {
+            role: UserRole.SUPER_ADMIN,
+            isDeleted: false,
+            isLocked: false,
+          },
+        });
+
+        if (superAdminCount <= 1) {
+          throw new BadRequestException('Der letzte aktive SUPER_ADMIN kann nicht gesperrt werden');
+        }
+      }
+
+      const lockedUser = await prisma.user.update({
+        where: { id },
+        data: {
+          isLocked: true,
+          lockedManuallyAt: new Date(),
+          lockedManuallyBy: lockedBy || id,
+          lockReason: reason,
+          isActive: false,
+        },
+        select: {
+          id: true,
+          username: true,
+          role: true,
+          createdAt: true,
+          updatedAt: true,
+          isLocked: true,
+          lockReason: true,
+        },
+      });
+
+      return toUserDto(lockedUser);
+    });
+  }
+
+  /**
+   * Entsperrt einen manuell gesperrten Benutzer
+   *
+   * @param id - ID des zu entsperrenden Benutzers
+   * @throws NotFoundException wenn der Benutzer nicht existiert oder bereits gelöscht ist
+   * @throws BadRequestException wenn der Benutzer nicht gesperrt ist
+   */
+  async unlock(id: string): Promise<UserDto> {
+    return await this.userRepository.transaction(async (prisma) => {
+      const user = await prisma.user.findUnique({
+        where: { id },
+        select: {
+          id: true,
+          isDeleted: true,
+          isLocked: true,
+        },
+      });
+
+      if (!user || user.isDeleted) {
+        throw new NotFoundException('Benutzer nicht gefunden');
+      }
+
+      if (!user.isLocked) {
+        throw new BadRequestException('Benutzer ist nicht gesperrt');
+      }
+
+      const unlockedUser = await prisma.user.update({
+        where: { id },
+        data: {
+          isLocked: false,
+          lockedManuallyAt: null,
+          lockedManuallyBy: null,
+          lockReason: null,
+          isActive: true,
+          failedLoginCount: 0,
+          lockedUntil: null,
+        },
+        select: {
+          id: true,
+          username: true,
+          role: true,
+          createdAt: true,
+          updatedAt: true,
+          isLocked: true,
+          lockReason: true,
+        },
+      });
+
+      return toUserDto(unlockedUser);
+    });
+  }
+
+  /**
+   * Löscht einen Benutzer mit Soft Delete (Transaktionssicherheit)
+   *
+   * Bei Admin-Benutzern wird optional ein Downgrade zu USER angeboten
    * Verhindert das Löschen des letzten SUPER_ADMIN Benutzers
+   * Verwendet Soft Delete, um Datenintegrität (z.B. ETB createdBy) zu erhalten
    *
    * @param id - ID des zu löschenden Benutzers
-   * @throws NotFoundException wenn der Benutzer nicht existiert
+   * @param downgradeAdmin - Bei true: Admin wird zu USER herabgestuft statt gelöscht
+   * @throws NotFoundException wenn der Benutzer nicht existiert oder bereits gelöscht ist
    * @throws BadRequestException wenn versucht wird, den letzten SUPER_ADMIN zu löschen
    */
-  async remove(id: string): Promise<void> {
+  async remove(id: string, downgradeAdmin = false): Promise<void> {
     await this.userRepository.transaction(async (prisma) => {
       // Benutzer finden
       const userToDelete = await prisma.user.findUnique({
@@ -168,10 +347,11 @@ export class UserManagementService {
         select: {
           id: true,
           role: true,
+          isDeleted: true,
         },
       });
 
-      if (!userToDelete) {
+      if (!userToDelete || userToDelete.isDeleted) {
         throw new NotFoundException('Benutzer nicht gefunden');
       }
 
@@ -180,6 +360,7 @@ export class UserManagementService {
         const superAdminCount = await prisma.user.count({
           where: {
             role: UserRole.SUPER_ADMIN,
+            isDeleted: false,
           },
         });
 
@@ -188,9 +369,42 @@ export class UserManagementService {
         }
       }
 
-      // Benutzer löschen
-      await prisma.user.delete({
+      const isAdminUser = userToDelete.role === UserRole.ADMIN || userToDelete.role === UserRole.SUPER_ADMIN;
+
+      // Admin-Downgrade statt Löschen (wenn gewünscht und User ist Admin)
+      if (downgradeAdmin && isAdminUser) {
+        await prisma.user.update({
+          where: { id },
+          data: {
+            role: UserRole.USER,
+            passwordHash: null, // Admin-Passwort entfernen
+          },
+        });
+        return;
+      }
+
+      // Soft Delete: Benutzer als gelöscht markieren
+      // Bei Admins: Automatisch zu USER herabstufen + Passwort entfernen
+      // Lock-Status wird aufgehoben, da gelöschte User nicht mehr relevant sind
+      await prisma.user.update({
         where: { id },
+        data: {
+          isDeleted: true,
+          deletedAt: new Date(),
+          deletedBy: id, // TODO: Aktuellen Admin-User übergeben
+          isActive: false,
+          // Lock-Felder zurücksetzen
+          isLocked: false,
+          lockedManuallyAt: null,
+          lockedManuallyBy: null,
+          lockReason: null,
+          failedLoginCount: 0,
+          lockedUntil: null,
+          ...(isAdminUser && {
+            role: UserRole.USER,
+            passwordHash: null,
+          }),
+        },
       });
     });
   }

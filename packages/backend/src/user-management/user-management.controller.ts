@@ -1,8 +1,10 @@
 import { AdminJwtAuthGuard } from '@/auth/guards/admin-jwt-auth.guard';
 import { ParseNanoIdPipe } from '@/common/pipes/parse-nanoid.pipe';
-import { Body, Controller, Delete, Get, Param, Patch, Post, UseGuards, ValidationPipe } from '@nestjs/common';
+import { Body, Controller, Delete, Get, HttpCode, HttpStatus, Param, Patch, Post, Put, UseGuards, ValidationPipe } from '@nestjs/common';
 import { ApiBearerAuth, ApiBody, ApiCreatedResponse, ApiOkResponse, ApiOperation, ApiResponse, ApiTags, ApiUnauthorizedResponse } from '@nestjs/swagger';
 import { CreateUserDto } from './dto/create-user.dto';
+import { DeleteUserDto } from './dto/delete-user.dto';
+import { LockUserDto } from './dto/lock-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { DeleteUserResponse, UserResponse, UsersListResponse } from './dto/user-management-response.dto';
 import { toDeleteUserResponseDto } from './mappers/user-management.mapper';
@@ -84,18 +86,81 @@ export class UserManagementController {
   }
 
   @Delete(':id')
-  @ApiOperation({ summary: 'Benutzer löschen' })
+  @ApiOperation({ summary: 'Benutzer löschen oder herabstufen' })
+  @ApiBody({
+    type: DeleteUserDto,
+    description: 'Lösch-Optionen (optional)',
+    required: false,
+  })
   @ApiOkResponse({
     type: DeleteUserResponse,
-    description: 'Benutzer erfolgreich gelöscht',
+    description: 'Benutzer erfolgreich gelöscht oder herabgestuft',
   })
   @ApiResponse({ status: 404, description: 'Benutzer nicht gefunden' })
   @ApiResponse({
     status: 400,
     description: 'Letzter SUPER_ADMIN kann nicht gelöscht werden',
   })
-  async remove(@Param('id', new ParseNanoIdPipe()) id: string) {
-    await this.userManagementService.remove(id);
+  async remove(
+    @Param('id', new ParseNanoIdPipe()) id: string,
+    @Body(
+      new ValidationPipe({
+        whitelist: true,
+        forbidNonWhitelisted: true,
+        transform: true,
+      }),
+    )
+    dto?: DeleteUserDto,
+  ) {
+    await this.userManagementService.remove(id, dto?.downgradeAdmin);
     return toDeleteUserResponseDto(id);
+  }
+
+  @Put(':id/lock')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Benutzer manuell sperren' })
+  @ApiBody({
+    type: LockUserDto,
+    description: 'Sperrgrund (optional)',
+    required: false,
+  })
+  @ApiOkResponse({
+    type: UserResponse,
+    description: 'Benutzer erfolgreich gesperrt',
+  })
+  @ApiResponse({ status: 404, description: 'Benutzer nicht gefunden' })
+  @ApiResponse({
+    status: 400,
+    description: 'Benutzer ist bereits gesperrt oder letzter SUPER_ADMIN kann nicht gesperrt werden',
+  })
+  async lock(
+    @Param('id', new ParseNanoIdPipe()) id: string,
+    @Body(
+      new ValidationPipe({
+        whitelist: true,
+        forbidNonWhitelisted: true,
+        transform: true,
+      }),
+    )
+    dto?: LockUserDto,
+  ) {
+    // TODO: Get current admin ID from JWT
+    return await this.userManagementService.lock(id, dto?.reason);
+  }
+
+  @Put(':id/unlock')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Benutzer entsperren' })
+  @ApiOkResponse({
+    type: UserResponse,
+    description: 'Benutzer erfolgreich entsperrt',
+  })
+  @ApiResponse({ status: 404, description: 'Benutzer nicht gefunden' })
+  @ApiResponse({
+    status: 400,
+    description: 'Benutzer ist nicht gesperrt',
+  })
+  async unlock(@Param('id', new ParseNanoIdPipe()) id: string) {
+    return await this.userManagementService.unlock(id);
   }
 }

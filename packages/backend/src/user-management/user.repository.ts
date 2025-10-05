@@ -13,18 +13,23 @@ export class UserRepository {
   constructor(private readonly prisma: PrismaService) {}
 
   /**
-   * Findet alle Benutzer mit reduzierten Feldern
+   * Findet alle nicht gelöschten Benutzer (inkl. gesperrte) mit reduzierten Feldern
    *
-   * @returns Liste aller Benutzer mit Basis-Informationen
+   * @returns Liste aller nicht-gelöschten Benutzer mit Basis-Informationen und Lock-Status
    */
   findAllLite() {
     return this.prisma.user.findMany({
+      where: {
+        isDeleted: false,
+      },
       select: {
         id: true,
         username: true,
         role: true,
         createdAt: true,
         updatedAt: true,
+        isLocked: true,
+        lockReason: true,
       },
       orderBy: {
         createdAt: 'desc',
@@ -33,14 +38,18 @@ export class UserRepository {
   }
 
   /**
-   * Findet einen Benutzer anhand der ID mit reduzierten Feldern
+   * Findet einen aktiven (nicht gelöschten, nicht gesperrten) Benutzer anhand der ID mit reduzierten Feldern
    *
    * @param id - Benutzer-ID
-   * @returns Benutzer mit Basis-Informationen oder null
+   * @returns Benutzer mit Basis-Informationen oder null (wenn gelöscht, gesperrt oder nicht vorhanden)
    */
   findByIdLite(id: string) {
-    return this.prisma.user.findUnique({
-      where: { id },
+    return this.prisma.user.findFirst({
+      where: {
+        id,
+        isDeleted: false,
+        isLocked: false,
+      },
       select: {
         id: true,
         role: true,
