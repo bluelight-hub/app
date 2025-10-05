@@ -356,7 +356,7 @@ describe('useEtb hooks', () => {
 
       expect(result.current.etb).toBeUndefined();
       expect(result.current.isLoadingEtb).toBe(false);
-      expect(result.current.etbError).toBeUndefined();
+      expect(result.current.etbError).toBeNull();
 
       // Mutations should still be available
       expect(result.current.createEtb).toBeDefined();
