@@ -18,8 +18,8 @@ crate-type = ["staticlib", "cdylib", "rlib"]
 tauri-build = { version = "2.3.1", features = [] }
 
 [dependencies]
-log = "0.4.27"
-tauri = { version = "2.7.0", features = [] }
-tauri-plugin-log = "2.6.0"
-tauri-plugin-http = "2.5.1"
-tauri-plugin-store = "2.3.0"
+log = "0.4.28"
+tauri = { version = "2.8.5", features = [] }
+tauri-plugin-log = "2.7.0"
+tauri-plugin-http = "2.5.2"
+tauri-plugin-store = "2.4.0"

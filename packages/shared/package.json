@@ -26,12 +26,8 @@
     "test": "echo 'No tests available for shared package'"
   },
   "devDependencies": {
-    "@openapitools/openapi-generator-cli": "^2.21.4",
-    "@types/zxcvbn": "^4.4.5",
+    "@openapitools/openapi-generator-cli": "^2.24.0",
     "rimraf": "^6.0.1",
-    "typescript": "^5.9.2"
-  },
-  "dependencies": {
-    "zxcvbn": "^4.4.2"
+    "typescript": "^5.9.3"
   }
 }
