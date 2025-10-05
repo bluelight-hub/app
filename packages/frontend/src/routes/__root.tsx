@@ -1,7 +1,7 @@
 import { Provider } from '@/components/ui/provider.tsx';
 import { ConfirmProvider } from '@/hooks/useConfirm';
 import { handleQueryError } from '@/utils/error-handler';
-import { TanstackDevtools } from '@tanstack/react-devtools';
+import { TanStackDevtools } from '@tanstack/react-devtools';
 import { MutationCache, QueryCache, QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { ReactQueryDevtoolsPanel } from '@tanstack/react-query-devtools';
 import { createRootRouteWithContext, Outlet } from '@tanstack/react-router';
@@ -82,7 +82,7 @@ function RootComponent() {
         <ConfirmProvider>
           <Outlet />
           <div className="absolute">
-            <TanstackDevtools
+            <TanStackDevtools
               plugins={[
                 {
                   name: 'Tanstack Query',
