@@ -32,7 +32,7 @@ interface OfflineStore {
     value: EtbWithEntries;
   };
   syncQueue: {
-    key: string; // uuid
+    key: string; // nanoid
     value: {
       action: 'CREATE' | 'UPDATE' | 'DELETE';
       entity: 'etb' | 'entry';

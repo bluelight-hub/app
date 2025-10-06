@@ -30,7 +30,8 @@
       "!**/repomix-output.xml",
       "!**/*.min.js",
       "!**/*.min.css",
-      "!**/*.tailwind.css"
+      "!**/*.tailwind.css",
+      "!docs/**/*.md"
     ]
   },
   "linter": {
@@ -65,7 +66,8 @@
       "!**/*.min.js",
       "!**/*.min.css",
       "!**/*.tailwind.css",
-      "!.releaserc.js"
+      "!.releaserc.js",
+      "!docs/**/*.md"
     ]
   },
   "assist": {
