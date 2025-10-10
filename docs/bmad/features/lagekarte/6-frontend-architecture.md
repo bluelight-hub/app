@@ -134,34 +134,44 @@ const POI_ICONS: Record<PoiType, L.Icon> = {
 **Purpose:** Toolbar für Drawing-Tools (Polygon, Line, Rectangle).
 
 **Key Responsibilities:**
-- Integration von leaflet-draw
-- Drawing-Mode-Toggle (Polygon, Line, Rectangle, Circle)
+- Integration von **Leaflet.PM** (NOT leaflet-draw - veraltet!)
+- Drawing-Mode-Toggle (Polygon, Line, Rectangle)
 - Drawing-Undo/Redo
 - Drawing-Color-Picker
 
 **Implementation:**
 ```tsx
-import { FeatureGroup } from 'react-leaflet';
-import { EditControl } from 'react-leaflet-draw';
+import { useMap } from 'react-leaflet';
+import { useEffect } from 'react';
+import '@geoman-io/leaflet-geoman-free';
 
 export const DrawingLayer = ({ state, onChange }: DrawingLayerProps) => {
-  return (
-    <FeatureGroup>
-      <EditControl
-        position="topright"
-        onCreated={(e) => onChange({ ...state, features: [...state.features, e.layer.toGeoJSON()] })}
-        onEdited={(e) => handleEdit(e)}
-        onDeleted={(e) => handleDelete(e)}
-        draw={{
-          polygon: true,
-          polyline: true,
-          rectangle: true,
-          circle: false, // GeoJSON unterstützt keine Circles
-          marker: false, // POIs sind separate Entities
-        }}
-      />
-    </FeatureGroup>
-  );
+  const map = useMap();
+
+  useEffect(() => {
+    // Initialize Leaflet.PM
+    map.pm.addControls({
+      position: 'topright',
+      drawPolygon: true,
+      drawPolyline: true,
+      drawRectangle: true,
+      drawCircle: false, // GeoJSON unterstützt keine Circles
+      drawMarker: false, // POIs sind separate Entities
+    });
+
+    // Event handlers
+    map.on('pm:create', (e) => {
+      onChange({ ...state, features: [...state.features, e.layer.toGeoJSON()] });
+    });
+    map.on('pm:edit', (e) => handleEdit(e));
+    map.on('pm:remove', (e) => handleDelete(e));
+
+    return () => {
+      map.pm.removeControls();
+    };
+  }, [map]);
+
+  return null; // Leaflet.PM renders directly to map
 };
 ```
 
@@ -450,13 +460,14 @@ export function useOfflineStatus() {
     "react-leaflet": "^4.2.1",
     "leaflet.offline": "^2.1.0",
     "leaflet.markercluster": "^1.5.3",
-    "leaflet-draw": "^1.0.4",
+    "@geoman-io/leaflet-geoman-free": "^2.16.0",
     "@types/leaflet": "^1.9.8",
-    "@types/leaflet.markercluster": "^1.5.4",
-    "@types/leaflet-draw": "^1.0.11"
+    "@types/leaflet.markercluster": "^1.5.4"
   }
 }
 ```
+
+**WICHTIG:** Verwende `@geoman-io/leaflet-geoman-free` statt des veralteten `leaflet-draw`!
 
 ### 6.6.2 Leaflet CSS Import
 
@@ -464,7 +475,7 @@ export function useOfflineStatus() {
 // packages/frontend/src/main.tsx
 import 'leaflet/dist/leaflet.css';
 import 'leaflet.markercluster/dist/MarkerCluster.css';
-import 'leaflet-draw/dist/leaflet.draw.css';
+import '@geoman-io/leaflet-geoman-free/dist/leaflet-geoman.css';
 ```
 
 ### 6.6.3 Custom Leaflet Icon-Fix (Vite-Workaround)

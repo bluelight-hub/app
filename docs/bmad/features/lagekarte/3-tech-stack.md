@@ -13,7 +13,7 @@
 | **Mapping Library** | Leaflet | 1.9.x | Interactive Map Rendering | Trade-off-Winner (56/60), Offline-First, Open-Source |
 | **Offline Tile Caching** | leaflet.offline | latest | IndexedDB Tile-Storage | Best-in-Class für Raster-Tile-Caching, 30-Tage-TTL-Support |
 | **Marker Clustering** | leaflet.markercluster | latest | POI-Performance-Optimierung | NFR1 (<2s Load-Time), >1000 POIs unterstützt |
-| **Drawing Tools** | leaflet-draw | latest | Polygon/Line/Rectangle-Drawing | Touch-optimiert, etablierte Library (10+ Jahre) |
+| **Drawing Tools** | @geoman-io/leaflet-geoman-free | latest | Polygon/Line/Rectangle-Drawing | Touch-optimiert, aktiv maintained, besseres TypeScript-Support als leaflet-draw |
 | **Backend Language** | TypeScript | 5.9.x | Type-safe Backend-Entwicklung | Bereits vorhanden, Code-Sharing mit Frontend möglich |
 | **Backend Framework** | NestJS | 11.x | Modular Backend-Framework | Bereits vorhanden, Dependency Injection, OpenAPI-Support |
 | **API Style** | REST (OpenAPI 3.0) | 3.0.0 | API-Spezifikation + Client-Generation | Bereits vorhanden, auto-generierte TypeScript-Clients via @nestjs/swagger |
