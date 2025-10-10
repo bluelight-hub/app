@@ -161,7 +161,7 @@ sequenceDiagram
     participant Database
 
     User->>LeafletMap: Zeichnet Polygon auf Karte
-    LeafletMap->>LeafletMap: leaflet-draw onCreated Event
+    LeafletMap->>LeafletMap: Leaflet.PM pm:create Event
     LeafletMap->>LagekarteStore: setDrawingState(newFeatureCollection)
 
     LagekarteStore->>LagekarteStore: Update State (GeoJSON)

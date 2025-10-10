@@ -54,7 +54,7 @@ This unified approach combines what would traditionally be separate backend and 
 | **3D/Terrain** | ❌ Nein | ✅ Ja | ✅ Ja |
 | **Performance (>1000 POIs)** | 🟡 Gut mit Clustering | 🟢 Exzellent (WebGL) | 🟢 Exzellent (WebGL) |
 | **Marker Clustering** | ✅ leaflet.markercluster | ✅ Native Clustering | ✅ markerClusterer+ |
-| **Drawing Tools** | ✅ leaflet-draw | ✅ mapbox-gl-draw | ✅ Drawing Manager |
+| **Drawing Tools** | ✅ Leaflet.PM (Geoman) | ✅ mapbox-gl-draw | ✅ Drawing Manager |
 | **React Integration** | react-leaflet | react-map-gl | @react-google-maps/api |
 | **TypeScript Support** | ✅ @types/leaflet | ✅ Native | ✅ Native |
 | **OSM Tile Support** | ✅ Native | ✅ Native | ❌ Nein |
@@ -72,7 +72,7 @@ This unified approach combines what would traditionally be separate backend and 
 
 ### Entscheidung: Leaflet für MVP (v1)
 
-**🏆 EMPFEHLUNG: Leaflet + leaflet.offline + leaflet.markercluster + leaflet-draw**
+**🏆 EMPFEHLUNG: Leaflet + leaflet.offline + leaflet.markercluster + Leaflet.PM (Geoman)**
 
 **Warum Leaflet gewinnt:**
 1. **Offline-First ist Critical** (FR6) → Leaflet hat die beste Offline-Story
