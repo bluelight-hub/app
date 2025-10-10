@@ -13,7 +13,7 @@ Diese Konzepte bilden die Grundlage für Entwurfsentscheidungen und erstrecken s
 == Inhalt
 
 === Domänenmodell
-
+[.line-through]##
 Das Domänenmodell des Bluelight-Hub-Systems basiert auf dem "Einsatz" als zentraler Entität und den damit verbundenen Templates für wiederverwendbare Elemente.
 In der aktuellen Konzeption ist die Anwendung primär für die Verwaltung eines konkreten Einsatzes zuständig, wobei in den meisten Anwendungsfällen nicht mehr als ein Einsatz gleichzeitig aktiv ist.
 
@@ -2493,3 +2493,19 @@ Die wichtigsten Entscheidungen für das Einsatz-Management:
 3. **In-Memory Cache**: Einfachheit über Skalierung (für den Anwendungsfall ausreichend)
 4. **Optimistic Updates**: User Experience über Datenkonsistenz (mit Rollback)
 5. **Generierte API Clients**: Type-Safety über Flexibilität
+
+== Entwicklungsdokumentation
+
+Für detaillierte Entwicklungsrichtlinien siehe:
+
+=== Coding Standards
+Siehe link:../development/coding-standards.md[Coding Standards]
+
+=== Technology Stack
+Siehe link:../development/tech-stack.md[Technology Stack]
+
+=== Projektstruktur
+Siehe link:../development/project-structure.md[Projektstruktur]
+
+=== Brownfield-Entwicklung
+Siehe link:../development/brownfield-guide.md[Brownfield Guide]

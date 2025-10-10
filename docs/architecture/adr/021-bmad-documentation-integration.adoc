@@ -1,0 +1,150 @@
+ifndef::imagesdir[:imagesdir: ../images]
+
+[[adr-021]]
+= ADR-021: BMad AI-Framework Dokumentations-Integration
+
+[cols="1,3"]
+|===
+|Status |Angenommen
+|Datum |2025-10-10
+|Autor |Claude Code Agent
+|Kontext |Dokumentationsstrukturierung
+|===
+
+== Kontext und Problemstellung
+
+Das Projekt nutzt zwei parallele Dokumentationssysteme:
+
+1. **arc42** (AsciiDoc) - Formale, langfristige Architekturdokumentation
+2. **BMad AI-Framework** (Markdown) - AI-gesteuerte Feature-Entwicklungsdokumente
+
+Dies führte zu:
+
+* Überlappenden Dokumenten (tech-stack.md, coding-standards.md, source-tree.md)
+* Fehlenden Referenz-Dateien (`docs/prd.md`, `docs/architecture.md`)
+* Unklarer Trennung zwischen offiziellen und Arbeitsdokumenten
+* Konflikten bei der Dokumentations-Pflege
+
+== Entscheidungstreiber
+
+* **Klarheit**: Eindeutige Trennung zwischen formaler und AI-Arbeitsdokumentation
+* **Wartbarkeit**: Vermeidung von Duplikaten
+* **BMad-Kompatibilität**: Framework muss weiterhin funktionieren
+* **arc42-Build**: Bestehende Build-Pipeline nicht beeinträchtigen
+* **Entwickler-Erfahrung**: Eindeutige Ablageorte für verschiedene Dokumenttypen
+
+== Betrachtete Optionen
+
+=== Option 1: Alles in arc42 (AsciiDoc)
+* **Pro**: Ein einziges Format, konsistente Dokumentation
+* **Contra**: BMad Framework funktioniert nur mit Markdown
+* **Contra**: Hoher Konvertierungsaufwand
+* **Contra**: AI-Agenten bevorzugen Markdown
+
+=== Option 2: Alles in BMad (Markdown)
+* **Pro**: Konsistent für AI-Entwicklung
+* **Contra**: Verlust der arc42-Struktur
+* **Contra**: PDF-Generierung komplizierter
+* **Contra**: Keine formale Architektur-Dokumentation mehr
+
+=== Option 3: Dual-Track mit klarer Trennung (Gewählt)
+* **Pro**: Jedes System kann optimal genutzt werden
+* **Pro**: Klare Verantwortlichkeiten
+* **Pro**: Keine Breaking Changes
+* **Pro**: arc42 referenziert BMad-Features
+
+== Entscheidung
+
+**Option 3: Dual-Track Dokumentation mit Namespacing**
+
+Neue Struktur:
+
+----
+docs/
+├── architecture/          # arc42 (AsciiDoc) - Formale Doku
+│   ├── 01-...-12.adoc    # Standard arc42 Kapitel
+│   └── adr/              # Architecture Decision Records
+│
+├── bmad/                 # BMad AI-Framework (Markdown)
+│   ├── prd/             # Product Requirements Documents
+│   ├── features/        # Feature-Architekturen (z.B. lagekarte/)
+│   ├── stories/         # User Stories
+│   ├── epics/           # Epic-Dokumente
+│   └── qa/              # QA Assessments & Gates
+│
+└── development/          # Entwickler-Guides (Markdown)
+    ├── coding-standards.md
+    ├── tech-stack.md
+    ├── project-structure.md
+    └── brownfield-guide.md
+----
+
+== Konsequenzen
+
+=== Positiv
+
+* ✅ **Klare Trennung**: arc42 = offizielle Doku, bmad/ = AI-Arbeitsdokumente
+* ✅ **Keine Duplikate**: Development Guides nur einmal in `development/`
+* ✅ **BMad funktioniert**: Alle Pfade in `.bmad-core/core-config.yaml` aktualisiert
+* ✅ **arc42 Build**: Unverändert (`pnpm docs:build`)
+* ✅ **Referenzierung**: arc42 verweist auf BMad-Features (nicht umgekehrt)
+
+=== Negativ
+
+* ⚠️ **Zwei Systeme**: Entwickler müssen beide Bereiche kennen
+* ⚠️ **Migration**: Bestehende Pfade mussten aktualisiert werden
+* ⚠️ **Synchronisation**: Features müssen manuell in arc42 referenziert werden
+
+=== Neutral
+
+* 📝 BMad-Config geändert: Alle Pfade zeigen auf `docs/bmad/`
+* 📝 Development Guides zentral in `docs/development/`
+* 📝 Lagekarte-Feature von `architecture/` nach `bmad/features/` verschoben
+
+== Implementierung
+
+=== BMad Config Änderungen
+
+[source,yaml]
+----
+qa:
+  qaLocation: docs/bmad/qa
+prd:
+  prdShardedLocation: docs/bmad/prd
+architecture:
+  architectureShardedLocation: docs/bmad/features
+devLoadAlwaysFiles:
+  - docs/development/coding-standards.md
+  - docs/development/tech-stack.md
+  - docs/development/project-structure.md
+  - docs/architecture/01-introduction-goals.adoc
+devStoryLocation: docs/bmad/stories
+----
+
+=== arc42 Integration
+
+In `08-concepts.adoc`:
+
+[source,asciidoc]
+----
+== Entwicklungsdokumentation
+
+Siehe:
+- link:../development/coding-standards.md[Coding Standards]
+- link:../development/tech-stack.md[Technology Stack]
+- link:../development/project-structure.md[Projektstruktur]
+----
+
+== Weitere Informationen
+
+* BMad Framework: `.bmad-core/user-guide.md`
+* arc42 Template: https://arc42.org/
+* Migration-Backup: `docs.backup/` (temporär)
+
+== Änderungshistorie
+
+[cols="1,2,3"]
+|===
+|Datum |Autor |Änderung
+|2025-10-10 |Claude Code |Initiale Erstellung nach docs-Refactoring
+|===
