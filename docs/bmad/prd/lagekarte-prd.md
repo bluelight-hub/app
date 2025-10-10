@@ -411,13 +411,14 @@ packages/backend/src/modules/
 {
   "leaflet": "latest",
   "react-leaflet": "latest",
-  "leaflet-draw": "latest",
+  "@geoman-io/leaflet-geoman-free": "latest",
   "leaflet.offline": "latest",
   "leaflet.markercluster": "latest",
-  "@types/leaflet": "latest",
-  "@types/leaflet-draw": "latest"
+  "@types/leaflet": "latest"
 }
 ```
+
+**WICHTIG:** Verwende `@geoman-io/leaflet-geoman-free` statt des veralteten `leaflet-draw`!
 
 **TanStack Query Integration:**
 ```typescript

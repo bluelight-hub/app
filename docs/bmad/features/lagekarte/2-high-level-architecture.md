@@ -19,7 +19,7 @@ Das Lagekarte-Feature erweitert Bluelight Hub um eine **interaktive, offline-fä
 - **G1 (Visualisierung):** Leaflet + OpenStreetMap-Tiles + POI-Marker-Layer
 - **G2 (POI-Management):** Neue Backend-Entities (`Lagekarte`, `LagekartePoi`) mit CRUD-API
 - **G3 (Offline):** `leaflet.offline` für Tile-Caching (IndexedDB, 30-Tage-TTL)
-- **G4 (Drawing):** `leaflet-draw` für Polygone, Linien, Rechtecke
+- **G4 (Drawing):** `@geoman-io/leaflet-geoman-free` (Leaflet.PM) für Polygone, Linien, Rechtecke
 - **G5 (Multi-Layer):** Layer-Control-Component für POI-Filter und Drawing-Toggle
 - **G6 (ETB-Export):** Screenshot-Service mit File-Upload zu Backend (`/uploads/lagekarte/`)
 
