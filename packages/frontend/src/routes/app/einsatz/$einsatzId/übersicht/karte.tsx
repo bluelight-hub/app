@@ -1,4 +1,6 @@
+import { LagekarteView } from '@organisms/lagekarte/LagekarteView/LagekarteView';
 import { createFileRoute } from '@tanstack/react-router';
+import 'leaflet/dist/leaflet.css';
 
 export const Route = createFileRoute('/app/einsatz/$einsatzId/übersicht/karte')({
   component: RouteComponent,
@@ -6,5 +8,6 @@ export const Route = createFileRoute('/app/einsatz/$einsatzId/übersicht/karte')
 
 function RouteComponent() {
   const { einsatzId } = Route.useParams();
-  return <div>Hello "/app/einsatz/$einsatzId/karte"! for einsatz ${einsatzId}</div>;
+
+  return <LagekarteView einsatzId={einsatzId} />;
 }

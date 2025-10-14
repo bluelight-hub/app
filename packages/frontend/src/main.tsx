@@ -1,9 +1,10 @@
 import '@fontsource-variable/nunito/index.css';
 import './index.tailwind.css';
+import 'leaflet/dist/leaflet.css';
+import { routeTree } from '@/routeTree.gen';
 import { createRouter, RouterProvider } from '@tanstack/react-router';
 import { StrictMode } from 'react';
 import ReactDOM from 'react-dom/client';
-import { routeTree } from '@/routeTree.gen';
 
 const router = createRouter({
   routeTree,
