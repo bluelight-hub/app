@@ -42,7 +42,7 @@ export function ModuleOverviewCard({ modules, currentModuleId, einsatzId, open, 
   };
 
   return (
-    <Dialog isOpen={open} onClose={onClose} className="max-w-2xl p-0">
+    <Dialog isOpen={open} onClose={onClose} className="z-50 max-w-2xl p-0">
       <div className="relative">
         {/* Header */}
         <div className="flex items-center justify-between border-gray-200 border-b p-4 dark:border-gray-700">

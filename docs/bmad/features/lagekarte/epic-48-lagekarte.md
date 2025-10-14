@@ -73,7 +73,7 @@ Einsatzkräfte können Einsatzlagen visuell auf einer **interaktiven, offline-f�
 
 1. **Einsatz-Management-API:** Lagekarte liest Einsatzorte (Read-Only)
 2. **ETB-System:** Screenshot-Export als ETB-Eintrag (Kategorie: LAGE)
-3. **Routing:** Neue Route `/app/einsaetze/[id]/lagekarte`
+3. **Routing:** Unternavigation unter `/app/einsatz/$einsatzId/übersicht/karte`
 4. **Backend:** Neue Module (`lagekarte/`, `poi/`)
 5. **Database:** Neue Entities (`Lagekarte`, `LagekartePoi`, `PoiType`)
 
@@ -239,12 +239,13 @@ Als **FükW-Personal**, möchte ich **eine interaktive Karte im Einsatz-Detail s
 
 **Acceptance Criteria:**
 
-1. Lagekarte-Tab erscheint in Einsatz-Detailansicht (neben "Details", "ETB")
-2. Karte zeigt OpenStreetMap-Tiles an (Zoom, Pan funktioniert)
-3. Initiale Map-Position: Deutschland-Zentrum (fallback)
-4. Mobile-responsive (Touch-Zoom, Swipe-Pan)
-5. Loading-Spinner während Tile-Loading
-6. Dark-Mode: Map-Tiles wechseln zu CartoDB Dark Matter
+1. Lagekarte ist unter `/app/einsatz/$einsatzId/übersicht/karte` erreichbar (Unternavigation unter "Übersicht")
+2. Navigation-Hierarchie: SingleEinsatzLayout → Übersicht → Karte
+3. Karte zeigt OpenStreetMap-Tiles an (Zoom, Pan funktioniert)
+4. Initiale Map-Position: Deutschland-Zentrum (fallback)
+5. Mobile-responsive (Touch-Zoom, Swipe-Pan)
+6. Loading-Spinner während Tile-Loading
+7. Dark-Mode: Map-Tiles wechseln zu CartoDB Dark Matter
 
 **Integration Verification:**
 
@@ -542,8 +543,8 @@ Als **FükW-Personal**, möchte ich **die Lagekarte als Screenshot ins ETB expor
    ```
 
 4. **Frontend Cleanup:**
-   - Route `/lagekarte` entfernen
-   - Tab-Navigation zurücksetzen
+    - Falsche Routes unter `/einsaetze/$einsatzId/` entfernen
+    - Korrekte Route `/einsatz/$einsatzId/übersicht/karte` beibehalten
 
 ---
 
@@ -554,7 +555,7 @@ Als **FükW-Personal**, möchte ich **die Lagekarte als Screenshot ins ETB expor
 - [ ] **Integration Points funktionieren:**
   - [ ] Einsatz-API (Read-Only)
   - [ ] ETB-Screenshot-Export
-  - [ ] Routing (`/app/einsaetze/[id]/lagekarte`)
+  - [ ] Routing (`/app/einsatz/$einsatzId/übersicht/karte`)
 - [ ] **Dokumentation aktualisiert:**
   - [ ] API-Dokumentation (OpenAPI/Swagger)
   - [ ] arc42-Architektur-Dokumentation
