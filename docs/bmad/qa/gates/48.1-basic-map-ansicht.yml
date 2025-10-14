@@ -1,0 +1,59 @@
+# Quality Gate: 48.1 - Basic Map-Ansicht mit OSM-Tiles
+schema: 1
+story: "48.1"
+story_title: "Basic Map-Ansicht mit OSM-Tiles"
+gate: PASS
+status_reason: "Alle Story-Anforderungen erfüllt. Error Handling implementiert mit benutzerfreundlichem Fehler-State und Retry-Button, alle Tests laufen durch (11/11 passed), vollständige AC-Coverage inkl. AC3. Code-Qualität exzellent. Bereit für Done."
+reviewer: "Quinn (Test Architect)"
+updated: "2025-10-12T20:00:00Z"
+
+waiver: { active: false }
+
+top_issues: [ ]
+
+risk_summary:
+  totals: { critical: 0, high: 0, medium: 0, low: 1 }
+  recommendations:
+    must_fix: [ ]
+    monitor:
+      - "Bundle-Size bei weiteren Map-Features im Auge behalten (zukünftige Optimierung mit React.lazy())"
+
+evidence:
+  tests_reviewed: 11
+  risks_identified: 0
+  trace:
+    ac_covered: [ 1, 2, 3, 4, 5, 6 ] # Alle ACs haben Test-Coverage
+    ac_gaps: [ ] # Keine Lücken
+
+nfr_validation:
+  security:
+    status: PASS
+    notes: "Tile URLs sind hardcoded, keine XSS-Gefahr. ARIA-Labels korrekt für Accessibility. CSP-Header-Empfehlung ist Backend-Thema."
+  performance:
+    status: PASS
+    notes: "Alle Features funktionieren performant. Lazy-Loading ist eine zukünftige Optimierung, kein Blocker. Mobile-responsive Layout korrekt implementiert."
+  reliability:
+    status: PASS
+    notes: "Error Handling implementiert mit TileErrorHandler, benutzerfreundlichem Error-State und Retry-Funktion. Loading-Spinner für UX. Alle Edge-Cases getestet."
+  maintainability:
+    status: PASS
+    notes: "Saubere Komponentenstruktur, exzellente JSDoc-Dokumentation, Atomic Design befolgt. Tests folgen AAA-Pattern. Code ist wartbar und erweiterbar."
+
+recommendations:
+  immediate: [ ]
+  future:
+    - action: "Implementiere React.lazy() für Lagekarte-Route zur Performance-Optimierung"
+      refs: [ "packages/frontend/src/routes/app/einsaetze/$einsatzId/lagekarte.tsx" ]
+    - action: "Füge Lighthouse-Tests zur CI-Pipeline hinzu für Performance-Monitoring"
+      refs: [ ".github/workflows/" ]
+
+quality_score: 95
+expires: "2025-10-26T00:00:00Z"
+
+history:
+  - at: "2025-10-12T18:48:00Z"
+    gate: CONCERNS
+    note: "Initial review - Critical test failure fixed (duplicate role='region'), fehlende Tests ergänzt, aber Error Handling fehlt"
+  - at: "2025-10-12T20:00:00Z"
+    gate: PASS
+    note: "Error Handling implementiert mit TileErrorHandler + Error-UI + Retry-Button. Tests erweitert auf 11/11 (inkl. AC3, Error-Handling-Tests). Alle Story-Anforderungen erfüllt."

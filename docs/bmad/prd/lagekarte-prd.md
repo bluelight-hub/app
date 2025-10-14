@@ -253,10 +253,10 @@ templates/
 
 pages/
 └── app/
-    └── einsaetze/
-        └── [id]/
-            └── lagekarte/
-                └── page.tsx
+    └── einsatz/
+        └── $einsatzId/
+            └── übersicht/
+                └── karte.tsx
 ```
 
 **UI-Komponenten-Reuse:**
@@ -275,7 +275,7 @@ pages/
 
 **Neue Screens:**
 
-1. **Lagekarte-Hauptansicht** (`/app/einsaetze/[id]/lagekarte`)
+1. **Lagekarte-Hauptansicht** (`/app/einsatz/$einsatzId/übersicht/karte`)
    - Full-Screen-Map (90% Viewport-Height)
    - Toolbar (Top): Screenshot-Export, Offline-Download, Layer-Toggle
    - POI-Toolbar (Left): POI-Typ-Auswahl (Fahrzeug, Einheit, Versorgungspunkt, etc.)
@@ -297,19 +297,21 @@ pages/
 
 **Modifizierte Screens:**
 
-1. **Einsatz-Detailansicht** (`/app/einsaetze/[id]`)
-   - Neuer Tab: "Lagekarte" (neben "Details", "ETB")
-   - Tab-Navigation erweitern
+1. **Einsatz-Detailansicht** (`/app/einsatz/$einsatzId`)
+   - Lagekarte ist unter Übersicht-Unternavigation integriert
+   - Navigation: SingleEinsatzLayout → Übersicht → Karte
 
-2. **ETB-Ansicht** (`/app/einsaetze/[id]/etb`)
+2. **ETB-Ansicht** (`/app/einsatz/$einsatzId/führung/etb`)
    - Screenshot-Anhänge in Einträgen (Kategorie: LAGE)
    - Image-Preview (Lightbox-Modal)
 
 ### 3.3 UI Consistency Requirements
 
 **UCR1: Navigation-Konsistenz**
-- Lagekarte folgt bestehendem Tab-Navigation-Pattern (Einsatz-Detail-Tabs)
-- Breadcrumb: "Einsätze > [Einsatzname] > Lagekarte"
+
+- Lagekarte ist unter Übersicht-Unternavigation integriert
+- Breadcrumb: "Einsätze > [Einsatzname] > Übersicht > Karte"
+- Navigation-Hierarchie: SingleEinsatzLayout → Übersicht → Karte
 
 **UCR2: Mobile-Responsive-Design**
 - Breakpoints wie bestehende App (Tailwind sm/md/lg/xl)
@@ -625,12 +627,14 @@ möchte ich **eine interaktive Karte im Einsatz-Detail sehen**,
 damit ich **den Einsatzort geografisch verorten kann**.
 
 **Acceptance Criteria:**
-1. Lagekarte-Tab erscheint in Einsatz-Detailansicht (neben "Details", "ETB")
-2. Karte zeigt OpenStreetMap-Tiles an (Zoom, Pan funktioniert)
-3. Initiale Map-Position: Deutschland-Zentrum (fallback)
-4. Mobile-responsive (Touch-Zoom, Swipe-Pan)
-5. Loading-Spinner während Tile-Loading
-6. Dark-Mode: Map-Tiles wechseln zu CartoDB Dark Matter
+
+1. Lagekarte ist unter `/app/einsatz/$einsatzId/übersicht/karte` erreichbar (Unternavigation unter "Übersicht")
+2. Navigation-Hierarchie: SingleEinsatzLayout → Übersicht → Karte
+3. Karte zeigt OpenStreetMap-Tiles an (Zoom, Pan funktioniert)
+4. Initiale Map-Position: Deutschland-Zentrum (fallback)
+5. Mobile-responsive (Touch-Zoom, Swipe-Pan)
+6. Loading-Spinner während Tile-Loading
+7. Dark-Mode: Map-Tiles wechseln zu CartoDB Dark Matter
 
 **Integration Verification:**
 - IV1: Bestehende Einsatz-Detail-Navigation funktioniert
