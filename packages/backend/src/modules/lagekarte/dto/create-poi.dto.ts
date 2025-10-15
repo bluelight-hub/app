@@ -1,6 +1,7 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { IsEnum, IsString, IsOptional, IsNumber, IsObject, MaxLength, ValidateIf } from 'class-validator';
+import { IsEnum, IsString, IsOptional, IsNumber, IsObject, MaxLength, ValidateIf, Min, Max } from 'class-validator';
 import { PoiType } from '@prisma/client';
+import { IsCoordinatesOrAddress } from '../validators/coordinates-or-address.validator';
 
 /**
  * DTO für POI-Erstellung
@@ -9,6 +10,10 @@ import { PoiType } from '@prisma/client';
  * - Option 1: `adresse` angeben → Automatisches Geocoding
  * - Option 2: `latitude` + `longitude` manuell angeben (wenn Geocoding fehlschlägt)
  * - Validierung: Mindestens `adresse` ODER (`latitude` + `longitude`) erforderlich
+ *
+ * **Validierung:**
+ * - Custom Validator `@IsCoordinatesOrAddress()` stellt sicher, dass eine der beiden Optionen gesetzt ist
+ * - Koordinaten-Range: latitude [-90, 90], longitude [-180, 180]
  */
 export class CreatePoiDto {
   @ApiProperty({
@@ -56,6 +61,9 @@ export class CreatePoiDto {
   })
   @ValidateIf((o) => !o.adresse || o.latitude !== undefined)
   @IsNumber()
+  @Min(-90)
+  @Max(90)
+  @IsCoordinatesOrAddress()
   latitude?: number;
 
   @ApiPropertyOptional({
@@ -66,6 +74,8 @@ export class CreatePoiDto {
   })
   @ValidateIf((o) => !o.adresse || o.longitude !== undefined)
   @IsNumber()
+  @Min(-180)
+  @Max(180)
   longitude?: number;
 
   @ApiPropertyOptional({
