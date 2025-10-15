@@ -1,18 +1,20 @@
-import { Module } from '@nestjs/common';
+import { EinsatzModule } from '@/einsatz/einsatz.module';
+import { PrismaModule } from '@/prisma/prisma.module';
 import { HttpModule } from '@nestjs/axios';
-import { PrismaModule } from '../../prisma/prisma.module';
-import { EinsatzModule } from '../../einsatz/einsatz.module';
+import { Module } from '@nestjs/common';
+import { ThrottlerModule } from '@nestjs/throttler';
+import { milliseconds } from 'date-fns';
+import { GeocodingController } from './controllers/geocoding.controller';
 
 import { LagekarteController } from './controllers/lagekarte.controller';
 import { PoiController } from './controllers/poi.controller';
-import { GeocodingController } from './controllers/geocoding.controller';
-
-import { LagekarteService } from './services/lagekarte.service';
-import { PoiService } from './services/poi.service';
-import { GeocodingService } from './services/geocoding.service';
 
 import { LagekarteRepository } from './repositories/lagekarte.repository';
 import { PoiRepository } from './repositories/poi.repository';
+import { GeocodingService } from './services/geocoding.service';
+
+import { LagekarteService } from './services/lagekarte.service';
+import { PoiService } from './services/poi.service';
 
 /**
  * Lagekarte Module
@@ -30,6 +32,12 @@ import { PoiRepository } from './repositories/poi.repository';
       timeout: 5000,
       maxRedirects: 5,
     }),
+    ThrottlerModule.forRoot([
+      {
+        ttl: milliseconds({ seconds: 1 }), // 1 second
+        limit: 1, // 1 request per TTL (Nominatim policy: 1 req/s)
+      },
+    ]),
   ],
   controllers: [LagekarteController, PoiController, GeocodingController],
   providers: [LagekarteService, PoiService, GeocodingService, LagekarteRepository, PoiRepository],
