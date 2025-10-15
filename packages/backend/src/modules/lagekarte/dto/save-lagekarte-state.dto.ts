@@ -36,7 +36,7 @@ export class SaveLagekarteStateDto {
     example: 'clw3h8x9y0000qwertyuiopas',
   })
   @IsString()
-  einsatzId: string;
+  einsatzId!: string;
 
   @ApiProperty({
     description: 'GeoJSON FeatureCollection mit Zeichnungen',
@@ -46,5 +46,5 @@ export class SaveLagekarteStateDto {
     },
   })
   @IsObject()
-  state: object;
+  state!: object;
 }

@@ -59,6 +59,9 @@ importers:
       '@dotenvx/dotenvx-radar':
         specifier: ^0.15.8
         version: 0.15.8
+      '@nestjs/axios':
+        specifier: ^4.0.1
+        version: 4.0.1(@nestjs/common@11.1.6(class-transformer@0.5.1)(class-validator@0.14.2)(reflect-metadata@0.2.2)(rxjs@7.8.2))(axios@1.12.2(debug@4.4.3))(rxjs@7.8.2)
       '@nestjs/cache-manager':
         specifier: ^3.0.1
         version: 3.0.1(@nestjs/common@11.1.6(class-transformer@0.5.1)(class-validator@0.14.2)(reflect-metadata@0.2.2)(rxjs@7.8.2))(@nestjs/core@11.1.6)(cache-manager@7.2.3)(keyv@5.5.3)(rxjs@7.8.2)
@@ -95,6 +98,9 @@ importers:
       '@prisma/client':
         specifier: ^6.16.3
         version: 6.16.3(prisma@6.16.3(magicast@0.3.5)(typescript@5.9.3))(typescript@5.9.3)
+      axios:
+        specifier: ^1.12.2
+        version: 1.12.2(debug@4.4.3)
       bcrypt:
         specifier: ^6.0.0
         version: 6.0.0

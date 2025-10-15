@@ -16,7 +16,7 @@ export class CreatePoiDto {
     example: 'clw3h8x9y0000qwertyuiopas',
   })
   @IsString()
-  lagekarteId: string;
+  lagekarteId!: string;
 
   @ApiProperty({
     enum: PoiType,
@@ -26,7 +26,7 @@ export class CreatePoiDto {
   @IsEnum(PoiType, {
     message: `type must be one of: ${Object.values(PoiType).join(', ')}`,
   })
-  type: PoiType;
+  type!: PoiType;
 
   @ApiPropertyOptional({
     description: 'Name/Bezeichnung des POI',
