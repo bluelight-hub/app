@@ -1,4 +1,4 @@
-import { Injectable, Logger, NotFoundException } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import { LagekarteRepository } from '../repositories/lagekarte.repository';
 import { PoiRepository } from '../repositories/poi.repository';
 import { GeocodingService } from './geocoding.service';
@@ -66,10 +66,14 @@ export class LagekarteService {
     await this.createInitialPoi(lagekarte.id, einsatzId);
 
     // Refresh to include created POI
-    lagekarte = await this.lagekarteRepository.findByEinsatzId(einsatzId);
+    const refreshedLagekarte = await this.lagekarteRepository.findByEinsatzId(einsatzId);
 
-    this.logger.log(`Lagekarte ${lagekarte.id} created with initial POI for Einsatz ${einsatzId}`);
-    return lagekarte;
+    if (!refreshedLagekarte) {
+      throw new Error(`Failed to retrieve created Lagekarte for Einsatz ${einsatzId}`);
+    }
+
+    this.logger.log(`Lagekarte ${refreshedLagekarte.id} created with initial POI for Einsatz ${einsatzId}`);
+    return refreshedLagekarte;
   }
 
   /**
@@ -121,7 +125,8 @@ export class LagekarteService {
 
       this.logger.log(`Initial POI created for Lagekarte ${lagekarteId} at (${coords?.lat ?? 0}, ${coords?.lon ?? 0})`);
     } catch (error) {
-      this.logger.error(`Failed to create initial POI for Lagekarte ${lagekarteId}: ${error.message}`);
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      this.logger.error(`Failed to create initial POI for Lagekarte ${lagekarteId}: ${errorMessage}`);
       // Don't throw - Lagekarte can exist without initial POI
     }
   }

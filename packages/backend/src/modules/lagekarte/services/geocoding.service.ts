@@ -92,12 +92,17 @@ export class GeocodingService {
 
       const results = await firstValueFrom(response$);
 
-      if (!results || results.length === 0) {
+      if (!results || results.length === 0 || results[0] === null) {
         this.logger.warn(`No geocoding results for address: ${address}`);
         return null;
       }
 
       const result = results[0];
+      if (!result) {
+        this.logger.warn(`Invalid geocoding result for address: ${address}`);
+        return null;
+      }
+
       const lat = parseFloat(result.lat);
       const lon = parseFloat(result.lon);
 
@@ -105,7 +110,8 @@ export class GeocodingService {
 
       return { lat, lon };
     } catch (error) {
-      this.logger.error(`Unexpected error during geocoding: ${error.message}`);
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      this.logger.error(`Unexpected error during geocoding: ${errorMessage}`);
       return null;
     }
   }
