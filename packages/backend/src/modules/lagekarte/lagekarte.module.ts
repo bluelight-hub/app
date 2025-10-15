@@ -1,10 +1,11 @@
 import { Module } from '@nestjs/common';
 import { HttpModule } from '@nestjs/axios';
-import { PrismaModule } from '../prisma/prisma.module';
+import { PrismaModule } from '../../prisma/prisma.module';
 import { EinsatzModule } from '../../einsatz/einsatz.module';
 
 import { LagekarteController } from './controllers/lagekarte.controller';
 import { PoiController } from './controllers/poi.controller';
+import { GeocodingController } from './controllers/geocoding.controller';
 
 import { LagekarteService } from './services/lagekarte.service';
 import { PoiService } from './services/poi.service';
@@ -30,7 +31,7 @@ import { PoiRepository } from './repositories/poi.repository';
       maxRedirects: 5,
     }),
   ],
-  controllers: [LagekarteController, PoiController],
+  controllers: [LagekarteController, PoiController, GeocodingController],
   providers: [LagekarteService, PoiService, GeocodingService, LagekarteRepository, PoiRepository],
   exports: [LagekarteService, PoiService, GeocodingService, LagekarteRepository, PoiRepository],
 })
