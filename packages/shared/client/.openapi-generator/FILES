@@ -3,7 +3,10 @@ apis/AppApi.ts
 apis/AuthApi.ts
 apis/ETBApi.ts
 apis/EinsatzApi.ts
+apis/GeocodingApi.ts
 apis/HealthApi.ts
+apis/LagekarteApi.ts
+apis/POIApi.ts
 apis/UserManagementApi.ts
 apis/UsersApi.ts
 apis/index.ts
@@ -28,6 +31,7 @@ models/CreateEtbDto.ts
 models/CreateEtbEintragDto.ts
 models/CreateEtbEintragResponse.ts
 models/CreateEtbResponse.ts
+models/CreatePoiDto.ts
 models/CreateUserDto.ts
 models/DeleteUserDto.ts
 models/DeleteUserResponse.ts
@@ -42,16 +46,20 @@ models/EinsatzResponseDto.ts
 models/EtbDto.ts
 models/EtbEintragDto.ts
 models/EtbHistoryEntryDto.ts
+models/GeocodeAddressDto.ts
 models/GetEtbResponse.ts
 models/HealthControllerCheck200Response.ts
 models/HealthControllerCheck200ResponseInfoValue.ts
 models/HealthControllerCheck503Response.ts
+models/LagekarteControllerGetLagekarteVAlpha200Response.ts
 models/LockUserDto.ts
 models/LogoutResponseDto.ts
 models/NavigationResponseDto.ts
+models/PoiControllerGetPoisVAlpha200Response.ts
 models/PublicUserDto.ts
 models/PublicUsersResponseDto.ts
 models/RefreshResponseDto.ts
+models/SaveLagekarteStateDto.ts
 models/StatusCountsDto.ts
 models/StatusCountsResponseDto.ts
 models/TextbausteinDto.ts
@@ -59,6 +67,7 @@ models/TextbausteinListResponse.ts
 models/UpdateEinsatzDto.ts
 models/UpdateEtbEintragDto.ts
 models/UpdateEtbEintragResponse.ts
+models/UpdatePoiDto.ts
 models/UpdateUserDto.ts
 models/UserBasicDto.ts
 models/UserBasicListResponse.ts

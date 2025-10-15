@@ -14,8 +14,8 @@ import { ValidationPipe } from '@nestjs/common';
 
 describe('Lagekarte Integration Tests', () => {
   let app: INestApplication;
-  let lagekarteService: LagekarteService;
-  let poiService: PoiService;
+  let _lagekarteService: LagekarteService;
+  let _poiService: PoiService;
   let einsatzService: EinsatzService;
 
   const mockEinsatzService = {
@@ -95,8 +95,8 @@ describe('Lagekarte Integration Tests', () => {
 
     await app.init();
 
-    lagekarteService = moduleFixture.get<LagekarteService>(LagekarteService);
-    poiService = moduleFixture.get<PoiService>(PoiService);
+    _lagekarteService = moduleFixture.get<LagekarteService>(LagekarteService);
+    _poiService = moduleFixture.get<PoiService>(PoiService);
     einsatzService = moduleFixture.get<EinsatzService>(EinsatzService);
   });
 
