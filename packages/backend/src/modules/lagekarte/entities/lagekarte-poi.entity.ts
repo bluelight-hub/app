@@ -13,20 +13,20 @@ export class LagekartePoi implements PrismaLagekartePoi {
     description: 'Eindeutige ID des POI',
     example: 'clw3h8x9y0000qwertyuiopas',
   })
-  id: string;
+  id!: string;
 
   @ApiProperty({
     description: 'Referenz zur zugehörigen Lagekarte',
     example: 'clw3h8x9y0000qwertyuiopas',
   })
-  lagekarteId: string;
+  lagekarteId!: string;
 
   @ApiProperty({
     enum: PoiType,
     description: 'Typ des POI (z.B. EINSATZORT, FAHRZEUG, GEFAHRENQUELLE)',
     example: 'EINSATZORT',
   })
-  type: PoiType;
+  type!: PoiType;
 
   @ApiProperty({
     description: 'Name/Bezeichnung des POI',
@@ -34,7 +34,7 @@ export class LagekartePoi implements PrismaLagekartePoi {
     required: false,
     nullable: true,
   })
-  name: string | null;
+  name!: string | null;
 
   @ApiProperty({
     description: 'Adresse des POI (für Geocoding)',
@@ -42,19 +42,19 @@ export class LagekartePoi implements PrismaLagekartePoi {
     required: false,
     nullable: true,
   })
-  adresse: string | null;
+  adresse!: string | null;
 
   @ApiProperty({
     description: 'Geografische Breite (Latitude)',
     example: 52.52,
   })
-  latitude: number;
+  latitude!: number;
 
   @ApiProperty({
     description: 'Geografische Länge (Longitude)',
     example: 13.405,
   })
-  longitude: number;
+  longitude!: number;
 
   @ApiProperty({
     description: 'Icon-Identifier für Kartendarstellung',
@@ -62,7 +62,7 @@ export class LagekartePoi implements PrismaLagekartePoi {
     required: false,
     nullable: true,
   })
-  icon: string | null;
+  icon!: string | null;
 
   @ApiProperty({
     description: 'Zusätzliche Metadaten (JSONB)',
@@ -70,17 +70,17 @@ export class LagekartePoi implements PrismaLagekartePoi {
     required: false,
     nullable: true,
   })
-  metadata: object | null;
+  metadata!: object | null;
 
   @ApiProperty({
     description: 'Erstellungszeitpunkt',
     example: '2025-10-15T15:24:48.000Z',
   })
-  createdAt: Date;
+  createdAt!: Date;
 
   @ApiProperty({
     description: 'Letzter Änderungszeitpunkt',
     example: '2025-10-15T16:30:00.000Z',
   })
-  updatedAt: Date;
+  updatedAt!: Date;
 }
