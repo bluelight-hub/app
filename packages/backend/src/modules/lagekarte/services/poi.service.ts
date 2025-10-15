@@ -1,7 +1,9 @@
-import { Injectable, Logger, NotFoundException } from '@nestjs/common';
+import { Injectable, Logger, NotFoundException, BadRequestException } from '@nestjs/common';
 import { PoiRepository } from '../repositories/poi.repository';
 import { GeocodingService } from './geocoding.service';
 import { LagekartePoi, Prisma } from '@prisma/client';
+import { CreatePoiDto } from '../dto/create-poi.dto';
+import { UpdatePoiDto } from '../dto/update-poi.dto';
 
 /**
  * POI Service
@@ -82,7 +84,7 @@ export class PoiService {
    * });
    * ```
    */
-  async createPoi(dto: any): Promise<LagekartePoi> {
+  async createPoi(dto: CreatePoiDto): Promise<LagekartePoi> {
     this.logger.log(`Creating POI (type: ${dto.type}) for Lagekarte ${dto.lagekarteId}`);
 
     let latitude = dto.latitude;
@@ -101,9 +103,14 @@ export class PoiService {
         this.logger.warn(`Geocoding failed for address "${dto.adresse}", using manual coordinates`);
         // Fallback: Use manual coordinates from DTO
         if (latitude === undefined || longitude === undefined) {
-          throw new Error('Geocoding failed and no manual coordinates provided');
+          throw new BadRequestException('Geocoding failed and no manual coordinates (latitude/longitude) provided');
         }
       }
+    }
+
+    // Ensure coordinates are defined (custom validator prevents this, but TypeScript check)
+    if (latitude === undefined || longitude === undefined) {
+      throw new BadRequestException('Coordinates must be provided (either via geocoding or manual input)');
     }
 
     // Create POI with geocoded or manual coordinates
@@ -117,7 +124,7 @@ export class PoiService {
       latitude,
       longitude,
       icon: dto.icon ?? null,
-      metadata: dto.metadata ?? null,
+      metadata: dto.metadata ?? Prisma.DbNull,
     };
 
     const poi = await this.poiRepository.create(poiData);
@@ -137,7 +144,7 @@ export class PoiService {
    * @param dto - Zu aktualisierende Felder (UpdatePoiDto)
    * @returns Aktualisierter POI
    */
-  async updatePoi(id: string, dto: any): Promise<LagekartePoi> {
+  async updatePoi(id: string, dto: UpdatePoiDto): Promise<LagekartePoi> {
     this.logger.log(`Updating POI ${id}`);
 
     // Check if POI exists

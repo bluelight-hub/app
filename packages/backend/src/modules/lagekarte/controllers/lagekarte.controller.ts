@@ -2,7 +2,7 @@ import { CurrentUser } from '@/auth/decorators/current-user.decorator';
 import { JwtAuthGuard } from '@/auth/guards/jwt-auth.guard';
 import type { ValidatedUser } from '@/auth/strategies/jwt.strategy';
 import { ApiWrappedResponse } from '@/common/decorators/api-wrapped-response.decorator';
-import { Body, Controller, Delete, Get, Logger, Param, Post, UseGuards, ValidationPipe } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Logger, Param, Post, UseGuards, ValidationPipe, NotFoundException } from '@nestjs/common';
 import { ApiBadRequestResponse, ApiBearerAuth, ApiForbiddenResponse, ApiNotFoundResponse, ApiOperation, ApiTags, ApiUnauthorizedResponse } from '@nestjs/swagger';
 import { LagekarteService } from '../services/lagekarte.service';
 import { SaveLagekarteStateDto } from '../dto/save-lagekarte-state.dto';
@@ -89,7 +89,7 @@ export class LagekarteController {
     const lagekarte = await this.lagekarteService.findByEinsatzId(einsatzId);
     if (!lagekarte) {
       this.logger.error(`Lagekarte not found for Einsatz ${einsatzId}`);
-      throw new Error('Lagekarte not found');
+      throw new NotFoundException(`Lagekarte for Einsatz ${einsatzId} not found`);
     }
 
     // Update state
@@ -119,7 +119,7 @@ export class LagekarteController {
     const lagekarte = await this.lagekarteService.findByEinsatzId(einsatzId);
     if (!lagekarte) {
       this.logger.error(`Lagekarte not found for Einsatz ${einsatzId}`);
-      throw new Error('Lagekarte not found');
+      throw new NotFoundException(`Lagekarte for Einsatz ${einsatzId} not found`);
     }
 
     // Delete (cascade to POIs)

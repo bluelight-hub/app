@@ -1,7 +1,8 @@
 import { JwtAuthGuard } from '@/auth/guards/jwt-auth.guard';
 import { ApiWrappedResponse } from '@/common/decorators/api-wrapped-response.decorator';
 import { Body, Controller, Logger, Param, Post, UseGuards, ValidationPipe } from '@nestjs/common';
-import { ApiBadRequestResponse, ApiBearerAuth, ApiForbiddenResponse, ApiOperation, ApiProperty, ApiTags, ApiUnauthorizedResponse } from '@nestjs/swagger';
+import { ApiBadRequestResponse, ApiBearerAuth, ApiForbiddenResponse, ApiOperation, ApiProperty, ApiTags, ApiTooManyRequestsResponse, ApiUnauthorizedResponse } from '@nestjs/swagger';
+import { Throttle } from '@nestjs/throttler';
 import { IsString } from 'class-validator';
 import { GeocodingService } from '../services/geocoding.service';
 
@@ -47,9 +48,10 @@ export class GeocodingController {
   /**
    * Geocode eine Adresse zu Koordinaten
    *
-   * **Rate-Limiting:**
-   * - Max. 1 Request/Sekunde (Nominatim Policy)
+   * **Rate-Limiting (Controller-Level):**
+   * - Max. 10 Requests/Minute pro User (verhindert API-Missbrauch)
    * - Bei Überschreitung: 429 Too Many Requests
+   * - Zusätzlich: Service-Level Throttling (1 req/s für Nominatim)
    *
    * **Fallback:**
    * - Wenn Geocoding fehlschlägt: Gibt `null` zurück
@@ -60,14 +62,16 @@ export class GeocodingController {
    * @returns Koordinaten {lat, lon} oder null bei Fehler
    */
   @Post('geocode')
+  @Throttle({ default: { limit: 10, ttl: 60000 } }) // 10 requests per minute
   @ApiOperation({
     summary: 'Geocode address to coordinates',
-    description: 'Konvertiert eine Adresse in geografische Koordinaten via Nominatim API. Rate-Limited auf 1 Request/Sekunde. Gibt null zurück bei Fehler.',
+    description: 'Konvertiert eine Adresse in geografische Koordinaten via Nominatim API. Controller-Rate-Limit: 10 req/min. Gibt null zurück bei Fehler.',
   })
   @ApiWrappedResponse(Object, {
     description: 'Geocoding erfolgreich oder null bei Fehler',
   })
   @ApiBadRequestResponse({ description: 'Ungültige Adresse' })
+  @ApiTooManyRequestsResponse({ description: 'Rate-Limit überschritten: Max. 10 Requests pro Minute' })
   async geocodeAddress(
     @Param('einsatzId') einsatzId: string,
     @Body(new ValidationPipe({ transform: true, whitelist: true }))
