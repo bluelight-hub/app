@@ -120,6 +120,9 @@ model Einsatz {
   // ETB Relation (1:1)
   einsatztagebuch Einsatztagebuch?
 
+  // Lagekarte Relation (1:1)
+  lagekarte Lagekarte?
+
   // Indexes
   @@index([status, createdAt])
   @@index([createdBy])
@@ -332,4 +335,67 @@ model EtbArchiv {
   @@index([aufbewahrungBis])
   @@index([archivedBy])
   @@map("etb_archiv")
+}
+
+// ========================================
+// Lagekarte Models
+// ========================================
+
+// POI Type Enum für Lagekarte
+enum PoiType {
+  EINSATZORT // Haupt-Alarmierungsadresse
+  EINSATZABSCHNITT // Abschnitt A, B, C
+  EINSATZLEITUNG // Einsatzleitstelle, Führungsstelle
+  FAHRZEUG // Statisch platzierte Fahrzeuge
+  EINHEIT // Statisch platzierte Einheiten
+  GEFAHRENQUELLE // Punktuelle Gefahr (z.B. Gasleck)
+  SPERRBEREICH // Absperrpunkt
+  VERSORGUNGSPUNKT // Wasser, Strom, Verpflegung
+  BEREITSTELLUNGSRAUM // Bereitstellung von Einheiten/Material
+  BEHANDLUNGSPLATZ // Verletzten-Versorgung
+  SAMMELSTELLE // Betroffenen-/Helfer-Sammelpunkt
+  UNTERKUNFT // Notunterkunft
+  SONSTIGES // Custom POI
+
+  @@map("poi_type")
+}
+
+// Lagekarte Model (1:1 mit Einsatz)
+model Lagekarte {
+  id        String   @id @default(cuid())
+  einsatzId String   @unique
+  state     Json     @default("{}") @db.JsonB // GeoJSON für Zeichnungen
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  einsatz Einsatz         @relation(fields: [einsatzId], references: [id], onDelete: Cascade)
+  pois    LagekartePoi[]
+
+  // Indexes
+  @@index([einsatzId])
+  @@map("lagekarte")
+}
+
+// Lagekarte POI Model (n:1 mit Lagekarte)
+model LagekartePoi {
+  id          String   @id @default(cuid())
+  lagekarteId String
+  type        PoiType
+  name        String?  @db.VarChar(255)
+  adresse     String?  @db.VarChar(500)
+  latitude    Float
+  longitude   Float
+  icon        String?  @db.VarChar(50)
+  metadata    Json?    @db.JsonB
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relations
+  lagekarte Lagekarte @relation(fields: [lagekarteId], references: [id], onDelete: Cascade)
+
+  // Indexes
+  @@index([lagekarteId])
+  @@index([type])
+  @@map("lagekarte_poi")
 }
