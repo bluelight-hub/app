@@ -1,10 +1,11 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import '@testing-library/jest-dom';
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { QueryClient, QueryClientProvider, type UseQueryResult } from '@tanstack/react-query';
 import { MapContainer } from 'react-leaflet';
 import { PoiLayer } from './PoiLayer';
 import * as useLagekarteApi from '@/api/hooks/useLagekarteApi';
+import type { PoiResponseDto } from '@bluelight-hub/shared/client';
 
 // Mock react-leaflet components
 vi.mock('react-leaflet', async () => {
@@ -77,7 +78,7 @@ describe('PoiLayer', () => {
       data: mockPois,
       isLoading: false,
       error: null,
-    } as any);
+    } as UseQueryResult<PoiResponseDto[], Error>);
 
     // Act
     renderWithProviders(<PoiLayer einsatzId="test-123" />);
@@ -97,7 +98,7 @@ describe('PoiLayer', () => {
       data: undefined,
       isLoading: true,
       error: null,
-    } as any);
+    } as UseQueryResult<PoiResponseDto[], Error>);
 
     // Act
     renderWithProviders(<PoiLayer einsatzId="test-123" />);
@@ -114,7 +115,7 @@ describe('PoiLayer', () => {
       data: [],
       isLoading: false,
       error: null,
-    } as any);
+    } as UseQueryResult<PoiResponseDto[], Error>);
 
     // Act
     renderWithProviders(<PoiLayer einsatzId="test-123" />);
@@ -158,7 +159,7 @@ describe('PoiLayer', () => {
       data: mockPois,
       isLoading: false,
       error: null,
-    } as any);
+    } as UseQueryResult<PoiResponseDto[], Error>);
 
     const consoleWarnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
 
@@ -196,7 +197,7 @@ describe('PoiLayer', () => {
       data: [mockPoi],
       isLoading: false,
       error: null,
-    } as any);
+    } as UseQueryResult<PoiResponseDto[], Error>);
 
     // Act
     renderWithProviders(<PoiLayer einsatzId="test-123" />);
@@ -226,7 +227,7 @@ describe('PoiLayer', () => {
       data: [mockPoi],
       isLoading: false,
       error: null,
-    } as any);
+    } as UseQueryResult<PoiResponseDto[], Error>);
 
     // Act
     renderWithProviders(<PoiLayer einsatzId="test-123" />);

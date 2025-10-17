@@ -1,7 +1,7 @@
 import { useEffect } from 'react';
 import { useMap } from 'react-leaflet';
 import L from 'leaflet';
-import type { LagekartePoi } from '@/api/hooks/useLagekarteApi';
+import type { PoiResponseDto } from '@bluelight-hub/shared/client';
 
 /**
  * Default-Zentrum für Deutschland
@@ -24,7 +24,7 @@ const GERMANY_ZOOM = 6;
  *
  * @example
  * ```tsx
- * const MapBoundsController: React.FC<{ pois: LagekartePoi[] }> = ({ pois }) => {
+ * const MapBoundsController: React.FC<{ pois: PoiResponseDto[] }> = ({ pois }) => {
  *   useMapBounds(pois);
  *   return null;
  * };
@@ -35,7 +35,7 @@ const GERMANY_ZOOM = 6;
  * </MapContainer>
  * ```
  */
-export const useMapBounds = (pois: LagekartePoi[] | undefined): void => {
+export const useMapBounds = (pois: PoiResponseDto[] | undefined): void => {
   const map = useMap();
 
   useEffect(() => {

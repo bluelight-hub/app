@@ -1,6 +1,15 @@
 import { registerDecorator, type ValidationOptions, ValidatorConstraint, type ValidatorConstraintInterface, type ValidationArguments } from 'class-validator';
 
 /**
+ * Interface für Objekte mit Koordinaten oder Adresse
+ */
+interface CoordinatesOrAddressObject {
+  adresse?: string | null;
+  latitude?: number | null;
+  longitude?: number | null;
+}
+
+/**
  * Custom Validator: Prüft ob entweder `adresse` ODER (`latitude` + `longitude`) vorhanden sind
  *
  * **Warum notwendig:**
@@ -16,8 +25,8 @@ import { registerDecorator, type ValidationOptions, ValidatorConstraint, type Va
  */
 @ValidatorConstraint({ name: 'isCoordinatesOrAddress', async: false })
 export class IsCoordinatesOrAddressConstraint implements ValidatorConstraintInterface {
-  validate(_value: any, args: ValidationArguments): boolean {
-    const object = args.object as any;
+  validate(_value: unknown, args: ValidationArguments): boolean {
+    const object = args.object as CoordinatesOrAddressObject;
     const hasAddress = object.adresse !== undefined && object.adresse !== null && object.adresse.trim() !== '';
     const hasCoordinates = object.latitude !== undefined && object.latitude !== null && object.longitude !== undefined && object.longitude !== null;
 
