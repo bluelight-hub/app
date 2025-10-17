@@ -2,7 +2,7 @@ import { CurrentUser } from '@/auth/decorators/current-user.decorator';
 import { JwtAuthGuard } from '@/auth/guards/jwt-auth.guard';
 import type { ValidatedUser } from '@/auth/strategies/jwt.strategy';
 import { ApiWrappedResponse } from '@/common/decorators/api-wrapped-response.decorator';
-import { Body, Controller, Delete, Get, Logger, Param, Post, Put, UseGuards, ValidationPipe, NotFoundException } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Logger, Param, Post, Put, UseGuards, ValidationPipe } from '@nestjs/common';
 import { ApiBadRequestResponse, ApiBearerAuth, ApiForbiddenResponse, ApiNotFoundResponse, ApiOperation, ApiTags, ApiUnauthorizedResponse } from '@nestjs/swagger';
 import { PoiService } from '../services/poi.service';
 import { LagekarteService } from '../services/lagekarte.service';
@@ -52,20 +52,16 @@ export class PoiController {
   @Get()
   @ApiOperation({
     summary: 'POIs abrufen',
-    description: 'Gibt alle POIs einer Lagekarte zurück. POIs werden nach Typ gruppiert zurückgegeben.',
+    description: 'Gibt alle POIs einer Lagekarte zurück. POIs werden nach Typ gruppiert zurückgegeben. Lazy Creation: Wenn keine Lagekarte existiert, wird sie automatisch erstellt.',
   })
   @ApiWrappedResponse(Object, { description: 'POIs erfolgreich abgerufen', isArray: true })
-  @ApiNotFoundResponse({ description: 'Lagekarte für Einsatz nicht gefunden' })
+  @ApiNotFoundResponse({ description: 'Einsatz nicht gefunden' })
   @ApiBadRequestResponse({ description: 'Ungültige Einsatz-ID' })
   async getPois(@Param('einsatzId') einsatzId: string): Promise<LagekartePoi[]> {
     this.logger.log(`Getting POIs for Einsatz ${einsatzId}`);
 
-    // First get lagekarte to get lagekarteId
-    const lagekarte = await this.lagekarteService.findByEinsatzId(einsatzId);
-    if (!lagekarte) {
-      this.logger.error(`Lagekarte not found for Einsatz ${einsatzId}`);
-      throw new NotFoundException(`Lagekarte for Einsatz ${einsatzId} not found`);
-    }
+    // Lazy creation: Get or create lagekarte (consistent with LagekarteController)
+    const lagekarte = await this.lagekarteService.getOrCreateLagekarte(einsatzId);
 
     const pois = await this.poiService.getPoisByLagekarteId(lagekarte.id);
     this.logger.log(`Returning ${pois.length} POIs for Einsatz ${einsatzId}`);
