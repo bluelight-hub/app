@@ -1,5 +1,5 @@
 import { logger } from '@/utils/logger';
-import { AuthApi, Configuration, EinsatzApi, ETBApi, HealthApi, UserManagementApi, UsersApi } from '@bluelight-hub/shared/client';
+import { AuthApi, Configuration, EinsatzApi, ETBApi, HealthApi, LagekarteApi, POIApi, UserManagementApi, UsersApi } from '@bluelight-hub/shared/client';
 import { fetchWithRefresh } from './fetchWithRefresh';
 
 /**
@@ -44,6 +44,8 @@ class BackendApi {
   private readonly usersApi: UsersApi;
   private readonly einsatzApi: EinsatzApi;
   private readonly etbApi: ETBApi;
+  private readonly lagekarteApi: LagekarteApi;
+  private readonly poiApi: POIApi;
 
   /**
    * Erstellt eine neue Instanz der BackendApi-Klasse
@@ -67,6 +69,8 @@ class BackendApi {
     this.usersApi = new UsersApi(this.configuration);
     this.einsatzApi = new EinsatzApi(this.configuration);
     this.etbApi = new ETBApi(this.configuration);
+    this.lagekarteApi = new LagekarteApi(this.configuration);
+    this.poiApi = new POIApi(this.configuration);
   }
 
   /**
@@ -121,6 +125,24 @@ class BackendApi {
    */
   etb(): ETBApi {
     return this.etbApi;
+  }
+
+  /**
+   * Gibt die gecachte Lagekarte-API-Instanz zurück
+   *
+   * @returns Die Lagekarte-API-Instanz für Lagekarten-Management
+   */
+  lagekarte(): LagekarteApi {
+    return this.lagekarteApi;
+  }
+
+  /**
+   * Gibt die gecachte POI-API-Instanz zurück
+   *
+   * @returns Die POI-API-Instanz für POI-Management (Points of Interest)
+   */
+  poi(): POIApi {
+    return this.poiApi;
   }
 }
 
