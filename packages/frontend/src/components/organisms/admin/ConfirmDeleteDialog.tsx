@@ -77,7 +77,7 @@ export const ConfirmDeleteDialog = ({ isOpen, onClose, onConfirm, userName, user
             </div>
 
             <div className="space-y-3">
-              <Label className="text-sm font-medium text-gray-700 dark:text-gray-300">Aktion auswählen:</Label>
+              <Label className="font-medium text-gray-700 text-sm dark:text-gray-300">Aktion auswählen:</Label>
 
               <div className="space-y-2">
                 <label className="flex cursor-pointer items-center space-x-3 rounded-lg border border-gray-200 p-3 transition hover:bg-gray-50 dark:border-gray-700 dark:hover:bg-gray-800">
