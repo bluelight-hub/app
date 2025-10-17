@@ -1,10 +1,9 @@
-import type React from 'react';
-import { useMemo } from 'react';
-import { Marker, Popup } from 'react-leaflet';
 import { usePois } from '@/api/hooks/useLagekarteApi';
-import { getPoiIcon } from '@/utils/poi-icons';
 import { Spinner } from '@/components/atoms/spinner.atom';
+import { getPoiIcon } from '@/utils/poi-icons';
+import React, { useMemo } from 'react';
 import { PiWarning, PiXCircle } from 'react-icons/pi';
+import { Marker, Popup } from 'react-leaflet';
 
 interface PoiLayerProps {
   einsatzId: string;
@@ -19,6 +18,7 @@ interface PoiLayerProps {
  * - Zeigt Popup mit POI-Details bei Klick
  * - Behandelt Loading- und Error-States
  * - Performance-optimiert mit React.memo() und useMemo()
+ * - Barrierefrei mit ARIA-Labels für Screen Reader
  *
  * @param einsatzId - ID des aktuellen Einsatzes
  *
@@ -27,6 +27,10 @@ interface PoiLayerProps {
  * - React.memo() verhindert unnötige Re-Renders
  * - useMemo() cached POI-Validierung und Icon-Berechnung
  * - Story 48.6 wird Marker-Clustering für >3 POIs in Nähe implementieren
+ *
+ * Performance-Ziel (IV3):
+ * - <2 Sekunden Ladezeit bei 20 POIs (auf 4G Verbindung)
+ * - Messung: Chrome DevTools Performance Tab → Measure First Contentful Paint
  */
 export const PoiLayer: React.FC<PoiLayerProps> = React.memo(({ einsatzId }) => {
   const { data: pois, isLoading, error } = usePois(einsatzId);
@@ -96,9 +100,11 @@ export const PoiLayer: React.FC<PoiLayerProps> = React.memo(({ einsatzId }) => {
       {/* Render gültige POI-Marker */}
       {validPois.map((poi) => {
         const icon = getPoiIcon(poi.type);
+        // ACCESSIBILITY: Create descriptive ARIA label for screen readers
+        const ariaLabel = `${poi.type}: ${poi.name}${poi.adresse ? ` bei ${poi.adresse}` : ''}`;
 
         return (
-          <Marker key={poi.id} position={[poi.latitude, poi.longitude]} icon={icon}>
+          <Marker key={poi.id} position={[poi.latitude, poi.longitude]} icon={icon} title={ariaLabel} alt={ariaLabel} aria-label={ariaLabel}>
             <Popup className="poi-popup">
               <div className="rounded-lg bg-white p-4 shadow-lg dark:bg-gray-800 dark:text-white">
                 {/* POI-Name */}

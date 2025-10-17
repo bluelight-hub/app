@@ -232,7 +232,7 @@ function getContextSpecificMessage(status: number, errorData: ApiErrorResponse, 
       // Unified authentication endpoint that handles both login and registration
       if (status === 401) {
         // Bevorzuge spezifische Backend-Messages (z.B. Sperrgrund bei gesperrten Accounts)
-        if (errorData.message && errorData.message.includes('gesperrt')) {
+        if (errorData.message?.includes('gesperrt')) {
           return errorData.message;
         }
         return 'Anmeldung fehlgeschlagen. Bitte überprüfen Sie Ihre Eingaben.';
