@@ -1,8 +1,10 @@
 import type React from 'react';
+import { useMemo } from 'react';
 import { Marker, Popup } from 'react-leaflet';
 import { usePois } from '@/api/hooks/useLagekarteApi';
 import { getPoiIcon } from '@/utils/poi-icons';
 import { Spinner } from '@/components/atoms/spinner.atom';
+import { PiWarning, PiXCircle } from 'react-icons/pi';
 
 interface PoiLayerProps {
   einsatzId: string;
@@ -16,11 +18,43 @@ interface PoiLayerProps {
  * - Verwendet typenspezifische Icons aus react-icons
  * - Zeigt Popup mit POI-Details bei Klick
  * - Behandelt Loading- und Error-States
+ * - Performance-optimiert mit React.memo() und useMemo()
  *
  * @param einsatzId - ID des aktuellen Einsatzes
+ *
+ * @remarks
+ * Performance-Optimierungen:
+ * - React.memo() verhindert unnötige Re-Renders
+ * - useMemo() cached POI-Validierung und Icon-Berechnung
+ * - Story 48.6 wird Marker-Clustering für >3 POIs in Nähe implementieren
  */
-export const PoiLayer: React.FC<PoiLayerProps> = ({ einsatzId }) => {
+export const PoiLayer: React.FC<PoiLayerProps> = React.memo(({ einsatzId }) => {
   const { data: pois, isLoading, error } = usePois(einsatzId);
+
+  // Berechne gültige und ungültige POIs (Performance-optimiert mit useMemo)
+  // WICHTIG: Muss VOR allen early returns stehen (React Hooks Rules)
+  const { validPois, skippedCount } = useMemo(() => {
+    if (!pois || pois.length === 0) {
+      return { validPois: [], skippedCount: 0 };
+    }
+
+    const valid: typeof pois = [];
+    let skipped = 0;
+
+    for (const poi of pois) {
+      if (typeof poi.latitude !== 'number' || typeof poi.longitude !== 'number' || Number.isNaN(poi.latitude) || Number.isNaN(poi.longitude)) {
+        console.warn(`POI ${poi.id} has invalid coordinates:`, {
+          latitude: poi.latitude,
+          longitude: poi.longitude,
+        });
+        skipped++;
+      } else {
+        valid.push(poi);
+      }
+    }
+
+    return { validPois: valid, skippedCount: skipped };
+  }, [pois]);
 
   // Loading-State: Spinner in oberer rechter Ecke
   if (isLoading) {
@@ -31,10 +65,15 @@ export const PoiLayer: React.FC<PoiLayerProps> = ({ einsatzId }) => {
     );
   }
 
-  // Error-State: Wird in Task 9 implementiert
+  // Error-State: Error-Badge in Map-Ecke
   if (error) {
-    // TODO: Task 9 - Error-Handling implementieren
-    return null;
+    console.error('POI-Fetch-Fehler:', error);
+    return (
+      <div className="absolute top-4 right-4 z-50 flex items-center gap-2 rounded-lg border-2 border-red-500 bg-red-50 p-3 shadow-lg dark:border-red-400 dark:bg-red-900/50">
+        <PiXCircle className="h-5 w-5 text-red-500 dark:text-red-400" />
+        <p className="font-medium text-sm text-red-700 dark:text-red-300">POIs konnten nicht geladen werden</p>
+      </div>
+    );
   }
 
   // Keine POIs vorhanden
@@ -44,16 +83,18 @@ export const PoiLayer: React.FC<PoiLayerProps> = ({ einsatzId }) => {
 
   return (
     <>
-      {pois.map((poi) => {
-        // Validierung: Überspringe POIs mit ungültigen Koordinaten
-        if (typeof poi.latitude !== 'number' || typeof poi.longitude !== 'number' || Number.isNaN(poi.latitude) || Number.isNaN(poi.longitude)) {
-          console.warn(`POI ${poi.id} has invalid coordinates:`, {
-            latitude: poi.latitude,
-            longitude: poi.longitude,
-          });
-          return null;
-        }
+      {/* Warning-Badge für übersprungene POIs */}
+      {skippedCount > 0 && (
+        <div className="absolute right-4 bottom-4 z-50 flex items-center gap-2 rounded-lg border-2 border-orange-500 bg-orange-50 p-3 shadow-lg dark:border-orange-400 dark:bg-orange-900/50">
+          <PiWarning className="h-5 w-5 text-orange-500 dark:text-orange-400" />
+          <p className="font-medium text-sm text-orange-700 dark:text-orange-300">
+            {skippedCount} POI{skippedCount > 1 ? 's' : ''} konnten nicht angezeigt werden (ungültige Koordinaten)
+          </p>
+        </div>
+      )}
 
+      {/* Render gültige POI-Marker */}
+      {validPois.map((poi) => {
         const icon = getPoiIcon(poi.type);
 
         return (
@@ -64,10 +105,10 @@ export const PoiLayer: React.FC<PoiLayerProps> = ({ einsatzId }) => {
                 <h3 className="mb-2 font-semibold text-lg">{poi.name}</h3>
 
                 {/* POI-Type */}
-                <p className="mb-1 text-gray-600 text-sm dark:text-gray-400">{poi.type}</p>
+                <p className="mb-1 text-sm text-gray-600 dark:text-gray-400">{poi.type}</p>
 
                 {/* Adresse (optional) */}
-                {poi.adresse && <p className="text-gray-700 text-sm dark:text-gray-300">{poi.adresse}</p>}
+                {poi.adresse && <p className="text-sm text-gray-700 dark:text-gray-300">{poi.adresse}</p>}
               </div>
             </Popup>
           </Marker>
@@ -75,4 +116,4 @@ export const PoiLayer: React.FC<PoiLayerProps> = ({ einsatzId }) => {
       })}
     </>
   );
-};
+});
