@@ -3,11 +3,12 @@ import { JwtAuthGuard } from '@/auth/guards/jwt-auth.guard';
 import type { ValidatedUser } from '@/auth/strategies/jwt.strategy';
 import { ApiWrappedResponse } from '@/common/decorators/api-wrapped-response.decorator';
 import { Body, Controller, Delete, Get, Logger, Param, Post, Put, UseGuards, ValidationPipe } from '@nestjs/common';
-import { ApiBadRequestResponse, ApiBearerAuth, ApiForbiddenResponse, ApiNotFoundResponse, ApiOperation, ApiTags, ApiUnauthorizedResponse } from '@nestjs/swagger';
+import { ApiBadRequestResponse, ApiBearerAuth, ApiExtraModels, ApiForbiddenResponse, ApiNotFoundResponse, ApiOperation, ApiTags, ApiUnauthorizedResponse } from '@nestjs/swagger';
 import { PoiService } from '../services/poi.service';
 import { LagekarteService } from '../services/lagekarte.service';
 import { CreatePoiDto } from '../dto/create-poi.dto';
 import { UpdatePoiDto } from '../dto/update-poi.dto';
+import { PoiResponseDto } from '../dto/poi-response.dto';
 import { LagekartePoi } from '@prisma/client';
 
 /**
@@ -31,6 +32,7 @@ import { LagekartePoi } from '@prisma/client';
 @UseGuards(JwtAuthGuard)
 @ApiUnauthorizedResponse({ description: 'Nicht authentifiziert - JWT Token fehlt oder ungültig' })
 @ApiForbiddenResponse({ description: 'Keine Berechtigung für diese Aktion' })
+@ApiExtraModels(PoiResponseDto)
 @Controller({
   path: 'einsatz/:einsatzId/lagekarte/pois',
   version: 'alpha',
@@ -54,7 +56,7 @@ export class PoiController {
     summary: 'POIs abrufen',
     description: 'Gibt alle POIs einer Lagekarte zurück. POIs werden nach Typ gruppiert zurückgegeben. Lazy Creation: Wenn keine Lagekarte existiert, wird sie automatisch erstellt.',
   })
-  @ApiWrappedResponse(Object, { description: 'POIs erfolgreich abgerufen', isArray: true })
+  @ApiWrappedResponse(PoiResponseDto, { description: 'POIs erfolgreich abgerufen', isArray: true })
   @ApiNotFoundResponse({ description: 'Einsatz nicht gefunden' })
   @ApiBadRequestResponse({ description: 'Ungültige Einsatz-ID' })
   async getPois(@Param('einsatzId') einsatzId: string): Promise<LagekartePoi[]> {
@@ -84,7 +86,7 @@ export class PoiController {
     summary: 'POI erstellen',
     description: 'Erstellt einen neuen POI. Wenn eine Adresse angegeben ist, wird sie automatisch geocoded. Bei Geocoding-Fehlern müssen manuelle Koordinaten angegeben werden.',
   })
-  @ApiWrappedResponse(Object, { description: 'POI erfolgreich erstellt' })
+  @ApiWrappedResponse(PoiResponseDto, { description: 'POI erfolgreich erstellt' })
   @ApiNotFoundResponse({ description: 'Lagekarte nicht gefunden' })
   @ApiBadRequestResponse({ description: 'Validierungsfehler in den Eingabedaten' })
   async createPoi(
@@ -110,7 +112,7 @@ export class PoiController {
     summary: 'POI abrufen',
     description: 'Gibt einen einzelnen POI mit allen Details zurück.',
   })
-  @ApiWrappedResponse(Object, { description: 'POI gefunden' })
+  @ApiWrappedResponse(PoiResponseDto, { description: 'POI gefunden' })
   @ApiNotFoundResponse({ description: 'POI nicht gefunden' })
   @ApiBadRequestResponse({ description: 'Ungültige POI-ID' })
   async getPoi(@Param('poiId') poiId: string): Promise<LagekartePoi> {
@@ -137,7 +139,7 @@ export class PoiController {
     summary: 'POI aktualisieren',
     description: 'Aktualisiert einen bestehenden POI. Wenn die Adresse geändert wird, wird automatisch ein Re-Geocoding durchgeführt.',
   })
-  @ApiWrappedResponse(Object, { description: 'POI erfolgreich aktualisiert' })
+  @ApiWrappedResponse(PoiResponseDto, { description: 'POI erfolgreich aktualisiert' })
   @ApiNotFoundResponse({ description: 'POI nicht gefunden' })
   @ApiBadRequestResponse({ description: 'Validierungsfehler in den Eingabedaten' })
   async updatePoi(
@@ -164,7 +166,7 @@ export class PoiController {
     summary: 'POI löschen',
     description: 'Löscht einen POI permanent. Diese Aktion kann nicht rückgängig gemacht werden.',
   })
-  @ApiWrappedResponse(Object, { description: 'POI erfolgreich gelöscht' })
+  @ApiWrappedResponse(PoiResponseDto, { description: 'POI erfolgreich gelöscht' })
   @ApiNotFoundResponse({ description: 'POI nicht gefunden' })
   @ApiBadRequestResponse({ description: 'Ungültige POI-ID' })
   async deletePoi(@Param('poiId') poiId: string, @CurrentUser() user: ValidatedUser): Promise<void> {

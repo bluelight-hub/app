@@ -75,7 +75,7 @@ export const PoiLayer: React.FC<PoiLayerProps> = React.memo(({ einsatzId }) => {
     return (
       <div className="absolute top-4 right-4 z-50 flex items-center gap-2 rounded-lg border-2 border-red-500 bg-red-50 p-3 shadow-lg dark:border-red-400 dark:bg-red-900/50">
         <PiXCircle className="h-5 w-5 text-red-500 dark:text-red-400" />
-        <p className="font-medium text-sm text-red-700 dark:text-red-300">POIs konnten nicht geladen werden</p>
+        <p className="font-medium text-red-700 text-sm dark:text-red-300">POIs konnten nicht geladen werden</p>
       </div>
     );
   }
@@ -91,7 +91,7 @@ export const PoiLayer: React.FC<PoiLayerProps> = React.memo(({ einsatzId }) => {
       {skippedCount > 0 && (
         <div className="absolute right-4 bottom-4 z-50 flex items-center gap-2 rounded-lg border-2 border-orange-500 bg-orange-50 p-3 shadow-lg dark:border-orange-400 dark:bg-orange-900/50">
           <PiWarning className="h-5 w-5 text-orange-500 dark:text-orange-400" />
-          <p className="font-medium text-sm text-orange-700 dark:text-orange-300">
+          <p className="font-medium text-orange-700 text-sm dark:text-orange-300">
             {skippedCount} POI{skippedCount > 1 ? 's' : ''} konnten nicht angezeigt werden (ungültige Koordinaten)
           </p>
         </div>
@@ -111,10 +111,10 @@ export const PoiLayer: React.FC<PoiLayerProps> = React.memo(({ einsatzId }) => {
                 <h3 className="mb-2 font-semibold text-lg">{poi.name}</h3>
 
                 {/* POI-Type */}
-                <p className="mb-1 text-sm text-gray-600 dark:text-gray-400">{poi.type}</p>
+                <p className="mb-1 text-gray-600 text-sm dark:text-gray-400">{poi.type}</p>
 
                 {/* Adresse (optional) */}
-                {poi.adresse && <p className="text-sm text-gray-700 dark:text-gray-300">{poi.adresse}</p>}
+                {poi.adresse && <p className="text-gray-700 text-sm dark:text-gray-300">{poi.adresse}</p>}
               </div>
             </Popup>
           </Marker>

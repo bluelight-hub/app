@@ -22,6 +22,9 @@ interface EtbTableBodyProps {
   getUserName: (userId: string) => string | undefined;
 }
 
+// Statische Skeleton-Row-Keys (für Performance und Linter)
+const SKELETON_KEYS = Array.from({ length: 10 }, (_, i) => `skeleton-${i}`);
+
 /**
  * ETB Table Body mit Virtualisierung
  */
@@ -37,8 +40,8 @@ export function EtbTableBody({ virtualRows, rows, columns, paddingTop, paddingBo
       {/* Loading Overlay innerhalb der Tabelle */}
       {isLoading && entries.length === 0 ? (
         // Initial Loading - Skeleton Rows
-        Array.from({ length: 10 }, (_, i) => (
-          <tr key={`initial-skeleton-${i}`} className="animate-pulse">
+        SKELETON_KEYS.map((key) => (
+          <tr key={key} className="animate-pulse">
             <td className="px-3 py-2">
               <div className="h-4 w-4 rounded bg-gray-200 dark:bg-gray-700" />
             </td>

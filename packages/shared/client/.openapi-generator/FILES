@@ -55,7 +55,9 @@ models/LagekarteControllerGetLagekarteVAlpha200Response.ts
 models/LockUserDto.ts
 models/LogoutResponseDto.ts
 models/NavigationResponseDto.ts
+models/PoiControllerCreatePoiVAlpha200Response.ts
 models/PoiControllerGetPoisVAlpha200Response.ts
+models/PoiResponseDto.ts
 models/PublicUserDto.ts
 models/PublicUsersResponseDto.ts
 models/RefreshResponseDto.ts
