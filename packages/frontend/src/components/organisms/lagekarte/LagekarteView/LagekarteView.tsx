@@ -6,6 +6,9 @@ import type React from 'react';
 import { useState } from 'react';
 import { PiWarning } from 'react-icons/pi';
 import { MapContainer, TileLayer, useMapEvents } from 'react-leaflet';
+import { PoiLayer } from '../layers/PoiLayer';
+import { usePois } from '@/api/hooks/useLagekarteApi';
+import { useMapBounds } from './useMapBounds';
 import './lagekarte-view.css';
 
 /**
@@ -33,6 +36,16 @@ const TileErrorHandler: React.FC<{ onError: () => void }> = ({ onError }) => {
 };
 
 /**
+ * Map-Bounds-Controller-Komponente
+ * Verwendet useMapBounds Hook um Karte automatisch auf POIs zu zoomen
+ */
+const MapBoundsController: React.FC<{ einsatzId: string }> = ({ einsatzId }) => {
+  const { data: pois } = usePois(einsatzId);
+  useMapBounds(pois);
+  return null;
+};
+
+/**
  * Lagekarte-Komponente zur Darstellung einer interaktiven Karte mit OpenStreetMap-Tiles.
  *
  * Features:
@@ -47,7 +60,7 @@ const TileErrorHandler: React.FC<{ onError: () => void }> = ({ onError }) => {
  * <LagekarteView einsatzId="einsatz-123" />
  * ```
  */
-export const LagekarteView: React.FC<LagekarteViewProps> = ({ einsatzId: _einsatzId }) => {
+export const LagekarteView: React.FC<LagekarteViewProps> = ({ einsatzId }) => {
   const { resolvedColorMode } = useColorMode();
   const [isLoading, setIsLoading] = useState(true);
   const [hasError, setHasError] = useState(false);
@@ -128,6 +141,8 @@ export const LagekarteView: React.FC<LagekarteViewProps> = ({ einsatzId: _einsat
       <MapContainer center={defaultCenter} zoom={defaultZoom} className="h-full w-full" scrollWheelZoom={true} whenReady={() => setIsLoading(false)} aria-label="Lagekarte">
         <TileLayer url={tileUrl} attribution={attribution} />
         <TileErrorHandler onError={handleTileError} />
+        <PoiLayer einsatzId={einsatzId} />
+        <MapBoundsController einsatzId={einsatzId} />
       </MapContainer>
     </div>
   );
