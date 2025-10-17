@@ -1,24 +1,6 @@
 import { useQuery, type UseQueryResult } from '@tanstack/react-query';
-import type { LagekarteControllerGetLagekarteVAlpha200Response, PoiControllerGetPoisVAlpha200Response } from '@bluelight-hub/shared/client';
+import type { LagekarteControllerGetLagekarteVAlpha200Response, PoiControllerGetPoisVAlpha200Response, PoiResponseDto } from '@bluelight-hub/shared/client';
 import { api } from '../api';
-
-/**
- * POI-Datenstruktur (extrahiert aus API-Response)
- *
- * @remarks
- * Die API returned ein generisches `object[]`, aber wir wissen aus dem Backend,
- * dass POIs diese Struktur haben.
- */
-export interface LagekartePoi {
-  id: string;
-  type: string;
-  name: string;
-  adresse?: string;
-  latitude: number;
-  longitude: number;
-  icon?: string;
-  metadata?: Record<string, unknown>;
-}
 
 /**
  * TanStack Query Hook zum Abrufen aller POIs einer Lagekarte
@@ -29,7 +11,8 @@ export interface LagekartePoi {
  * @remarks
  * - Verwendet TanStack Query für automatisches Caching und Refetching
  * - Query Key: `['pois', einsatzId]`
- * - Die API returned POIs im `data` Array der Response
+ * - Die API returned POIs im `data` Array der Response als `PoiResponseDto[]`
+ * - `PoiResponseDto` ist der generierte Typ aus dem Backend
  *
  * @example
  * ```tsx
@@ -41,14 +24,13 @@ export interface LagekartePoi {
  * return pois?.map(poi => <PoiMarker key={poi.id} poi={poi} />);
  * ```
  */
-export const usePois = (einsatzId: string): UseQueryResult<LagekartePoi[], Error> => {
+export const usePois = (einsatzId: string): UseQueryResult<PoiResponseDto[], Error> => {
   return useQuery({
     queryKey: ['pois', einsatzId],
     queryFn: async () => {
       const response: PoiControllerGetPoisVAlpha200Response = await api.poi().poiControllerGetPoisVAlpha({ einsatzId });
-      // Response hat Struktur: { data: POI[], meta: {}, pagination?: {} }
-      // Wir casten die generischen objects zu LagekartePoi
-      return response.data as LagekartePoi[];
+      // Response hat Struktur: { data: PoiResponseDto[], meta: {}, pagination?: {} }
+      return response.data;
     },
     enabled: !!einsatzId, // Nur fetchen wenn einsatzId vorhanden
   });
