@@ -124,7 +124,7 @@ export class PoiService {
       latitude,
       longitude,
       icon: dto.icon ?? null,
-      metadata: dto.metadata ?? Prisma.DbNull,
+      metadata: dto.metadata ? (dto.metadata as Prisma.InputJsonValue) : Prisma.DbNull,
     };
 
     const poi = await this.poiRepository.create(poiData);
@@ -155,7 +155,7 @@ export class PoiService {
       name: dto.name,
       adresse: dto.adresse,
       icon: dto.icon,
-      metadata: dto.metadata,
+      metadata: dto.metadata ? (dto.metadata as Prisma.InputJsonValue) : undefined,
     };
 
     // Re-geocode if address changed

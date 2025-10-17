@@ -13,12 +13,12 @@
  */
 
 import * as runtime from '../runtime';
-import type { CreatePoiDto, LagekarteControllerGetLagekarteVAlpha200Response, PoiControllerGetPoisVAlpha200Response, UpdatePoiDto } from '../models/index';
+import type { CreatePoiDto, PoiControllerCreatePoiVAlpha200Response, PoiControllerGetPoisVAlpha200Response, UpdatePoiDto } from '../models/index';
 import {
   CreatePoiDtoFromJSON,
   CreatePoiDtoToJSON,
-  LagekarteControllerGetLagekarteVAlpha200ResponseFromJSON,
-  LagekarteControllerGetLagekarteVAlpha200ResponseToJSON,
+  PoiControllerCreatePoiVAlpha200ResponseFromJSON,
+  PoiControllerCreatePoiVAlpha200ResponseToJSON,
   PoiControllerGetPoisVAlpha200ResponseFromJSON,
   PoiControllerGetPoisVAlpha200ResponseToJSON,
   UpdatePoiDtoFromJSON,
@@ -57,7 +57,7 @@ export class POIApi extends runtime.BaseAPI {
   async poiControllerCreatePoiVAlphaRaw(
     requestParameters: PoiControllerCreatePoiVAlphaRequest,
     initOverrides?: RequestInit | runtime.InitOverrideFunction,
-  ): Promise<runtime.ApiResponse<LagekarteControllerGetLagekarteVAlpha200Response>> {
+  ): Promise<runtime.ApiResponse<PoiControllerCreatePoiVAlpha200Response>> {
     if (requestParameters['createPoiDto'] == null) {
       throw new runtime.RequiredError('createPoiDto', 'Required parameter "createPoiDto" was null or undefined when calling poiControllerCreatePoiVAlpha().');
     }
@@ -87,7 +87,7 @@ export class POIApi extends runtime.BaseAPI {
       initOverrides,
     );
 
-    return new runtime.JSONApiResponse(response, (jsonValue) => LagekarteControllerGetLagekarteVAlpha200ResponseFromJSON(jsonValue));
+    return new runtime.JSONApiResponse(response, (jsonValue) => PoiControllerCreatePoiVAlpha200ResponseFromJSON(jsonValue));
   }
 
   /**
@@ -97,7 +97,7 @@ export class POIApi extends runtime.BaseAPI {
   async poiControllerCreatePoiVAlpha(
     requestParameters: PoiControllerCreatePoiVAlphaRequest,
     initOverrides?: RequestInit | runtime.InitOverrideFunction,
-  ): Promise<LagekarteControllerGetLagekarteVAlpha200Response> {
+  ): Promise<PoiControllerCreatePoiVAlpha200Response> {
     const response = await this.poiControllerCreatePoiVAlphaRaw(requestParameters, initOverrides);
     return await response.value();
   }
@@ -109,7 +109,7 @@ export class POIApi extends runtime.BaseAPI {
   async poiControllerDeletePoiVAlphaRaw(
     requestParameters: PoiControllerDeletePoiVAlphaRequest,
     initOverrides?: RequestInit | runtime.InitOverrideFunction,
-  ): Promise<runtime.ApiResponse<LagekarteControllerGetLagekarteVAlpha200Response>> {
+  ): Promise<runtime.ApiResponse<PoiControllerCreatePoiVAlpha200Response>> {
     if (requestParameters['poiId'] == null) {
       throw new runtime.RequiredError('poiId', 'Required parameter "poiId" was null or undefined when calling poiControllerDeletePoiVAlpha().');
     }
@@ -136,7 +136,7 @@ export class POIApi extends runtime.BaseAPI {
       initOverrides,
     );
 
-    return new runtime.JSONApiResponse(response, (jsonValue) => LagekarteControllerGetLagekarteVAlpha200ResponseFromJSON(jsonValue));
+    return new runtime.JSONApiResponse(response, (jsonValue) => PoiControllerCreatePoiVAlpha200ResponseFromJSON(jsonValue));
   }
 
   /**
@@ -146,7 +146,7 @@ export class POIApi extends runtime.BaseAPI {
   async poiControllerDeletePoiVAlpha(
     requestParameters: PoiControllerDeletePoiVAlphaRequest,
     initOverrides?: RequestInit | runtime.InitOverrideFunction,
-  ): Promise<LagekarteControllerGetLagekarteVAlpha200Response> {
+  ): Promise<PoiControllerCreatePoiVAlpha200Response> {
     const response = await this.poiControllerDeletePoiVAlphaRaw(requestParameters, initOverrides);
     return await response.value();
   }
@@ -158,7 +158,7 @@ export class POIApi extends runtime.BaseAPI {
   async poiControllerGetPoiVAlphaRaw(
     requestParameters: PoiControllerGetPoiVAlphaRequest,
     initOverrides?: RequestInit | runtime.InitOverrideFunction,
-  ): Promise<runtime.ApiResponse<LagekarteControllerGetLagekarteVAlpha200Response>> {
+  ): Promise<runtime.ApiResponse<PoiControllerCreatePoiVAlpha200Response>> {
     if (requestParameters['poiId'] == null) {
       throw new runtime.RequiredError('poiId', 'Required parameter "poiId" was null or undefined when calling poiControllerGetPoiVAlpha().');
     }
@@ -185,23 +185,20 @@ export class POIApi extends runtime.BaseAPI {
       initOverrides,
     );
 
-    return new runtime.JSONApiResponse(response, (jsonValue) => LagekarteControllerGetLagekarteVAlpha200ResponseFromJSON(jsonValue));
+    return new runtime.JSONApiResponse(response, (jsonValue) => PoiControllerCreatePoiVAlpha200ResponseFromJSON(jsonValue));
   }
 
   /**
    * Gibt einen einzelnen POI mit allen Details zurück.
    * POI abrufen
    */
-  async poiControllerGetPoiVAlpha(
-    requestParameters: PoiControllerGetPoiVAlphaRequest,
-    initOverrides?: RequestInit | runtime.InitOverrideFunction,
-  ): Promise<LagekarteControllerGetLagekarteVAlpha200Response> {
+  async poiControllerGetPoiVAlpha(requestParameters: PoiControllerGetPoiVAlphaRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<PoiControllerCreatePoiVAlpha200Response> {
     const response = await this.poiControllerGetPoiVAlphaRaw(requestParameters, initOverrides);
     return await response.value();
   }
 
   /**
-   * Gibt alle POIs einer Lagekarte zurück. POIs werden nach Typ gruppiert zurückgegeben.
+   * Gibt alle POIs einer Lagekarte zurück. POIs werden nach Typ gruppiert zurückgegeben. Lazy Creation: Wenn keine Lagekarte existiert, wird sie automatisch erstellt.
    * POIs abrufen
    */
   async poiControllerGetPoisVAlphaRaw(
@@ -238,7 +235,7 @@ export class POIApi extends runtime.BaseAPI {
   }
 
   /**
-   * Gibt alle POIs einer Lagekarte zurück. POIs werden nach Typ gruppiert zurückgegeben.
+   * Gibt alle POIs einer Lagekarte zurück. POIs werden nach Typ gruppiert zurückgegeben. Lazy Creation: Wenn keine Lagekarte existiert, wird sie automatisch erstellt.
    * POIs abrufen
    */
   async poiControllerGetPoisVAlpha(requestParameters: PoiControllerGetPoisVAlphaRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<PoiControllerGetPoisVAlpha200Response> {
@@ -253,7 +250,7 @@ export class POIApi extends runtime.BaseAPI {
   async poiControllerUpdatePoiVAlphaRaw(
     requestParameters: PoiControllerUpdatePoiVAlphaRequest,
     initOverrides?: RequestInit | runtime.InitOverrideFunction,
-  ): Promise<runtime.ApiResponse<LagekarteControllerGetLagekarteVAlpha200Response>> {
+  ): Promise<runtime.ApiResponse<PoiControllerCreatePoiVAlpha200Response>> {
     if (requestParameters['poiId'] == null) {
       throw new runtime.RequiredError('poiId', 'Required parameter "poiId" was null or undefined when calling poiControllerUpdatePoiVAlpha().');
     }
@@ -287,7 +284,7 @@ export class POIApi extends runtime.BaseAPI {
       initOverrides,
     );
 
-    return new runtime.JSONApiResponse(response, (jsonValue) => LagekarteControllerGetLagekarteVAlpha200ResponseFromJSON(jsonValue));
+    return new runtime.JSONApiResponse(response, (jsonValue) => PoiControllerCreatePoiVAlpha200ResponseFromJSON(jsonValue));
   }
 
   /**
@@ -297,7 +294,7 @@ export class POIApi extends runtime.BaseAPI {
   async poiControllerUpdatePoiVAlpha(
     requestParameters: PoiControllerUpdatePoiVAlphaRequest,
     initOverrides?: RequestInit | runtime.InitOverrideFunction,
-  ): Promise<LagekarteControllerGetLagekarteVAlpha200Response> {
+  ): Promise<PoiControllerCreatePoiVAlpha200Response> {
     const response = await this.poiControllerUpdatePoiVAlphaRaw(requestParameters, initOverrides);
     return await response.value();
   }

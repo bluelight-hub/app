@@ -142,7 +142,7 @@ describe('Lagekarte Integration Tests', () => {
         {
           alarmStichwort: 'Brand',
           ort: 'Teststraße 1',
-        } as any,
+        } as Partial<{ alarmStichwort: string; ort: string }> as Parameters<typeof einsatzService.create>[0],
         'test-user-id',
       );
 
@@ -261,7 +261,7 @@ describe('Lagekarte Integration Tests', () => {
       expect(response.body[2].type).toBe(PoiType.BEREITSTELLUNGSRAUM);
 
       // Verifiziere dass alle PoiType Werte gültige Enum-Werte sind
-      response.body.forEach((poi: any) => {
+      (response.body as LagekartePoi[]).forEach((poi) => {
         expect(Object.values(PoiType)).toContain(poi.type);
       });
     });

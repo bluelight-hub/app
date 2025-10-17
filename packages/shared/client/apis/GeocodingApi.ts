@@ -26,7 +26,7 @@ export interface GeocodingControllerGeocodeAddressVAlphaRequest {
  */
 export class GeocodingApi extends runtime.BaseAPI {
   /**
-   * Konvertiert eine Adresse in geografische Koordinaten via Nominatim API. Rate-Limited auf 1 Request/Sekunde. Gibt null zurück bei Fehler.
+   * Konvertiert eine Adresse in geografische Koordinaten via Nominatim API. Controller-Rate-Limit: 10 req/min. Gibt null zurück bei Fehler.
    * Geocode address to coordinates
    */
   async geocodingControllerGeocodeAddressVAlphaRaw(
@@ -70,7 +70,7 @@ export class GeocodingApi extends runtime.BaseAPI {
   }
 
   /**
-   * Konvertiert eine Adresse in geografische Koordinaten via Nominatim API. Rate-Limited auf 1 Request/Sekunde. Gibt null zurück bei Fehler.
+   * Konvertiert eine Adresse in geografische Koordinaten via Nominatim API. Controller-Rate-Limit: 10 req/min. Gibt null zurück bei Fehler.
    * Geocode address to coordinates
    */
   async geocodingControllerGeocodeAddressVAlpha(

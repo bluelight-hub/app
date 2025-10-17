@@ -13,6 +13,8 @@
  */
 
 import { mapValues } from '../runtime';
+import type { PoiResponseDto } from './PoiResponseDto';
+import { PoiResponseDtoFromJSON, PoiResponseDtoFromJSONTyped, PoiResponseDtoToJSON, PoiResponseDtoToJSONTyped } from './PoiResponseDto';
 import type { EinsatzControllerFindAllVAlpha200ResponsePagination } from './EinsatzControllerFindAllVAlpha200ResponsePagination';
 import {
   EinsatzControllerFindAllVAlpha200ResponsePaginationFromJSON,
@@ -36,10 +38,10 @@ import {
 export interface PoiControllerGetPoisVAlpha200Response {
   /**
    *
-   * @type {Array<object>}
+   * @type {Array<PoiResponseDto>}
    * @memberof PoiControllerGetPoisVAlpha200Response
    */
-  data: Array<object>;
+  data: Array<PoiResponseDto>;
   /**
    *
    * @type {UserControllerFindOneVAlpha200ResponseMeta}
@@ -72,7 +74,7 @@ export function PoiControllerGetPoisVAlpha200ResponseFromJSONTyped(json: any, ig
     return json;
   }
   return {
-    data: json['data'],
+    data: (json['data'] as Array<any>).map(PoiResponseDtoFromJSON),
     meta: UserControllerFindOneVAlpha200ResponseMetaFromJSON(json['meta']),
     pagination: json['pagination'] == null ? undefined : EinsatzControllerFindAllVAlpha200ResponsePaginationFromJSON(json['pagination']),
   };
@@ -88,7 +90,7 @@ export function PoiControllerGetPoisVAlpha200ResponseToJSONTyped(value?: PoiCont
   }
 
   return {
-    data: value['data'],
+    data: (value['data'] as Array<any>).map(PoiResponseDtoToJSON),
     meta: UserControllerFindOneVAlpha200ResponseMetaToJSON(value['meta']),
     pagination: EinsatzControllerFindAllVAlpha200ResponsePaginationToJSON(value['pagination']),
   };
