@@ -1,11 +1,11 @@
 import { Button } from '@/components/atoms/button.atom';
 import type React from 'react';
-import { PiPentagon, PiPath, PiRectangle, PiPencilSimple, PiTrash } from 'react-icons/pi';
+import { PiPentagon, PiPath, PiRectangle, PiPencilSimple, PiTrash, PiTextAa } from 'react-icons/pi';
 
 /**
  * Drawing-Tool-Typen für Lagekarte
  */
-export type DrawingTool = 'polygon' | 'polyline' | 'rectangle' | 'edit' | 'delete' | null;
+export type DrawingTool = 'polygon' | 'polyline' | 'rectangle' | 'text' | 'edit' | 'delete' | null;
 
 interface DrawingToolbarProps {
   /**
@@ -68,6 +68,12 @@ export const DrawingToolbar: React.FC<DrawingToolbarProps> = ({ onToolSelect, se
       icon: PiRectangle,
       label: 'Rechteck',
       color: '#3b82f6', // Tailwind blue-500
+    },
+    {
+      type: 'text',
+      icon: PiTextAa,
+      label: 'Text',
+      color: '#8b5cf6', // Tailwind violet-500
     },
     {
       type: 'edit',
