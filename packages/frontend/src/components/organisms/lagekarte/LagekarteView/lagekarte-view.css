@@ -9,3 +9,12 @@
 .leaflet-top, .leaflet-bottom {
     z-index: 0 !important
 }
+
+/* Cursor für POI-Platzierungs-Modus */
+.leaflet-container.placement-active {
+    cursor: crosshair !important;
+}
+
+.leaflet-container.placement-active * {
+    cursor: crosshair !important;
+}
