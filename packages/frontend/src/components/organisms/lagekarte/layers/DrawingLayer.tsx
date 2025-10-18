@@ -198,8 +198,9 @@ const DrawingLayerComponent: React.FC<DrawingLayerProps> = ({
           // Edit-Mode wird nur aktiviert wenn User "Bearbeiten" Tool auswählt
           // (layer as any).pm?.enable(); // REMOVED
 
-          // Track layer
+          // Track layer and store shapeId directly on the layer
           const shapeId = feature.properties?.id || Date.now();
+          (layer as any)._shapeId = shapeId; // Store ID on layer for later retrieval
           layersRef.current.set(shapeId, layer);
         }
       });
@@ -320,7 +321,8 @@ const DrawingLayerComponent: React.FC<DrawingLayerProps> = ({
         ...(textContent && { text: textContent }),
       };
 
-      // Track layer
+      // Track layer and store shapeId directly on the layer
+      (layer as any)._shapeId = shapeId;
       layersRef.current.set(shapeId, layer);
 
       // Add to shapes collection (use shapesRef.current)
@@ -388,6 +390,83 @@ const DrawingLayerComponent: React.FC<DrawingLayerProps> = ({
 
     return () => {
       map.off('pm:edit', handleEdit);
+    };
+  }, [map, onShapesChange]);
+
+  /**
+   * Event Handler: Text content changes (input/change on Leaflet.PM textarea)
+   * Leaflet.PM text markers use a textarea element for editing,
+   * and don't trigger pm:edit for text changes.
+   * We use a debounced input handler to save changes.
+   */
+  useEffect(() => {
+    let timeoutId: NodeJS.Timeout;
+
+    const handleTextChange = (event: Event) => {
+      const target = event.target as HTMLTextAreaElement;
+
+      // Check if this is a Leaflet.PM text marker textarea
+      if (!target.matches('textarea.pm-textarea')) {
+        return;
+      }
+
+      const newText = target.value || '';
+
+      // Find the parent marker element
+      const markerIcon = target.closest('.leaflet-marker-icon.pm-text-marker');
+      if (!markerIcon) {
+        return;
+      }
+
+      // Find the layer associated with this marker
+      let shapeId: number | null = null;
+
+      map.eachLayer((layer: any) => {
+        if (layer.getElement && layer.getElement() === markerIcon) {
+          // Get shape ID directly from layer (stored during initialization or creation)
+          shapeId = (layer as any)._shapeId;
+        }
+      });
+
+      if (!shapeId) {
+        return;
+      }
+
+      // Debounce: Wait 500ms after last input before saving
+      clearTimeout(timeoutId);
+      timeoutId = setTimeout(() => {
+        // Update shape in collection
+        const updatedShapes: GeoJSON.FeatureCollection = {
+          type: 'FeatureCollection',
+          features: shapesRef.current.features.map((feature) => {
+            if (feature.properties?.id === shapeId) {
+              return {
+                ...feature,
+                properties: {
+                  ...feature.properties,
+                  text: newText,
+                },
+              };
+            }
+            return feature;
+          }),
+        };
+
+        setShapes(updatedShapes);
+        onShapesChange(updatedShapes);
+      }, 500);
+    };
+
+    // Listen for input events (fires while typing)
+    const mapContainer = map.getContainer();
+    mapContainer.addEventListener('input', handleTextChange, true);
+    // Also listen for change events (fires when losing focus)
+    mapContainer.addEventListener('change', handleTextChange, true);
+
+    return () => {
+      clearTimeout(timeoutId);
+      mapContainer.removeEventListener('input', handleTextChange, true);
+      mapContainer.removeEventListener('change', handleTextChange, true);
     };
   }, [map, onShapesChange]);
 
