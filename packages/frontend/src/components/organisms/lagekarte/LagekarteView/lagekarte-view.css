@@ -18,3 +18,26 @@
 .leaflet-container.placement-active * {
     cursor: crosshair !important;
 }
+
+/* Text-Marker Styling */
+.lagekarte-text-marker {
+    font-size: 14px;
+    font-weight: 600;
+    color: #1f2937;
+    background: rgba(255, 255, 255, 0.9);
+    padding: 4px 8px;
+    border-radius: 4px;
+    border: 2px solid #8b5cf6;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+    white-space: nowrap;
+    cursor: move;
+}
+
+/* Dark mode styling for text markers */
+@media (prefers-color-scheme: dark) {
+    .lagekarte-text-marker {
+        color: #f3f4f6;
+        background: rgba(31, 41, 55, 0.9);
+        border-color: #a78bfa;
+    }
+}

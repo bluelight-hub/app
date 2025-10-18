@@ -124,6 +124,7 @@ const DrawingLayerComponent: React.FC<DrawingLayerProps> = ({
       drawCircle: false,
       drawCircleMarker: false,
       drawMarker: false,
+      drawText: false, // We control via DrawingToolbar (Text-Tool)
       editMode: false,
       dragMode: false,
       cutPolygon: false,
@@ -149,18 +150,50 @@ const DrawingLayerComponent: React.FC<DrawingLayerProps> = ({
     if (initialShapesLoadedRef.current) return;
     if (!initialState?.features || initialState.features.length === 0) return;
 
-    // Import Leaflet for L.geoJSON
+    // Import Leaflet for L.geoJSON and L.marker
     import('leaflet').then((L) => {
       // Add shapes to map using L.geoJSON
       initialState.features.forEach((feature) => {
-        const layer = L.geoJSON(feature, {
-          style: DEFAULT_SHAPE_STYLE,
-        }).getLayers()[0] as L.Layer;
+        // Check if this is a Text marker (Point geometry with text property)
+        const isTextMarker = feature.geometry.type === 'Point' && feature.properties?.text;
+
+        let layer: L.Layer | null = null;
+
+        if (isTextMarker) {
+          // Create Text marker using Leaflet.PM API
+          const coordinates = feature.geometry.coordinates as [number, number];
+
+          // Sanitize text content to prevent XSS
+          const safeText = feature.properties.text.replace(/</g, '&lt;').replace(/>/g, '&gt;');
+
+          const textMarker = L.marker([coordinates[1], coordinates[0]], {
+            icon: L.divIcon({
+              html: `<div class="lagekarte-text-marker">${safeText}</div>`,
+              className: '',
+              iconSize: undefined,
+            }),
+            draggable: false, // Draggable only when in edit mode
+          });
+
+          // Add to map and store text content in layer
+          textMarker.addTo(map);
+
+          // Store text content for later editing
+          (textMarker as any)._textContent = feature.properties.text;
+
+          layer = textMarker;
+        } else {
+          // Normal shapes (Polygon, LineString, etc.)
+          layer = L.geoJSON(feature, {
+            style: DEFAULT_SHAPE_STYLE,
+          }).getLayers()[0] as L.Layer;
+
+          if (layer) {
+            layer.addTo(map);
+          }
+        }
 
         if (layer) {
-          // Add to map
-          layer.addTo(map);
-
           // WICHTIG: Nicht automatisch in Edit-Mode versetzen!
           // Edit-Mode wird nur aktiviert wenn User "Bearbeiten" Tool auswählt
           // (layer as any).pm?.enable(); // REMOVED
@@ -210,6 +243,14 @@ const DrawingLayerComponent: React.FC<DrawingLayerProps> = ({
           pathOptions: DEFAULT_SHAPE_STYLE,
         });
         break;
+      case 'text':
+        map.pm.enableDraw('Text', {
+          textOptions: {
+            text: 'Beschriftung',
+            className: 'lagekarte-text-marker',
+          },
+        });
+        break;
       case 'edit':
         map.pm.disableDraw();
         map.pm.enableGlobalEditMode();
@@ -249,12 +290,34 @@ const DrawingLayerComponent: React.FC<DrawingLayerProps> = ({
       // Convert to GeoJSON
       const geoJson = layer.toGeoJSON() as GeoJSON.Feature;
 
+      // Extract text content for Text markers
+      // Leaflet.PM text markers store their content in different places
+      let textContent = null;
+
+      // Try multiple methods to extract text from the layer
+      if ((layer as any)._textContent) {
+        // Custom property we set
+        textContent = (layer as any)._textContent;
+      } else if ((layer as any).getElement) {
+        // Try to get from DOM element
+        const element = (layer as any).getElement();
+        const textDiv = element?.querySelector('.lagekarte-text-marker, [contenteditable]');
+        textContent = textDiv?.textContent || textDiv?.innerText;
+      }
+
+      // If still no text, try event shape property
+      if (!textContent && e.shape === 'Text') {
+        textContent = 'Beschriftung'; // Default text from textOptions
+      }
+
       // Add shape ID for tracking
       const shapeId = Date.now();
       geoJson.properties = {
         ...geoJson.properties,
         id: shapeId,
         createdAt: new Date().toISOString(),
+        // Add text property for Text markers
+        ...(textContent && { text: textContent }),
       };
 
       // Track layer
@@ -288,6 +351,13 @@ const DrawingLayerComponent: React.FC<DrawingLayerProps> = ({
       const layer = e.layer;
       const updatedGeoJson = layer.toGeoJSON() as GeoJSON.Feature;
 
+      // Extract updated text content for Text markers
+      let textContent = null;
+      if ((layer as any).getElement) {
+        const element = (layer as any).getElement();
+        textContent = element?.querySelector('.lagekarte-text-marker')?.textContent || element?.textContent;
+      }
+
       // Find shape by layer
       const shapeId = updatedGeoJson.properties?.id;
       if (!shapeId) return;
@@ -295,7 +365,20 @@ const DrawingLayerComponent: React.FC<DrawingLayerProps> = ({
       // Update shape in collection (use shapesRef.current)
       const updatedShapes: GeoJSON.FeatureCollection = {
         type: 'FeatureCollection',
-        features: shapesRef.current.features.map((feature) => (feature.properties?.id === shapeId ? { ...feature, geometry: updatedGeoJson.geometry } : feature)),
+        features: shapesRef.current.features.map((feature) => {
+          if (feature.properties?.id === shapeId) {
+            return {
+              ...feature,
+              geometry: updatedGeoJson.geometry,
+              properties: {
+                ...feature.properties,
+                // Update text property if this is a Text marker
+                ...(textContent && { text: textContent }),
+              },
+            };
+          }
+          return feature;
+        }),
       };
       setShapes(updatedShapes);
       onShapesChange(updatedShapes);
