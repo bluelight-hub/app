@@ -1,6 +1,14 @@
 import { useMutation, useQuery, useQueryClient, type UseMutationResult, type UseQueryResult } from '@tanstack/react-query';
-import type { CreatePoiDto, LagekarteControllerGetLagekarteVAlpha200Response, PoiControllerGetPoisVAlpha200Response, PoiResponseDto, UpdatePoiDto } from '@bluelight-hub/shared/client';
+import type {
+  CreatePoiDto,
+  LagekarteControllerGetLagekarteVAlpha200Response,
+  PoiControllerGetPoisVAlpha200Response,
+  PoiResponseDto,
+  SaveLagekarteStateDto,
+  UpdatePoiDto,
+} from '@bluelight-hub/shared/client';
 import { api } from '../api';
+import type * as GeoJSON from 'geojson';
 
 /**
  * TanStack Query Hook zum Abrufen aller POIs einer Lagekarte
@@ -169,6 +177,64 @@ export const useDeletePoi = (): UseMutationResult<PoiResponseDto, Error, { id: s
     onSuccess: (_data, variables) => {
       // Invalidate POI-Liste um Neuabfrage zu triggern
       queryClient.invalidateQueries({ queryKey: ['pois', variables.einsatzId] });
+    },
+  });
+};
+
+/**
+ * TanStack Mutation Hook zum Speichern des Lagekarte-State (GeoJSON)
+ *
+ * @param einsatzId - Die ID des Einsatzes (für Query Invalidation)
+ * @returns Mutation result mit mutate-Funktion, Loading- und Error-State
+ *
+ * @remarks
+ * - Verwendet TanStack Query Mutation für State-Persistierung
+ * - State enthält GeoJSON FeatureCollection mit Zeichnungen (Polygone, Linien, Rechtecke)
+ * - Nach erfolgreicher Speicherung wird die Lagekarte-Query neu gefetcht (invalidateQueries)
+ * - OnSuccess: Invalidiert `['lagekarte', einsatzId]` Query
+ * - Security: Validiert GeoJSON-Struktur und Payload-Größe (max 2MB)
+ *
+ * @example
+ * ```tsx
+ * const saveLagekarteStateMutation = useSaveLagekarteState('einsatz-123');
+ *
+ * saveLagekarteStateMutation.mutate({
+ *   type: 'FeatureCollection',
+ *   features: [...shapes]
+ * });
+ * ```
+ */
+export const useSaveLagekarteState = (einsatzId: string): UseMutationResult<LagekarteControllerGetLagekarteVAlpha200Response, Error, GeoJSON.FeatureCollection> => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (state: GeoJSON.FeatureCollection) => {
+      // Validate GeoJSON structure
+      if (!state || state.type !== 'FeatureCollection' || !Array.isArray(state.features)) {
+        throw new Error('Invalid GeoJSON FeatureCollection');
+      }
+
+      // Validate payload size (max 2MB)
+      const payloadSize = JSON.stringify(state).length;
+      const MAX_PAYLOAD_SIZE = 2 * 1024 * 1024; // 2MB
+      if (payloadSize > MAX_PAYLOAD_SIZE) {
+        throw new Error(`Payload zu groß: ${Math.round(payloadSize / 1024)}KB (max 2MB)`);
+      }
+
+      // Call API
+      const dto: SaveLagekarteStateDto = {
+        einsatzId,
+        state: state as unknown as object, // Type assertion (API erwartet object)
+      };
+
+      return await api.lagekarte().lagekarteControllerSaveLagekarteStateVAlpha({
+        einsatzId,
+        saveLagekarteStateDto: dto,
+      });
+    },
+    onSuccess: () => {
+      // Invalidate Lagekarte-Query um Neuabfrage zu triggern
+      queryClient.invalidateQueries({ queryKey: ['lagekarte', einsatzId] });
     },
   });
 };

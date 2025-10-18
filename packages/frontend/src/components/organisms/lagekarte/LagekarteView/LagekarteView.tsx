@@ -3,16 +3,21 @@ import { Spinner } from '@/components/atoms/spinner.atom';
 import { useColorMode } from '@/hooks/use-color-mode';
 import { cn } from '@/utils/cn';
 import type React from 'react';
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
 import { PiWarning } from 'react-icons/pi';
 import { MapContainer, TileLayer, useMapEvents } from 'react-leaflet';
 import { PoiLayer } from '../layers/PoiLayer';
-import { useLagekarte, usePois } from '@/api/hooks/useLagekarteApi';
+import { DrawingLayer } from '../layers/DrawingLayer';
+import { useLagekarte, usePois, useSaveLagekarteState } from '@/api/hooks/useLagekarteApi';
 import { useMapBounds } from './useMapBounds';
 import { usePlacementMode } from './usePlacementMode';
 import { PoiPlacementControl } from '../controls/PoiPlacementControl';
 import { PoiPlacementModal } from '../modals/PoiPlacementModal';
+import { ShapeLabelModal } from '../modals/ShapeLabelModal';
+import { DrawingToolbar, type DrawingTool } from '../toolbar/DrawingToolbar';
+import { LayerToggle, type Layer } from '@/components/molecules/lagekarte/LayerToggle/LayerToggle';
 import type { PoiType } from '@/utils/poi-icons';
+import type * as GeoJSON from 'geojson';
 import './lagekarte-view.css';
 
 /**
@@ -94,8 +99,22 @@ export const LagekarteView: React.FC<LagekarteViewProps> = ({ einsatzId }) => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [clickedCoordinates, setClickedCoordinates] = useState<{ lat: number; lon: number } | null>(null);
 
-  // Lagekarte-Daten (für lagekarteId)
+  // Drawing State
+  const [selectedDrawingTool, setSelectedDrawingTool] = useState<DrawingTool>(null);
+  const [isShapeLabelModalOpen, setIsShapeLabelModalOpen] = useState(false);
+  const [currentShape, setCurrentShape] = useState<GeoJSON.Feature | null>(null);
+
+  // Layer-Visibility State
+  const [layers, setLayers] = useState<Layer[]>([
+    { name: 'poi', label: 'POI-Marker', visible: true },
+    { name: 'drawing', label: 'Zeichnungen', visible: true },
+  ]);
+
+  // Lagekarte-Daten (für lagekarteId + State)
   const { data: lagekarteData } = useLagekarte(einsatzId);
+
+  // Save Lagekarte-State Mutation
+  const saveLagekarteStateMutation = useSaveLagekarteState(einsatzId);
 
   // Tile-URL basierend auf Theme
   const tileUrl = resolvedColorMode === 'dark' ? 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}.png' : 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png';
@@ -151,6 +170,51 @@ export const LagekarteView: React.FC<LagekarteViewProps> = ({ einsatzId }) => {
     deactivatePlacementMode();
   };
 
+  /**
+   * Handler wenn Drawing-Tool aus Toolbar ausgewählt wird
+   */
+  const handleDrawingToolSelect = useCallback((tool: DrawingTool) => {
+    setSelectedDrawingTool(tool);
+  }, []);
+
+  /**
+   * Handler wenn Shapes sich ändern (für Backend-Persistierung)
+   */
+  const handleShapesChange = useCallback(
+    (shapes: GeoJSON.FeatureCollection) => {
+      // Save to backend (debounced by mutation)
+      saveLagekarteStateMutation.mutate(shapes);
+    },
+    [saveLagekarteStateMutation],
+  );
+
+  /**
+   * Handler wenn neuer Shape erstellt wurde (öffnet Label-Modal)
+   */
+  const handleShapeCreated = useCallback((shape: GeoJSON.Feature) => {
+    setCurrentShape(shape);
+    setIsShapeLabelModalOpen(true);
+  }, []);
+
+  /**
+   * Handler wenn Shape-Label gespeichert wird
+   */
+  const handleShapeLabelSave = useCallback((_label: string, _type: string) => {
+    // TODO: Apply updated styles based on type
+    // This will be handled in DrawingLayer when shapes are loaded
+    // For now, just close the modal - the shape is already saved via onShapesChange
+
+    setIsShapeLabelModalOpen(false);
+    setCurrentShape(null);
+  }, []);
+
+  /**
+   * Handler für Layer-Toggle
+   */
+  const handleLayerToggle = useCallback((layerName: string) => {
+    setLayers((prevLayers) => prevLayers.map((layer) => (layer.name === layerName ? { ...layer, visible: !layer.visible } : layer)));
+  }, []);
+
   // Error-State anzeigen
   if (hasError) {
     return (
@@ -187,17 +251,26 @@ export const LagekarteView: React.FC<LagekarteViewProps> = ({ einsatzId }) => {
         <PoiPlacementModal isOpen={isModalOpen} onClose={handleModalClose} poiType={selectedType} coordinates={clickedCoordinates} einsatzId={einsatzId} lagekarteId={lagekarteData.data.id} />
       )}
 
+      {/* Shape-Label-Modal */}
+      <ShapeLabelModal isOpen={isShapeLabelModalOpen} onClose={() => setIsShapeLabelModalOpen(false)} shape={currentShape} onSave={handleShapeLabelSave} />
+
       {/* Karten-Container */}
       <div
         className={cn(
           'w-full',
           'h-[calc(100vh-120px)] md:h-[600px]', // Mobile: full viewport, Desktop: fixed height
           'overflow-hidden rounded-lg',
-          'relative', // For loading overlay + POI-Control positioning
+          'relative', // For loading overlay + Controls positioning
         )}
       >
         {/* POI-Platzierungs-Control (inside map container, positioned relative to map) */}
         <PoiPlacementControl onPoiTypeSelect={handlePoiTypeSelect} onCancel={deactivatePlacementMode} selectedType={selectedType} isPlacementActive={isPlacementActive} isModalOpen={isModalOpen} />
+
+        {/* Drawing-Toolbar */}
+        <DrawingToolbar onToolSelect={handleDrawingToolSelect} selectedTool={selectedDrawingTool} />
+
+        {/* Layer-Toggle */}
+        <LayerToggle layers={layers} onToggle={handleLayerToggle} />
 
         {isLoading && (
           <div className="absolute inset-0 z-30 flex items-center justify-center bg-white/80 dark:bg-gray-900/80">
@@ -207,6 +280,7 @@ export const LagekarteView: React.FC<LagekarteViewProps> = ({ einsatzId }) => {
         <MapContainer
           center={defaultCenter}
           zoom={defaultZoom}
+          preferCanvas={true}
           className={cn('h-full w-full', isPlacementActive && 'placement-active')}
           scrollWheelZoom={true}
           whenReady={() => setIsLoading(false)}
@@ -215,7 +289,15 @@ export const LagekarteView: React.FC<LagekarteViewProps> = ({ einsatzId }) => {
           <TileLayer url={tileUrl} attribution={attribution} />
           <TileErrorHandler onError={handleTileError} />
           <MapClickHandler isPlacementActive={isPlacementActive} selectedType={selectedType} onMapClick={handleMapClick} />
-          <PoiLayer einsatzId={einsatzId} />
+
+          {/* POI-Layer (conditionally rendered based on layer visibility) */}
+          {layers.find((l) => l.name === 'poi')?.visible && <PoiLayer einsatzId={einsatzId} />}
+
+          {/* Drawing-Layer (conditionally rendered based on layer visibility) */}
+          {layers.find((l) => l.name === 'drawing')?.visible && (
+            <DrawingLayer einsatzId={einsatzId} selectedTool={selectedDrawingTool} onShapesChange={handleShapesChange} onShapeCreated={handleShapeCreated} />
+          )}
+
           <MapBoundsController einsatzId={einsatzId} />
         </MapContainer>
       </div>
