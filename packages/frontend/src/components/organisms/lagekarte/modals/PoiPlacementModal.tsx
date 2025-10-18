@@ -1,8 +1,9 @@
-import { Dialog, DialogBackdrop, DialogPanel, DialogTitle } from '@headlessui/react';
 import { Button } from '@/components/atoms/button.atom';
 import { Input } from '@/components/atoms/input.atom';
 import { Spinner } from '@/components/atoms/spinner.atom';
+import { formatPoiTypeLabel } from '@/utils/formatPoiTypeLabel';
 import { POI_ICON_MAP, type PoiType } from '@/utils/poi-icons';
+import { Dialog, DialogBackdrop, DialogPanel, DialogTitle } from '@headlessui/react';
 import type React from 'react';
 import { PiX } from 'react-icons/pi';
 import { usePoiForm } from './usePoiForm';
@@ -91,7 +92,7 @@ export const PoiPlacementModal: React.FC<PoiPlacementModalProps> = ({ isOpen, on
   const iconConfig = POI_ICON_MAP[poiType];
 
   return (
-    <Dialog open={isOpen} onClose={onClose} className="relative z-50">
+    <Dialog open={isOpen} onClose={onClose} className="relative z-[9999]">
       {/* Backdrop */}
       <DialogBackdrop className="fixed inset-0 bg-black/30 backdrop-blur-sm transition-opacity" />
 
@@ -216,7 +217,7 @@ export const PoiPlacementModal: React.FC<PoiPlacementModalProps> = ({ isOpen, on
 
             {/* Buttons */}
             <div className="flex items-center justify-end gap-3 pt-4">
-              <Button intent="secondary" appearance="outlined" size="md" onClick={onClose} disabled={isLoading}>
+              <Button intent="secondary" appearance="outline" size="md" onClick={onClose} disabled={isLoading}>
                 Abbrechen
               </Button>
 
@@ -236,14 +237,4 @@ export const PoiPlacementModal: React.FC<PoiPlacementModalProps> = ({ isOpen, on
       </div>
     </Dialog>
   );
-};
-
-/**
- * Formatiert POI-Typ zu lesbarem Label
- */
-const formatPoiTypeLabel = (type: PoiType): string => {
-  return type
-    .split('_')
-    .map((word) => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
-    .join(' ');
 };
