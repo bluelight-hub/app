@@ -114,7 +114,7 @@ export const DrawingToolbar: React.FC<DrawingToolbarProps> = ({ onToolSelect, se
   return (
     <>
       {/* Desktop: Vertical Sidebar (left side, below POI-Toolbar) */}
-      <div className="absolute top-[28rem] left-4 z-50 hidden flex-col gap-2 md:flex">
+      <div className="absolute top-40 left-4 z-50 hidden flex-col gap-2 md:flex">
         <div className="rounded-lg border border-gray-300 bg-white p-2 shadow-md dark:border-gray-600 dark:bg-gray-800">
           {/* Header */}
           <div className="mb-2 px-2 py-1">
