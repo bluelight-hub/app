@@ -1,10 +1,11 @@
-import { Menu, MenuButton, MenuItem, MenuItems } from '@headlessui/react';
-import { Button } from '@/components/atoms/button.atom';
+import { cn } from '@/utils/cn';
+import { formatPoiTypeLabel } from '@/utils/formatPoiTypeLabel';
 import { POI_ICON_MAP, type PoiType } from '@/utils/poi-icons';
+import { Button } from '@atoms/button.atom';
+import { Menu, MenuButton, MenuItem, MenuItems } from '@headlessui/react';
 import type React from 'react';
 import { useState } from 'react';
 import { PiCaretDown, PiMapPin, PiX } from 'react-icons/pi';
-import { cn } from '@/utils/cn';
 
 interface PoiPlacementControlProps {
   /**
@@ -100,20 +101,19 @@ export const PoiPlacementControl: React.FC<PoiPlacementControlProps> = ({ onPoiT
     const isActive = selectedType === type;
 
     return (
-      <button
-        type="button"
+      <Button
         key={type}
         onClick={() => handlePoiTypeSelect(type)}
+        intent={isActive ? 'info' : 'secondary'}
+        appearance={isActive ? 'filled' : 'ghost'}
+        size="sm"
+        fullWidth
         className={cn(
-          // Base styles
-          'flex w-full items-center gap-2 rounded-lg px-3 py-2.5 text-left transition-all duration-200',
-          'font-medium text-sm',
-          // Hover
-          'hover:scale-[1.02] hover:shadow-md',
-          // Active state (blue glow)
-          isActive
-            ? 'bg-blue-500 text-white shadow-lg shadow-blue-500/50 ring-2 ring-blue-400 dark:bg-blue-600 dark:ring-blue-500'
-            : 'bg-white text-gray-900 hover:bg-gray-50 dark:bg-gray-800 dark:text-gray-100 dark:hover:bg-gray-700',
+          'justify-start gap-2 text-left',
+          // Active state enhancements (blue glow)
+          isActive && 'shadow-blue-500/50 shadow-lg ring-2 ring-blue-400 dark:ring-blue-500',
+          // Hover scale animation
+          'hover:scale-[1.02]',
         )}
         aria-label={`POI-Typ auswählen: ${type}`}
         aria-pressed={isActive}
@@ -123,7 +123,7 @@ export const PoiPlacementControl: React.FC<PoiPlacementControlProps> = ({ onPoiT
 
         {/* Label */}
         <span>{formatPoiTypeLabel(type)}</span>
-      </button>
+      </Button>
     );
   };
 
@@ -152,19 +152,18 @@ export const PoiPlacementControl: React.FC<PoiPlacementControlProps> = ({ onPoiT
           {isPlacementActive && selectedType ? (
             <div className="p-2">
               {/* Abbrechen-Button */}
-              <button
-                type="button"
+              <Button
                 onClick={handleCancel}
-                className={cn(
-                  'flex w-full items-center gap-2 rounded-lg px-3 py-2.5 text-left transition-all duration-200',
-                  'bg-red-500 font-semibold text-sm text-white shadow-md hover:scale-[1.02] hover:bg-red-600 hover:shadow-lg',
-                  'dark:bg-red-600 dark:hover:bg-red-700',
-                )}
+                intent="danger"
+                appearance="filled"
+                size="sm"
+                fullWidth
+                className={cn('justify-start gap-2 font-semibold shadow-md hover:scale-[1.02] hover:shadow-lg')}
                 aria-label="Platzierung abbrechen"
               >
                 <PiX size={20} aria-hidden="true" />
                 <span>Abbrechen</span>
-              </button>
+              </Button>
 
               {/* Ausgewählte Kategorie (anzeigen) */}
               <div className="mt-2 rounded-lg border-2 border-blue-500 bg-blue-50 px-3 py-2 dark:border-blue-400 dark:bg-blue-900/50">
@@ -186,34 +185,19 @@ export const PoiPlacementControl: React.FC<PoiPlacementControlProps> = ({ onPoiT
             <>
               {/* Collapsed State: Nur "POI platzieren" Button */}
               {!isExpanded ? (
-                <button
-                  type="button"
-                  onClick={handleToggleExpand}
-                  className={cn(
-                    'flex w-full items-center justify-center gap-2 rounded-xl px-4 py-3 transition-all duration-200',
-                    'bg-gradient-to-r from-blue-500 to-blue-600 font-semibold text-white shadow-lg hover:scale-[1.02] hover:from-blue-600 hover:to-blue-700 hover:shadow-xl',
-                    'dark:from-blue-600 dark:to-blue-700 dark:hover:from-blue-700 dark:hover:to-blue-800',
-                  )}
-                  aria-label="POI platzieren"
-                  aria-expanded={isExpanded}
-                >
+                <Button onClick={handleToggleExpand} intent="secondary" size="md" fullWidth aria-label="POI platzieren" aria-expanded={isExpanded}>
                   <PiMapPin size={20} aria-hidden="true" />
                   <span>POI platzieren</span>
-                </button>
+                </Button>
               ) : (
                 /* Expanded State: POI-Kategorien */
                 <div className="p-2">
                   {/* Header mit Schließen-Button */}
                   <div className="mb-2 flex items-center justify-between px-1">
                     <span className="font-semibold text-gray-900 text-sm dark:text-gray-100">POI-Typ wählen</span>
-                    <button
-                      type="button"
-                      onClick={handleToggleExpand}
-                      className="rounded-lg p-1 text-gray-500 transition-colors hover:bg-gray-100 hover:text-gray-900 dark:text-gray-400 dark:hover:bg-gray-800 dark:hover:text-gray-100"
-                      aria-label="Kategorien schließen"
-                    >
+                    <Button onClick={handleToggleExpand} intent="secondary" appearance="ghost" size="icon" className="p-1" aria-label="Kategorien schließen">
                       <PiX size={18} aria-hidden="true" />
-                    </button>
+                    </Button>
                   </div>
 
                   {/* Häufige POI-Typen */}
@@ -237,7 +221,7 @@ export const PoiPlacementControl: React.FC<PoiPlacementControlProps> = ({ onPoiT
                           <PiCaretDown className={cn('h-4 w-4 transition-transform duration-200', open && 'rotate-180')} aria-hidden="true" />
                         </MenuButton>
 
-                        <MenuItems className="absolute top-full left-0 right-0 z-50 mt-1 origin-top-left rounded-lg border border-gray-200 bg-white p-1 shadow-xl transition focus:outline-none dark:border-gray-700 dark:bg-gray-800">
+                        <MenuItems className="absolute top-full left-0 right-0 z-30 mt-1 origin-top-left rounded-lg border border-gray-200 bg-white p-1 shadow-xl transition focus:outline-none dark:border-gray-700 dark:bg-gray-800">
                           {extendedTypes.map((type) => {
                             const config = POI_ICON_MAP[type];
                             const isActive = selectedType === type;
@@ -245,12 +229,14 @@ export const PoiPlacementControl: React.FC<PoiPlacementControlProps> = ({ onPoiT
                             return (
                               <MenuItem key={type}>
                                 {({ focus }) => (
-                                  <button
-                                    type="button"
+                                  <Button
                                     onClick={() => handlePoiTypeSelect(type)}
+                                    intent={isActive ? 'info' : 'secondary'}
+                                    appearance="ghost"
+                                    size="sm"
+                                    fullWidth
                                     className={cn(
-                                      'flex w-full items-center gap-2 rounded-lg px-3 py-2 text-left transition-all duration-200',
-                                      'font-medium text-sm',
+                                      'justify-start gap-2 text-left font-medium',
                                       focus && 'bg-gray-50 dark:bg-gray-700',
                                       isActive && 'bg-blue-50 text-blue-900 dark:bg-blue-900/50 dark:text-blue-100',
                                     )}
@@ -258,7 +244,7 @@ export const PoiPlacementControl: React.FC<PoiPlacementControlProps> = ({ onPoiT
                                   >
                                     <config.Icon size={18} color={config.color} aria-hidden="true" />
                                     <span>{formatPoiTypeLabel(type)}</span>
-                                  </button>
+                                  </Button>
                                 )}
                               </MenuItem>
                             );
@@ -290,19 +276,10 @@ export const PoiPlacementControl: React.FC<PoiPlacementControlProps> = ({ onPoiT
           {isPlacementActive && selectedType ? (
             <div className="flex flex-col gap-2">
               {/* Abbrechen-Button */}
-              <button
-                type="button"
-                onClick={handleCancel}
-                className={cn(
-                  'flex w-full items-center justify-center gap-2 rounded-lg px-4 py-3 transition-all duration-200',
-                  'bg-red-500 font-semibold text-white shadow-md hover:bg-red-600',
-                  'dark:bg-red-600 dark:hover:bg-red-700',
-                )}
-                aria-label="Platzierung abbrechen"
-              >
+              <Button onClick={handleCancel} intent="danger" appearance="filled" size="md" fullWidth className={cn('gap-2 font-semibold shadow-md')} aria-label="Platzierung abbrechen">
                 <PiX size={22} aria-hidden="true" />
                 <span>Abbrechen</span>
-              </button>
+              </Button>
 
               {/* Ausgewählte Kategorie */}
               <div className="rounded-lg border-2 border-blue-500 bg-blue-50 px-3 py-2 dark:border-blue-400 dark:bg-blue-900/50">
@@ -372,17 +349,4 @@ export const PoiPlacementControl: React.FC<PoiPlacementControlProps> = ({ onPoiT
       </div>
     </>
   );
-};
-
-/**
- * Formatiert POI-Typ zu lesbarem Label
- *
- * @param type - POI-Typ
- * @returns Formatiertes Label (z.B. "EINSATZORT" → "Einsatzort")
- */
-const formatPoiTypeLabel = (type: PoiType): string => {
-  return type
-    .split('_')
-    .map((word) => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
-    .join(' ');
 };
