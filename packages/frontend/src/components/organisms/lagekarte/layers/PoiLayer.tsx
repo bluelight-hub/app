@@ -205,7 +205,7 @@ export const PoiLayer: React.FC<PoiLayerProps> = React.memo(({ einsatzId }) => {
       })}
 
       {/* Delete Confirmation Dialog */}
-      <Dialog open={deleteDialogOpen} onClose={handleDeleteCancel} className="relative z-50">
+      <Dialog open={deleteDialogOpen} onClose={handleDeleteCancel} className="relative z-[9999]">
         <DialogBackdrop className="fixed inset-0 bg-black/30 backdrop-blur-sm transition-opacity" />
 
         <div className="fixed inset-0 flex items-center justify-center p-4">
