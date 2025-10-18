@@ -17,6 +17,7 @@ import { ShapeLabelModal } from '../modals/ShapeLabelModal';
 import { DrawingToolbar, type DrawingTool } from '../toolbar/DrawingToolbar';
 import { LayerToggle, type Layer } from '@/components/molecules/lagekarte/LayerToggle/LayerToggle';
 import type { PoiType } from '@/utils/poi-icons';
+import type { ShapeType } from '@/utils/drawing-styles';
 import type * as GeoJSON from 'geojson';
 import { toast } from 'sonner';
 import './lagekarte-view.css';
@@ -211,7 +212,7 @@ export const LagekarteView: React.FC<LagekarteViewProps> = ({ einsatzId }) => {
    * Handler wenn Shape-Label gespeichert wird
    */
   const handleShapeLabelSave = useCallback(
-    (label: string, type: string) => {
+    (label: string, type: ShapeType) => {
       if (!currentShape) return;
 
       // Update shape properties with label and type
@@ -285,7 +286,7 @@ export const LagekarteView: React.FC<LagekarteViewProps> = ({ einsatzId }) => {
       )}
 
       {/* Shape-Label-Modal */}
-      <ShapeLabelModal isOpen={isShapeLabelModalOpen} onClose={() => setIsShapeLabelModalOpen(false)} shape={currentShape} onSave={handleShapeLabelSave} />
+      {isShapeLabelModalOpen && currentShape && <ShapeLabelModal isOpen={isShapeLabelModalOpen} onClose={() => setIsShapeLabelModalOpen(false)} shape={currentShape} onSave={handleShapeLabelSave} />}
 
       {/* Karten-Container */}
       <div
