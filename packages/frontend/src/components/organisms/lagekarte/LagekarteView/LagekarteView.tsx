@@ -18,6 +18,7 @@ import { DrawingToolbar, type DrawingTool } from '../toolbar/DrawingToolbar';
 import { LayerToggle, type Layer } from '@/components/molecules/lagekarte/LayerToggle/LayerToggle';
 import type { PoiType } from '@/utils/poi-icons';
 import type * as GeoJSON from 'geojson';
+import { toast } from 'sonner';
 import './lagekarte-view.css';
 
 /**
@@ -103,6 +104,7 @@ export const LagekarteView: React.FC<LagekarteViewProps> = ({ einsatzId }) => {
   const [selectedDrawingTool, setSelectedDrawingTool] = useState<DrawingTool>(null);
   const [isShapeLabelModalOpen, setIsShapeLabelModalOpen] = useState(false);
   const [currentShape, setCurrentShape] = useState<GeoJSON.Feature | null>(null);
+  const [shapeToUpdate, setShapeToUpdate] = useState<GeoJSON.Feature | null>(null);
 
   // Layer-Visibility State
   const [layers, setLayers] = useState<Layer[]>([
@@ -197,15 +199,46 @@ export const LagekarteView: React.FC<LagekarteViewProps> = ({ einsatzId }) => {
   }, []);
 
   /**
+   * Handler wenn Shape-Limit erreicht wird
+   */
+  const handleShapeLimitReached = useCallback(() => {
+    toast.error('Maximale Anzahl erreicht', {
+      description: 'Es können maximal 100 Zeichnungen pro Lagekarte erstellt werden.',
+    });
+  }, []);
+
+  /**
    * Handler wenn Shape-Label gespeichert wird
    */
-  const handleShapeLabelSave = useCallback((_label: string, _type: string) => {
-    // TODO: Apply updated styles based on type
-    // This will be handled in DrawingLayer when shapes are loaded
-    // For now, just close the modal - the shape is already saved via onShapesChange
+  const handleShapeLabelSave = useCallback(
+    (label: string, type: string) => {
+      if (!currentShape) return;
 
-    setIsShapeLabelModalOpen(false);
-    setCurrentShape(null);
+      // Update shape properties with label and type
+      const updatedShape: GeoJSON.Feature = {
+        ...currentShape,
+        properties: {
+          ...currentShape.properties,
+          label,
+          type,
+        },
+      };
+
+      // Trigger shape update in DrawingLayer
+      setShapeToUpdate(updatedShape);
+
+      // Close modal
+      setIsShapeLabelModalOpen(false);
+      setCurrentShape(null);
+    },
+    [currentShape],
+  );
+
+  /**
+   * Handler wenn Shape-Update abgeschlossen ist
+   */
+  const handleShapeUpdateComplete = useCallback(() => {
+    setShapeToUpdate(null);
   }, []);
 
   /**
@@ -294,8 +327,17 @@ export const LagekarteView: React.FC<LagekarteViewProps> = ({ einsatzId }) => {
           {layers.find((l) => l.name === 'poi')?.visible && <PoiLayer einsatzId={einsatzId} />}
 
           {/* Drawing-Layer (conditionally rendered based on layer visibility) */}
-          {layers.find((l) => l.name === 'drawing')?.visible && (
-            <DrawingLayer einsatzId={einsatzId} selectedTool={selectedDrawingTool} onShapesChange={handleShapesChange} onShapeCreated={handleShapeCreated} />
+          {layers.find((l) => l.name === 'drawing')?.visible && lagekarteData?.data && (
+            <DrawingLayer
+              einsatzId={einsatzId}
+              selectedTool={selectedDrawingTool}
+              initialState={lagekarteData.data.state as GeoJSON.FeatureCollection | undefined}
+              shapeToUpdate={shapeToUpdate}
+              onShapesChange={handleShapesChange}
+              onShapeCreated={handleShapeCreated}
+              onShapeLimitReached={handleShapeLimitReached}
+              onShapeUpdateComplete={handleShapeUpdateComplete}
+            />
           )}
 
           <MapBoundsController einsatzId={einsatzId} />
