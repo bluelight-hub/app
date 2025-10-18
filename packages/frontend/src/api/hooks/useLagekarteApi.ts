@@ -1,5 +1,5 @@
-import { useQuery, type UseQueryResult } from '@tanstack/react-query';
-import type { LagekarteControllerGetLagekarteVAlpha200Response, PoiControllerGetPoisVAlpha200Response, PoiResponseDto } from '@bluelight-hub/shared/client';
+import { useMutation, useQuery, useQueryClient, type UseMutationResult, type UseQueryResult } from '@tanstack/react-query';
+import type { CreatePoiDto, LagekarteControllerGetLagekarteVAlpha200Response, PoiControllerGetPoisVAlpha200Response, PoiResponseDto, UpdatePoiDto } from '@bluelight-hub/shared/client';
 import { api } from '../api';
 
 /**
@@ -59,5 +59,116 @@ export const useLagekarte = (einsatzId: string): UseQueryResult<LagekarteControl
       return await api.lagekarte().lagekarteControllerGetLagekarteVAlpha({ einsatzId });
     },
     enabled: !!einsatzId, // Nur fetchen wenn einsatzId vorhanden
+  });
+};
+
+/**
+ * TanStack Mutation Hook zum Erstellen eines POI
+ *
+ * @param einsatzId - Die ID des Einsatzes (für Query Invalidation)
+ * @returns Mutation result mit mutate-Funktion, Loading- und Error-State
+ *
+ * @remarks
+ * - Verwendet TanStack Query Mutation für optimistic updates
+ * - Nach erfolgreicher Erstellung wird die POI-Liste neu gefetcht (invalidateQueries)
+ * - Mutation Key: keine (einmaliger API-Call)
+ * - OnSuccess: Invalidiert `['pois', einsatzId]` Query
+ *
+ * @example
+ * ```tsx
+ * const createPoiMutation = useCreatePoi('einsatz-123');
+ *
+ * createPoiMutation.mutate({
+ *   lagekarteId: 'lagekarte-456',
+ *   type: 'FAHRZEUG',
+ *   name: 'Fahrzeug 1',
+ *   latitude: 51.1,
+ *   longitude: 10.1,
+ * });
+ * ```
+ */
+export const useCreatePoi = (einsatzId: string): UseMutationResult<PoiResponseDto, Error, CreatePoiDto> => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (data: CreatePoiDto) => {
+      const response = await api.poi().poiControllerCreatePoiVAlpha({ createPoiDto: data });
+      return response.data;
+    },
+    onSuccess: () => {
+      // Invalidate POI-Liste um Neuabfrage zu triggern
+      queryClient.invalidateQueries({ queryKey: ['pois', einsatzId] });
+    },
+  });
+};
+
+/**
+ * TanStack Mutation Hook zum Aktualisieren eines POI
+ *
+ * @returns Mutation result mit mutate-Funktion, Loading- und Error-State
+ *
+ * @remarks
+ * - Mutation-Data enthält `{ id: string, einsatzId: string, data: UpdatePoiDto }`
+ * - Nach Update wird die POI-Liste invalidiert (automatischer Refetch)
+ * - OnSuccess: Invalidiert `['pois', einsatzId]` Query
+ *
+ * @example
+ * ```tsx
+ * const updatePoiMutation = useUpdatePoi();
+ *
+ * updatePoiMutation.mutate({
+ *   id: 'poi-123',
+ *   einsatzId: 'einsatz-456',
+ *   data: { latitude: 51.2, longitude: 10.2 },
+ * });
+ * ```
+ */
+export const useUpdatePoi = (): UseMutationResult<PoiResponseDto, Error, { id: string; einsatzId: string; data: UpdatePoiDto }> => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({ id, data }) => {
+      const response = await api.poi().poiControllerUpdatePoiVAlpha({ poiId: id, updatePoiDto: data });
+      return response.data;
+    },
+    onSuccess: (_data, variables) => {
+      // Invalidate POI-Liste um Neuabfrage zu triggern
+      queryClient.invalidateQueries({ queryKey: ['pois', variables.einsatzId] });
+    },
+  });
+};
+
+/**
+ * TanStack Mutation Hook zum Löschen eines POI
+ *
+ * @returns Mutation result mit mutate-Funktion, Loading- und Error-State
+ *
+ * @remarks
+ * - Mutation-Data enthält `{ id: string, einsatzId: string }`
+ * - Nach Löschen wird die POI-Liste invalidiert (automatischer Refetch)
+ * - OnSuccess: Invalidiert `['pois', einsatzId]` Query
+ *
+ * @example
+ * ```tsx
+ * const deletePoiMutation = useDeletePoi();
+ *
+ * deletePoiMutation.mutate({
+ *   id: 'poi-123',
+ *   einsatzId: 'einsatz-456',
+ * });
+ * ```
+ */
+export const useDeletePoi = (): UseMutationResult<PoiResponseDto, Error, { id: string; einsatzId: string }> => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({ id }) => {
+      const response = await api.poi().poiControllerDeletePoiVAlphaRaw({ poiId: id });
+      return (await response.value()).data;
+    },
+    onSuccess: (_data, variables) => {
+      // Invalidate POI-Liste um Neuabfrage zu triggern
+      queryClient.invalidateQueries({ queryKey: ['pois', variables.einsatzId] });
+    },
   });
 };

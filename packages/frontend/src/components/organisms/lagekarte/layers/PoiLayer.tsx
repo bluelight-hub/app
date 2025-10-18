@@ -1,9 +1,13 @@
-import { usePois } from '@/api/hooks/useLagekarteApi';
+import { useDeletePoi, usePois, useUpdatePoi } from '@/api/hooks/useLagekarteApi';
+import { Button } from '@/components/atoms/button.atom';
 import { Spinner } from '@/components/atoms/spinner.atom';
 import { getPoiIcon } from '@/utils/poi-icons';
-import React, { useMemo } from 'react';
-import { PiWarning, PiXCircle } from 'react-icons/pi';
+import { Dialog, DialogBackdrop, DialogPanel, DialogTitle } from '@headlessui/react';
+import React, { useMemo, useState } from 'react';
+import { PiTrash, PiWarning, PiXCircle } from 'react-icons/pi';
 import { Marker, Popup } from 'react-leaflet';
+import type { LeafletMouseEvent } from 'leaflet';
+import type { PoiResponseDto } from '@bluelight-hub/shared/client';
 
 interface PoiLayerProps {
   einsatzId: string;
@@ -34,6 +38,12 @@ interface PoiLayerProps {
  */
 export const PoiLayer: React.FC<PoiLayerProps> = React.memo(({ einsatzId }) => {
   const { data: pois, isLoading, error } = usePois(einsatzId);
+  const updatePoiMutation = useUpdatePoi();
+  const deletePoiMutation = useDeletePoi();
+
+  // Delete Confirmation Dialog State
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [poiToDelete, setPoiToDelete] = useState<PoiResponseDto | null>(null);
 
   // Berechne gültige und ungültige POIs (Performance-optimiert mit useMemo)
   // WICHTIG: Muss VOR allen early returns stehen (React Hooks Rules)
@@ -85,6 +95,67 @@ export const PoiLayer: React.FC<PoiLayerProps> = React.memo(({ einsatzId }) => {
     return null;
   }
 
+  /**
+   * Handler für Drag-End-Event (POI verschieben)
+   * @param e - Leaflet Drag-End Event
+   * @param poiId - ID des POI der verschoben wurde
+   */
+  const handleDragEnd = (e: LeafletMouseEvent, poiId: string) => {
+    const marker = e.target;
+    const { lat, lng } = marker.getLatLng();
+
+    // Update POI mit neuen Koordinaten
+    updatePoiMutation.mutate({
+      id: poiId,
+      einsatzId,
+      data: {
+        latitude: lat,
+        longitude: lng,
+      },
+    });
+
+    // TODO: Show toast notification "POI verschoben" (Task 10)
+    console.log(`POI ${poiId} verschoben zu: ${lat}, ${lng}`);
+  };
+
+  /**
+   * Handler für Rechtsklick auf POI (Löschen-Dialog öffnen)
+   * @param e - Leaflet Mouse Event
+   * @param poi - POI der gelöscht werden soll
+   */
+  const handleRightClick = (e: LeafletMouseEvent, poi: PoiResponseDto) => {
+    e.originalEvent.preventDefault(); // Verhindere natives Context-Menü
+    setPoiToDelete(poi);
+    setDeleteDialogOpen(true);
+  };
+
+  /**
+   * Handler für POI-Löschen (nach Bestätigung)
+   */
+  const handleDeleteConfirm = () => {
+    if (!poiToDelete) return;
+
+    deletePoiMutation.mutate({
+      id: poiToDelete.id,
+      einsatzId,
+    });
+
+    // Dialog schließen
+    setDeleteDialogOpen(false);
+    setPoiToDelete(null);
+
+    // TODO: Show toast notification "POI gelöscht" (Task 10)
+    console.log(`POI ${poiToDelete.id} gelöscht`);
+  };
+
+  /**
+   * Handler für Löschen-Abbruch
+   */
+  const handleDeleteCancel = () => {
+    setDeleteDialogOpen(false);
+    setPoiToDelete(null);
+  };
+
   return (
     <>
       {/* Warning-Badge für übersprungene POIs */}
@@ -104,7 +175,19 @@ export const PoiLayer: React.FC<PoiLayerProps> = React.memo(({ einsatzId }) => {
         const ariaLabel = `${poi.type}: ${poi.name}${poi.adresse ? ` bei ${poi.adresse}` : ''}`;
 
         return (
-          <Marker key={poi.id} position={[poi.latitude, poi.longitude]} icon={icon} title={ariaLabel} alt={ariaLabel} aria-label={ariaLabel}>
+          <Marker
+            key={poi.id}
+            position={[poi.latitude, poi.longitude]}
+            icon={icon}
+            draggable={true}
+            eventHandlers={{
+              dragend: (e) => handleDragEnd(e, poi.id),
+              contextmenu: (e) => handleRightClick(e, poi),
+            }}
+            title={ariaLabel}
+            alt={ariaLabel}
+            aria-label={ariaLabel}
+          >
             <Popup className="poi-popup">
               <div className="rounded-lg bg-white p-4 shadow-lg dark:bg-gray-800 dark:text-white">
                 {/* POI-Name */}
@@ -120,6 +203,48 @@ export const PoiLayer: React.FC<PoiLayerProps> = React.memo(({ einsatzId }) => {
           </Marker>
         );
       })}
+
+      {/* Delete Confirmation Dialog */}
+      <Dialog open={deleteDialogOpen} onClose={handleDeleteCancel} className="relative z-50">
+        <DialogBackdrop className="fixed inset-0 bg-black/30 backdrop-blur-sm transition-opacity" />
+
+        <div className="fixed inset-0 flex items-center justify-center p-4">
+          <DialogPanel className="w-full max-w-md transform overflow-hidden rounded-lg border border-gray-300 bg-white p-6 shadow-xl transition-all dark:border-gray-600 dark:bg-gray-800">
+            <div className="flex items-start gap-4">
+              <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-red-100 dark:bg-red-900/30">
+                <PiTrash className="h-6 w-6 text-red-600 dark:text-red-400" aria-hidden="true" />
+              </div>
+
+              <div className="flex-1">
+                <DialogTitle as="h3" className="font-semibold text-gray-900 text-lg dark:text-gray-100">
+                  POI löschen?
+                </DialogTitle>
+
+                <p className="mt-2 text-gray-600 text-sm dark:text-gray-400">
+                  Möchten Sie <span className="font-semibold">{poiToDelete?.name || 'diesen POI'}</span> wirklich löschen? Diese Aktion kann nicht rückgängig gemacht werden.
+                </p>
+              </div>
+            </div>
+
+            <div className="mt-6 flex items-center justify-end gap-3">
+              <Button intent="secondary" appearance="outlined" size="md" onClick={handleDeleteCancel}>
+                Abbrechen
+              </Button>
+
+              <Button intent="danger" appearance="filled" size="md" onClick={handleDeleteConfirm} disabled={deletePoiMutation.isPending}>
+                {deletePoiMutation.isPending ? (
+                  <>
+                    <Spinner size="sm" type="ring" />
+                    <span className="ml-2">Löschen...</span>
+                  </>
+                ) : (
+                  'Löschen'
+                )}
+              </Button>
+            </div>
+          </DialogPanel>
+        </div>
+      </Dialog>
     </>
   );
 });
