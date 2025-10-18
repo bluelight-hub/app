@@ -193,10 +193,18 @@ export const LagekarteView: React.FC<LagekarteViewProps> = ({ einsatzId }) => {
 
   /**
    * Handler wenn neuer Shape erstellt wurde (öffnet Label-Modal)
+   * WICHTIG: Text-Marker werden ausgeschlossen - sie haben ihr eigenes Edit-Interface
    */
   const handleShapeCreated = useCallback((shape: GeoJSON.Feature) => {
-    setCurrentShape(shape);
-    setIsShapeLabelModalOpen(true);
+    // Text-Marker sind Points - aber wir müssen sie von normalen Shapes unterscheiden
+    // Normale Shapes (Polygon, LineString) öffnen das Modal
+    // Points können Text-Marker ODER Shapes sein, also prüfen wir die Geometry
+    const isTextMarker = shape.geometry.type === 'Point';
+
+    if (!isTextMarker) {
+      setCurrentShape(shape);
+      setIsShapeLabelModalOpen(true);
+    }
   }, []);
 
   /**
