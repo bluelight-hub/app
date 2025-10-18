@@ -16,6 +16,7 @@ import { PoiPlacementModal } from '../modals/PoiPlacementModal';
 import { ShapeLabelModal } from '../modals/ShapeLabelModal';
 import { DrawingToolbar, type DrawingTool } from '../toolbar/DrawingToolbar';
 import { LayerToggle, type Layer } from '@/components/molecules/lagekarte/LayerToggle/LayerToggle';
+import { MapToolbarToggle } from '../controls/MapToolbarToggle';
 import type { PoiType } from '@/utils/poi-icons';
 import type { ShapeType } from '@/utils/drawing-styles';
 import type * as GeoJSON from 'geojson';
@@ -112,6 +113,9 @@ export const LagekarteView: React.FC<LagekarteViewProps> = ({ einsatzId }) => {
     { name: 'poi', label: 'POI-Marker', visible: true },
     { name: 'drawing', label: 'Zeichnungen', visible: true },
   ]);
+
+  // Tools-Visibility State (für MapToolbarToggle)
+  const [isToolsOpen, setIsToolsOpen] = useState(false);
 
   // Lagekarte-Daten (für lagekarteId + State)
   const { data: lagekarteData } = useLagekarte(einsatzId);
@@ -305,11 +309,19 @@ export const LagekarteView: React.FC<LagekarteViewProps> = ({ einsatzId }) => {
           'relative', // For loading overlay + Controls positioning
         )}
       >
-        {/* POI-Platzierungs-Control (inside map container, positioned relative to map) */}
-        <PoiPlacementControl onPoiTypeSelect={handlePoiTypeSelect} onCancel={deactivatePlacementMode} selectedType={selectedType} isPlacementActive={isPlacementActive} isModalOpen={isModalOpen} />
+        {/* Werkzeuge-Container (Flexbox für automatisches Layout) */}
+        <div className="absolute top-24 left-2.5 z-[30] hidden flex-col gap-2 md:flex">
+          {/* Map-Werkzeuge Toggle-Button */}
+          <MapToolbarToggle isOpen={isToolsOpen} onToggle={setIsToolsOpen} />
 
-        {/* Drawing-Toolbar */}
-        <DrawingToolbar onToolSelect={handleDrawingToolSelect} selectedTool={selectedDrawingTool} />
+          {/* POI-Platzierungs-Control (nur sichtbar wenn Tools geöffnet) */}
+          {isToolsOpen && (
+            <PoiPlacementControl onPoiTypeSelect={handlePoiTypeSelect} onCancel={deactivatePlacementMode} selectedType={selectedType} isPlacementActive={isPlacementActive} isModalOpen={isModalOpen} />
+          )}
+
+          {/* Drawing-Toolbar (nur sichtbar wenn Tools geöffnet) */}
+          {isToolsOpen && <DrawingToolbar onToolSelect={handleDrawingToolSelect} selectedTool={selectedDrawingTool} />}
+        </div>
 
         {/* Layer-Toggle */}
         <LayerToggle layers={layers} onToggle={handleLayerToggle} />
