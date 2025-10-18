@@ -161,8 +161,9 @@ const DrawingLayerComponent: React.FC<DrawingLayerProps> = ({
           // Add to map
           layer.addTo(map);
 
-          // Enable Leaflet.PM for editing
-          (layer as any).pm?.enable();
+          // WICHTIG: Nicht automatisch in Edit-Mode versetzen!
+          // Edit-Mode wird nur aktiviert wenn User "Bearbeiten" Tool auswählt
+          // (layer as any).pm?.enable(); // REMOVED
 
           // Track layer
           const shapeId = feature.properties?.id || Date.now();
