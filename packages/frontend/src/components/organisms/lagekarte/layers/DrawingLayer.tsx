@@ -23,6 +23,14 @@ interface DrawingLayerProps {
    */
   selectedTool: DrawingTool;
   /**
+   * Initial State (GeoJSON FeatureCollection) aus Backend
+   */
+  initialState?: GeoJSON.FeatureCollection;
+  /**
+   * Shape das updated werden soll (z.B. nach Label-Änderung)
+   */
+  shapeToUpdate?: GeoJSON.Feature | null;
+  /**
    * Callback wenn Shapes sich ändern (für Backend-Persistierung)
    */
   onShapesChange: (shapes: GeoJSON.FeatureCollection) => void;
@@ -34,6 +42,10 @@ interface DrawingLayerProps {
    * Callback wenn neuer Shape erstellt wurde (öffnet Label-Modal)
    */
   onShapeCreated?: (shape: GeoJSON.Feature) => void;
+  /**
+   * Callback wenn Shape-Update abgeschlossen ist
+   */
+  onShapeUpdateComplete?: () => void;
 }
 
 /**
@@ -65,15 +77,39 @@ interface DrawingLayerProps {
  * />
  * ```
  */
-const DrawingLayerComponent: React.FC<DrawingLayerProps> = ({ einsatzId: _einsatzId, selectedTool, onShapesChange, onShapeLimitReached, onShapeCreated }) => {
+const DrawingLayerComponent: React.FC<DrawingLayerProps> = ({
+  einsatzId: _einsatzId,
+  selectedTool,
+  initialState,
+  shapeToUpdate,
+  onShapesChange,
+  onShapeLimitReached,
+  onShapeCreated,
+  onShapeUpdateComplete,
+}) => {
   const map = useMap();
-  const [shapes, setShapes] = useState<GeoJSON.FeatureCollection>({
-    type: 'FeatureCollection',
-    features: [],
-  });
+  const [shapes, setShapes] = useState<GeoJSON.FeatureCollection>(
+    initialState && initialState.type === 'FeatureCollection' && Array.isArray(initialState.features)
+      ? initialState
+      : {
+          type: 'FeatureCollection',
+          features: [],
+        },
+  );
 
   // Ref für Layer-Tracking (avoid duplicate layers)
   const layersRef = useRef<Map<number, L.Layer>>(new Map());
+
+  // Ref für aktuelle shapes (um stale closures zu vermeiden)
+  const shapesRef = useRef(shapes);
+
+  // Ref zum Tracking ob initial shapes bereits geladen wurden
+  const initialShapesLoadedRef = useRef(false);
+
+  // Update shapesRef bei shapes-Änderung
+  useEffect(() => {
+    shapesRef.current = shapes;
+  }, [shapes]);
 
   /**
    * Initialize Leaflet.PM Controls
@@ -104,6 +140,39 @@ const DrawingLayerComponent: React.FC<DrawingLayerProps> = ({ einsatzId: _einsat
       map.pm.removeControls();
     };
   }, [map]);
+
+  /**
+   * Load initial shapes from backend (on mount)
+   */
+  useEffect(() => {
+    // Nur einmal beim Mount laden
+    if (initialShapesLoadedRef.current) return;
+    if (!initialState?.features || initialState.features.length === 0) return;
+
+    // Import Leaflet for L.geoJSON
+    import('leaflet').then((L) => {
+      // Add shapes to map using L.geoJSON
+      initialState.features.forEach((feature) => {
+        const layer = L.geoJSON(feature, {
+          style: DEFAULT_SHAPE_STYLE,
+        }).getLayers()[0] as L.Layer;
+
+        if (layer) {
+          // Add to map
+          layer.addTo(map);
+
+          // Enable Leaflet.PM for editing
+          (layer as any).pm?.enable();
+
+          // Track layer
+          const shapeId = feature.properties?.id || Date.now();
+          layersRef.current.set(shapeId, layer);
+        }
+      });
+
+      initialShapesLoadedRef.current = true;
+    });
+  }, [map, initialState]);
 
   /**
    * Handle Drawing-Tool selection from Toolbar
@@ -168,8 +237,8 @@ const DrawingLayerComponent: React.FC<DrawingLayerProps> = ({ einsatzId: _einsat
     const handleCreate = (e: any) => {
       const layer = e.layer;
 
-      // Check shape limit
-      if (shapes.features.length >= MAX_SHAPES) {
+      // Check shape limit (use shapesRef.current for latest state)
+      if (shapesRef.current.features.length >= MAX_SHAPES) {
         // Remove created layer immediately
         map.removeLayer(layer);
         onShapeLimitReached?.();
@@ -190,10 +259,10 @@ const DrawingLayerComponent: React.FC<DrawingLayerProps> = ({ einsatzId: _einsat
       // Track layer
       layersRef.current.set(shapeId, layer);
 
-      // Add to shapes collection
+      // Add to shapes collection (use shapesRef.current)
       const updatedShapes: GeoJSON.FeatureCollection = {
         type: 'FeatureCollection',
-        features: [...shapes.features, geoJson],
+        features: [...shapesRef.current.features, geoJson],
       };
       setShapes(updatedShapes);
       onShapesChange(updatedShapes);
@@ -207,7 +276,7 @@ const DrawingLayerComponent: React.FC<DrawingLayerProps> = ({ einsatzId: _einsat
     return () => {
       map.off('pm:create', handleCreate);
     };
-  }, [map, shapes, onShapesChange, onShapeLimitReached, onShapeCreated]);
+  }, [map, onShapesChange, onShapeLimitReached, onShapeCreated]);
 
   /**
    * Event Handler: pm:edit
@@ -222,10 +291,10 @@ const DrawingLayerComponent: React.FC<DrawingLayerProps> = ({ einsatzId: _einsat
       const shapeId = updatedGeoJson.properties?.id;
       if (!shapeId) return;
 
-      // Update shape in collection
+      // Update shape in collection (use shapesRef.current)
       const updatedShapes: GeoJSON.FeatureCollection = {
         type: 'FeatureCollection',
-        features: shapes.features.map((feature) => (feature.properties?.id === shapeId ? { ...feature, geometry: updatedGeoJson.geometry } : feature)),
+        features: shapesRef.current.features.map((feature) => (feature.properties?.id === shapeId ? { ...feature, geometry: updatedGeoJson.geometry } : feature)),
       };
       setShapes(updatedShapes);
       onShapesChange(updatedShapes);
@@ -236,7 +305,7 @@ const DrawingLayerComponent: React.FC<DrawingLayerProps> = ({ einsatzId: _einsat
     return () => {
       map.off('pm:edit', handleEdit);
     };
-  }, [map, shapes, onShapesChange]);
+  }, [map, onShapesChange]);
 
   /**
    * Event Handler: pm:remove
@@ -253,10 +322,10 @@ const DrawingLayerComponent: React.FC<DrawingLayerProps> = ({ einsatzId: _einsat
       // Remove from tracking
       layersRef.current.delete(shapeId);
 
-      // Remove from shapes collection
+      // Remove from shapes collection (use shapesRef.current)
       const updatedShapes: GeoJSON.FeatureCollection = {
         type: 'FeatureCollection',
-        features: shapes.features.filter((feature) => feature.properties?.id !== shapeId),
+        features: shapesRef.current.features.filter((feature) => feature.properties?.id !== shapeId),
       };
       setShapes(updatedShapes);
       onShapesChange(updatedShapes);
@@ -267,7 +336,32 @@ const DrawingLayerComponent: React.FC<DrawingLayerProps> = ({ einsatzId: _einsat
     return () => {
       map.off('pm:remove', handleRemove);
     };
-  }, [map, shapes, onShapesChange]);
+  }, [map, onShapesChange]);
+
+  /**
+   * Handle shape updates (e.g. label changes from ShapeLabelModal)
+   */
+  useEffect(() => {
+    if (!shapeToUpdate) return;
+
+    const shapeId = shapeToUpdate.properties?.id;
+    if (!shapeId) {
+      onShapeUpdateComplete?.();
+      return;
+    }
+
+    // Update shape in collection
+    const updatedShapes: GeoJSON.FeatureCollection = {
+      type: 'FeatureCollection',
+      features: shapesRef.current.features.map((feature) => (feature.properties?.id === shapeId ? { ...feature, properties: shapeToUpdate.properties } : feature)),
+    };
+
+    setShapes(updatedShapes);
+    onShapesChange(updatedShapes);
+
+    // Notify parent that update is complete
+    onShapeUpdateComplete?.();
+  }, [shapeToUpdate, onShapesChange, onShapeUpdateComplete]);
 
   // DrawingLayer renders nothing (Leaflet.PM renders directly to map)
   return null;
