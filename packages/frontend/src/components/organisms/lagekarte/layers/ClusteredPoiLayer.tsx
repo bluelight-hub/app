@@ -125,7 +125,6 @@ export const ClusteredPoiLayer: React.FC<ClusteredPoiLayerProps> = React.memo(({
     });
 
     // TODO: Show toast notification "POI verschoben" (Story 48.10)
-    console.log(`POI ${poiId} verschoben zu: ${lat}, ${lng}`);
   };
 
   /**
@@ -155,7 +154,6 @@ export const ClusteredPoiLayer: React.FC<ClusteredPoiLayerProps> = React.memo(({
     setPoiToDelete(null);
 
     // TODO: Show toast notification "POI gelöscht" (Story 48.10)
-    console.log(`POI ${poiToDelete.id} gelöscht`);
   };
 
   /**
