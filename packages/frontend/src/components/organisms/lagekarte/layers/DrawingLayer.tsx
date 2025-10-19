@@ -13,6 +13,18 @@ import type * as GeoJSON from 'geojson';
  */
 const MAX_SHAPES = 100;
 
+/**
+ * Generate unique shape ID using crypto.randomUUID()
+ * Fallback to Date.now() + random suffix for older browsers
+ */
+const generateShapeId = (): string => {
+  if (typeof crypto !== 'undefined' && crypto.randomUUID) {
+    return crypto.randomUUID();
+  }
+  // Fallback: timestamp + random suffix to avoid collisions
+  return `${Date.now()}-${Math.random().toString(36).substring(2, 9)}`;
+};
+
 interface DrawingLayerProps {
   /**
    * ID des Einsatzes
@@ -139,6 +151,14 @@ const DrawingLayerComponent: React.FC<DrawingLayerProps> = ({
     // Cleanup on unmount
     return () => {
       map.pm.removeControls();
+
+      // Clear layer references to prevent memory leaks
+      layersRef.current.forEach((layer) => {
+        if (map.hasLayer(layer)) {
+          map.removeLayer(layer);
+        }
+      });
+      layersRef.current.clear();
     };
   }, [map]);
 
@@ -199,9 +219,9 @@ const DrawingLayerComponent: React.FC<DrawingLayerProps> = ({
           // (layer as any).pm?.enable(); // REMOVED
 
           // Track layer and store shapeId directly on the layer
-          const shapeId = feature.properties?.id || Date.now();
+          const shapeId = feature.properties?.id || generateShapeId();
           (layer as any)._shapeId = shapeId; // Store ID on layer for later retrieval
-          layersRef.current.set(shapeId, layer);
+          layersRef.current.set(shapeId as number, layer);
         }
       });
 
@@ -311,8 +331,8 @@ const DrawingLayerComponent: React.FC<DrawingLayerProps> = ({
         textContent = 'Beschriftung'; // Default text from textOptions
       }
 
-      // Add shape ID for tracking
-      const shapeId = Date.now();
+      // Add shape ID for tracking (using unique ID generator)
+      const shapeId = generateShapeId();
       geoJson.properties = {
         ...geoJson.properties,
         id: shapeId,
@@ -402,6 +422,8 @@ const DrawingLayerComponent: React.FC<DrawingLayerProps> = ({
   useEffect(() => {
     let timeoutId: NodeJS.Timeout;
 
+    // Use useCallback-equivalent pattern by defining handler inside useEffect
+    // but with stable dependencies to prevent "wrong listener type" errors
     const handleTextChange = (event: Event) => {
       const target = event.target as HTMLTextAreaElement;
 
@@ -435,7 +457,7 @@ const DrawingLayerComponent: React.FC<DrawingLayerProps> = ({
       // Debounce: Wait 500ms after last input before saving
       clearTimeout(timeoutId);
       timeoutId = setTimeout(() => {
-        // Update shape in collection
+        // Update shape in collection (use shapesRef to avoid stale closure)
         const updatedShapes: GeoJSON.FeatureCollection = {
           type: 'FeatureCollection',
           features: shapesRef.current.features.map((feature) => {
@@ -459,14 +481,18 @@ const DrawingLayerComponent: React.FC<DrawingLayerProps> = ({
 
     // Listen for input events (fires while typing)
     const mapContainer = map.getContainer();
-    mapContainer.addEventListener('input', handleTextChange, true);
-    // Also listen for change events (fires when losing focus)
-    mapContainer.addEventListener('change', handleTextChange, true);
+
+    // Add event listeners with capturing phase
+    // IMPORTANT: Must use same options in removeEventListener
+    const listenerOptions = { capture: true };
+    mapContainer.addEventListener('input', handleTextChange, listenerOptions);
+    mapContainer.addEventListener('change', handleTextChange, listenerOptions);
 
     return () => {
       clearTimeout(timeoutId);
-      mapContainer.removeEventListener('input', handleTextChange, true);
-      mapContainer.removeEventListener('change', handleTextChange, true);
+      // CRITICAL: Must use same options as addEventListener
+      mapContainer.removeEventListener('input', handleTextChange, listenerOptions);
+      mapContainer.removeEventListener('change', handleTextChange, listenerOptions);
     };
   }, [map, onShapesChange]);
 
