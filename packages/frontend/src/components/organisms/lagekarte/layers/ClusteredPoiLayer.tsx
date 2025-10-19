@@ -2,6 +2,7 @@ import { useDeletePoi, usePois, useUpdatePoi } from '@/api/hooks/useLagekarteApi
 import { Button } from '@/components/atoms/button.atom';
 import { Spinner } from '@/components/atoms/spinner.atom';
 import { getPoiIcon } from '@/utils/poi-icons';
+import { createClusterIcon } from '@/utils/cluster-icons';
 import { Dialog, DialogBackdrop, DialogPanel, DialogTitle } from '@headlessui/react';
 import React, { useMemo, useState } from 'react';
 import { PiTrash, PiWarning, PiXCircle } from 'react-icons/pi';
@@ -178,14 +179,7 @@ export const ClusteredPoiLayer: React.FC<ClusteredPoiLayerProps> = React.memo(({
       )}
 
       {/* MarkerClusterGroup wraps POI markers for automatic clustering */}
-      <MarkerClusterGroup
-        maxClusterRadius={50}
-        spiderfyOnMaxZoom={true}
-        showCoverageOnHover={false}
-        zoomToBoundsOnClick={true}
-        disableClusteringAtZoom={18}
-        // iconCreateFunction={createClusterIcon} // TODO (Task 4): Custom Tailwind icon
-      >
+      <MarkerClusterGroup maxClusterRadius={50} spiderfyOnMaxZoom={true} showCoverageOnHover={false} zoomToBoundsOnClick={true} disableClusteringAtZoom={18} iconCreateFunction={createClusterIcon}>
         {/* Render gültige POI-Marker */}
         {validPois.map((poi) => {
           const icon = getPoiIcon(poi.type);
