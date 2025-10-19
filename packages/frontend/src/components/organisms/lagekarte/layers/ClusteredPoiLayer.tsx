@@ -179,13 +179,12 @@ export const ClusteredPoiLayer: React.FC<ClusteredPoiLayerProps> = React.memo(({
 
       {/* MarkerClusterGroup wraps POI markers for automatic clustering */}
       <MarkerClusterGroup
-      // TODO (Task 3-7): Configure clustering options
-      // maxClusterRadius={50}
-      // spiderfyOnMaxZoom={true}
-      // showCoverageOnHover={false}
-      // zoomToBoundsOnClick={true}
-      // disableClusteringAtZoom={18}
-      // iconCreateFunction={createClusterIcon} // TODO (Task 4): Custom Tailwind icon
+        maxClusterRadius={50}
+        spiderfyOnMaxZoom={true}
+        showCoverageOnHover={false}
+        zoomToBoundsOnClick={true}
+        disableClusteringAtZoom={18}
+        // iconCreateFunction={createClusterIcon} // TODO (Task 4): Custom Tailwind icon
       >
         {/* Render gültige POI-Marker */}
         {validPois.map((poi) => {
