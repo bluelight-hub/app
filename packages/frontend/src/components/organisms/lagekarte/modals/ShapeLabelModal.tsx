@@ -3,7 +3,7 @@ import { Input } from '@/components/atoms/input.atom';
 import { DRAWING_STYLES, type ShapeType } from '@/utils/drawing-styles';
 import { Dialog, DialogBackdrop, DialogPanel, DialogTitle } from '@headlessui/react';
 import type React from 'react';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { PiPentagon, PiX } from 'react-icons/pi';
 import type * as GeoJSON from 'geojson';
 
@@ -62,6 +62,18 @@ export const ShapeLabelModal: React.FC<ShapeLabelModalProps> = ({ isOpen, onClos
   const [label, setLabel] = useState('');
   const [shapeType, setShapeType] = useState<ShapeType>('GEFAHRENBEREICH');
   const [error, setError] = useState<string | null>(null);
+
+  /**
+   * Synchronize state with shape prop when modal opens
+   * Lädt existierende Werte wenn Shape bearbeitet wird
+   */
+  useEffect(() => {
+    if (isOpen && shape) {
+      setLabel(shape.properties?.label || '');
+      setShapeType((shape.properties?.type as ShapeType) || 'GEFAHRENBEREICH');
+      setError(null);
+    }
+  }, [isOpen, shape]);
 
   /**
    * Sanitize label input (XSS prevention)
