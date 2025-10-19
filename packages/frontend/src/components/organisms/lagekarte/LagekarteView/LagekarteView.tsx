@@ -6,7 +6,7 @@ import type React from 'react';
 import { useState, useCallback } from 'react';
 import { PiWarning } from 'react-icons/pi';
 import { MapContainer, TileLayer, useMapEvents } from 'react-leaflet';
-import { PoiLayer } from '../layers/PoiLayer';
+import { ClusteredPoiLayer } from '../layers/ClusteredPoiLayer';
 import { DrawingLayer } from '../layers/DrawingLayer';
 import { useLagekarte, usePois, useSaveLagekarteState } from '@/api/hooks/useLagekarteApi';
 import { useMapBounds } from './useMapBounds';
@@ -345,7 +345,7 @@ export const LagekarteView: React.FC<LagekarteViewProps> = ({ einsatzId }) => {
           <MapClickHandler isPlacementActive={isPlacementActive} selectedType={selectedType} onMapClick={handleMapClick} />
 
           {/* POI-Layer (conditionally rendered based on layer visibility) */}
-          {layers.find((l) => l.name === 'poi')?.visible && <PoiLayer einsatzId={einsatzId} />}
+          {layers.find((l) => l.name === 'poi')?.visible && <ClusteredPoiLayer einsatzId={einsatzId} />}
 
           {/* Drawing-Layer (conditionally rendered based on layer visibility) */}
           {layers.find((l) => l.name === 'drawing')?.visible && lagekarteData?.data && (
