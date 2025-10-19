@@ -1,7 +1,7 @@
 import { Button } from '@/components/atoms/button.atom';
 import { cn } from '@/utils/cn';
 import type React from 'react';
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { PiPentagon, PiPath, PiRectangle, PiPencilSimple, PiTrash, PiTextAa, PiX } from 'react-icons/pi';
 
 /**
@@ -49,50 +49,49 @@ export const DrawingToolbar: React.FC<DrawingToolbarProps> = ({ onToolSelect, se
 
   /**
    * Tool-Konfiguration mit Icons und Labels
+   * PERFORMANCE: useMemo verhindert Array-Neuerstellen bei jedem Render
    */
-  const tools: Array<{
-    type: DrawingTool;
-    icon: React.ElementType;
-    label: string;
-    color: string;
-  }> = [
-    {
-      type: 'polygon',
-      icon: PiPentagon,
-      label: 'Polygon',
-      color: '#ef4444', // Tailwind red-500
-    },
-    {
-      type: 'polyline',
-      icon: PiPath,
-      label: 'Linie',
-      color: '#10b981', // Tailwind green-500
-    },
-    {
-      type: 'rectangle',
-      icon: PiRectangle,
-      label: 'Rechteck',
-      color: '#3b82f6', // Tailwind blue-500
-    },
-    {
-      type: 'text',
-      icon: PiTextAa,
-      label: 'Text',
-      color: '#8b5cf6', // Tailwind violet-500
-    },
-    {
-      type: 'edit',
-      icon: PiPencilSimple,
-      label: 'Bearbeiten',
-      color: '#6b7280', // Tailwind gray-500
-    },
-    {
-      type: 'delete',
-      icon: PiTrash,
-      label: 'Löschen',
-      color: '#dc2626', // Tailwind red-600
-    },
-  ];
+  const tools = useMemo(
+    () => [
+      {
+        type: 'polygon' as const,
+        icon: PiPentagon,
+        label: 'Polygon',
+        color: '#ef4444', // Tailwind red-500
+      },
+      {
+        type: 'polyline' as const,
+        icon: PiPath,
+        label: 'Linie',
+        color: '#10b981', // Tailwind green-500
+      },
+      {
+        type: 'rectangle' as const,
+        icon: PiRectangle,
+        label: 'Rechteck',
+        color: '#3b82f6', // Tailwind blue-500
+      },
+      {
+        type: 'text' as const,
+        icon: PiTextAa,
+        label: 'Text',
+        color: '#8b5cf6', // Tailwind violet-500
+      },
+      {
+        type: 'edit' as const,
+        icon: PiPencilSimple,
+        label: 'Bearbeiten',
+        color: '#6b7280', // Tailwind gray-500
+      },
+      {
+        type: 'delete' as const,
+        icon: PiTrash,
+        label: 'Löschen',
+        color: '#dc2626', // Tailwind red-600
+      },
+    ],
+    [],
+  );
 
   /**
    * Handler: User klickt auf "Zeichnen" Button
