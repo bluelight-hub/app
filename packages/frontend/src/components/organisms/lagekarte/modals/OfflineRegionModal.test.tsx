@@ -4,6 +4,15 @@ import userEvent from '@testing-library/user-event';
 import '@testing-library/jest-dom';
 import type L from 'leaflet';
 
+// Mock storage-quota utility
+vi.mock('@/utils/storage-quota', () => ({
+  getStorageQuota: vi.fn().mockResolvedValue({
+    used: 100,
+    available: 900,
+    percentage: 10,
+  }),
+}));
+
 // Mock leaflet library before anything else
 vi.mock('leaflet', () => {
   const mockRectangleInstance = {
@@ -261,5 +270,76 @@ describe('OfflineRegionModal', () => {
 
     // Should show placeholder when no bounds selected
     expect(screen.getByText(/wähle eine region aus, um die größe zu berechnen/i)).toBeInTheDocument();
+  });
+
+  it('displays storage quota when available (Task 6)', async () => {
+    const { getStorageQuota } = await import('@/utils/storage-quota');
+    vi.mocked(getStorageQuota).mockResolvedValue({
+      used: 100,
+      available: 900,
+      percentage: 10,
+    });
+
+    render(<OfflineRegionModal isOpen={true} onClose={vi.fn()} />);
+
+    // Wait for storage quota to load
+    await waitFor(() => {
+      expect(screen.getByText(/verfügbarer speicher/i)).toBeInTheDocument();
+      expect(screen.getByText(/900 MB \(90% frei\)/i)).toBeInTheDocument();
+    });
+  });
+
+  it('shows warning when storage <10% available (Task 6)', async () => {
+    const { getStorageQuota } = await import('@/utils/storage-quota');
+    vi.mocked(getStorageQuota).mockResolvedValue({
+      used: 950,
+      available: 50,
+      percentage: 95,
+    });
+
+    render(<OfflineRegionModal isOpen={true} onClose={vi.fn()} />);
+
+    // Wait for warning to appear
+    await waitFor(() => {
+      expect(screen.getByText(/wenig speicher! bitte platz freigeben/i)).toBeInTheDocument();
+    });
+
+    // Should use orange warning styling
+    await waitFor(() => {
+      const warningElement = screen.getByText(/wenig speicher! bitte platz freigeben/i);
+      expect(warningElement).toHaveClass('text-orange-900');
+    });
+  });
+
+  it('handles storage quota API errors gracefully (Task 6)', async () => {
+    const { getStorageQuota } = await import('@/utils/storage-quota');
+    vi.mocked(getStorageQuota).mockRejectedValue(new Error('Storage API not supported'));
+
+    render(<OfflineRegionModal isOpen={true} onClose={vi.fn()} />);
+
+    // Wait for error message
+    await waitFor(() => {
+      expect(screen.getByText(/speicher-info nicht verfügbar/i)).toBeInTheDocument();
+      expect(screen.getByText(/storage api not supported/i)).toBeInTheDocument();
+    });
+  });
+
+  it('fetches storage quota only when modal opens (Task 6)', async () => {
+    const { getStorageQuota } = await import('@/utils/storage-quota');
+    const mockGetStorageQuota = vi.mocked(getStorageQuota);
+    mockGetStorageQuota.mockClear();
+
+    const { rerender } = render(<OfflineRegionModal isOpen={false} onClose={vi.fn()} />);
+
+    // Should not fetch when closed
+    expect(mockGetStorageQuota).not.toHaveBeenCalled();
+
+    // Rerender with isOpen=true
+    rerender(<OfflineRegionModal isOpen={true} onClose={vi.fn()} />);
+
+    // Should fetch when opened
+    await waitFor(() => {
+      expect(mockGetStorageQuota).toHaveBeenCalledTimes(1);
+    });
   });
 });
