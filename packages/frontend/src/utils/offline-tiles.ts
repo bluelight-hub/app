@@ -15,6 +15,9 @@ import 'leaflet.offline';
  * Uses leaflet.offline Control API to download tiles within specified bounds
  * and zoom levels. Progress is tracked via event callbacks.
  *
+ * IMPORTANT: The control must be added to a map for tile calculation to work.
+ *
+ * @param map - Leaflet Map instance (required for tile coordinate calculations)
  * @param baseLayer - Leaflet TileLayer to download tiles from
  * @param bounds - Geographic bounding box for download region
  * @param zoomLevels - Array of zoom levels to download (e.g., [13, 14, 15])
@@ -25,10 +28,12 @@ import 'leaflet.offline';
  *
  * @example
  * ```typescript
+ * const map = useMap(); // From react-leaflet
  * const layer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png');
  * const bounds = map.getBounds();
  *
  * const control = downloadTiles(
+ *   map,
  *   layer,
  *   bounds,
  *   [13, 14, 15],
@@ -41,6 +46,7 @@ import 'leaflet.offline';
  * @see https://github.com/allartk/leaflet.offline
  */
 export function downloadTiles(
+  map: L.Map,
   baseLayer: L.TileLayer,
   bounds: L.LatLngBounds,
   zoomLevels: number[],
@@ -106,6 +112,10 @@ export function downloadTiles(
     console.error('[offline-tiles] Tile download error:', error);
     onError(new Error(error.error || 'Tile download failed'));
   });
+
+  // Add control to map (required for tile coordinate calculations)
+  // The control needs access to this._map.project() for tile calculation
+  saveControl.addTo(map);
 
   // Trigger download programmatically
   // Note: _saveTiles() is a private method, but necessary for programmatic use
