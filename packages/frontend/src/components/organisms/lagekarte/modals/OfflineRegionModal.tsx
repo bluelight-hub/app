@@ -11,6 +11,7 @@ import '@geoman-io/leaflet-geoman-free/dist/leaflet-geoman.css';
 import 'leaflet/dist/leaflet.css';
 import { getStorageQuota, type StorageQuota } from '@/utils/storage-quota';
 import { downloadTiles } from '@/utils/offline-tiles';
+import { toast } from 'sonner';
 
 interface OfflineRegionModalProps {
   /**
@@ -186,7 +187,6 @@ export const OfflineRegionModal: React.FC<OfflineRegionModalProps> = ({ isOpen, 
   // Download State
   const [isDownloading, setIsDownloading] = useState(false);
   const [downloadProgress, setDownloadProgress] = useState(0);
-  const [saveControl, setSaveControl] = useState<L.Control.SaveTiles | null>(null);
 
   /**
    * Initialize selected bounds when modal opens
@@ -264,19 +264,18 @@ export const OfflineRegionModal: React.FC<OfflineRegionModalProps> = ({ isOpen, 
       () => {
         setIsDownloading(false);
         console.log('[OfflineRegionModal] Download abgeschlossen!');
-        // TODO: Show toast notification when toast system is implemented
-        // toast.success('Download abgeschlossen!');
+        toast.success('Karten-Download abgeschlossen!');
       },
       // onError callback
       (error) => {
         setIsDownloading(false);
         console.error('[OfflineRegionModal] Download fehlgeschlagen:', error.message);
-        // TODO: Show toast notification when toast system is implemented
-        // toast.error(`Download fehlgeschlagen: ${error.message}`);
+        toast.error(`Karten-Download fehlgeschlagen: ${error.message}`);
       },
     );
 
-    setSaveControl(control);
+    // Note: control is created but not stored in state (no cancel button implemented yet)
+    // If cancel functionality is needed in the future, store control: setSaveControl(control)
   }, [selectedBounds, zoomLevel, map]);
 
   /**

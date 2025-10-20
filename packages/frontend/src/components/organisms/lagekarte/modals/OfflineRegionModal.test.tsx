@@ -4,6 +4,14 @@ import userEvent from '@testing-library/user-event';
 import '@testing-library/jest-dom';
 import type L from 'leaflet';
 
+// Mock sonner toast
+vi.mock('sonner', () => ({
+  toast: {
+    success: vi.fn(),
+    error: vi.fn(),
+  },
+}));
+
 // Mock storage-quota utility
 vi.mock('@/utils/storage-quota', () => ({
   getStorageQuota: vi.fn().mockResolvedValue({
