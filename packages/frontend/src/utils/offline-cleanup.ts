@@ -1,5 +1,6 @@
-import { getStorageInfo, removeTile } from 'leaflet.offline';
+import { milliseconds } from 'date-fns';
 import type { TileInfo } from 'leaflet.offline';
+import { getStorageInfo, removeTile } from 'leaflet.offline';
 
 /**
  * Bereinigt abgelaufene Tiles aus dem IndexedDB-Cache.
@@ -23,7 +24,7 @@ export async function cleanupExpiredTiles(urlTemplate: string, ttlDays = 30): Pr
     const allTiles: TileInfo[] = await getStorageInfo(urlTemplate);
 
     const now = Date.now();
-    const ttl = ttlDays * 24 * 60 * 60 * 1000; // Convert days to milliseconds
+    const ttl = milliseconds({ days: ttlDays });
 
     const expiredTiles = allTiles.filter((tile) => {
       return now - tile.createdAt > ttl;
