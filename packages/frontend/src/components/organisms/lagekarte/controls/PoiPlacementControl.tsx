@@ -241,6 +241,7 @@ export const PoiPlacementControl: React.FC<PoiPlacementControlProps> = ({ onPoiT
                                   )}
                                   aria-label={`POI-Typ auswählen: ${type}`}
                                 >
+                                  v
                                   <config.Icon size={18} color={config.color} aria-hidden="true" />
                                   <span>{formatPoiTypeLabel(type)}</span>
                                 </Button>

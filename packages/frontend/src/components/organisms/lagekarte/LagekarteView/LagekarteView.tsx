@@ -84,17 +84,21 @@ const MapBoundsController: React.FC<{ einsatzId: string }> = ({ einsatzId }) => 
 
 /**
  * Map-Bounds-Tracker-Komponente
- * Holt aktuelle Map-Bounds für Offline-Download
+ * Holt aktuelle Map-Bounds und Map-Instanz für Offline-Download
  */
-const MapBoundsTracker: React.FC<{ onBoundsReady: (bounds: L.LatLngBounds) => void }> = ({ onBoundsReady }) => {
+const MapBoundsTracker: React.FC<{
+  onBoundsReady: (bounds: L.LatLngBounds) => void;
+  onMapReady?: (map: L.Map) => void;
+}> = ({ onBoundsReady, onMapReady }) => {
   const map = useMap();
 
   React.useEffect(() => {
     if (map) {
       const bounds = map.getBounds();
       onBoundsReady(bounds);
+      onMapReady?.(map);
     }
-  }, [map, onBoundsReady]);
+  }, [map, onBoundsReady, onMapReady]);
 
   return null;
 };
@@ -142,6 +146,7 @@ export const LagekarteView: React.FC<LagekarteViewProps> = ({ einsatzId }) => {
   // Offline-Download State
   const [isOfflineModalOpen, setIsOfflineModalOpen] = useState(false);
   const [currentMapBounds, setCurrentMapBounds] = useState<L.LatLngBounds | null>(null);
+  const [mapInstance, setMapInstance] = useState<L.Map | null>(null);
 
   // Lagekarte-Daten (für lagekarteId + State)
   const { data: lagekarteData } = useLagekarte(einsatzId);
@@ -342,7 +347,9 @@ export const LagekarteView: React.FC<LagekarteViewProps> = ({ einsatzId }) => {
       {isShapeLabelModalOpen && currentShape && <ShapeLabelModal isOpen={isShapeLabelModalOpen} onClose={() => setIsShapeLabelModalOpen(false)} shape={currentShape} onSave={handleShapeLabelSave} />}
 
       {/* Offline-Region-Modal */}
-      {isOfflineModalOpen && <OfflineRegionModal isOpen={isOfflineModalOpen} onClose={() => setIsOfflineModalOpen(false)} currentMapBounds={currentMapBounds || undefined} />}
+      {isOfflineModalOpen && (
+        <OfflineRegionModal isOpen={isOfflineModalOpen} onClose={() => setIsOfflineModalOpen(false)} currentMapBounds={currentMapBounds || undefined} map={mapInstance || undefined} />
+      )}
 
       {/* Last-Write-Wins Warning Banner (AC5: Conflict Handling) */}
       <div className={cn('mb-2 flex items-start gap-3 rounded-lg border', 'border-orange-300 bg-orange-50 px-4 py-3', 'dark:border-orange-800 dark:bg-orange-950/30')} role="alert">
@@ -427,7 +434,7 @@ export const LagekarteView: React.FC<LagekarteViewProps> = ({ einsatzId }) => {
           )}
 
           <MapBoundsController einsatzId={einsatzId} />
-          <MapBoundsTracker onBoundsReady={handleBoundsReady} />
+          <MapBoundsTracker onBoundsReady={handleBoundsReady} onMapReady={setMapInstance} />
         </MapContainer>
       </div>
     </>
