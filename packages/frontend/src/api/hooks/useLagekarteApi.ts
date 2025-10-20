@@ -67,6 +67,7 @@ export const useLagekarte = (einsatzId: string): UseQueryResult<LagekarteControl
       return await api.lagekarte().lagekarteControllerGetLagekarteVAlpha({ einsatzId });
     },
     enabled: !!einsatzId, // Nur fetchen wenn einsatzId vorhanden
+    networkMode: 'offlineFirst', // Enable offline-first mode (AC: IV2)
   });
 };
 
@@ -236,5 +237,6 @@ export const useSaveLagekarteState = (einsatzId: string): UseMutationResult<Lage
       // Invalidate Lagekarte-Query um Neuabfrage zu triggern
       queryClient.invalidateQueries({ queryKey: ['lagekarte', einsatzId] });
     },
+    networkMode: 'offlineFirst', // Queue mutations when offline (AC: IV2)
   });
 };
