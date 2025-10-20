@@ -51,6 +51,7 @@ export function downloadTiles(
   // Create save control with leaflet.offline
   const saveControl = L.control.savetiles(baseLayer, {
     zoomlevels: zoomLevels,
+    bounds, // Pass bounds directly to control
     confirm: null, // Skip built-in confirmation dialog (we handle UI separately)
   });
 
@@ -60,8 +61,9 @@ export function downloadTiles(
   /**
    * Track download start
    * Event provides total tile count for progress calculation
+   * NOTE: Events are fired on baseLayer, not on the control itself
    */
-  saveControl.on('savestart', (event: { _tilesforSave?: unknown[] }) => {
+  baseLayer.on('savestart', (event: { _tilesforSave?: unknown[] }) => {
     totalTiles = event._tilesforSave?.length || 0;
     savedTiles = 0;
     onProgress(0);
@@ -73,7 +75,7 @@ export function downloadTiles(
    * Track individual tile downloads
    * Fired for each successfully downloaded tile
    */
-  saveControl.on('savetileend', () => {
+  baseLayer.on('savetileend', () => {
     savedTiles++;
     const progress = totalTiles > 0 ? (savedTiles / totalTiles) * 100 : 0;
     onProgress(progress);
@@ -83,27 +85,30 @@ export function downloadTiles(
    * Handle download completion
    * Fired when all tiles have been downloaded
    */
-  saveControl.on('saveend', () => {
+  baseLayer.on('saveend', () => {
     onProgress(100);
     onComplete();
 
     console.log(`[offline-tiles] Download complete: ${savedTiles} tiles saved`);
+
+    // Clean up event listeners after download completes
+    baseLayer.off('savestart');
+    baseLayer.off('savetileend');
+    baseLayer.off('saveend');
+    baseLayer.off('tileerror');
   });
 
   /**
    * Handle tile download errors
    * Fired when a tile fails to download
    */
-  saveControl.on('tileerror', (error: { error?: string }) => {
+  baseLayer.on('tileerror', (error: { error?: string }) => {
     console.error('[offline-tiles] Tile download error:', error);
     onError(new Error(error.error || 'Tile download failed'));
   });
 
-  // Set bounds and trigger download programmatically
-  saveControl.setBounds(bounds);
-
+  // Trigger download programmatically
   // Note: _saveTiles() is a private method, but necessary for programmatic use
-  // TypeScript will complain, so we need to cast to any
   (saveControl as L.Control.SaveTiles & { _saveTiles: () => void })._saveTiles();
 
   return saveControl;
