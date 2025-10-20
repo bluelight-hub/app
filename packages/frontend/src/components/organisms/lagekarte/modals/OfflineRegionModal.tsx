@@ -2,7 +2,7 @@ import { Button } from '@/components/atoms/button.atom';
 import { Dialog, DialogPanel, DialogTitle } from '@headlessui/react';
 import { cn } from '@/utils/cn';
 import type React from 'react';
-import { useState, useCallback, useEffect, useRef } from 'react';
+import { useState, useCallback, useEffect, useRef, useMemo } from 'react';
 import { PiX, PiInfo } from 'react-icons/pi';
 import type L from 'leaflet';
 import { MapContainer, TileLayer, useMap } from 'react-leaflet';
@@ -222,10 +222,59 @@ export const OfflineRegionModal: React.FC<OfflineRegionModalProps> = ({ isOpen, 
   }, [onClose]);
 
   /**
-   * Berechne geschätzte Tile-Anzahl
-   * (Vereinfachte Formel, wird in Task 5 verfeinert)
+   * Calculate tile count for a given bounding box and zoom range
+   * Based on Web Mercator projection tile coordinates
+   *
+   * @param bounds - Lat/Lng bounding box
+   * @param minZoom - Minimum zoom level
+   * @param maxZoom - Maximum zoom level (same as minZoom for single zoom level)
+   * @returns Total number of tiles
    */
-  const estimatedTileCount = 500; // Placeholder
+  const calculateTileCount = useCallback((bounds: L.LatLngBounds, minZoom: number, maxZoom: number): number => {
+    let totalTiles = 0;
+
+    for (let zoom = minZoom; zoom <= maxZoom; zoom++) {
+      const n = 2 ** zoom;
+
+      // Convert lat/lng to tile coordinates (Web Mercator)
+      const nw = bounds.getNorthWest();
+      const se = bounds.getSouthEast();
+
+      const nwX = Math.floor(((nw.lng + 180) / 360) * n);
+      const nwY = Math.floor(((1 - Math.log(Math.tan((nw.lat * Math.PI) / 180) + 1 / Math.cos((nw.lat * Math.PI) / 180)) / Math.PI) / 2) * n);
+
+      const seX = Math.floor(((se.lng + 180) / 360) * n);
+      const seY = Math.floor(((1 - Math.log(Math.tan((se.lat * Math.PI) / 180) + 1 / Math.cos((se.lat * Math.PI) / 180)) / Math.PI) / 2) * n);
+
+      const width = Math.abs(seX - nwX) + 1;
+      const height = Math.abs(seY - nwY) + 1;
+
+      totalTiles += width * height;
+    }
+
+    return totalTiles;
+  }, []);
+
+  /**
+   * Calculate estimated download size and tile count
+   * Assumes average tile size of 30 KB (typical for OSM PNG tiles)
+   */
+  const { tileCount: estimatedTileCount, sizeMB: estimatedSizeMB } = useMemo(() => {
+    if (!selectedBounds) {
+      return { tileCount: 0, sizeMB: 0 };
+    }
+
+    const tileCount = calculateTileCount(selectedBounds, zoomLevel, zoomLevel);
+    const avgTileSizeKB = 30; // Average OSM tile size
+    const sizeMB = Math.round((tileCount * avgTileSizeKB) / 1024);
+
+    return { tileCount, sizeMB };
+  }, [selectedBounds, zoomLevel, calculateTileCount]);
+
+  /**
+   * Check if download is large (>1000 tiles)
+   */
+  const isLargeDownload = estimatedTileCount > 1000;
 
   return (
     <Dialog open={isOpen} onClose={onClose} className="relative z-50">
@@ -291,7 +340,16 @@ export const OfflineRegionModal: React.FC<OfflineRegionModalProps> = ({ isOpen, 
                 <span>15 (Nachbarschaft)</span>
                 <span>18 (Straße)</span>
               </div>
-              <p className="mt-2 text-gray-600 text-sm dark:text-gray-400">Ca. {estimatedTileCount} Tiles (10 MB)</p>
+              {selectedBounds ? (
+                <div className="mt-2 space-y-1">
+                  <p className="text-gray-600 text-sm dark:text-gray-400">
+                    Ca. {estimatedTileCount.toLocaleString('de-DE')} Tiles ({estimatedSizeMB} MB)
+                  </p>
+                  {isLargeDownload && <p className="text-sm font-medium text-orange-600 dark:text-orange-400">⚠️ Großer Download! Kann länger dauern.</p>}
+                </div>
+              ) : (
+                <p className="mt-2 text-gray-600 text-sm dark:text-gray-400">Wähle eine Region aus, um die Größe zu berechnen.</p>
+              )}
             </div>
 
             {/* Storage-Info Section (Placeholder für Task 6) */}
