@@ -30,6 +30,8 @@ const mockBounds = {
   getEast: () => 11.0,
   getWest: () => 10.0,
   getCenter: () => ({ lat: 51.5, lng: 10.5 }),
+  getNorthWest: () => ({ lat: 52.0, lng: 10.0 }),
+  getSouthEast: () => ({ lat: 51.0, lng: 11.0 }),
 } as L.LatLngBounds;
 
 (global as typeof globalThis & { window: Window & typeof globalThis & { L: typeof import('leaflet') } }).window.L = {
@@ -206,5 +208,58 @@ describe('OfflineRegionModal', () => {
     // Test indirectly by checking if slider has aria-label
     const slider = screen.getByRole('slider', { name: /zoom-level auswählen/i });
     expect(slider).toHaveAttribute('aria-label');
+  });
+
+  it('calculates and displays tile count when bounds are selected (Task 5)', () => {
+    render(<OfflineRegionModal isOpen={true} onClose={vi.fn()} currentMapBounds={mockBounds} />);
+
+    // Should display tile count and size estimation
+    expect(screen.getByText(/ca\. \d+ tiles \(\d+ mb\)/i)).toBeInTheDocument();
+  });
+
+  it('shows warning for large downloads >1000 tiles (Task 5)', async () => {
+    // Create very large bounds to trigger >1000 tiles warning
+    const largeBounds = {
+      getNorth: () => 55.0,
+      getSouth: () => 45.0,
+      getEast: () => 20.0,
+      getWest: () => 5.0,
+      getCenter: () => ({ lat: 50.0, lng: 12.5 }),
+      getNorthWest: () => ({ lat: 55.0, lng: 5.0 }),
+      getSouthEast: () => ({ lat: 45.0, lng: 20.0 }),
+    } as L.LatLngBounds;
+
+    render(<OfflineRegionModal isOpen={true} onClose={vi.fn()} currentMapBounds={largeBounds} />);
+
+    // Should show warning for large download
+    await waitFor(() => {
+      expect(screen.getByText(/großer download! kann länger dauern/i)).toBeInTheDocument();
+    });
+  });
+
+  it('updates tile count when zoom level changes (Task 5)', async () => {
+    render(<OfflineRegionModal isOpen={true} onClose={vi.fn()} currentMapBounds={mockBounds} />);
+
+    const slider = screen.getByRole('slider', { name: /zoom-level auswählen/i }) as HTMLInputElement;
+
+    // Get initial tile count text
+    const initialTileText = screen.getByText(/ca\. \d+ tiles \(\d+ mb\)/i).textContent;
+
+    // Change zoom level
+    fireEvent.change(slider, { target: { value: '18' } });
+
+    // Wait for recalculation
+    await waitFor(() => {
+      const newTileText = screen.getByText(/ca\. \d+ tiles \(\d+ mb\)/i).textContent;
+      // Tile count should change with zoom level
+      expect(newTileText).not.toBe(initialTileText);
+    });
+  });
+
+  it('shows placeholder text when no bounds are selected (Task 5)', () => {
+    render(<OfflineRegionModal isOpen={true} onClose={vi.fn()} />);
+
+    // Should show placeholder when no bounds selected
+    expect(screen.getByText(/wähle eine region aus, um die größe zu berechnen/i)).toBeInTheDocument();
   });
 });
