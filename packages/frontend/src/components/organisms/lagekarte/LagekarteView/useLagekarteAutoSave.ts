@@ -1,4 +1,5 @@
-import { useDebouncedCallback } from '@tanstack/pacer';
+import { useRef, useCallback } from 'react';
+import { debounce } from '@tanstack/pacer';
 import { useSaveLagekarteState } from '@/api/hooks/useLagekarteApi';
 import type * as GeoJSON from 'geojson';
 
@@ -17,11 +18,10 @@ import type * as GeoJSON from 'geojson';
  * 4. Nach 2s Inaktivität: State wird gespeichert
  *
  * @param einsatzId - ID des Einsatzes (für Mutation)
- * @param state - Aktueller GeoJSON State (Zeichnungen)
  *
  * @example
  * ```tsx
- * const { triggerAutoSave } = useLagekarteAutoSave(einsatzId, currentState);
+ * const { triggerAutoSave } = useLagekarteAutoSave(einsatzId);
  *
  * // Bei Änderung triggern
  * const handleShapesChange = (shapes: GeoJSON.FeatureCollection) => {
@@ -36,19 +36,28 @@ export const useLagekarteAutoSave = (einsatzId: string) => {
    * Debounced Save Callback
    * Wartet 2 Sekunden bevor Mutation getriggert wird
    */
-  const debouncedSave = useDebouncedCallback(
-    (state: GeoJSON.FeatureCollection) => {
-      saveMutation.mutate(state);
-    },
-    2000, // 2 seconds debounce (as per AC3)
+  const debouncedSaveRef = useRef(
+    debounce(
+      (state: GeoJSON.FeatureCollection) => {
+        saveMutation.mutate(state);
+      },
+      { wait: 2000 }, // 2 seconds debounce (as per AC3)
+    ),
   );
+
+  /**
+   * Stable callback that uses the debounced function
+   */
+  const triggerAutoSave = useCallback((state: GeoJSON.FeatureCollection) => {
+    debouncedSaveRef.current(state);
+  }, []);
 
   return {
     /**
      * Trigger Auto-Save mit Debouncing
      * @param state - GeoJSON FeatureCollection mit Zeichnungen
      */
-    triggerAutoSave: debouncedSave,
+    triggerAutoSave,
 
     /**
      * Loading-State der Save-Mutation
