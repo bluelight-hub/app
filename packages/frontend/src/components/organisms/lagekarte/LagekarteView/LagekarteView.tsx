@@ -302,6 +302,17 @@ export const LagekarteView: React.FC<LagekarteViewProps> = ({ einsatzId }) => {
       {/* Shape-Label-Modal */}
       {isShapeLabelModalOpen && currentShape && <ShapeLabelModal isOpen={isShapeLabelModalOpen} onClose={() => setIsShapeLabelModalOpen(false)} shape={currentShape} onSave={handleShapeLabelSave} />}
 
+      {/* Last-Write-Wins Warning Banner (AC5: Conflict Handling) */}
+      <div className={cn('mb-2 flex items-start gap-3 rounded-lg border', 'border-orange-300 bg-orange-50 px-4 py-3', 'dark:border-orange-800 dark:bg-orange-950/30')} role="alert">
+        <PiWarning className="mt-0.5 h-5 w-5 flex-shrink-0 text-orange-600 dark:text-orange-400" />
+        <div className="text-sm">
+          <p className="font-medium text-orange-900 dark:text-orange-200">Automatische Speicherung aktiv</p>
+          <p className="mt-1 text-orange-700 dark:text-orange-300">
+            Die Lagekarte wird automatisch gespeichert. Bei gleichzeitiger Bearbeitung durch mehrere Nutzer kann es zu Datenverlust kommen. Koordinieren Sie Änderungen im Team.
+          </p>
+        </div>
+      </div>
+
       {/* Karten-Container */}
       <div
         className={cn(
