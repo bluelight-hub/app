@@ -13,6 +13,19 @@ vi.mock('@/utils/storage-quota', () => ({
   }),
 }));
 
+// Mock offline-tiles utility
+vi.mock('@/utils/offline-tiles', () => ({
+  downloadTiles: vi.fn((baseLayer, bounds, zoomLevels, onProgress, onComplete, onError) => {
+    // Simulate download progress
+    setTimeout(() => onProgress(50), 10);
+    setTimeout(() => {
+      onProgress(100);
+      onComplete();
+    }, 50);
+    return {}; // Mock save control
+  }),
+}));
+
 // Mock leaflet library before anything else
 vi.mock('leaflet', () => {
   const mockRectangleInstance = {
@@ -51,6 +64,11 @@ const mockBounds = {
       enable: vi.fn(),
     },
   })),
+  tileLayer: {
+    offline: vi.fn(() => ({
+      // Mock offline TileLayer
+    })),
+  },
 } as unknown as typeof import('leaflet');
 
 // Mock geoman
@@ -341,5 +359,101 @@ describe('OfflineRegionModal', () => {
     await waitFor(() => {
       expect(mockGetStorageQuota).toHaveBeenCalledTimes(1);
     });
+  });
+
+  it('calls downloadTiles when Download button is clicked (Task 8)', async () => {
+    const { downloadTiles } = await import('@/utils/offline-tiles');
+    const mockDownloadTiles = vi.mocked(downloadTiles);
+    mockDownloadTiles.mockClear();
+
+    const user = userEvent.setup();
+    render(<OfflineRegionModal isOpen={true} onClose={vi.fn()} currentMapBounds={mockBounds} />);
+
+    const downloadButton = screen.getByRole('button', { name: /download starten/i });
+    await user.click(downloadButton);
+
+    // Should call downloadTiles with correct parameters
+    await waitFor(() => {
+      expect(mockDownloadTiles).toHaveBeenCalledTimes(1);
+      expect(mockDownloadTiles).toHaveBeenCalledWith(
+        expect.anything(), // offlineLayer
+        mockBounds, // selectedBounds
+        [15], // zoomLevel array
+        expect.any(Function), // onProgress
+        expect.any(Function), // onComplete
+        expect.any(Function), // onError
+      );
+    });
+  });
+
+  it('updates progress during download (Task 8)', async () => {
+    const user = userEvent.setup();
+    render(<OfflineRegionModal isOpen={true} onClose={vi.fn()} currentMapBounds={mockBounds} />);
+
+    const downloadButton = screen.getByRole('button', { name: /download starten/i });
+    await user.click(downloadButton);
+
+    // Progress bar should appear
+    await waitFor(() => {
+      expect(screen.getByText(/lade tiles/i)).toBeInTheDocument();
+    });
+
+    // Progress should update (mocked to 50% then 100%)
+    await waitFor(
+      () => {
+        const progressBar = screen.getByRole('progressbar');
+        expect(progressBar).toHaveAttribute('aria-valuenow');
+      },
+      { timeout: 200 },
+    );
+  });
+
+  it('disables buttons during download (Task 8)', async () => {
+    const { downloadTiles } = await import('@/utils/offline-tiles');
+    vi.mocked(downloadTiles).mockImplementation((baseLayer, bounds, zoomLevels, onProgress, onComplete, onError) => {
+      // Don't auto-complete for this test
+      setTimeout(() => onProgress(50), 10);
+      return {} as L.Control.SaveTiles;
+    });
+
+    const user = userEvent.setup();
+    render(<OfflineRegionModal isOpen={true} onClose={vi.fn()} currentMapBounds={mockBounds} />);
+
+    const downloadButton = screen.getByRole('button', { name: /download starten/i });
+    await user.click(downloadButton);
+
+    // Buttons should be disabled
+    await waitFor(() => {
+      const closeButton = screen.getByRole('button', { name: /modal schließen/i });
+      const cancelButton = screen.getByRole('button', { name: /abbrechen/i });
+      const loadingButton = screen.getByRole('button', { name: /lädt\.\.\./i });
+
+      expect(closeButton).toBeDisabled();
+      expect(cancelButton).toBeDisabled();
+      expect(loadingButton).toBeDisabled();
+    });
+  });
+
+  it('prevents download when no bounds selected (Task 8)', async () => {
+    const { downloadTiles } = await import('@/utils/offline-tiles');
+    const mockDownloadTiles = vi.mocked(downloadTiles);
+    mockDownloadTiles.mockClear();
+
+    const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+
+    const user = userEvent.setup();
+    // Render without currentMapBounds
+    render(<OfflineRegionModal isOpen={true} onClose={vi.fn()} />);
+
+    const downloadButton = screen.getByRole('button', { name: /download starten/i });
+    await user.click(downloadButton);
+
+    // Should not call downloadTiles
+    expect(mockDownloadTiles).not.toHaveBeenCalled();
+
+    // Should log error
+    expect(consoleErrorSpy).toHaveBeenCalledWith(expect.stringContaining('No bounds selected'));
+
+    consoleErrorSpy.mockRestore();
   });
 });

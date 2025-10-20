@@ -10,6 +10,7 @@ import '@geoman-io/leaflet-geoman-free';
 import '@geoman-io/leaflet-geoman-free/dist/leaflet-geoman.css';
 import 'leaflet/dist/leaflet.css';
 import { getStorageQuota, type StorageQuota } from '@/utils/storage-quota';
+import { downloadTiles } from '@/utils/offline-tiles';
 
 interface OfflineRegionModalProps {
   /**
@@ -181,6 +182,7 @@ export const OfflineRegionModal: React.FC<OfflineRegionModalProps> = ({ isOpen, 
   // Download State
   const [isDownloading, setIsDownloading] = useState(false);
   const [downloadProgress, setDownloadProgress] = useState(0);
+  const [saveControl, setSaveControl] = useState<L.Control.SaveTiles | null>(null);
 
   /**
    * Initialize selected bounds when modal opens
@@ -221,17 +223,51 @@ export const OfflineRegionModal: React.FC<OfflineRegionModalProps> = ({ isOpen, 
 
   /**
    * Handler: Download-Button geklickt
+   * Initiates tile download using leaflet.offline
    */
   const handleDownload = useCallback(() => {
-    // TODO: Implement in Task 7 & 8
+    if (!selectedBounds) {
+      console.error('[OfflineRegionModal] No bounds selected for download');
+      return;
+    }
+
+    // Create offline-capable TileLayer for downloading
+    // Using standard OSM tile URL
+    const offlineLayer = (window.L as typeof L).tileLayer.offline('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      attribution: '&copy; OpenStreetMap contributors',
+      crossOrigin: true,
+    });
+
     setIsDownloading(true);
-    // Placeholder: Simulate download
-    setTimeout(() => {
-      setIsDownloading(false);
-      setDownloadProgress(100);
-      onClose();
-    }, 2000);
-  }, [onClose]);
+    setDownloadProgress(0);
+
+    // Start download
+    const control = downloadTiles(
+      offlineLayer,
+      selectedBounds,
+      [zoomLevel], // Download only selected zoom level
+      // onProgress callback
+      (progress) => {
+        setDownloadProgress(progress);
+      },
+      // onComplete callback
+      () => {
+        setIsDownloading(false);
+        console.log('[OfflineRegionModal] Download abgeschlossen!');
+        // TODO: Show toast notification when toast system is implemented
+        // toast.success('Download abgeschlossen!');
+      },
+      // onError callback
+      (error) => {
+        setIsDownloading(false);
+        console.error('[OfflineRegionModal] Download fehlgeschlagen:', error.message);
+        // TODO: Show toast notification when toast system is implemented
+        // toast.error(`Download fehlgeschlagen: ${error.message}`);
+      },
+    );
+
+    setSaveControl(control);
+  }, [selectedBounds, zoomLevel]);
 
   /**
    * Calculate tile count for a given bounding box and zoom range
