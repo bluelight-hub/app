@@ -38,13 +38,16 @@ describe('downloadTiles', () => {
   beforeEach(() => {
     vi.clearAllMocks();
 
-    // Create mock map
-    mockMap = {} as L.Map;
+    // Create mock map with removeLayer method
+    mockMap = {
+      removeLayer: vi.fn(),
+    } as unknown as L.Map;
 
     // Create mock tile layer with event emitter methods
     mockTileLayer = {
       on: vi.fn(),
       off: vi.fn(),
+      addTo: vi.fn().mockReturnThis(),
     } as unknown as L.TileLayer;
 
     // Create mock bounds
@@ -75,6 +78,12 @@ describe('downloadTiles', () => {
     expect(mockTileLayer.on).toHaveBeenCalledWith('savetileend', expect.any(Function));
     expect(mockTileLayer.on).toHaveBeenCalledWith('saveend', expect.any(Function));
     expect(mockTileLayer.on).toHaveBeenCalledWith('tileerror', expect.any(Function));
+  });
+
+  it('should add baseLayer to map for event system', () => {
+    downloadTiles(mockMap, mockTileLayer, mockBounds, [15], onProgress, onComplete, onError);
+
+    expect(mockTileLayer.addTo).toHaveBeenCalledWith(mockMap);
   });
 
   it('should add control to map', () => {
@@ -139,7 +148,7 @@ describe('downloadTiles', () => {
     expect(onComplete).toHaveBeenCalled();
   });
 
-  it('should clean up event listeners on saveend', () => {
+  it('should clean up event listeners and remove layer on saveend', () => {
     downloadTiles(mockMap, mockTileLayer, mockBounds, [15], onProgress, onComplete, onError);
 
     // Get saveend handler
@@ -149,11 +158,32 @@ describe('downloadTiles', () => {
     // Simulate completion
     saveendHandler();
 
+    // Verify event listener cleanup
+    expect(mockTileLayer.off).toHaveBeenCalledWith('savestart');
+    expect(mockTileLayer.off).toHaveBeenCalledWith('savetileend');
+    expect(mockTileLayer.off).toHaveBeenCalledWith('saveend');
+    expect(mockTileLayer.off).toHaveBeenCalledWith('tileerror');
+
+    // Verify layer removal from map
+    expect(mockMap.removeLayer).toHaveBeenCalledWith(mockTileLayer);
+  });
+
+  it('should clean up on tileerror', () => {
+    downloadTiles(mockMap, mockTileLayer, mockBounds, [15], onProgress, onComplete, onError);
+
+    // Get tileerror handler
+    const onMock = mockTileLayer.on as ReturnType<typeof vi.fn>;
+    const tileerrorHandler = onMock.mock.calls.find((call: unknown[]) => call[0] === 'tileerror')?.[1];
+
+    // Simulate error
+    tileerrorHandler({ error: 'Network error' });
+
     // Verify cleanup
     expect(mockTileLayer.off).toHaveBeenCalledWith('savestart');
     expect(mockTileLayer.off).toHaveBeenCalledWith('savetileend');
     expect(mockTileLayer.off).toHaveBeenCalledWith('saveend');
     expect(mockTileLayer.off).toHaveBeenCalledWith('tileerror');
+    expect(mockMap.removeLayer).toHaveBeenCalledWith(mockTileLayer);
   });
 
   it('should call onError on tileerror event', () => {
