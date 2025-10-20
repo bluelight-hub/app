@@ -7,6 +7,7 @@ vi.mock('leaflet.offline', () => ({}));
 // Create mock save control outside
 const mockSaveControl = {
   _saveTiles: vi.fn(),
+  addTo: vi.fn().mockReturnThis(),
 };
 
 // Mock leaflet with control.savetiles
@@ -27,6 +28,7 @@ import { downloadTiles } from './offline-tiles';
 import LeafletModule from 'leaflet';
 
 describe('downloadTiles', () => {
+  let mockMap: L.Map;
   let mockTileLayer: L.TileLayer;
   let mockBounds: L.LatLngBounds;
   let onProgress: ReturnType<typeof vi.fn>;
@@ -35,6 +37,9 @@ describe('downloadTiles', () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
+
+    // Create mock map
+    mockMap = {} as L.Map;
 
     // Create mock tile layer with event emitter methods
     mockTileLayer = {
@@ -54,7 +59,7 @@ describe('downloadTiles', () => {
   it('should create save control with correct parameters', () => {
     const zoomLevels = [13, 14, 15];
 
-    downloadTiles(mockTileLayer, mockBounds, zoomLevels, onProgress, onComplete, onError);
+    downloadTiles(mockMap, mockTileLayer, mockBounds, zoomLevels, onProgress, onComplete, onError);
 
     expect(LeafletModule.control.savetiles).toHaveBeenCalledWith(mockTileLayer, {
       zoomlevels: zoomLevels,
@@ -64,7 +69,7 @@ describe('downloadTiles', () => {
   });
 
   it('should set up event listeners on baseLayer for savestart, savetileend, saveend, tileerror', () => {
-    downloadTiles(mockTileLayer, mockBounds, [15], onProgress, onComplete, onError);
+    downloadTiles(mockMap, mockTileLayer, mockBounds, [15], onProgress, onComplete, onError);
 
     expect(mockTileLayer.on).toHaveBeenCalledWith('savestart', expect.any(Function));
     expect(mockTileLayer.on).toHaveBeenCalledWith('savetileend', expect.any(Function));
@@ -72,14 +77,20 @@ describe('downloadTiles', () => {
     expect(mockTileLayer.on).toHaveBeenCalledWith('tileerror', expect.any(Function));
   });
 
+  it('should add control to map', () => {
+    downloadTiles(mockMap, mockTileLayer, mockBounds, [15], onProgress, onComplete, onError);
+
+    expect(mockSaveControl.addTo).toHaveBeenCalledWith(mockMap);
+  });
+
   it('should trigger tile download by calling _saveTiles', () => {
-    downloadTiles(mockTileLayer, mockBounds, [15], onProgress, onComplete, onError);
+    downloadTiles(mockMap, mockTileLayer, mockBounds, [15], onProgress, onComplete, onError);
 
     expect(mockSaveControl._saveTiles).toHaveBeenCalled();
   });
 
   it('should call onProgress with 0 on savestart event', () => {
-    downloadTiles(mockTileLayer, mockBounds, [15], onProgress, onComplete, onError);
+    downloadTiles(mockMap, mockTileLayer, mockBounds, [15], onProgress, onComplete, onError);
 
     // Get the savestart handler from mockTileLayer.on
     const onMock = mockTileLayer.on as ReturnType<typeof vi.fn>;
@@ -92,7 +103,7 @@ describe('downloadTiles', () => {
   });
 
   it('should calculate progress correctly during tile downloads', () => {
-    downloadTiles(mockTileLayer, mockBounds, [15], onProgress, onComplete, onError);
+    downloadTiles(mockMap, mockTileLayer, mockBounds, [15], onProgress, onComplete, onError);
 
     // Get handlers from mockTileLayer.on
     const onMock = mockTileLayer.on as ReturnType<typeof vi.fn>;
@@ -115,7 +126,7 @@ describe('downloadTiles', () => {
   });
 
   it('should call onComplete with 100% progress on saveend event', () => {
-    downloadTiles(mockTileLayer, mockBounds, [15], onProgress, onComplete, onError);
+    downloadTiles(mockMap, mockTileLayer, mockBounds, [15], onProgress, onComplete, onError);
 
     // Get handlers from mockTileLayer.on
     const onMock = mockTileLayer.on as ReturnType<typeof vi.fn>;
@@ -129,7 +140,7 @@ describe('downloadTiles', () => {
   });
 
   it('should clean up event listeners on saveend', () => {
-    downloadTiles(mockTileLayer, mockBounds, [15], onProgress, onComplete, onError);
+    downloadTiles(mockMap, mockTileLayer, mockBounds, [15], onProgress, onComplete, onError);
 
     // Get saveend handler
     const onMock = mockTileLayer.on as ReturnType<typeof vi.fn>;
@@ -146,7 +157,7 @@ describe('downloadTiles', () => {
   });
 
   it('should call onError on tileerror event', () => {
-    downloadTiles(mockTileLayer, mockBounds, [15], onProgress, onComplete, onError);
+    downloadTiles(mockMap, mockTileLayer, mockBounds, [15], onProgress, onComplete, onError);
 
     // Get tileerror handler from mockTileLayer.on
     const onMock = mockTileLayer.on as ReturnType<typeof vi.fn>;
@@ -159,7 +170,7 @@ describe('downloadTiles', () => {
   });
 
   it('should handle tileerror without error message', () => {
-    downloadTiles(mockTileLayer, mockBounds, [15], onProgress, onComplete, onError);
+    downloadTiles(mockMap, mockTileLayer, mockBounds, [15], onProgress, onComplete, onError);
 
     // Get tileerror handler from mockTileLayer.on
     const onMock = mockTileLayer.on as ReturnType<typeof vi.fn>;
@@ -172,7 +183,7 @@ describe('downloadTiles', () => {
   });
 
   it('should return save control instance', () => {
-    const control = downloadTiles(mockTileLayer, mockBounds, [15], onProgress, onComplete, onError);
+    const control = downloadTiles(mockMap, mockTileLayer, mockBounds, [15], onProgress, onComplete, onError);
 
     expect(control).toBe(mockSaveControl);
   });

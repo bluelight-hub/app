@@ -25,6 +25,10 @@ interface OfflineRegionModalProps {
    * Aktuelle Map-Bounds (für initiale Region-Selection)
    */
   currentMapBounds?: L.LatLngBounds;
+  /**
+   * Leaflet Map instance (required for tile downloads)
+   */
+  map?: L.Map;
 }
 
 /**
@@ -168,7 +172,7 @@ const RegionSelectionMap: React.FC<RegionSelectionMapProps> = ({ initialBounds, 
  * />
  * ```
  */
-export const OfflineRegionModal: React.FC<OfflineRegionModalProps> = ({ isOpen, onClose, currentMapBounds }) => {
+export const OfflineRegionModal: React.FC<OfflineRegionModalProps> = ({ isOpen, onClose, currentMapBounds, map }) => {
   // Zoom-Level State (default: 15)
   const [zoomLevel, setZoomLevel] = useState(15);
 
@@ -231,6 +235,11 @@ export const OfflineRegionModal: React.FC<OfflineRegionModalProps> = ({ isOpen, 
       return;
     }
 
+    if (!map) {
+      console.error('[OfflineRegionModal] No map reference available for download');
+      return;
+    }
+
     // Create offline-capable TileLayer for downloading
     // Using standard OSM tile URL
     const offlineLayer = (window.L as typeof L).tileLayer.offline('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
@@ -243,6 +252,7 @@ export const OfflineRegionModal: React.FC<OfflineRegionModalProps> = ({ isOpen, 
 
     // Start download
     const control = downloadTiles(
+      map, // Pass map reference for tile coordinate calculations
       offlineLayer,
       selectedBounds,
       [zoomLevel], // Download only selected zoom level
@@ -267,7 +277,7 @@ export const OfflineRegionModal: React.FC<OfflineRegionModalProps> = ({ isOpen, 
     );
 
     setSaveControl(control);
-  }, [selectedBounds, zoomLevel]);
+  }, [selectedBounds, zoomLevel, map]);
 
   /**
    * Calculate tile count for a given bounding box and zoom range
