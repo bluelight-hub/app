@@ -2,10 +2,10 @@ import { Button } from '@/components/atoms/button.atom';
 import { Spinner } from '@/components/atoms/spinner.atom';
 import { useColorMode } from '@/hooks/use-color-mode';
 import { cn } from '@/utils/cn';
-import type React from 'react';
+import * as React from 'react';
 import { useState, useCallback } from 'react';
 import { PiWarning } from 'react-icons/pi';
-import { MapContainer, TileLayer, useMapEvents } from 'react-leaflet';
+import { MapContainer, TileLayer, useMapEvents, useMap } from 'react-leaflet';
 import { ClusteredPoiLayer } from '../layers/ClusteredPoiLayer';
 import { DrawingLayer } from '../layers/DrawingLayer';
 import { useLagekarte, usePois } from '@/api/hooks/useLagekarteApi';
@@ -15,6 +15,7 @@ import { useLagekarteAutoSave } from './useLagekarteAutoSave';
 import { PoiPlacementControl } from '../controls/PoiPlacementControl';
 import { PoiPlacementModal } from '../modals/PoiPlacementModal';
 import { ShapeLabelModal } from '../modals/ShapeLabelModal';
+import { OfflineRegionModal } from '../modals/OfflineRegionModal';
 import { DrawingToolbar, type DrawingTool } from '../toolbar/DrawingToolbar';
 import { LagekarteToolbar } from '../toolbar/LagekarteToolbar';
 import { LayerToggle, type Layer } from '@/components/molecules/lagekarte/LayerToggle/LayerToggle';
@@ -80,6 +81,23 @@ const MapBoundsController: React.FC<{ einsatzId: string }> = ({ einsatzId }) => 
 };
 
 /**
+ * Map-Bounds-Tracker-Komponente
+ * Holt aktuelle Map-Bounds für Offline-Download
+ */
+const MapBoundsTracker: React.FC<{ onBoundsReady: (bounds: L.LatLngBounds) => void }> = ({ onBoundsReady }) => {
+  const map = useMap();
+
+  React.useEffect(() => {
+    if (map) {
+      const bounds = map.getBounds();
+      onBoundsReady(bounds);
+    }
+  }, [map, onBoundsReady]);
+
+  return null;
+};
+
+/**
  * Lagekarte-Komponente zur Darstellung einer interaktiven Karte mit OpenStreetMap-Tiles.
  *
  * Features:
@@ -121,6 +139,7 @@ export const LagekarteView: React.FC<LagekarteViewProps> = ({ einsatzId }) => {
 
   // Offline-Download State
   const [isOfflineModalOpen, setIsOfflineModalOpen] = useState(false);
+  const [currentMapBounds, setCurrentMapBounds] = useState<L.LatLngBounds | null>(null);
 
   // Lagekarte-Daten (für lagekarteId + State)
   const { data: lagekarteData } = useLagekarte(einsatzId);
@@ -274,6 +293,13 @@ export const LagekarteView: React.FC<LagekarteViewProps> = ({ einsatzId }) => {
     setIsOfflineModalOpen(true);
   }, []);
 
+  /**
+   * Handler wenn Map-Bounds bereit sind (für Offline-Modal)
+   */
+  const handleBoundsReady = useCallback((bounds: L.LatLngBounds) => {
+    setCurrentMapBounds(bounds);
+  }, []);
+
   // Error-State anzeigen
   if (hasError) {
     return (
@@ -312,6 +338,9 @@ export const LagekarteView: React.FC<LagekarteViewProps> = ({ einsatzId }) => {
 
       {/* Shape-Label-Modal */}
       {isShapeLabelModalOpen && currentShape && <ShapeLabelModal isOpen={isShapeLabelModalOpen} onClose={() => setIsShapeLabelModalOpen(false)} shape={currentShape} onSave={handleShapeLabelSave} />}
+
+      {/* Offline-Region-Modal */}
+      {isOfflineModalOpen && <OfflineRegionModal isOpen={isOfflineModalOpen} onClose={() => setIsOfflineModalOpen(false)} currentMapBounds={currentMapBounds || undefined} />}
 
       {/* Last-Write-Wins Warning Banner (AC5: Conflict Handling) */}
       <div className={cn('mb-2 flex items-start gap-3 rounded-lg border', 'border-orange-300 bg-orange-50 px-4 py-3', 'dark:border-orange-800 dark:bg-orange-950/30')} role="alert">
@@ -391,6 +420,7 @@ export const LagekarteView: React.FC<LagekarteViewProps> = ({ einsatzId }) => {
           )}
 
           <MapBoundsController einsatzId={einsatzId} />
+          <MapBoundsTracker onBoundsReady={handleBoundsReady} />
         </MapContainer>
       </div>
     </>
