@@ -5,9 +5,10 @@ import { cn } from '@/utils/cn';
 import * as React from 'react';
 import { useState, useCallback } from 'react';
 import { PiWarning } from 'react-icons/pi';
-import { MapContainer, TileLayer, useMapEvents, useMap } from 'react-leaflet';
+import { MapContainer, useMapEvents, useMap } from 'react-leaflet';
 import { ClusteredPoiLayer } from '../layers/ClusteredPoiLayer';
 import { DrawingLayer } from '../layers/DrawingLayer';
+import { OfflineTileLayer } from '../layers/OfflineTileLayer';
 import { useLagekarte, usePois } from '@/api/hooks/useLagekarteApi';
 import { useMapBounds } from './useMapBounds';
 import { usePlacementMode } from './usePlacementMode';
@@ -20,6 +21,7 @@ import { DrawingToolbar, type DrawingTool } from '../toolbar/DrawingToolbar';
 import { LagekarteToolbar } from '../toolbar/LagekarteToolbar';
 import { LayerToggle, type Layer } from '@/components/molecules/lagekarte/LayerToggle/LayerToggle';
 import { MapToolbarToggle } from '../controls/MapToolbarToggle';
+import { OfflineIndicator } from '@/components/molecules/lagekarte/OfflineIndicator/OfflineIndicator';
 import type { PoiType } from '@/utils/poi-icons';
 import type { ShapeType } from '@/utils/drawing-styles';
 import type * as GeoJSON from 'geojson';
@@ -376,6 +378,11 @@ export const LagekarteView: React.FC<LagekarteViewProps> = ({ einsatzId }) => {
           {isToolsOpen && <DrawingToolbar onToolSelect={handleDrawingToolSelect} selectedTool={selectedDrawingTool} />}
         </div>
 
+        {/* Offline-Indicator (Top-Left) */}
+        <div className="absolute top-2.5 left-2.5 z-[30]">
+          <OfflineIndicator />
+        </div>
+
         {/* Lagekarte-Toolbar (Top-Right) */}
         <div className="absolute top-2.5 right-2.5 z-[30]">
           <LagekarteToolbar onOfflineDownloadClick={handleOfflineDownloadClick} />
@@ -398,7 +405,7 @@ export const LagekarteView: React.FC<LagekarteViewProps> = ({ einsatzId }) => {
           whenReady={() => setIsLoading(false)}
           aria-label="Lagekarte"
         >
-          <TileLayer url={tileUrl} attribution={attribution} />
+          <OfflineTileLayer url={tileUrl} attribution={attribution} />
           <TileErrorHandler onError={handleTileError} />
           <MapClickHandler isPlacementActive={isPlacementActive} selectedType={selectedType} onMapClick={handleMapClick} />
 
