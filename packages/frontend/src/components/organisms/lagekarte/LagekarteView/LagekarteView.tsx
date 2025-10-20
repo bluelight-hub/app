@@ -16,6 +16,7 @@ import { PoiPlacementControl } from '../controls/PoiPlacementControl';
 import { PoiPlacementModal } from '../modals/PoiPlacementModal';
 import { ShapeLabelModal } from '../modals/ShapeLabelModal';
 import { DrawingToolbar, type DrawingTool } from '../toolbar/DrawingToolbar';
+import { LagekarteToolbar } from '../toolbar/LagekarteToolbar';
 import { LayerToggle, type Layer } from '@/components/molecules/lagekarte/LayerToggle/LayerToggle';
 import { MapToolbarToggle } from '../controls/MapToolbarToggle';
 import type { PoiType } from '@/utils/poi-icons';
@@ -117,6 +118,9 @@ export const LagekarteView: React.FC<LagekarteViewProps> = ({ einsatzId }) => {
 
   // Tools-Visibility State (für MapToolbarToggle)
   const [isToolsOpen, setIsToolsOpen] = useState(false);
+
+  // Offline-Download State
+  const [isOfflineModalOpen, setIsOfflineModalOpen] = useState(false);
 
   // Lagekarte-Daten (für lagekarteId + State)
   const { data: lagekarteData } = useLagekarte(einsatzId);
@@ -263,6 +267,13 @@ export const LagekarteView: React.FC<LagekarteViewProps> = ({ einsatzId }) => {
     setLayers((prevLayers) => prevLayers.map((layer) => (layer.name === layerName ? { ...layer, visible: !layer.visible } : layer)));
   }, []);
 
+  /**
+   * Handler für Offline-Download-Button
+   */
+  const handleOfflineDownloadClick = useCallback(() => {
+    setIsOfflineModalOpen(true);
+  }, []);
+
   // Error-State anzeigen
   if (hasError) {
     return (
@@ -334,6 +345,11 @@ export const LagekarteView: React.FC<LagekarteViewProps> = ({ einsatzId }) => {
 
           {/* Drawing-Toolbar (nur sichtbar wenn Tools geöffnet) */}
           {isToolsOpen && <DrawingToolbar onToolSelect={handleDrawingToolSelect} selectedTool={selectedDrawingTool} />}
+        </div>
+
+        {/* Lagekarte-Toolbar (Top-Right) */}
+        <div className="absolute top-2.5 right-2.5 z-[30]">
+          <LagekarteToolbar onOfflineDownloadClick={handleOfflineDownloadClick} />
         </div>
 
         {/* Layer-Toggle */}
