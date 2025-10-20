@@ -64,6 +64,10 @@ export function downloadTiles(
   let totalTiles = 0;
   let savedTiles = 0;
 
+  // Add baseLayer to map temporarily for event system to work
+  // This is required for Leaflet's event listeners to function properly
+  baseLayer.addTo(map);
+
   /**
    * Track download start
    * Event provides total tile count for progress calculation
@@ -102,6 +106,9 @@ export function downloadTiles(
     baseLayer.off('savetileend');
     baseLayer.off('saveend');
     baseLayer.off('tileerror');
+
+    // Remove baseLayer from map after download is complete
+    map.removeLayer(baseLayer);
   });
 
   /**
@@ -111,6 +118,13 @@ export function downloadTiles(
   baseLayer.on('tileerror', (error: { error?: string }) => {
     console.error('[offline-tiles] Tile download error:', error);
     onError(new Error(error.error || 'Tile download failed'));
+
+    // Clean up on error
+    baseLayer.off('savestart');
+    baseLayer.off('savetileend');
+    baseLayer.off('saveend');
+    baseLayer.off('tileerror');
+    map.removeLayer(baseLayer);
   });
 
   // Add control to map (required for tile coordinate calculations)
