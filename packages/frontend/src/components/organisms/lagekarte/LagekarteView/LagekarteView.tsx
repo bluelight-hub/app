@@ -8,9 +8,10 @@ import { PiWarning } from 'react-icons/pi';
 import { MapContainer, TileLayer, useMapEvents } from 'react-leaflet';
 import { ClusteredPoiLayer } from '../layers/ClusteredPoiLayer';
 import { DrawingLayer } from '../layers/DrawingLayer';
-import { useLagekarte, usePois, useSaveLagekarteState } from '@/api/hooks/useLagekarteApi';
+import { useLagekarte, usePois } from '@/api/hooks/useLagekarteApi';
 import { useMapBounds } from './useMapBounds';
 import { usePlacementMode } from './usePlacementMode';
+import { useLagekarteAutoSave } from './useLagekarteAutoSave';
 import { PoiPlacementControl } from '../controls/PoiPlacementControl';
 import { PoiPlacementModal } from '../modals/PoiPlacementModal';
 import { ShapeLabelModal } from '../modals/ShapeLabelModal';
@@ -120,8 +121,8 @@ export const LagekarteView: React.FC<LagekarteViewProps> = ({ einsatzId }) => {
   // Lagekarte-Daten (für lagekarteId + State)
   const { data: lagekarteData } = useLagekarte(einsatzId);
 
-  // Save Lagekarte-State Mutation
-  const saveLagekarteStateMutation = useSaveLagekarteState(einsatzId);
+  // Auto-Save Hook (debounced 2s)
+  const { triggerAutoSave } = useLagekarteAutoSave(einsatzId);
 
   // Tile-URL basierend auf Theme
   const tileUrl = resolvedColorMode === 'dark' ? 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}.png' : 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png';
@@ -186,13 +187,14 @@ export const LagekarteView: React.FC<LagekarteViewProps> = ({ einsatzId }) => {
 
   /**
    * Handler wenn Shapes sich ändern (für Backend-Persistierung)
+   * Debounced Auto-Save: Speichert nach 2s Inaktivität
    */
   const handleShapesChange = useCallback(
     (shapes: GeoJSON.FeatureCollection) => {
-      // Save to backend (debounced by mutation)
-      saveLagekarteStateMutation.mutate(shapes);
+      // Trigger debounced auto-save (2s delay)
+      triggerAutoSave(shapes);
     },
-    [saveLagekarteStateMutation],
+    [triggerAutoSave],
   );
 
   /**
