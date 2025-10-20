@@ -5,7 +5,7 @@ import { useSaveLagekarteState } from '@/api/hooks/useLagekarteApi';
 
 // Mock TanStack Pacer - Simple mock that returns a callable function
 vi.mock('@tanstack/pacer', () => ({
-  useDebouncedCallback: vi.fn((callback) => callback), // Simplified: No actual debounce in tests
+  debounce: vi.fn((callback) => callback), // Simplified: No actual debounce in tests
 }));
 
 // Mock TanStack Query Hook
