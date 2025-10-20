@@ -1,4 +1,4 @@
-import { render, screen, waitFor } from '@testing-library/react';
+import { render, screen, waitFor, fireEvent } from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import userEvent from '@testing-library/user-event';
 import '@testing-library/jest-dom';
@@ -119,15 +119,12 @@ describe('OfflineRegionModal', () => {
   });
 
   it('updates zoom-level when slider is changed', async () => {
-    const user = userEvent.setup();
     render(<OfflineRegionModal isOpen={true} onClose={vi.fn()} />);
 
     const slider = screen.getByRole('slider', { name: /zoom-level auswählen/i }) as HTMLInputElement;
-    // Use fireEvent for range inputs (userEvent.clear() not supported)
-    await user.click(slider);
-    slider.value = '12';
-    slider.dispatchEvent(new Event('input', { bubbles: true }));
-    slider.dispatchEvent(new Event('change', { bubbles: true }));
+
+    // Use fireEvent.change for range inputs to properly trigger React's onChange
+    fireEvent.change(slider, { target: { value: '12' } });
 
     await waitFor(() => {
       expect(screen.getByText(/Zoom-Level: 12/i)).toBeInTheDocument();
