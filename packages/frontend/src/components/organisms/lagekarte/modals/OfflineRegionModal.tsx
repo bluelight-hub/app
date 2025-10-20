@@ -2,9 +2,13 @@ import { Button } from '@/components/atoms/button.atom';
 import { Dialog, DialogPanel, DialogTitle } from '@headlessui/react';
 import { cn } from '@/utils/cn';
 import type React from 'react';
-import { useState, useCallback, useEffect } from 'react';
+import { useState, useCallback, useEffect, useRef } from 'react';
 import { PiX, PiInfo } from 'react-icons/pi';
 import type L from 'leaflet';
+import { MapContainer, TileLayer, useMap } from 'react-leaflet';
+import '@geoman-io/leaflet-geoman-free';
+import '@geoman-io/leaflet-geoman-free/dist/leaflet-geoman.css';
+import 'leaflet/dist/leaflet.css';
 
 interface OfflineRegionModalProps {
   /**
@@ -20,6 +24,117 @@ interface OfflineRegionModalProps {
    */
   currentMapBounds?: L.LatLngBounds;
 }
+
+/**
+ * RegionSelectionMap Component
+ *
+ * Mini-Map mit Leaflet.PM Rectangle-Tool für Region-Selection
+ */
+interface RegionSelectionMapProps {
+  initialBounds?: L.LatLngBounds;
+  onBoundsChange: (bounds: L.LatLngBounds) => void;
+}
+
+/**
+ * Component that sets up Leaflet.PM rectangle drawing on the map
+ */
+const RectangleDrawControl: React.FC<{ initialBounds?: L.LatLngBounds; onBoundsChange: (bounds: L.LatLngBounds) => void }> = ({ initialBounds, onBoundsChange }) => {
+  const map = useMap();
+  const rectangleRef = useRef<L.Rectangle | null>(null);
+
+  useEffect(() => {
+    if (!map) return;
+
+    // Enable Leaflet.PM controls
+    map.pm.addControls({
+      position: 'topright',
+      drawMarker: false,
+      drawCircleMarker: false,
+      drawPolyline: false,
+      drawPolygon: false,
+      drawCircle: false,
+      drawRectangle: true,
+      editMode: true,
+      dragMode: false,
+      cutPolygon: false,
+      removalMode: true,
+    });
+
+    // Create initial rectangle if bounds provided
+    if (initialBounds && !rectangleRef.current) {
+      const rect = new (window.L as typeof L).Rectangle(initialBounds, {
+        color: '#3b82f6',
+        weight: 2,
+        fillOpacity: 0.2,
+        pmIgnore: false,
+      });
+      rect.addTo(map);
+      rectangleRef.current = rect;
+      onBoundsChange(initialBounds);
+
+      // Enable editing for the rectangle
+      (rect as L.Rectangle & { pm?: { enable: () => void } }).pm?.enable();
+    }
+
+    // Listen to rectangle creation
+    const handleRectangleCreated = (e: L.LeafletEvent & { layer: L.Rectangle }) => {
+      // Remove old rectangle if exists
+      if (rectangleRef.current) {
+        map.removeLayer(rectangleRef.current);
+      }
+
+      // Store new rectangle
+      rectangleRef.current = e.layer;
+      onBoundsChange(e.layer.getBounds());
+
+      // Enable editing for the new rectangle
+      (e.layer as L.Rectangle & { pm?: { enable: () => void } }).pm?.enable();
+    };
+
+    // Listen to rectangle edits
+    const handleEdit = () => {
+      if (rectangleRef.current) {
+        onBoundsChange(rectangleRef.current.getBounds());
+      }
+    };
+
+    // Attach event listeners
+    map.on('pm:create', handleRectangleCreated);
+    map.on('pm:edit', handleEdit);
+
+    // Cleanup
+    return () => {
+      map.off('pm:create', handleRectangleCreated);
+      map.off('pm:edit', handleEdit);
+      if (rectangleRef.current) {
+        map.removeLayer(rectangleRef.current);
+      }
+      map.pm.removeControls();
+    };
+  }, [map, initialBounds, onBoundsChange]);
+
+  return null;
+};
+
+/**
+ * Mini-Map component for region selection
+ */
+const RegionSelectionMap: React.FC<RegionSelectionMapProps> = ({ initialBounds, onBoundsChange }) => {
+  // Default center (Germany) if no bounds provided
+  const defaultCenter: [number, number] = [51.1657, 10.4515];
+  const defaultZoom = 6;
+
+  // Calculate center from initialBounds if available
+  const center: [number, number] = initialBounds ? [initialBounds.getCenter().lat, initialBounds.getCenter().lng] : defaultCenter;
+  const zoom = initialBounds ? 10 : defaultZoom;
+
+  return (
+    <MapContainer center={center} zoom={zoom} className="h-64 w-full rounded-lg sm:h-80" zoomControl={true} scrollWheelZoom={true}>
+      <TileLayer attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>' url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
+      <RectangleDrawControl initialBounds={initialBounds} onBoundsChange={onBoundsChange} />
+    </MapContainer>
+  );
+};
 
 /**
  * Offline-Region-Modal-Komponente
@@ -79,6 +194,13 @@ export const OfflineRegionModal: React.FC<OfflineRegionModalProps> = ({ isOpen, 
   }, [isOpen, currentMapBounds, selectedBounds]);
 
   /**
+   * Handler: Region-Bounds geändert (Drag/Resize Rectangle)
+   */
+  const handleBoundsChange = useCallback((bounds: L.LatLngBounds) => {
+    setSelectedBounds(bounds);
+  }, []);
+
+  /**
    * Handler: Zoom-Level-Slider geändert
    */
   const handleZoomChange = useCallback((event: React.ChangeEvent<HTMLInputElement>) => {
@@ -136,12 +258,13 @@ export const OfflineRegionModal: React.FC<OfflineRegionModalProps> = ({ isOpen, 
 
           {/* Content */}
           <div className="space-y-6">
-            {/* Map-Preview Section (Placeholder für Task 4) */}
+            {/* Map-Preview Section */}
             <div>
               <h3 className="mb-2 font-medium text-gray-900 text-sm dark:text-gray-100">Karten-Region</h3>
-              <div className={cn('h-64 w-full rounded-lg border-2 border-gray-300 border-dashed', 'dark:border-gray-600', 'flex items-center justify-center', 'bg-gray-50 dark:bg-gray-800')}>
-                <p className="text-gray-500 text-sm dark:text-gray-400">Map-Preview (Task 4)</p>
-              </div>
+              <p className="mb-3 text-gray-600 text-sm dark:text-gray-400">
+                Zeichne ein Rechteck auf der Karte, um die Offline-Region auszuwählen. Du kannst das Rechteck anpassen, indem du es verschiebst oder die Ecken ziehst.
+              </p>
+              <RegionSelectionMap initialBounds={currentMapBounds} onBoundsChange={handleBoundsChange} />
             </div>
 
             {/* Zoom-Level-Slider Section */}
