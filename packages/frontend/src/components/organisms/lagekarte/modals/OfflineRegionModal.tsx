@@ -3,12 +3,13 @@ import { Dialog, DialogPanel, DialogTitle } from '@headlessui/react';
 import { cn } from '@/utils/cn';
 import type React from 'react';
 import { useState, useCallback, useEffect, useRef, useMemo } from 'react';
-import { PiX, PiInfo } from 'react-icons/pi';
+import { PiX, PiInfo, PiWarning } from 'react-icons/pi';
 import type L from 'leaflet';
 import { MapContainer, TileLayer, useMap } from 'react-leaflet';
 import '@geoman-io/leaflet-geoman-free';
 import '@geoman-io/leaflet-geoman-free/dist/leaflet-geoman.css';
 import 'leaflet/dist/leaflet.css';
+import { getStorageQuota, type StorageQuota } from '@/utils/storage-quota';
 
 interface OfflineRegionModalProps {
   /**
@@ -173,12 +174,9 @@ export const OfflineRegionModal: React.FC<OfflineRegionModalProps> = ({ isOpen, 
   // Selected Bounds State (initialisiert mit currentMapBounds)
   const [selectedBounds, setSelectedBounds] = useState<L.LatLngBounds | null>(null);
 
-  // Storage-Quota State (TODO: Implement in Task 6)
-  const [_storageQuota, _setStorageQuota] = useState<{
-    used: number;
-    available: number;
-    percentage: number;
-  } | null>(null);
+  // Storage-Quota State
+  const [storageQuota, setStorageQuota] = useState<StorageQuota | null>(null);
+  const [storageQuotaError, setStorageQuotaError] = useState<string | null>(null);
 
   // Download State
   const [isDownloading, setIsDownloading] = useState(false);
@@ -192,6 +190,20 @@ export const OfflineRegionModal: React.FC<OfflineRegionModalProps> = ({ isOpen, 
       setSelectedBounds(currentMapBounds);
     }
   }, [isOpen, currentMapBounds, selectedBounds]);
+
+  /**
+   * Fetch storage quota when modal opens
+   */
+  useEffect(() => {
+    if (isOpen) {
+      getStorageQuota()
+        .then(setStorageQuota)
+        .catch((error) => {
+          console.error('Failed to get storage quota:', error);
+          setStorageQuotaError(error instanceof Error ? error.message : 'Unknown error');
+        });
+    }
+  }, [isOpen]);
 
   /**
    * Handler: Region-Bounds geändert (Drag/Resize Rectangle)
@@ -352,16 +364,42 @@ export const OfflineRegionModal: React.FC<OfflineRegionModalProps> = ({ isOpen, 
               )}
             </div>
 
-            {/* Storage-Info Section (Placeholder für Task 6) */}
-            <div className="rounded-lg border border-blue-200 bg-blue-50 p-4 dark:border-blue-800 dark:bg-blue-950/30">
-              <div className="flex items-start gap-3">
-                <PiInfo className="mt-0.5 h-5 w-5 flex-shrink-0 text-blue-600 dark:text-blue-400" aria-hidden="true" />
-                <div className="text-sm">
-                  <p className="font-medium text-blue-900 dark:text-blue-200">Verfügbarer Speicher</p>
-                  <p className="mt-1 text-blue-700 dark:text-blue-300">Loading... (Task 6)</p>
+            {/* Storage-Info Section */}
+            {storageQuota && (
+              <div
+                className={cn(
+                  'rounded-lg border p-4',
+                  // Warning styling if <10% available
+                  storageQuota.percentage > 90 ? 'border-orange-200 bg-orange-50 dark:border-orange-800 dark:bg-orange-950/30' : 'border-blue-200 bg-blue-50 dark:border-blue-800 dark:bg-blue-950/30',
+                )}
+              >
+                <div className="flex items-start gap-3">
+                  {storageQuota.percentage > 90 ? (
+                    <PiWarning className="mt-0.5 h-5 w-5 flex-shrink-0 text-orange-600 dark:text-orange-400" aria-hidden="true" />
+                  ) : (
+                    <PiInfo className="mt-0.5 h-5 w-5 flex-shrink-0 text-blue-600 dark:text-blue-400" aria-hidden="true" />
+                  )}
+                  <div className="text-sm">
+                    <p className={cn('font-medium', storageQuota.percentage > 90 ? 'text-orange-900 dark:text-orange-200' : 'text-blue-900 dark:text-blue-200')}>Verfügbarer Speicher</p>
+                    <p className={cn('mt-1', storageQuota.percentage > 90 ? 'text-orange-700 dark:text-orange-300' : 'text-blue-700 dark:text-blue-300')}>
+                      {storageQuota.available.toLocaleString('de-DE')} MB ({100 - storageQuota.percentage}% frei)
+                    </p>
+                    {storageQuota.percentage > 90 && <p className="mt-2 font-medium text-orange-900 dark:text-orange-200">⚠️ Wenig Speicher! Bitte Platz freigeben.</p>}
+                  </div>
                 </div>
               </div>
-            </div>
+            )}
+            {storageQuotaError && (
+              <div className="rounded-lg border border-gray-200 bg-gray-50 p-4 dark:border-gray-700 dark:bg-gray-900/30">
+                <div className="flex items-start gap-3">
+                  <PiInfo className="mt-0.5 h-5 w-5 flex-shrink-0 text-gray-600 dark:text-gray-400" aria-hidden="true" />
+                  <div className="text-sm">
+                    <p className="font-medium text-gray-900 dark:text-gray-200">Speicher-Info nicht verfügbar</p>
+                    <p className="mt-1 text-gray-600 text-xs dark:text-gray-400">{storageQuotaError}</p>
+                  </div>
+                </div>
+              </div>
+            )}
 
             {/* Progress-Bar (nur während Download) */}
             {isDownloading && (
