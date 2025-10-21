@@ -44,9 +44,9 @@ export class LagekarteController {
     private readonly lagekarteService: LagekarteService,
     private readonly configService: ConfigService,
   ) {
-    // Get uploads path from ENV or use default (relative to monorepo root)
-    const uploadsBase = this.configService.get<string>('UPLOADS_PATH') || '../../uploads';
-    this.uploadsPath = resolve(__dirname, uploadsBase);
+    // Get uploads path from ENV or use default (relative to project root)
+    const uploadsBase = this.configService.get<string>('UPLOADS_PATH') || 'uploads';
+    this.uploadsPath = join(process.cwd(), uploadsBase);
     this.uploadDir = join(this.uploadsPath, 'lagekarte');
 
     // Ensure uploads directory exists
@@ -151,9 +151,9 @@ export class LagekarteController {
     FileInterceptor('file', {
       storage: diskStorage({
         destination: (_req, _file, cb) => {
-          // Read ENV directly in callback to avoid decorator context issues
-          const uploadsBase = process.env.UPLOADS_PATH || '../../uploads';
-          const uploadsPath = resolve(__dirname, uploadsBase);
+          // Use project root for uploads (consistent with ServeStaticModule)
+          const uploadsBase = process.env.UPLOADS_PATH || 'uploads';
+          const uploadsPath = join(process.cwd(), uploadsBase);
           const uploadDir = join(uploadsPath, 'lagekarte');
 
           // Ensure directory exists

@@ -165,7 +165,17 @@ export class EtbRepository {
     });
   }
 
-  async createEintragHistory(data: { eintragId: string; version: number; timestamp: Date; sequenceNumber: number; kategorie: EtbKategorie; text: string; changeReason: string; changedBy: string }) {
+  async createEintragHistory(data: {
+    eintragId: string;
+    version: number;
+    timestamp: Date;
+    sequenceNumber: number;
+    kategorie: EtbKategorie;
+    text: string;
+    metadata?: Record<string, unknown>;
+    changeReason: string;
+    changedBy: string;
+  }) {
     return this.prisma.etbEintragHistorie.create({
       data: {
         eintragId: data.eintragId,
@@ -174,6 +184,7 @@ export class EtbRepository {
         sequenceNumber: data.sequenceNumber,
         kategorie: data.kategorie,
         text: data.text,
+        metadata: data.metadata as Prisma.InputJsonValue,
         changeReason: data.changeReason,
         changedBy: data.changedBy,
       },
@@ -189,6 +200,7 @@ export class EtbRepository {
       version: number;
       updatedBy: string;
       changeReason?: string;
+      metadata?: Record<string, unknown>;
     },
   ) {
     const updateData = {
@@ -198,6 +210,7 @@ export class EtbRepository {
       ...(data.timestamp && { timestamp: data.timestamp }),
       ...(data.kategorie && { kategorie: data.kategorie }),
       ...(data.text && { text: data.text }),
+      ...(data.metadata !== undefined && { metadata: data.metadata as Prisma.InputJsonValue }),
     };
 
     return this.prisma.etbEintrag.update({

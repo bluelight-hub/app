@@ -173,6 +173,7 @@ export class EtbService {
       timestamp: createEintragDto.timestamp || new Date(),
       kategorie: createEintragDto.kategorie,
       text: createEintragDto.text,
+      metadata: createEintragDto.metadata,
       createdBy: user.userId,
       version: 1,
     });
@@ -210,6 +211,7 @@ export class EtbService {
       sequenceNumber: eintrag.sequenceNumber,
       kategorie: eintrag.kategorie,
       text: eintrag.text,
+      metadata: eintrag.metadata as Record<string, unknown> | undefined,
       changeReason: updateEintragDto.changeReason || 'Update',
       changedBy: user.userId,
     });
