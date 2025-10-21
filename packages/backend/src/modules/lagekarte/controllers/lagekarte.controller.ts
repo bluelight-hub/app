@@ -3,10 +3,12 @@ import { JwtAuthGuard } from '@/auth/guards/jwt-auth.guard';
 import type { ValidatedUser } from '@/auth/strategies/jwt.strategy';
 import { ApiWrappedResponse } from '@/common/decorators/api-wrapped-response.decorator';
 import { BadRequestException, Body, Controller, Delete, Get, Logger, Param, Post, UploadedFile, UseGuards, UseInterceptors, ValidationPipe, NotFoundException } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { ApiBadRequestResponse, ApiBearerAuth, ApiConsumes, ApiForbiddenResponse, ApiNotFoundResponse, ApiOperation, ApiTags, ApiUnauthorizedResponse } from '@nestjs/swagger';
 import { diskStorage } from 'multer';
-import { join } from 'path';
+import { join, resolve } from 'node:path';
+import { mkdirSync } from 'node:fs';
 import { LagekarteService } from '../services/lagekarte.service';
 import { SaveLagekarteStateDto } from '../dto/save-lagekarte-state.dto';
 import { Lagekarte } from '@prisma/client';
@@ -35,8 +37,26 @@ import { Lagekarte } from '@prisma/client';
 })
 export class LagekarteController {
   private readonly logger = new Logger(LagekarteController.name);
+  private readonly uploadsPath: string;
+  private readonly uploadDir: string;
 
-  constructor(private readonly lagekarteService: LagekarteService) {}
+  constructor(
+    private readonly lagekarteService: LagekarteService,
+    private readonly configService: ConfigService,
+  ) {
+    // Get uploads path from ENV or use default (relative to monorepo root)
+    const uploadsBase = this.configService.get<string>('UPLOADS_PATH') || '../../uploads';
+    this.uploadsPath = resolve(__dirname, uploadsBase);
+    this.uploadDir = join(this.uploadsPath, 'lagekarte');
+
+    // Ensure uploads directory exists
+    try {
+      mkdirSync(this.uploadDir, { recursive: true });
+      this.logger.log(`Uploads directory ready: ${this.uploadDir}`);
+    } catch (error) {
+      this.logger.error(`Failed to create uploads directory: ${this.uploadDir}`, error);
+    }
+  }
 
   /**
    * Lagekarte abrufen oder lazy erstellen
@@ -130,13 +150,11 @@ export class LagekarteController {
   @UseInterceptors(
     FileInterceptor('file', {
       storage: diskStorage({
-        destination: (req, file, cb) => {
-          // Use absolute path relative to project root
-          // process.cwd() = monorepo root in dev, container root in Docker
-          const uploadDir = join(process.cwd(), 'uploads', 'lagekarte');
-          cb(null, uploadDir);
+        destination: (_req, _file, cb) => {
+          // Use controller's uploadDir (configured via ENV)
+          cb(null, this.uploadDir);
         },
-        filename: (req, file, cb) => {
+        filename: (req, _file, cb) => {
           const einsatzId = req.params.einsatzId || 'unknown';
           const timestamp = Date.now();
           // Sanitize: Only allow .png extension, prevent path traversal
@@ -147,7 +165,7 @@ export class LagekarteController {
       limits: {
         fileSize: 10 * 1024 * 1024, // 10MB max (Lagekarten-Screenshots mit scale:2 können groß sein)
       },
-      fileFilter: (req, file, cb) => {
+      fileFilter: (_req, file, cb) => {
         // Validate MIME type: Only accept image/png
         if (file.mimetype !== 'image/png') {
           return cb(new BadRequestException('Only PNG files are allowed'), false);
