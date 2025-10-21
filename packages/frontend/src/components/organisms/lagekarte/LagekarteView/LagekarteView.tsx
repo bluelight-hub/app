@@ -329,9 +329,9 @@ export const LagekarteView: React.FC<LagekarteViewProps> = ({ einsatzId }) => {
    * - ETB creation failure → Delete uploaded screenshot (cleanup)
    */
   const handleExportToEtb = useCallback(async () => {
-    if (!mapInstance || !etbData?.id) {
+    if (!mapInstance || !etbData?.data?.id) {
       toast.error('Fehler beim Export', {
-        description: !etbData?.id ? 'Kein ETB gefunden für diesen Einsatz' : 'Karte noch nicht geladen',
+        description: !etbData?.data?.id ? 'Kein ETB gefunden für diesen Einsatz' : 'Karte noch nicht geladen',
       });
       return;
     }
@@ -375,7 +375,7 @@ export const LagekarteView: React.FC<LagekarteViewProps> = ({ einsatzId }) => {
         },
       };
 
-      const etbResponse = await fetch(`/api/v-alpha/etb/${etbData.id}/eintraege`, {
+      const etbResponse = await fetch(`/api/v-alpha/etb/${etbData.data.id}/eintraege`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(etbEntryPayload),

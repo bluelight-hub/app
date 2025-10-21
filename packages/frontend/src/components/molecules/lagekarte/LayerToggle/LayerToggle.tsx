@@ -41,7 +41,7 @@ interface LayerToggleProps {
  * @param onToggle - Callback wenn Layer getoggled wird
  *
  * @remarks
- * - Position: Top-right corner (absolute right-4 top-20 z-50)
+ * - Position: Top-right corner (absolute right-4 top-64 z-50)
  * - Headless UI Switch mit Eye-Icon
  * - Dark-Mode Support
  * - Mobile-responsive (compact auf Mobile)
@@ -59,7 +59,7 @@ interface LayerToggleProps {
  */
 export const LayerToggle: React.FC<LayerToggleProps> = ({ layers, onToggle }) => {
   return (
-    <div className="absolute top-20 right-4 z-50 rounded-lg border border-gray-300 bg-white p-3 shadow-md dark:border-gray-600 dark:bg-gray-800">
+    <div className="absolute top-64 right-4 z-50 rounded-lg border border-gray-300 bg-white p-3 shadow-md dark:border-gray-600 dark:bg-gray-800">
       {/* Header */}
       <div className="mb-2">
         <h3 className="font-semibold text-gray-900 text-sm dark:text-gray-100">Layer</h3>
