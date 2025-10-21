@@ -73,8 +73,9 @@ async function bootstrap() {
   app.enableCors(corsOptions);
 
   // Serve static files (for uploaded screenshots)
-  // Use absolute path: process.cwd() = monorepo root (dev) or container root (Docker)
-  const uploadsPath = require('path').join(process.cwd(), 'uploads');
+  // Use ENV-configured path or default (relative to dist/src/main.js)
+  const uploadsBase = configService.get<string>('UPLOADS_PATH') || '../../uploads';
+  const uploadsPath = require('node:path').resolve(__dirname, uploadsBase);
   logger.log(`Serving static files from: ${uploadsPath}`);
   app.useStaticAssets(uploadsPath, { prefix: '/uploads' });
 
