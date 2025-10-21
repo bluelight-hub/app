@@ -140,7 +140,7 @@ export class LagekarteController {
         },
       }),
       limits: {
-        fileSize: 2 * 1024 * 1024, // 2MB max
+        fileSize: 10 * 1024 * 1024, // 10MB max (Lagekarten-Screenshots mit scale:2 können groß sein)
       },
       fileFilter: (req, file, cb) => {
         // Validate MIME type: Only accept image/png
