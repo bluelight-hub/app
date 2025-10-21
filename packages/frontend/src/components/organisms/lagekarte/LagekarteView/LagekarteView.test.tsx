@@ -1,6 +1,8 @@
 import { act, fireEvent, render, screen, waitFor } from '@testing-library/react';
 import '@testing-library/jest-dom/vitest';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import type * as React from 'react';
 import { LagekarteView } from './LagekarteView';
 
 // Mock useColorMode hook
@@ -10,6 +12,38 @@ vi.mock('@/hooks/use-color-mode', () => ({
     colorMode: 'light',
     setColorMode: vi.fn(),
     toggleColorMode: vi.fn(),
+  })),
+}));
+
+// Mock Lagekarte API Hooks
+vi.mock('@/api/hooks/useLagekarteApi', () => ({
+  useLagekarte: vi.fn(() => ({
+    data: {
+      data: {
+        id: 'test-lagekarte-id',
+        einsatzId: 'test-einsatz-123',
+        state: {
+          type: 'FeatureCollection',
+          features: [],
+        },
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+      },
+    },
+    isLoading: false,
+    error: null,
+  })),
+  usePois: vi.fn(() => ({
+    data: [],
+    isLoading: false,
+    error: null,
+  })),
+  useSaveLagekarteState: vi.fn(() => ({
+    mutate: vi.fn(),
+    mutateAsync: vi.fn(),
+    isPending: false,
+    isError: false,
+    error: null,
   })),
 }));
 
@@ -55,6 +89,20 @@ vi.mock('react-leaflet', () => ({
   },
 }));
 
+// Helper function to render with QueryClientProvider
+const renderWithQueryClient = (ui: React.ReactElement) => {
+  const queryClient = new QueryClient({
+    defaultOptions: {
+      queries: {
+        retry: false,
+        gcTime: 0,
+      },
+    },
+  });
+
+  return render(<QueryClientProvider client={queryClient}>{ui}</QueryClientProvider>);
+};
+
 describe('LagekarteView', () => {
   beforeEach(() => {
     vi.clearAllMocks();
@@ -66,7 +114,7 @@ describe('LagekarteView', () => {
     const einsatzId = 'test-einsatz-123';
 
     // Act
-    render(<LagekarteView einsatzId={einsatzId} />);
+    renderWithQueryClient(<LagekarteView einsatzId={einsatzId} />);
 
     // Assert
     await waitFor(() => {
@@ -79,7 +127,7 @@ describe('LagekarteView', () => {
     const einsatzId = 'test-einsatz-123';
 
     // Act
-    render(<LagekarteView einsatzId={einsatzId} />);
+    renderWithQueryClient(<LagekarteView einsatzId={einsatzId} />);
 
     // Assert
     const tileLayer = screen.getByTestId('tile-layer');
@@ -100,7 +148,7 @@ describe('LagekarteView', () => {
     });
 
     // Act
-    render(<LagekarteView einsatzId={einsatzId} />);
+    renderWithQueryClient(<LagekarteView einsatzId={einsatzId} />);
 
     // Assert
     const tileLayer = screen.getByTestId('tile-layer');
@@ -112,7 +160,7 @@ describe('LagekarteView', () => {
     const einsatzId = 'test-einsatz-123';
 
     // Act
-    const { container } = render(<LagekarteView einsatzId={einsatzId} />);
+    const { container } = renderWithQueryClient(<LagekarteView einsatzId={einsatzId} />);
 
     // Assert
     const mapWrapper = container.firstChild as HTMLElement;
@@ -125,7 +173,7 @@ describe('LagekarteView', () => {
     const einsatzId = 'test-einsatz-123';
 
     // Act
-    render(<LagekarteView einsatzId={einsatzId} />);
+    renderWithQueryClient(<LagekarteView einsatzId={einsatzId} />);
 
     // Assert - Spinner sollte sichtbar sein während isLoading=true
     const spinner = document.querySelector('.absolute.inset-0');
@@ -137,7 +185,7 @@ describe('LagekarteView', () => {
     const einsatzId = 'test-einsatz-123';
 
     // Act
-    render(<LagekarteView einsatzId={einsatzId} />);
+    renderWithQueryClient(<LagekarteView einsatzId={einsatzId} />);
 
     // Assert - Warte bis whenReady callback feuert
     await waitFor(
@@ -155,7 +203,7 @@ describe('LagekarteView', () => {
     const expectedCenter = [51.1657, 10.4515];
 
     // Act
-    render(<LagekarteView einsatzId={einsatzId} />);
+    renderWithQueryClient(<LagekarteView einsatzId={einsatzId} />);
 
     // Assert
     const mapContainer = screen.getByTestId('map-container');
@@ -168,7 +216,7 @@ describe('LagekarteView', () => {
     const einsatzId = 'test-einsatz-123';
 
     // Act
-    render(<LagekarteView einsatzId={einsatzId} />);
+    renderWithQueryClient(<LagekarteView einsatzId={einsatzId} />);
 
     // Assert
     const mapContainer = screen.getByTestId('map-container');
@@ -180,7 +228,7 @@ describe('LagekarteView', () => {
     const einsatzId = 'test-einsatz-123';
 
     // Act
-    render(<LagekarteView einsatzId={einsatzId} />);
+    renderWithQueryClient(<LagekarteView einsatzId={einsatzId} />);
 
     // Trigger tile error via callback
     await act(async () => {
@@ -200,7 +248,7 @@ describe('LagekarteView', () => {
     const einsatzId = 'test-einsatz-123';
 
     // Act
-    render(<LagekarteView einsatzId={einsatzId} />);
+    renderWithQueryClient(<LagekarteView einsatzId={einsatzId} />);
 
     // Trigger tile error
     await act(async () => {
@@ -217,7 +265,7 @@ describe('LagekarteView', () => {
   it('should reset error state and reload map when retry button is clicked', async () => {
     // Arrange
     const einsatzId = 'test-einsatz-123';
-    render(<LagekarteView einsatzId={einsatzId} />);
+    renderWithQueryClient(<LagekarteView einsatzId={einsatzId} />);
 
     // Trigger error
     await act(async () => {
