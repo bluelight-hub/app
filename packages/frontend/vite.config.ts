@@ -25,6 +25,11 @@ export default defineConfig({
     allowedHosts: true, // allow access from all hosts
     port: 3001,
     proxy: {
+      '/uploads': {
+        target: process.env.VITE_API_URL || 'http://localhost:3000',
+        changeOrigin: true,
+        secure: false,
+      },
       '/api': {
         target: process.env.VITE_API_URL || 'http://localhost:3000',
         changeOrigin: true,
