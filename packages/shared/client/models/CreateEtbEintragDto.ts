@@ -37,6 +37,12 @@ export interface CreateEtbEintragDto {
    * @memberof CreateEtbEintragDto
    */
   text: string;
+  /**
+   * Optional metadata for the entry (e.g., screenshot info, attachments)
+   * @type {object}
+   * @memberof CreateEtbEintragDto
+   */
+  metadata?: object;
 }
 
 /**
@@ -80,6 +86,7 @@ export function CreateEtbEintragDtoFromJSONTyped(json: any, ignoreDiscriminator:
     timestamp: json['timestamp'] == null ? undefined : new Date(json['timestamp']),
     kategorie: json['kategorie'],
     text: json['text'],
+    metadata: json['metadata'] == null ? undefined : json['metadata'],
   };
 }
 
@@ -96,5 +103,6 @@ export function CreateEtbEintragDtoToJSONTyped(value?: CreateEtbEintragDto | nul
     timestamp: value['timestamp'] == null ? undefined : value['timestamp'].toISOString(),
     kategorie: value['kategorie'],
     text: value['text'],
+    metadata: value['metadata'],
   };
 }

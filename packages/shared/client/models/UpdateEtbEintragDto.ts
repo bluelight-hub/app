@@ -38,6 +38,12 @@ export interface UpdateEtbEintragDto {
    */
   text?: string;
   /**
+   * Optional metadata for the entry (e.g., screenshot info, attachments)
+   * @type {object}
+   * @memberof UpdateEtbEintragDto
+   */
+  metadata?: object;
+  /**
    * Reason for the change (for audit trail)
    * @type {string}
    * @memberof UpdateEtbEintragDto
@@ -84,6 +90,7 @@ export function UpdateEtbEintragDtoFromJSONTyped(json: any, ignoreDiscriminator:
     timestamp: json['timestamp'] == null ? undefined : new Date(json['timestamp']),
     kategorie: json['kategorie'] == null ? undefined : json['kategorie'],
     text: json['text'] == null ? undefined : json['text'],
+    metadata: json['metadata'] == null ? undefined : json['metadata'],
     changeReason: json['changeReason'] == null ? undefined : json['changeReason'],
   };
 }
@@ -101,6 +108,7 @@ export function UpdateEtbEintragDtoToJSONTyped(value?: UpdateEtbEintragDto | nul
     timestamp: value['timestamp'] == null ? undefined : value['timestamp'].toISOString(),
     kategorie: value['kategorie'],
     text: value['text'],
+    metadata: value['metadata'],
     changeReason: value['changeReason'],
   };
 }
