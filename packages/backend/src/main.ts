@@ -66,7 +66,8 @@ async function bootstrap() {
   app.enableCors(corsOptions);
 
   // Serve static files (for uploaded screenshots)
-  app.useStaticAssets('./uploads', { prefix: '/uploads' });
+  // Note: Path is relative to monorepo root (from packages/backend/dist/src/main)
+  app.useStaticAssets('../../../../uploads', { prefix: '/uploads' });
 
   // Enable validation pipes globally
   app.useGlobalPipes(
