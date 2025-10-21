@@ -10,6 +10,7 @@ import { ClusteredPoiLayer } from '../layers/ClusteredPoiLayer';
 import { DrawingLayer } from '../layers/DrawingLayer';
 import { OfflineTileLayer } from '../layers/OfflineTileLayer';
 import { useLagekarte, usePois } from '@/api/hooks/useLagekarteApi';
+import { useEtb } from '@/hooks/useEtb';
 import { useMapBounds } from './useMapBounds';
 import { usePlacementMode } from './usePlacementMode';
 import { useLagekarteAutoSave } from './useLagekarteAutoSave';
@@ -25,6 +26,8 @@ import type { PoiType } from '@/utils/poi-icons';
 import type { ShapeType } from '@/utils/drawing-styles';
 import type * as GeoJSON from 'geojson';
 import { toast } from 'sonner';
+import { captureMapScreenshot } from '@/utils/captureMapScreenshot';
+import { logger } from '@/utils/logger';
 import './lagekarte-view.css';
 
 /**
@@ -147,8 +150,14 @@ export const LagekarteView: React.FC<LagekarteViewProps> = ({ einsatzId }) => {
   const [currentMapBounds, setCurrentMapBounds] = useState<L.LatLngBounds | null>(null);
   const [mapInstance, setMapInstance] = useState<L.Map | null>(null);
 
+  // ETB-Export State
+  const [isExportingToEtb, setIsExportingToEtb] = useState(false);
+
   // Lagekarte-Daten (für lagekarteId + State)
   const { data: lagekarteData } = useLagekarte(einsatzId);
+
+  // ETB-Daten (für etbId beim Export)
+  const { data: etbData } = useEtb(einsatzId);
 
   // Auto-Save Hook (debounced 2s)
   const { triggerAutoSave } = useLagekarteAutoSave(einsatzId);
@@ -306,6 +315,105 @@ export const LagekarteView: React.FC<LagekarteViewProps> = ({ einsatzId }) => {
     setCurrentMapBounds(bounds);
   }, []);
 
+  /**
+   * Handler für ETB-Export-Button
+   *
+   * **Flow:**
+   * 1. Capture screenshot from map
+   * 2. Upload screenshot to backend
+   * 3. Create ETB entry with screenshot metadata
+   * 4. Show success toast
+   *
+   * **Error Handling:**
+   * - Upload failure → Show error toast with retry option
+   * - ETB creation failure → Delete uploaded screenshot (cleanup)
+   */
+  const handleExportToEtb = useCallback(async () => {
+    if (!mapInstance || !etbData?.id) {
+      toast.error('Fehler beim Export', {
+        description: !etbData?.id ? 'Kein ETB gefunden für diesen Einsatz' : 'Karte noch nicht geladen',
+      });
+      return;
+    }
+
+    setIsExportingToEtb(true);
+    let uploadedScreenshotUrl: string | null = null;
+
+    try {
+      // Step 1: Capture screenshot
+      const mapContainer = mapInstance.getContainer();
+      const screenshotBlob = await captureMapScreenshot(mapContainer);
+
+      // Step 2: Upload screenshot
+      const formData = new FormData();
+      formData.append('file', screenshotBlob, `lagekarte_${einsatzId}_${Date.now()}.png`);
+
+      const uploadResponse = await fetch(`/api/v-alpha/einsatz/${einsatzId}/lagekarte/screenshot`, {
+        method: 'POST',
+        body: formData,
+        credentials: 'include',
+      });
+
+      if (!uploadResponse.ok) {
+        throw new Error('Screenshot upload failed');
+      }
+
+      const uploadData = await uploadResponse.json();
+      uploadedScreenshotUrl = uploadData.url;
+
+      // Step 3: Create ETB entry
+      const etbEntryPayload = {
+        kategorie: 'LAGE',
+        text: 'Lagekarten-Screenshot',
+        metadata: {
+          screenshot: {
+            url: uploadedScreenshotUrl,
+            width: 1024,
+            height: 768,
+            timestamp: new Date().toISOString(),
+          },
+        },
+      };
+
+      const etbResponse = await fetch(`/api/v-alpha/etb/${etbData.id}/eintraege`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(etbEntryPayload),
+        credentials: 'include',
+      });
+
+      if (!etbResponse.ok) {
+        // Cleanup: Delete uploaded screenshot if ETB creation fails
+        if (uploadedScreenshotUrl) {
+          try {
+            await fetch(uploadedScreenshotUrl, { method: 'DELETE', credentials: 'include' });
+          } catch (cleanupError) {
+            logger.error('Failed to cleanup screenshot after ETB error', cleanupError);
+          }
+        }
+        throw new Error('ETB entry creation failed');
+      }
+
+      // Success!
+      toast.success('Screenshot erfolgreich ins ETB exportiert', {
+        description: 'Der Screenshot wurde als ETB-Eintrag gespeichert',
+      });
+    } catch (error) {
+      logger.error('ETB export failed', error);
+
+      // Show error toast with retry option
+      toast.error('Fehler beim ETB-Export', {
+        description: error instanceof Error ? error.message : 'Unbekannter Fehler',
+        action: {
+          label: 'Retry',
+          onClick: () => handleExportToEtb(),
+        },
+      });
+    } finally {
+      setIsExportingToEtb(false);
+    }
+  }, [mapInstance, etbData, einsatzId]);
+
   // Error-State anzeigen
   if (hasError) {
     return (
@@ -386,7 +494,7 @@ export const LagekarteView: React.FC<LagekarteViewProps> = ({ einsatzId }) => {
 
         {/* Lagekarte-Toolbar (Top-Right) */}
         <div className="absolute top-2.5 right-2.5 z-[30]">
-          <LagekarteToolbar onOfflineDownloadClick={handleOfflineDownloadClick} />
+          <LagekarteToolbar onOfflineDownloadClick={handleOfflineDownloadClick} onEtbExportClick={handleExportToEtb} isExportingToEtb={isExportingToEtb} />
         </div>
 
         {/* Layer-Toggle */}
