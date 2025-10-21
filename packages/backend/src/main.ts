@@ -65,6 +65,9 @@ async function bootstrap() {
   const corsOptions = isProduction ? corsConfig.production : corsConfig.development;
   app.enableCors(corsOptions);
 
+  // Serve static files (for uploaded screenshots)
+  app.useStaticAssets('./uploads', { prefix: '/uploads' });
+
   // Enable validation pipes globally
   app.useGlobalPipes(
     new ValidationPipe({

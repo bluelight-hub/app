@@ -2,8 +2,11 @@ import { CurrentUser } from '@/auth/decorators/current-user.decorator';
 import { JwtAuthGuard } from '@/auth/guards/jwt-auth.guard';
 import type { ValidatedUser } from '@/auth/strategies/jwt.strategy';
 import { ApiWrappedResponse } from '@/common/decorators/api-wrapped-response.decorator';
-import { Body, Controller, Delete, Get, Logger, Param, Post, UseGuards, ValidationPipe, NotFoundException } from '@nestjs/common';
-import { ApiBadRequestResponse, ApiBearerAuth, ApiForbiddenResponse, ApiNotFoundResponse, ApiOperation, ApiTags, ApiUnauthorizedResponse } from '@nestjs/swagger';
+import { BadRequestException, Body, Controller, Delete, Get, Logger, Param, Post, UploadedFile, UseGuards, UseInterceptors, ValidationPipe, NotFoundException } from '@nestjs/common';
+import { FileInterceptor } from '@nestjs/platform-express';
+import { ApiBadRequestResponse, ApiBearerAuth, ApiConsumes, ApiForbiddenResponse, ApiNotFoundResponse, ApiOperation, ApiTags, ApiUnauthorizedResponse } from '@nestjs/swagger';
+import { diskStorage } from 'multer';
+import { extname } from 'path';
 import { LagekarteService } from '../services/lagekarte.service';
 import { SaveLagekarteStateDto } from '../dto/save-lagekarte-state.dto';
 import { Lagekarte } from '@prisma/client';
@@ -96,6 +99,69 @@ export class LagekarteController {
     const updated = await this.lagekarteService.updateState(lagekarte.id, dto.state);
     this.logger.log(`Lagekarte ${lagekarte.id} state updated for Einsatz ${einsatzId}`);
     return updated;
+  }
+
+  /**
+   * Screenshot der Lagekarte hochladen (für ETB-Integration)
+   *
+   * **Security:**
+   * - Nur PNG-Files erlaubt (MIME-Type Validierung)
+   * - Filename Sanitization (verhindert Path Traversal)
+   * - Max. File-Size: 2MB
+   *
+   * **Storage:**
+   * - Ziel: `/uploads/lagekarte/{einsatzId}_{timestamp}.png`
+   * - Persistierung via Docker Volume
+   *
+   * @param einsatzId - ID des Einsatzes
+   * @param file - Hochgeladenes Screenshot-File (PNG)
+   * @param user - Authentifizierter User
+   * @returns File URL für ETB-Integration
+   */
+  @Post('screenshot')
+  @ApiOperation({
+    summary: 'Screenshot der Lagekarte hochladen',
+    description: 'Upload eines Screenshots der Lagekarte für ETB-Integration. Nur PNG-Files bis 2MB. Rückgabe: File-URL für Verwendung in ETB-Einträgen.',
+  })
+  @ApiConsumes('multipart/form-data')
+  @ApiWrappedResponse(Object, { description: 'Screenshot erfolgreich hochgeladen' })
+  @ApiBadRequestResponse({ description: 'Ungültiges File-Format oder zu groß' })
+  @ApiNotFoundResponse({ description: 'Einsatz nicht gefunden' })
+  @UseInterceptors(
+    FileInterceptor('file', {
+      storage: diskStorage({
+        destination: './uploads/lagekarte',
+        filename: (req, file, cb) => {
+          const einsatzId = req.params.einsatzId;
+          const timestamp = Date.now();
+          // Sanitize: Only allow .png extension, prevent path traversal
+          const sanitizedEinsatzId = einsatzId.replace(/[^a-zA-Z0-9_-]/g, '');
+          cb(null, `${sanitizedEinsatzId}_${timestamp}.png`);
+        },
+      }),
+      limits: {
+        fileSize: 2 * 1024 * 1024, // 2MB max
+      },
+      fileFilter: (req, file, cb) => {
+        // Validate MIME type: Only accept image/png
+        if (file.mimetype !== 'image/png') {
+          return cb(new BadRequestException('Only PNG files are allowed'), false);
+        }
+        cb(null, true);
+      },
+    }),
+  )
+  async uploadScreenshot(@Param('einsatzId') einsatzId: string, @UploadedFile() file: Express.Multer.File, @CurrentUser() user: ValidatedUser): Promise<{ url: string }> {
+    this.logger.log(`Uploading screenshot for Einsatz ${einsatzId} by user ${user.userId}`);
+
+    if (!file) {
+      throw new BadRequestException('No file uploaded');
+    }
+
+    const fileUrl = `/uploads/lagekarte/${file.filename}`;
+    this.logger.log(`Screenshot uploaded: ${fileUrl}`);
+
+    return { url: fileUrl };
   }
 
   /**
