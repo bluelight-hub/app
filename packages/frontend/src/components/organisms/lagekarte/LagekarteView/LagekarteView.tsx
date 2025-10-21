@@ -359,7 +359,7 @@ export const LagekarteView: React.FC<LagekarteViewProps> = ({ einsatzId }) => {
       }
 
       const uploadData = await uploadResponse.json();
-      uploadedScreenshotUrl = uploadData.url;
+      uploadedScreenshotUrl = uploadData.data.url;
 
       // Step 3: Create ETB entry
       const etbEntryPayload = {
