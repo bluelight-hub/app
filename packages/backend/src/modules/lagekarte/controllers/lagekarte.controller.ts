@@ -132,7 +132,7 @@ export class LagekarteController {
       storage: diskStorage({
         destination: './uploads/lagekarte',
         filename: (req, file, cb) => {
-          const einsatzId = req.params.einsatzId;
+          const einsatzId = req.params.einsatzId || 'unknown';
           const timestamp = Date.now();
           // Sanitize: Only allow .png extension, prevent path traversal
           const sanitizedEinsatzId = einsatzId.replace(/[^a-zA-Z0-9_-]/g, '');
