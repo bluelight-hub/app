@@ -115,11 +115,13 @@ export const MobileFilterDialog = ({ isOpen, onClose, statusFilter, sortOption, 
             ))}
           </div>
         </div>
+      </Dialog.Body>
 
+      <Dialog.Footer>
         <Button intent="secondary" onClick={handleReset} className="w-full">
           Filter zurücksetzen
         </Button>
-      </Dialog.Body>
+      </Dialog.Footer>
     </Dialog>
   );
 };
