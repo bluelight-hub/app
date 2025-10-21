@@ -34,6 +34,10 @@ export interface LagekarteControllerSaveLagekarteStateVAlphaRequest {
   saveLagekarteStateDto: SaveLagekarteStateDto;
 }
 
+export interface LagekarteControllerUploadScreenshotVAlphaRequest {
+  einsatzId: string;
+}
+
 /**
  *
  */
@@ -189,6 +193,55 @@ export class LagekarteApi extends runtime.BaseAPI {
     initOverrides?: RequestInit | runtime.InitOverrideFunction,
   ): Promise<LagekarteControllerGetLagekarteVAlpha200Response> {
     const response = await this.lagekarteControllerSaveLagekarteStateVAlphaRaw(requestParameters, initOverrides);
+    return await response.value();
+  }
+
+  /**
+   * Upload eines Screenshots der Lagekarte für ETB-Integration. Nur PNG-Files bis 10MB. Rückgabe: File-URL für Verwendung in ETB-Einträgen.
+   * Screenshot der Lagekarte hochladen
+   */
+  async lagekarteControllerUploadScreenshotVAlphaRaw(
+    requestParameters: LagekarteControllerUploadScreenshotVAlphaRequest,
+    initOverrides?: RequestInit | runtime.InitOverrideFunction,
+  ): Promise<runtime.ApiResponse<LagekarteControllerGetLagekarteVAlpha200Response>> {
+    if (requestParameters['einsatzId'] == null) {
+      throw new runtime.RequiredError('einsatzId', 'Required parameter "einsatzId" was null or undefined when calling lagekarteControllerUploadScreenshotVAlpha().');
+    }
+
+    const queryParameters: any = {};
+
+    const headerParameters: runtime.HTTPHeaders = {};
+
+    if (this.configuration && this.configuration.accessToken) {
+      const token = this.configuration.accessToken;
+      const tokenString = await token('bearer', []);
+
+      if (tokenString) {
+        headerParameters['Authorization'] = `Bearer ${tokenString}`;
+      }
+    }
+    const response = await this.request(
+      {
+        path: `/api/v-alpha/einsatz/{einsatzId}/lagekarte/screenshot`.replace(`{${'einsatzId'}}`, encodeURIComponent(String(requestParameters['einsatzId']))),
+        method: 'POST',
+        headers: headerParameters,
+        query: queryParameters,
+      },
+      initOverrides,
+    );
+
+    return new runtime.JSONApiResponse(response, (jsonValue) => LagekarteControllerGetLagekarteVAlpha200ResponseFromJSON(jsonValue));
+  }
+
+  /**
+   * Upload eines Screenshots der Lagekarte für ETB-Integration. Nur PNG-Files bis 10MB. Rückgabe: File-URL für Verwendung in ETB-Einträgen.
+   * Screenshot der Lagekarte hochladen
+   */
+  async lagekarteControllerUploadScreenshotVAlpha(
+    requestParameters: LagekarteControllerUploadScreenshotVAlphaRequest,
+    initOverrides?: RequestInit | runtime.InitOverrideFunction,
+  ): Promise<LagekarteControllerGetLagekarteVAlpha200Response> {
+    const response = await this.lagekarteControllerUploadScreenshotVAlphaRaw(requestParameters, initOverrides);
     return await response.value();
   }
 }
