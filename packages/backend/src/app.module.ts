@@ -4,6 +4,8 @@ import { ConfigModule } from '@nestjs/config';
 import { APP_FILTER } from '@nestjs/core';
 import { EventEmitterModule } from '@nestjs/event-emitter';
 import { ThrottlerModule } from '@nestjs/throttler';
+import { ServeStaticModule } from '@nestjs/serve-static';
+import { join, resolve } from 'node:path';
 import { AppController } from './app.controller';
 import { AuthModule } from './auth/auth.module';
 import { CommonModule } from './common/common.module';
@@ -46,6 +48,14 @@ import { LagekarteModule } from './modules/lagekarte/lagekarte.module';
         limit: 10, // 10 requests per minute globally
       },
     ]),
+    ServeStaticModule.forRoot({
+      rootPath: join(process.cwd(), process.env.UPLOADS_PATH || 'uploads'),
+      serveRoot: '/uploads',
+      serveStaticOptions: {
+        index: false,
+        fallthrough: false,
+      },
+    }),
     PrismaModule,
     HealthModule,
     CommonModule,
