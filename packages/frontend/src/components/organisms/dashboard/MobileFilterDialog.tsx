@@ -39,8 +39,8 @@ export const MobileFilterDialog = ({ isOpen, onClose, statusFilter, sortOption, 
   ];
 
   const handleStatusChange = (value: string) => {
-    // Convert empty string to undefined, otherwise parse the string back to enum
-    onStatusFilterChange(value === '' ? undefined : (Number(value) as EinsatzResponseDtoStatusEnum));
+    // Convert empty string to undefined, otherwise use the string value as enum
+    onStatusFilterChange(value === '' ? undefined : (value as EinsatzResponseDtoStatusEnum));
     onClose();
   };
 
@@ -83,15 +83,15 @@ export const MobileFilterDialog = ({ isOpen, onClose, statusFilter, sortOption, 
             </label>
             <Select
               id="status-filter-mobile"
-              value={statusFilter !== undefined ? String(statusFilter) : ''}
+              value={statusFilter ?? ''}
               onChange={(e) => handleStatusChange(e.target.value)}
               selectSize="md"
               fullWidth
               options={[
                 { value: '', label: 'Alle Status' },
-                { value: String(EinsatzResponseDtoStatusEnum.Angelegt), label: 'Angelegt' },
-                { value: String(EinsatzResponseDtoStatusEnum.InBearbeitung), label: 'In Bearbeitung' },
-                { value: String(EinsatzResponseDtoStatusEnum.Abgeschlossen), label: 'Abgeschlossen' },
+                { value: EinsatzResponseDtoStatusEnum.Angelegt, label: 'Angelegt' },
+                { value: EinsatzResponseDtoStatusEnum.InBearbeitung, label: 'In Bearbeitung' },
+                { value: EinsatzResponseDtoStatusEnum.Abgeschlossen, label: 'Abgeschlossen' },
               ]}
             />
           </div>
