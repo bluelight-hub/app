@@ -127,7 +127,7 @@ export class LagekarteController {
    * **Security:**
    * - Nur PNG-Files erlaubt (MIME-Type Validierung)
    * - Filename Sanitization (verhindert Path Traversal)
-   * - Max. File-Size: 2MB
+   * - Max. File-Size: 10MB
    *
    * **Storage:**
    * - Ziel: `/uploads/lagekarte/{einsatzId}_{timestamp}.png`
@@ -141,7 +141,7 @@ export class LagekarteController {
   @Post('screenshot')
   @ApiOperation({
     summary: 'Screenshot der Lagekarte hochladen',
-    description: 'Upload eines Screenshots der Lagekarte für ETB-Integration. Nur PNG-Files bis 2MB. Rückgabe: File-URL für Verwendung in ETB-Einträgen.',
+    description: 'Upload eines Screenshots der Lagekarte für ETB-Integration. Nur PNG-Files bis 10MB. Rückgabe: File-URL für Verwendung in ETB-Einträgen.',
   })
   @ApiConsumes('multipart/form-data')
   @ApiWrappedResponse(Object, { description: 'Screenshot erfolgreich hochgeladen' })
@@ -151,8 +151,19 @@ export class LagekarteController {
     FileInterceptor('file', {
       storage: diskStorage({
         destination: (_req, _file, cb) => {
-          // Use controller's uploadDir (configured via ENV)
-          cb(null, this.uploadDir);
+          // Read ENV directly in callback to avoid decorator context issues
+          const uploadsBase = process.env.UPLOADS_PATH || '../../uploads';
+          const uploadsPath = resolve(__dirname, uploadsBase);
+          const uploadDir = join(uploadsPath, 'lagekarte');
+
+          // Ensure directory exists
+          try {
+            mkdirSync(uploadDir, { recursive: true });
+          } catch {
+            // Ignore errors - directory likely exists
+          }
+
+          cb(null, uploadDir);
         },
         filename: (req, _file, cb) => {
           const einsatzId = req.params.einsatzId || 'unknown';
