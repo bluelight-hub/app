@@ -6,7 +6,7 @@ import { BadRequestException, Body, Controller, Delete, Get, Logger, Param, Post
 import { FileInterceptor } from '@nestjs/platform-express';
 import { ApiBadRequestResponse, ApiBearerAuth, ApiConsumes, ApiForbiddenResponse, ApiNotFoundResponse, ApiOperation, ApiTags, ApiUnauthorizedResponse } from '@nestjs/swagger';
 import { diskStorage } from 'multer';
-import { extname } from 'path';
+import { join } from 'path';
 import { LagekarteService } from '../services/lagekarte.service';
 import { SaveLagekarteStateDto } from '../dto/save-lagekarte-state.dto';
 import { Lagekarte } from '@prisma/client';
@@ -130,7 +130,12 @@ export class LagekarteController {
   @UseInterceptors(
     FileInterceptor('file', {
       storage: diskStorage({
-        destination: '../../../../uploads/lagekarte',
+        destination: (req, file, cb) => {
+          // Use absolute path relative to project root
+          // process.cwd() = monorepo root in dev, container root in Docker
+          const uploadDir = join(process.cwd(), 'uploads', 'lagekarte');
+          cb(null, uploadDir);
+        },
         filename: (req, file, cb) => {
           const einsatzId = req.params.einsatzId || 'unknown';
           const timestamp = Date.now();
