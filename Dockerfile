@@ -50,6 +50,10 @@ RUN pnpm install --prod
 # Set environment variables
 ENV NODE_ENV=production
 
+# Create uploads directory and set permissions
+RUN mkdir -p /app/uploads/lagekarte && \
+    chown -R node:node /app/uploads
+
 # Switch to non-root user
 USER node
 

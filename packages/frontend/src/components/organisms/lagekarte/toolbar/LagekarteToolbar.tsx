@@ -1,13 +1,21 @@
 import { Button } from '@/components/atoms/button.atom';
 import { cn } from '@/utils/cn';
 import type React from 'react';
-import { PiDownload } from 'react-icons/pi';
+import { PiCamera, PiDownload } from 'react-icons/pi';
 
 interface LagekarteToolbarProps {
   /**
    * Callback wenn Offline-Download-Button geklickt wird
    */
   onOfflineDownloadClick: () => void;
+  /**
+   * Callback wenn ETB-Export-Button geklickt wird
+   */
+  onEtbExportClick: () => void;
+  /**
+   * Zeigt Loading-State während Screenshot-Generierung
+   */
+  isExportingToEtb?: boolean;
 }
 
 /**
@@ -15,8 +23,11 @@ interface LagekarteToolbarProps {
  *
  * Zeigt zentrale Toolbar-Funktionen für die Lagekarte an:
  * - Offline-Download: Karten-Region für Offline-Nutzung herunterladen
+ * - ETB-Export: Screenshot der Lagekarte ins Einsatztagebuch exportieren
  *
  * @param onOfflineDownloadClick - Callback wenn Offline-Download-Button geklickt wird
+ * @param onEtbExportClick - Callback wenn ETB-Export-Button geklickt wird
+ * @param isExportingToEtb - Zeigt Loading-State während Screenshot-Generierung
  *
  * @remarks
  * - Position: Top-right corner of map (next to zoom controls)
@@ -27,10 +38,12 @@ interface LagekarteToolbarProps {
  * ```tsx
  * <LagekarteToolbar
  *   onOfflineDownloadClick={() => setOfflineModalOpen(true)}
+ *   onEtbExportClick={handleExportToEtb}
+ *   isExportingToEtb={isExporting}
  * />
  * ```
  */
-export const LagekarteToolbar: React.FC<LagekarteToolbarProps> = ({ onOfflineDownloadClick }) => {
+export const LagekarteToolbar: React.FC<LagekarteToolbarProps> = ({ onOfflineDownloadClick, onEtbExportClick, isExportingToEtb = false }) => {
   return (
     <div
       className={cn(
@@ -39,6 +52,8 @@ export const LagekarteToolbar: React.FC<LagekarteToolbarProps> = ({ onOfflineDow
         'dark:border-gray-700/50 dark:bg-gray-900/90',
         // Padding
         'p-2',
+        // Flex layout für multiple buttons
+        'flex flex-col gap-2',
       )}
     >
       <Button
@@ -57,6 +72,27 @@ export const LagekarteToolbar: React.FC<LagekarteToolbarProps> = ({ onOfflineDow
       >
         <PiDownload size={20} aria-hidden="true" />
         <span className="hidden md:inline">Offline-Download</span>
+      </Button>
+
+      <Button
+        type="button"
+        onClick={onEtbExportClick}
+        intent="primary"
+        appearance="outline"
+        size="md"
+        disabled={isExportingToEtb}
+        className={cn(
+          'gap-2',
+          // Hover scale animation
+          'hover:scale-[1.02]',
+          // Loading state
+          isExportingToEtb && 'cursor-wait opacity-50',
+        )}
+        aria-label="Lagekarte ins ETB exportieren"
+        title="Screenshot der Lagekarte ins Einsatztagebuch exportieren"
+      >
+        <PiCamera size={20} aria-hidden="true" />
+        <span className="hidden md:inline">{isExportingToEtb ? 'Exportiere...' : 'ETB-Export'}</span>
       </Button>
     </div>
   );

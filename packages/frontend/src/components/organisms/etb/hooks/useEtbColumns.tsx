@@ -8,6 +8,7 @@ import { useMemo } from 'react';
 import { PiCaretDown, PiCaretRight, PiPencil, PiTrash } from 'react-icons/pi';
 import { EtbKategorieBadge } from '../components/EtbKategorieBadge';
 import { EtbVersionBadge } from '../components/EtbVersionBadge';
+import { EtbTextCell } from '../components/EtbTextCell';
 
 interface UseEtbColumnsProps {
   onEditEntry?: (entry: EtbEintragDto) => void;
@@ -81,7 +82,7 @@ export function useEtbColumns({ onEditEntry, handleDelete, onShowHistory }: UseE
         id: 'text',
         accessorKey: 'text',
         header: 'Eintrag',
-        cell: ({ getValue }) => <p className="whitespace-pre-wrap break-words text-gray-900 text-sm leading-relaxed dark:text-gray-100">{getValue<string>()}</p>,
+        cell: ({ row }) => <EtbTextCell entry={row.original} />,
         size: 600,
         minSize: 400,
       },
