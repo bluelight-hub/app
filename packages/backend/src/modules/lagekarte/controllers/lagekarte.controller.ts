@@ -130,7 +130,7 @@ export class LagekarteController {
   @UseInterceptors(
     FileInterceptor('file', {
       storage: diskStorage({
-        destination: './uploads/lagekarte',
+        destination: '../../../../uploads/lagekarte',
         filename: (req, file, cb) => {
           const einsatzId = req.params.einsatzId || 'unknown';
           const timestamp = Date.now();
