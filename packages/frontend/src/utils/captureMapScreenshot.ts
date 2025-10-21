@@ -1,4 +1,4 @@
-import html2canvas from 'html2canvas';
+import { domToPng } from 'modern-screenshot';
 
 /**
  * Minimale Screenshot-Auflösung (Breite x Höhe)
@@ -13,10 +13,10 @@ const MIN_SCREENSHOT_HEIGHT = 768;
  * @returns Promise mit Blob des generierten Screenshots (PNG)
  *
  * @remarks
- * - Verwendet html2canvas für Browser-seitige Screenshot-Generierung
+ * - Verwendet modern-screenshot für Browser-seitige Screenshot-Generierung
+ * - Unterstützt moderne CSS-Features wie oklch() Farben
  * - Mindestauflösung: 1024x768px (skaliert bei Bedarf)
  * - Format: PNG (verlustfrei, unterstützt Transparenz)
- * - CORS: Aktiviert für OSM-Tiles (`useCORS: true`)
  * - Scale: 2x für High-DPI-Displays
  *
  * @throws Error wenn Screenshot-Generierung fehlschlägt
@@ -34,20 +34,26 @@ export async function captureMapScreenshot(mapElement: HTMLElement): Promise<Blo
   }
 
   try {
-    // Capture map as canvas
-    const canvas = await html2canvas(mapElement, {
-      useCORS: true, // Enable cross-origin tiles (OSM)
+    // Capture map as PNG dataURL using modern-screenshot
+    const dataUrl = await domToPng(mapElement, {
       scale: 2, // 2x resolution for high-DPI displays
-      backgroundColor: '#ffffff', // White background for transparency fallback
-      logging: false, // Disable debug logging
-      allowTaint: false, // Prevent tainted canvas (CORS security)
+      backgroundColor: '#ffffff', // White background
+      quality: 1.0, // Maximum quality
     });
 
-    // Ensure minimum resolution
-    const currentWidth = canvas.width;
-    const currentHeight = canvas.height;
+    // Convert dataURL to blob
+    const response = await fetch(dataUrl);
+    const blob = await response.blob();
 
-    let finalCanvas = canvas;
+    // Check if we need to scale up to minimum resolution
+    const img = new Image();
+    img.src = dataUrl;
+    await new Promise((resolve) => {
+      img.onload = resolve;
+    });
+
+    const currentWidth = img.width;
+    const currentHeight = img.height;
 
     // Scale up if below minimum resolution
     if (currentWidth < MIN_SCREENSHOT_WIDTH || currentHeight < MIN_SCREENSHOT_HEIGHT) {
@@ -55,34 +61,36 @@ export async function captureMapScreenshot(mapElement: HTMLElement): Promise<Blo
       const scaleY = MIN_SCREENSHOT_HEIGHT / currentHeight;
       const scale = Math.max(scaleX, scaleY);
 
-      finalCanvas = document.createElement('canvas');
-      finalCanvas.width = Math.floor(currentWidth * scale);
-      finalCanvas.height = Math.floor(currentHeight * scale);
+      const canvas = document.createElement('canvas');
+      canvas.width = Math.floor(currentWidth * scale);
+      canvas.height = Math.floor(currentHeight * scale);
 
-      const ctx = finalCanvas.getContext('2d');
+      const ctx = canvas.getContext('2d');
       if (!ctx) {
         throw new Error('Failed to get canvas context');
       }
 
       ctx.imageSmoothingEnabled = true;
       ctx.imageSmoothingQuality = 'high';
-      ctx.drawImage(canvas, 0, 0, finalCanvas.width, finalCanvas.height);
+      ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+
+      // Convert scaled canvas to blob
+      return new Promise((resolve, reject) => {
+        canvas.toBlob(
+          (scaledBlob) => {
+            if (!scaledBlob) {
+              reject(new Error('Failed to convert canvas to blob'));
+              return;
+            }
+            resolve(scaledBlob);
+          },
+          'image/png',
+          1.0,
+        );
+      });
     }
 
-    // Convert canvas to blob
-    return new Promise((resolve, reject) => {
-      finalCanvas.toBlob(
-        (blob) => {
-          if (!blob) {
-            reject(new Error('Failed to convert canvas to blob'));
-            return;
-          }
-          resolve(blob);
-        },
-        'image/png',
-        1.0, // Maximum quality
-      );
-    });
+    return blob;
   } catch (error) {
     throw new Error(`Screenshot capture failed: ${error instanceof Error ? error.message : String(error)}`);
   }
