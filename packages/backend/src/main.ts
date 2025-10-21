@@ -24,7 +24,10 @@ async function bootstrap() {
   const logger = new Logger('Bootstrap');
   const trustProxy = process.env.TRUSTED_PROXIES?.split(',').map((value) => value.trim()) || false;
   logger.log(`TRUSTED_PROXIES: ${trustProxy}`);
-  const app = await NestFactory.create<NestExpressApplication>(AppModule);
+  const app = await NestFactory.create<NestExpressApplication>(AppModule, {
+    bodyParser: true,
+    rawBody: true,
+  });
 
   app.set('trust proxy', trustProxy);
 
@@ -60,6 +63,10 @@ async function bootstrap() {
 
   // Apply cookie parser middleware
   app.use(cookieParser());
+
+  // Increase body size limit for file uploads (screenshots)
+  app.useBodyParser('json', { limit: '10mb' });
+  app.useBodyParser('urlencoded', { limit: '10mb', extended: true });
 
   // Configure CORS based on environment
   const corsOptions = isProduction ? corsConfig.production : corsConfig.development;
