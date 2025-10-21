@@ -21,7 +21,6 @@ import { DrawingToolbar, type DrawingTool } from '../toolbar/DrawingToolbar';
 import { LagekarteToolbar } from '../toolbar/LagekarteToolbar';
 import { LayerToggle, type Layer } from '@/components/molecules/lagekarte/LayerToggle/LayerToggle';
 import { MapToolbarToggle } from '../controls/MapToolbarToggle';
-import { OfflineIndicator } from '@/components/molecules/lagekarte/OfflineIndicator/OfflineIndicator';
 import type { PoiType } from '@/utils/poi-icons';
 import type { ShapeType } from '@/utils/drawing-styles';
 import type * as GeoJSON from 'geojson';
@@ -383,11 +382,6 @@ export const LagekarteView: React.FC<LagekarteViewProps> = ({ einsatzId }) => {
 
           {/* Drawing-Toolbar (nur sichtbar wenn Tools geöffnet) */}
           {isToolsOpen && <DrawingToolbar onToolSelect={handleDrawingToolSelect} selectedTool={selectedDrawingTool} />}
-        </div>
-
-        {/* Offline-Indicator (Top-Left) */}
-        <div className="absolute top-2.5 left-2.5 z-[30]">
-          <OfflineIndicator />
         </div>
 
         {/* Lagekarte-Toolbar (Top-Right) */}
