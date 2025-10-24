@@ -15,6 +15,7 @@ export const kategorieFarben: Record<EtbKategorie, string> = {
   [EtbKategorie.Material]: 'bg-pink-100 text-pink-800 dark:bg-pink-900 dark:text-pink-200',
   [EtbKategorie.Kommunikation]: 'bg-teal-100 text-teal-800 dark:bg-teal-900 dark:text-teal-200',
   [EtbKategorie.Wetter]: 'bg-sky-100 text-sky-800 dark:bg-sky-900 dark:text-sky-200',
+  [EtbKategorie.Dokumentation]: 'bg-violet-100 text-violet-800 dark:bg-violet-900 dark:text-violet-200',
   [EtbKategorie.Sonstiges]: 'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-200',
   [EtbKategorie.System]: 'bg-slate-100 text-slate-800 dark:bg-slate-900 dark:text-slate-200',
 };

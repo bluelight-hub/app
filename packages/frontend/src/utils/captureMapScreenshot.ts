@@ -9,15 +9,28 @@ const MIN_SCREENSHOT_HEIGHT = 768;
 /**
  * Erfasst einen Screenshot eines Map-Elements (Lagekarte)
  *
+ * **Library Choice: modern-screenshot vs html2canvas**
+ *
+ * Diese Implementation verwendet `modern-screenshot` statt `html2canvas` (wie in der Story spezifiziert),
+ * aus folgenden Gründen:
+ *
+ * 1. **Moderne CSS-Features:** Unterstützt oklch() Farben und andere CSS Color Level 4 Features
+ * 2. **Bessere Performance:** Effizientere DOM-to-Canvas Konvertierung
+ * 3. **Kleinere Bundle-Size:** ~50% kleiner als html2canvas
+ * 4. **Aktive Wartung:** Wird aktiv weiterentwickelt (html2canvas seit Jahren wenig Updates)
+ * 5. **TypeScript-First:** Native TypeScript-Unterstützung ohne @types Package
+ *
+ * Beide Libraries erfüllen die Anforderungen (POIs, Zeichnungen, Tiles erfassen),
+ * aber modern-screenshot bietet bessere Zukunftssicherheit.
+ *
  * @param mapElement - Das HTML-Element, das die Karte enthält
  * @returns Promise mit Blob des generierten Screenshots (PNG)
  *
  * @remarks
- * - Verwendet modern-screenshot für Browser-seitige Screenshot-Generierung
- * - Unterstützt moderne CSS-Features wie oklch() Farben
  * - Mindestauflösung: 1024x768px (skaliert bei Bedarf)
  * - Format: PNG (verlustfrei, unterstützt Transparenz)
  * - Scale: 2x für High-DPI-Displays
+ * - CORS-Safe: Funktioniert mit OpenStreetMap Tiles
  *
  * @throws Error wenn Screenshot-Generierung fehlschlägt
  *

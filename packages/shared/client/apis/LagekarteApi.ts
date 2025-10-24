@@ -25,6 +25,11 @@ export interface LagekarteControllerDeleteLagekarteVAlphaRequest {
   einsatzId: string;
 }
 
+export interface LagekarteControllerDeleteScreenshotVAlphaRequest {
+  einsatzId: string;
+  filename: string;
+}
+
 export interface LagekarteControllerGetLagekarteVAlphaRequest {
   einsatzId: string;
 }
@@ -88,6 +93,61 @@ export class LagekarteApi extends runtime.BaseAPI {
     initOverrides?: RequestInit | runtime.InitOverrideFunction,
   ): Promise<LagekarteControllerGetLagekarteVAlpha200Response> {
     const response = await this.lagekarteControllerDeleteLagekarteVAlphaRaw(requestParameters, initOverrides);
+    return await response.value();
+  }
+
+  /**
+   * Löscht einen Screenshot der Lagekarte. Verwendet für Cleanup wenn ETB-Eintrag-Erstellung fehlschlägt (AC7). Filename-Validierung verhindert Path Traversal.
+   * Screenshot löschen
+   */
+  async lagekarteControllerDeleteScreenshotVAlphaRaw(
+    requestParameters: LagekarteControllerDeleteScreenshotVAlphaRequest,
+    initOverrides?: RequestInit | runtime.InitOverrideFunction,
+  ): Promise<runtime.ApiResponse<LagekarteControllerGetLagekarteVAlpha200Response>> {
+    if (requestParameters['einsatzId'] == null) {
+      throw new runtime.RequiredError('einsatzId', 'Required parameter "einsatzId" was null or undefined when calling lagekarteControllerDeleteScreenshotVAlpha().');
+    }
+
+    if (requestParameters['filename'] == null) {
+      throw new runtime.RequiredError('filename', 'Required parameter "filename" was null or undefined when calling lagekarteControllerDeleteScreenshotVAlpha().');
+    }
+
+    const queryParameters: any = {};
+
+    const headerParameters: runtime.HTTPHeaders = {};
+
+    if (this.configuration && this.configuration.accessToken) {
+      const token = this.configuration.accessToken;
+      const tokenString = await token('bearer', []);
+
+      if (tokenString) {
+        headerParameters['Authorization'] = `Bearer ${tokenString}`;
+      }
+    }
+    const response = await this.request(
+      {
+        path: `/api/v-alpha/einsatz/{einsatzId}/lagekarte/screenshot/{filename}`
+          .replace(`{${'einsatzId'}}`, encodeURIComponent(String(requestParameters['einsatzId'])))
+          .replace(`{${'filename'}}`, encodeURIComponent(String(requestParameters['filename']))),
+        method: 'DELETE',
+        headers: headerParameters,
+        query: queryParameters,
+      },
+      initOverrides,
+    );
+
+    return new runtime.JSONApiResponse(response, (jsonValue) => LagekarteControllerGetLagekarteVAlpha200ResponseFromJSON(jsonValue));
+  }
+
+  /**
+   * Löscht einen Screenshot der Lagekarte. Verwendet für Cleanup wenn ETB-Eintrag-Erstellung fehlschlägt (AC7). Filename-Validierung verhindert Path Traversal.
+   * Screenshot löschen
+   */
+  async lagekarteControllerDeleteScreenshotVAlpha(
+    requestParameters: LagekarteControllerDeleteScreenshotVAlphaRequest,
+    initOverrides?: RequestInit | runtime.InitOverrideFunction,
+  ): Promise<LagekarteControllerGetLagekarteVAlpha200Response> {
+    const response = await this.lagekarteControllerDeleteScreenshotVAlphaRaw(requestParameters, initOverrides);
     return await response.value();
   }
 
