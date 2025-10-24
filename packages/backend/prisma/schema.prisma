@@ -183,6 +183,7 @@ enum EtbKategorie {
   MATERIAL // Material- und Ausrüstungseinsatz
   KOMMUNIKATION // Kommunikation mit anderen Stellen
   WETTER // Wetteränderungen
+  DOKUMENTATION // Dokumentarische Einträge (Screenshots, Fotos, Anhänge)
   SONSTIGES // Sonstige Einträge
   SYSTEM // Systemeinträge (automatisch)
 }

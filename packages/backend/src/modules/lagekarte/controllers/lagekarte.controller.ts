@@ -2,13 +2,28 @@ import { CurrentUser } from '@/auth/decorators/current-user.decorator';
 import { JwtAuthGuard } from '@/auth/guards/jwt-auth.guard';
 import type { ValidatedUser } from '@/auth/strategies/jwt.strategy';
 import { ApiWrappedResponse } from '@/common/decorators/api-wrapped-response.decorator';
-import { BadRequestException, Body, Controller, Delete, Get, Logger, Param, Post, UploadedFile, UseGuards, UseInterceptors, ValidationPipe, NotFoundException } from '@nestjs/common';
+import {
+  BadRequestException,
+  Body,
+  Controller,
+  Delete,
+  ForbiddenException,
+  Get,
+  Logger,
+  Param,
+  Post,
+  UploadedFile,
+  UseGuards,
+  UseInterceptors,
+  ValidationPipe,
+  NotFoundException,
+} from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { ApiBadRequestResponse, ApiBearerAuth, ApiConsumes, ApiForbiddenResponse, ApiNotFoundResponse, ApiOperation, ApiTags, ApiUnauthorizedResponse } from '@nestjs/swagger';
 import { diskStorage } from 'multer';
 import { join, resolve } from 'node:path';
-import { mkdirSync } from 'node:fs';
+import { existsSync, mkdirSync, unlinkSync } from 'node:fs';
 import { LagekarteService } from '../services/lagekarte.service';
 import { SaveLagekarteStateDto } from '../dto/save-lagekarte-state.dto';
 import { Lagekarte } from '@prisma/client';
@@ -196,6 +211,73 @@ export class LagekarteController {
     this.logger.log(`Screenshot uploaded: ${fileUrl}`);
 
     return { url: fileUrl };
+  }
+
+  /**
+   * Screenshot löschen (für ETB-Fehler-Cleanup)
+   *
+   * **Security:**
+   * - Filename Validierung (verhindert Path Traversal)
+   * - Nur Screenshots des angegebenen Einsatzes können gelöscht werden
+   * - File-Existence-Check vor Löschung
+   *
+   * **Use Case:**
+   * - Cleanup wenn ETB-Eintrag-Erstellung fehlschlägt (AC7)
+   *
+   * @param einsatzId - ID des Einsatzes
+   * @param filename - Dateiname des Screenshots (z.B. "einsatzId_timestamp.png")
+   * @param user - Authentifizierter User
+   */
+  @Delete('screenshot/:filename')
+  @ApiOperation({
+    summary: 'Screenshot löschen',
+    description: 'Löscht einen Screenshot der Lagekarte. Verwendet für Cleanup wenn ETB-Eintrag-Erstellung fehlschlägt (AC7). Filename-Validierung verhindert Path Traversal.',
+  })
+  @ApiWrappedResponse(Object, { description: 'Screenshot erfolgreich gelöscht' })
+  @ApiBadRequestResponse({ description: 'Ungültiger Filename oder Path Traversal-Versuch' })
+  @ApiNotFoundResponse({ description: 'Screenshot nicht gefunden' })
+  @ApiForbiddenResponse({ description: 'Keine Berechtigung - Screenshot gehört zu anderem Einsatz' })
+  async deleteScreenshot(@Param('einsatzId') einsatzId: string, @Param('filename') filename: string, @CurrentUser() user: ValidatedUser): Promise<{ message: string }> {
+    this.logger.log(`Deleting screenshot ${filename} for Einsatz ${einsatzId} by user ${user.userId}`);
+
+    // Validate filename (prevent path traversal)
+    if (!filename || filename.includes('..') || filename.includes('/') || filename.includes('\\')) {
+      this.logger.error(`Invalid filename: ${filename}`);
+      throw new BadRequestException('Invalid filename - Path traversal not allowed');
+    }
+
+    // Validate filename format: Must be "einsatzId_timestamp.png"
+    const filenamePattern = /^[a-zA-Z0-9_-]+_\d+\.png$/;
+    if (!filenamePattern.test(filename)) {
+      this.logger.error(`Invalid filename format: ${filename}`);
+      throw new BadRequestException('Invalid filename format - Expected: einsatzId_timestamp.png');
+    }
+
+    // Verify filename starts with einsatzId (authorization check)
+    const sanitizedEinsatzId = einsatzId.replace(/[^a-zA-Z0-9_-]/g, '');
+    if (!filename.startsWith(`${sanitizedEinsatzId}_`)) {
+      this.logger.error(`Authorization failed: Screenshot ${filename} does not belong to Einsatz ${einsatzId}`);
+      throw new ForbiddenException('Screenshot does not belong to this Einsatz');
+    }
+
+    // Build full file path
+    const filePath = join(this.uploadDir, filename);
+
+    // Check file existence
+    if (!existsSync(filePath)) {
+      this.logger.error(`Screenshot not found: ${filePath}`);
+      throw new NotFoundException(`Screenshot ${filename} not found`);
+    }
+
+    // Delete file
+    try {
+      unlinkSync(filePath);
+      this.logger.log(`Screenshot deleted: ${filePath}`);
+      return { message: 'Screenshot deleted successfully' };
+    } catch (error) {
+      this.logger.error(`Failed to delete screenshot: ${filePath}`, error);
+      throw new BadRequestException('Failed to delete screenshot');
+    }
   }
 
   /**

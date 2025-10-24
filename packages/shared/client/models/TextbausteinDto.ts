@@ -84,6 +84,7 @@ export const TextbausteinDtoKategorieEnum = {
   Material: 'MATERIAL',
   Kommunikation: 'KOMMUNIKATION',
   Wetter: 'WETTER',
+  Dokumentation: 'DOKUMENTATION',
   Sonstiges: 'SONSTIGES',
   System: 'SYSTEM',
 } as const;

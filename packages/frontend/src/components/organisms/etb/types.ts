@@ -30,6 +30,7 @@ export const kategorieLabels: Record<EtbKategorie, string> = {
   [EtbKategorie.Material]: '📦 Material',
   [EtbKategorie.Kommunikation]: '📡 Kommunikation',
   [EtbKategorie.Wetter]: '🌦️ Wetter',
+  [EtbKategorie.Dokumentation]: '📄 Dokumentation',
   [EtbKategorie.Sonstiges]: '📝 Sonstiges',
   [EtbKategorie.System]: '⚙️ System',
 };
