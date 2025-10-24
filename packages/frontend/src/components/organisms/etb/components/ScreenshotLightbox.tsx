@@ -1,7 +1,8 @@
 import { Dialog, DialogPanel, DialogTitle } from '@headlessui/react';
 import { Button } from '@/components/atoms/button.atom';
 import { PiDownload, PiX } from 'react-icons/pi';
-import { useCallback } from 'react';
+import { useCallback, useMemo } from 'react';
+import { validateScreenshotUrl } from '@/utils/validateScreenshotUrl';
 
 interface ScreenshotLightboxProps {
   /**
@@ -32,7 +33,8 @@ interface ScreenshotLightboxProps {
  * - Accessible (ARIA-Labels)
  *
  * **Security:**
- * - URL wird vor Rendering sanitized (encodeURI)
+ * - URL wird vor Rendering validiert (Whitelist: nur /uploads/lagekarte/*)
+ * - Verhindert XSS via javascript:, data: URIs
  *
  * @param isOpen - Ob Lightbox geöffnet ist
  * @param onClose - Callback zum Schließen
@@ -41,19 +43,35 @@ interface ScreenshotLightboxProps {
  */
 export function ScreenshotLightbox({ isOpen, onClose, screenshotUrl, title = 'Lagekarten-Screenshot' }: ScreenshotLightboxProps) {
   /**
-   * Sanitize URL (XSS-Prevention)
+   * Validate URL (XSS-Prevention via Whitelist)
    */
-  const sanitizedUrl = encodeURI(screenshotUrl);
+  const validatedUrl = useMemo(() => {
+    try {
+      return validateScreenshotUrl(screenshotUrl);
+    } catch (error) {
+      console.error('Invalid screenshot URL:', error);
+      return null;
+    }
+  }, [screenshotUrl]);
 
   /**
    * Download-Handler
    */
   const handleDownload = useCallback(() => {
+    if (!validatedUrl) {
+      console.error('Cannot download: Invalid screenshot URL');
+      return;
+    }
     const link = document.createElement('a');
-    link.href = sanitizedUrl;
-    link.download = screenshotUrl.split('/').pop() || 'screenshot.png';
+    link.href = validatedUrl;
+    link.download = validatedUrl.split('/').pop() || 'screenshot.png';
     link.click();
-  }, [sanitizedUrl, screenshotUrl]);
+  }, [validatedUrl]);
+
+  // Wenn URL ungültig ist, zeige nichts an
+  if (!validatedUrl) {
+    return null;
+  }
 
   return (
     <Dialog open={isOpen} onClose={onClose} className="relative z-50">
@@ -79,7 +97,7 @@ export function ScreenshotLightbox({ isOpen, onClose, screenshotUrl, title = 'La
 
           {/* Screenshot Image */}
           <div className="flex-1 overflow-auto p-4">
-            <img src={sanitizedUrl} alt={title} className="mx-auto h-auto max-w-full rounded-lg shadow-lg" loading="lazy" />
+            <img src={validatedUrl} alt={title} className="mx-auto h-auto max-w-full rounded-lg shadow-lg" loading="lazy" />
           </div>
         </DialogPanel>
       </div>

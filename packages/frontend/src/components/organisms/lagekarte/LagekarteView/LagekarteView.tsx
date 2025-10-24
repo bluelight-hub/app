@@ -28,6 +28,7 @@ import type * as GeoJSON from 'geojson';
 import { toast } from 'sonner';
 import { captureMapScreenshot } from '@/utils/captureMapScreenshot';
 import { logger } from '@/utils/logger';
+import { api } from '@/api';
 import './lagekarte-view.css';
 
 /**
@@ -344,49 +345,60 @@ export const LagekarteView: React.FC<LagekarteViewProps> = ({ einsatzId }) => {
       const mapContainer = mapInstance.getContainer();
       const screenshotBlob = await captureMapScreenshot(mapContainer);
 
+      // Extract actual dimensions from blob
+      const screenshotUrl = URL.createObjectURL(screenshotBlob);
+      const img = new Image();
+      img.src = screenshotUrl;
+
+      // Wait for image to load to get dimensions
+      await new Promise<void>((resolve, reject) => {
+        img.onload = () => resolve();
+        img.onerror = () => reject(new Error('Failed to load screenshot image'));
+      });
+
+      const screenshotWidth = img.naturalWidth;
+      const screenshotHeight = img.naturalHeight;
+
+      // Cleanup object URL
+      URL.revokeObjectURL(screenshotUrl);
+
       // Step 2: Upload screenshot
-      const formData = new FormData();
-      formData.append('file', screenshotBlob, `lagekarte_${einsatzId}_${Date.now()}.png`);
-
-      const uploadResponse = await fetch(`/api/v-alpha/einsatz/${einsatzId}/lagekarte/screenshot`, {
-        method: 'POST',
-        body: formData,
-        credentials: 'include',
+      const uploadResponse = await api.lagekarte().lagekarteControllerUploadScreenshotVAlpha({
+        einsatzId,
+        file: screenshotBlob,
       });
 
-      if (!uploadResponse.ok) {
-        throw new Error('Screenshot upload failed');
-      }
+      uploadedScreenshotUrl = uploadResponse.data.url as string;
 
-      const uploadData = await uploadResponse.json();
-      uploadedScreenshotUrl = uploadData.data.url;
-
-      // Step 3: Create ETB entry
-      const etbEntryPayload = {
-        kategorie: 'LAGE',
-        text: 'Lagekarten-Screenshot',
-        metadata: {
-          screenshot: {
-            url: uploadedScreenshotUrl,
-            width: 1024,
-            height: 768,
-            timestamp: new Date().toISOString(),
+      // Step 3: Create ETB entry with actual screenshot dimensions
+      try {
+        await api.etb().etbControllerCreateEtbEintragVAlpha({
+          id: etbData.data.id,
+          createEtbEintragDto: {
+            kategorie: 'DOKUMENTATION',
+            text: 'Lagekarten-Screenshot',
+            metadata: {
+              screenshot: {
+                url: uploadedScreenshotUrl,
+                width: screenshotWidth,
+                height: screenshotHeight,
+                timestamp: new Date().toISOString(),
+              },
+            },
           },
-        },
-      };
-
-      const etbResponse = await fetch(`/api/v-alpha/etb/${etbData.data.id}/eintraege`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(etbEntryPayload),
-        credentials: 'include',
-      });
-
-      if (!etbResponse.ok) {
+        });
+      } catch (etbError) {
         // Cleanup: Delete uploaded screenshot if ETB creation fails
         if (uploadedScreenshotUrl) {
           try {
-            await fetch(uploadedScreenshotUrl, { method: 'DELETE', credentials: 'include' });
+            // Extract filename from URL (e.g., /uploads/lagekarte/filename.png → filename.png)
+            const filename = uploadedScreenshotUrl.split('/').pop();
+            if (filename) {
+              await api.lagekarte().lagekarteControllerDeleteScreenshotVAlpha({
+                einsatzId,
+                filename,
+              });
+            }
           } catch (cleanupError) {
             logger.error('Failed to cleanup screenshot after ETB error', cleanupError);
           }
