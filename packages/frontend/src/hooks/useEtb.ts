@@ -64,9 +64,17 @@ export const useEtb = (einsatzId?: string, page?: number, limit?: number) => {
  * @param sortBy - Feld nach dem sortiert wird (Standard: 'timestamp')
  * @param sortOrder - Sortierreihenfolge (Standard: 'desc' = neueste zuerst)
  * @param includeDeleted - Gelöschte Einträge einschließen (Standard: false)
+ * @param options - Zusätzliche TanStack Query Optionen (z.B. refetchInterval)
  * @returns ETB-Daten mit Infinite Scrolling Support
  */
-export const useEtbInfinite = (einsatzId?: string, limit: number = 20, sortBy: string = 'timestamp', sortOrder: 'asc' | 'desc' = 'desc', includeDeleted: boolean = false) => {
+export const useEtbInfinite = (
+  einsatzId?: string,
+  limit: number = 20,
+  sortBy: string = 'timestamp',
+  sortOrder: 'asc' | 'desc' = 'desc',
+  includeDeleted: boolean = false,
+  options?: { refetchInterval?: number },
+) => {
   return useInfiniteQuery({
     enabled: !!einsatzId,
     queryKey: QUERY_KEYS.etb.infinite(einsatzId, limit, sortBy, sortOrder, includeDeleted),
@@ -105,6 +113,8 @@ export const useEtbInfinite = (einsatzId?: string, limit: number = 20, sortBy: s
     refetchOnWindowFocus: false,
     // Behalte alte Daten während des Nachladens
     placeholderData: (previousData) => previousData,
+    // Merge additional options (e.g., refetchInterval)
+    ...options,
   });
 };
 
