@@ -3,18 +3,22 @@ import { LoadingState } from '@/components/atoms/LoadingState';
 import { EtbEntryForm } from '@/components/organisms/etb/EtbEntryForm';
 import { EtbEntryList } from '@/components/organisms/etb/EtbEntryList';
 import { EditEtbEntryModal } from '@/components/organisms/etb/EditEtbEntryModal';
+import { EtbFullscreenView } from '@/components/organisms/etb/EtbFullscreenView/EtbFullscreenView';
 import { useEtbInfinite } from '@/hooks/useEtb';
 import type { EtbEintragDto } from '@bluelight-hub/shared/client';
-import { useParams } from '@tanstack/react-router';
 import { useMemo, useState } from 'react';
+
+type EtbPageProps = {
+  einsatzId: string;
+  mode: 'standard' | 'fullscreen';
+};
 
 /**
  * ETB-Seite mit Eingabeformular und Eintragliste
  *
  * Zeigt das Einsatztagebuch für einen spezifischen Einsatz an.
  */
-export function EtbPage() {
-  const { einsatzId } = useParams({ from: '/app/einsatz/$einsatzId/führung/etb' });
+export function EtbPage({ einsatzId, mode }: EtbPageProps) {
   const [sortBy, setSortBy] = useState<string>('timestamp');
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
   const [showDeleted, setShowDeleted] = useState<boolean>(false);
@@ -49,6 +53,12 @@ export function EtbPage() {
 
   const etb = data?.pages?.[0]?.data;
 
+  // Fullscreen Mode
+  if (mode === 'fullscreen') {
+    return <EtbFullscreenView einsatzId={einsatzId} sortOrder={sortOrder} showDeleted={showDeleted} />;
+  }
+
+  // Standard Mode
   if (isLoading) {
     return (
       <div className="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8">

@@ -1,0 +1,1 @@
+export { EtbFullscreenView } from './EtbFullscreenView';
