@@ -1,5 +1,5 @@
 import { isTauri } from '@tauri-apps/api/core';
-import { WebviewWindow } from '@tauri-apps/api/webviewWindow';
+import { WebviewWindow, LogicalSize } from '@tauri-apps/api/webviewWindow';
 import { toast } from 'sonner';
 import { logger } from '@/utils/logger';
 
@@ -10,6 +10,27 @@ export interface OpenAdminOptions {
   width?: number;
   height?: number;
 }
+
+/**
+ * Fenster-Orientierungen für verschiedene App-Bereiche
+ */
+export type WindowOrientation = 'portrait' | 'landscape';
+
+/**
+ * Konfiguration für Fenster-Größen basierend auf Orientierung
+ */
+export interface WindowSizeConfig {
+  width: number;
+  height: number;
+}
+
+/**
+ * Vordefinierte Fenster-Konfigurationen
+ */
+export const WINDOW_CONFIGS: Record<WindowOrientation, WindowSizeConfig> = {
+  portrait: { width: 800, height: 1000 },
+  landscape: { width: 1400, height: 900 },
+};
 
 /**
  * Service für Window-Management in Tauri und Browser
@@ -182,6 +203,56 @@ class WindowService {
       window.location.href = adminUrl;
     }
   }
+
+  /**
+   * Holt das aktuelle Main-Window (nur in Tauri)
+   * @returns WebviewWindow oder null wenn nicht verfügbar
+   */
+  async getCurrentMainWindow(): Promise<WebviewWindow | null> {
+    if (!isTauri()) {
+      return null;
+    }
+
+    try {
+      const { getCurrentWebviewWindow } = await import('@tauri-apps/api/webviewWindow');
+      return getCurrentWebviewWindow();
+    } catch (error) {
+      logger.error('Fehler beim Abrufen des aktuellen Fensters:', error);
+      return null;
+    }
+  }
+
+  /**
+   * Ändert die Größe des Main-Windows basierend auf der gewünschten Orientierung
+   *
+   * @param orientation - 'portrait' oder 'landscape'
+   * @returns Promise<void>
+   */
+  async resizeMainWindow(orientation: WindowOrientation): Promise<void> {
+    if (!isTauri()) {
+      logger.debug('resizeMainWindow: Nur in Tauri verfügbar');
+      return;
+    }
+
+    try {
+      const currentWindow = await this.getCurrentMainWindow();
+      if (!currentWindow) {
+        logger.warn('resizeMainWindow: Kein aktuelles Fenster gefunden');
+        return;
+      }
+
+      const config = WINDOW_CONFIGS[orientation];
+      const size = new LogicalSize(config.width, config.height);
+
+      await currentWindow.setSize(size);
+      await currentWindow.center();
+
+      logger.log(`Fenster-Größe geändert zu ${orientation}:`, config);
+    } catch (error) {
+      logger.error('Fehler beim Ändern der Fenster-Größe:', error);
+      // Kein Toast - soll im Hintergrund laufen ohne User zu stören
+    }
+  }
 }
 
 // Singleton-Instanz exportieren
@@ -192,3 +263,4 @@ export const focusAdminWindow = () => service.focusAdmin();
 export const closeAdminWindow = () => service.closeAdmin();
 export const isAdminWindowOpen = () => service.isAdminOpen();
 export const isInAdminWindow = () => service.isInAdminWindow();
+export const resizeMainWindow = (orientation: WindowOrientation) => service.resizeMainWindow(orientation);
