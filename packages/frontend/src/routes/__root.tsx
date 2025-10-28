@@ -1,5 +1,6 @@
 import { Provider } from '@/components/ui/provider.tsx';
 import { ConfirmProvider } from '@/hooks/useConfirm';
+import { useWindowOrientation } from '@/hooks/useWindowOrientation';
 import { handleQueryError } from '@/utils/error-handler';
 import { TanStackDevtools } from '@tanstack/react-devtools';
 import { MutationCache, QueryCache, QueryClient, QueryClientProvider } from '@tanstack/react-query';
@@ -76,6 +77,9 @@ const queryClient = new QueryClient({
 });
 
 function RootComponent() {
+  // Automatisches Fenster-Resizing basierend auf Route (nur in Tauri)
+  useWindowOrientation();
+
   return (
     <Provider>
       <QueryClientProvider client={queryClient}>
