@@ -22,9 +22,7 @@
 | **Cache** | Redis | 7.x (Optional) | Rate-Limiting + Session-Cache | Optional für Geocoding-Rate-Limiting (Nominatim 1 req/s) |
 | **File Storage** | Docker Volume | N/A | Screenshot-Storage | Lokales Filesystem (`/uploads/lagekarte/`), persistiert via Docker-Volume |
 | **Authentication** | JWT (bestehend) | N/A | Token-based Auth | Bereits vorhanden, NestJS Guards integriert |
-| **Frontend Testing** | Vitest + Testing Library | latest | Unit + Integration Tests | Bereits vorhanden, Vite-native, schnelle Execution |
-| **Backend Testing** | Jest + Testcontainers | latest | Unit + Integration Tests | Bereits vorhanden, PostgreSQL-Testcontainers für Repository-Tests |
-| **E2E Testing** | (Skipped for MVP) | N/A | End-to-End Tests | PRD: "Tests werden AKTUELL übersprungen (temporär)" |
+| **Testing** | ❌ Entfernt | N/A | Unit/Integration/E2E Tests | Alle Tests wurden aus dem Projekt entfernt |
 | **Build Tool** | pnpm | 10.x | Monorepo Package Manager | Bereits vorhanden, Workspaces für Frontend/Backend/Shared |
 | **Bundler** | Vite (Frontend) + tsc (Backend) | 6.1.x / 5.9.x | Production Builds | Vite für Frontend-Optimierung, tsc für Backend-Build |
 | **IaC Tool** | Docker Compose | 2.x | Infrastructure-as-Code | Bereits vorhanden, einfache Orchestration |
