@@ -28,6 +28,8 @@
     "core:window:allow-close",
     "core:window:allow-maximize",
     "core:window:allow-minimize",
+    "core:window:allow-set-size",
+    "core:window:allow-center",
     "core:webview:allow-create-webview-window",
     "store:default",
     "store:allow-get"
