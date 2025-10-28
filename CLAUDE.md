@@ -49,77 +49,62 @@ const fetchAlerts = async () => {
 - **IMMER** nach jedem Subtask committen
 - Format: `<emoji>(<context>): <title>`
 
-## 🤖 MANDATORY WORKFLOWS
+## 🤖 BUILT-IN AGENTS (Claude Code)
 
-Verwende ultrathink, also denke nach bevor du handelst. Hier sind die wichtigsten Workflows.
+**WICHTIG:** Nutze IMMER die Built-in Agents via Task-Tool, wenn verfügbar. Bei komplexen Multi-Agent-Workflows arbeite
+im **Orchestrator-Mode** (parallele Agent-Launches).
 
-| Trigger            | Agent                | Beschreibung                  |
-|--------------------|----------------------|-------------------------------|
-| Nach Code-Änderung | `test-writer-fixer`  | Tests schreiben/anpassen      |
-| Nach UI-Änderung   | `whimsy-injector`    | Delightful touches hinzufügen |
-| Vor jedem Commit   | `commit-expert`      | Perfekte Commit-Message       |
-| Bei Feature-Flags  | `experiment-tracker` | A/B-Test Tracking             |
-| Bei Task-Planung   | `sprint-prioritizer` | Priorisierung                 |
-| Bei Frontend-Work  | `frontend-developer` | UI/UX Implementation          |
-| Bei Backend-Work   | `backend-architect`  | API-Design & DB-Architektur   |
+### Verfügbare Built-in Agents
 
-## 📚 VERFÜGBARE DEVELOPMENT AGENTS
+| Agent            | subagent_type        | Verwendung                                                  | Tools verfügbar               |
+|------------------|----------------------|-------------------------------------------------------------|-------------------------------|
+| **General**      | `general-purpose`    | Komplexe Recherchen, Code-Suche, Multi-Step-Tasks           | Alle Tools                    |
+| **Explorer**     | `Explore`            | Schnelle Codebase-Exploration, Pattern-Suche, Keyword-Suche | Glob, Grep, Read, Bash        |
+| **Planner**      | `Plan`               | Task-Planung, Codebase-Analyse für Implementierung          | Glob, Grep, Read, Bash        |
 
-### 🔧 Engineering
+### Wann welchen Agent nutzen?
 
-| Agent                | Verwendung                    | Priorität    |
-|----------------------|-------------------------------|--------------|
-| `rapid-prototyper`   | MVPs in 6 Tagen bauen         | **KRITISCH** |
-| `backend-architect`  | APIs, Datenbanken, Server     | **KRITISCH** |
-| `frontend-developer` | React, Vue, UI Implementation | **KRITISCH** |
-| `test-writer-fixer`  | Tests schreiben & fixen       | **KRITISCH** |
-| `devops-automator`   | CI/CD, Deployment, Docker     | HOCH         |
-| `ai-engineer`        | LLM Integration, ML Features  | HOCH         |
-| `mobile-app-builder` | iOS/Android Native Apps       | MITTEL       |
+| Szenario                        | Agent             | Thoroughness Level            |
+|---------------------------------|-------------------|-------------------------------|
+| Codebase verstehen              | `Explore`         | `medium` oder `very thorough` |
+| Spezifische Datei/Klasse finden | Direkte Tools     | -                             |
+| Komplexe Implementierung planen | `Plan`            | `medium`                      |
+| Multi-Step Refactoring          | `general-purpose` | -                             |
+| Fehlersuche über mehrere Files  | `Explore`         | `very thorough`               |
+| Task-Breakdown & Strategie      | `Plan`            | `medium`                      |
 
-### 🧪 Testing & Quality
+### Orchestrator-Mode (Parallele Agents)
 
-| Agent                     | Verwendung                  | Priorität    |
-|---------------------------|-----------------------------|--------------|
-| `api-tester`              | Load Testing, Performance   | **KRITISCH** |
-| `performance-benchmarker` | Speed Optimization          | HOCH         |
-| `test-results-analyzer`   | Test Patterns erkennen      | HOCH         |
-| `tool-evaluator`          | Framework/Library Bewertung | MITTEL       |
-| `workflow-optimizer`      | Dev-Workflow verbessern     | MITTEL       |
+Für komplexe Workflows mit mehreren unabhängigen Aufgaben:
 
-### 🎨 Design & UX (Technisch)
+```typescript
+// Beispiel: Parallele Agent-Launches in EINER Message
+Task({subagent_type: "Explore", prompt: "Find all authentication handlers"})
+Task({subagent_type: "Explore", prompt: "Find all API error handling patterns"})
+Task({subagent_type: "Plan", prompt: "Plan migration strategy for auth system"})
+```
 
-| Agent             | Verwendung                       | Priorität |
-|-------------------|----------------------------------|-----------|
-| `ui-designer`     | Component Design, Design Systems | HOCH      |
-| `ux-researcher`   | User Feedback → Features         | HOCH      |
-| `whimsy-injector` | Micro-Interactions, Delight      | MITTEL    |
+**Vorteile:**
 
-### 📦 Product & Planning
+- Maximale Performance durch Parallelität
+- Mehrere Perspektiven gleichzeitig
+- Effiziente Codebase-Analyse
 
-| Agent                  | Verwendung               | Priorität    |
-|------------------------|--------------------------|--------------|
-| `sprint-prioritizer`   | 6-Day Sprint Planning    | **KRITISCH** |
-| `feedback-synthesizer` | Bug Reports analysieren  | HOCH         |
-| `experiment-tracker`   | A/B Tests, Feature Flags | HOCH         |
-| `trend-researcher`     | Tech Trends für Features | MITTEL       |
+### Task-Tool Usage Pattern
 
-### 🚀 Deployment & Operations
+```typescript
+// ✅ RICHTIG: Agent für Codebase-Exploration
+Task({
+    subagent_type: "Explore",
+    description: "Find error handlers",
+    prompt: "Locate all error handling patterns in the backend, thorough search",
+})
 
-| Agent                       | Verwendung                  | Priorität    |
-|-----------------------------|-----------------------------|--------------|
-| `infrastructure-maintainer` | Scaling, Performance        | **KRITISCH** |
-| `project-shipper`           | Release Coordination        | HOCH         |
-| `studio-producer`           | Team & Sprint Orchestration | HOCH         |
-| `analytics-reporter`        | Performance Metriken        | MITTEL       |
-| `legal-compliance-checker`  | GDPR, Security              | MITTEL       |
-
-### 🎯 Special Agents
-
-| Agent           | Verwendung               | Priorität |
-|-----------------|--------------------------|-----------|
-| `studio-coach`  | Multi-Agent Koordination | HOCH      |
-| `commit-expert` | Git Commit Messages      | HOCH      |
+// ❌ FALSCH: Direkte Tool-Aufrufe für offene Suchen
+Glob({pattern: "**/*error*"})
+Grep({pattern: "catch"})
+// ... mehrere Runden manueller Suche
+```
 
 ## 📁 PROJECT STRUCTURE
 
@@ -227,14 +212,15 @@ dto/       # Data Transfer Objects
 ### Tests
 
 - Tests werden AKTUELL übersprungen (temporär)
-- Trotzdem: `test-writer-fixer` Agent nutzen für zukünftige Tests
 - E2E-Tests wurden entfernt
 
-### Subagents
+### Built-in Agents
 
-- **Location:** Definiert in `.taskmaster/` Verzeichnis
-- **Verwendung:** PFLICHT für spezialisierte Aufgaben
-- **Keine Ausnahmen:** Direkte Tool-Aufrufe vermeiden
+- **Verfügbare Agents:** Siehe Sektion "🤖 BUILT-IN AGENTS"
+- **Verwendung:** PFLICHT für Codebase-Exploration und komplexe Multi-Step-Tasks
+- **Task-Tool:** Nutze das Task-Tool mit entsprechendem `subagent_type`
+- **Orchestrator-Mode:** Bei unabhängigen Tasks parallele Agent-Launches in EINER Message
+- **Keine direkten Tool-Aufrufe** für offene Codebase-Suchen - immer `Explore`-Agent nutzen
 
 ### API Development
 
@@ -245,30 +231,26 @@ dto/       # Data Transfer Objects
 
 ## 🔍 QUICK REFERENCE
 
-| Was                 | Wo       | Tool/Command                      | Agent                     |
-|---------------------|----------|-----------------------------------|---------------------------|
-| **Neues Projekt**   | -        | `pnpm create vite`                | `rapid-prototyper`        |
-| **API erstellen**   | Backend  | NestJS + Swagger                  | `backend-architect`       |
-| **API nutzen**      | Frontend | Generierter Client in `@/api`     | -                         |
-| **UI Component**    | Frontend | Tailwind/Headless UI/TailwindUI\* | `frontend-developer`      |
-| **Form erstellen**  | Frontend | TanStack Form + Zod               | `frontend-developer`      |
-| **Tests schreiben** | Überall  | Jest/Vitest                       | `test-writer-fixer`       |
-| **Performance**     | -        | Lighthouse, DevTools              | `performance-benchmarker` |
-| **Deployment**      | -        | Docker, CI/CD                     | `devops-automator`        |
-| **Architektur**     | docs/    | arc42 Template                    | `backend-architect`       |
-| **Sprint Planning** | -        | RICE/Value Matrix                 | `sprint-prioritizer`      |
-| **Commit**          | -        | Semantic Emojis                   | `commit-expert`           |
+| Was                        | Wo       | Tool/Command                      | Built-in Agent / Orchestrator                         |
+|----------------------------|----------|-----------------------------------|-------------------------------------------------------|
+| **Codebase verstehen**     | -        | Task-Tool                         | `Explore` (medium/very thorough)                      |
+| **Implementierung planen** | -        | Task-Tool                         | `Plan` (medium) oder Orchestrator-Mode                |
+| **API erstellen**          | Backend  | NestJS + Swagger                  | `general-purpose` für komplexe API-Designs            |
+| **API nutzen**             | Frontend | Generierter Client in `@/api`     | -                                                     |
+| **UI Component**           | Frontend | Tailwind/Headless UI/TailwindUI\* | `Explore` für Beispiele, dann direkte Implementierung |
+| **Form erstellen**         | Frontend | TanStack Form + Zod               | `Explore` für Pattern-Suche                           |
+| **Refactoring**            | -        | Multi-Step                        | `general-purpose` oder Orchestrator-Mode              |
+| **Architektur**            | docs/    | arc42 Template                    | `Explore` für Bestandsanalyse                         |
+| **Bug-Analyse**            | -        | Code-Suche                        | `Explore` (very thorough)                             |
 
 ## 🚀 DEVELOPMENT WORKFLOW CHECKLIST
 
-- [ ] **Start**: `rapid-prototyper` für MVP Setup
-- [ ] **Backend**: `backend-architect` für API Design
-- [ ] **Frontend**: `frontend-developer` für UI
-- [ ] **Testing**: `test-writer-fixer` nach jeder Änderung
-- [ ] **Performance**: `performance-benchmarker` vor Release
-- [ ] **Deploy**: `devops-automator` für CI/CD
-- [ ] **Monitor**: `infrastructure-maintainer` für Scaling
-- [ ] **Commit**: `commit-expert` für Git Messages
+- [ ] **Codebase verstehen**: `Explore`-Agent mit `medium` thoroughness
+- [ ] **Planung**: `Plan`-Agent für Task-Breakdown und Implementierungsstrategie
+- [ ] **Komplexe Tasks**: `general-purpose`-Agent für Multi-Step-Workflows
+- [ ] **Parallele Recherche**: Orchestrator-Mode mit mehreren `Explore`-Agents
+- [ ] **Implementierung**: Direkte Tools nach Agent-basierter Planung
+- [ ] **Commit**: Semantic Emojis nach jedem Subtask
 
 ---
 
@@ -278,4 +260,5 @@ _Repository:_ github.com/rubenvitt/bluelight-hub
 _Import zusätzliche Workflows:_ @./.taskmaster/CLAUDE.md
 
 ---
+
 - Verwende die Chrome-Dev Tools um die Anwendung auszuprobieren - die läuft wahrscheinlich auf :3001

@@ -16,6 +16,7 @@ import { usePlacementMode } from './usePlacementMode';
 import { useLagekarteAutoSave } from './useLagekarteAutoSave';
 import { PoiPlacementControl } from '../controls/PoiPlacementControl';
 import { PoiPlacementModal } from '../modals/PoiPlacementModal';
+import { FullscreenCloseButton } from '../FullscreenCloseButton/FullscreenCloseButton';
 import { ShapeLabelModal } from '../modals/ShapeLabelModal';
 import { OfflineRegionModal } from '../modals/OfflineRegionModal';
 import { DrawingToolbar, type DrawingTool } from '../toolbar/DrawingToolbar';
@@ -32,6 +33,22 @@ import { api } from '@/api';
 import './lagekarte-view.css';
 
 /**
+ * Layout-Modi für die Lagekarte
+ * @typedef LagekarteMode
+ * @property {'standard'} standard - Standard-Modus mit allen UI-Elementen
+ * @property {'fullscreen'} fullscreen - Fullscreen-Modus mit Close-Button
+ * @property {'presentation'} presentation - Präsentations-Modus ohne Navigation
+ */
+export type LagekarteMode = 'standard' | 'fullscreen' | 'presentation';
+
+/**
+ * Search-Parameter für die Lagekarte-Route
+ */
+export type LagekarteSearchParams = {
+  mode?: LagekarteMode;
+};
+
+/**
  * Props für die LagekarteView-Komponente
  */
 interface LagekarteViewProps {
@@ -40,6 +57,11 @@ interface LagekarteViewProps {
    * @remarks Aktuell nicht verwendet, reserviert für zukünftige Features (z.B. Einsatzort-Marker)
    */
   einsatzId: string;
+  /**
+   * Layout-Modus für die Lagekarte
+   * @default 'standard'
+   */
+  mode?: LagekarteMode;
 }
 
 /**
@@ -114,14 +136,16 @@ const MapBoundsTracker: React.FC<{
  * - Mobile-responsive Layout
  * - Deutschland-Zentrum als Default-Position
  * - Error Handling für fehlgeschlagene Tile-Loads
+ * - Layout-Modi: Standard, Fullscreen, Präsentation
  *
  * @component
  * @example
  * ```tsx
  * <LagekarteView einsatzId="einsatz-123" />
+ * <LagekarteView einsatzId="einsatz-123" mode="fullscreen" />
  * ```
  */
-export const LagekarteView: React.FC<LagekarteViewProps> = ({ einsatzId }) => {
+export const LagekarteView: React.FC<LagekarteViewProps> = ({ einsatzId, mode = 'standard' }) => {
   const { resolvedColorMode } = useColorMode();
   const [isLoading, setIsLoading] = useState(true);
   const [hasError, setHasError] = useState(false);
@@ -431,12 +455,13 @@ export const LagekarteView: React.FC<LagekarteViewProps> = ({ einsatzId }) => {
     return (
       <div
         className={cn(
-          'w-full',
-          'h-[calc(100vh-120px)] md:h-[600px]', // Mobile: full viewport, Desktop: fixed height
-          'overflow-hidden rounded-lg',
+          'w-full overflow-hidden rounded-lg',
           'flex flex-col items-center justify-center',
           'bg-gray-50 dark:bg-gray-800',
           'border-2 border-gray-300 border-dashed dark:border-gray-600',
+          // Mode-specific heights
+          mode === 'standard' && 'h-[600px] md:h-[calc(100vh-120px)]',
+          (mode === 'fullscreen' || mode === 'presentation') && 'h-screen',
         )}
         role="alert"
         aria-live="assertive"
@@ -457,6 +482,9 @@ export const LagekarteView: React.FC<LagekarteViewProps> = ({ einsatzId }) => {
 
   return (
     <>
+      {/* Fullscreen-Close-Button (nur im Fullscreen-Modus) */}
+      {mode === 'fullscreen' && <FullscreenCloseButton />}
+
       {/* POI-Platzierungs-Modal */}
       {isModalOpen && selectedType && clickedCoordinates && lagekarteData?.data && (
         <PoiPlacementModal isOpen={isModalOpen} onClose={handleModalClose} poiType={selectedType} coordinates={clickedCoordinates} einsatzId={einsatzId} lagekarteId={lagekarteData.data.id} />
@@ -470,47 +498,59 @@ export const LagekarteView: React.FC<LagekarteViewProps> = ({ einsatzId }) => {
         <OfflineRegionModal isOpen={isOfflineModalOpen} onClose={() => setIsOfflineModalOpen(false)} currentMapBounds={currentMapBounds || undefined} map={mapInstance || undefined} />
       )}
 
-      {/* Last-Write-Wins Warning Banner (AC5: Conflict Handling) */}
-      <div className={cn('mb-2 flex items-start gap-3 rounded-lg border', 'border-orange-300 bg-orange-50 px-4 py-3', 'dark:border-orange-800 dark:bg-orange-950/30')} role="alert">
-        <PiWarning className="mt-0.5 h-5 w-5 flex-shrink-0 text-orange-600 dark:text-orange-400" />
-        <div className="text-sm">
-          <p className="font-medium text-orange-900 dark:text-orange-200">Automatische Speicherung aktiv</p>
-          <p className="mt-1 text-orange-700 dark:text-orange-300">
-            Die Lagekarte wird automatisch gespeichert. Bei gleichzeitiger Bearbeitung durch mehrere Nutzer kann es zu Datenverlust kommen. Koordinieren Sie Änderungen im Team.
-          </p>
+      {/* Last-Write-Wins Warning Banner (AC5: Conflict Handling) - nur im Standard-Modus */}
+      {mode === 'standard' && (
+        <div className={cn('mb-2 flex items-start gap-3 rounded-lg border', 'border-orange-300 bg-orange-50 px-4 py-3', 'dark:border-orange-800 dark:bg-orange-950/30')} role="alert">
+          <PiWarning className="mt-0.5 h-5 w-5 flex-shrink-0 text-orange-600 dark:text-orange-400" />
+          <div className="text-sm">
+            <p className="font-medium text-orange-900 dark:text-orange-200">Automatische Speicherung aktiv</p>
+            <p className="mt-1 text-orange-700 dark:text-orange-300">
+              Die Lagekarte wird automatisch gespeichert. Bei gleichzeitiger Bearbeitung durch mehrere Nutzer kann es zu Datenverlust kommen. Koordinieren Sie Änderungen im Team.
+            </p>
+          </div>
         </div>
-      </div>
+      )}
 
       {/* Karten-Container */}
       <div
         className={cn(
-          'w-full',
-          'h-[calc(100vh-120px)] md:h-[600px]', // Mobile: full viewport, Desktop: fixed height
-          'overflow-hidden rounded-lg',
-          'relative', // For loading overlay + Controls positioning
+          'relative w-full overflow-hidden rounded-lg',
+          // Mode-specific heights
+          mode === 'standard' && 'h-[600px] md:h-[calc(100vh-120px)]',
+          (mode === 'fullscreen' || mode === 'presentation') && 'h-screen',
         )}
       >
-        {/* Werkzeuge-Container (Flexbox für automatisches Layout) */}
-        <div className="absolute top-24 left-2.5 z-[30] hidden flex-col gap-2 md:flex">
-          {/* Map-Werkzeuge Toggle-Button */}
-          <MapToolbarToggle isOpen={isToolsOpen} onToggle={setIsToolsOpen} />
+        {/* Werkzeuge-Container (Flexbox für automatisches Layout) - nur im Standard-Modus */}
+        {mode === 'standard' && (
+          <div className="absolute top-24 left-2.5 z-[30] hidden flex-col gap-2 md:flex">
+            {/* Map-Werkzeuge Toggle-Button */}
+            <MapToolbarToggle isOpen={isToolsOpen} onToggle={setIsToolsOpen} />
 
-          {/* POI-Platzierungs-Control (nur sichtbar wenn Tools geöffnet) */}
-          {isToolsOpen && (
-            <PoiPlacementControl onPoiTypeSelect={handlePoiTypeSelect} onCancel={deactivatePlacementMode} selectedType={selectedType} isPlacementActive={isPlacementActive} isModalOpen={isModalOpen} />
-          )}
+            {/* POI-Platzierungs-Control (nur sichtbar wenn Tools geöffnet) */}
+            {isToolsOpen && (
+              <PoiPlacementControl
+                onPoiTypeSelect={handlePoiTypeSelect}
+                onCancel={deactivatePlacementMode}
+                selectedType={selectedType}
+                isPlacementActive={isPlacementActive}
+                isModalOpen={isModalOpen}
+              />
+            )}
 
-          {/* Drawing-Toolbar (nur sichtbar wenn Tools geöffnet) */}
-          {isToolsOpen && <DrawingToolbar onToolSelect={handleDrawingToolSelect} selectedTool={selectedDrawingTool} />}
-        </div>
+            {/* Drawing-Toolbar (nur sichtbar wenn Tools geöffnet) */}
+            {isToolsOpen && <DrawingToolbar onToolSelect={handleDrawingToolSelect} selectedTool={selectedDrawingTool} />}
+          </div>
+        )}
 
-        {/* Lagekarte-Toolbar (Top-Right) */}
-        <div className="absolute top-2.5 right-2.5 z-[30]">
-          <LagekarteToolbar onOfflineDownloadClick={handleOfflineDownloadClick} onEtbExportClick={handleExportToEtb} isExportingToEtb={isExportingToEtb} />
-        </div>
+        {/* Lagekarte-Toolbar (Top-Right) - nur im Standard-Modus */}
+        {mode === 'standard' && (
+          <div className="absolute top-2.5 right-2.5 z-[30]">
+            <LagekarteToolbar onOfflineDownloadClick={handleOfflineDownloadClick} onEtbExportClick={handleExportToEtb} isExportingToEtb={isExportingToEtb} />
+          </div>
+        )}
 
-        {/* Layer-Toggle */}
-        <LayerToggle layers={layers} onToggle={handleLayerToggle} />
+        {/* Layer-Toggle - nur im Standard-Modus */}
+        {mode === 'standard' && <LayerToggle layers={layers} onToggle={handleLayerToggle} />}
 
         {isLoading && (
           <div className="absolute inset-0 z-30 flex items-center justify-center bg-white/80 dark:bg-gray-900/80">

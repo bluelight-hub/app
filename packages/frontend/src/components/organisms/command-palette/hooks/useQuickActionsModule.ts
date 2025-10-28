@@ -1,15 +1,22 @@
 import { useAuth } from '@/hooks/useAuth';
-import { useNavigate } from '@tanstack/react-router';
+import { useMatchRoute, useNavigate } from '@tanstack/react-router';
 import { useMemo } from 'react';
-import { PiCaretRight, PiClipboard, PiGear, PiPalette, PiSignOut } from 'react-icons/pi';
+import { PiArrowsOut, PiCaretRight, PiClipboard, PiGear, PiPalette, PiSignOut } from 'react-icons/pi';
 import { toast } from 'sonner';
 import type { ModuleConfig } from '../types';
 import { useThemeCommands } from './useThemeCommands';
 
 export const useQuickActionsModule = (): ModuleConfig => {
   const navigate = useNavigate();
+  const matchRoute = useMatchRoute();
   const { logout } = useAuth();
   const { themeOptions, handleThemeChange } = useThemeCommands();
+
+  // Prüfe ob wir auf der Karten-Route sind (Fullscreen-Unterstützung)
+  const isOnKarteRoute = !!matchRoute({ to: '/app/einsatz/$einsatzId/übersicht/karte', fuzzy: false });
+
+  // Prüfe ob wir auf der ETB-Route sind (Fullscreen-Unterstützung - noch nicht implementiert)
+  const isOnEtbRoute = !!matchRoute({ to: '/app/einsatz/$einsatzId/führung/etb', fuzzy: true });
 
   return useMemo(
     () => ({
@@ -36,6 +43,44 @@ export const useQuickActionsModule = (): ModuleConfig => {
               .catch(() => toast.error('Kopieren fehlgeschlagen'));
           },
         },
+        // Lagekarte Vollbild-Action (nur auf Karten-Route)
+        ...(isOnKarteRoute
+          ? [
+              {
+                name: 'Lagekarte Vollbild',
+                icon: PiArrowsOut,
+                shortcut: ['⌘', 'E'],
+                action: () => {
+                  navigate({
+                    to: '.',
+                    search: (prev: any) => ({
+                      ...prev,
+                      mode: 'fullscreen',
+                    }),
+                  });
+                },
+              },
+            ]
+          : []),
+        // ETB Vollbild-Action (nur auf ETB-Route)
+        ...(isOnEtbRoute
+          ? [
+              {
+                name: 'ETB Vollbild',
+                icon: PiArrowsOut,
+                shortcut: ['⌘', 'E'],
+                action: () => {
+                  navigate({
+                    to: '.',
+                    search: (prev: any) => ({
+                      ...prev,
+                      mode: 'fullscreen',
+                    }),
+                  });
+                },
+              },
+            ]
+          : []),
         {
           name: 'Theme wechseln',
           icon: PiPalette,
@@ -57,6 +102,6 @@ export const useQuickActionsModule = (): ModuleConfig => {
         },
       ],
     }),
-    [logout, navigate, handleThemeChange, themeOptions],
+    [logout, navigate, handleThemeChange, themeOptions, isOnKarteRoute, isOnEtbRoute],
   );
 };

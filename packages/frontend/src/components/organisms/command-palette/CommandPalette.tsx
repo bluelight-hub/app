@@ -14,6 +14,7 @@ import { useCommandPaletteKeyboard } from './hooks/useCommandPaletteKeyboard';
 import { useCommandPaletteState } from './hooks/useCommandPaletteState';
 import { useCommandSearch } from './hooks/useCommandSearch';
 import { useFocusManagement } from './hooks/useFocusManagement';
+import { useGlobalFullscreenHotkeys } from './hooks/useGlobalFullscreenHotkeys';
 import { useGlobalThemeHotkeys } from './hooks/useGlobalThemeHotkeys';
 import { useQuickActionsModule } from './hooks/useQuickActionsModule';
 import { useThemeCommands } from './hooks/useThemeCommands';
@@ -69,6 +70,9 @@ export function CommandPalette({ modules = [], open, onOpenChange }: CommandPale
 
   // Global theme hotkeys (work even when palette is closed)
   useGlobalThemeHotkeys();
+
+  // Global fullscreen hotkeys (work even when palette is closed)
+  useGlobalFullscreenHotkeys();
 
   // Combine modules with quick actions
   const allModules = useMemo(() => [quickActions, ...modules], [quickActions, modules]);

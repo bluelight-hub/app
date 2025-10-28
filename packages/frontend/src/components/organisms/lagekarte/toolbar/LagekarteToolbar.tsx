@@ -33,6 +33,7 @@ interface LagekarteToolbarProps {
  * - Position: Top-right corner of map (next to zoom controls)
  * - Glassmorphism-Stil konsistent mit DrawingToolbar
  * - Mobile: Bleibt top-right, aber mit touch-friendly size
+ * - Fullscreen-Button ist jetzt im Layout-Header (nicht in dieser Toolbar)
  *
  * @example
  * ```tsx

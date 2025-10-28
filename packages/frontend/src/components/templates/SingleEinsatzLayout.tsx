@@ -14,11 +14,11 @@ import { getModuleActiveColor, getModuleColor } from '@/utils/module-colors';
 import { Button } from '@atoms/button.atom';
 import { UpdateEinsatzDtoStatusEnum } from '@bluelight-hub/shared/client';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { Link, Outlet, useMatchRoute, useParams, useRouter } from '@tanstack/react-router';
+import { Link, Outlet, useMatchRoute, useParams, useRouter, useNavigate } from '@tanstack/react-router';
 import { formatDistanceToNow } from 'date-fns';
 import { de } from 'date-fns/locale';
 import { useMemo, useState } from 'react';
-import { PiArrowLeft, PiClock, PiGear, PiGridFour, PiQuestion, PiSiren, PiWarning } from 'react-icons/pi';
+import { PiArrowLeft, PiArrowsOut, PiClock, PiGear, PiGridFour, PiQuestion, PiSiren, PiWarning } from 'react-icons/pi';
 
 interface SingleEinsatzLayoutProps {
   className?: string;
@@ -28,9 +28,19 @@ export function SingleEinsatzLayout({ className }: SingleEinsatzLayoutProps) {
   const { einsatzId } = useParams({ from: '/app/einsatz/$einsatzId' });
   const matchRoute = useMatchRoute();
   const router = useRouter();
+  const navigate = useNavigate();
   const queryClient = useQueryClient();
   const [commandPaletteOpen, setCommandPaletteOpen] = useState(false);
   const [showEndConfirmation, setShowEndConfirmation] = useState(false);
+
+  // Prüfe ob wir im Fullscreen/Presentation-Modus sind
+  const currentSearch = router.state.location.search as { mode?: string };
+  const isFullscreenMode = currentSearch?.mode === 'fullscreen' || currentSearch?.mode === 'presentation';
+
+  // Prüfe ob die aktuelle Route Fullscreen unterstützt (/karte und /etb Routes)
+  const isOnKarteRoute = !!matchRoute({ to: '/app/einsatz/$einsatzId/übersicht/karte', fuzzy: false });
+  const isOnEtbRoute = !!matchRoute({ to: '/app/einsatz/$einsatzId/führung/etb', fuzzy: false });
+  const supportsFullscreen = isOnKarteRoute || isOnEtbRoute;
 
   // Lade Einsatzdaten für Header
   const { data: einsatzResponse } = useQuery({
@@ -90,6 +100,28 @@ export function SingleEinsatzLayout({ className }: SingleEinsatzLayoutProps) {
 
   const duration = startTime ? formatDistanceToNow(startTime, { locale: de, addSuffix: false }) : null;
 
+  /**
+   * Handler für Fullscreen-Toggle
+   * Navigiert zur aktuellen Route mit mode=fullscreen
+   */
+  const handleFullscreenToggle = () => {
+    navigate({
+      search: (prev) => ({
+        ...prev,
+        mode: 'fullscreen',
+      }),
+    });
+  };
+
+  // Wenn Fullscreen-Modus aktiv ist, nur Content ohne Layout rendern
+  if (isFullscreenMode) {
+    return (
+      <div className={cn('min-h-screen bg-gray-50 dark:bg-gray-900', className)}>
+        <Outlet />
+      </div>
+    );
+  }
+
   return (
     <>
       {/* Module Overview Modal */}
@@ -127,9 +159,17 @@ export function SingleEinsatzLayout({ className }: SingleEinsatzLayoutProps) {
                 )}
               </div>
 
-              {/* Right: Status and Timer */}
+              {/* Right: Fullscreen, Status and Timer */}
               {einsatz && (
                 <div className="flex items-center gap-4">
+                  {/* Fullscreen-Button (für /karte und /etb Routes) */}
+                  {supportsFullscreen && (
+                    <Button appearance="ghost" size="sm" onClick={handleFullscreenToggle} className="gap-2" title="Vollbildmodus aktivieren">
+                      <PiArrowsOut className="h-4 w-4" />
+                      <span className="hidden lg:inline">Vollbild</span>
+                    </Button>
+                  )}
+
                   {duration && (
                     <div className="flex items-center gap-2 text-sm">
                       <PiClock className="h-4 w-4 text-gray-400" />
