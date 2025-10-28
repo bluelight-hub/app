@@ -1,5 +1,6 @@
 import { isTauri } from '@tauri-apps/api/core';
-import { WebviewWindow, LogicalSize } from '@tauri-apps/api/webviewWindow';
+import { LogicalSize } from '@tauri-apps/api/dpi';
+import { WebviewWindow } from '@tauri-apps/api/webviewWindow';
 import { toast } from 'sonner';
 import { logger } from '@/utils/logger';
 
