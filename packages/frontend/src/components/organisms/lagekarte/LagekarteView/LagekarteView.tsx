@@ -426,7 +426,10 @@ export const LagekarteView: React.FC<LagekarteViewProps> = ({ einsatzId, mode = 
             },
           },
         });
-      } catch (_etbError) {
+      } catch (etbError) {
+        // Log the actual error for debugging
+        logger.error('ETB entry creation failed', etbError);
+
         // Cleanup: Delete uploaded screenshot if ETB creation fails
         if (uploadedScreenshotUrl) {
           try {
@@ -443,7 +446,8 @@ export const LagekarteView: React.FC<LagekarteViewProps> = ({ einsatzId, mode = 
             logger.error('Failed to cleanup screenshot after ETB error', cleanupError);
           }
         }
-        throw new Error('ETB entry creation failed');
+        // Re-throw the original error for better error messages
+        throw etbError;
       }
 
       // Success!
@@ -538,13 +542,13 @@ export const LagekarteView: React.FC<LagekarteViewProps> = ({ einsatzId, mode = 
         className={cn(
           'relative w-full overflow-hidden rounded-lg',
           // Mode-specific heights
-          mode === 'standard' && 'h-[600px] md:h-[calc(100vh-120px)]',
+          mode === 'standard' && 'h-[600px] md:h-[calc(100vh-180px)]',
           (mode === 'fullscreen' || mode === 'presentation') && 'h-screen',
         )}
       >
         {/* Werkzeuge-Container (Flexbox für automatisches Layout) - nur im Standard-Modus */}
         {mode === 'standard' && (
-          <div className="absolute top-40 left-2.5 z-[30] hidden flex-col gap-2 md:flex">
+          <div className="absolute top-40 left-2.5 z-[10] hidden flex-col gap-2 md:flex">
             {/* Map-Werkzeuge Toggle-Button */}
             <MapToolbarToggle isOpen={isToolsOpen} onToggle={setIsToolsOpen} />
 
@@ -566,7 +570,7 @@ export const LagekarteView: React.FC<LagekarteViewProps> = ({ einsatzId, mode = 
 
         {/* Lagekarte-Toolbar (Top-Right) - nur im Standard-Modus */}
         {mode === 'standard' && (
-          <div className="absolute top-2.5 right-2.5 z-[30]">
+          <div className="absolute top-2.5 right-2.5 z-[10]">
             <LagekarteToolbar onOfflineDownloadClick={handleOfflineDownloadClick} onEtbExportClick={handleExportToEtb} isExportingToEtb={isExportingToEtb} />
           </div>
         )}
