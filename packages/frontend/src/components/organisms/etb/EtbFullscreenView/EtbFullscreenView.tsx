@@ -6,7 +6,7 @@ import { cn } from '@/utils/cn';
 import { formatDisplayDateTime } from '@/utils/dateFormatter';
 import type { EtbEintragDto } from '@bluelight-hub/shared/client';
 import { useNavigate } from '@tanstack/react-router';
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef } from 'react';
 import { PiWarning, PiCircleNotch, PiUser } from 'react-icons/pi';
 import { EtbKategorieBadge } from '../components/EtbKategorieBadge';
 
@@ -47,29 +47,29 @@ const EtbFullscreenEntry: React.FC<EtbFullscreenEntryProps> = ({ entry, getUserN
   return (
     <div className={cn('rounded-lg border p-6', 'bg-white dark:bg-gray-800', 'border-gray-200 dark:border-gray-700', 'shadow-sm', entry.deletedAt && 'opacity-50')}>
       {/* Header: Zeitstempel, Sequenznummer, Kategorie */}
-      <div className="mb-4 flex flex-wrap items-center justify-between gap-3 border-b border-gray-200 pb-4 dark:border-gray-700">
+      <div className="mb-4 flex flex-wrap items-center justify-between gap-3 border-gray-200 border-b pb-4 dark:border-gray-700">
         <div className="flex flex-wrap items-center gap-3">
-          <span className="text-2xl font-mono font-semibold text-gray-900 dark:text-gray-100">#{entry.sequenceNumber}</span>
+          <span className="font-mono font-semibold text-2xl text-gray-900 dark:text-gray-100">#{entry.sequenceNumber}</span>
           <EtbKategorieBadge kategorie={entry.kategorie} size="lg" />
-          {entry.deletedAt && <span className="rounded-full bg-red-100 px-3 py-1 text-sm font-semibold text-red-700 dark:bg-red-900 dark:text-red-300">Gelöscht</span>}
+          {entry.deletedAt && <span className="rounded-full bg-red-100 px-3 py-1 font-semibold text-red-700 text-sm dark:bg-red-900 dark:text-red-300">Gelöscht</span>}
         </div>
-        <span className="text-lg font-medium text-gray-600 dark:text-gray-400">{formatDisplayDateTime(entry.timestamp)}</span>
+        <span className="font-medium text-gray-600 text-lg dark:text-gray-400">{formatDisplayDateTime(entry.timestamp)}</span>
       </div>
 
       {/* Text-Content */}
       <div className="mb-4">
-        <p className="whitespace-pre-wrap break-words text-xl leading-relaxed text-gray-900 dark:text-gray-100">{entry.text}</p>
+        <p className="whitespace-pre-wrap break-words text-gray-900 text-xl leading-relaxed dark:text-gray-100">{entry.text}</p>
       </div>
 
       {/* Screenshot Preview (if exists) */}
       {screenshotUrl && (
         <div className="mb-4">
-          <img src={screenshotUrl} alt="Screenshot" className="max-w-full h-auto rounded-lg shadow" loading="lazy" />
+          <img src={screenshotUrl} alt="Screenshot" className="h-auto max-w-full rounded-lg shadow" loading="lazy" />
         </div>
       )}
 
       {/* Meta-Informationen */}
-      <div className="flex flex-wrap items-center gap-x-6 gap-y-2 border-t border-gray-200 pt-4 text-sm text-gray-600 dark:border-gray-700 dark:text-gray-400">
+      <div className="flex flex-wrap items-center gap-x-6 gap-y-2 border-gray-200 border-t pt-4 text-gray-600 text-sm dark:border-gray-700 dark:text-gray-400">
         <div className="flex items-center gap-2">
           <PiUser className="h-4 w-4" />
           <span>{getUserName(entry.createdBy) ?? 'Unbekannt'}</span>
@@ -86,7 +86,7 @@ const EtbFullscreenEntry: React.FC<EtbFullscreenEntryProps> = ({ entry, getUserN
             <span>{entry.standort}</span>
           </div>
         )}
-        {entry.isAutomatic && <span className="inline-flex items-center rounded bg-blue-100 px-2 py-1 text-xs text-blue-700 dark:bg-blue-900 dark:text-blue-300">🤖 Automatisch</span>}
+        {entry.isAutomatic && <span className="inline-flex items-center rounded bg-blue-100 px-2 py-1 text-blue-700 text-xs dark:bg-blue-900 dark:text-blue-300">🤖 Automatisch</span>}
       </div>
     </div>
   );
@@ -103,11 +103,11 @@ interface EtbFullscreenToolbarProps {
 
 const EtbFullscreenToolbar: React.FC<EtbFullscreenToolbarProps> = ({ totalEntries, loadedEntries, sortOrder }) => {
   return (
-    <div className="sticky top-0 z-10 border-b border-gray-200 bg-white px-6 py-4 shadow-sm dark:border-gray-700 dark:bg-gray-800">
+    <div className="sticky top-0 z-10 border-gray-200 border-b bg-white px-6 py-4 shadow-sm dark:border-gray-700 dark:bg-gray-800">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-semibold text-gray-900 dark:text-gray-100">Einsatztagebuch</h1>
-          <p className="mt-1 text-sm text-gray-600 dark:text-gray-400">
+          <h1 className="font-semibold text-2xl text-gray-900 dark:text-gray-100">Einsatztagebuch</h1>
+          <p className="mt-1 text-gray-600 text-sm dark:text-gray-400">
             {loadedEntries} von {totalEntries} Einträgen geladen · {sortOrder === 'desc' ? 'Neueste zuerst' : 'Älteste zuerst'}
           </p>
         </div>
@@ -139,20 +139,30 @@ const EtbFullscreenToolbar: React.FC<EtbFullscreenToolbarProps> = ({ totalEntrie
  */
 export function EtbFullscreenView({ einsatzId, sortOrder = 'desc', showDeleted = false }: EtbFullscreenViewProps) {
   const navigate = useNavigate();
-  const { data, isLoading, error, fetchNextPage, hasNextPage, isFetchingNextPage } = useEtbInfinite(einsatzId, 20, 'timestamp', sortOrder, showDeleted, {
+
+  // Prop-Validierung: einsatzId darf nicht leer sein (vor Hook-Aufrufen prüfen)
+  const isValidEinsatzId = einsatzId && einsatzId.trim() !== '';
+
+  // Hooks müssen immer aufgerufen werden (React Rules of Hooks)
+  // Bei ungültiger ID wird der Hook mit einem Dummy-Wert aufgerufen (disabled mode)
+  const { data, isLoading, error, fetchNextPage, hasNextPage, isFetchingNextPage } = useEtbInfinite(isValidEinsatzId ? einsatzId : '__invalid__', 20, 'timestamp', sortOrder, showDeleted, {
     refetchInterval: 5000, // Auto-Refresh alle 5 Sekunden
+    enabled: isValidEinsatzId, // Nur aktivieren wenn einsatzId gültig
   });
 
   const { getUserName } = useUserNames();
   const observerTarget = useRef<HTMLDivElement>(null);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
 
-  // Alle geladenen Einträge zusammenführen
+  // Alle geladenen Einträge zusammenführen (benötigt für useEffect)
   const allEntries = data?.pages.flatMap((page) => page.data?.eintraege || []) || [];
   const totalEntries = data?.pages?.[0]?.pagination?.total || 0;
 
-  // Intersection Observer für Infinite Scrolling
+  // Intersection Observer für Infinite Scrolling (Hook muss vor Early Return!)
   useEffect(() => {
+    // Skip effect wenn einsatzId ungültig
+    if (!isValidEinsatzId) return;
+
     const observer = new IntersectionObserver(
       (entries) => {
         if (entries[0].isIntersecting && hasNextPage && !isFetchingNextPage) {
@@ -173,7 +183,7 @@ export function EtbFullscreenView({ einsatzId, sortOrder = 'desc', showDeleted =
       }
       observer.disconnect();
     };
-  }, [hasNextPage, isFetchingNextPage, fetchNextPage]);
+  }, [hasNextPage, isFetchingNextPage, fetchNextPage, isValidEinsatzId]);
 
   /**
    * Handler zum Schließen des Fullscreen-Modus
@@ -187,13 +197,25 @@ export function EtbFullscreenView({ einsatzId, sortOrder = 'desc', showDeleted =
     });
   };
 
+  // Early Return für ungültige einsatzId (nach allen Hooks!)
+  if (!isValidEinsatzId) {
+    return (
+      <div className="flex h-screen w-screen flex-col items-center justify-center bg-gray-50 dark:bg-gray-900">
+        <FullscreenCloseButton onClose={handleClose} />
+        <PiWarning className="mb-4 h-16 w-16 text-orange-500" />
+        <h2 className="mb-2 font-semibold text-2xl text-gray-900 dark:text-gray-100">Ungültige Einsatz-ID</h2>
+        <p className="text-center text-gray-600 dark:text-gray-400">Die angegebene Einsatz-ID ist ungültig oder fehlt.</p>
+      </div>
+    );
+  }
+
   // Error State
   if (error) {
     return (
       <div className="flex h-screen w-screen flex-col items-center justify-center bg-gray-50 dark:bg-gray-900">
         <FullscreenCloseButton onClose={handleClose} />
         <PiWarning className="mb-4 h-16 w-16 text-orange-500" />
-        <h2 className="mb-2 text-2xl font-semibold text-gray-900 dark:text-gray-100">ETB konnte nicht geladen werden</h2>
+        <h2 className="mb-2 font-semibold text-2xl text-gray-900 dark:text-gray-100">ETB konnte nicht geladen werden</h2>
         <p className="text-center text-gray-600 dark:text-gray-400">Es ist ein Fehler beim Laden des Einsatztagebuchs aufgetreten.</p>
       </div>
     );
@@ -215,7 +237,7 @@ export function EtbFullscreenView({ einsatzId, sortOrder = 'desc', showDeleted =
     return (
       <div className="flex h-screen w-screen flex-col items-center justify-center bg-gray-50 dark:bg-gray-900">
         <FullscreenCloseButton onClose={handleClose} />
-        <h2 className="mb-2 text-2xl font-semibold text-gray-900 dark:text-gray-100">Keine Einträge vorhanden</h2>
+        <h2 className="mb-2 font-semibold text-2xl text-gray-900 dark:text-gray-100">Keine Einträge vorhanden</h2>
         <p className="text-center text-gray-600 dark:text-gray-400">Es wurden noch keine ETB-Einträge für diesen Einsatz erstellt.</p>
       </div>
     );

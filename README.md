@@ -156,23 +156,18 @@ const userData = await api.users.getCurrentUser();
 
 ## Tests
 
-Führe Tests für alle Pakete aus:
-
-```bash
-pnpm test
-```
-
-Oder mit Coverage-Report:
-
-```bash
-pnpm test:cov
-```
-
-Führe Tests im UI-Modus aus (für Frontend):
-
-```bash
-pnpm test:ui
-```
+> ⚠️ **WICHTIG: Test-Infrastruktur entfernt**
+>
+> Stand: 2025-01-28 - Alle Tests wurden temporär entfernt (siehe [PR #257](https://github.com/rubenvitt/bluelight-hub/pull/257))
+>
+> - `pnpm test` funktioniert nicht mehr
+> - `pnpm test:cov` funktioniert nicht mehr
+> - `pnpm test:ui` funktioniert nicht mehr
+>
+> **Migration für Entwickler:**
+> - Wenn Sie Tests lokal laufen hatten, müssen diese neu implementiert werden
+> - Zukünftige Test-Strategie: TBD
+> - Bei Fragen zur Test-Strategie siehe Issue [#XXX](https://github.com/rubenvitt/bluelight-hub/issues/XXX)
 
 ## Docker
 
