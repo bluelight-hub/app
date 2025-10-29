@@ -411,12 +411,13 @@ export const LagekarteView: React.FC<LagekarteViewProps> = ({ einsatzId, mode = 
             },
           },
         });
-      } catch (etbError) {
+      } catch (_etbError) {
         // Cleanup: Delete uploaded screenshot if ETB creation fails
         if (uploadedScreenshotUrl) {
           try {
-            // Extract filename from URL (e.g., /uploads/lagekarte/filename.png → filename.png)
-            const filename = uploadedScreenshotUrl.split('/').pop();
+            // Extract filename from URL using URL API (robust against encoded characters)
+            const url = new URL(uploadedScreenshotUrl, window.location.origin);
+            const filename = url.pathname.split('/').pop();
             if (filename) {
               await api.lagekarte().lagekarteControllerDeleteScreenshotVAlpha({
                 einsatzId,
