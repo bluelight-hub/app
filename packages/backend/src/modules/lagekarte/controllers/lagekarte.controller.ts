@@ -20,7 +20,7 @@ import {
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { FileInterceptor } from '@nestjs/platform-express';
-import { ApiBadRequestResponse, ApiBearerAuth, ApiConsumes, ApiForbiddenResponse, ApiNotFoundResponse, ApiOperation, ApiTags, ApiUnauthorizedResponse } from '@nestjs/swagger';
+import { ApiBadRequestResponse, ApiBearerAuth, ApiBody, ApiConsumes, ApiForbiddenResponse, ApiNotFoundResponse, ApiOperation, ApiTags, ApiUnauthorizedResponse } from '@nestjs/swagger';
 import { diskStorage } from 'multer';
 import { join, resolve } from 'node:path';
 import { existsSync, mkdirSync, unlinkSync } from 'node:fs';
@@ -140,25 +140,38 @@ export class LagekarteController {
    * Screenshot der Lagekarte hochladen (für ETB-Integration)
    *
    * **Security:**
-   * - Nur PNG-Files erlaubt (MIME-Type Validierung)
+   * - PNG und JPEG-Files erlaubt (MIME-Type Validierung)
    * - Filename Sanitization (verhindert Path Traversal)
    * - Max. File-Size: 10MB
    *
    * **Storage:**
-   * - Ziel: `/uploads/lagekarte/{einsatzId}_{timestamp}.png`
+   * - Ziel: `/uploads/lagekarte/{einsatzId}_{timestamp}.{png|jpg}`
    * - Persistierung via Docker Volume
    *
    * @param einsatzId - ID des Einsatzes
-   * @param file - Hochgeladenes Screenshot-File (PNG)
+   * @param file - Hochgeladenes Screenshot-File (PNG oder JPEG)
    * @param user - Authentifizierter User
    * @returns File URL für ETB-Integration
    */
   @Post('screenshot')
   @ApiOperation({
     summary: 'Screenshot der Lagekarte hochladen',
-    description: 'Upload eines Screenshots der Lagekarte für ETB-Integration. Nur PNG-Files bis 10MB. Rückgabe: File-URL für Verwendung in ETB-Einträgen.',
+    description: 'Upload eines Screenshots der Lagekarte für ETB-Integration. PNG- und JPEG-Files bis 10MB. Rückgabe: File-URL für Verwendung in ETB-Einträgen.',
   })
   @ApiConsumes('multipart/form-data')
+  @ApiBody({
+    schema: {
+      type: 'object',
+      required: ['file'],
+      properties: {
+        file: {
+          type: 'string',
+          format: 'binary',
+          description: 'Screenshot-Datei (PNG oder JPEG, max 10MB)',
+        },
+      },
+    },
+  })
   @ApiWrappedResponse(Object, { description: 'Screenshot erfolgreich hochgeladen' })
   @ApiBadRequestResponse({ description: 'Ungültiges File-Format oder zu groß' })
   @ApiNotFoundResponse({ description: 'Einsatz nicht gefunden' })
@@ -180,21 +193,24 @@ export class LagekarteController {
 
           cb(null, uploadDir);
         },
-        filename: (req, _file, cb) => {
+        filename: (req, file, cb) => {
           const einsatzId = req.params.einsatzId || 'unknown';
           const timestamp = Date.now();
-          // Sanitize: Only allow .png extension, prevent path traversal
+          // Sanitize: Prevent path traversal
           const sanitizedEinsatzId = einsatzId.replace(/[^a-zA-Z0-9_-]/g, '');
-          cb(null, `${sanitizedEinsatzId}_${timestamp}.png`);
+          // Use correct extension based on MIME type
+          const extension = file.mimetype === 'image/jpeg' ? 'jpg' : 'png';
+          cb(null, `${sanitizedEinsatzId}_${timestamp}.${extension}`);
         },
       }),
       limits: {
         fileSize: 10 * 1024 * 1024, // 10MB max (Lagekarten-Screenshots mit scale:2 können groß sein)
       },
       fileFilter: (_req, file, cb) => {
-        // Validate MIME type: Only accept image/png
-        if (file.mimetype !== 'image/png') {
-          return cb(new BadRequestException('Only PNG files are allowed'), false);
+        // Validate MIME type: Accept PNG and JPEG
+        const allowedMimeTypes = ['image/png', 'image/jpeg'];
+        if (!allowedMimeTypes.includes(file.mimetype)) {
+          return cb(new BadRequestException('Only PNG and JPEG files are allowed'), false);
         }
         cb(null, true);
       },
@@ -225,13 +241,13 @@ export class LagekarteController {
    * - Cleanup wenn ETB-Eintrag-Erstellung fehlschlägt (AC7)
    *
    * @param einsatzId - ID des Einsatzes
-   * @param filename - Dateiname des Screenshots (z.B. "einsatzId_timestamp.png")
+   * @param filename - Dateiname des Screenshots (z.B. "einsatzId_timestamp.png" oder "einsatzId_timestamp.jpg")
    * @param user - Authentifizierter User
    */
   @Delete('screenshot/:filename')
   @ApiOperation({
     summary: 'Screenshot löschen',
-    description: 'Löscht einen Screenshot der Lagekarte. Verwendet für Cleanup wenn ETB-Eintrag-Erstellung fehlschlägt (AC7). Filename-Validierung verhindert Path Traversal.',
+    description: 'Löscht einen Screenshot der Lagekarte (PNG oder JPEG). Verwendet für Cleanup wenn ETB-Eintrag-Erstellung fehlschlägt (AC7). Filename-Validierung verhindert Path Traversal.',
   })
   @ApiWrappedResponse(Object, { description: 'Screenshot erfolgreich gelöscht' })
   @ApiBadRequestResponse({ description: 'Ungültiger Filename oder Path Traversal-Versuch' })
@@ -246,11 +262,11 @@ export class LagekarteController {
       throw new BadRequestException('Invalid filename - Path traversal not allowed');
     }
 
-    // Validate filename format: Must be "einsatzId_timestamp.png"
-    const filenamePattern = /^[a-zA-Z0-9_-]+_\d+\.png$/;
+    // Validate filename format: Must be "einsatzId_timestamp.png" or "einsatzId_timestamp.jpg"
+    const filenamePattern = /^[a-zA-Z0-9_-]+_\d+\.(png|jpg)$/;
     if (!filenamePattern.test(filename)) {
       this.logger.error(`Invalid filename format: ${filename}`);
-      throw new BadRequestException('Invalid filename format - Expected: einsatzId_timestamp.png');
+      throw new BadRequestException('Invalid filename format - Expected: einsatzId_timestamp.png or einsatzId_timestamp.jpg');
     }
 
     // Verify filename starts with einsatzId (authorization check)

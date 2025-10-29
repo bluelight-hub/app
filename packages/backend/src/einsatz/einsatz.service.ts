@@ -32,6 +32,9 @@ export class EinsatzService {
     const einsatzData = {
       alarmstichwort: dto.alarmstichwort || null,
       alarmierungszeit: dto.alarmierungszeit ? new Date(dto.alarmierungszeit) : null,
+      einsatzort: dto.einsatzort || null,
+      beschreibung: dto.beschreibung || null,
+      einsatzleiter: dto.einsatzleiter || null,
       creator: {
         connect: {
           id: userId,

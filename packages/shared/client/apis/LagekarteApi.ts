@@ -41,6 +41,7 @@ export interface LagekarteControllerSaveLagekarteStateVAlphaRequest {
 
 export interface LagekarteControllerUploadScreenshotVAlphaRequest {
   einsatzId: string;
+  file: Blob;
 }
 
 /**
@@ -268,6 +269,10 @@ export class LagekarteApi extends runtime.BaseAPI {
       throw new runtime.RequiredError('einsatzId', 'Required parameter "einsatzId" was null or undefined when calling lagekarteControllerUploadScreenshotVAlpha().');
     }
 
+    if (requestParameters['file'] == null) {
+      throw new runtime.RequiredError('file', 'Required parameter "file" was null or undefined when calling lagekarteControllerUploadScreenshotVAlpha().');
+    }
+
     const queryParameters: any = {};
 
     const headerParameters: runtime.HTTPHeaders = {};
@@ -280,12 +285,31 @@ export class LagekarteApi extends runtime.BaseAPI {
         headerParameters['Authorization'] = `Bearer ${tokenString}`;
       }
     }
+    const consumes: runtime.Consume[] = [{ contentType: 'multipart/form-data' }];
+    // @ts-ignore: canConsumeForm may be unused
+    const canConsumeForm = runtime.canConsumeForm(consumes);
+
+    let formParams: { append(param: string, value: any): any };
+    let useForm = false;
+    // use FormData to transmit files using content-type "multipart/form-data"
+    useForm = canConsumeForm;
+    if (useForm) {
+      formParams = new FormData();
+    } else {
+      formParams = new URLSearchParams();
+    }
+
+    if (requestParameters['file'] != null) {
+      formParams.append('file', requestParameters['file'] as any);
+    }
+
     const response = await this.request(
       {
         path: `/api/v-alpha/einsatz/{einsatzId}/lagekarte/screenshot`.replace(`{${'einsatzId'}}`, encodeURIComponent(String(requestParameters['einsatzId']))),
         method: 'POST',
         headers: headerParameters,
         query: queryParameters,
+        body: formParams,
       },
       initOverrides,
     );

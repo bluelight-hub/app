@@ -41,3 +41,41 @@
         border-color: #a78bfa;
     }
 }
+
+/* CUX-006: Drag-Feedback für POI-Marker */
+.leaflet-marker-icon {
+    transition: all 200ms cubic-bezier(0.4, 0, 0.2, 1);
+    cursor: grab;
+}
+
+.leaflet-marker-icon:active {
+    cursor: grabbing;
+}
+
+.leaflet-marker-dragging {
+    opacity: 0.6 !important;
+    transform: scale(1.1) !important;
+    filter: drop-shadow(0 10px 15px rgba(0, 0, 0, 0.3));
+    transition: all 200ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Dark mode shadow enhancement */
+@media (prefers-color-scheme: dark) {
+    .leaflet-marker-dragging {
+        filter: drop-shadow(0 10px 15px rgba(0, 0, 0, 0.6));
+    }
+}
+
+/* Dark mode styling for zoom controls (+/-) */
+@media (prefers-color-scheme: dark) {
+    .leaflet-control-zoom a {
+        background-color: #1f2937 !important;
+        color: #f3f4f6 !important;
+        border-color: #374151 !important;
+    }
+
+    .leaflet-control-zoom a:hover {
+        background-color: #374151 !important;
+        color: #ffffff !important;
+    }
+}
