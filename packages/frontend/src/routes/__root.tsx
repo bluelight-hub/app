@@ -99,7 +99,7 @@ function RootComponent() {
               ]}
             />
           </div>
-          <Toaster duration={5000} position="bottom-right" closeButton />
+          <Toaster duration={4000} position="bottom-right" closeButton theme="system" richColors />
         </ConfirmProvider>
       </QueryClientProvider>
     </Provider>

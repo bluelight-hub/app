@@ -150,6 +150,9 @@ export const LagekarteView: React.FC<LagekarteViewProps> = ({ einsatzId, mode = 
   const [isLoading, setIsLoading] = useState(true);
   const [hasError, setHasError] = useState(false);
 
+  // Fullscreen-Indikator State (CUX-009)
+  const [showFullscreenBadge, setShowFullscreenBadge] = useState(mode === 'fullscreen');
+
   // POI-Placement State
   const { selectedType, isPlacementActive, activatePlacementMode, deactivatePlacementMode } = usePlacementMode();
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -186,6 +189,17 @@ export const LagekarteView: React.FC<LagekarteViewProps> = ({ einsatzId, mode = 
 
   // Auto-Save Hook (debounced 2s)
   const { triggerAutoSave } = useLagekarteAutoSave(einsatzId);
+
+  // Fullscreen-Badge Auto-Hide Timer (CUX-009: Fade-Out nach 3 Sekunden)
+  React.useEffect(() => {
+    if (mode === 'fullscreen' && showFullscreenBadge) {
+      const timer = setTimeout(() => {
+        setShowFullscreenBadge(false);
+      }, 3000);
+
+      return () => clearTimeout(timer);
+    }
+  }, [mode, showFullscreenBadge]);
 
   // Tile-URL basierend auf Theme
   const tileUrl = resolvedColorMode === 'dark' ? 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}.png' : 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png';
@@ -387,6 +401,7 @@ export const LagekarteView: React.FC<LagekarteViewProps> = ({ einsatzId, mode = 
       URL.revokeObjectURL(screenshotUrl);
 
       // Step 2: Upload screenshot
+      // API-Client erstellt automatisch FormData für multipart/form-data
       const uploadResponse = await api.lagekarte().lagekarteControllerUploadScreenshotVAlpha({
         einsatzId,
         file: screenshotBlob,
@@ -486,6 +501,25 @@ export const LagekarteView: React.FC<LagekarteViewProps> = ({ einsatzId, mode = 
       {/* Fullscreen-Close-Button (nur im Fullscreen-Modus) */}
       {mode === 'fullscreen' && <FullscreenCloseButton />}
 
+      {/* Fullscreen-Indikator Badge (CUX-009) */}
+      {mode === 'fullscreen' && showFullscreenBadge && (
+        <output
+          className={cn(
+            'fixed top-4 left-4 z-[9999]',
+            'flex items-center gap-2 rounded-lg px-4 py-2',
+            'border border-blue-300 bg-blue-50/90 backdrop-blur-lg',
+            'dark:border-blue-800 dark:bg-blue-950/50',
+            'shadow-lg',
+            'transition-opacity duration-500',
+            showFullscreenBadge ? 'opacity-100' : 'opacity-0',
+          )}
+          aria-label="Vollbildmodus aktiv"
+        >
+          <div className="h-2 w-2 animate-pulse rounded-full bg-blue-500 dark:bg-blue-400" />
+          <span className="font-medium text-blue-900 text-sm dark:text-blue-100">Vollbildmodus</span>
+        </output>
+      )}
+
       {/* POI-Platzierungs-Modal */}
       {isModalOpen && selectedType && clickedCoordinates && lagekarteData?.data && (
         <PoiPlacementModal isOpen={isModalOpen} onClose={handleModalClose} poiType={selectedType} coordinates={clickedCoordinates} einsatzId={einsatzId} lagekarteId={lagekarteData.data.id} />
@@ -497,19 +531,6 @@ export const LagekarteView: React.FC<LagekarteViewProps> = ({ einsatzId, mode = 
       {/* Offline-Region-Modal */}
       {isOfflineModalOpen && (
         <OfflineRegionModal isOpen={isOfflineModalOpen} onClose={() => setIsOfflineModalOpen(false)} currentMapBounds={currentMapBounds || undefined} map={mapInstance || undefined} />
-      )}
-
-      {/* Last-Write-Wins Warning Banner (AC5: Conflict Handling) - nur im Standard-Modus */}
-      {mode === 'standard' && (
-        <div className={cn('mb-2 flex items-start gap-3 rounded-lg border', 'border-orange-300 bg-orange-50 px-4 py-3', 'dark:border-orange-800 dark:bg-orange-950/30')} role="alert">
-          <PiWarning className="mt-0.5 h-5 w-5 flex-shrink-0 text-orange-600 dark:text-orange-400" />
-          <div className="text-sm">
-            <p className="font-medium text-orange-900 dark:text-orange-200">Automatische Speicherung aktiv</p>
-            <p className="mt-1 text-orange-700 dark:text-orange-300">
-              Die Lagekarte wird automatisch gespeichert. Bei gleichzeitiger Bearbeitung durch mehrere Nutzer kann es zu Datenverlust kommen. Koordinieren Sie Änderungen im Team.
-            </p>
-          </div>
-        </div>
       )}
 
       {/* Karten-Container */}

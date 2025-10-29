@@ -2,10 +2,12 @@ import { useDeletePoi, usePois, useUpdatePoi } from '@/api/hooks/useLagekarteApi
 import { Button } from '@/components/atoms/button.atom';
 import { Spinner } from '@/components/atoms/spinner.atom';
 import { getPoiIcon } from '@/utils/poi-icons';
+import { getApiErrorMessage } from '@/utils/apiErrorHandler';
 import { Dialog, DialogBackdrop, DialogPanel, DialogTitle } from '@headlessui/react';
 import React, { useMemo, useState } from 'react';
 import { PiTrash, PiWarning, PiXCircle } from 'react-icons/pi';
 import { Marker, Popup } from 'react-leaflet';
+import { toast } from 'sonner';
 import type { LeafletMouseEvent } from 'leaflet';
 import type { PoiResponseDto } from '@bluelight-hub/shared/client';
 
@@ -104,18 +106,33 @@ export const PoiLayer: React.FC<PoiLayerProps> = React.memo(({ einsatzId }) => {
     const marker = e.target;
     const { lat, lng } = marker.getLatLng();
 
-    // Update POI mit neuen Koordinaten
-    updatePoiMutation.mutate({
-      id: poiId,
-      einsatzId,
-      data: {
-        latitude: lat,
-        longitude: lng,
-      },
-    });
+    // Finde den POI um den Namen zu bekommen
+    const poi = validPois.find((p) => p.id === poiId);
 
-    // TODO: Show toast notification "POI verschoben" (Task 10)
-    console.log(`POI ${poiId} verschoben zu: ${lat}, ${lng}`);
+    // Update POI mit neuen Koordinaten
+    updatePoiMutation.mutate(
+      {
+        id: poiId,
+        einsatzId,
+        data: {
+          latitude: lat,
+          longitude: lng,
+        },
+      },
+      {
+        onSuccess: () => {
+          toast.success('POI verschoben', {
+            description: poi ? `"${poi.name}" wurde an neue Position verschoben.` : 'Die Position wurde aktualisiert.',
+          });
+        },
+        onError: async (error) => {
+          const message = await getApiErrorMessage(error, 'Der POI konnte nicht verschoben werden.');
+          toast.error('Fehler beim Verschieben', {
+            description: message,
+          });
+        },
+      },
+    );
   };
 
   /**
@@ -135,17 +152,29 @@ export const PoiLayer: React.FC<PoiLayerProps> = React.memo(({ einsatzId }) => {
   const handleDeleteConfirm = () => {
     if (!poiToDelete) return;
 
-    deletePoiMutation.mutate({
-      id: poiToDelete.id,
-      einsatzId,
-    });
+    deletePoiMutation.mutate(
+      {
+        id: poiToDelete.id,
+        einsatzId,
+      },
+      {
+        onSuccess: () => {
+          toast.success('POI gelöscht', {
+            description: `"${poiToDelete.name}" wurde erfolgreich entfernt.`,
+          });
+        },
+        onError: async (error) => {
+          const message = await getApiErrorMessage(error, 'Der POI konnte nicht gelöscht werden.');
+          toast.error('Fehler beim Löschen', {
+            description: message,
+          });
+        },
+      },
+    );
 
     // Dialog schließen
     setDeleteDialogOpen(false);
     setPoiToDelete(null);
-
-    // TODO: Show toast notification "POI gelöscht" (Task 10)
-    console.log(`POI ${poiToDelete.id} gelöscht`);
   };
 
   /**

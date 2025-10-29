@@ -74,7 +74,7 @@ export interface PoiPlacementModalProps {
  * ```
  */
 export const PoiPlacementModal: React.FC<PoiPlacementModalProps> = ({ isOpen, onClose, poiType, coordinates, einsatzId, lagekarteId }) => {
-  const { form, isLoading, isError, error } = usePoiForm({
+  const { form, isLoading, isError, error, isGeocoding, debouncedGeocode } = usePoiForm({
     einsatzId,
     lagekarteId,
     initialType: poiType,
@@ -144,30 +144,55 @@ export const PoiPlacementModal: React.FC<PoiPlacementModalProps> = ({ isOpen, on
               )}
             </form.Field>
 
-            {/* Adresse Field */}
+            {/* Adresse Field mit Geocoding */}
             <form.Field name="adresse">
               {(field) => (
                 <div>
                   <label htmlFor={field.name} className="mb-1 block font-medium text-gray-700 text-sm dark:text-gray-300">
                     Adresse (optional)
                   </label>
-                  <Input
-                    id={field.name}
-                    name={field.name}
-                    value={field.state.value}
-                    onBlur={field.handleBlur}
-                    onChange={(e) => field.handleChange(e.target.value)}
-                    placeholder="z.B. Hauptstraße 15, Berlin"
-                    className="w-full"
-                  />
-                  <p className="mt-1 text-gray-500 text-xs dark:text-gray-400">Geocoding ist derzeit nicht verfügbar</p>
+                  <div className="relative">
+                    <Input
+                      id={field.name}
+                      name={field.name}
+                      value={field.state.value}
+                      onBlur={field.handleBlur}
+                      onChange={(e) => {
+                        const newValue = e.target.value;
+                        field.handleChange(newValue);
+                        // Trigger debounced geocoding
+                        debouncedGeocode(newValue);
+                      }}
+                      placeholder="z.B. Hauptstraße 15, Berlin"
+                      className="w-full"
+                      aria-describedby="geocoding-status"
+                    />
+                    {isGeocoding && (
+                      <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
+                        <Spinner size="sm" type="ring" aria-label="Adresse wird geocoded" />
+                      </div>
+                    )}
+                  </div>
+                  <p id="geocoding-status" className="mt-1 text-gray-500 text-xs dark:text-gray-400">
+                    {isGeocoding ? 'Koordinaten werden ermittelt...' : 'Koordinaten werden automatisch aktualisiert'}
+                  </p>
                 </div>
               )}
             </form.Field>
 
-            {/* Koordinaten (Display + Editable) */}
+            {/* Koordinaten (Display + Editable) - CUX-007: Mit Validierung */}
             <div className="grid grid-cols-2 gap-3">
-              <form.Field name="latitude">
+              <form.Field
+                name="latitude"
+                validators={{
+                  onChange: ({ value }) => {
+                    if (value < -90 || value > 90) {
+                      return 'Breitengrad muss zwischen -90 und 90 liegen';
+                    }
+                    return undefined;
+                  },
+                }}
+              >
                 {(field) => (
                   <div>
                     <label htmlFor={field.name} className="mb-1 block font-medium text-gray-700 text-sm dark:text-gray-300">
@@ -183,11 +208,22 @@ export const PoiPlacementModal: React.FC<PoiPlacementModalProps> = ({ isOpen, on
                       onChange={(e) => field.handleChange(parseFloat(e.target.value))}
                       className="w-full"
                     />
+                    {field.state.meta.errors && field.state.meta.errors.length > 0 && <p className="mt-1 text-red-500 text-sm">{field.state.meta.errors[0]}</p>}
                   </div>
                 )}
               </form.Field>
 
-              <form.Field name="longitude">
+              <form.Field
+                name="longitude"
+                validators={{
+                  onChange: ({ value }) => {
+                    if (value < -180 || value > 180) {
+                      return 'Längengrad muss zwischen -180 und 180 liegen';
+                    }
+                    return undefined;
+                  },
+                }}
+              >
                 {(field) => (
                   <div>
                     <label htmlFor={field.name} className="mb-1 block font-medium text-gray-700 text-sm dark:text-gray-300">
