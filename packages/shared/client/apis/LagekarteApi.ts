@@ -98,7 +98,7 @@ export class LagekarteApi extends runtime.BaseAPI {
   }
 
   /**
-   * Löscht einen Screenshot der Lagekarte. Verwendet für Cleanup wenn ETB-Eintrag-Erstellung fehlschlägt (AC7). Filename-Validierung verhindert Path Traversal.
+   * Löscht einen Screenshot der Lagekarte (PNG oder JPEG). Verwendet für Cleanup wenn ETB-Eintrag-Erstellung fehlschlägt (AC7). Filename-Validierung verhindert Path Traversal.
    * Screenshot löschen
    */
   async lagekarteControllerDeleteScreenshotVAlphaRaw(
@@ -141,7 +141,7 @@ export class LagekarteApi extends runtime.BaseAPI {
   }
 
   /**
-   * Löscht einen Screenshot der Lagekarte. Verwendet für Cleanup wenn ETB-Eintrag-Erstellung fehlschlägt (AC7). Filename-Validierung verhindert Path Traversal.
+   * Löscht einen Screenshot der Lagekarte (PNG oder JPEG). Verwendet für Cleanup wenn ETB-Eintrag-Erstellung fehlschlägt (AC7). Filename-Validierung verhindert Path Traversal.
    * Screenshot löschen
    */
   async lagekarteControllerDeleteScreenshotVAlpha(
@@ -258,7 +258,7 @@ export class LagekarteApi extends runtime.BaseAPI {
   }
 
   /**
-   * Upload eines Screenshots der Lagekarte für ETB-Integration. Nur PNG-Files bis 10MB. Rückgabe: File-URL für Verwendung in ETB-Einträgen.
+   * Upload eines Screenshots der Lagekarte für ETB-Integration. PNG- und JPEG-Files bis 10MB. Rückgabe: File-URL für Verwendung in ETB-Einträgen.
    * Screenshot der Lagekarte hochladen
    */
   async lagekarteControllerUploadScreenshotVAlphaRaw(
@@ -318,7 +318,7 @@ export class LagekarteApi extends runtime.BaseAPI {
   }
 
   /**
-   * Upload eines Screenshots der Lagekarte für ETB-Integration. Nur PNG-Files bis 10MB. Rückgabe: File-URL für Verwendung in ETB-Einträgen.
+   * Upload eines Screenshots der Lagekarte für ETB-Integration. PNG- und JPEG-Files bis 10MB. Rückgabe: File-URL für Verwendung in ETB-Einträgen.
    * Screenshot der Lagekarte hochladen
    */
   async lagekarteControllerUploadScreenshotVAlpha(

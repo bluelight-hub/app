@@ -411,7 +411,7 @@ export const LagekarteView: React.FC<LagekarteViewProps> = ({ einsatzId, mode = 
 
       // Step 3: Create ETB entry with actual screenshot dimensions
       try {
-        await api.etb().etbControllerCreateEtbEintragVAlpha({
+        await api.etb().etbControllerCreateEintragVAlpha({
           id: etbData.data.id,
           createEtbEintragDto: {
             kategorie: 'DOKUMENTATION',
