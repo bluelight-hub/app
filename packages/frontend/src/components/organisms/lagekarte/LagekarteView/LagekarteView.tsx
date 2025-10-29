@@ -523,7 +523,7 @@ export const LagekarteView: React.FC<LagekarteViewProps> = ({ einsatzId, mode = 
       >
         {/* Werkzeuge-Container (Flexbox für automatisches Layout) - nur im Standard-Modus */}
         {mode === 'standard' && (
-          <div className="absolute top-24 left-2.5 z-[30] hidden flex-col gap-2 md:flex">
+          <div className="absolute top-40 left-2.5 z-[30] hidden flex-col gap-2 md:flex">
             {/* Map-Werkzeuge Toggle-Button */}
             <MapToolbarToggle isOpen={isToolsOpen} onToggle={setIsToolsOpen} />
 
