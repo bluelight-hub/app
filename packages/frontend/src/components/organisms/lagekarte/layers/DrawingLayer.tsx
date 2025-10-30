@@ -5,7 +5,7 @@ import { DEFAULT_SHAPE_STYLE } from '@/utils/drawing-styles';
 import type React from 'react';
 import { memo, useEffect, useRef, useState } from 'react';
 import { useMap } from 'react-leaflet';
-import type * as L from 'leaflet';
+import * as L from 'leaflet';
 import type * as GeoJSON from 'geojson';
 
 /**
@@ -109,6 +109,9 @@ const DrawingLayerComponent: React.FC<DrawingLayerProps> = ({
         },
   );
 
+  // State für Shape-Selection
+  const [selectedShapeId, setSelectedShapeId] = useState<string | null>(null);
+
   // Ref für Layer-Tracking (avoid duplicate layers)
   const layersRef = useRef<Map<number, L.Layer>>(new Map());
 
@@ -117,6 +120,9 @@ const DrawingLayerComponent: React.FC<DrawingLayerProps> = ({
 
   // Ref zum Tracking ob initial shapes bereits geladen wurden
   const initialShapesLoadedRef = useRef(false);
+
+  // Ref für original styles (vor Highlighting)
+  const originalStylesRef = useRef<Map<string, any>>(new Map());
 
   // Update shapesRef bei shapes-Änderung
   useEffect(() => {
@@ -164,16 +170,31 @@ const DrawingLayerComponent: React.FC<DrawingLayerProps> = ({
 
   /**
    * Load initial shapes from backend (on mount)
+   *
+   * BUGFIX: Deduplizierung verhindert doppelte Shapes nach TanStack Query Refetch
+   * - Problem: initialState Objektreferenz ändert sich bei Query-Invalidierung
+   * - Lösung: Prüfe existierende Shape-IDs in layersRef vor Layer-Add
    */
   useEffect(() => {
     // Nur einmal beim Mount laden
     if (initialShapesLoadedRef.current) return;
     if (!initialState?.features || initialState.features.length === 0) return;
 
+    // Deduplizierung: Sammle bereits geladene Shape-IDs aus layersRef
+    const existingShapeIds = new Set<string>(Array.from(layersRef.current.entries()).map(([shapeId]) => String(shapeId)));
+
     // Import Leaflet for L.geoJSON and L.marker
     import('leaflet').then((L) => {
       // Add shapes to map using L.geoJSON
       initialState.features.forEach((feature) => {
+        const shapeId = feature.properties?.id;
+
+        // DEDUPLIZIERUNG: Skip wenn Shape bereits existiert
+        if (shapeId && existingShapeIds.has(String(shapeId))) {
+          console.debug('[DrawingLayer] Skipping duplicate shape:', shapeId);
+          return;
+        }
+
         // Check if this is a Text marker (Point geometry with text property)
         const isTextMarker = feature.geometry.type === 'Point' && feature.properties?.text;
 
@@ -219,9 +240,20 @@ const DrawingLayerComponent: React.FC<DrawingLayerProps> = ({
           // (layer as any).pm?.enable(); // REMOVED
 
           // Track layer and store shapeId directly on the layer
-          const shapeId = feature.properties?.id || generateShapeId();
-          (layer as any)._shapeId = shapeId; // Store ID on layer for later retrieval
-          layersRef.current.set(shapeId as number, layer);
+          const finalShapeId = shapeId || generateShapeId();
+          (layer as any)._shapeId = finalShapeId; // Store ID on layer for later retrieval
+          layersRef.current.set(finalShapeId, layer);
+
+          // Add click handler for selection
+          const handleLayerClick = (e: L.LeafletMouseEvent) => {
+            L.DomEvent.stopPropagation(e);
+            const clickedLayer = e.target;
+            const clickedShapeId = (clickedLayer as any)._shapeId;
+            if (clickedShapeId) {
+              setSelectedShapeId(clickedShapeId);
+            }
+          };
+          layer.on('click', handleLayerClick);
         }
       });
 
@@ -238,6 +270,8 @@ const DrawingLayerComponent: React.FC<DrawingLayerProps> = ({
       map.pm.disableDraw();
       map.pm.disableGlobalEditMode();
       map.pm.disableGlobalRemovalMode();
+      // Deselect shape when tool is cleared
+      setSelectedShapeId(null);
       return;
     }
 
@@ -284,6 +318,9 @@ const DrawingLayerComponent: React.FC<DrawingLayerProps> = ({
         map.pm.disableDraw();
     }
 
+    // Deselect shape when tool changes
+    setSelectedShapeId(null);
+
     // Cleanup: Deactivate when tool changes
     return () => {
       map.pm.disableDraw();
@@ -291,6 +328,153 @@ const DrawingLayerComponent: React.FC<DrawingLayerProps> = ({
       map.pm.disableGlobalRemovalMode();
     };
   }, [selectedTool, map]);
+
+  /**
+   * Handle Shape Selection via Click
+   * - Click auf Shape: Selektiere und highlighte
+   * - Click auf leere Karte: Deselektiere
+   */
+  useEffect(() => {
+    /**
+     * Helper: Apply highlight style to selected layer
+     */
+    const highlightLayer = (layer: L.Layer, shapeId: string) => {
+      // Skip text markers (no style to highlight)
+      if ((layer as any).options?.icon) {
+        return;
+      }
+
+      // Store original style if not already stored
+      if (!originalStylesRef.current.has(shapeId) && (layer as any).setStyle) {
+        const currentStyle = (layer as any).options;
+        originalStylesRef.current.set(shapeId, {
+          color: currentStyle.color,
+          weight: currentStyle.weight,
+          opacity: currentStyle.opacity,
+          fillOpacity: currentStyle.fillOpacity,
+        });
+      }
+
+      // Apply highlight style
+      if ((layer as any).setStyle) {
+        (layer as any).setStyle({
+          color: '#3b82f6', // blue-500
+          weight: 4,
+          opacity: 1.0,
+          fillOpacity: 0.5,
+        });
+      }
+    };
+
+    /**
+     * Helper: Remove highlight style from layer
+     */
+    const unhighlightLayer = (layer: L.Layer, shapeId: string) => {
+      // Skip text markers
+      if ((layer as any).options?.icon) {
+        return;
+      }
+
+      // Restore original style if available
+      const originalStyle = originalStylesRef.current.get(shapeId);
+      if (originalStyle && (layer as any).setStyle) {
+        (layer as any).setStyle(originalStyle);
+        originalStylesRef.current.delete(shapeId);
+      }
+    };
+
+    /**
+     * Click-Handler für Layer-Selection
+     */
+    const handleLayerClick = (e: L.LeafletMouseEvent) => {
+      // Prevent map click from firing
+      L.DomEvent.stopPropagation(e);
+
+      const layer = e.target;
+      const shapeId = (layer as any)._shapeId;
+
+      if (shapeId) {
+        // Deselect previous shape
+        if (selectedShapeId && selectedShapeId !== shapeId) {
+          const prevLayer = layersRef.current.get(selectedShapeId);
+          if (prevLayer) {
+            unhighlightLayer(prevLayer, selectedShapeId);
+          }
+        }
+
+        // Select and highlight current shape
+        setSelectedShapeId(shapeId);
+        highlightLayer(layer, shapeId);
+      }
+    };
+
+    /**
+     * Click-Handler für Map (Deselection)
+     */
+    const handleMapClick = () => {
+      if (selectedShapeId) {
+        // Unhighlight previous selected shape
+        const prevLayer = layersRef.current.get(selectedShapeId);
+        if (prevLayer) {
+          unhighlightLayer(prevLayer, selectedShapeId);
+        }
+        setSelectedShapeId(null);
+      }
+    };
+
+    // Register click handlers on all existing layers
+    layersRef.current.forEach((layer) => {
+      layer.on('click', handleLayerClick);
+    });
+
+    // Register map click handler
+    map.on('click', handleMapClick);
+
+    // Cleanup
+    return () => {
+      layersRef.current.forEach((layer) => {
+        layer.off('click', handleLayerClick);
+      });
+      map.off('click', handleMapClick);
+    };
+  }, [map, selectedShapeId]);
+
+  /**
+   * Apply/Remove highlighting when selectedShapeId changes
+   */
+  useEffect(() => {
+    // Remove highlight from all shapes
+    layersRef.current.forEach((layer, shapeId) => {
+      const originalStyle = originalStylesRef.current.get(shapeId);
+      if (originalStyle && (layer as any).setStyle) {
+        (layer as any).setStyle(originalStyle);
+        originalStylesRef.current.delete(shapeId);
+      }
+    });
+
+    // Apply highlight to selected shape
+    if (selectedShapeId) {
+      const selectedLayer = layersRef.current.get(selectedShapeId);
+      if (selectedLayer && (selectedLayer as any).setStyle) {
+        // Store original style
+        const currentStyle = (selectedLayer as any).options;
+        originalStylesRef.current.set(selectedShapeId, {
+          color: currentStyle.color,
+          weight: currentStyle.weight,
+          opacity: currentStyle.opacity,
+          fillOpacity: currentStyle.fillOpacity,
+        });
+
+        // Apply highlight
+        (selectedLayer as any).setStyle({
+          color: '#3b82f6', // blue-500
+          weight: 4,
+          opacity: 1.0,
+          fillOpacity: 0.5,
+        });
+      }
+    }
+  }, [selectedShapeId]);
 
   /**
    * Event Handler: pm:create
@@ -344,6 +528,17 @@ const DrawingLayerComponent: React.FC<DrawingLayerProps> = ({
       // Track layer and store shapeId directly on the layer
       (layer as any)._shapeId = shapeId;
       layersRef.current.set(shapeId, layer);
+
+      // Add click handler to new layer for selection
+      const handleLayerClick = (e: L.LeafletMouseEvent) => {
+        L.DomEvent.stopPropagation(e);
+        const clickedLayer = e.target;
+        const clickedShapeId = (clickedLayer as any)._shapeId;
+        if (clickedShapeId) {
+          setSelectedShapeId(clickedShapeId);
+        }
+      };
+      layer.on('click', handleLayerClick);
 
       // Add to shapes collection (use shapesRef.current)
       const updatedShapes: GeoJSON.FeatureCollection = {
