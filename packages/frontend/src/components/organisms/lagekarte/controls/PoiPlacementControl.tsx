@@ -2,6 +2,8 @@ import { cn } from '@/utils/cn';
 import { formatPoiTypeLabel } from '@/utils/formatPoiTypeLabel';
 import { POI_ICON_MAP, type PoiType } from '@/utils/poi-icons';
 import { Button } from '@atoms/button.atom';
+import { PoiTypeButton } from '@atoms/poi-type-button.atom';
+import { PoiTypeDropdown } from '@molecules/poi-type-dropdown.molecule';
 import { Menu, MenuButton, MenuItem, MenuItems } from '@headlessui/react';
 import type React from 'react';
 import { useState } from 'react';
@@ -93,40 +95,6 @@ export const PoiPlacementControl: React.FC<PoiPlacementControlProps> = ({ onPoiT
     setIsExpanded(false); // Zurück zu collapsed state
   };
 
-  /**
-   * Rendert einen POI-Typ-Button
-   */
-  const renderPoiButton = (type: PoiType) => {
-    const config = POI_ICON_MAP[type];
-    const isActive = selectedType === type;
-
-    return (
-      <Button
-        key={type}
-        onClick={() => handlePoiTypeSelect(type)}
-        intent={isActive ? 'info' : 'secondary'}
-        appearance={isActive ? 'filled' : 'ghost'}
-        size="sm"
-        fullWidth
-        className={cn(
-          'justify-start gap-2 text-left',
-          // Active state enhancements (blue glow)
-          isActive && 'shadow-blue-500/50 shadow-lg ring-2 ring-blue-400 dark:ring-blue-500',
-          // Hover scale animation
-          'hover:scale-[1.02]',
-        )}
-        aria-label={`POI-Typ auswählen: ${type}`}
-        aria-pressed={isActive}
-      >
-        {/* Icon */}
-        <config.Icon size={20} color={isActive ? '#ffffff' : config.color} aria-hidden="true" />
-
-        {/* Label */}
-        <span>{formatPoiTypeLabel(type)}</span>
-      </Button>
-    );
-  };
-
   // Verstecke Control wenn Modal offen ist
   if (isModalOpen) {
     return null;
@@ -200,59 +168,14 @@ export const PoiPlacementControl: React.FC<PoiPlacementControlProps> = ({ onPoiT
                 </div>
 
                 {/* Häufige POI-Typen */}
-                <div className="flex flex-col gap-1">{frequentTypes.map(renderPoiButton)}</div>
+                <div className="flex flex-col gap-1">
+                  {frequentTypes.map((type) => (
+                    <PoiTypeButton key={type} type={type} onClick={handlePoiTypeSelect} isActive={selectedType === type} size="sm" iconSize={20} fullWidth />
+                  ))}
+                </div>
 
                 {/* Erweiterte POI-Typen (Dropdown) */}
-                <Menu as="div" className="relative mt-2">
-                  {({ open }) => (
-                    <>
-                      <MenuButton
-                        className={cn(
-                          'flex w-full items-center justify-between gap-2 rounded-lg px-3 py-2.5 transition-all duration-200',
-                          'font-medium text-sm',
-                          open
-                            ? 'bg-blue-50 text-blue-900 shadow-md ring-2 ring-blue-500 dark:bg-blue-900/50 dark:text-blue-100 dark:ring-blue-400'
-                            : 'bg-gray-100 text-gray-700 hover:bg-gray-200 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600',
-                        )}
-                        aria-label="Erweiterte POI-Typen"
-                      >
-                        <span>Erweitert</span>
-                        <PiCaretDown className={cn('h-4 w-4 transition-transform duration-200', open && 'rotate-180')} aria-hidden="true" />
-                      </MenuButton>
-
-                      <MenuItems className="absolute top-full left-0 right-0 z-30 mt-1 origin-top-left rounded-lg border border-gray-200 bg-white p-1 shadow-xl transition focus:outline-none dark:border-gray-700 dark:bg-gray-800">
-                        {extendedTypes.map((type) => {
-                          const config = POI_ICON_MAP[type];
-                          const isActive = selectedType === type;
-
-                          return (
-                            <MenuItem key={type}>
-                              {({ focus }) => (
-                                <Button
-                                  onClick={() => handlePoiTypeSelect(type)}
-                                  intent={isActive ? 'info' : 'secondary'}
-                                  appearance="ghost"
-                                  size="sm"
-                                  fullWidth
-                                  className={cn(
-                                    'justify-start gap-2 text-left font-medium',
-                                    focus && 'bg-gray-50 dark:bg-gray-700',
-                                    isActive && 'bg-blue-50 text-blue-900 dark:bg-blue-900/50 dark:text-blue-100',
-                                  )}
-                                  aria-label={`POI-Typ auswählen: ${type}`}
-                                >
-                                  v
-                                  <config.Icon size={18} color={config.color} aria-hidden="true" />
-                                  <span>{formatPoiTypeLabel(type)}</span>
-                                </Button>
-                              )}
-                            </MenuItem>
-                          );
-                        })}
-                      </MenuItems>
-                    </>
-                  )}
-                </Menu>
+                <PoiTypeDropdown types={extendedTypes} onSelect={handlePoiTypeSelect} selectedType={selectedType} label="Erweitert" className="mt-2" iconSize={18} />
               </div>
             )}
           </>
@@ -315,26 +238,34 @@ export const PoiPlacementControl: React.FC<PoiPlacementControlProps> = ({ onPoiT
                   <MenuItems className="absolute right-0 bottom-full left-0 z-50 mb-2 max-h-72 origin-bottom overflow-y-auto rounded-lg border border-gray-200 bg-white p-1 shadow-xl transition focus:outline-none dark:border-gray-700 dark:bg-gray-800">
                     {/* Alle POI-Typen (häufig + erweitert) auf Mobile */}
                     {[...frequentTypes, ...extendedTypes].map((type) => {
-                      const config = POI_ICON_MAP[type];
                       const isActive = selectedType === type;
 
                       return (
                         <MenuItem key={type}>
                           {({ focus }) => (
-                            <button
-                              type="button"
-                              onClick={() => handlePoiTypeSelect(type)}
+                            <div
                               className={cn(
-                                'flex w-full items-center gap-3 rounded-lg px-4 py-3 text-left transition-all duration-200',
-                                'font-medium text-base',
+                                'rounded-md transition-colors',
+                                // Focus state (keyboard navigation)
                                 focus && 'bg-gray-50 dark:bg-gray-700',
-                                isActive && 'bg-blue-50 text-blue-900 dark:bg-blue-900/50 dark:text-blue-100',
                               )}
-                              aria-label={`POI-Typ auswählen: ${type}`}
                             >
-                              <config.Icon size={24} color={config.color} aria-hidden="true" />
-                              <span>{formatPoiTypeLabel(type)}</span>
-                            </button>
+                              <PoiTypeButton
+                                type={type}
+                                onClick={handlePoiTypeSelect}
+                                isActive={isActive}
+                                size="md"
+                                iconSize={24}
+                                fullWidth
+                                showFocusState={focus}
+                                className={cn(
+                                  'font-medium text-base',
+                                  // Override default hover scale for dropdown items
+                                  'hover:scale-100',
+                                  'px-4 py-3',
+                                )}
+                              />
+                            </div>
                           )}
                         </MenuItem>
                       );

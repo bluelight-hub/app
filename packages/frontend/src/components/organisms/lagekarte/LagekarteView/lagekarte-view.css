@@ -11,11 +11,13 @@
 }
 
 /* Cursor für POI-Platzierungs-Modus */
-.leaflet-container.placement-active {
+.placement-active .leaflet-container {
     cursor: crosshair !important;
 }
 
-.leaflet-container.placement-active * {
+.placement-active .leaflet-container *,
+.placement-active .leaflet-pane,
+.placement-active .leaflet-pane * {
     cursor: crosshair !important;
 }
 
@@ -48,8 +50,18 @@
     cursor: grab;
 }
 
+/* Im Placement-Mode: Crosshair statt grab (höhere Spezifität) */
+.placement-active .leaflet-marker-icon {
+    cursor: crosshair !important;
+}
+
 .leaflet-marker-icon:active {
     cursor: grabbing;
+}
+
+/* Im Placement-Mode: Auch beim :active State Crosshair beibehalten */
+.placement-active .leaflet-marker-icon:active {
+    cursor: crosshair !important;
 }
 
 .leaflet-marker-dragging {
