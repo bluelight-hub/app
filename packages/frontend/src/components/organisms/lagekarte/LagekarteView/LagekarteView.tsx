@@ -158,8 +158,8 @@ export const LagekarteView: React.FC<LagekarteViewProps> = ({ einsatzId, mode = 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [clickedCoordinates, setClickedCoordinates] = useState<{ lat: number; lon: number } | null>(null);
 
-  // Drawing State
-  const [selectedDrawingTool, setSelectedDrawingTool] = useState<DrawingTool>(null);
+  // Drawing State - Default tool is 'select' (Selection Mode)
+  const [selectedDrawingTool, setSelectedDrawingTool] = useState<DrawingTool>('select');
   const [isShapeLabelModalOpen, setIsShapeLabelModalOpen] = useState(false);
   const [currentShape, setCurrentShape] = useState<GeoJSON.Feature | null>(null);
   const [shapeToUpdate, setShapeToUpdate] = useState<GeoJSON.Feature | null>(null);

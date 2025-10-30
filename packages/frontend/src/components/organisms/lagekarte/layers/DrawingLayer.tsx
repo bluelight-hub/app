@@ -2,11 +2,13 @@ import '@geoman-io/leaflet-geoman-free';
 import '@geoman-io/leaflet-geoman-free/dist/leaflet-geoman.css';
 import type { DrawingTool } from '../toolbar/DrawingToolbar';
 import { DEFAULT_SHAPE_STYLE } from '@/utils/drawing-styles';
+import { ShapeContextMenu } from '@/components/molecules/lagekarte/ShapeContextMenu';
 import type React from 'react';
 import { memo, useEffect, useRef, useState } from 'react';
 import { useMap } from 'react-leaflet';
 import * as L from 'leaflet';
 import type * as GeoJSON from 'geojson';
+import { toast } from 'sonner';
 
 /**
  * Maximum number of shapes per Lagekarte (Performance-Limit)
@@ -111,6 +113,13 @@ const DrawingLayerComponent: React.FC<DrawingLayerProps> = ({
 
   // State für Shape-Selection
   const [selectedShapeId, setSelectedShapeId] = useState<string | null>(null);
+
+  // State für Context-Menu auf Shapes
+  const [contextMenu, setContextMenu] = useState<{
+    isOpen: boolean;
+    position: { x: number; y: number };
+    shapeId: string;
+  } | null>(null);
 
   // Ref für Layer-Tracking (avoid duplicate layers)
   const layersRef = useRef<Map<number, L.Layer>>(new Map());
@@ -254,6 +263,22 @@ const DrawingLayerComponent: React.FC<DrawingLayerProps> = ({
             }
           };
           layer.on('click', handleLayerClick);
+
+          // Add context menu handler for right-click
+          const handleLayerContextMenu = (e: L.LeafletMouseEvent) => {
+            L.DomEvent.preventDefault(e);
+            L.DomEvent.stopPropagation(e);
+            const clickedLayer = e.target;
+            const clickedShapeId = (clickedLayer as any)._shapeId;
+            if (clickedShapeId) {
+              setContextMenu({
+                isOpen: true,
+                position: { x: e.originalEvent.clientX, y: e.originalEvent.clientY },
+                shapeId: clickedShapeId,
+              });
+            }
+          };
+          layer.on('contextmenu', handleLayerContextMenu);
         }
       });
 
@@ -277,6 +302,12 @@ const DrawingLayerComponent: React.FC<DrawingLayerProps> = ({
 
     // Activate drawing mode based on selected tool
     switch (selectedTool) {
+      case 'select':
+        map.pm.disableDraw();
+        map.pm.disableGlobalEditMode();
+        map.pm.disableGlobalRemovalMode();
+        // Click-to-Select bleibt aktiv (bereits in separatem useEffect)
+        break;
       case 'polygon':
         map.pm.enableDraw('Polygon', {
           snappable: true,
@@ -477,6 +508,54 @@ const DrawingLayerComponent: React.FC<DrawingLayerProps> = ({
   }, [selectedShapeId]);
 
   /**
+   * Keyboard Delete Handler
+   * Deletes selected shape when user presses Delete or Backspace key
+   * - Only activates when selectedShapeId is set
+   * - Prevents default browser behavior
+   * - Shows toast notification on success
+   */
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if ((e.key === 'Delete' || e.key === 'Backspace') && selectedShapeId) {
+        e.preventDefault();
+
+        const layer = layersRef.current.get(selectedShapeId);
+        if (!layer) {
+          toast.error('Shape konnte nicht gelöscht werden');
+          return;
+        }
+
+        try {
+          // Remove from map
+          map.removeLayer(layer);
+
+          // Remove from state
+          const updatedShapes: GeoJSON.FeatureCollection = {
+            type: 'FeatureCollection',
+            features: shapesRef.current.features.filter((f) => f.properties?.id !== selectedShapeId),
+          };
+
+          setShapes(updatedShapes);
+          onShapesChange(updatedShapes);
+
+          // Cleanup references
+          layersRef.current.delete(selectedShapeId);
+          originalStylesRef.current.delete(selectedShapeId);
+          setSelectedShapeId(null);
+
+          toast.success('Shape gelöscht');
+        } catch (error) {
+          console.error('[DrawingLayer] Error deleting shape:', error);
+          toast.error('Fehler beim Löschen des Shapes');
+        }
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [map, selectedShapeId, onShapesChange]);
+
+  /**
    * Event Handler: pm:create
    * Called when user creates a new shape
    */
@@ -539,6 +618,22 @@ const DrawingLayerComponent: React.FC<DrawingLayerProps> = ({
         }
       };
       layer.on('click', handleLayerClick);
+
+      // Add context menu handler for right-click
+      const handleLayerContextMenu = (e: L.LeafletMouseEvent) => {
+        L.DomEvent.preventDefault(e);
+        L.DomEvent.stopPropagation(e);
+        const clickedLayer = e.target;
+        const clickedShapeId = (clickedLayer as any)._shapeId;
+        if (clickedShapeId) {
+          setContextMenu({
+            isOpen: true,
+            position: { x: e.originalEvent.clientX, y: e.originalEvent.clientY },
+            shapeId: clickedShapeId,
+          });
+        }
+      };
+      layer.on('contextmenu', handleLayerContextMenu);
 
       // Add to shapes collection (use shapesRef.current)
       const updatedShapes: GeoJSON.FeatureCollection = {
@@ -747,8 +842,65 @@ const DrawingLayerComponent: React.FC<DrawingLayerProps> = ({
     onShapeUpdateComplete?.();
   }, [shapeToUpdate, onShapesChange, onShapeUpdateComplete]);
 
+  // Handle context menu actions
+  const handleContextMenuEdit = () => {
+    if (!contextMenu) return;
+    // Enable edit mode for the selected shape
+    const layer = layersRef.current.get(contextMenu.shapeId);
+    if (layer && (layer as any).pm) {
+      (layer as any).pm.enable();
+      map.pm.enableGlobalEditMode();
+      toast.info('Bearbeitungsmodus aktiviert');
+    }
+  };
+
+  const handleContextMenuDelete = () => {
+    if (!contextMenu) return;
+    // Delete the selected shape
+    const layer = layersRef.current.get(contextMenu.shapeId);
+    if (layer) {
+      const geoJson = layer.toGeoJSON() as GeoJSON.Feature;
+      const shapeId = geoJson.properties?.id;
+
+      if (shapeId) {
+        // Remove from tracking
+        layersRef.current.delete(shapeId);
+        originalStylesRef.current.delete(shapeId);
+
+        // Remove from map
+        map.removeLayer(layer);
+
+        // Remove from shapes collection
+        const updatedShapes: GeoJSON.FeatureCollection = {
+          type: 'FeatureCollection',
+          features: shapesRef.current.features.filter((feature) => feature.properties?.id !== shapeId),
+        };
+        setShapes(updatedShapes);
+        onShapesChange(updatedShapes);
+
+        toast.success('Shape gelöscht');
+      }
+    }
+  };
+
+  const handleContextMenuChangeStyle = () => {
+    if (!contextMenu) return;
+    // TODO: Open style editor dialog
+    toast.info('Stil-Editor kommt bald');
+  };
+
   // DrawingLayer renders nothing (Leaflet.PM renders directly to map)
-  return null;
+  // but we need to render the ShapeContextMenu component
+  return (
+    <ShapeContextMenu
+      isOpen={contextMenu?.isOpen ?? false}
+      position={contextMenu?.position ?? null}
+      onClose={() => setContextMenu(null)}
+      onEdit={handleContextMenuEdit}
+      onDelete={handleContextMenuDelete}
+      onChangeStyle={handleContextMenuChangeStyle}
+    />
+  );
 };
 
 /**

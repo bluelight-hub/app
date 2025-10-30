@@ -2,12 +2,12 @@ import { Button } from '@/components/atoms/button.atom';
 import { cn } from '@/utils/cn';
 import type React from 'react';
 import { useState, useMemo } from 'react';
-import { PiPentagon, PiPath, PiRectangle, PiPencilSimple, PiTrash, PiTextAa, PiX } from 'react-icons/pi';
+import { PiCursor, PiPentagon, PiPath, PiRectangle, PiPencilSimple, PiTrash, PiTextAa, PiX } from 'react-icons/pi';
 
 /**
  * Drawing-Tool-Typen für Lagekarte
  */
-export type DrawingTool = 'polygon' | 'polyline' | 'rectangle' | 'text' | 'edit' | 'delete' | null;
+export type DrawingTool = 'select' | 'polygon' | 'polyline' | 'rectangle' | 'text' | 'edit' | 'delete' | null;
 
 interface DrawingToolbarProps {
   /**
@@ -53,6 +53,12 @@ export const DrawingToolbar: React.FC<DrawingToolbarProps> = ({ onToolSelect, se
    */
   const tools = useMemo(
     () => [
+      {
+        type: 'select' as const,
+        icon: PiCursor,
+        label: 'Auswählen',
+        color: '#6366f1', // Tailwind indigo-500
+      },
       {
         type: 'polygon' as const,
         icon: PiPentagon,
