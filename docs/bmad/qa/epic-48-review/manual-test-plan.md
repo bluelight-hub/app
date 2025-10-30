@@ -169,7 +169,7 @@
 **Expected Result:**
 - [x] Desktop: Map-Height ist `calc(100vh - 120px)` (volle Höhe minus Header)
 - [x] Mobile: Map-Height ist `600px` (fixed Height)
-- [!] Map ist vollständig sichtbar ohne Overflow
+- [X] Map ist vollständig sichtbar ohne Overflow
 - [x] Touch-Zoom funktioniert auf Mobile (Pinch-to-Zoom)
 - [x] Touch-Pan funktioniert (Swipe)
 
@@ -192,10 +192,10 @@
 4. Klicke auf EINSATZORT-Marker
 
 **Expected Result:**
-- [ ] EINSATZORT-Marker ist sichtbar (rotes Icon, größer als andere)
-- [ ] Marker ist an korrekter Position (Geocoding funktioniert)
-- [ ] Popup zeigt Name="EINSATZORT", Type="EINSATZORT", Adresse
-- [ ] Backend: GET /einsatz/{id}/lagekarte/poi liefert EINSATZORT
+- [x] EINSATZORT-Marker ist sichtbar (rotes Icon, größer als andere)
+- [x] Marker ist an korrekter Position (Geocoding funktioniert)
+- [x] Popup zeigt Name="EINSATZORT", Type="EINSATZORT", Adresse
+- [x] Backend: GET /einsatz/{id}/lagekarte/poi liefert EINSATZORT
 
 **Actual Result:** [Leer lassen]
 **Status:** [ ] PASS [ ] FAIL
@@ -213,11 +213,11 @@
 3. Prüfe Network-Request zu Nominatim
 
 **Expected Result:**
-- [ ] POST /einsatz/{id}/lagekarte/poi mit `address` Field
-- [ ] Backend macht Request zu `nominatim.openstreetmap.org/search`
-- [ ] Geocoding liefert `lat` und `lon`
-- [ ] POI wird mit Koordinaten gespeichert
-- [ ] Rate-Limiting: 1 Request/Sekunde (prüfe bei mehreren POIs)
+- [x] POST /einsatz/{id}/lagekarte/poi mit `address` Field
+- [x] Backend macht Request zu `nominatim.openstreetmap.org/search`
+- [x] Geocoding liefert `lat` und `lon`
+- [x] POI wird mit Koordinaten gespeichert
+- [x] Rate-Limiting: 1 Request/Sekunde (prüfe bei mehreren POIs)
 
 **Actual Result:** [Leer lassen]
 **Status:** [ ] PASS [ ] FAIL
@@ -236,11 +236,11 @@
 4. Lösche POI: DELETE /einsatz/{id}/lagekarte/poi/{poiId}
 
 **Expected Result:**
-- [ ] POST: 201 Created, POI in Response mit `id`, `type`, `latitude`, `longitude`
-- [ ] GET: 200 OK, Array mit allen POIs
-- [ ] PATCH: 200 OK, Updated POI in Response
-- [ ] DELETE: 204 No Content
-- [ ] Gelöschter POI erscheint nicht mehr in GET
+- [x] POST: 201 Created, POI in Response mit `id`, `type`, `latitude`, `longitude`
+- [x] GET: 200 OK, Array mit allen POIs
+- [x] PATCH: 200 OK, Updated POI in Response
+- [x] DELETE: 204 No Content
+- [x] Gelöschter POI erscheint nicht mehr in GET
 
 **Actual Result:** [Leer lassen]
 **Status:** [ ] PASS [ ] FAIL
@@ -257,9 +257,9 @@
 2. Prüfe Backend-Response
 
 **Expected Result:**
-- [ ] Backend liefert 400 Bad Request
-- [ ] Error-Message: "type must be a valid enum value"
-- [ ] Valide Types: EINSATZORT, FAHRZEUG, PERSON, GEBAUDE, GEFAHRENSTELLE, VERSORGUNG, SANITAET, FEUERWEHR, POLIZEI, RW, THW, BEREITSTELLUNG, SONSTIGES
+- [x] Backend liefert 400 Bad Request
+- [x] Error-Message: "type must be a valid enum value"
+- [x] Valide Types: EINSATZORT, FAHRZEUG, PERSON, GEBAUDE, GEFAHRENSTELLE, VERSORGUNG, SANITAET, FEUERWEHR, POLIZEI, RW, THW, BEREITSTELLUNG, SONSTIGES
 
 **Actual Result:** [Leer lassen]
 **Status:** [ ] PASS [ ] FAIL
@@ -279,11 +279,11 @@
 3. Prüfe ob alle POIs als Marker angezeigt werden
 
 **Expected Result:**
-- [ ] Alle 5 POIs sind sichtbar als Marker
-- [ ] Jeder POI-Type hat korrektes Icon (siehe poi-icons.ts)
-- [ ] EINSATZORT ist größer (32px) als andere (24px)
-- [ ] Icons haben korrekte Farben (Rot, Blau, Grün, etc.)
-- [ ] Keine fehlenden Marker
+- [x] Alle 5 POIs sind sichtbar als Marker
+- [x] Jeder POI-Type hat korrektes Icon (siehe poi-icons.ts)
+- [x] EINSATZORT ist größer (32px) als andere (24px)
+- [x] Icons haben korrekte Farben (Rot, Blau, Grün, etc.)
+- [x] Keine fehlenden Marker
 
 **Actual Result:** [Leer lassen]
 **Status:** [ ] PASS [ ] FAIL
@@ -300,16 +300,16 @@
 2. Prüfe Popup-Content
 
 **Expected Result:**
-- [ ] Popup öffnet sich bei Klick
-- [ ] Popup zeigt POI-Name
-- [ ] Popup zeigt POI-Type
-- [ ] Popup zeigt Adresse (falls vorhanden)
-- [ ] Popup hat korrekte Farbe basierend auf Type
-- [ ] Klick auf anderen Marker schließt vorheriges Popup
+- [X] Popup öffnet sich bei Klick
+- [X] Popup zeigt POI-Name
+- [X] Popup zeigt POI-Type
+- [X] Popup zeigt Adresse (falls vorhanden)
+- [X] Popup hat korrekte Farbe basierend auf Type
+- [X] Klick auf anderen Marker schließt vorheriges Popup
 
-**Actual Result:** [Leer lassen]
-**Status:** [ ] PASS [ ] FAIL
-**Notes:** [Leer lassen]
+**Actual Result:** PASS
+**Status:** PASS
+**Notes:** 
 
 ---
 
@@ -323,14 +323,14 @@
 3. Prüfe initial Map-Zoom
 
 **Expected Result:**
-- [ ] Map zoomt automatisch zu Bounding-Box aller POIs
-- [ ] Alle POIs sind sichtbar ohne Scrollen
-- [ ] Zoom-Level ist angemessen (nicht zu nah, nicht zu weit)
-- [ ] Fallback: Wenn keine POIs → Deutschland-Zentrum (Zoom 6)
+- [x] Map zoomt automatisch zu Bounding-Box aller POIs
+- [x] Alle POIs sind sichtbar ohne Scrollen
+- [x] Zoom-Level ist angemessen (nicht zu nah, nicht zu weit)
+- [x] Fallback: Wenn keine POIs → Deutschland-Zentrum (Zoom 6)
 
-**Actual Result:** [Leer lassen]
-**Status:** [ ] PASS [ ] FAIL
-**Notes:** [Leer lassen]
+**Actual Result:** PASS
+**Status:** PASS
+**Notes:** 
 
 ---
 
@@ -343,15 +343,19 @@
 2. Prüfe Frontend-Rendering
 
 **Expected Result:**
-- [ ] POI wird übersprungen (nicht gerendert)
-- [ ] Warning-Badge erscheint: "X POIs konnten nicht angezeigt werden"
-- [ ] Console-Log mit Details (welche POIs übersprungen)
-- [ ] Keine Console-Exceptions
-- [ ] Map bleibt funktionsfähig
+- [x] POI wird übersprungen (nicht gerendert)
+- [x] Warning-Badge erscheint: "X POIs konnten nicht angezeigt werden"
+- [x] Console-Log mit Details (welche POIs übersprungen)
+- [x] Keine Console-Exceptions
+- [x] Map bleibt funktionsfähig
 
-**Actual Result:** [Leer lassen]
-**Status:** [ ] PASS [ ] FAIL
-**Notes:** [Leer lassen]
+**Actual Result:** PASS
+**Status:** PASS
+**Notes:** 
+
+**Actual Result:** PASS
+**Status:** PASS
+**Notes:** 
 
 ---
 
@@ -365,14 +369,14 @@
 3. Beobachte Loading-State
 
 **Expected Result:**
-- [ ] Loading-Spinner erscheint in oberer rechter Ecke
-- [ ] Spinner verschwindet wenn POIs geladen
-- [ ] POIs erscheinen smooth (keine visuellen Glitches)
-- [ ] Keine duplicate POIs
+- [x] Loading-Spinner erscheint in oberer rechter Ecke
+- [x] Spinner verschwindet wenn POIs geladen
+- [x] POIs erscheinen smooth (keine visuellen Glitches)
+- [x] Keine duplicate POIs
 
-**Actual Result:** [Leer lassen]
-**Status:** [ ] PASS [ ] FAIL
-**Notes:** [Leer lassen]
+**Actual Result:** PASS
+**Status:** PASS
+**Notes:** 
 
 ---
 
@@ -387,11 +391,11 @@
 2. Prüfe POI-Toolbar (oben links auf Desktop, unten auf Mobile)
 
 **Expected Result:**
-- [ ] POI-Toolbar ist sichtbar
-- [ ] Desktop: Vertical Sidebar (left-4 top-20)
-- [ ] Mobile: Horizontal Bottom-Bar (bottom-16)
-- [ ] "POI platzieren" Button ist sichtbar
-- [ ] Glassmorphism-Design (backdrop-blur)
+- x ] POI-Toolbar ist sichtbar
+- [x] Desktop: Vertical Sidebar (left-4 top-20)
+- [x] Mobile: Horizontal Bottom-Bar (bottom-16)
+- [x] "POI platzieren" Button ist sichtbar
+- [x] Glassmorphism-Design (backdrop-blur)
 
 **Actual Result:** [Leer lassen]
 **Status:** [ ] PASS [ ] FAIL
@@ -409,11 +413,11 @@
 3. Klicke auf einen häufigen Type (z.B. FAHRZEUG)
 
 **Expected Result:**
-- [ ] Toolbar expandiert (Smooth Animation)
-- [ ] 6 häufige Types sind sichtbar (FAHRZEUG, PERSON, GEFAHRENSTELLE, VERSORGUNG, SANITAET, FEUERWEHR)
-- [ ] Icons sind klar erkennbar (Phosphor Icons)
-- [ ] Klick auf Type aktiviert Placement-Mode (blauer Glow-Effekt)
-- [ ] Cursor ändert sich zu Crosshair (CSS `cursor: crosshair`)
+- [x] Toolbar expandiert (Smooth Animation)
+- [x] 6 häufige Types sind sichtbar (FAHRZEUG, PERSON, GEFAHRENSTELLE, VERSORGUNG, SANITAET, FEUERWEHR)
+- [x] Icons sind klar erkennbar (Phosphor Icons)
+- [x] Klick auf Type aktiviert Placement-Mode (blauer Glow-Effekt)
+- [!] Cursor ändert sich zu Crosshair (CSS `cursor: crosshair`)
 
 **Actual Result:** [Leer lassen]
 **Status:** [ ] PASS [ ] FAIL
@@ -431,10 +435,10 @@
 3. Wähle einen erweiterten Type (z.B. POLIZEI)
 
 **Expected Result:**
-- [ ] Dropdown öffnet sich (Headless UI Menu)
-- [ ] 7 erweiterte Types sind sichtbar (POLIZEI, RW, THW, BEREITSTELLUNG, GEBAUDE, EINSATZORT, SONSTIGES)
-- [ ] Klick auf Type aktiviert Placement-Mode
-- [ ] Dropdown schließt sich automatisch
+- [x] Dropdown öffnet sich (Headless UI Menu)
+- [x] 7 erweiterte Types sind sichtbar (POLIZEI, RW, THW, BEREITSTELLUNG, GEBAUDE, EINSATZORT, SONSTIGES)
+- [x] Klick auf Type aktiviert Placement-Mode
+- [x] Dropdown schließt sich automatisch
 
 **Actual Result:** [Leer lassen]
 **Status:** [ ] PASS [ ] FAIL
