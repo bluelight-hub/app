@@ -136,8 +136,8 @@ const DrawingLayerComponent: React.FC<DrawingLayerProps> = ({
   // Ref für aktuelle shapes (um stale closures zu vermeiden)
   const shapesRef = useRef(shapes);
 
-  // Ref zum Tracking ob initial shapes bereits geladen wurden
-  const initialShapesLoadedRef = useRef(false);
+  // Ref zum Tracking welche Features bereits geladen wurden (verhindert Duplikate)
+  const loadedFeatureIdsRef = useRef<Set<string>>(new Set());
 
   // Ref für original styles (vor Highlighting)
   const originalStylesRef = useRef<Map<string, any>>(new Map());
@@ -194,24 +194,26 @@ const DrawingLayerComponent: React.FC<DrawingLayerProps> = ({
    * - Lösung: Prüfe existierende Shape-IDs in layersRef vor Layer-Add
    */
   useEffect(() => {
-    // Nur einmal beim Mount laden
-    if (initialShapesLoadedRef.current) return;
     if (!initialState?.features || initialState.features.length === 0) return;
 
-    // Deduplizierung: Sammle bereits geladene Shape-IDs aus layersRef
-    const existingShapeIds = new Set<string>(Array.from(layersRef.current.entries()).map(([shapeId]) => String(shapeId)));
+    // INTELLIGENTE DEDUPLIZIERUNG: Nur neue Features laden
+    const newFeatures = initialState.features.filter((feature) => {
+      const featureId = feature.properties?.id;
+      if (!featureId) return false; // Skip features ohne ID
+
+      // Nur laden wenn nicht bereits geladen
+      return !loadedFeatureIdsRef.current.has(String(featureId));
+    });
+
+    // Keine neuen Features → nichts zu tun
+    if (newFeatures.length === 0) return;
 
     // Import Leaflet for L.geoJSON and L.marker
     import('leaflet').then((L) => {
-      // Add shapes to map using L.geoJSON
-      initialState.features.forEach((feature) => {
+      // Add nur neue shapes to map
+      newFeatures.forEach((feature) => {
         const shapeId = feature.properties?.id;
-
-        // DEDUPLIZIERUNG: Skip wenn Shape bereits existiert
-        if (shapeId && existingShapeIds.has(String(shapeId))) {
-          console.debug('[DrawingLayer] Skipping duplicate shape:', shapeId);
-          return;
-        }
+        if (!shapeId) return;
 
         // Check if this is a Text marker (Point geometry with text property)
         const isTextMarker = feature.geometry.type === 'Point' && feature.properties?.text;
@@ -300,11 +302,12 @@ const DrawingLayerComponent: React.FC<DrawingLayerProps> = ({
           };
           layer.on('contextmenu', handleLayerContextMenu);
         }
-      });
 
-      initialShapesLoadedRef.current = true;
+        // Markiere Feature als geladen
+        loadedFeatureIdsRef.current.add(String(shapeId));
+      });
     });
-  }, [map, initialState]);
+  }, [map, initialState]); // initialState IN Dependencies für initiales Laden!
 
   /**
    * Handle Drawing-Tool selection from Toolbar
@@ -965,11 +968,27 @@ const DrawingLayerComponent: React.FC<DrawingLayerProps> = ({
 
       // Apply style update if any properties changed
       if (Object.keys(styleUpdate).length > 0) {
-        (layer as any).setStyle({
+        const newStyle = {
           ...(layer as any).options, // Keep existing options
           ...styleUpdate, // Override with new values
           opacity: 1.0, // Keep stroke fully opaque
-        });
+        };
+
+        (layer as any).setStyle(newStyle);
+
+        // CRITICAL FIX: Update originalStylesRef if this shape is currently selected
+        // Otherwise the old style will be restored when unhighlighting
+        // Use shapesRef.current to get latest selectedShapeId without adding to dependencies
+        const currentSelectedId = shapesRef.current.features.find((f) => originalStylesRef.current.has(f.properties?.id || ''))?.properties?.id;
+
+        if (currentSelectedId === shapeId && originalStylesRef.current.has(shapeId)) {
+          originalStylesRef.current.set(shapeId, {
+            color: newStyle.color,
+            weight: newStyle.weight,
+            opacity: newStyle.opacity,
+            fillOpacity: newStyle.fillOpacity,
+          });
+        }
       }
     }
 

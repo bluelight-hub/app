@@ -75,7 +75,10 @@ export const SelectedShapeToolbar: React.FC<SelectedShapeToolbarProps> = ({ shap
       {/* Edit Geometry Button */}
       <button
         type="button"
-        onClick={onEdit}
+        onClick={(e) => {
+          e.stopPropagation();
+          onEdit();
+        }}
         className="flex min-h-10 min-w-10 items-center justify-center rounded p-2 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 md:h-8 md:w-8"
         title="Geometrie bearbeiten"
         aria-label="Geometrie bearbeiten"
@@ -86,7 +89,10 @@ export const SelectedShapeToolbar: React.FC<SelectedShapeToolbarProps> = ({ shap
       {/* Delete Button */}
       <button
         type="button"
-        onClick={onDelete}
+        onClick={(e) => {
+          e.stopPropagation();
+          onDelete();
+        }}
         className="flex min-h-10 min-w-10 items-center justify-center rounded p-2 text-red-600 hover:bg-red-50 focus:outline-none focus:ring-2 focus:ring-red-500 md:h-8 md:w-8"
         title="Shape löschen"
         aria-label="Shape löschen"
@@ -97,7 +103,10 @@ export const SelectedShapeToolbar: React.FC<SelectedShapeToolbarProps> = ({ shap
       {/* Change Style Button */}
       <button
         type="button"
-        onClick={onChangeStyle}
+        onClick={(e) => {
+          e.stopPropagation();
+          onChangeStyle();
+        }}
         className="flex min-h-10 min-w-10 items-center justify-center rounded p-2 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 md:h-8 md:w-8"
         title="Stil ändern"
         aria-label="Stil ändern"
