@@ -3,6 +3,7 @@ import '@geoman-io/leaflet-geoman-free/dist/leaflet-geoman.css';
 import type { DrawingTool } from '../toolbar/DrawingToolbar';
 import { DEFAULT_SHAPE_STYLE } from '@/utils/drawing-styles';
 import { ShapeContextMenu } from '@/components/molecules/lagekarte/ShapeContextMenu';
+import { SelectedShapeToolbar } from '@/components/molecules/lagekarte/SelectedShapeToolbar';
 import type React from 'react';
 import { memo, useEffect, useRef, useState } from 'react';
 import { useMap } from 'react-leaflet';
@@ -60,6 +61,10 @@ interface DrawingLayerProps {
    * Callback wenn Shape-Update abgeschlossen ist
    */
   onShapeUpdateComplete?: () => void;
+  /**
+   * Callback wenn Shape selektiert wird (für Property Panel)
+   */
+  onShapeSelected?: (shape: GeoJSON.Feature | null) => void;
 }
 
 /**
@@ -100,6 +105,7 @@ const DrawingLayerComponent: React.FC<DrawingLayerProps> = ({
   onShapeLimitReached,
   onShapeCreated,
   onShapeUpdateComplete,
+  onShapeSelected,
 }) => {
   const map = useMap();
   const [shapes, setShapes] = useState<GeoJSON.FeatureCollection>(
@@ -113,6 +119,9 @@ const DrawingLayerComponent: React.FC<DrawingLayerProps> = ({
 
   // State für Shape-Selection
   const [selectedShapeId, setSelectedShapeId] = useState<string | null>(null);
+
+  // State für Toolbar-Position (Container-Koordinaten)
+  const [toolbarPosition, setToolbarPosition] = useState<{ x: number; y: number } | null>(null);
 
   // State für Context-Menu auf Shapes
   const [contextMenu, setContextMenu] = useState<{
@@ -436,6 +445,12 @@ const DrawingLayerComponent: React.FC<DrawingLayerProps> = ({
         // Select and highlight current shape
         setSelectedShapeId(shapeId);
         highlightLayer(layer, shapeId);
+
+        // Notify parent about selection
+        const selectedFeature = shapesRef.current.features.find((f) => f.properties?.id === shapeId);
+        if (selectedFeature) {
+          onShapeSelected?.(selectedFeature);
+        }
       }
     };
 
@@ -450,6 +465,9 @@ const DrawingLayerComponent: React.FC<DrawingLayerProps> = ({
           unhighlightLayer(prevLayer, selectedShapeId);
         }
         setSelectedShapeId(null);
+
+        // Notify parent about deselection
+        onShapeSelected?.(null);
       }
     };
 
@@ -468,10 +486,11 @@ const DrawingLayerComponent: React.FC<DrawingLayerProps> = ({
       });
       map.off('click', handleMapClick);
     };
-  }, [map, selectedShapeId]);
+  }, [map, selectedShapeId, onShapeSelected]);
 
   /**
    * Apply/Remove highlighting when selectedShapeId changes
+   * Also updates toolbar position based on shape bounds
    */
   useEffect(() => {
     // Remove highlight from all shapes
@@ -483,7 +502,7 @@ const DrawingLayerComponent: React.FC<DrawingLayerProps> = ({
       }
     });
 
-    // Apply highlight to selected shape
+    // Apply highlight to selected shape and calculate toolbar position
     if (selectedShapeId) {
       const selectedLayer = layersRef.current.get(selectedShapeId);
       if (selectedLayer && (selectedLayer as any).setStyle) {
@@ -504,8 +523,85 @@ const DrawingLayerComponent: React.FC<DrawingLayerProps> = ({
           fillOpacity: 0.5,
         });
       }
+
+      // Calculate toolbar position from shape bounds
+      if (selectedLayer && (selectedLayer as any).getBounds) {
+        try {
+          const bounds = (selectedLayer as any).getBounds();
+          const center = bounds.getCenter();
+          const point = map.latLngToContainerPoint(center);
+          setToolbarPosition({ x: point.x, y: point.y + 20 }); // 20px offset below center
+        } catch (error) {
+          console.warn('[DrawingLayer] Could not calculate toolbar position:', error);
+          setToolbarPosition(null);
+        }
+      } else {
+        // For text markers or other layers without bounds, try getLatLng
+        if ((selectedLayer as any).getLatLng) {
+          try {
+            const latLng = (selectedLayer as any).getLatLng();
+            const point = map.latLngToContainerPoint(latLng);
+            setToolbarPosition({ x: point.x, y: point.y + 20 });
+          } catch (error) {
+            console.warn('[DrawingLayer] Could not calculate toolbar position for marker:', error);
+            setToolbarPosition(null);
+          }
+        } else {
+          setToolbarPosition(null);
+        }
+      }
+    } else {
+      // No shape selected, hide toolbar
+      setToolbarPosition(null);
     }
-  }, [selectedShapeId]);
+  }, [selectedShapeId, map]);
+
+  /**
+   * Update toolbar position on map zoom/pan
+   * Recalculates position when map view changes to keep toolbar attached to shape
+   */
+  useEffect(() => {
+    if (!selectedShapeId) return;
+
+    const updateToolbarPosition = () => {
+      const selectedLayer = layersRef.current.get(selectedShapeId);
+      if (!selectedLayer) return;
+
+      // Calculate new position based on current map view
+      if ((selectedLayer as any).getBounds) {
+        try {
+          const bounds = (selectedLayer as any).getBounds();
+          const center = bounds.getCenter();
+          const point = map.latLngToContainerPoint(center);
+          setToolbarPosition({ x: point.x, y: point.y + 20 });
+        } catch (error) {
+          console.warn('[DrawingLayer] Could not update toolbar position:', error);
+        }
+      } else if ((selectedLayer as any).getLatLng) {
+        try {
+          const latLng = (selectedLayer as any).getLatLng();
+          const point = map.latLngToContainerPoint(latLng);
+          setToolbarPosition({ x: point.x, y: point.y + 20 });
+        } catch (error) {
+          console.warn('[DrawingLayer] Could not update toolbar position for marker:', error);
+        }
+      }
+    };
+
+    // Register event handlers
+    map.on('zoom', updateToolbarPosition);
+    map.on('move', updateToolbarPosition);
+    map.on('zoomend', updateToolbarPosition);
+    map.on('moveend', updateToolbarPosition);
+
+    // Cleanup
+    return () => {
+      map.off('zoom', updateToolbarPosition);
+      map.off('move', updateToolbarPosition);
+      map.off('zoomend', updateToolbarPosition);
+      map.off('moveend', updateToolbarPosition);
+    };
+  }, [map, selectedShapeId]);
 
   /**
    * Keyboard Delete Handler
@@ -818,7 +914,7 @@ const DrawingLayerComponent: React.FC<DrawingLayerProps> = ({
   }, [map, onShapesChange]);
 
   /**
-   * Handle shape updates (e.g. label changes from ShapeLabelModal)
+   * Handle shape updates (e.g. label changes from ShapeLabelModal or style changes from PropertyPanel)
    */
   useEffect(() => {
     if (!shapeToUpdate) return;
@@ -837,6 +933,22 @@ const DrawingLayerComponent: React.FC<DrawingLayerProps> = ({
 
     setShapes(updatedShapes);
     onShapesChange(updatedShapes);
+
+    // Update visual style on the layer
+    const layer = layersRef.current.get(shapeId);
+    if (layer && (layer as any).setStyle) {
+      const { color, strokeWidth, fillOpacity } = shapeToUpdate.properties || {};
+
+      // Only update if properties are defined
+      if (color || strokeWidth !== undefined || fillOpacity !== undefined) {
+        (layer as any).setStyle({
+          color: color || (layer as any).options.color,
+          weight: strokeWidth || (layer as any).options.weight,
+          fillOpacity: fillOpacity !== undefined ? fillOpacity : (layer as any).options.fillOpacity,
+          opacity: 1.0, // Keep stroke fully opaque
+        });
+      }
+    }
 
     // Notify parent that update is complete
     onShapeUpdateComplete?.();
@@ -889,17 +1001,79 @@ const DrawingLayerComponent: React.FC<DrawingLayerProps> = ({
     toast.info('Stil-Editor kommt bald');
   };
 
+  /**
+   * Toolbar Callbacks
+   */
+  const handleToolbarEdit = () => {
+    if (!selectedShapeId) return;
+
+    const layer = layersRef.current.get(selectedShapeId);
+    if (layer && (layer as any).pm) {
+      // Enable edit mode for the selected shape
+      (layer as any).pm.enable();
+      map.pm.enableGlobalEditMode();
+      toast.info('Bearbeitungsmodus aktiviert');
+    }
+  };
+
+  const handleToolbarDelete = () => {
+    if (!selectedShapeId) return;
+
+    const layer = layersRef.current.get(selectedShapeId);
+    if (!layer) {
+      toast.error('Shape konnte nicht gelöscht werden');
+      return;
+    }
+
+    try {
+      // Remove from map
+      map.removeLayer(layer);
+
+      // Remove from state
+      const updatedShapes: GeoJSON.FeatureCollection = {
+        type: 'FeatureCollection',
+        features: shapesRef.current.features.filter((f) => f.properties?.id !== selectedShapeId),
+      };
+
+      setShapes(updatedShapes);
+      onShapesChange(updatedShapes);
+
+      // Cleanup references
+      layersRef.current.delete(selectedShapeId);
+      originalStylesRef.current.delete(selectedShapeId);
+      setSelectedShapeId(null);
+
+      toast.success('Shape gelöscht');
+    } catch (error) {
+      console.error('[DrawingLayer] Error deleting shape:', error);
+      toast.error('Fehler beim Löschen des Shapes');
+    }
+  };
+
+  const handleToolbarChangeStyle = () => {
+    if (!selectedShapeId) return;
+    // TODO: Open style editor dialog
+    toast.info('Stil-Editor kommt bald');
+  };
+
   // DrawingLayer renders nothing (Leaflet.PM renders directly to map)
-  // but we need to render the ShapeContextMenu component
+  // but we need to render the ShapeContextMenu and SelectedShapeToolbar components
   return (
-    <ShapeContextMenu
-      isOpen={contextMenu?.isOpen ?? false}
-      position={contextMenu?.position ?? null}
-      onClose={() => setContextMenu(null)}
-      onEdit={handleContextMenuEdit}
-      onDelete={handleContextMenuDelete}
-      onChangeStyle={handleContextMenuChangeStyle}
-    />
+    <>
+      <ShapeContextMenu
+        isOpen={contextMenu?.isOpen ?? false}
+        position={contextMenu?.position ?? null}
+        onClose={() => setContextMenu(null)}
+        onEdit={handleContextMenuEdit}
+        onDelete={handleContextMenuDelete}
+        onChangeStyle={handleContextMenuChangeStyle}
+      />
+
+      {/* Floating Toolbar für selektierte Shapes */}
+      {selectedShapeId && toolbarPosition && (
+        <SelectedShapeToolbar shapeId={selectedShapeId} position={toolbarPosition} onEdit={handleToolbarEdit} onDelete={handleToolbarDelete} onChangeStyle={handleToolbarChangeStyle} />
+      )}
+    </>
   );
 };
 
