@@ -23,6 +23,7 @@ import { DrawingToolbar, type DrawingTool } from '../toolbar/DrawingToolbar';
 import { LagekarteToolbar } from '../toolbar/LagekarteToolbar';
 import { LayerToggle, type Layer } from '@/components/molecules/lagekarte/LayerToggle/LayerToggle';
 import { MapToolbarToggle } from '../controls/MapToolbarToggle';
+import { PropertyPanel, type ShapeProperties } from '../PropertyPanel';
 import type { PoiType } from '@/utils/poi-icons';
 import type { ShapeType } from '@/utils/drawing-styles';
 import type * as GeoJSON from 'geojson';
@@ -163,6 +164,10 @@ export const LagekarteView: React.FC<LagekarteViewProps> = ({ einsatzId, mode = 
   const [isShapeLabelModalOpen, setIsShapeLabelModalOpen] = useState(false);
   const [currentShape, setCurrentShape] = useState<GeoJSON.Feature | null>(null);
   const [shapeToUpdate, setShapeToUpdate] = useState<GeoJSON.Feature | null>(null);
+
+  // Property Panel State
+  const [selectedShape, setSelectedShape] = useState<GeoJSON.Feature | null>(null);
+  const [showPropertyPanel, setShowPropertyPanel] = useState(false);
 
   // Layer-Visibility State
   const [layers, setLayers] = useState<Layer[]>([
@@ -331,6 +336,46 @@ export const LagekarteView: React.FC<LagekarteViewProps> = ({ einsatzId, mode = 
    */
   const handleShapeUpdateComplete = useCallback(() => {
     setShapeToUpdate(null);
+  }, []);
+
+  /**
+   * Handler für Property-Änderungen aus PropertyPanel
+   * Aktualisiert Shape-Style und triggert Backend-Update
+   */
+  const handlePropertiesChange = useCallback(
+    (shapeId: string, properties: Partial<ShapeProperties>) => {
+      if (!lagekarteData?.data?.state) return;
+
+      // Find shape in current state
+      const currentState = lagekarteData.data.state as GeoJSON.FeatureCollection;
+      const shapeIndex = currentState.features.findIndex((f) => f.properties?.id === shapeId);
+
+      if (shapeIndex === -1) return;
+
+      // Update shape properties
+      const updatedShape: GeoJSON.Feature = {
+        ...currentState.features[shapeIndex],
+        properties: {
+          ...currentState.features[shapeIndex].properties,
+          ...properties,
+        },
+      };
+
+      // Trigger shape update in DrawingLayer
+      setShapeToUpdate(updatedShape);
+
+      // Also update selectedShape to reflect changes in PropertyPanel
+      setSelectedShape(updatedShape);
+    },
+    [lagekarteData],
+  );
+
+  /**
+   * Handler wenn Shape selektiert wird (öffnet Property Panel)
+   */
+  const handleShapeSelected = useCallback((shape: GeoJSON.Feature | null) => {
+    setSelectedShape(shape);
+    setShowPropertyPanel(!!shape); // Open panel if shape is selected, close if null
   }, []);
 
   /**
@@ -537,6 +582,18 @@ export const LagekarteView: React.FC<LagekarteViewProps> = ({ einsatzId, mode = 
         <OfflineRegionModal isOpen={isOfflineModalOpen} onClose={() => setIsOfflineModalOpen(false)} currentMapBounds={currentMapBounds || undefined} map={mapInstance || undefined} />
       )}
 
+      {/* Property Panel */}
+      {showPropertyPanel && (
+        <PropertyPanel
+          selectedShape={selectedShape}
+          onPropertiesChange={handlePropertiesChange}
+          onClose={() => {
+            setShowPropertyPanel(false);
+            setSelectedShape(null);
+          }}
+        />
+      )}
+
       {/* Karten-Container */}
       <div
         className={cn(
@@ -610,6 +667,7 @@ export const LagekarteView: React.FC<LagekarteViewProps> = ({ einsatzId, mode = 
               onShapeCreated={handleShapeCreated}
               onShapeLimitReached={handleShapeLimitReached}
               onShapeUpdateComplete={handleShapeUpdateComplete}
+              onShapeSelected={handleShapeSelected}
             />
           )}
 
