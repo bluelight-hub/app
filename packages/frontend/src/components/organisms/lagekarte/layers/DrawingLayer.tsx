@@ -243,8 +243,19 @@ const DrawingLayerComponent: React.FC<DrawingLayerProps> = ({
           layer = textMarker;
         } else {
           // Normal shapes (Polygon, LineString, etc.)
+          // Apply saved properties or use default style
+          const savedColor = feature.properties?.color;
+          const savedStrokeWidth = feature.properties?.strokeWidth;
+          const savedFillOpacity = feature.properties?.fillOpacity;
+
           layer = L.geoJSON(feature, {
-            style: DEFAULT_SHAPE_STYLE,
+            style: {
+              ...DEFAULT_SHAPE_STYLE,
+              // Override with saved properties if available
+              ...(savedColor && { color: savedColor }),
+              ...(savedStrokeWidth !== undefined && { weight: savedStrokeWidth }),
+              ...(savedFillOpacity !== undefined && { fillOpacity: savedFillOpacity }),
+            },
           }).getLayers()[0] as L.Layer;
 
           if (layer) {
@@ -939,12 +950,24 @@ const DrawingLayerComponent: React.FC<DrawingLayerProps> = ({
     if (layer && (layer as any).setStyle) {
       const { color, strokeWidth, fillOpacity } = shapeToUpdate.properties || {};
 
-      // Only update if properties are defined
-      if (color || strokeWidth !== undefined || fillOpacity !== undefined) {
+      // Build style update object - only include defined properties
+      const styleUpdate: any = {};
+
+      if (color) {
+        styleUpdate.color = color;
+      }
+      if (strokeWidth !== undefined) {
+        styleUpdate.weight = strokeWidth;
+      }
+      if (fillOpacity !== undefined) {
+        styleUpdate.fillOpacity = fillOpacity;
+      }
+
+      // Apply style update if any properties changed
+      if (Object.keys(styleUpdate).length > 0) {
         (layer as any).setStyle({
-          color: color || (layer as any).options.color,
-          weight: strokeWidth || (layer as any).options.weight,
-          fillOpacity: fillOpacity !== undefined ? fillOpacity : (layer as any).options.fillOpacity,
+          ...(layer as any).options, // Keep existing options
+          ...styleUpdate, // Override with new values
           opacity: 1.0, // Keep stroke fully opaque
         });
       }
@@ -957,11 +980,10 @@ const DrawingLayerComponent: React.FC<DrawingLayerProps> = ({
   // Handle context menu actions
   const handleContextMenuEdit = () => {
     if (!contextMenu) return;
-    // Enable edit mode for the selected shape
+    // Enable edit mode for the selected shape ONLY (not global)
     const layer = layersRef.current.get(contextMenu.shapeId);
     if (layer && (layer as any).pm) {
       (layer as any).pm.enable();
-      map.pm.enableGlobalEditMode();
       toast.info('Bearbeitungsmodus aktiviert');
     }
   };
@@ -1009,9 +1031,8 @@ const DrawingLayerComponent: React.FC<DrawingLayerProps> = ({
 
     const layer = layersRef.current.get(selectedShapeId);
     if (layer && (layer as any).pm) {
-      // Enable edit mode for the selected shape
+      // Enable edit mode for the selected shape ONLY (not global)
       (layer as any).pm.enable();
-      map.pm.enableGlobalEditMode();
       toast.info('Bearbeitungsmodus aktiviert');
     }
   };
