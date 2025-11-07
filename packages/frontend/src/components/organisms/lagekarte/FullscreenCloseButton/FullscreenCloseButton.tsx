@@ -1,7 +1,7 @@
 import { useNavigate } from '@tanstack/react-router';
-import { PiX } from 'react-icons/pi';
 import { cn } from '@/utils/cn';
 import { useCallback, useEffect } from 'react';
+import { CloseButton } from '@atoms/close-button.atom';
 
 /**
  * Props für die FullscreenCloseButton-Komponente
@@ -68,20 +68,12 @@ export const FullscreenCloseButton: React.FC<FullscreenCloseButtonProps> = ({ on
   }, [handleClose]);
 
   return (
-    <button
+    <CloseButton
       onClick={handleClose}
-      className={cn(
-        'fixed top-4 right-4 z-[1000]',
-        'bg-white dark:bg-gray-800',
-        'rounded-full p-2 shadow-lg',
-        'hover:bg-gray-100 dark:hover:bg-gray-700',
-        'transition-colors duration-200',
-        'focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2',
-      )}
-      aria-label="Vollbildmodus schließen"
-      type="button"
-    >
-      <PiX className="h-6 w-6 text-gray-700 dark:text-gray-200" />
-    </button>
+      size="lg"
+      appearance="ghost"
+      label="Vollbildmodus schließen"
+      className={cn('fixed top-4 right-4 z-[1000]', 'bg-white dark:bg-gray-800', 'shadow-lg', 'hover:bg-gray-100 dark:hover:bg-gray-700')}
+    />
   );
 };

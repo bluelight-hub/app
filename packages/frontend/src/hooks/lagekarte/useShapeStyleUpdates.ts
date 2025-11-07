@@ -39,7 +39,7 @@ export const useShapeStyleUpdates = ({ shapeToUpdate, layersRef, shapesRef, orig
 
     // Update visual style on the layer
     const layer = layersRef.current.get(shapeId);
-    if (layer && layer.setStyle) {
+    if (layer?.setStyle) {
       const { color, strokeWidth, fillOpacity } = shapeToUpdate.properties || {};
 
       // Update layer style using helper

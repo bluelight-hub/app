@@ -1,9 +1,9 @@
-import { PiUser, PiPencil } from 'react-icons/pi';
-import type { EtbEintragDto } from '@bluelight-hub/shared/client';
 import { formatDisplayDateTime } from '@/utils/dateFormatter';
+import type { EtbEintragDto } from '@bluelight-hub/shared/client';
 import { format } from 'date-fns';
 import { de } from 'date-fns/locale';
 import { useState } from 'react';
+import { PiPencil, PiUser } from 'react-icons/pi';
 import { ScreenshotLightbox } from './ScreenshotLightbox';
 
 interface EtbEntryDetailsProps {
@@ -42,9 +42,9 @@ export function EtbEntryDetails({ entry, getUserName }: EtbEntryDetailsProps) {
             className="group relative overflow-hidden rounded-lg shadow transition-shadow hover:shadow-lg"
             aria-label="Lagekarten-Screenshot anzeigen"
           >
-            <img src={sanitizedUrl} alt="Lagekarten-Screenshot" className="h-auto max-w-full rounded-lg cursor-pointer transition-transform group-hover:scale-[1.02]" loading="lazy" />
+            <img src={sanitizedUrl} alt="Lagekarten-Screenshot" className="h-auto max-w-full cursor-pointer rounded-lg transition-transform group-hover:scale-[1.02]" loading="lazy" />
             {/* Overlay on hover */}
-            <div className="absolute inset-0 flex items-center justify-center bg-black/0 text-white text-sm opacity-0 transition-all group-hover:bg-black/50 group-hover:opacity-100">
+            <div className="absolute inset-0 flex items-center justify-center bg-black/0 text-sm text-white opacity-0 transition-all group-hover:bg-black/50 group-hover:opacity-100">
               <span className="font-semibold">Klicken zum Vergrößern</span>
             </div>
           </button>

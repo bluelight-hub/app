@@ -50,6 +50,7 @@
     "cookie-parser": "^1.4.7",
     "date-fns": "^4.1.0",
     "helmet": "^8.1.0",
+    "mgrs": "^2.1.0",
     "multer": "^2.0.2",
     "nanoid": "^5.1.6",
     "passport": "^0.7.0",

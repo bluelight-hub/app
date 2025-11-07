@@ -22,7 +22,7 @@ import { ConfigService } from '@nestjs/config';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { ApiBadRequestResponse, ApiBearerAuth, ApiBody, ApiConsumes, ApiForbiddenResponse, ApiNotFoundResponse, ApiOperation, ApiTags, ApiUnauthorizedResponse } from '@nestjs/swagger';
 import { diskStorage } from 'multer';
-import { join, resolve } from 'node:path';
+import { join } from 'node:path';
 import { existsSync, mkdirSync, unlinkSync } from 'node:fs';
 import { LagekarteService } from '../services/lagekarte.service';
 import { SaveLagekarteStateDto } from '../dto/save-lagekarte-state.dto';
@@ -193,23 +193,23 @@ export class LagekarteController {
 
           cb(null, uploadDir);
         },
-        filename: (req, file, cb) => {
-          const einsatzId = req.params.einsatzId || 'unknown';
+        filename: (req, uploadedFile, cb) => {
+          const reqEinsatzId = req.params.einsatzId || 'unknown';
           const timestamp = Date.now();
           // Sanitize: Prevent path traversal
-          const sanitizedEinsatzId = einsatzId.replace(/[^a-zA-Z0-9_-]/g, '');
+          const sanitizedEinsatzId = reqEinsatzId.replace(/[^a-zA-Z0-9_-]/g, '');
           // Use correct extension based on MIME type
-          const extension = file.mimetype === 'image/jpeg' ? 'jpg' : 'png';
+          const extension = uploadedFile.mimetype === 'image/jpeg' ? 'jpg' : 'png';
           cb(null, `${sanitizedEinsatzId}_${timestamp}.${extension}`);
         },
       }),
       limits: {
         fileSize: 10 * 1024 * 1024, // 10MB max (Lagekarten-Screenshots mit scale:2 können groß sein)
       },
-      fileFilter: (_req, file, cb) => {
+      fileFilter: (_req, uploadedFile, cb) => {
         // Validate MIME type: Accept PNG and JPEG
         const allowedMimeTypes = ['image/png', 'image/jpeg'];
-        if (!allowedMimeTypes.includes(file.mimetype)) {
+        if (!allowedMimeTypes.includes(uploadedFile.mimetype)) {
           return cb(new BadRequestException('Only PNG and JPEG files are allowed'), false);
         }
         cb(null, true);

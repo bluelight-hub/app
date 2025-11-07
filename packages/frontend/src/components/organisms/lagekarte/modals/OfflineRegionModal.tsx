@@ -251,7 +251,7 @@ export const OfflineRegionModal: React.FC<OfflineRegionModalProps> = ({ isOpen, 
     setDownloadProgress(0);
 
     // Start download
-    const control = downloadTiles(
+    const _control = downloadTiles(
       map, // Pass map reference for tile coordinate calculations
       offlineLayer,
       selectedBounds,
@@ -402,7 +402,7 @@ export const OfflineRegionModal: React.FC<OfflineRegionModalProps> = ({ isOpen, 
                   <p className="text-gray-600 text-sm dark:text-gray-400">
                     Ca. {estimatedTileCount.toLocaleString('de-DE')} Tiles ({estimatedSizeMB} MB)
                   </p>
-                  {isLargeDownload && <p className="text-sm font-medium text-orange-600 dark:text-orange-400">⚠️ Großer Download! Kann länger dauern.</p>}
+                  {isLargeDownload && <p className="font-medium text-orange-600 text-sm dark:text-orange-400">⚠️ Großer Download! Kann länger dauern.</p>}
                 </div>
               ) : (
                 <p className="mt-2 text-gray-600 text-sm dark:text-gray-400">Wähle eine Region aus, um die Größe zu berechnen.</p>

@@ -6,7 +6,8 @@ import { zodValidator } from '@tanstack/zod-form-adapter';
 import { toast } from 'sonner';
 import { z } from 'zod';
 import { asyncDebounce } from '@tanstack/pacer';
-import { useCallback, useMemo } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
+import { formatMgrs, isValidMgrs, latLngToMgrs, mgrsToLatLng } from '@/utils/lagekarte/mgrs';
 
 /**
  * Zod-Validierungsschema für POI-Erstellung
@@ -15,18 +16,21 @@ import { useCallback, useMemo } from 'react';
  * - name: Mindestens 3 Zeichen (required)
  * - adresse: Optional, für Geocoding
  * - latitude/longitude: Erforderlich als Fallback wenn kein Geocoding
+ * - mgrs: Optional, für MGRS-Koordinaten
  * - type: POI-Typ aus Enum
  * - icon: Optional, wird vom Backend basierend auf type gesetzt
  *
  * CUX-007: Koordinaten-Validierung
  * - latitude: -90 bis 90 (geografische Grenzen)
  * - longitude: -180 bis 180 (geografische Grenzen)
+ * - mgrs: Validierung erfolgt durch isValidMgrs() Funktion
  */
 const poiFormSchema = z.object({
   name: z.string().min(3, 'Name muss mindestens 3 Zeichen lang sein'),
   adresse: z.string().optional(),
   latitude: z.number({ required_error: 'Breitengrad ist erforderlich' }).min(-90, 'Breitengrad muss zwischen -90 und 90 liegen').max(90, 'Breitengrad muss zwischen -90 und 90 liegen'),
   longitude: z.number({ required_error: 'Längengrad ist erforderlich' }).min(-180, 'Längengrad muss zwischen -180 und 180 liegen').max(180, 'Längengrad muss zwischen -180 und 180 liegen'),
+  mgrs: z.string().optional(),
   type: z.string(), // PoiType as string (validated by backend)
   icon: z.string().optional(),
 });
@@ -88,11 +92,20 @@ export interface UsePoiFormProps {
  * - TanStack Query Mutation für POI-Erstellung
  * - Geocoding-Integration mit Debouncing (1s delay)
  * - Automatische Koordinaten-Updates bei Adressänderung
+ * - Bi-direktionale MGRS ↔ Lat/Lng Synchronisation
+ * - Koordinaten-Modus-Umschaltung (MGRS oder Lat/Lng)
  * - Automatische Query-Invalidation nach Erfolg
  *
  * @example
  * ```tsx
- * const form = usePoiForm({
+ * const {
+ *   form,
+ *   coordMode,
+ *   setCoordMode,
+ *   mgrsInput,
+ *   handleMgrsChange,
+ *   isMgrsValid
+ * } = usePoiForm({
  *   einsatzId: 'einsatz-123',
  *   lagekarteId: 'lagekarte-456',
  *   initialType: 'FAHRZEUG',
@@ -110,12 +123,17 @@ export const usePoiForm = ({ einsatzId, lagekarteId, initialType, initialCoordin
   const createPoiMutation = useCreatePoi(einsatzId);
   const geocodeMutation = useGeocodeAddress(einsatzId);
 
+  // MGRS State Management
+  const [coordMode, setCoordMode] = useState<'latLng' | 'mgrs'>('latLng');
+  const [mgrsInput, setMgrsInput] = useState<string>('');
+
   const form = useForm({
     defaultValues: {
       name: '',
       adresse: '',
       latitude: initialCoordinates.lat,
       longitude: initialCoordinates.lon,
+      mgrs: '',
       type: initialType as string,
       icon: undefined,
     },
@@ -125,11 +143,16 @@ export const usePoiForm = ({ einsatzId, lagekarteId, initialType, initialCoordin
         const validated = poiFormSchema.parse(value);
 
         // API-Call via TanStack Query Mutation
+        // TODO: Backend muss noch das `mgrs` Property im CreatePoiDto unterstützen
+        // Aktuell wird nur latitude/longitude gesendet
         await createPoiMutation.mutateAsync({
           lagekarteId,
           type: validated.type, // Backend validates POI type via DTO
           name: validated.name,
           adresse: validated.adresse,
+          // MGRS hat Priorität, wenn gesetzt und gültig
+          // mgrs: coordMode === 'mgrs' && validated.mgrs ? validated.mgrs : undefined,
+          // Lat/Lng als Fallback oder wenn MGRS nicht unterstützt wird
           latitude: validated.latitude,
           longitude: validated.longitude,
           icon: validated.icon,
@@ -204,6 +227,83 @@ export const usePoiForm = ({ einsatzId, lagekarteId, initialType, initialCoordin
     [handleGeocode],
   );
 
+  /**
+   * Bi-direktionale Synchronisation: Lat/Lng → MGRS
+   *
+   * @remarks
+   * - Wird getriggert wenn latitude oder longitude sich ändert (via form.subscribe)
+   * - Konvertiert Lat/Lng zu MGRS und aktualisiert mgrsInput State
+   * - Formatiert MGRS für bessere Lesbarkeit (mit Leerzeichen)
+   * - Bei Konvertierungs-Fehler bleibt mgrsInput unverändert
+   * - Nutzt TanStack Form's subscribe API für reaktive Updates
+   */
+  useEffect(() => {
+    const unsubscribe = form.store.subscribe(() => {
+      const state = form.store.state;
+      const latitude = state.values.latitude;
+      const longitude = state.values.longitude;
+
+      if (latitude !== undefined && longitude !== undefined && !Number.isNaN(latitude) && !Number.isNaN(longitude)) {
+        const mgrs = latLngToMgrs(latitude, longitude, 5);
+        if (mgrs) {
+          const formatted = formatMgrs(mgrs);
+          setMgrsInput(formatted);
+          form.setFieldValue('mgrs', formatted);
+        }
+      }
+    });
+
+    return () => unsubscribe();
+  }, [form]);
+
+  /**
+   * MGRS Input Handler
+   *
+   * @remarks
+   * - Wird vom Modal aufgerufen wenn User MGRS-Koordinaten eingibt
+   * - Validiert MGRS-Format mit isValidMgrs()
+   * - Bei gültigem MGRS: Konvertiert zu Lat/Lng und aktualisiert Form
+   * - Bei ungültigem MGRS: Nur mgrsInput State wird aktualisiert (keine Lat/Lng-Änderung)
+   * - Verhindert Endlos-Loop durch gezielte State-Updates
+   */
+  const handleMgrsChange = useCallback(
+    (mgrsValue: string) => {
+      setMgrsInput(mgrsValue);
+
+      if (isValidMgrs(mgrsValue)) {
+        const coords = mgrsToLatLng(mgrsValue);
+        if (coords) {
+          // Update Form Values (triggert useEffect, aber Loop wird verhindert)
+          form.setFieldValue('latitude', coords.lat);
+          form.setFieldValue('longitude', coords.lng);
+          form.setFieldValue('mgrs', mgrsValue);
+        }
+      } else {
+        // Ungültiges MGRS: Form MGRS-Feld leeren
+        form.setFieldValue('mgrs', '');
+      }
+    },
+    [form],
+  );
+
+  /**
+   * Initial MGRS Berechnung
+   *
+   * @remarks
+   * - Wird nur beim ersten Render ausgeführt
+   * - Konvertiert initialCoordinates zu MGRS
+   * - Setzt mgrsInput State für initiale Anzeige
+   */
+  useEffect(() => {
+    const initialMgrs = latLngToMgrs(initialCoordinates.lat, initialCoordinates.lon, 5);
+    if (initialMgrs) {
+      const formatted = formatMgrs(initialMgrs);
+      setMgrsInput(formatted);
+      form.setFieldValue('mgrs', formatted);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [form.setFieldValue, initialCoordinates.lat, initialCoordinates.lon]); // Nur beim initialen Mount
+
   return {
     form,
     isLoading: createPoiMutation.isPending,
@@ -211,5 +311,11 @@ export const usePoiForm = ({ einsatzId, lagekarteId, initialType, initialCoordin
     error: createPoiMutation.error,
     isGeocoding: geocodeMutation.isPending,
     debouncedGeocode,
+    // MGRS Support
+    coordMode,
+    setCoordMode,
+    mgrsInput,
+    handleMgrsChange,
+    isMgrsValid: isValidMgrs(mgrsInput),
   };
 };

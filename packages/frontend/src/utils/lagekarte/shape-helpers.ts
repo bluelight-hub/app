@@ -94,7 +94,7 @@ export const extractTextContent = (layer: L.Layer & Partial<LayerWithTextContent
 /**
  * Create Leaflet Text Marker from GeoJSON Feature
  */
-export const createTextMarker = (feature: GeoJSON.Feature, map: L.Map): (L.Marker & LayerWithTextContent) | null => {
+export const createTextMarker = (feature: GeoJSON.Feature, _map: L.Map): (L.Marker & LayerWithTextContent) | null => {
   if (feature.geometry.type !== 'Point' || !feature.properties?.text) {
     return null;
   }

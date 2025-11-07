@@ -44,6 +44,12 @@ export interface PoiResponseDto {
    */
   name?: string | null;
   /**
+   * MGRS Koordinaten (primäres Format)
+   * @type {string}
+   * @memberof PoiResponseDto
+   */
+  mgrs?: string | null;
+  /**
    * Adresse des POI
    * @type {string}
    * @memberof PoiResponseDto
@@ -134,6 +140,7 @@ export function PoiResponseDtoFromJSONTyped(json: any, ignoreDiscriminator: bool
     lagekarteId: json['lagekarteId'],
     type: json['type'],
     name: json['name'] == null ? undefined : json['name'],
+    mgrs: json['mgrs'] == null ? undefined : json['mgrs'],
     adresse: json['adresse'] == null ? undefined : json['adresse'],
     latitude: json['latitude'],
     longitude: json['longitude'],
@@ -158,6 +165,7 @@ export function PoiResponseDtoToJSONTyped(value?: PoiResponseDto | null, ignoreD
     lagekarteId: value['lagekarteId'],
     type: value['type'],
     name: value['name'],
+    mgrs: value['mgrs'],
     adresse: value['adresse'],
     latitude: value['latitude'],
     longitude: value['longitude'],
