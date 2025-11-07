@@ -1,8 +1,8 @@
-import { Dialog, DialogPanel, DialogTitle } from '@headlessui/react';
 import { Button } from '@/components/atoms/button.atom';
-import { PiDownload, PiX } from 'react-icons/pi';
-import { useCallback, useMemo } from 'react';
 import { validateScreenshotUrl } from '@/utils/validateScreenshotUrl';
+import { Dialog, DialogPanel, DialogTitle } from '@headlessui/react';
+import { useCallback, useMemo } from 'react';
+import { PiDownload, PiX } from 'react-icons/pi';
 
 interface ScreenshotLightboxProps {
   /**
@@ -82,8 +82,8 @@ export function ScreenshotLightbox({ isOpen, onClose, screenshotUrl, title = 'La
       <div className="fixed inset-0 flex items-center justify-center p-4">
         <DialogPanel className="relative flex max-h-[90vh] max-w-[95vw] flex-col rounded-2xl bg-white shadow-2xl dark:bg-gray-900">
           {/* Header */}
-          <div className="flex items-center justify-between border-b border-gray-200 p-4 dark:border-gray-700">
-            <DialogTitle className="text-lg font-semibold text-gray-900 dark:text-white">{title}</DialogTitle>
+          <div className="flex items-center justify-between border-gray-200 border-b p-4 dark:border-gray-700">
+            <DialogTitle className="font-semibold text-gray-900 text-lg dark:text-white">{title}</DialogTitle>
             <div className="flex gap-2">
               <Button type="button" onClick={handleDownload} intent="secondary" appearance="outline" size="sm" className="gap-2" aria-label="Screenshot herunterladen">
                 <PiDownload size={18} aria-hidden="true" />

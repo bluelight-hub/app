@@ -8,14 +8,20 @@ import { PoiType } from '@prisma/client';
  * - Wird für alle API-Responses zurückgegeben, die POI-Daten enthalten
  * - Spiegelt die vollständige POI-Struktur aus der Datenbank
  *
+ * **Koordinaten-Format:**
+ * - `mgrs`: Primäres Koordinatenformat (MGRS) - wenn verfügbar
+ * - `latitude`/`longitude`: Fallback für Systeme ohne MGRS-Support
+ * - MGRS hat Vorrang bei der Anzeige
+ *
  * **Felder:**
  * - `id`: Eindeutige CUID des POI
  * - `lagekarteId`: Referenz zur zugehörigen Lagekarte
  * - `type`: POI-Typ (z.B. EINSATZORT, FAHRZEUG)
  * - `name`: Optional - Anzeigename des POI
+ * - `mgrs`: Optional - MGRS-Koordinaten (primär)
  * - `adresse`: Optional - Adresse für Geocoding
- * - `latitude`: Geografische Breite
- * - `longitude`: Geografische Länge
+ * - `latitude`: Geografische Breite (Fallback)
+ * - `longitude`: Geografische Länge (Fallback)
  * - `icon`: Optional - Icon-Identifier
  * - `metadata`: Optional - Zusätzliche Metadaten als JSON
  * - `createdAt`: Erstellungszeitpunkt
@@ -48,6 +54,14 @@ export class PoiResponseDto {
     nullable: true,
   })
   name?: string | null;
+
+  @ApiPropertyOptional({
+    type: String,
+    description: 'MGRS Koordinaten (primäres Format)',
+    example: '33UVU1234567890',
+    nullable: true,
+  })
+  mgrs?: string | null;
 
   @ApiPropertyOptional({
     type: String,

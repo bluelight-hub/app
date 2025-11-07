@@ -1,9 +1,9 @@
 import { cn } from '@/utils/cn';
 import type { PoiType } from '@/utils/poi-icons';
+import { PoiTypeButton } from '@atoms/poi-type-button.atom';
 import { Menu, MenuButton, MenuItem, MenuItems } from '@headlessui/react';
 import type React from 'react';
 import { PiCaretDown } from 'react-icons/pi';
-import { PoiTypeButton } from '@atoms/poi-type-button.atom';
 
 export interface PoiTypeDropdownProps {
   /**
@@ -85,7 +85,7 @@ export const PoiTypeDropdown: React.FC<PoiTypeDropdownProps> = ({ types, onSelec
           {/* Dropdown-Items - öffnet sich nach OBEN */}
           <MenuItems
             className={cn(
-              'absolute bottom-full left-0 right-0 z-50 mb-1',
+              'absolute right-0 bottom-full left-0 z-50 mb-1',
               'origin-bottom-left rounded-lg border border-gray-200 bg-white p-1',
               'shadow-xl transition focus:outline-none',
               'dark:border-gray-700 dark:bg-gray-800',

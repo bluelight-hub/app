@@ -14,6 +14,7 @@ import { PoiRepository } from './repositories/poi.repository';
 import { GeocodingService } from './services/geocoding.service';
 
 import { LagekarteService } from './services/lagekarte.service';
+import { MgrsConverterService } from './services/mgrs-converter.service';
 import { PoiService } from './services/poi.service';
 
 /**
@@ -40,7 +41,7 @@ import { PoiService } from './services/poi.service';
     ]),
   ],
   controllers: [LagekarteController, PoiController, GeocodingController],
-  providers: [LagekarteService, PoiService, GeocodingService, LagekarteRepository, PoiRepository],
-  exports: [LagekarteService, PoiService, GeocodingService, LagekarteRepository, PoiRepository],
+  providers: [LagekarteService, PoiService, GeocodingService, MgrsConverterService, LagekarteRepository, PoiRepository],
+  exports: [LagekarteService, PoiService, GeocodingService, MgrsConverterService, LagekarteRepository, PoiRepository],
 })
 export class LagekarteModule {}

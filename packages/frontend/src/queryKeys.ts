@@ -56,6 +56,12 @@ export const ETB_QUERY_KEYS = {
   textbausteine: () => [...ETB_QUERY_KEYS.all, 'textbausteine'] as const,
 } as const;
 
+export const LAGEKARTE_QUERY_KEYS = {
+  all: ['lagekarte'] as const,
+  pois: (einsatzId: string) => ['pois', einsatzId] as const,
+  lagekarte: (einsatzId: string) => [...LAGEKARTE_QUERY_KEYS.all, einsatzId] as const,
+} as const;
+
 // Export all query keys grouped for easier access
 export const QUERY_KEYS = {
   auth: {
@@ -68,4 +74,5 @@ export const QUERY_KEYS = {
   health: HEALTH_QUERY_KEYS,
   einsatz: EINSATZ_QUERY_KEYS,
   etb: ETB_QUERY_KEYS,
+  lagekarte: LAGEKARTE_QUERY_KEYS,
 } as const;

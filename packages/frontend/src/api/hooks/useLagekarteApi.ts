@@ -9,6 +9,7 @@ import type {
 } from '@bluelight-hub/shared/client';
 import { api } from '../api';
 import type * as GeoJSON from 'geojson';
+import { LAGEKARTE_QUERY_KEYS } from '../../queryKeys';
 
 /**
  * TanStack Query Hook zum Abrufen aller POIs einer Lagekarte
@@ -18,7 +19,7 @@ import type * as GeoJSON from 'geojson';
  *
  * @remarks
  * - Verwendet TanStack Query für automatisches Caching und Refetching
- * - Query Key: `['pois', einsatzId]`
+ * - Query Key: `LAGEKARTE_QUERY_KEYS.pois(einsatzId)`
  * - Die API returned POIs im `data` Array der Response als `PoiResponseDto[]`
  * - `PoiResponseDto` ist der generierte Typ aus dem Backend
  *
@@ -34,7 +35,7 @@ import type * as GeoJSON from 'geojson';
  */
 export const usePois = (einsatzId: string): UseQueryResult<PoiResponseDto[], Error> => {
   return useQuery({
-    queryKey: ['pois', einsatzId],
+    queryKey: LAGEKARTE_QUERY_KEYS.pois(einsatzId),
     queryFn: async () => {
       const response: PoiControllerGetPoisVAlpha200Response = await api.poi().poiControllerGetPoisVAlpha({ einsatzId });
       // Response hat Struktur: { data: PoiResponseDto[], meta: {}, pagination?: {} }
@@ -52,7 +53,7 @@ export const usePois = (einsatzId: string): UseQueryResult<PoiResponseDto[], Err
  *
  * @remarks
  * - Verwendet TanStack Query für automatisches Caching und Refetching
- * - Query Key: `['lagekarte', einsatzId]`
+ * - Query Key: `LAGEKARTE_QUERY_KEYS.lagekarte(einsatzId)`
  * - Lazy Creation: API erstellt Lagekarte automatisch falls nicht vorhanden
  *
  * @example
@@ -62,7 +63,7 @@ export const usePois = (einsatzId: string): UseQueryResult<PoiResponseDto[], Err
  */
 export const useLagekarte = (einsatzId: string): UseQueryResult<LagekarteControllerGetLagekarteVAlpha200Response, Error> => {
   return useQuery({
-    queryKey: ['lagekarte', einsatzId],
+    queryKey: LAGEKARTE_QUERY_KEYS.lagekarte(einsatzId),
     queryFn: async () => {
       return await api.lagekarte().lagekarteControllerGetLagekarteVAlpha({ einsatzId });
     },
@@ -81,7 +82,7 @@ export const useLagekarte = (einsatzId: string): UseQueryResult<LagekarteControl
  * - Verwendet TanStack Query Mutation für optimistic updates
  * - Nach erfolgreicher Erstellung wird die POI-Liste neu gefetcht (invalidateQueries)
  * - Mutation Key: keine (einmaliger API-Call)
- * - OnSuccess: Invalidiert `['pois', einsatzId]` Query
+ * - OnSuccess: Invalidiert `LAGEKARTE_QUERY_KEYS.pois(einsatzId)` Query
  *
  * @example
  * ```tsx
@@ -106,7 +107,7 @@ export const useCreatePoi = (einsatzId: string): UseMutationResult<PoiResponseDt
     },
     onSuccess: () => {
       // Invalidate POI-Liste um Neuabfrage zu triggern
-      queryClient.invalidateQueries({ queryKey: ['pois', einsatzId] });
+      queryClient.invalidateQueries({ queryKey: LAGEKARTE_QUERY_KEYS.pois(einsatzId) });
     },
   });
 };
@@ -119,7 +120,7 @@ export const useCreatePoi = (einsatzId: string): UseMutationResult<PoiResponseDt
  * @remarks
  * - Mutation-Data enthält `{ id: string, einsatzId: string, data: UpdatePoiDto }`
  * - Nach Update wird die POI-Liste invalidiert (automatischer Refetch)
- * - OnSuccess: Invalidiert `['pois', einsatzId]` Query
+ * - OnSuccess: Invalidiert `LAGEKARTE_QUERY_KEYS.pois(einsatzId)` Query
  *
  * @example
  * ```tsx
@@ -142,7 +143,7 @@ export const useUpdatePoi = (): UseMutationResult<PoiResponseDto, Error, { id: s
     },
     onSuccess: (_data, variables) => {
       // Invalidate POI-Liste um Neuabfrage zu triggern
-      queryClient.invalidateQueries({ queryKey: ['pois', variables.einsatzId] });
+      queryClient.invalidateQueries({ queryKey: LAGEKARTE_QUERY_KEYS.pois(variables.einsatzId) });
     },
   });
 };
@@ -155,7 +156,7 @@ export const useUpdatePoi = (): UseMutationResult<PoiResponseDto, Error, { id: s
  * @remarks
  * - Mutation-Data enthält `{ id: string, einsatzId: string }`
  * - Nach Löschen wird die POI-Liste invalidiert (automatischer Refetch)
- * - OnSuccess: Invalidiert `['pois', einsatzId]` Query
+ * - OnSuccess: Invalidiert `LAGEKARTE_QUERY_KEYS.pois(einsatzId)` Query
  *
  * @example
  * ```tsx
@@ -177,7 +178,7 @@ export const useDeletePoi = (): UseMutationResult<PoiResponseDto, Error, { id: s
     },
     onSuccess: (_data, variables) => {
       // Invalidate POI-Liste um Neuabfrage zu triggern
-      queryClient.invalidateQueries({ queryKey: ['pois', variables.einsatzId] });
+      queryClient.invalidateQueries({ queryKey: LAGEKARTE_QUERY_KEYS.pois(variables.einsatzId) });
     },
   });
 };
@@ -192,7 +193,7 @@ export const useDeletePoi = (): UseMutationResult<PoiResponseDto, Error, { id: s
  * - Verwendet TanStack Query Mutation für State-Persistierung
  * - State enthält GeoJSON FeatureCollection mit Zeichnungen (Polygone, Linien, Rechtecke)
  * - Nach erfolgreicher Speicherung wird die Lagekarte-Query neu gefetcht (invalidateQueries)
- * - OnSuccess: Invalidiert `['lagekarte', einsatzId]` Query
+ * - OnSuccess: Invalidiert `LAGEKARTE_QUERY_KEYS.lagekarte(einsatzId)` Query
  * - Security: Validiert GeoJSON-Struktur und Payload-Größe (max 2MB)
  *
  * @example
@@ -235,7 +236,7 @@ export const useSaveLagekarteState = (einsatzId: string): UseMutationResult<Lage
     },
     onSuccess: () => {
       // Invalidate Lagekarte-Query um Neuabfrage zu triggern
-      queryClient.invalidateQueries({ queryKey: ['lagekarte', einsatzId] });
+      queryClient.invalidateQueries({ queryKey: LAGEKARTE_QUERY_KEYS.lagekarte(einsatzId) });
     },
     networkMode: 'offlineFirst', // Queue mutations when offline (AC: IV2)
   });

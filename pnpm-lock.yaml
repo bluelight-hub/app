@@ -125,6 +125,9 @@ importers:
       helmet:
         specifier: ^8.1.0
         version: 8.1.0
+      mgrs:
+        specifier: ^2.1.0
+        version: 2.1.0
       multer:
         specifier: ^2.0.2
         version: 2.0.2
@@ -303,6 +306,9 @@ importers:
       leaflet.offline:
         specifier: ^3.1.0
         version: 3.1.0
+      mgrs:
+        specifier: ^2.1.0
+        version: 2.1.0
       modern-screenshot:
         specifier: ^4.6.6
         version: 4.6.6
@@ -5901,6 +5907,9 @@ packages:
 
   mermaid@11.9.0:
     resolution: {integrity: sha512-YdPXn9slEwO0omQfQIsW6vS84weVQftIyyTGAZCwM//MGhPzL1+l6vO6bkf0wnP4tHigH1alZ5Ooy3HXI2gOag==}
+
+  mgrs@2.1.0:
+    resolution: {integrity: sha512-/pjuM02PUAhp4dazfccTSKBGTGPFkRz9LKwGJKusc/B20apcGG/CYnRHx0kXmLXy4m5O3p6y6nOVxEnErPpFvQ==}
 
   micromatch@4.0.8:
     resolution: {integrity: sha512-PXwfBhYu0hBCPw8Dn0E+WDYb7af3dSLVWKi3HGv84IdF4TyFoC0ysxFd0Goxw7nSv4T/PzEJQxsYsEiFCKo2BA==}
@@ -14136,6 +14145,8 @@ snapshots:
       uuid: 11.1.0
     transitivePeerDependencies:
       - supports-color
+
+  mgrs@2.1.0: {}
 
   micromatch@4.0.8:
     dependencies:

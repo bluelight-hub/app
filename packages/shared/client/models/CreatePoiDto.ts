@@ -38,19 +38,25 @@ export interface CreatePoiDto {
    */
   name?: string;
   /**
+   * MGRS Koordinaten (primäres Format, alternativ zu latitude/longitude oder adresse)
+   * @type {string}
+   * @memberof CreatePoiDto
+   */
+  mgrs?: string;
+  /**
    * Adresse für automatisches Geocoding
    * @type {string}
    * @memberof CreatePoiDto
    */
   adresse?: string;
   /**
-   * Geografische Breite (erforderlich wenn keine Adresse angegeben)
+   * Geografische Breite (optional, wird aus MGRS berechnet oder manuell angegeben)
    * @type {number}
    * @memberof CreatePoiDto
    */
   latitude?: number;
   /**
-   * Geografische Länge (erforderlich wenn keine Adresse angegeben)
+   * Geografische Länge (optional, wird aus MGRS berechnet oder manuell angegeben)
    * @type {number}
    * @memberof CreatePoiDto
    */
@@ -110,6 +116,7 @@ export function CreatePoiDtoFromJSONTyped(json: any, ignoreDiscriminator: boolea
     lagekarteId: json['lagekarteId'],
     type: json['type'],
     name: json['name'] == null ? undefined : json['name'],
+    mgrs: json['mgrs'] == null ? undefined : json['mgrs'],
     adresse: json['adresse'] == null ? undefined : json['adresse'],
     latitude: json['latitude'] == null ? undefined : json['latitude'],
     longitude: json['longitude'] == null ? undefined : json['longitude'],
@@ -131,6 +138,7 @@ export function CreatePoiDtoToJSONTyped(value?: CreatePoiDto | null, ignoreDiscr
     lagekarteId: value['lagekarteId'],
     type: value['type'],
     name: value['name'],
+    mgrs: value['mgrs'],
     adresse: value['adresse'],
     latitude: value['latitude'],
     longitude: value['longitude'],

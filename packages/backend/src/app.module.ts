@@ -5,7 +5,7 @@ import { APP_FILTER } from '@nestjs/core';
 import { EventEmitterModule } from '@nestjs/event-emitter';
 import { ThrottlerModule } from '@nestjs/throttler';
 import { ServeStaticModule } from '@nestjs/serve-static';
-import { join, resolve } from 'node:path';
+import { join } from 'node:path';
 import { AppController } from './app.controller';
 import { AuthModule } from './auth/auth.module';
 import { CommonModule } from './common/common.module';

@@ -45,6 +45,14 @@ export class LagekartePoi implements PrismaLagekartePoi {
   adresse!: string | null;
 
   @ApiProperty({
+    description: 'MGRS Koordinaten (Military Grid Reference System)',
+    example: '33UUU9185320652',
+    required: false,
+    nullable: true,
+  })
+  mgrs!: string | null;
+
+  @ApiProperty({
     description: 'Geografische Breite (Latitude)',
     example: 52.52,
   })

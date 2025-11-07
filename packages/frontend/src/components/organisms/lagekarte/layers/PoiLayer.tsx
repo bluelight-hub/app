@@ -3,6 +3,7 @@ import { Button } from '@/components/atoms/button.atom';
 import { Spinner } from '@/components/atoms/spinner.atom';
 import { getPoiIcon } from '@/utils/poi-icons';
 import { getApiErrorMessage } from '@/utils/apiErrorHandler';
+import { formatMgrs } from '@/utils/lagekarte/mgrs';
 import { Dialog, DialogBackdrop, DialogPanel, DialogTitle } from '@headlessui/react';
 import React, { useMemo, useState } from 'react';
 import { PiTrash, PiWarning, PiXCircle } from 'react-icons/pi';
@@ -46,6 +47,19 @@ export const PoiLayer: React.FC<PoiLayerProps> = React.memo(({ einsatzId }) => {
   // Delete Confirmation Dialog State
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [poiToDelete, setPoiToDelete] = useState<PoiResponseDto | null>(null);
+
+  /**
+   * Zentralisiertes Error-Handling für POI-Mutationen
+   * @param err - API Error
+   * @param fallbackMessage - Fallback-Nachricht falls keine spezifische Nachricht verfügbar
+   * @param title - Toast-Titel
+   */
+  const handleMutationError = async (err: unknown, fallbackMessage: string, title: string) => {
+    const message = await getApiErrorMessage(err, fallbackMessage);
+    toast.error(title, {
+      description: message,
+    });
+  };
 
   // Berechne gültige und ungültige POIs (Performance-optimiert mit useMemo)
   // WICHTIG: Muss VOR allen early returns stehen (React Hooks Rules)
@@ -125,11 +139,8 @@ export const PoiLayer: React.FC<PoiLayerProps> = React.memo(({ einsatzId }) => {
             description: poi ? `"${poi.name}" wurde an neue Position verschoben.` : 'Die Position wurde aktualisiert.',
           });
         },
-        onError: async (error) => {
-          const message = await getApiErrorMessage(error, 'Der POI konnte nicht verschoben werden.');
-          toast.error('Fehler beim Verschieben', {
-            description: message,
-          });
+        onError: (err) => {
+          handleMutationError(err, 'Der POI konnte nicht verschoben werden.', 'Fehler beim Verschieben');
         },
       },
     );
@@ -163,11 +174,8 @@ export const PoiLayer: React.FC<PoiLayerProps> = React.memo(({ einsatzId }) => {
             description: `"${poiToDelete.name}" wurde erfolgreich entfernt.`,
           });
         },
-        onError: async (error) => {
-          const message = await getApiErrorMessage(error, 'Der POI konnte nicht gelöscht werden.');
-          toast.error('Fehler beim Löschen', {
-            description: message,
-          });
+        onError: (err) => {
+          handleMutationError(err, 'Der POI konnte nicht gelöscht werden.', 'Fehler beim Löschen');
         },
       },
     );
@@ -224,6 +232,22 @@ export const PoiLayer: React.FC<PoiLayerProps> = React.memo(({ einsatzId }) => {
 
                 {/* POI-Type */}
                 <p className="mb-1 text-gray-600 text-sm dark:text-gray-400">{poi.type}</p>
+
+                {/* MGRS-Koordinaten (Primary Display) - nur wenn verfügbar */}
+                {poi.mgrs && (
+                  <div className="mb-2 rounded bg-gray-50 p-2 dark:bg-gray-700">
+                    <p className="font-medium text-gray-700 text-xs dark:text-gray-300">MGRS</p>
+                    <p className="font-mono text-gray-900 text-sm dark:text-gray-100">{formatMgrs(poi.mgrs)}</p>
+                  </div>
+                )}
+
+                {/* Lat/Lng (Secondary Display) */}
+                <div className="mb-2">
+                  <p className="font-medium text-gray-700 text-xs dark:text-gray-300">Lat/Lng</p>
+                  <p className="font-mono text-gray-600 text-xs dark:text-gray-400">
+                    {poi.latitude.toFixed(6)}, {poi.longitude.toFixed(6)}
+                  </p>
+                </div>
 
                 {/* Adresse (optional) */}
                 {poi.adresse && <p className="text-gray-700 text-sm dark:text-gray-300">{poi.adresse}</p>}

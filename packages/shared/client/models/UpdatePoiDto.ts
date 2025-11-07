@@ -32,19 +32,25 @@ export interface UpdatePoiDto {
    */
   name?: string;
   /**
+   * MGRS Koordinaten (primäres Format, alternativ zu latitude/longitude oder adresse)
+   * @type {string}
+   * @memberof UpdatePoiDto
+   */
+  mgrs?: string;
+  /**
    * Adresse für automatisches Geocoding
    * @type {string}
    * @memberof UpdatePoiDto
    */
   adresse?: string;
   /**
-   * Geografische Breite (erforderlich wenn keine Adresse angegeben)
+   * Geografische Breite (optional, wird aus MGRS berechnet oder manuell angegeben)
    * @type {number}
    * @memberof UpdatePoiDto
    */
   latitude?: number;
   /**
-   * Geografische Länge (erforderlich wenn keine Adresse angegeben)
+   * Geografische Länge (optional, wird aus MGRS berechnet oder manuell angegeben)
    * @type {number}
    * @memberof UpdatePoiDto
    */
@@ -101,6 +107,7 @@ export function UpdatePoiDtoFromJSONTyped(json: any, ignoreDiscriminator: boolea
   return {
     type: json['type'] == null ? undefined : json['type'],
     name: json['name'] == null ? undefined : json['name'],
+    mgrs: json['mgrs'] == null ? undefined : json['mgrs'],
     adresse: json['adresse'] == null ? undefined : json['adresse'],
     latitude: json['latitude'] == null ? undefined : json['latitude'],
     longitude: json['longitude'] == null ? undefined : json['longitude'],
@@ -121,6 +128,7 @@ export function UpdatePoiDtoToJSONTyped(value?: UpdatePoiDto | null, ignoreDiscr
   return {
     type: value['type'],
     name: value['name'],
+    mgrs: value['mgrs'],
     adresse: value['adresse'],
     latitude: value['latitude'],
     longitude: value['longitude'],

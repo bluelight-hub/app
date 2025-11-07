@@ -379,14 +379,25 @@ model Lagekarte {
 }
 
 // Lagekarte POI Model (n:1 mit Lagekarte)
+// KOORDINATENFORMAT:
+// - MGRS (Military Grid Reference System) ist das PRIMÄRE Koordinatenformat
+// - Latitude/Longitude wird aus MGRS berechnet und parallel gespeichert
+// - Beide Formate werden gespeichert für Performance und Fallback-Kompatibilität
+// - MGRS Format: z.B. "33UVU1234567890" (max. 20 Zeichen)
 model LagekartePoi {
   id          String   @id @default(cuid())
   lagekarteId String
   type        PoiType
   name        String?  @db.VarChar(255)
   adresse     String?  @db.VarChar(500)
+
+  // MGRS Koordinaten (primäres Format)
+  mgrs        String?  @db.VarChar(20) // z.B. "33UVU1234567890", nullable für Migration
+
+  // Lat/Lng Koordinaten (aus MGRS berechnet, Fallback für bestehende Daten)
   latitude    Float
   longitude   Float
+
   icon        String?  @db.VarChar(50)
   metadata    Json?    @db.JsonB
   createdAt   DateTime @default(now())
@@ -398,5 +409,6 @@ model LagekartePoi {
   // Indexes
   @@index([lagekarteId])
   @@index([type])
+  @@index([mgrs]) // Schnelle MGRS-Suche
   @@map("lagekarte_poi")
 }
