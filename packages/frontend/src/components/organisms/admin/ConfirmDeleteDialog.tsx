@@ -77,7 +77,7 @@ export const ConfirmDeleteDialog = ({ isOpen, onClose, onConfirm, userName, user
             </div>
 
             <div className="space-y-3">
-              <Label className="font-medium text-gray-700 text-sm dark:text-gray-300">Aktion auswählen:</Label>
+              <Label>Aktion auswählen:</Label>
 
               <div className="space-y-2">
                 <label className="flex cursor-pointer items-center space-x-3 rounded-lg border border-gray-200 p-3 transition hover:bg-gray-50 dark:border-gray-700 dark:hover:bg-gray-800">
@@ -139,9 +139,7 @@ export const ConfirmDeleteDialog = ({ isOpen, onClose, onConfirm, userName, user
 
               {selectedAction === 'lock' && (
                 <div className="mt-3">
-                  <Label htmlFor="lockReason" className="text-sm">
-                    Sperrgrund (optional)
-                  </Label>
+                  <Label htmlFor="lockReason">Sperrgrund (optional)</Label>
                   <Input id="lockReason" value={lockReason} onChange={(e) => setLockReason(e.target.value)} placeholder="z.B. Verstoß gegen Nutzungsbedingungen" className="mt-1" />
                 </div>
               )}
