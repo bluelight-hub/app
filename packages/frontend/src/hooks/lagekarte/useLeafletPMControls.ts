@@ -7,6 +7,12 @@ import type * as L from 'leaflet';
  */
 export const useLeafletPMControls = (map: L.Map, layersRef: React.MutableRefObject<Map<string, L.Layer>>) => {
   useEffect(() => {
+    // Defensive check: Ensure PM is available before initialization
+    if (!map.pm?.Toolbar) {
+      console.warn('[useLeafletPMControls] Leaflet.PM not available on map');
+      return;
+    }
+
     // Add Leaflet.PM Controls to map
     map.pm.addControls({
       position: 'topright',
@@ -24,13 +30,19 @@ export const useLeafletPMControls = (map: L.Map, layersRef: React.MutableRefObje
     });
 
     // Hide default PM controls (we use custom DrawingToolbar)
-    map.pm.Toolbar.setButtonDisabled('drawPolygon', true);
-    map.pm.Toolbar.setButtonDisabled('drawPolyline', true);
-    map.pm.Toolbar.setButtonDisabled('drawRectangle', true);
+    // Defensive check: Toolbar might not be available even after addControls
+    if (map.pm.Toolbar) {
+      map.pm.Toolbar.setButtonDisabled('drawPolygon', true);
+      map.pm.Toolbar.setButtonDisabled('drawPolyline', true);
+      map.pm.Toolbar.setButtonDisabled('drawRectangle', true);
+    }
 
     // Cleanup on unmount
     return () => {
-      map.pm.removeControls();
+      // Defensive check: Ensure PM still available during cleanup
+      if (map.pm?.Toolbar) {
+        map.pm.removeControls();
+      }
 
       // Clear layer references to prevent memory leaks
       layersRef.current.forEach((layer) => {
