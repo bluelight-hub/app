@@ -5,7 +5,7 @@ import { DEFAULT_SHAPE_STYLE } from '@/utils/drawing-styles';
 
 interface UseDrawingToolSelectionProps {
   map: L.Map;
-  selectedTool: DrawingTool;
+  selectedTool?: DrawingTool | null;
   setSelectedShapeId: (id: string | null) => void;
 }
 
@@ -15,33 +15,47 @@ interface UseDrawingToolSelectionProps {
  */
 export const useDrawingToolSelection = ({ map, selectedTool, setSelectedShapeId }: UseDrawingToolSelectionProps) => {
   useEffect(() => {
-    if (!selectedTool) {
-      // Deactivate all drawing modes (mit defensive checks)
-      if (map.pm?.Toolbar) {
-        map.pm.disableDraw();
-        map.pm.disableGlobalEditMode();
-        map.pm.disableGlobalRemovalMode();
-      }
-      // Deselect shape when tool is cleared
-      setSelectedShapeId(null);
-      return;
-    }
-
     // Defensive check before activating any drawing mode
     if (!map.pm?.Toolbar) {
       console.warn('[useDrawingToolSelection] Leaflet.PM not available, cannot activate tool:', selectedTool);
       return;
     }
 
+    const disableAllPmModes = () => {
+      const safeDisable = (action: () => void, label: string) => {
+        try {
+          action();
+        } catch (error) {
+          console.warn(`[useDrawingToolSelection] Failed to disable ${label}`, error);
+        }
+      };
+
+      safeDisable(() => map.pm.disableDraw(), 'draw mode');
+
+      if (typeof map.pm.globalEditModeEnabled === 'function' && map.pm.globalEditModeEnabled()) {
+        safeDisable(() => map.pm.disableGlobalEditMode(), 'global edit mode');
+      }
+
+      if (typeof map.pm.globalRemovalModeEnabled === 'function' && map.pm.globalRemovalModeEnabled()) {
+        safeDisable(() => map.pm.disableGlobalRemovalMode(), 'global removal mode');
+      }
+    };
+
+    if (!selectedTool) {
+      disableAllPmModes();
+      // Deselect shape when tool is cleared
+      setSelectedShapeId(null);
+      return;
+    }
+
     // Activate drawing mode based on selected tool
     switch (selectedTool) {
       case 'select':
-        map.pm.disableDraw();
-        map.pm.disableGlobalEditMode();
-        map.pm.disableGlobalRemovalMode();
+        disableAllPmModes();
         // Click-to-Select bleibt aktiv (bereits in separatem useEffect)
         break;
       case 'polygon':
+        disableAllPmModes();
         map.pm.enableDraw('Polygon', {
           snappable: true,
           snapDistance: 20,
@@ -49,6 +63,7 @@ export const useDrawingToolSelection = ({ map, selectedTool, setSelectedShapeId 
         });
         break;
       case 'polyline':
+        disableAllPmModes();
         map.pm.enableDraw('Line', {
           snappable: true,
           snapDistance: 20,
@@ -56,6 +71,7 @@ export const useDrawingToolSelection = ({ map, selectedTool, setSelectedShapeId 
         });
         break;
       case 'rectangle':
+        disableAllPmModes();
         map.pm.enableDraw('Rectangle', {
           snappable: true,
           snapDistance: 20,
@@ -63,6 +79,7 @@ export const useDrawingToolSelection = ({ map, selectedTool, setSelectedShapeId 
         });
         break;
       case 'text':
+        disableAllPmModes();
         map.pm.enableDraw('Text', {
           textOptions: {
             text: 'Beschriftung',
@@ -71,15 +88,15 @@ export const useDrawingToolSelection = ({ map, selectedTool, setSelectedShapeId 
         });
         break;
       case 'edit':
-        map.pm.disableDraw();
+        disableAllPmModes();
         map.pm.enableGlobalEditMode();
         break;
       case 'delete':
-        map.pm.disableDraw();
+        disableAllPmModes();
         map.pm.enableGlobalRemovalMode();
         break;
       default:
-        map.pm.disableDraw();
+        disableAllPmModes();
     }
 
     // Deselect shape when tool changes
@@ -88,9 +105,7 @@ export const useDrawingToolSelection = ({ map, selectedTool, setSelectedShapeId 
     // Cleanup: Deactivate when tool changes (mit defensive checks)
     return () => {
       if (map.pm?.Toolbar) {
-        map.pm.disableDraw();
-        map.pm.disableGlobalEditMode();
-        map.pm.disableGlobalRemovalMode();
+        disableAllPmModes();
       }
     };
   }, [selectedTool, map, setSelectedShapeId]);
