@@ -43,6 +43,12 @@ export const useShapeEventHandlers = ({
    * Called when user creates a new shape
    */
   useEffect(() => {
+    // Defensive check: Ensure PM is available before registering event
+    if (!map.pm) {
+      console.warn('[useShapeEventHandlers] Leaflet.PM not available, skipping pm:create handler');
+      return;
+    }
+
     const handleCreate = (e: any) => {
       const layer = e.layer;
 
@@ -95,7 +101,10 @@ export const useShapeEventHandlers = ({
     map.on('pm:create', handleCreate);
 
     return () => {
-      map.off('pm:create', handleCreate);
+      // Defensive check: Ensure PM still available during cleanup
+      if (map.pm) {
+        map.off('pm:create', handleCreate);
+      }
     };
   }, [map, layersRef, shapesRef, setShapes, onShapesChange, onShapeLimitReached, onShapeCreated, onLayerClick, onLayerContextMenu]);
 
@@ -104,6 +113,12 @@ export const useShapeEventHandlers = ({
    * Called when user edits an existing shape
    */
   useEffect(() => {
+    // Defensive check: Ensure PM is available before registering event
+    if (!map.pm) {
+      console.warn('[useShapeEventHandlers] Leaflet.PM not available, skipping pm:edit handler');
+      return;
+    }
+
     const handleEdit = (e: any) => {
       const layer = e.layer;
       const updatedGeoJson = layer.toGeoJSON() as GeoJSON.Feature;
@@ -140,7 +155,10 @@ export const useShapeEventHandlers = ({
     map.on('pm:edit', handleEdit);
 
     return () => {
-      map.off('pm:edit', handleEdit);
+      // Defensive check: Ensure PM still available during cleanup
+      if (map.pm) {
+        map.off('pm:edit', handleEdit);
+      }
     };
   }, [map, shapesRef, setShapes, onShapesChange]);
 
@@ -149,6 +167,12 @@ export const useShapeEventHandlers = ({
    * Called when user deletes a shape
    */
   useEffect(() => {
+    // Defensive check: Ensure PM is available before registering event
+    if (!map.pm) {
+      console.warn('[useShapeEventHandlers] Leaflet.PM not available, skipping pm:remove handler');
+      return;
+    }
+
     const handleRemove = (e: any) => {
       const layer = e.layer;
       const geoJson = layer.toGeoJSON() as GeoJSON.Feature;
@@ -171,7 +195,10 @@ export const useShapeEventHandlers = ({
     map.on('pm:remove', handleRemove);
 
     return () => {
-      map.off('pm:remove', handleRemove);
+      // Defensive check: Ensure PM still available during cleanup
+      if (map.pm) {
+        map.off('pm:remove', handleRemove);
+      }
     };
   }, [map, layersRef, shapesRef, setShapes, onShapesChange]);
 };

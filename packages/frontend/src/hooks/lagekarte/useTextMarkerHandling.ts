@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useCallback, useEffect, useRef } from 'react';
 import type * as L from 'leaflet';
 import type * as GeoJSON from 'geojson';
 
@@ -16,12 +16,20 @@ interface UseTextMarkerHandlingProps {
  * We use a debounced input handler to save changes.
  */
 export const useTextMarkerHandling = ({ map, shapesRef, setShapes, onShapesChange }: UseTextMarkerHandlingProps) => {
-  useEffect(() => {
-    let timeoutId: NodeJS.Timeout;
+  // Use refs for unstable dependencies to prevent handler recreation
+  const setShapesRef = useRef(setShapes);
+  const onShapesChangeRef = useRef(onShapesChange);
+  const timeoutIdRef = useRef<NodeJS.Timeout>();
 
-    // Use useCallback-equivalent pattern by defining handler inside useEffect
-    // but with stable dependencies to prevent "wrong listener type" errors
-    const handleTextChange = (event: Event) => {
+  // Update refs on each render (but don't trigger re-renders)
+  useEffect(() => {
+    setShapesRef.current = setShapes;
+    onShapesChangeRef.current = onShapesChange;
+  });
+
+  // Stable handler with useCallback - only recreated when map changes
+  const handleTextChange = useCallback(
+    (event: Event) => {
       const target = event.target as HTMLTextAreaElement;
 
       // Check if this is a Leaflet.PM text marker textarea
@@ -52,8 +60,10 @@ export const useTextMarkerHandling = ({ map, shapesRef, setShapes, onShapesChang
       }
 
       // Debounce: Wait 500ms after last input before saving
-      clearTimeout(timeoutId);
-      timeoutId = setTimeout(() => {
+      if (timeoutIdRef.current) {
+        clearTimeout(timeoutIdRef.current);
+      }
+      timeoutIdRef.current = setTimeout(() => {
         // Update shape in collection (use shapesRef to avoid stale closure)
         const updatedShapes: GeoJSON.FeatureCollection = {
           type: 'FeatureCollection',
@@ -71,12 +81,15 @@ export const useTextMarkerHandling = ({ map, shapesRef, setShapes, onShapesChang
           }),
         };
 
-        setShapes(updatedShapes);
-        onShapesChange(updatedShapes);
+        setShapesRef.current(updatedShapes);
+        onShapesChangeRef.current(updatedShapes);
       }, 500);
-    };
+    },
+    [map, shapesRef],
+  );
 
-    // Listen for input events (fires while typing)
+  // Register event listeners with stable handler
+  useEffect(() => {
     const mapContainer = map.getContainer();
 
     // Add event listeners with capturing phase
@@ -86,10 +99,13 @@ export const useTextMarkerHandling = ({ map, shapesRef, setShapes, onShapesChang
     mapContainer.addEventListener('change', handleTextChange, listenerOptions);
 
     return () => {
-      clearTimeout(timeoutId);
-      // CRITICAL: Must use same options as addEventListener
+      // Clear timeout on cleanup
+      if (timeoutIdRef.current) {
+        clearTimeout(timeoutIdRef.current);
+      }
+      // CRITICAL: Now using stable handleTextChange reference - no more "wrong listener type" errors!
       mapContainer.removeEventListener('input', handleTextChange, listenerOptions);
       mapContainer.removeEventListener('change', handleTextChange, listenerOptions);
     };
-  }, [map, shapesRef, setShapes, onShapesChange]);
+  }, [map, handleTextChange]);
 };
