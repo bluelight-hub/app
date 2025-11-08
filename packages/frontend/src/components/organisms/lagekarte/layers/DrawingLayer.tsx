@@ -259,7 +259,8 @@ const DrawingLayerComponent: React.FC<DrawingLayerProps> = ({
   const handleContextMenuEdit = useCallback(() => {
     if (!contextMenu) return;
     const layer = layersRef.current.get(contextMenu.shapeId);
-    if (layer && (layer as any).pm) {
+    // Defensive check: Verify pm.enable method exists before calling
+    if (layer && (layer as any).pm?.enable) {
       (layer as any).pm.enable();
       toast.info('Bearbeitungsmodus aktiviert');
     }
@@ -307,7 +308,8 @@ const DrawingLayerComponent: React.FC<DrawingLayerProps> = ({
     if (!selectedShapeId) return;
 
     const layer = layersRef.current.get(selectedShapeId);
-    if (layer && (layer as any).pm) {
+    // Defensive check: Verify pm.enable method exists before calling
+    if (layer && (layer as any).pm?.enable) {
       (layer as any).pm.enable();
       toast.info('Bearbeitungsmodus aktiviert');
     }
