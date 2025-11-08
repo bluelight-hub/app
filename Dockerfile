@@ -165,6 +165,11 @@ USER node
 # Expose application port
 EXPOSE 3000
 
+# Health check to monitor container health
+# Calls /api/health endpoint every 30s, fails after 3 consecutive failures
+HEALTHCHECK --interval=30s --timeout=3s --start-period=30s --retries=3 \
+  CMD wget --no-verbose --tries=1 --spider http://localhost:3000/api/health || exit 1
+
 # Start the application
 # Uses full path from workspace root
 CMD ["node", "packages/backend/dist/main.js"]
