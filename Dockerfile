@@ -13,6 +13,8 @@ FROM base AS frontend-builder
 WORKDIR /app
 RUN pnpm install --frozen-lockfile
 COPY packages/shared/ ./packages/shared/
+# Build shared package first (required for frontend build)
+RUN cd packages/shared && pnpm build
 COPY packages/frontend/ ./packages/frontend/
 # Set environment variables to skip tests during build
 ENV NODE_ENV=production
@@ -24,6 +26,8 @@ FROM base AS backend-builder
 WORKDIR /app
 RUN pnpm install --frozen-lockfile
 COPY packages/shared/ ./packages/shared/
+# Build shared package first (required for backend build)
+RUN cd packages/shared && pnpm build
 COPY packages/backend/ ./packages/backend/
 RUN cd packages/backend && pnpm build
 
