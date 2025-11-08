@@ -16,10 +16,12 @@ interface UseDrawingToolSelectionProps {
 export const useDrawingToolSelection = ({ map, selectedTool, setSelectedShapeId }: UseDrawingToolSelectionProps) => {
   useEffect(() => {
     if (!selectedTool) {
-      // Deactivate all drawing modes
-      map.pm.disableDraw();
-      map.pm.disableGlobalEditMode();
-      map.pm.disableGlobalRemovalMode();
+      // Deactivate all drawing modes (mit defensive checks)
+      if (map.pm?.Toolbar) {
+        map.pm.disableDraw();
+        map.pm.disableGlobalEditMode();
+        map.pm.disableGlobalRemovalMode();
+      }
       // Deselect shape when tool is cleared
       setSelectedShapeId(null);
       return;
@@ -28,9 +30,11 @@ export const useDrawingToolSelection = ({ map, selectedTool, setSelectedShapeId 
     // Activate drawing mode based on selected tool
     switch (selectedTool) {
       case 'select':
-        map.pm.disableDraw();
-        map.pm.disableGlobalEditMode();
-        map.pm.disableGlobalRemovalMode();
+        if (map.pm?.Toolbar) {
+          map.pm.disableDraw();
+          map.pm.disableGlobalEditMode();
+          map.pm.disableGlobalRemovalMode();
+        }
         // Click-to-Select bleibt aktiv (bereits in separatem useEffect)
         break;
       case 'polygon':
@@ -77,11 +81,13 @@ export const useDrawingToolSelection = ({ map, selectedTool, setSelectedShapeId 
     // Deselect shape when tool changes
     setSelectedShapeId(null);
 
-    // Cleanup: Deactivate when tool changes
+    // Cleanup: Deactivate when tool changes (mit defensive checks)
     return () => {
-      map.pm.disableDraw();
-      map.pm.disableGlobalEditMode();
-      map.pm.disableGlobalRemovalMode();
+      if (map.pm?.Toolbar) {
+        map.pm.disableDraw();
+        map.pm.disableGlobalEditMode();
+        map.pm.disableGlobalRemovalMode();
+      }
     };
   }, [selectedTool, map, setSelectedShapeId]);
 };

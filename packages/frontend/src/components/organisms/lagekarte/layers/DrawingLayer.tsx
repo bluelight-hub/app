@@ -61,6 +61,11 @@ interface DrawingLayerProps {
    * Callback wenn Shape selektiert wird (für Property Panel)
    */
   onShapeSelected?: (shape: GeoJSON.Feature | null) => void;
+  /**
+   * Ob POI-Platzierungs-Modus aktiv ist
+   * Wenn true, werden alle Drawing-Interaktionen deaktiviert
+   */
+  isPlacementModeActive?: boolean;
 }
 
 /**
@@ -97,6 +102,7 @@ const DrawingLayerComponent: React.FC<DrawingLayerProps> = ({
   onShapeCreated,
   onShapeUpdateComplete,
   onShapeSelected,
+  isPlacementModeActive = false,
 }) => {
   const map = useMap();
 
@@ -125,28 +131,40 @@ const DrawingLayerComponent: React.FC<DrawingLayerProps> = ({
   shapesRef.current = shapes;
 
   // Event handlers for layers
-  const handleLayerClick = useCallback((e: L.LeafletMouseEvent) => {
-    L.DomEvent.stopPropagation(e);
-    const clickedLayer = e.target;
-    const clickedShapeId = getShapeIdFromLayer(clickedLayer);
-    if (clickedShapeId) {
-      setSelectedShapeId(clickedShapeId);
-    }
-  }, []);
+  const handleLayerClick = useCallback(
+    (e: L.LeafletMouseEvent) => {
+      // Deaktiviere Layer-Interaktionen während POI-Platzierung
+      if (isPlacementModeActive) return;
 
-  const handleLayerContextMenu = useCallback((e: L.LeafletMouseEvent) => {
-    L.DomEvent.preventDefault(e);
-    L.DomEvent.stopPropagation(e);
-    const clickedLayer = e.target;
-    const clickedShapeId = getShapeIdFromLayer(clickedLayer);
-    if (clickedShapeId) {
-      setContextMenu({
-        isOpen: true,
-        position: { x: e.originalEvent.clientX, y: e.originalEvent.clientY },
-        shapeId: clickedShapeId,
-      });
-    }
-  }, []);
+      L.DomEvent.stopPropagation(e);
+      const clickedLayer = e.target;
+      const clickedShapeId = getShapeIdFromLayer(clickedLayer);
+      if (clickedShapeId) {
+        setSelectedShapeId(clickedShapeId);
+      }
+    },
+    [isPlacementModeActive],
+  );
+
+  const handleLayerContextMenu = useCallback(
+    (e: L.LeafletMouseEvent) => {
+      // Deaktiviere Layer-Interaktionen während POI-Platzierung
+      if (isPlacementModeActive) return;
+
+      L.DomEvent.preventDefault(e);
+      L.DomEvent.stopPropagation(e);
+      const clickedLayer = e.target;
+      const clickedShapeId = getShapeIdFromLayer(clickedLayer);
+      if (clickedShapeId) {
+        setContextMenu({
+          isOpen: true,
+          position: { x: e.originalEvent.clientX, y: e.originalEvent.clientY },
+          shapeId: clickedShapeId,
+        });
+      }
+    },
+    [isPlacementModeActive],
+  );
 
   // Initialize Leaflet.PM Controls
   useLeafletPMControls(map, layersRef);
@@ -160,8 +178,12 @@ const DrawingLayerComponent: React.FC<DrawingLayerProps> = ({
     onLayerContextMenu: handleLayerContextMenu,
   });
 
-  // Handle Drawing-Tool selection
-  useDrawingToolSelection({ map, selectedTool, setSelectedShapeId });
+  // Handle Drawing-Tool selection (deaktiviert während POI-Platzierung)
+  useDrawingToolSelection({
+    map,
+    selectedTool: isPlacementModeActive ? null : selectedTool,
+    setSelectedShapeId,
+  });
 
   // Handle Shape Selection
   useShapeSelection({
