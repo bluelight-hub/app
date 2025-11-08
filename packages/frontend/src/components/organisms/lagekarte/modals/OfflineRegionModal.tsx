@@ -52,6 +52,12 @@ const RectangleDrawControl: React.FC<{ initialBounds?: L.LatLngBounds; onBoundsC
   useEffect(() => {
     if (!map) return;
 
+    // Defensive check: Ensure PM is available
+    if (!map.pm?.Toolbar) {
+      console.warn('[OfflineRegionModal] Leaflet.PM not available');
+      return;
+    }
+
     // Enable Leaflet.PM controls
     map.pm.addControls({
       position: 'topright',
@@ -116,7 +122,10 @@ const RectangleDrawControl: React.FC<{ initialBounds?: L.LatLngBounds; onBoundsC
       if (rectangleRef.current) {
         map.removeLayer(rectangleRef.current);
       }
-      map.pm.removeControls();
+      // Defensive check: Ensure PM still available during cleanup
+      if (map.pm?.Toolbar) {
+        map.pm.removeControls();
+      }
     };
   }, [map, initialBounds, onBoundsChange]);
 

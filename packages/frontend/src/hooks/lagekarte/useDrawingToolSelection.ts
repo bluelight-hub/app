@@ -27,14 +27,18 @@ export const useDrawingToolSelection = ({ map, selectedTool, setSelectedShapeId 
       return;
     }
 
+    // Defensive check before activating any drawing mode
+    if (!map.pm?.Toolbar) {
+      console.warn('[useDrawingToolSelection] Leaflet.PM not available, cannot activate tool:', selectedTool);
+      return;
+    }
+
     // Activate drawing mode based on selected tool
     switch (selectedTool) {
       case 'select':
-        if (map.pm?.Toolbar) {
-          map.pm.disableDraw();
-          map.pm.disableGlobalEditMode();
-          map.pm.disableGlobalRemovalMode();
-        }
+        map.pm.disableDraw();
+        map.pm.disableGlobalEditMode();
+        map.pm.disableGlobalRemovalMode();
         // Click-to-Select bleibt aktiv (bereits in separatem useEffect)
         break;
       case 'polygon':
