@@ -117,11 +117,16 @@ const RectangleDrawControl: React.FC<{ initialBounds?: L.LatLngBounds; onBoundsC
 
     // Cleanup
     return () => {
-      map.off('pm:create', handleRectangleCreated);
-      map.off('pm:edit', handleEdit);
+      // Defensive check: Only remove PM listeners if PM still exists
+      if (map.pm) {
+        map.off('pm:create', handleRectangleCreated);
+        map.off('pm:edit', handleEdit);
+      }
+
       if (rectangleRef.current) {
         map.removeLayer(rectangleRef.current);
       }
+
       // Defensive check: Ensure PM still available during cleanup
       if (map.pm?.Toolbar) {
         map.pm.removeControls();
