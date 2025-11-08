@@ -3,7 +3,7 @@ import { Input } from '@/components/atoms/input.atom';
 import { Spinner } from '@/components/atoms/spinner.atom';
 import { formatPoiTypeLabel } from '@/utils/formatPoiTypeLabel';
 import { POI_ICON_MAP, type PoiType } from '@/utils/poi-icons';
-import { Dialog, DialogBackdrop, DialogPanel, DialogTitle } from '@headlessui/react';
+import { Dialog, DialogPanel, DialogTitle } from '@headlessui/react';
 import type React from 'react';
 import { PiX } from 'react-icons/pi';
 import { usePoiForm } from './usePoiForm';
@@ -107,12 +107,14 @@ export const PoiPlacementModal: React.FC<PoiPlacementModalProps> = ({ isOpen, on
 
   const iconConfig = POI_ICON_MAP[poiType];
 
-  return (
-    <Dialog open={isOpen} onClose={onClose} className="relative z-[9999]">
-      {/* Backdrop */}
-      <DialogBackdrop className="fixed inset-0 bg-black/30 backdrop-blur-sm transition-opacity" />
+  if (!isOpen) {
+    return null;
+  }
 
-      {/* Modal Container */}
+  return (
+    <Dialog open={isOpen} onClose={onClose} className="relative z-[12000]">
+      <div className="fixed inset-0 bg-black/30 backdrop-blur-sm" aria-hidden="true" />
+
       <div className="fixed inset-0 flex items-center justify-center p-4">
         <DialogPanel className="w-full max-w-md transform overflow-hidden rounded-lg border border-gray-300 bg-white p-6 shadow-xl transition-all sm:max-w-md dark:border-gray-600 dark:bg-gray-800">
           {/* Header */}

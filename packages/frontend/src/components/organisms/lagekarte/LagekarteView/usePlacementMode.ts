@@ -69,6 +69,7 @@ export const usePlacementMode = (): UsePlacementModeReturn => {
    * Aktiviert Platzierungs-Modus
    */
   const activatePlacementMode = useCallback((type: PoiType) => {
+    console.log('[usePlacementMode] Activating placement mode with type:', type);
     setState({
       selectedType: type,
       isPlacementActive: true,

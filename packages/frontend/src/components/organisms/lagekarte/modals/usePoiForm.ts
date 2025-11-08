@@ -6,7 +6,7 @@ import { zodValidator } from '@tanstack/zod-form-adapter';
 import { toast } from 'sonner';
 import { z } from 'zod';
 import { asyncDebounce } from '@tanstack/pacer';
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { formatMgrs, isValidMgrs, latLngToMgrs, mgrsToLatLng } from '@/utils/lagekarte/mgrs';
 
 /**
@@ -237,17 +237,37 @@ export const usePoiForm = ({ einsatzId, lagekarteId, initialType, initialCoordin
    * - Bei Konvertierungs-Fehler bleibt mgrsInput unverändert
    * - Nutzt TanStack Form's subscribe API für reaktive Updates
    */
+  const lastSyncedMgrsRef = useRef<{
+    lat: number;
+    lon: number;
+    mgrs: string;
+  } | null>(null);
+
   useEffect(() => {
     const unsubscribe = form.store.subscribe(() => {
       const state = form.store.state;
       const latitude = state.values.latitude;
       const longitude = state.values.longitude;
 
-      if (latitude !== undefined && longitude !== undefined && !Number.isNaN(latitude) && !Number.isNaN(longitude)) {
-        const mgrs = latLngToMgrs(latitude, longitude, 5);
-        if (mgrs) {
-          const formatted = formatMgrs(mgrs);
-          setMgrsInput(formatted);
+      if (latitude === undefined || longitude === undefined || Number.isNaN(latitude) || Number.isNaN(longitude)) {
+        return;
+      }
+
+      const mgrs = latLngToMgrs(latitude, longitude, 5);
+      if (!mgrs) {
+        return;
+      }
+
+      const formatted = formatMgrs(mgrs);
+      const last = lastSyncedMgrsRef.current;
+      const alreadySynced = last && last.lat === latitude && last.lon === longitude && last.mgrs === formatted;
+
+      if (!alreadySynced) {
+        lastSyncedMgrsRef.current = { lat: latitude, lon: longitude, mgrs: formatted };
+
+        setMgrsInput((prev) => (prev === formatted ? prev : formatted));
+
+        if (state.values.mgrs !== formatted) {
           form.setFieldValue('mgrs', formatted);
         }
       }

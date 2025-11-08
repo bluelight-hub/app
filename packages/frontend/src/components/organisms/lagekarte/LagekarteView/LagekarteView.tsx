@@ -1,36 +1,36 @@
+import { api } from '@/api';
+import { useLagekarte, usePois } from '@/api/hooks/useLagekarteApi';
 import { Button } from '@/components/atoms/button.atom';
 import { Spinner } from '@/components/atoms/spinner.atom';
+import { type Layer, LayerToggle } from '@/components/molecules/lagekarte/LayerToggle/LayerToggle';
 import { useColorMode } from '@/hooks/use-color-mode';
+import { useEtb } from '@/hooks/useEtb';
+import { captureMapScreenshot } from '@/utils/captureMapScreenshot';
 import { cn } from '@/utils/cn';
+import type { ShapeType } from '@/utils/drawing-styles';
+import { logger } from '@/utils/logger';
+import type { PoiType } from '@/utils/poi-icons';
+import type * as GeoJSON from 'geojson';
 import * as React from 'react';
-import { useState, useCallback, useEffect } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { PiWarning } from 'react-icons/pi';
-import { MapContainer, useMapEvents, useMap } from 'react-leaflet';
+import { MapContainer, useMap, useMapEvents } from 'react-leaflet';
+import { toast } from 'sonner';
+import { MapToolbarToggle } from '../controls/MapToolbarToggle';
+import { PoiPlacementControl } from '../controls/PoiPlacementControl';
+import { FullscreenCloseButton } from '../FullscreenCloseButton/FullscreenCloseButton';
 import { ClusteredPoiLayer } from '../layers/ClusteredPoiLayer';
 import { DrawingLayer } from '../layers/DrawingLayer';
 import { OfflineTileLayer } from '../layers/OfflineTileLayer';
-import { useLagekarte, usePois } from '@/api/hooks/useLagekarteApi';
-import { useEtb } from '@/hooks/useEtb';
+import { OfflineRegionModal } from '../modals/OfflineRegionModal';
+import { PoiPlacementModal } from '../modals/PoiPlacementModal';
+import { ShapeLabelModal } from '../modals/ShapeLabelModal';
+import { PropertyPanel, type ShapeProperties } from '../PropertyPanel';
+import { type DrawingTool, DrawingToolbar } from '../toolbar/DrawingToolbar';
+import { LagekarteToolbar } from '../toolbar/LagekarteToolbar';
+import { useLagekarteAutoSave } from './useLagekarteAutoSave';
 import { useMapBounds } from './useMapBounds';
 import { usePlacementMode } from './usePlacementMode';
-import { useLagekarteAutoSave } from './useLagekarteAutoSave';
-import { PoiPlacementControl } from '../controls/PoiPlacementControl';
-import { PoiPlacementModal } from '../modals/PoiPlacementModal';
-import { FullscreenCloseButton } from '../FullscreenCloseButton/FullscreenCloseButton';
-import { ShapeLabelModal } from '../modals/ShapeLabelModal';
-import { OfflineRegionModal } from '../modals/OfflineRegionModal';
-import { DrawingToolbar, type DrawingTool } from '../toolbar/DrawingToolbar';
-import { LagekarteToolbar } from '../toolbar/LagekarteToolbar';
-import { LayerToggle, type Layer } from '@/components/molecules/lagekarte/LayerToggle/LayerToggle';
-import { MapToolbarToggle } from '../controls/MapToolbarToggle';
-import { PropertyPanel, type ShapeProperties } from '../PropertyPanel';
-import type { PoiType } from '@/utils/poi-icons';
-import type { ShapeType } from '@/utils/drawing-styles';
-import type * as GeoJSON from 'geojson';
-import { toast } from 'sonner';
-import { captureMapScreenshot } from '@/utils/captureMapScreenshot';
-import { logger } from '@/utils/logger';
-import { api } from '@/api';
 import './lagekarte-view.css';
 
 /**
@@ -587,7 +587,7 @@ export const LagekarteView: React.FC<LagekarteViewProps> = ({ einsatzId, mode = 
 
       {/* POI-Platzierungs-Modal */}
       {isModalOpen && selectedType && clickedCoordinates && lagekarteData?.data && (
-        <PoiPlacementModal isOpen={isModalOpen} onClose={handleModalClose} poiType={selectedType} coordinates={clickedCoordinates} einsatzId={einsatzId} lagekarteId={lagekarteData.data.id} />
+        <PoiPlacementModal isOpen={isModalOpen} onClose={handleModalClose} poiType={selectedType} coordinates={clickedCoordinates} einsatzId={einsatzId} lagekarteId={lagekarteData?.data?.id} />
       )}
 
       {/* Shape-Label-Modal */}
