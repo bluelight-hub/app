@@ -3,7 +3,7 @@ import { Spinner } from '@/components/atoms/spinner.atom';
 import { useColorMode } from '@/hooks/use-color-mode';
 import { cn } from '@/utils/cn';
 import * as React from 'react';
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import { PiWarning } from 'react-icons/pi';
 import { MapContainer, useMapEvents, useMap } from 'react-leaflet';
 import { ClusteredPoiLayer } from '../layers/ClusteredPoiLayer';
@@ -87,14 +87,30 @@ const MapClickHandler: React.FC<{
   selectedType: PoiType | null;
   onMapClick: (lat: number, lon: number) => void;
 }> = ({ isPlacementActive, selectedType, onMapClick }) => {
-  useMapEvents({
-    click: (e) => {
-      if (isPlacementActive && selectedType) {
-        const { lat, lng } = e.latlng;
-        onMapClick(lat, lng);
-      }
-    },
-  });
+  const map = useMap();
+
+  useEffect(() => {
+    if (!isPlacementActive || !selectedType) {
+      return;
+    }
+
+    const handleClick = (e: L.LeafletMouseEvent) => {
+      const { lat, lng } = e.latlng;
+      console.log('[MapClickHandler] Map clicked in placement mode:', { lat, lng, selectedType });
+      onMapClick(lat, lng);
+    };
+
+    // Add click listener with high priority
+    map.on('click', handleClick);
+
+    console.log('[MapClickHandler] Click listener registered for placement mode');
+
+    return () => {
+      map.off('click', handleClick);
+      console.log('[MapClickHandler] Click listener removed');
+    };
+  }, [map, isPlacementActive, selectedType, onMapClick]);
+
   return null;
 };
 
@@ -657,7 +673,16 @@ export const LagekarteView: React.FC<LagekarteViewProps> = ({ einsatzId, mode = 
           {layers.find((l) => l.name === 'poi')?.visible && <ClusteredPoiLayer einsatzId={einsatzId} />}
 
           {/* Drawing-Layer (conditionally rendered based on layer visibility) */}
-          {layers.find((l) => l.name === 'drawing')?.visible && lagekarteData?.data && (
+          {(() => {
+            const shouldRender = layers.find((l) => l.name === 'drawing')?.visible && lagekarteData?.data;
+            console.log('[LagekarteView] DrawingLayer render check:', {
+              shouldRender,
+              isPlacementActive,
+              hasDrawingLayer: !!layers.find((l) => l.name === 'drawing')?.visible,
+              hasData: !!lagekarteData?.data,
+            });
+            return shouldRender;
+          })() && (
             <DrawingLayer
               einsatzId={einsatzId}
               selectedTool={selectedDrawingTool}
@@ -668,6 +693,7 @@ export const LagekarteView: React.FC<LagekarteViewProps> = ({ einsatzId, mode = 
               onShapeLimitReached={handleShapeLimitReached}
               onShapeUpdateComplete={handleShapeUpdateComplete}
               onShapeSelected={handleShapeSelected}
+              isPlacementModeActive={isPlacementActive}
             />
           )}
 
