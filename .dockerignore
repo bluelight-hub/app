@@ -1,6 +1,5 @@
 # Dependencies
 node_modules
-**/node_modules
 .pnpm-store
 **/dist
 
@@ -37,21 +36,18 @@ docker-compose*
 # Build artifacts
 .cursor
 .DS_Store
-**/.DS_Store
 **/tsconfig.tsbuildinfo
 **/.tsbuildinfo
 
 # Python virtual environment (falls später benötigt)
 venv
 **/__pycache__
-*.pyc 
-
 packages/frontend/src-tauri/target
-**/*.test.ts
-**/*.spec.ts
 **/*.test.tsx
 **/*.spec.tsx
 **/*.test.jsx
 **/*.spec.jsx
 **/*.test.js
 **/*.spec.js
+
+old-projects
