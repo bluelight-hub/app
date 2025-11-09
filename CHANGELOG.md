@@ -1,3 +1,226 @@
+## Version [v1.0.0-alpha.32](https://github.com/rubenvitt/bluelight-hub/compare/v1.0.0-alpha.31...v1.0.0-alpha.32) – Veröffentlicht am 2025-11-09
+
+## ✨ Neue Funktionen
+Die folgenden neuen Features wurden hinzugefügt:
+- [`b520904`](https://github.com/rubenvitt/bluelight-hub/commit/b520904) (etb): Implement ETB entry form with user management integration 
+
+- [`9adb53c`](https://github.com/rubenvitt/bluelight-hub/commit/9adb53c) (etb): Add history tracking and enhanced table view with auto-creation 
+
+- [`572fa30`](https://github.com/rubenvitt/bluelight-hub/commit/572fa30) (etb): Add deleter username display and rate limiting 
+
+- [`a41872e`](https://github.com/rubenvitt/bluelight-hub/commit/a41872e) (auth): Password Strength Indicator für Admin-Setup 
+(Zugehörige Issues: [`#198`](https://github.com/rubenvitt/bluelight-hub/issues/))
+
+- [`44bb79e`](https://github.com/rubenvitt/bluelight-hub/commit/44bb79e) (frontend): Integriere zxcvbn für Passwort-Stärke-Bewertung 
+(Zugehörige Issues: [`#230`](https://github.com/rubenvitt/bluelight-hub/issues/))
+
+- [`b2e206e`](https://github.com/rubenvitt/bluelight-hub/commit/b2e206e) (user-management): Add soft delete and manual lock functionality 
+
+- [`50fce92`](https://github.com/rubenvitt/bluelight-hub/commit/50fce92) (frontend): Implement Lagekarte view with OSM tiles integration 
+
+- [`8cbece9`](https://github.com/rubenvitt/bluelight-hub/commit/8cbece9) (backend): Implement Lagekarte POI-Management System 
+
+- [`64eeae5`](https://github.com/rubenvitt/bluelight-hub/commit/64eeae5) (backend): Implement Lagekarte controllers and integration tests 
+
+- [`fee248b`](https://github.com/rubenvitt/bluelight-hub/commit/fee248b) (lagekarte): Implement PoiLayer component for POI markers 
+
+- [`04d8dfb`](https://github.com/rubenvitt/bluelight-hub/commit/04d8dfb) (lagekarte): Implement multi-POI marker system for Lagekarte 
+
+- [`877226b`](https://github.com/rubenvitt/bluelight-hub/commit/877226b) (lagekarte): Implement POI placement system 
+
+- [`c1c06c8`](https://github.com/rubenvitt/bluelight-hub/commit/c1c06c8) (lagekarte): Implement drawing tools for hazard/restricted areas 
+
+- [`7bb8c63`](https://github.com/rubenvitt/bluelight-hub/commit/7bb8c63) (lagekarte): Implement text tool in drawing toolbar 
+
+- [`6575a95`](https://github.com/rubenvitt/bluelight-hub/commit/6575a95) (lagekarte): Flexbox-Layout für Map-Werkzeuge implementiert 
+
+- [`dc01200`](https://github.com/rubenvitt/bluelight-hub/commit/dc01200) (lagekarte): Add text content change handler for drawing markers 
+
+- [`fce2f23`](https://github.com/rubenvitt/bluelight-hub/commit/fce2f23) (lagekarte): Install leaflet.markercluster library with CSS imports 
+
+- [`036e267`](https://github.com/rubenvitt/bluelight-hub/commit/036e267) (lagekarte): Add ClusteredPoiLayer with MarkerClusterGroup 
+
+- [`742583e`](https://github.com/rubenvitt/bluelight-hub/commit/742583e) (lagekarte): Configure MarkerClusterGroup clustering options 
+
+- [`8455a61`](https://github.com/rubenvitt/bluelight-hub/commit/8455a61) (lagekarte): Add custom Tailwind cluster icons with dynamic sizing 
+
+- [`8bf1c21`](https://github.com/rubenvitt/bluelight-hub/commit/8bf1c21) (lagekarte): Integrate ClusteredPoiLayer in LagekarteView 
+
+- [`f85fdb3`](https://github.com/rubenvitt/bluelight-hub/commit/f85fdb3) (lagekarte): Add debounced auto-save for Lagekarte state 
+
+- [`46f16ac`](https://github.com/rubenvitt/bluelight-hub/commit/46f16ac) (lagekarte): Enable offline-first mode for Lagekarte queries/mutations 
+
+- [`8a682cd`](https://github.com/rubenvitt/bluelight-hub/commit/8a682cd) (lagekarte): Add Last-Write-Wins conflict handling warning 
+
+- [`e4414ae`](https://github.com/rubenvitt/bluelight-hub/commit/e4414ae) (lagekarte): Add Offline-Download toolbar button 
+
+- [`16e5ecc`](https://github.com/rubenvitt/bluelight-hub/commit/16e5ecc) (lagekarte): Add Offline-Region-Modal with zoom controls 
+
+- [`126f06e`](https://github.com/rubenvitt/bluelight-hub/commit/126f06e) (lagekarte): Implement Bounding-Box-Selection for Offline-Download 
+
+- [`7cf39e3`](https://github.com/rubenvitt/bluelight-hub/commit/7cf39e3) (offline-download): Implement tile count calculation 
+
+- [`76c29aa`](https://github.com/rubenvitt/bluelight-hub/commit/76c29aa) (offline-download): Add storage quota check 
+
+- [`5b04b91`](https://github.com/rubenvitt/bluelight-hub/commit/5b04b91) (offline-download): Implement tile download utility 
+
+- [`22ea69e`](https://github.com/rubenvitt/bluelight-hub/commit/22ea69e) (offline-download): Integrate tile download with progress bar 
+
+- [`b14402f`](https://github.com/rubenvitt/bluelight-hub/commit/b14402f) (offline-lagekarte): Complete Tasks 9-12 for offline tile functionality 
+
+- [`46cd7ca`](https://github.com/rubenvitt/bluelight-hub/commit/46cd7ca) (lagekarte): Add ETB screenshot export feature 
+
+- [`c461bf6`](https://github.com/rubenvitt/bluelight-hub/commit/c461bf6) (backend): Add ENV-based uploads path configuration 
+
+- [`59652e1`](https://github.com/rubenvitt/bluelight-hub/commit/59652e1) (frontend): Add screenshot preview to ETB entry details 
+
+- [`113c6bd`](https://github.com/rubenvitt/bluelight-hub/commit/113c6bd) (feature): Add kategorisierungsdokumentation to ETB system 
+
+- [`3d29a13`](https://github.com/rubenvitt/bluelight-hub/commit/3d29a13) (etb): Add fullscreen mode to ETB view 
+
+- [`073eddd`](https://github.com/rubenvitt/bluelight-hub/commit/073eddd) (tauri): Add automatic window orientation switching 
+
+- [`570e77f`](https://github.com/rubenvitt/bluelight-hub/commit/570e77f) (lagekarte): Add Shape-Selection with Click-to-Select 
+(Zugehörige Issues: [`#3`](https://github.com/rubenvitt/bluelight-hub/issues/))
+
+- [`62c8b05`](https://github.com/rubenvitt/bluelight-hub/commit/62c8b05) (lagekarte): Add Context-Menu and Keyboard Delete for Shapes 
+
+- [`9645805`](https://github.com/rubenvitt/bluelight-hub/commit/9645805) (lagekarte): Add Property Panel for Shape Editing 
+
+- [`58e5605`](https://github.com/rubenvitt/bluelight-hub/commit/58e5605) (lagekarte): Add MGRS coordinate conversion utilities 
+
+- [`ccaa677`](https://github.com/rubenvitt/bluelight-hub/commit/ccaa677) (lagekarte): Add MGRS coordinate support for POIs 
+
+## 🐛 Fehlerbehebungen
+Diese Probleme wurden behoben:
+- [`bef332c`](https://github.com/rubenvitt/bluelight-hub/commit/bef332c) (etb): Fix incorrect query invalidation when deleting ETB entries 
+
+- [`53ca2b1`](https://github.com/rubenvitt/bluelight-hub/commit/53ca2b1) (shared): Fix CI build by compiling TypeScript in build:ci 
+
+- [`5f4665b`](https://github.com/rubenvitt/bluelight-hub/commit/5f4665b) (backend): Apply QA-review fixes for Lagekarte POI system 
+
+- [`0e5004e`](https://github.com/rubenvitt/bluelight-hub/commit/0e5004e) (lagekarte): Fix POI-Endpoint lazy creation 
+
+- [`9d7613a`](https://github.com/rubenvitt/bluelight-hub/commit/9d7613a) (lagekarte): Fix z-index hierarchy for dialogs 
+
+- [`086bd65`](https://github.com/rubenvitt/bluelight-hub/commit/086bd65) (lagekarte): Fix Drawing-Tools kritische Fehler 
+
+- [`5a0c0f2`](https://github.com/rubenvitt/bluelight-hub/commit/5a0c0f2) (lagekarte): Fix Edit-Mode &amp; Label-Modal 
+
+- [`4a4e339`](https://github.com/rubenvitt/bluelight-hub/commit/4a4e339) (lagekarte): Fix TanStack Pacer API usage in auto-save hook 
+
+- [`fbc808c`](https://github.com/rubenvitt/bluelight-hub/commit/fbc808c) (offline-lagekarte): Fix leaflet.offline event listeners 
+
+- [`98990f1`](https://github.com/rubenvitt/bluelight-hub/commit/98990f1) (offline-lagekarte): Fix map reference for tile downloads 
+
+- [`502ee6d`](https://github.com/rubenvitt/bluelight-hub/commit/502ee6d) (offline-lagekarte): Fix event listener warnings 
+
+- [`c452ed9`](https://github.com/rubenvitt/bluelight-hub/commit/c452ed9) (offline-lagekarte): Add toast notifications for tile downloads 
+
+- [`dfdea6d`](https://github.com/rubenvitt/bluelight-hub/commit/dfdea6d) (frontend): Fix enum type conversion and remove UI clutter 
+
+- [`dc40f9f`](https://github.com/rubenvitt/bluelight-hub/commit/dc40f9f) (backend): Add multer dependencies for file upload 
+
+- [`50694fa`](https://github.com/rubenvitt/bluelight-hub/commit/50694fa) (backend): Fix TypeScript error in screenshot upload 
+
+- [`9d46a1a`](https://github.com/rubenvitt/bluelight-hub/commit/9d46a1a) (lagekarte): Fix ETB-Screenshot-Export Bugs 
+
+- [`df17a43`](https://github.com/rubenvitt/bluelight-hub/commit/df17a43) (backend): Fix uploads directory path for monorepo 
+
+- [`f118ebe`](https://github.com/rubenvitt/bluelight-hub/commit/f118ebe) (backend): Increase payload size limit for screenshot uploads 
+
+- [`3071a5a`](https://github.com/rubenvitt/bluelight-hub/commit/3071a5a) (backend): Fix multer destination callback context issue 
+
+- [`efb3046`](https://github.com/rubenvitt/bluelight-hub/commit/efb3046) (frontend): Fix screenshot URL extraction from wrapped API response 
+
+- [`065b73b`](https://github.com/rubenvitt/bluelight-hub/commit/065b73b) (tauri): Fix LogicalSize import from correct module 
+
+- [`cf3cd26`](https://github.com/rubenvitt/bluelight-hub/commit/cf3cd26) (qa-review): Fix review issues from PR feedback 
+
+- [`deb846b`](https://github.com/rubenvitt/bluelight-hub/commit/deb846b) (lagekarte): Fix Drawing-Toolbar position from top-24 to top-40 
+
+- [`fe5e2e0`](https://github.com/rubenvitt/bluelight-hub/commit/fe5e2e0) (lagekarte): Fix zwei kritische Bugs in Lagekarte-Feature 
+
+- [`f485045`](https://github.com/rubenvitt/bluelight-hub/commit/f485045) (lagekarte): Verbessere Error-Logging bei ETB-Screenshot-Export 
+
+- [`1d5d090`](https://github.com/rubenvitt/bluelight-hub/commit/1d5d090) (lagekarte): Fix ETB-Screenshot-Export - API-Client Sync 
+
+- [`2774e88`](https://github.com/rubenvitt/bluelight-hub/commit/2774e88) (lagekarte): Fix Edit-Button and Color Display Bugs 
+
+- [`f77383f`](https://github.com/rubenvitt/bluelight-hub/commit/f77383f) (lagekarte): Fix Edit/Delete-Buttons und Farb-Update Live-Anzeige 
+
+- [`1f13557`](https://github.com/rubenvitt/bluelight-hub/commit/1f13557) (lagekarte): Fix POI-Platzierungs-Crash durch DrawingLayer-Unmount 
+
+- [`91bcbd5`](https://github.com/rubenvitt/bluelight-hub/commit/91bcbd5) (lagekarte): Fix alle &quot;wrong listener type: undefined&quot; Errors 
+
+- [`499b76f`](https://github.com/rubenvitt/bluelight-hub/commit/499b76f) (lagekarte): Fix verbleibende layer.pm.enable() Errors in DrawingLayer 
+
+- [`e8405c4`](https://github.com/rubenvitt/bluelight-hub/commit/e8405c4) (lagekarte): Fix Race Conditions - Stabile Handler &amp; PM-Event-Checks 
+(Zugehörige Issues: [`#1`](https://github.com/rubenvitt/bluelight-hub/issues/), [`#2`](https://github.com/rubenvitt/bluelight-hub/issues/))
+
+- [`f32769d`](https://github.com/rubenvitt/bluelight-hub/commit/f32769d) (lagekarte): Fix fehlende PM-Checks in OfflineRegionModal map.off() 
+
+- [`2049a31`](https://github.com/rubenvitt/bluelight-hub/commit/2049a31) (lagekarte): Fix Stabilität durch defensive PM-Checks und Modal-Fixes 
+
+## 🔒 Sicherheitsverbesserungen
+Sicherheitsrelevante Änderungen:
+- [`2217793`](https://github.com/rubenvitt/bluelight-hub/commit/2217793) (tauri): Add window resize permissions to capabilities 
+
+## ♻ Refactoring
+Struktur- oder Code-Verbesserungen:
+- [`b7b3d45`](https://github.com/rubenvitt/bluelight-hub/commit/b7b3d45) (etb): Remove duplicate kategorieLabels definition 
+
+- [`31d21bc`](https://github.com/rubenvitt/bluelight-hub/commit/31d21bc) (etb): Use Textarea atom props instead of className overrides 
+
+- [`9662c65`](https://github.com/rubenvitt/bluelight-hub/commit/9662c65) (etb): Remove duplicate type definition and redundant refetch 
+
+- [`483b8cc`](https://github.com/rubenvitt/bluelight-hub/commit/483b8cc) (ui): Make LoadingState height configurable 
+
+- [`f5aa90b`](https://github.com/rubenvitt/bluelight-hub/commit/f5aa90b) (backend): Refactor Einsatz-ETB dependency with domain events 
+
+- [`b3b1ce3`](https://github.com/rubenvitt/bluelight-hub/commit/b3b1ce3) (ui): Move filter reset to Dialog.Footer for API consistency 
+(Zugehörige Issues: [`#227`](https://github.com/rubenvitt/bluelight-hub/issues/))
+
+- [`3d00886`](https://github.com/rubenvitt/bluelight-hub/commit/3d00886) (frontend): Use EinsatzDetailView in einsaetze route 
+
+- [`d1a7873`](https://github.com/rubenvitt/bluelight-hub/commit/d1a7873) (api): Replace manual POI interface with generated PoiResponseDto 
+
+- [`2160eb7`](https://github.com/rubenvitt/bluelight-hub/commit/2160eb7) (lagekarte): Apply QA code improvements for drawing tools 
+
+- [`4f341dd`](https://github.com/rubenvitt/bluelight-hub/commit/4f341dd) (lagekarte): QA refactorings für Marker-Clustering 
+
+- [`6ca641a`](https://github.com/rubenvitt/bluelight-hub/commit/6ca641a) (backend): Use absolute paths for uploads directory 
+
+- [`330f68b`](https://github.com/rubenvitt/bluelight-hub/commit/330f68b) (backend): Consolidate static file serving with ServeStaticModule 
+
+- [`67cf54d`](https://github.com/rubenvitt/bluelight-hub/commit/67cf54d) (docs): Refactor CLAUDE.md and remove all test infrastructure 
+
+- [`81e6139`](https://github.com/rubenvitt/bluelight-hub/commit/81e6139) (lagekarte): Refactor POI Placement Control into Atomic Components 
+
+- [`c7e03c9`](https://github.com/rubenvitt/bluelight-hub/commit/c7e03c9) (frontend): Redundante Tailwind-Klassen in Label entfernen 
+
+- [`b3da781`](https://github.com/rubenvitt/bluelight-hub/commit/b3da781) (lagekarte): Refactor DrawingLayer in Custom Hooks 
+
+## 🔧 Tool Verbesserungen
+Verbesserungen an den Werkzeugen:
+- [`d1be55c`](https://github.com/rubenvitt/bluelight-hub/commit/d1be55c) (config): Add uploads directory to gitignore 
+
+
+
+# [1.0.0-alpha.32](https://github.com/rubenvitt/bluelight-hub/compare/v1.0.0-alpha.31...v1.0.0-alpha.32) (2025-11-09)
+
+
+* ♻️(api): Replace manual POI interface with generated PoiResponseDto ([d1a7873](https://github.com/rubenvitt/bluelight-hub/commit/d1a787361ed5e280d49ff0cdfa56387ad625fc99))
+
+
+### BREAKING CHANGES
+
+* - Manual LagekartePoi interface removed - use generated PoiResponseDto
+
+🤖 Generated with [Claude Code](https://claude.com/claude-code)
+
+Co-Authored-By: Claude <noreply@anthropic.com>
+
 ## Version [v1.0.0-alpha.31](https://github.com/rubenvitt/bluelight-hub/compare/v1.0.0-alpha.30...v1.0.0-alpha.31) – Veröffentlicht am 2025-09-26
 
 ## ✨ Neue Funktionen
