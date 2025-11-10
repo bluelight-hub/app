@@ -26,8 +26,8 @@
     "test": "echo 'No tests available for shared package'"
   },
   "devDependencies": {
-    "@openapitools/openapi-generator-cli": "^2.24.0",
-    "rimraf": "^6.0.1",
+    "@openapitools/openapi-generator-cli": "^2.25.0",
+    "rimraf": "^6.1.0",
     "typescript": "^5.9.3"
   }
 }

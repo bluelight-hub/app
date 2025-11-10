@@ -207,6 +207,43 @@ graph TB
 | **Mermaid**       | 11.x    | Diagrams          | Code-based diagrams  |
 | **DBML Renderer** | 1.x     | Database Diagrams | Schema visualization |
 
+#### Documentation Build Infrastructure
+
+**Purpose:** Mermaid-Diagramme in AsciiDoc-Dokumentation rendern (HTML/PDF)
+
+**Tool-Chain:**
+```
+AsciiDoc → AsciiDoctor → mmdc (Mermaid CLI) → Puppeteer (Headless Chrome) → SVG/PNG
+```
+
+**Dependencies:**
+
+| Technology                  | Version | Rolle im Build                       |
+|-----------------------------|---------|--------------------------------------|
+| **@mermaid-js/mermaid-cli** | 11.x    | CLI-Tool für Mermaid → SVG/PNG       |
+| **Puppeteer**               | 24.x    | Headless Chrome für Diagram-Rendering |
+
+**Docker/CI Sandbox Problem:**
+
+Puppeteer läuft standardmäßig mit Chrome-Sandbox, was in Docker/CI-Umgebungen fehlschlägt.
+
+**Lösung:** Custom Wrapper `mmdc-no-sandbox` mit `puppeteer.json`:
+```json
+{
+  "args": ["--no-sandbox", "--disable-setuid-sandbox", "--disable-dev-shm-usage"]
+}
+```
+
+**Build Scripts:**
+```json
+"docs:html": "asciidoctor -a mmdc=./mmdc-no-sandbox ...",
+"docs:pdf": "asciidoctor-pdf -a mmdc=./mmdc-no-sandbox ..."
+```
+
+**CI Optimization:**
+- `PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=true` - verhindert redundante Chromium-Downloads
+- Puppeteer als `devDependency` - nicht für Runtime benötigt
+
 ### CI/CD & Deployment
 
 | Technology           | Version | Verwendung        | Begründung                |
