@@ -1,3 +1,13 @@
+## Version [v1.0.0-alpha.33](https://github.com/rubenvitt/bluelight-hub/compare/v1.0.0-alpha.32...v1.0.0-alpha.33) – Veröffentlicht am 2025-11-10
+
+## ✨ Neue Funktionen
+Die folgenden neuen Features wurden hinzugefügt:
+- [`6a0363d`](https://github.com/rubenvitt/bluelight-hub/commit/6a0363d) (shared): Generate complete API client from OpenAPI spec 
+
+
+
+# [1.0.0-alpha.33](https://github.com/rubenvitt/bluelight-hub/compare/v1.0.0-alpha.32...v1.0.0-alpha.33) (2025-11-10)
+
 ## Version [v1.0.0-alpha.32](https://github.com/rubenvitt/bluelight-hub/compare/v1.0.0-alpha.31...v1.0.0-alpha.32) – Veröffentlicht am 2025-11-09
 
 ## ✨ Neue Funktionen
