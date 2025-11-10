@@ -5,10 +5,12 @@ ifndef::imagesdir[:imagesdir: ../images]
 
 [cols="1,3"]
 |===
-|Status |Angenommen
+|Status |Überholt
 |Datum |2025-10-10
+|Aktualisiert |2025-11-10
 |Autor |Claude Code Agent
 |Kontext |Dokumentationsstrukturierung
+|Grund |Migration auf neue BMad-Version mit anderem Funktionsprinzip
 |===
 
 == Kontext und Problemstellung
@@ -147,4 +149,11 @@ Siehe:
 |===
 |Datum |Autor |Änderung
 |2025-10-10 |Claude Code |Initiale Erstellung nach docs-Refactoring
+|2025-11-10 |Claude Code |Status auf "Überholt" gesetzt - Migration auf neue BMad-Version
 |===
+
+== Status: Überholt
+
+Dieses ADR wurde am 2025-11-10 als überholt markiert.
+
+**Grund:** Das Projekt migriert auf eine neue Version des BMad-Frameworks, die ein anderes Funktionsprinzip verwendet. Die hier beschriebene Dokumentationsstruktur und Integration entspricht nicht mehr der neuen BMad-Architektur.
