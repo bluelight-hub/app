@@ -1,4 +1,4 @@
-import * as dotenvx from '@dotenvx/dotenvx';
+import * as dotenvx from '@dotenvx/dotenvx-ops';
 import { defineConfig } from 'prisma/config';
 
 dotenvx.config();

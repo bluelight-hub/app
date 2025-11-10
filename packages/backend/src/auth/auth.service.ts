@@ -120,7 +120,7 @@ export class AuthService {
       role: user.role, // Include a role in token payload
     };
     return this.jwtService.sign(payload, {
-      expiresIn: this.configService.get<string>('JWT_ACCESS_EXPIRES_IN', '15m'),
+      expiresIn: this.configService.get('JWT_ACCESS_EXPIRES_IN', '15m'),
     });
   }
 
@@ -136,8 +136,8 @@ export class AuthService {
   signRefreshToken(user: User): string {
     const payload = { sub: user.id };
     return this.jwtService.sign(payload, {
-      secret: this.configService.get<string>('JWT_REFRESH_SECRET'),
-      expiresIn: this.configService.get<string>('JWT_REFRESH_EXPIRES_IN', '7d'),
+      secret: this.configService.get('JWT_REFRESH_SECRET'),
+      expiresIn: this.configService.get('JWT_REFRESH_EXPIRES_IN', '7d'),
     });
   }
 
@@ -362,15 +362,15 @@ export class AuthService {
    *
    * @returns Konfigurationsobjekt mit secret und expiresIn
    */
-  private getAdminTokenConfig(): { secret: string; expiresIn: string } {
-    const adminSecret = this.configService.get<string>('ADMIN_JWT_SECRET');
+  private getAdminTokenConfig() {
+    const adminSecret = this.configService.get('ADMIN_JWT_SECRET');
     if (!adminSecret) {
       throw new Error('ADMIN_JWT_SECRET is not configured');
     }
 
     return {
       secret: adminSecret,
-      expiresIn: this.configService.get<string>('JWT_ADMIN_EXPIRES_IN', '15m'),
+      expiresIn: this.configService.get('JWT_ADMIN_EXPIRES_IN', '15m'),
     };
   }
 
