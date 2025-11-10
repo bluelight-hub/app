@@ -33,7 +33,7 @@ Wir haben uns für die Implementierung eines **Unified Authentication Pattern** 
 [source,typescript]
 ----
 @Post('unified')
-async unifiedAuth(@Body() authDto: AuthRequestDto): Promise<AuthResponseDto> {
+async unifiedAuth(@Body() AuthRequestDto): Promise<AuthResponseDto> {
   const existingUser = await this.findUserByUsername(authDto.username);
   
   if (existingUser) {
@@ -126,7 +126,6 @@ async unifiedAuth(@Body() authDto: AuthRequestDto): Promise<AuthResponseDto> {
 
 == Referenzen
 
-* link:../../../.taskmaster/docs/auth-unified-login-register.md[Projekt-Spezifikation]
 * link:007-jwt-authentifizierung.adoc[ADR-007: JWT-Authentifizierung]
 * link:../08-concepts.adoc#_authentifizierung_und_autorisierung[Konzepte: Authentifizierung]
 

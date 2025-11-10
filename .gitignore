@@ -175,7 +175,6 @@ commit_msg
 # RepoMix
 repomix-output.xml
 
-# Added by Claude Task Master
 dev-debug.log
 # Editor directories and files
 .vscode
@@ -185,9 +184,6 @@ dev-debug.log
 *.sln
 *.sw?
 # OS specific
-# Task files
-tasks.json
-.taskmaster/tasks
 
 # Cursor MCP (enthält API-Schlüssel)
 .cursor/mcp.json
@@ -207,6 +203,3 @@ tasks.json
 # Debug files
 *-debug.png
 auth-page-debug.png
-# BMAD (local only)
-# BMAD (local only)
-.bmad-*/

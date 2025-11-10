@@ -117,8 +117,7 @@ app/
 │       └── client/apis/   # Generierte API-Clients (nicht manuell ändern!)
 ├── docs/
 │   └── architecture/      # arc42 Dokumentation (PFLICHT für Architektur)
-├── ai-docs/              # AI-spezifische Dokumentation
-└── .taskmaster/          # Task-Management & Workflows
+└── ai-docs/              # AI-spezifische Dokumentation
 ```
 
 ## 🛠️ ESSENTIAL COMMANDS
@@ -257,7 +256,6 @@ dto/       # Data Transfer Objects
 Mandatory: Spreche Deutsch mit mir, produziere Englischen Code, aber deutsche Dokumentation!
 
 _Repository:_ github.com/rubenvitt/bluelight-hub
-_Import zusätzliche Workflows:_ @./.taskmaster/CLAUDE.md
 
 ---
 
