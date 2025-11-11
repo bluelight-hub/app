@@ -23,7 +23,7 @@ reviews:
   suggested_reviewers: true
   auto_assign_reviewers: false
   poem: true
-  path_filters: [ '!packages/shared/**', '!.claude/**' ]
+  path_filters: [ '!packages/shared/**', '!.claude/**', '!.bmad/**', '!ai-docs/**', '!docs/**' ]
   abort_on_close: true
   disable_cache: false
   auto_review:
