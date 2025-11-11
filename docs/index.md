@@ -38,29 +38,29 @@
 
 ### Core Architecture
 
-- [🏛️ **Architecture Documentation**](./.bmm-architecture.md) - **PRIMARY ARCHITECTURE REFERENCE** (100% accurate)
-- [📋 Project Overview](./.bmm-project-overview.md) - Executive summary and quick start
-- [🏗️ Project Structure](./.bmm-project-structure.md) - Monorepo organization
-- [🌲 Source Tree Analysis](./.bmm-source-tree-analysis.md) - Annotated directory tree (78 critical dirs)
-- [🔗 Integration Architecture](./.bmm-integration-architecture.md) - How parts communicate
-- [📊 Arc42 Reality Check](./.bmm-arc42-reality-check.md) - Gap analysis of deprecated documentation
+- [🏛️ **Architecture Documentation**](./architecture.md) - **PRIMARY ARCHITECTURE REFERENCE** (100% accurate)
+- [📋 Project Overview](./project-overview.md) - Executive summary and quick start
+- [🏗️ Project Structure](./project-structure.md) - Monorepo organization
+- [🌲 Source Tree Analysis](./source-tree-analysis.md) - Annotated directory tree (78 critical dirs)
+- [🔗 Integration Architecture](./integration-architecture.md) - How parts communicate
+- [📊 Arc42 Reality Check](./arc42-reality-check.md) - Gap analysis of deprecated documentation
 
 ### Backend Documentation
 
-- [📡 API Contracts](./.bmm-backend-api-contracts.md) - 54 REST endpoints documented
-- [🗄️ Data Models](./.bmm-backend-data-models.md) - 9 Prisma models + 5 enums
+- [📡 API Contracts](./backend-api-contracts.md) - 54 REST endpoints documented
+- [🗄️ Data Models](./backend-data-models.md) - 9 Prisma models + 5 enums
 
 ### Frontend Documentation
 
-- [🧩 Component Inventory](./.bmm-frontend-components.md) - 135+ components (Atomic Design)
-- [🔄 State Management](./.bmm-frontend-state-management.md) - TanStack Query/Store patterns
-- [🔌 API Integration](./.bmm-frontend-api-integration.md) - How frontend calls backend
+- [🧩 Component Inventory](./frontend-components.md) - 135+ components (Atomic Design)
+- [🔄 State Management](./frontend-state-management.md) - TanStack Query/Store patterns
+- [🔌 API Integration](./frontend-api-integration.md) - How frontend calls backend
 
 ### Development Resources
 
-- [🛠️ Development Guide](./.bmm-development-guide.md) - **Setup, commands, troubleshooting**
-- [🔧 Technology Stack](./.bmm-technology-stack.md) - Detailed tech stack analysis
-- [📚 Existing Docs Inventory](./.bmm-existing-docs-inventory.md) - 57+ existing docs catalogued
+- [🛠️ Development Guide](./development-guide.md) - **Setup, commands, troubleshooting**
+- [🔧 Technology Stack](./technology-stack.md) - Detailed tech stack analysis
+- [📚 Existing Docs Inventory](./existing-docs-inventory.md) - 57+ existing docs catalogued
 
 ---
 
@@ -68,7 +68,7 @@
 
 ### Architecture Documentation
 
-**PRIMARY REFERENCE:** [`.bmm-architecture.md`](./.bmm-architecture.md)
+**PRIMARY REFERENCE:** [`architecture.md`](./architecture.md)
 - **Status:** ✅ Current and accurate (100% verified against codebase)
 - **Coverage:** Complete system architecture, technology stack, integration patterns
 - **Generated:** 2025-01-11 via exhaustive codebase scan
@@ -76,11 +76,11 @@
 **ARCHIVED:** `docs/archive/arc42-deprecated-2025-01-11/`
 - **Status:** ⚠️ Deprecated (65% accuracy, outdated claims)
 - **Reason:** Contains overpromised features, outdated tech stack, missing modern implementations
-- **See:** [Arc42 Reality Check](./.bmm-arc42-reality-check.md) for detailed gap analysis
+- **See:** [Arc42 Reality Check](./arc42-reality-check.md) for detailed gap analysis
 
 **Architecture Decisions (ADRs):**
 - 21 ADRs archived with arc42 documentation
-- Key decisions validated in [`.bmm-architecture.md`](./.bmm-architecture.md)
+- Key decisions validated in [`architecture.md`](./architecture.md)
 - For ADR history, see: `docs/archive/arc42-deprecated-2025-01-11/adr/`
 
 ### AI-Specific Documentation
@@ -96,12 +96,12 @@
 ### "I need to add a new API endpoint"
 
 **Steps:**
-1. Read: [Backend API Contracts](./.bmm-backend-api-contracts.md) - Understand existing patterns
-2. Read: [Backend Data Models](./.bmm-backend-data-models.md) - Understand database schema
+1. Read: [Backend API Contracts](./backend-api-contracts.md) - Understand existing patterns
+2. Read: [Backend Data Models](./backend-data-models.md) - Understand database schema
 3. Create endpoint in Backend with OpenAPI decorators
 4. Run: `pnpm run generate-api` - Generate TypeScript client
 5. Create TanStack Query hook in Frontend
-6. Reference: [API Integration](./.bmm-frontend-api-integration.md) - Usage patterns
+6. Reference: [API Integration](./frontend-api-integration.md) - Usage patterns
 
 **Example Flow:**
 ```typescript
@@ -141,7 +141,7 @@ export const ExampleList = () => {
 ### "I need to add a new UI component"
 
 **Steps:**
-1. Read: [Component Inventory](./.bmm-frontend-components.md) - Explore existing components
+1. Read: [Component Inventory](./frontend-components.md) - Explore existing components
 2. Follow Atomic Design principles:
    - **Atoms:** Basic elements (Button, Input, Badge)
    - **Molecules:** Composite components (FormField, SearchBar)
@@ -173,7 +173,7 @@ export const ExampleCard = ({ title, status }: Props) => {
 ### "I need to add a new database model"
 
 **Steps:**
-1. Read: [Data Models](./.bmm-backend-data-models.md) - Understand schema conventions
+1. Read: [Data Models](./backend-data-models.md) - Understand schema conventions
 2. Update: `packages/backend/prisma/schema.prisma`
 3. Run: `pnpm --filter @bluelight-hub/backend prisma migrate dev`
 4. Update DTOs and controllers
@@ -213,9 +213,9 @@ enum ExampleStatus {
 ### "I need to understand data flow"
 
 **Reading Order:**
-1. [Integration Architecture](./.bmm-integration-architecture.md) - **Start here**
-2. [State Management](./.bmm-frontend-state-management.md) - Frontend state patterns
-3. [API Integration](./.bmm-frontend-api-integration.md) - Frontend-backend communication
+1. [Integration Architecture](./integration-architecture.md) - **Start here**
+2. [State Management](./frontend-state-management.md) - Frontend state patterns
+3. [API Integration](./frontend-api-integration.md) - Frontend-backend communication
 
 **Complete Request Flow:**
 ```
@@ -241,9 +241,9 @@ PostgreSQL Database
 ### "I need to setup the project"
 
 **Reading Order:**
-1. [Development Guide](./.bmm-development-guide.md) - **Complete setup instructions**
-2. [Technology Stack](./.bmm-technology-stack.md) - Understand dependencies
-3. [Project Structure](./.bmm-project-structure.md) - Navigate the codebase
+1. [Development Guide](./development-guide.md) - **Complete setup instructions**
+2. [Technology Stack](./technology-stack.md) - Understand dependencies
+3. [Project Structure](./project-structure.md) - Navigate the codebase
 
 **Quick Setup:**
 ```bash
@@ -480,7 +480,7 @@ This is a **business requirement** for regulatory compliance (10-year retention)
 
 ## Architecture Decisions
 
-**Current Reference:** [Architecture Documentation](./.bmm-architecture.md#11-architecture-decisions-adr-validation)
+**Current Reference:** [Architecture Documentation](./architecture.md#11-architecture-decisions-adr-validation)
 
 ### Core Decisions (Verified Against Implementation)
 
@@ -509,9 +509,9 @@ This is a **business requirement** for regulatory compliance (10-year retention)
 | **Port 3000 already in use** | Kill process: `lsof -i :3000` then `kill -9 <PID>` |
 | **Prisma client out of sync** | Run `pnpm --filter @bluelight-hub/backend prisma:generate` |
 | **JWT 401 errors** | Verify JWT secrets in `.env`, clear browser cookies |
-| **Tauri build fails** | Install platform dependencies (see [Development Guide](./.bmm-development-guide.md)) |
+| **Tauri build fails** | Install platform dependencies (see [Development Guide](./development-guide.md)) |
 
-**Detailed Troubleshooting:** [Development Guide - Troubleshooting](./.bmm-development-guide.md#troubleshooting)
+**Detailed Troubleshooting:** [Development Guide - Troubleshooting](./development-guide.md#troubleshooting)
 
 ---
 
@@ -580,20 +580,20 @@ This is a **business requirement** for regulatory compliance (10-year retention)
 
 1. **Start with this index** to understand project structure
 2. **Use specific BMM docs** for detailed technical information
-3. **Reference [`.bmm-architecture.md`](./.bmm-architecture.md)** for current architecture (NOT arc42!)
+3. **Reference [`architecture.md`](./architecture.md)** for current architecture (NOT arc42!)
 4. **Follow BREAKING RULES** (no manual API clients, only Tailwind, etc.)
 5. **Use semantic commits** with emoji prefixes
 
 ### Quick Lookup
 
 **Need to...** → **Read this:**
-- Understand architecture → [**Architecture Documentation**](./.bmm-architecture.md) ⭐
-- Understand overall project → [Project Overview](./.bmm-project-overview.md)
-- Add API endpoint → [API Contracts](./.bmm-backend-api-contracts.md)
-- Add UI component → [Component Inventory](./.bmm-frontend-components.md)
-- Modify database → [Data Models](./.bmm-backend-data-models.md)
-- Debug integration → [Integration Architecture](./.bmm-integration-architecture.md)
-- Setup environment → [Development Guide](./.bmm-development-guide.md)
+- Understand architecture → [**Architecture Documentation**](./architecture.md) ⭐
+- Understand overall project → [Project Overview](./project-overview.md)
+- Add API endpoint → [API Contracts](./backend-api-contracts.md)
+- Add UI component → [Component Inventory](./frontend-components.md)
+- Modify database → [Data Models](./backend-data-models.md)
+- Debug integration → [Integration Architecture](./integration-architecture.md)
+- Setup environment → [Development Guide](./development-guide.md)
 
 ### Code Generation Patterns
 
@@ -643,9 +643,9 @@ export const ResourceDetail = ({ id }: Props) => {
 
 ### For New Developers
 
-1. Setup environment: [Development Guide](./.bmm-development-guide.md)
-2. Understand architecture: [Project Overview](./.bmm-project-overview.md)
-3. Explore codebase: [Source Tree Analysis](./.bmm-source-tree-analysis.md)
+1. Setup environment: [Development Guide](./development-guide.md)
+2. Understand architecture: [Project Overview](./project-overview.md)
+3. Explore codebase: [Source Tree Analysis](./source-tree-analysis.md)
 4. Check open issues: [GitHub Issues](https://github.com/rubenvitt/bluelight-hub/issues)
 
 ### For Feature Development
@@ -661,7 +661,7 @@ export const ResourceDetail = ({ id }: Props) => {
 Use this documentation series as **primary input** for PRD generation:
 - **Current State:** All features documented
 - **Technical Constraints:** BREAKING RULES + Architecture Decisions
-- **Architecture:** [`.bmm-architecture.md`](./.bmm-architecture.md) (PRIMARY) + [Integration Architecture](./.bmm-integration-architecture.md)
+- **Architecture:** [`architecture.md`](./architecture.md) (PRIMARY) + [Integration Architecture](./integration-architecture.md)
 - **Code Patterns:** Component Inventory + API Contracts
 
 ---
