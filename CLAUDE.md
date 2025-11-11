@@ -150,15 +150,6 @@ pnpm --filter @bluelight-hub/frontend dev     # Nur Frontend
 
 ## 📚 ARCHITECTURE & DOCUMENTATION
 
-### arc42 (PFLICHT für Architektur!)
-
-Architekturdokumentation MUSS in `docs/architecture/` gepflegt werden:
-
-- Neue Konzepte → `08-concepts.adoc`
-- Architekturentscheidungen → `adr/XXX-entscheidungsname.adoc`
-- Systemgrenzen → `03-context.adoc`
-- **NIEMALS** separate Architektur-Markdown außerhalb arc42!
-
 ### JSDoc Requirements
 
 - **Sprache:** Deutsch (für technische Dokumentation)

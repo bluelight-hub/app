@@ -1,11 +1,10 @@
 {
   "workflow_version": "1.2.0",
   "timestamps": {
-    "started": "2025-01-10T20:45:00.000Z",
-    "last_updated": "2025-01-11T22:15:00.000Z",
-    "completed": "2025-01-11T22:15:00.000Z"
+    "started": "2025-01-11T19:35:00.000Z",
+    "last_updated": "2025-01-11T19:35:00.000Z"
   },
-  "mode": "initial_scan",
+  "mode": "full_rescan",
   "scan_level": "exhaustive",
   "project_root": "/Users/rubeen/dev/personal/bluelight-hub",
   "output_folder": "/Users/rubeen/dev/personal/bluelight-hub/docs",
@@ -13,7 +12,7 @@
     {
       "step": "step_1",
       "status": "completed",
-      "timestamp": "2025-01-10T20:48:00.000Z",
+      "timestamp": "2025-01-11T19:35:00.000Z",
       "summary": "Classified as monorepo with 3 parts (backend, frontend, shared)"
     },
     {
@@ -89,39 +88,19 @@
     {
       "part_id": "backend",
       "project_type_id": "backend",
-      "display_name": "Backend"
+      "display_name": "Backend API"
     },
     {
       "part_id": "frontend",
       "project_type_id": "web",
-      "display_name": "Frontend"
+      "display_name": "Frontend Desktop Application"
     },
     {
       "part_id": "shared",
       "project_type_id": "library",
-      "display_name": "Shared"
+      "display_name": "Shared Libraries"
     }
   ],
-  "outputs_generated": [
-    "project-scan-report.json",
-    ".bmm-project-structure.md",
-    ".bmm-project-parts.json",
-    ".bmm-existing-docs-inventory.md",
-    ".bmm-technology-stack.md",
-    ".bmm-backend-api-contracts.md",
-    ".bmm-backend-data-models.md",
-    ".bmm-frontend-components.md",
-    ".bmm-frontend-state-management.md",
-    ".bmm-frontend-api-integration.md",
-    ".bmm-source-tree-analysis.md",
-    ".bmm-development-guide.md",
-    ".bmm-integration-architecture.md",
-    ".bmm-project-overview.md",
-    ".bmm-architecture.md",
-    ".bmm-arc42-reality-check.md",
-    "index.md",
-    "archive/README.md"
-  ],
-  "workflow_status": "completed",
-  "resume_instructions": "All documentation steps completed. Total files: 18 (14 BMM docs + 2 reports + 2 metadata files). Arc42 deprecated and archived. Primary architecture reference: .bmm-architecture.md (100% accurate). Ready for AI-assisted development or brownfield PRD generation."
+  "outputs_generated": ["project-scan-report.json"],
+  "resume_instructions": "Continuing from step 2"
 }

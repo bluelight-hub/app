@@ -31,7 +31,8 @@
       "!**/*.min.js",
       "!**/*.min.css",
       "!**/*.tailwind.css",
-      "!docs/**/*.md"
+      "!docs/**/*.md",
+      "!docs/*.md"
     ]
   },
   "linter": {
