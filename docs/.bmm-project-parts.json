@@ -1,0 +1,67 @@
+{
+  "repository_type": "monorepo",
+  "monorepo_tool": "pnpm-workspaces",
+  "parts": [
+    {
+      "part_id": "backend",
+      "display_name": "Backend",
+      "root_path": "/packages/backend",
+      "project_type_id": "backend",
+      "primary_language": "TypeScript",
+      "primary_framework": "NestJS",
+      "framework_version": "11.x",
+      "database": "PostgreSQL",
+      "key_technologies": ["NestJS", "Prisma", "PostgreSQL", "Swagger", "JWT", "WebSocket"],
+      "critical_directories": ["src/modules/", "src/common/", "src/config/", "prisma/"],
+      "entry_points": ["src/main.ts"]
+    },
+    {
+      "part_id": "frontend",
+      "display_name": "Frontend",
+      "root_path": "/packages/frontend",
+      "project_type_id": "web",
+      "secondary_type": "desktop",
+      "primary_language": "TypeScript",
+      "primary_framework": "React",
+      "framework_version": "19.x",
+      "build_tool": "Vite",
+      "desktop_framework": "Tauri",
+      "key_technologies": ["React", "Vite", "Tauri", "TailwindCSS", "TanStack Router", "TanStack Query", "Headless UI", "Leaflet"],
+      "architecture_pattern": "Atomic Design",
+      "critical_directories": ["src/components/", "src/contexts/", "src/hooks/", "src/pages/", "src-tauri/"],
+      "entry_points": ["src/main.tsx", "src-tauri/src/main.rs"]
+    },
+    {
+      "part_id": "shared",
+      "display_name": "Shared",
+      "root_path": "/packages/shared",
+      "project_type_id": "library",
+      "primary_language": "TypeScript",
+      "purpose": "API Client Generator",
+      "key_technologies": ["OpenAPI Generator", "TypeScript"],
+      "critical_directories": ["client/"],
+      "generation_command": "pnpm run generate-api"
+    }
+  ],
+  "integration_points": [
+    {
+      "from": "frontend",
+      "to": "backend",
+      "via": "shared",
+      "type": "REST API",
+      "details": "Frontend uses auto-generated TypeScript client from shared package to call backend REST API",
+      "authentication": "JWT"
+    },
+    {
+      "from": "shared",
+      "to": "backend",
+      "type": "OpenAPI Spec Consumption",
+      "details": "Shared package generates client from backend's Swagger/OpenAPI endpoint (http://localhost:3000/api-json)"
+    }
+  ],
+  "project_classification": {
+    "architecture_type": "Client-Server with Desktop UI",
+    "deployment_model": "Backend: Dockerized API + PostgreSQL, Frontend: Tauri Desktop App",
+    "development_approach": "Type-safe full-stack with OpenAPI-driven API client generation"
+  }
+}
