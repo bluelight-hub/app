@@ -1,3 +1,19 @@
+## Version [v1.0.0-alpha.34](https://github.com/rubenvitt/bluelight-hub/compare/v1.0.0-alpha.33...v1.0.0-alpha.34) – Veröffentlicht am 2025-11-11
+
+## ✨ Neue Funktionen
+Die folgenden neuen Features wurden hinzugefügt:
+- [`f5d4c2e`](https://github.com/rubenvitt/bluelight-hub/commit/f5d4c2e) (config): Integrate BMad v6 agent framework with full workflow system 
+
+## 🔧 Tool Verbesserungen
+Verbesserungen an den Werkzeugen:
+- [`bdea6ee`](https://github.com/rubenvitt/bluelight-hub/commit/bdea6ee) (config): Remove legacy BMad and Taskmaster framework files 
+
+- [`c8bfbde`](https://github.com/rubenvitt/bluelight-hub/commit/c8bfbde) (config): Erweitere CodeRabbit ignore patterns für AI-Verzeichnisse 
+
+
+
+# [1.0.0-alpha.34](https://github.com/rubenvitt/bluelight-hub/compare/v1.0.0-alpha.33...v1.0.0-alpha.34) (2025-11-11)
+
 ## Version [v1.0.0-alpha.33](https://github.com/rubenvitt/bluelight-hub/compare/v1.0.0-alpha.32...v1.0.0-alpha.33) – Veröffentlicht am 2025-11-10
 
 ## ✨ Neue Funktionen
