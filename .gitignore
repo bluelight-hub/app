@@ -203,3 +203,4 @@ dev-debug.log
 # Debug files
 *-debug.png
 auth-page-debug.png
+/.bmad-ephemeral/
