@@ -3,7 +3,7 @@
 <!-- Coverage temporarily disabled -->
 <!-- [![codecov](https://codecov.io/gh/rubenvitt/bluelight-hub/graph/badge.svg?token=I5Z3C0FSLL)](https://codecov.io/gh/rubenvitt/bluelight-hub) -->
 
-[![GitHub Actions](https://github.com/rubenvitt/bluelight-hub/actions/workflows/test.yml/badge.svg)](https://github.com/rubenvitt/bluelight-hub/actions/workflows/test.yml)
+[![GitHub Actions](https://github.com/rubenvitt/bluelight-hub/actions/workflows/ci.yml/badge.svg)](https://github.com/rubenvitt/bluelight-hub/actions/workflows/ci.yml)
 [![doccov](https://backend-docs.bluelight-hub.rubeen.dev/images/coverage-badge-documentation.svg)](https://backend-docs.bluelight-hub.rubeen.dev)
 
 ## Übersicht
