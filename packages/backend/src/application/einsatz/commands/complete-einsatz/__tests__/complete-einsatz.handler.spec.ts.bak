@@ -211,13 +211,13 @@ describe('CompleteEinsatzHandler', () => {
       mockRepository.findById.mockResolvedValue(Result.ok(null));
 
       // When
-      await expect(handler.execute(command)).rejects.toThrow();
+      const result = await handler.execute(command);
 
       // Then
-      // Exception thrown
+      expect(result.isFailure).toBe(true);
       expect(result.error).toContain('nicht gefunden');
       expect(mockRepository.save).not.toHaveBeenCalled();
-      expect(mockOutboxRepository.save).not.toHaveBeenCalled();
+      expect(mockEventPublisher.publishAll).not.toHaveBeenCalled();
     });
 
     it('sollte Result.fail() zurückgeben wenn Repository findById fehlschlägt', async () => {
@@ -226,10 +226,10 @@ describe('CompleteEinsatzHandler', () => {
       mockRepository.findById.mockResolvedValue(Result.fail('Database connection error'));
 
       // When
-      await expect(handler.execute(command)).rejects.toThrow();
+      const result = await handler.execute(command);
 
       // Then
-      // Exception thrown
+      expect(result.isFailure).toBe(true);
       expect(result.error).toBe('Database connection error');
       expect(mockRepository.save).not.toHaveBeenCalled();
     });
@@ -246,10 +246,10 @@ describe('CompleteEinsatzHandler', () => {
       mockCompletenessService.canBeCompleted.mockReturnValue(Result.fail('Status muss IN_BEARBEITUNG sein'));
 
       // When
-      await expect(handler.execute(command)).rejects.toThrow();
+      const result = await handler.execute(command);
 
       // Then
-      // Exception thrown
+      expect(result.isFailure).toBe(true);
       expect(result.error).toContain('IN_BEARBEITUNG');
       expect(mockRepository.save).not.toHaveBeenCalled();
     });
@@ -267,10 +267,10 @@ describe('CompleteEinsatzHandler', () => {
       mockCompletenessService.canBeCompleted.mockReturnValue(Result.fail('Status muss IN_BEARBEITUNG sein'));
 
       // When
-      await expect(handler.execute(command)).rejects.toThrow();
+      const result = await handler.execute(command);
 
       // Then
-      // Exception thrown
+      expect(result.isFailure).toBe(true);
       expect(mockRepository.save).not.toHaveBeenCalled();
     });
 
@@ -288,10 +288,10 @@ describe('CompleteEinsatzHandler', () => {
       mockCompletenessService.canBeCompleted.mockReturnValue(Result.fail('Status muss IN_BEARBEITUNG sein'));
 
       // When
-      await expect(handler.execute(command)).rejects.toThrow();
+      const result = await handler.execute(command);
 
       // Then
-      // Exception thrown
+      expect(result.isFailure).toBe(true);
       expect(mockRepository.save).not.toHaveBeenCalled();
     });
   });
@@ -307,10 +307,10 @@ describe('CompleteEinsatzHandler', () => {
       mockCompletenessService.canBeCompleted.mockReturnValue(Result.fail('Alarmstichwort fehlt'));
 
       // When
-      await expect(handler.execute(command)).rejects.toThrow();
+      const result = await handler.execute(command);
 
       // Then
-      // Exception thrown
+      expect(result.isFailure).toBe(true);
       expect(result.error).toBe('Alarmstichwort fehlt');
       expect(mockRepository.save).not.toHaveBeenCalled();
     });
@@ -344,7 +344,7 @@ describe('CompleteEinsatzHandler', () => {
       const result = await handler.execute(commandResult.value!);
 
       // Then - EinsatzId.create() validation fails in handler
-      // Exception thrown
+      expect(result.isFailure).toBe(true);
       expect(result.error).toBeDefined();
       expect(mockRepository.findById).not.toHaveBeenCalled();
     });
@@ -359,7 +359,7 @@ describe('CompleteEinsatzHandler', () => {
       const result = await handler.execute(commandResult.value!);
 
       // Then - UserId.create() validation fails in handler
-      // Exception thrown
+      expect(result.isFailure).toBe(true);
       expect(result.error).toBeDefined();
       expect(mockRepository.findById).not.toHaveBeenCalled();
     });
@@ -377,12 +377,12 @@ describe('CompleteEinsatzHandler', () => {
       mockRepository.save.mockResolvedValue(Result.fail('Database write error'));
 
       // When
-      await expect(handler.execute(command)).rejects.toThrow();
+      const result = await handler.execute(command);
 
       // Then
-      // Exception thrown
+      expect(result.isFailure).toBe(true);
       expect(result.error).toBe('Database write error');
-      expect(mockOutboxRepository.save).not.toHaveBeenCalled();
+      expect(mockEventPublisher.publishAll).not.toHaveBeenCalled();
     });
   });
 
@@ -396,14 +396,14 @@ describe('CompleteEinsatzHandler', () => {
       mockRepository.findById.mockResolvedValue(Result.ok(einsatz));
       mockCompletenessService.canBeCompleted.mockReturnValue(Result.ok(undefined));
       mockRepository.save.mockResolvedValue(Result.ok(undefined));
-      mockOutboxRepository.save.mockResolvedValue(undefined);
+      mockEventPublisher.publishAll.mockResolvedValue(undefined);
 
       // When
       await handler.execute(command);
 
       // Then
-      expect(mockOutboxRepository.save).toHaveBeenCalledTimes(1);
-      const events = mockOutboxRepository.save.mock.calls[0][0];
+      expect(mockEventPublisher.publishAll).toHaveBeenCalledTimes(1);
+      const events = mockEventPublisher.publishAll.mock.calls[0][0];
       expect(events.length).toBeGreaterThan(0);
       expect(events.some((e) => e.constructor.name === 'EinsatzCompletedEvent')).toBe(true);
     });
@@ -422,7 +422,7 @@ describe('CompleteEinsatzHandler', () => {
       await handler.execute(command);
 
       // Then
-      const events = mockOutboxRepository.save.mock.calls[0][0];
+      const events = mockEventPublisher.publishAll.mock.calls[0][0];
       expect(events.some((e) => e.constructor.name === 'EinsatzStatusChangedEvent')).toBe(true);
     });
 
@@ -435,7 +435,7 @@ describe('CompleteEinsatzHandler', () => {
       await handler.execute(command);
 
       // Then
-      expect(mockOutboxRepository.save).not.toHaveBeenCalled();
+      expect(mockEventPublisher.publishAll).not.toHaveBeenCalled();
     });
 
     it('sollte KEINE Events publizieren wenn CompletenessService fehlschlägt', async () => {
@@ -451,7 +451,7 @@ describe('CompleteEinsatzHandler', () => {
       await handler.execute(command);
 
       // Then
-      expect(mockOutboxRepository.save).not.toHaveBeenCalled();
+      expect(mockEventPublisher.publishAll).not.toHaveBeenCalled();
     });
 
     it('sollte KEINE Events publizieren wenn save fehlschlägt', async () => {
@@ -468,7 +468,7 @@ describe('CompleteEinsatzHandler', () => {
       await handler.execute(command);
 
       // Then
-      expect(mockOutboxRepository.save).not.toHaveBeenCalled();
+      expect(mockEventPublisher.publishAll).not.toHaveBeenCalled();
     });
 
     it('sollte Domain Events nach Publishing clearen', async () => {
@@ -512,7 +512,7 @@ describe('CompleteEinsatzHandler', () => {
         return Result.ok(undefined);
       });
 
-      mockOutboxRepository.save.mockImplementation(async () => {
+      mockEventPublisher.publishAll.mockImplementation(async () => {
         callOrder.push('publishAll');
         return undefined;
       });
@@ -555,12 +555,12 @@ describe('CompleteEinsatzHandler', () => {
       mockRepository.save.mockResolvedValue(Result.ok(undefined));
 
       // When
-      await expect(handler.execute(command)).rejects.toThrow();
+      const result = await handler.execute(command);
 
       // Then
-      await expect(handler.execute(command)).resolves.not.toThrow();
+      expect(result.isSuccess).toBe(true);
       // Verify userId was used to complete the Einsatz
-      const events = mockOutboxRepository.save.mock.calls[0][0];
+      const events = mockEventPublisher.publishAll.mock.calls[0][0];
       const completedEvent = events.find((e) => e.constructor.name === 'EinsatzCompletedEvent');
       expect(completedEvent).toBeDefined();
     });
@@ -579,10 +579,10 @@ describe('CompleteEinsatzHandler', () => {
       mockRepository.save.mockResolvedValue(Result.ok(undefined));
 
       // When
-      await expect(handler.execute(command)).rejects.toThrow();
+      const result = await handler.execute(command);
 
       // Then
-      await expect(handler.execute(command)).resolves.not.toThrow();
+      expect(result.isSuccess).toBe(true);
     });
 
     it('sollte mit speziellen Zeichen in alarmstichwort umgehen können', async () => {
@@ -597,10 +597,10 @@ describe('CompleteEinsatzHandler', () => {
       mockRepository.save.mockResolvedValue(Result.ok(undefined));
 
       // When
-      await expect(handler.execute(command)).rejects.toThrow();
+      const result = await handler.execute(command);
 
       // Then
-      await expect(handler.execute(command)).resolves.not.toThrow();
+      expect(result.isSuccess).toBe(true);
       expect(einsatz.alarmstichwort).toBe(specialAlarmstichwort);
     });
   });
