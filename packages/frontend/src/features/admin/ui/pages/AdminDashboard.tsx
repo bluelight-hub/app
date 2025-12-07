@@ -6,7 +6,7 @@ import { Heading } from '@/shared/ui/atoms/heading.atom';
 import { Text } from '@/shared/ui/atoms/text.atom';
 import { useNavigate } from '@tanstack/react-router';
 import { isTauri } from '@tauri-apps/api/core';
-import { AdminDashboardLayout } from '@templates/AdminDashboardLayout';
+import { AdminDashboardLayout } from '@/shared/ui/templates/AdminDashboardLayout';
 import { useCallback } from 'react';
 import { PiSignOut, PiUsers } from 'react-icons/pi';
 

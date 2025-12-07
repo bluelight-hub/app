@@ -1,9 +1,9 @@
-import { MobileStatusBar } from '@/components/organisms/dashboard/MobileStatusBar';
-import { StatusCard } from '@/components/organisms/dashboard/StatusCard';
+import { MobileStatusBar } from '@/shared/ui/organisms/dashboard/MobileStatusBar';
+import { StatusCard } from '@/shared/ui/organisms/dashboard/StatusCard';
 import { EinsatzListItem } from '@/features/einsatz/ui/molecules/EinsatzListItem';
 import { SearchInput } from '@/shared/ui/molecules/search-input.molecule';
-import { FilterPanel } from '@/components/organisms/dashboard/FilterPanel';
-import { MobileFilterDialog } from '@/components/organisms/dashboard/MobileFilterDialog';
+import { FilterPanel } from '@/shared/ui/organisms/dashboard/FilterPanel';
+import { MobileFilterDialog } from '@/shared/ui/organisms/dashboard/MobileFilterDialog';
 import { EinsatzCreateForm } from '@/features/einsatz/ui/organisms/EinsatzCreateForm';
 import { useActiveEinsaetzeWithCounts, useEinsatzStatusCounts } from '@/features/einsatz';
 import { Button } from '@/shared/ui/atoms/button.atom';

@@ -1,4 +1,4 @@
-import type { ModuleColor } from '@/components/organisms/command-palette';
+import type { ModuleColor } from '@/shared/ui/organisms/command-palette';
 
 export const getModuleColor = (color: ModuleColor): string => {
   const colors: Record<ModuleColor, string> = {

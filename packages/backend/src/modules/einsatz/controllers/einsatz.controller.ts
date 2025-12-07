@@ -29,12 +29,11 @@ import { Roles } from '@/modules/auth/decorators/roles.decorator';
 import { JwtAuthGuard } from '@/modules/auth/guards/jwt-auth.guard';
 import { RolesGuard } from '@/modules/auth/guards/roles.guard';
 import type { ValidatedUser } from '@/modules/auth/strategies/jwt.strategy';
-import { ApiWrappedResponse } from '@/modules/common/decorators/api-wrapped-response.decorator';
-import { SkipTransform } from '@/modules/common/decorators/skip-transform.decorator';
+import { ApiWrappedResponse, ApiWrappedCreatedResponse } from '@/modules/common/decorators/api-wrapped-response.decorator';
 import type { PaginatedData } from '@/infrastructure/http/interceptors/transform.interceptor';
 import { BadRequestException, Body, Controller, Delete, Get, InternalServerErrorException, NotFoundException, Param, Patch, Post, Query, UseGuards, ValidationPipe } from '@nestjs/common';
 import { CommandBus, QueryBus } from '@nestjs/cqrs';
-import { ApiBadRequestResponse, ApiBearerAuth, ApiCreatedResponse, ApiForbiddenResponse, ApiNotFoundResponse, ApiOkResponse, ApiOperation, ApiTags, ApiUnauthorizedResponse } from '@nestjs/swagger';
+import { ApiBadRequestResponse, ApiBearerAuth, ApiForbiddenResponse, ApiNotFoundResponse, ApiOperation, ApiTags, ApiUnauthorizedResponse } from '@nestjs/swagger';
 
 /**
  * Controller für Einsatzverwaltung (CQRS Pattern)
@@ -79,10 +78,9 @@ export class EinsatzController {
    * Erstellt einen neuen Einsatz via CQRS Command
    */
   @Post()
-  @SkipTransform()
   @Roles('USER', 'ADMIN', 'SUPER_ADMIN')
   @ApiOperation({ summary: 'Neuen Einsatz erstellen', description: 'Erstellt einen neuen Einsatz mit automatisch generiertem Namen.' })
-  @ApiCreatedResponse({ type: EinsatzDto, description: 'Einsatz erfolgreich erstellt' })
+  @ApiWrappedCreatedResponse(EinsatzDto, { description: 'Einsatz erfolgreich erstellt' })
   @ApiBadRequestResponse({ description: 'Validierungsfehler in den Eingabedaten' })
   async create(@Body(new ValidationPipe({ transform: true, whitelist: true })) dto: CreateEinsatzDto, @CurrentUser() user: ValidatedUser): Promise<EinsatzDto> {
     // Konvertiere einsatzort-String zu Address Value Object (als Freitext-Ort)
@@ -115,9 +113,8 @@ export class EinsatzController {
    * Optimierte Liste aktiver Einsätze mit ETB-Einträge und POI-Counts via CQRS Query
    */
   @Get('active-with-counts')
-  @SkipTransform()
   @ApiOperation({ summary: 'Aktive Einsätze mit Counts abrufen', description: 'Optimierte Abfrage für Dashboard: Liefert alle nicht-archivierten Einsätze mit ETB-Einträge und POI-Counts.' })
-  @ApiOkResponse({ type: [EinsatzListItemDto], description: 'Liste aktiver Einsätze mit Counts' })
+  @ApiWrappedResponse(EinsatzListItemDto, { description: 'Liste aktiver Einsätze mit Counts', isArray: true })
   @ApiBadRequestResponse({ description: 'Fehler beim Abrufen der Einsätze' })
   async getActiveEinsaetzeWithCounts(): Promise<EinsatzListItemDto[]> {
     const result = await this.queryBus.execute(new GetActiveEinsaetzeWithCountsQuery());
@@ -190,7 +187,7 @@ export class EinsatzController {
    */
   @Get(':id/details')
   @ApiOperation({ summary: 'Einsatz mit ETB und Lagekarte abrufen (kombiniert)', description: 'Lädt Einsatz mit ETB und Lagekarte in einer Anfrage.' })
-  @ApiOkResponse({ type: EinsatzDetailsDto, description: 'Einsatz mit ETB und Lagekarte' })
+  @ApiWrappedResponse(EinsatzDetailsDto, { description: 'Einsatz mit ETB und Lagekarte' })
   @ApiNotFoundResponse({ description: 'Einsatz nicht gefunden' })
   @ApiBadRequestResponse({ description: 'Ungültige Einsatz-ID' })
   async getEinsatzDetails(@Param('id') id: string): Promise<EinsatzDetailsDto> {
@@ -238,7 +235,7 @@ export class EinsatzController {
   @Patch(':id')
   @Roles('USER', 'ADMIN', 'SUPER_ADMIN')
   @ApiOperation({ summary: 'Einsatz aktualisieren', description: 'Aktualisiert einen bestehenden Einsatz.' })
-  @ApiOkResponse({ type: EinsatzDto, description: 'Einsatz erfolgreich aktualisiert' })
+  @ApiWrappedResponse(EinsatzDto, { description: 'Einsatz erfolgreich aktualisiert' })
   @ApiNotFoundResponse({ description: 'Einsatz nicht gefunden' })
   @ApiBadRequestResponse({ description: 'Validierungsfehler in den Eingabedaten' })
   async update(@Param('id') id: string, @Body(new ValidationPipe({ transform: true, whitelist: true })) dto: UpdateEinsatzDto, @CurrentUser() _user: ValidatedUser): Promise<EinsatzDto> {
@@ -260,7 +257,7 @@ export class EinsatzController {
   @Post(':id/start')
   @Roles('USER', 'ADMIN', 'SUPER_ADMIN')
   @ApiOperation({ summary: 'Einsatz starten', description: 'Markiert einen Einsatz als IN_BEARBEITUNG. Wird automatisch aufgerufen wenn ein Einsatz vollständig geöffnet wird.' })
-  @ApiOkResponse({ type: EinsatzDto, description: 'Einsatz erfolgreich gestartet' })
+  @ApiWrappedResponse(EinsatzDto, { description: 'Einsatz erfolgreich gestartet' })
   @ApiNotFoundResponse({ description: 'Einsatz nicht gefunden' })
   @ApiBadRequestResponse({ description: 'Einsatz kann nicht gestartet werden (z.B. bereits gestartet oder archiviert)' })
   async start(@Param('id') id: string, @CurrentUser() user: ValidatedUser): Promise<EinsatzDto> {
@@ -279,7 +276,7 @@ export class EinsatzController {
   @Post(':id/complete')
   @Roles('USER', 'ADMIN', 'SUPER_ADMIN')
   @ApiOperation({ summary: 'Einsatz abschließen', description: 'Markiert einen Einsatz als ABGESCHLOSSEN und sperrt das ETB.' })
-  @ApiOkResponse({ type: EinsatzDto, description: 'Einsatz erfolgreich abgeschlossen' })
+  @ApiWrappedResponse(EinsatzDto, { description: 'Einsatz erfolgreich abgeschlossen' })
   @ApiNotFoundResponse({ description: 'Einsatz nicht gefunden' })
   @ApiBadRequestResponse({ description: 'Einsatz kann nicht abgeschlossen werden (z.B. bereits abgeschlossen)' })
   async complete(@Param('id') id: string, @CurrentUser() user: ValidatedUser): Promise<EinsatzDto> {
@@ -298,7 +295,7 @@ export class EinsatzController {
   @Post(':id/archive')
   @Roles('ADMIN', 'SUPER_ADMIN')
   @ApiOperation({ summary: 'Einsatz archivieren (Soft-Delete)', description: 'Markiert einen Einsatz als ARCHIVIERT. Niemals physisch gelöscht.' })
-  @ApiOkResponse({ type: EinsatzDto, description: 'Einsatz erfolgreich archiviert' })
+  @ApiWrappedResponse(EinsatzDto, { description: 'Einsatz erfolgreich archiviert' })
   @ApiNotFoundResponse({ description: 'Einsatz nicht gefunden' })
   @ApiBadRequestResponse({ description: 'Validierungsfehler oder Einsatz kann nicht archiviert werden' })
   async archive(@Param('id') id: string, @CurrentUser() user: ValidatedUser): Promise<EinsatzDto> {

@@ -74,7 +74,10 @@ export function EinsatzDetailView() {
 
   // Update Mutation
   const updateMutation = useMutation({
-    mutationFn: (data: UpdateEinsatzDto) => api.einsatz().einsatzControllerUpdateVAlpha({ id: einsatzId, updateEinsatzDto: data }),
+    mutationFn: async (data: UpdateEinsatzDto) => {
+      const response = await api.einsatz().einsatzControllerUpdateVAlpha({ id: einsatzId, updateEinsatzDto: data });
+      return response.data;
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: EINSATZ_QUERY_KEYS.detail(einsatzId) });
       queryClient.invalidateQueries({ queryKey: EINSATZ_QUERY_KEYS.all });

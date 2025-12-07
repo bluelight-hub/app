@@ -52,10 +52,11 @@ export const useCreateEinsatz = (filters?: EinsatzQueryFilters) => {
 
   return useMutation<EinsatzDto, ResponseError, CreateEinsatzDto, CreateMutationContext>({
     mutationFn: async (data: CreateEinsatzDto) => {
-      // API gibt direkt EinsatzDto zurück, kein Wrapper
-      return api.einsatz().einsatzControllerCreateVAlpha({
+      // API gibt gewrappte Response zurück: { data: EinsatzDto, meta: ... }
+      const response = await api.einsatz().einsatzControllerCreateVAlpha({
         createEinsatzDto: data,
       });
+      return response.data;
     },
     onMutate: async (newEinsatz) => {
       // Cancel laufende Queries um Race Conditions zu vermeiden

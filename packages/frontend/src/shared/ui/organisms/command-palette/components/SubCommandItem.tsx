@@ -1,5 +1,5 @@
-import type { SubCommand } from '@organisms/command-palette';
-import { commandItemClasses } from '@organisms/command-palette/utils';
+import type { SubCommand } from '@/shared/ui/organisms/command-palette';
+import { commandItemClasses } from '@/shared/ui/organisms/command-palette/utils';
 import { Command } from 'cmdk';
 import { useMemo } from 'react';
 import { useHotkeys } from 'react-hotkeys-hook';

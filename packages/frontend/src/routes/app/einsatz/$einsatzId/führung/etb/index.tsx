@@ -1,4 +1,4 @@
-import { EtbPage } from '@/components/pages/app/einsatz/EtbPage';
+import { EtbPage } from '@/features/etb';
 import { createFileRoute } from '@tanstack/react-router';
 
 export type EtbSearchParams = {

@@ -1,6 +1,6 @@
 import { cn } from '@/shared/utils/cn';
-import type { NavigationCommand } from '@organisms/command-palette';
-import { commandItemClasses, getModuleColorClass } from '@organisms/command-palette/utils';
+import type { NavigationCommand } from '@/shared/ui/organisms/command-palette';
+import { commandItemClasses, getModuleColorClass } from '@/shared/ui/organisms/command-palette/utils';
 import { Command } from 'cmdk';
 import { useMemo } from 'react';
 import { useHotkeys } from 'react-hotkeys-hook';

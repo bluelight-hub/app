@@ -1,4 +1,4 @@
-import type { ModuleColor } from '@/components/organisms/command-palette';
+import type { ModuleColor } from '@/shared/ui/organisms/command-palette';
 import {
   PiAirplaneTilt,
   PiCamera,

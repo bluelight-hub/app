@@ -5,8 +5,8 @@ import { Dialog } from '@/shared/ui/molecules/dialog.molecule';
 import { EinsatzStatusBadge } from '@/features/einsatz/ui/molecules/einsatz-status-badge.molecule';
 import { ModuleButton } from '@/features/einsatz/ui/molecules/ModuleButton';
 import { ModuleOverviewCard } from '@/features/einsatz/ui/molecules/ModuleOverviewCard';
-import { CommandPalette } from '@/components/organisms/command-palette';
-import { CommandPaletteErrorBoundary } from '@/components/organisms/command-palette/CommandPaletteErrorBoundary';
+import { CommandPalette } from '@/shared/ui/organisms/command-palette';
+import { CommandPaletteErrorBoundary } from '@/shared/ui/organisms/command-palette/CommandPaletteErrorBoundary';
 import { EINSATZ_QUERY_KEYS, useEinsatzDetails, useEinsatzModules } from '@/features/einsatz';
 import { cn } from '@/shared/utils/cn';
 import { getModuleActiveColor, getModuleColor } from '@/shared/utils';
@@ -57,9 +57,10 @@ export function SingleEinsatzLayout({ className }: SingleEinsatzLayoutProps) {
   // Mutation für Einsatz automatisch starten (wenn Status = ANGELEGT)
   const startEinsatzMutation = useMutation({
     mutationFn: async () => {
-      return api.einsatz().einsatzControllerStartVAlpha({
+      const response = await api.einsatz().einsatzControllerStartVAlpha({
         id: einsatzId,
       });
+      return response.data;
     },
     onSuccess: async () => {
       // Invalidate all relevant queries to refresh UI
@@ -115,9 +116,10 @@ export function SingleEinsatzLayout({ className }: SingleEinsatzLayoutProps) {
   // Mutation für Einsatz beenden
   const endEinsatzMutation = useMutation({
     mutationFn: async () => {
-      return api.einsatz().einsatzControllerCompleteVAlpha({
+      const response = await api.einsatz().einsatzControllerCompleteVAlpha({
         id: einsatzId,
       });
+      return response.data;
     },
     onSuccess: async () => {
       // Invalidate all relevant queries to refresh UI

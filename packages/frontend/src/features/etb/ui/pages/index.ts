@@ -1,0 +1,1 @@
+export { EtbPage } from './EtbPage';

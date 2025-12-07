@@ -45,8 +45,8 @@ export const useActiveEinsaetzeWithCounts = () => {
     queryKey: EINSATZ_QUERY_KEYS.activeWithCounts(),
     queryFn: async () => {
       try {
-        // Backend liefert direkt EinsatzListItemDto[] (mit @SkipTransform)
-        return await api.einsatz().einsatzControllerGetActiveEinsaetzeWithCountsVAlpha();
+        const response = await api.einsatz().einsatzControllerGetActiveEinsaetzeWithCountsVAlpha();
+        return response.data;
       } catch (error) {
         logger.error('Failed to fetch active einsaetze with counts', error);
         throw error;

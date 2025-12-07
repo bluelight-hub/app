@@ -11,7 +11,7 @@ import { LogoWithIndicator } from '@/shared/ui/molecules/logo-with-indicator.mol
 import { PasswordInput } from '@/shared/ui/molecules/password-input.molecule';
 import { useForm } from '@tanstack/react-form';
 import { useNavigate } from '@tanstack/react-router';
-import { AuthLayout } from '@templates/AuthLayout';
+import { AuthLayout } from '@/shared/ui/templates/AuthLayout';
 import { useEffect, useState } from 'react';
 import { PiWarning } from 'react-icons/pi';
 import { toast } from 'sonner';

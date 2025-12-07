@@ -39,7 +39,8 @@ export function useEinsatzDetails(einsatzId: string): UseEinsatzDetailsResult {
     queryFn: async () => {
       if (!einsatzId) throw new Error('ID is required');
       try {
-        return await api.einsatz().einsatzControllerGetEinsatzDetailsVAlpha({ id: einsatzId });
+        const response = await api.einsatz().einsatzControllerGetEinsatzDetailsVAlpha({ id: einsatzId });
+        return response.data;
       } catch (err) {
         logger.error('Failed to fetch einsatz details', err);
         throw err;
