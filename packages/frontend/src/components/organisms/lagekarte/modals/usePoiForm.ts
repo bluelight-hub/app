@@ -7,8 +7,8 @@ import { toast } from 'sonner';
 import { z } from 'zod';
 import { asyncDebounce } from '@tanstack/pacer';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { formatMgrs, isValidMgrs, latLngToMgrs, mgrsToLatLng } from '@/utils/lagekarte/mgrs';
-import { COORDINATE_ERROR_MESSAGES, COORDINATE_LIMITS } from '@/utils/lagekarte/coordinate-limits';
+import { formatMgrs, isValidMgrs, latLngToMgrs, mgrsToLatLng } from '@/features/lagekarte/utils/mgrs';
+import { COORDINATE_ERROR_MESSAGES, COORDINATE_LIMITS } from '@/features/lagekarte/utils/coordinate-limits';
 
 /**
  * Zod-Validierungsschema für POI-Erstellung

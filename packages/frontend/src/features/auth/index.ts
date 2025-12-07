@@ -15,3 +15,9 @@ export { AppGuard } from './guards/app-guard';
 
 // Stores
 export { authStore, setAuthStatus, setShowReauthModal, setRedirectAfterLogin, resetAuthStore } from './stores/auth.store';
+
+// Schemas
+export * from './schemas/auth.schema';
+
+// Utils
+export * from './utils/auth';

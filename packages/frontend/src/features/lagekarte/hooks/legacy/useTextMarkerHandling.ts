@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useRef } from 'react';
 import type * as L from 'leaflet';
 import type * as GeoJSON from 'geojson';
-import type { LayerWithShapeId, LayerWithTextContent } from '@/utils/lagekarte/types';
+import type { LayerWithShapeId, LayerWithTextContent } from '../../utils/types';
 
 interface UseTextMarkerHandlingProps {
   map: L.Map;

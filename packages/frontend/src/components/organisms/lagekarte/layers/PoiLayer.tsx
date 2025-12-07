@@ -3,7 +3,7 @@ import { Button } from '@/shared/ui/atoms/button.atom';
 import { Spinner } from '@/shared/ui/atoms/spinner.atom';
 import { getPoiIcon } from '@/utils/poi-icons';
 import { getApiErrorMessage } from '@/shared/utils/apiErrorHandler';
-import { formatMgrs } from '@/utils/lagekarte/mgrs';
+import { formatMgrs } from '@/features/lagekarte/utils/mgrs';
 import { Dialog, DialogBackdrop, DialogPanel, DialogTitle } from '@headlessui/react';
 import React, { useMemo, useState } from 'react';
 import { PiTrash, PiWarning, PiXCircle } from 'react-icons/pi';

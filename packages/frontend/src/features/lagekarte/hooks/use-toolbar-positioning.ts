@@ -1,6 +1,6 @@
 import { useEffect } from 'react';
 import type * as L from 'leaflet';
-import { calculateToolbarPosition } from '@/utils/lagekarte/layer-utils';
+import { calculateToolbarPosition } from '../utils/layer-utils';
 import { setToolbarPosition } from '../stores/lagekarte-state.store';
 import { useLagekarteState } from './use-lagekarte-state';
 

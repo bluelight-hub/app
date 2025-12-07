@@ -10,6 +10,7 @@ const AUTH_QUERY_KEYS = (base: [string]) =>
     authCheck: [...base, 'check'] as const,
     adminStatus: [...base, 'admin', 'status'] as const,
     adminPresence: [...base, 'admin', 'presence'] as const,
+    publicUsers: [...base, 'public-users'] as const,
   }) as const;
 
 export const USERS_QUERY_KEYS = {
@@ -23,4 +24,5 @@ export const AUTH_KEYS = {
     queries: AUTH_QUERY_KEYS(['auth']),
   },
   users: USERS_QUERY_KEYS,
+  publicUsers: ['auth', 'public-users'] as const,
 } as const;

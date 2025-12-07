@@ -7,7 +7,7 @@ import { PiUser } from 'react-icons/pi';
 import { z } from 'zod';
 import { Button } from '@/shared/ui/atoms/button.atom';
 import { Combobox } from '@/components/ui/combobox';
-import { usePublicUsers } from '@/hooks/usePublicUsers';
+import { usePublicUsers } from '@/features/auth';
 import { cn } from '@/shared/utils/cn';
 
 // Zod Schema für Validierung

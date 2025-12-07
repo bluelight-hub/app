@@ -5,8 +5,7 @@
  *
  * @returns Die Index-Page-Komponente
  */
-import { useCurrentUser, useLogout } from '@/features/auth';
-import { isAdmin } from '@/utils/auth';
+import { useCurrentUser, useLogout, isAdmin } from '@/features/auth';
 import { Button } from '@/shared/ui/atoms/button.atom';
 import { Heading } from '@/shared/ui/atoms/heading.atom';
 import { Spinner } from '@/shared/ui/atoms/spinner.atom';

@@ -1,8 +1,8 @@
 import { useEffect } from 'react';
 import type * as L from 'leaflet';
 import type * as GeoJSON from 'geojson';
-import { updateLayerStyle } from '@/utils/lagekarte/layer-utils';
-import type { OriginalStyle } from '@/utils/lagekarte/types';
+import { updateLayerStyle } from '../../utils/layer-utils';
+import type { OriginalStyle } from '../../utils/types';
 
 interface UseShapeStyleUpdatesProps {
   shapeToUpdate?: GeoJSON.Feature | null;

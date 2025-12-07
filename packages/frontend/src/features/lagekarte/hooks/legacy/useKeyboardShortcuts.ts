@@ -2,7 +2,7 @@ import { useEffect } from 'react';
 import type * as L from 'leaflet';
 import type * as GeoJSON from 'geojson';
 import { toast } from 'sonner';
-import type { OriginalStyle } from '@/utils/lagekarte/types';
+import type { OriginalStyle } from '../../utils/types';
 
 interface UseKeyboardShortcutsProps {
   map: L.Map;

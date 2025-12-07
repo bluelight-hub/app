@@ -13,6 +13,7 @@ import { EinsatzResponseDtoStatusEnum } from '@bluelight-hub/shared/client';
 import { useForm } from '@tanstack/react-form';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useNavigate, useParams } from '@tanstack/react-router';
+import { useStore } from '@tanstack/react-store';
 import { useState, useMemo } from 'react';
 import { toast } from 'sonner';
 import { ArchiveConfirmationModal } from './ArchiveConfirmationModal';
@@ -125,7 +126,7 @@ export function EinsatzDetailView() {
   // Berechne ob Form dirty ist (hat sich vom Originalwert geändert)
   // TanStack Form verwendet ein Store-Pattern - wir nutzen useStore für reaktive Updates
   // WICHTIG: useStore Hook muss VOR early returns aufgerufen werden (Hook Rules)
-  const beschreibungValue = form.useStore((state) => state.values.beschreibung);
+  const beschreibungValue = useStore(form.store, (state) => state.values.beschreibung);
 
   const isFormDirty = useMemo(() => {
     if (!isEditing || !einsatz) return false;

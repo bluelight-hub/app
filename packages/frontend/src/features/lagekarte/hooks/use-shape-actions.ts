@@ -4,9 +4,9 @@ import type * as GeoJSON from 'geojson';
 import { toast } from 'sonner';
 import { selectShape, addShape, updateShape as updateShapeAction, removeShape, registerLayer, saveOriginalStyle, clearOriginalStyle, setShapes } from '../stores/lagekarte-state.store';
 import { lagekarteStore } from '../stores/lagekarte-state.store';
-import { highlightLayer, unhighlightLayer } from '@/utils/lagekarte/shape-helpers';
-import { setShapeIdOnLayer } from '@/utils/lagekarte/layer-utils';
-import type { LayerWithStyle } from '@/utils/lagekarte/types';
+import { highlightLayer, unhighlightLayer } from '../utils/shape-helpers';
+import { setShapeIdOnLayer } from '../utils/layer-utils';
+import type { LayerWithStyle } from '../utils/types';
 
 /**
  * Konsolidierter Hook für alle Shape-Aktionen

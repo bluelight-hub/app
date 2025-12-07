@@ -2,7 +2,7 @@ import type { PublicUserDto } from '@bluelight-hub/shared/client';
 import type { UseQueryResult } from '@tanstack/react-query';
 import { useQuery } from '@tanstack/react-query';
 import { api } from '@/api';
-import { QUERY_KEYS } from '@/queryKeys';
+import { AUTH_KEYS } from './queries';
 import { logger } from '@/shared/utils/logger';
 
 /**
@@ -11,10 +11,21 @@ import { logger } from '@/shared/utils/logger';
  * Ruft die Liste aller verfügbaren Benutzer ab,
  * die für die Anmeldung zur Verfügung stehen.
  * Dieser Endpoint ist öffentlich zugänglich.
+ *
+ * @returns Query mit öffentlicher Benutzer-Liste
+ *
+ * @example
+ * ```tsx
+ * const { data: users, isLoading } = usePublicUsers();
+ *
+ * return (
+ *   <UserSelect users={users} />
+ * );
+ * ```
  */
 export function usePublicUsers(): UseQueryResult<Array<PublicUserDto>, Error> {
   return useQuery({
-    queryKey: QUERY_KEYS.user.publicUsers,
+    queryKey: AUTH_KEYS.publicUsers,
     queryFn: async () => {
       try {
         const response = await api.auth().authControllerGetPublicUsers();

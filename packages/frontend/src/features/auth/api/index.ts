@@ -10,3 +10,4 @@ export { useUnifiedAuth, useAdminLogin } from './use-login';
 export { useLogout, useAdminLogout } from './use-logout';
 export { useAdminSetup } from './use-admin-setup';
 export { useUsers, useUser, useUserNames } from './use-users';
+export { usePublicUsers } from './use-public-users';

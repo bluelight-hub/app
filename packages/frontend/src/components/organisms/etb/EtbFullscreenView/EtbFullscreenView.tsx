@@ -1,7 +1,7 @@
 import { Spinner } from '@/shared/ui/atoms/spinner.atom';
 import { FullscreenCloseButton } from '@/components/organisms/lagekarte/FullscreenCloseButton/FullscreenCloseButton';
 import { useEtbInfinite } from '@/features/etb';
-import { useUserNames } from '@/hooks/useUsers';
+import { useUserNames } from '@/features/auth';
 import { cn } from '@/shared/utils/cn';
 import { formatDisplayDateTime } from '@/shared/utils/dateFormatter';
 import type { EintragDto } from '@bluelight-hub/shared/client';

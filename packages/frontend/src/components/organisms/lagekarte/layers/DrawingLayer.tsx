@@ -9,7 +9,7 @@ import { useMap } from 'react-leaflet';
 import * as L from 'leaflet';
 import type * as GeoJSON from 'geojson';
 import { toast } from 'sonner';
-import { getShapeIdFromLayer } from '@/utils/lagekarte/layer-utils';
+import { getShapeIdFromLayer } from '@/features/lagekarte/utils/layer-utils';
 
 // Legacy Hooks (TODO: Migrieren zu konsolidierten Feature-Hooks)
 import {
@@ -24,7 +24,7 @@ import {
   useTextMarkerHandling,
   useShapeStyleUpdates,
 } from '@/features/lagekarte/hooks/legacy';
-import type { LayerWithGeoJSON, LayerWithPM, OriginalStyle } from '@/utils/lagekarte/types';
+import type { LayerWithGeoJSON, LayerWithPM, OriginalStyle } from '@/features/lagekarte/utils/types';
 
 const isPmLayer = (layer: L.Layer): layer is LayerWithPM => {
   return 'pm' in layer && typeof (layer as LayerWithPM).pm?.enable === 'function';
