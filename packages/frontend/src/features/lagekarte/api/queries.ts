@@ -19,11 +19,14 @@ export const LAGEKARTE_QUERY_KEYS = {
   // Lagekarte by Einsatz
   byEinsatz: (einsatzId: string) => [...LAGEKARTE_QUERY_KEYS.all, 'einsatz', einsatzId] as const,
 
+  // Legacy: Direct lagekarte query (alias for byEinsatz)
+  lagekarte: (einsatzId: string) => [...LAGEKARTE_QUERY_KEYS.all, einsatzId] as const,
+
   // Screenshots
   screenshots: (einsatzId: string) => [...LAGEKARTE_QUERY_KEYS.byEinsatz(einsatzId), 'screenshots'] as const,
 
   // POIs (Point of Interest)
-  pois: (einsatzId: string) => [...LAGEKARTE_QUERY_KEYS.byEinsatz(einsatzId), 'pois'] as const,
+  pois: (einsatzId: string) => ['pois', einsatzId] as const,
 } as const;
 
 /**

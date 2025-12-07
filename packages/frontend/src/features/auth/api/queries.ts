@@ -18,6 +18,18 @@ export const USERS_QUERY_KEYS = {
   byId: (id?: string) => ['users', id] as const,
 } as const;
 
+/**
+ * @deprecated Legacy query keys - verwende USERS_QUERY_KEYS stattdessen
+ */
+export const USER_QUERY_KEYS = {
+  users: ['users'] as const,
+  publicUsers: ['public-users'] as const,
+} as const;
+
+export const HEALTH_QUERY_KEYS = {
+  health: ['health'] as const,
+} as const;
+
 export const AUTH_KEYS = {
   auth: {
     queryKey: ['auth'] as const,

@@ -2,7 +2,7 @@ import { useMutation, useQuery, useQueryClient, type UseMutationResult, type Use
 import type { AddPoiDto, CreateLagekarteDto, LagekarteControllerGetLagekarteVAlpha200Response, LagekarteDto, PoiDto, SaveLagekarteStateDto, UpdatePoiPositionDto } from '@bluelight-hub/shared/client';
 import { api } from '../api';
 import type * as GeoJSON from 'geojson';
-import { LAGEKARTE_QUERY_KEYS } from '../../queryKeys';
+import { LAGEKARTE_QUERY_KEYS } from '@/features/lagekarte';
 import { z } from 'zod';
 
 /**
