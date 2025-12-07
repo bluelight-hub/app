@@ -1,4 +1,4 @@
-import { Card } from '@/components/atoms/card.atom';
+import { Card } from '../atoms/card.atom';
 import { cn } from '@/shared/utils/cn';
 import type { ReactNode } from 'react';
 

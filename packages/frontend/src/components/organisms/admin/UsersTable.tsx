@@ -1,6 +1,6 @@
-import { Badge } from '@/components/atoms/badge.atom';
-import { IconButton } from '@/components/atoms/icon-button.atom';
-import { Table } from '@/components/molecules/table.molecule';
+import { Badge } from '@/shared/ui/atoms/badge.atom';
+import { IconButton } from '@/shared/ui/atoms/icon-button.atom';
+import { Table } from '@/shared/ui/molecules/table.molecule';
 import type { ManagedUserResponseDto } from '@bluelight-hub/shared/client';
 import { ManagedUserResponseDtoRoleEnum } from '@bluelight-hub/shared/client';
 import type { SortingState } from '@tanstack/react-table';

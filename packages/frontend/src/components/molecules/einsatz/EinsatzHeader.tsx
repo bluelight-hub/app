@@ -1,7 +1,7 @@
 import { useActiveEinsatz } from '@/hooks/useActiveEinsatz';
 import { logger } from '@/shared/utils/logger';
-import { Button } from '@atoms/button.atom';
-import { CloseButton } from '@atoms/close-button.atom';
+import { Button } from '@/shared/ui/atoms/button.atom';
+import { CloseButton } from '@/shared/ui/atoms/close-button.atom';
 import type { EinsatzResponseDto } from '@bluelight-hub/shared/client';
 import { EinsatzResponseDtoStatusEnum } from '@bluelight-hub/shared/client';
 import { Link, useNavigate } from '@tanstack/react-router';

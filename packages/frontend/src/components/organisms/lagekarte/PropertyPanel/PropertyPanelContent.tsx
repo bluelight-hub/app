@@ -1,8 +1,8 @@
-import { Input } from '@atoms/input.atom';
-import { Textarea } from '@atoms/textarea.atom';
-import { Label } from '@atoms/label.atom';
-import { ColorPicker } from '@molecules/form/ColorPicker.molecule';
-import { RangeSlider } from '@molecules/form/RangeSlider.molecule';
+import { Input } from '@/shared/ui/atoms/input.atom';
+import { Textarea } from '@/shared/ui/atoms/textarea.atom';
+import { Label } from '@/shared/ui/atoms/label.atom';
+import { ColorPicker } from '@/shared/ui/molecules/form/ColorPicker.molecule';
+import { RangeSlider } from '@/shared/ui/molecules/form/RangeSlider.molecule';
 
 export interface PropertyPanelContentProps {
   /** Aktuelles Label */

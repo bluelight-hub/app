@@ -1,6 +1,6 @@
 import { useDeletePoi, usePois, useUpdatePoi } from '@/api/hooks/useLagekarteApi';
-import { Button } from '@/components/atoms/button.atom';
-import { Spinner } from '@/components/atoms/spinner.atom';
+import { Button } from '@/shared/ui/atoms/button.atom';
+import { Spinner } from '@/shared/ui/atoms/spinner.atom';
 import { getPoiIcon } from '@/utils/poi-icons';
 import { getApiErrorMessage } from '@/shared/utils/apiErrorHandler';
 import { formatMgrs } from '@/utils/lagekarte/mgrs';

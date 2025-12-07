@@ -1,13 +1,13 @@
 import { MobileStatusBar } from '@/components/molecules/dashboard/MobileStatusBar';
 import { StatusCard } from '@/components/molecules/dashboard/StatusCard';
 import { EinsatzListItem } from '@/components/molecules/einsatz/EinsatzListItem';
-import { SearchInput } from '@/components/molecules/search-input.molecule';
+import { SearchInput } from '@/shared/ui/molecules/search-input.molecule';
 import { FilterPanel } from '@/components/organisms/dashboard/FilterPanel';
 import { MobileFilterDialog } from '@/components/organisms/dashboard/MobileFilterDialog';
 import { EinsatzCreateForm } from '@/components/organisms/einsatz/EinsatzCreateForm';
 import { useActiveEinsaetzeWithCounts } from '@/hooks/useEinsaetze';
 import { useEinsatzStatusCounts } from '@/hooks/useEinsatzStatusCounts';
-import { Button } from '@atoms/button.atom';
+import { Button } from '@/shared/ui/atoms/button.atom';
 import { EinsatzControllerFindAllVAlphaOrderByEnum, EinsatzControllerFindAllVAlphaOrderDirectionEnum, EinsatzResponseDtoStatusEnum } from '@bluelight-hub/shared/client';
 import { Link } from '@tanstack/react-router';
 import { useMemo, useState } from 'react';

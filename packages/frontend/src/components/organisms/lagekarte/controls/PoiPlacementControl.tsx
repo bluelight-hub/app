@@ -1,9 +1,9 @@
 import { cn } from '@/shared/utils/cn';
 import { formatPoiTypeLabel } from '@/utils/formatPoiTypeLabel';
 import { POI_ICON_MAP, type PoiCategory, type PoiType } from '@/utils/poi-icons';
-import { Button } from '@atoms/button.atom';
-import { PoiTypeButton } from '@atoms/poi-type-button.atom';
-import { PoiTypeDropdown } from '@molecules/poi-type-dropdown.molecule';
+import { Button } from '@/shared/ui/atoms/button.atom';
+import { PoiTypeButton } from '@/shared/ui/atoms/poi-type-button.atom';
+import { PoiTypeDropdown } from '@/shared/ui/molecules/poi-type-dropdown.molecule';
 import { Menu, MenuButton, MenuItem, MenuItems } from '@headlessui/react';
 import type React from 'react';
 import { useState } from 'react';

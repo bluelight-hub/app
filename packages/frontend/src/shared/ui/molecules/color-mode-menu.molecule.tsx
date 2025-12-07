@@ -1,7 +1,7 @@
 import type { ColorMode } from '@/components/ui/color-mode';
 import { useColorMode } from '@/shared/hooks/use-color-mode';
 import { cn } from '@/shared/utils/cn';
-import { Button } from '@atoms/button.atom';
+import { Button } from '../atoms/button.atom';
 import { Menu, MenuButton, MenuItem, MenuItems } from '@headlessui/react';
 import { useEffect, useState } from 'react';
 import { PiCaretDown, PiCheck, PiDesktop, PiMoon, PiSun } from 'react-icons/pi';

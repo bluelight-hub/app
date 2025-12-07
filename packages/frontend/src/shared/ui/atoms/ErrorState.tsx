@@ -1,4 +1,4 @@
-import { Button } from '@atoms/button.atom';
+import { Button } from './button.atom';
 import { Link } from '@tanstack/react-router';
 import { PiArrowLeft, PiWarningCircle } from 'react-icons/pi';
 

@@ -1,7 +1,7 @@
 import { api } from '@/api';
 import { useLagekarte, usePois } from '@/api/hooks/useLagekarteApi';
-import { Button } from '@/components/atoms/button.atom';
-import { Spinner } from '@/components/atoms/spinner.atom';
+import { Button } from '@/shared/ui/atoms/button.atom';
+import { Spinner } from '@/shared/ui/atoms/spinner.atom';
 import { type Layer, LayerToggle } from '@/components/molecules/lagekarte/LayerToggle/LayerToggle';
 import { useColorMode } from '@/shared/hooks/use-color-mode';
 import { useEtb } from '@/hooks/useEtb';

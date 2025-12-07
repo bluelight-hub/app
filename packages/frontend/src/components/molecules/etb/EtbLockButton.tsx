@@ -1,5 +1,5 @@
-import { Button } from '@atoms/button.atom';
-import { Dialog } from '@molecules/dialog.molecule';
+import { Button } from '@/shared/ui/atoms/button.atom';
+import { Dialog } from '@/shared/ui/molecules/dialog.molecule';
 import { useAuth } from '@/hooks/useAuth';
 import { useLockEtb } from '@/hooks/useEtb';
 import { AuthUserDtoRoleEnum } from '@bluelight-hub/shared/client';

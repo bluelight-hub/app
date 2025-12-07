@@ -1,6 +1,6 @@
 import { cn } from '@/shared/utils/cn';
-import { ProgressBar } from '@atoms/progress-bar.atom';
-import { Text, type TextProps } from '@atoms/text.atom';
+import { ProgressBar } from '../atoms/progress-bar.atom';
+import { Text, type TextProps } from '../atoms/text.atom';
 import { PASSWORD_MIN_SCORE } from '@bluelight-hub/shared';
 import { useMemo } from 'react';
 import { PiCheck } from 'react-icons/pi';

@@ -1,8 +1,8 @@
 import { cn } from '@/shared/utils/cn';
-import { IconButton } from '@atoms/icon-button.atom';
-import { Input } from '@atoms/input.atom';
-import { Label } from '@atoms/label.atom';
-import { Textarea } from '@atoms/textarea.atom';
+import { IconButton } from '@/shared/ui/atoms/icon-button.atom';
+import { Input } from '@/shared/ui/atoms/input.atom';
+import { Label } from '@/shared/ui/atoms/label.atom';
+import { Textarea } from '@/shared/ui/atoms/textarea.atom';
 import { Dialog, DialogPanel, DialogTitle } from '@headlessui/react';
 import { useUpdateEtbEintrag } from '@/hooks/useEtb';
 import { EintragDtoKategorieEnum as EtbKategorie, type EintragDto } from '@bluelight-hub/shared/client';

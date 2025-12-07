@@ -1,4 +1,4 @@
-import { Badge } from '@/components/atoms/badge.atom';
+import { Badge } from '@/shared/ui/atoms/badge.atom';
 import { PiClockCounterClockwise } from 'react-icons/pi';
 import { cn } from '@/shared/utils/cn';
 

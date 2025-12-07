@@ -1,8 +1,8 @@
-import { Heading } from '@/components/atoms/heading.atom';
-import { Text } from '@/components/atoms/text.atom';
-import { AuthCard } from '@/components/molecules/auth-card.molecule';
-import { AuthFooter } from '@/components/molecules/auth-footer.molecule';
-import { LogoWithIndicator } from '@/components/molecules/logo-with-indicator.molecule';
+import { Heading } from '@/shared/ui/atoms/heading.atom';
+import { Text } from '@/shared/ui/atoms/text.atom';
+import { AuthCard } from '@/shared/ui/molecules/auth-card.molecule';
+import { AuthFooter } from '@/shared/ui/molecules/auth-footer.molecule';
+import { LogoWithIndicator } from '@/shared/ui/molecules/logo-with-indicator.molecule';
 import { AuthLayout } from '@/components/templates/AuthLayout';
 import { useAuth } from '@/hooks/useAuth';
 import { getApiErrorMessage } from '@/shared/utils/apiErrorHandler';

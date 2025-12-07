@@ -1,4 +1,4 @@
-import { Dialog } from '@/components/molecules/dialog.molecule';
+import { Dialog } from '@/shared/ui/molecules/dialog.molecule';
 import type React from 'react';
 import { createContext, useCallback, useContext, useEffect, useRef, useState } from 'react';
 

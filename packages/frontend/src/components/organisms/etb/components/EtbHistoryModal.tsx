@@ -1,8 +1,8 @@
 import { useEtbHistory } from '@/hooks/useEtb';
-import { Button } from '@atoms/button.atom';
+import { Button } from '@/shared/ui/atoms/button.atom';
 import type { EintragDto } from '@bluelight-hub/shared/client';
-import { Dialog } from '@molecules/dialog.molecule';
-import { Timeline, TimelineDot, TimelineItem } from '@molecules/timeline.molecule';
+import { Dialog } from '@/shared/ui/molecules/dialog.molecule';
+import { Timeline, TimelineDot, TimelineItem } from '@/shared/ui/molecules/timeline.molecule';
 import { useEffect, useRef } from 'react';
 import { PiCircleNotch } from 'react-icons/pi';
 import { EtbHistoryCard } from './EtbHistoryCard';

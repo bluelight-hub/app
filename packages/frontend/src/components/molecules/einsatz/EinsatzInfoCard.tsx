@@ -1,7 +1,7 @@
 import { EinsatzCompletenessBar } from '@/components/molecules/einsatz/einsatz-completeness-bar.molecule';
 import { EinsatzStatusBadge } from '@/components/molecules/einsatz/einsatz-status-badge.molecule';
 import { formatNatoDateTime } from '@/shared/utils/dateFormatter';
-import { Textarea } from '@atoms/textarea.atom';
+import { Textarea } from '@/shared/ui/atoms/textarea.atom';
 import type { EinsatzResponseDto } from '@bluelight-hub/shared/client';
 import { EinsatzResponseDtoStatusEnum } from '@bluelight-hub/shared/client';
 import type { ReactFormApi } from '@tanstack/react-form';

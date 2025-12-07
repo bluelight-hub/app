@@ -1,4 +1,4 @@
-import { IconButton } from '@atoms/icon-button.atom';
+import { IconButton } from '@/shared/ui/atoms/icon-button.atom';
 import { PiPencil, PiTrash, PiCheck, PiX } from 'react-icons/pi';
 import type React from 'react';
 

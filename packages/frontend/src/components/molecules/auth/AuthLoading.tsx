@@ -1,5 +1,5 @@
-import { Spinner } from '@atoms/spinner.atom';
-import { Text } from '@atoms/text.atom';
+import { Spinner } from '@/shared/ui/atoms/spinner.atom';
+import { Text } from '@/shared/ui/atoms/text.atom';
 
 interface AuthLoadingProps {
   message?: string;

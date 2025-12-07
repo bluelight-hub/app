@@ -1,4 +1,4 @@
-import { Dialog } from '@/components/molecules/dialog.molecule';
+import { Dialog } from '@/shared/ui/molecules/dialog.molecule';
 
 interface ArchiveConfirmationModalProps {
   isOpen: boolean;

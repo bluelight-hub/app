@@ -1,6 +1,6 @@
-import { Button } from '@atoms/button.atom';
-import { ConfirmationPrompt } from '@atoms/confirmation-prompt.atom';
-import { Spinner } from '@atoms/spinner.atom';
+import { Button } from '@/shared/ui/atoms/button.atom';
+import { ConfirmationPrompt } from '@/shared/ui/atoms/confirmation-prompt.atom';
+import { Spinner } from '@/shared/ui/atoms/spinner.atom';
 import { PiArrowCounterClockwise, PiPaperPlaneTilt } from 'react-icons/pi';
 
 interface EtbFormActionsProps {

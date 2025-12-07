@@ -1,5 +1,5 @@
 import { cn } from '@/shared/utils/cn';
-import { CloseButton } from '@atoms/close-button.atom';
+import { CloseButton } from '@/shared/ui/atoms/close-button.atom';
 import { Link } from '@tanstack/react-router';
 import type { ComponentType } from 'react';
 import { Dialog } from '../dialog.molecule';

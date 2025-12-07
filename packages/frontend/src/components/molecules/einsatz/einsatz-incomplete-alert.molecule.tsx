@@ -1,5 +1,5 @@
 import { cn } from '@/shared/utils/cn';
-import { Button } from '@atoms/button.atom';
+import { Button } from '@/shared/ui/atoms/button.atom';
 import { Description, Dialog, DialogPanel, DialogTitle, Transition, TransitionChild } from '@headlessui/react';
 import { Fragment, useState } from 'react';
 import { PiWarning, PiX } from 'react-icons/pi';

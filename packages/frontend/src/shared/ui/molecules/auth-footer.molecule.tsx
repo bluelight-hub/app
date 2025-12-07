@@ -1,6 +1,6 @@
-import type { BadgeVariant } from '@/components/atoms/badge.atom';
-import { Badge } from '@/components/atoms/badge.atom';
-import { Text } from '@/components/atoms/text.atom';
+import type { BadgeVariant } from '../atoms/badge.atom';
+import { Badge } from '../atoms/badge.atom';
+import { Text } from '../atoms/text.atom';
 
 interface StatusBadge {
   label: string;

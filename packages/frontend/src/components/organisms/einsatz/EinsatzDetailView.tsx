@@ -1,6 +1,6 @@
 import { api } from '@/api';
-import { ErrorState } from '@/components/atoms/ErrorState';
-import { LoadingState } from '@/components/atoms/LoadingState';
+import { ErrorState } from '@/shared/ui/atoms/ErrorState';
+import { LoadingState } from '@/shared/ui/atoms/LoadingState';
 import { ArchivedBanner } from '@/components/molecules/einsatz/ArchivedBanner';
 import { EinsatzHeader } from '@/components/molecules/einsatz/EinsatzHeader';
 import { EinsatzInfoCard } from '@/components/molecules/einsatz/EinsatzInfoCard';

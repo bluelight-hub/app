@@ -1,5 +1,5 @@
-import { Badge } from '@/components/atoms/badge.atom';
-import type { BadgeVariant } from '@/components/atoms/badge.atom';
+import { Badge } from '@/shared/ui/atoms/badge.atom';
+import type { BadgeVariant } from '@/shared/ui/atoms/badge.atom';
 import type { EtbDtoStatusEnum } from '@bluelight-hub/shared/client';
 
 /**

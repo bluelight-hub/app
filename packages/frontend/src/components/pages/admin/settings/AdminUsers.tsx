@@ -1,11 +1,11 @@
 import { useAdminAuth } from '@/hooks/useAdminAuth';
 import { useAdminUserManagement } from '@/hooks/useAdminUserManagement';
-import { Alert } from '@atoms/alert.atom';
-import { Button } from '@atoms/button.atom';
-import { Card } from '@atoms/card.atom';
-import { Container } from '@atoms/container.atom';
-import { Heading } from '@atoms/heading.atom';
-import { Spinner } from '@atoms/spinner.atom';
+import { Alert } from '@/shared/ui/atoms/alert.atom';
+import { Button } from '@/shared/ui/atoms/button.atom';
+import { Card } from '@/shared/ui/atoms/card.atom';
+import { Container } from '@/shared/ui/atoms/container.atom';
+import { Heading } from '@/shared/ui/atoms/heading.atom';
+import { Spinner } from '@/shared/ui/atoms/spinner.atom';
 import { type CreateUserDto, type UpdateUserDto, type ManagedUserResponseDto, ManagedUserResponseDtoRoleEnum } from '@bluelight-hub/shared/client';
 import { ConfirmDeleteDialog, type UserActionType } from '@organisms/admin/ConfirmDeleteDialog';
 import { CreateUserDialog } from '@organisms/admin/CreateUserDialog';

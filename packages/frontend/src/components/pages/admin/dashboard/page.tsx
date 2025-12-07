@@ -1,9 +1,9 @@
 import { useAuth } from '@/hooks/useAuth';
 import { logger } from '@/shared/utils/logger';
-import { Button } from '@atoms/button.atom';
-import { Card } from '@atoms/card.atom';
-import { Heading } from '@atoms/heading.atom';
-import { Text } from '@atoms/text.atom';
+import { Button } from '@/shared/ui/atoms/button.atom';
+import { Card } from '@/shared/ui/atoms/card.atom';
+import { Heading } from '@/shared/ui/atoms/heading.atom';
+import { Text } from '@/shared/ui/atoms/text.atom';
 import { useNavigate } from '@tanstack/react-router';
 import { isTauri } from '@tauri-apps/api/core';
 import { AdminDashboardLayout } from '@templates/AdminDashboardLayout';

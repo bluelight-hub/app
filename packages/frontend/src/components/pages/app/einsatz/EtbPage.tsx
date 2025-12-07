@@ -1,5 +1,5 @@
-import { ErrorState } from '@/components/atoms/ErrorState';
-import { LoadingState } from '@/components/atoms/LoadingState';
+import { ErrorState } from '@/shared/ui/atoms/ErrorState';
+import { LoadingState } from '@/shared/ui/atoms/LoadingState';
 import { EtbLockButton, EtbStatusBadge, type EtbStatus } from '@/components/molecules/etb';
 import { EtbSnapshotHistoryModal } from '@/components/organisms/etb/components/EtbSnapshotHistoryModal';
 import { EditEtbEntryModal } from '@/components/organisms/etb/EditEtbEntryModal';

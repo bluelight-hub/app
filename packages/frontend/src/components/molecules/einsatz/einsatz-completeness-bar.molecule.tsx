@@ -1,5 +1,5 @@
-import type { ProgressBarVariant } from '@/components/atoms/progress-bar.atom';
-import { ProgressBar } from '@/components/atoms/progress-bar.atom';
+import type { ProgressBarVariant } from '@/shared/ui/atoms/progress-bar.atom';
+import { ProgressBar } from '@/shared/ui/atoms/progress-bar.atom';
 import type { EinsatzResponseDto } from '@bluelight-hub/shared/client';
 import { useMemo } from 'react';
 

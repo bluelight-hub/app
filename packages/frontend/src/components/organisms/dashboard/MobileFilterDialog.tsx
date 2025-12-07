@@ -1,7 +1,7 @@
 import { cn } from '@/shared/utils/cn';
-import { Button } from '@atoms/button.atom';
-import { Dialog } from '@/components/molecules/dialog.molecule';
-import { Select } from '@atoms/select.atom';
+import { Button } from '@/shared/ui/atoms/button.atom';
+import { Dialog } from '@/shared/ui/molecules/dialog.molecule';
+import { Select } from '@/shared/ui/atoms/select.atom';
 import { EinsatzControllerFindAllVAlphaOrderByEnum, EinsatzControllerFindAllVAlphaOrderDirectionEnum, EinsatzResponseDtoStatusEnum } from '@bluelight-hub/shared/client';
 import { PiArchive } from 'react-icons/pi';
 

@@ -1,5 +1,5 @@
-import { Input } from '@atoms/input.atom';
-import { Label } from '@atoms/label.atom';
+import { Input } from '../../atoms/input.atom';
+import { Label } from '../../atoms/label.atom';
 import { cn } from '@/shared/utils/cn';
 import { forwardRef } from 'react';
 

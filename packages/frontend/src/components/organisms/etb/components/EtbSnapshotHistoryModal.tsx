@@ -1,8 +1,8 @@
 import { api } from '@/api';
-import { Button } from '@atoms/button.atom';
+import { Button } from '@/shared/ui/atoms/button.atom';
 import type { EtbSnapshotDto } from '@bluelight-hub/shared/client';
-import { Dialog } from '@molecules/dialog.molecule';
-import { Timeline, TimelineDot, TimelineItem } from '@molecules/timeline.molecule';
+import { Dialog } from '@/shared/ui/molecules/dialog.molecule';
+import { Timeline, TimelineDot, TimelineItem } from '@/shared/ui/molecules/timeline.molecule';
 import { useQuery } from '@tanstack/react-query';
 import { useEffect, useRef, useState } from 'react';
 import { PiCaretDown, PiCaretRight, PiCircleNotch } from 'react-icons/pi';

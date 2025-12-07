@@ -1,7 +1,7 @@
 import { useNavigate } from '@tanstack/react-router';
 import { cn } from '@/shared/utils/cn';
 import { useCallback, useEffect } from 'react';
-import { CloseButton } from '@atoms/close-button.atom';
+import { CloseButton } from '@/shared/ui/atoms/close-button.atom';
 
 /**
  * Props für die FullscreenCloseButton-Komponente

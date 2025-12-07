@@ -1,6 +1,6 @@
-import { FormField } from '@/components/atoms/form-field.atom';
-import { Input } from '@/components/atoms/input.atom';
-import { Select } from '@/components/atoms/select.atom';
+import { FormField } from '@/shared/ui/atoms/form-field.atom';
+import { Input } from '@/shared/ui/atoms/input.atom';
+import { Select } from '@/shared/ui/atoms/select.atom';
 import { ManagedUserResponseDtoRoleEnum } from '@bluelight-hub/shared/client';
 
 export const USER_ROLE_OPTIONS = [

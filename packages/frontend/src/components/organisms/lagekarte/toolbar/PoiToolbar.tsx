@@ -1,5 +1,5 @@
 import { Menu, MenuButton, MenuItem, MenuItems } from '@headlessui/react';
-import { Button } from '@/components/atoms/button.atom';
+import { Button } from '@/shared/ui/atoms/button.atom';
 import { POI_ICON_MAP, type PoiCategory } from '@/utils/poi-icons';
 import type React from 'react';
 import { PiCaretDown } from 'react-icons/pi';

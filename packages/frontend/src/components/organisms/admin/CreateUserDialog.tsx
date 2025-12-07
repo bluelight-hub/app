@@ -1,6 +1,6 @@
-import { Button } from '@/components/atoms/button.atom';
+import { Button } from '@/shared/ui/atoms/button.atom';
 import { RoleField, UsernameField } from '@/components/molecules/admin/UserFormFields';
-import { Dialog } from '@/components/molecules/dialog.molecule';
+import { Dialog } from '@/shared/ui/molecules/dialog.molecule';
 import { ManagedUserResponseDtoRoleEnum } from '@bluelight-hub/shared/client';
 import { useForm } from '@tanstack/react-form';
 import { z } from 'zod';

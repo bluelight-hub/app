@@ -1,6 +1,6 @@
-import { Button } from '@/components/atoms/button.atom';
-import { Input } from '@/components/atoms/input.atom';
-import { Spinner } from '@/components/atoms/spinner.atom';
+import { Button } from '@/shared/ui/atoms/button.atom';
+import { Input } from '@/shared/ui/atoms/input.atom';
+import { Spinner } from '@/shared/ui/atoms/spinner.atom';
 import { formatPoiTypeLabel } from '@/utils/formatPoiTypeLabel';
 import { POI_ICON_MAP, type PoiType } from '@/utils/poi-icons';
 import { Dialog, DialogPanel, DialogTitle } from '@headlessui/react';

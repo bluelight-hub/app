@@ -5,7 +5,7 @@ import { useForm } from '@tanstack/react-form';
 import { useMemo } from 'react';
 import { PiUser } from 'react-icons/pi';
 import { z } from 'zod';
-import { Button } from '@/components/atoms/button.atom';
+import { Button } from '@/shared/ui/atoms/button.atom';
 import { Combobox } from '@/components/ui/combobox';
 import { usePublicUsers } from '@/hooks/usePublicUsers';
 import { cn } from '@/shared/utils/cn';

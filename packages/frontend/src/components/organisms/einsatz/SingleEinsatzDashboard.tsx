@@ -1,6 +1,6 @@
 import { api } from '@/api';
-import { ErrorState } from '@/components/atoms/ErrorState';
-import { LoadingState } from '@/components/atoms/LoadingState';
+import { ErrorState } from '@/shared/ui/atoms/ErrorState';
+import { LoadingState } from '@/shared/ui/atoms/LoadingState';
 import { EinsatzResourceWidget } from '@/components/molecules/einsatz/EinsatzResourceWidget';
 import { EinsatzStatsCard } from '@/components/molecules/einsatz/EinsatzStatsCard';
 import { EinsatzTimelineWidget } from '@/components/molecules/einsatz/EinsatzTimelineWidget';
@@ -8,7 +8,7 @@ import { useActiveEinsatz } from '@/hooks/useActiveEinsatz';
 import { QUERY_KEYS } from '@/queryKeys';
 import { formatNatoDateTime } from '@/shared/utils/dateFormatter';
 import { logger } from '@/shared/utils/logger';
-import { Button } from '@atoms/button.atom';
+import { Button } from '@/shared/ui/atoms/button.atom';
 import { useQuery } from '@tanstack/react-query';
 import { useParams } from '@tanstack/react-router';
 import { addMinutes, format, formatDistanceToNow } from 'date-fns';

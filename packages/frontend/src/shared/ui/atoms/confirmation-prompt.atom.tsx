@@ -1,4 +1,4 @@
-import { Button } from '@atoms/button.atom';
+import { Button } from './button.atom';
 
 interface ConfirmationPromptProps {
   message: string;

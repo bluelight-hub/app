@@ -1,4 +1,4 @@
-import { Spinner } from '@atoms/spinner.atom.tsx';
+import { Spinner } from '@/shared/ui/atoms/spinner.atom.tsx';
 import { createFileRoute } from '@tanstack/react-router';
 import { lazy, Suspense } from 'react';
 

@@ -1,4 +1,4 @@
-import { Container } from '@/components/atoms/container.atom';
+import { Container } from '@/shared/ui/atoms/container.atom';
 import { cn } from '@/shared/utils/cn';
 import type { ReactNode } from 'react';
 

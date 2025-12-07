@@ -1,4 +1,4 @@
-import { Button } from '@/components/atoms/button.atom';
+import { Button } from '@/shared/ui/atoms/button.atom';
 import { validateScreenshotUrl } from '@/utils/validateScreenshotUrl';
 import { Dialog, DialogPanel, DialogTitle } from '@headlessui/react';
 import { useCallback, useMemo } from 'react';

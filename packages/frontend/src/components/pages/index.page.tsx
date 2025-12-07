@@ -7,11 +7,11 @@ import { useAuth } from '@/hooks/useAuth.ts';
  * @returns Die Index-Page-Komponente
  */
 import { isAdmin } from '@/utils/auth';
-import { Button } from '@atoms/button.atom';
-import { Heading } from '@atoms/heading.atom';
-import { Spinner } from '@atoms/spinner.atom';
-import { Text } from '@atoms/text.atom';
-import { ColorModeMenu } from '@molecules/color-mode-menu.molecule';
+import { Button } from '@/shared/ui/atoms/button.atom';
+import { Heading } from '@/shared/ui/atoms/heading.atom';
+import { Spinner } from '@/shared/ui/atoms/spinner.atom';
+import { Text } from '@/shared/ui/atoms/text.atom';
+import { ColorModeMenu } from '@/shared/ui/molecules/color-mode-menu.molecule';
 import { EinsatzDashboard } from '@organisms/einsatz/EinsatzDashboard';
 import { useRouter } from '@tanstack/react-router';
 import { PiShieldCheck, PiSignIn } from 'react-icons/pi';

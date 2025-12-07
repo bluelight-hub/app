@@ -1,5 +1,5 @@
 import { cn } from '@/shared/utils/cn';
-import { Button } from '@atoms/button.atom';
+import { Button } from '@/shared/ui/atoms/button.atom';
 import { PiCheckCircle, PiClock, PiPhone, PiTruck, PiUser, PiUserPlus, PiUsers, PiWarning } from 'react-icons/pi';
 
 interface Resource {

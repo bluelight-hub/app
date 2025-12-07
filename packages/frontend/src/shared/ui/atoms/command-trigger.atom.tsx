@@ -1,5 +1,5 @@
 import { cn } from '@/shared/utils/cn';
-import { Button } from '@atoms/button.atom';
+import { Button } from './button.atom';
 import { PiMagnifyingGlass } from 'react-icons/pi';
 
 interface CommandTriggerProps {

@@ -1,4 +1,4 @@
-import { Button } from '@atoms/button.atom';
+import { Button } from '@/shared/ui/atoms/button.atom';
 import { PiCheckCircle, PiWarningCircle, PiX } from 'react-icons/pi';
 
 interface EtbTextbausteinPreviewProps {

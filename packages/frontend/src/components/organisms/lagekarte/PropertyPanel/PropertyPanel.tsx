@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useDebouncedCallback } from 'use-debounce';
 import type * as GeoJSON from 'geojson';
-import { CloseButton } from '@atoms/close-button.atom';
+import { CloseButton } from '@/shared/ui/atoms/close-button.atom';
 import { PropertyPanelContent } from './PropertyPanelContent';
 
 /**

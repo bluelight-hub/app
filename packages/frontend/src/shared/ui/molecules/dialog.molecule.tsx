@@ -1,7 +1,7 @@
 import { cn } from '@/shared/utils/cn';
-import { CloseButton } from '@atoms/close-button.atom';
-import { Button } from '@atoms/button.atom';
-import { InlineSpinner } from '@atoms/spinner.atom';
+import { CloseButton } from '../atoms/close-button.atom';
+import { Button } from '../atoms/button.atom';
+import { InlineSpinner } from '../atoms/spinner.atom';
 import { Dialog as HeadlessDialog, DialogPanel, DialogTitle, Transition, TransitionChild } from '@headlessui/react';
 import * as React from 'react';
 import { PiCheckCircle, PiInfo, PiWarning, PiXCircle } from 'react-icons/pi';

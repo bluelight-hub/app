@@ -1,5 +1,5 @@
-import { Button } from '@/components/atoms/button.atom';
-import { Input } from '@/components/atoms/input.atom';
+import { Button } from '@/shared/ui/atoms/button.atom';
+import { Input } from '@/shared/ui/atoms/input.atom';
 import { DRAWING_STYLES, type ShapeType } from '@/utils/drawing-styles';
 import { Dialog, DialogBackdrop, DialogPanel, DialogTitle } from '@headlessui/react';
 import type React from 'react';

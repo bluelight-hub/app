@@ -1,5 +1,5 @@
-import { Button } from '@atoms/button.atom';
-import { Input } from '@atoms/input.atom';
+import { Button } from '../atoms/button.atom';
+import { Input } from '../atoms/input.atom';
 import { debounce } from '@tanstack/pacer';
 import { forwardRef, useCallback, useEffect, useState } from 'react';
 import { PiMagnifyingGlass, PiX } from 'react-icons/pi';

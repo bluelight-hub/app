@@ -1,4 +1,4 @@
-import { Label } from '@atoms/label.atom';
+import { Label } from '../../atoms/label.atom';
 import { cn } from '@/shared/utils/cn';
 import { forwardRef } from 'react';
 

@@ -1,4 +1,4 @@
-import { Button } from '@atoms/button.atom';
+import { Button } from '@/shared/ui/atoms/button.atom';
 import { PiCaretLeft, PiCaretRight } from 'react-icons/pi';
 import type { NavigationCommand } from '../types';
 

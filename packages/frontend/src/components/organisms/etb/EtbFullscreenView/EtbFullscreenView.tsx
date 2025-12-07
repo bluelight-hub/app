@@ -1,4 +1,4 @@
-import { Spinner } from '@/components/atoms/spinner.atom';
+import { Spinner } from '@/shared/ui/atoms/spinner.atom';
 import { FullscreenCloseButton } from '@/components/organisms/lagekarte/FullscreenCloseButton/FullscreenCloseButton';
 import { useEtbInfinite } from '@/hooks/useEtb';
 import { useUserNames } from '@/hooks/useUsers';

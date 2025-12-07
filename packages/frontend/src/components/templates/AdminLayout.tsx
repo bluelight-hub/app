@@ -1,11 +1,11 @@
 import { useAdminAuth } from '@/hooks/useAdminAuth';
 import { useAuth } from '@/hooks/useAuth';
 import { logger } from '@/shared/utils/logger';
-import { CloseButton } from '@atoms/close-button.atom';
-import { Container } from '@atoms/container.atom';
-import { Heading } from '@atoms/heading.atom';
-import { IconButton } from '@atoms/icon-button.atom';
-import { Spinner } from '@atoms/spinner.atom';
+import { CloseButton } from '@/shared/ui/atoms/close-button.atom';
+import { Container } from '@/shared/ui/atoms/container.atom';
+import { Heading } from '@/shared/ui/atoms/heading.atom';
+import { IconButton } from '@/shared/ui/atoms/icon-button.atom';
+import { Spinner } from '@/shared/ui/atoms/spinner.atom';
 import { Link, Outlet, useLocation, useMatchRoute, useNavigate, useRouterState } from '@tanstack/react-router';
 import { isTauri } from '@tauri-apps/api/core';
 import { useCallback, useEffect, useMemo } from 'react';

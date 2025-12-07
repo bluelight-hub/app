@@ -1,4 +1,4 @@
-import { ColorModeButton } from '@/components/molecules/color-mode-button.molecule';
+import { ColorModeButton } from '@/shared/ui/molecules/color-mode-button.molecule';
 import { cn } from '@/shared/utils/cn';
 import { useTimeBasedBackground } from '@/utils/timeBasedBackground';
 import type { ReactNode } from 'react';
