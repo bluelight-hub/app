@@ -11,7 +11,7 @@ import { EINSATZ_QUERY_KEYS, useEinsatzDetails, useEinsatzModules } from '@/feat
 import { cn } from '@/shared/utils/cn';
 import { getModuleActiveColor, getModuleColor } from '@/shared/utils';
 import { Button } from '@/shared/ui/atoms/button.atom';
-import { UpdateEinsatzDtoStatusEnum, EinsatzDtoStatusEnum } from '@bluelight-hub/shared/client';
+import { EinsatzDtoStatusEnum } from '@bluelight-hub/shared/client';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { Link, Outlet, useMatchRoute, useNavigate, useParams, useRouter } from '@tanstack/react-router';
 import { formatDistanceToNow } from 'date-fns';
@@ -80,7 +80,16 @@ export function SingleEinsatzLayout({ className }: SingleEinsatzLayoutProps) {
   // Automatisch Einsatz starten wenn Status ANGELEGT ist
   // biome-ignore lint/correctness/useExhaustiveDependencies: startEinsatzMutation intentionally excluded to prevent re-trigger on mutation state changes
   useEffect(() => {
-    if (einsatz && einsatz.status === UpdateEinsatzDtoStatusEnum.Angelegt && !hasStartedRef.current && !startEinsatzMutation.isPending) {
+    console.log('Auto-start check:', {
+      status: einsatz?.status,
+      expected: EinsatzDtoStatusEnum.Angelegt,
+      hasStarted: hasStartedRef.current,
+      isPending: startEinsatzMutation.isPending,
+      matches: einsatz?.status === EinsatzDtoStatusEnum.Angelegt,
+    });
+
+    if (einsatz && einsatz.status === EinsatzDtoStatusEnum.Angelegt && !hasStartedRef.current && !startEinsatzMutation.isPending) {
+      console.log('Starting einsatz automatically...');
       hasStartedRef.current = true;
       startEinsatzMutation.mutate();
     }
@@ -394,7 +403,7 @@ export function SingleEinsatzLayout({ className }: SingleEinsatzLayoutProps) {
                       size="sm"
                       className="w-full"
                       onClick={() => setShowEndConfirmation(true)}
-                      disabled={einsatz?.status === UpdateEinsatzDtoStatusEnum.Abgeschlossen || einsatz?.status === UpdateEinsatzDtoStatusEnum.Archiviert}
+                      disabled={einsatz?.status === EinsatzDtoStatusEnum.Abgeschlossen || einsatz?.status === EinsatzDtoStatusEnum.Archiviert}
                     >
                       Einsatz beenden
                     </Button>

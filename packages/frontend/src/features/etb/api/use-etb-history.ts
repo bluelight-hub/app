@@ -4,12 +4,12 @@
  * Hook für ETB-Versionshistorie (Snapshots).
  */
 
-import { getBaseUrl } from '@/api/api';
-import { fetchWithRefresh } from '@/api/fetchWithRefresh';
+import { getBaseUrl } from '@/shared/api/api';
+import { fetchWithRefresh } from '@/shared/api/fetchWithRefresh';
 import { logger } from '@/shared/utils/logger';
 import type { EtbSnapshotDto, ResponseError } from '@bluelight-hub/shared/client';
 import { useQuery } from '@tanstack/react-query';
-import { ETB_QUERY_KEYS, calculateRetryDelay } from './queries';
+import { calculateRetryDelay, ETB_QUERY_KEYS } from './queries';
 
 export interface UseEtbHistoryOptions {
   /**

@@ -20,7 +20,7 @@
  * @see EtbAutoCreationHandler - Application Layer Implementation
  * @see EVENT_HANDLER.ETB_AUTO_CREATION - DI Token
  */
-import { Injectable, Inject } from '@nestjs/common';
+import { Injectable, Inject, Logger } from '@nestjs/common';
 import { OnEvent } from '@nestjs/event-emitter';
 import type { IEventHandler } from '@domain/ports/i-event-handler.port';
 import { EinsatzCreatedEvent } from '@domain/events/einsatz-created.event';
@@ -53,6 +53,8 @@ import { EVENT_HANDLER } from '@infrastructure/di-tokens';
  */
 @Injectable()
 export class EtbEventAdapter {
+  private readonly logger = new Logger(EtbEventAdapter.name);
+
   constructor(
     @Inject(EVENT_HANDLER.ETB_AUTO_CREATION)
     private readonly handler: IEventHandler<EinsatzCreatedEvent>,
@@ -75,6 +77,12 @@ export class EtbEventAdapter {
    */
   @OnEvent(EinsatzCreatedEvent.eventName())
   async onEinsatzCreated(event: EinsatzCreatedEvent): Promise<void> {
+    this.logger.log(`Received EinsatzCreatedEvent`, {
+      eventId: event.eventId,
+      einsatzId: event.einsatzId.value,
+      occurredAt: event.occurredAt,
+      eventName: EinsatzCreatedEvent.eventName(),
+    });
     await this.handler.handle(event);
   }
 }

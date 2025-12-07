@@ -156,16 +156,20 @@ export class OutboxEventPublisher implements OnModuleInit, OnModuleDestroy {
         const events = await this.outboxRepository.findAndLockPending(this.config.batchSize, tx as TransactionContext);
 
         if (events.length === 0) {
+          this.logger.debug('No pending events found in outbox');
           return;
         }
 
-        this.logger.debug(`Processing ${events.length} pending events (locked)`);
+        this.logger.log(`Processing ${events.length} pending events (locked)`, {
+          eventNames: events.map((e) => e.eventName),
+          eventIds: events.map((e) => e.id),
+        });
 
         for (const event of events) {
           await this.processEvent(event, tx as TransactionContext);
         }
 
-        this.logger.debug(`Finished processing ${events.length} events`);
+        this.logger.log(`Finished processing ${events.length} events`);
       },
       {
         // Transaction Timeout: 10 Sekunden (wie in TransactionalCommandHandler)
@@ -218,11 +222,16 @@ export class OutboxEventPublisher implements OnModuleInit, OnModuleDestroy {
       }
 
       // Step 2: Publish via EventEmitter2
+      this.logger.log(`Publishing event ${id} to EventEmitter`, {
+        eventName,
+        aggregateId: outboxEvent.aggregateId,
+        domainEventType: domainEvent.constructor.name,
+      });
       await this.eventPublisher.publish(domainEvent);
 
       // Step 3: Mark as PUBLISHED (innerhalb der Transaction → Lock bleibt gehalten)
       await this.outboxRepository.markAsPublished(id, tx);
-      this.logger.debug(`Event ${id} published successfully`, { eventName });
+      this.logger.log(`Event ${id} published successfully`, { eventName });
     } catch (error) {
       // Handler Error: Retryable
       const errorMessage = error instanceof Error ? error.message : String(error);
