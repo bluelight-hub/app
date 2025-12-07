@@ -78,13 +78,13 @@ export function SingleEinsatzLayout({ className }: SingleEinsatzLayoutProps) {
   });
 
   // Automatisch Einsatz starten wenn Status ANGELEGT ist
+  // biome-ignore lint/correctness/useExhaustiveDependencies: startEinsatzMutation intentionally excluded to prevent re-trigger on mutation state changes
   useEffect(() => {
     if (einsatz && einsatz.status === UpdateEinsatzDtoStatusEnum.Angelegt && !hasStartedRef.current && !startEinsatzMutation.isPending) {
       hasStartedRef.current = true;
       startEinsatzMutation.mutate();
     }
-    // biome-ignore lint/correctness/useExhaustiveDependencies: startEinsatzMutation intentionally excluded to prevent re-trigger on mutation state changes
-  }, [einsatz, startEinsatzMutation.isPending, startEinsatzMutation.mutate]);
+  }, [einsatz]);
 
   // Modul-Konfiguration aus Hook
   const modules = useEinsatzModules();
