@@ -83,8 +83,6 @@ export {
 } from './schemas/einsatz.schema';
 
 // ============================================
-// Components
+// UI Components
 // ============================================
-// NOTE: Components bleiben in src/components/
-// und werden NICHT hierher migriert.
-// Import sie weiterhin von @/components/...
+export * from './ui';

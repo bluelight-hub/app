@@ -1,5 +1,5 @@
-import { AuthLoading } from '@/components/molecules/auth/AuthLoading';
 import { useCurrentUser } from '@/features/auth';
+import { AuthLoading } from '@/features/auth/ui';
 import { Outlet, useRouter } from '@tanstack/react-router';
 
 export function AppGuard() {

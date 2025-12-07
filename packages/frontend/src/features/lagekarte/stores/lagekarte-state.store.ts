@@ -1,7 +1,7 @@
 import { Store } from '@tanstack/react-store';
 import type * as L from 'leaflet';
 import type * as GeoJSON from 'geojson';
-import type { DrawingTool } from '@/components/organisms/lagekarte/toolbar/DrawingToolbar';
+import type { DrawingTool } from '@/features/lagekarte/ui';
 import type { OriginalStyle } from '../utils/types';
 
 /**

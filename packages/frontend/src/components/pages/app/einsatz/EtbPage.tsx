@@ -1,12 +1,6 @@
 import { ErrorState } from '@/shared/ui/atoms/ErrorState';
 import { LoadingState } from '@/shared/ui/atoms/LoadingState';
-import { EtbLockButton, EtbStatusBadge, type EtbStatus } from '@/components/molecules/etb';
-import { EtbSnapshotHistoryModal } from '@/components/organisms/etb/components/EtbSnapshotHistoryModal';
-import { EditEtbEntryModal } from '@/components/organisms/etb/EditEtbEntryModal';
-import { EtbEntryForm } from '@/components/organisms/etb/EtbEntryForm';
-import { EtbEntryList } from '@/components/organisms/etb/EtbEntryList';
-import { EtbFullscreenView } from '@/components/organisms/etb/EtbFullscreenView/EtbFullscreenView';
-import { useEtbInfinite } from '@/features/etb';
+import { EtbLockButton, EtbStatusBadge, type EtbStatus, EtbSnapshotHistoryModal, EditEtbEntryModal, EtbEntryForm, EtbEntryList, EtbFullscreenView, useEtbInfinite } from '@/features/etb';
 import type { EintragDto } from '@bluelight-hub/shared/client';
 import { useMemo, useState } from 'react';
 import { PiClockCounterClockwise } from 'react-icons/pi';
