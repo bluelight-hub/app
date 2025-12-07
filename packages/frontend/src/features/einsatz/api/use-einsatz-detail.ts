@@ -7,7 +7,6 @@
 
 import { api } from '@/api';
 import { useEinsatzStore } from '@/stores/einsatzStore';
-import { logger } from '@/utils/logger';
 import type { EinsatzControllerCreateVAlpha200Response, ResponseError } from '@bluelight-hub/shared/client';
 import { useQuery } from '@tanstack/react-query';
 import { useEffect } from 'react';
