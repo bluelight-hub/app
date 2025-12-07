@@ -2,7 +2,7 @@ import { Spinner } from '@/shared/ui/atoms/spinner.atom.tsx';
 import { createFileRoute } from '@tanstack/react-router';
 import { lazy, Suspense } from 'react';
 
-const AdminLogin = lazy(() => import('@pages/admin/auth/AdminLogin').then((m) => ({ default: m.AdminLogin })));
+const AdminLogin = lazy(() => import('@/features/admin/ui').then((m) => ({ default: m.AdminLogin })));
 
 // Separate Route für Admin-Login, die das AdminLayout umgeht
 export const Route = createFileRoute('/admin-login')({

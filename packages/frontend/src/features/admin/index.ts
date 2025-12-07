@@ -14,3 +14,8 @@ export {
   // Hooks
   useAdminUserManagement,
 } from './api';
+
+// ============================================
+// UI Layer (Components)
+// ============================================
+export * from './ui';

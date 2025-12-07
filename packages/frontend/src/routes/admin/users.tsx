@@ -1,4 +1,4 @@
-import { AdminUsers } from '@pages/admin/settings/AdminUsers';
+import { AdminUsers } from '@/features/admin/ui';
 import { createFileRoute } from '@tanstack/react-router';
 
 export const Route = createFileRoute('/admin/users')({

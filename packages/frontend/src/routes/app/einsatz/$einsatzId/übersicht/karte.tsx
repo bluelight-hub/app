@@ -1,4 +1,4 @@
-import { LagekarteView, type LagekarteSearchParams } from '@organisms/lagekarte/LagekarteView/LagekarteView';
+import { LagekarteView, type LagekarteSearchParams } from '@/features/lagekarte/ui';
 import { createFileRoute } from '@tanstack/react-router';
 import 'leaflet/dist/leaflet.css';
 
