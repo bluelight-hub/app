@@ -11,8 +11,8 @@ import { logger } from '@/shared/utils/logger';
 import type {
   EinsatzControllerCreateVAlpha200Response,
   EinsatzControllerFindAllVAlpha200Response,
+  EinsatzDto,
   EinsatzListItemDto,
-  EinsatzResponseDto,
   ResponseError,
   UpdateEinsatzDto,
 } from '@bluelight-hub/shared/client';
@@ -54,7 +54,7 @@ interface UpdateMutationContext {
 export const useUpdateEinsatz = () => {
   const queryClient = useQueryClient();
 
-  return useMutation<EinsatzResponseDto, ResponseError, { id: string; data: UpdateEinsatzDto }, UpdateMutationContext>({
+  return useMutation<EinsatzDto, ResponseError, { id: string; data: UpdateEinsatzDto }, UpdateMutationContext>({
     mutationFn: async ({ id, data }) => {
       const response = await api.einsatz().einsatzControllerUpdateVAlpha({
         id,
@@ -71,11 +71,9 @@ export const useUpdateEinsatz = () => {
       const previousEinsatz = queryClient.getQueryData<EinsatzControllerCreateVAlpha200Response>(EINSATZ_QUERY_KEYS.detail(id));
 
       if (previousEinsatz?.data) {
-        const updatedEinsatz: EinsatzResponseDto = {
+        const updatedEinsatz: EinsatzDto = {
           ...previousEinsatz.data,
           ...data,
-          completeness: previousEinsatz.data.completeness,
-          updatedAt: new Date(),
         };
 
         // Update Detail Cache

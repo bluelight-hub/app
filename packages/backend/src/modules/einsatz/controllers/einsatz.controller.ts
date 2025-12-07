@@ -1,4 +1,4 @@
-import { ArchiveEinsatzCommand, CompleteEinsatzCommand, CreateEinsatzCommand, UpdateEinsatzCommand } from '@/application/einsatz/commands';
+import { ArchiveEinsatzCommand, CompleteEinsatzCommand, CreateEinsatzCommand, StartEinsatzCommand, UpdateEinsatzCommand } from '@/application/einsatz/commands';
 import { Address } from '@/domain/value-objects/address';
 import {
   CompletenessQueryDto,
@@ -245,6 +245,25 @@ export class EinsatzController {
     const einsatzort = dto.einsatzort ? Address.create({ ort: dto.einsatzort }).value : undefined;
 
     const commandResult = UpdateEinsatzCommand.create(id, dto.alarmstichwort, einsatzort, dto.beschreibung);
+    if (commandResult.isFailure || !commandResult.value) throw new BadRequestException(commandResult.error);
+
+    const result = await this.commandBus.execute(commandResult.value);
+    if (result.isFailure) throw new BadRequestException(result.error);
+
+    return this.loadEinsatzById(id);
+  }
+
+  /**
+   * Startet einen Einsatz (setzt Status auf IN_BEARBEITUNG) via CQRS Command
+   */
+  @Post(':id/start')
+  @Roles('USER', 'ADMIN', 'SUPER_ADMIN')
+  @ApiOperation({ summary: 'Einsatz starten', description: 'Markiert einen Einsatz als IN_BEARBEITUNG. Wird automatisch aufgerufen wenn ein Einsatz vollständig geöffnet wird.' })
+  @ApiOkResponse({ type: EinsatzDto, description: 'Einsatz erfolgreich gestartet' })
+  @ApiNotFoundResponse({ description: 'Einsatz nicht gefunden' })
+  @ApiBadRequestResponse({ description: 'Einsatz kann nicht gestartet werden (z.B. bereits gestartet oder archiviert)' })
+  async start(@Param('id') id: string, @CurrentUser() user: ValidatedUser): Promise<EinsatzDto> {
+    const commandResult = StartEinsatzCommand.create(id, user.userId);
     if (commandResult.isFailure || !commandResult.value) throw new BadRequestException(commandResult.error);
 
     const result = await this.commandBus.execute(commandResult.value);

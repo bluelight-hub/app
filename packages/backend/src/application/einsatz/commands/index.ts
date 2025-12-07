@@ -10,6 +10,10 @@ export { UpdateEinsatzHandler } from './update-einsatz/update-einsatz.handler';
 export { DeleteEinsatzCommand } from './delete-einsatz/delete-einsatz.command';
 export { DeleteEinsatzHandler } from './delete-einsatz/delete-einsatz.handler';
 
+// Start
+export { StartEinsatzCommand } from './start-einsatz/start-einsatz.command';
+export { StartEinsatzHandler } from './start-einsatz/start-einsatz.handler';
+
 // Complete (Story 4-2)
 export { CompleteEinsatzCommand } from './complete-einsatz/complete-einsatz.command';
 export { CompleteEinsatzHandler } from './complete-einsatz/complete-einsatz.handler';

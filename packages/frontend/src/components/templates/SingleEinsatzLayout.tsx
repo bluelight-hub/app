@@ -18,7 +18,7 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { Link, Outlet, useMatchRoute, useNavigate, useParams, useRouter } from '@tanstack/react-router';
 import { formatDistanceToNow } from 'date-fns';
 import { de } from 'date-fns/locale';
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { PiArrowLeft, PiArrowsOut, PiClock, PiGear, PiGridFour, PiQuestion, PiSiren, PiWarning } from 'react-icons/pi';
 
 interface SingleEinsatzLayoutProps {
@@ -46,6 +46,36 @@ export function SingleEinsatzLayout({ className }: SingleEinsatzLayoutProps) {
   // Lade kombinierte Einsatzdaten (Einsatz + ETB + Lagekarte)
   // ETB und Lagekarte werden im Cache vorgeladen, sodass Child-Routes diese nutzen können
   const { einsatz } = useEinsatzDetails(einsatzId);
+
+  // Track if we've already started this einsatz to avoid duplicate API calls
+  const hasStartedRef = useRef(false);
+
+  // Mutation für Einsatz automatisch starten (wenn Status = ANGELEGT)
+  const startEinsatzMutation = useMutation({
+    mutationFn: async () => {
+      return api.einsatz().einsatzControllerStartVAlpha({
+        id: einsatzId,
+      });
+    },
+    onSuccess: () => {
+      // Invalidate queries to refresh data
+      queryClient.invalidateQueries({ queryKey: EINSATZ_QUERY_KEYS.detail(einsatzId) });
+      queryClient.invalidateQueries({ queryKey: EINSATZ_QUERY_KEYS.detailsCombined(einsatzId) });
+      queryClient.invalidateQueries({ queryKey: EINSATZ_QUERY_KEYS.all });
+    },
+    onError: (error) => {
+      console.error('Fehler beim automatischen Starten des Einsatzes:', error);
+      // Silent fail - don't block user from viewing the einsatz
+    },
+  });
+
+  // Automatisch Einsatz starten wenn Status ANGELEGT ist
+  useEffect(() => {
+    if (einsatz && einsatz.status === UpdateEinsatzDtoStatusEnum.Angelegt && !hasStartedRef.current && !startEinsatzMutation.isPending) {
+      hasStartedRef.current = true;
+      startEinsatzMutation.mutate();
+    }
+  }, [einsatz, startEinsatzMutation]);
 
   // Modul-Konfiguration aus Hook
   const modules = useEinsatzModules();

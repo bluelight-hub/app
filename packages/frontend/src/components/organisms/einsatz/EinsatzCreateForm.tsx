@@ -59,6 +59,11 @@ export function EinsatzCreateForm({ isOpen, onClose, onSuccess }: EinsatzCreateF
 
         const result = await createEinsatz.mutateAsync(payload.alarmstichwort ? payload : { ...payload, alarmstichwort: 'Neuer Einsatz' });
 
+        // Optional: Callback für Navigation
+        if (onSuccess) {
+          onSuccess(result.id);
+        }
+
         toast.success('Einsatz erfolgreich erstellt!', {
           id: toastId,
           action: {
@@ -67,14 +72,12 @@ export function EinsatzCreateForm({ isOpen, onClose, onSuccess }: EinsatzCreateF
           },
         });
 
-        // Reset form und schließe Panel
-        form.reset();
-        onClose();
-
-        // Optional: Callback für Navigation
-        if (onSuccess) {
-          onSuccess(result.id);
-        }
+        // Reset form und schließe Panel (nach success callbacks)
+        // setTimeout verhindert "Editor disposed" Fehler
+        setTimeout(() => {
+          form.reset();
+          onClose();
+        }, 0);
       } catch (error) {
         toast.error('Fehler beim Erstellen des Einsatzes', {
           description: error instanceof Error ? error.message : 'Unbekannter Fehler',

@@ -1,7 +1,7 @@
 import { cn } from '@/shared/utils/cn';
 import { Button } from '@/shared/ui/atoms/button.atom';
 import { Select } from '@/shared/ui/atoms/select.atom';
-import { EinsatzControllerFindAllVAlphaOrderByEnum, EinsatzControllerFindAllVAlphaOrderDirectionEnum, EinsatzResponseDtoStatusEnum } from '@bluelight-hub/shared/client';
+import { EinsatzControllerFindAllVAlphaOrderByEnum, EinsatzControllerFindAllVAlphaOrderDirectionEnum, EinsatzDtoStatusEnum } from '@bluelight-hub/shared/client';
 import { PiArchive } from 'react-icons/pi';
 
 interface SortOption {
@@ -10,10 +10,10 @@ interface SortOption {
 }
 
 interface FilterPanelProps {
-  statusFilter: EinsatzResponseDtoStatusEnum | undefined;
+  statusFilter: EinsatzDtoStatusEnum | undefined;
   sortOption: SortOption;
   showArchived: boolean;
-  onStatusFilterChange: (status: EinsatzResponseDtoStatusEnum | undefined) => void;
+  onStatusFilterChange: (status: EinsatzDtoStatusEnum | undefined) => void;
   onSortChange: (key: EinsatzControllerFindAllVAlphaOrderByEnum) => void;
   onArchiveToggle: () => void;
   className?: string;
@@ -53,9 +53,9 @@ export const FilterPanel = ({ statusFilter, sortOption, showArchived, onStatusFi
               fullWidth
               options={[
                 { value: '', label: 'Alle Status' },
-                { value: EinsatzResponseDtoStatusEnum.Angelegt, label: 'Angelegt' },
-                { value: EinsatzResponseDtoStatusEnum.InBearbeitung, label: 'In Bearbeitung' },
-                { value: EinsatzResponseDtoStatusEnum.Abgeschlossen, label: 'Abgeschlossen' },
+                { value: EinsatzDtoStatusEnum.Angelegt, label: 'Angelegt' },
+                { value: EinsatzDtoStatusEnum.InBearbeitung, label: 'In Bearbeitung' },
+                { value: EinsatzDtoStatusEnum.Abgeschlossen, label: 'Abgeschlossen' },
               ]}
             />
           </div>

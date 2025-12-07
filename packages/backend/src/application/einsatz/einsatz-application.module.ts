@@ -6,7 +6,16 @@ import { EtbInfrastructureModule } from '@infrastructure/etb/etb-infrastructure.
 import { OutboxModule } from '@infrastructure/outbox/outbox.module';
 import { EinsatzCompletenessService } from '@domain/services/einsatz-completeness.service';
 import { EinsatzArchivalPolicy } from '@domain/services/einsatz-archival.policy';
-import { CreateEinsatzHandler, UpdateEinsatzHandler, DeleteEinsatzHandler, CompleteEinsatzHandler, ArchiveEinsatzHandler, UpdateEinsatzStatusHandler, ArchiveOldEinsaetzeHandler } from './commands';
+import {
+  CreateEinsatzHandler,
+  UpdateEinsatzHandler,
+  DeleteEinsatzHandler,
+  StartEinsatzHandler,
+  CompleteEinsatzHandler,
+  ArchiveEinsatzHandler,
+  UpdateEinsatzStatusHandler,
+  ArchiveOldEinsaetzeHandler,
+} from './commands';
 import {
   GetActiveEinsaetzeQueryHandler,
   GetEinsatzByIdQueryHandler,
@@ -77,6 +86,7 @@ import {
     UpdateEinsatzHandler,
     DeleteEinsatzHandler,
     // Command Handlers (Story 4-2: Status Transitions)
+    StartEinsatzHandler,
     CompleteEinsatzHandler,
     ArchiveEinsatzHandler,
     UpdateEinsatzStatusHandler,
@@ -102,6 +112,7 @@ import {
     UpdateEinsatzHandler,
     DeleteEinsatzHandler,
     // Story 4-2: Status Transition Handlers
+    StartEinsatzHandler,
     CompleteEinsatzHandler,
     ArchiveEinsatzHandler,
     UpdateEinsatzStatusHandler,

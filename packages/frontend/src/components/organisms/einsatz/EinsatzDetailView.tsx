@@ -5,8 +5,7 @@ import { ArchivedBanner } from '@/components/molecules/einsatz/ArchivedBanner';
 import { EinsatzHeader } from '@/components/molecules/einsatz/EinsatzHeader';
 import { EinsatzInfoCard } from '@/components/molecules/einsatz/EinsatzInfoCard';
 import { PlaceholderModule } from '@/components/molecules/einsatz/PlaceholderModule';
-import { useArchiveEinsatz, EINSATZ_QUERY_KEYS } from '@/features/einsatz';
-import { updateEinsatzSchema } from '@/schemas/einsatz.schema';
+import { useArchiveEinsatz, EINSATZ_QUERY_KEYS, updateEinsatzSchema } from '@/features/einsatz';
 import { getApiErrorMessage } from '@/shared/utils/apiErrorHandler';
 import { logger } from '@/shared/utils/logger';
 import type { ResponseError, UpdateEinsatzDto } from '@bluelight-hub/shared/client';
@@ -96,9 +95,7 @@ export function EinsatzDetailView() {
       // Reset form with current values from einsatz
       // This sets both the value AND the defaultValue for dirty tracking
       form.reset({
-        defaultValues: {
-          beschreibung: einsatz.beschreibung || '',
-        },
+        beschreibung: einsatz.beschreibung || '',
       });
       setIsEditing(true);
     }
@@ -125,6 +122,18 @@ export function EinsatzDetailView() {
     }
   };
 
+  // Berechne ob Form dirty ist (hat sich vom Originalwert geändert)
+  // TanStack Form verwendet ein Store-Pattern - wir nutzen useStore für reaktive Updates
+  // WICHTIG: useStore Hook muss VOR early returns aufgerufen werden (Hook Rules)
+  const beschreibungValue = form.useStore((state) => state.values.beschreibung);
+
+  const isFormDirty = useMemo(() => {
+    if (!isEditing || !einsatz) return false;
+    const currentValue = beschreibungValue || '';
+    const originalValue = einsatz.beschreibung || '';
+    return currentValue !== originalValue;
+  }, [isEditing, beschreibungValue, einsatz]);
+
   if (isLoading) {
     return <LoadingState message="Lade Einsatzdetails..." />;
   }
@@ -149,7 +158,7 @@ export function EinsatzDetailView() {
         onCancel={handleCancel}
         onArchive={() => setShowArchiveModal(true)}
         isSaving={updateMutation.isPending}
-        isFormDirty={isEditing && !form.state.isFieldsValid}
+        isFormDirty={isFormDirty}
       />
 
       {/* Main Content - Scrollable */}

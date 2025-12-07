@@ -100,6 +100,10 @@ export interface EinsatzControllerGetStatusCountsVAlphaRequest {
   includeArchived?: boolean;
 }
 
+export interface EinsatzControllerStartVAlphaRequest {
+  id: string;
+}
+
 export interface EinsatzControllerUpdateVAlphaRequest {
   id: string;
   updateEinsatzDto: UpdateEinsatzDto;
@@ -703,6 +707,49 @@ export class EinsatzApi extends runtime.BaseAPI {
     initOverrides?: RequestInit | runtime.InitOverrideFunction,
   ): Promise<EinsatzControllerGetStatusCountsVAlpha200Response> {
     const response = await this.einsatzControllerGetStatusCountsVAlphaRaw(requestParameters, initOverrides);
+    return await response.value();
+  }
+
+  /**
+   * Markiert einen Einsatz als IN_BEARBEITUNG. Wird automatisch aufgerufen wenn ein Einsatz vollständig geöffnet wird.
+   * Einsatz starten
+   */
+  async einsatzControllerStartVAlphaRaw(requestParameters: EinsatzControllerStartVAlphaRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<EinsatzDto>> {
+    if (requestParameters['id'] == null) {
+      throw new runtime.RequiredError('id', 'Required parameter "id" was null or undefined when calling einsatzControllerStartVAlpha().');
+    }
+
+    const queryParameters: any = {};
+
+    const headerParameters: runtime.HTTPHeaders = {};
+
+    if (this.configuration && this.configuration.accessToken) {
+      const token = this.configuration.accessToken;
+      const tokenString = await token('bearer', []);
+
+      if (tokenString) {
+        headerParameters['Authorization'] = `Bearer ${tokenString}`;
+      }
+    }
+    const response = await this.request(
+      {
+        path: `/api/v-alpha/einsatz/{id}/start`.replace(`{${'id'}}`, encodeURIComponent(String(requestParameters['id']))),
+        method: 'POST',
+        headers: headerParameters,
+        query: queryParameters,
+      },
+      initOverrides,
+    );
+
+    return new runtime.JSONApiResponse(response, (jsonValue) => EinsatzDtoFromJSON(jsonValue));
+  }
+
+  /**
+   * Markiert einen Einsatz als IN_BEARBEITUNG. Wird automatisch aufgerufen wenn ein Einsatz vollständig geöffnet wird.
+   * Einsatz starten
+   */
+  async einsatzControllerStartVAlpha(requestParameters: EinsatzControllerStartVAlphaRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<EinsatzDto> {
+    const response = await this.einsatzControllerStartVAlphaRaw(requestParameters, initOverrides);
     return await response.value();
   }
 
