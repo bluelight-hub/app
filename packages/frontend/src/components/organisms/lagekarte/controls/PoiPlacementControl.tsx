@@ -1,4 +1,4 @@
-import { cn } from '@/utils/cn';
+import { cn } from '@/shared/utils/cn';
 import { formatPoiTypeLabel } from '@/utils/formatPoiTypeLabel';
 import { POI_ICON_MAP, type PoiCategory, type PoiType } from '@/utils/poi-icons';
 import { Button } from '@atoms/button.atom';

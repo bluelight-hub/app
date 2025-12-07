@@ -1,6 +1,6 @@
 import { Button } from '@/components/atoms/button.atom';
 import { Dialog, DialogPanel, DialogTitle } from '@headlessui/react';
-import { cn } from '@/utils/cn';
+import { cn } from '@/shared/utils/cn';
 import type React from 'react';
 import { useState, useCallback, useEffect, useRef, useMemo } from 'react';
 import { PiX, PiInfo, PiWarning } from 'react-icons/pi';

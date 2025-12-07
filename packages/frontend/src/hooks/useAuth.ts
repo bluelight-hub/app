@@ -1,6 +1,6 @@
 import { api } from '@/api';
 import { QUERY_KEYS } from '@/queryKeys';
-import { resetTokenRefreshHandler } from '@/utils/error-handler';
+import { resetTokenRefreshHandler } from '@/shared/utils/error-handler';
 import type { AdminLoginResponseDto, AdminPasswordDto, AdminSetupDto, AdminSetupResponseDto, AuthRequestDto, AuthResponseDto, LogoutResponseDto } from '@bluelight-hub/shared/client';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { milliseconds } from 'date-fns';

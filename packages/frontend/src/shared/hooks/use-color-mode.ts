@@ -1,5 +1,5 @@
 import type { ColorMode, UseColorModeReturn } from '@/components/ui/color-mode';
-import { logger } from '@/utils/logger';
+import { logger } from '@/shared/utils/logger';
 import { useTheme } from 'next-themes';
 
 /**

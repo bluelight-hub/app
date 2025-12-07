@@ -1,4 +1,4 @@
-import { cn } from '@/utils/cn';
+import { cn } from '@/shared/utils/cn';
 import type { HeaderGroup } from '@tanstack/react-table';
 import { flexRender } from '@tanstack/react-table';
 

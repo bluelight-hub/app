@@ -1,4 +1,4 @@
-import { cn } from '@/utils/cn';
+import { cn } from '@/shared/utils/cn';
 import { IconButton } from '@atoms/icon-button.atom';
 import type { ButtonHTMLAttributes } from 'react';
 import { forwardRef } from 'react';

@@ -1,6 +1,6 @@
 import { useCreatePoi, useGeocodeAddress } from '@/api/hooks/useLagekarteApi';
 import type { PoiCategory, PoiType } from '@/utils/poi-icons';
-import { getApiErrorMessage } from '@/utils/apiErrorHandler';
+import { getApiErrorMessage } from '@/shared/utils/apiErrorHandler';
 import { useForm } from '@tanstack/react-form';
 import { zodValidator } from '@tanstack/zod-form-adapter';
 import { toast } from 'sonner';

@@ -1,4 +1,4 @@
-import { logger } from '@/utils/logger';
+import { logger } from '@/shared/utils/logger';
 import type { FetchError, ResponseError } from '@bluelight-hub/shared/client';
 import { toast } from 'sonner';
 

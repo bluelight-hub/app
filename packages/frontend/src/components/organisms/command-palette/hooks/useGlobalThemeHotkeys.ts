@@ -1,4 +1,4 @@
-import { useColorMode } from '@/hooks/use-color-mode';
+import { useColorMode } from '@/shared/hooks/use-color-mode';
 import { useHotkeys } from 'react-hotkeys-hook';
 
 export function useGlobalThemeHotkeys() {

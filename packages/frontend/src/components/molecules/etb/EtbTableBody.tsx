@@ -1,4 +1,4 @@
-import { cn } from '@/utils/cn';
+import { cn } from '@/shared/utils/cn';
 import type { EintragDto } from '@bluelight-hub/shared/client';
 import type { ColumnDef, Row } from '@tanstack/react-table';
 import { flexRender } from '@tanstack/react-table';

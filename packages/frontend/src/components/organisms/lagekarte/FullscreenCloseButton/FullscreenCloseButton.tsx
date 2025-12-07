@@ -1,5 +1,5 @@
 import { useNavigate } from '@tanstack/react-router';
-import { cn } from '@/utils/cn';
+import { cn } from '@/shared/utils/cn';
 import { useCallback, useEffect } from 'react';
 import { CloseButton } from '@atoms/close-button.atom';
 

@@ -1,5 +1,5 @@
 import type { ColorMode } from '@/components/ui/color-mode';
-import { useColorMode } from '@/hooks/use-color-mode';
+import { useColorMode } from '@/shared/hooks/use-color-mode';
 import { useMemo } from 'react';
 import { PiPalette } from 'react-icons/pi';
 import type { ThemeOption } from '../types';

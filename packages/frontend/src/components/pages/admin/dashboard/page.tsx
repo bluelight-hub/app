@@ -1,5 +1,5 @@
 import { useAuth } from '@/hooks/useAuth';
-import { logger } from '@/utils/logger';
+import { logger } from '@/shared/utils/logger';
 import { Button } from '@atoms/button.atom';
 import { Card } from '@atoms/card.atom';
 import { Heading } from '@atoms/heading.atom';

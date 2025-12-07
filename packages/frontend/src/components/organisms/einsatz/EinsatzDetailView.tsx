@@ -8,8 +8,8 @@ import { PlaceholderModule } from '@/components/molecules/einsatz/PlaceholderMod
 import { useEinsaetze } from '@/hooks/useEinsaetze';
 import { QUERY_KEYS } from '@/queryKeys';
 import { updateEinsatzSchema } from '@/schemas/einsatz.schema';
-import { getApiErrorMessage } from '@/utils/apiErrorHandler';
-import { logger } from '@/utils/logger';
+import { getApiErrorMessage } from '@/shared/utils/apiErrorHandler';
+import { logger } from '@/shared/utils/logger';
 import type { ResponseError, UpdateEinsatzDto } from '@bluelight-hub/shared/client';
 import { EinsatzResponseDtoStatusEnum } from '@bluelight-hub/shared/client';
 import { useForm } from '@tanstack/react-form';

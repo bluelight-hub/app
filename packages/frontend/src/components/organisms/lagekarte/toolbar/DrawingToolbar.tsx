@@ -1,5 +1,5 @@
 import { Button } from '@/components/atoms/button.atom';
-import { cn } from '@/utils/cn';
+import { cn } from '@/shared/utils/cn';
 import type React from 'react';
 import { useState, useMemo } from 'react';
 import { PiCursor, PiPentagon, PiPath, PiRectangle, PiPencilSimple, PiTrash, PiTextAa, PiX } from 'react-icons/pi';

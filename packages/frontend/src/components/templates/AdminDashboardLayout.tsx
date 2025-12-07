@@ -1,5 +1,5 @@
 import { Container } from '@/components/atoms/container.atom';
-import { cn } from '@/utils/cn';
+import { cn } from '@/shared/utils/cn';
 import type { ReactNode } from 'react';
 
 /**

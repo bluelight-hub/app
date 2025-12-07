@@ -1,4 +1,4 @@
-import { cn } from '@/utils/cn';
+import { cn } from '@/shared/utils/cn';
 import { IconButton } from '@atoms/icon-button.atom';
 import type { EintragDto, EintragDtoKategorieEnum } from '@bluelight-hub/shared/client';
 import type { ColumnDef } from '@tanstack/react-table';

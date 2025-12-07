@@ -1,5 +1,5 @@
 import { api } from '@/api';
-import { resetTokenRefreshHandler } from '@/utils/error-handler';
+import { resetTokenRefreshHandler } from '@/shared/utils/error-handler';
 import { AUTH_KEYS } from './queries';
 import type { LogoutResponseDto } from '@bluelight-hub/shared/client';
 import { useMutation, useQueryClient } from '@tanstack/react-query';

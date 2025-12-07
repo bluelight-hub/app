@@ -1,4 +1,4 @@
-import { cn } from '@/utils/cn';
+import { cn } from '@/shared/utils/cn';
 import type { PoiType } from '@/utils/poi-icons';
 import { PoiTypeButton } from '@atoms/poi-type-button.atom';
 import { Menu, MenuButton, MenuItem, MenuItems } from '@headlessui/react';

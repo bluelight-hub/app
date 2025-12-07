@@ -1,5 +1,5 @@
 import { Textarea } from '@atoms/textarea.atom';
-import { cn } from '@/utils/cn';
+import { cn } from '@/shared/utils/cn';
 
 interface EtbTextInputProps {
   value: string;

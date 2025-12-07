@@ -1,4 +1,4 @@
-import { useColorMode } from '@/hooks/use-color-mode';
+import { useColorMode } from '@/shared/hooks/use-color-mode';
 import { ColorModeIcon } from '@atoms/color-mode-icon.atom';
 import type { IconButtonProps } from '@atoms/icon-button.atom';
 import { IconButton } from '@atoms/icon-button.atom';

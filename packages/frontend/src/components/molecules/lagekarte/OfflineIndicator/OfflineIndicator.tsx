@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { cn } from '@/utils/cn';
+import { cn } from '@/shared/utils/cn';
 import { PiWifiHigh, PiWifiSlash } from 'react-icons/pi';
 
 /**

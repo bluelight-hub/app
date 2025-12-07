@@ -10,7 +10,7 @@ import { CommandPaletteErrorBoundary } from '@/components/organisms/command-pale
 import { useEinsatzDetails } from '@/hooks/einsatz/useEinsatzDetails';
 import { useEinsatzModules } from '@/hooks/einsatz/useEinsatzModules';
 import { QUERY_KEYS } from '@/queryKeys';
-import { cn } from '@/utils/cn';
+import { cn } from '@/shared/utils/cn';
 import { getModuleActiveColor, getModuleColor } from '@/utils/module-colors';
 import { Button } from '@atoms/button.atom';
 import { UpdateEinsatzDtoStatusEnum } from '@bluelight-hub/shared/client';

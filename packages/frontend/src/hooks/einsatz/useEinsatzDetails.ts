@@ -1,6 +1,6 @@
 import { api } from '@/api';
 import { QUERY_KEYS } from '@/queryKeys';
-import { logger } from '@/utils/logger';
+import { logger } from '@/shared/utils/logger';
 import type { EinsatzDetailsDto, EinsatzDto, EtbDto, LagekarteDto, ResponseError } from '@bluelight-hub/shared/client';
 import { useQuery } from '@tanstack/react-query';
 

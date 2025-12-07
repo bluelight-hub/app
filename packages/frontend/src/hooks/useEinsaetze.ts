@@ -1,8 +1,8 @@
 import { api } from '@/api';
 import { QUERY_KEYS } from '@/queryKeys';
 import { useEinsatzStore } from '@/stores/einsatzStore';
-import { getApiErrorMessage } from '@/utils/apiErrorHandler';
-import { logger } from '@/utils/logger';
+import { getApiErrorMessage } from '@/shared/utils/apiErrorHandler';
+import { logger } from '@/shared/utils/logger';
 import type {
   CreateEinsatzDto,
   EinsatzControllerCreateVAlpha200Response,

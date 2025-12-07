@@ -1,5 +1,5 @@
 import { Button } from '@/components/atoms/button.atom';
-import { cn } from '@/utils/cn';
+import { cn } from '@/shared/utils/cn';
 import type React from 'react';
 import { PiPencilSimple, PiX } from 'react-icons/pi';
 

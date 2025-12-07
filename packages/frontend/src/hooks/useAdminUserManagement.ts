@@ -1,7 +1,7 @@
 import { api } from '@/api';
 import { QUERY_KEYS } from '@/queryKeys';
-import { getApiErrorMessage } from '@/utils/apiErrorHandler';
-import { logger } from '@/utils/logger';
+import { getApiErrorMessage } from '@/shared/utils/apiErrorHandler';
+import { logger } from '@/shared/utils/logger';
 import type { CreateUserDto, DeleteManagedUserResponse, ResponseError, UpdateUserDto, ManagedUserResponse, ManagedUsersListResponse } from '@bluelight-hub/shared/client';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';

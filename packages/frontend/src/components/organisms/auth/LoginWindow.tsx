@@ -5,7 +5,7 @@ import { AuthFooter } from '@/components/molecules/auth-footer.molecule';
 import { LogoWithIndicator } from '@/components/molecules/logo-with-indicator.molecule';
 import { AuthLayout } from '@/components/templates/AuthLayout';
 import { useAuth } from '@/hooks/useAuth';
-import { getApiErrorMessage } from '@/utils/apiErrorHandler';
+import { getApiErrorMessage } from '@/shared/utils/apiErrorHandler';
 import type { AuthRequestDto } from '@bluelight-hub/shared/client';
 import { useNavigate } from '@tanstack/react-router';
 import { useCallback, useEffect } from 'react';

@@ -1,4 +1,4 @@
-import { useConfirm } from '@/hooks/useConfirm';
+import { useConfirm } from '@/shared/hooks/useConfirm';
 import { useDeleteEtbEintrag } from '@/hooks/useEtb';
 import { useUserNames } from '@/hooks/useUsers';
 import type { EintragDto } from '@bluelight-hub/shared/client';

@@ -6,8 +6,8 @@ import { Timeline, TimelineDot, TimelineItem } from '@molecules/timeline.molecul
 import { useQuery } from '@tanstack/react-query';
 import { useEffect, useRef, useState } from 'react';
 import { PiCaretDown, PiCaretRight, PiCircleNotch } from 'react-icons/pi';
-import { formatDisplayDateTime } from '@/utils/dateFormatter';
-import { cn } from '@/utils/cn';
+import { formatDisplayDateTime } from '@/shared/utils/dateFormatter';
+import { cn } from '@/shared/utils/cn';
 import { EtbVersionBadge } from './EtbVersionBadge';
 
 interface EtbSnapshotHistoryModalProps {

@@ -6,7 +6,7 @@
  */
 
 import { api } from '@/api';
-import { logger } from '@/utils/logger';
+import { logger } from '@/shared/utils/logger';
 import type { EinsatzControllerFindAllVAlpha200Response, ResponseError } from '@bluelight-hub/shared/client';
 import { useQuery } from '@tanstack/react-query';
 import { EINSATZ_QUERY_KEYS, calculateRetryDelay, type EinsatzQueryFilters } from './queries';

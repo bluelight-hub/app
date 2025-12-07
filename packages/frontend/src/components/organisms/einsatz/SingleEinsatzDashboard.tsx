@@ -6,8 +6,8 @@ import { EinsatzStatsCard } from '@/components/molecules/einsatz/EinsatzStatsCar
 import { EinsatzTimelineWidget } from '@/components/molecules/einsatz/EinsatzTimelineWidget';
 import { useActiveEinsatz } from '@/hooks/useActiveEinsatz';
 import { QUERY_KEYS } from '@/queryKeys';
-import { formatNatoDateTime } from '@/utils/dateFormatter';
-import { logger } from '@/utils/logger';
+import { formatNatoDateTime } from '@/shared/utils/dateFormatter';
+import { logger } from '@/shared/utils/logger';
 import { Button } from '@atoms/button.atom';
 import { useQuery } from '@tanstack/react-query';
 import { useParams } from '@tanstack/react-router';

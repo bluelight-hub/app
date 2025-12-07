@@ -6,8 +6,8 @@
  */
 
 import { api } from '@/api';
-import { getApiErrorMessage } from '@/utils/apiErrorHandler';
-import { logger } from '@/utils/logger';
+import { getApiErrorMessage } from '@/shared/utils/apiErrorHandler';
+import { logger } from '@/shared/utils/logger';
 import type { EinsatzControllerFindAllVAlpha200Response, ResponseError } from '@bluelight-hub/shared/client';
 import { useInfiniteQuery } from '@tanstack/react-query';
 import { toast } from 'sonner';

@@ -2,7 +2,7 @@ import { isTauri } from '@tauri-apps/api/core';
 import { LogicalSize } from '@tauri-apps/api/dpi';
 import { WebviewWindow } from '@tauri-apps/api/webviewWindow';
 import { toast } from 'sonner';
-import { logger } from '@/utils/logger';
+import { logger } from '@/shared/utils/logger';
 
 /**
  * Optionen für das Öffnen des Admin-Fensters

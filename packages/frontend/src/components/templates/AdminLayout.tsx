@@ -1,6 +1,6 @@
 import { useAdminAuth } from '@/hooks/useAdminAuth';
 import { useAuth } from '@/hooks/useAuth';
-import { logger } from '@/utils/logger';
+import { logger } from '@/shared/utils/logger';
 import { CloseButton } from '@atoms/close-button.atom';
 import { Container } from '@atoms/container.atom';
 import { Heading } from '@atoms/heading.atom';

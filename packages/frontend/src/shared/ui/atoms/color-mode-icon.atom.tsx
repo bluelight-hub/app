@@ -1,4 +1,4 @@
-import { useColorMode } from '@/hooks/use-color-mode';
+import { useColorMode } from '@/shared/hooks/use-color-mode';
 import { PiDesktop, PiMoon, PiSun } from 'react-icons/pi';
 
 /**

@@ -3,7 +3,7 @@ import { useState } from 'react';
 import { flexRender, type Row } from '@tanstack/react-table';
 import type { EintragDto } from '@bluelight-hub/shared/client';
 import { useUpdateEtbEintrag } from '@/hooks/useEtb';
-import { cn } from '@/utils/cn';
+import { cn } from '@/shared/utils/cn';
 import { EtbActionsCell } from './cells/EtbActionsCell';
 
 interface EtbTableRowEditableProps {

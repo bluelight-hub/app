@@ -1,4 +1,4 @@
-import { cn } from '@/utils/cn';
+import { cn } from '@/shared/utils/cn';
 import type { ModuleColor } from './types';
 
 type ColorVariant = 'icon' | 'bg' | 'border';

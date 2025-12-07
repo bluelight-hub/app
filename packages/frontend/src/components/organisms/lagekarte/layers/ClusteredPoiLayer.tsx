@@ -3,7 +3,7 @@ import { Button } from '@/components/atoms/button.atom';
 import { Spinner } from '@/components/atoms/spinner.atom';
 import { getPoiIcon } from '@/utils/poi-icons';
 import { createClusterIcon } from '@/utils/cluster-icons';
-import { getApiErrorMessage } from '@/utils/apiErrorHandler';
+import { getApiErrorMessage } from '@/shared/utils/apiErrorHandler';
 import { formatMgrs } from '@/utils/lagekarte/mgrs';
 import { Dialog, DialogBackdrop, DialogPanel, DialogTitle } from '@headlessui/react';
 import React, { useMemo, useState } from 'react';

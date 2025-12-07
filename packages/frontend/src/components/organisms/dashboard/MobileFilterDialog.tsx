@@ -1,4 +1,4 @@
-import { cn } from '@/utils/cn';
+import { cn } from '@/shared/utils/cn';
 import { Button } from '@atoms/button.atom';
 import { Dialog } from '@/components/molecules/dialog.molecule';
 import { Select } from '@atoms/select.atom';

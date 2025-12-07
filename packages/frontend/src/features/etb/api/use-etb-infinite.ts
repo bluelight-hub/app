@@ -8,7 +8,7 @@
  */
 
 import { api } from '@/api';
-import { logger } from '@/utils/logger';
+import { logger } from '@/shared/utils/logger';
 import { useInfiniteQuery } from '@tanstack/react-query';
 import { ETB_QUERY_KEYS, calculateRetryDelay } from './queries';
 

@@ -6,8 +6,8 @@
  */
 
 import { api } from '@/api';
-import { getApiErrorMessage } from '@/utils/apiErrorHandler';
-import { logger } from '@/utils/logger';
+import { getApiErrorMessage } from '@/shared/utils/apiErrorHandler';
+import { logger } from '@/shared/utils/logger';
 import type {
   EinsatzControllerCreateVAlpha200Response,
   EinsatzControllerFindAllVAlpha200Response,

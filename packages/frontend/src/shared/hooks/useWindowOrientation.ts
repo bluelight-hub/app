@@ -1,8 +1,8 @@
 import { useEffect, useRef } from 'react';
 import { useRouter } from '@tanstack/react-router';
-import { useIsTauri } from '@/hooks/useIsTauri';
+import { useIsTauri } from '@/shared/hooks/useIsTauri';
 import { resizeMainWindow, type WindowOrientation } from '@/services/windowService';
-import { logger } from '@/utils/logger';
+import { logger } from '@/shared/utils/logger';
 
 /**
  * Bestimmt die gewünschte Fenster-Orientierung basierend auf dem aktuellen Pfad
