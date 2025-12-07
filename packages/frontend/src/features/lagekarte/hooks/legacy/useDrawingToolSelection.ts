@@ -1,7 +1,7 @@
 import { useEffect } from 'react';
 import type * as L from 'leaflet';
 import type { DrawingTool } from '@/components/organisms/lagekarte/toolbar/DrawingToolbar';
-import { DEFAULT_SHAPE_STYLE } from '@/utils/drawing-styles';
+import { DEFAULT_SHAPE_STYLE } from '@/features/lagekarte/utils';
 
 interface UseDrawingToolSelectionProps {
   map: L.Map;

@@ -7,7 +7,7 @@
  * nur für Backward Compatibility mit bestehenden Komponenten.
  */
 
-import { api } from '@/api';
+import { api } from '@/shared/api/client';
 import { logger } from '@/shared/utils/logger';
 import { useInfiniteQuery } from '@tanstack/react-query';
 import { ETB_QUERY_KEYS, calculateRetryDelay } from './queries';

@@ -1,6 +1,6 @@
 import { useRef, useCallback } from 'react';
 import { debounce } from '@tanstack/pacer';
-import { useSaveLagekarteState } from '@/api/hooks/useLagekarteApi';
+import { useSaveLagekarteState } from '@/features/lagekarte/api';
 import type * as GeoJSON from 'geojson';
 
 /**

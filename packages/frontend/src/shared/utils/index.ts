@@ -24,3 +24,11 @@ export * from './dateFormatter';
 
 // URL Utilities
 export * from './url.util';
+
+// Storage Utilities
+export * from './offline-cleanup';
+export * from './storage-quota';
+
+// UI Utilities
+export * from './module-colors';
+export * from './timeBasedBackground';

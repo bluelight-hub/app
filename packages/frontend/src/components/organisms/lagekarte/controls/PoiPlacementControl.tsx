@@ -1,6 +1,6 @@
 import { cn } from '@/shared/utils/cn';
-import { formatPoiTypeLabel } from '@/utils/formatPoiTypeLabel';
-import { POI_ICON_MAP, type PoiCategory, type PoiType } from '@/utils/poi-icons';
+import { formatPoiTypeLabel } from '@/features/lagekarte/utils';
+import { POI_ICON_MAP, type PoiCategory, type PoiType } from '@/features/lagekarte/utils';
 import { Button } from '@/shared/ui/atoms/button.atom';
 import { PoiTypeButton } from '@/shared/ui/atoms/poi-type-button.atom';
 import { PoiTypeDropdown } from '@/shared/ui/molecules/poi-type-dropdown.molecule';

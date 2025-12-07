@@ -11,4 +11,4 @@
  * ```
  */
 
-export { api, getBaseUrl } from '@/api/api';
+export { api, getBaseUrl } from './api';

@@ -5,7 +5,7 @@
  * Verwendet TanStack Query für automatisches Caching und Background-Updates.
  */
 
-import { api } from '@/api';
+import { api } from '@/shared/api/client';
 import { logger } from '@/shared/utils/logger';
 import type { EinsatzControllerFindAllVAlpha200Response, ResponseError } from '@bluelight-hub/shared/client';
 import { useQuery } from '@tanstack/react-query';

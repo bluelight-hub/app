@@ -1,6 +1,6 @@
 import * as L from 'leaflet';
 import type * as GeoJSON from 'geojson';
-import { DEFAULT_SHAPE_STYLE } from '@/utils/drawing-styles';
+import { DEFAULT_SHAPE_STYLE } from '@/features/lagekarte/utils';
 import type { LayerWithStyle, LayerWithBounds, LayerWithLatLng, LayerWithShapeId } from './types';
 
 /**

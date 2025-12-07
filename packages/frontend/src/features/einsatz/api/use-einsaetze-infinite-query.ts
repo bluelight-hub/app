@@ -5,7 +5,7 @@
  * Nutzt TanStack Query's useInfiniteQuery für nahtloses Nachladen.
  */
 
-import { api } from '@/api';
+import { api } from '@/shared/api/client';
 import { getApiErrorMessage } from '@/shared/utils/apiErrorHandler';
 import { logger } from '@/shared/utils/logger';
 import type { EinsatzControllerFindAllVAlpha200Response, ResponseError } from '@bluelight-hub/shared/client';

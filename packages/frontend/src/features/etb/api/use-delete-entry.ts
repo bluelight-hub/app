@@ -4,7 +4,7 @@
  * Hook für ETB-Eintrag-Löschung (Soft Delete, CQRS API).
  */
 
-import { api } from '@/api';
+import { api } from '@/shared/api/client';
 import { getApiErrorMessage } from '@/shared/utils/apiErrorHandler';
 import { logger } from '@/shared/utils/logger';
 import type { ResponseError } from '@bluelight-hub/shared/client';

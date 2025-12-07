@@ -8,7 +8,7 @@ import { routeTree } from '@/routeTree.gen';
 import { createRouter, RouterProvider } from '@tanstack/react-router';
 import { StrictMode } from 'react';
 import ReactDOM from 'react-dom/client';
-import { cleanupExpiredTiles } from '@/utils/offline-cleanup';
+import { cleanupExpiredTiles } from '@/shared/utils';
 
 // Initialize offline tile cleanup on app startup
 cleanupExpiredTiles('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').catch((error) => {

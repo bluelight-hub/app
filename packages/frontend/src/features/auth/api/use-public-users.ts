@@ -1,7 +1,7 @@
 import type { PublicUserDto } from '@bluelight-hub/shared/client';
 import type { UseQueryResult } from '@tanstack/react-query';
 import { useQuery } from '@tanstack/react-query';
-import { api } from '@/api';
+import { api } from '@/shared/api/client';
 import { AUTH_KEYS } from './queries';
 import { logger } from '@/shared/utils/logger';
 

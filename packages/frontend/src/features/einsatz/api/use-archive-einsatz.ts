@@ -5,7 +5,7 @@
  * Intelligent Update aller betroffenen Queries und Caches.
  */
 
-import { api } from '@/api';
+import { api } from '@/shared/api/client';
 import { getApiErrorMessage } from '@/shared/utils/apiErrorHandler';
 import { logger } from '@/shared/utils/logger';
 import type { EinsatzControllerCreateVAlpha200Response, EinsatzControllerFindAllVAlpha200Response, EinsatzDto, EinsatzListItemDto, ResponseError } from '@bluelight-hub/shared/client';

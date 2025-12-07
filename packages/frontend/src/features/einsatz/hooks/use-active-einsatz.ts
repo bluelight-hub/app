@@ -1,4 +1,4 @@
-import { api } from '@/api';
+import { api } from '@/shared/api/client';
 import { EINSATZ_QUERY_KEYS } from '../api';
 import { type Einsatz, einsatzStore, useEinsatzStore } from '../stores/active-einsatz.store';
 import { clearActiveEinsatz as clearPersistedEinsatz, loadActiveEinsatzId, rehydrateActiveEinsatz } from '../stores/persistence/einsatz-persistence';

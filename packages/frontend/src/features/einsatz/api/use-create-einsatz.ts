@@ -5,7 +5,7 @@
  * Invalidiert automatisch alle betroffenen Queries nach erfolgreicher Erstellung.
  */
 
-import { api } from '@/api';
+import { api } from '@/shared/api/client';
 import { logger } from '@/shared/utils/logger';
 import type { CreateEinsatzDto, EinsatzControllerFindAllVAlpha200Response, EinsatzDto, EinsatzListItemDto, ResponseError } from '@bluelight-hub/shared/client';
 import { EinsatzDtoStatusEnum } from '@bluelight-hub/shared/client';
@@ -52,10 +52,10 @@ export const useCreateEinsatz = (filters?: EinsatzQueryFilters) => {
 
   return useMutation<EinsatzDto, ResponseError, CreateEinsatzDto, CreateMutationContext>({
     mutationFn: async (data: CreateEinsatzDto) => {
-      const response = await api.einsatz().einsatzControllerCreateVAlpha({
+      // API gibt direkt EinsatzDto zurück, kein Wrapper
+      return api.einsatz().einsatzControllerCreateVAlpha({
         createEinsatzDto: data,
       });
-      return response.data;
     },
     onMutate: async (newEinsatz) => {
       // Cancel laufende Queries um Race Conditions zu vermeiden

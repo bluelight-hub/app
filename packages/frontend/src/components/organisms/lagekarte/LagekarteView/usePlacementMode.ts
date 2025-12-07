@@ -1,4 +1,4 @@
-import type { PoiType } from '@/utils/poi-icons';
+import type { PoiType } from '@/features/lagekarte/utils';
 import { useCallback, useState } from 'react';
 
 /**

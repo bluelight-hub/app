@@ -9,8 +9,8 @@ import { MapContainer, TileLayer, useMap } from 'react-leaflet';
 import '@geoman-io/leaflet-geoman-free';
 import '@geoman-io/leaflet-geoman-free/dist/leaflet-geoman.css';
 import 'leaflet/dist/leaflet.css';
-import { getStorageQuota, type StorageQuota } from '@/utils/storage-quota';
-import { downloadTiles } from '@/utils/offline-tiles';
+import { getStorageQuota, type StorageQuota } from '@/shared/utils';
+import { downloadTiles } from '@/features/lagekarte/utils';
 import { toast } from 'sonner';
 
 interface OfflineRegionModalProps {

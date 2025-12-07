@@ -1,7 +1,7 @@
 import { useEffect, useCallback } from 'react';
 import type * as L from 'leaflet';
 import type { DrawingTool } from '@/components/organisms/lagekarte/toolbar/DrawingToolbar';
-import { DEFAULT_SHAPE_STYLE } from '@/utils/drawing-styles';
+import { DEFAULT_SHAPE_STYLE } from '@/features/lagekarte/utils';
 import { setActiveDrawingTool, setPmInitialized, selectShape } from '../stores/lagekarte-state.store';
 import { lagekarteStore } from '../stores/lagekarte-state.store';
 

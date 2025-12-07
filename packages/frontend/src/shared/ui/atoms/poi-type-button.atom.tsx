@@ -1,6 +1,6 @@
 import { cn } from '@/shared/utils/cn';
-import { formatPoiTypeLabel } from '@/utils/formatPoiTypeLabel';
-import { POI_ICON_MAP, type PoiType } from '@/utils/poi-icons';
+import { formatPoiTypeLabel } from '@/features/lagekarte/utils';
+import { POI_ICON_MAP, type PoiType } from '@/features/lagekarte/utils';
 import type React from 'react';
 import { Button } from './button.atom';
 

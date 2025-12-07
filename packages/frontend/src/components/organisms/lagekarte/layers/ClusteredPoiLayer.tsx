@@ -1,8 +1,8 @@
-import { useDeletePoi, usePois, useUpdatePoi } from '@/api/hooks/useLagekarteApi';
+import { useDeletePoi, usePois, useUpdatePoi } from '@/features/lagekarte/api';
 import { Button } from '@/shared/ui/atoms/button.atom';
 import { Spinner } from '@/shared/ui/atoms/spinner.atom';
-import { getPoiIcon } from '@/utils/poi-icons';
-import { createClusterIcon } from '@/utils/cluster-icons';
+import { getPoiIcon } from '@/features/lagekarte/utils';
+import { createClusterIcon } from '@/features/lagekarte/utils';
 import { getApiErrorMessage } from '@/shared/utils/apiErrorHandler';
 import { formatMgrs } from '@/features/lagekarte/utils/mgrs';
 import { Dialog, DialogBackdrop, DialogPanel, DialogTitle } from '@headlessui/react';

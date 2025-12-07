@@ -5,7 +5,7 @@
  * Unterstützt sowohl Detail-Updates als auch List-Updates.
  */
 
-import { api } from '@/api';
+import { api } from '@/shared/api/client';
 import { getApiErrorMessage } from '@/shared/utils/apiErrorHandler';
 import { logger } from '@/shared/utils/logger';
 import type {

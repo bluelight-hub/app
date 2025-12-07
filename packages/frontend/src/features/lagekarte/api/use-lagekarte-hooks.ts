@@ -1,8 +1,8 @@
 import { useMutation, useQuery, useQueryClient, type UseMutationResult, type UseQueryResult } from '@tanstack/react-query';
 import type { AddPoiDto, CreateLagekarteDto, LagekarteControllerGetLagekarteVAlpha200Response, LagekarteDto, PoiDto, SaveLagekarteStateDto, UpdatePoiPositionDto } from '@bluelight-hub/shared/client';
-import { api } from '../api';
+import { api } from '@/shared/api/client';
 import type * as GeoJSON from 'geojson';
-import { LAGEKARTE_QUERY_KEYS } from '@/features/lagekarte';
+import { LAGEKARTE_QUERY_KEYS } from '@/queryKeys';
 import { z } from 'zod';
 
 /**

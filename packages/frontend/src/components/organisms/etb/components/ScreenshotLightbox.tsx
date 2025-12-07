@@ -1,5 +1,5 @@
 import { Button } from '@/shared/ui/atoms/button.atom';
-import { validateScreenshotUrl } from '@/utils/validateScreenshotUrl';
+import { validateScreenshotUrl } from '@/features/etb/utils';
 import { Dialog, DialogPanel, DialogTitle } from '@headlessui/react';
 import { useCallback, useMemo } from 'react';
 import { PiDownload, PiX } from 'react-icons/pi';

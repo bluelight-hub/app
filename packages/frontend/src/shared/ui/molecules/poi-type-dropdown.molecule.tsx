@@ -1,5 +1,5 @@
 import { cn } from '@/shared/utils/cn';
-import type { PoiType } from '@/utils/poi-icons';
+import type { PoiType } from '@/features/lagekarte/utils';
 import { PoiTypeButton } from '../atoms/poi-type-button.atom';
 import { Menu, MenuButton, MenuItem, MenuItems } from '@headlessui/react';
 import type React from 'react';

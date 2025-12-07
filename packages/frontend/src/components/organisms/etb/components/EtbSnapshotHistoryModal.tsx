@@ -1,4 +1,4 @@
-import { api } from '@/api';
+import { api } from '@/shared/api/client';
 import { Button } from '@/shared/ui/atoms/button.atom';
 import type { EtbSnapshotDto } from '@bluelight-hub/shared/client';
 import { Dialog } from '@/shared/ui/molecules/dialog.molecule';
