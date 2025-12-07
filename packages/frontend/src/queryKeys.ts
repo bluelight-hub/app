@@ -23,6 +23,9 @@ export const USERS_QUERY_KEYS = {
   byId: (id?: string) => ['users', id] as const,
 } as const;
 
+/**
+ * @deprecated Verwende ADMIN_QUERY_KEYS aus '@/features/admin' stattdessen
+ */
 export const ADMIN_QUERY_KEYS = {
   users: ['admin', 'users'] as const,
 } as const;

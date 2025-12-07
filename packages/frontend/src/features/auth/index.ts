@@ -11,6 +11,7 @@ export * from './api';
 
 // Guards
 export { AuthGuard, AdminGuard } from './guards/auth-guard';
+export { AppGuard } from './guards/app-guard';
 
 // Stores
 export { authStore, setAuthStatus, setShowReauthModal, setRedirectAfterLogin, resetAuthStore } from './stores/auth.store';

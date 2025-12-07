@@ -52,7 +52,7 @@ interface CreateMutationContext {
 export const useCreateEinsatz = (filters?: EinsatzQueryFilters) => {
   const queryClient = useQueryClient();
 
-  return useMutation<EinsatzResponseDto, ResponseError, CreateEinsatzDto, CreateMutationContext>({
+  return useMutation<EinsatzDto, ResponseError, CreateEinsatzDto, CreateMutationContext>({
     mutationFn: async (data: CreateEinsatzDto) => {
       const response = await api.einsatz().einsatzControllerCreateVAlpha({
         createEinsatzDto: data,
@@ -68,24 +68,22 @@ export const useCreateEinsatz = (filters?: EinsatzQueryFilters) => {
       const previousActiveWithCounts = queryClient.getQueryData<EinsatzListItemDto[]>(EINSATZ_QUERY_KEYS.activeWithCounts());
 
       // Optimistischen Einsatz erstellen
-      const optimisticEinsatz: EinsatzResponseDto = {
+      const optimisticEinsatz: EinsatzDto = {
         id: `temp-${Date.now()}`,
-        ...newEinsatz,
-        status: ('status' in newEinsatz ? newEinsatz.status : undefined) || EinsatzResponseDtoStatusEnum.Angelegt,
+        nummer: 'E{YEAR}-{ID}',
+        alarmstichwort: newEinsatz.alarmstichwort || 'Neuer Einsatz',
+        status: EinsatzDtoStatusEnum.Angelegt,
         createdBy: 'current-user',
-        name: `${newEinsatz.alarmstichwort || 'Einsatz'} (wird erstellt)`,
-        completeness: undefined,
         createdAt: new Date(),
-        updatedAt: new Date(),
       };
 
       // Optimistischen List Item erstellen für activeWithCounts
       const optimisticListItem: EinsatzListItemDto = {
         id: optimisticEinsatz.id,
-        nummer: newEinsatz.nummer || 'E{YEAR}-{ID}',
-        alarmstichwort: newEinsatz.alarmstichwort || 'Einsatz',
+        nummer: optimisticEinsatz.nummer,
+        alarmstichwort: optimisticEinsatz.alarmstichwort,
         status: optimisticEinsatz.status as EinsatzListItemDto['status'],
-        einsatzort: newEinsatz.einsatzort || null,
+        einsatzort: null,
         createdAt: optimisticEinsatz.createdAt,
         etbEintraegeCount: 0,
         poisCount: 0,

@@ -14,7 +14,7 @@ import { EinsatzResponseDtoStatusEnum } from '@bluelight-hub/shared/client';
 import { useForm } from '@tanstack/react-form';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useNavigate, useParams } from '@tanstack/react-router';
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { toast } from 'sonner';
 import { ArchiveConfirmationModal } from './ArchiveConfirmationModal';
 
@@ -93,9 +93,13 @@ export function EinsatzDetailView() {
 
   const handleEdit = () => {
     if (einsatz) {
-      const currentValue = einsatz.beschreibung || '';
-      setInitialEditValue(currentValue);
-      form.setFieldValue('beschreibung', currentValue);
+      // Reset form with current values from einsatz
+      // This sets both the value AND the defaultValue for dirty tracking
+      form.reset({
+        defaultValues: {
+          beschreibung: einsatz.beschreibung || '',
+        },
+      });
       setIsEditing(true);
     }
   };
@@ -145,7 +149,7 @@ export function EinsatzDetailView() {
         onCancel={handleCancel}
         onArchive={() => setShowArchiveModal(true)}
         isSaving={updateMutation.isPending}
-        isFormDirty={isEditing && form.state.values.beschreibung !== initialEditValue}
+        isFormDirty={isEditing && !form.state.isFieldsValid}
       />
 
       {/* Main Content - Scrollable */}

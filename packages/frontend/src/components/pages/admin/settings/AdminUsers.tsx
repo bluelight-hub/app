@@ -1,5 +1,5 @@
+import { useAdminUserManagement } from '@/features/admin';
 import { useAdminAuth } from '@/hooks/useAdminAuth';
-import { useAdminUserManagement } from '@/hooks/useAdminUserManagement';
 import { Alert } from '@/shared/ui/atoms/alert.atom';
 import { Button } from '@/shared/ui/atoms/button.atom';
 import { Card } from '@/shared/ui/atoms/card.atom';
