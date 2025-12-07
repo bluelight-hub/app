@@ -1,7 +1,7 @@
 'use client';
 
 import { ThemeProvider } from 'next-themes';
-import type { ColorModeProviderProps } from '@/components/ui/color-mode';
+import type { ColorModeProviderProps } from '@/shared/ui/headless/color-mode';
 
 /**
  * Provider-Komponente für den Color-Mode (Hell/Dunkel/System-Modus).

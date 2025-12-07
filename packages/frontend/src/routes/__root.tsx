@@ -1,4 +1,4 @@
-import { Provider } from '@/components/ui/provider.tsx';
+import { Provider } from '@/shared/ui/headless/provider';
 import { ConfirmProvider } from '@/shared/hooks/useConfirm';
 import { useWindowOrientation } from '@/shared/hooks/useWindowOrientation';
 import { handleQueryError } from '@/shared/utils/error-handler';

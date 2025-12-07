@@ -1,4 +1,4 @@
-import type { ColorMode } from '@/components/ui/color-mode';
+import type { ColorMode } from '@/shared/ui/headless/color-mode';
 import type { FileRoutesByFullPath } from '@/routeTree.gen';
 import type { ComponentType } from 'react';
 

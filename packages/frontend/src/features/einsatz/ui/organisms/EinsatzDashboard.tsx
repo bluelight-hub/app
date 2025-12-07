@@ -1,5 +1,5 @@
-import { MobileStatusBar } from '@/components/molecules/dashboard/MobileStatusBar';
-import { StatusCard } from '@/components/molecules/dashboard/StatusCard';
+import { MobileStatusBar } from '@/components/organisms/dashboard/MobileStatusBar';
+import { StatusCard } from '@/components/organisms/dashboard/StatusCard';
 import { EinsatzListItem } from '@/features/einsatz/ui/molecules/EinsatzListItem';
 import { SearchInput } from '@/shared/ui/molecules/search-input.molecule';
 import { FilterPanel } from '@/components/organisms/dashboard/FilterPanel';

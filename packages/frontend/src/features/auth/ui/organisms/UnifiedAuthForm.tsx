@@ -6,7 +6,7 @@ import { useMemo } from 'react';
 import { PiUser } from 'react-icons/pi';
 import { z } from 'zod';
 import { Button } from '@/shared/ui/atoms/button.atom';
-import { Combobox } from '@/components/ui/combobox';
+import { Combobox } from '@/shared/ui/headless/combobox';
 import { usePublicUsers } from '@/features/auth';
 import { cn } from '@/shared/utils/cn';
 

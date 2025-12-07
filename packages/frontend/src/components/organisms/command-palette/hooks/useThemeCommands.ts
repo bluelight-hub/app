@@ -1,4 +1,4 @@
-import type { ColorMode } from '@/components/ui/color-mode';
+import type { ColorMode } from '@/shared/ui/headless/color-mode';
 import { useColorMode } from '@/shared/hooks/use-color-mode';
 import { useMemo } from 'react';
 import { PiPalette } from 'react-icons/pi';

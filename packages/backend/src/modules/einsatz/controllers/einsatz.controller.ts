@@ -79,6 +79,7 @@ export class EinsatzController {
    * Erstellt einen neuen Einsatz via CQRS Command
    */
   @Post()
+  @SkipTransform()
   @Roles('USER', 'ADMIN', 'SUPER_ADMIN')
   @ApiOperation({ summary: 'Neuen Einsatz erstellen', description: 'Erstellt einen neuen Einsatz mit automatisch generiertem Namen.' })
   @ApiCreatedResponse({ type: EinsatzDto, description: 'Einsatz erfolgreich erstellt' })
