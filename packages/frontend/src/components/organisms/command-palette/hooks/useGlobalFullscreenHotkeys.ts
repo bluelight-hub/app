@@ -1,7 +1,7 @@
 import { useHotkeys } from 'react-hotkeys-hook';
 import { useMatchRoute, useNavigate } from '@tanstack/react-router';
 import type { EtbSearchParams } from '@routes/app/einsatz/$einsatzId/führung/etb/';
-import type { LagekarteSearchParams } from '@organisms/lagekarte/LagekarteView/LagekarteView';
+import type { LagekarteSearchParams } from '@/features/lagekarte/ui';
 
 /**
  * Globale Keyboard-Shortcuts für Fullscreen-Modi

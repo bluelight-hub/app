@@ -3,7 +3,7 @@ import { useMatchRoute, useNavigate } from '@tanstack/react-router';
 import { useCallback, useMemo } from 'react';
 import { PiArrowsOut, PiCaretRight, PiClipboard, PiGear, PiPalette, PiSignOut } from 'react-icons/pi';
 import { toast } from 'sonner';
-import type { LagekarteSearchParams } from '@organisms/lagekarte/LagekarteView/LagekarteView';
+import type { LagekarteSearchParams } from '@/features/lagekarte/ui';
 import type { EtbSearchParams } from '@routes/app/einsatz/$einsatzId/führung/etb/';
 import type { ModuleConfig } from '../types';
 import { useThemeCommands } from './useThemeCommands';
