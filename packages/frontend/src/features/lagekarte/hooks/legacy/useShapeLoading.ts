@@ -1,8 +1,8 @@
 import { useEffect, useRef } from 'react';
 import type * as L from 'leaflet';
 import type * as GeoJSON from 'geojson';
-import { createTextMarker } from '@/utils/lagekarte/shape-helpers';
-import { createGeoJSONLayer, setShapeIdOnLayer } from '@/utils/lagekarte/layer-utils';
+import { createTextMarker } from '../../utils/shape-helpers';
+import { createGeoJSONLayer, setShapeIdOnLayer } from '../../utils/layer-utils';
 
 interface UseShapeLoadingProps {
   map: L.Map;

@@ -64,7 +64,13 @@ export {
 // ============================================
 // Hooks
 // ============================================
-export { useActiveEinsatz } from './hooks/use-active-einsatz';
+export {
+  useActiveEinsatz,
+  useEinsatzDetails,
+  type UseEinsatzDetailsResult,
+  useEinsatzModules,
+  type Module,
+} from './hooks';
 
 // ============================================
 // Schemas

@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import type * as L from 'leaflet';
-import { calculateToolbarPosition } from '@/utils/lagekarte/layer-utils';
+import { calculateToolbarPosition } from '../../utils/layer-utils';
 
 interface UseToolbarPositioningProps {
   map: L.Map;

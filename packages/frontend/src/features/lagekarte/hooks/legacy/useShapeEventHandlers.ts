@@ -1,9 +1,9 @@
 import { useEffect } from 'react';
 import type * as L from 'leaflet';
 import type * as GeoJSON from 'geojson';
-import { generateShapeId, extractTextContent } from '@/utils/lagekarte/shape-helpers';
-import { setShapeIdOnLayer } from '@/utils/lagekarte/layer-utils';
-import type { LayerWithGeoJSON } from '@/utils/lagekarte/types';
+import { generateShapeId, extractTextContent } from '../../utils/shape-helpers';
+import { setShapeIdOnLayer } from '../../utils/layer-utils';
+import type { LayerWithGeoJSON } from '../../utils/types';
 
 /**
  * Maximum number of shapes per Lagekarte (Performance-Limit)
