@@ -26,6 +26,10 @@ features/lagekarte/
 │   ├── use-shape-actions.ts        # Shape CRUD Operations
 │   ├── use-drawing-tools.ts        # Drawing Tool Management
 │   ├── use-toolbar-positioning.ts  # Toolbar Positioning
+│   ├── legacy/                     # Legacy Hooks (für DrawingLayer)
+│   │   ├── useShapeSelection.ts    # @deprecated
+│   │   ├── useDrawingToolSelection.ts
+│   │   └── ...                     # 10 weitere Legacy-Hooks
 │   └── index.ts
 ├── HOOK-ANALYSIS.md        # Migration Dokumentation
 ├── README.md               # Diese Datei
@@ -146,8 +150,8 @@ addShape(geoJsonFeature);
 ### useShapeSelection → useShapeActions
 
 ```tsx
-// Vorher
-import { useShapeSelection } from '@/hooks/lagekarte/useShapeSelection';
+// Legacy (noch von DrawingLayer verwendet)
+import { useShapeSelection } from '@/features/lagekarte/hooks/legacy';
 const { selectedShapeId, setSelectedShapeId } = useShapeSelection(...);
 
 // Nachher
@@ -161,8 +165,8 @@ shapeActions.selectShapeById('shape-123');
 ### useShapeEventHandlers → useShapeActions
 
 ```tsx
-// Vorher
-import { useShapeEventHandlers } from '@/hooks/lagekarte/useShapeEventHandlers';
+// Legacy (noch von DrawingLayer verwendet)
+import { useShapeEventHandlers } from '@/features/lagekarte/hooks/legacy';
 useShapeEventHandlers({ map, layersRef, shapesRef, setShapes, onShapesChange, ... });
 
 // Nachher
@@ -179,8 +183,8 @@ const handleCreate = (e: PmEvent) => {
 ### useDrawingToolSelection → useDrawingTools
 
 ```tsx
-// Vorher
-import { useDrawingToolSelection } from '@/hooks/lagekarte/useDrawingToolSelection';
+// Legacy (noch von DrawingLayer verwendet)
+import { useDrawingToolSelection } from '@/features/lagekarte/hooks/legacy';
 useDrawingToolSelection({ map, selectedTool, setSelectedShapeId });
 
 // Nachher
@@ -248,23 +252,32 @@ describe('Lagekarte Store', () => {
 });
 ```
 
-## Alte Hooks (deprecated)
+## Legacy Hooks (deprecated)
 
-Die folgenden Hooks wurden konsolidiert und sollten nicht mehr verwendet werden:
+Die folgenden Hooks wurden konsolidiert und befinden sich nun in `hooks/legacy/`.
+Sie werden noch von `DrawingLayer.tsx` verwendet, sollten aber bei neuen Entwicklungen
+nicht mehr genutzt werden:
 
-- ❌ `useShapeSelection`
-- ❌ `useShapeHighlighting`
-- ❌ `useShapeEventHandlers`
-- ❌ `useKeyboardShortcuts`
-- ❌ `useTextMarkerHandling`
-- ❌ `useShapeStyleUpdates`
-- ❌ `useDrawingToolSelection`
-- ❌ `useLeafletPMControls`
-- ❌ `useShapeLoading`
-- ❌ `useToolbarPositioning` (verfügbar als separater Hook in `hooks/`)
+- ⚠️ `useShapeSelection` → `hooks/legacy/`
+- ⚠️ `useShapeHighlighting` → `hooks/legacy/`
+- ⚠️ `useShapeEventHandlers` → `hooks/legacy/`
+- ⚠️ `useKeyboardShortcuts` → `hooks/legacy/`
+- ⚠️ `useTextMarkerHandling` → `hooks/legacy/`
+- ⚠️ `useShapeStyleUpdates` → `hooks/legacy/`
+- ⚠️ `useDrawingToolSelection` → `hooks/legacy/`
+- ⚠️ `useLeafletPMControls` → `hooks/legacy/`
+- ⚠️ `useShapeLoading` → `hooks/legacy/`
+- ⚠️ `useToolbarPositioning` → `hooks/legacy/`
 
-Verwende stattdessen:
+**Import-Pfad für Legacy-Hooks:**
+```tsx
+import { useShapeSelection } from '@/features/lagekarte/hooks/legacy';
+```
+
+**Neue Hooks (empfohlen):**
 - ✅ `useLagekarteState` (State lesen)
 - ✅ `useShapeActions` (Shape Operations)
 - ✅ `useDrawingTools` (Drawing Tools)
 - ✅ `useToolbarPositioning` (Toolbar Positioning)
+
+**TODO:** DrawingLayer.tsx auf neue Hooks migrieren (siehe HOOK-ANALYSIS.md)

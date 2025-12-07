@@ -1,4 +1,4 @@
-import { useAuth } from '@/hooks/useAuth.ts';
+import { useCurrentUser, useAdminSetup } from '@/features/auth';
 import { getApiErrorMessage } from '@/shared/utils/apiErrorHandler';
 import { logger } from '@/shared/utils/logger';
 import { Alert } from '@/shared/ui/atoms/alert.atom';
@@ -23,7 +23,8 @@ import { PiCheckCircle, PiWarning } from 'react-icons/pi';
 export function AdminSetup() {
   const navigate = useNavigate();
   const [apiError, setApiError] = useState<string | null>(null);
-  const { user, adminSetup } = useAuth();
+  const { user } = useCurrentUser();
+  const adminSetup = useAdminSetup();
 
   const form = useForm({
     defaultValues: {

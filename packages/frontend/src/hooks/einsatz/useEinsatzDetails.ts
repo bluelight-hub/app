@@ -1,5 +1,5 @@
 import { api } from '@/api';
-import { QUERY_KEYS } from '@/queryKeys';
+import { EINSATZ_QUERY_KEYS } from '@/features/einsatz';
 import { logger } from '@/shared/utils/logger';
 import type { EinsatzDetailsDto, EinsatzDto, EtbDto, LagekarteDto, ResponseError } from '@bluelight-hub/shared/client';
 import { useQuery } from '@tanstack/react-query';
@@ -42,7 +42,7 @@ export interface UseEinsatzDetailsResult {
  */
 export function useEinsatzDetails(einsatzId: string): UseEinsatzDetailsResult {
   const { data, isLoading, error } = useQuery<EinsatzDetailsDto, ResponseError>({
-    queryKey: QUERY_KEYS.einsatz.detailsCombined(einsatzId),
+    queryKey: EINSATZ_QUERY_KEYS.detailsCombined(einsatzId),
     queryFn: async () => {
       if (!einsatzId) throw new Error('ID is required');
       try {

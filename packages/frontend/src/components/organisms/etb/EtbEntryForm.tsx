@@ -1,4 +1,4 @@
-import { useCreateEtbEintrag, useTextbausteine, useUpdateEtbEintrag } from '@/hooks/useEtb';
+import { useCreateEtbEntry, useTextbausteine, useUpdateEtbEntry } from '@/features/etb';
 import { getApiErrorMessage } from '@/shared/utils/apiErrorHandler';
 import { AddEintragDtoKategorieEnum as EtbKategorie, type EintragDto } from '@bluelight-hub/shared/client';
 import { EtbFormActions } from '@/components/molecules/etb/EtbFormActions';
@@ -33,8 +33,8 @@ interface EtbEntryFormProps {
  * Formular zur Erstellung und Bearbeitung von ETB-Einträgen
  */
 export function EtbEntryForm({ etbId, einsatzId, editingEntry, onSuccess, onCancel, className }: EtbEntryFormProps) {
-  const createEintrag = useCreateEtbEintrag();
-  const updateEintrag = useUpdateEtbEintrag();
+  const createEintrag = useCreateEtbEntry();
+  const updateEintrag = useUpdateEtbEntry();
   const { data: textbausteineData } = useTextbausteine();
   const [selectedKategorie, setSelectedKategorie] = useState<EtbKategorie>(editingEntry?.kategorie || EtbKategorie.Lage);
   const [pendingTextbaustein, setPendingTextbaustein] = useState<{ id: string; text: string } | null>(null);

@@ -4,7 +4,7 @@ import { Input } from '@/shared/ui/atoms/input.atom';
 import { Label } from '@/shared/ui/atoms/label.atom';
 import { Textarea } from '@/shared/ui/atoms/textarea.atom';
 import { Dialog, DialogPanel, DialogTitle } from '@headlessui/react';
-import { useUpdateEtbEintrag } from '@/hooks/useEtb';
+import { useUpdateEtbEntry } from '@/features/etb';
 import { EintragDtoKategorieEnum as EtbKategorie, type EintragDto } from '@bluelight-hub/shared/client';
 import { EtbKategorieSelect } from '@organisms/etb/EtbKategorieSelect';
 import { useForm } from '@tanstack/react-form';
@@ -42,7 +42,7 @@ function formatTimestampInput(timestamp: string | Date | null | undefined) {
  * - Kategorie
  */
 export function EditEtbEntryModal({ entry, isOpen, onClose }: EditEtbEntryModalProps) {
-  const updateEintrag = useUpdateEtbEintrag();
+  const updateEintrag = useUpdateEtbEntry();
 
   const form = useForm({
     defaultValues: {

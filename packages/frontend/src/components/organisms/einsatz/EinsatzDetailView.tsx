@@ -5,8 +5,7 @@ import { ArchivedBanner } from '@/components/molecules/einsatz/ArchivedBanner';
 import { EinsatzHeader } from '@/components/molecules/einsatz/EinsatzHeader';
 import { EinsatzInfoCard } from '@/components/molecules/einsatz/EinsatzInfoCard';
 import { PlaceholderModule } from '@/components/molecules/einsatz/PlaceholderModule';
-import { useEinsaetze } from '@/hooks/useEinsaetze';
-import { QUERY_KEYS } from '@/queryKeys';
+import { useArchiveEinsatz, EINSATZ_QUERY_KEYS } from '@/features/einsatz';
 import { updateEinsatzSchema } from '@/schemas/einsatz.schema';
 import { getApiErrorMessage } from '@/shared/utils/apiErrorHandler';
 import { logger } from '@/shared/utils/logger';
@@ -25,7 +24,6 @@ export function EinsatzDetailView() {
   const queryClient = useQueryClient();
   const [isEditing, setIsEditing] = useState(false);
   const [showArchiveModal, setShowArchiveModal] = useState(false);
-  const [initialEditValue, setInitialEditValue] = useState<string>('');
 
   // Lade Einsatzdaten
   const {
@@ -33,12 +31,12 @@ export function EinsatzDetailView() {
     isLoading,
     error,
   } = useQuery({
-    queryKey: QUERY_KEYS.einsatz.detail(einsatzId),
+    queryKey: EINSATZ_QUERY_KEYS.detail(einsatzId),
     queryFn: () => api.einsatz().einsatzControllerFindOneVAlpha({ id: einsatzId }),
   });
 
   const einsatz = einsatzResponse?.data;
-  const { archiveEinsatz } = useEinsaetze();
+  const archiveEinsatz = useArchiveEinsatz();
 
   // TanStack Form Setup
   const form = useForm({
@@ -59,14 +57,14 @@ export function EinsatzDetailView() {
 
   // Lade ID des vorherigen Einsatzes
   const { data: previousEinsatzResponse } = useQuery({
-    queryKey: QUERY_KEYS.einsatz.previous(einsatzId),
+    queryKey: EINSATZ_QUERY_KEYS.previous(einsatzId),
     queryFn: () => api.einsatz().einsatzControllerGetPreviousVAlpha({ id: einsatzId }),
     enabled: !!einsatzId,
   });
 
   // Lade ID des nächsten Einsatzes
   const { data: nextEinsatzResponse } = useQuery({
-    queryKey: QUERY_KEYS.einsatz.next(einsatzId),
+    queryKey: EINSATZ_QUERY_KEYS.next(einsatzId),
     queryFn: () => api.einsatz().einsatzControllerGetNextVAlpha({ id: einsatzId }),
     enabled: !!einsatzId,
   });
@@ -78,8 +76,8 @@ export function EinsatzDetailView() {
   const updateMutation = useMutation({
     mutationFn: (data: UpdateEinsatzDto) => api.einsatz().einsatzControllerUpdateVAlpha({ id: einsatzId, updateEinsatzDto: data }),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.einsatz.detail(einsatzId) });
-      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.einsatz.all });
+      queryClient.invalidateQueries({ queryKey: EINSATZ_QUERY_KEYS.detail(einsatzId) });
+      queryClient.invalidateQueries({ queryKey: EINSATZ_QUERY_KEYS.all });
       toast.success('Einsatz aktualisiert', {
         description: 'Die Änderungen wurden erfolgreich gespeichert.',
       });
@@ -134,7 +132,7 @@ export function EinsatzDetailView() {
   const isArchived = einsatz.status === EinsatzResponseDtoStatusEnum.Archiviert;
 
   return (
-    <div className={`flex h-screen flex-col ${isArchived ? 'opacity-60' : ''}`}>
+    <div key={einsatzId} className={`flex h-screen flex-col ${isArchived ? 'opacity-60' : ''}`}>
       {/* Header mit Navigation */}
       <EinsatzHeader
         einsatz={einsatz}

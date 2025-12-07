@@ -4,7 +4,7 @@ import { AuthCard } from '@/shared/ui/molecules/auth-card.molecule';
 import { AuthFooter } from '@/shared/ui/molecules/auth-footer.molecule';
 import { LogoWithIndicator } from '@/shared/ui/molecules/logo-with-indicator.molecule';
 import { AuthLayout } from '@/components/templates/AuthLayout';
-import { useAuth } from '@/hooks/useAuth';
+import { useCurrentUser, useUnifiedAuth } from '@/features/auth';
 import { getApiErrorMessage } from '@/shared/utils/apiErrorHandler';
 import type { AuthRequestDto } from '@bluelight-hub/shared/client';
 import { useNavigate } from '@tanstack/react-router';
@@ -23,7 +23,8 @@ export type Props = Record<string, never>;
  */
 export function LoginWindow(_props: Props) {
   const navigate = useNavigate();
-  const { user, isLoading, unifiedAuth } = useAuth();
+  const { user, isLoading } = useCurrentUser();
+  const unifiedAuth = useUnifiedAuth();
 
   const handleAuth = useCallback(
     (authData: AuthRequestDto) => {

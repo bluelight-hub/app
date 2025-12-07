@@ -1,4 +1,5 @@
 import { ArchiveEinsatzCommand, CompleteEinsatzCommand, CreateEinsatzCommand, UpdateEinsatzCommand } from '@/application/einsatz/commands';
+import { Address } from '@/domain/value-objects/address';
 import {
   CompletenessQueryDto,
   CompletenessResponseDto,
@@ -83,7 +84,10 @@ export class EinsatzController {
   @ApiCreatedResponse({ type: EinsatzDto, description: 'Einsatz erfolgreich erstellt' })
   @ApiBadRequestResponse({ description: 'Validierungsfehler in den Eingabedaten' })
   async create(@Body(new ValidationPipe({ transform: true, whitelist: true })) dto: CreateEinsatzDto, @CurrentUser() user: ValidatedUser): Promise<EinsatzDto> {
-    const commandResult = CreateEinsatzCommand.create(dto.alarmstichwort || 'Unbekannt', user.userId, undefined, dto.beschreibung);
+    // Konvertiere einsatzort-String zu Address Value Object (als Freitext-Ort)
+    const einsatzort = dto.einsatzort ? Address.create({ ort: dto.einsatzort }).value : undefined;
+
+    const commandResult = CreateEinsatzCommand.create(dto.alarmstichwort || 'Unbekannt', user.userId, einsatzort, dto.beschreibung);
     if (commandResult.isFailure || !commandResult.value) throw new BadRequestException(commandResult.error);
 
     const result = await this.commandBus.execute(commandResult.value);
@@ -237,7 +241,10 @@ export class EinsatzController {
   @ApiNotFoundResponse({ description: 'Einsatz nicht gefunden' })
   @ApiBadRequestResponse({ description: 'Validierungsfehler in den Eingabedaten' })
   async update(@Param('id') id: string, @Body(new ValidationPipe({ transform: true, whitelist: true })) dto: UpdateEinsatzDto, @CurrentUser() _user: ValidatedUser): Promise<EinsatzDto> {
-    const commandResult = UpdateEinsatzCommand.create(id, dto.alarmstichwort, undefined, dto.beschreibung);
+    // Konvertiere einsatzort-String zu Address Value Object (als Freitext-Ort)
+    const einsatzort = dto.einsatzort ? Address.create({ ort: dto.einsatzort }).value : undefined;
+
+    const commandResult = UpdateEinsatzCommand.create(id, dto.alarmstichwort, einsatzort, dto.beschreibung);
     if (commandResult.isFailure || !commandResult.value) throw new BadRequestException(commandResult.error);
 
     const result = await this.commandBus.execute(commandResult.value);

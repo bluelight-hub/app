@@ -2,7 +2,7 @@ import type React from 'react';
 import { useState } from 'react';
 import { flexRender, type Row } from '@tanstack/react-table';
 import type { EintragDto } from '@bluelight-hub/shared/client';
-import { useUpdateEtbEintrag } from '@/hooks/useEtb';
+import { useUpdateEtbEntry } from '@/features/etb';
 import { cn } from '@/shared/utils/cn';
 import { EtbActionsCell } from './cells/EtbActionsCell';
 
@@ -16,7 +16,7 @@ interface EtbTableRowEditableProps {
 export const EtbTableRowEditable: React.FC<EtbTableRowEditableProps> = ({ row, style, className = '', onDelete }) => {
   const [isEditing, setIsEditing] = useState(false);
   const [editText, setEditText] = useState(row.original.text);
-  const updateEintrag = useUpdateEtbEintrag();
+  const updateEintrag = useUpdateEtbEntry();
 
   const handleSave = () => {
     if (!row.original.id) return;

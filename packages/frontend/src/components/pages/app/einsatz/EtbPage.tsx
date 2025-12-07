@@ -6,7 +6,7 @@ import { EditEtbEntryModal } from '@/components/organisms/etb/EditEtbEntryModal'
 import { EtbEntryForm } from '@/components/organisms/etb/EtbEntryForm';
 import { EtbEntryList } from '@/components/organisms/etb/EtbEntryList';
 import { EtbFullscreenView } from '@/components/organisms/etb/EtbFullscreenView/EtbFullscreenView';
-import { useEtbInfinite } from '@/hooks/useEtb';
+import { useEtbInfinite } from '@/features/etb';
 import type { EintragDto } from '@bluelight-hub/shared/client';
 import { useMemo, useState } from 'react';
 import { PiClockCounterClockwise } from 'react-icons/pi';

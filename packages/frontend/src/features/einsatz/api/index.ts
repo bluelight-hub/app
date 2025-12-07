@@ -13,6 +13,7 @@ export { useEinsaetzeQuery } from './use-einsaetze-query';
 export { useEinsaetzeInfiniteQuery } from './use-einsaetze-infinite-query';
 export { useEinsatzDetail } from './use-einsatz-detail';
 export { useActiveEinsaetzeWithCounts } from './use-active-einsaetze-with-counts';
+export { useEinsatzStatusCounts } from './use-einsatz-status-counts';
 
 // Mutation Hooks
 export { useCreateEinsatz } from './use-create-einsatz';

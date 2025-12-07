@@ -1,5 +1,4 @@
-import { useAdminAuth } from '@/hooks/useAdminAuth';
-import { useAuth } from '@/hooks/useAuth';
+import { useCurrentUser, useAdminAuth } from '@/features/auth';
 import { logger } from '@/shared/utils/logger';
 import { CloseButton } from '@/shared/ui/atoms/close-button.atom';
 import { Container } from '@/shared/ui/atoms/container.atom';
@@ -20,7 +19,7 @@ import { PiArrowLeft } from 'react-icons/pi';
 export function AdminLayout() {
   const navigate = useNavigate();
   const location = useLocation();
-  const { user } = useAuth();
+  const { user } = useCurrentUser();
   const { hasAdminSession, isLoading } = useAdminAuth();
 
   // Prüfe Admin-Authentifizierung

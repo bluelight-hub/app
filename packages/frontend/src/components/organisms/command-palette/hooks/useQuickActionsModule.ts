@@ -1,4 +1,4 @@
-import { useAuth } from '@/hooks/useAuth';
+import { useLogout } from '@/features/auth';
 import { useMatchRoute, useNavigate } from '@tanstack/react-router';
 import { useCallback, useMemo } from 'react';
 import { PiArrowsOut, PiCaretRight, PiClipboard, PiGear, PiPalette, PiSignOut } from 'react-icons/pi';
@@ -11,7 +11,7 @@ import { useThemeCommands } from './useThemeCommands';
 export const useQuickActionsModule = (): ModuleConfig => {
   const navigate = useNavigate();
   const matchRoute = useMatchRoute();
-  const { logout } = useAuth();
+  const logout = useLogout();
   const { themeOptions, handleThemeChange } = useThemeCommands();
   type FullscreenSearchParams = LagekarteSearchParams | EtbSearchParams;
 

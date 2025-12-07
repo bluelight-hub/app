@@ -1,6 +1,6 @@
 import { EinsatzCompletenessBar } from '@/components/molecules/einsatz/einsatz-completeness-bar.molecule';
 import { EinsatzStatus, EinsatzStatusBadge } from '@/components/molecules/einsatz/einsatz-status-badge.molecule';
-import { useActiveEinsatz } from '@/hooks/useActiveEinsatz';
+import { useActiveEinsatz } from '@/features/einsatz';
 import { formatNatoDateTime } from '@/shared/utils/dateFormatter';
 import type { EinsatzListItemDto, EinsatzResponseDto } from '@bluelight-hub/shared/client';
 import { PiBookOpen, PiMapPin } from 'react-icons/pi';

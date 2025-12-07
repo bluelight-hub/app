@@ -1,9 +1,9 @@
 import { AuthLoading } from '@/components/molecules/auth/AuthLoading';
-import { useAuth } from '@/hooks/useAuth';
+import { useCurrentUser } from '@/features/auth';
 import { Outlet, useRouter } from '@tanstack/react-router';
 
 export function AppGuard() {
-  const { isLoading, user } = useAuth();
+  const { isLoading, user } = useCurrentUser();
   const { navigate } = useRouter();
 
   if (isLoading) {

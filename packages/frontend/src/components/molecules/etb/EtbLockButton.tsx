@@ -1,7 +1,7 @@
 import { Button } from '@/shared/ui/atoms/button.atom';
 import { Dialog } from '@/shared/ui/molecules/dialog.molecule';
-import { useAuth } from '@/hooks/useAuth';
-import { useLockEtb } from '@/hooks/useEtb';
+import { useCurrentUser } from '@/features/auth';
+import { useLockEtb } from '@/features/etb';
 import { AuthUserDtoRoleEnum } from '@bluelight-hub/shared/client';
 import { useState, useCallback } from 'react';
 import { PiLockSimple } from 'react-icons/pi';
@@ -22,7 +22,7 @@ interface EtbLockButtonProps {
  * Zeigt einen Bestaetigungsdialog vor dem Sperren, da die Aktion unwiderruflich ist.
  */
 export function EtbLockButton({ etbId, disabled = false, onSuccess }: EtbLockButtonProps) {
-  const { user } = useAuth();
+  const { user } = useCurrentUser();
   const lockEtb = useLockEtb();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
 

@@ -4,7 +4,7 @@ import { Button } from '@/shared/ui/atoms/button.atom';
 import { Spinner } from '@/shared/ui/atoms/spinner.atom';
 import { type Layer, LayerToggle } from '@/components/molecules/lagekarte/LayerToggle/LayerToggle';
 import { useColorMode } from '@/shared/hooks/use-color-mode';
-import { useEtb } from '@/hooks/useEtb';
+import { useEtb } from '@/features/etb';
 import { captureMapScreenshot } from '@/utils/captureMapScreenshot';
 import { cn } from '@/shared/utils/cn';
 import type { ShapeType } from '@/utils/drawing-styles';

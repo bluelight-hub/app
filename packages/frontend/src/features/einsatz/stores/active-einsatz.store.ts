@@ -1,6 +1,6 @@
 import { Store, useStore } from '@tanstack/react-store';
 import type { EinsatzResponseDto } from '@bluelight-hub/shared/client';
-import { saveActiveEinsatzId, subscribeToStorageChanges } from './persistence/einsatzPersistence';
+import { saveActiveEinsatzId, subscribeToStorageChanges } from './persistence/einsatz-persistence';
 
 // Type alias for better readability
 export type Einsatz = EinsatzResponseDto;

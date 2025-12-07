@@ -1,4 +1,4 @@
-import { useEtbHistory } from '@/hooks/useEtb';
+import { useEtbHistory } from '@/features/etb';
 import { Button } from '@/shared/ui/atoms/button.atom';
 import type { EintragDto } from '@bluelight-hub/shared/client';
 import { Dialog } from '@/shared/ui/molecules/dialog.molecule';

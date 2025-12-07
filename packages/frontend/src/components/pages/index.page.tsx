@@ -1,4 +1,3 @@
-import { useAuth } from '@/hooks/useAuth.ts';
 /**
  * Startseite der Anwendung.
  *
@@ -6,6 +5,7 @@ import { useAuth } from '@/hooks/useAuth.ts';
  *
  * @returns Die Index-Page-Komponente
  */
+import { useCurrentUser, useLogout } from '@/features/auth';
 import { isAdmin } from '@/utils/auth';
 import { Button } from '@/shared/ui/atoms/button.atom';
 import { Heading } from '@/shared/ui/atoms/heading.atom';
@@ -17,9 +17,9 @@ import { useRouter } from '@tanstack/react-router';
 import { PiShieldCheck, PiSignIn } from 'react-icons/pi';
 
 export function IndexPage() {
-  const { isLoading, logout, user } = useAuth();
+  const { isLoading, user, adminStatus } = useCurrentUser();
+  const logout = useLogout();
   const { navigate } = useRouter();
-  const { adminStatus } = useAuth();
 
   // Admin-Fenster öffnen Handler
   const handleOpenAdminWindow = async () => {

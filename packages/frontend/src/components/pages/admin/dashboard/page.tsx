@@ -1,4 +1,4 @@
-import { useAuth } from '@/hooks/useAuth';
+import { useCurrentUser, useAdminLogout } from '@/features/auth';
 import { logger } from '@/shared/utils/logger';
 import { Button } from '@/shared/ui/atoms/button.atom';
 import { Card } from '@/shared/ui/atoms/card.atom';
@@ -19,7 +19,8 @@ import { PiSignOut, PiUsers } from 'react-icons/pi';
  */
 export function AdminDashboard() {
   const navigate = useNavigate();
-  const { user, logoutAdmin } = useAuth();
+  const { user } = useCurrentUser();
+  const logoutAdmin = useAdminLogout();
 
   const handleLogout = useCallback(async () => {
     await logoutAdmin.mutateAsync();

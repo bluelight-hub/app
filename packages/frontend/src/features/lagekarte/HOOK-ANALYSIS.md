@@ -5,17 +5,19 @@
 ### Aktueller Zustand (DrawingLayer.tsx)
 
 ```typescript
-// 10+ Hook Imports
-import { useLeafletPMControls } from '@/hooks/lagekarte/useLeafletPMControls';
-import { useShapeLoading } from '@/hooks/lagekarte/useShapeLoading';
-import { useDrawingToolSelection } from '@/hooks/lagekarte/useDrawingToolSelection';
-import { useShapeSelection } from '@/hooks/lagekarte/useShapeSelection';
-import { useShapeHighlighting } from '@/hooks/lagekarte/useShapeHighlighting';
-import { useToolbarPositioning } from '@/hooks/lagekarte/useToolbarPositioning';
-import { useKeyboardShortcuts } from '@/hooks/lagekarte/useKeyboardShortcuts';
-import { useShapeEventHandlers } from '@/hooks/lagekarte/useShapeEventHandlers';
-import { useTextMarkerHandling } from '@/hooks/lagekarte/useTextMarkerHandling';
-import { useShapeStyleUpdates } from '@/hooks/lagekarte/useShapeStyleUpdates';
+// Legacy Hooks (konsolidiert in hooks/legacy/)
+import {
+  useLeafletPMControls,
+  useShapeLoading,
+  useDrawingToolSelection,
+  useShapeSelection,
+  useShapeHighlighting,
+  useToolbarPositioning,
+  useKeyboardShortcuts,
+  useShapeEventHandlers,
+  useTextMarkerHandling,
+  useShapeStyleUpdates,
+} from '@/features/lagekarte/hooks/legacy';
 
 // Komponente mit Prop-Drilling und State-Fragmentierung
 const [shapes, setShapes] = useState<GeoJSON.FeatureCollection>(...);

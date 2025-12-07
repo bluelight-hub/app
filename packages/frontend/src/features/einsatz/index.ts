@@ -18,6 +18,7 @@ export {
   useEinsaetzeInfiniteQuery,
   useEinsatzDetail,
   useActiveEinsaetzeWithCounts,
+  useEinsatzStatusCounts,
   // Mutation Hooks
   useCreateEinsatz,
   useUpdateEinsatz,
@@ -44,6 +45,26 @@ export {
   // Store Selectors
   getEinsatzQueryFilters,
 } from './stores/einsatz-ui.store';
+
+// ============================================
+// Active Einsatz State Management
+// ============================================
+export {
+  // Store & Types
+  einsatzStore,
+  useEinsatzStore,
+  type Einsatz,
+  // Selectors
+  selectActiveEinsatz,
+  selectIsLoadingActiveEinsatz,
+  selectActiveEinsatzError,
+  selectSelectedEinsatzId,
+} from './stores/active-einsatz.store';
+
+// ============================================
+// Hooks
+// ============================================
+export { useActiveEinsatz } from './hooks/use-active-einsatz';
 
 // ============================================
 // Components

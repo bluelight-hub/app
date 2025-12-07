@@ -1,5 +1,5 @@
 import { useConfirm } from '@/shared/hooks/useConfirm';
-import { useDeleteEtbEintrag } from '@/hooks/useEtb';
+import { useDeleteEtbEntry } from '@/features/etb';
 import { useUserNames } from '@/hooks/useUsers';
 import type { EintragDto } from '@bluelight-hub/shared/client';
 import { type ExpandedState, getCoreRowModel, getExpandedRowModel, getFilteredRowModel, type SortingState, useReactTable } from '@tanstack/react-table';
@@ -51,7 +51,7 @@ export function EtbEntryList({
   showDeleted = false,
   onShowDeletedChange,
 }: EtbEntryListProps) {
-  const deleteEintrag = useDeleteEtbEintrag();
+  const deleteEintrag = useDeleteEtbEntry();
   const confirm = useConfirm();
   const { getUserName } = useUserNames();
   const [globalFilter, setGlobalFilter] = useState('');

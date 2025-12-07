@@ -4,8 +4,7 @@ import { LoadingState } from '@/shared/ui/atoms/LoadingState';
 import { EinsatzResourceWidget } from '@/components/molecules/einsatz/EinsatzResourceWidget';
 import { EinsatzStatsCard } from '@/components/molecules/einsatz/EinsatzStatsCard';
 import { EinsatzTimelineWidget } from '@/components/molecules/einsatz/EinsatzTimelineWidget';
-import { useActiveEinsatz } from '@/hooks/useActiveEinsatz';
-import { QUERY_KEYS } from '@/queryKeys';
+import { useActiveEinsatz, EINSATZ_QUERY_KEYS } from '@/features/einsatz';
 import { formatNatoDateTime } from '@/shared/utils/dateFormatter';
 import { logger } from '@/shared/utils/logger';
 import { Button } from '@/shared/ui/atoms/button.atom';
@@ -31,7 +30,7 @@ export function SingleEinsatzDashboard() {
     isLoading,
     error,
   } = useQuery({
-    queryKey: QUERY_KEYS.einsatz.detail(einsatzId),
+    queryKey: EINSATZ_QUERY_KEYS.detail(einsatzId),
     queryFn: () => api.einsatz().einsatzControllerFindOneVAlpha({ id: einsatzId }),
   });
 

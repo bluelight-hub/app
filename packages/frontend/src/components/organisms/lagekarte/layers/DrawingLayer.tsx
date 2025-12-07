@@ -11,18 +11,20 @@ import type * as GeoJSON from 'geojson';
 import { toast } from 'sonner';
 import { getShapeIdFromLayer } from '@/utils/lagekarte/layer-utils';
 
-// Custom Hooks
-import { useLeafletPMControls } from '@/hooks/lagekarte/useLeafletPMControls';
-import { useShapeLoading } from '@/hooks/lagekarte/useShapeLoading';
-import { useDrawingToolSelection } from '@/hooks/lagekarte/useDrawingToolSelection';
-import { useShapeSelection } from '@/hooks/lagekarte/useShapeSelection';
-import { useShapeHighlighting } from '@/hooks/lagekarte/useShapeHighlighting';
-import { useToolbarPositioning } from '@/hooks/lagekarte/useToolbarPositioning';
-import { useKeyboardShortcuts } from '@/hooks/lagekarte/useKeyboardShortcuts';
-import { useShapeEventHandlers } from '@/hooks/lagekarte/useShapeEventHandlers';
+// Legacy Hooks (TODO: Migrieren zu konsolidierten Feature-Hooks)
+import {
+  useLeafletPMControls,
+  useShapeLoading,
+  useDrawingToolSelection,
+  useShapeSelection,
+  useShapeHighlighting,
+  useToolbarPositioning,
+  useKeyboardShortcuts,
+  useShapeEventHandlers,
+  useTextMarkerHandling,
+  useShapeStyleUpdates,
+} from '@/features/lagekarte/hooks/legacy';
 import type { LayerWithGeoJSON, LayerWithPM, OriginalStyle } from '@/utils/lagekarte/types';
-import { useTextMarkerHandling } from '@/hooks/lagekarte/useTextMarkerHandling';
-import { useShapeStyleUpdates } from '@/hooks/lagekarte/useShapeStyleUpdates';
 
 const isPmLayer = (layer: L.Layer): layer is LayerWithPM => {
   return 'pm' in layer && typeof (layer as LayerWithPM).pm?.enable === 'function';

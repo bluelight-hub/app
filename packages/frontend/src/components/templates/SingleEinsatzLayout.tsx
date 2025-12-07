@@ -9,7 +9,7 @@ import { CommandPalette } from '@/components/organisms/command-palette';
 import { CommandPaletteErrorBoundary } from '@/components/organisms/command-palette/CommandPaletteErrorBoundary';
 import { useEinsatzDetails } from '@/hooks/einsatz/useEinsatzDetails';
 import { useEinsatzModules } from '@/hooks/einsatz/useEinsatzModules';
-import { QUERY_KEYS } from '@/queryKeys';
+import { EINSATZ_QUERY_KEYS } from '@/features/einsatz';
 import { cn } from '@/shared/utils/cn';
 import { getModuleActiveColor, getModuleColor } from '@/utils/module-colors';
 import { Button } from '@/shared/ui/atoms/button.atom';
@@ -67,17 +67,14 @@ export function SingleEinsatzLayout({ className }: SingleEinsatzLayoutProps) {
   // Mutation für Einsatz beenden
   const endEinsatzMutation = useMutation({
     mutationFn: async () => {
-      return api.einsatz().einsatzControllerUpdateVAlpha({
+      return api.einsatz().einsatzControllerCompleteVAlpha({
         id: einsatzId,
-        updateEinsatzDto: {
-          status: UpdateEinsatzDtoStatusEnum.Abgeschlossen,
-        },
       });
     },
     onSuccess: () => {
       // Invalidate queries to refresh data
-      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.einsatz.detail(einsatzId) });
-      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.einsatz.all });
+      queryClient.invalidateQueries({ queryKey: EINSATZ_QUERY_KEYS.detail(einsatzId) });
+      queryClient.invalidateQueries({ queryKey: EINSATZ_QUERY_KEYS.all });
       // Navigate back to overview
       router.navigate({ to: '/app/einsaetze' });
     },

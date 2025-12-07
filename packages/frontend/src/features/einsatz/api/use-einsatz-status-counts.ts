@@ -1,21 +1,41 @@
+/**
+ * Status Counts Query Hook für Einsatz Feature
+ *
+ * Holt die Anzahl der Einsätze pro Status vom Backend.
+ */
+
 import { api } from '@/api';
-import { QUERY_KEYS } from '@/queryKeys';
 import { logger } from '@/shared/utils/logger';
 import type { EinsatzControllerGetStatusCountsVAlpha200Response, ResponseError } from '@bluelight-hub/shared/client';
 import { useQuery } from '@tanstack/react-query';
 import { milliseconds } from 'date-fns';
+import { EINSATZ_QUERY_KEYS, calculateRetryDelay } from './queries';
 
 /**
  * Hook für Einsatz-Status-Counts
  *
- * Holt die Anzahl der Einsätze pro Status vom Backend
+ * Holt die Anzahl der Einsätze pro Status vom Backend.
+ * Optimiert für Dashboard-Anzeige mit Status-Karten.
  *
  * @param includeArchived - Ob archivierte Einsätze mitgezählt werden sollen
  * @returns Status-Counts und Ladezustände
+ *
+ * @example
+ * ```tsx
+ * const { total, counts, isLoading } = useEinsatzStatusCounts(true);
+ *
+ * return (
+ *   <div>
+ *     <span>Gesamt: {total}</span>
+ *     <span>Angelegt: {counts.angelegt}</span>
+ *     <span>In Bearbeitung: {counts.inBearbeitung}</span>
+ *   </div>
+ * );
+ * ```
  */
 export const useEinsatzStatusCounts = (includeArchived = false) => {
   const query = useQuery<EinsatzControllerGetStatusCountsVAlpha200Response, ResponseError>({
-    queryKey: QUERY_KEYS.einsatz.statusCounts(includeArchived),
+    queryKey: EINSATZ_QUERY_KEYS.statusCounts(includeArchived),
     queryFn: async () => {
       try {
         return await api.einsatz().einsatzControllerGetStatusCountsVAlpha({
@@ -28,7 +48,7 @@ export const useEinsatzStatusCounts = (includeArchived = false) => {
     },
     staleTime: milliseconds({ seconds: 30 }),
     retry: 3,
-    retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000),
+    retryDelay: calculateRetryDelay,
   });
 
   return {

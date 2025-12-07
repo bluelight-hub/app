@@ -1,4 +1,4 @@
-import { useEinsaetze } from '@/hooks/useEinsaetze';
+import { useCreateEinsatz } from '@/features/einsatz';
 import { Button } from '@/shared/ui/atoms/button.atom';
 import { CloseButton } from '@/shared/ui/atoms/close-button.atom';
 import { DateInput } from '@/shared/ui/atoms/date-input.atom';
@@ -33,7 +33,7 @@ interface EinsatzCreateFormProps {
 
 export function EinsatzCreateForm({ isOpen, onClose, onSuccess }: EinsatzCreateFormProps) {
   const navigate = useNavigate();
-  const { createEinsatz } = useEinsaetze();
+  const createEinsatz = useCreateEinsatz();
 
   const form = useForm({
     defaultValues: {
@@ -57,7 +57,7 @@ export function EinsatzCreateForm({ isOpen, onClose, onSuccess }: EinsatzCreateF
           if (!Number.isNaN(d.valueOf())) payload.alarmierungszeit = d;
         }
 
-        const result = await createEinsatz.mutateAsync(payload.alarmstichwort ? payload : { alarmstichwort: 'Neuer Einsatz' });
+        const result = await createEinsatz.mutateAsync(payload.alarmstichwort ? payload : { ...payload, alarmstichwort: 'Neuer Einsatz' });
 
         toast.success('Einsatz erfolgreich erstellt!', {
           id: toastId,

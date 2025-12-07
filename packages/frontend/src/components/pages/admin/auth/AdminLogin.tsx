@@ -1,4 +1,4 @@
-import { useAuth } from '@/hooks/useAuth.ts';
+import { useCurrentUser, useAdminLogin } from '@/features/auth';
 import { getApiErrorMessage } from '@/shared/utils/apiErrorHandler';
 import { Alert } from '@/shared/ui/atoms/alert.atom';
 import { Button } from '@/shared/ui/atoms/button.atom';
@@ -23,7 +23,8 @@ const adminLoginSchema = z.object({
 
 export function AdminLogin() {
   const navigate = useNavigate();
-  const { user, isLoading, isAdminAuthenticated, loginAdmin, adminStatus } = useAuth();
+  const { user, isLoading, isAdminAuthenticated, adminStatus } = useCurrentUser();
+  const loginAdmin = useAdminLogin();
   const [hasCheckedAuth, setHasCheckedAuth] = useState(false);
   const [shouldShake, setShouldShake] = useState(false);
   const [apiError, setApiError] = useState<string | null>(null);

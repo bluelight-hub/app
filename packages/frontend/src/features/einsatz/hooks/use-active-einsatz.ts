@@ -1,7 +1,7 @@
 import { api } from '@/api';
-import { QUERY_KEYS } from '@/queryKeys';
-import { type Einsatz, einsatzStore, useEinsatzStore } from '@/stores/einsatzStore';
-import { clearActiveEinsatz as clearPersistedEinsatz, loadActiveEinsatzId, rehydrateActiveEinsatz } from '@/stores/persistence/einsatzPersistence';
+import { EINSATZ_QUERY_KEYS } from '../api';
+import { type Einsatz, einsatzStore, useEinsatzStore } from '../stores/active-einsatz.store';
+import { clearActiveEinsatz as clearPersistedEinsatz, loadActiveEinsatzId, rehydrateActiveEinsatz } from '../stores/persistence/einsatz-persistence';
 import { logger } from '@/shared/utils/logger';
 import type { ResponseError } from '@bluelight-hub/shared/client';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
@@ -41,7 +41,7 @@ export function useActiveEinsatz() {
     error: queryError,
     refetch,
   } = useQuery<Einsatz, ResponseError>({
-    queryKey: QUERY_KEYS.einsatz.detail(selectedEinsatzId),
+    queryKey: EINSATZ_QUERY_KEYS.detail(selectedEinsatzId),
     queryFn: async () => {
       if (!selectedEinsatzId) {
         throw new Error('No Einsatz ID selected');
@@ -105,7 +105,7 @@ export function useActiveEinsatz() {
                   selectedEinsatzId: id,
                 }));
                 // Cache the data in query client
-                queryClient.setQueryData(QUERY_KEYS.einsatz.detail(id), response.data);
+                queryClient.setQueryData(EINSATZ_QUERY_KEYS.detail(id), response.data);
                 return true;
               }
               return false;
@@ -159,7 +159,7 @@ export function useActiveEinsatz() {
         }));
 
         // Prüfe ob Daten im Cache vorhanden sind
-        const cachedData = queryClient.getQueryData<Einsatz>(QUERY_KEYS.einsatz.detail(id));
+        const cachedData = queryClient.getQueryData<Einsatz>(EINSATZ_QUERY_KEYS.detail(id));
 
         if (cachedData) {
           // Verwende gecachte Daten
@@ -172,7 +172,7 @@ export function useActiveEinsatz() {
           if (response.data) {
             storeSetActiveEinsatz(response.data);
             // Cache die Daten
-            queryClient.setQueryData(QUERY_KEYS.einsatz.detail(id), response.data);
+            queryClient.setQueryData(EINSATZ_QUERY_KEYS.detail(id), response.data);
           } else {
             throw new Error('Einsatz nicht gefunden');
           }

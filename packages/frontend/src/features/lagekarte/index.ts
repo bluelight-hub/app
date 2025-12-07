@@ -13,15 +13,13 @@
  *
  * Siehe HOOK-ANALYSIS.md für Details zur Konsolidierung.
  *
- * ### Vorher (10+ Hooks)
+ * ### Legacy Hooks (in hooks/legacy/)
  * ```tsx
- * import { useShapeSelection } from '@/hooks/lagekarte/useShapeSelection';
- * import { useShapeHighlighting } from '@/hooks/lagekarte/useShapeHighlighting';
- * import { useDrawingToolSelection } from '@/hooks/lagekarte/useDrawingToolSelection';
- * // ... 7+ weitere Hooks
+ * // Noch von DrawingLayer.tsx verwendet - TODO: migrieren
+ * import { useShapeSelection, ... } from '@/features/lagekarte/hooks/legacy';
  * ```
  *
- * ### Nachher (4 Hooks)
+ * ### Neue Hooks (empfohlen)
  * ```tsx
  * import { useLagekarteState, useShapeActions, useDrawingTools } from '@/features/lagekarte';
  * ```

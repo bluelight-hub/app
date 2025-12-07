@@ -8,8 +8,8 @@
 import { api } from '@/api';
 import { getApiErrorMessage } from '@/shared/utils/apiErrorHandler';
 import { logger } from '@/shared/utils/logger';
-import type { CreateEinsatzDto, EinsatzControllerFindAllVAlpha200Response, EinsatzListItemDto, EinsatzResponseDto, ResponseError } from '@bluelight-hub/shared/client';
-import { EinsatzResponseDtoStatusEnum } from '@bluelight-hub/shared/client';
+import type { CreateEinsatzDto, EinsatzControllerFindAllVAlpha200Response, EinsatzDto, EinsatzListItemDto, ResponseError } from '@bluelight-hub/shared/client';
+import { EinsatzDtoStatusEnum } from '@bluelight-hub/shared/client';
 import type { InfiniteData } from '@tanstack/react-query';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
@@ -22,7 +22,7 @@ type InfiniteEinsatzData = InfiniteData<EinsatzControllerFindAllVAlpha200Respons
 interface CreateMutationContext {
   previousEinsaetze?: EinsatzControllerFindAllVAlpha200Response;
   previousActiveWithCounts?: EinsatzListItemDto[];
-  optimisticEinsatz?: EinsatzResponseDto;
+  optimisticEinsatz?: EinsatzDto;
   optimisticListItem?: EinsatzListItemDto;
 }
 

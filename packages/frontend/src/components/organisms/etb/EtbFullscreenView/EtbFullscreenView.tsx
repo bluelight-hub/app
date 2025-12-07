@@ -1,6 +1,6 @@
 import { Spinner } from '@/shared/ui/atoms/spinner.atom';
 import { FullscreenCloseButton } from '@/components/organisms/lagekarte/FullscreenCloseButton/FullscreenCloseButton';
-import { useEtbInfinite } from '@/hooks/useEtb';
+import { useEtbInfinite } from '@/features/etb';
 import { useUserNames } from '@/hooks/useUsers';
 import { cn } from '@/shared/utils/cn';
 import { formatDisplayDateTime } from '@/shared/utils/dateFormatter';
