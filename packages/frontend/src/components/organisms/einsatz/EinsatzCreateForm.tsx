@@ -59,6 +59,12 @@ export function EinsatzCreateForm({ isOpen, onClose, onSuccess }: EinsatzCreateF
 
         const result = await createEinsatz.mutateAsync(payload.alarmstichwort ? payload : { ...payload, alarmstichwort: 'Neuer Einsatz' });
 
+        // Validierung: Prüfe ob result und result.id existieren
+        if (!result || !result.id) {
+          console.error('Invalid mutation result:', result);
+          throw new Error(`Ungültige Server-Antwort: Einsatz-ID fehlt (result: ${JSON.stringify(result)})`);
+        }
+
         // Optional: Callback für Navigation
         if (onSuccess) {
           onSuccess(result.id);

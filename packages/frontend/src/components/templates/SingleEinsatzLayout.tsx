@@ -48,6 +48,12 @@ export function SingleEinsatzLayout({ className }: SingleEinsatzLayoutProps) {
   // Track if we've already started this einsatz to avoid duplicate API calls
   const hasStartedRef = useRef(false);
 
+  // Reset hasStartedRef when einsatzId changes (ref mutation doesn't require deps)
+  // biome-ignore lint/correctness/useExhaustiveDependencies: Ref mutation doesn't require dependencies
+  useEffect(() => {
+    hasStartedRef.current = false;
+  }, [einsatzId]);
+
   // Mutation für Einsatz automatisch starten (wenn Status = ANGELEGT)
   const startEinsatzMutation = useMutation({
     mutationFn: async () => {
@@ -55,11 +61,15 @@ export function SingleEinsatzLayout({ className }: SingleEinsatzLayoutProps) {
         id: einsatzId,
       });
     },
-    onSuccess: () => {
-      // Invalidate queries to refresh data
-      queryClient.invalidateQueries({ queryKey: EINSATZ_QUERY_KEYS.detail(einsatzId) });
-      queryClient.invalidateQueries({ queryKey: EINSATZ_QUERY_KEYS.detailsCombined(einsatzId) });
-      queryClient.invalidateQueries({ queryKey: EINSATZ_QUERY_KEYS.all });
+    onSuccess: async () => {
+      // Invalidate all relevant queries to refresh UI
+      // Use Promise.all to ensure all invalidations complete before UI updates
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: EINSATZ_QUERY_KEYS.detail(einsatzId) }),
+        queryClient.invalidateQueries({ queryKey: EINSATZ_QUERY_KEYS.detailsCombined(einsatzId) }),
+        queryClient.invalidateQueries({ queryKey: EINSATZ_QUERY_KEYS.lists() }),
+        queryClient.invalidateQueries({ queryKey: EINSATZ_QUERY_KEYS.activeWithCounts() }),
+      ]);
     },
     onError: (error) => {
       console.error('Fehler beim automatischen Starten des Einsatzes:', error);
@@ -73,7 +83,8 @@ export function SingleEinsatzLayout({ className }: SingleEinsatzLayoutProps) {
       hasStartedRef.current = true;
       startEinsatzMutation.mutate();
     }
-  }, [einsatz, startEinsatzMutation]);
+    // biome-ignore lint/correctness/useExhaustiveDependencies: startEinsatzMutation intentionally excluded to prevent re-trigger on mutation state changes
+  }, [einsatz, startEinsatzMutation.isPending, startEinsatzMutation.mutate]);
 
   // Modul-Konfiguration aus Hook
   const modules = useEinsatzModules();
@@ -99,10 +110,14 @@ export function SingleEinsatzLayout({ className }: SingleEinsatzLayoutProps) {
         id: einsatzId,
       });
     },
-    onSuccess: () => {
-      // Invalidate queries to refresh data
-      queryClient.invalidateQueries({ queryKey: EINSATZ_QUERY_KEYS.detail(einsatzId) });
-      queryClient.invalidateQueries({ queryKey: EINSATZ_QUERY_KEYS.all });
+    onSuccess: async () => {
+      // Invalidate all relevant queries to refresh UI
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: EINSATZ_QUERY_KEYS.detail(einsatzId) }),
+        queryClient.invalidateQueries({ queryKey: EINSATZ_QUERY_KEYS.detailsCombined(einsatzId) }),
+        queryClient.invalidateQueries({ queryKey: EINSATZ_QUERY_KEYS.lists() }),
+        queryClient.invalidateQueries({ queryKey: EINSATZ_QUERY_KEYS.activeWithCounts() }),
+      ]);
       // Navigate back to overview
       router.navigate({ to: '/app/einsaetze' });
     },

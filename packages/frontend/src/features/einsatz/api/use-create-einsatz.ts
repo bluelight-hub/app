@@ -6,13 +6,11 @@
  */
 
 import { api } from '@/api';
-import { getApiErrorMessage } from '@/shared/utils/apiErrorHandler';
 import { logger } from '@/shared/utils/logger';
 import type { CreateEinsatzDto, EinsatzControllerFindAllVAlpha200Response, EinsatzDto, EinsatzListItemDto, ResponseError } from '@bluelight-hub/shared/client';
 import { EinsatzDtoStatusEnum } from '@bluelight-hub/shared/client';
 import type { InfiniteData } from '@tanstack/react-query';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { toast } from 'sonner';
 import { EINSATZ_QUERY_KEYS, calculateRetryDelay, type EinsatzQueryFilters } from './queries';
 
 // Type für Infinite Query Data
@@ -134,14 +132,8 @@ export const useCreateEinsatz = (filters?: EinsatzQueryFilters) => {
         queryClient.setQueryData(EINSATZ_QUERY_KEYS.activeWithCounts(), context.previousActiveWithCounts);
       }
 
-      const message = await getApiErrorMessage(error, 'Der Einsatz konnte nicht erstellt werden.', 'createEinsatz');
+      // Log error (Toast wird von Form Component gehandhabt)
       logger.error('Failed to create einsatz', error);
-      toast.error('Fehler', { description: message });
-    },
-    onSuccess: async () => {
-      toast.success('Einsatz erstellt', {
-        description: 'Der Einsatz wurde erfolgreich erstellt.',
-      });
     },
     onSettled: async () => {
       // Invalidierung: Server-Daten neu laden nach Success oder Error
