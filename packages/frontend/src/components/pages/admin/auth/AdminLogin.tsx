@@ -1,5 +1,5 @@
 import { useAuth } from '@/hooks/useAuth.ts';
-import { getApiErrorMessage } from '@/utils/apiErrorHandler.ts';
+import { getApiErrorMessage } from '@/shared/utils/apiErrorHandler';
 import { Alert } from '@/shared/ui/atoms/alert.atom';
 import { Button } from '@/shared/ui/atoms/button.atom';
 import { FormField } from '@/shared/ui/atoms/form-field.atom';

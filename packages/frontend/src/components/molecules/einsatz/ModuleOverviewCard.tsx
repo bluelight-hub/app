@@ -2,7 +2,7 @@ import { cn } from '@/shared/utils/cn';
 import { CloseButton } from '@/shared/ui/atoms/close-button.atom';
 import { Link } from '@tanstack/react-router';
 import type { ComponentType } from 'react';
-import { Dialog } from '../dialog.molecule';
+import { Dialog } from '@/shared/ui/molecules/dialog.molecule';
 
 interface Module {
   id: string;

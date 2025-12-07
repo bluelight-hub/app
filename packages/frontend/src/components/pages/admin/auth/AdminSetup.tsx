@@ -7,7 +7,7 @@ import { Card } from '@/shared/ui/atoms/card.atom';
 import { Text } from '@/shared/ui/atoms/text.atom';
 import { FormFieldWrapper } from '@/shared/ui/molecules/form/FormFieldWrapper';
 import { PasswordInput } from '@/shared/ui/molecules/password-input.molecule';
-import { PasswordStrengthIndicator } from '@/components/molecules/password-strength-indicator.lazy';
+import { PasswordStrengthIndicator } from '@/shared/ui/molecules/password-strength-indicator.lazy';
 import { PASSWORD_MIN_SCORE, validatePasswordCriteria } from '@bluelight-hub/shared';
 import { useForm } from '@tanstack/react-form';
 import { useNavigate } from '@tanstack/react-router';

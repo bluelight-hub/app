@@ -1,4 +1,4 @@
-import { useAuth } from '@/features/auth/hooks/useAuth';
+import { useAuth } from '@/hooks/useAuth';
 
 export const useAdminAuth = () => {
   const { user, isAdminAuthenticated, isLoading } = useAuth();
