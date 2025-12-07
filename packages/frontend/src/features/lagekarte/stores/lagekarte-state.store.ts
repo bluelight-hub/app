@@ -2,7 +2,7 @@ import { Store } from '@tanstack/react-store';
 import type * as L from 'leaflet';
 import type * as GeoJSON from 'geojson';
 import type { DrawingTool } from '@/components/organisms/lagekarte/toolbar/DrawingToolbar';
-import type { OriginalStyle } from '@/utils/lagekarte/types';
+import type { OriginalStyle } from '../utils/types';
 
 /**
  * Zentrale State-Definition für Lagekarte Feature

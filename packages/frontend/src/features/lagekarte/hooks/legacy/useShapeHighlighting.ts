@@ -1,6 +1,6 @@
 import { useEffect } from 'react';
 import type * as L from 'leaflet';
-import type { LayerWithStyle, OriginalStyle } from '@/utils/lagekarte/types';
+import type { LayerWithStyle, OriginalStyle } from '../../utils/types';
 
 interface UseShapeHighlightingProps {
   selectedShapeId: string | null;

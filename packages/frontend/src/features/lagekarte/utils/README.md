@@ -12,7 +12,7 @@ Die `mgrs.ts` Utility-Datei bietet vollständige MGRS (Military Grid Reference S
 Konvertiert Lat/Lng Koordinaten zu MGRS Format.
 
 ```typescript
-import { latLngToMgrs } from '@/utils/lagekarte/mgrs';
+import { latLngToMgrs } from '@/features/lagekarte/utils/mgrs';
 
 // Paris, Frankreich mit hoher Precision (1m)
 const mgrs = latLngToMgrs(48.8566, 2.3522, 5);
@@ -46,7 +46,7 @@ const mgrs = latLngToMgrs(52.5200, 13.4050, 5);
 Konvertiert MGRS Koordinaten zu Lat/Lng.
 
 ```typescript
-import { mgrsToLatLng } from '@/utils/lagekarte/mgrs';
+import { mgrsToLatLng } from '@/features/lagekarte/utils/mgrs';
 
 // Mit Leerzeichen (formatiert)
 const coords1 = mgrsToLatLng("31U DQ 48251 11932");
@@ -68,7 +68,7 @@ const coords2 = mgrsToLatLng("31UDQ4825111932");
 Validiert MGRS Format.
 
 ```typescript
-import { isValidMgrs } from '@/utils/lagekarte/mgrs';
+import { isValidMgrs } from '@/features/lagekarte/utils/mgrs';
 
 isValidMgrs("31U DQ 48251 11932"); // true
 isValidMgrs("31UDQ4825111932");    // true
@@ -87,7 +87,7 @@ isValidMgrs("");                   // false
 Formatiert MGRS String für bessere Lesbarkeit.
 
 ```typescript
-import { formatMgrs } from '@/utils/lagekarte/mgrs';
+import { formatMgrs } from '@/features/lagekarte/utils/mgrs';
 
 formatMgrs("33UVU1234567890");      // "33U VU 12345 67890"
 formatMgrs("31UDQ4825111932");      // "31U DQ 48251 11932"
@@ -112,7 +112,7 @@ formatMgrs("33U VU 12345 67890");   // "33U VU 12345 67890" (bereits formatiert)
 Type Guard für MGRS Koordinaten (TypeScript).
 
 ```typescript
-import { isMgrsCoordinate, mgrsToLatLng } from '@/utils/lagekarte/mgrs';
+import { isMgrsCoordinate, mgrsToLatLng } from '@/features/lagekarte/utils/mgrs';
 
 const userInput: unknown = getUserInput();
 
@@ -134,7 +134,7 @@ if (isMgrsCoordinate(userInput)) {
 Berechnet die Precision eines MGRS Strings.
 
 ```typescript
-import { getMgrsPrecision } from '@/utils/lagekarte/mgrs';
+import { getMgrsPrecision } from '@/features/lagekarte/utils/mgrs';
 
 getMgrsPrecision("33U VU 12345 67890"); // 5 (1m)
 getMgrsPrecision("33U VU 123 678");     // 3 (100m)
@@ -162,7 +162,7 @@ getMgrsPrecision("33U VU");             // 0 (100km)
 #### POI mit MGRS Koordinaten erstellen
 
 ```typescript
-import { latLngToMgrs, formatMgrs } from '@/utils/lagekarte/mgrs';
+import { latLngToMgrs, formatMgrs } from '@/features/lagekarte/utils/mgrs';
 
 function createPoiWithMgrs(lat: number, lng: number) {
   const mgrs = latLngToMgrs(lat, lng, 5);
@@ -186,7 +186,7 @@ function createPoiWithMgrs(lat: number, lng: number) {
 #### MGRS Input validieren und konvertieren
 
 ```typescript
-import { isValidMgrs, mgrsToLatLng, formatMgrs } from '@/utils/lagekarte/mgrs';
+import { isValidMgrs, mgrsToLatLng, formatMgrs } from '@/features/lagekarte/utils/mgrs';
 
 function handleMgrsInput(input: string) {
   // Validiere Input
@@ -214,7 +214,7 @@ function handleMgrsInput(input: string) {
 #### Type-Safe MGRS Handling
 
 ```typescript
-import { isMgrsCoordinate, mgrsToLatLng } from '@/utils/lagekarte/mgrs';
+import { isMgrsCoordinate, mgrsToLatLng } from '@/features/lagekarte/utils/mgrs';
 
 function processMgrsOrLatLng(input: unknown) {
   if (isMgrsCoordinate(input)) {
