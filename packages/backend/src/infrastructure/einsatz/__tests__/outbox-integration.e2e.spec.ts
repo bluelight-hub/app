@@ -665,9 +665,18 @@ import { Einsatz } from '@domain/aggregates/einsatz.aggregate';
       expect(einsatzResult.isSuccess).toBe(true);
       const einsatz = einsatzResult.value!;
 
-      // Step 1: Save Aggregate → Events in Outbox (atomically)
-      const saveResult = await ctx.repository.save(einsatz);
-      expect(saveResult.isSuccess).toBe(true);
+      // Get domain events before clearing
+      const events = einsatz.getDomainEvents();
+      expect(events.length).toBeGreaterThan(0);
+
+      // Step 1: Save Aggregate AND Events atomically (simulating TransactionalCommandHandler)
+      await ctx.prisma.$transaction(async (tx) => {
+        const saveResult = await ctx.repository.save(einsatz, tx);
+        expect(saveResult.isSuccess).toBe(true);
+
+        // Save events to Outbox (Application Layer responsibility)
+        await ctx.outboxRepository.save(events, tx);
+      });
 
       // Verify: Einsatz saved in DB
       const savedEinsatz = await ctx.prisma.einsatz.findUnique({

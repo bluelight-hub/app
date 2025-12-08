@@ -279,7 +279,8 @@ const databaseAvailable = !!process.env.DATABASE_URL;
      * aussagekräftiger Fehlermeldung zurückgegeben werden.
      */
     it('should return 404 for non-existent Einsatz', async () => {
-      const nonExistentId = '00000000-0000-0000-0000-000000000000';
+      // Use valid CUID format that doesn't exist in DB
+      const nonExistentId = 'cnonexistent123456789abcd';
 
       const response = await request(app.getHttpServer())
         .get(`/api/v-alpha/einsatz/${nonExistentId}/details`)
@@ -321,7 +322,7 @@ const databaseAvailable = !!process.env.DATABASE_URL;
     /**
      * Testet erfolgreichen Abschluss eines aktiven Einsatzes.
      */
-    it('should return 200 on successful complete', async () => {
+    it('should return 201 on successful complete', async () => {
       const einsatzId = await createTestEinsatz(ctx, {
         status: 'IN_BEARBEITUNG',
       });
@@ -329,7 +330,7 @@ const databaseAvailable = !!process.env.DATABASE_URL;
       const response = await request(app.getHttpServer())
         .post(`/api/v-alpha/einsatz/${einsatzId}/complete`)
         .set('Cookie', [`accessToken=${accessToken}`])
-        .expect(200);
+        .expect(201); // POST returns 201 Created
 
       expect(response.body.data).toHaveProperty('status', 'ABGESCHLOSSEN');
     });
@@ -353,14 +354,16 @@ const databaseAvailable = !!process.env.DATABASE_URL;
         .expect(400);
 
       expect(response.body).toHaveProperty('statusCode', 400);
-      expect(response.body.message).toContain('bereits abgeschlossen');
+      // Error message indicates status must be IN_BEARBEITUNG (not ABGESCHLOSSEN)
+      expect(response.body.message).toContain('Status muss IN_BEARBEITUNG sein');
     });
 
     /**
      * Testet 404 bei nicht existierendem Einsatz.
      */
     it('should return 404 for non-existent Einsatz', async () => {
-      const nonExistentId = '00000000-0000-0000-0000-000000000000';
+      // Use valid CUID format that doesn't exist in DB
+      const nonExistentId = 'cnonexistent123456789abcd';
 
       await request(app.getHttpServer())
         .post(`/api/v-alpha/einsatz/${nonExistentId}/complete`)
@@ -384,7 +387,7 @@ const databaseAvailable = !!process.env.DATABASE_URL;
       const response = await request(app.getHttpServer())
         .post(`/api/v-alpha/einsatz/${einsatzId}/complete`)
         .set('Cookie', [`accessToken=${accessToken}`])
-        .expect(200);
+        .expect(201); // POST returns 201 Created
 
       expect(response.body.data.status).toBe('ABGESCHLOSSEN');
     });
@@ -444,13 +447,13 @@ const databaseAvailable = !!process.env.DATABASE_URL;
         .set('Cookie', [`accessToken=${accessToken}`])
         .expect(400);
 
-      // Einsatz muss noch existieren
+      // Einsatz muss noch existieren - EinsatzDetailsDto has nested structure
       const response = await request(app.getHttpServer())
         .get(`/api/v-alpha/einsatz/${einsatzId}/details`)
         .set('Cookie', [`accessToken=${accessToken}`])
         .expect(200);
 
-      expect(response.body.data).toHaveProperty('id', einsatzId);
+      expect(response.body.data.einsatz).toHaveProperty('id', einsatzId);
     });
   });
 
@@ -465,9 +468,9 @@ const databaseAvailable = !!process.env.DATABASE_URL;
      * NOTE: POST /einsatz mit leerem Body ist valid (alarmstichwort defaults to 'Unbekannt')
      */
     it('should follow consistent error format for 404 errors', async () => {
-      // Not Found Error (404)
+      // Not Found Error (404) - use valid CUID format that doesn't exist
       const notFoundError = await request(app.getHttpServer())
-        .get('/api/v-alpha/einsatz/00000000-0000-0000-0000-000000000000/details')
+        .get('/api/v-alpha/einsatz/cnonexistent123456789abcd/details')
         .set('Cookie', [`accessToken=${accessToken}`])
         .expect(404);
 

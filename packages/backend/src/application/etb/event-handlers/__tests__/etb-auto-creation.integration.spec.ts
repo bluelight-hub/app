@@ -58,8 +58,9 @@ import { PrismaOutboxRepository } from '@/infrastructure/outbox/prisma-outbox.re
 import { EventSerializer } from '@/infrastructure/outbox/event-serializer';
 import type { IEinsatzRepository } from '@domain/repositories';
 import { EVENT_NAMES } from '@domain/events/event-names';
-import { EINSATZ_REPOSITORY, ETB_REPOSITORY } from '@/infrastructure/di-tokens';
+import { EINSATZ_REPOSITORY, ETB_REPOSITORY, EVENT_HANDLER } from '@/infrastructure/di-tokens';
 import { skipIfNoDatabase } from '@infrastructure/__tests__/helpers/database-test.helper';
+import { EtbEventAdapter } from '@infrastructure/events/adapters/etb-event.adapter';
 
 /**
  * Generiert eine Test-CUID mit korrektem Format.
@@ -251,6 +252,13 @@ describe('EtbAutoCreationHandler - Integration Tests (AC6)', () => {
         // Handlers
         CreateEtbHandler,
         EtbAutoCreationHandler,
+        // Event Handler Token für Adapter Pattern - nutze GLEICHE Instanz!
+        {
+          provide: EVENT_HANDLER.ETB_AUTO_CREATION,
+          useExisting: EtbAutoCreationHandler,
+        },
+        // Event Adapter (hat @OnEvent Decorator)
+        EtbEventAdapter,
       ],
     }).compile();
 
