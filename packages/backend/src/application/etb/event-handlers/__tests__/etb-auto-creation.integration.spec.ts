@@ -58,7 +58,7 @@ import { PrismaOutboxRepository } from '@/infrastructure/outbox/prisma-outbox.re
 import { EventSerializer } from '@/infrastructure/outbox/event-serializer';
 import type { IEinsatzRepository } from '@domain/repositories';
 import { EVENT_NAMES } from '@domain/events/event-names';
-import { EINSATZ_REPOSITORY } from '@/infrastructure/di-tokens';
+import { EINSATZ_REPOSITORY, ETB_REPOSITORY } from '@/infrastructure/di-tokens';
 import { skipIfNoDatabase } from '@infrastructure/__tests__/helpers/database-test.helper';
 
 /**
@@ -233,9 +233,9 @@ describe('EtbAutoCreationHandler - Integration Tests (AC6)', () => {
           provide: PrismaService,
           useValue: prisma as unknown as PrismaService,
         },
-        // Repository
+        // Repository (Symbol token - WICHTIG: Muss ETB_REPOSITORY Symbol sein, nicht String!)
         {
-          provide: 'IEtbRepository',
+          provide: ETB_REPOSITORY,
           useFactory: () => {
             const prismaService = prisma as unknown as PrismaService;
             const eventSerializer = new EventSerializer();
