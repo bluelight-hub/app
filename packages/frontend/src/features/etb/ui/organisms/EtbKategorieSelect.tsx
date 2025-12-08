@@ -1,7 +1,7 @@
 import { Combobox, type ComboboxItem } from '@/shared/ui/headless/combobox';
 import { AddEintragDtoKategorieEnum as EtbKategorie } from '@bluelight-hub/shared/client';
 import { useMemo } from 'react';
-import { kategorieLabels } from './types';
+import { kategorieLabels } from '../../types/etb.types';
 
 interface EtbKategorieSelectProps {
   value: EtbKategorie;

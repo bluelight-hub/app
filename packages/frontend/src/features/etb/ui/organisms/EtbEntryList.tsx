@@ -6,14 +6,14 @@ import { type ExpandedState, getCoreRowModel, getExpandedRowModel, getFilteredRo
 import { useVirtualizer } from '@tanstack/react-virtual';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { PiCircleNotch } from 'react-icons/pi';
-import { EtbEmptyState } from '../../molecules/etb/EtbEmptyState';
-import { EtbFilterControls } from '../../molecules/etb/EtbFilterControls';
-import { EtbResultsCount } from '../../molecules/etb/EtbResultsCount';
-import { EtbSearchBar } from '../../molecules/etb/EtbSearchBar';
-import { EtbTableBody } from '../../molecules/etb/EtbTableBody';
-import { EtbTableHeader } from '../../molecules/etb/EtbTableHeader';
+import { EtbEmptyState } from '../molecules/EtbEmptyState';
+import { EtbFilterControls } from '../molecules/EtbFilterControls';
+import { EtbResultsCount } from '../molecules/EtbResultsCount';
+import { EtbSearchBar } from '../molecules/EtbSearchBar';
+import { EtbTableBody } from '../molecules/EtbTableBody';
+import { EtbTableHeader } from '../molecules/EtbTableHeader';
 import { EtbHistoryModal } from './components/EtbHistoryModal';
-import { useEtbColumns } from './hooks/useEtbColumns';
+import { useEtbColumns } from '../../hooks/useEtbColumns';
 
 interface EtbEntryListProps {
   entries: EintragDto[];
