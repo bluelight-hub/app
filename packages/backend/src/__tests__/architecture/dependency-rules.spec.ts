@@ -86,12 +86,21 @@ function hasImportFrom(filePath: string, forbiddenPatterns: RegExp[]): { violate
 
 /**
  * Helper: Findet alle Dateien in einem Layer, die verbotene Imports haben.
+ *
+ * @param layerPath - Pfad zum Layer (z.B. DOMAIN_PATH)
+ * @param forbiddenPatterns - RegExp Patterns für verbotene Imports
+ * @param skipTestHelpers - Wenn true, werden __tests__/helpers Dateien übersprungen
  */
-function findViolations(layerPath: string, forbiddenPatterns: RegExp[]): { file: string; violations: string[] }[] {
+function findViolations(layerPath: string, forbiddenPatterns: RegExp[], skipTestHelpers = false): { file: string; violations: string[] }[] {
   const files = findTypeScriptFiles(layerPath);
   const violations: { file: string; violations: string[] }[] = [];
 
   for (const file of files) {
+    // Skip test helper files if requested (these may need infrastructure dependencies like PrismaClient)
+    if (skipTestHelpers && file.includes('__tests__/helpers')) {
+      continue;
+    }
+
     const result = hasImportFrom(file, forbiddenPatterns);
     if (result.violated) {
       violations.push({ file, violations: result.imports });
@@ -190,9 +199,10 @@ describe('Architecture Dependency Rules', () => {
 
     it('should not import Prisma directly', () => {
       // Domain darf NICHT direkt Prisma importieren
+      // AUSNAHME: Test Helpers (__tests__/helpers) dürfen Prisma importieren für DB-Verbindungsprüfung
       const forbiddenPatterns = [/@prisma\/client/];
 
-      const violations = findViolations(DOMAIN_PATH, forbiddenPatterns);
+      const violations = findViolations(DOMAIN_PATH, forbiddenPatterns, true); // skipTestHelpers=true
 
       if (violations.length > 0) {
         const errorMsg = violations.map((v) => `\n  ${path.relative(SRC_PATH, v.file)}:\n    ${v.violations.join('\n    ')}`).join('\n');

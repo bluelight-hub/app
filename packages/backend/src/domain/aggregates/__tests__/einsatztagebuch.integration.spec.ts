@@ -3,7 +3,7 @@ import { EinsatzId } from '@domain/value-objects/einsatz-id';
 import { UserId } from '@domain/value-objects/user-id';
 import { EtbStatus } from '@domain/value-objects/etb-status';
 import type { DomainEvent } from '@domain/common/domain-event';
-import { skipIfNoDatabase } from '@infrastructure/__tests__/helpers/database-test.helper';
+import { skipIfNoDatabase } from '@domain/__tests__/helpers/database-test.helper';
 
 // Mock cuid2 for Jest compatibility (ESM module issue)
 jest.mock('@paralleldrive/cuid2', () => ({

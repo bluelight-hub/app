@@ -5,6 +5,9 @@ import { Result } from '@domain/common/result';
 // biome-ignore lint/style/useImportType: PrismaService needed for DI at runtime
 import { PrismaService } from '@/infrastructure/database/prisma.service';
 import type { IOutboxRepository } from '@domain/repositories/i-outbox.repository';
+// NOTE: Import needed for JSDoc example, even though not used in this file
+// biome-ignore lint/correctness/noUnusedImports: Used in JSDoc example
+import { EINSATZ_REPOSITORY } from '@infrastructure/di-tokens';
 
 /**
  * Abstract Base Class für transaktionale Command Handler im Transactional Outbox Pattern.

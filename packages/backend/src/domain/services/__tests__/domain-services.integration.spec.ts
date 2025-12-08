@@ -19,7 +19,7 @@ import { UserId } from '@domain/value-objects/user-id';
 import { EinsatzArchivalPolicy } from '../einsatz-archival.policy';
 import { EinsatzCompletenessService } from '../einsatz-completeness.service';
 import { EinsatzNamingService } from '../einsatz-naming.service';
-import { skipIfNoDatabase } from '@infrastructure/__tests__/helpers/database-test.helper';
+import { skipIfNoDatabase } from '@domain/__tests__/helpers/database-test.helper';
 
 // Mock für nanoid (für deterministische Tests)
 // WICHTIG: Nutzt deterministisches Pattern statt Math.random() für zuverlässige CI/CD Tests

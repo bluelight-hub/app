@@ -100,6 +100,16 @@
       }
     },
     {
+      "includes": ["src/domain/__tests__/helpers/**/*.ts"],
+      "linter": {
+        "rules": {
+          "style": {
+            "noRestrictedImports": "off"
+          }
+        }
+      }
+    },
+    {
       "includes": ["src/application/**/*.handler.ts", "src/application/**/*.command.ts", "src/application/**/*.query.ts", "src/application/**/*.service.ts", "src/application/**/common/**/*.ts"],
       "linter": {
         "rules": {

@@ -9,7 +9,7 @@ import { Poi } from '@domain/entities/poi.entity';
 import { PoiAddedEvent } from '@domain/events/poi-added.event';
 import { PoiRemovedEvent } from '@domain/events/poi-removed.event';
 import { PoiPositionUpdatedEvent } from '@domain/events/poi-position-updated.event';
-import { skipIfNoDatabase } from '@infrastructure/__tests__/helpers/database-test.helper';
+import { skipIfNoDatabase } from '@domain/__tests__/helpers/database-test.helper';
 
 // Mock cuid2 for Jest compatibility (ESM module issue)
 jest.mock('@paralleldrive/cuid2', () => ({

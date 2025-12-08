@@ -20,7 +20,7 @@ import { EinsatzStatus } from '@domain/value-objects/einsatz-status';
 import { Address } from '@domain/value-objects/address';
 import { Result } from '@domain/common/result';
 import type { IEinsatzRepository } from '@domain/repositories/ieinsatz.repository';
-import { skipIfNoDatabase } from '@infrastructure/__tests__/helpers/database-test.helper';
+import { skipIfNoDatabase } from '@domain/__tests__/helpers/database-test.helper';
 
 // Mock cuid2 for Jest compatibility (ESM module issue)
 jest.mock('@paralleldrive/cuid2', () => ({
