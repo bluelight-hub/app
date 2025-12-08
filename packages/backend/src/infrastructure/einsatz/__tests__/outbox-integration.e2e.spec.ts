@@ -93,10 +93,12 @@ import { Einsatz } from '@domain/aggregates/einsatz.aggregate';
   // ============================================
 
   describe('AC1.1: Atomic Event Persistence', () => {
-    it('should save events atomically with aggregate in single transaction', async () => {
-      // AC1.1: Use handler-level test instead of direct aggregate test
-      // Given: Create Einsatz via Repository (repository handles transaction internally)
-      const _einsatzId = EinsatzId.create().value!;
+    it('should save events atomically with aggregate via OutboxRepository', async () => {
+      // AC1.1: Repository does NOT save events - that's Application Layer responsibility
+      // This test verifies that OutboxRepository.save() works correctly when called
+      // by the Application Layer (e.g., TransactionalCommandHandler)
+
+      // Given: Create Einsatz and manually create event
       const createdBy = UserId.create(ctx.testUserIds.user).value!;
 
       const einsatzResult = Einsatz.create({
@@ -113,9 +115,15 @@ import { Einsatz } from '@domain/aggregates/einsatz.aggregate';
       const event = events[0] as EinsatzCreatedEvent;
       expect(event).toBeInstanceOf(EinsatzCreatedEvent);
 
-      // When: Save Aggregate via Repository (uses transaction internally)
-      const saveResult = await ctx.repository.save(einsatz);
-      expect(saveResult.isSuccess).toBe(true);
+      // When: Save Aggregate AND Events atomically (simulating TransactionalCommandHandler)
+      await ctx.prisma.$transaction(async (tx) => {
+        // 1. Save Aggregate via Repository
+        const saveResult = await ctx.repository.save(einsatz, tx);
+        expect(saveResult.isSuccess).toBe(true);
+
+        // 2. Save Events via OutboxRepository (Application Layer responsibility)
+        await ctx.outboxRepository.save(events, tx);
+      });
 
       // Then: Both Einsatz AND OutboxEvent exist in DB
       const savedEinsatz = await ctx.prisma.einsatz.findUnique({
