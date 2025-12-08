@@ -79,11 +79,13 @@ export class GetActiveEinsaetzeWithCountsQueryHandler implements IQueryHandler<G
    * @param _query - GetActiveEinsaetzeWithCountsQuery (parameterlos, Underscore weil unused)
    * @returns Result<EinsatzListItemDto[]> - Success mit DTOs oder Failure mit Error Message
    */
-  async execute(_query: GetActiveEinsaetzeWithCountsQuery): Promise<Result<EinsatzListItemDto[]>> {
+  async execute(query: GetActiveEinsaetzeWithCountsQuery): Promise<Result<EinsatzListItemDto[]>> {
     try {
       // 1. Prisma Query mit _count Aggregation
+      // includeArchived = false (Standard): Nur aktive Einsaetze (status != ARCHIVIERT)
+      // includeArchived = true: Alle Einsaetze inkl. archivierter
       const einsaetze = await this.prisma.einsatz.findMany({
-        where: { status: { not: 'ARCHIVIERT' } },
+        where: query.includeArchived ? {} : { status: { not: 'ARCHIVIERT' } },
         include: {
           einsatztagebuch: {
             select: {

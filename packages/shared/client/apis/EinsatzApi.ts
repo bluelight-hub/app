@@ -79,6 +79,10 @@ export interface EinsatzControllerFindOneVAlphaRequest {
   id: string;
 }
 
+export interface EinsatzControllerGetActiveEinsaetzeWithCountsVAlphaRequest {
+  includeArchived?: boolean;
+}
+
 export interface EinsatzControllerGetCompletenessVAlphaRequest {
   id: string;
   refresh?: boolean;
@@ -432,13 +436,18 @@ export class EinsatzApi extends runtime.BaseAPI {
   }
 
   /**
-   * Optimierte Abfrage für Dashboard: Liefert alle nicht-archivierten Einsätze mit ETB-Einträge und POI-Counts.
-   * Aktive Einsätze mit Counts abrufen
+   * Optimierte Abfrage für Dashboard: Liefert Einsätze mit ETB-Einträge und POI-Counts. Archivierte standardmäßig ausgeschlossen.
+   * Einsätze mit Counts abrufen
    */
   async einsatzControllerGetActiveEinsaetzeWithCountsVAlphaRaw(
+    requestParameters: EinsatzControllerGetActiveEinsaetzeWithCountsVAlphaRequest,
     initOverrides?: RequestInit | runtime.InitOverrideFunction,
   ): Promise<runtime.ApiResponse<EinsatzControllerGetActiveEinsaetzeWithCountsVAlpha200Response>> {
     const queryParameters: any = {};
+
+    if (requestParameters['includeArchived'] != null) {
+      queryParameters['includeArchived'] = requestParameters['includeArchived'];
+    }
 
     const headerParameters: runtime.HTTPHeaders = {};
 
@@ -464,11 +473,14 @@ export class EinsatzApi extends runtime.BaseAPI {
   }
 
   /**
-   * Optimierte Abfrage für Dashboard: Liefert alle nicht-archivierten Einsätze mit ETB-Einträge und POI-Counts.
-   * Aktive Einsätze mit Counts abrufen
+   * Optimierte Abfrage für Dashboard: Liefert Einsätze mit ETB-Einträge und POI-Counts. Archivierte standardmäßig ausgeschlossen.
+   * Einsätze mit Counts abrufen
    */
-  async einsatzControllerGetActiveEinsaetzeWithCountsVAlpha(initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<EinsatzControllerGetActiveEinsaetzeWithCountsVAlpha200Response> {
-    const response = await this.einsatzControllerGetActiveEinsaetzeWithCountsVAlphaRaw(initOverrides);
+  async einsatzControllerGetActiveEinsaetzeWithCountsVAlpha(
+    requestParameters: EinsatzControllerGetActiveEinsaetzeWithCountsVAlphaRequest = {},
+    initOverrides?: RequestInit | runtime.InitOverrideFunction,
+  ): Promise<EinsatzControllerGetActiveEinsaetzeWithCountsVAlpha200Response> {
+    const response = await this.einsatzControllerGetActiveEinsaetzeWithCountsVAlphaRaw(requestParameters, initOverrides);
     return await response.value();
   }
 

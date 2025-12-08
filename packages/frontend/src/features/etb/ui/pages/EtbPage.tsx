@@ -20,7 +20,13 @@ export function EtbPage({ einsatzId, mode }: EtbPageProps) {
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
   const [showDeleted, setShowDeleted] = useState<boolean>(false);
 
-  const { data, isLoading, error, fetchNextPage, hasNextPage, isFetchingNextPage } = useEtbInfinite(einsatzId, 30, sortBy, sortOrder, showDeleted);
+  const { data, isLoading, error, fetchNextPage, hasNextPage, isFetchingNextPage } = useEtbInfinite({
+    einsatzId,
+    limit: 30,
+    sortBy,
+    sortOrder,
+    includeDeleted: showDeleted,
+  });
 
   const [editingEntry, setEditingEntry] = useState<(EintragDto & { etbId: string }) | null>(null);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);

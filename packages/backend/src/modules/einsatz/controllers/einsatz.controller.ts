@@ -113,11 +113,14 @@ export class EinsatzController {
    * Optimierte Liste aktiver Einsätze mit ETB-Einträge und POI-Counts via CQRS Query
    */
   @Get('active-with-counts')
-  @ApiOperation({ summary: 'Aktive Einsätze mit Counts abrufen', description: 'Optimierte Abfrage für Dashboard: Liefert alle nicht-archivierten Einsätze mit ETB-Einträge und POI-Counts.' })
-  @ApiWrappedResponse(EinsatzListItemDto, { description: 'Liste aktiver Einsätze mit Counts', isArray: true })
+  @ApiOperation({
+    summary: 'Einsätze mit Counts abrufen',
+    description: 'Optimierte Abfrage für Dashboard: Liefert Einsätze mit ETB-Einträge und POI-Counts. Archivierte standardmäßig ausgeschlossen.',
+  })
+  @ApiWrappedResponse(EinsatzListItemDto, { description: 'Liste der Einsätze mit Counts', isArray: true })
   @ApiBadRequestResponse({ description: 'Fehler beim Abrufen der Einsätze' })
-  async getActiveEinsaetzeWithCounts(): Promise<EinsatzListItemDto[]> {
-    const result = await this.queryBus.execute(new GetActiveEinsaetzeWithCountsQuery());
+  async getActiveEinsaetzeWithCounts(@Query(new ValidationPipe({ transform: true, whitelist: true })) queryDto: StatusCountsQueryDto): Promise<EinsatzListItemDto[]> {
+    const result = await this.queryBus.execute(new GetActiveEinsaetzeWithCountsQuery(queryDto.includeArchived));
     if (result.isFailure) throw new BadRequestException(result.error ?? 'Unbekannter Fehler');
     return result.value ?? [];
   }

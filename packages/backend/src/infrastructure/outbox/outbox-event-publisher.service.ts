@@ -1,13 +1,13 @@
-import { Injectable, Logger, OnModuleInit, OnModuleDestroy, Optional, Inject } from '@nestjs/common';
-import { Cron, CronExpression } from '@nestjs/schedule';
+import { PrismaService } from '@/infrastructure/database/prisma.service';
+import { ALERT_SERVICE, EVENT_PUBLISHER } from '@/infrastructure/di-tokens';
 import type { TransactionContext } from '@domain/common/transaction';
-import { IEventPublisher } from '@domain/services/ports/i-event-publisher.port';
 import type { OutboxEventDto } from '@domain/repositories/i-outbox.repository';
 import type { IAlertService } from '@domain/services/ports/i-alert.service';
-import { EVENT_PUBLISHER, ALERT_SERVICE } from '@/infrastructure/di-tokens';
-import { PrismaService } from '@/infrastructure/database/prisma.service';
-import { PrismaOutboxRepository } from './prisma-outbox.repository';
+import { IEventPublisher } from '@domain/services/ports/i-event-publisher.port';
+import { Inject, Injectable, Logger, OnModuleDestroy, OnModuleInit, Optional } from '@nestjs/common';
+import { Cron, CronExpression } from '@nestjs/schedule';
 import { EventDeserializer } from './event-deserializer';
+import { PrismaOutboxRepository } from './prisma-outbox.repository';
 
 /**
  * Konfiguration für den Outbox Event Publisher.
@@ -67,10 +67,14 @@ export const OUTBOX_PUBLISHER_CONFIG = 'OUTBOX_PUBLISHER_CONFIG';
  */
 @Injectable()
 export class OutboxEventPublisher implements OnModuleInit, OnModuleDestroy {
+  /** Nach wie vielen leeren Polls eine Log-Meldung ausgegeben wird */
+  private static readonly EMPTY_LOG_THRESHOLD = 1000;
   private readonly logger = new Logger(OutboxEventPublisher.name);
   private isRunning = false;
   private isEnabled = true;
   private readonly config: OutboxPublisherConfig;
+  /** Zähler für aufeinanderfolgende leere Polls (Throttling) */
+  private consecutiveEmptyPolls = 0;
 
   constructor(
     private readonly prisma: PrismaService,
@@ -132,6 +136,17 @@ export class OutboxEventPublisher implements OnModuleInit, OnModuleDestroy {
   }
 
   /**
+   * Manueller Trigger für Testing und Debugging.
+   * Ermöglicht das sofortige Verarbeiten von Events ohne Cron-Wartezeit.
+   */
+  async triggerManually(): Promise<void> {
+    if (this.isRunning) {
+      throw new Error('Publisher already running');
+    }
+    await this.publishPendingEvents();
+  }
+
+  /**
    * Verarbeitet PENDING Events aus der Outbox mit Pessimistic Locking.
    *
    * Warum Transaction mit FOR UPDATE SKIP LOCKED?
@@ -156,9 +171,16 @@ export class OutboxEventPublisher implements OnModuleInit, OnModuleDestroy {
         const events = await this.outboxRepository.findAndLockPending(this.config.batchSize, tx as TransactionContext);
 
         if (events.length === 0) {
-          this.logger.debug('No pending events found in outbox');
+          this.consecutiveEmptyPolls++;
+          // Nur alle EMPTY_LOG_THRESHOLD Polls loggen um Spam zu vermeiden
+          if (this.consecutiveEmptyPolls % OutboxEventPublisher.EMPTY_LOG_THRESHOLD === 0) {
+            this.logger.debug(`No pending events found in outbox (${this.consecutiveEmptyPolls} consecutive empty polls)`);
+          }
           return;
         }
+
+        // Events gefunden → Counter zurücksetzen
+        this.consecutiveEmptyPolls = 0;
 
         this.logger.log(`Processing ${events.length} pending events (locked)`, {
           eventNames: events.map((e) => e.eventName),
@@ -287,16 +309,5 @@ export class OutboxEventPublisher implements OnModuleInit, OnModuleDestroy {
         });
       }
     }
-  }
-
-  /**
-   * Manueller Trigger für Testing und Debugging.
-   * Ermöglicht das sofortige Verarbeiten von Events ohne Cron-Wartezeit.
-   */
-  async triggerManually(): Promise<void> {
-    if (this.isRunning) {
-      throw new Error('Publisher already running');
-    }
-    await this.publishPendingEvents();
   }
 }

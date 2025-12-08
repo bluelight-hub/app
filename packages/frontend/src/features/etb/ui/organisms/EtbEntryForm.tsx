@@ -207,7 +207,16 @@ export function EtbEntryForm({ etbId, einsatzId, editingEntry, onSuccess, onCanc
         {pendingTextbaustein && <EtbTextbausteinPreview text={pendingTextbaustein.text} onApply={applyPendingTextbaustein} onCancel={cancelPendingTextbaustein} />}
 
         <form.Field name="text">
-          {(field) => <EtbTextInput value={field.state.value} onChange={field.handleChange} onBlur={field.handleBlur} error={field.state.meta.errors?.[0]?.message} maxLength={2000} />}
+          {(field) => (
+            <EtbTextInput
+              value={field.state.value}
+              onChange={field.handleChange}
+              onBlur={field.handleBlur}
+              onSubmit={() => form.handleSubmit()}
+              error={field.state.meta.errors?.[0]?.message}
+              maxLength={2000}
+            />
+          )}
         </form.Field>
 
         <form.Subscribe

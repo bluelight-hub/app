@@ -5,6 +5,7 @@ interface EtbTextInputProps {
   value: string;
   onChange: (value: string) => void;
   onBlur?: () => void;
+  onSubmit?: () => void;
   error?: string;
   maxLength?: number;
   disabled?: boolean;
@@ -12,10 +13,19 @@ interface EtbTextInputProps {
 
 /**
  * Text-Eingabe-Komponente für ETB-Einträge
+ *
+ * Unterstützt CMD+Enter (Mac) / CTRL+Enter (Windows/Linux) zum Absenden.
  */
-export function EtbTextInput({ value, onChange, onBlur, error, maxLength = 2000, disabled = false }: EtbTextInputProps) {
+export function EtbTextInput({ value, onChange, onBlur, onSubmit, error, maxLength = 2000, disabled = false }: EtbTextInputProps) {
   const handleChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     onChange(e.target.value);
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+    if ((e.metaKey || e.ctrlKey) && e.key === 'Enter') {
+      e.preventDefault();
+      onSubmit?.();
+    }
   };
 
   return (
@@ -29,6 +39,7 @@ export function EtbTextInput({ value, onChange, onBlur, error, maxLength = 2000,
         value={value}
         onChange={handleChange}
         onBlur={onBlur}
+        onKeyDown={handleKeyDown}
         rows={3}
         disabled={disabled}
         variant={error ? 'error' : 'default'}

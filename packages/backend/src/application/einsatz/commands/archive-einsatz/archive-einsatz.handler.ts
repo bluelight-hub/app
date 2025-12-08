@@ -153,27 +153,17 @@ export class ArchiveEinsatzHandler extends TransactionalCommandHandler<ArchiveEi
       return Result.fail(command.einsatzId);
     }
 
-    // Step 4: Validate 10-Year Policy via Domain Policy
-    const currentDate = new Date();
-    if (!this.archivalPolicy.canBeArchived(einsatz, currentDate)) {
-      // Determine reason for failure
+    // Step 4: Validate Archival Policy via Domain Policy
+    // WICHTIG: Ein abgeschlossener Einsatz kann sofort archiviert werden.
+    // Die 10-Jahres-Frist gilt für die Aufbewahrung IM ARCHIV (Löschschutz), nicht als Wartezeit!
+    if (!this.archivalPolicy.canBeArchived(einsatz)) {
       const status = einsatz.status.value;
-      if (status !== 'ABGESCHLOSSEN') {
-        const error = `Einsatz kann nicht archiviert werden: Status muss ABGESCHLOSSEN sein (aktuell: ${status})`;
-        this.logger.warn('Archive policy failed: wrong status', {
-          operation: 'archiveEinsatz',
-          phase: 'businessRule',
-          einsatzId: command.einsatzId,
-          status,
-        });
-        return Result.fail(error);
-      }
-      // Status is ABGESCHLOSSEN but 10-year period not reached
-      const error = 'Einsatz kann noch nicht archiviert werden: 10-Jahres-Aufbewahrungsfrist nicht abgelaufen';
-      this.logger.warn('Archive policy failed: 10-year period not reached', {
+      const error = `Einsatz kann nicht archiviert werden: Status muss ABGESCHLOSSEN sein (aktuell: ${status})`;
+      this.logger.warn('Archive policy failed: wrong status', {
         operation: 'archiveEinsatz',
         phase: 'businessRule',
         einsatzId: command.einsatzId,
+        status,
       });
       return Result.fail(error);
     }

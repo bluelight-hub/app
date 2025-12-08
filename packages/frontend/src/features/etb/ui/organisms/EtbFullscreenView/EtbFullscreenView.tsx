@@ -147,7 +147,12 @@ export function EtbFullscreenView({ einsatzId, sortOrder = 'desc', showDeleted =
 
   // Hooks müssen immer aufgerufen werden (React Rules of Hooks)
   // Bei ungültiger ID wird der Hook mit einem Dummy-Wert aufgerufen (disabled mode)
-  const { data, isLoading, error, fetchNextPage, hasNextPage, isFetchingNextPage } = useEtbInfinite(isValidEinsatzId ? einsatzId : '__invalid__', 20, 'sequenceNumber', sortOrder, showDeleted, {
+  const { data, isLoading, error, fetchNextPage, hasNextPage, isFetchingNextPage } = useEtbInfinite({
+    einsatzId: isValidEinsatzId ? einsatzId : '__invalid__',
+    limit: 20,
+    sortBy: 'sequenceNumber',
+    sortOrder,
+    includeDeleted: showDeleted,
     refetchInterval: 5000, // Auto-Refresh alle 5 Sekunden
     enabled: isValidEinsatzId, // Nur aktivieren wenn einsatzId gültig
   });

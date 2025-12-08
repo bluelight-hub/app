@@ -127,7 +127,7 @@ export function EtbHistoryModal({ entry, etbId, isOpen, onClose }: EtbHistoryMod
 
   const activeEntry = isOpen ? entry : lastValidEntry.current;
   const activeEtbId = isOpen ? etbId : lastValidEtbId.current;
-  const { data: snapshots, isLoading } = useEtbHistory(activeEtbId ?? undefined);
+  const { data: snapshots, isLoading } = useEtbHistory({ etbId: activeEtbId ?? undefined });
 
   const historyItems = buildHistory(activeEntry, snapshots);
   const hasHistory = historyItems.length > 1;

@@ -49,7 +49,7 @@ export const EINSATZ_QUERY_KEYS = {
   statusCounts: (includeArchived = false) => [...EINSATZ_QUERY_KEYS.all, 'statusCounts', includeArchived] as const,
 
   // Optimierte kombinierte Queries
-  activeWithCounts: () => [...EINSATZ_QUERY_KEYS.all, 'activeWithCounts'] as const,
+  activeWithCounts: (includeArchived = false) => [...EINSATZ_QUERY_KEYS.all, 'activeWithCounts', includeArchived] as const,
   detailsCombined: (id: string) => [...EINSATZ_QUERY_KEYS.detail(id), 'combined'] as const,
 } as const;
 

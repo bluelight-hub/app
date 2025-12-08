@@ -205,7 +205,7 @@ export const LagekarteView: React.FC<LagekarteViewProps> = ({ einsatzId, mode = 
   const { data: lagekarteData } = useLagekarte(einsatzId);
 
   // ETB-Daten (für etbId beim Export)
-  const { data: etbData, refetch: refetchEtb, isLoading: isEtbLoading } = useEtb(einsatzId);
+  const { data: etbData, refetch: refetchEtb, isLoading: isEtbLoading } = useEtb({ einsatzId });
 
   // Auto-Save Hook (debounced 2s)
   const { triggerAutoSave } = useLagekarteAutoSave(einsatzId);

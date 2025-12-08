@@ -30,8 +30,8 @@ export function EinsatzDashboard() {
   const [isCreatePanelOpen, setIsCreatePanelOpen] = useState(false);
   const [showArchived, setShowArchived] = useState(false);
 
-  // Use optimized hook with counts
-  const { data: rawEinsaetze = [], isLoading, error, refetch } = useActiveEinsaetzeWithCounts();
+  // Use optimized hook with counts - includeArchived wenn Archiv-Filter aktiv
+  const { data: rawEinsaetze = [], isLoading, error, refetch } = useActiveEinsaetzeWithCounts(showArchived);
 
   // Apply client-side filtering and sorting
   const einsaetze = useMemo(() => {
