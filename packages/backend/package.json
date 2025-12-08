@@ -23,6 +23,7 @@
     "test": "jest",
     "test:watch": "jest --watch",
     "test:cov": "jest --coverage",
+    "test:unit": "jest --coverage --testPathIgnorePatterns='\\.integration\\.spec\\.ts$' --testPathIgnorePatterns='\\.e2e\\.spec\\.ts$' --testPathIgnorePatterns='\\.smoke\\.spec\\.ts$'",
     "test:domain": "jest --testPathPatterns=domain",
     "test:integration": "jest --testPathPatterns='\\.integration\\.spec\\.ts$'",
     "check:jsdoc": "ts-node -r tsconfig-paths/register scripts/find-missing-jsdoc.ts",

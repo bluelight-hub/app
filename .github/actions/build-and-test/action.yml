@@ -66,7 +66,7 @@ runs:
       shell: bash
       run: pnpm --filter @bluelight-hub/backend lint:deps:core
 
-    - name: Run unit tests with coverage
+    - name: Run tests with coverage
       if: inputs.skip-tests == 'false'
       shell: bash
       env:
@@ -75,5 +75,12 @@ runs:
         NODE_ENV: test
         DATABASE_URL: ${{ inputs.database-url }}
       run: |
-        pnpm --filter @bluelight-hub/backend test:cov
+        # Run all tests (including integration) if DATABASE_URL is set, otherwise unit tests only
+        if [ -n "$DATABASE_URL" ]; then
+          echo "🔗 DATABASE_URL set - running all tests including integration tests"
+          pnpm --filter @bluelight-hub/backend test:cov
+        else
+          echo "⚠️ DATABASE_URL not set - running unit tests only (skipping integration/e2e)"
+          pnpm --filter @bluelight-hub/backend test:unit
+        fi
         pnpm --filter @bluelight-hub/frontend test:cov
