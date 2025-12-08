@@ -12,6 +12,7 @@ module.exports = {
     '**/smoke/**/*.smoke.spec.ts',
     '**/__tests__/**/*.spec.ts',
   ],
+  testPathIgnorePatterns: ['/node_modules/'],
   transform: {
     '^.+\\.(t|j)sx?$': [
       '@swc/jest',

@@ -16,7 +16,82 @@ permissions:
   security-events: write
 
 jobs:
-  build-and-test:
+  # Linux build with PostgreSQL database
+  build-and-test-linux:
+    name: Build and Test (Linux)
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    # PostgreSQL service nur für Linux verfügbar
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_USER: test
+          POSTGRES_PASSWORD: test
+          POSTGRES_DB: testdb
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v5
+        with:
+          node-version-file: 'package.json'
+          cache: 'pnpm'
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Generate Prisma Client
+        run: pnpm --filter @bluelight-hub/backend prisma:generate
+
+      - name: Run Prisma migrations
+        run: pnpm --filter @bluelight-hub/backend prisma:deploy
+        env:
+          DATABASE_URL: postgresql://test:test@localhost:5432/testdb
+
+      # Use our reusable build action
+      - name: Build and Test
+        uses: ./.github/actions/build-and-test
+        with:
+          skip-tests: 'false'
+          database-url: 'postgresql://test:test@localhost:5432/testdb'
+
+      # Upload test artifacts on failure
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: test-artifacts-linux
+          path: |
+            packages/frontend/test-results/
+            packages/backend/coverage/
+            packages/frontend/coverage/
+            **/trace.zip
+
+      # Coverage upload
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v5
+        with:
+          files: |
+            packages/backend/coverage/lcov.info
+            packages/frontend/coverage/lcov.info
+          flags: unittests
+          name: codecov-Linux
+          fail_ci_if_error: false
+
+  # macOS and Windows builds without database
+  build-and-test-other:
     name: Build and Test (${{ matrix.os }})
     runs-on: ${{ matrix.os }}
     timeout-minutes: 30
@@ -24,10 +99,8 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ ubuntu-latest, macos-latest, windows-latest ]
+        os: [ macos-latest, windows-latest ]
         include:
-          - os: ubuntu-latest
-            platform_name: 'Linux'
           - os: macos-latest
             platform_name: 'macOS'
           - os: windows-latest
@@ -52,18 +125,6 @@ jobs:
             packages/backend/coverage/
             packages/frontend/coverage/
             **/trace.zip
-
-      # Coverage upload (nur für Linux)
-      - name: Upload coverage to Codecov
-        if: matrix.os == 'ubuntu-latest'
-        uses: codecov/codecov-action@v5
-        with:
-          files: |
-            packages/backend/coverage/lcov.info
-            packages/frontend/coverage/lcov.info
-          flags: unittests
-          name: codecov-${{ matrix.platform_name }}
-          fail_ci_if_error: false
 
   # Documentation Build (optional, non-blocking)
   docs:
@@ -121,13 +182,13 @@ jobs:
 
   # Summary job for branch protection
   summary:
-    needs: [ build-and-test ]
+    needs: [ build-and-test-linux, build-and-test-other ]
     runs-on: ubuntu-latest
     if: always()
     steps:
       - name: Check all matrix jobs
         run: |
-          if [[ "${{ needs.build-and-test.result }}" != "success" ]]; then
+          if [[ "${{ needs.build-and-test-linux.result }}" != "success" ]] || [[ "${{ needs.build-and-test-other.result }}" != "success" ]]; then
             echo "❌ One or more jobs failed"
             exit 1
           fi
@@ -139,9 +200,10 @@ jobs:
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "| Check | Status |" >> $GITHUB_STEP_SUMMARY
           echo "|-------|--------|" >> $GITHUB_STEP_SUMMARY
-          echo "| Build & Test | ${{ needs.build-and-test.result == 'success' && '✅' || '❌' }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Build & Test (Linux) | ${{ needs.build-and-test-linux.result == 'success' && '✅' || '❌' }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Build & Test (Other) | ${{ needs.build-and-test-other.result == 'success' && '✅' || '❌' }} |" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "### Platform Results" >> $GITHUB_STEP_SUMMARY
-          echo "- Linux: Complete" >> $GITHUB_STEP_SUMMARY
+          echo "- Linux: Complete (with PostgreSQL)" >> $GITHUB_STEP_SUMMARY
           echo "- macOS: Complete" >> $GITHUB_STEP_SUMMARY
           echo "- Windows: Complete (tests skipped)" >> $GITHUB_STEP_SUMMARY

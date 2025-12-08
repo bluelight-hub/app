@@ -21,12 +21,13 @@
  */
 
 import { PrismaClient } from '@prisma/client';
-
-const prisma = new PrismaClient();
+import { skipIfNoDatabase } from '@infrastructure/__tests__/helpers/database-test.helper';
 
 describe('NO-DELETE Triggers Integration Tests', () => {
+  let prisma: PrismaClient; // Nur Deklaration
   let testUserId: string; // System User for createdBy/updatedBy references
   const testRunId = Date.now(); // Unique ID für diesen Test Run (verhindert Collisions)
+  let databaseAvailable = false;
 
   /**
    * Setup: Erstellt einen System Test User für alle Foreign Key References.
@@ -37,6 +38,9 @@ describe('NO-DELETE Triggers Integration Tests', () => {
    * - Cleanup ist einfacher (nur 1 User löschen statt viele)
    */
   beforeAll(async () => {
+    databaseAvailable = await skipIfNoDatabase();
+    if (!databaseAvailable) return;
+    prisma = new PrismaClient(); // Initialisierung NACH dem Check
     // Cleanup from previous failed test runs (disable triggers temporarily)
     await prisma.$executeRawUnsafe('SET session_replication_role = replica;');
     try {
@@ -84,6 +88,7 @@ describe('NO-DELETE Triggers Integration Tests', () => {
    * - Triggers feuern auch bei raw SQL, daher disable triggers temporär
    */
   afterAll(async () => {
+    if (!databaseAvailable) return;
     // Disable triggers temporarily for cleanup (SUPERUSER required in prod!)
     await prisma.$executeRawUnsafe('SET session_replication_role = replica;');
 
@@ -114,6 +119,7 @@ describe('NO-DELETE Triggers Integration Tests', () => {
      * **Alternative:** status = ARCHIVIERT + archivedAt timestamp
      */
     it('should prevent direct DELETE on einsatz table', async () => {
+      if (!databaseAvailable) return;
       // Given: Einsatz exists in database with status ANGELEGT
       const einsatz = await prisma.einsatz.create({
         data: {
@@ -149,6 +155,7 @@ describe('NO-DELETE Triggers Integration Tests', () => {
      * **Test Strategy:** Use raw SQL to bypass ORM (proof triggers work at DB level)
      */
     it('should prevent direct DELETE on etb_eintraege table via raw SQL', async () => {
+      if (!databaseAvailable) return;
       // Given: Create Einsatz → Einsatztagebuch → ETB Eintrag
       const einsatz = await prisma.einsatz.create({
         data: {
@@ -203,6 +210,7 @@ describe('NO-DELETE Triggers Integration Tests', () => {
      * **Alternative:** KEINE soft-delete oder archival - strikt Domain Layer controlled
      */
     it('should prevent direct DELETE on lagekarte_poi table', async () => {
+      if (!databaseAvailable) return;
       // Given: Create Einsatz → Lagekarte → POI
       const einsatz = await prisma.einsatz.create({
         data: {
@@ -254,6 +262,7 @@ describe('NO-DELETE Triggers Integration Tests', () => {
      * **NOTE:** isDeleted ist für DSGVO Anonymization (separate von Lock)
      */
     it('should prevent direct DELETE on User table', async () => {
+      if (!databaseAvailable) return;
       // Given: Regular User exists with role USER
       const user = await prisma.user.create({
         data: {
@@ -295,6 +304,7 @@ describe('NO-DELETE Triggers Integration Tests', () => {
      * **Flow:** ABGESCHLOSSEN → ARCHIVIERT (valid transition)
      */
     it('should allow Einsatz archival via UPDATE to status=ARCHIVIERT', async () => {
+      if (!databaseAvailable) return;
       // Given: Einsatz with status ABGESCHLOSSEN (ready for archival)
       const einsatz = await prisma.einsatz.create({
         data: {
@@ -335,6 +345,7 @@ describe('NO-DELETE Triggers Integration Tests', () => {
      * **Flow:** deletedAt: null → deletedAt: Date (soft-delete)
      */
     it('should allow ETB Eintrag soft-delete via UPDATE to deletedAt', async () => {
+      if (!databaseAvailable) return;
       // Given: Create Einsatz → ETB → Eintrag (NOT deleted yet)
       const einsatz = await prisma.einsatz.create({
         data: {
@@ -398,6 +409,7 @@ describe('NO-DELETE Triggers Integration Tests', () => {
      * - isDeleted: DSGVO anonymization (permanent)
      */
     it('should allow User locking via UPDATE to isLocked=true', async () => {
+      if (!databaseAvailable) return;
       // Given: Active User with isLocked = false (NOT locked yet)
       const user = await prisma.user.create({
         data: {

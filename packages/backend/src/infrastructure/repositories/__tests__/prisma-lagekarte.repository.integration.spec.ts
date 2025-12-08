@@ -48,6 +48,7 @@ import { UserId } from '@domain/value-objects/user-id';
 import { MgrsCoordinate } from '@domain/value-objects/mgrs-coordinate';
 import { PoiCategory } from '@domain/value-objects/poi-category';
 import type { PrismaService } from '@/infrastructure/database/prisma.service';
+import { skipIfNoDatabase } from '@infrastructure/__tests__/helpers/database-test.helper';
 
 // Generate CUID2-compliant test IDs (20-30 chars, lowercase a-z0-9, starts with letter)
 const generateTestId = () => {
@@ -59,13 +60,13 @@ const generateTestId = () => {
   return result;
 };
 
-const prisma = new PrismaClient();
-
 describe('PrismaLagekarteRepository - Integration Tests', () => {
+  let prisma: PrismaClient; // Nur Deklaration
   let repository: PrismaLagekarteRepository;
   let testUserId: string; // System User for createdBy/updatedBy references
   let testEinsatzId: string; // Test Einsatz for Lagekarte FK
   const testRunId = Date.now(); // Unique ID für diesen Test Run (verhindert Collisions)
+  let databaseAvailable = false;
 
   /**
    * Setup: Erstellt System Test User + Test Einsatz für alle Lagekarte Tests.
@@ -81,6 +82,9 @@ describe('PrismaLagekarteRepository - Integration Tests', () => {
    * - Re-enabled in afterAll()
    */
   beforeAll(async () => {
+    databaseAvailable = await skipIfNoDatabase();
+    if (!databaseAvailable) return;
+    prisma = new PrismaClient(); // Initialisierung NACH dem Check
     // Disable triggers temporarily für cleanup von vorherigen Test Runs
     await prisma.$executeRawUnsafe('SET session_replication_role = replica;');
     try {
@@ -141,6 +145,7 @@ describe('PrismaLagekarteRepository - Integration Tests', () => {
    * - Re-enabled in afterAll()
    */
   afterEach(async () => {
+    if (!databaseAvailable) return;
     await prisma.$executeRawUnsafe('SET session_replication_role = replica;');
     try {
       // Delete test Lagekarten + POIs (only from this test run's Einsatz)
@@ -166,6 +171,7 @@ describe('PrismaLagekarteRepository - Integration Tests', () => {
    * 4. User (NO CASCADE, delete last)
    */
   afterAll(async () => {
+    if (!databaseAvailable) return;
     await prisma.$executeRawUnsafe('SET session_replication_role = replica;');
     try {
       // Delete test data (FK constraints respected)
@@ -196,6 +202,7 @@ describe('PrismaLagekarteRepository - Integration Tests', () => {
      * **Pattern:** Upsert mit CREATE-Branch
      */
     it('should create new Lagekarte (INSERT operation)', async () => {
+      if (!databaseAvailable) return;
       // Given: Fresh aggregate with no POIs
       const einsatzId = EinsatzId.create(testEinsatzId).value as EinsatzId;
       const userId = UserId.create(testUserId).value as UserId;
@@ -222,6 +229,7 @@ describe('PrismaLagekarteRepository - Integration Tests', () => {
      * **Pattern:** Upsert mit UPDATE-Branch
      */
     it('should update existing Lagekarte (UPSERT idempotency)', async () => {
+      if (!databaseAvailable) return;
       // Given: Aggregate saved once
       const einsatzId = EinsatzId.create(testEinsatzId).value as EinsatzId;
       const userId = UserId.create(testUserId).value as UserId;
@@ -243,6 +251,7 @@ describe('PrismaLagekarteRepository - Integration Tests', () => {
      * **Strategy:** CASCADE DELETE + CREATE (simplicity über delta tracking)
      */
     it('should persist POI collection with correct order', async () => {
+      if (!databaseAvailable) return;
       // Given: Aggregate with 3 POIs
       const einsatzId = EinsatzId.create(testEinsatzId).value as EinsatzId;
       const userId = UserId.create(testUserId).value as UserId;
@@ -280,6 +289,7 @@ describe('PrismaLagekarteRepository - Integration Tests', () => {
      * Das ist akzeptabel weil Repository die EINZIGE Stelle ist die POIs managed (Aggregate Boundary).
      */
     it('should delete old POIs and create new POIs (cascade strategy)', async () => {
+      if (!databaseAvailable) return;
       // Given: Aggregate with 2 POIs
       const einsatzId = EinsatzId.create(testEinsatzId).value as EinsatzId;
       const userId = UserId.create(testUserId).value as UserId;
@@ -319,6 +329,7 @@ describe('PrismaLagekarteRepository - Integration Tests', () => {
      * **Pattern:** include: { pois: true } verhindert N+1 Queries
      */
     it('should return aggregate with POIs when found', async () => {
+      if (!databaseAvailable) return;
       // Given: Saved aggregate with 2 POIs
       const einsatzId = EinsatzId.create(testEinsatzId).value as EinsatzId;
       const userId = UserId.create(testUserId).value as UserId;
@@ -351,6 +362,7 @@ describe('PrismaLagekarteRepository - Integration Tests', () => {
      * **Rationale:** Caller muss explizit prüfen (Type-Safe null handling)
      */
     it('should return null when not found', async () => {
+      if (!databaseAvailable) return;
       // Given: Non-existing ID
       const fakeId = (LagekarteId.create(generateTestId()).value as LagekarteId)!;
 
@@ -374,6 +386,7 @@ describe('PrismaLagekarteRepository - Integration Tests', () => {
      * **Performance:** Unique Index auf einsatzId für schnellen Lookup
      */
     it('should find Lagekarte by Einsatz relation', async () => {
+      if (!databaseAvailable) return;
       // Given: Saved aggregate
       const einsatzId = EinsatzId.create(testEinsatzId).value as EinsatzId;
       const userId = UserId.create(testUserId).value as UserId;
@@ -396,6 +409,7 @@ describe('PrismaLagekarteRepository - Integration Tests', () => {
      * **Use Case:** Caller erstellt Lagekarte wenn null
      */
     it('should return null when Einsatz has no Lagekarte', async () => {
+      if (!databaseAvailable) return;
       // Given: Create second test Einsatz without Lagekarte
       const einsatz2 = await prisma.einsatz.create({
         data: {
@@ -436,6 +450,7 @@ describe('PrismaLagekarteRepository - Integration Tests', () => {
      * **Use Case:** Guard Clause in CreateLagekarteCommandHandler
      */
     it('should return true when Lagekarte exists', async () => {
+      if (!databaseAvailable) return;
       // Given: Saved aggregate
       const einsatzId = EinsatzId.create(testEinsatzId).value as EinsatzId;
       const userId = UserId.create(testUserId).value as UserId;
@@ -455,6 +470,7 @@ describe('PrismaLagekarteRepository - Integration Tests', () => {
      * **Use Case:** Lazy Creation Pattern - Caller erstellt Lagekarte wenn false
      */
     it('should return false when Lagekarte does not exist', async () => {
+      if (!databaseAvailable) return;
       // Given: Create second test Einsatz without Lagekarte
       const einsatz2 = await prisma.einsatz.create({
         data: {
@@ -495,6 +511,7 @@ describe('PrismaLagekarteRepository - Integration Tests', () => {
      * **MGRS Tolerance:** ±11m (5-digit MGRS precision)
      */
     it('should preserve Aggregate data in save + findById', async () => {
+      if (!databaseAvailable) return;
       // Given: Aggregate with POIs + MGRS coordinates
       const einsatzId = EinsatzId.create(testEinsatzId).value as EinsatzId;
       const userId = UserId.create(testUserId).value as UserId;
@@ -528,6 +545,7 @@ describe('PrismaLagekarteRepository - Integration Tests', () => {
      * **Error:** PrismaClientKnownRequestError Code P2002
      */
     it('should throw on unique constraint violation (duplicate einsatzId)', async () => {
+      if (!databaseAvailable) return;
       // Given: Two aggregates with SAME einsatzId
       const einsatzId = EinsatzId.create(testEinsatzId).value as EinsatzId;
       const userId = UserId.create(testUserId).value as UserId;
@@ -557,6 +575,7 @@ describe('PrismaLagekarteRepository - Integration Tests', () => {
      * **Error:** PrismaClientKnownRequestError Code P2003
      */
     it('should throw on foreign key violation (non-existing einsatzId)', async () => {
+      if (!databaseAvailable) return;
       // Given: Aggregate with non-existing einsatzId
       const fakeEinsatzId = (EinsatzId.create(generateTestId()).value as EinsatzId)!;
       const fakeUserId = UserId.create(testUserId).value as UserId;
@@ -573,6 +592,7 @@ describe('PrismaLagekarteRepository - Integration Tests', () => {
      * **Error:** MgrsCoordinate.fromString() gibt Result.fail() zurück
      */
     it('should handle invalid MGRS format (mapper validation)', async () => {
+      if (!databaseAvailable) return;
       // Given: Invalid MGRS string (direkt in DB geschrieben)
       const einsatzId = EinsatzId.create(testEinsatzId).value as EinsatzId;
       const userId = UserId.create(testUserId).value as UserId;

@@ -14,6 +14,10 @@ inputs:
     description: 'Skip backend build'
     required: false
     default: 'false'
+  database-url:
+    description: 'PostgreSQL connection string for integration tests'
+    required: false
+    default: ''
 
 runs:
   using: 'composite'
@@ -69,6 +73,7 @@ runs:
         JWT_SECRET: test-secret
         JWT_REFRESH_SECRET: test-refresh-secret
         NODE_ENV: test
+        DATABASE_URL: ${{ inputs.database-url }}
       run: |
         pnpm --filter @bluelight-hub/backend test:cov
         pnpm --filter @bluelight-hub/frontend test:cov

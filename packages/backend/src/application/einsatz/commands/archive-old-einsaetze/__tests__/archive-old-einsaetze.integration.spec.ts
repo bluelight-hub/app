@@ -7,6 +7,7 @@ import { PrismaOutboxRepository } from '@infrastructure/outbox/prisma-outbox.rep
 import { EventSerializer } from '@infrastructure/outbox/event-serializer';
 import { EINSATZ_REPOSITORY } from '@infrastructure/di-tokens';
 import { EinsatzStatus } from '@prisma/client';
+import { skipIfNoDatabase } from '@infrastructure/__tests__/helpers/database-test.helper';
 
 /**
  * Integration Tests für ArchiveOldEinsaetzeHandler (Story 5-6 AC7).
@@ -26,8 +27,11 @@ describe('ArchiveOldEinsaetzeHandler Integration (Story 5-6 AC7)', () => {
   let prisma: PrismaService;
   let module: TestingModule;
   let testUserId: string;
+  let databaseAvailable = false;
 
   beforeAll(async () => {
+    databaseAvailable = await skipIfNoDatabase();
+    if (!databaseAvailable) return;
     module = await Test.createTestingModule({
       providers: [
         PrismaService,
@@ -46,6 +50,7 @@ describe('ArchiveOldEinsaetzeHandler Integration (Story 5-6 AC7)', () => {
   });
 
   beforeEach(async () => {
+    if (!databaseAvailable) return;
     // Clean up test data (disable triggers temporarily for NO-DELETE Policy)
     await prisma.$executeRawUnsafe('SET session_replication_role = replica;');
     try {
@@ -68,6 +73,7 @@ describe('ArchiveOldEinsaetzeHandler Integration (Story 5-6 AC7)', () => {
   });
 
   afterAll(async () => {
+    if (!databaseAvailable) return;
     // Clean up (disable triggers temporarily for NO-DELETE Policy)
     await prisma.$executeRawUnsafe('SET session_replication_role = replica;');
     try {

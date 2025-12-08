@@ -3,6 +3,7 @@ import { EinsatzId } from '@domain/value-objects/einsatz-id';
 import { UserId } from '@domain/value-objects/user-id';
 import { EtbStatus } from '@domain/value-objects/etb-status';
 import type { DomainEvent } from '@domain/common/domain-event';
+import { skipIfNoDatabase } from '@infrastructure/__tests__/helpers/database-test.helper';
 
 // Mock cuid2 for Jest compatibility (ESM module issue)
 jest.mock('@paralleldrive/cuid2', () => ({
@@ -25,6 +26,13 @@ jest.mock('@paralleldrive/cuid2', () => ({
 }));
 
 describe('EinsatztagebuchAggregate Integration Tests', () => {
+  let databaseAvailable = false;
+
+  beforeAll(async () => {
+    databaseAvailable = await skipIfNoDatabase();
+    if (!databaseAvailable) return;
+  });
+
   describe('Full Lifecycle: Create → Add → Update → Delete → Lock', () => {
     it('should handle complete ETB lifecycle with event accumulation', () => {
       // Given: Fresh IDs

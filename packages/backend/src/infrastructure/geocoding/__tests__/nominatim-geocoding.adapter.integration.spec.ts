@@ -2,6 +2,7 @@ import { Address } from '@domain/value-objects/address';
 import { GeoCoordinate } from '@domain/value-objects/geo-coordinate';
 import { afterEach, beforeEach, describe, expect, it, jest } from '@jest/globals';
 import { NominatimGeocodingAdapter } from '../nominatim-geocoding.adapter';
+import { skipIfNoDatabase } from '@infrastructure/__tests__/helpers/database-test.helper';
 
 /**
  * Integration Tests für NominatimGeocodingAdapter.
@@ -29,12 +30,18 @@ import { NominatimGeocodingAdapter } from '../nominatim-geocoding.adapter';
 describe('NominatimGeocodingAdapter Integration Tests', () => {
   let adapter: NominatimGeocodingAdapter;
   let fetchSpy: jest.SpiedFunction<typeof fetch>;
+  let databaseAvailable = false;
+
+  beforeAll(async () => {
+    databaseAvailable = await skipIfNoDatabase();
+  });
 
   /**
    * Setup: Neue Adapter-Instanz vor jedem Test.
    * Reset fetchSpy damit Tests isoliert sind.
    */
   beforeEach(() => {
+    if (!databaseAvailable) return;
     adapter = new NominatimGeocodingAdapter();
     // Mock global fetch (Node 18+ native fetch)
     fetchSpy = jest.spyOn(global, 'fetch');
@@ -44,6 +51,7 @@ describe('NominatimGeocodingAdapter Integration Tests', () => {
    * Cleanup: Restore fetch nach jedem Test.
    */
   afterEach(() => {
+    if (!databaseAvailable) return;
     fetchSpy.mockRestore();
   });
 

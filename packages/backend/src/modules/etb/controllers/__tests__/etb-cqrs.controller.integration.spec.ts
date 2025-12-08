@@ -30,6 +30,7 @@ import { EtbCqrsController } from '@/modules/etb/controllers/etb-cqrs.controller
 import { Result } from '@/domain/common/result';
 import type { ValidatedUser } from '@/modules/auth/strategies/jwt.strategy';
 import type { AddEintragDto, UpdateEintragDto, EtbDto, EintragDto, EtbSnapshotDto } from '@/application/etb/dto';
+import { skipIfNoDatabase } from '@infrastructure/__tests__/helpers/database-test.helper';
 
 // Mock CUID2 für deterministische Tests
 jest.mock('@paralleldrive/cuid2', () => ({
@@ -117,6 +118,7 @@ describe('EtbCqrsController Integration Tests (Story 3-7)', () => {
   let controller: EtbCqrsController;
   let mockCommandBus: jest.Mocked<CommandBus>;
   let mockQueryBus: jest.Mocked<QueryBus>;
+  let databaseAvailable = false;
 
   const adminUser: ValidatedUser = {
     userId: createTestCuid('admin'),
@@ -130,7 +132,12 @@ describe('EtbCqrsController Integration Tests (Story 3-7)', () => {
     role: 'USER',
   };
 
+  beforeAll(async () => {
+    databaseAvailable = await skipIfNoDatabase();
+  });
+
   beforeEach(() => {
+    if (!databaseAvailable) return;
     // Create mock buses
     mockCommandBus = {
       execute: jest.fn(),
@@ -147,6 +154,7 @@ describe('EtbCqrsController Integration Tests (Story 3-7)', () => {
   });
 
   afterEach(() => {
+    if (!databaseAvailable) return;
     jest.clearAllMocks();
   });
 

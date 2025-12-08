@@ -31,6 +31,7 @@ import { UserId } from '@domain/value-objects/user-id';
 import { Username } from '@domain/value-objects/username';
 import { UserRole } from '@domain/value-objects/user-role';
 import type { PrismaService } from '@/infrastructure/database/prisma.service';
+import { skipIfNoDatabase } from '@infrastructure/__tests__/helpers/database-test.helper';
 
 // Generate Nanoid-compliant test IDs for User (21 chars, alphanumeric with mixed case + - _)
 const _generateNanoidTestId = (): string => {
@@ -42,11 +43,11 @@ const _generateNanoidTestId = (): string => {
   return result;
 };
 
-const prisma = new PrismaClient();
-
 describe('PrismaUserRepository - Integration Tests', () => {
+  let prisma: PrismaClient; // Nur Deklaration
   let repository: PrismaUserRepository;
   const _testRunId = Date.now(); // Unique ID für diesen Test Run (verhindert Collisions)
+  let databaseAvailable = false;
 
   // ========================================
   // SETUP & TEARDOWN
@@ -56,6 +57,9 @@ describe('PrismaUserRepository - Integration Tests', () => {
    * Setup: Initialisiert Repository mit Real Prisma Client.
    */
   beforeAll(async () => {
+    databaseAvailable = await skipIfNoDatabase();
+    if (!databaseAvailable) return;
+    prisma = new PrismaClient(); // Initialisierung NACH dem Check
     // Disable triggers temporarily für cleanup von vorherigen Test Runs
     await prisma.$executeRawUnsafe('SET session_replication_role = replica;');
     try {
@@ -74,6 +78,7 @@ describe('PrismaUserRepository - Integration Tests', () => {
    * Cleanup nach jedem Test: Entfernt Test-User.
    */
   afterEach(async () => {
+    if (!databaseAvailable) return;
     await prisma.$executeRawUnsafe('SET session_replication_role = replica;');
     try {
       // Delete all test users (prefix test_)
@@ -87,6 +92,7 @@ describe('PrismaUserRepository - Integration Tests', () => {
    * Teardown: Cleanup aller Test-Daten und Disconnect.
    */
   afterAll(async () => {
+    if (!databaseAvailable) return;
     await prisma.$executeRawUnsafe('SET session_replication_role = replica;');
     try {
       await prisma.$executeRawUnsafe(`DELETE FROM "User" WHERE username LIKE 'test_%'`);
@@ -124,6 +130,7 @@ describe('PrismaUserRepository - Integration Tests', () => {
      * **Pattern:** Upsert mit CREATE-Branch
      */
     it('should create a new user (INSERT path)', async () => {
+      if (!databaseAvailable) return;
       // Given: Fresh aggregate
       const aggregate = createTestAggregate({ username: 'test_save_new' });
 
@@ -148,6 +155,7 @@ describe('PrismaUserRepository - Integration Tests', () => {
      * **Pattern:** Upsert mit UPDATE-Branch
      */
     it('should update existing user (UPSERT idempotency)', async () => {
+      if (!databaseAvailable) return;
       // Given: Aggregate saved once
       const aggregate = createTestAggregate({ username: 'test_save_update' });
       await repository.save(aggregate);
@@ -178,6 +186,7 @@ describe('PrismaUserRepository - Integration Tests', () => {
      * **Pattern:** Eager Loading
      */
     it('should return UserAggregate for existing user', async () => {
+      if (!databaseAvailable) return;
       // Given: Saved aggregate
       const aggregate = createTestAggregate({ username: 'test_findbyid' });
       await repository.save(aggregate);
@@ -199,6 +208,7 @@ describe('PrismaUserRepository - Integration Tests', () => {
      * **Rationale:** Caller muss explizit prüfen (Type-Safe null handling)
      */
     it('should return null for non-existent user', async () => {
+      if (!databaseAvailable) return;
       // Given: Non-existing ID
       const nonExistentId = UserId.create().value as UserId;
 
@@ -223,6 +233,7 @@ describe('PrismaUserRepository - Integration Tests', () => {
      * **Pattern:** Lowercase Normalisierung
      */
     it('should find user case-insensitively', async () => {
+      if (!databaseAvailable) return;
       // Given: Create with lowercase
       const aggregate = createTestAggregate({ username: 'test_findbyusername' });
       await repository.save(aggregate);
@@ -242,6 +253,7 @@ describe('PrismaUserRepository - Integration Tests', () => {
      * **Business Rule:** null Return bei Not Found
      */
     it('should return null for non-existent username', async () => {
+      if (!databaseAvailable) return;
       // Given: Non-existing username
       const usernameResult = Username.create('test_nonexistent');
 
@@ -265,6 +277,7 @@ describe('PrismaUserRepository - Integration Tests', () => {
      * **Performance:** COUNT Query statt SELECT *
      */
     it('should return true for existing username', async () => {
+      if (!databaseAvailable) return;
       // Given: Saved aggregate
       const aggregate = createTestAggregate({ username: 'test_exists' });
       await repository.save(aggregate);
@@ -282,6 +295,7 @@ describe('PrismaUserRepository - Integration Tests', () => {
      * Test 8: existsByUsername() returns false for non-existent username
      */
     it('should return false for non-existent username', async () => {
+      if (!databaseAvailable) return;
       // Given: Non-existing username
       const usernameResult = Username.create('test_not_exists');
 
@@ -299,6 +313,7 @@ describe('PrismaUserRepository - Integration Tests', () => {
      * **Business Rule:** Case-insensitive Uniqueness Check
      */
     it('should be case-insensitive', async () => {
+      if (!databaseAvailable) return;
       // Given: Saved aggregate
       const aggregate = createTestAggregate({ username: 'test_exists_case' });
       await repository.save(aggregate);
@@ -323,6 +338,7 @@ describe('PrismaUserRepository - Integration Tests', () => {
      * **Business Rule:** Alle User werden geladen
      */
     it('should return all users', async () => {
+      if (!databaseAvailable) return;
       // Given: Create multiple users
       const user1 = createTestAggregate({ username: 'test_findall_1' });
       const user2 = createTestAggregate({ username: 'test_findall_2' });
@@ -353,6 +369,7 @@ describe('PrismaUserRepository - Integration Tests', () => {
      * **Business Rule:** Leere Liste ist valides Resultat
      */
     it('should handle database with no test users', async () => {
+      if (!databaseAvailable) return;
       // Given: No test users (cleanup already done in afterEach)
       // Manually ensure no test users exist
       await prisma.$executeRawUnsafe('SET session_replication_role = replica;');
@@ -387,6 +404,7 @@ describe('PrismaUserRepository - Integration Tests', () => {
      * **Business Rule:** Nur SUPER_ADMIN Role wird gezählt
      */
     it('should count only SUPER_ADMIN users', async () => {
+      if (!databaseAvailable) return;
       // Given: Create SUPER_ADMIN
       const superAdmin = createTestAggregate({
         username: 'test_superadmin_count',
@@ -413,6 +431,7 @@ describe('PrismaUserRepository - Integration Tests', () => {
      * **Rationale:** Verhindert Lock-Out Scenario
      */
     it('should exclude locked SUPER_ADMINs from count', async () => {
+      if (!databaseAvailable) return;
       // Given: Create locked SUPER_ADMIN (via direct DB manipulation)
       const lockedAdmin = createTestAggregate({
         username: 'test_locked_superadmin',

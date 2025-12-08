@@ -24,6 +24,7 @@
     "test:watch": "jest --watch",
     "test:cov": "jest --coverage",
     "test:domain": "jest --testPathPatterns=domain",
+    "test:integration": "jest --testPathPatterns='\\.integration\\.spec\\.ts$'",
     "check:jsdoc": "ts-node -r tsconfig-paths/register scripts/find-missing-jsdoc.ts",
     "check:jsdoc:public": "ts-node -r tsconfig-paths/register scripts/find-missing-jsdoc.ts --public-only",
     "check:jsdoc:json": "ts-node -r tsconfig-paths/register scripts/find-missing-jsdoc.ts --json-report",

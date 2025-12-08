@@ -53,6 +53,7 @@ import { EtbId } from '@domain/value-objects/etb-id';
 import { UserId } from '@domain/value-objects/user-id';
 import type { PrismaService } from '@/infrastructure/database/prisma.service';
 import type { IEtbRepository } from '@domain/repositories/i-etb.repository';
+import { skipIfNoDatabase } from '@/infrastructure/__tests__/helpers/database-test.helper';
 
 // Generate CUID2-compliant test IDs (20-30 chars, lowercase a-z0-9, starts with letter)
 const generateTestId = (): string => {
@@ -75,8 +76,6 @@ const generateUserTestId = (): string => {
   return result;
 };
 
-const prisma = new PrismaClient();
-
 /**
  * Flag to track if etb_snapshots table exists (might be missing if migration not run)
  */
@@ -92,9 +91,9 @@ let databaseSchemaCompatible = false;
  * Returns true if successful, false if table doesn't exist (PostgreSQL error code 42P01).
  * Prisma wraps this error with message containing "does not exist".
  */
-async function safeExecute(query: string, ...params: unknown[]): Promise<boolean> {
+async function safeExecute(prismaClient: PrismaClient, query: string, ...params: unknown[]): Promise<boolean> {
   try {
-    await prisma.$executeRawUnsafe(query, ...params);
+    await prismaClient.$executeRawUnsafe(query, ...params);
     return true;
   } catch (error: unknown) {
     const errorMessage = error instanceof Error ? error.message : String(error);
@@ -108,10 +107,12 @@ async function safeExecute(query: string, ...params: unknown[]): Promise<boolean
 }
 
 describe('PrismaEtbRepository - Integration Tests', () => {
+  let prisma: PrismaClient; // Nur Deklaration
   let repository: PrismaEtbRepository;
   let testUserId: string; // System User für createdBy/updatedBy References
   let testEinsatzId: string; // Test Einsatz für ETB FK
   const testRunId = Date.now(); // Unique ID für diesen Test Run (verhindert Collisions)
+  let databaseAvailable = false; // Flag: Skip tests if no DB connection
 
   // ========================================
   // SETUP & TEARDOWN
@@ -131,6 +132,12 @@ describe('PrismaEtbRepository - Integration Tests', () => {
    * - Re-enabled in afterAll()
    */
   beforeAll(async () => {
+    // Skip all tests if DATABASE_URL not available (macOS development without PostgreSQL)
+    databaseAvailable = await skipIfNoDatabase();
+    if (!databaseAvailable) {
+      return;
+    }
+    prisma = new PrismaClient(); // Initialisierung NACH dem Check
     // Check if etb_snapshots table exists (migration might not have been run)
     try {
       await prisma.$queryRaw`SELECT 1 FROM etb_snapshots LIMIT 1`;
@@ -155,7 +162,7 @@ describe('PrismaEtbRepository - Integration Tests', () => {
       // Cleanup from previous failed test runs (last 1 hour)
       // NOTE: Use actual DB table names (from @@map), not Prisma model names!
       // Use safeExecute for snapshot table (might not exist)
-      await safeExecute('DELETE FROM etb_snapshots WHERE "etbId" IN (SELECT id FROM einsatztagebuecher WHERE "createdAt" >= NOW() - INTERVAL \'1 hour\')');
+      await safeExecute(prisma, 'DELETE FROM etb_snapshots WHERE "etbId" IN (SELECT id FROM einsatztagebuecher WHERE "createdAt" >= NOW() - INTERVAL \'1 hour\')');
       await prisma.$executeRawUnsafe('DELETE FROM etb_eintraege WHERE "etbId" IN (SELECT id FROM einsatztagebuecher WHERE "createdAt" >= NOW() - INTERVAL \'1 hour\')');
       await prisma.$executeRawUnsafe('DELETE FROM einsatztagebuecher WHERE "createdAt" >= NOW() - INTERVAL \'1 hour\'');
       await prisma.$executeRawUnsafe('DELETE FROM einsaetze WHERE "createdAt" >= NOW() - INTERVAL \'1 hour\'');
@@ -235,12 +242,14 @@ describe('PrismaEtbRepository - Integration Tests', () => {
    * - Triggers nur in Production relevant, nicht in Tests
    */
   afterEach(async () => {
+    if (!databaseAvailable) return;
     await prisma.$executeRawUnsafe('SET session_replication_role = replica;');
     try {
       // Delete test ETBs + Eintraege + Snapshots (only from this test run's Einsatz)
       // NOTE: Use actual DB table names (from @@map), not Prisma model names!
       // Use safeExecute for snapshot table (might not exist)
       await safeExecute(
+        prisma,
         `DELETE FROM etb_snapshots WHERE "etbId" IN (
           SELECT id FROM einsatztagebuecher WHERE "einsatzId" = $1
         )`,
@@ -269,6 +278,7 @@ describe('PrismaEtbRepository - Integration Tests', () => {
    * 5. User (NO CASCADE, delete last)
    */
   afterAll(async () => {
+    if (!databaseAvailable) return;
     await prisma.$executeRawUnsafe('SET session_replication_role = replica;');
     try {
       // Guard: Skip cleanup if beforeAll failed (testEinsatzId/testUserId not set)
@@ -279,6 +289,7 @@ describe('PrismaEtbRepository - Integration Tests', () => {
       // NOTE: Use actual DB table names (from @@map), not Prisma model names!
       // Use safeExecute for snapshot table (might not exist)
       await safeExecute(
+        prisma,
         `DELETE FROM etb_snapshots WHERE "etbId" IN (
           SELECT id FROM einsatztagebuecher WHERE "einsatzId" = $1
         )`,
@@ -312,6 +323,10 @@ describe('PrismaEtbRepository - Integration Tests', () => {
      * **Pattern:** Interface Compliance Check
      */
     it('should implement all IEtbRepository interface methods', () => {
+      if (!databaseAvailable) {
+        console.warn('Skipping test: database not available');
+        return;
+      }
       // Given: PrismaEtbRepository instance
       const repo: IEtbRepository = repository;
 

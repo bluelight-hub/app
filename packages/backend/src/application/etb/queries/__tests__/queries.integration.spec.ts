@@ -2,6 +2,7 @@ import { Result } from '@domain/common/result';
 import type { IEinsatzRepository } from '@domain/repositories';
 import { InMemoryEtbRepository } from '../../__tests__/in-memory-etb.repository';
 import { createTestEtb, createTestSnapshot } from '@domain/aggregates/__tests__/fixtures/etb.fixtures';
+import { skipIfNoDatabase } from '@infrastructure/__tests__/helpers/database-test.helper';
 
 // Commands
 import { CreateEtbCommand } from '../../commands/create-etb/create-etb.command';
@@ -91,8 +92,15 @@ describe('ETB Query Integration Tests', () => {
 
   let testUserId: string;
   let testEinsatzId: string;
+  let databaseAvailable = false;
+
+  beforeAll(async () => {
+    databaseAvailable = await skipIfNoDatabase();
+    if (!databaseAvailable) return;
+  });
 
   beforeEach(() => {
+    if (!databaseAvailable) return;
     // Reset repository und mocks
     etbRepository = new InMemoryEtbRepository();
     testUserId = generateTestCuid();
@@ -121,6 +129,7 @@ describe('ETB Query Integration Tests', () => {
   });
 
   afterEach(() => {
+    if (!databaseAvailable) return;
     etbRepository.clear();
     jest.clearAllMocks();
   });

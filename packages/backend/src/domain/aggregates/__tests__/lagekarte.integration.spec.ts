@@ -9,6 +9,7 @@ import { Poi } from '@domain/entities/poi.entity';
 import { PoiAddedEvent } from '@domain/events/poi-added.event';
 import { PoiRemovedEvent } from '@domain/events/poi-removed.event';
 import { PoiPositionUpdatedEvent } from '@domain/events/poi-position-updated.event';
+import { skipIfNoDatabase } from '@infrastructure/__tests__/helpers/database-test.helper';
 
 // Mock cuid2 for Jest compatibility (ESM module issue)
 jest.mock('@paralleldrive/cuid2', () => ({
@@ -50,6 +51,13 @@ jest.mock('@paralleldrive/cuid2', () => ({
  * - Dresden (51.05°N, 13.74°E) → MGRS Zone 33U (Eastern Germany)
  */
 describe('LagekarteAggregate Integration Tests', () => {
+  let databaseAvailable = false;
+
+  beforeAll(async () => {
+    databaseAvailable = await skipIfNoDatabase();
+    if (!databaseAvailable) return;
+  });
+
   /**
    * Test 1: Full Lifecycle Test
    * Validates complete flow from creation to removal with multiple POIs across zones

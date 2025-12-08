@@ -25,6 +25,7 @@ import { UserRoleChangedEvent } from '@domain/events/user-role-changed.event';
 import { PermissionGrantedEvent } from '@domain/events/permission-granted.event';
 import { PermissionRevokedEvent } from '@domain/events/permission-revoked.event';
 import { UserDeletedEvent } from '@domain/events/user-deleted.event';
+import { skipIfNoDatabase } from '@infrastructure/__tests__/helpers/database-test.helper';
 
 // Mock cuid2 for Jest compatibility (ESM module issue)
 jest.mock('@paralleldrive/cuid2', () => ({
@@ -170,12 +171,20 @@ class InMemoryUserRepository implements IUserRepository {
 
 describe('User Integration Tests', () => {
   let repository: InMemoryUserRepository;
+  let databaseAvailable = false;
+
+  beforeAll(async () => {
+    databaseAvailable = await skipIfNoDatabase();
+    if (!databaseAvailable) return;
+  });
 
   beforeEach(() => {
+    if (!databaseAvailable) return;
     repository = new InMemoryUserRepository();
   });
 
   afterEach(() => {
+    if (!databaseAvailable) return;
     repository.clear();
   });
 

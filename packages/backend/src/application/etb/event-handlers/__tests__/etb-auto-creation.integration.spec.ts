@@ -59,6 +59,7 @@ import { EventSerializer } from '@/infrastructure/outbox/event-serializer';
 import type { IEinsatzRepository } from '@domain/repositories';
 import { EVENT_NAMES } from '@domain/events/event-names';
 import { EINSATZ_REPOSITORY } from '@/infrastructure/di-tokens';
+import { skipIfNoDatabase } from '@infrastructure/__tests__/helpers/database-test.helper';
 
 /**
  * Generiert eine Test-CUID mit korrektem Format.
@@ -91,7 +92,7 @@ async function safeExecute(prisma: PrismaClient, query: string, ...params: unkno
 }
 
 describe('EtbAutoCreationHandler - Integration Tests (AC6)', () => {
-  const prisma = new PrismaClient();
+  let prisma: PrismaClient; // Nur Deklaration
   let module: TestingModule;
   let eventEmitter: EventEmitter2;
   let etbAutoCreationHandler: EtbAutoCreationHandler;
@@ -109,6 +110,8 @@ describe('EtbAutoCreationHandler - Integration Tests (AC6)', () => {
    * Flag to track if database schema is compatible (version column exists in einsatztagebuecher)
    */
   let databaseSchemaCompatible = false;
+
+  let databaseAvailable = false;
 
   // ========================================
   // SETUP & TEARDOWN
@@ -129,6 +132,9 @@ describe('EtbAutoCreationHandler - Integration Tests (AC6)', () => {
    * - Mock IEinsatzRepository: exists() check für Einsatz-Validierung
    */
   beforeAll(async () => {
+    databaseAvailable = await skipIfNoDatabase();
+    if (!databaseAvailable) return;
+    prisma = new PrismaClient(); // Initialisierung NACH dem Check
     // Check if etb_snapshots table exists
     try {
       await prisma.$queryRaw`SELECT 1 FROM etb_snapshots LIMIT 1`;
@@ -263,6 +269,7 @@ describe('EtbAutoCreationHandler - Integration Tests (AC6)', () => {
    * Cleanup nach jedem Test: Entfernt nur ETBs (nicht User + Einsatz).
    */
   afterEach(async () => {
+    if (!databaseAvailable) return;
     await prisma.$executeRawUnsafe('SET session_replication_role = replica;');
     try {
       await safeExecute(
@@ -288,6 +295,7 @@ describe('EtbAutoCreationHandler - Integration Tests (AC6)', () => {
    * Teardown: Cleanup aller Test-Daten inkl. Test User + Einsatz.
    */
   afterAll(async () => {
+    if (!databaseAvailable) return;
     await prisma.$executeRawUnsafe('SET session_replication_role = replica;');
     try {
       if (!testEinsatzId || !testUserId) return;

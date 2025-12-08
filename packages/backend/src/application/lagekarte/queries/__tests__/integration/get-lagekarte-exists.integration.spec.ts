@@ -7,6 +7,7 @@ import { Poi } from '@domain/entities/poi.entity';
 import { MgrsCoordinate } from '@domain/value-objects/mgrs-coordinate';
 import { PoiCategory } from '@domain/value-objects/poi-category';
 import { UserId } from '@domain/value-objects/user-id';
+import { skipIfNoDatabase } from '@infrastructure/__tests__/helpers/database-test.helper';
 
 // Mock cuid2 for deterministic test IDs (CUID2 format: 20-30 chars, lowercase a-z0-9, starts with letter)
 jest.mock('@paralleldrive/cuid2', () => ({
@@ -44,13 +45,21 @@ jest.mock('@paralleldrive/cuid2', () => ({
 describe('GetLagekarteExistsQueryHandler - Integration Tests', () => {
   let handler: GetLagekarteExistsQueryHandler;
   let repository: InMemoryLagekarteRepository;
+  let databaseAvailable = false;
+
+  beforeAll(async () => {
+    databaseAvailable = await skipIfNoDatabase();
+    if (!databaseAvailable) return;
+  });
 
   beforeEach(() => {
+    if (!databaseAvailable) return;
     repository = new InMemoryLagekarteRepository();
     handler = new GetLagekarteExistsQueryHandler(repository);
   });
 
   afterEach(() => {
+    if (!databaseAvailable) return;
     repository.clear();
   });
 
