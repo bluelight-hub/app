@@ -168,9 +168,7 @@ describe('Lagekarte CQRS API - E2E Tests', () => {
 
     // Initialize Repository
     const prismaService = prisma as unknown as PrismaService;
-    const eventSerializer = new EventSerializer();
-    const outboxRepository = new PrismaOutboxRepository(prismaService, eventSerializer);
-    lagekarteRepository = new PrismaLagekarteRepository(prismaService, outboxRepository);
+    lagekarteRepository = new PrismaLagekarteRepository(prismaService);
 
     // Mock EinsatzRepository
     mockEinsatzRepository = {

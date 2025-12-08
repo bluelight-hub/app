@@ -162,9 +162,7 @@ describe('PrismaLagekarteRepository - Performance Baselines', () => {
 
     // Initialize Repository
     const prismaService = prisma as unknown as PrismaService;
-    const eventSerializer = new EventSerializer();
-    const outboxRepository = new PrismaOutboxRepository(prismaService, eventSerializer);
-    repository = new PrismaLagekarteRepository(prismaService, outboxRepository);
+    repository = new PrismaLagekarteRepository(prismaService);
   });
 
   /**

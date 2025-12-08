@@ -10,7 +10,6 @@ import { Injectable } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
 import type { EtbSnapshot as PrismaEtbSnapshot } from '@prisma/client';
 import { PrismaEtbMapper } from '../mappers/prisma-etb.mapper';
-import { PrismaOutboxRepository, type PrismaTransaction } from '@/infrastructure/outbox/prisma-outbox.repository';
 
 /**
  * Transaction Client Type Alias fuer bessere Lesbarkeit.
@@ -75,12 +74,8 @@ export class PrismaEtbRepository implements IEtbRepository {
    * Prisma Client zur Verfügung. Singleton-Pattern im App-Lifecycle.
    *
    * @param prisma - PrismaService (NestJS-managed Singleton)
-   * @param outboxRepository - OutboxRepository für Transactional Outbox Pattern (Story 4-4)
    */
-  constructor(
-    private readonly prisma: PrismaService,
-    private readonly outboxRepository: PrismaOutboxRepository,
-  ) {}
+  constructor(private readonly prisma: PrismaService) {}
 
   /**
    * Speichert das ETB-Aggregat (Upsert: Create oder Update).
@@ -94,8 +89,7 @@ export class PrismaEtbRepository implements IEtbRepository {
    * 2. INSERT neue Eintraege mit ON CONFLICT DO NOTHING
    * 3. Persist uncommitted Snapshots
    * 4. Clear Snapshots auf Aggregate
-   * 5. Persist Domain Events to Outbox (Story 4-4)
-   * 6. Clear Domain Events auf Aggregate (nach erfolgreicher Transaction)
+   * 5. Domain Events bleiben im Aggregate (TransactionalCommandHandler persistiert in Outbox)
    *
    * **Warum Append-Only statt DELETE + CREATE:**
    * - DRK-Compliance: 10-Jahres-Aufbewahrungspflicht, NO-DELETE Trigger aktiv
@@ -109,11 +103,10 @@ export class PrismaEtbRepository implements IEtbRepository {
    * - Atomicity: ETB + Eintraege + Snapshots + Outbox Events werden zusammen committed oder rolled back
    *
    * **Transactional Outbox Pattern (Story 4-4):**
-   * - Domain Events werden ATOMAR mit dem Aggregate persistiert
-   * - Events landen in outbox_events Tabelle (status=PENDING)
-   * - Polling Worker published Events asynchron aus Outbox
+   * - Domain Events werden vom TransactionalCommandHandler in Outbox persistiert
+   * - Repository speichert NUR das Aggregate (ETB + Eintraege + Snapshots)
+   * - clearDomainEvents() wird NICHT aufgerufen (Handler extrahiert Events)
    * - Garantiert: Kein Event-Verlust durch Transaction Rollback
-   * - clearDomainEvents() erfolgt NACH Transaction Commit
    *
    * @param aggregate - Das zu speichernde ETB Aggregat
    * @param tx - Optionale externe Transaktion
@@ -226,13 +219,10 @@ export class PrismaEtbRepository implements IEtbRepository {
       // um doppelte Persistierung zu verhindern
       aggregate.clearSnapshots();
 
-      // Step 8: Persist Domain Events to Outbox (ATOMIC with ETB + Eintraege)
-      // WICHTIG: Events werden in derselben Transaktion wie das Aggregate committed
-      // → Garantiert Konsistenz: Kein Event-Verlust bei Transaction Rollback
-      const events = aggregate.getDomainEvents();
-      if (events.length > 0) {
-        await this.outboxRepository.save(events, prismaClient as unknown as PrismaTransaction);
-      }
+      // NOTE: Domain Events werden NICHT hier persistiert!
+      // TransactionalCommandHandler extrahiert Events via getDomainEvents()
+      // und speichert sie in Outbox. Repository darf clearDomainEvents()
+      // NICHT aufrufen, sonst sind Events verloren.
     };
 
     // Execute in Transaction (internal oder external)
@@ -246,11 +236,14 @@ export class PrismaEtbRepository implements IEtbRepository {
       });
     }
 
-    // Step 9: Clear Domain Events AFTER successful transaction
-    // WICHTIG: clearDomainEvents() muss NACH dem Transaction Commit erfolgen
-    // → Verhindert Event-Verlust bei Transaction Rollback
-    // → Analog zu clearSnapshots() innerhalb der Transaction
-    aggregate.clearDomainEvents();
+    // NOTE: clearDomainEvents() wird NICHT aufgerufen!
+    // TransactionalCommandHandler ist verantwortlich für:
+    // 1. Events extrahieren via getDomainEvents()
+    // 2. Events in Outbox speichern
+    // 3. Events clearen via clearDomainEvents()
+    //
+    // Wenn Repository clearDomainEvents() aufruft, sind Events verloren
+    // bevor Handler sie extrahieren kann.
   }
 
   /**

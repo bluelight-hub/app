@@ -125,9 +125,7 @@ describe('PrismaLagekarteRepository - Integration Tests', () => {
 
     // Initialize Repository (mock PrismaService mit echtem PrismaClient)
     const prismaService = prisma as unknown as PrismaService;
-    const eventSerializer = new EventSerializer();
-    const outboxRepository = new PrismaOutboxRepository(prismaService, eventSerializer);
-    repository = new PrismaLagekarteRepository(prismaService, outboxRepository);
+    repository = new PrismaLagekarteRepository(prismaService);
   });
 
   /**

@@ -7,7 +7,6 @@ import { Injectable } from '@nestjs/common';
 import { PrismaService } from '@/infrastructure/database/prisma.service';
 import { PrismaLagekarteMapper } from './mappers/prisma-lagekarte.mapper';
 import type { PrismaClient } from '@prisma/client';
-import { PrismaOutboxRepository, type PrismaTransaction } from '@/infrastructure/outbox/prisma-outbox.repository';
 
 /**
  * Prisma Implementation des ILagekarteRepository (Hexagonal Architecture).
@@ -75,12 +74,8 @@ export class PrismaLagekarteRepository implements ILagekarteRepository {
    * Prisma Client zur Verfügung. Singleton-Pattern im App-Lifecycle.
    *
    * @param prisma - PrismaService (NestJS-managed Singleton)
-   * @param outboxRepository - OutboxRepository für Transactional Outbox Pattern (Story 4-4)
    */
-  constructor(
-    private readonly prisma: PrismaService,
-    private readonly outboxRepository: PrismaOutboxRepository,
-  ) {}
+  constructor(private readonly prisma: PrismaService) {}
 
   /**
    * Speichert das Lagekarte-Aggregat (Upsert: Create oder Update).
@@ -93,6 +88,7 @@ export class PrismaLagekarteRepository implements ILagekarteRepository {
    * 1. DELETE all existing POIs (lagekartePoi.deleteMany)
    * 2. UPSERT Lagekarte (lagekarte.upsert)
    * 3. CREATE all current POIs (lagekartePoi.createMany)
+   * 4. Domain Events bleiben im Aggregate (TransactionalCommandHandler persistiert in Outbox)
    *
    * **Warum DELETE + CREATE statt UPDATE:**
    * - Einfachheit: Kein komplexes Delta-Tracking (added/removed/updated POIs)
@@ -106,11 +102,10 @@ export class PrismaLagekarteRepository implements ILagekarteRepository {
    * - Atomicity: Lagekarte + POIs + Outbox Events werden zusammen committed oder rolled back
    *
    * **Transactional Outbox Pattern (Story 4-4):**
-   * - Domain Events werden ATOMAR mit dem Aggregate persistiert
-   * - Events landen in outbox_events Tabelle (status=PENDING)
-   * - Polling Worker published Events asynchron aus Outbox
+   * - Domain Events werden vom TransactionalCommandHandler in Outbox persistiert
+   * - Repository speichert NUR das Aggregate (Lagekarte + POIs)
+   * - clearDomainEvents() wird NICHT aufgerufen (Handler extrahiert Events)
    * - Garantiert: Kein Event-Verlust durch Transaction Rollback
-   * - clearDomainEvents() erfolgt NACH Transaction Commit
    *
    * **Error Cases:**
    * - P2002 (Unique Constraint): einsatzId bereits verwendet (sollte nicht passieren bei Upsert)
@@ -183,13 +178,10 @@ export class PrismaLagekarteRepository implements ILagekarteRepository {
         });
       }
 
-      // Step 4: Persist Domain Events to Outbox (ATOMIC with Lagekarte + POIs)
-      // WICHTIG: Events werden in derselben Transaktion wie das Aggregate committed
-      // → Garantiert Konsistenz: Kein Event-Verlust bei Transaction Rollback
-      const events = aggregate.getDomainEvents();
-      if (events.length > 0) {
-        await this.outboxRepository.save(events, prismaClient as unknown as PrismaTransaction);
-      }
+      // NOTE: Domain Events werden NICHT hier persistiert!
+      // TransactionalCommandHandler extrahiert Events via getDomainEvents()
+      // und speichert sie in Outbox. Repository darf clearDomainEvents()
+      // NICHT aufrufen, sonst sind Events verloren.
     };
 
     // Execute in Transaction (internal oder external)
@@ -203,10 +195,14 @@ export class PrismaLagekarteRepository implements ILagekarteRepository {
       });
     }
 
-    // Step 5: Clear Domain Events AFTER successful transaction
-    // WICHTIG: clearDomainEvents() muss NACH dem Transaction Commit erfolgen
-    // → Verhindert Event-Verlust bei Transaction Rollback
-    aggregate.clearDomainEvents();
+    // NOTE: clearDomainEvents() wird NICHT aufgerufen!
+    // TransactionalCommandHandler ist verantwortlich für:
+    // 1. Events extrahieren via getDomainEvents()
+    // 2. Events in Outbox speichern
+    // 3. Events clearen via clearDomainEvents()
+    //
+    // Wenn Repository clearDomainEvents() aufruft, sind Events verloren
+    // bevor Handler sie extrahieren kann.
   }
 
   /**

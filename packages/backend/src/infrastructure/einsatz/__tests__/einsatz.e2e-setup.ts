@@ -337,11 +337,13 @@ export async function createEinsatzE2eModule(): Promise<EinsatzE2eTestContext> {
     ON CONFLICT (username) DO NOTHING
   `;
 
-  // 4. Repository und EventPublisher mit Outbox Support
+  // 4. Repository und EventPublisher
+  const repository = new PrismaEinsatzRepository(prisma);
+  const eventPublisher = new SpyEventPublisher();
+
+  // Outbox Repository für direkten Zugriff in Tests
   const eventSerializer = new EventSerializer();
   const outboxRepository = new PrismaOutboxRepository(prisma, eventSerializer);
-  const repository = new PrismaEinsatzRepository(prisma, outboxRepository);
-  const eventPublisher = new SpyEventPublisher();
 
   return {
     prisma,

@@ -7,7 +7,6 @@ import { Result } from '@domain/common/result';
 import { Injectable, Logger } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
 import { PrismaEinsatzMapper } from '../mappers/prisma-einsatz.mapper';
-import { PrismaOutboxRepository, type PrismaTransaction } from '@/infrastructure/outbox/prisma-outbox.repository';
 
 /**
  * Transaction Client Type Alias für bessere Lesbarkeit.
@@ -41,9 +40,9 @@ type PrismaTransactionClient = Prisma.TransactionClient;
  *    - Wenn tx=provided: Nutzt externe Transaction (Handler-Level)
  *
  * 4. **Transactional Outbox Pattern:**
- *    - Domain Events werden ATOMAR mit Aggregate persistiert
- *    - Events landen in outbox_events Tabelle (status=PENDING)
- *    - Polling Worker published Events asynchron aus Outbox
+ *    - Domain Events werden vom TransactionalCommandHandler in Outbox persistiert
+ *    - Repository speichert NUR das Aggregate, NICHT die Events
+ *    - clearDomainEvents() wird NICHT aufgerufen (Handler extrahiert Events)
  *    - Garantiert: Kein Event-Verlust durch Transaction Rollback
  *
  * **ERROR HANDLING:**
@@ -61,12 +60,8 @@ export class PrismaEinsatzRepository implements IEinsatzRepository {
    * Constructor mit Dependency Injection.
    *
    * @param prisma - PrismaService (NestJS-managed Singleton)
-   * @param outboxRepository - OutboxRepository für Transactional Outbox Pattern
    */
-  constructor(
-    private readonly prisma: PrismaService,
-    private readonly outboxRepository: PrismaOutboxRepository,
-  ) {}
+  constructor(private readonly prisma: PrismaService) {}
 
   /**
    * Speichert das Einsatz-Aggregat (Upsert: Create oder Update).
@@ -77,13 +72,13 @@ export class PrismaEinsatzRepository implements IEinsatzRepository {
    *
    * **Transactional Outbox Pattern:**
    * 1. UPSERT Einsatz (einsatz.upsert)
-   * 2. Persist Domain Events to Outbox (atomar in gleicher Transaction)
-   * 3. Clear Domain Events auf Aggregate (nach erfolgreicher Transaction)
+   * 2. Domain Events bleiben im Aggregate (KEIN clearDomainEvents)
+   * 3. TransactionalCommandHandler extrahiert Events und speichert in Outbox
    *
    * **Transaction Handling:**
    * - Wenn tx=undefined: Verwendet interne Prisma $transaction()
    * - Wenn tx=provided: Nutzt externe Transaction (Handler-Level)
-   * - Atomicity: Einsatz + Outbox Events werden zusammen committed oder rolled back
+   * - Atomicity: Einsatz wird in Transaction gespeichert
    *
    * @param aggregate - Das zu speichernde Einsatz Aggregat
    * @param tx - Optionale externe Transaktion
@@ -98,9 +93,9 @@ export class PrismaEinsatzRepository implements IEinsatzRepository {
     const createdByUser = aggregate.createdBy.value;
     const persistenceData = PrismaEinsatzMapper.toPersistence(aggregate, createdByUser);
 
-    // Transaction Closure: Einsatz Upsert + Outbox Event Persistence
+    // Transaction Closure: Einsatz Upsert
     const operation = async (prismaClient: PrismaTransactionClient): Promise<void> => {
-      // Step 1: UPSERT Einsatz Record (CREATE or UPDATE)
+      // UPSERT Einsatz Record (CREATE or UPDATE)
       await prismaClient.einsatz.upsert({
         where: { id: persistenceData.id },
         create: {
@@ -136,13 +131,10 @@ export class PrismaEinsatzRepository implements IEinsatzRepository {
         },
       });
 
-      // Step 2: Persist Domain Events to Outbox (ATOMIC with Einsatz)
-      // WICHTIG: Events werden in derselben Transaktion wie das Aggregate committed
-      // → Garantiert Konsistenz: Kein Event-Verlust bei Transaction Rollback
-      const events = aggregate.getDomainEvents();
-      if (events.length > 0) {
-        await this.outboxRepository.save(events, prismaClient as unknown as PrismaTransaction);
-      }
+      // NOTE: Domain Events werden NICHT hier persistiert!
+      // TransactionalCommandHandler extrahiert Events via getDomainEvents()
+      // und speichert sie in Outbox. Repository darf clearDomainEvents()
+      // NICHT aufrufen, sonst sind Events verloren.
     };
 
     // Execute in Transaction (internal oder external)
@@ -156,10 +148,14 @@ export class PrismaEinsatzRepository implements IEinsatzRepository {
       });
     }
 
-    // Step 3: Clear Domain Events AFTER successful transaction
-    // WICHTIG: clearDomainEvents() muss NACH dem Transaction Commit erfolgen
-    // → Verhindert Event-Verlust bei Transaction Rollback
-    aggregate.clearDomainEvents();
+    // NOTE: clearDomainEvents() wird NICHT aufgerufen!
+    // TransactionalCommandHandler ist verantwortlich für:
+    // 1. Events extrahieren via getDomainEvents()
+    // 2. Events in Outbox speichern
+    // 3. Events clearen via clearDomainEvents()
+    //
+    // Wenn Repository clearDomainEvents() aufruft, sind Events verloren
+    // bevor Handler sie extrahieren kann.
 
     return Result.ok(undefined);
   }
