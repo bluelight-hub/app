@@ -2,7 +2,7 @@ import { useEffect } from 'react';
 import type * as L from 'leaflet';
 import { calculateToolbarPosition } from '../utils/layer-utils';
 import { setToolbarPosition } from '../stores/lagekarte-state.store';
-import { useLagekarteState } from './use-lagekarte-state';
+import { useSelectedShapeId, useLayers } from './use-lagekarte-state';
 
 /**
  * Hook für Toolbar-Positionierung relativ zu selektiertem Shape
@@ -18,17 +18,15 @@ import { useLagekarteState } from './use-lagekarte-state';
  *   const map = useMap();
  *   useToolbarPositioning(map);
  *
- *   const state = useLagekarteState();
- *   const toolbarPosition = state.useToolbarPosition();
+ *   const toolbarPosition = useToolbarPosition();
  *
  *   return toolbarPosition && <SelectedShapeToolbar position={toolbarPosition} />;
  * };
  * ```
  */
 export const useToolbarPositioning = (map: L.Map) => {
-  const state = useLagekarteState();
-  const selectedShapeId = state.useSelectedShapeId();
-  const layers = state.useLayers();
+  const selectedShapeId = useSelectedShapeId();
+  const layers = useLayers();
 
   // Calculate initial toolbar position when shape is selected
   useEffect(() => {
