@@ -1,4 +1,4 @@
-import { cn } from '@/shared/utils/cn';
+import { cn } from '@/shared/ui/cn';
 import { CloseButton } from '../atoms/close-button.atom';
 import { Button } from '../atoms/button.atom';
 import { InlineSpinner } from '../atoms/spinner.atom';

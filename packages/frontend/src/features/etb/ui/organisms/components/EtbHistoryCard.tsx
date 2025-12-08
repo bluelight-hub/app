@@ -1,8 +1,8 @@
-import { cn } from '@/shared/utils/cn';
+import { cn } from '@/shared/ui/cn';
 import type { AddEintragDtoKategorieEnum as EtbKategorie } from '@bluelight-hub/shared/client';
 import { EtbVersionBadge } from './EtbVersionBadge';
 import { EtbKategorieBadge } from './EtbKategorieBadge';
-import { formatDisplayDateTime } from '@/shared/utils/dateFormatter';
+import { formatDisplayDateTime } from '@/shared/lib/dateFormatter';
 
 interface EtbHistoryCardProps {
   version: number;

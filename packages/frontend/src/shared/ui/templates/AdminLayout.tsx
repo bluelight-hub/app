@@ -1,5 +1,5 @@
 import { useCurrentUser, useAdminAuth } from '@/features/auth';
-import { logger } from '@/shared/utils/logger';
+import { logger } from '@/shared/lib/logger';
 import { CloseButton } from '@/shared/ui/atoms/close-button.atom';
 import { Container } from '@/shared/ui/atoms/container.atom';
 import { Heading } from '@/shared/ui/atoms/heading.atom';

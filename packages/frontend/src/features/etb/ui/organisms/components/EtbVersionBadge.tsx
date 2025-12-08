@@ -1,6 +1,6 @@
 import { Badge } from '@/shared/ui/atoms/badge.atom';
 import { PiClockCounterClockwise } from 'react-icons/pi';
-import { cn } from '@/shared/utils/cn';
+import { cn } from '@/shared/ui/cn';
 
 interface EtbVersionBadgeProps {
   version: number;

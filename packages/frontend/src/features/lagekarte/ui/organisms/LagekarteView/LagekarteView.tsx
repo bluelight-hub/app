@@ -6,9 +6,9 @@ import { type Layer, LayerToggle } from '../../molecules/LayerToggle/LayerToggle
 import { useColorMode } from '@/shared/hooks/use-color-mode';
 import { useEtb } from '@/features/etb';
 import { captureMapScreenshot } from '@/features/lagekarte/utils';
-import { cn } from '@/shared/utils/cn';
+import { cn } from '@/shared/ui/cn';
 import type { ShapeType } from '@/features/lagekarte/utils';
-import { logger } from '@/shared/utils/logger';
+import { logger } from '@/shared/lib/logger';
 import type { PoiType } from '@/features/lagekarte/utils';
 import type * as GeoJSON from 'geojson';
 import * as React from 'react';

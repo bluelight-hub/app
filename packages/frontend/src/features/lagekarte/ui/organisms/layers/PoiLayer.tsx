@@ -2,7 +2,7 @@ import { useDeletePoi, usePois, useUpdatePoi } from '@/features/lagekarte/api';
 import { Button } from '@/shared/ui/atoms/button.atom';
 import { Spinner } from '@/shared/ui/atoms/spinner.atom';
 import { getPoiIcon } from '@/features/lagekarte/utils';
-import { getApiErrorMessage } from '@/shared/utils/apiErrorHandler';
+import { getApiErrorMessage } from '@/shared/lib/errors/apiErrorHandler';
 import { formatMgrs } from '@/features/lagekarte/utils/mgrs';
 import { Dialog, DialogBackdrop, DialogPanel, DialogTitle } from '@headlessui/react';
 import React, { useMemo, useState } from 'react';

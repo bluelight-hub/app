@@ -1,4 +1,4 @@
-import { cn } from '@/shared/utils/cn';
+import { cn } from '@/shared/ui/cn';
 import * as React from 'react';
 
 export interface LabelProps extends React.LabelHTMLAttributes<HTMLLabelElement> {

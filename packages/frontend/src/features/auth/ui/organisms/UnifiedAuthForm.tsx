@@ -8,7 +8,7 @@ import { z } from 'zod';
 import { Button } from '@/shared/ui/atoms/button.atom';
 import { Combobox } from '@/shared/ui/headless/combobox';
 import { usePublicUsers } from '@/features/auth';
-import { cn } from '@/shared/utils/cn';
+import { cn } from '@/shared/ui/cn';
 
 // Zod Schema für Validierung
 const authSchema = z.object({

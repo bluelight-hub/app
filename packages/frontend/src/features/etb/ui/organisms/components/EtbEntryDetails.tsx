@@ -1,4 +1,4 @@
-import { formatDisplayDateTime } from '@/shared/utils/dateFormatter';
+import { formatDisplayDateTime } from '@/shared/lib/dateFormatter';
 import type { EintragDto } from '@bluelight-hub/shared/client';
 import { format, isValid } from 'date-fns';
 import { de } from 'date-fns/locale';

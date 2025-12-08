@@ -1,6 +1,5 @@
 import { ColorModeButton } from '@/shared/ui/molecules/color-mode-button.molecule';
-import { cn } from '@/shared/utils/cn';
-import { useTimeBasedBackground } from '@/shared/utils';
+import { cn, useTimeBasedBackground } from '@/shared/ui';
 import type { ReactNode } from 'react';
 import { useEffect } from 'react';
 

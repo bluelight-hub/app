@@ -1,4 +1,4 @@
-import { cn } from '@/shared/utils/cn';
+import { cn } from '@/shared/ui/cn';
 import type React from 'react';
 
 interface TimelineProps {

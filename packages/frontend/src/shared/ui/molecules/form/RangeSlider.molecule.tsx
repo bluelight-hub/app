@@ -1,5 +1,5 @@
 import { Label } from '../../atoms/label.atom';
-import { cn } from '@/shared/utils/cn';
+import { cn } from '@/shared/ui/cn';
 import { forwardRef } from 'react';
 
 export interface RangeSliderProps {

@@ -1,6 +1,6 @@
 import type { ColorMode } from '@/shared/ui/headless/color-mode';
 import { useColorMode } from '@/shared/hooks/use-color-mode';
-import { cn } from '@/shared/utils/cn';
+import { cn } from '@/shared/ui/cn';
 import { Button } from '../atoms/button.atom';
 import { Menu, MenuButton, MenuItem, MenuItems } from '@headlessui/react';
 import { useEffect, useState } from 'react';

@@ -1,6 +1,6 @@
 import { useCurrentUser, useAdminSetup } from '@/features/auth';
-import { getApiErrorMessage } from '@/shared/utils/apiErrorHandler';
-import { logger } from '@/shared/utils/logger';
+import { getApiErrorMessage } from '@/shared/lib/errors/apiErrorHandler';
+import { logger } from '@/shared/lib/logger';
 import { Alert } from '@/shared/ui/atoms/alert.atom';
 import { Button } from '@/shared/ui/atoms/button.atom';
 import { Card } from '@/shared/ui/atoms/card.atom';

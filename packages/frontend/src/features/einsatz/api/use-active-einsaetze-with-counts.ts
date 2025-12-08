@@ -6,7 +6,7 @@
  */
 
 import { api } from '@/shared/api/client';
-import { logger } from '@/shared/utils/logger';
+import { logger } from '@/shared/lib/logger';
 import type { EinsatzListItemDto, ResponseError } from '@bluelight-hub/shared/client';
 import { useQuery } from '@tanstack/react-query';
 import { EINSATZ_QUERY_KEYS, calculateRetryDelay } from './queries';

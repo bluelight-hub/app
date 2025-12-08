@@ -1,5 +1,5 @@
-import { cn } from '@/shared/utils/cn';
-import { formatNatoDateTime } from '@/shared/utils/dateFormatter';
+import { cn } from '@/shared/ui/cn';
+import { formatNatoDateTime } from '@/shared/lib/dateFormatter';
 import { PiCheckCircle, PiClock, PiMapPin, PiRadio, PiSiren, PiTruck } from 'react-icons/pi';
 
 interface TimelineEvent {

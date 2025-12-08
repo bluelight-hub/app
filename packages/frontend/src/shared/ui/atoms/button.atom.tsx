@@ -1,4 +1,4 @@
-import { cn } from '@/shared/utils/cn';
+import { cn } from '@/shared/ui/cn';
 import { InlineSpinner } from './spinner.atom.tsx';
 import { Button as HeadlessButton } from '@headlessui/react';
 import * as React from 'react';

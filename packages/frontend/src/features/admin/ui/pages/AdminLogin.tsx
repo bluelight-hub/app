@@ -1,5 +1,5 @@
 import { useCurrentUser, useAdminLogin } from '@/features/auth';
-import { getApiErrorMessage } from '@/shared/utils/apiErrorHandler';
+import { getApiErrorMessage } from '@/shared/lib/errors/apiErrorHandler';
 import { Alert } from '@/shared/ui/atoms/alert.atom';
 import { Button } from '@/shared/ui/atoms/button.atom';
 import { FormField } from '@/shared/ui/atoms/form-field.atom';

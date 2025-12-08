@@ -1,4 +1,4 @@
-import { cn } from '@/shared/utils/cn';
+import { cn } from '@/shared/ui/cn';
 import type * as React from 'react';
 
 interface ImageProps extends React.ImgHTMLAttributes<HTMLImageElement> {

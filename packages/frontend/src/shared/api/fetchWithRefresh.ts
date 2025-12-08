@@ -1,4 +1,4 @@
-import { logger } from '@/shared/utils/logger';
+import { logger } from '@/shared/lib/logger';
 import { AuthApi, Configuration } from '@bluelight-hub/shared/client';
 import { getBaseUrl } from './api';
 

@@ -1,5 +1,5 @@
 import { isTauri } from '@tauri-apps/api/core';
-import { logger } from '@/shared/utils/logger';
+import { logger } from '@/shared/lib/logger';
 
 /**
  * Hook zur Erkennung der Tauri-Runtime

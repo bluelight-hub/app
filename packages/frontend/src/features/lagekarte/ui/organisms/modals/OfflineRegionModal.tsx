@@ -1,6 +1,6 @@
 import { Button } from '@/shared/ui/atoms/button.atom';
 import { Dialog, DialogPanel, DialogTitle } from '@headlessui/react';
-import { cn } from '@/shared/utils/cn';
+import { cn } from '@/shared/ui/cn';
 import type React from 'react';
 import { useState, useCallback, useEffect, useRef, useMemo } from 'react';
 import { PiX, PiInfo, PiWarning } from 'react-icons/pi';
@@ -9,7 +9,7 @@ import { MapContainer, TileLayer, useMap } from 'react-leaflet';
 import '@geoman-io/leaflet-geoman-free';
 import '@geoman-io/leaflet-geoman-free/dist/leaflet-geoman.css';
 import 'leaflet/dist/leaflet.css';
-import { getStorageQuota, type StorageQuota } from '@/shared/utils';
+import { getStorageQuota, type StorageQuota } from '@/shared/lib/storage/storage-quota';
 import { downloadTiles } from '@/features/lagekarte/utils';
 import { toast } from 'sonner';
 

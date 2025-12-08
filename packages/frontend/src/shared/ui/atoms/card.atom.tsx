@@ -1,4 +1,4 @@
-import { cn } from '@/shared/utils/cn';
+import { cn } from '@/shared/ui/cn';
 import type { ReactNode } from 'react';
 import { forwardRef } from 'react';
 

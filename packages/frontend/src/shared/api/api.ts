@@ -1,4 +1,4 @@
-import { logger } from '@/shared/utils/logger';
+import { logger } from '@/shared/lib/logger';
 import { AuthApi, Configuration, EinsatzApi, ETBApi, GeocodingApi, HealthApi, LagekarteApi, LagekarteCQRSApi, UserManagementApi, UsersApi } from '@bluelight-hub/shared/client';
 import { fetchWithRefresh } from './fetchWithRefresh';
 

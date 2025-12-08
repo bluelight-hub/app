@@ -8,8 +8,7 @@ import { ModuleOverviewCard } from '@/features/einsatz/ui/molecules/ModuleOvervi
 import { CommandPalette } from '@/shared/ui/organisms/command-palette';
 import { CommandPaletteErrorBoundary } from '@/shared/ui/organisms/command-palette/CommandPaletteErrorBoundary';
 import { EINSATZ_QUERY_KEYS, useEinsatzDetails, useEinsatzModules } from '@/features/einsatz';
-import { cn } from '@/shared/utils/cn';
-import { getModuleActiveColor, getModuleColor } from '@/shared/utils';
+import { cn, getModuleActiveColor, getModuleColor } from '@/shared/ui';
 import { Button } from '@/shared/ui/atoms/button.atom';
 import { EinsatzDtoStatusEnum } from '@bluelight-hub/shared/client';
 import { useMutation, useQueryClient } from '@tanstack/react-query';

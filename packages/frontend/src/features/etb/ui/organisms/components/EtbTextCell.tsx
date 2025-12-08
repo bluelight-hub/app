@@ -2,7 +2,7 @@ import { useState } from 'react';
 import type { EintragDto } from '@bluelight-hub/shared/client';
 import { ScreenshotLightbox } from './ScreenshotLightbox';
 import { safeValidateScreenshotUrl } from '@/features/etb/utils';
-import { cn } from '@/shared/utils/cn';
+import { cn } from '@/shared/ui/cn';
 
 interface EtbTextCellProps {
   /**

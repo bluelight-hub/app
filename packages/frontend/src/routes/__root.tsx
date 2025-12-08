@@ -1,7 +1,7 @@
 import { Provider } from '@/shared/ui/headless/provider';
 import { ConfirmProvider } from '@/shared/hooks/useConfirm';
 import { useWindowOrientation } from '@/shared/hooks/useWindowOrientation';
-import { handleQueryError } from '@/shared/utils/error-handler';
+import { handleQueryError } from '@/shared/lib/errors/error-handler';
 import { TanStackDevtools } from '@tanstack/react-devtools';
 import { MutationCache, QueryCache, QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { ReactQueryDevtoolsPanel } from '@tanstack/react-query-devtools';

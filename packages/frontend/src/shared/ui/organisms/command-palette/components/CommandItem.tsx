@@ -1,4 +1,4 @@
-import { cn } from '@/shared/utils/cn';
+import { cn } from '@/shared/ui/cn';
 import type { NavigationCommand } from '@/shared/ui/organisms/command-palette';
 import { commandItemClasses, getModuleColorClass } from '@/shared/ui/organisms/command-palette/utils';
 import { Command } from 'cmdk';

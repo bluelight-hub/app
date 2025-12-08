@@ -1,5 +1,5 @@
 import { useCurrentUser, useAdminLogout } from '@/features/auth';
-import { logger } from '@/shared/utils/logger';
+import { logger } from '@/shared/lib/logger';
 import { Button } from '@/shared/ui/atoms/button.atom';
 import { Card } from '@/shared/ui/atoms/card.atom';
 import { Heading } from '@/shared/ui/atoms/heading.atom';

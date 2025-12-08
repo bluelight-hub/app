@@ -1,4 +1,4 @@
-import { cn } from '@/shared/utils/cn';
+import { cn } from '@/shared/ui/cn';
 import { CloseButton } from '@/shared/ui/atoms/close-button.atom';
 import { Link } from '@tanstack/react-router';
 import type { ComponentType } from 'react';

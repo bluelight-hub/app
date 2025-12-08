@@ -1,4 +1,4 @@
-import { cn } from '@/shared/utils/cn';
+import { cn } from '@/shared/ui/cn';
 import { formatPoiTypeLabel } from '@/features/lagekarte/utils';
 import { POI_ICON_MAP, type PoiType } from '@/features/lagekarte/utils';
 import type React from 'react';

@@ -1,5 +1,5 @@
 import { Button } from '@/shared/ui/atoms/button.atom';
-import { cn } from '@/shared/utils/cn';
+import { cn } from '@/shared/ui/cn';
 import type React from 'react';
 import { PiCamera, PiDownload } from 'react-icons/pi';
 

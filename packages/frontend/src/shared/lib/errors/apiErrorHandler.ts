@@ -1,4 +1,4 @@
-import { logger } from '@/shared/utils/logger';
+import { logger } from '@/shared/lib/logger';
 import { ResponseError } from '@bluelight-hub/shared/client';
 
 /**

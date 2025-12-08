@@ -1,4 +1,4 @@
-import { cn } from '@/shared/utils/cn';
+import { cn } from '@/shared/ui/cn';
 import { Menu, MenuButton, MenuItem, MenuItems } from '@headlessui/react';
 import type React from 'react';
 import { PiPalette, PiPencil, PiTrash } from 'react-icons/pi';

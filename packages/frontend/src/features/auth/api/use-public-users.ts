@@ -3,7 +3,7 @@ import type { UseQueryResult } from '@tanstack/react-query';
 import { useQuery } from '@tanstack/react-query';
 import { api } from '@/shared/api/client';
 import { AUTH_KEYS } from './queries';
-import { logger } from '@/shared/utils/logger';
+import { logger } from '@/shared/lib/logger';
 
 /**
  * Hook zum Abrufen der öffentlichen Benutzerliste

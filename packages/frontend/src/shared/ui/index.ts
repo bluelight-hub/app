@@ -26,3 +26,8 @@ export * from './templates';
 
 // Organisms werden NICHT re-exportiert, da aktuell alle feature-spezifisch sind
 // (admin, auth, command-palette, dashboard, einsaetze, einsatz, etb, lagekarte)
+
+// UI Utilities
+export * from './cn';
+export * from './module-colors';
+export * from './timeBasedBackground';

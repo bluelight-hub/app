@@ -1,5 +1,5 @@
 import { useActiveEinsatz } from '@/features/einsatz';
-import { logger } from '@/shared/utils/logger';
+import { logger } from '@/shared/lib/logger';
 import { Button } from '@/shared/ui/atoms/button.atom';
 import { CloseButton } from '@/shared/ui/atoms/close-button.atom';
 import type { EinsatzResponseDto } from '@bluelight-hub/shared/client';

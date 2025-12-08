@@ -1,4 +1,4 @@
-import { cn } from '@/shared/utils/cn';
+import { cn } from '@/shared/ui/cn';
 import { Transition } from '@headlessui/react';
 
 export type ProgressBarVariant = 'default' | 'success' | 'warning' | 'error' | 'info';

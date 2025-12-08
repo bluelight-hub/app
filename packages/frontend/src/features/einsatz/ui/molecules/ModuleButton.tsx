@@ -1,4 +1,4 @@
-import { cn } from '@/shared/utils/cn';
+import { cn } from '@/shared/ui/cn';
 import { Link } from '@tanstack/react-router';
 import { useRef } from 'react';
 import { useHotkeys } from 'react-hotkeys-hook';

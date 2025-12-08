@@ -1,4 +1,4 @@
-import { cn } from '@/shared/utils/cn';
+import { cn } from '@/shared/ui/cn';
 
 interface SpinnerProps {
   size?: 'xs' | 'sm' | 'md' | 'lg' | 'xl';

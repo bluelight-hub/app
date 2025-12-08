@@ -1,5 +1,5 @@
 import { Card } from '../atoms/card.atom';
-import { cn } from '@/shared/utils/cn';
+import { cn } from '@/shared/ui/cn';
 import type { ReactNode } from 'react';
 
 interface AuthCardProps {

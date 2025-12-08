@@ -6,8 +6,8 @@
  */
 
 import { api } from '@/shared/api/client';
-import { getApiErrorMessage } from '@/shared/utils/apiErrorHandler';
-import { logger } from '@/shared/utils/logger';
+import { getApiErrorMessage } from '@/shared/lib/errors/apiErrorHandler';
+import { logger } from '@/shared/lib/logger';
 import type { EinsatzControllerCreateVAlpha200Response, EinsatzControllerFindAllVAlpha200Response, EinsatzDto, EinsatzListItemDto, ResponseError } from '@bluelight-hub/shared/client';
 import { EinsatzDtoStatusEnum } from '@bluelight-hub/shared/client';
 import type { InfiniteData } from '@tanstack/react-query';

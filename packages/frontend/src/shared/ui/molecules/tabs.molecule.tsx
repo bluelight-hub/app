@@ -1,4 +1,4 @@
-import { cn } from '@/shared/utils/cn';
+import { cn } from '@/shared/ui/cn';
 import { Tab, TabGroup, TabList, TabPanel, TabPanels } from '@headlessui/react';
 import type { ReactNode } from 'react';
 

@@ -1,4 +1,4 @@
-import { cn } from '@/shared/utils/cn';
+import { cn } from '@/shared/ui/cn';
 import { IconButton } from '../atoms/icon-button.atom';
 import type { InputProps } from '../atoms/input.atom';
 import { Input } from '../atoms/input.atom';

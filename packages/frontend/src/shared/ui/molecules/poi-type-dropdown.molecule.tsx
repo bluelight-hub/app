@@ -1,4 +1,4 @@
-import { cn } from '@/shared/utils/cn';
+import { cn } from '@/shared/ui/cn';
 import type { PoiType } from '@/features/lagekarte/utils';
 import { PoiTypeButton } from '../atoms/poi-type-button.atom';
 import { Menu, MenuButton, MenuItem, MenuItems } from '@headlessui/react';

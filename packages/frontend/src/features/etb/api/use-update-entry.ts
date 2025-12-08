@@ -5,8 +5,8 @@
  */
 
 import { api } from '@/shared/api/client';
-import { getApiErrorMessage } from '@/shared/utils/apiErrorHandler';
-import { logger } from '@/shared/utils/logger';
+import { getApiErrorMessage } from '@/shared/lib/errors/apiErrorHandler';
+import { logger } from '@/shared/lib/logger';
 import type { EintragDto, ResponseError, UpdateEintragDto } from '@bluelight-hub/shared/client';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';

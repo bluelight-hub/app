@@ -2,7 +2,7 @@ import { api } from '@/shared/api/client';
 import { EINSATZ_QUERY_KEYS } from '../api';
 import { type Einsatz, einsatzStore, useEinsatzStore } from '../stores/active-einsatz.store';
 import { clearActiveEinsatz as clearPersistedEinsatz, loadActiveEinsatzId, rehydrateActiveEinsatz } from '../stores/persistence/einsatz-persistence';
-import { logger } from '@/shared/utils/logger';
+import { logger } from '@/shared/lib/logger';
 import type { ResponseError } from '@bluelight-hub/shared/client';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { milliseconds } from 'date-fns';

@@ -1,5 +1,5 @@
 import type { ColorMode, UseColorModeReturn } from '@/shared/ui/headless/color-mode';
-import { logger } from '@/shared/utils/logger';
+import { logger } from '@/shared/lib/logger';
 import { useTheme } from 'next-themes';
 
 /**

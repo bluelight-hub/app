@@ -18,8 +18,9 @@
  * // Hooks
  * import { useColorMode, useConfirm } from '@/shared/hooks';
  *
- * // Utils
- * import { cn, logger, getApiErrorMessage } from '@/shared/utils';
+ * // Utils & Library Functions
+ * import { cn, logger, getApiErrorMessage, formatNatoDateTime } from '@/shared/lib';
+ * import { getCurrentBackgroundImage } from '@/shared/ui';
  *
  * // API
  * import { api } from '@/shared/api/client';
@@ -32,8 +33,8 @@ export * from './ui';
 // Hooks
 export * from './hooks';
 
-// Utilities
-export * from './utils';
+// Library Utilities
+export * from './lib';
 
 // API Client
 export * from './api/client';

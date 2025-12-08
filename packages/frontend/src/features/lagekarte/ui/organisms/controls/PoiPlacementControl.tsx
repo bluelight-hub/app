@@ -1,4 +1,4 @@
-import { cn } from '@/shared/utils/cn';
+import { cn } from '@/shared/ui/cn';
 import { formatPoiTypeLabel } from '@/features/lagekarte/utils';
 import { POI_ICON_MAP, type PoiCategory, type PoiType } from '@/features/lagekarte/utils';
 import { Button } from '@/shared/ui/atoms/button.atom';
