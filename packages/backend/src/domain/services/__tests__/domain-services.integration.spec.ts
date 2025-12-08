@@ -74,7 +74,7 @@ jest.mock('@paralleldrive/cuid2', () => ({
   }
 
   describe('Service Composition: Naming + Completeness + Archival', () => {
-    it('should validate Einsatz lifecycle (naming → completion → archival)', () => {
+    it('should validate Einsatz lifecycle (naming → completion → archival → deletion)', () => {
       // GIVEN: Services initialized
       // (already done in beforeEach)
 
@@ -103,20 +103,30 @@ jest.mock('@paralleldrive/cuid2', () => ({
       // THEN: Status is ABGESCHLOSSEN
       expect(einsatz.status.equals(EinsatzStatus.ABGESCHLOSSEN())).toBe(true);
 
-      // WHEN: Check archival eligibility (current date)
-      const currentDate = new Date();
-      const canArchiveNow = archivalPolicy.canBeArchived(einsatz, currentDate);
+      // WHEN: Check archival eligibility (immediately after completion)
+      const canArchiveNow = archivalPolicy.canBeArchived(einsatz);
 
-      // THEN: Cannot archive yet (not 10 years old)
-      expect(canArchiveNow).toBe(false);
+      // THEN: Can archive immediately after ABGESCHLOSSEN (no 10-year wait)
+      expect(canArchiveNow).toBe(true);
+
+      // WHEN: Archive the Einsatz
+      const archiveResult = einsatz.archive();
+      expect(archiveResult.isSuccess).toBe(true);
+
+      // THEN: Check deletion eligibility (10 years after archival)
+      const currentDate = new Date();
+      const canDeleteNow = archivalPolicy.canBeDeleted(einsatz, currentDate);
+
+      // THEN: Cannot delete yet (not 10 years in archive)
+      expect(canDeleteNow).toBe(false);
 
       // WHEN: Fast-forward 10 years (simulated)
-      const tenYearsLater = new Date(einsatz.abgeschlossenAt!);
+      const tenYearsLater = new Date(einsatz.archivedAt!);
       tenYearsLater.setFullYear(tenYearsLater.getFullYear() + 10);
-      const canArchiveLater = archivalPolicy.canBeArchived(einsatz, tenYearsLater);
+      const canDeleteLater = archivalPolicy.canBeDeleted(einsatz, tenYearsLater);
 
-      // THEN: Can archive after 10 years
-      expect(canArchiveLater).toBe(true);
+      // THEN: Can delete after 10 years in archive
+      expect(canDeleteLater).toBe(true);
     });
 
     it('should generate sequential numbers using NamingService', () => {
@@ -189,21 +199,45 @@ jest.mock('@paralleldrive/cuid2', () => ({
         return einsatz;
       });
 
-      // WHEN: Check archival eligibility for all
-      const archivalEligibility = aggregates.map((einsatz) => archivalPolicy.canBeArchived(einsatz, currentDate));
+      // WHEN: Check archival eligibility for all (all are ABGESCHLOSSEN)
+      const archivalEligibility = aggregates.map((einsatz) => archivalPolicy.canBeArchived(einsatz));
 
-      // THEN: Only 10+ year old Einsätze are archivable
+      // THEN: All ABGESCHLOSSEN Einsätze are immediately archivable (no age requirement)
       expect(archivalEligibility[0]).toBe(true); // 10 years old
-      expect(archivalEligibility[1]).toBe(false); // 9 years old (not yet)
+      expect(archivalEligibility[1]).toBe(true); // 9 years old
       expect(archivalEligibility[2]).toBe(true); // 14 years old
-      expect(archivalEligibility[3]).toBe(false); // 5 years old
+      expect(archivalEligibility[3]).toBe(true); // 5 years old
       expect(archivalEligibility[4]).toBe(true); // 20 years old
 
-      // WHEN: Filter archivable Einsätze
-      const archivableEinsaetze = aggregates.filter((einsatz) => archivalPolicy.canBeArchived(einsatz, currentDate));
+      // WHEN: Archive all Einsätze and check deletion eligibility
+      for (const einsatz of aggregates) {
+        einsatz.archive();
+      }
 
-      // THEN: Should have 3 archivable Einsätze (10, 14, 20 years old)
-      expect(archivableEinsaetze.length).toBe(3);
+      // Manually set archivedAt to simulate age in archive (same as abgeschlossenAt for this test)
+      aggregates.forEach((einsatz, index) => {
+        const yearsOld = einsaetze[index].yearsOld;
+        const archivedAt = new Date(currentDate);
+        archivedAt.setFullYear(archivedAt.getFullYear() - yearsOld);
+        // biome-ignore lint/suspicious/noExplicitAny: Test bypasses factory for date simulation
+        (einsatz as any)._archivedAt = archivedAt;
+      });
+
+      // WHEN: Check deletion eligibility
+      const deletionEligibility = aggregates.map((einsatz) => archivalPolicy.canBeDeleted(einsatz, currentDate));
+
+      // THEN: Only 10+ year old archived Einsätze are deletable
+      expect(deletionEligibility[0]).toBe(true); // 10 years in archive
+      expect(deletionEligibility[1]).toBe(false); // 9 years in archive (not yet)
+      expect(deletionEligibility[2]).toBe(true); // 14 years in archive
+      expect(deletionEligibility[3]).toBe(false); // 5 years in archive
+      expect(deletionEligibility[4]).toBe(true); // 20 years in archive
+
+      // WHEN: Filter deletable Einsätze
+      const deletableEinsaetze = aggregates.filter((einsatz) => archivalPolicy.canBeDeleted(einsatz, currentDate));
+
+      // THEN: Should have 3 deletable Einsätze (10, 14, 20 years in archive)
+      expect(deletableEinsaetze.length).toBe(3);
     });
 
     it('should block archival if Einsatz is incomplete', () => {
@@ -226,12 +260,10 @@ jest.mock('@paralleldrive/cuid2', () => ({
       // THEN: Aggregate allows completion (no internal validation)
       expect(completeResult.isSuccess).toBe(true);
 
-      // WHEN: Check archival eligibility 10 years later
-      const tenYearsLater = new Date(incompleteEinsatz.abgeschlossenAt!);
-      tenYearsLater.setFullYear(tenYearsLater.getFullYear() + 10);
-      const canArchive = archivalPolicy.canBeArchived(incompleteEinsatz, tenYearsLater);
+      // WHEN: Check archival eligibility (status is ABGESCHLOSSEN)
+      const canArchive = archivalPolicy.canBeArchived(incompleteEinsatz);
 
-      // THEN: Archival policy ONLY checks status + date (NOT completeness)
+      // THEN: Archival policy ONLY checks status (NOT completeness or age)
       expect(canArchive).toBe(true); // Policy doesn't validate completeness
 
       // NOTE: Application Layer should combine completeness + archival checks
@@ -280,16 +312,16 @@ jest.mock('@paralleldrive/cuid2', () => ({
       (archiviert as any)._abgeschlossenAt = completedAt;
       archiviert.archive(); // Already archived
 
-      // WHEN: Check archival eligibility
-      const canArchiveAngelegt = archivalPolicy.canBeArchived(angelegt, currentDate);
-      const canArchiveInBearbeitung = archivalPolicy.canBeArchived(inBearbeitung, currentDate);
-      const canArchiveAbgeschlossen = archivalPolicy.canBeArchived(abgeschlossen, currentDate);
-      const canArchiveArchiviert = archivalPolicy.canBeArchived(archiviert, currentDate);
+      // WHEN: Check archival eligibility (only status matters, not age)
+      const canArchiveAngelegt = archivalPolicy.canBeArchived(angelegt);
+      const canArchiveInBearbeitung = archivalPolicy.canBeArchived(inBearbeitung);
+      const canArchiveAbgeschlossen = archivalPolicy.canBeArchived(abgeschlossen);
+      const canArchiveArchiviert = archivalPolicy.canBeArchived(archiviert);
 
-      // THEN: Only ABGESCHLOSSEN Einsatz is archivable
+      // THEN: Only ABGESCHLOSSEN Einsatz is archivable (age irrelevant)
       expect(canArchiveAngelegt).toBe(false); // Wrong status
       expect(canArchiveInBearbeitung).toBe(false); // Wrong status
-      expect(canArchiveAbgeschlossen).toBe(true); // Correct status + 10 years old
+      expect(canArchiveAbgeschlossen).toBe(true); // Correct status (ABGESCHLOSSEN)
       expect(canArchiveArchiviert).toBe(false); // Already archived
     });
 
@@ -317,11 +349,10 @@ jest.mock('@paralleldrive/cuid2', () => ({
       expect(einsatz.status.equals(EinsatzStatus.ABGESCHLOSSEN())).toBe(true);
       expect(einsatz.abgeschlossenAt).toBeDefined();
 
-      // WHEN: Step 4 - Fast-forward 10 years
-      const tenYearsLater = archivalPolicy.getArchivalDate(einsatz);
-      const canArchive = archivalPolicy.canBeArchived(einsatz, tenYearsLater);
+      // WHEN: Step 4 - Check if archival is allowed (immediately after ABGESCHLOSSEN)
+      const canArchive = archivalPolicy.canBeArchived(einsatz);
 
-      // THEN: Archival is allowed
+      // THEN: Archival is allowed immediately
       expect(canArchive).toBe(true);
 
       // WHEN: Step 5 - Archive Einsatz
@@ -333,8 +364,15 @@ jest.mock('@paralleldrive/cuid2', () => ({
       expect(einsatz.archivedAt).toBeDefined();
 
       // THEN: Cannot archive again (already archived)
-      const cannotArchiveAgain = archivalPolicy.canBeArchived(einsatz, tenYearsLater);
+      const cannotArchiveAgain = archivalPolicy.canBeArchived(einsatz);
       expect(cannotArchiveAgain).toBe(false);
+
+      // WHEN: Step 6 - Check deletion eligibility (10 years after archival)
+      const tenYearsLater = archivalPolicy.getDeletionDate(einsatz);
+      const canDelete = archivalPolicy.canBeDeleted(einsatz, tenYearsLater);
+
+      // THEN: Deletion is allowed after 10 years in archive
+      expect(canDelete).toBe(true);
     });
   });
 });

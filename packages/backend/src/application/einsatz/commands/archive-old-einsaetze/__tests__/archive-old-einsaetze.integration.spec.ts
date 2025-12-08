@@ -5,7 +5,7 @@ import { ArchiveOldEinsaetzeCommand } from '../archive-old-einsaetze.command';
 import { PrismaEinsatzRepository } from '@infrastructure/einsatz/repositories/prisma-einsatz.repository';
 import { PrismaOutboxRepository } from '@infrastructure/outbox/prisma-outbox.repository';
 import { EventSerializer } from '@infrastructure/outbox/event-serializer';
-import { EINSATZ_REPOSITORY } from '@infrastructure/di-tokens';
+import { EINSATZ_REPOSITORY, OUTBOX_REPOSITORY } from '@infrastructure/di-tokens';
 import { EinsatzStatus } from '@prisma/client';
 
 const databaseAvailable = !!process.env.DATABASE_URL;
@@ -39,6 +39,10 @@ const databaseAvailable = !!process.env.DATABASE_URL;
         {
           provide: EINSATZ_REPOSITORY,
           useClass: PrismaEinsatzRepository,
+        },
+        {
+          provide: OUTBOX_REPOSITORY,
+          useClass: PrismaOutboxRepository,
         },
       ],
     }).compile();

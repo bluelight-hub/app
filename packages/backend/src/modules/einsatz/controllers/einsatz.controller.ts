@@ -194,10 +194,18 @@ export class EinsatzController {
   @ApiNotFoundResponse({ description: 'Einsatz nicht gefunden' })
   @ApiBadRequestResponse({ description: 'Ungültige Einsatz-ID' })
   async getEinsatzDetails(@Param('id') id: string): Promise<EinsatzDetailsDto> {
-    const result = await this.queryBus.execute(new GetEinsatzDetailsQuery(id));
-    if (result.isFailure) throw new NotFoundException(result.error);
-    if (!result.value) throw new NotFoundException(`Einsatz mit ID ${id} nicht gefunden`);
-    return result.value;
+    try {
+      const result = await this.queryBus.execute(new GetEinsatzDetailsQuery(id));
+      if (result.isFailure) throw new NotFoundException(result.error);
+      if (!result.value) throw new NotFoundException(`Einsatz mit ID ${id} nicht gefunden`);
+      return result.value;
+    } catch (error) {
+      // CUID validation errors should return 400 Bad Request
+      if (error instanceof Error && error.message.includes('CUID2 format')) {
+        throw new BadRequestException(error.message);
+      }
+      throw error;
+    }
   }
 
   /**

@@ -6,18 +6,18 @@
  * 2. findById() - Einsatz laden mit Result Pattern
  * 3. findActive() - Gefilterte Liste ohne ARCHIVIERT
  * 4. exists() - Efficient Existenz-Check
- * 5. Transactional Outbox - Domain Events in outbox_events Tabelle
+ * 5. Transaction Support - Internal und External Transactions
  *
  * **Test Strategy:**
  * - Real PostgreSQL Database (NICHT mocked, NICHT in-memory)
  * - Given-When-Then BDD Style für maximale Lesbarkeit
  * - Cleanup mit Triggers disabled (SET session_replication_role = replica)
  * - Test User in beforeAll() erstellt
- * - afterEach() cleanup in reverse FK order (Outbox → Einsatz → User)
+ * - afterEach() cleanup in reverse FK order (Einsatz → User)
  *
  * **AC Coverage:**
  * - AC1: Repository implements IEinsatzRepository Interface
- * - AC2: save() creates/updates Einsatz with Transactional Outbox
+ * - AC2: save() creates/updates Einsatz (Repository does NOT persist events - Application Layer responsibility)
  * - AC3: findById() and findActive() return correct aggregates
  * - AC4: exists() returns correct boolean
  * - AC5: Transaction support (internal and external tx parameter)
@@ -45,8 +45,6 @@ jest.mock('@paralleldrive/cuid2', () => ({
 
 import { PrismaClient } from '@prisma/client';
 import { PrismaEinsatzRepository } from '../prisma-einsatz.repository';
-import { PrismaOutboxRepository } from '@/infrastructure/outbox/prisma-outbox.repository';
-import { EventSerializer } from '@/infrastructure/outbox/event-serializer';
 import { Einsatz } from '@domain/aggregates/einsatz.aggregate';
 import { EinsatzId } from '@domain/value-objects/einsatz-id';
 import { UserId } from '@domain/value-objects/user-id';
@@ -104,7 +102,6 @@ describe('PrismaEinsatzRepository - Integration Tests', () => {
     await prisma.$executeRawUnsafe('SET session_replication_role = replica;');
     try {
       // Cleanup from previous failed test runs (last 1 hour)
-      await prisma.$executeRawUnsafe('DELETE FROM outbox_events WHERE "aggregateId" IN (SELECT id FROM einsaetze WHERE "createdAt" >= NOW() - INTERVAL \'1 hour\')');
       await prisma.$executeRawUnsafe('DELETE FROM einsaetze WHERE "createdAt" >= NOW() - INTERVAL \'1 hour\'');
       await prisma.$executeRawUnsafe(`DELETE FROM "User" WHERE username LIKE 'test-einsatz-repo-%'`);
     } finally {
@@ -112,10 +109,13 @@ describe('PrismaEinsatzRepository - Integration Tests', () => {
     }
 
     // Create test user for createdBy/updatedBy references
+    // NOTE: Generate real CUID2 for test user (Jest mock doesn't work reliably with ESM)
+    const { createId } = await import('@paralleldrive/cuid2');
+    const testUserCuid = createId();
     const userResult = await prisma.$queryRaw<{ id: string }[]>`
       INSERT INTO "User" (id, username, "passwordHash", role, "isActive", "createdAt", "updatedAt")
       VALUES (
-        ${generateNanoidTestId()},
+        ${testUserCuid},
         ${`test-einsatz-repo-user-${testRunId}`},
         'dummy-hash',
         'USER',
@@ -129,29 +129,20 @@ describe('PrismaEinsatzRepository - Integration Tests', () => {
 
     // Initialize Repository (mock PrismaService mit echtem PrismaClient)
     const prismaService = prisma as unknown as PrismaService;
-    const eventSerializer = new EventSerializer();
-    const outboxRepository = new PrismaOutboxRepository(prismaService, eventSerializer);
-    repository = new PrismaEinsatzRepository(prismaService, outboxRepository);
+    repository = new PrismaEinsatzRepository(prismaService);
   });
 
   /**
-   * Cleanup nach jedem Test: Entfernt Outbox Events + Test-Einsätze (nicht User).
+   * Cleanup nach jedem Test: Entfernt Test-Einsätze (nicht User).
    *
    * **Reihenfolge ist wichtig (FK Constraints):**
-   * 1. OutboxEvent (FK zu Einsatz via aggregateId)
-   * 2. Einsatz (FK zu User)
+   * 1. Einsatz (FK zu User)
    */
   afterEach(async () => {
     if (!databaseAvailable) return;
     await prisma.$executeRawUnsafe('SET session_replication_role = replica;');
     try {
-      // Delete test Einsatz + Outbox Events
-      await prisma.$executeRawUnsafe(
-        `DELETE FROM outbox_events WHERE "aggregateId" IN (
-          SELECT id FROM einsaetze WHERE "createdBy" = $1
-        )`,
-        testUserId,
-      );
+      // Delete test Einsatz
       await prisma.$executeRawUnsafe('DELETE FROM einsaetze WHERE "createdBy" = $1', testUserId);
     } finally {
       await prisma.$executeRawUnsafe('SET session_replication_role = DEFAULT;');
@@ -162,9 +153,8 @@ describe('PrismaEinsatzRepository - Integration Tests', () => {
    * Teardown: Cleanup aller Test-Daten inkl. Test User.
    *
    * **Reihenfolge:**
-   * 1. OutboxEvent (FK zu Einsatz)
-   * 2. Einsatz (FK zu User)
-   * 3. User (NO CASCADE, delete last)
+   * 1. Einsatz (FK zu User)
+   * 2. User (NO CASCADE, delete last)
    */
   afterAll(async () => {
     if (!databaseAvailable) return;
@@ -174,12 +164,6 @@ describe('PrismaEinsatzRepository - Integration Tests', () => {
         return;
       }
       // Delete test data (FK constraints respected)
-      await prisma.$executeRawUnsafe(
-        `DELETE FROM outbox_events WHERE "aggregateId" IN (
-          SELECT id FROM einsaetze WHERE "createdBy" = $1
-        )`,
-        testUserId,
-      );
       await prisma.$executeRawUnsafe('DELETE FROM einsaetze WHERE "createdBy" = $1', testUserId);
       await prisma.$executeRawUnsafe('DELETE FROM "User" WHERE id = $1', testUserId);
     } finally {
@@ -227,7 +211,9 @@ describe('PrismaEinsatzRepository - Integration Tests', () => {
     it('should create new Einsatz (INSERT operation)', async () => {
       if (!databaseAvailable) return;
       // Given: Fresh aggregate
-      const userId = UserId.create(testUserId).value as UserId;
+      const userIdResult = UserId.create(testUserId);
+      expect(userIdResult.isSuccess).toBe(true);
+      const userId = userIdResult.value as UserId;
       const aggregateResult = Einsatz.create({ alarmstichwort: 'F2Y - Brand', createdBy: userId });
       expect(aggregateResult.isSuccess).toBe(true);
       const aggregate = aggregateResult.value as Einsatz;
@@ -256,7 +242,9 @@ describe('PrismaEinsatzRepository - Integration Tests', () => {
     it('should update existing Einsatz (UPSERT idempotency)', async () => {
       if (!databaseAvailable) return;
       // Given: Aggregate saved once
-      const userId = UserId.create(testUserId).value as UserId;
+      const userIdResult = UserId.create(testUserId);
+      expect(userIdResult.isSuccess).toBe(true);
+      const userId = userIdResult.value as UserId;
       const aggregate = Einsatz.create({ alarmstichwort: 'F1 - VU', createdBy: userId }).value as Einsatz;
 
       await repository.save(aggregate);
@@ -275,45 +263,44 @@ describe('PrismaEinsatzRepository - Integration Tests', () => {
     });
 
     /**
-     * Test 4: save() creates Domain Events in Outbox
+     * Test 4: save() does NOT persist Domain Events (Application Layer Responsibility)
      *
-     * **Business Rule:** Domain Events werden atomar mit Aggregate persistiert
-     * **Pattern:** Transactional Outbox Pattern
+     * **Business Rule:** Repository persistiert NUR das Aggregate, NICHT die Events
+     * **Pattern:** Transactional Outbox Pattern ist Application Layer Responsibility
+     * **Warum:** Repository ist Infrastructure Layer - Event Handling ist Application Layer
      */
-    it('should persist Domain Events to outbox_events table', async () => {
+    it('should NOT persist Domain Events to outbox (Application Layer responsibility)', async () => {
       if (!databaseAvailable) return;
       // Given: Fresh aggregate (EinsatzCreatedEvent is fired)
-      const userId = UserId.create(testUserId).value as UserId;
+      const userIdResult = UserId.create(testUserId);
+      expect(userIdResult.isSuccess).toBe(true);
+      const userId = userIdResult.value as UserId;
       const aggregate = Einsatz.create({ alarmstichwort: 'F3 - Technische Hilfe', createdBy: userId }).value as Einsatz;
 
       // Verify: Aggregate has uncommitted Domain Events
       expect(aggregate.getDomainEvents().length).toBeGreaterThan(0);
 
       // When: Save aggregate
-      await repository.save(aggregate);
+      const saveResult = await repository.save(aggregate);
 
-      // Then: Outbox Events in database
-      const outboxEvents = await prisma.outboxEvent.findMany({
-        where: { aggregateId: aggregate.id.value },
-      });
-      expect(outboxEvents.length).toBeGreaterThan(0);
-
-      // Verify: Event type is correct
-      const event = outboxEvents[0];
-      expect(event.eventName).toBe('einsatz.created');
-      expect(event.status).toBe('PENDING');
+      // Then: Save successful, but Domain Events remain in aggregate (NOT persisted)
+      expect(saveResult.isSuccess).toBe(true);
+      expect(aggregate.getDomainEvents().length).toBeGreaterThan(0);
     });
 
     /**
-     * Test 5: save() clears Domain Events after persist
+     * Test 5: save() does NOT clear Domain Events (Application Layer Responsibility)
      *
-     * **Business Rule:** Domain Events dürfen nicht doppelt persistiert werden
-     * **Pattern:** Clear after Commit
+     * **Business Rule:** Repository darf Domain Events NICHT clearen
+     * **Pattern:** Application Layer extrahiert Events NACH save() und cleared sie
+     * **Warum:** Command Handler braucht Events für Outbox - Repository darf sie nicht löschen
      */
-    it('should clear Domain Events after successful save', async () => {
+    it('should NOT clear Domain Events after save (Application Layer responsibility)', async () => {
       if (!databaseAvailable) return;
       // Given: Aggregate with uncommitted events
-      const userId = UserId.create(testUserId).value as UserId;
+      const userIdResult = UserId.create(testUserId);
+      expect(userIdResult.isSuccess).toBe(true);
+      const userId = userIdResult.value as UserId;
       const aggregate = Einsatz.create({ alarmstichwort: 'F1 - Rauchentwicklung', createdBy: userId }).value as Einsatz;
 
       expect(aggregate.getDomainEvents().length).toBeGreaterThan(0);
@@ -321,8 +308,8 @@ describe('PrismaEinsatzRepository - Integration Tests', () => {
       // When: Save aggregate
       await repository.save(aggregate);
 
-      // Then: Domain Events cleared
-      expect(aggregate.getDomainEvents().length).toBe(0);
+      // Then: Domain Events NOT cleared (Command Handler does this after extracting events)
+      expect(aggregate.getDomainEvents().length).toBeGreaterThan(0);
     });
 
     /**
@@ -334,11 +321,16 @@ describe('PrismaEinsatzRepository - Integration Tests', () => {
     it('should rollback on error (atomic transaction)', async () => {
       if (!databaseAvailable) return;
       // Given: Aggregate with invalid FK (non-existent user)
-      const fakeUserId = UserId.create(generateNanoidTestId()).value as UserId;
+      // Generate real CUID2 for non-existent user (Jest mock doesn't work reliably)
+      const { createId } = await import('@paralleldrive/cuid2');
+      const fakeUserIdResult = UserId.create(createId());
+      expect(fakeUserIdResult.isSuccess).toBe(true);
+      const fakeUserId = fakeUserIdResult.value as UserId;
       const aggregate = Einsatz.create({ alarmstichwort: 'F1 - Test', createdBy: fakeUserId }).value as Einsatz;
 
-      // When/Then: Save with non-existent user FK throws exception
-      await expect(repository.save(aggregate)).rejects.toThrow();
+      // When/Then: Save with non-existent user FK returns failure
+      const saveResult = await repository.save(aggregate);
+      expect(saveResult.isFailure).toBe(true);
 
       // And: No partial data in DB (transaction rolled back)
       const einsatzCount = await prisma.einsatz.count({ where: { id: aggregate.id.value } });
@@ -360,7 +352,9 @@ describe('PrismaEinsatzRepository - Integration Tests', () => {
     it('should return aggregate with correct data', async () => {
       if (!databaseAvailable) return;
       // Given: Saved aggregate
-      const userId = UserId.create(testUserId).value as UserId;
+      const userIdResult = UserId.create(testUserId);
+      expect(userIdResult.isSuccess).toBe(true);
+      const userId = userIdResult.value as UserId;
       const aggregate = Einsatz.create({ alarmstichwort: 'F2Y - Wohnungsbrand', createdBy: userId }).value as Einsatz;
 
       await repository.save(aggregate);
@@ -404,7 +398,9 @@ describe('PrismaEinsatzRepository - Integration Tests', () => {
     it('should return only active (non-archived) Einsätze', async () => {
       if (!databaseAvailable) return;
       // Given: 2 aktive Einsätze + 1 archivierter
-      const userId = UserId.create(testUserId).value as UserId;
+      const userIdResult = UserId.create(testUserId);
+      expect(userIdResult.isSuccess).toBe(true);
+      const userId = userIdResult.value as UserId;
       const einsatz1 = Einsatz.create({ alarmstichwort: 'F1 - Aktiv 1', createdBy: userId }).value as Einsatz;
       const einsatz2 = Einsatz.create({ alarmstichwort: 'F1 - Aktiv 2', createdBy: userId }).value as Einsatz;
       const einsatz3 = Einsatz.create({ alarmstichwort: 'F1 - Archiviert', createdBy: userId }).value as Einsatz;
@@ -459,7 +455,9 @@ describe('PrismaEinsatzRepository - Integration Tests', () => {
     it('should return true for existing Einsatz', async () => {
       if (!databaseAvailable) return;
       // Given: Saved aggregate
-      const userId = UserId.create(testUserId).value as UserId;
+      const userIdResult = UserId.create(testUserId);
+      expect(userIdResult.isSuccess).toBe(true);
+      const userId = userIdResult.value as UserId;
       const aggregate = Einsatz.create({ alarmstichwort: 'F1 - Exists Test', createdBy: userId }).value as Einsatz;
       await repository.save(aggregate);
 
@@ -502,7 +500,9 @@ describe('PrismaEinsatzRepository - Integration Tests', () => {
     it('should support external transaction (tx parameter)', async () => {
       if (!databaseAvailable) return;
       // Given: Aggregate to save
-      const userId = UserId.create(testUserId).value as UserId;
+      const userIdResult = UserId.create(testUserId);
+      expect(userIdResult.isSuccess).toBe(true);
+      const userId = userIdResult.value as UserId;
       const aggregate = Einsatz.create({ alarmstichwort: 'F1 - TX Test', createdBy: userId }).value as Einsatz;
 
       // When: Save using external transaction
@@ -524,7 +524,9 @@ describe('PrismaEinsatzRepository - Integration Tests', () => {
     it('should use internal transaction when tx not provided', async () => {
       if (!databaseAvailable) return;
       // Given: Aggregate to save
-      const userId = UserId.create(testUserId).value as UserId;
+      const userIdResult = UserId.create(testUserId);
+      expect(userIdResult.isSuccess).toBe(true);
+      const userId = userIdResult.value as UserId;
       const aggregate = Einsatz.create({ alarmstichwort: 'F1 - Internal TX', createdBy: userId }).value as Einsatz;
 
       // When: Save without tx parameter (uses internal transaction)
@@ -550,7 +552,9 @@ describe('PrismaEinsatzRepository - Integration Tests', () => {
     it('should preserve Aggregate data in save + findById round-trip', async () => {
       if (!databaseAvailable) return;
       // Given: Aggregate with all fields populated
-      const userId = UserId.create(testUserId).value as UserId;
+      const userIdResult = UserId.create(testUserId);
+      expect(userIdResult.isSuccess).toBe(true);
+      const userId = userIdResult.value as UserId;
       const aggregate = Einsatz.create({ alarmstichwort: 'F2Y - Brand mit äöü ß € Sonderzeichen', createdBy: userId }).value as Einsatz;
 
       // Set optional fields

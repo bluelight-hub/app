@@ -1,6 +1,7 @@
 import { ArchiveOldEinsaetzeHandler } from '../archive-old-einsaetze.handler';
 import { ArchiveOldEinsaetzeCommand } from '../archive-old-einsaetze.command';
 import type { IEinsatzRepository } from '@domain/repositories';
+import type { IOutboxRepository } from '@domain/repositories/i-outbox.repository';
 import { Result } from '@domain/common/result';
 import { Einsatz } from '@domain/aggregates/einsatz.aggregate';
 import { UserId } from '@domain/value-objects/user-id';
@@ -56,6 +57,7 @@ function createMockEinsaetze(count: number, abgeschlossenYearsAgo?: number): Ein
 describe('ArchiveOldEinsaetzeHandler', () => {
   let handler: ArchiveOldEinsaetzeHandler;
   let mockEinsatzRepository: jest.Mocked<IEinsatzRepository>;
+  let mockOutboxRepository: jest.Mocked<IOutboxRepository>;
 
   beforeEach(() => {
     jest.clearAllMocks();
@@ -72,7 +74,12 @@ describe('ArchiveOldEinsaetzeHandler', () => {
       // biome-ignore lint/suspicious/noExplicitAny: Mock repository needs flexible typing
     } as any;
 
-    handler = new ArchiveOldEinsaetzeHandler(mockEinsatzRepository);
+    mockOutboxRepository = {
+      save: jest.fn().mockResolvedValue(undefined),
+      // biome-ignore lint/suspicious/noExplicitAny: Mock repository needs flexible typing
+    } as any;
+
+    handler = new ArchiveOldEinsaetzeHandler(mockEinsatzRepository, mockOutboxRepository);
   });
 
   describe('dry-run mode', () => {

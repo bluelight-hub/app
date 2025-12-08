@@ -1,5 +1,6 @@
 module.exports = {
   testEnvironment: 'node',
+  setupFilesAfterEnv: ['<rootDir>/jest.setup.ts'],
   roots: ['<rootDir>/src', '<rootDir>/test'],
   // Limit parallelism to prevent DB connection pool exhaustion
   maxWorkers: 1, // Serial execution for DB-heavy integration tests

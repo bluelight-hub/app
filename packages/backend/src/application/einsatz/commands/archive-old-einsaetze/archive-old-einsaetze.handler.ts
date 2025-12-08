@@ -1,8 +1,9 @@
 import { Injectable, Logger, Inject } from '@nestjs/common';
 import { Result } from '@domain/common/result';
 import type { IEinsatzRepository } from '@domain/repositories';
+import type { IOutboxRepository } from '@domain/repositories/i-outbox.repository';
 import { UserId } from '@domain/value-objects/user-id';
-import { EINSATZ_REPOSITORY } from '@infrastructure/di-tokens';
+import { EINSATZ_REPOSITORY, OUTBOX_REPOSITORY } from '@infrastructure/di-tokens';
 import type { ArchiveOldEinsaetzeCommand } from './archive-old-einsaetze.command';
 import type { BulkArchiveResult } from './bulk-archive-result';
 import type { Einsatz } from '@domain/aggregates/einsatz.aggregate';
@@ -27,6 +28,8 @@ export class ArchiveOldEinsaetzeHandler {
   constructor(
     @Inject(EINSATZ_REPOSITORY)
     private readonly einsatzRepository: IEinsatzRepository,
+    @Inject(OUTBOX_REPOSITORY)
+    private readonly outboxRepository: IOutboxRepository,
   ) {}
 
   /**
@@ -115,7 +118,7 @@ export class ArchiveOldEinsaetzeHandler {
         return;
       }
 
-      // 2. Save aggregate (with events via outbox)
+      // 2. Save aggregate
       const saveResult = await this.einsatzRepository.save(einsatz);
       if (saveResult.isFailure) {
         result.failed.push({
@@ -123,6 +126,12 @@ export class ArchiveOldEinsaetzeHandler {
           error: saveResult.error ?? 'Save failed',
         });
         return;
+      }
+
+      // 3. Extract and save domain events to outbox
+      const events = einsatz.getDomainEvents();
+      if (events.length > 0) {
+        await this.outboxRepository.save(events);
       }
 
       result.archived++;

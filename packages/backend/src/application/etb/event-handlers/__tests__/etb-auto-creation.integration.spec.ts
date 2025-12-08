@@ -598,8 +598,9 @@ describe('EtbAutoCreationHandler - Integration Tests (AC6)', () => {
       // When: Event emittieren - erstes Mal
       await eventEmitter.emitAsync(EVENT_NAMES.EINSATZ.CREATED, event);
 
-      // Then: Zweites Event sollte NICHT werfen (Fire-and-Forget)
-      await expect(eventEmitter.emitAsync(EVENT_NAMES.EINSATZ.CREATED, event)).resolves.not.toThrow();
+      // Then: Zweites Event sollte erfolgreich durchlaufen (Fire-and-Forget)
+      // Fire-and-Forget bedeutet: Promise resolves zu void, keine Exception
+      await eventEmitter.emitAsync(EVENT_NAMES.EINSATZ.CREATED, event);
 
       // Verify: Nur ein ETB existiert
       const etbCount = await prisma.einsatztagebuch.count({
@@ -779,10 +780,11 @@ describe('EtbAutoCreationHandler - Integration Tests (AC6)', () => {
       const userId = UserId.create(testUserId).value!;
       const event = new EinsatzCreatedEvent(nonExistentEinsatzId, userId, 'TEST', `E${testRunId}-nonexistent`, nonExistentEinsatzId.value);
 
-      // When/Then: Event emittieren sollte NICHT werfen
-      await expect(eventEmitter.emitAsync(EVENT_NAMES.EINSATZ.CREATED, event)).resolves.not.toThrow();
+      // When: Event emittieren sollte erfolgreich durchlaufen (Fire-and-Forget)
+      // Fire-and-Forget bedeutet: Promise resolves zu void, keine Exception
+      await eventEmitter.emitAsync(EVENT_NAMES.EINSATZ.CREATED, event);
 
-      // Verify: Kein ETB wurde erstellt
+      // Then: Kein ETB wurde erstellt (wegen Validierungsfehler im Handler)
       const etbCount = await prisma.einsatztagebuch.count({
         where: { einsatzId: nonExistentEinsatzId.value },
       });

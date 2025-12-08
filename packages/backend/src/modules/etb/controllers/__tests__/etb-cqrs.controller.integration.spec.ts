@@ -30,6 +30,7 @@ import { EtbCqrsController } from '@/modules/etb/controllers/etb-cqrs.controller
 import { Result } from '@/domain/common/result';
 import type { ValidatedUser } from '@/modules/auth/strategies/jwt.strategy';
 import type { AddEintragDto, UpdateEintragDto, EtbDto, EintragDto, EtbSnapshotDto } from '@/application/etb/dto';
+import { EtbKategorie } from '@/domain/value-objects/etb-kategorie';
 
 const databaseAvailable = !!process.env.DATABASE_URL;
 
@@ -117,8 +118,14 @@ function createTestSnapshotDto(options: Partial<EtbSnapshotDto> = {}): EtbSnapsh
 
 (databaseAvailable ? describe : describe.skip)('EtbCqrsController Integration Tests (Story 3-7)', () => {
   let controller: EtbCqrsController;
-  let mockCommandBus: jest.Mocked<CommandBus>;
-  let mockQueryBus: jest.Mocked<QueryBus>;
+  let mockAddEintragHandler: jest.Mocked<any>;
+  let mockUpdateEintragHandler: jest.Mocked<any>;
+  let mockDeleteEintragHandler: jest.Mocked<any>;
+  let mockLockEtbHandler: jest.Mocked<any>;
+  let mockGetEtbQueryHandler: jest.Mocked<any>;
+  let mockGetEtbHistoryQueryHandler: jest.Mocked<any>;
+  let mockGetTextbausteineHandler: jest.Mocked<any>;
+  let mockEtbRepository: jest.Mocked<any>;
 
   const adminUser: ValidatedUser = {
     userId: createTestCuid('admin'),
@@ -133,19 +140,52 @@ function createTestSnapshotDto(options: Partial<EtbSnapshotDto> = {}): EtbSnapsh
   };
 
   beforeEach(() => {
-    // Create mock buses
-    mockCommandBus = {
+    // Create mock handlers
+    mockAddEintragHandler = {
       execute: jest.fn(),
-      // biome-ignore lint/suspicious/noExplicitAny: Test mock typing
-    } as any;
+    };
 
-    mockQueryBus = {
+    mockUpdateEintragHandler = {
       execute: jest.fn(),
-      // biome-ignore lint/suspicious/noExplicitAny: Test mock typing
-    } as any;
+    };
+
+    mockDeleteEintragHandler = {
+      execute: jest.fn(),
+    };
+
+    mockLockEtbHandler = {
+      execute: jest.fn(),
+    };
+
+    mockGetEtbQueryHandler = {
+      execute: jest.fn(),
+    };
+
+    mockGetEtbHistoryQueryHandler = {
+      execute: jest.fn(),
+    };
+
+    mockGetTextbausteineHandler = {
+      execute: jest.fn(),
+    };
+
+    mockEtbRepository = {
+      findById: jest.fn(),
+      findByEinsatzId: jest.fn(),
+      save: jest.fn(),
+    };
 
     // Instantiate controller with mocks (Direct Instantiation Pattern)
-    controller = new EtbCqrsController(mockCommandBus, mockQueryBus);
+    controller = new EtbCqrsController(
+      mockAddEintragHandler,
+      mockUpdateEintragHandler,
+      mockDeleteEintragHandler,
+      mockLockEtbHandler,
+      mockGetEtbQueryHandler,
+      mockGetEtbHistoryQueryHandler,
+      mockGetTextbausteineHandler,
+      mockEtbRepository,
+    );
   });
 
   afterEach(() => {
@@ -164,13 +204,14 @@ function createTestSnapshotDto(options: Partial<EtbSnapshotDto> = {}): EtbSnapsh
       const mockEintrag = {
         id: { value: createTestCuid('entry') },
         sequenceNumber: { value: 1 },
+        kategorie: EtbKategorie.LAGE(),
         text: 'Fahrzeug W1 am Einsatzort eingetroffen',
         createdBy: { value: adminUser.userId },
         createdAt: new Date(),
         isDeleted: false,
       };
 
-      mockCommandBus.execute.mockResolvedValueOnce(Result.ok(mockEintrag));
+      mockAddEintragHandler.execute.mockResolvedValueOnce(Result.ok(mockEintrag));
 
       // When
       const result = await controller.addEintrag(etbId, dto, adminUser);
@@ -180,7 +221,7 @@ function createTestSnapshotDto(options: Partial<EtbSnapshotDto> = {}): EtbSnapsh
       expect(result.text).toBe('Fahrzeug W1 am Einsatzort eingetroffen');
       expect(result.sequenceNumber).toBe(1);
       expect(result.isDeleted).toBe(false);
-      expect(mockCommandBus.execute).toHaveBeenCalledTimes(1);
+      expect(mockAddEintragHandler.execute).toHaveBeenCalledTimes(1);
     });
 
     it('should throw NotFoundException when ETB does not exist', async () => {
@@ -188,11 +229,11 @@ function createTestSnapshotDto(options: Partial<EtbSnapshotDto> = {}): EtbSnapsh
       const etbId = createTestCuid('etb');
       const dto: AddEintragDto = { text: 'Test' };
 
-      mockCommandBus.execute.mockResolvedValueOnce(Result.fail('ETB nicht gefunden'));
+      mockAddEintragHandler.execute.mockResolvedValueOnce(Result.fail('ETB nicht gefunden'));
 
       // When/Then
       await expect(controller.addEintrag(etbId, dto, adminUser)).rejects.toThrow(NotFoundException);
-      expect(mockCommandBus.execute).toHaveBeenCalledTimes(1);
+      expect(mockAddEintragHandler.execute).toHaveBeenCalledTimes(1);
     });
 
     it('should throw BadRequestException when text is empty', async () => {
@@ -202,7 +243,7 @@ function createTestSnapshotDto(options: Partial<EtbSnapshotDto> = {}): EtbSnapsh
 
       // When/Then - Command.create() returns failure for empty text
       await expect(controller.addEintrag(etbId, dto, adminUser)).rejects.toThrow(BadRequestException);
-      expect(mockCommandBus.execute).not.toHaveBeenCalled();
+      expect(mockAddEintragHandler.execute).not.toHaveBeenCalled();
     });
 
     it('should throw BadRequestException when ETB is locked', async () => {
@@ -210,7 +251,7 @@ function createTestSnapshotDto(options: Partial<EtbSnapshotDto> = {}): EtbSnapsh
       const etbId = createTestCuid('etb');
       const dto: AddEintragDto = { text: 'Test' };
 
-      mockCommandBus.execute.mockResolvedValueOnce(Result.fail('ETB ist gesperrt'));
+      mockAddEintragHandler.execute.mockResolvedValueOnce(Result.fail('ETB ist gesperrt'));
 
       // When/Then
       await expect(controller.addEintrag(etbId, dto, adminUser)).rejects.toThrow(BadRequestException);
@@ -228,18 +269,29 @@ function createTestSnapshotDto(options: Partial<EtbSnapshotDto> = {}): EtbSnapsh
       const eintragId = createTestCuid('entry');
       const dto: UpdateEintragDto = { newText: 'Aktualisierter Text' };
 
-      const updatedEintrag = createTestEintragDto({
-        id: eintragId,
-        text: 'Aktualisierter Text',
-      });
+      // Mock a minimal aggregate that the mapper can work with
+      const mockAggregate = {
+        id: { value: etbId },
+        einsatzId: { value: createTestCuid('einsatz') },
+        status: { value: 'DRAFT' },
+        version: { versionNumber: 1, versionTimestamp: new Date() },
+        eintraege: [
+          {
+            id: { value: eintragId },
+            sequenceNumber: { value: 1 },
+            kategorie: EtbKategorie.LAGE(),
+            text: 'Aktualisierter Text',
+            createdBy: { value: adminUser.userId },
+            createdAt: new Date(),
+            isDeleted: false,
+          },
+        ],
+        createdAt: new Date(),
+        createdBy: { value: adminUser.userId },
+      };
 
-      const etbDto = createTestEtbDto({
-        id: etbId,
-        eintraege: [updatedEintrag],
-      });
-
-      mockCommandBus.execute.mockResolvedValueOnce(Result.ok(undefined));
-      mockQueryBus.execute.mockResolvedValueOnce(Result.ok(etbDto));
+      mockUpdateEintragHandler.execute.mockResolvedValueOnce(Result.ok(undefined));
+      mockEtbRepository.findById.mockResolvedValueOnce(mockAggregate);
 
       // When
       const result = await controller.updateEintrag(etbId, eintragId, dto, adminUser);
@@ -248,8 +300,8 @@ function createTestSnapshotDto(options: Partial<EtbSnapshotDto> = {}): EtbSnapsh
       expect(result).toBeDefined();
       expect(result.id).toBe(eintragId);
       expect(result.text).toBe('Aktualisierter Text');
-      expect(mockCommandBus.execute).toHaveBeenCalledTimes(1);
-      expect(mockQueryBus.execute).toHaveBeenCalledTimes(1);
+      expect(mockUpdateEintragHandler.execute).toHaveBeenCalledTimes(1);
+      expect(mockEtbRepository.findById).toHaveBeenCalledTimes(1);
     });
 
     it('should throw NotFoundException when eintrag does not exist', async () => {
@@ -258,7 +310,7 @@ function createTestSnapshotDto(options: Partial<EtbSnapshotDto> = {}): EtbSnapsh
       const eintragId = createTestCuid('entry');
       const dto: UpdateEintragDto = { newText: 'Test' };
 
-      mockCommandBus.execute.mockResolvedValueOnce(Result.fail('Eintrag nicht gefunden'));
+      mockUpdateEintragHandler.execute.mockResolvedValueOnce(Result.fail('Eintrag nicht gefunden'));
 
       // When/Then
       await expect(controller.updateEintrag(etbId, eintragId, dto, adminUser)).rejects.toThrow(NotFoundException);
@@ -270,7 +322,7 @@ function createTestSnapshotDto(options: Partial<EtbSnapshotDto> = {}): EtbSnapsh
       const eintragId = createTestCuid('entry');
       const dto: UpdateEintragDto = { newText: 'Test' };
 
-      mockCommandBus.execute.mockResolvedValueOnce(Result.fail('ETB ist gesperrt'));
+      mockUpdateEintragHandler.execute.mockResolvedValueOnce(Result.fail('ETB ist gesperrt'));
 
       // When/Then
       await expect(controller.updateEintrag(etbId, eintragId, dto, adminUser)).rejects.toThrow(BadRequestException);
@@ -287,14 +339,14 @@ function createTestSnapshotDto(options: Partial<EtbSnapshotDto> = {}): EtbSnapsh
       const etbId = createTestCuid('etb');
       const eintragId = createTestCuid('entry');
 
-      mockCommandBus.execute.mockResolvedValueOnce(Result.ok(undefined));
+      mockDeleteEintragHandler.execute.mockResolvedValueOnce(Result.ok(undefined));
 
       // When
       const result = await controller.deleteEintrag(etbId, eintragId, adminUser);
 
       // Then
       expect(result).toBeUndefined();
-      expect(mockCommandBus.execute).toHaveBeenCalledTimes(1);
+      expect(mockDeleteEintragHandler.execute).toHaveBeenCalledTimes(1);
     });
 
     it('should throw NotFoundException when eintrag does not exist', async () => {
@@ -302,7 +354,7 @@ function createTestSnapshotDto(options: Partial<EtbSnapshotDto> = {}): EtbSnapsh
       const etbId = createTestCuid('etb');
       const eintragId = createTestCuid('entry');
 
-      mockCommandBus.execute.mockResolvedValueOnce(Result.fail('Eintrag nicht gefunden'));
+      mockDeleteEintragHandler.execute.mockResolvedValueOnce(Result.fail('Eintrag nicht gefunden'));
 
       // When/Then
       await expect(controller.deleteEintrag(etbId, eintragId, adminUser)).rejects.toThrow(NotFoundException);
@@ -313,7 +365,7 @@ function createTestSnapshotDto(options: Partial<EtbSnapshotDto> = {}): EtbSnapsh
       const etbId = createTestCuid('etb');
       const eintragId = createTestCuid('entry');
 
-      mockCommandBus.execute.mockResolvedValueOnce(Result.fail('ETB ist gesperrt'));
+      mockDeleteEintragHandler.execute.mockResolvedValueOnce(Result.fail('ETB ist gesperrt'));
 
       // When/Then
       await expect(controller.deleteEintrag(etbId, eintragId, adminUser)).rejects.toThrow(BadRequestException);
@@ -329,14 +381,14 @@ function createTestSnapshotDto(options: Partial<EtbSnapshotDto> = {}): EtbSnapsh
       // Given
       const etbId = createTestCuid('etb');
 
-      mockCommandBus.execute.mockResolvedValueOnce(Result.ok(undefined));
+      mockLockEtbHandler.execute.mockResolvedValueOnce(Result.ok(undefined));
 
       // When
       const result = await controller.lockEtb(etbId, adminUser);
 
       // Then
       expect(result).toBeUndefined();
-      expect(mockCommandBus.execute).toHaveBeenCalledTimes(1);
+      expect(mockLockEtbHandler.execute).toHaveBeenCalledTimes(1);
     });
 
     it('should lock ETB when user has SUPER_ADMIN role', async () => {
@@ -344,21 +396,21 @@ function createTestSnapshotDto(options: Partial<EtbSnapshotDto> = {}): EtbSnapsh
       const etbId = createTestCuid('etb');
       const superAdmin: ValidatedUser = { ...adminUser, role: 'SUPER_ADMIN' };
 
-      mockCommandBus.execute.mockResolvedValueOnce(Result.ok(undefined));
+      mockLockEtbHandler.execute.mockResolvedValueOnce(Result.ok(undefined));
 
       // When
       const result = await controller.lockEtb(etbId, superAdmin);
 
       // Then
       expect(result).toBeUndefined();
-      expect(mockCommandBus.execute).toHaveBeenCalledTimes(1);
+      expect(mockLockEtbHandler.execute).toHaveBeenCalledTimes(1);
     });
 
     it('should throw BadRequestException when ETB is already locked', async () => {
       // Given
       const etbId = createTestCuid('etb');
 
-      mockCommandBus.execute.mockResolvedValueOnce(Result.fail('ETB ist bereits gesperrt'));
+      mockLockEtbHandler.execute.mockResolvedValueOnce(Result.fail('ETB ist bereits gesperrt'));
 
       // When/Then
       await expect(controller.lockEtb(etbId, adminUser)).rejects.toThrow(BadRequestException);
@@ -368,7 +420,7 @@ function createTestSnapshotDto(options: Partial<EtbSnapshotDto> = {}): EtbSnapsh
       // Given
       const etbId = createTestCuid('etb');
 
-      mockCommandBus.execute.mockResolvedValueOnce(Result.fail('ETB nicht gefunden'));
+      mockLockEtbHandler.execute.mockResolvedValueOnce(Result.fail('ETB nicht gefunden'));
 
       // When/Then
       await expect(controller.lockEtb(etbId, adminUser)).rejects.toThrow(NotFoundException);
@@ -378,7 +430,7 @@ function createTestSnapshotDto(options: Partial<EtbSnapshotDto> = {}): EtbSnapsh
       // Given
       const etbId = createTestCuid('etb');
       // Note: RolesGuard would block this at route level, but we test controller behavior
-      mockCommandBus.execute.mockResolvedValueOnce(Result.fail('Nur ADMIN oder SUPER_ADMIN berechtigt'));
+      mockLockEtbHandler.execute.mockResolvedValueOnce(Result.fail('Nur ADMIN oder SUPER_ADMIN berechtigt'));
 
       // When/Then
       await expect(controller.lockEtb(etbId, regularUser)).rejects.toThrow(BadRequestException);
@@ -398,7 +450,7 @@ function createTestSnapshotDto(options: Partial<EtbSnapshotDto> = {}): EtbSnapsh
         eintraege: [createTestEintragDto({ text: 'Eintrag 1' }), createTestEintragDto({ text: 'Eintrag 2', sequenceNumber: 2 })],
       });
 
-      mockQueryBus.execute.mockResolvedValueOnce(Result.ok(etbDto));
+      mockGetEtbQueryHandler.execute.mockResolvedValueOnce(Result.ok(etbDto));
 
       // When
       const result = await controller.getEtbByEinsatzId(einsatzId);
@@ -407,7 +459,7 @@ function createTestSnapshotDto(options: Partial<EtbSnapshotDto> = {}): EtbSnapsh
       expect(result).toBeDefined();
       expect(result.eintraege).toHaveLength(2);
       expect(result.eintraege[0].text).toBe('Eintrag 1');
-      expect(mockQueryBus.execute).toHaveBeenCalledTimes(1);
+      expect(mockGetEtbQueryHandler.execute).toHaveBeenCalledTimes(1);
     });
 
     it('should exclude soft-deleted eintraege by default (includeDeleted=false)', async () => {
@@ -418,7 +470,7 @@ function createTestSnapshotDto(options: Partial<EtbSnapshotDto> = {}): EtbSnapsh
         eintraege: [createTestEintragDto({ text: 'Active Entry' })],
       });
 
-      mockQueryBus.execute.mockResolvedValueOnce(Result.ok(etbDto));
+      mockGetEtbQueryHandler.execute.mockResolvedValueOnce(Result.ok(etbDto));
 
       // When
       const result = await controller.getEtbByEinsatzId(einsatzId, 'false');
@@ -436,7 +488,7 @@ function createTestSnapshotDto(options: Partial<EtbSnapshotDto> = {}): EtbSnapsh
         eintraege: [createTestEintragDto({ text: 'Active Entry' }), createTestEintragDto({ text: 'Deleted Entry', isDeleted: true })],
       });
 
-      mockQueryBus.execute.mockResolvedValueOnce(Result.ok(etbDto));
+      mockGetEtbQueryHandler.execute.mockResolvedValueOnce(Result.ok(etbDto));
 
       // When
       const result = await controller.getEtbByEinsatzId(einsatzId, 'true');
@@ -451,7 +503,7 @@ function createTestSnapshotDto(options: Partial<EtbSnapshotDto> = {}): EtbSnapsh
       // Given
       const einsatzId = createTestCuid('einsatz');
 
-      mockQueryBus.execute.mockResolvedValueOnce(Result.fail('ETB nicht gefunden'));
+      mockGetEtbQueryHandler.execute.mockResolvedValueOnce(Result.fail('ETB nicht gefunden'));
 
       // When/Then
       await expect(controller.getEtbByEinsatzId(einsatzId)).rejects.toThrow(NotFoundException);
@@ -461,7 +513,7 @@ function createTestSnapshotDto(options: Partial<EtbSnapshotDto> = {}): EtbSnapsh
       // Given
       const einsatzId = createTestCuid('einsatz');
 
-      mockQueryBus.execute.mockResolvedValueOnce(Result.ok(null));
+      mockGetEtbQueryHandler.execute.mockResolvedValueOnce(Result.ok(null));
 
       // When/Then
       await expect(controller.getEtbByEinsatzId(einsatzId)).rejects.toThrow(NotFoundException);
@@ -478,7 +530,7 @@ function createTestSnapshotDto(options: Partial<EtbSnapshotDto> = {}): EtbSnapsh
       const etbId = createTestCuid('etb');
       const snapshots: EtbSnapshotDto[] = [createTestSnapshotDto({ version: 3 }), createTestSnapshotDto({ version: 2 }), createTestSnapshotDto({ version: 1 })];
 
-      mockQueryBus.execute.mockResolvedValueOnce(Result.ok(snapshots));
+      mockGetEtbHistoryQueryHandler.execute.mockResolvedValueOnce(Result.ok(snapshots));
 
       // When
       const result = await controller.getEtbHistory(etbId);
@@ -493,7 +545,7 @@ function createTestSnapshotDto(options: Partial<EtbSnapshotDto> = {}): EtbSnapsh
       // Given
       const etbId = createTestCuid('etb');
 
-      mockQueryBus.execute.mockResolvedValueOnce(Result.ok([]));
+      mockGetEtbHistoryQueryHandler.execute.mockResolvedValueOnce(Result.ok([]));
 
       // When
       const result = await controller.getEtbHistory(etbId);
@@ -506,7 +558,7 @@ function createTestSnapshotDto(options: Partial<EtbSnapshotDto> = {}): EtbSnapsh
       // Given
       const etbId = createTestCuid('etb');
 
-      mockQueryBus.execute.mockResolvedValueOnce(Result.fail('ETB nicht gefunden'));
+      mockGetEtbHistoryQueryHandler.execute.mockResolvedValueOnce(Result.fail('ETB nicht gefunden'));
 
       // When/Then
       await expect(controller.getEtbHistory(etbId)).rejects.toThrow(NotFoundException);
@@ -533,7 +585,7 @@ function createTestSnapshotDto(options: Partial<EtbSnapshotDto> = {}): EtbSnapsh
 
       // When/Then - Command.create() fails for empty etbId
       await expect(controller.addEintrag(invalidEtbId, dto, adminUser)).rejects.toThrow(BadRequestException);
-      expect(mockCommandBus.execute).not.toHaveBeenCalled();
+      expect(mockAddEintragHandler.execute).not.toHaveBeenCalled();
     });
 
     it('should throw BadRequestException for empty eintragId in updateEintrag', async () => {
@@ -544,7 +596,7 @@ function createTestSnapshotDto(options: Partial<EtbSnapshotDto> = {}): EtbSnapsh
 
       // When/Then
       await expect(controller.updateEintrag(etbId, emptyEintragId, dto, adminUser)).rejects.toThrow(BadRequestException);
-      expect(mockCommandBus.execute).not.toHaveBeenCalled();
+      expect(mockUpdateEintragHandler.execute).not.toHaveBeenCalled();
     });
 
     it('should throw BadRequestException for empty newText in updateEintrag', async () => {
@@ -555,7 +607,7 @@ function createTestSnapshotDto(options: Partial<EtbSnapshotDto> = {}): EtbSnapsh
 
       // When/Then
       await expect(controller.updateEintrag(etbId, eintragId, dto, adminUser)).rejects.toThrow(BadRequestException);
-      expect(mockCommandBus.execute).not.toHaveBeenCalled();
+      expect(mockUpdateEintragHandler.execute).not.toHaveBeenCalled();
     });
   });
 
@@ -572,40 +624,54 @@ function createTestSnapshotDto(options: Partial<EtbSnapshotDto> = {}): EtbSnapsh
       const mockEintrag = {
         id: { value: entryId },
         sequenceNumber: { value: 1 },
+        kategorie: EtbKategorie.LAGE(),
         text: 'Original Text',
         createdBy: { value: adminUser.userId },
         createdAt: new Date(),
         isDeleted: false,
       };
-      mockCommandBus.execute.mockResolvedValueOnce(Result.ok(mockEintrag));
+      mockAddEintragHandler.execute.mockResolvedValueOnce(Result.ok(mockEintrag));
 
       const added = await controller.addEintrag(etbId, { text: 'Original Text' }, adminUser);
       expect(added.text).toBe('Original Text');
 
       // Phase 2: Update eintrag
-      const updatedEintrag = createTestEintragDto({
-        id: entryId,
-        text: 'Updated Text',
-      });
-      const etbDto = createTestEtbDto({
-        id: etbId,
-        eintraege: [updatedEintrag],
-      });
+      const mockAggregate = {
+        id: { value: etbId },
+        einsatzId: { value: createTestCuid('einsatz') },
+        status: { value: 'DRAFT' },
+        version: { versionNumber: 2, versionTimestamp: new Date() },
+        eintraege: [
+          {
+            id: { value: entryId },
+            sequenceNumber: { value: 1 },
+            kategorie: EtbKategorie.LAGE(),
+            text: 'Updated Text',
+            createdBy: { value: adminUser.userId },
+            createdAt: new Date(),
+            isDeleted: false,
+          },
+        ],
+        createdAt: new Date(),
+        createdBy: { value: adminUser.userId },
+      };
 
-      mockCommandBus.execute.mockResolvedValueOnce(Result.ok(undefined));
-      mockQueryBus.execute.mockResolvedValueOnce(Result.ok(etbDto));
+      mockUpdateEintragHandler.execute.mockResolvedValueOnce(Result.ok(undefined));
+      mockEtbRepository.findById.mockResolvedValueOnce(mockAggregate);
 
       const updated = await controller.updateEintrag(etbId, entryId, { newText: 'Updated Text' }, adminUser);
       expect(updated.text).toBe('Updated Text');
 
       // Phase 3: Delete eintrag
-      mockCommandBus.execute.mockResolvedValueOnce(Result.ok(undefined));
+      mockDeleteEintragHandler.execute.mockResolvedValueOnce(Result.ok(undefined));
 
       await controller.deleteEintrag(etbId, entryId, adminUser);
 
       // Verify all operations were called
-      expect(mockCommandBus.execute).toHaveBeenCalledTimes(3);
-      expect(mockQueryBus.execute).toHaveBeenCalledTimes(1);
+      expect(mockAddEintragHandler.execute).toHaveBeenCalledTimes(1);
+      expect(mockUpdateEintragHandler.execute).toHaveBeenCalledTimes(1);
+      expect(mockDeleteEintragHandler.execute).toHaveBeenCalledTimes(1);
+      expect(mockEtbRepository.findById).toHaveBeenCalledTimes(1);
     });
   });
 });

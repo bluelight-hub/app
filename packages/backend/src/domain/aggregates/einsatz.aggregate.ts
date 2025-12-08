@@ -292,6 +292,11 @@ export class Einsatz extends AggregateRoot<EinsatzId> {
       return Result.fail<Einsatz>('Alarmstichwort ist erforderlich');
     }
 
+    // Business Rule: createdBy required
+    if (!props.createdBy) {
+      return Result.fail<Einsatz>('createdBy ist erforderlich');
+    }
+
     // Generate type-safe EinsatzId
     const idResult = EinsatzId.create();
     if (idResult.isFailure) {

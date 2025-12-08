@@ -1,4 +1,3 @@
-import { BadRequestException } from '@nestjs/common';
 import { InMemoryEtbRepository } from '../../__tests__/in-memory-etb.repository';
 import { AddEintragCommand } from '../add-eintrag/add-eintrag.command';
 import { AddEintragHandler } from '../add-eintrag/add-eintrag.handler';
@@ -121,10 +120,11 @@ function generateTestCuid(): string {
 
       // Act 2: Try to add another entry
       const addCommand2 = AddEintragCommand.create(etb.id.value, 'Zweiter Eintrag (sollte fehlschlagen)', testUserId).value!;
+      const addResult2 = await addEintragHandler.execute(addCommand2);
 
       // Assert: AddEintrag should fail with locked error
-      await expect(addEintragHandler.execute(addCommand2)).rejects.toThrow(BadRequestException);
-      await expect(addEintragHandler.execute(addCommand2)).rejects.toThrow('ETB ist gesperrt und kann nicht mehr geändert werden');
+      expect(addResult2.isSuccess).toBe(false);
+      expect(addResult2.error).toContain('ETB ist gesperrt und kann nicht mehr geändert werden');
     });
   });
 
@@ -144,10 +144,11 @@ function generateTestCuid(): string {
 
       // Act 2: Try to update entry
       const updateCommand = UpdateEintragCommand.create(etb.id.value, eintragId, 'Neuer Text', testUserId).value!;
+      const updateResult = await updateEintragHandler.execute(updateCommand);
 
       // Assert: UpdateEintrag should fail with locked error
-      await expect(updateEintragHandler.execute(updateCommand)).rejects.toThrow(BadRequestException);
-      await expect(updateEintragHandler.execute(updateCommand)).rejects.toThrow('ETB ist gesperrt und kann nicht mehr geändert werden');
+      expect(updateResult.isSuccess).toBe(false);
+      expect(updateResult.error).toContain('ETB ist gesperrt und kann nicht mehr geändert werden');
     });
   });
 
@@ -167,10 +168,11 @@ function generateTestCuid(): string {
 
       // Act 2: Try to delete entry
       const deleteCommand = DeleteEintragCommand.create(etb.id.value, eintragId, testUserId).value!;
+      const deleteResult = await deleteEintragHandler.execute(deleteCommand);
 
       // Assert: DeleteEintrag should fail with locked error
-      await expect(deleteEintragHandler.execute(deleteCommand)).rejects.toThrow(BadRequestException);
-      await expect(deleteEintragHandler.execute(deleteCommand)).rejects.toThrow('ETB ist gesperrt und kann nicht mehr geändert werden');
+      expect(deleteResult.isSuccess).toBe(false);
+      expect(deleteResult.error).toContain('ETB ist gesperrt und kann nicht mehr geändert werden');
     });
   });
 
@@ -248,18 +250,22 @@ function generateTestCuid(): string {
 
       // Assert: All operations fail
       const addCmd = AddEintragCommand.create(etb.id.value, 'New Entry', testUserId).value!;
-      await expect(addEintragHandler.execute(addCmd)).rejects.toThrow(BadRequestException);
+      const addCmdResult = await addEintragHandler.execute(addCmd);
+      expect(addCmdResult.isSuccess).toBe(false);
 
       const updateCmd = UpdateEintragCommand.create(etb.id.value, eintragId, 'Updated', testUserId).value!;
-      await expect(updateEintragHandler.execute(updateCmd)).rejects.toThrow(BadRequestException);
+      const updateCmdResult = await updateEintragHandler.execute(updateCmd);
+      expect(updateCmdResult.isSuccess).toBe(false);
 
       const deleteCmd = DeleteEintragCommand.create(etb.id.value, eintragId, testUserId).value!;
-      await expect(deleteEintragHandler.execute(deleteCmd)).rejects.toThrow(BadRequestException);
+      const deleteCmdResult = await deleteEintragHandler.execute(deleteCmd);
+      expect(deleteCmdResult.isSuccess).toBe(false);
 
       // Even another lock attempt fails
       const lockCmd2 = LockEtbCommand.create(etb.id.value, testUserId, 'SUPER_ADMIN').value!;
-      await expect(lockEtbHandler.execute(lockCmd2)).rejects.toThrow(BadRequestException);
-      await expect(lockEtbHandler.execute(lockCmd2)).rejects.toThrow('ETB ist bereits gesperrt');
+      const lockCmd2Result = await lockEtbHandler.execute(lockCmd2);
+      expect(lockCmd2Result.isSuccess).toBe(false);
+      expect(lockCmd2Result.error).toContain('ETB ist bereits gesperrt');
     });
   });
 });
