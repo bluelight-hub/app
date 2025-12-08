@@ -7,7 +7,8 @@ import { PrismaOutboxRepository } from '@infrastructure/outbox/prisma-outbox.rep
 import { EventSerializer } from '@infrastructure/outbox/event-serializer';
 import { EINSATZ_REPOSITORY } from '@infrastructure/di-tokens';
 import { EinsatzStatus } from '@prisma/client';
-import { skipIfNoDatabase } from '@infrastructure/__tests__/helpers/database-test.helper';
+
+const databaseAvailable = !!process.env.DATABASE_URL;
 
 /**
  * Integration Tests für ArchiveOldEinsaetzeHandler (Story 5-6 AC7).
@@ -22,16 +23,13 @@ import { skipIfNoDatabase } from '@infrastructure/__tests__/helpers/database-tes
  * - Failure Handling: Einzelne Fehler blockieren nicht gesamten Batch
  * - Already Archived: Bereits archivierte werden übersprungen
  */
-describe('ArchiveOldEinsaetzeHandler Integration (Story 5-6 AC7)', () => {
+(databaseAvailable ? describe : describe.skip)('ArchiveOldEinsaetzeHandler Integration (Story 5-6 AC7)', () => {
   let handler: ArchiveOldEinsaetzeHandler;
   let prisma: PrismaService;
   let module: TestingModule;
   let testUserId: string;
-  let databaseAvailable = false;
 
   beforeAll(async () => {
-    databaseAvailable = await skipIfNoDatabase();
-    if (!databaseAvailable) return;
     module = await Test.createTestingModule({
       providers: [
         PrismaService,
@@ -50,7 +48,6 @@ describe('ArchiveOldEinsaetzeHandler Integration (Story 5-6 AC7)', () => {
   });
 
   beforeEach(async () => {
-    if (!databaseAvailable) return;
     // Clean up test data (disable triggers temporarily for NO-DELETE Policy)
     await prisma.$executeRawUnsafe('SET session_replication_role = replica;');
     try {
@@ -73,7 +70,6 @@ describe('ArchiveOldEinsaetzeHandler Integration (Story 5-6 AC7)', () => {
   });
 
   afterAll(async () => {
-    if (!databaseAvailable) return;
     // Clean up (disable triggers temporarily for NO-DELETE Policy)
     await prisma.$executeRawUnsafe('SET session_replication_role = replica;');
     try {

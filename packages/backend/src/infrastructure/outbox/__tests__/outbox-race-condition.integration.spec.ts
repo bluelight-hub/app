@@ -30,20 +30,17 @@ import { createEinsatzE2eModule, teardownE2eModule, cleanupTestData, generateTes
 import { OutboxEventPublisher, DEFAULT_OUTBOX_PUBLISHER_CONFIG } from '../outbox-event-publisher.service';
 import { EventDeserializer } from '../event-deserializer';
 import type { PrismaService } from '@/infrastructure/database/prisma.service';
-import { skipIfNoDatabase } from '@infrastructure/__tests__/helpers/database-test.helper';
 
-describe('Outbox Race Condition Prevention (Story 0-2)', () => {
+const databaseAvailable = !!process.env.DATABASE_URL;
+
+(databaseAvailable ? describe : describe.skip)('Outbox Race Condition Prevention (Story 0-2)', () => {
   let ctx: EinsatzE2eTestContext;
-  let databaseAvailable = false;
 
   beforeAll(async () => {
-    databaseAvailable = await skipIfNoDatabase();
-    if (!databaseAvailable) return;
     ctx = await createEinsatzE2eModule();
   });
 
   beforeEach(async () => {
-    if (!databaseAvailable) return;
     // Ensure clean state before each test
     ctx.eventPublisher.clear();
 
@@ -52,7 +49,6 @@ describe('Outbox Race Condition Prevention (Story 0-2)', () => {
   });
 
   afterEach(async () => {
-    if (!databaseAvailable) return;
     // Clean up test data after each test
     ctx.eventPublisher.clear();
     await ctx.prisma.$executeRaw`DELETE FROM outbox_events`;
@@ -60,7 +56,6 @@ describe('Outbox Race Condition Prevention (Story 0-2)', () => {
   });
 
   afterAll(async () => {
-    if (!databaseAvailable) return;
     await teardownE2eModule(ctx);
   });
 

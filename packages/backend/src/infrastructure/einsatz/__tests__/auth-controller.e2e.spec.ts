@@ -20,7 +20,9 @@ import { AppModule } from '../../../app.module';
  * Autorisierungsverhalten der REST-API. Sie prüfen Guards,
  * Cookie-Handling und rollenbasierte Zugriffskontrolle.
  */
-describe('AuthController HTTP Integration Tests (AC5.2)', () => {
+const databaseAvailable = !!process.env.DATABASE_URL;
+
+(databaseAvailable ? describe : describe.skip)('AuthController HTTP Integration Tests (AC5.2)', () => {
   let app: INestApplication;
   let ctx: EinsatzE2eTestContext;
 

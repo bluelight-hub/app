@@ -41,6 +41,8 @@ import { GeoCoordinate } from '@domain/value-objects/geo-coordinate';
 import { PoiCategory } from '@domain/value-objects/poi-category';
 import type { Poi } from '@domain/entities/poi.entity';
 
+const databaseAvailable = !!process.env.DATABASE_URL;
+
 /**
  * Generiert eine valide CUID2-kompatible ID fuer Domain Value Objects
  * CUID2 Format: 20-30 Zeichen, nur lowercase a-z0-9, startet mit Buchstabe
@@ -54,7 +56,7 @@ function generateCuid2(): string {
   return result;
 }
 
-describe('Lagekarte Smoke Tests', () => {
+(databaseAvailable ? describe : describe.skip)('Lagekarte Smoke Tests', () => {
   jest.setTimeout(30000); // 30 seconds max for entire suite
 
   let prisma: PrismaClient;

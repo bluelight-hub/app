@@ -1,5 +1,4 @@
 import type { PrismaService } from '@/infrastructure/database/prisma.service';
-import type { PrismaOutboxRepository } from '@/infrastructure/outbox/prisma-outbox.repository';
 import { PrismaEinsatzRepository } from '../prisma-einsatz.repository';
 import { PrismaEinsatzMapper } from '../../mappers/prisma-einsatz.mapper';
 import type { Einsatz } from '@domain/aggregates/einsatz.aggregate';
@@ -7,8 +6,8 @@ import type { EinsatzId } from '@domain/value-objects/einsatz-id';
 import type { UserId } from '@domain/value-objects/user-id';
 import { EinsatzStatus } from '@domain/value-objects/einsatz-status';
 import type { Address } from '@domain/value-objects/address';
-import { Result } from '@domain/common/result';
 import type { Einsatz as PrismaEinsatz, EinsatzStatus as PrismaEinsatzStatus } from '@prisma/client';
+import { Result } from '@domain/common/result';
 
 /**
  * Unit Tests für PrismaEinsatzRepository.
@@ -17,16 +16,26 @@ import type { Einsatz as PrismaEinsatz, EinsatzStatus as PrismaEinsatzStatus } f
  * IEinsatzRepository Ports mit gemocktem PrismaService.
  *
  * **Test Coverage:**
- * - save() Method: Create-Fall, Update-Fall, Outbox Integration, Error Cases
- * - findById() Method: Gefunden, nicht gefunden
+ * - save() Method: Create-Fall, Update-Fall, Error Cases mit Result Pattern
+ * - findById() Method: Gefunden, nicht gefunden, Result Pattern
  * - findByNummer() Method: Gefunden, nicht gefunden, ungültiges Format
  * - findActive() Method: Mehrere Ergebnisse, leeres Array
  * - exists() Method: true wenn count > 0, false wenn count === 0
+ * - findEligibleForArchival() Method: Filter nach Status und Datum
  *
  * **Mocking Strategy:**
  * - PrismaService: Vollständig gemockt (einsatz.upsert, findUnique, findMany, count, $transaction)
- * - PrismaOutboxRepository: Mock mit save() → jest.fn().mockResolvedValue(undefined)
  * - PrismaEinsatzMapper: Spy auf statische Methoden (toPersistence, toAggregate)
+ *
+ * **Result Pattern:**
+ * - Alle Query Methods geben Result<T> zurück
+ * - save() gibt Result<void> zurück (keine Exceptions)
+ * - DB-Errors werden als Result.fail() zurückgegeben
+ *
+ * **Outbox Pattern:**
+ * - Repository speichert KEINE Domain Events
+ * - TransactionalCommandHandler ist verantwortlich für Outbox Persistierung
+ * - clearDomainEvents() wird NICHT vom Repository aufgerufen
  *
  * **Test Patterns:**
  * - AAA Pattern: Arrange → Act → Assert
@@ -37,7 +46,6 @@ describe('PrismaEinsatzRepository', () => {
   // Mock Instances
   let repository: PrismaEinsatzRepository;
   let mockPrismaService: jest.Mocked<PrismaService>;
-  let mockOutboxRepository: jest.Mocked<PrismaOutboxRepository>;
 
   // Mock Data Helpers
   const mockUserId = 'user_abc123';
@@ -126,13 +134,8 @@ describe('PrismaEinsatzRepository', () => {
       $transaction: jest.fn((callback) => callback(mockPrismaService)),
     } as unknown as jest.Mocked<PrismaService>;
 
-    // Create OutboxRepository Mock
-    mockOutboxRepository = {
-      save: jest.fn().mockResolvedValue(undefined),
-    } as unknown as jest.Mocked<PrismaOutboxRepository>;
-
     // Instantiate Repository
-    repository = new PrismaEinsatzRepository(mockPrismaService, mockOutboxRepository);
+    repository = new PrismaEinsatzRepository(mockPrismaService);
   });
 
   describe('save()', () => {
@@ -236,9 +239,9 @@ describe('PrismaEinsatzRepository', () => {
       });
     });
 
-    describe('Outbox Integration', () => {
-      it('sollte Domain Events an OutboxRepository übergeben', async () => {
-        // Arrange
+    describe('Domain Events Handling', () => {
+      it('sollte clearDomainEvents() NICHT aufrufen (TransactionalCommandHandler verantwortlich)', async () => {
+        // Given (Arrange)
         const aggregate = createMockAggregate();
 
         // Mock getDomainEvents to return a test event
@@ -267,21 +270,31 @@ describe('PrismaEinsatzRepository', () => {
         });
         mockPrismaService.einsatz.upsert.mockResolvedValue(createMockPrismaData());
 
-        // Act
-        await repository.save(aggregate);
+        const clearSpy = jest.spyOn(aggregate, 'clearDomainEvents');
 
-        // Assert
-        expect(mockOutboxRepository.save).toHaveBeenCalledWith([mockEvent], mockPrismaService);
+        // When (Act)
+        const result = await repository.save(aggregate);
+
+        // Then (Assert)
+        expect(result.isSuccess).toBe(true);
+        expect(clearSpy).not.toHaveBeenCalled(); // Repository ruft clearDomainEvents() NICHT auf
+        expect(aggregate.getDomainEvents()).toHaveLength(1); // Events bleiben im Aggregate
       });
 
-      it('sollte clearDomainEvents() NUR NACH erfolgreicher Transaction aufrufen', async () => {
-        // Arrange
+      it('sollte Domain Events im Aggregate belassen für Handler Extraction', async () => {
+        // Given (Arrange)
         const aggregate = createMockAggregate();
-        aggregate.update({ alarmstichwort: 'Großbrand' }); // Emittiert Event
+
+        // Mock getDomainEvents to return multiple test events
+        const mockEvents = [
+          { eventId: 'event_1', occurredAt: new Date(), aggregateId: mockEinsatzId },
+          { eventId: 'event_2', occurredAt: new Date(), aggregateId: mockEinsatzId },
+        ];
+        (aggregate.getDomainEvents as jest.Mock).mockReturnValue(mockEvents);
 
         jest.spyOn(PrismaEinsatzMapper, 'toPersistence').mockReturnValue({
           id: mockEinsatzId,
-          alarmstichwort: 'Großbrand',
+          alarmstichwort: 'Wohnungsbrand',
           einsatzort: null,
           beschreibung: null,
           status: 'ANGELEGT',
@@ -297,20 +310,18 @@ describe('PrismaEinsatzRepository', () => {
         });
         mockPrismaService.einsatz.upsert.mockResolvedValue(createMockPrismaData());
 
-        const clearSpy = jest.spyOn(aggregate, 'clearDomainEvents');
+        // When (Act)
+        const result = await repository.save(aggregate);
 
-        // Act
-        await repository.save(aggregate);
-
-        // Assert
-        expect(clearSpy).toHaveBeenCalledTimes(1);
-        expect(aggregate.getDomainEvents()).toHaveLength(0);
+        // Then (Assert)
+        expect(result.isSuccess).toBe(true);
+        expect(aggregate.getDomainEvents()).toHaveLength(2); // Events bleiben erhalten
       });
     });
 
     describe('Error Cases', () => {
-      it('sollte Prisma Fehler als Promise.reject() propagieren', async () => {
-        // Arrange
+      it('sollte Result.fail() zurückgeben bei DB Fehler', async () => {
+        // Given (Arrange)
         const aggregate = createMockAggregate();
         jest.spyOn(PrismaEinsatzMapper, 'toPersistence').mockReturnValue({
           id: mockEinsatzId,
@@ -332,45 +343,17 @@ describe('PrismaEinsatzRepository', () => {
         const dbError = new Error('Database connection failed');
         mockPrismaService.einsatz.upsert.mockRejectedValue(dbError);
 
-        // Act & Assert
-        await expect(repository.save(aggregate)).rejects.toThrow('Database connection failed');
+        // When (Act)
+        const result = await repository.save(aggregate);
+
+        // Then (Assert)
+        expect(result.isFailure).toBe(true);
+        expect(result.error).toContain('Database error');
+        expect(result.error).toContain('Database connection failed');
       });
 
-      it('sollte Outbox Fehler als Promise.reject() propagieren (Transaction Rollback)', async () => {
-        // Arrange
-        const aggregate = createMockAggregate();
-
-        // Mock getDomainEvents to return a test event
-        const mockEvent = { eventId: 'event_123', occurredAt: new Date(), aggregateId: mockEinsatzId };
-        (aggregate.getDomainEvents as jest.Mock).mockReturnValue([mockEvent]);
-
-        jest.spyOn(PrismaEinsatzMapper, 'toPersistence').mockReturnValue({
-          id: mockEinsatzId,
-          alarmstichwort: 'Großbrand',
-          einsatzort: null,
-          beschreibung: null,
-          status: 'ANGELEGT',
-          createdAt: aggregate.createdAt,
-          updatedAt: aggregate.updatedAt,
-          createdBy: mockUserId,
-          updatedBy: null,
-          archivedAt: null,
-          archivedBy: null,
-          alarmierungszeit: null,
-          einsatzleiter: null,
-          metadata: null,
-        });
-        mockPrismaService.einsatz.upsert.mockResolvedValue(createMockPrismaData());
-
-        const outboxError = new Error('Outbox persistence failed');
-        mockOutboxRepository.save.mockRejectedValue(outboxError);
-
-        // Act & Assert
-        await expect(repository.save(aggregate)).rejects.toThrow('Outbox persistence failed');
-      });
-
-      it('sollte clearDomainEvents() NICHT aufrufen bei Transaction Rollback', async () => {
-        // Arrange
+      it('sollte clearDomainEvents() NICHT aufrufen bei DB Fehler', async () => {
+        // Given (Arrange)
         const aggregate = createMockAggregate();
 
         // Mock getDomainEvents to return a test event
@@ -399,14 +382,11 @@ describe('PrismaEinsatzRepository', () => {
 
         const clearSpy = jest.spyOn(aggregate, 'clearDomainEvents');
 
-        // Act
-        try {
-          await repository.save(aggregate);
-        } catch {
-          // Expected error
-        }
+        // When (Act)
+        const result = await repository.save(aggregate);
 
-        // Assert
+        // Then (Assert)
+        expect(result.isFailure).toBe(true);
         expect(clearSpy).not.toHaveBeenCalled();
         expect(aggregate.getDomainEvents()).toHaveLength(1); // Event bleibt erhalten
       });

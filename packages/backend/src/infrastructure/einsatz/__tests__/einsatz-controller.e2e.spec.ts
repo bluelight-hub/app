@@ -20,7 +20,9 @@ import { AppModule } from '../../../app.module';
  * das Verhalten der REST-API inklusive Guards, Interceptors und
  * Exception Filters.
  */
-describe('EinsatzController HTTP Integration Tests (AC5.1, AC5.3, AC5.4)', () => {
+const databaseAvailable = !!process.env.DATABASE_URL;
+
+(databaseAvailable ? describe : describe.skip)('EinsatzController HTTP Integration Tests (AC5.1, AC5.3, AC5.4)', () => {
   let app: INestApplication;
   let ctx: EinsatzE2eTestContext;
   let accessToken: string;

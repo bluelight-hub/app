@@ -4,7 +4,6 @@ import { CreateEinsatzCommand } from '../create-einsatz.command';
 import { Result } from '@domain/common/result';
 import { UserId } from '@domain/value-objects/user-id';
 import { PrismaService } from '@/infrastructure/database/prisma.service';
-import { EinsatzValidationException, EinsatzPersistenceException } from '@domain/common/exceptions';
 import { Address } from '@domain/value-objects/address';
 import { EINSATZ_FIELD_LIMITS } from '@application/common/validators/string-validator';
 import { EinsatzCreatedEvent } from '@domain/events/einsatz-created.event';
@@ -79,11 +78,12 @@ describe('CreateEinsatzHandler', () => {
       const command = CreateEinsatzCommand.create('Wohnungsbrand', userId.value).value!;
 
       // Act
-      const einsatzId = await handler.execute(command);
+      const result = await handler.execute(command);
 
       // Assert
-      expect(einsatzId).toBeDefined();
-      expect(typeof einsatzId).toBe('string');
+      expect(result.isSuccess).toBe(true);
+      expect(result.value).toBeDefined();
+      expect(typeof result.value).toBe('string');
       expect(mockRepository.save).toHaveBeenCalledTimes(1);
       // Events werden in Outbox gespeichert, nicht direkt publiziert
       expect(mockOutboxRepository.save).toHaveBeenCalledTimes(1);
@@ -96,10 +96,11 @@ describe('CreateEinsatzHandler', () => {
       const command = CreateEinsatzCommand.create('Verkehrsunfall', userId.value).value!;
 
       // Act
-      const einsatzId = await handler.execute(command);
+      const result = await handler.execute(command);
 
       // Assert
-      expect(einsatzId).toBeDefined();
+      expect(result.isSuccess).toBe(true);
+      expect(result.value).toBeDefined();
       // Verify save was called with aggregate that has correct nummer format
       const savedAggregate = mockRepository.save.mock.calls[0][0];
       const currentYear = new Date().getFullYear();
@@ -113,9 +114,10 @@ describe('CreateEinsatzHandler', () => {
       const command = CreateEinsatzCommand.create(alarmstichwort, userId.value).value!;
 
       // Act
-      await handler.execute(command);
+      const result = await handler.execute(command);
 
       // Assert
+      expect(result.isSuccess).toBe(true);
       // Events werden in Outbox gespeichert, nicht direkt publiziert
       expect(mockOutboxRepository.save).toHaveBeenCalledTimes(1);
       const savedEvents = mockOutboxRepository.save.mock.calls[0][0];
@@ -140,10 +142,11 @@ describe('CreateEinsatzHandler', () => {
       const command = CreateEinsatzCommand.create('Hilfeleistung', userId.value).value!;
 
       // Act
-      const einsatzId = await handler.execute(command);
+      const result = await handler.execute(command);
 
       // Assert
-      expect(einsatzId).toBeDefined();
+      expect(result.isSuccess).toBe(true);
+      expect(result.value).toBeDefined();
       const savedAggregate = mockRepository.save.mock.calls[0][0];
       expect(savedAggregate.status.value).toBe('ANGELEGT');
     });
@@ -161,10 +164,11 @@ describe('CreateEinsatzHandler', () => {
       const command = CreateEinsatzCommand.create('Wohnungsbrand', userId.value, einsatzort, bemerkung).value!;
 
       // Act (When)
-      const einsatzId = await handler.execute(command);
+      const result = await handler.execute(command);
 
       // Assert (Then)
-      expect(einsatzId).toBeDefined();
+      expect(result.isSuccess).toBe(true);
+      expect(result.value).toBeDefined();
       const savedAggregate = mockRepository.save.mock.calls[0][0];
       expect(savedAggregate.einsatzort).toBeDefined();
       expect(savedAggregate.einsatzort.strasse).toBe('Musterstraße');
@@ -177,9 +181,10 @@ describe('CreateEinsatzHandler', () => {
       const command = CreateEinsatzCommand.create('Brand', userId.value).value!;
 
       // Act (When)
-      await handler.execute(command);
+      const result = await handler.execute(command);
 
       // Assert (Then)
+      expect(result.isSuccess).toBe(true);
       expect(mockRepository.save).toHaveBeenCalledTimes(1);
       // Erster Parameter ist das Aggregate
       const savedAggregate = mockRepository.save.mock.calls[0][0];
@@ -195,9 +200,10 @@ describe('CreateEinsatzHandler', () => {
       const command = CreateEinsatzCommand.create('Verkehrsunfall', userId.value).value!;
 
       // Act (When)
-      await handler.execute(command);
+      const result = await handler.execute(command);
 
       // Assert (Then)
+      expect(result.isSuccess).toBe(true);
       expect(mockOutboxRepository.save).toHaveBeenCalledTimes(1);
       // Erster Parameter ist das Event-Array
       const savedEvents = mockOutboxRepository.save.mock.calls[0][0];
@@ -215,9 +221,10 @@ describe('CreateEinsatzHandler', () => {
       const command = CreateEinsatzCommand.create(alarmstichwort, userId.value).value!;
 
       // Act (When)
-      await handler.execute(command);
+      const result = await handler.execute(command);
 
       // Assert (Then)
+      expect(result.isSuccess).toBe(true);
       const savedEvents = mockOutboxRepository.save.mock.calls[0][0];
       expect(savedEvents.length).toBe(1);
       const createdEvent = savedEvents[0];
@@ -237,26 +244,32 @@ describe('CreateEinsatzHandler', () => {
       expect(createdEvent.nummer).toMatch(new RegExp(`^E${currentYear}-[a-z0-9]{8}$`));
     });
 
-    it('sollte Exception werfen bei ungültiger User-ID', async () => {
+    it('sollte Result.fail zurückgeben bei ungültiger User-ID', async () => {
       // Arrange
       const command = CreateEinsatzCommand.create('Wohnungsbrand', 'invalid-user-id-format').value!;
 
-      // Act & Assert
-      // Handler wirft jetzt Exceptions statt Result.fail() zurückzugeben
-      await expect(handler.execute(command)).rejects.toThrow();
+      // Act
+      const result = await handler.execute(command);
+
+      // Assert
+      expect(result.isSuccess).toBe(false);
+      expect(result.error).toContain('Invalid Cuid');
       expect(mockRepository.save).not.toHaveBeenCalled();
       expect(mockOutboxRepository.save).not.toHaveBeenCalled();
     });
 
-    it('sollte Exception werfen bei Repository-Fehler', async () => {
+    it('sollte Result.fail zurückgeben bei Repository-Fehler', async () => {
       // Arrange
       const userId = UserId.create().value!;
       const command = CreateEinsatzCommand.create('Wohnungsbrand', userId.value).value!;
       mockRepository.save.mockResolvedValue(Result.fail('Database error'));
 
-      // Act & Assert
-      // Handler wirft jetzt Exceptions statt Result.fail() zurückzugeben
-      await expect(handler.execute(command)).rejects.toThrow();
+      // Act
+      const result = await handler.execute(command);
+
+      // Assert
+      expect(result.isSuccess).toBe(false);
+      expect(result.error).toContain('Database error');
       // Repository wurde aufgerufen, aber Fehler führt zu Transaction Rollback
       expect(mockRepository.save).toHaveBeenCalled();
       // Events werden nicht gespeichert bei Fehler
@@ -337,16 +350,16 @@ describe('CreateEinsatzHandler', () => {
 
   describe('Error Handling', () => {
     describe('Validation Errors', () => {
-      it('sollte EinsatzValidationException bei ungültiger User-ID werfen', async () => {
+      it('sollte Result.fail bei ungültiger User-ID zurückgeben', async () => {
         // Arrange
         const command = CreateEinsatzCommand.create('Wohnungsbrand', 'invalid-user-id-format').value!;
 
-        // Act & Assert
-        await expect(handler.execute(command)).rejects.toThrow(EinsatzValidationException);
-        await expect(handler.execute(command)).rejects.toMatchObject({
-          name: 'EinsatzValidationException',
-          field: 'createdBy',
-        });
+        // Act
+        const result = await handler.execute(command);
+
+        // Assert
+        expect(result.isSuccess).toBe(false);
+        expect(result.error).toContain('Invalid Cuid');
         expect(mockRepository.save).not.toHaveBeenCalled();
         expect(mockOutboxRepository.save).not.toHaveBeenCalled();
       });
@@ -363,34 +376,36 @@ describe('CreateEinsatzHandler', () => {
     });
 
     describe('Repository/DB Errors', () => {
-      it('sollte EinsatzPersistenceException bei Repository.save Fehler werfen', async () => {
+      it('sollte Result.fail bei Repository.save Fehler zurückgeben', async () => {
         // Arrange
         const userId = UserId.create().value!;
         const command = CreateEinsatzCommand.create('Wohnungsbrand', userId.value).value!;
         mockRepository.save.mockResolvedValue(Result.fail('DB connection error'));
 
-        // Act & Assert
-        await expect(handler.execute(command)).rejects.toThrow(EinsatzPersistenceException);
-        await expect(handler.execute(command)).rejects.toMatchObject({
-          name: 'EinsatzPersistenceException',
-        });
+        // Act
+        const result = await handler.execute(command);
+
+        // Assert
+        expect(result.isSuccess).toBe(false);
+        expect(result.error).toContain('DB connection error');
         // Repository wurde aufgerufen, aber Fehler führt zu Transaction Rollback
         expect(mockRepository.save).toHaveBeenCalled();
         // Events werden nicht gespeichert bei Fehler
         expect(mockOutboxRepository.save).not.toHaveBeenCalled();
       });
 
-      it('sollte EinsatzPersistenceException mit einsatzId bei DB Fehler werfen', async () => {
+      it('sollte Result.fail mit Fehlermeldung bei DB Fehler zurückgeben', async () => {
         // Arrange
         const userId = UserId.create().value!;
         const command = CreateEinsatzCommand.create('Verkehrsunfall', userId.value).value!;
         mockRepository.save.mockResolvedValue(Result.fail('Database write failed'));
 
-        // Act & Assert
-        const error = await handler.execute(command).catch((e) => e);
-        expect(error).toBeInstanceOf(EinsatzPersistenceException);
-        expect(error.aggregateId).toBeDefined();
-        expect(error.operation).toBe('persist');
+        // Act
+        const result = await handler.execute(command);
+
+        // Assert
+        expect(result.isSuccess).toBe(false);
+        expect(result.error).toContain('Database write failed');
       });
 
       it('sollte Outbox.save() NICHT aufrufen bei Repository Fehler', async () => {
@@ -400,9 +415,10 @@ describe('CreateEinsatzHandler', () => {
         mockRepository.save.mockResolvedValue(Result.fail('Database error'));
 
         // Act (When)
-        await handler.execute(command).catch(() => {});
+        const result = await handler.execute(command);
 
         // Assert (Then)
+        expect(result.isSuccess).toBe(false);
         expect(mockRepository.save).toHaveBeenCalled();
         expect(mockOutboxRepository.save).not.toHaveBeenCalled();
       });
@@ -416,9 +432,10 @@ describe('CreateEinsatzHandler', () => {
       const command = CreateEinsatzCommand.create('Wohnungsbrand', userId.value).value!;
 
       // Act (When)
-      await handler.execute(command);
+      const result = await handler.execute(command);
 
       // Assert (Then)
+      expect(result.isSuccess).toBe(true);
       expect(mockPrismaService.$transaction).toHaveBeenCalledTimes(1);
     });
 
@@ -434,9 +451,10 @@ describe('CreateEinsatzHandler', () => {
       });
 
       // Act (When)
-      await handler.execute(command);
+      const result = await handler.execute(command);
 
       // Assert (Then)
+      expect(result.isSuccess).toBe(true);
       expect(mockPrismaService.$transaction).toHaveBeenCalledTimes(1);
       expect(receivedTxContext).toBeDefined();
       expect((receivedTxContext as { isTxMock: boolean }).isTxMock).toBe(true);
@@ -450,9 +468,10 @@ describe('CreateEinsatzHandler', () => {
       mockPrismaService.$transaction.mockImplementation(async (callback) => callback(txMarker));
 
       // Act (When)
-      await handler.execute(command);
+      const result = await handler.execute(command);
 
       // Assert (Then)
+      expect(result.isSuccess).toBe(true);
       expect(mockRepository.save).toHaveBeenCalledTimes(1);
       const txContext = mockRepository.save.mock.calls[0][1];
       expect(txContext).toBe(txMarker);
@@ -466,22 +485,24 @@ describe('CreateEinsatzHandler', () => {
       mockPrismaService.$transaction.mockImplementation(async (callback) => callback(txMarker));
 
       // Act (When)
-      await handler.execute(command);
+      const result = await handler.execute(command);
 
       // Assert (Then)
+      expect(result.isSuccess).toBe(true);
       expect(mockOutboxRepository.save).toHaveBeenCalledTimes(1);
       const txContext = mockOutboxRepository.save.mock.calls[0][1];
       expect(txContext).toBe(txMarker);
     });
 
-    it('sollte bei Exception keine Events speichern (Transaction Rollback)', async () => {
+    it('sollte bei Validierungsfehler keine Events speichern (Transaction Rollback)', async () => {
       // Arrange (Given)
       const command = CreateEinsatzCommand.create('Wohnungsbrand', 'invalid-user-id').value!;
 
       // Act (When)
-      await handler.execute(command).catch(() => {});
+      const result = await handler.execute(command);
 
       // Assert (Then)
+      expect(result.isSuccess).toBe(false);
       // Bei Validation-Fehler wird Transaction abgebrochen
       expect(mockOutboxRepository.save).not.toHaveBeenCalled();
     });
@@ -494,9 +515,10 @@ describe('CreateEinsatzHandler', () => {
       const command = CreateEinsatzCommand.create('Brand', userId.value).value!;
 
       // Act (When)
-      await handler.execute(command);
+      const result = await handler.execute(command);
 
       // Assert (Then)
+      expect(result.isSuccess).toBe(true);
       const savedEvents = mockOutboxRepository.save.mock.calls[0][0];
       expect(savedEvents.length).toBe(1);
       expect(savedEvents[0]).toBeInstanceOf(EinsatzCreatedEvent);
@@ -508,9 +530,11 @@ describe('CreateEinsatzHandler', () => {
       const command = CreateEinsatzCommand.create('Verkehrsunfall', userId.value).value!;
 
       // Act (When)
-      const einsatzId = await handler.execute(command);
+      const result = await handler.execute(command);
 
       // Assert (Then)
+      expect(result.isSuccess).toBe(true);
+      const einsatzId = result.value!;
       const savedEvents = mockOutboxRepository.save.mock.calls[0][0];
       const createdEvent = savedEvents[0] as EinsatzCreatedEvent;
       expect(createdEvent.einsatzId.value).toBe(einsatzId);
@@ -524,9 +548,10 @@ describe('CreateEinsatzHandler', () => {
       mockPrismaService.$transaction.mockImplementation(async (callback) => callback(txMarker));
 
       // Act (When)
-      await handler.execute(command);
+      const result = await handler.execute(command);
 
       // Assert (Then)
+      expect(result.isSuccess).toBe(true);
       // Beide Saves sollten den gleichen tx-Context erhalten
       const repoTxContext = mockRepository.save.mock.calls[0][1];
       const outboxTxContext = mockOutboxRepository.save.mock.calls[0][1];

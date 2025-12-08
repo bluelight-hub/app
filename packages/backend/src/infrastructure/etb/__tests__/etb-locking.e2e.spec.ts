@@ -4,6 +4,8 @@ import { EinsatztagebuchAggregate } from '@domain/aggregates/einsatztagebuch.agg
 import { EintragId } from '@domain/value-objects/eintrag-id';
 import { createEtbE2eModule, teardownE2eModule, cleanupTestData, type EtbE2eTestContext } from './etb.e2e-setup';
 
+const databaseAvailable = !!process.env.DATABASE_URL;
+
 /**
  * E2E Tests für ETB Locking & Mutation Prevention (AC3)
  *
@@ -14,7 +16,7 @@ import { createEtbE2eModule, teardownE2eModule, cleanupTestData, type EtbE2eTest
  *
  * State Machine: DRAFT → ACTIVE → LOCKED (irreversibel!)
  */
-describe('ETB Locking & Mutation Prevention (E2E)', () => {
+(databaseAvailable ? describe : describe.skip)('ETB Locking & Mutation Prevention (E2E)', () => {
   let ctx: EtbE2eTestContext;
 
   beforeAll(async () => {

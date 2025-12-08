@@ -17,6 +17,12 @@
  * - Existence Checks: < 10ms
  * - Full CRUD Cycle: < 500ms
  *
+ * **IMPORTANT: Domain Event Management:**
+ * Diese Tests verwenden das Repository DIREKT (nicht über TransactionalCommandHandler).
+ * Daher müssen wir nach jedem save() manuell clearDomainEvents() aufrufen, um
+ * Event-Akkumulation zu verhindern. Im Produktionscode macht der TransactionalCommandHandler
+ * dies automatisch nach dem Persistieren in die Outbox.
+ *
  * Story 2.3 Task 5 (Performance Baseline Tests)
  */
 
@@ -39,8 +45,6 @@ jest.mock('@paralleldrive/cuid2', () => ({
 
 import { PrismaClient } from '@prisma/client';
 import { PrismaLagekarteRepository } from '../prisma-lagekarte.repository';
-import { PrismaOutboxRepository } from '@/infrastructure/outbox/prisma-outbox.repository';
-import { EventSerializer } from '@/infrastructure/outbox/event-serializer';
 import { LagekarteAggregate } from '@domain/aggregates/lagekarte.aggregate';
 import { EinsatzId } from '@domain/value-objects/einsatz-id';
 import { UserId } from '@domain/value-objects/user-id';
@@ -58,7 +62,11 @@ const generateTestId = () => {
   return result;
 };
 
-const prisma = new PrismaClient();
+// Check database availability at module load time
+const databaseAvailable = !!process.env.DATABASE_URL;
+
+// Prisma client - only instantiated when database is available
+let prisma: PrismaClient;
 
 /**
  * Misst die Performance einer async Funktion über mehrere Iterationen.
@@ -84,7 +92,8 @@ const measurePerformance = async (fn: () => Promise<void>, iterations = 10): Pro
 // Speichert alle gemessenen Performance-Werte für Summary-Output
 const performanceResults: Record<string, { avg: number; min: number; max: number; threshold: number }> = {};
 
-describe('PrismaLagekarteRepository - Performance Baselines', () => {
+// Skip entire test suite if database is not available
+(databaseAvailable ? describe : describe.skip)('PrismaLagekarteRepository - Performance Baselines', () => {
   let repository: PrismaLagekarteRepository;
   let testUserId: string;
   let testEinsatzId: string;
@@ -118,6 +127,9 @@ describe('PrismaLagekarteRepository - Performance Baselines', () => {
    * Setup: Erstellt System Test User + Test Einsatz für alle Performance Tests.
    */
   beforeAll(async () => {
+    // Initialize Prisma client (only called when database is available due to describe.skip guard)
+    prisma = new PrismaClient();
+
     // Disable triggers temporarily für cleanup von vorherigen Test Runs
     await prisma.$executeRawUnsafe('SET session_replication_role = replica;');
     try {
@@ -232,6 +244,8 @@ describe('PrismaLagekarteRepository - Performance Baselines', () => {
 
         // Speichere
         await repository.save(aggregate);
+        // WICHTIG: Events clearen, da wir Repository direkt verwenden (nicht über TransactionalCommandHandler)
+        aggregate.clearDomainEvents();
       }, 10);
 
       performanceResults['Create Lagekarte + POI'] = { ...result, threshold };
@@ -250,6 +264,7 @@ describe('PrismaLagekarteRepository - Performance Baselines', () => {
       const userIdVO = UserId.create(testUserId).value as UserId;
       const aggregate = LagekarteAggregate.create(einsatzIdVO, userIdVO).value as LagekarteAggregate;
       await repository.save(aggregate);
+      aggregate.clearDomainEvents();
 
       let poiCounter = 0;
       const result = await measurePerformance(async () => {
@@ -262,6 +277,7 @@ describe('PrismaLagekarteRepository - Performance Baselines', () => {
 
         // Speichere
         await repository.save(loaded);
+        loaded.clearDomainEvents();
       }, 10);
 
       performanceResults['Add POI'] = { ...result, threshold };
@@ -282,6 +298,7 @@ describe('PrismaLagekarteRepository - Performance Baselines', () => {
       const poiResult = aggregate.addPoi('Test POI', generateMgrs(0), PoiCategory.EINSATZSTELLE(), userIdVO);
       const poi = poiResult.value!;
       await repository.save(aggregate);
+      aggregate.clearDomainEvents();
 
       let updateCounter = 0;
       const result = await measurePerformance(async () => {
@@ -296,6 +313,7 @@ describe('PrismaLagekarteRepository - Performance Baselines', () => {
 
         // Speichere
         await repository.save(loaded);
+        loaded.clearDomainEvents();
       }, 10);
 
       performanceResults['Update POI Position'] = { ...result, threshold };
@@ -319,6 +337,7 @@ describe('PrismaLagekarteRepository - Performance Baselines', () => {
         aggregate.addPoi(`POI ${i}`, generateMgrs(i), PoiCategory.GEFAHRENSTELLE(), userIdVO);
       }
       await repository.save(aggregate);
+      aggregate.clearDomainEvents();
 
       const result = await measurePerformance(async () => {
         // Lade existierende Lagekarte
@@ -332,6 +351,7 @@ describe('PrismaLagekarteRepository - Performance Baselines', () => {
 
         // Speichere
         await repository.save(loaded);
+        loaded.clearDomainEvents();
       }, 10);
 
       performanceResults['Remove POI'] = { ...result, threshold };
@@ -357,6 +377,7 @@ describe('PrismaLagekarteRepository - Performance Baselines', () => {
       const aggregate = LagekarteAggregate.create(einsatzIdVO, userIdVO).value as LagekarteAggregate;
       aggregate.addPoi('Test POI', generateMgrs(0), PoiCategory.EINSATZSTELLE(), userIdVO);
       await repository.save(aggregate);
+      aggregate.clearDomainEvents();
 
       const result = await measurePerformance(async () => {
         const loaded = await repository.findById(aggregate.id);
@@ -383,6 +404,7 @@ describe('PrismaLagekarteRepository - Performance Baselines', () => {
         aggregate.addPoi(`POI ${i}`, generateMgrs(i), PoiCategory.EINSATZSTELLE(), userIdVO);
       }
       await repository.save(aggregate);
+      aggregate.clearDomainEvents();
 
       const result = await measurePerformance(async () => {
         const loaded = await repository.findById(aggregate.id);
@@ -417,6 +439,7 @@ describe('PrismaLagekarteRepository - Performance Baselines', () => {
         aggregate.addPoi(`Gefahr ${i}`, generateMgrs(40 + i), PoiCategory.GEFAHRENSTELLE(), userIdVO);
       }
       await repository.save(aggregate);
+      aggregate.clearDomainEvents();
 
       const result = await measurePerformance(async () => {
         // Lade Lagekarte + filter nach Kategorie
@@ -443,6 +466,7 @@ describe('PrismaLagekarteRepository - Performance Baselines', () => {
       const userIdVO = UserId.create(testUserId).value as UserId;
       const aggregate = LagekarteAggregate.create(einsatzIdVO, userIdVO).value as LagekarteAggregate;
       await repository.save(aggregate);
+      aggregate.clearDomainEvents();
 
       const result = await measurePerformance(async () => {
         const exists = await repository.exists(einsatzIdVO);
@@ -479,6 +503,7 @@ describe('PrismaLagekarteRepository - Performance Baselines', () => {
         const userIdVO = UserId.create(testUserId).value as UserId;
         const aggregate = LagekarteAggregate.create(einsatzIdVO, userIdVO).value as LagekarteAggregate;
         await repository.save(aggregate);
+        aggregate.clearDomainEvents();
 
         // 2. Add 10 POIs
         let loaded = await repository.findByEinsatzId(einsatzIdVO);
@@ -488,6 +513,7 @@ describe('PrismaLagekarteRepository - Performance Baselines', () => {
           loaded.addPoi(`POI ${i}`, generateMgrs(i), PoiCategory.EINSATZSTELLE(), userIdVO);
         }
         await repository.save(loaded);
+        loaded.clearDomainEvents();
 
         // 3. Update 2 POI Positions
         loaded = await repository.findByEinsatzId(einsatzIdVO);
@@ -498,6 +524,7 @@ describe('PrismaLagekarteRepository - Performance Baselines', () => {
         loaded.updatePoiPosition(poi1.id, generateMgrs(100), userIdVO);
         loaded.updatePoiPosition(poi2.id, generateMgrs(101), userIdVO);
         await repository.save(loaded);
+        loaded.clearDomainEvents();
 
         // 4. Remove 5 POIs
         loaded = await repository.findByEinsatzId(einsatzIdVO);
@@ -508,6 +535,7 @@ describe('PrismaLagekarteRepository - Performance Baselines', () => {
           loaded.removePoi(poiToRemove.id, userIdVO);
         }
         await repository.save(loaded);
+        loaded.clearDomainEvents();
 
         // 5. Load final state
         const finalState = await repository.findByEinsatzId(einsatzIdVO);

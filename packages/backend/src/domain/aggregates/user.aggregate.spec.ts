@@ -10,6 +10,8 @@ import { UserRoleChangedEvent } from '@domain/events/user-role-changed.event';
 import { PermissionGrantedEvent } from '@domain/events/permission-granted.event';
 import { PermissionRevokedEvent } from '@domain/events/permission-revoked.event';
 import { UserDeletedEvent } from '@domain/events/user-deleted.event';
+import { UserLockedEvent } from '@domain/events/user-locked.event';
+import { UserUnlockedEvent } from '@domain/events/user-unlocked.event';
 
 // Mock cuid2 for Jest compatibility (ESM module issue)
 jest.mock('@paralleldrive/cuid2', () => ({
@@ -310,17 +312,27 @@ describe('UserAggregate', () => {
   });
 
   describe('lock() - Account Locking with Min-1-SUPER_ADMIN Check', () => {
-    it('should lock user (sets isLocked=true)', async () => {
+    it('should lock user and emit UserLockedEvent', async () => {
       // Given: Active user (ADMIN)
       const username = Username.create('ruben_admin').value!;
       const user = UserAggregate.create(username, UserRole.ADMIN()).value!;
+      user.clearDomainEvents(); // Clear creation event
+
+      const lockedBy = UserId.create().value!;
 
       // When: Lock user
-      const result = await user.lock(mockRepository);
+      const result = await user.lock(mockRepository, lockedBy);
 
-      // Then: Success (user locked)
+      // Then: Success (user locked + event emitted)
       expect(result.isSuccess).toBe(true);
       expect(user.isLocked).toBe(true);
+
+      const events = user.getDomainEvents();
+      expect(events.length).toBe(1);
+      expect(events[0]).toBeInstanceOf(UserLockedEvent);
+      const lockEvent = events[0] as UserLockedEvent;
+      expect(lockEvent.userId).toBe(user.id);
+      expect(lockEvent.lockedBy).toBe(lockedBy);
     });
 
     it('should fail if locking last SUPER_ADMIN (countSuperAdmins = 1)', async () => {
@@ -330,8 +342,10 @@ describe('UserAggregate', () => {
 
       mockRepository.countSuperAdmins = jest.fn().mockResolvedValue(Result.ok(1)); // Only 1 SUPER_ADMIN
 
+      const lockedBy = UserId.create().value!;
+
       // When: Try to lock last SUPER_ADMIN
-      const result = await user.lock(mockRepository);
+      const result = await user.lock(mockRepository, lockedBy);
 
       // Then: Failure (Min-1-SUPER_ADMIN Constraint violated)
       expect(result.isFailure).toBe(true);
@@ -346,8 +360,10 @@ describe('UserAggregate', () => {
 
       mockRepository.countSuperAdmins = jest.fn().mockResolvedValue(Result.ok(2)); // 2 SUPER_ADMINs
 
+      const lockedBy = UserId.create().value!;
+
       // When: Lock SUPER_ADMIN
-      const result = await user.lock(mockRepository);
+      const result = await user.lock(mockRepository, lockedBy);
 
       // Then: Success (Min-1-SUPER_ADMIN Constraint satisfied)
       expect(result.isSuccess).toBe(true);
@@ -356,31 +372,46 @@ describe('UserAggregate', () => {
   });
 
   describe('unlock() - Account Unlocking', () => {
-    it('should unlock user (sets isLocked=false)', async () => {
+    it('should unlock user and emit UserUnlockedEvent', async () => {
       // Given: Locked user
       const username = Username.create('ruben_admin').value!;
       const user = UserAggregate.create(username, UserRole.ADMIN()).value!;
-      await user.lock(mockRepository);
+      const lockedBy = UserId.create().value!;
+      await user.lock(mockRepository, lockedBy);
+      user.clearDomainEvents(); // Clear lock event
+
+      const unlockedBy = UserId.create().value!;
 
       // When: Unlock user
-      const result = user.unlock();
+      const result = user.unlock(unlockedBy);
 
-      // Then: Success (user unlocked)
+      // Then: Success (user unlocked + event emitted)
       expect(result.isSuccess).toBe(true);
       expect(user.isLocked).toBe(false);
+
+      const events = user.getDomainEvents();
+      expect(events.length).toBe(1);
+      expect(events[0]).toBeInstanceOf(UserUnlockedEvent);
+      const unlockEvent = events[0] as UserUnlockedEvent;
+      expect(unlockEvent.userId).toBe(user.id);
+      expect(unlockEvent.unlockedBy).toBe(unlockedBy);
     });
 
-    it('should be no-op if user not locked', () => {
+    it('should be no-op if user not locked (no event)', () => {
       // Given: Active user (not locked)
       const username = Username.create('ruben_admin').value!;
       const user = UserAggregate.create(username, UserRole.ADMIN()).value!;
+      user.clearDomainEvents(); // Clear creation event
+
+      const unlockedBy = UserId.create().value!;
 
       // When: Unlock already active user
-      const result = user.unlock();
+      const result = user.unlock(unlockedBy);
 
-      // Then: Success (no-op)
+      // Then: Success (no-op, no event)
       expect(result.isSuccess).toBe(true);
       expect(user.isLocked).toBe(false);
+      expect(user.getDomainEvents().length).toBe(0); // No event emitted
     });
   });
 
@@ -444,7 +475,8 @@ describe('UserAggregate', () => {
       // Given: Locked user
       const username = Username.create('ruben_admin').value!;
       const user = UserAggregate.create(username, UserRole.ADMIN()).value!;
-      await user.lock(mockRepository);
+      const lockedBy = UserId.create().value!;
+      await user.lock(mockRepository, lockedBy);
 
       const deletedBy = UserId.create().value!;
 
@@ -601,14 +633,19 @@ describe('UserAggregate', () => {
       const username = Username.create('ruben_admin').value!;
       const user = UserAggregate.create(username, UserRole.ADMIN()).value!;
 
-      // When: Lock + Unlock (NO events for lock/unlock)
-      await user.lock(mockRepository);
-      user.unlock();
+      const lockedBy = UserId.create().value!;
+      const unlockedBy = UserId.create().value!;
 
-      // Then: Only UserCreatedEvent (lock/unlock do NOT emit events)
+      // When: Lock + Unlock
+      await user.lock(mockRepository, lockedBy);
+      user.unlock(unlockedBy);
+
+      // Then: 3 events accumulated (UserCreatedEvent + UserLockedEvent + UserUnlockedEvent)
       const events = user.getDomainEvents();
-      expect(events.length).toBe(1);
+      expect(events.length).toBe(3);
       expect(events[0]).toBeInstanceOf(UserCreatedEvent);
+      expect(events[1]).toBeInstanceOf(UserLockedEvent);
+      expect(events[2]).toBeInstanceOf(UserUnlockedEvent);
     });
 
     it('should accumulate events from create() + delete()', async () => {
@@ -677,14 +714,17 @@ describe('UserAggregate', () => {
       const username = Username.create('ruben_admin').value!;
       const user = UserAggregate.create(username, UserRole.ADMIN()).value!;
 
+      const lockedBy = UserId.create().value!;
+      const unlockedBy = UserId.create().value!;
+
       // When: Lock → Unlock → Lock
-      await user.lock(mockRepository);
+      await user.lock(mockRepository, lockedBy);
       expect(user.isLocked).toBe(true);
 
-      user.unlock();
+      user.unlock(unlockedBy);
       expect(user.isLocked).toBe(false);
 
-      await user.lock(mockRepository);
+      await user.lock(mockRepository, lockedBy);
       expect(user.isLocked).toBe(true);
 
       // Then: Lock cycle works

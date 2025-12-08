@@ -85,79 +85,85 @@ export class PrismaEinsatzRepository implements IEinsatzRepository {
    * @returns Result<void> - Success oder Failure mit Error Message
    */
   async save(aggregate: Einsatz, tx?: TransactionContext): Promise<Result<void>> {
-    // Transaction Client: externe tx oder interne Prisma Client
-    const client = (tx as PrismaTransactionClient | undefined) ?? this.prisma;
+    try {
+      // Transaction Client: externe tx oder interne Prisma Client
+      const client = (tx as PrismaTransactionClient | undefined) ?? this.prisma;
 
-    // Aggregate → Prisma Data Mapping
-    // createdBy wird aus Aggregate extrahiert
-    const createdByUser = aggregate.createdBy.value;
-    const persistenceData = PrismaEinsatzMapper.toPersistence(aggregate, createdByUser);
+      // Aggregate → Prisma Data Mapping
+      // createdBy wird aus Aggregate extrahiert
+      const createdByUser = aggregate.createdBy.value;
+      const persistenceData = PrismaEinsatzMapper.toPersistence(aggregate, createdByUser);
 
-    // Transaction Closure: Einsatz Upsert
-    const operation = async (prismaClient: PrismaTransactionClient): Promise<void> => {
-      // UPSERT Einsatz Record (CREATE or UPDATE)
-      await prismaClient.einsatz.upsert({
-        where: { id: persistenceData.id },
-        create: {
-          id: persistenceData.id,
-          alarmstichwort: persistenceData.alarmstichwort,
-          einsatzort: persistenceData.einsatzort,
-          beschreibung: persistenceData.beschreibung,
-          status: persistenceData.status,
-          createdAt: persistenceData.createdAt,
-          updatedAt: persistenceData.updatedAt,
-          createdBy: persistenceData.createdBy,
-          updatedBy: persistenceData.updatedBy,
-          archivedAt: persistenceData.archivedAt,
-          archivedBy: persistenceData.archivedBy,
-          alarmierungszeit: persistenceData.alarmierungszeit,
-          einsatzleiter: persistenceData.einsatzleiter,
-          metadata: persistenceData.metadata ?? Prisma.JsonNull,
-        },
-        update: {
-          // Mutable Felder - können bei Update geändert werden
-          alarmstichwort: persistenceData.alarmstichwort,
-          einsatzort: persistenceData.einsatzort,
-          beschreibung: persistenceData.beschreibung,
-          status: persistenceData.status,
-          updatedAt: persistenceData.updatedAt,
-          updatedBy: persistenceData.updatedBy,
-          archivedAt: persistenceData.archivedAt,
-          archivedBy: persistenceData.archivedBy,
-          alarmierungszeit: persistenceData.alarmierungszeit,
-          einsatzleiter: persistenceData.einsatzleiter,
-          metadata: persistenceData.metadata ?? Prisma.JsonNull,
-          // id, createdAt, createdBy sind readonly - werden NICHT geupdated
-        },
-      });
+      // Transaction Closure: Einsatz Upsert
+      const operation = async (prismaClient: PrismaTransactionClient): Promise<void> => {
+        // UPSERT Einsatz Record (CREATE or UPDATE)
+        await prismaClient.einsatz.upsert({
+          where: { id: persistenceData.id },
+          create: {
+            id: persistenceData.id,
+            alarmstichwort: persistenceData.alarmstichwort,
+            einsatzort: persistenceData.einsatzort,
+            beschreibung: persistenceData.beschreibung,
+            status: persistenceData.status,
+            createdAt: persistenceData.createdAt,
+            updatedAt: persistenceData.updatedAt,
+            createdBy: persistenceData.createdBy,
+            updatedBy: persistenceData.updatedBy,
+            archivedAt: persistenceData.archivedAt,
+            archivedBy: persistenceData.archivedBy,
+            alarmierungszeit: persistenceData.alarmierungszeit,
+            einsatzleiter: persistenceData.einsatzleiter,
+            metadata: persistenceData.metadata ?? Prisma.JsonNull,
+          },
+          update: {
+            // Mutable Felder - können bei Update geändert werden
+            alarmstichwort: persistenceData.alarmstichwort,
+            einsatzort: persistenceData.einsatzort,
+            beschreibung: persistenceData.beschreibung,
+            status: persistenceData.status,
+            updatedAt: persistenceData.updatedAt,
+            updatedBy: persistenceData.updatedBy,
+            archivedAt: persistenceData.archivedAt,
+            archivedBy: persistenceData.archivedBy,
+            alarmierungszeit: persistenceData.alarmierungszeit,
+            einsatzleiter: persistenceData.einsatzleiter,
+            metadata: persistenceData.metadata ?? Prisma.JsonNull,
+            // id, createdAt, createdBy sind readonly - werden NICHT geupdated
+          },
+        });
 
-      // NOTE: Domain Events werden NICHT hier persistiert!
-      // TransactionalCommandHandler extrahiert Events via getDomainEvents()
-      // und speichert sie in Outbox. Repository darf clearDomainEvents()
-      // NICHT aufrufen, sonst sind Events verloren.
-    };
+        // NOTE: Domain Events werden NICHT hier persistiert!
+        // TransactionalCommandHandler extrahiert Events via getDomainEvents()
+        // und speichert sie in Outbox. Repository darf clearDomainEvents()
+        // NICHT aufrufen, sonst sind Events verloren.
+      };
 
-    // Execute in Transaction (internal oder external)
-    if (tx) {
-      // Externe Transaction: Nutze provided client
-      await operation(client as PrismaTransactionClient);
-    } else {
-      // Interne Transaction: Wrap in $transaction
-      await this.prisma.$transaction(async (prismaClient) => {
-        await operation(prismaClient);
-      });
+      // Execute in Transaction (internal oder external)
+      if (tx) {
+        // Externe Transaction: Nutze provided client
+        await operation(client as PrismaTransactionClient);
+      } else {
+        // Interne Transaction: Wrap in $transaction
+        await this.prisma.$transaction(async (prismaClient) => {
+          await operation(prismaClient);
+        });
+      }
+
+      // NOTE: clearDomainEvents() wird NICHT aufgerufen!
+      // TransactionalCommandHandler ist verantwortlich für:
+      // 1. Events extrahieren via getDomainEvents()
+      // 2. Events in Outbox speichern
+      // 3. Events clearen via clearDomainEvents()
+      //
+      // Wenn Repository clearDomainEvents() aufruft, sind Events verloren
+      // bevor Handler sie extrahieren kann.
+
+      return Result.ok(undefined);
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error);
+      this.logger.error(`Failed to save Einsatz: ${message}`, { einsatzId: aggregate.id.value });
+      return Result.fail(`Database error: ${message}`);
     }
-
-    // NOTE: clearDomainEvents() wird NICHT aufgerufen!
-    // TransactionalCommandHandler ist verantwortlich für:
-    // 1. Events extrahieren via getDomainEvents()
-    // 2. Events in Outbox speichern
-    // 3. Events clearen via clearDomainEvents()
-    //
-    // Wenn Repository clearDomainEvents() aufruft, sind Events verloren
-    // bevor Handler sie extrahieren kann.
-
-    return Result.ok(undefined);
   }
 
   /**

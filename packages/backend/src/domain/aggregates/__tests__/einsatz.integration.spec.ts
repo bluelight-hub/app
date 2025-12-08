@@ -20,7 +20,8 @@ import { EinsatzStatus } from '@domain/value-objects/einsatz-status';
 import { Address } from '@domain/value-objects/address';
 import { Result } from '@domain/common/result';
 import type { IEinsatzRepository } from '@domain/repositories/ieinsatz.repository';
-import { skipIfNoDatabase } from '@domain/__tests__/helpers/database-test.helper';
+
+const databaseAvailable = !!process.env.DATABASE_URL;
 
 // Mock cuid2 for Jest compatibility (ESM module issue)
 jest.mock('@paralleldrive/cuid2', () => ({
@@ -99,22 +100,14 @@ class InMemoryEinsatzRepository implements IEinsatzRepository {
   }
 }
 
-describe('Einsatz Integration Tests', () => {
+(databaseAvailable ? describe : describe.skip)('Einsatz Integration Tests', () => {
   let repository: InMemoryEinsatzRepository;
-  let databaseAvailable = false;
-
-  beforeAll(async () => {
-    databaseAvailable = await skipIfNoDatabase();
-    if (!databaseAvailable) return;
-  });
 
   beforeEach(() => {
-    if (!databaseAvailable) return;
     repository = new InMemoryEinsatzRepository();
   });
 
   afterEach(() => {
-    if (!databaseAvailable) return;
     repository.clear();
   });
 

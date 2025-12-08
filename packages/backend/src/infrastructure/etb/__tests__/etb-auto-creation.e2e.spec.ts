@@ -2,6 +2,8 @@ import { EinsatzId } from '@domain/value-objects/einsatz-id';
 import { EinsatztagebuchAggregate } from '@domain/aggregates/einsatztagebuch.aggregate';
 import { createEtbE2eModule, teardownE2eModule, cleanupTestData, createTestEinsatz, type EtbE2eTestContext } from './etb.e2e-setup';
 
+const databaseAvailable = !!process.env.DATABASE_URL;
+
 /**
  * E2E Tests für die automatische ETB-Erstellung.
  *
@@ -12,7 +14,7 @@ import { createEtbE2eModule, teardownE2eModule, cleanupTestData, createTestEinsa
  * - eintraege = []
  * - 1:1 Relation zwischen Einsatz und ETB
  */
-describe('ETB Auto-Creation E2E Tests', () => {
+(databaseAvailable ? describe : describe.skip)('ETB Auto-Creation E2E Tests', () => {
   let ctx: EtbE2eTestContext;
 
   beforeAll(async () => {

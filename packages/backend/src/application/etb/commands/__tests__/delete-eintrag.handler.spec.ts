@@ -1,4 +1,3 @@
-import { BadRequestException, NotFoundException } from '@nestjs/common';
 import { InMemoryEtbRepository } from '../../__tests__/in-memory-etb.repository';
 import { DeleteEintragCommand } from '../delete-eintrag/delete-eintrag.command';
 import { DeleteEintragHandler } from '../delete-eintrag/delete-eintrag.handler';
@@ -148,7 +147,7 @@ describe('DeleteEintragHandler', () => {
   });
 
   describe('AC5: DeleteEintrag fails if ETB is locked', () => {
-    it('should throw BadRequestException when ETB is locked', async () => {
+    it('should return failure when ETB is locked', async () => {
       // Arrange: Create locked ETB with entry
       const etb = createTestEtb({ status: 'LOCKED', entriesCount: 1, userId: testUserId, einsatzId: testEinsatzId });
       await etbRepository.save(etb);
@@ -156,14 +155,17 @@ describe('DeleteEintragHandler', () => {
 
       const command = DeleteEintragCommand.create(etb.id.value, eintragId, testUserId).value!;
 
-      // Act & Assert
-      await expect(handler.execute(command)).rejects.toThrow(BadRequestException);
-      await expect(handler.execute(command)).rejects.toThrow('ETB ist gesperrt und kann nicht mehr geändert werden');
+      // Act
+      const result = await handler.execute(command);
+
+      // Assert
+      expect(result.isFailure).toBe(true);
+      expect(result.error).toBe('ETB ist gesperrt und kann nicht mehr geändert werden');
     });
   });
 
   describe('AC6: DeleteEintrag fails if Eintrag not found', () => {
-    it('should throw BadRequestException when entry does not exist', async () => {
+    it('should return failure when entry does not exist', async () => {
       // Arrange: Create ETB without the entry we're trying to delete
       const etb = createTestEtb({ entriesCount: 1, userId: testUserId, einsatzId: testEinsatzId });
       await etbRepository.save(etb);
@@ -171,37 +173,47 @@ describe('DeleteEintragHandler', () => {
 
       const command = DeleteEintragCommand.create(etb.id.value, fakeEintragId, testUserId).value!;
 
-      // Act & Assert
-      await expect(handler.execute(command)).rejects.toThrow(BadRequestException);
-      await expect(handler.execute(command)).rejects.toThrow('Eintrag nicht gefunden');
+      // Act
+      const result = await handler.execute(command);
+
+      // Assert
+      expect(result.isFailure).toBe(true);
+      expect(result.error).toBe('Eintrag nicht gefunden');
     });
   });
 
-  describe('AC7: Handler throws NotFoundException when ETB not found', () => {
-    it('should throw NotFoundException when ETB does not exist', async () => {
+  describe('AC7: Handler returns failure when ETB not found', () => {
+    it('should return failure when ETB does not exist', async () => {
       // Arrange: Create command for non-existent ETB
       const fakeEtbId = generateTestCuid();
       const fakeEintragId = generateTestCuid();
       const command = DeleteEintragCommand.create(fakeEtbId, fakeEintragId, testUserId).value!;
 
-      // Act & Assert
-      await expect(handler.execute(command)).rejects.toThrow(NotFoundException);
-      await expect(handler.execute(command)).rejects.toThrow('ETB nicht gefunden');
+      // Act
+      const result = await handler.execute(command);
+
+      // Assert
+      expect(result.isFailure).toBe(true);
+      expect(result.error).toBe('ETB nicht gefunden');
     });
   });
 
   describe('AC8: Handler validation', () => {
-    it('should throw NotFoundException when ETB not found', async () => {
+    it('should return failure when ETB not found', async () => {
       // Arrange: Non-existent ETB
       const fakeEtbId = generateTestCuid();
       const fakeEintragId = generateTestCuid();
       const command = DeleteEintragCommand.create(fakeEtbId, fakeEintragId, testUserId).value!;
 
-      // Act & Assert
-      await expect(handler.execute(command)).rejects.toThrow(NotFoundException);
+      // Act
+      const result = await handler.execute(command);
+
+      // Assert
+      expect(result.isFailure).toBe(true);
+      expect(result.error).toBe('ETB nicht gefunden');
     });
 
-    it('should throw BadRequestException when ETB is locked', async () => {
+    it('should return failure when ETB is locked', async () => {
       // Arrange: Locked ETB
       const etb = createTestEtb({ status: 'LOCKED', entriesCount: 1, userId: testUserId, einsatzId: testEinsatzId });
       await etbRepository.save(etb);
@@ -209,8 +221,12 @@ describe('DeleteEintragHandler', () => {
 
       const command = DeleteEintragCommand.create(etb.id.value, eintragId, testUserId).value!;
 
-      // Act & Assert
-      await expect(handler.execute(command)).rejects.toThrow(BadRequestException);
+      // Act
+      const result = await handler.execute(command);
+
+      // Assert
+      expect(result.isFailure).toBe(true);
+      expect(result.error).toBe('ETB ist gesperrt und kann nicht mehr geändert werden');
     });
   });
 

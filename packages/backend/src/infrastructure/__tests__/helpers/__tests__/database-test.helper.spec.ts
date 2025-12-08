@@ -13,25 +13,23 @@
  * - Given-When-Then BDD Style
  */
 
-import { skipIfNoDatabase } from '../database-test.helper';
-
-// Type for mocked PrismaClient instance
-interface MockPrismaClient {
-  $queryRaw: jest.Mock;
-  $disconnect: jest.Mock;
-}
+// Create mock factory that will be reconfigured per test
+let mockQueryRaw: jest.Mock;
+let mockDisconnect: jest.Mock;
 
 // Mock PrismaClient BEFORE imports
 jest.mock('@prisma/client', () => {
   return {
     PrismaClient: jest.fn().mockImplementation(() => {
       return {
-        $queryRaw: jest.fn(),
-        $disconnect: jest.fn(),
+        $queryRaw: mockQueryRaw,
+        $disconnect: mockDisconnect,
       };
     }),
   };
 });
+
+import { skipIfNoDatabase } from '../database-test.helper';
 
 describe('Database Test Helper - skipIfNoDatabase()', () => {
   const originalEnv = process.env;
@@ -39,9 +37,13 @@ describe('Database Test Helper - skipIfNoDatabase()', () => {
 
   beforeEach(() => {
     // Reset environment and mocks
-    jest.resetModules();
+    jest.clearAllMocks();
     process.env = { ...originalEnv };
     consoleWarnSpy = jest.spyOn(console, 'warn').mockImplementation(() => {});
+
+    // Reset mock functions
+    mockQueryRaw = jest.fn();
+    mockDisconnect = jest.fn().mockResolvedValue(undefined);
   });
 
   afterEach(() => {
@@ -108,17 +110,7 @@ describe('Database Test Helper - skipIfNoDatabase()', () => {
     process.env.DATABASE_URL = 'postgresql://localhost:5432/test';
 
     // Mock PrismaClient.$queryRaw to throw error
-    const { PrismaClient } = await import('@prisma/client');
-    const mockQueryRaw = jest.fn().mockRejectedValue(new Error('Connection refused'));
-    const mockDisconnect = jest.fn().mockResolvedValue(undefined);
-
-    (PrismaClient as jest.MockedClass<typeof PrismaClient>).mockImplementation(
-      () =>
-        ({
-          $queryRaw: mockQueryRaw,
-          $disconnect: mockDisconnect,
-        }) as MockPrismaClient,
-    );
+    mockQueryRaw.mockRejectedValue(new Error('Connection refused'));
 
     // When: Check database availability
     const result = await skipIfNoDatabase();
@@ -145,22 +137,12 @@ describe('Database Test Helper - skipIfNoDatabase()', () => {
     process.env.DATABASE_URL = 'postgresql://localhost:5432/test';
 
     // Mock PrismaClient.$queryRaw to hang (never resolves)
-    const { PrismaClient } = await import('@prisma/client');
-    const mockQueryRaw = jest.fn().mockImplementation(
+    mockQueryRaw.mockImplementation(
       () =>
         new Promise((resolve) => {
           // Never resolves - simulates hanging connection
           setTimeout(resolve, 10000); // 10s (longer than 5s timeout)
         }),
-    );
-    const mockDisconnect = jest.fn().mockResolvedValue(undefined);
-
-    (PrismaClient as jest.MockedClass<typeof PrismaClient>).mockImplementation(
-      () =>
-        ({
-          $queryRaw: mockQueryRaw,
-          $disconnect: mockDisconnect,
-        }) as MockPrismaClient,
     );
 
     // When: Check database availability
@@ -192,17 +174,7 @@ describe('Database Test Helper - skipIfNoDatabase()', () => {
     process.env.DATABASE_URL = 'postgresql://localhost:5432/test';
 
     // Mock successful PrismaClient connection
-    const { PrismaClient } = await import('@prisma/client');
-    const mockQueryRaw = jest.fn().mockResolvedValue([{ result: 1 }]);
-    const mockDisconnect = jest.fn().mockResolvedValue(undefined);
-
-    (PrismaClient as jest.MockedClass<typeof PrismaClient>).mockImplementation(
-      () =>
-        ({
-          $queryRaw: mockQueryRaw,
-          $disconnect: mockDisconnect,
-        }) as MockPrismaClient,
-    );
+    mockQueryRaw.mockResolvedValue([{ result: 1 }]);
 
     // When: Check database availability
     const result = await skipIfNoDatabase();
@@ -231,17 +203,7 @@ describe('Database Test Helper - skipIfNoDatabase()', () => {
     // Given: DATABASE_URL gesetzt aber Connection fehlschlägt
     process.env.DATABASE_URL = 'postgresql://localhost:5432/test';
 
-    const { PrismaClient } = await import('@prisma/client');
-    const mockQueryRaw = jest.fn().mockRejectedValue(new Error('Test error'));
-    const mockDisconnect = jest.fn().mockResolvedValue(undefined);
-
-    (PrismaClient as jest.MockedClass<typeof PrismaClient>).mockImplementation(
-      () =>
-        ({
-          $queryRaw: mockQueryRaw,
-          $disconnect: mockDisconnect,
-        }) as MockPrismaClient,
-    );
+    mockQueryRaw.mockRejectedValue(new Error('Test error'));
 
     // When: Check database availability
     await skipIfNoDatabase();

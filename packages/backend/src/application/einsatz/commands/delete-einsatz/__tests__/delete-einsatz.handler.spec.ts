@@ -5,7 +5,6 @@ import { Result } from '@domain/common/result';
 import { Einsatz } from '@domain/aggregates/einsatz.aggregate';
 import { UserId } from '@domain/value-objects/user-id';
 import { EinsatzId } from '@domain/value-objects/einsatz-id';
-import { EinsatzNotFoundException, EinsatzValidationException, EinsatzBusinessRuleException } from '@domain/common/exceptions';
 import { EINSATZ_REPOSITORY } from '@/infrastructure/di-tokens';
 
 describe('DeleteEinsatzHandler', () => {
@@ -42,53 +41,50 @@ describe('DeleteEinsatzHandler', () => {
   });
 
   describe('NO-DELETE Policy', () => {
-    it('sollte IMMER EinsatzBusinessRuleException werfen (NO-DELETE Policy)', async () => {
-      // Arrange
+    it('sollte IMMER Result.fail zurückgeben (NO-DELETE Policy)', async () => {
+      // Given (Arrange)
       const einsatz = createTestEinsatz();
       mockRepository.findById.mockResolvedValue(Result.ok(einsatz));
 
       const command = DeleteEinsatzCommand.create(einsatz.id.value).value!;
 
-      // Act & Assert
-      await expect(handler.execute(command)).rejects.toThrow(EinsatzBusinessRuleException);
-      await expect(handler.execute(command)).rejects.toThrow('Einsätze können nicht gelöscht werden. Verwende Archivieren stattdessen.');
+      // When (Act)
+      const result = await handler.execute(command);
 
-      // Verify exception details
-      try {
-        await handler.execute(command);
-      } catch (error) {
-        expect(error).toBeInstanceOf(EinsatzBusinessRuleException);
-        expect((error as EinsatzBusinessRuleException).rule).toBe('noDeletePolicy');
-      }
+      // Then (Assert)
+      expect(result.isFailure).toBe(true);
+      expect(result.error).toBe('Einsätze können nicht gelöscht werden. Verwende Archivieren stattdessen.');
     });
 
     it('sollte canBeDeleted() aufrufen und false erwarten', async () => {
-      // Arrange
+      // Given (Arrange)
       const einsatz = createTestEinsatz();
       const canBeDeletedSpy = jest.spyOn(einsatz, 'canBeDeleted');
       mockRepository.findById.mockResolvedValue(Result.ok(einsatz));
 
       const command = DeleteEinsatzCommand.create(einsatz.id.value).value!;
 
-      // Act - expect exception
-      await expect(handler.execute(command)).rejects.toThrow(EinsatzBusinessRuleException);
+      // When (Act)
+      const result = await handler.execute(command);
 
-      // Assert
+      // Then (Assert)
+      expect(result.isFailure).toBe(true);
       expect(canBeDeletedSpy).toHaveBeenCalled();
       expect(einsatz.canBeDeleted()).toBe(false);
     });
 
     it('sollte repository.delete NIEMALS aufrufen (DRK Compliance)', async () => {
-      // Arrange
+      // Given (Arrange)
       const einsatz = createTestEinsatz();
       mockRepository.findById.mockResolvedValue(Result.ok(einsatz));
 
       const command = DeleteEinsatzCommand.create(einsatz.id.value).value!;
 
-      // Act - expect exception
-      await expect(handler.execute(command)).rejects.toThrow(EinsatzBusinessRuleException);
+      // When (Act)
+      const result = await handler.execute(command);
 
-      // Assert
+      // Then (Assert)
+      expect(result.isFailure).toBe(true);
       expect(mockRepository.delete).not.toHaveBeenCalled();
     });
 
@@ -109,43 +105,32 @@ describe('DeleteEinsatzHandler', () => {
   });
 
   describe('Error Cases', () => {
-    it('sollte EinsatzNotFoundException werfen bei Einsatz nicht gefunden', async () => {
-      // Arrange
+    it('sollte Result.fail zurückgeben bei Einsatz nicht gefunden', async () => {
+      // Given (Arrange)
       const einsatzId = EinsatzId.create().value!;
       mockRepository.findById.mockResolvedValue(Result.ok(null));
 
       const command = DeleteEinsatzCommand.create(einsatzId.value).value!;
 
-      // Act & Assert
-      await expect(handler.execute(command)).rejects.toThrow(EinsatzNotFoundException);
-      await expect(handler.execute(command)).rejects.toThrow(`Einsatz nicht gefunden: ${einsatzId.value}`);
+      // When (Act)
+      const result = await handler.execute(command);
 
-      // Verify exception details
-      try {
-        await handler.execute(command);
-      } catch (error) {
-        expect(error).toBeInstanceOf(EinsatzNotFoundException);
-        expect((error as EinsatzNotFoundException).aggregateId).toBe(einsatzId.value);
-      }
+      // Then (Assert)
+      expect(result.isFailure).toBe(true);
+      expect(result.error).toBe('Einsatz nicht gefunden');
     });
 
-    it('sollte EinsatzValidationException werfen bei ungültiger Einsatz-ID', async () => {
-      // Arrange
+    it('sollte Result.fail zurückgeben bei ungültiger Einsatz-ID', async () => {
+      // Given (Arrange)
       const command = DeleteEinsatzCommand.create('invalid-id').value!;
 
-      // Act & Assert
-      await expect(handler.execute(command)).rejects.toThrow(EinsatzValidationException);
+      // When (Act)
+      const result = await handler.execute(command);
 
-      // Verify repository was never called
+      // Then (Assert)
+      expect(result.isFailure).toBe(true);
+      expect(result.error).toBe('Invalid CUID format'); // EinsatzId.create() validation error
       expect(mockRepository.findById).not.toHaveBeenCalled();
-
-      // Verify exception details
-      try {
-        await handler.execute(command);
-      } catch (error) {
-        expect(error).toBeInstanceOf(EinsatzValidationException);
-        expect((error as EinsatzValidationException).field).toBe('einsatzId');
-      }
     });
   });
 

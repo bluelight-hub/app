@@ -44,23 +44,17 @@ export class EventEmitterPublisher implements IEventPublisher {
    */
   async publish(event: DomainEvent): Promise<void> {
     const eventName = (event.constructor as typeof DomainEvent).eventName();
-    this.logger.log(`Publishing event '${eventName}'`, {
-      eventId: event.eventId,
-      aggregateId: event.aggregateId,
-      eventType: event.constructor.name,
-    });
     try {
       await this.eventEmitter.emitAsync(eventName, event);
-      this.logger.log(`Event '${eventName}' published successfully`, {
+      this.logger.debug(`Event '${eventName}' published`, {
         eventId: event.eventId,
         aggregateId: event.aggregateId,
       });
     } catch (error) {
       // Fire-and-Forget: Log but don't propagate handler errors
-      this.logger.error(`Event handler error for '${eventName}'`, {
+      this.logger.warn(`Event handler error for '${eventName}'`, {
         eventId: event.eventId,
         error: error instanceof Error ? error.message : String(error),
-        stack: error instanceof Error ? error.stack : undefined,
       });
     }
   }

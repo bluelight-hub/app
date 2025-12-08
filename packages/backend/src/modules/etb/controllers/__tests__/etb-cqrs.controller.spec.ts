@@ -1,10 +1,50 @@
-import type { CommandBus, QueryBus } from '@nestjs/cqrs';
 import { BadRequestException, NotFoundException } from '@nestjs/common';
 import { EtbCqrsController } from '@/modules/etb/controllers/etb-cqrs.controller';
 import { Result } from '@/domain/common/result';
 import type { ValidatedUser } from '@/modules/auth/strategies/jwt.strategy';
-import type { AddEintragDto, UpdateEintragDto, EtbDto, EintragDto, EtbSnapshotDto } from '@/application/etb/dto';
-import type { EtbEintragSnapshotDto } from '@/application/etb/mappers';
+import type { AddEintragDto, UpdateEintragDto, EtbDto, EintragDto } from '@/application/etb/dto';
+import type { EtbEintragSnapshotDto, EtbSnapshotDto } from '@/application/etb/mappers';
+import type { AddEintragHandler } from '@/application/etb/commands/add-eintrag/add-eintrag.handler';
+import type { UpdateEintragHandler } from '@/application/etb/commands/update-eintrag/update-eintrag.handler';
+import type { DeleteEintragHandler } from '@/application/etb/commands/delete-eintrag/delete-eintrag.handler';
+import type { LockEtbHandler } from '@/application/etb/commands/lock-etb/lock-etb.handler';
+import type { GetEtbQueryHandler } from '@/application/etb/queries/get-etb/get-etb-query.handler';
+import type { GetEtbHistoryQueryHandler } from '@/application/etb/queries/get-etb-history/get-etb-history-query.handler';
+import type { GetTextbausteineHandler } from '@/application/etb/queries/get-textbausteine/get-textbausteine-query.handler';
+import type { IEtbRepository } from '@domain/repositories/i-etb.repository';
+
+// Mock EtbQueryMapper
+jest.mock('@/application/etb/mappers', () => ({
+  EtbQueryMapper: {
+    toEintragDto: jest.fn((eintrag) => ({
+      id: eintrag.id.value,
+      sequenceNumber: eintrag.sequenceNumber.value,
+      text: eintrag.text,
+      createdBy: eintrag.createdBy.value,
+      createdAt: eintrag.createdAt,
+      updatedAt: eintrag.updatedAt,
+      isDeleted: eintrag.isDeleted,
+    })),
+    toEtbDto: jest.fn((aggregate, _includeDeleted = false) => ({
+      id: aggregate.id.value,
+      einsatzId: aggregate.einsatzId?.value,
+      status: aggregate.status,
+      eintraege: aggregate.eintraege.map(
+        (e: { id: { value: string }; sequenceNumber: { value: number }; text: string; createdBy: { value: string }; createdAt: Date; updatedAt: Date; isDeleted: boolean }) => ({
+          id: e.id.value,
+          sequenceNumber: e.sequenceNumber.value,
+          text: e.text,
+          createdBy: e.createdBy.value,
+          createdAt: e.createdAt,
+          updatedAt: e.updatedAt,
+          isDeleted: e.isDeleted,
+        }),
+      ),
+      version: { versionNumber: 1, timestamp: new Date() },
+      createdAt: new Date(),
+    })),
+  },
+}));
 
 // Mock cuid2 for deterministic test IDs
 jest.mock('@paralleldrive/cuid2', () => ({
@@ -42,7 +82,7 @@ function createValidTestId(suffix = ''): string {
  *
  * **Test Strategy:**
  * - Direct Controller Instantiation Pattern (NO NestJS Test Module)
- * - Mocked CommandBus/QueryBus mit jest.fn()
+ * - Mocked Handlers mit jest.fn()
  * - Focus: Controller-Orchestration, Result-Mapping, Exception-Handling
  * - NO Handler-Logic Testing (out of scope)
  *
@@ -58,8 +98,14 @@ function createValidTestId(suffix = ''): string {
  */
 describe('EtbCqrsController', () => {
   let controller: EtbCqrsController;
-  let mockCommandBus: jest.Mocked<CommandBus>;
-  let mockQueryBus: jest.Mocked<QueryBus>;
+  let mockAddEintragHandler: jest.Mocked<AddEintragHandler>;
+  let mockUpdateEintragHandler: jest.Mocked<UpdateEintragHandler>;
+  let mockDeleteEintragHandler: jest.Mocked<DeleteEintragHandler>;
+  let mockLockEtbHandler: jest.Mocked<LockEtbHandler>;
+  let mockGetEtbQueryHandler: jest.Mocked<GetEtbQueryHandler>;
+  let mockGetEtbHistoryQueryHandler: jest.Mocked<GetEtbHistoryQueryHandler>;
+  let mockGetTextbausteineHandler: jest.Mocked<GetTextbausteineHandler>;
+  let mockEtbRepository: jest.Mocked<IEtbRepository>;
 
   // Standard mock user for authenticated requests
   const mockUser: ValidatedUser = {
@@ -83,19 +129,60 @@ describe('EtbCqrsController', () => {
   };
 
   beforeEach(() => {
-    // Create mock buses (Direct Instantiation Pattern)
-    mockCommandBus = {
+    // Create mock handlers (Direct Instantiation Pattern)
+    mockAddEintragHandler = {
       execute: jest.fn(),
       // biome-ignore lint/suspicious/noExplicitAny: Test mock typing
     } as any;
 
-    mockQueryBus = {
+    mockUpdateEintragHandler = {
       execute: jest.fn(),
+      // biome-ignore lint/suspicious/noExplicitAny: Test mock typing
+    } as any;
+
+    mockDeleteEintragHandler = {
+      execute: jest.fn(),
+      // biome-ignore lint/suspicious/noExplicitAny: Test mock typing
+    } as any;
+
+    mockLockEtbHandler = {
+      execute: jest.fn(),
+      // biome-ignore lint/suspicious/noExplicitAny: Test mock typing
+    } as any;
+
+    mockGetEtbQueryHandler = {
+      execute: jest.fn(),
+      // biome-ignore lint/suspicious/noExplicitAny: Test mock typing
+    } as any;
+
+    mockGetEtbHistoryQueryHandler = {
+      execute: jest.fn(),
+      // biome-ignore lint/suspicious/noExplicitAny: Test mock typing
+    } as any;
+
+    mockGetTextbausteineHandler = {
+      execute: jest.fn(),
+      // biome-ignore lint/suspicious/noExplicitAny: Test mock typing
+    } as any;
+
+    mockEtbRepository = {
+      findById: jest.fn(),
+      findByEinsatzId: jest.fn(),
+      save: jest.fn(),
       // biome-ignore lint/suspicious/noExplicitAny: Test mock typing
     } as any;
 
     // Instantiate controller with mocks
-    controller = new EtbCqrsController(mockCommandBus, mockQueryBus);
+    controller = new EtbCqrsController(
+      mockAddEintragHandler,
+      mockUpdateEintragHandler,
+      mockDeleteEintragHandler,
+      mockLockEtbHandler,
+      mockGetEtbQueryHandler,
+      mockGetEtbHistoryQueryHandler,
+      mockGetTextbausteineHandler,
+      mockEtbRepository,
+    );
   });
 
   afterEach(() => {
@@ -118,13 +205,13 @@ describe('EtbCqrsController', () => {
         createdAt: new Date(),
       };
 
-      mockQueryBus.execute.mockResolvedValueOnce(Result.ok(expectedDto));
+      mockGetEtbQueryHandler.execute.mockResolvedValueOnce(Result.ok(expectedDto));
 
       // When
       const result = await controller.getEtbByEinsatzId(einsatzId);
 
       // Then
-      expect(mockQueryBus.execute).toHaveBeenCalledTimes(1);
+      expect(mockGetEtbQueryHandler.execute).toHaveBeenCalledTimes(1);
       expect(result).toEqual(expectedDto);
     });
 
@@ -140,13 +227,13 @@ describe('EtbCqrsController', () => {
         createdAt: new Date(),
       };
 
-      mockQueryBus.execute.mockResolvedValueOnce(Result.ok(expectedDto));
+      mockGetEtbQueryHandler.execute.mockResolvedValueOnce(Result.ok(expectedDto));
 
       // When
       const result = await controller.getEtbByEinsatzId(einsatzId, 'true');
 
       // Then
-      expect(mockQueryBus.execute).toHaveBeenCalledTimes(1);
+      expect(mockGetEtbQueryHandler.execute).toHaveBeenCalledTimes(1);
       expect(result).toEqual(expectedDto);
     });
 
@@ -162,13 +249,13 @@ describe('EtbCqrsController', () => {
         createdAt: new Date(),
       };
 
-      mockQueryBus.execute.mockResolvedValueOnce(Result.ok(expectedDto));
+      mockGetEtbQueryHandler.execute.mockResolvedValueOnce(Result.ok(expectedDto));
 
       // When
       const result = await controller.getEtbByEinsatzId(einsatzId, 'false');
 
       // Then
-      expect(mockQueryBus.execute).toHaveBeenCalledTimes(1);
+      expect(mockGetEtbQueryHandler.execute).toHaveBeenCalledTimes(1);
       expect(result).toEqual(expectedDto);
     });
 
@@ -192,7 +279,7 @@ describe('EtbCqrsController', () => {
         createdAt: new Date(),
       };
 
-      mockQueryBus.execute.mockResolvedValueOnce(Result.ok(expectedDto));
+      mockGetEtbQueryHandler.execute.mockResolvedValueOnce(Result.ok(expectedDto));
 
       // When
       const result = await controller.getEtbByEinsatzId(einsatzId);
@@ -205,17 +292,17 @@ describe('EtbCqrsController', () => {
     it('should throw NotFoundException when result indicates not found', async () => {
       // Given
       const einsatzId = createValidTestId('eins0');
-      mockQueryBus.execute.mockResolvedValueOnce(Result.fail('ETB nicht gefunden'));
+      mockGetEtbQueryHandler.execute.mockResolvedValueOnce(Result.fail('ETB nicht gefunden'));
 
       // When/Then
       await expect(controller.getEtbByEinsatzId(einsatzId)).rejects.toThrow(NotFoundException);
-      expect(mockQueryBus.execute).toHaveBeenCalledTimes(1);
+      expect(mockGetEtbQueryHandler.execute).toHaveBeenCalledTimes(1);
     });
 
     it('should throw NotFoundException when result indicates not found (English)', async () => {
       // Given
       const einsatzId = createValidTestId('eins0');
-      mockQueryBus.execute.mockResolvedValueOnce(Result.fail('ETB not found'));
+      mockGetEtbQueryHandler.execute.mockResolvedValueOnce(Result.fail('ETB not found'));
 
       // When/Then
       await expect(controller.getEtbByEinsatzId(einsatzId)).rejects.toThrow(NotFoundException);
@@ -224,7 +311,7 @@ describe('EtbCqrsController', () => {
     it('should throw BadRequestException when result fails with other error', async () => {
       // Given
       const einsatzId = createValidTestId('eins0');
-      mockQueryBus.execute.mockResolvedValueOnce(Result.fail('Invalid format'));
+      mockGetEtbQueryHandler.execute.mockResolvedValueOnce(Result.fail('Invalid format'));
 
       // When/Then
       await expect(controller.getEtbByEinsatzId(einsatzId)).rejects.toThrow(BadRequestException);
@@ -233,7 +320,7 @@ describe('EtbCqrsController', () => {
     it('should throw NotFoundException when result.value is null', async () => {
       // Given
       const einsatzId = createValidTestId('eins0');
-      mockQueryBus.execute.mockResolvedValueOnce(Result.ok(null));
+      mockGetEtbQueryHandler.execute.mockResolvedValueOnce(Result.ok(null));
 
       // When/Then
       await expect(controller.getEtbByEinsatzId(einsatzId)).rejects.toThrow(NotFoundException);
@@ -245,7 +332,7 @@ describe('EtbCqrsController', () => {
 
       // When/Then - GetEtbQuery constructor throws Error on validation failure
       await expect(controller.getEtbByEinsatzId(einsatzId)).rejects.toThrow(BadRequestException);
-      expect(mockQueryBus.execute).not.toHaveBeenCalled();
+      expect(mockGetEtbQueryHandler.execute).not.toHaveBeenCalled();
     });
   });
 
@@ -277,13 +364,13 @@ describe('EtbCqrsController', () => {
         },
       ];
 
-      mockQueryBus.execute.mockResolvedValueOnce(Result.ok(expectedSnapshots));
+      mockGetEtbHistoryQueryHandler.execute.mockResolvedValueOnce(Result.ok(expectedSnapshots));
 
       // When
       const result = await controller.getEtbHistory(etbId);
 
       // Then
-      expect(mockQueryBus.execute).toHaveBeenCalledTimes(1);
+      expect(mockGetEtbHistoryQueryHandler.execute).toHaveBeenCalledTimes(1);
       expect(result).toEqual(expectedSnapshots);
       expect(result).toHaveLength(2);
     });
@@ -291,7 +378,7 @@ describe('EtbCqrsController', () => {
     it('should return empty array when no snapshots exist', async () => {
       // Given
       const etbId = createValidTestId('etb00');
-      mockQueryBus.execute.mockResolvedValueOnce(Result.ok([]));
+      mockGetEtbHistoryQueryHandler.execute.mockResolvedValueOnce(Result.ok([]));
 
       // When
       const result = await controller.getEtbHistory(etbId);
@@ -303,7 +390,7 @@ describe('EtbCqrsController', () => {
     it('should return empty array when result.value is null', async () => {
       // Given
       const etbId = createValidTestId('etb00');
-      mockQueryBus.execute.mockResolvedValueOnce(Result.ok(null));
+      mockGetEtbHistoryQueryHandler.execute.mockResolvedValueOnce(Result.ok(null));
 
       // When
       const result = await controller.getEtbHistory(etbId);
@@ -315,7 +402,7 @@ describe('EtbCqrsController', () => {
     it('should throw NotFoundException when result indicates not found', async () => {
       // Given
       const etbId = createValidTestId('etb00');
-      mockQueryBus.execute.mockResolvedValueOnce(Result.fail('ETB nicht gefunden'));
+      mockGetEtbHistoryQueryHandler.execute.mockResolvedValueOnce(Result.fail('ETB nicht gefunden'));
 
       // When/Then
       await expect(controller.getEtbHistory(etbId)).rejects.toThrow(NotFoundException);
@@ -324,7 +411,7 @@ describe('EtbCqrsController', () => {
     it('should throw NotFoundException when result indicates not found (English)', async () => {
       // Given
       const etbId = createValidTestId('etb00');
-      mockQueryBus.execute.mockResolvedValueOnce(Result.fail('ETB not found'));
+      mockGetEtbHistoryQueryHandler.execute.mockResolvedValueOnce(Result.fail('ETB not found'));
 
       // When/Then
       await expect(controller.getEtbHistory(etbId)).rejects.toThrow(NotFoundException);
@@ -333,7 +420,7 @@ describe('EtbCqrsController', () => {
     it('should throw BadRequestException when result fails with other error', async () => {
       // Given
       const etbId = createValidTestId('etb00');
-      mockQueryBus.execute.mockResolvedValueOnce(Result.fail('Database connection failed'));
+      mockGetEtbHistoryQueryHandler.execute.mockResolvedValueOnce(Result.fail('Database connection failed'));
 
       // When/Then
       await expect(controller.getEtbHistory(etbId)).rejects.toThrow(BadRequestException);
@@ -345,7 +432,7 @@ describe('EtbCqrsController', () => {
 
       // When/Then
       await expect(controller.getEtbHistory(etbId)).rejects.toThrow(BadRequestException);
-      expect(mockQueryBus.execute).not.toHaveBeenCalled();
+      expect(mockGetEtbHistoryQueryHandler.execute).not.toHaveBeenCalled();
     });
   });
 
@@ -366,13 +453,13 @@ describe('EtbCqrsController', () => {
         isDeleted: false,
       };
 
-      mockCommandBus.execute.mockResolvedValueOnce(Result.ok(mockEintrag));
+      mockAddEintragHandler.execute.mockResolvedValueOnce(Result.ok(mockEintrag));
 
       // When
       const result = await controller.addEintrag(etbId, dto, mockUser);
 
       // Then
-      expect(mockCommandBus.execute).toHaveBeenCalledTimes(1);
+      expect(mockAddEintragHandler.execute).toHaveBeenCalledTimes(1);
       expect(result).toMatchObject({
         id: mockEintrag.id.value,
         sequenceNumber: 1,
@@ -388,7 +475,7 @@ describe('EtbCqrsController', () => {
 
       // When/Then
       await expect(controller.addEintrag(etbId, dto, mockUser)).rejects.toThrow(BadRequestException);
-      expect(mockCommandBus.execute).not.toHaveBeenCalled();
+      expect(mockAddEintragHandler.execute).not.toHaveBeenCalled();
     });
 
     it('should throw BadRequestException when command creation fails (empty text)', async () => {
@@ -398,25 +485,25 @@ describe('EtbCqrsController', () => {
 
       // When/Then
       await expect(controller.addEintrag(etbId, dto, mockUser)).rejects.toThrow(BadRequestException);
-      expect(mockCommandBus.execute).not.toHaveBeenCalled();
+      expect(mockAddEintragHandler.execute).not.toHaveBeenCalled();
     });
 
     it('should throw NotFoundException when result indicates not found', async () => {
       // Given
       const etbId = createValidTestId('etb00');
       const dto: AddEintragDto = { text: 'Neuer Eintrag' };
-      mockCommandBus.execute.mockResolvedValueOnce(Result.fail('ETB nicht gefunden'));
+      mockAddEintragHandler.execute.mockResolvedValueOnce(Result.fail('ETB nicht gefunden'));
 
       // When/Then
       await expect(controller.addEintrag(etbId, dto, mockUser)).rejects.toThrow(NotFoundException);
-      expect(mockCommandBus.execute).toHaveBeenCalledTimes(1);
+      expect(mockAddEintragHandler.execute).toHaveBeenCalledTimes(1);
     });
 
     it('should throw BadRequestException when result fails with locked error', async () => {
       // Given
       const etbId = createValidTestId('etb00');
       const dto: AddEintragDto = { text: 'Neuer Eintrag' };
-      mockCommandBus.execute.mockResolvedValueOnce(Result.fail('ETB ist gesperrt'));
+      mockAddEintragHandler.execute.mockResolvedValueOnce(Result.fail('ETB ist gesperrt'));
 
       // When/Then
       await expect(controller.addEintrag(etbId, dto, mockUser)).rejects.toThrow(BadRequestException);
@@ -426,7 +513,7 @@ describe('EtbCqrsController', () => {
       // Given
       const etbId = createValidTestId('etb00');
       const dto: AddEintragDto = { text: 'Neuer Eintrag' };
-      mockCommandBus.execute.mockResolvedValueOnce(Result.ok(undefined));
+      mockAddEintragHandler.execute.mockResolvedValueOnce(Result.ok(undefined));
 
       // When/Then
       await expect(controller.addEintrag(etbId, dto, mockUser)).rejects.toThrow(BadRequestException);
@@ -445,7 +532,7 @@ describe('EtbCqrsController', () => {
         isDeleted: false,
       };
 
-      mockCommandBus.execute.mockResolvedValueOnce(Result.ok(mockEintrag));
+      mockAddEintragHandler.execute.mockResolvedValueOnce(Result.ok(mockEintrag));
 
       // When
       const result = await controller.addEintrag(etbId, dto, mockUser);
@@ -466,35 +553,33 @@ describe('EtbCqrsController', () => {
       const dto: UpdateEintragDto = { newText: 'Aktualisierter Text' };
 
       // Mock command execution (returns void on success)
-      mockCommandBus.execute.mockResolvedValueOnce(Result.ok(undefined));
+      mockUpdateEintragHandler.execute.mockResolvedValueOnce(Result.ok(undefined));
 
-      // Mock subsequent query to get updated ETB
-      const updatedEintrag: EintragDto = {
-        id: eintragId,
-        sequenceNumber: 1,
-        text: 'Aktualisierter Text',
-        createdBy: mockUser.userId,
-        createdAt: new Date(),
-        updatedAt: new Date(),
-        isDeleted: false,
+      // Mock repository call to get updated ETB
+      const mockAggregate = {
+        id: { value: etbId },
+        eintraege: [
+          {
+            id: { value: eintragId },
+            sequenceNumber: { value: 1 },
+            text: 'Aktualisierter Text',
+            createdBy: { value: mockUser.userId },
+            createdAt: new Date(),
+            updatedAt: new Date(),
+            isDeleted: false,
+          },
+        ],
       };
-      const etbDto: EtbDto = {
-        id: etbId,
-        einsatzId: createValidTestId('eins0'),
-        status: 'ACTIVE',
-        eintraege: [updatedEintrag],
-        version: { versionNumber: 2, timestamp: new Date() },
-        createdAt: new Date(),
-      };
-      mockQueryBus.execute.mockResolvedValueOnce(Result.ok(etbDto));
+      mockEtbRepository.findById.mockResolvedValueOnce(mockAggregate as unknown);
 
       // When
       const result = await controller.updateEintrag(etbId, eintragId, dto, mockUser);
 
       // Then
-      expect(mockCommandBus.execute).toHaveBeenCalledTimes(1);
-      expect(mockQueryBus.execute).toHaveBeenCalledTimes(1);
-      expect(result).toEqual(updatedEintrag);
+      expect(mockUpdateEintragHandler.execute).toHaveBeenCalledTimes(1);
+      expect(mockEtbRepository.findById).toHaveBeenCalledTimes(1);
+      expect(result.id).toBe(eintragId);
+      expect(result.text).toBe('Aktualisierter Text');
     });
 
     it('should throw BadRequestException when command creation fails (empty etbId)', async () => {
@@ -505,7 +590,7 @@ describe('EtbCqrsController', () => {
 
       // When/Then
       await expect(controller.updateEintrag(etbId, eintragId, dto, mockUser)).rejects.toThrow(BadRequestException);
-      expect(mockCommandBus.execute).not.toHaveBeenCalled();
+      expect(mockUpdateEintragHandler.execute).not.toHaveBeenCalled();
     });
 
     it('should throw BadRequestException when command creation fails (empty eintragId)', async () => {
@@ -516,7 +601,7 @@ describe('EtbCqrsController', () => {
 
       // When/Then
       await expect(controller.updateEintrag(etbId, eintragId, dto, mockUser)).rejects.toThrow(BadRequestException);
-      expect(mockCommandBus.execute).not.toHaveBeenCalled();
+      expect(mockUpdateEintragHandler.execute).not.toHaveBeenCalled();
     });
 
     it('should throw BadRequestException when command creation fails (empty newText)', async () => {
@@ -527,7 +612,7 @@ describe('EtbCqrsController', () => {
 
       // When/Then
       await expect(controller.updateEintrag(etbId, eintragId, dto, mockUser)).rejects.toThrow(BadRequestException);
-      expect(mockCommandBus.execute).not.toHaveBeenCalled();
+      expect(mockUpdateEintragHandler.execute).not.toHaveBeenCalled();
     });
 
     it('should throw NotFoundException when command result indicates not found', async () => {
@@ -535,7 +620,7 @@ describe('EtbCqrsController', () => {
       const etbId = createValidTestId('etb00');
       const eintragId = createValidTestId('entry');
       const dto: UpdateEintragDto = { newText: 'Aktualisierter Text' };
-      mockCommandBus.execute.mockResolvedValueOnce(Result.fail('Eintrag nicht gefunden'));
+      mockUpdateEintragHandler.execute.mockResolvedValueOnce(Result.fail('Eintrag nicht gefunden'));
 
       // When/Then
       await expect(controller.updateEintrag(etbId, eintragId, dto, mockUser)).rejects.toThrow(NotFoundException);
@@ -546,23 +631,23 @@ describe('EtbCqrsController', () => {
       const etbId = createValidTestId('etb00');
       const eintragId = createValidTestId('entry');
       const dto: UpdateEintragDto = { newText: 'Aktualisierter Text' };
-      mockCommandBus.execute.mockResolvedValueOnce(Result.fail('ETB ist gesperrt'));
+      mockUpdateEintragHandler.execute.mockResolvedValueOnce(Result.fail('ETB ist gesperrt'));
 
       // When/Then
       await expect(controller.updateEintrag(etbId, eintragId, dto, mockUser)).rejects.toThrow(BadRequestException);
     });
 
-    it('should throw BadRequestException when subsequent query fails', async () => {
+    it('should throw BadRequestException when repository fails', async () => {
       // Given
       const etbId = createValidTestId('etb00');
       const eintragId = createValidTestId('entry');
       const dto: UpdateEintragDto = { newText: 'Aktualisierter Text' };
 
-      mockCommandBus.execute.mockResolvedValueOnce(Result.ok(undefined));
-      mockQueryBus.execute.mockResolvedValueOnce(Result.fail('Query failed'));
+      mockUpdateEintragHandler.execute.mockResolvedValueOnce(Result.ok(undefined));
+      mockEtbRepository.findById.mockResolvedValueOnce(null);
 
       // When/Then
-      await expect(controller.updateEintrag(etbId, eintragId, dto, mockUser)).rejects.toThrow(BadRequestException);
+      await expect(controller.updateEintrag(etbId, eintragId, dto, mockUser)).rejects.toThrow(NotFoundException);
     });
 
     it('should throw NotFoundException when updated eintrag not found in ETB', async () => {
@@ -571,17 +656,13 @@ describe('EtbCqrsController', () => {
       const eintragId = createValidTestId('entry');
       const dto: UpdateEintragDto = { newText: 'Aktualisierter Text' };
 
-      mockCommandBus.execute.mockResolvedValueOnce(Result.ok(undefined));
+      mockUpdateEintragHandler.execute.mockResolvedValueOnce(Result.ok(undefined));
       // ETB returned but without the eintrag we're looking for
-      const etbDto: EtbDto = {
-        id: etbId,
-        einsatzId: createValidTestId('eins0'),
-        status: 'ACTIVE',
+      const mockAggregate = {
+        id: { value: etbId },
         eintraege: [],
-        version: { versionNumber: 2, timestamp: new Date() },
-        createdAt: new Date(),
       };
-      mockQueryBus.execute.mockResolvedValueOnce(Result.ok(etbDto));
+      mockEtbRepository.findById.mockResolvedValueOnce(mockAggregate as unknown);
 
       // When/Then
       await expect(controller.updateEintrag(etbId, eintragId, dto, mockUser)).rejects.toThrow(NotFoundException);
@@ -597,13 +678,13 @@ describe('EtbCqrsController', () => {
       const etbId = createValidTestId('etb00');
       const eintragId = createValidTestId('entry');
 
-      mockCommandBus.execute.mockResolvedValueOnce(Result.ok(undefined));
+      mockDeleteEintragHandler.execute.mockResolvedValueOnce(Result.ok(undefined));
 
       // When
       const result = await controller.deleteEintrag(etbId, eintragId, mockUser);
 
       // Then
-      expect(mockCommandBus.execute).toHaveBeenCalledTimes(1);
+      expect(mockDeleteEintragHandler.execute).toHaveBeenCalledTimes(1);
       expect(result).toBeUndefined();
     });
 
@@ -614,7 +695,7 @@ describe('EtbCqrsController', () => {
 
       // When/Then
       await expect(controller.deleteEintrag(etbId, eintragId, mockUser)).rejects.toThrow(BadRequestException);
-      expect(mockCommandBus.execute).not.toHaveBeenCalled();
+      expect(mockDeleteEintragHandler.execute).not.toHaveBeenCalled();
     });
 
     it('should throw BadRequestException when command creation fails (empty eintragId)', async () => {
@@ -624,14 +705,14 @@ describe('EtbCqrsController', () => {
 
       // When/Then
       await expect(controller.deleteEintrag(etbId, eintragId, mockUser)).rejects.toThrow(BadRequestException);
-      expect(mockCommandBus.execute).not.toHaveBeenCalled();
+      expect(mockDeleteEintragHandler.execute).not.toHaveBeenCalled();
     });
 
     it('should throw NotFoundException when result indicates not found', async () => {
       // Given
       const etbId = createValidTestId('etb00');
       const eintragId = createValidTestId('entry');
-      mockCommandBus.execute.mockResolvedValueOnce(Result.fail('Eintrag nicht gefunden'));
+      mockDeleteEintragHandler.execute.mockResolvedValueOnce(Result.fail('Eintrag nicht gefunden'));
 
       // When/Then
       await expect(controller.deleteEintrag(etbId, eintragId, mockUser)).rejects.toThrow(NotFoundException);
@@ -641,7 +722,7 @@ describe('EtbCqrsController', () => {
       // Given
       const etbId = createValidTestId('etb00');
       const eintragId = createValidTestId('entry');
-      mockCommandBus.execute.mockResolvedValueOnce(Result.fail('ETB nicht gefunden'));
+      mockDeleteEintragHandler.execute.mockResolvedValueOnce(Result.fail('ETB nicht gefunden'));
 
       // When/Then
       await expect(controller.deleteEintrag(etbId, eintragId, mockUser)).rejects.toThrow(NotFoundException);
@@ -651,7 +732,7 @@ describe('EtbCqrsController', () => {
       // Given
       const etbId = createValidTestId('etb00');
       const eintragId = createValidTestId('entry');
-      mockCommandBus.execute.mockResolvedValueOnce(Result.fail('ETB ist gesperrt'));
+      mockDeleteEintragHandler.execute.mockResolvedValueOnce(Result.fail('ETB ist gesperrt'));
 
       // When/Then
       await expect(controller.deleteEintrag(etbId, eintragId, mockUser)).rejects.toThrow(BadRequestException);
@@ -666,13 +747,13 @@ describe('EtbCqrsController', () => {
       // Given
       const etbId = createValidTestId('etb00');
 
-      mockCommandBus.execute.mockResolvedValueOnce(Result.ok(undefined));
+      mockLockEtbHandler.execute.mockResolvedValueOnce(Result.ok(undefined));
 
       // When
       const result = await controller.lockEtb(etbId, mockAdminUser);
 
       // Then
-      expect(mockCommandBus.execute).toHaveBeenCalledTimes(1);
+      expect(mockLockEtbHandler.execute).toHaveBeenCalledTimes(1);
       expect(result).toBeUndefined();
     });
 
@@ -680,13 +761,13 @@ describe('EtbCqrsController', () => {
       // Given
       const etbId = createValidTestId('etb00');
 
-      mockCommandBus.execute.mockResolvedValueOnce(Result.ok(undefined));
+      mockLockEtbHandler.execute.mockResolvedValueOnce(Result.ok(undefined));
 
       // When
       const result = await controller.lockEtb(etbId, mockSuperAdminUser);
 
       // Then
-      expect(mockCommandBus.execute).toHaveBeenCalledTimes(1);
+      expect(mockLockEtbHandler.execute).toHaveBeenCalledTimes(1);
       expect(result).toBeUndefined();
     });
 
@@ -696,13 +777,13 @@ describe('EtbCqrsController', () => {
 
       // When/Then
       await expect(controller.lockEtb(etbId, mockAdminUser)).rejects.toThrow(BadRequestException);
-      expect(mockCommandBus.execute).not.toHaveBeenCalled();
+      expect(mockLockEtbHandler.execute).not.toHaveBeenCalled();
     });
 
     it('should throw NotFoundException when result indicates not found', async () => {
       // Given
       const etbId = createValidTestId('etb00');
-      mockCommandBus.execute.mockResolvedValueOnce(Result.fail('ETB nicht gefunden'));
+      mockLockEtbHandler.execute.mockResolvedValueOnce(Result.fail('ETB nicht gefunden'));
 
       // When/Then
       await expect(controller.lockEtb(etbId, mockAdminUser)).rejects.toThrow(NotFoundException);
@@ -711,7 +792,7 @@ describe('EtbCqrsController', () => {
     it('should throw BadRequestException when ETB is already locked', async () => {
       // Given
       const etbId = createValidTestId('etb00');
-      mockCommandBus.execute.mockResolvedValueOnce(Result.fail('ETB ist bereits gesperrt'));
+      mockLockEtbHandler.execute.mockResolvedValueOnce(Result.fail('ETB ist bereits gesperrt'));
 
       // When/Then
       await expect(controller.lockEtb(etbId, mockAdminUser)).rejects.toThrow(BadRequestException);
@@ -720,7 +801,7 @@ describe('EtbCqrsController', () => {
     it('should throw BadRequestException when result fails with other error', async () => {
       // Given
       const etbId = createValidTestId('etb00');
-      mockCommandBus.execute.mockResolvedValueOnce(Result.fail('Database error'));
+      mockLockEtbHandler.execute.mockResolvedValueOnce(Result.fail('Database error'));
 
       // When/Then
       await expect(controller.lockEtb(etbId, mockAdminUser)).rejects.toThrow(BadRequestException);
@@ -735,13 +816,13 @@ describe('EtbCqrsController', () => {
         role: undefined,
       };
 
-      mockCommandBus.execute.mockResolvedValueOnce(Result.ok(undefined));
+      mockLockEtbHandler.execute.mockResolvedValueOnce(Result.ok(undefined));
 
       // When
       const result = await controller.lockEtb(etbId, userWithNoRole);
 
       // Then
-      expect(mockCommandBus.execute).toHaveBeenCalledTimes(1);
+      expect(mockLockEtbHandler.execute).toHaveBeenCalledTimes(1);
       expect(result).toBeUndefined();
     });
   });
@@ -762,7 +843,7 @@ describe('EtbCqrsController', () => {
         createdAt: new Date(),
       };
 
-      mockQueryBus.execute.mockResolvedValueOnce(Result.ok(expectedDto));
+      mockGetEtbQueryHandler.execute.mockResolvedValueOnce(Result.ok(expectedDto));
 
       // When - whitespace is not "true"
       const result = await controller.getEtbByEinsatzId(einsatzId, '   ');
@@ -778,7 +859,7 @@ describe('EtbCqrsController', () => {
 
       // When/Then - AddEintragCommand.create fails because trimmed text is empty
       await expect(controller.addEintrag(etbId, dto, mockUser)).rejects.toThrow(BadRequestException);
-      expect(mockCommandBus.execute).not.toHaveBeenCalled();
+      expect(mockAddEintragHandler.execute).not.toHaveBeenCalled();
     });
 
     it('updateEintrag should handle whitespace-only newText via command validation', async () => {
@@ -789,7 +870,7 @@ describe('EtbCqrsController', () => {
 
       // When/Then
       await expect(controller.updateEintrag(etbId, eintragId, dto, mockUser)).rejects.toThrow(BadRequestException);
-      expect(mockCommandBus.execute).not.toHaveBeenCalled();
+      expect(mockUpdateEintragHandler.execute).not.toHaveBeenCalled();
     });
 
     it('should handle long text in addEintrag', async () => {
@@ -806,7 +887,7 @@ describe('EtbCqrsController', () => {
         isDeleted: false,
       };
 
-      mockCommandBus.execute.mockResolvedValueOnce(Result.ok(mockEintrag));
+      mockAddEintragHandler.execute.mockResolvedValueOnce(Result.ok(mockEintrag));
 
       // When
       const result = await controller.addEintrag(etbId, dto, mockUser);
@@ -844,7 +925,7 @@ describe('EtbCqrsController', () => {
         },
       ];
 
-      mockQueryBus.execute.mockResolvedValueOnce(Result.ok(snapshots));
+      mockGetEtbHistoryQueryHandler.execute.mockResolvedValueOnce(Result.ok(snapshots));
 
       // When
       const result = await controller.getEtbHistory(etbId);

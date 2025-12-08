@@ -36,7 +36,9 @@ import { PrismaUserRepository } from '@/infrastructure/user/repositories/prisma-
 import { UserId } from '@domain/value-objects/user-id';
 import { UserRole } from '@domain/value-objects/user-role';
 
-describe('RBAC Constraint Tests (AC3.1-AC3.4)', () => {
+const databaseAvailable = !!process.env.DATABASE_URL;
+
+(databaseAvailable ? describe : describe.skip)('RBAC Constraint Tests (AC3.1-AC3.4)', () => {
   let ctx: EinsatzE2eTestContext;
   let userRepository: PrismaUserRepository;
 

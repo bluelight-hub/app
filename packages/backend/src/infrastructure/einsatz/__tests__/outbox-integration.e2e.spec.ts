@@ -28,6 +28,8 @@ import { createEinsatzE2eModule, teardownE2eModule, cleanupTestData, createTestO
 import { OutboxEventPublisher } from '@/infrastructure/outbox/outbox-event-publisher.service';
 import { EventDeserializer } from '@/infrastructure/outbox/event-deserializer';
 import { EventSerializer } from '@/infrastructure/outbox/event-serializer';
+
+const databaseAvailable = !!process.env.DATABASE_URL;
 import { EinsatzCreatedEvent } from '@domain/events/einsatz-created.event';
 import { EinsatzUpdatedEvent } from '@domain/events/einsatz-updated.event';
 import { EinsatzStatusChangedEvent } from '@domain/events/einsatz-status-changed.event';
@@ -54,7 +56,7 @@ import { UserRole } from '@domain/value-objects/user-role';
 import { Username } from '@domain/value-objects/username';
 import { Einsatz } from '@domain/aggregates/einsatz.aggregate';
 
-describe('Outbox Pattern Integration Tests (AC1.1-1.7)', () => {
+(databaseAvailable ? describe : describe.skip)('Outbox Pattern Integration Tests (AC1.1-1.7)', () => {
   let ctx: EinsatzE2eTestContext;
   let outboxPublisher: OutboxEventPublisher;
   let eventDeserializer: EventDeserializer;

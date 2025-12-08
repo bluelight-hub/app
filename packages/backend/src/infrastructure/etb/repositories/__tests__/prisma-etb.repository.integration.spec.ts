@@ -537,6 +537,9 @@ describe('PrismaEtbRepository - Integration Tests', () => {
      * **Pattern:** Transaction Atomicity
      */
     it('should rollback on error (atomic transaction)', async () => {
+      // Skip if database not available
+      if (!databaseAvailable) return;
+
       // Given: Aggregate with FK to non-existent Einsatz
       const fakeEinsatzId = EinsatzId.create(generateTestId()).value as EinsatzId;
       const aggregate = EinsatztagebuchAggregate.create(fakeEinsatzId).value as EinsatztagebuchAggregate;

@@ -1,4 +1,3 @@
-import { BadRequestException } from '@nestjs/common';
 import { InMemoryEtbRepository } from '../../__tests__/in-memory-etb.repository';
 import { AddEintragCommand } from '../add-eintrag/add-eintrag.command';
 import { AddEintragHandler } from '../add-eintrag/add-eintrag.handler';
@@ -105,16 +104,19 @@ describe('AddEintragHandler', () => {
   });
 
   describe('AC2: AddEintrag fails if ETB locked with specific error message', () => {
-    it('should throw BadRequestException when ETB is locked', async () => {
+    it('should return failure when ETB is locked', async () => {
       // Arrange: Create locked ETB
       const etb = createTestEtb({ status: 'LOCKED', entriesCount: 1, userId: testUserId, einsatzId: testEinsatzId });
       await etbRepository.save(etb);
 
       const command = AddEintragCommand.create(etb.id.value, 'Neuer Eintrag', testUserId).value!;
 
-      // Act & Assert
-      await expect(handler.execute(command)).rejects.toThrow(BadRequestException);
-      await expect(handler.execute(command)).rejects.toThrow('ETB ist gesperrt und kann nicht mehr geändert werden');
+      // Act
+      const result = await handler.execute(command);
+
+      // Assert
+      expect(result.isFailure).toBe(true);
+      expect(result.error).toBe('ETB ist gesperrt und kann nicht mehr geändert werden');
     });
   });
 

@@ -267,7 +267,7 @@ export async function createEtbE2eModule(): Promise<EtbE2eTestContext> {
 
   // Outbox Repository für direkten Zugriff in Tests (Story 4-4)
   const eventSerializer = new EventSerializer();
-  const outboxRepository = new PrismaOutboxRepository(prisma, eventSerializer);
+  const _outboxRepository = new PrismaOutboxRepository(prisma, eventSerializer);
 
   return {
     prisma,

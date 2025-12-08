@@ -28,7 +28,9 @@ import { EinsatzId } from '@domain/value-objects/einsatz-id';
 import { UserId } from '@domain/value-objects/user-id';
 import { EinsatzStatus } from '@domain/value-objects/einsatz-status';
 
-describe('NO-DELETE Policy Tests (AC2.1-2.5)', () => {
+const databaseAvailable = !!process.env.DATABASE_URL;
+
+(databaseAvailable ? describe : describe.skip)('NO-DELETE Policy Tests (AC2.1-2.5)', () => {
   let ctx: EinsatzE2eTestContext;
   let deleteHandler: DeleteEinsatzHandler;
   let _archiveHandler: ArchiveEinsatzHandler;

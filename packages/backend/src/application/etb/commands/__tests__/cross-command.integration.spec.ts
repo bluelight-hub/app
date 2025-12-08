@@ -9,7 +9,8 @@ import { DeleteEintragHandler } from '../delete-eintrag/delete-eintrag.handler';
 import { LockEtbCommand } from '../lock-etb/lock-etb.command';
 import { LockEtbHandler } from '../lock-etb/lock-etb.handler';
 import { createTestEtb } from '@domain/aggregates/__tests__/fixtures/etb.fixtures';
-import { skipIfNoDatabase } from '@infrastructure/__tests__/helpers/database-test.helper';
+
+const databaseAvailable = !!process.env.DATABASE_URL;
 
 // Mock CUID2 für deterministische Tests
 jest.mock('@paralleldrive/cuid2', () => ({
@@ -47,7 +48,7 @@ function generateTestCuid(): string {
  * um sicherzustellen dass die Business Rules über Command-Grenzen hinweg
  * konsistent eingehalten werden.
  */
-describe('Cross-Command Integration Tests (Story 3-2)', () => {
+(databaseAvailable ? describe : describe.skip)('Cross-Command Integration Tests (Story 3-2)', () => {
   let etbRepository: InMemoryEtbRepository;
   let addEintragHandler: AddEintragHandler;
   let updateEintragHandler: UpdateEintragHandler;
@@ -55,15 +56,8 @@ describe('Cross-Command Integration Tests (Story 3-2)', () => {
   let lockEtbHandler: LockEtbHandler;
   let testUserId: string;
   let testEinsatzId: string;
-  let databaseAvailable = false;
-
-  beforeAll(async () => {
-    databaseAvailable = await skipIfNoDatabase();
-    if (!databaseAvailable) return;
-  });
 
   beforeEach(() => {
-    if (!databaseAvailable) return;
     // Reset mocks and repository
     etbRepository = new InMemoryEtbRepository();
     testUserId = generateTestCuid();
@@ -77,7 +71,6 @@ describe('Cross-Command Integration Tests (Story 3-2)', () => {
   });
 
   afterEach(() => {
-    if (!databaseAvailable) return;
     etbRepository.clear();
     jest.clearAllMocks();
   });

@@ -3,6 +3,8 @@ import { UserId } from '@domain/value-objects/user-id';
 import { EinsatztagebuchAggregate } from '@domain/aggregates/einsatztagebuch.aggregate';
 import { createEtbE2eModule, teardownE2eModule, cleanupTestData, type EtbE2eTestContext } from './etb.e2e-setup';
 
+const databaseAvailable = !!process.env.DATABASE_URL;
+
 /**
  * E2E Tests für DRK NO-DELETE Compliance Triggers (AC7)
  *
@@ -16,7 +18,7 @@ import { createEtbE2eModule, teardownE2eModule, cleanupTestData, type EtbE2eTest
  * Hinweis: Die Tests MÜSSEN die Trigger temporär deaktivieren,
  * wenn sie Test-Daten aufräumen (siehe etb.e2e-setup.ts).
  */
-describe('DRK Compliance NO-DELETE Triggers (E2E)', () => {
+(databaseAvailable ? describe : describe.skip)('DRK Compliance NO-DELETE Triggers (E2E)', () => {
   let ctx: EtbE2eTestContext;
 
   beforeAll(async () => {

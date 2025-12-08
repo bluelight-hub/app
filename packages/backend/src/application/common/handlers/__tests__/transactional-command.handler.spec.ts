@@ -6,6 +6,10 @@ import { DomainEvent } from '@domain/common/domain-event';
 import { TransactionalCommandHandler } from '../transactional-command.handler';
 import type { TransactionContext } from '@domain/common';
 import { OUTBOX_REPOSITORY } from '@infrastructure/di-tokens';
+import { Result } from '@domain/common/result';
+
+// Type alias for transaction mock - avoids importing from infrastructure layer
+type MockTransaction = Record<string, unknown>;
 
 /**
  * Mock Domain Event für Testing.
@@ -48,9 +52,9 @@ class TestCommandHandler extends TransactionalCommandHandler<TestCommand, TestRe
     super(prisma, outboxRepository);
   }
 
-  protected async executeInTransaction(command: TestCommand, _tx: TransactionContext): Promise<{ result: TestResult; events: DomainEvent[] }> {
+  protected async executeInTransaction(command: TestCommand, _tx: TransactionContext): Promise<Result<{ result: TestResult; events: DomainEvent[] }>> {
     if (this.shouldThrowError) {
-      throw new Error('Business logic error');
+      return Result.fail('Business logic error');
     }
 
     const result: TestResult = {
@@ -58,10 +62,10 @@ class TestCommandHandler extends TransactionalCommandHandler<TestCommand, TestRe
       processed: true,
     };
 
-    return {
+    return Result.ok({
       result,
       events: this.eventsToReturn,
-    };
+    });
   }
 }
 
@@ -77,9 +81,9 @@ describe('TransactionalCommandHandler', () => {
 
   beforeEach(async () => {
     // Mock PrismaService mit $transaction
-    mockTransactionFn = jest.fn(async (callback: (tx: PrismaTransaction) => Promise<unknown>) => {
+    mockTransactionFn = jest.fn(async (callback: (tx: MockTransaction) => Promise<unknown>) => {
       // Simulate transaction by calling callback with mock tx
-      const mockTx = {} as PrismaTransaction;
+      const mockTx = {} as MockTransaction;
       return callback(mockTx);
     });
 
@@ -104,7 +108,7 @@ describe('TransactionalCommandHandler', () => {
           useValue: mockPrismaService,
         },
         {
-          provide: 'IOutboxRepository',
+          provide: OUTBOX_REPOSITORY,
           useValue: mockOutboxRepository,
         },
       ],
@@ -112,7 +116,7 @@ describe('TransactionalCommandHandler', () => {
 
     handler = module.get<TestCommandHandler>(TestCommandHandler);
     prismaService = module.get<PrismaService>(PrismaService);
-    outboxRepository = module.get<IOutboxRepository>('IOutboxRepository');
+    outboxRepository = module.get<IOutboxRepository>(OUTBOX_REPOSITORY);
   });
 
   afterEach(() => {
@@ -129,6 +133,10 @@ describe('TransactionalCommandHandler', () => {
       // When: Execute command
       const result = await handler.execute(command);
 
+      // Then: Result is success
+      expect(result.isSuccess).toBe(true);
+      expect(result.isFailure).toBe(false);
+
       // Then: Transaction was started
       expect(prismaService.$transaction).toHaveBeenCalledTimes(1);
       expect(prismaService.$transaction).toHaveBeenCalledWith(expect.any(Function), {
@@ -137,7 +145,7 @@ describe('TransactionalCommandHandler', () => {
       });
 
       // Then: Business logic executed successfully
-      expect(result).toEqual({
+      expect(result.value).toEqual({
         id: 'result-test-1',
         processed: true,
       });
@@ -158,8 +166,12 @@ describe('TransactionalCommandHandler', () => {
       // When: Execute command
       const result = await handler.execute(command);
 
+      // Then: Result is success
+      expect(result.isSuccess).toBe(true);
+      expect(result.isFailure).toBe(false);
+
       // Then: Business logic executed
-      expect(result).toEqual({
+      expect(result.value).toEqual({
         id: 'result-test-2',
         processed: true,
       });
@@ -169,13 +181,18 @@ describe('TransactionalCommandHandler', () => {
     });
 
     it('should rollback transaction on business logic error', async () => {
-      // Given: Business logic will throw error
+      // Given: Business logic will return failure
       const command: TestCommand = { value: 'error-test' };
       handler.shouldThrowError = true;
       handler.eventsToReturn = [new TestEvent('should-not-be-saved')];
 
-      // When/Then: Execute throws error
-      await expect(handler.execute(command)).rejects.toThrow('Business logic error');
+      // When: Execute command
+      const result = await handler.execute(command);
+
+      // Then: Result is failure
+      expect(result.isFailure).toBe(true);
+      expect(result.isSuccess).toBe(false);
+      expect(result.error).toBe('Business logic error');
 
       // Then: Transaction was started but rolled back
       expect(prismaService.$transaction).toHaveBeenCalledTimes(1);
@@ -193,8 +210,13 @@ describe('TransactionalCommandHandler', () => {
       // Mock outbox save to throw error
       (outboxRepository.save as jest.Mock).mockRejectedValueOnce(new Error('Outbox save failed'));
 
-      // When/Then: Execute throws error
-      await expect(handler.execute(command)).rejects.toThrow('Outbox save failed');
+      // When: Execute command
+      const result = await handler.execute(command);
+
+      // Then: Result is failure
+      expect(result.isFailure).toBe(true);
+      expect(result.isSuccess).toBe(false);
+      expect(result.error).toBe('Outbox save failed');
 
       // Then: Transaction was started
       expect(prismaService.$transaction).toHaveBeenCalledTimes(1);
@@ -212,12 +234,15 @@ describe('TransactionalCommandHandler', () => {
       // When: Execute command
       const result = await handler.execute(command);
 
+      // Then: Result is success
+      expect(result.isSuccess).toBe(true);
+
       // Then: All events saved in single call
       expect(outboxRepository.save).toHaveBeenCalledTimes(1);
       expect(outboxRepository.save).toHaveBeenCalledWith(events, expect.anything());
 
       // Then: Result returned
-      expect(result.processed).toBe(true);
+      expect(result.value?.processed).toBe(true);
     });
 
     it('should use configured transaction options', async () => {
@@ -278,10 +303,10 @@ describe('TransactionalCommandHandler', () => {
       // biome-ignore lint/suspicious/noExplicitAny: Need to spy on protected method for testing
       jest.spyOn(handler as any, 'executeInTransaction').mockImplementation(async () => {
         callOrder.push('executeInTransaction');
-        return {
+        return Result.ok({
           result: { id: 'test-id', processed: true },
           events: [testEvent],
-        };
+        });
       });
 
       // Spy on outbox save
@@ -299,13 +324,17 @@ describe('TransactionalCommandHandler', () => {
 
   describe('Error Scenarios', () => {
     it('should propagate business logic errors without saving events', async () => {
-      // Given: Business logic throws domain error
+      // Given: Business logic returns failure
       const command: TestCommand = { value: 'domain-error' };
       handler.shouldThrowError = true;
       handler.eventsToReturn = [new TestEvent('should-not-persist')];
 
-      // When/Then: Error propagated
-      await expect(handler.execute(command)).rejects.toThrow('Business logic error');
+      // When: Execute command
+      const result = await handler.execute(command);
+
+      // Then: Result is failure
+      expect(result.isFailure).toBe(true);
+      expect(result.error).toBe('Business logic error');
 
       // Then: Events NOT saved (transaction rolled back)
       expect(outboxRepository.save).not.toHaveBeenCalled();
@@ -319,8 +348,12 @@ describe('TransactionalCommandHandler', () => {
       // Mock transaction to throw error
       mockTransactionFn.mockRejectedValueOnce(new Error('Transaction deadlock'));
 
-      // When/Then: Error propagated
-      await expect(handler.execute(command)).rejects.toThrow('Transaction deadlock');
+      // When: Execute command
+      const result = await handler.execute(command);
+
+      // Then: Result is failure
+      expect(result.isFailure).toBe(true);
+      expect(result.error).toBe('Transaction deadlock');
 
       // Then: Neither business logic nor outbox save completed
       // (transaction was aborted before callback)

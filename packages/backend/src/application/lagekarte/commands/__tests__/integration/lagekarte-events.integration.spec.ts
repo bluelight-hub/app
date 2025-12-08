@@ -38,7 +38,8 @@ import { Result } from '@domain/common/result';
 import type { IEinsatzRepository } from '@domain/repositories';
 import type { IEventPublisher } from '@domain/services/ports/i-event-publisher.port';
 import type { DomainEvent } from '@domain/common/domain-event';
-import { skipIfNoDatabase } from '@infrastructure/__tests__/helpers/database-test.helper';
+
+const databaseAvailable = !!process.env.DATABASE_URL;
 
 // Mock cuid2 for deterministic test IDs
 jest.mock('@paralleldrive/cuid2', () => ({
@@ -139,7 +140,7 @@ class SpyEventPublisher implements IEventPublisher {
   }
 }
 
-describe('Lagekarte Event Publishing - Integration', () => {
+(databaseAvailable ? describe : describe.skip)('Lagekarte Event Publishing - Integration', () => {
   let lagekarteRepository: InMemoryLagekarteRepository;
   let mockEinsatzRepository: jest.Mocked<IEinsatzRepository>;
   let eventPublisher: SpyEventPublisher;
@@ -147,15 +148,8 @@ describe('Lagekarte Event Publishing - Integration', () => {
   let addPoiHandler: AddPoiCommandHandler;
   let removePoiHandler: RemovePoiCommandHandler;
   let updatePoiPositionHandler: UpdatePoiPositionCommandHandler;
-  let databaseAvailable = false;
-
-  beforeAll(async () => {
-    databaseAvailable = await skipIfNoDatabase();
-    if (!databaseAvailable) return;
-  });
 
   beforeEach(() => {
-    if (!databaseAvailable) return;
     // Reset all mocks and spies
     jest.clearAllMocks();
 
@@ -182,7 +176,6 @@ describe('Lagekarte Event Publishing - Integration', () => {
   });
 
   afterEach(() => {
-    if (!databaseAvailable) return;
     lagekarteRepository.clear();
     eventPublisher.clear();
   });

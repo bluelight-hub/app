@@ -22,6 +22,7 @@ import type { DomainEvent } from '@domain/common/domain-event';
 import type { IAlertService } from '@domain/services/ports/i-alert.service';
 import { Result } from '@domain/common/result';
 import { PrismaService } from '@/infrastructure/database/prisma.service';
+import { ALERT_SERVICE, EVENT_PUBLISHER } from '@/infrastructure/di-tokens';
 
 // Mock Domain Event
 class MockDomainEvent implements DomainEvent {
@@ -103,16 +104,16 @@ describe('OutboxEventPublisher', () => {
         { provide: PrismaService, useValue: mockPrismaService },
         { provide: PrismaOutboxRepository, useValue: mockOutboxRepository },
         { provide: EventDeserializer, useValue: mockEventDeserializer },
-        { provide: 'IEventPublisher', useValue: mockEventPublisher },
-        { provide: 'IAlertService', useValue: mockAlertService },
+        { provide: EVENT_PUBLISHER, useValue: mockEventPublisher },
+        { provide: ALERT_SERVICE, useValue: mockAlertService },
       ],
     }).compile();
 
     publisher = module.get<OutboxEventPublisher>(OutboxEventPublisher);
     outboxRepository = module.get(PrismaOutboxRepository);
     eventDeserializer = module.get(EventDeserializer);
-    eventPublisher = module.get('IEventPublisher');
-    alertService = module.get('IAlertService');
+    eventPublisher = module.get(EVENT_PUBLISHER);
+    alertService = module.get(ALERT_SERVICE);
   });
 
   // ===== POLLING BEHAVIOR =====

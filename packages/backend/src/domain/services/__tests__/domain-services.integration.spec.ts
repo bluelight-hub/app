@@ -19,7 +19,8 @@ import { UserId } from '@domain/value-objects/user-id';
 import { EinsatzArchivalPolicy } from '../einsatz-archival.policy';
 import { EinsatzCompletenessService } from '../einsatz-completeness.service';
 import { EinsatzNamingService } from '../einsatz-naming.service';
-import { skipIfNoDatabase } from '@domain/__tests__/helpers/database-test.helper';
+
+const databaseAvailable = !!process.env.DATABASE_URL;
 
 // Mock für nanoid (für deterministische Tests)
 // WICHTIG: Nutzt deterministisches Pattern statt Math.random() für zuverlässige CI/CD Tests
@@ -39,19 +40,12 @@ jest.mock('@paralleldrive/cuid2', () => ({
   }),
 }));
 
-describe('Domain Services Integration', () => {
+(databaseAvailable ? describe : describe.skip)('Domain Services Integration', () => {
   let namingService: EinsatzNamingService;
   let completenessService: EinsatzCompletenessService;
   let archivalPolicy: EinsatzArchivalPolicy;
-  let databaseAvailable = false;
-
-  beforeAll(async () => {
-    databaseAvailable = await skipIfNoDatabase();
-    if (!databaseAvailable) return;
-  });
 
   beforeEach(() => {
-    if (!databaseAvailable) return;
     namingService = new EinsatzNamingService();
     completenessService = new EinsatzCompletenessService();
     archivalPolicy = new EinsatzArchivalPolicy();

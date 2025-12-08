@@ -7,7 +7,8 @@ import { Poi } from '@domain/entities/poi.entity';
 import { MgrsCoordinate } from '@domain/value-objects/mgrs-coordinate';
 import { PoiCategory } from '@domain/value-objects/poi-category';
 import { UserId } from '@domain/value-objects/user-id';
-import { skipIfNoDatabase } from '@infrastructure/__tests__/helpers/database-test.helper';
+
+const databaseAvailable = !!process.env.DATABASE_URL;
 
 // Mock cuid2 for deterministic test IDs (CUID2 format: 20-30 chars, lowercase a-z0-9, starts with letter)
 jest.mock('@paralleldrive/cuid2', () => ({
@@ -44,24 +45,16 @@ jest.mock('@paralleldrive/cuid2', () => ({
  * - ✅ Fehlerbehandlung (Lagekarte nicht gefunden = Fehler!)
  * - ✅ Kategorie-Validierung
  */
-describe('GetPoisQueryHandler - Integration Tests', () => {
+(databaseAvailable ? describe : describe.skip)('GetPoisQueryHandler - Integration Tests', () => {
   let handler: GetPoisQueryHandler;
   let repository: InMemoryLagekarteRepository;
-  let databaseAvailable = false;
-
-  beforeAll(async () => {
-    databaseAvailable = await skipIfNoDatabase();
-    if (!databaseAvailable) return;
-  });
 
   beforeEach(() => {
-    if (!databaseAvailable) return;
     repository = new InMemoryLagekarteRepository();
     handler = new GetPoisQueryHandler(repository);
   });
 
   afterEach(() => {
-    if (!databaseAvailable) return;
     repository.clear();
   });
 

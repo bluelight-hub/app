@@ -20,6 +20,8 @@
  * - Cleanup mit Triggers disabled (SET session_replication_role = replica)
  */
 
+const databaseAvailable = !!process.env.DATABASE_URL;
+
 // Mock @paralleldrive/cuid2 BEFORE any imports (hoisting workaround for Jest + ESM)
 jest.mock('@paralleldrive/cuid2', () => ({
   createId: jest.fn(() => {
@@ -48,8 +50,6 @@ import { Result } from '@domain/common/result';
 
 // Infrastructure
 import { PrismaLagekarteRepository } from '@infrastructure/repositories/prisma-lagekarte.repository';
-import { PrismaOutboxRepository } from '@/infrastructure/outbox/prisma-outbox.repository';
-import { EventSerializer } from '@/infrastructure/outbox/event-serializer';
 import type { PrismaService } from '@/infrastructure/database/prisma.service';
 
 // Application - Commands
@@ -105,7 +105,7 @@ class SpyEventPublisher implements IEventPublisher {
   }
 }
 
-describe('Lagekarte CQRS API - E2E Tests', () => {
+(databaseAvailable ? describe : describe.skip)('Lagekarte CQRS API - E2E Tests', () => {
   let lagekarteRepository: PrismaLagekarteRepository;
   let mockEinsatzRepository: jest.Mocked<IEinsatzRepository>;
   let eventPublisher: SpyEventPublisher;

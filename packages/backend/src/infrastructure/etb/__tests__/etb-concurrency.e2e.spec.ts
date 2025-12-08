@@ -3,6 +3,8 @@ import { UserId } from '@domain/value-objects/user-id';
 import { EinsatztagebuchAggregate } from '@domain/aggregates/einsatztagebuch.aggregate';
 import { createEtbE2eModule, teardownE2eModule, cleanupTestData, type EtbE2eTestContext } from './etb.e2e-setup';
 
+const databaseAvailable = !!process.env.DATABASE_URL;
+
 /**
  * E2E Tests für ETB Concurrency & Optimistic Locking (AC8)
  *
@@ -19,7 +21,7 @@ import { createEtbE2eModule, teardownE2eModule, cleanupTestData, type EtbE2eTest
  * - WHERE version = expectedVersion im UPDATE
  * - ConflictException bei Mismatch
  */
-describe('ETB Concurrency & Optimistic Locking (E2E)', () => {
+(databaseAvailable ? describe : describe.skip)('ETB Concurrency & Optimistic Locking (E2E)', () => {
   let ctx: EtbE2eTestContext;
 
   beforeAll(async () => {

@@ -1,4 +1,3 @@
-import { BadRequestException, NotFoundException } from '@nestjs/common';
 import { InMemoryEtbRepository } from '../../__tests__/in-memory-etb.repository';
 import { UpdateEintragCommand } from '../update-eintrag/update-eintrag.command';
 import { UpdateEintragHandler } from '../update-eintrag/update-eintrag.handler';
@@ -218,7 +217,7 @@ describe('UpdateEintragHandler', () => {
   });
 
   describe('AC3: UpdateEintrag fails if ETB is locked', () => {
-    it('should throw BadRequestException when ETB is locked', async () => {
+    it('should return failure when ETB is locked', async () => {
       // Arrange: Create locked ETB with 1 entry
       const etb = createTestEtb({ status: 'LOCKED', entriesCount: 1, userId: testUserId, einsatzId: testEinsatzId });
       await etbRepository.save(etb);
@@ -226,14 +225,17 @@ describe('UpdateEintragHandler', () => {
       const eintragId = etb.eintraege[0].id.value;
       const command = UpdateEintragCommand.create(etb.id.value, eintragId, 'Neuer Text', testUserId).value!;
 
-      // Act & Assert
-      await expect(handler.execute(command)).rejects.toThrow(BadRequestException);
-      await expect(handler.execute(command)).rejects.toThrow('ETB ist gesperrt und kann nicht mehr geändert werden');
+      // Act
+      const result = await handler.execute(command);
+
+      // Assert
+      expect(result.isFailure).toBe(true);
+      expect(result.error).toBe('ETB ist gesperrt und kann nicht mehr geändert werden');
     });
   });
 
   describe('AC3: UpdateEintrag fails if Eintrag not found', () => {
-    it('should throw BadRequestException when Eintrag does not exist', async () => {
+    it('should return failure when Eintrag does not exist', async () => {
       // Arrange: Create ETB with 1 entry
       const etb = createTestEtb({ entriesCount: 1, userId: testUserId, einsatzId: testEinsatzId });
       await etbRepository.save(etb);
@@ -241,14 +243,17 @@ describe('UpdateEintragHandler', () => {
       const nonExistentEintragId = generateTestCuid();
       const command = UpdateEintragCommand.create(etb.id.value, nonExistentEintragId, 'Neuer Text', testUserId).value!;
 
-      // Act & Assert
-      await expect(handler.execute(command)).rejects.toThrow(BadRequestException);
-      await expect(handler.execute(command)).rejects.toThrow('Eintrag nicht gefunden');
+      // Act
+      const result = await handler.execute(command);
+
+      // Assert
+      expect(result.isFailure).toBe(true);
+      expect(result.error).toBe('Eintrag nicht gefunden');
     });
   });
 
   describe('AC3: UpdateEintrag fails if Eintrag is deleted (soft-deleted)', () => {
-    it('should throw BadRequestException when Eintrag is soft-deleted', async () => {
+    it('should return failure when Eintrag is soft-deleted', async () => {
       // Arrange: Create ETB with 1 entry
       const etb = createTestEtb({ entriesCount: 1, userId: testUserId, einsatzId: testEinsatzId });
       const eintragId = etb.eintraege[0].id;
@@ -262,25 +267,31 @@ describe('UpdateEintragHandler', () => {
 
       const command = UpdateEintragCommand.create(etb.id.value, eintragId.value, 'Neuer Text', testUserId).value!;
 
-      // Act & Assert
-      await expect(handler.execute(command)).rejects.toThrow(BadRequestException);
-      await expect(handler.execute(command)).rejects.toThrow('Gelöschte Einträge können nicht bearbeitet werden');
+      // Act
+      const result = await handler.execute(command);
+
+      // Assert
+      expect(result.isFailure).toBe(true);
+      expect(result.error).toBe('Gelöschte Einträge können nicht bearbeitet werden');
     });
   });
 
   describe('Error Handling', () => {
-    it('should throw NotFoundException when ETB not found', async () => {
+    it('should return failure when ETB not found', async () => {
       // Arrange: Create command for non-existent ETB
       const fakeEtbId = generateTestCuid();
       const fakeEintragId = generateTestCuid();
       const command = UpdateEintragCommand.create(fakeEtbId, fakeEintragId, 'Test Text', testUserId).value!;
 
-      // Act & Assert
-      await expect(handler.execute(command)).rejects.toThrow(NotFoundException);
-      await expect(handler.execute(command)).rejects.toThrow('ETB nicht gefunden');
+      // Act
+      const result = await handler.execute(command);
+
+      // Assert
+      expect(result.isFailure).toBe(true);
+      expect(result.error).toBe('ETB nicht gefunden');
     });
 
-    it('should throw BadRequestException when domain validation fails (ETB locked)', async () => {
+    it('should return failure when domain validation fails (ETB locked)', async () => {
       // Arrange: Create locked ETB
       const etb = createTestEtb({ status: 'LOCKED', entriesCount: 1, userId: testUserId, einsatzId: testEinsatzId });
       await etbRepository.save(etb);
@@ -288,8 +299,12 @@ describe('UpdateEintragHandler', () => {
       const eintragId = etb.eintraege[0].id.value;
       const command = UpdateEintragCommand.create(etb.id.value, eintragId, 'Neuer Text', testUserId).value!;
 
-      // Act & Assert
-      await expect(handler.execute(command)).rejects.toThrow(BadRequestException);
+      // Act
+      const result = await handler.execute(command);
+
+      // Assert
+      expect(result.isFailure).toBe(true);
+      expect(result.error).toBe('ETB ist gesperrt und kann nicht mehr geändert werden');
     });
   });
 

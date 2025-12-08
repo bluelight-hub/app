@@ -64,6 +64,8 @@ import { CreateEinsatzCommand } from '@/application/einsatz/commands/create-eins
 import { CreateEinsatzHandler } from '@/application/einsatz/commands/create-einsatz/create-einsatz.handler';
 import { EinsatzId } from '@/domain/value-objects/einsatz-id';
 
+const databaseAvailable = !!process.env.DATABASE_URL;
+
 // ============================================
 // PERFORMANCE MEASUREMENT UTILITIES
 // ============================================
@@ -148,7 +150,7 @@ async function measureQuery<T>(fn: () => Promise<T>, iterations = 5): Promise<Pe
 // PERFORMANCE VALIDATION TESTS
 // ============================================
 
-describe('Einsatz Performance Tests (AC4.1-4.4)', () => {
+(databaseAvailable ? describe : describe.skip)('Einsatz Performance Tests (AC4.1-4.4)', () => {
   let ctx: EinsatzE2eTestContext;
 
   beforeAll(async () => {
