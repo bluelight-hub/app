@@ -1,3 +1,355 @@
+## Version [v1.0.0-alpha.35](https://github.com/rubenvitt/bluelight-hub/compare/v1.0.0-alpha.34...v1.0.0-alpha.35) – Veröffentlicht am 2025-12-09
+
+## ✨ Neue Funktionen
+Die folgenden neuen Features wurden hinzugefügt:
+- [`c07e650d`](https://github.com/rubenvitt/bluelight-hub/commit/c07e650d) (domain): Implement Result&lt;T&gt; pattern for domain layer error handling 
+
+- [`3ac19021`](https://github.com/rubenvitt/bluelight-hub/commit/3ac19021) (domain): Implement ValueObject&lt;TProps&gt; base class for DDD 
+
+- [`c5d68231`](https://github.com/rubenvitt/bluelight-hub/commit/c5d68231) (domain): Implement EntityId&lt;TAggregateType&gt; with nanoid validation 
+
+- [`be9d6829`](https://github.com/rubenvitt/bluelight-hub/commit/be9d6829) (domain): Add DomainEvent base class with auto-generated eventId 
+
+- [`84539ea7`](https://github.com/rubenvitt/bluelight-hub/commit/84539ea7) (domain): Add AggregateRoot&lt;TId&gt; base class with events 
+
+- [`f1ce3d83`](https://github.com/rubenvitt/bluelight-hub/commit/f1ce3d83) (domain): Implement 4 Domain Events for Einsatz Aggregate 
+
+- [`132c0cad`](https://github.com/rubenvitt/bluelight-hub/commit/132c0cad) (domain): Implement complete Einsatz aggregate with business logic 
+
+- [`598e1a53`](https://github.com/rubenvitt/bluelight-hub/commit/598e1a53) (domain): Implement all 6 Value Objects for ETB Aggregate 
+
+- [`b19fc56d`](https://github.com/rubenvitt/bluelight-hub/commit/b19fc56d) (domain): Implement ETB Aggregate with Business Logic 
+
+- [`7955b763`](https://github.com/rubenvitt/bluelight-hub/commit/7955b763) (domain): Fix ETB Repository &amp; Aggregate type safety 
+
+- [`5a610648`](https://github.com/rubenvitt/bluelight-hub/commit/5a610648) (domain): Implement 5 Lagekarte Value Objects with MGRS support 
+
+- [`d7ad42f6`](https://github.com/rubenvitt/bluelight-hub/commit/d7ad42f6) (domain): Implement Poi Entity for Lagekarte 
+
+- [`a95ac2d1`](https://github.com/rubenvitt/bluelight-hub/commit/a95ac2d1) (domain): Implement 3 Lagekarte Domain Events with unit tests 
+
+- [`82a7fd05`](https://github.com/rubenvitt/bluelight-hub/commit/82a7fd05) (domain): Implement LagekarteAggregate with POI management 
+
+- [`1ea7c3a0`](https://github.com/rubenvitt/bluelight-hub/commit/1ea7c3a0) (domain): Define ILagekarteRepository and IGeocodingPort interfaces 
+
+- [`45421eca`](https://github.com/rubenvitt/bluelight-hub/commit/45421eca) (domain): Implement Permission Value Object mit Wildcard Matching 
+
+- [`7bcc7195`](https://github.com/rubenvitt/bluelight-hub/commit/7bcc7195) (domain): Implement UserRole VO with RBAC hierarchy 
+
+- [`aab5a5fb`](https://github.com/rubenvitt/bluelight-hub/commit/aab5a5fb) (domain): Implement 5 User Domain Events 
+
+- [`9c1558dd`](https://github.com/rubenvitt/bluelight-hub/commit/9c1558dd) (domain): Implement UserAggregate with RBAC Business Logic 
+
+- [`2e845f5f`](https://github.com/rubenvitt/bluelight-hub/commit/2e845f5f) (infrastructure): Add PostgreSQL triggers for NO-DELETE policy 
+
+- [`6b98ee91`](https://github.com/rubenvitt/bluelight-hub/commit/6b98ee91) (application): Implement AddPoiCommand with Handler and Tests 
+
+- [`e4194c97`](https://github.com/rubenvitt/bluelight-hub/commit/e4194c97) (application): Implement RemovePoiCommand with tests 
+
+- [`f200360b`](https://github.com/rubenvitt/bluelight-hub/commit/f200360b) (application): Implement UpdatePoiPositionCommand and Handler 
+
+- [`61086afb`](https://github.com/rubenvitt/bluelight-hub/commit/61086afb) (application): Complete Lagekarte Command Layer Integration 
+
+- [`9e9571fd`](https://github.com/rubenvitt/bluelight-hub/commit/9e9571fd) (lagekarte): Add beschreibung support to LagekarteAggregate.addPoi() 
+
+- [`faf15c62`](https://github.com/rubenvitt/bluelight-hub/commit/faf15c62) (application): Setup Lagekarte Application Layer structure and DTOs 
+
+- [`547d5020`](https://github.com/rubenvitt/bluelight-hub/commit/547d5020) (lagekarte): Implement LagekarteMapper and PoiMapper for Query Layer 
+
+- [`2fe773a7`](https://github.com/rubenvitt/bluelight-hub/commit/2fe773a7) (lagekarte): Implement GetLagekarteQuery and Handler 
+
+- [`0c5f4cbb`](https://github.com/rubenvitt/bluelight-hub/commit/0c5f4cbb) (application): Implement GetPoisQuery and Handler 
+
+- [`9b96e288`](https://github.com/rubenvitt/bluelight-hub/commit/9b96e288) (application): Implement GetLagekarteExistsQuery with Handler 
+
+- [`8e7a4337`](https://github.com/rubenvitt/bluelight-hub/commit/8e7a4337) (application): Integrate Query Handlers in Lagekarte Module 
+
+- [`a6de42c6`](https://github.com/rubenvitt/bluelight-hub/commit/a6de42c6) (lagekarte): Add integration tests for Query Layer handlers 
+
+- [`8708abda`](https://github.com/rubenvitt/bluelight-hub/commit/8708abda) (lagekarte): Add PrismaLagekarteRepository integration tests 
+
+- [`b2af93ae`](https://github.com/rubenvitt/bluelight-hub/commit/b2af93ae) (infrastructure): Register NominatimGeocodingAdapter in DI container 
+
+- [`5841dbac`](https://github.com/rubenvitt/bluelight-hub/commit/5841dbac) (lagekarte): Add comprehensive unit tests for LagekarteCqrsController 
+
+- [`b3a05945`](https://github.com/rubenvitt/bluelight-hub/commit/b3a05945) (etb): Implement ETB Application Layer with CQRS pattern 
+
+- [`47eb30c4`](https://github.com/rubenvitt/bluelight-hub/commit/47eb30c4) (etb): Implementiere vollständige E2E Test-Infrastruktur 
+
+- [`39478dad`](https://github.com/rubenvitt/bluelight-hub/commit/39478dad) (einsatz): Implementiere Unit Tests für Command Handler 
+
+- [`d0c8d4d9`](https://github.com/rubenvitt/bluelight-hub/commit/d0c8d4d9) (einsatz): Add GetEinsatzByIdQuery handler with full test coverage 
+
+- [`0179526a`](https://github.com/rubenvitt/bluelight-hub/commit/0179526a) (einsatz): Register EinsatzInfrastructureModule + Integration Tests 
+
+- [`d6972f35`](https://github.com/rubenvitt/bluelight-hub/commit/d6972f35) (auth): Refactor AuthController zu CQRS Pattern 
+
+- [`2475a42a`](https://github.com/rubenvitt/bluelight-hub/commit/2475a42a) (einsatz): Add GetStatusCountsQuery and Handler for Einsatz statistics 
+
+- [`fc9bfa2c`](https://github.com/rubenvitt/bluelight-hub/commit/fc9bfa2c) (einsatz): Add ETB and POI counts display to dashboard components 
+
+- [`974f267f`](https://github.com/rubenvitt/bluelight-hub/commit/974f267f) (tests): Add Outbox Pattern Integration Tests (AC1.1-1.7) 
+
+- [`7d6b8c62`](https://github.com/rubenvitt/bluelight-hub/commit/7d6b8c62) (application): Add TransactionalCommandHandler for Outbox Pattern 
+
+- [`ca2968b3`](https://github.com/rubenvitt/bluelight-hub/commit/ca2968b3) (infrastructure): Add Prisma Error Mapper Service 
+
+- [`e05db15b`](https://github.com/rubenvitt/bluelight-hub/commit/e05db15b) (exception): Add DomainExceptionFilter for HTTP mapping 
+
+- [`b7320ced`](https://github.com/rubenvitt/bluelight-hub/commit/b7320ced) (einsatz): Add findEligibleForArchival method to IEinsatzRepository 
+
+- [`622a008a`](https://github.com/rubenvitt/bluelight-hub/commit/622a008a) (cli): Add CLI command for bulk archival of old Einsätze 
+
+- [`3b844380`](https://github.com/rubenvitt/bluelight-hub/commit/3b844380) (auth): Migrate to TanStack-Native Feature Architecture 
+
+- [`eb53f412`](https://github.com/rubenvitt/bluelight-hub/commit/eb53f412) (einsatz): Add includeArchived filter and fix archival policy 
+
+## 🐛 Fehlerbehebungen
+Diese Probleme wurden behoben:
+- [`2f281e7e`](https://github.com/rubenvitt/bluelight-hub/commit/2f281e7e) (backend): Fix review findings for Story 1-1 domain layer setup 
+
+- [`6951a95e`](https://github.com/rubenvitt/bluelight-hub/commit/6951a95e) (lagekarte): Fix integration tests by using valid POI categories 
+
+- [`b59d49c8`](https://github.com/rubenvitt/bluelight-hub/commit/b59d49c8) (test): Fix PrismaLagekarteMapper test API usage 
+
+- [`24288cca`](https://github.com/rubenvitt/bluelight-hub/commit/24288cca) (lagekarte): Fix AC3 category filter &amp; AC4 enums 
+
+- [`a68ce70d`](https://github.com/rubenvitt/bluelight-hub/commit/a68ce70d) (events): Fix EventEmitter2 DI injection in EventEmitterPublisher 
+
+- [`0527fa19`](https://github.com/rubenvitt/bluelight-hub/commit/0527fa19) (etb): Add kategorie field to CQRS layer with proper DDD architecture 
+
+- [`d738d633`](https://github.com/rubenvitt/bluelight-hub/commit/d738d633) (etb): Fix missing etbId in updateEintrag mutation call 
+
+- [`09d962ac`](https://github.com/rubenvitt/bluelight-hub/commit/09d962ac) (etb): Fix missing etbId in EditEtbEntryModal and EtbPage 
+
+- [`efc3fb54`](https://github.com/rubenvitt/bluelight-hub/commit/efc3fb54) (etb): Fix UpdateEintragDto data structure - use newText only 
+
+- [`55f8d73a`](https://github.com/rubenvitt/bluelight-hub/commit/55f8d73a) (domain): Fix UserId validation for Nanoid format &amp; DI import types 
+
+- [`84aa0ceb`](https://github.com/rubenvitt/bluelight-hub/commit/84aa0ceb) (etb): Behandle 409 Conflict in useCreateEtb Hook korrekt 
+
+- [`4dea9e1e`](https://github.com/rubenvitt/bluelight-hub/commit/4dea9e1e) (etb): Remove IEventPublisher from tests (Outbox Pattern) 
+
+- [`465d0e61`](https://github.com/rubenvitt/bluelight-hub/commit/465d0e61) (lagekarte): Add IEventPublisher mocks to handler unit tests 
+
+- [`d3e069f7`](https://github.com/rubenvitt/bluelight-hub/commit/d3e069f7) (tests): Fix UserId and EtbAutoCreation unit tests for CUID2 migration 
+
+- [`c1600fd9`](https://github.com/rubenvitt/bluelight-hub/commit/c1600fd9) (lagekarte): Remove automatic ETB creation from export handler 
+
+- [`780da73e`](https://github.com/rubenvitt/bluelight-hub/commit/780da73e) (lagekarte): Add 404 handling to useLagekarte hook 
+
+- [`732e5b83`](https://github.com/rubenvitt/bluelight-hub/commit/732e5b83) (error-handler): Suppress 404 toast globally 
+
+- [`48b3c43c`](https://github.com/rubenvitt/bluelight-hub/commit/48b3c43c) (einsatz): Fix DI type imports in all handlers 
+
+- [`46c61d0b`](https://github.com/rubenvitt/bluelight-hub/commit/46c61d0b) (auth): Fix logout endpoint - extract JWT from cookie instead of header 
+
+- [`a37dd9a7`](https://github.com/rubenvitt/bluelight-hub/commit/a37dd9a7) (einsatz): Fix useActiveEinsaetzeWithCounts response parsing 
+
+- [`e217049a`](https://github.com/rubenvitt/bluelight-hub/commit/e217049a) (api): Fix active-with-counts response mismatch causing console errors 
+
+- [`e858595c`](https://github.com/rubenvitt/bluelight-hub/commit/e858595c) (tests): Fix Jest coverage configuration and outbox test schema 
+
+- [`8ab46c75`](https://github.com/rubenvitt/bluelight-hub/commit/8ab46c75) (einsatz): Fix E2E tests - App-Konfiguration und URL-Pfade korrigiert 
+
+- [`81a83fb8`](https://github.com/rubenvitt/bluelight-hub/commit/81a83fb8) (backend): Fix DI type imports &amp; add missing Einsatz endpoints 
+
+- [`36b6bd03`](https://github.com/rubenvitt/bluelight-hub/commit/36b6bd03) (backend): Add biome-ignore comments for DI imports 
+
+- [`cfbf8eae`](https://github.com/rubenvitt/bluelight-hub/commit/cfbf8eae) (outbox): Fix AC4.1 violation - remove eventEmitter from EinsatzService 
+
+- [`eee59cfa`](https://github.com/rubenvitt/bluelight-hub/commit/eee59cfa) (backend): Fix import type DI errors for Injectable Classes 
+
+- [`4b3fac1a`](https://github.com/rubenvitt/bluelight-hub/commit/4b3fac1a) (handlers): Fix TypeScript error in ArchiveOldEinsaetzeHandler 
+
+- [`cad7bba7`](https://github.com/rubenvitt/bluelight-hub/commit/cad7bba7) (di): Migrate IEinsatzRepository from string to Symbol DI token 
+
+- [`582a4004`](https://github.com/rubenvitt/bluelight-hub/commit/582a4004) (di): Fix DI error in GetTextbausteineHandler 
+
+- [`1298370f`](https://github.com/rubenvitt/bluelight-hub/commit/1298370f) (frontend): Fix remaining import path issues 
+
+- [`71856d95`](https://github.com/rubenvitt/bluelight-hub/commit/71856d95) (frontend): Fix TanStack Form useStore API usage 
+
+- [`f06a1ec2`](https://github.com/rubenvitt/bluelight-hub/commit/f06a1ec2) (frontend): Fix linter warnings in SingleEinsatzLayout 
+
+- [`6684f9bd`](https://github.com/rubenvitt/bluelight-hub/commit/6684f9bd) (frontend): Extract .data from wrapped API responses 
+
+- [`48de8e20`](https://github.com/rubenvitt/bluelight-hub/commit/48de8e20) (frontend): Restore EtbPage to features/etb/ui/pages/ 
+
+- [`a430a70b`](https://github.com/rubenvitt/bluelight-hub/commit/a430a70b) (frontend): Fix import error in use-toolbar-positioning hook 
+
+- [`f234e84c`](https://github.com/rubenvitt/bluelight-hub/commit/f234e84c) (infrastructure): Fix domain event clearing in repositories 
+
+- [`3970b6ba`](https://github.com/rubenvitt/bluelight-hub/commit/3970b6ba) (ci): Fix DATABASE_URL propagation for integration tests 
+
+- [`654da3e0`](https://github.com/rubenvitt/bluelight-hub/commit/654da3e0) (backend): Fix complete-einsatz tests to use Result Pattern 
+
+- [`76694c55`](https://github.com/rubenvitt/bluelight-hub/commit/76694c55) (tests): Migrate tests to Result Pattern and add database guards 
+
+- [`02579708`](https://github.com/rubenvitt/bluelight-hub/commit/02579708) (tests): Fix integration tests for Result Pattern migration 
+
+- [`4e84e51f`](https://github.com/rubenvitt/bluelight-hub/commit/4e84e51f) (tests): Fix ETB_REPOSITORY DI token in etb-auto-creation test 
+
+- [`ce788c28`](https://github.com/rubenvitt/bluelight-hub/commit/ce788c28) (tests): Fix outbox integration test architecture 
+
+- [`d0b26d1f`](https://github.com/rubenvitt/bluelight-hub/commit/d0b26d1f) (tests): Fix integration test issues for CI 
+
+- [`eb85dc63`](https://github.com/rubenvitt/bluelight-hub/commit/eb85dc63) (tests): Fix remaining einsatz-controller.e2e.spec failures 
+
+- [`17f396c2`](https://github.com/rubenvitt/bluelight-hub/commit/17f396c2) (einsatz): Return 404 for non-existent Einsatz in complete endpoint 
+
+- [`e2b1b950`](https://github.com/rubenvitt/bluelight-hub/commit/e2b1b950) (tests): Fix test assertions for handler and e2e tests 
+
+## 🔒 Sicherheitsverbesserungen
+Sicherheitsrelevante Änderungen:
+- [`8611124b`](https://github.com/rubenvitt/bluelight-hub/commit/8611124b) (deps): Update glob and js-yaml to fix security vulnerabilities 
+
+- [`1f9eecfc`](https://github.com/rubenvitt/bluelight-hub/commit/1f9eecfc) (application): Sanitize error messages to prevent ID disclosure 
+
+- [`803e8709`](https://github.com/rubenvitt/bluelight-hub/commit/803e8709) (lagekarte): Fix 3 MEDIUM security issues in Query Layer 
+
+- [`a2ef4ad1`](https://github.com/rubenvitt/bluelight-hub/commit/a2ef4ad1) (lagekarte): Fix regex sanitization bypass vulnerability Replaced tag-matching regex /&lt;[^&gt;]*&gt;/g with single-character replacement /[&lt;&gt;]/g to prevent nested bypass attacks like &#x27;&lt;scr&lt;script&gt;ipt&gt;&#x27; as flagged by CodeQL. Refs: CWE-20, CWE-80, CWE-116 
+
+## 🧹 Codebereinigungen
+Aufräumarbeiten und kleinere Verbesserungen:
+- [`473c4c2c`](https://github.com/rubenvitt/bluelight-hub/commit/473c4c2c) (cleanup): Remove old 3-Tier architecture services 
+
+## ♻ Refactoring
+Struktur- oder Code-Verbesserungen:
+- [`f1d8c579`](https://github.com/rubenvitt/bluelight-hub/commit/f1d8c579) (lagekarte): Standardize Result.ok(undefined) pattern 
+
+- [`5c86cf60`](https://github.com/rubenvitt/bluelight-hub/commit/5c86cf60) (lagekarte): Refactor commands to use Result&lt;T&gt; factory pattern 
+
+- [`2d19a833`](https://github.com/rubenvitt/bluelight-hub/commit/2d19a833) (application): Extract coordinate conversion to shared helper 
+
+- [`62ecf732`](https://github.com/rubenvitt/bluelight-hub/commit/62ecf732) (lagekarte): Replace non-null assertions with safe unwrapping 
+
+- [`0850f091`](https://github.com/rubenvitt/bluelight-hub/commit/0850f091) (lagekarte): Extract validation logic to shared validators 
+
+- [`dff63c6f`](https://github.com/rubenvitt/bluelight-hub/commit/dff63c6f) (lagekarte): Extract test helper code duplication 
+
+- [`b9572469`](https://github.com/rubenvitt/bluelight-hub/commit/b9572469) (lagekarte): Refactor Controller to use CommandBus/QueryBus 
+
+- [`70331677`](https://github.com/rubenvitt/bluelight-hub/commit/70331677) (lagekarte): Fix Response DTOs and add @HttpCode(204) 
+
+- [`5a0e8b78`](https://github.com/rubenvitt/bluelight-hub/commit/5a0e8b78) (einsatz): Refactor string validation with centralized validators 
+
+- [`54cc44ca`](https://github.com/rubenvitt/bluelight-hub/commit/54cc44ca) (etb): Refactor EtbCreatedEvent emission to Aggregate 
+
+- [`1db0b2e0`](https://github.com/rubenvitt/bluelight-hub/commit/1db0b2e0) (etb): Handle 404 gracefully in useEtb hook 
+
+- [`a4e1fbfc`](https://github.com/rubenvitt/bluelight-hub/commit/a4e1fbfc) (einsatz): Refactor EinsatzController to CQRS pattern 
+
+- [`8f60cdea`](https://github.com/rubenvitt/bluelight-hub/commit/8f60cdea) (frontend): Enhance useEinsatzDetails with retry &amp; error handling 
+
+- [`c55aa15b`](https://github.com/rubenvitt/bluelight-hub/commit/c55aa15b) (einsatz): Migrate CreateEinsatzHandler to Outbox Pattern 
+
+- [`b22d72aa`](https://github.com/rubenvitt/bluelight-hub/commit/b22d72aa) (einsatz): Migrate handlers to TransactionalCommandHandler 
+
+- [`040130f6`](https://github.com/rubenvitt/bluelight-hub/commit/040130f6) (repository): Remove duplicate PrismaEinsatzRepository implementation 
+
+- [`2d6ad981`](https://github.com/rubenvitt/bluelight-hub/commit/2d6ad981) (einsatz): Remove redundant clearDomainEvents() from Command Handlers 
+
+- [`0e121774`](https://github.com/rubenvitt/bluelight-hub/commit/0e121774) (einsatz): Migrate UpdateEinsatzStatusHandler to domain exceptions 
+
+- [`0c537f43`](https://github.com/rubenvitt/bluelight-hub/commit/0c537f43) (backend): Delete old services and migrate controllers to CQRS 
+
+- [`8d9e0040`](https://github.com/rubenvitt/bluelight-hub/commit/8d9e0040) (einsatz): Migrate GetAllEinsaetzeQueryHandler to IEinsatzRepository 
+
+- [`5a700fc0`](https://github.com/rubenvitt/bluelight-hub/commit/5a700fc0) (einsatz): Migrate old DTOs to Application Layer 
+
+- [`9b7899c5`](https://github.com/rubenvitt/bluelight-hub/commit/9b7899c5) (lagekarte): Migrate PoiPlacementControl to CQRS POI categories 
+
+- [`8b3b7ea0`](https://github.com/rubenvitt/bluelight-hub/commit/8b3b7ea0) (lagekarte): Remove legacy POI type mapping from usePoiForm 
+
+- [`13368bd0`](https://github.com/rubenvitt/bluelight-hub/commit/13368bd0) (events): Introduce EVENT_NAMES constants for event names 
+
+- [`06797c40`](https://github.com/rubenvitt/bluelight-hub/commit/06797c40) (di): Migrate string-literal DI tokens to Symbol-based DI_TOKENS 
+
+- [`ead9da56`](https://github.com/rubenvitt/bluelight-hub/commit/ead9da56) (application): Replace HTTP exceptions with Result pattern (AC3) 
+
+- [`779af1b0`](https://github.com/rubenvitt/bluelight-hub/commit/779af1b0) (cleanup): Remove duplicate einsatz/events (use domain/events) 
+
+- [`a93e652f`](https://github.com/rubenvitt/bluelight-hub/commit/a93e652f) (arch): Complete hexagonal architecture migration with Biome fixes 
+
+- [`58c6e298`](https://github.com/rubenvitt/bluelight-hub/commit/58c6e298) (lagekarte): Migrate to feature-based architecture 
+
+- [`0fd8b0aa`](https://github.com/rubenvitt/bluelight-hub/commit/0fd8b0aa) (frontend): Update imports to use @/shared/* paths 
+
+- [`cd439eda`](https://github.com/rubenvitt/bluelight-hub/commit/cd439eda) (frontend): Migrate @atoms/ and @molecules/ aliases to full paths 
+
+- [`71264cb7`](https://github.com/rubenvitt/bluelight-hub/commit/71264cb7) (frontend): Remove empty legacy directory stores/persistence 
+
+- [`a2c68a73`](https://github.com/rubenvitt/bluelight-hub/commit/a2c68a73) (frontend): Migrate guards to features/auth/guards/ 
+
+- [`8e7d054b`](https://github.com/rubenvitt/bluelight-hub/commit/8e7d054b) (frontend): Migrate einsatz schemas to features/einsatz/schemas/ 
+
+- [`47594c2f`](https://github.com/rubenvitt/bluelight-hub/commit/47594c2f) (frontend): Remove useUsers duplicate, use features/auth 
+
+- [`b7e15fab`](https://github.com/rubenvitt/bluelight-hub/commit/b7e15fab) (frontend): Migrate lagekarte utils to features/lagekarte/ 
+
+- [`7dc7a3be`](https://github.com/rubenvitt/bluelight-hub/commit/7dc7a3be) (frontend): Migrate einsatz hooks to features/einsatz/ 
+
+- [`28eef11e`](https://github.com/rubenvitt/bluelight-hub/commit/28eef11e) (frontend): Migrate queryKeys.ts to feature-specific query keys 
+
+- [`da451b21`](https://github.com/rubenvitt/bluelight-hub/commit/da451b21) (frontend): Consolidate utils/ into feature and shared directories 
+
+- [`e68492f4`](https://github.com/rubenvitt/bluelight-hub/commit/e68492f4) (frontend): Split lagekarte API hooks into separate files 
+
+- [`4d23e809`](https://github.com/rubenvitt/bluelight-hub/commit/4d23e809) (frontend): Migrate Einsatz UI components to features/einsatz/ui 
+
+- [`3fb89ab7`](https://github.com/rubenvitt/bluelight-hub/commit/3fb89ab7) (frontend): Migrate admin UI to features/admin/ui/ 
+
+- [`a129b117`](https://github.com/rubenvitt/bluelight-hub/commit/a129b117) (frontend): Clean up legacy component directories and empty folders 
+
+- [`b88b9043`](https://github.com/rubenvitt/bluelight-hub/commit/b88b9043) (frontend): Consolidate shared UI components to shared/ui/ 
+
+- [`553c4cea`](https://github.com/rubenvitt/bluelight-hub/commit/553c4cea) (frontend): Move index.page to features, remove components/ 
+
+- [`8610c1c0`](https://github.com/rubenvitt/bluelight-hub/commit/8610c1c0) (frontend): Restructure shared/utils into cleaner modules 
+
+- [`73cc6894`](https://github.com/rubenvitt/bluelight-hub/commit/73cc6894) (backend): Fix architecture violations - Domain/Application layers 
+
+## 🔧 Tool Verbesserungen
+Verbesserungen an den Werkzeugen:
+- [`68117c55`](https://github.com/rubenvitt/bluelight-hub/commit/68117c55) (backend): Fix Jest test:domain script and Biome config 
+
+- [`5fc30694`](https://github.com/rubenvitt/bluelight-hub/commit/5fc30694) (frontend): Migrate ports to standard range (3091 Vite, 3090 API) 
+
+- [`0070d9bd`](https://github.com/rubenvitt/bluelight-hub/commit/0070d9bd) (infra): Migrate Database &amp; Prisma Studio ports to 30xx range 
+
+- [`0526740d`](https://github.com/rubenvitt/bluelight-hub/commit/0526740d) (backend): Migrate backend port from 3000 to 3090 
+
+- [`723db221`](https://github.com/rubenvitt/bluelight-hub/commit/723db221) (backend): Exclude example files from Jest coverage 
+
+- [`22366bb3`](https://github.com/rubenvitt/bluelight-hub/commit/22366bb3) (backend): Add Biome ignore comment for entity-id.ts static method 
+
+- [`48543d8f`](https://github.com/rubenvitt/bluelight-hub/commit/48543d8f) (domain): Fix TypeScript compilation errors from code review 
+
+- [`86029ce4`](https://github.com/rubenvitt/bluelight-hub/commit/86029ce4) (lagekarte): Register LagekarteInfrastructureModule and fix DI 
+
+- [`039fdd3a`](https://github.com/rubenvitt/bluelight-hub/commit/039fdd3a) (di): Register ArchiveOldEinsaetzeHandler in EinsatzApplicationModule 
+
+- [`488a14c7`](https://github.com/rubenvitt/bluelight-hub/commit/488a14c7) (git-hooks): Add circular dependency check to pre-commit 
+
+- [`a5f47166`](https://github.com/rubenvitt/bluelight-hub/commit/a5f47166) (ci): Add test:unit script for running tests without database 
+
+- [`5b82934f`](https://github.com/rubenvitt/bluelight-hub/commit/5b82934f) (tests): Lower coverage threshold to 79% for CI stability 
+
+- [`d24c180b`](https://github.com/rubenvitt/bluelight-hub/commit/d24c180b) (tests): Skip flaky performance consistency test on CI Shared runners have unpredictable performance characteristics (GC pauses, noisy neighbors, cold starts) that cause false positives in the max/avg ratio assertion. Test runs locally only. 
+
+- [`7c21dea6`](https://github.com/rubenvitt/bluelight-hub/commit/7c21dea6) (ci): Remove unused Claude workflow configurations 
+
+- [`547accca`](https://github.com/rubenvitt/bluelight-hub/commit/547accca) (ci): Use native ARM64 runners for multi-arch Docker builds 
+
+- [`36852174`](https://github.com/rubenvitt/bluelight-hub/commit/36852174) (ci): Fix release workflow with native ARM64 runners 
+
+- [`f2d20161`](https://github.com/rubenvitt/bluelight-hub/commit/f2d20161) (ci): Always generate Prisma client in build action 
+
+
+
+# [1.0.0-alpha.35](https://github.com/rubenvitt/bluelight-hub/compare/v1.0.0-alpha.34...v1.0.0-alpha.35) (2025-12-09)
+
 ## Version [v1.0.0-alpha.34](https://github.com/rubenvitt/bluelight-hub/compare/v1.0.0-alpha.33...v1.0.0-alpha.34) – Veröffentlicht am 2025-11-11
 
 ## ✨ Neue Funktionen
