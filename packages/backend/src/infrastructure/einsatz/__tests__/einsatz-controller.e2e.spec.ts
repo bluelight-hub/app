@@ -534,9 +534,10 @@ const databaseAvailable = !!process.env.DATABASE_URL;
         })
         .expect(200);
 
-      // einsatzort wird als String zurückgegeben (EinsatzResponseDto)
-      expect(response.body.data.einsatzort).toBe('Neue Straße 456');
-      expect(response.body.data.beschreibung).toBe('Aktualisierte Beschreibung');
+      // einsatzort wird als AddressDto zurückgegeben (EinsatzDto)
+      expect(response.body.data.einsatzort).toEqual(expect.objectContaining({ ort: 'Neue Straße 456' }));
+      // beschreibung (Input DTO) wird zu bemerkung (Response DTO) gemappt
+      expect(response.body.data.bemerkung).toBe('Aktualisierte Beschreibung');
       expect(response.body.data.alarmstichwort).toBe('B1'); // Unverändert
     });
 

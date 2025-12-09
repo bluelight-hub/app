@@ -670,7 +670,8 @@ describe('CompleteEinsatzHandler', () => {
 
         // Then
         expect(result.isFailure).toBe(true);
-        expect(result.error).toBe(einsatzId);
+        // Error message jetzt beschreibend: "Einsatz {id} nicht gefunden"
+        expect(result.error).toBe(`Einsatz ${einsatzId} nicht gefunden`);
       });
     });
 
