@@ -77,12 +77,15 @@ export const ShapeLabelModal: React.FC<ShapeLabelModalProps> = ({ isOpen, onClos
 
   /**
    * Sanitize label input (XSS prevention)
-   * - Strip HTML tags
+   * - Strip HTML-relevante Zeichen (< und >)
    * - Limit to 255 characters
+   *
+   * Verwendet Einzelzeichen-Ersetzung statt Tag-Matching,
+   * um Bypass-Angriffe wie "<scr<script>ipt>" zu verhindern.
    */
   const sanitizeLabel = (input: string): string => {
-    // Strip HTML tags
-    const stripped = input.replace(/<[^>]*>/g, '');
+    // Entferne einzelne < und > Zeichen (sicherer als Tag-Regex)
+    const stripped = input.replace(/[<>]/g, '');
     // Limit length
     return stripped.slice(0, 255);
   };
