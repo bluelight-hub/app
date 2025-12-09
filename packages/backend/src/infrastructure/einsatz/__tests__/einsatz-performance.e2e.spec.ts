@@ -362,7 +362,10 @@ async function measureQuery<T>(fn: () => Promise<T>, iterations = 5): Promise<Pe
       expect(duration).toBeLessThan(20000);
     });
 
-    it('should maintain consistent performance across iterations', async () => {
+    // Skip on CI: Shared runners have unpredictable performance characteristics
+    // that cause false positives (GC pauses, noisy neighbors, cold starts)
+    const itOrSkip = process.env.CI ? it.skip : it;
+    itOrSkip('should maintain consistent performance across iterations', async () => {
       // Given: Handler
       const handler = new CreateEinsatzHandler(ctx.repository, ctx.eventPublisher);
 
