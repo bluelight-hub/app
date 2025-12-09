@@ -295,7 +295,13 @@ export class EinsatzController {
     if (commandResult.isFailure || !commandResult.value) throw new BadRequestException(commandResult.error);
 
     const result = await this.commandBus.execute(commandResult.value);
-    if (result.isFailure) throw new BadRequestException(result.error);
+    if (result.isFailure) {
+      // "nicht gefunden" → 404 Not Found, andere Fehler → 400 Bad Request
+      if (result.error?.includes('nicht gefunden') || result.error?.includes('not found')) {
+        throw new NotFoundException(result.error);
+      }
+      throw new BadRequestException(result.error);
+    }
 
     return this.loadEinsatzById(id);
   }

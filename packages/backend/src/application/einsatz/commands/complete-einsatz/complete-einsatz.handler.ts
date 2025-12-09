@@ -151,7 +151,7 @@ export class CompleteEinsatzHandler extends TransactionalCommandHandler<Complete
         phase: 'load',
         einsatzId: command.einsatzId,
       });
-      return Result.fail(command.einsatzId);
+      return Result.fail(`Einsatz ${command.einsatzId} nicht gefunden`);
     }
 
     // Step 4: Validate Completeness via Domain Service
