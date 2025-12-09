@@ -38,7 +38,6 @@ runs:
         pnpm install --frozen-lockfile
 
     - name: Generate Prisma Client
-      if: inputs.skip-backend-build == 'false'
       shell: bash
       run: pnpm --filter @bluelight-hub/backend prisma:generate
 
