@@ -1,3 +1,13 @@
+## Version [v1.0.0-alpha.36](https://github.com/rubenvitt/bluelight-hub/compare/v1.0.0-alpha.35...v1.0.0-alpha.36) – Veröffentlicht am 2025-12-09
+
+## 🔧 Tool Verbesserungen
+Verbesserungen an den Werkzeugen:
+- [`25403f7f`](https://github.com/rubenvitt/bluelight-hub/commit/25403f7f) (ci): Fix semantic-release success handler bug 
+
+
+
+# [1.0.0-alpha.36](https://github.com/rubenvitt/bluelight-hub/compare/v1.0.0-alpha.35...v1.0.0-alpha.36) (2025-12-09)
+
 ## Version [v1.0.0-alpha.35](https://github.com/rubenvitt/bluelight-hub/compare/v1.0.0-alpha.34...v1.0.0-alpha.35) – Veröffentlicht am 2025-12-09
 
 ## ✨ Neue Funktionen
