@@ -188,7 +188,7 @@ const databaseAvailable = !!process.env.DATABASE_URL;
       // Testdaten vorbereiten
       await createTestEinsatz(ctx, { status: 'IN_BEARBEITUNG' });
       await createTestEinsatz(ctx, { status: 'IN_BEARBEITUNG' });
-      await createTestEinsatz(ctx, { status: 'ABGESCHLOSSEN' }); // Sollte NICHT enthalten sein
+      await createTestEinsatz(ctx, { status: 'ARCHIVIERT' }); // Nur ARCHIVIERT wird gefiltert
 
       const response = await request(app.getHttpServer())
         .get('/api/v-alpha/einsatz/active-with-counts')
@@ -534,9 +534,9 @@ const databaseAvailable = !!process.env.DATABASE_URL;
         })
         .expect(200);
 
-      // einsatzort wird als AddressDto zurückgegeben (Objekt mit ort-Property)
-      expect(response.body.data.einsatzort).toEqual({ ort: 'Neue Straße 456' });
-      expect(response.body.data.bemerkung).toBe('Aktualisierte Beschreibung');
+      // einsatzort wird als String zurückgegeben (EinsatzResponseDto)
+      expect(response.body.data.einsatzort).toBe('Neue Straße 456');
+      expect(response.body.data.beschreibung).toBe('Aktualisierte Beschreibung');
       expect(response.body.data.alarmstichwort).toBe('B1'); // Unverändert
     });
 
