@@ -4,9 +4,10 @@
 <critical>You MUST have already loaded and processed: {project-root}/.bmad/bmm/workflows/4-implementation/retrospective/workflow.yaml</critical>
 <critical>Communicate all responses in {communication_language} and language MUST be tailored to {user_skill_level}</critical>
 <critical>Generate all documents in {document_output_language}</critical>
+<critical>⚠️ ABSOLUTELY NO TIME ESTIMATES - NEVER mention hours, days, weeks, months, or ANY time-based predictions. AI has fundamentally changed development speed - what once took teams weeks/months can now be done by one person in hours. DO NOT give ANY time estimates whatsoever.</critical>
 
 <critical>
-DOCUMENT OUTPUT: Retrospective analysis. Concise insights, lessons learned, action items. User skill level ({user_skill_level}) affects conversation style ONLY, not retrospective content.
+  DOCUMENT OUTPUT: Retrospective analysis. Concise insights, lessons learned, action items. User skill level ({user_skill_level}) affects conversation style ONLY, not retrospective content.
 
 FACILITATION NOTES:
 
@@ -25,29 +26,6 @@ PARTY MODE PROTOCOL:
 - Create natural back-and-forth with user actively participating
 - Show disagreements, diverse perspectives, authentic team dynamics
   </critical>
-
-## 📚 Document Discovery - Selective Epic Loading
-
-**Strategy**: This workflow needs the completed epic, previous retrospective, and potentially architecture/PRD for context.
-
-**Epic Discovery (SELECTIVE LOAD):**
-
-1. Determine completed epic number (from {sprint_status_file} or user)
-2. If sharded: Load ONLY `epic-{epic_num}.md`
-3. If whole: Load complete epics file and extract relevant epic
-
-**Retrospective History:**
-
-1. Load previous epic's retrospective to check if lessons were applied
-2. Pattern: `retrospectives/epic-{prev_num}-retro-*.md`
-
-**Supporting Documents (Full Load if needed):**
-
-1. Architecture: Check for whole document first, then sharded index + all sections
-2. PRD: Same pattern as architecture
-3. These provide additional context for understanding epic execution
-
-**Priority**: Whole document first, then sharded version.
 
 <workflow>
 
@@ -177,6 +155,11 @@ Bob (Scrum Master): "Perfect. Epic {{epic_number}} is complete and ready for ret
 </output>
 </check>
 
+</step>
+
+<step n="0.5" goal="Discover and load project documents">
+  <invoke-protocol name="discover_inputs" />
+  <note>After discovery, these content variables are available: {epics_content} (selective load for this epic), {architecture_content}, {prd_content}, {document_project_content}</note>
 </step>
 
 <step n="2" goal="Deep Story Analysis - Extract Lessons from Implementation">
@@ -382,7 +365,7 @@ Alice (Product Owner): "Good thinking - helps us connect what we learned to what
 <action>Attempt to load next epic using selective loading strategy:</action>
 
 **Try sharded first (more specific):**
-<action>Check if file exists: {output*folder}/\_epic*/epic-{{next_epic_num}}.md</action>
+<action>Check if file exists: {output_folder}/epic\*/epic-{{next_epic_num}}.md</action>
 
 <check if="sharded epic file found">
   <action>Load {output_folder}/*epic*/epic-{{next_epic_num}}.md</action>
@@ -391,7 +374,7 @@ Alice (Product Owner): "Good thinking - helps us connect what we learned to what
 
 **Fallback to whole document:**
 <check if="sharded epic not found">
-<action>Check if file exists: {output*folder}/\_epic*.md</action>
+<action>Check if file exists: {output_folder}/epic\*.md</action>
 
   <check if="whole epic file found">
     <action>Load entire epics document</action>
@@ -1412,9 +1395,9 @@ Retrospective document was saved successfully, but {sprint_status_file} may need
 - Do NOT start Epic {{next_epic_num}} until review is complete
   {{else}}
 
-4. **Begin Epic {{next_epic_num}} planning when preparation complete**
-   - Load PM agent and run `epic-tech-context` for Epic {{next_epic_num}}
-   - Or continue with existing contexted epics
+4. **Begin Epic {{next_epic_num}} when ready**
+   - Start drafting stories with SM agent's `create-story`
+   - Epic will be marked as `in-progress` automatically when first story is created
    - Ensure all critical path items are done first
      {{/if}}
 

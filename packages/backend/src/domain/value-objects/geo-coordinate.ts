@@ -127,8 +127,8 @@ export class GeoCoordinate extends ValueObject<GeoCoordinateProps> {
    *
    * @example
    * ```typescript
-   * const berlin = GeoCoordinate.create(52.52, 13.40).getValue();
-   * const hamburg = GeoCoordinate.create(53.55, 10.00).getValue();
+   * const berlin = GeoCoordinate.create(52.52, 13.40).value!;
+   * const hamburg = GeoCoordinate.create(53.55, 10.00).value!;
    * const distanceKm = berlin.distanceTo(hamburg) / 1000;
    * console.log(distanceKm); // ~255 km
    * ```
@@ -157,6 +157,86 @@ export class GeoCoordinate extends ValueObject<GeoCoordinateProps> {
   }
 
   /**
+   * Konvertiert zu GeoJSON-Koordinaten im RFC 7946 Format [lng, lat].
+   *
+   * Wichtig: GeoJSON verwendet die Reihenfolge [longitude, latitude], was dem Standard
+   * für kartesische Koordinaten entspricht (x=Longitude, y=Latitude). Dies ist das
+   * ENTGEGENGESETZTE Format von vielen Mapping-APIs (z.B. Google Maps).
+   *
+   * RFC 7946 Referenz: https://tools.ietf.org/html/rfc7946#section-3.1.1
+   *
+   * @returns GeoJSON-Koordinaten als [longitude, latitude] Tuple
+   *
+   * @example
+   * ```typescript
+   * const berlin = GeoCoordinate.create(52.52, 13.40).value!;
+   * const geoJson = berlin.toGeoJsonCoordinates();
+   * console.log(geoJson); // [13.40, 52.52] (Longitude zuerst!)
+   * ```
+   */
+  public toGeoJsonCoordinates(): [number, number] {
+    return [this.longitude, this.latitude];
+  }
+
+  /**
+   * Konvertiert zu Lat/Lng Array im Google Maps Format [lat, lng].
+   *
+   * Viele Mapping-APIs (z.B. Google Maps, Leaflet) verwenden die intuitivere
+   * Reihenfolge [latitude, longitude]. Diese Methode erleichtert die Integration
+   * mit solchen Libraries.
+   *
+   * Hinweis: Dies ist das ENTGEGENGESETZTE Format von GeoJSON (siehe toGeoJsonCoordinates()).
+   *
+   * @returns Koordinaten als [latitude, longitude] Tuple
+   *
+   * @example
+   * ```typescript
+   * const berlin = GeoCoordinate.create(52.52, 13.40).value!;
+   * const latLng = berlin.toLatLngArray();
+   * console.log(latLng); // [52.52, 13.40] (Latitude zuerst!)
+   * ```
+   */
+  public toLatLngArray(): [number, number] {
+    return [this.latitude, this.longitude];
+  }
+
+  /**
+   * Factory Method für GeoJSON-Koordinaten im RFC 7946 Format [lng, lat].
+   *
+   * Parst GeoJSON-Koordinaten (Longitude zuerst!) und erstellt ein GeoCoordinate.
+   * Nutzt die bestehende create() Factory für WGS84-Validierung.
+   *
+   * Wichtig: GeoJSON-Reihenfolge ist [longitude, latitude], NICHT [lat, lng]!
+   *
+   * @param coordinates - GeoJSON-Koordinaten als [longitude, latitude] Tuple
+   * @returns Result<GeoCoordinate> - Success oder Failure mit Validierungsfehler
+   *
+   * @example
+   * ```typescript
+   * // GeoJSON Point Feature (Berlin)
+   * const geoJsonPoint = {
+   *   type: "Point",
+   *   coordinates: [13.40, 52.52] // [lng, lat]
+   * };
+   *
+   * const result = GeoCoordinate.fromGeoJson(geoJsonPoint.coordinates);
+   * if (result.isSuccess) {
+   *   const coord = result.value;
+   *   console.log(coord.latitude);  // 52.52
+   *   console.log(coord.longitude); // 13.40
+   * }
+   *
+   * // Ungültige GeoJSON-Koordinaten
+   * const invalid = GeoCoordinate.fromGeoJson([13.40, 91.0]); // Latitude > 90
+   * // invalid.isFailure === true
+   * ```
+   */
+  public static fromGeoJson(coordinates: [number, number]): Result<GeoCoordinate> {
+    const [lng, lat] = coordinates;
+    return GeoCoordinate.create(lat, lng);
+  }
+
+  /**
    * String-Repräsentation im Format "52.5200°N, 13.4000°E".
    *
    * Formatiert Koordinaten mit Himmelsrichtungen (N/S für Latitude, E/W für Longitude)
@@ -166,10 +246,10 @@ export class GeoCoordinate extends ValueObject<GeoCoordinateProps> {
    *
    * @example
    * ```typescript
-   * const berlin = GeoCoordinate.create(52.52, 13.40).getValue();
+   * const berlin = GeoCoordinate.create(52.52, 13.40).value!;
    * console.log(berlin.toString()); // "52.5200°N, 13.4000°E"
    *
-   * const capeTown = GeoCoordinate.create(-33.92, 18.42).getValue();
+   * const capeTown = GeoCoordinate.create(-33.92, 18.42).value!;
    * console.log(capeTown.toString()); // "33.9200°S, 18.4200°E"
    * ```
    */

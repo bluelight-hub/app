@@ -47,6 +47,22 @@ export const EVENT_PUBLISHER = Symbol('IEventPublisher');
 export const ALERT_SERVICE = Symbol('IAlertService');
 
 /**
+ * Passport Strategy Names für AuthGuards.
+ *
+ * Diese Konstanten vermeiden Typo-Fehler bei Passport Strategy Names
+ * und ermöglichen IDE-Unterstützung (Autocomplete, Refactoring).
+ *
+ * **Warum Constants:**
+ * - Type Safety: String Literals sind typo-anfällig
+ * - IDE-Unterstützung: Autocomplete und Go-to-Definition
+ * - Konsistenz: Zentrale Definition statt verteilter Magic Strings
+ */
+export const PASSPORT_STRATEGIES = {
+  /** Admin JWT Strategy Name */
+  ADMIN_JWT: 'admin-jwt',
+} as const;
+
+/**
  * Event Handler Tokens für IEventHandler<TEvent> Implementations.
  *
  * Diese Tokens ermöglichen die Dependency Injection von Event Handlers

@@ -20,6 +20,13 @@ import { EinsatzController } from './controllers/einsatz.controller';
  * - Alle Business-Logik in Application Layer (EinsatzApplicationModule)
  * - Infrastructure via EinsatzInfrastructureModule (Repositories)
  *
+ * **Module-Dependencies:**
+ * - CqrsModule: Stellt CommandBus/QueryBus bereit (für Controller)
+ * - PrismaModule: Expliziter Import nötig, da NestJS Module nicht transitiv sind
+ *   (EinsatzApplicationModule → PrismaModule gilt nicht für EinsatzModule)
+ * - EinsatzApplicationModule: Command/Query Handlers
+ * - EinsatzInfrastructureModule: Repository Implementierungen
+ *
  * @remarks
  * Die Kommunikation mit anderen Modulen erfolgt über
  * Domain-Events (Transactional Outbox Pattern).

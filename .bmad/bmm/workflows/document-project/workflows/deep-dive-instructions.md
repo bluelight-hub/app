@@ -20,7 +20,7 @@
 
 {{#if has_api_routes}}
 
-### API Routes ({{api_route_count}} endpoints found)
+## API Routes ({{api_route_count}} endpoints found)
 
 {{#each api_route_groups}}
 {{group_index}}. {{group_name}} - {{endpoint_count}} endpoints in `{{path}}`
@@ -29,7 +29,7 @@
 
 {{#if has_feature_modules}}
 
-### Feature Modules ({{feature_count}} features)
+## Feature Modules ({{feature_count}} features)
 
 {{#each feature_modules}}
 {{module_index}}. {{module_name}} - {{file_count}} files in `{{path}}`
@@ -137,10 +137,10 @@ This will read EVERY file in this area. Proceed? [y/n]
 <action>For each file in file\*inventory, document: - **File Path:** Full path - **Purpose:** What this file does (1-2 sentences) - **Lines of Code:** Total LOC - **Exports:** Complete list with signatures
 
 - Functions: `functionName(param: Type): ReturnType` - Description
-  _ Classes: `ClassName` - Description with key methods
-  _ Types/Interfaces: `TypeName` - Description
-  \_ Constants: `CONSTANT_NAME: Type` - Description - **Imports/Dependencies:** What it uses and why - **Used By:** Files that import this (dependents) - **Key Implementation Details:** Important logic, algorithms, patterns - **State Management:** If applicable (Redux, Context, local state) - **Side Effects:** API calls, database queries, file I/O, external services - **Error Handling:** Try/catch blocks, error boundaries, validation - **Testing:** Associated test files and coverage - **Comments/TODOs:** Any inline documentation or planned work
-  </action>
+  - Classes: `ClassName` - Description with key methods
+  - Types/Interfaces: `TypeName` - Description
+  - Constants: `CONSTANT_NAME: Type` - Description - **Imports/Dependencies:** What it uses and why - **Used By:** Files that import this (dependents) - **Key Implementation Details:** Important logic, algorithms, patterns - **State Management:** If applicable (Redux, Context, local state) - **Side Effects:** API calls, database queries, file I/O, external services - **Error Handling:** Try/catch blocks, error boundaries, validation - **Testing:** Associated test files and coverage - **Comments/TODOs:** Any inline documentation or planned work
+    </action>
 
 <template-output>comprehensive_file_inventory</template-output>
 </step>

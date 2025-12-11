@@ -22,6 +22,12 @@ BMad Method (BMM) helps you build software through guided workflows with special
 3. **Phase 3: Solutioning** (Track-dependent) - Design the architecture for BMad Method and Enterprise tracks
 4. **Phase 4: Implementation** (Required) - Build your software Epic by Epic, Story by Story
 
+### Complete Workflow Visualization
+
+![BMad Method Workflow - Standard Greenfield](./images/workflow-method-greenfield.svg)
+
+_Complete visual flowchart showing all phases, workflows, agents (color-coded), and decision points for the BMad Method standard greenfield track. Each box is color-coded by the agent responsible for that workflow._
+
 ## Installation
 
 ```bash
@@ -122,7 +128,7 @@ For v4 users or those who prefer to skip workflow-status guidance:
 
 - **Analyst** → Brainstorming, Product Brief
 - **PM** → PRD (BMad Method/Enterprise tracks) OR tech-spec (Quick Flow track)
-- **UX-Designer** → UX Design Document (if UI-heavy)
+- **UX-Designer** → UX Design Document (if UI part of the project)
 - **Architect** → Architecture (BMad Method/Enterprise tracks)
 
 #### Phase 2: Planning - Creating the PRD
@@ -133,7 +139,6 @@ For v4 users or those who prefer to skip workflow-status guidance:
 2. Tell it to run the PRD workflow
 3. Once complete, you'll have:
    - **PRD.md** - Your Product Requirements Document
-   - Epic breakdown
 
 **For Quick Flow track:**
 
@@ -145,7 +150,7 @@ If your project has a user interface:
 
 1. Load the **UX-Designer agent** in a new chat
 2. Tell it to run the UX design workflow
-3. After completion, run validations to ensure the Epics file stays updated
+3. After completion, you'll have your UX specification document
 
 #### Phase 3: Architecture
 
@@ -153,14 +158,25 @@ If your project has a user interface:
 
 1. Load the **Architect agent** in a new chat
 2. Tell it to run the create-architecture workflow
-3. After completion, run validations to ensure the Epics file stays updated
+3. After completion, you'll have your architecture document with technical decisions
 
-#### Phase 3: Solutioning Gate Check (Highly Recommended)
+#### Phase 3: Create Epics and Stories (REQUIRED after Architecture)
 
-Once architecture is complete:
+**V6 Improvement:** Epics and stories are now created AFTER architecture for better quality!
+
+1. Load the **PM agent** in a new chat
+2. Tell it to run "create-epics-and-stories"
+3. This breaks down your PRD's FRs/NFRs into implementable epics and stories
+4. The workflow uses both PRD and Architecture to create technically-informed stories
+
+**Why after architecture?** Architecture decisions (database, API patterns, tech stack) directly affect how stories should be broken down and sequenced.
+
+#### Phase 3: Implementation Readiness Check (Highly Recommended)
+
+Once epics and stories are created:
 
 1. Load the **Architect agent** in a new chat
-2. Tell it to run "solutioning-gate-check"
+2. Tell it to run "implementation-readiness"
 3. This validates cohesion across all your planning documents (PRD, UX, Architecture, Epics)
 4. This was called the "PO Master Checklist" in v4
 
@@ -184,35 +200,21 @@ Once planning and architecture are complete, you'll move to Phase 4. **Important
 3. Tell the agent: "Run sprint-planning"
 4. This creates your `sprint-status.yaml` file that tracks all epics and stories
 
-#### 3.2 Create Epic Context (Optional but Recommended)
-
-1. **Start a new chat** with the **SM agent**
-2. Wait for the menu
-3. Tell the agent: "Run epic-tech-context"
-4. This creates technical context for the current epic before drafting stories
-
-#### 3.3 Draft Your First Story
+#### 3.2 Draft Your First Story
 
 1. **Start a new chat** with the **SM agent**
 2. Wait for the menu
 3. Tell the agent: "Run create-story"
 4. This drafts the story file from the epic
 
-#### 3.4 Add Story Context (Optional but Recommended)
-
-1. **Start a new chat** with the **SM agent**
-2. Wait for the menu
-3. Tell the agent: "Run story-context"
-4. This creates implementation-specific technical context for the story
-
-#### 3.5 Implement the Story
+#### 3.3 Implement the Story
 
 1. **Start a new chat** with the **DEV agent**
 2. Wait for the menu
 3. Tell the agent: "Run dev-story"
 4. The DEV agent will implement the story and update the sprint status
 
-#### 3.6 Review the Code (Optional but Recommended)
+#### 3.4 Review the Code (Optional but Recommended)
 
 1. **Start a new chat** with the **DEV agent**
 2. Wait for the menu
@@ -224,9 +226,8 @@ Once planning and architecture are complete, you'll move to Phase 4. **Important
 For each subsequent story, repeat the cycle using **fresh chats** for each workflow:
 
 1. **New chat** → SM agent → "Run create-story"
-2. **New chat** → SM agent → "Run story-context"
-3. **New chat** → DEV agent → "Run dev-story"
-4. **New chat** → DEV agent → "Run code-review" (optional but recommended)
+2. **New chat** → DEV agent → "Run dev-story"
+3. **New chat** → DEV agent → "Run code-review" (optional but recommended)
 
 After completing all stories in an epic:
 
@@ -312,11 +313,10 @@ flowchart LR
         direction TB
         D1[Per Epic:<br/>epic context]
         D2[Per Story:<br/>create-story]
-        D3[story-context]
-        D4[dev-story]
-        D5[code-review]
-        D6[SM, DEV]
-        D1 ~~~ D2 ~~~ D3 ~~~ D4 ~~~ D5 ~~~ D6
+        D3[dev-story]
+        D4[code-review]
+        D5[SM, DEV]
+        D1 ~~~ D2 ~~~ D3 ~~~ D4 ~~~ D5
     end
 
     P1 --> P2

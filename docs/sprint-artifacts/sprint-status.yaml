@@ -1,0 +1,108 @@
+# generated: 2025-12-10
+# project: Bluelight Hub
+# project_key: bluelight-hub
+# tracking_system: file-system
+# story_location: docs/sprint-artifacts
+
+# STATUS DEFINITIONS:
+# ==================
+# Epic Status:
+#   - backlog: Epic not yet started
+#   - in-progress: Epic actively being worked on
+#   - done: All stories in epic completed
+#
+# Epic Status Transitions:
+#   - backlog -> in-progress: Automatically when first story is created (via create-story)
+#   - in-progress -> done: Manually when all stories reach 'done' status
+#
+# Story Status:
+#   - backlog: Story only exists in epic file
+#   - drafted: Story file created in stories folder
+#   - ready-for-dev: Draft approved and story context created
+#   - in-progress: Developer actively working on implementation
+#   - review: Ready for code review (via Dev's code-review workflow)
+#   - done: Story completed
+#
+# Retrospective Status:
+#   - optional: Can be completed but not required
+#   - completed: Retrospective has been done
+#
+# WORKFLOW NOTES:
+# ===============
+# - Epic transitions to 'in-progress' automatically when first story is created
+# - Stories can be worked in parallel if team capacity allows
+# - SM typically drafts next story after previous one is 'done' to incorporate learnings
+# - Dev moves story to 'review', then runs code-review (fresh context, different LLM recommended)
+
+generated: 2025-12-10
+project: Bluelight Hub
+project_key: bluelight-hub
+tracking_system: file-system
+story_location: docs/sprint-artifacts
+
+development_status:
+  # ===== Epic 0: Technical Foundation [TECHNICAL - BLOCKER] =====
+  epic-0: in-progress
+  0-1-admin-jwt-auth-guard: ready-for-dev
+  0-2-unique-constraint-rollenbesetzung: backlog
+  0-3-geocoordinate-value-object: backlog
+  epic-0-retrospective: optional
+
+  # ===== Epic 1: Admin-Grundkonfiguration =====
+  epic-1: backlog
+  1-0-prisma-schema-admin-konfiguration: backlog
+  1-1-qualifikationen-verwalten: backlog
+  1-2-fahrzeugtypen-verwalten: backlog
+  1-3-rollen-definitionen-verwalten: backlog
+  1-4-funkstatus-7-9-konfigurieren: backlog
+  epic-1-retrospective: optional
+
+  # ===== Epic 2: Stammdaten-Administration =====
+  epic-2: backlog
+  2-0-prisma-schema-stammdaten: backlog
+  2-1-stamm-fahrzeuge-verwalten: backlog
+  2-2-stamm-personen-verwalten: backlog
+  epic-2-retrospective: optional
+
+  # ===== Epic 3: Fahrzeug-Einsatz-Verwaltung =====
+  epic-3: backlog
+  3-0-prisma-schema-einsatz-fahrzeuge: backlog
+  3-1-fahrzeug-aus-stammdaten-erfassen: backlog
+  3-2-temporaeres-fahrzeug-anlegen: backlog
+  3-3-fms-status-updaten: backlog
+  epic-3-retrospective: optional
+
+  # ===== Epic 4: Helfer-Registrierung =====
+  epic-4: backlog
+  4-0-prisma-schema-einsatz-personen: backlog
+  4-1-person-manuell-registrieren: backlog
+  4-2-person-via-qr-code-registrieren: backlog
+  4-3-person-zu-fahrzeug-zuweisen: backlog
+  epic-4-retrospective: optional
+
+  # ===== Epic 5: Rollen & Fuehrung =====
+  epic-5: backlog
+  5-0-prisma-schema-rollenbesetzung: backlog
+  5-1-rolle-besetzen-mit-qualifikationsvalidierung: backlog
+  5-2-rolle-freigeben: backlog
+  epic-5-retrospective: optional
+
+  # ===== Epic 6: Taktische Uebersicht =====
+  epic-6: backlog
+  6-1a-taktische-staerke-anzeige: backlog
+  6-1b-fahrzeug-status-liste: backlog
+  6-1c-rollen-uebersicht: backlog
+  6-1d-dashboard-container-layout: backlog
+  6-2-fullscreen-compact-modus: backlog
+  epic-6-retrospective: optional
+
+  # ===== Epic 7: HiOrg-Server Integration =====
+  epic-7: backlog
+  7-1-hiorg-server-verbindung-synchronisation: backlog
+  7-2-import-auswahl-qualifikations-mapping: backlog
+  epic-7-retrospective: optional
+
+  # ===== Epic 8: Lagekarte-Integration =====
+  epic-8: backlog
+  8-1-fahrzeuge-als-pois-auf-lagekarte: backlog
+  epic-8-retrospective: optional

@@ -391,6 +391,7 @@ export class AuthController {
    * @param res - Express Response für Cookie-Verwaltung
    */
   @Post('admin/logout')
+  @UseGuards(JwtAuthGuard)
   @HttpCode(HttpStatus.OK)
   @ApiOperation({
     summary: 'Admin abmelden',

@@ -362,15 +362,11 @@ export class AuthService {
    * Gibt die Admin-Token-Konfiguration zurück
    *
    * @returns Konfigurationsobjekt mit secret und expiresIn
+   * @throws Error wenn ADMIN_JWT_SECRET nicht konfiguriert ist
    */
   private getAdminTokenConfig() {
-    const adminSecret = this.configService.get('ADMIN_JWT_SECRET');
-    if (!adminSecret) {
-      throw new Error('ADMIN_JWT_SECRET is not configured');
-    }
-
     return {
-      secret: adminSecret,
+      secret: this.configService.getOrThrow<string>('ADMIN_JWT_SECRET'),
       expiresIn: this.configService.get('JWT_ADMIN_EXPIRES_IN', '15m'),
     };
   }

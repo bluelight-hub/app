@@ -308,37 +308,186 @@ Domain ← Application ← Infrastructure
 
 **DI Token Constants (AC2):**
 
-DI Token Strings als Constants definiert (nicht inline String-Literals):
+DI Token Strings als Constants definiert (nicht inline String-Literals).
+
+**Referenz:** CLAUDE.md - Code Review Checklist AC2
+
+#### Warum Symbol statt String?
+
+Die Verwendung von `Symbol()` für DI Tokens bietet mehrere Vorteile gegenüber String-basierten Tokens:
+
+| Aspekt | Symbol | String |
+|--------|--------|--------|
+| **Type Safety** | TypeScript kann Symbol Types validieren | Typo-anfällig, keine Compile-Time Checks |
+| **Kollisionen** | Jedes Symbol ist einzigartig (garantiert) | Namenskollisionen möglich |
+| **IDE-Unterstützung** | Autocomplete und Refactoring | Eingeschränkte IDE-Unterstützung |
+| **Best Practices** | Konsistent mit modernen DI Frameworks | Legacy Pattern |
+| **Runtime Safety** | Symbol-Identity garantiert Uniqueness | String-Vergleiche fehleranfällig |
+
+#### Naming Convention
+
+DI Tokens folgen einem hierarchischen Namespace-Pattern:
 
 ```typescript
 // packages/backend/src/infrastructure/di-tokens.ts
 export const DI_TOKENS = {
   REPOSITORIES: {
+    // Bestehende Bounded Contexts
     EINSATZ: Symbol('IEinsatzRepository'),
     ETB: Symbol('IEtbRepository'),
     USER: Symbol('IUserRepository'),
     LAGEKARTE: Symbol('ILagekarteRepository'),
+
+    // Epic 5: Kräftemanagement (Bounded Context)
+    KRAEFTE: {
+      ROLLENBESETZUNG: Symbol('IRollenbesetzungRepository'),
+      PERSON: Symbol('IPersonRepository'),
+      ROLLENDEFINITION: Symbol('IRollendefinitionRepository'),
+    },
   },
   HANDLERS: {
     CREATE_EINSATZ: Symbol('CreateEinsatzHandler'),
     UPDATE_EINSATZ: Symbol('UpdateEinsatzHandler'),
   },
 } as const;
-
-// Verwendung in Modules
-providers: [
-  {
-    provide: DI_TOKENS.REPOSITORIES.EINSATZ,
-    useClass: PrismaEinsatzRepository,
-  },
-]
-
-// Verwendung in Constructors
-constructor(
-  @Inject(DI_TOKENS.REPOSITORIES.EINSATZ)
-  private readonly repository: IEinsatzRepository,
-) {}
 ```
+
+**Pattern:**
+- **Top-Level:** Kategorien (REPOSITORIES, HANDLERS, SERVICES)
+- **Second-Level:** Bounded Context (z.B. EINSATZ, KRAEFTE)
+- **Third-Level:** Spezifische Repositories (optional, für verschachtelte Contexts)
+- **Symbol String:** Interface Name (z.B. `'IEinsatzRepository'`)
+
+#### Verwendung in NestJS Modules
+
+**Provider Registration:**
+
+```typescript
+// packages/backend/src/modules/kraefte.module.ts
+import { DI_TOKENS } from '../infrastructure/di-tokens';
+import { PrismaRollenbesetzungRepository } from '../infrastructure/kraefte/repositories/prisma-rollenbesetzung.repository';
+
+@Module({
+  providers: [
+    {
+      provide: DI_TOKENS.REPOSITORIES.KRAEFTE.ROLLENBESETZUNG,
+      useClass: PrismaRollenbesetzungRepository,
+    },
+  ],
+  exports: [DI_TOKENS.REPOSITORIES.KRAEFTE.ROLLENBESETZUNG],
+})
+export class KraefteModule {}
+```
+
+**Dependency Injection in Constructors:**
+
+```typescript
+// packages/backend/src/application/kraefte/commands/assign-rolle.handler.ts
+import { Inject, Injectable } from '@nestjs/common';
+import { DI_TOKENS } from '../../../infrastructure/di-tokens';
+import type { IRollenbesetzungRepository } from '../../../domain/repositories/i-rollenbesetzung-repository';
+
+@Injectable()
+export class AssignRolleHandler {
+  constructor(
+    @Inject(DI_TOKENS.REPOSITORIES.KRAEFTE.ROLLENBESETZUNG)
+    private readonly repository: IRollenbesetzungRepository,
+  ) {}
+
+  async execute(command: AssignRolleCommand): Promise<Result<void>> {
+    // Business logic mit repository
+  }
+}
+```
+
+#### Anti-Patterns
+
+```typescript
+// ❌ FALSCH: Inline String-Literals (Typo-anfällig)
+@Inject('IEinsatzRepository')
+private readonly repository: IEinsatzRepository;
+
+// ❌ FALSCH: String statt Symbol (keine Uniqueness-Garantie)
+export const EINSATZ_REPOSITORY = 'IEinsatzRepository';
+
+// ❌ FALSCH: Magic Strings ohne zentrale Konstante
+@Inject('einsatz-repository')
+private readonly repository: IEinsatzRepository;
+
+// ✅ RICHTIG: Zentralisierte Symbol-basierte Tokens
+@Inject(DI_TOKENS.REPOSITORIES.EINSATZ)
+private readonly repository: IEinsatzRepository;
+```
+
+#### Epic 5 (Kräftemanagement) Token-Beispiel
+
+Für den neuen Bounded Context "Kräftemanagement" (Epic 5) wurden folgende Tokens definiert:
+
+```typescript
+// packages/backend/src/infrastructure/di-tokens.ts
+export const DI_TOKENS = {
+  REPOSITORIES: {
+    // ... bestehende Tokens ...
+
+    /**
+     * Kräftemanagement Repositories (Epic 5)
+     *
+     * Verwaltung von Personalressourcen für Einsätze:
+     * - ROLLENBESETZUNG: Zuordnung von Personen zu Einsatzrollen
+     * - PERSON: Stammdaten der Einsatzkräfte
+     * - ROLLENDEFINITION: Verfügbare Rollen-Templates
+     */
+    KRAEFTE: {
+      ROLLENBESETZUNG: Symbol('IRollenbesetzungRepository'),
+      PERSON: Symbol('IPersonRepository'),
+      ROLLENDEFINITION: Symbol('IRollendefinitionRepository'),
+    },
+  },
+} as const;
+```
+
+**Domain Repositories (Story 5.0):**
+
+```typescript
+// packages/backend/src/domain/repositories/i-rollenbesetzung-repository.ts
+export interface IRollenbesetzungRepository {
+  save(aggregate: Rollenbesetzung, tx?: TransactionContext): Promise<Result<void>>;
+  findById(id: RollenbesetzungId): Promise<Result<Rollenbesetzung | null>>;
+  findByEinsatzId(einsatzId: EinsatzId): Promise<Result<Rollenbesetzung[]>>;
+}
+```
+
+**Infrastructure Implementation (Story 5.0):**
+
+```typescript
+// packages/backend/src/infrastructure/kraefte/repositories/prisma-rollenbesetzung.repository.ts
+@Injectable()
+export class PrismaRollenbesetzungRepository implements IRollenbesetzungRepository {
+  constructor(private readonly prisma: PrismaService) {}
+
+  async save(
+    aggregate: Rollenbesetzung,
+    tx?: TransactionContext
+  ): Promise<Result<void>> {
+    // Prisma-basierte Persistierung
+  }
+}
+```
+
+#### Migrationsplan für neue Bounded Contexts
+
+Bei der Einführung neuer Bounded Contexts (wie Epic 5):
+
+1. **DI Token definieren** in `infrastructure/di-tokens.ts`
+2. **Domain Repository Interface** erstellen in `domain/repositories/`
+3. **Infrastructure Repository Implementation** in `infrastructure/<context>/repositories/`
+4. **NestJS Module** registriert Provider mit Token
+5. **Handler/Services** injizieren via Token
+
+**Siehe auch:**
+- **CLAUDE.md AC2:** DI Token Constants Check
+- **Story 0-2:** Rollenbesetzung Repository Pattern
+- **Story 5.0:** Domain Foundation für Kräftemanagement
 
 **Import Check (AC1):**
 

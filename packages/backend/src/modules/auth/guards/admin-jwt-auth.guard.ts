@@ -1,11 +1,12 @@
 import { Injectable } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
+import { PASSPORT_STRATEGIES } from '../../../infrastructure/di-tokens';
 
 /**
  * Admin JWT Authentication Guard
  *
  * Dieser Guard schützt Admin-Routen und erfordert ein gültiges Admin-Token
- * im HTTP-Only Cookie. Er verwendet die 'admin-jwt' Strategie zur Validierung.
+ * im HTTP-Only Cookie. Er verwendet die ADMIN_JWT Strategie zur Validierung.
  *
  * @example
  * ```typescript
@@ -17,4 +18,4 @@ import { AuthGuard } from '@nestjs/passport';
  * ```
  */
 @Injectable()
-export class AdminJwtAuthGuard extends AuthGuard('admin-jwt') {}
+export class AdminJwtAuthGuard extends AuthGuard(PASSPORT_STRATEGIES.ADMIN_JWT) {}

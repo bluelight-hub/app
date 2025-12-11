@@ -57,7 +57,7 @@ Choose the right scan depth for your needs:
 - Initial understanding of project structure
 - Planning next steps before deeper analysis
 
-**Does NOT read:** Source code files (_.js, _.ts, _.py, _.go, etc.)
+**Does NOT read:** Source code files (`_.js`, `_.ts`, `_.py`, `_.go`, etc.)
 
 ### 2. Deep Scan
 
@@ -202,7 +202,9 @@ PRD Workflow: Loads docs/index.md
 → Understands existing architecture
 → Identifies reusable components
 → Plans integration with existing APIs
-→ Creates contextual PRD with epics and stories
+→ Creates contextual PRD with FRs and NFRs
+Architecture Workflow: Creates architecture design
+Create-Epics-and-Stories Workflow: Breaks down into epics and stories
 ```
 
 ### Other Use Cases

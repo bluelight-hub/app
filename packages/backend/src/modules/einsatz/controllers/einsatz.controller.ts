@@ -1,5 +1,5 @@
 import { ArchiveEinsatzCommand, CompleteEinsatzCommand, CreateEinsatzCommand, StartEinsatzCommand, UpdateEinsatzCommand } from '@/application/einsatz/commands';
-import { Address } from '@/domain/value-objects/address';
+import { Result } from '@domain/common/result';
 import {
   CompletenessQueryDto,
   CompletenessResponseDto,
@@ -83,13 +83,10 @@ export class EinsatzController {
   @ApiWrappedCreatedResponse(EinsatzDto, { description: 'Einsatz erfolgreich erstellt' })
   @ApiBadRequestResponse({ description: 'Validierungsfehler in den Eingabedaten' })
   async create(@Body(new ValidationPipe({ transform: true, whitelist: true })) dto: CreateEinsatzDto, @CurrentUser() user: ValidatedUser): Promise<EinsatzDto> {
-    // Konvertiere einsatzort-String zu Address Value Object (als Freitext-Ort)
-    const einsatzort = dto.einsatzort ? Address.create({ ort: dto.einsatzort }).value : undefined;
-
-    const commandResult = CreateEinsatzCommand.create(dto.alarmstichwort || 'Unbekannt', user.userId, einsatzort, dto.beschreibung);
+    const commandResult = CreateEinsatzCommand.create(dto.alarmstichwort || 'Unbekannt', user.userId, dto.einsatzort, dto.beschreibung);
     if (commandResult.isFailure || !commandResult.value) throw new BadRequestException(commandResult.error);
 
-    const result = await this.commandBus.execute(commandResult.value);
+    const result = await this.commandBus.execute<CreateEinsatzCommand, Result<string>>(commandResult.value);
     if (result.isFailure) throw new BadRequestException(result.error);
     if (!result.value) throw new InternalServerErrorException('Einsatz wurde erstellt, aber keine ID zurückgegeben');
 
@@ -250,13 +247,11 @@ export class EinsatzController {
   @ApiNotFoundResponse({ description: 'Einsatz nicht gefunden' })
   @ApiBadRequestResponse({ description: 'Validierungsfehler in den Eingabedaten' })
   async update(@Param('id') id: string, @Body(new ValidationPipe({ transform: true, whitelist: true })) dto: UpdateEinsatzDto, @CurrentUser() _user: ValidatedUser): Promise<EinsatzDto> {
-    // Konvertiere einsatzort-String zu Address Value Object (als Freitext-Ort)
-    const einsatzort = dto.einsatzort ? Address.create({ ort: dto.einsatzort }).value : undefined;
-
-    const commandResult = UpdateEinsatzCommand.create(id, dto.alarmstichwort, einsatzort, dto.beschreibung);
+    // TODO: Implement user-ownership validation (siehe AC3 Security Issue)
+    const commandResult = UpdateEinsatzCommand.create(id, dto.alarmstichwort, dto.einsatzort, dto.beschreibung);
     if (commandResult.isFailure || !commandResult.value) throw new BadRequestException(commandResult.error);
 
-    const result = await this.commandBus.execute(commandResult.value);
+    const result = await this.commandBus.execute<UpdateEinsatzCommand, Result<void>>(commandResult.value);
     if (result.isFailure) throw new BadRequestException(result.error);
 
     return this.loadEinsatzById(id);
@@ -272,10 +267,11 @@ export class EinsatzController {
   @ApiNotFoundResponse({ description: 'Einsatz nicht gefunden' })
   @ApiBadRequestResponse({ description: 'Einsatz kann nicht gestartet werden (z.B. bereits gestartet oder archiviert)' })
   async start(@Param('id') id: string, @CurrentUser() user: ValidatedUser): Promise<EinsatzDto> {
+    // TODO: Implement user-ownership validation (siehe AC3 Security Issue)
     const commandResult = StartEinsatzCommand.create(id, user.userId);
     if (commandResult.isFailure || !commandResult.value) throw new BadRequestException(commandResult.error);
 
-    const result = await this.commandBus.execute(commandResult.value);
+    const result = await this.commandBus.execute<StartEinsatzCommand, Result<void>>(commandResult.value);
     if (result.isFailure) throw new BadRequestException(result.error);
 
     return this.loadEinsatzById(id);
@@ -291,10 +287,11 @@ export class EinsatzController {
   @ApiNotFoundResponse({ description: 'Einsatz nicht gefunden' })
   @ApiBadRequestResponse({ description: 'Einsatz kann nicht abgeschlossen werden (z.B. bereits abgeschlossen)' })
   async complete(@Param('id') id: string, @CurrentUser() user: ValidatedUser): Promise<EinsatzDto> {
+    // TODO: Implement user-ownership validation (siehe AC3 Security Issue)
     const commandResult = CompleteEinsatzCommand.create(id, user.userId);
     if (commandResult.isFailure || !commandResult.value) throw new BadRequestException(commandResult.error);
 
-    const result = await this.commandBus.execute(commandResult.value);
+    const result = await this.commandBus.execute<CompleteEinsatzCommand, Result<void>>(commandResult.value);
     if (result.isFailure) {
       // "nicht gefunden" → 404 Not Found, andere Fehler → 400 Bad Request
       if (result.error?.includes('nicht gefunden') || result.error?.includes('not found')) {
@@ -316,10 +313,11 @@ export class EinsatzController {
   @ApiNotFoundResponse({ description: 'Einsatz nicht gefunden' })
   @ApiBadRequestResponse({ description: 'Validierungsfehler oder Einsatz kann nicht archiviert werden' })
   async archive(@Param('id') id: string, @CurrentUser() user: ValidatedUser): Promise<EinsatzDto> {
+    // TODO: Implement user-ownership validation (siehe AC3 Security Issue)
     const commandResult = ArchiveEinsatzCommand.create(id, user.userId);
     if (commandResult.isFailure || !commandResult.value) throw new BadRequestException(commandResult.error);
 
-    const result = await this.commandBus.execute(commandResult.value);
+    const result = await this.commandBus.execute<ArchiveEinsatzCommand, Result<void>>(commandResult.value);
     if (result.isFailure) throw new BadRequestException(result.error);
 
     return this.loadEinsatzById(id);

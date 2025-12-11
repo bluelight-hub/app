@@ -101,6 +101,125 @@ OpenAPI JSON:  http://localhost:3090/api-json
 | **Datenbank ändern** | Backend | Prisma Migrate: `prisma migrate dev` |
 | **Neue Entität** | Backend | Prisma Schema → Migrate → Generate Client |
 
+## Database Patterns
+
+### Upsert Pattern (Race Condition Prevention)
+
+**Wann verwenden:** Bei parallelen Requests auf UNIQUE Constraints (z.B. mehrere User weisen gleichzeitig dieselbe Rolle zu).
+
+**Problem:** Race Conditions können zu `DuplicateKeyError` führen, wenn zwei Requests gleichzeitig `create()` aufrufen.
+
+**Lösung:** Prisma `upsert()` mit named UNIQUE constraint garantiert last-write-wins Semantik.
+
+```typescript
+// Prisma Schema (UNIQUE Constraint definieren)
+model EinsatzRollenbesetzung {
+  id                 String @id @default(cuid())
+  einsatzId          String
+  rollenDefinitionId String
+  personId           String
+
+  // UNIQUE constraint verhindert doppelte Besetzung
+  @@unique([einsatzId, rollenDefinitionId], name: "unique_rolle_per_einsatz")
+}
+
+// Handler (Upsert statt create)
+const besetzung = await prisma.einsatzRollenbesetzung.upsert({
+  where: {
+    unique_rolle_per_einsatz: {  // Named constraint aus Schema
+      einsatzId: command.einsatzId,
+      rollenDefinitionId: command.rollenDefinitionId,
+    },
+  },
+  create: {
+    einsatzId: command.einsatzId,
+    rollenDefinitionId: command.rollenDefinitionId,
+    personId: command.personId,
+    createdBy: command.userId,
+  },
+  update: {
+    personId: command.personId,
+    updatedBy: command.userId,
+    updatedAt: new Date(),
+  },
+});
+```
+
+**Garantien:**
+- **Idempotenz:** Gleicher Request 2x → gleiches Ergebnis
+- **Last-Write-Wins:** Letzter Request überschreibt (kein Error)
+- **Atomarität:** Mit `TransactionalCommandHandler` für Outbox-Events
+
+**Verweis:** ADR-023 (vollständige Dokumentation), Story 0-2 (Tests), Story 5.0/5.1 (Implementierung)
+
+## Authentication & Authorization
+
+### 3-Token-System (ADR-007b)
+
+| Token | Cookie-Name | TTL | Verwendung | Endpoint | Cookie-Flags |
+|-------|------------|-----|------------|----------|--------------|
+| **accessToken** | `accessToken` | 15 min | Normale Authentifizierung | Alle `/api/*` (außer public) | `HttpOnly: true`<br>`Secure: true`<br>`SameSite: Strict` |
+| **refreshToken** | `refreshToken` | 7 Tage | Token-Erneuerung | `POST /api/auth/refresh` | `HttpOnly: true`<br>`Secure: true`<br>`SameSite: Strict` |
+| **adminToken** | `adminToken` | 15 min | Admin-Berechtigung | Admin-Endpunkte (zusätzlich!) | `HttpOnly: true`<br>`Secure: true`<br>`SameSite: Strict` |
+
+**Cookie-Flags Erklärung:**
+- `HttpOnly: true` - JavaScript kann nicht auf Cookie zugreifen (verhindert XSS-Angriffe)
+- `Secure: true` - Cookie wird nur über HTTPS übertragen
+- `SameSite: Strict` - CSRF-Schutz (Cookie nur bei Same-Site-Requests)
+
+**Wichtig:** Admin-Endpunkte benötigen BEIDE Tokens (accessToken + adminToken)
+
+### Guards & Roles
+
+| Guard | Benötigte Tokens | User-Rolle | Verwendung |
+|-------|------------------|------------|------------|
+| `JwtAuthGuard` | `accessToken` | USER, ADMIN, SUPER_ADMIN | Normale authentifizierte Endpunkte |
+| `AdminJwtAuthGuard` | `accessToken` + `adminToken` | ADMIN, SUPER_ADMIN | Admin-Operationen |
+
+### Auth Endpoints
+
+```typescript
+// Login (erhält accessToken + refreshToken)
+POST /api/auth/unified
+{ username: string, password?: string }
+→ Returns: { user, accessToken, refreshToken, isNewUser }
+
+// Admin-Login (erhält zusätzlich adminToken)
+POST /api/auth/admin-login
+{ username: string, password: string }
+→ Returns: { user, accessToken, refreshToken, adminToken }
+
+// Token Refresh
+POST /api/auth/refresh
+(Cookie: refreshToken)
+→ Returns: { accessToken }
+
+// Logout
+POST /api/auth/logout
+→ Clears all cookies
+```
+
+### Beispiel: Backend Guard-Verwendung
+
+```typescript
+// Normale authentifizierte Route (nur accessToken)
+@UseGuards(JwtAuthGuard)
+@Get('profile')
+getProfile(@Request() req) {
+  return req.user; // User aus accessToken
+}
+
+// Admin-Route (accessToken + adminToken)
+@UseGuards(AdminJwtAuthGuard)
+@Post('admin/delete-user/:id')
+deleteUser(@Param('id') id: string, @Request() req) {
+  // Beide Tokens validiert:
+  // 1. accessToken → user authentifiziert
+  // 2. adminToken → user hat Admin-Rechte
+  return this.userService.delete(id);
+}
+```
+
 ---
 
 **End of Architecture Documentation**
