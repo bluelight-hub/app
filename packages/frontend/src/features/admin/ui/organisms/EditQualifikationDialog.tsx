@@ -1,15 +1,15 @@
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import { useForm } from '@tanstack/react-form';
 import { zodValidator } from '@tanstack/zod-form-adapter';
 import { z } from 'zod';
 import { type QualifikationDto, type UpdateQualifikationDto, type QualifikationKategorie, KATEGORIE_LABELS } from '@/features/admin/api';
-import { Button } from '@/shared/ui/atoms/button';
-import { Dialog } from '@/shared/ui/molecules/dialog';
-import { FormField } from '@/shared/ui/molecules/form-field';
-import { Input } from '@/shared/ui/atoms/input';
-import { Select } from '@/shared/ui/atoms/select';
-import { Textarea } from '@/shared/ui/atoms/textarea';
-import { Switch } from '@/shared/ui/atoms/switch';
+import { Button } from '@/shared/ui/atoms/button.atom';
+import { Switch } from '@headlessui/react';
+import { Dialog } from '@/shared/ui/molecules/dialog.molecule';
+import { FormField } from '@/shared/ui/atoms/form-field.atom';
+import { Input } from '@/shared/ui/atoms/input.atom';
+import { Select } from '@/shared/ui/atoms/select.atom';
+import { Textarea } from '@/shared/ui/atoms/textarea.atom';
 
 /**
  * Zod-Schema für UpdateQualifikation Form.
@@ -42,6 +42,9 @@ const KATEGORIE_OPTIONS: { value: QualifikationKategorie; label: string }[] = [
  * Dialog zum Bearbeiten einer Qualifikation.
  */
 export const EditQualifikationDialog = ({ isOpen, onClose, onSubmit, isSubmitting, qualifikation }: EditQualifikationDialogProps) => {
+  // Track last loaded qualifikation ID to prevent unnecessary resets
+  const lastLoadedIdRef = useRef<string | null>(null);
+
   const form = useForm({
     defaultValues: {
       name: qualifikation?.name || '',
@@ -66,11 +69,11 @@ export const EditQualifikationDialog = ({ isOpen, onClose, onSubmit, isSubmittin
   });
 
   // Update form when qualifikation changes
-  // Nutze qualifikation.id als Dependency für stabilen Vergleich
+  // Reset form nur wenn eine neue Qualifikation geladen wird (ID-Wechsel)
   useEffect(() => {
-    if (qualifikation && isOpen) {
-      // Batch update für bessere Performance
-      form.update({
+    if (qualifikation && isOpen && lastLoadedIdRef.current !== qualifikation.id) {
+      lastLoadedIdRef.current = qualifikation.id;
+      form.reset({
         name: qualifikation.name,
         abkuerzung: qualifikation.abkuerzung,
         kategorie: qualifikation.kategorie,
@@ -78,17 +81,12 @@ export const EditQualifikationDialog = ({ isOpen, onClose, onSubmit, isSubmittin
         istAktiv: qualifikation.istAktiv,
       });
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [
-    qualifikation?.id,
-    isOpen,
-    qualifikation, // Batch update für bessere Performance
-    form.update,
-  ]);
+  }, [qualifikation, isOpen, form]);
 
   const handleClose = () => {
     if (!isSubmitting) {
       form.reset();
+      lastLoadedIdRef.current = null;
       onClose();
     }
   };

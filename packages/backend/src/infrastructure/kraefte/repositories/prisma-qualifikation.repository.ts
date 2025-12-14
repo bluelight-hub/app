@@ -36,6 +36,56 @@ export class PrismaQualifikationRepository implements IQualifikationRepository {
   constructor(private readonly prisma: PrismaService) {}
 
   /**
+   * Formatiert Prisma-Fehler zu deutschen, benutzerfreundlichen Fehlermeldungen.
+   *
+   * **Unterstützte Error Codes:**
+   * - P2002: Unique Constraint Violation (Duplikat)
+   * - P2003: Foreign Key Constraint Failed (Referenzfehler)
+   * - P2025: Record Not Found
+   *
+   * **Meta Extraction:** Verwendet Type Guards für sichere Meta-Extraktion.
+   *
+   * @param error - Der Prisma-Fehler (unknown type)
+   * @param context - Kontextinformation für Fallback-Meldung (z.B. "Speichern")
+   * @param aggregateValue - Optional: Wert des betroffenen Feldes für kontextspezifische Meldungen
+   * @returns Formatierte deutsche Fehlermeldung
+   */
+  private formatPrismaError(error: unknown, context: string, aggregateValue?: string): string {
+    // Check if error is a Prisma error (has code property)
+    if (!(typeof error === 'object' && error !== null && 'code' in error)) {
+      return `Datenbankfehler bei ${context}`;
+    }
+
+    const code = isPrismaError(error, 'P2002') ? 'P2002' : isPrismaError(error, 'P2003') ? 'P2003' : isPrismaError(error, 'P2025') ? 'P2025' : 'UNKNOWN';
+
+    const meta = typeof error === 'object' && error !== null && 'meta' in error && error.meta ? error.meta : undefined;
+
+    switch (code) {
+      case 'P2002': {
+        // Unique Constraint Violation - extrahiere betroffene Felder
+        const target = meta && typeof meta === 'object' && 'target' in meta ? meta.target : 'unknown';
+        const fieldName = Array.isArray(target) ? target.join(', ') : String(target);
+        // Spezielle Meldung für abkuerzung mit tatsächlichem Wert
+        if (fieldName.includes('abkuerzung') && aggregateValue) {
+          return `Die Abkürzung "${aggregateValue}" ist bereits vergeben.`;
+        }
+        return `Eindeutiger Wert für Feld "${fieldName}" existiert bereits`;
+      }
+      case 'P2003': {
+        // Foreign Key Constraint Failed - extrahiere Feldname
+        const fieldName = meta && typeof meta === 'object' && 'field_name' in meta ? meta.field_name : 'unknown';
+        return `Referenzierter Benutzer (${fieldName}) existiert nicht`;
+      }
+      case 'P2025':
+        return 'Datensatz nicht gefunden';
+      default: {
+        const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+        return `Datenbankfehler: ${errorMessage}`;
+      }
+    }
+  }
+
+  /**
    * Speichert das Qualifikation-Aggregat (Upsert: Create oder Update).
    *
    * **Constraint Handling (Result Pattern statt Exception):**
@@ -92,11 +142,8 @@ export class PrismaQualifikationRepository implements IQualifikationRepository {
         const fieldName = Array.isArray(target) ? target.join(', ') : String(target);
         this.logger.warn(`Unique constraint violation on field: ${fieldName}`, { aggregateId: aggregate.id.value, tx: !!tx });
 
-        // Generische Fehlermeldung basierend auf betroffenem Feld
-        if (fieldName.includes('abkuerzung')) {
-          return Result.fail<void>(`Die Abkürzung "${aggregate.abkuerzung}" ist bereits vergeben.`);
-        }
-        return Result.fail<void>(`Fehler beim Speichern: Eindeutiger Wert für Feld "${fieldName}" existiert bereits.`);
+        const errorMessage = this.formatPrismaError(error, 'Speichern', aggregate.abkuerzung);
+        return Result.fail<void>(errorMessage);
       }
 
       // P2003: Foreign Key Constraint Failed (createdBy/updatedBy User existiert nicht)
@@ -104,7 +151,8 @@ export class PrismaQualifikationRepository implements IQualifikationRepository {
         const meta = typeof error === 'object' && error !== null && 'meta' in error && error.meta ? error.meta : undefined;
         const fieldName = meta && typeof meta === 'object' && 'field_name' in meta ? meta.field_name : 'unknown';
         this.logger.warn(`FK constraint violation on field: ${fieldName}`, { aggregateId: aggregate.id.value, tx: !!tx });
-        return Result.fail<void>(`Fehler beim Speichern: Referenzierter Benutzer (${fieldName}) existiert nicht.`);
+        const errorMessage = this.formatPrismaError(error, 'Speichern');
+        return Result.fail<void>(`Fehler beim Speichern: ${errorMessage}`);
       }
 
       // P2025: Record Not Found (sollte bei Upsert nicht auftreten, aber defensiv behandeln)
@@ -113,6 +161,7 @@ export class PrismaQualifikationRepository implements IQualifikationRepository {
         return Result.fail<void>(`Fehler beim Speichern: Datensatz nicht gefunden (ID: ${aggregate.id.value}).`);
       }
 
+      // Allgemeine Fehlerbehandlung
       const errorMessage = error instanceof Error ? error.message : 'Unknown error';
       this.logger.error(`Failed to save Qualifikation: ${errorMessage}`, { aggregateId: aggregate.id.value, tx: !!tx, error });
       return Result.fail<void>(`Fehler beim Speichern der Qualifikation: ${errorMessage}`);
