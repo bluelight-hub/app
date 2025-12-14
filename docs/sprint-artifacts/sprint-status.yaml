@@ -42,16 +42,16 @@ story_location: docs/sprint-artifacts
 
 development_status:
   # ===== Epic 0: Technical Foundation [TECHNICAL - BLOCKER] =====
-  epic-0: in-progress
-  0-1-admin-jwt-auth-guard: ready-for-dev
-  0-2-unique-constraint-rollenbesetzung: backlog
-  0-3-geocoordinate-value-object: backlog
-  epic-0-retrospective: optional
+  epic-0: done
+  0-1-admin-jwt-auth-guard: done
+  0-2-unique-constraint-rollenbesetzung: done
+  0-3-geocoordinate-value-object: done
+  epic-0-retrospective: done
 
   # ===== Epic 1: Admin-Grundkonfiguration =====
-  epic-1: backlog
-  1-0-prisma-schema-admin-konfiguration: backlog
-  1-1-qualifikationen-verwalten: backlog
+  epic-1: in-progress
+  1-0-prisma-schema-admin-konfiguration: review
+  1-1-qualifikationen-verwalten: in-progress
   1-2-fahrzeugtypen-verwalten: backlog
   1-3-rollen-definitionen-verwalten: backlog
   1-4-funkstatus-7-9-konfigurieren: backlog

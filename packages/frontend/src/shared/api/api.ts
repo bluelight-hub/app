@@ -1,5 +1,17 @@
 import { logger } from '@/shared/lib/logger';
-import { AuthApi, Configuration, EinsatzApi, ETBApi, GeocodingApi, HealthApi, LagekarteApi, LagekarteCQRSApi, UserManagementApi, UsersApi } from '@bluelight-hub/shared/client';
+import {
+  AdminKraefteQualifikationenApi,
+  AuthApi,
+  Configuration,
+  EinsatzApi,
+  ETBApi,
+  GeocodingApi,
+  HealthApi,
+  LagekarteApi,
+  LagekarteCQRSApi,
+  UserManagementApi,
+  UsersApi,
+} from '@bluelight-hub/shared/client';
 import { fetchWithRefresh } from './fetchWithRefresh';
 
 /**
@@ -47,6 +59,7 @@ class BackendApi {
   private readonly lagekarteApi: LagekarteApi;
   private readonly lagekarteCqrsApi: LagekarteCQRSApi;
   private readonly geocodingApi: GeocodingApi;
+  private readonly adminKraefteQualifikationenApi: AdminKraefteQualifikationenApi;
 
   /**
    * Erstellt eine neue Instanz der BackendApi-Klasse
@@ -73,6 +86,7 @@ class BackendApi {
     this.lagekarteApi = new LagekarteApi(this.configuration);
     this.lagekarteCqrsApi = new LagekarteCQRSApi(this.configuration);
     this.geocodingApi = new GeocodingApi(this.configuration);
+    this.adminKraefteQualifikationenApi = new AdminKraefteQualifikationenApi(this.configuration);
   }
 
   /**
@@ -154,6 +168,15 @@ class BackendApi {
    */
   geocoding(): GeocodingApi {
     return this.geocodingApi;
+  }
+
+  /**
+   * Gibt die gecachte AdminKraefteQualifikationen-API-Instanz zurück
+   *
+   * @returns Die AdminKraefteQualifikationen-API-Instanz für Qualifikationen-Management
+   */
+  adminKraefteQualifikationen(): AdminKraefteQualifikationenApi {
+    return this.adminKraefteQualifikationenApi;
   }
 }
 

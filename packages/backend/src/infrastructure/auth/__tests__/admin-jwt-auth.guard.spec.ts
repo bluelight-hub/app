@@ -510,5 +510,122 @@ describe('AdminJwtStrategy (via AdminJwtAuthGuard)', () => {
       // Verify: findUserById wurde aufgerufen (späterer Check)
       expect(mockAuthService.findUserById).toHaveBeenCalledWith('user-123');
     });
+
+    it('should apply constant time delay on auth failure (timing attack mitigation)', async () => {
+      // Given: Request ohne accessToken (wird 401 werfen)
+      const mockRequest = {
+        cookies: {
+          adminToken: 'valid-admin-token',
+          // accessToken fehlt absichtlich
+        },
+      } as Request;
+
+      const payload: AdminJwtPayload = {
+        sub: 'user-123',
+        username: 'admin@example.com',
+        role: UserRole.ADMIN,
+      };
+
+      // Spy auf private constantTimeDelay Methode
+      // biome-ignore lint/suspicious/noExplicitAny: Test benötigt Zugriff auf private Methode
+      const delaySpy = jest.spyOn(strategy as any, 'constantTimeDelay');
+
+      // When: Validierung schlägt fehl
+      await expect(strategy.validate(mockRequest, payload)).rejects.toThrow(UnauthorizedException);
+
+      // Then: constantTimeDelay wurde genau einmal aufgerufen (Timing Attack Prevention)
+      expect(delaySpy).toHaveBeenCalledTimes(1);
+    });
+
+    it('should NOT apply constant time delay on successful auth', async () => {
+      // Given: Request mit gültigem Admin-Token und accessToken
+      const mockRequest = {
+        cookies: {
+          adminToken: 'valid-admin-token',
+          accessToken: 'valid-access-token',
+        },
+      } as Request;
+
+      const payload: AdminJwtPayload = {
+        sub: 'admin-123',
+        username: 'admin@example.com',
+        role: UserRole.ADMIN,
+      };
+
+      // Mock: Beide Tokens gültig, User existiert und ist Admin
+      mockAuthService.verifyAccessToken.mockResolvedValue(undefined);
+      mockAuthService.findUserById.mockResolvedValue({
+        id: 'admin-123',
+        username: 'admin@example.com',
+        role: UserRole.ADMIN,
+        password: 'hashed',
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      });
+
+      // Spy auf private constantTimeDelay Methode
+      // biome-ignore lint/suspicious/noExplicitAny: Test benötigt Zugriff auf private Methode
+      const delaySpy = jest.spyOn(strategy as any, 'constantTimeDelay');
+
+      // When: Validierung erfolgreich
+      await strategy.validate(mockRequest, payload);
+
+      // Then: constantTimeDelay wurde NICHT aufgerufen (kein Delay bei Success)
+      expect(delaySpy).not.toHaveBeenCalled();
+    });
+
+    it('should throw UnauthorizedException when payload.sub is empty string', async () => {
+      // Given: Request mit leerem payload.sub (manipuliertes JWT)
+      const mockRequest = {
+        cookies: {
+          adminToken: 'manipulated-token',
+          accessToken: 'valid-access-token',
+        },
+      } as Request;
+
+      const payload: AdminJwtPayload = {
+        sub: '', // Leerer String - Angriffsvektor
+        username: 'admin@example.com',
+        role: UserRole.ADMIN,
+      };
+
+      // Mock: accessToken ist gültig
+      mockAuthService.verifyAccessToken.mockResolvedValue(undefined);
+
+      // When/Then: Validierung sollte mit UnauthorizedException fehlschlagen
+      // Code-Pfad: AdminJwtStrategy.validateUserExists() - Input Validation
+      await expect(strategy.validate(mockRequest, payload)).rejects.toThrow(UnauthorizedException);
+      await expect(strategy.validate(mockRequest, payload)).rejects.toThrow('Unauthorized - Invalid admin credentials');
+
+      // Verify: findUserById wurde NICHT aufgerufen (Early Exit durch Input Validation)
+      expect(mockAuthService.findUserById).not.toHaveBeenCalled();
+    });
+
+    it('should throw UnauthorizedException when payload.sub is whitespace-only', async () => {
+      // Given: Request mit Whitespace-only payload.sub (manipuliertes JWT)
+      const mockRequest = {
+        cookies: {
+          adminToken: 'manipulated-token',
+          accessToken: 'valid-access-token',
+        },
+      } as Request;
+
+      const payload: AdminJwtPayload = {
+        sub: '   ', // Nur Whitespace - Angriffsvektor
+        username: 'admin@example.com',
+        role: UserRole.ADMIN,
+      };
+
+      // Mock: accessToken ist gültig
+      mockAuthService.verifyAccessToken.mockResolvedValue(undefined);
+
+      // When/Then: Validierung sollte mit UnauthorizedException fehlschlagen
+      // Code-Pfad: AdminJwtStrategy.validateUserExists() - Input Validation (trim() Check)
+      await expect(strategy.validate(mockRequest, payload)).rejects.toThrow(UnauthorizedException);
+      await expect(strategy.validate(mockRequest, payload)).rejects.toThrow('Unauthorized - Invalid admin credentials');
+
+      // Verify: findUserById wurde NICHT aufgerufen (Early Exit durch Input Validation)
+      expect(mockAuthService.findUserById).not.toHaveBeenCalled();
+    });
   });
 });

@@ -41,7 +41,22 @@ async function bootstrap() {
     exclude: ['/'],
   });
 
-  const config = new DocumentBuilder().setTitle('BlueLight Hub API').setDescription('BlueLight Hub API for the BlueLight Hub application').setVersion(packageJson.version).addBearerAuth().build();
+  const config = new DocumentBuilder()
+    .setTitle('BlueLight Hub API')
+    .setDescription('BlueLight Hub API for the BlueLight Hub application')
+    .setVersion(packageJson.version)
+    .addBearerAuth(
+      {
+        type: 'http',
+        scheme: 'bearer',
+        bearerFormat: 'JWT',
+        name: 'Authorization',
+        description: 'Admin JWT Token für geschützte Endpoints',
+        in: 'header',
+      },
+      'admin-jwt',
+    )
+    .build();
 
   // Get config service to determine environment
   const configService = app.get(ConfigService);

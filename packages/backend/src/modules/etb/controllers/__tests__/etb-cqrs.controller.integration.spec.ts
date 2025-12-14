@@ -24,7 +24,6 @@
  * - AC4: GetHistory
  */
 
-import type { CommandBus, QueryBus } from '@nestjs/cqrs';
 import { BadRequestException, NotFoundException } from '@nestjs/common';
 import { EtbCqrsController } from '@/modules/etb/controllers/etb-cqrs.controller';
 import { Result } from '@/domain/common/result';

@@ -1,7 +1,8 @@
 import { type IQueryHandler, QueryHandler } from '@nestjs/cqrs';
 import { Inject, Logger } from '@nestjs/common';
 import { Result } from '@domain/common/result';
-import type { IEinsatzRepository } from '@domain/repositories';
+// biome-ignore lint/style/useImportType: IEinsatzRepository needed for DI at runtime
+import { IEinsatzRepository } from '@domain/repositories';
 import { EinsatzId } from '@domain/value-objects/einsatz-id';
 import type { CompletenessResponseDto } from '@/application/einsatz/dto/completeness-response.dto';
 import { EinsatzCompletenessCalculator } from '@/modules/einsatz/utils/completeness.util';

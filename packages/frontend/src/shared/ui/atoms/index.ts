@@ -33,6 +33,7 @@ export * from './image.atom';
 // Feedback & Progress
 export * from './spinner.atom';
 export * from './progress-bar.atom';
+export * from './skeleton';
 export * from './LoadingState';
 export * from './ErrorState';
 

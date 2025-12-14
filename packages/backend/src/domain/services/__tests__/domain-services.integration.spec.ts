@@ -291,7 +291,7 @@ jest.mock('@paralleldrive/cuid2', () => ({
     it('should reject archival for Einsätze in wrong status', () => {
       // GIVEN: 4 Einsätze in different statuses (all 10+ years old)
       const completedAt = new Date('2014-11-17');
-      const currentDate = new Date('2024-11-17');
+      const _currentDate = new Date('2024-11-17');
 
       const angelegt = createTestEinsatz();
       // Status: ANGELEGT (default)

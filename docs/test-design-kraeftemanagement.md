@@ -469,6 +469,498 @@ test.describe('QR-Code Helfer-Registrierung', () => {
 
 ---
 
+## Detailed Test Specifications
+
+### TC-P0-014: UNIQUE Constraint DB-Level Test
+
+**Priority:** P0 (Critical)
+**Test Level:** Integration (Database)
+**Risk Link:** R-E5-002 (Score: 9, DATA)
+**Owner:** Dev Team
+**Estimated Effort:** 3 hours
+
+#### Description
+
+Testet den UNIQUE Constraint auf DB-Ebene direkt, um zu verifizieren, dass die Datenbank doppelte Rollenbesetzungen auf dem gleichen Constraint verhindert. Dieser Test umgeht bewusst die Application-Layer (Prisma Client), um die letzte Verteidigungslinie zu validieren.
+
+#### Prerequisites
+
+- PostgreSQL Test-DB mit EinsatzRollenbesetzung Tabelle
+- UNIQUE Constraint `unique_rolle_per_einsatz` auf `(einsatz_id, rollen_definition_id)` existiert
+- Test-Fixtures für Einsatz, RollenDefinition, Person
+
+#### Test Cases
+
+##### TC-P0-014.1: UNIQUE Constraint verhindert doppelte Besetzung
+
+**Test Type:** DB-Level Integration Test
+
+**Given:**
+```sql
+-- Test-Daten Setup
+INSERT INTO einsaetze (id, nummer) VALUES ('test-einsatz-1', 'E-2025-001');
+INSERT INTO rollen_definitionen (id, name) VALUES ('lna-rolle', 'Leitender Notarzt');
+INSERT INTO einsatz_personen (id, einsatz_id, vorname, nachname)
+VALUES ('person-1', 'test-einsatz-1', 'Max', 'Mustermann');
+```
+
+**When:**
+```sql
+-- Erste Besetzung (erfolgreich)
+INSERT INTO einsatz_rollenbesetzungen (id, einsatz_id, rollen_definition_id, person_id, created_by)
+VALUES ('besetzung-1', 'test-einsatz-1', 'lna-rolle', 'person-1', 'test-user');
+
+-- Zweite Besetzung (sollte fehlschlagen)
+INSERT INTO einsatz_rollenbesetzungen (id, einsatz_id, rollen_definition_id, person_id, created_by)
+VALUES ('besetzung-2', 'test-einsatz-1', 'lna-rolle', 'person-2', 'test-user');
+```
+
+**Then:**
+- Erster INSERT erfolgreich
+- Zweiter INSERT wirft PostgreSQL Error: `23505` (unique_violation)
+- Error-Message enthält: `unique_rolle_per_einsatz`
+- COUNT für `(einsatz_id='test-einsatz-1', rollen_definition_id='lna-rolle')` = **1**
+
+**Verification Query:**
+```sql
+SELECT COUNT(*) FROM einsatz_rollenbesetzungen
+WHERE einsatz_id = 'test-einsatz-1' AND rollen_definition_id = 'lna-rolle';
+-- Erwartet: 1
+```
+
+##### TC-P0-014.2: UNIQUE Constraint erlaubt gleiche Rolle in verschiedenen Einsätzen
+
+**Test Type:** DB-Level Integration Test
+
+**Given:**
+```sql
+INSERT INTO einsaetze (id, nummer) VALUES
+  ('einsatz-1', 'E-2025-001'),
+  ('einsatz-2', 'E-2025-002');
+INSERT INTO rollen_definitionen (id, name) VALUES ('lna-rolle', 'Leitender Notarzt');
+```
+
+**When:**
+```sql
+-- LNA für Einsatz 1
+INSERT INTO einsatz_rollenbesetzungen (id, einsatz_id, rollen_definition_id, person_id, created_by)
+VALUES ('besetzung-1', 'einsatz-1', 'lna-rolle', 'person-1', 'test-user');
+
+-- LNA für Einsatz 2 (sollte ERFOLGREICH sein)
+INSERT INTO einsatz_rollenbesetzungen (id, einsatz_id, rollen_definition_id, person_id, created_by)
+VALUES ('besetzung-2', 'einsatz-2', 'lna-rolle', 'person-2', 'test-user');
+```
+
+**Then:**
+- Beide INSERTs erfolgreich
+- Constraint erlaubt gleiche Rolle in verschiedenen Einsätzen
+- COUNT gesamt = **2**
+
+##### TC-P0-014.3: UNIQUE Constraint erlaubt verschiedene Rollen im gleichen Einsatz
+
+**Test Type:** DB-Level Integration Test
+
+**Given:**
+```sql
+INSERT INTO einsaetze (id, nummer) VALUES ('einsatz-1', 'E-2025-001');
+INSERT INTO rollen_definitionen (id, name) VALUES
+  ('lna-rolle', 'Leitender Notarzt'),
+  ('olrd-rolle', 'Organisatorischer Leiter Rettungsdienst');
+```
+
+**When:**
+```sql
+-- LNA für Einsatz
+INSERT INTO einsatz_rollenbesetzungen (id, einsatz_id, rollen_definition_id, person_id, created_by)
+VALUES ('besetzung-1', 'einsatz-1', 'lna-rolle', 'person-1', 'test-user');
+
+-- OLRD für gleichen Einsatz (sollte ERFOLGREICH sein)
+INSERT INTO einsatz_rollenbesetzungen (id, einsatz_id, rollen_definition_id, person_id, created_by)
+VALUES ('besetzung-2', 'einsatz-1', 'olrd-rolle', 'person-2', 'test-user');
+```
+
+**Then:**
+- Beide INSERTs erfolgreich
+- Constraint erlaubt verschiedene Rollen im gleichen Einsatz
+- COUNT für `einsatz_id='einsatz-1'` = **2**
+
+#### Implementation Notes
+
+**Test-Setup (Jest):**
+```typescript
+// packages/backend/src/infrastructure/__tests__/rollenbesetzung-constraint.spec.ts
+describe('TC-P0-014: UNIQUE Constraint DB-Level', () => {
+  let prisma: PrismaClient;
+
+  beforeAll(async () => {
+    // Verwende echte PostgreSQL Test-DB (nicht In-Memory)
+    prisma = new PrismaClient({ datasources: { db: { url: TEST_DATABASE_URL } } });
+  });
+
+  afterEach(async () => {
+    // Cleanup: Alle Test-Daten löschen
+    await prisma.einsatzRollenbesetzung.deleteMany();
+    await prisma.einsatzPerson.deleteMany();
+    await prisma.einsatz.deleteMany();
+  });
+
+  it('TC-P0-014.1: sollte doppelte Besetzung verhindern', async () => {
+    // Given
+    const einsatzId = 'test-einsatz-1';
+    const rollenDefinitionId = 'lna-rolle';
+
+    // When - Erste Besetzung
+    const result1 = await prisma.$executeRaw`
+      INSERT INTO einsatz_rollenbesetzungen (id, einsatz_id, rollen_definition_id, person_id, created_by)
+      VALUES ('besetzung-1', ${einsatzId}, ${rollenDefinitionId}, 'person-1', 'test-user')
+    `;
+    expect(result1).toBe(1); // 1 row inserted
+
+    // When - Zweite Besetzung (Duplikat)
+    const result2Promise = prisma.$executeRaw`
+      INSERT INTO einsatz_rollenbesetzungen (id, einsatz_id, rollen_definition_id, person_id, created_by)
+      VALUES ('besetzung-2', ${einsatzId}, ${rollenDefinitionId}, 'person-2', 'test-user')
+    `;
+
+    // Then - PostgreSQL unique_violation Error
+    await expect(result2Promise).rejects.toThrowError(/unique_rolle_per_einsatz/);
+
+    // Verify: Nur 1 Eintrag
+    const count = await prisma.einsatzRollenbesetzung.count({
+      where: { einsatzId, rollenDefinitionId },
+    });
+    expect(count).toBe(1);
+  });
+});
+```
+
+**Key Differences zu TC-P0-015:**
+- **TC-P0-014:** DB-Level Test mit direktem SQL (`$executeRaw`)
+- **TC-P0-015:** Application-Level Test mit Handler + Prisma Upsert
+- **TC-P0-014:** Erwartet PostgreSQL Error 23505
+- **TC-P0-015:** Erwartet kein Error (Upsert verhindert Exception)
+
+#### Acceptance Criteria
+
+- [ ] TC-P0-014.1: Zweiter direkter INSERT wirft PostgreSQL Error 23505
+- [ ] TC-P0-014.2: Gleiche Rolle in verschiedenen Einsätzen erlaubt
+- [ ] TC-P0-014.3: Verschiedene Rollen im gleichen Einsatz erlaubt
+- [ ] Test läuft auf echtem PostgreSQL (nicht In-Memory/SQLite Mock)
+- [ ] Error-Message enthält `unique_rolle_per_einsatz` Constraint-Name
+
+---
+
+### TC-P0-015: Upsert Handler Concurrent Test (Application-Level)
+
+**Priority:** P0 (Critical)
+**Test Level:** Integration (Application)
+**Risk Link:** R-E5-002 (Score: 9, DATA)
+**Owner:** QA Team
+**Estimated Effort:** 3 hours
+
+#### Description
+
+Testet das Upsert-Pattern im BesetzeRolleHandler bei parallelen Requests (Application-Level Concurrency). Dieser Test validiert, dass der Handler bei 10 parallelen Aufrufen keine DuplicateKeyError wirft und am Ende genau 1 Datensatz existiert (last-write-wins).
+
+**WICHTIG:** Dieser Test verwendet `Promise.all` zur Simulation von Application-Level Concurrency. Dies testet **NICHT** echte DB-Level Concurrency (Row-Level Locks, Serializable Isolation Level).
+
+#### Prerequisites
+
+- BesetzeRolleHandler implementiert mit Prisma Upsert
+- TransactionalCommandHandler Integration (Outbox Pattern)
+- UNIQUE Constraint `unique_rolle_per_einsatz` existiert
+- Test-Fixtures für Einsatz, RollenDefinition, Personen
+
+#### Test Cases
+
+##### TC-P0-015.1: 10 parallele Requests erstellen nur 1 DB-Eintrag
+
+**Test Type:** Integration Test (Application-Level Concurrency)
+
+**Given:**
+```typescript
+const einsatzId = 'test-einsatz-1';
+const rollenDefinitionId = 'lna-rolle';
+const personIds = ['person-1', 'person-2', ..., 'person-10']; // 10 verschiedene Personen
+```
+
+**When:**
+```typescript
+// 10 parallele Handler-Aufrufe
+const results = await Promise.all(
+  personIds.map((personId) =>
+    handler.execute({
+      einsatzId,
+      rollenDefinitionId,
+      personId,
+      userId: 'test-user',
+    })
+  )
+);
+```
+
+**Then:**
+- Alle 10 `results[i].isSuccess` = **true** (kein Error)
+- Keine `DuplicateKeyError` Exception geworfen
+- COUNT für `(einsatz_id, rollen_definition_id)` = **1**
+- `personId` im DB-Eintrag = einer der 10 Personen (last-write-wins)
+
+**Verification:**
+```typescript
+const count = await prisma.einsatzRollenbesetzung.count({
+  where: { einsatzId, rollenDefinitionId },
+});
+expect(count).toBe(1);
+
+const besetzung = await prisma.einsatzRollenbesetzung.findUnique({
+  where: {
+    unique_rolle_per_einsatz: { einsatzId, rollenDefinitionId },
+  },
+});
+expect(personIds).toContain(besetzung.personId); // Einer der 10
+```
+
+##### TC-P0-015.2: Parallele Updates überschreiben sich (last-write-wins)
+
+**Test Type:** Integration Test (Update-Verhalten)
+
+**Given:**
+```typescript
+// Initiale Besetzung: Person A
+await handler.execute({
+  einsatzId: 'einsatz-1',
+  rollenDefinitionId: 'lna-rolle',
+  personId: 'person-a',
+  userId: 'user-1',
+});
+```
+
+**When:**
+```typescript
+// 5 parallele Updates auf verschiedene Personen
+const updates = ['person-b', 'person-c', 'person-d', 'person-e', 'person-f'];
+const results = await Promise.all(
+  updates.map((personId) =>
+    handler.execute({
+      einsatzId: 'einsatz-1',
+      rollenDefinitionId: 'lna-rolle',
+      personId,
+      userId: 'user-1',
+    })
+  )
+);
+```
+
+**Then:**
+- Alle 5 Updates erfolgreich
+- COUNT = **1** (keine Duplikate)
+- `personId` = einer der Updates (nicht Person A)
+- `updatedAt` Timestamp ist aktualisiert
+
+##### TC-P0-015.3: Outbox Events für jeden Request atomar gespeichert
+
+**Test Type:** Integration Test (Outbox Pattern)
+
+**Given:**
+```typescript
+const einsatzId = 'einsatz-1';
+const rollenDefinitionId = 'lna-rolle';
+```
+
+**When:**
+```typescript
+// 3 parallele Requests
+const personIds = ['person-1', 'person-2', 'person-3'];
+await Promise.all(
+  personIds.map((personId) =>
+    handler.execute({ einsatzId, rollenDefinitionId, personId, userId: 'user' })
+  )
+);
+```
+
+**Then:**
+- Genau **3 Outbox-Events** vom Typ `kraefte.rolle-besetzt` existieren
+- Jedes Event hat `aggregateId` = `einsatzId`
+- Events sind atomar mit Rollenbesetzung committed
+- Bei Rollback würde auch Outbox-Eintrag fehlen
+
+**Verification:**
+```typescript
+const events = await prisma.outboxEvent.findMany({
+  where: {
+    eventType: 'kraefte.rolle-besetzt',
+    aggregateId: einsatzId,
+  },
+});
+expect(events).toHaveLength(3);
+
+// Alle Events referenzieren die gleiche rollenDefinitionId
+expect(events.every((e) => e.payload.rollenDefinitionId === rollenDefinitionId)).toBe(true);
+```
+
+#### Implementation Notes
+
+**Test-Setup (Jest):**
+```typescript
+// packages/backend/src/application/kraefte/__tests__/besetze-rolle.handler.spec.ts
+describe('TC-P0-015: Upsert Handler Concurrent Test', () => {
+  let handler: BesetzeRolleHandler;
+  let prisma: PrismaClient;
+
+  beforeAll(async () => {
+    const module = await Test.createTestingModule({
+      providers: [BesetzeRolleHandler, /* dependencies */],
+    }).compile();
+
+    handler = module.get<BesetzeRolleHandler>(BesetzeRolleHandler);
+    prisma = module.get<PrismaClient>(PrismaService);
+  });
+
+  beforeEach(async () => {
+    jest.clearAllMocks(); // WICHTIG: Mock Reset
+
+    // Setup Test-Daten
+    await createTestEinsatz({ id: 'test-einsatz-1' });
+    await createTestRollenDefinition({ id: 'lna-rolle', name: 'LNA' });
+    await Promise.all(
+      Array.from({ length: 10 }, (_, i) =>
+        createTestPerson({ id: `person-${i}`, einsatzId: 'test-einsatz-1' })
+      )
+    );
+  });
+
+  afterEach(async () => {
+    // Cleanup
+    await prisma.einsatzRollenbesetzung.deleteMany();
+    await prisma.outboxEvent.deleteMany();
+  });
+
+  it('TC-P0-015.1: sollte nur 1 Eintrag bei 10 parallelen Requests erstellen', async () => {
+    // Given
+    const einsatzId = 'test-einsatz-1';
+    const rollenDefinitionId = 'lna-rolle';
+    const personIds = Array.from({ length: 10 }, (_, i) => `person-${i}`);
+
+    // When - Application-Level Concurrency via Promise.all
+    const results = await Promise.all(
+      personIds.map((personId) =>
+        handler.execute({
+          einsatzId,
+          rollenDefinitionId,
+          personId,
+          userId: 'test-user',
+        })
+      )
+    );
+
+    // Then - Alle erfolgreich, nur 1 DB-Eintrag
+    expect(results.every((r) => r.isSuccess)).toBe(true);
+
+    const count = await prisma.einsatzRollenbesetzung.count({
+      where: { einsatzId, rollenDefinitionId },
+    });
+    expect(count).toBe(1);
+
+    // Verify: Einer der 10 Personen ist besetzt
+    const besetzung = await prisma.einsatzRollenbesetzung.findUnique({
+      where: {
+        unique_rolle_per_einsatz: { einsatzId, rollenDefinitionId },
+      },
+    });
+    expect(personIds).toContain(besetzung!.personId);
+  });
+
+  it('TC-P0-015.3: sollte Outbox-Events atomar mit Rollenbesetzung speichern', async () => {
+    // Given
+    const einsatzId = 'einsatz-1';
+    const rollenDefinitionId = 'lna-rolle';
+    const personIds = ['person-1', 'person-2', 'person-3'];
+
+    // When
+    await Promise.all(
+      personIds.map((personId) =>
+        handler.execute({ einsatzId, rollenDefinitionId, personId, userId: 'user' })
+      )
+    );
+
+    // Then - Genau 3 Events (1 pro Request)
+    const events = await prisma.outboxEvent.findMany({
+      where: {
+        eventType: 'kraefte.rolle-besetzt',
+        aggregateId: einsatzId,
+      },
+    });
+    expect(events).toHaveLength(3);
+
+    // Alle Events referenzieren gleiche Rolle
+    expect(
+      events.every((e) => JSON.parse(e.payload).rollenDefinitionId === rollenDefinitionId)
+    ).toBe(true);
+  });
+});
+```
+
+#### Concurrency Test Limitations
+
+**WICHTIG:** Diese Tests simulieren **Application-Level Concurrency** mit `Promise.all`, NICHT echte DB-Level Concurrency.
+
+| Aspekt | Application-Level (TC-P0-015) | DB-Level (Real Concurrency) |
+|--------|-------------------------------|------------------------------|
+| **Test-Methode** | `Promise.all(requests)` | Separate DB-Connections |
+| **Was getestet wird** | Handler Upsert-Logic | Row-Level Locks, Isolation |
+| **Prisma-Verhalten** | Connection Pool Reuse | Echte parallele Transactions |
+| **Testet** | Upsert verhindert Exception | Deadlock-Handling |
+| **Story** | Story 5.1 (TC-P0-015) | Story 5.1 (erweiterte Suite) |
+
+**Für echte DB-Level Tests (zukünftig in Story 5.1):**
+```typescript
+// Beispiel: Echte parallele Connections
+async function testRealConcurrency() {
+  const client1 = new PrismaClient(); // Connection 1
+  const client2 = new PrismaClient(); // Connection 2
+
+  await Promise.all([
+    client1.einsatzRollenbesetzung.upsert({ /* ... */ }),
+    client2.einsatzRollenbesetzung.upsert({ /* ... */ }),
+  ]);
+
+  // Testet: Row-Level Locks, Serializable Isolation, Deadlock Detection
+}
+```
+
+**Warum Promise.all trotzdem ausreichend für TC-P0-015:**
+- Validiert Handler-Logic korrekt (kein DuplicateKeyError)
+- Validiert Prisma Upsert-Syntax korrekt
+- Validiert last-write-wins Verhalten
+- Validiert Outbox-Integration atomar
+
+**DB-Level Tests** kommen später in erweiterten Integration Tests (Story 5.1 Follow-up).
+
+#### Acceptance Criteria
+
+- [ ] TC-P0-015.1: 10 parallele Requests → genau 1 DB-Eintrag
+- [ ] TC-P0-015.2: Parallele Updates überschreiben sich (last-write-wins)
+- [ ] TC-P0-015.3: Outbox-Events atomar mit Rollenbesetzung gespeichert
+- [ ] Keine `DuplicateKeyError` Exception geworfen
+- [ ] Alle Requests liefern `Result.isSuccess = true`
+- [ ] Test dokumentiert Promise.all Limitation (siehe "Concurrency Test Limitations")
+
+#### Relationship to TC-P0-014
+
+| Vergleich | TC-P0-014 (DB-Level) | TC-P0-015 (Application-Level) |
+|-----------|----------------------|-------------------------------|
+| **Test-Ebene** | Direkt SQL INSERT | Handler mit Prisma Upsert |
+| **Ziel** | UNIQUE Constraint validieren | Upsert-Pattern validieren |
+| **Tool** | `$executeRaw` | `handler.execute()` |
+| **Erwartung** | PostgreSQL Error 23505 | Kein Error (Upsert) |
+| **Story** | Story 5.0 (Schema Migration) | Story 5.1 (Handler Implementation) |
+
+**Beide Tests sind komplementär:**
+- **TC-P0-014:** Garantiert DB-Level Integrität (letzte Verteidigungslinie)
+- **TC-P0-015:** Garantiert Application-Logic korrekt (kein Error-Handling nötig)
+
+---
+
 ## Appendix
 
 ### Knowledge Base References
@@ -484,6 +976,7 @@ test.describe('QR-Code Helfer-Registrierung', () => {
 - Epic: `docs/epics.md`
 - Architecture: `docs/architecture-kraefte.md`
 - UX Design: `docs/ux-design-specification.md`
+- Story 0.2: `docs/sprint-artifacts/0-2-unique-constraint-rollenbesetzung.md` (Pattern Documentation)
 
 ### FR-to-Epic Coverage Map
 

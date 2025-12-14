@@ -1,6 +1,6 @@
 import { EINSATZ_FIELD_LIMITS, validateRequiredStringResult, validateStringLengthResult } from '@application/common/validators/string-validator';
 import { Result } from '@domain/common/result';
-import type { Address } from '@domain/value-objects/address';
+import { Address } from '@domain/value-objects/address';
 
 /**
  * Command zum Erstellen eines neuen Einsatzes.
@@ -8,7 +8,7 @@ import type { Address } from '@domain/value-objects/address';
  * Kapselt alle erforderlichen und optionalen Daten für die Einsatz-Erstellung:
  * - alarmstichwort: Pflichtfeld (z.B. "Wohnungsbrand", "Verkehrsunfall")
  * - createdBy: User-ID des Erstellers (für Audit-Trail)
- * - einsatzort: Optional - Adresse des Einsatzortes
+ * - einsatzort: Optional - Einsatzort als String (wird intern zu Address Value Object konvertiert)
  * - bemerkung: Optional - Freitext-Bemerkung
  *
  * @example
@@ -16,7 +16,7 @@ import type { Address } from '@domain/value-objects/address';
  * const result = CreateEinsatzCommand.create(
  *   'Wohnungsbrand',
  *   'clx_user_abc123',
- *   address,
+ *   'Hauptstraße 1, 12345 Berlin',
  *   'Dachstuhl brennt'
  * );
  * if (result.isSuccess) {
@@ -35,8 +35,9 @@ export class CreateEinsatzCommand {
   /**
    * Factory-Methode mit Validierung.
    * Verwendet Result<T> Pattern für explizite Fehlerbehandlung.
+   * Konvertiert einsatzort-String zu Address Value Object (Application Layer Verantwortung).
    */
-  public static create(alarmstichwort: string, createdBy: string, einsatzort?: Address, bemerkung?: string): Result<CreateEinsatzCommand> {
+  public static create(alarmstichwort: string, createdBy: string, einsatzort?: string, bemerkung?: string): Result<CreateEinsatzCommand> {
     // Business Rule: alarmstichwort ist Pflichtfeld mit maxLength
     const alarmstichwortError = validateRequiredStringResult(alarmstichwort, 'Alarmstichwort', EINSATZ_FIELD_LIMITS.ALARMSTICHWORT_MAX_LENGTH);
     if (alarmstichwortError) return Result.fail(alarmstichwortError);
@@ -49,6 +50,9 @@ export class CreateEinsatzCommand {
     const bemerkungError = validateStringLengthResult(bemerkung, 'Bemerkung', EINSATZ_FIELD_LIMITS.BEMERKUNG_MAX_LENGTH);
     if (bemerkungError) return Result.fail(bemerkungError);
 
-    return Result.ok(new CreateEinsatzCommand(alarmstichwort.trim(), createdBy.trim(), einsatzort, bemerkung?.trim()));
+    // Konvertiere einsatzort-String zu Address Value Object (als Freitext-Ort)
+    const addressValue = einsatzort ? Address.create({ ort: einsatzort }).value : undefined;
+
+    return Result.ok(new CreateEinsatzCommand(alarmstichwort.trim(), createdBy.trim(), addressValue, bemerkung?.trim()));
   }
 }

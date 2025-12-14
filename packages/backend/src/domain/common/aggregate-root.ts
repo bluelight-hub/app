@@ -96,10 +96,11 @@ export abstract class AggregateRoot<TId extends EntityId<string>> {
   protected readonly _createdAt: Date;
 
   /**
-   * Protected readonly updatedAt timestamp.
+   * Protected mutable updatedAt timestamp.
    * Wird im Constructor initialisiert (default: new Date()).
+   * Kann via updateTimestamp() aktualisiert werden.
    */
-  protected readonly _updatedAt: Date;
+  protected _updatedAt: Date;
 
   /**
    * Private Domain Events Akkumulator.
@@ -159,6 +160,36 @@ export abstract class AggregateRoot<TId extends EntityId<string>> {
    */
   get updatedAt(): Date {
     return this._updatedAt;
+  }
+
+  /**
+   * Aktualisiert den updatedAt Timestamp auf die aktuelle Zeit.
+   * Protected: Nur Subclasses können Timestamp aktualisieren (Business Methods).
+   *
+   * Warum protected statt public?
+   * - Timestamp Updates sollten nur von Business Methods des Aggregates erfolgen
+   * - Verhindert dass externe Caller den Timestamp beliebig ändern (Encapsulation)
+   * - Domain Logic bleibt innerhalb des Aggregates (DDD Principle)
+   *
+   * Warum ist _updatedAt nicht readonly?
+   * - Business Methods müssen Timestamp bei State-Änderungen aktualisieren
+   * - Alternative (neue Instanz) würde Event Accumulation verlieren
+   * - Controlled Mutability via protected Method ist pragmatischer Kompromiss
+   *
+   * @example
+   * ```typescript
+   * class Qualifikation extends AggregateRoot<QualifikationId> {
+   *   update(props: UpdateProps): Result<void> {
+   *     this._name = props.name;
+   *     this.updateTimestamp(); // Aktualisiert _updatedAt
+   *     this.addDomainEvent(new QualifikationUpdatedEvent(...));
+   *     return Result.ok();
+   *   }
+   * }
+   * ```
+   */
+  protected updateTimestamp(): void {
+    this._updatedAt = new Date();
   }
 
   /**

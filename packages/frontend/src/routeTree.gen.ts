@@ -23,6 +23,7 @@ import { Route as AdminDashboardRouteImport } from './routes/admin/dashboard'
 import { Route as AppEinsaetzeIndexRouteImport } from './routes/app/einsaetze/index'
 import { Route as AppEinsatzEinsatzIdRouteImport } from './routes/app/einsatz/$einsatzId'
 import { Route as AppEinsaetzeEinsatzIdRouteImport } from './routes/app/einsaetze/$einsatzId'
+import { Route as AdminKraefteQualifikationenRouteImport } from './routes/admin/kraefte/qualifikationen'
 import { Route as AppEinsatzEinsatzIdIndexRouteImport } from './routes/app/einsatz/$einsatzId/index'
 import { Route as AppEinsatzEinsatzIdChar220bersichtIndexRouteImport } from './routes/app/einsatz/$einsatzId/übersicht/index'
 import { Route as AppEinsatzEinsatzIdPatientenIndexRouteImport } from './routes/app/einsatz/$einsatzId/patienten/index'
@@ -124,6 +125,12 @@ const AppEinsaetzeEinsatzIdRoute = AppEinsaetzeEinsatzIdRouteImport.update({
   path: '/$einsatzId',
   getParentRoute: () => AppEinsaetzeRoute,
 } as any)
+const AdminKraefteQualifikationenRoute =
+  AdminKraefteQualifikationenRouteImport.update({
+    id: '/kraefte/qualifikationen',
+    path: '/kraefte/qualifikationen',
+    getParentRoute: () => AdminRoute,
+  } as any)
 const AppEinsatzEinsatzIdIndexRoute =
   AppEinsatzEinsatzIdIndexRouteImport.update({
     id: '/',
@@ -317,6 +324,7 @@ export interface FileRoutesByFullPath {
   '/app/einsaetze': typeof AppEinsaetzeRouteWithChildren
   '/app/einsatz': typeof AppEinsatzRouteWithChildren
   '/admin/': typeof AdminIndexRoute
+  '/admin/kraefte/qualifikationen': typeof AdminKraefteQualifikationenRoute
   '/app/einsaetze/$einsatzId': typeof AppEinsaetzeEinsatzIdRoute
   '/app/einsatz/$einsatzId': typeof AppEinsatzEinsatzIdRouteWithChildren
   '/app/einsaetze/': typeof AppEinsaetzeIndexRoute
@@ -361,6 +369,7 @@ export interface FileRoutesByTo {
   '/admin/users': typeof AdminUsersRoute
   '/app/einsatz': typeof AppEinsatzRouteWithChildren
   '/admin': typeof AdminIndexRoute
+  '/admin/kraefte/qualifikationen': typeof AdminKraefteQualifikationenRoute
   '/app/einsaetze/$einsatzId': typeof AppEinsaetzeEinsatzIdRoute
   '/app/einsaetze': typeof AppEinsaetzeIndexRoute
   '/app/einsatz/$einsatzId': typeof AppEinsatzEinsatzIdIndexRoute
@@ -406,6 +415,7 @@ export interface FileRoutesById {
   '/app/einsaetze': typeof AppEinsaetzeRouteWithChildren
   '/app/einsatz': typeof AppEinsatzRouteWithChildren
   '/admin/': typeof AdminIndexRoute
+  '/admin/kraefte/qualifikationen': typeof AdminKraefteQualifikationenRoute
   '/app/einsaetze/$einsatzId': typeof AppEinsaetzeEinsatzIdRoute
   '/app/einsatz/$einsatzId': typeof AppEinsatzEinsatzIdRouteWithChildren
   '/app/einsaetze/': typeof AppEinsaetzeIndexRoute
@@ -454,6 +464,7 @@ export interface FileRouteTypes {
     | '/app/einsaetze'
     | '/app/einsatz'
     | '/admin/'
+    | '/admin/kraefte/qualifikationen'
     | '/app/einsaetze/$einsatzId'
     | '/app/einsatz/$einsatzId'
     | '/app/einsaetze/'
@@ -498,6 +509,7 @@ export interface FileRouteTypes {
     | '/admin/users'
     | '/app/einsatz'
     | '/admin'
+    | '/admin/kraefte/qualifikationen'
     | '/app/einsaetze/$einsatzId'
     | '/app/einsaetze'
     | '/app/einsatz/$einsatzId'
@@ -542,6 +554,7 @@ export interface FileRouteTypes {
     | '/app/einsaetze'
     | '/app/einsatz'
     | '/admin/'
+    | '/admin/kraefte/qualifikationen'
     | '/app/einsaetze/$einsatzId'
     | '/app/einsatz/$einsatzId'
     | '/app/einsaetze/'
@@ -684,6 +697,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/app/einsaetze/$einsatzId'
       preLoaderRoute: typeof AppEinsaetzeEinsatzIdRouteImport
       parentRoute: typeof AppEinsaetzeRoute
+    }
+    '/admin/kraefte/qualifikationen': {
+      id: '/admin/kraefte/qualifikationen'
+      path: '/kraefte/qualifikationen'
+      fullPath: '/admin/kraefte/qualifikationen'
+      preLoaderRoute: typeof AdminKraefteQualifikationenRouteImport
+      parentRoute: typeof AdminRoute
     }
     '/app/einsatz/$einsatzId/': {
       id: '/app/einsatz/$einsatzId/'
@@ -903,6 +923,7 @@ interface AdminRouteChildren {
   AdminSetupRoute: typeof AdminSetupRoute
   AdminUsersRoute: typeof AdminUsersRoute
   AdminIndexRoute: typeof AdminIndexRoute
+  AdminKraefteQualifikationenRoute: typeof AdminKraefteQualifikationenRoute
 }
 
 const AdminRouteChildren: AdminRouteChildren = {
@@ -910,6 +931,7 @@ const AdminRouteChildren: AdminRouteChildren = {
   AdminSetupRoute: AdminSetupRoute,
   AdminUsersRoute: AdminUsersRoute,
   AdminIndexRoute: AdminIndexRoute,
+  AdminKraefteQualifikationenRoute: AdminKraefteQualifikationenRoute,
 }
 
 const AdminRouteWithChildren = AdminRoute._addFileChildren(AdminRouteChildren)

@@ -10,3 +10,7 @@ export { ADMIN_QUERY_KEYS } from './queries';
 
 // Hooks
 export { useAdminUserManagement } from './use-admin-user-management';
+export { useAdminQualifikationenManagement, type QualifikationKategorie, KATEGORIE_LABELS, getKategorieBadgeVariant } from './use-admin-qualifikationen-management';
+
+// Re-export generierte DTOs für Convenience
+export type { CreateQualifikationDto, QualifikationDto, UpdateQualifikationDto } from '@bluelight-hub/shared/client';

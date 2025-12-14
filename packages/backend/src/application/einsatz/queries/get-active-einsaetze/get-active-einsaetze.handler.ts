@@ -1,6 +1,7 @@
 import { type IQueryHandler, QueryHandler } from '@nestjs/cqrs';
 import { Inject, Logger } from '@nestjs/common';
-import type { IEinsatzRepository } from '@domain/repositories';
+// biome-ignore lint/style/useImportType: IEinsatzRepository needed for DI at runtime
+import { IEinsatzRepository } from '@domain/repositories';
 import { Result } from '@domain/common/result';
 import type { EinsatzDto } from '@application/einsatz/dto/einsatz.dto';
 import { EinsatzQueryMapper } from '@application/einsatz/mappers/einsatz-query.mapper';

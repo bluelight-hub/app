@@ -1,4 +1,5 @@
-import type { IEinsatzRepository } from '@domain/repositories';
+// biome-ignore lint/style/useImportType: IEinsatzRepository needed for DI at runtime
+import { IEinsatzRepository } from '@domain/repositories';
 import { EinsatzId } from '@domain/value-objects/einsatz-id';
 import { CommandHandler } from '@nestjs/cqrs';
 import { Inject, Injectable, Logger } from '@nestjs/common';

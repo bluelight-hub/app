@@ -1,4 +1,5 @@
-import type { IEinsatzRepository } from '@domain/repositories';
+// biome-ignore lint/style/useImportType: IEinsatzRepository needed for DI at runtime
+import { IEinsatzRepository } from '@domain/repositories';
 import { EinsatzArchivalPolicy } from '@domain/services/einsatz-archival.policy';
 import { UserId } from '@domain/value-objects/user-id';
 import { EinsatzId } from '@domain/value-objects/einsatz-id';
@@ -8,7 +9,8 @@ import { ArchiveEinsatzCommand } from './archive-einsatz.command';
 import { TransactionalCommandHandler } from '@application/common/handlers/transactional-command.handler';
 // biome-ignore lint/style/useImportType: PrismaService needed for DI at runtime
 import { PrismaService } from '@/infrastructure/database/prisma.service';
-import type { IOutboxRepository } from '@domain/repositories/i-outbox.repository';
+// biome-ignore lint/style/useImportType: IOutboxRepository needed for DI at runtime
+import { IOutboxRepository } from '@domain/repositories/i-outbox.repository';
 import type { DomainEvent } from '@domain/common/domain-event';
 import type { TransactionContext } from '@domain/common';
 import { Result } from '@domain/common/result';

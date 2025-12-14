@@ -1,7 +1,9 @@
 import { Injectable, Logger, Inject } from '@nestjs/common';
 import { Result } from '@domain/common/result';
-import type { IEinsatzRepository } from '@domain/repositories';
-import type { IOutboxRepository } from '@domain/repositories/i-outbox.repository';
+// biome-ignore lint/style/useImportType: IEinsatzRepository needed for DI at runtime
+import { IEinsatzRepository } from '@domain/repositories';
+// biome-ignore lint/style/useImportType: IOutboxRepository needed for DI at runtime
+import { IOutboxRepository } from '@domain/repositories/i-outbox.repository';
 import { UserId } from '@domain/value-objects/user-id';
 import { EINSATZ_REPOSITORY, OUTBOX_REPOSITORY } from '@infrastructure/di-tokens';
 import type { ArchiveOldEinsaetzeCommand } from './archive-old-einsaetze.command';

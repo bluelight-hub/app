@@ -2,9 +2,9 @@ import { HttpExceptionFilter } from '@/infrastructure/http/filters/http-exceptio
 import { DomainExceptionFilter } from '@/infrastructure/http/filters/domain-exception.filter';
 import { Logger, Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
-import { APP_FILTER } from '@nestjs/core';
+import { APP_FILTER, APP_GUARD } from '@nestjs/core';
 import { EventEmitterModule } from '@nestjs/event-emitter';
-import { ThrottlerModule } from '@nestjs/throttler';
+import { ThrottlerModule, ThrottlerGuard } from '@nestjs/throttler';
 import { ServeStaticModule } from '@nestjs/serve-static';
 import { join } from 'node:path';
 import { AppController } from './app.controller';
@@ -22,6 +22,7 @@ import { UserInfrastructureModule } from './infrastructure/user';
 import { AuthInfrastructureModule } from './infrastructure/auth';
 import { OutboxModule } from './infrastructure/outbox/outbox.module';
 import { EventAdaptersModule } from './infrastructure/events/event-adapters.module';
+import { KraefteModule } from './modules/kraefte/kraefte.module';
 
 /**
  * Haupt-Anwendungsmodul der Bluelight Hub Backend-Anwendung
@@ -77,10 +78,15 @@ import { EventAdaptersModule } from './infrastructure/events/event-adapters.modu
     AuthInfrastructureModule, // JWT Auth Service Infrastructure (Story 4-7, Task 5)
     OutboxModule, // Transactional Outbox Pattern (Story 4-4)
     EventAdaptersModule, // Event Adapters (delegiert @OnEvent an Application Layer Handler)
+    KraefteModule, // Kräftemanagement: Qualifikationen, Rollen, Fahrzeugtypen (Story 1-1)
   ],
   controllers: [AppController],
   providers: [
     Logger,
+    {
+      provide: APP_GUARD,
+      useClass: ThrottlerGuard,
+    },
     {
       provide: APP_FILTER,
       useClass: DomainExceptionFilter,

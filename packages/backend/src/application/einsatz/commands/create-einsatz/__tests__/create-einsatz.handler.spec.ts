@@ -4,7 +4,6 @@ import { CreateEinsatzCommand } from '../create-einsatz.command';
 import { Result } from '@domain/common/result';
 import { UserId } from '@domain/value-objects/user-id';
 import { PrismaService } from '@/infrastructure/database/prisma.service';
-import { Address } from '@domain/value-objects/address';
 import { EINSATZ_FIELD_LIMITS } from '@application/common/validators/string-validator';
 import { EinsatzCreatedEvent } from '@domain/events/einsatz-created.event';
 import { EINSATZ_REPOSITORY, OUTBOX_REPOSITORY } from '@/infrastructure/di-tokens';
@@ -154,14 +153,10 @@ describe('CreateEinsatzHandler', () => {
     it('sollte Einsatz mit optionalen Feldern erstellen (einsatzort, bemerkung)', async () => {
       // Arrange (Given)
       const userId = UserId.create().value!;
-      const einsatzort = Address.create({
-        strasse: 'Musterstraße',
-        hausnummer: '42',
-        plz: '80331',
-        ort: 'München',
-      }).value!;
+      // Command akzeptiert jetzt string statt Address - Konvertierung passiert in Command.create()
+      const einsatzortString = 'Musterstraße 42, 80331 München';
       const bemerkung = 'Dachstuhl brennt';
-      const command = CreateEinsatzCommand.create('Wohnungsbrand', userId.value, einsatzort, bemerkung).value!;
+      const command = CreateEinsatzCommand.create('Wohnungsbrand', userId.value, einsatzortString, bemerkung).value!;
 
       // Act (When)
       const result = await handler.execute(command);
@@ -171,7 +166,8 @@ describe('CreateEinsatzHandler', () => {
       expect(result.value).toBeDefined();
       const savedAggregate = mockRepository.save.mock.calls[0][0];
       expect(savedAggregate.einsatzort).toBeDefined();
-      expect(savedAggregate.einsatzort.strasse).toBe('Musterstraße');
+      // Address wird jetzt als Freitext-Ort erstellt (nur 'ort' Feld)
+      expect(savedAggregate.einsatzort.ort).toBe('Musterstraße 42, 80331 München');
       expect(savedAggregate.bemerkung).toBe('Dachstuhl brennt');
     });
 

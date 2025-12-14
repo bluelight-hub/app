@@ -1,5 +1,4 @@
 import { Module } from '@nestjs/common';
-import { CqrsModule } from '@nestjs/cqrs';
 import { PrismaModule } from '@/infrastructure/database/prisma.module';
 import { EventInfrastructureModule } from '@infrastructure/events/event-infrastructure.module';
 import { LagekarteInfrastructureModule } from '@infrastructure/lagekarte-infrastructure.module';
@@ -67,8 +66,6 @@ import {
  */
 @Module({
   imports: [
-    // CQRS Infrastructure (CommandBus, QueryBus) - für Handler Registration
-    CqrsModule,
     // Database Connection
     PrismaModule,
     // Event Infrastructure (IEventPublisher) - keine zirkuläre Abhängigkeit mehr

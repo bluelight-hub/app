@@ -1,4 +1,5 @@
 .openapi-generator-ignore
+apis/AdminKraefteQualifikationenApi.ts
 apis/AppApi.ts
 apis/AuthApi.ts
 apis/ETBApi.ts
@@ -35,6 +36,7 @@ models/CoordinateDto.ts
 models/CreateEinsatzDto.ts
 models/CreateLagekarteDto.ts
 models/CreatePoiDto.ts
+models/CreateQualifikationDto.ts
 models/CreateUserDto.ts
 models/DeleteManagedUserResponse.ts
 models/DeleteManagedUserResponseData.ts
@@ -78,6 +80,7 @@ models/PoiDto.ts
 models/PoiResponseDto.ts
 models/PublicUserDto.ts
 models/PublicUsersResponseDto.ts
+models/QualifikationDto.ts
 models/RefreshResponseDto.ts
 models/SaveLagekarteStateDto.ts
 models/StatusCountsDto.ts
@@ -88,6 +91,7 @@ models/UpdateEinsatzDto.ts
 models/UpdateEintragDto.ts
 models/UpdatePoiDto.ts
 models/UpdatePoiPositionDto.ts
+models/UpdateQualifikationDto.ts
 models/UpdateUserDto.ts
 models/UserBasicDto.ts
 models/UserBasicListResponse.ts

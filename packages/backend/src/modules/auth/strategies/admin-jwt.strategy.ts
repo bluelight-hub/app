@@ -113,10 +113,10 @@ export class AdminJwtStrategy extends PassportStrategy(Strategy, 'admin-jwt') {
   async validate(req: Request, payload: AdminJwtPayload): Promise<ValidatedAdminUser> {
     const accessToken = req?.cookies?.accessToken;
 
-    await this.validateAccessToken(accessToken, payload);
+    await this.validateAccessToken(accessToken);
     await this.validateAdminPayload(payload);
     const user = await this.validateUserExists(payload.sub);
-    await this.validateAdminRights(user, payload);
+    await this.validateAdminRights(user);
 
     // HI-4 Fix: Nur bei SUCCESS die userId loggen (keine Information Disclosure bei Fehlern)
     this.logger.log('Admin authentication successful', { userId: payload.sub });
@@ -132,10 +132,9 @@ export class AdminJwtStrategy extends PassportStrategy(Strategy, 'admin-jwt') {
    * Validiert dass der Access Token vorhanden und gültig ist
    *
    * @param accessToken - Der Access Token aus dem Cookie
-   * @param payload - JWT Payload für Logging
    * @throws UnauthorizedException wenn Token fehlt oder ungültig ist
    */
-  private async validateAccessToken(accessToken: string | undefined, payload: AdminJwtPayload): Promise<void> {
+  private async validateAccessToken(accessToken: string | undefined): Promise<void> {
     if (!accessToken || accessToken.trim() === '') {
       // HI-5 Fix: Logging für leeren accessToken (Empty-String-Angriffe)
       // HI-4 Fix: Keine userId bei Auth-Fehlern loggen (Information Disclosure)
@@ -199,6 +198,14 @@ export class AdminJwtStrategy extends PassportStrategy(Strategy, 'admin-jwt') {
    * @throws UnauthorizedException wenn der Benutzer nicht existiert oder Lookup fehlschlägt
    */
   private async validateUserExists(userId: string): Promise<{ id: string; role: UserRole }> {
+    // Input Validation: Prüfe ob userId ein gültiger String ist (nicht leer, kein Whitespace)
+    // Dies verhindert Angriffe mit manipulierten JWT Payloads (z.B. sub: "" oder sub: "   ")
+    if (!userId || typeof userId !== 'string' || userId.trim() === '') {
+      this.logger.warn('Admin access attempt with invalid userId in payload');
+      await this.constantTimeDelay();
+      throw new UnauthorizedException('Unauthorized - Invalid admin credentials');
+    }
+
     let user: { id: string; role: UserRole } | null;
     try {
       user = await this.authService.findUserById(userId);
@@ -224,10 +231,9 @@ export class AdminJwtStrategy extends PassportStrategy(Strategy, 'admin-jwt') {
    * Validiert dass der Benutzer noch Admin-Rechte in der Datenbank hat
    *
    * @param user - Der Benutzer aus der Datenbank
-   * @param payload - JWT Payload für Logging
    * @throws ForbiddenException wenn keine Admin-Rechte mehr vorhanden sind
    */
-  private async validateAdminRights(user: { id: string; role: UserRole }, payload: AdminJwtPayload): Promise<void> {
+  private async validateAdminRights(user: { id: string; role: UserRole }): Promise<void> {
     if (!isAdmin(user.role)) {
       // HI-4 Fix: Keine userId bei Auth-Fehlern loggen (Information Disclosure)
       this.logger.warn('Admin access attempt without admin role', {

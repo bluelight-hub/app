@@ -32,9 +32,9 @@ model User {
   updatedAt        DateTime  @updatedAt
 
   // Soft Delete Fields
-  isDeleted        Boolean   @default(false)
-  deletedAt        DateTime?
-  deletedBy        String?   @db.VarChar(100)
+  isDeleted Boolean   @default(false)
+  deletedAt DateTime?
+  deletedBy String?   @db.VarChar(100)
 
   // Manual Lock Fields (admin-initiated, separate from auto-lock after failed logins)
   isLocked         Boolean   @default(false)
@@ -45,7 +45,7 @@ model User {
   // Custom Permissions (JSON Array serialized as String)
   // Format: ["user:read", "einsatz:create", "etb:lock"]
   // NULL = no custom permissions (inherit from role only)
-  permissions      String?   @db.Text
+  permissions String? @db.Text
 
   // Relations
   // sessions        Session[]
@@ -78,6 +78,30 @@ model User {
 
   // ETB Archiv Relations
   archivedEtbs EtbArchiv[] @relation("EtbArchivArchiver")
+
+  // ========================================
+  // Kräfte-Management Relations (Story 1.0)
+  // ========================================
+
+  // Qualifikation Relations
+  createdQualifikationen Qualifikation[] @relation("QualifikationCreator")
+  updatedQualifikationen Qualifikation[] @relation("QualifikationUpdater")
+
+  // Fahrzeugtyp Relations
+  createdFahrzeugtypen Fahrzeugtyp[] @relation("FahrzeugtypCreator")
+  updatedFahrzeugtypen Fahrzeugtyp[] @relation("FahrzeugtypUpdater")
+
+  // RollenDefinition Relations
+  createdRollenDefinitionen RollenDefinition[] @relation("RollenDefinitionCreator")
+  updatedRollenDefinitionen RollenDefinition[] @relation("RollenDefinitionUpdater")
+
+  // FunkStatusConfig Relations
+  createdFunkStatusConfigs FunkStatusConfig[] @relation("FunkStatusConfigCreator")
+  updatedFunkStatusConfigs FunkStatusConfig[] @relation("FunkStatusConfigUpdater")
+
+  // RolleQualifikation Relations
+  createdRolleQualifikationen RolleQualifikation[] @relation("RolleQualifikationCreator")
+  updatedRolleQualifikationen RolleQualifikation[] @relation("RolleQualifikationUpdater")
 
   // Indexes
   @@index([username], map: "idx_user_username")
@@ -402,7 +426,7 @@ model Lagekarte {
   updatedAt DateTime @updatedAt
 
   // Relations
-  einsatz Einsatz         @relation(fields: [einsatzId], references: [id], onDelete: Cascade)
+  einsatz Einsatz        @relation(fields: [einsatzId], references: [id], onDelete: Cascade)
   pois    LagekartePoi[]
 
   // Indexes
@@ -425,15 +449,15 @@ enum OutboxEventStatus {
 // Events werden ATOMAR mit Aggregates persistiert, dann asynchron per Polling-Worker veröffentlicht.
 // DRK Compliance: Kein Event-Verlust bei System-Crash zwischen save() und publish().
 model OutboxEvent {
-  id                String             @id @default(cuid())
-  eventName         String             @db.VarChar(100) // z.B. "einsatz.created", "etb.eintrag_added"
-  eventVersion      Int                @default(1) // Event-Versionierung für Schema-Evolution
-  aggregateId       String             @db.VarChar(100) // ID des betroffenen Aggregates
-  payload           Json               @db.JsonB // Serialisiertes Domain Event (JSON)
-  status            OutboxEventStatus  @default(PENDING)
-  retryCount        Int                @default(0) // Anzahl fehlgeschlagener Versuche
-  lastFailureReason String?            @db.Text // Letzte Fehlermeldung
-  createdAt         DateTime           @default(now()) // Zeitpunkt der Persistierung
+  id                String            @id @default(cuid())
+  eventName         String            @db.VarChar(100) // z.B. "einsatz.created", "etb.eintrag_added"
+  eventVersion      Int               @default(1) // Event-Versionierung für Schema-Evolution
+  aggregateId       String            @db.VarChar(100) // ID des betroffenen Aggregates
+  payload           Json              @db.JsonB // Serialisiertes Domain Event (JSON)
+  status            OutboxEventStatus @default(PENDING)
+  retryCount        Int               @default(0) // Anzahl fehlgeschlagener Versuche
+  lastFailureReason String?           @db.Text // Letzte Fehlermeldung
+  createdAt         DateTime          @default(now()) // Zeitpunkt der Persistierung
   occurredAt        DateTime // Zeitpunkt des Original-Events (aus DomainEvent)
   publishedAt       DateTime? // Zeitpunkt der erfolgreichen Veröffentlichung
 
@@ -451,23 +475,23 @@ model OutboxEvent {
 // - Beide Formate werden gespeichert für Performance und Fallback-Kompatibilität
 // - MGRS Format: z.B. "33UVU1234567890" (max. 20 Zeichen)
 model LagekartePoi {
-  id          String   @id @default(cuid())
+  id          String  @id @default(cuid())
   lagekarteId String
   type        PoiType
-  name        String?  @db.VarChar(255)
-  adresse     String?  @db.VarChar(500)
+  name        String? @db.VarChar(255)
+  adresse     String? @db.VarChar(500)
 
   // MGRS Koordinaten (primäres Format)
-  mgrs        String?  @db.VarChar(20) // z.B. "33UVU1234567890", nullable für Migration
+  mgrs String? @db.VarChar(20) // z.B. "33UVU1234567890", nullable für Migration
 
   // Lat/Lng Koordinaten (aus MGRS berechnet, Fallback für bestehende Daten)
-  latitude    Float
-  longitude   Float
+  latitude  Float
+  longitude Float
 
-  icon        String?  @db.VarChar(50)
-  metadata    Json?    @db.JsonB
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  icon      String?  @db.VarChar(50)
+  metadata  Json?    @db.JsonB
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   // Relations
   lagekarte Lagekarte @relation(fields: [lagekarteId], references: [id], onDelete: Cascade)
@@ -477,4 +501,180 @@ model LagekartePoi {
   @@index([type])
   @@index([mgrs]) // Schnelle MGRS-Suche
   @@map("lagekarte_poi")
+}
+
+// ========================================
+// Kräfte-Management: Admin-Konfiguration
+// Epic 1 - Story 1.0
+// ========================================
+
+// Qualifikation Kategorie Enum
+enum QualifikationKategorie {
+  FUEHRUNG // GF, ZF, VF - zählt als "Unterführer" in Stärkeberechnung
+  SANITAET // RS, NotSan, NA - medizinische Qualifikationen
+  BETREUUNG // z.B. Betreuungshelfer
+  TECHNIK // Technik-Helfer
+  SONSTIGES // Weitere
+}
+
+// Fahrzeugtyp Kategorie Enum (DIN EN 1789)
+enum FahrzeugtypKategorie {
+  RETTUNGSDIENST // RTW, KTW, NEF, NAW
+  FUEHRUNG // ELW, MTW, FüKw
+  TRANSPORT // GW, Anhänger
+  SONSTIGES // Weitere
+}
+
+// Qualifikation Model (z.B. NotSan, RS, RH, GF, ZF)
+model Qualifikation {
+  id           String                 @id @default(cuid())
+  name         String                 @db.VarChar(100) // z.B. "Notfallsanitäter"
+  abkuerzung   String                 @unique @db.VarChar(20) // z.B. "NotSan"
+  kategorie    QualifikationKategorie
+  beschreibung String?                @db.Text
+  istAktiv     Boolean                @default(true)
+  sortOrder    Int                    @default(0)
+
+  // Audit-Trail (createdBy/updatedBy sind User.id FKs)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  createdBy String   @db.VarChar(100)
+  updatedBy String?  @db.VarChar(100)
+
+  // Relations
+  creator User  @relation("QualifikationCreator", fields: [createdBy], references: [id], onDelete: Restrict)
+  updater User? @relation("QualifikationUpdater", fields: [updatedBy], references: [id], onDelete: SetNull)
+
+  // M:N Relations
+  rollenQualifikationen RolleQualifikation[]
+
+  // Indexes
+  @@index([kategorie, istAktiv])
+  @@index([istAktiv, sortOrder])
+  @@index([createdBy])
+  // TODO(Performance): Add composite index for filtered + sorted queries
+  // Recommendation: @@index([istAktiv, sortOrder, name])
+  // Use Case: findAll({ istAktiv: true }) with ORDER BY sortOrder ASC, name ASC
+  // Impact: Optimiert Admin UI Qualifikationen-Tabelle (Story 1.1)
+  @@map("qualifikationen")
+}
+
+// Fahrzeugtyp Model (z.B. RTW, KTW, NEF)
+model Fahrzeugtyp {
+  id            String               @id @default(cuid())
+  code          String               @unique @db.VarChar(20) // z.B. "RTW"
+  bezeichnung   String               @db.VarChar(100) // z.B. "Rettungswagen"
+  kategorie     FahrzeugtypKategorie
+  /// JSONB Schema: { fahrer?: number, sanitaeter?: number, notarzt?: number, funktrupp?: number, helfer?: number }
+  /// Definiert die Soll-Besetzung pro Fahrzeugtyp für Einsatzplanung
+  sollbesatzung Json?                @db.JsonB
+  beschreibung  String?              @db.Text
+  istAktiv      Boolean              @default(true)
+  sortOrder     Int                  @default(0)
+
+  // Audit-Trail
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  createdBy String   @db.VarChar(100)
+  updatedBy String?  @db.VarChar(100)
+
+  // Relations
+  creator User  @relation("FahrzeugtypCreator", fields: [createdBy], references: [id], onDelete: Restrict)
+  updater User? @relation("FahrzeugtypUpdater", fields: [updatedBy], references: [id], onDelete: SetNull)
+
+  // Indexes
+  @@index([kategorie, istAktiv])
+  @@index([istAktiv, sortOrder])
+  @@index([createdBy])
+  @@map("fahrzeugtypen")
+}
+
+// Rollen-Definition Model (z.B. LNA, OrgL, Leiter BHP)
+model RollenDefinition {
+  id           String  @id @default(cuid())
+  name         String  @unique @db.VarChar(100) // z.B. "Leitender Notarzt"
+  funkrufname  String? @db.VarChar(50) // z.B. "LNA"
+  beschreibung String? @db.Text
+  istAktiv     Boolean @default(true)
+  sortOrder    Int     @default(0)
+
+  // Audit-Trail
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  createdBy String   @db.VarChar(100)
+  updatedBy String?  @db.VarChar(100)
+
+  // Relations
+  creator User  @relation("RollenDefinitionCreator", fields: [createdBy], references: [id], onDelete: Restrict)
+  updater User? @relation("RollenDefinitionUpdater", fields: [updatedBy], references: [id], onDelete: SetNull)
+
+  // M:N: Erforderliche Qualifikationen für diese Rolle
+  // Semantik: Person muss ALLE istPflicht=true Qualifikationen haben (UND-Verknüpfung)
+  erforderlicheQualifikationen RolleQualifikation[]
+
+  // Indexes
+  @@index([istAktiv])
+  @@index([istAktiv, sortOrder])
+  @@index([createdBy])
+  @@map("rollen_definitionen")
+}
+
+/// M:N Junction Table: Rolle <-> Qualifikation
+/// Semantik: Person kann Rolle X ausüben, wenn sie ALLE Qualifikationen mit istPflicht=true besitzt (UND-Verknüpfung).
+/// istPflicht=true: PFLICHT - Person MUSS diese Qualifikation haben
+/// istPflicht=false: OPTIONAL - Empfohlen aber nicht erforderlich
+model RolleQualifikation {
+  id              String  @id @default(cuid())
+  rolleId         String
+  qualifikationId String
+  istPflicht      Boolean @default(true) // true = Person MUSS haben, false = OPTIONAL/empfohlen
+
+  // Audit-Trail
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  createdBy String   @db.VarChar(100)
+  updatedBy String?  @db.VarChar(100)
+
+  // Relations
+  rolle         RollenDefinition @relation(fields: [rolleId], references: [id], onDelete: Cascade)
+  qualifikation Qualifikation    @relation(fields: [qualifikationId], references: [id], onDelete: Restrict)
+
+  // Audit-Trail Relations
+  creator User  @relation("RolleQualifikationCreator", fields: [createdBy], references: [id], onDelete: Restrict)
+  updater User? @relation("RolleQualifikationUpdater", fields: [updatedBy], references: [id], onDelete: SetNull)
+
+  // Unique Constraint (keine Duplikate in M:N)
+  @@unique([rolleId, qualifikationId])
+  @@index([rolleId])
+  @@index([qualifikationId])
+  @@index([rolleId, istPflicht])
+  @@index([createdBy])
+  @@map("rolle_qualifikationen")
+}
+
+// Funkstatus Konfiguration (Status 0-9 nach DIN-Norm, 7-9 konfigurierbar)
+model FunkStatusConfig {
+  id             String  @id @default(cuid())
+  code           Int     @unique /// Status-Code 0-9 nach DIN-Norm. 0-6 sind standardisiert, 7-9 regional anpassbar.
+  standardLabel  String  @db.VarChar(100) // DIN-Standard-Bezeichnung
+  customLabel    String? @db.VarChar(100) // Mandanten-spezifische Anpassung
+  farbe          String? @db.VarChar(7) // Hex-Farbe z.B. "#FF0000"
+  istAlarmierbar Boolean @default(false) // Kann für Alarmierung genutzt werden
+  beschreibung   String? @db.Text
+
+  // Audit-Trail
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  createdBy String   @db.VarChar(100)
+  updatedBy String?  @db.VarChar(100)
+
+  // Relations
+  creator User  @relation("FunkStatusConfigCreator", fields: [createdBy], references: [id], onDelete: Restrict)
+  updater User? @relation("FunkStatusConfigUpdater", fields: [updatedBy], references: [id], onDelete: SetNull)
+
+  // Indexes
+  @@index([code])
+  @@index([istAlarmierbar])
+  @@index([createdBy])
+  @@map("funk_status_config")
 }

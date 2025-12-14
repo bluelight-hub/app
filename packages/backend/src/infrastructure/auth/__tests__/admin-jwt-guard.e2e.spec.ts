@@ -204,6 +204,11 @@ describe('AdminJwtAuthGuard HTTP Integration Tests (AC5.3)', () => {
   }, 60000);
 
   beforeEach(() => {
+    // CR-3 Fix: Skip Tests wenn DB nicht verfügbar
+    if (!databaseAvailable) {
+      return;
+    }
+
     // Mock-Resets vor jedem Test
     jest.clearAllMocks();
   });

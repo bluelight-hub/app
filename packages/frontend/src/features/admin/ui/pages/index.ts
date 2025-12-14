@@ -8,3 +8,4 @@ export { AdminDashboard } from './AdminDashboard';
 export { AdminLogin } from './AdminLogin';
 export { AdminSetup } from './AdminSetup';
 export { AdminUsers } from './AdminUsers';
+export { AdminQualifikationen } from './AdminQualifikationen';

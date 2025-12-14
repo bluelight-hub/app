@@ -19,6 +19,8 @@ import type { UserDeletedEvent } from '@domain/events/user-deleted.event';
 import type { UserRoleChangedEvent } from '@domain/events/user-role-changed.event';
 import type { PermissionGrantedEvent } from '@domain/events/permission-granted.event';
 import type { PermissionRevokedEvent } from '@domain/events/permission-revoked.event';
+import type { QualifikationCreatedEvent } from '@domain/kraefte/events/qualifikation-created.event';
+import type { QualifikationUpdatedEvent } from '@domain/kraefte/events/qualifikation-updated.event';
 
 /**
  * Serialisiertes Event-Payload für Outbox-Persistierung.
@@ -47,6 +49,12 @@ export interface SerializedEvent {
  * - Zentrale Stelle für Value Object → Primitive Konvertierung
  * - Ermöglicht Schema-Evolution durch eventVersion
  * - Testbar und austauschbar (DI)
+ *
+ * **Event Naming Convention:**
+ * - Legacy Events (Einsatz, ETB, Lagekarte, User): Dot-Notation (z.B. 'einsatz.created')
+ * - Neue Events (Qualifikation, Rolle): PascalCase (z.B. 'QualifikationCreated')
+ * - WICHTIG: Beide Konventionen werden unterstützt für Backwards Compatibility
+ * - TODO: Migration zu einheitlicher Konvention (vorgeschlagen: dot-notation)
  *
  * @example
  * ```typescript
@@ -160,6 +168,12 @@ export class EventSerializer {
         return this.serializePermissionGranted(event as unknown as PermissionGrantedEvent);
       case 'user.permission_revoked':
         return this.serializePermissionRevoked(event as unknown as PermissionRevokedEvent);
+
+      // ===== QUALIFIKATION EVENTS =====
+      case 'QualifikationCreated':
+        return this.serializeQualifikationCreated(event as unknown as QualifikationCreatedEvent);
+      case 'QualifikationUpdated':
+        return this.serializeQualifikationUpdated(event as unknown as QualifikationUpdatedEvent);
 
       default:
         throw new Error(`Unknown event type: ${eventName}. EventSerializer needs to be updated.`);
@@ -331,6 +345,26 @@ export class EventSerializer {
       userId: event.userId.value,
       permission: event.permission.value,
       revokedBy: event.revokedBy.value,
+    };
+  }
+
+  // ===== QUALIFIKATION SERIALIZERS =====
+
+  private serializeQualifikationCreated(event: QualifikationCreatedEvent): Record<string, unknown> {
+    return {
+      qualifikationId: event.qualifikationId, // Already primitive string
+      name: event.name,
+      abkuerzung: event.abkuerzung,
+      kategorie: event.kategorie,
+      createdBy: event.createdBy,
+    };
+  }
+
+  private serializeQualifikationUpdated(event: QualifikationUpdatedEvent): Record<string, unknown> {
+    return {
+      qualifikationId: event.qualifikationId, // Already primitive string
+      changes: event.changes, // Already primitives
+      updatedBy: event.updatedBy,
     };
   }
 }

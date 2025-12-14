@@ -37,6 +37,21 @@ export const OUTBOX_REPOSITORY = Symbol('IOutboxRepository');
 /** Repository Token für ILagekarteRepository */
 export const LAGEKARTE_REPOSITORY = Symbol('ILagekarteRepository');
 
+/**
+ * Kräftemanagement Repository Tokens (Epic 1+).
+ *
+ * Verwaltung von Admin-Konfigurationsdaten:
+ * - QUALIFIKATION: Qualifikations-Definitionen (Story 1-1)
+ * - FAHRZEUGTYP: Fahrzeugtyp-Definitionen (Story 1-2, future)
+ * - ROLLE: Rollen-Definitionen (Story 1-3, future)
+ */
+export const KRAEFTE_REPOSITORIES = {
+  /** Repository Token für IQualifikationRepository */
+  QUALIFIKATION: Symbol('IQualifikationRepository'),
+  // Future: FAHRZEUGTYP: Symbol('IFahrzeugtypRepository'),
+  // Future: ROLLE: Symbol('IRollenDefinitionRepository'),
+} as const;
+
 /** Transaction Manager Token für ITransactionManager */
 export const TRANSACTION_MANAGER = Symbol('ITransactionManager');
 

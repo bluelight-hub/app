@@ -1,5 +1,6 @@
 /* tslint:disable */
 /* eslint-disable */
+export * from './AdminKraefteQualifikationenApi';
 export * from './AppApi';
 export * from './AuthApi';
 export * from './ETBApi';

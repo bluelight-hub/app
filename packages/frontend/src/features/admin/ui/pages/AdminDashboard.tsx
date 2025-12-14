@@ -8,7 +8,7 @@ import { useNavigate } from '@tanstack/react-router';
 import { isTauri } from '@tauri-apps/api/core';
 import { AdminDashboardLayout } from '@/shared/ui/templates/AdminDashboardLayout';
 import { useCallback } from 'react';
-import { PiSignOut, PiUsers } from 'react-icons/pi';
+import { PiCertificate, PiSignOut, PiUsers } from 'react-icons/pi';
 
 /**
  * Admin-Dashboard Seite
@@ -46,6 +46,10 @@ export function AdminDashboard() {
     await navigate({ to: '/admin/users' });
   }, [navigate]);
 
+  const handleNavigateToQualifikationen = useCallback(async () => {
+    await navigate({ to: '/admin/kraefte/qualifikationen' });
+  }, [navigate]);
+
   return (
     <AdminDashboardLayout maxWidth="lg">
       {/* Dashboard Header */}
@@ -66,10 +70,16 @@ export function AdminDashboard() {
             </Text>
           </div>
 
-          <Button intent="primary" size="md" onClick={handleNavigateToUsers} fullWidth className="max-w-sm">
-            <PiUsers className="mr-2" />
-            Benutzerverwaltung
-          </Button>
+          <div className="flex w-full max-w-md flex-col gap-3 sm:flex-row">
+            <Button intent="primary" size="md" onClick={handleNavigateToUsers} fullWidth>
+              <PiUsers className="mr-2" />
+              Benutzerverwaltung
+            </Button>
+            <Button intent="primary" size="md" onClick={handleNavigateToQualifikationen} fullWidth>
+              <PiCertificate className="mr-2" />
+              Qualifikationen
+            </Button>
+          </div>
         </div>
       </Card>
 

@@ -63,7 +63,7 @@ const generateTestId = (): string => {
 };
 
 // Generate Nanoid-compliant test IDs for User (21 chars, alphanumeric with mixed case)
-const generateNanoidTestId = (): string => {
+const _generateNanoidTestId = (): string => {
   const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789_-';
   let result = '';
   for (let i = 0; i < 21; i++) {

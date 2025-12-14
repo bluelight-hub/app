@@ -1,9 +1,12 @@
 import { type IQueryHandler, QueryHandler } from '@nestjs/cqrs';
 import { Inject, Logger } from '@nestjs/common';
 import { Result } from '@domain/common/result';
-import type { IEinsatzRepository } from '@domain/repositories';
-import type { IEtbRepository } from '@domain/repositories';
-import type { ILagekarteRepository } from '@domain/repositories';
+// biome-ignore lint/style/useImportType: IEinsatzRepository needed for DI at runtime
+import { IEinsatzRepository } from '@domain/repositories';
+// biome-ignore lint/style/useImportType: IEtbRepository needed for DI at runtime
+import { IEtbRepository } from '@domain/repositories';
+// biome-ignore lint/style/useImportType: ILagekarteRepository needed for DI at runtime
+import { ILagekarteRepository } from '@domain/repositories';
 import { EinsatzId } from '@domain/value-objects/einsatz-id';
 import { EinsatzQueryMapper } from '@application/einsatz/mappers/einsatz-query.mapper';
 import { EtbQueryMapper } from '@application/etb/mappers/etb-query.mapper';
