@@ -294,6 +294,118 @@ describe('Qualifikation Aggregate', () => {
       });
     });
 
+    describe('Validation: Max-Length', () => {
+      it('sollte Name mit exakt 100 Zeichen akzeptieren', () => {
+        // Given
+        const exactLength = 'a'.repeat(100);
+        const props: CreateQualifikationProps = {
+          name: exactLength,
+          abkuerzung: 'TEST',
+          kategorie: 'SANITAET',
+          createdBy: 'cm1234567890abcdef12345',
+        };
+
+        // When
+        const result = Qualifikation.create(props);
+
+        // Then
+        expect(result.isSuccess).toBe(true);
+        expect(result.value!.name).toBe(exactLength);
+      });
+
+      it('sollte Name mit mehr als 100 Zeichen ablehnen', () => {
+        // Given
+        const tooLong = 'a'.repeat(101);
+        const props: CreateQualifikationProps = {
+          name: tooLong,
+          abkuerzung: 'TEST',
+          kategorie: 'SANITAET',
+          createdBy: 'cm1234567890abcdef12345',
+        };
+
+        // When
+        const result = Qualifikation.create(props);
+
+        // Then
+        expect(result.isFailure).toBe(true);
+        expect(result.error).toContain('100');
+      });
+
+      it('sollte Abkürzung mit exakt 20 Zeichen akzeptieren', () => {
+        // Given
+        const exactLength = 'a'.repeat(20);
+        const props: CreateQualifikationProps = {
+          name: 'Test Qualifikation',
+          abkuerzung: exactLength,
+          kategorie: 'SANITAET',
+          createdBy: 'cm1234567890abcdef12345',
+        };
+
+        // When
+        const result = Qualifikation.create(props);
+
+        // Then
+        expect(result.isSuccess).toBe(true);
+        expect(result.value!.abkuerzung).toBe(exactLength);
+      });
+
+      it('sollte Abkürzung mit mehr als 20 Zeichen ablehnen', () => {
+        // Given
+        const tooLong = 'a'.repeat(21);
+        const props: CreateQualifikationProps = {
+          name: 'Test Qualifikation',
+          abkuerzung: tooLong,
+          kategorie: 'SANITAET',
+          createdBy: 'cm1234567890abcdef12345',
+        };
+
+        // When
+        const result = Qualifikation.create(props);
+
+        // Then
+        expect(result.isFailure).toBe(true);
+        expect(result.error).toContain('20');
+      });
+
+      it('sollte Beschreibung mit exakt 1000 Zeichen akzeptieren', () => {
+        // Given
+        const exactLength = 'a'.repeat(1000);
+        const props: CreateQualifikationProps = {
+          name: 'Test Qualifikation',
+          abkuerzung: 'TEST',
+          kategorie: 'SANITAET',
+          createdBy: 'cm1234567890abcdef12345',
+          beschreibung: exactLength,
+        };
+
+        // When
+        const result = Qualifikation.create(props);
+
+        // Then
+        expect(result.isSuccess).toBe(true);
+        expect(result.value!.beschreibung).toBe(exactLength);
+      });
+
+      it('sollte Beschreibung mit mehr als 1000 Zeichen ablehnen', () => {
+        // Given
+        const tooLong = 'a'.repeat(1001);
+        const props: CreateQualifikationProps = {
+          name: 'Test Qualifikation',
+          abkuerzung: 'TEST',
+          kategorie: 'SANITAET',
+          createdBy: 'cm1234567890abcdef12345',
+          beschreibung: tooLong,
+        };
+
+        // When
+        const result = Qualifikation.create(props);
+
+        // Then
+        expect(result.isFailure).toBe(true);
+        expect(result.error).toContain('1000');
+      });
+    });
+
     describe('Whitespace Trimming', () => {
       it('sollte führende und nachfolgende Whitespaces in Name trimmen', () => {
         // Given
@@ -530,44 +642,138 @@ describe('Qualifikation Aggregate', () => {
       expect(result.error).toContain('updatedBy ist erforderlich');
     });
 
-    it('sollte sortOrder akzeptieren', () => {
-      // Given
-      const qualifikation = Qualifikation.create({
-        name: 'Zugführer',
-        abkuerzung: 'ZFÜ',
-        kategorie: 'FUEHRUNG',
-        createdBy: 'cm1234567890abcdef12345',
-      }).value!;
+    describe('sortOrder validation', () => {
+      let validQualifikation: Qualifikation;
 
-      // When
-      const result = qualifikation.update({
-        sortOrder: 42,
-        updatedBy: 'cm9999999999abcdef99999',
+      beforeEach(() => {
+        validQualifikation = Qualifikation.create({
+          name: 'Zugführer',
+          abkuerzung: 'ZFÜ',
+          kategorie: 'FUEHRUNG',
+          createdBy: 'cm1234567890abcdef12345',
+        }).value!;
+        validQualifikation.clearDomainEvents(); // Clear creation event
       });
 
-      // Then
-      expect(result.isSuccess).toBe(true);
-      expect(qualifikation.sortOrder).toBe(42);
-    });
+      it('sollte NaN sortOrder ablehnen', () => {
+        // Given
+        const qualifikation = validQualifikation;
 
-    it('sollte negative sortOrder akzeptieren', () => {
-      // Given
-      const qualifikation = Qualifikation.create({
-        name: 'Zugführer',
-        abkuerzung: 'ZFÜ',
-        kategorie: 'FUEHRUNG',
-        createdBy: 'cm1234567890abcdef12345',
-      }).value!;
+        // When
+        const result = qualifikation.update({
+          sortOrder: Number.NaN,
+          updatedBy: 'cm9999999999abcdef99999',
+        });
 
-      // When
-      const result = qualifikation.update({
-        sortOrder: -1,
-        updatedBy: 'cm9999999999abcdef99999',
+        // Then
+        expect(result.isFailure).toBe(true);
+        expect(result.error).toContain('sortOrder muss eine ganze Zahl sein');
       });
 
-      // Then
-      expect(result.isSuccess).toBe(true);
-      expect(qualifikation.sortOrder).toBe(-1);
+      it('sollte Infinity sortOrder ablehnen', () => {
+        // Given
+        const qualifikation = validQualifikation;
+
+        // When
+        const result = qualifikation.update({
+          sortOrder: Number.POSITIVE_INFINITY,
+          updatedBy: 'cm9999999999abcdef99999',
+        });
+
+        // Then
+        expect(result.isFailure).toBe(true);
+        expect(result.error).toContain('sortOrder muss eine ganze Zahl sein');
+      });
+
+      it('sollte -Infinity sortOrder ablehnen', () => {
+        // Given
+        const qualifikation = validQualifikation;
+
+        // When
+        const result = qualifikation.update({
+          sortOrder: Number.NEGATIVE_INFINITY,
+          updatedBy: 'cm9999999999abcdef99999',
+        });
+
+        // Then
+        expect(result.isFailure).toBe(true);
+        expect(result.error).toContain('sortOrder muss eine ganze Zahl sein');
+      });
+
+      it('sollte Dezimalzahlen (5.5) ablehnen', () => {
+        // Given
+        const qualifikation = validQualifikation;
+
+        // When
+        const result = qualifikation.update({
+          sortOrder: 5.5,
+          updatedBy: 'cm9999999999abcdef99999',
+        });
+
+        // Then
+        expect(result.isFailure).toBe(true);
+        expect(result.error).toContain('sortOrder muss eine ganze Zahl sein');
+      });
+
+      it('sollte negative Ganzzahlen (-1) ablehnen', () => {
+        // Given
+        const qualifikation = validQualifikation;
+
+        // When
+        const result = qualifikation.update({
+          sortOrder: -1,
+          updatedBy: 'cm9999999999abcdef99999',
+        });
+
+        // Then
+        expect(result.isFailure).toBe(true);
+        expect(result.error).toContain('sortOrder muss größer oder gleich 0 sein');
+      });
+
+      it('sollte Null (0) als Grenzwert akzeptieren', () => {
+        // Given
+        const qualifikation = validQualifikation;
+
+        // When
+        const result = qualifikation.update({
+          sortOrder: 0,
+          updatedBy: 'cm9999999999abcdef99999',
+        });
+
+        // Then
+        expect(result.isSuccess).toBe(true);
+        expect(qualifikation.sortOrder).toBe(0);
+      });
+
+      it('sollte positive Ganzzahlen akzeptieren', () => {
+        // Given
+        const qualifikation = validQualifikation;
+
+        // When
+        const result = qualifikation.update({
+          sortOrder: 42,
+          updatedBy: 'cm9999999999abcdef99999',
+        });
+
+        // Then
+        expect(result.isSuccess).toBe(true);
+        expect(qualifikation.sortOrder).toBe(42);
+      });
+
+      it('sollte sehr große Ganzzahlen akzeptieren', () => {
+        // Given
+        const qualifikation = validQualifikation;
+
+        // When
+        const result = qualifikation.update({
+          sortOrder: Number.MAX_SAFE_INTEGER,
+          updatedBy: 'cm9999999999abcdef99999',
+        });
+
+        // Then
+        expect(result.isSuccess).toBe(true);
+        expect(qualifikation.sortOrder).toBe(Number.MAX_SAFE_INTEGER);
+      });
     });
 
     it('sollte leere Beschreibung als undefined speichern (nach trim)', () => {

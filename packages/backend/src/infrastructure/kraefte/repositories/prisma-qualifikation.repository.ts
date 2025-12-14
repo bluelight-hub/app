@@ -36,6 +36,29 @@ export class PrismaQualifikationRepository implements IQualifikationRepository {
   constructor(private readonly prisma: PrismaService) {}
 
   /**
+   * Extrahiert Feldname aus Prisma Error Meta für Logging.
+   *
+   * **Use Case:** Wird für strukturierte Logger-Nachrichten verwendet.
+   *
+   * @param error - Prisma Error Objekt
+   * @param errorCode - Prisma Error Code (P2002, P2003, etc.)
+   * @returns Feldname als String (oder 'unknown')
+   */
+  private extractFieldNameFromMeta(error: unknown, errorCode: 'P2002' | 'P2003'): string {
+    const meta = typeof error === 'object' && error !== null && 'meta' in error && error.meta ? error.meta : undefined;
+
+    if (errorCode === 'P2002') {
+      // P2002: target ist ein Array von Feldnamen
+      const target = meta && typeof meta === 'object' && 'target' in meta ? meta.target : 'unknown';
+      return Array.isArray(target) ? target.join(', ') : String(target);
+    }
+
+    // P2003: field_name ist ein String
+    const fieldName = meta && typeof meta === 'object' && 'field_name' in meta ? meta.field_name : 'unknown';
+    return String(fieldName);
+  }
+
+  /**
    * Formatiert Prisma-Fehler zu deutschen, benutzerfreundlichen Fehlermeldungen.
    *
    * **Unterstützte Error Codes:**
@@ -137,9 +160,7 @@ export class PrismaQualifikationRepository implements IQualifikationRepository {
     } catch (error) {
       // P2002: Unique Constraint Violation (abkuerzung oder andere unique fields)
       if (isPrismaError(error, 'P2002')) {
-        const meta = typeof error === 'object' && error !== null && 'meta' in error && error.meta ? error.meta : undefined;
-        const target = meta && typeof meta === 'object' && 'target' in meta ? meta.target : 'unknown';
-        const fieldName = Array.isArray(target) ? target.join(', ') : String(target);
+        const fieldName = this.extractFieldNameFromMeta(error, 'P2002');
         this.logger.warn(`Unique constraint violation on field: ${fieldName}`, { aggregateId: aggregate.id.value, tx: !!tx });
 
         const errorMessage = this.formatPrismaError(error, 'Speichern', aggregate.abkuerzung);
@@ -148,8 +169,7 @@ export class PrismaQualifikationRepository implements IQualifikationRepository {
 
       // P2003: Foreign Key Constraint Failed (createdBy/updatedBy User existiert nicht)
       if (isPrismaError(error, 'P2003')) {
-        const meta = typeof error === 'object' && error !== null && 'meta' in error && error.meta ? error.meta : undefined;
-        const fieldName = meta && typeof meta === 'object' && 'field_name' in meta ? meta.field_name : 'unknown';
+        const fieldName = this.extractFieldNameFromMeta(error, 'P2003');
         this.logger.warn(`FK constraint violation on field: ${fieldName}`, { aggregateId: aggregate.id.value, tx: !!tx });
         const errorMessage = this.formatPrismaError(error, 'Speichern');
         return Result.fail<void>(`Fehler beim Speichern: ${errorMessage}`);
