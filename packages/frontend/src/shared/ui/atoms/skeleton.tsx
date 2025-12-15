@@ -1,9 +1,9 @@
 import type { ComponentPropsWithoutRef } from 'react';
-import { cn } from '@/shared/lib/cn';
+import { cn } from '@/shared/ui/cn';
 
 export interface SkeletonProps extends ComponentPropsWithoutRef<'div'> {
   /**
-   * Die Höhe des Skeleton-Elements.
+   * Zusätzliche CSS-Klassen für das Skeleton-Element (z.B. für Größe und Form).
    */
   className?: string;
 }

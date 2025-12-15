@@ -3,11 +3,12 @@ import { Navigate } from '@tanstack/react-router';
 import { PiPlus, PiWarning } from 'react-icons/pi';
 import { useAdminAuth } from '@/features/auth/api';
 import { useAdminQualifikationenManagement, type QualifikationDto, type CreateQualifikationDto, type UpdateQualifikationDto } from '@/features/admin/api';
-import { Button } from '@/shared/ui/atoms/button';
-import { Card } from '@/shared/ui/atoms/card';
-import { Container } from '@/shared/ui/atoms/container';
-import { Heading } from '@/shared/ui/atoms/heading';
-import { Text } from '@/shared/ui/atoms/text';
+import { Button } from '@/shared/ui/atoms/button.atom';
+import { Card } from '@/shared/ui/atoms/card.atom';
+import { Container } from '@/shared/ui/atoms/container.atom';
+import { Heading } from '@/shared/ui/atoms/heading.atom';
+import { Text } from '@/shared/ui/atoms/text.atom';
+import { Skeleton } from '@/shared/ui/atoms/skeleton';
 import { ErrorBoundary } from '@/shared/ui/organisms/ErrorBoundary';
 import { QualifikationenTable } from '../organisms/QualifikationenTable';
 import { CreateQualifikationDialog } from '../organisms/CreateQualifikationDialog';
@@ -96,10 +97,10 @@ export function AdminQualifikationen() {
           {/* Header Skeleton */}
           <div className="flex items-center justify-between">
             <div className="flex flex-col gap-2">
-              <div className="h-8 w-48 animate-pulse rounded bg-gray-200" />
-              <div className="h-4 w-96 animate-pulse rounded bg-gray-200" />
+              <Skeleton className="h-8 w-48" />
+              <Skeleton className="h-4 w-96" />
             </div>
-            <div className="h-10 w-48 animate-pulse rounded bg-gray-200" />
+            <Skeleton className="h-10 w-48" />
           </div>
 
           {/* Table Skeleton */}
@@ -109,11 +110,11 @@ export function AdminQualifikationen() {
                 {[...Array(5)].map((_, index) => (
                   // biome-ignore lint/suspicious/noArrayIndexKey: Static skeleton elements - order never changes
                   <div key={`skeleton-${index}`} className="flex items-center gap-4">
-                    <div className="h-6 w-24 animate-pulse rounded bg-gray-200" />
-                    <div className="h-6 w-32 animate-pulse rounded bg-gray-200" />
-                    <div className="h-6 w-48 animate-pulse rounded bg-gray-200" />
-                    <div className="h-6 w-20 animate-pulse rounded bg-gray-200" />
-                    <div className="h-6 w-16 animate-pulse rounded bg-gray-200" />
+                    <Skeleton className="h-6 w-24" />
+                    <Skeleton className="h-6 w-32" />
+                    <Skeleton className="h-6 w-48" />
+                    <Skeleton className="h-6 w-20" />
+                    <Skeleton className="h-6 w-16" />
                   </div>
                 ))}
               </div>

@@ -2,12 +2,12 @@ import { useForm } from '@tanstack/react-form';
 import { zodValidator } from '@tanstack/zod-form-adapter';
 import { z } from 'zod';
 import { type CreateQualifikationDto, type QualifikationKategorie, KATEGORIE_LABELS } from '@/features/admin/api';
-import { Button } from '@/shared/ui/atoms/button';
-import { Dialog } from '@/shared/ui/molecules/dialog';
-import { FormField } from '@/shared/ui/molecules/form-field';
-import { Input } from '@/shared/ui/atoms/input';
-import { Select } from '@/shared/ui/atoms/select';
-import { Textarea } from '@/shared/ui/atoms/textarea';
+import { Button } from '@/shared/ui/atoms/button.atom';
+import { Dialog } from '@/shared/ui/molecules/dialog.molecule';
+import { FormField } from '@/shared/ui/atoms/form-field.atom';
+import { Input } from '@/shared/ui/atoms/input.atom';
+import { Select } from '@/shared/ui/atoms/select.atom';
+import { Textarea } from '@/shared/ui/atoms/textarea.atom';
 
 /**
  * Zod-Schema für CreateQualifikation Form.
@@ -81,8 +81,9 @@ export const CreateQualifikationDialog = ({ isOpen, onClose, onSubmit, isSubmitt
             {/* Name */}
             <form.Field name="name">
               {(field) => (
-                <FormField label="Name" error={field.state.meta.errors[0]} required>
+                <FormField label="Name" error={field.state.meta.errors[0]} required htmlFor="create-qualifikation-name">
                   <Input
+                    id="create-qualifikation-name"
                     name={field.name}
                     value={field.state.value}
                     onBlur={field.handleBlur}
@@ -98,8 +99,9 @@ export const CreateQualifikationDialog = ({ isOpen, onClose, onSubmit, isSubmitt
             {/* Abkürzung */}
             <form.Field name="abkuerzung">
               {(field) => (
-                <FormField label="Abkürzung" error={field.state.meta.errors[0]} required>
+                <FormField label="Abkürzung" error={field.state.meta.errors[0]} required htmlFor="create-qualifikation-abkuerzung">
                   <Input
+                    id="create-qualifikation-abkuerzung"
                     name={field.name}
                     value={field.state.value}
                     onBlur={field.handleBlur}
@@ -115,8 +117,14 @@ export const CreateQualifikationDialog = ({ isOpen, onClose, onSubmit, isSubmitt
             {/* Kategorie */}
             <form.Field name="kategorie">
               {(field) => (
-                <FormField label="Kategorie" required>
-                  <Select value={field.state.value} onChange={(value) => field.handleChange(value as QualifikationKategorie)} options={KATEGORIE_OPTIONS} fullWidth />
+                <FormField label="Kategorie" required htmlFor="create-qualifikation-kategorie">
+                  <Select
+                    id="create-qualifikation-kategorie"
+                    value={field.state.value}
+                    onChange={(value) => field.handleChange(value as QualifikationKategorie)}
+                    options={KATEGORIE_OPTIONS}
+                    fullWidth
+                  />
                 </FormField>
               )}
             </form.Field>
@@ -124,8 +132,9 @@ export const CreateQualifikationDialog = ({ isOpen, onClose, onSubmit, isSubmitt
             {/* Beschreibung */}
             <form.Field name="beschreibung">
               {(field) => (
-                <FormField label="Beschreibung">
+                <FormField label="Beschreibung" htmlFor="create-qualifikation-beschreibung">
                   <Textarea
+                    id="create-qualifikation-beschreibung"
                     name={field.name}
                     value={field.state.value}
                     onBlur={field.handleBlur}

@@ -24,8 +24,9 @@ interface UsernameFieldProps {
 }
 
 export const UsernameField = ({ field }: UsernameFieldProps) => (
-  <FormField label="Benutzername" error={field.state.meta.errors[0] as string | undefined} required>
+  <FormField label="Benutzername" error={field.state.meta.errors[0] as string | undefined} required htmlFor="user-username">
     <Input
+      id="user-username"
       name={field.name}
       value={field.state.value}
       onBlur={field.handleBlur}
@@ -52,8 +53,9 @@ interface RoleFieldProps {
 }
 
 export const RoleField = ({ field }: RoleFieldProps) => (
-  <FormField label="Rolle" error={field.state.meta.errors[0] as string | undefined} required>
+  <FormField label="Rolle" error={field.state.meta.errors[0] as string | undefined} required htmlFor="user-role">
     <Select
+      id="user-role"
       name={field.name}
       value={field.state.value}
       onBlur={field.handleBlur}

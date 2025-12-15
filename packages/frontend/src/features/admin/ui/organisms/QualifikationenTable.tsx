@@ -2,11 +2,11 @@ import { useCallback, useMemo, useState } from 'react';
 import { type SortingState, flexRender, getCoreRowModel, getSortedRowModel, useReactTable, createColumnHelper } from '@tanstack/react-table';
 import { PiPencilSimple, PiProhibit, PiCheckCircle, PiCaretUpDown } from 'react-icons/pi';
 import { type QualifikationDto, KATEGORIE_LABELS, getKategorieBadgeVariant } from '@/features/admin/api';
-import { Badge } from '@/shared/ui/atoms/badge';
-import { IconButton } from '@/shared/ui/atoms/icon-button';
-import { Table } from '@/shared/ui/molecules/table';
+import { Badge } from '@/shared/ui/atoms/badge.atom';
+import { IconButton } from '@/shared/ui/atoms/icon-button.atom';
+import { Table } from '@/shared/ui/molecules/table.molecule';
 import { Skeleton } from '@/shared/ui/atoms/skeleton';
-import { Text } from '@/shared/ui/atoms/text';
+import { Text } from '@/shared/ui/atoms/text.atom';
 
 interface QualifikationenTableProps {
   qualifikationen: QualifikationDto[];
@@ -46,27 +46,42 @@ export const QualifikationenTable = ({ qualifikationen, isLoading, onEdit, onDea
     () => [
       columnHelper.accessor('abkuerzung', {
         header: ({ column }) => (
-          <button type="button" className="flex items-center gap-1 font-medium" onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}>
+          <button
+            type="button"
+            className="flex items-center gap-1 font-medium"
+            onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
+            aria-label={`Nach Abkürzung sortieren ${column.getIsSorted() === 'asc' ? 'absteigend' : 'aufsteigend'}`}
+          >
             Abkürzung
-            <PiCaretUpDown className="h-4 w-4" />
+            <PiCaretUpDown className="h-4 w-4" aria-hidden="true" />
           </button>
         ),
         cell: (info) => <span className="font-medium font-mono">{info.getValue()}</span>,
       }),
       columnHelper.accessor('name', {
         header: ({ column }) => (
-          <button type="button" className="flex items-center gap-1 font-medium" onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}>
+          <button
+            type="button"
+            className="flex items-center gap-1 font-medium"
+            onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
+            aria-label={`Nach Name sortieren ${column.getIsSorted() === 'asc' ? 'absteigend' : 'aufsteigend'}`}
+          >
             Name
-            <PiCaretUpDown className="h-4 w-4" />
+            <PiCaretUpDown className="h-4 w-4" aria-hidden="true" />
           </button>
         ),
         cell: (info) => info.getValue(),
       }),
       columnHelper.accessor('kategorie', {
         header: ({ column }) => (
-          <button type="button" className="flex items-center gap-1 font-medium" onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}>
+          <button
+            type="button"
+            className="flex items-center gap-1 font-medium"
+            onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
+            aria-label={`Nach Kategorie sortieren ${column.getIsSorted() === 'asc' ? 'absteigend' : 'aufsteigend'}`}
+          >
             Kategorie
-            <PiCaretUpDown className="h-4 w-4" />
+            <PiCaretUpDown className="h-4 w-4" aria-hidden="true" />
           </button>
         ),
         cell: ({ row }) => <Badge variant={getKategorieBadgeVariant(row.original.kategorie)}>{KATEGORIE_LABELS[row.original.kategorie]}</Badge>,

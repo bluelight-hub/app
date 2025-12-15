@@ -8,6 +8,7 @@ interface FormFieldProps {
   required?: boolean;
   className?: string;
   children: React.ReactNode;
+  htmlFor?: string;
 }
 
 /**
@@ -15,14 +16,14 @@ interface FormFieldProps {
  *
  * Wrapper für Formularfelder mit Label und Hilfetexten
  */
-export function FormField({ label, helperText, error, required, className, children }: FormFieldProps) {
+export function FormField({ label, helperText, error, required, className, children, htmlFor }: FormFieldProps) {
   return (
     <div className={cn('space-y-2', className)}>
       {label && (
-        <div className="block font-medium text-gray-700 text-sm">
+        <label htmlFor={htmlFor} className="block font-medium text-gray-700 text-sm">
           {label}
           {required && <span className="ml-1 text-red-500">*</span>}
-        </div>
+        </label>
       )}
       {children}
       {(helperText || error) && <p className={cn('mt-1 text-sm', error ? 'text-red-600' : 'text-gray-500')}>{error || helperText}</p>}

@@ -150,7 +150,7 @@ export function AdminLogin() {
               <div className="flex flex-col gap-6">
                 <form.Field name="password">
                   {(field) => (
-                    <FormField label="Administrator-Passwort" className="w-full" error={field.state.meta.errors.length > 0 ? field.state.meta.errors.join(', ') : undefined}>
+                    <FormField label="Administrator-Passwort" className="w-full" error={field.state.meta.errors.length > 0 ? field.state.meta.errors.join(', ') : undefined} htmlFor="password">
                       <PasswordInput
                         id="password"
                         name={field.name}

@@ -4,7 +4,7 @@ import { zodValidator } from '@tanstack/zod-form-adapter';
 import { z } from 'zod';
 import { type QualifikationDto, type UpdateQualifikationDto, type QualifikationKategorie, KATEGORIE_LABELS } from '@/features/admin/api';
 import { Button } from '@/shared/ui/atoms/button.atom';
-import { Switch } from '@headlessui/react';
+import { Switch } from '@/shared/ui/atoms/switch.atom';
 import { Dialog } from '@/shared/ui/molecules/dialog.molecule';
 import { FormField } from '@/shared/ui/atoms/form-field.atom';
 import { Input } from '@/shared/ui/atoms/input.atom';
@@ -58,13 +58,28 @@ export const EditQualifikationDialog = ({ isOpen, onClose, onSubmit, isSubmittin
       onChange: updateQualifikationSchema,
     },
     onSubmit: ({ value }) => {
-      onSubmit({
-        name: value.name || undefined,
-        abkuerzung: value.abkuerzung || undefined,
-        kategorie: value.kategorie,
-        beschreibung: value.beschreibung || undefined,
-        istAktiv: value.istAktiv,
-      });
+      if (!qualifikation) return;
+
+      // Nur geänderte Felder senden (Partial Update)
+      const updates: UpdateQualifikationDto = {};
+
+      if (value.name !== qualifikation.name) {
+        updates.name = value.name;
+      }
+      if (value.abkuerzung !== qualifikation.abkuerzung) {
+        updates.abkuerzung = value.abkuerzung;
+      }
+      if (value.kategorie !== qualifikation.kategorie) {
+        updates.kategorie = value.kategorie;
+      }
+      if (value.beschreibung !== qualifikation.beschreibung) {
+        updates.beschreibung = value.beschreibung || undefined;
+      }
+      if (value.istAktiv !== qualifikation.istAktiv) {
+        updates.istAktiv = value.istAktiv;
+      }
+
+      onSubmit(updates);
     },
   });
 
@@ -108,8 +123,9 @@ export const EditQualifikationDialog = ({ isOpen, onClose, onSubmit, isSubmittin
             {/* Name */}
             <form.Field name="name">
               {(field) => (
-                <FormField label="Name" error={field.state.meta.errors[0]} required>
+                <FormField label="Name" error={field.state.meta.errors[0]} required htmlFor="edit-qualifikation-name">
                   <Input
+                    id="edit-qualifikation-name"
                     name={field.name}
                     value={field.state.value}
                     onBlur={field.handleBlur}
@@ -125,8 +141,9 @@ export const EditQualifikationDialog = ({ isOpen, onClose, onSubmit, isSubmittin
             {/* Abkürzung */}
             <form.Field name="abkuerzung">
               {(field) => (
-                <FormField label="Abkürzung" error={field.state.meta.errors[0]} required>
+                <FormField label="Abkürzung" error={field.state.meta.errors[0]} required htmlFor="edit-qualifikation-abkuerzung">
                   <Input
+                    id="edit-qualifikation-abkuerzung"
                     name={field.name}
                     value={field.state.value}
                     onBlur={field.handleBlur}
@@ -142,8 +159,8 @@ export const EditQualifikationDialog = ({ isOpen, onClose, onSubmit, isSubmittin
             {/* Kategorie */}
             <form.Field name="kategorie">
               {(field) => (
-                <FormField label="Kategorie" required>
-                  <Select value={field.state.value} onChange={(value) => field.handleChange(value as QualifikationKategorie)} options={KATEGORIE_OPTIONS} fullWidth />
+                <FormField label="Kategorie" required htmlFor="edit-qualifikation-kategorie">
+                  <Select id="edit-qualifikation-kategorie" value={field.state.value} onChange={(value) => field.handleChange(value as QualifikationKategorie)} options={KATEGORIE_OPTIONS} fullWidth />
                 </FormField>
               )}
             </form.Field>
@@ -151,8 +168,9 @@ export const EditQualifikationDialog = ({ isOpen, onClose, onSubmit, isSubmittin
             {/* Beschreibung */}
             <form.Field name="beschreibung">
               {(field) => (
-                <FormField label="Beschreibung">
+                <FormField label="Beschreibung" htmlFor="edit-qualifikation-beschreibung">
                   <Textarea
+                    id="edit-qualifikation-beschreibung"
                     name={field.name}
                     value={field.state.value}
                     onBlur={field.handleBlur}
@@ -167,10 +185,12 @@ export const EditQualifikationDialog = ({ isOpen, onClose, onSubmit, isSubmittin
             {/* Status */}
             <form.Field name="istAktiv">
               {(field) => (
-                <FormField label="Status">
+                <FormField label="Status" htmlFor="edit-qualifikation-status">
                   <div className="flex items-center gap-3">
-                    <Switch checked={field.state.value} onChange={field.handleChange} />
-                    <span className="text-gray-700 text-sm dark:text-gray-300">{field.state.value ? 'Aktiv' : 'Deaktiviert'}</span>
+                    <Switch checked={field.state.value} onChange={field.handleChange} labelledBy="edit-qualifikation-status" />
+                    <span id="edit-qualifikation-status" className="text-gray-700 text-sm dark:text-gray-300">
+                      {field.state.value ? 'Aktiv' : 'Deaktiviert'}
+                    </span>
                   </div>
                 </FormField>
               )}
