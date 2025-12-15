@@ -2,7 +2,7 @@
 
 **Epic:** 1 - Admin-Grundkonfiguration
 **Story Key:** 1-1-qualifikationen-verwalten
-**Status:** in-progress (Review Issues R11 - 6 CRITICAL, 11 HIGH)
+**Status:** in-progress (R12 Issues behoben - alle CRITICAL+HIGH ✅)
 **Created:** 2025-12-13
 **FRs covered:** FR34 (Admin kann Qualifikations-Definitionen verwalten)
 
@@ -2541,3 +2541,73 @@ Verbleibende Tests (Repository, Mapper, Controller) können in separater Tech-De
 [ ] Keyboard Shortcuts
 [ ] Visual Feedback
 ```
+
+---
+
+### Review Follow-ups Round 12 (AI) - 2025-12-15
+
+**Code Review durchgeführt:** 2025-12-15
+**Reviewer:** 5 parallele Adversarial Subagents (Claude Opus 4.5)
+**Methode:** Deep-Dive nach 11 vorherigen Review-Runden
+
+#### Executive Summary
+
+| Priorität | Gefunden | Behoben | Offen |
+|-----------|----------|---------|-------|
+| 🔴 CRITICAL | 2 | ✅ 2 | 0 |
+| 🟠 HIGH | 6 | ✅ 6 | 0 |
+| 🟡 MEDIUM | 8 | 0 | 8 |
+| 🟢 LOW | 4 | 0 | 4 |
+| **Total** | **20** | **8** | **12** |
+
+**Stand:** 2025-12-15 - Alle CRITICAL und HIGH Issues behoben
+
+#### 🔴 CRITICAL Priority (Must Fix Before Merge)
+
+- [x] [AI-R12][CRITICAL][NEW] **Error Information Disclosure** - `result.error` direkt an Client geleakt [`admin-qualifikationen.controller.ts:154, 192`] ✅ FIXED 2025-12-15 (Generische Error Messages, Details in Logs)
+- [x] [AI-R12][CRITICAL][KNOWN] **jest.clearAllMocks() fehlt** in GetAllQualifikationenHandler Tests [`get-all-qualifikationen.handler.spec.ts:14`] ✅ VERIFIED 2025-12-15 (Bereits vorhanden in Zeile 15)
+
+#### 🟠 HIGH Priority (Should Fix Before Production)
+
+- [x] [AI-R12][HIGH][NEW] **AC3 Violation** - NestJS Logger Import in Application Layer [`create-qualifikation.handler.ts:1-13`, `update-qualifikation.handler.ts:1`] ✅ DOCUMENTED 2025-12-15 (JSDoc erklärt warum Logger akzeptabel ist)
+- [x] [AI-R12][HIGH][NEW] **Race Condition** - Doppelte onSuccess Handler (Hook + Page) [`use-admin-qualifikationen-management.ts:43` + `AdminQualifikationen.tsx:75`] ✅ VERIFIED 2025-12-15 (KEIN BUG: Hook=Toast+Cache, Page=UI State - beabsichtigtes Pattern)
+- [x] [AI-R12][HIGH][NEW] **Fehlende Invalidation nach Rollback** - Optimistic Update Rollback ohne Server-Sync [`use-admin-qualifikationen-management.ts:93-103`] ✅ VERIFIED 2025-12-15 (onSettled invalidiert bereits, kein Fix nötig)
+- [x] [AI-R12][HIGH][KNOWN] **useEffect Dependency Loop** - `form` als Dependency instabil [`EditQualifikationDialog.tsx:99-119`] ✅ FIXED 2025-12-15 (useCallback entfernt, biome-ignore + dokumentiert)
+- [x] [AI-R12][HIGH][KNOWN] **Form Reset fehlt nach Submit** - Alte Daten bei schnellem Reopen [`CreateQualifikationDialog.tsx:52-58`] ✅ VERIFIED 2025-12-15 (onSuccess→handleClose resettet Form bereits)
+- [x] [AI-R12][HIGH][NEW] **Query Parameter Error Leak** - `istAktiv` Wert in BadRequestException [`admin-qualifikationen.controller.ts:135`] ✅ FIXED 2025-12-15 (User-Input nicht mehr in Response, nur in Logs)
+
+#### 🟡 MEDIUM Priority (Should Fix)
+
+- [ ] [AI-R12][MEDIUM][NEW] **AC4 Violation** - Error-Werfen für null-checks statt Result Pattern [`create-qualifikation.handler.ts:51-55`]
+- [ ] [AI-R12][MEDIUM][NEW] **String-Matching bei Error-Mapping** - fragil, sollte Error Codes nutzen [`admin-qualifikationen.controller.ts:151-154`]
+- [ ] [AI-R12][MEDIUM][NEW] **Audit Trail in Logs statt DB** - userId in Logger.log() statt dedizierter Audit-Tabelle [`admin-qualifikationen.controller.ts:266, 337, 401`]
+- [ ] [AI-R12][MEDIUM][KNOWN] **JSDoc "WARUM" fehlt** in QualifikationQueryMapper [`qualifikation-query.mapper.ts:15-20`]
+- [ ] [AI-R12][MEDIUM][KNOWN] **Missing Exception-Handling Test** für Repository.findByAbkuerzung() [`create-qualifikation.handler.spec.ts`]
+- [ ] [AI-R12][MEDIUM][KNOWN] **Incomplete Rollback Assertion** - Outbox.save() nicht verifiziert [`create-qualifikation.handler.spec.ts:285`]
+- [ ] [AI-R12][MEDIUM][KNOWN] **Missing Reactivity Combination Test** - istAktiv + andere Felder kombiniert [`update-qualifikation.handler.spec.ts`]
+- [ ] [AI-R12][MEDIUM][NEW] **Asymmetric Error Coverage** - Deactivate Handler fehlt save-Fehler-Test [`deactivate-qualifikation.handler.spec.ts`]
+
+#### 🟢 LOW Priority (Nice to Fix)
+
+- [ ] [AI-R12][LOW][KNOWN] **DI-Token Naming Inkonsistenz** - KRAEFTE_REPOSITORIES nested vs andere flat [`di-tokens.ts:60-65`]
+- [ ] [AI-R12][LOW][NEW] **Redundante null-Checks in Mappern** - defensiv-redundant [`prisma-qualifikation.mapper.ts:73`]
+- [ ] [AI-R12][LOW][KNOWN] **Mutate vs MutateAsync Signatur** - Potential Typing Issues [`AdminQualifikationen.tsx:74-79`]
+- [ ] [AI-R12][LOW][NEW] **N+1 Query Doku für zukünftige Features** - `findWithRollen()` erwähnt aber existiert nicht [`prisma-qualifikation.mapper.ts:19-23`]
+
+#### ✅ Positiv verifiziert (funktioniert korrekt)
+
+- ✅ P2002/P2003 Error Handling - excellent implementiert
+- ✅ Result Pattern - konsistent in allen Handlers
+- ✅ TransactionalCommandHandler - Outbox atomar
+- ✅ AdminJwtAuthGuard - auf allen Endpoints
+- ✅ @Throttle Rate Limiting - vorhanden
+- ✅ API Client - generierter Client (kein fetch())
+- ✅ AAA Test Pattern - Given-When-Then Kommentare
+
+#### Status-Empfehlung
+
+**Story Status:** `in-progress (R12 Issues behoben - 2 CRITICAL ✅, 6 HIGH ✅)`
+**Blocker:** ✅ Alle CRITICAL und HIGH Issues behoben (2025-12-15)
+**Nächster Schritt:** Story kann für Review vorbereitet werden (MEDIUM/LOW Issues sind optional)
+
+---

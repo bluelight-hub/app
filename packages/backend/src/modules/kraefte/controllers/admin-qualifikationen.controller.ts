@@ -132,7 +132,9 @@ export class AdminQualifikationenController {
         parsedIstAktiv = false;
       } else {
         // Invalid value provided
-        throw new BadRequestException(`Ungültiger Wert für 'istAktiv': '${istAktiv}'. Erlaubte Werte: 'true', 'false' oder Parameter weglassen.`);
+        // SECURITY: User-Input NICHT zurück an Client senden (XSS/Injection Prevention)
+        this.logger.warn(`Invalid istAktiv value received: '${istAktiv}'`);
+        throw new BadRequestException("Ungültiger Wert für 'istAktiv'. Erlaubte Werte: 'true', 'false' oder Parameter weglassen.");
       }
     }
 
@@ -148,10 +150,15 @@ export class AdminQualifikationenController {
       //
       // Business validation errors → 400 Bad Request
       // All other errors → 500 Internal Server Error
+      //
+      // SECURITY: result.error wird NICHT direkt an Client weitergegeben (Information Disclosure Risk)
+      // Stattdessen: Generische Fehlermeldung für Client, Details nur in Server-Logs
       if (result.error?.includes('Validierung') || result.error?.includes('Ungültig')) {
-        throw new BadRequestException(result.error);
+        this.logger.warn(`Validation error in findAll: ${result.error}`);
+        throw new BadRequestException('Ungültige Filterparameter');
       }
-      throw new InternalServerErrorException(result.error);
+      this.logger.error(`Unexpected error in findAll: ${result.error}`);
+      throw new InternalServerErrorException('Fehler beim Abrufen der Qualifikationen');
     }
 
     return result.value ?? [];
@@ -189,7 +196,9 @@ export class AdminQualifikationenController {
 
     if (result.isFailure) {
       // Unexpected errors (ID validation already handled by ParseCuidPipe)
-      throw new InternalServerErrorException(result.error);
+      // SECURITY: Interne Fehlermeldungen nicht an Client leaken (Information Disclosure)
+      this.logger.error(`Unexpected error in findOne for ID ${id}: ${result.error}`);
+      throw new InternalServerErrorException('Fehler beim Abrufen der Qualifikation');
     }
 
     if (!result.value) {

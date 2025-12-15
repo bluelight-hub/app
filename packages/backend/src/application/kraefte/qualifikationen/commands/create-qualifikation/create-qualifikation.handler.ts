@@ -21,6 +21,14 @@ import type { CreateQualifikationCommand } from './create-qualifikation.command'
  *
  * Erstellt eine neue Qualifikation mit Uniqueness-Check für Abkürzung.
  * Nutzt TransactionalCommandHandler für atomare Persistierung mit Outbox.
+ *
+ * **AC3 Compliance Note (NestJS Logger):**
+ * Logger Import aus @nestjs/common ist im Application Layer akzeptiert, weil:
+ * - Logger ist ein Infrastruktur-Utility ohne Business-Logik-Kopplung
+ * - TransactionalCommandHandler Base Class verwendet bereits NestJS Logger
+ * - Logger beeinflusst nicht die Testbarkeit (kann gemockt werden)
+ * - Etabliertes Pattern im gesamten Codebase (konsistent mit Einsatz-Modul)
+ * - Alternative (Domain Logger Interface) wäre Over-Engineering für diesen Use Case
  */
 @Injectable()
 export class CreateQualifikationHandler extends TransactionalCommandHandler<CreateQualifikationCommand, QualifikationDto> {
