@@ -72,7 +72,7 @@ describe('CreateQualifikationHandler', () => {
         name: 'Zugführer',
         abkuerzung: 'ZFÜ',
         kategorie: 'FUEHRUNG',
-        createdBy: 'user-123',
+        createdBy: 'cm1234567890abcdef12345',
         beschreibung: 'Leitet einen Zug',
       }).value!;
 
@@ -97,7 +97,7 @@ describe('CreateQualifikationHandler', () => {
         name: 'Rettungssanitäter',
         abkuerzung: 'RS',
         kategorie: 'SANITAET',
-        createdBy: 'user-456',
+        createdBy: 'cm9999999999abcdef99999',
       }).value!;
 
       // When (Act)
@@ -109,7 +109,7 @@ describe('CreateQualifikationHandler', () => {
       const savedAggregate = mockRepository.save.mock.calls[0][0] as Qualifikation;
       expect(savedAggregate.name).toBe('Rettungssanitäter');
       expect(savedAggregate.abkuerzung).toBe('RS');
-      expect(savedAggregate.kategorie).toBe('SANITAET');
+      expect(savedAggregate.kategorieValue).toBe('SANITAET');
     });
 
     it('sollte fehlschlagen wenn Abkürzung bereits vergeben ist', async () => {
@@ -132,7 +132,7 @@ describe('CreateQualifikationHandler', () => {
         name: 'Zugführer Neu',
         abkuerzung: 'ZFÜ',
         kategorie: 'FUEHRUNG',
-        createdBy: 'user-123',
+        createdBy: 'cm1234567890abcdef12345',
       }).value!;
 
       // When (Act)
@@ -152,7 +152,7 @@ describe('CreateQualifikationHandler', () => {
         name: 'Test Qualifikation',
         abkuerzung: 'TQ',
         kategorie: 'TECHNIK',
-        createdBy: 'user-123',
+        createdBy: 'cm1234567890abcdef12345',
       }).value!;
 
       // When (Act)
@@ -172,7 +172,7 @@ describe('CreateQualifikationHandler', () => {
         name: 'Test Qualifikation',
         abkuerzung: 'TQ',
         kategorie: 'BETREUUNG',
-        createdBy: 'user-123',
+        createdBy: 'cm1234567890abcdef12345',
       }).value!;
 
       // When (Act)
@@ -191,7 +191,7 @@ describe('CreateQualifikationHandler', () => {
         name: 'AB',
         abkuerzung: 'AB',
         kategorie: 'FUEHRUNG',
-        createdBy: 'user-123',
+        createdBy: 'cm1234567890abcdef12345',
       });
 
       // Then (Assert)
@@ -205,7 +205,7 @@ describe('CreateQualifikationHandler', () => {
         name: 'Gültiger Name',
         abkuerzung: 'A',
         kategorie: 'FUEHRUNG',
-        createdBy: 'user-123',
+        createdBy: 'cm1234567890abcdef12345',
       });
 
       // Then (Assert)
@@ -219,7 +219,7 @@ describe('CreateQualifikationHandler', () => {
         name: 'Gültiger Name',
         abkuerzung: 'GN',
         kategorie: 'UNGUELTIG' as never,
-        createdBy: 'user-123',
+        createdBy: 'cm1234567890abcdef12345',
       });
 
       // Then (Assert)
@@ -249,7 +249,7 @@ describe('CreateQualifikationHandler', () => {
         name: 'Test Qualifikation',
         abkuerzung: 'TQ',
         kategorie: 'SONSTIGES',
-        createdBy: 'user-123',
+        createdBy: 'cm1234567890abcdef12345',
       }).value!;
 
       // When (Act)
@@ -271,7 +271,7 @@ describe('CreateQualifikationHandler', () => {
         name: 'Test Qualifikation',
         abkuerzung: 'TQ',
         kategorie: 'SONSTIGES',
-        createdBy: 'user-123',
+        createdBy: 'cm1234567890abcdef12345',
       }).value!;
 
       // When (Act)
@@ -295,7 +295,7 @@ describe('CreateQualifikationHandler', () => {
           name: 'Ärztlicher Leiter Rettungsdienst',
           abkuerzung: 'ÄLRD',
           kategorie: 'FUEHRUNG',
-          createdBy: 'user-123',
+          createdBy: 'cm1234567890abcdef12345',
         }).value!;
 
         // When (Act)
@@ -314,7 +314,7 @@ describe('CreateQualifikationHandler', () => {
           name: 'Straßen Rettung',
           abkuerzung: 'STRß',
           kategorie: 'TECHNIK',
-          createdBy: 'user-123',
+          createdBy: 'cm1234567890abcdef12345',
         }).value!;
 
         // When (Act)
@@ -332,7 +332,7 @@ describe('CreateQualifikationHandler', () => {
           name: 'Ersthelfer 🚑',
           abkuerzung: 'EH',
           kategorie: 'SANITAET',
-          createdBy: 'user-123',
+          createdBy: 'cm1234567890abcdef12345',
         }).value!;
 
         // When (Act)
@@ -353,7 +353,7 @@ describe('CreateQualifikationHandler', () => {
           name: nameWith100Chars,
           abkuerzung: 'MAX',
           kategorie: 'SONSTIGES',
-          createdBy: 'user-123',
+          createdBy: 'cm1234567890abcdef12345',
         }).value!;
 
         // When (Act)
@@ -372,7 +372,7 @@ describe('CreateQualifikationHandler', () => {
           name: 'Lange Abkürzung Test',
           abkuerzung: abkuerzungWith20Chars,
           kategorie: 'SONSTIGES',
-          createdBy: 'user-123',
+          createdBy: 'cm1234567890abcdef12345',
         }).value!;
 
         // When (Act)
@@ -391,7 +391,7 @@ describe('CreateQualifikationHandler', () => {
           name: 'Test Qualifikation',
           abkuerzung: 'TQ',
           kategorie: 'SONSTIGES',
-          createdBy: 'user-123',
+          createdBy: 'cm1234567890abcdef12345',
           beschreibung: beschreibungWith1000Chars,
         }).value!;
 
@@ -404,57 +404,53 @@ describe('CreateQualifikationHandler', () => {
         expect(savedAggregate.beschreibung?.length).toBe(1000);
       });
 
-      it('sollte Namen mit 101 Zeichen ablehnen (Overflow)', async () => {
+      it('sollte Namen mit 101 Zeichen ablehnen (Max-Length Defense-in-Depth)', async () => {
         // Given (Arrange)
         const nameWith101Chars = 'A'.repeat(101);
         const commandResult = CreateQualifikationCommand.create({
           name: nameWith101Chars,
           abkuerzung: 'TQ',
           kategorie: 'SONSTIGES',
-          createdBy: 'user-123',
+          createdBy: 'cm1234567890abcdef12345',
         });
 
         // Then (Assert)
-        // Command validation sollte fehlschlagen (oder Aggregate validation)
-        // Da Command keine Max-Length Validation hat, wird es im Aggregate abgelehnt
-        // HINWEIS: Aktuell KEINE Max-Length Validation im Code!
-        // Dieser Test dokumentiert das FEHLENDE Feature
-        expect(commandResult.isSuccess).toBe(true); // Command validiert nicht Max-Length
-
-        // Aber Repository könnte bei DB-Constraint fehlschlagen
-        // Dieser Test zeigt dass wir KEINE explizite Max-Length Validation haben
+        // CR-2 Fix: Command validiert jetzt Max-Length als Defense-in-Depth
+        expect(commandResult.isFailure).toBe(true);
+        expect(commandResult.error).toContain('maximal 100 Zeichen');
       });
 
-      it('sollte Abkürzung mit 21 Zeichen ablehnen (Overflow)', async () => {
+      it('sollte Abkürzung mit 21 Zeichen ablehnen (Max-Length Defense-in-Depth)', async () => {
         // Given (Arrange)
         const abkuerzungWith21Chars = 'B'.repeat(21);
         const commandResult = CreateQualifikationCommand.create({
           name: 'Test Qualifikation',
           abkuerzung: abkuerzungWith21Chars,
           kategorie: 'SONSTIGES',
-          createdBy: 'user-123',
+          createdBy: 'cm1234567890abcdef12345',
         });
 
         // Then (Assert)
-        // Command validation sollte fehlschlagen (oder Aggregate validation)
-        // HINWEIS: Aktuell KEINE Max-Length Validation im Code!
-        expect(commandResult.isSuccess).toBe(true); // Command validiert nicht Max-Length
+        // CR-2 Fix: Command validiert jetzt Max-Length als Defense-in-Depth
+        expect(commandResult.isFailure).toBe(true);
+        expect(commandResult.error).toContain('maximal 20 Zeichen');
       });
 
-      it('sollte Beschreibung mit 1001 Zeichen ablehnen (Overflow)', async () => {
+      it('sollte Beschreibung mit 1001 Zeichen ablehnen (Max-Length Defense-in-Depth)', async () => {
         // Given (Arrange)
         const beschreibungWith1001Chars = 'C'.repeat(1001);
         const commandResult = CreateQualifikationCommand.create({
           name: 'Test Qualifikation',
           abkuerzung: 'TQ',
           kategorie: 'SONSTIGES',
-          createdBy: 'user-123',
+          createdBy: 'cm1234567890abcdef12345',
           beschreibung: beschreibungWith1001Chars,
         });
 
         // Then (Assert)
-        // HINWEIS: Aktuell KEINE Max-Length Validation im Code!
-        expect(commandResult.isSuccess).toBe(true); // Command validiert nicht Max-Length
+        // CR-2 Fix: Command validiert jetzt Max-Length als Defense-in-Depth
+        expect(commandResult.isFailure).toBe(true);
+        expect(commandResult.error).toContain('maximal 1000 Zeichen');
       });
     });
 
@@ -465,7 +461,7 @@ describe('CreateQualifikationHandler', () => {
           name: '   Zugführer   ',
           abkuerzung: 'ZFÜ',
           kategorie: 'FUEHRUNG',
-          createdBy: 'user-123',
+          createdBy: 'cm1234567890abcdef12345',
         }).value!;
 
         // When (Act)
@@ -483,7 +479,7 @@ describe('CreateQualifikationHandler', () => {
           name: 'Zugführer',
           abkuerzung: '  ZFÜ  ',
           kategorie: 'FUEHRUNG',
-          createdBy: 'user-123',
+          createdBy: 'cm1234567890abcdef12345',
         }).value!;
 
         // When (Act)
@@ -501,7 +497,7 @@ describe('CreateQualifikationHandler', () => {
           name: 'Zugführer',
           abkuerzung: 'ZFÜ',
           kategorie: 'FUEHRUNG',
-          createdBy: 'user-123',
+          createdBy: 'cm1234567890abcdef12345',
           beschreibung: '   Leitet einen Zug   ',
         }).value!;
 
@@ -518,25 +514,13 @@ describe('CreateQualifikationHandler', () => {
     describe('Case Sensitivity', () => {
       it('sollte Abkürzung case-sensitiv prüfen (ZFÜ vs zfü sind unterschiedlich)', async () => {
         // Given (Arrange)
-        const existingId = createId();
-        const _existingQualifikation = Qualifikation.reconstitute({
-          id: existingId,
-          name: 'Existierende Qualifikation',
-          abkuerzung: 'zfü',
-          kategorie: 'FUEHRUNG',
-          istAktiv: true,
-          sortOrder: 0,
-          createdAt: new Date(),
-          updatedAt: new Date(),
-          createdBy: 'user-999',
-        }).value!;
         mockRepository.findByAbkuerzung.mockResolvedValue(Result.ok(null)); // Keine Kollision, da case-sensitiv
 
         const command = CreateQualifikationCommand.create({
           name: 'Zugführer Neu',
           abkuerzung: 'ZFÜ',
           kategorie: 'FUEHRUNG',
-          createdBy: 'user-123',
+          createdBy: 'cm1234567890abcdef12345',
         }).value!;
 
         // When (Act)
@@ -556,7 +540,7 @@ describe('CreateQualifikationHandler', () => {
         name: 'Zugführer',
         abkuerzung: 'ZFÜ',
         kategorie: 'FUEHRUNG',
-        createdBy: 'user-123',
+        createdBy: 'cm1234567890abcdef12345',
         beschreibung: 'Leitet einen Zug',
       }).value!;
 
@@ -577,7 +561,7 @@ describe('CreateQualifikationHandler', () => {
       expect(event.name).toBe('Zugführer');
       expect(event.abkuerzung).toBe('ZFÜ');
       expect(event.kategorie).toBe('FUEHRUNG');
-      expect(event.createdBy).toBe('user-123');
+      expect(event.createdBy).toBe('cm1234567890abcdef12345');
       expect(event.aggregateId).toBeDefined();
     });
 
@@ -587,7 +571,7 @@ describe('CreateQualifikationHandler', () => {
         name: 'Rettungssanitäter',
         abkuerzung: 'RS',
         kategorie: 'SANITAET',
-        createdBy: 'user-456',
+        createdBy: 'cm9999999999abcdef99999',
       }).value!;
 
       // When (Act)
@@ -617,7 +601,7 @@ describe('CreateQualifikationHandler', () => {
         name: 'Zugführer',
         abkuerzung: 'ZFÜ',
         kategorie: 'FUEHRUNG',
-        createdBy: 'user-123',
+        createdBy: 'cm1234567890abcdef12345',
       }).value!;
 
       // When (Act)
@@ -630,20 +614,65 @@ describe('CreateQualifikationHandler', () => {
       expect(mockRepository.save).toHaveBeenCalledTimes(1);
     });
 
+    it('sollte bei Race Condition sowohl Qualifikation als auch Outbox-Events zurückrollen', async () => {
+      // Given (Arrange)
+      // Simuliere Race Condition mit Exception während der Transaktion
+      let transactionRolledBack = false;
+
+      mockPrismaService.$transaction.mockImplementation(async (callback) => {
+        try {
+          // Simuliere: Repository.save wirft Fehler (z.B. unique constraint violation)
+          mockRepository.save.mockRejectedValue(new Error('UNIQUE_CONSTRAINT_VIOLATION: Abkürzung bereits vergeben'));
+          await callback({});
+        } catch (error) {
+          // Transaction wird gerollt
+          transactionRolledBack = true;
+          throw error;
+        }
+      });
+
+      const command = CreateQualifikationCommand.create({
+        name: 'Zugführer',
+        abkuerzung: 'ZFÜ',
+        kategorie: 'FUEHRUNG',
+        createdBy: 'cm1234567890abcdef12345',
+      }).value!;
+
+      // When (Act)
+      const result = await handler.execute(command);
+
+      // Then (Assert)
+      // TransactionalCommandHandler fängt Exception und gibt Result.fail() zurück
+      expect(result.isFailure).toBe(true);
+      expect(result.error).toContain('UNIQUE_CONSTRAINT_VIOLATION');
+
+      // Verifiziere: $transaction wurde aufgerufen (Rollback-Mechanismus greift)
+      expect(mockPrismaService.$transaction).toHaveBeenCalledTimes(1);
+
+      // Verifiziere: Bei Exception in Transaction werden weder Qualifikation noch Outbox-Events gespeichert
+      // (Prisma rollt automatisch die gesamte Transaktion zurück)
+      expect(transactionRolledBack).toBe(true);
+
+      // WICHTIG: Outbox.save() sollte NICHT aufgerufen worden sein,
+      // da der Fehler VOR dem Outbox-Save auftrat (Repository.save fehlgeschlagen)
+      // Aber selbst wenn Outbox.save() aufgerufen wurde, wird die TX gerollt
+      // -> Keine Events persistiert bei Fehler
+    });
+
     it('sollte bei concurrent saves mit unterschiedlichen Abkürzungen beide erfolgreich sein', async () => {
       // Given (Arrange)
       const command1 = CreateQualifikationCommand.create({
         name: 'Zugführer',
         abkuerzung: 'ZFÜ',
         kategorie: 'FUEHRUNG',
-        createdBy: 'user-123',
+        createdBy: 'cm1234567890abcdef12345',
       }).value!;
 
       const command2 = CreateQualifikationCommand.create({
         name: 'Gruppenführer',
         abkuerzung: 'GFÜ',
         kategorie: 'FUEHRUNG',
-        createdBy: 'user-456',
+        createdBy: 'cm9999999999abcdef99999',
       }).value!;
 
       // When (Act)

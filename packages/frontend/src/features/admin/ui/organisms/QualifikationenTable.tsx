@@ -169,11 +169,16 @@ export const QualifikationenTable = ({ qualifikationen, isLoading, onEdit, onDea
       <Table.Header>
         {table.getHeaderGroups().map((headerGroup) => (
           <Table.Row key={headerGroup.id}>
-            {headerGroup.headers.map((header) => (
-              <Table.Head key={header.id} className="whitespace-nowrap">
-                {header.isPlaceholder ? null : flexRender(header.column.columnDef.header, header.getContext())}
-              </Table.Head>
-            ))}
+            {headerGroup.headers.map((header) => {
+              const sortDirection = header.column.getIsSorted();
+              const ariaSort = sortDirection === 'asc' ? 'ascending' : sortDirection === 'desc' ? 'descending' : 'none';
+
+              return (
+                <Table.Head key={header.id} className="whitespace-nowrap" scope="col" aria-sort={header.column.getCanSort() ? ariaSort : undefined}>
+                  {header.isPlaceholder ? null : flexRender(header.column.columnDef.header, header.getContext())}
+                </Table.Head>
+              );
+            })}
           </Table.Row>
         ))}
       </Table.Header>

@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react';
+import { useCallback, useEffect, useRef } from 'react';
 import { useForm } from '@tanstack/react-form';
 import { zodValidator } from '@tanstack/zod-form-adapter';
 import { z } from 'zod';
@@ -79,16 +79,36 @@ export const EditQualifikationDialog = ({ isOpen, onClose, onSubmit, isSubmittin
         updates.istAktiv = value.istAktiv;
       }
 
+      // Prüfen ob überhaupt Änderungen vorliegen
+      if (Object.keys(updates).length === 0) {
+        // Keine Änderungen - Dialog einfach schließen
+        handleClose();
+        return;
+      }
+
       onSubmit(updates);
     },
   });
+
+  /**
+   * Stabile Reset-Funktion mit useCallback - verhindert Race Condition im useEffect.
+   *
+   * Wrapping form.reset in useCallback macht die Dependency stabil und vermeidet
+   * unnötige useEffect Re-Runs bei jedem form-State-Change.
+   */
+  const resetForm = useCallback(
+    (newValues: typeof form.state.values) => {
+      form.reset(newValues);
+    },
+    [form],
+  );
 
   // Update form when qualifikation changes
   // Reset form nur wenn eine neue Qualifikation geladen wird (ID-Wechsel)
   useEffect(() => {
     if (qualifikation && isOpen && lastLoadedIdRef.current !== qualifikation.id) {
       lastLoadedIdRef.current = qualifikation.id;
-      form.reset({
+      resetForm({
         name: qualifikation.name,
         abkuerzung: qualifikation.abkuerzung,
         kategorie: qualifikation.kategorie,
@@ -96,7 +116,7 @@ export const EditQualifikationDialog = ({ isOpen, onClose, onSubmit, isSubmittin
         istAktiv: qualifikation.istAktiv,
       });
     }
-  }, [qualifikation, isOpen, form]);
+  }, [qualifikation, isOpen, resetForm]);
 
   const handleClose = () => {
     if (!isSubmitting) {
@@ -160,7 +180,13 @@ export const EditQualifikationDialog = ({ isOpen, onClose, onSubmit, isSubmittin
             <form.Field name="kategorie">
               {(field) => (
                 <FormField label="Kategorie" required htmlFor="edit-qualifikation-kategorie">
-                  <Select id="edit-qualifikation-kategorie" value={field.state.value} onChange={(value) => field.handleChange(value as QualifikationKategorie)} options={KATEGORIE_OPTIONS} fullWidth />
+                  <Select
+                    id="edit-qualifikation-kategorie"
+                    value={field.state.value}
+                    onChange={(e) => field.handleChange(e.target.value as QualifikationKategorie)}
+                    options={KATEGORIE_OPTIONS}
+                    fullWidth
+                  />
                 </FormField>
               )}
             </form.Field>

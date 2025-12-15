@@ -24,6 +24,7 @@ import {
   ApiNotFoundResponse,
   ApiBadRequestResponse,
   ApiUnauthorizedResponse,
+  ApiForbiddenResponse,
   ApiQuery,
   ApiConflictResponse,
   ApiInternalServerErrorResponse,
@@ -54,6 +55,9 @@ import { QualifikationDto } from '@application/kraefte/qualifikationen/dto/quali
 import { CreateQualifikationDto } from '@application/kraefte/qualifikationen/dto/create-qualifikation.dto';
 import { UpdateQualifikationDto } from '@application/kraefte/qualifikationen/dto/update-qualifikation.dto';
 
+// Error Codes
+import { QUALIFIKATION_ERROR_CODES, QualifikationError } from '@domain/kraefte/common/error-codes';
+
 /**
  * Admin Controller für Qualifikationen-Verwaltung.
  *
@@ -69,6 +73,7 @@ import { UpdateQualifikationDto } from '@application/kraefte/qualifikationen/dto
 @ApiBearerAuth('admin-jwt')
 @ApiUnauthorizedResponse({ description: 'Keine gültige Admin-Authentifizierung' })
 @ApiTooManyRequestsResponse({ description: 'Rate limit überschritten' })
+@ApiInternalServerErrorResponse({ description: 'Unerwarteter Serverfehler' })
 @Controller({ path: 'admin/kraefte/qualifikationen', version: 'alpha' })
 @UseGuards(AdminJwtAuthGuard)
 @Throttle({ default: { limit: 20, ttl: 60000 } }) // 20 requests per minute
@@ -94,23 +99,44 @@ export class AdminQualifikationenController {
    * WARUM manuelle Boolean-Parsing statt ParseBoolPipe({ optional: true }):
    * - ParseBoolPipe({ optional: true }) ist keine gültige NestJS API
    * - Manuelle Transformation erlaubt undefined-Werte für optionale Parameter
+   * - Explizite Validierung statt Silent-Ignore für ungültige Werte (z.B. "garbage")
    *
    * @param istAktiv - Optional: Nur aktive (true) oder inaktive (false) Qualifikationen
    * @returns Array aller Qualifikationen (sortiert nach Name)
+   * @throws BadRequestException wenn istAktiv ungültigen Wert hat (nicht 'true'/'false'/undefined)
    */
   @Get()
   @ApiOperation({ summary: 'Alle Qualifikationen auflisten' })
   @ApiOkResponse({ type: QualifikationDto, isArray: true })
   @ApiQuery({ name: 'istAktiv', required: false, type: Boolean, description: 'Filter nach Aktivierungsstatus' })
+  @ApiBadRequestResponse({ description: 'Ungültiger Query-Parameter' })
+  @ApiForbiddenResponse({ description: 'Keine Berechtigung für diese Operation' })
   @ApiInternalServerErrorResponse({ description: 'Fehler beim Abrufen der Qualifikationen' })
   async findAll(@Query('istAktiv') istAktiv?: string): Promise<QualifikationDto[]> {
     // Parse boolean manually (undefined, 'true', 'false')
-    const parsedIstAktiv = istAktiv === 'true' ? true : istAktiv === 'false' ? false : undefined;
+    // Validate: Only 'true', 'false', or undefined are allowed
+    let parsedIstAktiv: boolean | undefined;
+
+    if (istAktiv !== undefined) {
+      if (istAktiv === 'true') {
+        parsedIstAktiv = true;
+      } else if (istAktiv === 'false') {
+        parsedIstAktiv = false;
+      } else {
+        // Invalid value provided
+        throw new BadRequestException(`Ungültiger Wert für 'istAktiv': '${istAktiv}'. Erlaubte Werte: 'true', 'false' oder Parameter weglassen.`);
+      }
+    }
 
     const query = new GetAllQualifikationenQuery(parsedIstAktiv);
     const result = await this.getAllHandler.execute(query);
 
     if (result.isFailure) {
+      // Business validation errors → 400 Bad Request
+      // All other errors → 500 Internal Server Error
+      if (result.error?.includes('Validierung') || result.error?.includes('Ungültig')) {
+        throw new BadRequestException(result.error);
+      }
       throw new InternalServerErrorException(result.error);
     }
 
@@ -141,17 +167,14 @@ export class AdminQualifikationenController {
   @ApiOkResponse({ type: QualifikationDto })
   @ApiNotFoundResponse({ description: 'Qualifikation nicht gefunden' })
   @ApiBadRequestResponse({ description: 'Ungültige CUID' })
+  @ApiForbiddenResponse({ description: 'Keine Berechtigung für diese Operation' })
   @ApiInternalServerErrorResponse({ description: 'Fehler beim Abrufen der Qualifikation' })
   async findOne(@Param('id', ParseCuidPipe) id: string): Promise<QualifikationDto> {
     const query = new GetQualifikationByIdQuery(id);
     const result = await this.getByIdHandler.execute(query);
 
     if (result.isFailure) {
-      // Differentiate error types
-      if (result.error?.includes('Ungültige ID')) {
-        throw new BadRequestException(result.error);
-      }
-      // Unexpected errors
+      // Unexpected errors (ID validation already handled by ParseCuidPipe)
       throw new InternalServerErrorException(result.error);
     }
 
@@ -187,6 +210,7 @@ export class AdminQualifikationenController {
   @ApiOperation({ summary: 'Neue Qualifikation erstellen' })
   @ApiCreatedResponse({ type: QualifikationDto })
   @ApiBadRequestResponse({ description: 'Validierungsfehler (z.B. Name zu kurz)' })
+  @ApiForbiddenResponse({ description: 'Keine Admin-Berechtigung' })
   @ApiConflictResponse({ description: 'Abkürzung bereits vergeben' })
   @ApiInternalServerErrorResponse({ description: 'Fehler beim Erstellen der Qualifikation' })
   async create(@CurrentUser() user: ValidatedUser, @Body() dto: CreateQualifikationDto): Promise<QualifikationDto> {
@@ -212,9 +236,9 @@ export class AdminQualifikationenController {
     const result = await this.createHandler.execute(command);
 
     if (result.isFailure) {
-      // Check if it's a duplicate abkürzung error
-      if (result.error?.includes('bereits vergeben')) {
-        throw new ConflictException(result.error);
+      // Check error code instead of string matching
+      if (result.error && QualifikationError.hasCode(result.error, QUALIFIKATION_ERROR_CODES.ABKUERZUNG_DUPLICATE)) {
+        throw new ConflictException(QualifikationError.extractMessage(result.error));
       }
       throw new BadRequestException(result.error);
     }
@@ -251,6 +275,7 @@ export class AdminQualifikationenController {
   @ApiOperation({ summary: 'Qualifikation aktualisieren' })
   @ApiOkResponse({ type: QualifikationDto })
   @ApiBadRequestResponse({ description: 'Validierungsfehler oder ungültige CUID' })
+  @ApiForbiddenResponse({ description: 'Keine Admin-Berechtigung' })
   @ApiNotFoundResponse({ description: 'Qualifikation nicht gefunden' })
   @ApiConflictResponse({ description: 'Neue Abkürzung bereits vergeben' })
   @ApiInternalServerErrorResponse({ description: 'Fehler beim Aktualisieren der Qualifikation' })
@@ -279,13 +304,12 @@ export class AdminQualifikationenController {
     const result = await this.updateHandler.execute(command);
 
     if (result.isFailure) {
-      // Check if it's a "not found" error
-      if (result.error?.includes('nicht gefunden')) {
-        throw new NotFoundException(result.error);
+      // Check error codes instead of string matching
+      if (result.error && QualifikationError.hasCode(result.error, QUALIFIKATION_ERROR_CODES.NOT_FOUND)) {
+        throw new NotFoundException(QualifikationError.extractMessage(result.error));
       }
-      // Check if it's a duplicate abkürzung error
-      if (result.error?.includes('bereits vergeben')) {
-        throw new ConflictException(result.error);
+      if (result.error && QualifikationError.hasCode(result.error, QUALIFIKATION_ERROR_CODES.ABKUERZUNG_DUPLICATE)) {
+        throw new ConflictException(QualifikationError.extractMessage(result.error));
       }
       throw new BadRequestException(result.error);
     }
@@ -321,6 +345,7 @@ export class AdminQualifikationenController {
   @ApiOperation({ summary: 'Qualifikation deaktivieren' })
   @ApiOkResponse({ type: QualifikationDto })
   @ApiBadRequestResponse({ description: 'Qualifikation ist bereits deaktiviert oder ungültige CUID' })
+  @ApiForbiddenResponse({ description: 'Keine Admin-Berechtigung' })
   @ApiNotFoundResponse({ description: 'Qualifikation nicht gefunden' })
   @ApiInternalServerErrorResponse({ description: 'Fehler beim Deaktivieren der Qualifikation' })
   async deactivate(@Param('id', ParseCuidPipe) id: string, @CurrentUser() user: ValidatedUser): Promise<QualifikationDto> {
@@ -343,8 +368,12 @@ export class AdminQualifikationenController {
     const result = await this.deactivateHandler.execute(command);
 
     if (result.isFailure) {
-      if (result.error?.includes('nicht gefunden')) {
-        throw new NotFoundException(result.error);
+      // Check error codes instead of string matching
+      if (result.error && QualifikationError.hasCode(result.error, QUALIFIKATION_ERROR_CODES.NOT_FOUND)) {
+        throw new NotFoundException(QualifikationError.extractMessage(result.error));
+      }
+      if (result.error && QualifikationError.hasCode(result.error, QUALIFIKATION_ERROR_CODES.ALREADY_DEACTIVATED)) {
+        throw new BadRequestException(QualifikationError.extractMessage(result.error));
       }
       throw new BadRequestException(result.error);
     }

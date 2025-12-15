@@ -45,6 +45,7 @@ export const useAdminQualifikationenManagement = (filters?: { istAktiv?: boolean
       });
       await queryClient.invalidateQueries({
         queryKey: ADMIN_QUERY_KEYS.kraefte.qualifikationen.all(),
+        exact: false, // Invalidiert auch Detail-Queries
       });
     },
     onError: async (error: ResponseError) => {
@@ -55,7 +56,12 @@ export const useAdminQualifikationenManagement = (filters?: { istAktiv?: boolean
   });
 
   // Mutation: Qualifikation aktualisieren
-  const updateMutation = useMutation<QualifikationDto, ResponseError, { id: string; data: UpdateQualifikationDto }, { previousData: QualifikationDto[] | undefined }>({
+  const updateMutation = useMutation<
+    QualifikationDto,
+    ResponseError,
+    { id: string; data: UpdateQualifikationDto },
+    { previousQueries: Array<{ queryKey: readonly unknown[]; data: QualifikationDto[] }> }
+  >({
     mutationFn: ({ id, data }) =>
       api.adminKraefteQualifikationen().adminQualifikationenControllerUpdateVAlpha({
         id,
@@ -67,28 +73,32 @@ export const useAdminQualifikationenManagement = (filters?: { istAktiv?: boolean
         queryKey: ADMIN_QUERY_KEYS.kraefte.qualifikationen.all(),
       });
 
-      const previousData = queryClient.getQueryData<QualifikationDto[]>(ADMIN_QUERY_KEYS.kraefte.qualifikationen.list(filters));
+      // Snapshot ALLER betroffenen Query Caches (mit verschiedenen Filtern)
+      const previousQueries: Array<{ queryKey: readonly unknown[]; data: QualifikationDto[] }> = [];
+      queryClient.getQueriesData<QualifikationDto[]>({ queryKey: ADMIN_QUERY_KEYS.kraefte.qualifikationen.all() }).forEach(([queryKey, oldData]) => {
+        if (oldData) {
+          previousQueries.push({ queryKey, data: oldData });
+        }
+      });
 
-      // Update alle Query Caches (mit und ohne Filter), nicht nur den aktuellen
+      // Update alle Query Caches (mit und ohne Filter)
       queryClient.setQueriesData<QualifikationDto[]>({ queryKey: ADMIN_QUERY_KEYS.kraefte.qualifikationen.all() }, (old) => {
         if (!old) return old;
         return old.map((q) => (q.id === id ? { ...q, ...data } : q));
       });
 
-      return { previousData };
+      return { previousQueries };
     },
     onError: async (error, _variables, context) => {
-      // Rollback auf vorherige Daten - Update ALLE Query Caches (mit und ohne Filter)
-      if (context?.previousData) {
-        // Rollback für alle Query-Varianten, nicht nur den aktuellen Filter
-        queryClient.setQueriesData<QualifikationDto[]>({ queryKey: ADMIN_QUERY_KEYS.kraefte.qualifikationen.all() }, () => context.previousData);
-        toast.info('Änderung rückgängig gemacht', {
-          description: 'Die Änderungen wurden aufgrund eines Fehlers zurückgesetzt.',
-        });
+      // Rollback auf vorherige Daten - Restore ALLE Query Caches mit ihren Original-Daten
+      if (context?.previousQueries) {
+        for (const { queryKey, data } of context.previousQueries) {
+          queryClient.setQueryData(queryKey, data);
+        }
       }
       const message = await getApiErrorMessage(error, 'Die Qualifikation konnte nicht aktualisiert werden.', 'updateQualifikation');
       logger.error('Failed to update qualifikation', error);
-      toast.error('Fehler', { description: message });
+      toast.error('Fehler beim Aktualisieren', { description: message });
     },
     onSuccess: async () => {
       toast.success('Qualifikation aktualisiert', {
@@ -98,12 +108,13 @@ export const useAdminQualifikationenManagement = (filters?: { istAktiv?: boolean
     onSettled: () => {
       void queryClient.invalidateQueries({
         queryKey: ADMIN_QUERY_KEYS.kraefte.qualifikationen.all(),
+        exact: false, // Invalidiert auch Detail-Queries
       });
     },
   });
 
   // Mutation: Qualifikation deaktivieren
-  const deactivateMutation = useMutation<QualifikationDto, ResponseError, string, { previousData: QualifikationDto[] | undefined }>({
+  const deactivateMutation = useMutation<QualifikationDto, ResponseError, string, { previousQueries: Array<{ queryKey: readonly unknown[]; data: QualifikationDto[] }> }>({
     mutationFn: (id: string) => api.adminKraefteQualifikationen().adminQualifikationenControllerDeactivateVAlpha({ id }),
     onMutate: async (id) => {
       // Optimistic Update
@@ -111,28 +122,32 @@ export const useAdminQualifikationenManagement = (filters?: { istAktiv?: boolean
         queryKey: ADMIN_QUERY_KEYS.kraefte.qualifikationen.all(),
       });
 
-      const previousData = queryClient.getQueryData<QualifikationDto[]>(ADMIN_QUERY_KEYS.kraefte.qualifikationen.list(filters));
+      // Snapshot ALLER betroffenen Query Caches (mit verschiedenen Filtern)
+      const previousQueries: Array<{ queryKey: readonly unknown[]; data: QualifikationDto[] }> = [];
+      queryClient.getQueriesData<QualifikationDto[]>({ queryKey: ADMIN_QUERY_KEYS.kraefte.qualifikationen.all() }).forEach(([queryKey, oldData]) => {
+        if (oldData) {
+          previousQueries.push({ queryKey, data: oldData });
+        }
+      });
 
-      // Update alle Query Caches (mit und ohne Filter), nicht nur den aktuellen
+      // Update alle Query Caches (mit und ohne Filter)
       queryClient.setQueriesData<QualifikationDto[]>({ queryKey: ADMIN_QUERY_KEYS.kraefte.qualifikationen.all() }, (old) => {
         if (!old) return old;
         return old.map((q) => (q.id === id ? { ...q, istAktiv: false } : q));
       });
 
-      return { previousData };
+      return { previousQueries };
     },
     onError: async (error, _id, context) => {
-      // Rollback auf vorherige Daten - Update ALLE Query Caches (mit und ohne Filter)
-      if (context?.previousData) {
-        // Rollback für alle Query-Varianten, nicht nur den aktuellen Filter
-        queryClient.setQueriesData<QualifikationDto[]>({ queryKey: ADMIN_QUERY_KEYS.kraefte.qualifikationen.all() }, () => context.previousData);
-        toast.info('Änderung rückgängig gemacht', {
-          description: 'Die Deaktivierung wurde aufgrund eines Fehlers zurückgesetzt.',
-        });
+      // Rollback auf vorherige Daten - Restore ALLE Query Caches mit ihren Original-Daten
+      if (context?.previousQueries) {
+        for (const { queryKey, data } of context.previousQueries) {
+          queryClient.setQueryData(queryKey, data);
+        }
       }
       const message = await getApiErrorMessage(error, 'Die Qualifikation konnte nicht deaktiviert werden.', 'deactivateQualifikation');
       logger.error('Failed to deactivate qualifikation', error);
-      toast.error('Fehler', { description: message });
+      toast.error('Fehler beim Deaktivieren', { description: message });
     },
     onSuccess: async () => {
       toast.success('Qualifikation deaktiviert', {
@@ -142,9 +157,18 @@ export const useAdminQualifikationenManagement = (filters?: { istAktiv?: boolean
     onSettled: () => {
       void queryClient.invalidateQueries({
         queryKey: ADMIN_QUERY_KEYS.kraefte.qualifikationen.all(),
+        exact: false, // Invalidiert auch Detail-Queries
       });
     },
   });
+
+  /**
+   * Aggregiertes isMutating Flag - verhindert Race Conditions durch parallele Mutations.
+   *
+   * Wenn TRUE: User sollte keine neuen Mutations starten können.
+   * Nutze dieses Flag zum Disablen von Create/Update/Deactivate Buttons.
+   */
+  const isMutating = createMutation.isPending || updateMutation.isPending || deactivateMutation.isPending;
 
   return {
     // Query Data
@@ -162,10 +186,11 @@ export const useAdminQualifikationenManagement = (filters?: { istAktiv?: boolean
     isCreating: createMutation.isPending,
     isUpdating: updateMutation.isPending,
     isDeactivating: deactivateMutation.isPending,
+    isMutating, // CRITICAL FIX: Aggregiertes Flag für globale Mutation-Tracking
 
     // Mutation Variables (für per-row tracking)
     updatingId: updateMutation.isPending ? updateMutation.variables?.id : undefined,
-    deactivatingId: deactivateMutation.isPending ? deactivateMutation.variables : undefined,
+    deactivatingId: deactivateMutation.isPending ? deactivateMutation.variables : undefined, // CRITICAL FIX: String statt Objekt
   };
 };
 

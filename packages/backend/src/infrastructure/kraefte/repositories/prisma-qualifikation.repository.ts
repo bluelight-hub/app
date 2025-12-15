@@ -229,6 +229,14 @@ export class PrismaQualifikationRepository implements IQualifikationRepository {
    *
    * **Use Case:** Wird von Application Layer genutzt um Duplikate zu prüfen.
    *
+   * **Case-Sensitivity:** PostgreSQL UNIQUE Constraint ist case-sensitive.
+   * "GF" und "gf" werden als unterschiedliche Abkürzungen behandelt und sind beide erlaubt.
+   * Dies ist beabsichtigt, da Feuerwehr-Abkürzungen oft Groß-/Kleinschreibung unterscheiden
+   * (z.B. "GF" = Gruppenführer vs. "gf" = hypothetisch andere Bedeutung).
+   * Falls Case-Insensitiv gewünscht ist, muss entweder:
+   * 1. Eine Normalisierung (toUpperCase()) im Application Layer erfolgen, oder
+   * 2. Ein PostgreSQL CITEXT Spaltentyp verwendet werden (Prisma Schema Änderung).
+   *
    * @param abkuerzung - Die eindeutige Abkürzung (z.B. "NotSan")
    * @param tx - Optional: Transaction Context
    * @returns Result<Qualifikation | null> - Success mit Aggregate oder null, Failure bei DB-Fehler

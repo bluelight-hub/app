@@ -526,10 +526,13 @@ enum FahrzeugtypKategorie {
 }
 
 // Qualifikation Model (z.B. NotSan, RS, RH, GF, ZF)
+// WICHTIG: abkuerzung @unique ist case-sensitive (PostgreSQL VARCHAR).
+// "GF" und "gf" werden als unterschiedlich behandelt und sind beide erlaubt.
+// Dies ist beabsichtigt, da Feuerwehr-Abkürzungen oft Groß-/Kleinschreibung unterscheiden.
 model Qualifikation {
   id           String                 @id @default(cuid())
   name         String                 @db.VarChar(100) // z.B. "Notfallsanitäter"
-  abkuerzung   String                 @unique @db.VarChar(20) // z.B. "NotSan"
+  abkuerzung   String                 @unique @db.VarChar(20) // z.B. "NotSan" (case-sensitive unique constraint)
   kategorie    QualifikationKategorie
   beschreibung String?                @db.Text
   istAktiv     Boolean                @default(true)
