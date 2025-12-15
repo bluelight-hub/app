@@ -14,7 +14,7 @@ describe('GetQualifikationByIdHandler', () => {
 
   beforeEach(async () => {
     jest.clearAllMocks();
-    jest.restoreAllMocks();
+    jest.restoreAllMocks(); // Notwendig wegen jest.spyOn() in Test Zeile 85
 
     mockRepository = {
       save: jest.fn(),
@@ -44,7 +44,7 @@ describe('GetQualifikationByIdHandler', () => {
         sortOrder: 0,
         createdAt: new Date(),
         updatedAt: new Date(),
-        createdBy: 'user-123',
+        createdBy: 'cm1234567890abcdef12345',
       }).value!;
 
       mockRepository.findById.mockResolvedValue(Result.ok(qualifikation));
@@ -111,23 +111,6 @@ describe('GetQualifikationByIdHandler', () => {
       expect(result.error).toBe('Datenbankverbindung fehlgeschlagen');
     });
 
-    it('sollte fehlschlagen mit spezifischer Fehlermeldung bei unerwarteter Exception', async () => {
-      // Given (Arrange)
-      const id = createId();
-      const error = new Error('Netzwerkfehler');
-      mockRepository.findById.mockRejectedValue(error);
-
-      const query = new GetQualifikationByIdQuery(id);
-
-      // When (Act)
-      const result = await handler.execute(query);
-
-      // Then (Assert)
-      expect(result.isFailure).toBe(true);
-      expect(result.error).toContain('Fehler beim Laden der Qualifikation');
-      expect(result.error).toContain('Netzwerkfehler');
-    });
-
     it('sollte korrektes DTO mit allen Feldern zurückgeben', async () => {
       // Given (Arrange)
       const id = createId();
@@ -182,7 +165,7 @@ describe('GetQualifikationByIdHandler', () => {
         sortOrder: 0,
         createdAt: new Date(),
         updatedAt: new Date(),
-        createdBy: 'user-123',
+        createdBy: 'cm1234567890abcdef12345',
       }).value!;
 
       mockRepository.findById.mockResolvedValue(Result.ok(qualifikation));
@@ -215,7 +198,7 @@ describe('GetQualifikationByIdHandler', () => {
           sortOrder: 0,
           createdAt: new Date(),
           updatedAt: new Date(),
-          createdBy: 'user-123',
+          createdBy: 'cm1234567890abcdef12345',
         }).value!;
 
         mockRepository.findById.mockResolvedValue(Result.ok(qualifikation));

@@ -82,14 +82,6 @@ export class LagekarteCQRSApi extends runtime.BaseAPI {
 
     headerParameters['Content-Type'] = 'application/json';
 
-    if (this.configuration && this.configuration.accessToken) {
-      const token = this.configuration.accessToken;
-      const tokenString = await token('bearer', []);
-
-      if (tokenString) {
-        headerParameters['Authorization'] = `Bearer ${tokenString}`;
-      }
-    }
     const response = await this.request(
       {
         path: `/api/v-alpha/lagekarte/{lagekarteId}/poi`.replace(`{${'lagekarteId'}}`, encodeURIComponent(String(requestParameters['lagekarteId']))),
@@ -131,14 +123,6 @@ export class LagekarteCQRSApi extends runtime.BaseAPI {
 
     headerParameters['Content-Type'] = 'application/json';
 
-    if (this.configuration && this.configuration.accessToken) {
-      const token = this.configuration.accessToken;
-      const tokenString = await token('bearer', []);
-
-      if (tokenString) {
-        headerParameters['Authorization'] = `Bearer ${tokenString}`;
-      }
-    }
     const response = await this.request(
       {
         path: `/api/v-alpha/lagekarte`,
@@ -181,14 +165,6 @@ export class LagekarteCQRSApi extends runtime.BaseAPI {
 
     const headerParameters: runtime.HTTPHeaders = {};
 
-    if (this.configuration && this.configuration.accessToken) {
-      const token = this.configuration.accessToken;
-      const tokenString = await token('bearer', []);
-
-      if (tokenString) {
-        headerParameters['Authorization'] = `Bearer ${tokenString}`;
-      }
-    }
     const response = await this.request(
       {
         path: `/api/v-alpha/lagekarte/einsatz/{einsatzId}`.replace(`{${'einsatzId'}}`, encodeURIComponent(String(requestParameters['einsatzId']))),
@@ -234,14 +210,6 @@ export class LagekarteCQRSApi extends runtime.BaseAPI {
 
     const headerParameters: runtime.HTTPHeaders = {};
 
-    if (this.configuration && this.configuration.accessToken) {
-      const token = this.configuration.accessToken;
-      const tokenString = await token('bearer', []);
-
-      if (tokenString) {
-        headerParameters['Authorization'] = `Bearer ${tokenString}`;
-      }
-    }
     const response = await this.request(
       {
         path: `/api/v-alpha/lagekarte/{lagekarteId}/pois`.replace(`{${'lagekarteId'}}`, encodeURIComponent(String(requestParameters['lagekarteId']))),
@@ -284,14 +252,6 @@ export class LagekarteCQRSApi extends runtime.BaseAPI {
 
     const headerParameters: runtime.HTTPHeaders = {};
 
-    if (this.configuration && this.configuration.accessToken) {
-      const token = this.configuration.accessToken;
-      const tokenString = await token('bearer', []);
-
-      if (tokenString) {
-        headerParameters['Authorization'] = `Bearer ${tokenString}`;
-      }
-    }
     const response = await this.request(
       {
         path: `/api/v-alpha/lagekarte/{lagekarteId}/poi/{poiId}`
@@ -341,14 +301,6 @@ export class LagekarteCQRSApi extends runtime.BaseAPI {
 
     headerParameters['Content-Type'] = 'application/json';
 
-    if (this.configuration && this.configuration.accessToken) {
-      const token = this.configuration.accessToken;
-      const tokenString = await token('bearer', []);
-
-      if (tokenString) {
-        headerParameters['Authorization'] = `Bearer ${tokenString}`;
-      }
-    }
     const response = await this.request(
       {
         path: `/api/v-alpha/lagekarte/{lagekarteId}/poi/{poiId}`

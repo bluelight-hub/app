@@ -65,6 +65,14 @@ export class AdminKraefteQualifikationenApi extends runtime.BaseAPI {
 
     headerParameters['Content-Type'] = 'application/json';
 
+    if (this.configuration && this.configuration.accessToken) {
+      const token = this.configuration.accessToken;
+      const tokenString = await token('admin-jwt', []);
+
+      if (tokenString) {
+        headerParameters['Authorization'] = `Bearer ${tokenString}`;
+      }
+    }
     const response = await this.request(
       {
         path: `/api/v-alpha/admin/kraefte/qualifikationen`,
@@ -105,6 +113,14 @@ export class AdminKraefteQualifikationenApi extends runtime.BaseAPI {
 
     const headerParameters: runtime.HTTPHeaders = {};
 
+    if (this.configuration && this.configuration.accessToken) {
+      const token = this.configuration.accessToken;
+      const tokenString = await token('admin-jwt', []);
+
+      if (tokenString) {
+        headerParameters['Authorization'] = `Bearer ${tokenString}`;
+      }
+    }
     const response = await this.request(
       {
         path: `/api/v-alpha/admin/kraefte/qualifikationen/{id}/deactivate`.replace(`{${'id'}}`, encodeURIComponent(String(requestParameters['id']))),
@@ -144,6 +160,14 @@ export class AdminKraefteQualifikationenApi extends runtime.BaseAPI {
 
     const headerParameters: runtime.HTTPHeaders = {};
 
+    if (this.configuration && this.configuration.accessToken) {
+      const token = this.configuration.accessToken;
+      const tokenString = await token('admin-jwt', []);
+
+      if (tokenString) {
+        headerParameters['Authorization'] = `Bearer ${tokenString}`;
+      }
+    }
     const response = await this.request(
       {
         path: `/api/v-alpha/admin/kraefte/qualifikationen`,
@@ -183,6 +207,14 @@ export class AdminKraefteQualifikationenApi extends runtime.BaseAPI {
 
     const headerParameters: runtime.HTTPHeaders = {};
 
+    if (this.configuration && this.configuration.accessToken) {
+      const token = this.configuration.accessToken;
+      const tokenString = await token('admin-jwt', []);
+
+      if (tokenString) {
+        headerParameters['Authorization'] = `Bearer ${tokenString}`;
+      }
+    }
     const response = await this.request(
       {
         path: `/api/v-alpha/admin/kraefte/qualifikationen/{id}`.replace(`{${'id'}}`, encodeURIComponent(String(requestParameters['id']))),
@@ -228,6 +260,14 @@ export class AdminKraefteQualifikationenApi extends runtime.BaseAPI {
 
     headerParameters['Content-Type'] = 'application/json';
 
+    if (this.configuration && this.configuration.accessToken) {
+      const token = this.configuration.accessToken;
+      const tokenString = await token('admin-jwt', []);
+
+      if (tokenString) {
+        headerParameters['Authorization'] = `Bearer ${tokenString}`;
+      }
+    }
     const response = await this.request(
       {
         path: `/api/v-alpha/admin/kraefte/qualifikationen/{id}`.replace(`{${'id'}}`, encodeURIComponent(String(requestParameters['id']))),

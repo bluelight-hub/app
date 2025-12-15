@@ -1,9 +1,9 @@
 import { PiWarning } from 'react-icons/pi';
 import { type QualifikationDto, KATEGORIE_LABELS } from '@/features/admin/api';
-import { Button } from '@/shared/ui/atoms/button';
-import { Dialog } from '@/shared/ui/molecules/dialog';
-import { Text } from '@/shared/ui/atoms/text';
-import { Badge } from '@/shared/ui/atoms/badge';
+import { Button } from '@/shared/ui/atoms/button.atom';
+import { Dialog } from '@/shared/ui/molecules/dialog.molecule';
+import { Text } from '@/shared/ui/atoms/text.atom';
+import { Badge } from '@/shared/ui/atoms/badge.atom';
 
 interface DeactivateQualifikationDialogProps {
   isOpen: boolean;

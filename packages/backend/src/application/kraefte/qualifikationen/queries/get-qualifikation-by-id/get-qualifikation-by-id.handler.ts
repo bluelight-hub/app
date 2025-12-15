@@ -1,6 +1,7 @@
 import { Inject, Injectable, Logger } from '@nestjs/common';
 import { Result } from '@domain/common/result';
-import type { IQualifikationRepository } from '@domain/kraefte/repositories/i-qualifikation.repository';
+// biome-ignore lint/style/useImportType: IQualifikationRepository needed for DI at runtime
+import { IQualifikationRepository } from '@domain/kraefte/repositories/i-qualifikation.repository';
 import { QualifikationId } from '@domain/kraefte/value-objects/qualifikation-id';
 import { KRAEFTE_REPOSITORIES } from '@infrastructure/di-tokens';
 import type { QualifikationDto } from '../../dto/qualifikation.dto';
@@ -20,7 +21,7 @@ import type { GetQualifikationByIdQuery } from './get-qualifikation-by-id.query'
  */
 @Injectable()
 export class GetQualifikationByIdHandler {
-  private readonly logger = new Logger(GetQualifikationByIdHandler.name);
+  protected readonly logger = new Logger(GetQualifikationByIdHandler.name);
 
   constructor(
     @Inject(KRAEFTE_REPOSITORIES.QUALIFIKATION)
@@ -33,31 +34,40 @@ export class GetQualifikationByIdHandler {
    * @returns Result<QualifikationDto | null> - null wenn nicht gefunden
    */
   async execute(query: GetQualifikationByIdQuery): Promise<Result<QualifikationDto | null>> {
-    try {
-      // Create QualifikationId value object (already validated by ParseCuidPipe)
-      const qualifikationId = QualifikationId.create(query.id).value;
-      if (!qualifikationId) {
-        return Result.fail<QualifikationDto | null>('Ungültige ID');
+    // Validiere qualifikationId via Value Object
+    const qualifikationIdResult = QualifikationId.create(query.id);
+    if (qualifikationIdResult.isFailure) {
+      if (!qualifikationIdResult.error) {
+        this.logger.error('QualifikationId.create returned isFailure=true but error is null - this is a bug!');
+        throw new Error('ID validation returned failure without error message');
       }
-
-      // Load from repository
-      const result = await this.repository.findById(qualifikationId);
-      if (result.isFailure) {
-        return Result.fail<QualifikationDto | null>(result.error ?? 'Fehler beim Laden der Qualifikation');
-      }
-
-      // Not found → Return null (not error)
-      if (!result.value) {
-        return Result.ok<QualifikationDto | null>(null);
-      }
-
-      // Map to DTO
-      const dto = QualifikationQueryMapper.toDto(result.value);
-      return Result.ok<QualifikationDto | null>(dto);
-    } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-      this.logger.error(`Failed to get Qualifikation by id: ${errorMessage}`, error);
-      return Result.fail<QualifikationDto | null>(`Fehler beim Laden der Qualifikation: ${errorMessage}`);
+      return Result.fail<QualifikationDto | null>(qualifikationIdResult.error);
     }
+
+    // Type Narrowing: value ist garantiert vorhanden nach isFailure Check
+    const qualifikationId = qualifikationIdResult.value;
+    if (!qualifikationId) {
+      this.logger.error('QualifikationId.create returned isSuccess=true but value is null - this is a bug!');
+      throw new Error('ID validation succeeded but value is null');
+    }
+
+    // Repository Call
+    const repoResult = await this.repository.findById(qualifikationId);
+    if (repoResult.isFailure) {
+      if (!repoResult.error) {
+        this.logger.error('Repository.findById returned isFailure=true but error is null - this is a bug!');
+        throw new Error('Repository returned failure without error message');
+      }
+      return Result.fail<QualifikationDto | null>(repoResult.error);
+    }
+
+    // Not found → Return null (not error)
+    if (!repoResult.value) {
+      return Result.ok<QualifikationDto | null>(null);
+    }
+
+    // Map to DTO
+    const dto = QualifikationQueryMapper.toDto(repoResult.value);
+    return Result.ok<QualifikationDto | null>(dto);
   }
 }

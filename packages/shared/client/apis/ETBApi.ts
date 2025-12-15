@@ -89,14 +89,6 @@ export class ETBApi extends runtime.BaseAPI {
 
     headerParameters['Content-Type'] = 'application/json';
 
-    if (this.configuration && this.configuration.accessToken) {
-      const token = this.configuration.accessToken;
-      const tokenString = await token('bearer', []);
-
-      if (tokenString) {
-        headerParameters['Authorization'] = `Bearer ${tokenString}`;
-      }
-    }
     const response = await this.request(
       {
         path: `/api/v-alpha/etb/{etbId}/eintrag`.replace(`{${'etbId'}}`, encodeURIComponent(String(requestParameters['etbId']))),
@@ -140,14 +132,6 @@ export class ETBApi extends runtime.BaseAPI {
 
     const headerParameters: runtime.HTTPHeaders = {};
 
-    if (this.configuration && this.configuration.accessToken) {
-      const token = this.configuration.accessToken;
-      const tokenString = await token('bearer', []);
-
-      if (tokenString) {
-        headerParameters['Authorization'] = `Bearer ${tokenString}`;
-      }
-    }
     const response = await this.request(
       {
         path: `/api/v-alpha/etb/{etbId}/eintrag/{eintragId}`
@@ -191,14 +175,6 @@ export class ETBApi extends runtime.BaseAPI {
 
     const headerParameters: runtime.HTTPHeaders = {};
 
-    if (this.configuration && this.configuration.accessToken) {
-      const token = this.configuration.accessToken;
-      const tokenString = await token('bearer', []);
-
-      if (tokenString) {
-        headerParameters['Authorization'] = `Bearer ${tokenString}`;
-      }
-    }
     const response = await this.request(
       {
         path: `/api/v-alpha/etb/einsatz/{einsatzId}`.replace(`{${'einsatzId'}}`, encodeURIComponent(String(requestParameters['einsatzId']))),
@@ -237,14 +213,6 @@ export class ETBApi extends runtime.BaseAPI {
 
     const headerParameters: runtime.HTTPHeaders = {};
 
-    if (this.configuration && this.configuration.accessToken) {
-      const token = this.configuration.accessToken;
-      const tokenString = await token('bearer', []);
-
-      if (tokenString) {
-        headerParameters['Authorization'] = `Bearer ${tokenString}`;
-      }
-    }
     const response = await this.request(
       {
         path: `/api/v-alpha/etb/{etbId}/history`.replace(`{${'etbId'}}`, encodeURIComponent(String(requestParameters['etbId']))),
@@ -290,14 +258,6 @@ export class ETBApi extends runtime.BaseAPI {
 
     const headerParameters: runtime.HTTPHeaders = {};
 
-    if (this.configuration && this.configuration.accessToken) {
-      const token = this.configuration.accessToken;
-      const tokenString = await token('bearer', []);
-
-      if (tokenString) {
-        headerParameters['Authorization'] = `Bearer ${tokenString}`;
-      }
-    }
     const response = await this.request(
       {
         path: `/api/v-alpha/etb/textbausteine`,
@@ -336,14 +296,6 @@ export class ETBApi extends runtime.BaseAPI {
 
     const headerParameters: runtime.HTTPHeaders = {};
 
-    if (this.configuration && this.configuration.accessToken) {
-      const token = this.configuration.accessToken;
-      const tokenString = await token('bearer', []);
-
-      if (tokenString) {
-        headerParameters['Authorization'] = `Bearer ${tokenString}`;
-      }
-    }
     const response = await this.request(
       {
         path: `/api/v-alpha/etb/{etbId}/lock`.replace(`{${'etbId'}}`, encodeURIComponent(String(requestParameters['etbId']))),
@@ -391,14 +343,6 @@ export class ETBApi extends runtime.BaseAPI {
 
     headerParameters['Content-Type'] = 'application/json';
 
-    if (this.configuration && this.configuration.accessToken) {
-      const token = this.configuration.accessToken;
-      const tokenString = await token('bearer', []);
-
-      if (tokenString) {
-        headerParameters['Authorization'] = `Bearer ${tokenString}`;
-      }
-    }
     const response = await this.request(
       {
         path: `/api/v-alpha/etb/{etbId}/eintrag/{eintragId}`

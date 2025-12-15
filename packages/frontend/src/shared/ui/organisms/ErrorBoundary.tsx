@@ -1,10 +1,10 @@
 import type { ErrorInfo, ReactNode } from 'react';
 import { Component } from 'react';
 import { PiWarning } from 'react-icons/pi';
-import { Button } from '@/shared/ui/atoms/button';
-import { Card } from '@/shared/ui/atoms/card';
-import { Heading } from '@/shared/ui/atoms/heading';
-import { Text } from '@/shared/ui/atoms/text';
+import { Button } from '@/shared/ui/atoms/button.atom';
+import { Card } from '@/shared/ui/atoms/card.atom';
+import { Heading } from '@/shared/ui/atoms/heading.atom';
+import { Text } from '@/shared/ui/atoms/text.atom';
 
 interface ErrorBoundaryProps {
   children: ReactNode;

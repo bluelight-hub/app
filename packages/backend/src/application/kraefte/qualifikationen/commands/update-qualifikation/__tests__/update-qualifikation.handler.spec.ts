@@ -46,7 +46,7 @@ describe('UpdateQualifikationHandler', () => {
       sortOrder: 0,
       createdAt: new Date(),
       updatedAt: new Date(),
-      createdBy: 'user-original',
+      createdBy: 'cm1111111111abcdef11111',
     }).value!;
   };
 
@@ -98,7 +98,7 @@ describe('UpdateQualifikationHandler', () => {
 
       const command = UpdateQualifikationCommand.create({
         id: testId,
-        updatedBy: 'user-456',
+        updatedBy: 'cm9999999999abcdef99999',
         name: 'Zugführer aktualisiert',
       }).value!;
 
@@ -121,7 +121,7 @@ describe('UpdateQualifikationHandler', () => {
 
       const command = UpdateQualifikationCommand.create({
         id: testId,
-        updatedBy: 'user-456',
+        updatedBy: 'cm9999999999abcdef99999',
         name: 'Neuer Name',
         kategorie: 'SANITAET',
         beschreibung: 'Neue Beschreibung',
@@ -134,7 +134,7 @@ describe('UpdateQualifikationHandler', () => {
       expect(result.isSuccess).toBe(true);
       const savedAggregate = mockRepository.save.mock.calls[0][0] as Qualifikation;
       expect(savedAggregate.name).toBe('Neuer Name');
-      expect(savedAggregate.kategorie).toBe('SANITAET');
+      expect(savedAggregate.kategorieValue).toBe('SANITAET');
       expect(savedAggregate.beschreibung).toBe('Neue Beschreibung');
     });
 
@@ -145,7 +145,7 @@ describe('UpdateQualifikationHandler', () => {
 
       const command = UpdateQualifikationCommand.create({
         id: nonExistentId,
-        updatedBy: 'user-456',
+        updatedBy: 'cm9999999999abcdef99999',
         name: 'Neuer Name',
       }).value!;
 
@@ -172,7 +172,7 @@ describe('UpdateQualifikationHandler', () => {
 
       const command = UpdateQualifikationCommand.create({
         id: testId,
-        updatedBy: 'user-456',
+        updatedBy: 'cm9999999999abcdef99999',
         abkuerzung: 'NEU',
       }).value!;
 
@@ -192,7 +192,7 @@ describe('UpdateQualifikationHandler', () => {
 
       const command = UpdateQualifikationCommand.create({
         id: testId,
-        updatedBy: 'user-456',
+        updatedBy: 'cm9999999999abcdef99999',
         abkuerzung: 'ZFÜ', // Gleiche Abkürzung
       }).value!;
 
@@ -211,7 +211,7 @@ describe('UpdateQualifikationHandler', () => {
 
       const command = UpdateQualifikationCommand.create({
         id: testId,
-        updatedBy: 'user-456',
+        updatedBy: 'cm9999999999abcdef99999',
         name: 'Neuer Name',
       }).value!;
 
@@ -231,7 +231,7 @@ describe('UpdateQualifikationHandler', () => {
 
       const command = UpdateQualifikationCommand.create({
         id: testId,
-        updatedBy: 'user-456',
+        updatedBy: 'cm9999999999abcdef99999',
         name: 'Neuer Name',
       }).value!;
 
@@ -250,7 +250,7 @@ describe('UpdateQualifikationHandler', () => {
 
       const command = UpdateQualifikationCommand.create({
         id: testId,
-        updatedBy: 'user-456',
+        updatedBy: 'cm9999999999abcdef99999',
         istAktiv: false,
       }).value!;
 
@@ -270,7 +270,7 @@ describe('UpdateQualifikationHandler', () => {
 
       const command = UpdateQualifikationCommand.create({
         id: testId,
-        updatedBy: 'user-456',
+        updatedBy: 'cm9999999999abcdef99999',
         istAktiv: true,
       }).value!;
 
@@ -291,7 +291,7 @@ describe('UpdateQualifikationHandler', () => {
       // Given (Arrange)
       const commandResult = UpdateQualifikationCommand.create({
         id: '',
-        updatedBy: 'user-456',
+        updatedBy: 'cm9999999999abcdef99999',
         name: 'Neuer Name',
       });
 
@@ -317,7 +317,7 @@ describe('UpdateQualifikationHandler', () => {
       // Given (Arrange)
       const commandResult = UpdateQualifikationCommand.create({
         id: testId,
-        updatedBy: 'user-456',
+        updatedBy: 'cm9999999999abcdef99999',
         name: 'AB',
       });
 
@@ -330,7 +330,7 @@ describe('UpdateQualifikationHandler', () => {
       // Given (Arrange)
       const commandResult = UpdateQualifikationCommand.create({
         id: testId,
-        updatedBy: 'user-456',
+        updatedBy: 'cm9999999999abcdef99999',
         kategorie: 'UNGUELTIG' as never,
       });
 
@@ -348,7 +348,7 @@ describe('UpdateQualifikationHandler', () => {
 
       const command = UpdateQualifikationCommand.create({
         id: testId,
-        updatedBy: 'user-456',
+        updatedBy: 'cm9999999999abcdef99999',
         name: 'Neuer Name',
       }).value!;
 
@@ -372,7 +372,7 @@ describe('UpdateQualifikationHandler', () => {
 
       const command = UpdateQualifikationCommand.create({
         id: testId,
-        updatedBy: 'user-456',
+        updatedBy: 'cm9999999999abcdef99999',
         name: 'Neuer Name',
       }).value!;
 
@@ -398,7 +398,7 @@ describe('UpdateQualifikationHandler', () => {
 
         const command = UpdateQualifikationCommand.create({
           id: testId,
-          updatedBy: 'user-456',
+          updatedBy: 'cm9999999999abcdef99999',
           name: 'Ärztlicher Leiter Rettungsdienst',
         }).value!;
 
@@ -418,7 +418,7 @@ describe('UpdateQualifikationHandler', () => {
 
         const command = UpdateQualifikationCommand.create({
           id: testId,
-          updatedBy: 'user-456',
+          updatedBy: 'cm9999999999abcdef99999',
           abkuerzung: 'STRß',
         }).value!;
 
@@ -438,7 +438,7 @@ describe('UpdateQualifikationHandler', () => {
 
         const command = UpdateQualifikationCommand.create({
           id: testId,
-          updatedBy: 'user-456',
+          updatedBy: 'cm9999999999abcdef99999',
           name: 'Ersthelfer 🚑',
         }).value!;
 
@@ -461,7 +461,7 @@ describe('UpdateQualifikationHandler', () => {
         const nameWith100Chars = 'A'.repeat(100);
         const command = UpdateQualifikationCommand.create({
           id: testId,
-          updatedBy: 'user-456',
+          updatedBy: 'cm9999999999abcdef99999',
           name: nameWith100Chars,
         }).value!;
 
@@ -482,7 +482,7 @@ describe('UpdateQualifikationHandler', () => {
         const abkuerzungWith20Chars = 'B'.repeat(20);
         const command = UpdateQualifikationCommand.create({
           id: testId,
-          updatedBy: 'user-456',
+          updatedBy: 'cm9999999999abcdef99999',
           abkuerzung: abkuerzungWith20Chars,
         }).value!;
 
@@ -503,7 +503,7 @@ describe('UpdateQualifikationHandler', () => {
         const beschreibungWith1000Chars = 'C'.repeat(1000);
         const command = UpdateQualifikationCommand.create({
           id: testId,
-          updatedBy: 'user-456',
+          updatedBy: 'cm9999999999abcdef99999',
           beschreibung: beschreibungWith1000Chars,
         }).value!;
 
@@ -516,55 +516,49 @@ describe('UpdateQualifikationHandler', () => {
         expect(savedAggregate.beschreibung?.length).toBe(1000);
       });
 
-      it('sollte Namen mit 101 Zeichen ablehnen (Overflow)', async () => {
+      it('sollte Namen mit 101 Zeichen ablehnen (Max-Length Defense-in-Depth)', async () => {
         // Given (Arrange)
-        const existingQualifikation = createMockQualifikation();
-        mockRepository.findById.mockResolvedValue(Result.ok(existingQualifikation));
-
         const nameWith101Chars = 'A'.repeat(101);
         const commandResult = UpdateQualifikationCommand.create({
           id: testId,
-          updatedBy: 'user-456',
+          updatedBy: 'cm9999999999abcdef99999',
           name: nameWith101Chars,
         });
 
         // Then (Assert)
-        // HINWEIS: Aktuell KEINE Max-Length Validation im Code!
-        expect(commandResult.isSuccess).toBe(true); // Command validiert nicht Max-Length
+        // CR-3 Fix: Command validiert jetzt Max-Length als Defense-in-Depth
+        expect(commandResult.isFailure).toBe(true);
+        expect(commandResult.error).toContain('maximal 100 Zeichen');
       });
 
-      it('sollte Abkürzung mit 21 Zeichen ablehnen (Overflow)', async () => {
+      it('sollte Abkürzung mit 21 Zeichen ablehnen (Max-Length Defense-in-Depth)', async () => {
         // Given (Arrange)
-        const existingQualifikation = createMockQualifikation();
-        mockRepository.findById.mockResolvedValue(Result.ok(existingQualifikation));
-
         const abkuerzungWith21Chars = 'B'.repeat(21);
         const commandResult = UpdateQualifikationCommand.create({
           id: testId,
-          updatedBy: 'user-456',
+          updatedBy: 'cm9999999999abcdef99999',
           abkuerzung: abkuerzungWith21Chars,
         });
 
         // Then (Assert)
-        // HINWEIS: Aktuell KEINE Max-Length Validation im Code!
-        expect(commandResult.isSuccess).toBe(true); // Command validiert nicht Max-Length
+        // CR-3 Fix: Command validiert jetzt Max-Length als Defense-in-Depth
+        expect(commandResult.isFailure).toBe(true);
+        expect(commandResult.error).toContain('maximal 20 Zeichen');
       });
 
-      it('sollte Beschreibung mit 1001 Zeichen ablehnen (Overflow)', async () => {
+      it('sollte Beschreibung mit 1001 Zeichen ablehnen (Max-Length Defense-in-Depth)', async () => {
         // Given (Arrange)
-        const existingQualifikation = createMockQualifikation();
-        mockRepository.findById.mockResolvedValue(Result.ok(existingQualifikation));
-
         const beschreibungWith1001Chars = 'C'.repeat(1001);
         const commandResult = UpdateQualifikationCommand.create({
           id: testId,
-          updatedBy: 'user-456',
+          updatedBy: 'cm9999999999abcdef99999',
           beschreibung: beschreibungWith1001Chars,
         });
 
         // Then (Assert)
-        // HINWEIS: Aktuell KEINE Max-Length Validation im Code!
-        expect(commandResult.isSuccess).toBe(true); // Command validiert nicht Max-Length
+        // CR-3 Fix: Command validiert jetzt Max-Length als Defense-in-Depth
+        expect(commandResult.isFailure).toBe(true);
+        expect(commandResult.error).toContain('maximal 1000 Zeichen');
       });
     });
 
@@ -576,7 +570,7 @@ describe('UpdateQualifikationHandler', () => {
 
         const command = UpdateQualifikationCommand.create({
           id: testId,
-          updatedBy: 'user-456',
+          updatedBy: 'cm9999999999abcdef99999',
           name: '   Zugführer Neu   ',
         }).value!;
 
@@ -596,7 +590,7 @@ describe('UpdateQualifikationHandler', () => {
 
         const command = UpdateQualifikationCommand.create({
           id: testId,
-          updatedBy: 'user-456',
+          updatedBy: 'cm9999999999abcdef99999',
           abkuerzung: '  ZFNEU  ',
         }).value!;
 
@@ -616,7 +610,7 @@ describe('UpdateQualifikationHandler', () => {
 
         const command = UpdateQualifikationCommand.create({
           id: testId,
-          updatedBy: 'user-456',
+          updatedBy: 'cm9999999999abcdef99999',
           beschreibung: '   Neue Beschreibung   ',
         }).value!;
 
@@ -640,7 +634,7 @@ describe('UpdateQualifikationHandler', () => {
 
         const command = UpdateQualifikationCommand.create({
           id: testId,
-          updatedBy: 'user-456',
+          updatedBy: 'cm9999999999abcdef99999',
           beschreibung: '   ',
         }).value!;
 
@@ -662,7 +656,7 @@ describe('UpdateQualifikationHandler', () => {
 
         const commandResult = UpdateQualifikationCommand.create({
           id: testId,
-          updatedBy: 'user-456',
+          updatedBy: 'cm9999999999abcdef99999',
           name: '   ',
         });
 
@@ -678,7 +672,7 @@ describe('UpdateQualifikationHandler', () => {
 
         const commandResult = UpdateQualifikationCommand.create({
           id: testId,
-          updatedBy: 'user-456',
+          updatedBy: 'cm9999999999abcdef99999',
           abkuerzung: '  ',
         });
 
@@ -696,7 +690,7 @@ describe('UpdateQualifikationHandler', () => {
 
         const command = UpdateQualifikationCommand.create({
           id: testId,
-          updatedBy: 'user-456',
+          updatedBy: 'cm9999999999abcdef99999',
           // Keine Felder geändert
         }).value!;
 
@@ -720,7 +714,7 @@ describe('UpdateQualifikationHandler', () => {
 
       const command = UpdateQualifikationCommand.create({
         id: testId,
-        updatedBy: 'user-456',
+        updatedBy: 'cm9999999999abcdef99999',
         name: 'Neuer Name',
         // beschreibung ist nicht gesetzt (undefined)
       }).value!;
@@ -742,7 +736,7 @@ describe('UpdateQualifikationHandler', () => {
 
       const command = UpdateQualifikationCommand.create({
         id: testId,
-        updatedBy: 'user-456',
+        updatedBy: 'cm9999999999abcdef99999',
         name: 'Neuer Name',
         kategorie: 'SANITAET',
       }).value!;
@@ -765,7 +759,7 @@ describe('UpdateQualifikationHandler', () => {
         name: 'Neuer Name',
         kategorie: 'SANITAET',
       });
-      expect(event.updatedBy).toBe('user-456');
+      expect(event.updatedBy).toBe('cm9999999999abcdef99999');
       expect(event.aggregateId).toBeDefined();
     });
 
@@ -776,7 +770,7 @@ describe('UpdateQualifikationHandler', () => {
 
       const command = UpdateQualifikationCommand.create({
         id: testId,
-        updatedBy: 'user-456',
+        updatedBy: 'cm9999999999abcdef99999',
         istAktiv: false, // Nur dieses Feld ändern
       }).value!;
 
@@ -802,7 +796,7 @@ describe('UpdateQualifikationHandler', () => {
 
       const command = UpdateQualifikationCommand.create({
         id: testId,
-        updatedBy: 'user-456',
+        updatedBy: 'cm9999999999abcdef99999',
         istAktiv: true,
       }).value!;
 
@@ -819,7 +813,7 @@ describe('UpdateQualifikationHandler', () => {
       const event = events[0];
       expect(event.constructor.name).toBe('QualifikationUpdatedEvent');
       expect(event.changes).toEqual({ istAktiv: true });
-      expect(event.updatedBy).toBe('user-456');
+      expect(event.updatedBy).toBe('cm9999999999abcdef99999');
     });
   });
 
@@ -835,7 +829,7 @@ describe('UpdateQualifikationHandler', () => {
 
       const command = UpdateQualifikationCommand.create({
         id: testId,
-        updatedBy: 'user-456',
+        updatedBy: 'cm9999999999abcdef99999',
         abkuerzung: 'NEU',
       }).value!;
 
@@ -846,6 +840,28 @@ describe('UpdateQualifikationHandler', () => {
       expect(result.isFailure).toBe(true);
       expect(result.error).toContain('UNIQUE_CONSTRAINT_VIOLATION');
       // Save wurde versucht, aber DB hat unique constraint violation geworfen
+      expect(mockRepository.save).toHaveBeenCalledTimes(1);
+    });
+
+    it('sollte P2025 (Record Not Found) von Prisma korrekt behandeln', async () => {
+      // Given (Arrange)
+      const existingQualifikation = createMockQualifikation();
+      mockRepository.findById.mockResolvedValue(Result.ok(existingQualifikation));
+      // Simuliere P2025 Error von Prisma (Record not found during upsert)
+      mockRepository.save.mockResolvedValue(Result.fail(`Fehler beim Speichern: Datensatz nicht gefunden (ID: ${testId}).`));
+
+      const command = UpdateQualifikationCommand.create({
+        id: testId,
+        updatedBy: 'cm9999999999abcdef99999',
+        name: 'Neuer Name',
+      }).value!;
+
+      // When (Act)
+      const result = await handler.execute(command);
+
+      // Then (Assert)
+      expect(result.isFailure).toBe(true);
+      expect(result.error).toContain('nicht gefunden');
       expect(mockRepository.save).toHaveBeenCalledTimes(1);
     });
 
@@ -864,13 +880,13 @@ describe('UpdateQualifikationHandler', () => {
 
       const command1 = UpdateQualifikationCommand.create({
         id: id1,
-        updatedBy: 'user-123',
+        updatedBy: 'cm1234567890abcdef12345',
         name: 'Qualifikation 1 Updated',
       }).value!;
 
       const command2 = UpdateQualifikationCommand.create({
         id: id2,
-        updatedBy: 'user-456',
+        updatedBy: 'cm9999999999abcdef99999',
         name: 'Qualifikation 2 Updated',
       }).value!;
 

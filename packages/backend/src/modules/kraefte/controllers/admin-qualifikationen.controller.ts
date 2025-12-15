@@ -64,6 +64,14 @@ import { QUALIFIKATION_ERROR_CODES, QualifikationError } from '@domain/kraefte/c
  * Alle Endpoints sind mit AdminJwtAuthGuard geschützt.
  * Nur Admins können Qualifikationen verwalten.
  *
+ * **Authorization Design:**
+ * - WARUM keine createdBy/updatedBy Prüfung gegen aktuellen User:
+ *   - Admin darf ALLE Qualifikationen verwalten (unabhängig davon, wer sie erstellt hat)
+ *   - createdBy/updatedBy sind NUR für Audit-Trail (Nachvollziehbarkeit)
+ *   - Keine Ownership-basierte Autorisierung auf Qualifikations-Ebene
+ *   - Qualifikationen sind globale Stammdaten (keine User-spezifischen Ressourcen)
+ *   - AdminJwtAuthGuard stellt sicher, dass nur Admins überhaupt Zugriff haben
+ *
  * Rate Limiting (Controller-Level):
  * - Max. 20 Anfragen pro Minute pro IP (verhindert DoS-Angriffe auf Admin-Endpoints)
  * - Bei Überschreitung: 429 Too Many Requests
@@ -132,6 +140,12 @@ export class AdminQualifikationenController {
     const result = await this.getAllHandler.execute(query);
 
     if (result.isFailure) {
+      // WARUM String-Matching statt Error-Code-Check:
+      // - Result Pattern gibt nur generische Fehlermeldungen zurück (kein Error-Code-System)
+      // - Diese Query hat keine spezifischen Error-Codes definiert (nur generische Messages)
+      // - String-Matching ist hier der einzige Weg, um Business-Errors von Infrastruktur-Errors zu unterscheiden
+      // - Alternative wäre Domain-Error-Codes wie in Create/Update/Deactivate Handlers
+      //
       // Business validation errors → 400 Bad Request
       // All other errors → 500 Internal Server Error
       if (result.error?.includes('Validierung') || result.error?.includes('Ungültig')) {

@@ -183,13 +183,23 @@ export const QualifikationenTable = ({ qualifikationen, isLoading, onEdit, onDea
         ))}
       </Table.Header>
       <Table.Body>
-        {table.getRowModel().rows.map((row) => (
-          <Table.Row key={row.id} className={!row.original.istAktiv ? 'opacity-60' : ''}>
-            {row.getVisibleCells().map((cell) => (
-              <Table.Cell key={cell.id}>{flexRender(cell.column.columnDef.cell, cell.getContext())}</Table.Cell>
-            ))}
-          </Table.Row>
-        ))}
+        {table.getRowModel().rows.map((row) => {
+          // Visual Feedback für Optimistic Updates
+          const isRowUpdating = updatingId === row.original.id;
+          const isRowDeactivating = deactivatingId === row.original.id;
+          const isRowMutating = isRowUpdating || isRowDeactivating;
+
+          // Kombiniere Opacity-Klassen: deaktivierte Zeilen + mutating rows
+          const rowClassName = [!row.original.istAktiv && 'opacity-60', isRowMutating && 'opacity-50 transition-opacity duration-200'].filter(Boolean).join(' ');
+
+          return (
+            <Table.Row key={row.id} className={rowClassName}>
+              {row.getVisibleCells().map((cell) => (
+                <Table.Cell key={cell.id}>{flexRender(cell.column.columnDef.cell, cell.getContext())}</Table.Cell>
+              ))}
+            </Table.Row>
+          );
+        })}
       </Table.Body>
     </Table.Root>
   );

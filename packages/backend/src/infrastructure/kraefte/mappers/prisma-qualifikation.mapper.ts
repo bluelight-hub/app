@@ -1,5 +1,5 @@
-import type { Qualifikation as PrismaQualifikation } from '@prisma/client';
-import { Qualifikation, type QualifikationKategorie } from '@domain/kraefte/aggregates/qualifikation.aggregate';
+import type { Qualifikation as PrismaQualifikation, QualifikationKategorie as PrismaQualifikationKategorie } from '@prisma/client';
+import { Qualifikation } from '@domain/kraefte';
 import { Result } from '@domain/common/result';
 
 /**
@@ -16,6 +16,12 @@ export class PrismaQualifikationMapper {
    * und sind NICHT in diesem Return-Typ enthalten (siehe Omit<>).
    * Diese Felder werden bei create/update durch Prisma @default() und @updatedAt gesetzt.
    *
+   * **WARUM rollenQualifikationen ausgeschlossen werden:**
+   * - Lazy Loading Pattern: Beziehungen werden nur bei Bedarf geladen
+   * - Performance: Vermeidung von N+1 Query-Problemen bei Bulk-Operationen
+   * - Single Responsibility: Dieser Mapper verwaltet nur Qualifikation-Stammdaten
+   * - Beziehungen werden separat über Repository-Methoden verwaltet (z.B. findWithRollen())
+   *
    * @param aggregate - Das Qualifikation Domain Aggregate
    * @returns Prisma-kompatibles Datenobjekt (ohne rollenQualifikationen, createdAt, updatedAt)
    */
@@ -24,7 +30,7 @@ export class PrismaQualifikationMapper {
       id: aggregate.id.value,
       name: aggregate.name,
       abkuerzung: aggregate.abkuerzung,
-      kategorie: aggregate.kategorie,
+      kategorie: aggregate.kategorieValue as PrismaQualifikationKategorie, // Value Object → Prisma ENUM
       beschreibung: aggregate.beschreibung ?? null,
       istAktiv: aggregate.istAktiv,
       sortOrder: aggregate.sortOrder,
@@ -54,7 +60,7 @@ export class PrismaQualifikationMapper {
       id: entity.id,
       name: entity.name,
       abkuerzung: entity.abkuerzung,
-      kategorie: entity.kategorie as QualifikationKategorie,
+      kategorie: entity.kategorie, // String → wird intern im Aggregate zu Value Object
       beschreibung: entity.beschreibung ?? undefined,
       istAktiv: entity.istAktiv,
       sortOrder: entity.sortOrder,

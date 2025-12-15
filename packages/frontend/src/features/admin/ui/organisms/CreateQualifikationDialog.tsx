@@ -121,7 +121,7 @@ export const CreateQualifikationDialog = ({ isOpen, onClose, onSubmit, isSubmitt
                   <Select
                     id="create-qualifikation-kategorie"
                     value={field.state.value}
-                    onChange={(value) => field.handleChange(value as QualifikationKategorie)}
+                    onChange={(e) => field.handleChange(e.target.value as QualifikationKategorie)}
                     options={KATEGORIE_OPTIONS}
                     fullWidth
                   />

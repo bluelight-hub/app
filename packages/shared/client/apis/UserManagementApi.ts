@@ -75,6 +75,14 @@ export class UserManagementApi extends runtime.BaseAPI {
 
     headerParameters['Content-Type'] = 'application/json';
 
+    if (this.configuration && this.configuration.accessToken) {
+      const token = this.configuration.accessToken;
+      const tokenString = await token('admin-jwt', []);
+
+      if (tokenString) {
+        headerParameters['Authorization'] = `Bearer ${tokenString}`;
+      }
+    }
     const response = await this.request(
       {
         path: `/api/v-alpha/admin/users`,
@@ -105,6 +113,14 @@ export class UserManagementApi extends runtime.BaseAPI {
 
     const headerParameters: runtime.HTTPHeaders = {};
 
+    if (this.configuration && this.configuration.accessToken) {
+      const token = this.configuration.accessToken;
+      const tokenString = await token('admin-jwt', []);
+
+      if (tokenString) {
+        headerParameters['Authorization'] = `Bearer ${tokenString}`;
+      }
+    }
     const response = await this.request(
       {
         path: `/api/v-alpha/admin/users`,
@@ -143,6 +159,14 @@ export class UserManagementApi extends runtime.BaseAPI {
 
     headerParameters['Content-Type'] = 'application/json';
 
+    if (this.configuration && this.configuration.accessToken) {
+      const token = this.configuration.accessToken;
+      const tokenString = await token('admin-jwt', []);
+
+      if (tokenString) {
+        headerParameters['Authorization'] = `Bearer ${tokenString}`;
+      }
+    }
     const response = await this.request(
       {
         path: `/api/v-alpha/admin/users/{id}/lock`.replace(`{${'id'}}`, encodeURIComponent(String(requestParameters['id']))),
@@ -182,6 +206,14 @@ export class UserManagementApi extends runtime.BaseAPI {
 
     headerParameters['Content-Type'] = 'application/json';
 
+    if (this.configuration && this.configuration.accessToken) {
+      const token = this.configuration.accessToken;
+      const tokenString = await token('admin-jwt', []);
+
+      if (tokenString) {
+        headerParameters['Authorization'] = `Bearer ${tokenString}`;
+      }
+    }
     const response = await this.request(
       {
         path: `/api/v-alpha/admin/users/{id}`.replace(`{${'id'}}`, encodeURIComponent(String(requestParameters['id']))),
@@ -222,6 +254,14 @@ export class UserManagementApi extends runtime.BaseAPI {
 
     const headerParameters: runtime.HTTPHeaders = {};
 
+    if (this.configuration && this.configuration.accessToken) {
+      const token = this.configuration.accessToken;
+      const tokenString = await token('admin-jwt', []);
+
+      if (tokenString) {
+        headerParameters['Authorization'] = `Bearer ${tokenString}`;
+      }
+    }
     const response = await this.request(
       {
         path: `/api/v-alpha/admin/users/{id}/unlock`.replace(`{${'id'}}`, encodeURIComponent(String(requestParameters['id']))),
@@ -264,6 +304,14 @@ export class UserManagementApi extends runtime.BaseAPI {
 
     headerParameters['Content-Type'] = 'application/json';
 
+    if (this.configuration && this.configuration.accessToken) {
+      const token = this.configuration.accessToken;
+      const tokenString = await token('admin-jwt', []);
+
+      if (tokenString) {
+        headerParameters['Authorization'] = `Bearer ${tokenString}`;
+      }
+    }
     const response = await this.request(
       {
         path: `/api/v-alpha/admin/users/{id}`.replace(`{${'id'}}`, encodeURIComponent(String(requestParameters['id']))),

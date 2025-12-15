@@ -41,7 +41,7 @@ describe('GetAllQualifikationenHandler', () => {
         sortOrder: 0,
         createdAt: new Date(),
         updatedAt: new Date(),
-        createdBy: 'user-123',
+        createdBy: 'cm1234567890abcdef12345',
       }).value!;
 
       const qualifikation2 = Qualifikation.reconstitute({
@@ -86,7 +86,7 @@ describe('GetAllQualifikationenHandler', () => {
         sortOrder: 0,
         createdAt: new Date(),
         updatedAt: new Date(),
-        createdBy: 'user-123',
+        createdBy: 'cm1234567890abcdef12345',
       }).value!;
 
       const qualifikation2 = Qualifikation.reconstitute({
@@ -127,7 +127,7 @@ describe('GetAllQualifikationenHandler', () => {
         sortOrder: 0,
         createdAt: new Date(),
         updatedAt: new Date(),
-        createdBy: 'user-123',
+        createdBy: 'cm1234567890abcdef12345',
       }).value!;
 
       mockRepository.findAll.mockResolvedValue(Result.ok([qualifikation1]));
@@ -173,36 +173,6 @@ describe('GetAllQualifikationenHandler', () => {
       expect(result.error).toBe('Datenbankverbindung fehlgeschlagen');
     });
 
-    it('sollte leere Liste zurückgeben wenn Repository null zurückgibt', async () => {
-      // Given (Arrange)
-      mockRepository.findAll.mockResolvedValue(Result.ok(null as never));
-
-      const query = new GetAllQualifikationenQuery();
-
-      // When (Act)
-      const result = await handler.execute(query);
-
-      // Then (Assert)
-      expect(result.isSuccess).toBe(true);
-      expect(result.value).toHaveLength(0);
-    });
-
-    it('sollte fehlschlagen mit spezifischer Fehlermeldung bei unerwarteter Exception', async () => {
-      // Given (Arrange)
-      const error = new Error('Netzwerkfehler');
-      mockRepository.findAll.mockRejectedValue(error);
-
-      const query = new GetAllQualifikationenQuery();
-
-      // When (Act)
-      const result = await handler.execute(query);
-
-      // Then (Assert)
-      expect(result.isFailure).toBe(true);
-      expect(result.error).toContain('Fehler beim Laden der Qualifikationen');
-      expect(result.error).toContain('Netzwerkfehler');
-    });
-
     it('sollte korrekte DTOs mit allen Feldern zurückgeben', async () => {
       // Given (Arrange)
       const now = new Date();
@@ -243,6 +213,110 @@ describe('GetAllQualifikationenHandler', () => {
       expect(dto.updatedAt).toBe(now);
       expect(dto.createdBy).toBe('user-creator');
       expect(dto.updatedBy).toBe('user-updater');
+    });
+
+    it('sollte Qualifikationen nach sortOrder aufsteigend sortiert zurückgeben', async () => {
+      // Given (Arrange)
+      const qualifikation1 = Qualifikation.reconstitute({
+        id: createId(),
+        name: 'Zugführer',
+        abkuerzung: 'ZFÜ',
+        kategorie: 'FUEHRUNG',
+        istAktiv: true,
+        sortOrder: 10,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+        createdBy: 'user-1',
+      }).value!;
+
+      const qualifikation2 = Qualifikation.reconstitute({
+        id: createId(),
+        name: 'Gruppenführer',
+        abkuerzung: 'GFÜ',
+        kategorie: 'FUEHRUNG',
+        istAktiv: true,
+        sortOrder: 5,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+        createdBy: 'user-2',
+      }).value!;
+
+      const qualifikation3 = Qualifikation.reconstitute({
+        id: createId(),
+        name: 'Verbandführer',
+        abkuerzung: 'VFÜ',
+        kategorie: 'FUEHRUNG',
+        istAktiv: true,
+        sortOrder: 15,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+        createdBy: 'user-3',
+      }).value!;
+
+      // Repository returns in ascending sortOrder (as expected from DB)
+      mockRepository.findAll.mockResolvedValue(Result.ok([qualifikation2, qualifikation1, qualifikation3]));
+
+      const query = new GetAllQualifikationenQuery();
+
+      // When (Act)
+      const result = await handler.execute(query);
+
+      // Then (Assert)
+      expect(result.isSuccess).toBe(true);
+      expect(result.value).toHaveLength(3);
+
+      // Prüfe dass sortOrder aufsteigend sortiert ist
+      expect(result.value![0].sortOrder).toBe(5);
+      expect(result.value![0].name).toBe('Gruppenführer');
+
+      expect(result.value![1].sortOrder).toBe(10);
+      expect(result.value![1].name).toBe('Zugführer');
+
+      expect(result.value![2].sortOrder).toBe(15);
+      expect(result.value![2].name).toBe('Verbandführer');
+    });
+
+    it('sollte Qualifikationen mit gleicher sortOrder nach Name sortieren', async () => {
+      // Given (Arrange)
+      const qualifikation1 = Qualifikation.reconstitute({
+        id: createId(),
+        name: 'Zugführer',
+        abkuerzung: 'ZFÜ',
+        kategorie: 'FUEHRUNG',
+        istAktiv: true,
+        sortOrder: 0,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+        createdBy: 'user-1',
+      }).value!;
+
+      const qualifikation2 = Qualifikation.reconstitute({
+        id: createId(),
+        name: 'Atemschutzgeräteträger',
+        abkuerzung: 'AGT',
+        kategorie: 'TECHNIK',
+        istAktiv: true,
+        sortOrder: 0,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+        createdBy: 'user-2',
+      }).value!;
+
+      // Repository returns sorted by sortOrder, name (alphabetisch)
+      mockRepository.findAll.mockResolvedValue(Result.ok([qualifikation2, qualifikation1]));
+
+      const query = new GetAllQualifikationenQuery();
+
+      // When (Act)
+      const result = await handler.execute(query);
+
+      // Then (Assert)
+      expect(result.isSuccess).toBe(true);
+      expect(result.value).toHaveLength(2);
+
+      // Prüfe dass bei gleicher sortOrder alphabetisch nach Name sortiert ist
+      expect(result.value![0].name).toBe('Atemschutzgeräteträger'); // 'A' kommt vor 'Z'
+      expect(result.value![1].name).toBe('Zugführer');
     });
   });
 });

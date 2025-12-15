@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Navigate } from '@tanstack/react-router';
 import { PiPlus, PiWarning } from 'react-icons/pi';
 import { useAdminAuth } from '@/features/auth/api';
@@ -20,6 +20,9 @@ import { DeactivateQualifikationDialog } from '../organisms/DeactivateQualifikat
  *
  * Zeigt Tabelle aller Qualifikationen mit CRUD-Operationen.
  * Nur für authentifizierte Admins zugänglich.
+ *
+ * Keyboard Shortcuts:
+ * - Ctrl+N / Cmd+N: Neue Qualifikation erstellen
  */
 export function AdminQualifikationen() {
   const { isAdmin, isLoading: isAuthLoading } = useAdminAuth();
@@ -43,6 +46,24 @@ export function AdminQualifikationen() {
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [editTarget, setEditTarget] = useState<QualifikationDto | null>(null);
   const [deactivateTarget, setDeactivateTarget] = useState<QualifikationDto | null>(null);
+
+  // Keyboard Shortcuts: Ctrl+N / Cmd+N öffnet Create Dialog
+  useEffect(() => {
+    const handleKeyDown = (event: KeyboardEvent) => {
+      // Ctrl+N (Windows/Linux) oder Cmd+N (Mac)
+      if ((event.ctrlKey || event.metaKey) && event.key === 'n') {
+        event.preventDefault(); // Verhindert Browser "Neues Fenster"
+        setIsCreateDialogOpen(true);
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+
+    // Cleanup: Event Listener entfernen beim Unmount
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
+    };
+  }, []); // Leeres Dependency Array - nur beim Mount/Unmount
 
   // Auth Guard
   if (!isAuthLoading && !isAdmin) {

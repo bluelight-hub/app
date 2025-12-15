@@ -3,14 +3,17 @@ import { TransactionalCommandHandler } from '@application/common/handlers/transa
 import type { DomainEvent } from '@domain/common/domain-event';
 import { Result } from '@domain/common/result';
 import type { TransactionContext } from '@domain/kraefte/repositories/i-qualifikation.repository';
-import type { IQualifikationRepository } from '@domain/kraefte/repositories/i-qualifikation.repository';
+// biome-ignore lint/style/useImportType: IQualifikationRepository needed for DI at runtime
+import { IQualifikationRepository } from '@domain/kraefte/repositories/i-qualifikation.repository';
 import { QualifikationId } from '@domain/kraefte/value-objects/qualifikation-id';
-import type { IOutboxRepository } from '@domain/repositories/i-outbox.repository';
+// biome-ignore lint/style/useImportType: IOutboxRepository needed for DI at runtime
+import { IOutboxRepository } from '@domain/repositories/i-outbox.repository';
 import { KRAEFTE_REPOSITORIES, OUTBOX_REPOSITORY } from '@infrastructure/di-tokens';
 // biome-ignore lint/style/useImportType: PrismaService needed for DI at runtime
-import { PrismaService } from '@infrastructure/database/prisma.service';
+import { PrismaService } from '@/infrastructure/database/prisma.service';
 import type { QualifikationDto } from '../../dto/qualifikation.dto';
 import { QualifikationQueryMapper } from '../../queries/qualifikation-query.mapper';
+import { QUALIFIKATION_ERROR_CODES, QualifikationError } from '@domain/kraefte/common/error-codes';
 import type { UpdateQualifikationCommand } from './update-qualifikation.command';
 
 /**
@@ -21,7 +24,7 @@ import type { UpdateQualifikationCommand } from './update-qualifikation.command'
  */
 @Injectable()
 export class UpdateQualifikationHandler extends TransactionalCommandHandler<UpdateQualifikationCommand, QualifikationDto> {
-  private readonly logger = new Logger(UpdateQualifikationHandler.name);
+  protected readonly logger = new Logger(UpdateQualifikationHandler.name);
 
   constructor(
     prisma: PrismaService,
@@ -39,32 +42,52 @@ export class UpdateQualifikationHandler extends TransactionalCommandHandler<Upda
     // 1. Validate ID format
     const idResult = QualifikationId.create(command.id);
     if (idResult.isFailure) {
-      return Result.fail(idResult.error ?? 'Ungültige ID');
+      if (!idResult.error) {
+        this.logger.error('QualifikationId.create returned isFailure=true but error is null - this is a bug!');
+        throw new Error('ID validation returned failure without error message');
+      }
+      return Result.fail(idResult.error);
     }
     const qualifikationId = idResult.value;
     if (!qualifikationId) {
-      return Result.fail('Ungültige ID');
+      this.logger.error('QualifikationId.create returned isSuccess=true but value is null - this is a bug!');
+      throw new Error('ID validation succeeded but value is null');
     }
 
     // 2. Load existing Qualifikation
     const existingResult = await this.repository.findById(qualifikationId, tx);
     if (existingResult.isFailure) {
-      return Result.fail(existingResult.error ?? 'Fehler beim Laden der Qualifikation');
+      if (!existingResult.error) {
+        this.logger.error('Repository.findById returned isFailure=true but error is null - this is a bug!');
+        throw new Error('Repository returned failure without error message');
+      }
+      return Result.fail(existingResult.error);
     }
     if (!existingResult.value) {
-      return Result.fail(`Qualifikation mit ID '${command.id}' nicht gefunden`);
+      return Result.fail(QualifikationError.format(QUALIFIKATION_ERROR_CODES.NOT_FOUND, `Qualifikation mit ID '${command.id}' nicht gefunden`));
     }
 
     const qualifikation = existingResult.value;
 
     // 3. Check Uniqueness: Abkuerzung (wenn geändert)
+    // HINWEIS: TOCTOU Race Condition akzeptiert
+    // - Pre-Check (findByAbkuerzung) und save() sind nicht atomar
+    // - Zwischen Check und Save kann ein anderer Request die gleiche Abkürzung erstellen
+    // - ABER: Prisma Unique Constraint (P2002) fängt Race Condition ab
+    // - save() wird mit Result.fail('Die Abkürzung "..." ist bereits vergeben.') fehlschlagen
+    // - Pre-Check verbessert nur UX (sofortiges Feedback statt DB-Roundtrip)
+    // - Race Window ist extrem klein (<100ms) in einer Single-Admin-Anwendung
     if (command.abkuerzung && command.abkuerzung !== qualifikation.abkuerzung) {
       const duplicateResult = await this.repository.findByAbkuerzung(command.abkuerzung, tx);
       if (duplicateResult.isFailure) {
-        return Result.fail(duplicateResult.error ?? 'Fehler bei Uniqueness-Check');
+        if (!duplicateResult.error) {
+          this.logger.error('Repository.findByAbkuerzung returned isFailure=true but error is null - this is a bug!');
+          throw new Error('Repository returned failure without error message');
+        }
+        return Result.fail(duplicateResult.error);
       }
       if (duplicateResult.value) {
-        return Result.fail(`Abkürzung '${command.abkuerzung}' ist bereits vergeben`);
+        return Result.fail(QualifikationError.format(QUALIFIKATION_ERROR_CODES.ABKUERZUNG_DUPLICATE, `Abkürzung '${command.abkuerzung}' ist bereits vergeben`));
       }
     }
 
@@ -79,13 +102,21 @@ export class UpdateQualifikationHandler extends TransactionalCommandHandler<Upda
     });
 
     if (updateResult.isFailure) {
-      return Result.fail(updateResult.error ?? 'Fehler beim Aktualisieren der Qualifikation');
+      if (!updateResult.error) {
+        this.logger.error('Qualifikation.update returned isFailure=true but error is null - this is a bug!');
+        throw new Error('Aggregate update returned failure without error message');
+      }
+      return Result.fail(updateResult.error);
     }
 
     // 5. Save Aggregate in Transaction
     const saveResult = await this.repository.save(qualifikation, tx);
     if (saveResult.isFailure) {
-      return Result.fail(saveResult.error ?? 'Fehler beim Speichern der Qualifikation');
+      if (!saveResult.error) {
+        this.logger.error('Repository.save returned isFailure=true but error is null - this is a bug!');
+        throw new Error('Repository save returned failure without error message');
+      }
+      return Result.fail(saveResult.error);
     }
 
     // 6. Extract Domain Events

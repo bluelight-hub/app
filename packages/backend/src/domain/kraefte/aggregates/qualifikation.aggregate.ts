@@ -4,11 +4,22 @@ import { isCuid } from '@paralleldrive/cuid2';
 import { QualifikationCreatedEvent } from '../events/qualifikation-created.event';
 import { QualifikationUpdatedEvent } from '../events/qualifikation-updated.event';
 import { QualifikationId } from '../value-objects/qualifikation-id';
+import { QualifikationKategorie } from '../value-objects/qualifikation-kategorie';
+import {
+  QUALIFIKATION_NAME_MIN_LENGTH,
+  QUALIFIKATION_NAME_MAX_LENGTH,
+  QUALIFIKATION_ABKUERZUNG_MIN_LENGTH,
+  QUALIFIKATION_ABKUERZUNG_MAX_LENGTH,
+  QUALIFIKATION_BESCHREIBUNG_MAX_LENGTH,
+  QUALIFIKATION_VALIDATION_ERRORS,
+} from '../constants/qualifikation-validation.constants';
+import { QUALIFIKATION_ERROR_CODES, QualifikationError } from '../common/error-codes';
 
 /**
- * Erlaubte Qualifikation-Kategorien (konsistent mit Prisma ENUM).
+ * Re-export für Backwards Compatibility und convenience.
+ * Ermöglicht Consumers weiterhin `import { QUALIFIKATION_KATEGORIEN } from '@domain/kraefte'`.
  */
-export type QualifikationKategorie = 'FUEHRUNG' | 'SANITAET' | 'BETREUUNG' | 'TECHNIK' | 'SONSTIGES';
+export { QUALIFIKATION_KATEGORIEN, type QualifikationKategorieType } from '../value-objects/qualifikation-kategorie';
 
 /**
  * Props für Qualifikation.create() Factory Method.
@@ -16,7 +27,7 @@ export type QualifikationKategorie = 'FUEHRUNG' | 'SANITAET' | 'BETREUUNG' | 'TE
 export interface CreateQualifikationProps {
   name: string;
   abkuerzung: string;
-  kategorie: QualifikationKategorie;
+  kategorie: string; // Wird intern zu QualifikationKategorie Value Object konvertiert
   beschreibung?: string;
   createdBy: string;
 }
@@ -28,7 +39,7 @@ export interface ReconstituteQualifikationProps {
   id: string;
   name: string;
   abkuerzung: string;
-  kategorie: QualifikationKategorie;
+  kategorie: string; // Wird intern zu QualifikationKategorie Value Object konvertiert
   beschreibung?: string;
   istAktiv: boolean;
   sortOrder: number;
@@ -44,7 +55,7 @@ export interface ReconstituteQualifikationProps {
 export interface UpdateQualifikationProps {
   name?: string;
   abkuerzung?: string;
-  kategorie?: QualifikationKategorie;
+  kategorie?: string; // Wird intern zu QualifikationKategorie Value Object konvertiert
   beschreibung?: string;
   istAktiv?: boolean;
   sortOrder?: number;
@@ -78,8 +89,6 @@ export interface UpdateQualifikationProps {
  * - Bestehende Zuweisungen bleiben bei Deaktivierung erhalten
  */
 export class Qualifikation extends AggregateRoot<QualifikationId> {
-  private static readonly VALID_KATEGORIEN: QualifikationKategorie[] = ['FUEHRUNG', 'SANITAET', 'BETREUUNG', 'TECHNIK', 'SONSTIGES'];
-
   private _name: string;
   private _abkuerzung: string;
   private _kategorie: QualifikationKategorie;
@@ -117,6 +126,11 @@ export class Qualifikation extends AggregateRoot<QualifikationId> {
 
   /**
    * Gibt den vollständigen Namen der Qualifikation zurück.
+   *
+   * **WARUM als public getter exponiert?**
+   * - **Read-Only Access:** Repository, DTOs, und Presentation Layer benötigen Lesezugriff
+   * - **Encapsulation:** Direkter Zugriff auf `_name` würde Invarianten-Verletzung ermöglichen
+   * - **Immutability:** Änderungen nur über `update()` Method mit Validation und Event-Emission
    */
   get name(): string {
     return this._name;
@@ -124,20 +138,47 @@ export class Qualifikation extends AggregateRoot<QualifikationId> {
 
   /**
    * Gibt die eindeutige Abkürzung der Qualifikation zurück.
+   *
+   * **WARUM als public getter exponiert?**
+   * - **Business Key:** Abkürzung ist der primäre Display-Identifier in UI (kompakter als Name)
+   * - **Uniqueness Constraint:** Repository/Application Layer prüfen Duplikate vor save()
+   * - **Read-Only Access:** DTOs serialisieren Abkürzung für API-Responses
    */
   get abkuerzung(): string {
     return this._abkuerzung;
   }
 
   /**
-   * Gibt die Kategorie der Qualifikation zurück.
+   * Gibt die Kategorie der Qualifikation als Value Object zurück.
+   *
+   * **WARUM als Value Object statt primitiver String?**
+   * - **Type Safety:** ENUM-Validierung zur Compile-Time (kein ungültiger Wert möglich)
+   * - **Domain Logic:** Value Object kapselt Kategorie-spezifische Business Rules
+   * - **Self-Documenting:** Code-Completion zeigt erlaubte Werte (QUALIFIKATION_KATEGORIEN)
    */
   get kategorie(): QualifikationKategorie {
     return this._kategorie;
   }
 
   /**
+   * Gibt die Kategorie als primitiven String zurück (z.B. für Serialisierung).
+   *
+   * **WARUM zusätzlich zu `kategorie` Getter?**
+   * - **DTO Serialization:** Repository/DTOs benötigen primitiven String für DB/JSON
+   * - **Convenience:** Vermeidet `.kategorie.value` Chaining in jedem Consumer
+   * - **Performance:** Direkte String-Rückgabe ohne Value Object Overhead in Hot Paths
+   */
+  get kategorieValue(): string {
+    return this._kategorie.value;
+  }
+
+  /**
    * Gibt die optionale Beschreibung der Qualifikation zurück.
+   *
+   * **WARUM optional (undefined statt empty string)?**
+   * - **Semantic Clarity:** `undefined` = "nicht gesetzt", `""` = "gesetzt aber leer" (unterschiedliche Bedeutung)
+   * - **Database NULL:** DB-Modell nutzt NULL für nicht-gesetzte Felder (konsistente Semantik)
+   * - **Optional Chaining:** Consumer können `beschreibung?.trim()` nutzen statt `|| ''` Fallbacks
    */
   get beschreibung(): string | undefined {
     return this._beschreibung;
@@ -145,6 +186,12 @@ export class Qualifikation extends AggregateRoot<QualifikationId> {
 
   /**
    * Gibt zurück, ob die Qualifikation aktiv ist.
+   *
+   * **WARUM Soft-Delete statt Hard-Delete?**
+   * - **Data Integrity:** Bestehende Zuweisungen (Rolle → Qualifikation) bleiben gültig
+   * - **Audit-Trail:** Historische Daten referenzieren deaktivierte Qualifikationen
+   * - **Reversibility:** Reaktivierung ist möglich (z.B. bei versehentlicher Deaktivierung)
+   * - **UI Filtering:** Frontend kann aktive/inaktive Qualifikationen unterschiedlich darstellen
    *
    * Deaktivierte Qualifikationen werden in Dropdown-Selects nicht mehr angezeigt.
    */
@@ -154,6 +201,12 @@ export class Qualifikation extends AggregateRoot<QualifikationId> {
 
   /**
    * Gibt die Sortierreihenfolge für UI-Anzeige zurück.
+   *
+   * **WARUM manueller sortOrder statt alphabetischer Sortierung?**
+   * - **Business Requirements:** Fachbereich definiert Wichtigkeit/Priorität (z.B. "Gruppenführer" vor "Atemschutz")
+   * - **Flexibility:** Alphabetische Sortierung würde sich bei Umbenennungen ändern
+   * - **User Experience:** Häufig genutzte Qualifikationen können oben stehen (Usability)
+   * - **Domain-Driven:** Sortierung ist eine fachliche Regel, nicht technische Konvention
    */
   get sortOrder(): number {
     return this._sortOrder;
@@ -161,6 +214,12 @@ export class Qualifikation extends AggregateRoot<QualifikationId> {
 
   /**
    * Gibt die User-ID des Erstellers zurück (für Audit-Trail).
+   *
+   * **WARUM CUID2-Format erforderlich?**
+   * - **Referential Integrity:** createdBy referenziert User.id (Foreign Key Semantik)
+   * - **Validation:** isCuid() Check verhindert invalide User-IDs (Defense-in-Depth)
+   * - **Auditability:** Wer hat diese Qualifikation erstellt? (Compliance-Anforderung)
+   * - **Immutable:** Wird nur bei create() gesetzt, niemals geändert
    */
   get createdBy(): string {
     return this._createdBy;
@@ -168,6 +227,12 @@ export class Qualifikation extends AggregateRoot<QualifikationId> {
 
   /**
    * Gibt die User-ID des letzten Bearbeiters zurück (für Audit-Trail).
+   *
+   * **WARUM optional (undefined bei Erstellung)?**
+   * - **Semantic Clarity:** undefined = "noch nie aktualisiert", CUID = "zuletzt aktualisiert von X"
+   * - **Audit-Trail:** Unterscheidung zwischen Erstellung (createdBy) und Änderung (updatedBy)
+   * - **Compliance:** Manche Audit-Standards erfordern "last modified by" Tracking
+   * - **Mutable:** Wird bei jedem update() überschrieben
    */
   get updatedBy(): string | undefined {
     return this._updatedBy;
@@ -184,30 +249,35 @@ export class Qualifikation extends AggregateRoot<QualifikationId> {
    * @returns Result<Qualifikation> - Success oder Failure mit Fehlermeldung
    */
   static create(props: CreateQualifikationProps): Result<Qualifikation> {
-    // Validation: Name
-    if (!props.name || props.name.trim().length < 3) {
-      return Result.fail<Qualifikation>('Name muss mindestens 3 Zeichen haben');
+    // Validation: Name (nutzt Domain-Konstanten für Single Source of Truth)
+    if (!props.name || props.name.trim().length < QUALIFIKATION_NAME_MIN_LENGTH) {
+      return Result.fail<Qualifikation>(QUALIFIKATION_VALIDATION_ERRORS.NAME_TOO_SHORT);
     }
-    if (props.name.length > 100) {
-      return Result.fail<Qualifikation>('Name darf maximal 100 Zeichen lang sein');
-    }
-
-    // Validation: Abkuerzung
-    if (!props.abkuerzung || props.abkuerzung.trim().length < 2) {
-      return Result.fail<Qualifikation>('Abkürzung muss mindestens 2 Zeichen haben');
-    }
-    if (props.abkuerzung.length > 20) {
-      return Result.fail<Qualifikation>('Abkürzung darf maximal 20 Zeichen lang sein');
+    if (props.name.length > QUALIFIKATION_NAME_MAX_LENGTH) {
+      return Result.fail<Qualifikation>(QUALIFIKATION_VALIDATION_ERRORS.NAME_TOO_LONG);
     }
 
-    // Validation: Kategorie
-    if (!Qualifikation.VALID_KATEGORIEN.includes(props.kategorie)) {
-      return Result.fail<Qualifikation>(`Ungültige Kategorie: ${props.kategorie}. Erlaubt: ${Qualifikation.VALID_KATEGORIEN.join(', ')}`);
+    // Validation: Abkuerzung (nutzt Domain-Konstanten für Single Source of Truth)
+    if (!props.abkuerzung || props.abkuerzung.trim().length < QUALIFIKATION_ABKUERZUNG_MIN_LENGTH) {
+      return Result.fail<Qualifikation>(QUALIFIKATION_VALIDATION_ERRORS.ABKUERZUNG_TOO_SHORT);
+    }
+    if (props.abkuerzung.length > QUALIFIKATION_ABKUERZUNG_MAX_LENGTH) {
+      return Result.fail<Qualifikation>(QUALIFIKATION_VALIDATION_ERRORS.ABKUERZUNG_TOO_LONG);
     }
 
-    // Validation: Beschreibung
-    if (props.beschreibung && props.beschreibung.length > 1000) {
-      return Result.fail<Qualifikation>('Beschreibung darf maximal 1000 Zeichen lang sein');
+    // Validation: Kategorie (delegiert an Value Object)
+    const kategorieResult = QualifikationKategorie.create(props.kategorie);
+    if (kategorieResult.isFailure) {
+      return Result.fail<Qualifikation>(kategorieResult.error ?? 'Ungültige Kategorie');
+    }
+    const kategorie = kategorieResult.value;
+    if (!kategorie) {
+      return Result.fail<Qualifikation>('Ungültige Kategorie');
+    }
+
+    // Validation: Beschreibung (nutzt Domain-Konstanten für Single Source of Truth)
+    if (props.beschreibung && props.beschreibung.length > QUALIFIKATION_BESCHREIBUNG_MAX_LENGTH) {
+      return Result.fail<Qualifikation>(QUALIFIKATION_VALIDATION_ERRORS.BESCHREIBUNG_TOO_LONG);
     }
 
     // Validation: createdBy (CUID2 Format)
@@ -236,10 +306,10 @@ export class Qualifikation extends AggregateRoot<QualifikationId> {
     const beschreibung = trimmedBeschreibung && trimmedBeschreibung.length > 0 ? trimmedBeschreibung : undefined;
 
     // Create Aggregate
-    const qualifikation = new Qualifikation(id, props.name.trim(), props.abkuerzung.trim(), props.kategorie, trimmedCreatedBy, beschreibung);
+    const qualifikation = new Qualifikation(id, props.name.trim(), props.abkuerzung.trim(), kategorie, trimmedCreatedBy, beschreibung);
 
-    // Emit Domain Event (mit primitiver String-ID für Serialisierbarkeit)
-    qualifikation.addDomainEvent(new QualifikationCreatedEvent(id.value, qualifikation.name, qualifikation.abkuerzung, qualifikation.kategorie, qualifikation.createdBy));
+    // Emit Domain Event (mit primitiven Werten für Serialisierbarkeit)
+    qualifikation.addDomainEvent(new QualifikationCreatedEvent(id.value, qualifikation.name, qualifikation.abkuerzung, qualifikation.kategorieValue, qualifikation.createdBy));
 
     return Result.ok<Qualifikation>(qualifikation);
   }
@@ -280,16 +350,32 @@ export class Qualifikation extends AggregateRoot<QualifikationId> {
       return Result.fail<Qualifikation>('Ungültige ID');
     }
 
+    // Kategorie Value Object erstellen (minimal validation für DB-Daten)
+    const kategorieResult = QualifikationKategorie.create(props.kategorie);
+    if (kategorieResult.isFailure) {
+      return Result.fail<Qualifikation>('Ungültige Kategorie in DB-Daten');
+    }
+    const kategorie = kategorieResult.value;
+    if (!kategorie) {
+      return Result.fail<Qualifikation>('Ungültige Kategorie in DB-Daten');
+    }
+
     // Trim für Konsistenz mit create() (Defense in Depth gegen DB-Korruption)
     const trimmedBeschreibung = props.beschreibung?.trim();
     const beschreibung = trimmedBeschreibung && trimmedBeschreibung.length > 0 ? trimmedBeschreibung : undefined;
+
+    // Validation: sortOrder (Defense in Depth gegen korrupte DB-Daten)
+    // CR-1 Fix: Negative Werte, NaN, Infinity werden abgelehnt
+    if (props.sortOrder < 0 || !Number.isFinite(props.sortOrder) || !Number.isInteger(props.sortOrder)) {
+      return Result.fail<Qualifikation>(`Ungültiger sortOrder in DB-Daten: ${props.sortOrder}`);
+    }
 
     return Result.ok<Qualifikation>(
       new Qualifikation(
         id,
         props.name.trim(),
         props.abkuerzung.trim(),
-        props.kategorie,
+        kategorie,
         props.createdBy.trim(),
         beschreibung,
         props.istAktiv,
@@ -314,43 +400,48 @@ export class Qualifikation extends AggregateRoot<QualifikationId> {
   update(props: UpdateQualifikationProps): Result<void> {
     const changes: Partial<Omit<UpdateQualifikationProps, 'updatedBy'>> = {};
 
-    // Validation und Update: Name
+    // Validation und Update: Name (nutzt Domain-Konstanten für Single Source of Truth)
     if (props.name !== undefined) {
-      if (props.name.trim().length < 3) {
-        return Result.fail<void>('Name muss mindestens 3 Zeichen haben');
+      if (props.name.trim().length < QUALIFIKATION_NAME_MIN_LENGTH) {
+        return Result.fail<void>(QUALIFIKATION_VALIDATION_ERRORS.NAME_TOO_SHORT);
       }
-      if (props.name.length > 100) {
-        return Result.fail<void>('Name darf maximal 100 Zeichen lang sein');
+      if (props.name.length > QUALIFIKATION_NAME_MAX_LENGTH) {
+        return Result.fail<void>(QUALIFIKATION_VALIDATION_ERRORS.NAME_TOO_LONG);
       }
       this._name = props.name.trim();
       changes.name = this._name;
     }
 
-    // Validation und Update: Abkuerzung
+    // Validation und Update: Abkuerzung (nutzt Domain-Konstanten für Single Source of Truth)
     if (props.abkuerzung !== undefined) {
-      if (props.abkuerzung.trim().length < 2) {
-        return Result.fail<void>('Abkürzung muss mindestens 2 Zeichen haben');
+      if (props.abkuerzung.trim().length < QUALIFIKATION_ABKUERZUNG_MIN_LENGTH) {
+        return Result.fail<void>(QUALIFIKATION_VALIDATION_ERRORS.ABKUERZUNG_TOO_SHORT);
       }
-      if (props.abkuerzung.length > 20) {
-        return Result.fail<void>('Abkürzung darf maximal 20 Zeichen lang sein');
+      if (props.abkuerzung.length > QUALIFIKATION_ABKUERZUNG_MAX_LENGTH) {
+        return Result.fail<void>(QUALIFIKATION_VALIDATION_ERRORS.ABKUERZUNG_TOO_LONG);
       }
       this._abkuerzung = props.abkuerzung.trim();
       changes.abkuerzung = this._abkuerzung;
     }
 
-    // Validation und Update: Kategorie
+    // Validation und Update: Kategorie (delegiert an Value Object)
     if (props.kategorie !== undefined) {
-      if (!Qualifikation.VALID_KATEGORIEN.includes(props.kategorie)) {
-        return Result.fail<void>(`Ungültige Kategorie: ${props.kategorie}. Erlaubt: ${Qualifikation.VALID_KATEGORIEN.join(', ')}`);
+      const kategorieResult = QualifikationKategorie.create(props.kategorie);
+      if (kategorieResult.isFailure) {
+        return Result.fail<void>(kategorieResult.error ?? 'Ungültige Kategorie');
       }
-      this._kategorie = props.kategorie;
-      changes.kategorie = this._kategorie;
+      const kategorie = kategorieResult.value;
+      if (!kategorie) {
+        return Result.fail<void>('Ungültige Kategorie');
+      }
+      this._kategorie = kategorie;
+      changes.kategorie = this._kategorie.value;
     }
 
-    // Validation und Update: Beschreibung
+    // Validation und Update: Beschreibung (nutzt Domain-Konstanten für Single Source of Truth)
     if (props.beschreibung !== undefined) {
-      if (props.beschreibung.length > 1000) {
-        return Result.fail<void>('Beschreibung darf maximal 1000 Zeichen lang sein');
+      if (props.beschreibung.length > QUALIFIKATION_BESCHREIBUNG_MAX_LENGTH) {
+        return Result.fail<void>(QUALIFIKATION_VALIDATION_ERRORS.BESCHREIBUNG_TOO_LONG);
       }
       // Konsistentes Handling: leerer String nach trim() wird undefined
       const trimmedBeschreibung = props.beschreibung.trim();
@@ -368,6 +459,9 @@ export class Qualifikation extends AggregateRoot<QualifikationId> {
     if (props.sortOrder !== undefined) {
       if (!Number.isFinite(props.sortOrder) || !Number.isInteger(props.sortOrder)) {
         return Result.fail<void>('sortOrder muss eine ganze Zahl sein (keine NaN oder Infinity)');
+      }
+      if (props.sortOrder < 0) {
+        return Result.fail<void>('sortOrder muss größer oder gleich 0 sein');
       }
       this._sortOrder = props.sortOrder;
       changes.sortOrder = this._sortOrder;
@@ -402,7 +496,7 @@ export class Qualifikation extends AggregateRoot<QualifikationId> {
    */
   deactivate(updatedBy: string): Result<void> {
     if (!this._istAktiv) {
-      return Result.fail<void>('Qualifikation ist bereits deaktiviert');
+      return Result.fail<void>(QualifikationError.format(QUALIFIKATION_ERROR_CODES.ALREADY_DEACTIVATED, 'Qualifikation ist bereits deaktiviert'));
     }
 
     return this.update({ istAktiv: false, updatedBy });

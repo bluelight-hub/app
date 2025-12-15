@@ -2,7 +2,90 @@ import { Injectable } from '@nestjs/common';
 import type { DomainEvent } from '@domain/common/domain-event';
 import type { TransactionContext } from '@domain/common';
 import { Result } from '@domain/common/result';
-// biome-ignore lint/style/useImportType: PrismaService needed for DI at runtime
+/**
+ * AC3 Exception: PrismaService Import in Application Layer.
+ *
+ * **WARUM verstößt dieser Import gegen AC3 (Framework-Agnostizität)?**
+ * - Application Layer sollte KEINE Infrastructure-spezifischen Implementierungen importieren
+ * - NestJS DI erfordert das Runtime-Symbol für `@Injectable()` Constructor Injection
+ * - TypeScript `import type` würde zur Compile-Time entfernt → DI würde zur Laufzeit brechen
+ *
+ * **WARUM wird hier dennoch PrismaService importiert?**
+ *
+ * 1. **Transaction Management ist Infrastructure Concern:**
+ *    - Prisma's `$transaction()` API ist framework-spezifisch (Prisma Client)
+ *    - Alternative: ITransactionManager Abstraction (Ports & Adapters Pattern)
+ *    - Nachteil: Mehr Boilerplate, zusätzliche Indirection, komplexere Testing
+ *
+ * 2. **Praktischer Trade-off (Pragmatismus vs. Purismus):**
+ *    - TransactionalCommandHandler ist INFRASTRUKTUR-NÄHER als Domain Logic
+ *    - Er orchestriert Transaction Coordination (technischer Concern)
+ *    - Business Logic in `executeInTransaction()` bleibt framework-agnostisch
+ *
+ * 3. **Alternative Lösungen (und warum sie NICHT gewählt wurden):**
+ *
+ *    **A) ITransactionManager Abstraction:**
+ *    ```typescript
+ *    interface ITransactionManager {
+ *      executeInTransaction<T>(callback: (tx: TransactionContext) => Promise<T>): Promise<T>;
+ *    }
+ *    class PrismaTransactionManager implements ITransactionManager { ... }
+ *    ```
+ *    - ✅ Volle Framework-Agnostizität
+ *    - ❌ Mehr Boilerplate (zusätzliche Interface + Implementierung)
+ *    - ❌ Schwieriger zu testen (Mock von ITransactionManager statt direktem Prisma-Mock)
+ *    - ❌ Performance Overhead durch zusätzliche Abstraction Layer
+ *
+ *    **B) Decorator Pattern (NestJS Transactional Decorator):**
+ *    ```typescript
+ *    @Transactional()
+ *    async execute(command: TCommand): Promise<Result<TResult>> { ... }
+ *    ```
+ *    - ✅ Cleaner Handler-Code (keine manuelle Transaction)
+ *    - ❌ NestJS-spezifisch (noch weniger portierbar)
+ *    - ❌ Magic Behavior (Decorator injiziert implizit Transaction)
+ *    - ❌ Schwieriger zu debuggen (AOP-basiertes Verhalten)
+ *
+ *    **C) Unit of Work Pattern:**
+ *    ```typescript
+ *    class UnitOfWork {
+ *      commit(): Promise<void>;
+ *      rollback(): Promise<void>;
+ *    }
+ *    ```
+ *    - ✅ Framework-agnostisch
+ *    - ❌ Komplexer (Change Tracking, Flush-Mechanismus)
+ *    - ❌ Nicht idiomatisch für Prisma (Prisma bevorzugt Transactions über UoW)
+ *
+ * 4. **Gewählte Lösung: Controlled Coupling:**
+ *    - TransactionalCommandHandler AKZEPTIERT PrismaService als Dependency
+ *    - ABER: `executeInTransaction()` erhält framework-agnostisches `TransactionContext`
+ *    - Repository Implementations casten `TransactionContext` zu `Prisma.TransactionClient`
+ *    - Business Logic in Handlers bleibt framework-agnostisch
+ *
+ * 5. **Mitigations (wie wir die Auswirkungen minimieren):**
+ *    - `TransactionContext` ist ein Opaque Type (kein Prisma-Bezug im Domain Layer)
+ *    - Handlers nutzen NIEMALS Prisma-spezifische APIs direkt
+ *    - Bei Framework-Wechsel: Nur TransactionalCommandHandler ändern, Handler-Logik bleibt
+ *    - Tests mocken PrismaService einfach (bessere Testbarkeit als mit ITransactionManager)
+ *
+ * 6. **Lessons Learned (für zukünftige Projekte):**
+ *    - Bei greenfield Projekten: ITransactionManager von Anfang an
+ *    - Bei bestehenden Prisma-Projekten: Controlled Coupling akzeptabel
+ *    - Wichtig: TransactionContext bleibt framework-agnostisch (kein Prisma-Type Leaking)
+ *
+ * **Fazit:**
+ * - Dieser Import ist eine BEWUSSTE Architektur-Entscheidung (Pragmatismus)
+ * - Framework-Agnostizität wird PARTIELL geopfert für Einfachheit
+ * - Business Logic bleibt testbar und portierbar
+ * - Transaction Management ist akzeptabel als Infrastructure Concern
+ *
+ * **biome-ignore Begründung:**
+ * - NestJS DI benötigt das Runtime-Symbol für Constructor Injection
+ * - `import type` würde zur Compile-Time entfernt → DI bricht zur Laufzeit
+ * - Daher MUSS reguläres `import` statt `import type` genutzt werden
+ */
+// biome-ignore lint/style/useImportType: PrismaService needed for DI at runtime (siehe JSDoc oben)
 import { PrismaService } from '@/infrastructure/database/prisma.service';
 import type { IOutboxRepository } from '@domain/repositories/i-outbox.repository';
 // NOTE: Import needed for JSDoc example, even though not used in this file

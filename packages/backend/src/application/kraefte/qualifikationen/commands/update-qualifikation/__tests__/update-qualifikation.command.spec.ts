@@ -517,8 +517,24 @@ describe('UpdateQualifikationCommand', () => {
         // Then
         expect(result.isSuccess).toBe(true);
         expect(result.value!.beschreibung).toBeUndefined();
-        // JavaScript undefined check
-        expect('beschreibung' in result.value!).toBe(false);
+        // Note: In TypeScript classes with optional properties, the property exists
+        // on the object but has value undefined (not "not in object")
+      });
+
+      it('sollte null zu undefined mappen für beschreibung', () => {
+        // Given
+        const props = {
+          id: validId,
+          updatedBy: validUpdatedBy,
+          beschreibung: null as unknown as string,
+        };
+
+        // When
+        const result = UpdateQualifikationCommand.create(props);
+
+        // Then
+        expect(result.isSuccess).toBe(true);
+        expect(result.value!.beschreibung).toBeUndefined();
       });
     });
 

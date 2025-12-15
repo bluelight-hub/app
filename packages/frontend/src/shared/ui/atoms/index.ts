@@ -12,6 +12,7 @@ export * from './select.atom';
 export * from './date-input.atom';
 export * from './label.atom';
 export * from './form-field.atom';
+export * from './switch.atom';
 
 // Buttons & Interactive
 export * from './button.atom';

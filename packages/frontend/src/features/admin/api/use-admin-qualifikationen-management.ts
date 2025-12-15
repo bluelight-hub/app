@@ -30,6 +30,7 @@ export const useAdminQualifikationenManagement = (filters?: { istAktiv?: boolean
         istAktiv: filters?.istAktiv,
       }),
     retry: 3,
+    retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000), // Exponential Backoff mit 30s Cap
     staleTime: 30_000, // 30 Sekunden - verhindert unnötige Refetches bei Component Remounts
   });
 

@@ -49,7 +49,7 @@ describe('Qualifikation Aggregate', () => {
       expect(result.value).toBeDefined();
       expect(result.value!.name).toBe('Notfallsanitäter');
       expect(result.value!.abkuerzung).toBe('NotSan');
-      expect(result.value!.kategorie).toBe('SANITAET');
+      expect(result.value!.kategorieValue).toBe('SANITAET');
       expect(result.value!.beschreibung).toBe('Höchste nichtärztliche Qualifikation im Rettungsdienst');
       expect(result.value!.istAktiv).toBe(true);
       expect(result.value!.sortOrder).toBe(0);
@@ -253,7 +253,7 @@ describe('Qualifikation Aggregate', () => {
           };
           const result = Qualifikation.create(props);
           expect(result.isSuccess).toBe(true);
-          expect(result.value!.kategorie).toBe(kategorie);
+          expect(result.value!.kategorieValue).toBe(kategorie);
         }
       });
     });
@@ -528,7 +528,7 @@ describe('Qualifikation Aggregate', () => {
       expect(result.isSuccess).toBe(true);
       expect(qualifikation.name).toBe('Neuer Name');
       expect(qualifikation.abkuerzung).toBe('NEUE');
-      expect(qualifikation.kategorie).toBe('SANITAET');
+      expect(qualifikation.kategorieValue).toBe('SANITAET');
       expect(qualifikation.beschreibung).toBe('Neue Beschreibung');
     });
 
@@ -774,6 +774,24 @@ describe('Qualifikation Aggregate', () => {
         expect(result.isSuccess).toBe(true);
         expect(qualifikation.sortOrder).toBe(Number.MAX_SAFE_INTEGER);
       });
+
+      it('sollte sortOrder > MAX_SAFE_INTEGER akzeptieren (JavaScript Integer-Semantik)', () => {
+        // Given
+        const qualifikation = validQualifikation;
+
+        // When - JavaScript behandelt MAX_SAFE_INTEGER + 1 als gültigen Integer
+        // (Präzisionsverlust, aber Number.isInteger() returned true)
+        const result = qualifikation.update({
+          sortOrder: Number.MAX_SAFE_INTEGER + 1,
+          updatedBy: 'cm9999999999abcdef99999',
+        });
+
+        // Then - Wert wird akzeptiert (JavaScript-Semantik)
+        // HINWEIS: In der Praxis sollte sortOrder nie so groß werden.
+        // Für echten Schutz wäre SafeInteger-Check erforderlich, aber
+        // das ist für sortOrder (Reihenfolge) nicht business-kritisch.
+        expect(result.isSuccess).toBe(true);
+      });
     });
 
     it('sollte leere Beschreibung als undefined speichern (nach trim)', () => {
@@ -864,6 +882,30 @@ describe('Qualifikation Aggregate', () => {
       expect(qualifikation.istAktiv).toBe(true);
     });
 
+    it('sollte QualifikationUpdatedEvent mit istAktiv=true emittieren', () => {
+      // Given
+      const qualifikation = Qualifikation.create({
+        name: 'Zugführer',
+        abkuerzung: 'ZFÜ',
+        kategorie: 'FUEHRUNG',
+        createdBy: 'cm1234567890abcdef12345',
+      }).value!;
+      qualifikation.deactivate('cm9999999999abcdef99999');
+      qualifikation.clearDomainEvents();
+
+      // When
+      const result = qualifikation.reactivate('cm9999999999abcdef99999');
+
+      // Then
+      expect(result.isSuccess).toBe(true);
+      const events = qualifikation.getDomainEvents();
+      expect(events).toHaveLength(1);
+      expect(events[0]).toBeInstanceOf(QualifikationUpdatedEvent);
+      const event = events[0] as QualifikationUpdatedEvent;
+      expect(event.changes).toMatchObject({ istAktiv: true });
+      expect(event.updatedBy).toBe('cm9999999999abcdef99999');
+    });
+
     it('sollte fehlschlagen wenn bereits aktiv', () => {
       // Given
       const qualifikation = Qualifikation.create({
@@ -879,6 +921,89 @@ describe('Qualifikation Aggregate', () => {
       // Then
       expect(result.isFailure).toBe(true);
       expect(result.error).toContain('bereits aktiv');
+    });
+  });
+
+  // ============================================
+  // DOMAIN EVENTS: Reihenfolge und Multi-Operation Tests
+  // ============================================
+
+  describe('Domain Events - Reihenfolge', () => {
+    it('sollte Domain Events in korrekter Reihenfolge nach mehreren Operationen emittieren', () => {
+      // Given
+      const qualifikation = Qualifikation.create({
+        name: 'Zugführer',
+        abkuerzung: 'ZFÜ',
+        kategorie: 'FUEHRUNG',
+        createdBy: 'cm1234567890abcdef12345',
+      }).value!;
+
+      // When
+      // Operation 1: Update Name
+      qualifikation.update({
+        name: 'Zugführer V2',
+        updatedBy: 'cm9999999999abcdef99999',
+      });
+
+      // Operation 2: Update Kategorie
+      qualifikation.update({
+        kategorie: 'SANITAET',
+        updatedBy: 'cm9999999999abcdef99999',
+      });
+
+      // Operation 3: Deactivate
+      qualifikation.deactivate('cm9999999999abcdef99999');
+
+      // Then
+      const events = qualifikation.getDomainEvents();
+      expect(events).toHaveLength(4); // Created + 2x Updated + 1x Updated (deactivate)
+
+      // Event 0: QualifikationCreatedEvent (von create())
+      expect(events[0]).toBeInstanceOf(QualifikationCreatedEvent);
+      expect((events[0] as QualifikationCreatedEvent).name).toBe('Zugführer');
+
+      // Event 1: QualifikationUpdatedEvent (erste update() mit name)
+      expect(events[1]).toBeInstanceOf(QualifikationUpdatedEvent);
+      expect((events[1] as QualifikationUpdatedEvent).changes.name).toBe('Zugführer V2');
+
+      // Event 2: QualifikationUpdatedEvent (zweite update() mit kategorie)
+      expect(events[2]).toBeInstanceOf(QualifikationUpdatedEvent);
+      expect((events[2] as QualifikationUpdatedEvent).changes.kategorie).toBe('SANITAET');
+
+      // Event 3: QualifikationUpdatedEvent (deactivate() setzt istAktiv)
+      expect(events[3]).toBeInstanceOf(QualifikationUpdatedEvent);
+      expect((events[3] as QualifikationUpdatedEvent).changes.istAktiv).toBe(false);
+    });
+
+    it('sollte Domain Events in korrekter Reihenfolge bei Deactivate + Reactivate emittieren', () => {
+      // Given
+      const qualifikation = Qualifikation.create({
+        name: 'Test',
+        abkuerzung: 'TST',
+        kategorie: 'SONSTIGES',
+        createdBy: 'cm1234567890abcdef12345',
+      }).value!;
+      qualifikation.clearDomainEvents(); // Clear creation event
+
+      // When - Verwende gültige CUID2-Identifier (update() validiert CUID2-Format)
+      const deactivateUserId = 'cmaaaaaaaaaaaaaaaaaa001';
+      const reactivateUserId = 'cmaaaaaaaaaaaaaaaaaa002';
+      qualifikation.deactivate(deactivateUserId);
+      qualifikation.reactivate(reactivateUserId);
+
+      // Then
+      const events = qualifikation.getDomainEvents();
+      expect(events).toHaveLength(2);
+
+      // Event 0: Deactivation
+      expect(events[0]).toBeInstanceOf(QualifikationUpdatedEvent);
+      expect((events[0] as QualifikationUpdatedEvent).changes.istAktiv).toBe(false);
+      expect((events[0] as QualifikationUpdatedEvent).updatedBy).toBe(deactivateUserId);
+
+      // Event 1: Reactivation
+      expect(events[1]).toBeInstanceOf(QualifikationUpdatedEvent);
+      expect((events[1] as QualifikationUpdatedEvent).changes.istAktiv).toBe(true);
+      expect((events[1] as QualifikationUpdatedEvent).updatedBy).toBe(reactivateUserId);
     });
   });
 
@@ -910,7 +1035,7 @@ describe('Qualifikation Aggregate', () => {
       expect(result.isSuccess).toBe(true);
       expect(result.value!.name).toBe('Notfallsanitäter');
       expect(result.value!.abkuerzung).toBe('NotSan');
-      expect(result.value!.kategorie).toBe('SANITAET');
+      expect(result.value!.kategorieValue).toBe('SANITAET');
       expect(result.value!.beschreibung).toBe('Höchste nichtärztliche Qualifikation');
       expect(result.value!.istAktiv).toBe(true);
       expect(result.value!.sortOrder).toBe(5);

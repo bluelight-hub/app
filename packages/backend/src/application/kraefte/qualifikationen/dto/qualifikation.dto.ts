@@ -1,11 +1,19 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import type { QualifikationKategorie } from '@domain/kraefte/aggregates/qualifikation.aggregate';
+import { QUALIFIKATION_KATEGORIEN, type QualifikationKategorieType } from '@domain/kraefte';
 
 /**
  * Response DTO für Qualifikation-Daten in API-Responses.
  *
  * Trennt Domain-Schicht (Qualifikation Aggregate) von API-Schicht.
  * Enthält alle relevanten Felder für API-Consumers.
+ *
+ * **Architektur-Entscheidung [AI-R7]:**
+ * DTOs im Application Layer verwenden NestJS/Swagger-Decorators (@ApiProperty),
+ * obwohl dies Framework-Agnostizität (AC3) leicht verletzt. Diese pragmatische
+ * Entscheidung vermeidet redundanten Mapping-Overhead zwischen Presentation Layer
+ * (Controller) und Application Layer (Handlers). DTOs dienen primär der API-
+ * Dokumentation und Serialisierung - die Business Logic bleibt framework-agnostisch
+ * in Domain Aggregates und Command Handlers gekapselt.
  */
 export class QualifikationDto {
   @ApiProperty({
@@ -28,10 +36,10 @@ export class QualifikationDto {
 
   @ApiProperty({
     description: 'Kategorie der Qualifikation',
-    enum: ['FUEHRUNG', 'SANITAET', 'BETREUUNG', 'TECHNIK', 'SONSTIGES'],
+    enum: QUALIFIKATION_KATEGORIEN,
     example: 'SANITAET',
   })
-  kategorie!: QualifikationKategorie;
+  kategorie!: QualifikationKategorieType;
 
   @ApiPropertyOptional({
     description: 'Optionale Beschreibung',

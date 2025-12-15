@@ -46,7 +46,7 @@ describe('DeactivateQualifikationHandler', () => {
       sortOrder: 0,
       createdAt: new Date(),
       updatedAt: new Date(),
-      createdBy: 'user-original',
+      createdBy: 'cm1111111111abcdef11111',
     }).value!;
   };
 
@@ -98,7 +98,7 @@ describe('DeactivateQualifikationHandler', () => {
 
       const command = DeactivateQualifikationCommand.create({
         id: testId,
-        updatedBy: 'user-456',
+        updatedBy: 'cm9999999999abcdef99999',
       }).value!;
 
       // When (Act)
@@ -122,7 +122,7 @@ describe('DeactivateQualifikationHandler', () => {
 
       const command = DeactivateQualifikationCommand.create({
         id: nonExistentId,
-        updatedBy: 'user-456',
+        updatedBy: 'cm9999999999abcdef99999',
       }).value!;
 
       // When (Act)
@@ -141,7 +141,7 @@ describe('DeactivateQualifikationHandler', () => {
 
       const command = DeactivateQualifikationCommand.create({
         id: testId,
-        updatedBy: 'user-456',
+        updatedBy: 'cm9999999999abcdef99999',
       }).value!;
 
       // When (Act)
@@ -159,7 +159,7 @@ describe('DeactivateQualifikationHandler', () => {
 
       const command = DeactivateQualifikationCommand.create({
         id: testId,
-        updatedBy: 'user-456',
+        updatedBy: 'cm9999999999abcdef99999',
       }).value!;
 
       // When (Act)
@@ -178,7 +178,7 @@ describe('DeactivateQualifikationHandler', () => {
 
       const command = DeactivateQualifikationCommand.create({
         id: testId,
-        updatedBy: 'user-456',
+        updatedBy: 'cm9999999999abcdef99999',
       }).value!;
 
       // When (Act)
@@ -196,7 +196,7 @@ describe('DeactivateQualifikationHandler', () => {
 
       const command = DeactivateQualifikationCommand.create({
         id: testId,
-        updatedBy: 'admin-user-789',
+        updatedBy: 'cm7777777777abcdef77777',
       }).value!;
 
       // When (Act)
@@ -204,7 +204,7 @@ describe('DeactivateQualifikationHandler', () => {
 
       // Then (Assert)
       const savedAggregate = mockRepository.save.mock.calls[0][0] as Qualifikation;
-      expect(savedAggregate.updatedBy).toBe('admin-user-789');
+      expect(savedAggregate.updatedBy).toBe('cm7777777777abcdef77777');
     });
   });
 
@@ -213,7 +213,7 @@ describe('DeactivateQualifikationHandler', () => {
       // Given (Arrange)
       const commandResult = DeactivateQualifikationCommand.create({
         id: '',
-        updatedBy: 'user-456',
+        updatedBy: 'cm9999999999abcdef99999',
       });
 
       // Then (Assert)
@@ -237,7 +237,7 @@ describe('DeactivateQualifikationHandler', () => {
       // Given (Arrange)
       const commandResult = DeactivateQualifikationCommand.create({
         id: `  ${testId}  `,
-        updatedBy: 'user-456',
+        updatedBy: 'cm9999999999abcdef99999',
       });
 
       // Then (Assert)
@@ -249,12 +249,12 @@ describe('DeactivateQualifikationHandler', () => {
       // Given (Arrange)
       const commandResult = DeactivateQualifikationCommand.create({
         id: testId,
-        updatedBy: '  user-456  ',
+        updatedBy: '  cm9999999999abcdef99999  ',
       });
 
       // Then (Assert)
       expect(commandResult.isSuccess).toBe(true);
-      expect(commandResult.value!.updatedBy).toBe('user-456');
+      expect(commandResult.value!.updatedBy).toBe('cm9999999999abcdef99999');
     });
   });
 
@@ -266,7 +266,7 @@ describe('DeactivateQualifikationHandler', () => {
 
       const command = DeactivateQualifikationCommand.create({
         id: testId,
-        updatedBy: 'user-456',
+        updatedBy: 'cm9999999999abcdef99999',
       }).value!;
 
       // When (Act)
@@ -289,7 +289,7 @@ describe('DeactivateQualifikationHandler', () => {
 
       const command = DeactivateQualifikationCommand.create({
         id: testId,
-        updatedBy: 'user-456',
+        updatedBy: 'cm9999999999abcdef99999',
       }).value!;
 
       // When (Act)
@@ -313,7 +313,7 @@ describe('DeactivateQualifikationHandler', () => {
 
       const command = DeactivateQualifikationCommand.create({
         id: testId,
-        updatedBy: 'user-456',
+        updatedBy: 'cm9999999999abcdef99999',
       }).value!;
 
       // When (Act)
@@ -331,7 +331,7 @@ describe('DeactivateQualifikationHandler', () => {
       const event = events[0];
       expect(event.constructor.name).toBe('QualifikationUpdatedEvent');
       expect(event.changes).toEqual({ istAktiv: false });
-      expect(event.updatedBy).toBe('user-456');
+      expect(event.updatedBy).toBe('cm9999999999abcdef99999');
       expect(event.aggregateId).toBeDefined();
     });
 
@@ -342,7 +342,7 @@ describe('DeactivateQualifikationHandler', () => {
 
       const command = DeactivateQualifikationCommand.create({
         id: testId,
-        updatedBy: 'admin-789',
+        updatedBy: 'cm7777777777abcdef77777',
       }).value!;
 
       // When (Act)
@@ -374,12 +374,12 @@ describe('DeactivateQualifikationHandler', () => {
 
       const command1 = DeactivateQualifikationCommand.create({
         id: id1,
-        updatedBy: 'user-123',
+        updatedBy: 'cm1234567890abcdef12345',
       }).value!;
 
       const command2 = DeactivateQualifikationCommand.create({
         id: id2,
-        updatedBy: 'user-456',
+        updatedBy: 'cm9999999999abcdef99999',
       }).value!;
 
       // When (Act)
@@ -402,7 +402,7 @@ describe('DeactivateQualifikationHandler', () => {
 
       const command = DeactivateQualifikationCommand.create({
         id: testId,
-        updatedBy: 'user-456',
+        updatedBy: 'cm9999999999abcdef99999',
       }).value!;
 
       // When (Act)

@@ -133,14 +133,6 @@ export class EinsatzApi extends runtime.BaseAPI {
 
     const headerParameters: runtime.HTTPHeaders = {};
 
-    if (this.configuration && this.configuration.accessToken) {
-      const token = this.configuration.accessToken;
-      const tokenString = await token('bearer', []);
-
-      if (tokenString) {
-        headerParameters['Authorization'] = `Bearer ${tokenString}`;
-      }
-    }
     const response = await this.request(
       {
         path: `/api/v-alpha/einsatz/{id}/archive`.replace(`{${'id'}}`, encodeURIComponent(String(requestParameters['id']))),
@@ -182,14 +174,6 @@ export class EinsatzApi extends runtime.BaseAPI {
 
     const headerParameters: runtime.HTTPHeaders = {};
 
-    if (this.configuration && this.configuration.accessToken) {
-      const token = this.configuration.accessToken;
-      const tokenString = await token('bearer', []);
-
-      if (tokenString) {
-        headerParameters['Authorization'] = `Bearer ${tokenString}`;
-      }
-    }
     const response = await this.request(
       {
         path: `/api/v-alpha/einsatz/{id}/complete`.replace(`{${'id'}}`, encodeURIComponent(String(requestParameters['id']))),
@@ -233,14 +217,6 @@ export class EinsatzApi extends runtime.BaseAPI {
 
     headerParameters['Content-Type'] = 'application/json';
 
-    if (this.configuration && this.configuration.accessToken) {
-      const token = this.configuration.accessToken;
-      const tokenString = await token('bearer', []);
-
-      if (tokenString) {
-        headerParameters['Authorization'] = `Bearer ${tokenString}`;
-      }
-    }
     const response = await this.request(
       {
         path: `/api/v-alpha/einsatz`,
@@ -280,14 +256,6 @@ export class EinsatzApi extends runtime.BaseAPI {
 
     const headerParameters: runtime.HTTPHeaders = {};
 
-    if (this.configuration && this.configuration.accessToken) {
-      const token = this.configuration.accessToken;
-      const tokenString = await token('bearer', []);
-
-      if (tokenString) {
-        headerParameters['Authorization'] = `Bearer ${tokenString}`;
-      }
-    }
     const response = await this.request(
       {
         path: `/api/v-alpha/einsatz/{id}`.replace(`{${'id'}}`, encodeURIComponent(String(requestParameters['id']))),
@@ -353,14 +321,6 @@ export class EinsatzApi extends runtime.BaseAPI {
 
     const headerParameters: runtime.HTTPHeaders = {};
 
-    if (this.configuration && this.configuration.accessToken) {
-      const token = this.configuration.accessToken;
-      const tokenString = await token('bearer', []);
-
-      if (tokenString) {
-        headerParameters['Authorization'] = `Bearer ${tokenString}`;
-      }
-    }
     const response = await this.request(
       {
         path: `/api/v-alpha/einsatz`,
@@ -402,14 +362,6 @@ export class EinsatzApi extends runtime.BaseAPI {
 
     const headerParameters: runtime.HTTPHeaders = {};
 
-    if (this.configuration && this.configuration.accessToken) {
-      const token = this.configuration.accessToken;
-      const tokenString = await token('bearer', []);
-
-      if (tokenString) {
-        headerParameters['Authorization'] = `Bearer ${tokenString}`;
-      }
-    }
     const response = await this.request(
       {
         path: `/api/v-alpha/einsatz/{id}`.replace(`{${'id'}}`, encodeURIComponent(String(requestParameters['id']))),
@@ -451,14 +403,6 @@ export class EinsatzApi extends runtime.BaseAPI {
 
     const headerParameters: runtime.HTTPHeaders = {};
 
-    if (this.configuration && this.configuration.accessToken) {
-      const token = this.configuration.accessToken;
-      const tokenString = await token('bearer', []);
-
-      if (tokenString) {
-        headerParameters['Authorization'] = `Bearer ${tokenString}`;
-      }
-    }
     const response = await this.request(
       {
         path: `/api/v-alpha/einsatz/active-with-counts`,
@@ -504,14 +448,6 @@ export class EinsatzApi extends runtime.BaseAPI {
 
     const headerParameters: runtime.HTTPHeaders = {};
 
-    if (this.configuration && this.configuration.accessToken) {
-      const token = this.configuration.accessToken;
-      const tokenString = await token('bearer', []);
-
-      if (tokenString) {
-        headerParameters['Authorization'] = `Bearer ${tokenString}`;
-      }
-    }
     const response = await this.request(
       {
         path: `/api/v-alpha/einsatz/{id}/completeness`.replace(`{${'id'}}`, encodeURIComponent(String(requestParameters['id']))),
@@ -553,14 +489,6 @@ export class EinsatzApi extends runtime.BaseAPI {
 
     const headerParameters: runtime.HTTPHeaders = {};
 
-    if (this.configuration && this.configuration.accessToken) {
-      const token = this.configuration.accessToken;
-      const tokenString = await token('bearer', []);
-
-      if (tokenString) {
-        headerParameters['Authorization'] = `Bearer ${tokenString}`;
-      }
-    }
     const response = await this.request(
       {
         path: `/api/v-alpha/einsatz/{id}/details`.replace(`{${'id'}}`, encodeURIComponent(String(requestParameters['id']))),
@@ -602,14 +530,6 @@ export class EinsatzApi extends runtime.BaseAPI {
 
     const headerParameters: runtime.HTTPHeaders = {};
 
-    if (this.configuration && this.configuration.accessToken) {
-      const token = this.configuration.accessToken;
-      const tokenString = await token('bearer', []);
-
-      if (tokenString) {
-        headerParameters['Authorization'] = `Bearer ${tokenString}`;
-      }
-    }
     const response = await this.request(
       {
         path: `/api/v-alpha/einsatz/{id}/navigation/next`.replace(`{${'id'}}`, encodeURIComponent(String(requestParameters['id']))),
@@ -651,14 +571,6 @@ export class EinsatzApi extends runtime.BaseAPI {
 
     const headerParameters: runtime.HTTPHeaders = {};
 
-    if (this.configuration && this.configuration.accessToken) {
-      const token = this.configuration.accessToken;
-      const tokenString = await token('bearer', []);
-
-      if (tokenString) {
-        headerParameters['Authorization'] = `Bearer ${tokenString}`;
-      }
-    }
     const response = await this.request(
       {
         path: `/api/v-alpha/einsatz/{id}/navigation/previous`.replace(`{${'id'}}`, encodeURIComponent(String(requestParameters['id']))),
@@ -700,14 +612,6 @@ export class EinsatzApi extends runtime.BaseAPI {
 
     const headerParameters: runtime.HTTPHeaders = {};
 
-    if (this.configuration && this.configuration.accessToken) {
-      const token = this.configuration.accessToken;
-      const tokenString = await token('bearer', []);
-
-      if (tokenString) {
-        headerParameters['Authorization'] = `Bearer ${tokenString}`;
-      }
-    }
     const response = await this.request(
       {
         path: `/api/v-alpha/einsatz/stats/status-counts`,
@@ -749,14 +653,6 @@ export class EinsatzApi extends runtime.BaseAPI {
 
     const headerParameters: runtime.HTTPHeaders = {};
 
-    if (this.configuration && this.configuration.accessToken) {
-      const token = this.configuration.accessToken;
-      const tokenString = await token('bearer', []);
-
-      if (tokenString) {
-        headerParameters['Authorization'] = `Bearer ${tokenString}`;
-      }
-    }
     const response = await this.request(
       {
         path: `/api/v-alpha/einsatz/{id}/start`.replace(`{${'id'}}`, encodeURIComponent(String(requestParameters['id']))),
@@ -804,14 +700,6 @@ export class EinsatzApi extends runtime.BaseAPI {
 
     headerParameters['Content-Type'] = 'application/json';
 
-    if (this.configuration && this.configuration.accessToken) {
-      const token = this.configuration.accessToken;
-      const tokenString = await token('bearer', []);
-
-      if (tokenString) {
-        headerParameters['Authorization'] = `Bearer ${tokenString}`;
-      }
-    }
     const response = await this.request(
       {
         path: `/api/v-alpha/einsatz/{id}`.replace(`{${'id'}}`, encodeURIComponent(String(requestParameters['id']))),

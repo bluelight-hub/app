@@ -44,6 +44,18 @@ export const LAGEKARTE_REPOSITORY = Symbol('ILagekarteRepository');
  * - QUALIFIKATION: Qualifikations-Definitionen (Story 1-1)
  * - FAHRZEUGTYP: Fahrzeugtyp-Definitionen (Story 1-2, future)
  * - ROLLE: Rollen-Definitionen (Story 1-3, future)
+ *
+ * **WARUM nested Object statt flat Symbols wie bei anderen Repositories?**
+ * - **Namespacing:** Kräfte-Modul hat mehrere zusammenhängende Repositories
+ * - **Zukunftssicher:** Epic 1+ wird weitere Repositories hinzufügen (Fahrzeugtyp, Rolle)
+ * - **Gruppierung:** Logische Gruppierung von verwandten Tokens für bessere Übersicht
+ * - **Konsistenz innerhalb Epic:** Alle Kräfte-Repositories unter einem Namespace
+ * - **Andere Module:** USER_REPOSITORY, EINSATZ_REPOSITORY sind einzelne Repositories pro Modul
+ *
+ * **Verwendung:**
+ * ```typescript
+ * @Inject(KRAEFTE_REPOSITORIES.QUALIFIKATION) private readonly repo: IQualifikationRepository
+ * ```
  */
 export const KRAEFTE_REPOSITORIES = {
   /** Repository Token für IQualifikationRepository */

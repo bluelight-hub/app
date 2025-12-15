@@ -4,13 +4,16 @@ import type { DomainEvent } from '@domain/common/domain-event';
 import { Result } from '@domain/common/result';
 import type { TransactionContext } from '@domain/kraefte/repositories/i-qualifikation.repository';
 import { Qualifikation } from '@domain/kraefte/aggregates/qualifikation.aggregate';
-import type { IQualifikationRepository } from '@domain/kraefte/repositories/i-qualifikation.repository';
-import type { IOutboxRepository } from '@domain/repositories/i-outbox.repository';
+// biome-ignore lint/style/useImportType: IQualifikationRepository needed for DI at runtime
+import { IQualifikationRepository } from '@domain/kraefte/repositories/i-qualifikation.repository';
+// biome-ignore lint/style/useImportType: IOutboxRepository needed for DI at runtime
+import { IOutboxRepository } from '@domain/repositories/i-outbox.repository';
 import { KRAEFTE_REPOSITORIES, OUTBOX_REPOSITORY } from '@infrastructure/di-tokens';
 // biome-ignore lint/style/useImportType: PrismaService needed for DI at runtime
-import { PrismaService } from '@infrastructure/database/prisma.service';
+import { PrismaService } from '@/infrastructure/database/prisma.service';
 import type { QualifikationDto } from '../../dto/qualifikation.dto';
 import { QualifikationQueryMapper } from '../../queries/qualifikation-query.mapper';
+import { QUALIFIKATION_ERROR_CODES, QualifikationError } from '@domain/kraefte/common/error-codes';
 import type { CreateQualifikationCommand } from './create-qualifikation.command';
 
 /**
@@ -21,7 +24,7 @@ import type { CreateQualifikationCommand } from './create-qualifikation.command'
  */
 @Injectable()
 export class CreateQualifikationHandler extends TransactionalCommandHandler<CreateQualifikationCommand, QualifikationDto> {
-  private readonly logger = new Logger(CreateQualifikationHandler.name);
+  protected readonly logger = new Logger(CreateQualifikationHandler.name);
 
   constructor(
     prisma: PrismaService,
@@ -46,10 +49,14 @@ export class CreateQualifikationHandler extends TransactionalCommandHandler<Crea
     // 1. Check Uniqueness: Abkuerzung (UX Optimization, DB Constraint ist autoritative Quelle)
     const existingResult = await this.repository.findByAbkuerzung(command.abkuerzung, tx);
     if (existingResult.isFailure) {
-      return Result.fail(existingResult.error ?? 'Fehler bei Uniqueness-Check');
+      if (!existingResult.error) {
+        this.logger.error('Repository.findByAbkuerzung returned isFailure=true but error is null - this is a bug!');
+        throw new Error('Repository returned failure without error message');
+      }
+      return Result.fail(existingResult.error);
     }
     if (existingResult.value) {
-      return Result.fail(`Abkürzung '${command.abkuerzung}' ist bereits vergeben`);
+      return Result.fail(QualifikationError.format(QUALIFIKATION_ERROR_CODES.ABKUERZUNG_DUPLICATE, `Abkürzung '${command.abkuerzung}' ist bereits vergeben`));
     }
 
     // 2. Create Aggregate
@@ -61,8 +68,17 @@ export class CreateQualifikationHandler extends TransactionalCommandHandler<Crea
       createdBy: command.createdBy,
     });
 
-    if (aggregateResult.isFailure || !aggregateResult.value) {
-      return Result.fail(aggregateResult.error ?? 'Fehler beim Erstellen der Qualifikation');
+    if (aggregateResult.isFailure) {
+      if (!aggregateResult.error) {
+        this.logger.error('Qualifikation.create returned isFailure=true but error is null - this is a bug!');
+        throw new Error('Aggregate creation returned failure without error message');
+      }
+      return Result.fail(aggregateResult.error);
+    }
+
+    if (!aggregateResult.value) {
+      this.logger.error('Qualifikation.create returned isSuccess=true but value is null - this is a bug!');
+      throw new Error('Aggregate creation succeeded but value is null');
     }
 
     const qualifikation = aggregateResult.value;
@@ -70,7 +86,11 @@ export class CreateQualifikationHandler extends TransactionalCommandHandler<Crea
     // 3. Save Aggregate in Transaction
     const saveResult = await this.repository.save(qualifikation, tx);
     if (saveResult.isFailure) {
-      return Result.fail(saveResult.error ?? 'Fehler beim Speichern der Qualifikation');
+      if (!saveResult.error) {
+        this.logger.error('Repository.save returned isFailure=true but error is null - this is a bug!');
+        throw new Error('Repository save returned failure without error message');
+      }
+      return Result.fail(saveResult.error);
     }
 
     // 4. Extract Domain Events

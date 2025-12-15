@@ -367,8 +367,8 @@ describe('CreateQualifikationCommand', () => {
       });
 
       it('sollte sehr lange Namen akzeptieren', () => {
-        // Given
-        const longName = 'A'.repeat(500);
+        // Given - Name AT max length (100 chars)
+        const longName = 'A'.repeat(100);
         const props = {
           name: longName,
           abkuerzung: 'TEST',
@@ -381,12 +381,30 @@ describe('CreateQualifikationCommand', () => {
 
         // Then
         expect(result.isSuccess).toBe(true);
-        expect(result.value!.name.length).toBe(500);
+        expect(result.value!.name.length).toBe(100);
       });
 
-      it('sollte sehr lange Abkürzungen akzeptieren', () => {
-        // Given
-        const longAbkuerzung = 'B'.repeat(100);
+      it('sollte zu lange Namen ablehnen (Defense-in-Depth)', () => {
+        // Given - Name EXCEEDS max length (101 chars)
+        const tooLongName = 'A'.repeat(101);
+        const props = {
+          name: tooLongName,
+          abkuerzung: 'TEST',
+          kategorie: 'SANITAET' as const,
+          createdBy: 'cm1234567890abcdef12345',
+        };
+
+        // When
+        const result = CreateQualifikationCommand.create(props);
+
+        // Then
+        expect(result.isFailure).toBe(true);
+        expect(result.error).toContain('maximal 100 Zeichen');
+      });
+
+      it('sollte Abkürzungen am Max-Length akzeptieren', () => {
+        // Given - Abkürzung AT max length (20 chars)
+        const longAbkuerzung = 'B'.repeat(20);
         const props = {
           name: 'Test',
           abkuerzung: longAbkuerzung,
@@ -399,12 +417,30 @@ describe('CreateQualifikationCommand', () => {
 
         // Then
         expect(result.isSuccess).toBe(true);
-        expect(result.value!.abkuerzung.length).toBe(100);
+        expect(result.value!.abkuerzung.length).toBe(20);
       });
 
-      it('sollte sehr lange Beschreibungen akzeptieren', () => {
-        // Given
-        const longBeschreibung = 'C'.repeat(5000);
+      it('sollte zu lange Abkürzungen ablehnen (Defense-in-Depth)', () => {
+        // Given - Abkürzung EXCEEDS max length (21 chars)
+        const tooLongAbkuerzung = 'B'.repeat(21);
+        const props = {
+          name: 'Test',
+          abkuerzung: tooLongAbkuerzung,
+          kategorie: 'SANITAET' as const,
+          createdBy: 'cm1234567890abcdef12345',
+        };
+
+        // When
+        const result = CreateQualifikationCommand.create(props);
+
+        // Then
+        expect(result.isFailure).toBe(true);
+        expect(result.error).toContain('maximal 20 Zeichen');
+      });
+
+      it('sollte Beschreibungen am Max-Length akzeptieren', () => {
+        // Given - Beschreibung AT max length (1000 chars)
+        const longBeschreibung = 'C'.repeat(1000);
         const props = {
           name: 'Test',
           abkuerzung: 'TEST',
@@ -418,7 +454,26 @@ describe('CreateQualifikationCommand', () => {
 
         // Then
         expect(result.isSuccess).toBe(true);
-        expect(result.value!.beschreibung!.length).toBe(5000);
+        expect(result.value!.beschreibung!.length).toBe(1000);
+      });
+
+      it('sollte zu lange Beschreibungen ablehnen (Defense-in-Depth)', () => {
+        // Given - Beschreibung EXCEEDS max length (1001 chars)
+        const tooLongBeschreibung = 'C'.repeat(1001);
+        const props = {
+          name: 'Test',
+          abkuerzung: 'TEST',
+          kategorie: 'SANITAET' as const,
+          createdBy: 'cm1234567890abcdef12345',
+          beschreibung: tooLongBeschreibung,
+        };
+
+        // When
+        const result = CreateQualifikationCommand.create(props);
+
+        // Then
+        expect(result.isFailure).toBe(true);
+        expect(result.error).toContain('maximal 1000 Zeichen');
       });
     });
 
