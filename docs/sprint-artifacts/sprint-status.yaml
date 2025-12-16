@@ -60,8 +60,8 @@ development_status:
   # ===== Epic 2: Stammdaten-Administration =====
   epic-2: in-progress
   2-0-prisma-schema-stammdaten: done
-  2-1-stamm-fahrzeuge-verwalten: in-progress
-  2-2-stamm-personen-verwalten: backlog
+  2-1-stamm-fahrzeuge-verwalten: done
+  2-2-stamm-personen-verwalten: review
   epic-2-retrospective: optional
 
   # ===== Epic 3: Fahrzeug-Einsatz-Verwaltung =====

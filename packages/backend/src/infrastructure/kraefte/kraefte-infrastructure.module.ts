@@ -6,6 +6,7 @@ import { PrismaFahrzeugtypRepository } from './repositories/prisma-fahrzeugtyp.r
 import { PrismaRollenDefinitionRepository } from './repositories/prisma-rollen-definition.repository';
 import { PrismaFunkStatusConfigRepository } from './repositories/prisma-funk-status-config.repository';
 import { PrismaStammFahrzeugRepository } from './repositories/prisma-stamm-fahrzeug.repository';
+import { PrismaStammPersonRepository } from './repositories/prisma-stamm-person.repository';
 
 /**
  * Infrastructure Module für Kräftemanagement.
@@ -35,7 +36,26 @@ import { PrismaStammFahrzeugRepository } from './repositories/prisma-stamm-fahrz
       provide: KRAEFTE_REPOSITORIES.STAMM_FAHRZEUG,
       useClass: PrismaStammFahrzeugRepository,
     },
+    {
+      provide: KRAEFTE_REPOSITORIES.STAMM_PERSON,
+      useClass: PrismaStammPersonRepository,
+    },
   ],
-  exports: [KRAEFTE_REPOSITORIES.QUALIFIKATION, KRAEFTE_REPOSITORIES.FAHRZEUGTYP, KRAEFTE_REPOSITORIES.ROLLEN_DEFINITION, KRAEFTE_REPOSITORIES.FUNK_STATUS_CONFIG, KRAEFTE_REPOSITORIES.STAMM_FAHRZEUG],
+  exports: [
+    // DI Tokens für Interface-basierte Injection
+    KRAEFTE_REPOSITORIES.QUALIFIKATION,
+    KRAEFTE_REPOSITORIES.FAHRZEUGTYP,
+    KRAEFTE_REPOSITORIES.ROLLEN_DEFINITION,
+    KRAEFTE_REPOSITORIES.FUNK_STATUS_CONFIG,
+    KRAEFTE_REPOSITORIES.STAMM_FAHRZEUG,
+    KRAEFTE_REPOSITORIES.STAMM_PERSON,
+    // Konkrete Repository-Klassen für direkte Imports in Tests
+    PrismaQualifikationRepository,
+    PrismaFahrzeugtypRepository,
+    PrismaRollenDefinitionRepository,
+    PrismaFunkStatusConfigRepository,
+    PrismaStammFahrzeugRepository,
+    PrismaStammPersonRepository,
+  ],
 })
 export class KraefteInfrastructureModule {}
