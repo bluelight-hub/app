@@ -202,7 +202,7 @@ describe('StammFahrzeug Aggregate', () => {
 
         // Then (Assert)
         expect(result.isFailure).toBe(true);
-        expect(result.error).toContain('Funkkennung BOS darf maximal 50 Zeichen haben');
+        expect(result.error).toContain('BOS-Funkkennung darf maximal 50 Zeichen haben');
       });
 
       it('should fail when createdBy is not a valid CUID', () => {

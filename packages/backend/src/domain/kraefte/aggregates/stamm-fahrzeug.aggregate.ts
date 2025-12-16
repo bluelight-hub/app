@@ -310,8 +310,8 @@ export class StammFahrzeug extends AggregateRoot<StammFahrzeugId> {
     if (trimmedKennzeichen && trimmedKennzeichen.length > STAMM_FAHRZEUG_KENNZEICHEN_MAX_LENGTH) {
       return Result.fail<StammFahrzeug>(STAMM_FAHRZEUG_VALIDATION_ERRORS.KENNZEICHEN_TOO_LONG);
     }
-    // Empty string nach trim() wird undefined
-    if (trimmedKennzeichen && trimmedKennzeichen.length === 0) {
+    // Empty string nach trim() wird undefined (NOTE: leerer String ist falsy, daher !== undefined check)
+    if (trimmedKennzeichen !== undefined && trimmedKennzeichen.length === 0) {
       trimmedKennzeichen = undefined;
     }
 
@@ -328,8 +328,8 @@ export class StammFahrzeug extends AggregateRoot<StammFahrzeugId> {
     if (trimmedFunkkenungBOS && trimmedFunkkenungBOS.length > STAMM_FAHRZEUG_FUNKKENNUNG_MAX_LENGTH) {
       return Result.fail<StammFahrzeug>(STAMM_FAHRZEUG_VALIDATION_ERRORS.FUNKKENNUNG_TOO_LONG);
     }
-    // Empty string nach trim() wird undefined
-    if (trimmedFunkkenungBOS && trimmedFunkkenungBOS.length === 0) {
+    // Empty string nach trim() wird undefined (NOTE: leerer String ist falsy, daher !== undefined check)
+    if (trimmedFunkkenungBOS !== undefined && trimmedFunkkenungBOS.length === 0) {
       trimmedFunkkenungBOS = undefined;
     }
 
@@ -504,13 +504,14 @@ export class StammFahrzeug extends AggregateRoot<StammFahrzeugId> {
     }
 
     // Validation: updatedBy (Pflichtfeld, CUID2 Format)
-    if (!props.updatedBy || props.updatedBy.trim().length === 0) {
+    const trimmedUpdatedBy = props.updatedBy?.trim() ?? '';
+    if (trimmedUpdatedBy.length === 0) {
       return Result.fail<void>('updatedBy ist erforderlich für Audit-Trail');
     }
-    if (!isCuid(props.updatedBy)) {
+    if (!isCuid(trimmedUpdatedBy)) {
       return Result.fail<void>('updatedBy muss ein gültiger CUID2-Identifier sein');
     }
-    this._updatedBy = props.updatedBy.trim();
+    this._updatedBy = trimmedUpdatedBy;
 
     // Update Timestamp (nur wenn Änderungen)
     if (Object.keys(changes).length > 0) {
@@ -550,11 +551,12 @@ export class StammFahrzeug extends AggregateRoot<StammFahrzeugId> {
     this.updateTimestamp();
 
     // Emit Domain Event (archivieren ist eine bedeutende State-Änderung)
+    // M1 Fix: changes Object enthält archived-Status für Event-Handler-Unterscheidung
     this.addDomainEvent(
       new StammFahrzeugUpdatedEvent(
         this.id.value,
         {
-          // Keine Property-Änderungen, nur Archive-Status
+          archived: true, // Signalisiert Event-Handlern dass dies eine Archivierung ist
         },
         trimmedArchivedBy,
       ),

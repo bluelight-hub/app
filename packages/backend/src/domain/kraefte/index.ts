@@ -125,3 +125,35 @@ export { StammFahrzeugUpdatedEvent } from './events/stamm-fahrzeug-updated.event
 
 // Error Codes
 export { STAMM_FAHRZEUG_ERROR_CODES, StammFahrzeugError, type StammFahrzeugErrorCode } from './common/stamm-fahrzeug-error-codes';
+
+// ============================================================================
+// STAMM-PERSON (Story 2-2)
+// ============================================================================
+
+// Constants (Validation Rules - Single Source of Truth)
+export {
+  STAMM_PERSON_VORNAME_MIN_LENGTH,
+  STAMM_PERSON_VORNAME_MAX_LENGTH,
+  STAMM_PERSON_NACHNAME_MIN_LENGTH,
+  STAMM_PERSON_NACHNAME_MAX_LENGTH,
+  STAMM_PERSON_PERSONALNUMMER_MIN_LENGTH,
+  STAMM_PERSON_PERSONALNUMMER_MAX_LENGTH,
+  STAMM_PERSON_FUNKKENNUNG_BOS_MAX_LENGTH,
+  STAMM_PERSON_VALIDATION_ERRORS,
+} from './constants/stamm-person-validation.constants';
+
+// Value Objects
+export { StammPersonId } from './value-objects/stamm-person-id';
+
+// Aggregates
+export { StammPerson, type CreateStammPersonProps, type ReconstituteStammPersonProps, type UpdateStammPersonProps } from './aggregates/stamm-person.aggregate';
+
+// Repository Interfaces (Ports)
+export type { IStammPersonRepository } from './repositories/i-stamm-person.repository';
+
+// Domain Events
+export { StammPersonCreatedEvent } from './events/stamm-person-created.event';
+export { StammPersonUpdatedEvent } from './events/stamm-person-updated.event';
+
+// Error Codes
+export { STAMM_PERSON_ERROR_CODES, StammPersonError, type StammPersonErrorCode } from './common/stamm-person-error-codes';
