@@ -1,6 +1,8 @@
 /* tslint:disable */
 /* eslint-disable */
+export * from './AdminKraefteFahrzeugtypenApi';
 export * from './AdminKraefteQualifikationenApi';
+export * from './AdminKraefteRollenApi';
 export * from './AppApi';
 export * from './AuthApi';
 export * from './ETBApi';

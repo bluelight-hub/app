@@ -82,6 +82,7 @@ import { QUALIFIKATION_ERROR_CODES, QualifikationError } from '@domain/kraefte/c
 @ApiUnauthorizedResponse({ description: 'Keine gültige Admin-Authentifizierung' })
 @ApiTooManyRequestsResponse({ description: 'Rate limit überschritten' })
 @ApiInternalServerErrorResponse({ description: 'Unerwarteter Serverfehler' })
+@ApiForbiddenResponse({ description: 'Keine Berechtigung für diese Operation' })
 @Controller({ path: 'admin/kraefte/qualifikationen', version: 'alpha' })
 @UseGuards(AdminJwtAuthGuard)
 @Throttle({ default: { limit: 20, ttl: 60000 } }) // 20 requests per minute
@@ -118,8 +119,6 @@ export class AdminQualifikationenController {
   @ApiOkResponse({ type: QualifikationDto, isArray: true })
   @ApiQuery({ name: 'istAktiv', required: false, type: Boolean, description: 'Filter nach Aktivierungsstatus' })
   @ApiBadRequestResponse({ description: 'Ungültiger Query-Parameter' })
-  @ApiForbiddenResponse({ description: 'Keine Berechtigung für diese Operation' })
-  @ApiInternalServerErrorResponse({ description: 'Fehler beim Abrufen der Qualifikationen' })
   async findAll(@Query('istAktiv') istAktiv?: string): Promise<QualifikationDto[]> {
     // Parse boolean manually (undefined, 'true', 'false')
     // Validate: Only 'true', 'false', or undefined are allowed
@@ -188,8 +187,6 @@ export class AdminQualifikationenController {
   @ApiOkResponse({ type: QualifikationDto })
   @ApiNotFoundResponse({ description: 'Qualifikation nicht gefunden' })
   @ApiBadRequestResponse({ description: 'Ungültige CUID' })
-  @ApiForbiddenResponse({ description: 'Keine Berechtigung für diese Operation' })
-  @ApiInternalServerErrorResponse({ description: 'Fehler beim Abrufen der Qualifikation' })
   async findOne(@Param('id', ParseCuidPipe) id: string): Promise<QualifikationDto> {
     const query = new GetQualifikationByIdQuery(id);
     const result = await this.getByIdHandler.execute(query);
@@ -233,9 +230,7 @@ export class AdminQualifikationenController {
   @ApiOperation({ summary: 'Neue Qualifikation erstellen' })
   @ApiCreatedResponse({ type: QualifikationDto })
   @ApiBadRequestResponse({ description: 'Validierungsfehler (z.B. Name zu kurz)' })
-  @ApiForbiddenResponse({ description: 'Keine Admin-Berechtigung' })
   @ApiConflictResponse({ description: 'Abkürzung bereits vergeben' })
-  @ApiInternalServerErrorResponse({ description: 'Fehler beim Erstellen der Qualifikation' })
   async create(@CurrentUser() user: ValidatedUser, @Body() dto: CreateQualifikationDto): Promise<QualifikationDto> {
     // Create Command
     const commandResult = CreateQualifikationCommand.create({
@@ -298,10 +293,8 @@ export class AdminQualifikationenController {
   @ApiOperation({ summary: 'Qualifikation aktualisieren' })
   @ApiOkResponse({ type: QualifikationDto })
   @ApiBadRequestResponse({ description: 'Validierungsfehler oder ungültige CUID' })
-  @ApiForbiddenResponse({ description: 'Keine Admin-Berechtigung' })
   @ApiNotFoundResponse({ description: 'Qualifikation nicht gefunden' })
   @ApiConflictResponse({ description: 'Neue Abkürzung bereits vergeben' })
-  @ApiInternalServerErrorResponse({ description: 'Fehler beim Aktualisieren der Qualifikation' })
   async update(@Param('id', ParseCuidPipe) id: string, @CurrentUser() user: ValidatedUser, @Body() dto: UpdateQualifikationDto): Promise<QualifikationDto> {
     // Create Command
     const commandResult = UpdateQualifikationCommand.create({
@@ -368,9 +361,7 @@ export class AdminQualifikationenController {
   @ApiOperation({ summary: 'Qualifikation deaktivieren' })
   @ApiOkResponse({ type: QualifikationDto })
   @ApiBadRequestResponse({ description: 'Qualifikation ist bereits deaktiviert oder ungültige CUID' })
-  @ApiForbiddenResponse({ description: 'Keine Admin-Berechtigung' })
   @ApiNotFoundResponse({ description: 'Qualifikation nicht gefunden' })
-  @ApiInternalServerErrorResponse({ description: 'Fehler beim Deaktivieren der Qualifikation' })
   async deactivate(@Param('id', ParseCuidPipe) id: string, @CurrentUser() user: ValidatedUser): Promise<QualifikationDto> {
     // Create Command
     const commandResult = DeactivateQualifikationCommand.create({
