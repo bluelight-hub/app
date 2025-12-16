@@ -1,6 +1,6 @@
 # Story 1.4: Funkstatus 7-9 konfigurieren
 
-Status: review
+Status: done
 
 ## Quick Start
 
