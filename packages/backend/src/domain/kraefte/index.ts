@@ -71,3 +71,25 @@ export { FahrzeugtypUpdatedEvent } from './events/fahrzeugtyp-updated.event';
 
 // Error Codes
 export { FAHRZEUGTYP_ERROR_CODES, FahrzeugtypError, type FahrzeugtypErrorCode } from './common/fahrzeugtyp-error-codes';
+
+// ============================================================================
+// FUNKSTATUS CONFIG (Story 1-4)
+// ============================================================================
+
+// Constants (Validation Rules - Single Source of Truth)
+export { FUNKSTATUS_VALIDATION, FUNKSTATUS_VALIDATION_ERRORS } from './constants/funkstatus-validation.constants';
+
+// Value Objects
+export { FunkStatusConfigId } from './value-objects/funk-status-config-id';
+
+// Aggregates
+export { FunkStatusConfig, type ReconstituteFunkStatusConfigProps, type UpdateFunkStatusConfigProps } from './aggregates/funk-status-config.aggregate';
+
+// Repository Interfaces (Ports)
+export type { IFunkStatusConfigRepository } from './repositories/i-funk-status-config.repository';
+
+// Domain Events
+export { FunkStatusConfigUpdatedEvent } from './events/funk-status-config-updated.event';
+
+// Error Codes
+export { FUNKSTATUS_ERROR_CODES, FunkStatusError, type FunkStatusErrorCode } from './common/error-codes';
