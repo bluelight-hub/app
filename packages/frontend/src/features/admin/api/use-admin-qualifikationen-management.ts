@@ -25,10 +25,14 @@ export const useAdminQualifikationenManagement = (filters?: { istAktiv?: boolean
   // Query: Liste aller Qualifikationen
   const qualifikationenQuery = useQuery<QualifikationDto[], ResponseError>({
     queryKey: ADMIN_QUERY_KEYS.kraefte.qualifikationen.list(filters),
-    queryFn: () =>
-      api.adminKraefteQualifikationen().adminQualifikationenControllerFindAllVAlpha({
+    queryFn: async () => {
+      const response = await api.adminKraefteQualifikationen().adminQualifikationenControllerFindAllVAlpha({
         istAktiv: filters?.istAktiv,
-      }),
+      });
+      // TransformInterceptor wraps response in { data: [...], meta: {...} }
+      // Extract data array from wrapped response
+      return (response as unknown as { data: QualifikationDto[] }).data;
+    },
     retry: 3,
     retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000), // Exponential Backoff mit 30s Cap
     staleTime: 30_000, // 30 Sekunden - verhindert unnötige Refetches bei Component Remounts

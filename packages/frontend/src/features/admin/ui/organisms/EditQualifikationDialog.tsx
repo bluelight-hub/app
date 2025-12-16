@@ -55,7 +55,7 @@ export const EditQualifikationDialog = ({ isOpen, onClose, onSubmit, isSubmittin
     },
     validatorAdapter: zodValidator(),
     validators: {
-      onChange: updateQualifikationSchema,
+      onBlur: updateQualifikationSchema,
     },
     onSubmit: ({ value }) => {
       if (!qualifikation) return;

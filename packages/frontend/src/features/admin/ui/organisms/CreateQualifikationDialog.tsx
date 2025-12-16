@@ -47,7 +47,7 @@ export const CreateQualifikationDialog = ({ isOpen, onClose, onSubmit, isSubmitt
     },
     validatorAdapter: zodValidator(),
     validators: {
-      onChange: createQualifikationSchema,
+      onBlur: createQualifikationSchema,
     },
     onSubmit: ({ value }) => {
       onSubmit({
