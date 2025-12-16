@@ -441,18 +441,17 @@ And:   Compliance mit AC1-AC6 Code Review Checklist (siehe Dev Notes)
 
 #### MEDIUM Priority (Edge Case)
 
-- [ ] [AI-Review][MEDIUM] Race Condition Error Code: Bei parallelem Insert gibt Repository `formatPrismaError()` zurück ohne `ROLLE_ERROR_CODES.NAME_DUPLICATE` → Controller liefert HTTP 400 statt 409 [`prisma-rollen-definition.repository.ts:170-175`]
-  - **Impact:** Edge Case, Operation wird korrekt abgelehnt, nur falscher HTTP Status
-  - **Fix:** Repository sollte bei P2002 den Error Code `RolleError.format(ROLLE_ERROR_CODES.NAME_DUPLICATE, ...)` verwenden
+- [x] [AI-Review][MEDIUM] Race Condition Error Code: Bei parallelem Insert gibt Repository `formatPrismaError()` zurück ohne `ROLLE_ERROR_CODES.NAME_DUPLICATE` → Controller liefert HTTP 400 statt 409 [`prisma-rollen-definition.repository.ts:170-175`] **✅ Fixed 2025-12-16**
+  - **Fix:** Repository.save() nutzt jetzt `RolleError.format(ROLLE_ERROR_CODES.NAME_DUPLICATE, ...)` bei P2002
 
 #### LOW Priority (Code Quality / Enhancements)
 
-- [ ] [AI-Review][LOW] Dead Code: String-Matching `includes('Foreign key constraint')` matched nie - Repository gibt bereits User-Friendly Message zurück [`create-rollen-definition.handler.ts:146`]
-  - **Status:** Toter Code, kann entfernt werden (kein aktives Problem)
-- [ ] [AI-Review][LOW] Enhancement: Stricter Rate Limits für Mutation-Endpoints (POST/PATCH) - aktuell 20 req/min für alle Endpoints zusammen
-  - **Status:** Konsistent mit allen Admin-Controllern, global als Tech-Debt adressieren
+- [x] [AI-Review][LOW] Dead Code: String-Matching `includes('Foreign key constraint')` matched nie - Repository gibt bereits User-Friendly Message zurück [`create-rollen-definition.handler.ts:146`] **✅ Fixed 2025-12-16**
+  - **Fix:** Toter if-Block entfernt, nur `return Result.fail(saveQualifikationenResult.error)` behalten
+- [x] [AI-Review][LOW] Enhancement: Stricter Rate Limits für Mutation-Endpoints (POST/PATCH) - aktuell 20 req/min für alle Endpoints zusammen **✅ Fixed 2025-12-16**
+  - **Fix:** `ADMIN_MUTATION_RATE_LIMIT` (10 req/min) für alle POST/PATCH Endpoints in admin-rollen, admin-qualifikationen, admin-fahrzeugtypen Controller
 - [ ] [AI-Review][LOW] Enhancement: Mehr Logging-Kontext (userId, requestId) in Controller Error-Handling
-  - **Status:** Konsistent mit allen Controllern, global als Tech-Debt adressieren
+  - **Status:** Konsistent mit allen Controllern, global als Tech-Debt adressieren (separate Story)
 
 #### Verifiziert & Geschlossen
 
@@ -1015,3 +1014,4 @@ Claude Opus 4.5 (claude-opus-4-5-20251101) via BMad Scrum Master Agent
 | 2025-12-16 | Code Review R2 (AI) | 5-Subagent Final Review: 1 HIGH (N+1 Query), 1 MEDIUM (DB Index), 3 LOW (Code Quality). Alle als Tech-Debt dokumentiert. AC1-AC5 PASSED, AC6 (Tests) dokumentiert übersprungen. Story merge-ready. |
 | 2025-12-16 | R2 Fixes Applied | 3 Issues behoben via 4 parallele Subagents: (1) N+1 Query → existsMany() Batch-Methode in IQualifikationRepository + PrismaQualifikationRepository, (2) DB Index → @@index([istAktiv, sortOrder, name]) in schema.prisma, (3) Rate Limit Constants → ADMIN_RATE_LIMIT in infrastructure/http/constants/. 2 LOW Issues als intentional/compliant dokumentiert. TypeScript + Lint PASSED. |
 | 2025-12-16 | Code Review R3 (AI) | 5-Subagent Final Review mit Re-Analyse. Ursprüngliche "CRITICAL" Issues waren übertrieben oder bereits gefixt. 1 MEDIUM (Race Condition Error Code), 3 LOW (Dead Code, Rate Limits, Logging) als Tech-Debt dokumentiert. 3 Issues als CLOSED verifiziert. AC1-AC5 PASSED. Status → done. |
+| 2025-12-16 | R3 Fixes Applied | 3 Issues behoben via 3 parallele Subagents: (1) Race Condition → RolleError.format() bei P2002 in Repository, (2) Dead Code → if-Block entfernt, (3) Rate Limits → ADMIN_MUTATION_RATE_LIMIT (10 req/min) für alle Mutation-Endpoints. 1 LOW (Logging) bleibt als globaler Tech-Debt. |

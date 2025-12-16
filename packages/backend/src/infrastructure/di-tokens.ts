@@ -64,6 +64,10 @@ export const KRAEFTE_REPOSITORIES = {
   FAHRZEUGTYP: Symbol('IFahrzeugtypRepository'),
   /** Repository Token für IRollenDefinitionRepository (Story 1-3) */
   ROLLEN_DEFINITION: Symbol('IRollenDefinitionRepository'),
+  /** Repository Token für IFunkStatusConfigRepository (Story 1-4) */
+  FUNK_STATUS_CONFIG: Symbol('IFunkStatusConfigRepository'),
+  /** Repository Token für IStammFahrzeugRepository (Story 2-1) */
+  STAMM_FAHRZEUG: Symbol('IStammFahrzeugRepository'),
 } as const;
 
 /** Transaction Manager Token für ITransactionManager */

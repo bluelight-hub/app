@@ -103,6 +103,24 @@ model User {
   createdRolleQualifikationen RolleQualifikation[] @relation("RolleQualifikationCreator")
   updatedRolleQualifikationen RolleQualifikation[] @relation("RolleQualifikationUpdater")
 
+  // ========================================
+  // Stammdaten Relations (Story 2.0)
+  // ========================================
+
+  // StammFahrzeug Relations
+  createdStammFahrzeuge  StammFahrzeug[] @relation("StammFahrzeugCreator")
+  updatedStammFahrzeuge  StammFahrzeug[] @relation("StammFahrzeugUpdater")
+  archivedStammFahrzeuge StammFahrzeug[] @relation("StammFahrzeugArchiver")
+
+  // StammPerson Relations
+  createdStammPersonen  StammPerson[] @relation("StammPersonCreator")
+  updatedStammPersonen  StammPerson[] @relation("StammPersonUpdater")
+  archivedStammPersonen StammPerson[] @relation("StammPersonArchiver")
+
+  // StammPersonQualifikation Relations (Junction Audit)
+  createdStammPersonQualifikationen StammPersonQualifikation[] @relation("StammPersonQualifikationCreator")
+  updatedStammPersonQualifikationen StammPersonQualifikation[] @relation("StammPersonQualifikationUpdater")
+
   // Indexes
   @@index([username], map: "idx_user_username")
   @@index([role, isActive], map: "idx_user_role_active")
@@ -551,6 +569,9 @@ model Qualifikation {
   // M:N Relations
   rollenQualifikationen RolleQualifikation[]
 
+  // M:N: Welche Stamm-Personen haben diese Qualifikation (Story 2.0)
+  stammPersonQualifikationen StammPersonQualifikation[]
+
   // Indexes
   @@index([kategorie, istAktiv])
   @@index([istAktiv, sortOrder])
@@ -584,6 +605,9 @@ model Fahrzeugtyp {
   // Relations
   creator User  @relation("FahrzeugtypCreator", fields: [createdBy], references: [id], onDelete: Restrict)
   updater User? @relation("FahrzeugtypUpdater", fields: [updatedBy], references: [id], onDelete: SetNull)
+
+  // Inverse Relation für StammFahrzeuge (Story 2.0)
+  stammFahrzeuge StammFahrzeug[]
 
   // Indexes
   @@index([kategorie, istAktiv])
@@ -681,4 +705,105 @@ model FunkStatusConfig {
   @@index([istAlarmierbar])
   @@index([createdBy])
   @@map("funk_status_config")
+}
+
+// ========================================
+// Kräfte-Management: Stammdaten
+// Epic 2 - Story 2.0
+// ========================================
+
+/// Stamm-Fahrzeug: Dauerhaft registriertes Fahrzeug der Organisation
+/// Referenziert von: EinsatzFahrzeug (Epic 3), Lagekarte-POIs (Epic 8)
+model StammFahrzeug {
+  id            String   @id @default(cuid())
+  rufname       String   @db.VarChar(100) // z.B. "Rettungswagen 1"
+  funkrufname   String   @unique @db.VarChar(50) // z.B. "Rotkreuz 83/1"
+  fahrzeugtypId String   // FK zu Fahrzeugtyp (Epic 1)
+  kennzeichen   String?  @db.VarChar(20) // z.B. "DA-RK 123"
+  baujahr       Int?     // z.B. 2022
+  funkkenungBOS String?  @db.VarChar(50) // BOS-Funkkennung
+
+  // Archive-Pattern (NICHT isDeleted!)
+  archivedAt DateTime?
+  archivedBy String?   @db.VarChar(100)
+
+  // Audit-Trail
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  createdBy String   @db.VarChar(100)
+  updatedBy String?  @db.VarChar(100)
+
+  // Relations
+  fahrzeugtyp Fahrzeugtyp @relation(fields: [fahrzeugtypId], references: [id], onDelete: Restrict)
+  creator     User        @relation("StammFahrzeugCreator", fields: [createdBy], references: [id], onDelete: Restrict)
+  updater     User?       @relation("StammFahrzeugUpdater", fields: [updatedBy], references: [id], onDelete: SetNull)
+  archiver    User?       @relation("StammFahrzeugArchiver", fields: [archivedBy], references: [id], onDelete: SetNull)
+
+  // Indexes
+  @@index([fahrzeugtypId])
+  @@index([archivedAt])
+  @@index([archivedAt, fahrzeugtypId])
+  @@index([createdBy])
+  @@map("stamm_fahrzeuge")
+}
+
+/// Stamm-Person: Dauerhaft registriertes Mitglied der Organisation
+/// Referenziert von: EinsatzPerson (Epic 4), Rollenbesetzung (Epic 5)
+model StammPerson {
+  id             String   @id @default(cuid())
+  vorname        String   @db.VarChar(100)
+  nachname       String   @db.VarChar(100)
+  personalnummer String   @unique @db.VarChar(50) // Eindeutige Personalnummer
+  funkkenungBOS  String?  @db.VarChar(50) // BOS-Funkkennung
+
+  // Archive-Pattern (NICHT isDeleted!)
+  archivedAt DateTime?
+  archivedBy String?   @db.VarChar(100)
+
+  // Audit-Trail
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  createdBy String   @db.VarChar(100)
+  updatedBy String?  @db.VarChar(100)
+
+  // Relations
+  creator  User  @relation("StammPersonCreator", fields: [createdBy], references: [id], onDelete: Restrict)
+  updater  User? @relation("StammPersonUpdater", fields: [updatedBy], references: [id], onDelete: SetNull)
+  archiver User? @relation("StammPersonArchiver", fields: [archivedBy], references: [id], onDelete: SetNull)
+
+  // M:N: Qualifikationen dieser Person
+  qualifikationen StammPersonQualifikation[]
+
+  // Indexes
+  @@index([archivedAt])
+  @@index([archivedAt, nachname])
+  @@index([createdBy])
+  @@map("stamm_personen")
+}
+
+/// M:N Junction Table: StammPerson <-> Qualifikation
+/// Jede Qualifikation einer Person ist ein separater Eintrag mit Audit-Trail
+model StammPersonQualifikation {
+  id              String @id @default(cuid())
+  personId        String
+  qualifikationId String
+
+  // Audit-Trail (wann wurde Qualifikation zugewiesen?)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  createdBy String   @db.VarChar(100)
+  updatedBy String?  @db.VarChar(100)
+
+  // Relations
+  person        StammPerson   @relation(fields: [personId], references: [id], onDelete: Cascade)
+  qualifikation Qualifikation @relation(fields: [qualifikationId], references: [id], onDelete: Restrict)
+  creator       User          @relation("StammPersonQualifikationCreator", fields: [createdBy], references: [id], onDelete: Restrict)
+  updater       User?         @relation("StammPersonQualifikationUpdater", fields: [updatedBy], references: [id], onDelete: SetNull)
+
+  // Unique Constraint (keine Duplikate in M:N)
+  @@unique([personId, qualifikationId])
+  @@index([personId])
+  @@index([qualifikationId])
+  @@index([createdBy])
+  @@map("stamm_person_qualifikationen")
 }

@@ -22,6 +22,11 @@ async function main() {
   await prisma.einsatztagebuch.deleteMany();
   await prisma.einsatz.deleteMany();
 
+  // Kräfte-Management: Stammdaten (Story 2.0) - Junction Table zuerst!
+  await prisma.stammPersonQualifikation.deleteMany();
+  await prisma.stammPerson.deleteMany();
+  await prisma.stammFahrzeug.deleteMany();
+
   // Kräfte-Management: Admin-Konfiguration (Story 1.0)
   await prisma.rolleQualifikation.deleteMany();
   await prisma.rollenDefinition.deleteMany();
@@ -50,6 +55,10 @@ async function main() {
   // Kräfte-Management Basis-Konfiguration (Story 1.0)
   // MUSS in allen Umgebungen laufen - dies sind essentielle Stammdaten
   await seedKraefteConfig(systemUser.id);
+
+  // Stammdaten (Story 2.0) - MUSS nach seedKraefteConfig laufen (braucht Fahrzeugtypen + Qualifikationen)
+  // MUSS in allen Umgebungen laufen - Stammdaten sind essentielle Entwicklungsdaten
+  await seedStammdaten(systemUser.id);
 
   // Erstelle ETB Textbausteine NUR für Entwicklung
   if (process.env.NODE_ENV === 'development') {
@@ -170,18 +179,20 @@ async function seedKraefteConfig(systemUserId: string): Promise<void> {
   }
   logger.log(`Created ${rollenDefinitionen.length} Rollen-Definitionen`);
 
-  // FunkStatus 0-9 nach DIN (7-9 regional anpassbar)
+  // FunkStatus 0-9 nach DIN 14610 (Status 0-6: fest definiert, 7-9: regional anpassbar)
   const funkStatusConfig = [
-    { code: 0, standardLabel: 'Betriebsbereit auf Funk', istAlarmierbar: true, farbe: '#22C55E' },
-    { code: 1, standardLabel: 'Einsatzbereit über Funk', istAlarmierbar: true, farbe: '#22C55E' },
-    { code: 2, standardLabel: 'Einsatzbereit auf Wache', istAlarmierbar: true, farbe: '#22C55E' },
-    { code: 3, standardLabel: 'Einsatzübernahme', istAlarmierbar: false, farbe: '#3B82F6' },
-    { code: 4, standardLabel: 'Ankunft Einsatzstelle', istAlarmierbar: false, farbe: '#3B82F6' },
-    { code: 5, standardLabel: 'Sprechwunsch', istAlarmierbar: false, farbe: '#F59E0B' },
-    { code: 6, standardLabel: 'Nicht einsatzbereit', istAlarmierbar: false, farbe: '#EF4444' },
-    { code: 7, standardLabel: 'Patient aufgenommen', istAlarmierbar: false, farbe: '#8B5CF6' },
-    { code: 8, standardLabel: 'Ankunft Krankenhaus', istAlarmierbar: false, farbe: '#8B5CF6' },
-    { code: 9, standardLabel: 'Handquittung', istAlarmierbar: false, farbe: '#6B7280' },
+    // DIN 14610 Standard Status (0-6) - nicht editierbar
+    { code: 0, standardLabel: 'Betriebsbereit auf Funk', istAlarmierbar: false, farbe: '#00AA00' },
+    { code: 1, standardLabel: 'Einsatzbereit über Funk', istAlarmierbar: false, farbe: '#00AA00' },
+    { code: 2, standardLabel: 'Einsatzbereit auf Wache', istAlarmierbar: false, farbe: '#00AA00' },
+    { code: 3, standardLabel: 'Einsatzübernahme', istAlarmierbar: false, farbe: '#FFFF00' },
+    { code: 4, standardLabel: 'Ankunft Einsatzstelle', istAlarmierbar: false, farbe: '#FF0000' },
+    { code: 5, standardLabel: 'Sprechwunsch', istAlarmierbar: false, farbe: '#0000FF' },
+    { code: 6, standardLabel: 'Nicht einsatzbereit', istAlarmierbar: false, farbe: '#808080' },
+    // Regional anpassbare Status (7-9) - editierbar (customLabel, farbe)
+    { code: 7, standardLabel: 'Patient aufgenommen', istAlarmierbar: true, farbe: '#FFFF00' },
+    { code: 8, standardLabel: 'Ankunft Krankenhaus', istAlarmierbar: false, farbe: '#FF0000' },
+    { code: 9, standardLabel: 'Handquittung', istAlarmierbar: false, farbe: '#FF0000' },
   ];
 
   for (const s of funkStatusConfig) {
@@ -194,6 +205,94 @@ async function seedKraefteConfig(systemUserId: string): Promise<void> {
   logger.log(`Created ${funkStatusConfig.length} FunkStatus-Konfigurationen`);
 
   logger.log('Kräfte-Config Seed completed');
+}
+
+/**
+ * Erstellt Stammdaten für Fahrzeuge und Personen.
+ * Nutzt Upsert-Pattern für Idempotenz bei mehrfacher Ausführung.
+ * MUSS in allen Umgebungen laufen - Stammdaten sind essentielle Entwicklungsdaten.
+ *
+ * @param systemUserId - User ID für Audit-Trail (createdBy)
+ */
+async function seedStammdaten(systemUserId: string): Promise<void> {
+  logger.log('Creating Stammdaten (Fahrzeuge & Personen)...');
+
+  // Erst Fahrzeugtypen laden (für FK)
+  const rtw = await prisma.fahrzeugtyp.findUnique({ where: { code: 'RTW' } });
+  const ktw = await prisma.fahrzeugtyp.findUnique({ where: { code: 'KTW' } });
+  const nef = await prisma.fahrzeugtyp.findUnique({ where: { code: 'NEF' } });
+
+  if (!rtw || !ktw || !nef) {
+    logger.warn('Fahrzeugtypen nicht gefunden - überspringe Stammdaten-Seed');
+    return;
+  }
+
+  // Standard-Fahrzeuge für Entwicklung
+  const fahrzeuge = [
+    { funkrufname: 'Rotkreuz 83/1', rufname: 'RTW 1', fahrzeugtypId: rtw.id, kennzeichen: 'DA-RK 101', baujahr: 2022 },
+    { funkrufname: 'Rotkreuz 83/2', rufname: 'RTW 2', fahrzeugtypId: rtw.id, kennzeichen: 'DA-RK 102', baujahr: 2021 },
+    { funkrufname: 'Rotkreuz 83/11', rufname: 'KTW 1', fahrzeugtypId: ktw.id, kennzeichen: 'DA-RK 111', baujahr: 2020 },
+    { funkrufname: 'Rotkreuz 83/82', rufname: 'NEF 1', fahrzeugtypId: nef.id, kennzeichen: 'DA-RK 182', baujahr: 2023 },
+  ];
+
+  for (const f of fahrzeuge) {
+    await prisma.stammFahrzeug.upsert({
+      where: { funkrufname: f.funkrufname },
+      create: { ...f, createdBy: systemUserId },
+      update: {}, // Keine Updates bei existierenden Einträgen
+    });
+  }
+  logger.log(`Created ${fahrzeuge.length} Stamm-Fahrzeuge`);
+
+  // Qualifikationen laden für M:N
+  const notsan = await prisma.qualifikation.findUnique({ where: { abkuerzung: 'NotSan' } });
+  const rs = await prisma.qualifikation.findUnique({ where: { abkuerzung: 'RS' } });
+  const gf = await prisma.qualifikation.findUnique({ where: { abkuerzung: 'GF' } });
+
+  if (!notsan || !rs || !gf) {
+    logger.warn('Qualifikationen nicht gefunden - überspringe Personen-Seed');
+    return;
+  }
+
+  // Standard-Personen für Entwicklung
+  const personen = [
+    { personalnummer: 'P-001', vorname: 'Max', nachname: 'Mustermann', qualifikationIds: [notsan.id, gf.id] },
+    { personalnummer: 'P-002', vorname: 'Erika', nachname: 'Musterfrau', qualifikationIds: [notsan.id] },
+    { personalnummer: 'P-003', vorname: 'Hans', nachname: 'Sanitäter', qualifikationIds: [rs.id] },
+  ];
+
+  for (const p of personen) {
+    const { qualifikationIds, ...personData } = p;
+
+    // Person upsert
+    const person = await prisma.stammPerson.upsert({
+      where: { personalnummer: p.personalnummer },
+      create: { ...personData, createdBy: systemUserId },
+      update: {},
+    });
+
+    // Qualifikationen zuweisen (nur wenn Person neu erstellt)
+    // Bei Upsert prüfen wir ob Qualifikationen bereits existieren
+    for (const qualifikationId of qualifikationIds) {
+      await prisma.stammPersonQualifikation.upsert({
+        where: {
+          personId_qualifikationId: {
+            personId: person.id,
+            qualifikationId,
+          },
+        },
+        create: {
+          personId: person.id,
+          qualifikationId,
+          createdBy: systemUserId,
+        },
+        update: {},
+      });
+    }
+  }
+  logger.log(`Created ${personen.length} Stamm-Personen mit Qualifikationen`);
+
+  logger.log('Stammdaten Seed completed');
 }
 
 main()

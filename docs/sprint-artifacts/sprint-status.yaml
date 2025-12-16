@@ -49,18 +49,18 @@ development_status:
   epic-0-retrospective: done
 
   # ===== Epic 1: Admin-Grundkonfiguration =====
-  epic-1: in-progress
-  1-0-prisma-schema-admin-konfiguration: review
-  1-1-qualifikationen-verwalten: in-progress
+  epic-1: done
+  1-0-prisma-schema-admin-konfiguration: done
+  1-1-qualifikationen-verwalten: done
   1-2-fahrzeugtypen-verwalten: done
   1-3-rollen-definitionen-verwalten: done
   1-4-funkstatus-7-9-konfigurieren: done
-  epic-1-retrospective: optional
+  epic-1-retrospective: done
 
   # ===== Epic 2: Stammdaten-Administration =====
-  epic-2: backlog
-  2-0-prisma-schema-stammdaten: backlog
-  2-1-stamm-fahrzeuge-verwalten: backlog
+  epic-2: in-progress
+  2-0-prisma-schema-stammdaten: done
+  2-1-stamm-fahrzeuge-verwalten: in-progress
   2-2-stamm-personen-verwalten: backlog
   epic-2-retrospective: optional
 

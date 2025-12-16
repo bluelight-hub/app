@@ -1,5 +1,6 @@
 .openapi-generator-ignore
 apis/AdminKraefteFahrzeugtypenApi.ts
+apis/AdminKraefteFunkstatusApi.ts
 apis/AdminKraefteQualifikationenApi.ts
 apis/AdminKraefteRollenApi.ts
 apis/AppApi.ts
@@ -66,6 +67,7 @@ models/EtbSnapshotDto.ts
 models/EtbVersionDto.ts
 models/FahrzeugtypDto.ts
 models/FahrzeugtypSollbesatzungDto.ts
+models/FunkStatusConfigDto.ts
 models/GeocodeAddressDto.ts
 models/HealthControllerCheck200Response.ts
 models/HealthControllerCheck200ResponseInfoValue.ts
@@ -98,6 +100,7 @@ models/TextbausteinListResponse.ts
 models/UpdateEinsatzDto.ts
 models/UpdateEintragDto.ts
 models/UpdateFahrzeugtypDto.ts
+models/UpdateFunkStatusConfigDto.ts
 models/UpdatePoiDto.ts
 models/UpdatePoiPositionDto.ts
 models/UpdateQualifikationDto.ts

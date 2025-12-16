@@ -4,6 +4,8 @@ import { KRAEFTE_REPOSITORIES } from '@infrastructure/di-tokens';
 import { PrismaQualifikationRepository } from './repositories/prisma-qualifikation.repository';
 import { PrismaFahrzeugtypRepository } from './repositories/prisma-fahrzeugtyp.repository';
 import { PrismaRollenDefinitionRepository } from './repositories/prisma-rollen-definition.repository';
+import { PrismaFunkStatusConfigRepository } from './repositories/prisma-funk-status-config.repository';
+import { PrismaStammFahrzeugRepository } from './repositories/prisma-stamm-fahrzeug.repository';
 
 /**
  * Infrastructure Module für Kräftemanagement.
@@ -25,7 +27,15 @@ import { PrismaRollenDefinitionRepository } from './repositories/prisma-rollen-d
       provide: KRAEFTE_REPOSITORIES.ROLLEN_DEFINITION,
       useClass: PrismaRollenDefinitionRepository,
     },
+    {
+      provide: KRAEFTE_REPOSITORIES.FUNK_STATUS_CONFIG,
+      useClass: PrismaFunkStatusConfigRepository,
+    },
+    {
+      provide: KRAEFTE_REPOSITORIES.STAMM_FAHRZEUG,
+      useClass: PrismaStammFahrzeugRepository,
+    },
   ],
-  exports: [KRAEFTE_REPOSITORIES.QUALIFIKATION, KRAEFTE_REPOSITORIES.FAHRZEUGTYP, KRAEFTE_REPOSITORIES.ROLLEN_DEFINITION],
+  exports: [KRAEFTE_REPOSITORIES.QUALIFIKATION, KRAEFTE_REPOSITORIES.FAHRZEUGTYP, KRAEFTE_REPOSITORIES.ROLLEN_DEFINITION, KRAEFTE_REPOSITORIES.FUNK_STATUS_CONFIG, KRAEFTE_REPOSITORIES.STAMM_FAHRZEUG],
 })
 export class KraefteInfrastructureModule {}

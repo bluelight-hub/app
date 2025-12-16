@@ -93,3 +93,35 @@ export { FunkStatusConfigUpdatedEvent } from './events/funk-status-config-update
 
 // Error Codes
 export { FUNKSTATUS_ERROR_CODES, FunkStatusError, type FunkStatusErrorCode } from './common/error-codes';
+
+// ============================================================================
+// STAMM-FAHRZEUG (Story 2-1)
+// ============================================================================
+
+// Constants (Validation Rules - Single Source of Truth)
+export {
+  STAMM_FAHRZEUG_RUFNAME_MIN_LENGTH,
+  STAMM_FAHRZEUG_RUFNAME_MAX_LENGTH,
+  STAMM_FAHRZEUG_FUNKRUFNAME_MIN_LENGTH,
+  STAMM_FAHRZEUG_FUNKRUFNAME_MAX_LENGTH,
+  STAMM_FAHRZEUG_KENNZEICHEN_MAX_LENGTH,
+  STAMM_FAHRZEUG_FUNKKENNUNG_MAX_LENGTH,
+  STAMM_FAHRZEUG_BAUJAHR_MIN,
+  STAMM_FAHRZEUG_VALIDATION_ERRORS,
+} from './constants/stamm-fahrzeug-validation.constants';
+
+// Value Objects
+export { StammFahrzeugId } from './value-objects/stamm-fahrzeug-id';
+
+// Aggregates
+export { StammFahrzeug, type CreateStammFahrzeugProps, type ReconstituteStammFahrzeugProps, type UpdateStammFahrzeugProps } from './aggregates/stamm-fahrzeug.aggregate';
+
+// Repository Interfaces (Ports)
+export type { IStammFahrzeugRepository } from './repositories/i-stamm-fahrzeug.repository';
+
+// Domain Events
+export { StammFahrzeugCreatedEvent } from './events/stamm-fahrzeug-created.event';
+export { StammFahrzeugUpdatedEvent } from './events/stamm-fahrzeug-updated.event';
+
+// Error Codes
+export { STAMM_FAHRZEUG_ERROR_CODES, StammFahrzeugError, type StammFahrzeugErrorCode } from './common/stamm-fahrzeug-error-codes';
