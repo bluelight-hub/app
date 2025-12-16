@@ -68,6 +68,8 @@ export const KRAEFTE_REPOSITORIES = {
   FUNK_STATUS_CONFIG: Symbol('IFunkStatusConfigRepository'),
   /** Repository Token für IStammFahrzeugRepository (Story 2-1) */
   STAMM_FAHRZEUG: Symbol('IStammFahrzeugRepository'),
+  /** Repository Token für IStammPersonRepository (Story 2-2) */
+  STAMM_PERSON: Symbol('IStammPersonRepository'),
 } as const;
 
 /** Transaction Manager Token für ITransactionManager */
