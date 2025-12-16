@@ -8,6 +8,7 @@ import {
   ROLLE_BESCHREIBUNG_MAX_LENGTH,
   ROLLE_VALIDATION_ERRORS,
 } from '@domain/kraefte/constants/rolle-validation.constants';
+import { IsCuid2 } from '@/modules/common/decorators/is-nanoid.decorator';
 
 /**
  * DTO für die Erstellung einer neuen RollenDefinition.
@@ -48,10 +49,11 @@ export class CreateRollenDefinitionDto {
 
   @ApiProperty({
     type: [String],
-    description: 'IDs der erforderlichen Qualifikationen',
-    example: ['cuid1', 'cuid2'],
+    description: 'IDs der erforderlichen Qualifikationen (CUID2 Format)',
+    example: ['clw3h8x9y0000qwertyui00001', 'clw3h8x9y0000qwertyui00002'],
   })
   @IsArray()
   @IsString({ each: true })
+  @IsCuid2({ each: true })
   qualifikationIds!: string[];
 }

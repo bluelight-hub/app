@@ -5,7 +5,10 @@ import { Result } from '@domain/common/result';
 import type { TransactionContext } from '@domain/kraefte/repositories/i-rollen-definition.repository';
 // biome-ignore lint/style/useImportType: IRollenDefinitionRepository needed for DI at runtime
 import { IRollenDefinitionRepository } from '@domain/kraefte/repositories/i-rollen-definition.repository';
+// biome-ignore lint/style/useImportType: IQualifikationRepository needed for DI at runtime
+import { IQualifikationRepository } from '@domain/kraefte/repositories/i-qualifikation.repository';
 import { RolleId } from '@domain/kraefte/value-objects/rolle-id';
+import { QualifikationId } from '@domain/kraefte/value-objects/qualifikation-id';
 // biome-ignore lint/style/useImportType: IOutboxRepository needed for DI at runtime
 import { IOutboxRepository } from '@domain/repositories/i-outbox.repository';
 import { KRAEFTE_REPOSITORIES, OUTBOX_REPOSITORY } from '@infrastructure/di-tokens';
@@ -23,9 +26,11 @@ import type { UpdateRollenDefinitionCommand } from './update-rollen-definition.c
  * für geänderten Name. updatedBy wird automatisch gesetzt.
  *
  * **M:N Relationship Update (erforderlicheQualifikationen):**
- * - Aggregate.update() handled interne State-Änderungen
+ * - Aggregate.update() handled interne State-Änderungen (JSON-Array im Aggregate)
  * - Repository.save() persistiert Aggregate (inkl. embedded erforderlicheQualifikationen)
- * - REPLACE Semantik: Aggregate speichert komplettes Array (keine separate Junction Table)
+ * - Repository.deleteQualifikationen() + saveQualifikationen() synchronisiert Junction Table
+ * - REPLACE Semantik: Bestehende Verknüpfungen werden vollständig ersetzt (nicht gemergt)
+ * - Qualifikations-IDs werden vor Update validiert (verhindert FK-Violations)
  */
 @Injectable()
 export class UpdateRollenDefinitionHandler extends TransactionalCommandHandler<UpdateRollenDefinitionCommand, RollenDefinitionDto> {
@@ -36,6 +41,8 @@ export class UpdateRollenDefinitionHandler extends TransactionalCommandHandler<U
     @Inject(OUTBOX_REPOSITORY) outboxRepository: IOutboxRepository,
     @Inject(KRAEFTE_REPOSITORIES.ROLLEN_DEFINITION)
     private readonly repository: IRollenDefinitionRepository,
+    @Inject(KRAEFTE_REPOSITORIES.QUALIFIKATION)
+    private readonly qualifikationRepository: IQualifikationRepository,
   ) {
     super(prisma, outboxRepository);
   }
@@ -48,9 +55,12 @@ export class UpdateRollenDefinitionHandler extends TransactionalCommandHandler<U
    * - Vermeidet unnötige DB-Writes bei leeren Updates
    *
    * **erforderlicheQualifikationen Update:**
-   * - Wird direkt an Aggregate.update() übergeben
-   * - Aggregate verwendet REPLACE Semantik (ersetzt bestehende Qualifikationen)
-   * - Repository persistiert embedded JSON-Array atomar
+   * 1. Validiert dass alle Qualifikations-IDs existieren (vor Update)
+   * 2. Aggregate.update() aktualisiert internes JSON-Array
+   * 3. Repository.save() persistiert Aggregate mit embedded JSON
+   * 4. Repository.deleteQualifikationen() löscht bestehende Junction-Einträge
+   * 5. Repository.saveQualifikationen() erstellt neue Junction-Einträge
+   * 6. REPLACE Semantik: Alte Verknüpfungen werden komplett ersetzt
    */
   protected async executeInTransaction(command: UpdateRollenDefinitionCommand, tx: TransactionContext): Promise<Result<{ result: RollenDefinitionDto; events: DomainEvent[] }>> {
     // 1. Validate ID format
@@ -102,6 +112,40 @@ export class UpdateRollenDefinitionHandler extends TransactionalCommandHandler<U
       }
     }
 
+    // 3b. Validate qualifikationIds existence (Issue 2 HIGH Fix)
+    // Prüfe ob alle neuen Qualifikations-IDs existieren BEVOR Update durchgeführt wird
+    // Verhindert FK-Violations in Junction Table und liefert bessere Fehlermeldungen
+    if (command.erforderlicheQualifikationen !== undefined && command.erforderlicheQualifikationen.length > 0) {
+      for (const qualifikation of command.erforderlicheQualifikationen) {
+        const qId = qualifikation.qualifikationId;
+        const qIdResult = QualifikationId.create(qId);
+        if (qIdResult.isFailure) {
+          if (!qIdResult.error) {
+            this.logger.error('QualifikationId.create returned isFailure=true but error is null - this is a bug!');
+            throw new Error('QualifikationId validation returned failure without error message');
+          }
+          return Result.fail(`Ungültige Qualifikation ID: ${qId} - ${qIdResult.error}`);
+        }
+        const qualifikationId = qIdResult.value;
+        if (!qualifikationId) {
+          this.logger.error('QualifikationId.create returned isSuccess=true but value is null - this is a bug!');
+          throw new Error('QualifikationId validation succeeded but value is null');
+        }
+
+        const existsResult = await this.qualifikationRepository.exists(qualifikationId, tx);
+        if (existsResult.isFailure) {
+          if (!existsResult.error) {
+            this.logger.error('QualifikationRepository.exists returned isFailure=true but error is null - this is a bug!');
+            throw new Error('Repository exists check returned failure without error message');
+          }
+          return Result.fail(existsResult.error);
+        }
+        if (!existsResult.value) {
+          return Result.fail(`Qualifikation mit ID '${qId}' existiert nicht`);
+        }
+      }
+    }
+
     // 4. Update Aggregate (updatedBy wird automatisch gesetzt)
     const updateResult = rollenDefinition.update({
       name: command.name,
@@ -131,6 +175,35 @@ export class UpdateRollenDefinitionHandler extends TransactionalCommandHandler<U
         throw new Error('Repository save returned failure without error message');
       }
       return Result.fail(saveResult.error);
+    }
+
+    // 5b. Synchronize Junction Table: RolleQualifikation (Issue 1 CRITICAL Fix)
+    // REPLACE-Semantik: Bestehende Verknüpfungen werden vollständig ersetzt
+    // Nur wenn erforderlicheQualifikationen im Command gesetzt wurde (undefined = nicht ändern)
+    if (command.erforderlicheQualifikationen !== undefined) {
+      // Schritt 1: Lösche alle bestehenden Qualifikations-Verknüpfungen
+      const deleteResult = await this.repository.deleteQualifikationen(rolleId, tx);
+      if (deleteResult.isFailure) {
+        if (!deleteResult.error) {
+          this.logger.error('Repository.deleteQualifikationen returned isFailure=true but error is null - this is a bug!');
+          throw new Error('Repository deleteQualifikationen returned failure without error message');
+        }
+        return Result.fail(deleteResult.error);
+      }
+
+      // Schritt 2: Erstelle neue Qualifikations-Verknüpfungen (wenn vorhanden)
+      if (command.erforderlicheQualifikationen.length > 0) {
+        // Extrahiere nur die qualifikationIds aus den ErforderlicheQualifikation Objekten
+        const qualifikationIds = command.erforderlicheQualifikationen.map((q) => q.qualifikationId);
+        const saveQualifikationenResult = await this.repository.saveQualifikationen(rolleId, qualifikationIds, command.updatedBy, tx);
+        if (saveQualifikationenResult.isFailure) {
+          if (!saveQualifikationenResult.error) {
+            this.logger.error('Repository.saveQualifikationen returned isFailure=true but error is null - this is a bug!');
+            throw new Error('Repository saveQualifikationen returned failure without error message');
+          }
+          return Result.fail(saveQualifikationenResult.error);
+        }
+      }
     }
 
     // 6. Extract Domain Events

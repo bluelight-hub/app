@@ -141,21 +141,13 @@ export class AdminRollenController {
     const result = await this.getAllHandler.execute(query);
 
     if (result.isFailure) {
-      // WARUM String-Matching statt Error-Code-Check:
-      // - Result Pattern gibt nur generische Fehlermeldungen zurück (kein Error-Code-System)
-      // - Diese Query hat keine spezifischen Error-Codes definiert (nur generische Messages)
-      // - String-Matching ist hier der einzige Weg, um Business-Errors von Infrastruktur-Errors zu unterscheiden
-      // - Alternative wäre Domain-Error-Codes wie in Create/Update/Deactivate Handlers
-      //
-      // Business validation errors → 400 Bad Request
-      // All other errors → 500 Internal Server Error
+      // WARUM kein Error-Code-Check:
+      // - GetAllRollenDefinitionenQuery wirft keine Business-Validierungsfehler
+      // - Nur Repository/Infrastruktur-Fehler möglich (z.B. DB Connection Errors)
+      // - Alle Fehler hier sind unerwartete Infrastruktur-Fehler → 500 Internal Server Error
       //
       // SECURITY: result.error wird NICHT direkt an Client weitergegeben (Information Disclosure Risk)
       // Stattdessen: Generische Fehlermeldung für Client, Details nur in Server-Logs
-      if (result.error?.includes('Validierung') || result.error?.includes('Ungültig')) {
-        this.logger.warn(`Validation error in findAll: ${result.error}`);
-        throw new BadRequestException('Ungültige Filterparameter');
-      }
       this.logger.error(`Unexpected error in findAll: ${result.error}`);
       throw new InternalServerErrorException('Fehler beim Abrufen der RollenDefinitionen');
     }

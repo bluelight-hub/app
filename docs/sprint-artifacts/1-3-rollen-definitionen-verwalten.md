@@ -1,6 +1,6 @@
 # Story 1.3: Rollen-Definitionen verwalten
 
-Status: ready-for-dev
+Status: in-progress
 
 ## Story
 
@@ -397,6 +397,25 @@ And:   Compliance mit AC1-AC6 Code Review Checklist (siehe Dev Notes)
   - [ ] PATCH /:id/deactivate → istAktiv: false
   - [ ] PATCH /:id/deactivate erneut → 400 ALREADY_DEACTIVATED
   - [ ] GET /?istAktiv=true → nur aktive Rollen
+
+## Review Follow-ups (AI)
+
+> Code Review vom 2025-12-16 via 5 parallele Subagents. Issues die NICHT auf spätere Stories verschoben wurden.
+
+### Kritisch (vor Story-Abschluss fixen)
+
+- [x] [AI-Review][CRITICAL] UpdateHandler ruft `deleteQualifikationen()` + `saveQualifikationen()` nicht auf - Junction Table wird bei Update nicht synchronisiert (AC3 REPLACE-Semantik verletzt) [`update-rollen-definition.handler.ts:105-134`] **✅ Fixed 2025-12-16**
+- [x] [AI-Review][HIGH] UpdateHandler validiert nicht ob neue `qualifikationIds` existieren - FK-Violation erst bei DB statt im Handler [`update-rollen-definition.handler.ts`] **✅ Fixed 2025-12-16**
+
+### Enhancements (können in Folge-Stories oder Tech-Debt)
+
+- [x] [AI-Review][MEDIUM] `qualifikationIds` DTO-Validierung: Nur `@IsString({ each: true })`, keine CUID-Format-Prüfung [`create-rollen-definition.dto.ts:54-56`, `update-rollen-definition.dto.ts:54-56`] **✅ Fixed 2025-12-16**
+- [x] [AI-Review][MEDIUM] FindAll Controller: String-Matching `includes('Validierung')` statt `RolleError.hasCode()` - fragil bei Textänderungen [`admin-rollen.controller.ts:144-161`] **✅ Fixed 2025-12-16**
+
+### Dokumentiert als geplant (kein Action Item)
+
+- ℹ️ `erforderlicheQualifikationen` Response ist leer → TODO-Kommentar verweist auf Story 1-4 (M:N Join)
+- ℹ️ Unit/Integration Tests übersprungen → CLAUDE.md dokumentiert temporäres Überspringen
 
 ## Dev Notes
 
@@ -888,6 +907,28 @@ Claude Opus 4.5 (claude-opus-4-5-20251101) via BMad Scrum Master Agent
 
 ### Completion Notes List
 
+#### 2025-12-16 - Review Follow-up Fixes (4 Issues)
+
+**[CRITICAL] UpdateHandler Junction Table Sync (AC3 REPLACE):**
+- Problem: `deleteQualifikationen()` + `saveQualifikationen()` wurden nicht aufgerufen
+- Lösung: Schritt 1: Alle bestehenden Verknüpfungen löschen, Schritt 2: Neue erstellen
+- Datei: `update-rollen-definition.handler.ts:180-207`
+
+**[HIGH] UpdateHandler Qualifikation Existence Validation:**
+- Problem: FK-Violations erst in DB statt im Handler
+- Lösung: VOR Update alle qualifikationIds validieren via `qualifikationRepository.exists()`
+- Datei: `update-rollen-definition.handler.ts:115-147`
+
+**[MEDIUM] DTO CUID2 Format Validation:**
+- Problem: Nur `@IsString({ each: true })`, keine CUID-Format-Prüfung
+- Lösung: `@IsCuid2({ each: true })` Decorator hinzugefügt
+- Dateien: `create-rollen-definition.dto.ts`, `update-rollen-definition.dto.ts`
+
+**[MEDIUM] Controller Fragile Error Matching:**
+- Problem: `includes('Validierung')` String-Matching war fragil und Dead Code
+- Lösung: Entfernt, nur InternalServerError für Repository-Fehler (Query Handler haben keine Business-Validierungen)
+- Datei: `admin-rollen.controller.ts:144-152`
+
 ### File List
 
 **Zu erstellen (27 Dateien):**
@@ -908,3 +949,5 @@ Claude Opus 4.5 (claude-opus-4-5-20251101) via BMad Scrum Master Agent
 | 2025-12-15 | Story Created | Comprehensive story context via 6 parallel subagents. M:N Relation Blueprint. Ready for development. |
 | 2025-12-16 | Validation (AI) | 6-Subagent Analyse: 40/54 passed (74%), 1 CRITICAL, 7 ENHANCEMENTS, 3 OPTIMIZATIONS. Report: `validation-report-1-3-2025-12-15.md` |
 | 2025-12-16 | C1 Fix Applied | Transaction Rollback Test-Spezifikationen hinzugefügt (4 neue Test Cases für Transactional Behavior) |
+| 2025-12-16 | Code Review (AI) | 5-Subagent Review: 2 CRITICAL, 2 MEDIUM Action Items. Status → in-progress. Tests + erforderlicheQualifikationen-Response sind dokumentiert als geplant. |
+| 2025-12-16 | Review Fixes Applied | 4 Issues behoben via 3 parallele Subagents: Junction Table Sync (CRITICAL), Qualifikation Validation (HIGH), CUID2 DTO Validation (MEDIUM), Controller Error Handling (MEDIUM). Alle AC1-AC6 Compliance Checks bestanden. |
