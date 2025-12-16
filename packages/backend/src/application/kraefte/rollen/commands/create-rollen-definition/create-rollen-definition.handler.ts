@@ -142,10 +142,6 @@ export class CreateRollenDefinitionHandler extends TransactionalCommandHandler<C
           this.logger.error('Repository.saveQualifikationen returned isFailure=true but error is null - this is a bug!');
           throw new Error('Repository saveQualifikationen returned failure without error message');
         }
-        // Check if error is Foreign Key Violation (nicht existierende Qualifikation)
-        if (saveQualifikationenResult.error.includes('Foreign key constraint')) {
-          return Result.fail(RolleError.format(ROLLE_ERROR_CODES.QUALIFIKATION_NOT_FOUND, 'Eine oder mehrere Qualifikationen existieren nicht'));
-        }
         return Result.fail(saveQualifikationenResult.error);
       }
     }
