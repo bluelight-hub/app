@@ -466,9 +466,9 @@ mcp__chrome-devtools__list_console_messages()
 
 ### Tests
 
-- **Unit/Integration Tests:** AKTUELL ÜBERSPRUNGEN (temporär)
-- **E2E Tests:** Wurden entfernt
-- **Manuelle Tests:** Nutze Chrome DevTools MCP (siehe oben)
+- **Unit Tests:** `pnpm --filter @bluelight-hub/backend test`
+- **Integration Tests:** `pnpm --filter @bluelight-hub/backend test:e2e`
+- **Manuelle Tests:** Chrome DevTools MCP für UI-Testing (siehe oben)
 
 ### API Development Workflow
 

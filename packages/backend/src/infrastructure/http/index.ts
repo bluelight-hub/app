@@ -1,3 +1,6 @@
+// HTTP Constants
+export * from './constants/rate-limit.constants';
+
 // HTTP Filters
 export * from './filters/domain-exception.filter';
 export * from './filters/http-exception.filter';

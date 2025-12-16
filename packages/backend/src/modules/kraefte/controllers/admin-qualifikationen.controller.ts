@@ -35,6 +35,7 @@ import { AdminJwtAuthGuard } from '@/modules/auth/guards/admin-jwt-auth.guard';
 import { CurrentUser } from '@/modules/auth/decorators/current-user.decorator';
 import type { ValidatedUser } from '@/modules/auth/strategies/jwt.strategy';
 import { ParseCuidPipe } from '@/infrastructure/http/pipes/parse-cuid.pipe';
+import { ADMIN_RATE_LIMIT, ADMIN_MUTATION_RATE_LIMIT } from '@/infrastructure/http/constants/rate-limit.constants';
 
 // Handlers
 import { CreateQualifikationHandler } from '@application/kraefte/qualifikationen/commands/create-qualifikation/create-qualifikation.handler';
@@ -85,7 +86,7 @@ import { QUALIFIKATION_ERROR_CODES, QualifikationError } from '@domain/kraefte/c
 @ApiForbiddenResponse({ description: 'Keine Berechtigung für diese Operation' })
 @Controller({ path: 'admin/kraefte/qualifikationen', version: 'alpha' })
 @UseGuards(AdminJwtAuthGuard)
-@Throttle({ default: { limit: 20, ttl: 60000 } }) // 20 requests per minute
+@Throttle({ default: ADMIN_RATE_LIMIT })
 export class AdminQualifikationenController {
   private readonly logger = new Logger(AdminQualifikationenController.name);
 
@@ -226,6 +227,7 @@ export class AdminQualifikationenController {
    * @throws ConflictException wenn Abkürzung bereits vergeben ist
    */
   @Post()
+  @Throttle({ default: ADMIN_MUTATION_RATE_LIMIT })
   @HttpCode(HttpStatus.CREATED)
   @ApiOperation({ summary: 'Neue Qualifikation erstellen' })
   @ApiCreatedResponse({ type: QualifikationDto })
@@ -290,6 +292,7 @@ export class AdminQualifikationenController {
    * @throws BadRequestException bei Validierungsfehlern
    */
   @Patch(':id')
+  @Throttle({ default: ADMIN_MUTATION_RATE_LIMIT })
   @ApiOperation({ summary: 'Qualifikation aktualisieren' })
   @ApiOkResponse({ type: QualifikationDto })
   @ApiBadRequestResponse({ description: 'Validierungsfehler oder ungültige CUID' })
@@ -358,6 +361,7 @@ export class AdminQualifikationenController {
    * @throws BadRequestException wenn bereits deaktiviert
    */
   @Patch(':id/deactivate')
+  @Throttle({ default: ADMIN_MUTATION_RATE_LIMIT })
   @ApiOperation({ summary: 'Qualifikation deaktivieren' })
   @ApiOkResponse({ type: QualifikationDto })
   @ApiBadRequestResponse({ description: 'Qualifikation ist bereits deaktiviert oder ungültige CUID' })

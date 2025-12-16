@@ -337,4 +337,51 @@ export class PrismaQualifikationRepository implements IQualifikationRepository {
       return Result.fail<boolean>(`Fehler bei der Existenzprüfung: ${errorMessage}`);
     }
   }
+
+  /**
+   * Prüft Existenz mehrerer Qualifikationen in einer Datenbankabfrage.
+   *
+   * Performance-Optimierung: Single SELECT...WHERE IN() Query statt N separate Queries.
+   * Verhindert N+1 Problem bei Batch-Validierung von Qualifikations-IDs.
+   *
+   * @param ids - Array von QualifikationIds zum Batch-Check
+   * @param tx - Optional: Transaction Context für atomare Operationen
+   * @returns Result mit allExist und missing IDs
+   */
+  async existsMany(ids: QualifikationId[], tx?: TransactionContext): Promise<Result<{ allExist: boolean; missing: string[] }>> {
+    try {
+      // Edge case: leeres Array ist gültig (alle existieren = true, missing = [])
+      if (ids.length === 0) {
+        return Result.ok<{ allExist: boolean; missing: string[] }>({ allExist: true, missing: [] });
+      }
+
+      const client = (tx as PrismaTransactionClient | undefined) ?? this.prisma;
+      const idValues = ids.map((id) => id.value);
+
+      // Single query: fetch all Qualifikationen mit den gegebenen IDs
+      const foundQualifikationen = await client.qualifikation.findMany({
+        where: {
+          id: { in: idValues },
+        },
+        select: { id: true },
+      });
+
+      // Berechne missing IDs (nicht gefunden)
+      const foundIds = new Set(foundQualifikationen.map((q) => q.id));
+      const missing = idValues.filter((id) => !foundIds.has(id));
+
+      const result = {
+        allExist: missing.length === 0,
+        missing,
+      };
+
+      this.logger.debug(`Batch existence check: ${idValues.length} requested, ${foundQualifikationen.length} found, ${missing.length} missing`, { tx: !!tx });
+
+      return Result.ok<{ allExist: boolean; missing: string[] }>(result);
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      this.logger.error(`Failed to check Qualifikation batch existence: ${errorMessage}`, { count: ids.length, tx: !!tx, error });
+      return Result.fail<{ allExist: boolean; missing: string[] }>(`Fehler bei der Batch-Existenzprüfung: ${errorMessage}`);
+    }
+  }
 }

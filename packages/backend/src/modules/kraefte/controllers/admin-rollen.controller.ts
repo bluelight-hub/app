@@ -35,6 +35,7 @@ import { AdminJwtAuthGuard } from '@/modules/auth/guards/admin-jwt-auth.guard';
 import { CurrentUser } from '@/modules/auth/decorators/current-user.decorator';
 import type { ValidatedUser } from '@/modules/auth/strategies/jwt.strategy';
 import { ParseCuidPipe } from '@/infrastructure/http/pipes/parse-cuid.pipe';
+import { ADMIN_RATE_LIMIT, ADMIN_MUTATION_RATE_LIMIT } from '@/infrastructure/http/constants/rate-limit.constants';
 
 // Handlers
 import { CreateRollenDefinitionHandler } from '@application/kraefte/rollen/commands/create-rollen-definition/create-rollen-definition.handler';
@@ -85,7 +86,7 @@ import { ROLLE_ERROR_CODES, RolleError } from '@domain/kraefte/common/rolle-erro
 @ApiForbiddenResponse({ description: 'Keine Berechtigung für diese Operation' })
 @Controller({ path: 'admin/kraefte/rollen', version: 'alpha' })
 @UseGuards(AdminJwtAuthGuard)
-@Throttle({ default: { limit: 20, ttl: 60000 } }) // 20 requests per minute
+@Throttle({ default: ADMIN_RATE_LIMIT })
 export class AdminRollenController {
   private readonly logger = new Logger(AdminRollenController.name);
 
@@ -219,6 +220,7 @@ export class AdminRollenController {
    * @throws ConflictException wenn Name bereits vergeben ist
    */
   @Post()
+  @Throttle({ default: ADMIN_MUTATION_RATE_LIMIT })
   @HttpCode(HttpStatus.CREATED)
   @ApiOperation({ summary: 'Neue RollenDefinition erstellen' })
   @ApiCreatedResponse({ type: RollenDefinitionDto })
@@ -291,6 +293,7 @@ export class AdminRollenController {
    * @throws BadRequestException bei Validierungsfehlern oder ungültigen qualifikationIds
    */
   @Patch(':id')
+  @Throttle({ default: ADMIN_MUTATION_RATE_LIMIT })
   @ApiOperation({ summary: 'RollenDefinition aktualisieren' })
   @ApiOkResponse({ type: RollenDefinitionDto })
   @ApiBadRequestResponse({ description: 'Validierungsfehler, ungültige CUID oder Qualifikation nicht gefunden' })
@@ -366,6 +369,7 @@ export class AdminRollenController {
    * @throws BadRequestException wenn bereits deaktiviert
    */
   @Patch(':id/deactivate')
+  @Throttle({ default: ADMIN_MUTATION_RATE_LIMIT })
   @ApiOperation({ summary: 'RollenDefinition deaktivieren' })
   @ApiOkResponse({ type: RollenDefinitionDto })
   @ApiBadRequestResponse({ description: 'RollenDefinition ist bereits deaktiviert oder ungültige CUID' })

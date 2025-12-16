@@ -7,6 +7,7 @@ import type { IRollenDefinitionRepository, TransactionContext } from '@domain/kr
 import type { RolleId } from '@domain/kraefte/value-objects/rolle-id';
 import { PrismaRollenDefinitionMapper } from '../mappers/prisma-rollen-definition.mapper';
 import { isPrismaError } from '../../../shared/utils/prisma.util';
+import { ROLLE_ERROR_CODES, RolleError } from '@domain/kraefte/common/rolle-error-codes';
 
 /**
  * Transaction Client Type Alias für bessere Lesbarkeit.
@@ -172,7 +173,7 @@ export class PrismaRollenDefinitionRepository implements IRollenDefinitionReposi
         this.logger.warn(`Unique constraint violation on field: ${fieldName}`, { aggregateId: aggregate.id.value, tx: !!tx });
 
         const errorMessage = this.formatPrismaError(error, 'Speichern', aggregate.name);
-        return Result.fail<void>(errorMessage);
+        return Result.fail<void>(RolleError.format(ROLLE_ERROR_CODES.NAME_DUPLICATE, errorMessage));
       }
 
       // P2003: Foreign Key Constraint Failed (createdBy/updatedBy User existiert nicht)

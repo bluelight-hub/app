@@ -618,6 +618,7 @@ model RollenDefinition {
   // Indexes
   @@index([istAktiv])
   @@index([istAktiv, sortOrder])
+  @@index([istAktiv, sortOrder, name]) // Optimiert findAll mit Filter + vollständiger Sortierung
   @@index([createdBy])
   @@map("rollen_definitionen")
 }

@@ -35,6 +35,7 @@ import { AdminJwtAuthGuard } from '@/modules/auth/guards/admin-jwt-auth.guard';
 import { CurrentUser } from '@/modules/auth/decorators/current-user.decorator';
 import type { ValidatedUser } from '@/modules/auth/strategies/jwt.strategy';
 import { ParseCuidPipe } from '@/infrastructure/http/pipes/parse-cuid.pipe';
+import { ADMIN_RATE_LIMIT, ADMIN_MUTATION_RATE_LIMIT } from '@/infrastructure/http/constants/rate-limit.constants';
 
 // Handlers
 import { CreateFahrzeugtypHandler } from '@application/kraefte/fahrzeugtypen/commands/create-fahrzeugtyp/create-fahrzeugtyp.handler';
@@ -85,7 +86,7 @@ import { FAHRZEUGTYP_ERROR_CODES, FahrzeugtypError } from '@domain/kraefte/commo
 @ApiForbiddenResponse({ description: 'Keine Berechtigung für diese Operation' })
 @Controller({ path: 'admin/kraefte/fahrzeugtypen', version: 'alpha' })
 @UseGuards(AdminJwtAuthGuard)
-@Throttle({ default: { limit: 20, ttl: 60000 } }) // 20 requests per minute
+@Throttle({ default: ADMIN_RATE_LIMIT })
 export class AdminFahrzeugtypenController {
   private readonly logger = new Logger(AdminFahrzeugtypenController.name);
 
@@ -226,6 +227,7 @@ export class AdminFahrzeugtypenController {
    * @throws ConflictException wenn Code bereits vergeben ist
    */
   @Post()
+  @Throttle({ default: ADMIN_MUTATION_RATE_LIMIT })
   @HttpCode(HttpStatus.CREATED)
   @ApiOperation({ summary: 'Neuen Fahrzeugtyp erstellen' })
   @ApiCreatedResponse({ type: FahrzeugtypDto })
@@ -291,6 +293,7 @@ export class AdminFahrzeugtypenController {
    * @throws BadRequestException bei Validierungsfehlern
    */
   @Patch(':id')
+  @Throttle({ default: ADMIN_MUTATION_RATE_LIMIT })
   @ApiOperation({ summary: 'Fahrzeugtyp aktualisieren' })
   @ApiOkResponse({ type: FahrzeugtypDto })
   @ApiBadRequestResponse({ description: 'Validierungsfehler oder ungültige CUID' })
@@ -360,6 +363,7 @@ export class AdminFahrzeugtypenController {
    * @throws BadRequestException wenn bereits deaktiviert
    */
   @Patch(':id/deactivate')
+  @Throttle({ default: ADMIN_MUTATION_RATE_LIMIT })
   @ApiOperation({ summary: 'Fahrzeugtyp deaktivieren' })
   @ApiOkResponse({ type: FahrzeugtypDto })
   @ApiBadRequestResponse({ description: 'Fahrzeugtyp ist bereits deaktiviert oder ungültige CUID' })

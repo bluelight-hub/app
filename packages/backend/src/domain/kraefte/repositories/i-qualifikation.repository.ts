@@ -67,4 +67,16 @@ export interface IQualifikationRepository {
    * @returns Result<boolean> - true wenn vorhanden
    */
   exists(id: QualifikationId, tx?: TransactionContext): Promise<Result<boolean>>;
+
+  /**
+   * Prüft Existenz mehrerer Qualifikationen in einer einzelnen Datenbankabfrage.
+   *
+   * Performance-Optimierung: Single SELECT...WHERE IN() Query verhindert N+1 Problem
+   * im Vergleich zu mehreren einzelnen exists() Aufrufen.
+   *
+   * @param ids - Array von QualifikationIds zum Batch-Check
+   * @param tx - Optionaler Transaction Context für atomare Operationen
+   * @returns Result mit allExist (boolean) und missing (fehlende IDs als string[])
+   */
+  existsMany(ids: QualifikationId[], tx?: TransactionContext): Promise<Result<{ allExist: boolean; missing: string[] }>>;
 }

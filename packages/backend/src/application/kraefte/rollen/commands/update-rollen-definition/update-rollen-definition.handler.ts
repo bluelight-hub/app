@@ -112,10 +112,12 @@ export class UpdateRollenDefinitionHandler extends TransactionalCommandHandler<U
       }
     }
 
-    // 3b. Validate qualifikationIds existence (Issue 2 HIGH Fix)
-    // Prüfe ob alle neuen Qualifikations-IDs existieren BEVOR Update durchgeführt wird
-    // Verhindert FK-Violations in Junction Table und liefert bessere Fehlermeldungen
+    // 3b. Validate qualifikationIds existence (N+1 Fix: Batch-Check statt Individual Queries)
+    // WICHTIG: Nutze existsMany() für Single DB-Query statt Loop mit einzelnen exists() Calls.
+    // Verhindert N+1 Problem: 1 Query statt N Queries für N Qualifikationen.
     if (command.erforderlicheQualifikationen !== undefined && command.erforderlicheQualifikationen.length > 0) {
+      // Konvertiere Command-IDs zu QualifikationId Value Objects
+      const qualifikationIds: QualifikationId[] = [];
       for (const qualifikation of command.erforderlicheQualifikationen) {
         const qId = qualifikation.qualifikationId;
         const qIdResult = QualifikationId.create(qId);
@@ -131,18 +133,29 @@ export class UpdateRollenDefinitionHandler extends TransactionalCommandHandler<U
           this.logger.error('QualifikationId.create returned isSuccess=true but value is null - this is a bug!');
           throw new Error('QualifikationId validation succeeded but value is null');
         }
+        qualifikationIds.push(qualifikationId);
+      }
 
-        const existsResult = await this.qualifikationRepository.exists(qualifikationId, tx);
-        if (existsResult.isFailure) {
-          if (!existsResult.error) {
-            this.logger.error('QualifikationRepository.exists returned isFailure=true but error is null - this is a bug!');
-            throw new Error('Repository exists check returned failure without error message');
-          }
-          return Result.fail(existsResult.error);
+      // Batch-Check: Single DB-Query prüft alle IDs gleichzeitig
+      const existsManyResult = await this.qualifikationRepository.existsMany(qualifikationIds, tx);
+      if (existsManyResult.isFailure) {
+        if (!existsManyResult.error) {
+          this.logger.error('QualifikationRepository.existsMany returned isFailure=true but error is null - this is a bug!');
+          throw new Error('Repository batch check returned failure without error message');
         }
-        if (!existsResult.value) {
-          return Result.fail(`Qualifikation mit ID '${qId}' existiert nicht`);
-        }
+        return Result.fail(existsManyResult.error);
+      }
+
+      // Null-check für TypeScript (Result.value kann undefined sein wenn isSuccess aber value nicht gesetzt)
+      if (!existsManyResult.value) {
+        this.logger.error('QualifikationRepository.existsMany returned isSuccess=true but value is null - this is a bug!');
+        throw new Error('Repository batch check succeeded but value is null');
+      }
+
+      // Wenn nicht alle Qualifikationen existieren: Fehler mit fehlenden IDs
+      const { allExist, missing } = existsManyResult.value;
+      if (!allExist) {
+        return Result.fail(`Folgende Qualifikationen existieren nicht: ${missing.join(', ')}`);
       }
     }
 
