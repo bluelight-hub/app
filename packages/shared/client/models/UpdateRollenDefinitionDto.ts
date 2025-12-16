@@ -38,7 +38,7 @@ export interface UpdateRollenDefinitionDto {
    */
   beschreibung?: string;
   /**
-   * IDs der erforderlichen Qualifikationen (ersetzt bestehende)
+   * IDs der erforderlichen Qualifikationen (ersetzt bestehende, CUID2 Format)
    * @type {Array<string>}
    * @memberof UpdateRollenDefinitionDto
    */

@@ -38,7 +38,7 @@ export interface CreateRollenDefinitionDto {
    */
   beschreibung?: string;
   /**
-   * IDs der erforderlichen Qualifikationen
+   * IDs der erforderlichen Qualifikationen (CUID2 Format)
    * @type {Array<string>}
    * @memberof CreateRollenDefinitionDto
    */

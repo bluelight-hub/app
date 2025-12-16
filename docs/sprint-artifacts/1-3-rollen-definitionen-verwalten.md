@@ -89,17 +89,17 @@ And:   Compliance mit AC1-AC6 Code Review Checklist (siehe Dev Notes)
 
 ### Domain Layer
 
-- [ ] Task 1: Rolle-ID Value Object (AC: 8)
-  - [ ] Kopieren von `qualifikation-id.ts` → `rolle-id.ts`
-  - [ ] `packages/backend/src/domain/kraefte/value-objects/rolle-id.ts`
-  - [ ] CUID2-Validierung identisch zu QualifikationId
+- [x] Task 1: Rolle-ID Value Object (AC: 8)
+  - [x] Kopieren von `qualifikation-id.ts` → `rolle-id.ts`
+  - [x] `packages/backend/src/domain/kraefte/value-objects/rolle-id.ts`
+  - [x] CUID2-Validierung identisch zu QualifikationId
 
-- [ ] Task 2: RollenDefinition Aggregate (AC: 2, 3, 4, 5, 7, 8)
-  - [ ] `packages/backend/src/domain/kraefte/aggregates/rollen-definition.aggregate.ts`
-  - [ ] Props Interfaces: `CreateRollenDefinitionProps`, `ReconstituteRollenDefinitionProps`, `UpdateRollenDefinitionProps`
-  - [ ] Factory Methods: `create()`, `reconstitute()`
-  - [ ] Business Methods: `update()`, `deactivate()`, `reactivate()`
-  - [ ] **Erforderliche Qualifikationen als embedded Value:**
+- [x] Task 2: RollenDefinition Aggregate (AC: 2, 3, 4, 5, 7, 8)
+  - [x] `packages/backend/src/domain/kraefte/aggregates/rollen-definition.aggregate.ts`
+  - [x] Props Interfaces: `CreateRollenDefinitionProps`, `ReconstituteRollenDefinitionProps`, `UpdateRollenDefinitionProps`
+  - [x] Factory Methods: `create()`, `reconstitute()`
+  - [x] Business Methods: `update()`, `deactivate()`, `reactivate()`
+  - [x] **Erforderliche Qualifikationen als embedded Value:**
     ```typescript
     interface ErforderlicheQualifikation {
       qualifikationId: string;
@@ -107,8 +107,8 @@ And:   Compliance mit AC1-AC6 Code Review Checklist (siehe Dev Notes)
     }
     private _erforderlicheQualifikationen: ErforderlicheQualifikation[];
     ```
-  - [ ] **Name Normalisierung:** `normalizeName(name: string): string` → `name.trim()`
-  - [ ] **sortOrder Defense-in-Depth (aus Story 1-1/1-2):**
+  - [x] **Name Normalisierung:** `normalizeName(name: string): string` → `name.trim()`
+  - [x] **sortOrder Defense-in-Depth (aus Story 1-1/1-2):**
     ```typescript
     if (!Number.isFinite(props.sortOrder) || !Number.isInteger(props.sortOrder)) {
       return Result.fail('Ungültiger sortOrder');
@@ -117,22 +117,22 @@ And:   Compliance mit AC1-AC6 Code Review Checklist (siehe Dev Notes)
       return Result.fail('sortOrder muss >= 0 sein');
     }
     ```
-  - [ ] Domain Events: `RollenDefinitionCreatedEvent`, `RollenDefinitionUpdatedEvent`
+  - [x] Domain Events: `RollenDefinitionCreatedEvent`, `RollenDefinitionUpdatedEvent`
 
-- [ ] Task 2.1: RollenDefinition Aggregate Unit Tests (AC: 8)
+- [ ] Task 2.1: RollenDefinition Aggregate Unit Tests (AC: 8) (übersprungen - siehe CLAUDE.md)
   - [ ] `packages/backend/src/domain/kraefte/aggregates/__tests__/rollen-definition.aggregate.spec.ts`
   - [ ] AAA Pattern mit Given-When-Then Kommentaren
   - [ ] Testfälle: create success, create validation fail, deactivate, update, update qualifikationen, Name-Normalisierung
   - [ ] `jest.clearAllMocks()` in beforeEach
 
-- [ ] Task 3: Repository Interface (AC: 8)
-  - [ ] `packages/backend/src/domain/kraefte/repositories/i-rollen-definition.repository.ts`
-  - [ ] Methoden: `save()`, `findById()`, `findByName()`, `findAll()`, `exists()`
-  - [ ] TransactionContext Support für Outbox Integration
-  - [ ] Result Pattern für alle Methoden
+- [x] Task 3: Repository Interface (AC: 8)
+  - [x] `packages/backend/src/domain/kraefte/repositories/i-rollen-definition.repository.ts`
+  - [x] Methoden: `save()`, `findById()`, `findByName()`, `findAll()`, `exists()`
+  - [x] TransactionContext Support für Outbox Integration
+  - [x] Result Pattern für alle Methoden
 
-- [ ] Task 4: Error Codes + Validation Constants (AC: 5, 6, 7, 8)
-  - [ ] `packages/backend/src/domain/kraefte/common/rolle-error-codes.ts`
+- [x] Task 4: Error Codes + Validation Constants (AC: 5, 6, 7, 8)
+  - [x] `packages/backend/src/domain/kraefte/common/rolle-error-codes.ts`
     ```typescript
     export const ROLLE_ERROR_CODES = {
       NAME_DUPLICATE: 'ROLLE_NAME_DUPLICATE',
@@ -142,7 +142,7 @@ And:   Compliance mit AC1-AC6 Code Review Checklist (siehe Dev Notes)
       QUALIFIKATION_NOT_FOUND: 'ROLLE_QUALIFIKATION_NOT_FOUND',
     } as const;
     ```
-  - [ ] `packages/backend/src/domain/kraefte/constants/rolle-validation.constants.ts`
+  - [x] `packages/backend/src/domain/kraefte/constants/rolle-validation.constants.ts`
     ```typescript
     export const ROLLE_VALIDATION = {
       NAME_MIN_LENGTH: 3,
@@ -152,17 +152,17 @@ And:   Compliance mit AC1-AC6 Code Review Checklist (siehe Dev Notes)
     } as const;
     ```
 
-- [ ] Task 5: Domain Events (AC: 8)
-  - [ ] `packages/backend/src/domain/kraefte/events/rollen-definition-created.event.ts`
-  - [ ] `packages/backend/src/domain/kraefte/events/rollen-definition-updated.event.ts`
+- [x] Task 5: Domain Events (AC: 8)
+  - [x] `packages/backend/src/domain/kraefte/events/rollen-definition-created.event.ts`
+  - [x] `packages/backend/src/domain/kraefte/events/rollen-definition-updated.event.ts`
 
 ### Application Layer - Commands
 
-- [ ] Task 6: CreateRollenDefinitionCommand + Handler (AC: 2, 3, 6, 8)
-  - [ ] `packages/backend/src/application/kraefte/rollen/commands/create-rollen-definition/create-rollen-definition.command.ts`
-  - [ ] `packages/backend/src/application/kraefte/rollen/commands/create-rollen-definition/create-rollen-definition.handler.ts`
-  - [ ] **Extends TransactionalCommandHandler** für atomare Outbox-Integration
-  - [ ] **Qualifikations-Validierung VOR Aggregate-Erstellung:**
+- [x] Task 6: CreateRollenDefinitionCommand + Handler (AC: 2, 3, 6, 8)
+  - [x] `packages/backend/src/application/kraefte/rollen/commands/create-rollen-definition/create-rollen-definition.command.ts`
+  - [x] `packages/backend/src/application/kraefte/rollen/commands/create-rollen-definition/create-rollen-definition.handler.ts`
+  - [x] **Extends TransactionalCommandHandler** für atomare Outbox-Integration
+  - [x] **Qualifikations-Validierung VOR Aggregate-Erstellung:**
     ```typescript
     // Prüfe ob alle qualifikationIds existieren
     for (const qId of command.qualifikationIds) {
@@ -172,7 +172,7 @@ And:   Compliance mit AC1-AC6 Code Review Checklist (siehe Dev Notes)
       }
     }
     ```
-  - [ ] **Name Uniqueness Check:**
+  - [x] **Name Uniqueness Check:**
     ```typescript
     const existing = await this.repository.findByName(command.name, tx);
     if (existing.isSuccess && existing.value) {
@@ -180,10 +180,10 @@ And:   Compliance mit AC1-AC6 Code Review Checklist (siehe Dev Notes)
     }
     ```
 
-- [ ] Task 7: UpdateRollenDefinitionCommand + Handler (AC: 3, 4, 6, 8)
-  - [ ] `packages/backend/src/application/kraefte/rollen/commands/update-rollen-definition/update-rollen-definition.command.ts`
-  - [ ] `packages/backend/src/application/kraefte/rollen/commands/update-rollen-definition/update-rollen-definition.handler.ts`
-  - [ ] **Qualifikationen ERSETZEN nicht mergen:**
+- [x] Task 7: UpdateRollenDefinitionCommand + Handler (AC: 3, 4, 6, 8)
+  - [x] `packages/backend/src/application/kraefte/rollen/commands/update-rollen-definition/update-rollen-definition.command.ts`
+  - [x] `packages/backend/src/application/kraefte/rollen/commands/update-rollen-definition/update-rollen-definition.handler.ts`
+  - [x] **Qualifikationen ERSETZEN nicht mergen:**
     ```typescript
     // Bei qualifikationIds: Alle bestehenden RolleQualifikation löschen, neue erstellen
     if (command.qualifikationIds !== undefined) {
@@ -191,20 +191,20 @@ And:   Compliance mit AC1-AC6 Code Review Checklist (siehe Dev Notes)
       await this.createQualifikationen(rolle.id, command.qualifikationIds, tx);
     }
     ```
-  - [ ] Name Uniqueness nur prüfen wenn Name sich ändert
+  - [x] Name Uniqueness nur prüfen wenn Name sich ändert
 
-- [ ] Task 8: DeactivateRollenDefinitionCommand + Handler (AC: 5, 8)
-  - [ ] `packages/backend/src/application/kraefte/rollen/commands/deactivate-rollen-definition/deactivate-rollen-definition.command.ts`
-  - [ ] `packages/backend/src/application/kraefte/rollen/commands/deactivate-rollen-definition/deactivate-rollen-definition.handler.ts`
-  - [ ] Prüft: Bereits deaktiviert → ROLLE_ALREADY_DEACTIVATED Error
+- [x] Task 8: DeactivateRollenDefinitionCommand + Handler (AC: 5, 8)
+  - [x] `packages/backend/src/application/kraefte/rollen/commands/deactivate-rollen-definition/deactivate-rollen-definition.command.ts`
+  - [x] `packages/backend/src/application/kraefte/rollen/commands/deactivate-rollen-definition/deactivate-rollen-definition.handler.ts`
+  - [x] Prüft: Bereits deaktiviert → ROLLE_ALREADY_DEACTIVATED Error
 
 ### Application Layer - Queries
 
-- [ ] Task 9: GetAllRollenDefinitionenQuery + Handler (AC: 1, 8)
-  - [ ] `packages/backend/src/application/kraefte/rollen/queries/get-all-rollen-definitionen/get-all-rollen-definitionen.query.ts`
-  - [ ] `packages/backend/src/application/kraefte/rollen/queries/get-all-rollen-definitionen/get-all-rollen-definitionen.handler.ts`
-  - [ ] Filter: `istAktiv?: boolean` Query Parameter
-  - [ ] **Include erforderlicheQualifikationen mit Qualifikation-Details:**
+- [x] Task 9: GetAllRollenDefinitionenQuery + Handler (AC: 1, 8)
+  - [x] `packages/backend/src/application/kraefte/rollen/queries/get-all-rollen-definitionen/get-all-rollen-definitionen.query.ts`
+  - [x] `packages/backend/src/application/kraefte/rollen/queries/get-all-rollen-definitionen/get-all-rollen-definitionen.handler.ts`
+  - [x] Filter: `istAktiv?: boolean` Query Parameter
+  - [x] **Include erforderlicheQualifikationen mit Qualifikation-Details:**
     ```typescript
     // Response enthält:
     erforderlicheQualifikationen: [
@@ -212,14 +212,14 @@ And:   Compliance mit AC1-AC6 Code Review Checklist (siehe Dev Notes)
     ]
     ```
 
-- [ ] Task 10: GetRollenDefinitionByIdQuery + Handler (AC: 1, 8)
-  - [ ] `packages/backend/src/application/kraefte/rollen/queries/get-rollen-definition-by-id/get-rollen-definition-by-id.query.ts`
-  - [ ] `packages/backend/src/application/kraefte/rollen/queries/get-rollen-definition-by-id/get-rollen-definition-by-id.handler.ts`
+- [x] Task 10: GetRollenDefinitionByIdQuery + Handler (AC: 1, 8)
+  - [x] `packages/backend/src/application/kraefte/rollen/queries/get-rollen-definition-by-id/get-rollen-definition-by-id.query.ts`
+  - [x] `packages/backend/src/application/kraefte/rollen/queries/get-rollen-definition-by-id/get-rollen-definition-by-id.handler.ts`
 
 ### Application Layer - DTOs
 
-- [ ] Task 11: DTOs erstellen (AC: 1, 2, 4, 8)
-  - [ ] `packages/backend/src/application/kraefte/rollen/dto/rollen-definition.dto.ts`
+- [x] Task 11: DTOs erstellen (AC: 1, 2, 4, 8)
+  - [x] `packages/backend/src/application/kraefte/rollen/dto/rollen-definition.dto.ts`
     ```typescript
     export class RollenDefinitionDto {
       @ApiProperty() id: string;
@@ -236,7 +236,7 @@ And:   Compliance mit AC1-AC6 Code Review Checklist (siehe Dev Notes)
       @ApiPropertyOptional() updatedBy?: string;
     }
     ```
-  - [ ] `packages/backend/src/application/kraefte/rollen/dto/erforderliche-qualifikation.dto.ts`
+  - [x] `packages/backend/src/application/kraefte/rollen/dto/erforderliche-qualifikation.dto.ts`
     ```typescript
     export class ErforderlicheQualifikationDto {
       @ApiProperty() qualifikationId: string;
@@ -245,7 +245,7 @@ And:   Compliance mit AC1-AC6 Code Review Checklist (siehe Dev Notes)
       @ApiProperty() istPflicht: boolean;
     }
     ```
-  - [ ] `packages/backend/src/application/kraefte/rollen/dto/create-rollen-definition.dto.ts`
+  - [x] `packages/backend/src/application/kraefte/rollen/dto/create-rollen-definition.dto.ts`
     ```typescript
     export class CreateRollenDefinitionDto {
       @ApiProperty() @IsString() @MinLength(3) @MaxLength(100) name: string;
@@ -254,7 +254,7 @@ And:   Compliance mit AC1-AC6 Code Review Checklist (siehe Dev Notes)
       @ApiProperty({ type: [String] }) @IsArray() @IsString({ each: true }) qualifikationIds: string[];
     }
     ```
-  - [ ] `packages/backend/src/application/kraefte/rollen/dto/update-rollen-definition.dto.ts`
+  - [x] `packages/backend/src/application/kraefte/rollen/dto/update-rollen-definition.dto.ts`
     ```typescript
     export class UpdateRollenDefinitionDto {
       @ApiPropertyOptional() @IsOptional() @IsString() @MinLength(3) @MaxLength(100) name?: string;
@@ -264,17 +264,17 @@ And:   Compliance mit AC1-AC6 Code Review Checklist (siehe Dev Notes)
     }
     ```
 
-- [ ] Task 12: Application Module (AC: 8)
-  - [ ] `packages/backend/src/application/kraefte/rollen/rollen-application.module.ts`
-  - [ ] Imports: PrismaModule, OutboxModule, KraefteInfrastructureModule
-  - [ ] Providers: Alle Handler Classes
-  - [ ] Exports: Alle Handler Classes für Controller
+- [x] Task 12: Application Module (AC: 8)
+  - [x] `packages/backend/src/application/kraefte/rollen/rollen-application.module.ts`
+  - [x] Imports: PrismaModule, OutboxModule, KraefteInfrastructureModule
+  - [x] Providers: Alle Handler Classes
+  - [x] Exports: Alle Handler Classes für Controller
 
 ### Infrastructure Layer
 
-- [ ] Task 13: PrismaRollenDefinitionRepository (AC: 1, 2, 3, 4, 5, 8)
-  - [ ] `packages/backend/src/infrastructure/kraefte/repositories/prisma-rollen-definition.repository.ts`
-  - [ ] **Methoden:**
+- [x] Task 13: PrismaRollenDefinitionRepository (AC: 1, 2, 3, 4, 5, 8)
+  - [x] `packages/backend/src/infrastructure/kraefte/repositories/prisma-rollen-definition.repository.ts`
+  - [x] **Methoden:**
     - `save(aggregate, tx)` - Upsert RollenDefinition
     - `saveQualifikationen(rolleId, qualifikationIds, createdBy, tx)` - M:N Junction erstellen
     - `deleteQualifikationen(rolleId, tx)` - Alle Junction-Einträge löschen
@@ -282,7 +282,7 @@ And:   Compliance mit AC1-AC6 Code Review Checklist (siehe Dev Notes)
     - `findByName(name, tx)` - Für Uniqueness Check
     - `findAll(filter, tx)` - Mit Qualifikation-Details
     - `exists(id, tx)` - Boolean check
-  - [ ] **Prisma Include für Queries:**
+  - [x] **Prisma Include für Queries:**
     ```typescript
     include: {
       erforderlicheQualifikationen: {
@@ -290,17 +290,17 @@ And:   Compliance mit AC1-AC6 Code Review Checklist (siehe Dev Notes)
       }
     }
     ```
-  - [ ] **Error Handling:**
+  - [x] **Error Handling:**
     - P2002 (Unique): Name Duplikat → ROLLE_NAME_DUPLICATE
     - P2003 (FK): User/Qualifikation nicht gefunden
     - P2025 (Not Found): Bei Update/Delete
 
-- [ ] Task 14: PrismaRollenDefinitionMapper (AC: 8)
-  - [ ] `packages/backend/src/infrastructure/kraefte/mappers/prisma-rollen-definition.mapper.ts`
-  - [ ] `toPersistence(aggregate)` - Domain → Prisma (ohne Junction)
-  - [ ] `toDomain(entity)` - Prisma → Domain (mit erforderlicheQualifikationen)
-  - [ ] `toDto(entity)` - Prisma → DTO (mit Qualifikation-Details)
-  - [ ] **NULL-to-undefined Mapping (Bug-Fix aus Story 1-2):**
+- [x] Task 14: PrismaRollenDefinitionMapper (AC: 8)
+  - [x] `packages/backend/src/infrastructure/kraefte/mappers/prisma-rollen-definition.mapper.ts`
+  - [x] `toPersistence(aggregate)` - Domain → Prisma (ohne Junction)
+  - [x] `toDomain(entity)` - Prisma → Domain (mit erforderlicheQualifikationen)
+  - [x] `toDto(entity)` - Prisma → DTO (mit Qualifikation-Details)
+  - [x] **NULL-to-undefined Mapping (Bug-Fix aus Story 1-2):**
     ```typescript
     funkrufname: (entity.funkrufname as string | null) ?? undefined,
     beschreibung: (entity.beschreibung as string | null) ?? undefined,
@@ -308,9 +308,9 @@ And:   Compliance mit AC1-AC6 Code Review Checklist (siehe Dev Notes)
 
 ### Modules Layer
 
-- [ ] Task 15: AdminRollenController (AC: 1, 2, 4, 5, 6, 7, 8)
-  - [ ] `packages/backend/src/modules/kraefte/controllers/admin-rollen.controller.ts`
-  - [ ] **Endpoints:**
+- [x] Task 15: AdminRollenController (AC: 1, 2, 4, 5, 6, 7, 8)
+  - [x] `packages/backend/src/modules/kraefte/controllers/admin-rollen.controller.ts`
+  - [x] **Endpoints:**
     | Method | Path | Handler | Success | Errors |
     |--------|------|---------|---------|--------|
     | GET | `/admin/kraefte/rollen` | GetAllRollenDefinitionenHandler | 200 | 401, 429 |
@@ -318,7 +318,7 @@ And:   Compliance mit AC1-AC6 Code Review Checklist (siehe Dev Notes)
     | POST | `/admin/kraefte/rollen` | CreateRollenDefinitionHandler | 201 | 400, 401, 409, 429 |
     | PATCH | `/admin/kraefte/rollen/:id` | UpdateRollenDefinitionHandler | 200 | 400, 401, 404, 409, 429 |
     | PATCH | `/admin/kraefte/rollen/:id/deactivate` | DeactivateRollenDefinitionHandler | 200 | 400, 401, 404, 429 |
-  - [ ] **Class-Level Decorators:**
+  - [x] **Class-Level Decorators:**
     ```typescript
     @Controller({ path: 'admin/kraefte/rollen', version: 'alpha' })
     @ApiTags('admin-kraefte-rollen')
@@ -330,7 +330,7 @@ And:   Compliance mit AC1-AC6 Code Review Checklist (siehe Dev Notes)
     @ApiTooManyRequestsResponse({ description: 'Rate Limit überschritten' })
     @ApiInternalServerErrorResponse({ description: 'Interner Serverfehler' })
     ```
-  - [ ] **Error Code Mapping:**
+  - [x] **Error Code Mapping:**
     ```typescript
     private mapErrorToResponse(errorCode: string, errorMessage: string) {
       switch (errorCode) {
@@ -345,9 +345,9 @@ And:   Compliance mit AC1-AC6 Code Review Checklist (siehe Dev Notes)
 
 ### DI & Module Registration
 
-- [ ] Task 16: DI Token hinzufügen (AC: 8)
-  - [ ] `packages/backend/src/infrastructure/di-tokens.ts`
-  - [ ] Erweitern von `KRAEFTE_REPOSITORIES`:
+- [x] Task 16: DI Token hinzufügen (AC: 8)
+  - [x] `packages/backend/src/infrastructure/di-tokens.ts`
+  - [x] Erweitern von `KRAEFTE_REPOSITORIES`:
     ```typescript
     export const KRAEFTE_REPOSITORIES = {
       QUALIFIKATION: Symbol('IQualifikationRepository'),
@@ -356,32 +356,32 @@ And:   Compliance mit AC1-AC6 Code Review Checklist (siehe Dev Notes)
     } as const;
     ```
 
-- [ ] Task 17: Infrastructure Module erweitern (AC: 8)
-  - [ ] `packages/backend/src/infrastructure/kraefte/kraefte-infrastructure.module.ts`
-  - [ ] Provider hinzufügen:
+- [x] Task 17: Infrastructure Module erweitern (AC: 8)
+  - [x] `packages/backend/src/infrastructure/kraefte/kraefte-infrastructure.module.ts`
+  - [x] Provider hinzufügen:
     ```typescript
     {
       provide: KRAEFTE_REPOSITORIES.ROLLEN_DEFINITION,
       useClass: PrismaRollenDefinitionRepository,
     }
     ```
-  - [ ] Export: `KRAEFTE_REPOSITORIES.ROLLEN_DEFINITION`
+  - [x] Export: `KRAEFTE_REPOSITORIES.ROLLEN_DEFINITION`
 
-- [ ] Task 18: Kraefte Module erweitern (AC: 8)
-  - [ ] `packages/backend/src/modules/kraefte/kraefte.module.ts`
-  - [ ] Import: `RollenApplicationModule`
-  - [ ] Controller: `AdminRollenController`
+- [x] Task 18: Kraefte Module erweitern (AC: 8)
+  - [x] `packages/backend/src/modules/kraefte/kraefte.module.ts`
+  - [x] Import: `RollenApplicationModule`
+  - [x] Controller: `AdminRollenController`
 
 ### Integration & Testing
 
-- [ ] Task 19: API Client generieren
-  - [ ] `pnpm run generate-api`
+- [x] Task 19: API Client generieren
+  - [x] `pnpm run generate-api`
 
-- [ ] Task 20: Linting & Type Check
-  - [ ] `pnpm lint`
-  - [ ] `pnpm --filter @bluelight-hub/backend exec tsc --noEmit`
+- [x] Task 20: Linting & Type Check
+  - [x] `pnpm lint`
+  - [x] `pnpm --filter @bluelight-hub/backend exec tsc --noEmit`
 
-- [ ] Task 21: Manuelle Smoke Tests (Chrome DevTools MCP)
+- [ ] Task 21: Manuelle Smoke Tests (Chrome DevTools MCP) - separat zu testen
   - [ ] GET /api/v-alpha/admin/kraefte/rollen → Liste (leer oder Seed-Daten)
   - [ ] POST mit gültigen Daten → 201 + vollständige Response
     ```json
