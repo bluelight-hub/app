@@ -52,8 +52,8 @@ development_status:
   epic-1: in-progress
   1-0-prisma-schema-admin-konfiguration: review
   1-1-qualifikationen-verwalten: in-progress
-  1-2-fahrzeugtypen-verwalten: backlog
-  1-3-rollen-definitionen-verwalten: backlog
+  1-2-fahrzeugtypen-verwalten: done
+  1-3-rollen-definitionen-verwalten: in-progress
   1-4-funkstatus-7-9-konfigurieren: backlog
   epic-1-retrospective: optional
 

@@ -42,7 +42,7 @@ export const LAGEKARTE_REPOSITORY = Symbol('ILagekarteRepository');
  *
  * Verwaltung von Admin-Konfigurationsdaten:
  * - QUALIFIKATION: Qualifikations-Definitionen (Story 1-1)
- * - FAHRZEUGTYP: Fahrzeugtyp-Definitionen (Story 1-2, future)
+ * - FAHRZEUGTYP: Fahrzeugtyp-Definitionen (Story 1-2)
  * - ROLLE: Rollen-Definitionen (Story 1-3, future)
  *
  * **WARUM nested Object statt flat Symbols wie bei anderen Repositories?**
@@ -60,8 +60,10 @@ export const LAGEKARTE_REPOSITORY = Symbol('ILagekarteRepository');
 export const KRAEFTE_REPOSITORIES = {
   /** Repository Token für IQualifikationRepository */
   QUALIFIKATION: Symbol('IQualifikationRepository'),
-  // Future: FAHRZEUGTYP: Symbol('IFahrzeugtypRepository'),
-  // Future: ROLLE: Symbol('IRollenDefinitionRepository'),
+  /** Repository Token für IFahrzeugtypRepository */
+  FAHRZEUGTYP: Symbol('IFahrzeugtypRepository'),
+  /** Repository Token für IRollenDefinitionRepository (Story 1-3) */
+  ROLLEN_DEFINITION: Symbol('IRollenDefinitionRepository'),
 } as const;
 
 /** Transaction Manager Token für ITransactionManager */
