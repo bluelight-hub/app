@@ -70,6 +70,8 @@ export const KRAEFTE_REPOSITORIES = {
   STAMM_FAHRZEUG: Symbol('IStammFahrzeugRepository'),
   /** Repository Token für IStammPersonRepository (Story 2-2) */
   STAMM_PERSON: Symbol('IStammPersonRepository'),
+  /** Repository Token für IEinsatzFahrzeugRepository (Story 3-1) */
+  EINSATZ_FAHRZEUG: Symbol('IEinsatzFahrzeugRepository'),
 } as const;
 
 /** Transaction Manager Token für ITransactionManager */
@@ -116,4 +118,7 @@ export const EVENT_HANDLER = {
 
   /** Lagekarte Auto-Creation Handler Token */
   LAGEKARTE_AUTO_CREATION: Symbol('IEventHandler<EinsatzCreatedEvent>:LagekarteAutoCreation'),
+
+  /** FahrzeugErfasst ETB-Eintrag Handler Token (Story 3-1) */
+  FAHRZEUG_ERFASST_ETB: Symbol('IEventHandler<FahrzeugErfasstEvent>:EtbEintrag'),
 } as const;

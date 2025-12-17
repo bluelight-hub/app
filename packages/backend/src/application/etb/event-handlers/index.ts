@@ -7,3 +7,4 @@
  */
 
 export { EtbAutoCreationHandler } from './etb-auto-creation.handler';
+export { FahrzeugErfasstEventHandler } from './fahrzeug-erfasst.handler';

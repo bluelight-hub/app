@@ -4,7 +4,7 @@ import { EtbInfrastructureModule } from '@infrastructure/etb/etb-infrastructure.
 import { EventInfrastructureModule } from '@infrastructure/events/event-infrastructure.module';
 import { LagekarteInfrastructureModule } from '@infrastructure/lagekarte-infrastructure.module';
 import { Module } from '@nestjs/common';
-import { EtbAutoCreationHandler } from './event-handlers';
+import { EtbAutoCreationHandler, FahrzeugErfasstEventHandler } from './event-handlers';
 import { EtbQueryMapper } from './mappers';
 import { GetEintraegeQueryHandler, GetEtbHistoryQueryHandler, GetEtbQueryHandler, GetTextbausteineHandler } from './queries';
 
@@ -69,6 +69,11 @@ import { GetEintraegeQueryHandler, GetEtbHistoryQueryHandler, GetEtbQueryHandler
       provide: EVENT_HANDLER.ETB_AUTO_CREATION,
       useClass: EtbAutoCreationHandler,
     },
+    // FahrzeugErfasst Event Handler (Story 3-1) - ETB-Eintrag bei Fahrzeug-Erfassung
+    {
+      provide: EVENT_HANDLER.FAHRZEUG_ERFASST_ETB,
+      useClass: FahrzeugErfasstEventHandler,
+    },
 
     // Mappers (Story 3.3)
     EtbQueryMapper,
@@ -90,6 +95,7 @@ import { GetEintraegeQueryHandler, GetEtbHistoryQueryHandler, GetEtbQueryHandler
 
     // Event Handlers (exported via Symbol Token for Infrastructure Adapters)
     EVENT_HANDLER.ETB_AUTO_CREATION,
+    EVENT_HANDLER.FAHRZEUG_ERFASST_ETB,
 
     // Mappers (Story 3.3)
     EtbQueryMapper,

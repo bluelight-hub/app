@@ -1,5 +1,5 @@
 import { Module } from '@nestjs/common';
-import { EtbEventAdapter, LagekarteEventAdapter } from './adapters';
+import { EtbEventAdapter, LagekarteEventAdapter, FahrzeugErfasstEventAdapter } from './adapters';
 import { EtbApplicationModule } from '@application/etb/etb-application.module';
 import { LagekarteApplicationModule } from '@application/lagekarte/lagekarte-application.module';
 import { LagekarteEventLoggerHandler } from './handlers/lagekarte-event-logger.handler';
@@ -48,6 +48,7 @@ import { EinsatzEventLoggerHandler } from './handlers/einsatz-event-logger.handl
     // Event Adapters (delegate @OnEvent to Application Layer Handlers)
     EtbEventAdapter,
     LagekarteEventAdapter,
+    FahrzeugErfasstEventAdapter,
     // Event Logging Handler (Infrastructure-specific)
     LagekarteEventLoggerHandler,
     EinsatzEventLoggerHandler,

@@ -1,0 +1,525 @@
+/**
+ * Fahrzeug Hinzufügen Dialog (Story 3-1 & 3-2)
+ *
+ * Dialog zur Auswahl eines Fahrzeugs aus Stammdaten oder Erfassung eines temporären Fahrzeugs.
+ * Implementiert:
+ * - Story 3-1: Stammdaten-Fahrzeug auswählen
+ * - Story 3-2: Temporäres Fahrzeug erfassen
+ *
+ * @module features/einsatz/ui/organisms
+ */
+
+import { useEinsatzFahrzeuge, useErfasseFahrzeugAusStammdaten, useErfasseTemporalesFahrzeug, useFahrzeugtypen, useStammFahrzeuge } from '@/features/einsatz/api';
+import { Button } from '@/shared/ui/atoms/button.atom';
+import { FormField } from '@/shared/ui/atoms/form-field.atom';
+import { InlineSpinner } from '@/shared/ui/atoms/spinner.atom';
+import { cn } from '@/shared/ui/cn';
+import { Dialog } from '@/shared/ui/molecules/dialog.molecule';
+import { Combobox as HeadlessCombobox, ComboboxButton, ComboboxInput, ComboboxOption, ComboboxOptions, Label, Tab, TabGroup, TabList, TabPanel, TabPanels } from '@headlessui/react';
+import type { StammFahrzeugDto } from '@bluelight-hub/shared/client';
+import { useForm } from '@tanstack/react-form';
+import { zodValidator } from '@tanstack/zod-form-adapter';
+import { useCallback, useMemo, useState } from 'react';
+import { useHotkeys } from 'react-hotkeys-hook';
+import { PiCaretDown, PiCheck, PiPlus, PiTruck, PiWarning } from 'react-icons/pi';
+import { toast } from 'sonner';
+import { useDebouncedCallback } from 'use-debounce';
+import { z } from 'zod';
+
+interface FahrzeugHinzufuegenDialogProps {
+  isOpen: boolean;
+  onClose: () => void;
+  einsatzId: string;
+}
+
+/**
+ * Zod Schema für temporäres Fahrzeug Formular
+ */
+const temporalFahrzeugSchema = z.object({
+  funkrufname: z.string().min(1, 'Funkrufname ist erforderlich').max(100, 'Funkrufname zu lang (max 100 Zeichen)'),
+  fahrzeugtypId: z.string().min(1, 'Fahrzeugtyp ist erforderlich'),
+  kennzeichen: z.string().max(20, 'Kennzeichen zu lang (max 20 Zeichen)').optional(),
+});
+
+type TemporalFahrzeugFormValues = z.infer<typeof temporalFahrzeugSchema>;
+
+/**
+ * Dialog zum Hinzufügen eines Fahrzeugs (Stammdaten oder Temporär)
+ *
+ * Tab 1 (Aus Stammdaten):
+ * - Zeigt durchsuchbare Combobox mit allen nicht-archivierten Stamm-Fahrzeugen
+ * - Fahrzeuge die bereits im Einsatz erfasst sind, werden als disabled angezeigt
+ *
+ * Tab 2 (Temporär):
+ * - Formular für temporäres Fahrzeug (funkrufname, fahrzeugtypId, optional kennzeichen)
+ * - Nutzt @tanstack/react-form mit Zod-Validierung
+ *
+ * @example
+ * ```tsx
+ * <FahrzeugHinzufuegenDialog
+ *   isOpen={showDialog}
+ *   onClose={() => setShowDialog(false)}
+ *   einsatzId={einsatzId}
+ * />
+ * ```
+ */
+export function FahrzeugHinzufuegenDialog({ isOpen, onClose, einsatzId }: FahrzeugHinzufuegenDialogProps) {
+  const [selectedTabIndex, setSelectedTabIndex] = useState(0);
+  const [query, setQuery] = useState('');
+  const [selectedFahrzeug, setSelectedFahrzeug] = useState<StammFahrzeugDto | null>(null);
+
+  // Queries
+  const { data: stammFahrzeuge, isLoading: isLoadingStamm } = useStammFahrzeuge({ enabled: isOpen });
+  const { data: einsatzFahrzeuge } = useEinsatzFahrzeuge(einsatzId, { enabled: isOpen });
+  const { data: fahrzeugtypen, isLoading: isLoadingFahrzeugtypen } = useFahrzeugtypen({ enabled: isOpen && selectedTabIndex === 1 });
+
+  // Mutations
+  const erfasseFahrzeug = useErfasseFahrzeugAusStammdaten();
+  const erfasseTemporales = useErfasseTemporalesFahrzeug();
+
+  // Form für temporäres Fahrzeug
+  const temporalForm = useForm<TemporalFahrzeugFormValues>({
+    defaultValues: {
+      funkrufname: '',
+      fahrzeugtypId: '',
+      kennzeichen: '',
+    },
+    validatorAdapter: zodValidator(),
+    validators: {
+      onChange: temporalFahrzeugSchema,
+    },
+  });
+
+  // Set mit bereits erfassten Funkrufnamen für schnelle Duplikat-Prüfung
+  const erfassteFunkrufnamen = useMemo(() => {
+    if (!einsatzFahrzeuge) return new Set<string>();
+    return new Set(einsatzFahrzeuge.map((fz) => fz.funkrufname.toLowerCase()));
+  }, [einsatzFahrzeuge]);
+
+  // Debounced Query-Update (300ms)
+  const debouncedSetQuery = useDebouncedCallback(setQuery, 300);
+
+  // Gefilterte Fahrzeuge basierend auf Suchquery
+  const filteredFahrzeuge = useMemo(() => {
+    if (!stammFahrzeuge) return [];
+    if (!query) return stammFahrzeuge;
+
+    const lowerQuery = query.toLowerCase();
+    return stammFahrzeuge.filter((fz) => {
+      const funkrufname = fz.funkrufname.toLowerCase();
+      const kennzeichen = fz.kennzeichen?.toLowerCase() ?? '';
+      const fahrzeugtypName = (fz.fahrzeugtyp as { name?: string })?.name?.toLowerCase() ?? '';
+
+      return funkrufname.includes(lowerQuery) || kennzeichen.includes(lowerQuery) || fahrzeugtypName.includes(lowerQuery);
+    });
+  }, [stammFahrzeuge, query]);
+
+  // Prüft ob ein Fahrzeug bereits im Einsatz ist (disabled)
+  const isFahrzeugDisabled = useCallback(
+    (fz: StammFahrzeugDto) => {
+      return erfassteFunkrufnamen.has(fz.funkrufname.toLowerCase());
+    },
+    [erfassteFunkrufnamen],
+  );
+
+  // Handle Auswahl
+  const handleSelect = useCallback((fz: StammFahrzeugDto | null) => {
+    setSelectedFahrzeug(fz);
+  }, []);
+
+  // Handle Erfassen aus Stammdaten
+  const handleErfassen = useCallback(async () => {
+    if (!selectedFahrzeug) return;
+
+    const toastId = toast.loading('Fahrzeug wird erfasst…');
+
+    try {
+      await erfasseFahrzeug.mutateAsync({
+        einsatzId,
+        stammId: selectedFahrzeug.id,
+      });
+
+      toast.success(`${selectedFahrzeug.funkrufname} erfasst`, {
+        id: toastId,
+        description: 'Fahrzeug wurde zum Einsatz hinzugefügt',
+      });
+
+      // Reset und schließen
+      setSelectedFahrzeug(null);
+      setQuery('');
+      onClose();
+    } catch (error) {
+      // 409 Conflict = Duplikat (bereits im Einsatz)
+      const status = (error as { response?: { status?: number } })?.response?.status;
+      if (status === 409) {
+        toast.error('Fahrzeug bereits im Einsatz', {
+          id: toastId,
+          description: `${selectedFahrzeug.funkrufname} ist bereits in diesem Einsatz erfasst`,
+        });
+      } else {
+        toast.error('Fehler beim Erfassen', {
+          id: toastId,
+          description: error instanceof Error ? error.message : 'Unbekannter Fehler',
+        });
+      }
+      // Dialog bleibt offen bei Fehler
+    }
+  }, [selectedFahrzeug, einsatzId, erfasseFahrzeug, onClose]);
+
+  // Handle Erfassen temporäres Fahrzeug
+  const handleErfasseTemporales = useCallback(async () => {
+    const values = temporalForm.state.values;
+    const toastId = toast.loading('Temporäres Fahrzeug wird erfasst…');
+
+    try {
+      await erfasseTemporales.mutateAsync({
+        einsatzId,
+        funkrufname: values.funkrufname,
+        fahrzeugtypId: values.fahrzeugtypId,
+        kennzeichen: values.kennzeichen || undefined,
+      });
+
+      toast.success(`${values.funkrufname} erfasst`, {
+        id: toastId,
+        description: 'Temporäres Fahrzeug wurde zum Einsatz hinzugefügt',
+      });
+
+      // Reset und schließen
+      temporalForm.reset();
+      onClose();
+    } catch (error) {
+      // 409 Conflict = Duplikat (bereits im Einsatz)
+      const status = (error as { response?: { status?: number } })?.response?.status;
+      if (status === 409) {
+        toast.error('Fahrzeug bereits im Einsatz', {
+          id: toastId,
+          description: `${values.funkrufname} ist bereits in diesem Einsatz erfasst`,
+        });
+      } else {
+        toast.error('Fehler beim Erfassen', {
+          id: toastId,
+          description: error instanceof Error ? error.message : 'Unbekannter Fehler',
+        });
+      }
+      // Dialog bleibt offen bei Fehler
+    }
+  }, [einsatzId, erfasseTemporales, temporalForm, onClose]);
+
+  // Keyboard Shortcuts
+  useHotkeys(
+    'esc',
+    () => {
+      if (isOpen) onClose();
+    },
+    { enabled: isOpen },
+  );
+
+  useHotkeys(
+    'mod+enter',
+    () => {
+      if (!isOpen) return;
+
+      if (selectedTabIndex === 0 && selectedFahrzeug && !erfasseFahrzeug.isPending) {
+        handleErfassen();
+      } else if (selectedTabIndex === 1 && temporalForm.state.canSubmit && !erfasseTemporales.isPending) {
+        handleErfasseTemporales();
+      }
+    },
+    { enabled: isOpen },
+  );
+
+  // Reset bei Schließen
+  const handleClose = useCallback(() => {
+    setSelectedFahrzeug(null);
+    setQuery('');
+    temporalForm.reset();
+    setSelectedTabIndex(0);
+    onClose();
+  }, [onClose, temporalForm]);
+
+  return (
+    <Dialog isOpen={isOpen} onClose={handleClose} size="md">
+      <div className="relative">
+        <Dialog.CloseButton onClose={handleClose} />
+
+        <Dialog.Title>
+          <div className="flex items-center gap-2">
+            <PiTruck className="h-5 w-5 text-primary-600 dark:text-primary-400" />
+            <span>Fahrzeug hinzufügen</span>
+          </div>
+        </Dialog.Title>
+
+        <Dialog.Body>
+          <TabGroup selectedIndex={selectedTabIndex} onChange={setSelectedTabIndex}>
+            <TabList className="flex gap-2 border-gray-200 border-b pb-2 dark:border-gray-700">
+              <Tab
+                className={({ selected }) =>
+                  cn(
+                    'flex items-center gap-2 rounded-lg px-4 py-2 font-medium text-sm transition-colors',
+                    'focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2',
+                    selected
+                      ? 'bg-primary-100 text-primary-700 dark:bg-primary-900/30 dark:text-primary-300'
+                      : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900 dark:text-gray-400 dark:hover:bg-gray-800 dark:hover:text-gray-200',
+                  )
+                }
+              >
+                <PiTruck className="h-4 w-4" />
+                Aus Stammdaten
+              </Tab>
+              <Tab
+                className={({ selected }) =>
+                  cn(
+                    'flex items-center gap-2 rounded-lg px-4 py-2 font-medium text-sm transition-colors',
+                    'focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2',
+                    selected
+                      ? 'bg-primary-100 text-primary-700 dark:bg-primary-900/30 dark:text-primary-300'
+                      : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900 dark:text-gray-400 dark:hover:bg-gray-800 dark:hover:text-gray-200',
+                  )
+                }
+              >
+                <PiPlus className="h-4 w-4" />
+                Temporär
+              </Tab>
+            </TabList>
+
+            <TabPanels className="mt-4">
+              {/* Tab 1: Aus Stammdaten */}
+              <TabPanel>
+                <p className="mb-4 text-gray-600 text-sm dark:text-gray-400">Wählen Sie ein Fahrzeug aus den Stammdaten, um es für diesen Einsatz zu erfassen.</p>
+
+                {/* Combobox */}
+                <HeadlessCombobox as="div" value={selectedFahrzeug} onChange={handleSelect} disabled={erfasseFahrzeug.isPending}>
+                  <Label className="block font-medium text-gray-900 text-sm dark:text-white">Fahrzeug auswählen</Label>
+                  <div className="relative mt-2">
+                    <ComboboxInput
+                      className={cn(
+                        'block w-full rounded-lg border-2 bg-gray-50 px-4 py-3 pr-12 font-medium text-base text-gray-900',
+                        'transition-all duration-200',
+                        'border-gray-200',
+                        'placeholder:text-gray-400',
+                        'focus:border-primary-500 focus:bg-white focus:outline-none focus:ring-4 focus:ring-primary-500 focus:ring-opacity-20',
+                        'sm:text-sm',
+                        'dark:border-gray-700 dark:bg-gray-900 dark:text-white',
+                        'dark:focus:border-primary-400 dark:focus:bg-gray-800 dark:focus:ring-primary-400 dark:placeholder:text-gray-500',
+                        'disabled:cursor-not-allowed disabled:opacity-50',
+                      )}
+                      placeholder={isLoadingStamm ? 'Lade Fahrzeuge…' : 'Funkrufname, Kennzeichen oder Typ eingeben…'}
+                      onChange={(e) => debouncedSetQuery(e.target.value)}
+                      displayValue={(fz: StammFahrzeugDto | null) => (fz ? fz.funkrufname : '')}
+                      autoComplete="off"
+                    />
+                    <ComboboxButton className="absolute inset-y-0 right-0 flex items-center px-3">
+                      {isLoadingStamm ? <InlineSpinner size="sm" /> : <PiCaretDown className="h-5 w-5 text-gray-400" aria-hidden="true" />}
+                    </ComboboxButton>
+
+                    <ComboboxOptions
+                      transition
+                      className={cn(
+                        'absolute z-10 mt-1 max-h-60 w-full overflow-auto rounded-lg bg-white py-1 text-base shadow-lg',
+                        'border border-gray-200',
+                        'data-[closed]:data-[leave]:opacity-0 data-[leave]:transition data-[leave]:duration-100 data-[leave]:ease-in',
+                        'sm:text-sm',
+                        'dark:border-gray-700 dark:bg-gray-800',
+                      )}
+                    >
+                      {isLoadingStamm ? (
+                        <div className="flex items-center justify-center gap-2 px-4 py-8 text-gray-500">
+                          <InlineSpinner size="sm" />
+                          <span>Lade Stammdaten…</span>
+                        </div>
+                      ) : filteredFahrzeuge.length === 0 ? (
+                        <div className="px-4 py-4 text-center text-gray-500 dark:text-gray-400">{query ? `Keine Fahrzeuge gefunden für "${query}"` : 'Keine Stamm-Fahrzeuge verfügbar'}</div>
+                      ) : (
+                        filteredFahrzeuge.map((fz) => {
+                          const disabled = isFahrzeugDisabled(fz);
+                          const fahrzeugtypName = (fz.fahrzeugtyp as { name?: string })?.name ?? 'Unbekannt';
+
+                          return (
+                            <ComboboxOption
+                              key={fz.id}
+                              value={fz}
+                              disabled={disabled}
+                              className={cn(
+                                'relative cursor-default select-none py-3 pr-9 pl-4',
+                                'data-[focus]:bg-primary-600 data-[focus]:text-white data-[focus]:outline-none',
+                                'dark:text-gray-200 dark:data-[focus]:bg-primary-500',
+                                disabled && 'cursor-not-allowed opacity-50',
+                              )}
+                            >
+                              {({ selected, focus }) => (
+                                <>
+                                  <div className="flex flex-col">
+                                    <div className="flex items-center gap-2">
+                                      <span className={cn('truncate font-medium', selected && 'font-semibold')}>{fz.funkrufname}</span>
+                                      {disabled && (
+                                        <span
+                                          className={cn(
+                                            'inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs',
+                                            focus ? 'bg-white/20 text-white' : 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400',
+                                          )}
+                                        >
+                                          <PiWarning className="h-3 w-3" />
+                                          Im Einsatz
+                                        </span>
+                                      )}
+                                    </div>
+                                    <span className={cn('mt-0.5 text-sm', focus ? 'text-primary-100' : 'text-gray-500 dark:text-gray-400')}>
+                                      {fz.kennzeichen ?? '–'} • {fahrzeugtypName}
+                                    </span>
+                                  </div>
+
+                                  {selected && (
+                                    <span className={cn('absolute inset-y-0 right-0 flex items-center pr-4', focus ? 'text-white' : 'text-primary-600 dark:text-primary-400')}>
+                                      <PiCheck className="h-5 w-5" aria-hidden="true" />
+                                    </span>
+                                  )}
+                                </>
+                              )}
+                            </ComboboxOption>
+                          );
+                        })
+                      )}
+                    </ComboboxOptions>
+                  </div>
+                </HeadlessCombobox>
+
+                {/* Auswahl-Info */}
+                {selectedFahrzeug && (
+                  <div className="mt-4 rounded-lg border border-primary-200 bg-primary-50 p-3 dark:border-primary-800 dark:bg-primary-900/20">
+                    <div className="flex items-start gap-3">
+                      <PiTruck className="mt-0.5 h-5 w-5 flex-shrink-0 text-primary-600 dark:text-primary-400" />
+                      <div>
+                        <p className="font-medium text-primary-900 text-sm dark:text-primary-100">{selectedFahrzeug.funkrufname}</p>
+                        <p className="mt-0.5 text-primary-700 text-xs dark:text-primary-300">
+                          {selectedFahrzeug.kennzeichen ?? '–'} • {(selectedFahrzeug.fahrzeugtyp as { name?: string })?.name ?? 'Unbekannt'}
+                        </p>
+                        <p className="mt-1 text-primary-600 text-xs dark:text-primary-400">Wird mit initialem FMS-Status 2 (Einsatzbereit) erfasst</p>
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </TabPanel>
+
+              {/* Tab 2: Temporär */}
+              <TabPanel>
+                <p className="mb-4 text-gray-600 text-sm dark:text-gray-400">Erfassen Sie ein temporäres Fahrzeug ohne Referenz zu den Stammdaten.</p>
+
+                <form className="space-y-4">
+                  {/* Funkrufname */}
+                  <temporalForm.Field name="funkrufname">
+                    {(field) => (
+                      <FormField label="Funkrufname" required error={field.state.meta.errors.join(', ')} hint="Eindeutiger Funkrufname für diesen Einsatz">
+                        <input
+                          type="text"
+                          value={field.state.value}
+                          onChange={(e) => field.handleChange(e.target.value)}
+                          onBlur={field.handleBlur}
+                          disabled={erfasseTemporales.isPending}
+                          placeholder="z.B. Florian Stuttgart 44-1"
+                          className={cn(
+                            'block w-full rounded-lg border-2 bg-gray-50 px-4 py-3 font-medium text-base text-gray-900',
+                            'transition-all duration-200',
+                            'border-gray-200',
+                            'placeholder:text-gray-400',
+                            'focus:border-primary-500 focus:bg-white focus:outline-none focus:ring-4 focus:ring-primary-500 focus:ring-opacity-20',
+                            'sm:text-sm',
+                            'dark:border-gray-700 dark:bg-gray-900 dark:text-white',
+                            'dark:focus:border-primary-400 dark:focus:bg-gray-800 dark:focus:ring-primary-400 dark:placeholder:text-gray-500',
+                            'disabled:cursor-not-allowed disabled:opacity-50',
+                            field.state.meta.errors.length > 0 && 'border-red-500 focus:border-red-500 focus:ring-red-500',
+                          )}
+                        />
+                      </FormField>
+                    )}
+                  </temporalForm.Field>
+
+                  {/* Fahrzeugtyp */}
+                  <temporalForm.Field name="fahrzeugtypId">
+                    {(field) => (
+                      <FormField label="Fahrzeugtyp" required error={field.state.meta.errors.join(', ')} hint="Kategorisierung des Fahrzeugs">
+                        <select
+                          value={field.state.value}
+                          onChange={(e) => field.handleChange(e.target.value)}
+                          onBlur={field.handleBlur}
+                          disabled={erfasseTemporales.isPending || isLoadingFahrzeugtypen}
+                          className={cn(
+                            'block w-full rounded-lg border-2 bg-gray-50 px-4 py-3 font-medium text-base text-gray-900',
+                            'transition-all duration-200',
+                            'border-gray-200',
+                            'focus:border-primary-500 focus:bg-white focus:outline-none focus:ring-4 focus:ring-primary-500 focus:ring-opacity-20',
+                            'sm:text-sm',
+                            'dark:border-gray-700 dark:bg-gray-900 dark:text-white',
+                            'dark:focus:border-primary-400 dark:focus:bg-gray-800 dark:focus:ring-primary-400',
+                            'disabled:cursor-not-allowed disabled:opacity-50',
+                            field.state.meta.errors.length > 0 && 'border-red-500 focus:border-red-500 focus:ring-red-500',
+                          )}
+                        >
+                          <option value="">Fahrzeugtyp wählen…</option>
+                          {fahrzeugtypen?.map((typ) => (
+                            <option key={typ.id} value={typ.id}>
+                              {typ.code} - {typ.bezeichnung}
+                            </option>
+                          ))}
+                        </select>
+                      </FormField>
+                    )}
+                  </temporalForm.Field>
+
+                  {/* Kennzeichen (Optional) */}
+                  <temporalForm.Field name="kennzeichen">
+                    {(field) => (
+                      <FormField label="Kennzeichen" error={field.state.meta.errors.join(', ')} hint="Optional: Amtliches Kennzeichen">
+                        <input
+                          type="text"
+                          value={field.state.value}
+                          onChange={(e) => field.handleChange(e.target.value)}
+                          onBlur={field.handleBlur}
+                          disabled={erfasseTemporales.isPending}
+                          placeholder="z.B. S-FW 1234"
+                          className={cn(
+                            'block w-full rounded-lg border-2 bg-gray-50 px-4 py-3 font-medium text-base text-gray-900',
+                            'transition-all duration-200',
+                            'border-gray-200',
+                            'placeholder:text-gray-400',
+                            'focus:border-primary-500 focus:bg-white focus:outline-none focus:ring-4 focus:ring-primary-500 focus:ring-opacity-20',
+                            'sm:text-sm',
+                            'dark:border-gray-700 dark:bg-gray-900 dark:text-white',
+                            'dark:focus:border-primary-400 dark:focus:bg-gray-800 dark:focus:ring-primary-400 dark:placeholder:text-gray-500',
+                            'disabled:cursor-not-allowed disabled:opacity-50',
+                            field.state.meta.errors.length > 0 && 'border-red-500 focus:border-red-500 focus:ring-red-500',
+                          )}
+                        />
+                      </FormField>
+                    )}
+                  </temporalForm.Field>
+
+                  {/* Info Box */}
+                  <div className="rounded-lg border border-blue-200 bg-blue-50 p-3 dark:border-blue-800 dark:bg-blue-900/20">
+                    <p className="text-blue-900 text-sm dark:text-blue-100">
+                      Temporäre Fahrzeuge werden nur für diesen Einsatz erfasst und sind nicht in den Stammdaten hinterlegt. Sie erhalten ebenfalls den initialen FMS-Status 2 (Einsatzbereit).
+                    </p>
+                  </div>
+                </form>
+              </TabPanel>
+            </TabPanels>
+          </TabGroup>
+        </Dialog.Body>
+
+        <Dialog.Footer loading={erfasseFahrzeug.isPending || erfasseTemporales.isPending}>
+          <Button intent="secondary" appearance="ghost" onClick={handleClose} disabled={erfasseFahrzeug.isPending || erfasseTemporales.isPending}>
+            Abbrechen
+          </Button>
+          {selectedTabIndex === 0 ? (
+            <Button intent="primary" onClick={handleErfassen} disabled={!selectedFahrzeug || erfasseFahrzeug.isPending} loading={erfasseFahrzeug.isPending}>
+              Fahrzeug erfassen
+            </Button>
+          ) : (
+            <Button intent="primary" onClick={handleErfasseTemporales} disabled={!temporalForm.state.canSubmit || erfasseTemporales.isPending} loading={erfasseTemporales.isPending}>
+              Temporär erfassen
+            </Button>
+          )}
+        </Dialog.Footer>
+      </div>
+    </Dialog>
+  );
+}

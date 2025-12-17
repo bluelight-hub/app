@@ -23,6 +23,14 @@ export {
   useCreateEinsatz,
   useUpdateEinsatz,
   useArchiveEinsatz,
+  // EinsatzFahrzeuge (Story 3-1 & 3-2)
+  useEinsatzFahrzeuge,
+  useErfasseFahrzeugAusStammdaten,
+  useErfasseTemporalesFahrzeug,
+  useStammFahrzeuge,
+  STAMM_FAHRZEUGE_QUERY_KEYS,
+  useFahrzeugtypen,
+  FAHRZEUGTYP_QUERY_KEYS,
 } from './api';
 
 // ============================================
