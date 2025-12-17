@@ -58,17 +58,17 @@ development_status:
   epic-1-retrospective: done
 
   # ===== Epic 2: Stammdaten-Administration =====
-  epic-2: in-progress
+  epic-2: done
   2-0-prisma-schema-stammdaten: done
   2-1-stamm-fahrzeuge-verwalten: done
-  2-2-stamm-personen-verwalten: review
-  epic-2-retrospective: optional
+  2-2-stamm-personen-verwalten: done
+  epic-2-retrospective: done
 
   # ===== Epic 3: Fahrzeug-Einsatz-Verwaltung =====
-  epic-3: backlog
-  3-0-prisma-schema-einsatz-fahrzeuge: backlog
-  3-1-fahrzeug-aus-stammdaten-erfassen: backlog
-  3-2-temporaeres-fahrzeug-anlegen: backlog
+  epic-3: in-progress
+  3-0-prisma-schema-einsatz-fahrzeuge: review
+  3-1-fahrzeug-aus-stammdaten-erfassen: in-progress
+  3-2-temporaeres-fahrzeug-anlegen: review
   3-3-fms-status-updaten: backlog
   epic-3-retrospective: optional
 
