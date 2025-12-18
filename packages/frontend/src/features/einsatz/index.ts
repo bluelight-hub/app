@@ -23,10 +23,11 @@ export {
   useCreateEinsatz,
   useUpdateEinsatz,
   useArchiveEinsatz,
-  // EinsatzFahrzeuge (Story 3-1 & 3-2)
+  // EinsatzFahrzeuge (Story 3-1, 3-2 & 3-3)
   useEinsatzFahrzeuge,
   useErfasseFahrzeugAusStammdaten,
   useErfasseTemporalesFahrzeug,
+  useUpdateFmsStatus,
   useStammFahrzeuge,
   STAMM_FAHRZEUGE_QUERY_KEYS,
   useFahrzeugtypen,
@@ -53,6 +54,19 @@ export {
 // Schemas
 // ============================================
 export * from './schemas';
+
+// ============================================
+// Constants (Story 3-3 FMS-Status)
+// ============================================
+export {
+  FMS_STATUS_LABELS,
+  FMS_STATUS_COLORS,
+  FMS_STATUS_OPTIONS,
+  getStatusClasses,
+  getStatusBgClasses,
+  isFmsStatus,
+  type FmsStatus,
+} from './constants/fms-status.constants';
 
 // ============================================
 // UI Components

@@ -1,6 +1,6 @@
 import { ApiPropertyOptional } from '@nestjs/swagger';
 import { Transform } from 'class-transformer';
-import { IsArray, IsOptional, IsString, MaxLength, MinLength } from 'class-validator';
+import { ArrayMaxSize, IsArray, IsOptional, IsString, MaxLength, MinLength } from 'class-validator';
 import {
   STAMM_PERSON_VORNAME_MIN_LENGTH,
   STAMM_PERSON_VORNAME_MAX_LENGTH,
@@ -73,12 +73,14 @@ export class UpdateStammPersonDto {
   funkkenungBOS?: string;
 
   @ApiPropertyOptional({
-    description: 'Qualifikation-IDs (CUIDs) - ERSETZT bestehende Qualifikationen',
+    description: 'Qualifikation-IDs (CUIDs) - ERSETZT bestehende Qualifikationen (max. 50)',
     example: ['clw3h8x9y0000qwertyuiopas', 'clw3h8x9y0001qwertyuiopas'],
     type: [String],
+    maxItems: 50,
   })
   @IsOptional()
   @IsArray()
+  @ArrayMaxSize(50, { message: 'Maximal 50 Qualifikationen pro Person erlaubt' })
   @IsString({ each: true })
   qualifikationIds?: string[];
 }

@@ -460,7 +460,7 @@ export class AuthController {
    * @returns Die Benutzerinformationen oder null
    */
   @Get('check')
-  @Throttle({ default: { limit: 10, ttl: 60000 } }) // 10 Anfragen pro Minute für Token-Refresh
+  @Throttle({ default: { limit: 120, ttl: 60000 } }) // 120 Anfragen pro Minute (2/s) - wird häufig aufgerufen bei Route-Wechsel, Focus-Events etc.
   @ApiOperation({
     summary: 'Authentifizierungsstatus prüfen',
     description: 'Prüft, ob ein Benutzer authentifiziert ist, und gibt dessen Informationen zurück',

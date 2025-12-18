@@ -121,6 +121,12 @@ model User {
   createdStammPersonQualifikationen StammPersonQualifikation[] @relation("StammPersonQualifikationCreator")
   updatedStammPersonQualifikationen StammPersonQualifikation[] @relation("StammPersonQualifikationUpdater")
 
+  // ========================================
+  // Einsatz-Fahrzeuge Relations (Story 3.0)
+  // ========================================
+  createdEinsatzFahrzeuge EinsatzFahrzeug[] @relation("EinsatzFahrzeugCreator")
+  updatedEinsatzFahrzeuge EinsatzFahrzeug[] @relation("EinsatzFahrzeugUpdater")
+
   // Indexes
   @@index([username], map: "idx_user_username")
   @@index([role, isActive], map: "idx_user_role_active")
@@ -169,6 +175,9 @@ model Einsatz {
 
   // Lagekarte Relation (1:1)
   lagekarte Lagekarte?
+
+  // Einsatz-Fahrzeuge Relation (1:N)
+  einsatzFahrzeuge EinsatzFahrzeug[]
 
   // Indexes
   @@index([status, createdAt])
@@ -609,6 +618,9 @@ model Fahrzeugtyp {
   // Inverse Relation für StammFahrzeuge (Story 2.0)
   stammFahrzeuge StammFahrzeug[]
 
+  // Inverse Relation für EinsatzFahrzeuge (Story 3.0)
+  einsatzFahrzeuge EinsatzFahrzeug[]
+
   // Indexes
   @@index([kategorie, istAktiv])
   @@index([istAktiv, sortOrder])
@@ -739,6 +751,9 @@ model StammFahrzeug {
   updater     User?       @relation("StammFahrzeugUpdater", fields: [updatedBy], references: [id], onDelete: SetNull)
   archiver    User?       @relation("StammFahrzeugArchiver", fields: [archivedBy], references: [id], onDelete: SetNull)
 
+  // Einsatz-Fahrzeuge Relation (1:N, für Rückverfolgbarkeit)
+  einsatzFahrzeuge EinsatzFahrzeug[]
+
   // Indexes
   @@index([fahrzeugtypId])
   @@index([archivedAt])
@@ -806,4 +821,50 @@ model StammPersonQualifikation {
   @@index([qualifikationId])
   @@index([createdBy])
   @@map("stamm_person_qualifikationen")
+}
+
+// ========================================
+// Kräfte-Management: Einsatz-Fahrzeuge
+// Epic 3 - Story 3.0
+// ========================================
+
+/// Einsatz-Fahrzeug: Snapshot eines Fahrzeugs im Einsatz-Kontext
+/// - stammId nullable für spontane/temporäre Fahrzeuge
+/// - funkrufname, kennzeichen werden KOPIERT (nicht live referenziert)
+/// - Cascade-Delete mit Einsatz
+model EinsatzFahrzeug {
+  id            String  @id @default(cuid())
+  einsatzId     String  @map("einsatz_id")
+  stammId       String? @map("stamm_id")
+  funkrufname   String  @db.VarChar(50)
+  kennzeichen   String? @db.VarChar(20)
+  fahrzeugtypId String  @map("fahrzeugtyp_id")
+  fmsStatus     Int     @default(0) @map("fms_status")
+  position      Json?   @db.JsonB
+
+  // Audit Trail (PFLICHT)
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+  createdBy String   @db.VarChar(100) @map("created_by")
+  updatedBy String?  @db.VarChar(100) @map("updated_by")
+
+  // Relations
+  einsatz     Einsatz        @relation(fields: [einsatzId], references: [id], onDelete: Cascade)
+  stamm       StammFahrzeug? @relation(fields: [stammId], references: [id], onDelete: SetNull)
+  fahrzeugtyp Fahrzeugtyp    @relation(fields: [fahrzeugtypId], references: [id], onDelete: Restrict)
+  creator     User           @relation("EinsatzFahrzeugCreator", fields: [createdBy], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  updater     User?          @relation("EinsatzFahrzeugUpdater", fields: [updatedBy], references: [id], onDelete: NoAction, onUpdate: NoAction)
+
+  // Constraints
+  @@unique([einsatzId, funkrufname], name: "einsatz_fahrzeug_einsatz_funkrufname_unique")
+
+  // Indexes
+  @@index([einsatzId])
+  @@index([stammId])
+  @@index([fmsStatus])
+  @@index([fahrzeugtypId])
+  @@index([einsatzId, fmsStatus])
+  @@index([einsatzId, fahrzeugtypId])
+  @@index([createdBy])
+  @@map("einsatz_fahrzeuge")
 }

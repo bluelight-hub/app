@@ -42,6 +42,53 @@ export const getStatusClasses = (status: number): string => {
 };
 
 /**
+ * Gibt nur Background-Tailwind-Klassen für einen FMS-Status zurück.
+ * Für Status-Dots ohne Text.
+ */
+export const getStatusBgClasses = (status: number): string => {
+  const colors = FMS_STATUS_COLORS[status] ?? FMS_STATUS_COLORS[6];
+
+  // Extrahiere bg-* Klassen mit Regex für Robustheit
+  const extractBgClass = (classString: string): string => {
+    const match = classString.match(/\bbg-[^\s]+/);
+    return match ? match[0] : '';
+  };
+
+  const lightBg = extractBgClass(colors.light);
+  const darkBg = extractBgClass(colors.dark);
+
+  return `${lightBg} ${darkBg}`.trim();
+};
+
+/**
+ * Type für gültige FMS-Status Werte (0-9).
+ */
+export type FmsStatus = 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9;
+
+/**
+ * Type Guard für FMS Status Validierung.
+ * Prüft ob ein Wert ein gültiger FMS Status (0-9) ist.
+ *
+ * Exportiert für externe Consumer zur Runtime-Validierung.
+ * Wird intern nicht verwendet, da TypeScript-Types bereits Compile-Time-Sicherheit bieten.
+ *
+ * @param value - Zu prüfender Wert
+ * @returns true wenn value ein gültiger FMS Status ist
+ *
+ * @example
+ * ```typescript
+ * // Nützlich für API-Responses oder User-Input
+ * if (isFmsStatus(data.status)) {
+ *   // TypeScript weiß jetzt dass data.status vom Typ FmsStatus ist
+ *   const label = FMS_STATUS_LABELS[data.status];
+ * }
+ * ```
+ */
+export const isFmsStatus = (value: unknown): value is FmsStatus => {
+  return typeof value === 'number' && value >= 0 && value <= 9 && Number.isInteger(value);
+};
+
+/**
  * Alle verfügbaren FMS-Status Codes (0-9).
  */
 export const FMS_STATUS_OPTIONS = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9] as const;

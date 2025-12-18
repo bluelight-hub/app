@@ -19,8 +19,6 @@ import {
   ApiTags,
   ApiBearerAuth,
   ApiOperation,
-  ApiOkResponse,
-  ApiCreatedResponse,
   ApiNotFoundResponse,
   ApiBadRequestResponse,
   ApiUnauthorizedResponse,
@@ -33,6 +31,7 @@ import {
 import { Throttle } from '@nestjs/throttler';
 import { AdminJwtAuthGuard } from '@/modules/auth/guards/admin-jwt-auth.guard';
 import { CurrentUser } from '@/modules/auth/decorators/current-user.decorator';
+import { ApiWrappedResponse, ApiWrappedCreatedResponse } from '@/modules/common/decorators/api-wrapped-response.decorator';
 import type { ValidatedUser } from '@/modules/auth/strategies/jwt.strategy';
 import { ParseCuidPipe } from '@/infrastructure/http/pipes/parse-cuid.pipe';
 import { ADMIN_RATE_LIMIT, ADMIN_MUTATION_RATE_LIMIT } from '@/infrastructure/http/constants/rate-limit.constants';
@@ -117,7 +116,7 @@ export class AdminQualifikationenController {
    */
   @Get()
   @ApiOperation({ summary: 'Alle Qualifikationen auflisten' })
-  @ApiOkResponse({ type: QualifikationDto, isArray: true })
+  @ApiWrappedResponse(QualifikationDto, { isArray: true, description: 'Liste aller Qualifikationen' })
   @ApiQuery({ name: 'istAktiv', required: false, type: Boolean, description: 'Filter nach Aktivierungsstatus' })
   @ApiBadRequestResponse({ description: 'Ungültiger Query-Parameter' })
   async findAll(@Query('istAktiv') istAktiv?: string): Promise<QualifikationDto[]> {
@@ -185,7 +184,7 @@ export class AdminQualifikationenController {
    */
   @Get(':id')
   @ApiOperation({ summary: 'Qualifikation nach ID abrufen' })
-  @ApiOkResponse({ type: QualifikationDto })
+  @ApiWrappedResponse(QualifikationDto, { description: 'Qualifikation gefunden' })
   @ApiNotFoundResponse({ description: 'Qualifikation nicht gefunden' })
   @ApiBadRequestResponse({ description: 'Ungültige CUID' })
   async findOne(@Param('id', ParseCuidPipe) id: string): Promise<QualifikationDto> {
@@ -230,7 +229,7 @@ export class AdminQualifikationenController {
   @Throttle({ default: ADMIN_MUTATION_RATE_LIMIT })
   @HttpCode(HttpStatus.CREATED)
   @ApiOperation({ summary: 'Neue Qualifikation erstellen' })
-  @ApiCreatedResponse({ type: QualifikationDto })
+  @ApiWrappedCreatedResponse(QualifikationDto, { description: 'Qualifikation erfolgreich erstellt' })
   @ApiBadRequestResponse({ description: 'Validierungsfehler (z.B. Name zu kurz)' })
   @ApiConflictResponse({ description: 'Abkürzung bereits vergeben' })
   async create(@CurrentUser() user: ValidatedUser, @Body() dto: CreateQualifikationDto): Promise<QualifikationDto> {
@@ -294,7 +293,7 @@ export class AdminQualifikationenController {
   @Patch(':id')
   @Throttle({ default: ADMIN_MUTATION_RATE_LIMIT })
   @ApiOperation({ summary: 'Qualifikation aktualisieren' })
-  @ApiOkResponse({ type: QualifikationDto })
+  @ApiWrappedResponse(QualifikationDto, { description: 'Qualifikation erfolgreich aktualisiert' })
   @ApiBadRequestResponse({ description: 'Validierungsfehler oder ungültige CUID' })
   @ApiNotFoundResponse({ description: 'Qualifikation nicht gefunden' })
   @ApiConflictResponse({ description: 'Neue Abkürzung bereits vergeben' })
@@ -363,7 +362,7 @@ export class AdminQualifikationenController {
   @Patch(':id/deactivate')
   @Throttle({ default: ADMIN_MUTATION_RATE_LIMIT })
   @ApiOperation({ summary: 'Qualifikation deaktivieren' })
-  @ApiOkResponse({ type: QualifikationDto })
+  @ApiWrappedResponse(QualifikationDto, { description: 'Qualifikation erfolgreich deaktiviert' })
   @ApiBadRequestResponse({ description: 'Qualifikation ist bereits deaktiviert oder ungültige CUID' })
   @ApiNotFoundResponse({ description: 'Qualifikation nicht gefunden' })
   async deactivate(@Param('id', ParseCuidPipe) id: string, @CurrentUser() user: ValidatedUser): Promise<QualifikationDto> {

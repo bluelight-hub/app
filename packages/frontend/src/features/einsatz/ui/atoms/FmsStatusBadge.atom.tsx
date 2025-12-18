@@ -1,8 +1,8 @@
-import { FMS_STATUS_LABELS, getStatusClasses } from '../../constants/fms-status.constants';
+import { FMS_STATUS_LABELS, getStatusClasses, type FmsStatus } from '../../constants/fms-status.constants';
 
 interface FmsStatusBadgeProps {
   /** FMS-Status Code (0-9) */
-  status: number;
+  status: FmsStatus;
   /** Zusätzliche CSS-Klassen */
   className?: string;
   /** Zeigt nur die Nummer ohne Label */
@@ -25,5 +25,9 @@ export function FmsStatusBadge({ status, className = '', compact = false }: FmsS
   const label = FMS_STATUS_LABELS[status] ?? `Status ${status}`;
   const colorClasses = getStatusClasses(status);
 
-  return <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 font-medium text-xs ${colorClasses} ${className}`}>{compact ? status : `${status} - ${label}`}</span>;
+  return (
+    <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 font-medium text-xs ${colorClasses} ${className}`} title={`FMS-Status: ${label}`}>
+      {compact ? status : `${status} - ${label}`}
+    </span>
+  );
 }

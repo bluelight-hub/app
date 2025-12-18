@@ -1,6 +1,6 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { Transform } from 'class-transformer';
-import { IsArray, IsNotEmpty, IsOptional, IsString, MaxLength, MinLength } from 'class-validator';
+import { ArrayMaxSize, IsArray, IsNotEmpty, IsOptional, IsString, MaxLength, MinLength } from 'class-validator';
 import {
   STAMM_PERSON_VORNAME_MIN_LENGTH,
   STAMM_PERSON_VORNAME_MAX_LENGTH,
@@ -70,12 +70,12 @@ export class CreateStammPersonDto {
   nachname!: string;
 
   @ApiProperty({
-    description: 'Personalnummer (eindeutig) - z.B. "12345" oder "MA-2024-001"',
+    description: 'Personalnummer (eindeutig, case-insensitive) - z.B. "12345" oder "MA-2024-001"',
     example: '12345',
     minLength: STAMM_PERSON_PERSONALNUMMER_MIN_LENGTH,
     maxLength: STAMM_PERSON_PERSONALNUMMER_MAX_LENGTH,
   })
-  @Transform(({ value }) => (typeof value === 'string' ? value.trim() : value))
+  @Transform(({ value }) => (typeof value === 'string' ? value.trim().toUpperCase() : value))
   @IsString()
   @IsNotEmpty()
   @MinLength(STAMM_PERSON_PERSONALNUMMER_MIN_LENGTH, {
@@ -100,12 +100,14 @@ export class CreateStammPersonDto {
   funkkenungBOS?: string;
 
   @ApiPropertyOptional({
-    description: 'Qualifikation-IDs (CUIDs), die der Person zugewiesen werden sollen',
+    description: 'Qualifikation-IDs (CUIDs), die der Person zugewiesen werden sollen (max. 50)',
     example: ['clw3h8x9y0000qwertyuiopas', 'clw3h8x9y0001qwertyuiopas'],
     type: [String],
+    maxItems: 50,
   })
   @IsOptional()
   @IsArray()
+  @ArrayMaxSize(50, { message: 'Maximal 50 Qualifikationen pro Person erlaubt' })
   @IsString({ each: true })
   qualifikationIds?: string[];
 }

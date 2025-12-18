@@ -80,6 +80,8 @@ describe('FmsStatusGeaendertEventHandler', () => {
   };
 
   beforeEach(() => {
+    jest.clearAllMocks();
+
     // Mock AddEintragHandler
     mockAddEintragHandler = {
       execute: jest.fn(),
@@ -97,10 +99,6 @@ describe('FmsStatusGeaendertEventHandler', () => {
 
     // Logger-Instanz durch Mock ersetzen (private property)
     (handler as unknown as { logger: typeof mockLogger }).logger = mockLogger;
-  });
-
-  afterEach(() => {
-    jest.clearAllMocks();
   });
 
   describe('AC1: Handler sollte AddEintragHandler.execute() mit korrektem Command aufrufen', () => {
@@ -541,6 +539,85 @@ describe('FmsStatusGeaendertEventHandler', () => {
       // Assert
       const receivedCommand = mockAddEintragHandler.execute.mock.calls[0][0];
       expect(receivedCommand.text).toContain('Florian München 1/23-45 (LF)');
+    });
+  });
+
+  describe('Fire-and-Forget Resilience', () => {
+    it('should NOT throw exception on AddEintragHandler failure', async () => {
+      // Given (Arrange) - AddEintragHandler wirft Exception
+      const event = createTestEvent();
+      mockAddEintragHandler.execute.mockRejectedValue(new Error('Database connection failed'));
+
+      // When (Act & Assert) - Fire-and-Forget: keine Exception propagieren
+      await expect(handler.handle(event)).resolves.not.toThrow();
+
+      // Then (Assert)
+      expect(mockLogger.error).toHaveBeenCalled();
+      expect(mockAddEintragHandler.execute).toHaveBeenCalledTimes(1);
+    });
+
+    it('should log error when AddEintragHandler returns failure Result', async () => {
+      // Given (Arrange)
+      const event = createTestEvent();
+      mockAddEintragHandler.execute.mockResolvedValue(Result.fail('ETB konnte nicht erstellt werden'));
+
+      // When (Act)
+      await handler.handle(event);
+
+      // Then (Assert) - Bei Failure-Result wird error geloggt
+      expect(mockLogger.error).toHaveBeenCalled();
+    });
+
+    it('should handle edge case with undefined funkrufname gracefully', async () => {
+      // Given (Arrange) - Event mit undefined funkrufname (korrupte Daten)
+      const corruptedEvent = new FmsStatusGeaendertEvent(
+        generateTestCuid(), // einsatzFahrzeugId
+        generateTestUuid(), // einsatzId
+        undefined as any, // funkrufname: undefined (corrupt data)
+        2, // alterStatus
+        4, // neuerStatus
+        generateTestCuid(), // geaendertVon
+      );
+      mockAddEintragHandler.execute.mockResolvedValue(Result.ok(undefined));
+
+      // When (Act & Assert) - Fire-and-Forget: keine Exception werfen
+      await expect(handler.handle(corruptedEvent)).resolves.not.toThrow();
+
+      // Then (Assert) - Handler verarbeitet trotzdem (mit "undefined" im Text)
+      expect(mockAddEintragHandler.execute).toHaveBeenCalledTimes(1);
+      const receivedCommand = mockAddEintragHandler.execute.mock.calls[0][0];
+      expect(receivedCommand.text).toContain('undefined'); // funkrufname wird als "undefined" string gerendert
+    });
+
+    it('should handle edge case with null neuerStatus gracefully', async () => {
+      // Given (Arrange)
+      const corruptedEvent = new FmsStatusGeaendertEvent(
+        generateTestCuid(), // einsatzFahrzeugId
+        generateTestUuid(), // einsatzId
+        'Florian 1/46', // funkrufname
+        2, // alterStatus
+        null as any, // neuerStatus: null (corrupt data)
+        generateTestCuid(), // geaendertVon
+      );
+      mockAddEintragHandler.execute.mockResolvedValue(Result.ok(undefined));
+
+      // When (Act & Assert) - Fire-and-Forget: keine Exception werfen
+      await expect(handler.handle(corruptedEvent)).resolves.not.toThrow();
+
+      // Then (Assert) - Handler verarbeitet trotzdem
+      expect(mockAddEintragHandler.execute).toHaveBeenCalledTimes(1);
+    });
+
+    it('should return void (undefined) always', async () => {
+      // Given (Arrange)
+      const event = createTestEvent();
+      mockAddEintragHandler.execute.mockResolvedValue(Result.ok(undefined));
+
+      // When (Act)
+      const result = await handler.handle(event);
+
+      // Then (Assert) - Fire-and-Forget Handler gibt immer void zurück
+      expect(result).toBeUndefined();
     });
   });
 });

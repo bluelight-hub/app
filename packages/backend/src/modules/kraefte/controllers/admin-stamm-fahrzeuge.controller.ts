@@ -85,7 +85,8 @@ import { STAMM_FAHRZEUG_ERROR_CODES, StammFahrzeugError } from '@domain/kraefte/
  * - Bei Umrüstung: altes Fahrzeug archivieren, neues Fahrzeug anlegen
  *
  * Rate Limiting (Controller-Level):
- * - Max. 20 Anfragen pro Minute pro IP (verhindert DoS-Angriffe auf Admin-Endpoints)
+ * - GET-Endpoints: Max. 30 Anfragen pro Minute (Lese-Operationen)
+ * - Mutationen (POST/PATCH): Max. 10 Anfragen pro Minute (Schreib-Operationen)
  * - Bei Überschreitung: 429 Too Many Requests
  * - Grund: Admin-Endpoints sind besonders sensibel und sollten nicht missbraucht werden können
  */
@@ -128,6 +129,7 @@ export class AdminStammFahrzeugeController {
    * @throws BadRequestException wenn includeArchived ungültigen Wert hat (nicht 'true'/'false'/undefined)
    */
   @Get()
+  @Throttle({ default: { limit: 30, ttl: 60000 } }) // AC7: GET 30/min (überschreibt Klassen-Level 20/min)
   @ApiOperation({ summary: 'Alle Stamm-Fahrzeuge auflisten' })
   @ApiOkResponse({ type: StammFahrzeugDto, isArray: true })
   @ApiQuery({ name: 'includeArchived', required: false, type: Boolean, description: 'Archivierte Fahrzeuge einschließen' })
@@ -197,6 +199,7 @@ export class AdminStammFahrzeugeController {
    * @throws InternalServerErrorException bei unerwarteten Fehlern
    */
   @Get(':id')
+  @Throttle({ default: { limit: 30, ttl: 60000 } }) // AC7: GET 30/min (überschreibt Klassen-Level 20/min)
   @ApiOperation({ summary: 'Stamm-Fahrzeug nach ID abrufen' })
   @ApiOkResponse({ type: StammFahrzeugDto })
   @ApiNotFoundResponse({ description: 'Stamm-Fahrzeug nicht gefunden' })
@@ -410,7 +413,7 @@ export class AdminStammFahrzeugeController {
         throw new NotFoundException(StammFahrzeugError.extractMessage(result.error));
       }
       if (result.error && StammFahrzeugError.hasCode(result.error, STAMM_FAHRZEUG_ERROR_CODES.ALREADY_ARCHIVED)) {
-        throw new BadRequestException(StammFahrzeugError.extractMessage(result.error));
+        throw new ConflictException(StammFahrzeugError.extractMessage(result.error)); // AC8: 409 Conflict (Zustandskonflikt)
       }
       throw new BadRequestException(result.error);
     }

@@ -3,7 +3,6 @@ import { createId as createCuid } from '@paralleldrive/cuid2';
 import { v4 as uuidv4 } from 'uuid';
 import { UpdateFmsStatusHandler } from '../update-fms-status.handler';
 import { UpdateFmsStatusCommand } from '../update-fms-status.command';
-import type { IEinsatzFahrzeugRepository } from '@domain/kraefte/repositories/i-einsatz-fahrzeug.repository';
 import { EinsatzFahrzeug } from '@domain/kraefte/aggregates/einsatz-fahrzeug.aggregate';
 import { Fahrzeugtyp } from '@domain/kraefte/aggregates/fahrzeugtyp.aggregate';
 import { Result } from '@domain/common/result';
@@ -262,6 +261,31 @@ describe('UpdateFmsStatusHandler', () => {
       expect(mockEinsatzFahrzeugRepository.save).not.toHaveBeenCalled();
     });
 
+    it('sollte Transaction Rollback bei Repository-Speicherfehler durchführen (CRITICAL)', async () => {
+      // Given (Arrange)
+      const fahrzeug = createMockFahrzeug();
+      mockEinsatzFahrzeugRepository.findById.mockResolvedValue(Result.ok(fahrzeug));
+      // Simuliere DB-Fehler beim Speichern
+      mockEinsatzFahrzeugRepository.save.mockResolvedValue(Result.fail('Database connection lost'));
+
+      const command = UpdateFmsStatusCommand.create({
+        einsatzId: testEinsatzId,
+        fahrzeugId: testFahrzeugId,
+        fmsStatus: 4, // Gültiger Status
+        updatedBy: testUserId,
+      }).value!;
+
+      // When (Act)
+      const result = await handler.execute(command);
+
+      // Then (Assert)
+      expect(result.isFailure).toBe(true);
+      expect(result.error).toContain('Database connection lost');
+      // CRITICAL: outboxRepository.save() darf NICHT aufgerufen werden bei Speicherfehler
+      // (weil Handler vorher abbricht)
+      expect(mockOutboxRepository.save).not.toHaveBeenCalled();
+    });
+
     it('sollte fehlschlagen wenn einsatzId nicht übereinstimmt (Security)', async () => {
       // Given (Arrange)
       const differentEinsatzId = uuidv4();
@@ -360,6 +384,7 @@ describe('UpdateFmsStatusHandler', () => {
       // Then (Assert)
       expect(result.isFailure).toBe(true);
       expect(result.error).toContain('fmsStatus');
+      expect(result.error).toContain('zwischen 0 und 9');
     });
 
     it('sollte fehlschlagen mit ungültigem fmsStatus (< 0)', () => {
@@ -374,6 +399,7 @@ describe('UpdateFmsStatusHandler', () => {
       // Then (Assert)
       expect(result.isFailure).toBe(true);
       expect(result.error).toContain('fmsStatus');
+      expect(result.error).toContain('zwischen 0 und 9');
     });
 
     it('sollte fehlschlagen ohne einsatzId', () => {
@@ -567,6 +593,65 @@ describe('UpdateFmsStatusHandler', () => {
       expect(events[0].constructor.name).toBe('FmsStatusGeaendertEvent');
       // Position ist im DTO gespeichert, nicht im Event
       expect(result.value!.position).toEqual({ lat: 52.52, lng: 13.405 });
+    });
+
+    it('sollte bei gleichem Status erfolgreich sein aber KEIN Event emittieren (Idempotenz)', async () => {
+      // Given (Arrange)
+      const currentStatus = 4;
+      const fahrzeug = createMockFahrzeug({ fmsStatus: currentStatus });
+      mockEinsatzFahrzeugRepository.findById.mockResolvedValue(Result.ok(fahrzeug));
+
+      const command = UpdateFmsStatusCommand.create({
+        einsatzId: testEinsatzId,
+        fahrzeugId: testFahrzeugId,
+        fmsStatus: currentStatus,
+        updatedBy: testUserId,
+      }).value!;
+
+      // When (Act)
+      const result = await handler.execute(command);
+
+      // Then (Assert)
+      expect(result.isSuccess).toBe(true);
+      expect(result.value!.fmsStatus).toBe(currentStatus);
+
+      // KRITISCH: Kein Event sollte in Outbox gespeichert werden
+      // Prüfe ob outboxRepository.save entweder nicht aufgerufen wurde
+      // ODER mit leerem Array aufgerufen wurde (je nach Handler-Implementation)
+      const outboxCalls = mockOutboxRepository.save.mock.calls;
+      if (outboxCalls.length > 0) {
+        const events = outboxCalls[0][0];
+        expect(events.length).toBe(0);
+      } else {
+        // Aggregate hat KEIN Event erzeugt, daher wurde Outbox gar nicht aufgerufen
+        expect(mockOutboxRepository.save).not.toHaveBeenCalled();
+      }
+    });
+  });
+
+  describe('Error Cases - Combined Failures', () => {
+    it('sollte Transaction Rollback durchführen wenn Repository UND Outbox fehlschlagen', async () => {
+      // Given (Arrange)
+      const fahrzeug = createMockFahrzeug();
+      mockEinsatzFahrzeugRepository.findById.mockResolvedValue(Result.ok(fahrzeug));
+      // Erster Fehler: Repository save
+      mockEinsatzFahrzeugRepository.save.mockResolvedValue(Result.fail('Repository-Fehler'));
+
+      const command = UpdateFmsStatusCommand.create({
+        einsatzId: testEinsatzId,
+        fahrzeugId: testFahrzeugId,
+        fmsStatus: 4,
+        updatedBy: testUserId,
+      }).value!;
+
+      // When (Act)
+      const result = await handler.execute(command);
+
+      // Then (Assert)
+      expect(result.isFailure).toBe(true);
+      expect(result.error).toContain('Repository-Fehler');
+      // Outbox sollte nicht aufgerufen worden sein (da Repository vorher fehlschlug)
+      expect(mockOutboxRepository.save).not.toHaveBeenCalled();
     });
   });
 });

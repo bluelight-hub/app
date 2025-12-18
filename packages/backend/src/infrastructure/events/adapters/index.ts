@@ -15,3 +15,4 @@
 export * from './etb-event.adapter';
 export * from './lagekarte-event.adapter';
 export * from './fahrzeug-erfasst-event.adapter';
+export * from './fms-status-geaendert-event.adapter';

@@ -51,6 +51,9 @@ export const EINSATZ_QUERY_KEYS = {
   // Optimierte kombinierte Queries
   activeWithCounts: (includeArchived = false) => [...EINSATZ_QUERY_KEYS.all, 'activeWithCounts', includeArchived] as const,
   detailsCombined: (id: string) => [...EINSATZ_QUERY_KEYS.detail(id), 'combined'] as const,
+
+  // EinsatzFahrzeuge Queries
+  fahrzeuge: (einsatzId: string) => [...EINSATZ_QUERY_KEYS.detail(einsatzId), 'fahrzeuge'] as const,
 } as const;
 
 /**

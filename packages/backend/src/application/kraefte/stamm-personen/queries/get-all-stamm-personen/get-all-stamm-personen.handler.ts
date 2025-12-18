@@ -23,13 +23,11 @@ import type { GetAllStammPersonenQuery } from './get-all-stamm-personen.query';
  * **Qualifikationen-Relation (M:N):**
  * - StammPerson hat qualifikationIds: string[] (Foreign Keys via Junction Table)
  * - Für DTO-Mapping müssen Qualifikation-Aggregates geladen werden
- * - Nutzt QualifikationRepository.findById() pro Qualifikation
+ * - Nutzt QualifikationRepository.findByIds() für Batch-Loading (Performance-Optimierung)
  *
- * **Performance Consideration:**
- * - N+1 Query Problem: Pro StammPerson und pro Qualifikation ein findById() Call
- * - Optimierung möglich: Batch-Loading via QualifikationRepository.findByIds()
- * - Aktuell akzeptabel für Admin-UI mit wenigen Personen (<100) und Qualifikationen (<20)
- * - Future: Repository könnte Eager-Loading mit Prisma `include` implementieren
+ * **Performance:**
+ * - Batch-Loading: Sammle alle Qualifikations-IDs, lade in EINER Query
+ * - Verhindert N+1 Problem (vorher: 1 + N*M Queries, jetzt: 2 Queries)
  *
  * **Error Handling:**
  * - Repository Failure → Return Result.fail()
@@ -53,8 +51,15 @@ export class GetAllStammPersonenHandler {
   /**
    * Führt die Query aus.
    *
-   * Lädt alle StammPersonen, dann für jede Person alle zugehörigen Qualifikationen.
+   * Lädt alle StammPersonen, dann ALLE Qualifikationen in einem Batch-Load.
    * Mappt StammPerson + Qualifikationen zu StammPersonDto mit verschachtelten QualifikationDtos.
+   *
+   * **Performance-Optimierung (N+1 Fix):**
+   * 1. Lade alle StammPersonen (1 Query)
+   * 2. Sammle ALLE unique QualifikationsIds über alle Personen
+   * 3. Lade ALLE Qualifikationen in EINER Query (findByIds)
+   * 4. Baue Lookup-Map für O(1) Zugriff
+   * 5. Mappe zu DTOs
    *
    * **Error Handling:**
    * - Repository Failure → Return Result.fail()
@@ -62,69 +67,68 @@ export class GetAllStammPersonenHandler {
    * - Partielles Laden: Ein fehlerhafter Load bricht nicht die ganze Query ab
    */
   async execute(query: GetAllStammPersonenQuery): Promise<Result<StammPersonDto[]>> {
-    // Lade alle StammPersonen
+    // 1. Lade alle StammPersonen
     const stammPersonenResult = await this.stammPersonRepository.findAll({
       includeArchived: query.includeArchived ?? false,
     });
 
     if (stammPersonenResult.isFailure) {
-      if (!stammPersonenResult.error) {
-        this.logger.error('Repository.findAll returned isFailure=true but error is null - this is a bug!');
-        throw new Error('Repository returned failure without error message');
-      }
-      return Result.fail<StammPersonDto[]>(stammPersonenResult.error);
+      return Result.fail<StammPersonDto[]>(stammPersonenResult.error ?? 'Repository returned failure without error');
     }
 
     const stammPersonen = stammPersonenResult.value ?? [];
-    const dtos: StammPersonDto[] = [];
 
-    // Für jede StammPerson: Lade zugehörige Qualifikationen
+    // 2. Sammle alle unique QualifikationsIds
+    const allQualifikationIdStrings = new Set<string>();
     for (const stammPerson of stammPersonen) {
-      const qualifikationIds = stammPerson.qualifikationIds;
+      for (const qualifikationIdString of stammPerson.qualifikationIds) {
+        allQualifikationIdStrings.add(qualifikationIdString);
+      }
+    }
 
-      // Sammle alle Qualifikationen für diese Person
-      const qualifikationData: Array<{
-        id: string;
-        name: string;
-        kuerzel: string;
-      }> = [];
+    // 3. Parse und batch-lade Qualifikationen
+    const qualifikationIdValueObjects: QualifikationId[] = [];
+    for (const idString of allQualifikationIdStrings) {
+      const idResult = QualifikationId.create(idString);
+      if (idResult.isFailure || !idResult.value) {
+        this.logger.warn(`Invalid qualifikationId found: ${idString}. Skipping.`);
+        continue;
+      }
+      qualifikationIdValueObjects.push(idResult.value);
+    }
 
-      for (const qualifikationIdString of qualifikationIds) {
-        // Parse qualifikationId zu QualifikationId Value Object
-        const qualifikationIdResult = QualifikationId.create(qualifikationIdString);
-        if (qualifikationIdResult.isFailure) {
-          this.logger.warn(`StammPerson ${stammPerson.id.value} has invalid qualifikationId: ${qualifikationIdString}. Skipping.`);
-          continue; // Skip diese Qualifikation
-        }
+    // Single batch query für alle Qualifikationen
+    const qualifikationenResult = await this.qualifikationRepository.findByIds(qualifikationIdValueObjects);
+    if (qualifikationenResult.isFailure) {
+      this.logger.warn(`Failed to batch-load Qualifikationen: ${qualifikationenResult.error}. Continuing with empty qualifications.`);
+    }
 
-        const qualifikationId = qualifikationIdResult.value;
-        if (!qualifikationId) {
-          this.logger.warn(`StammPerson ${stammPerson.id.value} qualifikationId parsing returned null. Skipping.`);
-          continue;
-        }
-
-        // Lade Qualifikation Aggregate
-        const qualifikationResult = await this.qualifikationRepository.findById(qualifikationId);
-        if (qualifikationResult.isFailure) {
-          this.logger.warn(`Failed to load Qualifikation ${qualifikationId.value} for StammPerson ${stammPerson.id.value}: ${qualifikationResult.error}. Skipping.`);
-          continue; // Skip diese Qualifikation
-        }
-
-        const qualifikation = qualifikationResult.value;
-        if (!qualifikation) {
-          this.logger.warn(`Qualifikation ${qualifikationId.value} not found for StammPerson ${stammPerson.id.value}. Skipping (Referential Integrity Fehler).`);
-          continue; // Skip diese Qualifikation (Junction Table Data Inconsistency)
-        }
-
-        // Sammle Qualifikations-Daten
-        qualifikationData.push({
+    // 4. Baue Lookup-Map für O(1) Zugriff
+    const qualifikationMap = new Map<string, { id: string; name: string; kuerzel: string }>();
+    if (qualifikationenResult.isSuccess && qualifikationenResult.value) {
+      for (const qualifikation of qualifikationenResult.value) {
+        qualifikationMap.set(qualifikation.id.value, {
           id: qualifikation.id.value,
           name: qualifikation.name,
           kuerzel: qualifikation.abkuerzung,
         });
       }
+    }
 
-      // Mappe zu DTO
+    // 5. Mappe zu DTOs
+    const dtos: StammPersonDto[] = [];
+    for (const stammPerson of stammPersonen) {
+      const qualifikationData: Array<{ id: string; name: string; kuerzel: string }> = [];
+
+      for (const qualifikationIdString of stammPerson.qualifikationIds) {
+        const qualData = qualifikationMap.get(qualifikationIdString);
+        if (qualData) {
+          qualifikationData.push(qualData);
+        } else {
+          this.logger.warn(`Qualifikation ${qualifikationIdString} not found for StammPerson ${stammPerson.id.value}. Skipping.`);
+        }
+      }
+
       const dto = StammPersonQueryMapper.toDto(stammPerson, qualifikationData);
       dtos.push(dto);
     }

@@ -8,3 +8,4 @@
 
 export { EtbAutoCreationHandler } from './etb-auto-creation.handler';
 export { FahrzeugErfasstEventHandler } from './fahrzeug-erfasst.handler';
+export { FmsStatusGeaendertEventHandler } from './fms-status-geaendert.handler';

@@ -4,6 +4,7 @@ import { OutboxModule } from '@infrastructure/outbox/outbox.module';
 import { KraefteInfrastructureModule } from '@infrastructure/kraefte/kraefte-infrastructure.module';
 import { ErfasseFahrzeugAusStammdatenHandler } from './commands/erfasse-fahrzeug-aus-stammdaten/erfasse-fahrzeug-aus-stammdaten.handler';
 import { ErfasseTemporalesFahrzeugHandler } from './commands/erfasse-temporales-fahrzeug/erfasse-temporales-fahrzeug.handler';
+import { UpdateFmsStatusHandler } from './commands/update-fms-status/update-fms-status.handler';
 import { GetEinsatzFahrzeugeHandler } from './queries/get-einsatz-fahrzeuge/get-einsatz-fahrzeuge.handler';
 
 /**
@@ -17,7 +18,7 @@ import { GetEinsatzFahrzeugeHandler } from './queries/get-einsatz-fahrzeuge/get-
  */
 @Module({
   imports: [PrismaModule, OutboxModule, KraefteInfrastructureModule],
-  providers: [ErfasseFahrzeugAusStammdatenHandler, ErfasseTemporalesFahrzeugHandler, GetEinsatzFahrzeugeHandler],
-  exports: [ErfasseFahrzeugAusStammdatenHandler, ErfasseTemporalesFahrzeugHandler, GetEinsatzFahrzeugeHandler],
+  providers: [ErfasseFahrzeugAusStammdatenHandler, ErfasseTemporalesFahrzeugHandler, UpdateFmsStatusHandler, GetEinsatzFahrzeugeHandler],
+  exports: [ErfasseFahrzeugAusStammdatenHandler, ErfasseTemporalesFahrzeugHandler, UpdateFmsStatusHandler, GetEinsatzFahrzeugeHandler],
 })
 export class EinsatzFahrzeugeApplicationModule {}

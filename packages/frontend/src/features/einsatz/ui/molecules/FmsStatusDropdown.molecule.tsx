@@ -1,13 +1,13 @@
 import { Fragment } from 'react';
 import { Listbox, Transition } from '@headlessui/react';
 import { CheckIcon, ChevronUpDownIcon } from '@heroicons/react/20/solid';
-import { FMS_STATUS_LABELS, FMS_STATUS_OPTIONS, getStatusClasses } from '../../constants/fms-status.constants';
+import { FMS_STATUS_LABELS, FMS_STATUS_OPTIONS, getStatusBgClasses, getStatusClasses, type FmsStatus } from '../../constants/fms-status.constants';
 
 interface FmsStatusDropdownProps {
   /** Aktueller FMS-Status */
-  value: number;
+  value: FmsStatus;
   /** Callback bei Status-Änderung */
-  onChange: (status: number) => void;
+  onChange: (status: FmsStatus) => void;
   /** Dropdown deaktivieren */
   disabled?: boolean;
   /** Zusätzliche CSS-Klassen */
@@ -35,7 +35,7 @@ export function FmsStatusDropdown({ value, onChange, disabled = false, className
     <Listbox value={value} onChange={onChange} disabled={disabled}>
       <div className={`relative ${className}`}>
         <Listbox.Button
-          className={`relative w-full cursor-pointer rounded-lg py-2 pr-10 pl-3 text-left shadow-sm ring-1 ring-gray-300 ring-inset focus:outline-none focus:ring-2 focus:ring-blue-500 sm:text-sm ${getStatusClasses(value)} ${disabled ? 'cursor-not-allowed opacity-50' : ''}`}
+          className={`relative w-full cursor-pointer rounded-lg py-2 pr-10 pl-3 text-left shadow-sm ring-1 ring-gray-300 ring-inset focus:outline-none focus:ring-2 focus:ring-primary-500 sm:text-sm ${getStatusClasses(value)} ${disabled ? 'cursor-not-allowed opacity-50' : ''}`}
           aria-label={`FMS-Status: ${selectedLabel}`}
         >
           <span className="block truncate font-medium">
@@ -47,7 +47,7 @@ export function FmsStatusDropdown({ value, onChange, disabled = false, className
         </Listbox.Button>
 
         <Transition as={Fragment} leave="transition ease-in duration-100" leaveFrom="opacity-100" leaveTo="opacity-0">
-          <Listbox.Options className="absolute z-10 mt-1 max-h-60 w-full overflow-auto rounded-md bg-white py-1 text-base shadow-lg ring-1 ring-black/5 focus:outline-none sm:text-sm dark:bg-gray-800">
+          <Listbox.Options className="absolute z-10 mt-1 max-h-60 w-full overflow-auto rounded-md bg-white py-1 text-base shadow-lg ring-1 ring-black/5 focus:outline-none sm:text-sm dark:bg-gray-800 dark:text-gray-100">
             {FMS_STATUS_OPTIONS.map((status) => (
               <Listbox.Option
                 key={status}
@@ -59,8 +59,8 @@ export function FmsStatusDropdown({ value, onChange, disabled = false, className
                 {({ selected }) => (
                   <>
                     <span className={`block truncate ${selected ? 'font-medium' : 'font-normal'}`}>
-                      <span className={`mr-2 inline-block h-2 w-2 rounded-full ${getStatusClasses(status)}`} aria-hidden="true" />
-                      {status} - {FMS_STATUS_LABELS[status]}
+                      <span className={`mr-2 inline-block h-2 w-2 rounded-full ${getStatusBgClasses(status)}`} aria-hidden="true" />
+                      {status} - {FMS_STATUS_LABELS[status] ?? `Status ${status}`}
                     </span>
                     {selected && (
                       <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-blue-600 dark:text-blue-400">

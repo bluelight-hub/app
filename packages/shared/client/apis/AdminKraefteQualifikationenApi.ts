@@ -13,12 +13,14 @@
  */
 
 import * as runtime from '../runtime';
-import type { CreateQualifikationDto, QualifikationDto, UpdateQualifikationDto } from '../models/index';
+import type { AdminQualifikationenControllerCreateVAlpha201Response, AdminQualifikationenControllerFindAllVAlpha200Response, CreateQualifikationDto, UpdateQualifikationDto } from '../models/index';
 import {
+  AdminQualifikationenControllerCreateVAlpha201ResponseFromJSON,
+  AdminQualifikationenControllerCreateVAlpha201ResponseToJSON,
+  AdminQualifikationenControllerFindAllVAlpha200ResponseFromJSON,
+  AdminQualifikationenControllerFindAllVAlpha200ResponseToJSON,
   CreateQualifikationDtoFromJSON,
   CreateQualifikationDtoToJSON,
-  QualifikationDtoFromJSON,
-  QualifikationDtoToJSON,
   UpdateQualifikationDtoFromJSON,
   UpdateQualifikationDtoToJSON,
 } from '../models/index';
@@ -54,7 +56,7 @@ export class AdminKraefteQualifikationenApi extends runtime.BaseAPI {
   async adminQualifikationenControllerCreateVAlphaRaw(
     requestParameters: AdminQualifikationenControllerCreateVAlphaRequest,
     initOverrides?: RequestInit | runtime.InitOverrideFunction,
-  ): Promise<runtime.ApiResponse<QualifikationDto>> {
+  ): Promise<runtime.ApiResponse<AdminQualifikationenControllerCreateVAlpha201Response>> {
     if (requestParameters['createQualifikationDto'] == null) {
       throw new runtime.RequiredError('createQualifikationDto', 'Required parameter "createQualifikationDto" was null or undefined when calling adminQualifikationenControllerCreateVAlpha().');
     }
@@ -84,7 +86,7 @@ export class AdminKraefteQualifikationenApi extends runtime.BaseAPI {
       initOverrides,
     );
 
-    return new runtime.JSONApiResponse(response, (jsonValue) => QualifikationDtoFromJSON(jsonValue));
+    return new runtime.JSONApiResponse(response, (jsonValue) => AdminQualifikationenControllerCreateVAlpha201ResponseFromJSON(jsonValue));
   }
 
   /**
@@ -93,7 +95,7 @@ export class AdminKraefteQualifikationenApi extends runtime.BaseAPI {
   async adminQualifikationenControllerCreateVAlpha(
     requestParameters: AdminQualifikationenControllerCreateVAlphaRequest,
     initOverrides?: RequestInit | runtime.InitOverrideFunction,
-  ): Promise<QualifikationDto> {
+  ): Promise<AdminQualifikationenControllerCreateVAlpha201Response> {
     const response = await this.adminQualifikationenControllerCreateVAlphaRaw(requestParameters, initOverrides);
     return await response.value();
   }
@@ -104,7 +106,7 @@ export class AdminKraefteQualifikationenApi extends runtime.BaseAPI {
   async adminQualifikationenControllerDeactivateVAlphaRaw(
     requestParameters: AdminQualifikationenControllerDeactivateVAlphaRequest,
     initOverrides?: RequestInit | runtime.InitOverrideFunction,
-  ): Promise<runtime.ApiResponse<QualifikationDto>> {
+  ): Promise<runtime.ApiResponse<AdminQualifikationenControllerCreateVAlpha201Response>> {
     if (requestParameters['id'] == null) {
       throw new runtime.RequiredError('id', 'Required parameter "id" was null or undefined when calling adminQualifikationenControllerDeactivateVAlpha().');
     }
@@ -131,7 +133,7 @@ export class AdminKraefteQualifikationenApi extends runtime.BaseAPI {
       initOverrides,
     );
 
-    return new runtime.JSONApiResponse(response, (jsonValue) => QualifikationDtoFromJSON(jsonValue));
+    return new runtime.JSONApiResponse(response, (jsonValue) => AdminQualifikationenControllerCreateVAlpha201ResponseFromJSON(jsonValue));
   }
 
   /**
@@ -140,7 +142,7 @@ export class AdminKraefteQualifikationenApi extends runtime.BaseAPI {
   async adminQualifikationenControllerDeactivateVAlpha(
     requestParameters: AdminQualifikationenControllerDeactivateVAlphaRequest,
     initOverrides?: RequestInit | runtime.InitOverrideFunction,
-  ): Promise<QualifikationDto> {
+  ): Promise<AdminQualifikationenControllerCreateVAlpha201Response> {
     const response = await this.adminQualifikationenControllerDeactivateVAlphaRaw(requestParameters, initOverrides);
     return await response.value();
   }
@@ -151,7 +153,7 @@ export class AdminKraefteQualifikationenApi extends runtime.BaseAPI {
   async adminQualifikationenControllerFindAllVAlphaRaw(
     requestParameters: AdminQualifikationenControllerFindAllVAlphaRequest,
     initOverrides?: RequestInit | runtime.InitOverrideFunction,
-  ): Promise<runtime.ApiResponse<Array<QualifikationDto>>> {
+  ): Promise<runtime.ApiResponse<AdminQualifikationenControllerFindAllVAlpha200Response>> {
     const queryParameters: any = {};
 
     if (requestParameters['istAktiv'] != null) {
@@ -178,7 +180,7 @@ export class AdminKraefteQualifikationenApi extends runtime.BaseAPI {
       initOverrides,
     );
 
-    return new runtime.JSONApiResponse(response, (jsonValue) => jsonValue.map(QualifikationDtoFromJSON));
+    return new runtime.JSONApiResponse(response, (jsonValue) => AdminQualifikationenControllerFindAllVAlpha200ResponseFromJSON(jsonValue));
   }
 
   /**
@@ -187,7 +189,7 @@ export class AdminKraefteQualifikationenApi extends runtime.BaseAPI {
   async adminQualifikationenControllerFindAllVAlpha(
     requestParameters: AdminQualifikationenControllerFindAllVAlphaRequest = {},
     initOverrides?: RequestInit | runtime.InitOverrideFunction,
-  ): Promise<Array<QualifikationDto>> {
+  ): Promise<AdminQualifikationenControllerFindAllVAlpha200Response> {
     const response = await this.adminQualifikationenControllerFindAllVAlphaRaw(requestParameters, initOverrides);
     return await response.value();
   }
@@ -198,7 +200,7 @@ export class AdminKraefteQualifikationenApi extends runtime.BaseAPI {
   async adminQualifikationenControllerFindOneVAlphaRaw(
     requestParameters: AdminQualifikationenControllerFindOneVAlphaRequest,
     initOverrides?: RequestInit | runtime.InitOverrideFunction,
-  ): Promise<runtime.ApiResponse<QualifikationDto>> {
+  ): Promise<runtime.ApiResponse<AdminQualifikationenControllerCreateVAlpha201Response>> {
     if (requestParameters['id'] == null) {
       throw new runtime.RequiredError('id', 'Required parameter "id" was null or undefined when calling adminQualifikationenControllerFindOneVAlpha().');
     }
@@ -225,7 +227,7 @@ export class AdminKraefteQualifikationenApi extends runtime.BaseAPI {
       initOverrides,
     );
 
-    return new runtime.JSONApiResponse(response, (jsonValue) => QualifikationDtoFromJSON(jsonValue));
+    return new runtime.JSONApiResponse(response, (jsonValue) => AdminQualifikationenControllerCreateVAlpha201ResponseFromJSON(jsonValue));
   }
 
   /**
@@ -234,7 +236,7 @@ export class AdminKraefteQualifikationenApi extends runtime.BaseAPI {
   async adminQualifikationenControllerFindOneVAlpha(
     requestParameters: AdminQualifikationenControllerFindOneVAlphaRequest,
     initOverrides?: RequestInit | runtime.InitOverrideFunction,
-  ): Promise<QualifikationDto> {
+  ): Promise<AdminQualifikationenControllerCreateVAlpha201Response> {
     const response = await this.adminQualifikationenControllerFindOneVAlphaRaw(requestParameters, initOverrides);
     return await response.value();
   }
@@ -245,7 +247,7 @@ export class AdminKraefteQualifikationenApi extends runtime.BaseAPI {
   async adminQualifikationenControllerUpdateVAlphaRaw(
     requestParameters: AdminQualifikationenControllerUpdateVAlphaRequest,
     initOverrides?: RequestInit | runtime.InitOverrideFunction,
-  ): Promise<runtime.ApiResponse<QualifikationDto>> {
+  ): Promise<runtime.ApiResponse<AdminQualifikationenControllerCreateVAlpha201Response>> {
     if (requestParameters['id'] == null) {
       throw new runtime.RequiredError('id', 'Required parameter "id" was null or undefined when calling adminQualifikationenControllerUpdateVAlpha().');
     }
@@ -279,7 +281,7 @@ export class AdminKraefteQualifikationenApi extends runtime.BaseAPI {
       initOverrides,
     );
 
-    return new runtime.JSONApiResponse(response, (jsonValue) => QualifikationDtoFromJSON(jsonValue));
+    return new runtime.JSONApiResponse(response, (jsonValue) => AdminQualifikationenControllerCreateVAlpha201ResponseFromJSON(jsonValue));
   }
 
   /**
@@ -288,7 +290,7 @@ export class AdminKraefteQualifikationenApi extends runtime.BaseAPI {
   async adminQualifikationenControllerUpdateVAlpha(
     requestParameters: AdminQualifikationenControllerUpdateVAlphaRequest,
     initOverrides?: RequestInit | runtime.InitOverrideFunction,
-  ): Promise<QualifikationDto> {
+  ): Promise<AdminQualifikationenControllerCreateVAlpha201Response> {
     const response = await this.adminQualifikationenControllerUpdateVAlphaRaw(requestParameters, initOverrides);
     return await response.value();
   }

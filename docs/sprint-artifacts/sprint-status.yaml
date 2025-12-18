@@ -66,10 +66,10 @@ development_status:
 
   # ===== Epic 3: Fahrzeug-Einsatz-Verwaltung =====
   epic-3: in-progress
-  3-0-prisma-schema-einsatz-fahrzeuge: review
-  3-1-fahrzeug-aus-stammdaten-erfassen: in-progress
+  3-0-prisma-schema-einsatz-fahrzeuge: done
+  3-1-fahrzeug-aus-stammdaten-erfassen: done
   3-2-temporaeres-fahrzeug-anlegen: done
-  3-3-fms-status-updaten: backlog
+  3-3-fms-status-updaten: in-progress
   epic-3-retrospective: optional
 
   # ===== Epic 4: Helfer-Registrierung =====

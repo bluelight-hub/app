@@ -78,6 +78,7 @@ models/EtbVersionDto.ts
 models/FahrzeugtypDto.ts
 models/FahrzeugtypSollbesatzungDto.ts
 models/FunkStatusConfigDto.ts
+models/GeoPositionDto.ts
 models/GeocodeAddressDto.ts
 models/HealthControllerCheck200Response.ts
 models/HealthControllerCheck200ResponseInfoValue.ts
@@ -97,6 +98,7 @@ models/PoiControllerCreatePoiVAlpha200Response.ts
 models/PoiControllerGetPoisVAlpha200Response.ts
 models/PoiDto.ts
 models/PoiResponseDto.ts
+models/PositionDto.ts
 models/PublicUserDto.ts
 models/PublicUsersResponseDto.ts
 models/QualifikationDto.ts
@@ -113,6 +115,7 @@ models/TextbausteinListResponse.ts
 models/UpdateEinsatzDto.ts
 models/UpdateEintragDto.ts
 models/UpdateFahrzeugtypDto.ts
+models/UpdateFmsStatusDto.ts
 models/UpdateFunkStatusConfigDto.ts
 models/UpdatePoiDto.ts
 models/UpdatePoiPositionDto.ts

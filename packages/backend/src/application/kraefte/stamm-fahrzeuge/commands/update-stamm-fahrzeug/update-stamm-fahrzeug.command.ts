@@ -1,4 +1,5 @@
 import { Result } from '@domain/common/result';
+import { isCuid } from '@paralleldrive/cuid2';
 import {
   STAMM_FAHRZEUG_RUFNAME_MIN_LENGTH,
   STAMM_FAHRZEUG_RUFNAME_MAX_LENGTH,
@@ -45,9 +46,13 @@ export class UpdateStammFahrzeugCommand {
       return Result.fail<UpdateStammFahrzeugCommand>('ID ist erforderlich');
     }
 
-    // Validation: updatedBy
-    if (!props.updatedBy || props.updatedBy.trim().length === 0) {
+    // Validation: updatedBy (CUID2 Format - konsistent mit Create/Archive Commands)
+    const trimmedUpdatedBy = props.updatedBy?.trim() ?? '';
+    if (trimmedUpdatedBy.length === 0) {
       return Result.fail<UpdateStammFahrzeugCommand>('updatedBy ist erforderlich');
+    }
+    if (!isCuid(trimmedUpdatedBy)) {
+      return Result.fail<UpdateStammFahrzeugCommand>('updatedBy muss ein gültiger CUID2-Identifier sein');
     }
 
     // Validation: Rufname (wenn gesetzt) - nutzt Domain-Konstanten für Single Source of Truth

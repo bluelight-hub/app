@@ -13,6 +13,9 @@
  */
 
 import { mapValues } from '../runtime';
+import type { PositionDto } from './PositionDto';
+import { PositionDtoFromJSON, PositionDtoFromJSONTyped, PositionDtoToJSON, PositionDtoToJSONTyped } from './PositionDto';
+
 /**
  *
  * @export
@@ -39,10 +42,10 @@ export interface ErfasseTemporalesFahrzeugDto {
   kennzeichen?: string;
   /**
    * Optionale initiale GPS-Position (z.B. aktuelle Fahrzeugposition)
-   * @type {object}
+   * @type {PositionDto}
    * @memberof ErfasseTemporalesFahrzeugDto
    */
-  position?: object;
+  position?: PositionDto;
 }
 
 /**
@@ -66,7 +69,7 @@ export function ErfasseTemporalesFahrzeugDtoFromJSONTyped(json: any, ignoreDiscr
     funkrufname: json['funkrufname'],
     fahrzeugtypId: json['fahrzeugtypId'],
     kennzeichen: json['kennzeichen'] == null ? undefined : json['kennzeichen'],
-    position: json['position'] == null ? undefined : json['position'],
+    position: json['position'] == null ? undefined : PositionDtoFromJSON(json['position']),
   };
 }
 
@@ -83,6 +86,6 @@ export function ErfasseTemporalesFahrzeugDtoToJSONTyped(value?: ErfasseTemporale
     funkrufname: value['funkrufname'],
     fahrzeugtypId: value['fahrzeugtypId'],
     kennzeichen: value['kennzeichen'],
-    position: value['position'],
+    position: PositionDtoToJSON(value['position']),
   };
 }

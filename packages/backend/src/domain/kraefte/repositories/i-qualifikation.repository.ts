@@ -79,4 +79,18 @@ export interface IQualifikationRepository {
    * @returns Result mit allExist (boolean) und missing (fehlende IDs als string[])
    */
   existsMany(ids: QualifikationId[], tx?: TransactionContext): Promise<Result<{ allExist: boolean; missing: string[] }>>;
+
+  /**
+   * Lädt mehrere Qualifikationen in einer Datenbankabfrage (Batch-Loading).
+   *
+   * Performance-Optimierung: Single SELECT...WHERE IN() Query verhindert N+1 Problem
+   * im Vergleich zu mehreren einzelnen findById() Aufrufen.
+   *
+   * **Verwendet für:** Query-Handler die Qualifikationen für DTOs laden müssen.
+   *
+   * @param ids - Array von QualifikationIds zum Batch-Load
+   * @param tx - Optionaler Transaction Context für atomare Operationen
+   * @returns Result<Qualifikation[]> - Gefundene Qualifikationen (kann weniger als angefragt sein)
+   */
+  findByIds(ids: QualifikationId[], tx?: TransactionContext): Promise<Result<Qualifikation[]>>;
 }

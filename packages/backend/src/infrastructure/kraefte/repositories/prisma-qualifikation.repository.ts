@@ -384,4 +384,54 @@ export class PrismaQualifikationRepository implements IQualifikationRepository {
       return Result.fail<{ allExist: boolean; missing: string[] }>(`Fehler bei der Batch-Existenzprüfung: ${errorMessage}`);
     }
   }
+
+  /**
+   * Lädt mehrere Qualifikationen in einer Datenbankabfrage (Batch-Loading).
+   *
+   * Performance-Optimierung: Single SELECT...WHERE IN() Query verhindert N+1 Problem
+   * im Vergleich zu mehreren einzelnen findById() Aufrufen.
+   *
+   * @param ids - Array von QualifikationIds zum Batch-Load
+   * @param tx - Optional: Transaction Context für atomare Operationen
+   * @returns Result<Qualifikation[]> - Gefundene Qualifikationen (Reihenfolge nicht garantiert)
+   */
+  async findByIds(ids: QualifikationId[], tx?: TransactionContext): Promise<Result<Qualifikation[]>> {
+    try {
+      // Edge case: leeres Array → leeres Ergebnis
+      if (ids.length === 0) {
+        return Result.ok<Qualifikation[]>([]);
+      }
+
+      const client = (tx as PrismaTransactionClient | undefined) ?? this.prisma;
+      const idValues = ids.map((id) => id.value);
+
+      // Single query: fetch all Qualifikationen mit den gegebenen IDs
+      const entities = await client.qualifikation.findMany({
+        where: {
+          id: { in: idValues },
+        },
+        orderBy: [{ sortOrder: 'asc' }, { name: 'asc' }],
+      });
+
+      // Batch-Rekonstitution mit Error-Handling
+      const aggregates: Qualifikation[] = [];
+      for (const entity of entities) {
+        const domainResult = PrismaQualifikationMapper.toDomain(entity);
+        if (domainResult.isFailure || !domainResult.value) {
+          // Ein fehlerhaftes Entity bricht NICHT die ganze Query ab
+          this.logger.warn(`Skipping Qualifikation due to reconstitution failure: ${domainResult.error}`, { id: entity.id, tx: !!tx });
+          continue;
+        }
+        aggregates.push(domainResult.value);
+      }
+
+      this.logger.debug(`Batch load: ${idValues.length} requested, ${aggregates.length} loaded`, { tx: !!tx });
+
+      return Result.ok<Qualifikation[]>(aggregates);
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      this.logger.error(`Failed to batch load Qualifikationen: ${errorMessage}`, { count: ids.length, tx: !!tx, error });
+      return Result.fail<Qualifikation[]>(`Fehler beim Batch-Laden der Qualifikationen: ${errorMessage}`);
+    }
+  }
 }

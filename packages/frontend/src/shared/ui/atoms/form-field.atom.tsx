@@ -1,14 +1,33 @@
 import { cn } from '@/shared/ui/cn';
 import type * as React from 'react';
 
+/**
+ * Zod-Fehler-Objekt Struktur (für TanStack Form mit zodValidator)
+ */
+interface ZodErrorObject {
+  message?: string;
+  code?: string;
+  path?: (string | number)[];
+}
+
 interface FormFieldProps {
   label?: string | React.ReactNode;
   helperText?: string;
-  error?: string;
+  /** Fehler kann ein String oder ein Zod-Error-Objekt sein (TanStack Form mit zodValidator) */
+  error?: string | ZodErrorObject | undefined;
   required?: boolean;
   className?: string;
   children: React.ReactNode;
   htmlFor?: string;
+}
+
+/**
+ * Extrahiert die Fehlermeldung aus String oder Zod-Error-Objekt.
+ */
+function getErrorMessage(error: string | ZodErrorObject | undefined): string | undefined {
+  if (!error) return undefined;
+  if (typeof error === 'string') return error;
+  return error.message;
 }
 
 /**
@@ -17,6 +36,8 @@ interface FormFieldProps {
  * Wrapper für Formularfelder mit Label und Hilfetexten
  */
 export function FormField({ label, helperText, error, required, className, children, htmlFor }: FormFieldProps) {
+  const errorMessage = getErrorMessage(error);
+
   return (
     <div className={cn('space-y-2', className)}>
       {label && (
@@ -26,7 +47,7 @@ export function FormField({ label, helperText, error, required, className, child
         </label>
       )}
       {children}
-      {(helperText || error) && <p className={cn('mt-1 text-sm', error ? 'text-red-600' : 'text-gray-500')}>{error || helperText}</p>}
+      {(helperText || errorMessage) && <p className={cn('mt-1 text-sm', errorMessage ? 'text-red-600' : 'text-gray-500')}>{errorMessage || helperText}</p>}
     </div>
   );
 }

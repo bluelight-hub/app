@@ -2,6 +2,7 @@ import {
   Controller,
   Get,
   Post,
+  Patch,
   Body,
   Param,
   UseGuards,
@@ -38,15 +39,17 @@ import { ADMIN_RATE_LIMIT, ADMIN_MUTATION_RATE_LIMIT } from '@/infrastructure/ht
 // Handlers
 import { ErfasseFahrzeugAusStammdatenHandler } from '@application/kraefte/einsatz-fahrzeuge/commands/erfasse-fahrzeug-aus-stammdaten/erfasse-fahrzeug-aus-stammdaten.handler';
 import { ErfasseTemporalesFahrzeugHandler } from '@application/kraefte/einsatz-fahrzeuge/commands/erfasse-temporales-fahrzeug/erfasse-temporales-fahrzeug.handler';
+import { UpdateFmsStatusHandler } from '@application/kraefte/einsatz-fahrzeuge/commands/update-fms-status/update-fms-status.handler';
 import { GetEinsatzFahrzeugeHandler } from '@application/kraefte/einsatz-fahrzeuge/queries/get-einsatz-fahrzeuge/get-einsatz-fahrzeuge.handler';
 
 // Commands & Queries
 import { ErfasseFahrzeugAusStammdatenCommand } from '@application/kraefte/einsatz-fahrzeuge/commands/erfasse-fahrzeug-aus-stammdaten/erfasse-fahrzeug-aus-stammdaten.command';
 import { ErfasseTemporalesFahrzeugCommand } from '@application/kraefte/einsatz-fahrzeuge/commands/erfasse-temporales-fahrzeug/erfasse-temporales-fahrzeug.command';
+import { UpdateFmsStatusCommand } from '@application/kraefte/einsatz-fahrzeuge/commands/update-fms-status/update-fms-status.command';
 import { GetEinsatzFahrzeugeQuery } from '@application/kraefte/einsatz-fahrzeuge/queries/get-einsatz-fahrzeuge/get-einsatz-fahrzeuge.query';
 
 // DTOs
-import { EinsatzFahrzeugDto, ErfasseFahrzeugAusStammdatenDto, ErfasseTemporalesFahrzeugDto } from '@application/kraefte/einsatz-fahrzeuge/dto';
+import { EinsatzFahrzeugDto, ErfasseFahrzeugAusStammdatenDto, ErfasseTemporalesFahrzeugDto, UpdateFmsStatusDto } from '@application/kraefte/einsatz-fahrzeuge/dto';
 
 // Error Codes
 import { EINSATZ_FAHRZEUG_ERROR_CODES, EinsatzFahrzeugError } from '@domain/kraefte/common/einsatz-fahrzeug-error-codes';
@@ -86,6 +89,7 @@ export class EinsatzFahrzeugeController {
     private readonly erfasseHandler: ErfasseFahrzeugAusStammdatenHandler,
     private readonly erfasseTemporalesHandler: ErfasseTemporalesFahrzeugHandler,
     private readonly getEinsatzFahrzeugeHandler: GetEinsatzFahrzeugeHandler,
+    private readonly updateFmsStatusHandler: UpdateFmsStatusHandler,
   ) {}
 
   /**
@@ -290,6 +294,93 @@ export class EinsatzFahrzeugeController {
 
     // Audit logging
     this.logger.log(`Temporäres EinsatzFahrzeug erfasst: ${result.value.id} (${result.value.funkrufname}) für Einsatz ${einsatzId} von Admin ${user.userId}`);
+
+    return result.value;
+  }
+
+  /**
+   * FMS-Status eines Fahrzeugs aktualisieren.
+   *
+   * **AC1 - Status-Dropdown:**
+   * User wählt neuen Status aus Dropdown (0-9).
+   *
+   * **AC2 - Domain Event:**
+   * FmsStatusGeaendertEvent wird emittiert für ETB-Eintrag.
+   *
+   * **AC4 - Validierung:**
+   * Status muss zwischen 0-9 liegen.
+   *
+   * **AC5 - Position Update:**
+   * Optional kann GPS-Position mitgesendet werden.
+   *
+   * @param einsatzId - UUID des Einsatzes
+   * @param id - CUID2 des EinsatzFahrzeugs
+   * @param user - Aktueller Admin-Benutzer (aus JWT Token)
+   * @param dto - UpdateFmsStatusDto mit neuem Status und optionaler Position
+   * @returns Das aktualisierte EinsatzFahrzeug
+   * @throws NotFoundException wenn Fahrzeug nicht gefunden
+   * @throws BadRequestException bei ungültigem Status
+   */
+  @Patch(':id/status')
+  @Throttle({ default: ADMIN_MUTATION_RATE_LIMIT })
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'FMS-Status eines Fahrzeugs aktualisieren' })
+  @ApiParam({ name: 'einsatzId', type: String, format: 'uuid', description: 'Einsatz-ID (UUID)' })
+  @ApiParam({ name: 'id', type: String, format: 'cuid2', description: 'CUID2 des Einsatz-Fahrzeugs', example: 'clx1234567890abcdef12345' })
+  @ApiOkResponse({ type: EinsatzFahrzeugDto, description: 'FMS-Status erfolgreich aktualisiert' })
+  @ApiBadRequestResponse({ description: 'Ungültiger FMS-Status (muss 0-9 sein)' })
+  @ApiNotFoundResponse({ description: 'EinsatzFahrzeug nicht gefunden' })
+  async updateFmsStatus(
+    @Param('einsatzId', ParseUUIDPipe) einsatzId: string,
+    @Param('id') id: string,
+    @Body() dto: UpdateFmsStatusDto,
+    @CurrentUser() user: ValidatedUser,
+  ): Promise<EinsatzFahrzeugDto> {
+    // Create Command
+    const commandResult = UpdateFmsStatusCommand.create({
+      einsatzId,
+      fahrzeugId: id,
+      fmsStatus: dto.fmsStatus,
+      updatedBy: user.userId,
+      position: dto.position,
+    });
+
+    if (commandResult.isFailure) {
+      throw new BadRequestException(commandResult.error);
+    }
+
+    const command = commandResult.value;
+    if (!command) {
+      throw new BadRequestException('Fehler beim Erstellen des Commands');
+    }
+
+    // Execute Command
+    const result = await this.updateFmsStatusHandler.execute(command);
+
+    if (result.isFailure) {
+      const error = result.error ?? '';
+
+      // Check error codes for proper HTTP responses
+      if (EinsatzFahrzeugError.hasCode(error, EINSATZ_FAHRZEUG_ERROR_CODES.NOT_FOUND)) {
+        throw new NotFoundException(EinsatzFahrzeugError.extractMessage(error));
+      }
+      if (EinsatzFahrzeugError.hasCode(error, EINSATZ_FAHRZEUG_ERROR_CODES.INVALID_FMS_STATUS)) {
+        throw new BadRequestException(EinsatzFahrzeugError.extractMessage(error));
+      }
+      if (EinsatzFahrzeugError.hasCode(error, EINSATZ_FAHRZEUG_ERROR_CODES.INVALID_POSITION)) {
+        throw new BadRequestException(EinsatzFahrzeugError.extractMessage(error));
+      }
+
+      // Generic error
+      throw new BadRequestException(error || 'Fehler beim Aktualisieren des FMS-Status');
+    }
+
+    if (!result.value) {
+      throw new InternalServerErrorException('Fehler beim Aktualisieren des FMS-Status');
+    }
+
+    // Audit logging
+    this.logger.log(`FMS-Status aktualisiert: ${result.value.id} (${result.value.funkrufname}) → Status ${dto.fmsStatus} für Einsatz ${einsatzId} von Admin ${user.userId}`);
 
     return result.value;
   }

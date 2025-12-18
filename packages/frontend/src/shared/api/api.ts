@@ -1,9 +1,11 @@
 import { logger } from '@/shared/lib/logger';
 import {
   AdminKraefteQualifikationenApi,
+  AdminStammdatenFahrzeugeApi,
   AuthApi,
   Configuration,
   EinsatzApi,
+  EinsatzFahrzeugeApi,
   ETBApi,
   GeocodingApi,
   HealthApi,
@@ -60,6 +62,8 @@ class BackendApi {
   private readonly lagekarteCqrsApi: LagekarteCQRSApi;
   private readonly geocodingApi: GeocodingApi;
   private readonly adminKraefteQualifikationenApi: AdminKraefteQualifikationenApi;
+  private readonly adminStammdatenFahrzeugeApi: AdminStammdatenFahrzeugeApi;
+  private readonly einsatzFahrzeugeApi: EinsatzFahrzeugeApi;
 
   /**
    * Erstellt eine neue Instanz der BackendApi-Klasse
@@ -87,6 +91,8 @@ class BackendApi {
     this.lagekarteCqrsApi = new LagekarteCQRSApi(this.configuration);
     this.geocodingApi = new GeocodingApi(this.configuration);
     this.adminKraefteQualifikationenApi = new AdminKraefteQualifikationenApi(this.configuration);
+    this.adminStammdatenFahrzeugeApi = new AdminStammdatenFahrzeugeApi(this.configuration);
+    this.einsatzFahrzeugeApi = new EinsatzFahrzeugeApi(this.configuration);
   }
 
   /**
@@ -177,6 +183,24 @@ class BackendApi {
    */
   adminKraefteQualifikationen(): AdminKraefteQualifikationenApi {
     return this.adminKraefteQualifikationenApi;
+  }
+
+  /**
+   * Gibt die gecachte AdminStammdatenFahrzeuge-API-Instanz zurück
+   *
+   * @returns Die AdminStammdatenFahrzeuge-API-Instanz für Stamm-Fahrzeuge-Management
+   */
+  adminStammdatenFahrzeuge(): AdminStammdatenFahrzeugeApi {
+    return this.adminStammdatenFahrzeugeApi;
+  }
+
+  /**
+   * Gibt die gecachte EinsatzFahrzeuge-API-Instanz zurück
+   *
+   * @returns Die EinsatzFahrzeuge-API-Instanz für Einsatz-Fahrzeuge-Management
+   */
+  einsatzFahrzeuge(): EinsatzFahrzeugeApi {
+    return this.einsatzFahrzeugeApi;
   }
 }
 

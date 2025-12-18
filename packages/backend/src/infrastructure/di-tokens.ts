@@ -121,4 +121,7 @@ export const EVENT_HANDLER = {
 
   /** FahrzeugErfasst ETB-Eintrag Handler Token (Story 3-1) */
   FAHRZEUG_ERFASST_ETB: Symbol('IEventHandler<FahrzeugErfasstEvent>:EtbEintrag'),
+
+  /** FmsStatusGeaendert ETB-Eintrag Handler Token (Story 3-3) */
+  FMS_STATUS_GEAENDERT_ETB: Symbol('IEventHandler<FmsStatusGeaendertEvent>:EtbEintrag'),
 } as const;

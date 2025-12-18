@@ -24,12 +24,11 @@ import type { GetStammPersonByIdQuery } from './get-stamm-person-by-id.query';
  * **Qualifikationen-Relation (M:N):**
  * - StammPerson hat qualifikationIds: string[] (Foreign Keys via Junction Table)
  * - Für DTO-Mapping müssen Qualifikation-Aggregates geladen werden
- * - Nutzt QualifikationRepository.findById() pro Qualifikation
+ * - Nutzt QualifikationRepository.findByIds() für Batch-Loading (Performance-Optimierung)
  *
- * **Performance Consideration:**
- * - N+1 Query Problem: Pro Qualifikation ein findById() Call
- * - Optimierung möglich: Batch-Loading via QualifikationRepository.findByIds()
- * - Aktuell akzeptabel für Admin-UI mit wenigen Qualifikationen pro Person (<20)
+ * **Performance:**
+ * - Batch-Loading: Lade alle Qualifikationen einer Person in EINER Query
+ * - Verhindert N+1 Problem (vorher: 1 + N Queries, jetzt: 2 Queries)
  *
  * **Story Context:**
  * Story 2-2 (Stamm-Personen verwalten) - Application Layer Query Handler
@@ -48,34 +47,26 @@ export class GetStammPersonByIdHandler {
   /**
    * Führt die Query aus.
    *
+   * **Performance-Optimierung (N+1 Fix):**
+   * 1. Validiere und lade StammPerson (1 Query)
+   * 2. Batch-lade alle Qualifikationen in EINER Query (findByIds)
+   * 3. Mappe zu DTO
+   *
    * @returns Result<StammPersonDto | null> - null wenn nicht gefunden
    */
   async execute(query: GetStammPersonByIdQuery): Promise<Result<StammPersonDto | null>> {
-    // Validiere stammPersonId via Value Object
+    // 1. Validiere stammPersonId via Value Object
     const stammPersonIdResult = StammPersonId.create(query.id);
-    if (stammPersonIdResult.isFailure) {
-      if (!stammPersonIdResult.error) {
-        this.logger.error('StammPersonId.create returned isFailure=true but error is null - this is a bug!');
-        throw new Error('ID validation returned failure without error message');
-      }
-      return Result.fail<StammPersonDto | null>(stammPersonIdResult.error);
+    if (stammPersonIdResult.isFailure || !stammPersonIdResult.value) {
+      return Result.fail<StammPersonDto | null>(stammPersonIdResult.error ?? 'Invalid StammPerson ID');
     }
 
-    // Type Narrowing: value ist garantiert vorhanden nach isFailure Check
     const stammPersonId = stammPersonIdResult.value;
-    if (!stammPersonId) {
-      this.logger.error('StammPersonId.create returned isSuccess=true but value is null - this is a bug!');
-      throw new Error('ID validation succeeded but value is null');
-    }
 
-    // Repository Call: Lade StammPerson
+    // 2. Repository Call: Lade StammPerson
     const stammPersonResult = await this.stammPersonRepository.findById(stammPersonId);
     if (stammPersonResult.isFailure) {
-      if (!stammPersonResult.error) {
-        this.logger.error('Repository.findById returned isFailure=true but error is null - this is a bug!');
-        throw new Error('Repository returned failure without error message');
-      }
-      return Result.fail<StammPersonDto | null>(stammPersonResult.error);
+      return Result.fail<StammPersonDto | null>(stammPersonResult.error ?? 'Repository error');
     }
 
     // Not found → Return null (not error)
@@ -84,50 +75,42 @@ export class GetStammPersonByIdHandler {
       return Result.ok<StammPersonDto | null>(null);
     }
 
-    // Lade zugehörige Qualifikationen
-    const qualifikationIds = stammPerson.qualifikationIds;
-    const qualifikationData: Array<{
-      id: string;
-      name: string;
-      kuerzel: string;
-    }> = [];
-
-    for (const qualifikationIdString of qualifikationIds) {
-      // Parse qualifikationId zu QualifikationId Value Object
-      const qualifikationIdResult = QualifikationId.create(qualifikationIdString);
-      if (qualifikationIdResult.isFailure) {
-        this.logger.warn(`StammPerson ${stammPerson.id.value} has invalid qualifikationId: ${qualifikationIdString}. Skipping.`);
-        continue; // Skip diese Qualifikation
-      }
-
-      const qualifikationId = qualifikationIdResult.value;
-      if (!qualifikationId) {
-        this.logger.warn(`StammPerson ${stammPerson.id.value} qualifikationId parsing returned null. Skipping.`);
+    // 3. Parse QualifikationsIds zu Value Objects
+    const qualifikationIdValueObjects: QualifikationId[] = [];
+    for (const idString of stammPerson.qualifikationIds) {
+      const idResult = QualifikationId.create(idString);
+      if (idResult.isFailure || !idResult.value) {
+        this.logger.warn(`StammPerson ${stammPerson.id.value} has invalid qualifikationId: ${idString}. Skipping.`);
         continue;
       }
-
-      // Lade Qualifikation Aggregate
-      const qualifikationResult = await this.qualifikationRepository.findById(qualifikationId);
-      if (qualifikationResult.isFailure) {
-        this.logger.warn(`Failed to load Qualifikation ${qualifikationId.value} for StammPerson ${stammPerson.id.value}: ${qualifikationResult.error}. Skipping.`);
-        continue; // Skip diese Qualifikation
-      }
-
-      const qualifikation = qualifikationResult.value;
-      if (!qualifikation) {
-        this.logger.warn(`Qualifikation ${qualifikationId.value} not found for StammPerson ${stammPerson.id.value}. Skipping (Referential Integrity Fehler).`);
-        continue; // Skip diese Qualifikation (Junction Table Data Inconsistency)
-      }
-
-      // Sammle Qualifikations-Daten
-      qualifikationData.push({
-        id: qualifikation.id.value,
-        name: qualifikation.name,
-        kuerzel: qualifikation.abkuerzung,
-      });
+      qualifikationIdValueObjects.push(idResult.value);
     }
 
-    // Map to DTO
+    // 4. Batch-lade alle Qualifikationen in EINER Query
+    const qualifikationData: Array<{ id: string; name: string; kuerzel: string }> = [];
+
+    if (qualifikationIdValueObjects.length > 0) {
+      const qualifikationenResult = await this.qualifikationRepository.findByIds(qualifikationIdValueObjects);
+
+      if (qualifikationenResult.isSuccess && qualifikationenResult.value) {
+        // Baue Lookup-Map für korrektes Ordering
+        const qualifikationMap = new Map(qualifikationenResult.value.map((q) => [q.id.value, { id: q.id.value, name: q.name, kuerzel: q.abkuerzung }]));
+
+        // Erhalte ursprüngliche Reihenfolge
+        for (const idString of stammPerson.qualifikationIds) {
+          const qualData = qualifikationMap.get(idString);
+          if (qualData) {
+            qualifikationData.push(qualData);
+          } else {
+            this.logger.warn(`Qualifikation ${idString} not found for StammPerson ${stammPerson.id.value}. Skipping.`);
+          }
+        }
+      } else {
+        this.logger.warn(`Failed to batch-load Qualifikationen: ${qualifikationenResult.error}. Continuing with empty qualifications.`);
+      }
+    }
+
+    // 5. Map to DTO
     const dto = StammPersonQueryMapper.toDto(stammPerson, qualifikationData);
     return Result.ok<StammPersonDto | null>(dto);
   }

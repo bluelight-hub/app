@@ -938,12 +938,14 @@ pnpm --filter @bluelight-hub/backend dev
 
 ## Architecture Compliance (AC1-AC6 Checklist)
 
-- [ ] **AC1: DI Import Check** - Keine `import type` für Injectable Classes
-- [ ] **AC2: DI Token Constants** - `KRAEFTE_REPOSITORIES.STAMM_FAHRZEUG` Symbol in di-tokens.ts
-- [ ] **AC3: Framework-Agnostizität** - Application Layer importiert KEINE HTTP-Exceptions
-- [ ] **AC4: Result Pattern** - Alle Handler geben `Result<T>` zurück
-- [ ] **AC5: Outbox Integration** - TransactionalCommandHandler für Domain Events
-- [ ] **AC6: Test Pattern** - AAA Pattern mit Given-When-Then Kommentaren
+- [x] **AC1: DI Import Check** - Keine `import type` für Injectable Classes ✅
+- [x] **AC2: DI Token Constants** - `KRAEFTE_REPOSITORIES.STAMM_FAHRZEUG` Symbol in di-tokens.ts ✅
+- [x] **AC3: Framework-Agnostizität** - Application Layer importiert KEINE HTTP-Exceptions ✅
+- [x] **AC4: Result Pattern** - Alle Handler geben `Result<T>` zurück ✅
+- [x] **AC5: Outbox Integration** - TransactionalCommandHandler für Domain Events ✅
+- [x] **AC6: Test Pattern** - AAA Pattern mit Given-When-Then Kommentaren ✅ (Domain Tests)
+- [x] **AC7: Rate Limiting** - GET 30/min, Mutations 10/min ✅ (Fixed in Review)
+- [x] **AC8: Error Mapping** - ALREADY_ARCHIVED → 409 Conflict ✅ (Fixed in Review)
 
 ---
 
@@ -978,6 +980,37 @@ Alle kritischen Regeln und Patterns sind dokumentiert in:
 ### Agent Model Used
 
 Claude Opus 4.5 (via BMad Scrum Master Workflow)
+
+---
+
+## Senior Developer Review (AI)
+
+**Reviewed by:** Amelia (Dev Agent) via 5 parallele Subagents
+**Review Date:** 2025-12-16
+**Review Outcome:** ✅ APPROVED (nach Fixes)
+
+### Issues Found & Fixed
+
+| # | Severity | Issue | Fix |
+|---|----------|-------|-----|
+| C1 | 🔴 CRITICAL | Rate Limiting GET 20/min statt 30/min | `@Throttle({ limit: 30 })` auf GET-Endpoints |
+| C2 | 🔴 CRITICAL | ALREADY_ARCHIVED → BadRequest (400) statt Conflict (409) | → `ConflictException` |
+| M1 | 🟡 MEDIUM | Archive Event mit leerem changes Object | `{ archived: true }` hinzugefügt |
+| M4 | 🟡 MEDIUM | Veralteter TODO-Kommentar | Entfernt |
+| M5 | 🟡 MEDIUM | UpdateCommand ohne CUID-Validierung für updatedBy | `isCuid()` Check hinzugefügt |
+| M6 | 🟡 MEDIUM | Infrastructure Module exportiert keine Repository-Klassen | Exports erweitert |
+| M7 | 🟡 MEDIUM | Rate Limit Doku inkonsistent | JSDoc aktualisiert |
+
+### Nicht gefixt (akzeptabel)
+
+- **Handler Tests fehlen** - Laut CLAUDE.md "temporär übersprungen"
+- **N+1 Query in GetAllHandler** - Dokumentiert als akzeptabel (<100 Fahrzeuge)
+
+### Verifikation
+
+- ✅ TypeScript: Keine Fehler
+- ✅ Domain Tests: 39/39 bestanden
+- ✅ Architecture Compliance: AC1-AC8 erfüllt
 
 ### File List
 

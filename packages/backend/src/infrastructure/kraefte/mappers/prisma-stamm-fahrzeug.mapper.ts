@@ -1,6 +1,5 @@
 import type { Prisma, StammFahrzeug as PrismaStammFahrzeug, Fahrzeugtyp } from '@prisma/client';
 import { StammFahrzeug } from '@domain/kraefte/aggregates/stamm-fahrzeug.aggregate';
-import { StammFahrzeugId } from '@domain/kraefte/value-objects/stamm-fahrzeug-id';
 import { Result } from '@domain/common/result';
 
 /**

@@ -12,8 +12,6 @@ export interface ArchiveStammFahrzeugProps {
 /**
  * Command zum Archivieren eines Stamm-Fahrzeugs.
  *
- * **TODO:** Handler-Implementierung steht noch aus (Story 2-1 Task 6)
- *
  * **Story Context:**
  * Story 2-1 (Stamm-Fahrzeuge verwalten) - Application Layer Command
  */

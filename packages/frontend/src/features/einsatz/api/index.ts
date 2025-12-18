@@ -20,9 +20,10 @@ export { useCreateEinsatz } from './use-create-einsatz';
 export { useUpdateEinsatz } from './use-update-einsatz';
 export { useArchiveEinsatz } from './use-archive-einsatz';
 
-// EinsatzFahrzeuge Hooks (Story 3-1 & 3-2)
+// EinsatzFahrzeuge Hooks (Story 3-1, 3-2 & 3-3)
 export { useEinsatzFahrzeuge } from './use-einsatz-fahrzeuge';
 export { useErfasseFahrzeugAusStammdaten } from './use-erfasse-fahrzeug-aus-stammdaten';
 export { useErfasseTemporalesFahrzeug } from './use-erfasse-temporales-fahrzeug';
+export { useUpdateFmsStatus } from './use-update-fms-status';
 export { useStammFahrzeuge, STAMM_FAHRZEUGE_QUERY_KEYS } from './use-stamm-fahrzeuge';
 export { useFahrzeugtypen, FAHRZEUGTYP_QUERY_KEYS } from './use-fahrzeugtypen';

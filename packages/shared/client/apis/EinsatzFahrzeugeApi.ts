@@ -13,7 +13,7 @@
  */
 
 import * as runtime from '../runtime';
-import type { EinsatzFahrzeugDto, ErfasseFahrzeugAusStammdatenDto, ErfasseTemporalesFahrzeugDto } from '../models/index';
+import type { EinsatzFahrzeugDto, ErfasseFahrzeugAusStammdatenDto, ErfasseTemporalesFahrzeugDto, UpdateFmsStatusDto } from '../models/index';
 import {
   EinsatzFahrzeugDtoFromJSON,
   EinsatzFahrzeugDtoToJSON,
@@ -21,6 +21,8 @@ import {
   ErfasseFahrzeugAusStammdatenDtoToJSON,
   ErfasseTemporalesFahrzeugDtoFromJSON,
   ErfasseTemporalesFahrzeugDtoToJSON,
+  UpdateFmsStatusDtoFromJSON,
+  UpdateFmsStatusDtoToJSON,
 } from '../models/index';
 
 export interface EinsatzFahrzeugeControllerErfasseAusStammdatenVAlphaRequest {
@@ -35,6 +37,12 @@ export interface EinsatzFahrzeugeControllerErfasseTemporalesVAlphaRequest {
 
 export interface EinsatzFahrzeugeControllerFindAllVAlphaRequest {
   einsatzId: string;
+}
+
+export interface EinsatzFahrzeugeControllerUpdateFmsStatusVAlphaRequest {
+  einsatzId: string;
+  id: string;
+  updateFmsStatusDto: UpdateFmsStatusDto;
 }
 
 /**
@@ -199,6 +207,66 @@ export class EinsatzFahrzeugeApi extends runtime.BaseAPI {
     initOverrides?: RequestInit | runtime.InitOverrideFunction,
   ): Promise<Array<EinsatzFahrzeugDto>> {
     const response = await this.einsatzFahrzeugeControllerFindAllVAlphaRaw(requestParameters, initOverrides);
+    return await response.value();
+  }
+
+  /**
+   * FMS-Status eines Fahrzeugs aktualisieren
+   */
+  async einsatzFahrzeugeControllerUpdateFmsStatusVAlphaRaw(
+    requestParameters: EinsatzFahrzeugeControllerUpdateFmsStatusVAlphaRequest,
+    initOverrides?: RequestInit | runtime.InitOverrideFunction,
+  ): Promise<runtime.ApiResponse<EinsatzFahrzeugDto>> {
+    if (requestParameters['einsatzId'] == null) {
+      throw new runtime.RequiredError('einsatzId', 'Required parameter "einsatzId" was null or undefined when calling einsatzFahrzeugeControllerUpdateFmsStatusVAlpha().');
+    }
+
+    if (requestParameters['id'] == null) {
+      throw new runtime.RequiredError('id', 'Required parameter "id" was null or undefined when calling einsatzFahrzeugeControllerUpdateFmsStatusVAlpha().');
+    }
+
+    if (requestParameters['updateFmsStatusDto'] == null) {
+      throw new runtime.RequiredError('updateFmsStatusDto', 'Required parameter "updateFmsStatusDto" was null or undefined when calling einsatzFahrzeugeControllerUpdateFmsStatusVAlpha().');
+    }
+
+    const queryParameters: any = {};
+
+    const headerParameters: runtime.HTTPHeaders = {};
+
+    headerParameters['Content-Type'] = 'application/json';
+
+    if (this.configuration && this.configuration.accessToken) {
+      const token = this.configuration.accessToken;
+      const tokenString = await token('admin-jwt', []);
+
+      if (tokenString) {
+        headerParameters['Authorization'] = `Bearer ${tokenString}`;
+      }
+    }
+    const response = await this.request(
+      {
+        path: `/api/v-alpha/einsaetze/{einsatzId}/fahrzeuge/{id}/status`
+          .replace(`{${'einsatzId'}}`, encodeURIComponent(String(requestParameters['einsatzId'])))
+          .replace(`{${'id'}}`, encodeURIComponent(String(requestParameters['id']))),
+        method: 'PATCH',
+        headers: headerParameters,
+        query: queryParameters,
+        body: UpdateFmsStatusDtoToJSON(requestParameters['updateFmsStatusDto']),
+      },
+      initOverrides,
+    );
+
+    return new runtime.JSONApiResponse(response, (jsonValue) => EinsatzFahrzeugDtoFromJSON(jsonValue));
+  }
+
+  /**
+   * FMS-Status eines Fahrzeugs aktualisieren
+   */
+  async einsatzFahrzeugeControllerUpdateFmsStatusVAlpha(
+    requestParameters: EinsatzFahrzeugeControllerUpdateFmsStatusVAlphaRequest,
+    initOverrides?: RequestInit | runtime.InitOverrideFunction,
+  ): Promise<EinsatzFahrzeugDto> {
+    const response = await this.einsatzFahrzeugeControllerUpdateFmsStatusVAlphaRaw(requestParameters, initOverrides);
     return await response.value();
   }
 }

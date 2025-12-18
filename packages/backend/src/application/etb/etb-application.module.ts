@@ -4,9 +4,19 @@ import { EtbInfrastructureModule } from '@infrastructure/etb/etb-infrastructure.
 import { EventInfrastructureModule } from '@infrastructure/events/event-infrastructure.module';
 import { LagekarteInfrastructureModule } from '@infrastructure/lagekarte-infrastructure.module';
 import { Module } from '@nestjs/common';
-import { EtbAutoCreationHandler, FahrzeugErfasstEventHandler } from './event-handlers';
+import { EtbAutoCreationHandler, FahrzeugErfasstEventHandler, FmsStatusGeaendertEventHandler } from './event-handlers';
 import { EtbQueryMapper } from './mappers';
 import { GetEintraegeQueryHandler, GetEtbHistoryQueryHandler, GetEtbQueryHandler, GetTextbausteineHandler } from './queries';
+
+/**
+ * ETB Application Module - Event-Driven Architecture
+ *
+ * Event Flow:
+ * 1. Domain Event wird emittiert (z.B. FmsStatusGeaendertEvent)
+ * 2. Infrastructure Adapter empfängt Event (@OnEvent decorator)
+ * 3. Adapter delegiert an Application Handler
+ * 4. Handler erstellt ETB-Eintrag (Fire-and-Forget Pattern)
+ */
 
 /**
  * NestJS-Modul für Application Layer - ETB (Einsatztagebuch) Bounded Context.
@@ -74,6 +84,11 @@ import { GetEintraegeQueryHandler, GetEtbHistoryQueryHandler, GetEtbQueryHandler
       provide: EVENT_HANDLER.FAHRZEUG_ERFASST_ETB,
       useClass: FahrzeugErfasstEventHandler,
     },
+    // FmsStatusGeaendert Event Handler (Story 3-3) - ETB-Eintrag bei Status-Änderung
+    {
+      provide: EVENT_HANDLER.FMS_STATUS_GEAENDERT_ETB,
+      useClass: FmsStatusGeaendertEventHandler,
+    },
 
     // Mappers (Story 3.3)
     EtbQueryMapper,
@@ -96,6 +111,7 @@ import { GetEintraegeQueryHandler, GetEtbHistoryQueryHandler, GetEtbQueryHandler
     // Event Handlers (exported via Symbol Token for Infrastructure Adapters)
     EVENT_HANDLER.ETB_AUTO_CREATION,
     EVENT_HANDLER.FAHRZEUG_ERFASST_ETB,
+    EVENT_HANDLER.FMS_STATUS_GEAENDERT_ETB,
 
     // Mappers (Story 3.3)
     EtbQueryMapper,

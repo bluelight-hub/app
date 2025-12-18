@@ -1,6 +1,6 @@
 # Story 2.2: Stamm-Personen verwalten
 
-Status: ready-for-dev
+Status: done
 
 ## Story
 
@@ -89,108 +89,108 @@ Status: ready-for-dev
 
 ### Phase 1: Domain Layer (7 Dateien)
 
-- [ ] Task 1: Value Object erstellen (AC: 2, 6)
-  - [ ] `stamm-person-id.ts` - EntityId<'StammPerson'> Pattern
+- [x] Task 1: Value Object erstellen (AC: 2, 6)
+  - [x] `stamm-person-id.ts` - EntityId<'StammPerson'> Pattern
 
-- [ ] Task 2: Aggregate Root erstellen (AC: 2, 3, 4, 5, 6)
-  - [ ] `stamm-person.aggregate.ts` mit create(), reconstitute(), update(), archive()
-  - [ ] M:N Qualifikationen als `qualifikationIds: string[]` im Aggregate
-  - [ ] Unit Tests in `__tests__/stamm-person.aggregate.spec.ts`
+- [x] Task 2: Aggregate Root erstellen (AC: 2, 3, 4, 5, 6)
+  - [x] `stamm-person.aggregate.ts` mit create(), reconstitute(), update(), archive()
+  - [x] M:N Qualifikationen als `qualifikationIds: string[]` im Aggregate
+  - [x] Unit Tests in `__tests__/stamm-person.aggregate.spec.ts` (42 Tests!)
 
-- [ ] Task 3: Repository Port erstellen (AC: 1, 2, 3, 4)
-  - [ ] `i-stamm-person.repository.ts` Interface
+- [x] Task 3: Repository Port erstellen (AC: 1, 2, 3, 4)
+  - [x] `i-stamm-person.repository.ts` Interface
 
-- [ ] Task 4: Error Codes + Validation Constants (AC: 6)
-  - [ ] `stamm-person-error-codes.ts`
-  - [ ] `stamm-person-validation.constants.ts`
+- [x] Task 4: Error Codes + Validation Constants (AC: 6)
+  - [x] `stamm-person-error-codes.ts`
+  - [x] `stamm-person-validation.constants.ts`
 
-- [ ] Task 5: Domain Events (AC: 2, 3, 4)
-  - [ ] `stamm-person-created.event.ts`
-  - [ ] `stamm-person-updated.event.ts`
+- [x] Task 5: Domain Events (AC: 2, 3, 4)
+  - [x] `stamm-person-created.event.ts`
+  - [x] `stamm-person-updated.event.ts`
 
 ### Phase 2: Application Layer - Commands (6 Dateien)
 
-- [ ] Task 6: CreateStammPersonHandler (AC: 2, 5, 6)
-  - [ ] `create-stamm-person.command.ts`
-  - [ ] `create-stamm-person.handler.ts` (extends TransactionalCommandHandler)
-  - [ ] Uniqueness-Check für personalnummer
-  - [ ] **KRITISCH:** Qualifikationen-Existenz-Check VOR Junction-Table-Update (siehe Pattern unten)
+- [x] Task 6: CreateStammPersonHandler (AC: 2, 5, 6)
+  - [x] `create-stamm-person.command.ts`
+  - [x] `create-stamm-person.handler.ts` (extends TransactionalCommandHandler)
+  - [x] Uniqueness-Check für personalnummer
+  - [x] **KRITISCH:** Qualifikationen-Existenz-Check VOR Junction-Table-Update
 
-- [ ] Task 7: UpdateStammPersonHandler (AC: 3, 5, 6, 9)
-  - [ ] `update-stamm-person.command.ts`
-  - [ ] `update-stamm-person.handler.ts`
-  - [ ] Qualifikationen-Sync (add/remove in Junction Table)
-  - [ ] **KRITISCH:** Prüfung auf `isArchived` → Result.fail(ARCHIVED_PERSON_MODIFICATION)
+- [x] Task 7: UpdateStammPersonHandler (AC: 3, 5, 6, 9)
+  - [x] `update-stamm-person.command.ts`
+  - [x] `update-stamm-person.handler.ts`
+  - [x] Qualifikationen-Sync (add/remove in Junction Table)
+  - [x] **KRITISCH:** Prüfung auf `isArchived` → Result.fail(ARCHIVED_PERSON_MODIFICATION)
 
-- [ ] Task 8: ArchiveStammPersonHandler (AC: 4)
-  - [ ] `archive-stamm-person.command.ts`
-  - [ ] `archive-stamm-person.handler.ts`
+- [x] Task 8: ArchiveStammPersonHandler (AC: 4)
+  - [x] `archive-stamm-person.command.ts`
+  - [x] `archive-stamm-person.handler.ts`
 
-- [ ] Task 8b: RestoreStammPersonHandler (AC: 8)
-  - [ ] `restore-stamm-person.command.ts`
-  - [ ] `restore-stamm-person.handler.ts`
-  - [ ] Prüft ob Person archiviert ist, sonst Result.fail(NOT_ARCHIVED)
+- [x] Task 8b: RestoreStammPersonHandler (AC: 8)
+  - [x] `restore-stamm-person.command.ts`
+  - [x] `restore-stamm-person.handler.ts`
+  - [x] Prüft ob Person archiviert ist, sonst Result.fail(NOT_ARCHIVED)
 
 ### Phase 3: Application Layer - Queries (5 Dateien)
 
-- [ ] Task 9: GetAllStammPersonenHandler (AC: 1)
-  - [ ] `get-all-stamm-personen.query.ts`
-  - [ ] `get-all-stamm-personen.handler.ts`
-  - [ ] **PFLICHT:** Eager Loading für Qualifikationen (verhindert N+1 Queries!)
+- [x] Task 9: GetAllStammPersonenHandler (AC: 1)
+  - [x] `get-all-stamm-personen.query.ts`
+  - [x] `get-all-stamm-personen.handler.ts`
+  - [x] **PFLICHT:** Batch-Loading für Qualifikationen via findByIds() (N+1 Fix!)
 
-- [ ] Task 10: GetStammPersonByIdHandler (AC: 1)
-  - [ ] `get-stamm-person-by-id.query.ts`
-  - [ ] `get-stamm-person-by-id.handler.ts`
+- [x] Task 10: GetStammPersonByIdHandler (AC: 1)
+  - [x] `get-stamm-person-by-id.query.ts`
+  - [x] `get-stamm-person-by-id.handler.ts`
 
-- [ ] Task 11: Query Mapper (AC: 1)
-  - [ ] `stamm-person-query.mapper.ts`
+- [x] Task 11: Query Mapper (AC: 1)
+  - [x] `stamm-person-query.mapper.ts`
 
 ### Phase 4: Application Layer - DTOs + Module (7 Dateien)
 
-- [ ] Task 12: DTOs erstellen (AC: 2, 3, 6)
-  - [ ] `create-stamm-person.dto.ts` mit class-validator + OpenAPI
-  - [ ] `update-stamm-person.dto.ts` (Partial, alle Felder optional)
-  - [ ] `stamm-person.dto.ts` (Response DTO mit qualifikationen Array)
-  - [ ] `index.ts` Barrel Export
+- [x] Task 12: DTOs erstellen (AC: 2, 3, 6)
+  - [x] `create-stamm-person.dto.ts` mit class-validator + OpenAPI + ArrayMaxSize(50)
+  - [x] `update-stamm-person.dto.ts` (Partial, alle Felder optional) + ArrayMaxSize(50)
+  - [x] `stamm-person.dto.ts` (Response DTO mit qualifikationen Array)
+  - [x] `index.ts` Barrel Export
 
-- [ ] Task 13: Application Module (AC: alle)
-  - [ ] `stamm-personen-application.module.ts`
-  - [ ] `index.ts` Module Barrel Export
-  - [ ] `commands/index.ts` + `queries/index.ts` Barrel Exports
+- [x] Task 13: Application Module (AC: alle)
+  - [x] `stamm-personen-application.module.ts`
+  - [x] `index.ts` Module Barrel Export
+  - [x] `commands/index.ts` + `queries/index.ts` Barrel Exports
 
 ### Phase 5: Infrastructure Layer (2 Dateien)
 
-- [ ] Task 14: Prisma Repository (AC: 1, 2, 3, 4, 5)
-  - [ ] `prisma-stamm-person.repository.ts`
-  - [ ] Junction Table Sync für Qualifikationen
-  - [ ] P2002 Error Handling (personalnummer duplicate)
+- [x] Task 14: Prisma Repository (AC: 1, 2, 3, 4, 5)
+  - [x] `prisma-stamm-person.repository.ts`
+  - [x] Junction Table Sync für Qualifikationen (DIFF-BASED!)
+  - [x] P2002 Error Handling (personalnummer duplicate)
 
-- [ ] Task 15: Mapper (AC: alle)
-  - [ ] `prisma-stamm-person.mapper.ts`
-  - [ ] **KRITISCH:** NULL → undefined Konvertierung für optionale Felder
-  - [ ] Include StammPersonQualifikation → QualifikationDto Mapping
+- [x] Task 15: Mapper (AC: alle)
+  - [x] `prisma-stamm-person.mapper.ts`
+  - [x] **KRITISCH:** NULL → undefined Konvertierung für optionale Felder
+  - [x] Include StammPersonQualifikation → QualifikationDto Mapping
 
 ### Phase 6: Modules Layer (1 Datei + 3 Modifikationen)
 
-- [ ] Task 16: Controller erstellen (AC: 1, 2, 3, 4, 7)
-  - [ ] `admin-stamm-personen.controller.ts`
-  - [ ] Rate Limiting: GET 30/min, Mutations 10/min
-  - [ ] OpenAPI Decorators vollständig
+- [x] Task 16: Controller erstellen (AC: 1, 2, 3, 4, 7)
+  - [x] `admin-stamm-personen.controller.ts`
+  - [x] Rate Limiting: GET 30/min, Mutations 10/min
+  - [x] OpenAPI Decorators vollständig
 
-- [ ] Task 17: DI Tokens + Module Registration (AC: alle)
-  - [ ] `di-tokens.ts` - STAMM_PERSON Symbol hinzufügen
-  - [ ] `kraefte-infrastructure.module.ts` - Repository registrieren
-  - [ ] `kraefte.module.ts` - Controller + Application Module importieren
+- [x] Task 17: DI Tokens + Module Registration (AC: alle)
+  - [x] `di-tokens.ts` - STAMM_PERSON Symbol hinzufügen
+  - [x] `kraefte-infrastructure.module.ts` - Repository registrieren
+  - [x] `kraefte.module.ts` - Controller + Application Module importieren
 
 ### Phase 7: Testing + API Generation
 
-- [ ] Task 18: Domain Tests (AC: 6)
-  - [ ] 10+ Unit Tests für Aggregate
-  - [ ] Validierung, create/update/archive Flows
+- [x] Task 18: Domain Tests (AC: 6)
+  - [x] 42 Unit Tests für Aggregate (übertrifft Anforderung von 10+)
+  - [x] Validierung, create/update/archive Flows
 
-- [ ] Task 19: API Client generieren
-  - [ ] `pnpm run generate-api` ausführen
-  - [ ] Verifizieren: StammPersonen-Endpoints im Client
+- [x] Task 19: API Client generieren
+  - [x] `pnpm run generate-api` ausführen
+  - [x] Verifizieren: StammPersonen-Endpoints im Client
 
 ---
 

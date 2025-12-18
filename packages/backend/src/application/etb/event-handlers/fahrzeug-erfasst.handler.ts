@@ -67,7 +67,7 @@ export class FahrzeugErfasstEventHandler implements IEventHandler<FahrzeugErfass
       const etbId = event.einsatzId;
 
       // Status Label für den Eintrag
-      const statusLabel = FMS_STATUS_LABELS[event.fmsStatus] ?? `Status ${event.fmsStatus}`;
+      const statusLabel = FMS_STATUS_LABELS[event.fmsStatus as keyof typeof FMS_STATUS_LABELS] ?? `Status ${event.fmsStatus}`;
 
       // Unterscheidung zwischen temporär und Stammdaten
       const isTemporary = event.stammId === undefined;

@@ -4,15 +4,15 @@ import { LoadingState } from '@/shared/ui/atoms/LoadingState';
 import { EinsatzResourceWidget } from '@/features/einsatz/ui/molecules/EinsatzResourceWidget';
 import { EinsatzStatsCard } from '@/features/einsatz/ui/molecules/EinsatzStatsCard';
 import { EinsatzTimelineWidget } from '@/features/einsatz/ui/molecules/EinsatzTimelineWidget';
+import { FahrzeugHinzufuegenDialog } from '@/features/einsatz/ui/organisms/FahrzeugHinzufuegenDialog.organism';
 import { useActiveEinsatz, EINSATZ_QUERY_KEYS } from '@/features/einsatz';
 import { formatNatoDateTime } from '@/shared/lib/dateFormatter';
-import { logger } from '@/shared/lib/logger';
 import { Button } from '@/shared/ui/atoms/button.atom';
 import { useQuery } from '@tanstack/react-query';
 import { useParams } from '@tanstack/react-router';
 import { addMinutes, format, formatDistanceToNow } from 'date-fns';
 import { de } from 'date-fns/locale';
-import { useEffect } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { PiCheckCircle, PiClipboard, PiClock, PiFileText, PiMapPin, PiPhone, PiRadio, PiTruck, PiUsers } from 'react-icons/pi';
 
 /**
@@ -23,6 +23,11 @@ import { PiCheckCircle, PiClipboard, PiClock, PiFileText, PiMapPin, PiPhone, PiR
 export function SingleEinsatzDashboard() {
   const { einsatzId } = useParams({ from: '/app/einsatz/$einsatzId' });
   const { activeEinsatz, setActiveEinsatz, isEinsatzActive } = useActiveEinsatz();
+
+  // Dialog State für Fahrzeug hinzufügen (Story 3-1)
+  const [showFahrzeugDialog, setShowFahrzeugDialog] = useState(false);
+  const handleOpenFahrzeugDialog = useCallback(() => setShowFahrzeugDialog(true), []);
+  const handleCloseFahrzeugDialog = useCallback(() => setShowFahrzeugDialog(false), []);
 
   // Lade Einsatzdaten
   const {
@@ -209,7 +214,7 @@ export function SingleEinsatzDashboard() {
         {/* Rechte Spalte - Ressourcen und Status */}
         <div className="space-y-6">
           {/* Eingesetzte Kräfte */}
-          <EinsatzResourceWidget resources={mockResources} onAddResource={() => logger.log('Add resource')} />
+          <EinsatzResourceWidget resources={mockResources} onAddResource={handleOpenFahrzeugDialog} />
 
           {/* Wichtige Kontakte */}
           <div className="rounded-lg bg-white p-6 shadow-sm dark:bg-gray-800">
@@ -262,6 +267,9 @@ export function SingleEinsatzDashboard() {
           </div>
         </div>
       </div>
+
+      {/* Fahrzeug hinzufügen Dialog (Story 3-1) */}
+      <FahrzeugHinzufuegenDialog isOpen={showFahrzeugDialog} onClose={handleCloseFahrzeugDialog} einsatzId={einsatzId} />
     </div>
   );
 }
