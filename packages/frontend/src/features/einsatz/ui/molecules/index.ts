@@ -8,6 +8,7 @@ export { EinsatzResourceWidget } from './EinsatzResourceWidget';
 export { EinsatzStatsCard } from './EinsatzStatsCard';
 export { EinsatzStatusBadge } from './einsatz-status-badge.molecule';
 export { EinsatzTimelineWidget } from './EinsatzTimelineWidget';
+export { FmsStatusDropdown } from './FmsStatusDropdown.molecule';
 export { ModuleButton } from './ModuleButton';
 export { ModuleOverviewCard } from './ModuleOverviewCard';
 export { PlaceholderModule } from './PlaceholderModule';
