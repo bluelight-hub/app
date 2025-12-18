@@ -1,5 +1,6 @@
 import { AddEintragHandler, CreateEtbHandler, DeleteEintragHandler, LockEtbHandler, UpdateEintragHandler } from '@application/etb/commands';
-import { EVENT_HANDLER } from '@infrastructure/di-tokens';
+import { EVENT_HANDLER, LOGGER } from '@infrastructure/di-tokens';
+import { NestLoggerAdapter } from '@infrastructure/common/adapters';
 import { EtbInfrastructureModule } from '@infrastructure/etb/etb-infrastructure.module';
 import { EventInfrastructureModule } from '@infrastructure/events/event-infrastructure.module';
 import { LagekarteInfrastructureModule } from '@infrastructure/lagekarte-infrastructure.module';
@@ -61,6 +62,12 @@ import { GetEintraegeQueryHandler, GetEtbHistoryQueryHandler, GetEtbQueryHandler
     LagekarteInfrastructureModule,
   ],
   providers: [
+    // Infrastructure Adapters (Cross-cutting concerns)
+    {
+      provide: LOGGER,
+      useFactory: () => new NestLoggerAdapter('ETB'),
+    },
+
     // Command Handlers (Story 3.1 + 3.2)
     CreateEtbHandler,
     AddEintragHandler,

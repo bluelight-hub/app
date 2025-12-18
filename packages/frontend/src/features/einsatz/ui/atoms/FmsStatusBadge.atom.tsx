@@ -5,7 +5,11 @@ interface FmsStatusBadgeProps {
   status: FmsStatus;
   /** Zusätzliche CSS-Klassen */
   className?: string;
-  /** Zeigt nur die Nummer ohne Label */
+  /**
+   * Zeigt nur die Nummer ohne Label.
+   * - `false` (default): Zeigt "2 - Einsatzbereit"
+   * - `true`: Zeigt nur "2"
+   */
   compact?: boolean;
 }
 

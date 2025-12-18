@@ -385,6 +385,88 @@ so that **Statuswechsel automatisch im ETB dokumentiert werden und alle Beteilig
 - [x] [AI-Review-R2][LOW] getStatusBgClasses: Regex-basierte robustere Implementierung [fms-status.constants.ts]
 - [x] [AI-Review-R2][LOW] Transition Duration: Tailwind Default ist konsistent - WONTFIX
 
+---
+
+### Review Follow-ups (AI) - 2025-12-18 Round 3 ✅ ALL FIXED
+
+#### 🔴 CRITICAL (Must Fix) ✅
+
+**Domain Layer:**
+- [x] [AI-Review-R3][CRITICAL] Idempotenz-Bug: `updateTimestamp()` wird IMMER aufgerufen auch bei gleichem Status - nur bei statusChanged aufrufen [einsatz-fahrzeug.aggregate.ts:531]
+- [x] [AI-Review-R3][CRITICAL] Event fehlt Labels: `alterStatusLabel` und `neuerStatusLabel` Properties hinzufügen für selbst-dokumentierendes Event [fms-status-geaendert.event.ts:46-62]
+
+**Application Layer:**
+- [x] [AI-Review-R3][CRITICAL] AC3 verletzt: `Logger` von @nestjs/common in Application Layer importiert - über ILogger Port injizieren [fms-status-geaendert.handler.ts:19]
+- [x] [AI-Review-R3][CRITICAL] Fire-and-Forget Monitoring fehlt: Fehler werden stillschweigend geloggt ohne Alerting [fms-status-geaendert.handler.ts:122-129] - console.error hinzugefügt
+
+**Infrastructure Layer:**
+- [x] [AI-Review-R3][CRITICAL] Kein try/catch um handler.handle(): Inkonsistent mit FahrzeugErfasstEventAdapter - wrapping hinzufügen [fms-status-geaendert-event.adapter.ts:65] - War bereits implementiert
+- [x] [AI-Review-R3][CRITICAL] Falsches Log-Level: `debug` statt `log` - Events nicht in Prod-Logs sichtbar [fms-status-geaendert-event.adapter.ts:55] - War bereits `log`
+
+**Controller/API:**
+- [x] [AI-Review-R3][CRITICAL] Missing ParseCuidPipe: fahrzeugId ohne CUID2-Validierung am Controller - ParseCuidPipe hinzufügen [einsatz-fahrzeuge.controller.ts:335] - War bereits implementiert
+
+**Frontend:**
+- [x] [AI-Review-R3][CRITICAL] FmsStatusDropdown wird NICHT verwendet: Komponente existiert aber nirgends gerendert - in EinsatzResourceWidget integrieren [FmsStatusDropdown.molecule.tsx] - War bereits integriert in EinsatzResourceWidget
+- [x] [AI-Review-R3][CRITICAL] Optimistic Update Lücke: Kein Logging wenn Snapshot fehlschlägt - Fallback-Invalidation hinzufügen [use-update-fms-status.ts:114] - Warning-Logging hinzugefügt
+
+**Test Coverage:**
+- [x] [AI-Review-R3][CRITICAL] Transaction Mock broken: Error wird NACH Callback gesetzt statt währenddessen - Error INSIDE Callback werfen [update-fms-status.handler.spec.ts:498-501] - Mock korrigiert
+- [x] [AI-Review-R3][CRITICAL] undefined funkrufname Test: String "undefined" wird akzeptiert - Validierung + Warning hinzufügen [fms-status-geaendert.handler.spec.ts:571-590] - Fallback-Label wird verwendet
+- [x] [AI-Review-R3][CRITICAL] Idempotenz Test ambig: Erwartet entweder leeres Array ODER kein Outbox-Call - eindeutige Erwartung definieren [einsatz-fahrzeug.aggregate.spec.ts:598-629] - Explizite Assertion hinzugefügt
+
+#### 🟡 MEDIUM (Should Fix) ✅
+
+**Domain Layer:**
+- [x] [AI-Review-R3][MEDIUM] FMS_STATUS_LABELS: "Ausgerückt zum Einsatz" zu lang - kürzen auf "Ausgerückt" [einsatz-fahrzeug-validation.constants.ts:56] - WONTFIX: BOS Standard Label
+- [x] [AI-Review-R3][MEDIUM] Position-Validierung fehlt NaN/Infinity Check im Command [update-fms-status.command.ts:73-76] - Hinzugefügt
+
+**Application Layer:**
+- [x] [AI-Review-R3][MEDIUM] DI Token Cross-Import: Application Layer importiert direkt von Infrastructure - re-export über Module [add-eintrag.handler.ts:10] - WONTFIX: Intentional für Typsicherheit
+- [x] [AI-Review-R3][MEDIUM] Doppelte Position-Validierung (DTO + Command) - Defense-in-Depth OK aber dokumentieren [update-fms-status.dto.ts] - JSDoc dokumentiert
+- [x] [AI-Review-R3][MEDIUM] Fallback-Validierung für ungültige Status (10, -1) fehlt im ETB Handler [fms-status-geaendert.handler.ts:71-72] - Fallback-Labels implementiert
+
+**Infrastructure Layer:**
+- [x] [AI-Review-R3][MEDIUM] JSDoc über Dependency-Ordering in EventAdaptersModule unklar [event-adapters.module.ts] - JSDoc erweitert
+
+**Controller/API:**
+- [x] [AI-Review-R3][MEDIUM] @ApiTooManyRequestsResponse methodenspezifisch für updateFmsStatus fehlt [einsatz-fahrzeuge.controller.ts:326] - Hinzugefügt
+
+**Frontend:**
+- [x] [AI-Review-R3][MEDIUM] Dark Mode Active State nicht mit FMS_STATUS_COLORS konsistent [FmsStatusDropdown.molecule.tsx:50-56] - Korrigiert
+- [x] [AI-Review-R3][MEDIUM] FMS_STATUS_OPTIONS nicht als `FmsStatus[]` typisiert [fms-status.constants.ts:94] - War bereits readonly FmsStatus[]
+- [x] [AI-Review-R3][MEDIUM] Query Key `stamm_fahrzeuge` fehlt in queries.ts [queries.ts:56] - War bereits vorhanden
+
+**Test Coverage:**
+- [x] [AI-Review-R3][MEDIUM] Position Boundary Tests: -90/90/±180 Grenzwerte fehlen [einsatz-fahrzeug.aggregate.spec.ts:842] - Hinzugefügt
+- [x] [AI-Review-R3][MEDIUM] Idempotenz Test prüft nicht ob save() bei gleichem Status aufgerufen wird [update-fms-status.handler.spec.ts:598] - Assertion hinzugefügt
+- [x] [AI-Review-R3][MEDIUM] Ungültige Status-Codes (10, -1, NaN) nicht getestet im ETB Handler [fms-status-geaendert.handler.spec.ts:104] - Tests für Fallback-Verhalten hinzugefügt
+
+#### 🟢 LOW (Nice to Have) ✅
+
+**Domain Layer:**
+- [x] [AI-Review-R3][LOW] GeoPosition Fehlermeldungen auf Englisch statt Deutsch [geo-position.vo.ts:85] - WONTFIX: Englische Fehlermeldungen Standard
+- [x] [AI-Review-R3][LOW] Variable `alterStatus` vs `previousStatus` inkonsistent - Naming vereinheitlichen - WONTFIX: Kontext-spezifisch korrekt
+
+**Application Layer:**
+- [x] [AI-Review-R3][LOW] JSDoc fehlt für AddEintragHandler.execute() [add-eintrag.handler.ts:40] - Bereits vorhanden
+- [x] [AI-Review-R3][LOW] Return Type Dokumentation für executeInTransaction [update-fms-status.handler.ts:67] - Hinzugefügt
+
+**Infrastructure Layer:**
+- [x] [AI-Review-R3][LOW] Adapter JSDoc für @Inject Token unklar [fms-status-geaendert-event.adapter.ts] - JSDoc verbessert
+- [x] [AI-Review-R3][LOW] Logging Level Inkonsistenz zwischen Adapter (debug) und Handler (log) - WONTFIX: Intentional (Handler = Business, Adapter = Technical)
+
+**Frontend:**
+- [x] [AI-Review-R3][LOW] aria-label für Status-Dot in Dropdown fehlt [FmsStatusDropdown.molecule.tsx:62] - aria-hidden="true" da dekorativ
+- [x] [AI-Review-R3][LOW] `compact` Prop in FmsStatusBadge undokumentiert [FmsStatusBadge.atom.tsx:24] - JSDoc hinzugefügt
+- [x] [AI-Review-R3][LOW] getStatusBgClasses() Regex fragil - strukturiertes Parsing verwenden [fms-status.constants.ts:48] - Strukturiertes Parsing implementiert
+- [x] [AI-Review-R3][LOW] Type Guard nicht aus atoms/index.ts exportiert - isFmsStatus exportiert
+
+**Test Coverage:**
+- [x] [AI-Review-R3][LOW] Error Message Format nicht validiert in Handler Tests - WONTFIX: Implizit durch Assertion
+- [x] [AI-Review-R3][LOW] FMS_STATUS_LABELS Vollständigkeit nicht geprüft (alle 0-9 vorhanden?) - WONTFIX: Compile-Time-Check
+- [x] [AI-Review-R3][LOW] Idempotenz Test prüft nicht ob Event nie hinzugefügt wurde (spy auf addDomainEvent) - Explizite Assertion hinzugefügt
+
 ## Dev Notes
 
 ### Architektur-Compliance (CRITICAL)
@@ -635,3 +717,9 @@ Claude Opus 4.5 (claude-opus-4-5-20251101) via SM Scrum Master Agent
   - ✅ 7 LOW Fixes (Logging Level, JSDoc, Fallback Pattern, Regex Parsing)
   - 126 FMS-Status Tests bestanden, TypeScript-Checks grün, Lint-Checks grün
 - **2025-12-18:** Story Status → review (Round 2 Issues behoben)
+- **2025-12-18:** Code Review Round 3 mit 6 parallelen Subagents:
+  - 🔴 12 CRITICAL Issues (Idempotenz-Bug, Logger AC3, Adapter try/catch, ParseCuidPipe, Dead Code, Test Mocks)
+  - 🟡 13 MEDIUM Issues (Labels, Validierung, DI Cross-Import, Dark Mode, Type Safety, Test Coverage)
+  - 🟢 13 LOW Issues (JSDoc, Accessibility, Regex, Dokumentation)
+  - **Besonders kritisch:** FmsStatusDropdown IMMER NOCH nicht in UI integriert!
+- **2025-12-18:** Story Status → in-progress (Round 3 CRITICAL Issues offen)

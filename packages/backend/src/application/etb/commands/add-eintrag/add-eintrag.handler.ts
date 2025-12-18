@@ -37,6 +37,43 @@ export class AddEintragHandler {
     private readonly createEtbHandler?: CreateEtbHandler,
   ) {}
 
+  /**
+   * Führt das Hinzufügen eines neuen Eintrags zum Einsatztagebuch aus.
+   *
+   * **Workflow:**
+   * 1. Validiert EtbId und UserId Format (Value Objects)
+   * 2. Lädt ETB-Aggregate (mit Auto-Creation falls nicht vorhanden)
+   * 3. Konvertiert Prisma Enum zu Domain Value Object (Kategorie)
+   * 4. Delegiert Business-Logic an Aggregate.addEintrag()
+   * 5. Persisted Aggregate mit neuem Eintrag
+   *
+   * **Auto-Creation (wenn ETB nicht gefunden):**
+   * - Prüft ob einsatzId im Command vorhanden
+   * - Erstellt ETB automatisch via CreateEtbHandler
+   * - Lädt neu erstelltes ETB und fährt mit Eintrag-Erstellung fort
+   *
+   * **DRK-Compliance:**
+   * - Aggregate erstellt automatisch Snapshot VOR der Mutation
+   * - Sequence Number wird automatisch vergeben (lückenlos)
+   *
+   * @param command - AddEintragCommand mit Eintragsdaten und ETB-ID
+   * @returns Result<EtbEintrag> - Success mit erstelltem Eintrag oder Failure mit Fehlermeldung
+   *
+   * @example
+   * ```typescript
+   * const command = AddEintragCommand.create(
+   *   'etb-id',
+   *   'Fahrzeug ausgerückt',
+   *   'user-id',
+   *   'FAHRZEUG',
+   *   'einsatz-id'
+   * );
+   * const result = await handler.execute(command.value);
+   * if (result.isSuccess) {
+   *   console.log('Eintrag erstellt:', result.value.text);
+   * }
+   * ```
+   */
   async execute(command: AddEintragCommand): Promise<Result<EtbEintrag>> {
     // Step 1: Validate EtbId format
     const etbIdResult = EtbId.create(command.etbId);

@@ -92,9 +92,24 @@ export const useUpdateFmsStatus = (einsatzId: string) => {
       // Snapshot für Rollback
       const previousFahrzeuge = queryClient.getQueryData<EinsatzFahrzeugDto[]>(EINSATZ_QUERY_KEYS.fahrzeuge(einsatzId));
 
+      // Warnung wenn Snapshot fehlschlägt
+      if (!previousFahrzeuge) {
+        logger.warn('Optimistic Update: Kein vorheriger Snapshot verfügbar', {
+          einsatzId,
+          fahrzeugId: variables.fahrzeugId,
+        });
+      }
+
       // Optimistic Update: FMS-Status sofort ändern
-      queryClient.setQueryData<EinsatzFahrzeugDto[]>(EINSATZ_QUERY_KEYS.fahrzeuge(einsatzId), (old) =>
-        old?.map((f) =>
+      queryClient.setQueryData<EinsatzFahrzeugDto[]>(EINSATZ_QUERY_KEYS.fahrzeuge(einsatzId), (old) => {
+        if (!old) {
+          logger.warn('Optimistic Update: Keine bestehenden Fahrzeugdaten gefunden', {
+            einsatzId,
+            fahrzeugId: variables.fahrzeugId,
+          });
+          return old;
+        }
+        return old.map((f) =>
           f.id === variables.fahrzeugId
             ? {
                 ...f,
@@ -102,8 +117,8 @@ export const useUpdateFmsStatus = (einsatzId: string) => {
                 position: variables.position ?? f.position,
               }
             : f,
-        ),
-      );
+        );
+      });
 
       return { previousFahrzeuge, einsatzId };
     },
@@ -111,8 +126,18 @@ export const useUpdateFmsStatus = (einsatzId: string) => {
       logger.error('Fehler beim Aktualisieren des FMS-Status', { error, einsatzId: context?.einsatzId, fahrzeugId });
 
       // Rollback bei Fehler
-      if (context?.previousFahrzeuge && context?.einsatzId) {
-        queryClient.setQueryData(EINSATZ_QUERY_KEYS.fahrzeuge(context.einsatzId), context.previousFahrzeuge);
+      if (context?.einsatzId) {
+        if (context.previousFahrzeuge) {
+          // Rollback mit Snapshot
+          queryClient.setQueryData(EINSATZ_QUERY_KEYS.fahrzeuge(context.einsatzId), context.previousFahrzeuge);
+        } else {
+          // Fallback: Invalidierung wenn kein Snapshot vorhanden
+          logger.warn('Optimistic Update Rollback: Kein Snapshot verfügbar, invalidiere Query', {
+            einsatzId: context.einsatzId,
+            fahrzeugId,
+          });
+          await queryClient.invalidateQueries({ queryKey: EINSATZ_QUERY_KEYS.fahrzeuge(context.einsatzId) });
+        }
       }
     },
     onSuccess: async (fahrzeug, _variables, context) => {

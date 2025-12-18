@@ -517,23 +517,24 @@ export class EinsatzFahrzeug extends AggregateRoot<EinsatzFahrzeugId> {
     }
 
     // Speichere alten Status VOR Mutation für Event (AC2)
-    const alterStatus = this._fmsStatus;
+    const previousStatus = this._fmsStatus;
 
     // Idempotenz: Prüfe ob Status sich wirklich ändert
-    const statusChanged = alterStatus !== props.fmsStatus;
+    const statusChanged = previousStatus !== props.fmsStatus;
 
-    // Update State (nur nach erfolgreicher Validierung aller Inputs)
-    this._fmsStatus = props.fmsStatus;
+    // Emit FMS-Status Changed Event NUR wenn Status sich geändert hat (AC2: für ETB Auto-Eintrag)
+    // Idempotenz: Keine State-Mutation und Event-Emission bei unverändertem Status → verhindert ETB-Spam
+    if (statusChanged) {
+      // Update State (NUR bei Änderung)
+      this._fmsStatus = props.fmsStatus;
+      this.updateTimestamp(); // NUR bei echter Änderung Timestamp updaten (Idempotenz)
+      this.addDomainEvent(new FmsStatusGeaendertEvent(this._id.value, this._einsatzId, this._funkrufname, previousStatus, props.fmsStatus, trimmedUpdatedBy));
+    }
+
+    // updatedBy und position können auch bei gleichem Status aktualisiert werden (Metadata-Update)
     this._updatedBy = trimmedUpdatedBy;
     if (validatedPosition !== undefined) {
       this._position = validatedPosition;
-    }
-    this.updateTimestamp();
-
-    // Emit FMS-Status Changed Event NUR wenn Status sich geändert hat (AC2: für ETB Auto-Eintrag)
-    // Idempotenz: Keine Event-Emission bei unverändertem Status → verhindert ETB-Spam
-    if (statusChanged) {
-      this.addDomainEvent(new FmsStatusGeaendertEvent(this._id.value, this._einsatzId, this._funkrufname, alterStatus, props.fmsStatus, trimmedUpdatedBy));
     }
 
     return Result.ok<void>(undefined);

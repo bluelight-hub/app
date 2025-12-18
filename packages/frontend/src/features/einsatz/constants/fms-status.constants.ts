@@ -6,7 +6,7 @@ export const FMS_STATUS_LABELS: Record<number, string> = {
   0: 'Nicht einsatzbereit',
   1: 'Auf Wache',
   2: 'Einsatzbereit',
-  3: 'Ausgerückt zum Einsatz',
+  3: 'Ausgerückt',
   4: 'Am Einsatzort',
   5: 'Sprechwunsch',
   6: 'Außer Dienst',
@@ -48,10 +48,11 @@ export const getStatusClasses = (status: number): string => {
 export const getStatusBgClasses = (status: number): string => {
   const colors = FMS_STATUS_COLORS[status] ?? FMS_STATUS_COLORS[6];
 
-  // Extrahiere bg-* Klassen mit Regex für Robustheit
+  // Extrahiere bg-* Klassen mit strukturiertem Parsing
   const extractBgClass = (classString: string): string => {
-    const match = classString.match(/\bbg-[^\s]+/);
-    return match ? match[0] : '';
+    const classes = classString.split(/\s+/);
+    const bgClass = classes.find((cls) => cls.startsWith('bg-'));
+    return bgClass ?? '';
   };
 
   const lightBg = extractBgClass(colors.light);
@@ -90,5 +91,6 @@ export const isFmsStatus = (value: unknown): value is FmsStatus => {
 
 /**
  * Alle verfügbaren FMS-Status Codes (0-9).
+ * Type: Array of FmsStatus values (0-9)
  */
-export const FMS_STATUS_OPTIONS = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9] as const;
+export const FMS_STATUS_OPTIONS: readonly FmsStatus[] = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9] as const;

@@ -25,6 +25,9 @@ export const USER_REPOSITORY = Symbol('IUserRepository');
 /** Service Token für IJwtAuthServicePort */
 export const JWT_AUTH_SERVICE = Symbol('IJwtAuthServicePort');
 
+/** Logger Token für ILogger */
+export const LOGGER = Symbol('ILogger');
+
 /** Repository Token für IEinsatzRepository (bereits in Story 4-5) */
 export const EINSATZ_REPOSITORY = Symbol('IEinsatzRepository');
 

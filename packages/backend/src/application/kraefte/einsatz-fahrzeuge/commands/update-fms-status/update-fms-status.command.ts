@@ -71,6 +71,12 @@ export class UpdateFmsStatusCommand {
 
     // Validation: position (optional)
     if (props.position) {
+      // Defense in Depth: Check for NaN/Infinity before range checks
+      // Number.isFinite() rejects NaN, Infinity, -Infinity
+      if (!Number.isFinite(props.position.lat) || !Number.isFinite(props.position.lng)) {
+        return Result.fail<UpdateFmsStatusCommand>('Position ungültig: lat und lng müssen gültige Zahlen sein (kein NaN oder Infinity)');
+      }
+      // Check WGS84 coordinate ranges
       if (props.position.lat < -90 || props.position.lat > 90 || props.position.lng < -180 || props.position.lng > 180) {
         return Result.fail<UpdateFmsStatusCommand>('Position ungültig: lat muss zwischen -90 und 90, lng zwischen -180 und 180 liegen');
       }

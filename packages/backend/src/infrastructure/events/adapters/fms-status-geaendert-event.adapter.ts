@@ -31,7 +31,18 @@ export class FmsStatusGeaendertEventAdapter {
   private readonly logger = new Logger(FmsStatusGeaendertEventAdapter.name);
 
   /**
-   * @param handler - Application Layer Handler für ETB-Eintrag Creation
+   * Konstruktor injiziert Application Layer Event Handler via DI Token.
+   *
+   * **Warum DI Token statt direkter Import?**
+   * - Entkoppelt Infrastructure Layer von Application Layer Implementierung
+   * - Ermöglicht einfaches Testen durch Mock-Injection
+   * - Vermeidet zirkuläre Dependencies zwischen Layern
+   *
+   * @param handler - Application Layer Handler für ETB-Eintrag Creation nach FMS-Status-Änderung.
+   *                  Wird via DI Token `EVENT_HANDLER.FMS_STATUS_GEAENDERT_ETB` injiziert
+   *                  (definiert in `infrastructure/di-tokens.ts`, gebunden in `event-adapters.module.ts`).
+   *                  Handler implementiert `IEventHandler<FmsStatusGeaendertEvent>` Port (Domain Layer)
+   *                  und ist vollständig framework-agnostisch (keine NestJS Dependencies).
    */
   constructor(
     @Inject(EVENT_HANDLER.FMS_STATUS_GEAENDERT_ETB)
@@ -52,17 +63,25 @@ export class FmsStatusGeaendertEventAdapter {
    */
   @OnEvent(FmsStatusGeaendertEvent.eventName())
   async onFmsStatusGeaendert(event: FmsStatusGeaendertEvent): Promise<void> {
-    this.logger.debug(`Received FmsStatusGeaendertEvent`, {
+    this.logger.log(`Received FmsStatusGeaendertEvent`, {
       eventId: event.eventId,
       einsatzId: event.einsatzId,
       einsatzFahrzeugId: event.einsatzFahrzeugId,
       funkrufname: event.funkrufname,
-      alterStatus: event.alterStatus,
+      previousStatus: event.previousStatus,
       neuerStatus: event.neuerStatus,
       eventName: FmsStatusGeaendertEvent.eventName(),
     });
 
-    await this.handler.handle(event);
-    // Handler implementiert bereits Fire-and-Forget mit try/catch
+    try {
+      await this.handler.handle(event);
+    } catch (error) {
+      // Fire-and-Forget: Fehler loggen, NICHT propagieren
+      this.logger.error(`Unerwarteter Fehler im FmsStatusGeaendert Handler`, {
+        eventId: event.eventId,
+        error: error instanceof Error ? error.message : String(error),
+        stack: error instanceof Error ? error.stack : undefined,
+      });
+    }
   }
 }

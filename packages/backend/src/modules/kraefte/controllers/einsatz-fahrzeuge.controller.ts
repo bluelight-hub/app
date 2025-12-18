@@ -15,6 +15,7 @@ import {
   Logger,
   ParseUUIDPipe,
 } from '@nestjs/common';
+import { ParseCuidPipe } from '@/infrastructure/http/pipes/parse-cuid.pipe';
 import {
   ApiTags,
   ApiBearerAuth,
@@ -313,6 +314,9 @@ export class EinsatzFahrzeugeController {
    * **AC5 - Position Update:**
    * Optional kann GPS-Position mitgesendet werden.
    *
+   * **Rate Limiting:**
+   * Nutzt ADMIN_MUTATION_RATE_LIMIT für häufige Status-Updates.
+   *
    * @param einsatzId - UUID des Einsatzes
    * @param id - CUID2 des EinsatzFahrzeugs
    * @param user - Aktueller Admin-Benutzer (aus JWT Token)
@@ -330,9 +334,10 @@ export class EinsatzFahrzeugeController {
   @ApiOkResponse({ type: EinsatzFahrzeugDto, description: 'FMS-Status erfolgreich aktualisiert' })
   @ApiBadRequestResponse({ description: 'Ungültiger FMS-Status (muss 0-9 sein)' })
   @ApiNotFoundResponse({ description: 'EinsatzFahrzeug nicht gefunden' })
+  @ApiTooManyRequestsResponse({ description: 'Rate limit überschritten' })
   async updateFmsStatus(
     @Param('einsatzId', ParseUUIDPipe) einsatzId: string,
-    @Param('id') id: string,
+    @Param('id', ParseCuidPipe) id: string,
     @Body() dto: UpdateFmsStatusDto,
     @CurrentUser() user: ValidatedUser,
   ): Promise<EinsatzFahrzeugDto> {

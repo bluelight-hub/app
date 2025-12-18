@@ -16,9 +16,11 @@
  * @see FmsStatusGeaendertEvent - Trigger Event (Domain Event via Outbox)
  * @see AddEintragHandler - Delegierter Command Handler
  */
-import { Injectable, Logger } from '@nestjs/common';
+import { Inject, Injectable } from '@nestjs/common';
 import type { IEventHandler } from '@domain/ports/i-event-handler.port';
+import type { ILogger } from '@domain/ports/i-logger.port';
 import type { FmsStatusGeaendertEvent } from '@domain/kraefte/events/fms-status-geaendert.event';
+import { LOGGER } from '@infrastructure/di-tokens';
 import { AddEintragCommand } from '../commands/add-eintrag/add-eintrag.command';
 // biome-ignore lint/style/useImportType: AddEintragHandler needed for DI at runtime
 import { AddEintragHandler } from '../commands/add-eintrag/add-eintrag.handler';
@@ -44,9 +46,10 @@ import { FMS_STATUS_LABELS } from '@domain/kraefte/constants/einsatz-fahrzeug-va
  */
 @Injectable()
 export class FmsStatusGeaendertEventHandler implements IEventHandler<FmsStatusGeaendertEvent> {
-  private readonly logger = new Logger(FmsStatusGeaendertEventHandler.name);
-
-  constructor(private readonly addEintragHandler: AddEintragHandler) {}
+  constructor(
+    private readonly addEintragHandler: AddEintragHandler,
+    @Inject(LOGGER) private readonly logger: ILogger,
+  ) {}
 
   /**
    * Verarbeitet FmsStatusGeaendertEvent und erstellt automatisch einen ETB-Eintrag.
@@ -59,20 +62,48 @@ export class FmsStatusGeaendertEventHandler implements IEventHandler<FmsStatusGe
       einsatzId: event.einsatzId,
       einsatzFahrzeugId: event.einsatzFahrzeugId,
       funkrufname: event.funkrufname,
-      alterStatus: event.alterStatus,
+      previousStatus: event.previousStatus,
       neuerStatus: event.neuerStatus,
     });
 
     try {
+      // Validation: funkrufname sollte nicht undefined sein (korrupte Event-Daten)
+      if (!event.funkrufname) {
+        this.logger.warn(`FmsStatusGeaendertEvent has undefined funkrufname - possible corrupted data`, {
+          einsatzId: event.einsatzId,
+          einsatzFahrzeugId: event.einsatzFahrzeugId,
+        });
+      }
+
       // ETB-ID entspricht der EinsatzId (1:1 Beziehung)
       const etbId = event.einsatzId;
 
-      // Status Labels für den Eintrag
-      const alterLabel = FMS_STATUS_LABELS[event.alterStatus as keyof typeof FMS_STATUS_LABELS] ?? `Status ${event.alterStatus}`;
-      const neuerLabel = FMS_STATUS_LABELS[event.neuerStatus as keyof typeof FMS_STATUS_LABELS] ?? `Status ${event.neuerStatus}`;
+      // Validation: Status-Codes müssen gültig sein (0-9, integer)
+      // Sollte normalerweise nicht auftreten, da Domain bereits validiert.
+      // Wenn korrupte Daten vorliegen, ABBRECHEN statt fehlerhafte Einträge zu erstellen.
+      const isValidStatus = (status: number): status is keyof typeof FMS_STATUS_LABELS => {
+        return Number.isInteger(status) && status >= 0 && status <= 9;
+      };
+
+      // CRITICAL: Bei ungültigen Status-Codes Event ABLEHNEN (Fire-and-Forget Error)
+      // Grund: Korrupte Daten sollten nicht ins ETB geschrieben werden
+      if (!isValidStatus(event.previousStatus) || !isValidStatus(event.neuerStatus)) {
+        this.logger.error(`Invalid FMS status codes in event`, {
+          einsatzId: event.einsatzId,
+          einsatzFahrzeugId: event.einsatzFahrzeugId,
+          previousStatus: event.previousStatus,
+          neuerStatus: event.neuerStatus,
+          severity: 'ERROR',
+          actionRequired: 'Check domain validation logic - invalid status codes should be rejected earlier',
+        });
+        return; // Fire-and-Forget: Event verwerfen bei korrupten Daten
+      }
+
+      const previousLabel = FMS_STATUS_LABELS[event.previousStatus];
+      const neuerLabel = FMS_STATUS_LABELS[event.neuerStatus];
 
       // ETB-Text mit Status-Änderung
-      const text = `Fahrzeug ${event.funkrufname} Status: ${alterLabel} → ${neuerLabel}`;
+      const text = `Fahrzeug ${event.funkrufname} Status: ${previousLabel} → ${neuerLabel}`;
 
       // Command erstellen mit Validierung
       // AddEintragCommand.create(etbId, text, userId, kategorie, einsatzId, metadata)
@@ -85,16 +116,23 @@ export class FmsStatusGeaendertEventHandler implements IEventHandler<FmsStatusGe
         {
           eventType: 'FmsStatusGeaendert',
           einsatzFahrzeugId: event.einsatzFahrzeugId,
-          alterStatus: event.alterStatus,
+          previousStatus: event.previousStatus,
           neuerStatus: event.neuerStatus,
         },
       );
 
       if (commandResult.isFailure) {
-        this.logger.error(`Failed to create AddEintragCommand for FmsStatusGeaendert`, {
+        const errorContext = {
           einsatzId: event.einsatzId,
+          einsatzFahrzeugId: event.einsatzFahrzeugId,
+          funkrufname: event.funkrufname,
           error: commandResult.error,
-        });
+          severity: 'ERROR',
+          actionRequired: 'Check command validation logic',
+        };
+        this.logger.error(`Failed to create AddEintragCommand for FmsStatusGeaendert`, errorContext);
+        // Fire-and-Forget Monitoring: Zusätzliches console.error für externe Monitoring-Systeme
+        console.error('[FMS_ETB_ERROR]', errorContext);
         return; // Fire-and-Forget: Nicht propagieren
       }
 
@@ -103,11 +141,19 @@ export class FmsStatusGeaendertEventHandler implements IEventHandler<FmsStatusGe
       const result = await this.addEintragHandler.execute(commandResult.value!);
 
       if (result.isFailure) {
-        this.logger.error(`Failed to add ETB entry for FmsStatusGeaendert`, {
+        const errorContext = {
           einsatzId: event.einsatzId,
           einsatzFahrzeugId: event.einsatzFahrzeugId,
+          funkrufname: event.funkrufname,
+          previousStatus: event.previousStatus,
+          neuerStatus: event.neuerStatus,
           error: result.error,
-        });
+          severity: 'ERROR',
+          actionRequired: 'Manual ETB entry may be needed',
+        };
+        this.logger.error(`Failed to add ETB entry for FmsStatusGeaendert`, errorContext);
+        // Fire-and-Forget Monitoring: Zusätzliches console.error für externe Monitoring-Systeme
+        console.error('[FMS_ETB_ERROR]', errorContext);
         return; // Fire-and-Forget: Nicht propagieren
       }
 
@@ -116,16 +162,28 @@ export class FmsStatusGeaendertEventHandler implements IEventHandler<FmsStatusGe
         einsatzId: event.einsatzId,
         einsatzFahrzeugId: event.einsatzFahrzeugId,
         funkrufname: event.funkrufname,
-        alterStatus: `${alterLabel} (${event.alterStatus})`,
-        neuerStatus: `${neuerLabel} (${event.neuerStatus})`,
+        previousStatus: `${event.previousStatusLabel} (${event.previousStatus})`,
+        neuerStatus: `${event.neuerStatusLabel} (${event.neuerStatus})`,
       });
     } catch (error) {
-      // Unerwarteter Fehler: Mit Stack Trace loggen
-      this.logger.error(`Unexpected error during ETB entry creation for FmsStatusGeaendert`, {
+      // Unerwarteter Fehler: Mit Stack Trace loggen für Monitoring/Alerting
+      // CRITICAL: Fire-and-Forget Fehler - erfordert manuelle Nachbearbeitung
+      const criticalContext = {
         einsatzId: event.einsatzId,
+        einsatzFahrzeugId: event.einsatzFahrzeugId,
+        funkrufname: event.funkrufname,
+        previousStatus: event.previousStatus,
+        neuerStatus: event.neuerStatus,
+        geaendertVon: event.geaendertVon,
         error: error instanceof Error ? error.message : String(error),
         stack: error instanceof Error ? error.stack : undefined,
-      });
+        severity: 'CRITICAL',
+        actionRequired: 'Manual ETB entry may be needed',
+      };
+      this.logger.error(`CRITICAL: Unexpected error during ETB entry creation for FmsStatusGeaendert`, criticalContext);
+      // Fire-and-Forget Monitoring: Zusätzliches console.error für externe Monitoring-Systeme
+      // Dies ermöglicht Log-Aggregation und Alerting via externe Tools (z.B. Sentry, Datadog)
+      console.error('[FMS_ETB_CRITICAL]', criticalContext);
       // Fire-and-Forget: NICHT re-thrown!
     }
   }

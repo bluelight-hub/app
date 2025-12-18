@@ -63,6 +63,10 @@ export class UpdateFmsStatusHandler extends TransactionalCommandHandler<UpdateFm
    * 4. Aggregate speichern
    * 5. Fahrzeugtyp laden für Response DTO
    * 6. Domain Events extrahieren für Outbox
+   *
+   * @param command - UpdateFmsStatusCommand mit FMS-Status und optionaler Position
+   * @param tx - TransactionContext für atomare Persistierung (DB Transaction)
+   * @returns Result<{ result: EinsatzFahrzeugDto; events: DomainEvent[] }> - Success mit DTO und Events oder Failure mit Fehlermeldung
    */
   protected async executeInTransaction(command: UpdateFmsStatusCommand, tx: TransactionContext): Promise<Result<{ result: EinsatzFahrzeugDto; events: DomainEvent[] }>> {
     // 1. Validate EinsatzFahrzeugId format
@@ -102,10 +106,16 @@ export class UpdateFmsStatusHandler extends TransactionalCommandHandler<UpdateFm
       return Result.fail(updateResult.error ?? 'Fehler beim FMS-Status Update');
     }
 
-    // 5. Save Aggregate in Transaction
-    const saveResult = await this.einsatzFahrzeugRepository.save(fahrzeug, tx);
-    if (saveResult.isFailure) {
-      return Result.fail(saveResult.error ?? 'Fehler beim Speichern des EinsatzFahrzeugs');
+    // 5. Extract Domain Events (vor dem Save um Idempotenz zu prüfen)
+    const events = fahrzeug.getDomainEvents();
+
+    // 5a. Save Aggregate NUR wenn Events vorhanden (Idempotenz)
+    // Bei unverändertem Status emittiert Aggregate KEIN Event → kein Save nötig
+    if (events.length > 0) {
+      const saveResult = await this.einsatzFahrzeugRepository.save(fahrzeug, tx);
+      if (saveResult.isFailure) {
+        return Result.fail(saveResult.error ?? 'Fehler beim Speichern des EinsatzFahrzeugs');
+      }
     }
 
     // 6. Load Fahrzeugtyp for Response DTO
@@ -120,11 +130,10 @@ export class UpdateFmsStatusHandler extends TransactionalCommandHandler<UpdateFm
     }
     const fahrzeugtyp = fahrzeugtypResult.value;
 
-    // 7. Extract Domain Events (für Outbox - AC3)
-    const events = fahrzeug.getDomainEvents();
+    // 7. Clear Domain Events (nach Extraktion)
     fahrzeug.clearDomainEvents();
 
-    this.logger.log(`FMS-Status aktualisiert: ${fahrzeug.id.value} (${fahrzeug.funkrufname}) zu Status ${command.fmsStatus}`);
+    this.logger.log(`FMS-Status aktualisiert: ${fahrzeug.id.value} (${fahrzeug.funkrufname}) zu Status ${command.fmsStatus}${events.length === 0 ? ' (idempotent)' : ''}`);
 
     // 8. Map to DTO and return
     const dto = EinsatzFahrzeugQueryMapper.toDto(fahrzeug, fahrzeugtyp);

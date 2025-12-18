@@ -55,7 +55,7 @@ function createTestEvent(
     einsatzFahrzeugId: string;
     einsatzId: string;
     funkrufname: string;
-    alterStatus: number;
+    previousStatus: number;
     neuerStatus: number;
     geaendertVon: string;
   }> = {},
@@ -64,7 +64,7 @@ function createTestEvent(
     overrides.einsatzFahrzeugId ?? generateTestCuid(),
     overrides.einsatzId ?? generateTestUuid(),
     overrides.funkrufname ?? 'Florian 1/46',
-    overrides.alterStatus ?? 2,
+    overrides.previousStatus ?? 2,
     overrides.neuerStatus ?? 4,
     overrides.geaendertVon ?? generateTestCuid(),
   );
@@ -87,18 +87,16 @@ describe('FmsStatusGeaendertEventHandler', () => {
       execute: jest.fn(),
     } as unknown as jest.Mocked<AddEintragHandler>;
 
-    // Mock Logger
+    // Mock Logger (ILogger interface)
     mockLogger = {
       log: jest.fn(),
       warn: jest.fn(),
       error: jest.fn(),
+      debug: jest.fn(),
     };
 
-    // Handler mit Mocks instanziieren
-    handler = new FmsStatusGeaendertEventHandler(mockAddEintragHandler);
-
-    // Logger-Instanz durch Mock ersetzen (private property)
-    (handler as unknown as { logger: typeof mockLogger }).logger = mockLogger;
+    // Handler mit Mocks instanziieren (inkl. Logger via DI)
+    handler = new FmsStatusGeaendertEventHandler(mockAddEintragHandler, mockLogger);
   });
 
   describe('AC1: Handler sollte AddEintragHandler.execute() mit korrektem Command aufrufen', () => {
@@ -106,7 +104,7 @@ describe('FmsStatusGeaendertEventHandler', () => {
       // Arrange
       const event = createTestEvent({
         funkrufname: 'Florian 1/46',
-        alterStatus: 2,
+        previousStatus: 2,
         neuerStatus: 4,
       });
 
@@ -124,7 +122,7 @@ describe('FmsStatusGeaendertEventHandler', () => {
     it('should use status label lookup for all status codes', async () => {
       // Arrange
       const event = createTestEvent({
-        alterStatus: 0,
+        previousStatus: 0,
         neuerStatus: 9,
       });
 
@@ -202,7 +200,7 @@ describe('FmsStatusGeaendertEventHandler', () => {
       // Arrange
       const event = createTestEvent({
         einsatzFahrzeugId: generateTestCuid(),
-        alterStatus: 2,
+        previousStatus: 2,
         neuerStatus: 4,
       });
 
@@ -216,7 +214,7 @@ describe('FmsStatusGeaendertEventHandler', () => {
       expect(receivedCommand.metadata).toEqual({
         eventType: 'FmsStatusGeaendert',
         einsatzFahrzeugId: event.einsatzFahrzeugId,
-        alterStatus: event.alterStatus,
+        previousStatus: event.previousStatus,
         neuerStatus: event.neuerStatus,
       });
     });
@@ -239,7 +237,7 @@ describe('FmsStatusGeaendertEventHandler', () => {
           einsatzId: event.einsatzId,
           einsatzFahrzeugId: event.einsatzFahrzeugId,
           funkrufname: event.funkrufname,
-          alterStatus: event.alterStatus,
+          previousStatus: event.previousStatus,
           neuerStatus: event.neuerStatus,
         }),
       );
@@ -249,7 +247,7 @@ describe('FmsStatusGeaendertEventHandler', () => {
       // Arrange
       const event = createTestEvent({
         funkrufname: 'Florian 1/46',
-        alterStatus: 2,
+        previousStatus: 2,
         neuerStatus: 4,
       });
 
@@ -265,7 +263,7 @@ describe('FmsStatusGeaendertEventHandler', () => {
           einsatzId: event.einsatzId,
           einsatzFahrzeugId: event.einsatzFahrzeugId,
           funkrufname: event.funkrufname,
-          alterStatus: `${FMS_STATUS_LABELS[2]} (2)`,
+          previousStatus: `${FMS_STATUS_LABELS[2]} (2)`,
           neuerStatus: `${FMS_STATUS_LABELS[4]} (4)`,
         }),
       );
@@ -353,11 +351,15 @@ describe('FmsStatusGeaendertEventHandler', () => {
 
       // Assert
       expect(mockLogger.error).toHaveBeenCalledWith(
-        'Unexpected error during ETB entry creation for FmsStatusGeaendert',
+        'CRITICAL: Unexpected error during ETB entry creation for FmsStatusGeaendert',
         expect.objectContaining({
           einsatzId: event.einsatzId,
+          einsatzFahrzeugId: event.einsatzFahrzeugId,
+          funkrufname: event.funkrufname,
           error: 'Database connection failed',
           stack: expect.any(String),
+          severity: 'CRITICAL',
+          actionRequired: 'Manual ETB entry may be needed',
         }),
       );
     });
@@ -388,9 +390,11 @@ describe('FmsStatusGeaendertEventHandler', () => {
       await expect(handler.handle(event)).resolves.toBeUndefined();
 
       expect(mockLogger.error).toHaveBeenCalledWith(
-        'Unexpected error during ETB entry creation for FmsStatusGeaendert',
+        'CRITICAL: Unexpected error during ETB entry creation for FmsStatusGeaendert',
         expect.objectContaining({
           error: 'String error',
+          severity: 'CRITICAL',
+          actionRequired: 'Manual ETB entry may be needed',
         }),
       );
     });
@@ -447,7 +451,7 @@ describe('FmsStatusGeaendertEventHandler', () => {
     it('should extract status codes and convert to labels correctly', async () => {
       // Arrange
       const event = createTestEvent({
-        alterStatus: 1,
+        previousStatus: 1,
         neuerStatus: 3,
       });
 
@@ -466,7 +470,7 @@ describe('FmsStatusGeaendertEventHandler', () => {
       for (let status = 0; status <= 9; status++) {
         jest.clearAllMocks();
         const event = createTestEvent({
-          alterStatus: 2,
+          previousStatus: 2,
           neuerStatus: status,
         });
 
@@ -511,7 +515,7 @@ describe('FmsStatusGeaendertEventHandler', () => {
     it('should handle status transitions between same values', async () => {
       // Arrange
       const event = createTestEvent({
-        alterStatus: 2,
+        previousStatus: 2,
         neuerStatus: 2,
       });
 
@@ -568,25 +572,37 @@ describe('FmsStatusGeaendertEventHandler', () => {
       expect(mockLogger.error).toHaveBeenCalled();
     });
 
-    it('should handle edge case with undefined funkrufname gracefully', async () => {
-      // Given (Arrange) - Event mit undefined funkrufname (korrupte Daten)
+    it('should log warning but continue processing when funkrufname is undefined', async () => {
+      // Given (Arrange) - Event mit undefined funkrufname (Defense-in-Depth für korrupte Event-Daten)
       const corruptedEvent = new FmsStatusGeaendertEvent(
         generateTestCuid(), // einsatzFahrzeugId
         generateTestUuid(), // einsatzId
-        undefined as any, // funkrufname: undefined (corrupt data)
-        2, // alterStatus
+        undefined as any, // funkrufname: undefined (corrupt data - sollte durch Domain validiert sein)
+        2, // previousStatus
         4, // neuerStatus
         generateTestCuid(), // geaendertVon
       );
       mockAddEintragHandler.execute.mockResolvedValue(Result.ok(undefined));
 
-      // When (Act & Assert) - Fire-and-Forget: keine Exception werfen
-      await expect(handler.handle(corruptedEvent)).resolves.not.toThrow();
+      // When (Act) - Fire-and-Forget Handler verarbeitet Event
+      await handler.handle(corruptedEvent);
 
-      // Then (Assert) - Handler verarbeitet trotzdem (mit "undefined" im Text)
+      // Then (Assert)
+      // 1. Warning wird geloggt für Monitoring/Alerting
+      expect(mockLogger.warn).toHaveBeenCalledWith(
+        'FmsStatusGeaendertEvent has undefined funkrufname - possible corrupted data',
+        expect.objectContaining({
+          einsatzId: corruptedEvent.einsatzId,
+          einsatzFahrzeugId: corruptedEvent.einsatzFahrzeugId,
+        }),
+      );
+
+      // 2. Processing setzt fort (Fire-and-Forget: keine Exception)
       expect(mockAddEintragHandler.execute).toHaveBeenCalledTimes(1);
+
+      // 3. ETB-Text enthält "undefined" string (sichtbar für Operator zur manuellen Korrektur)
       const receivedCommand = mockAddEintragHandler.execute.mock.calls[0][0];
-      expect(receivedCommand.text).toContain('undefined'); // funkrufname wird als "undefined" string gerendert
+      expect(receivedCommand.text).toContain('undefined');
     });
 
     it('should handle edge case with null neuerStatus gracefully', async () => {
@@ -595,7 +611,7 @@ describe('FmsStatusGeaendertEventHandler', () => {
         generateTestCuid(), // einsatzFahrzeugId
         generateTestUuid(), // einsatzId
         'Florian 1/46', // funkrufname
-        2, // alterStatus
+        2, // previousStatus
         null as any, // neuerStatus: null (corrupt data)
         generateTestCuid(), // geaendertVon
       );
@@ -604,8 +620,97 @@ describe('FmsStatusGeaendertEventHandler', () => {
       // When (Act & Assert) - Fire-and-Forget: keine Exception werfen
       await expect(handler.handle(corruptedEvent)).resolves.not.toThrow();
 
-      // Then (Assert) - Handler verarbeitet trotzdem
-      expect(mockAddEintragHandler.execute).toHaveBeenCalledTimes(1);
+      // Then (Assert) - Handler should NOT process due to validation (returns early)
+      expect(mockAddEintragHandler.execute).not.toHaveBeenCalled();
+      expect(mockLogger.error).toHaveBeenCalledWith(
+        'Invalid FMS status codes in event',
+        expect.objectContaining({
+          einsatzId: corruptedEvent.einsatzId,
+          einsatzFahrzeugId: corruptedEvent.einsatzFahrzeugId,
+          severity: 'ERROR',
+          actionRequired: 'Check domain validation logic - invalid status codes should be rejected earlier',
+        }),
+      );
+    });
+
+    it('should reject invalid status code 10 (above maximum)', async () => {
+      // Given (Arrange) - Status 10 ist ungültig (max: 9)
+      const corruptedEvent = new FmsStatusGeaendertEvent(
+        generateTestCuid(),
+        generateTestUuid(),
+        'Florian 1/46',
+        2, // previousStatus: valid
+        10 as any, // neuerStatus: 10 (invalid - above max)
+        generateTestCuid(),
+      );
+      mockAddEintragHandler.execute.mockResolvedValue(Result.ok(undefined));
+
+      // When (Act)
+      await handler.handle(corruptedEvent);
+
+      // Then (Assert) - Handler should reject and log error
+      expect(mockAddEintragHandler.execute).not.toHaveBeenCalled();
+      expect(mockLogger.error).toHaveBeenCalledWith(
+        'Invalid FMS status codes in event',
+        expect.objectContaining({
+          neuerStatus: 10,
+          severity: 'ERROR',
+          actionRequired: 'Check domain validation logic - invalid status codes should be rejected earlier',
+        }),
+      );
+    });
+
+    it('should reject invalid status code -1 (below minimum)', async () => {
+      // Given (Arrange) - Status -1 ist ungültig (min: 0)
+      const corruptedEvent = new FmsStatusGeaendertEvent(
+        generateTestCuid(),
+        generateTestUuid(),
+        'Florian 1/46',
+        -1 as any, // previousStatus: -1 (invalid - below min)
+        4, // neuerStatus: valid
+        generateTestCuid(),
+      );
+      mockAddEintragHandler.execute.mockResolvedValue(Result.ok(undefined));
+
+      // When (Act)
+      await handler.handle(corruptedEvent);
+
+      // Then (Assert) - Handler should reject and log error
+      expect(mockAddEintragHandler.execute).not.toHaveBeenCalled();
+      expect(mockLogger.error).toHaveBeenCalledWith(
+        'Invalid FMS status codes in event',
+        expect.objectContaining({
+          previousStatus: -1,
+          severity: 'ERROR',
+        }),
+      );
+    });
+
+    it('should reject NaN status code', async () => {
+      // Given (Arrange) - NaN ist kein gültiger Status
+      const corruptedEvent = new FmsStatusGeaendertEvent(
+        generateTestCuid(),
+        generateTestUuid(),
+        'Florian 1/46',
+        2, // previousStatus: valid
+        Number.NaN as any, // neuerStatus: NaN (invalid)
+        generateTestCuid(),
+      );
+      mockAddEintragHandler.execute.mockResolvedValue(Result.ok(undefined));
+
+      // When (Act)
+      await handler.handle(corruptedEvent);
+
+      // Then (Assert) - Handler should reject and log error
+      expect(mockAddEintragHandler.execute).not.toHaveBeenCalled();
+      expect(mockLogger.error).toHaveBeenCalledWith(
+        'Invalid FMS status codes in event',
+        expect.objectContaining({
+          neuerStatus: Number.NaN,
+          severity: 'ERROR',
+          actionRequired: 'Check domain validation logic - invalid status codes should be rejected earlier',
+        }),
+      );
     });
 
     it('should return void (undefined) always', async () => {
@@ -618,6 +723,77 @@ describe('FmsStatusGeaendertEventHandler', () => {
 
       // Then (Assert) - Fire-and-Forget Handler gibt immer void zurück
       expect(result).toBeUndefined();
+    });
+  });
+
+  describe('Error Message Format Validation', () => {
+    it('should validate that ETB text follows exact format "Fahrzeug {name} Status: {oldLabel} → {newLabel}"', async () => {
+      // Given (Arrange)
+      const event = createTestEvent({
+        funkrufname: 'Florian Test 99/1',
+        previousStatus: 1,
+        neuerStatus: 3,
+      });
+
+      mockAddEintragHandler.execute.mockResolvedValue(Result.ok(undefined));
+
+      // When (Act)
+      await handler.handle(event);
+
+      // Then (Assert)
+      const receivedCommand = mockAddEintragHandler.execute.mock.calls[0][0];
+      const expectedText = `Fahrzeug Florian Test 99/1 Status: ${FMS_STATUS_LABELS[1]} → ${FMS_STATUS_LABELS[3]}`;
+      expect(receivedCommand.text).toBe(expectedText);
+
+      // Validate format structure
+      expect(receivedCommand.text).toMatch(/^Fahrzeug .+ Status: .+ → .+$/);
+    });
+
+    it('should use arrow symbol "→" (not "->" or other variants)', async () => {
+      // Given (Arrange)
+      const event = createTestEvent();
+
+      mockAddEintragHandler.execute.mockResolvedValue(Result.ok(undefined));
+
+      // When (Act)
+      await handler.handle(event);
+
+      // Then (Assert)
+      const receivedCommand = mockAddEintragHandler.execute.mock.calls[0][0];
+      expect(receivedCommand.text).toContain('→'); // Unicode arrow
+      expect(receivedCommand.text).not.toContain('->'); // NOT ASCII arrow
+    });
+  });
+
+  describe('FMS_STATUS_LABELS Completeness', () => {
+    it('should have labels defined for all FMS status codes 0-9', () => {
+      // Given (Arrange) - All valid FMS status codes
+      const allStatusCodes = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9];
+
+      // When/Then (Assert)
+      for (const status of allStatusCodes) {
+        expect(FMS_STATUS_LABELS[status]).toBeDefined();
+        expect(typeof FMS_STATUS_LABELS[status]).toBe('string');
+        expect(FMS_STATUS_LABELS[status].length).toBeGreaterThan(0);
+      }
+    });
+
+    it('should have exactly 10 FMS status labels (0-9)', () => {
+      // Given/When
+      const labelCount = Object.keys(FMS_STATUS_LABELS).length;
+
+      // Then (Assert)
+      expect(labelCount).toBe(10);
+    });
+
+    it('should not have labels for invalid status codes (-1, 10, 11)', () => {
+      // Given (Arrange) - Invalid status codes
+      const invalidCodes = [-1, 10, 11, 99];
+
+      // When/Then (Assert)
+      for (const invalidCode of invalidCodes) {
+        expect(FMS_STATUS_LABELS[invalidCode]).toBeUndefined();
+      }
     });
   });
 });

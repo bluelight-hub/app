@@ -198,6 +198,158 @@ describe('EinsatzFahrzeug Aggregate', () => {
         expect(result.isFailure).toBe(true);
         expect(result.error).toContain(EINSATZ_FAHRZEUG_ERROR_CODES.INVALID_POSITION);
       });
+
+      it('should accept position with latitude boundary value -90 (South Pole)', () => {
+        // Given (Arrange)
+        const props: CreateEinsatzFahrzeugFromStammProps = {
+          einsatzId: validEinsatzId,
+          stammId: validStammId,
+          fahrzeugtypId: validFahrzeugtypId,
+          funkrufname: 'Florian 1/46/1',
+          createdBy: validCreatedBy,
+          position: { lat: -90, lng: 0 },
+        };
+
+        // When (Act)
+        const result = EinsatzFahrzeug.createFromStammdaten(props);
+
+        // Then (Assert)
+        expect(result.isSuccess).toBe(true);
+        expect(result.value?.position?.lat).toBe(-90);
+      });
+
+      it('should accept position with latitude boundary value 90 (North Pole)', () => {
+        // Given (Arrange)
+        const props: CreateEinsatzFahrzeugFromStammProps = {
+          einsatzId: validEinsatzId,
+          stammId: validStammId,
+          fahrzeugtypId: validFahrzeugtypId,
+          funkrufname: 'Florian 1/46/1',
+          createdBy: validCreatedBy,
+          position: { lat: 90, lng: 0 },
+        };
+
+        // When (Act)
+        const result = EinsatzFahrzeug.createFromStammdaten(props);
+
+        // Then (Assert)
+        expect(result.isSuccess).toBe(true);
+        expect(result.value?.position?.lat).toBe(90);
+      });
+
+      it('should accept position with longitude boundary value -180 (Date Line West)', () => {
+        // Given (Arrange)
+        const props: CreateEinsatzFahrzeugFromStammProps = {
+          einsatzId: validEinsatzId,
+          stammId: validStammId,
+          fahrzeugtypId: validFahrzeugtypId,
+          funkrufname: 'Florian 1/46/1',
+          createdBy: validCreatedBy,
+          position: { lat: 0, lng: -180 },
+        };
+
+        // When (Act)
+        const result = EinsatzFahrzeug.createFromStammdaten(props);
+
+        // Then (Assert)
+        expect(result.isSuccess).toBe(true);
+        expect(result.value?.position?.lng).toBe(-180);
+      });
+
+      it('should accept position with longitude boundary value 180 (Date Line East)', () => {
+        // Given (Arrange)
+        const props: CreateEinsatzFahrzeugFromStammProps = {
+          einsatzId: validEinsatzId,
+          stammId: validStammId,
+          fahrzeugtypId: validFahrzeugtypId,
+          funkrufname: 'Florian 1/46/1',
+          createdBy: validCreatedBy,
+          position: { lat: 0, lng: 180 },
+        };
+
+        // When (Act)
+        const result = EinsatzFahrzeug.createFromStammdaten(props);
+
+        // Then (Assert)
+        expect(result.isSuccess).toBe(true);
+        expect(result.value?.position?.lng).toBe(180);
+      });
+
+      it('should fail with latitude -90.01 (just beyond South Pole)', () => {
+        // Given (Arrange)
+        const props: CreateEinsatzFahrzeugFromStammProps = {
+          einsatzId: validEinsatzId,
+          stammId: validStammId,
+          fahrzeugtypId: validFahrzeugtypId,
+          funkrufname: 'Florian 1/46/1',
+          createdBy: validCreatedBy,
+          position: { lat: -90.01, lng: 0 },
+        };
+
+        // When (Act)
+        const result = EinsatzFahrzeug.createFromStammdaten(props);
+
+        // Then (Assert)
+        expect(result.isFailure).toBe(true);
+        expect(result.error).toContain(EINSATZ_FAHRZEUG_ERROR_CODES.INVALID_POSITION);
+      });
+
+      it('should fail with latitude 90.01 (just beyond North Pole)', () => {
+        // Given (Arrange)
+        const props: CreateEinsatzFahrzeugFromStammProps = {
+          einsatzId: validEinsatzId,
+          stammId: validStammId,
+          fahrzeugtypId: validFahrzeugtypId,
+          funkrufname: 'Florian 1/46/1',
+          createdBy: validCreatedBy,
+          position: { lat: 90.01, lng: 0 },
+        };
+
+        // When (Act)
+        const result = EinsatzFahrzeug.createFromStammdaten(props);
+
+        // Then (Assert)
+        expect(result.isFailure).toBe(true);
+        expect(result.error).toContain(EINSATZ_FAHRZEUG_ERROR_CODES.INVALID_POSITION);
+      });
+
+      it('should fail with longitude -180.01 (just beyond Date Line West)', () => {
+        // Given (Arrange)
+        const props: CreateEinsatzFahrzeugFromStammProps = {
+          einsatzId: validEinsatzId,
+          stammId: validStammId,
+          fahrzeugtypId: validFahrzeugtypId,
+          funkrufname: 'Florian 1/46/1',
+          createdBy: validCreatedBy,
+          position: { lat: 0, lng: -180.01 },
+        };
+
+        // When (Act)
+        const result = EinsatzFahrzeug.createFromStammdaten(props);
+
+        // Then (Assert)
+        expect(result.isFailure).toBe(true);
+        expect(result.error).toContain(EINSATZ_FAHRZEUG_ERROR_CODES.INVALID_POSITION);
+      });
+
+      it('should fail with longitude 180.01 (just beyond Date Line East)', () => {
+        // Given (Arrange)
+        const props: CreateEinsatzFahrzeugFromStammProps = {
+          einsatzId: validEinsatzId,
+          stammId: validStammId,
+          fahrzeugtypId: validFahrzeugtypId,
+          funkrufname: 'Florian 1/46/1',
+          createdBy: validCreatedBy,
+          position: { lat: 0, lng: 180.01 },
+        };
+
+        // When (Act)
+        const result = EinsatzFahrzeug.createFromStammdaten(props);
+
+        // Then (Assert)
+        expect(result.isFailure).toBe(true);
+        expect(result.error).toContain(EINSATZ_FAHRZEUG_ERROR_CODES.INVALID_POSITION);
+      });
     });
 
     describe('success', () => {
@@ -537,6 +689,150 @@ describe('EinsatzFahrzeug Aggregate', () => {
         expect(result.isFailure).toBe(true);
         expect(result.error).toContain(EINSATZ_FAHRZEUG_ERROR_CODES.INVALID_POSITION);
       });
+
+      it('should accept position with latitude boundary value -90 (South Pole)', () => {
+        // Given (Arrange)
+        const props: CreateTemporaryEinsatzFahrzeugProps = {
+          einsatzId: validEinsatzId,
+          fahrzeugtypId: validFahrzeugtypId,
+          funkrufname: 'RTW 45/1',
+          createdBy: validCreatedBy,
+          position: { lat: -90, lng: 0 },
+        };
+
+        // When (Act)
+        const result = EinsatzFahrzeug.createTemporary(props);
+
+        // Then (Assert)
+        expect(result.isSuccess).toBe(true);
+        expect(result.value?.position?.lat).toBe(-90);
+      });
+
+      it('should accept position with latitude boundary value 90 (North Pole)', () => {
+        // Given (Arrange)
+        const props: CreateTemporaryEinsatzFahrzeugProps = {
+          einsatzId: validEinsatzId,
+          fahrzeugtypId: validFahrzeugtypId,
+          funkrufname: 'RTW 45/1',
+          createdBy: validCreatedBy,
+          position: { lat: 90, lng: 0 },
+        };
+
+        // When (Act)
+        const result = EinsatzFahrzeug.createTemporary(props);
+
+        // Then (Assert)
+        expect(result.isSuccess).toBe(true);
+        expect(result.value?.position?.lat).toBe(90);
+      });
+
+      it('should accept position with longitude boundary value -180 (Date Line West)', () => {
+        // Given (Arrange)
+        const props: CreateTemporaryEinsatzFahrzeugProps = {
+          einsatzId: validEinsatzId,
+          fahrzeugtypId: validFahrzeugtypId,
+          funkrufname: 'RTW 45/1',
+          createdBy: validCreatedBy,
+          position: { lat: 0, lng: -180 },
+        };
+
+        // When (Act)
+        const result = EinsatzFahrzeug.createTemporary(props);
+
+        // Then (Assert)
+        expect(result.isSuccess).toBe(true);
+        expect(result.value?.position?.lng).toBe(-180);
+      });
+
+      it('should accept position with longitude boundary value 180 (Date Line East)', () => {
+        // Given (Arrange)
+        const props: CreateTemporaryEinsatzFahrzeugProps = {
+          einsatzId: validEinsatzId,
+          fahrzeugtypId: validFahrzeugtypId,
+          funkrufname: 'RTW 45/1',
+          createdBy: validCreatedBy,
+          position: { lat: 0, lng: 180 },
+        };
+
+        // When (Act)
+        const result = EinsatzFahrzeug.createTemporary(props);
+
+        // Then (Assert)
+        expect(result.isSuccess).toBe(true);
+        expect(result.value?.position?.lng).toBe(180);
+      });
+
+      it('should fail with latitude -90.01 (just beyond South Pole)', () => {
+        // Given (Arrange)
+        const props: CreateTemporaryEinsatzFahrzeugProps = {
+          einsatzId: validEinsatzId,
+          fahrzeugtypId: validFahrzeugtypId,
+          funkrufname: 'RTW 45/1',
+          createdBy: validCreatedBy,
+          position: { lat: -90.01, lng: 0 },
+        };
+
+        // When (Act)
+        const result = EinsatzFahrzeug.createTemporary(props);
+
+        // Then (Assert)
+        expect(result.isFailure).toBe(true);
+        expect(result.error).toContain(EINSATZ_FAHRZEUG_ERROR_CODES.INVALID_POSITION);
+      });
+
+      it('should fail with latitude 90.01 (just beyond North Pole)', () => {
+        // Given (Arrange)
+        const props: CreateTemporaryEinsatzFahrzeugProps = {
+          einsatzId: validEinsatzId,
+          fahrzeugtypId: validFahrzeugtypId,
+          funkrufname: 'RTW 45/1',
+          createdBy: validCreatedBy,
+          position: { lat: 90.01, lng: 0 },
+        };
+
+        // When (Act)
+        const result = EinsatzFahrzeug.createTemporary(props);
+
+        // Then (Assert)
+        expect(result.isFailure).toBe(true);
+        expect(result.error).toContain(EINSATZ_FAHRZEUG_ERROR_CODES.INVALID_POSITION);
+      });
+
+      it('should fail with longitude -180.01 (just beyond Date Line West)', () => {
+        // Given (Arrange)
+        const props: CreateTemporaryEinsatzFahrzeugProps = {
+          einsatzId: validEinsatzId,
+          fahrzeugtypId: validFahrzeugtypId,
+          funkrufname: 'RTW 45/1',
+          createdBy: validCreatedBy,
+          position: { lat: 0, lng: -180.01 },
+        };
+
+        // When (Act)
+        const result = EinsatzFahrzeug.createTemporary(props);
+
+        // Then (Assert)
+        expect(result.isFailure).toBe(true);
+        expect(result.error).toContain(EINSATZ_FAHRZEUG_ERROR_CODES.INVALID_POSITION);
+      });
+
+      it('should fail with longitude 180.01 (just beyond Date Line East)', () => {
+        // Given (Arrange)
+        const props: CreateTemporaryEinsatzFahrzeugProps = {
+          einsatzId: validEinsatzId,
+          fahrzeugtypId: validFahrzeugtypId,
+          funkrufname: 'RTW 45/1',
+          createdBy: validCreatedBy,
+          position: { lat: 0, lng: 180.01 },
+        };
+
+        // When (Act)
+        const result = EinsatzFahrzeug.createTemporary(props);
+
+        // Then (Assert)
+        expect(result.isFailure).toBe(true);
+        expect(result.error).toContain(EINSATZ_FAHRZEUG_ERROR_CODES.INVALID_POSITION);
+      });
     });
 
     describe('success', () => {
@@ -865,6 +1161,138 @@ describe('EinsatzFahrzeug Aggregate', () => {
         const events = einsatzFahrzeug.getDomainEvents().filter((e) => e.constructor.name === 'FmsStatusGeaendertEvent');
         expect(events.length).toBe(0);
       });
+
+      it('should accept position with latitude boundary values (-90, 90)', () => {
+        // Given (Arrange)
+        const createProps: CreateEinsatzFahrzeugFromStammProps = {
+          einsatzId: validEinsatzId,
+          stammId: validStammId,
+          fahrzeugtypId: validFahrzeugtypId,
+          funkrufname: 'Florian 1/46/1',
+          createdBy: validCreatedBy,
+        };
+
+        // When (Act) - Test -90 (South Pole)
+        const einsatzFahrzeugSouth = EinsatzFahrzeug.createFromStammdaten(createProps).value!;
+        const resultSouth = einsatzFahrzeugSouth.updateFmsStatus({
+          fmsStatus: 4,
+          updatedBy: validCreatedBy,
+          position: { lat: -90, lng: 0 },
+        });
+
+        // When (Act) - Test 90 (North Pole)
+        const einsatzFahrzeugNorth = EinsatzFahrzeug.createFromStammdaten(createProps).value!;
+        const resultNorth = einsatzFahrzeugNorth.updateFmsStatus({
+          fmsStatus: 4,
+          updatedBy: validCreatedBy,
+          position: { lat: 90, lng: 0 },
+        });
+
+        // Then (Assert)
+        expect(resultSouth.isSuccess).toBe(true);
+        expect(einsatzFahrzeugSouth.position?.lat).toBe(-90);
+        expect(resultNorth.isSuccess).toBe(true);
+        expect(einsatzFahrzeugNorth.position?.lat).toBe(90);
+      });
+
+      it('should accept position with longitude boundary values (-180, 180)', () => {
+        // Given (Arrange)
+        const createProps: CreateEinsatzFahrzeugFromStammProps = {
+          einsatzId: validEinsatzId,
+          stammId: validStammId,
+          fahrzeugtypId: validFahrzeugtypId,
+          funkrufname: 'Florian 1/46/1',
+          createdBy: validCreatedBy,
+        };
+
+        // When (Act) - Test -180 (Date Line West)
+        const einsatzFahrzeugWest = EinsatzFahrzeug.createFromStammdaten(createProps).value!;
+        const resultWest = einsatzFahrzeugWest.updateFmsStatus({
+          fmsStatus: 4,
+          updatedBy: validCreatedBy,
+          position: { lat: 0, lng: -180 },
+        });
+
+        // When (Act) - Test 180 (Date Line East)
+        const einsatzFahrzeugEast = EinsatzFahrzeug.createFromStammdaten(createProps).value!;
+        const resultEast = einsatzFahrzeugEast.updateFmsStatus({
+          fmsStatus: 4,
+          updatedBy: validCreatedBy,
+          position: { lat: 0, lng: 180 },
+        });
+
+        // Then (Assert)
+        expect(resultWest.isSuccess).toBe(true);
+        expect(einsatzFahrzeugWest.position?.lng).toBe(-180);
+        expect(resultEast.isSuccess).toBe(true);
+        expect(einsatzFahrzeugEast.position?.lng).toBe(180);
+      });
+
+      it('should fail with latitude just beyond boundaries (-90.01, 90.01)', () => {
+        // Given (Arrange)
+        const createProps: CreateEinsatzFahrzeugFromStammProps = {
+          einsatzId: validEinsatzId,
+          stammId: validStammId,
+          fahrzeugtypId: validFahrzeugtypId,
+          funkrufname: 'Florian 1/46/1',
+          createdBy: validCreatedBy,
+        };
+
+        // When (Act) - Test -90.01
+        const einsatzFahrzeugSouth = EinsatzFahrzeug.createFromStammdaten(createProps).value!;
+        const resultSouth = einsatzFahrzeugSouth.updateFmsStatus({
+          fmsStatus: 4,
+          updatedBy: validCreatedBy,
+          position: { lat: -90.01, lng: 0 },
+        });
+
+        // When (Act) - Test 90.01
+        const einsatzFahrzeugNorth = EinsatzFahrzeug.createFromStammdaten(createProps).value!;
+        const resultNorth = einsatzFahrzeugNorth.updateFmsStatus({
+          fmsStatus: 4,
+          updatedBy: validCreatedBy,
+          position: { lat: 90.01, lng: 0 },
+        });
+
+        // Then (Assert)
+        expect(resultSouth.isFailure).toBe(true);
+        expect(resultSouth.error).toContain(EINSATZ_FAHRZEUG_ERROR_CODES.INVALID_POSITION);
+        expect(resultNorth.isFailure).toBe(true);
+        expect(resultNorth.error).toContain(EINSATZ_FAHRZEUG_ERROR_CODES.INVALID_POSITION);
+      });
+
+      it('should fail with longitude just beyond boundaries (-180.01, 180.01)', () => {
+        // Given (Arrange)
+        const createProps: CreateEinsatzFahrzeugFromStammProps = {
+          einsatzId: validEinsatzId,
+          stammId: validStammId,
+          fahrzeugtypId: validFahrzeugtypId,
+          funkrufname: 'Florian 1/46/1',
+          createdBy: validCreatedBy,
+        };
+
+        // When (Act) - Test -180.01
+        const einsatzFahrzeugWest = EinsatzFahrzeug.createFromStammdaten(createProps).value!;
+        const resultWest = einsatzFahrzeugWest.updateFmsStatus({
+          fmsStatus: 4,
+          updatedBy: validCreatedBy,
+          position: { lat: 0, lng: -180.01 },
+        });
+
+        // When (Act) - Test 180.01
+        const einsatzFahrzeugEast = EinsatzFahrzeug.createFromStammdaten(createProps).value!;
+        const resultEast = einsatzFahrzeugEast.updateFmsStatus({
+          fmsStatus: 4,
+          updatedBy: validCreatedBy,
+          position: { lat: 0, lng: 180.01 },
+        });
+
+        // Then (Assert)
+        expect(resultWest.isFailure).toBe(true);
+        expect(resultWest.error).toContain(EINSATZ_FAHRZEUG_ERROR_CODES.INVALID_POSITION);
+        expect(resultEast.isFailure).toBe(true);
+        expect(resultEast.error).toContain(EINSATZ_FAHRZEUG_ERROR_CODES.INVALID_POSITION);
+      });
     });
 
     describe('success', () => {
@@ -961,7 +1389,7 @@ describe('EinsatzFahrzeug Aggregate', () => {
         expect(events[0].constructor.name).toBe('FmsStatusGeaendertEvent');
         const event = events[0] as FmsStatusGeaendertEvent;
         expect(event.neuerStatus).toBe(0);
-        expect(event.alterStatus).toBe(2); // Initial status
+        expect(event.previousStatus).toBe(2); // Initial status
       });
 
       it('should emit FmsStatusGeaendertEvent when updating to status 9', () => {
@@ -989,7 +1417,7 @@ describe('EinsatzFahrzeug Aggregate', () => {
         expect(events[0].constructor.name).toBe('FmsStatusGeaendertEvent');
         const event = events[0] as FmsStatusGeaendertEvent;
         expect(event.neuerStatus).toBe(9);
-        expect(event.alterStatus).toBe(2); // Initial status
+        expect(event.previousStatus).toBe(2); // Initial status
       });
 
       it.each([1, 2, 3, 4, 5, 6, 7, 8])('should accept FMS status %i', (status) => {
@@ -1053,7 +1481,7 @@ describe('EinsatzFahrzeug Aggregate', () => {
         };
         const fahrzeug = EinsatzFahrzeug.createFromStammdaten(createProps).value!;
         fahrzeug.clearDomainEvents(); // Clear FahrzeugErfasstEvent from creation
-        const alterStatus = fahrzeug.fmsStatus; // Initial: 2 (Einsatzbereit)
+        const previousStatus = fahrzeug.fmsStatus; // Initial: 2 (Einsatzbereit)
         const neuerStatus = 4; // Am Einsatzort
         const updatedBy = validCreatedBy;
 
@@ -1074,7 +1502,7 @@ describe('EinsatzFahrzeug Aggregate', () => {
         expect(event.einsatzFahrzeugId).toBe(fahrzeug.id.value);
         expect(event.einsatzId).toBe(fahrzeug.einsatzId);
         expect(event.funkrufname).toBe(fahrzeug.funkrufname);
-        expect(event.alterStatus).toBe(alterStatus);
+        expect(event.previousStatus).toBe(previousStatus);
         expect(event.neuerStatus).toBe(neuerStatus);
         expect(event.geaendertVon).toBe(updatedBy);
       });
@@ -1103,7 +1531,7 @@ describe('EinsatzFahrzeug Aggregate', () => {
         expect(result.isSuccess).toBe(true);
         const events = fahrzeug.getDomainEvents();
         const event = events[0] as FmsStatusGeaendertEvent;
-        expect(event.alterStatus).toBe(3); // Should be 3, not 2
+        expect(event.previousStatus).toBe(3); // Should be 3, not 2
         expect(event.neuerStatus).toBe(4);
       });
 
@@ -1167,7 +1595,7 @@ describe('EinsatzFahrzeug Aggregate', () => {
         expect(currentStatus).toBe(2);
         fahrzeug.clearDomainEvents(); // Clear FahrzeugErfasstEvent from creation
 
-        // When (Act) - Set to SAME status
+        // When (Act) - Set to SAME status (idempotent operation)
         const result = fahrzeug.updateFmsStatus({
           fmsStatus: currentStatus, // GLEICHER Status wie vorher (2)
           updatedBy: validCreatedBy,
@@ -1177,12 +1605,48 @@ describe('EinsatzFahrzeug Aggregate', () => {
         expect(result.isSuccess).toBe(true);
         expect(fahrzeug.fmsStatus).toBe(2); // Status unverändert
 
-        // ERWARTETES VERHALTEN (IDEMPOTENZ):
-        // Kein Event wird emittiert, wenn Status unverändert bleibt.
+        // KRITISCHES IDEMPOTENZ-VERHALTEN:
+        // Bei unverändertem Status wird KEIN Event emittiert (leeres Array).
+        // KONSEQUENZ für Handler-Test (update-fms-status.handler.spec.ts:602-627):
+        //   - repository.save() wird NICHT aufgerufen (kein DB-Update nötig)
+        //   - outboxRepository.save() wird NICHT aufgerufen (keine Events vorhanden)
         // GRUND: Verhindert ETB-Spam durch wiederholte Status-Meldungen ohne Änderung.
-        // API gibt trotzdem 200 OK zurück (idempotent operation).
+        // API gibt trotzdem 200 OK zurück (idempotent operation = erfolgreiche Ausführung).
         const events = fahrzeug.getDomainEvents();
-        expect(events.length).toBe(0); // NO event emitted
+        expect(events.length).toBe(0); // Explizit: Leeres Array, keine Events
+      });
+
+      it('should NOT call addDomainEvent when status equals current status (idempotency with spy)', () => {
+        // Given (Arrange)
+        const createProps: CreateEinsatzFahrzeugFromStammProps = {
+          einsatzId: validEinsatzId,
+          stammId: validStammId,
+          fahrzeugtypId: validFahrzeugtypId,
+          funkrufname: 'Florian 1/46/1',
+          createdBy: validCreatedBy,
+        };
+        const fahrzeug = EinsatzFahrzeug.createFromStammdaten(createProps).value!;
+        const currentStatus = fahrzeug.fmsStatus; // Initial: 2
+        fahrzeug.clearDomainEvents(); // Clear creation event
+
+        // Spy on addDomainEvent method to verify it's NEVER called
+        const addDomainEventSpy = jest.spyOn(fahrzeug as any, 'addDomainEvent');
+
+        // When (Act) - Set to SAME status (idempotent operation)
+        const result = fahrzeug.updateFmsStatus({
+          fmsStatus: currentStatus,
+          updatedBy: validCreatedBy,
+        });
+
+        // Then (Assert)
+        expect(result.isSuccess).toBe(true);
+        expect(fahrzeug.fmsStatus).toBe(currentStatus);
+
+        // CRITICAL: Verify addDomainEvent was NEVER called
+        expect(addDomainEventSpy).not.toHaveBeenCalled();
+
+        // Cleanup spy
+        addDomainEventSpy.mockRestore();
       });
     });
   });

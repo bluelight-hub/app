@@ -10,6 +10,12 @@ import { Type } from 'class-transformer';
  * Latitude: -90° (Südpol) bis +90° (Nordpol)
  * Longitude: -180° (Westgrenze) bis +180° (Ostgrenze)
  *
+ * **Defense in Depth:**
+ * Position wird SOWOHL hier (DTO via class-validator) ALS AUCH im Command validiert.
+ * Dies ist beabsichtigt um mehrschichtige Validierung zu gewährleisten:
+ * - DTO Layer: HTTP Request Validierung (class-validator + Swagger)
+ * - Command Layer: Business Logic Validierung (inkl. NaN/Infinity Checks)
+ *
  * @see https://de.wikipedia.org/wiki/World_Geodetic_System_1984
  */
 export class GeoPositionDto {

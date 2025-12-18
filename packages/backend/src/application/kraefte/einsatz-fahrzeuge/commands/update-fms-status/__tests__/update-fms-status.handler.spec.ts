@@ -495,9 +495,22 @@ describe('UpdateFmsStatusHandler', () => {
       // Given (Arrange)
       const fahrzeug = createMockFahrzeug();
       mockEinsatzFahrzeugRepository.findById.mockResolvedValue(Result.ok(fahrzeug));
+
+      // Mock $transaction to throw error INSIDE the callback execution
       mockPrismaService.$transaction.mockImplementation(async (callback) => {
-        mockOutboxRepository.save.mockRejectedValue(new Error('Outbox-Speicherfehler'));
-        return await callback({});
+        const txMock = {};
+        // Configure outbox to throw error when called inside transaction
+        const originalSave = mockOutboxRepository.save;
+        mockOutboxRepository.save.mockImplementation(() => {
+          throw new Error('Outbox-Speicherfehler');
+        });
+
+        try {
+          return await callback(txMock);
+        } finally {
+          // Restore original mock after transaction
+          mockOutboxRepository.save = originalSave;
+        }
       });
 
       const command = UpdateFmsStatusCommand.create({
@@ -564,7 +577,7 @@ describe('UpdateFmsStatusHandler', () => {
       expect(event.einsatzFahrzeugId).toBe(testFahrzeugId);
       expect(event.einsatzId).toBe(testEinsatzId);
       expect(event.neuerStatus).toBe(4);
-      expect(event.alterStatus).toBe(2);
+      expect(event.previousStatus).toBe(2);
       expect(event.geaendertVon).toBe(testUserId);
       expect(event.funkrufname).toBe('Florian 1/46');
     });
@@ -604,7 +617,7 @@ describe('UpdateFmsStatusHandler', () => {
       const command = UpdateFmsStatusCommand.create({
         einsatzId: testEinsatzId,
         fahrzeugId: testFahrzeugId,
-        fmsStatus: currentStatus,
+        fmsStatus: currentStatus, // GLEICHER Status wie aktuell (idempotent operation)
         updatedBy: testUserId,
       }).value!;
 
@@ -615,17 +628,60 @@ describe('UpdateFmsStatusHandler', () => {
       expect(result.isSuccess).toBe(true);
       expect(result.value!.fmsStatus).toBe(currentStatus);
 
-      // KRITISCH: Kein Event sollte in Outbox gespeichert werden
-      // Prüfe ob outboxRepository.save entweder nicht aufgerufen wurde
-      // ODER mit leerem Array aufgerufen wurde (je nach Handler-Implementation)
-      const outboxCalls = mockOutboxRepository.save.mock.calls;
-      if (outboxCalls.length > 0) {
-        const events = outboxCalls[0][0];
-        expect(events.length).toBe(0);
-      } else {
-        // Aggregate hat KEIN Event erzeugt, daher wurde Outbox gar nicht aufgerufen
-        expect(mockOutboxRepository.save).not.toHaveBeenCalled();
-      }
+      // KRITISCHES IDEMPOTENZ-VERHALTEN:
+      // Bei unverändertem Status emittiert Aggregate KEIN Event (getDomainEvents() = []).
+      // Siehe: einsatz-fahrzeug.aggregate.spec.ts:1584-1617 für Aggregate-Level Test.
+      //
+      // KONSEQUENZ: BEIDE Repository-Calls werden NICHT ausgeführt:
+      //   1. repository.save() wird ÜBERSPRUNGEN (kein DB-Update nötig bei unverändertem Status)
+      //   2. outboxRepository.save() wird ÜBERSPRUNGEN (keine Events vorhanden zum Speichern)
+      //
+      // GRUND: Verhindert unnötige DB-Writes und ETB-Spam durch wiederholte Meldungen.
+      // API gibt trotzdem 200 OK zurück (idempotent operation = erfolgreiche Ausführung).
+      expect(mockEinsatzFahrzeugRepository.save).not.toHaveBeenCalled();
+      expect(mockOutboxRepository.save).not.toHaveBeenCalled();
+    });
+
+    it('sollte save() NUR bei tatsaechlicher Aenderung aufrufen (Idempotenz Verification)', async () => {
+      // Given (Arrange) - Status bleibt unverändert
+      const currentStatus = 3;
+      const fahrzeug = createMockFahrzeug({ fmsStatus: currentStatus });
+      mockEinsatzFahrzeugRepository.findById.mockResolvedValue(Result.ok(fahrzeug));
+
+      const command = UpdateFmsStatusCommand.create({
+        einsatzId: testEinsatzId,
+        fahrzeugId: testFahrzeugId,
+        fmsStatus: currentStatus, // GLEICHER Status
+        updatedBy: testUserId,
+      }).value!;
+
+      // When (Act)
+      const result = await handler.execute(command);
+
+      // Then (Assert)
+      expect(result.isSuccess).toBe(true);
+
+      // KRITISCH: Verifiziere dass save() bei unverändertem Status NICHT aufgerufen wurde
+      // Dies ist das Kernprinzip der Idempotenz: Keine DB-Writes bei gleichem Status
+      expect(mockEinsatzFahrzeugRepository.save).not.toHaveBeenCalled();
+      expect(mockEinsatzFahrzeugRepository.save).toHaveBeenCalledTimes(0);
+
+      // ZUSÄTZLICH: Verifiziere dass bei Status-Änderung save() aufgerufen wird (Gegencheck)
+      jest.clearAllMocks();
+      const fahrzeug2 = createMockFahrzeug({ fmsStatus: currentStatus });
+      mockEinsatzFahrzeugRepository.findById.mockResolvedValue(Result.ok(fahrzeug2));
+
+      const commandWithChange = UpdateFmsStatusCommand.create({
+        einsatzId: testEinsatzId,
+        fahrzeugId: testFahrzeugId,
+        fmsStatus: currentStatus + 1, // ANDERER Status
+        updatedBy: testUserId,
+      }).value!;
+
+      await handler.execute(commandWithChange);
+
+      // Bei Status-Änderung wird save() aufgerufen
+      expect(mockEinsatzFahrzeugRepository.save).toHaveBeenCalledTimes(1);
     });
   });
 

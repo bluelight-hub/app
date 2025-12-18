@@ -5,7 +5,8 @@ import { EinsatzResourceWidget } from '@/features/einsatz/ui/molecules/EinsatzRe
 import { EinsatzStatsCard } from '@/features/einsatz/ui/molecules/EinsatzStatsCard';
 import { EinsatzTimelineWidget } from '@/features/einsatz/ui/molecules/EinsatzTimelineWidget';
 import { FahrzeugHinzufuegenDialog } from '@/features/einsatz/ui/organisms/FahrzeugHinzufuegenDialog.organism';
-import { useActiveEinsatz, EINSATZ_QUERY_KEYS } from '@/features/einsatz';
+import { useActiveEinsatz, EINSATZ_QUERY_KEYS, useEinsatzFahrzeuge, useUpdateFmsStatus } from '@/features/einsatz';
+import type { FmsStatus } from '@/features/einsatz';
 import { formatNatoDateTime } from '@/shared/lib/dateFormatter';
 import { Button } from '@/shared/ui/atoms/button.atom';
 import { useQuery } from '@tanstack/react-query';
@@ -40,6 +41,20 @@ export function SingleEinsatzDashboard() {
   });
 
   const einsatz = einsatzResponse?.data;
+
+  // Lade EinsatzFahrzeuge (Story 3-3)
+  const { data: fahrzeuge = [], isLoading: isLoadingFahrzeuge } = useEinsatzFahrzeuge(einsatzId);
+
+  // Hook zum Aktualisieren des FMS-Status (Story 3-3)
+  const updateFmsStatus = useUpdateFmsStatus(einsatzId);
+
+  // Handler für FMS-Status Änderungen
+  const handleStatusChange = useCallback(
+    (fahrzeugId: string, newStatus: FmsStatus) => {
+      updateFmsStatus.mutate({ fahrzeugId, fmsStatus: newStatus });
+    },
+    [updateFmsStatus],
+  );
 
   // TODO: Switch to useActiveEinsaetzeWithCounts when available
   // These fields will be available after backend implementation and API regeneration
@@ -98,33 +113,18 @@ export function SingleEinsatzDashboard() {
     },
   ];
 
-  // Mock Resources (würde aus Einheiten-Daten kommen)
-  const mockResources = [
-    {
-      id: '1',
-      name: 'RTW • 40-83-3',
-      type: 'fahrzeug' as const,
-      status: 'im-einsatz' as const,
-      personnel: 9,
-      funkrufname: 'RK UE 40-83-3',
-    },
-    {
-      id: '2',
-      name: 'KTW • 40-92-1',
-      type: 'fahrzeug' as const,
-      status: 'anfahrt' as const,
-      personnel: 3,
-      funkrufname: 'RK UE 40-92-1',
-      arrivalTime: formatNatoDateTime(addMinutes(startTime, 10)),
-    },
-  ];
-
   return (
     <div className="space-y-6">
       {/* Wichtige Statistiken */}
       <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
         <EinsatzStatsCard title="Einsatzdauer" value={duration} icon={<PiClock className="h-8 w-8" />} description={`Seit ${formatNatoDateTime(startTime)}`} />
-        <EinsatzStatsCard title="Einheiten" value="2" icon={<PiTruck className="h-8 w-8" />} description="12 Einsatzkräfte" variant="success" />
+        <EinsatzStatsCard
+          title="Fahrzeuge"
+          value={isLoadingFahrzeuge ? '-' : String(fahrzeuge.length)}
+          icon={<PiTruck className="h-8 w-8" />}
+          description={isLoadingFahrzeuge ? 'Wird geladen...' : `${fahrzeuge.filter((f) => f.fmsStatus >= 3 && f.fmsStatus <= 4).length} im Einsatz`}
+          variant="success"
+        />
         <EinsatzStatsCard
           title="ETB-Einträge"
           value={etbEintraegeCount !== undefined ? String(etbEintraegeCount) : '-'}
@@ -213,8 +213,8 @@ export function SingleEinsatzDashboard() {
 
         {/* Rechte Spalte - Ressourcen und Status */}
         <div className="space-y-6">
-          {/* Eingesetzte Kräfte */}
-          <EinsatzResourceWidget resources={mockResources} onAddResource={handleOpenFahrzeugDialog} />
+          {/* Eingesetzte Fahrzeuge (Story 3-3: FMS-Status Update) */}
+          <EinsatzResourceWidget fahrzeuge={fahrzeuge} onStatusChange={handleStatusChange} onAddResource={handleOpenFahrzeugDialog} />
 
           {/* Wichtige Kontakte */}
           <div className="rounded-lg bg-white p-6 shadow-sm dark:bg-gray-800">

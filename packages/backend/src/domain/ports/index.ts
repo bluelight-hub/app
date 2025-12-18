@@ -14,3 +14,4 @@
 
 export * from './i-jwt-auth-service.port';
 export * from './i-event-handler.port';
+export * from './i-logger.port';

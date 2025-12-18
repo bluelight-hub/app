@@ -428,39 +428,14 @@ Dieses Projekt nutzt mehrere MCP Server für erweiterte Funktionalität:
 
 ### Verfügbare MCP Server
 
-| Server | Verwendung | Tools |
-|--------|------------|-------|
-| **Task Master** | Task-Management & TDD Workflows | `initialize_project`, `get_tasks`, `next_task`, `expand_task`, `autopilot_*` |
-| **Recall** | Session-Memory & Kontext-Persistenz | `store_memory`, `search_memories`, `get_time_window_context` |
-| **Context7** | Aktuelle Library-Dokumentation | `resolve-library-id`, `get-library-docs` |
-| **Chrome DevTools** | Browser-Automatisierung & E2E Testing | `navigate_page`, `take_snapshot`, `click`, `fill`, `evaluate_script` |
-| **IDE** | Diagnostics & Workspace Info | `getDiagnostics` |
+| Server | Verwendung |
+|--------|------------|
+| **context7** | Aktuelle Library-Dokumentation |
+| **claude-in-chrome** | Chrome Steuerung |
 
-### Chrome DevTools für Testing
-
-**WICHTIG:** Nutze Chrome DevTools MCP für manuelle UI-Tests:
-
-```bash
-# Frontend starten (läuft auf Port 3091)
-pnpm --filter @bluelight-hub/frontend dev:vite
-
-# In Claude Code:
-# 1. Neue Seite öffnen
-mcp__chrome-devtools__new_page(url: "http://localhost:3091")
-
-# 2. Snapshot nehmen (zeigt interaktive Elemente mit UIDs)
-mcp__chrome-devtools__take_snapshot()
-
-# 3. Mit Elementen interagieren
-mcp__chrome-devtools__click(uid: "element-uid-from-snapshot")
-mcp__chrome-devtools__fill(uid: "input-uid", value: "Test")
-
-# 4. Network Requests prüfen
-mcp__chrome-devtools__list_network_requests()
-
-# 5. Console Logs prüfen
-mcp__chrome-devtools__list_console_messages()
-```
+Nutze Context7 für aktuelle Library-Dokumentation.
+Nutze Claude-in-chrome für Chrome Steuerung, z.B. um Frontend-Implementierung zu testen.
+Login: rubeen / (optionales PW: MyPass123*)
 
 ## ⚠️ WICHTIGE HINWEISE
 
@@ -468,7 +443,7 @@ mcp__chrome-devtools__list_console_messages()
 
 - **Unit Tests:** `pnpm --filter @bluelight-hub/backend test`
 - **Integration Tests:** `pnpm --filter @bluelight-hub/backend test:e2e`
-- **Manuelle Tests:** Chrome DevTools MCP für UI-Testing (siehe oben)
+- **Manuelle Tests:** claude-in-chrome
 
 ### API Development Workflow
 
@@ -476,13 +451,14 @@ mcp__chrome-devtools__list_console_messages()
 2. API-Client generieren: `pnpm run generate-api`
 3. Frontend nutzt generierten Client aus `@bluelight-hub/shared/client`
 4. TanStack Query Hook erstellen
+Nutze die WrappedResponse ({data: {} | []}), statt direkter response {} | []. - gibt custom annotation dafür.
 
 ### Tauri Desktop App
 
 - Frontend ist eine **Desktop-App** (Tauri), kein reiner Web-Client
 - Native Features: File System Access, System Tray, Native Notifications
-- Development: `pnpm --filter @bluelight-hub/frontend dev` (öffnet natives Fenster)
-- Web-Only: `pnpm --filter @bluelight-hub/frontend dev:vite` (Browser)
+- Development: `pnpm --filter @bluelight-hub/frontend dev` (öffnet natives Fenster + Browser)
+- Web-Only: `pnpm --filter @bluelight-hub/frontend dev:vite` (Browser only)
 
 ## 📚 DOKUMENTATION
 

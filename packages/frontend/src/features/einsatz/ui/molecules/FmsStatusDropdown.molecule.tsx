@@ -1,6 +1,6 @@
 import { Fragment } from 'react';
 import { Listbox, Transition } from '@headlessui/react';
-import { CheckIcon, ChevronUpDownIcon } from '@heroicons/react/20/solid';
+import { PiCheck, PiCaretUpDown } from 'react-icons/pi';
 import { FMS_STATUS_LABELS, FMS_STATUS_OPTIONS, getStatusBgClasses, getStatusClasses, type FmsStatus } from '../../constants/fms-status.constants';
 
 interface FmsStatusDropdownProps {
@@ -42,7 +42,7 @@ export function FmsStatusDropdown({ value, onChange, disabled = false, className
             {value} - {selectedLabel}
           </span>
           <span className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-2">
-            <ChevronUpDownIcon className="h-5 w-5 text-gray-400" aria-hidden="true" />
+            <PiCaretUpDown className="h-5 w-5 text-gray-400" aria-hidden="true" />
           </span>
         </Listbox.Button>
 
@@ -52,9 +52,13 @@ export function FmsStatusDropdown({ value, onChange, disabled = false, className
               <Listbox.Option
                 key={status}
                 value={status}
-                className={({ active }) =>
-                  `relative cursor-pointer select-none py-2 pr-4 pl-10 ${active ? 'bg-blue-100 text-blue-900 dark:bg-blue-900/30 dark:text-blue-300' : 'text-gray-900 dark:text-gray-100'}`
-                }
+                className={({ active }) => {
+                  // Konsistente Styling mit FMS_STATUS_COLORS für alle States
+                  const baseClasses = 'relative cursor-pointer select-none py-2 pr-4 pl-10';
+                  const statusClasses = getStatusClasses(status);
+                  const activeClasses = active ? 'ring-2 ring-primary-500 ring-inset' : '';
+                  return `${baseClasses} ${statusClasses} ${activeClasses}`;
+                }}
               >
                 {({ selected }) => (
                   <>
@@ -63,8 +67,8 @@ export function FmsStatusDropdown({ value, onChange, disabled = false, className
                       {status} - {FMS_STATUS_LABELS[status] ?? `Status ${status}`}
                     </span>
                     {selected && (
-                      <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-blue-600 dark:text-blue-400">
-                        <CheckIcon className="h-5 w-5" aria-hidden="true" />
+                      <span className="absolute inset-y-0 left-0 flex items-center pl-3">
+                        <PiCheck className="h-5 w-5" aria-hidden="true" />
                       </span>
                     )}
                   </>

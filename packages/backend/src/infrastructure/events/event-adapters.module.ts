@@ -26,6 +26,14 @@ import { EinsatzEventLoggerHandler } from './handlers/einsatz-event-logger.handl
  * EventAdaptersModule (dieses Modul - importiert Application Modules)
  * ```
  *
+ * **WICHTIG - Dependency Ordering:**
+ * Dieses Modul MUSS NACH allen Application Modules initialisiert werden,
+ * da es deren Event Handler injiziert. NestJS garantiert dies durch die
+ * Module-Import-Reihenfolge in AppModule:
+ * 1. EtbApplicationModule (exportiert Handler)
+ * 2. LagekarteApplicationModule (exportiert Handler)
+ * 3. EventAdaptersModule (importiert obige Module → injiziert Handler)
+ *
  * **Warum Adapters statt direkte @OnEvent in Application Layer:**
  * - Application Layer bleibt framework-agnostisch (kein NestJS @OnEvent)
  * - Event Routing ist Infrastructure-Concern
@@ -35,6 +43,8 @@ import { EinsatzEventLoggerHandler } from './handlers/einsatz-event-logger.handl
  * **Registrierte Adapters:**
  * - EtbEventAdapter: Delegiert ETB-Events an EtbAutoCreationHandler
  * - LagekarteEventAdapter: Delegiert Lagekarte-Events an LagekarteAutoCreationHandler
+ * - FahrzeugErfasstEventAdapter: Delegiert FahrzeugErfasst-Events an Handler
+ * - FmsStatusGeaendertEventAdapter: Delegiert FmsStatusGeaendert-Events an ETB Handler
  * - LagekarteEventLoggerHandler: Infrastructure-spezifisches Event Logging
  * - EinsatzEventLoggerHandler: Infrastructure-spezifisches Event Logging für Einsatz-Events
  */

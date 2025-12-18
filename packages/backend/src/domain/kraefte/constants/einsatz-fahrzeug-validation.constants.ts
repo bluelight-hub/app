@@ -57,7 +57,7 @@ export const FMS_STATUS_LABELS = {
   0: 'Nicht einsatzbereit',
   1: 'Auf Wache',
   2: 'Einsatzbereit',
-  3: 'Ausgerückt zum Einsatz',
+  3: 'Ausgerückt',
   4: 'Am Einsatzort',
   5: 'Sprechwunsch',
   6: 'Außer Dienst',
@@ -65,3 +65,9 @@ export const FMS_STATUS_LABELS = {
   8: 'Regional 8',
   9: 'Regional 9',
 } as const;
+
+/**
+ * Fallback-Label für ungültige FMS-Status Codes.
+ * Wird verwendet wenn ein unerwarteter Status-Code vorliegt (Defense in Depth).
+ */
+export const FMS_STATUS_FALLBACK_LABEL = 'Unbekannter Status' as const;
