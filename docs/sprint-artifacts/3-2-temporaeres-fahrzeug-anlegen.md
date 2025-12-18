@@ -1,6 +1,6 @@
 # Story 3.2: Temporäres Fahrzeug anlegen
 
-Status: **in-progress**
+Status: **done**
 
 ---
 
