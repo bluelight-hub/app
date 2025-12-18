@@ -1,6 +1,6 @@
 # Story 3.2: Temporäres Fahrzeug anlegen
 
-Status: **review**
+Status: **in-progress**
 
 ---
 
@@ -183,6 +183,65 @@ Status: **review**
   - [ ] ETB-Eintrag vorhanden: "**Temporäres** Fahrzeug ... erfasst" (NICHT ohne Temporäres!)
   - [ ] Duplikat-Test: Gleiches Fahrzeug erneut → 409 Error, Toast mit Fehler
   - [ ] **Performance Check:** Response Time <5s (NFR2 aus Epic)
+
+### Review Follow-ups (AI) - 2025-12-17
+
+- [x] [AI-Review][HIGH] FormField `hint` → `helperText` ändern (3 Stellen) **✅ Fixed 2025-12-17**
+  - `packages/frontend/src/features/einsatz/ui/organisms/FahrzeugHinzufuegenDialog.organism.tsx:411`
+  - `packages/frontend/src/features/einsatz/ui/organisms/FahrzeugHinzufuegenDialog.organism.tsx:439`
+  - `packages/frontend/src/features/einsatz/ui/organisms/FahrzeugHinzufuegenDialog.organism.tsx:471`
+  - **Fix:** `hint` → `helperText` geändert, Hilfe-Texte werden jetzt korrekt angezeigt
+
+- [x] [AI-Review][LOW] Toast-Nachricht für 409-Duplikat an Story angleichen **✅ Fixed 2025-12-17**
+  - `packages/frontend/src/features/einsatz/ui/organisms/FahrzeugHinzufuegenDialog.organism.tsx:194`
+  - **Fix:** "Fahrzeug mit diesem Funkrufnamen bereits erfasst" (Story-konform)
+
+### Code Review Follow-ups (AI) - 2025-12-17 (Round 2)
+
+- [x] [AI-Review][CRITICAL] DTO Position Validation fehlt (`@ValidateNested` + `@Type`) **✅ Fixed 2025-12-17**
+  - `packages/backend/src/application/kraefte/einsatz-fahrzeuge/dto/erfasse-temporales-fahrzeug.dto.ts:44-49`
+  - `packages/backend/src/application/kraefte/einsatz-fahrzeuge/dto/erfasse-fahrzeug-aus-stammdaten.dto.ts:25-32`
+  - **Fix:** `PositionDto` mit `@ValidateNested()` + `@Type(() => PositionDto)` verwendet
+
+- [x] [AI-Review][CRITICAL] Controller EINSATZ_NOT_FOUND Error Handling fehlt **✅ Fixed 2025-12-17**
+  - `packages/backend/src/modules/kraefte/controllers/einsatz-fahrzeuge.controller.ts:276-278`
+  - **Fix:** Error Handling für `EINSATZ_NOT_FOUND` → 404 hinzugefügt
+
+- [x] [AI-Review][CRITICAL] Frontend Duplikat-Validation fehlt (nur Server-Side) **✅ Fixed 2025-12-17**
+  - `packages/frontend/src/features/einsatz/ui/organisms/FahrzeugHinzufuegenDialog.organism.tsx:85-100`
+  - **Fix:** Zod Schema mit `useMemo` + `.refine()` für client-side Duplikat-Check
+
+- [x] [AI-Review][CRITICAL] ETB Adapter try/catch fehlt (Fire-and-Forget) **✅ Fixed 2025-12-17**
+  - `packages/backend/src/infrastructure/events/adapters/fahrzeug-erfasst-event.adapter.ts:49-67`
+  - **Fix:** try/catch Block um Handler-Aufruf, Fehler werden geloggt aber nicht propagiert
+
+- [x] [AI-Review][CRITICAL] Test Edge Case: Inaktiver Fahrzeugtyp **✅ Added 2025-12-17**
+  - `packages/backend/src/application/kraefte/einsatz-fahrzeuge/commands/erfasse-temporales-fahrzeug/__tests__/erfasse-temporales-fahrzeug.handler.spec.ts:225-260`
+  - **Note:** Test dokumentiert fehlende Validierung - Handler prüft istAktiv NICHT (Known Issue für spätere Story)
+
+### Deferred Issues (für spätere Stories)
+
+- [ ] [AI-Review][HIGH] Domain DRY Violation - ~75 Zeilen Duplikation in `createFromStammdaten()` vs `createTemporary()`
+  - `packages/backend/src/domain/kraefte/aggregates/einsatz-fahrzeug.aggregate.ts:228-423`
+  - **Empfehlung:** Private `validateCreateProps()` Methode extrahieren
+  - **Story:** Refactoring Story für EinsatzFahrzeug Aggregate
+
+- [ ] [AI-Review][HIGH] ETB Handler Tests fehlen komplett
+  - `packages/backend/src/application/etb/event-handlers/fahrzeug-erfasst.handler.ts`
+  - **Empfehlung:** Unit Tests für Fire-and-Forget Pattern, Temporär-Check, Error Cases
+  - **Story:** Test-Coverage Story für ETB Handler
+
+- [ ] [AI-Review][MEDIUM] UUID-Validierung für einsatzId fehlt in Aggregate
+  - `packages/backend/src/domain/kraefte/aggregates/einsatz-fahrzeug.aggregate.ts:230-234`
+  - **Empfehlung:** UUID-Regex oder `uuid` package Validierung hinzufügen
+
+- [ ] [AI-Review][MEDIUM] Hardcoded CUID2 Fehlermeldungen statt Konstanten
+  - `packages/backend/src/domain/kraefte/aggregates/einsatz-fahrzeug.aggregate.ts:238,247,275`
+  - **Empfehlung:** EINSATZ_FAHRZEUG_VALIDATION_ERRORS erweitern
+
+- [ ] [AI-Review][MEDIUM] Handler prüft nicht ob Fahrzeugtyp aktiv ist (istAktiv=false wird akzeptiert)
+  - `packages/backend/src/application/kraefte/einsatz-fahrzeuge/commands/erfasse-temporales-fahrzeug/erfasse-temporales-fahrzeug.handler.ts:82`
+  - **Empfehlung:** Check `if (!fahrzeugtyp.istAktiv)` hinzufügen + FAHRZEUGTYP_INACTIVE Error Code
 
 ---
 

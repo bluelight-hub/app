@@ -273,6 +273,9 @@ export class EinsatzFahrzeugeController {
       if (EinsatzFahrzeugError.hasCode(error, EINSATZ_FAHRZEUG_ERROR_CODES.FUNKRUFNAME_DUPLICATE)) {
         throw new ConflictException(EinsatzFahrzeugError.extractMessage(error));
       }
+      if (EinsatzFahrzeugError.hasCode(error, EINSATZ_FAHRZEUG_ERROR_CODES.EINSATZ_NOT_FOUND)) {
+        throw new NotFoundException(EinsatzFahrzeugError.extractMessage(error));
+      }
       if (EinsatzFahrzeugError.hasCode(error, EINSATZ_FAHRZEUG_ERROR_CODES.FAHRZEUGTYP_NOT_FOUND)) {
         throw new NotFoundException(EinsatzFahrzeugError.extractMessage(error));
       }

@@ -56,6 +56,16 @@ export class FahrzeugErfasstEventAdapter {
       funkrufname: event.funkrufname,
       eventName: FahrzeugErfasstEvent.eventName(),
     });
-    await this.handler.handle(event);
+
+    try {
+      await this.handler.handle(event);
+    } catch (error) {
+      // Fire-and-Forget: Fehler loggen, NICHT propagieren
+      this.logger.error(`Unerwarteter Fehler im FahrzeugErfasst Handler`, {
+        eventId: event.eventId,
+        error: error instanceof Error ? error.message : String(error),
+        stack: error instanceof Error ? error.stack : undefined,
+      });
+    }
   }
 }

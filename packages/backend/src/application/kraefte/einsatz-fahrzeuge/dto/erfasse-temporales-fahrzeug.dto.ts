@@ -1,5 +1,7 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { IsNotEmpty, IsOptional, IsString, MaxLength } from 'class-validator';
+import { IsNotEmpty, IsOptional, IsString, MaxLength, ValidateNested } from 'class-validator';
+import { Type } from 'class-transformer';
+import { PositionDto } from './erfasse-fahrzeug-aus-stammdaten.dto';
 
 /**
  * DTO für das Erfassen eines temporären Fahrzeugs.
@@ -43,8 +45,10 @@ export class ErfasseTemporalesFahrzeugDto {
 
   @ApiPropertyOptional({
     description: 'Optionale initiale GPS-Position (z.B. aktuelle Fahrzeugposition)',
-    example: { lat: 49.4094, lng: 8.6944 },
+    type: PositionDto,
   })
   @IsOptional()
-  position?: { lat: number; lng: number };
+  @ValidateNested()
+  @Type(() => PositionDto)
+  position?: PositionDto;
 }

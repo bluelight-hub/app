@@ -33,15 +33,14 @@ interface FahrzeugHinzufuegenDialogProps {
 }
 
 /**
- * Zod Schema für temporäres Fahrzeug Formular
+ * Base Type für temporäres Fahrzeug Formular
+ * (Schema wird in Komponente mit Duplikat-Check definiert)
  */
-const temporalFahrzeugSchema = z.object({
-  funkrufname: z.string().min(1, 'Funkrufname ist erforderlich').max(100, 'Funkrufname zu lang (max 100 Zeichen)'),
-  fahrzeugtypId: z.string().min(1, 'Fahrzeugtyp ist erforderlich'),
-  kennzeichen: z.string().max(20, 'Kennzeichen zu lang (max 20 Zeichen)').optional(),
-});
-
-type TemporalFahrzeugFormValues = z.infer<typeof temporalFahrzeugSchema>;
+type TemporalFahrzeugFormValues = {
+  funkrufname: string;
+  fahrzeugtypId: string;
+  kennzeichen?: string;
+};
 
 /**
  * Dialog zum Hinzufügen eines Fahrzeugs (Stammdaten oder Temporär)
@@ -77,6 +76,30 @@ export function FahrzeugHinzufuegenDialog({ isOpen, onClose, einsatzId }: Fahrze
   const erfasseFahrzeug = useErfasseFahrzeugAusStammdaten();
   const erfasseTemporales = useErfasseTemporalesFahrzeug();
 
+  // Set mit bereits erfassten Funkrufnamen für schnelle Duplikat-Prüfung
+  const erfassteFunkrufnamen = useMemo(() => {
+    if (!einsatzFahrzeuge) return new Set<string>();
+    return new Set(einsatzFahrzeuge.map((fz) => fz.funkrufname.toLowerCase()));
+  }, [einsatzFahrzeuge]);
+
+  /**
+   * Zod Schema für temporäres Fahrzeug Formular mit Duplikat-Check
+   * Muss nach erfassteFunkrufnamen berechnet werden, da es auf diesem State basiert
+   */
+  const temporalFahrzeugSchema = useMemo(
+    () =>
+      z.object({
+        funkrufname: z
+          .string()
+          .min(1, 'Funkrufname ist erforderlich')
+          .max(100, 'Funkrufname zu lang (max 100 Zeichen)')
+          .refine((val) => !erfassteFunkrufnamen.has(val.trim().toLowerCase()), 'Fahrzeug mit diesem Funkrufnamen bereits im Einsatz erfasst'),
+        fahrzeugtypId: z.string().min(1, 'Fahrzeugtyp ist erforderlich'),
+        kennzeichen: z.string().max(20, 'Kennzeichen zu lang (max 20 Zeichen)').optional(),
+      }),
+    [erfassteFunkrufnamen],
+  );
+
   // Form für temporäres Fahrzeug
   const temporalForm = useForm<TemporalFahrzeugFormValues>({
     defaultValues: {
@@ -89,12 +112,6 @@ export function FahrzeugHinzufuegenDialog({ isOpen, onClose, einsatzId }: Fahrze
       onChange: temporalFahrzeugSchema,
     },
   });
-
-  // Set mit bereits erfassten Funkrufnamen für schnelle Duplikat-Prüfung
-  const erfassteFunkrufnamen = useMemo(() => {
-    if (!einsatzFahrzeuge) return new Set<string>();
-    return new Set(einsatzFahrzeuge.map((fz) => fz.funkrufname.toLowerCase()));
-  }, [einsatzFahrzeuge]);
 
   // Debounced Query-Update (300ms)
   const debouncedSetQuery = useDebouncedCallback(setQuery, 300);
@@ -191,9 +208,9 @@ export function FahrzeugHinzufuegenDialog({ isOpen, onClose, einsatzId }: Fahrze
       // 409 Conflict = Duplikat (bereits im Einsatz)
       const status = (error as { response?: { status?: number } })?.response?.status;
       if (status === 409) {
-        toast.error('Fahrzeug bereits im Einsatz', {
+        toast.error('Fahrzeug mit diesem Funkrufnamen bereits erfasst', {
           id: toastId,
-          description: `${values.funkrufname} ist bereits in diesem Einsatz erfasst`,
+          description: `${values.funkrufname} existiert bereits in diesem Einsatz`,
         });
       } else {
         toast.error('Fehler beim Erfassen', {
@@ -408,7 +425,7 @@ export function FahrzeugHinzufuegenDialog({ isOpen, onClose, einsatzId }: Fahrze
                   {/* Funkrufname */}
                   <temporalForm.Field name="funkrufname">
                     {(field) => (
-                      <FormField label="Funkrufname" required error={field.state.meta.errors.join(', ')} hint="Eindeutiger Funkrufname für diesen Einsatz">
+                      <FormField label="Funkrufname" required error={field.state.meta.errors.join(', ')} helperText="Eindeutiger Funkrufname für diesen Einsatz">
                         <input
                           type="text"
                           value={field.state.value}
@@ -436,7 +453,7 @@ export function FahrzeugHinzufuegenDialog({ isOpen, onClose, einsatzId }: Fahrze
                   {/* Fahrzeugtyp */}
                   <temporalForm.Field name="fahrzeugtypId">
                     {(field) => (
-                      <FormField label="Fahrzeugtyp" required error={field.state.meta.errors.join(', ')} hint="Kategorisierung des Fahrzeugs">
+                      <FormField label="Fahrzeugtyp" required error={field.state.meta.errors.join(', ')} helperText="Kategorisierung des Fahrzeugs">
                         <select
                           value={field.state.value}
                           onChange={(e) => field.handleChange(e.target.value)}
@@ -468,7 +485,7 @@ export function FahrzeugHinzufuegenDialog({ isOpen, onClose, einsatzId }: Fahrze
                   {/* Kennzeichen (Optional) */}
                   <temporalForm.Field name="kennzeichen">
                     {(field) => (
-                      <FormField label="Kennzeichen" error={field.state.meta.errors.join(', ')} hint="Optional: Amtliches Kennzeichen">
+                      <FormField label="Kennzeichen" error={field.state.meta.errors.join(', ')} helperText="Optional: Amtliches Kennzeichen">
                         <input
                           type="text"
                           value={field.state.value}
