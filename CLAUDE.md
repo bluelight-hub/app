@@ -225,30 +225,108 @@ describe('CreateEinsatzHandler', () => {
 ```text
 bluelight-hub/
 ├── packages/
-│   ├── frontend/          # React 19 + Vite + Tauri Desktop App
+│   ├── frontend/              # React 19 + Vite + Tauri Desktop App
 │   │   ├── src/
-│   │   │   ├── components/  # Atomic Design (atoms/molecules/organisms/pages/templates)
-│   │   │   ├── hooks/       # TanStack Query Hooks
-│   │   │   ├── stores/      # TanStack Store
-│   │   │   └── routes/      # TanStack Router (File-based)
-│   │   └── src-tauri/       # Tauri Rust Backend
-│   ├── backend/           # NestJS + Prisma + PostgreSQL
+│   │   │   ├── features/      # Feature-based Modules (NICHT components/)
+│   │   │   │   ├── auth/      # Auth Feature
+│   │   │   │   │   ├── api/       # TanStack Query Hooks
+│   │   │   │   │   ├── guards/    # Route Guards
+│   │   │   │   │   ├── schemas/   # Zod Schemas
+│   │   │   │   │   ├── stores/    # TanStack Store
+│   │   │   │   │   └── ui/        # Atomic Design (atoms/molecules/organisms/pages)
+│   │   │   │   ├── einsatz/   # Einsatz Feature
+│   │   │   │   ├── etb/       # ETB Feature
+│   │   │   │   ├── lagekarte/ # Lagekarte Feature
+│   │   │   │   └── admin/     # Admin Feature
+│   │   │   ├── shared/        # Shared Components & Utilities
+│   │   │   │   ├── ui/        # Global Atomic Design Components
+│   │   │   │   │   ├── atoms/
+│   │   │   │   │   ├── molecules/
+│   │   │   │   │   ├── organisms/
+│   │   │   │   │   ├── templates/
+│   │   │   │   │   └── headless/  # Headless UI Wrappers
+│   │   │   │   └── utils/
+│   │   │   ├── routes/        # TanStack Router (File-based, AUTO-GENERATED)
+│   │   │   ├── provider/      # App Providers (Query, Store, Auth)
+│   │   │   ├── services/      # App Services
+│   │   │   └── queryKeys.ts   # Zentrale Query Key Verwaltung
+│   │   └── src-tauri/         # Tauri Rust Backend
+│   │
+│   ├── backend/               # NestJS + Prisma + PostgreSQL (Hexagonal Architecture)
 │   │   ├── src/
-│   │   │   ├── modules/     # Feature Modules (Controller/Service/Repository)
-│   │   │   ├── prisma/      # Database Schema & Client
-│   │   │   └── common/      # Shared Utilities
+│   │   │   ├── domain/        # Business Logic Layer (Framework-agnostic)
+│   │   │   │   ├── aggregates/    # Business Aggregates
+│   │   │   │   ├── entities/      # Domain Entities
+│   │   │   │   ├── events/        # Domain Events
+│   │   │   │   ├── exceptions/    # Domain Exceptions
+│   │   │   │   ├── ports/         # Interface Contracts (Ports)
+│   │   │   │   ├── repositories/  # Repository Interfaces
+│   │   │   │   ├── services/      # Domain Services
+│   │   │   │   ├── value-objects/ # Immutable Value Objects
+│   │   │   │   └── common/        # Shared Domain Utilities (Result, etc.)
+│   │   │   │
+│   │   │   ├── application/   # Use Case Layer (Handlers, Commands, Queries)
+│   │   │   │   ├── common/
+│   │   │   │   │   └── handlers/  # TransactionalCommandHandler Base
+│   │   │   │   ├── einsatz/
+│   │   │   │   │   ├── commands/  # Command Handlers
+│   │   │   │   │   ├── queries/   # Query Handlers
+│   │   │   │   │   └── dto/       # DTOs
+│   │   │   │   ├── etb/
+│   │   │   │   │   └── event-handlers/  # Domain Event Handlers
+│   │   │   │   ├── kraefte/
+│   │   │   │   │   └── einsatz-fahrzeuge/
+│   │   │   │   │       ├── commands/
+│   │   │   │   │       ├── queries/
+│   │   │   │   │       └── dto/
+│   │   │   │   └── lagekarte/
+│   │   │   │
+│   │   │   ├── infrastructure/  # Technical Layer (Adapters, DB, Events)
+│   │   │   │   ├── common/
+│   │   │   │   │   └── adapters/  # Port Implementations (Logger, etc.)
+│   │   │   │   ├── database/      # Prisma Client
+│   │   │   │   ├── events/        # Event Bus & Adapters
+│   │   │   │   │   └── adapters/  # Domain Event → Integration Event
+│   │   │   │   ├── outbox/        # Outbox Pattern Implementation
+│   │   │   │   ├── repositories/  # Prisma Repository Implementations
+│   │   │   │   ├── di-tokens.ts   # Zentralisierte DI Token Constants
+│   │   │   │   └── config/        # Configuration
+│   │   │   │
+│   │   │   └── modules/       # REST Controller Layer (NestJS Modules)
+│   │   │       ├── auth/
+│   │   │       │   └── controllers/
+│   │   │       ├── einsatz/
+│   │   │       │   └── controllers/
+│   │   │       ├── etb/
+│   │   │       │   └── controllers/
+│   │   │       └── kraefte/
+│   │   │           └── controllers/
+│   │   │
 │   │   └── prisma/schema.prisma
+│   │
 │   └── shared/
-│       └── client/        # Generierte API-Clients (NICHT manuell ändern!)
-├── docs/                  # Modulare Projektdokumentation
-│   ├── index/             # 16 modulare Dokumentationsdateien
-│   ├── architecture/      # arc42 Template (12 Dateien)
-│   ├── backend-api-contracts/
-│   ├── frontend-components/
-│   └── development-guide/
-└── .bmad/                # BMad v6 Framework (Workflow Automation)
-    ├── core/             # BMad Core Module
-    └── _cfg/             # Manifests (tasks, workflows, agents)
+│       └── client/            # Generierte API-Clients (NICHT manuell ändern!)
+│
+├── docs/                      # Modulare Projektdokumentation
+│   ├── index/                 # Modulare Index-Dateien
+│   ├── architecture/          # arc42 Template (14+ Dateien)
+│   ├── adr/                   # Architecture Decision Records
+│   ├── sprint-artifacts/      # Sprint Status & Stories
+│   ├── backend-api-contracts/ # OpenAPI, DTOs
+│   ├── backend-data-models/   # Prisma Schema Dokumentation
+│   ├── frontend-components/   # Atomic Design Inventory
+│   └── development-guide/     # Setup, Commands, Best Practices
+│
+├── .bmad/                     # BMad v6 Framework (Workflow Automation)
+│   ├── core/                  # BMad Core Module
+│   ├── bmm/                   # BMad Main Module (Workflows)
+│   ├── bmb/                   # BMad Builder Module
+│   ├── cis/                   # Custom Innovation Suite
+│   └── _cfg/                  # Manifests (tasks, workflows, agents)
+│
+└── .claude/                   # Claude Code Konfiguration
+    ├── agents/                # Claude Agent Konfigurationen
+    └── commands/              # Custom Slash Commands
 ```
 
 ## 🛠️ ESSENTIAL COMMANDS
@@ -274,8 +352,25 @@ pnpm --filter @bluelight-hub/backend prisma:studio   # Prisma Studio öffnen
 pnpm lint                                      # Biome lint + fix
 pnpm lint:check                               # Biome check ohne fix
 
+# Architecture Checks
+pnpm --filter @bluelight-hub/backend check:arch     # Circular Dependencies prüfen
+pnpm --filter @bluelight-hub/backend lint:arch      # Architecture Lint
+
 # Backend Documentation
 pnpm --filter @bluelight-hub/backend docs:generate  # Compodoc generieren
+```
+
+### Testing
+
+```bash
+# Unit Tests
+pnpm --filter @bluelight-hub/backend test              # Alle Tests
+pnpm --filter @bluelight-hub/backend test:unit         # Nur Unit Tests
+pnpm --filter @bluelight-hub/backend test:domain       # Nur Domain Tests
+
+# Integration Tests
+pnpm --filter @bluelight-hub/backend test:e2e          # E2E Tests
+pnpm --filter @bluelight-hub/backend test:integration  # Integration Tests
 ```
 
 ### Environment
@@ -290,23 +385,42 @@ pnpm --filter @bluelight-hub/backend docs:generate  # Compodoc generieren
 
 ## 🏗️ CODE PATTERNS
 
-### Frontend (Atomic Design + TanStack Ecosystem)
+### Frontend (Feature-based + Atomic Design + TanStack Ecosystem)
 
 ```typescript
-// Component-Struktur
-atoms/      # Basis-Komponenten (Buttons, Inputs, Icons)
-molecules/  # Kombinierte Komponenten (Form Fields, Cards)
-organisms/  # Komplexe Module (Forms, Tables, Modals)
-templates/  # Seiten-Layouts
-pages/      # Route-Komponenten
+// Feature-Struktur
+features/
+└── einsatz/
+    ├── api/           # TanStack Query Hooks
+    │   ├── queries.ts     # useEinsaetze, useEinsatzById
+    │   └── mutations.ts   # useCreateEinsatz, useUpdateEinsatz
+    ├── constants/     # Feature-spezifische Konstanten
+    ├── hooks/         # Custom Hooks
+    ├── schemas/       # Zod Validation Schemas
+    ├── stores/        # TanStack Store für Feature-State
+    └── ui/            # Atomic Design Components
+        ├── atoms/         # Basis (Buttons, Badges)
+        ├── molecules/     # Kombiniert (Cards, Dropdowns)
+        ├── organisms/     # Komplex (Forms, Tables)
+        └── pages/         # Route-Komponenten
+
+// Shared Components (global wiederverwendbar)
+shared/
+└── ui/
+    ├── atoms/         # Button, Input, Badge, Icon
+    ├── molecules/     # FormField, Card, Alert
+    ├── organisms/     # Modal, Table, Form
+    ├── templates/     # PageLayout, DashboardLayout
+    └── headless/      # Headless UI Wrapper
 
 // API Integration (IMMER generierter Client!)
 import { api } from '@bluelight-hub/shared/client';
 import { useQuery, useMutation } from '@tanstack/react-query';
+import { QUERY_KEYS } from '@/queryKeys';
 
 const useEinsaetze = () => {
   return useQuery({
-    queryKey: ['einsaetze'],
+    queryKey: QUERY_KEYS.einsatz.list(),
     queryFn: () => api.einsatz.findAll(),
   });
 };
@@ -323,30 +437,123 @@ const form = useForm({
   },
 });
 
-// Styling (NUR Tailwind CSS)
-<div className="flex items-center gap-4 rounded-lg bg-blue-100 p-4">
+// Styling (NUR Tailwind CSS + cn() Helper)
+import { cn } from '@/shared/ui/cn';
+
+<div className={cn(
+  "flex items-center gap-4 rounded-lg p-4",
+  isActive && "bg-blue-100"
+)}>
   <Button variant="primary">Action</Button>
 </div>
 ```
 
-### Backend (NestJS Modular + OpenAPI-First)
+### Backend (Hexagonal Architecture + CQRS)
 
 ```typescript
-// Module-Struktur
-controller/ # REST Endpoints (IMMER @ApiTags, @ApiOperation decorators)
-service/    # Business Logic
-repository/ # Data Access (Prisma)
-dto/        # Data Transfer Objects (class-validator + OpenAPI decorators)
+// Layer-Übersicht
+domain/         # WAS (Business Rules) - Framework-agnostic
+application/    # WANN (Use Cases) - Orchestriert Domain
+infrastructure/ # WIE (Technical Details) - Implements Ports
+modules/        # WO (HTTP Endpoints) - REST Controller
 
-// Controller (IMMER OpenAPI decorators für API-Generation!)
+// Domain Layer (src/domain/)
+// Aggregate mit Domain Events
+export class Einsatz extends AggregateRoot {
+  public updateStatus(newStatus: EinsatzStatus): Result<void> {
+    const oldStatus = this._status;
+    this._status = newStatus;
+
+    this.addDomainEvent(
+      new EinsatzStatusGeaendertEvent(this.id, oldStatus, newStatus)
+    );
+
+    return Result.ok();
+  }
+}
+
+// Port Interface (src/domain/ports/)
+export interface ILoggerPort {
+  log(message: string, context?: string): void;
+  error(message: string, trace?: string, context?: string): void;
+}
+
+// Application Layer (src/application/)
+// Command Handler mit TransactionalCommandHandler
+@Injectable()
+export class UpdateEinsatzHandler extends TransactionalCommandHandler<
+  UpdateEinsatzCommand,
+  void
+> {
+  protected async executeInTransaction(
+    command: UpdateEinsatzCommand,
+    tx: TransactionContext
+  ): Promise<{ result: void; events: DomainEvent[] }> {
+    const einsatz = await this.repository.findById(command.id, tx);
+    if (!einsatz) {
+      return { result: undefined, events: [] };
+    }
+
+    einsatz.updateStatus(command.status);
+    await this.repository.save(einsatz, tx);
+
+    const events = einsatz.getDomainEvents();
+    einsatz.clearDomainEvents();
+
+    return { result: undefined, events };
+  }
+}
+
+// Event Handler (src/application/*/event-handlers/)
+@Injectable()
+export class EinsatzCreatedHandler implements IEventHandler<EinsatzCreatedEvent> {
+  async handle(event: EinsatzCreatedEvent): Promise<void> {
+    // Side effects: ETB Eintrag erstellen, Notifications, etc.
+  }
+}
+
+// Infrastructure Layer (src/infrastructure/)
+// Port Adapter Implementation
+@Injectable()
+export class NestLoggerAdapter implements ILoggerPort {
+  constructor(private readonly logger: Logger) {}
+
+  log(message: string, context?: string): void {
+    this.logger.log(message, context);
+  }
+}
+
+// Repository Implementation
+@Injectable()
+export class PrismaEinsatzRepository implements IEinsatzRepository {
+  constructor(private readonly prisma: PrismaService) {}
+
+  async findById(id: EinsatzId, tx?: TransactionContext): Promise<Einsatz | null> {
+    const client = tx ?? this.prisma;
+    const data = await client.einsatz.findUnique({ where: { id: id.value } });
+    return data ? EinsatzMapper.toDomain(data) : null;
+  }
+}
+
+// Module Layer (src/modules/)
+// Controller (IMMER OpenAPI decorators!)
 @Controller('einsatz')
 @ApiTags('einsatz')
 export class EinsatzController {
+  constructor(
+    private readonly createHandler: CreateEinsatzHandler,
+    private readonly queryHandler: GetEinsatzQueryHandler,
+  ) {}
+
   @Post()
   @ApiOperation({ summary: 'Einsatz erstellen' })
   @ApiCreatedResponse({ type: EinsatzDto })
-  async create(@Body() dto: CreateEinsatzDto) {
-    return this.service.create(dto);
+  async create(@Body() dto: CreateEinsatzDto): Promise<WrappedResponse<EinsatzDto>> {
+    const result = await this.createHandler.execute(dto);
+    if (result.isFailure) {
+      throw new BadRequestException(result.error);
+    }
+    return { data: result.value };
   }
 }
 
@@ -364,12 +571,12 @@ export class CreateEinsatzDto {
 
 // JSDoc (Deutsch, "warum" nicht "was")
 /**
- * Erstellt einen neuen Einsatz und benachrichtigt alle aktiven Benutzer.
+ * Erstellt einen neuen Einsatz und speichert Domain Events in Outbox.
  *
- * Diese Methode löst ein Event aus, damit andere Module (z.B. Notifications)
- * reagieren können, ohne direkte Abhängigkeit zu schaffen.
+ * Nutzt TransactionalCommandHandler um atomare Konsistenz zwischen
+ * Aggregate-Änderung und Event-Publikation zu garantieren.
  */
-async create(dto: CreateEinsatzDto): Promise<Einsatz> { ... }
+async execute(command: CreateEinsatzCommand): Promise<Result<string>> { ... }
 ```
 
 ## 🎯 COMMIT EMOJIS
@@ -389,6 +596,40 @@ async create(dto: CreateEinsatzDto): Promise<Einsatz> { ... }
 | 🎨    | Style    | -       | Code Style           | `🎨(components): Apply consistent spacing`  |
 | ⚡     | Perf     | Patch   | Performance          | `⚡(query): Add database index`             |
 | 🔖    | Release  | -       | Version Tag          | `🔖(release): 1.2.3`                        |
+| 🧪    | Test     | -       | Tests hinzufügen     | `🧪(kraefte): Add handler tests`            |
+
+## 🤖 Subagent-Nutzung
+
+**Nutze Subagents (Task Tool) proaktiv für komplexe Aufgaben!**
+
+| Aufgabentyp | Subagent | Wann nutzen |
+|-------------|----------|-------------|
+| **Codebase Exploration** | `Explore` | Struktur verstehen, Dateien finden, Patterns identifizieren |
+| **Implementation** | `general-purpose` | Multi-Step Implementierungen, komplexe Refactorings |
+| **Planung** | `Plan` | Architektur-Design, Implementierungs-Strategien |
+| **Marktforschung** | `bmm-market-researcher` | Wettbewerbs-Analyse, Markt-Insights |
+| **Anforderungsanalyse** | `bmm-requirements-analyst` | Requirements extrahieren, validieren |
+| **Codebase-Analyse** | `bmm-codebase-analyzer` | Projekt-Struktur, Tech-Stack Dokumentation |
+| **Pattern-Erkennung** | `bmm-pattern-detector` | Code-Patterns, Konventionen identifizieren |
+| **API-Dokumentation** | `bmm-api-documenter` | REST Endpoints, Schemas dokumentieren |
+| **Tech Debt** | `bmm-tech-debt-auditor` | Refactoring-Bedarf, Code Smells |
+| **Test Coverage** | `bmm-test-coverage-analyzer` | Test-Gaps, Coverage-Metriken |
+| **Document Review** | `bmm-document-reviewer` | PRDs, Architektur-Docs validieren |
+
+**Best Practices:**
+- Für **Recherche-Aufgaben** IMMER `Explore` Agent nutzen (statt direkte Grep/Glob)
+- **Parallele Agents** starten wenn Tasks unabhängig sind
+- Bei **komplexen Implementierungen** erst `Plan` Agent, dann `general-purpose`
+- **BMM-Agents** proaktiv für Dokumentation und Analyse nutzen
+
+```typescript
+// Beispiel: Exploration statt direkter Suche
+// ✅ RICHTIG: Explore Agent für offene Fragen
+Task(subagent_type='Explore', prompt='Finde alle Event Handler im Backend')
+
+// ❌ FALSCH: Direkte Grep/Glob für komplexe Exploration
+Grep(pattern='EventHandler')
+```
 
 ## 🤖 BMad v6 Framework Integration
 
@@ -443,6 +684,7 @@ Login: rubeen / (optionales PW: MyPass123*)
 
 - **Unit Tests:** `pnpm --filter @bluelight-hub/backend test`
 - **Integration Tests:** `pnpm --filter @bluelight-hub/backend test:e2e`
+- **Domain Tests:** `pnpm --filter @bluelight-hub/backend test:domain`
 - **Manuelle Tests:** claude-in-chrome
 
 ### API Development Workflow
@@ -452,6 +694,17 @@ Login: rubeen / (optionales PW: MyPass123*)
 3. Frontend nutzt generierten Client aus `@bluelight-hub/shared/client`
 4. TanStack Query Hook erstellen
 Nutze die WrappedResponse ({data: {} | []}), statt direkter response {} | []. - gibt custom annotation dafür.
+
+### Hexagonal Architecture Layers
+
+| Layer | Verantwortung | Abhängigkeiten |
+|-------|---------------|----------------|
+| **Domain** | Business Rules, Aggregates, Events | Keine (Framework-agnostic) |
+| **Application** | Use Cases, Handlers, DTOs | Domain |
+| **Infrastructure** | DB, Events, External Services | Domain, Application |
+| **Modules** | HTTP Controller, REST API | Application |
+
+**Wichtig:** Abhängigkeiten fließen IMMER nach innen (Modules → Infrastructure → Application → Domain).
 
 ### Tauri Desktop App
 
@@ -464,13 +717,16 @@ Nutze die WrappedResponse ({data: {} | []}), statt direkter response {} | []. - 
 
 Die Projektdokumentation ist modular aufgebaut:
 
-- **Haupt-Index:** `/docs/index/` (16 Dateien)
-- **Architektur:** `/docs/architecture/` (arc42 Template, 12 Dateien)
+- **Haupt-Index:** `/docs/index/`
+- **Architektur:** `/docs/architecture/` (arc42 Template, 14+ Dateien)
+- **ADRs:** `/docs/adr/` (Architecture Decision Records)
+- **Sprint Artifacts:** `/docs/sprint-artifacts/` (Status, Stories, Dailies)
 - **API:** `/docs/backend-api-contracts/` (OpenAPI, DTOs, Endpoints)
+- **Data Models:** `/docs/backend-data-models/` (Prisma Schema)
 - **Frontend:** `/docs/frontend-components/` (Atomic Design Inventory)
 - **Development:** `/docs/development-guide/` (Setup, Commands, Best Practices)
 
-**Wichtig:** Bei Architektur-Änderungen IMMER arc42-Dokumente aktualisieren!
+**Wichtig:** Bei Architektur-Änderungen IMMER arc42-Dokumente und ADRs aktualisieren!
 
 ## 🔍 QUICK REFERENCE
 
@@ -481,8 +737,13 @@ Die Projektdokumentation ist modular aufgebaut:
 | **UI Component** | Frontend | Tailwind CSS + Headless UI (TailwindUI nur auf Anfrage) |
 | **Form erstellen** | Frontend | @tanstack/react-form + Zod |
 | **State Management** | Frontend | @tanstack/react-store (global), @tanstack/react-query (server) |
+| **Feature erstellen** | Frontend | `features/<name>/` mit api/, ui/, stores/, schemas/ |
+| **Command Handler** | Backend | `application/<feature>/commands/` + TransactionalCommandHandler |
+| **Event Handler** | Backend | `application/<feature>/event-handlers/` |
+| **Repository** | Backend | `domain/repositories/` (Interface) + `infrastructure/repositories/` (Impl) |
 | **Database Migration** | Backend | `pnpm --filter @bluelight-hub/backend prisma:migrate` |
 | **Code Linting** | Überall | `pnpm lint` (Biome) |
+| **Architecture Check** | Backend | `pnpm --filter @bluelight-hub/backend check:arch` |
 | **API Docs** | Backend | Swagger UI: `http://localhost:3090/api` |
 | **Code Docs** | Backend | `pnpm --filter @bluelight-hub/backend docs:generate` (Compodoc) |
 | **Manual Testing** | Frontend | Chrome DevTools MCP + `http://localhost:3091` |
