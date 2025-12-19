@@ -2,7 +2,8 @@ import { Inject, Injectable } from '@nestjs/common';
 import { Result } from '@domain/common/result';
 // biome-ignore lint/style/useImportType: IEinsatzPersonRepository needed for DI at runtime
 import { IEinsatzPersonRepository } from '@domain/kraefte/repositories/i-einsatz-person.repository';
-import { KRAEFTE_REPOSITORIES } from '@infrastructure/di-tokens';
+import type { ILogger } from '@domain/ports/i-logger.port';
+import { KRAEFTE_REPOSITORIES, LOGGER } from '@infrastructure/di-tokens';
 import type { EinsatzPersonResponseDto } from '../../dto';
 import { EinsatzPersonDtoMapper } from '../../dto';
 import type { GetEinsatzPersonenQuery } from './get-einsatz-personen.query';
@@ -24,6 +25,7 @@ export class GetEinsatzPersonenHandler {
   constructor(
     @Inject(KRAEFTE_REPOSITORIES.EINSATZ_PERSON)
     private readonly einsatzPersonRepository: IEinsatzPersonRepository,
+    @Inject(LOGGER) private readonly logger: ILogger,
   ) {}
 
   /**
@@ -38,20 +40,26 @@ export class GetEinsatzPersonenHandler {
    * @returns Result<EinsatzPersonResponseDto[]> - Liste der EinsatzPersonen
    */
   async execute(query: GetEinsatzPersonenQuery): Promise<Result<EinsatzPersonResponseDto[]>> {
+    this.logger.log(`GetEinsatzPersonenQuery für Einsatz ${query.einsatzId} wird ausgeführt`);
+
     // 1. Load EinsatzPersonen
     const personenResult = await this.einsatzPersonRepository.findByEinsatzId(query.einsatzId);
     if (personenResult.isFailure) {
+      this.logger.error(`Fehler beim Laden der Personen für Einsatz ${query.einsatzId}: ${personenResult.error}`);
       return Result.fail(personenResult.error ?? 'Fehler beim Laden der Personen');
     }
 
     const personen = personenResult.value ?? [];
 
     if (personen.length === 0) {
+      this.logger.log(`Keine Personen gefunden für Einsatz ${query.einsatzId}`);
       return Result.ok([]);
     }
 
     // 2. Map to DTOs
     const dtos = EinsatzPersonDtoMapper.toResponseDtoList(personen);
+
+    this.logger.log(`${personen.length} Personen für Einsatz ${query.einsatzId} erfolgreich geladen`);
 
     return Result.ok(dtos);
   }

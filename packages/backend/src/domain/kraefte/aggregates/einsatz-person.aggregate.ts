@@ -137,7 +137,7 @@ export class EinsatzPerson extends AggregateRoot<EinsatzPersonId> {
     this._nachname = nachname;
     this._funktion = funktion;
     this._funkrufname = funkrufname;
-    this._qualifikationIds = qualifikationIds ?? [];
+    this._qualifikationIds = [...(qualifikationIds ?? [])];
     this._position = position;
     this._createdBy = createdBy;
     this._updatedBy = updatedBy;

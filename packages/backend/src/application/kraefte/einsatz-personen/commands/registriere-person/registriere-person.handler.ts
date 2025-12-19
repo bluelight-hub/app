@@ -1,4 +1,4 @@
-import { Inject, Injectable, Logger } from '@nestjs/common';
+import { Inject, Injectable } from '@nestjs/common';
 import { TransactionalCommandHandler } from '@application/common/handlers/transactional-command.handler';
 import type { DomainEvent } from '@domain/common/domain-event';
 import { Result } from '@domain/common/result';
@@ -10,9 +10,10 @@ import { IEinsatzPersonRepository } from '@domain/kraefte/repositories/i-einsatz
 import { IStammPersonRepository } from '@domain/kraefte/repositories/i-stamm-person.repository';
 // biome-ignore lint/style/useImportType: IOutboxRepository needed for DI at runtime
 import { IOutboxRepository } from '@domain/repositories/i-outbox.repository';
+import type { ILogger } from '@domain/ports/i-logger.port';
 import { StammPersonId } from '@domain/kraefte/value-objects/stamm-person-id';
 import { EINSATZ_PERSON_ERROR_CODES, EinsatzPersonError } from '@domain/kraefte/common/einsatz-person-error-codes';
-import { KRAEFTE_REPOSITORIES, OUTBOX_REPOSITORY } from '@infrastructure/di-tokens';
+import { KRAEFTE_REPOSITORIES, LOGGER, OUTBOX_REPOSITORY } from '@infrastructure/di-tokens';
 // biome-ignore lint/style/useImportType: PrismaService needed for DI at runtime
 import { PrismaService } from '@/infrastructure/database/prisma.service';
 import type { RegistrierePersonCommand } from './registriere-person.command';
@@ -43,8 +44,6 @@ import type { RegistrierePersonCommand } from './registriere-person.command';
  */
 @Injectable()
 export class RegistrierePersonHandler extends TransactionalCommandHandler<RegistrierePersonCommand, string> {
-  protected readonly logger = new Logger(RegistrierePersonHandler.name);
-
   constructor(
     prisma: PrismaService,
     @Inject(OUTBOX_REPOSITORY) outboxRepository: IOutboxRepository,
@@ -52,6 +51,7 @@ export class RegistrierePersonHandler extends TransactionalCommandHandler<Regist
     private readonly einsatzPersonRepository: IEinsatzPersonRepository,
     @Inject(KRAEFTE_REPOSITORIES.STAMM_PERSON)
     private readonly stammPersonRepository: IStammPersonRepository,
+    @Inject(LOGGER) private readonly logger: ILogger,
   ) {
     super(prisma, outboxRepository);
   }

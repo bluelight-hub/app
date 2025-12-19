@@ -5,6 +5,7 @@ import { EinsatzResourceWidget } from '@/features/einsatz/ui/molecules/EinsatzRe
 import { EinsatzStatsCard } from '@/features/einsatz/ui/molecules/EinsatzStatsCard';
 import { EinsatzTimelineWidget } from '@/features/einsatz/ui/molecules/EinsatzTimelineWidget';
 import { FahrzeugHinzufuegenDialog } from '@/features/einsatz/ui/organisms/FahrzeugHinzufuegenDialog.organism';
+import { PersonHinzufuegenDialog } from '@/features/einsatz/ui/organisms/PersonHinzufuegenDialog.organism';
 import { useActiveEinsatz, EINSATZ_QUERY_KEYS, useEinsatzFahrzeuge, useUpdateFmsStatus } from '@/features/einsatz';
 import type { FmsStatus } from '@/features/einsatz';
 import { formatNatoDateTime } from '@/shared/lib/dateFormatter';
@@ -29,6 +30,11 @@ export function SingleEinsatzDashboard() {
   const [showFahrzeugDialog, setShowFahrzeugDialog] = useState(false);
   const handleOpenFahrzeugDialog = useCallback(() => setShowFahrzeugDialog(true), []);
   const handleCloseFahrzeugDialog = useCallback(() => setShowFahrzeugDialog(false), []);
+
+  // Dialog State für Person hinzufügen (Story 4-1)
+  const [showPersonDialog, setShowPersonDialog] = useState(false);
+  const handleOpenPersonDialog = useCallback(() => setShowPersonDialog(true), []);
+  const handleClosePersonDialog = useCallback(() => setShowPersonDialog(false), []);
 
   // Lade Einsatzdaten
   const {
@@ -152,9 +158,9 @@ export function SingleEinsatzDashboard() {
             <PiRadio className="mr-2 h-4 w-4" />
             Funkmeldung
           </Button>
-          <Button intent="secondary" size="sm" className="justify-start">
+          <Button intent="secondary" size="sm" className="justify-start" onClick={handleOpenPersonDialog}>
             <PiUsers className="mr-2 h-4 w-4" />
-            Einheit hinzufügen
+            Person hinzufügen
           </Button>
           <Button intent="secondary" size="sm" className="justify-start">
             <PiFileText className="mr-2 h-4 w-4" />
@@ -270,6 +276,9 @@ export function SingleEinsatzDashboard() {
 
       {/* Fahrzeug hinzufügen Dialog (Story 3-1) */}
       <FahrzeugHinzufuegenDialog isOpen={showFahrzeugDialog} onClose={handleCloseFahrzeugDialog} einsatzId={einsatzId} />
+
+      {/* Person hinzufügen Dialog (Story 4-1) */}
+      <PersonHinzufuegenDialog isOpen={showPersonDialog} onClose={handleClosePersonDialog} einsatzId={einsatzId} />
     </div>
   );
 }

@@ -125,6 +125,11 @@ export const useRegistrierePerson = () => {
         queryKey: EINSATZ_QUERY_KEYS.personen(variables.einsatzId),
       });
 
+      // Invalidate Einsatz Detail (personenCount aktualisieren)
+      queryClient.invalidateQueries({
+        queryKey: EINSATZ_QUERY_KEYS.detail(variables.einsatzId),
+      });
+
       // Invalidate ETB (neuer Eintrag wurde erstellt)
       queryClient.invalidateQueries({
         queryKey: ETB_QUERY_KEYS.byEinsatz(variables.einsatzId),

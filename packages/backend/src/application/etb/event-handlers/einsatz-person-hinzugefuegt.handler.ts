@@ -112,8 +112,6 @@ export class EinsatzPersonHinzugefuegtEventHandler implements IEventHandler<Eins
           actionRequired: 'Check command validation logic',
         };
         this.logger.error(`Failed to create AddEintragCommand for EinsatzPersonHinzugefuegt`, errorContext);
-        // Fire-and-Forget Monitoring: Zusätzliches console.error für externe Monitoring-Systeme
-        console.error('[PERSON_ETB_ERROR]', errorContext);
         return; // Fire-and-Forget: Nicht propagieren
       }
 
@@ -133,8 +131,6 @@ export class EinsatzPersonHinzugefuegtEventHandler implements IEventHandler<Eins
           actionRequired: 'Manual ETB entry may be needed',
         };
         this.logger.error(`Failed to add ETB entry for EinsatzPersonHinzugefuegt`, errorContext);
-        // Fire-and-Forget Monitoring: Zusätzliches console.error für externe Monitoring-Systeme
-        console.error('[PERSON_ETB_ERROR]', errorContext);
         return; // Fire-and-Forget: Nicht propagieren
       }
 
@@ -163,9 +159,6 @@ export class EinsatzPersonHinzugefuegtEventHandler implements IEventHandler<Eins
         actionRequired: 'Manual ETB entry may be needed',
       };
       this.logger.error(`CRITICAL: Unexpected error during ETB entry creation for EinsatzPersonHinzugefuegt`, criticalContext);
-      // Fire-and-Forget Monitoring: Zusätzliches console.error für externe Monitoring-Systeme
-      // Dies ermöglicht Log-Aggregation und Alerting via externe Tools (z.B. Sentry, Datadog)
-      console.error('[PERSON_ETB_CRITICAL]', criticalContext);
       // Fire-and-Forget: NICHT re-thrown!
     }
   }

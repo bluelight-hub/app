@@ -30,3 +30,4 @@ export { useFahrzeugtypen, FAHRZEUGTYP_QUERY_KEYS } from './use-fahrzeugtypen';
 
 // EinsatzPersonen Hooks (Story 4-1)
 export { useEinsatzPersonen, useRegistrierePerson } from './use-einsatz-personen';
+export { useStammPersonenSuche, STAMM_PERSONEN_QUERY_KEYS } from './use-stamm-personen-suche';
