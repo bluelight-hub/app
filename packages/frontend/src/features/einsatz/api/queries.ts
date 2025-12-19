@@ -55,6 +55,9 @@ export const EINSATZ_QUERY_KEYS = {
   // EinsatzFahrzeuge Queries
   fahrzeuge: (einsatzId: string) => [...EINSATZ_QUERY_KEYS.detail(einsatzId), 'fahrzeuge'] as const,
 
+  // EinsatzPersonen Queries
+  personen: (einsatzId: string) => [...EINSATZ_QUERY_KEYS.detail(einsatzId), 'personen'] as const,
+
   // StammFahrzeuge Queries (für Fahrzeugauswahl)
   stammFahrzeuge: () => ['stamm_fahrzeuge'] as const,
 } as const;

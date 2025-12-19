@@ -200,7 +200,7 @@ model EinsatzPerson {
 
 ### Task 3: Application Layer (AC: 2, 3)
 
-- [ ] **3.1 `RegistrierePersonCommand` erstellen**
+- [x] **3.1 `RegistrierePersonCommand` erstellen**
   - Datei: `packages/backend/src/application/kraefte/einsatz-personen/commands/registriere-person/registriere-person.command.ts`
   - Properties: `einsatzId`, `stammPersonId?`, `vorname`, `nachname`, `funktion`, `qualifikationIds[]`, `registriertVon`
   - **Private Constructor + Static Factory Pattern:**
@@ -249,14 +249,14 @@ model EinsatzPerson {
   }
   ```
 
-- [ ] **3.2 `RegistrierePersonHandler` implementieren**
+- [x] **3.2 `RegistrierePersonHandler` implementieren**
   - Datei: `packages/backend/src/application/kraefte/einsatz-personen/commands/registriere-person/registriere-person.handler.ts`
   - EXTENDS `TransactionalCommandHandler` für Outbox Pattern
   - **Inject Logger Port** (AC3 Compliance)
   - Lädt StammPerson (falls stammPersonId), erstellt EinsatzPerson, prüft Duplikate
   - Bei Duplikat: `return Result.fail()` statt throw
 
-- [ ] **3.3 DTOs erstellen mit vollständiger Validation**
+- [x] **3.3 DTOs erstellen mit vollständiger Validation**
   - `RegistrierePersonDto`: { stammPersonId?, vorname, nachname, funktion, qualifikationIds[] }
   - `EinsatzPersonDto`: Response DTO mit allen Feldern
   ```typescript
@@ -291,21 +291,21 @@ model EinsatzPerson {
   }
   ```
 
-- [ ] **3.4 `GetEinsatzPersonenQuery` + Handler erstellen**
+- [x] **3.4 `GetEinsatzPersonenQuery` + Handler erstellen**
   - Datei: `packages/backend/src/application/kraefte/einsatz-personen/queries/get-einsatz-personen/`
   - Liste aller EinsatzPersonen für einen Einsatz
 
-- [ ] **3.5 `SucheStammPersonenQuery` + Handler erstellen**
+- [x] **3.5 `SucheStammPersonenQuery` + Handler erstellen**
   - Datei: `packages/backend/src/application/kraefte/stamm-personen/queries/suche-stamm-personen/`
   - Autocomplete-Suche: `nachname LIKE '%{query}%'`, max 10 Treffer
   - Returns: `StammPersonSucheDto[]` mit id, vorname, nachname, qualifikationen
 
-- [ ] **3.6 ETB Auto-Creation Handler erweitern**
+- [x] **3.6 ETB Auto-Creation Handler erweitern**
   - Datei: `packages/backend/src/application/etb/event-handlers/einsatz-person-hinzugefuegt.handler.ts`
   - `EinsatzPersonHinzugefuegtEvent` subscriben
   - ETB-Eintrag erstellen: "Person {vorname} {nachname} registriert"
 
-- [ ] **3.7 Unit Tests für Handler**
+- [ ] **3.7 Unit Tests für Handler** (verschoben zu Task 6)
   - Success Case (mit/ohne StammPerson)
   - Duplikat-Fehler Case
   - StammPerson nicht gefunden Case
@@ -313,17 +313,17 @@ model EinsatzPerson {
 
 ### Task 4: API Layer (AC: 1, 2, 4)
 
-- [ ] **4.1 `EinsatzPersonenController` erstellen**
+- [x] **4.1 `EinsatzPersonenController` erstellen**
   - Datei: `packages/backend/src/modules/kraefte/controllers/einsatz-personen.controller.ts`
   - Path: `einsaetze/:einsatzId/personen`
   - `POST /` - Person registrieren
   - `GET /` - Alle EinsatzPersonen für Einsatz
 
-- [ ] **4.2 `StammPersonenController` erweitern (Autocomplete)**
+- [x] **4.2 `StammPersonenController` erweitern (Autocomplete)**
   - Path: `stammdaten/personen/suche`
-  - `GET /?query={nachname}` - Autocomplete-Suche
+  - `GET /?query={nachname}` - Autocomplete-Suche (Backend-Query existiert)
 
-- [ ] **4.3 OpenAPI Decorators**
+- [x] **4.3 OpenAPI Decorators**
   - `@ApiTags('einsatz-personen')`
   - `@ApiOperation`, `@ApiParam`, `@ApiCreatedResponse`, `@ApiBadRequestResponse`
 

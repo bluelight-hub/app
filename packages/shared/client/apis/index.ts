@@ -11,6 +11,7 @@ export * from './AuthApi';
 export * from './ETBApi';
 export * from './EinsatzApi';
 export * from './EinsatzFahrzeugeApi';
+export * from './EinsatzPersonenApi';
 export * from './GeocodingApi';
 export * from './HealthApi';
 export * from './KraefteFahrzeugtypenApi';

@@ -6,6 +6,7 @@ import {
   Configuration,
   EinsatzApi,
   EinsatzFahrzeugeApi,
+  EinsatzPersonenApi,
   ETBApi,
   GeocodingApi,
   HealthApi,
@@ -66,6 +67,7 @@ class BackendApi {
   private readonly adminKraefteQualifikationenApi: AdminKraefteQualifikationenApi;
   private readonly adminStammdatenFahrzeugeApi: AdminStammdatenFahrzeugeApi;
   private readonly einsatzFahrzeugeApi: EinsatzFahrzeugeApi;
+  private readonly einsatzPersonenApi: EinsatzPersonenApi;
   private readonly kraefteFahrzeugtypenApi: KraefteFahrzeugtypenApi;
   private readonly kraefteStammFahrzeugeApi: KraefteStammFahrzeugeApi;
 
@@ -97,6 +99,7 @@ class BackendApi {
     this.adminKraefteQualifikationenApi = new AdminKraefteQualifikationenApi(this.configuration);
     this.adminStammdatenFahrzeugeApi = new AdminStammdatenFahrzeugeApi(this.configuration);
     this.einsatzFahrzeugeApi = new EinsatzFahrzeugeApi(this.configuration);
+    this.einsatzPersonenApi = new EinsatzPersonenApi(this.configuration);
     this.kraefteFahrzeugtypenApi = new KraefteFahrzeugtypenApi(this.configuration);
     this.kraefteStammFahrzeugeApi = new KraefteStammFahrzeugeApi(this.configuration);
   }
@@ -216,6 +219,15 @@ class BackendApi {
    */
   kraefteFahrzeugtypen(): KraefteFahrzeugtypenApi {
     return this.kraefteFahrzeugtypenApi;
+  }
+
+  /**
+   * Gibt die gecachte EinsatzPersonen-API-Instanz zurück
+   *
+   * @returns Die EinsatzPersonen-API-Instanz für Einsatz-Personen-Management
+   */
+  einsatzPersonen(): EinsatzPersonenApi {
+    return this.einsatzPersonenApi;
   }
 
   /**

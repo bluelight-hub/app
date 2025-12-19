@@ -1,4 +1,4 @@
-import { Inject, Injectable, Logger } from '@nestjs/common';
+import { Inject, Injectable } from '@nestjs/common';
 import { Result } from '@domain/common/result';
 // biome-ignore lint/style/useImportType: IEinsatzPersonRepository needed for DI at runtime
 import { IEinsatzPersonRepository } from '@domain/kraefte/repositories/i-einsatz-person.repository';
@@ -21,8 +21,6 @@ import type { GetEinsatzPersonenQuery } from './get-einsatz-personen.query';
  */
 @Injectable()
 export class GetEinsatzPersonenHandler {
-  private readonly logger = new Logger(GetEinsatzPersonenHandler.name);
-
   constructor(
     @Inject(KRAEFTE_REPOSITORIES.EINSATZ_PERSON)
     private readonly einsatzPersonRepository: IEinsatzPersonRepository,
