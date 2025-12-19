@@ -2,6 +2,8 @@ import { Module } from '@nestjs/common';
 import { PrismaModule } from '@infrastructure/database/prisma.module';
 import { OutboxModule } from '@infrastructure/outbox/outbox.module';
 import { KraefteInfrastructureModule } from '@infrastructure/kraefte/kraefte-infrastructure.module';
+import { LOGGER } from '@infrastructure/di-tokens';
+import { NestLoggerAdapter } from '@infrastructure/common/adapters';
 import { ErfasseFahrzeugAusStammdatenHandler } from './commands/erfasse-fahrzeug-aus-stammdaten/erfasse-fahrzeug-aus-stammdaten.handler';
 import { ErfasseTemporalesFahrzeugHandler } from './commands/erfasse-temporales-fahrzeug/erfasse-temporales-fahrzeug.handler';
 import { UpdateFmsStatusHandler } from './commands/update-fms-status/update-fms-status.handler';
@@ -18,7 +20,19 @@ import { GetEinsatzFahrzeugeHandler } from './queries/get-einsatz-fahrzeuge/get-
  */
 @Module({
   imports: [PrismaModule, OutboxModule, KraefteInfrastructureModule],
-  providers: [ErfasseFahrzeugAusStammdatenHandler, ErfasseTemporalesFahrzeugHandler, UpdateFmsStatusHandler, GetEinsatzFahrzeugeHandler],
+  providers: [
+    // Infrastructure Adapters (Cross-cutting concerns)
+    {
+      provide: LOGGER,
+      useFactory: () => new NestLoggerAdapter('EinsatzFahrzeuge'),
+    },
+    // Command Handlers
+    ErfasseFahrzeugAusStammdatenHandler,
+    ErfasseTemporalesFahrzeugHandler,
+    UpdateFmsStatusHandler,
+    // Query Handlers
+    GetEinsatzFahrzeugeHandler,
+  ],
   exports: [ErfasseFahrzeugAusStammdatenHandler, ErfasseTemporalesFahrzeugHandler, UpdateFmsStatusHandler, GetEinsatzFahrzeugeHandler],
 })
 export class EinsatzFahrzeugeApplicationModule {}

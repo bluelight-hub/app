@@ -1,4 +1,4 @@
-# generated: 2025-12-10
+# generated: 2025-12-18
 # project: Bluelight Hub
 # project_key: bluelight-hub
 # tracking_system: file-system
@@ -34,7 +34,7 @@
 # - SM typically drafts next story after previous one is 'done' to incorporate learnings
 # - Dev moves story to 'review', then runs code-review (fresh context, different LLM recommended)
 
-generated: 2025-12-10
+generated: 2025-12-18
 project: Bluelight Hub
 project_key: bluelight-hub
 tracking_system: file-system
@@ -65,17 +65,17 @@ development_status:
   epic-2-retrospective: done
 
   # ===== Epic 3: Fahrzeug-Einsatz-Verwaltung =====
-  epic-3: in-progress
+  epic-3: done
   3-0-prisma-schema-einsatz-fahrzeuge: done
   3-1-fahrzeug-aus-stammdaten-erfassen: done
   3-2-temporaeres-fahrzeug-anlegen: done
-  3-3-fms-status-updaten: review
-  epic-3-retrospective: optional
+  3-3-fms-status-updaten: done
+  epic-3-retrospective: completed
 
   # ===== Epic 4: Helfer-Registrierung =====
-  epic-4: backlog
-  4-0-prisma-schema-einsatz-personen: backlog
-  4-1-person-manuell-registrieren: backlog
+  epic-4: in-progress
+  4-0-prisma-schema-einsatz-personen: done # Code Review passed (2025-12-18)
+  4-1-person-manuell-registrieren: in-progress # Development started (2025-12-19)
   4-2-person-via-qr-code-registrieren: backlog
   4-3-person-zu-fahrzeug-zuweisen: backlog
   epic-4-retrospective: optional

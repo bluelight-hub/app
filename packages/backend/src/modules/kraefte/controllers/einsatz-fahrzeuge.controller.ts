@@ -13,7 +13,6 @@ import {
   HttpCode,
   HttpStatus,
   Logger,
-  ParseUUIDPipe,
 } from '@nestjs/common';
 import { ParseCuidPipe } from '@/infrastructure/http/pipes/parse-cuid.pipe';
 import {
@@ -32,7 +31,8 @@ import {
   ApiParam,
 } from '@nestjs/swagger';
 import { Throttle } from '@nestjs/throttler';
-import { AdminJwtAuthGuard } from '@/modules/auth/guards/admin-jwt-auth.guard';
+import { JwtAuthGuard } from '@/modules/auth/guards/jwt-auth.guard';
+import { RolesGuard } from '@/modules/auth/guards/roles.guard';
 import { CurrentUser } from '@/modules/auth/decorators/current-user.decorator';
 import type { ValidatedUser } from '@/modules/auth/strategies/jwt.strategy';
 import { ADMIN_RATE_LIMIT, ADMIN_MUTATION_RATE_LIMIT } from '@/infrastructure/http/constants/rate-limit.constants';
@@ -75,13 +75,13 @@ import { EINSATZ_FAHRZEUG_ERROR_CODES, EinsatzFahrzeugError } from '@domain/krae
  * API gibt strukturierte Error Responses für Frontend-Feedback.
  */
 @ApiTags('einsatz-fahrzeuge')
-@ApiBearerAuth('admin-jwt')
-@ApiUnauthorizedResponse({ description: 'Keine gültige Admin-Authentifizierung' })
+@ApiBearerAuth()
+@ApiUnauthorizedResponse({ description: 'Nicht authentifiziert - JWT Token fehlt oder ungültig' })
 @ApiTooManyRequestsResponse({ description: 'Rate limit überschritten' })
 @ApiInternalServerErrorResponse({ description: 'Unerwarteter Serverfehler' })
 @ApiForbiddenResponse({ description: 'Keine Berechtigung für diese Operation' })
 @Controller({ path: 'einsaetze/:einsatzId/fahrzeuge', version: 'alpha' })
-@UseGuards(AdminJwtAuthGuard)
+@UseGuards(JwtAuthGuard, RolesGuard)
 @Throttle({ default: ADMIN_RATE_LIMIT })
 export class EinsatzFahrzeugeController {
   private readonly logger = new Logger(EinsatzFahrzeugeController.name);
@@ -105,10 +105,10 @@ export class EinsatzFahrzeugeController {
   @Get()
   @Throttle({ default: { limit: 30, ttl: 60000 } })
   @ApiOperation({ summary: 'Alle Fahrzeuge eines Einsatzes auflisten' })
-  @ApiParam({ name: 'einsatzId', type: String, format: 'uuid', description: 'Einsatz-ID (UUID)' })
+  @ApiParam({ name: 'einsatzId', type: String, format: 'cuid', description: 'Einsatz-ID (CUID)' })
   @ApiOkResponse({ type: EinsatzFahrzeugDto, isArray: true })
   @ApiBadRequestResponse({ description: 'Ungültige Einsatz-ID' })
-  async findAll(@Param('einsatzId', ParseUUIDPipe) einsatzId: string): Promise<EinsatzFahrzeugDto[]> {
+  async findAll(@Param('einsatzId', ParseCuidPipe) einsatzId: string): Promise<EinsatzFahrzeugDto[]> {
     const queryResult = GetEinsatzFahrzeugeQuery.create(einsatzId);
     if (queryResult.isFailure) {
       throw new BadRequestException(queryResult.error);
@@ -157,12 +157,12 @@ export class EinsatzFahrzeugeController {
   @Throttle({ default: ADMIN_MUTATION_RATE_LIMIT })
   @HttpCode(HttpStatus.CREATED)
   @ApiOperation({ summary: 'Fahrzeug aus Stammdaten für Einsatz erfassen' })
-  @ApiParam({ name: 'einsatzId', type: String, format: 'uuid', description: 'Einsatz-ID (UUID)' })
+  @ApiParam({ name: 'einsatzId', type: String, format: 'cuid', description: 'Einsatz-ID (CUID)' })
   @ApiCreatedResponse({ type: EinsatzFahrzeugDto, description: 'Fahrzeug erfolgreich erfasst' })
   @ApiBadRequestResponse({ description: 'Validierungsfehler (z.B. ungültige stammId)' })
   @ApiNotFoundResponse({ description: 'StammFahrzeug oder Fahrzeugtyp nicht gefunden' })
   @ApiConflictResponse({ description: 'Fahrzeug mit diesem Funkrufnamen bereits im Einsatz erfasst' })
-  async erfasseAusStammdaten(@Param('einsatzId', ParseUUIDPipe) einsatzId: string, @CurrentUser() user: ValidatedUser, @Body() dto: ErfasseFahrzeugAusStammdatenDto): Promise<EinsatzFahrzeugDto> {
+  async erfasseAusStammdaten(@Param('einsatzId', ParseCuidPipe) einsatzId: string, @CurrentUser() user: ValidatedUser, @Body() dto: ErfasseFahrzeugAusStammdatenDto): Promise<EinsatzFahrzeugDto> {
     // Create Command
     const commandResult = ErfasseFahrzeugAusStammdatenCommand.create({
       einsatzId,
@@ -243,12 +243,12 @@ export class EinsatzFahrzeugeController {
   @Throttle({ default: ADMIN_MUTATION_RATE_LIMIT })
   @HttpCode(HttpStatus.CREATED)
   @ApiOperation({ summary: 'Temporäres Fahrzeug für Einsatz erfassen' })
-  @ApiParam({ name: 'einsatzId', type: String, format: 'uuid', description: 'Einsatz-ID (UUID)' })
+  @ApiParam({ name: 'einsatzId', type: String, format: 'cuid', description: 'Einsatz-ID (CUID)' })
   @ApiCreatedResponse({ type: EinsatzFahrzeugDto, description: 'Temporäres Fahrzeug erfolgreich erfasst' })
   @ApiBadRequestResponse({ description: 'Validierungsfehler (z.B. ungültiger Funkrufname)' })
   @ApiNotFoundResponse({ description: 'Fahrzeugtyp nicht gefunden' })
   @ApiConflictResponse({ description: 'Fahrzeug mit diesem Funkrufnamen bereits im Einsatz erfasst' })
-  async erfasseTemporales(@Param('einsatzId', ParseUUIDPipe) einsatzId: string, @CurrentUser() user: ValidatedUser, @Body() dto: ErfasseTemporalesFahrzeugDto): Promise<EinsatzFahrzeugDto> {
+  async erfasseTemporales(@Param('einsatzId', ParseCuidPipe) einsatzId: string, @CurrentUser() user: ValidatedUser, @Body() dto: ErfasseTemporalesFahrzeugDto): Promise<EinsatzFahrzeugDto> {
     // Create Command
     const commandResult = ErfasseTemporalesFahrzeugCommand.create({
       einsatzId,
@@ -329,14 +329,14 @@ export class EinsatzFahrzeugeController {
   @Throttle({ default: ADMIN_MUTATION_RATE_LIMIT })
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'FMS-Status eines Fahrzeugs aktualisieren' })
-  @ApiParam({ name: 'einsatzId', type: String, format: 'uuid', description: 'Einsatz-ID (UUID)' })
+  @ApiParam({ name: 'einsatzId', type: String, format: 'cuid', description: 'Einsatz-ID (CUID)' })
   @ApiParam({ name: 'id', type: String, format: 'cuid2', description: 'CUID2 des Einsatz-Fahrzeugs', example: 'clx1234567890abcdef12345' })
   @ApiOkResponse({ type: EinsatzFahrzeugDto, description: 'FMS-Status erfolgreich aktualisiert' })
   @ApiBadRequestResponse({ description: 'Ungültiger FMS-Status (muss 0-9 sein)' })
   @ApiNotFoundResponse({ description: 'EinsatzFahrzeug nicht gefunden' })
   @ApiTooManyRequestsResponse({ description: 'Rate limit überschritten' })
   async updateFmsStatus(
-    @Param('einsatzId', ParseUUIDPipe) einsatzId: string,
+    @Param('einsatzId', ParseCuidPipe) einsatzId: string,
     @Param('id', ParseCuidPipe) id: string,
     @Body() dto: UpdateFmsStatusDto,
     @CurrentUser() user: ValidatedUser,

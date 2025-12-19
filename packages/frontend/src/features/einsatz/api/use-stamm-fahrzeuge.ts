@@ -51,9 +51,12 @@ export const useStammFahrzeuge = (options?: { enabled?: boolean; includeArchived
     queryKey: STAMM_FAHRZEUGE_QUERY_KEYS.list(includeArchived),
     queryFn: async () => {
       logger.debug('Fetching StammFahrzeuge', { includeArchived });
-      return api.adminStammdatenFahrzeuge().adminStammFahrzeugeControllerFindAllVAlpha({
+      // Nutzt öffentlichen Endpoint (JwtAuthGuard statt AdminJwtAuthGuard)
+      // WrappedResponse: { data: [...], meta: {...} }
+      const response = await api.kraefteStammFahrzeuge().stammFahrzeugeControllerFindAllVAlpha({
         includeArchived,
       });
+      return response.data;
     },
     enabled: options?.enabled ?? true,
     staleTime: 60_000, // 1 Minute - Stammdaten ändern sich selten

@@ -20,7 +20,7 @@ import {
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { ApiBody, ApiCookieAuth, ApiForbiddenResponse, ApiNoContentResponse, ApiOkResponse, ApiOperation, ApiResponse, ApiTags, ApiUnauthorizedResponse } from '@nestjs/swagger';
-import { Throttle } from '@nestjs/throttler';
+import { SkipThrottle, Throttle } from '@nestjs/throttler';
 import type { Request, Response } from 'express';
 import { AuthService } from '../auth.service';
 import { clearAdminCookie, clearAuthCookies, setAdminCookie, setAuthCookies } from '../utils/cookies.utils';
@@ -594,6 +594,7 @@ export class AuthController {
    */
   @Get('admin/status')
   @UseGuards(JwtAuthGuard)
+  @SkipThrottle()
   @ApiCookieAuth()
   @ApiOperation({
     summary: 'Admin-Setup-Status abrufen',

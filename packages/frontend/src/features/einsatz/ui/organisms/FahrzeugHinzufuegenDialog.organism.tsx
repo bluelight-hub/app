@@ -26,6 +26,21 @@ import { toast } from 'sonner';
 import { useDebouncedCallback } from 'use-debounce';
 import { z } from 'zod';
 
+/**
+ * Extrahiert Fehlermeldungen aus TanStack Form Errors (Zod-Validierung).
+ * TanStack Form mit zodValidator gibt Objekte mit `message` Property zurück.
+ */
+function getFormErrors(errors: unknown[]): string {
+  return errors
+    .map((e) => {
+      if (typeof e === 'string') return e;
+      if (e && typeof e === 'object' && 'message' in e) return (e as { message: string }).message;
+      return '';
+    })
+    .filter(Boolean)
+    .join(', ');
+}
+
 interface FahrzeugHinzufuegenDialogProps {
   isOpen: boolean;
   onClose: () => void;
@@ -425,7 +440,7 @@ export function FahrzeugHinzufuegenDialog({ isOpen, onClose, einsatzId }: Fahrze
                   {/* Funkrufname */}
                   <temporalForm.Field name="funkrufname">
                     {(field) => (
-                      <FormField label="Funkrufname" required error={field.state.meta.errors.join(', ')} helperText="Eindeutiger Funkrufname für diesen Einsatz">
+                      <FormField label="Funkrufname" required error={getFormErrors(field.state.meta.errors)} helperText="Eindeutiger Funkrufname für diesen Einsatz">
                         <input
                           type="text"
                           value={field.state.value}
@@ -453,7 +468,7 @@ export function FahrzeugHinzufuegenDialog({ isOpen, onClose, einsatzId }: Fahrze
                   {/* Fahrzeugtyp */}
                   <temporalForm.Field name="fahrzeugtypId">
                     {(field) => (
-                      <FormField label="Fahrzeugtyp" required error={field.state.meta.errors.join(', ')} helperText="Kategorisierung des Fahrzeugs">
+                      <FormField label="Fahrzeugtyp" required error={getFormErrors(field.state.meta.errors)} helperText="Kategorisierung des Fahrzeugs">
                         <select
                           value={field.state.value}
                           onChange={(e) => field.handleChange(e.target.value)}
@@ -485,7 +500,7 @@ export function FahrzeugHinzufuegenDialog({ isOpen, onClose, einsatzId }: Fahrze
                   {/* Kennzeichen (Optional) */}
                   <temporalForm.Field name="kennzeichen">
                     {(field) => (
-                      <FormField label="Kennzeichen" error={field.state.meta.errors.join(', ')} helperText="Optional: Amtliches Kennzeichen">
+                      <FormField label="Kennzeichen" error={getFormErrors(field.state.meta.errors)} helperText="Optional: Amtliches Kennzeichen">
                         <input
                           type="text"
                           value={field.state.value}

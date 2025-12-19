@@ -9,8 +9,42 @@ import { getBaseUrl } from './api';
  * using the refresh token. If successful, it retries the original request.
  */
 
-let isRefreshing = false;
-let refreshPromise: Promise<boolean> | null = null;
+/**
+ * Token Refresh Queue - verhindert parallele Refresh-Requests.
+ *
+ * **Warum Klasse statt globaler Variablen:**
+ * - `finally` muss Teil des Promises sein, nicht Teil des wartenden Codes
+ * - Sonst führen ALLE wartenden Requests den finally-Block aus → Race Condition
+ * - State-Cleanup passiert nur EINMAL, nachdem das Promise resolved
+ */
+class TokenRefreshQueue {
+  private refreshPromise: Promise<boolean> | null = null;
+
+  /**
+   * Startet oder wartet auf laufenden Token-Refresh.
+   *
+   * @param refreshFn - Funktion die den Token-Refresh durchführt
+   * @returns true wenn Refresh erfolgreich, false sonst
+   */
+  async startRefresh(refreshFn: () => Promise<boolean>): Promise<boolean> {
+    // Wenn bereits ein Refresh läuft, warte auf dessen Ergebnis
+    if (this.refreshPromise) {
+      logger.debug('Token refresh already in progress, waiting...');
+      return this.refreshPromise;
+    }
+
+    // Starte neuen Refresh mit eingebautem Cleanup
+    logger.debug('Starting new token refresh');
+    this.refreshPromise = refreshFn().finally(() => {
+      // Cleanup passiert nur EINMAL, nachdem alle Wartenden fertig sind
+      this.refreshPromise = null;
+    });
+
+    return this.refreshPromise;
+  }
+}
+
+const tokenRefreshQueue = new TokenRefreshQueue();
 
 /**
  * Attempts to refresh the access token using the refresh token
@@ -58,29 +92,8 @@ export async function fetchWithRefresh(input: RequestInfo | URL, init?: RequestI
   if (response.status === 401) {
     logger.debug('Received 401, attempting token refresh');
 
-    // Prevent multiple simultaneous refresh attempts
-    if (!isRefreshing) {
-      isRefreshing = true;
-      refreshPromise = refreshAccessToken();
-    }
-
-    // Wait for the refresh to complete with robust state reset
-    let refreshSuccess = false;
-    try {
-      if (refreshPromise) {
-        refreshSuccess = await refreshPromise;
-      } else {
-        refreshSuccess = false;
-      }
-    } catch (error) {
-      // Guard against unexpected throws from refreshAccessToken
-      logger.warn('Token refresh threw an error', { error });
-      refreshSuccess = false;
-    } finally {
-      // Always clear refresh state
-      isRefreshing = false;
-      refreshPromise = null;
-    }
+    // Queue-basierter Refresh: alle parallelen 401s warten auf EINEN Refresh
+    const refreshSuccess = await tokenRefreshQueue.startRefresh(refreshAccessToken);
 
     if (refreshSuccess) {
       // Retry the original request with the new token

@@ -13,6 +13,8 @@ export * from './EinsatzApi';
 export * from './EinsatzFahrzeugeApi';
 export * from './GeocodingApi';
 export * from './HealthApi';
+export * from './KraefteFahrzeugtypenApi';
+export * from './KraefteStammFahrzeugeApi';
 export * from './LagekarteApi';
 export * from './LagekarteCQRSApi';
 export * from './POIDEPRECATEDApi';

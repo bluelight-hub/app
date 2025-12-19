@@ -12,6 +12,8 @@ apis/EinsatzApi.ts
 apis/EinsatzFahrzeugeApi.ts
 apis/GeocodingApi.ts
 apis/HealthApi.ts
+apis/KraefteFahrzeugtypenApi.ts
+apis/KraefteStammFahrzeugeApi.ts
 apis/LagekarteApi.ts
 apis/LagekarteCQRSApi.ts
 apis/POIDEPRECATEDApi.ts
@@ -77,6 +79,7 @@ models/EtbSnapshotDto.ts
 models/EtbVersionDto.ts
 models/FahrzeugtypDto.ts
 models/FahrzeugtypSollbesatzungDto.ts
+models/FahrzeugtypenControllerFindAllActiveVAlpha200Response.ts
 models/FunkStatusConfigDto.ts
 models/GeoPositionDto.ts
 models/GeocodeAddressDto.ts
@@ -106,6 +109,7 @@ models/RefreshResponseDto.ts
 models/RollenDefinitionDto.ts
 models/SaveLagekarteStateDto.ts
 models/StammFahrzeugDto.ts
+models/StammFahrzeugeControllerFindAllVAlpha200Response.ts
 models/StammPersonDto.ts
 models/StammPersonQualifikationDto.ts
 models/StatusCountsDto.ts

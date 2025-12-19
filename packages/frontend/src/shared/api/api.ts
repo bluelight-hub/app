@@ -9,6 +9,8 @@ import {
   ETBApi,
   GeocodingApi,
   HealthApi,
+  KraefteFahrzeugtypenApi,
+  KraefteStammFahrzeugeApi,
   LagekarteApi,
   LagekarteCQRSApi,
   UserManagementApi,
@@ -64,6 +66,8 @@ class BackendApi {
   private readonly adminKraefteQualifikationenApi: AdminKraefteQualifikationenApi;
   private readonly adminStammdatenFahrzeugeApi: AdminStammdatenFahrzeugeApi;
   private readonly einsatzFahrzeugeApi: EinsatzFahrzeugeApi;
+  private readonly kraefteFahrzeugtypenApi: KraefteFahrzeugtypenApi;
+  private readonly kraefteStammFahrzeugeApi: KraefteStammFahrzeugeApi;
 
   /**
    * Erstellt eine neue Instanz der BackendApi-Klasse
@@ -93,6 +97,8 @@ class BackendApi {
     this.adminKraefteQualifikationenApi = new AdminKraefteQualifikationenApi(this.configuration);
     this.adminStammdatenFahrzeugeApi = new AdminStammdatenFahrzeugeApi(this.configuration);
     this.einsatzFahrzeugeApi = new EinsatzFahrzeugeApi(this.configuration);
+    this.kraefteFahrzeugtypenApi = new KraefteFahrzeugtypenApi(this.configuration);
+    this.kraefteStammFahrzeugeApi = new KraefteStammFahrzeugeApi(this.configuration);
   }
 
   /**
@@ -201,6 +207,24 @@ class BackendApi {
    */
   einsatzFahrzeuge(): EinsatzFahrzeugeApi {
     return this.einsatzFahrzeugeApi;
+  }
+
+  /**
+   * Gibt die gecachte KraefteFahrzeugtypen-API-Instanz zurück
+   *
+   * @returns Die KraefteFahrzeugtypen-API-Instanz für öffentliche Fahrzeugtypen-Abfragen
+   */
+  kraefteFahrzeugtypen(): KraefteFahrzeugtypenApi {
+    return this.kraefteFahrzeugtypenApi;
+  }
+
+  /**
+   * Gibt die gecachte KraefteStammFahrzeuge-API-Instanz zurück
+   *
+   * @returns Die KraefteStammFahrzeuge-API-Instanz für öffentliche StammFahrzeuge-Abfragen
+   */
+  kraefteStammFahrzeuge(): KraefteStammFahrzeugeApi {
+    return this.kraefteStammFahrzeugeApi;
   }
 }
 

@@ -6,3 +6,5 @@
 
 export { PrismaQualifikationRepository } from './repositories/prisma-qualifikation.repository';
 export { PrismaQualifikationMapper } from './mappers/prisma-qualifikation.mapper';
+export { PrismaEinsatzPersonRepository } from './repositories/prisma-einsatz-person.repository';
+export { PrismaEinsatzPersonMapper } from './mappers/prisma-einsatz-person.mapper';

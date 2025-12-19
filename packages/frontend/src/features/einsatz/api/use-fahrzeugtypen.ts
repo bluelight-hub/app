@@ -50,9 +50,11 @@ export const useFahrzeugtypen = (options?: { enabled?: boolean }) => {
     queryKey: FAHRZEUGTYP_QUERY_KEYS.aktiv(),
     queryFn: async () => {
       logger.debug('Fetching aktive Fahrzeugtypen');
-      return api.adminKraefteFahrzeugtypen().adminFahrzeugtypenControllerFindAllVAlpha({
-        istAktiv: true, // Nur aktive Typen
-      });
+      // Nutzt öffentlichen Endpoint (JwtAuthGuard statt AdminJwtAuthGuard)
+      // Der Endpoint gibt bereits nur aktive Fahrzeugtypen zurück
+      // WrappedResponse: { data: [...], meta: {...} }
+      const response = await api.kraefteFahrzeugtypen().fahrzeugtypenControllerFindAllActiveVAlpha();
+      return response.data;
     },
     enabled: options?.enabled ?? true,
     staleTime: 5 * 60 * 1000, // 5 Minuten (Stammdaten ändern selten)

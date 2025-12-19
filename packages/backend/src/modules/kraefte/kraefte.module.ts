@@ -14,6 +14,8 @@ import { AdminFunkStatusController } from './controllers/admin-funk-status.contr
 import { AdminStammFahrzeugeController } from './controllers/admin-stamm-fahrzeuge.controller';
 import { AdminStammPersonenController } from './controllers/admin-stamm-personen.controller';
 import { EinsatzFahrzeugeController } from './controllers/einsatz-fahrzeuge.controller';
+import { FahrzeugtypenController } from './controllers/fahrzeugtypen.controller';
+import { StammFahrzeugeController } from './controllers/stamm-fahrzeuge.controller';
 
 /**
  * NestJS Module für Kräftemanagement.
@@ -41,6 +43,8 @@ import { EinsatzFahrzeugeController } from './controllers/einsatz-fahrzeuge.cont
     AdminStammFahrzeugeController,
     AdminStammPersonenController,
     EinsatzFahrzeugeController,
+    FahrzeugtypenController,
+    StammFahrzeugeController,
   ],
 })
 export class KraefteModule {}

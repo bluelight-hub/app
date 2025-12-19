@@ -75,6 +75,8 @@ export const KRAEFTE_REPOSITORIES = {
   STAMM_PERSON: Symbol('IStammPersonRepository'),
   /** Repository Token für IEinsatzFahrzeugRepository (Story 3-1) */
   EINSATZ_FAHRZEUG: Symbol('IEinsatzFahrzeugRepository'),
+  /** Repository Token für IEinsatzPersonRepository (Story 4-1) */
+  EINSATZ_PERSON: Symbol('IEinsatzPersonRepository'),
 } as const;
 
 /** Transaction Manager Token für ITransactionManager */
@@ -127,4 +129,7 @@ export const EVENT_HANDLER = {
 
   /** FmsStatusGeaendert ETB-Eintrag Handler Token (Story 3-3) */
   FMS_STATUS_GEAENDERT_ETB: Symbol('IEventHandler<FmsStatusGeaendertEvent>:EtbEintrag'),
+
+  /** EinsatzPersonHinzugefuegt ETB-Eintrag Handler Token (Story 4-1) */
+  EINSATZ_PERSON_HINZUGEFUEGT_ETB: Symbol('IEventHandler<EinsatzPersonHinzugefuegtEvent>:EtbEintrag'),
 } as const;
