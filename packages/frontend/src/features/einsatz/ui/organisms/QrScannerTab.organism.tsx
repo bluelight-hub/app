@@ -22,6 +22,7 @@ import { Button } from '@/shared/ui/atoms/button.atom';
 import { InlineSpinner } from '@/shared/ui/atoms/spinner.atom';
 import { cn } from '@/shared/ui/cn';
 import type { ResponseError } from '@bluelight-hub/shared/client';
+import { isTauri } from '@tauri-apps/api/core';
 import jsQR from 'jsqr';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { PiCamera, PiCameraSlash, PiCheckCircle, PiQrCode, PiWarningCircle, PiXCircle } from 'react-icons/pi';
@@ -43,10 +44,26 @@ type ScannerState =
   | { status: 'error'; message: string };
 
 /**
- * Prüft ob wir in einer Tauri-Umgebung laufen
+ * Prüft ob wir in einer Tauri Mobile Umgebung laufen (iOS/Android)
+ * Der Barcode Scanner ist nur auf Mobile verfügbar.
+ * Auf Desktop-Tauri und Browser nutzen wir navigator.mediaDevices + jsQR.
  */
-function isTauriEnvironment(): boolean {
-  return typeof window !== 'undefined' && '__TAURI__' in window;
+async function isTauriMobileEnvironment(): Promise<boolean> {
+  // Nutze offizielle isTauri() Funktion statt manueller window.__TAURI__ Prüfung
+  if (!isTauri()) {
+    return false;
+  }
+
+  // Prüfe ob der Barcode Scanner verfügbar ist (nur auf Mobile)
+  try {
+    const { checkPermissions } = await import('@tauri-apps/plugin-barcode-scanner');
+    // Wenn der Import funktioniert und wir permissions prüfen können, sind wir auf Mobile
+    await checkPermissions();
+    return true;
+  } catch {
+    // Plugin nicht verfügbar = Desktop Tauri oder Browser
+    return false;
+  }
 }
 
 /**
@@ -81,7 +98,8 @@ export function QrScannerTab({ einsatzId, onSuccess }: QrScannerTabProps) {
 
   // State
   const [state, setState] = useState<ScannerState>({ status: 'idle' });
-  const [isTauri] = useState(() => isTauriEnvironment());
+  const [isTauriMobile, setIsTauriMobile] = useState(false);
+  const [environmentChecked, setEnvironmentChecked] = useState(false);
 
   // Mutation - in Ref speichern um stabile Referenz zu haben
   const registriereViaQr = useRegistrierePersonViaQr();
@@ -227,6 +245,7 @@ export function QrScannerTab({ einsatzId, onSuccess }: QrScannerTabProps) {
 
   /**
    * Scan-Loop für Browser: Liest Frames vom Video und sucht nach QR-Codes
+   * Optimiert: Scannt nur alle ~100ms und skaliert auf max 640px für bessere Performance
    */
   const scanFrame = useCallback(() => {
     const video = videoRef.current;
@@ -243,25 +262,34 @@ export function QrScannerTab({ einsatzId, onSuccess }: QrScannerTabProps) {
       return;
     }
 
-    // Canvas auf Video-Größe setzen
-    canvas.width = video.videoWidth;
-    canvas.height = video.videoHeight;
+    // Skaliere auf max 640px Breite für bessere jsQR Performance
+    const maxWidth = 640;
+    const scale = Math.min(1, maxWidth / video.videoWidth);
+    const width = Math.floor(video.videoWidth * scale);
+    const height = Math.floor(video.videoHeight * scale);
 
-    // Video-Frame auf Canvas zeichnen
-    ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+    // Canvas auf skalierte Größe setzen
+    canvas.width = width;
+    canvas.height = height;
+
+    // Video-Frame auf Canvas zeichnen (skaliert)
+    ctx.drawImage(video, 0, 0, width, height);
 
     // QR-Code suchen
-    const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+    const imageData = ctx.getImageData(0, 0, width, height);
     const code = jsQR(imageData.data, imageData.width, imageData.height, {
       inversionAttempts: 'attemptBoth',
     });
 
     if (code?.data) {
+      console.log('[QR Scanner] Code erkannt:', code.data.substring(0, 50) + '...');
       processQrCode(code.data);
     }
 
-    // Nächsten Frame planen
-    animationRef.current = requestAnimationFrame(scanFrame);
+    // Nächsten Frame nach kurzer Pause planen (~10 FPS statt 60 FPS)
+    setTimeout(() => {
+      animationRef.current = requestAnimationFrame(scanFrame);
+    }, 100);
   }, [processQrCode]);
 
   /**
@@ -402,12 +430,27 @@ export function QrScannerTab({ einsatzId, onSuccess }: QrScannerTabProps) {
    * Startet den Scanner im passenden Modus
    */
   const startScanning = useCallback(async () => {
-    if (isTauri) {
-      await startTauriScanning();
+    // Prüfe erst die Umgebung wenn noch nicht geschehen
+    if (!environmentChecked) {
+      const isMobile = await isTauriMobileEnvironment();
+      setIsTauriMobile(isMobile);
+      setEnvironmentChecked(true);
+
+      // Starte im passenden Modus
+      if (isMobile) {
+        await startTauriScanning();
+      } else {
+        await startBrowserScanning();
+      }
     } else {
-      await startBrowserScanning();
+      // Umgebung bereits bekannt
+      if (isTauriMobile) {
+        await startTauriScanning();
+      } else {
+        await startBrowserScanning();
+      }
     }
-  }, [isTauri, startTauriScanning, startBrowserScanning]);
+  }, [environmentChecked, isTauriMobile, startTauriScanning, startBrowserScanning]);
 
   /**
    * Stoppt den Scanner
@@ -441,7 +484,7 @@ export function QrScannerTab({ einsatzId, onSuccess }: QrScannerTabProps) {
       <StatusDisplay state={state} />
 
       {/* Video-Container (nur im Browser-Modus sichtbar) */}
-      {!isTauri && (
+      {!isTauriMobile && (
         <div
           className={cn(
             'relative aspect-square w-full max-w-sm overflow-hidden rounded-xl border-2',
@@ -525,8 +568,8 @@ export function QrScannerTab({ einsatzId, onSuccess }: QrScannerTabProps) {
         </div>
       )}
 
-      {/* Tauri-Modus Status-Anzeige */}
-      {isTauri && (
+      {/* Tauri Mobile-Modus Status-Anzeige */}
+      {isTauriMobile && (
         <div
           className={cn(
             'flex min-h-[200px] w-full max-w-sm flex-col items-center justify-center gap-4 rounded-xl border-2 bg-gray-900 p-6',
