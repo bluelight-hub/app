@@ -4,9 +4,9 @@
  * Lädt alle nicht-archivierten StammPersonen und filtert sie client-seitig
  * für die Autocomplete-Funktionalität.
  *
- * HINWEIS: Aktuell nutzt dieser Hook die Admin-API, da noch kein öffentlicher
- * Search-Endpoint existiert. Für Production sollte ein dedizierter öffentlicher
- * Endpoint im Backend erstellt werden (analog zu KraefteStammFahrzeugeApi).
+ * Nutzt den öffentlichen KraefteStammPersonenApi Endpoint, der für alle
+ * authentifizierten User zugänglich ist (nicht nur Admins).
+ * Analog zu KraefteStammFahrzeugeApi (Story 3.2).
  *
  * @module features/einsatz/api
  */
@@ -15,17 +15,9 @@ import { getBaseUrl } from '@/shared/api/api';
 import { fetchWithRefresh } from '@/shared/api/fetchWithRefresh';
 import { logger } from '@/shared/lib/logger';
 import type { ResponseError, StammPersonDto } from '@bluelight-hub/shared/client';
-import { AdminStammdatenPersonenApi, Configuration } from '@bluelight-hub/shared/client';
+import { Configuration, KraefteStammPersonenApi } from '@bluelight-hub/shared/client';
 import { useQuery } from '@tanstack/react-query';
-import { calculateRetryDelay } from './queries';
-
-/**
- * Query Keys für StammPersonen Suche
- */
-export const STAMM_PERSONEN_QUERY_KEYS = {
-  all: ['stamm-personen'] as const,
-  suche: (query: string) => [...STAMM_PERSONEN_QUERY_KEYS.all, 'suche', query] as const,
-} as const;
+import { calculateRetryDelay, EINSATZ_QUERY_KEYS } from './queries';
 
 /**
  * Hook zum Suchen von StammPersonen für Autocomplete
@@ -59,9 +51,8 @@ export const STAMM_PERSONEN_QUERY_KEYS = {
  * ```
  */
 export const useStammPersonenSuche = (query: string, options?: { enabled?: boolean }) => {
-  // Erstelle eine Admin-API-Instanz mit gleicher Konfiguration
-  // TODO: Replace with public search endpoint when available
-  const adminPersonenApi = new AdminStammdatenPersonenApi(
+  // Öffentlicher Endpoint für alle authentifizierten User
+  const stammPersonenApi = new KraefteStammPersonenApi(
     new Configuration({
       basePath: getBaseUrl(),
       fetchApi: fetchWithRefresh,
@@ -70,14 +61,15 @@ export const useStammPersonenSuche = (query: string, options?: { enabled?: boole
   );
 
   return useQuery<StammPersonDto[], ResponseError>({
-    queryKey: STAMM_PERSONEN_QUERY_KEYS.suche(query),
+    queryKey: EINSATZ_QUERY_KEYS.stammPersonen.suche(query),
     queryFn: async () => {
       logger.debug('Searching StammPersonen', { query });
 
-      // Lade alle nicht-archivierten Personen
-      const allPersonen = await adminPersonenApi.adminStammPersonenControllerFindAllVAlpha({
+      // Lade alle nicht-archivierten Personen über den öffentlichen Endpoint
+      const response = await stammPersonenApi.stammPersonenControllerFindAllVAlpha({
         includeArchived: false,
       });
+      const allPersonen = response.data ?? [];
 
       // Client-seitige Filterung
       if (!query || query.trim() === '') {

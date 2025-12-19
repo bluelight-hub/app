@@ -4,6 +4,8 @@ import { EtbApplicationModule } from '@application/etb/etb-application.module';
 import { LagekarteApplicationModule } from '@application/lagekarte/lagekarte-application.module';
 import { LagekarteEventLoggerHandler } from './handlers/lagekarte-event-logger.handler';
 import { EinsatzEventLoggerHandler } from './handlers/einsatz-event-logger.handler';
+import { LOGGER } from '@infrastructure/di-tokens';
+import { NestLoggerAdapter } from '@infrastructure/common/adapters/nest-logger.adapter';
 
 /**
  * NestJS Module für Event Adapters (Framework-zu-Application Delegation).
@@ -56,6 +58,11 @@ import { EinsatzEventLoggerHandler } from './handlers/einsatz-event-logger.handl
     LagekarteApplicationModule,
   ],
   providers: [
+    // Logger für Event Adapters (Infrastructure Logging)
+    {
+      provide: LOGGER,
+      useFactory: () => new NestLoggerAdapter('EventAdapters'),
+    },
     // Event Adapters (delegate @OnEvent to Application Layer Handlers)
     EtbEventAdapter,
     LagekarteEventAdapter,

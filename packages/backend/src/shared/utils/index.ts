@@ -4,4 +4,5 @@ export * from './date.util';
 export * from './performance-logger.util';
 export * from './prisma.util';
 export * from './retry.util';
+export * from './type-utils';
 export * from './url.util';

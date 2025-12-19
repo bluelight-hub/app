@@ -29,6 +29,6 @@ import { GetEinsatzPersonenHandler } from './queries/get-einsatz-personen/get-ei
     // Query Handlers
     GetEinsatzPersonenHandler,
   ],
-  exports: [RegistrierePersonHandler, GetEinsatzPersonenHandler],
+  exports: [RegistrierePersonHandler, GetEinsatzPersonenHandler, LOGGER],
 })
 export class EinsatzPersonenApplicationModule {}

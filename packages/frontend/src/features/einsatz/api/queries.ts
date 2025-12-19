@@ -58,6 +58,12 @@ export const EINSATZ_QUERY_KEYS = {
   // EinsatzPersonen Queries
   personen: (einsatzId: string) => [...EINSATZ_QUERY_KEYS.detail(einsatzId), 'personen'] as const,
 
+  // StammPersonen Queries (für Personen-Autocomplete)
+  stammPersonen: {
+    all: ['stamm-personen'] as const,
+    suche: (query: string) => ['stamm-personen', 'suche', query] as const,
+  },
+
   // StammFahrzeuge Queries (für Fahrzeugauswahl)
   stammFahrzeuge: () => ['stamm_fahrzeuge'] as const,
 } as const;

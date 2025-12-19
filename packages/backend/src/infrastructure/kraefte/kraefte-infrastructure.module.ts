@@ -1,6 +1,7 @@
 import { Module } from '@nestjs/common';
 import { PrismaModule } from '@infrastructure/database/prisma.module';
-import { KRAEFTE_REPOSITORIES } from '@infrastructure/di-tokens';
+import { KRAEFTE_REPOSITORIES, LOGGER } from '@infrastructure/di-tokens';
+import { NestLoggerAdapter } from '@infrastructure/common/adapters/nest-logger.adapter';
 import { PrismaQualifikationRepository } from './repositories/prisma-qualifikation.repository';
 import { PrismaFahrzeugtypRepository } from './repositories/prisma-fahrzeugtyp.repository';
 import { PrismaRollenDefinitionRepository } from './repositories/prisma-rollen-definition.repository';
@@ -18,6 +19,11 @@ import { PrismaEinsatzPersonRepository } from './repositories/prisma-einsatz-per
 @Module({
   imports: [PrismaModule],
   providers: [
+    // Logger für Repositories (Data Integrity Logging)
+    {
+      provide: LOGGER,
+      useFactory: () => new NestLoggerAdapter('KraefteInfrastructure'),
+    },
     {
       provide: KRAEFTE_REPOSITORIES.QUALIFIKATION,
       useClass: PrismaQualifikationRepository,

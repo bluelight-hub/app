@@ -1,5 +1,6 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { IsString, IsNotEmpty, IsOptional, IsArray, MinLength, MaxLength } from 'class-validator';
+import { EINSATZ_PERSON_VALIDATION } from '@domain/kraefte/constants/einsatz-person-validation.constants';
 
 /**
  * DTO für Person-Registrierung im Einsatz.
@@ -30,47 +31,47 @@ export class RegistrierePersonDto {
   stammPersonId?: string;
 
   @ApiProperty({
-    description: 'Vorname der Person (1-100 Zeichen)',
+    description: `Vorname der Person (${EINSATZ_PERSON_VALIDATION.VORNAME_MIN_LENGTH}-${EINSATZ_PERSON_VALIDATION.VORNAME_MAX_LENGTH} Zeichen)`,
     example: 'Max',
-    minLength: 1,
-    maxLength: 100,
+    minLength: EINSATZ_PERSON_VALIDATION.VORNAME_MIN_LENGTH,
+    maxLength: EINSATZ_PERSON_VALIDATION.VORNAME_MAX_LENGTH,
   })
   @IsString()
   @IsNotEmpty()
-  @MinLength(1)
-  @MaxLength(100)
+  @MinLength(EINSATZ_PERSON_VALIDATION.VORNAME_MIN_LENGTH)
+  @MaxLength(EINSATZ_PERSON_VALIDATION.VORNAME_MAX_LENGTH)
   vorname!: string;
 
   @ApiProperty({
-    description: 'Nachname der Person (1-100 Zeichen)',
+    description: `Nachname der Person (${EINSATZ_PERSON_VALIDATION.NACHNAME_MIN_LENGTH}-${EINSATZ_PERSON_VALIDATION.NACHNAME_MAX_LENGTH} Zeichen)`,
     example: 'Mustermann',
-    minLength: 1,
-    maxLength: 100,
+    minLength: EINSATZ_PERSON_VALIDATION.NACHNAME_MIN_LENGTH,
+    maxLength: EINSATZ_PERSON_VALIDATION.NACHNAME_MAX_LENGTH,
   })
   @IsString()
   @IsNotEmpty()
-  @MinLength(1)
-  @MaxLength(100)
+  @MinLength(EINSATZ_PERSON_VALIDATION.NACHNAME_MIN_LENGTH)
+  @MaxLength(EINSATZ_PERSON_VALIDATION.NACHNAME_MAX_LENGTH)
   nachname!: string;
 
   @ApiProperty({
-    description: 'Funktion/Rolle im Einsatz (max 50 Zeichen)',
+    description: `Funktion/Rolle im Einsatz (max ${EINSATZ_PERSON_VALIDATION.FUNKTION_MAX_LENGTH} Zeichen)`,
     example: 'Rettungshelfer',
-    maxLength: 50,
+    maxLength: EINSATZ_PERSON_VALIDATION.FUNKTION_MAX_LENGTH,
   })
   @IsString()
   @IsNotEmpty()
-  @MaxLength(50)
+  @MaxLength(EINSATZ_PERSON_VALIDATION.FUNKTION_MAX_LENGTH)
   funktion!: string;
 
   @ApiPropertyOptional({
-    description: 'Funkrufname (optional, max 50 Zeichen)',
+    description: `Funkrufname (optional, max ${EINSATZ_PERSON_VALIDATION.FUNKRUFNAME_MAX_LENGTH} Zeichen)`,
     example: 'Florian Heidelberg 1',
-    maxLength: 50,
+    maxLength: EINSATZ_PERSON_VALIDATION.FUNKRUFNAME_MAX_LENGTH,
   })
   @IsOptional()
   @IsString()
-  @MaxLength(50)
+  @MaxLength(EINSATZ_PERSON_VALIDATION.FUNKRUFNAME_MAX_LENGTH)
   funkrufname?: string;
 
   @ApiPropertyOptional({

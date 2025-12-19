@@ -539,21 +539,22 @@ describe('EventDeserializer', () => {
       expect(deserializer.supportsEventType('')).toBe(false);
     });
 
-    it('should return all 19 supported event types', () => {
+    it('should return all 20 supported event types', () => {
       const supportedTypes = deserializer.getSupportedEventTypes();
 
-      expect(supportedTypes).toHaveLength(19);
+      expect(supportedTypes).toHaveLength(20);
       expect(supportedTypes).toContain('einsatz.created');
       expect(supportedTypes).toContain('etb.created');
       expect(supportedTypes).toContain('lagekarte.created');
       expect(supportedTypes).toContain('user.created');
+      expect(supportedTypes).toContain('einsatz_person.hinzugefuegt');
     });
   });
 
   // ===== EVENT COVERAGE =====
 
   describe('Event Coverage', () => {
-    it('should support all 19 domain events', () => {
+    it('should support all 20 domain events', () => {
       const expectedEvents = [
         'einsatz.created',
         'einsatz.updated',
@@ -574,6 +575,7 @@ describe('EventDeserializer', () => {
         'user.role_changed',
         'user.permission_granted',
         'user.permission_revoked',
+        'einsatz_person.hinzugefuegt',
       ];
 
       const supportedTypes = deserializer.getSupportedEventTypes();

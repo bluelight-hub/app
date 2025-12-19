@@ -1,13 +1,16 @@
-import { CreateEtbCommand, type CreateEtbHandler } from '@application/etb/commands';
+import { CreateEtbCommand } from '@application/etb/commands';
 import { Result } from '@domain/common/result';
 import type { EtbEintrag } from '@domain/entities/etb-eintrag.entity';
 import type { IEtbRepository } from '@domain/repositories';
+import { EinsatzId } from '@domain/value-objects/einsatz-id';
 import { EtbId } from '@domain/value-objects/etb-id';
 import { EtbKategorie } from '@domain/value-objects/etb-kategorie';
 import { UserId } from '@domain/value-objects/user-id';
-import { Inject, Injectable, Logger, Optional } from '@nestjs/common';
+import { Inject, Injectable, Logger, Optional, forwardRef } from '@nestjs/common';
 import type { AddEintragCommand } from './add-eintrag.command';
 import { ETB_REPOSITORY } from '@infrastructure/di-tokens';
+// biome-ignore lint/style/useImportType: CreateEtbHandler needed for DI at runtime with forwardRef
+import { CreateEtbHandler } from '../create-etb/create-etb.handler';
 
 /**
  * Handler für AddEintragCommand.
@@ -34,6 +37,7 @@ export class AddEintragHandler {
     @Inject(ETB_REPOSITORY)
     private readonly etbRepository: IEtbRepository,
     @Optional()
+    @Inject(forwardRef(() => CreateEtbHandler))
     private readonly createEtbHandler?: CreateEtbHandler,
   ) {}
 
@@ -102,16 +106,28 @@ export class AddEintragHandler {
     }
 
     // Step 3: Load ETB Aggregate
-    let aggregate = await this.etbRepository.findById(etbId);
+    // Strategie: Wenn einsatzId vorhanden, nutze findByEinsatzId (ETB hat eigene ID, nicht = einsatzId)
+    // Fallback auf findById für direkte ETB-ID Lookups
+    const einsatzIdStr = command.einsatzId?.trim();
+    let aggregate = einsatzIdStr ? await this.etbRepository.findByEinsatzId(EinsatzId.create(einsatzIdStr).value!) : await this.etbRepository.findById(etbId);
+
+    if (aggregate === null) {
+      // Fallback: Versuche findById falls findByEinsatzId fehlschlug
+      if (einsatzIdStr) {
+        aggregate = await this.etbRepository.findById(etbId);
+      }
+    }
+
     if (aggregate === null) {
       // Server-side logging with full diagnostic context
       this.logger.warn('ETB not found during AddEintrag', {
         etbId: etbId.value,
+        einsatzId: einsatzIdStr,
         timestamp: new Date().toISOString(),
       });
 
       // Try to auto-create ETB if einsatzId is provided (active Einsatz context)
-      const einsatzId = command.einsatzId?.trim();
+      const einsatzId = einsatzIdStr;
 
       if (!einsatzId) {
         this.logger.warn('Missing einsatzId for auto-creation after ETB miss', {

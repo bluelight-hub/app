@@ -18,6 +18,7 @@ import { EinsatzFahrzeugeController } from './controllers/einsatz-fahrzeuge.cont
 import { EinsatzPersonenController } from './controllers/einsatz-personen.controller';
 import { FahrzeugtypenController } from './controllers/fahrzeugtypen.controller';
 import { StammFahrzeugeController } from './controllers/stamm-fahrzeuge.controller';
+import { StammPersonenController } from './controllers/stamm-personen.controller';
 
 /**
  * NestJS Module für Kräftemanagement.
@@ -49,6 +50,7 @@ import { StammFahrzeugeController } from './controllers/stamm-fahrzeuge.controll
     EinsatzPersonenController,
     FahrzeugtypenController,
     StammFahrzeugeController,
+    StammPersonenController,
   ],
 })
 export class KraefteModule {}

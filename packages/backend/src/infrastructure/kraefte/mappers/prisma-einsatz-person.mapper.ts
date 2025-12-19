@@ -2,24 +2,20 @@ import { Prisma } from '@prisma/client';
 import type { EinsatzPerson as PrismaEinsatzPerson } from '@prisma/client';
 import { EinsatzPerson } from '@domain/kraefte/aggregates/einsatz-person.aggregate';
 import { Result } from '@domain/common/result';
+import { nullToUndefined } from '@/shared/utils/type-utils';
 
 /**
  * Prisma Entity mit eager-loaded Qualifikationen Relation.
  *
- * **Use Case:** Repository lädt EinsatzPerson mit `include: { qualifikationen: true }`
+ * **Use Case:** Repository lädt EinsatzPerson mit `include: { qualifikationen: { select: { qualifikationId: true } } }`
  * um Domain Aggregate mit Qualifikation-IDs zu rekonstruieren.
  *
  * **M:N Handling:** Qualifikationen werden als Array von Junction Table Records geladen.
+ * **Performance:** Lädt nur qualifikationId (nicht alle 7 Felder) für optimale Performance.
  */
 export type PrismaEinsatzPersonWithRelations = PrismaEinsatzPerson & {
   qualifikationen?: Array<{
-    id: string;
     qualifikationId: string;
-    einsatzPersonId: string;
-    createdAt: Date;
-    updatedAt: Date;
-    createdBy: string;
-    updatedBy: string | null;
   }>;
 };
 
@@ -133,17 +129,17 @@ export class PrismaEinsatzPersonMapper {
       id: entity.id,
       einsatzId: entity.einsatzId,
       // KRITISCH: NULL → undefined für optionale Felder!
-      stammId: (entity.stammId as string | null) ?? undefined,
+      stammId: nullToUndefined(entity.stammId),
       vorname: entity.vorname,
       nachname: entity.nachname,
       funktion: entity.funktion,
-      funkrufname: (entity.funkrufname as string | null) ?? undefined,
+      funkrufname: nullToUndefined(entity.funkrufname),
       qualifikationIds: qualifikationIds,
       position: positionProps,
       createdAt: entity.createdAt,
       updatedAt: entity.updatedAt,
       createdBy: entity.createdBy,
-      updatedBy: (entity.updatedBy as string | null) ?? undefined,
+      updatedBy: nullToUndefined(entity.updatedBy),
     });
 
     if (result.isFailure || !result.value) {

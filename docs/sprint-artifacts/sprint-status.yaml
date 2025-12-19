@@ -75,7 +75,7 @@ development_status:
   # ===== Epic 4: Helfer-Registrierung =====
   epic-4: in-progress
   4-0-prisma-schema-einsatz-personen: done # Code Review passed (2025-12-18)
-  4-1-person-manuell-registrieren: in-progress # Development started (2025-12-19)
+  4-1-person-manuell-registrieren: review # Ready for review (2025-12-19) - All Code Review issues resolved
   4-2-person-via-qr-code-registrieren: backlog
   4-3-person-zu-fahrzeug-zuweisen: backlog
   epic-4-retrospective: optional

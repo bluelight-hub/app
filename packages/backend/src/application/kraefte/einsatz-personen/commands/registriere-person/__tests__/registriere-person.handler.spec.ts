@@ -11,39 +11,39 @@ import { RegistrierePersonCommand } from '../registriere-person.command';
 describe('RegistrierePersonHandler', () => {
   let handler: RegistrierePersonHandler;
 
-  // Mock Repositories
-  let mockEinsatzPersonRepository: {
+  // Mock Repositories - Using jest.Mocked<T> for type safety (AC6)
+  let mockEinsatzPersonRepository: jest.Mocked<{
     save: jest.Mock;
     findById: jest.Mock;
     findByEinsatzId: jest.Mock;
     existsByEinsatzIdAndStammId: jest.Mock;
-  };
-  let mockStammPersonRepository: {
+  }>;
+  let mockStammPersonRepository: jest.Mocked<{
     findById: jest.Mock;
     findAll: jest.Mock;
     findByPersonalnummer: jest.Mock;
     exists: jest.Mock;
     search: jest.Mock;
     save: jest.Mock;
-  };
-  let mockOutboxRepository: {
+  }>;
+  let mockOutboxRepository: jest.Mocked<{
     save: jest.Mock;
     findPendingEvents: jest.Mock;
     markAsPublished: jest.Mock;
     markAsFailed: jest.Mock;
     getRetryCount: jest.Mock;
-  };
-  let mockPrismaService: {
+  }>;
+  let mockPrismaService: jest.Mocked<{
     $transaction: jest.Mock;
-  };
-  let mockLogger: {
+  }>;
+  let mockLogger: jest.Mocked<{
     log: jest.Mock;
     error: jest.Mock;
     warn: jest.Mock;
     debug: jest.Mock;
-  };
+  }>;
 
-  // Test Data
+  // Test Data - Deterministic test fixtures (AC6)
   const validEinsatzId = '123e4567-e89b-12d3-a456-426614174000';
   const validStammPersonId = createId();
   const validRegistriertVon = createId();
@@ -70,15 +70,13 @@ describe('RegistrierePersonHandler', () => {
   }
 
   beforeEach(async () => {
-    jest.clearAllMocks();
-
-    // Mock Repositories initialisieren
+    // Mock Repositories initialisieren (AC6: Initialize BEFORE clearAllMocks)
     mockEinsatzPersonRepository = {
       save: jest.fn().mockResolvedValue(Result.ok(undefined)),
       findById: jest.fn(),
       findByEinsatzId: jest.fn(),
       existsByEinsatzIdAndStammId: jest.fn().mockResolvedValue(Result.ok(false)),
-    };
+    } as jest.Mocked<typeof mockEinsatzPersonRepository>;
 
     mockStammPersonRepository = {
       findById: jest.fn().mockResolvedValue(Result.ok(createMockStammPerson())),
@@ -87,7 +85,7 @@ describe('RegistrierePersonHandler', () => {
       exists: jest.fn(),
       search: jest.fn(),
       save: jest.fn(),
-    };
+    } as jest.Mocked<typeof mockStammPersonRepository>;
 
     mockOutboxRepository = {
       save: jest.fn().mockResolvedValue(undefined),
@@ -95,21 +93,24 @@ describe('RegistrierePersonHandler', () => {
       markAsPublished: jest.fn(),
       markAsFailed: jest.fn(),
       getRetryCount: jest.fn(),
-    };
+    } as jest.Mocked<typeof mockOutboxRepository>;
 
     mockPrismaService = {
       $transaction: jest.fn().mockImplementation(async (callback) => {
         const txMock = {};
         return callback(txMock);
       }),
-    };
+    } as jest.Mocked<typeof mockPrismaService>;
 
     mockLogger = {
       log: jest.fn(),
       error: jest.fn(),
       warn: jest.fn(),
       debug: jest.fn(),
-    };
+    } as jest.Mocked<typeof mockLogger>;
+
+    // AC6: Clear mocks AFTER mock creation (not before)
+    jest.clearAllMocks();
 
     const module: TestingModule = await Test.createTestingModule({
       providers: [
@@ -620,7 +621,7 @@ describe('RegistrierePersonHandler', () => {
       expect(commandResult.error).toContain('ungültig');
     });
 
-    it('sollte fehlschlagen mit ungültigem Breitengrad', () => {
+    it('sollte fehlschlagen mit ungültigem Breitengrad (> 90)', () => {
       // Given (Arrange)
       const commandResult = RegistrierePersonCommand.create({
         einsatzId: validEinsatzId,
@@ -636,7 +637,23 @@ describe('RegistrierePersonHandler', () => {
       expect(commandResult.error).toContain('Breitengrad');
     });
 
-    it('sollte fehlschlagen mit ungültigem Längengrad', () => {
+    it('sollte fehlschlagen mit ungültigem Breitengrad (< -90) (R2-TEST-M1)', () => {
+      // Given (Arrange)
+      const commandResult = RegistrierePersonCommand.create({
+        einsatzId: validEinsatzId,
+        vorname: 'Max',
+        nachname: 'Mustermann',
+        funktion: 'Helfer',
+        registriertVon: validRegistriertVon,
+        position: { lat: -91, lng: 0 },
+      });
+
+      // Then (Assert)
+      expect(commandResult.isFailure).toBe(true);
+      expect(commandResult.error).toContain('Breitengrad');
+    });
+
+    it('sollte fehlschlagen mit ungültigem Längengrad (> 180)', () => {
       // Given (Arrange)
       const commandResult = RegistrierePersonCommand.create({
         einsatzId: validEinsatzId,
@@ -645,6 +662,22 @@ describe('RegistrierePersonHandler', () => {
         funktion: 'Helfer',
         registriertVon: validRegistriertVon,
         position: { lat: 0, lng: 181 },
+      });
+
+      // Then (Assert)
+      expect(commandResult.isFailure).toBe(true);
+      expect(commandResult.error).toContain('Längengrad');
+    });
+
+    it('sollte fehlschlagen mit ungültigem Längengrad (< -180) (R2-TEST-M1)', () => {
+      // Given (Arrange)
+      const commandResult = RegistrierePersonCommand.create({
+        einsatzId: validEinsatzId,
+        vorname: 'Max',
+        nachname: 'Mustermann',
+        funktion: 'Helfer',
+        registriertVon: validRegistriertVon,
+        position: { lat: 0, lng: -181 },
       });
 
       // Then (Assert)
@@ -701,6 +734,34 @@ describe('RegistrierePersonHandler', () => {
 
       // Then (Assert)
       expect(mockPrismaService.$transaction).toHaveBeenCalledTimes(1);
+    });
+
+    it('sollte Repositories mit Transaction Context aufrufen (R2-TEST2)', async () => {
+      // Given (Arrange)
+      let capturedTxContext: unknown;
+      mockPrismaService.$transaction.mockImplementation(async (callback) => {
+        const txMock = { _type: 'TransactionContext' }; // Identifiable mock TX
+        capturedTxContext = txMock;
+        return callback(txMock);
+      });
+
+      const command = RegistrierePersonCommand.create({
+        einsatzId: validEinsatzId,
+        stammPersonId: validStammPersonId,
+        vorname: 'Max',
+        nachname: 'Mustermann',
+        funktion: 'Helfer',
+        registriertVon: validRegistriertVon,
+      }).value!;
+
+      // When (Act)
+      await handler.execute(command);
+
+      // Then (Assert) - Verify repositories received the TX context
+      expect(mockEinsatzPersonRepository.existsByEinsatzIdAndStammId).toHaveBeenCalledWith(validEinsatzId, validStammPersonId, capturedTxContext);
+      expect(mockStammPersonRepository.findById).toHaveBeenCalledWith(expect.anything(), capturedTxContext);
+      expect(mockEinsatzPersonRepository.save).toHaveBeenCalledWith(expect.anything(), capturedTxContext);
+      expect(mockOutboxRepository.save).toHaveBeenCalledWith(expect.anything(), capturedTxContext);
     });
 
     it('sollte Rollback durchführen wenn Outbox-Speicherung fehlschlägt', async () => {

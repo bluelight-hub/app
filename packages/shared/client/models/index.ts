@@ -94,6 +94,7 @@ export * from './StammFahrzeugDto';
 export * from './StammFahrzeugeControllerFindAllVAlpha200Response';
 export * from './StammPersonDto';
 export * from './StammPersonQualifikationDto';
+export * from './StammPersonenControllerFindAllVAlpha200Response';
 export * from './StatusCountsDto';
 export * from './StatusCountsResponseDto';
 export * from './TextbausteinDto';

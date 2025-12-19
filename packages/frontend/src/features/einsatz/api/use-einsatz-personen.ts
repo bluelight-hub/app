@@ -10,7 +10,6 @@ import { api } from '@/shared/api/client';
 import { logger } from '@/shared/lib/logger';
 import type { EinsatzPersonResponseDto, RegistrierePersonDto, ResponseError } from '@bluelight-hub/shared/client';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { ETB_QUERY_KEYS } from '@/features/etb';
 import { calculateRetryDelay, EINSATZ_QUERY_KEYS } from './queries';
 
 /**
@@ -131,8 +130,10 @@ export const useRegistrierePerson = () => {
       });
 
       // Invalidate ETB (neuer Eintrag wurde erstellt)
+      // Partial match: ['etb', 'einsatz', einsatzId] invalidiert alle ETB-Queries
+      // unabhängig von includeDeleted Parameter
       queryClient.invalidateQueries({
-        queryKey: ETB_QUERY_KEYS.byEinsatz(variables.einsatzId),
+        queryKey: ['etb', 'einsatz', variables.einsatzId],
       });
     },
     onError: (error: ResponseError, variables) => {

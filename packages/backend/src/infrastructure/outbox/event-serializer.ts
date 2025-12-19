@@ -21,6 +21,7 @@ import type { PermissionGrantedEvent } from '@domain/events/permission-granted.e
 import type { PermissionRevokedEvent } from '@domain/events/permission-revoked.event';
 import type { QualifikationCreatedEvent } from '@domain/kraefte/events/qualifikation-created.event';
 import type { QualifikationUpdatedEvent } from '@domain/kraefte/events/qualifikation-updated.event';
+import type { EinsatzPersonHinzugefuegtEvent } from '@domain/kraefte/events/einsatz-person-hinzugefuegt.event';
 
 /**
  * Serialisiertes Event-Payload für Outbox-Persistierung.
@@ -174,6 +175,10 @@ export class EventSerializer {
         return this.serializeQualifikationCreated(event as unknown as QualifikationCreatedEvent);
       case 'QualifikationUpdated':
         return this.serializeQualifikationUpdated(event as unknown as QualifikationUpdatedEvent);
+
+      // ===== EINSATZ PERSON EVENTS =====
+      case 'einsatz_person.hinzugefuegt':
+        return this.serializeEinsatzPersonHinzugefuegt(event as unknown as EinsatzPersonHinzugefuegtEvent);
 
       default:
         throw new Error(`Unknown event type: ${eventName}. EventSerializer needs to be updated.`);
@@ -365,6 +370,20 @@ export class EventSerializer {
       qualifikationId: event.qualifikationId, // Already primitive string
       changes: event.changes, // Already primitives
       updatedBy: event.updatedBy,
+    };
+  }
+
+  // ===== EINSATZ PERSON SERIALIZERS =====
+
+  private serializeEinsatzPersonHinzugefuegt(event: EinsatzPersonHinzugefuegtEvent): Record<string, unknown> {
+    return {
+      einsatzId: event.einsatzId, // Already primitive string
+      einsatzPersonId: event.einsatzPersonId,
+      stammId: event.stammId, // string | undefined
+      vorname: event.vorname,
+      nachname: event.nachname,
+      funktion: event.funktion,
+      registriertVon: event.registriertVon,
     };
   }
 }

@@ -1,5 +1,6 @@
 import { Result } from '@domain/common/result';
 import { isCuid } from '@paralleldrive/cuid2';
+import { GEO_POSITION_VALIDATION } from '@domain/kraefte/value-objects/geo-position.vo';
 
 /**
  * Command für das Registrieren einer Person zu einem aktiven Einsatz.
@@ -30,6 +31,8 @@ export class RegistrierePersonCommand {
     public readonly nachname: string,
     /** Funktion im Einsatz (Helfer, Rettungshelfer, etc.) */
     public readonly funktion: string,
+    /** Funkrufname (optional) */
+    public readonly funkrufname: string | undefined,
     /** Qualifikation-IDs (optional) */
     public readonly qualifikationIds: string[],
     /** User-ID der die Person registriert (CUID2, Audit-Trail) */
@@ -50,6 +53,7 @@ export class RegistrierePersonCommand {
     vorname: string;
     nachname: string;
     funktion: string;
+    funkrufname?: string;
     qualifikationIds?: string[];
     registriertVon: string;
     position?: { lat: number; lng: number };
@@ -97,6 +101,15 @@ export class RegistrierePersonCommand {
       return Result.fail('Funktion darf maximal 50 Zeichen lang sein');
     }
 
+    // Validation: funkrufname (optional)
+    let trimmedFunkrufname: string | undefined = props.funkrufname?.trim();
+    if (trimmedFunkrufname && trimmedFunkrufname.length > 50) {
+      return Result.fail('Funkrufname darf maximal 50 Zeichen lang sein');
+    }
+    if (trimmedFunkrufname !== undefined && trimmedFunkrufname.length === 0) {
+      trimmedFunkrufname = undefined;
+    }
+
     // Validation: registriertVon (CUID2 Format)
     const trimmedRegistriertVon = props.registriertVon?.trim() ?? '';
     if (trimmedRegistriertVon.length === 0) {
@@ -126,16 +139,26 @@ export class RegistrierePersonCommand {
       if (typeof lat !== 'number' || typeof lng !== 'number') {
         return Result.fail('Position muss lat und lng als Zahlen enthalten');
       }
-      if (lat < -90 || lat > 90) {
-        return Result.fail('Breitengrad (lat) muss zwischen -90 und 90 liegen');
+      if (lat < GEO_POSITION_VALIDATION.LAT_MIN || lat > GEO_POSITION_VALIDATION.LAT_MAX) {
+        return Result.fail(`Breitengrad (lat) muss zwischen ${GEO_POSITION_VALIDATION.LAT_MIN} und ${GEO_POSITION_VALIDATION.LAT_MAX} liegen`);
       }
-      if (lng < -180 || lng > 180) {
-        return Result.fail('Längengrad (lng) muss zwischen -180 und 180 liegen');
+      if (lng < GEO_POSITION_VALIDATION.LNG_MIN || lng > GEO_POSITION_VALIDATION.LNG_MAX) {
+        return Result.fail(`Längengrad (lng) muss zwischen ${GEO_POSITION_VALIDATION.LNG_MIN} und ${GEO_POSITION_VALIDATION.LNG_MAX} liegen`);
       }
     }
 
     return Result.ok(
-      new RegistrierePersonCommand(trimmedEinsatzId, trimmedStammPersonId, trimmedVorname, trimmedNachname, trimmedFunktion, validQualifikationIds, trimmedRegistriertVon, props.position),
+      new RegistrierePersonCommand(
+        trimmedEinsatzId,
+        trimmedStammPersonId,
+        trimmedVorname,
+        trimmedNachname,
+        trimmedFunktion,
+        trimmedFunkrufname,
+        validQualifikationIds,
+        trimmedRegistriertVon,
+        props.position,
+      ),
     );
   }
 }

@@ -14,11 +14,12 @@
  * @see EinsatzPersonHinzugefuegtEventHandler - Application Layer Implementation
  * @see EVENT_HANDLER.EINSATZ_PERSON_HINZUGEFUEGT_ETB - DI Token
  */
-import { Injectable, Inject, Logger } from '@nestjs/common';
+import { Injectable, Inject } from '@nestjs/common';
 import { OnEvent } from '@nestjs/event-emitter';
 import type { IEventHandler } from '@domain/ports/i-event-handler.port';
+import type { ILogger } from '@domain/ports/i-logger.port';
 import { EinsatzPersonHinzugefuegtEvent } from '@domain/kraefte/events/einsatz-person-hinzugefuegt.event';
-import { EVENT_HANDLER } from '@infrastructure/di-tokens';
+import { EVENT_HANDLER, LOGGER } from '@infrastructure/di-tokens';
 
 /**
  * NestJS Event Adapter für EinsatzPersonHinzugefuegt ETB-Eintrag Creation.
@@ -28,8 +29,6 @@ import { EVENT_HANDLER } from '@infrastructure/di-tokens';
  */
 @Injectable()
 export class EinsatzPersonHinzugefuegtEventAdapter {
-  private readonly logger = new Logger(EinsatzPersonHinzugefuegtEventAdapter.name);
-
   /**
    * Konstruktor injiziert Application Layer Event Handler via DI Token.
    *
@@ -43,10 +42,13 @@ export class EinsatzPersonHinzugefuegtEventAdapter {
    *                  (definiert in `infrastructure/di-tokens.ts`, gebunden in `event-adapters.module.ts`).
    *                  Handler implementiert `IEventHandler<EinsatzPersonHinzugefuegtEvent>` Port (Domain Layer)
    *                  und ist vollständig framework-agnostisch (keine NestJS Dependencies).
+   * @param logger - Logger Port für Infrastructure Layer Logging.
+   *                 Wird via DI Token `LOGGER` injiziert (ILogger Port Implementation).
    */
   constructor(
     @Inject(EVENT_HANDLER.EINSATZ_PERSON_HINZUGEFUEGT_ETB)
     private readonly handler: IEventHandler<EinsatzPersonHinzugefuegtEvent>,
+    @Inject(LOGGER) private readonly logger: ILogger,
   ) {}
 
   /**
@@ -63,25 +65,21 @@ export class EinsatzPersonHinzugefuegtEventAdapter {
    */
   @OnEvent(EinsatzPersonHinzugefuegtEvent.eventName())
   async onEinsatzPersonHinzugefuegt(event: EinsatzPersonHinzugefuegtEvent): Promise<void> {
-    this.logger.log(`Received EinsatzPersonHinzugefuegtEvent`, {
-      eventId: event.eventId,
-      einsatzId: event.einsatzId,
-      einsatzPersonId: event.einsatzPersonId,
-      vorname: event.vorname,
-      nachname: event.nachname,
-      funktion: event.funktion,
-      eventName: EinsatzPersonHinzugefuegtEvent.eventName(),
-    });
+    this.logger.log(
+      `Received EinsatzPersonHinzugefuegtEvent: eventId=${event.eventId}, einsatzId=${event.einsatzId}, einsatzPersonId=${event.einsatzPersonId}, name=${event.vorname} ${event.nachname}, funktion=${event.funktion}`,
+      EinsatzPersonHinzugefuegtEventAdapter.name,
+    );
 
     try {
       await this.handler.handle(event);
     } catch (error) {
       // Fire-and-Forget: Fehler loggen, NICHT propagieren
-      this.logger.error(`Unerwarteter Fehler im EinsatzPersonHinzugefuegt Handler`, {
-        eventId: event.eventId,
-        error: error instanceof Error ? error.message : String(error),
-        stack: error instanceof Error ? error.stack : undefined,
-      });
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      const stack = error instanceof Error ? error.stack : undefined;
+      this.logger.error(
+        `Unerwarteter Fehler im EinsatzPersonHinzugefuegt Handler: eventId=${event.eventId}, einsatzId=${event.einsatzId}, einsatzPersonId=${event.einsatzPersonId}, error=${errorMessage}, stack=${stack ?? 'undefined'}`,
+        EinsatzPersonHinzugefuegtEventAdapter.name,
+      );
     }
   }
 }

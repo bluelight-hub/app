@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Inject } from '@nestjs/common';
 import type { Prisma } from '@prisma/client';
 import { PrismaService } from '@infrastructure/database/prisma.service';
 import { Result } from '@domain/common/result';
@@ -9,11 +9,28 @@ import type { TransactionContext } from '@domain/kraefte/repositories/i-einsatz-
 import { PrismaEinsatzPersonMapper } from '../mappers/prisma-einsatz-person.mapper';
 import { EINSATZ_PERSON_ERROR_CODES } from '@domain/kraefte/common/einsatz-person-error-codes';
 import { isPrismaError } from '@/shared/utils/prisma.util';
+import type { ILogger } from '@domain/ports/i-logger.port';
+import { LOGGER } from '@infrastructure/di-tokens';
 
 /**
  * Transaction Client Type Alias für bessere Lesbarkeit.
  */
 type PrismaTransactionClient = Prisma.TransactionClient;
+
+/**
+ * Konvertiert framework-agnostischen TransactionContext zu Prisma Transaction Client.
+ *
+ * **Type Safety:** Explizite Funktion mit klarer Signatur statt inline Cast.
+ * **Warum:** TransactionContext ist framework-agnostisch (Domain Layer Interface),
+ * aber Infrastructure Layer nutzt konkrete Prisma Transaction.
+ *
+ * @param tx - Optional: Framework-agnostischer Transaction Context
+ * @param fallback - Fallback Client wenn tx undefined ist
+ * @returns PrismaTransactionClient oder Fallback
+ */
+function getTransactionClient(tx: TransactionContext | undefined, fallback: PrismaService): PrismaTransactionClient | PrismaService {
+  return (tx as PrismaTransactionClient | undefined) ?? fallback;
+}
 
 /**
  * Prisma Implementation des IEinsatzPersonRepository (Hexagonal Architecture).
@@ -49,7 +66,10 @@ type PrismaTransactionClient = Prisma.TransactionClient;
  */
 @Injectable()
 export class PrismaEinsatzPersonRepository implements IEinsatzPersonRepository {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    @Inject(LOGGER) private readonly logger: ILogger,
+  ) {}
 
   /**
    * Speichert das EinsatzPerson-Aggregat (Upsert: Create oder Update).
@@ -77,7 +97,7 @@ export class PrismaEinsatzPersonRepository implements IEinsatzPersonRepository {
       const persistenceData = PrismaEinsatzPersonMapper.toPersistence(aggregate);
 
       // Verwende entweder externe tx oder interne Prisma Client (kein doppeltes $transaction)
-      const client = (tx as PrismaTransactionClient | undefined) ?? this.prisma;
+      const client = getTransactionClient(tx, this.prisma);
 
       await client.einsatzPerson.upsert({
         where: { id: persistenceData.id },
@@ -170,20 +190,14 @@ export class PrismaEinsatzPersonRepository implements IEinsatzPersonRepository {
    */
   async findById(id: EinsatzPersonId, tx?: TransactionContext): Promise<Result<EinsatzPerson | null>> {
     try {
-      const client = (tx as PrismaTransactionClient | undefined) ?? this.prisma;
+      const client = getTransactionClient(tx, this.prisma);
 
       const entity = await client.einsatzPerson.findUnique({
         where: { id: id.value },
         include: {
           qualifikationen: {
             select: {
-              id: true,
               qualifikationId: true,
-              einsatzPersonId: true,
-              createdAt: true,
-              updatedAt: true,
-              createdBy: true,
-              updatedBy: true,
             },
           },
         },
@@ -196,13 +210,13 @@ export class PrismaEinsatzPersonRepository implements IEinsatzPersonRepository {
       const domainResult = PrismaEinsatzPersonMapper.toDomain(entity);
       if (domainResult.isFailure || !domainResult.value) {
         // Rekonstitutionsfehler = Programming Error (Dateninkonsistenz)
-        return Result.fail<EinsatzPerson | null>(`Fehler beim Laden der EinsatzPerson: ${domainResult.error}`);
+        return Result.fail<EinsatzPerson | null>(`Fehler beim Laden der Einsatz-Person: ${domainResult.error}`);
       }
 
       return Result.ok<EinsatzPerson | null>(domainResult.value);
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-      return Result.fail<EinsatzPerson | null>(`Fehler beim Laden der EinsatzPerson: ${errorMessage}`);
+      return Result.fail<EinsatzPerson | null>(`Fehler beim Laden der Einsatz-Person: ${errorMessage}`);
     }
   }
 
@@ -221,20 +235,14 @@ export class PrismaEinsatzPersonRepository implements IEinsatzPersonRepository {
    */
   async findByEinsatzId(einsatzId: string, tx?: TransactionContext): Promise<Result<EinsatzPerson[]>> {
     try {
-      const client = (tx as PrismaTransactionClient | undefined) ?? this.prisma;
+      const client = getTransactionClient(tx, this.prisma);
 
       const entities = await client.einsatzPerson.findMany({
         where: { einsatzId },
         include: {
           qualifikationen: {
             select: {
-              id: true,
               qualifikationId: true,
-              einsatzPersonId: true,
-              createdAt: true,
-              updatedAt: true,
-              createdBy: true,
-              updatedBy: true,
             },
           },
         },
@@ -247,7 +255,8 @@ export class PrismaEinsatzPersonRepository implements IEinsatzPersonRepository {
         const domainResult = PrismaEinsatzPersonMapper.toDomain(entity);
         if (domainResult.isFailure || !domainResult.value) {
           // WICHTIG: Ein fehlerhaftes Entity bricht NICHT die ganze Query ab
-          // Logging würde hier stattfinden (in Production mit Logger Service)
+          // Logging für Data Integrity Violations (verhindert Data Loss)
+          this.logger.warn(`Einsatz-Person Rekonstitution fehlgeschlagen für ID ${entity.id}: ${domainResult.error ?? 'Unbekannter Fehler'} (einsatzId=${einsatzId})`, 'PrismaEinsatzPersonRepository');
           continue;
         }
         aggregates.push(domainResult.value);
@@ -256,7 +265,7 @@ export class PrismaEinsatzPersonRepository implements IEinsatzPersonRepository {
       return Result.ok<EinsatzPerson[]>(aggregates);
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-      return Result.fail<EinsatzPerson[]>(`Fehler beim Laden der EinsatzPersonen: ${errorMessage}`);
+      return Result.fail<EinsatzPerson[]>(`Fehler beim Laden der Einsatz-Personen: ${errorMessage}`);
     }
   }
 
@@ -277,7 +286,7 @@ export class PrismaEinsatzPersonRepository implements IEinsatzPersonRepository {
    */
   async existsByEinsatzIdAndStammId(einsatzId: string, stammId: string, tx?: TransactionContext): Promise<Result<boolean>> {
     try {
-      const client = (tx as PrismaTransactionClient | undefined) ?? this.prisma;
+      const client = getTransactionClient(tx, this.prisma);
 
       const entity = await client.einsatzPerson.findFirst({
         where: { einsatzId, stammId },

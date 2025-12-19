@@ -16,7 +16,8 @@ import { EINSATZ_PERSON_ERROR_CODES, EinsatzPersonError } from '@domain/kraefte/
 import { KRAEFTE_REPOSITORIES, LOGGER, OUTBOX_REPOSITORY } from '@infrastructure/di-tokens';
 // biome-ignore lint/style/useImportType: PrismaService needed for DI at runtime
 import { PrismaService } from '@/infrastructure/database/prisma.service';
-import type { RegistrierePersonCommand } from './registriere-person.command';
+// biome-ignore lint/style/useImportType: RegistrierePersonCommand needed for DI at runtime
+import { RegistrierePersonCommand } from './registriere-person.command';
 
 /**
  * Handler für RegistrierePersonCommand.
@@ -83,13 +84,17 @@ export class RegistrierePersonHandler extends TransactionalCommandHandler<Regist
       const stammPersonId = stammIdResult.value;
       if (!stammPersonId) {
         this.logger.error('StammPersonId.create returned success but value is null');
-        throw new Error('StammPerson ID validation succeeded but value is null');
+        return Result.fail('Interner Fehler: StammPerson ID validation succeeded but value is null');
       }
 
       // 2. Duplikat-Check: StammPerson bereits im Einsatz? (AC4)
       const existsResult = await this.einsatzPersonRepository.existsByEinsatzIdAndStammId(command.einsatzId, command.stammPersonId, tx);
       if (existsResult.isFailure) {
         return Result.fail(existsResult.error ?? 'Fehler bei der Duplikat-Prüfung');
+      }
+      if (existsResult.value === undefined) {
+        this.logger.error('Repository returned Result.ok(undefined) for duplicate check - this is a bug!', 'RegistrierePersonHandler');
+        return Result.fail('Interner Fehler bei der Duplikat-Prüfung');
       }
       if (existsResult.value) {
         return Result.fail(EinsatzPersonError.format(EINSATZ_PERSON_ERROR_CODES.DUPLICATE_PERSON, `Person mit StammPerson-ID '${command.stammPersonId}' ist bereits im Einsatz registriert`));
@@ -140,6 +145,7 @@ export class RegistrierePersonHandler extends TransactionalCommandHandler<Regist
         vorname: command.vorname,
         nachname: command.nachname,
         funktion: command.funktion,
+        funkrufname: command.funkrufname,
         qualifikationIds: command.qualifikationIds,
         createdBy: command.registriertVon,
         position: command.position,

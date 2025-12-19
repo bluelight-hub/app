@@ -18,9 +18,10 @@ import { cn } from '@/shared/ui/cn';
 import { Dialog } from '@/shared/ui/molecules/dialog.molecule';
 import { Combobox, ComboboxButton, ComboboxInput, ComboboxOption, ComboboxOptions, Listbox, ListboxButton, ListboxOption, ListboxOptions } from '@headlessui/react';
 import type { StammPersonDto } from '@bluelight-hub/shared/client';
+import { debounce } from '@tanstack/pacer';
 import { useForm } from '@tanstack/react-form';
 import { zodValidator } from '@tanstack/zod-form-adapter';
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useHotkeys } from 'react-hotkeys-hook';
 import { PiCaretDown, PiCheck, PiUser } from 'react-icons/pi';
 import { toast } from 'sonner';
@@ -106,6 +107,9 @@ const FUNKTIONEN = [
  * ```
  */
 export function PersonHinzufuegenDialog({ isOpen, onClose, einsatzId }: PersonHinzufuegenDialogProps) {
+  // Ref für Focus Management
+  const vornameInputRef = useRef<HTMLInputElement>(null);
+
   // State für Autocomplete
   const [searchQuery, setSearchQuery] = useState('');
   const [debouncedQuery, setDebouncedQuery] = useState('');
@@ -114,17 +118,24 @@ export function PersonHinzufuegenDialog({ isOpen, onClose, einsatzId }: PersonHi
   // Mutations
   const registrierePerson = useRegistrierePerson();
 
-  // Debounce mit useEffect (300ms)
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      setDebouncedQuery(searchQuery);
-    }, 300);
+  // Debounce mit @tanstack/pacer (300ms)
+  const debouncedSearch = useCallback(
+    debounce(
+      (value: string) => {
+        setDebouncedQuery(value);
+      },
+      { wait: 300 },
+    ),
+    [],
+  );
 
-    return () => clearTimeout(timer);
-  }, [searchQuery]);
+  // Trigger debounced callback when search query changes
+  useEffect(() => {
+    debouncedSearch(searchQuery);
+  }, [searchQuery, debouncedSearch]);
 
   // Autocomplete Query
-  const { data: stammPersonen, isLoading: isLoadingPersonen } = useStammPersonenSuche(debouncedQuery, { enabled: isOpen && debouncedQuery.length >= 1 });
+  const { data: stammPersonen, isLoading: isLoadingPersonen, error: stammPersonenError } = useStammPersonenSuche(debouncedQuery, { enabled: isOpen && debouncedQuery.length >= 1 });
 
   /**
    * Zod Schema für Formular-Validierung
@@ -135,7 +146,11 @@ export function PersonHinzufuegenDialog({ isOpen, onClose, einsatzId }: PersonHi
         vorname: z.string().min(1, 'Vorname ist erforderlich').max(100, 'Vorname zu lang (max 100 Zeichen)'),
         nachname: z.string().min(1, 'Nachname ist erforderlich').max(100, 'Nachname zu lang (max 100 Zeichen)'),
         funktion: z.string().min(1, 'Funktion ist erforderlich').max(50, 'Funktion zu lang (max 50 Zeichen)'),
-        funkrufname: z.string().max(50, 'Funkrufname zu lang (max 50 Zeichen)').optional(),
+        funkrufname: z
+          .string()
+          .max(50, 'Funkrufname zu lang (max 50 Zeichen)')
+          .transform((val) => (val.trim() === '' ? undefined : val))
+          .optional(),
       }),
     [],
   );
@@ -151,7 +166,7 @@ export function PersonHinzufuegenDialog({ isOpen, onClose, einsatzId }: PersonHi
     },
     validatorAdapter: zodValidator(),
     validators: {
-      onChange: personSchema,
+      onBlur: personSchema,
     },
   });
 
@@ -247,6 +262,17 @@ export function PersonHinzufuegenDialog({ isOpen, onClose, einsatzId }: PersonHi
     onClose();
   }, [onClose, form]);
 
+  // Focus Management: Set focus to first input when dialog opens
+  useEffect(() => {
+    if (isOpen) {
+      // Small delay to let dialog animation complete
+      const timer = setTimeout(() => {
+        vornameInputRef.current?.focus();
+      }, 100);
+      return () => clearTimeout(timer);
+    }
+  }, [isOpen]);
+
   return (
     <Dialog isOpen={isOpen} onClose={handleClose} size="md">
       <div className="relative">
@@ -268,6 +294,7 @@ export function PersonHinzufuegenDialog({ isOpen, onClose, einsatzId }: PersonHi
               {(field) => (
                 <FormField label="Vorname" required error={getFormErrors(field.state.meta.errors)} helperText="Vorname der Person">
                   <input
+                    ref={vornameInputRef}
                     type="text"
                     value={field.state.value}
                     onChange={(e) => field.handleChange(e.target.value)}
@@ -298,6 +325,7 @@ export function PersonHinzufuegenDialog({ isOpen, onClose, einsatzId }: PersonHi
                   <Combobox as="div" value={selectedPerson} onChange={handlePersonSelect} disabled={registrierePerson.isPending}>
                     <div className="relative">
                       <ComboboxInput
+                        aria-label="Nachname suchen"
                         className={cn(
                           'block w-full rounded-lg border-2 bg-gray-50 px-4 py-3 pr-12 font-medium text-base text-gray-900',
                           'transition-all duration-200',
@@ -339,7 +367,7 @@ export function PersonHinzufuegenDialog({ isOpen, onClose, einsatzId }: PersonHi
                           'dark:border-gray-700 dark:bg-gray-800',
                         )}
                       >
-                        {/* Loading State */}
+                        {/* Loading State - Only show when actually loading the debounced query */}
                         {isLoadingPersonen && debouncedQuery.length >= 1 && (
                           <div className="flex items-center justify-center gap-2 px-4 py-8 text-gray-500">
                             <InlineSpinner size="sm" />
@@ -347,12 +375,21 @@ export function PersonHinzufuegenDialog({ isOpen, onClose, einsatzId }: PersonHi
                           </div>
                         )}
 
+                        {/* Error State */}
+                        {!isLoadingPersonen && stammPersonenError && debouncedQuery.length >= 1 && (
+                          <div className="px-4 py-4 text-center text-red-600 text-sm dark:text-red-400">Fehler beim Laden der Stammdaten. Bitte versuchen Sie es erneut.</div>
+                        )}
+
                         {/* Empty State - Mindestens 1 Zeichen */}
-                        {!isLoadingPersonen && searchQuery.length === 0 && <div className="px-4 py-4 text-center text-gray-500 text-sm dark:text-gray-400">Bitte mindestens 1 Zeichen eingeben</div>}
+                        {!isLoadingPersonen && !stammPersonenError && searchQuery.length === 0 && (
+                          <div className="px-4 py-4 text-center text-gray-500 text-sm dark:text-gray-400">Bitte mindestens 1 Zeichen eingeben</div>
+                        )}
 
                         {/* No Results */}
-                        {!isLoadingPersonen && debouncedQuery.length >= 1 && (!stammPersonen || stammPersonen.length === 0) && (
-                          <div className="px-4 py-4 text-center text-gray-500 text-sm dark:text-gray-400">Keine Personen gefunden</div>
+                        {!isLoadingPersonen && !stammPersonenError && debouncedQuery.length >= 1 && (!stammPersonen || stammPersonen.length === 0) && (
+                          <output className="block px-4 py-4 text-center text-gray-500 text-sm dark:text-gray-400" aria-live="polite">
+                            Keine Personen gefunden
+                          </output>
                         )}
 
                         {/* Results */}
@@ -403,6 +440,7 @@ export function PersonHinzufuegenDialog({ isOpen, onClose, einsatzId }: PersonHi
                   <Listbox value={field.state.value} onChange={(val) => field.handleChange(val)} disabled={registrierePerson.isPending}>
                     <div className="relative mt-2">
                       <ListboxButton
+                        aria-label="Funktion auswählen"
                         className={cn(
                           'relative w-full cursor-default rounded-lg border-2 bg-gray-50 py-3 pr-10 pl-4 text-left font-medium text-base text-gray-900',
                           'transition-all duration-200',

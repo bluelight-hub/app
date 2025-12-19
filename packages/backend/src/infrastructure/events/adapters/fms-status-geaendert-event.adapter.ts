@@ -14,11 +14,12 @@
  * @see FmsStatusGeaendertEventHandler - Application Layer Implementation
  * @see EVENT_HANDLER.FMS_STATUS_GEAENDERT_ETB - DI Token
  */
-import { Injectable, Inject, Logger } from '@nestjs/common';
+import { Injectable, Inject } from '@nestjs/common';
 import { OnEvent } from '@nestjs/event-emitter';
 import type { IEventHandler } from '@domain/ports/i-event-handler.port';
+import type { ILogger } from '@domain/ports/i-logger.port';
 import { FmsStatusGeaendertEvent } from '@domain/kraefte/events/fms-status-geaendert.event';
-import { EVENT_HANDLER } from '@infrastructure/di-tokens';
+import { EVENT_HANDLER, LOGGER } from '@infrastructure/di-tokens';
 
 /**
  * NestJS Event Adapter für FmsStatusGeaendert ETB-Eintrag Creation.
@@ -28,8 +29,6 @@ import { EVENT_HANDLER } from '@infrastructure/di-tokens';
  */
 @Injectable()
 export class FmsStatusGeaendertEventAdapter {
-  private readonly logger = new Logger(FmsStatusGeaendertEventAdapter.name);
-
   /**
    * Konstruktor injiziert Application Layer Event Handler via DI Token.
    *
@@ -43,10 +42,13 @@ export class FmsStatusGeaendertEventAdapter {
    *                  (definiert in `infrastructure/di-tokens.ts`, gebunden in `event-adapters.module.ts`).
    *                  Handler implementiert `IEventHandler<FmsStatusGeaendertEvent>` Port (Domain Layer)
    *                  und ist vollständig framework-agnostisch (keine NestJS Dependencies).
+   * @param logger - Logger Port für Infrastructure Layer Logging.
+   *                 Wird via DI Token `LOGGER` injiziert (ILogger Port Implementation).
    */
   constructor(
     @Inject(EVENT_HANDLER.FMS_STATUS_GEAENDERT_ETB)
     private readonly handler: IEventHandler<FmsStatusGeaendertEvent>,
+    @Inject(LOGGER) private readonly logger: ILogger,
   ) {}
 
   /**
@@ -63,25 +65,18 @@ export class FmsStatusGeaendertEventAdapter {
    */
   @OnEvent(FmsStatusGeaendertEvent.eventName())
   async onFmsStatusGeaendert(event: FmsStatusGeaendertEvent): Promise<void> {
-    this.logger.log(`Received FmsStatusGeaendertEvent`, {
-      eventId: event.eventId,
-      einsatzId: event.einsatzId,
-      einsatzFahrzeugId: event.einsatzFahrzeugId,
-      funkrufname: event.funkrufname,
-      previousStatus: event.previousStatus,
-      neuerStatus: event.neuerStatus,
-      eventName: FmsStatusGeaendertEvent.eventName(),
-    });
+    this.logger.log(
+      `Received FmsStatusGeaendertEvent: eventId=${event.eventId}, einsatzId=${event.einsatzId}, einsatzFahrzeugId=${event.einsatzFahrzeugId}, funkrufname=${event.funkrufname}, previousStatus=${event.previousStatus}, neuerStatus=${event.neuerStatus}`,
+      FmsStatusGeaendertEventAdapter.name,
+    );
 
     try {
       await this.handler.handle(event);
     } catch (error) {
       // Fire-and-Forget: Fehler loggen, NICHT propagieren
-      this.logger.error(`Unerwarteter Fehler im FmsStatusGeaendert Handler`, {
-        eventId: event.eventId,
-        error: error instanceof Error ? error.message : String(error),
-        stack: error instanceof Error ? error.stack : undefined,
-      });
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      const stack = error instanceof Error ? error.stack : undefined;
+      this.logger.error(`Unerwarteter Fehler im FmsStatusGeaendert Handler: eventId=${event.eventId}, error=${errorMessage}, stack=${stack}`, FmsStatusGeaendertEventAdapter.name);
     }
   }
 }

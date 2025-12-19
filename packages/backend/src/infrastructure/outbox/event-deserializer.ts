@@ -29,6 +29,9 @@ import { UserRoleChangedEvent } from '@domain/events/user-role-changed.event';
 import { PermissionGrantedEvent } from '@domain/events/permission-granted.event';
 import { PermissionRevokedEvent } from '@domain/events/permission-revoked.event';
 
+// EinsatzPerson Events
+import { EinsatzPersonHinzugefuegtEvent } from '@domain/kraefte/events/einsatz-person-hinzugefuegt.event';
+
 // Value Objects
 import { EinsatzId } from '@domain/value-objects/einsatz-id';
 import { EtbId } from '@domain/value-objects/etb-id';
@@ -113,6 +116,9 @@ export class EventDeserializer {
       ['user.role_changed', this.deserializeUserRoleChanged.bind(this)],
       ['user.permission_granted', this.deserializePermissionGranted.bind(this)],
       ['user.permission_revoked', this.deserializePermissionRevoked.bind(this)],
+
+      // ===== EINSATZ PERSON EVENTS =====
+      ['einsatz_person.hinzugefuegt', this.deserializeEinsatzPersonHinzugefuegt.bind(this)],
     ]);
   }
 
@@ -550,6 +556,23 @@ export class EventDeserializer {
     }
 
     const event = new PermissionRevokedEvent(userIdResult.value!, permissionResult.value!, revokedByResult.value!, aggregateId);
+
+    return Result.ok<DomainEvent>(event);
+  }
+
+  // ===== EINSATZ PERSON DESERIALIZERS =====
+
+  private deserializeEinsatzPersonHinzugefuegt(payload: Record<string, unknown>, aggregateId?: string): Result<DomainEvent> {
+    // All fields are primitives (Event uses strings, not Value Objects)
+    const event = new EinsatzPersonHinzugefuegtEvent(
+      payload.einsatzId as string,
+      payload.einsatzPersonId as string,
+      payload.stammId as string | undefined,
+      payload.vorname as string,
+      payload.nachname as string,
+      payload.funktion as string,
+      payload.registriertVon as string,
+    );
 
     return Result.ok<DomainEvent>(event);
   }

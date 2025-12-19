@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Param, UseGuards, NotFoundException, BadRequestException, ConflictException, InternalServerErrorException, HttpCode, HttpStatus, Logger } from '@nestjs/common';
+import { Controller, Get, Post, Body, Param, UseGuards, NotFoundException, BadRequestException, ConflictException, InternalServerErrorException, HttpCode, HttpStatus, Inject } from '@nestjs/common';
 import { ParseCuidPipe } from '@/infrastructure/http/pipes/parse-cuid.pipe';
 import {
   ApiTags,
@@ -21,6 +21,8 @@ import { RolesGuard } from '@/modules/auth/guards/roles.guard';
 import { CurrentUser } from '@/modules/auth/decorators/current-user.decorator';
 import type { ValidatedUser } from '@/modules/auth/strategies/jwt.strategy';
 import { ADMIN_RATE_LIMIT, ADMIN_MUTATION_RATE_LIMIT } from '@/infrastructure/http/constants/rate-limit.constants';
+import { LOGGER } from '@infrastructure/di-tokens';
+import type { ILogger } from '@domain/ports/i-logger.port';
 
 // Handlers
 import { RegistrierePersonHandler } from '@application/kraefte/einsatz-personen/commands/registriere-person/registriere-person.handler';
@@ -69,11 +71,10 @@ import { EINSATZ_PERSON_ERROR_CODES, EinsatzPersonError } from '@domain/kraefte/
 @UseGuards(JwtAuthGuard, RolesGuard)
 @Throttle({ default: ADMIN_RATE_LIMIT })
 export class EinsatzPersonenController {
-  private readonly logger = new Logger(EinsatzPersonenController.name);
-
   constructor(
     private readonly registrierePersonHandler: RegistrierePersonHandler,
     private readonly getEinsatzPersonenHandler: GetEinsatzPersonenHandler,
+    @Inject(LOGGER) private readonly logger: ILogger,
   ) {}
 
   /**
@@ -105,7 +106,7 @@ export class EinsatzPersonenController {
     const result = await this.getEinsatzPersonenHandler.execute(query);
 
     if (result.isFailure) {
-      this.logger.error(`Unexpected error in findAll for Einsatz ${einsatzId}: ${result.error}`);
+      this.logger.error(`Unexpected error in findAll for Einsatz ${einsatzId}: ${result.error}`, 'EinsatzPersonenController');
       throw new InternalServerErrorException('Fehler beim Abrufen der EinsatzPersonen');
     }
 
@@ -162,6 +163,7 @@ export class EinsatzPersonenController {
       vorname: dto.vorname,
       nachname: dto.nachname,
       funktion: dto.funktion,
+      funkrufname: dto.funkrufname,
       qualifikationIds: dto.qualifikationIds,
       registriertVon: user.userId,
     });
@@ -201,7 +203,7 @@ export class EinsatzPersonenController {
     }
 
     // Audit logging
-    this.logger.log(`EinsatzPerson registriert: ${result.value} (${dto.vorname} ${dto.nachname}) für Einsatz ${einsatzId} von Admin ${user.userId}`);
+    this.logger.log(`EinsatzPerson registriert: ${result.value} (${dto.vorname} ${dto.nachname}) für Einsatz ${einsatzId} von Admin ${user.userId}`, 'EinsatzPersonenController');
 
     return { id: result.value };
   }

@@ -15,6 +15,7 @@ apis/GeocodingApi.ts
 apis/HealthApi.ts
 apis/KraefteFahrzeugtypenApi.ts
 apis/KraefteStammFahrzeugeApi.ts
+apis/KraefteStammPersonenApi.ts
 apis/LagekarteApi.ts
 apis/LagekarteCQRSApi.ts
 apis/POIDEPRECATEDApi.ts
@@ -116,6 +117,7 @@ models/StammFahrzeugDto.ts
 models/StammFahrzeugeControllerFindAllVAlpha200Response.ts
 models/StammPersonDto.ts
 models/StammPersonQualifikationDto.ts
+models/StammPersonenControllerFindAllVAlpha200Response.ts
 models/StatusCountsDto.ts
 models/StatusCountsResponseDto.ts
 models/TextbausteinDto.ts

@@ -10,8 +10,7 @@
  * Der Infrastructure Layer Event Adapter delegiert an diese Implementation.
  *
  * **Eintrag-Text:**
- * - Stammdaten: "Person {vorname} {nachname} registriert (Funktion: {funktion})"
- * - Temporär: "Temporäre Person {vorname} {nachname} registriert (Funktion: {funktion})"
+ * "Person {vorname} {nachname} registriert (Funktion: {funktion})"
  *
  * @module application/etb/event-handlers
  * @see EinsatzPersonHinzugefuegtEvent - Trigger Event (Domain Event via Outbox)
@@ -58,32 +57,24 @@ export class EinsatzPersonHinzugefuegtEventHandler implements IEventHandler<Eins
    * @returns Promise<void> - Keine Rückgabe (Fire-and-Forget)
    */
   async handle(event: EinsatzPersonHinzugefuegtEvent): Promise<void> {
-    this.logger.log(`Creating ETB entry for EinsatzPersonHinzugefuegt`, {
-      einsatzId: event.einsatzId,
-      einsatzPersonId: event.einsatzPersonId,
-      vorname: event.vorname,
-      nachname: event.nachname,
-      funktion: event.funktion,
-    });
+    this.logger.log(
+      `Creating ETB entry for EinsatzPersonHinzugefuegt: einsatzId=${event.einsatzId}, einsatzPersonId=${event.einsatzPersonId}, name=${event.vorname} ${event.nachname}, funktion=${event.funktion}`,
+      'EinsatzPersonHinzugefuegtEventHandler',
+    );
 
     try {
       // Validation: Namen sollten nicht leer sein (korrupte Event-Daten)
       if (!event.vorname || !event.nachname) {
-        this.logger.warn(`EinsatzPersonHinzugefuegtEvent has missing name data - possible corrupted data`, {
-          einsatzId: event.einsatzId,
-          einsatzPersonId: event.einsatzPersonId,
-          vorname: event.vorname,
-          nachname: event.nachname,
-        });
+        this.logger.warn(
+          `EinsatzPersonHinzugefuegtEvent has missing name data - possible corrupted data: einsatzId=${event.einsatzId}, einsatzPersonId=${event.einsatzPersonId}, vorname=${event.vorname}, nachname=${event.nachname}`,
+          'EinsatzPersonHinzugefuegtEventHandler',
+        );
       }
 
       // ETB-ID entspricht der EinsatzId (1:1 Beziehung)
       const etbId = event.einsatzId;
 
-      // Unterscheidung zwischen temporär und Stammdaten
-      const isTemporary = event.stammId === undefined;
-      const prefix = isTemporary ? 'Temporäre Person' : 'Person';
-      const text = `${prefix} ${event.vorname} ${event.nachname} registriert (Funktion: ${event.funktion})`;
+      const text = `Person ${event.vorname} ${event.nachname} registriert (Funktion: ${event.funktion})`;
 
       // Command erstellen mit Validierung
       // AddEintragCommand.create(etbId, text, userId, kategorie, einsatzId, metadata)
@@ -102,16 +93,10 @@ export class EinsatzPersonHinzugefuegtEventHandler implements IEventHandler<Eins
       );
 
       if (commandResult.isFailure) {
-        const errorContext = {
-          einsatzId: event.einsatzId,
-          einsatzPersonId: event.einsatzPersonId,
-          vorname: event.vorname,
-          nachname: event.nachname,
-          error: commandResult.error,
-          severity: 'ERROR',
-          actionRequired: 'Check command validation logic',
-        };
-        this.logger.error(`Failed to create AddEintragCommand for EinsatzPersonHinzugefuegt`, errorContext);
+        this.logger.error(
+          `Failed to create AddEintragCommand for EinsatzPersonHinzugefuegt: einsatzId=${event.einsatzId}, einsatzPersonId=${event.einsatzPersonId}, name=${event.vorname} ${event.nachname}, error=${commandResult.error}, severity=ERROR, actionRequired=Check command validation logic`,
+          'EinsatzPersonHinzugefuegtEventHandler',
+        );
         return; // Fire-and-Forget: Nicht propagieren
       }
 
@@ -120,45 +105,27 @@ export class EinsatzPersonHinzugefuegtEventHandler implements IEventHandler<Eins
       const result = await this.addEintragHandler.execute(commandResult.value!);
 
       if (result.isFailure) {
-        const errorContext = {
-          einsatzId: event.einsatzId,
-          einsatzPersonId: event.einsatzPersonId,
-          vorname: event.vorname,
-          nachname: event.nachname,
-          funktion: event.funktion,
-          error: result.error,
-          severity: 'ERROR',
-          actionRequired: 'Manual ETB entry may be needed',
-        };
-        this.logger.error(`Failed to add ETB entry for EinsatzPersonHinzugefuegt`, errorContext);
+        this.logger.error(
+          `Failed to add ETB entry for EinsatzPersonHinzugefuegt: einsatzId=${event.einsatzId}, einsatzPersonId=${event.einsatzPersonId}, name=${event.vorname} ${event.nachname}, funktion=${event.funktion}, error=${result.error}, severity=ERROR, actionRequired=Manual ETB entry may be needed`,
+          'EinsatzPersonHinzugefuegtEventHandler',
+        );
         return; // Fire-and-Forget: Nicht propagieren
       }
 
       // Erfolg: ETB-Eintrag wurde erstellt
-      this.logger.log(`ETB entry created for EinsatzPersonHinzugefuegt`, {
-        einsatzId: event.einsatzId,
-        einsatzPersonId: event.einsatzPersonId,
-        vorname: event.vorname,
-        nachname: event.nachname,
-        funktion: event.funktion,
-        isTemporary,
-      });
+      this.logger.log(
+        `ETB entry created for EinsatzPersonHinzugefuegt: einsatzId=${event.einsatzId}, einsatzPersonId=${event.einsatzPersonId}, name=${event.vorname} ${event.nachname}, funktion=${event.funktion}`,
+        'EinsatzPersonHinzugefuegtEventHandler',
+      );
     } catch (error) {
       // Unerwarteter Fehler: Mit Stack Trace loggen für Monitoring/Alerting
       // CRITICAL: Fire-and-Forget Fehler - erfordert manuelle Nachbearbeitung
-      const criticalContext = {
-        einsatzId: event.einsatzId,
-        einsatzPersonId: event.einsatzPersonId,
-        vorname: event.vorname,
-        nachname: event.nachname,
-        funktion: event.funktion,
-        registriertVon: event.registriertVon,
-        error: error instanceof Error ? error.message : String(error),
-        stack: error instanceof Error ? error.stack : undefined,
-        severity: 'CRITICAL',
-        actionRequired: 'Manual ETB entry may be needed',
-      };
-      this.logger.error(`CRITICAL: Unexpected error during ETB entry creation for EinsatzPersonHinzugefuegt`, criticalContext);
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      const stack = error instanceof Error ? error.stack : undefined;
+      this.logger.error(
+        `CRITICAL: Unexpected error during ETB entry creation for EinsatzPersonHinzugefuegt: einsatzId=${event.einsatzId}, einsatzPersonId=${event.einsatzPersonId}, name=${event.vorname} ${event.nachname}, funktion=${event.funktion}, registriertVon=${event.registriertVon}, error=${errorMessage}, stack=${stack}, severity=CRITICAL, actionRequired=Manual ETB entry may be needed`,
+        'EinsatzPersonHinzugefuegtEventHandler',
+      );
       // Fire-and-Forget: NICHT re-thrown!
     }
   }

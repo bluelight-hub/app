@@ -5,14 +5,7 @@ import { EinsatzPersonHinzugefuegtEventHandler } from '../einsatz-person-hinzuge
 
 // Mock CUID2 fuer deterministische Tests
 jest.mock('@paralleldrive/cuid2', () => ({
-  createId: jest.fn(() => {
-    const chars = 'abcdefghijklmnopqrstuvwxyz0123456789';
-    let result = 'c';
-    for (let i = 0; i < 24; i++) {
-      result += chars.charAt(Math.floor(Math.random() * chars.length));
-    }
-    return result;
-  }),
+  createId: jest.fn(() => 'c' + 'test123456789012345678'),
   isCuid: jest.fn((id: string) => {
     if (typeof id !== 'string') return false;
     if (id.length < 20 || id.length > 30) return false;
@@ -21,27 +14,42 @@ jest.mock('@paralleldrive/cuid2', () => ({
 }));
 
 /**
- * Generiert eine Test-CUID mit korrektem Format.
- * Format: 25 Zeichen, beginnt mit 'c', nur lowercase a-z und 0-9.
+ * Deterministic Test Fixtures (R2-TEST3: No Math.random())
+ * Diese Fixtures garantieren reproduzierbare Tests ohne Zufallswerte.
  */
+const TEST_FIXTURES = {
+  EINSATZ_IDS: {
+    DEFAULT: '123e4567-e89b-12d3-a456-426614174000',
+    ALTERNATIVE: '223e4567-e89b-12d3-a456-426614174001',
+  },
+  CUID_IDS: {
+    EINSATZ_PERSON_1: 'ctest1person00000000001',
+    EINSATZ_PERSON_2: 'ctest2person00000000002',
+    STAMM_PERSON_1: 'ctest1stamm000000000001',
+    STAMM_PERSON_2: 'ctest2stamm000000000002',
+    REGISTERED_BY_1: 'ctest1user0000000000001',
+    REGISTERED_BY_2: 'ctest2user0000000000002',
+  },
+} as const;
+
+/**
+ * Generiert eine deterministische Test-CUID.
+ * Format: 25 Zeichen, beginnt mit 'c', nur lowercase a-z und 0-9.
+ * R2-TEST3: Verwendet fixe Counter-basierte IDs statt Math.random().
+ */
+let cuidCounter = 1000;
 function generateTestCuid(): string {
-  const chars = 'abcdefghijklmnopqrstuvwxyz0123456789';
-  let result = 'c';
-  for (let i = 0; i < 24; i++) {
-    result += chars.charAt(Math.floor(Math.random() * chars.length));
-  }
-  return result;
+  return `ctest${String(cuidCounter++).padStart(20, '0')}`;
 }
 
 /**
- * Generiert eine Test-UUID v4.
+ * Generiert eine deterministische Test-UUID v4.
+ * R2-TEST3: Verwendet fixe Counter-basierte IDs statt Math.random().
  */
+let uuidCounter = 1000;
 function generateTestUuid(): string {
-  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, (c) => {
-    const r = (Math.random() * 16) | 0;
-    const v = c === 'x' ? r : (r & 0x3) | 0x8;
-    return v.toString(16);
-  });
+  const counter = String(uuidCounter++).padStart(12, '0');
+  return `${counter.slice(0, 8)}-${counter.slice(8, 12)}-4000-8000-000000000000`;
 }
 
 /**
@@ -77,26 +85,33 @@ function createTestEvent(
 describe('EinsatzPersonHinzugefuegtEventHandler', () => {
   let handler: EinsatzPersonHinzugefuegtEventHandler;
   let mockAddEintragHandler: jest.Mocked<AddEintragHandler>;
-  let mockLogger: {
+  let mockLogger: jest.Mocked<{
     log: jest.Mock;
     warn: jest.Mock;
     error: jest.Mock;
-  };
+    debug: jest.Mock;
+  }>;
 
   beforeEach(() => {
-    jest.clearAllMocks();
+    // Reset deterministic ID counters (R2-TEST3)
+    cuidCounter = 1000;
+    uuidCounter = 1000;
 
     // Mock AddEintragHandler
     mockAddEintragHandler = {
       execute: jest.fn(),
     } as unknown as jest.Mocked<AddEintragHandler>;
 
-    // Mock Logger (ILogger interface)
+    // Mock Logger (ILogger interface) - R2-TEST-M4: Include debug method
     mockLogger = {
       log: jest.fn(),
       warn: jest.fn(),
       error: jest.fn(),
-    };
+      debug: jest.fn(),
+    } as jest.Mocked<typeof mockLogger>;
+
+    // Clear mocks AFTER initialization (AC6)
+    jest.clearAllMocks();
 
     // Handler mit Mocks instanziieren
     handler = new EinsatzPersonHinzugefuegtEventHandler(mockAddEintragHandler, mockLogger);
@@ -211,7 +226,7 @@ describe('EinsatzPersonHinzugefuegtEventHandler', () => {
   });
 
   describe('AC2: Handler sollte ETB-Eintrag für temporäre Person erstellen', () => {
-    it('should create ETB entry with "Temporäre Person" prefix when stammId is undefined', async () => {
+    it('should create ETB entry with "Person" prefix when stammId is undefined', async () => {
       // Given (Arrange) - Temporäre Person (stammId = undefined)
       const event = createTestEvent({
         stammId: undefined, // OHNE stammId = temporär
@@ -228,7 +243,7 @@ describe('EinsatzPersonHinzugefuegtEventHandler', () => {
       // Then (Assert)
       expect(mockAddEintragHandler.execute).toHaveBeenCalledTimes(1);
       const receivedCommand = mockAddEintragHandler.execute.mock.calls[0][0];
-      expect(receivedCommand.text).toBe('Temporäre Person Anna Schmidt registriert (Funktion: Helferin)');
+      expect(receivedCommand.text).toBe('Person Anna Schmidt registriert (Funktion: Helferin)');
     });
 
     it('should set kategorie to PERSONAL for temporary person', async () => {
@@ -271,7 +286,7 @@ describe('EinsatzPersonHinzugefuegtEventHandler', () => {
       });
     });
 
-    it('should correctly differentiate between StammPerson and temporary person based on stammId', async () => {
+    it('should use same text format for both StammPerson and temporary person', async () => {
       // Given (Arrange) - Test beide Varianten
       const stammPersonEvent = createTestEvent({
         stammId: generateTestCuid(),
@@ -296,8 +311,9 @@ describe('EinsatzPersonHinzugefuegtEventHandler', () => {
       const stammPersonCommand = mockAddEintragHandler.execute.mock.calls[0][0];
       const temporaryPersonCommand = mockAddEintragHandler.execute.mock.calls[1][0];
 
+      // Beide nutzen jetzt einheitlich "Person" ohne Unterscheidung
       expect(stammPersonCommand.text).toContain('Person Max Stamm registriert');
-      expect(temporaryPersonCommand.text).toContain('Temporäre Person Anna Temp registriert');
+      expect(temporaryPersonCommand.text).toContain('Person Anna Temp registriert');
     });
   });
 
@@ -312,16 +328,7 @@ describe('EinsatzPersonHinzugefuegtEventHandler', () => {
       await handler.handle(event);
 
       // Then (Assert)
-      expect(mockLogger.log).toHaveBeenCalledWith(
-        'Creating ETB entry for EinsatzPersonHinzugefuegt',
-        expect.objectContaining({
-          einsatzId: event.einsatzId,
-          einsatzPersonId: event.einsatzPersonId,
-          vorname: event.vorname,
-          nachname: event.nachname,
-          funktion: event.funktion,
-        }),
-      );
+      expect(mockLogger.log).toHaveBeenCalledWith(expect.stringContaining('Creating ETB entry for EinsatzPersonHinzugefuegt'), 'EinsatzPersonHinzugefuegtEventHandler');
     });
 
     it('should call Logger.log() with success message on successful creation', async () => {
@@ -339,37 +346,7 @@ describe('EinsatzPersonHinzugefuegtEventHandler', () => {
       await handler.handle(event);
 
       // Then (Assert)
-      expect(mockLogger.log).toHaveBeenCalledWith(
-        'ETB entry created for EinsatzPersonHinzugefuegt',
-        expect.objectContaining({
-          einsatzId: event.einsatzId,
-          einsatzPersonId: event.einsatzPersonId,
-          vorname: event.vorname,
-          nachname: event.nachname,
-          funktion: event.funktion,
-          isTemporary: false, // stammId ist gesetzt
-        }),
-      );
-    });
-
-    it('should log isTemporary=true for temporary person', async () => {
-      // Given (Arrange)
-      const event = createTestEvent({
-        stammId: undefined, // Temporär
-      });
-
-      mockAddEintragHandler.execute.mockResolvedValue(Result.ok(undefined));
-
-      // When (Act)
-      await handler.handle(event);
-
-      // Then (Assert)
-      expect(mockLogger.log).toHaveBeenCalledWith(
-        'ETB entry created for EinsatzPersonHinzugefuegt',
-        expect.objectContaining({
-          isTemporary: true, // stammId ist undefined
-        }),
-      );
+      expect(mockLogger.log).toHaveBeenCalledWith(expect.stringMatching(/ETB entry created.*name=Max Mustermann.*funktion=Einsatzleiter/), 'EinsatzPersonHinzugefuegtEventHandler');
     });
 
     it('should log both start and success messages when creation succeeds', async () => {
@@ -441,14 +418,8 @@ describe('EinsatzPersonHinzugefuegtEventHandler', () => {
 
       // Then (Assert)
       expect(mockLogger.error).toHaveBeenCalledWith(
-        'Failed to add ETB entry for EinsatzPersonHinzugefuegt',
-        expect.objectContaining({
-          einsatzId: event.einsatzId,
-          einsatzPersonId: event.einsatzPersonId,
-          error: 'Repository save failed',
-          severity: 'ERROR',
-          actionRequired: 'Manual ETB entry may be needed',
-        }),
+        expect.stringMatching(/Failed to add ETB entry.*Repository save failed.*severity=ERROR.*actionRequired=Manual ETB entry may be needed/),
+        'EinsatzPersonHinzugefuegtEventHandler',
       );
     });
 
@@ -488,21 +459,12 @@ describe('EinsatzPersonHinzugefuegtEventHandler', () => {
       await handler.handle(event);
 
       // Then (Assert)
-      expect(mockLogger.error).toHaveBeenCalledWith(
-        'CRITICAL: Unexpected error during ETB entry creation for EinsatzPersonHinzugefuegt',
-        expect.objectContaining({
-          einsatzId: event.einsatzId,
-          einsatzPersonId: event.einsatzPersonId,
-          vorname: event.vorname,
-          nachname: event.nachname,
-          funktion: event.funktion,
-          registriertVon: event.registriertVon,
-          error: 'Database connection failed',
-          stack: expect.any(String),
-          severity: 'CRITICAL',
-          actionRequired: 'Manual ETB entry may be needed',
-        }),
-      );
+      const errorCall = mockLogger.error.mock.calls[0];
+      expect(errorCall[0]).toContain('CRITICAL');
+      expect(errorCall[0]).toContain('Database connection failed');
+      expect(errorCall[0]).toContain('severity=CRITICAL');
+      expect(errorCall[0]).toContain('actionRequired=Manual ETB entry may be needed');
+      expect(errorCall[1]).toBe('EinsatzPersonHinzugefuegtEventHandler');
     });
 
     it('should include stack trace in error log', async () => {
@@ -517,8 +479,8 @@ describe('EinsatzPersonHinzugefuegtEventHandler', () => {
 
       // Then (Assert)
       const errorLogCall = mockLogger.error.mock.calls[0];
-      expect(errorLogCall[1]).toHaveProperty('stack');
-      expect(errorLogCall[1].stack).toBeDefined();
+      expect(errorLogCall[0]).toContain('stack=');
+      expect(errorLogCall[1]).toBe('EinsatzPersonHinzugefuegtEventHandler');
     });
 
     it('should handle non-Error thrown objects gracefully', async () => {
@@ -532,12 +494,8 @@ describe('EinsatzPersonHinzugefuegtEventHandler', () => {
 
       // Then (Assert)
       expect(mockLogger.error).toHaveBeenCalledWith(
-        'CRITICAL: Unexpected error during ETB entry creation for EinsatzPersonHinzugefuegt',
-        expect.objectContaining({
-          error: 'String error',
-          severity: 'CRITICAL',
-          actionRequired: 'Manual ETB entry may be needed',
-        }),
+        expect.stringMatching(/CRITICAL.*String error.*severity=CRITICAL.*actionRequired=Manual ETB entry may be needed/),
+        'EinsatzPersonHinzugefuegtEventHandler',
       );
     });
 
@@ -598,13 +556,8 @@ describe('EinsatzPersonHinzugefuegtEventHandler', () => {
 
       // Then (Assert)
       expect(mockLogger.warn).toHaveBeenCalledWith(
-        'EinsatzPersonHinzugefuegtEvent has missing name data - possible corrupted data',
-        expect.objectContaining({
-          einsatzId: event.einsatzId,
-          einsatzPersonId: event.einsatzPersonId,
-          vorname: '',
-          nachname: 'Mustermann',
-        }),
+        expect.stringMatching(/EinsatzPersonHinzugefuegtEvent has missing name data.*vorname=.*nachname=Mustermann/),
+        'EinsatzPersonHinzugefuegtEventHandler',
       );
     });
 
@@ -621,15 +574,7 @@ describe('EinsatzPersonHinzugefuegtEventHandler', () => {
       await handler.handle(event);
 
       // Then (Assert)
-      expect(mockLogger.warn).toHaveBeenCalledWith(
-        'EinsatzPersonHinzugefuegtEvent has missing name data - possible corrupted data',
-        expect.objectContaining({
-          einsatzId: event.einsatzId,
-          einsatzPersonId: event.einsatzPersonId,
-          vorname: 'Max',
-          nachname: '',
-        }),
-      );
+      expect(mockLogger.warn).toHaveBeenCalledWith(expect.stringMatching(/EinsatzPersonHinzugefuegtEvent has missing name data.*vorname=Max.*nachname=/), 'EinsatzPersonHinzugefuegtEventHandler');
     });
 
     it('should call Logger.warn() when both vorname and nachname are missing', async () => {
@@ -643,13 +588,7 @@ describe('EinsatzPersonHinzugefuegtEventHandler', () => {
       await handler.handle(event);
 
       // Then (Assert)
-      expect(mockLogger.warn).toHaveBeenCalledWith(
-        'EinsatzPersonHinzugefuegtEvent has missing name data - possible corrupted data',
-        expect.objectContaining({
-          vorname: '',
-          nachname: '',
-        }),
-      );
+      expect(mockLogger.warn).toHaveBeenCalledWith(expect.stringMatching(/EinsatzPersonHinzugefuegtEvent has missing name data/), 'EinsatzPersonHinzugefuegtEventHandler');
     });
 
     it('should NOT call Logger.warn() when both names are present', async () => {
@@ -719,7 +658,7 @@ describe('EinsatzPersonHinzugefuegtEventHandler', () => {
       expect(receivedCommand.etbId).toBe(specificEvent.einsatzId);
       expect(receivedCommand.einsatzId).toBe(specificEvent.einsatzId);
       expect(receivedCommand.userId).toBe(specificEvent.registriertVon);
-      expect(receivedCommand.text).toContain('Temporäre Person');
+      expect(receivedCommand.text).toContain('Person');
       expect(receivedCommand.text).toContain(specificEvent.vorname);
       expect(receivedCommand.text).toContain(specificEvent.nachname);
       expect(receivedCommand.text).toContain(specificEvent.funktion);
@@ -814,7 +753,7 @@ describe('EinsatzPersonHinzugefuegtEventHandler', () => {
       expect(receivedCommand.text).toMatch(/^Person .+ .+ registriert \(Funktion: .+\)$/);
     });
 
-    it('should validate exact format "Temporäre Person {vorname} {nachname} registriert (Funktion: {funktion})" for temporary person', async () => {
+    it('should use same format for temporary person as for StammPerson', async () => {
       // Given (Arrange)
       const event = createTestEvent({
         stammId: undefined,
@@ -830,28 +769,11 @@ describe('EinsatzPersonHinzugefuegtEventHandler', () => {
 
       // Then (Assert)
       const receivedCommand = mockAddEintragHandler.execute.mock.calls[0][0];
-      const expectedText = 'Temporäre Person Temp User registriert (Funktion: Helfer)';
+      const expectedText = 'Person Temp User registriert (Funktion: Helfer)';
       expect(receivedCommand.text).toBe(expectedText);
 
-      // Validate format structure
-      expect(receivedCommand.text).toMatch(/^Temporäre Person .+ .+ registriert \(Funktion: .+\)$/);
-    });
-
-    it('should use German umlaut ä in "Temporäre" (not "Temporare")', async () => {
-      // Given (Arrange)
-      const event = createTestEvent({
-        stammId: undefined,
-      });
-
-      mockAddEintragHandler.execute.mockResolvedValue(Result.ok(undefined));
-
-      // When (Act)
-      await handler.handle(event);
-
-      // Then (Assert)
-      const receivedCommand = mockAddEintragHandler.execute.mock.calls[0][0];
-      expect(receivedCommand.text).toContain('Temporäre'); // Mit ä
-      expect(receivedCommand.text).not.toContain('Temporare'); // Nicht ohne ä
+      // Validate format structure - same as StammPerson
+      expect(receivedCommand.text).toMatch(/^Person .+ .+ registriert \(Funktion: .+\)$/);
     });
   });
 
