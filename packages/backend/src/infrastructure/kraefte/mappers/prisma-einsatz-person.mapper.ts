@@ -1,4 +1,5 @@
-import type { Prisma, EinsatzPerson as PrismaEinsatzPerson, EinsatzPersonQualifikation } from '@prisma/client';
+import { Prisma } from '@prisma/client';
+import type { EinsatzPerson as PrismaEinsatzPerson } from '@prisma/client';
 import { EinsatzPerson } from '@domain/kraefte/aggregates/einsatz-person.aggregate';
 import { Result } from '@domain/common/result';
 
@@ -83,7 +84,7 @@ export class PrismaEinsatzPersonMapper {
       funktion: aggregate.funktion,
       funkrufname: aggregate.funkrufname ?? null,
       // Position: GeoPosition → JSON Object oder undefined (Prisma default)
-      position: aggregate.position ? aggregate.position.toJSON() : undefined,
+      position: aggregate.position ? (aggregate.position.toJSON() as Prisma.InputJsonValue) : Prisma.DbNull,
       createdBy: aggregate.createdBy,
       updatedBy: aggregate.updatedBy ?? null,
     };
