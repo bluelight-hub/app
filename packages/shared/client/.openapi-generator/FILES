@@ -69,6 +69,8 @@ models/EinsatzControllerGetStatusCountsVAlpha200Response.ts
 models/EinsatzDetailsDto.ts
 models/EinsatzDto.ts
 models/EinsatzFahrzeugDto.ts
+models/EinsatzFahrzeugeControllerErfasseAusStammdatenVAlpha201Response.ts
+models/EinsatzFahrzeugeControllerFindAllVAlpha200Response.ts
 models/EinsatzListItemDto.ts
 models/EinsatzListItemDtoEinsatzort.ts
 models/EinsatzPersonResponseDto.ts
@@ -111,6 +113,7 @@ models/PublicUsersResponseDto.ts
 models/QualifikationDto.ts
 models/RefreshResponseDto.ts
 models/RegistrierePersonDto.ts
+models/RegistrierePersonViaQrCodeDto.ts
 models/RollenDefinitionDto.ts
 models/SaveLagekarteStateDto.ts
 models/StammFahrzeugDto.ts

@@ -26,14 +26,17 @@ import type { ILogger } from '@domain/ports/i-logger.port';
 
 // Handlers
 import { RegistrierePersonHandler } from '@application/kraefte/einsatz-personen/commands/registriere-person/registriere-person.handler';
+import { RegistrierePersonViaQrCodeHandler } from '@application/kraefte/einsatz-personen/commands/registriere-person-qr/registriere-person-qr.handler';
 import { GetEinsatzPersonenHandler } from '@application/kraefte/einsatz-personen/queries/get-einsatz-personen/get-einsatz-personen.handler';
 
 // Commands & Queries
 import { RegistrierePersonCommand } from '@application/kraefte/einsatz-personen/commands/registriere-person/registriere-person.command';
+import { RegistrierePersonViaQrCodeCommand } from '@application/kraefte/einsatz-personen/commands/registriere-person-qr/registriere-person-qr.command';
 import { GetEinsatzPersonenQuery } from '@application/kraefte/einsatz-personen/queries/get-einsatz-personen/get-einsatz-personen.query';
 
 // DTOs
 import { EinsatzPersonResponseDto, RegistrierePersonDto } from '@application/kraefte/einsatz-personen/dto';
+import { RegistrierePersonViaQrCodeDto } from '@application/kraefte/einsatz-personen/dto/registriere-person-qr.dto';
 
 // Error Codes
 import { EINSATZ_PERSON_ERROR_CODES, EinsatzPersonError } from '@domain/kraefte/common/einsatz-person-error-codes';
@@ -73,6 +76,7 @@ import { EINSATZ_PERSON_ERROR_CODES, EinsatzPersonError } from '@domain/kraefte/
 export class EinsatzPersonenController {
   constructor(
     private readonly registrierePersonHandler: RegistrierePersonHandler,
+    private readonly registrierePersonViaQrHandler: RegistrierePersonViaQrCodeHandler,
     private readonly getEinsatzPersonenHandler: GetEinsatzPersonenHandler,
     @Inject(LOGGER) private readonly logger: ILogger,
   ) {}
@@ -204,6 +208,99 @@ export class EinsatzPersonenController {
 
     // Audit logging
     this.logger.log(`EinsatzPerson registriert: ${result.value} (${dto.vorname} ${dto.nachname}) für Einsatz ${einsatzId} von Admin ${user.userId}`, 'EinsatzPersonenController');
+
+    return { id: result.value };
+  }
+
+  /**
+   * Person via QR-Code registrieren (DRK-App Format).
+   *
+   * **AC2 - DRK-Format dekodieren:**
+   * Frontend parst QR-Code im DRK-Format und sendet extrahierte Daten.
+   * Format: drk://person?mnr={personalnummer}&vn={vorname}&nn={nachname}[&fk={funkkennung}]
+   *
+   * **AC3 - Stammdaten-Lookup via Personalnummer:**
+   * Backend sucht StammPerson via personalnummer (mnr Parameter).
+   * Bei Treffer: Qualifikationen und Funktion werden uebernommen.
+   * Kein Treffer: Temporaere Person ohne Stammdaten-Referenz.
+   *
+   * **AC4 - Automatische Registrierung:**
+   * Bei erfolgreichem Scan wird Person direkt registriert (kein Bestaetigungsbutton).
+   *
+   * **AC5 - Performance <3s:**
+   * Gesamtdauer von Scan bis Toast unter 3 Sekunden.
+   *
+   * @param einsatzId - UUID des Einsatzes
+   * @param user - Aktueller Admin-Benutzer (aus JWT Token)
+   * @param dto - RegistrierePersonViaQrCodeDto mit QR-Daten
+   * @returns Die neu erstellte EinsatzPerson ID
+   * @throws ConflictException wenn StammPerson bereits im Einsatz registriert ist
+   * @throws BadRequestException bei Validierungsfehlern
+   */
+  @Post('qr')
+  @Throttle({ default: ADMIN_MUTATION_RATE_LIMIT })
+  @HttpCode(HttpStatus.CREATED)
+  @ApiOperation({ summary: 'Person via QR-Code registrieren (DRK-Format)' })
+  @ApiParam({ name: 'einsatzId', type: String, format: 'cuid', description: 'Einsatz-ID (CUID)' })
+  @ApiCreatedResponse({
+    description: 'Person erfolgreich via QR-Code registriert',
+    schema: {
+      type: 'object',
+      properties: {
+        id: { type: 'string', format: 'cuid2', example: 'clx1234567890abcdef12345' },
+      },
+    },
+  })
+  @ApiBadRequestResponse({ description: 'Ungueltige QR-Daten oder Validierungsfehler' })
+  @ApiConflictResponse({ description: 'Person bereits im Einsatz erfasst (Duplikat)' })
+  async registriereViaQr(@Param('einsatzId', ParseCuidPipe) einsatzId: string, @CurrentUser() user: ValidatedUser, @Body() dto: RegistrierePersonViaQrCodeDto): Promise<{ id: string }> {
+    // Create Command
+    const commandResult = RegistrierePersonViaQrCodeCommand.create({
+      einsatzId,
+      personalnummer: dto.personalnummer,
+      vorname: dto.vorname,
+      nachname: dto.nachname,
+      funkkennung: dto.funkkennung,
+      registriertVon: user.userId,
+    });
+
+    if (commandResult.isFailure) {
+      throw new BadRequestException(commandResult.error);
+    }
+
+    const command = commandResult.value;
+    if (!command) {
+      throw new BadRequestException('Fehler beim Erstellen des Commands');
+    }
+
+    // Execute Command
+    const result = await this.registrierePersonViaQrHandler.execute(command);
+
+    if (result.isFailure) {
+      const error = result.error ?? '';
+
+      // Check error codes for proper HTTP responses (AC4)
+      if (EinsatzPersonError.hasCode(error, EINSATZ_PERSON_ERROR_CODES.DUPLICATE_PERSON)) {
+        throw new ConflictException(EinsatzPersonError.extractMessage(error));
+      }
+      if (EinsatzPersonError.hasCode(error, EINSATZ_PERSON_ERROR_CODES.STAMM_NOT_FOUND)) {
+        // Archivierte StammPerson - als BadRequest behandeln (nicht NotFound)
+        throw new BadRequestException(EinsatzPersonError.extractMessage(error));
+      }
+
+      // Generic error
+      throw new BadRequestException(error || 'Fehler beim Registrieren der Person via QR');
+    }
+
+    if (!result.value) {
+      throw new InternalServerErrorException('Fehler beim Registrieren der Person via QR');
+    }
+
+    // Audit logging
+    this.logger.log(
+      `EinsatzPerson via QR registriert: ${result.value} (${dto.vorname} ${dto.nachname}, Personalnummer: ${dto.personalnummer}) fuer Einsatz ${einsatzId} von Admin ${user.userId}`,
+      'EinsatzPersonenController',
+    );
 
     return { id: result.value };
   }

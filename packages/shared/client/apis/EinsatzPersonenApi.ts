@@ -13,7 +13,7 @@
  */
 
 import * as runtime from '../runtime';
-import type { EinsatzPersonResponseDto, EinsatzPersonenControllerRegistrierePersonVAlpha201Response, RegistrierePersonDto } from '../models/index';
+import type { EinsatzPersonResponseDto, EinsatzPersonenControllerRegistrierePersonVAlpha201Response, RegistrierePersonDto, RegistrierePersonViaQrCodeDto } from '../models/index';
 import {
   EinsatzPersonResponseDtoFromJSON,
   EinsatzPersonResponseDtoToJSON,
@@ -21,6 +21,8 @@ import {
   EinsatzPersonenControllerRegistrierePersonVAlpha201ResponseToJSON,
   RegistrierePersonDtoFromJSON,
   RegistrierePersonDtoToJSON,
+  RegistrierePersonViaQrCodeDtoFromJSON,
+  RegistrierePersonViaQrCodeDtoToJSON,
 } from '../models/index';
 
 export interface EinsatzPersonenControllerFindAllVAlphaRequest {
@@ -30,6 +32,11 @@ export interface EinsatzPersonenControllerFindAllVAlphaRequest {
 export interface EinsatzPersonenControllerRegistrierePersonVAlphaRequest {
   einsatzId: string;
   registrierePersonDto: RegistrierePersonDto;
+}
+
+export interface EinsatzPersonenControllerRegistriereViaQrVAlphaRequest {
+  einsatzId: string;
+  registrierePersonViaQrCodeDto: RegistrierePersonViaQrCodeDto;
 }
 
 /**
@@ -118,6 +125,55 @@ export class EinsatzPersonenApi extends runtime.BaseAPI {
     initOverrides?: RequestInit | runtime.InitOverrideFunction,
   ): Promise<EinsatzPersonenControllerRegistrierePersonVAlpha201Response> {
     const response = await this.einsatzPersonenControllerRegistrierePersonVAlphaRaw(requestParameters, initOverrides);
+    return await response.value();
+  }
+
+  /**
+   * Person via QR-Code registrieren (DRK-Format)
+   */
+  async einsatzPersonenControllerRegistriereViaQrVAlphaRaw(
+    requestParameters: EinsatzPersonenControllerRegistriereViaQrVAlphaRequest,
+    initOverrides?: RequestInit | runtime.InitOverrideFunction,
+  ): Promise<runtime.ApiResponse<EinsatzPersonenControllerRegistrierePersonVAlpha201Response>> {
+    if (requestParameters['einsatzId'] == null) {
+      throw new runtime.RequiredError('einsatzId', 'Required parameter "einsatzId" was null or undefined when calling einsatzPersonenControllerRegistriereViaQrVAlpha().');
+    }
+
+    if (requestParameters['registrierePersonViaQrCodeDto'] == null) {
+      throw new runtime.RequiredError(
+        'registrierePersonViaQrCodeDto',
+        'Required parameter "registrierePersonViaQrCodeDto" was null or undefined when calling einsatzPersonenControllerRegistriereViaQrVAlpha().',
+      );
+    }
+
+    const queryParameters: any = {};
+
+    const headerParameters: runtime.HTTPHeaders = {};
+
+    headerParameters['Content-Type'] = 'application/json';
+
+    const response = await this.request(
+      {
+        path: `/api/v-alpha/einsaetze/{einsatzId}/personen/qr`.replace(`{${'einsatzId'}}`, encodeURIComponent(String(requestParameters['einsatzId']))),
+        method: 'POST',
+        headers: headerParameters,
+        query: queryParameters,
+        body: RegistrierePersonViaQrCodeDtoToJSON(requestParameters['registrierePersonViaQrCodeDto']),
+      },
+      initOverrides,
+    );
+
+    return new runtime.JSONApiResponse(response, (jsonValue) => EinsatzPersonenControllerRegistrierePersonVAlpha201ResponseFromJSON(jsonValue));
+  }
+
+  /**
+   * Person via QR-Code registrieren (DRK-Format)
+   */
+  async einsatzPersonenControllerRegistriereViaQrVAlpha(
+    requestParameters: EinsatzPersonenControllerRegistriereViaQrVAlphaRequest,
+    initOverrides?: RequestInit | runtime.InitOverrideFunction,
+  ): Promise<EinsatzPersonenControllerRegistrierePersonVAlpha201Response> {
+    const response = await this.einsatzPersonenControllerRegistriereViaQrVAlphaRaw(requestParameters, initOverrides);
     return await response.value();
   }
 }

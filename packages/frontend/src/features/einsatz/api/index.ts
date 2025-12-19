@@ -31,3 +31,6 @@ export { useFahrzeugtypen, FAHRZEUGTYP_QUERY_KEYS } from './use-fahrzeugtypen';
 // EinsatzPersonen Hooks (Story 4-1)
 export { useEinsatzPersonen, useRegistrierePerson } from './use-einsatz-personen';
 export { useStammPersonenSuche } from './use-stamm-personen-suche';
+
+// EinsatzPersonen QR Hooks (Story 4-2)
+export { useRegistrierePersonViaQr, isDuplicatePersonError, type RegistrierePersonQrInput } from './use-registriere-person-qr';
