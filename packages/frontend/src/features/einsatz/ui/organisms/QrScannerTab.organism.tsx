@@ -242,8 +242,26 @@ export function QrScannerTab({ einsatzId, onSuccess }: QrScannerTabProps) {
       streamRef.current = stream;
 
       if (videoRef.current) {
-        videoRef.current.srcObject = stream;
-        await videoRef.current.play();
+        const video = videoRef.current;
+        video.srcObject = stream;
+
+        // Warte bis Video bereit ist bevor play() aufgerufen wird
+        await new Promise<void>((resolve, reject) => {
+          video.onloadedmetadata = () => {
+            video
+              .play()
+              .then(() => resolve())
+              .catch((err) => {
+                // AbortError ignorieren - tritt auf wenn Stream vor play() gewechselt wird
+                if (err.name === 'AbortError') {
+                  resolve();
+                } else {
+                  reject(err);
+                }
+              });
+          };
+          video.onerror = () => reject(new Error('Video konnte nicht geladen werden'));
+        });
       }
 
       setState({ status: 'scanning' });
