@@ -153,20 +153,20 @@ model EinsatzPerson {
 
 ### Task 2: Infrastructure Layer (AC: 3)
 
-- [ ] **2.1 `PrismaEinsatzPersonRepository` implementieren**
+- [x] **2.1 `PrismaEinsatzPersonRepository` implementieren**
   - Datei: `packages/backend/src/infrastructure/kraefte/repositories/prisma-einsatz-person.repository.ts`
   - NULL → undefined Mapping für: `stammId`, `funkrufname`, `position`, `updatedBy`
   - Eager Loading: `qualifikationen` includen
   - Transaction Context Support (`tx?: TransactionContext`)
 
-- [ ] **2.2 `PrismaEinsatzPersonMapper` erstellen**
+- [x] **2.2 `PrismaEinsatzPersonMapper` erstellen**
   - Datei: `packages/backend/src/infrastructure/kraefte/mappers/prisma-einsatz-person.mapper.ts`
   - `toDomain()` und `toPersistence()` Methoden
   - Qualifikationen M:N Mapping
 
-- [ ] **2.3 DI Token registrieren**
+- [x] **2.3 DI Token registrieren**
   - Datei: `packages/backend/src/infrastructure/di-tokens.ts`
-  - Token: `DI_TOKENS.KRAEFTE.REPOSITORIES.EINSATZ_PERSON`
+  - Token: `KRAEFTE_REPOSITORIES.EINSATZ_PERSON`
   ```typescript
   export const DI_TOKENS = {
     KRAEFTE: {

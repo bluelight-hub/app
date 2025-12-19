@@ -77,4 +77,23 @@ export interface IStammPersonRepository {
    * @returns Result<boolean> - true wenn vorhanden
    */
   exists(personalnummer: string, tx?: TransactionContext): Promise<Result<boolean>>;
+
+  /**
+   * Sucht Stamm-Personen nach Nachname (für Autocomplete).
+   *
+   * Verwendet LIKE-Search auf nachname (Case-Insensitive).
+   * Limitiert Ergebnisse auf maximal `limit` Treffer.
+   * Schließt archivierte Personen aus (archivedAt IS NULL).
+   *
+   * **Use Case Story 4-1:**
+   * - Autocomplete-Suche beim Person-Hinzufügen
+   * - User tippt Nachname → Backend liefert Vorschläge
+   * - Sortierung: alphabetisch nach Nachname, Vorname
+   *
+   * @param searchTerm - Suchbegriff für Nachname (min. 1 Zeichen)
+   * @param limit - Maximale Anzahl Ergebnisse (default: 10)
+   * @param tx - Optionaler Transaction Context
+   * @returns Result<StammPerson[]> - Gefundene Personen (max. limit Ergebnisse)
+   */
+  search(searchTerm: string, limit?: number, tx?: TransactionContext): Promise<Result<StammPerson[]>>;
 }

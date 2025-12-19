@@ -341,4 +341,58 @@ export class PrismaStammPersonRepository implements IStammPersonRepository {
       return Result.fail<boolean>(`Fehler bei der Existenzprüfung: ${errorMessage}`);
     }
   }
+
+  /**
+   * Sucht StammPersonen nach Nachname (LIKE-Search, Case-Insensitive).
+   *
+   * **Use Case Story 4-1:** Autocomplete beim Person-Hinzufügen.
+   * User tippt Nachname → Backend liefert max. limit Vorschläge.
+   *
+   * **Search Strategy:**
+   * - PostgreSQL `ilike` für Case-Insensitive LIKE-Search
+   * - Sucht nach `%searchTerm%` (contains)
+   * - Schließt archivierte Personen aus (archivedAt IS NULL)
+   * - Sortierung: alphabetisch nach nachname, vorname
+   * - Limit: maximal `limit` Ergebnisse (default: 10)
+   *
+   * **Performance:**
+   * - Nutzt Index auf nachname für LIKE-Queries
+   * - Eager Loading von Qualifikationen für DTO-Mapping
+   *
+   * @param searchTerm - Suchbegriff für Nachname (min. 1 Zeichen)
+   * @param limit - Maximale Anzahl Ergebnisse (default: 10)
+   * @param tx - Optional: Transaction Context
+   * @returns Result<StammPerson[]> - Gefundene Personen (max. limit)
+   */
+  async search(searchTerm: string, limit = 10, tx?: TransactionContext): Promise<Result<StammPerson[]>> {
+    try {
+      const client = (tx as PrismaTransactionClient | undefined) ?? this.prisma;
+
+      const entities = await client.stammPerson.findMany({
+        where: {
+          nachname: { contains: searchTerm, mode: 'insensitive' },
+          archivedAt: null,
+        },
+        include: { qualifikationen: true },
+        orderBy: [{ nachname: 'asc' }, { vorname: 'asc' }],
+        take: limit,
+      });
+
+      // Batch-Rekonstitution mit Error-Handling
+      const aggregates: StammPerson[] = [];
+      for (const entity of entities) {
+        const domainResult = PrismaStammPersonMapper.toDomain(entity);
+        if (domainResult.isFailure || !domainResult.value) {
+          // WICHTIG: Ein fehlerhaftes Entity bricht NICHT die ganze Query ab
+          continue;
+        }
+        aggregates.push(domainResult.value);
+      }
+
+      return Result.ok<StammPerson[]>(aggregates);
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      return Result.fail<StammPerson[]>(`Fehler bei der Suche: ${errorMessage}`);
+    }
+  }
 }

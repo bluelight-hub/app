@@ -17,3 +17,5 @@ export { GetAllStammPersonenQuery } from './get-all-stamm-personen/get-all-stamm
 export { GetAllStammPersonenHandler } from './get-all-stamm-personen/get-all-stamm-personen.handler';
 export { GetStammPersonByIdQuery } from './get-stamm-person-by-id/get-stamm-person-by-id.query';
 export { GetStammPersonByIdHandler } from './get-stamm-person-by-id/get-stamm-person-by-id.handler';
+export { SucheStammPersonenQuery } from './suche-stamm-personen/suche-stamm-personen.query';
+export { SucheStammPersonenHandler } from './suche-stamm-personen/suche-stamm-personen.handler';

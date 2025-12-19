@@ -1,5 +1,5 @@
 import { Module } from '@nestjs/common';
-import { EtbEventAdapter, LagekarteEventAdapter, FahrzeugErfasstEventAdapter, FmsStatusGeaendertEventAdapter } from './adapters';
+import { EtbEventAdapter, LagekarteEventAdapter, FahrzeugErfasstEventAdapter, FmsStatusGeaendertEventAdapter, EinsatzPersonHinzugefuegtEventAdapter } from './adapters';
 import { EtbApplicationModule } from '@application/etb/etb-application.module';
 import { LagekarteApplicationModule } from '@application/lagekarte/lagekarte-application.module';
 import { LagekarteEventLoggerHandler } from './handlers/lagekarte-event-logger.handler';
@@ -45,6 +45,7 @@ import { EinsatzEventLoggerHandler } from './handlers/einsatz-event-logger.handl
  * - LagekarteEventAdapter: Delegiert Lagekarte-Events an LagekarteAutoCreationHandler
  * - FahrzeugErfasstEventAdapter: Delegiert FahrzeugErfasst-Events an Handler
  * - FmsStatusGeaendertEventAdapter: Delegiert FmsStatusGeaendert-Events an ETB Handler
+ * - EinsatzPersonHinzugefuegtEventAdapter: Delegiert EinsatzPersonHinzugefuegt-Events an ETB Handler
  * - LagekarteEventLoggerHandler: Infrastructure-spezifisches Event Logging
  * - EinsatzEventLoggerHandler: Infrastructure-spezifisches Event Logging für Einsatz-Events
  */
@@ -60,6 +61,7 @@ import { EinsatzEventLoggerHandler } from './handlers/einsatz-event-logger.handl
     LagekarteEventAdapter,
     FahrzeugErfasstEventAdapter,
     FmsStatusGeaendertEventAdapter,
+    EinsatzPersonHinzugefuegtEventAdapter,
     // Event Logging Handler (Infrastructure-specific)
     LagekarteEventLoggerHandler,
     EinsatzEventLoggerHandler,
