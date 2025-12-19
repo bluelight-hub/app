@@ -61,12 +61,21 @@ export function QrScannerTab({ einsatzId, onSuccess }: QrScannerTabProps) {
   const animationRef = useRef<number | null>(null);
   const lastScannedRef = useRef<string | null>(null);
   const cooldownRef = useRef<boolean>(false);
+  const mountedRef = useRef(false);
+
+  // Stable refs für Callback-Dependencies (verhindert infinite loops)
+  const einsatzIdRef = useRef(einsatzId);
+  const onSuccessRef = useRef(onSuccess);
+  einsatzIdRef.current = einsatzId;
+  onSuccessRef.current = onSuccess;
 
   // State
   const [state, setState] = useState<ScannerState>({ status: 'idle' });
 
-  // Mutation
+  // Mutation - in Ref speichern um stabile Referenz zu haben
   const registriereViaQr = useRegistrierePersonViaQr();
+  const registriereViaQrRef = useRef(registriereViaQr);
+  registriereViaQrRef.current = registriereViaQr;
 
   /**
    * Stoppt alle aktiven Streams und Animationen
@@ -91,97 +100,96 @@ export function QrScannerTab({ einsatzId, onSuccess }: QrScannerTabProps) {
 
   /**
    * Verarbeitet einen erkannten QR-Code
+   * Verwendet Refs für stabile Dependencies (keine infinite loops)
    */
-  const processQrCode = useCallback(
-    async (qrContent: string) => {
-      // Debounce: Verhindere mehrfaches Scannen desselben Codes
-      if (lastScannedRef.current === qrContent || cooldownRef.current) {
-        return;
-      }
+  const processQrCode = useCallback(async (qrContent: string) => {
+    // Debounce: Verhindere mehrfaches Scannen desselben Codes
+    if (lastScannedRef.current === qrContent || cooldownRef.current) {
+      return;
+    }
 
-      // Quick-Check: Ist es überhaupt ein DRK QR-Code?
-      if (!isDrkQrCodeFormat(qrContent)) {
-        // Ignoriere non-DRK QR-Codes still (kein Fehler anzeigen)
-        return;
-      }
+    // Quick-Check: Ist es überhaupt ein DRK QR-Code?
+    if (!isDrkQrCodeFormat(qrContent)) {
+      // Ignoriere non-DRK QR-Codes still (kein Fehler anzeigen)
+      return;
+    }
 
-      // Parse den QR-Code
-      const parseResult = parseDrkQrCode(qrContent);
+    // Parse den QR-Code
+    const parseResult = parseDrkQrCode(qrContent);
 
-      if (!parseResult.success) {
-        // Parsing-Fehler anzeigen
-        const errorMessage = getParseErrorMessage(parseResult.error.code);
-        setState({ status: 'error', message: errorMessage });
+    if (!parseResult.success) {
+      // Parsing-Fehler anzeigen
+      const errorMessage = getParseErrorMessage(parseResult.error.code);
+      setState({ status: 'error', message: errorMessage });
 
-        // Cooldown um Spam zu vermeiden
-        cooldownRef.current = true;
-        setTimeout(() => {
-          cooldownRef.current = false;
-          setState({ status: 'scanning' });
-        }, 2000);
+      // Cooldown um Spam zu vermeiden
+      cooldownRef.current = true;
+      setTimeout(() => {
+        cooldownRef.current = false;
+        setState({ status: 'scanning' });
+      }, 2000);
 
-        return;
-      }
+      return;
+    }
 
-      // Erfolgreiches Parsing - merken und registrieren
-      lastScannedRef.current = qrContent;
-      const qrData = parseResult.data;
+    // Erfolgreiches Parsing - merken und registrieren
+    lastScannedRef.current = qrContent;
+    const qrData = parseResult.data;
 
-      setState({ status: 'processing', data: qrData });
+    setState({ status: 'processing', data: qrData });
 
-      try {
-        // AC4: Automatische Registrierung ohne Bestätigungs-Button!
-        const result = await registriereViaQr.mutateAsync({
-          einsatzId,
-          qrData: {
-            personalnummer: qrData.personalnummer,
-            vorname: qrData.vorname,
-            nachname: qrData.nachname,
-            funkkennung: qrData.funkkennung,
-          },
+    try {
+      // AC4: Automatische Registrierung ohne Bestätigungs-Button!
+      // Verwende Refs für stabile Referenzen
+      const result = await registriereViaQrRef.current.mutateAsync({
+        einsatzId: einsatzIdRef.current,
+        qrData: {
+          personalnummer: qrData.personalnummer,
+          vorname: qrData.vorname,
+          nachname: qrData.nachname,
+          funkkennung: qrData.funkkennung,
+        },
+      });
+
+      const personName = `${result.data?.vorname ?? qrData.vorname} ${result.data?.nachname ?? qrData.nachname}`;
+
+      // Erfolg!
+      setState({ status: 'success', personName });
+      toast.success(`${personName} registriert`, {
+        description: 'Person wurde erfolgreich zum Einsatz hinzugefügt',
+      });
+
+      onSuccessRef.current?.(personName);
+
+      // Nach kurzer Pause wieder scannen (für nächste Person)
+      setTimeout(() => {
+        lastScannedRef.current = null;
+        setState({ status: 'scanning' });
+      }, 1500);
+    } catch (error) {
+      const apiError = error as ResponseError;
+
+      if (isDuplicatePersonError(apiError)) {
+        // Duplikat ist kein schwerer Fehler
+        setState({ status: 'error', message: 'Person bereits registriert' });
+        toast.warning('Person bereits registriert', {
+          description: `${qrData.vorname} ${qrData.nachname} ist bereits in diesem Einsatz`,
         });
-
-        const personName = `${result.data?.vorname ?? qrData.vorname} ${result.data?.nachname ?? qrData.nachname}`;
-
-        // Erfolg!
-        setState({ status: 'success', personName });
-        toast.success(`${personName} registriert`, {
-          description: 'Person wurde erfolgreich zum Einsatz hinzugefügt',
+      } else {
+        setState({ status: 'error', message: 'Registrierung fehlgeschlagen' });
+        toast.error('Fehler bei Registrierung', {
+          description: apiError.message || 'Unbekannter Fehler',
         });
-
-        onSuccess?.(personName);
-
-        // Nach kurzer Pause wieder scannen (für nächste Person)
-        setTimeout(() => {
-          lastScannedRef.current = null;
-          setState({ status: 'scanning' });
-        }, 1500);
-      } catch (error) {
-        const apiError = error as ResponseError;
-
-        if (isDuplicatePersonError(apiError)) {
-          // Duplikat ist kein schwerer Fehler
-          setState({ status: 'error', message: 'Person bereits registriert' });
-          toast.warning('Person bereits registriert', {
-            description: `${qrData.vorname} ${qrData.nachname} ist bereits in diesem Einsatz`,
-          });
-        } else {
-          setState({ status: 'error', message: 'Registrierung fehlgeschlagen' });
-          toast.error('Fehler bei Registrierung', {
-            description: apiError.message || 'Unbekannter Fehler',
-          });
-        }
-
-        // Nach Fehler wieder scannen
-        setTimeout(() => {
-          lastScannedRef.current = null;
-          cooldownRef.current = false;
-          setState({ status: 'scanning' });
-        }, 2500);
       }
-    },
-    [einsatzId, registriereViaQr, onSuccess],
-  );
+
+      // Nach Fehler wieder scannen
+      setTimeout(() => {
+        lastScannedRef.current = null;
+        cooldownRef.current = false;
+        setState({ status: 'scanning' });
+      }, 2500);
+    }
+  }, []); // Keine Dependencies - alles über Refs
 
   /**
    * Scan-Loop: Liest Frames vom Video und sucht nach QR-Codes
@@ -226,6 +234,15 @@ export function QrScannerTab({ einsatzId, onSuccess }: QrScannerTabProps) {
    * Startet die Kamera und den Scan-Loop
    */
   const startScanning = useCallback(async () => {
+    // Prüfe ob Kamera-API verfügbar ist (nicht in Tauri WebView)
+    if (!navigator.mediaDevices?.getUserMedia) {
+      setState({
+        status: 'permission-denied',
+        error: 'Kamera-Zugriff ist in dieser Umgebung nicht verfügbar. Bitte nutzen Sie die App im Browser.',
+      });
+      return;
+    }
+
     setState({ status: 'requesting-permission' });
 
     try {
@@ -303,20 +320,21 @@ export function QrScannerTab({ einsatzId, onSuccess }: QrScannerTabProps) {
     cooldownRef.current = false;
   }, [cleanup]);
 
-  // Cleanup bei Unmount
+  // Auto-Start beim Mount (nur einmal!) und Cleanup bei Unmount
+  // biome-ignore lint/correctness/useExhaustiveDependencies: Absichtlich nur beim Mount ausführen - Refs für stabile Funktionen
   useEffect(() => {
-    return () => {
-      cleanup();
-    };
-  }, [cleanup]);
+    // Verhindere doppelten Start durch StrictMode
+    if (mountedRef.current) {
+      return;
+    }
+    mountedRef.current = true;
 
-  // Auto-Start beim Mount wenn der Tab aktiv ist
-  useEffect(() => {
     startScanning();
+
     return () => {
       cleanup();
     };
-  }, [startScanning, cleanup]);
+  }, []);
 
   return (
     <div className="flex flex-col items-center gap-4">
