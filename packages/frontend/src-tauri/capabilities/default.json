@@ -32,6 +32,7 @@
     "core:window:allow-center",
     "core:webview:allow-create-webview-window",
     "store:default",
-    "store:allow-get"
+    "store:allow-get",
+    "barcode-scanner:default"
   ]
 }

@@ -2,7 +2,9 @@
  * QR Scanner Tab Komponente (Story 4-2)
  *
  * Ermöglicht das Scannen von DRK QR-Codes zur schnellen Personenregistrierung.
- * Verwendet die Gerätekamera und jsqr für die QR-Code-Erkennung.
+ * Unterstützt zwei Modi:
+ * - Tauri: Natives Barcode-Scanner Plugin mit nativer Kamera-Ansicht
+ * - Browser: navigator.mediaDevices + jsQR für QR-Erkennung
  *
  * Implementiert:
  * - AC1: QR Scanner öffnet mit Kamera-Zugriff
@@ -14,8 +16,8 @@
  * @module features/einsatz/ui/organisms
  */
 
-import { useRegistrierePersonViaQr, isDuplicatePersonError } from '@/features/einsatz/api';
-import { parseDrkQrCode, isDrkQrCodeFormat, type DrkQrData, DrkQrParseErrorCode } from '@/features/einsatz/utils';
+import { isDuplicatePersonError, useRegistrierePersonViaQr } from '@/features/einsatz/api';
+import { type DrkQrData, DrkQrParseErrorCode, isDrkQrCodeFormat, parseDrkQrCode } from '@/features/einsatz/utils';
 import { Button } from '@/shared/ui/atoms/button.atom';
 import { InlineSpinner } from '@/shared/ui/atoms/spinner.atom';
 import { cn } from '@/shared/ui/cn';
@@ -41,11 +43,18 @@ type ScannerState =
   | { status: 'error'; message: string };
 
 /**
+ * Prüft ob wir in einer Tauri-Umgebung laufen
+ */
+function isTauriEnvironment(): boolean {
+  return typeof window !== 'undefined' && '__TAURI__' in window;
+}
+
+/**
  * QR Scanner Tab für Personenregistrierung
  *
  * Automatisierter Ablauf (AC4):
  * 1. Kamera-Zugriff anfordern
- * 2. Video-Feed anzeigen
+ * 2. Video-Feed anzeigen (Browser) oder native Kamera öffnen (Tauri)
  * 3. QR-Code automatisch erkennen
  * 4. DRK-Format validieren
  * 5. Person automatisch registrieren (ohne Button!)
@@ -62,6 +71,7 @@ export function QrScannerTab({ einsatzId, onSuccess }: QrScannerTabProps) {
   const lastScannedRef = useRef<string | null>(null);
   const cooldownRef = useRef<boolean>(false);
   const mountedRef = useRef(false);
+  const tauriScanActiveRef = useRef(false);
 
   // Stable refs für Callback-Dependencies (verhindert infinite loops)
   const einsatzIdRef = useRef(einsatzId);
@@ -71,6 +81,7 @@ export function QrScannerTab({ einsatzId, onSuccess }: QrScannerTabProps) {
 
   // State
   const [state, setState] = useState<ScannerState>({ status: 'idle' });
+  const [isTauri] = useState(() => isTauriEnvironment());
 
   // Mutation - in Ref speichern um stabile Referenz zu haben
   const registriereViaQr = useRegistrierePersonViaQr();
@@ -78,9 +89,9 @@ export function QrScannerTab({ einsatzId, onSuccess }: QrScannerTabProps) {
   registriereViaQrRef.current = registriereViaQr;
 
   /**
-   * Stoppt alle aktiven Streams und Animationen
+   * Stoppt alle aktiven Streams und Animationen (Browser-Modus)
    */
-  const cleanup = useCallback(() => {
+  const cleanupBrowser = useCallback(() => {
     if (animationRef.current) {
       cancelAnimationFrame(animationRef.current);
       animationRef.current = null;
@@ -97,6 +108,29 @@ export function QrScannerTab({ einsatzId, onSuccess }: QrScannerTabProps) {
       videoRef.current.srcObject = null;
     }
   }, []);
+
+  /**
+   * Stoppt den Tauri Scanner
+   */
+  const cleanupTauri = useCallback(async () => {
+    if (tauriScanActiveRef.current) {
+      try {
+        const { cancel } = await import('@tauri-apps/plugin-barcode-scanner');
+        await cancel();
+      } catch {
+        // Ignore errors during cleanup
+      }
+      tauriScanActiveRef.current = false;
+    }
+  }, []);
+
+  /**
+   * Cleanup-Funktion für beide Modi
+   */
+  const cleanup = useCallback(async () => {
+    cleanupBrowser();
+    await cleanupTauri();
+  }, [cleanupBrowser, cleanupTauri]);
 
   /**
    * Verarbeitet einen erkannten QR-Code
@@ -192,7 +226,7 @@ export function QrScannerTab({ einsatzId, onSuccess }: QrScannerTabProps) {
   }, []); // Keine Dependencies - alles über Refs
 
   /**
-   * Scan-Loop: Liest Frames vom Video und sucht nach QR-Codes
+   * Scan-Loop für Browser: Liest Frames vom Video und sucht nach QR-Codes
    */
   const scanFrame = useCallback(() => {
     const video = videoRef.current;
@@ -219,7 +253,7 @@ export function QrScannerTab({ einsatzId, onSuccess }: QrScannerTabProps) {
     // QR-Code suchen
     const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
     const code = jsQR(imageData.data, imageData.width, imageData.height, {
-      inversionAttempts: 'dontInvert',
+      inversionAttempts: 'attemptBoth',
     });
 
     if (code?.data) {
@@ -231,14 +265,68 @@ export function QrScannerTab({ einsatzId, onSuccess }: QrScannerTabProps) {
   }, [processQrCode]);
 
   /**
-   * Startet die Kamera und den Scan-Loop
+   * Startet den Tauri Native Scanner
    */
-  const startScanning = useCallback(async () => {
-    // Prüfe ob Kamera-API verfügbar ist (nicht in Tauri WebView)
+  const startTauriScanning = useCallback(async () => {
+    setState({ status: 'requesting-permission' });
+
+    try {
+      const { scan, Format, checkPermissions, requestPermissions } = await import('@tauri-apps/plugin-barcode-scanner');
+
+      // Permissions prüfen und anfordern
+      let permissions = await checkPermissions();
+      if (permissions.camera !== 'granted') {
+        permissions = await requestPermissions();
+        if (permissions.camera !== 'granted') {
+          setState({
+            status: 'permission-denied',
+            error: 'Kamerazugriff wurde verweigert. Bitte erlauben Sie den Zugriff in den Einstellungen.',
+          });
+          return;
+        }
+      }
+
+      setState({ status: 'scanning' });
+      tauriScanActiveRef.current = true;
+
+      // Kontinuierliches Scannen in Tauri
+      const scanLoop = async () => {
+        while (tauriScanActiveRef.current) {
+          try {
+            const result = await scan({
+              windowed: true,
+              formats: [Format.QRCode],
+            });
+
+            if (result?.content) {
+              await processQrCode(result.content);
+            }
+          } catch (err) {
+            // User hat abgebrochen oder Fehler
+            if (tauriScanActiveRef.current) {
+              console.error('Tauri scan error:', err);
+            }
+            break;
+          }
+        }
+      };
+
+      scanLoop();
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Scanner konnte nicht gestartet werden';
+      setState({ status: 'permission-denied', error: errorMessage });
+    }
+  }, [processQrCode]);
+
+  /**
+   * Startet den Browser Scanner (navigator.mediaDevices + jsQR)
+   */
+  const startBrowserScanning = useCallback(async () => {
+    // Prüfe ob Kamera-API verfügbar ist
     if (!navigator.mediaDevices?.getUserMedia) {
       setState({
         status: 'permission-denied',
-        error: 'Kamera-Zugriff ist in dieser Umgebung nicht verfügbar. Bitte nutzen Sie die App im Browser.',
+        error: 'Kamera-Zugriff ist in dieser Umgebung nicht verfügbar.',
       });
       return;
     }
@@ -311,10 +399,21 @@ export function QrScannerTab({ einsatzId, onSuccess }: QrScannerTabProps) {
   }, [scanFrame]);
 
   /**
+   * Startet den Scanner im passenden Modus
+   */
+  const startScanning = useCallback(async () => {
+    if (isTauri) {
+      await startTauriScanning();
+    } else {
+      await startBrowserScanning();
+    }
+  }, [isTauri, startTauriScanning, startBrowserScanning]);
+
+  /**
    * Stoppt den Scanner
    */
-  const stopScanning = useCallback(() => {
-    cleanup();
+  const stopScanning = useCallback(async () => {
+    await cleanup();
     setState({ status: 'idle' });
     lastScannedRef.current = null;
     cooldownRef.current = false;
@@ -341,88 +440,155 @@ export function QrScannerTab({ einsatzId, onSuccess }: QrScannerTabProps) {
       {/* Status-Anzeige */}
       <StatusDisplay state={state} />
 
-      {/* Video-Container */}
-      <div
-        className={cn(
-          'relative aspect-square w-full max-w-sm overflow-hidden rounded-xl border-2',
-          'bg-gray-900',
-          state.status === 'scanning' && 'border-primary-500',
-          state.status === 'processing' && 'border-amber-500',
-          state.status === 'success' && 'border-green-500',
-          state.status === 'error' && 'border-red-500',
-          ['idle', 'requesting-permission', 'permission-denied'].includes(state.status) && 'border-gray-700',
-        )}
-      >
-        {/* Video Element */}
-        <video ref={videoRef} className={cn('h-full w-full object-cover', state.status !== 'scanning' && state.status !== 'processing' && 'hidden')} playsInline muted autoPlay />
+      {/* Video-Container (nur im Browser-Modus sichtbar) */}
+      {!isTauri && (
+        <div
+          className={cn(
+            'relative aspect-square w-full max-w-sm overflow-hidden rounded-xl border-2',
+            'bg-gray-900',
+            state.status === 'scanning' && 'border-primary-500',
+            state.status === 'processing' && 'border-amber-500',
+            state.status === 'success' && 'border-green-500',
+            state.status === 'error' && 'border-red-500',
+            ['idle', 'requesting-permission', 'permission-denied'].includes(state.status) && 'border-gray-700',
+          )}
+        >
+          {/* Video Element */}
+          <video ref={videoRef} className={cn('h-full w-full object-cover', state.status !== 'scanning' && state.status !== 'processing' && 'hidden')} playsInline muted autoPlay />
 
-        {/* Verstecktes Canvas für QR-Erkennung */}
-        <canvas ref={canvasRef} className="hidden" />
+          {/* Verstecktes Canvas für QR-Erkennung */}
+          <canvas ref={canvasRef} className="hidden" />
 
-        {/* Overlay für verschiedene Status */}
-        {state.status === 'idle' && (
-          <div className="absolute inset-0 flex flex-col items-center justify-center gap-4 bg-gray-900/80">
-            <PiQrCode className="h-16 w-16 text-gray-400" />
-            <span className="text-gray-400 text-sm">Scanner bereit</span>
-          </div>
-        )}
+          {/* Overlay für verschiedene Status */}
+          {state.status === 'idle' && (
+            <div className="absolute inset-0 flex flex-col items-center justify-center gap-4 bg-gray-900/80">
+              <PiQrCode className="h-16 w-16 text-gray-400" />
+              <span className="text-gray-400 text-sm">Scanner bereit</span>
+            </div>
+          )}
 
-        {state.status === 'requesting-permission' && (
-          <div className="absolute inset-0 flex flex-col items-center justify-center gap-4 bg-gray-900/80">
-            <InlineSpinner size="lg" />
-            <span className="text-gray-300 text-sm">Kamerazugriff wird angefordert…</span>
-          </div>
-        )}
+          {state.status === 'requesting-permission' && (
+            <div className="absolute inset-0 flex flex-col items-center justify-center gap-4 bg-gray-900/80">
+              <InlineSpinner size="lg" />
+              <span className="text-gray-300 text-sm">Kamerazugriff wird angefordert…</span>
+            </div>
+          )}
 
-        {state.status === 'permission-denied' && (
-          <div className="absolute inset-0 flex flex-col items-center justify-center gap-4 bg-gray-900/80 p-4 text-center">
-            <PiCameraSlash className="h-16 w-16 text-red-400" />
-            <span className="text-red-300 text-sm">{state.error}</span>
-          </div>
-        )}
+          {state.status === 'permission-denied' && (
+            <div className="absolute inset-0 flex flex-col items-center justify-center gap-4 bg-gray-900/80 p-4 text-center">
+              <PiCameraSlash className="h-16 w-16 text-red-400" />
+              <span className="text-red-300 text-sm">{state.error}</span>
+            </div>
+          )}
 
-        {state.status === 'scanning' && (
-          <>
-            {/* Scan-Rahmen Overlay */}
-            <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
-              <div className="h-48 w-48 rounded-lg border-2 border-white/50">
-                {/* Ecken-Markierungen */}
-                <div className="absolute top-0 left-0 h-6 w-6 border-primary-400 border-t-4 border-l-4" />
-                <div className="absolute top-0 right-0 h-6 w-6 border-primary-400 border-t-4 border-r-4" />
-                <div className="absolute bottom-0 left-0 h-6 w-6 border-primary-400 border-b-4 border-l-4" />
-                <div className="absolute right-0 bottom-0 h-6 w-6 border-primary-400 border-r-4 border-b-4" />
+          {state.status === 'scanning' && (
+            <>
+              {/* Scan-Rahmen Overlay */}
+              <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
+                <div className="h-48 w-48 rounded-lg border-2 border-white/50">
+                  {/* Ecken-Markierungen */}
+                  <div className="absolute top-0 left-0 h-6 w-6 border-primary-400 border-t-4 border-l-4" />
+                  <div className="absolute top-0 right-0 h-6 w-6 border-primary-400 border-t-4 border-r-4" />
+                  <div className="absolute bottom-0 left-0 h-6 w-6 border-primary-400 border-b-4 border-l-4" />
+                  <div className="absolute right-0 bottom-0 h-6 w-6 border-primary-400 border-r-4 border-b-4" />
+                </div>
               </div>
+              {/* Scan-Anweisung */}
+              <div className="absolute right-0 bottom-4 left-0 text-center">
+                <span className="rounded-lg bg-black/60 px-3 py-1.5 text-sm text-white">QR-Code in den Rahmen halten</span>
+              </div>
+            </>
+          )}
+
+          {state.status === 'processing' && (
+            <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 bg-gray-900/80">
+              <InlineSpinner size="lg" />
+              <span className="text-amber-300 text-sm">
+                {state.data.vorname} {state.data.nachname} wird registriert…
+              </span>
             </div>
-            {/* Scan-Anweisung */}
-            <div className="absolute right-0 bottom-4 left-0 text-center">
-              <span className="rounded-lg bg-black/60 px-3 py-1.5 text-sm text-white">QR-Code in den Rahmen halten</span>
+          )}
+
+          {state.status === 'success' && (
+            <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 bg-gray-900/80">
+              <PiCheckCircle className="h-16 w-16 text-green-400" />
+              <span className="text-green-300 text-sm">{state.personName} registriert!</span>
             </div>
-          </>
-        )}
+          )}
 
-        {state.status === 'processing' && (
-          <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 bg-gray-900/80">
-            <InlineSpinner size="lg" />
-            <span className="text-amber-300 text-sm">
-              {state.data.vorname} {state.data.nachname} wird registriert…
-            </span>
-          </div>
-        )}
+          {state.status === 'error' && (
+            <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 bg-gray-900/80">
+              <PiXCircle className="h-16 w-16 text-red-400" />
+              <span className="text-red-300 text-sm">{state.message}</span>
+            </div>
+          )}
+        </div>
+      )}
 
-        {state.status === 'success' && (
-          <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 bg-gray-900/80">
-            <PiCheckCircle className="h-16 w-16 text-green-400" />
-            <span className="text-green-300 text-sm">{state.personName} registriert!</span>
-          </div>
-        )}
+      {/* Tauri-Modus Status-Anzeige */}
+      {isTauri && (
+        <div
+          className={cn(
+            'flex min-h-[200px] w-full max-w-sm flex-col items-center justify-center gap-4 rounded-xl border-2 bg-gray-900 p-6',
+            state.status === 'scanning' && 'border-primary-500',
+            state.status === 'processing' && 'border-amber-500',
+            state.status === 'success' && 'border-green-500',
+            state.status === 'error' && 'border-red-500',
+            ['idle', 'requesting-permission', 'permission-denied'].includes(state.status) && 'border-gray-700',
+          )}
+        >
+          {state.status === 'idle' && (
+            <>
+              <PiQrCode className="h-16 w-16 text-gray-400" />
+              <span className="text-center text-gray-400 text-sm">Scanner bereit</span>
+            </>
+          )}
 
-        {state.status === 'error' && (
-          <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 bg-gray-900/80">
-            <PiXCircle className="h-16 w-16 text-red-400" />
-            <span className="text-red-300 text-sm">{state.message}</span>
-          </div>
-        )}
-      </div>
+          {state.status === 'requesting-permission' && (
+            <>
+              <InlineSpinner size="lg" />
+              <span className="text-center text-gray-300 text-sm">Kamera wird gestartet…</span>
+            </>
+          )}
+
+          {state.status === 'permission-denied' && (
+            <>
+              <PiCameraSlash className="h-16 w-16 text-red-400" />
+              <span className="text-center text-red-300 text-sm">{state.error}</span>
+            </>
+          )}
+
+          {state.status === 'scanning' && (
+            <>
+              <PiCamera className="h-16 w-16 animate-pulse text-primary-400" />
+              <span className="text-center text-primary-300 text-sm">Native Kamera aktiv - QR-Code scannen</span>
+            </>
+          )}
+
+          {state.status === 'processing' && (
+            <>
+              <InlineSpinner size="lg" />
+              <span className="text-center text-amber-300 text-sm">
+                {state.data.vorname} {state.data.nachname} wird registriert…
+              </span>
+            </>
+          )}
+
+          {state.status === 'success' && (
+            <>
+              <PiCheckCircle className="h-16 w-16 text-green-400" />
+              <span className="text-center text-green-300 text-sm">{state.personName} registriert!</span>
+            </>
+          )}
+
+          {state.status === 'error' && (
+            <>
+              <PiXCircle className="h-16 w-16 text-red-400" />
+              <span className="text-center text-red-300 text-sm">{state.message}</span>
+            </>
+          )}
+        </div>
+      )}
 
       {/* Aktions-Buttons */}
       <div className="flex gap-3">
