@@ -57,7 +57,7 @@ export function SingleEinsatzDashboard() {
   const { data: etb, isLoading: isLoadingEtb } = useEtb({ einsatzId });
 
   // Lade Lagekarte für POI-Count
-  const { data: lagekarteState, isLoading: isLoadingLagekarte } = useLagekarte(einsatzId);
+  const { data: lagekarte, isLoading: isLoadingLagekarte } = useLagekarte(einsatzId);
 
   // Hook zum Aktualisieren des FMS-Status (Story 3-3)
   const updateFmsStatus = useUpdateFmsStatus(einsatzId);
@@ -73,8 +73,8 @@ export function SingleEinsatzDashboard() {
   // ETB-Einträge Count aus geladenen Daten
   const etbEintraegeCount = etb?.eintraege?.length;
 
-  // POI-Count aus Lagekarte GeoJSON Features
-  const poisCount = lagekarteState?.features?.length;
+  // POI-Count aus Lagekarte DTO
+  const poisCount = lagekarte?.pois?.length;
 
   // Setze diesen Einsatz automatisch als aktiv
   useEffect(() => {

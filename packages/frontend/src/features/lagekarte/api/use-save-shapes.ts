@@ -25,7 +25,7 @@ export const useSaveShapes = (einsatzId: string) => {
 
   return useMutation({
     mutationFn: async (shapes: GeoJSON.FeatureCollection) => {
-      return await api.lagekarte.lagekarteControllerSaveLagekarteStateVAlpha({
+      return await api.lagekarte().lagekarteControllerSaveLagekarteStateVAlpha({
         einsatzId,
         saveLagekarteStateDto: {
           state: shapes,

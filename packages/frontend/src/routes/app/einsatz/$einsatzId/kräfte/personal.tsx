@@ -27,6 +27,9 @@ function RouteComponent() {
   const handleOpenPersonDialog = useCallback(() => setShowPersonDialog(true), []);
   const handleClosePersonDialog = useCallback(() => setShowPersonDialog(false), []);
 
+  // State für per-Person Loading (BLOCKER Fix: Race Condition)
+  const [assigningPersonId, setAssigningPersonId] = useState<string | null>(null);
+
   // Daten laden
   const { data: personen = [], isLoading: isLoadingPersonen, error: personenError } = useEinsatzPersonen(einsatzId);
   const { data: fahrzeuge = [], isLoading: isLoadingFahrzeuge } = useEinsatzFahrzeuge(einsatzId);
@@ -35,16 +38,31 @@ function RouteComponent() {
   const weiseZu = useWeisePersonZuFahrzeugZu(einsatzId);
   const entferne = useEntfernePersonVonFahrzeug(einsatzId);
 
-  // Handler für Fahrzeug-Zuweisung
+  // Handler für Fahrzeug-Zuweisung (BLOCKER Fix: Per-Person Loading State)
   const handleAssign = useCallback(
     (personId: string, fahrzeugId: string | null) => {
+      // Guard gegen Race Condition
+      if (assigningPersonId) return;
+
+      setAssigningPersonId(personId);
+
       if (fahrzeugId) {
-        weiseZu.mutate({ personId, fahrzeugId });
+        weiseZu.mutate(
+          { personId, fahrzeugId },
+          {
+            onSettled: () => setAssigningPersonId(null),
+          },
+        );
       } else {
-        entferne.mutate({ personId });
+        entferne.mutate(
+          { personId },
+          {
+            onSettled: () => setAssigningPersonId(null),
+          },
+        );
       }
     },
-    [weiseZu, entferne],
+    [weiseZu, entferne, assigningPersonId],
   );
 
   // Loading State
@@ -183,7 +201,7 @@ function RouteComponent() {
                         currentFahrzeugId={person.fahrzeugId}
                         fahrzeuge={fahrzeuge}
                         onAssign={(fahrzeugId) => handleAssign(person.id, fahrzeugId)}
-                        isLoading={weiseZu.isPending || entferne.isPending}
+                        isLoading={assigningPersonId === person.id}
                         className="w-full"
                       />
                     </td>

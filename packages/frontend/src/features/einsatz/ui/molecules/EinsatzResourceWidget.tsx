@@ -2,7 +2,7 @@ import { cn } from '@/shared/ui/cn';
 import { Button } from '@/shared/ui/atoms/button.atom';
 import { FmsStatusDropdown } from './FmsStatusDropdown.molecule';
 import type { EinsatzFahrzeugDto, BesatzungMemberDto } from '@bluelight-hub/shared/client';
-import type { FmsStatus } from '../../constants/fms-status.constants';
+import { isFmsStatus, type FmsStatus } from '../../constants/fms-status.constants';
 import { PiTruck, PiUserPlus, PiUsers } from 'react-icons/pi';
 import type { ReactNode } from 'react';
 
@@ -92,7 +92,7 @@ export function EinsatzResourceWidget({ fahrzeuge, onStatusChange, className, on
               </div>
             </div>
             <div className="shrink-0">
-              <FmsStatusDropdown value={fahrzeug.fmsStatus as FmsStatus} onChange={(newStatus) => onStatusChange(fahrzeug.id, newStatus)} className="w-48" />
+              <FmsStatusDropdown value={isFmsStatus(fahrzeug.fmsStatus) ? fahrzeug.fmsStatus : 1} onChange={(newStatus) => onStatusChange(fahrzeug.id, newStatus)} className="w-48" />
             </div>
           </div>
         ))}

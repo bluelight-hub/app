@@ -388,11 +388,11 @@ export class EinsatzPersonenController {
       throw new BadRequestException('Fehler beim Erstellen des Commands');
     }
 
-    // Command ausführen
-    try {
-      await this.weisePersonZuFahrzeugHandler.execute(command);
-    } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : String(error);
+    // Command ausführen (Result Pattern - keine Exceptions)
+    const result = await this.weisePersonZuFahrzeugHandler.execute(command);
+
+    if (result.isFailure) {
+      const errorMessage = result.error ?? '';
 
       if (EinsatzPersonError.hasCode(errorMessage, EINSATZ_PERSON_ERROR_CODES.NOT_FOUND)) {
         throw new NotFoundException(EinsatzPersonError.extractMessage(errorMessage));
@@ -404,11 +404,8 @@ export class EinsatzPersonenController {
         throw new ConflictException(EinsatzPersonError.extractMessage(errorMessage));
       }
 
-      this.logger.error(`Fehler beim Zuweisen von Person ${personId} zu Fahrzeug: ${errorMessage}`, {
-        stack: error instanceof Error ? error.stack : undefined,
-        context: 'EinsatzPersonenController',
-      });
-      throw new InternalServerErrorException('Interner Fehler beim Zuweisen der Person');
+      this.logger.error(`Fehler beim Zuweisen von Person ${personId} zu Fahrzeug: ${errorMessage}`, 'EinsatzPersonenController');
+      throw new BadRequestException(errorMessage);
     }
 
     // Aktualisierte Person zurückgeben
@@ -457,21 +454,18 @@ export class EinsatzPersonenController {
       throw new BadRequestException('Fehler beim Erstellen des Commands');
     }
 
-    // Command ausführen
-    try {
-      await this.entfernePersonVonFahrzeugHandler.execute(command);
-    } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : String(error);
+    // Command ausführen (Result Pattern - keine Exceptions)
+    const result = await this.entfernePersonVonFahrzeugHandler.execute(command);
+
+    if (result.isFailure) {
+      const errorMessage = result.error ?? '';
 
       if (EinsatzPersonError.hasCode(errorMessage, EINSATZ_PERSON_ERROR_CODES.NOT_FOUND)) {
         throw new NotFoundException(EinsatzPersonError.extractMessage(errorMessage));
       }
 
-      this.logger.error(`Fehler beim Entfernen von Person ${personId} von Fahrzeug: ${errorMessage}`, {
-        stack: error instanceof Error ? error.stack : undefined,
-        context: 'EinsatzPersonenController',
-      });
-      throw new InternalServerErrorException('Interner Fehler beim Entfernen der Person vom Fahrzeug');
+      this.logger.error(`Fehler beim Entfernen von Person ${personId} von Fahrzeug: ${errorMessage}`, 'EinsatzPersonenController');
+      throw new BadRequestException(errorMessage);
     }
   }
 }

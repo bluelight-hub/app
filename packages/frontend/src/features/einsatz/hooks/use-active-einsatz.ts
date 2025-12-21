@@ -3,7 +3,7 @@ import { EINSATZ_QUERY_KEYS } from '../api';
 import { type Einsatz, einsatzStore, useEinsatzStore } from '../stores/active-einsatz.store';
 import { clearActiveEinsatz as clearPersistedEinsatz, loadActiveEinsatzId, rehydrateActiveEinsatz } from '../stores/persistence/einsatz-persistence';
 import { logger } from '@/shared/lib/logger';
-import type { ResponseError } from '@bluelight-hub/shared/client';
+import type { EinsatzControllerFindOneVAlpha200Response, ResponseError } from '@bluelight-hub/shared/client';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { milliseconds } from 'date-fns';
 import { useCallback, useEffect } from 'react';
@@ -40,7 +40,7 @@ export function useActiveEinsatz() {
     isLoading: isQueryLoading,
     error: queryError,
     refetch,
-  } = useQuery<Einsatz, ResponseError>({
+  } = useQuery<EinsatzControllerFindOneVAlpha200Response, ResponseError>({
     queryKey: EINSATZ_QUERY_KEYS.detail(selectedEinsatzId),
     queryFn: async () => {
       if (!selectedEinsatzId) {
@@ -52,7 +52,7 @@ export function useActiveEinsatz() {
           id: selectedEinsatzId,
         });
 
-        return response.data;
+        return response;
       } catch (error) {
         logger.error('Failed to fetch active Einsatz', error);
         throw error;
@@ -66,8 +66,8 @@ export function useActiveEinsatz() {
 
   // Update store when query data changes
   useEffect(() => {
-    if (fetchedEinsatz && selectedEinsatzId) {
-      storeSetActiveEinsatz(fetchedEinsatz);
+    if (fetchedEinsatz?.data && selectedEinsatzId) {
+      storeSetActiveEinsatz(fetchedEinsatz.data);
     }
   }, [fetchedEinsatz, selectedEinsatzId, storeSetActiveEinsatz]);
 
@@ -105,7 +105,7 @@ export function useActiveEinsatz() {
                   selectedEinsatzId: id,
                 }));
                 // Cache the data in query client
-                queryClient.setQueryData(EINSATZ_QUERY_KEYS.detail(id), response.data);
+                queryClient.setQueryData(EINSATZ_QUERY_KEYS.detail(id), response);
                 return true;
               }
               return false;
@@ -159,11 +159,11 @@ export function useActiveEinsatz() {
         }));
 
         // Prüfe ob Daten im Cache vorhanden sind
-        const cachedData = queryClient.getQueryData<Einsatz>(EINSATZ_QUERY_KEYS.detail(id));
+        const cachedData = queryClient.getQueryData<EinsatzControllerFindOneVAlpha200Response>(EINSATZ_QUERY_KEYS.detail(id));
 
-        if (cachedData) {
+        if (cachedData?.data) {
           // Verwende gecachte Daten
-          storeSetActiveEinsatz(cachedData);
+          storeSetActiveEinsatz(cachedData.data);
           setLoadingState(false);
         } else {
           // Lade Daten vom Server
@@ -172,7 +172,7 @@ export function useActiveEinsatz() {
           if (response.data) {
             storeSetActiveEinsatz(response.data);
             // Cache die Daten
-            queryClient.setQueryData(EINSATZ_QUERY_KEYS.detail(id), response.data);
+            queryClient.setQueryData(EINSATZ_QUERY_KEYS.detail(id), response);
           } else {
             throw new Error('Einsatz nicht gefunden');
           }

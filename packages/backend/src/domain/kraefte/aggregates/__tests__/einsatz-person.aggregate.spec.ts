@@ -667,6 +667,276 @@ describe('EinsatzPerson Aggregate', () => {
     });
   });
 
+  describe('assignToFahrzeug()', () => {
+    const validFahrzeugId = 'clw3h8x9y0000qwertyuiopff'; // Valid CUID2 for Fahrzeug
+    const validUpdatedBy = 'clw3h8x9y0000qwertyuiopuu'; // Valid CUID2
+
+    function createValidPerson(): EinsatzPerson {
+      const result = EinsatzPerson.createFromStammPerson({
+        einsatzId: validEinsatzId,
+        stammId: validStammId,
+        vorname: 'Max',
+        nachname: 'Mustermann',
+        funktion: 'Helfer',
+        createdBy: validCreatedBy,
+      });
+      expect(result.isSuccess).toBe(true);
+      const person = result.value!;
+      person.clearDomainEvents(); // Clear creation event
+      return person;
+    }
+
+    describe('validation', () => {
+      it('should fail when fahrzeugId is empty', () => {
+        // Given (Arrange)
+        const person = createValidPerson();
+
+        // When (Act)
+        const result = person.assignToFahrzeug('', 'LF 10/1', validUpdatedBy);
+
+        // Then (Assert)
+        expect(result.isFailure).toBe(true);
+        expect(result.error).toContain('fahrzeugId muss ein gültiger CUID2-Identifier sein');
+      });
+
+      it('should fail when fahrzeugId is not a valid CUID', () => {
+        // Given (Arrange)
+        const person = createValidPerson();
+
+        // When (Act)
+        const result = person.assignToFahrzeug('invalid-cuid', 'LF 10/1', validUpdatedBy);
+
+        // Then (Assert)
+        expect(result.isFailure).toBe(true);
+        expect(result.error).toContain('fahrzeugId muss ein gültiger CUID2-Identifier sein');
+      });
+
+      it('should fail when fahrzeugFunkrufname is empty (BLOCKER Fix)', () => {
+        // Given (Arrange)
+        const person = createValidPerson();
+
+        // When (Act)
+        const result = person.assignToFahrzeug(validFahrzeugId, '', validUpdatedBy);
+
+        // Then (Assert)
+        expect(result.isFailure).toBe(true);
+        expect(result.error).toContain('fahrzeugFunkrufname ist erforderlich');
+      });
+
+      it('should fail when fahrzeugFunkrufname is whitespace only (BLOCKER Fix)', () => {
+        // Given (Arrange)
+        const person = createValidPerson();
+
+        // When (Act)
+        const result = person.assignToFahrzeug(validFahrzeugId, '   ', validUpdatedBy);
+
+        // Then (Assert)
+        expect(result.isFailure).toBe(true);
+        expect(result.error).toContain('fahrzeugFunkrufname ist erforderlich');
+      });
+
+      it('should fail when updatedBy is empty', () => {
+        // Given (Arrange)
+        const person = createValidPerson();
+
+        // When (Act)
+        const result = person.assignToFahrzeug(validFahrzeugId, 'LF 10/1', '');
+
+        // Then (Assert)
+        expect(result.isFailure).toBe(true);
+        expect(result.error).toContain('updatedBy muss ein gültiger CUID2-Identifier sein');
+      });
+
+      it('should fail when updatedBy is not a valid CUID', () => {
+        // Given (Arrange)
+        const person = createValidPerson();
+
+        // When (Act)
+        const result = person.assignToFahrzeug(validFahrzeugId, 'LF 10/1', 'invalid-cuid');
+
+        // Then (Assert)
+        expect(result.isFailure).toBe(true);
+        expect(result.error).toContain('updatedBy muss ein gültiger CUID2-Identifier sein');
+      });
+    });
+
+    describe('success cases', () => {
+      it('should assign person to fahrzeug successfully', () => {
+        // Given (Arrange)
+        const person = createValidPerson();
+        expect(person.fahrzeugId).toBeUndefined();
+
+        // When (Act)
+        const result = person.assignToFahrzeug(validFahrzeugId, 'LF 10/1', validUpdatedBy);
+
+        // Then (Assert)
+        expect(result.isSuccess).toBe(true);
+        expect(person.fahrzeugId).toBe(validFahrzeugId);
+        expect(person.updatedBy).toBe(validUpdatedBy);
+      });
+
+      it('should emit PersonZuFahrzeugZugewiesenEvent', () => {
+        // Given (Arrange)
+        const person = createValidPerson();
+
+        // When (Act)
+        const result = person.assignToFahrzeug(validFahrzeugId, 'LF 10/1', validUpdatedBy);
+
+        // Then (Assert)
+        expect(result.isSuccess).toBe(true);
+        const events = person.getDomainEvents();
+        expect(events).toHaveLength(1);
+        expect(events[0].constructor.name).toBe('PersonZuFahrzeugZugewiesenEvent');
+      });
+
+      it('should trim fahrzeugFunkrufname in event', () => {
+        // Given (Arrange)
+        const person = createValidPerson();
+
+        // When (Act)
+        const result = person.assignToFahrzeug(validFahrzeugId, '  LF 10/1  ', validUpdatedBy);
+
+        // Then (Assert)
+        expect(result.isSuccess).toBe(true);
+        const events = person.getDomainEvents();
+        const event = events[0] as { fahrzeugFunkrufname: string };
+        expect(event.fahrzeugFunkrufname).toBe('LF 10/1');
+      });
+    });
+
+    describe('idempotency', () => {
+      it('should NOT emit event when assigning to same fahrzeug (idempotent)', () => {
+        // Given (Arrange)
+        const person = createValidPerson();
+        person.assignToFahrzeug(validFahrzeugId, 'LF 10/1', validUpdatedBy);
+        person.clearDomainEvents();
+
+        // When (Act)
+        const result = person.assignToFahrzeug(validFahrzeugId, 'LF 10/1', validUpdatedBy);
+
+        // Then (Assert)
+        expect(result.isSuccess).toBe(true);
+        expect(person.getDomainEvents()).toHaveLength(0);
+      });
+
+      it('should emit event when reassigning to different fahrzeug', () => {
+        // Given (Arrange)
+        const person = createValidPerson();
+        const otherFahrzeugId = 'clw3h8x9y0000qwertyuiopgg';
+        person.assignToFahrzeug(validFahrzeugId, 'LF 10/1', validUpdatedBy);
+        person.clearDomainEvents();
+
+        // When (Act)
+        const result = person.assignToFahrzeug(otherFahrzeugId, 'TLF 16/25', validUpdatedBy);
+
+        // Then (Assert)
+        expect(result.isSuccess).toBe(true);
+        expect(person.fahrzeugId).toBe(otherFahrzeugId);
+        expect(person.getDomainEvents()).toHaveLength(1);
+      });
+    });
+  });
+
+  describe('removeFromFahrzeug()', () => {
+    const validFahrzeugId = 'clw3h8x9y0000qwertyuiopff';
+    const validUpdatedBy = 'clw3h8x9y0000qwertyuiopuu';
+
+    function createPersonWithFahrzeug(): EinsatzPerson {
+      const result = EinsatzPerson.createFromStammPerson({
+        einsatzId: validEinsatzId,
+        stammId: validStammId,
+        vorname: 'Max',
+        nachname: 'Mustermann',
+        funktion: 'Helfer',
+        createdBy: validCreatedBy,
+      });
+      expect(result.isSuccess).toBe(true);
+      const person = result.value!;
+      person.assignToFahrzeug(validFahrzeugId, 'LF 10/1', validUpdatedBy);
+      person.clearDomainEvents();
+      return person;
+    }
+
+    describe('validation', () => {
+      it('should fail when updatedBy is empty', () => {
+        // Given (Arrange)
+        const person = createPersonWithFahrzeug();
+
+        // When (Act)
+        const result = person.removeFromFahrzeug('LF 10/1', '');
+
+        // Then (Assert)
+        expect(result.isFailure).toBe(true);
+        expect(result.error).toContain('updatedBy muss ein gültiger CUID2-Identifier sein');
+      });
+
+      it('should fail when updatedBy is not a valid CUID', () => {
+        // Given (Arrange)
+        const person = createPersonWithFahrzeug();
+
+        // When (Act)
+        const result = person.removeFromFahrzeug('LF 10/1', 'invalid-cuid');
+
+        // Then (Assert)
+        expect(result.isFailure).toBe(true);
+        expect(result.error).toContain('updatedBy muss ein gültiger CUID2-Identifier sein');
+      });
+    });
+
+    describe('success cases', () => {
+      it('should remove person from fahrzeug successfully', () => {
+        // Given (Arrange)
+        const person = createPersonWithFahrzeug();
+        expect(person.fahrzeugId).toBe(validFahrzeugId);
+
+        // When (Act)
+        const result = person.removeFromFahrzeug('LF 10/1', validUpdatedBy);
+
+        // Then (Assert)
+        expect(result.isSuccess).toBe(true);
+        expect(person.fahrzeugId).toBeUndefined();
+        expect(person.updatedBy).toBe(validUpdatedBy);
+      });
+
+      it('should emit PersonVonFahrzeugEntferntEvent', () => {
+        // Given (Arrange)
+        const person = createPersonWithFahrzeug();
+
+        // When (Act)
+        const result = person.removeFromFahrzeug('LF 10/1', validUpdatedBy);
+
+        // Then (Assert)
+        expect(result.isSuccess).toBe(true);
+        const events = person.getDomainEvents();
+        expect(events).toHaveLength(1);
+        expect(events[0].constructor.name).toBe('PersonVonFahrzeugEntferntEvent');
+      });
+    });
+
+    describe('idempotency', () => {
+      it('should NOT emit event when no fahrzeug assigned (idempotent)', () => {
+        // Given (Arrange)
+        const result = EinsatzPerson.createFromStammPerson({
+          einsatzId: validEinsatzId,
+          stammId: validStammId,
+          vorname: 'Max',
+          nachname: 'Mustermann',
+          funktion: 'Helfer',
+          createdBy: validCreatedBy,
+        });
+        const person = result.value!;
+        person.clearDomainEvents();
+
+        // When (Act)
+        const removeResult = person.removeFromFahrzeug('LF 10/1', validUpdatedBy);
+
+        // Then (Assert)
+        expect(removeResult.isSuccess).toBe(true);
+        expect(person.getDomainEvents()).toHaveLength(0);
+      });
+    });
+  });
+
   describe('domain events', () => {
     it('should clear domain events after getDomainEvents and clearDomainEvents', () => {
       // Given (Arrange)

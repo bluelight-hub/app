@@ -532,12 +532,17 @@ export class EinsatzPerson extends AggregateRoot<EinsatzPersonId> {
     if (!fahrzeugId?.trim() || !isCuid(fahrzeugId.trim())) {
       return Result.fail(EinsatzPersonError.format(EINSATZ_PERSON_ERROR_CODES.VALIDATION_ERROR, 'fahrzeugId muss ein gültiger CUID2-Identifier sein'));
     }
+    // Validation: fahrzeugFunkrufname (BLOCKER Fix)
+    if (!fahrzeugFunkrufname?.trim()) {
+      return Result.fail(EinsatzPersonError.format(EINSATZ_PERSON_ERROR_CODES.VALIDATION_ERROR, 'fahrzeugFunkrufname ist erforderlich'));
+    }
     // Validation: updatedBy
     if (!updatedBy?.trim() || !isCuid(updatedBy.trim())) {
       return Result.fail(EinsatzPersonError.format(EINSATZ_PERSON_ERROR_CODES.VALIDATION_ERROR, 'updatedBy muss ein gültiger CUID2-Identifier sein'));
     }
 
     const trimmedFahrzeugId = fahrzeugId.trim();
+    const trimmedFunkrufname = fahrzeugFunkrufname.trim();
     const trimmedUpdatedBy = updatedBy.trim();
 
     // Idempotenz: Bereits zugewiesen → kein Event
@@ -551,7 +556,7 @@ export class EinsatzPerson extends AggregateRoot<EinsatzPersonId> {
     this.updateTimestamp();
 
     // Domain Event
-    this.addDomainEvent(new PersonZuFahrzeugZugewiesenEvent(this._einsatzId, this._id.value, trimmedFahrzeugId, this._vorname, this._nachname, fahrzeugFunkrufname, trimmedUpdatedBy));
+    this.addDomainEvent(new PersonZuFahrzeugZugewiesenEvent(this._einsatzId, this._id.value, trimmedFahrzeugId, this._vorname, this._nachname, trimmedFunkrufname, trimmedUpdatedBy));
 
     return Result.ok<void>(undefined);
   }
@@ -567,6 +572,11 @@ export class EinsatzPerson extends AggregateRoot<EinsatzPersonId> {
    * @returns Result<void>
    */
   removeFromFahrzeug(fahrzeugFunkrufname: string, updatedBy: string): Result<void> {
+    // Validation: fahrzeugFunkrufname (für ETB-Eintrag)
+    if (!fahrzeugFunkrufname?.trim()) {
+      return Result.fail(EinsatzPersonError.format(EINSATZ_PERSON_ERROR_CODES.VALIDATION_ERROR, 'fahrzeugFunkrufname ist erforderlich'));
+    }
+
     // Validation: updatedBy
     if (!updatedBy?.trim() || !isCuid(updatedBy.trim())) {
       return Result.fail(EinsatzPersonError.format(EINSATZ_PERSON_ERROR_CODES.VALIDATION_ERROR, 'updatedBy muss ein gültiger CUID2-Identifier sein'));
@@ -578,6 +588,7 @@ export class EinsatzPerson extends AggregateRoot<EinsatzPersonId> {
     }
 
     const previousFahrzeugId = this._fahrzeugId;
+    const trimmedFunkrufname = fahrzeugFunkrufname.trim();
     const trimmedUpdatedBy = updatedBy.trim();
 
     // State Update
@@ -586,7 +597,7 @@ export class EinsatzPerson extends AggregateRoot<EinsatzPersonId> {
     this.updateTimestamp();
 
     // Domain Event
-    this.addDomainEvent(new PersonVonFahrzeugEntferntEvent(this._einsatzId, this._id.value, previousFahrzeugId, this._vorname, this._nachname, fahrzeugFunkrufname, trimmedUpdatedBy));
+    this.addDomainEvent(new PersonVonFahrzeugEntferntEvent(this._einsatzId, this._id.value, previousFahrzeugId, this._vorname, this._nachname, trimmedFunkrufname, trimmedUpdatedBy));
 
     return Result.ok<void>(undefined);
   }

@@ -202,7 +202,7 @@ export const LagekarteView: React.FC<LagekarteViewProps> = ({ einsatzId, mode = 
   const [isExportingToEtb, setIsExportingToEtb] = useState(false);
 
   // Lagekarte-Daten (für lagekarteId + State)
-  const { data: lagekarteData } = useLagekarte(einsatzId);
+  const { data: lagekarte } = useLagekarte(einsatzId);
 
   // ETB-Daten (für etbId beim Export)
   const { data: etbData, refetch: refetchEtb, isLoading: isEtbLoading } = useEtb({ einsatzId });
@@ -359,10 +359,10 @@ export const LagekarteView: React.FC<LagekarteViewProps> = ({ einsatzId, mode = 
    */
   const handlePropertiesChange = useCallback(
     (shapeId: string, properties: Partial<ShapeProperties>) => {
-      if (!lagekarteData?.data?.state) return;
+      if (!lagekarte?.state) return;
 
       // Find shape in current state
-      const currentState = lagekarteData.data.state as GeoJSON.FeatureCollection;
+      const currentState = lagekarte.state as GeoJSON.FeatureCollection;
       const shapeIndex = currentState.features.findIndex((f) => f.properties?.id === shapeId);
 
       if (shapeIndex === -1) return;
@@ -382,7 +382,7 @@ export const LagekarteView: React.FC<LagekarteViewProps> = ({ einsatzId, mode = 
       // Also update selectedShape to reflect changes in PropertyPanel
       setSelectedShape(updatedShape);
     },
-    [lagekarteData],
+    [lagekarte],
   );
 
   /**
@@ -617,8 +617,8 @@ export const LagekarteView: React.FC<LagekarteViewProps> = ({ einsatzId, mode = 
       )}
 
       {/* POI-Platzierungs-Modal */}
-      {isModalOpen && selectedType && clickedCoordinates && lagekarteData?.data && (
-        <PoiPlacementModal isOpen={isModalOpen} onClose={handleModalClose} poiType={selectedType} coordinates={clickedCoordinates} einsatzId={einsatzId} lagekarteId={lagekarteData?.data?.id} />
+      {isModalOpen && selectedType && clickedCoordinates && lagekarte && (
+        <PoiPlacementModal isOpen={isModalOpen} onClose={handleModalClose} poiType={selectedType} coordinates={clickedCoordinates} einsatzId={einsatzId} lagekarteId={lagekarte.id} />
       )}
 
       {/* Shape-Label-Modal */}
@@ -703,25 +703,25 @@ export const LagekarteView: React.FC<LagekarteViewProps> = ({ einsatzId, mode = 
           {/* POI-Layer (conditionally rendered based on layer visibility) */}
           {layers.find((l) => l.name === 'poi')?.visible && (
             <LayerErrorBoundary layerName="POI-Layer">
-              <ClusteredPoiLayer lagekarteId={lagekarteData?.data?.id} />
+              <ClusteredPoiLayer lagekarteId={lagekarte?.id} />
             </LayerErrorBoundary>
           )}
 
           {/* Drawing-Layer (conditionally rendered based on layer visibility) */}
           {(() => {
-            const shouldRender = layers.find((l) => l.name === 'drawing')?.visible && lagekarteData?.data;
+            const shouldRender = layers.find((l) => l.name === 'drawing')?.visible && !!lagekarte;
             console.log('[LagekarteView] DrawingLayer render check:', {
               shouldRender,
               isPlacementActive,
               hasDrawingLayer: !!layers.find((l) => l.name === 'drawing')?.visible,
-              hasData: !!lagekarteData?.data,
+              hasData: !!lagekarte,
             });
             return shouldRender;
           })() && (
             <DrawingLayer
               einsatzId={einsatzId}
               selectedTool={selectedDrawingTool}
-              initialState={lagekarteData.data.state as GeoJSON.FeatureCollection | undefined}
+              initialState={lagekarte?.state}
               shapeToUpdate={shapeToUpdate}
               onShapesChange={handleShapesChange}
               onShapeCreated={handleShapeCreated}
@@ -732,7 +732,7 @@ export const LagekarteView: React.FC<LagekarteViewProps> = ({ einsatzId, mode = 
             />
           )}
 
-          <MapBoundsController lagekarteId={lagekarteData?.data?.id} />
+          <MapBoundsController lagekarteId={lagekarte?.id} />
           <MapBoundsTracker onBoundsReady={handleBoundsReady} onMapReady={setMapInstance} />
         </MapContainer>
       </div>

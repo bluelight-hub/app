@@ -1,7 +1,7 @@
 import { HttpExceptionFilter } from '@/infrastructure/http/filters/http-exception.filter';
 import { DomainExceptionFilter } from '@/infrastructure/http/filters/domain-exception.filter';
 import { Logger, Module } from '@nestjs/common';
-import { ConfigModule } from '@nestjs/config';
+import { ConfigModule, ConfigService } from '@nestjs/config';
 import { APP_FILTER, APP_GUARD } from '@nestjs/core';
 import { EventEmitterModule } from '@nestjs/event-emitter';
 import { ThrottlerModule, ThrottlerGuard } from '@nestjs/throttler';
@@ -50,12 +50,22 @@ import { KraefteModule } from './modules/kraefte/kraefte.module';
       delimiter: '.',
       maxListeners: 10,
     }),
-    ThrottlerModule.forRoot([
-      {
-        ttl: 60000, // 60 seconds
-        limit: 10, // 10 requests per minute globally
+    ThrottlerModule.forRootAsync({
+      inject: [ConfigService],
+      useFactory: (configService: ConfigService) => {
+        const windowMs = Number(configService.get('RATE_LIMITER_WINDOW_MS', 60000));
+        const maxRequests = Number(configService.get('RATE_LIMITER_MAX_REQUESTS', 100));
+        const ttl = Number.isFinite(windowMs) && windowMs > 0 ? windowMs : 60000;
+        const limit = Number.isFinite(maxRequests) && maxRequests > 0 ? maxRequests : 100;
+
+        return [
+          {
+            ttl,
+            limit,
+          },
+        ];
       },
-    ]),
+    }),
     ServeStaticModule.forRoot({
       rootPath: join(process.cwd(), process.env.UPLOADS_PATH || 'uploads'),
       serveRoot: '/uploads',

@@ -218,6 +218,20 @@ function getErrorCategory(error: unknown): string {
   return 'unknown';
 }
 
+function getErrorContext(error: unknown): { status?: number; url?: string; requestId?: string } {
+  if (error && typeof error === 'object' && 'response' in error) {
+    const response = (error as ResponseError).response;
+    const requestId = response?.headers?.get?.('x-request-id') ?? response?.headers?.get?.('X-Request-Id') ?? undefined;
+    return {
+      status: response?.status,
+      url: response?.url,
+      requestId,
+    };
+  }
+
+  return {};
+}
+
 /**
  * Global error handler for React Query
  */
@@ -280,10 +294,20 @@ export async function handleQueryError(error: unknown, _query?: unknown): Promis
   if (!message) return;
 
   const category = getErrorCategory(error);
+  const context = getErrorContext(error);
 
   // Mark error as shown
   if (error instanceof Error) {
     shownErrors.add(error);
+  }
+
+  if (import.meta.env.DEV) {
+    try {
+      const queryKey = _query && typeof _query === 'object' && 'queryKey' in _query ? (_query as { queryKey?: unknown }).queryKey : undefined;
+      logger.error('React Query error', { message, category, ...context, queryKey, error });
+    } catch (logError) {
+      console.error('React Query error (logging failed)', logError);
+    }
   }
 
   // Show toast based on category
