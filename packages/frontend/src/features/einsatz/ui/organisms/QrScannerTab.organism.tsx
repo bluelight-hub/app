@@ -31,7 +31,6 @@ import { toast } from 'sonner';
 interface QrScannerTabProps {
   einsatzId: string;
   onSuccess?: (personName: string) => void;
-  onClose?: () => void;
 }
 
 type ScannerState =
@@ -155,19 +154,26 @@ export function QrScannerTab({ einsatzId, onSuccess }: QrScannerTabProps) {
    * Verwendet Refs für stabile Dependencies (keine infinite loops)
    */
   const processQrCode = useCallback(async (qrContent: string) => {
+    console.log('[QR Scanner] processQrCode aufgerufen:', qrContent);
+
     // Debounce: Verhindere mehrfaches Scannen desselben Codes
     if (lastScannedRef.current === qrContent || cooldownRef.current) {
+      console.log('[QR Scanner] Debounce aktiv, überspringe');
       return;
     }
 
     // Quick-Check: Ist es überhaupt ein DRK QR-Code?
     if (!isDrkQrCodeFormat(qrContent)) {
-      // Ignoriere non-DRK QR-Codes still (kein Fehler anzeigen)
+      // Log: Zeige das tatsächliche Format für Debugging
+      console.log('[QR Scanner] Kein DRK-Format erkannt. Erwartet: drk://person?..., Erhalten:', qrContent);
       return;
     }
 
+    console.log('[QR Scanner] DRK-Format erkannt, parse...');
+
     // Parse den QR-Code
     const parseResult = parseDrkQrCode(qrContent);
+    console.log('[QR Scanner] Parse-Ergebnis:', parseResult);
 
     if (!parseResult.success) {
       // Parsing-Fehler anzeigen
@@ -187,6 +193,12 @@ export function QrScannerTab({ einsatzId, onSuccess }: QrScannerTabProps) {
     // Erfolgreiches Parsing - merken und registrieren
     lastScannedRef.current = qrContent;
     const qrData = parseResult.data;
+
+    // CRITICAL FIX: Cancel animation frame before switching to processing state
+    if (animationRef.current) {
+      cancelAnimationFrame(animationRef.current);
+      animationRef.current = null;
+    }
 
     setState({ status: 'processing', data: qrData });
 
@@ -282,7 +294,7 @@ export function QrScannerTab({ einsatzId, onSuccess }: QrScannerTabProps) {
     });
 
     if (code?.data) {
-      console.log('[QR Scanner] Code erkannt:', code.data.substring(0, 50) + '...');
+      console.log('[QR Scanner] Code erkannt:', code.data);
       processQrCode(code.data);
     }
 
@@ -404,6 +416,9 @@ export function QrScannerTab({ einsatzId, onSuccess }: QrScannerTabProps) {
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Kamerazugriff verweigert';
 
+      // CRITICAL FIX: Cleanup before setting error state
+      cleanupBrowser();
+
       // Spezifische Fehlerbehandlung für Permission-Denied
       if (error instanceof DOMException) {
         if (error.name === 'NotAllowedError') {
@@ -424,7 +439,7 @@ export function QrScannerTab({ einsatzId, onSuccess }: QrScannerTabProps) {
 
       setState({ status: 'permission-denied', error: errorMessage });
     }
-  }, [scanFrame]);
+  }, [scanFrame, cleanupBrowser]);
 
   /**
    * Startet den Scanner im passenden Modus
@@ -497,7 +512,14 @@ export function QrScannerTab({ einsatzId, onSuccess }: QrScannerTabProps) {
           )}
         >
           {/* Video Element */}
-          <video ref={videoRef} className={cn('h-full w-full object-cover', state.status !== 'scanning' && state.status !== 'processing' && 'hidden')} playsInline muted autoPlay />
+          <video
+            ref={videoRef}
+            className={cn('h-full w-full object-cover', state.status !== 'scanning' && state.status !== 'processing' && 'hidden')}
+            playsInline
+            muted
+            autoPlay
+            title="QR-Code Scanner Kamera-Feed"
+          />
 
           {/* Verstecktes Canvas für QR-Erkennung */}
           <canvas ref={canvasRef} className="hidden" />
@@ -712,7 +734,7 @@ function StatusDisplay({ state }: { state: ScannerState }) {
   const config = statusConfig[state.status];
 
   return (
-    <div className={cn('flex items-center gap-2 font-medium text-sm', config.color)}>
+    <div className={cn('flex items-center gap-2 font-medium text-sm', config.color)} aria-live="polite" aria-atomic="true">
       {config.icon}
       <span>{config.text}</span>
     </div>

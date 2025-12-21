@@ -194,6 +194,9 @@ export function PersonHinzufuegenDialog({ isOpen, onClose, einsatzId }: PersonHi
     },
     validatorAdapter: zodValidator(),
     validators: {
+      // onChange: Sofortiges Feedback bei Änderungen, aktualisiert canSubmit
+      onChange: personSchema,
+      // onBlur: Validierung beim Verlassen des Feldes (für initiale Fehlermeldungen)
       onBlur: personSchema,
     },
   });
@@ -212,6 +215,9 @@ export function PersonHinzufuegenDialog({ isOpen, onClose, einsatzId }: PersonHi
 
         // Setze Suchquery auf Nachname für bessere UX
         setSearchQuery(person.nachname || '');
+
+        // Validierung manuell triggern nach setFieldValue (TanStack Form validiert nicht automatisch)
+        void form.validateAllFields('change');
       } else {
         // Reset stammPersonId bei manueller Eingabe
         form.setFieldValue('stammPersonId', undefined);
@@ -275,7 +281,8 @@ export function PersonHinzufuegenDialog({ isOpen, onClose, einsatzId }: PersonHi
   useHotkeys(
     'mod+enter',
     () => {
-      if (isOpen && form.state.canSubmit && !registrierePerson.isPending) {
+      const { vorname, nachname, funktion } = form.state.values;
+      if (isOpen && vorname && nachname && funktion && !registrierePerson.isPending) {
         handleRegistrieren();
       }
     },
@@ -600,7 +607,7 @@ export function PersonHinzufuegenDialog({ isOpen, onClose, einsatzId }: PersonHi
 
               {/* Tab 2: QR-Code Scanner */}
               <TabPanel>
-                <QrScannerTab einsatzId={einsatzId} onSuccess={handleQrSuccess} onClose={handleClose} />
+                <QrScannerTab einsatzId={einsatzId} onSuccess={handleQrSuccess} />
               </TabPanel>
             </TabPanels>
           </TabGroup>
@@ -612,7 +619,15 @@ export function PersonHinzufuegenDialog({ isOpen, onClose, einsatzId }: PersonHi
             <Button intent="secondary" appearance="ghost" onClick={handleClose} disabled={registrierePerson.isPending}>
               Abbrechen
             </Button>
-            <Button intent="primary" onClick={handleRegistrieren} disabled={!form.state.canSubmit || registrierePerson.isPending} loading={registrierePerson.isPending}>
+            <Button
+              intent="primary"
+              onClick={handleRegistrieren}
+              disabled={
+                // Prüfe ob alle Pflichtfelder ausgefüllt sind (robuster als canSubmit)
+                !form.state.values.vorname || !form.state.values.nachname || !form.state.values.funktion || registrierePerson.isPending
+              }
+              loading={registrierePerson.isPending}
+            >
               Person hinzufügen
             </Button>
           </Dialog.Footer>
