@@ -74,7 +74,7 @@ describe('ErfasseFahrzeugAusStammdatenHandler', () => {
       id: validFahrzeugtypId,
       code: 'RTW',
       bezeichnung: 'Rettungswagen',
-      kategorie: 'EINSATZ', // Gültige Kategorie: TRANSPORT, EINSATZ, SPEZIAL, LOGISTIK, SONSTIGES
+      kategorie: 'RETTUNGSDIENST', // Gültige Kategorie: RETTUNGSDIENST, FUEHRUNG, TRANSPORT, SONSTIGES
       istAktiv: true,
       sortOrder: 0,
       createdAt: new Date(),

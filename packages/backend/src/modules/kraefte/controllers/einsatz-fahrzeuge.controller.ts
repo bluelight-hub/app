@@ -15,12 +15,11 @@ import {
   Logger,
 } from '@nestjs/common';
 import { ParseCuidPipe } from '@/infrastructure/http/pipes/parse-cuid.pipe';
+import { ApiWrappedResponse, ApiWrappedCreatedResponse } from '@/modules/common/decorators/api-wrapped-response.decorator';
 import {
   ApiTags,
   ApiBearerAuth,
   ApiOperation,
-  ApiOkResponse,
-  ApiCreatedResponse,
   ApiNotFoundResponse,
   ApiBadRequestResponse,
   ApiUnauthorizedResponse,
@@ -106,7 +105,7 @@ export class EinsatzFahrzeugeController {
   @Throttle({ default: { limit: 30, ttl: 60000 } })
   @ApiOperation({ summary: 'Alle Fahrzeuge eines Einsatzes auflisten' })
   @ApiParam({ name: 'einsatzId', type: String, format: 'cuid', description: 'Einsatz-ID (CUID)' })
-  @ApiOkResponse({ type: EinsatzFahrzeugDto, isArray: true })
+  @ApiWrappedResponse(EinsatzFahrzeugDto, { isArray: true, description: 'Liste aller EinsatzFahrzeuge' })
   @ApiBadRequestResponse({ description: 'Ungültige Einsatz-ID' })
   async findAll(@Param('einsatzId', ParseCuidPipe) einsatzId: string): Promise<EinsatzFahrzeugDto[]> {
     const queryResult = GetEinsatzFahrzeugeQuery.create(einsatzId);
@@ -158,7 +157,7 @@ export class EinsatzFahrzeugeController {
   @HttpCode(HttpStatus.CREATED)
   @ApiOperation({ summary: 'Fahrzeug aus Stammdaten für Einsatz erfassen' })
   @ApiParam({ name: 'einsatzId', type: String, format: 'cuid', description: 'Einsatz-ID (CUID)' })
-  @ApiCreatedResponse({ type: EinsatzFahrzeugDto, description: 'Fahrzeug erfolgreich erfasst' })
+  @ApiWrappedCreatedResponse(EinsatzFahrzeugDto, { description: 'Fahrzeug erfolgreich erfasst' })
   @ApiBadRequestResponse({ description: 'Validierungsfehler (z.B. ungültige stammId)' })
   @ApiNotFoundResponse({ description: 'StammFahrzeug oder Fahrzeugtyp nicht gefunden' })
   @ApiConflictResponse({ description: 'Fahrzeug mit diesem Funkrufnamen bereits im Einsatz erfasst' })
@@ -244,7 +243,7 @@ export class EinsatzFahrzeugeController {
   @HttpCode(HttpStatus.CREATED)
   @ApiOperation({ summary: 'Temporäres Fahrzeug für Einsatz erfassen' })
   @ApiParam({ name: 'einsatzId', type: String, format: 'cuid', description: 'Einsatz-ID (CUID)' })
-  @ApiCreatedResponse({ type: EinsatzFahrzeugDto, description: 'Temporäres Fahrzeug erfolgreich erfasst' })
+  @ApiWrappedCreatedResponse(EinsatzFahrzeugDto, { description: 'Temporäres Fahrzeug erfolgreich erfasst' })
   @ApiBadRequestResponse({ description: 'Validierungsfehler (z.B. ungültiger Funkrufname)' })
   @ApiNotFoundResponse({ description: 'Fahrzeugtyp nicht gefunden' })
   @ApiConflictResponse({ description: 'Fahrzeug mit diesem Funkrufnamen bereits im Einsatz erfasst' })
@@ -331,7 +330,7 @@ export class EinsatzFahrzeugeController {
   @ApiOperation({ summary: 'FMS-Status eines Fahrzeugs aktualisieren' })
   @ApiParam({ name: 'einsatzId', type: String, format: 'cuid', description: 'Einsatz-ID (CUID)' })
   @ApiParam({ name: 'id', type: String, format: 'cuid2', description: 'CUID2 des Einsatz-Fahrzeugs', example: 'clx1234567890abcdef12345' })
-  @ApiOkResponse({ type: EinsatzFahrzeugDto, description: 'FMS-Status erfolgreich aktualisiert' })
+  @ApiWrappedResponse(EinsatzFahrzeugDto, { description: 'FMS-Status erfolgreich aktualisiert' })
   @ApiBadRequestResponse({ description: 'Ungültiger FMS-Status (muss 0-9 sein)' })
   @ApiNotFoundResponse({ description: 'EinsatzFahrzeug nicht gefunden' })
   @ApiTooManyRequestsResponse({ description: 'Rate limit überschritten' })

@@ -1,4 +1,12 @@
 /**
+ * Default-Funktion für QR-Code Registrierung.
+ *
+ * Wird verwendet wenn Person via QR-Code erfasst wird und keine
+ * spezifische Funktion bekannt ist (Story 4.2 AC3).
+ */
+export const DEFAULT_QR_FUNKTION = 'Helfer' as const;
+
+/**
  * Error Codes für EinsatzPerson Domain.
  *
  * Strukturierte Fehlercodes ermöglichen:
@@ -33,6 +41,8 @@ export const EINSATZ_PERSON_ERROR_CODES = {
   DUPLICATE_PERSON: 'EINSATZ_PERSON_DUPLICATE_PERSON',
   /** Referenzierte StammPerson nicht gefunden */
   STAMM_NOT_FOUND: 'EINSATZ_PERSON_STAMM_NOT_FOUND',
+  /** Referenzierte StammPerson ist archiviert */
+  STAMM_ARCHIVED: 'EINSATZ_PERSON_STAMM_ARCHIVED',
   /** Ungültige Funktion */
   INVALID_FUNKTION: 'EINSATZ_PERSON_INVALID_FUNKTION',
   /** Vorname ist erforderlich */
@@ -55,6 +65,20 @@ export const EINSATZ_PERSON_ERROR_CODES = {
   FUNKTION_TOO_LONG: 'EINSATZ_PERSON_FUNKTION_TOO_LONG',
   /** Funkrufname zu lang */
   FUNKRUFNAME_TOO_LONG: 'EINSATZ_PERSON_FUNKRUFNAME_TOO_LONG',
+  /** StammPerson Lookup fehlgeschlagen */
+  STAMM_LOOKUP_FAILED: 'EINSATZ_PERSON_STAMM_LOOKUP_FAILED',
+  /** Duplikat-Check fehlgeschlagen */
+  DUPLICATE_CHECK_FAILED: 'EINSATZ_PERSON_DUPLICATE_CHECK_FAILED',
+  /** Speichern fehlgeschlagen */
+  SAVE_FAILED: 'EINSATZ_PERSON_SAVE_FAILED',
+  /** Erstellung des Aggregats fehlgeschlagen */
+  AGGREGATE_CREATION_FAILED: 'EINSATZ_PERSON_AGGREGATE_CREATION_FAILED',
+  /** Fahrzeug gehört zu einem anderen Einsatz */
+  FAHRZEUG_NOT_IN_SAME_EINSATZ: 'EINSATZ_PERSON_FAHRZEUG_NOT_IN_SAME_EINSATZ',
+  /** Fahrzeug nicht gefunden */
+  FAHRZEUG_NOT_FOUND: 'EINSATZ_PERSON_FAHRZEUG_NOT_FOUND',
+  /** Person ist bereits diesem Fahrzeug zugewiesen */
+  ALREADY_ASSIGNED_TO_FAHRZEUG: 'EINSATZ_PERSON_ALREADY_ASSIGNED_TO_FAHRZEUG',
 } as const;
 
 /**

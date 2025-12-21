@@ -79,10 +79,12 @@ export const useErfasseFahrzeugAusStammdaten = () => {
         position: position ? { lat: position.lat, lng: position.lng } : undefined,
       };
 
-      return api.einsatzFahrzeuge().einsatzFahrzeugeControllerErfasseAusStammdatenVAlpha({
+      // WrappedResponse: { data: {...}, meta: {...} }
+      const response = await api.einsatzFahrzeuge().einsatzFahrzeugeControllerErfasseAusStammdatenVAlpha({
         einsatzId,
         erfasseFahrzeugAusStammdatenDto: dto,
       });
+      return response.data;
     },
     onMutate: async ({ einsatzId }) => {
       // Cancel laufende Queries

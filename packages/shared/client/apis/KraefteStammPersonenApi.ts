@@ -13,8 +13,8 @@
  */
 
 import * as runtime from '../runtime';
-import type { StammPersonenControllerFindAllVAlpha200Response } from '../models/index';
-import { StammPersonenControllerFindAllVAlpha200ResponseFromJSON, StammPersonenControllerFindAllVAlpha200ResponseToJSON } from '../models/index';
+import type { AdminStammPersonenControllerFindAllVAlpha200Response } from '../models/index';
+import { AdminStammPersonenControllerFindAllVAlpha200ResponseFromJSON, AdminStammPersonenControllerFindAllVAlpha200ResponseToJSON } from '../models/index';
 
 export interface StammPersonenControllerFindAllVAlphaRequest {
   includeArchived?: boolean;
@@ -30,7 +30,7 @@ export class KraefteStammPersonenApi extends runtime.BaseAPI {
   async stammPersonenControllerFindAllVAlphaRaw(
     requestParameters: StammPersonenControllerFindAllVAlphaRequest,
     initOverrides?: RequestInit | runtime.InitOverrideFunction,
-  ): Promise<runtime.ApiResponse<StammPersonenControllerFindAllVAlpha200Response>> {
+  ): Promise<runtime.ApiResponse<AdminStammPersonenControllerFindAllVAlpha200Response>> {
     const queryParameters: any = {};
 
     if (requestParameters['includeArchived'] != null) {
@@ -49,7 +49,7 @@ export class KraefteStammPersonenApi extends runtime.BaseAPI {
       initOverrides,
     );
 
-    return new runtime.JSONApiResponse(response, (jsonValue) => StammPersonenControllerFindAllVAlpha200ResponseFromJSON(jsonValue));
+    return new runtime.JSONApiResponse(response, (jsonValue) => AdminStammPersonenControllerFindAllVAlpha200ResponseFromJSON(jsonValue));
   }
 
   /**
@@ -58,7 +58,7 @@ export class KraefteStammPersonenApi extends runtime.BaseAPI {
   async stammPersonenControllerFindAllVAlpha(
     requestParameters: StammPersonenControllerFindAllVAlphaRequest = {},
     initOverrides?: RequestInit | runtime.InitOverrideFunction,
-  ): Promise<StammPersonenControllerFindAllVAlpha200Response> {
+  ): Promise<AdminStammPersonenControllerFindAllVAlpha200Response> {
     const response = await this.stammPersonenControllerFindAllVAlphaRaw(requestParameters, initOverrides);
     return await response.value();
   }

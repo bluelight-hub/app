@@ -76,7 +76,7 @@ describe('UpdateFmsStatusHandler', () => {
       id: testFahrzeugtypId,
       code: 'LF',
       bezeichnung: 'Löschfahrzeug',
-      kategorie: 'EINSATZ',
+      kategorie: 'RETTUNGSDIENST',
       istAktiv: true,
       sortOrder: 0,
       createdAt: new Date(),

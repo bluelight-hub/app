@@ -4,6 +4,8 @@ import { isCuid } from '@paralleldrive/cuid2';
 import { EINSATZ_PERSON_ERROR_CODES, EinsatzPersonError } from '../common/einsatz-person-error-codes';
 import { EINSATZ_PERSON_VALIDATION, EINSATZ_PERSON_VALIDATION_ERRORS } from '../constants/einsatz-person-validation.constants';
 import { EinsatzPersonHinzugefuegtEvent } from '../events/einsatz-person-hinzugefuegt.event';
+import { PersonZuFahrzeugZugewiesenEvent } from '../events/person-zu-fahrzeug-zugewiesen.event';
+import { PersonVonFahrzeugEntferntEvent } from '../events/person-von-fahrzeug-entfernt.event';
 import { EinsatzPersonId } from '../value-objects/einsatz-person-id';
 import { GeoPosition } from '../value-objects/geo-position.vo';
 
@@ -72,6 +74,7 @@ export interface ReconstituteEinsatzPersonProps {
   updatedAt: Date;
   createdBy: string;
   updatedBy?: string;
+  fahrzeugId?: string;
 }
 
 /**
@@ -114,6 +117,7 @@ export class EinsatzPerson extends AggregateRoot<EinsatzPersonId> {
   private _position?: GeoPosition; // Aktuelle GPS-Position
   private _createdBy: string;
   private _updatedBy?: string;
+  private _fahrzeugId?: string; // NEU: Nullable Fahrzeug-Referenz
 
   private constructor(
     id: EinsatzPersonId,
@@ -129,6 +133,7 @@ export class EinsatzPerson extends AggregateRoot<EinsatzPersonId> {
     createdAt?: Date,
     updatedAt?: Date,
     updatedBy?: string,
+    fahrzeugId?: string,
   ) {
     super(id, createdAt, updatedAt);
     this._einsatzId = einsatzId;
@@ -141,6 +146,7 @@ export class EinsatzPerson extends AggregateRoot<EinsatzPersonId> {
     this._position = position;
     this._createdBy = createdBy;
     this._updatedBy = updatedBy;
+    this._fahrzeugId = fahrzeugId;
   }
 
   // ============ Getters ============
@@ -193,6 +199,11 @@ export class EinsatzPerson extends AggregateRoot<EinsatzPersonId> {
   /** User-ID des letzten Bearbeiters (Audit-Trail) */
   get updatedBy(): string | undefined {
     return this._updatedBy;
+  }
+
+  /** ID des zugewiesenen Fahrzeugs (nullable) */
+  get fahrzeugId(): string | undefined {
+    return this._fahrzeugId;
   }
 
   // ============ Factory Methods ============
@@ -498,7 +509,85 @@ export class EinsatzPerson extends AggregateRoot<EinsatzPersonId> {
         props.createdAt,
         props.updatedAt,
         props.updatedBy?.trim(),
+        props.fahrzeugId,
       ),
     );
+  }
+
+  // ============ Business Methods ============
+
+  /**
+   * Weist die Person einem Fahrzeug zu.
+   *
+   * Emittiert PersonZuFahrzeugZugewiesenEvent für ETB-Eintrag.
+   * Idempotent: Zuweisung zum gleichen Fahrzeug erzeugt kein Event.
+   *
+   * @param fahrzeugId - EinsatzFahrzeug-ID (CUID2)
+   * @param fahrzeugFunkrufname - Für Event/ETB (denormalisiert)
+   * @param updatedBy - User-ID für Audit
+   * @returns Result<void>
+   */
+  assignToFahrzeug(fahrzeugId: string, fahrzeugFunkrufname: string, updatedBy: string): Result<void> {
+    // Validation: fahrzeugId
+    if (!fahrzeugId?.trim() || !isCuid(fahrzeugId.trim())) {
+      return Result.fail(EinsatzPersonError.format(EINSATZ_PERSON_ERROR_CODES.VALIDATION_ERROR, 'fahrzeugId muss ein gültiger CUID2-Identifier sein'));
+    }
+    // Validation: updatedBy
+    if (!updatedBy?.trim() || !isCuid(updatedBy.trim())) {
+      return Result.fail(EinsatzPersonError.format(EINSATZ_PERSON_ERROR_CODES.VALIDATION_ERROR, 'updatedBy muss ein gültiger CUID2-Identifier sein'));
+    }
+
+    const trimmedFahrzeugId = fahrzeugId.trim();
+    const trimmedUpdatedBy = updatedBy.trim();
+
+    // Idempotenz: Bereits zugewiesen → kein Event
+    if (this._fahrzeugId === trimmedFahrzeugId) {
+      return Result.ok<void>(undefined);
+    }
+
+    // State Update
+    this._fahrzeugId = trimmedFahrzeugId;
+    this._updatedBy = trimmedUpdatedBy;
+    this.updateTimestamp();
+
+    // Domain Event
+    this.addDomainEvent(new PersonZuFahrzeugZugewiesenEvent(this._einsatzId, this._id.value, trimmedFahrzeugId, this._vorname, this._nachname, fahrzeugFunkrufname, trimmedUpdatedBy));
+
+    return Result.ok<void>(undefined);
+  }
+
+  /**
+   * Entfernt die Fahrzeug-Zuweisung.
+   *
+   * Emittiert PersonVonFahrzeugEntferntEvent für ETB-Eintrag.
+   * Idempotent: Entfernen ohne Zuweisung erzeugt kein Event.
+   *
+   * @param fahrzeugFunkrufname - Für Event/ETB (denormalisiert)
+   * @param updatedBy - User-ID für Audit
+   * @returns Result<void>
+   */
+  removeFromFahrzeug(fahrzeugFunkrufname: string, updatedBy: string): Result<void> {
+    // Validation: updatedBy
+    if (!updatedBy?.trim() || !isCuid(updatedBy.trim())) {
+      return Result.fail(EinsatzPersonError.format(EINSATZ_PERSON_ERROR_CODES.VALIDATION_ERROR, 'updatedBy muss ein gültiger CUID2-Identifier sein'));
+    }
+
+    // Idempotenz: Nicht zugewiesen → Success (kein Event)
+    if (!this._fahrzeugId) {
+      return Result.ok<void>(undefined);
+    }
+
+    const previousFahrzeugId = this._fahrzeugId;
+    const trimmedUpdatedBy = updatedBy.trim();
+
+    // State Update
+    this._fahrzeugId = undefined;
+    this._updatedBy = trimmedUpdatedBy;
+    this.updateTimestamp();
+
+    // Domain Event
+    this.addDomainEvent(new PersonVonFahrzeugEntferntEvent(this._einsatzId, this._id.value, previousFahrzeugId, this._vorname, this._nachname, fahrzeugFunkrufname, trimmedUpdatedBy));
+
+    return Result.ok<void>(undefined);
   }
 }

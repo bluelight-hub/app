@@ -8,6 +8,8 @@ import { FahrzeugHinzufuegenDialog } from '@/features/einsatz/ui/organisms/Fahrz
 import { PersonHinzufuegenDialog } from '@/features/einsatz/ui/organisms/PersonHinzufuegenDialog.organism';
 import { useActiveEinsatz, EINSATZ_QUERY_KEYS, useEinsatzFahrzeuge, useUpdateFmsStatus } from '@/features/einsatz';
 import type { FmsStatus } from '@/features/einsatz';
+import { useEtb } from '@/features/etb';
+import { useLagekarte } from '@/features/lagekarte';
 import { formatNatoDateTime } from '@/shared/lib/dateFormatter';
 import { Button } from '@/shared/ui/atoms/button.atom';
 import { useQuery } from '@tanstack/react-query';
@@ -51,6 +53,12 @@ export function SingleEinsatzDashboard() {
   // Lade EinsatzFahrzeuge (Story 3-3)
   const { data: fahrzeuge = [], isLoading: isLoadingFahrzeuge } = useEinsatzFahrzeuge(einsatzId);
 
+  // Lade ETB für Count-Anzeige
+  const { data: etb, isLoading: isLoadingEtb } = useEtb({ einsatzId });
+
+  // Lade Lagekarte für POI-Count
+  const { data: lagekarteState, isLoading: isLoadingLagekarte } = useLagekarte(einsatzId);
+
   // Hook zum Aktualisieren des FMS-Status (Story 3-3)
   const updateFmsStatus = useUpdateFmsStatus(einsatzId);
 
@@ -62,10 +70,11 @@ export function SingleEinsatzDashboard() {
     [updateFmsStatus],
   );
 
-  // TODO: Switch to useActiveEinsaetzeWithCounts when available
-  // These fields will be available after backend implementation and API regeneration
-  const etbEintraegeCount = einsatz && 'etbEintraegeCount' in einsatz ? (einsatz as { etbEintraegeCount: number }).etbEintraegeCount : undefined;
-  const poisCount = einsatz && 'poisCount' in einsatz ? (einsatz as { poisCount: number }).poisCount : undefined;
+  // ETB-Einträge Count aus geladenen Daten
+  const etbEintraegeCount = etb?.eintraege?.length;
+
+  // POI-Count aus Lagekarte GeoJSON Features
+  const poisCount = lagekarteState?.features?.length;
 
   // Setze diesen Einsatz automatisch als aktiv
   useEffect(() => {
@@ -133,15 +142,15 @@ export function SingleEinsatzDashboard() {
         />
         <EinsatzStatsCard
           title="ETB-Einträge"
-          value={etbEintraegeCount !== undefined ? String(etbEintraegeCount) : '-'}
+          value={isLoadingEtb ? '-' : String(etbEintraegeCount ?? 0)}
           icon={<PiClipboard className="h-8 w-8" />}
-          description={etbEintraegeCount !== undefined ? 'Dokumentierte Einträge' : 'Wird geladen...'}
+          description={isLoadingEtb ? 'Wird geladen...' : 'Dokumentierte Einträge'}
         />
         <EinsatzStatsCard
           title="POIs"
-          value={poisCount !== undefined ? String(poisCount) : '-'}
+          value={isLoadingLagekarte ? '-' : String(poisCount ?? 0)}
           icon={<PiMapPin className="h-8 w-8" />}
-          description={poisCount !== undefined ? 'Markierungen auf Karte' : 'Wird geladen...'}
+          description={isLoadingLagekarte ? 'Wird geladen...' : 'Markierungen auf Karte'}
           variant="info"
         />
       </div>

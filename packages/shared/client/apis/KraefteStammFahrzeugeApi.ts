@@ -13,8 +13,8 @@
  */
 
 import * as runtime from '../runtime';
-import type { StammFahrzeugeControllerFindAllVAlpha200Response } from '../models/index';
-import { StammFahrzeugeControllerFindAllVAlpha200ResponseFromJSON, StammFahrzeugeControllerFindAllVAlpha200ResponseToJSON } from '../models/index';
+import type { AdminStammFahrzeugeControllerFindAllVAlpha200Response } from '../models/index';
+import { AdminStammFahrzeugeControllerFindAllVAlpha200ResponseFromJSON, AdminStammFahrzeugeControllerFindAllVAlpha200ResponseToJSON } from '../models/index';
 
 export interface StammFahrzeugeControllerFindAllVAlphaRequest {
   includeArchived?: boolean;
@@ -30,7 +30,7 @@ export class KraefteStammFahrzeugeApi extends runtime.BaseAPI {
   async stammFahrzeugeControllerFindAllVAlphaRaw(
     requestParameters: StammFahrzeugeControllerFindAllVAlphaRequest,
     initOverrides?: RequestInit | runtime.InitOverrideFunction,
-  ): Promise<runtime.ApiResponse<StammFahrzeugeControllerFindAllVAlpha200Response>> {
+  ): Promise<runtime.ApiResponse<AdminStammFahrzeugeControllerFindAllVAlpha200Response>> {
     const queryParameters: any = {};
 
     if (requestParameters['includeArchived'] != null) {
@@ -49,7 +49,7 @@ export class KraefteStammFahrzeugeApi extends runtime.BaseAPI {
       initOverrides,
     );
 
-    return new runtime.JSONApiResponse(response, (jsonValue) => StammFahrzeugeControllerFindAllVAlpha200ResponseFromJSON(jsonValue));
+    return new runtime.JSONApiResponse(response, (jsonValue) => AdminStammFahrzeugeControllerFindAllVAlpha200ResponseFromJSON(jsonValue));
   }
 
   /**
@@ -58,7 +58,7 @@ export class KraefteStammFahrzeugeApi extends runtime.BaseAPI {
   async stammFahrzeugeControllerFindAllVAlpha(
     requestParameters: StammFahrzeugeControllerFindAllVAlphaRequest = {},
     initOverrides?: RequestInit | runtime.InitOverrideFunction,
-  ): Promise<StammFahrzeugeControllerFindAllVAlpha200Response> {
+  ): Promise<AdminStammFahrzeugeControllerFindAllVAlpha200Response> {
     const response = await this.stammFahrzeugeControllerFindAllVAlphaRaw(requestParameters, initOverrides);
     return await response.value();
   }

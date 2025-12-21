@@ -1,7 +1,7 @@
 import type { EinsatzFahrzeug } from '@domain/kraefte/aggregates/einsatz-fahrzeug.aggregate';
-import type { Fahrzeugtyp } from '@domain/kraefte';
+import type { Fahrzeugtyp, EinsatzPerson } from '@domain/kraefte';
 import { FahrzeugtypQueryMapper } from '../../fahrzeugtypen/queries/fahrzeugtyp-query.mapper';
-import type { EinsatzFahrzeugDto, EinsatzFahrzeugListItemDto } from '../dto';
+import type { EinsatzFahrzeugDto, EinsatzFahrzeugListItemDto, BesatzungMemberDto } from '../dto';
 
 /**
  * Mapper von EinsatzFahrzeug Aggregate zu EinsatzFahrzeugDto.
@@ -23,12 +23,14 @@ export class EinsatzFahrzeugQueryMapper {
    *
    * Konvertiert Domain Value Objects zu primitiven Typen für API-Response.
    * Mappt nested Fahrzeugtyp Aggregate via FahrzeugtypQueryMapper.
+   * Mappt zugewiesene Besatzung zu BesatzungMemberDto (Story 4.3 AC5).
    *
    * @param aggregate - EinsatzFahrzeug Aggregate
    * @param fahrzeugtyp - Fahrzeugtyp Aggregate (joined relation)
-   * @returns EinsatzFahrzeugDto mit allen Feldern inkl. fahrzeugtyp
+   * @param besatzung - Zugewiesene EinsatzPersonen (optional)
+   * @returns EinsatzFahrzeugDto mit allen Feldern inkl. fahrzeugtyp und besatzung
    */
-  static toDto(aggregate: EinsatzFahrzeug, fahrzeugtyp: Fahrzeugtyp): EinsatzFahrzeugDto {
+  static toDto(aggregate: EinsatzFahrzeug, fahrzeugtyp: Fahrzeugtyp, besatzung: EinsatzPerson[] = []): EinsatzFahrzeugDto {
     return {
       id: aggregate.id.value,
       einsatzId: aggregate.einsatzId,
@@ -43,6 +45,16 @@ export class EinsatzFahrzeugQueryMapper {
       createdBy: aggregate.createdBy,
       updatedBy: aggregate.updatedBy,
       fahrzeugtyp: FahrzeugtypQueryMapper.toDto(fahrzeugtyp),
+      besatzung:
+        besatzung.length > 0
+          ? besatzung.map(
+              (person): BesatzungMemberDto => ({
+                id: person.id.value,
+                vorname: person.vorname,
+                nachname: person.nachname,
+              }),
+            )
+          : undefined,
     };
   }
 
@@ -68,10 +80,10 @@ export class EinsatzFahrzeugQueryMapper {
   /**
    * Mappt ein Array von EinsatzFahrzeug Aggregates zu DTOs.
    *
-   * @param aggregates - Array von EinsatzFahrzeug mit Fahrzeugtyp
+   * @param aggregates - Array von EinsatzFahrzeug mit Fahrzeugtyp und optional Besatzung
    * @returns Array von EinsatzFahrzeugDtos
    */
-  static toDtoList(aggregates: Array<{ aggregate: EinsatzFahrzeug; fahrzeugtyp: Fahrzeugtyp }>): EinsatzFahrzeugDto[] {
-    return aggregates.map(({ aggregate, fahrzeugtyp }) => EinsatzFahrzeugQueryMapper.toDto(aggregate, fahrzeugtyp));
+  static toDtoList(aggregates: Array<{ aggregate: EinsatzFahrzeug; fahrzeugtyp: Fahrzeugtyp; besatzung?: EinsatzPerson[] }>): EinsatzFahrzeugDto[] {
+    return aggregates.map(({ aggregate, fahrzeugtyp, besatzung }) => EinsatzFahrzeugQueryMapper.toDto(aggregate, fahrzeugtyp, besatzung));
   }
 }

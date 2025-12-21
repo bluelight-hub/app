@@ -91,6 +91,32 @@ export class EinsatzFahrzeugDto {
     description: 'Fahrzeugtyp Details (nested)',
   })
   fahrzeugtyp!: FahrzeugtypDto;
+
+  @ApiPropertyOptional({
+    description: 'Zugewiesene Besatzung (Personen)',
+    type: () => [BesatzungMemberDto],
+    example: [
+      { id: 'clw3h8ijk7l8m9nop0qr', vorname: 'Max', nachname: 'Mustermann' },
+      { id: 'clw4i9jkl8m9n0opq1rs', vorname: 'Anna', nachname: 'Schmidt' },
+    ],
+  })
+  besatzung?: BesatzungMemberDto[];
+}
+
+/**
+ * Vereinfachtes DTO für Besatzungs-Mitglieder.
+ *
+ * Enthält nur die wichtigsten Felder für kompakte Listen-Darstellung.
+ */
+export class BesatzungMemberDto {
+  @ApiProperty({ description: 'EinsatzPerson ID (CUID2)' })
+  id!: string;
+
+  @ApiProperty({ description: 'Vorname' })
+  vorname!: string;
+
+  @ApiProperty({ description: 'Nachname' })
+  nachname!: string;
 }
 
 /**

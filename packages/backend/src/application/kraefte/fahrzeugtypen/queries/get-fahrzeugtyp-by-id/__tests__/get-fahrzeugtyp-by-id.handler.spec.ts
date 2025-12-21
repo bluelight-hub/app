@@ -24,7 +24,7 @@ describe('GetFahrzeugtypByIdHandler', () => {
       id: existingId,
       code: 'HLF',
       bezeichnung: 'Hilfeleistungslöschfahrzeug',
-      kategorie: 'EINSATZ',
+      kategorie: 'RETTUNGSDIENST',
       istAktiv: true,
       sortOrder: 0,
       createdAt: new Date('2025-01-01'),
@@ -134,7 +134,7 @@ describe('GetFahrzeugtypByIdHandler', () => {
         id: createId(),
         code: 'ELW',
         bezeichnung: 'Einsatzleitwagen',
-        kategorie: 'SPEZIAL',
+        kategorie: 'FUEHRUNG',
         beschreibung: 'Für Einsatzleitung',
         sollbesatzung: { fahrer: 1, funktrupp: 2 },
         istAktiv: true,
@@ -190,7 +190,7 @@ describe('GetFahrzeugtypByIdHandler', () => {
         id: createId(),
         code: 'MTW',
         bezeichnung: 'Mannschaftstransportwagen',
-        kategorie: 'SPEZIAL',
+        kategorie: 'FUEHRUNG',
         istAktiv: true,
         sortOrder: 0,
         createdAt: new Date(),
@@ -214,7 +214,7 @@ describe('GetFahrzeugtypByIdHandler', () => {
         id: createId(),
         code: 'MTW',
         bezeichnung: 'Mannschaftstransportwagen',
-        kategorie: 'SPEZIAL',
+        kategorie: 'FUEHRUNG',
         istAktiv: true,
         sortOrder: 0,
         createdAt: new Date(),
@@ -238,7 +238,7 @@ describe('GetFahrzeugtypByIdHandler', () => {
         id: createId(),
         code: 'MTW',
         bezeichnung: 'Mannschaftstransportwagen',
-        kategorie: 'SPEZIAL',
+        kategorie: 'FUEHRUNG',
         istAktiv: true,
         sortOrder: 0,
         createdAt: new Date(),
@@ -263,7 +263,7 @@ describe('GetFahrzeugtypByIdHandler', () => {
         id: validCuid,
         code: 'TEST',
         bezeichnung: 'Test Fahrzeug',
-        kategorie: 'SPEZIAL',
+        kategorie: 'FUEHRUNG',
         istAktiv: true,
         sortOrder: 0,
         createdAt: new Date(),
@@ -289,7 +289,7 @@ describe('GetFahrzeugtypByIdHandler', () => {
         id: createId(),
         code: 'HLF',
         bezeichnung: 'Hilfeleistungslöschfahrzeug',
-        kategorie: 'EINSATZ',
+        kategorie: 'RETTUNGSDIENST',
         istAktiv: true,
         sortOrder: 0,
         createdAt: new Date(),
@@ -304,7 +304,7 @@ describe('GetFahrzeugtypByIdHandler', () => {
 
       // Then (Assert)
       expect(result.isSuccess).toBe(true);
-      expect(result.value!.kategorie).toBe('EINSATZ');
+      expect(result.value!.kategorie).toBe('RETTUNGSDIENST');
     });
 
     it('sollte Fahrzeugtyp mit Kategorie RETTUNGSFAHRZEUG zurückgeben', async () => {
@@ -337,7 +337,7 @@ describe('GetFahrzeugtypByIdHandler', () => {
         id: createId(),
         code: 'ELW',
         bezeichnung: 'Einsatzleitwagen',
-        kategorie: 'SPEZIAL',
+        kategorie: 'FUEHRUNG',
         istAktiv: true,
         sortOrder: 0,
         createdAt: new Date(),
@@ -352,7 +352,7 @@ describe('GetFahrzeugtypByIdHandler', () => {
 
       // Then (Assert)
       expect(result.isSuccess).toBe(true);
-      expect(result.value!.kategorie).toBe('SPEZIAL');
+      expect(result.value!.kategorie).toBe('FUEHRUNG');
     });
   });
 
@@ -469,7 +469,7 @@ describe('GetFahrzeugtypByIdHandler', () => {
         id: createId(),
         code: 'TEST',
         bezeichnung: 'Test Fahrzeug',
-        kategorie: 'SPEZIAL',
+        kategorie: 'FUEHRUNG',
         istAktiv: true,
         sortOrder: 0,
         createdAt: specificDate,

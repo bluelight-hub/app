@@ -6,6 +6,8 @@ import { LOGGER } from '@infrastructure/di-tokens';
 import { NestLoggerAdapter } from '@infrastructure/common/adapters';
 import { RegistrierePersonHandler } from './commands/registriere-person/registriere-person.handler';
 import { RegistrierePersonViaQrCodeHandler } from './commands/registriere-person-qr/registriere-person-qr.handler';
+import { WeisePersonZuFahrzeugZuHandler } from './commands/weise-person-zu-fahrzeug/weise-person-zu-fahrzeug.handler';
+import { EntfernePersonVonFahrzeugHandler } from './commands/entferne-person-von-fahrzeug/entferne-person-von-fahrzeug.handler';
 import { GetEinsatzPersonenHandler } from './queries/get-einsatz-personen/get-einsatz-personen.handler';
 
 /**
@@ -29,9 +31,11 @@ import { GetEinsatzPersonenHandler } from './queries/get-einsatz-personen/get-ei
     // Command Handlers
     RegistrierePersonHandler,
     RegistrierePersonViaQrCodeHandler, // Story 4-2: QR-Code Registrierung
+    WeisePersonZuFahrzeugZuHandler,
+    EntfernePersonVonFahrzeugHandler,
     // Query Handlers
     GetEinsatzPersonenHandler,
   ],
-  exports: [RegistrierePersonHandler, RegistrierePersonViaQrCodeHandler, GetEinsatzPersonenHandler, LOGGER],
+  exports: [RegistrierePersonHandler, RegistrierePersonViaQrCodeHandler, WeisePersonZuFahrzeugZuHandler, EntfernePersonVonFahrzeugHandler, GetEinsatzPersonenHandler, LOGGER],
 })
 export class EinsatzPersonenApplicationModule {}

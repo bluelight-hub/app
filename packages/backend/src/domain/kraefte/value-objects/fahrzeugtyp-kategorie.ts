@@ -4,8 +4,14 @@ import { Result } from '@domain/common/result';
 /**
  * Prisma ENUM Typ für Fahrzeugtyp-Kategorien.
  * Muss konsistent mit schema.prisma bleiben.
+ *
+ * **Kategorien (gem. schema.prisma):**
+ * - RETTUNGSDIENST: RTW, KTW, NEF, NAW
+ * - FUEHRUNG: ELW, MTW, FüKw
+ * - TRANSPORT: GW, Anhänger
+ * - SONSTIGES: Weitere
  */
-export type FahrzeugtypKategorieType = 'TRANSPORT' | 'EINSATZ' | 'SPEZIAL' | 'LOGISTIK' | 'SONSTIGES';
+export type FahrzeugtypKategorieType = 'RETTUNGSDIENST' | 'FUEHRUNG' | 'TRANSPORT' | 'SONSTIGES';
 
 /**
  * Runtime constant array für Validation, OpenAPI Documentation und UI-Dropdown-Listen.
@@ -16,8 +22,10 @@ export type FahrzeugtypKategorieType = 'TRANSPORT' | 'EINSATZ' | 'SPEZIAL' | 'LO
  * - @ApiProperty({ enum: ... }) benötigt Runtime-Array für Swagger UI
  * - Frontend-Dropdowns benötigen die Liste zur Laufzeit
  * - Single Source of Truth für erlaubte Kategorie-Werte
+ *
+ * **WICHTIG:** Muss konsistent mit enum FahrzeugtypKategorie in schema.prisma sein!
  */
-export const FAHRZEUGTYP_KATEGORIEN: readonly FahrzeugtypKategorieType[] = ['TRANSPORT', 'EINSATZ', 'SPEZIAL', 'LOGISTIK', 'SONSTIGES'] as const;
+export const FAHRZEUGTYP_KATEGORIEN: readonly FahrzeugtypKategorieType[] = ['RETTUNGSDIENST', 'FUEHRUNG', 'TRANSPORT', 'SONSTIGES'] as const;
 
 /**
  * Props Interface für FahrzeugtypKategorie Value Object.
@@ -66,7 +74,7 @@ interface FahrzeugtypKategorieProps extends Record<string, unknown> {
  *
  * **Alternative (Type Alias):**
  * ```typescript
- * export type FahrzeugtypKategorie = 'TRANSPORT' | 'EINSATZ' | ...;
+ * export type FahrzeugtypKategorie = 'RETTUNGSDIENST' | 'FUEHRUNG' | ...;
  * ```
  * Probleme:
  * - Keine Runtime-Validierung
@@ -77,7 +85,7 @@ interface FahrzeugtypKategorieProps extends Record<string, unknown> {
  * **Verwendung:**
  * ```typescript
  * // In Aggregate/Command/DTO
- * const kategorieResult = FahrzeugtypKategorie.create('EINSATZ');
+ * const kategorieResult = FahrzeugtypKategorie.create('RETTUNGSDIENST');
  * if (kategorieResult.isFailure) {
  *   return Result.fail(kategorieResult.error);
  * }
@@ -87,9 +95,9 @@ interface FahrzeugtypKategorieProps extends Record<string, unknown> {
  * @example
  * ```typescript
  * // Success Case
- * const kat = FahrzeugtypKategorie.create('EINSATZ');
+ * const kat = FahrzeugtypKategorie.create('RETTUNGSDIENST');
  * console.log(kat.isSuccess); // true
- * console.log(kat.value.value); // 'EINSATZ'
+ * console.log(kat.value.value); // 'RETTUNGSDIENST'
  *
  * // Failure Case
  * const invalid = FahrzeugtypKategorie.create('INVALID');
@@ -115,7 +123,7 @@ export class FahrzeugtypKategorie extends ValueObject<FahrzeugtypKategorieProps>
   }
 
   /**
-   * Gibt den rohen ENUM-Wert zurück (z.B. 'EINSATZ').
+   * Gibt den rohen ENUM-Wert zurück (z.B. 'RETTUNGSDIENST').
    */
   get value(): FahrzeugtypKategorieType {
     return this.props.value;
@@ -132,10 +140,10 @@ export class FahrzeugtypKategorie extends ValueObject<FahrzeugtypKategorieProps>
    *
    * @example
    * ```typescript
-   * const result = FahrzeugtypKategorie.create('EINSATZ');
+   * const result = FahrzeugtypKategorie.create('RETTUNGSDIENST');
    * if (result.isSuccess) {
    *   const kategorie = result.value; // FahrzeugtypKategorie
-   *   console.log(kategorie.value); // 'EINSATZ'
+   *   console.log(kategorie.value); // 'RETTUNGSDIENST'
    * } else {
    *   console.error(result.error); // Error Message
    * }
@@ -153,7 +161,7 @@ export class FahrzeugtypKategorie extends ValueObject<FahrzeugtypKategorieProps>
   /**
    * String-Repräsentation für Logging und Debugging.
    *
-   * @returns Der ENUM-Wert als String (z.B. 'EINSATZ')
+   * @returns Der ENUM-Wert als String (z.B. 'RETTUNGSDIENST')
    */
   toString(): string {
     return this.value;

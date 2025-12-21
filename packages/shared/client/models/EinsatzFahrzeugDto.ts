@@ -13,6 +13,9 @@
  */
 
 import { mapValues } from '../runtime';
+import type { BesatzungMemberDto } from './BesatzungMemberDto';
+import { BesatzungMemberDtoFromJSON, BesatzungMemberDtoFromJSONTyped, BesatzungMemberDtoToJSON, BesatzungMemberDtoToJSONTyped } from './BesatzungMemberDto';
+
 /**
  *
  * @export
@@ -97,6 +100,12 @@ export interface EinsatzFahrzeugDto {
    * @memberof EinsatzFahrzeugDto
    */
   fahrzeugtyp: object;
+  /**
+   * Zugewiesene Besatzung (Personen)
+   * @type {Array<BesatzungMemberDto>}
+   * @memberof EinsatzFahrzeugDto
+   */
+  besatzung?: Array<BesatzungMemberDto>;
 }
 
 /**
@@ -137,6 +146,7 @@ export function EinsatzFahrzeugDtoFromJSONTyped(json: any, ignoreDiscriminator: 
     createdBy: json['createdBy'],
     updatedBy: json['updatedBy'] == null ? undefined : json['updatedBy'],
     fahrzeugtyp: json['fahrzeugtyp'],
+    besatzung: json['besatzung'] == null ? undefined : (json['besatzung'] as Array<any>).map(BesatzungMemberDtoFromJSON),
   };
 }
 
@@ -163,5 +173,6 @@ export function EinsatzFahrzeugDtoToJSONTyped(value?: EinsatzFahrzeugDto | null,
     createdBy: value['createdBy'],
     updatedBy: value['updatedBy'],
     fahrzeugtyp: value['fahrzeugtyp'],
+    besatzung: value['besatzung'] == null ? undefined : (value['besatzung'] as Array<any>).map(BesatzungMemberDtoToJSON),
   };
 }

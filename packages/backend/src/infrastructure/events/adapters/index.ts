@@ -17,3 +17,4 @@ export * from './lagekarte-event.adapter';
 export * from './fahrzeug-erfasst-event.adapter';
 export * from './fms-status-geaendert-event.adapter';
 export * from './einsatz-person-hinzugefuegt-event.adapter';
+export * from './person-fahrzeug-zuweisung-event.adapter';

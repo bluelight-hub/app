@@ -1,9 +1,44 @@
 import { cn } from '@/shared/ui/cn';
 import { Button } from '@/shared/ui/atoms/button.atom';
 import { FmsStatusDropdown } from './FmsStatusDropdown.molecule';
-import type { EinsatzFahrzeugDto } from '@bluelight-hub/shared/client';
+import type { EinsatzFahrzeugDto, BesatzungMemberDto } from '@bluelight-hub/shared/client';
 import type { FmsStatus } from '../../constants/fms-status.constants';
 import { PiTruck, PiUserPlus, PiUsers } from 'react-icons/pi';
+import type { ReactNode } from 'react';
+
+/**
+ * Formatiert die Besatzungs-Liste für kompakte Darstellung.
+ *
+ * Zeigt max. 3 Namen im Format "Vorname N." (erster Buchstabe Nachname).
+ * Wenn mehr als 3: "...+X weitere" mit Tooltip aller verbleibenden Namen.
+ *
+ * @param besatzung - Array von BesatzungMemberDto
+ * @returns React Node mit formatierten Namen
+ */
+function formatBesatzung(besatzung: BesatzungMemberDto[]): ReactNode {
+  const MAX_DISPLAY = 3;
+  const displayed = besatzung.slice(0, MAX_DISPLAY);
+  const remaining = besatzung.length - MAX_DISPLAY;
+
+  const names = displayed.map((p) => `${p.vorname} ${p.nachname.charAt(0)}.`);
+
+  if (remaining > 0) {
+    const hiddenNames = besatzung
+      .slice(MAX_DISPLAY)
+      .map((p) => `${p.vorname} ${p.nachname}`)
+      .join(', ');
+    return (
+      <>
+        {names.join(', ')},{' '}
+        <span className="cursor-help" title={hiddenNames}>
+          ...+{remaining} weitere
+        </span>
+      </>
+    );
+  }
+
+  return names.join(', ');
+}
 
 interface EinsatzResourceWidgetProps {
   /** Array of EinsatzFahrzeugDto objects */
@@ -53,6 +88,7 @@ export function EinsatzResourceWidget({ fahrzeuge, onStatusChange, className, on
               <div className="min-w-0 flex-1">
                 <p className="truncate font-medium text-gray-900 text-sm dark:text-gray-100">{fahrzeug.funkrufname}</p>
                 {fahrzeug.kennzeichen && <p className="truncate text-gray-500 text-xs dark:text-gray-400">{fahrzeug.kennzeichen}</p>}
+                {fahrzeug.besatzung && fahrzeug.besatzung.length > 0 && <div className="text-gray-500 text-xs dark:text-gray-400">{formatBesatzung(fahrzeug.besatzung)}</div>}
               </div>
             </div>
             <div className="shrink-0">

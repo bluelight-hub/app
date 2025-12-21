@@ -20,7 +20,7 @@ describe('GetAllFahrzeugtypenHandler', () => {
     id: createId(),
     code: 'HLF',
     bezeichnung: 'Hilfeleistungslöschfahrzeug',
-    kategorie: 'EINSATZ',
+    kategorie: 'RETTUNGSDIENST',
     istAktiv: true,
     sortOrder: 0,
     createdAt: new Date('2025-01-01'),
@@ -176,7 +176,7 @@ describe('GetAllFahrzeugtypenHandler', () => {
         id: createId(),
         code: 'ELW',
         bezeichnung: 'Einsatzleitwagen',
-        kategorie: 'SPEZIAL',
+        kategorie: 'FUEHRUNG',
         beschreibung: 'Für Einsatzleitung',
         sollbesatzung: { fahrer: 1, funktrupp: 2 },
         istAktiv: true,
@@ -228,7 +228,7 @@ describe('GetAllFahrzeugtypenHandler', () => {
         id: createId(),
         code: 'MTW',
         bezeichnung: 'Mannschaftstransportwagen',
-        kategorie: 'SPEZIAL',
+        kategorie: 'FUEHRUNG',
         istAktiv: true,
         sortOrder: 0,
         createdAt: new Date(),
@@ -252,7 +252,7 @@ describe('GetAllFahrzeugtypenHandler', () => {
         id: createId(),
         code: 'MTW',
         bezeichnung: 'Mannschaftstransportwagen',
-        kategorie: 'SPEZIAL',
+        kategorie: 'FUEHRUNG',
         istAktiv: true,
         sortOrder: 0,
         createdAt: new Date(),
@@ -276,7 +276,7 @@ describe('GetAllFahrzeugtypenHandler', () => {
         id: createId(),
         code: 'MTW',
         bezeichnung: 'Mannschaftstransportwagen',
-        kategorie: 'SPEZIAL',
+        kategorie: 'FUEHRUNG',
         istAktiv: true,
         sortOrder: 0,
         createdAt: new Date(),
@@ -303,7 +303,7 @@ describe('GetAllFahrzeugtypenHandler', () => {
             id: createId(),
             code: `FZ${i}`,
             bezeichnung: `Fahrzeug ${i}`,
-            kategorie: 'SPEZIAL',
+            kategorie: 'FUEHRUNG',
             istAktiv: true,
             sortOrder: i,
             createdAt: new Date(),
@@ -330,7 +330,7 @@ describe('GetAllFahrzeugtypenHandler', () => {
         id: createId(),
         code: 'HLF',
         bezeichnung: 'Hilfeleistungslöschfahrzeug',
-        kategorie: 'EINSATZ',
+        kategorie: 'RETTUNGSDIENST',
         istAktiv: true,
         sortOrder: 0,
         createdAt: new Date(),
@@ -354,7 +354,7 @@ describe('GetAllFahrzeugtypenHandler', () => {
         id: createId(),
         code: 'ELW',
         bezeichnung: 'Einsatzleitwagen',
-        kategorie: 'SPEZIAL',
+        kategorie: 'FUEHRUNG',
         istAktiv: true,
         sortOrder: 2,
         createdAt: new Date(),
@@ -371,9 +371,9 @@ describe('GetAllFahrzeugtypenHandler', () => {
       // Then (Assert)
       expect(result.isSuccess).toBe(true);
       expect(result.value!.length).toBe(3);
-      expect(result.value![0].kategorie).toBe('EINSATZ');
+      expect(result.value![0].kategorie).toBe('RETTUNGSDIENST');
       expect(result.value![1].kategorie).toBe('TRANSPORT');
-      expect(result.value![2].kategorie).toBe('SPEZIAL');
+      expect(result.value![2].kategorie).toBe('FUEHRUNG');
     });
   });
 

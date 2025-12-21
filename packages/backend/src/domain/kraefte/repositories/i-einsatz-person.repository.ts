@@ -67,4 +67,16 @@ export interface IEinsatzPersonRepository {
    * @returns Result<boolean> - true wenn Duplikat existiert
    */
   existsByEinsatzIdAndStammId(einsatzId: string, stammId: string, tx?: TransactionContext): Promise<Result<boolean>>;
+
+  /**
+   * Findet alle Einsatz-Personen die einem Fahrzeug zugewiesen sind.
+   *
+   * **Story 4.3 - Besatzung anzeigen:**
+   * Lädt alle Personen mit fahrzeugId für kompakte Besatzungs-Liste.
+   *
+   * @param fahrzeugId - Die EinsatzFahrzeug-ID (CUID2)
+   * @param tx - Optionaler Transaction Context
+   * @returns Result<EinsatzPerson[]> - Liste aller Personen des Fahrzeugs
+   */
+  findByFahrzeugId(fahrzeugId: string, tx?: TransactionContext): Promise<Result<EinsatzPerson[]>>;
 }

@@ -67,6 +67,10 @@ export class PrismaEinsatzPersonMapper {
    * - NICHT in diesem Return-Typ enthalten
    * - Werden separat in save() über nested create/delete gehandhabt
    *
+   * **FahrzeugId Mapping:**
+   * - Optional: undefined → null für DB NULL
+   * - Referenziert zugewiesenes Fahrzeug (Story 4.3)
+   *
    * @param aggregate - Das EinsatzPerson Domain Aggregate
    * @returns {Prisma.EinsatzPersonUncheckedCreateInput} Prisma-kompatibles Datenobjekt
    */
@@ -79,6 +83,7 @@ export class PrismaEinsatzPersonMapper {
       nachname: aggregate.nachname,
       funktion: aggregate.funktion,
       funkrufname: aggregate.funkrufname ?? null,
+      fahrzeugId: aggregate.fahrzeugId ?? null,
       // Position: GeoPosition → JSON Object oder undefined (Prisma default)
       position: aggregate.position ? (aggregate.position.toJSON() as Prisma.InputJsonValue) : Prisma.DbNull,
       createdBy: aggregate.createdBy,
@@ -99,6 +104,7 @@ export class PrismaEinsatzPersonMapper {
    * - funkrufname: string | null → string | undefined
    * - position: Json | null → { lat, lng } | undefined
    * - updatedBy: string | null → string | undefined
+   * - fahrzeugId: string | null → string | undefined
    *
    * **M:N Qualifikationen Extraktion:**
    * - qualifikationen: Array<{ qualifikationId: string }> → string[]
@@ -136,6 +142,7 @@ export class PrismaEinsatzPersonMapper {
       funkrufname: nullToUndefined(entity.funkrufname),
       qualifikationIds: qualifikationIds,
       position: positionProps,
+      fahrzeugId: nullToUndefined(entity.fahrzeugId),
       createdAt: entity.createdAt,
       updatedAt: entity.updatedAt,
       createdBy: entity.createdBy,

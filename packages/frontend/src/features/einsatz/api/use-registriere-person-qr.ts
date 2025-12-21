@@ -95,6 +95,20 @@ export const useRegistrierePersonViaQr = () => {
 
       return result;
     },
+    // MEDIUM FIX #14: Retry bei Netzwerkfehlern (aber NICHT bei 409 Duplikaten oder 4xx Validation)
+    retry: (failureCount, error) => {
+      const responseError = error as ResponseError;
+      const status = responseError.response?.status;
+
+      // Keine Retries bei Client-Fehlern (4xx)
+      if (status && status >= 400 && status < 500) {
+        return false;
+      }
+
+      // Retry bei Netzwerkfehlern oder 5xx (max 2 Retries)
+      return failureCount < 2;
+    },
+    retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 3000), // Exponential backoff: 1s, 2s
     onSuccess: (result, { einsatzId, qrData }) => {
       logger.debug('Person via QR erfolgreich registriert', {
         einsatzId,

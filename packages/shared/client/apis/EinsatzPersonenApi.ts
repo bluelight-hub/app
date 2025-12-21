@@ -13,17 +13,33 @@
  */
 
 import * as runtime from '../runtime';
-import type { EinsatzPersonResponseDto, EinsatzPersonenControllerRegistrierePersonVAlpha201Response, RegistrierePersonDto, RegistrierePersonViaQrCodeDto } from '../models/index';
+import type {
+  EinsatzPersonenControllerFindAllVAlpha200Response,
+  EinsatzPersonenControllerRegistrierePersonVAlpha201Response,
+  EinsatzPersonenControllerWeiseZuFahrzeugVAlpha200Response,
+  RegistrierePersonDto,
+  RegistrierePersonViaQrCodeDto,
+  WeisePersonZuFahrzeugZuDto,
+} from '../models/index';
 import {
-  EinsatzPersonResponseDtoFromJSON,
-  EinsatzPersonResponseDtoToJSON,
+  EinsatzPersonenControllerFindAllVAlpha200ResponseFromJSON,
+  EinsatzPersonenControllerFindAllVAlpha200ResponseToJSON,
   EinsatzPersonenControllerRegistrierePersonVAlpha201ResponseFromJSON,
   EinsatzPersonenControllerRegistrierePersonVAlpha201ResponseToJSON,
+  EinsatzPersonenControllerWeiseZuFahrzeugVAlpha200ResponseFromJSON,
+  EinsatzPersonenControllerWeiseZuFahrzeugVAlpha200ResponseToJSON,
   RegistrierePersonDtoFromJSON,
   RegistrierePersonDtoToJSON,
   RegistrierePersonViaQrCodeDtoFromJSON,
   RegistrierePersonViaQrCodeDtoToJSON,
+  WeisePersonZuFahrzeugZuDtoFromJSON,
+  WeisePersonZuFahrzeugZuDtoToJSON,
 } from '../models/index';
+
+export interface EinsatzPersonenControllerEntferneVonFahrzeugVAlphaRequest {
+  einsatzId: string;
+  personId: string;
+}
 
 export interface EinsatzPersonenControllerFindAllVAlphaRequest {
   einsatzId: string;
@@ -39,17 +55,67 @@ export interface EinsatzPersonenControllerRegistriereViaQrVAlphaRequest {
   registrierePersonViaQrCodeDto: RegistrierePersonViaQrCodeDto;
 }
 
+export interface EinsatzPersonenControllerWeiseZuFahrzeugVAlphaRequest {
+  einsatzId: string;
+  personId: string;
+  weisePersonZuFahrzeugZuDto: WeisePersonZuFahrzeugZuDto;
+}
+
 /**
  *
  */
 export class EinsatzPersonenApi extends runtime.BaseAPI {
+  /**
+   * Person von Fahrzeug entfernen
+   */
+  async einsatzPersonenControllerEntferneVonFahrzeugVAlphaRaw(
+    requestParameters: EinsatzPersonenControllerEntferneVonFahrzeugVAlphaRequest,
+    initOverrides?: RequestInit | runtime.InitOverrideFunction,
+  ): Promise<runtime.ApiResponse<void>> {
+    if (requestParameters['einsatzId'] == null) {
+      throw new runtime.RequiredError('einsatzId', 'Required parameter "einsatzId" was null or undefined when calling einsatzPersonenControllerEntferneVonFahrzeugVAlpha().');
+    }
+
+    if (requestParameters['personId'] == null) {
+      throw new runtime.RequiredError('personId', 'Required parameter "personId" was null or undefined when calling einsatzPersonenControllerEntferneVonFahrzeugVAlpha().');
+    }
+
+    const queryParameters: any = {};
+
+    const headerParameters: runtime.HTTPHeaders = {};
+
+    const response = await this.request(
+      {
+        path: `/api/v-alpha/einsaetze/{einsatzId}/personen/{personId}/fahrzeug`
+          .replace(`{${'einsatzId'}}`, encodeURIComponent(String(requestParameters['einsatzId'])))
+          .replace(`{${'personId'}}`, encodeURIComponent(String(requestParameters['personId']))),
+        method: 'DELETE',
+        headers: headerParameters,
+        query: queryParameters,
+      },
+      initOverrides,
+    );
+
+    return new runtime.VoidApiResponse(response);
+  }
+
+  /**
+   * Person von Fahrzeug entfernen
+   */
+  async einsatzPersonenControllerEntferneVonFahrzeugVAlpha(
+    requestParameters: EinsatzPersonenControllerEntferneVonFahrzeugVAlphaRequest,
+    initOverrides?: RequestInit | runtime.InitOverrideFunction,
+  ): Promise<void> {
+    await this.einsatzPersonenControllerEntferneVonFahrzeugVAlphaRaw(requestParameters, initOverrides);
+  }
+
   /**
    * Alle Personen eines Einsatzes auflisten
    */
   async einsatzPersonenControllerFindAllVAlphaRaw(
     requestParameters: EinsatzPersonenControllerFindAllVAlphaRequest,
     initOverrides?: RequestInit | runtime.InitOverrideFunction,
-  ): Promise<runtime.ApiResponse<Array<EinsatzPersonResponseDto>>> {
+  ): Promise<runtime.ApiResponse<EinsatzPersonenControllerFindAllVAlpha200Response>> {
     if (requestParameters['einsatzId'] == null) {
       throw new runtime.RequiredError('einsatzId', 'Required parameter "einsatzId" was null or undefined when calling einsatzPersonenControllerFindAllVAlpha().');
     }
@@ -68,7 +134,7 @@ export class EinsatzPersonenApi extends runtime.BaseAPI {
       initOverrides,
     );
 
-    return new runtime.JSONApiResponse(response, (jsonValue) => jsonValue.map(EinsatzPersonResponseDtoFromJSON));
+    return new runtime.JSONApiResponse(response, (jsonValue) => EinsatzPersonenControllerFindAllVAlpha200ResponseFromJSON(jsonValue));
   }
 
   /**
@@ -77,7 +143,7 @@ export class EinsatzPersonenApi extends runtime.BaseAPI {
   async einsatzPersonenControllerFindAllVAlpha(
     requestParameters: EinsatzPersonenControllerFindAllVAlphaRequest,
     initOverrides?: RequestInit | runtime.InitOverrideFunction,
-  ): Promise<Array<EinsatzPersonResponseDto>> {
+  ): Promise<EinsatzPersonenControllerFindAllVAlpha200Response> {
     const response = await this.einsatzPersonenControllerFindAllVAlphaRaw(requestParameters, initOverrides);
     return await response.value();
   }
@@ -174,6 +240,61 @@ export class EinsatzPersonenApi extends runtime.BaseAPI {
     initOverrides?: RequestInit | runtime.InitOverrideFunction,
   ): Promise<EinsatzPersonenControllerRegistrierePersonVAlpha201Response> {
     const response = await this.einsatzPersonenControllerRegistriereViaQrVAlphaRaw(requestParameters, initOverrides);
+    return await response.value();
+  }
+
+  /**
+   * Person zu Fahrzeug zuweisen
+   */
+  async einsatzPersonenControllerWeiseZuFahrzeugVAlphaRaw(
+    requestParameters: EinsatzPersonenControllerWeiseZuFahrzeugVAlphaRequest,
+    initOverrides?: RequestInit | runtime.InitOverrideFunction,
+  ): Promise<runtime.ApiResponse<EinsatzPersonenControllerWeiseZuFahrzeugVAlpha200Response>> {
+    if (requestParameters['einsatzId'] == null) {
+      throw new runtime.RequiredError('einsatzId', 'Required parameter "einsatzId" was null or undefined when calling einsatzPersonenControllerWeiseZuFahrzeugVAlpha().');
+    }
+
+    if (requestParameters['personId'] == null) {
+      throw new runtime.RequiredError('personId', 'Required parameter "personId" was null or undefined when calling einsatzPersonenControllerWeiseZuFahrzeugVAlpha().');
+    }
+
+    if (requestParameters['weisePersonZuFahrzeugZuDto'] == null) {
+      throw new runtime.RequiredError(
+        'weisePersonZuFahrzeugZuDto',
+        'Required parameter "weisePersonZuFahrzeugZuDto" was null or undefined when calling einsatzPersonenControllerWeiseZuFahrzeugVAlpha().',
+      );
+    }
+
+    const queryParameters: any = {};
+
+    const headerParameters: runtime.HTTPHeaders = {};
+
+    headerParameters['Content-Type'] = 'application/json';
+
+    const response = await this.request(
+      {
+        path: `/api/v-alpha/einsaetze/{einsatzId}/personen/{personId}/fahrzeug`
+          .replace(`{${'einsatzId'}}`, encodeURIComponent(String(requestParameters['einsatzId'])))
+          .replace(`{${'personId'}}`, encodeURIComponent(String(requestParameters['personId']))),
+        method: 'PUT',
+        headers: headerParameters,
+        query: queryParameters,
+        body: WeisePersonZuFahrzeugZuDtoToJSON(requestParameters['weisePersonZuFahrzeugZuDto']),
+      },
+      initOverrides,
+    );
+
+    return new runtime.JSONApiResponse(response, (jsonValue) => EinsatzPersonenControllerWeiseZuFahrzeugVAlpha200ResponseFromJSON(jsonValue));
+  }
+
+  /**
+   * Person zu Fahrzeug zuweisen
+   */
+  async einsatzPersonenControllerWeiseZuFahrzeugVAlpha(
+    requestParameters: EinsatzPersonenControllerWeiseZuFahrzeugVAlphaRequest,
+    initOverrides?: RequestInit | runtime.InitOverrideFunction,
+  ): Promise<EinsatzPersonenControllerWeiseZuFahrzeugVAlpha200Response> {
+    const response = await this.einsatzPersonenControllerWeiseZuFahrzeugVAlphaRaw(requestParameters, initOverrides);
     return await response.value();
   }
 }

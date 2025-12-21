@@ -1,6 +1,5 @@
 import { EinsatzPerson, type CreateEinsatzPersonFromStammProps, type CreateTemporaryEinsatzPersonProps, type ReconstituteEinsatzPersonProps } from '../einsatz-person.aggregate';
 import { EINSATZ_PERSON_ERROR_CODES } from '../../common/einsatz-person-error-codes';
-import { EINSATZ_PERSON_VALIDATION } from '../../constants/einsatz-person-validation.constants';
 import { EinsatzPersonHinzugefuegtEvent } from '../../events/einsatz-person-hinzugefuegt.event';
 
 describe('EinsatzPerson Aggregate', () => {

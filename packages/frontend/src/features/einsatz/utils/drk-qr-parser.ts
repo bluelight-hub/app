@@ -1,7 +1,9 @@
 /**
  * DRK QR-Code Parser für Personenregistrierung (Story 4-2)
  *
- * Parst QR-Codes im DRK-Format: drk://person?mnr={personalnummer}&vn={vorname}&nn={nachname}[&fk={funkkennung}]
+ * Unterstützt zwei Formate:
+ * 1. CSV-Format (echte DRK-Meldekarten): Nachname;Vorname;Geburtsdatum;...;Personalnummer;...
+ * 2. URL-Format (Legacy): drk://person?mnr={personalnummer}&vn={vorname}&nn={nachname}
  *
  * @module features/einsatz/utils
  */
@@ -12,13 +14,13 @@
  * Entspricht dem Backend DTO RegistrierePersonViaQrCodeDto
  */
 export interface DrkQrData {
-  /** Personalnummer (DRK-Parameter "mnr") */
+  /** Personalnummer/Mitgliedsnummer */
   personalnummer: string;
-  /** Vorname (DRK-Parameter "vn") */
+  /** Vorname */
   vorname: string;
-  /** Nachname (DRK-Parameter "nn") */
+  /** Nachname */
   nachname: string;
-  /** BOS-Funkkennung (DRK-Parameter "fk", optional) */
+  /** BOS-Funkkennung (optional) */
   funkkennung?: string;
 }
 
@@ -55,22 +57,22 @@ export interface DrkQrParseError {
 }
 
 /**
- * DRK QR-Code Protokoll
+ * DRK QR-Code Protokoll (Legacy URL-Format)
  */
 const DRK_PROTOCOL = 'drk:';
 
 /**
- * Erwarteter Host/Typ für Personen
+ * Erwarteter Host/Typ für Personen (Legacy URL-Format)
  */
 const DRK_PERSON_TYPE = 'person';
 
 /**
- * Pflichtfelder im QR-Code
+ * Pflichtfelder im URL-Format
  */
 const REQUIRED_PARAMS = ['mnr', 'vn', 'nn'] as const;
 
 /**
- * Mapping von QR-Parameter zu Feldname
+ * Mapping von QR-Parameter zu Feldname (URL-Format)
  */
 const PARAM_FIELD_MAP: Record<string, keyof DrkQrData> = {
   mnr: 'personalnummer',
@@ -80,35 +82,58 @@ const PARAM_FIELD_MAP: Record<string, keyof DrkQrData> = {
 };
 
 /**
+ * CSV-Format Feldindizes (echte DRK-Meldekarten)
+ * Format: Nachname;Vorname;Geburtsdatum;Geschlecht;PLZ;;Nationalität;;PersonalCode;KV;Bereitschaft;;;;;Telefon;Email;Mitgliedsnummer;UUID
+ */
+const CSV_FIELD_INDEX = {
+  NACHNAME: 0,
+  VORNAME: 1,
+  // GEBURTSDATUM: 2,
+  // GESCHLECHT: 3,
+  // PLZ: 4,
+  // NATIONALITAET: 6,
+  PERSONAL_CODE: 8,
+  // KREISVERBAND: 9,
+  // BEREITSCHAFT: 10,
+  // TELEFON: 15,
+  // EMAIL: 16,
+  MITGLIEDSNUMMER: 17,
+  // UUID: 18,
+} as const;
+
+/**
+ * Minimale Anzahl Felder für gültiges CSV-Format
+ */
+const CSV_MIN_FIELDS = 18;
+
+/**
  * Parst einen DRK QR-Code String
+ *
+ * Unterstützt zwei Formate:
+ * 1. CSV-Format (echte DRK-Meldekarten): Nachname;Vorname;...;Mitgliedsnummer;...
+ * 2. URL-Format (Legacy): drk://person?mnr=12345&vn=Max&nn=Mustermann
  *
  * @param qrData - Roher QR-Code String
  * @returns ParseResult mit DrkQrData bei Erfolg oder strukturiertem Fehler
  *
- * @example
+ * @example CSV-Format (echte DRK-Meldekarte)
  * ```typescript
- * const result = parseDrkQrCode('drk://person?mnr=12345&vn=Max&nn=Mustermann');
+ * const result = parseDrkQrCode('Vitt;Ruben;07.04.1997;m;29525;;deutsch;;M45GVP3KNS;KV;DRK;;;;;0151;mail;358556;UUID');
  *
  * if (result.success) {
- *   console.log(result.data.personalnummer); // "12345"
- *   console.log(result.data.vorname);        // "Max"
- *   console.log(result.data.nachname);       // "Mustermann"
- * } else {
- *   console.error(result.error.message);
+ *   console.log(result.data.nachname);       // "Vitt"
+ *   console.log(result.data.vorname);        // "Ruben"
+ *   console.log(result.data.personalnummer); // "358556"
  * }
  * ```
  *
- * @example Mit optionaler Funkkennung
+ * @example URL-Format (Legacy)
  * ```typescript
- * const result = parseDrkQrCode('drk://person?mnr=12345&vn=Max&nn=Mustermann&fk=Florian%201');
- *
- * if (result.success) {
- *   console.log(result.data.funkkennung); // "Florian 1"
- * }
+ * const result = parseDrkQrCode('drk://person?mnr=12345&vn=Max&nn=Mustermann');
  * ```
  */
 export function parseDrkQrCode(qrData: string): ParseResult<DrkQrData> {
-  // AC2: Validierung - leerer Input
+  // Validierung - leerer Input
   if (!qrData || typeof qrData !== 'string' || qrData.trim() === '') {
     return {
       success: false,
@@ -121,21 +146,124 @@ export function parseDrkQrCode(qrData: string): ParseResult<DrkQrData> {
 
   const trimmedData = qrData.trim();
 
-  // URL parsen
+  // Prüfe welches Format vorliegt
+  if (isCsvFormat(trimmedData)) {
+    return parseCsvFormat(trimmedData);
+  }
+
+  if (isUrlFormat(trimmedData)) {
+    return parseUrlFormat(trimmedData);
+  }
+
+  return {
+    success: false,
+    error: {
+      code: DrkQrParseErrorCode.INVALID_PROTOCOL,
+      message: 'QR-Code hat unbekanntes Format (weder CSV noch URL)',
+    },
+  };
+}
+
+/**
+ * Prüft ob der String im CSV-Format vorliegt (Semikolon-getrennt)
+ */
+function isCsvFormat(data: string): boolean {
+  const fields = data.split(';');
+  return fields.length >= CSV_MIN_FIELDS;
+}
+
+/**
+ * Prüft ob der String im URL-Format vorliegt (drk://person?...)
+ */
+function isUrlFormat(data: string): boolean {
+  return data.toLowerCase().startsWith('drk://person?');
+}
+
+/**
+ * Parst das CSV-Format (echte DRK-Meldekarten)
+ */
+function parseCsvFormat(data: string): ParseResult<DrkQrData> {
+  const fields = data.split(';');
+
+  // MEDIUM FIX (8): URL-Decode mit fallback für malformed content
+  const decodedFields = fields.map((f) => {
+    try {
+      return decodeURIComponent(f).trim();
+    } catch {
+      // Fallback: Use original string if decoding fails (malformed URI)
+      return f.trim();
+    }
+  });
+
+  const nachname = decodedFields[CSV_FIELD_INDEX.NACHNAME];
+  const vorname = decodedFields[CSV_FIELD_INDEX.VORNAME];
+  const mitgliedsnummer = decodedFields[CSV_FIELD_INDEX.MITGLIEDSNUMMER];
+  const personalCode = decodedFields[CSV_FIELD_INDEX.PERSONAL_CODE];
+
+  // Validierung Pflichtfelder
+  if (!nachname) {
+    return {
+      success: false,
+      error: {
+        code: DrkQrParseErrorCode.EMPTY_FIELD_VALUE,
+        message: 'Nachname fehlt im QR-Code',
+        field: 'nachname',
+      },
+    };
+  }
+
+  if (!vorname) {
+    return {
+      success: false,
+      error: {
+        code: DrkQrParseErrorCode.EMPTY_FIELD_VALUE,
+        message: 'Vorname fehlt im QR-Code',
+        field: 'vorname',
+      },
+    };
+  }
+
+  // Personalnummer: Bevorzuge Mitgliedsnummer, fallback auf PersonalCode
+  const personalnummer = mitgliedsnummer || personalCode;
+  if (!personalnummer) {
+    return {
+      success: false,
+      error: {
+        code: DrkQrParseErrorCode.MISSING_REQUIRED_FIELD,
+        message: 'Mitgliedsnummer fehlt im QR-Code',
+        field: 'personalnummer',
+      },
+    };
+  }
+
+  return {
+    success: true,
+    data: {
+      nachname,
+      vorname,
+      personalnummer,
+    },
+  };
+}
+
+/**
+ * Parst das URL-Format (Legacy: drk://person?mnr=...&vn=...&nn=...)
+ */
+function parseUrlFormat(data: string): ParseResult<DrkQrData> {
   let url: URL;
   try {
-    url = new URL(trimmedData);
+    url = new URL(data);
   } catch {
     return {
       success: false,
       error: {
         code: DrkQrParseErrorCode.MALFORMED_URL,
-        message: 'QR-Code hat ungültiges Format',
+        message: 'QR-Code hat ungültiges URL-Format',
       },
     };
   }
 
-  // AC2: Validierung - Protokoll prüfen (drk://)
+  // Protokoll prüfen (drk://)
   if (url.protocol !== DRK_PROTOCOL) {
     return {
       success: false,
@@ -146,8 +274,7 @@ export function parseDrkQrCode(qrData: string): ParseResult<DrkQrData> {
     };
   }
 
-  // AC2: Validierung - Typ prüfen (person)
-  // Bei drk://person wird "person" als hostname erkannt
+  // Typ prüfen (person)
   if (url.hostname !== DRK_PERSON_TYPE) {
     return {
       success: false,
@@ -160,7 +287,7 @@ export function parseDrkQrCode(qrData: string): ParseResult<DrkQrData> {
 
   const params = url.searchParams;
 
-  // AC2: Pflichtfelder prüfen
+  // Pflichtfelder prüfen
   for (const param of REQUIRED_PARAMS) {
     const value = params.get(param);
 
@@ -175,7 +302,6 @@ export function parseDrkQrCode(qrData: string): ParseResult<DrkQrData> {
       };
     }
 
-    // Leere Werte sind nicht erlaubt
     if (value.trim() === '') {
       return {
         success: false,
@@ -188,22 +314,25 @@ export function parseDrkQrCode(qrData: string): ParseResult<DrkQrData> {
     }
   }
 
-  // Daten extrahieren (URL-Decode wird von URL.searchParams automatisch gemacht)
-  const data: DrkQrData = {
+  // All required params validated above, non-null assertions are safe
+  const result: DrkQrData = {
+    // biome-ignore lint/style/noNonNullAssertion: validated above in REQUIRED_PARAMS loop
     personalnummer: params.get('mnr')!.trim(),
+    // biome-ignore lint/style/noNonNullAssertion: validated above in REQUIRED_PARAMS loop
     vorname: params.get('vn')!.trim(),
+    // biome-ignore lint/style/noNonNullAssertion: validated above in REQUIRED_PARAMS loop
     nachname: params.get('nn')!.trim(),
   };
 
   // Optionales Feld: Funkkennung
   const funkkennung = params.get('fk');
   if (funkkennung && funkkennung.trim() !== '') {
-    data.funkkennung = funkkennung.trim();
+    result.funkkennung = funkkennung.trim();
   }
 
   return {
     success: true,
-    data,
+    data: result,
   };
 }
 
@@ -211,7 +340,7 @@ export function parseDrkQrCode(qrData: string): ParseResult<DrkQrData> {
  * Prüft ob ein String ein gültiger DRK QR-Code sein könnte (Quick-Check)
  *
  * Führt nur eine oberflächliche Prüfung durch ohne vollständiges Parsing.
- * Nützlich für UI-Feedback während des Scannens.
+ * Unterstützt beide Formate: CSV (echte DRK-Meldekarten) und URL (Legacy).
  *
  * @param qrData - Roher QR-Code String
  * @returns true wenn das Format grundsätzlich passen könnte
@@ -221,6 +350,17 @@ export function isDrkQrCodeFormat(qrData: string): boolean {
     return false;
   }
 
-  const trimmed = qrData.trim().toLowerCase();
-  return trimmed.startsWith('drk://person?');
+  const trimmed = qrData.trim();
+
+  // CSV-Format: Mindestens 18 Semikolon-getrennte Felder
+  if (isCsvFormat(trimmed)) {
+    return true;
+  }
+
+  // URL-Format: drk://person?...
+  if (isUrlFormat(trimmed)) {
+    return true;
+  }
+
+  return false;
 }

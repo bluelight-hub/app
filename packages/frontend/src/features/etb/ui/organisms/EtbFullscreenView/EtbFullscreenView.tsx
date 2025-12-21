@@ -161,8 +161,12 @@ export function EtbFullscreenView({ einsatzId, sortOrder = 'desc', showDeleted =
   const observerTarget = useRef<HTMLDivElement>(null);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
 
-  // Alle geladenen Einträge zusammenführen (benötigt für useEffect)
-  const allEntries = data?.pages.flatMap((page) => page.data?.eintraege || []) || [];
+  // Alle geladenen Einträge zusammenführen und sortieren
+  const rawEntries = data?.pages.flatMap((page) => page.data?.eintraege || []) || [];
+  const allEntries = [...rawEntries].sort((a, b) => {
+    const diff = a.sequenceNumber - b.sequenceNumber;
+    return sortOrder === 'desc' ? -diff : diff;
+  });
   const totalEntries = data?.pages?.[0]?.pagination?.total || 0;
 
   // Intersection Observer für Infinite Scrolling (Hook muss vor Early Return!)

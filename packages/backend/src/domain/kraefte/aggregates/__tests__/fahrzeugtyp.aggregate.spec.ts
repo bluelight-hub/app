@@ -18,7 +18,7 @@ describe('Fahrzeugtyp Aggregate', () => {
         const props: CreateFahrzeugtypProps = {
           code: 'A', // Nur 1 Zeichen (min: 2)
           bezeichnung: 'Test Fahrzeug',
-          kategorie: 'EINSATZ',
+          kategorie: 'RETTUNGSDIENST',
           createdBy: validCreatedBy,
         };
 
@@ -35,7 +35,7 @@ describe('Fahrzeugtyp Aggregate', () => {
         const props: CreateFahrzeugtypProps = {
           code: 'ABCDEFGHIJK', // 11 Zeichen (max: 10)
           bezeichnung: 'Test Fahrzeug',
-          kategorie: 'EINSATZ',
+          kategorie: 'RETTUNGSDIENST',
           createdBy: validCreatedBy,
         };
 
@@ -86,7 +86,7 @@ describe('Fahrzeugtyp Aggregate', () => {
         const props: CreateFahrzeugtypProps = {
           code: 'NEF',
           bezeichnung: 'Notarzteinsatzfahrzeug',
-          kategorie: 'EINSATZ',
+          kategorie: 'RETTUNGSDIENST',
           sollbesatzung: {
             fahrer: 1,
             notarzt: -1, // Negativ (ungültig)
@@ -107,7 +107,7 @@ describe('Fahrzeugtyp Aggregate', () => {
         const props: CreateFahrzeugtypProps = {
           code: 'LF',
           bezeichnung: 'Löschfahrzeug',
-          kategorie: 'EINSATZ',
+          kategorie: 'RETTUNGSDIENST',
           sollbesatzung: {
             fahrer: 1.5, // Float statt Integer
           },
@@ -128,7 +128,7 @@ describe('Fahrzeugtyp Aggregate', () => {
         const props: CreateFahrzeugtypProps = {
           code: 'TLF',
           bezeichnung: 'Tanklöschfahrzeug',
-          kategorie: 'EINSATZ',
+          kategorie: 'RETTUNGSDIENST',
           sollbesatzung: {
             fahrer: Number.POSITIVE_INFINITY, // Infinity (ungültig)
           },
@@ -148,7 +148,7 @@ describe('Fahrzeugtyp Aggregate', () => {
         const props: CreateFahrzeugtypProps = {
           code: 'DLK',
           bezeichnung: 'Drehleiter',
-          kategorie: 'SPEZIAL',
+          kategorie: 'FUEHRUNG',
           createdBy: 'invalid-cuid',
         };
 
@@ -167,7 +167,7 @@ describe('Fahrzeugtyp Aggregate', () => {
         const props: CreateFahrzeugtypProps = {
           code: 'hlf', // Wird auf "HLF" normalisiert
           bezeichnung: 'Hilfeleistungslöschfahrzeug',
-          kategorie: 'EINSATZ',
+          kategorie: 'RETTUNGSDIENST',
           beschreibung: 'Standard-Löschfahrzeug mit erweiterter Ausstattung',
           sollbesatzung: {
             fahrer: 1,
@@ -184,7 +184,7 @@ describe('Fahrzeugtyp Aggregate', () => {
         expect(result.value).toBeDefined();
         expect(result.value?.code).toBe('HLF'); // Code ist UPPERCASE normalisiert
         expect(result.value?.bezeichnung).toBe('Hilfeleistungslöschfahrzeug');
-        expect(result.value?.kategorieValue).toBe('EINSATZ');
+        expect(result.value?.kategorieValue).toBe('RETTUNGSDIENST');
         expect(result.value?.beschreibung).toBe('Standard-Löschfahrzeug mit erweiterter Ausstattung');
         expect(result.value?.sollbesatzung).toEqual({ fahrer: 1, funktrupp: 5 });
         expect(result.value?.istAktiv).toBe(true);
@@ -234,7 +234,7 @@ describe('Fahrzeugtyp Aggregate', () => {
         const props: CreateFahrzeugtypProps = {
           code: 'GW',
           bezeichnung: 'Gerätewagen',
-          kategorie: 'SPEZIAL',
+          kategorie: 'FUEHRUNG',
           sollbesatzung: {}, // Leeres Objekt ist valide
           createdBy: validCreatedBy,
         };
@@ -255,7 +255,7 @@ describe('Fahrzeugtyp Aggregate', () => {
         const props: CreateFahrzeugtypProps = {
           code: 'hlf',
           bezeichnung: 'Hilfeleistungslöschfahrzeug',
-          kategorie: 'EINSATZ',
+          kategorie: 'RETTUNGSDIENST',
           createdBy: validCreatedBy,
         };
 
@@ -273,7 +273,7 @@ describe('Fahrzeugtyp Aggregate', () => {
         expect(event.fahrzeugtypId).toBe(fahrzeugtyp.id.value);
         expect(event.code).toBe('HLF'); // Normalisiert
         expect(event.bezeichnung).toBe('Hilfeleistungslöschfahrzeug');
-        expect(event.kategorie).toBe('EINSATZ');
+        expect(event.kategorie).toBe('RETTUNGSDIENST');
         expect(event.createdBy).toBe(validCreatedBy);
       });
 
@@ -282,7 +282,7 @@ describe('Fahrzeugtyp Aggregate', () => {
         const props: CreateFahrzeugtypProps = {
           code: 'A', // Ungültig (zu kurz)
           bezeichnung: 'Test',
-          kategorie: 'EINSATZ',
+          kategorie: 'RETTUNGSDIENST',
           createdBy: validCreatedBy,
         };
 
@@ -303,7 +303,7 @@ describe('Fahrzeugtyp Aggregate', () => {
         const createProps: CreateFahrzeugtypProps = {
           code: 'HLF',
           bezeichnung: 'Hilfeleistungslöschfahrzeug',
-          kategorie: 'EINSATZ',
+          kategorie: 'RETTUNGSDIENST',
           createdBy: validCreatedBy,
         };
         const fahrzeugtyp = Fahrzeugtyp.create(createProps).value!;
@@ -329,7 +329,7 @@ describe('Fahrzeugtyp Aggregate', () => {
         const createProps: CreateFahrzeugtypProps = {
           code: 'LF',
           bezeichnung: 'Löschfahrzeug',
-          kategorie: 'EINSATZ',
+          kategorie: 'RETTUNGSDIENST',
           createdBy: validCreatedBy,
         };
         const fahrzeugtyp = Fahrzeugtyp.create(createProps).value!;
@@ -398,7 +398,7 @@ describe('Fahrzeugtyp Aggregate', () => {
         const createProps: CreateFahrzeugtypProps = {
           code: 'HLF',
           bezeichnung: 'Hilfeleistungslöschfahrzeug',
-          kategorie: 'EINSATZ',
+          kategorie: 'RETTUNGSDIENST',
           createdBy: validCreatedBy,
         };
         const fahrzeugtyp = Fahrzeugtyp.create(createProps).value!;
@@ -433,7 +433,7 @@ describe('Fahrzeugtyp Aggregate', () => {
         const createProps: CreateFahrzeugtypProps = {
           code: 'HLF',
           bezeichnung: 'Hilfeleistungslöschfahrzeug',
-          kategorie: 'EINSATZ',
+          kategorie: 'RETTUNGSDIENST',
           createdBy: validCreatedBy,
         };
         const fahrzeugtyp = Fahrzeugtyp.create(createProps).value!;
@@ -456,7 +456,7 @@ describe('Fahrzeugtyp Aggregate', () => {
         const createProps: CreateFahrzeugtypProps = {
           code: 'HLF',
           bezeichnung: 'Hilfeleistungslöschfahrzeug',
-          kategorie: 'EINSATZ',
+          kategorie: 'RETTUNGSDIENST',
           createdBy: validCreatedBy,
         };
         const fahrzeugtyp = Fahrzeugtyp.create(createProps).value!;
@@ -481,7 +481,7 @@ describe('Fahrzeugtyp Aggregate', () => {
       const createProps: CreateFahrzeugtypProps = {
         code: 'DLK',
         bezeichnung: 'Drehleiter',
-        kategorie: 'SPEZIAL',
+        kategorie: 'FUEHRUNG',
         createdBy: validCreatedBy,
       };
       const fahrzeugtyp = Fahrzeugtyp.create(createProps).value!;
@@ -524,7 +524,7 @@ describe('Fahrzeugtyp Aggregate', () => {
       const createProps: CreateFahrzeugtypProps = {
         code: 'RTW',
         bezeichnung: 'Rettungswagen',
-        kategorie: 'EINSATZ',
+        kategorie: 'RETTUNGSDIENST',
         createdBy: validCreatedBy,
       };
       const fahrzeugtyp = Fahrzeugtyp.create(createProps).value!;
@@ -545,7 +545,7 @@ describe('Fahrzeugtyp Aggregate', () => {
       const createProps: CreateFahrzeugtypProps = {
         code: 'NEF',
         bezeichnung: 'Notarzteinsatzfahrzeug',
-        kategorie: 'EINSATZ',
+        kategorie: 'RETTUNGSDIENST',
         createdBy: validCreatedBy,
       };
       const fahrzeugtyp = Fahrzeugtyp.create(createProps).value!;
@@ -568,7 +568,7 @@ describe('Fahrzeugtyp Aggregate', () => {
           id: 'clw3h8x9y0000qwertyuiopas',
           code: 'HLF', // Bereits UPPERCASE aus DB
           bezeichnung: 'Hilfeleistungslöschfahrzeug',
-          kategorie: 'EINSATZ',
+          kategorie: 'RETTUNGSDIENST',
           beschreibung: 'Standard-Löschfahrzeug',
           sollbesatzung: { fahrer: 1, funktrupp: 5 },
           istAktiv: true,
@@ -596,7 +596,7 @@ describe('Fahrzeugtyp Aggregate', () => {
           id: 'clw3h8x9y0000qwertyuiopas',
           code: 'HLF',
           bezeichnung: 'Hilfeleistungslöschfahrzeug',
-          kategorie: 'EINSATZ',
+          kategorie: 'RETTUNGSDIENST',
           istAktiv: true,
           sortOrder: 0,
           createdAt: new Date('2024-01-01'),
@@ -623,7 +623,7 @@ describe('Fahrzeugtyp Aggregate', () => {
           id: 'invalid-id-format', // Kein CUID2
           code: 'HLF',
           bezeichnung: 'Hilfeleistungslöschfahrzeug',
-          kategorie: 'EINSATZ',
+          kategorie: 'RETTUNGSDIENST',
           istAktiv: true,
           sortOrder: 0,
           createdAt: new Date(),
@@ -667,7 +667,7 @@ describe('Fahrzeugtyp Aggregate', () => {
           id: 'clw3h8x9y0000qwertyuiopas',
           code: 'LF',
           bezeichnung: 'Löschfahrzeug',
-          kategorie: 'EINSATZ',
+          kategorie: 'RETTUNGSDIENST',
           istAktiv: true,
           sortOrder: Number.NaN, // NaN (ungültig)
           createdAt: new Date(),
@@ -690,7 +690,7 @@ describe('Fahrzeugtyp Aggregate', () => {
           id: 'clw3h8x9y0000qwertyuiopas',
           code: 'HLF',
           bezeichnung: 'Hilfeleistungslöschfahrzeug',
-          kategorie: 'EINSATZ',
+          kategorie: 'RETTUNGSDIENST',
           sollbesatzung: {
             fahrer: 1,
             funktrupp: -5, // Korrupte DB-Daten: negativer Wert
@@ -719,7 +719,7 @@ describe('Fahrzeugtyp Aggregate', () => {
           id: 'clw3h8x9y0000qwertyuiopas',
           code: 'HLF',
           bezeichnung: 'Hilfeleistungslöschfahrzeug',
-          kategorie: 'EINSATZ',
+          kategorie: 'RETTUNGSDIENST',
           sollbesatzung: {
             fahrer: Number.POSITIVE_INFINITY, // Korrupte DB-Daten
           },

@@ -607,7 +607,7 @@ export function PersonHinzufuegenDialog({ isOpen, onClose, einsatzId }: PersonHi
 
               {/* Tab 2: QR-Code Scanner */}
               <TabPanel>
-                <QrScannerTab einsatzId={einsatzId} onSuccess={handleQrSuccess} />
+                <QrScannerTab einsatzId={einsatzId} onSuccess={handleQrSuccess} isActive={selectedTab === 1} />
               </TabPanel>
             </TabPanels>
           </TabGroup>

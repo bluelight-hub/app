@@ -47,7 +47,7 @@ describe('ErfasseTemporalesFahrzeugHandler', () => {
       id: validFahrzeugtypId,
       code: 'RTW',
       bezeichnung: 'Rettungswagen',
-      kategorie: 'EINSATZ',
+      kategorie: 'RETTUNGSDIENST',
       istAktiv: true,
       sortOrder: 0,
       createdAt: new Date(),
@@ -229,7 +229,7 @@ describe('ErfasseTemporalesFahrzeugHandler', () => {
         id: validFahrzeugtypId,
         code: 'RTW',
         bezeichnung: 'Rettungswagen',
-        kategorie: 'EINSATZ',
+        kategorie: 'RETTUNGSDIENST',
         istAktiv: false, // WICHTIG: inaktiver Fahrzeugtyp
         sortOrder: 0,
         createdAt: new Date(),

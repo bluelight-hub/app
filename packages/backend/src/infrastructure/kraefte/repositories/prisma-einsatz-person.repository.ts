@@ -105,6 +105,7 @@ export class PrismaEinsatzPersonRepository implements IEinsatzPersonRepository {
           id: persistenceData.id,
           einsatzId: persistenceData.einsatzId,
           stammId: persistenceData.stammId,
+          fahrzeugId: persistenceData.fahrzeugId,
           vorname: persistenceData.vorname,
           nachname: persistenceData.nachname,
           funktion: persistenceData.funktion,
@@ -123,6 +124,7 @@ export class PrismaEinsatzPersonRepository implements IEinsatzPersonRepository {
         update: {
           // einsatzId ist IMMUTABLE (FK zum Einsatz)
           // stammId ist IMMUTABLE (Referenz zum Original-StammPerson)
+          fahrzeugId: persistenceData.fahrzeugId,
           vorname: persistenceData.vorname,
           nachname: persistenceData.nachname,
           funktion: persistenceData.funktion,
@@ -165,6 +167,9 @@ export class PrismaEinsatzPersonRepository implements IEinsatzPersonRepository {
         }
         if (String(fieldName).includes('einsatzId') || String(fieldName).includes('einsatz_id')) {
           return Result.fail<void>(EINSATZ_PERSON_ERROR_CODES.EINSATZ_NOT_FOUND);
+        }
+        if (String(fieldName).includes('fahrzeugId') || String(fieldName).includes('fahrzeug_id')) {
+          return Result.fail<void>(EINSATZ_PERSON_ERROR_CODES.FAHRZEUG_NOT_FOUND);
         }
         if (String(fieldName).includes('qualifikationId') || String(fieldName).includes('qualifikation_id')) {
           return Result.fail<void>(EINSATZ_PERSON_ERROR_CODES.INVALID_QUALIFIKATION);
@@ -297,6 +302,57 @@ export class PrismaEinsatzPersonRepository implements IEinsatzPersonRepository {
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Unknown error';
       return Result.fail<boolean>(`Fehler bei der Existenzprüfung: ${errorMessage}`);
+    }
+  }
+
+  /**
+   * Findet alle EinsatzPersonen die einem Fahrzeug zugewiesen sind.
+   *
+   * **Story 4.3 - Besatzung anzeigen:**
+   * Lädt alle Personen mit fahrzeugId für kompakte Besatzungs-Liste im Widget.
+   *
+   * **Sortierung:** Nach Erstellungszeitpunkt DESC (neueste zuerst).
+   *
+   * **Performance:** Nutzt Index `@@index([fahrzeugId])`.
+   *
+   * @param fahrzeugId - Die EinsatzFahrzeug-ID (CUID2)
+   * @param tx - Optional: Transaction Context
+   * @returns Result<EinsatzPerson[]> - Success mit Array (kann leer sein), Failure bei DB-Fehler
+   */
+  async findByFahrzeugId(fahrzeugId: string, tx?: TransactionContext): Promise<Result<EinsatzPerson[]>> {
+    try {
+      const client = getTransactionClient(tx, this.prisma);
+
+      const entities = await client.einsatzPerson.findMany({
+        where: { fahrzeugId },
+        include: {
+          qualifikationen: {
+            select: {
+              qualifikationId: true,
+            },
+          },
+        },
+        orderBy: { createdAt: 'desc' },
+      });
+
+      // Batch-Rekonstitution mit Error-Handling
+      const aggregates: EinsatzPerson[] = [];
+      for (const entity of entities) {
+        const domainResult = PrismaEinsatzPersonMapper.toDomain(entity);
+        if (domainResult.isFailure || !domainResult.value) {
+          this.logger.warn(
+            `Einsatz-Person Rekonstitution fehlgeschlagen für ID ${entity.id}: ${domainResult.error ?? 'Unbekannter Fehler'} (fahrzeugId=${fahrzeugId})`,
+            'PrismaEinsatzPersonRepository',
+          );
+          continue;
+        }
+        aggregates.push(domainResult.value);
+      }
+
+      return Result.ok<EinsatzPerson[]>(aggregates);
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      return Result.fail<EinsatzPerson[]>(`Fehler beim Laden der Besatzung: ${errorMessage}`);
     }
   }
 }

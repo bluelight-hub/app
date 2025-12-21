@@ -22,6 +22,14 @@ import type { PermissionRevokedEvent } from '@domain/events/permission-revoked.e
 import type { QualifikationCreatedEvent } from '@domain/kraefte/events/qualifikation-created.event';
 import type { QualifikationUpdatedEvent } from '@domain/kraefte/events/qualifikation-updated.event';
 import type { EinsatzPersonHinzugefuegtEvent } from '@domain/kraefte/events/einsatz-person-hinzugefuegt.event';
+import type { FahrzeugErfasstEvent } from '@domain/kraefte/events/fahrzeug-erfasst.event';
+import type { FmsStatusGeaendertEvent } from '@domain/kraefte/events/fms-status-geaendert.event';
+import type { StammPersonCreatedEvent } from '@domain/kraefte/events/stamm-person-created.event';
+import type { StammPersonUpdatedEvent } from '@domain/kraefte/events/stamm-person-updated.event';
+import type { StammFahrzeugCreatedEvent } from '@domain/kraefte/events/stamm-fahrzeug-created.event';
+import type { StammFahrzeugUpdatedEvent } from '@domain/kraefte/events/stamm-fahrzeug-updated.event';
+import type { PersonZuFahrzeugZugewiesenEvent } from '@domain/kraefte/events/person-zu-fahrzeug-zugewiesen.event';
+import type { PersonVonFahrzeugEntferntEvent } from '@domain/kraefte/events/person-von-fahrzeug-entfernt.event';
 
 /**
  * Serialisiertes Event-Payload für Outbox-Persistierung.
@@ -179,6 +187,28 @@ export class EventSerializer {
       // ===== EINSATZ PERSON EVENTS =====
       case 'einsatz_person.hinzugefuegt':
         return this.serializeEinsatzPersonHinzugefuegt(event as unknown as EinsatzPersonHinzugefuegtEvent);
+      case 'einsatz_person.zu_fahrzeug_zugewiesen':
+        return this.serializePersonZuFahrzeugZugewiesen(event as unknown as PersonZuFahrzeugZugewiesenEvent);
+      case 'einsatz_person.von_fahrzeug_entfernt':
+        return this.serializePersonVonFahrzeugEntfernt(event as unknown as PersonVonFahrzeugEntferntEvent);
+
+      // ===== EINSATZ FAHRZEUG EVENTS =====
+      case 'einsatz_fahrzeug.erfasst':
+        return this.serializeFahrzeugErfasst(event as unknown as FahrzeugErfasstEvent);
+      case 'einsatz_fahrzeug.fms_status_geaendert':
+        return this.serializeFmsStatusGeaendert(event as unknown as FmsStatusGeaendertEvent);
+
+      // ===== STAMM PERSON EVENTS =====
+      case 'StammPersonCreated':
+        return this.serializeStammPersonCreated(event as unknown as StammPersonCreatedEvent);
+      case 'StammPersonUpdated':
+        return this.serializeStammPersonUpdated(event as unknown as StammPersonUpdatedEvent);
+
+      // ===== STAMM FAHRZEUG EVENTS =====
+      case 'StammFahrzeugCreated':
+        return this.serializeStammFahrzeugCreated(event as unknown as StammFahrzeugCreatedEvent);
+      case 'StammFahrzeugUpdated':
+        return this.serializeStammFahrzeugUpdated(event as unknown as StammFahrzeugUpdatedEvent);
 
       default:
         throw new Error(`Unknown event type: ${eventName}. EventSerializer needs to be updated.`);
@@ -384,6 +414,96 @@ export class EventSerializer {
       nachname: event.nachname,
       funktion: event.funktion,
       registriertVon: event.registriertVon,
+    };
+  }
+
+  private serializePersonZuFahrzeugZugewiesen(event: PersonZuFahrzeugZugewiesenEvent): Record<string, unknown> {
+    return {
+      einsatzId: event.einsatzId, // Already primitive string
+      personId: event.personId,
+      fahrzeugId: event.fahrzeugId,
+      personVorname: event.personVorname,
+      personNachname: event.personNachname,
+      fahrzeugFunkrufname: event.fahrzeugFunkrufname,
+      zugewiesenVon: event.zugewiesenVon,
+    };
+  }
+
+  private serializePersonVonFahrzeugEntfernt(event: PersonVonFahrzeugEntferntEvent): Record<string, unknown> {
+    return {
+      einsatzId: event.einsatzId, // Already primitive string
+      personId: event.personId,
+      fahrzeugId: event.fahrzeugId,
+      personVorname: event.personVorname,
+      personNachname: event.personNachname,
+      fahrzeugFunkrufname: event.fahrzeugFunkrufname,
+      entferntVon: event.entferntVon,
+    };
+  }
+
+  // ===== EINSATZ FAHRZEUG SERIALIZERS =====
+
+  private serializeFahrzeugErfasst(event: FahrzeugErfasstEvent): Record<string, unknown> {
+    return {
+      einsatzId: event.einsatzId, // Already primitive string
+      einsatzFahrzeugId: event.einsatzFahrzeugId,
+      funkrufname: event.funkrufname,
+      stammId: event.stammId, // string | undefined
+      fmsStatus: event.fmsStatus,
+      erfasstVon: event.erfasstVon,
+    };
+  }
+
+  private serializeFmsStatusGeaendert(event: FmsStatusGeaendertEvent): Record<string, unknown> {
+    return {
+      einsatzFahrzeugId: event.einsatzFahrzeugId, // Already primitive string
+      einsatzId: event.einsatzId,
+      funkrufname: event.funkrufname,
+      previousStatus: event.previousStatus,
+      neuerStatus: event.neuerStatus,
+      previousStatusLabel: event.previousStatusLabel,
+      neuerStatusLabel: event.neuerStatusLabel,
+      geaendertVon: event.geaendertVon,
+    };
+  }
+
+  // ===== STAMM PERSON SERIALIZERS =====
+
+  private serializeStammPersonCreated(event: StammPersonCreatedEvent): Record<string, unknown> {
+    return {
+      stammPersonId: event.stammPersonId, // Already primitive string
+      vorname: event.vorname,
+      nachname: event.nachname,
+      personalnummer: event.personalnummer,
+      createdBy: event.createdBy,
+    };
+  }
+
+  private serializeStammPersonUpdated(event: StammPersonUpdatedEvent): Record<string, unknown> {
+    return {
+      stammPersonId: event.stammPersonId, // Already primitive string
+      changes: event.changes, // Already primitives
+      updatedBy: event.updatedBy,
+    };
+  }
+
+  // ===== STAMM FAHRZEUG SERIALIZERS =====
+
+  private serializeStammFahrzeugCreated(event: StammFahrzeugCreatedEvent): Record<string, unknown> {
+    return {
+      stammFahrzeugId: event.stammFahrzeugId, // Already primitive string
+      rufname: event.rufname,
+      funkrufname: event.funkrufname,
+      fahrzeugtypId: event.fahrzeugtypId,
+      createdBy: event.createdBy,
+    };
+  }
+
+  private serializeStammFahrzeugUpdated(event: StammFahrzeugUpdatedEvent): Record<string, unknown> {
+    return {
+      stammFahrzeugId: event.stammFahrzeugId, // Already primitive string
+      changes: event.changes, // Already primitives
+      updatedBy: event.updatedBy,
     };
   }
 }

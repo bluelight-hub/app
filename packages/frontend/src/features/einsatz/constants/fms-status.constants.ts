@@ -1,44 +1,41 @@
 /**
  * FMS-Status Labels für UI-Anzeige.
- * BOS Standard Codes 0-9.
+ * Story 4.3 Spezifikation.
  */
 export const FMS_STATUS_LABELS: Record<number, string> = {
-  0: 'Nicht einsatzbereit',
-  1: 'Auf Wache',
-  2: 'Einsatzbereit',
-  3: 'Ausgerückt',
+  1: 'Frei über Funk',
+  2: 'Einsatzbereit auf Wache',
+  3: 'Einsatz übernommen',
   4: 'Am Einsatzort',
   5: 'Sprechwunsch',
-  6: 'Außer Dienst',
-  7: 'Regional 7',
-  8: 'Regional 8',
-  9: 'Regional 9',
+  6: 'Nicht einsatzbereit',
+  7: 'Patient aufgenommen',
+  8: 'Am Zielort',
+  9: 'Handfunkgerät',
 };
 
 /**
- * FMS-Status Farben für Light und Dark Mode.
- * WCAG 2.1 AA Kontrast beachtet.
+ * FMS-Status Farben gemäß Story 4.3.
+ * Verwendet einfache Tailwind-Klassen (Light Mode).
  */
-export const FMS_STATUS_COLORS: Record<number, { light: string; dark: string }> = {
-  0: { light: 'bg-gray-100 text-gray-800', dark: 'dark:bg-gray-800 dark:text-gray-200' },
-  1: { light: 'bg-gray-100 text-gray-800', dark: 'dark:bg-gray-800 dark:text-gray-200' },
-  2: { light: 'bg-green-100 text-green-800', dark: 'dark:bg-green-900/30 dark:text-green-300' },
-  3: { light: 'bg-blue-100 text-blue-800', dark: 'dark:bg-blue-900/30 dark:text-blue-300' },
-  4: { light: 'bg-yellow-100 text-yellow-800', dark: 'dark:bg-yellow-900/30 dark:text-yellow-300' },
-  5: { light: 'bg-orange-100 text-orange-800', dark: 'dark:bg-orange-900/30 dark:text-orange-300' },
-  6: { light: 'bg-purple-100 text-purple-800', dark: 'dark:bg-purple-900/30 dark:text-purple-300' },
-  7: { light: 'bg-purple-100 text-purple-800', dark: 'dark:bg-purple-900/30 dark:text-purple-300' },
-  8: { light: 'bg-purple-100 text-purple-800', dark: 'dark:bg-purple-900/30 dark:text-purple-300' },
-  9: { light: 'bg-purple-100 text-purple-800', dark: 'dark:bg-purple-900/30 dark:text-purple-300' },
+export const FMS_STATUS_COLORS: Record<number, string> = {
+  1: 'bg-gray-100 text-gray-800',
+  2: 'bg-green-100 text-green-800',
+  3: 'bg-blue-100 text-blue-800',
+  4: 'bg-indigo-100 text-indigo-800',
+  5: 'bg-yellow-100 text-yellow-800',
+  6: 'bg-red-100 text-red-800',
+  7: 'bg-purple-100 text-purple-800',
+  8: 'bg-teal-100 text-teal-800',
+  9: 'bg-orange-100 text-orange-800',
 };
 
 /**
  * Gibt Tailwind-Klassen für einen FMS-Status zurück.
- * Kombiniert Light und Dark Mode Klassen.
+ * Fallback: grau für unbekannte Status.
  */
 export const getStatusClasses = (status: number): string => {
-  const colors = FMS_STATUS_COLORS[status] ?? FMS_STATUS_COLORS[6];
-  return `${colors.light} ${colors.dark}`;
+  return FMS_STATUS_COLORS[status] ?? 'bg-gray-100 text-gray-800';
 };
 
 /**
@@ -46,51 +43,36 @@ export const getStatusClasses = (status: number): string => {
  * Für Status-Dots ohne Text.
  */
 export const getStatusBgClasses = (status: number): string => {
-  const colors = FMS_STATUS_COLORS[status] ?? FMS_STATUS_COLORS[6];
-
-  // Extrahiere bg-* Klassen mit strukturiertem Parsing
-  const extractBgClass = (classString: string): string => {
-    const classes = classString.split(/\s+/);
-    const bgClass = classes.find((cls) => cls.startsWith('bg-'));
-    return bgClass ?? '';
-  };
-
-  const lightBg = extractBgClass(colors.light);
-  const darkBg = extractBgClass(colors.dark);
-
-  return `${lightBg} ${darkBg}`.trim();
+  const colorClasses = FMS_STATUS_COLORS[status] ?? 'bg-gray-100 text-gray-800';
+  const bgClass = colorClasses.split(/\s+/).find((cls) => cls.startsWith('bg-'));
+  return bgClass ?? 'bg-gray-100';
 };
 
 /**
- * Type für gültige FMS-Status Werte (0-9).
+ * Type für gültige FMS-Status Werte (1-9).
+ * Story 4.3 Spezifikation.
  */
-export type FmsStatus = 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9;
+export type FmsStatus = 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9;
 
 /**
  * Type Guard für FMS Status Validierung.
- * Prüft ob ein Wert ein gültiger FMS Status (0-9) ist.
- *
- * Exportiert für externe Consumer zur Runtime-Validierung.
- * Wird intern nicht verwendet, da TypeScript-Types bereits Compile-Time-Sicherheit bieten.
+ * Prüft ob ein Wert ein gültiger FMS Status (1-9) ist.
  *
  * @param value - Zu prüfender Wert
  * @returns true wenn value ein gültiger FMS Status ist
  *
  * @example
  * ```typescript
- * // Nützlich für API-Responses oder User-Input
  * if (isFmsStatus(data.status)) {
- *   // TypeScript weiß jetzt dass data.status vom Typ FmsStatus ist
  *   const label = FMS_STATUS_LABELS[data.status];
  * }
  * ```
  */
 export const isFmsStatus = (value: unknown): value is FmsStatus => {
-  return typeof value === 'number' && value >= 0 && value <= 9 && Number.isInteger(value);
+  return typeof value === 'number' && value >= 1 && value <= 9 && Number.isInteger(value);
 };
 
 /**
- * Alle verfügbaren FMS-Status Codes (0-9).
- * Type: Array of FmsStatus values (0-9)
+ * Alle verfügbaren FMS-Status Codes (1-9).
  */
-export const FMS_STATUS_OPTIONS: readonly FmsStatus[] = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9] as const;
+export const FMS_STATUS_OPTIONS: readonly FmsStatus[] = [1, 2, 3, 4, 5, 6, 7, 8, 9] as const;

@@ -19,8 +19,6 @@ import {
   ApiTags,
   ApiBearerAuth,
   ApiOperation,
-  ApiOkResponse,
-  ApiCreatedResponse,
   ApiNotFoundResponse,
   ApiBadRequestResponse,
   ApiUnauthorizedResponse,
@@ -33,6 +31,7 @@ import {
 import { Throttle } from '@nestjs/throttler';
 import { AdminJwtAuthGuard } from '@/modules/auth/guards/admin-jwt-auth.guard';
 import { CurrentUser } from '@/modules/auth/decorators/current-user.decorator';
+import { ApiWrappedResponse, ApiWrappedCreatedResponse } from '@/modules/common/decorators/api-wrapped-response.decorator';
 import type { ValidatedUser } from '@/modules/auth/strategies/jwt.strategy';
 import { ParseCuidPipe } from '@/infrastructure/http/pipes/parse-cuid.pipe';
 import { ADMIN_RATE_LIMIT, ADMIN_MUTATION_RATE_LIMIT } from '@/infrastructure/http/constants/rate-limit.constants';
@@ -141,7 +140,7 @@ export class AdminStammPersonenController {
   @Get()
   @Throttle({ default: { limit: 30, ttl: 60000 } }) // AC7: GET 30/min (überschreibt Klassen-Level 20/min)
   @ApiOperation({ summary: 'Alle Stamm-Personen auflisten' })
-  @ApiOkResponse({ type: StammPersonDto, isArray: true })
+  @ApiWrappedResponse(StammPersonDto, { isArray: true, description: 'Liste aller Stamm-Personen' })
   @ApiQuery({ name: 'includeArchived', required: false, type: Boolean, description: 'Archivierte Personen einschließen' })
   @ApiBadRequestResponse({ description: 'Ungültiger Query-Parameter' })
   async findAll(@Query('includeArchived') includeArchived?: string): Promise<StammPersonDto[]> {
@@ -211,7 +210,7 @@ export class AdminStammPersonenController {
   @Get(':id')
   @Throttle({ default: { limit: 30, ttl: 60000 } }) // AC7: GET 30/min (überschreibt Klassen-Level 20/min)
   @ApiOperation({ summary: 'Stamm-Person nach ID abrufen' })
-  @ApiOkResponse({ type: StammPersonDto })
+  @ApiWrappedResponse(StammPersonDto, { description: 'Stamm-Person gefunden' })
   @ApiNotFoundResponse({ description: 'Stamm-Person nicht gefunden' })
   @ApiBadRequestResponse({ description: 'Ungültige CUID' })
   async findOne(@Param('id', ParseCuidPipe) id: string): Promise<StammPersonDto> {
@@ -257,7 +256,7 @@ export class AdminStammPersonenController {
   @Throttle({ default: ADMIN_MUTATION_RATE_LIMIT })
   @HttpCode(HttpStatus.CREATED)
   @ApiOperation({ summary: 'Neue Stamm-Person erstellen' })
-  @ApiCreatedResponse({ type: StammPersonDto })
+  @ApiWrappedCreatedResponse(StammPersonDto, { description: 'Stamm-Person erfolgreich erstellt' })
   @ApiBadRequestResponse({ description: 'Validierungsfehler (z.B. Name zu kurz, Qualifikation existiert nicht)' })
   @ApiConflictResponse({ description: 'Personalnummer bereits vergeben' })
   async create(@CurrentUser() user: ValidatedUser, @Body() dto: CreateStammPersonDto): Promise<StammPersonDto> {
@@ -331,7 +330,7 @@ export class AdminStammPersonenController {
   @Patch(':id')
   @Throttle({ default: ADMIN_MUTATION_RATE_LIMIT })
   @ApiOperation({ summary: 'Stamm-Person aktualisieren' })
-  @ApiOkResponse({ type: StammPersonDto })
+  @ApiWrappedResponse(StammPersonDto, { description: 'Stamm-Person erfolgreich aktualisiert' })
   @ApiBadRequestResponse({ description: 'Validierungsfehler oder ungültige CUID' })
   @ApiNotFoundResponse({ description: 'Stamm-Person nicht gefunden' })
   @ApiConflictResponse({ description: 'Archivierte Person kann nicht bearbeitet werden (erst wiederherstellen)' })
@@ -407,7 +406,7 @@ export class AdminStammPersonenController {
   @Patch(':id/archive')
   @Throttle({ default: ADMIN_MUTATION_RATE_LIMIT })
   @ApiOperation({ summary: 'Stamm-Person archivieren' })
-  @ApiOkResponse({ type: StammPersonDto })
+  @ApiWrappedResponse(StammPersonDto, { description: 'Stamm-Person erfolgreich archiviert' })
   @ApiConflictResponse({ description: 'Stamm-Person ist bereits archiviert oder ungültige CUID' })
   @ApiNotFoundResponse({ description: 'Stamm-Person nicht gefunden' })
   async archive(@Param('id', ParseCuidPipe) id: string, @CurrentUser() user: ValidatedUser): Promise<StammPersonDto> {
@@ -474,7 +473,7 @@ export class AdminStammPersonenController {
   @Patch(':id/restore')
   @Throttle({ default: ADMIN_MUTATION_RATE_LIMIT })
   @ApiOperation({ summary: 'Archivierte Stamm-Person wiederherstellen' })
-  @ApiOkResponse({ type: StammPersonDto })
+  @ApiWrappedResponse(StammPersonDto, { description: 'Stamm-Person erfolgreich wiederhergestellt' })
   @ApiConflictResponse({ description: 'Stamm-Person ist nicht archiviert oder ungültige CUID' })
   @ApiNotFoundResponse({ description: 'Stamm-Person nicht gefunden' })
   async restore(@Param('id', ParseCuidPipe) id: string, @CurrentUser() user: ValidatedUser): Promise<StammPersonDto> {

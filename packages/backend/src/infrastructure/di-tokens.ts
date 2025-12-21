@@ -132,4 +132,10 @@ export const EVENT_HANDLER = {
 
   /** EinsatzPersonHinzugefuegt ETB-Eintrag Handler Token (Story 4-1) */
   EINSATZ_PERSON_HINZUGEFUEGT_ETB: Symbol('IEventHandler<EinsatzPersonHinzugefuegtEvent>:EtbEintrag'),
+
+  /** PersonZuFahrzeugZugewiesen ETB-Eintrag Handler Token (Story 4-3) */
+  PERSON_ZU_FAHRZEUG_ZUGEWIESEN_ETB: Symbol('IEventHandler<PersonZuFahrzeugZugewiesenEvent>:EtbEintrag'),
+
+  /** PersonVonFahrzeugEntfernt ETB-Eintrag Handler Token (Story 4-3) */
+  PERSON_VON_FAHRZEUG_ENTFERNT_ETB: Symbol('IEventHandler<PersonVonFahrzeugEntferntEvent>:EtbEintrag'),
 } as const;

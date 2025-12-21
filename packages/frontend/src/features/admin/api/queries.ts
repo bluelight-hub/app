@@ -12,6 +12,8 @@
  * - ADMIN_QUERY_KEYS.all - invalidiert alle Admin-Queries
  * - ADMIN_QUERY_KEYS.users - invalidiert User-Management-Queries
  * - ADMIN_QUERY_KEYS.kraefte.qualifikationen - invalidiert Qualifikationen-Queries
+ * - ADMIN_QUERY_KEYS.stammdaten.fahrzeuge - invalidiert StammFahrzeuge-Queries
+ * - ADMIN_QUERY_KEYS.stammdaten.personen - invalidiert StammPersonen-Queries
  */
 export const ADMIN_QUERY_KEYS = {
   all: ['admin'] as const,
@@ -22,6 +24,19 @@ export const ADMIN_QUERY_KEYS = {
       all: () => [...ADMIN_QUERY_KEYS.kraefte.all, 'qualifikationen'] as const,
       list: (filters?: { istAktiv?: boolean }) => [...ADMIN_QUERY_KEYS.kraefte.qualifikationen.all(), 'list', filters].filter((v) => v !== undefined) as const,
       detail: (id: string) => [...ADMIN_QUERY_KEYS.kraefte.qualifikationen.all(), 'detail', id] as const,
+    },
+  },
+  stammdaten: {
+    all: ['admin', 'stammdaten'] as const,
+    fahrzeuge: {
+      all: () => [...ADMIN_QUERY_KEYS.stammdaten.all, 'fahrzeuge'] as const,
+      list: (filters?: { includeArchived?: boolean }) => [...ADMIN_QUERY_KEYS.stammdaten.fahrzeuge.all(), 'list', filters].filter((v) => v !== undefined) as const,
+      detail: (id: string) => [...ADMIN_QUERY_KEYS.stammdaten.fahrzeuge.all(), 'detail', id] as const,
+    },
+    personen: {
+      all: () => [...ADMIN_QUERY_KEYS.stammdaten.all, 'personen'] as const,
+      list: (filters?: { includeArchived?: boolean }) => [...ADMIN_QUERY_KEYS.stammdaten.personen.all(), 'list', filters].filter((v) => v !== undefined) as const,
+      detail: (id: string) => [...ADMIN_QUERY_KEYS.stammdaten.personen.all(), 'detail', id] as const,
     },
   },
 } as const;

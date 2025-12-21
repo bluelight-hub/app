@@ -8,7 +8,7 @@ import { useNavigate } from '@tanstack/react-router';
 import { isTauri } from '@tauri-apps/api/core';
 import { AdminDashboardLayout } from '@/shared/ui/templates/AdminDashboardLayout';
 import { useCallback } from 'react';
-import { PiCertificate, PiSignOut, PiUsers } from 'react-icons/pi';
+import { PiCertificate, PiSignOut, PiUsers, PiTruck, PiUserList } from 'react-icons/pi';
 
 /**
  * Admin-Dashboard Seite
@@ -50,6 +50,14 @@ export function AdminDashboard() {
     await navigate({ to: '/admin/kraefte/qualifikationen' });
   }, [navigate]);
 
+  const handleNavigateToStammFahrzeuge = useCallback(async () => {
+    await navigate({ to: '/admin/stammdaten/fahrzeuge' });
+  }, [navigate]);
+
+  const handleNavigateToStammPersonen = useCallback(async () => {
+    await navigate({ to: '/admin/stammdaten/personen' });
+  }, [navigate]);
+
   return (
     <AdminDashboardLayout maxWidth="lg">
       {/* Dashboard Header */}
@@ -78,6 +86,29 @@ export function AdminDashboard() {
             <Button intent="primary" size="md" onClick={handleNavigateToQualifikationen} fullWidth>
               <PiCertificate className="mr-2" />
               Qualifikationen
+            </Button>
+          </div>
+        </div>
+      </Card>
+
+      {/* Stammdaten Card */}
+      <Card padding="md">
+        <div className="flex flex-col items-start gap-4">
+          <div>
+            <Text className="font-semibold text-lg">Stammdaten</Text>
+            <Text size="sm" color="muted" className="mt-1">
+              Verwalten Sie Fahrzeuge und Personen Ihrer Organisation.
+            </Text>
+          </div>
+
+          <div className="flex w-full max-w-md flex-col gap-3 sm:flex-row">
+            <Button intent="primary" size="md" onClick={handleNavigateToStammFahrzeuge} fullWidth>
+              <PiTruck className="mr-2" />
+              Stamm-Fahrzeuge
+            </Button>
+            <Button intent="primary" size="md" onClick={handleNavigateToStammPersonen} fullWidth>
+              <PiUserList className="mr-2" />
+              Stamm-Personen
             </Button>
           </div>
         </div>

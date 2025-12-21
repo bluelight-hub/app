@@ -34,3 +34,6 @@ export { useStammPersonenSuche } from './use-stamm-personen-suche';
 
 // EinsatzPersonen QR Hooks (Story 4-2)
 export { useRegistrierePersonViaQr, isDuplicatePersonError, type RegistrierePersonQrInput } from './use-registriere-person-qr';
+
+// EinsatzPersonen Fahrzeug-Zuweisung Hooks (Story 4-3)
+export { useWeisePersonZuFahrzeugZu, useEntfernePersonVonFahrzeug } from './use-weise-person-zu-fahrzeug';

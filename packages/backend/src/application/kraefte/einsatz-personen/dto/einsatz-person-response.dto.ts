@@ -87,6 +87,12 @@ export class EinsatzPersonResponseDto {
     example: 'clw4i9jkl8m9n0opq1rs',
   })
   updatedBy?: string;
+
+  @ApiPropertyOptional({
+    description: 'ID des zugewiesenen Fahrzeugs (CUID2, nullable)',
+    example: 'clxxxxxxxxxxxxxxxxxxxxxxxxx',
+  })
+  fahrzeugId?: string;
 }
 
 /**

@@ -13,12 +13,14 @@
  */
 
 import * as runtime from '../runtime';
-import type { CreateStammFahrzeugDto, StammFahrzeugDto, UpdateStammFahrzeugDto } from '../models/index';
+import type { AdminStammFahrzeugeControllerCreateVAlpha201Response, AdminStammFahrzeugeControllerFindAllVAlpha200Response, CreateStammFahrzeugDto, UpdateStammFahrzeugDto } from '../models/index';
 import {
+  AdminStammFahrzeugeControllerCreateVAlpha201ResponseFromJSON,
+  AdminStammFahrzeugeControllerCreateVAlpha201ResponseToJSON,
+  AdminStammFahrzeugeControllerFindAllVAlpha200ResponseFromJSON,
+  AdminStammFahrzeugeControllerFindAllVAlpha200ResponseToJSON,
   CreateStammFahrzeugDtoFromJSON,
   CreateStammFahrzeugDtoToJSON,
-  StammFahrzeugDtoFromJSON,
-  StammFahrzeugDtoToJSON,
   UpdateStammFahrzeugDtoFromJSON,
   UpdateStammFahrzeugDtoToJSON,
 } from '../models/index';
@@ -54,7 +56,7 @@ export class AdminStammdatenFahrzeugeApi extends runtime.BaseAPI {
   async adminStammFahrzeugeControllerArchiveVAlphaRaw(
     requestParameters: AdminStammFahrzeugeControllerArchiveVAlphaRequest,
     initOverrides?: RequestInit | runtime.InitOverrideFunction,
-  ): Promise<runtime.ApiResponse<StammFahrzeugDto>> {
+  ): Promise<runtime.ApiResponse<AdminStammFahrzeugeControllerCreateVAlpha201Response>> {
     if (requestParameters['id'] == null) {
       throw new runtime.RequiredError('id', 'Required parameter "id" was null or undefined when calling adminStammFahrzeugeControllerArchiveVAlpha().');
     }
@@ -81,7 +83,7 @@ export class AdminStammdatenFahrzeugeApi extends runtime.BaseAPI {
       initOverrides,
     );
 
-    return new runtime.JSONApiResponse(response, (jsonValue) => StammFahrzeugDtoFromJSON(jsonValue));
+    return new runtime.JSONApiResponse(response, (jsonValue) => AdminStammFahrzeugeControllerCreateVAlpha201ResponseFromJSON(jsonValue));
   }
 
   /**
@@ -90,7 +92,7 @@ export class AdminStammdatenFahrzeugeApi extends runtime.BaseAPI {
   async adminStammFahrzeugeControllerArchiveVAlpha(
     requestParameters: AdminStammFahrzeugeControllerArchiveVAlphaRequest,
     initOverrides?: RequestInit | runtime.InitOverrideFunction,
-  ): Promise<StammFahrzeugDto> {
+  ): Promise<AdminStammFahrzeugeControllerCreateVAlpha201Response> {
     const response = await this.adminStammFahrzeugeControllerArchiveVAlphaRaw(requestParameters, initOverrides);
     return await response.value();
   }
@@ -101,7 +103,7 @@ export class AdminStammdatenFahrzeugeApi extends runtime.BaseAPI {
   async adminStammFahrzeugeControllerCreateVAlphaRaw(
     requestParameters: AdminStammFahrzeugeControllerCreateVAlphaRequest,
     initOverrides?: RequestInit | runtime.InitOverrideFunction,
-  ): Promise<runtime.ApiResponse<StammFahrzeugDto>> {
+  ): Promise<runtime.ApiResponse<AdminStammFahrzeugeControllerCreateVAlpha201Response>> {
     if (requestParameters['createStammFahrzeugDto'] == null) {
       throw new runtime.RequiredError('createStammFahrzeugDto', 'Required parameter "createStammFahrzeugDto" was null or undefined when calling adminStammFahrzeugeControllerCreateVAlpha().');
     }
@@ -131,7 +133,7 @@ export class AdminStammdatenFahrzeugeApi extends runtime.BaseAPI {
       initOverrides,
     );
 
-    return new runtime.JSONApiResponse(response, (jsonValue) => StammFahrzeugDtoFromJSON(jsonValue));
+    return new runtime.JSONApiResponse(response, (jsonValue) => AdminStammFahrzeugeControllerCreateVAlpha201ResponseFromJSON(jsonValue));
   }
 
   /**
@@ -140,7 +142,7 @@ export class AdminStammdatenFahrzeugeApi extends runtime.BaseAPI {
   async adminStammFahrzeugeControllerCreateVAlpha(
     requestParameters: AdminStammFahrzeugeControllerCreateVAlphaRequest,
     initOverrides?: RequestInit | runtime.InitOverrideFunction,
-  ): Promise<StammFahrzeugDto> {
+  ): Promise<AdminStammFahrzeugeControllerCreateVAlpha201Response> {
     const response = await this.adminStammFahrzeugeControllerCreateVAlphaRaw(requestParameters, initOverrides);
     return await response.value();
   }
@@ -151,7 +153,7 @@ export class AdminStammdatenFahrzeugeApi extends runtime.BaseAPI {
   async adminStammFahrzeugeControllerFindAllVAlphaRaw(
     requestParameters: AdminStammFahrzeugeControllerFindAllVAlphaRequest,
     initOverrides?: RequestInit | runtime.InitOverrideFunction,
-  ): Promise<runtime.ApiResponse<Array<StammFahrzeugDto>>> {
+  ): Promise<runtime.ApiResponse<AdminStammFahrzeugeControllerFindAllVAlpha200Response>> {
     const queryParameters: any = {};
 
     if (requestParameters['includeArchived'] != null) {
@@ -178,7 +180,7 @@ export class AdminStammdatenFahrzeugeApi extends runtime.BaseAPI {
       initOverrides,
     );
 
-    return new runtime.JSONApiResponse(response, (jsonValue) => jsonValue.map(StammFahrzeugDtoFromJSON));
+    return new runtime.JSONApiResponse(response, (jsonValue) => AdminStammFahrzeugeControllerFindAllVAlpha200ResponseFromJSON(jsonValue));
   }
 
   /**
@@ -187,7 +189,7 @@ export class AdminStammdatenFahrzeugeApi extends runtime.BaseAPI {
   async adminStammFahrzeugeControllerFindAllVAlpha(
     requestParameters: AdminStammFahrzeugeControllerFindAllVAlphaRequest = {},
     initOverrides?: RequestInit | runtime.InitOverrideFunction,
-  ): Promise<Array<StammFahrzeugDto>> {
+  ): Promise<AdminStammFahrzeugeControllerFindAllVAlpha200Response> {
     const response = await this.adminStammFahrzeugeControllerFindAllVAlphaRaw(requestParameters, initOverrides);
     return await response.value();
   }
@@ -198,7 +200,7 @@ export class AdminStammdatenFahrzeugeApi extends runtime.BaseAPI {
   async adminStammFahrzeugeControllerFindOneVAlphaRaw(
     requestParameters: AdminStammFahrzeugeControllerFindOneVAlphaRequest,
     initOverrides?: RequestInit | runtime.InitOverrideFunction,
-  ): Promise<runtime.ApiResponse<StammFahrzeugDto>> {
+  ): Promise<runtime.ApiResponse<AdminStammFahrzeugeControllerCreateVAlpha201Response>> {
     if (requestParameters['id'] == null) {
       throw new runtime.RequiredError('id', 'Required parameter "id" was null or undefined when calling adminStammFahrzeugeControllerFindOneVAlpha().');
     }
@@ -225,7 +227,7 @@ export class AdminStammdatenFahrzeugeApi extends runtime.BaseAPI {
       initOverrides,
     );
 
-    return new runtime.JSONApiResponse(response, (jsonValue) => StammFahrzeugDtoFromJSON(jsonValue));
+    return new runtime.JSONApiResponse(response, (jsonValue) => AdminStammFahrzeugeControllerCreateVAlpha201ResponseFromJSON(jsonValue));
   }
 
   /**
@@ -234,7 +236,7 @@ export class AdminStammdatenFahrzeugeApi extends runtime.BaseAPI {
   async adminStammFahrzeugeControllerFindOneVAlpha(
     requestParameters: AdminStammFahrzeugeControllerFindOneVAlphaRequest,
     initOverrides?: RequestInit | runtime.InitOverrideFunction,
-  ): Promise<StammFahrzeugDto> {
+  ): Promise<AdminStammFahrzeugeControllerCreateVAlpha201Response> {
     const response = await this.adminStammFahrzeugeControllerFindOneVAlphaRaw(requestParameters, initOverrides);
     return await response.value();
   }
@@ -245,7 +247,7 @@ export class AdminStammdatenFahrzeugeApi extends runtime.BaseAPI {
   async adminStammFahrzeugeControllerUpdateVAlphaRaw(
     requestParameters: AdminStammFahrzeugeControllerUpdateVAlphaRequest,
     initOverrides?: RequestInit | runtime.InitOverrideFunction,
-  ): Promise<runtime.ApiResponse<StammFahrzeugDto>> {
+  ): Promise<runtime.ApiResponse<AdminStammFahrzeugeControllerCreateVAlpha201Response>> {
     if (requestParameters['id'] == null) {
       throw new runtime.RequiredError('id', 'Required parameter "id" was null or undefined when calling adminStammFahrzeugeControllerUpdateVAlpha().');
     }
@@ -279,7 +281,7 @@ export class AdminStammdatenFahrzeugeApi extends runtime.BaseAPI {
       initOverrides,
     );
 
-    return new runtime.JSONApiResponse(response, (jsonValue) => StammFahrzeugDtoFromJSON(jsonValue));
+    return new runtime.JSONApiResponse(response, (jsonValue) => AdminStammFahrzeugeControllerCreateVAlpha201ResponseFromJSON(jsonValue));
   }
 
   /**
@@ -288,7 +290,7 @@ export class AdminStammdatenFahrzeugeApi extends runtime.BaseAPI {
   async adminStammFahrzeugeControllerUpdateVAlpha(
     requestParameters: AdminStammFahrzeugeControllerUpdateVAlphaRequest,
     initOverrides?: RequestInit | runtime.InitOverrideFunction,
-  ): Promise<StammFahrzeugDto> {
+  ): Promise<AdminStammFahrzeugeControllerCreateVAlpha201Response> {
     const response = await this.adminStammFahrzeugeControllerUpdateVAlphaRaw(requestParameters, initOverrides);
     return await response.value();
   }

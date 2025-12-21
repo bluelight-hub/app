@@ -13,8 +13,17 @@
  */
 
 import * as runtime from '../runtime';
-import type { CreateStammPersonDto, StammPersonDto, UpdateStammPersonDto } from '../models/index';
-import { CreateStammPersonDtoFromJSON, CreateStammPersonDtoToJSON, StammPersonDtoFromJSON, StammPersonDtoToJSON, UpdateStammPersonDtoFromJSON, UpdateStammPersonDtoToJSON } from '../models/index';
+import type { AdminStammPersonenControllerCreateVAlpha201Response, AdminStammPersonenControllerFindAllVAlpha200Response, CreateStammPersonDto, UpdateStammPersonDto } from '../models/index';
+import {
+  AdminStammPersonenControllerCreateVAlpha201ResponseFromJSON,
+  AdminStammPersonenControllerCreateVAlpha201ResponseToJSON,
+  AdminStammPersonenControllerFindAllVAlpha200ResponseFromJSON,
+  AdminStammPersonenControllerFindAllVAlpha200ResponseToJSON,
+  CreateStammPersonDtoFromJSON,
+  CreateStammPersonDtoToJSON,
+  UpdateStammPersonDtoFromJSON,
+  UpdateStammPersonDtoToJSON,
+} from '../models/index';
 
 export interface AdminStammPersonenControllerArchiveVAlphaRequest {
   id: string;
@@ -51,7 +60,7 @@ export class AdminStammdatenPersonenApi extends runtime.BaseAPI {
   async adminStammPersonenControllerArchiveVAlphaRaw(
     requestParameters: AdminStammPersonenControllerArchiveVAlphaRequest,
     initOverrides?: RequestInit | runtime.InitOverrideFunction,
-  ): Promise<runtime.ApiResponse<StammPersonDto>> {
+  ): Promise<runtime.ApiResponse<AdminStammPersonenControllerCreateVAlpha201Response>> {
     if (requestParameters['id'] == null) {
       throw new runtime.RequiredError('id', 'Required parameter "id" was null or undefined when calling adminStammPersonenControllerArchiveVAlpha().');
     }
@@ -78,7 +87,7 @@ export class AdminStammdatenPersonenApi extends runtime.BaseAPI {
       initOverrides,
     );
 
-    return new runtime.JSONApiResponse(response, (jsonValue) => StammPersonDtoFromJSON(jsonValue));
+    return new runtime.JSONApiResponse(response, (jsonValue) => AdminStammPersonenControllerCreateVAlpha201ResponseFromJSON(jsonValue));
   }
 
   /**
@@ -87,7 +96,7 @@ export class AdminStammdatenPersonenApi extends runtime.BaseAPI {
   async adminStammPersonenControllerArchiveVAlpha(
     requestParameters: AdminStammPersonenControllerArchiveVAlphaRequest,
     initOverrides?: RequestInit | runtime.InitOverrideFunction,
-  ): Promise<StammPersonDto> {
+  ): Promise<AdminStammPersonenControllerCreateVAlpha201Response> {
     const response = await this.adminStammPersonenControllerArchiveVAlphaRaw(requestParameters, initOverrides);
     return await response.value();
   }
@@ -98,7 +107,7 @@ export class AdminStammdatenPersonenApi extends runtime.BaseAPI {
   async adminStammPersonenControllerCreateVAlphaRaw(
     requestParameters: AdminStammPersonenControllerCreateVAlphaRequest,
     initOverrides?: RequestInit | runtime.InitOverrideFunction,
-  ): Promise<runtime.ApiResponse<StammPersonDto>> {
+  ): Promise<runtime.ApiResponse<AdminStammPersonenControllerCreateVAlpha201Response>> {
     if (requestParameters['createStammPersonDto'] == null) {
       throw new runtime.RequiredError('createStammPersonDto', 'Required parameter "createStammPersonDto" was null or undefined when calling adminStammPersonenControllerCreateVAlpha().');
     }
@@ -128,7 +137,7 @@ export class AdminStammdatenPersonenApi extends runtime.BaseAPI {
       initOverrides,
     );
 
-    return new runtime.JSONApiResponse(response, (jsonValue) => StammPersonDtoFromJSON(jsonValue));
+    return new runtime.JSONApiResponse(response, (jsonValue) => AdminStammPersonenControllerCreateVAlpha201ResponseFromJSON(jsonValue));
   }
 
   /**
@@ -137,7 +146,7 @@ export class AdminStammdatenPersonenApi extends runtime.BaseAPI {
   async adminStammPersonenControllerCreateVAlpha(
     requestParameters: AdminStammPersonenControllerCreateVAlphaRequest,
     initOverrides?: RequestInit | runtime.InitOverrideFunction,
-  ): Promise<StammPersonDto> {
+  ): Promise<AdminStammPersonenControllerCreateVAlpha201Response> {
     const response = await this.adminStammPersonenControllerCreateVAlphaRaw(requestParameters, initOverrides);
     return await response.value();
   }
@@ -148,7 +157,7 @@ export class AdminStammdatenPersonenApi extends runtime.BaseAPI {
   async adminStammPersonenControllerFindAllVAlphaRaw(
     requestParameters: AdminStammPersonenControllerFindAllVAlphaRequest,
     initOverrides?: RequestInit | runtime.InitOverrideFunction,
-  ): Promise<runtime.ApiResponse<Array<StammPersonDto>>> {
+  ): Promise<runtime.ApiResponse<AdminStammPersonenControllerFindAllVAlpha200Response>> {
     const queryParameters: any = {};
 
     if (requestParameters['includeArchived'] != null) {
@@ -175,7 +184,7 @@ export class AdminStammdatenPersonenApi extends runtime.BaseAPI {
       initOverrides,
     );
 
-    return new runtime.JSONApiResponse(response, (jsonValue) => jsonValue.map(StammPersonDtoFromJSON));
+    return new runtime.JSONApiResponse(response, (jsonValue) => AdminStammPersonenControllerFindAllVAlpha200ResponseFromJSON(jsonValue));
   }
 
   /**
@@ -184,7 +193,7 @@ export class AdminStammdatenPersonenApi extends runtime.BaseAPI {
   async adminStammPersonenControllerFindAllVAlpha(
     requestParameters: AdminStammPersonenControllerFindAllVAlphaRequest = {},
     initOverrides?: RequestInit | runtime.InitOverrideFunction,
-  ): Promise<Array<StammPersonDto>> {
+  ): Promise<AdminStammPersonenControllerFindAllVAlpha200Response> {
     const response = await this.adminStammPersonenControllerFindAllVAlphaRaw(requestParameters, initOverrides);
     return await response.value();
   }
@@ -195,7 +204,7 @@ export class AdminStammdatenPersonenApi extends runtime.BaseAPI {
   async adminStammPersonenControllerFindOneVAlphaRaw(
     requestParameters: AdminStammPersonenControllerFindOneVAlphaRequest,
     initOverrides?: RequestInit | runtime.InitOverrideFunction,
-  ): Promise<runtime.ApiResponse<StammPersonDto>> {
+  ): Promise<runtime.ApiResponse<AdminStammPersonenControllerCreateVAlpha201Response>> {
     if (requestParameters['id'] == null) {
       throw new runtime.RequiredError('id', 'Required parameter "id" was null or undefined when calling adminStammPersonenControllerFindOneVAlpha().');
     }
@@ -222,7 +231,7 @@ export class AdminStammdatenPersonenApi extends runtime.BaseAPI {
       initOverrides,
     );
 
-    return new runtime.JSONApiResponse(response, (jsonValue) => StammPersonDtoFromJSON(jsonValue));
+    return new runtime.JSONApiResponse(response, (jsonValue) => AdminStammPersonenControllerCreateVAlpha201ResponseFromJSON(jsonValue));
   }
 
   /**
@@ -231,7 +240,7 @@ export class AdminStammdatenPersonenApi extends runtime.BaseAPI {
   async adminStammPersonenControllerFindOneVAlpha(
     requestParameters: AdminStammPersonenControllerFindOneVAlphaRequest,
     initOverrides?: RequestInit | runtime.InitOverrideFunction,
-  ): Promise<StammPersonDto> {
+  ): Promise<AdminStammPersonenControllerCreateVAlpha201Response> {
     const response = await this.adminStammPersonenControllerFindOneVAlphaRaw(requestParameters, initOverrides);
     return await response.value();
   }
@@ -242,7 +251,7 @@ export class AdminStammdatenPersonenApi extends runtime.BaseAPI {
   async adminStammPersonenControllerRestoreVAlphaRaw(
     requestParameters: AdminStammPersonenControllerRestoreVAlphaRequest,
     initOverrides?: RequestInit | runtime.InitOverrideFunction,
-  ): Promise<runtime.ApiResponse<StammPersonDto>> {
+  ): Promise<runtime.ApiResponse<AdminStammPersonenControllerCreateVAlpha201Response>> {
     if (requestParameters['id'] == null) {
       throw new runtime.RequiredError('id', 'Required parameter "id" was null or undefined when calling adminStammPersonenControllerRestoreVAlpha().');
     }
@@ -269,7 +278,7 @@ export class AdminStammdatenPersonenApi extends runtime.BaseAPI {
       initOverrides,
     );
 
-    return new runtime.JSONApiResponse(response, (jsonValue) => StammPersonDtoFromJSON(jsonValue));
+    return new runtime.JSONApiResponse(response, (jsonValue) => AdminStammPersonenControllerCreateVAlpha201ResponseFromJSON(jsonValue));
   }
 
   /**
@@ -278,7 +287,7 @@ export class AdminStammdatenPersonenApi extends runtime.BaseAPI {
   async adminStammPersonenControllerRestoreVAlpha(
     requestParameters: AdminStammPersonenControllerRestoreVAlphaRequest,
     initOverrides?: RequestInit | runtime.InitOverrideFunction,
-  ): Promise<StammPersonDto> {
+  ): Promise<AdminStammPersonenControllerCreateVAlpha201Response> {
     const response = await this.adminStammPersonenControllerRestoreVAlphaRaw(requestParameters, initOverrides);
     return await response.value();
   }
@@ -289,7 +298,7 @@ export class AdminStammdatenPersonenApi extends runtime.BaseAPI {
   async adminStammPersonenControllerUpdateVAlphaRaw(
     requestParameters: AdminStammPersonenControllerUpdateVAlphaRequest,
     initOverrides?: RequestInit | runtime.InitOverrideFunction,
-  ): Promise<runtime.ApiResponse<StammPersonDto>> {
+  ): Promise<runtime.ApiResponse<AdminStammPersonenControllerCreateVAlpha201Response>> {
     if (requestParameters['id'] == null) {
       throw new runtime.RequiredError('id', 'Required parameter "id" was null or undefined when calling adminStammPersonenControllerUpdateVAlpha().');
     }
@@ -323,7 +332,7 @@ export class AdminStammdatenPersonenApi extends runtime.BaseAPI {
       initOverrides,
     );
 
-    return new runtime.JSONApiResponse(response, (jsonValue) => StammPersonDtoFromJSON(jsonValue));
+    return new runtime.JSONApiResponse(response, (jsonValue) => AdminStammPersonenControllerCreateVAlpha201ResponseFromJSON(jsonValue));
   }
 
   /**
@@ -332,7 +341,7 @@ export class AdminStammdatenPersonenApi extends runtime.BaseAPI {
   async adminStammPersonenControllerUpdateVAlpha(
     requestParameters: AdminStammPersonenControllerUpdateVAlphaRequest,
     initOverrides?: RequestInit | runtime.InitOverrideFunction,
-  ): Promise<StammPersonDto> {
+  ): Promise<AdminStammPersonenControllerCreateVAlpha201Response> {
     const response = await this.adminStammPersonenControllerUpdateVAlphaRaw(requestParameters, initOverrides);
     return await response.value();
   }

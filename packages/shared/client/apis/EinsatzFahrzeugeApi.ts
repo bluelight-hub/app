@@ -13,10 +13,18 @@
  */
 
 import * as runtime from '../runtime';
-import type { EinsatzFahrzeugDto, ErfasseFahrzeugAusStammdatenDto, ErfasseTemporalesFahrzeugDto, UpdateFmsStatusDto } from '../models/index';
+import type {
+  EinsatzFahrzeugeControllerErfasseAusStammdatenVAlpha201Response,
+  EinsatzFahrzeugeControllerFindAllVAlpha200Response,
+  ErfasseFahrzeugAusStammdatenDto,
+  ErfasseTemporalesFahrzeugDto,
+  UpdateFmsStatusDto,
+} from '../models/index';
 import {
-  EinsatzFahrzeugDtoFromJSON,
-  EinsatzFahrzeugDtoToJSON,
+  EinsatzFahrzeugeControllerErfasseAusStammdatenVAlpha201ResponseFromJSON,
+  EinsatzFahrzeugeControllerErfasseAusStammdatenVAlpha201ResponseToJSON,
+  EinsatzFahrzeugeControllerFindAllVAlpha200ResponseFromJSON,
+  EinsatzFahrzeugeControllerFindAllVAlpha200ResponseToJSON,
   ErfasseFahrzeugAusStammdatenDtoFromJSON,
   ErfasseFahrzeugAusStammdatenDtoToJSON,
   ErfasseTemporalesFahrzeugDtoFromJSON,
@@ -55,7 +63,7 @@ export class EinsatzFahrzeugeApi extends runtime.BaseAPI {
   async einsatzFahrzeugeControllerErfasseAusStammdatenVAlphaRaw(
     requestParameters: EinsatzFahrzeugeControllerErfasseAusStammdatenVAlphaRequest,
     initOverrides?: RequestInit | runtime.InitOverrideFunction,
-  ): Promise<runtime.ApiResponse<EinsatzFahrzeugDto>> {
+  ): Promise<runtime.ApiResponse<EinsatzFahrzeugeControllerErfasseAusStammdatenVAlpha201Response>> {
     if (requestParameters['einsatzId'] == null) {
       throw new runtime.RequiredError('einsatzId', 'Required parameter "einsatzId" was null or undefined when calling einsatzFahrzeugeControllerErfasseAusStammdatenVAlpha().');
     }
@@ -84,7 +92,7 @@ export class EinsatzFahrzeugeApi extends runtime.BaseAPI {
       initOverrides,
     );
 
-    return new runtime.JSONApiResponse(response, (jsonValue) => EinsatzFahrzeugDtoFromJSON(jsonValue));
+    return new runtime.JSONApiResponse(response, (jsonValue) => EinsatzFahrzeugeControllerErfasseAusStammdatenVAlpha201ResponseFromJSON(jsonValue));
   }
 
   /**
@@ -93,7 +101,7 @@ export class EinsatzFahrzeugeApi extends runtime.BaseAPI {
   async einsatzFahrzeugeControllerErfasseAusStammdatenVAlpha(
     requestParameters: EinsatzFahrzeugeControllerErfasseAusStammdatenVAlphaRequest,
     initOverrides?: RequestInit | runtime.InitOverrideFunction,
-  ): Promise<EinsatzFahrzeugDto> {
+  ): Promise<EinsatzFahrzeugeControllerErfasseAusStammdatenVAlpha201Response> {
     const response = await this.einsatzFahrzeugeControllerErfasseAusStammdatenVAlphaRaw(requestParameters, initOverrides);
     return await response.value();
   }
@@ -104,7 +112,7 @@ export class EinsatzFahrzeugeApi extends runtime.BaseAPI {
   async einsatzFahrzeugeControllerErfasseTemporalesVAlphaRaw(
     requestParameters: EinsatzFahrzeugeControllerErfasseTemporalesVAlphaRequest,
     initOverrides?: RequestInit | runtime.InitOverrideFunction,
-  ): Promise<runtime.ApiResponse<EinsatzFahrzeugDto>> {
+  ): Promise<runtime.ApiResponse<EinsatzFahrzeugeControllerErfasseAusStammdatenVAlpha201Response>> {
     if (requestParameters['einsatzId'] == null) {
       throw new runtime.RequiredError('einsatzId', 'Required parameter "einsatzId" was null or undefined when calling einsatzFahrzeugeControllerErfasseTemporalesVAlpha().');
     }
@@ -133,7 +141,7 @@ export class EinsatzFahrzeugeApi extends runtime.BaseAPI {
       initOverrides,
     );
 
-    return new runtime.JSONApiResponse(response, (jsonValue) => EinsatzFahrzeugDtoFromJSON(jsonValue));
+    return new runtime.JSONApiResponse(response, (jsonValue) => EinsatzFahrzeugeControllerErfasseAusStammdatenVAlpha201ResponseFromJSON(jsonValue));
   }
 
   /**
@@ -142,7 +150,7 @@ export class EinsatzFahrzeugeApi extends runtime.BaseAPI {
   async einsatzFahrzeugeControllerErfasseTemporalesVAlpha(
     requestParameters: EinsatzFahrzeugeControllerErfasseTemporalesVAlphaRequest,
     initOverrides?: RequestInit | runtime.InitOverrideFunction,
-  ): Promise<EinsatzFahrzeugDto> {
+  ): Promise<EinsatzFahrzeugeControllerErfasseAusStammdatenVAlpha201Response> {
     const response = await this.einsatzFahrzeugeControllerErfasseTemporalesVAlphaRaw(requestParameters, initOverrides);
     return await response.value();
   }
@@ -153,7 +161,7 @@ export class EinsatzFahrzeugeApi extends runtime.BaseAPI {
   async einsatzFahrzeugeControllerFindAllVAlphaRaw(
     requestParameters: EinsatzFahrzeugeControllerFindAllVAlphaRequest,
     initOverrides?: RequestInit | runtime.InitOverrideFunction,
-  ): Promise<runtime.ApiResponse<Array<EinsatzFahrzeugDto>>> {
+  ): Promise<runtime.ApiResponse<EinsatzFahrzeugeControllerFindAllVAlpha200Response>> {
     if (requestParameters['einsatzId'] == null) {
       throw new runtime.RequiredError('einsatzId', 'Required parameter "einsatzId" was null or undefined when calling einsatzFahrzeugeControllerFindAllVAlpha().');
     }
@@ -172,7 +180,7 @@ export class EinsatzFahrzeugeApi extends runtime.BaseAPI {
       initOverrides,
     );
 
-    return new runtime.JSONApiResponse(response, (jsonValue) => jsonValue.map(EinsatzFahrzeugDtoFromJSON));
+    return new runtime.JSONApiResponse(response, (jsonValue) => EinsatzFahrzeugeControllerFindAllVAlpha200ResponseFromJSON(jsonValue));
   }
 
   /**
@@ -181,7 +189,7 @@ export class EinsatzFahrzeugeApi extends runtime.BaseAPI {
   async einsatzFahrzeugeControllerFindAllVAlpha(
     requestParameters: EinsatzFahrzeugeControllerFindAllVAlphaRequest,
     initOverrides?: RequestInit | runtime.InitOverrideFunction,
-  ): Promise<Array<EinsatzFahrzeugDto>> {
+  ): Promise<EinsatzFahrzeugeControllerFindAllVAlpha200Response> {
     const response = await this.einsatzFahrzeugeControllerFindAllVAlphaRaw(requestParameters, initOverrides);
     return await response.value();
   }
@@ -192,7 +200,7 @@ export class EinsatzFahrzeugeApi extends runtime.BaseAPI {
   async einsatzFahrzeugeControllerUpdateFmsStatusVAlphaRaw(
     requestParameters: EinsatzFahrzeugeControllerUpdateFmsStatusVAlphaRequest,
     initOverrides?: RequestInit | runtime.InitOverrideFunction,
-  ): Promise<runtime.ApiResponse<EinsatzFahrzeugDto>> {
+  ): Promise<runtime.ApiResponse<EinsatzFahrzeugeControllerErfasseAusStammdatenVAlpha201Response>> {
     if (requestParameters['einsatzId'] == null) {
       throw new runtime.RequiredError('einsatzId', 'Required parameter "einsatzId" was null or undefined when calling einsatzFahrzeugeControllerUpdateFmsStatusVAlpha().');
     }
@@ -224,7 +232,7 @@ export class EinsatzFahrzeugeApi extends runtime.BaseAPI {
       initOverrides,
     );
 
-    return new runtime.JSONApiResponse(response, (jsonValue) => EinsatzFahrzeugDtoFromJSON(jsonValue));
+    return new runtime.JSONApiResponse(response, (jsonValue) => EinsatzFahrzeugeControllerErfasseAusStammdatenVAlpha201ResponseFromJSON(jsonValue));
   }
 
   /**
@@ -233,7 +241,7 @@ export class EinsatzFahrzeugeApi extends runtime.BaseAPI {
   async einsatzFahrzeugeControllerUpdateFmsStatusVAlpha(
     requestParameters: EinsatzFahrzeugeControllerUpdateFmsStatusVAlphaRequest,
     initOverrides?: RequestInit | runtime.InitOverrideFunction,
-  ): Promise<EinsatzFahrzeugDto> {
+  ): Promise<EinsatzFahrzeugeControllerErfasseAusStammdatenVAlpha201Response> {
     const response = await this.einsatzFahrzeugeControllerUpdateFmsStatusVAlphaRaw(requestParameters, initOverrides);
     return await response.value();
   }

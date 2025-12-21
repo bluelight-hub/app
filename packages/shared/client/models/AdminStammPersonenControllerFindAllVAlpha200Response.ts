@@ -33,43 +33,43 @@ import {
 /**
  *
  * @export
- * @interface StammPersonenControllerFindAllVAlpha200Response
+ * @interface AdminStammPersonenControllerFindAllVAlpha200Response
  */
-export interface StammPersonenControllerFindAllVAlpha200Response {
+export interface AdminStammPersonenControllerFindAllVAlpha200Response {
   /**
    *
    * @type {Array<StammPersonDto>}
-   * @memberof StammPersonenControllerFindAllVAlpha200Response
+   * @memberof AdminStammPersonenControllerFindAllVAlpha200Response
    */
   data: Array<StammPersonDto>;
   /**
    *
    * @type {UserControllerFindOneVAlpha200ResponseMeta}
-   * @memberof StammPersonenControllerFindAllVAlpha200Response
+   * @memberof AdminStammPersonenControllerFindAllVAlpha200Response
    */
   meta: UserControllerFindOneVAlpha200ResponseMeta;
   /**
    *
    * @type {EinsatzControllerFindAllVAlpha200ResponsePagination}
-   * @memberof StammPersonenControllerFindAllVAlpha200Response
+   * @memberof AdminStammPersonenControllerFindAllVAlpha200Response
    */
   pagination?: EinsatzControllerFindAllVAlpha200ResponsePagination;
 }
 
 /**
- * Check if a given object implements the StammPersonenControllerFindAllVAlpha200Response interface.
+ * Check if a given object implements the AdminStammPersonenControllerFindAllVAlpha200Response interface.
  */
-export function instanceOfStammPersonenControllerFindAllVAlpha200Response(value: object): value is StammPersonenControllerFindAllVAlpha200Response {
+export function instanceOfAdminStammPersonenControllerFindAllVAlpha200Response(value: object): value is AdminStammPersonenControllerFindAllVAlpha200Response {
   if (!('data' in value) || value['data'] === undefined) return false;
   if (!('meta' in value) || value['meta'] === undefined) return false;
   return true;
 }
 
-export function StammPersonenControllerFindAllVAlpha200ResponseFromJSON(json: any): StammPersonenControllerFindAllVAlpha200Response {
-  return StammPersonenControllerFindAllVAlpha200ResponseFromJSONTyped(json, false);
+export function AdminStammPersonenControllerFindAllVAlpha200ResponseFromJSON(json: any): AdminStammPersonenControllerFindAllVAlpha200Response {
+  return AdminStammPersonenControllerFindAllVAlpha200ResponseFromJSONTyped(json, false);
 }
 
-export function StammPersonenControllerFindAllVAlpha200ResponseFromJSONTyped(json: any, ignoreDiscriminator: boolean): StammPersonenControllerFindAllVAlpha200Response {
+export function AdminStammPersonenControllerFindAllVAlpha200ResponseFromJSONTyped(json: any, ignoreDiscriminator: boolean): AdminStammPersonenControllerFindAllVAlpha200Response {
   if (json == null) {
     return json;
   }
@@ -80,11 +80,11 @@ export function StammPersonenControllerFindAllVAlpha200ResponseFromJSONTyped(jso
   };
 }
 
-export function StammPersonenControllerFindAllVAlpha200ResponseToJSON(json: any): StammPersonenControllerFindAllVAlpha200Response {
-  return StammPersonenControllerFindAllVAlpha200ResponseToJSONTyped(json, false);
+export function AdminStammPersonenControllerFindAllVAlpha200ResponseToJSON(json: any): AdminStammPersonenControllerFindAllVAlpha200Response {
+  return AdminStammPersonenControllerFindAllVAlpha200ResponseToJSONTyped(json, false);
 }
 
-export function StammPersonenControllerFindAllVAlpha200ResponseToJSONTyped(value?: StammPersonenControllerFindAllVAlpha200Response | null, ignoreDiscriminator: boolean = false): any {
+export function AdminStammPersonenControllerFindAllVAlpha200ResponseToJSONTyped(value?: AdminStammPersonenControllerFindAllVAlpha200Response | null, ignoreDiscriminator: boolean = false): any {
   if (value == null) {
     return value;
   }

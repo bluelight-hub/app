@@ -31,6 +31,20 @@ import { PermissionRevokedEvent } from '@domain/events/permission-revoked.event'
 
 // EinsatzPerson Events
 import { EinsatzPersonHinzugefuegtEvent } from '@domain/kraefte/events/einsatz-person-hinzugefuegt.event';
+import { PersonZuFahrzeugZugewiesenEvent } from '@domain/kraefte/events/person-zu-fahrzeug-zugewiesen.event';
+import { PersonVonFahrzeugEntferntEvent } from '@domain/kraefte/events/person-von-fahrzeug-entfernt.event';
+
+// EinsatzFahrzeug Events
+import { FahrzeugErfasstEvent } from '@domain/kraefte/events/fahrzeug-erfasst.event';
+import { FmsStatusGeaendertEvent } from '@domain/kraefte/events/fms-status-geaendert.event';
+
+// StammPerson Events
+import { StammPersonCreatedEvent } from '@domain/kraefte/events/stamm-person-created.event';
+import { StammPersonUpdatedEvent } from '@domain/kraefte/events/stamm-person-updated.event';
+
+// StammFahrzeug Events
+import { StammFahrzeugCreatedEvent } from '@domain/kraefte/events/stamm-fahrzeug-created.event';
+import { StammFahrzeugUpdatedEvent } from '@domain/kraefte/events/stamm-fahrzeug-updated.event';
 
 // Value Objects
 import { EinsatzId } from '@domain/value-objects/einsatz-id';
@@ -119,6 +133,20 @@ export class EventDeserializer {
 
       // ===== EINSATZ PERSON EVENTS =====
       ['einsatz_person.hinzugefuegt', this.deserializeEinsatzPersonHinzugefuegt.bind(this)],
+      ['einsatz_person.zu_fahrzeug_zugewiesen', this.deserializePersonZuFahrzeugZugewiesen.bind(this)],
+      ['einsatz_person.von_fahrzeug_entfernt', this.deserializePersonVonFahrzeugEntfernt.bind(this)],
+
+      // ===== EINSATZ FAHRZEUG EVENTS =====
+      ['einsatz_fahrzeug.erfasst', this.deserializeFahrzeugErfasst.bind(this)],
+      ['einsatz_fahrzeug.fms_status_geaendert', this.deserializeFmsStatusGeaendert.bind(this)],
+
+      // ===== STAMM PERSON EVENTS =====
+      ['StammPersonCreated', this.deserializeStammPersonCreated.bind(this)],
+      ['StammPersonUpdated', this.deserializeStammPersonUpdated.bind(this)],
+
+      // ===== STAMM FAHRZEUG EVENTS =====
+      ['StammFahrzeugCreated', this.deserializeStammFahrzeugCreated.bind(this)],
+      ['StammFahrzeugUpdated', this.deserializeStammFahrzeugUpdated.bind(this)],
     ]);
   }
 
@@ -562,7 +590,7 @@ export class EventDeserializer {
 
   // ===== EINSATZ PERSON DESERIALIZERS =====
 
-  private deserializeEinsatzPersonHinzugefuegt(payload: Record<string, unknown>, aggregateId?: string): Result<DomainEvent> {
+  private deserializeEinsatzPersonHinzugefuegt(payload: Record<string, unknown>, _aggregateId?: string): Result<DomainEvent> {
     // All fields are primitives (Event uses strings, not Value Objects)
     const event = new EinsatzPersonHinzugefuegtEvent(
       payload.einsatzId as string,
@@ -572,6 +600,126 @@ export class EventDeserializer {
       payload.nachname as string,
       payload.funktion as string,
       payload.registriertVon as string,
+    );
+
+    return Result.ok<DomainEvent>(event);
+  }
+
+  private deserializePersonZuFahrzeugZugewiesen(payload: Record<string, unknown>, _aggregateId?: string): Result<DomainEvent> {
+    // All fields are primitives (Event uses strings, not Value Objects)
+    const event = new PersonZuFahrzeugZugewiesenEvent(
+      payload.einsatzId as string,
+      payload.personId as string,
+      payload.fahrzeugId as string,
+      payload.personVorname as string,
+      payload.personNachname as string,
+      payload.fahrzeugFunkrufname as string,
+      payload.zugewiesenVon as string,
+    );
+
+    return Result.ok<DomainEvent>(event);
+  }
+
+  private deserializePersonVonFahrzeugEntfernt(payload: Record<string, unknown>, _aggregateId?: string): Result<DomainEvent> {
+    // All fields are primitives (Event uses strings, not Value Objects)
+    const event = new PersonVonFahrzeugEntferntEvent(
+      payload.einsatzId as string,
+      payload.personId as string,
+      payload.fahrzeugId as string,
+      payload.personVorname as string,
+      payload.personNachname as string,
+      payload.fahrzeugFunkrufname as string,
+      payload.entferntVon as string,
+    );
+
+    return Result.ok<DomainEvent>(event);
+  }
+
+  // ===== EINSATZ FAHRZEUG DESERIALIZERS =====
+
+  private deserializeFahrzeugErfasst(payload: Record<string, unknown>, _aggregateId?: string): Result<DomainEvent> {
+    // All fields are primitives (Event uses strings/numbers, not Value Objects)
+    const event = new FahrzeugErfasstEvent(
+      payload.einsatzId as string,
+      payload.einsatzFahrzeugId as string,
+      payload.funkrufname as string,
+      payload.stammId as string | undefined,
+      payload.fmsStatus as number,
+      payload.erfasstVon as string,
+    );
+
+    return Result.ok<DomainEvent>(event);
+  }
+
+  private deserializeFmsStatusGeaendert(payload: Record<string, unknown>, _aggregateId?: string): Result<DomainEvent> {
+    // All fields are primitives (Event uses strings/numbers, not Value Objects)
+    // Note: previousStatusLabel and neuerStatusLabel are auto-resolved in constructor
+    const event = new FmsStatusGeaendertEvent(
+      payload.einsatzFahrzeugId as string,
+      payload.einsatzId as string,
+      payload.funkrufname as string,
+      payload.previousStatus as number,
+      payload.neuerStatus as number,
+      payload.geaendertVon as string,
+    );
+
+    return Result.ok<DomainEvent>(event);
+  }
+
+  // ===== STAMM PERSON DESERIALIZERS =====
+
+  private deserializeStammPersonCreated(payload: Record<string, unknown>, _aggregateId?: string): Result<DomainEvent> {
+    // All fields are primitives (Event uses strings, not Value Objects)
+    const event = new StammPersonCreatedEvent(payload.stammPersonId as string, payload.vorname as string, payload.nachname as string, payload.personalnummer as string, payload.createdBy as string);
+
+    return Result.ok<DomainEvent>(event);
+  }
+
+  private deserializeStammPersonUpdated(payload: Record<string, unknown>, _aggregateId?: string): Result<DomainEvent> {
+    // All fields are primitives (Event uses strings, not Value Objects)
+    const event = new StammPersonUpdatedEvent(
+      payload.stammPersonId as string,
+      payload.changes as {
+        vorname?: string;
+        nachname?: string;
+        funkkenungBOS?: string;
+        qualifikationIds?: string[];
+        archived?: boolean;
+      },
+      payload.updatedBy as string,
+    );
+
+    return Result.ok<DomainEvent>(event);
+  }
+
+  // ===== STAMM FAHRZEUG DESERIALIZERS =====
+
+  private deserializeStammFahrzeugCreated(payload: Record<string, unknown>, _aggregateId?: string): Result<DomainEvent> {
+    // All fields are primitives (Event uses strings, not Value Objects)
+    const event = new StammFahrzeugCreatedEvent(
+      payload.stammFahrzeugId as string,
+      payload.rufname as string,
+      payload.funkrufname as string,
+      payload.fahrzeugtypId as string,
+      payload.createdBy as string,
+    );
+
+    return Result.ok<DomainEvent>(event);
+  }
+
+  private deserializeStammFahrzeugUpdated(payload: Record<string, unknown>, _aggregateId?: string): Result<DomainEvent> {
+    // All fields are primitives (Event uses strings/numbers, not Value Objects)
+    const event = new StammFahrzeugUpdatedEvent(
+      payload.stammFahrzeugId as string,
+      payload.changes as {
+        rufname?: string;
+        funkrufname?: string;
+        kennzeichen?: string;
+        baujahr?: number;
+        funkkenungBOS?: string;
+        archived?: boolean;
+      },
+      payload.updatedBy as string,
     );
 
     return Result.ok<DomainEvent>(event);

@@ -33,6 +33,10 @@ models/AdminQualifikationenControllerFindAllVAlpha200Response.ts
 models/AdminSetupDto.ts
 models/AdminSetupResponseDto.ts
 models/AdminSetupUserDto.ts
+models/AdminStammFahrzeugeControllerCreateVAlpha201Response.ts
+models/AdminStammFahrzeugeControllerFindAllVAlpha200Response.ts
+models/AdminStammPersonenControllerCreateVAlpha201Response.ts
+models/AdminStammPersonenControllerFindAllVAlpha200Response.ts
 models/AdminStatusDto.ts
 models/AdminTokenVerificationDto.ts
 models/AdminUserDto.ts
@@ -43,6 +47,7 @@ models/AuthRequestDto.ts
 models/AuthResponseDto.ts
 models/AuthUserDto.ts
 models/AuthUserResponseDto.ts
+models/BesatzungMemberDto.ts
 models/CompletenessResponseDto.ts
 models/CoordinateDto.ts
 models/CreateEinsatzDto.ts
@@ -74,7 +79,9 @@ models/EinsatzFahrzeugeControllerFindAllVAlpha200Response.ts
 models/EinsatzListItemDto.ts
 models/EinsatzListItemDtoEinsatzort.ts
 models/EinsatzPersonResponseDto.ts
+models/EinsatzPersonenControllerFindAllVAlpha200Response.ts
 models/EinsatzPersonenControllerRegistrierePersonVAlpha201Response.ts
+models/EinsatzPersonenControllerWeiseZuFahrzeugVAlpha200Response.ts
 models/EinsatzResponseDto.ts
 models/EintragDto.ts
 models/ErfasseFahrzeugAusStammdatenDto.ts
@@ -103,6 +110,7 @@ models/ManagedUserResponse.ts
 models/ManagedUserResponseDto.ts
 models/ManagedUsersListResponse.ts
 models/NavigationResponseDto.ts
+models/PersonRegisteredResponseDto.ts
 models/PoiControllerCreatePoiVAlpha200Response.ts
 models/PoiControllerGetPoisVAlpha200Response.ts
 models/PoiDto.ts
@@ -117,10 +125,8 @@ models/RegistrierePersonViaQrCodeDto.ts
 models/RollenDefinitionDto.ts
 models/SaveLagekarteStateDto.ts
 models/StammFahrzeugDto.ts
-models/StammFahrzeugeControllerFindAllVAlpha200Response.ts
 models/StammPersonDto.ts
 models/StammPersonQualifikationDto.ts
-models/StammPersonenControllerFindAllVAlpha200Response.ts
 models/StatusCountsDto.ts
 models/StatusCountsResponseDto.ts
 models/TextbausteinDto.ts
@@ -141,5 +147,6 @@ models/UserBasicDto.ts
 models/UserBasicListResponse.ts
 models/UserControllerFindOneVAlpha200Response.ts
 models/UserControllerFindOneVAlpha200ResponseMeta.ts
+models/WeisePersonZuFahrzeugZuDto.ts
 models/index.ts
 runtime.ts

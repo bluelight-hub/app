@@ -91,6 +91,12 @@ export interface EinsatzPersonResponseDto {
    * @memberof EinsatzPersonResponseDto
    */
   updatedBy?: string;
+  /**
+   * ID des zugewiesenen Fahrzeugs (CUID2, nullable)
+   * @type {string}
+   * @memberof EinsatzPersonResponseDto
+   */
+  fahrzeugId?: string;
 }
 
 /**
@@ -130,6 +136,7 @@ export function EinsatzPersonResponseDtoFromJSONTyped(json: any, ignoreDiscrimin
     updatedAt: json['updatedAt'],
     createdBy: json['createdBy'],
     updatedBy: json['updatedBy'] == null ? undefined : json['updatedBy'],
+    fahrzeugId: json['fahrzeugId'] == null ? undefined : json['fahrzeugId'],
   };
 }
 
@@ -155,5 +162,6 @@ export function EinsatzPersonResponseDtoToJSONTyped(value?: EinsatzPersonRespons
     updatedAt: value['updatedAt'],
     createdBy: value['createdBy'],
     updatedBy: value['updatedBy'],
+    fahrzeugId: value['fahrzeugId'],
   };
 }

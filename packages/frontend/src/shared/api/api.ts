@@ -2,6 +2,7 @@ import { logger } from '@/shared/lib/logger';
 import {
   AdminKraefteQualifikationenApi,
   AdminStammdatenFahrzeugeApi,
+  AdminStammdatenPersonenApi,
   AuthApi,
   Configuration,
   EinsatzApi,
@@ -12,6 +13,7 @@ import {
   HealthApi,
   KraefteFahrzeugtypenApi,
   KraefteStammFahrzeugeApi,
+  KraefteStammPersonenApi,
   LagekarteApi,
   LagekarteCQRSApi,
   UserManagementApi,
@@ -66,10 +68,12 @@ class BackendApi {
   private readonly geocodingApi: GeocodingApi;
   private readonly adminKraefteQualifikationenApi: AdminKraefteQualifikationenApi;
   private readonly adminStammdatenFahrzeugeApi: AdminStammdatenFahrzeugeApi;
+  private readonly adminStammdatenPersonenApi: AdminStammdatenPersonenApi;
   private readonly einsatzFahrzeugeApi: EinsatzFahrzeugeApi;
   private readonly einsatzPersonenApi: EinsatzPersonenApi;
   private readonly kraefteFahrzeugtypenApi: KraefteFahrzeugtypenApi;
   private readonly kraefteStammFahrzeugeApi: KraefteStammFahrzeugeApi;
+  private readonly kraefteStammPersonenApi: KraefteStammPersonenApi;
 
   /**
    * Erstellt eine neue Instanz der BackendApi-Klasse
@@ -98,10 +102,12 @@ class BackendApi {
     this.geocodingApi = new GeocodingApi(this.configuration);
     this.adminKraefteQualifikationenApi = new AdminKraefteQualifikationenApi(this.configuration);
     this.adminStammdatenFahrzeugeApi = new AdminStammdatenFahrzeugeApi(this.configuration);
+    this.adminStammdatenPersonenApi = new AdminStammdatenPersonenApi(this.configuration);
     this.einsatzFahrzeugeApi = new EinsatzFahrzeugeApi(this.configuration);
     this.einsatzPersonenApi = new EinsatzPersonenApi(this.configuration);
     this.kraefteFahrzeugtypenApi = new KraefteFahrzeugtypenApi(this.configuration);
     this.kraefteStammFahrzeugeApi = new KraefteStammFahrzeugeApi(this.configuration);
+    this.kraefteStammPersonenApi = new KraefteStammPersonenApi(this.configuration);
   }
 
   /**
@@ -237,6 +243,24 @@ class BackendApi {
    */
   kraefteStammFahrzeuge(): KraefteStammFahrzeugeApi {
     return this.kraefteStammFahrzeugeApi;
+  }
+
+  /**
+   * Gibt die gecachte AdminStammdatenPersonen-API-Instanz zurück
+   *
+   * @returns Die AdminStammdatenPersonen-API-Instanz für Stamm-Personen-Management
+   */
+  adminStammdatenPersonen(): AdminStammdatenPersonenApi {
+    return this.adminStammdatenPersonenApi;
+  }
+
+  /**
+   * Gibt die gecachte KraefteStammPersonen-API-Instanz zurück
+   *
+   * @returns Die KraefteStammPersonen-API-Instanz für öffentliche StammPersonen-Abfragen
+   */
+  kraefteStammPersonen(): KraefteStammPersonenApi {
+    return this.kraefteStammPersonenApi;
   }
 }
 

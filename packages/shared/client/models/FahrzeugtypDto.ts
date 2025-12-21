@@ -97,10 +97,9 @@ export interface FahrzeugtypDto {
  * @export
  */
 export const FahrzeugtypDtoKategorieEnum = {
+  Rettungsdienst: 'RETTUNGSDIENST',
+  Fuehrung: 'FUEHRUNG',
   Transport: 'TRANSPORT',
-  Einsatz: 'EINSATZ',
-  Spezial: 'SPEZIAL',
-  Logistik: 'LOGISTIK',
   Sonstiges: 'SONSTIGES',
 } as const;
 export type FahrzeugtypDtoKategorieEnum = (typeof FahrzeugtypDtoKategorieEnum)[keyof typeof FahrzeugtypDtoKategorieEnum];

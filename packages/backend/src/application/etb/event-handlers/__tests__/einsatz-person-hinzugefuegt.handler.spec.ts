@@ -17,7 +17,7 @@ jest.mock('@paralleldrive/cuid2', () => ({
  * Deterministic Test Fixtures (R2-TEST3: No Math.random())
  * Diese Fixtures garantieren reproduzierbare Tests ohne Zufallswerte.
  */
-const TEST_FIXTURES = {
+const _TEST_FIXTURES = {
   EINSATZ_IDS: {
     DEFAULT: '123e4567-e89b-12d3-a456-426614174000',
     ALTERNATIVE: '223e4567-e89b-12d3-a456-426614174001',

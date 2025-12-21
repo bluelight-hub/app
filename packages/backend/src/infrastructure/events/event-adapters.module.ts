@@ -1,5 +1,12 @@
 import { Module } from '@nestjs/common';
-import { EtbEventAdapter, LagekarteEventAdapter, FahrzeugErfasstEventAdapter, FmsStatusGeaendertEventAdapter, EinsatzPersonHinzugefuegtEventAdapter } from './adapters';
+import {
+  EtbEventAdapter,
+  LagekarteEventAdapter,
+  FahrzeugErfasstEventAdapter,
+  FmsStatusGeaendertEventAdapter,
+  EinsatzPersonHinzugefuegtEventAdapter,
+  PersonFahrzeugZuweisungEventAdapter,
+} from './adapters';
 import { EtbApplicationModule } from '@application/etb/etb-application.module';
 import { LagekarteApplicationModule } from '@application/lagekarte/lagekarte-application.module';
 import { LagekarteEventLoggerHandler } from './handlers/lagekarte-event-logger.handler';
@@ -48,6 +55,7 @@ import { NestLoggerAdapter } from '@infrastructure/common/adapters/nest-logger.a
  * - FahrzeugErfasstEventAdapter: Delegiert FahrzeugErfasst-Events an Handler
  * - FmsStatusGeaendertEventAdapter: Delegiert FmsStatusGeaendert-Events an ETB Handler
  * - EinsatzPersonHinzugefuegtEventAdapter: Delegiert EinsatzPersonHinzugefuegt-Events an ETB Handler
+ * - PersonFahrzeugZuweisungEventAdapter: Delegiert Person-Fahrzeug-Zuweisung/Entfernung-Events an ETB Handler (Story 4-3)
  * - LagekarteEventLoggerHandler: Infrastructure-spezifisches Event Logging
  * - EinsatzEventLoggerHandler: Infrastructure-spezifisches Event Logging für Einsatz-Events
  */
@@ -69,6 +77,7 @@ import { NestLoggerAdapter } from '@infrastructure/common/adapters/nest-logger.a
     FahrzeugErfasstEventAdapter,
     FmsStatusGeaendertEventAdapter,
     EinsatzPersonHinzugefuegtEventAdapter,
+    PersonFahrzeugZuweisungEventAdapter, // Story 4-3: Person-Fahrzeug-Zuweisung/Entfernung
     // Event Logging Handler (Infrastructure-specific)
     LagekarteEventLoggerHandler,
     EinsatzEventLoggerHandler,

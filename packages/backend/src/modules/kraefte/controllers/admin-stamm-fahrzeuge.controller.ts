@@ -19,8 +19,6 @@ import {
   ApiTags,
   ApiBearerAuth,
   ApiOperation,
-  ApiOkResponse,
-  ApiCreatedResponse,
   ApiNotFoundResponse,
   ApiBadRequestResponse,
   ApiUnauthorizedResponse,
@@ -33,6 +31,7 @@ import {
 import { Throttle } from '@nestjs/throttler';
 import { AdminJwtAuthGuard } from '@/modules/auth/guards/admin-jwt-auth.guard';
 import { CurrentUser } from '@/modules/auth/decorators/current-user.decorator';
+import { ApiWrappedResponse, ApiWrappedCreatedResponse } from '@/modules/common/decorators/api-wrapped-response.decorator';
 import type { ValidatedUser } from '@/modules/auth/strategies/jwt.strategy';
 import { ParseCuidPipe } from '@/infrastructure/http/pipes/parse-cuid.pipe';
 import { ADMIN_RATE_LIMIT, ADMIN_MUTATION_RATE_LIMIT } from '@/infrastructure/http/constants/rate-limit.constants';
@@ -131,7 +130,7 @@ export class AdminStammFahrzeugeController {
   @Get()
   @Throttle({ default: { limit: 30, ttl: 60000 } }) // AC7: GET 30/min (überschreibt Klassen-Level 20/min)
   @ApiOperation({ summary: 'Alle Stamm-Fahrzeuge auflisten' })
-  @ApiOkResponse({ type: StammFahrzeugDto, isArray: true })
+  @ApiWrappedResponse(StammFahrzeugDto, { isArray: true, description: 'Liste aller Stamm-Fahrzeuge' })
   @ApiQuery({ name: 'includeArchived', required: false, type: Boolean, description: 'Archivierte Fahrzeuge einschließen' })
   @ApiBadRequestResponse({ description: 'Ungültiger Query-Parameter' })
   async findAll(@Query('includeArchived') includeArchived?: string): Promise<StammFahrzeugDto[]> {
@@ -201,7 +200,7 @@ export class AdminStammFahrzeugeController {
   @Get(':id')
   @Throttle({ default: { limit: 30, ttl: 60000 } }) // AC7: GET 30/min (überschreibt Klassen-Level 20/min)
   @ApiOperation({ summary: 'Stamm-Fahrzeug nach ID abrufen' })
-  @ApiOkResponse({ type: StammFahrzeugDto })
+  @ApiWrappedResponse(StammFahrzeugDto, { description: 'Stamm-Fahrzeug gefunden' })
   @ApiNotFoundResponse({ description: 'Stamm-Fahrzeug nicht gefunden' })
   @ApiBadRequestResponse({ description: 'Ungültige CUID' })
   async findOne(@Param('id', ParseCuidPipe) id: string): Promise<StammFahrzeugDto> {
@@ -247,7 +246,7 @@ export class AdminStammFahrzeugeController {
   @Throttle({ default: ADMIN_MUTATION_RATE_LIMIT })
   @HttpCode(HttpStatus.CREATED)
   @ApiOperation({ summary: 'Neues Stamm-Fahrzeug erstellen' })
-  @ApiCreatedResponse({ type: StammFahrzeugDto })
+  @ApiWrappedCreatedResponse(StammFahrzeugDto, { description: 'Stamm-Fahrzeug erfolgreich erstellt' })
   @ApiBadRequestResponse({ description: 'Validierungsfehler (z.B. Rufname zu kurz, Fahrzeugtyp existiert nicht)' })
   @ApiConflictResponse({ description: 'Funkrufname bereits vergeben' })
   async create(@CurrentUser() user: ValidatedUser, @Body() dto: CreateStammFahrzeugDto): Promise<StammFahrzeugDto> {
@@ -316,7 +315,7 @@ export class AdminStammFahrzeugeController {
   @Patch(':id')
   @Throttle({ default: ADMIN_MUTATION_RATE_LIMIT })
   @ApiOperation({ summary: 'Stamm-Fahrzeug aktualisieren' })
-  @ApiOkResponse({ type: StammFahrzeugDto })
+  @ApiWrappedResponse(StammFahrzeugDto, { description: 'Stamm-Fahrzeug erfolgreich aktualisiert' })
   @ApiBadRequestResponse({ description: 'Validierungsfehler oder ungültige CUID' })
   @ApiNotFoundResponse({ description: 'Stamm-Fahrzeug nicht gefunden' })
   @ApiConflictResponse({ description: 'Neuer Funkrufname bereits vergeben' })
@@ -385,7 +384,7 @@ export class AdminStammFahrzeugeController {
   @Patch(':id/archive')
   @Throttle({ default: ADMIN_MUTATION_RATE_LIMIT })
   @ApiOperation({ summary: 'Stamm-Fahrzeug archivieren' })
-  @ApiOkResponse({ type: StammFahrzeugDto })
+  @ApiWrappedResponse(StammFahrzeugDto, { description: 'Stamm-Fahrzeug erfolgreich archiviert' })
   @ApiBadRequestResponse({ description: 'Stamm-Fahrzeug ist bereits archiviert oder ungültige CUID' })
   @ApiNotFoundResponse({ description: 'Stamm-Fahrzeug nicht gefunden' })
   async archive(@Param('id', ParseCuidPipe) id: string, @CurrentUser() user: ValidatedUser): Promise<StammFahrzeugDto> {

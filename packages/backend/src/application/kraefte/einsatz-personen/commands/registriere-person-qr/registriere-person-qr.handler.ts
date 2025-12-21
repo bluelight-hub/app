@@ -4,7 +4,7 @@ import type { DomainEvent } from '@domain/common/domain-event';
 import type { TransactionContext } from '@domain/common';
 import { Result } from '@domain/common/result';
 import { EinsatzPerson } from '@domain/kraefte/aggregates/einsatz-person.aggregate';
-import { EINSATZ_PERSON_ERROR_CODES, EinsatzPersonError } from '@domain/kraefte/common/einsatz-person-error-codes';
+import { EINSATZ_PERSON_ERROR_CODES, EinsatzPersonError, DEFAULT_QR_FUNKTION } from '@domain/kraefte/common/einsatz-person-error-codes';
 // biome-ignore lint/style/useImportType: NestJS DI requires runtime symbol for @Inject
 import { IEinsatzPersonRepository } from '@domain/kraefte/repositories/i-einsatz-person.repository';
 // biome-ignore lint/style/useImportType: NestJS DI requires runtime symbol for @Inject
@@ -16,6 +16,10 @@ import { ILogger } from '@domain/ports/i-logger.port';
 import { KRAEFTE_REPOSITORIES, LOGGER, OUTBOX_REPOSITORY } from '@infrastructure/di-tokens';
 // biome-ignore lint/style/useImportType: PrismaService needed for DI at runtime
 import { PrismaService } from '@/infrastructure/database/prisma.service';
+/**
+ * Command wird nur als Type verwendet (nicht für DI injected).
+ * import type ist hier KORREKT, da Command per Parameter übergeben wird.
+ */
 import type { RegistrierePersonViaQrCodeCommand } from './registriere-person-qr.command';
 
 /**
@@ -48,15 +52,17 @@ export class RegistrierePersonViaQrCodeHandler extends TransactionalCommandHandl
    *
    * @param command - RegistrierePersonViaQrCodeCommand mit QR-Daten
    * @param tx - Transaction Context fuer atomare Persistierung
-   * @returns Result mit EinsatzPerson ID oder Fehler
+   * @returns Result mit EinsatzPerson ID und Domain Events
    */
   protected async executeInTransaction(command: RegistrierePersonViaQrCodeCommand, tx: TransactionContext): Promise<Result<{ result: string; events: DomainEvent[] }>> {
     // 1. StammPerson-Lookup via Personalnummer (AC3)
     const stammPersonResult = await this.stammPersonRepository.findByPersonalnummer(command.personalnummer, tx);
 
     if (stammPersonResult.isFailure) {
-      this.logger.error(`StammPerson Lookup fehlgeschlagen: ${stammPersonResult.error}`, 'RegistrierePersonViaQrCodeHandler');
-      return Result.fail(stammPersonResult.error ?? 'Fehler beim Stammdaten-Lookup');
+      // GDPR: KEINE Personalnummer im Error Log (PII!)
+      const errorMsg = EinsatzPersonError.format(EINSATZ_PERSON_ERROR_CODES.STAMM_LOOKUP_FAILED, `StammPerson Lookup fehlgeschlagen in Einsatz '${command.einsatzId}': ${stammPersonResult.error}`);
+      this.logger.error(errorMsg, 'RegistrierePersonViaQrCodeHandler');
+      return Result.fail<{ result: string; events: DomainEvent[] }>(errorMsg);
     }
 
     const stammPerson = stammPersonResult.value;
@@ -65,26 +71,50 @@ export class RegistrierePersonViaQrCodeHandler extends TransactionalCommandHandl
     if (stammPerson) {
       // Check if person is archived
       if (stammPerson.archivedAt) {
-        return Result.fail(
-          EinsatzPersonError.format(EINSATZ_PERSON_ERROR_CODES.STAMM_NOT_FOUND, `StammPerson '${stammPerson.vorname} ${stammPerson.nachname}' ist archiviert und kann nicht registriert werden`),
+        // GDPR: KEINE Namen im Error (PII!) - nur StammPerson ID
+        return Result.fail<{ result: string; events: DomainEvent[] }>(
+          EinsatzPersonError.format(EINSATZ_PERSON_ERROR_CODES.STAMM_ARCHIVED, `StammPerson (ID: ${stammPerson.id.value}) ist archiviert und kann nicht registriert werden`),
         );
       }
 
+      /**
+       * RACE CONDITION MITIGATION (TOCTOU):
+       *
+       * PROBLEM: Zwei simultane QR-Scans könnten beide den existsByEinsatzIdAndStammId Check
+       * passieren, bevor einer speichert → doppelte EinsatzPerson.
+       *
+       * LÖSUNG: DB-Level Unique Constraint (einsatzId + stammId) in Prisma Schema.
+       * - Constraint: @@unique([einsatzId, stammId], name: "unique_einsatz_stamm_person")
+       * - Bei Collision wirft Prisma PrismaClientKnownRequestError (Code P2002)
+       * - Repository wrapped diese Exception → Result.fail mit SAVE_FAILED
+       *
+       * WICHTIG: Der existsByEinsatzIdAndStammId Check ist eine OPTIMIERUNG für UX
+       * (schnelles Feedback), die DB Constraint ist die ECHTE Sicherheitsbarriere.
+       *
+       * Performance: <3s Requirement (AC5) erfüllt durch DB Index auf unique constraint.
+       */
       const existsResult = await this.einsatzPersonRepository.existsByEinsatzIdAndStammId(command.einsatzId, stammPerson.id.value, tx);
 
+      // ISSUE #18 FIX: Unterscheide zwischen DB-Fehler und Programming Error
       if (existsResult.isFailure) {
-        this.logger.error(`Duplikat-Check fehlgeschlagen: ${existsResult.error}`, 'RegistrierePersonViaQrCodeHandler');
-        return Result.fail(existsResult.error ?? 'Fehler bei der Duplikat-Pruefung');
+        // DB-Fehler (z.B. Connection Lost, Timeout)
+        const errorMsg = EinsatzPersonError.format(EINSATZ_PERSON_ERROR_CODES.DUPLICATE_CHECK_FAILED, `Duplikat-Check fehlgeschlagen in Einsatz '${command.einsatzId}': ${existsResult.error}`);
+        this.logger.error(errorMsg, 'RegistrierePersonViaQrCodeHandler');
+        return Result.fail<{ result: string; events: DomainEvent[] }>(errorMsg);
       }
 
       if (existsResult.value === undefined) {
-        this.logger.error('Repository returned Result.ok(undefined) for duplicate check', 'RegistrierePersonViaQrCodeHandler');
-        return Result.fail('Interner Fehler bei der Duplikat-Pruefung');
+        // Programming Error: Repository sollte NIEMALS undefined zurückgeben
+        const errorMsg = 'PROGRAMMING ERROR: Repository.existsByEinsatzIdAndStammId returned undefined (expected boolean)';
+        this.logger.error(errorMsg, 'RegistrierePersonViaQrCodeHandler');
+        throw new Error(errorMsg); // Exception für Programming Errors (AC4)
       }
 
       if (existsResult.value) {
-        this.logger.warn(`QR-Duplikat: StammPerson ${stammPerson.id.value} bereits in Einsatz ${command.einsatzId}`, 'RegistrierePersonViaQrCodeHandler');
-        return Result.fail(EinsatzPersonError.format(EINSATZ_PERSON_ERROR_CODES.DUPLICATE_PERSON, `Person '${stammPerson.vorname} ${stammPerson.nachname}' ist bereits im Einsatz registriert`));
+        // GDPR: KEINE Namen/Personalnummer im Error (PII!) - nur StammPerson ID
+        const errorMsg = EinsatzPersonError.format(EINSATZ_PERSON_ERROR_CODES.DUPLICATE_PERSON, `StammPerson (ID: ${stammPerson.id.value}) ist bereits im Einsatz '${command.einsatzId}' registriert`);
+        this.logger.warn(errorMsg, 'RegistrierePersonViaQrCodeHandler');
+        return Result.fail<{ result: string; events: DomainEvent[] }>(errorMsg);
       }
     }
 
@@ -93,55 +123,82 @@ export class RegistrierePersonViaQrCodeHandler extends TransactionalCommandHandl
 
     if (stammPerson) {
       // StammPerson gefunden -> Snapshot Pattern (KOPIE der Daten)
-      // StammPerson hat keine Funktion - Default ist 'Helfer' fuer QR-Registrierung
+      // StammPerson hat keine Funktion - Default Funktion aus Domain-Konstante
       const aggregateResult = EinsatzPerson.createFromStammPerson({
         einsatzId: command.einsatzId,
         stammId: stammPerson.id.value,
         vorname: stammPerson.vorname,
         nachname: stammPerson.nachname,
-        funktion: 'Helfer', // Default fuer QR-Registrierung (AC3)
+        funktion: DEFAULT_QR_FUNKTION, // Default fuer QR-Registrierung (AC3)
         funkrufname: stammPerson.funkkenungBOS,
         qualifikationIds: stammPerson.qualifikationIds,
         createdBy: command.registriertVon,
       });
 
       if (aggregateResult.isFailure || !aggregateResult.value) {
-        this.logger.error(`EinsatzPerson Erstellung fehlgeschlagen: ${aggregateResult.error}`, 'RegistrierePersonViaQrCodeHandler');
-        return Result.fail(aggregateResult.error ?? 'Fehler beim Erstellen der EinsatzPerson');
+        // GDPR: KEINE Personalnummer im Error (PII!)
+        const errorMsg = EinsatzPersonError.format(
+          EINSATZ_PERSON_ERROR_CODES.AGGREGATE_CREATION_FAILED,
+          `EinsatzPerson aus Stammdaten fehlgeschlagen in Einsatz '${command.einsatzId}': ${aggregateResult.error}`,
+        );
+        this.logger.error(errorMsg, 'RegistrierePersonViaQrCodeHandler');
+        return Result.fail<{ result: string; events: DomainEvent[] }>(errorMsg);
       }
 
       einsatzPerson = aggregateResult.value;
 
-      this.logger.log(`EinsatzPerson aus Stammdaten erstellt: ${einsatzPerson.id.value} (${stammPerson.vorname} ${stammPerson.nachname}) via QR`, 'RegistrierePersonViaQrCodeHandler');
+      /**
+       * GDPR-konformes Logging OHNE PII (Personally Identifiable Information).
+       *
+       * Logged werden NUR:
+       * - EinsatzPerson ID (technischer Identifier)
+       * - Einsatz ID (technischer Identifier)
+       * - StammPerson ID (technischer Identifier)
+       *
+       * NICHT geloggt: Vorname, Nachname, Personalnummer (PII!)
+       */
+      this.logger.log(
+        `EinsatzPerson aus Stammdaten erstellt: ${einsatzPerson.id.value} (StammPerson: ${stammPerson.id.value}) via QR in Einsatz '${command.einsatzId}'`,
+        'RegistrierePersonViaQrCodeHandler',
+      );
     } else {
       // Keine StammPerson gefunden -> Temporaere Person aus QR-Daten
       const aggregateResult = EinsatzPerson.createTemporary({
         einsatzId: command.einsatzId,
         vorname: command.vorname,
         nachname: command.nachname,
-        funktion: 'Helfer', // Default Funktion fuer QR-Registrierung (AC3)
+        funktion: DEFAULT_QR_FUNKTION, // Default Funktion fuer QR-Registrierung (AC3)
         funkrufname: command.funkkennung,
         createdBy: command.registriertVon,
       });
 
       if (aggregateResult.isFailure || !aggregateResult.value) {
-        this.logger.error(`Temporaere EinsatzPerson Erstellung fehlgeschlagen: ${aggregateResult.error}`, 'RegistrierePersonViaQrCodeHandler');
-        return Result.fail(aggregateResult.error ?? 'Fehler beim Erstellen der temporaeren EinsatzPerson');
+        // GDPR: KEINE Namen/Personalnummer im Error (PII!)
+        const errorMsg = EinsatzPersonError.format(
+          EINSATZ_PERSON_ERROR_CODES.AGGREGATE_CREATION_FAILED,
+          `Temporäre EinsatzPerson fehlgeschlagen in Einsatz '${command.einsatzId}': ${aggregateResult.error}`,
+        );
+        this.logger.error(errorMsg, 'RegistrierePersonViaQrCodeHandler');
+        return Result.fail<{ result: string; events: DomainEvent[] }>(errorMsg);
       }
 
       einsatzPerson = aggregateResult.value;
 
-      this.logger.log(
-        `Temporaere EinsatzPerson erstellt: ${einsatzPerson.id.value} (${command.vorname} ${command.nachname}) via QR - keine StammPerson mit Personalnummer '${command.personalnummer}' gefunden`,
-        'RegistrierePersonViaQrCodeHandler',
-      );
+      /**
+       * GDPR-konformes Logging OHNE PII (Personally Identifiable Information).
+       *
+       * NICHT geloggt: Vorname, Nachname, Personalnummer (PII!)
+       */
+      this.logger.log(`Temporäre EinsatzPerson erstellt: ${einsatzPerson.id.value} via QR in Einsatz '${command.einsatzId}' (keine StammPerson gefunden)`, 'RegistrierePersonViaQrCodeHandler');
     }
 
     // 4. EinsatzPerson speichern
     const saveResult = await this.einsatzPersonRepository.save(einsatzPerson, tx);
     if (saveResult.isFailure) {
-      this.logger.error(`EinsatzPerson Speichern fehlgeschlagen: ${saveResult.error}`, 'RegistrierePersonViaQrCodeHandler');
-      return Result.fail(saveResult.error ?? 'Fehler beim Speichern der EinsatzPerson');
+      // GDPR: KEINE Personalnummer im Error (PII!)
+      const errorMsg = EinsatzPersonError.format(EINSATZ_PERSON_ERROR_CODES.SAVE_FAILED, `EinsatzPerson speichern fehlgeschlagen in Einsatz '${command.einsatzId}': ${saveResult.error}`);
+      this.logger.error(errorMsg, 'RegistrierePersonViaQrCodeHandler');
+      return Result.fail<{ result: string; events: DomainEvent[] }>(errorMsg);
     }
 
     // 5. Domain Events extrahieren (fuer Outbox - AC3 ETB Auto-Eintrag)

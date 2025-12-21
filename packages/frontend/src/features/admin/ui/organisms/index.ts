@@ -16,3 +16,15 @@ export { QualifikationenTable } from './QualifikationenTable';
 export { CreateQualifikationDialog } from './CreateQualifikationDialog';
 export { EditQualifikationDialog } from './EditQualifikationDialog';
 export { DeactivateQualifikationDialog } from './DeactivateQualifikationDialog';
+
+// StammFahrzeuge Management
+export { StammFahrzeugeTable } from './StammFahrzeugeTable';
+export { CreateStammFahrzeugDialog } from './CreateStammFahrzeugDialog';
+export { EditStammFahrzeugDialog } from './EditStammFahrzeugDialog';
+export { ArchiveStammFahrzeugDialog } from './ArchiveStammFahrzeugDialog';
+
+// StammPersonen Management
+export { StammPersonenTable } from './StammPersonenTable';
+export { CreateStammPersonDialog } from './CreateStammPersonDialog';
+export { EditStammPersonDialog } from './EditStammPersonDialog';
+export { ArchiveStammPersonDialog } from './ArchiveStammPersonDialog';

@@ -89,10 +89,12 @@ export const useErfasseTemporalesFahrzeug = () => {
         position: position ? { lat: position.lat, lng: position.lng } : undefined,
       };
 
-      return api.einsatzFahrzeuge().einsatzFahrzeugeControllerErfasseTemporalesVAlpha({
+      // WrappedResponse: { data: {...}, meta: {...} }
+      const response = await api.einsatzFahrzeuge().einsatzFahrzeugeControllerErfasseTemporalesVAlpha({
         einsatzId,
         erfasseTemporalesFahrzeugDto: dto,
       });
+      return response.data;
     },
     onMutate: async ({ einsatzId }) => {
       // Cancel laufende Queries

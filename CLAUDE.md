@@ -214,6 +214,31 @@ describe('CreateEinsatzHandler', () => {
 
 **Verweis:** `jest.Mocked<T>` für NestJS Service Mocks, `jest.clearAllMocks()` in beforeEach
 
+#### 7. Controller Response Decorator Check (AC7)
+
+IMMER `@ApiWrappedResponse` / `@ApiWrappedCreatedResponse` statt Standard-Swagger-Decorators:
+
+```typescript
+// ✅ RICHTIG: Custom Wrapper Decorator für korrekte OpenAPI-Generierung
+import { ApiWrappedResponse, ApiWrappedCreatedResponse } from '@/modules/common/decorators/api-wrapped-response.decorator';
+
+@Get()
+@ApiWrappedResponse(EinsatzDto, { isArray: true, description: 'Liste aller Einsätze' })
+async findAll(): Promise<PaginatedData<EinsatzDto>> { ... }
+
+@Post()
+@ApiWrappedCreatedResponse(EinsatzDto, { description: 'Einsatz erstellt' })
+async create(@Body() dto: CreateEinsatzDto): Promise<EinsatzDto> { ... }
+
+// ❌ FALSCH: Standard Swagger Decorators (generiert falsches Schema)
+@ApiOkResponse({ type: EinsatzDto })  // Fehlt data/meta wrapper!
+@ApiCreatedResponse({ type: EinsatzDto })
+```
+
+**Warum:** Der generierte API-Client erwartet `WrappedResponse<T>` mit `{ data, meta }` Struktur. Standard-Decorators generieren falsches OpenAPI-Schema.
+
+**Verweis:** `@/modules/common/decorators/api-wrapped-response.decorator.ts`
+
 ### Commit Rules
 
 - **NIEMALS** `--no-verify` verwenden
@@ -689,11 +714,10 @@ Login: rubeen / (optionales PW: MyPass123*)
 
 ### API Development Workflow
 
-1. Backend-Endpoint mit NestJS/Swagger erstellen
+1. Backend-Endpoint mit NestJS/Swagger erstellen (siehe AC7: `@ApiWrappedResponse`)
 2. API-Client generieren: `pnpm run generate-api`
 3. Frontend nutzt generierten Client aus `@bluelight-hub/shared/client`
 4. TanStack Query Hook erstellen
-Nutze die WrappedResponse ({data: {} | []}), statt direkter response {} | []. - gibt custom annotation dafür.
 
 ### Hexagonal Architecture Layers
 

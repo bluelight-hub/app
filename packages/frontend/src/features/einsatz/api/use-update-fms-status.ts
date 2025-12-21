@@ -79,11 +79,13 @@ export const useUpdateFmsStatus = (einsatzId: string) => {
         position: position ? { lat: position.lat, lng: position.lng } : undefined,
       };
 
-      return api.einsatzFahrzeuge().einsatzFahrzeugeControllerUpdateFmsStatusVAlpha({
+      // WrappedResponse: { data: {...}, meta: {...} }
+      const response = await api.einsatzFahrzeuge().einsatzFahrzeugeControllerUpdateFmsStatusVAlpha({
         einsatzId,
         id: fahrzeugId,
         updateFmsStatusDto: dto,
       });
+      return response.data;
     },
     onMutate: async (variables) => {
       // Cancel laufende Queries

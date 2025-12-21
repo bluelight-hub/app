@@ -2,7 +2,7 @@ import { useConfirm } from '@/shared/hooks/useConfirm';
 import { useDeleteEtbEntry } from '@/features/etb';
 import { useUserNames } from '@/features/auth';
 import type { EintragDto } from '@bluelight-hub/shared/client';
-import { type ExpandedState, getCoreRowModel, getExpandedRowModel, getFilteredRowModel, type SortingState, useReactTable } from '@tanstack/react-table';
+import { type ExpandedState, getCoreRowModel, getExpandedRowModel, getFilteredRowModel, getSortedRowModel, type SortingState, useReactTable } from '@tanstack/react-table';
 import { useVirtualizer } from '@tanstack/react-virtual';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { PiCircleNotch } from 'react-icons/pi';
@@ -155,11 +155,9 @@ export function EtbEntryList({
       globalFilter,
       expanded,
     },
-    manualSorting: true, // Serverseitige Sortierung
     onSortingChange: (updater) => {
-      // Bei Sortierungsänderung Callback aufrufen für neue Serverdaten
       const newSorting = typeof updater === 'function' ? updater(sorting) : updater;
-      setSorting(newSorting); // Lokalen State aktualisieren
+      setSorting(newSorting);
 
       if (newSorting.length > 0) {
         const field = newSorting[0].id;
@@ -170,7 +168,7 @@ export function EtbEntryList({
     onGlobalFilterChange: setGlobalFilter,
     onExpandedChange: setExpanded,
     getCoreRowModel: getCoreRowModel(),
-    // getSortedRowModel nicht nutzen bei manueller Sortierung
+    getSortedRowModel: getSortedRowModel(),
     getFilteredRowModel: getFilteredRowModel(),
     getExpandedRowModel: getExpandedRowModel(),
     getRowCanExpand: () => true,

@@ -24,13 +24,26 @@ import { cn } from '@/shared/ui/cn';
 import type { ResponseError } from '@bluelight-hub/shared/client';
 import { isTauri } from '@tauri-apps/api/core';
 import jsQR from 'jsqr';
-import { useCallback, useEffect, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { PiCamera, PiCameraSlash, PiCheckCircle, PiQrCode, PiWarningCircle, PiXCircle } from 'react-icons/pi';
 import { toast } from 'sonner';
+
+/**
+ * Sanitizes string for safe console logging (prevents log injection attacks)
+ */
+function sanitizeForLog(input: string): string {
+  if (input.length > 100) {
+    return `${input.substring(0, 100)}... [truncated, ${input.length} chars total]`;
+  }
+  // Remove control characters and potential injection patterns
+  // biome-ignore lint/suspicious/noControlCharactersInRegex: Needed for security - sanitizing untrusted QR input
+  return input.replace(/[\x00-\x1F\x7F]/g, '?');
+}
 
 interface QrScannerTabProps {
   einsatzId: string;
   onSuccess?: (personName: string) => void;
+  isActive?: boolean; // CRITICAL FIX #6: Track if tab is active to stop camera
 }
 
 type ScannerState =
@@ -78,7 +91,7 @@ async function isTauriMobileEnvironment(): Promise<boolean> {
  *
  * Der Scanner bleibt nach erfolgreicher Registrierung aktiv für weitere Scans.
  */
-export function QrScannerTab({ einsatzId, onSuccess }: QrScannerTabProps) {
+export function QrScannerTab({ einsatzId, onSuccess, isActive = true }: QrScannerTabProps) {
   // Refs
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -154,18 +167,29 @@ export function QrScannerTab({ einsatzId, onSuccess }: QrScannerTabProps) {
    * Verwendet Refs für stabile Dependencies (keine infinite loops)
    */
   const processQrCode = useCallback(async (qrContent: string) => {
-    console.log('[QR Scanner] processQrCode aufgerufen:', qrContent);
+    // MEDIUM FIX (1): Check if unmounted to prevent race condition
+    if (!mountedRef.current) {
+      return;
+    }
 
-    // Debounce: Verhindere mehrfaches Scannen desselben Codes
+    console.log('[QR Scanner] processQrCode aufgerufen:', sanitizeForLog(qrContent));
+
+    // CRITICAL FIX #7: Debounce check und cooldown SOFORT setzen (BEFORE ANY async operations)
     if (lastScannedRef.current === qrContent || cooldownRef.current) {
       console.log('[QR Scanner] Debounce aktiv, überspringe');
       return;
     }
+    // Set cooldown IMMEDIATELY to prevent race condition (gap between check and set)
+    cooldownRef.current = true;
+    lastScannedRef.current = qrContent;
 
     // Quick-Check: Ist es überhaupt ein DRK QR-Code?
     if (!isDrkQrCodeFormat(qrContent)) {
       // Log: Zeige das tatsächliche Format für Debugging
-      console.log('[QR Scanner] Kein DRK-Format erkannt. Erwartet: drk://person?..., Erhalten:', qrContent);
+      console.log('[QR Scanner] Kein DRK-Format erkannt. Erwartet: drk://person?..., Erhalten:', sanitizeForLog(qrContent.substring(0, 50)));
+      // Reset cooldown for non-DRK codes to allow scanning valid codes immediately
+      cooldownRef.current = false;
+      lastScannedRef.current = null;
       return;
     }
 
@@ -178,20 +202,29 @@ export function QrScannerTab({ einsatzId, onSuccess }: QrScannerTabProps) {
     if (!parseResult.success) {
       // Parsing-Fehler anzeigen
       const errorMessage = getParseErrorMessage(parseResult.error.code);
+
+      // Cancel animation frame before state transition
+      if (animationRef.current) {
+        cancelAnimationFrame(animationRef.current);
+        animationRef.current = null;
+      }
+
       setState({ status: 'error', message: errorMessage });
 
       // Cooldown um Spam zu vermeiden
-      cooldownRef.current = true;
       setTimeout(() => {
-        cooldownRef.current = false;
-        setState({ status: 'scanning' });
+        // CRITICAL FIX #8: Check stream exists before setState (prevent state transition after cleanup)
+        if (mountedRef.current && streamRef.current !== null) {
+          cooldownRef.current = false;
+          lastScannedRef.current = null;
+          setState({ status: 'scanning' });
+        }
       }, 2000);
 
       return;
     }
 
-    // Erfolgreiches Parsing - merken und registrieren
-    lastScannedRef.current = qrContent;
+    // Erfolgreiches Parsing
     const qrData = parseResult.data;
 
     // CRITICAL FIX: Cancel animation frame before switching to processing state
@@ -225,13 +258,29 @@ export function QrScannerTab({ einsatzId, onSuccess }: QrScannerTabProps) {
 
       onSuccessRef.current?.(personName);
 
+      // Cancel animation frame before state transition
+      if (animationRef.current) {
+        cancelAnimationFrame(animationRef.current);
+        animationRef.current = null;
+      }
+
       // Nach kurzer Pause wieder scannen (für nächste Person)
       setTimeout(() => {
-        lastScannedRef.current = null;
-        setState({ status: 'scanning' });
+        // CRITICAL FIX #8: Check stream exists before setState (prevent state transition after cleanup)
+        if (mountedRef.current && streamRef.current !== null) {
+          lastScannedRef.current = null;
+          cooldownRef.current = false;
+          setState({ status: 'scanning' });
+        }
       }, 1500);
     } catch (error) {
       const apiError = error as ResponseError;
+
+      // Cancel animation frame before state transition
+      if (animationRef.current) {
+        cancelAnimationFrame(animationRef.current);
+        animationRef.current = null;
+      }
 
       if (isDuplicatePersonError(apiError)) {
         // Duplikat ist kein schwerer Fehler
@@ -248,9 +297,12 @@ export function QrScannerTab({ einsatzId, onSuccess }: QrScannerTabProps) {
 
       // Nach Fehler wieder scannen
       setTimeout(() => {
-        lastScannedRef.current = null;
-        cooldownRef.current = false;
-        setState({ status: 'scanning' });
+        // CRITICAL FIX #8: Check stream exists before setState (prevent state transition after cleanup)
+        if (mountedRef.current && streamRef.current !== null) {
+          lastScannedRef.current = null;
+          cooldownRef.current = false;
+          setState({ status: 'scanning' });
+        }
       }, 2500);
     }
   }, []); // Keine Dependencies - alles über Refs
@@ -280,22 +332,29 @@ export function QrScannerTab({ einsatzId, onSuccess }: QrScannerTabProps) {
     const width = Math.floor(video.videoWidth * scale);
     const height = Math.floor(video.videoHeight * scale);
 
-    // Canvas auf skalierte Größe setzen
-    canvas.width = width;
-    canvas.height = height;
+    // MEDIUM FIX (2): Only resize canvas when dimensions change to prevent layout reflow
+    if (canvas.width !== width || canvas.height !== height) {
+      canvas.width = width;
+      canvas.height = height;
+    }
 
     // Video-Frame auf Canvas zeichnen (skaliert)
     ctx.drawImage(video, 0, 0, width, height);
 
-    // QR-Code suchen
-    const imageData = ctx.getImageData(0, 0, width, height);
-    const code = jsQR(imageData.data, imageData.width, imageData.height, {
-      inversionAttempts: 'attemptBoth',
-    });
+    // MEDIUM FIX (7): Safari 4K - Wrap jsQR in try-catch for large canvas
+    try {
+      const imageData = ctx.getImageData(0, 0, width, height);
+      const code = jsQR(imageData.data, imageData.width, imageData.height, {
+        inversionAttempts: 'attemptBoth',
+      });
 
-    if (code?.data) {
-      console.log('[QR Scanner] Code erkannt:', code.data);
-      processQrCode(code.data);
+      if (code?.data) {
+        console.log('[QR Scanner] Code erkannt:', sanitizeForLog(code.data));
+        processQrCode(code.data);
+      }
+    } catch (err) {
+      console.error('[QR Scanner] jsQR failed on large canvas:', err);
+      // Continue scanning - don't break the loop
     }
 
     // Nächsten Frame nach kurzer Pause planen (~10 FPS statt 60 FPS)
@@ -331,6 +390,9 @@ export function QrScannerTab({ einsatzId, onSuccess }: QrScannerTabProps) {
 
       // Kontinuierliches Scannen in Tauri
       const scanLoop = async () => {
+        let retryCount = 0;
+        const maxRetries = 3;
+
         while (tauriScanActiveRef.current) {
           try {
             const result = await scan({
@@ -341,12 +403,28 @@ export function QrScannerTab({ einsatzId, onSuccess }: QrScannerTabProps) {
             if (result?.content) {
               await processQrCode(result.content);
             }
+            retryCount = 0; // Reset on success
           } catch (err) {
-            // User hat abgebrochen oder Fehler
-            if (tauriScanActiveRef.current) {
-              console.error('Tauri scan error:', err);
+            // User cancelled - exit cleanly
+            if (!tauriScanActiveRef.current) {
+              break;
             }
-            break;
+
+            retryCount++;
+            console.error(`Tauri scan error (attempt ${retryCount}/${maxRetries}):`, err);
+
+            if (retryCount >= maxRetries) {
+              // Max retries reached - notify user and stop
+              setState({
+                status: 'error',
+                message: 'Scanner-Fehler. Bitte neu starten.',
+              });
+              tauriScanActiveRef.current = false;
+              break;
+            }
+
+            // Wait before retry (exponential backoff)
+            await new Promise((resolve) => setTimeout(resolve, 1000 * retryCount));
           }
         }
       };
@@ -384,6 +462,15 @@ export function QrScannerTab({ einsatzId, onSuccess }: QrScannerTabProps) {
         audio: false,
       });
 
+      // CRITICAL FIX (1): Check if unmounted during async getUserMedia
+      if (!mountedRef.current) {
+        // Cleanup stream immediately if unmounted
+        for (const track of stream.getTracks()) {
+          track.stop();
+        }
+        return;
+      }
+
       streamRef.current = stream;
 
       if (videoRef.current) {
@@ -409,6 +496,12 @@ export function QrScannerTab({ einsatzId, onSuccess }: QrScannerTabProps) {
         });
       }
 
+      // CRITICAL FIX (1): Check again after async play()
+      if (!mountedRef.current) {
+        cleanupBrowser();
+        return;
+      }
+
       setState({ status: 'scanning' });
 
       // Scan-Loop starten
@@ -416,7 +509,7 @@ export function QrScannerTab({ einsatzId, onSuccess }: QrScannerTabProps) {
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Kamerazugriff verweigert';
 
-      // CRITICAL FIX: Cleanup before setting error state
+      // Cleanup before setting error state
       cleanupBrowser();
 
       // Spezifische Fehlerbehandlung für Permission-Denied
@@ -432,6 +525,21 @@ export function QrScannerTab({ einsatzId, onSuccess }: QrScannerTabProps) {
           setState({
             status: 'permission-denied',
             error: 'Keine Kamera gefunden. Bitte schließen Sie eine Kamera an.',
+          });
+          return;
+        }
+        if (error.name === 'NotSupportedError') {
+          setState({
+            status: 'permission-denied',
+            error: 'Kamera-Zugriff wird von diesem Browser nicht unterstützt. Bitte verwenden Sie Chrome oder Firefox.',
+          });
+          return;
+        }
+        // CRITICAL FIX (5): iOS Safari SecurityError für non-HTTPS
+        if (error.name === 'SecurityError') {
+          setState({
+            status: 'permission-denied',
+            error: 'Kamera-Zugriff benötigt eine sichere Verbindung (HTTPS). Bitte nutzen Sie HTTPS oder localhost.',
           });
           return;
         }
@@ -489,9 +597,46 @@ export function QrScannerTab({ einsatzId, onSuccess }: QrScannerTabProps) {
     startScanning();
 
     return () => {
+      // CRITICAL FIX (3): Set mounted to false and cancel animation frame
+      mountedRef.current = false;
+      if (animationRef.current !== null) {
+        cancelAnimationFrame(animationRef.current);
+        animationRef.current = null;
+      }
       cleanup();
     };
   }, []);
+
+  // CRITICAL FIX #6: Stop camera when tab becomes inactive (memory leak prevention)
+  useEffect(() => {
+    if (!isActive && (state.status === 'scanning' || state.status === 'processing')) {
+      stopScanning();
+    }
+  }, [isActive, state.status, stopScanning]);
+
+  // KEYBOARD NAVIGATION: Escape to stop, Space to start
+  // MEDIUM FIX (5): Use refs for handlers to prevent dependency accumulation
+  const startScanningRef = useRef(startScanning);
+  const stopScanningRef = useRef(stopScanning);
+  startScanningRef.current = startScanning;
+  stopScanningRef.current = stopScanning;
+
+  useEffect(() => {
+    const handleKeyDown = (event: KeyboardEvent) => {
+      // Escape to stop scanner
+      if (event.key === 'Escape' && (state.status === 'scanning' || state.status === 'processing')) {
+        stopScanningRef.current();
+      }
+      // Space to start scanner when idle
+      if (event.key === ' ' && state.status === 'idle') {
+        event.preventDefault();
+        startScanningRef.current();
+      }
+    };
+
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [state.status]); // Only depends on status, not the functions
 
   return (
     <div className="flex flex-col items-center gap-4">
@@ -525,26 +670,29 @@ export function QrScannerTab({ einsatzId, onSuccess }: QrScannerTabProps) {
           <canvas ref={canvasRef} className="hidden" />
 
           {/* Overlay für verschiedene Status */}
-          {state.status === 'idle' && (
-            <div className="absolute inset-0 flex flex-col items-center justify-center gap-4 bg-gray-900/80">
-              <PiQrCode className="h-16 w-16 text-gray-400" />
-              <span className="text-gray-400 text-sm">Scanner bereit</span>
-            </div>
-          )}
+          {/* MEDIUM FIX #15: Keep output mounted for screen readers, toggle visibility via className */}
+          <output className={cn('absolute inset-0 flex flex-col items-center justify-center gap-4 bg-gray-900/80', state.status !== 'idle' && 'hidden')} aria-live="polite">
+            <PiQrCode className="h-16 w-16 text-gray-400" />
+            <span className="text-gray-400 text-sm">Scanner bereit</span>
+          </output>
 
-          {state.status === 'requesting-permission' && (
-            <div className="absolute inset-0 flex flex-col items-center justify-center gap-4 bg-gray-900/80">
-              <InlineSpinner size="lg" />
-              <span className="text-gray-300 text-sm">Kamerazugriff wird angefordert…</span>
-            </div>
-          )}
+          <output
+            className={cn('absolute inset-0 flex flex-col items-center justify-center gap-4 bg-gray-900/80', state.status !== 'requesting-permission' && 'hidden')}
+            aria-live="polite"
+            aria-busy={state.status === 'requesting-permission'}
+          >
+            <InlineSpinner size="lg" />
+            <span className="text-gray-300 text-sm">Kamerazugriff wird angefordert…</span>
+          </output>
 
-          {state.status === 'permission-denied' && (
-            <div className="absolute inset-0 flex flex-col items-center justify-center gap-4 bg-gray-900/80 p-4 text-center">
-              <PiCameraSlash className="h-16 w-16 text-red-400" />
-              <span className="text-red-300 text-sm">{state.error}</span>
-            </div>
-          )}
+          <div
+            className={cn('absolute inset-0 flex flex-col items-center justify-center gap-4 bg-gray-900/80 p-4 text-center', state.status !== 'permission-denied' && 'hidden')}
+            role="alert"
+            aria-live="assertive"
+          >
+            <PiCameraSlash className="h-16 w-16 text-red-400" />
+            <span className="text-red-300 text-sm">{state.status === 'permission-denied' ? state.error : ''}</span>
+          </div>
 
           {state.status === 'scanning' && (
             <>
@@ -559,34 +707,34 @@ export function QrScannerTab({ einsatzId, onSuccess }: QrScannerTabProps) {
                 </div>
               </div>
               {/* Scan-Anweisung */}
-              <div className="absolute right-0 bottom-4 left-0 text-center">
-                <span className="rounded-lg bg-black/60 px-3 py-1.5 text-sm text-white">QR-Code in den Rahmen halten</span>
-              </div>
+              <output className="absolute right-0 bottom-4 left-0 text-center" aria-live="polite">
+                <span className="rounded-lg bg-black/60 px-3 py-1.5 text-sm text-white">
+                  QR-Code in den Rahmen halten
+                  {/* MEDIUM FIX (3): Add keyboard hints */}
+                  <span className="ml-2 text-xs opacity-75">(ESC zum Stoppen)</span>
+                </span>
+              </output>
             </>
           )}
 
-          {state.status === 'processing' && (
-            <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 bg-gray-900/80">
-              <InlineSpinner size="lg" />
-              <span className="text-amber-300 text-sm">
-                {state.data.vorname} {state.data.nachname} wird registriert…
-              </span>
-            </div>
-          )}
+          <output
+            className={cn('absolute inset-0 flex flex-col items-center justify-center gap-3 bg-gray-900/80', state.status !== 'processing' && 'hidden')}
+            aria-live="assertive"
+            aria-busy={state.status === 'processing'}
+          >
+            <InlineSpinner size="lg" />
+            <span className="text-amber-300 text-sm">{state.status === 'processing' ? `${state.data.vorname} ${state.data.nachname} wird registriert…` : ''}</span>
+          </output>
 
-          {state.status === 'success' && (
-            <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 bg-gray-900/80">
-              <PiCheckCircle className="h-16 w-16 text-green-400" />
-              <span className="text-green-300 text-sm">{state.personName} registriert!</span>
-            </div>
-          )}
+          <output className={cn('absolute inset-0 flex flex-col items-center justify-center gap-3 bg-gray-900/80', state.status !== 'success' && 'hidden')} aria-live="assertive">
+            <PiCheckCircle className="h-16 w-16 text-green-400" />
+            <span className="text-green-300 text-sm">{state.status === 'success' ? `${state.personName} registriert!` : ''}</span>
+          </output>
 
-          {state.status === 'error' && (
-            <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 bg-gray-900/80">
-              <PiXCircle className="h-16 w-16 text-red-400" />
-              <span className="text-red-300 text-sm">{state.message}</span>
-            </div>
-          )}
+          <div className={cn('absolute inset-0 flex flex-col items-center justify-center gap-3 bg-gray-900/80', state.status !== 'error' && 'hidden')} role="alert" aria-live="assertive">
+            <PiXCircle className="h-16 w-16 text-red-400" />
+            <span className="text-red-300 text-sm">{state.status === 'error' ? state.message : ''}</span>
+          </div>
         </div>
       )}
 
@@ -665,16 +813,20 @@ export function QrScannerTab({ einsatzId, onSuccess }: QrScannerTabProps) {
         )}
 
         {(state.status === 'scanning' || state.status === 'processing') && (
-          <Button intent="secondary" appearance="ghost" onClick={stopScanning}>
+          <Button intent="secondary" appearance="ghost" onClick={stopScanning} title="ESC drücken zum Stoppen">
             <PiCameraSlash className="mr-2 h-5 w-5" />
             Scanner stoppen
+            {/* MEDIUM FIX (3): Show keyboard shortcut hint */}
+            <span className="ml-2 text-xs opacity-60">(ESC)</span>
           </Button>
         )}
 
         {state.status === 'idle' && (
-          <Button intent="primary" onClick={startScanning}>
+          <Button intent="primary" onClick={startScanning} title="Leertaste drücken zum Starten">
             <PiCamera className="mr-2 h-5 w-5" />
             Scanner starten
+            {/* MEDIUM FIX (3): Show keyboard shortcut hint */}
+            <span className="ml-2 text-xs opacity-60">(Leertaste)</span>
           </Button>
         )}
       </div>
@@ -691,45 +843,50 @@ export function QrScannerTab({ einsatzId, onSuccess }: QrScannerTabProps) {
 
 /**
  * Status-Anzeige Komponente
+ * MEDIUM FIX #13: useMemo to prevent recreating statusConfig on every render
  */
-function StatusDisplay({ state }: { state: ScannerState }) {
-  const statusConfig: Record<ScannerState['status'], { icon: React.ReactNode; text: string; color: string }> = {
-    idle: {
-      icon: <PiQrCode className="h-5 w-5" />,
-      text: 'Scanner bereit',
-      color: 'text-gray-500 dark:text-gray-400',
-    },
-    'requesting-permission': {
-      icon: <InlineSpinner size="sm" />,
-      text: 'Kamerazugriff wird angefordert…',
-      color: 'text-amber-600 dark:text-amber-400',
-    },
-    'permission-denied': {
-      icon: <PiCameraSlash className="h-5 w-5" />,
-      text: 'Kamerazugriff verweigert',
-      color: 'text-red-600 dark:text-red-400',
-    },
-    scanning: {
-      icon: <PiCamera className="h-5 w-5 animate-pulse" />,
-      text: 'Scanne nach QR-Code…',
-      color: 'text-primary-600 dark:text-primary-400',
-    },
-    processing: {
-      icon: <InlineSpinner size="sm" />,
-      text: 'Registriere Person…',
-      color: 'text-amber-600 dark:text-amber-400',
-    },
-    success: {
-      icon: <PiCheckCircle className="h-5 w-5" />,
-      text: 'Person registriert!',
-      color: 'text-green-600 dark:text-green-400',
-    },
-    error: {
-      icon: <PiWarningCircle className="h-5 w-5" />,
-      text: 'error' in state ? state.message : 'Fehler',
-      color: 'text-red-600 dark:text-red-400',
-    },
-  };
+const StatusDisplay = React.memo(({ state }: { state: ScannerState }) => {
+  // MEDIUM FIX #13: Only depend on state.status (not entire state object) to prevent unnecessary re-renders
+  const statusConfig = useMemo<Record<ScannerState['status'], { icon: React.ReactNode; text: string; color: string }>>(
+    () => ({
+      idle: {
+        icon: <PiQrCode className="h-5 w-5" />,
+        text: 'Scanner bereit',
+        color: 'text-gray-500 dark:text-gray-400',
+      },
+      'requesting-permission': {
+        icon: <InlineSpinner size="sm" />,
+        text: 'Kamerazugriff wird angefordert…',
+        color: 'text-amber-600 dark:text-amber-400',
+      },
+      'permission-denied': {
+        icon: <PiCameraSlash className="h-5 w-5" />,
+        text: 'Kamerazugriff verweigert',
+        color: 'text-red-600 dark:text-red-400',
+      },
+      scanning: {
+        icon: <PiCamera className="h-5 w-5 animate-pulse" />,
+        text: 'Scanne nach QR-Code…',
+        color: 'text-primary-600 dark:text-primary-400',
+      },
+      processing: {
+        icon: <InlineSpinner size="sm" />,
+        text: 'Registriere Person…',
+        color: 'text-amber-600 dark:text-amber-400',
+      },
+      success: {
+        icon: <PiCheckCircle className="h-5 w-5" />,
+        text: 'Person registriert!',
+        color: 'text-green-600 dark:text-green-400',
+      },
+      error: {
+        icon: <PiWarningCircle className="h-5 w-5" />,
+        text: 'error' in state ? state.message : 'Fehler',
+        color: 'text-red-600 dark:text-red-400',
+      },
+    }),
+    [state.status, state.message, state],
+  );
 
   const config = statusConfig[state.status];
 
@@ -739,7 +896,7 @@ function StatusDisplay({ state }: { state: ScannerState }) {
       <span>{config.text}</span>
     </div>
   );
-}
+});
 
 /**
  * Mappt Parse-Fehlercodes zu benutzerfreundlichen Nachrichten

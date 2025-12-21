@@ -5,7 +5,7 @@ import { EtbInfrastructureModule } from '@infrastructure/etb/etb-infrastructure.
 import { EventInfrastructureModule } from '@infrastructure/events/event-infrastructure.module';
 import { LagekarteInfrastructureModule } from '@infrastructure/lagekarte-infrastructure.module';
 import { Module } from '@nestjs/common';
-import { EtbAutoCreationHandler, FahrzeugErfasstEventHandler, FmsStatusGeaendertEventHandler, EinsatzPersonHinzugefuegtEventHandler } from './event-handlers';
+import { EtbAutoCreationHandler, FahrzeugErfasstEventHandler, FmsStatusGeaendertEventHandler, EinsatzPersonHinzugefuegtEventHandler, PersonFahrzeugZuweisungHandler } from './event-handlers';
 import { EtbQueryMapper } from './mappers';
 import { GetEintraegeQueryHandler, GetEtbHistoryQueryHandler, GetEtbQueryHandler, GetTextbausteineHandler } from './queries';
 
@@ -101,6 +101,16 @@ import { GetEintraegeQueryHandler, GetEtbHistoryQueryHandler, GetEtbQueryHandler
       provide: EVENT_HANDLER.EINSATZ_PERSON_HINZUGEFUEGT_ETB,
       useClass: EinsatzPersonHinzugefuegtEventHandler,
     },
+    // PersonZuFahrzeugZugewiesen Event Handler (Story 4-3) - ETB-Eintrag bei Fahrzeug-Zuweisung
+    {
+      provide: EVENT_HANDLER.PERSON_ZU_FAHRZEUG_ZUGEWIESEN_ETB,
+      useClass: PersonFahrzeugZuweisungHandler,
+    },
+    // PersonVonFahrzeugEntfernt Event Handler (Story 4-3) - ETB-Eintrag bei Fahrzeug-Entfernung
+    {
+      provide: EVENT_HANDLER.PERSON_VON_FAHRZEUG_ENTFERNT_ETB,
+      useClass: PersonFahrzeugZuweisungHandler,
+    },
 
     // Mappers (Story 3.3)
     EtbQueryMapper,
@@ -125,6 +135,8 @@ import { GetEintraegeQueryHandler, GetEtbHistoryQueryHandler, GetEtbQueryHandler
     EVENT_HANDLER.FAHRZEUG_ERFASST_ETB,
     EVENT_HANDLER.FMS_STATUS_GEAENDERT_ETB,
     EVENT_HANDLER.EINSATZ_PERSON_HINZUGEFUEGT_ETB,
+    EVENT_HANDLER.PERSON_ZU_FAHRZEUG_ZUGEWIESEN_ETB,
+    EVENT_HANDLER.PERSON_VON_FAHRZEUG_ENTFERNT_ETB,
 
     // Mappers (Story 3.3)
     EtbQueryMapper,

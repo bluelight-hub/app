@@ -35,7 +35,7 @@ describe('UpdateFahrzeugtypHandler', () => {
       id: existingId,
       code: 'HLF',
       bezeichnung: 'Hilfeleistungslöschfahrzeug',
-      kategorie: 'EINSATZ',
+      kategorie: 'RETTUNGSDIENST',
       istAktiv: true,
       sortOrder: 0,
       createdAt: new Date('2025-01-01'),

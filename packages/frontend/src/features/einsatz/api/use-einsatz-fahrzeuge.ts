@@ -46,7 +46,9 @@ export const useEinsatzFahrzeuge = (einsatzId: string | null, options?: { enable
         return [];
       }
       logger.debug('Fetching EinsatzFahrzeuge', { einsatzId });
-      return api.einsatzFahrzeuge().einsatzFahrzeugeControllerFindAllVAlpha({ einsatzId });
+      // WrappedResponse: { data: [...], meta: {...} }
+      const response = await api.einsatzFahrzeuge().einsatzFahrzeugeControllerFindAllVAlpha({ einsatzId });
+      return response.data;
     },
     enabled: !!einsatzId && (options?.enabled ?? true),
     staleTime: 30_000, // 30 Sekunden

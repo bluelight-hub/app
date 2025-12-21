@@ -35,6 +35,7 @@ export class EinsatzPersonDtoMapper {
       updatedAt: entity.updatedAt.toISOString(),
       createdBy: entity.createdBy,
       updatedBy: entity.updatedBy,
+      fahrzeugId: entity.fahrzeugId,
     };
   }
 

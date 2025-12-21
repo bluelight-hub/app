@@ -866,11 +866,12 @@ model EinsatzFahrzeug {
   updatedBy String?  @map("updated_by") @db.VarChar(100)
 
   // Relations
-  einsatz     Einsatz        @relation(fields: [einsatzId], references: [id], onDelete: Cascade, onUpdate: Cascade)
-  stamm       StammFahrzeug? @relation(fields: [stammId], references: [id], onDelete: SetNull, onUpdate: Cascade)
-  fahrzeugtyp Fahrzeugtyp    @relation(fields: [fahrzeugtypId], references: [id], onDelete: Restrict, onUpdate: Cascade)
-  creator     User           @relation("EinsatzFahrzeugCreator", fields: [createdBy], references: [id], onDelete: NoAction, onUpdate: NoAction)
-  updater     User?          @relation("EinsatzFahrzeugUpdater", fields: [updatedBy], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  einsatz     Einsatz          @relation(fields: [einsatzId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  stamm       StammFahrzeug?   @relation(fields: [stammId], references: [id], onDelete: SetNull, onUpdate: Cascade)
+  fahrzeugtyp Fahrzeugtyp      @relation(fields: [fahrzeugtypId], references: [id], onDelete: Restrict, onUpdate: Cascade)
+  creator     User             @relation("EinsatzFahrzeugCreator", fields: [createdBy], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  updater     User?            @relation("EinsatzFahrzeugUpdater", fields: [updatedBy], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  personen    EinsatzPerson[]  // Epic 4 Story 4.3: Zugewiesene Personen (Rückwärts-Relation)
 
   // Constraints
   @@unique([einsatzId, funkrufname], name: "einsatz_fahrzeug_einsatz_funkrufname_unique")
@@ -898,6 +899,7 @@ model EinsatzPerson {
   id          String  @id @default(cuid())
   einsatzId   String  @map("einsatz_id")
   stammId     String? @map("stamm_id")
+  fahrzeugId  String? @map("fahrzeug_id") // Epic 4 Story 4.3: Optional zugewiesenes Fahrzeug
   vorname     String  @db.VarChar(100)
   nachname    String  @db.VarChar(100)
   funkrufname String? @db.VarChar(50) // KOPIE von StammPerson.funkkenungBOS
@@ -911,10 +913,11 @@ model EinsatzPerson {
   updatedBy String?  @map("updated_by") @db.VarChar(100)
 
   // Relations (mit onUpdate: Cascade für Konsistenz)
-  einsatz Einsatz      @relation(fields: [einsatzId], references: [id], onDelete: Cascade, onUpdate: Cascade)
-  stamm   StammPerson? @relation(fields: [stammId], references: [id], onDelete: SetNull, onUpdate: Cascade)
-  creator User         @relation("EinsatzPersonCreator", fields: [createdBy], references: [id], onDelete: NoAction, onUpdate: NoAction)
-  updater User?        @relation("EinsatzPersonUpdater", fields: [updatedBy], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  einsatz   Einsatz         @relation(fields: [einsatzId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  stamm     StammPerson?    @relation(fields: [stammId], references: [id], onDelete: SetNull, onUpdate: Cascade)
+  fahrzeug  EinsatzFahrzeug? @relation(fields: [fahrzeugId], references: [id], onDelete: SetNull, onUpdate: Cascade)
+  creator   User            @relation("EinsatzPersonCreator", fields: [createdBy], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  updater   User?           @relation("EinsatzPersonUpdater", fields: [updatedBy], references: [id], onDelete: NoAction, onUpdate: NoAction)
 
   // M:N: Qualifikationen dieser Person (KOPIE zum Erfassungszeitpunkt)
   qualifikationen EinsatzPersonQualifikation[]
@@ -924,6 +927,7 @@ model EinsatzPerson {
   // Indexes
   @@index([einsatzId])
   @@index([stammId])
+  @@index([fahrzeugId])
   @@index([einsatzId, nachname])
   @@index([createdBy])
   @@index([einsatzId, createdBy]) // Audit + Mission composite

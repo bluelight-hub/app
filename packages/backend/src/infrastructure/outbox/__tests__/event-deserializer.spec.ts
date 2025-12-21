@@ -539,10 +539,10 @@ describe('EventDeserializer', () => {
       expect(deserializer.supportsEventType('')).toBe(false);
     });
 
-    it('should return all 20 supported event types', () => {
+    it('should return all 28 supported event types', () => {
       const supportedTypes = deserializer.getSupportedEventTypes();
 
-      expect(supportedTypes).toHaveLength(20);
+      expect(supportedTypes).toHaveLength(28);
       expect(supportedTypes).toContain('einsatz.created');
       expect(supportedTypes).toContain('etb.created');
       expect(supportedTypes).toContain('lagekarte.created');
@@ -554,28 +554,44 @@ describe('EventDeserializer', () => {
   // ===== EVENT COVERAGE =====
 
   describe('Event Coverage', () => {
-    it('should support all 20 domain events', () => {
+    it('should support all 28 domain events', () => {
       const expectedEvents = [
+        // Einsatz Events (5)
         'einsatz.created',
         'einsatz.updated',
         'einsatz.status_changed',
         'einsatz.completed',
         'einsatz.archived',
+        // ETB Events (5)
         'etb.created',
         'etb.eintrag_added',
         'etb.eintrag_updated',
         'etb.eintrag_deleted',
         'etb.locked',
+        // Lagekarte Events (4)
         'lagekarte.created',
         'lagekarte.poi_added',
         'lagekarte.poi_removed',
         'lagekarte.poi_position_updated',
+        // User Events (5)
         'user.created',
         'user.deleted',
         'user.role_changed',
         'user.permission_granted',
         'user.permission_revoked',
+        // EinsatzPerson Events (3)
         'einsatz_person.hinzugefuegt',
+        'einsatz_person.zu_fahrzeug_zugewiesen',
+        'einsatz_person.von_fahrzeug_entfernt',
+        // EinsatzFahrzeug Events (2)
+        'einsatz_fahrzeug.erfasst',
+        'einsatz_fahrzeug.fms_status_geaendert',
+        // StammPerson Events (2)
+        'StammPersonCreated',
+        'StammPersonUpdated',
+        // StammFahrzeug Events (2)
+        'StammFahrzeugCreated',
+        'StammFahrzeugUpdated',
       ];
 
       const supportedTypes = deserializer.getSupportedEventTypes();

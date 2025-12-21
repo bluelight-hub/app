@@ -23,6 +23,8 @@ import { Route as AdminDashboardRouteImport } from './routes/admin/dashboard'
 import { Route as AppEinsaetzeIndexRouteImport } from './routes/app/einsaetze/index'
 import { Route as AppEinsatzEinsatzIdRouteImport } from './routes/app/einsatz/$einsatzId'
 import { Route as AppEinsaetzeEinsatzIdRouteImport } from './routes/app/einsaetze/$einsatzId'
+import { Route as AdminStammdatenPersonenRouteImport } from './routes/admin/stammdaten/personen'
+import { Route as AdminStammdatenFahrzeugeRouteImport } from './routes/admin/stammdaten/fahrzeuge'
 import { Route as AdminKraefteQualifikationenRouteImport } from './routes/admin/kraefte/qualifikationen'
 import { Route as AppEinsatzEinsatzIdIndexRouteImport } from './routes/app/einsatz/$einsatzId/index'
 import { Route as AppEinsatzEinsatzIdChar220bersichtIndexRouteImport } from './routes/app/einsatz/$einsatzId/übersicht/index'
@@ -125,6 +127,17 @@ const AppEinsaetzeEinsatzIdRoute = AppEinsaetzeEinsatzIdRouteImport.update({
   path: '/$einsatzId',
   getParentRoute: () => AppEinsaetzeRoute,
 } as any)
+const AdminStammdatenPersonenRoute = AdminStammdatenPersonenRouteImport.update({
+  id: '/stammdaten/personen',
+  path: '/stammdaten/personen',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminStammdatenFahrzeugeRoute =
+  AdminStammdatenFahrzeugeRouteImport.update({
+    id: '/stammdaten/fahrzeuge',
+    path: '/stammdaten/fahrzeuge',
+    getParentRoute: () => AdminRoute,
+  } as any)
 const AdminKraefteQualifikationenRoute =
   AdminKraefteQualifikationenRouteImport.update({
     id: '/kraefte/qualifikationen',
@@ -325,6 +338,8 @@ export interface FileRoutesByFullPath {
   '/app/einsatz': typeof AppEinsatzRouteWithChildren
   '/admin/': typeof AdminIndexRoute
   '/admin/kraefte/qualifikationen': typeof AdminKraefteQualifikationenRoute
+  '/admin/stammdaten/fahrzeuge': typeof AdminStammdatenFahrzeugeRoute
+  '/admin/stammdaten/personen': typeof AdminStammdatenPersonenRoute
   '/app/einsaetze/$einsatzId': typeof AppEinsaetzeEinsatzIdRoute
   '/app/einsatz/$einsatzId': typeof AppEinsatzEinsatzIdRouteWithChildren
   '/app/einsaetze/': typeof AppEinsaetzeIndexRoute
@@ -370,6 +385,8 @@ export interface FileRoutesByTo {
   '/app/einsatz': typeof AppEinsatzRouteWithChildren
   '/admin': typeof AdminIndexRoute
   '/admin/kraefte/qualifikationen': typeof AdminKraefteQualifikationenRoute
+  '/admin/stammdaten/fahrzeuge': typeof AdminStammdatenFahrzeugeRoute
+  '/admin/stammdaten/personen': typeof AdminStammdatenPersonenRoute
   '/app/einsaetze/$einsatzId': typeof AppEinsaetzeEinsatzIdRoute
   '/app/einsaetze': typeof AppEinsaetzeIndexRoute
   '/app/einsatz/$einsatzId': typeof AppEinsatzEinsatzIdIndexRoute
@@ -416,6 +433,8 @@ export interface FileRoutesById {
   '/app/einsatz': typeof AppEinsatzRouteWithChildren
   '/admin/': typeof AdminIndexRoute
   '/admin/kraefte/qualifikationen': typeof AdminKraefteQualifikationenRoute
+  '/admin/stammdaten/fahrzeuge': typeof AdminStammdatenFahrzeugeRoute
+  '/admin/stammdaten/personen': typeof AdminStammdatenPersonenRoute
   '/app/einsaetze/$einsatzId': typeof AppEinsaetzeEinsatzIdRoute
   '/app/einsatz/$einsatzId': typeof AppEinsatzEinsatzIdRouteWithChildren
   '/app/einsaetze/': typeof AppEinsaetzeIndexRoute
@@ -465,6 +484,8 @@ export interface FileRouteTypes {
     | '/app/einsatz'
     | '/admin/'
     | '/admin/kraefte/qualifikationen'
+    | '/admin/stammdaten/fahrzeuge'
+    | '/admin/stammdaten/personen'
     | '/app/einsaetze/$einsatzId'
     | '/app/einsatz/$einsatzId'
     | '/app/einsaetze/'
@@ -510,6 +531,8 @@ export interface FileRouteTypes {
     | '/app/einsatz'
     | '/admin'
     | '/admin/kraefte/qualifikationen'
+    | '/admin/stammdaten/fahrzeuge'
+    | '/admin/stammdaten/personen'
     | '/app/einsaetze/$einsatzId'
     | '/app/einsaetze'
     | '/app/einsatz/$einsatzId'
@@ -555,6 +578,8 @@ export interface FileRouteTypes {
     | '/app/einsatz'
     | '/admin/'
     | '/admin/kraefte/qualifikationen'
+    | '/admin/stammdaten/fahrzeuge'
+    | '/admin/stammdaten/personen'
     | '/app/einsaetze/$einsatzId'
     | '/app/einsatz/$einsatzId'
     | '/app/einsaetze/'
@@ -697,6 +722,20 @@ declare module '@tanstack/react-router' {
       fullPath: '/app/einsaetze/$einsatzId'
       preLoaderRoute: typeof AppEinsaetzeEinsatzIdRouteImport
       parentRoute: typeof AppEinsaetzeRoute
+    }
+    '/admin/stammdaten/personen': {
+      id: '/admin/stammdaten/personen'
+      path: '/stammdaten/personen'
+      fullPath: '/admin/stammdaten/personen'
+      preLoaderRoute: typeof AdminStammdatenPersonenRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/stammdaten/fahrzeuge': {
+      id: '/admin/stammdaten/fahrzeuge'
+      path: '/stammdaten/fahrzeuge'
+      fullPath: '/admin/stammdaten/fahrzeuge'
+      preLoaderRoute: typeof AdminStammdatenFahrzeugeRouteImport
+      parentRoute: typeof AdminRoute
     }
     '/admin/kraefte/qualifikationen': {
       id: '/admin/kraefte/qualifikationen'
@@ -924,6 +963,8 @@ interface AdminRouteChildren {
   AdminUsersRoute: typeof AdminUsersRoute
   AdminIndexRoute: typeof AdminIndexRoute
   AdminKraefteQualifikationenRoute: typeof AdminKraefteQualifikationenRoute
+  AdminStammdatenFahrzeugeRoute: typeof AdminStammdatenFahrzeugeRoute
+  AdminStammdatenPersonenRoute: typeof AdminStammdatenPersonenRoute
 }
 
 const AdminRouteChildren: AdminRouteChildren = {
@@ -932,6 +973,8 @@ const AdminRouteChildren: AdminRouteChildren = {
   AdminUsersRoute: AdminUsersRoute,
   AdminIndexRoute: AdminIndexRoute,
   AdminKraefteQualifikationenRoute: AdminKraefteQualifikationenRoute,
+  AdminStammdatenFahrzeugeRoute: AdminStammdatenFahrzeugeRoute,
+  AdminStammdatenPersonenRoute: AdminStammdatenPersonenRoute,
 }
 
 const AdminRouteWithChildren = AdminRoute._addFileChildren(AdminRouteChildren)

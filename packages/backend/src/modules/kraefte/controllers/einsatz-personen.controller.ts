@@ -1,11 +1,25 @@
-import { Controller, Get, Post, Body, Param, UseGuards, NotFoundException, BadRequestException, ConflictException, InternalServerErrorException, HttpCode, HttpStatus, Inject } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Put,
+  Delete,
+  Body,
+  Param,
+  UseGuards,
+  NotFoundException,
+  BadRequestException,
+  ConflictException,
+  InternalServerErrorException,
+  HttpCode,
+  HttpStatus,
+  Inject,
+} from '@nestjs/common';
 import { ParseCuidPipe } from '@/infrastructure/http/pipes/parse-cuid.pipe';
 import {
   ApiTags,
   ApiBearerAuth,
   ApiOperation,
-  ApiOkResponse,
-  ApiCreatedResponse,
   ApiNotFoundResponse,
   ApiBadRequestResponse,
   ApiUnauthorizedResponse,
@@ -14,7 +28,9 @@ import {
   ApiInternalServerErrorResponse,
   ApiTooManyRequestsResponse,
   ApiParam,
+  ApiNoContentResponse,
 } from '@nestjs/swagger';
+import { ApiWrappedCreatedResponse, ApiWrappedResponse } from '@/modules/common/decorators/api-wrapped-response.decorator';
 import { Throttle } from '@nestjs/throttler';
 import { JwtAuthGuard } from '@/modules/auth/guards/jwt-auth.guard';
 import { RolesGuard } from '@/modules/auth/guards/roles.guard';
@@ -28,15 +44,20 @@ import type { ILogger } from '@domain/ports/i-logger.port';
 import { RegistrierePersonHandler } from '@application/kraefte/einsatz-personen/commands/registriere-person/registriere-person.handler';
 import { RegistrierePersonViaQrCodeHandler } from '@application/kraefte/einsatz-personen/commands/registriere-person-qr/registriere-person-qr.handler';
 import { GetEinsatzPersonenHandler } from '@application/kraefte/einsatz-personen/queries/get-einsatz-personen/get-einsatz-personen.handler';
+import { WeisePersonZuFahrzeugZuHandler } from '@application/kraefte/einsatz-personen/commands/weise-person-zu-fahrzeug/weise-person-zu-fahrzeug.handler';
+import { EntfernePersonVonFahrzeugHandler } from '@application/kraefte/einsatz-personen/commands/entferne-person-von-fahrzeug/entferne-person-von-fahrzeug.handler';
 
 // Commands & Queries
 import { RegistrierePersonCommand } from '@application/kraefte/einsatz-personen/commands/registriere-person/registriere-person.command';
 import { RegistrierePersonViaQrCodeCommand } from '@application/kraefte/einsatz-personen/commands/registriere-person-qr/registriere-person-qr.command';
 import { GetEinsatzPersonenQuery } from '@application/kraefte/einsatz-personen/queries/get-einsatz-personen/get-einsatz-personen.query';
+import { WeisePersonZuFahrzeugZuCommand } from '@application/kraefte/einsatz-personen/commands/weise-person-zu-fahrzeug/weise-person-zu-fahrzeug.command';
+import { EntfernePersonVonFahrzeugCommand } from '@application/kraefte/einsatz-personen/commands/entferne-person-von-fahrzeug/entferne-person-von-fahrzeug.command';
 
 // DTOs
-import { EinsatzPersonResponseDto, RegistrierePersonDto } from '@application/kraefte/einsatz-personen/dto';
+import { EinsatzPersonResponseDto, RegistrierePersonDto, PersonRegisteredResponseDto } from '@application/kraefte/einsatz-personen/dto';
 import { RegistrierePersonViaQrCodeDto } from '@application/kraefte/einsatz-personen/dto/registriere-person-qr.dto';
+import { WeisePersonZuFahrzeugZuDto } from '@application/kraefte/einsatz-personen/dto/weise-person-zu-fahrzeug.dto';
 
 // Error Codes
 import { EINSATZ_PERSON_ERROR_CODES, EinsatzPersonError } from '@domain/kraefte/common/einsatz-person-error-codes';
@@ -78,6 +99,8 @@ export class EinsatzPersonenController {
     private readonly registrierePersonHandler: RegistrierePersonHandler,
     private readonly registrierePersonViaQrHandler: RegistrierePersonViaQrCodeHandler,
     private readonly getEinsatzPersonenHandler: GetEinsatzPersonenHandler,
+    private readonly weisePersonZuFahrzeugHandler: WeisePersonZuFahrzeugZuHandler,
+    private readonly entfernePersonVonFahrzeugHandler: EntfernePersonVonFahrzeugHandler,
     @Inject(LOGGER) private readonly logger: ILogger,
   ) {}
 
@@ -94,7 +117,7 @@ export class EinsatzPersonenController {
   @Throttle({ default: { limit: 30, ttl: 60000 } })
   @ApiOperation({ summary: 'Alle Personen eines Einsatzes auflisten' })
   @ApiParam({ name: 'einsatzId', type: String, format: 'cuid', description: 'Einsatz-ID (CUID)' })
-  @ApiOkResponse({ type: EinsatzPersonResponseDto, isArray: true })
+  @ApiWrappedResponse(EinsatzPersonResponseDto, { isArray: true, description: 'Liste aller EinsatzPersonen des Einsatzes' })
   @ApiBadRequestResponse({ description: 'Ungültige Einsatz-ID' })
   async findAll(@Param('einsatzId', ParseCuidPipe) einsatzId: string): Promise<EinsatzPersonResponseDto[]> {
     const queryResult = GetEinsatzPersonenQuery.create(einsatzId);
@@ -147,19 +170,11 @@ export class EinsatzPersonenController {
   @HttpCode(HttpStatus.CREATED)
   @ApiOperation({ summary: 'Person für Einsatz registrieren' })
   @ApiParam({ name: 'einsatzId', type: String, format: 'cuid', description: 'Einsatz-ID (CUID)' })
-  @ApiCreatedResponse({
-    description: 'Person erfolgreich registriert',
-    schema: {
-      type: 'object',
-      properties: {
-        id: { type: 'string', format: 'cuid2', example: 'clx1234567890abcdef12345' },
-      },
-    },
-  })
+  @ApiWrappedCreatedResponse(PersonRegisteredResponseDto, { description: 'Person erfolgreich registriert' })
   @ApiBadRequestResponse({ description: 'Validierungsfehler (z.B. ungültige Daten)' })
   @ApiNotFoundResponse({ description: 'StammPerson nicht gefunden oder archiviert' })
   @ApiConflictResponse({ description: 'Person mit dieser StammPerson-ID bereits im Einsatz registriert' })
-  async registrierePerson(@Param('einsatzId', ParseCuidPipe) einsatzId: string, @CurrentUser() user: ValidatedUser, @Body() dto: RegistrierePersonDto): Promise<{ id: string }> {
+  async registrierePerson(@Param('einsatzId', ParseCuidPipe) einsatzId: string, @CurrentUser() user: ValidatedUser, @Body() dto: RegistrierePersonDto): Promise<PersonRegisteredResponseDto> {
     // Create Command
     const commandResult = RegistrierePersonCommand.create({
       einsatzId,
@@ -198,6 +213,16 @@ export class EinsatzPersonenController {
         throw new NotFoundException(EinsatzPersonError.extractMessage(error));
       }
 
+      // Infrastructure errors (500 Internal Server Error)
+      if (
+        EinsatzPersonError.hasCode(error, EINSATZ_PERSON_ERROR_CODES.STAMM_LOOKUP_FAILED) ||
+        EinsatzPersonError.hasCode(error, EINSATZ_PERSON_ERROR_CODES.DUPLICATE_CHECK_FAILED) ||
+        EinsatzPersonError.hasCode(error, EINSATZ_PERSON_ERROR_CODES.SAVE_FAILED)
+      ) {
+        this.logger.error(`Infrastructure error in person registration: ${error}`, 'EinsatzPersonenController');
+        throw new InternalServerErrorException('Fehler beim Registrieren der Person');
+      }
+
       // Generic error
       throw new BadRequestException(error || 'Fehler beim Registrieren der Person');
     }
@@ -234,26 +259,21 @@ export class EinsatzPersonenController {
    * @param user - Aktueller Admin-Benutzer (aus JWT Token)
    * @param dto - RegistrierePersonViaQrCodeDto mit QR-Daten
    * @returns Die neu erstellte EinsatzPerson ID
+   * @throws NotFoundException wenn Einsatz nicht gefunden wurde
    * @throws ConflictException wenn StammPerson bereits im Einsatz registriert ist
    * @throws BadRequestException bei Validierungsfehlern
+   * @throws InternalServerErrorException bei Infrastructure-Fehlern (DB, Stammdaten-Lookup)
    */
   @Post('qr')
-  @Throttle({ default: ADMIN_MUTATION_RATE_LIMIT })
+  @Throttle({ default: { limit: 30, ttl: 60000 } }) // Higher limit for QR scanning: 30 per minute
   @HttpCode(HttpStatus.CREATED)
   @ApiOperation({ summary: 'Person via QR-Code registrieren (DRK-Format)' })
   @ApiParam({ name: 'einsatzId', type: String, format: 'cuid', description: 'Einsatz-ID (CUID)' })
-  @ApiCreatedResponse({
-    description: 'Person erfolgreich via QR-Code registriert',
-    schema: {
-      type: 'object',
-      properties: {
-        id: { type: 'string', format: 'cuid2', example: 'clx1234567890abcdef12345' },
-      },
-    },
-  })
+  @ApiWrappedCreatedResponse(PersonRegisteredResponseDto, { description: 'Person erfolgreich via QR-Code registriert' })
   @ApiBadRequestResponse({ description: 'Ungueltige QR-Daten oder Validierungsfehler' })
+  @ApiNotFoundResponse({ description: 'Einsatz nicht gefunden' })
   @ApiConflictResponse({ description: 'Person bereits im Einsatz erfasst (Duplikat)' })
-  async registriereViaQr(@Param('einsatzId', ParseCuidPipe) einsatzId: string, @CurrentUser() user: ValidatedUser, @Body() dto: RegistrierePersonViaQrCodeDto): Promise<{ id: string }> {
+  async registriereViaQr(@Param('einsatzId', ParseCuidPipe) einsatzId: string, @CurrentUser() user: ValidatedUser, @Body() dto: RegistrierePersonViaQrCodeDto): Promise<PersonRegisteredResponseDto> {
     // Create Command
     const commandResult = RegistrierePersonViaQrCodeCommand.create({
       einsatzId,
@@ -283,9 +303,23 @@ export class EinsatzPersonenController {
       if (EinsatzPersonError.hasCode(error, EINSATZ_PERSON_ERROR_CODES.DUPLICATE_PERSON)) {
         throw new ConflictException(EinsatzPersonError.extractMessage(error));
       }
-      if (EinsatzPersonError.hasCode(error, EINSATZ_PERSON_ERROR_CODES.STAMM_NOT_FOUND)) {
+      if (EinsatzPersonError.hasCode(error, EINSATZ_PERSON_ERROR_CODES.STAMM_ARCHIVED)) {
         // Archivierte StammPerson - als BadRequest behandeln (nicht NotFound)
         throw new BadRequestException(EinsatzPersonError.extractMessage(error));
+      }
+      if (EinsatzPersonError.hasCode(error, EINSATZ_PERSON_ERROR_CODES.EINSATZ_NOT_FOUND)) {
+        throw new NotFoundException(EinsatzPersonError.extractMessage(error));
+      }
+      // NOTE: STAMM_NOT_FOUND wird vom Handler NICHT returned (Temporäre Person wird erstellt)
+
+      // Infrastructure errors (500 Internal Server Error)
+      if (
+        EinsatzPersonError.hasCode(error, EINSATZ_PERSON_ERROR_CODES.STAMM_LOOKUP_FAILED) ||
+        EinsatzPersonError.hasCode(error, EINSATZ_PERSON_ERROR_CODES.DUPLICATE_CHECK_FAILED) ||
+        EinsatzPersonError.hasCode(error, EINSATZ_PERSON_ERROR_CODES.SAVE_FAILED)
+      ) {
+        this.logger.error(`Infrastructure error in QR registration: ${error}`, 'EinsatzPersonenController');
+        throw new InternalServerErrorException('Fehler beim Registrieren der Person');
       }
 
       // Generic error
@@ -296,12 +330,148 @@ export class EinsatzPersonenController {
       throw new InternalServerErrorException('Fehler beim Registrieren der Person via QR');
     }
 
-    // Audit logging
-    this.logger.log(
-      `EinsatzPerson via QR registriert: ${result.value} (${dto.vorname} ${dto.nachname}, Personalnummer: ${dto.personalnummer}) fuer Einsatz ${einsatzId} von Admin ${user.userId}`,
-      'EinsatzPersonenController',
-    );
+    /**
+     * GDPR-konformes Audit-Logging OHNE PII (Personally Identifiable Information).
+     *
+     * Logged werden NUR:
+     * - EinsatzPerson ID (technischer Identifier)
+     * - Einsatz ID (technischer Identifier)
+     * - User ID (technischer Identifier)
+     *
+     * NICHT geloggt: Vorname, Nachname, Personalnummer (PII!)
+     */
+    this.logger.log(`EinsatzPerson via QR registriert: ${result.value} fuer Einsatz ${einsatzId} von Admin ${user.userId}`, 'EinsatzPersonenController');
 
     return { id: result.value };
+  }
+
+  /**
+   * Weist eine Person einem Fahrzeug zu.
+   *
+   * Business Rules:
+   * - Person und Fahrzeug müssen im gleichen Einsatz sein
+   * - Vorherige Zuweisung wird überschrieben (keine explizite Entfernung nötig)
+   * - Erzeugt automatisch ETB-Eintrag
+   */
+  @Put(':personId/fahrzeug')
+  @Throttle({ default: ADMIN_MUTATION_RATE_LIMIT })
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Person zu Fahrzeug zuweisen' })
+  @ApiParam({ name: 'einsatzId', type: String, format: 'uuid', description: 'Einsatz-ID' })
+  @ApiParam({ name: 'personId', type: String, format: 'cuid', description: 'EinsatzPerson-ID (CUID2)' })
+  @ApiWrappedResponse(EinsatzPersonResponseDto, { description: 'Person erfolgreich zugewiesen' })
+  @ApiBadRequestResponse({ description: 'Validierungsfehler oder ungültige IDs' })
+  @ApiNotFoundResponse({ description: 'Person oder Fahrzeug nicht gefunden' })
+  @ApiConflictResponse({ description: 'Fahrzeug gehört zu anderem Einsatz' })
+  async weiseZuFahrzeug(
+    @Param('einsatzId') einsatzId: string,
+    @Param('personId') personId: string,
+    @Body() dto: WeisePersonZuFahrzeugZuDto,
+    @CurrentUser() user: ValidatedUser,
+  ): Promise<EinsatzPersonResponseDto> {
+    this.logger.log(`Weise Person ${personId} zu Fahrzeug ${dto.fahrzeugId} zu (Einsatz: ${einsatzId})`, 'EinsatzPersonenController');
+
+    // Command erstellen
+    const commandResult = WeisePersonZuFahrzeugZuCommand.create({
+      einsatzId,
+      personId,
+      fahrzeugId: dto.fahrzeugId,
+      updatedBy: user.userId,
+    });
+
+    if (commandResult.isFailure) {
+      throw new BadRequestException(commandResult.error);
+    }
+
+    const command = commandResult.value;
+    if (!command) {
+      throw new BadRequestException('Fehler beim Erstellen des Commands');
+    }
+
+    // Command ausführen
+    try {
+      await this.weisePersonZuFahrzeugHandler.execute(command);
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : String(error);
+
+      if (EinsatzPersonError.hasCode(errorMessage, EINSATZ_PERSON_ERROR_CODES.NOT_FOUND)) {
+        throw new NotFoundException(EinsatzPersonError.extractMessage(errorMessage));
+      }
+      if (EinsatzPersonError.hasCode(errorMessage, EINSATZ_PERSON_ERROR_CODES.FAHRZEUG_NOT_FOUND)) {
+        throw new NotFoundException(EinsatzPersonError.extractMessage(errorMessage));
+      }
+      if (EinsatzPersonError.hasCode(errorMessage, EINSATZ_PERSON_ERROR_CODES.FAHRZEUG_NOT_IN_SAME_EINSATZ)) {
+        throw new ConflictException(EinsatzPersonError.extractMessage(errorMessage));
+      }
+
+      this.logger.error(`Fehler beim Zuweisen von Person ${personId} zu Fahrzeug: ${errorMessage}`, {
+        stack: error instanceof Error ? error.stack : undefined,
+        context: 'EinsatzPersonenController',
+      });
+      throw new InternalServerErrorException('Interner Fehler beim Zuweisen der Person');
+    }
+
+    // Aktualisierte Person zurückgeben
+    const personResult = await this.getEinsatzPersonenHandler.execute({ einsatzId });
+    const person = personResult.value?.find((p) => p.id === personId);
+
+    if (!person) {
+      throw new NotFoundException('Person nach Zuweisung nicht gefunden');
+    }
+
+    return person;
+  }
+
+  /**
+   * Entfernt eine Person von ihrem zugewiesenen Fahrzeug.
+   *
+   * Business Rules:
+   * - Idempotent: Wenn Person keinem Fahrzeug zugewiesen ist, Success
+   * - Erzeugt automatisch ETB-Eintrag
+   */
+  @Delete(':personId/fahrzeug')
+  @Throttle({ default: ADMIN_MUTATION_RATE_LIMIT })
+  @HttpCode(HttpStatus.NO_CONTENT)
+  @ApiOperation({ summary: 'Person von Fahrzeug entfernen' })
+  @ApiParam({ name: 'einsatzId', type: String, format: 'uuid', description: 'Einsatz-ID' })
+  @ApiParam({ name: 'personId', type: String, format: 'cuid', description: 'EinsatzPerson-ID (CUID2)' })
+  @ApiNoContentResponse({ description: 'Person erfolgreich von Fahrzeug entfernt' })
+  @ApiBadRequestResponse({ description: 'Validierungsfehler oder ungültige IDs' })
+  @ApiNotFoundResponse({ description: 'Person nicht gefunden' })
+  async entferneVonFahrzeug(@Param('einsatzId') einsatzId: string, @Param('personId') personId: string, @CurrentUser() user: ValidatedUser): Promise<void> {
+    this.logger.log(`Entferne Person ${personId} von Fahrzeug (Einsatz: ${einsatzId})`, 'EinsatzPersonenController');
+
+    // Command erstellen
+    const commandResult = EntfernePersonVonFahrzeugCommand.create({
+      einsatzId,
+      personId,
+      updatedBy: user.userId,
+    });
+
+    if (commandResult.isFailure) {
+      throw new BadRequestException(commandResult.error);
+    }
+
+    const command = commandResult.value;
+    if (!command) {
+      throw new BadRequestException('Fehler beim Erstellen des Commands');
+    }
+
+    // Command ausführen
+    try {
+      await this.entfernePersonVonFahrzeugHandler.execute(command);
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : String(error);
+
+      if (EinsatzPersonError.hasCode(errorMessage, EINSATZ_PERSON_ERROR_CODES.NOT_FOUND)) {
+        throw new NotFoundException(EinsatzPersonError.extractMessage(errorMessage));
+      }
+
+      this.logger.error(`Fehler beim Entfernen von Person ${personId} von Fahrzeug: ${errorMessage}`, {
+        stack: error instanceof Error ? error.stack : undefined,
+        context: 'EinsatzPersonenController',
+      });
+      throw new InternalServerErrorException('Interner Fehler beim Entfernen der Person vom Fahrzeug');
+    }
   }
 }

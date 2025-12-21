@@ -71,7 +71,7 @@ describe('CreateFahrzeugtypHandler', () => {
       const command = CreateFahrzeugtypCommand.create({
         code: 'HLF',
         bezeichnung: 'Hilfeleistungslöschfahrzeug',
-        kategorie: 'EINSATZ',
+        kategorie: 'RETTUNGSDIENST',
         createdBy: 'cm1234567890abcdef12345',
         beschreibung: 'Standard Feuerwehrfahrzeug',
         sollbesatzung: { fahrer: 1, funktrupp: 8 },
@@ -87,7 +87,7 @@ describe('CreateFahrzeugtypHandler', () => {
       expect(result.value!.id).toBeDefined();
       expect(result.value!.code).toBe('HLF');
       expect(result.value!.bezeichnung).toBe('Hilfeleistungslöschfahrzeug');
-      expect(result.value!.kategorie).toBe('EINSATZ');
+      expect(result.value!.kategorie).toBe('RETTUNGSDIENST');
       expect(mockRepository.findByCode).toHaveBeenCalledWith('HLF', expect.any(Object));
       expect(mockRepository.save).toHaveBeenCalledTimes(1);
     });
@@ -138,7 +138,7 @@ describe('CreateFahrzeugtypHandler', () => {
         id: existingId,
         code: 'HLF',
         bezeichnung: 'Existierendes Fahrzeug',
-        kategorie: 'EINSATZ',
+        kategorie: 'RETTUNGSDIENST',
         istAktiv: true,
         sortOrder: 0,
         createdAt: new Date(),
@@ -150,7 +150,7 @@ describe('CreateFahrzeugtypHandler', () => {
       const command = CreateFahrzeugtypCommand.create({
         code: 'HLF',
         bezeichnung: 'Neues HLF',
-        kategorie: 'EINSATZ',
+        kategorie: 'RETTUNGSDIENST',
         createdBy: 'cm1234567890abcdef12345',
       }).value!;
 
@@ -171,7 +171,7 @@ describe('CreateFahrzeugtypHandler', () => {
       const command = CreateFahrzeugtypCommand.create({
         code: 'ELW',
         bezeichnung: 'Einsatzleitwagen',
-        kategorie: 'SPEZIAL',
+        kategorie: 'FUEHRUNG',
         createdBy: 'cm1234567890abcdef12345',
       }).value!;
 
@@ -191,7 +191,7 @@ describe('CreateFahrzeugtypHandler', () => {
       const command = CreateFahrzeugtypCommand.create({
         code: 'GW',
         bezeichnung: 'Gerätewagen',
-        kategorie: 'SPEZIAL',
+        kategorie: 'FUEHRUNG',
         createdBy: 'cm1234567890abcdef12345',
       }).value!;
 
@@ -210,7 +210,7 @@ describe('CreateFahrzeugtypHandler', () => {
       const commandResult = CreateFahrzeugtypCommand.create({
         code: 'A',
         bezeichnung: 'Test Fahrzeug',
-        kategorie: 'EINSATZ',
+        kategorie: 'RETTUNGSDIENST',
         createdBy: 'cm1234567890abcdef12345',
       });
 
@@ -224,7 +224,7 @@ describe('CreateFahrzeugtypHandler', () => {
       const commandResult = CreateFahrzeugtypCommand.create({
         code: 'HLF',
         bezeichnung: 'AB',
-        kategorie: 'EINSATZ',
+        kategorie: 'RETTUNGSDIENST',
         createdBy: 'cm1234567890abcdef12345',
       });
 
@@ -252,7 +252,7 @@ describe('CreateFahrzeugtypHandler', () => {
       const commandResult = CreateFahrzeugtypCommand.create({
         code: 'HLF',
         bezeichnung: 'Test Fahrzeug',
-        kategorie: 'EINSATZ',
+        kategorie: 'RETTUNGSDIENST',
         createdBy: '',
       });
 
@@ -266,7 +266,7 @@ describe('CreateFahrzeugtypHandler', () => {
       const commandResult = CreateFahrzeugtypCommand.create({
         code: 'HLF',
         bezeichnung: 'Test Fahrzeug',
-        kategorie: 'EINSATZ',
+        kategorie: 'RETTUNGSDIENST',
         createdBy: 'cm1234567890abcdef12345',
         sollbesatzung: { fahrer: -1 },
       });
@@ -281,7 +281,7 @@ describe('CreateFahrzeugtypHandler', () => {
       const commandResult = CreateFahrzeugtypCommand.create({
         code: 'HLF',
         bezeichnung: 'Test Fahrzeug',
-        kategorie: 'EINSATZ',
+        kategorie: 'RETTUNGSDIENST',
         createdBy: 'cm1234567890abcdef12345',
         sollbesatzung: { fahrer: 1.5 },
       });
@@ -298,7 +298,7 @@ describe('CreateFahrzeugtypHandler', () => {
       const command = CreateFahrzeugtypCommand.create({
         code: 'MTW',
         bezeichnung: 'Mannschaftstransportwagen',
-        kategorie: 'SPEZIAL',
+        kategorie: 'FUEHRUNG',
         createdBy: 'cm1234567890abcdef12345',
       }).value!;
 
@@ -319,7 +319,7 @@ describe('CreateFahrzeugtypHandler', () => {
       const command = CreateFahrzeugtypCommand.create({
         code: 'MTW',
         bezeichnung: 'Mannschaftstransportwagen',
-        kategorie: 'SPEZIAL',
+        kategorie: 'FUEHRUNG',
         createdBy: 'cm1234567890abcdef12345',
       }).value!;
 
@@ -341,7 +341,7 @@ describe('CreateFahrzeugtypHandler', () => {
         const command = CreateFahrzeugtypCommand.create({
           code: 'DLKÄ',
           bezeichnung: 'Drehleiter Änderung',
-          kategorie: 'EINSATZ',
+          kategorie: 'RETTUNGSDIENST',
           createdBy: 'cm1234567890abcdef12345',
         }).value!;
 
@@ -361,7 +361,7 @@ describe('CreateFahrzeugtypHandler', () => {
         const command = CreateFahrzeugtypCommand.create({
           code: 'Groß',
           bezeichnung: 'Großfahrzeug',
-          kategorie: 'EINSATZ',
+          kategorie: 'RETTUNGSDIENST',
           createdBy: 'cm1234567890abcdef12345',
         }).value!;
 
@@ -382,7 +382,7 @@ describe('CreateFahrzeugtypHandler', () => {
         const command = CreateFahrzeugtypCommand.create({
           code: codeWith10Chars,
           bezeichnung: 'Test Fahrzeug',
-          kategorie: 'SPEZIAL',
+          kategorie: 'FUEHRUNG',
           createdBy: 'cm1234567890abcdef12345',
         }).value!;
 
@@ -401,7 +401,7 @@ describe('CreateFahrzeugtypHandler', () => {
         const command = CreateFahrzeugtypCommand.create({
           code: 'MAX',
           bezeichnung: bezeichnungWith100Chars,
-          kategorie: 'SPEZIAL',
+          kategorie: 'FUEHRUNG',
           createdBy: 'cm1234567890abcdef12345',
         }).value!;
 
@@ -420,7 +420,7 @@ describe('CreateFahrzeugtypHandler', () => {
         const command = CreateFahrzeugtypCommand.create({
           code: 'TEST',
           bezeichnung: 'Test Fahrzeug',
-          kategorie: 'SPEZIAL',
+          kategorie: 'FUEHRUNG',
           createdBy: 'cm1234567890abcdef12345',
           beschreibung: beschreibungWith1000Chars,
         }).value!;
@@ -440,7 +440,7 @@ describe('CreateFahrzeugtypHandler', () => {
         const commandResult = CreateFahrzeugtypCommand.create({
           code: codeWith11Chars,
           bezeichnung: 'Test Fahrzeug',
-          kategorie: 'SPEZIAL',
+          kategorie: 'FUEHRUNG',
           createdBy: 'cm1234567890abcdef12345',
         });
 
@@ -455,7 +455,7 @@ describe('CreateFahrzeugtypHandler', () => {
         const commandResult = CreateFahrzeugtypCommand.create({
           code: 'TEST',
           bezeichnung: bezeichnungWith101Chars,
-          kategorie: 'SPEZIAL',
+          kategorie: 'FUEHRUNG',
           createdBy: 'cm1234567890abcdef12345',
         });
 
@@ -470,7 +470,7 @@ describe('CreateFahrzeugtypHandler', () => {
         const commandResult = CreateFahrzeugtypCommand.create({
           code: 'TEST',
           bezeichnung: 'Test Fahrzeug',
-          kategorie: 'SPEZIAL',
+          kategorie: 'FUEHRUNG',
           createdBy: 'cm1234567890abcdef12345',
           beschreibung: beschreibungWith1001Chars,
         });
@@ -487,7 +487,7 @@ describe('CreateFahrzeugtypHandler', () => {
         const command = CreateFahrzeugtypCommand.create({
           code: '   hlf   ',
           bezeichnung: 'Test Fahrzeug',
-          kategorie: 'EINSATZ',
+          kategorie: 'RETTUNGSDIENST',
           createdBy: 'cm1234567890abcdef12345',
         }).value!;
 
@@ -505,7 +505,7 @@ describe('CreateFahrzeugtypHandler', () => {
         const command = CreateFahrzeugtypCommand.create({
           code: 'HLF',
           bezeichnung: '   Hilfeleistungslöschfahrzeug   ',
-          kategorie: 'EINSATZ',
+          kategorie: 'RETTUNGSDIENST',
           createdBy: 'cm1234567890abcdef12345',
         }).value!;
 
@@ -523,7 +523,7 @@ describe('CreateFahrzeugtypHandler', () => {
         const command = CreateFahrzeugtypCommand.create({
           code: 'HLF',
           bezeichnung: 'Test Fahrzeug',
-          kategorie: 'EINSATZ',
+          kategorie: 'RETTUNGSDIENST',
           createdBy: 'cm1234567890abcdef12345',
           beschreibung: '   Standard Feuerwehrfahrzeug   ',
         }).value!;
@@ -546,7 +546,7 @@ describe('CreateFahrzeugtypHandler', () => {
         const command = CreateFahrzeugtypCommand.create({
           code: 'hlf',
           bezeichnung: 'Test Fahrzeug',
-          kategorie: 'EINSATZ',
+          kategorie: 'RETTUNGSDIENST',
           createdBy: 'cm1234567890abcdef12345',
         }).value!;
 
@@ -566,7 +566,7 @@ describe('CreateFahrzeugtypHandler', () => {
       const command = CreateFahrzeugtypCommand.create({
         code: 'HLF',
         bezeichnung: 'Hilfeleistungslöschfahrzeug',
-        kategorie: 'EINSATZ',
+        kategorie: 'RETTUNGSDIENST',
         createdBy: 'cm1234567890abcdef12345',
         beschreibung: 'Standard Feuerwehrfahrzeug',
         sollbesatzung: { fahrer: 1, funktrupp: 8 },
@@ -587,7 +587,7 @@ describe('CreateFahrzeugtypHandler', () => {
       expect(event.constructor.name).toBe('FahrzeugtypCreatedEvent');
       expect(event.code).toBe('HLF');
       expect(event.bezeichnung).toBe('Hilfeleistungslöschfahrzeug');
-      expect(event.kategorie).toBe('EINSATZ');
+      expect(event.kategorie).toBe('RETTUNGSDIENST');
       expect(event.createdBy).toBe('cm1234567890abcdef12345');
       expect(event.aggregateId).toBeDefined();
     });
@@ -624,7 +624,7 @@ describe('CreateFahrzeugtypHandler', () => {
       const command = CreateFahrzeugtypCommand.create({
         code: 'HLF',
         bezeichnung: 'Hilfeleistungslöschfahrzeug',
-        kategorie: 'EINSATZ',
+        kategorie: 'RETTUNGSDIENST',
         createdBy: 'cm1234567890abcdef12345',
       }).value!;
 
@@ -654,7 +654,7 @@ describe('CreateFahrzeugtypHandler', () => {
       const command = CreateFahrzeugtypCommand.create({
         code: 'HLF',
         bezeichnung: 'Hilfeleistungslöschfahrzeug',
-        kategorie: 'EINSATZ',
+        kategorie: 'RETTUNGSDIENST',
         createdBy: 'cm1234567890abcdef12345',
       }).value!;
 
@@ -673,7 +673,7 @@ describe('CreateFahrzeugtypHandler', () => {
       const command1 = CreateFahrzeugtypCommand.create({
         code: 'HLF',
         bezeichnung: 'Hilfeleistungslöschfahrzeug',
-        kategorie: 'EINSATZ',
+        kategorie: 'RETTUNGSDIENST',
         createdBy: 'cm1234567890abcdef12345',
       }).value!;
 

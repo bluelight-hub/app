@@ -157,3 +157,29 @@ export { StammPersonUpdatedEvent } from './events/stamm-person-updated.event';
 
 // Error Codes
 export { STAMM_PERSON_ERROR_CODES, StammPersonError, type StammPersonErrorCode } from './common/stamm-person-error-codes';
+
+// ============================================================================
+// EINSATZ-PERSON (Story 4-1)
+// ============================================================================
+
+// Value Objects
+export { EinsatzPersonId } from './value-objects/einsatz-person-id';
+
+// Aggregates
+export {
+  EinsatzPerson,
+  type CreateEinsatzPersonFromStammProps,
+  type CreateTemporaryEinsatzPersonProps,
+  type ReconstituteEinsatzPersonProps,
+} from './aggregates/einsatz-person.aggregate';
+
+// Repository Interfaces (Ports)
+export type { IEinsatzPersonRepository } from './repositories/i-einsatz-person.repository';
+
+// Domain Events
+export { EinsatzPersonHinzugefuegtEvent } from './events/einsatz-person-hinzugefuegt.event';
+export { PersonZuFahrzeugZugewiesenEvent } from './events/person-zu-fahrzeug-zugewiesen.event';
+export { PersonVonFahrzeugEntferntEvent } from './events/person-von-fahrzeug-entfernt.event';
+
+// Error Codes
+export { EINSATZ_PERSON_ERROR_CODES, EinsatzPersonError, type EinsatzPersonErrorCode } from './common/einsatz-person-error-codes';

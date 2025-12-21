@@ -13,6 +13,21 @@
  */
 
 import { mapValues } from '../runtime';
+import type { PersonRegisteredResponseDto } from './PersonRegisteredResponseDto';
+import {
+  PersonRegisteredResponseDtoFromJSON,
+  PersonRegisteredResponseDtoFromJSONTyped,
+  PersonRegisteredResponseDtoToJSON,
+  PersonRegisteredResponseDtoToJSONTyped,
+} from './PersonRegisteredResponseDto';
+import type { UserControllerFindOneVAlpha200ResponseMeta } from './UserControllerFindOneVAlpha200ResponseMeta';
+import {
+  UserControllerFindOneVAlpha200ResponseMetaFromJSON,
+  UserControllerFindOneVAlpha200ResponseMetaFromJSONTyped,
+  UserControllerFindOneVAlpha200ResponseMetaToJSON,
+  UserControllerFindOneVAlpha200ResponseMetaToJSONTyped,
+} from './UserControllerFindOneVAlpha200ResponseMeta';
+
 /**
  *
  * @export
@@ -21,16 +36,24 @@ import { mapValues } from '../runtime';
 export interface EinsatzPersonenControllerRegistrierePersonVAlpha201Response {
   /**
    *
-   * @type {string}
+   * @type {PersonRegisteredResponseDto}
    * @memberof EinsatzPersonenControllerRegistrierePersonVAlpha201Response
    */
-  id?: string;
+  data: PersonRegisteredResponseDto;
+  /**
+   *
+   * @type {UserControllerFindOneVAlpha200ResponseMeta}
+   * @memberof EinsatzPersonenControllerRegistrierePersonVAlpha201Response
+   */
+  meta: UserControllerFindOneVAlpha200ResponseMeta;
 }
 
 /**
  * Check if a given object implements the EinsatzPersonenControllerRegistrierePersonVAlpha201Response interface.
  */
 export function instanceOfEinsatzPersonenControllerRegistrierePersonVAlpha201Response(value: object): value is EinsatzPersonenControllerRegistrierePersonVAlpha201Response {
+  if (!('data' in value) || value['data'] === undefined) return false;
+  if (!('meta' in value) || value['meta'] === undefined) return false;
   return true;
 }
 
@@ -43,7 +66,8 @@ export function EinsatzPersonenControllerRegistrierePersonVAlpha201ResponseFromJ
     return json;
   }
   return {
-    id: json['id'] == null ? undefined : json['id'],
+    data: PersonRegisteredResponseDtoFromJSON(json['data']),
+    meta: UserControllerFindOneVAlpha200ResponseMetaFromJSON(json['meta']),
   };
 }
 
@@ -60,6 +84,7 @@ export function EinsatzPersonenControllerRegistrierePersonVAlpha201ResponseToJSO
   }
 
   return {
-    id: value['id'],
+    data: PersonRegisteredResponseDtoToJSON(value['data']),
+    meta: UserControllerFindOneVAlpha200ResponseMetaToJSON(value['meta']),
   };
 }
