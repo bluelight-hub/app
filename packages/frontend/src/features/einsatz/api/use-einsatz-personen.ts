@@ -46,7 +46,9 @@ export const useEinsatzPersonen = (einsatzId: string | null, options?: { enabled
         return [];
       }
       logger.debug('Fetching EinsatzPersonen', { einsatzId });
-      return api.einsatzPersonen().einsatzPersonenControllerFindAllVAlpha({ einsatzId });
+      // WrappedResponse: { data: [...], meta: {...} }
+      const response = await api.einsatzPersonen().einsatzPersonenControllerFindAllVAlpha({ einsatzId });
+      return response.data;
     },
     enabled: !!einsatzId && (options?.enabled ?? true),
     staleTime: 30_000, // 30 Sekunden

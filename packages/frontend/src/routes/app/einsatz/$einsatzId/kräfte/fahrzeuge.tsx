@@ -164,7 +164,6 @@ function RouteComponent() {
                                 <span key={person.id} className="inline-flex items-center gap-1.5 rounded-md bg-gray-100 px-2.5 py-1 text-gray-700 text-xs dark:bg-gray-700 dark:text-gray-300">
                                   <PiUser className="h-3 w-3" />
                                   {person.vorname} {person.nachname}
-                                  {person.funktion && <span className="text-gray-500 dark:text-gray-400">({person.funktion})</span>}
                                 </span>
                               ))}
                             </div>
