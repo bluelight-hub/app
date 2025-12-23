@@ -367,8 +367,8 @@ export class EinsatzPersonenController {
   @ApiNotFoundResponse({ description: 'Person oder Fahrzeug nicht gefunden' })
   @ApiConflictResponse({ description: 'Fahrzeug gehört zu anderem Einsatz' })
   async weiseZuFahrzeug(
-    @Param('einsatzId') einsatzId: string,
-    @Param('personId') personId: string,
+    @Param('einsatzId', ParseCuidPipe) einsatzId: string,
+    @Param('personId', ParseCuidPipe) personId: string,
     @Body() dto: WeisePersonZuFahrzeugZuDto,
     @CurrentUser() user: ValidatedUser,
   ): Promise<EinsatzPersonResponseDto> {
@@ -452,7 +452,7 @@ export class EinsatzPersonenController {
   @ApiNoContentResponse({ description: 'Person erfolgreich von Fahrzeug entfernt' })
   @ApiBadRequestResponse({ description: 'Validierungsfehler oder ungültige IDs' })
   @ApiNotFoundResponse({ description: 'Person nicht gefunden' })
-  async entferneVonFahrzeug(@Param('einsatzId') einsatzId: string, @Param('personId') personId: string, @CurrentUser() user: ValidatedUser): Promise<void> {
+  async entferneVonFahrzeug(@Param('einsatzId', ParseCuidPipe) einsatzId: string, @Param('personId', ParseCuidPipe) personId: string, @CurrentUser() user: ValidatedUser): Promise<void> {
     this.logger.log(`Entferne Person ${personId} von Fahrzeug (Einsatz: ${einsatzId})`, 'EinsatzPersonenController');
 
     // Command erstellen
