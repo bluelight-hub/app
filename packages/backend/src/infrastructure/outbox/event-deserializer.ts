@@ -762,13 +762,7 @@ export class EventDeserializer {
 
   private deserializeQualifikationCreated(payload: Record<string, unknown>, _aggregateId?: string): Result<DomainEvent> {
     // All fields are primitives (Event uses strings, not Value Objects)
-    const event = new QualifikationCreatedEvent(
-      payload.qualifikationId as string,
-      payload.name as string,
-      payload.abkuerzung as string,
-      payload.kategorie as string,
-      payload.createdBy as string,
-    );
+    const event = new QualifikationCreatedEvent(payload.qualifikationId as string, payload.name as string, payload.abkuerzung as string, payload.kategorie as string, payload.createdBy as string);
 
     return Result.ok<DomainEvent>(event);
   }
@@ -795,13 +789,7 @@ export class EventDeserializer {
 
   private deserializeFahrzeugtypCreated(payload: Record<string, unknown>, _aggregateId?: string): Result<DomainEvent> {
     // All fields are primitives (Event uses strings, not Value Objects)
-    const event = new FahrzeugtypCreatedEvent(
-      payload.fahrzeugtypId as string,
-      payload.code as string,
-      payload.bezeichnung as string,
-      payload.kategorie as string,
-      payload.createdBy as string,
-    );
+    const event = new FahrzeugtypCreatedEvent(payload.fahrzeugtypId as string, payload.code as string, payload.bezeichnung as string, payload.kategorie as string, payload.createdBy as string);
 
     return Result.ok<DomainEvent>(event);
   }
