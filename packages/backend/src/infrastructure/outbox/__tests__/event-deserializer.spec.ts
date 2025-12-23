@@ -39,6 +39,10 @@ import { UserRoleChangedEvent } from '@domain/events/user-role-changed.event';
 import { PermissionGrantedEvent } from '@domain/events/permission-granted.event';
 import { PermissionRevokedEvent } from '@domain/events/permission-revoked.event';
 
+// Kraefte Events
+import { PersonZuFahrzeugZugewiesenEvent } from '@domain/kraefte/events/person-zu-fahrzeug-zugewiesen.event';
+import { PersonVonFahrzeugEntferntEvent } from '@domain/kraefte/events/person-von-fahrzeug-entfernt.event';
+
 // Value Objects (für Test IDs)
 import { EinsatzId } from '@domain/value-objects/einsatz-id';
 import { EtbId } from '@domain/value-objects/etb-id';
@@ -128,7 +132,10 @@ describe('EventDeserializer', () => {
       const event = result.value as EinsatzUpdatedEvent;
       expect(event).toBeInstanceOf(EinsatzUpdatedEvent);
       expect(event.einsatzId.value).toBe(einsatzIdValue);
-      expect(event.updates).toEqual({ alarmstichwort: 'Kellerbrand', bemerkung: 'Test' });
+      expect(event.updates).toEqual({
+        alarmstichwort: 'Kellerbrand',
+        bemerkung: 'Test',
+      });
     });
 
     it('should deserialize EinsatzStatusChangedEvent correctly', () => {
@@ -420,6 +427,74 @@ describe('EventDeserializer', () => {
       expect(result.isSuccess).toBe(true);
       const event = result.value as PermissionRevokedEvent;
       expect(event).toBeInstanceOf(PermissionRevokedEvent);
+    });
+  });
+
+  // ===== KRAEFTE EVENTS =====
+
+  describe('Kraefte Events', () => {
+    it('should deserialize PersonZuFahrzeugZugewiesenEvent correctly', () => {
+      // Given
+      const serialized = createSerializedEvent(
+        'einsatz_person.zu_fahrzeug_zugewiesen',
+        {
+          einsatzId: einsatzIdValue,
+          personId: userIdValue, // EinsatzPersonId uses same format as UserId (CUID2)
+          fahrzeugId: userId2Value, // EinsatzFahrzeugId uses same format as UserId (CUID2)
+          personVorname: 'Max',
+          personNachname: 'Mustermann',
+          fahrzeugFunkrufname: 'LF 10/1',
+          zugewiesenVon: userIdValue,
+        },
+        userIdValue, // aggregateId = personId
+      );
+
+      // When
+      const result = deserializer.deserialize(serialized);
+
+      // Then
+      expect(result.isSuccess).toBe(true);
+      const event = result.value as PersonZuFahrzeugZugewiesenEvent;
+      expect(event).toBeInstanceOf(PersonZuFahrzeugZugewiesenEvent);
+      expect(event.einsatzId).toBe(einsatzIdValue);
+      expect(event.personId).toBe(userIdValue);
+      expect(event.fahrzeugId).toBe(userId2Value);
+      expect(event.personVorname).toBe('Max');
+      expect(event.personNachname).toBe('Mustermann');
+      expect(event.fahrzeugFunkrufname).toBe('LF 10/1');
+      expect(event.zugewiesenVon).toBe(userIdValue);
+    });
+
+    it('should deserialize PersonVonFahrzeugEntferntEvent correctly', () => {
+      // Given
+      const serialized = createSerializedEvent(
+        'einsatz_person.von_fahrzeug_entfernt',
+        {
+          einsatzId: einsatzIdValue,
+          personId: userIdValue,
+          fahrzeugId: userId2Value,
+          personVorname: 'Max',
+          personNachname: 'Mustermann',
+          fahrzeugFunkrufname: 'LF 10/1',
+          entferntVon: userIdValue,
+        },
+        userIdValue, // aggregateId = personId
+      );
+
+      // When
+      const result = deserializer.deserialize(serialized);
+
+      // Then
+      expect(result.isSuccess).toBe(true);
+      const event = result.value as PersonVonFahrzeugEntferntEvent;
+      expect(event).toBeInstanceOf(PersonVonFahrzeugEntferntEvent);
+      expect(event.einsatzId).toBe(einsatzIdValue);
+      expect(event.personId).toBe(userIdValue);
+      expect(event.fahrzeugId).toBe(userId2Value);
+      expect(event.personVorname).toBe('Max');
+      expect(event.personNachname).toBe('Mustermann');
+      expect(event.fahrzeugFunkrufname).toBe('LF 10/1');
+      expect(event.entferntVon).toBe(userIdValue);
     });
   });
 

@@ -16,26 +16,26 @@ export const FMS_STATUS_LABELS: Record<number, string> = {
 
 /**
  * FMS-Status Farben gemäß Story 4.3.
- * Verwendet einfache Tailwind-Klassen (Light Mode).
+ * Unterstützt Light Mode und Dark Mode mit Tailwind CSS.
  */
 export const FMS_STATUS_COLORS: Record<number, string> = {
-  1: 'bg-gray-100 text-gray-800',
-  2: 'bg-green-100 text-green-800',
-  3: 'bg-blue-100 text-blue-800',
-  4: 'bg-indigo-100 text-indigo-800',
-  5: 'bg-yellow-100 text-yellow-800',
-  6: 'bg-red-100 text-red-800',
-  7: 'bg-purple-100 text-purple-800',
-  8: 'bg-teal-100 text-teal-800',
-  9: 'bg-orange-100 text-orange-800',
+  1: 'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-200',
+  2: 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300',
+  3: 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300',
+  4: 'bg-indigo-100 text-indigo-800 dark:bg-indigo-900/30 dark:text-indigo-300',
+  5: 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-300',
+  6: 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300',
+  7: 'bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-300',
+  8: 'bg-teal-100 text-teal-800 dark:bg-teal-900/30 dark:text-teal-300',
+  9: 'bg-orange-100 text-orange-800 dark:bg-orange-900/30 dark:text-orange-300',
 };
 
 /**
  * Gibt Tailwind-Klassen für einen FMS-Status zurück.
- * Fallback: grau für unbekannte Status.
+ * Fallback: grau für unbekannte Status (mit Dark Mode Support).
  */
 export const getStatusClasses = (status: number): string => {
-  return FMS_STATUS_COLORS[status] ?? 'bg-gray-100 text-gray-800';
+  return FMS_STATUS_COLORS[status] ?? 'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-200';
 };
 
 /**
@@ -43,9 +43,9 @@ export const getStatusClasses = (status: number): string => {
  * Für Status-Dots ohne Text.
  */
 export const getStatusBgClasses = (status: number): string => {
-  const colorClasses = FMS_STATUS_COLORS[status] ?? 'bg-gray-100 text-gray-800';
-  const bgClass = colorClasses.split(/\s+/).find((cls) => cls.startsWith('bg-'));
-  return bgClass ?? 'bg-gray-100';
+  const colorClasses = FMS_STATUS_COLORS[status] ?? 'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-200';
+  const bgClasses = colorClasses.split(/\s+/).filter((cls) => cls.startsWith('bg-') || cls.startsWith('dark:bg-'));
+  return bgClasses.join(' ') || 'bg-gray-100';
 };
 
 /**

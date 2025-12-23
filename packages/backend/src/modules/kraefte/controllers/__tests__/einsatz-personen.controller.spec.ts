@@ -66,11 +66,26 @@ describe('EinsatzPersonenController', () => {
     const module: TestingModule = await Test.createTestingModule({
       controllers: [EinsatzPersonenController],
       providers: [
-        { provide: RegistrierePersonHandler, useValue: mockRegistrierePersonHandler },
-        { provide: RegistrierePersonViaQrCodeHandler, useValue: mockRegistriereViaQrHandler },
-        { provide: WeisePersonZuFahrzeugZuHandler, useValue: mockWeisePersonZuFahrzeugHandler },
-        { provide: EntfernePersonVonFahrzeugHandler, useValue: mockEntfernePersonVonFahrzeugHandler },
-        { provide: GetEinsatzPersonenHandler, useValue: mockGetEinsatzPersonenHandler },
+        {
+          provide: RegistrierePersonHandler,
+          useValue: mockRegistrierePersonHandler,
+        },
+        {
+          provide: RegistrierePersonViaQrCodeHandler,
+          useValue: mockRegistriereViaQrHandler,
+        },
+        {
+          provide: WeisePersonZuFahrzeugZuHandler,
+          useValue: mockWeisePersonZuFahrzeugHandler,
+        },
+        {
+          provide: EntfernePersonVonFahrzeugHandler,
+          useValue: mockEntfernePersonVonFahrzeugHandler,
+        },
+        {
+          provide: GetEinsatzPersonenHandler,
+          useValue: mockGetEinsatzPersonenHandler,
+        },
         { provide: LOGGER, useValue: mockLogger },
       ],
     }).compile();
@@ -462,6 +477,144 @@ describe('EinsatzPersonenController', () => {
 
       // When/Then
       await expect(controller.registriereViaQr(validEinsatzId, mockUser, dto)).rejects.toThrow(new BadRequestException('Fehler beim Registrieren der Person via QR'));
+    });
+  });
+
+  describe('weiseZuFahrzeug', () => {
+    const validFahrzeugId = createId();
+
+    const mockEinsatzPerson: EinsatzPersonResponseDto = {
+      id: validEinsatzPersonId,
+      einsatzId: validEinsatzId,
+      stammPersonId: validStammPersonId,
+      vorname: 'Max',
+      nachname: 'Mustermann',
+      funkrufname: 'MAX-01',
+      funktion: 'Helfer',
+      qualifikationen: [],
+      fahrzeugId: validFahrzeugId,
+      fahrzeugFunkrufname: 'LF 10/1',
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    };
+
+    it('should successfully assign person to fahrzeug', async () => {
+      // Given
+      mockWeisePersonZuFahrzeugHandler.execute.mockResolvedValue(Result.ok(undefined));
+      mockGetEinsatzPersonenHandler.execute.mockResolvedValue(Result.ok([mockEinsatzPerson]));
+
+      // When
+      const result = await controller.weiseZuFahrzeug(validEinsatzId, validEinsatzPersonId, { fahrzeugId: validFahrzeugId }, mockUser);
+
+      // Then - Controller gibt direkt EinsatzPersonResponseDto zurück (nicht wrapped)
+      expect(result).toEqual(mockEinsatzPerson);
+      expect(mockWeisePersonZuFahrzeugHandler.execute).toHaveBeenCalledWith(
+        expect.objectContaining({
+          einsatzId: validEinsatzId,
+          personId: validEinsatzPersonId,
+          fahrzeugId: validFahrzeugId,
+          updatedBy: validUserId,
+        }),
+      );
+    });
+
+    it('should throw NotFoundException when person not found', async () => {
+      // Given
+      const errorMsg = EinsatzPersonError.format(EINSATZ_PERSON_ERROR_CODES.NOT_FOUND, 'Person nicht gefunden');
+      mockWeisePersonZuFahrzeugHandler.execute.mockResolvedValue(Result.fail(errorMsg));
+
+      // When/Then
+      await expect(controller.weiseZuFahrzeug(validEinsatzId, validEinsatzPersonId, { fahrzeugId: validFahrzeugId }, mockUser)).rejects.toThrow(NotFoundException);
+    });
+
+    it('should throw NotFoundException when fahrzeug not found', async () => {
+      // Given
+      const errorMsg = EinsatzPersonError.format(EINSATZ_PERSON_ERROR_CODES.FAHRZEUG_NOT_FOUND, 'Fahrzeug nicht gefunden');
+      mockWeisePersonZuFahrzeugHandler.execute.mockResolvedValue(Result.fail(errorMsg));
+
+      // When/Then
+      await expect(controller.weiseZuFahrzeug(validEinsatzId, validEinsatzPersonId, { fahrzeugId: validFahrzeugId }, mockUser)).rejects.toThrow(NotFoundException);
+    });
+
+    it('should throw ConflictException when fahrzeug not in same einsatz', async () => {
+      // Given
+      const errorMsg = EinsatzPersonError.format(EINSATZ_PERSON_ERROR_CODES.FAHRZEUG_NOT_IN_SAME_EINSATZ, 'Fahrzeug gehört zu anderem Einsatz');
+      mockWeisePersonZuFahrzeugHandler.execute.mockResolvedValue(Result.fail(errorMsg));
+
+      // When/Then - ConflictException weil Business Rule Violation (nicht Validation Error)
+      await expect(controller.weiseZuFahrzeug(validEinsatzId, validEinsatzPersonId, { fahrzeugId: validFahrzeugId }, mockUser)).rejects.toThrow(ConflictException);
+    });
+
+    it('should throw BadRequestException for validation errors', async () => {
+      // Given
+      mockWeisePersonZuFahrzeugHandler.execute.mockResolvedValue(Result.fail('Validierungsfehler'));
+
+      // When/Then
+      await expect(controller.weiseZuFahrzeug(validEinsatzId, validEinsatzPersonId, { fahrzeugId: validFahrzeugId }, mockUser)).rejects.toThrow(BadRequestException);
+    });
+  });
+
+  describe('entferneVonFahrzeug', () => {
+    const mockEinsatzPerson: EinsatzPersonResponseDto = {
+      id: validEinsatzPersonId,
+      einsatzId: validEinsatzId,
+      stammPersonId: validStammPersonId,
+      vorname: 'Max',
+      nachname: 'Mustermann',
+      funkrufname: 'MAX-01',
+      funktion: 'Helfer',
+      qualifikationen: [],
+      fahrzeugId: undefined,
+      fahrzeugFunkrufname: undefined,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    };
+
+    it('should successfully remove person from fahrzeug', async () => {
+      // Given
+      mockEntfernePersonVonFahrzeugHandler.execute.mockResolvedValue(Result.ok(undefined));
+
+      // When
+      const result = await controller.entferneVonFahrzeug(validEinsatzId, validEinsatzPersonId, mockUser);
+
+      // Then - Controller gibt void zurück (HTTP 204 No Content)
+      expect(result).toBeUndefined();
+      expect(mockEntfernePersonVonFahrzeugHandler.execute).toHaveBeenCalledWith(
+        expect.objectContaining({
+          einsatzId: validEinsatzId,
+          personId: validEinsatzPersonId,
+          updatedBy: validUserId,
+        }),
+      );
+    });
+
+    it('should throw NotFoundException when person not found', async () => {
+      // Given
+      const errorMsg = EinsatzPersonError.format(EINSATZ_PERSON_ERROR_CODES.NOT_FOUND, 'Person nicht gefunden');
+      mockEntfernePersonVonFahrzeugHandler.execute.mockResolvedValue(Result.fail(errorMsg));
+
+      // When/Then
+      await expect(controller.entferneVonFahrzeug(validEinsatzId, validEinsatzPersonId, mockUser)).rejects.toThrow(NotFoundException);
+    });
+
+    it('should throw BadRequestException for validation errors', async () => {
+      // Given
+      mockEntfernePersonVonFahrzeugHandler.execute.mockResolvedValue(Result.fail('Validierungsfehler'));
+
+      // When/Then
+      await expect(controller.entferneVonFahrzeug(validEinsatzId, validEinsatzPersonId, mockUser)).rejects.toThrow(BadRequestException);
+    });
+
+    it('should handle idempotent remove (person without fahrzeug assignment)', async () => {
+      // Given - Handler returns success even if no fahrzeug assigned (idempotent)
+      mockEntfernePersonVonFahrzeugHandler.execute.mockResolvedValue(Result.ok(undefined));
+
+      // When
+      const result = await controller.entferneVonFahrzeug(validEinsatzId, validEinsatzPersonId, mockUser);
+
+      // Then - Controller gibt void zurück (HTTP 204 No Content)
+      expect(result).toBeUndefined();
+      expect(mockEntfernePersonVonFahrzeugHandler.execute).toHaveBeenCalled();
     });
   });
 });
