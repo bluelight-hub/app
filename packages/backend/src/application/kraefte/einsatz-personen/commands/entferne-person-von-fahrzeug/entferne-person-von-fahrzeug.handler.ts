@@ -49,18 +49,19 @@ export class EntfernePersonVonFahrzeugHandler extends TransactionalCommandHandle
    * @param command - EntfernePersonVonFahrzeugCommand mit Person-ID
    * @param tx - Transaction Context für atomare Persistierung
    * @returns Plain object mit result und Domain Events
+   * @throws Error bei Validation/Business Rule Violations
    */
-  protected async executeInTransaction(command: EntfernePersonVonFahrzeugCommand, tx: TransactionContext): Promise<Result<undefined> | { result: undefined; events: DomainEvent[] }> {
+  protected async executeInTransaction(command: EntfernePersonVonFahrzeugCommand, tx: TransactionContext): Promise<{ result: undefined; events: DomainEvent[] }> {
     // 1. Person-ID Value Object erstellen
     const personIdResult = EinsatzPersonId.create(command.personId);
     if (personIdResult.isFailure || !personIdResult.value) {
-      return Result.fail(EinsatzPersonError.format(EINSATZ_PERSON_ERROR_CODES.NOT_FOUND, `Ungültige Person-ID: ${command.personId}`));
+      throw new Error(EinsatzPersonError.format(EINSATZ_PERSON_ERROR_CODES.NOT_FOUND, `Ungültige Person-ID: ${command.personId}`));
     }
 
     // 2. Person laden
     const personResult = await this.personRepository.findById(personIdResult.value, tx);
     if (personResult.isFailure || !personResult.value) {
-      return Result.fail(EinsatzPersonError.format(EINSATZ_PERSON_ERROR_CODES.NOT_FOUND, `Person ${command.personId} nicht gefunden`));
+      throw new Error(EinsatzPersonError.format(EINSATZ_PERSON_ERROR_CODES.NOT_FOUND, `Person ${command.personId} nicht gefunden`));
     }
     const person = personResult.value;
 
@@ -90,13 +91,13 @@ export class EntfernePersonVonFahrzeugHandler extends TransactionalCommandHandle
     // 5. Person von Fahrzeug entfernen (Domain Logic)
     const removeResult = person.removeFromFahrzeug(fahrzeugFunkrufname, command.updatedBy);
     if (removeResult.isFailure) {
-      return Result.fail(removeResult.error ?? 'Fehler beim Entfernen der Person vom Fahrzeug');
+      throw new Error(removeResult.error ?? 'Fehler beim Entfernen der Person vom Fahrzeug');
     }
 
     // 6. Speichern
     const saveResult = await this.personRepository.save(person, tx);
     if (saveResult.isFailure) {
-      return Result.fail(EinsatzPersonError.format(EINSATZ_PERSON_ERROR_CODES.SAVE_FAILED, `Person speichern fehlgeschlagen: ${saveResult.error}`));
+      throw new Error(EinsatzPersonError.format(EINSATZ_PERSON_ERROR_CODES.SAVE_FAILED, `Person speichern fehlgeschlagen: ${saveResult.error}`));
     }
 
     // 7. Events extrahieren (für Outbox)
