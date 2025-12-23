@@ -203,8 +203,8 @@ export abstract class TransactionalCommandHandler<TCommand, TResult> {
    * Abstract Method - Subclasses implementieren Business Logic innerhalb der Transaktion.
    *
    * **Result Pattern (AC4):**
-   * - IMMER `Result<T>` zurückgeben für erwartete Fehler
-   * - Nur Exceptions für unerwartete Fehler (DB-Fehler, Programming Errors)
+   * - IMMER `Result<T>` zurückgeben für erwartete Fehler (via Result.fail())
+   * - Erfolgsfall: Plain object {result, events} OHNE Result.ok() wrapper
    * - Bei Result.fail(): Transaction wird automatisch zurückgerollt
    *
    * **Wichtig:** Diese Methode läuft innerhalb einer Prisma Transaction (tx).
@@ -217,15 +217,15 @@ export abstract class TransactionalCommandHandler<TCommand, TResult> {
    * 2. Aggregate erstellen/modifizieren → Return Result.fail() bei Business Rule Violations
    * 3. Aggregate.save(tx) → Return Result.fail() bei erwarteten Persistierungsfehlern
    * 4. events = aggregate.getDomainEvents() - Events extrahieren
-   * 5. return Result.ok({ result, events }) - Für atomic commit
+   * 5. return { result, events } - Plain object für Success (KEIN Result.ok()!)
    * 6. [Base Handler] Outbox.save(events, tx) - Events atomar persistieren
    * 7. [Base Handler] Transaction Commit oder Rollback bei Result.fail()
    *
    * @param command - Validierter Command DTO
    * @param tx - Transaction Context (framework-agnostisch, Infrastructure castet zu Prisma)
-   * @returns Result<{ result: TResult; events: DomainEvent[] }> - Success oder Failure
+   * @returns Result.fail() für Fehler ODER { result: TResult; events: DomainEvent[] } für Success
    */
-  protected abstract executeInTransaction(command: TCommand, tx: TransactionContext): Promise<Result<{ result: TResult; events: DomainEvent[] }>>;
+  protected abstract executeInTransaction(command: TCommand, tx: TransactionContext): Promise<Result<TResult> | { result: TResult; events: DomainEvent[] }>;
 
   /**
    * Public Entry Point - Führt Command in Transaction aus und persistiert Events im Outbox.
@@ -265,19 +265,16 @@ export abstract class TransactionalCommandHandler<TCommand, TResult> {
           const executionResult = await this.executeInTransaction(command, tx as TransactionContext);
 
           // 2. Check if business logic failed (Result Pattern)
-          if (executionResult.isFailure) {
+          // Handler können entweder Result.fail() oder {result, events} zurückgeben
+          if ('isFailure' in executionResult && executionResult.isFailure) {
             // Transaction wird automatisch zurückgerollt wenn wir Exception werfen
             // WICHTIG: Wir werfen hier eine Exception um Transaction Rollback zu triggern
             // Die Exception wird gefangen und in Result.fail() konvertiert
             throw new Error(executionResult.error ?? 'Command execution failed');
           }
 
-          // Value is guaranteed to exist after isSuccess check
-          if (!executionResult.value) {
-            throw new Error('Unexpected null result after successful execution');
-          }
-
-          const { result, events } = executionResult.value;
+          // Success case: executionResult ist {result, events}
+          const { result, events } = executionResult as { result: TResult; events: DomainEvent[] };
 
           // 3. Domain Events atomar im Outbox persistieren
           // Nur wenn Events vorhanden (z.B. Read-Only Queries haben keine Events)

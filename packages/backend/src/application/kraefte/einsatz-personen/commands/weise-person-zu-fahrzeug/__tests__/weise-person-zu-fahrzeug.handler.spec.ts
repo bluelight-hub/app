@@ -314,4 +314,358 @@ describe('WeisePersonZuFahrzeugZuHandler', () => {
       expect(mockPrismaService.$transaction).toHaveBeenCalledTimes(1);
     });
   });
+
+  describe('T1: Transaction Rollback Tests', () => {
+    it('sollte Transaction rollbacken wenn repository.save fehlschlägt', async () => {
+      // Given (Arrange)
+      let transactionCallbackExecuted = false;
+      mockPrismaService.$transaction.mockImplementation(async (callback) => {
+        transactionCallbackExecuted = true;
+        const txMock = {};
+        const result = await callback(txMock);
+        // Simulate transaction rollback on error
+        if (result && typeof result === 'object' && 'isFailure' in result && result.isFailure) {
+          throw new Error('Transaction rolled back');
+        }
+        return result;
+      });
+
+      mockEinsatzPersonRepository.save.mockResolvedValue(Result.fail('Database error'));
+
+      const command = WeisePersonZuFahrzeugZuCommand.create({
+        einsatzId: validEinsatzId,
+        personId: validPersonId,
+        fahrzeugId: validFahrzeugId,
+        updatedBy: validUpdatedBy,
+      }).value!;
+
+      // When (Act)
+      const result = await handler.execute(command);
+
+      // Then (Assert)
+      expect(result.isFailure).toBe(true);
+      expect(transactionCallbackExecuted).toBe(true);
+      expect(mockEinsatzPersonRepository.save).toHaveBeenCalledTimes(1);
+      expect(mockOutboxRepository.save).not.toHaveBeenCalled(); // No events saved on failure
+    });
+
+    it('sollte keine partiellen Änderungen persistieren wenn Transaction fehlschlägt', async () => {
+      // Given (Arrange)
+      mockPrismaService.$transaction.mockImplementation(async (callback) => {
+        const txMock = {};
+        await callback(txMock);
+        // Simulate transaction failure after callback
+        throw new Error('Transaction commit failed');
+      });
+
+      mockEinsatzPersonRepository.save.mockResolvedValue(Result.ok(undefined));
+
+      const command = WeisePersonZuFahrzeugZuCommand.create({
+        einsatzId: validEinsatzId,
+        personId: validPersonId,
+        fahrzeugId: validFahrzeugId,
+        updatedBy: validUpdatedBy,
+      }).value!;
+
+      // When (Act)
+      const result = await handler.execute(command);
+
+      // Then (Assert)
+      expect(result.isFailure).toBe(true);
+      expect(result.error).toContain('Transaction commit failed');
+      // Verify save was called but transaction rolled back
+      expect(mockEinsatzPersonRepository.save).toHaveBeenCalledTimes(1);
+    });
+
+    it('sollte Outbox-Events nicht speichern wenn Aggregate-Speicherung fehlschlägt', async () => {
+      // Given (Arrange)
+      mockEinsatzPersonRepository.save.mockResolvedValue(Result.fail('Constraint violation'));
+
+      const command = WeisePersonZuFahrzeugZuCommand.create({
+        einsatzId: validEinsatzId,
+        personId: validPersonId,
+        fahrzeugId: validFahrzeugId,
+        updatedBy: validUpdatedBy,
+      }).value!;
+
+      // When (Act)
+      const result = await handler.execute(command);
+
+      // Then (Assert)
+      expect(result.isFailure).toBe(true);
+      expect(mockOutboxRepository.save).not.toHaveBeenCalled(); // Atomic: no partial commits
+    });
+
+    it('sollte keine Änderungen persistieren wenn findById fehlschlägt', async () => {
+      // Given (Arrange)
+      mockEinsatzPersonRepository.findById.mockResolvedValue(Result.fail('Database connection lost'));
+
+      const command = WeisePersonZuFahrzeugZuCommand.create({
+        einsatzId: validEinsatzId,
+        personId: validPersonId,
+        fahrzeugId: validFahrzeugId,
+        updatedBy: validUpdatedBy,
+      }).value!;
+
+      // When (Act)
+      const result = await handler.execute(command);
+
+      // Then (Assert)
+      expect(result.isFailure).toBe(true);
+      expect(mockEinsatzPersonRepository.save).not.toHaveBeenCalled();
+      expect(mockOutboxRepository.save).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('T2: Event Idempotency Tests', () => {
+    it('sollte keine duplizierten Events erzeugen bei wiederholter Zuweisung zum gleichen Fahrzeug', async () => {
+      // Given (Arrange)
+      const command = WeisePersonZuFahrzeugZuCommand.create({
+        einsatzId: validEinsatzId,
+        personId: validPersonId,
+        fahrzeugId: validFahrzeugId,
+        updatedBy: validUpdatedBy,
+      }).value!;
+
+      // When (Act) - First assignment
+      const result1 = await handler.execute(command);
+      expect(result1.isSuccess).toBe(true);
+
+      // Reset mocks but keep person with fahrzeugId set
+      const personWithFahrzeug = createMockEinsatzPerson({ fahrzeugId: validFahrzeugId });
+      mockEinsatzPersonRepository.findById.mockResolvedValue(Result.ok(personWithFahrzeug));
+      mockOutboxRepository.save.mockClear();
+
+      // When (Act) - Second assignment (idempotent)
+      const result2 = await handler.execute(command);
+
+      // Then (Assert)
+      expect(result2.isSuccess).toBe(true);
+      // Verify no events were created on second call (idempotent)
+      const secondCallEvents = mockOutboxRepository.save.mock.calls[0]?.[0] || [];
+      expect(secondCallEvents.length).toBe(0);
+    });
+
+    it('sollte bei mehrfacher paralleler Zuweisung nur ein Event pro tatsächlicher Änderung erzeugen', async () => {
+      // Given (Arrange)
+      const command = WeisePersonZuFahrzeugZuCommand.create({
+        einsatzId: validEinsatzId,
+        personId: validPersonId,
+        fahrzeugId: validFahrzeugId,
+        updatedBy: validUpdatedBy,
+      }).value!;
+
+      let callCount = 0;
+      mockEinsatzPersonRepository.findById.mockImplementation(async () => {
+        callCount++;
+        if (callCount === 1) {
+          // First call: person without fahrzeug
+          return Result.ok(createMockEinsatzPerson({ fahrzeugId: undefined }));
+        }
+        // Subsequent calls: person already assigned
+        return Result.ok(createMockEinsatzPerson({ fahrzeugId: validFahrzeugId }));
+      });
+
+      // When (Act) - Execute command twice (simulating race condition)
+      const [result1, result2] = await Promise.all([handler.execute(command), handler.execute(command)]);
+
+      // Then (Assert)
+      expect(result1.isSuccess).toBe(true);
+      expect(result2.isSuccess).toBe(true);
+
+      // Count events across all calls
+      const allEventCalls = mockOutboxRepository.save.mock.calls;
+      const totalEvents = allEventCalls.reduce((sum, call) => sum + (call[0]?.length || 0), 0);
+
+      // First call should create event, second should be idempotent (no event)
+      expect(totalEvents).toBeLessThanOrEqual(1);
+    });
+
+    it('sollte neues Event erzeugen bei Reassignment zu anderem Fahrzeug', async () => {
+      // Given (Arrange)
+      const otherFahrzeugId = createId();
+      const otherFahrzeug = createMockEinsatzFahrzeug({ id: otherFahrzeugId, funkrufname: 'TLF 16/25' });
+
+      // First assignment
+      const command1 = WeisePersonZuFahrzeugZuCommand.create({
+        einsatzId: validEinsatzId,
+        personId: validPersonId,
+        fahrzeugId: validFahrzeugId,
+        updatedBy: validUpdatedBy,
+      }).value!;
+
+      await handler.execute(command1);
+
+      // Update mocks for second assignment
+      const personWithFirstFahrzeug = createMockEinsatzPerson({ fahrzeugId: validFahrzeugId });
+      mockEinsatzPersonRepository.findById.mockResolvedValue(Result.ok(personWithFirstFahrzeug));
+      mockEinsatzFahrzeugRepository.findById.mockResolvedValue(Result.ok(otherFahrzeug));
+      mockOutboxRepository.save.mockClear();
+
+      // When (Act) - Reassign to different vehicle
+      const command2 = WeisePersonZuFahrzeugZuCommand.create({
+        einsatzId: validEinsatzId,
+        personId: validPersonId,
+        fahrzeugId: otherFahrzeugId,
+        updatedBy: validUpdatedBy,
+      }).value!;
+
+      const result2 = await handler.execute(command2);
+
+      // Then (Assert)
+      expect(result2.isSuccess).toBe(true);
+      // Verify new event was created for reassignment
+      expect(mockOutboxRepository.save).toHaveBeenCalledTimes(1);
+      const events = mockOutboxRepository.save.mock.calls[0][0];
+      expect(events.length).toBe(1);
+      expect(events[0].constructor.name).toBe('PersonZuFahrzeugZugewiesenEvent');
+    });
+  });
+
+  describe('T3: Concurrency/Race Condition Tests', () => {
+    it('sollte gleichzeitige Zuweisungen zur gleichen Person korrekt behandeln', async () => {
+      // Given (Arrange)
+      const fahrzeug1Id = validFahrzeugId;
+      const fahrzeug2Id = createId();
+
+      const fahrzeug1 = createMockEinsatzFahrzeug({ id: fahrzeug1Id, funkrufname: 'LF 10/1' });
+      const fahrzeug2 = createMockEinsatzFahrzeug({ id: fahrzeug2Id, funkrufname: 'TLF 16/25' });
+
+      // Mock to return different vehicles based on ID
+      mockEinsatzFahrzeugRepository.findById.mockImplementation(async (id) => {
+        if (id.value === fahrzeug1Id) return Result.ok(fahrzeug1);
+        if (id.value === fahrzeug2Id) return Result.ok(fahrzeug2);
+        return Result.ok(null);
+      });
+
+      const command1 = WeisePersonZuFahrzeugZuCommand.create({
+        einsatzId: validEinsatzId,
+        personId: validPersonId,
+        fahrzeugId: fahrzeug1Id,
+        updatedBy: validUpdatedBy,
+      }).value!;
+
+      const command2 = WeisePersonZuFahrzeugZuCommand.create({
+        einsatzId: validEinsatzId,
+        personId: validPersonId,
+        fahrzeugId: fahrzeug2Id,
+        updatedBy: validUpdatedBy,
+      }).value!;
+
+      // When (Act) - Execute both assignments in parallel
+      const results = await Promise.all([handler.execute(command1), handler.execute(command2)]);
+
+      // Then (Assert)
+      // Both should succeed (last write wins with optimistic concurrency)
+      expect(results[0].isSuccess).toBe(true);
+      expect(results[1].isSuccess).toBe(true);
+
+      // Verify both operations were persisted
+      expect(mockEinsatzPersonRepository.save).toHaveBeenCalledTimes(2);
+    });
+
+    it('sollte parallele Zuweisungen zu verschiedenen Personen isoliert behandeln', async () => {
+      // Given (Arrange)
+      const person1Id = validPersonId;
+      const person2Id = createId();
+
+      const person1 = createMockEinsatzPerson({ id: person1Id });
+      const person2 = createMockEinsatzPerson({ id: person2Id });
+
+      // Mock to return different persons based on ID
+      mockEinsatzPersonRepository.findById.mockImplementation(async (id) => {
+        if (id.value === person1Id) return Result.ok(person1);
+        if (id.value === person2Id) return Result.ok(person2);
+        return Result.ok(null);
+      });
+
+      const command1 = WeisePersonZuFahrzeugZuCommand.create({
+        einsatzId: validEinsatzId,
+        personId: person1Id,
+        fahrzeugId: validFahrzeugId,
+        updatedBy: validUpdatedBy,
+      }).value!;
+
+      const command2 = WeisePersonZuFahrzeugZuCommand.create({
+        einsatzId: validEinsatzId,
+        personId: person2Id,
+        fahrzeugId: validFahrzeugId,
+        updatedBy: validUpdatedBy,
+      }).value!;
+
+      // When (Act) - Execute both assignments in parallel
+      const results = await Promise.all([handler.execute(command1), handler.execute(command2)]);
+
+      // Then (Assert)
+      expect(results[0].isSuccess).toBe(true);
+      expect(results[1].isSuccess).toBe(true);
+
+      // Verify both persons were saved independently
+      expect(mockEinsatzPersonRepository.save).toHaveBeenCalledTimes(2);
+      expect(mockOutboxRepository.save).toHaveBeenCalledTimes(2);
+    });
+
+    it('sollte bei Optimistic Locking Conflict entsprechend reagieren', async () => {
+      // Given (Arrange)
+      let saveCallCount = 0;
+      mockEinsatzPersonRepository.save.mockImplementation(async () => {
+        saveCallCount++;
+        if (saveCallCount === 1) {
+          // First save succeeds
+          return Result.ok(undefined);
+        }
+        // Second save fails due to version mismatch (optimistic locking)
+        return Result.fail('Optimistic locking conflict: Version mismatch');
+      });
+
+      const command1 = WeisePersonZuFahrzeugZuCommand.create({
+        einsatzId: validEinsatzId,
+        personId: validPersonId,
+        fahrzeugId: validFahrzeugId,
+        updatedBy: validUpdatedBy,
+      }).value!;
+
+      const command2 = WeisePersonZuFahrzeugZuCommand.create({
+        einsatzId: validEinsatzId,
+        personId: validPersonId,
+        fahrzeugId: createId(),
+        updatedBy: validUpdatedBy,
+      }).value!;
+
+      // When (Act) - Execute both assignments sequentially
+      const result1 = await handler.execute(command1);
+      const result2 = await handler.execute(command2);
+
+      // Then (Assert)
+      expect(result1.isSuccess).toBe(true);
+      expect(result2.isFailure).toBe(true);
+      expect(result2.error).toContain('Version mismatch');
+    });
+
+    it('sollte Transaction Isolation Level respektieren bei parallelen Writes', async () => {
+      // Given (Arrange)
+      const transactionContexts: unknown[] = [];
+
+      mockPrismaService.$transaction.mockImplementation(async (callback) => {
+        const txMock = { isolationLevel: 'READ_COMMITTED' };
+        transactionContexts.push(txMock);
+        return callback(txMock);
+      });
+
+      const command = WeisePersonZuFahrzeugZuCommand.create({
+        einsatzId: validEinsatzId,
+        personId: validPersonId,
+        fahrzeugId: validFahrzeugId,
+        updatedBy: validUpdatedBy,
+      }).value!;
+
+      // When (Act) - Execute multiple times
+      await Promise.all([handler.execute(command), handler.execute(command), handler.execute(command)]);
+
+      // Then (Assert)
+      // Verify each execution got its own transaction context
+      expect(transactionContexts.length).toBe(3);
+      expect(mockPrismaService.$transaction).toHaveBeenCalledTimes(3);
+    });
+  });
 });

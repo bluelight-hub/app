@@ -66,9 +66,11 @@ export class PersonZuFahrzeugZugewiesenEvent extends DomainEvent {
     public readonly fahrzeugFunkrufname: string,
     /** User-ID (CUID2) der die Zuweisung durchgeführt hat (für Audit) */
     public readonly zugewiesenVon: string,
+    /** Optional: Override für occurredAt Timestamp (für Rehydration) */
+    occurredOn?: Date,
   ) {
     // aggregateId = personId für Event Bus Routing
-    super(personId);
+    super(personId, occurredOn);
   }
 
   /**

@@ -80,10 +80,11 @@ export abstract class DomainEvent {
    * - occurredAt: Exakte Zeitstempel für Event Ordering und Chronologie
    *
    * @param aggregateId - Optional: ID der zugehörigen Aggregate Root (für Event Store Context)
+   * @param occurredOn - Optional: Override für occurredAt Timestamp (für Rehydration)
    */
-  protected constructor(aggregateId?: string) {
+  protected constructor(aggregateId?: string, occurredOn?: Date) {
     this.eventId = createId();
-    this.occurredAt = new Date();
+    this.occurredAt = occurredOn ?? new Date();
     this.aggregateId = aggregateId;
   }
 

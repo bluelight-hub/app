@@ -46,6 +46,24 @@ import { StammPersonUpdatedEvent } from '@domain/kraefte/events/stamm-person-upd
 import { StammFahrzeugCreatedEvent } from '@domain/kraefte/events/stamm-fahrzeug-created.event';
 import { StammFahrzeugUpdatedEvent } from '@domain/kraefte/events/stamm-fahrzeug-updated.event';
 
+// Qualifikation Events
+import { QualifikationCreatedEvent } from '@domain/kraefte/events/qualifikation-created.event';
+import { QualifikationUpdatedEvent } from '@domain/kraefte/events/qualifikation-updated.event';
+
+// Fahrzeugtyp Events
+import { FahrzeugtypCreatedEvent } from '@domain/kraefte/events/fahrzeugtyp-created.event';
+import { FahrzeugtypUpdatedEvent } from '@domain/kraefte/events/fahrzeugtyp-updated.event';
+
+// RollenDefinition Events
+import { RollenDefinitionCreatedEvent } from '@domain/kraefte/events/rollen-definition-created.event';
+import { RollenDefinitionUpdatedEvent } from '@domain/kraefte/events/rollen-definition-updated.event';
+
+// FunkStatusConfig Events
+import { FunkStatusConfigUpdatedEvent } from '@domain/kraefte/events/funk-status-config-updated.event';
+
+// Types
+import type { SollbesatzungSchema } from '@domain/kraefte/types/sollbesatzung.types';
+
 // Value Objects
 import { EinsatzId } from '@domain/value-objects/einsatz-id';
 import { EtbId } from '@domain/value-objects/etb-id';
@@ -147,6 +165,21 @@ export class EventDeserializer {
       // ===== STAMM FAHRZEUG EVENTS =====
       ['StammFahrzeugCreated', this.deserializeStammFahrzeugCreated.bind(this)],
       ['StammFahrzeugUpdated', this.deserializeStammFahrzeugUpdated.bind(this)],
+
+      // ===== QUALIFIKATION EVENTS =====
+      ['QualifikationCreated', this.deserializeQualifikationCreated.bind(this)],
+      ['QualifikationUpdated', this.deserializeQualifikationUpdated.bind(this)],
+
+      // ===== FAHRZEUGTYP EVENTS =====
+      ['FahrzeugtypCreated', this.deserializeFahrzeugtypCreated.bind(this)],
+      ['FahrzeugtypUpdated', this.deserializeFahrzeugtypUpdated.bind(this)],
+
+      // ===== ROLLEN DEFINITION EVENTS =====
+      ['RollenDefinitionCreated', this.deserializeRollenDefinitionCreated.bind(this)],
+      ['RollenDefinitionUpdated', this.deserializeRollenDefinitionUpdated.bind(this)],
+
+      // ===== FUNK STATUS CONFIG EVENTS =====
+      ['FunkStatusConfigUpdated', this.deserializeFunkStatusConfigUpdated.bind(this)],
     ]);
   }
 
@@ -718,6 +751,131 @@ export class EventDeserializer {
         baujahr?: number;
         funkkenungBOS?: string;
         archived?: boolean;
+      },
+      payload.updatedBy as string,
+    );
+
+    return Result.ok<DomainEvent>(event);
+  }
+
+  // ===== QUALIFIKATION DESERIALIZERS =====
+
+  private deserializeQualifikationCreated(payload: Record<string, unknown>, _aggregateId?: string): Result<DomainEvent> {
+    // All fields are primitives (Event uses strings, not Value Objects)
+    const event = new QualifikationCreatedEvent(
+      payload.qualifikationId as string,
+      payload.name as string,
+      payload.abkuerzung as string,
+      payload.kategorie as string,
+      payload.createdBy as string,
+    );
+
+    return Result.ok<DomainEvent>(event);
+  }
+
+  private deserializeQualifikationUpdated(payload: Record<string, unknown>, _aggregateId?: string): Result<DomainEvent> {
+    // All fields are primitives (Event uses strings, not Value Objects)
+    const event = new QualifikationUpdatedEvent(
+      payload.qualifikationId as string,
+      payload.changes as {
+        name?: string;
+        abkuerzung?: string;
+        kategorie?: string;
+        beschreibung?: string;
+        istAktiv?: boolean;
+        sortOrder?: number;
+      },
+      payload.updatedBy as string,
+    );
+
+    return Result.ok<DomainEvent>(event);
+  }
+
+  // ===== FAHRZEUGTYP DESERIALIZERS =====
+
+  private deserializeFahrzeugtypCreated(payload: Record<string, unknown>, _aggregateId?: string): Result<DomainEvent> {
+    // All fields are primitives (Event uses strings, not Value Objects)
+    const event = new FahrzeugtypCreatedEvent(
+      payload.fahrzeugtypId as string,
+      payload.code as string,
+      payload.bezeichnung as string,
+      payload.kategorie as string,
+      payload.createdBy as string,
+    );
+
+    return Result.ok<DomainEvent>(event);
+  }
+
+  private deserializeFahrzeugtypUpdated(payload: Record<string, unknown>, _aggregateId?: string): Result<DomainEvent> {
+    // All fields are primitives (Event uses strings/numbers, not Value Objects)
+    const event = new FahrzeugtypUpdatedEvent(
+      payload.fahrzeugtypId as string,
+      payload.changes as {
+        code?: string;
+        bezeichnung?: string;
+        kategorie?: string;
+        beschreibung?: string;
+        sollbesatzung?: SollbesatzungSchema;
+        istAktiv?: boolean;
+        sortOrder?: number;
+      },
+      payload.updatedBy as string,
+    );
+
+    return Result.ok<DomainEvent>(event);
+  }
+
+  // ===== ROLLEN DEFINITION DESERIALIZERS =====
+
+  private deserializeRollenDefinitionCreated(payload: Record<string, unknown>, _aggregateId?: string): Result<DomainEvent> {
+    // All fields are primitives (Event uses strings/arrays, not Value Objects)
+    const event = new RollenDefinitionCreatedEvent(
+      payload.rollenDefinitionId as string,
+      payload.name as string,
+      payload.funkrufname as string | undefined,
+      payload.erforderlicheQualifikationen as ReadonlyArray<{
+        qualifikationId: string;
+        istPflicht: boolean;
+      }>,
+      payload.createdBy as string,
+    );
+
+    return Result.ok<DomainEvent>(event);
+  }
+
+  private deserializeRollenDefinitionUpdated(payload: Record<string, unknown>, _aggregateId?: string): Result<DomainEvent> {
+    // All fields are primitives (Event uses strings/arrays, not Value Objects)
+    const event = new RollenDefinitionUpdatedEvent(
+      payload.rollenDefinitionId as string,
+      payload.changes as {
+        name?: string;
+        funkrufname?: string;
+        beschreibung?: string;
+        istAktiv?: boolean;
+        sortOrder?: number;
+        erforderlicheQualifikationen?: ReadonlyArray<{
+          qualifikationId: string;
+          istPflicht: boolean;
+        }>;
+      },
+      payload.updatedBy as string,
+    );
+
+    return Result.ok<DomainEvent>(event);
+  }
+
+  // ===== FUNK STATUS CONFIG DESERIALIZERS =====
+
+  private deserializeFunkStatusConfigUpdated(payload: Record<string, unknown>, _aggregateId?: string): Result<DomainEvent> {
+    // All fields are primitives (Event uses strings/numbers, not Value Objects)
+    const event = new FunkStatusConfigUpdatedEvent(
+      payload.funkStatusConfigId as string,
+      payload.code as number,
+      payload.changes as {
+        customLabel?: string;
+        farbe?: string;
+        istAlarmierbar?: boolean;
+        beschreibung?: string;
       },
       payload.updatedBy as string,
     );

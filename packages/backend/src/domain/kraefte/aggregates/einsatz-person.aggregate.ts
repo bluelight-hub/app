@@ -532,9 +532,9 @@ export class EinsatzPerson extends AggregateRoot<EinsatzPersonId> {
     if (!fahrzeugId?.trim() || !isCuid(fahrzeugId.trim())) {
       return Result.fail(EinsatzPersonError.format(EINSATZ_PERSON_ERROR_CODES.VALIDATION_ERROR, 'fahrzeugId muss ein gültiger CUID2-Identifier sein'));
     }
-    // Validation: fahrzeugFunkrufname (BLOCKER Fix)
+    // Validation: fahrzeugFunkrufname (D1: BLOCKER Fix)
     if (!fahrzeugFunkrufname?.trim()) {
-      return Result.fail(EinsatzPersonError.format(EINSATZ_PERSON_ERROR_CODES.VALIDATION_ERROR, 'fahrzeugFunkrufname ist erforderlich'));
+      return Result.fail(EinsatzPersonError.format(EINSATZ_PERSON_ERROR_CODES.INVALID_FAHRZEUG_FUNKRUFNAME, 'fahrzeugFunkrufname ist erforderlich'));
     }
     // Validation: updatedBy
     if (!updatedBy?.trim() || !isCuid(updatedBy.trim())) {
@@ -572,6 +572,11 @@ export class EinsatzPerson extends AggregateRoot<EinsatzPersonId> {
    * @returns Result<void>
    */
   removeFromFahrzeug(fahrzeugFunkrufname: string, updatedBy: string): Result<void> {
+    // Idempotenz: Nicht zugewiesen → Success (kein Event) (D2: BLOCKER Fix)
+    if (!this._fahrzeugId) {
+      return Result.ok<void>(undefined);
+    }
+
     // Validation: fahrzeugFunkrufname (für ETB-Eintrag)
     if (!fahrzeugFunkrufname?.trim()) {
       return Result.fail(EinsatzPersonError.format(EINSATZ_PERSON_ERROR_CODES.VALIDATION_ERROR, 'fahrzeugFunkrufname ist erforderlich'));
@@ -580,11 +585,6 @@ export class EinsatzPerson extends AggregateRoot<EinsatzPersonId> {
     // Validation: updatedBy
     if (!updatedBy?.trim() || !isCuid(updatedBy.trim())) {
       return Result.fail(EinsatzPersonError.format(EINSATZ_PERSON_ERROR_CODES.VALIDATION_ERROR, 'updatedBy muss ein gültiger CUID2-Identifier sein'));
-    }
-
-    // Idempotenz: Nicht zugewiesen → Success (kein Event)
-    if (!this._fahrzeugId) {
-      return Result.ok<void>(undefined);
     }
 
     const previousFahrzeugId = this._fahrzeugId;

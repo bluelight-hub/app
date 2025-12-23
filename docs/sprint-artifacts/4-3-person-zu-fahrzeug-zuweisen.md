@@ -1,6 +1,6 @@
 # Story 4.3: Person zu Fahrzeug zuweisen
 
-**Status:** in-progress (Code Review: 32 issues gefunden, 6 BLOCKER müssen gefixt werden)
+**Status:** in-progress (Code Review 2025-12-23: 33 issues gefunden, 13 HIGH Priority müssen gefixt werden)
 
 ---
 
@@ -1012,9 +1012,9 @@
   - Datei: `packages/backend/src/domain/kraefte/aggregates/__tests__/einsatz-person.aggregate.spec.ts`
   - Tests: 17 Tests für assignToFahrzeug/removeFromFahrzeug (Validation, Success, Idempotenz, Events)
 
-- [ ] **[AI-Review][CRITICAL]** Controller Tests ergänzen für neue Endpoints
+- [x] **[AI-Review][CRITICAL]** Controller Tests ergänzen für neue Endpoints
   - Datei: `packages/backend/src/modules/kraefte/controllers/__tests__/einsatz-personen.controller.spec.ts`
-  - Tests: PUT/DELETE Endpoints, Error Mapping (404, 409), Response Structure
+  - Tests: 30 Tests gesamt (weiseZuFahrzeug: 5 Tests, entferneVonFahrzeug: 4 Tests)
 
 - [x] **[AI-Review][CRITICAL]** Command Validation Tests erstellen
   - Dateien: `weise-person-zu-fahrzeug.command.spec.ts`, `entferne-person-von-fahrzeug.command.spec.ts`
@@ -1080,6 +1080,203 @@
 1. **Sofort:** BLOCKER fixes (A1, C2, D3, F1-F3)
 2. **Vor Merge:** Alle CRITICAL Tests schreiben (T1-T5)
 3. **Vor Production:** HIGH Priority Issues fixen
+
+### Task 9: Review Follow-ups (AI Code Review 2025-12-23)
+
+**Review durchgeführt mit 6 parallelen Subagents - 33 Issues gefunden (13 HIGH, 9 MEDIUM, 11 LOW)**
+
+#### 9.1 HIGH PRIORITY (BLOCKER - Muss vor Merge)
+
+**Domain Layer:**
+
+- [ ] **[AI-Review][BLOCKER]** D1: Missing `fahrzeugFunkrufname` Validation in `assignToFahrzeug()`
+  - Datei: `packages/backend/src/domain/kraefte/aggregates/einsatz-person.aggregate.ts:530`
+  - Impact: Data Corruption möglich (empty/invalid Funkrufname)
+  - Fix: `if (!fahrzeugFunkrufname?.trim()) return Result.fail(EINSATZ_PERSON_ERROR_CODES.INVALID_FAHRZEUG_FUNKRUFNAME)`
+
+- [ ] **[AI-Review][BLOCKER]** D2: Missing Null Check in `removeFromFahrzeug()` - keine Idempotenz
+  - Datei: `packages/backend/src/domain/kraefte/aggregates/einsatz-person.aggregate.ts:564`
+  - Impact: Spurious Events emitted (PersonVonFahrzeugEntferntEvent auch wenn nicht zugewiesen)
+  - Fix: `if (this._fahrzeug.isNone()) return Result.ok();` vor Event Emission
+
+- [ ] **[AI-Review][BLOCKER]** D3: Missing `occurredOn` Timestamp in Event Constructors
+  - Dateien: `packages/backend/src/domain/kraefte/events/person-zu-fahrzeug-zugewiesen.event.ts`, `person-von-fahrzeug-entfernt.event.ts`
+  - Impact: Broken Audit Trail (Events haben keine korrekten Timestamps)
+  - Fix: Constructor erweitern mit `occurredOn?: Date` Parameter und `super(occurredOn)` aufrufen
+
+**Application Layer:**
+
+- [ ] **[AI-Review][BLOCKER]** A1: Broken Event Outbox Pattern - Events werden NICHT gespeichert!
+  - Dateien: `packages/backend/src/application/kraefte/einsatz-personen/commands/weise-person-zu-fahrzeug/weise-person-zu-fahrzeug.handler.ts:53`, `entferne-person-von-fahrzeug/entferne-person-von-fahrzeug.handler.ts:53`
+  - Impact: CRITICAL - Events gehen verloren, ETB wird nie benachrichtigt, Eventual Consistency broken
+  - Fix: Return Type ändern von `Promise<Result<{result, events}>>` zu `Promise<{result, events}>` (ohne Result-Wrapper)
+  - Zeile 103: `return { result: undefined, events };` statt `return Result.ok({ result: undefined, events });`
+
+- [ ] **[AI-Review][CRITICAL]** A2: Fire-and-Forget ETB Integration ohne Recovery
+  - Dateien: `packages/backend/src/application/etb/event-handlers/einsatz-person-zugewiesen.handler.ts:20-35`, `einsatz-person-entfernt.handler.ts:20-35`
+  - Impact: Failed ETB-Einträge gehen verloren (nur geloggt, kein Retry)
+  - Fix: Retry Logic mit Exponential Backoff (3 Retries) oder Dead Letter Queue
+
+- [ ] **[AI-Review][CRITICAL]** A3: Missing CUID2 Format Validation in Commands
+  - Dateien: Alle Command Classes (`weise-person-zu-fahrzeug.command.ts`, `entferne-person-von-fahrzeug.command.ts`)
+  - Impact: Invalid IDs in Logs/Outbox Events, delayed error detection
+  - Fix: Static Factory Method mit CUID2 Validation via Value Objects
+
+**Controller Layer:**
+
+- [ ] **[AI-Review][BLOCKER]** C1: Handler Return Type Mismatch (same as A1)
+  - Datei: `packages/backend/src/modules/kraefte/controllers/einsatz-personen.controller.ts:392-408`
+  - Impact: Type Safety Violation, hängt von A1 Fix ab
+  - Fix: Nach A1 Fix funktioniert Controller korrekt
+
+- [ ] **[AI-Review][BLOCKER]** C2: N+1 Query Anti-Pattern - lädt ALLE Personen
+  - Datei: `packages/backend/src/modules/kraefte/controllers/einsatz-personen.controller.ts:411-419`
+  - Impact: Performance-Degradation (100 Personen = 99x unnötige Rows)
+  - Fix: Dedicated `GetEinsatzPersonByIdQueryHandler` erstellen oder Person direkt vom Handler zurückgeben
+
+- [ ] **[AI-Review][HIGH]** C3: `@ApiParam format: 'uuid'` sollte `'cuid'` sein
+  - Datei: `packages/backend/src/modules/kraefte/controllers/einsatz-personen.controller.ts:360, 433`
+  - Impact: OpenAPI Spec falsch → API Client Generation broken
+  - Fix: Format auf `'cuid'` ändern (konsistent mit Zeile 119)
+
+**Infrastructure Layer:**
+
+- [ ] **[AI-Review][HIGH]** I1: Event Deserializer - 4 Events fehlen (blocks Outbox processing)
+  - Datei: `packages/backend/src/infrastructure/outbox/event-deserializer.ts`
+  - Missing: `PersonZuFahrzeugZugewiesenEvent`, `PersonVonFahrzeugEntferntEvent`, `QualifikationHinzugefuegtEvent`, `QualifikationEntferntEvent`
+  - Impact: Outbox Processor crashed beim Verarbeiten dieser Events
+  - Fix: Imports hinzufügen + 4 deserializer cases (~20 LOC)
+
+**Tests:**
+
+- [ ] **[AI-Review][CRITICAL]** T1: Transaction Rollback Tests fehlen
+  - Impact: Keine Absicherung gegen Partial State Changes
+  - Fix: 2-3 Tests für Repository save Failure → Transaction Rollback
+
+- [ ] **[AI-Review][CRITICAL]** T2: Event Idempotency Tests fehlen
+  - Impact: Duplicate Events → Duplicate Side Effects (ETB, Notifications)
+  - Fix: 2 Tests für duplicate PersonZuFahrzeugZugewiesenEvent/PersonVonFahrzeugEntferntEvent handling
+
+- [ ] **[AI-Review][CRITICAL]** T3: Concurrency/Race Condition Tests fehlen
+  - Impact: Simultane Zuweisungen ungetestet
+  - Fix: 3 Tests für parallele Assignments (race conditions, optimistic locking)
+
+#### 9.2 MEDIUM PRIORITY (Follow-up in separatem PR)
+
+**Domain Layer:**
+
+- [ ] **[AI-Review][MEDIUM]** D4: Dead Code - `ALREADY_ASSIGNED_TO_FAHRZEUG` Error Code
+  - Datei: `packages/backend/src/domain/kraefte/common/einsatz-person-error-codes.ts:27`
+  - Fix: Error Code entfernen (idempotent behavior ist gewollt)
+
+- [ ] **[AI-Review][MEDIUM]** D5: Missing Error Code `INVALID_FAHRZEUG_FUNKRUFNAME`
+  - Datei: `packages/backend/src/domain/kraefte/common/einsatz-person-error-codes.ts`
+  - Fix: Error Code hinzufügen für D1
+
+**Application Layer:**
+
+- [ ] **[AI-Review][MEDIUM]** A4: Code Duplication 90% zwischen beiden Handlers
+  - Dateien: `weise-person-zu-fahrzeug.handler.ts` vs `entferne-person-von-fahrzeug.handler.ts`
+  - Fix: Extract Base Class `EinsatzPersonenCommandHandler<TCommand>`
+
+- [ ] **[AI-Review][MEDIUM]** A5: Missing Integration Tests für Event Flow
+  - Fix: E2E Tests für Command → Domain Event → Outbox → Integration Event → ETB
+
+- [ ] **[AI-Review][MEDIUM]** A6: Inconsistent Error Handling (Result vs Exception)
+  - Fix: Define Error Classification (Validation, Business Rule, Not Found, Infrastructure)
+
+**Frontend:**
+
+- [ ] **[AI-Review][MEDIUM]** F1: Optimistic Update - Potenzielle Duplikate in Besatzung
+  - Datei: `packages/frontend/src/features/einsatz/api/use-weise-person-zu-fahrzeug.ts:113`
+  - Fix: Duplikat-Check vor `besatzung.push(person)`
+
+- [ ] **[AI-Review][MEDIUM]** F2: Native HTML Tooltip statt Headless UI
+  - Datei: `packages/frontend/src/features/einsatz/ui/molecules/EinsatzResourceWidget.tsx:33`
+  - Fix: `<Popover>` von Headless UI statt `title` Attribut
+
+**Tests:**
+
+- [ ] **[AI-Review][MEDIUM]** T4: Outbox Integration Tests fehlen
+  - Fix: 2 Tests für atomare Aggregate + Event Storage
+
+- [ ] **[AI-Review][MEDIUM]** T5: Event Ordering Tests fehlen
+  - Fix: 2 Tests für out-of-order Event Processing
+
+#### 9.3 LOW PRIORITY (Nice to have)
+
+**Domain Layer:**
+
+- [ ] **[AI-Review][LOW]** D6: Missing JSDoc für `assignToFahrzeug()` und `removeFromFahrzeug()`
+  - Datei: `packages/backend/src/domain/kraefte/aggregates/einsatz-person.aggregate.ts:520, 554`
+
+- [ ] **[AI-Review][LOW]** D7: Inconsistent Event Constructor Pattern (occurredOn)
+  - Fix: Konsistent mit anderen 20+ Events im Projekt
+
+- [ ] **[AI-Review][LOW]** D8: Missing Test Cases für Validation Edge Cases
+  - Fix: Empty/whitespace Funkrufname Tests
+
+**Application Layer:**
+
+- [ ] **[AI-Review][LOW]** A7: Missing JSDoc für Handler Classes
+  - Fix: JSDoc für alle Command Handler
+
+- [ ] **[AI-Review][LOW]** A8: Test Mocks nicht reset zwischen Tests
+  - Status: Teilweise - einige beforeEach haben `jest.clearAllMocks()`, andere nicht
+
+**Controller:**
+
+- [ ] **[AI-Review][LOW]** C4: Inconsistent Method Naming (German vs English)
+  - Datei: `packages/backend/src/modules/kraefte/controllers/einsatz-personen.controller.ts:366, 438`
+  - Fix: `weiseZuFahrzeug` → `assignToVehicle`, `entferneVonFahrzeug` → `removeFromVehicle`
+
+**Frontend:**
+
+- [ ] **[AI-Review][LOW]** F3: Loading Skeleton für Table Rows
+  - Datei: `packages/frontend/src/routes/app/einsatz/$einsatzId/kräfte/personal.tsx:69-75`
+  - Fix: `<PersonenTableSkeleton rows={5} />` statt Full Loading Screen
+
+- [ ] **[AI-Review][LOW]** F4: ETB Invalidation könnte spezifischer sein
+  - Datei: `packages/frontend/src/features/einsatz/api/use-weise-person-zu-fahrzeug.ts:156-158`
+  - Fix: `refetchType: 'active'` hinzufügen
+
+**Tests:**
+
+- [ ] **[AI-Review][LOW]** T6: Large Payload Handling Tests
+- [ ] **[AI-Review][LOW]** T7: Authentication/Authorization Tests (if applicable)
+- [ ] **[AI-Review][LOW]** T8: Property-Based Tests (future)
+
+#### 9.4 Review Metadata
+
+**Review Status:** ⚠️ **13 BLOCKER müssen gefixt werden**
+
+**Neue kritische Findings (nicht in Review 2025-12-21):**
+- **A1 (BLOCKER):** Events werden nicht in Outbox gespeichert! 🔥
+- **I1 (HIGH):** Event Deserializer fehlt → Outbox Processor crashed
+- **D2 (BLOCKER):** Fehlende Idempotenz in `removeFromFahrzeug()`
+- **D3 (BLOCKER):** Timestamps fehlen in Events
+- **C2 (BLOCKER):** N+1 Query Performance Issue
+
+**Bestätigt aus vorherigem Review:**
+- **D1:** `fahrzeugFunkrufname` Validation (war bereits bekannt)
+- **A2:** Fire-and-Forget ETB (war als MEDIUM bekannt)
+- **F1:** Frontend Race Condition → ✅ **FIXED** (per-Person Loading State)
+
+**Test Coverage:** ✅ 81/81 Tests vorhanden, aber **kritische Lücken**:
+- Transaction Rollback Tests fehlen
+- Event Idempotency Tests fehlen
+- Concurrency Tests fehlen
+
+**Review durchgeführt am:** 2025-12-23
+**Review-Methode:** 6 parallele Subagents (Domain, Application, Infrastructure, Controller, Frontend, Tests)
+**Model:** Claude Sonnet 4.5
+
+**Empfehlung:**
+1. **SOFORT (Block Merge):** A1, D1, D2, D3, I1 (5 BLOCKER)
+2. **Vor Production:** C2, A2, A3, C3, T1-T3 (8 CRITICAL)
+3. **Follow-up PR:** A4-A6, F1-F2, T4-T5 (9 MEDIUM)
+
+**Production Readiness:** ❌ **NOT READY** - 13 HIGH Priority Issues müssen behoben werden
 
 ---
 

@@ -70,9 +70,11 @@ export class PersonVonFahrzeugEntferntEvent extends DomainEvent {
     public readonly fahrzeugFunkrufname: string,
     /** User-ID (CUID2) der die Entfernung durchgeführt hat (für Audit) */
     public readonly entferntVon: string,
+    /** Optional: Override für occurredAt Timestamp (für Rehydration) */
+    occurredOn?: Date,
   ) {
     // aggregateId = personId für Event Bus Routing
-    super(personId);
+    super(personId, occurredOn);
   }
 
   /**

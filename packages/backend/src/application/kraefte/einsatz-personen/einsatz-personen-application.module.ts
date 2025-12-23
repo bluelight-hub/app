@@ -9,6 +9,7 @@ import { RegistrierePersonViaQrCodeHandler } from './commands/registriere-person
 import { WeisePersonZuFahrzeugZuHandler } from './commands/weise-person-zu-fahrzeug/weise-person-zu-fahrzeug.handler';
 import { EntfernePersonVonFahrzeugHandler } from './commands/entferne-person-von-fahrzeug/entferne-person-von-fahrzeug.handler';
 import { GetEinsatzPersonenHandler } from './queries/get-einsatz-personen/get-einsatz-personen.handler';
+import { GetEinsatzPersonByIdHandler } from './queries/get-einsatz-person-by-id/get-einsatz-person-by-id.handler';
 
 /**
  * Application Module fuer EinsatzPersonen.
@@ -35,7 +36,16 @@ import { GetEinsatzPersonenHandler } from './queries/get-einsatz-personen/get-ei
     EntfernePersonVonFahrzeugHandler,
     // Query Handlers
     GetEinsatzPersonenHandler,
+    GetEinsatzPersonByIdHandler,
   ],
-  exports: [RegistrierePersonHandler, RegistrierePersonViaQrCodeHandler, WeisePersonZuFahrzeugZuHandler, EntfernePersonVonFahrzeugHandler, GetEinsatzPersonenHandler, LOGGER],
+  exports: [
+    RegistrierePersonHandler,
+    RegistrierePersonViaQrCodeHandler,
+    WeisePersonZuFahrzeugZuHandler,
+    EntfernePersonVonFahrzeugHandler,
+    GetEinsatzPersonenHandler,
+    GetEinsatzPersonByIdHandler,
+    LOGGER,
+  ],
 })
 export class EinsatzPersonenApplicationModule {}

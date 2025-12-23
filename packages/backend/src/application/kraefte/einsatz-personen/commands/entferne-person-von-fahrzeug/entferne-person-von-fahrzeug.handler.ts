@@ -48,9 +48,9 @@ export class EntfernePersonVonFahrzeugHandler extends TransactionalCommandHandle
    *
    * @param command - EntfernePersonVonFahrzeugCommand mit Person-ID
    * @param tx - Transaction Context für atomare Persistierung
-   * @returns Result mit undefined und Domain Events
+   * @returns Plain object mit result und Domain Events
    */
-  protected async executeInTransaction(command: EntfernePersonVonFahrzeugCommand, tx: TransactionContext): Promise<Result<{ result: undefined; events: DomainEvent[] }>> {
+  protected async executeInTransaction(command: EntfernePersonVonFahrzeugCommand, tx: TransactionContext): Promise<Result<undefined> | { result: undefined; events: DomainEvent[] }> {
     // 1. Person-ID Value Object erstellen
     const personIdResult = EinsatzPersonId.create(command.personId);
     if (personIdResult.isFailure || !personIdResult.value) {
@@ -67,7 +67,7 @@ export class EntfernePersonVonFahrzeugHandler extends TransactionalCommandHandle
     // 3. Idempotenz: Falls nicht zugewiesen → Success ohne Event
     if (!person.fahrzeugId) {
       this.logger.log(`Person ${person.id.value} ist keinem Fahrzeug zugewiesen (idempotent)`, 'EntfernePersonVonFahrzeugHandler');
-      return Result.ok({ result: undefined, events: [] });
+      return { result: undefined, events: [] };
     }
 
     // 4. Fahrzeug laden für Funkrufname (wird im Event/ETB benötigt)
@@ -106,6 +106,6 @@ export class EntfernePersonVonFahrzeugHandler extends TransactionalCommandHandle
     // Logging ohne PII (GDPR)
     this.logger.log(`Person ${person.id.value} von Fahrzeug entfernt`, 'EntfernePersonVonFahrzeugHandler');
 
-    return Result.ok({ result: undefined, events });
+    return { result: undefined, events };
   }
 }

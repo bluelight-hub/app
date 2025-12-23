@@ -48,9 +48,9 @@ export class WeisePersonZuFahrzeugZuHandler extends TransactionalCommandHandler<
    *
    * @param command - WeisePersonZuFahrzeugZuCommand mit Person- und Fahrzeug-IDs
    * @param tx - Transaction Context für atomare Persistierung
-   * @returns Result mit undefined und Domain Events
+   * @returns Plain object mit result und Domain Events
    */
-  protected async executeInTransaction(command: WeisePersonZuFahrzeugZuCommand, tx: TransactionContext): Promise<Result<{ result: undefined; events: DomainEvent[] }>> {
+  protected async executeInTransaction(command: WeisePersonZuFahrzeugZuCommand, tx: TransactionContext): Promise<Result<undefined> | { result: undefined; events: DomainEvent[] }> {
     // 1. Person laden
     const personIdResult = EinsatzPersonId.create(command.personId);
     if (personIdResult.isFailure || !personIdResult.value) {
@@ -100,6 +100,6 @@ export class WeisePersonZuFahrzeugZuHandler extends TransactionalCommandHandler<
     // Logging ohne PII (GDPR)
     this.logger.log(`Person ${person.id.value} zu Fahrzeug ${fahrzeug.id.value} zugewiesen`, 'WeisePersonZuFahrzeugZuHandler');
 
-    return Result.ok({ result: undefined, events });
+    return { result: undefined, events };
   }
 }

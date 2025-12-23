@@ -44,6 +44,7 @@ import type { ILogger } from '@domain/ports/i-logger.port';
 import { RegistrierePersonHandler } from '@application/kraefte/einsatz-personen/commands/registriere-person/registriere-person.handler';
 import { RegistrierePersonViaQrCodeHandler } from '@application/kraefte/einsatz-personen/commands/registriere-person-qr/registriere-person-qr.handler';
 import { GetEinsatzPersonenHandler } from '@application/kraefte/einsatz-personen/queries/get-einsatz-personen/get-einsatz-personen.handler';
+import { GetEinsatzPersonByIdHandler } from '@application/kraefte/einsatz-personen/queries/get-einsatz-person-by-id/get-einsatz-person-by-id.handler';
 import { WeisePersonZuFahrzeugZuHandler } from '@application/kraefte/einsatz-personen/commands/weise-person-zu-fahrzeug/weise-person-zu-fahrzeug.handler';
 import { EntfernePersonVonFahrzeugHandler } from '@application/kraefte/einsatz-personen/commands/entferne-person-von-fahrzeug/entferne-person-von-fahrzeug.handler';
 
@@ -51,6 +52,7 @@ import { EntfernePersonVonFahrzeugHandler } from '@application/kraefte/einsatz-p
 import { RegistrierePersonCommand } from '@application/kraefte/einsatz-personen/commands/registriere-person/registriere-person.command';
 import { RegistrierePersonViaQrCodeCommand } from '@application/kraefte/einsatz-personen/commands/registriere-person-qr/registriere-person-qr.command';
 import { GetEinsatzPersonenQuery } from '@application/kraefte/einsatz-personen/queries/get-einsatz-personen/get-einsatz-personen.query';
+import { GetEinsatzPersonByIdQuery } from '@application/kraefte/einsatz-personen/queries/get-einsatz-person-by-id/get-einsatz-person-by-id.query';
 import { WeisePersonZuFahrzeugZuCommand } from '@application/kraefte/einsatz-personen/commands/weise-person-zu-fahrzeug/weise-person-zu-fahrzeug.command';
 import { EntfernePersonVonFahrzeugCommand } from '@application/kraefte/einsatz-personen/commands/entferne-person-von-fahrzeug/entferne-person-von-fahrzeug.command';
 
@@ -99,6 +101,7 @@ export class EinsatzPersonenController {
     private readonly registrierePersonHandler: RegistrierePersonHandler,
     private readonly registrierePersonViaQrHandler: RegistrierePersonViaQrCodeHandler,
     private readonly getEinsatzPersonenHandler: GetEinsatzPersonenHandler,
+    private readonly getEinsatzPersonByIdHandler: GetEinsatzPersonByIdHandler,
     private readonly weisePersonZuFahrzeugHandler: WeisePersonZuFahrzeugZuHandler,
     private readonly entfernePersonVonFahrzeugHandler: EntfernePersonVonFahrzeugHandler,
     @Inject(LOGGER) private readonly logger: ILogger,
@@ -357,7 +360,7 @@ export class EinsatzPersonenController {
   @Throttle({ default: ADMIN_MUTATION_RATE_LIMIT })
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Person zu Fahrzeug zuweisen' })
-  @ApiParam({ name: 'einsatzId', type: String, format: 'uuid', description: 'Einsatz-ID' })
+  @ApiParam({ name: 'einsatzId', type: String, format: 'cuid', description: 'Einsatz-ID (CUID)' })
   @ApiParam({ name: 'personId', type: String, format: 'cuid', description: 'EinsatzPerson-ID (CUID2)' })
   @ApiWrappedResponse(EinsatzPersonResponseDto, { description: 'Person erfolgreich zugewiesen' })
   @ApiBadRequestResponse({ description: 'Validierungsfehler oder ungültige IDs' })
@@ -408,10 +411,24 @@ export class EinsatzPersonenController {
       throw new BadRequestException(errorMessage);
     }
 
-    // Aktualisierte Person zurückgeben
-    const personResult = await this.getEinsatzPersonenHandler.execute({ einsatzId });
-    const person = personResult.value?.find((p) => p.id === personId);
+    // Aktualisierte Person zurückgeben (dedicated query statt N+1)
+    const queryResult = GetEinsatzPersonByIdQuery.create(personId);
+    if (queryResult.isFailure) {
+      throw new BadRequestException(queryResult.error);
+    }
 
+    const query = queryResult.value;
+    if (!query) {
+      throw new BadRequestException('Fehler beim Erstellen der Query');
+    }
+
+    const personResult = await this.getEinsatzPersonByIdHandler.execute(query);
+    if (personResult.isFailure) {
+      this.logger.error(`Fehler beim Laden der Person ${personId}: ${personResult.error}`, 'EinsatzPersonenController');
+      throw new InternalServerErrorException('Fehler beim Laden der Person');
+    }
+
+    const person = personResult.value;
     if (!person) {
       throw new NotFoundException('Person nach Zuweisung nicht gefunden');
     }
@@ -430,7 +447,7 @@ export class EinsatzPersonenController {
   @Throttle({ default: ADMIN_MUTATION_RATE_LIMIT })
   @HttpCode(HttpStatus.NO_CONTENT)
   @ApiOperation({ summary: 'Person von Fahrzeug entfernen' })
-  @ApiParam({ name: 'einsatzId', type: String, format: 'uuid', description: 'Einsatz-ID' })
+  @ApiParam({ name: 'einsatzId', type: String, format: 'cuid', description: 'Einsatz-ID (CUID)' })
   @ApiParam({ name: 'personId', type: String, format: 'cuid', description: 'EinsatzPerson-ID (CUID2)' })
   @ApiNoContentResponse({ description: 'Person erfolgreich von Fahrzeug entfernt' })
   @ApiBadRequestResponse({ description: 'Validierungsfehler oder ungültige IDs' })
