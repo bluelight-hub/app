@@ -5,7 +5,7 @@ import { isCuid } from '@paralleldrive/cuid2';
  * Command zum Zuweisen einer EinsatzPerson zu einem EinsatzFahrzeug.
  *
  * Validierung:
- * - einsatzId: Pflicht, UUID Format
+ * - einsatzId: Pflicht, CUID2 Format
  * - personId: Pflicht, CUID2 Format
  * - fahrzeugId: Pflicht, CUID2 Format
  * - updatedBy: Pflicht, CUID2 Format (User-ID für Audit)
@@ -22,9 +22,10 @@ export class WeisePersonZuFahrzeugZuCommand {
    * Factory Method mit Validierung.
    */
   public static create(props: { einsatzId: string; personId: string; fahrzeugId: string; updatedBy: string }): Result<WeisePersonZuFahrzeugZuCommand> {
-    // einsatzId
-    if (!props.einsatzId?.trim()) {
-      return Result.fail('einsatzId ist erforderlich');
+    // einsatzId (CUID2)
+    const trimmedEinsatzId = props.einsatzId?.trim() ?? '';
+    if (!trimmedEinsatzId || !isCuid(trimmedEinsatzId)) {
+      return Result.fail('einsatzId muss ein gültiger CUID2-Identifier sein');
     }
 
     // personId (CUID2)
@@ -45,6 +46,6 @@ export class WeisePersonZuFahrzeugZuCommand {
       return Result.fail('updatedBy muss ein gültiger CUID2-Identifier sein');
     }
 
-    return Result.ok(new WeisePersonZuFahrzeugZuCommand(props.einsatzId.trim(), trimmedPersonId, trimmedFahrzeugId, trimmedUpdatedBy));
+    return Result.ok(new WeisePersonZuFahrzeugZuCommand(trimmedEinsatzId, trimmedPersonId, trimmedFahrzeugId, trimmedUpdatedBy));
   }
 }

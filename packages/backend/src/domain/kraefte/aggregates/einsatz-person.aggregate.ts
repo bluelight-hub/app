@@ -572,12 +572,7 @@ export class EinsatzPerson extends AggregateRoot<EinsatzPersonId> {
    * @returns Result<void>
    */
   removeFromFahrzeug(fahrzeugFunkrufname: string, updatedBy: string): Result<void> {
-    // Idempotenz: Nicht zugewiesen → Success (kein Event) (D2: BLOCKER Fix)
-    if (!this._fahrzeugId) {
-      return Result.ok<void>(undefined);
-    }
-
-    // Validation: fahrzeugFunkrufname (für ETB-Eintrag)
+    // Validation: fahrzeugFunkrufname (für ETB-Eintrag) - MUSS VOR Idempotenz-Check kommen (D1: HIGH Priority Fix)
     if (!fahrzeugFunkrufname?.trim()) {
       return Result.fail(EinsatzPersonError.format(EINSATZ_PERSON_ERROR_CODES.VALIDATION_ERROR, 'fahrzeugFunkrufname ist erforderlich'));
     }
@@ -585,6 +580,11 @@ export class EinsatzPerson extends AggregateRoot<EinsatzPersonId> {
     // Validation: updatedBy
     if (!updatedBy?.trim() || !isCuid(updatedBy.trim())) {
       return Result.fail(EinsatzPersonError.format(EINSATZ_PERSON_ERROR_CODES.VALIDATION_ERROR, 'updatedBy muss ein gültiger CUID2-Identifier sein'));
+    }
+
+    // Idempotenz: Nicht zugewiesen → Success (kein Event) - NACH Input-Validierung (D1: HIGH Priority Fix)
+    if (!this._fahrzeugId) {
+      return Result.ok<void>(undefined);
     }
 
     const previousFahrzeugId = this._fahrzeugId;

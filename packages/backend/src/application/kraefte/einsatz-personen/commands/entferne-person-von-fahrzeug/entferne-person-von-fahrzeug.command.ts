@@ -5,7 +5,7 @@ import { isCuid } from '@paralleldrive/cuid2';
  * Command zum Entfernen einer EinsatzPerson von einem Fahrzeug.
  *
  * Validierung:
- * - einsatzId: Pflicht, UUID Format
+ * - einsatzId: Pflicht, CUID2 Format
  * - personId: Pflicht, CUID2 Format
  * - updatedBy: Pflicht, CUID2 Format (User-ID für Audit)
  *
@@ -22,9 +22,10 @@ export class EntfernePersonVonFahrzeugCommand {
    * Factory Method mit Validierung.
    */
   public static create(props: { einsatzId: string; personId: string; updatedBy: string }): Result<EntfernePersonVonFahrzeugCommand> {
-    // einsatzId
-    if (!props.einsatzId?.trim()) {
-      return Result.fail('einsatzId ist erforderlich');
+    // einsatzId (CUID2)
+    const trimmedEinsatzId = props.einsatzId?.trim() ?? '';
+    if (!trimmedEinsatzId || !isCuid(trimmedEinsatzId)) {
+      return Result.fail('einsatzId muss ein gültiger CUID2-Identifier sein');
     }
 
     // personId (CUID2)
@@ -39,6 +40,6 @@ export class EntfernePersonVonFahrzeugCommand {
       return Result.fail('updatedBy muss ein gültiger CUID2-Identifier sein');
     }
 
-    return Result.ok(new EntfernePersonVonFahrzeugCommand(props.einsatzId.trim(), trimmedPersonId, trimmedUpdatedBy));
+    return Result.ok(new EntfernePersonVonFahrzeugCommand(trimmedEinsatzId, trimmedPersonId, trimmedUpdatedBy));
   }
 }
