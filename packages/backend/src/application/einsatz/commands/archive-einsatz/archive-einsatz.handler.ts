@@ -88,7 +88,7 @@ export class ArchiveEinsatzHandler extends TransactionalCommandHandler<ArchiveEi
    * @returns Result<{ result: TResult; events: DomainEvent[] }> - Success oder Failure
    * @throws Error bei Business Rule Violations (triggert Transaction Rollback)
    */
-  protected async executeInTransaction(command: ArchiveEinsatzCommand, tx: TransactionContext): Promise<Result<{ result: undefined; events: DomainEvent[] }>> {
+  protected async executeInTransaction(command: ArchiveEinsatzCommand, tx: TransactionContext): Promise<Result<void> | { result: void; events: DomainEvent[] }> {
     // Step 1: Validate EinsatzId format
     const einsatzIdResult = EinsatzId.create(command.einsatzId);
     if (einsatzIdResult.isFailure) {
@@ -208,6 +208,6 @@ export class ArchiveEinsatzHandler extends TransactionalCommandHandler<ArchiveEi
     });
 
     // Step 8: Return result + events für Base Handler
-    return Result.ok({ result: undefined, events });
+    return { result: undefined, events };
   }
 }

@@ -6,6 +6,7 @@ import { RegistrierePersonViaQrCodeHandler } from '@application/kraefte/einsatz-
 import { WeisePersonZuFahrzeugZuHandler } from '@application/kraefte/einsatz-personen/commands/weise-person-zu-fahrzeug/weise-person-zu-fahrzeug.handler';
 import { EntfernePersonVonFahrzeugHandler } from '@application/kraefte/einsatz-personen/commands/entferne-person-von-fahrzeug/entferne-person-von-fahrzeug.handler';
 import { GetEinsatzPersonenHandler } from '@application/kraefte/einsatz-personen/queries/get-einsatz-personen/get-einsatz-personen.handler';
+import { GetEinsatzPersonByIdHandler } from '@application/kraefte/einsatz-personen/queries/get-einsatz-person-by-id/get-einsatz-person-by-id.handler';
 import { LOGGER } from '@infrastructure/di-tokens';
 import { Result } from '@domain/common/result';
 import { EINSATZ_PERSON_ERROR_CODES, EinsatzPersonError } from '@domain/kraefte/common/einsatz-person-error-codes';
@@ -21,6 +22,7 @@ describe('EinsatzPersonenController', () => {
   let mockWeisePersonZuFahrzeugHandler: jest.Mocked<WeisePersonZuFahrzeugZuHandler>;
   let mockEntfernePersonVonFahrzeugHandler: jest.Mocked<EntfernePersonVonFahrzeugHandler>;
   let mockGetEinsatzPersonenHandler: jest.Mocked<GetEinsatzPersonenHandler>;
+  let mockGetEinsatzPersonByIdHandler: jest.Mocked<GetEinsatzPersonByIdHandler>;
   let mockLogger: { log: jest.Mock; error: jest.Mock; warn: jest.Mock };
 
   const validEinsatzId = createId();
@@ -57,6 +59,10 @@ describe('EinsatzPersonenController', () => {
       execute: jest.fn(),
     } as any;
 
+    mockGetEinsatzPersonByIdHandler = {
+      execute: jest.fn(),
+    } as any;
+
     mockLogger = {
       log: jest.fn(),
       error: jest.fn(),
@@ -85,6 +91,10 @@ describe('EinsatzPersonenController', () => {
         {
           provide: GetEinsatzPersonenHandler,
           useValue: mockGetEinsatzPersonenHandler,
+        },
+        {
+          provide: GetEinsatzPersonByIdHandler,
+          useValue: mockGetEinsatzPersonByIdHandler,
         },
         { provide: LOGGER, useValue: mockLogger },
       ],
@@ -501,7 +511,7 @@ describe('EinsatzPersonenController', () => {
     it('should successfully assign person to fahrzeug', async () => {
       // Given
       mockWeisePersonZuFahrzeugHandler.execute.mockResolvedValue(Result.ok(undefined));
-      mockGetEinsatzPersonenHandler.execute.mockResolvedValue(Result.ok([mockEinsatzPerson]));
+      mockGetEinsatzPersonByIdHandler.execute.mockResolvedValue(Result.ok(mockEinsatzPerson));
 
       // When
       const result = await controller.weiseZuFahrzeug(validEinsatzId, validEinsatzPersonId, { fahrzeugId: validFahrzeugId }, mockUser);
@@ -514,6 +524,11 @@ describe('EinsatzPersonenController', () => {
           personId: validEinsatzPersonId,
           fahrzeugId: validFahrzeugId,
           updatedBy: validUserId,
+        }),
+      );
+      expect(mockGetEinsatzPersonByIdHandler.execute).toHaveBeenCalledWith(
+        expect.objectContaining({
+          personId: validEinsatzPersonId,
         }),
       );
     });

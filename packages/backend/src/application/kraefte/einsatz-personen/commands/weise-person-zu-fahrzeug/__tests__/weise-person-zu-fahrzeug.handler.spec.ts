@@ -415,6 +415,53 @@ describe('WeisePersonZuFahrzeugZuHandler', () => {
       expect(mockEinsatzPersonRepository.save).not.toHaveBeenCalled();
       expect(mockOutboxRepository.save).not.toHaveBeenCalled();
     });
+
+    it('sollte rollbacken wenn Outbox-Speicherung fehlschlägt', async () => {
+      // Given (Arrange)
+      mockOutboxRepository.save.mockRejectedValue(new Error('Outbox write failed'));
+
+      const command = WeisePersonZuFahrzeugZuCommand.create({
+        einsatzId: validEinsatzId,
+        personId: validPersonId,
+        fahrzeugId: validFahrzeugId,
+        updatedBy: validUpdatedBy,
+      }).value!;
+
+      // When (Act)
+      const result = await handler.execute(command);
+
+      // Then (Assert)
+      expect(result.isFailure).toBe(true);
+      expect(result.error).toContain('Outbox');
+      // Verify: Person save was attempted but transaction rolled back
+      expect(mockEinsatzPersonRepository.save).toHaveBeenCalledTimes(1);
+    });
+
+    it('sollte keine partiellen Commits zulassen bei Transaction Timeout', async () => {
+      // Given (Arrange)
+      mockPrismaService.$transaction.mockImplementation(async (callback) => {
+        const txMock = {};
+        await callback(txMock);
+        // Simulate transaction timeout after callback execution
+        throw new Error('Transaction timeout after 5000ms');
+      });
+
+      const command = WeisePersonZuFahrzeugZuCommand.create({
+        einsatzId: validEinsatzId,
+        personId: validPersonId,
+        fahrzeugId: validFahrzeugId,
+        updatedBy: validUpdatedBy,
+      }).value!;
+
+      // When (Act)
+      const result = await handler.execute(command);
+
+      // Then (Assert)
+      expect(result.isFailure).toBe(true);
+      expect(result.error).toContain('timeout');
+      // Verify: Repository operations were called but no data persisted (rollback)
+      expect(mockEinsatzPersonRepository.save).toHaveBeenCalledTimes(1);
+    });
   });
 
   describe('T2: Event Idempotency Tests', () => {
@@ -519,6 +566,46 @@ describe('WeisePersonZuFahrzeugZuHandler', () => {
       const events = mockOutboxRepository.save.mock.calls[0][0];
       expect(events.length).toBe(1);
       expect(events[0].constructor.name).toBe('PersonZuFahrzeugZugewiesenEvent');
+    });
+
+    it('sollte bei wiederholter Zuweisung identisches Event-Payload erzeugen (deterministisch)', async () => {
+      // Given (Arrange)
+      const command = WeisePersonZuFahrzeugZuCommand.create({
+        einsatzId: validEinsatzId,
+        personId: validPersonId,
+        fahrzeugId: validFahrzeugId,
+        updatedBy: validUpdatedBy,
+      }).value!;
+
+      // When (Act) - First execution
+      const result1 = await handler.execute(command);
+      expect(result1.isSuccess).toBe(true);
+
+      const firstEventCall = mockOutboxRepository.save.mock.calls[0];
+      const firstEventPayload = firstEventCall?.[0]?.[0];
+
+      // Reset mocks and restore initial state (person without fahrzeugId)
+      mockOutboxRepository.save.mockClear();
+      mockEinsatzPersonRepository.findById.mockResolvedValue(Result.ok(createMockEinsatzPerson({ fahrzeugId: undefined })));
+
+      // When (Act) - Second execution with same command
+      const result2 = await handler.execute(command);
+      expect(result2.isSuccess).toBe(true);
+
+      const secondEventCall = mockOutboxRepository.save.mock.calls[0];
+      const secondEventPayload = secondEventCall?.[0]?.[0];
+
+      // Then (Assert) - Verify: Event payloads are identical (deterministic)
+      expect(firstEventPayload).toBeDefined();
+      expect(secondEventPayload).toBeDefined();
+      expect(firstEventPayload.constructor.name).toBe(secondEventPayload.constructor.name);
+
+      // Verify core payload fields are identical
+      expect(firstEventPayload.aggregateId).toEqual(secondEventPayload.aggregateId);
+      expect(firstEventPayload.eventType).toEqual(secondEventPayload.eventType);
+
+      // Note: Timestamps may differ, but business data should be identical
+      // This ensures idempotent event replay behavior
     });
   });
 

@@ -84,7 +84,7 @@ export class CreateUserHandler extends TransactionalCommandHandler<CreateUserCom
    * @param tx - Transaction Context (framework-agnostisch, Infrastructure castet zu Prisma)
    * @returns Result<{ result: string; events: DomainEvent[] }> - Success oder Failure
    */
-  protected async executeInTransaction(command: CreateUserCommand, tx: TransactionContext): Promise<Result<{ result: string; events: DomainEvent[] }>> {
+  protected async executeInTransaction(command: CreateUserCommand, tx: TransactionContext): Promise<Result<string> | { result: string; events: DomainEvent[] }> {
     // Step 1: Validate Username format
     const usernameResult = Username.create(command.username);
     if (usernameResult.isFailure) {
@@ -243,9 +243,9 @@ export class CreateUserHandler extends TransactionalCommandHandler<CreateUserCom
 
     // Step 8: Return result + events für Base Handler
     // Base Handler committed Transaction wenn alles erfolgreich
-    return Result.ok({
+    return {
       result: userAggregate.id.value,
       events,
-    });
+    };
   }
 }

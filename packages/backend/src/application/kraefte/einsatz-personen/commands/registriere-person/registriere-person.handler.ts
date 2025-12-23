@@ -71,7 +71,7 @@ export class RegistrierePersonHandler extends TransactionalCommandHandler<Regist
    * @param tx - Transaction Context für atomare Persistierung
    * @returns Result mit EinsatzPerson ID oder Fehler
    */
-  protected async executeInTransaction(command: RegistrierePersonCommand, tx: TransactionContext): Promise<Result<{ result: string; events: DomainEvent[] }>> {
+  protected async executeInTransaction(command: RegistrierePersonCommand, tx: TransactionContext): Promise<Result<string> | { result: string; events: DomainEvent[] }> {
     let einsatzPerson: EinsatzPerson;
 
     // AC1: Falls StammPerson ausgewählt wurde (Snapshot Pattern)
@@ -170,6 +170,6 @@ export class RegistrierePersonHandler extends TransactionalCommandHandler<Regist
     einsatzPerson.clearDomainEvents();
 
     // 8. Return EinsatzPerson ID
-    return Result.ok({ result: einsatzPerson.id.value, events });
+    return { result: einsatzPerson.id.value, events };
   }
 }

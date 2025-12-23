@@ -111,7 +111,7 @@ export class DeleteUserHandler extends TransactionalCommandHandler<DeleteUserCom
    * @param tx - Transaction Context (framework-agnostisch)
    * @returns Result<{ result: void; events: DomainEvent[] }> - Success oder Failure
    */
-  protected async executeInTransaction(command: DeleteUserCommand, tx: TransactionContext): Promise<Result<{ result: undefined; events: DomainEvent[] }>> {
+  protected async executeInTransaction(command: DeleteUserCommand, tx: TransactionContext): Promise<Result<void> | { result: void; events: DomainEvent[] }> {
     // Step 1: Validate UserId format
     const userIdResult = UserId.create(command.id);
     if (userIdResult.isFailure) {
@@ -223,6 +223,6 @@ export class DeleteUserHandler extends TransactionalCommandHandler<DeleteUserCom
     user.clearDomainEvents();
 
     // Step 8: Return Success mit Events (Base Class speichert in Outbox)
-    return Result.ok({ result: undefined, events });
+    return { result: undefined, events };
   }
 }

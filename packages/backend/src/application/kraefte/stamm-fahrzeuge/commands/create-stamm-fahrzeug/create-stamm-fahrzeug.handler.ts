@@ -75,7 +75,7 @@ export class CreateStammFahrzeugHandler extends TransactionalCommandHandler<Crea
    * - Handler lädt Fahrzeugtyp in gleicher Transaction für konsistente Daten
    * - StammFahrzeugQueryMapper.toDto(aggregate, fahrzeugtyp) mapped beide
    */
-  protected async executeInTransaction(command: CreateStammFahrzeugCommand, tx: TransactionContext): Promise<Result<{ result: StammFahrzeugDto; events: DomainEvent[] }>> {
+  protected async executeInTransaction(command: CreateStammFahrzeugCommand, tx: TransactionContext): Promise<Result<StammFahrzeugDto> | { result: StammFahrzeugDto; events: DomainEvent[] }> {
     // 1. Validate Fahrzeugtyp ID format
     const fahrzeugtypIdResult = FahrzeugtypId.create(command.fahrzeugtypId);
     if (fahrzeugtypIdResult.isFailure) {
@@ -162,6 +162,6 @@ export class CreateStammFahrzeugHandler extends TransactionalCommandHandler<Crea
 
     // 7. Map to DTO and return (inkl. Fahrzeugtyp für nested DTO)
     const dto = StammFahrzeugQueryMapper.toDto(stammFahrzeug, fahrzeugtyp);
-    return Result.ok({ result: dto, events });
+    return { result: dto, events };
   }
 }

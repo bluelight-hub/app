@@ -63,7 +63,7 @@ export class RestoreStammPersonHandler extends TransactionalCommandHandler<Resto
    * - Entfernt archivedAt/archivedBy Felder wenn archiviert
    * - Emittiert StammPersonUpdatedEvent mit archived=false
    */
-  protected async executeInTransaction(command: RestoreStammPersonCommand, tx: TransactionContext): Promise<Result<{ result: StammPersonDto; events: DomainEvent[] }>> {
+  protected async executeInTransaction(command: RestoreStammPersonCommand, tx: TransactionContext): Promise<Result<StammPersonDto> | { result: StammPersonDto; events: DomainEvent[] }> {
     // 1. Validate ID format
     const idResult = StammPersonId.create(command.id);
     if (idResult.isFailure) {
@@ -136,6 +136,6 @@ export class RestoreStammPersonHandler extends TransactionalCommandHandler<Resto
 
     // 7. Map to DTO and return (inkl. Qualifikationen für nested DTO)
     const dto = StammPersonQueryMapper.toDto(stammPerson, qualifikationen);
-    return Result.ok({ result: dto, events });
+    return { result: dto, events };
   }
 }

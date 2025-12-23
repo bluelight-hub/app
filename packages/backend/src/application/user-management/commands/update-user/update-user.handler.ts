@@ -98,7 +98,7 @@ export class UpdateUserHandler extends TransactionalCommandHandler<UpdateUserCom
    * @param tx - Transaction Context für atomare Operationen
    * @returns Result mit void (success) oder Error-Message
    */
-  protected async executeInTransaction(command: UpdateUserCommand, tx: TransactionContext): Promise<Result<{ result: undefined; events: DomainEvent[] }>> {
+  protected async executeInTransaction(command: UpdateUserCommand, tx: TransactionContext): Promise<Result<void> | { result: void; events: DomainEvent[] }> {
     // 1. Validiere updatedBy UserId
     const updatedByIdResult = UserId.create(command.updatedBy);
     if (updatedByIdResult.isFailure || !updatedByIdResult.value) {
@@ -183,6 +183,6 @@ export class UpdateUserHandler extends TransactionalCommandHandler<UpdateUserCom
     user.clearDomainEvents();
 
     // 7. Return success mit Events für atomare Outbox-Persistierung
-    return Result.ok({ result: undefined, events });
+    return { result: undefined, events };
   }
 }

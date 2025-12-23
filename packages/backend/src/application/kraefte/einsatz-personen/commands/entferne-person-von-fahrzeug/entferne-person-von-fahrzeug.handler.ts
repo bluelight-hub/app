@@ -10,7 +10,7 @@ import { IOutboxRepository } from '@domain/repositories/i-outbox.repository';
 // biome-ignore lint/style/useImportType: NestJS DI requires runtime symbol for @Inject
 import { ILogger } from '@domain/ports/i-logger.port';
 // biome-ignore lint/style/useImportType: PrismaService needed for DI at runtime
-import { PrismaService } from '@infrastructure/database/prisma.service';
+import { PrismaService } from '@/infrastructure/database/prisma.service';
 import { EINSATZ_PERSON_ERROR_CODES, EinsatzPersonError } from '@domain/kraefte/common/einsatz-person-error-codes';
 import { Result } from '@domain/common/result';
 import type { DomainEvent } from '@domain/common/domain-event';

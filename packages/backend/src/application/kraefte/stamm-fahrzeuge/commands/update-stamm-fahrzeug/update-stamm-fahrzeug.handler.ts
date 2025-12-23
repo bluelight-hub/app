@@ -66,7 +66,7 @@ export class UpdateStammFahrzeugHandler extends TransactionalCommandHandler<Upda
    * - Pre-Check verbessert nur UX (sofortiges Feedback statt DB-Roundtrip)
    * - Race Window ist extrem klein (<100ms) in einer Single-Admin-Anwendung
    */
-  protected async executeInTransaction(command: UpdateStammFahrzeugCommand, tx: TransactionContext): Promise<Result<{ result: StammFahrzeugDto; events: DomainEvent[] }>> {
+  protected async executeInTransaction(command: UpdateStammFahrzeugCommand, tx: TransactionContext): Promise<Result<StammFahrzeugDto> | { result: StammFahrzeugDto; events: DomainEvent[] }> {
     // 1. Validate ID format
     const idResult = StammFahrzeugId.create(command.id);
     if (idResult.isFailure) {
@@ -162,6 +162,6 @@ export class UpdateStammFahrzeugHandler extends TransactionalCommandHandler<Upda
 
     // 8. Map to DTO and return (inkl. Fahrzeugtyp für nested DTO)
     const dto = StammFahrzeugQueryMapper.toDto(stammFahrzeug, fahrzeugtypResult.value);
-    return Result.ok({ result: dto, events });
+    return { result: dto, events };
   }
 }

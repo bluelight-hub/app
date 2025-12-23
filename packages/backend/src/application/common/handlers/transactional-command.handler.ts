@@ -151,7 +151,7 @@ import { EINSATZ_REPOSITORY } from '@infrastructure/di-tokens';
  *   protected async executeInTransaction(
  *     command: CreateEinsatzCommand,
  *     tx: TransactionContext,
- *   ): Promise<Result<{ result: string; events: DomainEvent[] }>> {
+ *   ): Promise<Result<string> | { result: string; events: DomainEvent[] }> {
  *     // 1. Validate UserId
  *     const userIdResult = UserId.create(command.createdBy);
  *     if (userIdResult.isFailure) {
@@ -174,7 +174,7 @@ import { EINSATZ_REPOSITORY } from '@infrastructure/di-tokens';
  *     const events = einsatz.getDomainEvents();
  *
  *     // 5. Return success
- *     return Result.ok({ result: einsatz.id.value, events });
+ *     return { result: einsatz.id.value, events };
  *   }
  * }
  *

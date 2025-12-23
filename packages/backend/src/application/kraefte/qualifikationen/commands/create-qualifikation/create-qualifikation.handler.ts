@@ -53,7 +53,7 @@ export class CreateQualifikationHandler extends TransactionalCommandHandler<Crea
    * - ABER: DB Constraint fängt Race Condition ab → Repository save() gibt Result.fail bei P2002
    * - Redundanz ist GEWOLLT: Handler-Check = UX, DB-Constraint = Korrektheit
    */
-  protected async executeInTransaction(command: CreateQualifikationCommand, tx: TransactionContext): Promise<Result<{ result: QualifikationDto; events: DomainEvent[] }>> {
+  protected async executeInTransaction(command: CreateQualifikationCommand, tx: TransactionContext): Promise<Result<QualifikationDto> | { result: QualifikationDto; events: DomainEvent[] }> {
     // 1. Check Uniqueness: Abkuerzung (UX Optimization, DB Constraint ist autoritative Quelle)
     const existingResult = await this.repository.findByAbkuerzung(command.abkuerzung, tx);
     if (existingResult.isFailure) {
@@ -109,6 +109,6 @@ export class CreateQualifikationHandler extends TransactionalCommandHandler<Crea
 
     // 5. Map to DTO and return
     const dto = QualifikationQueryMapper.toDto(qualifikation);
-    return Result.ok({ result: dto, events });
+    return { result: dto, events };
   }
 }

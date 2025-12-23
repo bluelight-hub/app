@@ -81,7 +81,7 @@ export class CreateEinsatzHandler extends TransactionalCommandHandler<CreateEins
    * @param tx - Transaction Context (framework-agnostisch, Infrastructure castet zu Prisma)
    * @returns Result<{ result: string; events: DomainEvent[] }> - Success oder Failure
    */
-  protected async executeInTransaction(command: CreateEinsatzCommand, tx: TransactionContext): Promise<Result<{ result: string; events: DomainEvent[] }>> {
+  protected async executeInTransaction(command: CreateEinsatzCommand, tx: TransactionContext): Promise<Result<string> | { result: string; events: DomainEvent[] }> {
     // Step 1: Validate UserId format
     const userIdResult = UserId.create(command.createdBy);
     if (userIdResult.isFailure) {
@@ -162,9 +162,9 @@ export class CreateEinsatzHandler extends TransactionalCommandHandler<CreateEins
 
     // Step 5: Return result + events für Base Handler
     // Base Handler committed Transaction wenn alles erfolgreich
-    return Result.ok({
+    return {
       result: einsatz.id.value,
       events,
-    });
+    };
   }
 }

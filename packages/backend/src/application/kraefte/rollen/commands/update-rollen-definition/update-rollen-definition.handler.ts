@@ -62,7 +62,7 @@ export class UpdateRollenDefinitionHandler extends TransactionalCommandHandler<U
    * 5. Repository.saveQualifikationen() erstellt neue Junction-Einträge
    * 6. REPLACE Semantik: Alte Verknüpfungen werden komplett ersetzt
    */
-  protected async executeInTransaction(command: UpdateRollenDefinitionCommand, tx: TransactionContext): Promise<Result<{ result: RollenDefinitionDto; events: DomainEvent[] }>> {
+  protected async executeInTransaction(command: UpdateRollenDefinitionCommand, tx: TransactionContext): Promise<Result<RollenDefinitionDto> | { result: RollenDefinitionDto; events: DomainEvent[] }> {
     // 1. Validate ID format
     const idResult = RolleId.create(command.id);
     if (idResult.isFailure) {
@@ -227,6 +227,6 @@ export class UpdateRollenDefinitionHandler extends TransactionalCommandHandler<U
 
     // 7. Map to DTO and return
     const dto = RollenDefinitionQueryMapper.toDto(rollenDefinition);
-    return Result.ok({ result: dto, events });
+    return { result: dto, events };
   }
 }

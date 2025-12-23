@@ -81,7 +81,7 @@ export class CreateStammPersonHandler extends TransactionalCommandHandler<Create
    * - Handler lädt Qualifikationen in gleicher Transaction für konsistente Daten
    * - StammPersonQueryMapper.toDto(aggregate, qualifikationen) mapped beide
    */
-  protected async executeInTransaction(command: CreateStammPersonCommand, tx: TransactionContext): Promise<Result<{ result: StammPersonDto; events: DomainEvent[] }>> {
+  protected async executeInTransaction(command: CreateStammPersonCommand, tx: TransactionContext): Promise<Result<StammPersonDto> | { result: StammPersonDto; events: DomainEvent[] }> {
     // 1. Check Uniqueness: personalnummer (UX Optimization, DB Constraint ist autoritative Quelle)
     const existingResult = await this.stammPersonRepository.findByPersonalnummer(command.personalnummer, tx);
     if (existingResult.isFailure) {
@@ -189,6 +189,6 @@ export class CreateStammPersonHandler extends TransactionalCommandHandler<Create
 
     // 6. Map to DTO and return (inkl. Qualifikationen für nested DTO)
     const dto = StammPersonQueryMapper.toDto(stammPerson, qualifikationen);
-    return Result.ok({ result: dto, events });
+    return { result: dto, events };
   }
 }

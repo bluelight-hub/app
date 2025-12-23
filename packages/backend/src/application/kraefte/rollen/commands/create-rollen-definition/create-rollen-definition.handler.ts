@@ -63,7 +63,7 @@ export class CreateRollenDefinitionHandler extends TransactionalCommandHandler<C
    * - saveQualifikationen() erstellt M:N Junction-Table-Einträge (RolleQualifikation)
    * - Beide Operationen erfolgen in gleicher Transaktion (atomare Konsistenz)
    */
-  protected async executeInTransaction(command: CreateRollenDefinitionCommand, tx: TransactionContext): Promise<Result<{ result: RollenDefinitionDto; events: DomainEvent[] }>> {
+  protected async executeInTransaction(command: CreateRollenDefinitionCommand, tx: TransactionContext): Promise<Result<RollenDefinitionDto> | { result: RollenDefinitionDto; events: DomainEvent[] }> {
     // 1. Check Uniqueness: Name (UX Optimization, DB Constraint ist autoritative Quelle)
     const existingResult = await this.repository.findByName(command.name, tx);
     if (existingResult.isFailure) {
@@ -154,6 +154,6 @@ export class CreateRollenDefinitionHandler extends TransactionalCommandHandler<C
 
     // 8. Map to DTO and return
     const dto = RollenDefinitionQueryMapper.toDto(rollenDefinition);
-    return Result.ok({ result: dto, events });
+    return { result: dto, events };
   }
 }

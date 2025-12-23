@@ -54,7 +54,7 @@ export class RegistrierePersonViaQrCodeHandler extends TransactionalCommandHandl
    * @param tx - Transaction Context fuer atomare Persistierung
    * @returns Result mit EinsatzPerson ID und Domain Events
    */
-  protected async executeInTransaction(command: RegistrierePersonViaQrCodeCommand, tx: TransactionContext): Promise<Result<{ result: string; events: DomainEvent[] }>> {
+  protected async executeInTransaction(command: RegistrierePersonViaQrCodeCommand, tx: TransactionContext): Promise<Result<string> | { result: string; events: DomainEvent[] }> {
     // 1. StammPerson-Lookup via Personalnummer (AC3)
     const stammPersonResult = await this.stammPersonRepository.findByPersonalnummer(command.personalnummer, tx);
 
@@ -62,7 +62,7 @@ export class RegistrierePersonViaQrCodeHandler extends TransactionalCommandHandl
       // GDPR: KEINE Personalnummer im Error Log (PII!)
       const errorMsg = EinsatzPersonError.format(EINSATZ_PERSON_ERROR_CODES.STAMM_LOOKUP_FAILED, `StammPerson Lookup fehlgeschlagen in Einsatz '${command.einsatzId}': ${stammPersonResult.error}`);
       this.logger.error(errorMsg, 'RegistrierePersonViaQrCodeHandler');
-      return Result.fail<{ result: string; events: DomainEvent[] }>(errorMsg);
+      return Result.fail<string>(errorMsg);
     }
 
     const stammPerson = stammPersonResult.value;
@@ -72,9 +72,7 @@ export class RegistrierePersonViaQrCodeHandler extends TransactionalCommandHandl
       // Check if person is archived
       if (stammPerson.archivedAt) {
         // GDPR: KEINE Namen im Error (PII!) - nur StammPerson ID
-        return Result.fail<{ result: string; events: DomainEvent[] }>(
-          EinsatzPersonError.format(EINSATZ_PERSON_ERROR_CODES.STAMM_ARCHIVED, `StammPerson (ID: ${stammPerson.id.value}) ist archiviert und kann nicht registriert werden`),
-        );
+        return Result.fail<string>(EinsatzPersonError.format(EINSATZ_PERSON_ERROR_CODES.STAMM_ARCHIVED, `StammPerson (ID: ${stammPerson.id.value}) ist archiviert und kann nicht registriert werden`));
       }
 
       /**
@@ -100,7 +98,7 @@ export class RegistrierePersonViaQrCodeHandler extends TransactionalCommandHandl
         // DB-Fehler (z.B. Connection Lost, Timeout)
         const errorMsg = EinsatzPersonError.format(EINSATZ_PERSON_ERROR_CODES.DUPLICATE_CHECK_FAILED, `Duplikat-Check fehlgeschlagen in Einsatz '${command.einsatzId}': ${existsResult.error}`);
         this.logger.error(errorMsg, 'RegistrierePersonViaQrCodeHandler');
-        return Result.fail<{ result: string; events: DomainEvent[] }>(errorMsg);
+        return Result.fail<string>(errorMsg);
       }
 
       if (existsResult.value === undefined) {
@@ -114,7 +112,7 @@ export class RegistrierePersonViaQrCodeHandler extends TransactionalCommandHandl
         // GDPR: KEINE Namen/Personalnummer im Error (PII!) - nur StammPerson ID
         const errorMsg = EinsatzPersonError.format(EINSATZ_PERSON_ERROR_CODES.DUPLICATE_PERSON, `StammPerson (ID: ${stammPerson.id.value}) ist bereits im Einsatz '${command.einsatzId}' registriert`);
         this.logger.warn(errorMsg, 'RegistrierePersonViaQrCodeHandler');
-        return Result.fail<{ result: string; events: DomainEvent[] }>(errorMsg);
+        return Result.fail<string>(errorMsg);
       }
     }
 
@@ -142,7 +140,7 @@ export class RegistrierePersonViaQrCodeHandler extends TransactionalCommandHandl
           `EinsatzPerson aus Stammdaten fehlgeschlagen in Einsatz '${command.einsatzId}': ${aggregateResult.error}`,
         );
         this.logger.error(errorMsg, 'RegistrierePersonViaQrCodeHandler');
-        return Result.fail<{ result: string; events: DomainEvent[] }>(errorMsg);
+        return Result.fail<string>(errorMsg);
       }
 
       einsatzPerson = aggregateResult.value;
@@ -179,7 +177,7 @@ export class RegistrierePersonViaQrCodeHandler extends TransactionalCommandHandl
           `Temporäre EinsatzPerson fehlgeschlagen in Einsatz '${command.einsatzId}': ${aggregateResult.error}`,
         );
         this.logger.error(errorMsg, 'RegistrierePersonViaQrCodeHandler');
-        return Result.fail<{ result: string; events: DomainEvent[] }>(errorMsg);
+        return Result.fail<string>(errorMsg);
       }
 
       einsatzPerson = aggregateResult.value;
@@ -198,13 +196,13 @@ export class RegistrierePersonViaQrCodeHandler extends TransactionalCommandHandl
       // GDPR: KEINE Personalnummer im Error (PII!)
       const errorMsg = EinsatzPersonError.format(EINSATZ_PERSON_ERROR_CODES.SAVE_FAILED, `EinsatzPerson speichern fehlgeschlagen in Einsatz '${command.einsatzId}': ${saveResult.error}`);
       this.logger.error(errorMsg, 'RegistrierePersonViaQrCodeHandler');
-      return Result.fail<{ result: string; events: DomainEvent[] }>(errorMsg);
+      return Result.fail<string>(errorMsg);
     }
 
     // 5. Domain Events extrahieren (fuer Outbox - AC3 ETB Auto-Eintrag)
     const events = einsatzPerson.getDomainEvents();
     einsatzPerson.clearDomainEvents();
 
-    return Result.ok({ result: einsatzPerson.id.value, events });
+    return { result: einsatzPerson.id.value, events };
   }
 }

@@ -108,13 +108,14 @@ export const useWeisePersonZuFahrzeugZu = (einsatzId: string) => {
         const person = previousPersonen.find((p) => p.id === personId);
         if (person) {
           const updatedFahrzeuge = previousFahrzeuge.map((f) => {
+            // ZUERST: Person von ALLEN Fahrzeugen entfernen (inkl. Ziel-Fahrzeug)
+            let besatzung = (f.besatzung || []).filter((b) => b.id !== personId);
+
+            // DANN: Person NUR zum Ziel-Fahrzeug hinzufügen
             if (f.id === fahrzeugId) {
-              // Person zu diesem Fahrzeug hinzufügen
-              const besatzung = [...(f.besatzung || []), person];
-              return { ...f, besatzung };
+              besatzung = [...besatzung, { ...person, fahrzeugId }];
             }
-            // Person von anderen Fahrzeugen entfernen (falls vorhanden)
-            const besatzung = (f.besatzung || []).filter((b) => b.id !== personId);
+
             return { ...f, besatzung };
           });
           queryClient.setQueryData(EINSATZ_QUERY_KEYS.fahrzeuge(einsatzId), updatedFahrzeuge);

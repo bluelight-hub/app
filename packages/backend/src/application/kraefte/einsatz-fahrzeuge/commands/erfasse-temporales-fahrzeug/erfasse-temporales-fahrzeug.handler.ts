@@ -67,7 +67,7 @@ export class ErfasseTemporalesFahrzeugHandler extends TransactionalCommandHandle
    * 4. Speichern in Transaction
    * 5. Domain Events extrahieren für Outbox
    */
-  protected async executeInTransaction(command: ErfasseTemporalesFahrzeugCommand, tx: TransactionContext): Promise<Result<{ result: EinsatzFahrzeugDto; events: DomainEvent[] }>> {
+  protected async executeInTransaction(command: ErfasseTemporalesFahrzeugCommand, tx: TransactionContext): Promise<Result<EinsatzFahrzeugDto> | { result: EinsatzFahrzeugDto; events: DomainEvent[] }> {
     // 1. Validate Fahrzeugtyp ID format
     const fahrzeugtypIdResult = FahrzeugtypId.create(command.fahrzeugtypId);
     if (fahrzeugtypIdResult.isFailure) {
@@ -127,6 +127,6 @@ export class ErfasseTemporalesFahrzeugHandler extends TransactionalCommandHandle
 
     // 7. Map to DTO and return
     const dto = EinsatzFahrzeugQueryMapper.toDto(einsatzFahrzeug, fahrzeugtyp);
-    return Result.ok({ result: dto, events });
+    return { result: dto, events };
   }
 }

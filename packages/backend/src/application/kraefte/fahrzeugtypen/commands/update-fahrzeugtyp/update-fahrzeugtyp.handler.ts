@@ -42,7 +42,7 @@ export class UpdateFahrzeugtypHandler extends TransactionalCommandHandler<Update
    * - Aggregate.update() validiert, dass mindestens ein Feld geändert wurde
    * - Vermeidet unnötige DB-Writes bei leeren Updates
    */
-  protected async executeInTransaction(command: UpdateFahrzeugtypCommand, tx: TransactionContext): Promise<Result<{ result: FahrzeugtypDto; events: DomainEvent[] }>> {
+  protected async executeInTransaction(command: UpdateFahrzeugtypCommand, tx: TransactionContext): Promise<Result<FahrzeugtypDto> | { result: FahrzeugtypDto; events: DomainEvent[] }> {
     // 1. Validate ID format
     const idResult = FahrzeugtypId.create(command.id);
     if (idResult.isFailure) {
@@ -132,6 +132,6 @@ export class UpdateFahrzeugtypHandler extends TransactionalCommandHandler<Update
 
     // 7. Map to DTO and return
     const dto = FahrzeugtypQueryMapper.toDto(fahrzeugtyp);
-    return Result.ok({ result: dto, events });
+    return { result: dto, events };
   }
 }

@@ -38,7 +38,7 @@ export class DeactivateQualifikationHandler extends TransactionalCommandHandler<
   /**
    * Implementiert Business Logic innerhalb der Transaktion.
    */
-  protected async executeInTransaction(command: DeactivateQualifikationCommand, tx: TransactionContext): Promise<Result<{ result: QualifikationDto; events: DomainEvent[] }>> {
+  protected async executeInTransaction(command: DeactivateQualifikationCommand, tx: TransactionContext): Promise<Result<QualifikationDto> | { result: QualifikationDto; events: DomainEvent[] }> {
     // 1. Validate ID format
     const idResult = QualifikationId.create(command.id);
     if (idResult.isFailure) {
@@ -97,6 +97,6 @@ export class DeactivateQualifikationHandler extends TransactionalCommandHandler<
 
     // 6. Map to DTO and return
     const dto = QualifikationQueryMapper.toDto(qualifikation);
-    return Result.ok({ result: dto, events });
+    return { result: dto, events };
   }
 }

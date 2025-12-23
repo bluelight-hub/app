@@ -62,7 +62,7 @@ export class UpdateFunkStatusConfigHandler extends TransactionalCommandHandler<U
    * - API-Endpunkt: PATCH /api/admin/kraefte/funkstatus/:code
    * - Mapping von code → ID passiert in Repository
    */
-  protected async executeInTransaction(command: UpdateFunkStatusConfigCommand, tx: TransactionContext): Promise<Result<{ result: FunkStatusConfigDto; events: DomainEvent[] }>> {
+  protected async executeInTransaction(command: UpdateFunkStatusConfigCommand, tx: TransactionContext): Promise<Result<FunkStatusConfigDto> | { result: FunkStatusConfigDto; events: DomainEvent[] }> {
     // 1. Load existing FunkStatusConfig by code
     const existingResult = await this.repository.findByCode(command.code, tx);
     if (existingResult.isFailure) {
@@ -114,7 +114,7 @@ export class UpdateFunkStatusConfigHandler extends TransactionalCommandHandler<U
 
     // 5. Map to DTO and return
     const dto = this.mapToDto(funkStatusConfig);
-    return Result.ok({ result: dto, events });
+    return { result: dto, events };
   }
 
   /**

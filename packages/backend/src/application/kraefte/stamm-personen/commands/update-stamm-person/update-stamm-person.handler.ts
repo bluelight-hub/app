@@ -74,7 +74,7 @@ export class UpdateStammPersonHandler extends TransactionalCommandHandler<Update
    * - Handler lädt alle Qualifikationen in gleicher Transaction für konsistente Daten
    * - StammPersonQueryMapper.toDto(aggregate, qualifikationen) mapped beide
    */
-  protected async executeInTransaction(command: UpdateStammPersonCommand, tx: TransactionContext): Promise<Result<{ result: StammPersonDto; events: DomainEvent[] }>> {
+  protected async executeInTransaction(command: UpdateStammPersonCommand, tx: TransactionContext): Promise<Result<StammPersonDto> | { result: StammPersonDto; events: DomainEvent[] }> {
     // 1. Validate ID format
     const idResult = StammPersonId.create(command.id);
     if (idResult.isFailure) {
@@ -215,6 +215,6 @@ export class UpdateStammPersonHandler extends TransactionalCommandHandler<Update
 
     // 8. Map to DTO and return (inkl. Qualifikationen für nested DTO)
     const dto = StammPersonQueryMapper.toDto(stammPerson, qualifikationen);
-    return Result.ok({ result: dto, events });
+    return { result: dto, events };
   }
 }

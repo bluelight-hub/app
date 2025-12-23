@@ -73,7 +73,10 @@ export class ErfasseFahrzeugAusStammdatenHandler extends TransactionalCommandHan
    * 5. Speichern in Transaction
    * 6. Domain Events extrahieren für Outbox
    */
-  protected async executeInTransaction(command: ErfasseFahrzeugAusStammdatenCommand, tx: TransactionContext): Promise<Result<{ result: EinsatzFahrzeugDto; events: DomainEvent[] }>> {
+  protected async executeInTransaction(
+    command: ErfasseFahrzeugAusStammdatenCommand,
+    tx: TransactionContext,
+  ): Promise<Result<EinsatzFahrzeugDto> | { result: EinsatzFahrzeugDto; events: DomainEvent[] }> {
     // 1. Validate StammFahrzeug ID format
     const stammIdResult = StammFahrzeugId.create(command.stammId);
     if (stammIdResult.isFailure) {
@@ -151,6 +154,6 @@ export class ErfasseFahrzeugAusStammdatenHandler extends TransactionalCommandHan
 
     // 9. Map to DTO and return
     const dto = EinsatzFahrzeugQueryMapper.toDto(einsatzFahrzeug, fahrzeugtyp);
-    return Result.ok({ result: dto, events });
+    return { result: dto, events };
   }
 }

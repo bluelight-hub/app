@@ -68,7 +68,7 @@ export class UpdateFmsStatusHandler extends TransactionalCommandHandler<UpdateFm
    * @param tx - TransactionContext für atomare Persistierung (DB Transaction)
    * @returns Result<{ result: EinsatzFahrzeugDto; events: DomainEvent[] }> - Success mit DTO und Events oder Failure mit Fehlermeldung
    */
-  protected async executeInTransaction(command: UpdateFmsStatusCommand, tx: TransactionContext): Promise<Result<{ result: EinsatzFahrzeugDto; events: DomainEvent[] }>> {
+  protected async executeInTransaction(command: UpdateFmsStatusCommand, tx: TransactionContext): Promise<Result<EinsatzFahrzeugDto> | { result: EinsatzFahrzeugDto; events: DomainEvent[] }> {
     // 1. Validate EinsatzFahrzeugId format
     const fahrzeugIdResult = EinsatzFahrzeugId.create(command.fahrzeugId);
     if (fahrzeugIdResult.isFailure) {
@@ -137,6 +137,6 @@ export class UpdateFmsStatusHandler extends TransactionalCommandHandler<UpdateFm
 
     // 8. Map to DTO and return
     const dto = EinsatzFahrzeugQueryMapper.toDto(fahrzeug, fahrzeugtyp);
-    return Result.ok({ result: dto, events });
+    return { result: dto, events };
   }
 }

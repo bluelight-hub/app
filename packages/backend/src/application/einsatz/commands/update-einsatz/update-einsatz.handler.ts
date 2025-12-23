@@ -81,7 +81,7 @@ export class UpdateEinsatzHandler extends TransactionalCommandHandler<UpdateEins
    * @param tx - Transaction Context (framework-agnostisch, Infrastructure castet zu Prisma)
    * @returns Result<{ result: void; events: DomainEvent[] }> - Success oder Failure
    */
-  protected async executeInTransaction(command: UpdateEinsatzCommand, tx: TransactionContext): Promise<Result<{ result: undefined; events: DomainEvent[] }>> {
+  protected async executeInTransaction(command: UpdateEinsatzCommand, tx: TransactionContext): Promise<Result<void> | { result: void; events: DomainEvent[] }> {
     // Step 1: Validate EinsatzId format
     const einsatzIdResult = EinsatzId.create(command.einsatzId);
     if (einsatzIdResult.isFailure) {
@@ -172,9 +172,9 @@ export class UpdateEinsatzHandler extends TransactionalCommandHandler<UpdateEins
     });
 
     // Step 6: Return result + events für Base Handler
-    return Result.ok({
+    return {
       result: undefined,
       events,
-    });
+    };
   }
 }

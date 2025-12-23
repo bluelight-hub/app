@@ -80,7 +80,7 @@ export class LockUserHandler extends TransactionalCommandHandler<LockUserCommand
    * @param tx - Transaction Context (framework-agnostisch, Infrastructure castet zu Prisma)
    * @returns Result<{ result: void; events: DomainEvent[] }> - Success oder Failure
    */
-  protected async executeInTransaction(command: LockUserCommand, tx: TransactionContext): Promise<Result<{ result: undefined; events: DomainEvent[] }>> {
+  protected async executeInTransaction(command: LockUserCommand, tx: TransactionContext): Promise<Result<void> | { result: void; events: DomainEvent[] }> {
     // Step 1: Validate User ID format
     const userIdResult = UserId.create(command.id);
     if (userIdResult.isFailure) {
@@ -188,9 +188,9 @@ export class LockUserHandler extends TransactionalCommandHandler<LockUserCommand
     });
 
     // Step 7: Return result + events für Base Handler
-    return Result.ok({
+    return {
       result: undefined,
       events,
-    });
+    };
   }
 }

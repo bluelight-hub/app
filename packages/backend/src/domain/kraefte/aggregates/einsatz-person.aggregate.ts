@@ -509,7 +509,7 @@ export class EinsatzPerson extends AggregateRoot<EinsatzPersonId> {
         props.createdAt,
         props.updatedAt,
         props.updatedBy?.trim(),
-        props.fahrzeugId,
+        props.fahrzeugId?.trim(),
       ),
     );
   }

@@ -28,7 +28,8 @@ function RouteComponent() {
   const handleClosePersonDialog = useCallback(() => setShowPersonDialog(false), []);
 
   // State für per-Person Loading (BLOCKER Fix: Race Condition)
-  const [assigningPersonId, setAssigningPersonId] = useState<string | null>(null);
+  // Set<string> ermöglicht parallele Zuweisungen mehrerer Personen
+  const [assigningPersonIds, setAssigningPersonIds] = useState<Set<string>>(new Set());
 
   // Daten laden
   const { data: personen = [], isLoading: isLoadingPersonen, error: personenError } = useEinsatzPersonen(einsatzId);
@@ -41,28 +42,43 @@ function RouteComponent() {
   // Handler für Fahrzeug-Zuweisung (BLOCKER Fix: Per-Person Loading State)
   const handleAssign = useCallback(
     (personId: string, fahrzeugId: string | null) => {
-      // Guard gegen Race Condition
-      if (assigningPersonId) return;
+      // Guard gegen Race Condition: Prüfe ob DIESE Person bereits zugewiesen wird
+      if (assigningPersonIds.has(personId)) return;
 
-      setAssigningPersonId(personId);
+      // Füge Person zu Loading Set hinzu
+      setAssigningPersonIds((prev) => new Set(prev).add(personId));
 
       if (fahrzeugId) {
         weiseZu.mutate(
           { personId, fahrzeugId },
           {
-            onSettled: () => setAssigningPersonId(null),
+            onSettled: () => {
+              // Entferne Person aus Loading Set
+              setAssigningPersonIds((prev) => {
+                const next = new Set(prev);
+                next.delete(personId);
+                return next;
+              });
+            },
           },
         );
       } else {
         entferne.mutate(
           { personId },
           {
-            onSettled: () => setAssigningPersonId(null),
+            onSettled: () => {
+              // Entferne Person aus Loading Set
+              setAssigningPersonIds((prev) => {
+                const next = new Set(prev);
+                next.delete(personId);
+                return next;
+              });
+            },
           },
         );
       }
     },
-    [weiseZu, entferne, assigningPersonId],
+    [weiseZu, entferne, assigningPersonIds],
   );
 
   // Loading State
@@ -201,7 +217,7 @@ function RouteComponent() {
                         currentFahrzeugId={person.fahrzeugId}
                         fahrzeuge={fahrzeuge}
                         onAssign={(fahrzeugId) => handleAssign(person.id, fahrzeugId)}
-                        isLoading={assigningPersonId === person.id}
+                        isLoading={assigningPersonIds.has(person.id)}
                         className="w-full"
                       />
                     </td>

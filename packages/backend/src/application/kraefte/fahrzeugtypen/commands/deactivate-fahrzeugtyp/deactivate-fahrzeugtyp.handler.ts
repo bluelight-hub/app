@@ -42,7 +42,7 @@ export class DeactivateFahrzeugtypHandler extends TransactionalCommandHandler<De
   /**
    * Implementiert Business Logic innerhalb der Transaktion.
    */
-  protected async executeInTransaction(command: DeactivateFahrzeugtypCommand, tx: TransactionContext): Promise<Result<{ result: FahrzeugtypDto; events: DomainEvent[] }>> {
+  protected async executeInTransaction(command: DeactivateFahrzeugtypCommand, tx: TransactionContext): Promise<Result<FahrzeugtypDto> | { result: FahrzeugtypDto; events: DomainEvent[] }> {
     // 1. Validate ID format
     const idResult = FahrzeugtypId.create(command.id);
     if (idResult.isFailure) {
@@ -101,6 +101,6 @@ export class DeactivateFahrzeugtypHandler extends TransactionalCommandHandler<De
 
     // 6. Map to DTO and return
     const dto = FahrzeugtypQueryMapper.toDto(fahrzeugtyp);
-    return Result.ok({ result: dto, events });
+    return { result: dto, events };
   }
 }

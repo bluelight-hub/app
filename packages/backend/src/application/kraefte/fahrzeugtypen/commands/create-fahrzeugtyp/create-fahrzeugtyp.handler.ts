@@ -53,7 +53,7 @@ export class CreateFahrzeugtypHandler extends TransactionalCommandHandler<Create
    * - ABER: DB Constraint fängt Race Condition ab → Repository save() gibt Result.fail bei P2002
    * - Redundanz ist GEWOLLT: Handler-Check = UX, DB-Constraint = Korrektheit
    */
-  protected async executeInTransaction(command: CreateFahrzeugtypCommand, tx: TransactionContext): Promise<Result<{ result: FahrzeugtypDto; events: DomainEvent[] }>> {
+  protected async executeInTransaction(command: CreateFahrzeugtypCommand, tx: TransactionContext): Promise<Result<FahrzeugtypDto> | { result: FahrzeugtypDto; events: DomainEvent[] }> {
     // 1. Check Uniqueness: Code (UX Optimization, DB Constraint ist autoritative Quelle)
     const existingResult = await this.repository.findByCode(command.code, tx);
     if (existingResult.isFailure) {
@@ -110,6 +110,6 @@ export class CreateFahrzeugtypHandler extends TransactionalCommandHandler<Create
 
     // 5. Map to DTO and return
     const dto = FahrzeugtypQueryMapper.toDto(fahrzeugtyp);
-    return Result.ok({ result: dto, events });
+    return { result: dto, events };
   }
 }

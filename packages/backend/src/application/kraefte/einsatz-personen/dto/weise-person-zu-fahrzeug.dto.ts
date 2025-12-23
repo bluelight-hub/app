@@ -1,5 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { IsString, IsNotEmpty } from 'class-validator';
+import { IsCuid } from '@/modules/common/decorators/is-cuid.decorator';
 
 /**
  * DTO für PUT /einsaetze/:einsatzId/personen/:personId/fahrzeug
@@ -18,10 +19,12 @@ import { IsString, IsNotEmpty } from 'class-validator';
  */
 export class WeisePersonZuFahrzeugZuDto {
   @ApiProperty({
-    description: 'ID des Fahrzeugs zu dem die Person zugewiesen werden soll (CUID2)',
+    description: 'ID des Fahrzeugs zu dem die Person zugewiesen werden soll (CUID)',
     example: 'clxxxxxxxxxxxxxxxxxxxxxxxxx',
+    format: 'cuid',
   })
   @IsString()
   @IsNotEmpty()
+  @IsCuid()
   fahrzeugId!: string;
 }
