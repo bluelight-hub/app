@@ -20,7 +20,7 @@ import { mapValues } from '../runtime';
  */
 export interface WeisePersonZuFahrzeugZuDto {
   /**
-   * ID des Fahrzeugs zu dem die Person zugewiesen werden soll (CUID2)
+   * ID des Fahrzeugs zu dem die Person zugewiesen werden soll (CUID)
    * @type {string}
    * @memberof WeisePersonZuFahrzeugZuDto
    */
