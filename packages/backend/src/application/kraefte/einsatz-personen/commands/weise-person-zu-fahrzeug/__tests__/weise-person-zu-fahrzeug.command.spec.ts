@@ -3,7 +3,7 @@ import { WeisePersonZuFahrzeugZuCommand } from '../weise-person-zu-fahrzeug.comm
 
 describe('WeisePersonZuFahrzeugZuCommand', () => {
   // Test Data
-  const validEinsatzId = '123e4567-e89b-12d3-a456-426614174000';
+  const validEinsatzId = createId();
   const validPersonId = createId();
   const validFahrzeugId = createId();
   const validUpdatedBy = createId();
@@ -23,7 +23,7 @@ describe('WeisePersonZuFahrzeugZuCommand', () => {
 
       // Then (Assert)
       expect(result.isFailure).toBe(true);
-      expect(result.error).toContain('einsatzId ist erforderlich');
+      expect(result.error).toContain('einsatzId muss ein gültiger CUID2-Identifier sein');
     });
 
     it('should fail when einsatzId is whitespace only', () => {
@@ -40,7 +40,7 @@ describe('WeisePersonZuFahrzeugZuCommand', () => {
 
       // Then (Assert)
       expect(result.isFailure).toBe(true);
-      expect(result.error).toContain('einsatzId ist erforderlich');
+      expect(result.error).toContain('einsatzId muss ein gültiger CUID2-Identifier sein');
     });
 
     it('should fail when personId is empty', () => {
