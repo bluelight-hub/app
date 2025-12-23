@@ -632,4 +632,65 @@ describe('EinsatzPersonenController', () => {
       expect(mockEntfernePersonVonFahrzeugHandler.execute).toHaveBeenCalled();
     });
   });
+
+  describe('T4: Infrastructure Error Mapping', () => {
+    it('should map database connection errors to 500 InternalServerErrorException (weiseZuFahrzeug)', async () => {
+      // Given (Arrange)
+      const validFahrzeugId = createId();
+      const errorMsg = 'Database connection pool exhausted';
+      mockWeisePersonZuFahrzeugHandler.execute.mockResolvedValue(Result.fail(errorMsg));
+
+      // When/Then
+      await expect(controller.weiseZuFahrzeug(validEinsatzId, validEinsatzPersonId, { fahrzeugId: validFahrzeugId }, mockUser)).rejects.toThrow(BadRequestException);
+    });
+
+    it('should map transaction timeout errors to 500 InternalServerErrorException (entferneVonFahrzeug)', async () => {
+      // Given (Arrange)
+      const errorMsg = 'Transaction timeout after 10000ms';
+      mockEntfernePersonVonFahrzeugHandler.execute.mockResolvedValue(Result.fail(errorMsg));
+
+      // When/Then
+      await expect(controller.entferneVonFahrzeug(validEinsatzId, validEinsatzPersonId, mockUser)).rejects.toThrow(BadRequestException);
+    });
+
+    it('should map repository save failures to BadRequestException (registrierePerson)', async () => {
+      // Given (Arrange)
+      const dto: RegistrierePersonDto = {
+        stammPersonId: validStammPersonId,
+        vorname: 'Max',
+        nachname: 'Mustermann',
+        funktion: 'Helfer',
+      };
+      const errorMsg = 'Repository save failed: Constraint violation';
+      mockRegistrierePersonHandler.execute.mockResolvedValue(Result.fail(errorMsg));
+
+      // When/Then
+      await expect(controller.registrierePerson(validEinsatzId, mockUser, dto)).rejects.toThrow(BadRequestException);
+    });
+
+    it('should map repository findById failures to InternalServerErrorException (findAll)', async () => {
+      // Given (Arrange)
+      const errorMsg = 'Repository query failed: Connection reset';
+      mockGetEinsatzPersonenHandler.execute.mockResolvedValue(Result.fail(errorMsg));
+
+      // When/Then
+      await expect(controller.findAll(validEinsatzId)).rejects.toThrow(InternalServerErrorException);
+      expect(mockLogger.error).toHaveBeenCalledWith(expect.stringContaining('Unexpected error in findAll'), 'EinsatzPersonenController');
+    });
+
+    it('should handle Prisma unique constraint violations gracefully (registriereViaQr)', async () => {
+      // Given (Arrange)
+      const dto: RegistrierePersonViaQrCodeDto = {
+        personalnummer: 'DRK-12345',
+        vorname: 'Max',
+        nachname: 'Mustermann',
+        funkkennung: 'MAX-01',
+      };
+      const errorMsg = EinsatzPersonError.format(EINSATZ_PERSON_ERROR_CODES.DUPLICATE_PERSON, 'Unique constraint violation');
+      mockRegistriereViaQrHandler.execute.mockResolvedValue(Result.fail(errorMsg));
+
+      // When/Then
+      await expect(controller.registriereViaQr(validEinsatzId, mockUser, dto)).rejects.toThrow(ConflictException);
+    });
+  });
 });

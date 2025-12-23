@@ -379,6 +379,26 @@ describe('EntfernePersonVonFahrzeugHandler', () => {
       expect(mockEinsatzPersonRepository.save).not.toHaveBeenCalled();
       expect(mockOutboxRepository.save).not.toHaveBeenCalled();
     });
+
+    it('sollte rollbacken wenn Outbox-Speicherung fehlschlägt', async () => {
+      // Given (Arrange)
+      mockOutboxRepository.save.mockRejectedValue(new Error('Outbox write failed'));
+
+      const command = EntfernePersonVonFahrzeugCommand.create({
+        einsatzId: validEinsatzId,
+        personId: validPersonId,
+        updatedBy: validUpdatedBy,
+      }).value!;
+
+      // When (Act)
+      const result = await handler.execute(command);
+
+      // Then (Assert)
+      expect(result.isFailure).toBe(true);
+      expect(result.error).toContain('Outbox');
+      // Verify: Person save was attempted but transaction rolled back
+      expect(mockEinsatzPersonRepository.save).toHaveBeenCalledTimes(1);
+    });
   });
 
   describe('T2: Event Idempotency Tests', () => {
@@ -604,6 +624,96 @@ describe('EntfernePersonVonFahrzeugHandler', () => {
       // Verify each execution got its own transaction context
       expect(transactionContexts.length).toBe(3);
       expect(mockPrismaService.$transaction).toHaveBeenCalledTimes(3);
+    });
+  });
+
+  describe('T8: Retry Logic Tests (Optimistic Locking)', () => {
+    it('sollte bei Optimistic Locking Conflict NICHT automatisch retries (aktuelles Verhalten)', async () => {
+      // Given (Arrange)
+      mockEinsatzPersonRepository.save.mockResolvedValue(Result.fail('Optimistic locking conflict: Version mismatch'));
+
+      const command = EntfernePersonVonFahrzeugCommand.create({
+        einsatzId: validEinsatzId,
+        personId: validPersonId,
+        updatedBy: validUpdatedBy,
+      }).value!;
+
+      // When (Act)
+      const result = await handler.execute(command);
+
+      // Then (Assert)
+      expect(result.isFailure).toBe(true);
+      expect(result.error).toContain('Version mismatch');
+      // Verify: Nur ein Save-Versuch (kein Retry)
+      expect(mockEinsatzPersonRepository.save).toHaveBeenCalledTimes(1);
+    });
+
+    it('sollte verschiedene Personen parallel ohne Konflikt behandeln können', async () => {
+      // Given (Arrange)
+      const person1Id = validPersonId;
+      const person2Id = createId();
+
+      const person1 = createMockEinsatzPersonWithFahrzeug();
+      const person2WithId = EinsatzPerson.reconstitute({
+        id: person2Id,
+        einsatzId: validEinsatzId,
+        vorname: 'Anna',
+        nachname: 'Schmidt',
+        funktion: 'Helferin',
+        qualifikationIds: [],
+        createdAt: new Date(),
+        updatedAt: new Date(),
+        createdBy: validUpdatedBy,
+        fahrzeugId: validFahrzeugId,
+      }).value!;
+
+      mockEinsatzPersonRepository.findById.mockImplementation(async (id) => {
+        if (id.value === person1Id) return Result.ok(person1);
+        if (id.value === person2Id) return Result.ok(person2WithId);
+        return Result.ok(null);
+      });
+
+      const command1 = EntfernePersonVonFahrzeugCommand.create({
+        einsatzId: validEinsatzId,
+        personId: person1Id,
+        updatedBy: validUpdatedBy,
+      }).value!;
+
+      const command2 = EntfernePersonVonFahrzeugCommand.create({
+        einsatzId: validEinsatzId,
+        personId: person2Id,
+        updatedBy: validUpdatedBy,
+      }).value!;
+
+      // When (Act)
+      const results = await Promise.all([handler.execute(command1), handler.execute(command2)]);
+
+      // Then (Assert)
+      expect(results[0].isSuccess).toBe(true);
+      expect(results[1].isSuccess).toBe(true);
+      expect(mockEinsatzPersonRepository.save).toHaveBeenCalledTimes(2);
+    });
+
+    it('sollte bei transienten DB-Fehlern NICHT automatisch retries (aktuelles Verhalten)', async () => {
+      // Given (Arrange)
+      mockPrismaService.$transaction.mockImplementation(async () => {
+        throw new Error('Connection pool timeout');
+      });
+
+      const command = EntfernePersonVonFahrzeugCommand.create({
+        einsatzId: validEinsatzId,
+        personId: validPersonId,
+        updatedBy: validUpdatedBy,
+      }).value!;
+
+      // When (Act)
+      const result = await handler.execute(command);
+
+      // Then (Assert)
+      expect(result.isFailure).toBe(true);
+      expect(result.error).toContain('timeout');
+      // Verify: Nur ein Transaction-Versuch (kein Retry)
+      expect(mockPrismaService.$transaction).toHaveBeenCalledTimes(1);
     });
   });
 });
