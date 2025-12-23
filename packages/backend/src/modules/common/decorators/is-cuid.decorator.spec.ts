@@ -1,11 +1,12 @@
+import { createId } from '@paralleldrive/cuid2';
 import { validate } from 'class-validator';
 import { IsCuid, validateCuidFormat } from './is-cuid.decorator';
 
 /**
  * Tests für IsCuid Decorator und validateCuidFormat Funktion.
  *
- * Diese Tests stellen sicher, dass das CUID-Format korrekt validiert wird,
- * insbesondere für Legacy-Daten die mit Prisma's cuid() generiert wurden.
+ * Diese Tests stellen sicher, dass das CUID2-Format korrekt validiert wird.
+ * CUID2s werden von der Application Layer via `@paralleldrive/cuid2` generiert.
  */
 describe('IsCuid Decorator', () => {
   // Test-DTO Klasse für Decorator-Tests
@@ -20,12 +21,12 @@ describe('IsCuid Decorator', () => {
   }
 
   describe('validateCuidFormat', () => {
-    describe('Given valid CUID formats', () => {
+    describe('Given valid CUID2 formats', () => {
       it.each([
-        ['clw3h8x9y0000qwertyuiopas', 'typisches Prisma CUID'],
-        ['cm5abc1230000abcdef123456', 'anderes gültiges CUID'],
-        ['c00000000000000000000000a', 'minimales CUID (nur c und Nullen)'],
-        ['czzzzzzzzzzzzzzzzzzzzzzz9', 'maximales CUID (alle z und 9)'],
+        ['pf9902w6nvuidl428y92ssfc', 'typisches CUID2 aus Production'],
+        ['kv1gtdtz71ez5k2j5808clxf', 'anderes gültiges CUID2'],
+        ['spcfr38z2ev21fvde2xklrxk', 'CUID2 von Fahrzeug'],
+        [createId(), 'dynamisch generiertes CUID2'],
       ])('should return true for %s (%s)', (value, _description) => {
         // When
         const result = validateCuidFormat(value);
@@ -35,17 +36,15 @@ describe('IsCuid Decorator', () => {
       });
     });
 
-    describe('Given invalid CUID formats', () => {
+    describe('Given invalid CUID2 formats', () => {
       it.each([
-        ['abc', 'zu kurz'],
-        ['abcdefghijklmnopqrstuvwxy', 'beginnt nicht mit c'],
-        ['Clw3h8x9y0000qwertyuiopas', 'beginnt mit Großbuchstabe'],
-        ['clw3h8x9y0000qwertyuiopasXXX', 'zu lang'],
-        ['clw3H8x9y0000qwertyuiopas', 'enthält Großbuchstabe in der Mitte'],
+        ['ABC123', 'Großbuchstaben'],
+        ['clw3H8x9y0000qwertyuiopas', 'enthält Großbuchstabe'],
         ['clw3h8x9y0000qwerty_iopas', 'enthält Unterstrich'],
         ['clw3h8x9y0000qwerty-iopas', 'enthält Bindestrich'],
         ['clw3h8x9y0000 wertyuiopas', 'enthält Leerzeichen'],
         ['', 'leerer String'],
+        ['123456', 'nur Zahlen'],
       ])('should return false for "%s" (%s)', (value, _description) => {
         // When
         const result = validateCuidFormat(value);
@@ -90,11 +89,11 @@ describe('IsCuid Decorator', () => {
   });
 
   describe('IsCuid Decorator with class-validator', () => {
-    describe('Given valid CUID', () => {
-      it('should pass validation for a valid CUID', async () => {
+    describe('Given valid CUID2', () => {
+      it('should pass validation for a valid CUID2', async () => {
         // Given
         const dto = new TestDto();
-        dto.id = 'clw3h8x9y0000qwertyuiopas';
+        dto.id = 'pf9902w6nvuidl428y92ssfc'; // Echte CUID2 aus Production
 
         // When
         const errors = await validate(dto);
@@ -104,7 +103,7 @@ describe('IsCuid Decorator', () => {
       });
     });
 
-    describe('Given invalid CUID', () => {
+    describe('Given invalid CUID2', () => {
       it('should fail validation with descriptive error message', async () => {
         // Given
         const dto = new TestDto();
@@ -115,8 +114,7 @@ describe('IsCuid Decorator', () => {
 
         // Then
         expect(errors).toHaveLength(1);
-        expect(errors[0].constraints?.isCuid).toContain('gültige CUID');
-        expect(errors[0].constraints?.isCuid).toContain('25 Zeichen');
+        expect(errors[0].constraints?.isCuid).toContain('gültige CUID2');
       });
 
       it('should fail validation for NanoID format (21 chars)', async () => {
@@ -147,14 +145,18 @@ describe('IsCuid Decorator', () => {
     });
   });
 
-  describe('Regression Tests für Legacy Einsatz-IDs', () => {
+  describe('Regression Tests für Production CUID2-IDs', () => {
     /**
-     * Diese Tests verwenden echte CUID-Formate, die von Prisma generiert wurden,
+     * Diese Tests verwenden echte CUID2-IDs aus Production,
      * um sicherzustellen, dass existierende Daten korrekt validiert werden.
      */
-    it.each(['clw3h8x9y0000qwertyuiopas', 'cm5abcdef0000ghijklmnop12', 'cl9xyz1230000abcdefghij56'])('should accept legacy Einsatz-ID: %s', (legacyId) => {
+    it.each([
+      'pf9902w6nvuidl428y92ssfc', // Einsatz-ID
+      'kv1gtdtz71ez5k2j5808clxf', // Person-ID
+      'spcfr38z2ev21fvde2xklrxk', // Fahrzeug-ID
+    ])('should accept production CUID2: %s', (productionId) => {
       // When
-      const result = validateCuidFormat(legacyId);
+      const result = validateCuidFormat(productionId);
 
       // Then
       expect(result).toBe(true);
