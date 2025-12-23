@@ -934,6 +934,21 @@ describe('EinsatzPerson Aggregate', () => {
         expect(removeResult.isSuccess).toBe(true);
         expect(person.getDomainEvents()).toHaveLength(0);
       });
+
+      it('should trim fahrzeugFunkrufname in PersonVonFahrzeugEntferntEvent (D4)', () => {
+        // Given (Arrange)
+        const person = createPersonWithFahrzeug();
+
+        // When (Act)
+        const result = person.removeFromFahrzeug('  LF 10/1  ', validUpdatedBy);
+
+        // Then (Assert)
+        expect(result.isSuccess).toBe(true);
+        const events = person.getDomainEvents();
+        expect(events).toHaveLength(1);
+        const event = events[0] as { fahrzeugFunkrufname: string };
+        expect(event.fahrzeugFunkrufname).toBe('LF 10/1');
+      });
     });
   });
 

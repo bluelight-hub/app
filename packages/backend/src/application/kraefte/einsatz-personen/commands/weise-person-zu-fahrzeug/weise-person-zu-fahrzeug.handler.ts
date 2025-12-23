@@ -46,52 +46,79 @@ export class WeisePersonZuFahrzeugZuHandler extends TransactionalCommandHandler<
   /**
    * Implementiert Business Logic innerhalb der Transaktion.
    *
+   * **Result Pattern (AC4):**
+   * - Gibt Result.fail() für erwartete Business-Fehler zurück (statt throw)
+   * - Exceptions nur für unerwartete Fehler (DB-Connection, Programming Errors)
+   *
+   * **H2: Transaction Context Validation:**
+   * - Validiert tx parameter zu Beginn (null-check)
+   * - Garantiert atomare Konsistenz zwischen Aggregate und Outbox
+   *
    * @param command - WeisePersonZuFahrzeugZuCommand mit Person- und Fahrzeug-IDs
-   * @param tx - Transaction Context für atomare Persistierung
-   * @returns Plain object mit result und Domain Events
-   * @throws Error bei Validation/Business Rule Violations
+   * @param tx - Transaction Context für atomare Persistierung (REQUIRED)
+   * @returns Result.fail() oder { result: undefined; events: DomainEvent[] }
    */
-  protected async executeInTransaction(command: WeisePersonZuFahrzeugZuCommand, tx: TransactionContext): Promise<{ result: undefined; events: DomainEvent[] }> {
+  protected async executeInTransaction(command: WeisePersonZuFahrzeugZuCommand, tx: TransactionContext): Promise<Result<void> | { result: undefined; events: DomainEvent[] }> {
+    // H2: Transaction Context Validation - Garantiert atomare Persistierung
+    if (!tx) {
+      return Result.fail('Transaction context is required for atomic operations');
+    }
+
+    // H3: Validate einsatzId CUID2 format before processing
+    const { isCuid } = await import('@paralleldrive/cuid2');
+    if (!isCuid(command.einsatzId)) {
+      return Result.fail(EinsatzPersonError.format(EINSATZ_PERSON_ERROR_CODES.NOT_FOUND, `Ungültige Einsatz-ID Format: ${command.einsatzId}`));
+    }
+
     // 1. Person laden
     const personIdResult = EinsatzPersonId.create(command.personId);
     if (personIdResult.isFailure || !personIdResult.value) {
-      throw new Error(EinsatzPersonError.format(EINSATZ_PERSON_ERROR_CODES.NOT_FOUND, `Ungültige Person-ID: ${command.personId}`));
+      // H1: Result Pattern - Return Result.fail() statt throw
+      return Result.fail(EinsatzPersonError.format(EINSATZ_PERSON_ERROR_CODES.NOT_FOUND, `Ungültige Person-ID: ${command.personId}`));
     }
 
     const personResult = await this.personRepository.findById(personIdResult.value, tx);
     if (personResult.isFailure || !personResult.value) {
-      throw new Error(EinsatzPersonError.format(EINSATZ_PERSON_ERROR_CODES.NOT_FOUND, `Person ${command.personId} nicht gefunden`));
+      // H1: Result Pattern - Return Result.fail() statt throw
+      return Result.fail(EinsatzPersonError.format(EINSATZ_PERSON_ERROR_CODES.NOT_FOUND, `Person ${command.personId} nicht gefunden`));
     }
     const person = personResult.value;
 
     // 2. Fahrzeug laden
     const fahrzeugIdResult = EinsatzFahrzeugId.create(command.fahrzeugId);
     if (fahrzeugIdResult.isFailure || !fahrzeugIdResult.value) {
-      throw new Error(EinsatzPersonError.format(EINSATZ_PERSON_ERROR_CODES.FAHRZEUG_NOT_FOUND, `Ungültige Fahrzeug-ID: ${command.fahrzeugId}`));
+      // H1: Result Pattern - Return Result.fail() statt throw
+      return Result.fail(EinsatzPersonError.format(EINSATZ_PERSON_ERROR_CODES.FAHRZEUG_NOT_FOUND, `Ungültige Fahrzeug-ID: ${command.fahrzeugId}`));
     }
 
     const fahrzeugResult = await this.fahrzeugRepository.findById(fahrzeugIdResult.value, tx);
     if (fahrzeugResult.isFailure || !fahrzeugResult.value) {
-      throw new Error(EinsatzPersonError.format(EINSATZ_PERSON_ERROR_CODES.FAHRZEUG_NOT_FOUND, `Fahrzeug ${command.fahrzeugId} nicht gefunden`));
+      // H1: Result Pattern - Return Result.fail() statt throw
+      return Result.fail(EinsatzPersonError.format(EINSATZ_PERSON_ERROR_CODES.FAHRZEUG_NOT_FOUND, `Fahrzeug ${command.fahrzeugId} nicht gefunden`));
     }
     const fahrzeug = fahrzeugResult.value;
 
     // 3. Validierung: Fahrzeug MUSS im gleichen Einsatz sein
     if (fahrzeug.einsatzId !== person.einsatzId) {
-      throw new Error(EinsatzPersonError.format(EINSATZ_PERSON_ERROR_CODES.FAHRZEUG_NOT_IN_SAME_EINSATZ, `Fahrzeug ${command.fahrzeugId} gehört nicht zum Einsatz ${command.einsatzId}`));
+      // H1: Result Pattern - Return Result.fail() statt throw
+      return Result.fail(EinsatzPersonError.format(EINSATZ_PERSON_ERROR_CODES.FAHRZEUG_NOT_IN_SAME_EINSATZ, `Fahrzeug ${command.fahrzeugId} gehört nicht zum Einsatz ${command.einsatzId}`));
     }
 
     // 4. Person zu Fahrzeug zuweisen (Domain Logic)
     const assignResult = person.assignToFahrzeug(fahrzeug.id.value, fahrzeug.funkrufname, command.updatedBy);
 
     if (assignResult.isFailure) {
-      throw new Error(assignResult.error ?? 'Fehler beim Zuweisen der Person');
+      // H1: Result Pattern - Return Result.fail() statt throw
+      return Result.fail(assignResult.error ?? 'Fehler beim Zuweisen der Person');
     }
 
     // 5. Speichern
     const saveResult = await this.personRepository.save(person, tx);
     if (saveResult.isFailure) {
-      throw new Error(EinsatzPersonError.format(EINSATZ_PERSON_ERROR_CODES.SAVE_FAILED, `Person speichern fehlgeschlagen: ${saveResult.error}`));
+      // H1: Result Pattern - Return Result.fail() statt throw (EXCEPT: DB Connection Failures)
+      // NOTE: saveResult.error kann ein DB-Fehler sein - hier bewusst Result.fail() statt throw
+      // da Repository bereits zwischen Business- und Technical-Errors unterscheidet
+      return Result.fail(EinsatzPersonError.format(EINSATZ_PERSON_ERROR_CODES.SAVE_FAILED, `Person speichern fehlgeschlagen: ${saveResult.error}`));
     }
 
     // 6. Events extrahieren (für Outbox)

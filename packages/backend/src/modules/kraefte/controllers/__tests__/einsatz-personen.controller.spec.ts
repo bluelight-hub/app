@@ -551,13 +551,13 @@ describe('EinsatzPersonenController', () => {
       await expect(controller.weiseZuFahrzeug(validEinsatzId, validEinsatzPersonId, { fahrzeugId: validFahrzeugId }, mockUser)).rejects.toThrow(NotFoundException);
     });
 
-    it('should throw ConflictException when fahrzeug not in same einsatz', async () => {
+    it('should throw BadRequestException when fahrzeug not in same einsatz', async () => {
       // Given
       const errorMsg = EinsatzPersonError.format(EINSATZ_PERSON_ERROR_CODES.FAHRZEUG_NOT_IN_SAME_EINSATZ, 'Fahrzeug gehört zu anderem Einsatz');
       mockWeisePersonZuFahrzeugHandler.execute.mockResolvedValue(Result.fail(errorMsg));
 
-      // When/Then - ConflictException weil Business Rule Violation (nicht Validation Error)
-      await expect(controller.weiseZuFahrzeug(validEinsatzId, validEinsatzPersonId, { fahrzeugId: validFahrzeugId }, mockUser)).rejects.toThrow(ConflictException);
+      // When/Then - BadRequestException weil Client Validation Error
+      await expect(controller.weiseZuFahrzeug(validEinsatzId, validEinsatzPersonId, { fahrzeugId: validFahrzeugId }, mockUser)).rejects.toThrow(BadRequestException);
     });
 
     it('should throw BadRequestException for validation errors', async () => {
@@ -566,6 +566,16 @@ describe('EinsatzPersonenController', () => {
 
       // When/Then
       await expect(controller.weiseZuFahrzeug(validEinsatzId, validEinsatzPersonId, { fahrzeugId: validFahrzeugId }, mockUser)).rejects.toThrow(BadRequestException);
+    });
+
+    it('should throw 500 if reload query fails after successful assignment', async () => {
+      // Given - Assignment succeeds but reload fails (N+1 edge case)
+      mockWeisePersonZuFahrzeugHandler.execute.mockResolvedValue(Result.ok(undefined));
+      mockGetEinsatzPersonByIdHandler.execute.mockResolvedValue(Result.fail('DB timeout'));
+
+      // When/Then - Infrastructure error after successful mutation
+      await expect(controller.weiseZuFahrzeug(validEinsatzId, validEinsatzPersonId, { fahrzeugId: validFahrzeugId }, mockUser)).rejects.toThrow(InternalServerErrorException);
+      expect(mockLogger.error).toHaveBeenCalledWith(expect.stringContaining(`Fehler beim Laden der Person ${validEinsatzPersonId}`), 'EinsatzPersonenController');
     });
   });
 

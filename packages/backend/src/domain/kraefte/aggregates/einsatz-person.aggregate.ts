@@ -494,6 +494,10 @@ export class EinsatzPerson extends AggregateRoot<EinsatzPersonId> {
     const trimmedFunkrufname = props.funkrufname?.trim();
     const funkrufname = trimmedFunkrufname && trimmedFunkrufname.length > 0 ? trimmedFunkrufname : undefined;
 
+    // D3: Empty-string-after-trim check für fahrzeugId (match funkrufname pattern)
+    const trimmedFahrzeugId = props.fahrzeugId?.trim();
+    const fahrzeugId = trimmedFahrzeugId && trimmedFahrzeugId.length > 0 ? trimmedFahrzeugId : undefined;
+
     return Result.ok<EinsatzPerson>(
       new EinsatzPerson(
         id,
@@ -509,7 +513,7 @@ export class EinsatzPerson extends AggregateRoot<EinsatzPersonId> {
         props.createdAt,
         props.updatedAt,
         props.updatedBy?.trim(),
-        props.fahrzeugId?.trim(),
+        fahrzeugId,
       ),
     );
   }
@@ -528,11 +532,12 @@ export class EinsatzPerson extends AggregateRoot<EinsatzPersonId> {
    * @returns Result<void>
    */
   assignToFahrzeug(fahrzeugId: string, fahrzeugFunkrufname: string, updatedBy: string): Result<void> {
+    // D5: Standardized validation order (fahrzeugId → fahrzeugFunkrufname → updatedBy)
     // Validation: fahrzeugId
     if (!fahrzeugId?.trim() || !isCuid(fahrzeugId.trim())) {
       return Result.fail(EinsatzPersonError.format(EINSATZ_PERSON_ERROR_CODES.VALIDATION_ERROR, 'fahrzeugId muss ein gültiger CUID2-Identifier sein'));
     }
-    // Validation: fahrzeugFunkrufname (D1: BLOCKER Fix)
+    // Validation: fahrzeugFunkrufname
     if (!fahrzeugFunkrufname?.trim()) {
       return Result.fail(EinsatzPersonError.format(EINSATZ_PERSON_ERROR_CODES.INVALID_FAHRZEUG_FUNKRUFNAME, 'fahrzeugFunkrufname ist erforderlich'));
     }
@@ -572,19 +577,20 @@ export class EinsatzPerson extends AggregateRoot<EinsatzPersonId> {
    * @returns Result<void>
    */
   removeFromFahrzeug(fahrzeugFunkrufname: string, updatedBy: string): Result<void> {
-    // Validation: fahrzeugFunkrufname (für ETB-Eintrag) - MUSS VOR Idempotenz-Check kommen (D1: HIGH Priority Fix)
+    // D1: Idempotenz-Check FIRST (wenn keine Zuweisung, dann params irrelevant)
+    if (!this._fahrzeugId) {
+      return Result.ok<void>(undefined);
+    }
+
+    // D2, D5: Standardized validation order (fahrzeugFunkrufname → updatedBy)
+    // Validation: fahrzeugFunkrufname - INVALID_FAHRZEUG_FUNKRUFNAME error code
     if (!fahrzeugFunkrufname?.trim()) {
-      return Result.fail(EinsatzPersonError.format(EINSATZ_PERSON_ERROR_CODES.VALIDATION_ERROR, 'fahrzeugFunkrufname ist erforderlich'));
+      return Result.fail(EinsatzPersonError.format(EINSATZ_PERSON_ERROR_CODES.INVALID_FAHRZEUG_FUNKRUFNAME, 'fahrzeugFunkrufname ist erforderlich'));
     }
 
     // Validation: updatedBy
     if (!updatedBy?.trim() || !isCuid(updatedBy.trim())) {
       return Result.fail(EinsatzPersonError.format(EINSATZ_PERSON_ERROR_CODES.VALIDATION_ERROR, 'updatedBy muss ein gültiger CUID2-Identifier sein'));
-    }
-
-    // Idempotenz: Nicht zugewiesen → Success (kein Event) - NACH Input-Validierung (D1: HIGH Priority Fix)
-    if (!this._fahrzeugId) {
-      return Result.ok<void>(undefined);
     }
 
     const previousFahrzeugId = this._fahrzeugId;

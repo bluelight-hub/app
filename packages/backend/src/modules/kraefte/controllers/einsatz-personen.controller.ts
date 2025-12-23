@@ -234,8 +234,17 @@ export class EinsatzPersonenController {
       throw new InternalServerErrorException('Fehler beim Registrieren der Person');
     }
 
-    // Audit logging
-    this.logger.log(`EinsatzPerson registriert: ${result.value} (${dto.vorname} ${dto.nachname}) für Einsatz ${einsatzId} von Admin ${user.userId}`, 'EinsatzPersonenController');
+    /**
+     * GDPR-konformes Audit-Logging OHNE PII (Personally Identifiable Information).
+     *
+     * Logged werden NUR:
+     * - EinsatzPerson ID (technischer Identifier)
+     * - Einsatz ID (technischer Identifier)
+     * - User ID (technischer Identifier)
+     *
+     * NICHT geloggt: Vorname, Nachname, Personalnummer (PII!)
+     */
+    this.logger.log(`EinsatzPerson registriert: ${result.value} fuer Einsatz ${einsatzId} von Admin ${user.userId}`, 'EinsatzPersonenController');
 
     return { id: result.value };
   }
@@ -404,7 +413,17 @@ export class EinsatzPersonenController {
         throw new NotFoundException(EinsatzPersonError.extractMessage(errorMessage));
       }
       if (EinsatzPersonError.hasCode(errorMessage, EINSATZ_PERSON_ERROR_CODES.FAHRZEUG_NOT_IN_SAME_EINSATZ)) {
-        throw new ConflictException(EinsatzPersonError.extractMessage(errorMessage));
+        throw new BadRequestException(EinsatzPersonError.extractMessage(errorMessage));
+      }
+
+      // Infrastructure errors (500 Internal Server Error)
+      if (
+        EinsatzPersonError.hasCode(errorMessage, EINSATZ_PERSON_ERROR_CODES.STAMM_LOOKUP_FAILED) ||
+        EinsatzPersonError.hasCode(errorMessage, EINSATZ_PERSON_ERROR_CODES.DUPLICATE_CHECK_FAILED) ||
+        EinsatzPersonError.hasCode(errorMessage, EINSATZ_PERSON_ERROR_CODES.SAVE_FAILED)
+      ) {
+        this.logger.error(`Infrastructure error in assignment: ${errorMessage}`, 'EinsatzPersonenController');
+        throw new InternalServerErrorException('Fehler beim Zuweisen der Person zu Fahrzeug');
       }
 
       this.logger.error(`Fehler beim Zuweisen von Person ${personId} zu Fahrzeug: ${errorMessage}`, 'EinsatzPersonenController');
@@ -479,6 +498,16 @@ export class EinsatzPersonenController {
 
       if (EinsatzPersonError.hasCode(errorMessage, EINSATZ_PERSON_ERROR_CODES.NOT_FOUND)) {
         throw new NotFoundException(EinsatzPersonError.extractMessage(errorMessage));
+      }
+
+      // Infrastructure errors (500 Internal Server Error)
+      if (
+        EinsatzPersonError.hasCode(errorMessage, EINSATZ_PERSON_ERROR_CODES.STAMM_LOOKUP_FAILED) ||
+        EinsatzPersonError.hasCode(errorMessage, EINSATZ_PERSON_ERROR_CODES.DUPLICATE_CHECK_FAILED) ||
+        EinsatzPersonError.hasCode(errorMessage, EINSATZ_PERSON_ERROR_CODES.SAVE_FAILED)
+      ) {
+        this.logger.error(`Infrastructure error in removal: ${errorMessage}`, 'EinsatzPersonenController');
+        throw new InternalServerErrorException('Fehler beim Entfernen der Person von Fahrzeug');
       }
 
       this.logger.error(`Fehler beim Entfernen von Person ${personId} von Fahrzeug: ${errorMessage}`, 'EinsatzPersonenController');

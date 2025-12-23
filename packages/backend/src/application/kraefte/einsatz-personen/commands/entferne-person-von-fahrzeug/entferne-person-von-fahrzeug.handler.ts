@@ -46,26 +46,47 @@ export class EntfernePersonVonFahrzeugHandler extends TransactionalCommandHandle
   /**
    * Implementiert Business Logic innerhalb der Transaktion.
    *
+   * **Result Pattern (AC4):**
+   * - Gibt Result.fail() für erwartete Business-Fehler zurück (statt throw)
+   * - Exceptions nur für unerwartete Fehler (DB-Connection, Programming Errors)
+   *
+   * **H2: Transaction Context Validation:**
+   * - Validiert tx parameter zu Beginn (null-check)
+   * - Garantiert atomare Konsistenz zwischen Aggregate und Outbox
+   *
+   * **H5: Idempotency Strategy:**
+   * - Handler-level check (nicht Aggregate-level)
+   * - Grund: Performance - Vermeidet unnötige DB-Writes wenn bereits entfernt
+   * - Alternative: Aggregate könnte check machen, aber würde trotzdem save() aufrufen
+   *
    * @param command - EntfernePersonVonFahrzeugCommand mit Person-ID
-   * @param tx - Transaction Context für atomare Persistierung
-   * @returns Plain object mit result und Domain Events
-   * @throws Error bei Validation/Business Rule Violations
+   * @param tx - Transaction Context für atomare Persistierung (REQUIRED)
+   * @returns Result.fail() oder { result: undefined; events: DomainEvent[] }
    */
-  protected async executeInTransaction(command: EntfernePersonVonFahrzeugCommand, tx: TransactionContext): Promise<{ result: undefined; events: DomainEvent[] }> {
+  protected async executeInTransaction(command: EntfernePersonVonFahrzeugCommand, tx: TransactionContext): Promise<Result<void> | { result: undefined; events: DomainEvent[] }> {
+    // H2: Transaction Context Validation - Garantiert atomare Persistierung
+    if (!tx) {
+      return Result.fail('Transaction context is required for atomic operations');
+    }
+
     // 1. Person-ID Value Object erstellen
     const personIdResult = EinsatzPersonId.create(command.personId);
     if (personIdResult.isFailure || !personIdResult.value) {
-      throw new Error(EinsatzPersonError.format(EINSATZ_PERSON_ERROR_CODES.NOT_FOUND, `Ungültige Person-ID: ${command.personId}`));
+      // H1: Result Pattern - Return Result.fail() statt throw
+      return Result.fail(EinsatzPersonError.format(EINSATZ_PERSON_ERROR_CODES.NOT_FOUND, `Ungültige Person-ID: ${command.personId}`));
     }
 
     // 2. Person laden
     const personResult = await this.personRepository.findById(personIdResult.value, tx);
     if (personResult.isFailure || !personResult.value) {
-      throw new Error(EinsatzPersonError.format(EINSATZ_PERSON_ERROR_CODES.NOT_FOUND, `Person ${command.personId} nicht gefunden`));
+      // H1: Result Pattern - Return Result.fail() statt throw
+      return Result.fail(EinsatzPersonError.format(EINSATZ_PERSON_ERROR_CODES.NOT_FOUND, `Person ${command.personId} nicht gefunden`));
     }
     const person = personResult.value;
 
     // 3. Idempotenz: Falls nicht zugewiesen → Success ohne Event
+    // H5: Handler-level idempotency check (statt Aggregate-level)
+    // Vermeidet unnötige DB-Writes und Event-Emission
     if (!person.fahrzeugId) {
       this.logger.log(`Person ${person.id.value} ist keinem Fahrzeug zugewiesen (idempotent)`, 'EntfernePersonVonFahrzeugHandler');
       return { result: undefined, events: [] };
@@ -91,13 +112,17 @@ export class EntfernePersonVonFahrzeugHandler extends TransactionalCommandHandle
     // 5. Person von Fahrzeug entfernen (Domain Logic)
     const removeResult = person.removeFromFahrzeug(fahrzeugFunkrufname, command.updatedBy);
     if (removeResult.isFailure) {
-      throw new Error(removeResult.error ?? 'Fehler beim Entfernen der Person vom Fahrzeug');
+      // H1: Result Pattern - Return Result.fail() statt throw
+      return Result.fail(removeResult.error ?? 'Fehler beim Entfernen der Person vom Fahrzeug');
     }
 
     // 6. Speichern
     const saveResult = await this.personRepository.save(person, tx);
     if (saveResult.isFailure) {
-      throw new Error(EinsatzPersonError.format(EINSATZ_PERSON_ERROR_CODES.SAVE_FAILED, `Person speichern fehlgeschlagen: ${saveResult.error}`));
+      // H1: Result Pattern - Return Result.fail() statt throw (EXCEPT: DB Connection Failures)
+      // NOTE: saveResult.error kann ein DB-Fehler sein - hier bewusst Result.fail() statt throw
+      // da Repository bereits zwischen Business- und Technical-Errors unterscheidet
+      return Result.fail(EinsatzPersonError.format(EINSATZ_PERSON_ERROR_CODES.SAVE_FAILED, `Person speichern fehlgeschlagen: ${saveResult.error}`));
     }
 
     // 7. Events extrahieren (für Outbox)

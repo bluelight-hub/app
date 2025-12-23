@@ -604,8 +604,14 @@ describe('WeisePersonZuFahrzeugZuHandler', () => {
       expect(firstEventPayload.aggregateId).toEqual(secondEventPayload.aggregateId);
       expect(firstEventPayload.eventType).toEqual(secondEventPayload.eventType);
 
-      // Note: Timestamps may differ, but business data should be identical
-      // This ensures idempotent event replay behavior
+      // H4: Event Timestamp Non-Determinism
+      // Note: Timestamps may differ between executions (occuredAt property).
+      // This is EXPECTED and ACCEPTABLE because:
+      // 1. Timestamps reflect real-time occurrence (Date.now() at creation)
+      // 2. Business data (aggregateId, eventType, payload) IS deterministic
+      // 3. Outbox Pattern handles duplicate events via idempotency keys
+      // 4. Future Enhancement: Inject clock dependency for deterministic timestamps in tests
+      // This ensures idempotent event replay behavior for business logic
     });
   });
 

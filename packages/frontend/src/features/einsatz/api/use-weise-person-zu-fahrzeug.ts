@@ -12,7 +12,6 @@ import { logger } from '@/shared/lib/logger';
 import type { EinsatzFahrzeugDto, EinsatzPersonResponseDto, ResponseError } from '@bluelight-hub/shared/client';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
-import { ETB_QUERY_KEYS } from '@/features/etb';
 import { calculateRetryDelay, EINSATZ_QUERY_KEYS } from './queries';
 
 /**
@@ -97,6 +96,13 @@ export const useWeisePersonZuFahrzeugZu = (einsatzId: string) => {
       const previousPersonen = queryClient.getQueryData<EinsatzPersonResponseDto[]>(EINSATZ_QUERY_KEYS.personen(einsatzId));
       const previousFahrzeuge = queryClient.getQueryData<EinsatzFahrzeugDto[]>(EINSATZ_QUERY_KEYS.fahrzeuge(einsatzId));
 
+      // F4 Fix: Idempotency Guard - Skip optimistic update wenn Person bereits zugewiesen
+      const person = previousPersonen?.find((p) => p.id === personId);
+      if (person?.fahrzeugId === fahrzeugId) {
+        // Person ist bereits diesem Fahrzeug zugewiesen - skip optimistic update
+        return { previousPersonen, previousFahrzeuge };
+      }
+
       // Optimistic Update: Person fahrzeugId setzen
       if (previousPersonen) {
         const updatedPersonen = previousPersonen.map((p) => (p.id === personId ? { ...p, fahrzeugId } : p));
@@ -104,22 +110,19 @@ export const useWeisePersonZuFahrzeugZu = (einsatzId: string) => {
       }
 
       // Optimistic Update: Person zur Fahrzeug-Besatzung hinzufügen
-      if (previousFahrzeuge && previousPersonen) {
-        const person = previousPersonen.find((p) => p.id === personId);
-        if (person) {
-          const updatedFahrzeuge = previousFahrzeuge.map((f) => {
-            // ZUERST: Person von ALLEN Fahrzeugen entfernen (inkl. Ziel-Fahrzeug)
-            let besatzung = (f.besatzung || []).filter((b) => b.id !== personId);
+      if (previousFahrzeuge && previousPersonen && person) {
+        const updatedFahrzeuge = previousFahrzeuge.map((f) => {
+          // ZUERST: Person von ALLEN Fahrzeugen entfernen (inkl. Ziel-Fahrzeug)
+          let besatzung = (f.besatzung || []).filter((b) => b.id !== personId);
 
-            // DANN: Person NUR zum Ziel-Fahrzeug hinzufügen
-            if (f.id === fahrzeugId) {
-              besatzung = [...besatzung, { ...person, fahrzeugId }];
-            }
+          // DANN: Person NUR zum Ziel-Fahrzeug hinzufügen
+          if (f.id === fahrzeugId) {
+            besatzung = [...besatzung, { ...person, fahrzeugId }];
+          }
 
-            return { ...f, besatzung };
-          });
-          queryClient.setQueryData(EINSATZ_QUERY_KEYS.fahrzeuge(einsatzId), updatedFahrzeuge);
-        }
+          return { ...f, besatzung };
+        });
+        queryClient.setQueryData(EINSATZ_QUERY_KEYS.fahrzeuge(einsatzId), updatedFahrzeuge);
       }
 
       return { previousPersonen, previousFahrzeuge };
@@ -152,10 +155,9 @@ export const useWeisePersonZuFahrzeugZu = (einsatzId: string) => {
       await queryClient.invalidateQueries({ queryKey: EINSATZ_QUERY_KEYS.personen(einsatzId) });
       await queryClient.invalidateQueries({ queryKey: EINSATZ_QUERY_KEYS.fahrzeuge(einsatzId) });
 
-      // Invalidate ETB (neuer Eintrag wurde erstellt)
-      // Partial match: ['etb', 'einsatz', einsatzId] invalidiert alle ETB-Queries
+      // F2 Fix: Prefix matching für ETB-Queries (verhindert Over-Invalidation)
       await queryClient.invalidateQueries({
-        queryKey: ETB_QUERY_KEYS.byEinsatz(einsatzId),
+        predicate: (query) => query.queryKey[0] === 'etb' && query.queryKey[1] === 'einsatz' && query.queryKey[2] === einsatzId,
       });
     },
     retry: 1,
@@ -257,9 +259,9 @@ export const useEntfernePersonVonFahrzeug = (einsatzId: string) => {
       await queryClient.invalidateQueries({ queryKey: EINSATZ_QUERY_KEYS.personen(einsatzId) });
       await queryClient.invalidateQueries({ queryKey: EINSATZ_QUERY_KEYS.fahrzeuge(einsatzId) });
 
-      // Invalidate ETB (neuer Eintrag wurde erstellt)
+      // F2 Fix: Prefix matching für ETB-Queries (verhindert Over-Invalidation)
       await queryClient.invalidateQueries({
-        queryKey: ETB_QUERY_KEYS.byEinsatz(einsatzId),
+        predicate: (query) => query.queryKey[0] === 'etb' && query.queryKey[1] === 'einsatz' && query.queryKey[2] === einsatzId,
       });
     },
     retry: 1,

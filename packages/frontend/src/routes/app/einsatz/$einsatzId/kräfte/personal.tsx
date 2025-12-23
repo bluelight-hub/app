@@ -39,46 +39,48 @@ function RouteComponent() {
   const weiseZu = useWeisePersonZuFahrzeugZu(einsatzId);
   const entferne = useEntfernePersonVonFahrzeug(einsatzId);
 
-  // Handler für Fahrzeug-Zuweisung (BLOCKER Fix: Per-Person Loading State)
+  // Handler für Fahrzeug-Zuweisung (F1 Fix: Functional setState to prevent stale closure)
   const handleAssign = useCallback(
     (personId: string, fahrzeugId: string | null) => {
-      // Guard gegen Race Condition: Prüfe ob DIESE Person bereits zugewiesen wird
-      if (assigningPersonIds.has(personId)) return;
+      setAssigningPersonIds((prev) => {
+        // Guard mit latest state: Prüfe ob DIESE Person bereits zugewiesen wird
+        if (prev.has(personId)) return prev;
 
-      // Füge Person zu Loading Set hinzu
-      setAssigningPersonIds((prev) => new Set(prev).add(personId));
+        const next = new Set(prev).add(personId);
 
-      if (fahrzeugId) {
-        weiseZu.mutate(
-          { personId, fahrzeugId },
-          {
-            onSettled: () => {
-              // Entferne Person aus Loading Set
-              setAssigningPersonIds((prev) => {
-                const next = new Set(prev);
-                next.delete(personId);
-                return next;
-              });
+        // Mutation INNERHALB setState feuern (nach Guard)
+        if (fahrzeugId) {
+          weiseZu.mutate(
+            { personId, fahrzeugId },
+            {
+              onSettled: () => {
+                setAssigningPersonIds((p) => {
+                  const n = new Set(p);
+                  n.delete(personId);
+                  return n;
+                });
+              },
             },
-          },
-        );
-      } else {
-        entferne.mutate(
-          { personId },
-          {
-            onSettled: () => {
-              // Entferne Person aus Loading Set
-              setAssigningPersonIds((prev) => {
-                const next = new Set(prev);
-                next.delete(personId);
-                return next;
-              });
+          );
+        } else {
+          entferne.mutate(
+            { personId },
+            {
+              onSettled: () => {
+                setAssigningPersonIds((p) => {
+                  const n = new Set(p);
+                  n.delete(personId);
+                  return n;
+                });
+              },
             },
-          },
-        );
-      }
+          );
+        }
+
+        return next;
+      });
     },
-    [weiseZu, entferne, assigningPersonIds],
+    [weiseZu, entferne], // NO assigningPersonIds in deps
   );
 
   // Loading State
