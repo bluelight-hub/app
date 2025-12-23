@@ -52,7 +52,7 @@ class TestCommandHandler extends TransactionalCommandHandler<TestCommand, TestRe
     super(prisma, outboxRepository);
   }
 
-  protected async executeInTransaction(command: TestCommand, _tx: TransactionContext): Promise<Result<{ result: TestResult; events: DomainEvent[] }>> {
+  protected async executeInTransaction(command: TestCommand, _tx: TransactionContext): Promise<Result<TestResult> | { result: TestResult; events: DomainEvent[] }> {
     if (this.shouldThrowError) {
       return Result.fail('Business logic error');
     }
@@ -62,10 +62,10 @@ class TestCommandHandler extends TransactionalCommandHandler<TestCommand, TestRe
       processed: true,
     };
 
-    return Result.ok({
+    return {
       result,
       events: this.eventsToReturn,
-    });
+    };
   }
 }
 
@@ -303,10 +303,10 @@ describe('TransactionalCommandHandler', () => {
       // biome-ignore lint/suspicious/noExplicitAny: Need to spy on protected method for testing
       jest.spyOn(handler as any, 'executeInTransaction').mockImplementation(async () => {
         callOrder.push('executeInTransaction');
-        return Result.ok({
+        return {
           result: { id: 'test-id', processed: true },
           events: [testEvent],
-        });
+        };
       });
 
       // Spy on outbox save
