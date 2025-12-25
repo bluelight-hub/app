@@ -5,7 +5,15 @@ import { EtbInfrastructureModule } from '@infrastructure/etb/etb-infrastructure.
 import { EventInfrastructureModule } from '@infrastructure/events/event-infrastructure.module';
 import { LagekarteInfrastructureModule } from '@infrastructure/lagekarte-infrastructure.module';
 import { Module } from '@nestjs/common';
-import { EtbAutoCreationHandler, FahrzeugErfasstEventHandler, FmsStatusGeaendertEventHandler, EinsatzPersonHinzugefuegtEventHandler, PersonFahrzeugZuweisungHandler } from './event-handlers';
+import {
+  EtbAutoCreationHandler,
+  FahrzeugErfasstEventHandler,
+  FmsStatusGeaendertEventHandler,
+  EinsatzPersonHinzugefuegtEventHandler,
+  PersonFahrzeugZuweisungHandler,
+  RolleBesetztEventHandler,
+  RolleFreigegebenEventHandler,
+} from './event-handlers';
 import { EtbQueryMapper } from './mappers';
 import { GetEintraegeQueryHandler, GetEtbHistoryQueryHandler, GetEtbQueryHandler, GetTextbausteineHandler } from './queries';
 
@@ -111,6 +119,16 @@ import { GetEintraegeQueryHandler, GetEtbHistoryQueryHandler, GetEtbQueryHandler
       provide: EVENT_HANDLER.PERSON_VON_FAHRZEUG_ENTFERNT_ETB,
       useClass: PersonFahrzeugZuweisungHandler,
     },
+    // RolleBesetzt Event Handler (Story 5-1) - ETB-Eintrag bei Rollenbesetzung
+    {
+      provide: EVENT_HANDLER.ROLLE_BESETZT_ETB,
+      useClass: RolleBesetztEventHandler,
+    },
+    // RolleFreigegeben Event Handler (Story 5-1) - ETB-Eintrag bei Rollenfreigabe
+    {
+      provide: EVENT_HANDLER.ROLLE_FREIGEGEBEN_ETB,
+      useClass: RolleFreigegebenEventHandler,
+    },
 
     // Mappers (Story 3.3)
     EtbQueryMapper,
@@ -137,6 +155,8 @@ import { GetEintraegeQueryHandler, GetEtbHistoryQueryHandler, GetEtbQueryHandler
     EVENT_HANDLER.EINSATZ_PERSON_HINZUGEFUEGT_ETB,
     EVENT_HANDLER.PERSON_ZU_FAHRZEUG_ZUGEWIESEN_ETB,
     EVENT_HANDLER.PERSON_VON_FAHRZEUG_ENTFERNT_ETB,
+    EVENT_HANDLER.ROLLE_BESETZT_ETB,
+    EVENT_HANDLER.ROLLE_FREIGEGEBEN_ETB,
 
     // Mappers (Story 3.3)
     EtbQueryMapper,

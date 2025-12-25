@@ -77,6 +77,8 @@ export const KRAEFTE_REPOSITORIES = {
   EINSATZ_FAHRZEUG: Symbol('IEinsatzFahrzeugRepository'),
   /** Repository Token für IEinsatzPersonRepository (Story 4-1) */
   EINSATZ_PERSON: Symbol('IEinsatzPersonRepository'),
+  /** Repository Token für IRollenBesetzungRepository (Story 5-0) */
+  ROLLEN_BESETZUNG: Symbol('IRollenBesetzungRepository'),
 } as const;
 
 /** Transaction Manager Token für ITransactionManager */
@@ -138,4 +140,10 @@ export const EVENT_HANDLER = {
 
   /** PersonVonFahrzeugEntfernt ETB-Eintrag Handler Token (Story 4-3) */
   PERSON_VON_FAHRZEUG_ENTFERNT_ETB: Symbol('IEventHandler<PersonVonFahrzeugEntferntEvent>:EtbEintrag'),
+
+  /** RolleBesetzt ETB-Eintrag Handler Token (Story 5-1) */
+  ROLLE_BESETZT_ETB: Symbol('IEventHandler<RolleBesetztEvent>:EtbEintrag'),
+
+  /** RolleFreigegeben ETB-Eintrag Handler Token (Story 5-1) */
+  ROLLE_FREIGEGEBEN_ETB: Symbol('IEventHandler<RolleFreigegebenEvent>:EtbEintrag'),
 } as const;
