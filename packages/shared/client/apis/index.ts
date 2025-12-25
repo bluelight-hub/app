@@ -20,5 +20,6 @@ export * from './KraefteStammPersonenApi';
 export * from './LagekarteApi';
 export * from './LagekarteCQRSApi';
 export * from './POIDEPRECATEDApi';
+export * from './RollenBesetzungApi';
 export * from './UserManagementApi';
 export * from './UsersApi';

@@ -61,6 +61,10 @@ import { RollenDefinitionUpdatedEvent } from '@domain/kraefte/events/rollen-defi
 // FunkStatusConfig Events
 import { FunkStatusConfigUpdatedEvent } from '@domain/kraefte/events/funk-status-config-updated.event';
 
+// RollenBesetzung Events
+import { RolleBesetzt } from '@domain/kraefte/events/rolle-besetzt.event';
+import { RolleFreigegeben } from '@domain/kraefte/events/rolle-freigegeben.event';
+
 // Types
 import type { SollbesatzungSchema } from '@domain/kraefte/types/sollbesatzung.types';
 
@@ -180,6 +184,10 @@ export class EventDeserializer {
 
       // ===== FUNK STATUS CONFIG EVENTS =====
       ['FunkStatusConfigUpdated', this.deserializeFunkStatusConfigUpdated.bind(this)],
+
+      // ===== ROLLEN BESETZUNG EVENTS =====
+      ['rollen_besetzung.besetzt', this.deserializeRolleBesetzt.bind(this)],
+      ['rollen_besetzung.freigegeben', this.deserializeRolleFreigegeben.bind(this)],
     ]);
   }
 
@@ -866,6 +874,38 @@ export class EventDeserializer {
         beschreibung?: string;
       },
       payload.updatedBy as string,
+    );
+
+    return Result.ok<DomainEvent>(event);
+  }
+
+  // ===== ROLLEN BESETZUNG DESERIALIZERS =====
+
+  private deserializeRolleBesetzt(payload: Record<string, unknown>, _aggregateId?: string): Result<DomainEvent> {
+    // All fields are primitives (Event uses strings, not Value Objects)
+    const event = new RolleBesetzt(
+      payload.einsatzId as string,
+      payload.einsatzPersonId as string,
+      payload.rollenDefinitionId as string,
+      payload.rollenName as string,
+      payload.personVorname as string,
+      payload.personNachname as string,
+      payload.besetztVon as string,
+    );
+
+    return Result.ok<DomainEvent>(event);
+  }
+
+  private deserializeRolleFreigegeben(payload: Record<string, unknown>, _aggregateId?: string): Result<DomainEvent> {
+    // All fields are primitives (Event uses strings, not Value Objects)
+    const event = new RolleFreigegeben(
+      payload.einsatzId as string,
+      payload.einsatzPersonId as string,
+      payload.rollenDefinitionId as string,
+      payload.rollenName as string,
+      payload.personVorname as string,
+      payload.personNachname as string,
+      payload.freigegebenVon as string,
     );
 
     return Result.ok<DomainEvent>(event);

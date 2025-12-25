@@ -1,5 +1,6 @@
 import { Module } from '@nestjs/common';
 import { AuthModule } from '@/modules/auth/auth.module';
+import { KraefteInfrastructureModule } from '@infrastructure/kraefte/kraefte-infrastructure.module';
 import { QualifikationenApplicationModule } from '@application/kraefte/qualifikationen/qualifikationen-application.module';
 import { FahrzeugtypenApplicationModule } from '@application/kraefte/fahrzeugtypen/fahrzeugtypen-application.module';
 import { RollenApplicationModule } from '@application/kraefte/rollen/rollen-application.module';
@@ -8,6 +9,7 @@ import { StammFahrzeugeApplicationModule } from '@application/kraefte/stamm-fahr
 import { StammPersonenApplicationModule } from '@application/kraefte/stamm-personen/stamm-personen-application.module';
 import { EinsatzFahrzeugeApplicationModule } from '@application/kraefte/einsatz-fahrzeuge/einsatz-fahrzeuge-application.module';
 import { EinsatzPersonenApplicationModule } from '@application/kraefte/einsatz-personen/einsatz-personen-application.module';
+import { RollenBesetzungApplicationModule } from '@application/kraefte/rollen-besetzung/rollen-besetzung-application.module';
 import { AdminQualifikationenController } from './controllers/admin-qualifikationen.controller';
 import { AdminFahrzeugtypenController } from './controllers/admin-fahrzeugtypen.controller';
 import { AdminRollenController } from './controllers/admin-rollen.controller';
@@ -19,6 +21,7 @@ import { EinsatzPersonenController } from './controllers/einsatz-personen.contro
 import { FahrzeugtypenController } from './controllers/fahrzeugtypen.controller';
 import { StammFahrzeugeController } from './controllers/stamm-fahrzeuge.controller';
 import { StammPersonenController } from './controllers/stamm-personen.controller';
+import { RollenBesetzungController } from './controllers/rollen-besetzung.controller';
 
 /**
  * NestJS Module für Kräftemanagement.
@@ -29,6 +32,8 @@ import { StammPersonenController } from './controllers/stamm-personen.controller
   imports: [
     // Auth Module für Guards und CurrentUser Decorator
     AuthModule,
+    // Infrastructure Layer mit Repository Implementierungen
+    KraefteInfrastructureModule,
     // Application Layer mit Command/Query Handlers
     QualifikationenApplicationModule,
     FahrzeugtypenApplicationModule,
@@ -38,6 +43,7 @@ import { StammPersonenController } from './controllers/stamm-personen.controller
     StammPersonenApplicationModule,
     EinsatzFahrzeugeApplicationModule,
     EinsatzPersonenApplicationModule,
+    RollenBesetzungApplicationModule,
   ],
   controllers: [
     AdminQualifikationenController,
@@ -51,6 +57,7 @@ import { StammPersonenController } from './controllers/stamm-personen.controller
     FahrzeugtypenController,
     StammFahrzeugeController,
     StammPersonenController,
+    RollenBesetzungController,
   ],
 })
 export class KraefteModule {}

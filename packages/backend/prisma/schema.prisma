@@ -135,6 +135,12 @@ model User {
   einsatzPersonQualifikationenCreated EinsatzPersonQualifikation[] @relation("EinsatzPersonQualifikationCreator")
   einsatzPersonQualifikationenUpdated EinsatzPersonQualifikation[] @relation("EinsatzPersonQualifikationUpdater")
 
+  // ========================================
+  // Rollen-Besetzung Relations (Story 5.0)
+  // ========================================
+  einsatzRollenbesetzungenCreated EinsatzRollenbesetzung[] @relation("EinsatzRollenbesetzungCreator")
+  einsatzRollenbesetzungenUpdated EinsatzRollenbesetzung[] @relation("EinsatzRollenbesetzungUpdater")
+
   // Indexes
   @@index([username], map: "idx_user_username")
   @@index([role, isActive], map: "idx_user_role_active")
@@ -189,6 +195,9 @@ model Einsatz {
 
   // Einsatz-Personen Relation (1:N, Story 4.0)
   einsatzPersonen EinsatzPerson[]
+
+  // Rollen-Besetzung Relation (1:N, Story 5.0)
+  rollenBesetzungen EinsatzRollenbesetzung[]
 
   // Indexes
   @@index([status, createdAt])
@@ -665,6 +674,9 @@ model RollenDefinition {
   // Semantik: Person muss ALLE istPflicht=true Qualifikationen haben (UND-Verknüpfung)
   erforderlicheQualifikationen RolleQualifikation[]
 
+  // Inverse Relation: Besetzungen dieser Rolle (Story 5.0)
+  besetzungen EinsatzRollenbesetzung[]
+
   // Indexes
   @@index([istAktiv])
   @@index([istAktiv, sortOrder])
@@ -866,12 +878,12 @@ model EinsatzFahrzeug {
   updatedBy String?  @map("updated_by") @db.VarChar(100)
 
   // Relations
-  einsatz     Einsatz          @relation(fields: [einsatzId], references: [id], onDelete: Cascade, onUpdate: Cascade)
-  stamm       StammFahrzeug?   @relation(fields: [stammId], references: [id], onDelete: SetNull, onUpdate: Cascade)
-  fahrzeugtyp Fahrzeugtyp      @relation(fields: [fahrzeugtypId], references: [id], onDelete: Restrict, onUpdate: Cascade)
-  creator     User             @relation("EinsatzFahrzeugCreator", fields: [createdBy], references: [id], onDelete: NoAction, onUpdate: NoAction)
-  updater     User?            @relation("EinsatzFahrzeugUpdater", fields: [updatedBy], references: [id], onDelete: NoAction, onUpdate: NoAction)
-  personen    EinsatzPerson[]  // Epic 4 Story 4.3: Zugewiesene Personen (Rückwärts-Relation)
+  einsatz     Einsatz         @relation(fields: [einsatzId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  stamm       StammFahrzeug?  @relation(fields: [stammId], references: [id], onDelete: SetNull, onUpdate: Cascade)
+  fahrzeugtyp Fahrzeugtyp     @relation(fields: [fahrzeugtypId], references: [id], onDelete: Restrict, onUpdate: Cascade)
+  creator     User            @relation("EinsatzFahrzeugCreator", fields: [createdBy], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  updater     User?           @relation("EinsatzFahrzeugUpdater", fields: [updatedBy], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  personen    EinsatzPerson[] // Epic 4 Story 4.3: Zugewiesene Personen (Rückwärts-Relation)
 
   // Constraints
   @@unique([einsatzId, funkrufname], name: "einsatz_fahrzeug_einsatz_funkrufname_unique")
@@ -913,14 +925,17 @@ model EinsatzPerson {
   updatedBy String?  @map("updated_by") @db.VarChar(100)
 
   // Relations (mit onUpdate: Cascade für Konsistenz)
-  einsatz   Einsatz         @relation(fields: [einsatzId], references: [id], onDelete: Cascade, onUpdate: Cascade)
-  stamm     StammPerson?    @relation(fields: [stammId], references: [id], onDelete: SetNull, onUpdate: Cascade)
-  fahrzeug  EinsatzFahrzeug? @relation(fields: [fahrzeugId], references: [id], onDelete: SetNull, onUpdate: Cascade)
-  creator   User            @relation("EinsatzPersonCreator", fields: [createdBy], references: [id], onDelete: NoAction, onUpdate: NoAction)
-  updater   User?           @relation("EinsatzPersonUpdater", fields: [updatedBy], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  einsatz  Einsatz          @relation(fields: [einsatzId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  stamm    StammPerson?     @relation(fields: [stammId], references: [id], onDelete: SetNull, onUpdate: Cascade)
+  fahrzeug EinsatzFahrzeug? @relation(fields: [fahrzeugId], references: [id], onDelete: SetNull, onUpdate: Cascade)
+  creator  User             @relation("EinsatzPersonCreator", fields: [createdBy], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  updater  User?            @relation("EinsatzPersonUpdater", fields: [updatedBy], references: [id], onDelete: NoAction, onUpdate: NoAction)
 
   // M:N: Qualifikationen dieser Person (KOPIE zum Erfassungszeitpunkt)
   qualifikationen EinsatzPersonQualifikation[]
+
+  // Inverse Relation: Rollen-Besetzungen dieser Person (Story 5.0)
+  rollenBesetzungen EinsatzRollenbesetzung[]
 
   // Constraints
   @@unique([einsatzId, stammId], name: "einsatz_person_einsatz_stamm_unique")
@@ -961,4 +976,51 @@ model EinsatzPersonQualifikation {
   @@index([qualifikationId, einsatzPersonId]) // Reverse-lookup composite
   @@index([createdBy])
   @@map("einsatz_person_qualifikationen")
+}
+
+// ========================================
+// Kräfte-Management: Rollenbesetzung
+// Epic 5 - Story 5.0
+// ========================================
+
+/// Rollenbesetzung: 1:1 Zuordnung Rolle → Person pro Einsatz
+/// - Eine Rolle kann pro Einsatz nur EINMAL besetzt werden (AC2)
+/// - Verhindert doppelte Besetzung via UNIQUE Constraint
+/// - Cascade-Delete mit Einsatz (Einsatzdaten transient)
+/// - Restrict-Delete für Person/Rolle (verhindert inkonsistente Daten)
+model EinsatzRollenbesetzung {
+  id                 String @id @default(cuid())
+  einsatzId          String @map("einsatz_id")
+  rollenDefinitionId String @map("rollen_definition_id")
+  personId           String @map("person_id")
+
+  // Snapshot-Felder (AC3: Historische Korrektheit für ETB-Einträge)
+  // KOPIERT bei Erstellung, nicht live referenziert - Änderungen an
+  // RollenDefinition/Person beeinflussen bestehende Besetzungen NICHT
+  rollenName     String @map("rollen_name") @db.VarChar(100)
+  personVorname  String @map("person_vorname") @db.VarChar(100)
+  personNachname String @map("person_nachname") @db.VarChar(100)
+
+  // Audit Trail (PFLICHT - vollständig!)
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+  createdBy String   @map("created_by") @db.VarChar(100)
+  updatedBy String?  @map("updated_by") @db.VarChar(100)
+
+  // Relations (mit onUpdate: Cascade für Konsistenz)
+  einsatz          Einsatz          @relation(fields: [einsatzId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  rollenDefinition RollenDefinition @relation(fields: [rollenDefinitionId], references: [id], onDelete: Restrict, onUpdate: Cascade)
+  person           EinsatzPerson    @relation(fields: [personId], references: [id], onDelete: Restrict, onUpdate: Cascade)
+  creator          User             @relation("EinsatzRollenbesetzungCreator", fields: [createdBy], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  updater          User?            @relation("EinsatzRollenbesetzungUpdater", fields: [updatedBy], references: [id], onDelete: NoAction, onUpdate: NoAction)
+
+  // UNIQUE Constraint (AC2): Pro Einsatz kann jede Rolle nur EINMAL besetzt werden
+  @@unique([einsatzId, rollenDefinitionId], name: "einsatz_rollen_besetzung_unique")
+  // Indexes (Performance)
+  @@index([einsatzId]) // Alle Rollen für Einsatz
+  @@index([personId]) // Rollen einer Person
+  @@index([rollenDefinitionId]) // Alle Personen mit Rolle X
+  @@index([einsatzId, rollenDefinitionId]) // Composite für "Wer hat Rolle X in Einsatz Y"
+  @@index([createdBy]) // Audit-Queries
+  @@map("einsatz_rollen_besetzung")
 }

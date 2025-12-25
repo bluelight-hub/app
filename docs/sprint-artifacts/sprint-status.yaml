@@ -73,17 +73,17 @@ development_status:
   epic-3-retrospective: completed
 
   # ===== Epic 4: Helfer-Registrierung =====
-  epic-4: in-progress
+  epic-4: done
   4-0-prisma-schema-einsatz-personen: done
   4-1-person-manuell-registrieren: done
   4-2-person-via-qr-code-registrieren: done
-  4-3-person-zu-fahrzeug-zuweisen: in-progress
-  epic-4-retrospective: optional
+  4-3-person-zu-fahrzeug-zuweisen: done
+  epic-4-retrospective: completed
 
   # ===== Epic 5: Rollen & Fuehrung =====
-  epic-5: backlog
-  5-0-prisma-schema-rollenbesetzung: backlog
-  5-1-rolle-besetzen-mit-qualifikationsvalidierung: backlog
+  epic-5: in-progress
+  5-0-prisma-schema-rollenbesetzung: done
+  5-1-rolle-besetzen-mit-qualifikationsvalidierung: review
   5-2-rolle-freigeben: backlog
   epic-5-retrospective: optional
 

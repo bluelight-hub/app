@@ -30,6 +30,8 @@ import type { StammFahrzeugCreatedEvent } from '@domain/kraefte/events/stamm-fah
 import type { StammFahrzeugUpdatedEvent } from '@domain/kraefte/events/stamm-fahrzeug-updated.event';
 import type { PersonZuFahrzeugZugewiesenEvent } from '@domain/kraefte/events/person-zu-fahrzeug-zugewiesen.event';
 import type { PersonVonFahrzeugEntferntEvent } from '@domain/kraefte/events/person-von-fahrzeug-entfernt.event';
+import type { RolleBesetzt } from '@domain/kraefte/events/rolle-besetzt.event';
+import type { RolleFreigegeben } from '@domain/kraefte/events/rolle-freigegeben.event';
 
 /**
  * Serialisiertes Event-Payload für Outbox-Persistierung.
@@ -209,6 +211,12 @@ export class EventSerializer {
         return this.serializeStammFahrzeugCreated(event as unknown as StammFahrzeugCreatedEvent);
       case 'StammFahrzeugUpdated':
         return this.serializeStammFahrzeugUpdated(event as unknown as StammFahrzeugUpdatedEvent);
+
+      // ===== ROLLEN BESETZUNG EVENTS =====
+      case 'rollen_besetzung.besetzt':
+        return this.serializeRolleBesetzt(event as unknown as RolleBesetzt);
+      case 'rollen_besetzung.freigegeben':
+        return this.serializeRolleFreigegeben(event as unknown as RolleFreigegeben);
 
       default:
         throw new Error(`Unknown event type: ${eventName}. EventSerializer needs to be updated.`);
@@ -504,6 +512,32 @@ export class EventSerializer {
       stammFahrzeugId: event.stammFahrzeugId, // Already primitive string
       changes: event.changes, // Already primitives
       updatedBy: event.updatedBy,
+    };
+  }
+
+  // ===== ROLLEN BESETZUNG SERIALIZERS =====
+
+  private serializeRolleBesetzt(event: RolleBesetzt): Record<string, unknown> {
+    return {
+      einsatzId: event.einsatzId, // Already primitive string
+      einsatzPersonId: event.einsatzPersonId,
+      rollenDefinitionId: event.rollenDefinitionId,
+      rollenName: event.rollenName,
+      personVorname: event.personVorname,
+      personNachname: event.personNachname,
+      besetztVon: event.besetztVon,
+    };
+  }
+
+  private serializeRolleFreigegeben(event: RolleFreigegeben): Record<string, unknown> {
+    return {
+      einsatzId: event.einsatzId, // Already primitive string
+      einsatzPersonId: event.einsatzPersonId,
+      rollenDefinitionId: event.rollenDefinitionId,
+      rollenName: event.rollenName,
+      personVorname: event.personVorname,
+      personNachname: event.personNachname,
+      freigegebenVon: event.freigegebenVon,
     };
   }
 }

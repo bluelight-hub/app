@@ -19,6 +19,7 @@ apis/KraefteStammPersonenApi.ts
 apis/LagekarteApi.ts
 apis/LagekarteCQRSApi.ts
 apis/POIDEPRECATEDApi.ts
+apis/RollenBesetzungApi.ts
 apis/UserManagementApi.ts
 apis/UsersApi.ts
 apis/index.ts
@@ -48,6 +49,7 @@ models/AuthResponseDto.ts
 models/AuthUserDto.ts
 models/AuthUserResponseDto.ts
 models/BesatzungMemberDto.ts
+models/BesetzeRolleDto.ts
 models/CompletenessResponseDto.ts
 models/CoordinateDto.ts
 models/CreateEinsatzDto.ts
@@ -122,6 +124,10 @@ models/QualifikationDto.ts
 models/RefreshResponseDto.ts
 models/RegistrierePersonDto.ts
 models/RegistrierePersonViaQrCodeDto.ts
+models/RollenBesetzungControllerBesetzeRolleVAlpha201Response.ts
+models/RollenBesetzungControllerFindAllVAlpha200Response.ts
+models/RollenBesetzungDto.ts
+models/RollenBesetzungListItemDto.ts
 models/RollenDefinitionDto.ts
 models/SaveLagekarteStateDto.ts
 models/StammFahrzeugDto.ts
