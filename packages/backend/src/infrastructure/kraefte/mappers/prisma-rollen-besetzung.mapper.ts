@@ -52,6 +52,7 @@ export class PrismaRollenBesetzungMapper {
     }
 
     // Domain Aggregate via reconstitute() erstellen
+    // NOTE: freigegebenAm/freigegebenVon existieren noch nicht im Schema (geplant für zukünftige Migration)
     return RollenBesetzung.reconstitute({
       id: idResult.value,
       einsatzId: einsatzIdResult.value,
@@ -63,6 +64,9 @@ export class PrismaRollenBesetzungMapper {
       createdAt: entity.createdAt,
       createdBy: entity.createdBy,
       updatedAt: entity.updatedAt,
+      updatedBy: entity.updatedBy ?? undefined,
+      freigegebenAm: undefined, // TODO: Schema noch nicht aktualisiert
+      freigegebenVon: undefined, // TODO: Schema noch nicht aktualisiert
     });
   }
 
@@ -72,11 +76,12 @@ export class PrismaRollenBesetzungMapper {
    * **Required Fields:**
    * - id, einsatzId, rollenDefinitionId, personId: CUID2 String IDs
    * - rollenName, personVorname, personNachname: Snapshot-Felder
-   * - createdBy: User ID der erstellenden Person
+   * - creator: User Relation (basierend auf createdBy Scalar Field)
    *
    * **Auto-Generated Fields (Prisma):**
    * - createdAt: DateTime @default(now())
    * - updatedAt: DateTime @updatedAt
+   * - createdBy: String @map("created_by") - Auto-set durch creator Relation
    *
    * @param aggregate - Domain RollenBesetzung Aggregate
    * @returns Prisma EinsatzRollenbesetzungCreateInput

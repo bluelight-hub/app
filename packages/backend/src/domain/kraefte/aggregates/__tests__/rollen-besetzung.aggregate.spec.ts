@@ -6,6 +6,7 @@ import { RolleId } from '@domain/kraefte/value-objects/rolle-id';
 import { RollenBesetzungId } from '@domain/kraefte/value-objects/rollen-besetzung-id';
 import { RolleBesetzt } from '@domain/kraefte/events/rolle-besetzt.event';
 import { RolleFreigegeben } from '@domain/kraefte/events/rolle-freigegeben.event';
+import { ROLLEN_BESETZUNG_ERROR_CODES } from '@domain/kraefte/common/rollen-besetzung-error-codes';
 
 describe('RollenBesetzung Aggregate', () => {
   // Test Fixtures - Deterministic test data
@@ -22,6 +23,10 @@ describe('RollenBesetzung Aggregate', () => {
     personVorname: 'Max',
     personNachname: 'Mustermann',
     besetztVon: validBesetztVon,
+  });
+
+  beforeEach(() => {
+    jest.clearAllMocks(); // AC6: Clear mocks before each test
   });
 
   describe('create - Factory Method', () => {
@@ -181,10 +186,11 @@ describe('RollenBesetzung Aggregate', () => {
       const freigegebenVon = createId();
 
       // When (Act)
-      besetzung.freigeben(freigegebenVon);
+      const result = besetzung.freigeben(freigegebenVon);
       const events = besetzung.getDomainEvents();
 
       // Then (Assert)
+      expect(result.isSuccess).toBe(true);
       expect(events.length).toBe(1);
       expect(events[0]).toBeInstanceOf(RolleFreigegeben);
 
@@ -212,14 +218,46 @@ describe('RollenBesetzung Aggregate', () => {
       const freigegebenVon = createId();
 
       // When (Act)
-      besetzung.freigeben(freigegebenVon);
+      const result = besetzung.freigeben(freigegebenVon);
       const events = besetzung.getDomainEvents();
 
       // Then (Assert)
+      expect(result.isSuccess).toBe(true);
       const event = events[0] as RolleFreigegeben;
       expect(event.rollenName).toBe('Leiter Behandlungsplatz');
       expect(event.personVorname).toBe('Dr. Katharina');
       expect(event.personNachname).toBe('Müller');
+    });
+
+    it('sollte freigegebenAm und freigegebenVon setzen', () => {
+      // Given (Arrange)
+      const props = createValidProps();
+      const besetzung = RollenBesetzung.create(props).value!;
+      const freigegebenVon = createId();
+
+      // When (Act)
+      const result = besetzung.freigeben(freigegebenVon);
+
+      // Then (Assert)
+      expect(result.isSuccess).toBe(true);
+      expect(besetzung.freigegebenAm).toBeDefined();
+      expect(besetzung.freigegebenVon).toBe(freigegebenVon);
+      expect(besetzung.isActive).toBe(false);
+    });
+
+    it('sollte mit BEREITS_FREIGEGEBEN fehlschlagen wenn bereits freigegeben', () => {
+      // Given (Arrange)
+      const props = createValidProps();
+      const besetzung = RollenBesetzung.create(props).value!;
+      besetzung.freigeben('user-1'); // Erstes Mal freigeben
+      besetzung.clearDomainEvents();
+
+      // When (Act)
+      const result = besetzung.freigeben('user-2'); // Zweites Mal freigeben
+
+      // Then (Assert)
+      expect(result.isFailure).toBe(true);
+      expect(result.error).toBe(ROLLEN_BESETZUNG_ERROR_CODES.BEREITS_FREIGEGEBEN);
     });
   });
 

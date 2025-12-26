@@ -83,7 +83,7 @@ development_status:
   # ===== Epic 5: Rollen & Fuehrung =====
   epic-5: in-progress
   5-0-prisma-schema-rollenbesetzung: done
-  5-1-rolle-besetzen-mit-qualifikationsvalidierung: review
+  5-1-rolle-besetzen-mit-qualifikationsvalidierung: done
   5-2-rolle-freigeben: backlog
   epic-5-retrospective: optional
 

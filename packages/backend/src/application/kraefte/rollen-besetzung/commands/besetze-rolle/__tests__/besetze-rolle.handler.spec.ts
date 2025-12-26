@@ -227,7 +227,7 @@ describe('BesetzeRolleHandler', () => {
         personVorname: 'Alter',
         personNachname: 'Besetzter',
         createdBy: createId(),
-        freigeben: jest.fn(),
+        freigeben: jest.fn().mockReturnValue(Result.ok(undefined)),
         getDomainEvents: jest.fn().mockReturnValue([]),
         clearDomainEvents: jest.fn(),
       };
@@ -264,7 +264,7 @@ describe('BesetzeRolleHandler', () => {
         personVorname: 'Alt',
         personNachname: 'Person',
         createdBy: createId(),
-        freigeben: jest.fn(),
+        freigeben: jest.fn().mockReturnValue(Result.ok(undefined)),
         getDomainEvents: jest.fn().mockReturnValue([freigegebenEvent]),
         clearDomainEvents: jest.fn(),
       };
@@ -428,6 +428,7 @@ describe('BesetzeRolleHandler', () => {
 
     it('sollte fehlschlagen wenn EinsatzPersonRepository Fehler zurückgibt', async () => {
       // Given (Arrange)
+      // Repository-Fehler werden als PERSON_NOT_FOUND abstrahiert (vereinfachtes Error-Handling)
       mockEinsatzPersonRepository.findById.mockResolvedValue(Result.fail('Datenbankfehler'));
 
       const command = BesetzeRolleCommand.create({
@@ -442,7 +443,8 @@ describe('BesetzeRolleHandler', () => {
 
       // Then (Assert)
       expect(result.isFailure).toBe(true);
-      expect(result.error).toContain('Datenbankfehler');
+      // Handler abstrahiert DB-Fehler zu domänenspezifischem Error-Code
+      expect(result.error).toBe(ROLLEN_BESETZUNG_ERROR_CODES.PERSON_NOT_FOUND);
     });
 
     it('sollte fehlschlagen wenn Repository.save fehlschlägt', async () => {

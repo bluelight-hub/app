@@ -6,6 +6,8 @@ import {
   FmsStatusGeaendertEventAdapter,
   EinsatzPersonHinzugefuegtEventAdapter,
   PersonFahrzeugZuweisungEventAdapter,
+  RolleBesetztEventAdapter,
+  RolleFreigegebenEventAdapter,
 } from './adapters';
 import { EtbApplicationModule } from '@application/etb/etb-application.module';
 import { LagekarteApplicationModule } from '@application/lagekarte/lagekarte-application.module';
@@ -56,6 +58,8 @@ import { NestLoggerAdapter } from '@infrastructure/common/adapters/nest-logger.a
  * - FmsStatusGeaendertEventAdapter: Delegiert FmsStatusGeaendert-Events an ETB Handler
  * - EinsatzPersonHinzugefuegtEventAdapter: Delegiert EinsatzPersonHinzugefuegt-Events an ETB Handler
  * - PersonFahrzeugZuweisungEventAdapter: Delegiert Person-Fahrzeug-Zuweisung/Entfernung-Events an ETB Handler (Story 4-3)
+ * - RolleBesetztEventAdapter: Delegiert RolleBesetzt-Events an ETB Handler (Story 5-1)
+ * - RolleFreigegebenEventAdapter: Delegiert RolleFreigegeben-Events an ETB Handler (Story 5-1)
  * - LagekarteEventLoggerHandler: Infrastructure-spezifisches Event Logging
  * - EinsatzEventLoggerHandler: Infrastructure-spezifisches Event Logging für Einsatz-Events
  */
@@ -78,6 +82,8 @@ import { NestLoggerAdapter } from '@infrastructure/common/adapters/nest-logger.a
     FmsStatusGeaendertEventAdapter,
     EinsatzPersonHinzugefuegtEventAdapter,
     PersonFahrzeugZuweisungEventAdapter, // Story 4-3: Person-Fahrzeug-Zuweisung/Entfernung
+    RolleBesetztEventAdapter, // Story 5-1: RolleBesetzt ETB-Eintrag
+    RolleFreigegebenEventAdapter, // Story 5-1: RolleFreigegeben ETB-Eintrag
     // Event Logging Handler (Infrastructure-specific)
     LagekarteEventLoggerHandler,
     EinsatzEventLoggerHandler,

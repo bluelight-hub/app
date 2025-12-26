@@ -58,11 +58,6 @@ export class BesetzeRolleHandler extends TransactionalCommandHandler<BesetzeRoll
   }
 
   protected async executeInTransaction(command: BesetzeRolleCommand, tx: TransactionContext): Promise<Result<string> | { result: string; events: DomainEvent[] }> {
-    // H2: Validate transaction context
-    if (!tx) {
-      return Result.fail('Transaction context is required for atomic operations');
-    }
-
     // 1. Create Value Objects
     const einsatzIdResult = EinsatzId.create(command.einsatzId);
     if (einsatzIdResult.isFailure || !einsatzIdResult.value) {
@@ -84,23 +79,17 @@ export class BesetzeRolleHandler extends TransactionalCommandHandler<BesetzeRoll
 
     // 2. Load EinsatzPerson (AC1: Qualifikationsprüfung)
     const personResult = await this.einsatzPersonRepository.findById(personId, tx);
-    if (personResult.isFailure) {
-      return Result.fail(personResult.error ?? ROLLEN_BESETZUNG_ERROR_CODES.PERSON_NOT_FOUND);
-    }
-    const person = personResult.value;
-    if (!person) {
+    if (personResult.isFailure || !personResult.value) {
       return Result.fail(ROLLEN_BESETZUNG_ERROR_CODES.PERSON_NOT_FOUND);
     }
+    const person = personResult.value;
 
     // 3. Load RollenDefinition (für Qualifikationsprüfung + Rollenname)
     const rolleResult = await this.rollenDefinitionRepository.findById(rolleId, tx);
-    if (rolleResult.isFailure) {
-      return Result.fail(rolleResult.error ?? ROLLEN_BESETZUNG_ERROR_CODES.ROLLE_NOT_FOUND);
-    }
-    const rolle = rolleResult.value;
-    if (!rolle) {
+    if (rolleResult.isFailure || !rolleResult.value) {
       return Result.fail(ROLLEN_BESETZUNG_ERROR_CODES.ROLLE_NOT_FOUND);
     }
+    const rolle = rolleResult.value;
 
     // 4. AC1: Qualifikationsprüfung - Person muss alle Pflicht-Qualifikationen haben
     const pflichtQualifikationen = rolle.erforderlicheQualifikationen.filter((q) => q.istPflicht);
@@ -116,7 +105,7 @@ export class BesetzeRolleHandler extends TransactionalCommandHandler<BesetzeRoll
     // 5. AC2/AC4: Prüfen ob Rolle bereits besetzt ist
     const existingResult = await this.rollenBesetzungRepository.findByEinsatzIdAndRolleId(einsatzId, rolleId, tx);
     if (existingResult.isFailure) {
-      return Result.fail(existingResult.error ?? 'Fehler beim Prüfen bestehender Besetzung');
+      return Result.fail('Fehler beim Prüfen bestehender Besetzung');
     }
 
     // Events sammeln (von freigegebener und neuer Besetzung)
@@ -126,10 +115,16 @@ export class BesetzeRolleHandler extends TransactionalCommandHandler<BesetzeRoll
     const existingBesetzung = existingResult.value;
     if (existingBesetzung) {
       // Freigeben und Events sammeln
-      existingBesetzung.freigeben(command.besetztVon);
-      const freigebenEvents = existingBesetzung.getDomainEvents();
-      existingBesetzung.clearDomainEvents();
-      allEvents.push(...freigebenEvents);
+      const freigebenResult = existingBesetzung.freigeben(command.besetztVon);
+      if (freigebenResult.isFailure) {
+        // BEREITS_FREIGEGEBEN sollte hier nicht auftreten (wir suchen nur aktive Besetzungen)
+        // Falls doch: Log und fahre fort (kein Fehler, bereits gewünschter Zustand)
+        this.logger.log(`Bestehende Besetzung ${existingBesetzung.id.value} war bereits freigegeben (${freigebenResult.error})`, 'BesetzeRolleHandler');
+      } else {
+        const freigebenEvents = existingBesetzung.getDomainEvents();
+        existingBesetzung.clearDomainEvents();
+        allEvents.push(...freigebenEvents);
+      }
 
       // Alte Besetzung löschen
       const deleteResult = await this.rollenBesetzungRepository.delete(existingBesetzung.id, tx);

@@ -67,6 +67,15 @@ export const ROLLEN_BESETZUNG_ERROR_CODES = {
    * **HTTP:** 400 Bad Request
    */
   INVALID_EINSATZ_CONTEXT: 'INVALID_EINSATZ_CONTEXT',
+
+  /**
+   * Rollenbesetzung wurde bereits freigegeben (doppelte Freigabe verhindern).
+   *
+   * **Trigger:** Attempt to call freigeben() on already released RollenBesetzung.
+   * **Business Rule:** Eine Rollenbesetzung kann nur EINMAL freigegeben werden.
+   * **HTTP:** 409 Conflict
+   */
+  BEREITS_FREIGEGEBEN: 'BEREITS_FREIGEGEBEN',
 } as const;
 
 /**

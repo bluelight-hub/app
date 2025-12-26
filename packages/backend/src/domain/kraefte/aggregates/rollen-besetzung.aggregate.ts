@@ -6,6 +6,7 @@ import type { RolleId } from '@domain/kraefte/value-objects/rolle-id';
 import { RollenBesetzungId } from '@domain/kraefte/value-objects/rollen-besetzung-id';
 import { RolleBesetzt } from '@domain/kraefte/events/rolle-besetzt.event';
 import { RolleFreigegeben } from '@domain/kraefte/events/rolle-freigegeben.event';
+import { ROLLEN_BESETZUNG_ERROR_CODES } from '@domain/kraefte/common/rollen-besetzung-error-codes';
 
 /**
  * Props für RollenBesetzung Factory Method.
@@ -51,6 +52,12 @@ export interface RollenBesetzungReconstitutionProps {
   createdBy: string;
   /** Audit: Wann zuletzt geändert */
   updatedAt: Date;
+  /** Audit: Von wem zuletzt geändert (optional) */
+  updatedBy?: string;
+  /** Soft-Delete: Wann freigegeben (null = aktiv) */
+  freigegebenAm?: Date;
+  /** Soft-Delete: Von wem freigegeben */
+  freigegebenVon?: string;
 }
 
 /**
@@ -80,6 +87,9 @@ export class RollenBesetzung extends AggregateRoot<RollenBesetzungId> {
   private readonly _personVorname: string;
   private readonly _personNachname: string;
   private readonly _createdBy: string;
+  private readonly _updatedBy?: string;
+  private _freigegebenAm?: Date;
+  private _freigegebenVon?: string;
 
   /**
    * Private Constructor - erzwingt Factory Methods für Instanziierung.
@@ -95,6 +105,9 @@ export class RollenBesetzung extends AggregateRoot<RollenBesetzungId> {
     createdBy: string,
     createdAt?: Date,
     updatedAt?: Date,
+    updatedBy?: string,
+    freigegebenAm?: Date,
+    freigegebenVon?: string,
   ) {
     super(id, createdAt, updatedAt);
     this._einsatzId = einsatzId;
@@ -104,6 +117,9 @@ export class RollenBesetzung extends AggregateRoot<RollenBesetzungId> {
     this._personVorname = personVorname;
     this._personNachname = personNachname;
     this._createdBy = createdBy;
+    this._updatedBy = updatedBy;
+    this._freigegebenAm = freigegebenAm;
+    this._freigegebenVon = freigegebenVon;
   }
 
   // ===== FACTORY METHODS =====
@@ -153,6 +169,9 @@ export class RollenBesetzung extends AggregateRoot<RollenBesetzungId> {
       props.createdBy,
       props.createdAt,
       props.updatedAt,
+      props.updatedBy,
+      props.freigegebenAm,
+      props.freigegebenVon,
     );
 
     // KEINE Events bei Rekonstitution!
@@ -162,16 +181,27 @@ export class RollenBesetzung extends AggregateRoot<RollenBesetzungId> {
   // ===== BUSINESS METHODS =====
 
   /**
-   * Gibt die Rollenbesetzung frei und emittiert RolleFreigegeben Event.
+   * Gibt die Rollenbesetzung frei (Soft-Delete).
    *
    * Verwendet für:
    * - Manuelle Freigabe durch User
    * - Automatische Freigabe bei Neu-Besetzung (AC4)
    *
    * @param freigegebenVon - User-ID der die Freigabe durchführt
+   * @returns Result.ok() bei Erfolg, Result.fail() wenn bereits freigegeben
    */
-  public freigeben(freigegebenVon: string): void {
+  public freigeben(freigegebenVon: string): Result<void> {
+    // Guard: Bereits freigegeben?
+    if (this._freigegebenAm) {
+      return Result.fail(ROLLEN_BESETZUNG_ERROR_CODES.BEREITS_FREIGEGEBEN);
+    }
+
+    this._freigegebenAm = new Date();
+    this._freigegebenVon = freigegebenVon;
+
     this.addDomainEvent(new RolleFreigegeben(this._einsatzId.value, this._einsatzPersonId.value, this._rolleId.value, this._rollenName, this._personVorname, this._personNachname, freigegebenVon));
+
+    return Result.ok(undefined);
   }
 
   // ===== GETTERS =====
@@ -202,5 +232,21 @@ export class RollenBesetzung extends AggregateRoot<RollenBesetzungId> {
 
   get createdBy(): string {
     return this._createdBy;
+  }
+
+  get updatedBy(): string | undefined {
+    return this._updatedBy;
+  }
+
+  get isActive(): boolean {
+    return !this._freigegebenAm;
+  }
+
+  get freigegebenAm(): Date | undefined {
+    return this._freigegebenAm;
+  }
+
+  get freigegebenVon(): string | undefined {
+    return this._freigegebenVon;
   }
 }

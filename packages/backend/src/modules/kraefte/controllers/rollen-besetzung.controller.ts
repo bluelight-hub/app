@@ -12,6 +12,7 @@ import {
   InternalServerErrorException,
   HttpCode,
   HttpStatus,
+  HttpException,
   Inject,
 } from '@nestjs/common';
 import { ParseCuidPipe } from '@/infrastructure/http/pipes/parse-cuid.pipe';
@@ -271,6 +272,6 @@ export class RollenBesetzungController {
   ): Promise<void> {
     // Story 5.2: GibRolleFrei Command implementieren
     // Für jetzt: Placeholder für zukünftige Implementation
-    throw new InternalServerErrorException('Rolle freigeben ist noch nicht implementiert (Story 5.2)');
+    throw new HttpException('Rolle freigeben wird in Story 5.2 implementiert', HttpStatus.NOT_IMPLEMENTED);
   }
 }
