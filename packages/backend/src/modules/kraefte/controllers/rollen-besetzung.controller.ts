@@ -12,7 +12,6 @@ import {
   InternalServerErrorException,
   HttpCode,
   HttpStatus,
-  HttpException,
   Inject,
 } from '@nestjs/common';
 import { ParseCuidPipe } from '@/infrastructure/http/pipes/parse-cuid.pipe';
@@ -28,7 +27,6 @@ import {
   ApiInternalServerErrorResponse,
   ApiTooManyRequestsResponse,
   ApiParam,
-  ApiNoContentResponse,
 } from '@nestjs/swagger';
 import { ApiWrappedCreatedResponse, ApiWrappedResponse } from '@/modules/common/decorators/api-wrapped-response.decorator';
 import { Throttle } from '@nestjs/throttler';
@@ -37,23 +35,26 @@ import { RolesGuard } from '@/modules/auth/guards/roles.guard';
 import { CurrentUser } from '@/modules/auth/decorators/current-user.decorator';
 import type { ValidatedUser } from '@/modules/auth/strategies/jwt.strategy';
 import { ADMIN_RATE_LIMIT, ADMIN_MUTATION_RATE_LIMIT } from '@/infrastructure/http/constants/rate-limit.constants';
-import { LOGGER } from '@infrastructure/di-tokens';
+import { LOGGER, KRAEFTE_REPOSITORIES } from '@infrastructure/di-tokens';
 import type { ILogger } from '@domain/ports/i-logger.port';
 
-// Handlers
+// Handlers (Hexagonal Architecture: Controller -> Handler -> Repository)
 import { BesetzeRolleHandler } from '@application/kraefte/rollen-besetzung/commands/besetze-rolle/besetze-rolle.handler';
+import { GebeRolleFreiHandler } from '@application/kraefte/rollen-besetzung/commands/gebe-rolle-frei/gebe-rolle-frei.handler';
+import { FindAllRollenBesetzungQueryHandler } from '@application/kraefte/rollen-besetzung/queries/find-all-rollen-besetzung/find-all-rollen-besetzung.handler';
 
-// Commands
+// Commands & Queries
 import { BesetzeRolleCommand } from '@application/kraefte/rollen-besetzung/commands/besetze-rolle/besetze-rolle.command';
+import { GebeRolleFreiCommand } from '@application/kraefte/rollen-besetzung/commands/gebe-rolle-frei/gebe-rolle-frei.command';
+import { FindAllRollenBesetzungQuery } from '@application/kraefte/rollen-besetzung/queries/find-all-rollen-besetzung/find-all-rollen-besetzung.query';
 
 // DTOs
-import { BesetzeRolleDto, RollenBesetzungDto, RollenBesetzungListItemDto } from '@application/kraefte/rollen-besetzung/dto';
+import { BesetzeRolleDto, RollenBesetzungDto, RollenBesetzungListItemDto, RolleFreigegebenResponseDto } from '@application/kraefte/rollen-besetzung/dto';
 
 // Error Codes
 import { ROLLEN_BESETZUNG_ERROR_CODES } from '@domain/kraefte/common/rollen-besetzung-error-codes';
 
-// Repositories (für Query - direkt lesen)
-import { KRAEFTE_REPOSITORIES } from '@infrastructure/di-tokens';
+// Repositories (nur für POST Response Loading - wird später auch zu Query Handler migriert)
 import type { IRollenBesetzungRepository } from '@domain/kraefte/repositories/i-rollen-besetzung.repository';
 import { EinsatzId } from '@domain/value-objects/einsatz-id';
 
@@ -90,6 +91,8 @@ import { EinsatzId } from '@domain/value-objects/einsatz-id';
 export class RollenBesetzungController {
   constructor(
     private readonly besetzeRolleHandler: BesetzeRolleHandler,
+    private readonly gebeRolleFreiHandler: GebeRolleFreiHandler,
+    private readonly findAllQueryHandler: FindAllRollenBesetzungQueryHandler,
     @Inject(KRAEFTE_REPOSITORIES.ROLLEN_BESETZUNG)
     private readonly rollenBesetzungRepository: IRollenBesetzungRepository,
     @Inject(LOGGER) private readonly logger: ILogger,
@@ -111,27 +114,25 @@ export class RollenBesetzungController {
   @ApiWrappedResponse(RollenBesetzungListItemDto, { isArray: true, description: 'Liste aller Rollenbesetzungen' })
   @ApiBadRequestResponse({ description: 'Ungültige Einsatz-ID' })
   async findAll(@Param('einsatzId', ParseCuidPipe) einsatzId: string): Promise<RollenBesetzungListItemDto[]> {
-    const einsatzIdResult = EinsatzId.create(einsatzId);
-    if (einsatzIdResult.isFailure || !einsatzIdResult.value) {
-      throw new BadRequestException('Ungültige Einsatz-ID');
+    // Hexagonal Architecture: Controller -> Query Handler -> Repository
+    const queryResult = FindAllRollenBesetzungQuery.create(einsatzId);
+    if (queryResult.isFailure) {
+      throw new BadRequestException(queryResult.error);
     }
 
-    const result = await this.rollenBesetzungRepository.findByEinsatzId(einsatzIdResult.value);
+    const query = queryResult.value;
+    if (!query) {
+      throw new BadRequestException('Query konnte nicht erstellt werden');
+    }
+
+    const result = await this.findAllQueryHandler.execute(query);
 
     if (result.isFailure) {
       this.logger.error(`Unexpected error in findAll for Einsatz ${einsatzId}: ${result.error}`, 'RollenBesetzungController');
       throw new InternalServerErrorException('Fehler beim Abrufen der Rollenbesetzungen');
     }
 
-    const besetzungen = result.value ?? [];
-
-    return besetzungen.map((b) => ({
-      id: b.id.value,
-      rollenName: b.rollenName,
-      personName: `${b.personVorname} ${b.personNachname}`,
-      rollenDefinitionId: b.rolleId.value,
-      einsatzPersonId: b.einsatzPersonId.value,
-    }));
+    return result.value ?? [];
   }
 
   /**
@@ -251,27 +252,73 @@ export class RollenBesetzungController {
   /**
    * Rolle freigeben (Person entfernen).
    *
-   * Entfernt die Besetzung einer Rolle, sodass sie wieder verfügbar ist.
-   * Erzeugt automatisch einen ETB-Eintrag.
+   * Setzt die Besetzung einer Rolle frei (Soft-Delete), sodass die Rolle
+   * wieder besetzt werden kann. Die Person ist danach wieder als reguläre
+   * Einsatzkraft verfügbar. Erzeugt automatisch einen ETB-Eintrag.
    *
-   * @param einsatzId - CUID des Einsatzes
+   * **AC1:** Freigabe setzt freigegebenAm, emittiert RolleFreigegeben Event
+   * **AC3:** Idempotenz - Doppelte Freigabe gibt 400 Bad Request
+   * **AC4:** Freigegebene Rolle erscheint nicht mehr in aktiver Übersicht
+   * **AC7:** HTTP 200 mit @ApiWrappedResponse für API-Konsistenz
+   *
+   * @param einsatzId - CUID des Einsatzes (für Routing-Konsistenz)
    * @param rollenBesetzungId - CUID der RollenBesetzung
+   * @param user - Aktueller User (aus JWT Token)
+   * @returns RolleFreigegebenResponseDto mit Bestätigung
    */
   @Delete(':rollenBesetzungId')
   @Throttle({ default: ADMIN_MUTATION_RATE_LIMIT })
-  @HttpCode(HttpStatus.NO_CONTENT)
+  @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Rolle freigeben (Person entfernen)' })
   @ApiParam({ name: 'einsatzId', type: String, format: 'cuid', description: 'Einsatz-ID (CUID)' })
   @ApiParam({ name: 'rollenBesetzungId', type: String, format: 'cuid', description: 'RollenBesetzung-ID (CUID)' })
-  @ApiNoContentResponse({ description: 'Rolle erfolgreich freigegeben' })
+  @ApiWrappedResponse(RolleFreigegebenResponseDto, { description: 'Rolle erfolgreich freigegeben' })
+  @ApiBadRequestResponse({ description: 'Rolle bereits freigegeben oder ungültige ID' })
   @ApiNotFoundResponse({ description: 'Rollenbesetzung nicht gefunden' })
   async freigebenRolle(
     @Param('einsatzId', ParseCuidPipe) _einsatzId: string,
-    @Param('rollenBesetzungId', ParseCuidPipe) _rollenBesetzungId: string,
-    @CurrentUser() _user: ValidatedUser,
-  ): Promise<void> {
-    // Story 5.2: GibRolleFrei Command implementieren
-    // Für jetzt: Placeholder für zukünftige Implementation
-    throw new HttpException('Rolle freigeben wird in Story 5.2 implementiert', HttpStatus.NOT_IMPLEMENTED);
+    @Param('rollenBesetzungId', ParseCuidPipe) rollenBesetzungId: string,
+    @CurrentUser() user: ValidatedUser,
+  ): Promise<RolleFreigegebenResponseDto> {
+    // Create Command
+    const commandResult = GebeRolleFreiCommand.create({
+      rollenBesetzungId,
+      freigegebenVon: user.userId,
+    });
+
+    if (commandResult.isFailure) {
+      throw new BadRequestException(commandResult.error);
+    }
+
+    const command = commandResult.value;
+    if (!command) {
+      throw new BadRequestException('Fehler beim Erstellen des Commands');
+    }
+
+    // Execute Command
+    const result = await this.gebeRolleFreiHandler.execute(command);
+
+    if (result.isFailure) {
+      const error = result.error ?? '';
+
+      // Map error codes to HTTP responses
+      if (error === ROLLEN_BESETZUNG_ERROR_CODES.ROLLEN_BESETZUNG_NOT_FOUND) {
+        throw new NotFoundException('RollenBesetzung nicht gefunden');
+      }
+      if (error === ROLLEN_BESETZUNG_ERROR_CODES.BEREITS_FREIGEGEBEN) {
+        throw new BadRequestException('Rolle wurde bereits freigegeben');
+      }
+
+      // Generic error
+      this.logger.error(`Unexpected error in freigebenRolle: ${error}`, 'RollenBesetzungController');
+      throw new InternalServerErrorException('Fehler beim Freigeben der Rolle');
+    }
+
+    this.logger.log(`Rolle freigegeben: ${rollenBesetzungId} (User: ${user.userId})`, 'RollenBesetzungController');
+
+    return {
+      id: rollenBesetzungId,
+      message: 'Rolle erfolgreich freigegeben',
+    };
   }
 }

@@ -5,6 +5,8 @@ import { KraefteInfrastructureModule } from '@infrastructure/kraefte/kraefte-inf
 import { LOGGER } from '@infrastructure/di-tokens';
 import { NestLoggerAdapter } from '@infrastructure/common/adapters';
 import { BesetzeRolleHandler } from './commands/besetze-rolle/besetze-rolle.handler';
+import { GebeRolleFreiHandler } from './commands/gebe-rolle-frei/gebe-rolle-frei.handler';
+import { FindAllRollenBesetzungQueryHandler } from './queries/find-all-rollen-besetzung/find-all-rollen-besetzung.handler';
 
 /**
  * Application Module für RollenBesetzung.
@@ -14,7 +16,12 @@ import { BesetzeRolleHandler } from './commands/besetze-rolle/besetze-rolle.hand
  *
  * **Story Context:**
  * Story 5.1 (Rolle besetzen mit Qualifikationsvalidierung) - Application Layer
- * Story 5.2 (Rolle freigeben) - Geplant für späteren Sprint
+ * Story 5.2 (Rolle freigeben) - Implementiert
+ *
+ * **Hexagonal Architecture:**
+ * - Command Handlers für Mutations (POST, DELETE)
+ * - Query Handlers für Reads (GET)
+ * - Controller nutzt nur Handlers, nicht direkt Repository
  */
 @Module({
   imports: [PrismaModule, OutboxModule, KraefteInfrastructureModule],
@@ -26,8 +33,10 @@ import { BesetzeRolleHandler } from './commands/besetze-rolle/besetze-rolle.hand
     },
     // Command Handlers
     BesetzeRolleHandler,
-    // Query Handlers (später: GetRollenBesetzungenHandler)
+    GebeRolleFreiHandler,
+    // Query Handlers
+    FindAllRollenBesetzungQueryHandler,
   ],
-  exports: [BesetzeRolleHandler, LOGGER],
+  exports: [BesetzeRolleHandler, GebeRolleFreiHandler, FindAllRollenBesetzungQueryHandler, LOGGER],
 })
 export class RollenBesetzungApplicationModule {}

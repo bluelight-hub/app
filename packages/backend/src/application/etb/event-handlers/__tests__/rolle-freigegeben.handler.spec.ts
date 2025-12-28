@@ -211,7 +211,7 @@ describe('RolleFreigegebenEventHandler', () => {
       // Then (Assert)
       const receivedCommand = mockAddEintragHandler.execute.mock.calls[0][0];
       expect(receivedCommand.metadata).toEqual({
-        eventType: 'RolleFreigegeben',
+        eventType: RolleFreigegeben.eventName(),
         einsatzPersonId,
         rollenDefinitionId,
         rollenName: 'LNA',

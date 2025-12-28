@@ -70,9 +70,12 @@ export class PrismaRollenBesetzungRepository implements IRollenBesetzungReposito
   ) {}
 
   /**
-   * Speichert das RollenBesetzung-Aggregat (Create - Update nicht unterstützt).
+   * Speichert das RollenBesetzung-Aggregat (Create oder Update).
    *
-   * RollenBesetzung ist immutable: Nach Erstellung nur Löschung möglich.
+   * **Create vs Update Logik:**
+   * - Prüft ob Entity bereits existiert (via findUnique)
+   * - Wenn existiert → UPDATE (für Soft-Delete/Freigabe)
+   * - Wenn nicht existiert → CREATE (neue Besetzung)
    *
    * **Constraint Handling (Result Pattern statt Exception - AC4):**
    * - P2002: Unique Constraint Violation → ROLLE_ALREADY_BESETZT
@@ -84,10 +87,36 @@ export class PrismaRollenBesetzungRepository implements IRollenBesetzungReposito
    */
   async save(aggregate: RollenBesetzung, tx?: TransactionContext): Promise<Result<void>> {
     const client = getTransactionClient(tx, this.prisma);
-    const data = PrismaRollenBesetzungMapper.toPersistence(aggregate);
 
     try {
-      await client.einsatzRollenbesetzung.create({ data });
+      // Prüfe ob Entity existiert (Update vs Create)
+      const existing = await client.einsatzRollenbesetzung.findUnique({
+        where: { id: aggregate.id.value },
+      });
+
+      if (existing) {
+        // UPDATE für Freigabe (Soft-Delete)
+        // Optimistic Locking: Nutzt updatedAt für echte Concurrent Modification Detection
+        // Verhindert Race Condition wenn zwei User gleichzeitig freigeben() aufrufen
+        const updated = await client.einsatzRollenbesetzung.updateMany({
+          where: {
+            id: aggregate.id.value,
+            updatedAt: existing.updatedAt, // Optimistic: Nur wenn Record nicht verändert wurde
+          },
+          data: PrismaRollenBesetzungMapper.toUpdatePersistence(aggregate),
+        });
+
+        // Race Condition erkannt: Record wurde zwischenzeitlich geändert
+        if (updated.count === 0) {
+          this.logger.warn(`[save] Optimistic locking failed - RollenBesetzung ${aggregate.id.value} was modified concurrently`, 'RollenBesetzungRepository');
+          return Result.fail(ROLLEN_BESETZUNG_ERROR_CODES.BEREITS_FREIGEGEBEN);
+        }
+      } else {
+        // CREATE für neue Besetzung
+        const data = PrismaRollenBesetzungMapper.toPersistence(aggregate);
+        await client.einsatzRollenbesetzung.create({ data });
+      }
+
       return Result.ok(undefined);
     } catch (error) {
       return this.handlePrismaError(error, 'save');
@@ -124,9 +153,12 @@ export class PrismaRollenBesetzungRepository implements IRollenBesetzungReposito
   }
 
   /**
-   * Lädt alle RollenBesetzungen eines Einsatzes.
+   * Lädt alle AKTIVEN RollenBesetzungen eines Einsatzes.
    *
-   * **Use Case:** Dashboard Übersicht - Alle Besetzungen für Einsatz anzeigen
+   * **Use Case:** Dashboard Übersicht - Alle aktiven Besetzungen für Einsatz anzeigen
+   *
+   * **AC4 (Story 5.2):** Freigegebene Rollen (freigegebenAm != null) werden NICHT
+   * mehr in der Liste angezeigt. Nur aktive Besetzungen werden zurückgegeben.
    *
    * @param einsatzId - Einsatz ID
    * @param tx - Optional: Transaction Context
@@ -137,7 +169,10 @@ export class PrismaRollenBesetzungRepository implements IRollenBesetzungReposito
 
     try {
       const entities = await client.einsatzRollenbesetzung.findMany({
-        where: { einsatzId: einsatzId.value },
+        where: {
+          einsatzId: einsatzId.value,
+          freigegebenAm: null, // AC4: Nur aktive Besetzungen (nicht freigegeben)
+        },
         orderBy: { createdAt: 'asc' },
       });
 
@@ -160,10 +195,13 @@ export class PrismaRollenBesetzungRepository implements IRollenBesetzungReposito
   }
 
   /**
-   * Lädt RollenBesetzung für spezifische Rolle im Einsatz.
+   * Lädt AKTIVE RollenBesetzung für spezifische Rolle im Einsatz.
    *
-   * **Use Case:** Validierung ob Rolle bereits besetzt (AC2 Unique Constraint)
+   * **Use Case:** Validierung ob Rolle bereits AKTIV besetzt (AC2 Unique Constraint)
    * Wird vor BesetzeRolle aufgerufen um User-freundliche Fehlermeldung zu zeigen.
+   *
+   * **Story 5.2:** Freigegebene Besetzungen (freigegebenAm != null) werden ignoriert.
+   * Ermöglicht Re-Besetzung einer Rolle nach Freigabe.
    *
    * @param einsatzId - Einsatz ID
    * @param rolleId - RollenDefinition ID
@@ -174,12 +212,12 @@ export class PrismaRollenBesetzungRepository implements IRollenBesetzungReposito
     const client = getTransactionClient(tx, this.prisma);
 
     try {
-      const entity = await client.einsatzRollenbesetzung.findUnique({
+      // NOTE: Kann nicht findUnique verwenden da wir freigegebenAm filtern müssen
+      const entity = await client.einsatzRollenbesetzung.findFirst({
         where: {
-          einsatz_rollen_besetzung_unique: {
-            einsatzId: einsatzId.value,
-            rollenDefinitionId: rolleId.value,
-          },
+          einsatzId: einsatzId.value,
+          rollenDefinitionId: rolleId.value,
+          freigegebenAm: null, // Nur aktive Besetzungen
         },
       });
 

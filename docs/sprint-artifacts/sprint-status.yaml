@@ -81,10 +81,10 @@ development_status:
   epic-4-retrospective: completed
 
   # ===== Epic 5: Rollen & Fuehrung =====
-  epic-5: in-progress
+  epic-5: done
   5-0-prisma-schema-rollenbesetzung: done
   5-1-rolle-besetzen-mit-qualifikationsvalidierung: done
-  5-2-rolle-freigeben: backlog
+  5-2-rolle-freigeben: done
   epic-5-retrospective: optional
 
   # ===== Epic 6: Taktische Uebersicht =====

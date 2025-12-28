@@ -52,7 +52,6 @@ export class PrismaRollenBesetzungMapper {
     }
 
     // Domain Aggregate via reconstitute() erstellen
-    // NOTE: freigegebenAm/freigegebenVon existieren noch nicht im Schema (geplant für zukünftige Migration)
     return RollenBesetzung.reconstitute({
       id: idResult.value,
       einsatzId: einsatzIdResult.value,
@@ -65,8 +64,8 @@ export class PrismaRollenBesetzungMapper {
       createdBy: entity.createdBy,
       updatedAt: entity.updatedAt,
       updatedBy: entity.updatedBy ?? undefined,
-      freigegebenAm: undefined, // TODO: Schema noch nicht aktualisiert
-      freigegebenVon: undefined, // TODO: Schema noch nicht aktualisiert
+      freigegebenAm: entity.freigegebenAm ?? undefined,
+      freigegebenVon: entity.freigegebenVon ?? undefined,
     });
   }
 
@@ -96,6 +95,28 @@ export class PrismaRollenBesetzungMapper {
       personVorname: aggregate.personVorname,
       personNachname: aggregate.personNachname,
       creator: { connect: { id: aggregate.createdBy } },
+    };
+  }
+
+  /**
+   * Konvertiert Domain Aggregate zu Prisma Update Input für Freigabe.
+   *
+   * **Soft-Delete Pattern (Story 5.2):**
+   * - freigegebenAm wird gesetzt bei Freigabe (vorher null)
+   * - freigegebenVon speichert User-ID für Audit Trail
+   * - updatedBy wird für Audit Trail gesetzt (wer hat die Änderung durchgeführt)
+   *
+   * **Note:** updatedAt wird automatisch durch Prisma @updatedAt gesetzt.
+   *
+   * @param aggregate - Domain RollenBesetzung Aggregate mit Freigabe-Daten
+   * @returns Prisma EinsatzRollenbesetzungUpdateInput
+   */
+  static toUpdatePersistence(aggregate: RollenBesetzung): Prisma.EinsatzRollenbesetzungUpdateInput {
+    return {
+      freigegebenAm: aggregate.freigegebenAm ?? null,
+      freigegebenVon: aggregate.freigegebenVon ?? null,
+      // Audit Trail: updater Relation für updatedBy Feld
+      ...(aggregate.updatedBy && { updater: { connect: { id: aggregate.updatedBy } } }),
     };
   }
 }

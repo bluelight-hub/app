@@ -1001,6 +1001,12 @@ model EinsatzRollenbesetzung {
   personVorname  String @map("person_vorname") @db.VarChar(100)
   personNachname String @map("person_nachname") @db.VarChar(100)
 
+  // Soft-Delete Felder (Story 5.2: Rolle freigeben)
+  // freigegebenAm = null → Rolle aktiv besetzt
+  // freigegebenAm = DateTime → Rolle freigegeben (Soft-Delete)
+  freigegebenAm  DateTime? @map("freigegeben_am")
+  freigegebenVon String?   @map("freigegeben_von") @db.VarChar(100)
+
   // Audit Trail (PFLICHT - vollständig!)
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
@@ -1014,13 +1020,15 @@ model EinsatzRollenbesetzung {
   creator          User             @relation("EinsatzRollenbesetzungCreator", fields: [createdBy], references: [id], onDelete: NoAction, onUpdate: NoAction)
   updater          User?            @relation("EinsatzRollenbesetzungUpdater", fields: [updatedBy], references: [id], onDelete: NoAction, onUpdate: NoAction)
 
-  // UNIQUE Constraint (AC2): Pro Einsatz kann jede Rolle nur EINMAL besetzt werden
+  // UNIQUE Constraint (AC2): Pro Einsatz kann jede AKTIVE Rolle nur EINMAL besetzt werden
+  // NOTE: Constraint erlaubt Re-Besetzung nach Freigabe (freigegebenAm != null)
   @@unique([einsatzId, rollenDefinitionId], name: "einsatz_rollen_besetzung_unique")
   // Indexes (Performance)
   @@index([einsatzId]) // Alle Rollen für Einsatz
   @@index([personId]) // Rollen einer Person
   @@index([rollenDefinitionId]) // Alle Personen mit Rolle X
   @@index([einsatzId, rollenDefinitionId]) // Composite für "Wer hat Rolle X in Einsatz Y"
+  @@index([einsatzId, freigegebenAm]) // Aktive Besetzungen pro Einsatz (freigegebenAm = null)
   @@index([createdBy]) // Audit-Queries
   @@map("einsatz_rollen_besetzung")
 }

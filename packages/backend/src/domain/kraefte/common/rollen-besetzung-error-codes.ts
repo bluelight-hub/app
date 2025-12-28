@@ -73,9 +73,17 @@ export const ROLLEN_BESETZUNG_ERROR_CODES = {
    *
    * **Trigger:** Attempt to call freigeben() on already released RollenBesetzung.
    * **Business Rule:** Eine Rollenbesetzung kann nur EINMAL freigegeben werden.
-   * **HTTP:** 409 Conflict
+   * **HTTP:** 400 Bad Request
    */
   BEREITS_FREIGEGEBEN: 'BEREITS_FREIGEGEBEN',
+
+  /**
+   * Rollenbesetzung nicht gefunden (ID ungültig).
+   *
+   * **Trigger:** RollenBesetzung mit gegebener ID existiert nicht.
+   * **HTTP:** 404 Not Found
+   */
+  ROLLEN_BESETZUNG_NOT_FOUND: 'ROLLEN_BESETZUNG_NOT_FOUND',
 } as const;
 
 /**

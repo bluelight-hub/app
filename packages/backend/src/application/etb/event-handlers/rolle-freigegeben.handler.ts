@@ -15,7 +15,7 @@
 import { Inject, Injectable } from '@nestjs/common';
 import type { IEventHandler } from '@domain/ports/i-event-handler.port';
 import type { ILogger } from '@domain/ports/i-logger.port';
-import type { RolleFreigegeben } from '@domain/kraefte/events/rolle-freigegeben.event';
+import { RolleFreigegeben } from '@domain/kraefte/events/rolle-freigegeben.event';
 import { LOGGER } from '@infrastructure/di-tokens';
 import { AddEintragCommand } from '../commands/add-eintrag/add-eintrag.command';
 // biome-ignore lint/style/useImportType: AddEintragHandler needed for DI at runtime
@@ -64,6 +64,7 @@ export class RolleFreigegebenEventHandler implements IEventHandler<RolleFreigege
       const text = `${event.personVorname} ${event.personNachname} gibt Rolle ${event.rollenName} ab`;
 
       // Command erstellen mit Validierung
+      // Nutze RolleFreigegeben.eventName() für konsistente Event-Type Referenzierung
       const commandResult = AddEintragCommand.create(
         etbId,
         text,
@@ -71,7 +72,7 @@ export class RolleFreigegebenEventHandler implements IEventHandler<RolleFreigege
         'PERSONAL', // ETB Kategorie für Personaländerungen (Rollenfreigabe)
         event.einsatzId,
         {
-          eventType: 'RolleFreigegeben',
+          eventType: RolleFreigegeben.eventName(),
           einsatzPersonId: event.einsatzPersonId,
           rollenDefinitionId: event.rollenDefinitionId,
           rollenName: event.rollenName,
