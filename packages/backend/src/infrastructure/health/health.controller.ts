@@ -286,21 +286,34 @@ export class HealthController {
     return new Promise((resolve, reject) => {
       const socket = new net.Socket();
 
+      /**
+       * Cleanup-Funktion um Memory Leaks zu verhindern.
+       * Entfernt alle Event Listener bevor der Socket destroyed wird.
+       * Dies ist wichtig, da socket.on() Referenzen auf den Socket hält,
+       * die ohne explizites Entfernen zu Memory Leaks führen können.
+       */
+      const cleanup = () => {
+        socket.removeAllListeners();
+      };
+
       // Timeout-Handler
       socket.setTimeout(timeout);
-      socket.on('timeout', () => {
+      socket.once('timeout', () => {
+        cleanup();
         socket.destroy();
         reject(new Error('Connection timeout'));
       });
 
       // Fehler-Handler
-      socket.on('error', (err) => {
+      socket.once('error', (err) => {
+        cleanup();
         socket.destroy();
         reject(err);
       });
 
       // Verbindungs-Handler
-      socket.on('connect', () => {
+      socket.once('connect', () => {
+        cleanup();
         socket.end();
         resolve();
       });

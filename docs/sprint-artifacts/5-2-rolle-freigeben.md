@@ -1,6 +1,6 @@
 # Story 5.2: Rolle freigeben
 
-Status: in-progress
+Status: done
 
 ## Story
 

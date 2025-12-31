@@ -101,6 +101,8 @@ export function QrScannerTab({ einsatzId, onSuccess, isActive = true }: QrScanne
   const cooldownRef = useRef<boolean>(false);
   const mountedRef = useRef(false);
   const tauriScanActiveRef = useRef(false);
+  // Timeout refs for cleanup (Memory Leak Fix)
+  const timeoutRefs = useRef<Set<ReturnType<typeof setTimeout>>>(new Set());
 
   // Stable refs für Callback-Dependencies (verhindert infinite loops)
   const einsatzIdRef = useRef(einsatzId);
@@ -158,154 +160,175 @@ export function QrScannerTab({ einsatzId, onSuccess, isActive = true }: QrScanne
    * Cleanup-Funktion für beide Modi
    */
   const cleanup = useCallback(async () => {
+    // Clear all pending timeouts (Memory Leak Fix)
+    for (const timeoutId of timeoutRefs.current) {
+      clearTimeout(timeoutId);
+    }
+    timeoutRefs.current.clear();
+
     cleanupBrowser();
     await cleanupTauri();
   }, [cleanupBrowser, cleanupTauri]);
 
   /**
+   * Helper to create tracked timeouts that are cleaned up on unmount
+   */
+  const createTrackedTimeout = useCallback((callback: () => void, delay: number) => {
+    const timeoutId = setTimeout(() => {
+      timeoutRefs.current.delete(timeoutId);
+      callback();
+    }, delay);
+    timeoutRefs.current.add(timeoutId);
+    return timeoutId;
+  }, []);
+
+  /**
    * Verarbeitet einen erkannten QR-Code
    * Verwendet Refs für stabile Dependencies (keine infinite loops)
    */
-  const processQrCode = useCallback(async (qrContent: string) => {
-    // MEDIUM FIX (1): Check if unmounted to prevent race condition
-    if (!mountedRef.current) {
-      return;
-    }
-
-    console.log('[QR Scanner] processQrCode aufgerufen:', sanitizeForLog(qrContent));
-
-    // CRITICAL FIX #7: Debounce check und cooldown SOFORT setzen (BEFORE ANY async operations)
-    if (lastScannedRef.current === qrContent || cooldownRef.current) {
-      console.log('[QR Scanner] Debounce aktiv, überspringe');
-      return;
-    }
-    // Set cooldown IMMEDIATELY to prevent race condition (gap between check and set)
-    cooldownRef.current = true;
-    lastScannedRef.current = qrContent;
-
-    // Quick-Check: Ist es überhaupt ein DRK QR-Code?
-    if (!isDrkQrCodeFormat(qrContent)) {
-      // Log: Zeige das tatsächliche Format für Debugging
-      console.log('[QR Scanner] Kein DRK-Format erkannt. Erwartet: drk://person?..., Erhalten:', sanitizeForLog(qrContent.substring(0, 50)));
-      // Reset cooldown for non-DRK codes to allow scanning valid codes immediately
-      cooldownRef.current = false;
-      lastScannedRef.current = null;
-      return;
-    }
-
-    console.log('[QR Scanner] DRK-Format erkannt, parse...');
-
-    // Parse den QR-Code
-    const parseResult = parseDrkQrCode(qrContent);
-    console.log('[QR Scanner] Parse-Ergebnis:', parseResult);
-
-    if (!parseResult.success) {
-      // Parsing-Fehler anzeigen
-      const errorMessage = getParseErrorMessage(parseResult.error.code);
-
-      // Cancel animation frame before state transition
-      if (animationRef.current) {
-        cancelAnimationFrame(animationRef.current);
-        animationRef.current = null;
+  const processQrCode = useCallback(
+    async (qrContent: string) => {
+      // MEDIUM FIX (1): Check if unmounted to prevent race condition
+      if (!mountedRef.current) {
+        return;
       }
 
-      setState({ status: 'error', message: errorMessage });
+      console.log('[QR Scanner] processQrCode aufgerufen:', sanitizeForLog(qrContent));
 
-      // Cooldown um Spam zu vermeiden
-      setTimeout(() => {
-        // CRITICAL FIX #8: Check stream exists before setState (prevent state transition after cleanup)
-        if (mountedRef.current && streamRef.current !== null) {
-          cooldownRef.current = false;
-          lastScannedRef.current = null;
-          setState({ status: 'scanning' });
+      // CRITICAL FIX #7: Debounce check und cooldown SOFORT setzen (BEFORE ANY async operations)
+      if (lastScannedRef.current === qrContent || cooldownRef.current) {
+        console.log('[QR Scanner] Debounce aktiv, überspringe');
+        return;
+      }
+      // Set cooldown IMMEDIATELY to prevent race condition (gap between check and set)
+      cooldownRef.current = true;
+      lastScannedRef.current = qrContent;
+
+      // Quick-Check: Ist es überhaupt ein DRK QR-Code?
+      if (!isDrkQrCodeFormat(qrContent)) {
+        // Log: Zeige das tatsächliche Format für Debugging
+        console.log('[QR Scanner] Kein DRK-Format erkannt. Erwartet: drk://person?..., Erhalten:', sanitizeForLog(qrContent.substring(0, 50)));
+        // Reset cooldown for non-DRK codes to allow scanning valid codes immediately
+        cooldownRef.current = false;
+        lastScannedRef.current = null;
+        return;
+      }
+
+      console.log('[QR Scanner] DRK-Format erkannt, parse...');
+
+      // Parse den QR-Code
+      const parseResult = parseDrkQrCode(qrContent);
+      console.log('[QR Scanner] Parse-Ergebnis:', parseResult);
+
+      if (!parseResult.success) {
+        // Parsing-Fehler anzeigen
+        const errorMessage = getParseErrorMessage(parseResult.error.code);
+
+        // Cancel animation frame before state transition
+        if (animationRef.current) {
+          cancelAnimationFrame(animationRef.current);
+          animationRef.current = null;
         }
-      }, 2000);
 
-      return;
-    }
+        setState({ status: 'error', message: errorMessage });
 
-    // Erfolgreiches Parsing
-    const qrData = parseResult.data;
+        // Cooldown um Spam zu vermeiden (Memory Leak Fix: use tracked timeout)
+        createTrackedTimeout(() => {
+          // CRITICAL FIX #8: Check stream exists before setState (prevent state transition after cleanup)
+          if (mountedRef.current && streamRef.current !== null) {
+            cooldownRef.current = false;
+            lastScannedRef.current = null;
+            setState({ status: 'scanning' });
+          }
+        }, 2000);
 
-    // CRITICAL FIX: Cancel animation frame before switching to processing state
-    if (animationRef.current) {
-      cancelAnimationFrame(animationRef.current);
-      animationRef.current = null;
-    }
+        return;
+      }
 
-    setState({ status: 'processing', data: qrData });
+      // Erfolgreiches Parsing
+      const qrData = parseResult.data;
 
-    try {
-      // AC4: Automatische Registrierung ohne Bestätigungs-Button!
-      // Verwende Refs für stabile Referenzen
-      const result = await registriereViaQrRef.current.mutateAsync({
-        einsatzId: einsatzIdRef.current,
-        qrData: {
-          personalnummer: qrData.personalnummer,
-          vorname: qrData.vorname,
-          nachname: qrData.nachname,
-          funkkennung: qrData.funkkennung,
-        },
-      });
-
-      const personName = `${result.data?.vorname ?? qrData.vorname} ${result.data?.nachname ?? qrData.nachname}`;
-
-      // Erfolg!
-      setState({ status: 'success', personName });
-      toast.success(`${personName} registriert`, {
-        description: 'Person wurde erfolgreich zum Einsatz hinzugefügt',
-      });
-
-      onSuccessRef.current?.(personName);
-
-      // Cancel animation frame before state transition
+      // CRITICAL FIX: Cancel animation frame before switching to processing state
       if (animationRef.current) {
         cancelAnimationFrame(animationRef.current);
         animationRef.current = null;
       }
 
-      // Nach kurzer Pause wieder scannen (für nächste Person)
-      setTimeout(() => {
-        // CRITICAL FIX #8: Check stream exists before setState (prevent state transition after cleanup)
-        if (mountedRef.current && streamRef.current !== null) {
-          lastScannedRef.current = null;
-          cooldownRef.current = false;
-          setState({ status: 'scanning' });
-        }
-      }, 1500);
-    } catch (error) {
-      const apiError = error as ResponseError;
+      setState({ status: 'processing', data: qrData });
 
-      // Cancel animation frame before state transition
-      if (animationRef.current) {
-        cancelAnimationFrame(animationRef.current);
-        animationRef.current = null;
-      }
-
-      if (isDuplicatePersonError(apiError)) {
-        // Duplikat ist kein schwerer Fehler
-        setState({ status: 'error', message: 'Person bereits registriert' });
-        toast.warning('Person bereits registriert', {
-          description: `${qrData.vorname} ${qrData.nachname} ist bereits in diesem Einsatz`,
+      try {
+        // AC4: Automatische Registrierung ohne Bestätigungs-Button!
+        // Verwende Refs für stabile Referenzen
+        const result = await registriereViaQrRef.current.mutateAsync({
+          einsatzId: einsatzIdRef.current,
+          qrData: {
+            personalnummer: qrData.personalnummer,
+            vorname: qrData.vorname,
+            nachname: qrData.nachname,
+            funkkennung: qrData.funkkennung,
+          },
         });
-      } else {
-        setState({ status: 'error', message: 'Registrierung fehlgeschlagen' });
-        toast.error('Fehler bei Registrierung', {
-          description: apiError.message || 'Unbekannter Fehler',
-        });
-      }
 
-      // Nach Fehler wieder scannen
-      setTimeout(() => {
-        // CRITICAL FIX #8: Check stream exists before setState (prevent state transition after cleanup)
-        if (mountedRef.current && streamRef.current !== null) {
-          lastScannedRef.current = null;
-          cooldownRef.current = false;
-          setState({ status: 'scanning' });
+        const personName = `${result.data?.vorname ?? qrData.vorname} ${result.data?.nachname ?? qrData.nachname}`;
+
+        // Erfolg!
+        setState({ status: 'success', personName });
+        toast.success(`${personName} registriert`, {
+          description: 'Person wurde erfolgreich zum Einsatz hinzugefügt',
+        });
+
+        onSuccessRef.current?.(personName);
+
+        // Cancel animation frame before state transition
+        if (animationRef.current) {
+          cancelAnimationFrame(animationRef.current);
+          animationRef.current = null;
         }
-      }, 2500);
-    }
-  }, []); // Keine Dependencies - alles über Refs
+
+        // Nach kurzer Pause wieder scannen (für nächste Person) (Memory Leak Fix: use tracked timeout)
+        createTrackedTimeout(() => {
+          // CRITICAL FIX #8: Check stream exists before setState (prevent state transition after cleanup)
+          if (mountedRef.current && streamRef.current !== null) {
+            lastScannedRef.current = null;
+            cooldownRef.current = false;
+            setState({ status: 'scanning' });
+          }
+        }, 1500);
+      } catch (error) {
+        const apiError = error as ResponseError;
+
+        // Cancel animation frame before state transition
+        if (animationRef.current) {
+          cancelAnimationFrame(animationRef.current);
+          animationRef.current = null;
+        }
+
+        if (isDuplicatePersonError(apiError)) {
+          // Duplikat ist kein schwerer Fehler
+          setState({ status: 'error', message: 'Person bereits registriert' });
+          toast.warning('Person bereits registriert', {
+            description: `${qrData.vorname} ${qrData.nachname} ist bereits in diesem Einsatz`,
+          });
+        } else {
+          setState({ status: 'error', message: 'Registrierung fehlgeschlagen' });
+          toast.error('Fehler bei Registrierung', {
+            description: apiError.message || 'Unbekannter Fehler',
+          });
+        }
+
+        // Nach Fehler wieder scannen (Memory Leak Fix: use tracked timeout)
+        createTrackedTimeout(() => {
+          // CRITICAL FIX #8: Check stream exists before setState (prevent state transition after cleanup)
+          if (mountedRef.current && streamRef.current !== null) {
+            lastScannedRef.current = null;
+            cooldownRef.current = false;
+            setState({ status: 'scanning' });
+          }
+        }, 2500);
+      }
+    },
+    [createTrackedTimeout],
+  ); // createTrackedTimeout ist stabil (keine Dependencies)
 
   /**
    * Scan-Loop für Browser: Liest Frames vom Video und sucht nach QR-Codes

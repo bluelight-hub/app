@@ -22,6 +22,7 @@ import { FahrzeugtypenController } from './controllers/fahrzeugtypen.controller'
 import { StammFahrzeugeController } from './controllers/stamm-fahrzeuge.controller';
 import { StammPersonenController } from './controllers/stamm-personen.controller';
 import { RollenBesetzungController } from './controllers/rollen-besetzung.controller';
+import { KraefteDashboardController } from './controllers/kraefte-dashboard.controller';
 
 /**
  * NestJS Module für Kräftemanagement.
@@ -58,6 +59,7 @@ import { RollenBesetzungController } from './controllers/rollen-besetzung.contro
     StammFahrzeugeController,
     StammPersonenController,
     RollenBesetzungController,
+    KraefteDashboardController, // Story 6.1a: Taktische Stärke-Anzeige
   ],
 })
 export class KraefteModule {}

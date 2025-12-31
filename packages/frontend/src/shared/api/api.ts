@@ -11,11 +11,13 @@ import {
   ETBApi,
   GeocodingApi,
   HealthApi,
+  KraefteDashboardApi,
   KraefteFahrzeugtypenApi,
   KraefteStammFahrzeugeApi,
   KraefteStammPersonenApi,
   LagekarteApi,
   LagekarteCQRSApi,
+  RollenBesetzungApi,
   UserManagementApi,
   UsersApi,
 } from '@bluelight-hub/shared/client';
@@ -71,9 +73,11 @@ class BackendApi {
   private readonly adminStammdatenPersonenApi: AdminStammdatenPersonenApi;
   private readonly einsatzFahrzeugeApi: EinsatzFahrzeugeApi;
   private readonly einsatzPersonenApi: EinsatzPersonenApi;
+  private readonly kraefteDashboardApi: KraefteDashboardApi;
   private readonly kraefteFahrzeugtypenApi: KraefteFahrzeugtypenApi;
   private readonly kraefteStammFahrzeugeApi: KraefteStammFahrzeugeApi;
   private readonly kraefteStammPersonenApi: KraefteStammPersonenApi;
+  private readonly rollenBesetzungApi: RollenBesetzungApi;
 
   /**
    * Erstellt eine neue Instanz der BackendApi-Klasse
@@ -105,9 +109,11 @@ class BackendApi {
     this.adminStammdatenPersonenApi = new AdminStammdatenPersonenApi(this.configuration);
     this.einsatzFahrzeugeApi = new EinsatzFahrzeugeApi(this.configuration);
     this.einsatzPersonenApi = new EinsatzPersonenApi(this.configuration);
+    this.kraefteDashboardApi = new KraefteDashboardApi(this.configuration);
     this.kraefteFahrzeugtypenApi = new KraefteFahrzeugtypenApi(this.configuration);
     this.kraefteStammFahrzeugeApi = new KraefteStammFahrzeugeApi(this.configuration);
     this.kraefteStammPersonenApi = new KraefteStammPersonenApi(this.configuration);
+    this.rollenBesetzungApi = new RollenBesetzungApi(this.configuration);
   }
 
   /**
@@ -219,6 +225,15 @@ class BackendApi {
   }
 
   /**
+   * Gibt die gecachte KraefteDashboard-API-Instanz zurück
+   *
+   * @returns Die KraefteDashboard-API-Instanz für Kräfte-Dashboard-Abfragen (Taktische Stärke)
+   */
+  kraefteDashboard(): KraefteDashboardApi {
+    return this.kraefteDashboardApi;
+  }
+
+  /**
    * Gibt die gecachte KraefteFahrzeugtypen-API-Instanz zurück
    *
    * @returns Die KraefteFahrzeugtypen-API-Instanz für öffentliche Fahrzeugtypen-Abfragen
@@ -261,6 +276,15 @@ class BackendApi {
    */
   kraefteStammPersonen(): KraefteStammPersonenApi {
     return this.kraefteStammPersonenApi;
+  }
+
+  /**
+   * Gibt die gecachte RollenBesetzung-API-Instanz zurück
+   *
+   * @returns Die RollenBesetzung-API-Instanz für Rollen-Besetzungs-Management
+   */
+  rollenBesetzung(): RollenBesetzungApi {
+    return this.rollenBesetzungApi;
   }
 }
 

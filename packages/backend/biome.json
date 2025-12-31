@@ -117,6 +117,12 @@
             "noRestrictedImports": {
               "level": "error",
               "options": {
+                "paths": {
+                  "@nestjs/common": {
+                    "importNames": ["Logger"],
+                    "message": "❌ Application Layer: Logger via DI injizieren mit @Inject(LOGGER) aus @infrastructure/di-tokens"
+                  }
+                },
                 "patterns": [
                   {
                     "group": [
@@ -127,6 +133,7 @@
                       "@infrastructure/etb/*",
                       "@infrastructure/events/*",
                       "@infrastructure/geocoding/*",
+                      "@infrastructure/kraefte/*",
                       "@infrastructure/outbox/*",
                       "@infrastructure/repositories/*",
                       "@infrastructure/user/*",
@@ -142,6 +149,56 @@
                 ]
               }
             }
+          }
+        }
+      }
+    },
+    {
+      "includes": ["src/infrastructure/**/*.ts", "!src/infrastructure/**/*.spec.ts", "!src/infrastructure/**/*.test.ts", "!src/infrastructure/common/adapters/**/*.ts"],
+      "linter": {
+        "rules": {
+          "style": {
+            "noRestrictedImports": {
+              "level": "error",
+              "options": {
+                "paths": {
+                  "@nestjs/common": {
+                    "importNames": ["Logger"],
+                    "message": "❌ Infrastructure Layer: Logger via DI injizieren mit @Inject(LOGGER), außer in Adapters"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "includes": ["src/modules/**/*.ts", "!src/modules/**/*.spec.ts", "!src/modules/**/*.test.ts"],
+      "linter": {
+        "rules": {
+          "style": {
+            "noRestrictedImports": {
+              "level": "error",
+              "options": {
+                "paths": {
+                  "@nestjs/common": {
+                    "importNames": ["Logger"],
+                    "message": "❌ Module Layer: Logger via DI injizieren mit @Inject(LOGGER)"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "includes": ["src/main.ts", "src/main-cli.ts", "src/main-cli-archive.ts"],
+      "linter": {
+        "rules": {
+          "style": {
+            "noRestrictedImports": "off"
           }
         }
       }

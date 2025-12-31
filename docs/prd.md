@@ -41,7 +41,7 @@ Das Feature integriert sich nahtlos in bestehende Module: Statusänderungen erze
 ### Was dieses Feature besonders macht
 
 - **Automatische ETB-Integration:** Jeder Statuswechsel erzeugt einen unveränderlichen ETB-Eintrag
-- **Taktische Stärke auf Knopfdruck:** Berechnung im Format `Führer/Unterführer/Helfer/Gesamt`
+- **Taktische Stärke auf Knopfdruck:** Berechnung im Format `Führer/Unterführer/Helfer//Gesamt`
 - **Schnellerfassung:** Fahrzeuge in <5 Sekunden erfassen, Status-Update mit 1-2 Klicks
 - **QR-Code-Registrierung:** Helfer per QR-Code erfassen (z.B. DRK-Helfer App) – erweiterbar über Port/Adapter-Pattern
 - **Dual-Mode UI:** FullScreen für Monitor-Ansicht, Kompakt für Bearbeitung
@@ -110,7 +110,7 @@ Das Kräfte-Modul folgt der etablierten Hexagonalen Architektur (DDD + CQRS) und
 | **Fahrzeuge** | Erfassen (temporär + Stammdaten), Status 0-9, OPTA, Funkrufname |
 | **Personen** | Zuordnung zu Fahrzeugen, Qualifikationen |
 | **Rollen** | Besetzbare Slots (LNA, OrgL, etc.) mit Funkrufname |
-| **Taktische Stärke** | Automatische Berechnung `Führer/Unterführer/Helfer/Gesamt` |
+| **Taktische Stärke** | Automatische Berechnung `Führer/Unterführer/Helfer//Gesamt` |
 | **ETB-Integration** | Auto-Einträge bei Statuswechsel |
 | **Kräfte-Dashboard** | Übersicht mit FullScreen-Modus |
 | **Lagekarte-Integration** | Kräfte als POIs (ohne GPS) |
@@ -384,7 +384,7 @@ Die folgenden funktionalen Anforderungen definieren das **Capability Contract** 
 
 | FR | Requirement |
 |----|-------------|
-| **FR15** | System can calculate tactical strength in format Führer/Unterführer/Helfer/Gesamt |
+| **FR15** | System can calculate tactical strength in format Führer/Unterführer/Helfer//Gesamt |
 | **FR16** | System can categorize personnel by current function (not highest qualification) |
 | **FR17** | System can count physicians as "Führer" category |
 | **FR18** | System can auto-recalculate strength on any personnel or assignment change |
@@ -515,4 +515,3 @@ Die folgenden Quality Attributes definieren, WIE GUT das System performen muss. 
 | Integration | 4 |
 | Usability | 4 |
 | **Gesamt** | **22** |
-

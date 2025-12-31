@@ -1,9 +1,11 @@
-import { ForbiddenException, Injectable, Logger, UnauthorizedException } from '@nestjs/common';
+import { ForbiddenException, Inject, Injectable, type OnModuleDestroy, UnauthorizedException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { PassportStrategy } from '@nestjs/passport';
 import type { UserRole } from '@prisma/client';
 import type { Request } from 'express';
 import { ExtractJwt, Strategy } from 'passport-jwt';
+import type { ILogger } from '@domain/ports/i-logger.port';
+import { LOGGER } from '@infrastructure/di-tokens';
 import { AuthService } from '../auth.service';
 import { isAdmin } from '../utils/auth.utils';
 
@@ -55,14 +57,20 @@ function hasIsAdminFlag(payload: AdminJwtPayload): payload is ExtendedAdminJwtPa
  * Sie stellt sicher, dass nur Tokens mit isAdmin=true akzeptiert werden.
  */
 @Injectable()
-export class AdminJwtStrategy extends PassportStrategy(Strategy, 'admin-jwt') {
-  private readonly logger = new Logger(AdminJwtStrategy.name);
+export class AdminJwtStrategy extends PassportStrategy(Strategy, 'admin-jwt') implements OnModuleDestroy {
   private readonly MIN_DELAY_MS = 50;
   private readonly MAX_DELAY_MS = 100;
+
+  /**
+   * Set aller pending Timeouts für Cleanup bei Module Destroy.
+   * Verhindert Memory Leaks wenn der Service gestoppt wird während Timeouts laufen.
+   */
+  private readonly pendingTimeouts = new Set<ReturnType<typeof setTimeout>>();
 
   constructor(
     configService: ConfigService,
     private readonly authService: AuthService,
+    @Inject(LOGGER) private readonly logger: ILogger,
   ) {
     super({
       jwtFromRequest: ExtractJwt.fromExtractors([
@@ -79,6 +87,17 @@ export class AdminJwtStrategy extends PassportStrategy(Strategy, 'admin-jwt') {
       secretOrKey: configService.getOrThrow<string>('ADMIN_JWT_SECRET'),
       passReqToCallback: true, // Pass the request to the validate method
     } as never);
+  }
+
+  /**
+   * Cleanup aller pending Timeouts bei Module Destroy.
+   * Verhindert Memory Leaks wenn der Service gestoppt wird während Auth-Requests laufen.
+   */
+  onModuleDestroy(): void {
+    for (const timeoutId of this.pendingTimeouts) {
+      clearTimeout(timeoutId);
+    }
+    this.pendingTimeouts.clear();
   }
 
   /**
@@ -99,7 +118,13 @@ export class AdminJwtStrategy extends PassportStrategy(Strategy, 'admin-jwt') {
    */
   private async constantTimeDelay(): Promise<void> {
     const randomDelay = Math.floor(Math.random() * (this.MAX_DELAY_MS - this.MIN_DELAY_MS + 1)) + this.MIN_DELAY_MS;
-    return new Promise((resolve) => setTimeout(resolve, randomDelay));
+    return new Promise((resolve) => {
+      const timeoutId = setTimeout(() => {
+        this.pendingTimeouts.delete(timeoutId);
+        resolve();
+      }, randomDelay);
+      this.pendingTimeouts.add(timeoutId);
+    });
   }
 
   /**

@@ -85,15 +85,22 @@ development_status:
   5-0-prisma-schema-rollenbesetzung: done
   5-1-rolle-besetzen-mit-qualifikationsvalidierung: done
   5-2-rolle-freigeben: done
-  epic-5-retrospective: optional
+  epic-5-retrospective: completed
+
+  # ===== Tech Debt Sprint (Epic 5 Retro Action Item) =====
+  tech-debt-sprint-1: done
+  td1-query-handler-tests: done  # 8 Tests für FindAllRollenBesetzungQueryHandler ✅
+  td1-controller-tests: done     # 30 Tests für RollenBesetzung Controller ✅
+  td1-mapper-tests: done                  # 25 Tests für RollenBesetzung Mapper ✅
+  td1-biome-logger-rule: done       # Lint Rule für new Logger() Violations - 116 Violations ✅
 
   # ===== Epic 6: Taktische Uebersicht =====
-  epic-6: backlog
-  6-1a-taktische-staerke-anzeige: backlog
-  6-1b-fahrzeug-status-liste: backlog
-  6-1c-rollen-uebersicht: backlog
-  6-1d-dashboard-container-layout: backlog
-  6-2-fullscreen-compact-modus: backlog
+  epic-6: in-progress
+  6-1a-taktische-staerke-anzeige: done
+  6-1b-fahrzeug-status-liste: done
+  6-1c-rollen-uebersicht: done
+  6-1d-dashboard-container-layout: done
+  6-2-fullscreen-compact-modus: ready-for-dev
   epic-6-retrospective: optional
 
   # ===== Epic 7: HiOrg-Server Integration =====

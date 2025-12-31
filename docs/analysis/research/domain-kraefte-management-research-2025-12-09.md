@@ -27,7 +27,7 @@ source_verification: true
 Diese Domain-Recherche liefert das fachliche Fundament für die Implementierung des Kräfte-Management-Moduls in Bluelight Hub. Die Recherche deckt sechs Kernbereiche ab, die direkt das Datenmodell, die Geschäftslogik und die UI-Gestaltung beeinflussen:
 
 1. **Funkstatus 1-0** - Nicht bundesweit einheitlich, Status 7-9 müssen konfigurierbar sein
-2. **Taktische Stärke** - Format `Führer/Unterführer/Helfer/Gesamt` ist de-facto Standard
+2. **Taktische Stärke** - Format `Führer/Unterführer/Helfer//Gesamt` ist de-facto Standard
 3. **Qualifikationen** - Hierarchie NotSan → RS → RH, Führung VF → ZF → GF → TF
 4. **Führungsrollen** - LNA (medizinisch) + OrgL (organisatorisch) = Einsatzabschnittsleitung
 5. **Fahrzeugtypen** - DIN EN 1789 Klassifikation (Typ A1, A2, B, C)
@@ -117,7 +117,7 @@ interface FmsStatusConfig {
 
 ### 2.1 Format und Berechnung
 
-**Schema:** `Führer / Unterführer / Helfer / Gesamtstärke`
+**Schema:** `Führer / Unterführer / Helfer // Gesamtstärke`
 
 | Position | Bedeutung | Beispiele |
 |----------|-----------|-----------|

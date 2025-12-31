@@ -115,7 +115,7 @@ export function EtbEntryList({
     container.addEventListener('wheel', handleWheel, { passive: false });
 
     return () => {
-      container.removeEventListener('wheel', handleWheel);
+      container.removeEventListener('wheel', handleWheel, { passive: false });
     };
   }, []);
 

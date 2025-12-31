@@ -6,6 +6,7 @@
  * @module features/einsatz/api
  */
 
+import { KRAEFTE_QUERY_KEYS } from '@/features/kraefte';
 import { api } from '@/shared/api/client';
 import { logger } from '@/shared/lib/logger';
 import type { EinsatzPersonResponseDto, RegistrierePersonDto, ResponseError } from '@bluelight-hub/shared/client';
@@ -136,6 +137,11 @@ export const useRegistrierePerson = () => {
       // unabhängig von includeDeleted Parameter
       queryClient.invalidateQueries({
         queryKey: ['etb', 'einsatz', variables.einsatzId],
+      });
+
+      // Invalidate Kräfte Taktische Stärke (Story 6.1a AC3)
+      queryClient.invalidateQueries({
+        queryKey: KRAEFTE_QUERY_KEYS.staerke(variables.einsatzId),
       });
     },
     onError: (error: ResponseError, variables) => {

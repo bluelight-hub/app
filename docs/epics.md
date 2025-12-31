@@ -38,7 +38,7 @@ FR12: FüKw Personnel can unassign personnel from roles
 FR13: System can validate qualification requirements when assigning roles
 FR14: System can track role attributes (Name, Funkrufname, required qualifications)
 
-FR15: System can calculate tactical strength in format Führer/Unterführer/Helfer/Gesamt
+FR15: System can calculate tactical strength in format Führer/Unterführer/Helfer//Gesamt
 FR16: System can categorize personnel by current function (not highest qualification)
 FR17: System can count physicians as "Führer" category
 FR18: System can auto-recalculate strength on any personnel or assignment change
@@ -197,7 +197,7 @@ NFR22: Feedback bei allen Benutzeraktionen innerhalb 200ms
 | FR12 | Epic 5 | Rollen freigeben |
 | FR13 | Epic 5 | Qualifikationsvalidierung bei Rollenzuweisung |
 | FR14 | Epic 5 | Rollen-Attribute tracken |
-| FR15 | Epic 6 | Taktische Stärke berechnen (Führer/Unterführer/Helfer/Gesamt) |
+| FR15 | Epic 6 | Taktische Stärke berechnen (Führer/Unterführer/Helfer//Gesamt) |
 | FR16 | Epic 6 | Personal nach Funktion kategorisieren |
 | FR17 | Epic 6 | Ärzte als "Führer" zählen |
 | FR18 | Epic 6 | Auto-Neuberechnung bei Änderungen |
@@ -1188,7 +1188,7 @@ Epic 7: HiOrg-Server ───────────────────�
 ### Story 6.1a: Taktische Stärke-Anzeige
 
 **Als** Einsatzleiter (Thomas),
-**möchte ich** die taktische Stärke (Führung/Unterführung/Mannschaft/Gesamt) sehen,
+**möchte ich** die taktische Stärke (Führung/Unterführung/Mannschaft//Gesamt) sehen,
 **damit** ich schnell die verfügbare Kapazität einschätzen kann.
 
 **Acceptance Criteria:**
@@ -1196,7 +1196,7 @@ Epic 7: HiOrg-Server ───────────────────�
 **AC1: Stärke-Berechnung**
 **Given** ein Einsatz hat 3 Fahrzeuge mit insgesamt 12 Personen (davon 8 Helfer, 3 Führer, 1 ohne Status)
 **When** ich das Dashboard öffne
-**Then** sehe ich "2/3/8/11" (Führung/Unterführung/Mannschaft/Gesamt)
+**Then** sehe ich "2/3/8/11" (Führung/Unterführung/Mannschaft//Gesamt)
 **And** Berechnung dauert <500ms (NFR5)
 
 **AC2: Stärke-Card Design**

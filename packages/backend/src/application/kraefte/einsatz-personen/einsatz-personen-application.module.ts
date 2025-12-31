@@ -10,6 +10,7 @@ import { WeisePersonZuFahrzeugZuHandler } from './commands/weise-person-zu-fahrz
 import { EntfernePersonVonFahrzeugHandler } from './commands/entferne-person-von-fahrzeug/entferne-person-von-fahrzeug.handler';
 import { GetEinsatzPersonenHandler } from './queries/get-einsatz-personen/get-einsatz-personen.handler';
 import { GetEinsatzPersonByIdHandler } from './queries/get-einsatz-person-by-id/get-einsatz-person-by-id.handler';
+import { GetTaktischeStaerkeHandler } from '../queries/get-taktische-staerke/get-taktische-staerke.handler';
 
 /**
  * Application Module fuer EinsatzPersonen.
@@ -37,6 +38,7 @@ import { GetEinsatzPersonByIdHandler } from './queries/get-einsatz-person-by-id/
     // Query Handlers
     GetEinsatzPersonenHandler,
     GetEinsatzPersonByIdHandler,
+    GetTaktischeStaerkeHandler, // Story 6.1a: Taktische Stärke-Berechnung
   ],
   exports: [
     RegistrierePersonHandler,
@@ -45,6 +47,7 @@ import { GetEinsatzPersonByIdHandler } from './queries/get-einsatz-person-by-id/
     EntfernePersonVonFahrzeugHandler,
     GetEinsatzPersonenHandler,
     GetEinsatzPersonByIdHandler,
+    GetTaktischeStaerkeHandler,
     LOGGER,
   ],
 })

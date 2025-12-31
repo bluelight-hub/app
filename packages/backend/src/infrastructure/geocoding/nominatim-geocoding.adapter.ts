@@ -1,3 +1,4 @@
+import type { OnModuleDestroy } from '@nestjs/common';
 import type { Result } from '@domain/common/result';
 import { Result as ResultImpl } from '@domain/common/result';
 import type { IGeocodingPort } from '@domain/services/ports/i-geocoding.port';
@@ -60,7 +61,7 @@ interface NominatimReverseGeocodeResult {
  * @see https://nominatim.org/release-docs/latest/api/Reverse/
  * @see https://operations.osmfoundation.org/policies/nominatim/
  */
-export class NominatimGeocodingAdapter implements IGeocodingPort {
+export class NominatimGeocodingAdapter implements IGeocodingPort, OnModuleDestroy {
   /**
    * Nominatim API Basis-URL.
    */
@@ -94,6 +95,30 @@ export class NominatimGeocodingAdapter implements IGeocodingPort {
    * Initial: 0 (keine vorherige Anfrage).
    */
   private lastRequestTime = 0;
+
+  /**
+   * Set aller pending Timeouts für Cleanup bei Module Destroy.
+   * Verhindert Memory Leaks wenn der Adapter gestoppt wird während Requests laufen.
+   */
+  private readonly pendingTimeouts = new Set<ReturnType<typeof setTimeout>>();
+
+  /**
+   * Flag ob der Adapter destroyed wurde.
+   * Verhindert neue Requests nach onModuleDestroy.
+   */
+  private isDestroyed = false;
+
+  /**
+   * Cleanup aller pending Timeouts bei Module Destroy.
+   * Verhindert Memory Leaks wenn der Adapter gestoppt wird während Geocoding-Requests laufen.
+   */
+  onModuleDestroy(): void {
+    this.isDestroyed = true;
+    for (const timeoutId of this.pendingTimeouts) {
+      clearTimeout(timeoutId);
+    }
+    this.pendingTimeouts.clear();
+  }
 
   /**
    * Geocodiert eine Adresse zu WGS84 Lat/Lng-Koordinaten.
@@ -271,6 +296,7 @@ export class NominatimGeocodingAdapter implements IGeocodingPort {
    * - Speichert lastRequestTime nach jeder Anfrage
    * - Berechnet Delay = RATE_LIMIT_MS - (now - lastRequestTime)
    * - Wartet Delay ms via Promise.resolve() + setTimeout()
+   * - Timeout wird in pendingTimeouts getrackt für sauberen Cleanup
    *
    * Warum Promise statt blockierendes Sleep?
    * - Non-blocking: Event Loop bleibt aktiv
@@ -278,6 +304,11 @@ export class NominatimGeocodingAdapter implements IGeocodingPort {
    * - Node.js Best Practice: async/await statt synchronem Sleep
    */
   private async enforceRateLimit(): Promise<void> {
+    // Wenn Adapter destroyed, sofort abbrechen
+    if (this.isDestroyed) {
+      throw new Error('Adapter has been destroyed');
+    }
+
     const now = Date.now();
     const timeSinceLastRequest = now - this.lastRequestTime;
 
@@ -285,8 +316,14 @@ export class NominatimGeocodingAdapter implements IGeocodingPort {
       // Wartezeit berechnen
       const delay = NominatimGeocodingAdapter.RATE_LIMIT_MS - timeSinceLastRequest;
 
-      // Warten via Promise
-      await new Promise((resolve) => setTimeout(resolve, delay));
+      // Warten via Promise mit Timeout-Tracking
+      await new Promise<void>((resolve) => {
+        const timeoutId = setTimeout(() => {
+          this.pendingTimeouts.delete(timeoutId);
+          resolve();
+        }, delay);
+        this.pendingTimeouts.add(timeoutId);
+      });
     }
 
     // Update lastRequestTime NACH dem Warten
@@ -305,6 +342,7 @@ export class NominatimGeocodingAdapter implements IGeocodingPort {
    * - Versuch 1: 2s Delay
    * - Versuch 2: 4s Delay
    * - Nach 3 Versuchen: Throw Error
+   * - Alle Timeouts werden in pendingTimeouts getrackt für sauberen Cleanup
    *
    * Warum Exponential Backoff?
    * - Verhindert "Thundering Herd" Problem (viele Clients retries gleichzeitig)
@@ -317,9 +355,15 @@ export class NominatimGeocodingAdapter implements IGeocodingPort {
    * @throws Error wenn max. Retries erreicht oder Network Error
    */
   private async fetchWithRetry(url: string, attempt = 0): Promise<Response> {
+    // Wenn Adapter destroyed, sofort abbrechen
+    if (this.isDestroyed) {
+      throw new Error('Adapter has been destroyed');
+    }
+
     // Fetch mit Timeout (AbortController)
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), NominatimGeocodingAdapter.REQUEST_TIMEOUT_MS);
+    this.pendingTimeouts.add(timeoutId);
 
     try {
       const response = await fetch(url, {
@@ -331,14 +375,21 @@ export class NominatimGeocodingAdapter implements IGeocodingPort {
 
       // Timeout Timer aufräumen
       clearTimeout(timeoutId);
+      this.pendingTimeouts.delete(timeoutId);
 
       // HTTP 429 (Too Many Requests)?
       if (response.status === 429 && attempt < NominatimGeocodingAdapter.MAX_RETRIES) {
         // Exponential Backoff: 1s, 2s, 4s
         const backoffDelay = 1000 * 2 ** attempt;
 
-        // Warten vor Retry
-        await new Promise((resolve) => setTimeout(resolve, backoffDelay));
+        // Warten vor Retry mit Timeout-Tracking
+        await new Promise<void>((resolve) => {
+          const retryTimeoutId = setTimeout(() => {
+            this.pendingTimeouts.delete(retryTimeoutId);
+            resolve();
+          }, backoffDelay);
+          this.pendingTimeouts.add(retryTimeoutId);
+        });
 
         // Retry mit erhöhtem Attempt-Counter
         return this.fetchWithRetry(url, attempt + 1);
@@ -349,6 +400,7 @@ export class NominatimGeocodingAdapter implements IGeocodingPort {
     } catch (error) {
       // Timeout Timer aufräumen
       clearTimeout(timeoutId);
+      this.pendingTimeouts.delete(timeoutId);
 
       // AbortController.abort() wirft "AbortError"
       if (error instanceof Error && error.name === 'AbortError') {

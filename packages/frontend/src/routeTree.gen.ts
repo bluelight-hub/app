@@ -42,6 +42,7 @@ import { Route as AppEinsatzEinsatzIdLogistikMaterialRouteImport } from './route
 import { Route as AppEinsatzEinsatzIdKrChar228ftePersonalRouteImport } from './routes/app/einsatz/$einsatzId/kräfte/personal'
 import { Route as AppEinsatzEinsatzIdKrChar228fteFahrzeugeRouteImport } from './routes/app/einsatz/$einsatzId/kräfte/fahrzeuge'
 import { Route as AppEinsatzEinsatzIdKrChar228fteEinheitenRouteImport } from './routes/app/einsatz/$einsatzId/kräfte/einheiten'
+import { Route as AppEinsatzEinsatzIdKrChar228fteDashboardRouteImport } from './routes/app/einsatz/$einsatzId/kräfte/dashboard'
 import { Route as AppEinsatzEinsatzIdKommunikationMeldungenRouteImport } from './routes/app/einsatz/$einsatzId/kommunikation/meldungen'
 import { Route as AppEinsatzEinsatzIdKommunikationFunkRouteImport } from './routes/app/einsatz/$einsatzId/kommunikation/funk'
 import { Route as AppEinsatzEinsatzIdKommunikationAlarmierungRouteImport } from './routes/app/einsatz/$einsatzId/kommunikation/alarmierung'
@@ -240,6 +241,12 @@ const AppEinsatzEinsatzIdKrChar228fteEinheitenRoute =
     path: '/kräfte/einheiten',
     getParentRoute: () => AppEinsatzEinsatzIdRoute,
   } as any)
+const AppEinsatzEinsatzIdKrChar228fteDashboardRoute =
+  AppEinsatzEinsatzIdKrChar228fteDashboardRouteImport.update({
+    id: '/kräfte/dashboard',
+    path: '/kräfte/dashboard',
+    getParentRoute: () => AppEinsatzEinsatzIdRoute,
+  } as any)
 const AppEinsatzEinsatzIdKommunikationMeldungenRoute =
   AppEinsatzEinsatzIdKommunikationMeldungenRouteImport.update({
     id: '/kommunikation/meldungen',
@@ -357,6 +364,7 @@ export interface FileRoutesByFullPath {
   '/app/einsatz/$einsatzId/kommunikation/alarmierung': typeof AppEinsatzEinsatzIdKommunikationAlarmierungRoute
   '/app/einsatz/$einsatzId/kommunikation/funk': typeof AppEinsatzEinsatzIdKommunikationFunkRoute
   '/app/einsatz/$einsatzId/kommunikation/meldungen': typeof AppEinsatzEinsatzIdKommunikationMeldungenRoute
+  '/app/einsatz/$einsatzId/kräfte/dashboard': typeof AppEinsatzEinsatzIdKrChar228fteDashboardRoute
   '/app/einsatz/$einsatzId/kräfte/einheiten': typeof AppEinsatzEinsatzIdKrChar228fteEinheitenRoute
   '/app/einsatz/$einsatzId/kräfte/fahrzeuge': typeof AppEinsatzEinsatzIdKrChar228fteFahrzeugeRoute
   '/app/einsatz/$einsatzId/kräfte/personal': typeof AppEinsatzEinsatzIdKrChar228ftePersonalRoute
@@ -402,6 +410,7 @@ export interface FileRoutesByTo {
   '/app/einsatz/$einsatzId/kommunikation/alarmierung': typeof AppEinsatzEinsatzIdKommunikationAlarmierungRoute
   '/app/einsatz/$einsatzId/kommunikation/funk': typeof AppEinsatzEinsatzIdKommunikationFunkRoute
   '/app/einsatz/$einsatzId/kommunikation/meldungen': typeof AppEinsatzEinsatzIdKommunikationMeldungenRoute
+  '/app/einsatz/$einsatzId/kräfte/dashboard': typeof AppEinsatzEinsatzIdKrChar228fteDashboardRoute
   '/app/einsatz/$einsatzId/kräfte/einheiten': typeof AppEinsatzEinsatzIdKrChar228fteEinheitenRoute
   '/app/einsatz/$einsatzId/kräfte/fahrzeuge': typeof AppEinsatzEinsatzIdKrChar228fteFahrzeugeRoute
   '/app/einsatz/$einsatzId/kräfte/personal': typeof AppEinsatzEinsatzIdKrChar228ftePersonalRoute
@@ -452,6 +461,7 @@ export interface FileRoutesById {
   '/app/einsatz/$einsatzId/kommunikation/alarmierung': typeof AppEinsatzEinsatzIdKommunikationAlarmierungRoute
   '/app/einsatz/$einsatzId/kommunikation/funk': typeof AppEinsatzEinsatzIdKommunikationFunkRoute
   '/app/einsatz/$einsatzId/kommunikation/meldungen': typeof AppEinsatzEinsatzIdKommunikationMeldungenRoute
+  '/app/einsatz/$einsatzId/kräfte/dashboard': typeof AppEinsatzEinsatzIdKrChar228fteDashboardRoute
   '/app/einsatz/$einsatzId/kräfte/einheiten': typeof AppEinsatzEinsatzIdKrChar228fteEinheitenRoute
   '/app/einsatz/$einsatzId/kräfte/fahrzeuge': typeof AppEinsatzEinsatzIdKrChar228fteFahrzeugeRoute
   '/app/einsatz/$einsatzId/kräfte/personal': typeof AppEinsatzEinsatzIdKrChar228ftePersonalRoute
@@ -503,6 +513,7 @@ export interface FileRouteTypes {
     | '/app/einsatz/$einsatzId/kommunikation/alarmierung'
     | '/app/einsatz/$einsatzId/kommunikation/funk'
     | '/app/einsatz/$einsatzId/kommunikation/meldungen'
+    | '/app/einsatz/$einsatzId/kräfte/dashboard'
     | '/app/einsatz/$einsatzId/kräfte/einheiten'
     | '/app/einsatz/$einsatzId/kräfte/fahrzeuge'
     | '/app/einsatz/$einsatzId/kräfte/personal'
@@ -548,6 +559,7 @@ export interface FileRouteTypes {
     | '/app/einsatz/$einsatzId/kommunikation/alarmierung'
     | '/app/einsatz/$einsatzId/kommunikation/funk'
     | '/app/einsatz/$einsatzId/kommunikation/meldungen'
+    | '/app/einsatz/$einsatzId/kräfte/dashboard'
     | '/app/einsatz/$einsatzId/kräfte/einheiten'
     | '/app/einsatz/$einsatzId/kräfte/fahrzeuge'
     | '/app/einsatz/$einsatzId/kräfte/personal'
@@ -597,6 +609,7 @@ export interface FileRouteTypes {
     | '/app/einsatz/$einsatzId/kommunikation/alarmierung'
     | '/app/einsatz/$einsatzId/kommunikation/funk'
     | '/app/einsatz/$einsatzId/kommunikation/meldungen'
+    | '/app/einsatz/$einsatzId/kräfte/dashboard'
     | '/app/einsatz/$einsatzId/kräfte/einheiten'
     | '/app/einsatz/$einsatzId/kräfte/fahrzeuge'
     | '/app/einsatz/$einsatzId/kräfte/personal'
@@ -856,6 +869,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppEinsatzEinsatzIdKrChar228fteEinheitenRouteImport
       parentRoute: typeof AppEinsatzEinsatzIdRoute
     }
+    '/app/einsatz/$einsatzId/kräfte/dashboard': {
+      id: '/app/einsatz/$einsatzId/kräfte/dashboard'
+      path: '/kräfte/dashboard'
+      fullPath: '/app/einsatz/$einsatzId/kräfte/dashboard'
+      preLoaderRoute: typeof AppEinsatzEinsatzIdKrChar228fteDashboardRouteImport
+      parentRoute: typeof AppEinsatzEinsatzIdRoute
+    }
     '/app/einsatz/$einsatzId/kommunikation/meldungen': {
       id: '/app/einsatz/$einsatzId/kommunikation/meldungen'
       path: '/kommunikation/meldungen'
@@ -1023,6 +1043,7 @@ interface AppEinsatzEinsatzIdRouteChildren {
   AppEinsatzEinsatzIdKommunikationAlarmierungRoute: typeof AppEinsatzEinsatzIdKommunikationAlarmierungRoute
   AppEinsatzEinsatzIdKommunikationFunkRoute: typeof AppEinsatzEinsatzIdKommunikationFunkRoute
   AppEinsatzEinsatzIdKommunikationMeldungenRoute: typeof AppEinsatzEinsatzIdKommunikationMeldungenRoute
+  AppEinsatzEinsatzIdKrChar228fteDashboardRoute: typeof AppEinsatzEinsatzIdKrChar228fteDashboardRoute
   AppEinsatzEinsatzIdKrChar228fteEinheitenRoute: typeof AppEinsatzEinsatzIdKrChar228fteEinheitenRoute
   AppEinsatzEinsatzIdKrChar228fteFahrzeugeRoute: typeof AppEinsatzEinsatzIdKrChar228fteFahrzeugeRoute
   AppEinsatzEinsatzIdKrChar228ftePersonalRoute: typeof AppEinsatzEinsatzIdKrChar228ftePersonalRoute
@@ -1068,6 +1089,8 @@ const AppEinsatzEinsatzIdRouteChildren: AppEinsatzEinsatzIdRouteChildren = {
     AppEinsatzEinsatzIdKommunikationFunkRoute,
   AppEinsatzEinsatzIdKommunikationMeldungenRoute:
     AppEinsatzEinsatzIdKommunikationMeldungenRoute,
+  AppEinsatzEinsatzIdKrChar228fteDashboardRoute:
+    AppEinsatzEinsatzIdKrChar228fteDashboardRoute,
   AppEinsatzEinsatzIdKrChar228fteEinheitenRoute:
     AppEinsatzEinsatzIdKrChar228fteEinheitenRoute,
   AppEinsatzEinsatzIdKrChar228fteFahrzeugeRoute:

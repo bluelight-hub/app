@@ -227,9 +227,22 @@ export class RetryUtil {
 
   /**
    * Execute a function with timeout
+   *
+   * Garantiert Timeout-Cleanup um Memory Leaks zu vermeiden:
+   * Der Timer wird IMMER aufgeräumt, unabhängig davon ob fn() schneller resolved.
    */
   private async executeWithTimeout<T>(fn: () => Promise<T>, timeout: number): Promise<T> {
-    return Promise.race([fn(), new Promise<never>((_, reject) => setTimeout(() => reject(new Error(`Operation timed out after ${timeout}ms`)), timeout))]);
+    let timeoutId: NodeJS.Timeout;
+    const timeoutPromise = new Promise<never>((_, reject) => {
+      timeoutId = setTimeout(() => reject(new Error(`Operation timed out after ${timeout}ms`)), timeout);
+    });
+
+    try {
+      return await Promise.race([fn(), timeoutPromise]);
+    } finally {
+      // biome-ignore lint/style/noNonNullAssertion: timeoutId is always assigned before Promise.race
+      clearTimeout(timeoutId!);
+    }
   }
 
   /**

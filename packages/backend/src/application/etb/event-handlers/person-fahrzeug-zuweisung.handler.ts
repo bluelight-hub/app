@@ -18,7 +18,7 @@
  * @see PersonVonFahrzeugEntferntEvent - Trigger Event (Domain Event via Outbox)
  * @see AddEintragHandler - Delegierter Command Handler
  */
-import { Inject, Injectable } from '@nestjs/common';
+import { Inject, Injectable, type OnModuleDestroy } from '@nestjs/common';
 import type { IEventHandler } from '@domain/ports/i-event-handler.port';
 import type { ILogger } from '@domain/ports/i-logger.port';
 import type { PersonZuFahrzeugZugewiesenEvent } from '@domain/kraefte/events/person-zu-fahrzeug-zugewiesen.event';
@@ -61,19 +61,54 @@ const RETRY_CONFIG = {
  * 3. OutboxEventPublisher pollt und publiziert Event
  * 4. Infrastructure Adapter empfängt Event via @OnEvent
  * 5. Adapter delegiert an diesen Handler via IEventHandler.handle()
+ *
+ * **Memory Leak Prevention:**
+ * Implementiert OnModuleDestroy um pending Retry-Timeouts bei Service-Shutdown
+ * aufzuräumen. Nutzt AbortController für saubere Cancellation.
  */
 @Injectable()
-export class PersonFahrzeugZuweisungHandler implements IEventHandler<PersonZuFahrzeugZugewiesenEvent>, IEventHandler<PersonVonFahrzeugEntferntEvent> {
+export class PersonFahrzeugZuweisungHandler implements IEventHandler<PersonZuFahrzeugZugewiesenEvent>, IEventHandler<PersonVonFahrzeugEntferntEvent>, OnModuleDestroy {
+  /**
+   * AbortController für Cleanup bei Module Destroy.
+   * Signalisiert allen pending Retry-Operationen, dass sie abbrechen sollen.
+   */
+  private readonly abortController = new AbortController();
+
+  /**
+   * Set von pending Timeout-IDs für expliziten Cleanup.
+   * Wird bei onModuleDestroy geleert um Memory Leaks zu vermeiden.
+   */
+  private readonly pendingTimeouts = new Set<NodeJS.Timeout>();
+
   constructor(
     private readonly addEintragHandler: AddEintragHandler,
     @Inject(LOGGER) private readonly logger: ILogger,
   ) {}
 
   /**
+   * Cleanup bei Module Destroy.
+   * Räumt alle pending Timeouts auf und signalisiert Abort.
+   */
+  onModuleDestroy(): void {
+    this.logger.log(`Cleaning up ${this.pendingTimeouts.size} pending retry timeouts`, 'PersonFahrzeugZuweisungHandler');
+    this.abortController.abort();
+
+    for (const timeoutId of this.pendingTimeouts) {
+      clearTimeout(timeoutId);
+    }
+    this.pendingTimeouts.clear();
+  }
+
+  /**
    * Helper: Führt eine Operation mit Retry Logic und Exponential Backoff aus.
    *
    * Transient failures (z.B. Netzwerk-Fehler, Timeouts) werden wiederholt.
    * Non-transient Fehler (z.B. Validierungs-Fehler) werden NICHT wiederholt.
+   *
+   * **Memory Leak Prevention:**
+   * - Alle Timeouts werden in pendingTimeouts getrackt
+   * - Bei onModuleDestroy werden alle pending Timeouts aufgeräumt
+   * - AbortController signalisiert Abbruch bei Service-Shutdown
    *
    * @template T - Der Result-Typ der Operation
    * @param operation - Die auszuführende async Operation
@@ -84,6 +119,12 @@ export class PersonFahrzeugZuweisungHandler implements IEventHandler<PersonZuFah
     let lastResult: Result<T> | undefined;
 
     for (let attempt = 0; attempt <= RETRY_CONFIG.maxRetries; attempt++) {
+      // Prüfe ob Service shutdown signalisiert wurde
+      if (this.abortController.signal.aborted) {
+        this.logger.warn(`Retry aborted due to service shutdown: context=${context}, attempt=${attempt}`, 'PersonFahrzeugZuweisungHandler');
+        return Result.fail<T>('Operation aborted due to service shutdown');
+      }
+
       try {
         const result = await operation();
 
@@ -113,7 +154,7 @@ export class PersonFahrzeugZuweisungHandler implements IEventHandler<PersonZuFah
             `Transient error - retrying (attempt ${attempt + 1}/${RETRY_CONFIG.maxRetries}): context=${context}, error=${result.error}, delayMs=${delay}`,
             'PersonFahrzeugZuweisungHandler',
           );
-          await new Promise((resolve) => setTimeout(resolve, delay));
+          await this.sleepWithCleanup(delay);
         } else {
           this.logger.error(`Max retries exhausted: context=${context}, attempts=${attempt + 1}, error=${result.error}`, 'PersonFahrzeugZuweisungHandler');
         }
@@ -124,7 +165,7 @@ export class PersonFahrzeugZuweisungHandler implements IEventHandler<PersonZuFah
 
         if (attempt < RETRY_CONFIG.maxRetries) {
           const delay = RETRY_CONFIG.baseDelay * RETRY_CONFIG.backoffFactor ** attempt;
-          await new Promise((resolve) => setTimeout(resolve, delay));
+          await this.sleepWithCleanup(delay);
         } else {
           // Max retries: Exception als Failed Result zurückgeben
           return Result.fail<T>(`Max retries exhausted after exception: ${errorMessage}`);
@@ -134,6 +175,42 @@ export class PersonFahrzeugZuweisungHandler implements IEventHandler<PersonZuFah
 
     // Fallback: Sollte nicht erreichbar sein, aber TypeScript braucht einen Return
     return lastResult ?? Result.fail<T>('Unknown error during retry');
+  }
+
+  /**
+   * Sleep mit automatischem Cleanup des Timeouts.
+   *
+   * Trackt den Timeout in pendingTimeouts und entfernt ihn nach Completion.
+   * Ermöglicht sauberen Cleanup bei onModuleDestroy.
+   *
+   * @param ms - Millisekunden zu warten
+   * @returns Promise<void> - Resolved nach delay oder rejected bei abort
+   */
+  private sleepWithCleanup(ms: number): Promise<void> {
+    return new Promise((resolve, reject) => {
+      // Prüfe ob bereits aborted
+      if (this.abortController.signal.aborted) {
+        reject(new Error('Sleep aborted due to service shutdown'));
+        return;
+      }
+
+      const timeoutId = setTimeout(() => {
+        this.pendingTimeouts.delete(timeoutId);
+        resolve();
+      }, ms);
+
+      // Tracke den Timeout für Cleanup
+      this.pendingTimeouts.add(timeoutId);
+
+      // Listener für abort - cleanup und reject
+      const abortHandler = () => {
+        clearTimeout(timeoutId);
+        this.pendingTimeouts.delete(timeoutId);
+        reject(new Error('Sleep aborted due to service shutdown'));
+      };
+
+      this.abortController.signal.addEventListener('abort', abortHandler, { once: true });
+    });
   }
 
   /**

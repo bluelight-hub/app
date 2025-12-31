@@ -1,4 +1,4 @@
-import { useRef, useCallback } from 'react';
+import { useRef, useCallback, useEffect } from 'react';
 import { debounce } from '@tanstack/pacer';
 import { useSaveLagekarteState } from '@/features/lagekarte/api';
 import type * as GeoJSON from 'geojson';
@@ -44,6 +44,17 @@ export const useLagekarteAutoSave = (einsatzId: string) => {
       { wait: 2000 }, // 2 seconds debounce (as per AC3)
     ),
   );
+
+  /**
+   * Cleanup: Cancel pending debounced save on unmount (Memory Leak Fix)
+   * Verhindert dass nach Unmount noch gespeichert wird
+   */
+  useEffect(() => {
+    const currentDebounced = debouncedSaveRef.current;
+    return () => {
+      currentDebounced.cancel();
+    };
+  }, []);
 
   /**
    * Stable callback that uses the debounced function

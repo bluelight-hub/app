@@ -1,8 +1,9 @@
 /**
  * FMS-Status Labels für UI-Anzeige.
- * Story 4.3 Spezifikation.
+ * Story 4.3 Spezifikation + Status 0 für Story 6.1b.
  */
 export const FMS_STATUS_LABELS: Record<number, string> = {
+  0: 'Nicht einsatzbereit',
   1: 'Frei über Funk',
   2: 'Einsatzbereit auf Wache',
   3: 'Einsatz übernommen',
@@ -15,10 +16,11 @@ export const FMS_STATUS_LABELS: Record<number, string> = {
 };
 
 /**
- * FMS-Status Farben gemäß Story 4.3.
+ * FMS-Status Farben gemäß Story 4.3 + Status 0 für Story 6.1b.
  * Unterstützt Light Mode und Dark Mode mit Tailwind CSS.
  */
 export const FMS_STATUS_COLORS: Record<number, string> = {
+  0: 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300',
   1: 'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-200',
   2: 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300',
   3: 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300',
@@ -49,14 +51,14 @@ export const getStatusBgClasses = (status: number): string => {
 };
 
 /**
- * Type für gültige FMS-Status Werte (1-9).
- * Story 4.3 Spezifikation.
+ * Type für gültige FMS-Status Werte (0-9).
+ * Story 4.3 + Story 6.1b Spezifikation.
  */
-export type FmsStatus = 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9;
+export type FmsStatus = 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9;
 
 /**
  * Type Guard für FMS Status Validierung.
- * Prüft ob ein Wert ein gültiger FMS Status (1-9) ist.
+ * Prüft ob ein Wert ein gültiger FMS Status (0-9) ist.
  *
  * @param value - Zu prüfender Wert
  * @returns true wenn value ein gültiger FMS Status ist
@@ -69,10 +71,10 @@ export type FmsStatus = 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9;
  * ```
  */
 export const isFmsStatus = (value: unknown): value is FmsStatus => {
-  return typeof value === 'number' && value >= 1 && value <= 9 && Number.isInteger(value);
+  return typeof value === 'number' && value >= 0 && value <= 9 && Number.isInteger(value);
 };
 
 /**
- * Alle verfügbaren FMS-Status Codes (1-9).
+ * Alle verfügbaren FMS-Status Codes (0-9).
  */
-export const FMS_STATUS_OPTIONS: readonly FmsStatus[] = [1, 2, 3, 4, 5, 6, 7, 8, 9] as const;
+export const FMS_STATUS_OPTIONS: readonly FmsStatus[] = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9] as const;

@@ -137,6 +137,12 @@ export function useEinsatzModules(): Module[] {
       description: 'Personal und Einheiten',
       subPages: [
         {
+          name: 'Dashboard',
+          href: '/app/einsatz/$einsatzId/kräfte/dashboard',
+          icon: PiChartBar,
+          description: 'Kräfte-Übersicht',
+        },
+        {
           name: 'Einheiten',
           href: '/app/einsatz/$einsatzId/kräfte/einheiten',
           icon: PiUsers,

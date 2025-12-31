@@ -13,6 +13,7 @@ apis/EinsatzFahrzeugeApi.ts
 apis/EinsatzPersonenApi.ts
 apis/GeocodingApi.ts
 apis/HealthApi.ts
+apis/KraefteDashboardApi.ts
 apis/KraefteFahrzeugtypenApi.ts
 apis/KraefteStammFahrzeugeApi.ts
 apis/KraefteStammPersonenApi.ts
@@ -102,6 +103,7 @@ models/HealthControllerCheck200Response.ts
 models/HealthControllerCheck200ResponseInfoValue.ts
 models/HealthControllerCheck503Response.ts
 models/InitialPoiDto.ts
+models/KraefteDashboardControllerGetTaktischeStaerkeVAlpha200Response.ts
 models/LagekarteControllerSaveLagekarteStateVAlpha200Response.ts
 models/LagekarteDto.ts
 models/LockUserDto.ts
@@ -124,8 +126,10 @@ models/QualifikationDto.ts
 models/RefreshResponseDto.ts
 models/RegistrierePersonDto.ts
 models/RegistrierePersonViaQrCodeDto.ts
+models/RolleFreigegebenResponseDto.ts
 models/RollenBesetzungControllerBesetzeRolleVAlpha201Response.ts
 models/RollenBesetzungControllerFindAllVAlpha200Response.ts
+models/RollenBesetzungControllerFreigebenRolleVAlpha200Response.ts
 models/RollenBesetzungDto.ts
 models/RollenBesetzungListItemDto.ts
 models/RollenDefinitionDto.ts
@@ -135,6 +139,7 @@ models/StammPersonDto.ts
 models/StammPersonQualifikationDto.ts
 models/StatusCountsDto.ts
 models/StatusCountsResponseDto.ts
+models/TaktischeStaerkeDto.ts
 models/TextbausteinDto.ts
 models/TextbausteinListResponse.ts
 models/UpdateEinsatzDto.ts

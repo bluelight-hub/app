@@ -84,16 +84,12 @@ export function subscribeToStorageChanges(callback: (einsatzId: string | null) =
     }
   };
 
-  // Native storage event für Cross-Tab-Sync
+  // Storage event für Cross-Tab-Sync und Same-Tab-Sync (via dispatchEvent)
   window.addEventListener('storage', handleStorageChange);
-
-  // Custom storage event für Same-Tab-Sync
-  window.addEventListener('storage', handleStorageChange as EventListener);
 
   // Cleanup-Funktion
   return () => {
     window.removeEventListener('storage', handleStorageChange);
-    window.removeEventListener('storage', handleStorageChange as EventListener);
   };
 }
 

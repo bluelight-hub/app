@@ -42,15 +42,15 @@ export const OfflineIndicator: React.FC = () => {
     window.addEventListener('online', handleOnline);
     window.addEventListener('offline', handleOffline);
 
-    // Initial status loggen
-    console.log(`[OfflineIndicator] Initial status: ${isOnline ? 'Online' : 'Offline'}`);
+    // Initial status loggen (navigator.onLine statt state für Mount-Log)
+    console.log(`[OfflineIndicator] Initial status: ${navigator.onLine ? 'Online' : 'Offline'}`);
 
     // Cleanup: Event-Listener entfernen
     return () => {
       window.removeEventListener('online', handleOnline);
       window.removeEventListener('offline', handleOffline);
     };
-  }, [isOnline]);
+  }, []);
 
   return (
     <output

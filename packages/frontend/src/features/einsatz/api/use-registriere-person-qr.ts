@@ -7,6 +7,7 @@
  * @module features/einsatz/api
  */
 
+import { KRAEFTE_QUERY_KEYS } from '@/features/kraefte';
 import { api } from '@/shared/api/client';
 import { logger } from '@/shared/lib/logger';
 import type { RegistrierePersonViaQrCodeDto, ResponseError } from '@bluelight-hub/shared/client';
@@ -129,6 +130,11 @@ export const useRegistrierePersonViaQr = () => {
       // Invalidate ETB (neuer Eintrag wurde erstellt)
       queryClient.invalidateQueries({
         queryKey: ['etb', 'einsatz', einsatzId],
+      });
+
+      // Invalidate Kräfte Taktische Stärke (Story 6.1a AC3)
+      queryClient.invalidateQueries({
+        queryKey: KRAEFTE_QUERY_KEYS.staerke(einsatzId),
       });
     },
     onError: (error: ResponseError, { einsatzId, qrData }) => {

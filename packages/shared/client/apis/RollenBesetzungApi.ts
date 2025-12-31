@@ -13,7 +13,12 @@
  */
 
 import * as runtime from '../runtime';
-import type { BesetzeRolleDto, RollenBesetzungControllerBesetzeRolleVAlpha201Response, RollenBesetzungControllerFindAllVAlpha200Response } from '../models/index';
+import type {
+  BesetzeRolleDto,
+  RollenBesetzungControllerBesetzeRolleVAlpha201Response,
+  RollenBesetzungControllerFindAllVAlpha200Response,
+  RollenBesetzungControllerFreigebenRolleVAlpha200Response,
+} from '../models/index';
 import {
   BesetzeRolleDtoFromJSON,
   BesetzeRolleDtoToJSON,
@@ -21,6 +26,8 @@ import {
   RollenBesetzungControllerBesetzeRolleVAlpha201ResponseToJSON,
   RollenBesetzungControllerFindAllVAlpha200ResponseFromJSON,
   RollenBesetzungControllerFindAllVAlpha200ResponseToJSON,
+  RollenBesetzungControllerFreigebenRolleVAlpha200ResponseFromJSON,
+  RollenBesetzungControllerFreigebenRolleVAlpha200ResponseToJSON,
 } from '../models/index';
 
 export interface RollenBesetzungControllerBesetzeRolleVAlphaRequest {
@@ -132,7 +139,7 @@ export class RollenBesetzungApi extends runtime.BaseAPI {
   async rollenBesetzungControllerFreigebenRolleVAlphaRaw(
     requestParameters: RollenBesetzungControllerFreigebenRolleVAlphaRequest,
     initOverrides?: RequestInit | runtime.InitOverrideFunction,
-  ): Promise<runtime.ApiResponse<void>> {
+  ): Promise<runtime.ApiResponse<RollenBesetzungControllerFreigebenRolleVAlpha200Response>> {
     if (requestParameters['einsatzId'] == null) {
       throw new runtime.RequiredError('einsatzId', 'Required parameter "einsatzId" was null or undefined when calling rollenBesetzungControllerFreigebenRolleVAlpha().');
     }
@@ -157,7 +164,7 @@ export class RollenBesetzungApi extends runtime.BaseAPI {
       initOverrides,
     );
 
-    return new runtime.VoidApiResponse(response);
+    return new runtime.JSONApiResponse(response, (jsonValue) => RollenBesetzungControllerFreigebenRolleVAlpha200ResponseFromJSON(jsonValue));
   }
 
   /**
@@ -166,7 +173,8 @@ export class RollenBesetzungApi extends runtime.BaseAPI {
   async rollenBesetzungControllerFreigebenRolleVAlpha(
     requestParameters: RollenBesetzungControllerFreigebenRolleVAlphaRequest,
     initOverrides?: RequestInit | runtime.InitOverrideFunction,
-  ): Promise<void> {
-    await this.rollenBesetzungControllerFreigebenRolleVAlphaRaw(requestParameters, initOverrides);
+  ): Promise<RollenBesetzungControllerFreigebenRolleVAlpha200Response> {
+    const response = await this.rollenBesetzungControllerFreigebenRolleVAlphaRaw(requestParameters, initOverrides);
+    return await response.value();
   }
 }
