@@ -20,7 +20,20 @@
  * - RollenKarte Komponente für einzelne Rollen
  * - RollenUebersicht Container für alle Rollen
  * - BesetzeRolleDialog, FreigebeRolleDialog für Interaktionen
+ *
+ * **Story 6.2 - Fullscreen & Compact Modus:**
+ * - DashboardModeContext für Mode-Propagation ohne Prop-Drilling
+ * - useDashboardMode Hook für Mode-spezifische Styles in Child-Komponenten
  */
+
+// ============================================
+// Contexts (Story 6.2)
+// ============================================
+export {
+  DashboardModeProvider,
+  useDashboardMode,
+  type DashboardMode,
+} from './contexts';
 
 // ============================================
 // API Layer (Queries & Mutations)

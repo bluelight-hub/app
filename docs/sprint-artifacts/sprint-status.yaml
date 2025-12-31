@@ -100,7 +100,7 @@ development_status:
   6-1b-fahrzeug-status-liste: done
   6-1c-rollen-uebersicht: done
   6-1d-dashboard-container-layout: done
-  6-2-fullscreen-compact-modus: ready-for-dev
+  6-2-fullscreen-compact-modus: in-progress
   epic-6-retrospective: optional
 
   # ===== Epic 7: HiOrg-Server Integration =====

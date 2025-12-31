@@ -35,10 +35,11 @@ export function SingleEinsatzLayout({ className }: SingleEinsatzLayoutProps) {
   const currentSearch = router.state.location.search as { mode?: string };
   const isFullscreenMode = currentSearch?.mode === 'fullscreen' || currentSearch?.mode === 'presentation';
 
-  // Prüfe ob die aktuelle Route Fullscreen unterstützt (/karte und /etb Routes)
+  // Prüfe ob die aktuelle Route Fullscreen unterstützt (/karte, /etb und /kräfte/dashboard Routes)
   const isOnKarteRoute = !!matchRoute({ to: '/app/einsatz/$einsatzId/übersicht/karte', fuzzy: false });
   const isOnEtbRoute = !!matchRoute({ to: '/app/einsatz/$einsatzId/führung/etb', fuzzy: false });
-  const supportsFullscreen = isOnKarteRoute || isOnEtbRoute;
+  const isOnKraefteDashboardRoute = !!matchRoute({ to: '/app/einsatz/$einsatzId/kräfte/dashboard', fuzzy: false });
+  const supportsFullscreen = isOnKarteRoute || isOnEtbRoute || isOnKraefteDashboardRoute;
 
   // Lade kombinierte Einsatzdaten (Einsatz + ETB + Lagekarte)
   // ETB und Lagekarte werden im Cache vorgeladen, sodass Child-Routes diese nutzen können

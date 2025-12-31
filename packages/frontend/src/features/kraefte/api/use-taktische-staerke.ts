@@ -3,6 +3,9 @@
  *
  * **Story 6.1a - Taktische Stärke-Anzeige:**
  * Lädt Führung/Unterführung/Mannschaft/Gesamt für das Dashboard.
+ *
+ * **Story 6.2 - Fullscreen & Compact Modus:**
+ * refetchInterval ist konfigurierbar (AC3: nur in Fullscreen aktiv).
  */
 
 import { useQuery } from '@tanstack/react-query';
@@ -25,27 +28,37 @@ export interface TaktischeStaerke {
 }
 
 /**
+ * Options für useTaktischeStaerke Hook.
+ *
+ * Story 6.2: refetchInterval ist konfigurierbar für Fullscreen-Modus.
+ */
+export interface UseTaktischeStaerkeOptions {
+  /** Auto-Refresh Interval in ms. false = deaktiviert. Default: false */
+  refetchInterval?: number | false;
+}
+
+/**
  * Hook für die Abfrage der taktischen Stärke.
  *
  * **Features:**
- * - Auto-Refresh alle 30 Sekunden (AC3: Live-Updates)
+ * - Auto-Refresh konfigurierbar (Story 6.2: AC3 - nur in Fullscreen aktiv)
  * - Disabled wenn keine einsatzId vorhanden
  * - Exponential Backoff bei Fehlern
  *
  * @param einsatzId - Die Einsatz-ID (optional)
+ * @param options - Konfigurationsoptionen (refetchInterval)
  * @returns TanStack Query Result mit Stärke-Daten
  *
  * @example
  * ```tsx
- * const { data, isLoading, error } = useTaktischeStaerke(einsatzId);
+ * // Standard (kein Auto-Refresh)
+ * const { data } = useTaktischeStaerke(einsatzId);
  *
- * if (isLoading) return <Skeleton />;
- * if (error) return <ErrorMessage />;
- *
- * return <StaerkeCard {...data} />;
+ * // Fullscreen-Modus (AC3: Auto-Refresh alle 30s)
+ * const { data } = useTaktischeStaerke(einsatzId, { refetchInterval: 30000 });
  * ```
  */
-export const useTaktischeStaerke = (einsatzId: string | undefined) => {
+export const useTaktischeStaerke = (einsatzId: string | undefined, options?: UseTaktischeStaerkeOptions) => {
   // einsatzId ist garantiert definiert wenn Query ausgeführt wird (enabled: !!einsatzId)
   const id = einsatzId as string;
 
@@ -76,7 +89,7 @@ export const useTaktischeStaerke = (einsatzId: string | undefined) => {
     },
     enabled: !!einsatzId,
     staleTime: 30_000, // 30 Sekunden
-    refetchInterval: 30_000, // Auto-Refresh für Dashboard (AC3)
+    refetchInterval: options?.refetchInterval ?? false, // Story 6.2: Konfigurierbar
     retry: 3,
     retryDelay: calculateRetryDelay,
   });

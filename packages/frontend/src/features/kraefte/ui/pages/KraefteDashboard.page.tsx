@@ -5,6 +5,13 @@
  * Integriert StaerkeCard, FahrzeugStatusListe und RollenUebersicht
  * in einem responsiven Grid-Layout.
  *
+ * **Story 6.2 - Fullscreen & Compact Modus:**
+ * - AC1: Fullscreen-Modus für Beamer (3m lesbar)
+ * - AC2: Compact-Modus für Tablet
+ * - AC3: Auto-Refresh alle 30s nur in Fullscreen
+ * - AC4: ESC-Handler für Fullscreen-Exit
+ * - AC5: Mode-Persistenz via localStorage
+ *
  * **ACs erfüllt:**
  * - AC1: Grid-Layout mit Stärke (oben links), Fahrzeuge (oben rechts), Rollen (unten)
  * - AC2: Alle 3 Queries werden parallel geladen
@@ -14,15 +21,22 @@
  * - AC7: Header mit Titel, Refresh-Button und Aktualisiert-Zeitstempel
  */
 
+import { useCallback, useEffect } from 'react';
+import { useNavigate } from '@tanstack/react-router';
 import { cn } from '@/shared/ui/cn';
-import { PiChartBar, PiArrowClockwise, PiWarningCircle } from 'react-icons/pi';
-import { useTaktischeStaerke, useEinsatzFahrzeuge, useRollenBesetzungen } from '../../api';
+import { PiChartBar, PiArrowClockwise, PiArrowsOut, PiDevices } from 'react-icons/pi';
+import { FullscreenCloseButton } from '@/features/lagekarte/ui/organisms/FullscreenCloseButton';
+import { useTaktischeStaerke } from '../../api';
+import { DashboardModeProvider, type DashboardMode } from '../../contexts';
 import { StaerkeCard } from '../molecules';
+import { DashboardErrorCard } from '../molecules/DashboardErrorCard';
 import { FahrzeugStatusListe, RollenUebersicht } from '../organisms';
 
 interface KraefteDashboardProps {
   einsatzId: string;
   className?: string;
+  /** Dashboard-Modus (Story 6.2) */
+  mode?: DashboardMode;
 }
 
 /**
@@ -40,18 +54,32 @@ interface DashboardHeaderProps {
   onRefresh: () => void;
   lastUpdated: number;
   isRefreshing: boolean;
+  mode: DashboardMode;
+  onModeChange: (mode: DashboardMode) => void;
 }
 
-function DashboardHeader({ onRefresh, lastUpdated, isRefreshing }: DashboardHeaderProps) {
+/**
+ * DashboardHeader mit Mode-Selector (AC5).
+ *
+ * Story 6.2: Header passt sich dem Mode an.
+ * Fullscreen hat größere Schrift und sticky Positionierung.
+ */
+function DashboardHeader({ onRefresh, lastUpdated, isRefreshing, mode, onModeChange }: DashboardHeaderProps) {
   return (
-    <div className="flex items-center justify-between">
+    <div className={cn('flex items-center justify-between', mode === 'fullscreen' && 'sticky top-0 z-10 -mx-6 -mt-6 bg-white px-6 py-4 shadow-sm dark:bg-gray-800 lg:-mx-8 lg:px-8')}>
       <div className="flex items-center gap-3">
-        <PiChartBar className="h-6 w-6 text-gray-500 dark:text-gray-400" />
-        <h1 className="font-bold text-2xl text-gray-900 dark:text-gray-100">Kräfte-Dashboard</h1>
+        <PiChartBar className={cn('text-gray-500 dark:text-gray-400', mode === 'fullscreen' ? 'h-8 w-8' : 'h-6 w-6')} />
+        <h1 className={cn('font-bold text-gray-900 dark:text-gray-100', mode === 'fullscreen' ? 'text-3xl lg:text-4xl' : 'text-2xl')}>Kräfte-Dashboard</h1>
       </div>
 
       <div className="flex items-center gap-4">
-        {lastUpdated > 0 && <span className="text-gray-500 text-sm dark:text-gray-400">Aktualisiert: {formatTime(lastUpdated)}</span>}
+        {/* Timestamp (AC3: Auto-Refresh Indikator) */}
+        {lastUpdated > 0 && <span className={cn('text-gray-500 dark:text-gray-400', mode === 'fullscreen' ? 'text-lg' : 'text-sm')}>Aktualisiert: {formatTime(lastUpdated)}</span>}
+
+        {/* Mode Selector (AC5) */}
+        <ModeSelector mode={mode} onModeChange={onModeChange} />
+
+        {/* Refresh Button */}
         <button
           type="button"
           onClick={onRefresh}
@@ -62,104 +90,155 @@ function DashboardHeader({ onRefresh, lastUpdated, isRefreshing }: DashboardHead
             'dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-gray-300',
             'disabled:cursor-not-allowed disabled:opacity-50',
             isRefreshing && 'animate-spin',
+            mode === 'fullscreen' && 'p-3',
           )}
           title="Alle Daten aktualisieren"
         >
-          <PiArrowClockwise className="h-5 w-5" />
+          <PiArrowClockwise className={mode === 'fullscreen' ? 'h-6 w-6' : 'h-5 w-5'} />
         </button>
       </div>
     </div>
   );
 }
 
-export function KraefteDashboard({ einsatzId, className }: KraefteDashboardProps) {
-  // Alle drei Queries parallel laden (AC2)
-  const staerkeQuery = useTaktischeStaerke(einsatzId);
-  const fahrzeugeQuery = useEinsatzFahrzeuge(einsatzId);
-  const rollenQuery = useRollenBesetzungen(einsatzId);
+interface ModeSelectorProps {
+  mode: DashboardMode;
+  onModeChange: (mode: DashboardMode) => void;
+}
 
-  // Kombinierte States (AC4, AC5)
-  const isAnyFetching = staerkeQuery.isFetching || fahrzeugeQuery.isFetching || rollenQuery.isFetching;
-  const latestUpdate = Math.max(staerkeQuery.dataUpdatedAt || 0, fahrzeugeQuery.dataUpdatedAt || 0, rollenQuery.dataUpdatedAt || 0);
+/**
+ * Mode-Selector für Dashboard-Modi (AC5).
+ *
+ * Ermöglicht Wechsel zwischen Compact, Normal und Fullscreen.
+ */
+function ModeSelector({ mode, onModeChange }: ModeSelectorProps) {
+  return (
+    <div className="flex items-center gap-1 rounded-lg bg-gray-100 p-1 dark:bg-gray-700">
+      <button
+        type="button"
+        onClick={() => onModeChange('compact')}
+        className={cn(
+          'rounded-md px-3 py-1.5 text-sm font-medium transition-colors',
+          mode === 'compact' ? 'bg-white text-gray-900 shadow-sm dark:bg-gray-600 dark:text-white' : 'text-gray-600 hover:text-gray-900 dark:text-gray-300 dark:hover:text-white',
+        )}
+        title="Kompakt-Modus für Tablets"
+      >
+        <PiDevices className="h-4 w-4" />
+      </button>
+      <button
+        type="button"
+        onClick={() => onModeChange('standard')}
+        className={cn(
+          'rounded-md px-3 py-1.5 text-sm font-medium transition-colors',
+          mode === 'standard' ? 'bg-white text-gray-900 shadow-sm dark:bg-gray-600 dark:text-white' : 'text-gray-600 hover:text-gray-900 dark:text-gray-300 dark:hover:text-white',
+        )}
+        title="Standard-Ansicht"
+      >
+        Normal
+      </button>
+      <button
+        type="button"
+        onClick={() => onModeChange('fullscreen')}
+        className={cn(
+          'rounded-md px-3 py-1.5 text-sm font-medium transition-colors',
+          mode === 'fullscreen' ? 'bg-white text-gray-900 shadow-sm dark:bg-gray-600 dark:text-white' : 'text-gray-600 hover:text-gray-900 dark:text-gray-300 dark:hover:text-white',
+        )}
+        title="Vollbild-Modus für Beamer"
+      >
+        <PiArrowsOut className="h-4 w-4" />
+      </button>
+    </div>
+  );
+}
 
-  // Refetch alle Queries (AC5, AC7)
-  const refetchAll = () => {
-    staerkeQuery.refetch();
-    fahrzeugeQuery.refetch();
-    rollenQuery.refetch();
+export function KraefteDashboard({ einsatzId, className, mode = 'standard' }: KraefteDashboardProps) {
+  const navigate = useNavigate();
+
+  // NUR StaerkeCard Query hier - FahrzeugStatusListe und RollenUebersicht
+  // haben eigene Hooks und lesen refetchInterval via useDashboardMode()
+  const staerkeQuery = useTaktischeStaerke(einsatzId, {
+    refetchInterval: mode === 'fullscreen' ? 30000 : false,
+  });
+
+  // Kombinierte States für Header (Child-Komponenten updaten sich selbst)
+  const isAnyFetching = staerkeQuery.isFetching;
+  const latestUpdate = staerkeQuery.dataUpdatedAt || 0;
+
+  // Mode Navigation Handler mit localStorage Speicherung (AC5)
+  const handleModeChange = useCallback(
+    (newMode: DashboardMode) => {
+      localStorage.setItem('kraefte-dashboard-mode', newMode);
+      navigate({
+        search: { mode: newMode },
+        replace: true,
+      });
+    },
+    [navigate],
+  );
+
+  const handleExitFullscreen = useCallback(() => {
+    handleModeChange('standard');
+  }, [handleModeChange]);
+
+  // AC4: ESC-Handler für Fullscreen (FullscreenCloseButton hat eigenen Handler)
+  // Aber wir brauchen auch einen im Dashboard für Konsistenz
+  useEffect(() => {
+    const handleKeydown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape' && mode === 'fullscreen') {
+        event.preventDefault();
+        handleExitFullscreen();
+      }
+    };
+
+    window.addEventListener('keydown', handleKeydown);
+    return () => window.removeEventListener('keydown', handleKeydown);
+  }, [mode, handleExitFullscreen]);
+
+  // Layout-Klassen nach Modus
+  const gridClasses = {
+    standard: 'grid gap-4 md:grid-cols-2 md:gap-6',
+    fullscreen: 'grid gap-6 lg:grid-cols-3 xl:gap-8',
+    compact: 'grid gap-2 md:grid-cols-2 md:gap-3',
   };
 
   return (
-    <div className={cn('space-y-6', className)}>
-      {/* Header (AC7) */}
-      <DashboardHeader onRefresh={refetchAll} lastUpdated={latestUpdate} isRefreshing={isAnyFetching} />
+    <DashboardModeProvider value={mode}>
+      <div className={cn('space-y-6', mode === 'fullscreen' && 'p-6 lg:p-8', className)}>
+        {/* AC4: Exit-Button in FullScreen */}
+        {mode === 'fullscreen' && <FullscreenCloseButton onClose={handleExitFullscreen} />}
 
-      {/* Grid Layout (AC1, AC3) - md:768px für bessere Tablet-Unterstützung */}
-      <div className="grid gap-4 md:grid-cols-2 md:gap-6">
-        {/* Stärke-Card (oben links) - AC5: eigener Error-State */}
-        <div className="md:col-span-1">
-          {staerkeQuery.isError ? (
-            <div className="flex h-full flex-col items-center justify-center gap-2 rounded-lg border border-red-200 bg-red-50 p-4 dark:border-red-800 dark:bg-red-900/20">
-              <PiWarningCircle className="h-8 w-8 text-red-500" />
-              <p className="text-center text-red-600 text-sm dark:text-red-400">Stärke konnte nicht geladen werden</p>
-              <button
-                type="button"
-                onClick={() => staerkeQuery.refetch()}
-                className="rounded-md bg-red-100 px-3 py-1 text-red-700 text-sm hover:bg-red-200 dark:bg-red-800 dark:text-red-200 dark:hover:bg-red-700"
-              >
-                Erneut versuchen
-              </button>
-            </div>
-          ) : (
-            <StaerkeCard
-              fuehrung={staerkeQuery.data?.fuehrung ?? 0}
-              unterfuehrung={staerkeQuery.data?.unterfuehrung ?? 0}
-              mannschaft={staerkeQuery.data?.mannschaft ?? 0}
-              gesamt={staerkeQuery.data?.gesamt ?? 0}
-              isLoading={staerkeQuery.isLoading}
-              className="h-full"
-            />
-          )}
-        </div>
+        {/* Header mit Mode-Selector (AC5) */}
+        <DashboardHeader onRefresh={() => staerkeQuery.refetch()} lastUpdated={latestUpdate} isRefreshing={isAnyFetching} mode={mode} onModeChange={handleModeChange} />
 
-        {/* Fahrzeug-Liste (oben rechts) - AC5: eigener Error-State */}
-        <div className="md:col-span-1">
-          {fahrzeugeQuery.isError ? (
-            <div className="flex h-full flex-col items-center justify-center gap-2 rounded-lg border border-red-200 bg-red-50 p-4 dark:border-red-800 dark:bg-red-900/20">
-              <PiWarningCircle className="h-8 w-8 text-red-500" />
-              <p className="text-center text-red-600 text-sm dark:text-red-400">Fahrzeuge konnten nicht geladen werden</p>
-              <button
-                type="button"
-                onClick={() => fahrzeugeQuery.refetch()}
-                className="rounded-md bg-red-100 px-3 py-1 text-red-700 text-sm hover:bg-red-200 dark:bg-red-800 dark:text-red-200 dark:hover:bg-red-700"
-              >
-                Erneut versuchen
-              </button>
-            </div>
-          ) : (
+        {/* Grid Layout nach Modus */}
+        <div className={gridClasses[mode]}>
+          {/* Stärke-Card - KORREKT: Data-Props, nicht einsatzId */}
+          <div className={mode === 'fullscreen' ? 'lg:col-span-1' : 'md:col-span-1'}>
+            {staerkeQuery.isError ? (
+              <DashboardErrorCard title="Stärke" onRetry={() => staerkeQuery.refetch()} compact={mode === 'compact'} />
+            ) : (
+              <StaerkeCard
+                fuehrung={staerkeQuery.data?.fuehrung ?? 0}
+                unterfuehrung={staerkeQuery.data?.unterfuehrung ?? 0}
+                mannschaft={staerkeQuery.data?.mannschaft ?? 0}
+                gesamt={staerkeQuery.data?.gesamt ?? 0}
+                isLoading={staerkeQuery.isLoading}
+                className="h-full"
+              />
+            )}
+          </div>
+
+          {/* Fahrzeug-Liste - Hat eigenen Hook, liest Mode via Context */}
+          <div className={mode === 'fullscreen' ? 'lg:col-span-1' : 'md:col-span-1'}>
             <FahrzeugStatusListe einsatzId={einsatzId} className="h-full" />
-          )}
-        </div>
+          </div>
 
-        {/* Rollen-Übersicht (unten, volle Breite) - AC5: eigener Error-State */}
-        <div className="md:col-span-2">
-          {rollenQuery.isError ? (
-            <div className="flex h-full flex-col items-center justify-center gap-2 rounded-lg border border-red-200 bg-red-50 p-4 dark:border-red-800 dark:bg-red-900/20">
-              <PiWarningCircle className="h-8 w-8 text-red-500" />
-              <p className="text-center text-red-600 text-sm dark:text-red-400">Rollen konnten nicht geladen werden</p>
-              <button
-                type="button"
-                onClick={() => rollenQuery.refetch()}
-                className="rounded-md bg-red-100 px-3 py-1 text-red-700 text-sm hover:bg-red-200 dark:bg-red-800 dark:text-red-200 dark:hover:bg-red-700"
-              >
-                Erneut versuchen
-              </button>
-            </div>
-          ) : (
+          {/* Rollen-Übersicht - Hat eigenen Hook, liest Mode via Context */}
+          <div className={cn(mode === 'fullscreen' ? 'lg:col-span-1' : 'md:col-span-2')}>
             <RollenUebersicht einsatzId={einsatzId} />
-          )}
+          </div>
         </div>
       </div>
-    </div>
+    </DashboardModeProvider>
   );
 }

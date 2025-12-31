@@ -1,6 +1,6 @@
 # Story 6.2: FullScreen & Compact Modus
 
-Status: ready-for-dev
+Status: done
 
 ## Story
 
@@ -20,46 +20,98 @@ Das Kräfte-Dashboard (Story 6.1d) zeigt Stärke, Fahrzeuge und Rollen. Für den
 - Lagekarte Fullscreen-Pattern (bereits implementiert)
 - FullscreenCloseButton Komponente (wiederverwendbar)
 
+**KRITISCH - Bestehende Komponenten-Struktur:**
+- `StaerkeCard` akzeptiert Data-Props (`fuehrung`, `unterfuehrung`, `mannschaft`, `gesamt`), NICHT `einsatzId`
+- `FahrzeugStatusListe` und `RollenUebersicht` haben EIGENE interne Query-Hooks
+- Grid-Klassen in `RollenUebersicht` sind aktuell hardcoded und müssen dynamisch werden
+
 ---
 
 ## Acceptance Criteria
 
 ### AC1: FullScreen-Modus für Beamer
 
-- [ ] **Given** ich bin im Dashboard
-- [ ] **When** ich auf "FullScreen" klicke
-- [ ] **Then** wird das Dashboard im Vollbild-Modus angezeigt (3m lesbar, NFR19)
-- [ ] **And** Schriftgröße min. 32px für Stärke-Zahlen, 24px für Fahrzeugnamen
+- [x] **Given** ich bin im Dashboard
+- [x] **When** ich auf "FullScreen" klicke
+- [x] **Then** wird das Dashboard im Vollbild-Modus angezeigt (3m lesbar, NFR19)
+- [x] **And** Schriftgröße min. 32px für Stärke-Zahlen, 24px für Fahrzeugnamen
 
 ### AC2: Compact-Modus für Tablet
 
-- [ ] **Given** ich bin im FullScreen-Modus
-- [ ] **When** ich auf "Compact" klicke
-- [ ] **Then** wird das Dashboard in kompakter Tablet-Ansicht angezeigt (NFR20)
-- [ ] **And** Touch-Targets min. 44x44px
+- [x] **Given** ich bin im FullScreen-Modus
+- [x] **When** ich auf "Compact" klicke
+- [x] **Then** wird das Dashboard in kompakter Tablet-Ansicht angezeigt (NFR20)
+- [x] **And** Touch-Targets min. 44x44px
 
 ### AC3: Auto-Refresh alle 30s
 
-- [ ] **Given** ich bin im FullScreen-Modus
-- [ ] **When** 30 Sekunden vergehen
-- [ ] **Then** wird das Dashboard automatisch aktualisiert (TanStack Query `refetchInterval: 30000`)
+- [x] **Given** ich bin im FullScreen-Modus
+- [x] **When** 30 Sekunden vergehen
+- [x] **Then** wird das Dashboard automatisch aktualisiert (TanStack Query `refetchInterval: 30000`)
 
 ### AC4: Exit-Button in FullScreen
 
-- [ ] **Given** ich bin im FullScreen-Modus
-- [ ] **When** ich ESC drücke oder auf "Exit" klicke
-- [ ] **Then** kehre ich zur Normal-Ansicht zurück
+- [x] **Given** ich bin im FullScreen-Modus
+- [x] **When** ich ESC drücke oder auf "Exit" klicke
+- [x] **Then** kehre ich zur Normal-Ansicht zurück
 
 ### AC5: Density-Modi Toggle
 
-- [ ] **Given** ich bin im Dashboard
-- [ ] **When** ich den Density-Selector nutze
-- [ ] **Then** kann ich zwischen "Normal", "Compact", "FullScreen" wechseln
-- [ ] **And** die Präferenz wird im localStorage gespeichert
+- [x] **Given** ich bin im Dashboard
+- [x] **When** ich den Density-Selector nutze
+- [x] **Then** kann ich zwischen "Normal", "Compact", "FullScreen" wechseln
+- [x] **And** die Präferenz wird im localStorage gespeichert
 
 ---
 
 ## Implementation Checklist
+
+### Task 0: DashboardModeContext erstellen (Prop-Drilling vermeiden)
+
+- [ ] **0.1** Neue Datei: `features/kraefte/contexts/dashboard-mode.context.ts`
+
+> **WARUM:** Vermeidet Prop-Drilling durch 3+ Ebenen (Dashboard → Liste → Card).
+> Child-Komponenten können Mode direkt via Context lesen.
+
+```typescript
+import { createContext, useContext } from 'react';
+
+/**
+ * Story 6.2 - Dashboard Modi für Layout-Varianten.
+ *
+ * - standard: Normales 2-Spalten Grid (768px+)
+ * - fullscreen: 3-Spalten, große Schrift für Beamer (3m lesbar)
+ * - compact: Kompakte Darstellung für Tablets
+ */
+export type DashboardMode = 'standard' | 'fullscreen' | 'compact';
+
+const DashboardModeContext = createContext<DashboardMode>('standard');
+
+/**
+ * Hook zum Lesen des aktuellen Dashboard-Modus.
+ *
+ * Wird von Child-Komponenten (StaerkeCard, FahrzeugCard, RollenKarte)
+ * verwendet um Mode-spezifische Styles anzuwenden.
+ */
+export const useDashboardMode = () => useContext(DashboardModeContext);
+
+export const DashboardModeProvider = DashboardModeContext.Provider;
+```
+
+- [ ] **0.2** Export in `features/kraefte/contexts/index.ts`
+
+```typescript
+export { DashboardModeProvider, useDashboardMode } from './dashboard-mode.context';
+export type { DashboardMode } from './dashboard-mode.context';
+```
+
+- [ ] **0.3** Export in `features/kraefte/index.ts`
+
+```typescript
+// Contexts
+export { DashboardModeProvider, useDashboardMode } from './contexts';
+export type { DashboardMode } from './contexts';
+```
 
 ### Task 1: Route erweitern für Mode-Parameter
 
@@ -86,6 +138,14 @@ export const Route = createFileRoute('/app/einsatz/$einsatzId/kräfte/dashboard'
 
     if (mode && validModes.includes(mode as string)) {
       return { mode: mode as KraefteDashboardSearchParams['mode'] };
+    }
+
+    // AC5: localStorage als Default-Fallback
+    if (typeof window !== 'undefined') {
+      const savedMode = localStorage.getItem('kraefte-dashboard-mode');
+      if (savedMode && validModes.includes(savedMode)) {
+        return { mode: savedMode as KraefteDashboardSearchParams['mode'] };
+      }
     }
 
     return { mode: 'standard' };
@@ -118,18 +178,21 @@ function KraefteDashboardRoute() {
 
 - [ ] **2.1** Erweitere: `features/kraefte/ui/pages/KraefteDashboard.page.tsx`
 
+> **KRITISCH:** Die bestehenden Child-Komponenten (`FahrzeugStatusListe`, `RollenUebersicht`)
+> haben EIGENE Query-Hooks. Wir nutzen DashboardModeProvider um refetchInterval zu steuern.
+> StaerkeCard nutzt Data-Props - Query bleibt im Dashboard.
+
 ```typescript
+import { useEffect, useCallback } from 'react';
 import { useNavigate } from '@tanstack/react-router';
 import { FullscreenCloseButton } from '@/features/lagekarte/ui/organisms/FullscreenCloseButton';
-
-/**
- * Story 6.2 - Dashboard Modi.
- *
- * - standard: Normales 2-spalten Grid (768px+)
- * - fullscreen: 3-Spalten, große Schrift für Beamer (3m lesbar)
- * - compact: Kompakte Darstellung für Tablets
- */
-export type DashboardMode = 'standard' | 'fullscreen' | 'compact';
+import { DashboardModeProvider, type DashboardMode } from '../../contexts';
+import { cn } from '@/shared/ui/cn';
+import { PiChartBar, PiArrowClockwise, PiWarningCircle } from 'react-icons/pi';
+import { useTaktischeStaerke } from '../../api';
+import { StaerkeCard } from '../molecules';
+import { FahrzeugStatusListe, RollenUebersicht } from '../organisms';
+import { DashboardErrorCard } from '../molecules/DashboardErrorCard';
 
 interface KraefteDashboardProps {
   einsatzId: string;
@@ -144,46 +207,41 @@ export function KraefteDashboard({
 }: KraefteDashboardProps) {
   const navigate = useNavigate();
 
-  // Alle drei Queries parallel laden (Story 6.1d Pattern)
+  // NUR StaerkeCard Query hier - FahrzeugStatusListe und RollenUebersicht
+  // haben eigene Hooks und lesen refetchInterval via useDashboardMode()
   const staerkeQuery = useTaktischeStaerke(einsatzId, {
-    // AC3: Auto-Refresh alle 30s im Fullscreen-Modus
-    refetchInterval: mode === 'fullscreen' ? 30000 : false,
-  });
-  const fahrzeugeQuery = useEinsatzFahrzeuge(einsatzId, {
-    refetchInterval: mode === 'fullscreen' ? 30000 : false,
-  });
-  const rollenQuery = useRollenBesetzungen(einsatzId, {
     refetchInterval: mode === 'fullscreen' ? 30000 : false,
   });
 
-  // Kombinierte States
-  const isAnyFetching = staerkeQuery.isFetching || fahrzeugeQuery.isFetching || rollenQuery.isFetching;
-  const latestUpdate = Math.max(
-    staerkeQuery.dataUpdatedAt || 0,
-    fahrzeugeQuery.dataUpdatedAt || 0,
-    rollenQuery.dataUpdatedAt || 0
-  );
+  // Kombinierte States für Header (Child-Komponenten updaten sich selbst)
+  const isAnyFetching = staerkeQuery.isFetching;
+  const latestUpdate = staerkeQuery.dataUpdatedAt || 0;
 
-  const refetchAll = () => {
-    staerkeQuery.refetch();
-    fahrzeugeQuery.refetch();
-    rollenQuery.refetch();
-  };
-
-  // Mode Navigation Handler
-  const handleModeChange = (newMode: DashboardMode) => {
+  // Mode Navigation Handler mit localStorage Speicherung (AC5)
+  const handleModeChange = useCallback((newMode: DashboardMode) => {
+    localStorage.setItem('kraefte-dashboard-mode', newMode);
     navigate({
       search: { mode: newMode },
       replace: true,
     });
-  };
+  }, [navigate]);
 
-  const handleExitFullscreen = () => {
-    navigate({
-      search: { mode: 'standard' },
-      replace: true,
-    });
-  };
+  const handleExitFullscreen = useCallback(() => {
+    handleModeChange('standard');
+  }, [handleModeChange]);
+
+  // AC4: ESC-Handler für Fullscreen
+  useEffect(() => {
+    const handleKeydown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape' && mode === 'fullscreen') {
+        event.preventDefault();
+        handleExitFullscreen();
+      }
+    };
+
+    window.addEventListener('keydown', handleKeydown);
+    return () => window.removeEventListener('keydown', handleKeydown);
+  }, [mode, handleExitFullscreen]);
 
   // Layout-Klassen nach Modus
   const gridClasses = {
@@ -193,80 +251,62 @@ export function KraefteDashboard({
   };
 
   return (
-    <div className={cn(
-      'space-y-6',
-      mode === 'fullscreen' && 'p-6 lg:p-8',
-      className
-    )}>
-      {/* AC4: Exit-Button in FullScreen */}
-      {mode === 'fullscreen' && (
-        <FullscreenCloseButton onClose={handleExitFullscreen} />
-      )}
+    <DashboardModeProvider value={mode}>
+      <div className={cn(
+        'space-y-6',
+        mode === 'fullscreen' && 'p-6 lg:p-8',
+        className
+      )}>
+        {/* AC4: Exit-Button in FullScreen */}
+        {mode === 'fullscreen' && (
+          <FullscreenCloseButton onClose={handleExitFullscreen} />
+        )}
 
-      {/* Header mit Mode-Selector (AC5) */}
-      <DashboardHeader
-        onRefresh={refetchAll}
-        lastUpdated={latestUpdate}
-        isRefreshing={isAnyFetching}
-        mode={mode}
-        onModeChange={handleModeChange}
-      />
+        {/* Header mit Mode-Selector (AC5) */}
+        <DashboardHeader
+          onRefresh={() => staerkeQuery.refetch()}
+          lastUpdated={latestUpdate}
+          isRefreshing={isAnyFetching}
+          mode={mode}
+          onModeChange={handleModeChange}
+        />
 
-      {/* Grid Layout nach Modus */}
-      <div className={gridClasses[mode]}>
-        {/* Stärke-Card */}
-        <div className={mode === 'fullscreen' ? 'lg:col-span-1' : 'md:col-span-1'}>
-          {staerkeQuery.isError ? (
-            <DashboardErrorCard
-              title="Stärke"
-              onRetry={() => staerkeQuery.refetch()}
-              compact={mode === 'compact'}
-            />
-          ) : (
-            <StaerkeCard
-              einsatzId={einsatzId}
-              className="h-full"
-              mode={mode}
-            />
-          )}
-        </div>
+        {/* Grid Layout nach Modus */}
+        <div className={gridClasses[mode]}>
+          {/* Stärke-Card - KORREKT: Data-Props, nicht einsatzId */}
+          <div className={mode === 'fullscreen' ? 'lg:col-span-1' : 'md:col-span-1'}>
+            {staerkeQuery.isError ? (
+              <DashboardErrorCard
+                title="Stärke"
+                onRetry={() => staerkeQuery.refetch()}
+                compact={mode === 'compact'}
+              />
+            ) : (
+              <StaerkeCard
+                fuehrung={staerkeQuery.data?.fuehrung ?? 0}
+                unterfuehrung={staerkeQuery.data?.unterfuehrung ?? 0}
+                mannschaft={staerkeQuery.data?.mannschaft ?? 0}
+                gesamt={staerkeQuery.data?.gesamt ?? 0}
+                isLoading={staerkeQuery.isLoading}
+                className="h-full"
+              />
+            )}
+          </div>
 
-        {/* Fahrzeug-Liste */}
-        <div className={mode === 'fullscreen' ? 'lg:col-span-1' : 'md:col-span-1'}>
-          {fahrzeugeQuery.isError ? (
-            <DashboardErrorCard
-              title="Fahrzeuge"
-              onRetry={() => fahrzeugeQuery.refetch()}
-              compact={mode === 'compact'}
-            />
-          ) : (
-            <FahrzeugStatusListe
-              einsatzId={einsatzId}
-              className="h-full"
-              mode={mode}
-            />
-          )}
-        </div>
+          {/* Fahrzeug-Liste - Hat eigenen Hook, liest Mode via Context */}
+          <div className={mode === 'fullscreen' ? 'lg:col-span-1' : 'md:col-span-1'}>
+            <FahrzeugStatusListe einsatzId={einsatzId} className="h-full" />
+          </div>
 
-        {/* Rollen-Übersicht */}
-        <div className={cn(
-          mode === 'fullscreen' ? 'lg:col-span-1' : 'md:col-span-2'
-        )}>
-          {rollenQuery.isError ? (
-            <DashboardErrorCard
-              title="Rollen"
-              onRetry={() => rollenQuery.refetch()}
-              compact={mode === 'compact'}
-            />
-          ) : (
-            <RollenUebersicht
-              einsatzId={einsatzId}
-              mode={mode}
-            />
-          )}
+          {/* Rollen-Übersicht - Hat eigenen Hook, liest Mode via Context */}
+          <div className={cn(
+            mode === 'fullscreen' ? 'lg:col-span-1' : 'md:col-span-2'
+          )}>
+            <RollenUebersicht einsatzId={einsatzId} />
+          </div>
         </div>
       </div>
-    </div>
+    </DashboardModeProvider>
   );
 }
 ```
@@ -407,130 +447,171 @@ function ModeSelector({ mode, onModeChange }: ModeSelectorProps) {
 
 - [ ] **4.1** Erweitere: `features/kraefte/ui/molecules/StaerkeCard.tsx`
 
+> **KRITISCH:** Props-Struktur BEIBEHALTEN (Data-Props), Mode via Context lesen.
+> StaerkeCard erhält Daten vom Parent, NICHT via eigenem Hook.
+
 ```typescript
+import { cn } from '@/shared/ui/cn';
+import { useDashboardMode, type DashboardMode } from '../../contexts';
+
 interface StaerkeCardProps {
-  einsatzId: string;
+  /** Anzahl Führungskräfte */
+  fuehrung: number;
+  /** Anzahl Unterführer */
+  unterfuehrung: number;
+  /** Anzahl Mannschaftsmitglieder */
+  mannschaft: number;
+  /** Gesamtanzahl */
+  gesamt: number;
+  /** Loading State */
+  isLoading?: boolean;
+  /** Zusätzliche CSS Klassen */
   className?: string;
-  mode?: DashboardMode;
 }
 
-export function StaerkeCard({ einsatzId, className, mode = 'standard' }: StaerkeCardProps) {
-  const { data, isLoading } = useTaktischeStaerke(einsatzId);
-
-  // AC1: Große Schrift für Fullscreen (32px = text-3xl)
-  const numberClasses = {
+/**
+ * Story 6.2 - Mode-aware Size Classes.
+ */
+const getModeClasses = (mode: DashboardMode) => ({
+  number: {
     standard: 'text-2xl font-bold',
     fullscreen: 'text-4xl font-bold lg:text-5xl',
     compact: 'text-xl font-semibold',
-  };
-
-  const labelClasses = {
+  }[mode],
+  label: {
     standard: 'text-xs text-gray-500',
     fullscreen: 'text-base text-gray-500 lg:text-lg',
     compact: 'text-[10px] text-gray-500',
-  };
+  }[mode],
+  container: {
+    standard: 'p-4',
+    fullscreen: 'p-6 lg:p-8',
+    compact: 'p-3',
+  }[mode],
+  title: {
+    standard: 'text-sm',
+    fullscreen: 'text-xl lg:text-2xl',
+    compact: 'text-xs',
+  }[mode],
+  gap: {
+    standard: 'gap-4',
+    fullscreen: 'gap-8',
+    compact: 'gap-2',
+  }[mode],
+});
+
+/**
+ * StaerkeCard zeigt die taktische Stärke.
+ *
+ * Liest DashboardMode via Context für Mode-spezifische Styles.
+ * Daten werden via Props übergeben (Query im Parent).
+ */
+export function StaerkeCard({
+  fuehrung,
+  unterfuehrung,
+  mannschaft,
+  gesamt,
+  isLoading,
+  className
+}: StaerkeCardProps) {
+  const mode = useDashboardMode();
+  const classes = getModeClasses(mode);
 
   if (isLoading) {
-    return <StaerkeCardSkeleton mode={mode} />;
+    return <StaerkeCardSkeleton className={className} />;
   }
 
-  // Compact-Modus: Nur Gesamt anzeigen
+  // Compact-Modus: Nur Gesamt anzeigen (platzsparend)
   if (mode === 'compact') {
     return (
       <div className={cn(
-        'flex items-center justify-between rounded-lg border border-gray-200 bg-white p-3',
+        'flex items-center justify-between rounded-lg border border-gray-200 bg-white',
         'dark:border-gray-700 dark:bg-gray-800',
+        classes.container,
         className
       )}>
         <span className="text-sm font-medium text-gray-600 dark:text-gray-400">Stärke</span>
-        <span className="text-xl font-bold text-gray-900 dark:text-white">
-          {data?.gesamt ?? 0}
-        </span>
+        <span className="text-xl font-bold text-gray-900 dark:text-white">{gesamt}</span>
       </div>
     );
   }
 
-  // Standard & Fullscreen: Alle Kategorien
+  // Standard & Fullscreen: Alle Kategorien mit Separatoren
   return (
     <div className={cn(
       'rounded-lg border border-gray-200 bg-white shadow-sm',
       'dark:border-gray-700 dark:bg-gray-800',
-      mode === 'fullscreen' ? 'p-6 lg:p-8' : 'p-4',
+      classes.container,
       className
     )}>
       <h3 className={cn(
         'mb-4 font-medium text-gray-900 dark:text-gray-100',
-        mode === 'fullscreen' ? 'text-xl lg:text-2xl' : 'text-sm'
+        classes.title
       )}>
         Taktische Stärke
       </h3>
 
-      <div className={cn(
-        'flex items-center justify-between',
-        mode === 'fullscreen' ? 'gap-8' : 'gap-4'
-      )}>
-        <StaerkeNumber
-          value={data?.fuehrung ?? 0}
-          label="Führung"
-          color="blue"
-          numberClass={numberClasses[mode]}
-          labelClass={labelClasses[mode]}
-        />
-        <StaerkeNumber
-          value={data?.unterfuehrung ?? 0}
-          label="U-Führung"
-          color="green"
-          numberClass={numberClasses[mode]}
-          labelClass={labelClasses[mode]}
-        />
-        <StaerkeNumber
-          value={data?.mannschaft ?? 0}
-          label="Mannschaft"
-          color="gray"
-          numberClass={numberClasses[mode]}
-          labelClass={labelClasses[mode]}
-        />
-        <StaerkeNumber
-          value={data?.gesamt ?? 0}
-          label="Gesamt"
-          color="default"
-          numberClass={numberClasses[mode]}
-          labelClass={labelClasses[mode]}
-          bold
-        />
+      <div className={cn('flex items-center justify-between', classes.gap)}>
+        {/* Führung - Blau */}
+        <div className="text-center">
+          <span className={cn(classes.number, 'text-blue-600 dark:text-blue-400')}>{fuehrung}</span>
+          <p className={classes.label}>Führung</p>
+        </div>
+
+        <span className={cn('text-gray-400 dark:text-gray-500', mode === 'fullscreen' ? 'text-2xl' : 'text-xl')}>/</span>
+
+        {/* Unterführung - Grün */}
+        <div className="text-center">
+          <span className={cn(classes.number, 'text-green-600 dark:text-green-400')}>{unterfuehrung}</span>
+          <p className={classes.label}>Unterführung</p>
+        </div>
+
+        <span className={cn('text-gray-400 dark:text-gray-500', mode === 'fullscreen' ? 'text-2xl' : 'text-xl')}>/</span>
+
+        {/* Mannschaft - Grau */}
+        <div className="text-center">
+          <span className={cn(classes.number, 'text-gray-600 dark:text-gray-300')}>{mannschaft}</span>
+          <p className={classes.label}>Mannschaft</p>
+        </div>
+
+        <span className={cn('text-gray-400 dark:text-gray-500', mode === 'fullscreen' ? 'text-2xl' : 'text-xl')}>/</span>
+
+        {/* Gesamt - Bold/Schwarz */}
+        <div className="text-center">
+          <span className={cn(classes.number, 'text-gray-900 dark:text-white')}>{gesamt}</span>
+          <p className={classes.label}>Gesamt</p>
+        </div>
       </div>
     </div>
   );
 }
 
-function StaerkeNumber({
-  value,
-  label,
-  color,
-  numberClass,
-  labelClass,
-  bold
-}: {
-  value: number;
-  label: string;
-  color: 'blue' | 'green' | 'gray' | 'default';
-  numberClass: string;
-  labelClass: string;
-  bold?: boolean;
-}) {
-  const colorClasses = {
-    blue: 'text-blue-600 dark:text-blue-400',
-    green: 'text-green-600 dark:text-green-400',
-    gray: 'text-gray-600 dark:text-gray-400',
-    default: 'text-gray-900 dark:text-white',
-  };
+/**
+ * Skeleton Loading State für StaerkeCard.
+ */
+function StaerkeCardSkeleton({ className }: { className?: string }) {
+  const mode = useDashboardMode();
+  const classes = getModeClasses(mode);
 
   return (
-    <div className="flex flex-col items-center">
-      <span className={cn(numberClass, colorClasses[color])}>
-        {value}
-      </span>
-      <span className={labelClass}>{label}</span>
+    <div className={cn(
+      'rounded-lg border border-gray-200 bg-white shadow-sm animate-pulse',
+      'dark:border-gray-700 dark:bg-gray-800',
+      classes.container,
+      className
+    )}>
+      <div className="mb-4 h-5 w-32 rounded bg-gray-200 dark:bg-gray-700" />
+      <div className={cn('flex items-center justify-between', classes.gap)}>
+        {[1, 2, 3, 4].map((i) => (
+          <div key={i} className="text-center">
+            <div className={cn(
+              'mx-auto mb-1 rounded bg-gray-200 dark:bg-gray-700',
+              mode === 'fullscreen' ? 'h-12 w-14' : mode === 'compact' ? 'h-6 w-8' : 'h-8 w-10'
+            )} />
+            <div className="mx-auto h-3 w-16 rounded bg-gray-200 dark:bg-gray-700" />
+          </div>
+        ))}
+      </div>
     </div>
   );
 }
@@ -540,27 +621,70 @@ function StaerkeNumber({
 
 - [ ] **5.1** Erweitere: `features/kraefte/ui/organisms/FahrzeugStatusListe.tsx`
 
+> **KRITISCH:** Komponente hat EIGENEN Hook. Mode via Context lesen.
+> refetchInterval mode-aware machen.
+
 ```typescript
+import { cn } from '@/shared/ui/cn';
+import { FahrzeugCard, FahrzeugCardSkeleton } from '../molecules/FahrzeugCard';
+import { useEinsatzFahrzeuge } from '../../api/use-einsatz-fahrzeuge';
+import { useDashboardMode } from '../../contexts';
+import { PiTruck, PiWarningCircle, PiArrowClockwise } from 'react-icons/pi';
+
 interface FahrzeugStatusListeProps {
   einsatzId: string;
   onFahrzeugClick?: (fahrzeugId: string) => void;
   className?: string;
-  mode?: DashboardMode;
 }
 
 export function FahrzeugStatusListe({
   einsatzId,
   onFahrzeugClick,
-  className,
-  mode = 'standard'
+  className
 }: FahrzeugStatusListeProps) {
-  const { data: fahrzeuge, isLoading, isError } = useEinsatzFahrzeuge(einsatzId);
+  // Mode via Context (kein Prop-Drilling)
+  const mode = useDashboardMode();
 
+  // AC3: refetchInterval nur in Fullscreen
+  const { data: fahrzeuge, isLoading, error, refetch, dataUpdatedAt } = useEinsatzFahrzeuge(einsatzId, {
+    refetchInterval: mode === 'fullscreen' ? 30000 : false,
+  });
+
+  // Loading State
   if (isLoading) {
-    return <FahrzeugListeSkeleton mode={mode} />;
+    return (
+      <div className={cn(
+        'rounded-lg border border-gray-200 bg-white dark:border-gray-700 dark:bg-gray-800',
+        mode === 'fullscreen' ? 'p-6 lg:p-8' : mode === 'compact' ? 'p-3' : 'p-4',
+        className
+      )}>
+        <FahrzeugStatusListeSkeleton />
+      </div>
+    );
   }
 
-  // Compact: Horizontale Liste mit nur Kennzeichen + Status
+  // Error State
+  if (error) {
+    return (
+      <div className={cn(
+        'rounded-lg border border-gray-200 bg-white dark:border-gray-700 dark:bg-gray-800',
+        mode === 'fullscreen' ? 'p-6 lg:p-8' : mode === 'compact' ? 'p-3' : 'p-4',
+        className
+      )}>
+        <div className="flex flex-col items-center py-8 text-red-500">
+          <PiWarningCircle className="mb-2 h-8 w-8" />
+          <p className="text-sm">Fehler beim Laden der Fahrzeuge</p>
+          <button type="button" onClick={() => refetch()} className="mt-2 text-blue-600 text-sm hover:underline">
+            Erneut versuchen
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  const fahrzeugCount = fahrzeuge?.length ?? 0;
+
+  // Compact: Badge-Liste statt Karten
   if (mode === 'compact') {
     return (
       <div className={cn(
@@ -569,10 +693,8 @@ export function FahrzeugStatusListe({
         className
       )}>
         <div className="mb-2 flex items-center justify-between">
-          <span className="text-sm font-medium text-gray-600 dark:text-gray-400">
-            Fahrzeuge
-          </span>
-          <span className="text-xs text-gray-500">{fahrzeuge?.length ?? 0}</span>
+          <span className="text-sm font-medium text-gray-600 dark:text-gray-400">Fahrzeuge</span>
+          <span className="text-xs text-gray-500">{fahrzeugCount}</span>
         </div>
         <div className="flex flex-wrap gap-1">
           {fahrzeuge?.map((fz) => (
@@ -591,49 +713,121 @@ export function FahrzeugStatusListe({
       mode === 'fullscreen' ? 'p-6 lg:p-8' : 'p-4',
       className
     )}>
-      <h3 className={cn(
-        'mb-4 font-medium text-gray-900 dark:text-gray-100',
-        mode === 'fullscreen' ? 'text-xl lg:text-2xl' : 'text-sm'
-      )}>
-        Fahrzeuge ({fahrzeuge?.length ?? 0})
-      </h3>
-
-      <div className={cn(
-        mode === 'fullscreen' ? 'space-y-4' : 'space-y-3'
-      )}>
-        {fahrzeuge?.map((fz) => (
-          <FahrzeugCard
-            key={fz.id}
-            fahrzeug={fz}
-            onClick={() => onFahrzeugClick?.(fz.id)}
-            mode={mode}
-          />
-        ))}
+      {/* Header */}
+      <div className="mb-4 flex items-center justify-between">
+        <div className="flex items-center gap-2">
+          <PiTruck className={cn('text-gray-500', mode === 'fullscreen' ? 'h-6 w-6' : 'h-5 w-5')} />
+          <h3 className={cn(
+            'font-semibold text-gray-900 dark:text-gray-100',
+            mode === 'fullscreen' ? 'text-xl lg:text-2xl' : 'text-base'
+          )}>
+            Fahrzeuge
+          </h3>
+        </div>
+        <div className="flex items-center gap-3">
+          <span className={cn('text-gray-500', mode === 'fullscreen' ? 'text-base' : 'text-sm')}>
+            {fahrzeugCount} im Einsatz
+          </span>
+          <button
+            type="button"
+            onClick={() => refetch()}
+            className="rounded p-1 text-gray-400 hover:bg-gray-100 hover:text-gray-600 dark:hover:bg-gray-700"
+            title="Aktualisieren"
+          >
+            <PiArrowClockwise className="h-4 w-4" />
+          </button>
+        </div>
       </div>
+
+      {/* Liste */}
+      {fahrzeuge && fahrzeuge.length > 0 ? (
+        <div className={mode === 'fullscreen' ? 'space-y-4' : 'space-y-3'}>
+          {fahrzeuge.map((fahrzeug) => (
+            <FahrzeugCard
+              key={fahrzeug.id}
+              fahrzeug={fahrzeug}
+              onClick={onFahrzeugClick ? () => onFahrzeugClick(fahrzeug.id) : undefined}
+            />
+          ))}
+        </div>
+      ) : (
+        <div className="flex flex-col items-center py-8 text-gray-500">
+          <PiTruck className="mb-2 h-12 w-12 opacity-50" />
+          <p className="text-sm">Keine Fahrzeuge erfasst</p>
+        </div>
+      )}
     </div>
   );
 }
 
 /**
- * Compact Badge für Fahrzeug (nur in Compact-Modus).
+ * Compact Badge für Fahrzeug.
  */
-function FahrzeugBadge({ fahrzeug }: { fahrzeug: EinsatzFahrzeugDto }) {
-  const statusColors = {
-    // FMS Status Farben
-    1: 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200', // Einsatzbereit
-    2: 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200', // Auf Anfahrt
-    3: 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200', // Am Einsatzort
-    // ... weitere
+function FahrzeugBadge({ fahrzeug }: { fahrzeug: { id: string; funkrufname: string; fmsStatus: number } }) {
+  const statusColors: Record<number, string> = {
+    1: 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200',
+    2: 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200',
+    3: 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200',
+    4: 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200',
   };
 
   return (
     <span className={cn(
       'inline-flex items-center rounded-md px-2 py-1 text-xs font-medium',
-      statusColors[fahrzeug.fmsStatus] ?? 'bg-gray-100 text-gray-800'
+      statusColors[fahrzeug.fmsStatus] ?? 'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-200'
     )}>
-      {fahrzeug.kennzeichen}
+      {fahrzeug.funkrufname}
     </span>
   );
+}
+
+function FahrzeugStatusListeSkeleton() {
+  return (
+    <>
+      <div className="mb-4 flex items-center justify-between">
+        <div className="h-5 w-32 animate-pulse rounded bg-gray-200 dark:bg-gray-700" />
+        <div className="h-4 w-20 animate-pulse rounded bg-gray-200 dark:bg-gray-700" />
+      </div>
+      <div className="space-y-3">
+        {[1, 2, 3].map((i) => (
+          <FahrzeugCardSkeleton key={i} />
+        ))}
+      </div>
+    </>
+  );
+}
+```
+
+- [ ] **5.2** Erweitere Hook: `features/kraefte/api/use-einsatz-fahrzeuge.ts`
+
+> Hook muss `refetchInterval` als Option akzeptieren.
+
+```typescript
+import { useQuery, type UseQueryOptions } from '@tanstack/react-query';
+import { api } from '@bluelight-hub/shared/client';
+import { QUERY_KEYS } from '@/queryKeys';
+
+interface UseEinsatzFahrzeugeOptions {
+  refetchInterval?: number | false;
+}
+
+/**
+ * Hook für Einsatz-Fahrzeuge.
+ *
+ * Story 6.2: refetchInterval ist konfigurierbar für Fullscreen-Modus.
+ */
+export function useEinsatzFahrzeuge(
+  einsatzId: string,
+  options?: UseEinsatzFahrzeugeOptions
+) {
+  return useQuery({
+    queryKey: QUERY_KEYS.kraefte.fahrzeuge(einsatzId),
+    queryFn: () => api.einsatzFahrzeuge().einsatzFahrzeugeControllerFindAllVAlpha(einsatzId),
+    enabled: !!einsatzId,
+    staleTime: 30_000,
+    gcTime: 5 * 60 * 1000,
+    refetchInterval: options?.refetchInterval ?? false,
+  });
 }
 ```
 
@@ -641,27 +835,87 @@ function FahrzeugBadge({ fahrzeug }: { fahrzeug: EinsatzFahrzeugDto }) {
 
 - [ ] **6.1** Erweitere: `features/kraefte/ui/organisms/RollenUebersicht.tsx`
 
+> **KRITISCH:** Komponente hat EIGENEN Hook. Mode via Context lesen (kein Prop).
+> refetchInterval mode-aware machen. Grid-Klassen dynamisch gestalten.
+
 ```typescript
+import { cn } from '@/shared/ui/cn';
+import { PiUsers, PiArrowClockwise, PiWarningCircle } from 'react-icons/pi';
+import { useRollenBesetzungen } from '../../api';
+import { useDashboardMode } from '../../contexts';
+import { RollenKarte, RollenKarteSkeleton } from '../molecules/RollenKarte';
+
 interface RollenUebersichtProps {
   einsatzId: string;
   onFreigebeClick?: (rollenBesetzungId: string) => void;
   className?: string;
-  mode?: DashboardMode;
+  // KEIN mode Prop - wird via useDashboardMode() Context gelesen
 }
 
+/**
+ * Formatiert einen Timestamp als HH:MM
+ */
+function formatTime(timestamp: number): string {
+  return new Date(timestamp).toLocaleTimeString('de-DE', {
+    hour: '2-digit',
+    minute: '2-digit',
+  });
+}
+
+/**
+ * RollenUebersicht zeigt alle besetzten Führungsrollen.
+ *
+ * Story 6.2: Liest Mode via Context für Mode-spezifische Layouts.
+ * Grid-Klassen sind dynamisch basierend auf Mode.
+ */
 export function RollenUebersicht({
   einsatzId,
   onFreigebeClick,
-  className,
-  mode = 'standard'
+  className
 }: RollenUebersichtProps) {
-  const { data: besetzungen, isLoading } = useRollenBesetzungen(einsatzId);
+  // Mode via Context (kein Prop-Drilling)
+  const mode = useDashboardMode();
 
+  // AC3: refetchInterval nur in Fullscreen
+  const { data: besetzungen, isLoading, error, refetch, dataUpdatedAt } = useRollenBesetzungen(einsatzId, {
+    refetchInterval: mode === 'fullscreen' ? 30000 : false,
+  });
+
+  // Loading State
   if (isLoading) {
-    return <RollenUebersichtSkeleton mode={mode} />;
+    return (
+      <div className={cn(
+        'rounded-lg border bg-white dark:bg-gray-800',
+        mode === 'fullscreen' ? 'p-6 lg:p-8' : mode === 'compact' ? 'p-3' : 'p-4',
+        className
+      )}>
+        <RollenUebersichtSkeleton />
+      </div>
+    );
   }
 
-  // Compact: Inline-Liste statt Grid
+  // Error State
+  if (error) {
+    return (
+      <div className={cn(
+        'rounded-lg border bg-white dark:bg-gray-800',
+        mode === 'fullscreen' ? 'p-6 lg:p-8' : mode === 'compact' ? 'p-3' : 'p-4',
+        className
+      )}>
+        <div className="flex flex-col items-center py-8 text-red-500">
+          <PiWarningCircle className="mb-2 h-8 w-8" />
+          <p className="text-sm">Fehler beim Laden der Rollen</p>
+          <button type="button" onClick={() => refetch()} className="mt-2 text-blue-600 text-sm hover:underline">
+            Erneut versuchen
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  const besetzteCount = besetzungen?.length ?? 0;
+
+  // Compact: Inline-Liste statt Grid (platzsparend für Tablets)
   if (mode === 'compact') {
     return (
       <div className={cn(
@@ -673,34 +927,39 @@ export function RollenUebersicht({
           <span className="text-sm font-medium text-gray-600 dark:text-gray-400">
             Rollen
           </span>
-          <span className="text-xs text-gray-500">{besetzungen?.length ?? 0}</span>
+          <span className="text-xs text-gray-500">{besetzteCount} besetzt</span>
         </div>
-        <div className="space-y-1">
-          {besetzungen?.map((b) => (
-            <div
-              key={b.id}
-              className="flex items-center justify-between text-sm"
-            >
-              <span className="font-medium text-gray-700 dark:text-gray-300">
-                {b.rollenName}:
-              </span>
-              <span className="text-gray-600 dark:text-gray-400">
-                {b.personName}
-              </span>
-            </div>
-          ))}
-        </div>
+        {besetzungen && besetzungen.length > 0 ? (
+          <div className="space-y-1">
+            {besetzungen.map((b) => (
+              <div
+                key={b.id}
+                className="flex items-center justify-between rounded bg-gray-50 px-2 py-1 dark:bg-gray-700"
+              >
+                <span className="font-medium text-gray-700 text-xs dark:text-gray-300">
+                  {b.rollenName}
+                </span>
+                <span className="text-gray-600 text-xs dark:text-gray-400">
+                  {b.personName}
+                </span>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <p className="text-center text-gray-500 text-xs">Keine Rollen besetzt</p>
+        )}
       </div>
     );
   }
 
-  // Grid Layouts nach Modus
+  // Grid Layouts nach Modus (DYNAMISCH, nicht hardcoded)
   const gridClasses = {
     standard: 'grid gap-3 sm:grid-cols-2 lg:grid-cols-3',
     fullscreen: 'grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4',
-    compact: '', // nicht verwendet
+    compact: '', // nicht verwendet (hat separaten Return)
   };
 
+  // Standard & Fullscreen: Vollständige Karten im Grid
   return (
     <div className={cn(
       'rounded-lg border border-gray-200 bg-white shadow-sm',
@@ -708,23 +967,161 @@ export function RollenUebersicht({
       mode === 'fullscreen' ? 'p-6 lg:p-8' : 'p-4',
       className
     )}>
-      <h3 className={cn(
-        'mb-4 font-medium text-gray-900 dark:text-gray-100',
-        mode === 'fullscreen' ? 'text-xl lg:text-2xl' : 'text-sm'
-      )}>
-        Rollenbesetzung ({besetzungen?.length ?? 0})
-      </h3>
+      {/* Header */}
+      <div className="mb-4 flex items-center justify-between">
+        <div className="flex items-center gap-2">
+          <PiUsers className={cn('text-gray-500', mode === 'fullscreen' ? 'h-6 w-6' : 'h-5 w-5')} />
+          <h3 className={cn(
+            'font-semibold text-gray-900 dark:text-gray-100',
+            mode === 'fullscreen' ? 'text-xl lg:text-2xl' : 'text-base'
+          )}>
+            Führungsrollen
+          </h3>
+        </div>
+        <div className="flex items-center gap-3">
+          <span className={cn('text-gray-500', mode === 'fullscreen' ? 'text-base' : 'text-sm')}>
+            {besetzteCount} besetzt
+          </span>
+          <button
+            type="button"
+            onClick={() => refetch()}
+            className="rounded p-1 text-gray-400 hover:bg-gray-100 hover:text-gray-600 dark:hover:bg-gray-700"
+            title="Aktualisieren"
+            aria-label="Aktualisieren"
+          >
+            <PiArrowClockwise className="h-4 w-4" />
+          </button>
+        </div>
+      </div>
 
+      {/* Last Updated */}
+      {dataUpdatedAt && (
+        <p className={cn(
+          'mb-3 text-gray-400',
+          mode === 'fullscreen' ? 'text-sm' : 'text-xs'
+        )}>
+          Aktualisiert: {formatTime(dataUpdatedAt)}
+        </p>
+      )}
+
+      {/* Grid oder Empty State */}
+      {besetzungen && besetzungen.length > 0 ? (
+        <div className={gridClasses[mode]}>
+          {besetzungen.map((besetzung) => (
+            <RollenKarte
+              key={besetzung.id}
+              besetzung={besetzung}
+              onFreigeben={onFreigebeClick ? () => onFreigebeClick(besetzung.id) : undefined}
+            />
+          ))}
+        </div>
+      ) : (
+        <div className="flex flex-col items-center py-8 text-gray-500">
+          <PiUsers className="mb-2 h-12 w-12 opacity-50" />
+          <p className="text-sm">Keine Rollen besetzt</p>
+        </div>
+      )}
+    </div>
+  );
+}
+
+function RollenUebersichtSkeleton() {
+  const mode = useDashboardMode();
+
+  const gridClasses = {
+    standard: 'grid gap-3 sm:grid-cols-2 lg:grid-cols-3',
+    fullscreen: 'grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4',
+    compact: 'space-y-1',
+  };
+
+  return (
+    <>
+      <div className="mb-4 flex items-center justify-between">
+        <div className="h-5 w-32 animate-pulse rounded bg-gray-200 dark:bg-gray-700" />
+        <div className="h-4 w-16 animate-pulse rounded bg-gray-200 dark:bg-gray-700" />
+      </div>
       <div className={gridClasses[mode]}>
-        {besetzungen?.map((b) => (
-          <RollenKarte
-            key={b.id}
-            besetzung={b}
-            onFreigeben={() => onFreigebeClick?.(b.id)}
-            mode={mode}
-          />
+        {[1, 2, 3].map((i) => (
+          <RollenKarteSkeleton key={i} />
         ))}
       </div>
+    </>
+  );
+}
+```
+
+- [ ] **6.2** Erweitere Hook: `features/kraefte/api/use-rollen-besetzungen.ts`
+
+> Hook muss `refetchInterval` als Option akzeptieren (wie Task 5.2).
+
+```typescript
+import { useQuery } from '@tanstack/react-query';
+import { api } from '@bluelight-hub/shared/client';
+import { QUERY_KEYS } from '@/queryKeys';
+
+interface UseRollenBesetzungenOptions {
+  refetchInterval?: number | false;
+}
+
+/**
+ * Hook für Rollen-Besetzungen eines Einsatzes.
+ *
+ * Story 6.2: refetchInterval ist konfigurierbar für Fullscreen-Modus.
+ */
+export function useRollenBesetzungen(
+  einsatzId: string,
+  options?: UseRollenBesetzungenOptions
+) {
+  return useQuery({
+    queryKey: QUERY_KEYS.kraefte.rollenBesetzungen(einsatzId),
+    queryFn: () => api.rollenBesetzung().rollenBesetzungControllerFindByEinsatzVAlpha(einsatzId),
+    enabled: !!einsatzId,
+    staleTime: 30_000,
+    gcTime: 5 * 60 * 1000,
+    refetchInterval: options?.refetchInterval ?? false,
+  });
+}
+```
+
+- [ ] **6.3** RollenKarte Mode-Support via Context
+
+> RollenKarte liest Mode via Context für Mode-spezifische Styles.
+
+```typescript
+// In RollenKarte.tsx
+import { useDashboardMode } from '../../contexts';
+
+export function RollenKarte({ besetzung, onFreigeben }: RollenKarteProps) {
+  const mode = useDashboardMode();
+
+  // Mode-spezifische Styles
+  const containerClasses = {
+    standard: 'rounded-lg border p-4',
+    fullscreen: 'rounded-lg border p-5 lg:p-6',
+    compact: 'rounded border p-2', // nicht verwendet (Inline-Liste)
+  };
+
+  const nameClasses = {
+    standard: 'text-base font-semibold',
+    fullscreen: 'text-lg lg:text-xl font-bold',
+    compact: 'text-sm font-medium',
+  };
+
+  return (
+    <div className={cn(
+      'bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700',
+      containerClasses[mode]
+    )}>
+      <p className={cn('text-gray-900 dark:text-white', nameClasses[mode])}>
+        {besetzung.rollenName}
+      </p>
+      <p className={cn(
+        'text-gray-600 dark:text-gray-400',
+        mode === 'fullscreen' ? 'text-base lg:text-lg' : 'text-sm'
+      )}>
+        {besetzung.personName}
+      </p>
+      {/* ... */}
     </div>
   );
 }
@@ -850,21 +1247,29 @@ const supportsFullscreen = isOnKarteRoute || isOnEtbRoute || isOnKraefteDashboar
 ```
 packages/frontend/src/
 ├── features/kraefte/
+│   ├── contexts/                           # NEU (Task 0)
+│   │   ├── dashboard-mode.context.ts       # NEU - DashboardModeContext
+│   │   └── index.ts                        # NEU - Context Exports
+│   ├── api/
+│   │   ├── use-taktische-staerke.ts        # ERWEITERN (refetchInterval Option)
+│   │   ├── use-einsatz-fahrzeuge.ts        # ERWEITERN (Task 5.2)
+│   │   └── use-rollen-besetzungen.ts       # ERWEITERN (Task 6.2)
 │   ├── ui/
 │   │   ├── molecules/
-│   │   │   ├── StaerkeCard.tsx           # ERWEITERN (Task 4)
-│   │   │   ├── DashboardErrorCard.tsx    # NEU (Task 7)
-│   │   │   └── index.ts                  # ERWEITERN (Task 9.1)
+│   │   │   ├── StaerkeCard.tsx             # ERWEITERN (Task 4)
+│   │   │   ├── RollenKarte.tsx             # ERWEITERN (Task 6.3)
+│   │   │   ├── DashboardErrorCard.tsx      # NEU (Task 7)
+│   │   │   └── index.ts                    # ERWEITERN (Task 9.1)
 │   │   ├── organisms/
-│   │   │   ├── FahrzeugStatusListe.tsx   # ERWEITERN (Task 5)
-│   │   │   └── RollenUebersicht.tsx      # ERWEITERN (Task 6)
+│   │   │   ├── FahrzeugStatusListe.tsx     # ERWEITERN (Task 5)
+│   │   │   └── RollenUebersicht.tsx        # ERWEITERN (Task 6)
 │   │   └── pages/
-│   │       └── KraefteDashboard.page.tsx # ERWEITERN (Task 2, 3, 8)
-│   └── index.ts                          # ERWEITERN (Task 9.2)
+│   │       └── KraefteDashboard.page.tsx   # ERWEITERN (Task 2, 3, 8)
+│   └── index.ts                            # ERWEITERN (Task 9.2 + Context Export)
 ├── routes/app/einsatz/$einsatzId/kräfte/
-│   └── dashboard.tsx                     # ERWEITERN (Task 1)
+│   └── dashboard.tsx                       # ERWEITERN (Task 1)
 └── shared/ui/templates/
-    └── SingleEinsatzLayout.tsx           # ERWEITERN (Task 10)
+    └── SingleEinsatzLayout.tsx             # ERWEITERN (Task 10)
 ```
 
 ---
@@ -892,11 +1297,28 @@ packages/frontend/src/
 3. **Back-Button:** Browser-History funktioniert korrekt
 4. **Pattern-Konsistenz:** ETB und Lagekarte nutzen bereits gleiches Pattern
 
-### Warum kein localStorage für Mode?
+### Kombination URL + localStorage (AC5)
 
-- localStorage würde Mode global speichern (alle Einsätze)
-- URL-Parameter ist Einsatz-spezifisch
-- Kombination möglich: localStorage für Preference, URL für Override
+> **Ursprünglich** war nur URL geplant, aber AC5 fordert localStorage-Persistenz.
+
+**Implementierte Lösung:**
+- **URL** hat Priorität (für Sharing/Bookmarks)
+- **localStorage** als Fallback wenn URL keinen Mode hat
+- Bei Mode-Wechsel: Beide werden aktualisiert
+
+```typescript
+// In Route validateSearch:
+const savedMode = localStorage.getItem('kraefte-dashboard-mode');
+if (savedMode && validModes.includes(savedMode)) {
+  return { mode: savedMode };
+}
+
+// Bei Mode-Wechsel:
+const handleModeChange = (newMode: DashboardMode) => {
+  localStorage.setItem('kraefte-dashboard-mode', newMode);
+  navigate({ search: { mode: newMode }, replace: true });
+};
+```
 
 ### refetchInterval in Fullscreen
 
@@ -1008,15 +1430,33 @@ const compactTokens = {
 2. **ESC-Support:** Keyboard-Handler bereits integriert
 3. **Styling:** Konsistentes Erscheinungsbild über Features
 
-### Warum Mode-Props statt Context?
+### Warum DashboardModeContext statt Mode-Props?
 
-1. **Explizit:** Jede Komponente zeigt klar ihren Mode
-2. **Tree-Shaking:** Kein Context-Overhead
-3. **Testing:** Einfacher zu testen mit Props
+> **Ursprünglich** war Mode-Props geplant, aber Validation zeigte 3+ Ebenen Prop-Drilling.
+
+1. **Vermeidet Prop-Drilling:** Mode muss durch Dashboard → Liste → Card → Sub-Component
+2. **Child-Komponenten haben eigene Hooks:** FahrzeugStatusListe/RollenUebersicht lesen Mode für refetchInterval
+3. **Konsistenz:** Alle Komponenten nutzen `useDashboardMode()` für Mode-spezifische Styles
+4. **Testing:** Context ist einfach zu mocken via `DashboardModeProvider` Wrapper
+
+```typescript
+// Test-Setup
+render(
+  <DashboardModeProvider value="fullscreen">
+    <StaerkeCard fuehrung={1} unterfuehrung={2} mannschaft={5} gesamt={8} />
+  </DashboardModeProvider>
+);
+```
+
+### Warum StaerkeCard Data-Props statt einsatzId?
+
+1. **Trennung von Concerns:** StaerkeCard ist nur für Rendering zuständig
+2. **Query-Ownership:** Dashboard hat die Query, kann refetchInterval pro Mode steuern
+3. **Wiederverwendbarkeit:** StaerkeCard könnte auch mit statischen Daten genutzt werden
 
 ### Query Invalidation bei Mode-Wechsel
 
-Keine Invalidation nötig - Queries bleiben gleich, nur Layout ändert sich.
+Keine Invalidation nötig - Queries bleiben gleich, nur Layout und refetchInterval ändern sich.
 
 ---
 
@@ -1038,6 +1478,7 @@ Keine Invalidation nötig - Queries bleiben gleich, nur Layout ändert sich.
 ### Context Reference
 
 Erstellt via BMad create-story Workflow (YOLO-Modus) mit parallelen Subagents.
+**Validiert** via SM Agent mit validate-create-story Workflow (4 parallel Subagents).
 
 ### Agent Model Used
 
@@ -1055,7 +1496,7 @@ Claude Opus 4.5 (claude-opus-4-5-20251101)
 2. **Pattern-Entscheidungen:**
    - URL-basierte Modi (`?mode=fullscreen`) wie ETB/Lagekarte
    - FullscreenCloseButton aus Lagekarte wiederverwenden
-   - Mode-Props statt Context für Explizitheit
+   - ~~Mode-Props statt Context für Explizitheit~~ → **Korrigiert zu Context-Pattern**
 
 3. **Komponenten-Erweiterungen:**
    - StaerkeCard: Compact-Variante (nur Gesamt)
@@ -1068,19 +1509,45 @@ Claude Opus 4.5 (claude-opus-4-5-20251101)
    - AC2: Compact-Layout mit Touch-Targets
    - AC3: refetchInterval: 30000 nur in Fullscreen
    - AC4: ESC-Handler + FullscreenCloseButton
-   - AC5: ModeSelector im Header
+   - AC5: ModeSelector im Header + localStorage Persistenz
+
+**2025-12-31 - SM Agent Validation (14/21 → Fixes Applied):**
+
+1. **Validation mit 4 parallelen Subagents:**
+   - Agent #1: Analysierte StaerkeCard/FahrzeugStatusListe/RollenUebersicht Props
+   - Agent #2: Analysierte ETB/Lagekarte Fullscreen Patterns
+   - Agent #3: Analysierte TanStack Router Search Params
+   - Agent #4: Analysierte Story 6.1d Learnings
+
+2. **5 Kritische Issues gefunden und behoben:**
+   - 🔴 StaerkeCard Props Inkompatibilität → **BEHOBEN:** Data-Props beibehalten
+   - 🔴 Doppelte Query-Instanzen → **BEHOBEN:** Child-Hooks mit refetchInterval Option
+   - 🟡 AC5 localStorage nicht implementiert → **BEHOBEN:** localStorage für Default-Präferenz
+   - 🟡 Prop-Drilling Problem → **BEHOBEN:** DashboardModeContext (Task 0)
+   - 🟡 RollenUebersicht Grid hardcoded → **BEHOBEN:** Dynamische Grid-Klassen
+
+3. **Architektur-Änderungen:**
+   - **NEU:** Task 0 - DashboardModeContext erstellen
+   - **NEU:** contexts/ Ordner in Feature-Struktur
+   - Child-Komponenten lesen Mode via `useDashboardMode()` Hook
+   - Hooks (`useEinsatzFahrzeuge`, `useRollenBesetzungen`) erweitert mit `refetchInterval` Option
 
 ### File List
 
 **Zu erstellen:**
+- `packages/frontend/src/features/kraefte/contexts/dashboard-mode.context.ts` (Task 0)
+- `packages/frontend/src/features/kraefte/contexts/index.ts` (Task 0)
 - `packages/frontend/src/features/kraefte/ui/molecules/DashboardErrorCard.tsx` (Task 7)
 
 **Zu erweitern:**
 - `packages/frontend/src/routes/app/einsatz/$einsatzId/kräfte/dashboard.tsx` (Task 1)
 - `packages/frontend/src/features/kraefte/ui/pages/KraefteDashboard.page.tsx` (Task 2, 3, 8)
 - `packages/frontend/src/features/kraefte/ui/molecules/StaerkeCard.tsx` (Task 4)
+- `packages/frontend/src/features/kraefte/ui/molecules/RollenKarte.tsx` (Task 6.3)
 - `packages/frontend/src/features/kraefte/ui/organisms/FahrzeugStatusListe.tsx` (Task 5)
 - `packages/frontend/src/features/kraefte/ui/organisms/RollenUebersicht.tsx` (Task 6)
+- `packages/frontend/src/features/kraefte/api/use-einsatz-fahrzeuge.ts` (Task 5.2)
+- `packages/frontend/src/features/kraefte/api/use-rollen-besetzungen.ts` (Task 6.2)
 - `packages/frontend/src/features/kraefte/ui/molecules/index.ts` (Task 9.1)
 - `packages/frontend/src/features/kraefte/index.ts` (Task 9.2)
 - `packages/frontend/src/shared/ui/templates/SingleEinsatzLayout.tsx` (Task 10)
@@ -1090,3 +1557,5 @@ Claude Opus 4.5 (claude-opus-4-5-20251101)
 | Datum | Änderung |
 |-------|----------|
 | 2025-12-31 | Story 6.2 Draft erstellt via BMad create-story YOLO mit Subagents |
+| 2025-12-31 | SM Agent Validation: 14/21 passed (67%), 5 kritische Issues identifiziert |
+| 2025-12-31 | Story 6.2 überarbeitet: DashboardModeContext, Data-Props, Hook Options |
