@@ -1,16 +1,8 @@
-import { Controller, Get, Patch, Body, Param, ParseIntPipe, UseGuards, NotFoundException, BadRequestException, HttpCode, HttpStatus, Logger } from '@nestjs/common';
-import {
-  ApiTags,
-  ApiBearerAuth,
-  ApiOperation,
-  ApiOkResponse,
-  ApiNotFoundResponse,
-  ApiBadRequestResponse,
-  ApiUnauthorizedResponse,
-  ApiForbiddenResponse,
-  ApiParam,
-  ApiTooManyRequestsResponse,
-} from '@nestjs/swagger';
+import { Controller, Get, Patch, Body, Param, ParseIntPipe, UseGuards, NotFoundException, BadRequestException, HttpCode, HttpStatus, Inject } from '@nestjs/common';
+import { LOGGER } from '@infrastructure/di-tokens';
+import type { ILogger } from '@domain/ports/i-logger.port';
+import { ApiTags, ApiBearerAuth, ApiOperation, ApiNotFoundResponse, ApiBadRequestResponse, ApiUnauthorizedResponse, ApiForbiddenResponse, ApiParam, ApiTooManyRequestsResponse } from '@nestjs/swagger';
+import { ApiWrappedResponse } from '@/modules/common/decorators/api-wrapped-response.decorator';
 import { Throttle } from '@nestjs/throttler';
 import { AdminJwtAuthGuard } from '@/modules/auth/guards/admin-jwt-auth.guard';
 import { CurrentUser } from '@/modules/auth/decorators/current-user.decorator';
@@ -57,12 +49,11 @@ import { FUNKSTATUS_VALIDATION } from '@domain/kraefte/constants/funkstatus-vali
 @UseGuards(AdminJwtAuthGuard)
 @Throttle({ default: ADMIN_RATE_LIMIT })
 export class AdminFunkStatusController {
-  private readonly logger = new Logger(AdminFunkStatusController.name);
-
   constructor(
     private readonly getAllHandler: GetAllFunkStatusConfigsHandler,
     private readonly getByCodeHandler: GetFunkStatusConfigByCodeHandler,
     private readonly updateHandler: UpdateFunkStatusConfigHandler,
+    @Inject(LOGGER) private readonly logger: ILogger,
   ) {}
 
   /**
@@ -75,7 +66,7 @@ export class AdminFunkStatusController {
    */
   @Get()
   @ApiOperation({ summary: 'Alle Funkstatus-Konfigurationen abrufen' })
-  @ApiOkResponse({ type: [FunkStatusConfigDto], description: 'Liste aller Funkstatus' })
+  @ApiWrappedResponse(FunkStatusConfigDto, { isArray: true, description: 'Liste aller konfigurierten FMS-Status' })
   async findAll(): Promise<FunkStatusConfigDto[]> {
     const result = await this.getAllHandler.execute();
 
@@ -98,7 +89,7 @@ export class AdminFunkStatusController {
   @Get(':code')
   @ApiOperation({ summary: 'Funkstatus nach Code abrufen' })
   @ApiParam({ name: 'code', type: Number, description: 'Status-Code (0-9)', example: 7 })
-  @ApiOkResponse({ type: FunkStatusConfigDto, description: 'Funkstatus-Konfiguration' })
+  @ApiWrappedResponse(FunkStatusConfigDto, { description: 'FMS-Status gefunden' })
   @ApiNotFoundResponse({ description: 'Funkstatus nicht gefunden' })
   @ApiBadRequestResponse({ description: 'Ungültiger Code (muss 0-9 sein)' })
   async findByCode(@Param('code', ParseIntPipe) code: number): Promise<FunkStatusConfigDto> {
@@ -141,7 +132,7 @@ export class AdminFunkStatusController {
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Funkstatus konfigurieren (nur Code 7-9)' })
   @ApiParam({ name: 'code', type: Number, description: 'Status-Code (7-9)', example: 7 })
-  @ApiOkResponse({ type: FunkStatusConfigDto, description: 'Aktualisierte Konfiguration' })
+  @ApiWrappedResponse(FunkStatusConfigDto, { description: 'FMS-Status erfolgreich aktualisiert' })
   @ApiBadRequestResponse({ description: 'Validierungsfehler oder Code 0-6 (read-only)' })
   @ApiNotFoundResponse({ description: 'Funkstatus nicht gefunden' })
   async update(@Param('code', ParseIntPipe) code: number, @CurrentUser() user: ValidatedUser, @Body() dto: UpdateFunkStatusConfigDto): Promise<FunkStatusConfigDto> {

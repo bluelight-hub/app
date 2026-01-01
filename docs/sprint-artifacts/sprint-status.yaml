@@ -95,13 +95,24 @@ development_status:
   td1-biome-logger-rule: done       # Lint Rule für new Logger() Violations - 116 Violations ✅
 
   # ===== Epic 6: Taktische Uebersicht =====
-  epic-6: in-progress
+  epic-6: done
   6-1a-taktische-staerke-anzeige: done
   6-1b-fahrzeug-status-liste: done
   6-1c-rollen-uebersicht: done
   6-1d-dashboard-container-layout: done
-  6-2-fullscreen-compact-modus: in-progress
-  epic-6-retrospective: optional
+  6-2-fullscreen-compact-modus: done
+  epic-6-retrospective: completed
+
+  # ===== Tech Debt Sprint 2 (Epic 6 Retro Action Items) =====
+  tech-debt-sprint-2: in-progress
+  td2-ac7-api-wrapped-response: done         # @ApiWrappedResponse in Kraefte Controllern ✅
+  td2-command-handler-tests: backlog          # RolleBesetzen, RolleFreigeben Tests
+  td2-query-handler-tests: backlog            # GetEinsatzFahrzeuge, GetTaktischeStaerke Tests
+  td2-dialog-integration: backlog             # BesetzeRolleDialog + FreigebeRolleDialog einbinden
+  td2-rolle-besetzen-button: backlog          # "Rolle besetzen" Button in RollenUebersicht
+  td2-person-picker: backlog                  # Person-Picker statt ID-Eingabe
+  td2-domain-events: backlog                  # RolleBesetzt, RolleFreigegeben Events
+  td2-transactional-handler: backlog          # TransactionalCommandHandler Migration
 
   # ===== Epic 7: HiOrg-Server Integration =====
   epic-7: backlog

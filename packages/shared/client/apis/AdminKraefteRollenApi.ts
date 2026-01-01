@@ -13,12 +13,14 @@
  */
 
 import * as runtime from '../runtime';
-import type { CreateRollenDefinitionDto, RollenDefinitionDto, UpdateRollenDefinitionDto } from '../models/index';
+import type { AdminRollenControllerCreateVAlpha201Response, AdminRollenControllerFindAllVAlpha200Response, CreateRollenDefinitionDto, UpdateRollenDefinitionDto } from '../models/index';
 import {
+  AdminRollenControllerCreateVAlpha201ResponseFromJSON,
+  AdminRollenControllerCreateVAlpha201ResponseToJSON,
+  AdminRollenControllerFindAllVAlpha200ResponseFromJSON,
+  AdminRollenControllerFindAllVAlpha200ResponseToJSON,
   CreateRollenDefinitionDtoFromJSON,
   CreateRollenDefinitionDtoToJSON,
-  RollenDefinitionDtoFromJSON,
-  RollenDefinitionDtoToJSON,
   UpdateRollenDefinitionDtoFromJSON,
   UpdateRollenDefinitionDtoToJSON,
 } from '../models/index';
@@ -54,7 +56,7 @@ export class AdminKraefteRollenApi extends runtime.BaseAPI {
   async adminRollenControllerCreateVAlphaRaw(
     requestParameters: AdminRollenControllerCreateVAlphaRequest,
     initOverrides?: RequestInit | runtime.InitOverrideFunction,
-  ): Promise<runtime.ApiResponse<RollenDefinitionDto>> {
+  ): Promise<runtime.ApiResponse<AdminRollenControllerCreateVAlpha201Response>> {
     if (requestParameters['createRollenDefinitionDto'] == null) {
       throw new runtime.RequiredError('createRollenDefinitionDto', 'Required parameter "createRollenDefinitionDto" was null or undefined when calling adminRollenControllerCreateVAlpha().');
     }
@@ -84,13 +86,16 @@ export class AdminKraefteRollenApi extends runtime.BaseAPI {
       initOverrides,
     );
 
-    return new runtime.JSONApiResponse(response, (jsonValue) => RollenDefinitionDtoFromJSON(jsonValue));
+    return new runtime.JSONApiResponse(response, (jsonValue) => AdminRollenControllerCreateVAlpha201ResponseFromJSON(jsonValue));
   }
 
   /**
    * Neue RollenDefinition erstellen
    */
-  async adminRollenControllerCreateVAlpha(requestParameters: AdminRollenControllerCreateVAlphaRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<RollenDefinitionDto> {
+  async adminRollenControllerCreateVAlpha(
+    requestParameters: AdminRollenControllerCreateVAlphaRequest,
+    initOverrides?: RequestInit | runtime.InitOverrideFunction,
+  ): Promise<AdminRollenControllerCreateVAlpha201Response> {
     const response = await this.adminRollenControllerCreateVAlphaRaw(requestParameters, initOverrides);
     return await response.value();
   }
@@ -101,7 +106,7 @@ export class AdminKraefteRollenApi extends runtime.BaseAPI {
   async adminRollenControllerDeactivateVAlphaRaw(
     requestParameters: AdminRollenControllerDeactivateVAlphaRequest,
     initOverrides?: RequestInit | runtime.InitOverrideFunction,
-  ): Promise<runtime.ApiResponse<RollenDefinitionDto>> {
+  ): Promise<runtime.ApiResponse<AdminRollenControllerCreateVAlpha201Response>> {
     if (requestParameters['id'] == null) {
       throw new runtime.RequiredError('id', 'Required parameter "id" was null or undefined when calling adminRollenControllerDeactivateVAlpha().');
     }
@@ -128,7 +133,7 @@ export class AdminKraefteRollenApi extends runtime.BaseAPI {
       initOverrides,
     );
 
-    return new runtime.JSONApiResponse(response, (jsonValue) => RollenDefinitionDtoFromJSON(jsonValue));
+    return new runtime.JSONApiResponse(response, (jsonValue) => AdminRollenControllerCreateVAlpha201ResponseFromJSON(jsonValue));
   }
 
   /**
@@ -137,7 +142,7 @@ export class AdminKraefteRollenApi extends runtime.BaseAPI {
   async adminRollenControllerDeactivateVAlpha(
     requestParameters: AdminRollenControllerDeactivateVAlphaRequest,
     initOverrides?: RequestInit | runtime.InitOverrideFunction,
-  ): Promise<RollenDefinitionDto> {
+  ): Promise<AdminRollenControllerCreateVAlpha201Response> {
     const response = await this.adminRollenControllerDeactivateVAlphaRaw(requestParameters, initOverrides);
     return await response.value();
   }
@@ -148,7 +153,7 @@ export class AdminKraefteRollenApi extends runtime.BaseAPI {
   async adminRollenControllerFindAllVAlphaRaw(
     requestParameters: AdminRollenControllerFindAllVAlphaRequest,
     initOverrides?: RequestInit | runtime.InitOverrideFunction,
-  ): Promise<runtime.ApiResponse<Array<RollenDefinitionDto>>> {
+  ): Promise<runtime.ApiResponse<AdminRollenControllerFindAllVAlpha200Response>> {
     const queryParameters: any = {};
 
     if (requestParameters['istAktiv'] != null) {
@@ -175,7 +180,7 @@ export class AdminKraefteRollenApi extends runtime.BaseAPI {
       initOverrides,
     );
 
-    return new runtime.JSONApiResponse(response, (jsonValue) => jsonValue.map(RollenDefinitionDtoFromJSON));
+    return new runtime.JSONApiResponse(response, (jsonValue) => AdminRollenControllerFindAllVAlpha200ResponseFromJSON(jsonValue));
   }
 
   /**
@@ -184,7 +189,7 @@ export class AdminKraefteRollenApi extends runtime.BaseAPI {
   async adminRollenControllerFindAllVAlpha(
     requestParameters: AdminRollenControllerFindAllVAlphaRequest = {},
     initOverrides?: RequestInit | runtime.InitOverrideFunction,
-  ): Promise<Array<RollenDefinitionDto>> {
+  ): Promise<AdminRollenControllerFindAllVAlpha200Response> {
     const response = await this.adminRollenControllerFindAllVAlphaRaw(requestParameters, initOverrides);
     return await response.value();
   }
@@ -195,7 +200,7 @@ export class AdminKraefteRollenApi extends runtime.BaseAPI {
   async adminRollenControllerFindOneVAlphaRaw(
     requestParameters: AdminRollenControllerFindOneVAlphaRequest,
     initOverrides?: RequestInit | runtime.InitOverrideFunction,
-  ): Promise<runtime.ApiResponse<RollenDefinitionDto>> {
+  ): Promise<runtime.ApiResponse<AdminRollenControllerCreateVAlpha201Response>> {
     if (requestParameters['id'] == null) {
       throw new runtime.RequiredError('id', 'Required parameter "id" was null or undefined when calling adminRollenControllerFindOneVAlpha().');
     }
@@ -222,13 +227,16 @@ export class AdminKraefteRollenApi extends runtime.BaseAPI {
       initOverrides,
     );
 
-    return new runtime.JSONApiResponse(response, (jsonValue) => RollenDefinitionDtoFromJSON(jsonValue));
+    return new runtime.JSONApiResponse(response, (jsonValue) => AdminRollenControllerCreateVAlpha201ResponseFromJSON(jsonValue));
   }
 
   /**
    * RollenDefinition nach ID abrufen
    */
-  async adminRollenControllerFindOneVAlpha(requestParameters: AdminRollenControllerFindOneVAlphaRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<RollenDefinitionDto> {
+  async adminRollenControllerFindOneVAlpha(
+    requestParameters: AdminRollenControllerFindOneVAlphaRequest,
+    initOverrides?: RequestInit | runtime.InitOverrideFunction,
+  ): Promise<AdminRollenControllerCreateVAlpha201Response> {
     const response = await this.adminRollenControllerFindOneVAlphaRaw(requestParameters, initOverrides);
     return await response.value();
   }
@@ -239,7 +247,7 @@ export class AdminKraefteRollenApi extends runtime.BaseAPI {
   async adminRollenControllerUpdateVAlphaRaw(
     requestParameters: AdminRollenControllerUpdateVAlphaRequest,
     initOverrides?: RequestInit | runtime.InitOverrideFunction,
-  ): Promise<runtime.ApiResponse<RollenDefinitionDto>> {
+  ): Promise<runtime.ApiResponse<AdminRollenControllerCreateVAlpha201Response>> {
     if (requestParameters['id'] == null) {
       throw new runtime.RequiredError('id', 'Required parameter "id" was null or undefined when calling adminRollenControllerUpdateVAlpha().');
     }
@@ -273,13 +281,16 @@ export class AdminKraefteRollenApi extends runtime.BaseAPI {
       initOverrides,
     );
 
-    return new runtime.JSONApiResponse(response, (jsonValue) => RollenDefinitionDtoFromJSON(jsonValue));
+    return new runtime.JSONApiResponse(response, (jsonValue) => AdminRollenControllerCreateVAlpha201ResponseFromJSON(jsonValue));
   }
 
   /**
    * RollenDefinition aktualisieren
    */
-  async adminRollenControllerUpdateVAlpha(requestParameters: AdminRollenControllerUpdateVAlphaRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<RollenDefinitionDto> {
+  async adminRollenControllerUpdateVAlpha(
+    requestParameters: AdminRollenControllerUpdateVAlphaRequest,
+    initOverrides?: RequestInit | runtime.InitOverrideFunction,
+  ): Promise<AdminRollenControllerCreateVAlpha201Response> {
     const response = await this.adminRollenControllerUpdateVAlphaRaw(requestParameters, initOverrides);
     return await response.value();
   }

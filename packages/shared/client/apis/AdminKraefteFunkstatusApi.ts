@@ -13,8 +13,15 @@
  */
 
 import * as runtime from '../runtime';
-import type { FunkStatusConfigDto, UpdateFunkStatusConfigDto } from '../models/index';
-import { FunkStatusConfigDtoFromJSON, FunkStatusConfigDtoToJSON, UpdateFunkStatusConfigDtoFromJSON, UpdateFunkStatusConfigDtoToJSON } from '../models/index';
+import type { AdminFunkStatusControllerFindAllVAlpha200Response, AdminFunkStatusControllerFindByCodeVAlpha200Response, UpdateFunkStatusConfigDto } from '../models/index';
+import {
+  AdminFunkStatusControllerFindAllVAlpha200ResponseFromJSON,
+  AdminFunkStatusControllerFindAllVAlpha200ResponseToJSON,
+  AdminFunkStatusControllerFindByCodeVAlpha200ResponseFromJSON,
+  AdminFunkStatusControllerFindByCodeVAlpha200ResponseToJSON,
+  UpdateFunkStatusConfigDtoFromJSON,
+  UpdateFunkStatusConfigDtoToJSON,
+} from '../models/index';
 
 export interface AdminFunkStatusControllerFindByCodeVAlphaRequest {
   code: number;
@@ -32,7 +39,7 @@ export class AdminKraefteFunkstatusApi extends runtime.BaseAPI {
   /**
    * Alle Funkstatus-Konfigurationen abrufen
    */
-  async adminFunkStatusControllerFindAllVAlphaRaw(initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<Array<FunkStatusConfigDto>>> {
+  async adminFunkStatusControllerFindAllVAlphaRaw(initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<AdminFunkStatusControllerFindAllVAlpha200Response>> {
     const queryParameters: any = {};
 
     const headerParameters: runtime.HTTPHeaders = {};
@@ -55,13 +62,13 @@ export class AdminKraefteFunkstatusApi extends runtime.BaseAPI {
       initOverrides,
     );
 
-    return new runtime.JSONApiResponse(response, (jsonValue) => jsonValue.map(FunkStatusConfigDtoFromJSON));
+    return new runtime.JSONApiResponse(response, (jsonValue) => AdminFunkStatusControllerFindAllVAlpha200ResponseFromJSON(jsonValue));
   }
 
   /**
    * Alle Funkstatus-Konfigurationen abrufen
    */
-  async adminFunkStatusControllerFindAllVAlpha(initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<Array<FunkStatusConfigDto>> {
+  async adminFunkStatusControllerFindAllVAlpha(initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<AdminFunkStatusControllerFindAllVAlpha200Response> {
     const response = await this.adminFunkStatusControllerFindAllVAlphaRaw(initOverrides);
     return await response.value();
   }
@@ -72,7 +79,7 @@ export class AdminKraefteFunkstatusApi extends runtime.BaseAPI {
   async adminFunkStatusControllerFindByCodeVAlphaRaw(
     requestParameters: AdminFunkStatusControllerFindByCodeVAlphaRequest,
     initOverrides?: RequestInit | runtime.InitOverrideFunction,
-  ): Promise<runtime.ApiResponse<FunkStatusConfigDto>> {
+  ): Promise<runtime.ApiResponse<AdminFunkStatusControllerFindByCodeVAlpha200Response>> {
     if (requestParameters['code'] == null) {
       throw new runtime.RequiredError('code', 'Required parameter "code" was null or undefined when calling adminFunkStatusControllerFindByCodeVAlpha().');
     }
@@ -99,7 +106,7 @@ export class AdminKraefteFunkstatusApi extends runtime.BaseAPI {
       initOverrides,
     );
 
-    return new runtime.JSONApiResponse(response, (jsonValue) => FunkStatusConfigDtoFromJSON(jsonValue));
+    return new runtime.JSONApiResponse(response, (jsonValue) => AdminFunkStatusControllerFindByCodeVAlpha200ResponseFromJSON(jsonValue));
   }
 
   /**
@@ -108,7 +115,7 @@ export class AdminKraefteFunkstatusApi extends runtime.BaseAPI {
   async adminFunkStatusControllerFindByCodeVAlpha(
     requestParameters: AdminFunkStatusControllerFindByCodeVAlphaRequest,
     initOverrides?: RequestInit | runtime.InitOverrideFunction,
-  ): Promise<FunkStatusConfigDto> {
+  ): Promise<AdminFunkStatusControllerFindByCodeVAlpha200Response> {
     const response = await this.adminFunkStatusControllerFindByCodeVAlphaRaw(requestParameters, initOverrides);
     return await response.value();
   }
@@ -119,7 +126,7 @@ export class AdminKraefteFunkstatusApi extends runtime.BaseAPI {
   async adminFunkStatusControllerUpdateVAlphaRaw(
     requestParameters: AdminFunkStatusControllerUpdateVAlphaRequest,
     initOverrides?: RequestInit | runtime.InitOverrideFunction,
-  ): Promise<runtime.ApiResponse<FunkStatusConfigDto>> {
+  ): Promise<runtime.ApiResponse<AdminFunkStatusControllerFindByCodeVAlpha200Response>> {
     if (requestParameters['code'] == null) {
       throw new runtime.RequiredError('code', 'Required parameter "code" was null or undefined when calling adminFunkStatusControllerUpdateVAlpha().');
     }
@@ -153,7 +160,7 @@ export class AdminKraefteFunkstatusApi extends runtime.BaseAPI {
       initOverrides,
     );
 
-    return new runtime.JSONApiResponse(response, (jsonValue) => FunkStatusConfigDtoFromJSON(jsonValue));
+    return new runtime.JSONApiResponse(response, (jsonValue) => AdminFunkStatusControllerFindByCodeVAlpha200ResponseFromJSON(jsonValue));
   }
 
   /**
@@ -162,7 +169,7 @@ export class AdminKraefteFunkstatusApi extends runtime.BaseAPI {
   async adminFunkStatusControllerUpdateVAlpha(
     requestParameters: AdminFunkStatusControllerUpdateVAlphaRequest,
     initOverrides?: RequestInit | runtime.InitOverrideFunction,
-  ): Promise<FunkStatusConfigDto> {
+  ): Promise<AdminFunkStatusControllerFindByCodeVAlpha200Response> {
     const response = await this.adminFunkStatusControllerUpdateVAlphaRaw(requestParameters, initOverrides);
     return await response.value();
   }

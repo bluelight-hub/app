@@ -13,8 +13,8 @@
  */
 
 import * as runtime from '../runtime';
-import type { FahrzeugtypenControllerFindAllActiveVAlpha200Response } from '../models/index';
-import { FahrzeugtypenControllerFindAllActiveVAlpha200ResponseFromJSON, FahrzeugtypenControllerFindAllActiveVAlpha200ResponseToJSON } from '../models/index';
+import type { AdminFahrzeugtypenControllerFindAllVAlpha200Response } from '../models/index';
+import { AdminFahrzeugtypenControllerFindAllVAlpha200ResponseFromJSON, AdminFahrzeugtypenControllerFindAllVAlpha200ResponseToJSON } from '../models/index';
 
 /**
  *
@@ -23,7 +23,7 @@ export class KraefteFahrzeugtypenApi extends runtime.BaseAPI {
   /**
    * Alle aktiven Fahrzeugtypen auflisten
    */
-  async fahrzeugtypenControllerFindAllActiveVAlphaRaw(initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<FahrzeugtypenControllerFindAllActiveVAlpha200Response>> {
+  async fahrzeugtypenControllerFindAllActiveVAlphaRaw(initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<AdminFahrzeugtypenControllerFindAllVAlpha200Response>> {
     const queryParameters: any = {};
 
     const headerParameters: runtime.HTTPHeaders = {};
@@ -38,13 +38,13 @@ export class KraefteFahrzeugtypenApi extends runtime.BaseAPI {
       initOverrides,
     );
 
-    return new runtime.JSONApiResponse(response, (jsonValue) => FahrzeugtypenControllerFindAllActiveVAlpha200ResponseFromJSON(jsonValue));
+    return new runtime.JSONApiResponse(response, (jsonValue) => AdminFahrzeugtypenControllerFindAllVAlpha200ResponseFromJSON(jsonValue));
   }
 
   /**
    * Alle aktiven Fahrzeugtypen auflisten
    */
-  async fahrzeugtypenControllerFindAllActiveVAlpha(initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<FahrzeugtypenControllerFindAllActiveVAlpha200Response> {
+  async fahrzeugtypenControllerFindAllActiveVAlpha(initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<AdminFahrzeugtypenControllerFindAllVAlpha200Response> {
     const response = await this.fahrzeugtypenControllerFindAllActiveVAlphaRaw(initOverrides);
     return await response.value();
   }

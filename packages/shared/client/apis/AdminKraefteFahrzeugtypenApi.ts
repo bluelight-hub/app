@@ -13,8 +13,17 @@
  */
 
 import * as runtime from '../runtime';
-import type { CreateFahrzeugtypDto, FahrzeugtypDto, UpdateFahrzeugtypDto } from '../models/index';
-import { CreateFahrzeugtypDtoFromJSON, CreateFahrzeugtypDtoToJSON, FahrzeugtypDtoFromJSON, FahrzeugtypDtoToJSON, UpdateFahrzeugtypDtoFromJSON, UpdateFahrzeugtypDtoToJSON } from '../models/index';
+import type { AdminFahrzeugtypenControllerCreateVAlpha201Response, AdminFahrzeugtypenControllerFindAllVAlpha200Response, CreateFahrzeugtypDto, UpdateFahrzeugtypDto } from '../models/index';
+import {
+  AdminFahrzeugtypenControllerCreateVAlpha201ResponseFromJSON,
+  AdminFahrzeugtypenControllerCreateVAlpha201ResponseToJSON,
+  AdminFahrzeugtypenControllerFindAllVAlpha200ResponseFromJSON,
+  AdminFahrzeugtypenControllerFindAllVAlpha200ResponseToJSON,
+  CreateFahrzeugtypDtoFromJSON,
+  CreateFahrzeugtypDtoToJSON,
+  UpdateFahrzeugtypDtoFromJSON,
+  UpdateFahrzeugtypDtoToJSON,
+} from '../models/index';
 
 export interface AdminFahrzeugtypenControllerCreateVAlphaRequest {
   createFahrzeugtypDto: CreateFahrzeugtypDto;
@@ -47,7 +56,7 @@ export class AdminKraefteFahrzeugtypenApi extends runtime.BaseAPI {
   async adminFahrzeugtypenControllerCreateVAlphaRaw(
     requestParameters: AdminFahrzeugtypenControllerCreateVAlphaRequest,
     initOverrides?: RequestInit | runtime.InitOverrideFunction,
-  ): Promise<runtime.ApiResponse<FahrzeugtypDto>> {
+  ): Promise<runtime.ApiResponse<AdminFahrzeugtypenControllerCreateVAlpha201Response>> {
     if (requestParameters['createFahrzeugtypDto'] == null) {
       throw new runtime.RequiredError('createFahrzeugtypDto', 'Required parameter "createFahrzeugtypDto" was null or undefined when calling adminFahrzeugtypenControllerCreateVAlpha().');
     }
@@ -77,7 +86,7 @@ export class AdminKraefteFahrzeugtypenApi extends runtime.BaseAPI {
       initOverrides,
     );
 
-    return new runtime.JSONApiResponse(response, (jsonValue) => FahrzeugtypDtoFromJSON(jsonValue));
+    return new runtime.JSONApiResponse(response, (jsonValue) => AdminFahrzeugtypenControllerCreateVAlpha201ResponseFromJSON(jsonValue));
   }
 
   /**
@@ -86,7 +95,7 @@ export class AdminKraefteFahrzeugtypenApi extends runtime.BaseAPI {
   async adminFahrzeugtypenControllerCreateVAlpha(
     requestParameters: AdminFahrzeugtypenControllerCreateVAlphaRequest,
     initOverrides?: RequestInit | runtime.InitOverrideFunction,
-  ): Promise<FahrzeugtypDto> {
+  ): Promise<AdminFahrzeugtypenControllerCreateVAlpha201Response> {
     const response = await this.adminFahrzeugtypenControllerCreateVAlphaRaw(requestParameters, initOverrides);
     return await response.value();
   }
@@ -97,7 +106,7 @@ export class AdminKraefteFahrzeugtypenApi extends runtime.BaseAPI {
   async adminFahrzeugtypenControllerDeactivateVAlphaRaw(
     requestParameters: AdminFahrzeugtypenControllerDeactivateVAlphaRequest,
     initOverrides?: RequestInit | runtime.InitOverrideFunction,
-  ): Promise<runtime.ApiResponse<FahrzeugtypDto>> {
+  ): Promise<runtime.ApiResponse<AdminFahrzeugtypenControllerCreateVAlpha201Response>> {
     if (requestParameters['id'] == null) {
       throw new runtime.RequiredError('id', 'Required parameter "id" was null or undefined when calling adminFahrzeugtypenControllerDeactivateVAlpha().');
     }
@@ -124,7 +133,7 @@ export class AdminKraefteFahrzeugtypenApi extends runtime.BaseAPI {
       initOverrides,
     );
 
-    return new runtime.JSONApiResponse(response, (jsonValue) => FahrzeugtypDtoFromJSON(jsonValue));
+    return new runtime.JSONApiResponse(response, (jsonValue) => AdminFahrzeugtypenControllerCreateVAlpha201ResponseFromJSON(jsonValue));
   }
 
   /**
@@ -133,7 +142,7 @@ export class AdminKraefteFahrzeugtypenApi extends runtime.BaseAPI {
   async adminFahrzeugtypenControllerDeactivateVAlpha(
     requestParameters: AdminFahrzeugtypenControllerDeactivateVAlphaRequest,
     initOverrides?: RequestInit | runtime.InitOverrideFunction,
-  ): Promise<FahrzeugtypDto> {
+  ): Promise<AdminFahrzeugtypenControllerCreateVAlpha201Response> {
     const response = await this.adminFahrzeugtypenControllerDeactivateVAlphaRaw(requestParameters, initOverrides);
     return await response.value();
   }
@@ -144,7 +153,7 @@ export class AdminKraefteFahrzeugtypenApi extends runtime.BaseAPI {
   async adminFahrzeugtypenControllerFindAllVAlphaRaw(
     requestParameters: AdminFahrzeugtypenControllerFindAllVAlphaRequest,
     initOverrides?: RequestInit | runtime.InitOverrideFunction,
-  ): Promise<runtime.ApiResponse<Array<FahrzeugtypDto>>> {
+  ): Promise<runtime.ApiResponse<AdminFahrzeugtypenControllerFindAllVAlpha200Response>> {
     const queryParameters: any = {};
 
     if (requestParameters['istAktiv'] != null) {
@@ -171,7 +180,7 @@ export class AdminKraefteFahrzeugtypenApi extends runtime.BaseAPI {
       initOverrides,
     );
 
-    return new runtime.JSONApiResponse(response, (jsonValue) => jsonValue.map(FahrzeugtypDtoFromJSON));
+    return new runtime.JSONApiResponse(response, (jsonValue) => AdminFahrzeugtypenControllerFindAllVAlpha200ResponseFromJSON(jsonValue));
   }
 
   /**
@@ -180,7 +189,7 @@ export class AdminKraefteFahrzeugtypenApi extends runtime.BaseAPI {
   async adminFahrzeugtypenControllerFindAllVAlpha(
     requestParameters: AdminFahrzeugtypenControllerFindAllVAlphaRequest = {},
     initOverrides?: RequestInit | runtime.InitOverrideFunction,
-  ): Promise<Array<FahrzeugtypDto>> {
+  ): Promise<AdminFahrzeugtypenControllerFindAllVAlpha200Response> {
     const response = await this.adminFahrzeugtypenControllerFindAllVAlphaRaw(requestParameters, initOverrides);
     return await response.value();
   }
@@ -191,7 +200,7 @@ export class AdminKraefteFahrzeugtypenApi extends runtime.BaseAPI {
   async adminFahrzeugtypenControllerFindOneVAlphaRaw(
     requestParameters: AdminFahrzeugtypenControllerFindOneVAlphaRequest,
     initOverrides?: RequestInit | runtime.InitOverrideFunction,
-  ): Promise<runtime.ApiResponse<FahrzeugtypDto>> {
+  ): Promise<runtime.ApiResponse<AdminFahrzeugtypenControllerCreateVAlpha201Response>> {
     if (requestParameters['id'] == null) {
       throw new runtime.RequiredError('id', 'Required parameter "id" was null or undefined when calling adminFahrzeugtypenControllerFindOneVAlpha().');
     }
@@ -218,7 +227,7 @@ export class AdminKraefteFahrzeugtypenApi extends runtime.BaseAPI {
       initOverrides,
     );
 
-    return new runtime.JSONApiResponse(response, (jsonValue) => FahrzeugtypDtoFromJSON(jsonValue));
+    return new runtime.JSONApiResponse(response, (jsonValue) => AdminFahrzeugtypenControllerCreateVAlpha201ResponseFromJSON(jsonValue));
   }
 
   /**
@@ -227,7 +236,7 @@ export class AdminKraefteFahrzeugtypenApi extends runtime.BaseAPI {
   async adminFahrzeugtypenControllerFindOneVAlpha(
     requestParameters: AdminFahrzeugtypenControllerFindOneVAlphaRequest,
     initOverrides?: RequestInit | runtime.InitOverrideFunction,
-  ): Promise<FahrzeugtypDto> {
+  ): Promise<AdminFahrzeugtypenControllerCreateVAlpha201Response> {
     const response = await this.adminFahrzeugtypenControllerFindOneVAlphaRaw(requestParameters, initOverrides);
     return await response.value();
   }
@@ -238,7 +247,7 @@ export class AdminKraefteFahrzeugtypenApi extends runtime.BaseAPI {
   async adminFahrzeugtypenControllerUpdateVAlphaRaw(
     requestParameters: AdminFahrzeugtypenControllerUpdateVAlphaRequest,
     initOverrides?: RequestInit | runtime.InitOverrideFunction,
-  ): Promise<runtime.ApiResponse<FahrzeugtypDto>> {
+  ): Promise<runtime.ApiResponse<AdminFahrzeugtypenControllerCreateVAlpha201Response>> {
     if (requestParameters['id'] == null) {
       throw new runtime.RequiredError('id', 'Required parameter "id" was null or undefined when calling adminFahrzeugtypenControllerUpdateVAlpha().');
     }
@@ -272,7 +281,7 @@ export class AdminKraefteFahrzeugtypenApi extends runtime.BaseAPI {
       initOverrides,
     );
 
-    return new runtime.JSONApiResponse(response, (jsonValue) => FahrzeugtypDtoFromJSON(jsonValue));
+    return new runtime.JSONApiResponse(response, (jsonValue) => AdminFahrzeugtypenControllerCreateVAlpha201ResponseFromJSON(jsonValue));
   }
 
   /**
@@ -281,7 +290,7 @@ export class AdminKraefteFahrzeugtypenApi extends runtime.BaseAPI {
   async adminFahrzeugtypenControllerUpdateVAlpha(
     requestParameters: AdminFahrzeugtypenControllerUpdateVAlphaRequest,
     initOverrides?: RequestInit | runtime.InitOverrideFunction,
-  ): Promise<FahrzeugtypDto> {
+  ): Promise<AdminFahrzeugtypenControllerCreateVAlpha201Response> {
     const response = await this.adminFahrzeugtypenControllerUpdateVAlphaRaw(requestParameters, initOverrides);
     return await response.value();
   }

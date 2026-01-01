@@ -33,43 +33,43 @@ import {
 /**
  *
  * @export
- * @interface FahrzeugtypenControllerFindAllActiveVAlpha200Response
+ * @interface AdminFahrzeugtypenControllerFindAllVAlpha200Response
  */
-export interface FahrzeugtypenControllerFindAllActiveVAlpha200Response {
+export interface AdminFahrzeugtypenControllerFindAllVAlpha200Response {
   /**
    *
    * @type {Array<FahrzeugtypDto>}
-   * @memberof FahrzeugtypenControllerFindAllActiveVAlpha200Response
+   * @memberof AdminFahrzeugtypenControllerFindAllVAlpha200Response
    */
   data: Array<FahrzeugtypDto>;
   /**
    *
    * @type {UserControllerFindOneVAlpha200ResponseMeta}
-   * @memberof FahrzeugtypenControllerFindAllActiveVAlpha200Response
+   * @memberof AdminFahrzeugtypenControllerFindAllVAlpha200Response
    */
   meta: UserControllerFindOneVAlpha200ResponseMeta;
   /**
    *
    * @type {EinsatzControllerFindAllVAlpha200ResponsePagination}
-   * @memberof FahrzeugtypenControllerFindAllActiveVAlpha200Response
+   * @memberof AdminFahrzeugtypenControllerFindAllVAlpha200Response
    */
   pagination?: EinsatzControllerFindAllVAlpha200ResponsePagination;
 }
 
 /**
- * Check if a given object implements the FahrzeugtypenControllerFindAllActiveVAlpha200Response interface.
+ * Check if a given object implements the AdminFahrzeugtypenControllerFindAllVAlpha200Response interface.
  */
-export function instanceOfFahrzeugtypenControllerFindAllActiveVAlpha200Response(value: object): value is FahrzeugtypenControllerFindAllActiveVAlpha200Response {
+export function instanceOfAdminFahrzeugtypenControllerFindAllVAlpha200Response(value: object): value is AdminFahrzeugtypenControllerFindAllVAlpha200Response {
   if (!('data' in value) || value['data'] === undefined) return false;
   if (!('meta' in value) || value['meta'] === undefined) return false;
   return true;
 }
 
-export function FahrzeugtypenControllerFindAllActiveVAlpha200ResponseFromJSON(json: any): FahrzeugtypenControllerFindAllActiveVAlpha200Response {
-  return FahrzeugtypenControllerFindAllActiveVAlpha200ResponseFromJSONTyped(json, false);
+export function AdminFahrzeugtypenControllerFindAllVAlpha200ResponseFromJSON(json: any): AdminFahrzeugtypenControllerFindAllVAlpha200Response {
+  return AdminFahrzeugtypenControllerFindAllVAlpha200ResponseFromJSONTyped(json, false);
 }
 
-export function FahrzeugtypenControllerFindAllActiveVAlpha200ResponseFromJSONTyped(json: any, ignoreDiscriminator: boolean): FahrzeugtypenControllerFindAllActiveVAlpha200Response {
+export function AdminFahrzeugtypenControllerFindAllVAlpha200ResponseFromJSONTyped(json: any, ignoreDiscriminator: boolean): AdminFahrzeugtypenControllerFindAllVAlpha200Response {
   if (json == null) {
     return json;
   }
@@ -80,11 +80,11 @@ export function FahrzeugtypenControllerFindAllActiveVAlpha200ResponseFromJSONTyp
   };
 }
 
-export function FahrzeugtypenControllerFindAllActiveVAlpha200ResponseToJSON(json: any): FahrzeugtypenControllerFindAllActiveVAlpha200Response {
-  return FahrzeugtypenControllerFindAllActiveVAlpha200ResponseToJSONTyped(json, false);
+export function AdminFahrzeugtypenControllerFindAllVAlpha200ResponseToJSON(json: any): AdminFahrzeugtypenControllerFindAllVAlpha200Response {
+  return AdminFahrzeugtypenControllerFindAllVAlpha200ResponseToJSONTyped(json, false);
 }
 
-export function FahrzeugtypenControllerFindAllActiveVAlpha200ResponseToJSONTyped(value?: FahrzeugtypenControllerFindAllActiveVAlpha200Response | null, ignoreDiscriminator: boolean = false): any {
+export function AdminFahrzeugtypenControllerFindAllVAlpha200ResponseToJSONTyped(value?: AdminFahrzeugtypenControllerFindAllVAlpha200Response | null, ignoreDiscriminator: boolean = false): any {
   if (value == null) {
     return value;
   }

@@ -1,4 +1,6 @@
 import { Module } from '@nestjs/common';
+import { LOGGER } from '@infrastructure/di-tokens';
+import { NestLoggerAdapter } from '@infrastructure/common/adapters/nest-logger.adapter';
 import { AuthModule } from '@/modules/auth/auth.module';
 import { KraefteInfrastructureModule } from '@infrastructure/kraefte/kraefte-infrastructure.module';
 import { QualifikationenApplicationModule } from '@application/kraefte/qualifikationen/qualifikationen-application.module';
@@ -60,6 +62,13 @@ import { KraefteDashboardController } from './controllers/kraefte-dashboard.cont
     StammPersonenController,
     RollenBesetzungController,
     KraefteDashboardController, // Story 6.1a: Taktische Stärke-Anzeige
+  ],
+  providers: [
+    // Logger für alle Kraefte Controller (DI via LOGGER Token)
+    {
+      provide: LOGGER,
+      useFactory: () => new NestLoggerAdapter('Kraefte'),
+    },
   ],
 })
 export class KraefteModule {}

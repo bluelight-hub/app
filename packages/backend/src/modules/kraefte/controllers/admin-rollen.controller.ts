@@ -13,14 +13,14 @@ import {
   InternalServerErrorException,
   HttpCode,
   HttpStatus,
-  Logger,
+  Inject,
 } from '@nestjs/common';
+import { LOGGER } from '@infrastructure/di-tokens';
+import type { ILogger } from '@domain/ports/i-logger.port';
 import {
   ApiTags,
   ApiBearerAuth,
   ApiOperation,
-  ApiOkResponse,
-  ApiCreatedResponse,
   ApiNotFoundResponse,
   ApiBadRequestResponse,
   ApiUnauthorizedResponse,
@@ -30,6 +30,7 @@ import {
   ApiInternalServerErrorResponse,
   ApiTooManyRequestsResponse,
 } from '@nestjs/swagger';
+import { ApiWrappedResponse, ApiWrappedCreatedResponse } from '@/modules/common/decorators/api-wrapped-response.decorator';
 import { Throttle } from '@nestjs/throttler';
 import { AdminJwtAuthGuard } from '@/modules/auth/guards/admin-jwt-auth.guard';
 import { CurrentUser } from '@/modules/auth/decorators/current-user.decorator';
@@ -88,14 +89,13 @@ import { ROLLE_ERROR_CODES, RolleError } from '@domain/kraefte/common/rolle-erro
 @UseGuards(AdminJwtAuthGuard)
 @Throttle({ default: ADMIN_RATE_LIMIT })
 export class AdminRollenController {
-  private readonly logger = new Logger(AdminRollenController.name);
-
   constructor(
     private readonly createHandler: CreateRollenDefinitionHandler,
     private readonly updateHandler: UpdateRollenDefinitionHandler,
     private readonly deactivateHandler: DeactivateRollenDefinitionHandler,
     private readonly getAllHandler: GetAllRollenDefinitionenQueryHandler,
     private readonly getByIdHandler: GetRollenDefinitionByIdQueryHandler,
+    @Inject(LOGGER) private readonly logger: ILogger,
   ) {}
 
   /**
@@ -117,7 +117,7 @@ export class AdminRollenController {
    */
   @Get()
   @ApiOperation({ summary: 'Alle RollenDefinitionen auflisten' })
-  @ApiOkResponse({ type: RollenDefinitionDto, isArray: true })
+  @ApiWrappedResponse(RollenDefinitionDto, { isArray: true, description: 'Liste aller Rollendefinitionen' })
   @ApiQuery({ name: 'istAktiv', required: false, type: Boolean, description: 'Filter nach Aktivierungsstatus' })
   @ApiBadRequestResponse({ description: 'Ungültiger Query-Parameter' })
   async findAll(@Query('istAktiv') istAktiv?: string): Promise<RollenDefinitionDto[]> {
@@ -177,7 +177,7 @@ export class AdminRollenController {
    */
   @Get(':id')
   @ApiOperation({ summary: 'RollenDefinition nach ID abrufen' })
-  @ApiOkResponse({ type: RollenDefinitionDto })
+  @ApiWrappedResponse(RollenDefinitionDto, { description: 'Rollendefinition gefunden' })
   @ApiNotFoundResponse({ description: 'RollenDefinition nicht gefunden' })
   @ApiBadRequestResponse({ description: 'Ungültige CUID' })
   async findOne(@Param('id', ParseCuidPipe) id: string): Promise<RollenDefinitionDto> {
@@ -223,7 +223,7 @@ export class AdminRollenController {
   @Throttle({ default: ADMIN_MUTATION_RATE_LIMIT })
   @HttpCode(HttpStatus.CREATED)
   @ApiOperation({ summary: 'Neue RollenDefinition erstellen' })
-  @ApiCreatedResponse({ type: RollenDefinitionDto })
+  @ApiWrappedCreatedResponse(RollenDefinitionDto, { description: 'Rollendefinition erfolgreich erstellt' })
   @ApiBadRequestResponse({ description: 'Validierungsfehler (z.B. Name zu kurz) oder Qualifikation nicht gefunden' })
   @ApiConflictResponse({ description: 'Name bereits vergeben' })
   async create(@CurrentUser() user: ValidatedUser, @Body() dto: CreateRollenDefinitionDto): Promise<RollenDefinitionDto> {
@@ -295,7 +295,7 @@ export class AdminRollenController {
   @Patch(':id')
   @Throttle({ default: ADMIN_MUTATION_RATE_LIMIT })
   @ApiOperation({ summary: 'RollenDefinition aktualisieren' })
-  @ApiOkResponse({ type: RollenDefinitionDto })
+  @ApiWrappedResponse(RollenDefinitionDto, { description: 'Rollendefinition erfolgreich aktualisiert' })
   @ApiBadRequestResponse({ description: 'Validierungsfehler, ungültige CUID oder Qualifikation nicht gefunden' })
   @ApiNotFoundResponse({ description: 'RollenDefinition nicht gefunden' })
   @ApiConflictResponse({ description: 'Neuer Name bereits vergeben' })
@@ -371,7 +371,7 @@ export class AdminRollenController {
   @Patch(':id/deactivate')
   @Throttle({ default: ADMIN_MUTATION_RATE_LIMIT })
   @ApiOperation({ summary: 'RollenDefinition deaktivieren' })
-  @ApiOkResponse({ type: RollenDefinitionDto })
+  @ApiWrappedResponse(RollenDefinitionDto, { description: 'Rollendefinition erfolgreich deaktiviert' })
   @ApiBadRequestResponse({ description: 'RollenDefinition ist bereits deaktiviert oder ungültige CUID' })
   @ApiNotFoundResponse({ description: 'RollenDefinition nicht gefunden' })
   async deactivate(@Param('id', ParseCuidPipe) id: string, @CurrentUser() user: ValidatedUser): Promise<RollenDefinitionDto> {

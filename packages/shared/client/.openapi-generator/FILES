@@ -28,10 +28,16 @@ index.ts
 models/AddEintragDto.ts
 models/AddPoiDto.ts
 models/AddressDto.ts
+models/AdminFahrzeugtypenControllerCreateVAlpha201Response.ts
+models/AdminFahrzeugtypenControllerFindAllVAlpha200Response.ts
+models/AdminFunkStatusControllerFindAllVAlpha200Response.ts
+models/AdminFunkStatusControllerFindByCodeVAlpha200Response.ts
 models/AdminLoginResponseDto.ts
 models/AdminPasswordDto.ts
 models/AdminQualifikationenControllerCreateVAlpha201Response.ts
 models/AdminQualifikationenControllerFindAllVAlpha200Response.ts
+models/AdminRollenControllerCreateVAlpha201Response.ts
+models/AdminRollenControllerFindAllVAlpha200Response.ts
 models/AdminSetupDto.ts
 models/AdminSetupResponseDto.ts
 models/AdminSetupUserDto.ts
@@ -95,7 +101,6 @@ models/EtbSnapshotDto.ts
 models/EtbVersionDto.ts
 models/FahrzeugtypDto.ts
 models/FahrzeugtypSollbesatzungDto.ts
-models/FahrzeugtypenControllerFindAllActiveVAlpha200Response.ts
 models/FunkStatusConfigDto.ts
 models/GeoPositionDto.ts
 models/GeocodeAddressDto.ts

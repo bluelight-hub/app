@@ -13,14 +13,14 @@ import {
   InternalServerErrorException,
   HttpCode,
   HttpStatus,
-  Logger,
+  Inject,
 } from '@nestjs/common';
+import { LOGGER } from '@infrastructure/di-tokens';
+import type { ILogger } from '@domain/ports/i-logger.port';
 import {
   ApiTags,
   ApiBearerAuth,
   ApiOperation,
-  ApiOkResponse,
-  ApiCreatedResponse,
   ApiNotFoundResponse,
   ApiBadRequestResponse,
   ApiUnauthorizedResponse,
@@ -30,6 +30,7 @@ import {
   ApiInternalServerErrorResponse,
   ApiTooManyRequestsResponse,
 } from '@nestjs/swagger';
+import { ApiWrappedResponse, ApiWrappedCreatedResponse } from '@/modules/common/decorators/api-wrapped-response.decorator';
 import { Throttle } from '@nestjs/throttler';
 import { AdminJwtAuthGuard } from '@/modules/auth/guards/admin-jwt-auth.guard';
 import { CurrentUser } from '@/modules/auth/decorators/current-user.decorator';
@@ -88,14 +89,13 @@ import { FAHRZEUGTYP_ERROR_CODES, FahrzeugtypError } from '@domain/kraefte/commo
 @UseGuards(AdminJwtAuthGuard)
 @Throttle({ default: ADMIN_RATE_LIMIT })
 export class AdminFahrzeugtypenController {
-  private readonly logger = new Logger(AdminFahrzeugtypenController.name);
-
   constructor(
     private readonly createHandler: CreateFahrzeugtypHandler,
     private readonly updateHandler: UpdateFahrzeugtypHandler,
     private readonly deactivateHandler: DeactivateFahrzeugtypHandler,
     private readonly getAllHandler: GetAllFahrzeugtypenHandler,
     private readonly getByIdHandler: GetFahrzeugtypByIdHandler,
+    @Inject(LOGGER) private readonly logger: ILogger,
   ) {}
 
   /**
@@ -117,7 +117,7 @@ export class AdminFahrzeugtypenController {
    */
   @Get()
   @ApiOperation({ summary: 'Alle Fahrzeugtypen auflisten' })
-  @ApiOkResponse({ type: FahrzeugtypDto, isArray: true })
+  @ApiWrappedResponse(FahrzeugtypDto, { isArray: true, description: 'Liste aller Fahrzeugtypen' })
   @ApiQuery({ name: 'istAktiv', required: false, type: Boolean, description: 'Filter nach Aktivierungsstatus' })
   @ApiBadRequestResponse({ description: 'Ungültiger Query-Parameter' })
   async findAll(@Query('istAktiv') istAktiv?: string): Promise<FahrzeugtypDto[]> {
@@ -185,7 +185,7 @@ export class AdminFahrzeugtypenController {
    */
   @Get(':id')
   @ApiOperation({ summary: 'Fahrzeugtyp nach ID abrufen' })
-  @ApiOkResponse({ type: FahrzeugtypDto })
+  @ApiWrappedResponse(FahrzeugtypDto, { description: 'Fahrzeugtyp gefunden' })
   @ApiNotFoundResponse({ description: 'Fahrzeugtyp nicht gefunden' })
   @ApiBadRequestResponse({ description: 'Ungültige CUID' })
   async findOne(@Param('id', ParseCuidPipe) id: string): Promise<FahrzeugtypDto> {
@@ -230,7 +230,7 @@ export class AdminFahrzeugtypenController {
   @Throttle({ default: ADMIN_MUTATION_RATE_LIMIT })
   @HttpCode(HttpStatus.CREATED)
   @ApiOperation({ summary: 'Neuen Fahrzeugtyp erstellen' })
-  @ApiCreatedResponse({ type: FahrzeugtypDto })
+  @ApiWrappedCreatedResponse(FahrzeugtypDto, { description: 'Fahrzeugtyp erfolgreich erstellt' })
   @ApiBadRequestResponse({ description: 'Validierungsfehler (z.B. Code zu kurz)' })
   @ApiConflictResponse({ description: 'Code bereits vergeben' })
   async create(@CurrentUser() user: ValidatedUser, @Body() dto: CreateFahrzeugtypDto): Promise<FahrzeugtypDto> {
@@ -295,7 +295,7 @@ export class AdminFahrzeugtypenController {
   @Patch(':id')
   @Throttle({ default: ADMIN_MUTATION_RATE_LIMIT })
   @ApiOperation({ summary: 'Fahrzeugtyp aktualisieren' })
-  @ApiOkResponse({ type: FahrzeugtypDto })
+  @ApiWrappedResponse(FahrzeugtypDto, { description: 'Fahrzeugtyp erfolgreich aktualisiert' })
   @ApiBadRequestResponse({ description: 'Validierungsfehler oder ungültige CUID' })
   @ApiNotFoundResponse({ description: 'Fahrzeugtyp nicht gefunden' })
   @ApiConflictResponse({ description: 'Neuer Code bereits vergeben' })
@@ -365,7 +365,7 @@ export class AdminFahrzeugtypenController {
   @Patch(':id/deactivate')
   @Throttle({ default: ADMIN_MUTATION_RATE_LIMIT })
   @ApiOperation({ summary: 'Fahrzeugtyp deaktivieren' })
-  @ApiOkResponse({ type: FahrzeugtypDto })
+  @ApiWrappedResponse(FahrzeugtypDto, { description: 'Fahrzeugtyp erfolgreich deaktiviert' })
   @ApiBadRequestResponse({ description: 'Fahrzeugtyp ist bereits deaktiviert oder ungültige CUID' })
   @ApiNotFoundResponse({ description: 'Fahrzeugtyp nicht gefunden' })
   async deactivate(@Param('id', ParseCuidPipe) id: string, @CurrentUser() user: ValidatedUser): Promise<FahrzeugtypDto> {
