@@ -31,6 +31,9 @@ export const KRAEFTE_QUERY_KEYS = {
 
   /** Rollen eines Einsatzes (Story 6.1c - future) */
   rollen: (einsatzId: string) => [...KRAEFTE_QUERY_KEYS.byEinsatz(einsatzId), 'rollen'] as const,
+
+  /** RollenDefinitionen (Admin) */
+  rollenDefinitionen: () => [...KRAEFTE_QUERY_KEYS.all, 'rollen-definitionen'] as const,
 } as const;
 
 /**

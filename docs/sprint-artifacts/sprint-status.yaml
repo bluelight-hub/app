@@ -89,10 +89,10 @@ development_status:
 
   # ===== Tech Debt Sprint (Epic 5 Retro Action Item) =====
   tech-debt-sprint-1: done
-  td1-query-handler-tests: done  # 8 Tests für FindAllRollenBesetzungQueryHandler ✅
-  td1-controller-tests: done     # 30 Tests für RollenBesetzung Controller ✅
-  td1-mapper-tests: done                  # 25 Tests für RollenBesetzung Mapper ✅
-  td1-biome-logger-rule: done       # Lint Rule für new Logger() Violations - 116 Violations ✅
+  td1-query-handler-tests: done # 8 Tests für FindAllRollenBesetzungQueryHandler ✅
+  td1-controller-tests: done # 30 Tests für RollenBesetzung Controller ✅
+  td1-mapper-tests: done # 25 Tests für RollenBesetzung Mapper ✅
+  td1-biome-logger-rule: done # Lint Rule für new Logger() Violations - 116 Violations ✅
 
   # ===== Epic 6: Taktische Uebersicht =====
   epic-6: done
@@ -105,14 +105,14 @@ development_status:
 
   # ===== Tech Debt Sprint 2 (Epic 6 Retro Action Items) =====
   tech-debt-sprint-2: in-progress
-  td2-ac7-api-wrapped-response: done         # @ApiWrappedResponse in Kraefte Controllern ✅
-  td2-command-handler-tests: backlog          # RolleBesetzen, RolleFreigeben Tests
-  td2-query-handler-tests: backlog            # GetEinsatzFahrzeuge, GetTaktischeStaerke Tests
-  td2-dialog-integration: backlog             # BesetzeRolleDialog + FreigebeRolleDialog einbinden
-  td2-rolle-besetzen-button: backlog          # "Rolle besetzen" Button in RollenUebersicht
-  td2-person-picker: backlog                  # Person-Picker statt ID-Eingabe
-  td2-domain-events: backlog                  # RolleBesetzt, RolleFreigegeben Events
-  td2-transactional-handler: backlog          # TransactionalCommandHandler Migration
+  td2-ac7-api-wrapped-response: done # @ApiWrappedResponse in Kraefte Controllern ✅
+  td2-command-handler-tests: done # RolleBesetzen, RolleFreigeben Tests ✅
+  td2-query-handler-tests: done # GetEinsatzFahrzeuge Tests (17 Tests) ✅
+  td2-dialog-integration: done # BesetzeRolleDialog + FreigebeRolleDialog einbinden ✅
+  td2-rolle-besetzen-button: done # "Rolle besetzen" Button - Accessibility-Fixes implementiert ✅
+  td2-person-picker: done # Person-Picker statt ID-Eingabe ✅
+  td2-domain-events: backlog # RolleBesetzt, RolleFreigegeben Events
+  td2-transactional-handler: backlog # TransactionalCommandHandler Migration
 
   # ===== Epic 7: HiOrg-Server Integration =====
   epic-7: backlog

@@ -32,6 +32,8 @@ import type { PersonZuFahrzeugZugewiesenEvent } from '@domain/kraefte/events/per
 import type { PersonVonFahrzeugEntferntEvent } from '@domain/kraefte/events/person-von-fahrzeug-entfernt.event';
 import type { RolleBesetzt } from '@domain/kraefte/events/rolle-besetzt.event';
 import type { RolleFreigegeben } from '@domain/kraefte/events/rolle-freigegeben.event';
+import type { RollenDefinitionCreatedEvent } from '@domain/kraefte/events/rollen-definition-created.event';
+import type { RollenDefinitionUpdatedEvent } from '@domain/kraefte/events/rollen-definition-updated.event';
 
 /**
  * Serialisiertes Event-Payload für Outbox-Persistierung.
@@ -217,6 +219,12 @@ export class EventSerializer {
         return this.serializeRolleBesetzt(event as unknown as RolleBesetzt);
       case 'rollen_besetzung.freigegeben':
         return this.serializeRolleFreigegeben(event as unknown as RolleFreigegeben);
+
+      // ===== ROLLEN DEFINITION EVENTS =====
+      case 'RollenDefinitionCreated':
+        return this.serializeRollenDefinitionCreated(event as unknown as RollenDefinitionCreatedEvent);
+      case 'RollenDefinitionUpdated':
+        return this.serializeRollenDefinitionUpdated(event as unknown as RollenDefinitionUpdatedEvent);
 
       default:
         throw new Error(`Unknown event type: ${eventName}. EventSerializer needs to be updated.`);
@@ -538,6 +546,26 @@ export class EventSerializer {
       personVorname: event.personVorname,
       personNachname: event.personNachname,
       freigegebenVon: event.freigegebenVon,
+    };
+  }
+
+  // ===== ROLLEN DEFINITION SERIALIZERS =====
+
+  private serializeRollenDefinitionCreated(event: RollenDefinitionCreatedEvent): Record<string, unknown> {
+    return {
+      rollenDefinitionId: event.rollenDefinitionId, // Already primitive string
+      name: event.name,
+      funkrufname: event.funkrufname,
+      erforderlicheQualifikationen: event.erforderlicheQualifikationen, // Already primitives array
+      createdBy: event.createdBy,
+    };
+  }
+
+  private serializeRollenDefinitionUpdated(event: RollenDefinitionUpdatedEvent): Record<string, unknown> {
+    return {
+      rollenDefinitionId: event.rollenDefinitionId, // Already primitive string
+      changes: event.changes, // Already primitives
+      updatedBy: event.updatedBy,
     };
   }
 }

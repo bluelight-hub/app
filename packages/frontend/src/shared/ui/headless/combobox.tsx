@@ -16,6 +16,8 @@ export interface ComboboxProps {
   value?: string;
   onChange?: (value: string) => void;
   onInputChange?: (value: string) => void;
+  /** Callback bei Blur Event (fuer Form-Integration) */
+  onBlur?: () => void;
   placeholder?: string;
   label?: string;
   helperText?: string;
@@ -32,6 +34,7 @@ export function Combobox({
   value: controlledValue,
   onChange,
   onInputChange,
+  onBlur,
   placeholder = 'Wählen Sie eine Option',
   label,
   helperText,
@@ -123,6 +126,7 @@ export function Combobox({
               if (!allowCustomValue) {
                 setQuery('');
               }
+              onBlur?.();
             }}
             displayValue={(item: ComboboxItem | null) => {
               if (item) return item.label;

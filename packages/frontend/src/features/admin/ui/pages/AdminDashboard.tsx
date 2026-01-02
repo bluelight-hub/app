@@ -8,7 +8,7 @@ import { useNavigate } from '@tanstack/react-router';
 import { isTauri } from '@tauri-apps/api/core';
 import { AdminDashboardLayout } from '@/shared/ui/templates/AdminDashboardLayout';
 import { useCallback } from 'react';
-import { PiCertificate, PiSignOut, PiUsers, PiTruck, PiUserList } from 'react-icons/pi';
+import { PiCertificate, PiIdentificationBadge, PiSignOut, PiUsers, PiTruck, PiUserList } from 'react-icons/pi';
 
 /**
  * Admin-Dashboard Seite
@@ -50,6 +50,10 @@ export function AdminDashboard() {
     await navigate({ to: '/admin/kraefte/qualifikationen' });
   }, [navigate]);
 
+  const handleNavigateToRollenDefinitionen = useCallback(async () => {
+    await navigate({ to: '/admin/kraefte/rollen-definitionen' });
+  }, [navigate]);
+
   const handleNavigateToStammFahrzeuge = useCallback(async () => {
     await navigate({ to: '/admin/stammdaten/fahrzeuge' });
   }, [navigate]);
@@ -78,7 +82,7 @@ export function AdminDashboard() {
             </Text>
           </div>
 
-          <div className="flex w-full max-w-md flex-col gap-3 sm:flex-row">
+          <div className="flex w-full max-w-xl flex-col gap-3 sm:flex-row">
             <Button intent="primary" size="md" onClick={handleNavigateToUsers} fullWidth>
               <PiUsers className="mr-2" />
               Benutzerverwaltung
@@ -86,6 +90,10 @@ export function AdminDashboard() {
             <Button intent="primary" size="md" onClick={handleNavigateToQualifikationen} fullWidth>
               <PiCertificate className="mr-2" />
               Qualifikationen
+            </Button>
+            <Button intent="primary" size="md" onClick={handleNavigateToRollenDefinitionen} fullWidth>
+              <PiIdentificationBadge className="mr-2" />
+              Rollen-Definitionen
             </Button>
           </div>
         </div>

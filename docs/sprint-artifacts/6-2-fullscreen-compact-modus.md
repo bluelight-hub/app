@@ -1,6 +1,6 @@
 # Story 6.2: FullScreen & Compact Modus
 
-Status: done
+Status: ✅ Ready for Merge
 
 ## Story
 
@@ -1559,3 +1559,286 @@ Claude Opus 4.5 (claude-opus-4-5-20251101)
 | 2025-12-31 | Story 6.2 Draft erstellt via BMad create-story YOLO mit Subagents |
 | 2025-12-31 | SM Agent Validation: 14/21 passed (67%), 5 kritische Issues identifiziert |
 | 2025-12-31 | Story 6.2 überarbeitet: DashboardModeContext, Data-Props, Hook Options |
+| 2025-12-31 | Code Review (4 parallele Subagents): 5 kritische + 1 wichtiges Issue identifiziert |
+| 2025-12-31 | **All 5 Review Action Items behoben:** RollenKarte/FahrzeugCard Mode-Aware, Touch-Targets, DashboardErrorCard Context, ESC-Handler Fix |
+| 2025-12-31 | **Finales Code Review (4 parallele Subagents): ✅ PASS** - Keine kritischen Issues, Ready for Merge |
+
+---
+
+## Code Review Action Items (2025-12-31)
+
+**Review durchgeführt von:** Dev Agent (Amelia) mit 4 parallelen Code-Reviewer Subagents
+
+### 🔴 Kritische Issues (MUST FIX)
+
+#### Action Item 1: RollenKarte - Mode-Aware Implementation hinzufügen
+**Datei:** `packages/frontend/src/features/kraefte/ui/molecules/RollenKarte.tsx`
+**Confidence:** 95%
+
+**Problem:** `RollenKarte` nutzt NICHT `useDashboardMode()` und hat keine Mode-spezifischen Styles.
+
+**Verletzt:**
+- AC1 (Fullscreen min. 32px Schriftgröße)
+- AC2 (Compact 44x44px Touch-Targets)
+
+**Erforderliche Änderungen:**
+1. Import hinzufügen: `import { useDashboardMode } from '../../contexts';`
+2. Hook im Component Body: `const mode = useDashboardMode();`
+3. Mode-spezifische Klassen implementieren (analog zu `StaerkeCard`):
+   ```typescript
+   const containerClasses = {
+     standard: 'rounded-lg border p-4',
+     fullscreen: 'rounded-lg border p-5 lg:p-6',
+     compact: 'rounded border p-2',
+   };
+   const nameClasses = {
+     standard: 'text-base font-semibold',
+     fullscreen: 'text-lg lg:text-xl font-bold',
+     compact: 'text-sm font-medium',
+   };
+   ```
+
+---
+
+#### Action Item 2: RollenKarte - Touch-Target Fix für Compact Mode
+**Datei:** `packages/frontend/src/features/kraefte/ui/molecules/RollenKarte.tsx`
+**Zeilen:** 68-76
+**Confidence:** 90%
+
+**Problem:** "Freigeben"-Button hat nur ~30-35px (`px-2 py-1`), NFR20 fordert min. 44x44px.
+
+**Fix:**
+```typescript
+<button
+  type="button"
+  onClick={onFreigeben}
+  className={cn(
+    "flex items-center gap-1 rounded text-red-600 hover:bg-red-100",
+    mode === 'compact' && "min-h-[44px] min-w-[44px] px-3 py-2 text-sm",
+    mode === 'fullscreen' && "min-h-[56px] px-4 py-3 text-lg",
+    mode === 'standard' && "px-2 py-1 text-xs"
+  )}
+>
+```
+
+---
+
+#### Action Item 3: FahrzeugCard - Mode-Aware Implementation hinzufügen
+**Datei:** `packages/frontend/src/features/kraefte/ui/molecules/FahrzeugCard.tsx`
+**Confidence:** 95%
+
+**Problem:** Wie `RollenKarte` - keine `useDashboardMode()` Integration, keine Mode-spezifischen Styles.
+
+**Erforderliche Änderungen:**
+1. Import hinzufügen: `import { useDashboardMode } from '../../contexts';`
+2. Hook im Component Body: `const mode = useDashboardMode();`
+3. Mode-spezifische Klassen für:
+   - Container Padding
+   - Schriftgrößen (AC1: min. 24px für Fahrzeugnamen in Fullscreen)
+   - Touch-Targets (AC2: min. 44x44px in Compact)
+
+---
+
+#### Action Item 4: DashboardErrorCard - Context statt Manual Prop
+**Datei:** `packages/frontend/src/features/kraefte/ui/molecules/DashboardErrorCard.tsx`
+**Zeile:** 18
+**Confidence:** 85%
+
+**Problem:** Nutzt `compact?: boolean` Prop statt `useDashboardMode()` Context - inkonsistent mit anderen Molecules.
+
+**Aktuell:**
+```typescript
+interface DashboardErrorCardProps {
+  title: string;
+  onRetry: () => void;
+  compact?: boolean; // ❌ Manual prop
+}
+```
+
+**Erforderliche Änderungen:**
+```typescript
+import { useDashboardMode } from '../../contexts';
+
+interface DashboardErrorCardProps {
+  title: string;
+  onRetry: () => void;
+  // compact Prop entfernen
+}
+
+export function DashboardErrorCard({ title, onRetry }: DashboardErrorCardProps) {
+  const mode = useDashboardMode();
+  const compact = mode === 'compact';
+  const fullscreen = mode === 'fullscreen';
+
+  // Fullscreen-Variante Styles hinzufügen
+}
+```
+
+**Zusätzlich:** Alle Aufrufer von `DashboardErrorCard` anpassen (compact Prop entfernen).
+
+---
+
+#### Action Item 5: Duplizierten ESC-Handler entfernen
+**Datei:** `packages/frontend/src/features/kraefte/ui/pages/KraefteDashboard.page.tsx`
+**Zeilen:** 183-195
+**Confidence:** 95%
+
+**Problem:** `KraefteDashboard` registriert eigenen ESC-Handler UND rendert `FullscreenCloseButton` (der auch ESC-Handler hat). ESC-Taste feuert `handleExitFullscreen()` **zweimal**.
+
+**Fix:** Kompletten useEffect-Block (Lines 183-195) entfernen:
+```typescript
+// LÖSCHEN - FullscreenCloseButton handles ESC bereits
+useEffect(() => {
+  const handleKeydown = (event: KeyboardEvent) => {
+    if (event.key === 'Escape' && mode === 'fullscreen') {
+      event.preventDefault();
+      handleExitFullscreen();
+    }
+  };
+
+  window.addEventListener('keydown', handleKeydown);
+  return () => window.removeEventListener('keydown', handleKeydown);
+}, [mode, handleExitFullscreen]);
+```
+
+---
+
+### 🟡 Wichtige Issues (SHOULD FIX)
+
+#### Action Item 6: localStorage Fallback Pattern angleichen (Optional)
+**Datei:** `packages/frontend/src/routes/app/einsatz/$einsatzId/kräfte/dashboard.tsx`
+**Zeilen:** 40-48
+**Confidence:** 85%
+
+**Problem:** Route's `validateSearch` liest localStorage als Fallback, aber URL wird nicht aktualisiert. Pattern unterscheidet sich von ETB/Lagekarte.
+
+**Empfehlung:** Für Konsistenz mit anderen Features könnte die Component bei Mount die URL aktualisieren, wenn localStorage einen Mode hat aber URL nicht.
+
+**Priorität:** Niedrig - funktioniert, ist aber inkonsistent mit anderen Features.
+
+---
+
+### Komponenten-Status nach Review
+
+| Komponente | Mode-Aware | Touch-Targets | Status |
+|------------|------------|---------------|--------|
+| `StaerkeCard` | ✅ | ✅ | **PASS** |
+| `RollenKarte` | ✅ | ✅ | **PASS** (2025-12-31 behoben) |
+| `FahrzeugCard` | ✅ | ✅ | **PASS** (2025-12-31 behoben) |
+| `DashboardErrorCard` | ✅ | ✅ | **PASS** (2025-12-31 behoben) |
+| `FahrzeugStatusListe` | ✅ | ✅ | **PASS** |
+| `RollenUebersicht` | ✅ | ✅ | **PASS** |
+| `KraefteDashboard` | ✅ | N/A | **PASS** (2025-12-31 behoben) |
+
+---
+
+### Betroffene Acceptance Criteria
+
+| AC | Status | Blockierende Issues |
+|----|--------|---------------------|
+| AC1 (Fullscreen 32px) | ✅ | - (behoben) |
+| AC2 (Compact 44x44px) | ✅ | - (behoben) |
+| AC3 (Auto-Refresh 30s) | ✅ | - |
+| AC4 (ESC-Handler) | ✅ | - (behoben) |
+| AC5 (Mode-Selector) | ✅ | - |
+
+---
+
+## Code Review Action Items - Resolution (2025-12-31)
+
+**Behoben durch:** Dev Agent (Amelia) mit Subagents
+
+### ✅ Alle 5 Action Items behoben
+
+| # | Action Item | Status | Änderungen |
+|---|-------------|--------|------------|
+| 1 | RollenKarte Mode-Aware | ✅ DONE | `useDashboardMode()` + `getModeClasses()` hinzugefügt |
+| 2 | RollenKarte Touch-Target | ✅ DONE | `min-h-[44px] min-w-[44px]` für Compact Mode |
+| 3 | FahrzeugCard Mode-Aware | ✅ DONE | `useDashboardMode()` + `getModeClasses()` hinzugefügt |
+| 4 | DashboardErrorCard Context | ✅ DONE | `compact` Prop entfernt, nutzt jetzt Context |
+| 5 | Duplizierter ESC-Handler | ✅ DONE | `useEffect` in Dashboard entfernt (FullscreenCloseButton handelt ESC) |
+
+### Geänderte Dateien
+
+- `packages/frontend/src/features/kraefte/ui/molecules/RollenKarte.tsx`
+- `packages/frontend/src/features/kraefte/ui/molecules/FahrzeugCard.tsx`
+- `packages/frontend/src/features/kraefte/ui/molecules/DashboardErrorCard.tsx`
+- `packages/frontend/src/features/kraefte/ui/pages/KraefteDashboard.page.tsx`
+
+### Validierung
+
+- ✅ TypeScript: Keine Fehler
+- ✅ Biome Lint: Nur CSS-Klassen-Sortierung Warnungen (nursery, nicht kritisch)
+
+---
+
+## Finales Code Review (2025-12-31)
+
+**Review durchgeführt von:** Dev Agent (Amelia) mit 4 parallelen Code-Reviewer Subagents
+
+### Review-Agents Zusammenfassung
+
+| Agent | Fokus | Ergebnis | Kritische Issues |
+|-------|-------|----------|------------------|
+| **#1** | Context & Hooks | ⚠️ False Positive | 0 |
+| **#2** | Molecules | ✅ PASS | 0 |
+| **#3** | Organisms & Page | ✅ PASS | 0 |
+| **#4** | Route & Integration | ✅ PASS | 0 |
+
+### Agent #1 False Positive Erklärung
+
+Agent #1 kritisierte, dass der Context keinen `setMode` Setter hat. **Dies ist KEIN Bug**, weil:
+
+1. **Architektur ist URL-basiert** - Mode kommt aus URL Search Params (`?mode=fullscreen`)
+2. **Mode-Änderung via `navigate()`** - Nicht via Context-Setter
+3. **Context nur für Read** - `DashboardModeProvider` gibt Mode an Child-Komponenten weiter
+4. **Konsistent mit ETB/Lagekarte** - Gleiches Pattern bereits in Produktion
+
+### ✅ Alle Acceptance Criteria erfüllt
+
+| AC | Beschreibung | Status |
+|----|--------------|--------|
+| **AC1** | Fullscreen min. 32px Schrift | ✅ `text-4xl`/`text-5xl` implementiert |
+| **AC2** | Compact 44x44px Touch-Targets | ✅ `min-h-[44px] min-w-[44px]` |
+| **AC3** | Auto-Refresh 30s nur Fullscreen | ✅ `refetchInterval: mode === 'fullscreen' ? 30000 : false` |
+| **AC4** | ESC-Handler ohne Duplikat | ✅ Nur `FullscreenCloseButton` handelt ESC |
+| **AC5** | Mode-Selector + localStorage | ✅ `handleModeChange` speichert + navigiert |
+
+### Code Quality Highlights
+
+- **Context Pattern:** Eliminiert Prop-Drilling durch 3+ Ebenen
+- **Mode-Aware Skeletons:** Alle Loading-States passen sich Mode an
+- **TypeScript Safety:** Alle Props typisiert, DTOs aus generated client
+- **Tailwind-Only:** Keine anderen CSS-Frameworks
+- **Dark Mode:** Vollständige Unterstützung
+- **Accessibility:** Touch-Targets, Keyboard-Support, ARIA-Labels
+
+### Geprüfte Dateien
+
+**Context & Hooks:**
+- `packages/frontend/src/features/kraefte/contexts/dashboard-mode.context.ts`
+- `packages/frontend/src/features/kraefte/api/use-einsatz-fahrzeuge.ts`
+- `packages/frontend/src/features/kraefte/api/use-rollen-besetzungen.ts`
+- `packages/frontend/src/features/kraefte/api/use-taktische-staerke.ts`
+
+**Molecules:**
+- `packages/frontend/src/features/kraefte/ui/molecules/StaerkeCard.tsx`
+- `packages/frontend/src/features/kraefte/ui/molecules/RollenKarte.tsx`
+- `packages/frontend/src/features/kraefte/ui/molecules/FahrzeugCard.tsx`
+- `packages/frontend/src/features/kraefte/ui/molecules/DashboardErrorCard.tsx`
+
+**Organisms & Page:**
+- `packages/frontend/src/features/kraefte/ui/organisms/FahrzeugStatusListe.tsx`
+- `packages/frontend/src/features/kraefte/ui/organisms/RollenUebersicht.tsx`
+- `packages/frontend/src/features/kraefte/ui/pages/KraefteDashboard.page.tsx`
+
+**Route & Integration:**
+- `packages/frontend/src/routes/app/einsatz/$einsatzId/kräfte/dashboard.tsx`
+- `packages/frontend/src/features/kraefte/index.ts`
+- `packages/frontend/src/shared/ui/templates/SingleEinsatzLayout.tsx`
+
+---
+
+## 🎉 Ergebnis: ✅ Ready for Merge
+
+**Keine kritischen Issues gefunden.** Die Implementierung ist produktionsreif und erfüllt alle Acceptance Criteria sowie Projektrichtlinien.

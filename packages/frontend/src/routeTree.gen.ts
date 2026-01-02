@@ -25,6 +25,7 @@ import { Route as AppEinsatzEinsatzIdRouteImport } from './routes/app/einsatz/$e
 import { Route as AppEinsaetzeEinsatzIdRouteImport } from './routes/app/einsaetze/$einsatzId'
 import { Route as AdminStammdatenPersonenRouteImport } from './routes/admin/stammdaten/personen'
 import { Route as AdminStammdatenFahrzeugeRouteImport } from './routes/admin/stammdaten/fahrzeuge'
+import { Route as AdminKraefteRollenDefinitionenRouteImport } from './routes/admin/kraefte/rollen-definitionen'
 import { Route as AdminKraefteQualifikationenRouteImport } from './routes/admin/kraefte/qualifikationen'
 import { Route as AppEinsatzEinsatzIdIndexRouteImport } from './routes/app/einsatz/$einsatzId/index'
 import { Route as AppEinsatzEinsatzIdChar220bersichtIndexRouteImport } from './routes/app/einsatz/$einsatzId/übersicht/index'
@@ -137,6 +138,12 @@ const AdminStammdatenFahrzeugeRoute =
   AdminStammdatenFahrzeugeRouteImport.update({
     id: '/stammdaten/fahrzeuge',
     path: '/stammdaten/fahrzeuge',
+    getParentRoute: () => AdminRoute,
+  } as any)
+const AdminKraefteRollenDefinitionenRoute =
+  AdminKraefteRollenDefinitionenRouteImport.update({
+    id: '/kraefte/rollen-definitionen',
+    path: '/kraefte/rollen-definitionen',
     getParentRoute: () => AdminRoute,
   } as any)
 const AdminKraefteQualifikationenRoute =
@@ -345,6 +352,7 @@ export interface FileRoutesByFullPath {
   '/app/einsatz': typeof AppEinsatzRouteWithChildren
   '/admin/': typeof AdminIndexRoute
   '/admin/kraefte/qualifikationen': typeof AdminKraefteQualifikationenRoute
+  '/admin/kraefte/rollen-definitionen': typeof AdminKraefteRollenDefinitionenRoute
   '/admin/stammdaten/fahrzeuge': typeof AdminStammdatenFahrzeugeRoute
   '/admin/stammdaten/personen': typeof AdminStammdatenPersonenRoute
   '/app/einsaetze/$einsatzId': typeof AppEinsaetzeEinsatzIdRoute
@@ -393,6 +401,7 @@ export interface FileRoutesByTo {
   '/app/einsatz': typeof AppEinsatzRouteWithChildren
   '/admin': typeof AdminIndexRoute
   '/admin/kraefte/qualifikationen': typeof AdminKraefteQualifikationenRoute
+  '/admin/kraefte/rollen-definitionen': typeof AdminKraefteRollenDefinitionenRoute
   '/admin/stammdaten/fahrzeuge': typeof AdminStammdatenFahrzeugeRoute
   '/admin/stammdaten/personen': typeof AdminStammdatenPersonenRoute
   '/app/einsaetze/$einsatzId': typeof AppEinsaetzeEinsatzIdRoute
@@ -442,6 +451,7 @@ export interface FileRoutesById {
   '/app/einsatz': typeof AppEinsatzRouteWithChildren
   '/admin/': typeof AdminIndexRoute
   '/admin/kraefte/qualifikationen': typeof AdminKraefteQualifikationenRoute
+  '/admin/kraefte/rollen-definitionen': typeof AdminKraefteRollenDefinitionenRoute
   '/admin/stammdaten/fahrzeuge': typeof AdminStammdatenFahrzeugeRoute
   '/admin/stammdaten/personen': typeof AdminStammdatenPersonenRoute
   '/app/einsaetze/$einsatzId': typeof AppEinsaetzeEinsatzIdRoute
@@ -494,6 +504,7 @@ export interface FileRouteTypes {
     | '/app/einsatz'
     | '/admin/'
     | '/admin/kraefte/qualifikationen'
+    | '/admin/kraefte/rollen-definitionen'
     | '/admin/stammdaten/fahrzeuge'
     | '/admin/stammdaten/personen'
     | '/app/einsaetze/$einsatzId'
@@ -542,6 +553,7 @@ export interface FileRouteTypes {
     | '/app/einsatz'
     | '/admin'
     | '/admin/kraefte/qualifikationen'
+    | '/admin/kraefte/rollen-definitionen'
     | '/admin/stammdaten/fahrzeuge'
     | '/admin/stammdaten/personen'
     | '/app/einsaetze/$einsatzId'
@@ -590,6 +602,7 @@ export interface FileRouteTypes {
     | '/app/einsatz'
     | '/admin/'
     | '/admin/kraefte/qualifikationen'
+    | '/admin/kraefte/rollen-definitionen'
     | '/admin/stammdaten/fahrzeuge'
     | '/admin/stammdaten/personen'
     | '/app/einsaetze/$einsatzId'
@@ -748,6 +761,13 @@ declare module '@tanstack/react-router' {
       path: '/stammdaten/fahrzeuge'
       fullPath: '/admin/stammdaten/fahrzeuge'
       preLoaderRoute: typeof AdminStammdatenFahrzeugeRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/kraefte/rollen-definitionen': {
+      id: '/admin/kraefte/rollen-definitionen'
+      path: '/kraefte/rollen-definitionen'
+      fullPath: '/admin/kraefte/rollen-definitionen'
+      preLoaderRoute: typeof AdminKraefteRollenDefinitionenRouteImport
       parentRoute: typeof AdminRoute
     }
     '/admin/kraefte/qualifikationen': {
@@ -983,6 +1003,7 @@ interface AdminRouteChildren {
   AdminUsersRoute: typeof AdminUsersRoute
   AdminIndexRoute: typeof AdminIndexRoute
   AdminKraefteQualifikationenRoute: typeof AdminKraefteQualifikationenRoute
+  AdminKraefteRollenDefinitionenRoute: typeof AdminKraefteRollenDefinitionenRoute
   AdminStammdatenFahrzeugeRoute: typeof AdminStammdatenFahrzeugeRoute
   AdminStammdatenPersonenRoute: typeof AdminStammdatenPersonenRoute
 }
@@ -993,6 +1014,7 @@ const AdminRouteChildren: AdminRouteChildren = {
   AdminUsersRoute: AdminUsersRoute,
   AdminIndexRoute: AdminIndexRoute,
   AdminKraefteQualifikationenRoute: AdminKraefteQualifikationenRoute,
+  AdminKraefteRollenDefinitionenRoute: AdminKraefteRollenDefinitionenRoute,
   AdminStammdatenFahrzeugeRoute: AdminStammdatenFahrzeugeRoute,
   AdminStammdatenPersonenRoute: AdminStammdatenPersonenRoute,
 }

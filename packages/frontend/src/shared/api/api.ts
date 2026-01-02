@@ -1,6 +1,7 @@
 import { logger } from '@/shared/lib/logger';
 import {
   AdminKraefteQualifikationenApi,
+  AdminKraefteRollenApi,
   AdminStammdatenFahrzeugeApi,
   AdminStammdatenPersonenApi,
   AuthApi,
@@ -13,6 +14,7 @@ import {
   HealthApi,
   KraefteDashboardApi,
   KraefteFahrzeugtypenApi,
+  KraefteRollenDefinitionenApi,
   KraefteStammFahrzeugeApi,
   KraefteStammPersonenApi,
   LagekarteApi,
@@ -77,6 +79,8 @@ class BackendApi {
   private readonly kraefteFahrzeugtypenApi: KraefteFahrzeugtypenApi;
   private readonly kraefteStammFahrzeugeApi: KraefteStammFahrzeugeApi;
   private readonly kraefteStammPersonenApi: KraefteStammPersonenApi;
+  private readonly adminKraefteRollenApi: AdminKraefteRollenApi;
+  private readonly kraefteRollenDefinitionenApi: KraefteRollenDefinitionenApi;
   private readonly rollenBesetzungApi: RollenBesetzungApi;
 
   /**
@@ -105,6 +109,8 @@ class BackendApi {
     this.lagekarteCqrsApi = new LagekarteCQRSApi(this.configuration);
     this.geocodingApi = new GeocodingApi(this.configuration);
     this.adminKraefteQualifikationenApi = new AdminKraefteQualifikationenApi(this.configuration);
+    this.adminKraefteRollenApi = new AdminKraefteRollenApi(this.configuration);
+    this.kraefteRollenDefinitionenApi = new KraefteRollenDefinitionenApi(this.configuration);
     this.adminStammdatenFahrzeugeApi = new AdminStammdatenFahrzeugeApi(this.configuration);
     this.adminStammdatenPersonenApi = new AdminStammdatenPersonenApi(this.configuration);
     this.einsatzFahrzeugeApi = new EinsatzFahrzeugeApi(this.configuration);
@@ -204,6 +210,24 @@ class BackendApi {
    */
   adminKraefteQualifikationen(): AdminKraefteQualifikationenApi {
     return this.adminKraefteQualifikationenApi;
+  }
+
+  /**
+   * Gibt die gecachte AdminKraefteRollen-API-Instanz zurück
+   *
+   * @returns Die AdminKraefteRollen-API-Instanz für RollenDefinitionen-Management
+   */
+  adminKraefteRollen(): AdminKraefteRollenApi {
+    return this.adminKraefteRollenApi;
+  }
+
+  /**
+   * Gibt die gecachte KraefteRollenDefinitionen-API-Instanz zurück
+   *
+   * @returns Die KraefteRollenDefinitionen-API-Instanz für öffentliche RollenDefinitionen-Abfragen
+   */
+  kraefteRollenDefinitionen(): KraefteRollenDefinitionenApi {
+    return this.kraefteRollenDefinitionenApi;
   }
 
   /**

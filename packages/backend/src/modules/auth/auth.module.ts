@@ -3,6 +3,8 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { JwtModule } from '@nestjs/jwt';
 import { PassportModule } from '@nestjs/passport';
 import { PrismaModule } from '@/infrastructure/database/prisma.module';
+import { LOGGER } from '@/infrastructure/di-tokens';
+import { NestLoggerAdapter } from '@/infrastructure/common/adapters/nest-logger.adapter';
 import { AuthController } from './controllers/auth.controller';
 import { AuthService } from './auth.service';
 import { AdminJwtAuthGuard } from './guards/admin-jwt-auth.guard';
@@ -41,7 +43,18 @@ import { AuthApplicationModule } from '@/application/auth/auth-application.modul
     AuthApplicationModule,
   ],
   controllers: [AuthController],
-  providers: [AuthService, JwtStrategy, JwtRefreshStrategy, AdminJwtStrategy, AdminJwtAuthGuard],
+  providers: [
+    // Logger für AdminJwtStrategy (Security Logging)
+    {
+      provide: LOGGER,
+      useFactory: () => new NestLoggerAdapter('Auth'),
+    },
+    AuthService,
+    JwtStrategy,
+    JwtRefreshStrategy,
+    AdminJwtStrategy,
+    AdminJwtAuthGuard,
+  ],
   exports: [AuthService, JwtModule, AdminJwtAuthGuard],
 })
 export class AuthModule {}

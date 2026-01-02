@@ -1,15 +1,35 @@
 /**
  * BesetzeRolleDialog fuer die Zuweisung einer Person zu einer Rolle.
  *
- * **Story 6.1c - Rollen-Zuweisung (AC3):**
- * MVP: Einfacher Dialog mit ID-Eingabe. Vollstaendige Personenauswahl in spaeteren Stories.
+ * **Story TD2-Picker:**
+ * Vollstaendige Rollen- und Personenauswahl via Combobox statt ID-Eingabe.
+ * Bereits besetzte Rollen und Personen werden automatisch ausgefiltert.
  */
 
-import { useCallback, useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
+
+import { useForm } from '@tanstack/react-form';
+import { zodValidator } from '@tanstack/zod-form-adapter';
 import { PiUserPlus } from 'react-icons/pi';
-import { Dialog } from '@/shared/ui/molecules/dialog.molecule';
+import { z } from 'zod';
+
 import { Button } from '@/shared/ui/atoms/button.atom';
-import { useBesetzeRolle } from '../../api';
+import { Dialog } from '@/shared/ui/molecules/dialog.molecule';
+
+import { useBesetzeRolle, useRollenBesetzungen } from '../../api';
+import { EinsatzPersonenPicker } from '../molecules/EinsatzPersonenPicker';
+import { RollenDefinitionenPicker } from '../molecules/RollenDefinitionenPicker';
+
+/**
+ * Zod-Schema fuer das Besetze-Rolle Formular.
+ * Validiert dass beide IDs vorhanden und nicht leer sind.
+ */
+const besetzeRolleSchema = z.object({
+  rollenDefinitionId: z.string().min(1, 'Rollen-Definition ID ist erforderlich'),
+  einsatzPersonId: z.string().min(1, 'Einsatz-Person ID ist erforderlich'),
+});
+
+type BesetzeRolleFormData = z.infer<typeof besetzeRolleSchema>;
 
 interface BesetzeRolleDialogProps {
   /** Ob der Dialog offen ist */
@@ -29,6 +49,7 @@ interface BesetzeRolleDialogProps {
  * - ROLLE_ALREADY_BESETZT -> "Diese Rolle ist bereits besetzt"
  * - PERSON_NOT_FOUND -> "Person nicht gefunden"
  * - PERSON_BEREITS_AUF_ANDERER_ROLLE -> "Person ist bereits einer anderen Rolle zugewiesen"
+ * - PERSON_NOT_QUALIFIED -> "Person besitzt nicht die erforderlichen Qualifikationen"
  */
 function getErrorMessage(error: unknown): string {
   if (error instanceof Error) {
@@ -42,6 +63,9 @@ function getErrorMessage(error: unknown): string {
     if (message.includes('bereits_auf_anderer_rolle') || message.includes('already assigned')) {
       return 'Person ist bereits einer anderen Rolle zugewiesen';
     }
+    if (message.includes('qualifikation') || message.includes('qualified') || message.includes('erforderlich')) {
+      return 'Person besitzt nicht die erforderlichen Qualifikationen fuer diese Rolle';
+    }
   }
   return 'Fehler beim Besetzen der Rolle';
 }
@@ -49,54 +73,64 @@ function getErrorMessage(error: unknown): string {
 /**
  * Dialog zum Besetzen einer Rolle mit einer EinsatzPerson.
  *
- * MVP-Implementierung: Einfache Texteingabe fuer IDs.
- * In spaeteren Stories wird eine vollstaendige Personenauswahl implementiert.
+ * Nutzt EinsatzPersonenPicker fuer benutzerfreundliche Personenauswahl
+ * mit Autocomplete statt manueller ID-Eingabe.
+ * Bereits besetzte Personen werden automatisch ausgefiltert.
  */
 export function BesetzeRolleDialog({ isOpen, onClose, einsatzId, rollenDefinitionId: initialRollenDefinitionId }: BesetzeRolleDialogProps) {
-  const [rollenDefinitionId, setRollenDefinitionId] = useState(initialRollenDefinitionId ?? '');
-  const [einsatzPersonId, setEinsatzPersonId] = useState('');
-  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [apiErrorMessage, setApiErrorMessage] = useState<string | null>(null);
 
   const { mutate: besetzeRolle, isPending } = useBesetzeRolle(einsatzId);
+  const { data: besetzungen } = useRollenBesetzungen(einsatzId);
 
-  const handleSubmit = useCallback(
-    (e: React.FormEvent) => {
-      e.preventDefault();
+  // AC4: Bereits besetzte Personen ausfiltern
+  // einsatzPersonId ist ein required field im RollenBesetzungListItemDto (Backend garantiert)
+  const besetztePersonIds = useMemo(() => {
+    if (!besetzungen) return [];
+    return besetzungen.map((b) => b.einsatzPersonId);
+  }, [besetzungen]);
 
-      if (!rollenDefinitionId.trim() || !einsatzPersonId.trim()) {
-        setErrorMessage('Bitte alle Felder ausfuellen');
-        return;
-      }
+  const besetzteRollenDefinitionIds = useMemo(() => {
+    if (!besetzungen) return [];
+    return besetzungen.map((b) => b.rollenDefinitionId);
+  }, [besetzungen]);
 
-      setErrorMessage(null);
+  const form = useForm<BesetzeRolleFormData>({
+    defaultValues: {
+      rollenDefinitionId: initialRollenDefinitionId ?? '',
+      einsatzPersonId: '',
+    },
+    validatorAdapter: zodValidator(),
+    validators: {
+      onChange: besetzeRolleSchema,
+    },
+    onSubmit: async ({ value }) => {
+      setApiErrorMessage(null);
       besetzeRolle(
         {
-          rollenDefinitionId: rollenDefinitionId.trim(),
-          einsatzPersonId: einsatzPersonId.trim(),
+          rollenDefinitionId: value.rollenDefinitionId.trim(),
+          einsatzPersonId: value.einsatzPersonId.trim(),
         },
         {
           onSuccess: () => {
-            setRollenDefinitionId('');
-            setEinsatzPersonId('');
+            form.reset();
             onClose();
           },
           onError: (error) => {
-            setErrorMessage(getErrorMessage(error));
+            setApiErrorMessage(getErrorMessage(error));
           },
         },
       );
     },
-    [rollenDefinitionId, einsatzPersonId, besetzeRolle, onClose],
-  );
+  });
 
   const handleClose = useCallback(() => {
     if (!isPending) {
-      setErrorMessage(null);
-      setRollenDefinitionId(initialRollenDefinitionId ?? '');
-      setEinsatzPersonId('');
+      setApiErrorMessage(null);
+      form.reset();
       onClose();
     }
-  }, [isPending, initialRollenDefinitionId, onClose]);
+  }, [isPending, form, onClose]);
 
   return (
     <Dialog isOpen={isOpen} onClose={handleClose} size="sm">
@@ -108,40 +142,48 @@ export function BesetzeRolleDialog({ isOpen, onClose, einsatzId, rollenDefinitio
       </div>
 
       <Dialog.Body>
-        <form id="besetze-rolle-form" onSubmit={handleSubmit} className="space-y-4">
-          <div>
-            <label htmlFor="rollenDefinitionId" className="block font-medium text-gray-700 text-sm dark:text-gray-300">
-              Rollen-Definition ID
-            </label>
-            <input
-              type="text"
-              id="rollenDefinitionId"
-              value={rollenDefinitionId}
-              onChange={(e) => setRollenDefinitionId(e.target.value)}
-              disabled={isPending || !!initialRollenDefinitionId}
-              placeholder="z.B. cuid2..."
-              className="mt-1 block w-full rounded-lg border border-gray-300 px-3 py-2 text-sm shadow-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500 disabled:bg-gray-100 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 dark:disabled:bg-gray-800"
-            />
-          </div>
+        <form
+          id="besetze-rolle-form"
+          onSubmit={(e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            form.handleSubmit();
+          }}
+          className="space-y-4"
+        >
+          <form.Field name="rollenDefinitionId">
+            {(field) => (
+              <RollenDefinitionenPicker
+                value={field.state.value}
+                onChange={(rollenDefinitionId) => field.handleChange(rollenDefinitionId)}
+                onBlur={field.handleBlur}
+                disabled={isPending || !!initialRollenDefinitionId}
+                error={field.state.meta.isTouched && field.state.meta.errors.length > 0 ? field.state.meta.errors.join(', ') : undefined}
+                excludeRollenDefinitionIds={besetzteRollenDefinitionIds.filter((id) => id !== field.state.value)}
+                label="Rolle auswaehlen"
+                placeholder="Rollenname eingeben..."
+              />
+            )}
+          </form.Field>
 
-          <div>
-            <label htmlFor="einsatzPersonId" className="block font-medium text-gray-700 text-sm dark:text-gray-300">
-              Einsatz-Person ID
-            </label>
-            <input
-              type="text"
-              id="einsatzPersonId"
-              value={einsatzPersonId}
-              onChange={(e) => setEinsatzPersonId(e.target.value)}
-              disabled={isPending}
-              placeholder="z.B. cuid2..."
-              className="mt-1 block w-full rounded-lg border border-gray-300 px-3 py-2 text-sm shadow-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500 disabled:bg-gray-100 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 dark:disabled:bg-gray-800"
-            />
-            <p className="mt-1 text-gray-500 text-xs dark:text-gray-400">MVP: Vollstaendige Personenauswahl in spaeteren Stories.</p>
-          </div>
+          <form.Field name="einsatzPersonId">
+            {(field) => (
+              <EinsatzPersonenPicker
+                einsatzId={einsatzId}
+                value={field.state.value}
+                onChange={(personId) => field.handleChange(personId)}
+                onBlur={field.handleBlur}
+                disabled={isPending}
+                error={field.state.meta.isTouched && field.state.meta.errors.length > 0 ? field.state.meta.errors.join(', ') : undefined}
+                excludePersonIds={besetztePersonIds}
+                label="Person auswaehlen"
+                placeholder="Name eingeben..."
+              />
+            )}
+          </form.Field>
 
-          {/* Error Message */}
-          {errorMessage && <div className="rounded-lg bg-red-50 p-3 text-red-700 text-sm dark:bg-red-900/20 dark:text-red-400">{errorMessage}</div>}
+          {/* API Error Message */}
+          {apiErrorMessage && <div className="rounded-lg bg-red-50 p-3 text-red-700 text-sm dark:bg-red-900/20 dark:text-red-400">{apiErrorMessage}</div>}
         </form>
       </Dialog.Body>
 

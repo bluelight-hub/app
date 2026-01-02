@@ -15,6 +15,7 @@ apis/GeocodingApi.ts
 apis/HealthApi.ts
 apis/KraefteDashboardApi.ts
 apis/KraefteFahrzeugtypenApi.ts
+apis/KraefteRollenDefinitionenApi.ts
 apis/KraefteStammFahrzeugeApi.ts
 apis/KraefteStammPersonenApi.ts
 apis/LagekarteApi.ts

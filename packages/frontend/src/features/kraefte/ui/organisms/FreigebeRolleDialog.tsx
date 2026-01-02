@@ -6,12 +6,15 @@
  * Hinweis auf ETB-Dokumentation wird angezeigt.
  */
 
-import { useState, useCallback } from 'react';
-import { PiWarning } from 'react-icons/pi';
-import { Dialog } from '@/shared/ui/molecules/dialog.molecule';
-import { Button } from '@/shared/ui/atoms/button.atom';
-import { useFreigebeRolle } from '../../api';
+import { useCallback, useState } from 'react';
+
 import type { RollenBesetzungListItemDto } from '@bluelight-hub/shared/client';
+import { PiWarning } from 'react-icons/pi';
+
+import { Button } from '@/shared/ui/atoms/button.atom';
+import { Dialog } from '@/shared/ui/molecules/dialog.molecule';
+
+import { useFreigebeRolle } from '../../api';
 
 interface FreigebeRolleDialogProps {
   /** Ob der Dialog offen ist */

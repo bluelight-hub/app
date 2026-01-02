@@ -11,17 +11,22 @@
  * - Grid-Klassen sind DYNAMISCH basierend auf Mode (nicht mehr hardcoded)
  */
 
+import type { RollenBesetzungListItemDto } from '@bluelight-hub/shared/client';
+import { PiArrowClockwise, PiPlus, PiUsers, PiWarningCircle } from 'react-icons/pi';
+
 import { cn } from '@/shared/ui/cn';
-import { PiUsers, PiArrowClockwise, PiWarningCircle } from 'react-icons/pi';
+
 import { useRollenBesetzungen } from '../../api';
-import { useDashboardMode, type DashboardMode } from '../../contexts';
+import { type DashboardMode, useDashboardMode } from '../../contexts';
 import { RollenKarte, RollenKarteSkeleton } from '../molecules/RollenKarte';
 
 interface RollenUebersichtProps {
   /** Einsatz ID */
   einsatzId: string;
-  /** Click Handler für Rolle freigeben */
-  onFreigebeClick?: (rollenBesetzungId: string) => void;
+  /** Click Handler für Rolle freigeben - erhält das vollständige Besetzungs-Objekt */
+  onFreigebeClick?: (besetzung: RollenBesetzungListItemDto) => void;
+  /** Click Handler für neue Rolle besetzen (Story TD2.5 - AC2) */
+  onBesetzeClick?: () => void;
   /** Zusätzliche CSS Klassen */
   className?: string;
   // KEIN mode Prop - wird via useDashboardMode() Context gelesen
@@ -88,7 +93,7 @@ function RollenUebersichtSkeleton() {
  * Story 6.2: Liest Mode via Context für Mode-spezifische Layouts.
  * Grid-Klassen sind dynamisch basierend auf Mode.
  */
-export function RollenUebersicht({ einsatzId, onFreigebeClick, className }: RollenUebersichtProps) {
+export function RollenUebersicht({ einsatzId, onFreigebeClick, onBesetzeClick, className }: RollenUebersichtProps) {
   // Mode via Context (kein Prop-Drilling)
   const mode = useDashboardMode();
   const containerClasses = getContainerClasses(mode);
@@ -136,8 +141,26 @@ export function RollenUebersicht({ einsatzId, onFreigebeClick, className }: Roll
     return (
       <div className={cn('rounded-lg border border-gray-200 bg-white dark:border-gray-700 dark:bg-gray-800', containerClasses, className)}>
         <div className="mb-2 flex items-center justify-between">
-          <span className="font-medium text-gray-600 text-sm dark:text-gray-400">Rollen</span>
-          <span className="text-gray-500 text-xs">{besetzteCount} besetzt</span>
+          <div className="flex items-center gap-2">
+            <span className="font-medium text-gray-600 text-sm dark:text-gray-400">Rollen</span>
+            <span className="text-gray-500 text-xs">{besetzteCount} besetzt</span>
+          </div>
+          {/* Story TD2.5 AC3: "Rolle besetzen" Button für Compact Mode mit min-touch-target */}
+          {onBesetzeClick && (
+            <button
+              type="button"
+              onClick={onBesetzeClick}
+              className={cn(
+                'flex min-h-[44px] min-w-[44px] items-center justify-center rounded-lg bg-blue-600 text-white transition-colors',
+                'hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2',
+                'dark:bg-blue-500 dark:hover:bg-blue-600',
+              )}
+              aria-label="Neue Rolle besetzen"
+            >
+              <PiPlus className="h-5 w-5" />
+              <span className="sr-only">Rolle besetzen</span>
+            </button>
+          )}
         </div>
         {besetzungen && besetzungen.length > 0 ? (
           <div className="space-y-1">
@@ -166,6 +189,24 @@ export function RollenUebersicht({ einsatzId, onFreigebeClick, className }: Roll
         </div>
         <div className="flex items-center gap-3">
           <span className={cn('text-gray-500', mode === 'fullscreen' ? 'text-base' : 'text-sm')}>{besetzteCount} besetzt</span>
+          {/* Story TD2.5 AC2+AC3: "Rolle besetzen" Button mit mode-aware min-height */}
+          {onBesetzeClick && (
+            <button
+              type="button"
+              onClick={onBesetzeClick}
+              className={cn(
+                'flex items-center gap-2 rounded-lg bg-blue-600 font-medium text-white transition-colors',
+                'hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2',
+                'dark:bg-blue-500 dark:hover:bg-blue-600',
+                // AC3: Mode-aware min-height für Touch-Targets
+                mode === 'fullscreen' ? 'min-h-[56px] px-4 py-3 text-base' : 'px-3 py-1.5 text-sm',
+              )}
+              aria-label="Neue Rolle besetzen"
+            >
+              <PiPlus className={mode === 'fullscreen' ? 'h-5 w-5' : 'h-4 w-4'} />
+              <span>Rolle besetzen</span>
+            </button>
+          )}
           <button
             type="button"
             onClick={() => refetch()}
@@ -185,7 +226,7 @@ export function RollenUebersicht({ einsatzId, onFreigebeClick, className }: Roll
       {besetzungen && besetzungen.length > 0 ? (
         <div className={gridClasses}>
           {besetzungen.map((besetzung) => (
-            <RollenKarte key={besetzung.id} besetzung={besetzung} onFreigeben={onFreigebeClick ? () => onFreigebeClick(besetzung.id) : undefined} />
+            <RollenKarte key={besetzung.id} besetzung={besetzung} onFreigeben={onFreigebeClick ? () => onFreigebeClick(besetzung) : undefined} />
           ))}
         </div>
       ) : (

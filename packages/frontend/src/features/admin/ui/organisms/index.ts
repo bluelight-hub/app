@@ -28,3 +28,9 @@ export { StammPersonenTable } from './StammPersonenTable';
 export { CreateStammPersonDialog } from './CreateStammPersonDialog';
 export { EditStammPersonDialog } from './EditStammPersonDialog';
 export { ArchiveStammPersonDialog } from './ArchiveStammPersonDialog';
+
+// RollenDefinitionen Management
+export { RollenDefinitionenTable } from './RollenDefinitionenTable';
+export { CreateRollenDefinitionDialog } from './CreateRollenDefinitionDialog';
+export { EditRollenDefinitionDialog } from './EditRollenDefinitionDialog';
+export { DeactivateRollenDefinitionDialog } from './DeactivateRollenDefinitionDialog';

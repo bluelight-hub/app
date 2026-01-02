@@ -12,6 +12,33 @@ import { KRAEFTE_QUERY_KEYS } from './queries';
 import type { BesetzeRolleDto } from '@bluelight-hub/shared/client';
 
 /**
+ * Extrahiert die Backend-Fehlermeldung aus einem ResponseError.
+ * Der generierte API-Client wirft ResponseError mit statischer Nachricht,
+ * aber die echte Fehlermeldung ist im Response-Body.
+ */
+async function extractErrorMessage(error: unknown): Promise<string> {
+  // ResponseError hat ein response Property mit dem originalen Response-Objekt
+  if (error && typeof error === 'object' && 'response' in error) {
+    const responseError = error as { response: Response };
+    try {
+      const body = await responseError.response.clone().json();
+      if (body && typeof body.message === 'string') {
+        return body.message;
+      }
+    } catch {
+      // JSON parsing fehlgeschlagen, ignorieren
+    }
+  }
+
+  // Fallback auf Error.message
+  if (error instanceof Error) {
+    return error.message;
+  }
+
+  return 'Unbekannter Fehler';
+}
+
+/**
  * Hook zum Besetzen einer Rolle mit einer EinsatzPerson.
  *
  * Verwendet den generierten API-Client und invalidiert automatisch
@@ -37,11 +64,17 @@ export const useBesetzeRolle = (einsatzId: string) => {
 
   return useMutation({
     mutationFn: async (dto: BesetzeRolleDto) => {
-      const response = await api.rollenBesetzung().rollenBesetzungControllerBesetzeRolleVAlpha({
-        einsatzId,
-        besetzeRolleDto: dto,
-      });
-      return response.data;
+      try {
+        const response = await api.rollenBesetzung().rollenBesetzungControllerBesetzeRolleVAlpha({
+          einsatzId,
+          besetzeRolleDto: dto,
+        });
+        return response.data;
+      } catch (error) {
+        // Extrahiere die echte Backend-Fehlermeldung und werfe neuen Error
+        const message = await extractErrorMessage(error);
+        throw new Error(message);
+      }
     },
     onSuccess: () => {
       // AC6: Query Invalidation für Auto-Update

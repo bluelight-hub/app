@@ -21,16 +21,17 @@
  * - AC7: Header mit Titel, Refresh-Button und Aktualisiert-Zeitstempel
  */
 
-import { useCallback, useEffect } from 'react';
+import { useCallback, useState } from 'react';
 import { useNavigate } from '@tanstack/react-router';
 import { cn } from '@/shared/ui/cn';
 import { PiChartBar, PiArrowClockwise, PiArrowsOut, PiDevices } from 'react-icons/pi';
+import type { RollenBesetzungListItemDto } from '@bluelight-hub/shared/client';
 import { FullscreenCloseButton } from '@/features/lagekarte/ui/organisms/FullscreenCloseButton';
 import { useTaktischeStaerke } from '../../api';
 import { DashboardModeProvider, type DashboardMode } from '../../contexts';
 import { StaerkeCard } from '../molecules';
 import { DashboardErrorCard } from '../molecules/DashboardErrorCard';
-import { FahrzeugStatusListe, RollenUebersicht } from '../organisms';
+import { BesetzeRolleDialog, FahrzeugStatusListe, FreigebeRolleDialog, RollenUebersicht } from '../organisms';
 
 interface KraefteDashboardProps {
   einsatzId: string;
@@ -66,7 +67,7 @@ interface DashboardHeaderProps {
  */
 function DashboardHeader({ onRefresh, lastUpdated, isRefreshing, mode, onModeChange }: DashboardHeaderProps) {
   return (
-    <div className={cn('flex items-center justify-between', mode === 'fullscreen' && 'sticky top-0 z-10 -mx-6 -mt-6 bg-white px-6 py-4 shadow-sm dark:bg-gray-800 lg:-mx-8 lg:px-8')}>
+    <div className={cn('flex items-center justify-between', mode === 'fullscreen' && '-mx-6 -mt-6 lg:-mx-8 sticky top-0 z-10 bg-white px-6 py-4 shadow-sm lg:px-8 dark:bg-gray-800')}>
       <div className="flex items-center gap-3">
         <PiChartBar className={cn('text-gray-500 dark:text-gray-400', mode === 'fullscreen' ? 'h-8 w-8' : 'h-6 w-6')} />
         <h1 className={cn('font-bold text-gray-900 dark:text-gray-100', mode === 'fullscreen' ? 'text-3xl lg:text-4xl' : 'text-2xl')}>Kräfte-Dashboard</h1>
@@ -118,7 +119,7 @@ function ModeSelector({ mode, onModeChange }: ModeSelectorProps) {
         type="button"
         onClick={() => onModeChange('compact')}
         className={cn(
-          'rounded-md px-3 py-1.5 text-sm font-medium transition-colors',
+          'rounded-md px-3 py-1.5 font-medium text-sm transition-colors',
           mode === 'compact' ? 'bg-white text-gray-900 shadow-sm dark:bg-gray-600 dark:text-white' : 'text-gray-600 hover:text-gray-900 dark:text-gray-300 dark:hover:text-white',
         )}
         title="Kompakt-Modus für Tablets"
@@ -129,7 +130,7 @@ function ModeSelector({ mode, onModeChange }: ModeSelectorProps) {
         type="button"
         onClick={() => onModeChange('standard')}
         className={cn(
-          'rounded-md px-3 py-1.5 text-sm font-medium transition-colors',
+          'rounded-md px-3 py-1.5 font-medium text-sm transition-colors',
           mode === 'standard' ? 'bg-white text-gray-900 shadow-sm dark:bg-gray-600 dark:text-white' : 'text-gray-600 hover:text-gray-900 dark:text-gray-300 dark:hover:text-white',
         )}
         title="Standard-Ansicht"
@@ -140,7 +141,7 @@ function ModeSelector({ mode, onModeChange }: ModeSelectorProps) {
         type="button"
         onClick={() => onModeChange('fullscreen')}
         className={cn(
-          'rounded-md px-3 py-1.5 text-sm font-medium transition-colors',
+          'rounded-md px-3 py-1.5 font-medium text-sm transition-colors',
           mode === 'fullscreen' ? 'bg-white text-gray-900 shadow-sm dark:bg-gray-600 dark:text-white' : 'text-gray-600 hover:text-gray-900 dark:text-gray-300 dark:hover:text-white',
         )}
         title="Vollbild-Modus für Beamer"
@@ -153,6 +154,14 @@ function ModeSelector({ mode, onModeChange }: ModeSelectorProps) {
 
 export function KraefteDashboard({ einsatzId, className, mode = 'standard' }: KraefteDashboardProps) {
   const navigate = useNavigate();
+
+  // ========== Dialog State (Story TD2.4 - AC1, AC2, AC3) ==========
+  // FreigebeRolleDialog State
+  const [showFreigebeDialog, setShowFreigebeDialog] = useState(false);
+  const [selectedBesetzung, setSelectedBesetzung] = useState<RollenBesetzungListItemDto | null>(null);
+
+  // BesetzeRolleDialog State
+  const [showBesetzeDialog, setShowBesetzeDialog] = useState(false);
 
   // NUR StaerkeCard Query hier - FahrzeugStatusListe und RollenUebersicht
   // haben eigene Hooks und lesen refetchInterval via useDashboardMode()
@@ -180,19 +189,27 @@ export function KraefteDashboard({ einsatzId, className, mode = 'standard' }: Kr
     handleModeChange('standard');
   }, [handleModeChange]);
 
-  // AC4: ESC-Handler für Fullscreen (FullscreenCloseButton hat eigenen Handler)
-  // Aber wir brauchen auch einen im Dashboard für Konsistenz
-  useEffect(() => {
-    const handleKeydown = (event: KeyboardEvent) => {
-      if (event.key === 'Escape' && mode === 'fullscreen') {
-        event.preventDefault();
-        handleExitFullscreen();
-      }
-    };
+  // ========== Dialog Handler (Story TD2.4 - AC1, AC2, AC3) ==========
+  const handleOpenFreigebeDialog = useCallback((besetzung: RollenBesetzungListItemDto) => {
+    setSelectedBesetzung(besetzung);
+    setShowFreigebeDialog(true);
+  }, []);
 
-    window.addEventListener('keydown', handleKeydown);
-    return () => window.removeEventListener('keydown', handleKeydown);
-  }, [mode, handleExitFullscreen]);
+  const handleCloseFreigebeDialog = useCallback(() => {
+    setSelectedBesetzung(null);
+    setShowFreigebeDialog(false);
+  }, []);
+
+  const handleOpenBesetzeDialog = useCallback(() => {
+    setShowBesetzeDialog(true);
+  }, []);
+
+  const handleCloseBesetzeDialog = useCallback(() => {
+    setShowBesetzeDialog(false);
+  }, []);
+
+  // AC4: ESC-Handler wird durch FullscreenCloseButton gehandhabt
+  // Story 6.2 Code Review Action Item 5: Duplizierten Handler entfernt
 
   // Layout-Klassen nach Modus
   const gridClasses = {
@@ -215,7 +232,7 @@ export function KraefteDashboard({ einsatzId, className, mode = 'standard' }: Kr
           {/* Stärke-Card - KORREKT: Data-Props, nicht einsatzId */}
           <div className={mode === 'fullscreen' ? 'lg:col-span-1' : 'md:col-span-1'}>
             {staerkeQuery.isError ? (
-              <DashboardErrorCard title="Stärke" onRetry={() => staerkeQuery.refetch()} compact={mode === 'compact'} />
+              <DashboardErrorCard title="Stärke" onRetry={() => staerkeQuery.refetch()} />
             ) : (
               <StaerkeCard
                 fuehrung={staerkeQuery.data?.fuehrung ?? 0}
@@ -235,9 +252,13 @@ export function KraefteDashboard({ einsatzId, className, mode = 'standard' }: Kr
 
           {/* Rollen-Übersicht - Hat eigenen Hook, liest Mode via Context */}
           <div className={cn(mode === 'fullscreen' ? 'lg:col-span-1' : 'md:col-span-2')}>
-            <RollenUebersicht einsatzId={einsatzId} />
+            <RollenUebersicht einsatzId={einsatzId} onFreigebeClick={handleOpenFreigebeDialog} onBesetzeClick={handleOpenBesetzeDialog} />
           </div>
         </div>
+
+        {/* ========== Dialoge (Story TD2.4 - AC1, AC2) ========== */}
+        <BesetzeRolleDialog isOpen={showBesetzeDialog} onClose={handleCloseBesetzeDialog} einsatzId={einsatzId} />
+        <FreigebeRolleDialog isOpen={showFreigebeDialog} onClose={handleCloseFreigebeDialog} einsatzId={einsatzId} besetzung={selectedBesetzung} />
       </div>
     </DashboardModeProvider>
   );

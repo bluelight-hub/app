@@ -25,6 +25,11 @@ export const ADMIN_QUERY_KEYS = {
       list: (filters?: { istAktiv?: boolean }) => [...ADMIN_QUERY_KEYS.kraefte.qualifikationen.all(), 'list', filters].filter((v) => v !== undefined) as const,
       detail: (id: string) => [...ADMIN_QUERY_KEYS.kraefte.qualifikationen.all(), 'detail', id] as const,
     },
+    rollenDefinitionen: {
+      all: () => [...ADMIN_QUERY_KEYS.kraefte.all, 'rollenDefinitionen'] as const,
+      list: (filters?: { istAktiv?: boolean }) => [...ADMIN_QUERY_KEYS.kraefte.rollenDefinitionen.all(), 'list', filters].filter((v) => v !== undefined) as const,
+      detail: (id: string) => [...ADMIN_QUERY_KEYS.kraefte.rollenDefinitionen.all(), 'detail', id] as const,
+    },
   },
   stammdaten: {
     all: ['admin', 'stammdaten'] as const,

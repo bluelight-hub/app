@@ -86,7 +86,7 @@ function FahrzeugBadge({ fahrzeug }: { fahrzeug: EinsatzFahrzeugDto }) {
   };
 
   return (
-    <span className={cn('inline-flex items-center rounded-md px-2 py-1 text-xs font-medium', statusColors[fahrzeug.fmsStatus] ?? 'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-200')}>
+    <span className={cn('inline-flex items-center rounded-md px-2 py-1 font-medium text-xs', statusColors[fahrzeug.fmsStatus] ?? 'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-200')}>
       {fahrzeug.funkrufname}
     </span>
   );
