@@ -32,7 +32,7 @@ import {
   Inject,
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import type { ILogger } from '@domain/ports/i-logger.port';
+import { ILogger } from '@domain/ports/i-logger.port';
 import { LOGGER } from '@/infrastructure/di-tokens';
 import {
   ApiTags,
