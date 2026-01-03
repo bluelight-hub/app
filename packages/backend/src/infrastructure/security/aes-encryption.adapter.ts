@@ -19,7 +19,8 @@
 
 // biome-ignore lint/style/noRestrictedImports: Logger in Adapter ist erlaubt
 import { Injectable, Logger, type OnModuleInit } from '@nestjs/common';
-import type { ConfigService } from '@nestjs/config';
+// biome-ignore lint/style/useImportType: ConfigService wird für DI zur Laufzeit benötigt
+import { ConfigService } from '@nestjs/config';
 import * as crypto from 'node:crypto';
 import type { IEncryptionPort } from '@domain/ports/i-encryption.port';
 
