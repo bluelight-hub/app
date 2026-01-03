@@ -1,4 +1,5 @@
 .openapi-generator-ignore
+apis/AdminIntegrationsHiorgApi.ts
 apis/AdminKraefteFahrzeugtypenApi.ts
 apis/AdminKraefteFunkstatusApi.ts
 apis/AdminKraefteQualifikationenApi.ts
@@ -33,6 +34,12 @@ models/AdminFahrzeugtypenControllerCreateVAlpha201Response.ts
 models/AdminFahrzeugtypenControllerFindAllVAlpha200Response.ts
 models/AdminFunkStatusControllerFindAllVAlpha200Response.ts
 models/AdminFunkStatusControllerFindByCodeVAlpha200Response.ts
+models/AdminHiOrgIntegrationControllerAutoMatchQualifikationenVAlpha200Response.ts
+models/AdminHiOrgIntegrationControllerGetCredentialsVAlpha200Response.ts
+models/AdminHiOrgIntegrationControllerGetQualifikationMappingsVAlpha200Response.ts
+models/AdminHiOrgIntegrationControllerInitiateOAuthFlowVAlpha200Response.ts
+models/AdminHiOrgIntegrationControllerPreviewPersonsVAlpha200Response.ts
+models/AdminHiOrgIntegrationControllerTestConnectionVAlpha200Response.ts
 models/AdminLoginResponseDto.ts
 models/AdminPasswordDto.ts
 models/AdminQualifikationenControllerCreateVAlpha201Response.ts
@@ -56,6 +63,9 @@ models/AuthRequestDto.ts
 models/AuthResponseDto.ts
 models/AuthUserDto.ts
 models/AuthUserResponseDto.ts
+models/AutoMatchRequestDto.ts
+models/AutoMatchResultItemDto.ts
+models/AutoMatchResultResponseDto.ts
 models/BesatzungMemberDto.ts
 models/BesetzeRolleDto.ts
 models/CompletenessResponseDto.ts
@@ -108,7 +118,12 @@ models/GeocodeAddressDto.ts
 models/HealthControllerCheck200Response.ts
 models/HealthControllerCheck200ResponseInfoValue.ts
 models/HealthControllerCheck503Response.ts
+models/HiOrgConnectionInfoDto.ts
+models/HiOrgCredentialsResponseDto.ts
+models/HiOrgPersonPreviewItemDto.ts
+models/HiOrgPersonsPreviewResponseDto.ts
 models/InitialPoiDto.ts
+models/InitiateOAuthResponseDto.ts
 models/KraefteDashboardControllerGetTaktischeStaerkeVAlpha200Response.ts
 models/LagekarteControllerSaveLagekarteStateVAlpha200Response.ts
 models/LagekarteDto.ts
@@ -129,6 +144,8 @@ models/PositionDto.ts
 models/PublicUserDto.ts
 models/PublicUsersResponseDto.ts
 models/QualifikationDto.ts
+models/QualifikationMappingItemDto.ts
+models/QualifikationMappingsResponseDto.ts
 models/RefreshResponseDto.ts
 models/RegistrierePersonDto.ts
 models/RegistrierePersonViaQrCodeDto.ts
@@ -140,6 +157,7 @@ models/RollenBesetzungDto.ts
 models/RollenBesetzungListItemDto.ts
 models/RollenDefinitionDto.ts
 models/SaveLagekarteStateDto.ts
+models/SaveQualifikationMappingRequestDto.ts
 models/StammFahrzeugDto.ts
 models/StammPersonDto.ts
 models/StammPersonQualifikationDto.ts
