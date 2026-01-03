@@ -2,6 +2,7 @@
 import { IEinsatzRepository } from '@domain/repositories';
 import { EinsatzId } from '@domain/value-objects/einsatz-id';
 import { CommandHandler } from '@nestjs/cqrs';
+// biome-ignore lint/style/noRestrictedImports: Logger DI migration pending (Epic-X)
 import { Inject, Injectable, Logger } from '@nestjs/common';
 import { UpdateEinsatzCommand } from './update-einsatz.command';
 import { TransactionalCommandHandler } from '@application/common/handlers/transactional-command.handler';
@@ -81,7 +82,7 @@ export class UpdateEinsatzHandler extends TransactionalCommandHandler<UpdateEins
    * @param tx - Transaction Context (framework-agnostisch, Infrastructure castet zu Prisma)
    * @returns Result<{ result: void; events: DomainEvent[] }> - Success oder Failure
    */
-  protected async executeInTransaction(command: UpdateEinsatzCommand, tx: TransactionContext): Promise<Result<void> | { result: void; events: DomainEvent[] }> {
+  protected async executeInTransaction(command: UpdateEinsatzCommand, tx: TransactionContext): Promise<Result<void> | { result: undefined; events: DomainEvent[] }> {
     // Step 1: Validate EinsatzId format
     const einsatzIdResult = EinsatzId.create(command.einsatzId);
     if (einsatzIdResult.isFailure) {

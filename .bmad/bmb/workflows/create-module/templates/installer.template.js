@@ -12,7 +12,7 @@
  * @returns {boolean} - true if successful, false to abort installation
  */
 async function install(options) {
-  // eslint-disable-next-line no-unused-vars
+  // biome-ignore lint/correctness/noUnusedVariables: Template - variables available for customization
   const { projectRoot, config, installedIDEs, logger } = options;
 
   logger.log('Installing {module_display_name}...');

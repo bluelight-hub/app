@@ -4,6 +4,7 @@ import { EinsatzCompletenessService } from '@domain/services/einsatz-completenes
 import { UserId } from '@domain/value-objects/user-id';
 import { EinsatzId } from '@domain/value-objects/einsatz-id';
 import { CommandHandler } from '@nestjs/cqrs';
+// biome-ignore lint/style/noRestrictedImports: Logger DI migration pending (Epic-X)
 import { Inject, Injectable, Logger } from '@nestjs/common';
 import { CompleteEinsatzCommand } from './complete-einsatz.command';
 import { TransactionalCommandHandler } from '@application/common/handlers/transactional-command.handler';
@@ -89,7 +90,7 @@ export class CompleteEinsatzHandler extends TransactionalCommandHandler<Complete
    * @returns Result<{ result: TResult; events: DomainEvent[] }> - Success oder Failure
    * @throws Error bei Business Rule Violations (triggert Transaction Rollback)
    */
-  protected async executeInTransaction(command: CompleteEinsatzCommand, tx: TransactionContext): Promise<Result<void> | { result: void; events: DomainEvent[] }> {
+  protected async executeInTransaction(command: CompleteEinsatzCommand, tx: TransactionContext): Promise<Result<void> | { result: undefined; events: DomainEvent[] }> {
     // Step 1: Validate EinsatzId format
     const einsatzIdResult = EinsatzId.create(command.einsatzId);
     if (einsatzIdResult.isFailure) {
