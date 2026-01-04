@@ -2,6 +2,8 @@ import { Module } from '@nestjs/common';
 import { PrismaModule } from '@infrastructure/database/prisma.module';
 import { OutboxModule } from '@infrastructure/outbox/outbox.module';
 import { KraefteInfrastructureModule } from '@infrastructure/kraefte/kraefte-infrastructure.module';
+import { LOGGER } from '@infrastructure/di-tokens';
+import { NestLoggerAdapter } from '@infrastructure/common/adapters/nest-logger.adapter';
 
 // Command Handlers
 import { CreateFahrzeugtypHandler } from './commands/create-fahrzeugtyp/create-fahrzeugtyp.handler';
@@ -21,6 +23,11 @@ import { GetFahrzeugtypByIdHandler } from './queries/get-fahrzeugtyp-by-id/get-f
 @Module({
   imports: [PrismaModule, OutboxModule, KraefteInfrastructureModule],
   providers: [
+    // Logger für Fahrzeugtypen Handlers
+    {
+      provide: LOGGER,
+      useFactory: () => new NestLoggerAdapter('Fahrzeugtypen'),
+    },
     // Command Handlers
     CreateFahrzeugtypHandler,
     UpdateFahrzeugtypHandler,

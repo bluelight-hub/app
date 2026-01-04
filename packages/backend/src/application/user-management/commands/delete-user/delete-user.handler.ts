@@ -2,10 +2,11 @@ import type { IUserRepository } from '@domain/repositories/i-user.repository';
 import { UserId } from '@domain/value-objects/user-id';
 import { UserRole } from '@domain/value-objects/user-role';
 import { CommandHandler } from '@nestjs/cqrs';
-import { Inject, Injectable, Logger } from '@nestjs/common';
+import { Inject, Injectable } from '@nestjs/common';
 import { DeleteUserCommand } from './delete-user.command';
 import { Result } from '@domain/common/result';
-import { USER_REPOSITORY, OUTBOX_REPOSITORY } from '@infrastructure/di-tokens';
+import { USER_REPOSITORY, OUTBOX_REPOSITORY, LOGGER } from '@infrastructure/di-tokens';
+import type { ILogger } from '@domain/ports/i-logger.port';
 import type { TransactionContext } from '@domain/common';
 import { TransactionalCommandHandler } from '@application/common/handlers/transactional-command.handler';
 import type { DomainEvent } from '@domain/common/domain-event';
@@ -77,13 +78,12 @@ import { PrismaService } from '@infrastructure/database/prisma.service';
 @CommandHandler(DeleteUserCommand)
 @Injectable()
 export class DeleteUserHandler extends TransactionalCommandHandler<DeleteUserCommand, void> {
-  private readonly logger = new Logger(DeleteUserHandler.name);
-
   constructor(
     prisma: PrismaService,
     @Inject(OUTBOX_REPOSITORY) outboxRepository: IOutboxRepository,
     @Inject(USER_REPOSITORY)
     private readonly userRepository: IUserRepository,
+    @Inject(LOGGER) protected readonly logger: ILogger,
   ) {
     super(prisma, outboxRepository);
   }
@@ -111,7 +111,7 @@ export class DeleteUserHandler extends TransactionalCommandHandler<DeleteUserCom
    * @param tx - Transaction Context (framework-agnostisch)
    * @returns Result<{ result: void; events: DomainEvent[] }> - Success oder Failure
    */
-  protected async executeInTransaction(command: DeleteUserCommand, tx: TransactionContext): Promise<Result<void> | { result: void; events: DomainEvent[] }> {
+  protected async executeInTransaction(command: DeleteUserCommand, tx: TransactionContext): Promise<Result<void> | { result: undefined; events: DomainEvent[] }> {
     // Step 1: Validate UserId format
     const userIdResult = UserId.create(command.id);
     if (userIdResult.isFailure) {

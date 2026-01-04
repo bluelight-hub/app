@@ -14,11 +14,12 @@
  * @see RolleBesetztHandler - Application Layer Implementation
  * @see EVENT_HANDLER.ROLLE_BESETZT_ETB - DI Token
  */
-import { Injectable, Inject, Logger } from '@nestjs/common';
+import { Injectable, Inject } from '@nestjs/common';
 import { OnEvent } from '@nestjs/event-emitter';
 import type { IEventHandler } from '@domain/ports/i-event-handler.port';
+import type { ILogger } from '@domain/ports/i-logger.port';
 import { RolleBesetzt } from '@domain/kraefte/events/rolle-besetzt.event';
-import { EVENT_HANDLER } from '@infrastructure/di-tokens';
+import { EVENT_HANDLER, LOGGER } from '@infrastructure/di-tokens';
 
 /**
  * NestJS Event Adapter für RolleBesetzt ETB-Eintrag Creation.
@@ -28,11 +29,10 @@ import { EVENT_HANDLER } from '@infrastructure/di-tokens';
  */
 @Injectable()
 export class RolleBesetztEventAdapter {
-  private readonly logger = new Logger(RolleBesetztEventAdapter.name);
-
   constructor(
     @Inject(EVENT_HANDLER.ROLLE_BESETZT_ETB)
     private readonly handler: IEventHandler<RolleBesetzt>,
+    @Inject(LOGGER) private readonly logger: ILogger,
   ) {}
 
   /**

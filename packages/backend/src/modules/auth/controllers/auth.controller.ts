@@ -9,7 +9,7 @@ import {
   Get,
   HttpCode,
   HttpStatus,
-  Logger,
+  Inject,
   NotFoundException,
   Post,
   Req,
@@ -18,6 +18,8 @@ import {
   UseGuards,
   VERSION_NEUTRAL,
 } from '@nestjs/common';
+import type { ILogger } from '@domain/ports/i-logger.port';
+import { LOGGER } from '@/infrastructure/di-tokens';
 import { ConfigService } from '@nestjs/config';
 import { ApiBody, ApiCookieAuth, ApiForbiddenResponse, ApiNoContentResponse, ApiOkResponse, ApiOperation, ApiResponse, ApiTags, ApiUnauthorizedResponse } from '@nestjs/swagger';
 import { SkipThrottle, Throttle } from '@nestjs/throttler';
@@ -64,14 +66,13 @@ import { LogoutCommand } from '@/application/auth/commands/logout/logout.command
 })
 @SkipTransform()
 export class AuthController {
-  private readonly logger = new Logger(AuthController.name);
-
   constructor(
     private readonly authService: AuthService,
     private readonly configService: ConfigService,
     private readonly appConfig: AppConfigService,
     private readonly loginHandler: LoginHandler,
     private readonly logoutHandler: LogoutHandler,
+    @Inject(LOGGER) private readonly logger: ILogger,
   ) {}
 
   /**

@@ -1,10 +1,12 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Inject, Injectable } from '@nestjs/common';
 // biome-ignore lint/style/useImportType: JwtService needed for NestJS DI at runtime (AC1)
 import { JwtService } from '@nestjs/jwt';
 import type { IJwtAuthServicePort } from '@domain/ports/i-jwt-auth-service.port';
+import type { ILogger } from '@domain/ports/i-logger.port';
 import { UserId } from '@domain/value-objects/user-id';
 import { UserRole } from '@domain/value-objects/user-role';
 import { Result } from '@domain/common/result';
+import { LOGGER } from '@infrastructure/di-tokens';
 
 /**
  * JWT Payload Struktur.
@@ -68,9 +70,10 @@ interface JwtPayload {
  */
 @Injectable()
 export class JwtTokenServiceAdapter implements IJwtAuthServicePort {
-  private readonly logger = new Logger(JwtTokenServiceAdapter.name);
-
-  constructor(private readonly jwtService: JwtService) {}
+  constructor(
+    private readonly jwtService: JwtService,
+    @Inject(LOGGER) private readonly logger: ILogger,
+  ) {}
 
   /**
    * Generiert einen JWT Access Token für authentifizierten User.

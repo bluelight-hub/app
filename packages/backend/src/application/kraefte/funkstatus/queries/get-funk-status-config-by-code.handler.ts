@@ -1,8 +1,9 @@
-import { Inject, Injectable, Logger } from '@nestjs/common';
+import { Inject, Injectable } from '@nestjs/common';
+import type { ILogger } from '@domain/ports/i-logger.port';
 import { Result } from '@domain/common/result';
 // biome-ignore lint/style/useImportType: IFunkStatusConfigRepository needed for DI at runtime
 import { IFunkStatusConfigRepository } from '@domain/kraefte/repositories/i-funk-status-config.repository';
-import { KRAEFTE_REPOSITORIES } from '@infrastructure/di-tokens';
+import { KRAEFTE_REPOSITORIES, LOGGER } from '@infrastructure/di-tokens';
 import type { FunkStatusConfigDto } from '../dto/funk-status-config.dto';
 import type { FunkStatusConfig } from '@domain/kraefte/aggregates/funk-status-config.aggregate';
 import { FUNKSTATUS_VALIDATION, FUNKSTATUS_VALIDATION_ERRORS } from '@domain/kraefte/constants/funkstatus-validation.constants';
@@ -19,11 +20,11 @@ import { FUNKSTATUS_VALIDATION, FUNKSTATUS_VALIDATION_ERRORS } from '@domain/kra
  */
 @Injectable()
 export class GetFunkStatusConfigByCodeHandler {
-  protected readonly logger = new Logger(GetFunkStatusConfigByCodeHandler.name);
-
   constructor(
     @Inject(KRAEFTE_REPOSITORIES.FUNK_STATUS_CONFIG)
     private readonly repository: IFunkStatusConfigRepository,
+    @Inject(LOGGER)
+    private readonly logger: ILogger,
   ) {}
 
   /**

@@ -3,7 +3,8 @@ import { PrismaModule } from '@/infrastructure/database/prisma.module';
 import { PrismaEtbRepository } from './repositories/prisma-etb.repository';
 import { PrismaOutboxRepository } from '@/infrastructure/outbox/prisma-outbox.repository';
 import { EventSerializer } from '@/infrastructure/outbox/event-serializer';
-import { ETB_REPOSITORY, OUTBOX_REPOSITORY } from '@infrastructure/di-tokens';
+import { ETB_REPOSITORY, LOGGER, OUTBOX_REPOSITORY } from '@infrastructure/di-tokens';
+import { NestLoggerAdapter } from '../common/adapters/nest-logger.adapter';
 
 /**
  * NestJS Module für ETB Infrastructure Layer.
@@ -47,6 +48,12 @@ import { ETB_REPOSITORY, OUTBOX_REPOSITORY } from '@infrastructure/di-tokens';
 @Module({
   imports: [PrismaModule],
   providers: [
+    // Logger für ETB Infrastructure
+    {
+      provide: LOGGER,
+      useFactory: () => new NestLoggerAdapter('EtbInfrastructure'),
+    },
+
     // Outbox Infrastructure (Story 4-4)
     EventSerializer,
     PrismaOutboxRepository,

@@ -51,4 +51,25 @@ export class HiOrgOAuthConfigAdapter implements IHiOrgOAuthConfigPort {
 
     return { clientId, clientSecret };
   }
+
+  /**
+   * Gibt die Client ID zurück.
+   *
+   * @returns Client ID oder undefined wenn nicht konfiguriert
+   */
+  getClientId(): string | undefined {
+    return this.config.get<string>('HIORG_OAUTH_CLIENT_ID');
+  }
+
+  /**
+   * Gibt die OAuth2 Redirect URI für den Callback zurück.
+   *
+   * Nutzt APP_URL aus der Konfiguration mit Fallback auf localhost.
+   *
+   * @returns Vollständige Redirect URI
+   */
+  getRedirectUri(): string {
+    const appUrl = this.config.get<string>('APP_URL', 'http://localhost:3091');
+    return `${appUrl}/api/oauth/hiorg/callback`;
+  }
 }

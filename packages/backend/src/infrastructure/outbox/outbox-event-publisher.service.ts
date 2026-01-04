@@ -4,7 +4,9 @@ import type { TransactionContext } from '@domain/common/transaction';
 import type { OutboxEventDto } from '@domain/repositories/i-outbox.repository';
 import type { IAlertService } from '@domain/services/ports/i-alert.service';
 import { IEventPublisher } from '@domain/services/ports/i-event-publisher.port';
-import { Inject, Injectable, Logger, OnModuleDestroy, OnModuleInit, Optional } from '@nestjs/common';
+import { Inject, Injectable, OnModuleDestroy, OnModuleInit, Optional } from '@nestjs/common';
+import type { ILogger } from '@domain/ports/i-logger.port';
+import { LOGGER } from '@infrastructure/di-tokens';
 import { Cron, CronExpression } from '@nestjs/schedule';
 import { EventDeserializer } from './event-deserializer';
 import { PrismaOutboxRepository } from './prisma-outbox.repository';
@@ -67,20 +69,22 @@ export const OUTBOX_PUBLISHER_CONFIG = 'OUTBOX_PUBLISHER_CONFIG';
  */
 @Injectable()
 export class OutboxEventPublisher implements OnModuleInit, OnModuleDestroy {
-  /** Nach wie vielen leeren Polls eine Log-Meldung ausgegeben wird */
-  private static readonly EMPTY_LOG_THRESHOLD = 1000;
-  private readonly logger = new Logger(OutboxEventPublisher.name);
+  /** Nach wie vielen leeren Polls/Skips eine Log-Meldung ausgegeben wird */
+  private static readonly LOG_THROTTLE_THRESHOLD = 1000;
   private isRunning = false;
   private isEnabled = true;
   private readonly config: OutboxPublisherConfig;
   /** Zähler für aufeinanderfolgende leere Polls (Throttling) */
   private consecutiveEmptyPolls = 0;
+  /** Zähler für aufeinanderfolgende Skips (Throttling) */
+  private consecutiveSkips = 0;
 
   constructor(
     private readonly prisma: PrismaService,
     private readonly outboxRepository: PrismaOutboxRepository,
     private readonly eventDeserializer: EventDeserializer,
     @Inject(EVENT_PUBLISHER) private readonly eventPublisher: IEventPublisher,
+    @Inject(LOGGER) private readonly logger: ILogger,
     @Optional() @Inject(ALERT_SERVICE) private readonly alertService?: IAlertService,
     @Optional() @Inject(OUTBOX_PUBLISHER_CONFIG) config?: OutboxPublisherConfig,
   ) {
@@ -117,9 +121,15 @@ export class OutboxEventPublisher implements OnModuleInit, OnModuleDestroy {
   async publishPendingEvents(): Promise<void> {
     // Concurrent Prevention: Skip if already running
     if (this.isRunning) {
-      this.logger.debug('Skipping: Previous job still running');
+      this.consecutiveSkips++;
+      // Nur alle LOG_THROTTLE_THRESHOLD Skips loggen um Spam zu vermeiden
+      if (this.consecutiveSkips % OutboxEventPublisher.LOG_THROTTLE_THRESHOLD === 0) {
+        this.logger.debug(`Skipping: Previous job still running (${this.consecutiveSkips} consecutive skips)`);
+      }
       return;
     }
+    // Job läuft → Skip-Counter zurücksetzen
+    this.consecutiveSkips = 0;
 
     // Graceful Shutdown: Skip if disabled
     if (!this.isEnabled) {
@@ -172,8 +182,8 @@ export class OutboxEventPublisher implements OnModuleInit, OnModuleDestroy {
 
         if (events.length === 0) {
           this.consecutiveEmptyPolls++;
-          // Nur alle EMPTY_LOG_THRESHOLD Polls loggen um Spam zu vermeiden
-          if (this.consecutiveEmptyPolls % OutboxEventPublisher.EMPTY_LOG_THRESHOLD === 0) {
+          // Nur alle LOG_THROTTLE_THRESHOLD Polls loggen um Spam zu vermeiden
+          if (this.consecutiveEmptyPolls % OutboxEventPublisher.LOG_THROTTLE_THRESHOLD === 0) {
             this.logger.debug(`No pending events found in outbox (${this.consecutiveEmptyPolls} consecutive empty polls)`);
           }
           return;

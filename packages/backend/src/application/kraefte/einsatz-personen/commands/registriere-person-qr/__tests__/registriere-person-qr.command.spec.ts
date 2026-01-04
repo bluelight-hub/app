@@ -585,7 +585,7 @@ describe('RegistrierePersonViaQrCodeCommand', () => {
 
       it('should accept personalnummer with special character at position 50 (Medium Issue 5)', () => {
         // Given - Special char at boundary
-        const props = createValidProps({ personalnummer: 'A'.repeat(49) + '-' });
+        const props = createValidProps({ personalnummer: `${'A'.repeat(49)}-` });
 
         // When
         const result = RegistrierePersonViaQrCodeCommand.create(props);
@@ -598,7 +598,7 @@ describe('RegistrierePersonViaQrCodeCommand', () => {
 
       it('should reject personalnummer with XSS at position 50', () => {
         // Given - XSS character at boundary position
-        const props = createValidProps({ personalnummer: 'A'.repeat(49) + '<' });
+        const props = createValidProps({ personalnummer: `${'A'.repeat(49)}<` });
 
         // When
         const result = RegistrierePersonViaQrCodeCommand.create(props);
@@ -850,7 +850,7 @@ describe('RegistrierePersonViaQrCodeCommand', () => {
 
       it('should reject XSS character at exact boundary position (MEDIUM Issue 17)', () => {
         // Given - XSS character at position 100 (exact limit)
-        const props = createValidProps({ vorname: 'A'.repeat(99) + '<' });
+        const props = createValidProps({ vorname: `${'A'.repeat(99)}<` });
 
         // When
         const result = RegistrierePersonViaQrCodeCommand.create(props);
@@ -862,7 +862,7 @@ describe('RegistrierePersonViaQrCodeCommand', () => {
 
       it('should reject XSS character at exact boundary position in nachname (MEDIUM Issue 17)', () => {
         // Given - XSS character at position 100 (exact limit)
-        const props = createValidProps({ nachname: 'B'.repeat(99) + '>' });
+        const props = createValidProps({ nachname: `${'B'.repeat(99)}>` });
 
         // When
         const result = RegistrierePersonViaQrCodeCommand.create(props);
@@ -885,13 +885,17 @@ describe('RegistrierePersonViaQrCodeCommand', () => {
 
       it('should handle undefined props gracefully', () => {
         // Given
-        // biome-ignore lint/suspicious/noExplicitAny: Test validates handling of invalid input types
         const props = {
-          einsatzId: undefined as any, // biome-ignore lint/suspicious/noExplicitAny: Intentional invalid input
-          personalnummer: undefined as any, // biome-ignore lint/suspicious/noExplicitAny: Intentional invalid input
-          vorname: undefined as any, // biome-ignore lint/suspicious/noExplicitAny: Intentional invalid input
-          nachname: undefined as any, // biome-ignore lint/suspicious/noExplicitAny: Intentional invalid input
-          registriertVon: undefined as any, // biome-ignore lint/suspicious/noExplicitAny: Intentional invalid input
+          // biome-ignore lint/suspicious/noExplicitAny: Test validates handling of invalid input types
+          einsatzId: undefined as any,
+          // biome-ignore lint/suspicious/noExplicitAny: Test validates handling of invalid input types
+          personalnummer: undefined as any,
+          // biome-ignore lint/suspicious/noExplicitAny: Test validates handling of invalid input types
+          vorname: undefined as any,
+          // biome-ignore lint/suspicious/noExplicitAny: Test validates handling of invalid input types
+          nachname: undefined as any,
+          // biome-ignore lint/suspicious/noExplicitAny: Test validates handling of invalid input types
+          registriertVon: undefined as any,
         };
 
         // When
@@ -904,13 +908,17 @@ describe('RegistrierePersonViaQrCodeCommand', () => {
 
       it('should handle null props gracefully', () => {
         // Given
-        // biome-ignore lint/suspicious/noExplicitAny: Test validates handling of invalid input types
         const props = {
-          einsatzId: null as any, // biome-ignore lint/suspicious/noExplicitAny: Intentional invalid input
-          personalnummer: null as any, // biome-ignore lint/suspicious/noExplicitAny: Intentional invalid input
-          vorname: null as any, // biome-ignore lint/suspicious/noExplicitAny: Intentional invalid input
-          nachname: null as any, // biome-ignore lint/suspicious/noExplicitAny: Intentional invalid input
-          registriertVon: null as any, // biome-ignore lint/suspicious/noExplicitAny: Intentional invalid input
+          // biome-ignore lint/suspicious/noExplicitAny: Test validates handling of invalid input types
+          einsatzId: null as any,
+          // biome-ignore lint/suspicious/noExplicitAny: Test validates handling of invalid input types
+          personalnummer: null as any,
+          // biome-ignore lint/suspicious/noExplicitAny: Test validates handling of invalid input types
+          vorname: null as any,
+          // biome-ignore lint/suspicious/noExplicitAny: Test validates handling of invalid input types
+          nachname: null as any,
+          // biome-ignore lint/suspicious/noExplicitAny: Test validates handling of invalid input types
+          registriertVon: null as any,
         };
 
         // When

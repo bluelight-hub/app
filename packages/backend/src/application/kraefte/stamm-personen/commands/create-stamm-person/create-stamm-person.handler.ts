@@ -1,4 +1,5 @@
-import { Inject, Injectable, Logger } from '@nestjs/common';
+import { Inject, Injectable } from '@nestjs/common';
+import type { ILogger } from '@domain/ports/i-logger.port';
 import { TransactionalCommandHandler } from '@application/common/handlers/transactional-command.handler';
 import type { DomainEvent } from '@domain/common/domain-event';
 import { Result } from '@domain/common/result';
@@ -11,7 +12,7 @@ import { IQualifikationRepository } from '@domain/kraefte/repositories/i-qualifi
 import { QualifikationId } from '@domain/kraefte/value-objects/qualifikation-id';
 // biome-ignore lint/style/useImportType: IOutboxRepository needed for DI at runtime
 import { IOutboxRepository } from '@domain/repositories/i-outbox.repository';
-import { KRAEFTE_REPOSITORIES, OUTBOX_REPOSITORY } from '@infrastructure/di-tokens';
+import { KRAEFTE_REPOSITORIES, LOGGER, OUTBOX_REPOSITORY } from '@infrastructure/di-tokens';
 // biome-ignore lint/style/useImportType: PrismaService needed for DI at runtime
 import { PrismaService } from '@/infrastructure/database/prisma.service';
 import type { StammPersonDto } from '../../dto';
@@ -48,11 +49,10 @@ import type { CreateStammPersonCommand } from './create-stamm-person.command';
  */
 @Injectable()
 export class CreateStammPersonHandler extends TransactionalCommandHandler<CreateStammPersonCommand, StammPersonDto> {
-  protected readonly logger = new Logger(CreateStammPersonHandler.name);
-
   constructor(
     prisma: PrismaService,
     @Inject(OUTBOX_REPOSITORY) outboxRepository: IOutboxRepository,
+    @Inject(LOGGER) protected readonly logger: ILogger,
     @Inject(KRAEFTE_REPOSITORIES.STAMM_PERSON)
     private readonly stammPersonRepository: IStammPersonRepository,
     @Inject(KRAEFTE_REPOSITORIES.QUALIFIKATION)
@@ -112,6 +112,7 @@ export class CreateStammPersonHandler extends TransactionalCommandHandler<Create
         }
       }
 
+      // biome-ignore lint/style/noNonNullAssertion: Loop above ensures all results are successful, value guaranteed non-null
       const qualifikationIds = qualifikationIdResults.map((r) => r.value!);
 
       // Batch-Check: Existieren ALLE Qualifikationen?
@@ -124,6 +125,7 @@ export class CreateStammPersonHandler extends TransactionalCommandHandler<Create
         return Result.fail(existsResult.error);
       }
 
+      // biome-ignore lint/style/noNonNullAssertion: isFailure check above guarantees value is non-null on success
       const { allExist, missing } = existsResult.value!;
       if (!allExist) {
         return Result.fail(QualifikationError.format(QUALIFIKATION_ERROR_CODES.NOT_FOUND, `Die folgenden Qualifikationen existieren nicht: ${missing.join(', ')}`));

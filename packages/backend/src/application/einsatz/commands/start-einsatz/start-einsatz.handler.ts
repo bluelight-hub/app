@@ -1,11 +1,11 @@
 // biome-ignore lint/style/useImportType: IEinsatzRepository needed for DI at runtime
 import { IEinsatzRepository } from '@domain/repositories';
+import type { ILogger } from '@domain/ports/i-logger.port';
 import { EinsatzId } from '@domain/value-objects/einsatz-id';
 import { EinsatzStatus } from '@domain/value-objects/einsatz-status';
 import { UserId } from '@domain/value-objects/user-id';
 import { CommandHandler } from '@nestjs/cqrs';
-// biome-ignore lint/style/noRestrictedImports: Logger DI migration pending (Epic-X)
-import { Inject, Injectable, Logger } from '@nestjs/common';
+import { Inject, Injectable } from '@nestjs/common';
 import { StartEinsatzCommand } from './start-einsatz.command';
 import { TransactionalCommandHandler } from '@application/common/handlers/transactional-command.handler';
 // biome-ignore lint/style/useImportType: PrismaService needed for DI at runtime
@@ -15,7 +15,7 @@ import { IOutboxRepository } from '@domain/repositories/i-outbox.repository';
 import type { DomainEvent } from '@domain/common/domain-event';
 import type { TransactionContext } from '@domain/common';
 import { Result } from '@domain/common/result';
-import { EINSATZ_REPOSITORY, OUTBOX_REPOSITORY } from '@infrastructure/di-tokens';
+import { EINSATZ_REPOSITORY, OUTBOX_REPOSITORY, LOGGER } from '@infrastructure/di-tokens';
 
 /**
  * Handler für StartEinsatzCommand mit Transactional Outbox Pattern.
@@ -57,13 +57,13 @@ import { EINSATZ_REPOSITORY, OUTBOX_REPOSITORY } from '@infrastructure/di-tokens
 @CommandHandler(StartEinsatzCommand)
 @Injectable()
 export class StartEinsatzHandler extends TransactionalCommandHandler<StartEinsatzCommand, void> {
-  private readonly logger = new Logger(StartEinsatzHandler.name);
-
   constructor(
     prisma: PrismaService,
     @Inject(OUTBOX_REPOSITORY) outboxRepository: IOutboxRepository,
     @Inject(EINSATZ_REPOSITORY)
     private readonly einsatzRepository: IEinsatzRepository,
+    @Inject(LOGGER)
+    protected readonly logger: ILogger,
   ) {
     super(prisma, outboxRepository);
   }

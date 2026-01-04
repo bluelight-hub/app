@@ -1,4 +1,4 @@
-import { Injectable, Logger, Inject } from '@nestjs/common';
+import { Injectable, Inject } from '@nestjs/common';
 import { CommandHandler, type ICommandHandler } from '@nestjs/cqrs';
 import { Result } from '@domain/common/result';
 import { LagekarteAggregate } from '@domain/aggregates/lagekarte.aggregate';
@@ -10,9 +10,10 @@ import { UserId } from '@domain/value-objects/user-id';
 import type { IEinsatzRepository } from '@domain/repositories';
 import type { ILagekarteRepository } from '@domain/repositories';
 import type { IEventPublisher } from '@domain/services/ports/i-event-publisher.port';
+import type { ILogger } from '@domain/ports/i-logger.port';
 import { CoordinateConverter } from '@application/common/coordinate-converter';
 import { CreateLagekarteCommand } from './create-lagekarte.command';
-import { EINSATZ_REPOSITORY, LAGEKARTE_REPOSITORY, EVENT_PUBLISHER } from '@infrastructure/di-tokens';
+import { EINSATZ_REPOSITORY, LAGEKARTE_REPOSITORY, EVENT_PUBLISHER, LOGGER } from '@infrastructure/di-tokens';
 
 /**
  * Handler für CreateLagekarteCommand.
@@ -31,9 +32,9 @@ import { EINSATZ_REPOSITORY, LAGEKARTE_REPOSITORY, EVENT_PUBLISHER } from '@infr
 @Injectable()
 @CommandHandler(CreateLagekarteCommand)
 export class CreateLagekarteCommandHandler implements ICommandHandler<CreateLagekarteCommand, Result<LagekarteId>> {
-  private readonly logger = new Logger(CreateLagekarteCommandHandler.name);
-
   constructor(
+    @Inject(LOGGER)
+    private readonly logger: ILogger,
     @Inject(EINSATZ_REPOSITORY)
     private readonly einsatzRepository: IEinsatzRepository,
     @Inject(LAGEKARTE_REPOSITORY)

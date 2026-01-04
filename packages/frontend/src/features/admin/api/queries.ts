@@ -50,6 +50,7 @@ export const ADMIN_QUERY_KEYS = {
       all: () => [...ADMIN_QUERY_KEYS.integrations.all, 'hiorg'] as const,
       credentials: () => [...ADMIN_QUERY_KEYS.integrations.hiorg.all(), 'credentials'] as const,
       preview: (filters?: { activeOnly?: boolean }) => [...ADMIN_QUERY_KEYS.integrations.hiorg.all(), 'preview', filters].filter((v) => v !== undefined) as const,
+      qualifikationMappings: () => [...ADMIN_QUERY_KEYS.integrations.hiorg.all(), 'qualifikationMappings'] as const,
     },
   },
 } as const;

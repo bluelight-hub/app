@@ -2,6 +2,8 @@ import { Module } from '@nestjs/common';
 import { PrismaModule } from '@infrastructure/database/prisma.module';
 import { OutboxModule } from '@infrastructure/outbox/outbox.module';
 import { KraefteInfrastructureModule } from '@infrastructure/kraefte/kraefte-infrastructure.module';
+import { LOGGER } from '@infrastructure/di-tokens';
+import { NestLoggerAdapter } from '@infrastructure/common/adapters/nest-logger.adapter';
 
 // Command Handlers
 import { CreateRollenDefinitionHandler } from './commands/create-rollen-definition/create-rollen-definition.handler';
@@ -21,6 +23,11 @@ import { GetRollenDefinitionByIdQueryHandler } from './queries/get-rollen-defini
 @Module({
   imports: [PrismaModule, OutboxModule, KraefteInfrastructureModule],
   providers: [
+    // Logger für Rollen Handlers
+    {
+      provide: LOGGER,
+      useFactory: () => new NestLoggerAdapter('Rollen'),
+    },
     // Command Handlers
     CreateRollenDefinitionHandler,
     UpdateRollenDefinitionHandler,

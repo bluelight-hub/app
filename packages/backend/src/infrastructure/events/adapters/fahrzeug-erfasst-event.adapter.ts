@@ -14,11 +14,12 @@
  * @see FahrzeugErfasstEventHandler - Application Layer Implementation
  * @see EVENT_HANDLER.FAHRZEUG_ERFASST_ETB - DI Token
  */
-import { Injectable, Inject, Logger } from '@nestjs/common';
+import { Injectable, Inject } from '@nestjs/common';
 import { OnEvent } from '@nestjs/event-emitter';
 import type { IEventHandler } from '@domain/ports/i-event-handler.port';
+import type { ILogger } from '@domain/ports/i-logger.port';
 import { FahrzeugErfasstEvent } from '@domain/kraefte/events/fahrzeug-erfasst.event';
-import { EVENT_HANDLER } from '@infrastructure/di-tokens';
+import { EVENT_HANDLER, LOGGER } from '@infrastructure/di-tokens';
 
 /**
  * NestJS Event Adapter für FahrzeugErfasst ETB-Eintrag Creation.
@@ -28,11 +29,10 @@ import { EVENT_HANDLER } from '@infrastructure/di-tokens';
  */
 @Injectable()
 export class FahrzeugErfasstEventAdapter {
-  private readonly logger = new Logger(FahrzeugErfasstEventAdapter.name);
-
   constructor(
     @Inject(EVENT_HANDLER.FAHRZEUG_ERFASST_ETB)
     private readonly handler: IEventHandler<FahrzeugErfasstEvent>,
+    @Inject(LOGGER) private readonly logger: ILogger,
   ) {}
 
   /**

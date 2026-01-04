@@ -4,6 +4,8 @@ import { EventInfrastructureModule } from '@infrastructure/events/event-infrastr
 import { LagekarteInfrastructureModule } from '@infrastructure/lagekarte-infrastructure.module';
 import { EtbInfrastructureModule } from '@infrastructure/etb/etb-infrastructure.module';
 import { OutboxModule } from '@infrastructure/outbox/outbox.module';
+import { LOGGER } from '@infrastructure/di-tokens';
+import { NestLoggerAdapter } from '@infrastructure/common/adapters/nest-logger.adapter';
 import { EinsatzCompletenessService } from '@domain/services/einsatz-completeness.service';
 import { EinsatzArchivalPolicy } from '@domain/services/einsatz-archival.policy';
 import {
@@ -78,6 +80,11 @@ import {
     OutboxModule,
   ],
   providers: [
+    // Logger für Einsatz Handlers
+    {
+      provide: LOGGER,
+      useFactory: () => new NestLoggerAdapter('Einsatz'),
+    },
     // Domain Services (Story 4-2)
     // NICHT in exports: Nur intern von Handlers verwendet (CompleteEinsatzHandler, ArchiveEinsatzHandler)
     EinsatzCompletenessService,

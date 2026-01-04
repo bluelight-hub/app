@@ -1,4 +1,4 @@
-import { Inject, Injectable, Logger } from '@nestjs/common';
+import { Inject, Injectable } from '@nestjs/common';
 import { TransactionalCommandHandler } from '@application/common/handlers/transactional-command.handler';
 import type { DomainEvent } from '@domain/common/domain-event';
 import { Result } from '@domain/common/result';
@@ -8,7 +8,8 @@ import { IQualifikationRepository } from '@domain/kraefte/repositories/i-qualifi
 import { QualifikationId } from '@domain/kraefte/value-objects/qualifikation-id';
 // biome-ignore lint/style/useImportType: IOutboxRepository needed for DI at runtime
 import { IOutboxRepository } from '@domain/repositories/i-outbox.repository';
-import { KRAEFTE_REPOSITORIES, OUTBOX_REPOSITORY } from '@infrastructure/di-tokens';
+import type { ILogger } from '@domain/ports/i-logger.port';
+import { KRAEFTE_REPOSITORIES, LOGGER, OUTBOX_REPOSITORY } from '@infrastructure/di-tokens';
 // biome-ignore lint/style/useImportType: PrismaService needed for DI at runtime
 import { PrismaService } from '@/infrastructure/database/prisma.service';
 import type { QualifikationDto } from '../../dto/qualifikation.dto';
@@ -24,13 +25,12 @@ import type { UpdateQualifikationCommand } from './update-qualifikation.command'
  */
 @Injectable()
 export class UpdateQualifikationHandler extends TransactionalCommandHandler<UpdateQualifikationCommand, QualifikationDto> {
-  protected readonly logger = new Logger(UpdateQualifikationHandler.name);
-
   constructor(
     prisma: PrismaService,
     @Inject(OUTBOX_REPOSITORY) outboxRepository: IOutboxRepository,
     @Inject(KRAEFTE_REPOSITORIES.QUALIFIKATION)
     private readonly repository: IQualifikationRepository,
+    @Inject(LOGGER) protected readonly logger: ILogger,
   ) {
     super(prisma, outboxRepository);
   }

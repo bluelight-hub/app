@@ -1,6 +1,7 @@
 import { CommandHandler } from '@nestjs/cqrs';
-import { Inject, Injectable, Logger } from '@nestjs/common';
+import { Inject, Injectable } from '@nestjs/common';
 import { TransactionalCommandHandler } from '@application/common/handlers/transactional-command.handler';
+import type { ILogger } from '@domain/ports/i-logger.port';
 // biome-ignore lint/style/useImportType: PrismaService needed for DI at runtime
 import { PrismaService } from '@/infrastructure/database/prisma.service';
 import type { IOutboxRepository } from '@domain/repositories/i-outbox.repository';
@@ -8,7 +9,7 @@ import type { IUserRepository } from '@domain/repositories/i-user.repository';
 import type { DomainEvent } from '@domain/common/domain-event';
 import type { TransactionContext } from '@domain/common';
 import { Result } from '@domain/common/result';
-import { OUTBOX_REPOSITORY, USER_REPOSITORY } from '@infrastructure/di-tokens';
+import { OUTBOX_REPOSITORY, USER_REPOSITORY, LOGGER } from '@infrastructure/di-tokens';
 import { UserId } from '@domain/value-objects/user-id';
 import { UnlockUserCommand } from './unlock-user.command';
 
@@ -47,13 +48,12 @@ import { UnlockUserCommand } from './unlock-user.command';
 @CommandHandler(UnlockUserCommand)
 @Injectable()
 export class UnlockUserHandler extends TransactionalCommandHandler<UnlockUserCommand, void> {
-  private readonly logger = new Logger(UnlockUserHandler.name);
-
   constructor(
     prisma: PrismaService,
     @Inject(OUTBOX_REPOSITORY) outboxRepository: IOutboxRepository,
     @Inject(USER_REPOSITORY)
     private readonly userRepository: IUserRepository,
+    @Inject(LOGGER) protected readonly logger: ILogger,
   ) {
     super(prisma, outboxRepository);
   }
@@ -80,7 +80,7 @@ export class UnlockUserHandler extends TransactionalCommandHandler<UnlockUserCom
    * @param tx - Transaction Context (framework-agnostisch, Infrastructure castet zu Prisma)
    * @returns Result<{ result: void; events: DomainEvent[] }> - Success oder Failure
    */
-  protected async executeInTransaction(command: UnlockUserCommand, tx: TransactionContext): Promise<Result<void> | { result: void; events: DomainEvent[] }> {
+  protected async executeInTransaction(command: UnlockUserCommand, tx: TransactionContext): Promise<Result<void> | { result: undefined; events: DomainEvent[] }> {
     // Step 1: Validate User ID format
     const userIdResult = UserId.create(command.id);
     if (userIdResult.isFailure) {

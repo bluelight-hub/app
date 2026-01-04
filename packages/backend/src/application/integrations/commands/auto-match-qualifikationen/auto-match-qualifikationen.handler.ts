@@ -109,7 +109,10 @@ export class AutoMatchQualifikationenHandler {
 
         // Update Mapping in DB
         const updatedMapping = mapping.updateAutoMatch(matchResult.matchedQualifikationId, matchResult.confidence);
-        await this.mappingRepository.save(updatedMapping);
+        const saveResult = await this.mappingRepository.save(updatedMapping);
+        if (saveResult.isFailure) {
+          this.logger.warn(`Failed to save auto-match for ${mapping.externalName}: ${saveResult.error}`);
+        }
       }
     }
 

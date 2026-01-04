@@ -1,5 +1,7 @@
 import { CACHE_MANAGER } from '@nestjs/cache-manager';
-import { Inject, Injectable, Logger } from '@nestjs/common';
+import { Inject, Injectable } from '@nestjs/common';
+import type { ILogger } from '@domain/ports/i-logger.port';
+import { LOGGER } from '@infrastructure/di-tokens';
 import { Cache } from 'cache-manager';
 
 /**
@@ -10,11 +12,10 @@ import { Cache } from 'cache-manager';
  */
 @Injectable()
 export class CacheRateLimiterService {
-  private readonly logger = new Logger(CacheRateLimiterService.name);
-
   constructor(
     @Inject(CACHE_MANAGER)
     private readonly cacheManager: Cache,
+    @Inject(LOGGER) private readonly logger: ILogger,
   ) {}
 
   /**

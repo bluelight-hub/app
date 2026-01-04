@@ -1,4 +1,5 @@
-import { Inject, Injectable, Logger } from '@nestjs/common';
+import { Inject, Injectable } from '@nestjs/common';
+import type { ILogger } from '@domain/ports/i-logger.port';
 import { Result } from '@domain/common/result';
 // biome-ignore lint/style/useImportType: IEinsatzFahrzeugRepository needed for DI at runtime
 import { IEinsatzFahrzeugRepository } from '@domain/kraefte/repositories/i-einsatz-fahrzeug.repository';
@@ -8,7 +9,7 @@ import { IFahrzeugtypRepository } from '@domain/kraefte/repositories/i-fahrzeugt
 import { IEinsatzPersonRepository } from '@domain/kraefte/repositories/i-einsatz-person.repository';
 import { FahrzeugtypId } from '@domain/kraefte/value-objects/fahrzeugtyp-id';
 import type { Fahrzeugtyp, EinsatzPerson } from '@domain/kraefte';
-import { KRAEFTE_REPOSITORIES } from '@infrastructure/di-tokens';
+import { KRAEFTE_REPOSITORIES, LOGGER } from '@infrastructure/di-tokens';
 import type { EinsatzFahrzeugDto } from '../../dto';
 import { EinsatzFahrzeugQueryMapper } from '../einsatz-fahrzeug-query.mapper';
 import type { GetEinsatzFahrzeugeQuery } from './get-einsatz-fahrzeuge.query';
@@ -20,8 +21,6 @@ import type { GetEinsatzFahrzeugeQuery } from './get-einsatz-fahrzeuge.query';
  */
 @Injectable()
 export class GetEinsatzFahrzeugeHandler {
-  private readonly logger = new Logger(GetEinsatzFahrzeugeHandler.name);
-
   constructor(
     @Inject(KRAEFTE_REPOSITORIES.EINSATZ_FAHRZEUG)
     private readonly einsatzFahrzeugRepository: IEinsatzFahrzeugRepository,
@@ -29,6 +28,8 @@ export class GetEinsatzFahrzeugeHandler {
     private readonly fahrzeugtypRepository: IFahrzeugtypRepository,
     @Inject(KRAEFTE_REPOSITORIES.EINSATZ_PERSON)
     private readonly einsatzPersonRepository: IEinsatzPersonRepository,
+    @Inject(LOGGER)
+    private readonly logger: ILogger,
   ) {}
 
   /**

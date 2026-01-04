@@ -2,6 +2,8 @@ import { Module } from '@nestjs/common';
 import { PrismaModule } from '@infrastructure/database/prisma.module';
 import { OutboxModule } from '@infrastructure/outbox/outbox.module';
 import { KraefteInfrastructureModule } from '@infrastructure/kraefte/kraefte-infrastructure.module';
+import { LOGGER } from '@infrastructure/di-tokens';
+import { NestLoggerAdapter } from '@infrastructure/common/adapters/nest-logger.adapter';
 
 // Command Handlers
 import { CreateStammFahrzeugHandler } from './commands/create-stamm-fahrzeug/create-stamm-fahrzeug.handler';
@@ -24,6 +26,11 @@ import { StammFahrzeugQueryMapper } from './queries/stamm-fahrzeug-query.mapper'
 @Module({
   imports: [PrismaModule, OutboxModule, KraefteInfrastructureModule],
   providers: [
+    // Logger für StammFahrzeuge Handlers
+    {
+      provide: LOGGER,
+      useFactory: () => new NestLoggerAdapter('StammFahrzeuge'),
+    },
     // Command Handlers
     CreateStammFahrzeugHandler,
     UpdateStammFahrzeugHandler,

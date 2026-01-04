@@ -1,5 +1,7 @@
 import { Module } from '@nestjs/common';
 import { PrismaModule } from '@/infrastructure/database/prisma.module';
+import { LOGGER } from '@/infrastructure/di-tokens';
+import { NestLoggerAdapter } from '@/infrastructure/common/adapters/nest-logger.adapter';
 import { EtbApplicationModule } from '@/application/etb/etb-application.module';
 import { EtbInfrastructureModule } from '@/infrastructure/etb/etb-infrastructure.module';
 import { EtbCqrsController } from './controllers/etb-cqrs.controller';
@@ -23,7 +25,13 @@ import { EtbCqrsController } from './controllers/etb-cqrs.controller';
     EtbInfrastructureModule, // Provides IEtbRepository for Controller
   ],
   controllers: [EtbCqrsController],
-  providers: [],
+  providers: [
+    // Logger für EtbModule Guards/Services
+    {
+      provide: LOGGER,
+      useFactory: () => new NestLoggerAdapter('EtbModule'),
+    },
+  ],
   exports: [],
 })
 export class EtbModule {}

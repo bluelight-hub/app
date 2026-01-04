@@ -1,10 +1,11 @@
-import { Inject, Injectable, Logger } from '@nestjs/common';
+import { Inject, Injectable } from '@nestjs/common';
+import type { ILogger } from '@domain/ports/i-logger.port';
 import { Result } from '@domain/common/result';
 import { EtbId } from '@domain/value-objects/etb-id';
 import { UserId } from '@domain/value-objects/user-id';
 import type { IEtbRepository } from '@domain/repositories';
 import type { LockEtbCommand } from './lock-etb.command';
-import { ETB_REPOSITORY } from '@infrastructure/di-tokens';
+import { ETB_REPOSITORY, LOGGER } from '@infrastructure/di-tokens';
 
 /**
  * Handler fuer LockEtbCommand.
@@ -28,11 +29,11 @@ import { ETB_REPOSITORY } from '@infrastructure/di-tokens';
  */
 @Injectable()
 export class LockEtbHandler {
-  private readonly logger = new Logger(LockEtbHandler.name);
-
   constructor(
     @Inject(ETB_REPOSITORY)
     private readonly etbRepository: IEtbRepository,
+    @Inject(LOGGER)
+    private readonly logger: ILogger,
   ) {}
 
   /**

@@ -3,8 +3,9 @@ import type { IUserRepository } from '@domain/repositories/i-user.repository';
 import type { IJwtAuthServicePort } from '@domain/ports/i-jwt-auth-service.port';
 import { Username } from '@domain/value-objects/username';
 import { UserRole } from '@domain/value-objects/user-role';
-import { Inject, Injectable, Logger } from '@nestjs/common';
-import { USER_REPOSITORY, JWT_AUTH_SERVICE } from '@infrastructure/di-tokens';
+import { Inject, Injectable } from '@nestjs/common';
+import type { ILogger } from '@domain/ports/i-logger.port';
+import { USER_REPOSITORY, JWT_AUTH_SERVICE, LOGGER } from '@infrastructure/di-tokens';
 import type { LoginCommand } from './login.command';
 import * as bcrypt from 'bcrypt';
 
@@ -51,13 +52,13 @@ import * as bcrypt from 'bcrypt';
  */
 @Injectable()
 export class LoginHandler {
-  private readonly logger = new Logger(LoginHandler.name);
-
   constructor(
     @Inject(USER_REPOSITORY)
     private readonly userRepository: IUserRepository,
     @Inject(JWT_AUTH_SERVICE)
     private readonly jwtService: IJwtAuthServicePort,
+    @Inject(LOGGER)
+    private readonly logger: ILogger,
   ) {}
 
   /**

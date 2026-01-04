@@ -1,5 +1,6 @@
 import { Module } from '@nestjs/common';
-import { EVENT_HANDLER } from '@infrastructure/di-tokens';
+import { EVENT_HANDLER, LOGGER } from '@infrastructure/di-tokens';
+import { NestLoggerAdapter } from '@infrastructure/common/adapters/nest-logger.adapter';
 import { CreateLagekarteCommandHandler } from './commands/create-lagekarte.handler';
 import { AddPoiCommandHandler } from './commands/add-poi.handler';
 import { RemovePoiCommandHandler } from './commands/remove-poi.handler';
@@ -45,6 +46,12 @@ import { LagekarteAutoCreationHandler } from './event-handlers';
     LagekarteInfrastructureModule,
   ],
   providers: [
+    // Logger für Lagekarte Handlers
+    {
+      provide: LOGGER,
+      useFactory: () => new NestLoggerAdapter('Lagekarte'),
+    },
+
     // Command Handlers (State Mutation)
     CreateLagekarteCommandHandler,
     AddPoiCommandHandler,

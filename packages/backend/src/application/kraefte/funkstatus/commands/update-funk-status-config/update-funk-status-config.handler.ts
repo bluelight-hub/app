@@ -1,4 +1,5 @@
-import { Inject, Injectable, Logger } from '@nestjs/common';
+import { Inject, Injectable } from '@nestjs/common';
+import type { ILogger } from '@domain/ports/i-logger.port';
 import { TransactionalCommandHandler } from '@application/common/handlers/transactional-command.handler';
 import type { DomainEvent } from '@domain/common/domain-event';
 import { Result } from '@domain/common/result';
@@ -7,7 +8,7 @@ import type { TransactionContext } from '@domain/kraefte/repositories/i-funk-sta
 import { IFunkStatusConfigRepository } from '@domain/kraefte/repositories/i-funk-status-config.repository';
 // biome-ignore lint/style/useImportType: IOutboxRepository needed for DI at runtime
 import { IOutboxRepository } from '@domain/repositories/i-outbox.repository';
-import { KRAEFTE_REPOSITORIES, OUTBOX_REPOSITORY } from '@infrastructure/di-tokens';
+import { KRAEFTE_REPOSITORIES, OUTBOX_REPOSITORY, LOGGER } from '@infrastructure/di-tokens';
 // biome-ignore lint/style/useImportType: PrismaService needed for DI at runtime
 import { PrismaService } from '@/infrastructure/database/prisma.service';
 import type { FunkStatusConfigDto } from '../../dto/funk-status-config.dto';
@@ -35,13 +36,13 @@ import type { UpdateFunkStatusConfigCommand } from './update-funk-status-config.
  */
 @Injectable()
 export class UpdateFunkStatusConfigHandler extends TransactionalCommandHandler<UpdateFunkStatusConfigCommand, FunkStatusConfigDto> {
-  protected readonly logger = new Logger(UpdateFunkStatusConfigHandler.name);
-
   constructor(
     prisma: PrismaService,
     @Inject(OUTBOX_REPOSITORY) outboxRepository: IOutboxRepository,
     @Inject(KRAEFTE_REPOSITORIES.FUNK_STATUS_CONFIG)
     private readonly repository: IFunkStatusConfigRepository,
+    @Inject(LOGGER)
+    protected readonly logger: ILogger,
   ) {
     super(prisma, outboxRepository);
   }

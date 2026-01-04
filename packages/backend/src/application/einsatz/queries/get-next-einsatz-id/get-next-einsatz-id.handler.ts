@@ -1,11 +1,12 @@
 import { type IQueryHandler, QueryHandler } from '@nestjs/cqrs';
-import { Inject, Logger } from '@nestjs/common';
+import { Inject } from '@nestjs/common';
+import type { ILogger } from '@domain/ports/i-logger.port';
 import { Result } from '@domain/common/result';
 // biome-ignore lint/style/useImportType: IEinsatzRepository needed for DI at runtime
 import { IEinsatzRepository } from '@domain/repositories';
 import { EinsatzId } from '@domain/value-objects/einsatz-id';
 import { GetNextEinsatzIdQuery } from './get-next-einsatz-id.query';
-import { EINSATZ_REPOSITORY } from '@infrastructure/di-tokens';
+import { EINSATZ_REPOSITORY, LOGGER } from '@infrastructure/di-tokens';
 
 /**
  * NavigationResponseDto für Query Response.
@@ -56,11 +57,11 @@ interface NavigationResponseDto {
  */
 @QueryHandler(GetNextEinsatzIdQuery)
 export class GetNextEinsatzIdQueryHandler implements IQueryHandler<GetNextEinsatzIdQuery, Result<NavigationResponseDto>> {
-  private readonly logger = new Logger(GetNextEinsatzIdQueryHandler.name);
-
   constructor(
     @Inject(EINSATZ_REPOSITORY)
     private readonly repository: IEinsatzRepository,
+    @Inject(LOGGER)
+    private readonly logger: ILogger,
   ) {}
 
   /**

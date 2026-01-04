@@ -14,25 +14,9 @@ import type { ValidatedUser } from '@/modules/auth/strategies/jwt.strategy';
 import { SkipTransform } from '@/modules/common/decorators/skip-transform.decorator';
 import { IEtbRepository } from '@domain/repositories/i-etb.repository';
 import { EtbId } from '@domain/value-objects/etb-id';
-import { ETB_REPOSITORY } from '@/infrastructure/di-tokens';
-import {
-  BadRequestException,
-  Body,
-  Controller,
-  Delete,
-  ForbiddenException,
-  Get,
-  HttpCode,
-  Inject,
-  Logger,
-  NotFoundException,
-  Param,
-  Post,
-  Put,
-  Query,
-  UseGuards,
-  ValidationPipe,
-} from '@nestjs/common';
+import { ETB_REPOSITORY, LOGGER } from '@/infrastructure/di-tokens';
+import type { ILogger } from '@domain/ports/i-logger.port';
+import { BadRequestException, Body, Controller, Delete, ForbiddenException, Get, HttpCode, Inject, NotFoundException, Param, Post, Put, Query, UseGuards, ValidationPipe } from '@nestjs/common';
 import {
   ApiBadRequestResponse,
   ApiBearerAuth,
@@ -81,8 +65,6 @@ import {
   version: 'alpha',
 })
 export class EtbCqrsController {
-  private readonly logger = new Logger(EtbCqrsController.name);
-
   constructor(
     private readonly addEintragHandler: AddEintragHandler,
     private readonly updateEintragHandler: UpdateEintragHandler,
@@ -93,6 +75,7 @@ export class EtbCqrsController {
     private readonly getTextbausteineHandler: GetTextbausteineHandler,
     @Inject(ETB_REPOSITORY)
     private readonly etbRepository: IEtbRepository,
+    @Inject(LOGGER) private readonly logger: ILogger,
   ) {}
 
   // ============================================

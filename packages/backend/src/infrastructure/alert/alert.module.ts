@@ -1,5 +1,7 @@
 import { Module } from '@nestjs/common';
 import { LoggingAlertService } from './logging-alert.service';
+import { LOGGER } from '../di-tokens';
+import { NestLoggerAdapter } from '../common/adapters/nest-logger.adapter';
 
 /**
  * Alert Infrastructure Module.
@@ -32,6 +34,11 @@ import { LoggingAlertService } from './logging-alert.service';
  */
 @Module({
   providers: [
+    // Logger für Alert Service
+    {
+      provide: LOGGER,
+      useFactory: () => new NestLoggerAdapter('Alert'),
+    },
     LoggingAlertService,
     {
       provide: 'IAlertService',

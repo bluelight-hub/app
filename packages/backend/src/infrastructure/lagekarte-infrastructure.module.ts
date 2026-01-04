@@ -5,7 +5,8 @@ import { NominatimGeocodingAdapter } from './geocoding/nominatim-geocoding.adapt
 import { PrismaModule } from '@/infrastructure/database/prisma.module';
 import { PrismaOutboxRepository } from '@/infrastructure/outbox/prisma-outbox.repository';
 import { EventSerializer } from '@/infrastructure/outbox/event-serializer';
-import { EINSATZ_REPOSITORY, OUTBOX_REPOSITORY, LAGEKARTE_REPOSITORY } from '@infrastructure/di-tokens';
+import { EINSATZ_REPOSITORY, LOGGER, OUTBOX_REPOSITORY, LAGEKARTE_REPOSITORY } from '@infrastructure/di-tokens';
+import { NestLoggerAdapter } from './common/adapters/nest-logger.adapter';
 
 /**
  * NestJS Module für Lagekarte Infrastructure Layer.
@@ -60,6 +61,12 @@ import { EINSATZ_REPOSITORY, OUTBOX_REPOSITORY, LAGEKARTE_REPOSITORY } from '@in
 @Module({
   imports: [PrismaModule], // Import PrismaModule für PrismaService
   providers: [
+    // Logger für Lagekarte Infrastructure
+    {
+      provide: LOGGER,
+      useFactory: () => new NestLoggerAdapter('LagekarteInfrastructure'),
+    },
+
     // Outbox Infrastructure (Story 4-4)
     EventSerializer,
     PrismaOutboxRepository,

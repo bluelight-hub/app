@@ -2,7 +2,9 @@ import { CurrentUser } from '@/modules/auth/decorators/current-user.decorator';
 import { JwtAuthGuard } from '@/modules/auth/guards/jwt-auth.guard';
 import type { ValidatedUser } from '@/modules/auth/strategies/jwt.strategy';
 import { ApiWrappedResponse } from '@/modules/common/decorators/api-wrapped-response.decorator';
-import { Body, Controller, Delete, Get, Logger, Param, Post, Put, UseGuards, ValidationPipe, BadRequestException, NotFoundException } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Inject, Param, Post, Put, UseGuards, ValidationPipe, BadRequestException, NotFoundException } from '@nestjs/common';
+import type { ILogger } from '@domain/ports/i-logger.port';
+import { LOGGER } from '@/infrastructure/di-tokens';
 import { ApiBadRequestResponse, ApiBearerAuth, ApiExtraModels, ApiForbiddenResponse, ApiNotFoundResponse, ApiOperation, ApiTags, ApiUnauthorizedResponse } from '@nestjs/swagger';
 import { CreatePoiDto } from '../dto/create-poi.dto';
 import { UpdatePoiDto } from '../dto/update-poi.dto';
@@ -58,13 +60,12 @@ import { MgrsConverterService } from '../services/mgrs-converter.service';
   version: 'alpha',
 })
 export class PoiController {
-  private readonly logger = new Logger(PoiController.name);
-
   constructor(
     private readonly poiRepository: PoiRepository,
     private readonly lagekarteRepository: LagekarteRepository,
     private readonly geocodingService: GeocodingService,
     private readonly mgrsConverter: MgrsConverterService,
+    @Inject(LOGGER) private readonly logger: ILogger,
   ) {}
 
   /**

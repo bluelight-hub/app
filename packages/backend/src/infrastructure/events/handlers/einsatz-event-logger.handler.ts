@@ -1,11 +1,13 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Inject, Injectable } from '@nestjs/common';
 import { OnEvent } from '@nestjs/event-emitter';
 import type { EinsatzCreatedEvent } from '@domain/events/einsatz-created.event';
 import type { EinsatzUpdatedEvent } from '@domain/events/einsatz-updated.event';
 import type { EinsatzStatusChangedEvent } from '@domain/events/einsatz-status-changed.event';
 import type { EinsatzCompletedEvent } from '@domain/events/einsatz-completed.event';
 import type { EinsatzArchivedEvent } from '@domain/events/einsatz-archived.event';
+import type { ILogger } from '@domain/ports/i-logger.port';
 import { EVENT_NAMES } from '@domain/events/event-names';
+import { LOGGER } from '@infrastructure/di-tokens';
 
 /**
  * Event Handler für Einsatz Domain Events.
@@ -24,7 +26,7 @@ import { EVENT_NAMES } from '@domain/events/event-names';
  */
 @Injectable()
 export class EinsatzEventLoggerHandler {
-  private readonly logger = new Logger(EinsatzEventLoggerHandler.name);
+  constructor(@Inject(LOGGER) private readonly logger: ILogger) {}
 
   /**
    * Handler für EinsatzCreatedEvent.

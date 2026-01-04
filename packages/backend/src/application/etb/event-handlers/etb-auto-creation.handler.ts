@@ -14,12 +14,14 @@
  * @see CreateEtbHandler - Delegierter Command Handler
  * @see EtbEventAdapter - Infrastructure Adapter mit @OnEvent Decorator
  */
-import { Injectable, Logger } from '@nestjs/common';
+import { Inject, Injectable } from '@nestjs/common';
+import type { ILogger } from '@domain/ports/i-logger.port';
 import type { IEventHandler } from '@domain/ports/i-event-handler.port';
 import type { EinsatzCreatedEvent } from '@domain/events/einsatz-created.event';
 // biome-ignore lint/style/useImportType: CreateEtbHandler needed for DI at runtime
 import { CreateEtbHandler } from '../commands/create-etb/create-etb.handler';
 import { CreateEtbCommand } from '../commands/create-etb/create-etb.command';
+import { LOGGER } from '@infrastructure/di-tokens';
 
 /**
  * Event Handler für automatische ETB-Erstellung.
@@ -51,9 +53,10 @@ import { CreateEtbCommand } from '../commands/create-etb/create-etb.command';
  */
 @Injectable()
 export class EtbAutoCreationHandler implements IEventHandler<EinsatzCreatedEvent> {
-  private readonly logger = new Logger(EtbAutoCreationHandler.name);
-
-  constructor(private readonly createEtbHandler: CreateEtbHandler) {}
+  constructor(
+    private readonly createEtbHandler: CreateEtbHandler,
+    @Inject(LOGGER) private readonly logger: ILogger,
+  ) {}
 
   /**
    * Verarbeitet EinsatzCreatedEvent und erstellt automatisch ein ETB.

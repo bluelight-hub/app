@@ -1,5 +1,6 @@
 import { type IQueryHandler, QueryHandler } from '@nestjs/cqrs';
-import { Inject, Logger } from '@nestjs/common';
+import { Inject } from '@nestjs/common';
+import type { ILogger } from '@domain/ports/i-logger.port';
 import type { EinsatzDto } from '@application/einsatz/dto/einsatz.dto';
 import { EinsatzQueryMapper } from '@application/einsatz/mappers/einsatz-query.mapper';
 import { Result } from '@domain/common/result';
@@ -7,7 +8,7 @@ import { Result } from '@domain/common/result';
 import { IEinsatzRepository } from '@domain/repositories';
 import { EinsatzId } from '@domain/value-objects/einsatz-id';
 import { GetEinsatzByIdQuery } from './get-einsatz-by-id.query';
-import { EINSATZ_REPOSITORY } from '@infrastructure/di-tokens';
+import { EINSATZ_REPOSITORY, LOGGER } from '@infrastructure/di-tokens';
 
 /**
  * Query Handler fuer GetEinsatzByIdQuery.
@@ -50,11 +51,11 @@ import { EINSATZ_REPOSITORY } from '@infrastructure/di-tokens';
  */
 @QueryHandler(GetEinsatzByIdQuery)
 export class GetEinsatzByIdQueryHandler implements IQueryHandler<GetEinsatzByIdQuery, Result<EinsatzDto | null>> {
-  private readonly logger = new Logger(GetEinsatzByIdQueryHandler.name);
-
   constructor(
     @Inject(EINSATZ_REPOSITORY)
     private readonly repository: IEinsatzRepository,
+    @Inject(LOGGER)
+    private readonly logger: ILogger,
   ) {}
 
   /**

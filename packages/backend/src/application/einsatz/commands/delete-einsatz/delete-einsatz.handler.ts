@@ -2,10 +2,11 @@
 import { IEinsatzRepository } from '@domain/repositories';
 import { EinsatzId } from '@domain/value-objects/einsatz-id';
 import { CommandHandler } from '@nestjs/cqrs';
-import { Inject, Injectable, Logger } from '@nestjs/common';
+import { Inject, Injectable } from '@nestjs/common';
+import type { ILogger } from '@domain/ports/i-logger.port';
 import { DeleteEinsatzCommand } from './delete-einsatz.command';
 import { Result } from '@domain/common/result';
-import { EINSATZ_REPOSITORY } from '@infrastructure/di-tokens';
+import { EINSATZ_REPOSITORY, LOGGER } from '@infrastructure/di-tokens';
 
 /**
  * Handler für DeleteEinsatzCommand.
@@ -30,11 +31,11 @@ import { EINSATZ_REPOSITORY } from '@infrastructure/di-tokens';
 @CommandHandler(DeleteEinsatzCommand)
 @Injectable()
 export class DeleteEinsatzHandler {
-  private readonly logger = new Logger(DeleteEinsatzHandler.name);
-
   constructor(
     @Inject(EINSATZ_REPOSITORY)
     private readonly einsatzRepository: IEinsatzRepository,
+    @Inject(LOGGER)
+    private readonly logger: ILogger,
   ) {}
 
   /**

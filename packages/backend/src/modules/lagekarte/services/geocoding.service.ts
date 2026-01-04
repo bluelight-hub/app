@@ -1,6 +1,8 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Inject, Injectable } from '@nestjs/common';
 import { HttpService } from '@nestjs/axios';
 import { ConfigService } from '@nestjs/config';
+import type { ILogger } from '@domain/ports/i-logger.port';
+import { LOGGER } from '@infrastructure/di-tokens';
 import { catchError, firstValueFrom, map } from 'rxjs';
 import { Throttle } from '@nestjs/throttler';
 
@@ -34,10 +36,10 @@ interface NominatimResult {
  */
 @Injectable()
 export class GeocodingService {
-  private readonly logger = new Logger(GeocodingService.name);
   private readonly nominatimApiUrl: string;
 
   constructor(
+    @Inject(LOGGER) private readonly logger: ILogger,
     private readonly httpService: HttpService,
     private readonly configService: ConfigService,
   ) {

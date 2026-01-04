@@ -6,7 +6,8 @@ import { PrismaOutboxRepository } from './prisma-outbox.repository';
 import { OutboxEventPublisher, OUTBOX_PUBLISHER_CONFIG, DEFAULT_OUTBOX_PUBLISHER_CONFIG } from './outbox-event-publisher.service';
 import { AlertModule } from '@/infrastructure/alert/alert.module';
 import { EventInfrastructureModule } from '@/infrastructure/events/event-infrastructure.module';
-import { OUTBOX_REPOSITORY } from '@infrastructure/di-tokens';
+import { LOGGER, OUTBOX_REPOSITORY } from '@infrastructure/di-tokens';
+import { NestLoggerAdapter } from '../common/adapters/nest-logger.adapter';
 
 /**
  * Outbox Infrastructure Module fuer Transactional Outbox Pattern.
@@ -75,6 +76,12 @@ import { OUTBOX_REPOSITORY } from '@infrastructure/di-tokens';
 @Module({
   imports: [ScheduleModule.forRoot(), AlertModule, EventInfrastructureModule],
   providers: [
+    // Logger für Outbox Services
+    {
+      provide: LOGGER,
+      useFactory: () => new NestLoggerAdapter('Outbox'),
+    },
+
     // Serialization Services
     EventSerializer,
     EventDeserializer,

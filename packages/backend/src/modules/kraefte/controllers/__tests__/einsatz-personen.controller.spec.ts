@@ -41,26 +41,32 @@ describe('EinsatzPersonenController', () => {
 
     mockRegistrierePersonHandler = {
       execute: jest.fn(),
+      // biome-ignore lint/suspicious/noExplicitAny: Test requires type bypass for mock handler
     } as any;
 
     mockRegistriereViaQrHandler = {
       execute: jest.fn(),
+      // biome-ignore lint/suspicious/noExplicitAny: Test requires type bypass for mock handler
     } as any;
 
     mockWeisePersonZuFahrzeugHandler = {
       execute: jest.fn(),
+      // biome-ignore lint/suspicious/noExplicitAny: Test requires type bypass for mock handler
     } as any;
 
     mockEntfernePersonVonFahrzeugHandler = {
       execute: jest.fn(),
+      // biome-ignore lint/suspicious/noExplicitAny: Test requires type bypass for mock handler
     } as any;
 
     mockGetEinsatzPersonenHandler = {
       execute: jest.fn(),
+      // biome-ignore lint/suspicious/noExplicitAny: Test requires type bypass for mock handler
     } as any;
 
     mockGetEinsatzPersonByIdHandler = {
       execute: jest.fn(),
+      // biome-ignore lint/suspicious/noExplicitAny: Test requires type bypass for mock handler
     } as any;
 
     mockLogger = {
@@ -160,6 +166,7 @@ describe('EinsatzPersonenController', () => {
 
     it('should return empty array when handler returns null/undefined', async () => {
       // Given
+      // biome-ignore lint/suspicious/noExplicitAny: Test requires type bypass for mock/invalid data
       mockGetEinsatzPersonenHandler.execute.mockResolvedValue(Result.ok(null as any));
 
       // When
@@ -310,6 +317,7 @@ describe('EinsatzPersonenController', () => {
         nachname: 'Mustermann',
         funktion: 'Helfer',
       };
+      // biome-ignore lint/suspicious/noExplicitAny: Test requires type bypass for mock/invalid data
       mockRegistrierePersonHandler.execute.mockResolvedValue(Result.ok(null as any));
 
       // When/Then
@@ -455,6 +463,7 @@ describe('EinsatzPersonenController', () => {
         nachname: 'Mustermann',
         funkkennung: 'MAX-01',
       };
+      // biome-ignore lint/suspicious/noExplicitAny: Test requires type bypass for mock/invalid data
       mockRegistriereViaQrHandler.execute.mockResolvedValue(Result.ok(null as any));
 
       // When/Then
@@ -580,7 +589,7 @@ describe('EinsatzPersonenController', () => {
   });
 
   describe('entferneVonFahrzeug', () => {
-    const mockEinsatzPerson: EinsatzPersonResponseDto = {
+    const _mockEinsatzPerson: EinsatzPersonResponseDto = {
       id: validEinsatzPersonId,
       einsatzId: validEinsatzId,
       stammPersonId: validStammPersonId,

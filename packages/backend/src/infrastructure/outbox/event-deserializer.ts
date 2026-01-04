@@ -1,4 +1,6 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Inject, Injectable } from '@nestjs/common';
+import type { ILogger } from '@domain/ports/i-logger.port';
+import { LOGGER } from '@infrastructure/di-tokens';
 import { Result } from '@domain/common/result';
 import type { DomainEvent } from '@domain/common/domain-event';
 
@@ -113,8 +115,6 @@ import type { SerializedEvent } from './event-serializer';
  */
 @Injectable()
 export class EventDeserializer {
-  private readonly logger = new Logger(EventDeserializer.name);
-
   /**
    * Event Registry Map für eventName → Deserializer Function Lookup.
    *
@@ -124,7 +124,7 @@ export class EventDeserializer {
    */
   private readonly eventRegistry: Map<string, (payload: Record<string, unknown>, aggregateId?: string) => Result<DomainEvent>>;
 
-  constructor() {
+  constructor(@Inject(LOGGER) private readonly logger: ILogger) {
     this.eventRegistry = new Map([
       // ===== EINSATZ EVENTS =====
       ['einsatz.created', this.deserializeEinsatzCreated.bind(this)],

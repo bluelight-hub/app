@@ -1,4 +1,4 @@
-import { Inject, Injectable, Logger } from '@nestjs/common';
+import { Inject, Injectable } from '@nestjs/common';
 import { TransactionalCommandHandler } from '@application/common/handlers/transactional-command.handler';
 import type { DomainEvent } from '@domain/common/domain-event';
 import { Result } from '@domain/common/result';
@@ -8,7 +8,8 @@ import { Qualifikation } from '@domain/kraefte/aggregates/qualifikation.aggregat
 import { IQualifikationRepository } from '@domain/kraefte/repositories/i-qualifikation.repository';
 // biome-ignore lint/style/useImportType: IOutboxRepository needed for DI at runtime
 import { IOutboxRepository } from '@domain/repositories/i-outbox.repository';
-import { KRAEFTE_REPOSITORIES, OUTBOX_REPOSITORY } from '@infrastructure/di-tokens';
+import type { ILogger } from '@domain/ports/i-logger.port';
+import { KRAEFTE_REPOSITORIES, LOGGER, OUTBOX_REPOSITORY } from '@infrastructure/di-tokens';
 // biome-ignore lint/style/useImportType: PrismaService needed for DI at runtime
 import { PrismaService } from '@/infrastructure/database/prisma.service';
 import type { QualifikationDto } from '../../dto/qualifikation.dto';
@@ -21,24 +22,15 @@ import type { CreateQualifikationCommand } from './create-qualifikation.command'
  *
  * Erstellt eine neue Qualifikation mit Uniqueness-Check für Abkürzung.
  * Nutzt TransactionalCommandHandler für atomare Persistierung mit Outbox.
- *
- * **AC3 Compliance Note (NestJS Logger):**
- * Logger Import aus @nestjs/common ist im Application Layer akzeptiert, weil:
- * - Logger ist ein Infrastruktur-Utility ohne Business-Logik-Kopplung
- * - TransactionalCommandHandler Base Class verwendet bereits NestJS Logger
- * - Logger beeinflusst nicht die Testbarkeit (kann gemockt werden)
- * - Etabliertes Pattern im gesamten Codebase (konsistent mit Einsatz-Modul)
- * - Alternative (Domain Logger Interface) wäre Over-Engineering für diesen Use Case
  */
 @Injectable()
 export class CreateQualifikationHandler extends TransactionalCommandHandler<CreateQualifikationCommand, QualifikationDto> {
-  protected readonly logger = new Logger(CreateQualifikationHandler.name);
-
   constructor(
     prisma: PrismaService,
     @Inject(OUTBOX_REPOSITORY) outboxRepository: IOutboxRepository,
     @Inject(KRAEFTE_REPOSITORIES.QUALIFIKATION)
     private readonly repository: IQualifikationRepository,
+    @Inject(LOGGER) protected readonly logger: ILogger,
   ) {
     super(prisma, outboxRepository);
   }

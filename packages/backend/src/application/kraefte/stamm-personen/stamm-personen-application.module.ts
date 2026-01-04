@@ -2,6 +2,8 @@ import { Module } from '@nestjs/common';
 import { PrismaModule } from '@infrastructure/database/prisma.module';
 import { OutboxModule } from '@infrastructure/outbox/outbox.module';
 import { KraefteInfrastructureModule } from '@infrastructure/kraefte/kraefte-infrastructure.module';
+import { LOGGER } from '@infrastructure/di-tokens';
+import { NestLoggerAdapter } from '@infrastructure/common/adapters/nest-logger.adapter';
 
 // Command Handlers
 import { CreateStammPersonHandler } from './commands/create-stamm-person/create-stamm-person.handler';
@@ -25,6 +27,11 @@ import { StammPersonQueryMapper } from './queries/stamm-person-query.mapper';
 @Module({
   imports: [PrismaModule, OutboxModule, KraefteInfrastructureModule],
   providers: [
+    // Logger für StammPersonen Handlers
+    {
+      provide: LOGGER,
+      useFactory: () => new NestLoggerAdapter('StammPersonen'),
+    },
     // Command Handlers
     CreateStammPersonHandler,
     UpdateStammPersonHandler,

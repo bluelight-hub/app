@@ -1,4 +1,6 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Inject, Injectable } from '@nestjs/common';
+import type { ILogger } from '@domain/ports/i-logger.port';
+import { LOGGER } from '@infrastructure/di-tokens';
 import type { TransactionContext } from '@domain/common/transaction';
 import type { IUserRepository } from '@domain/repositories/i-user.repository';
 import type { UserAggregate } from '@domain/aggregates/user.aggregate';
@@ -52,14 +54,16 @@ type PrismaTransactionClient = Prisma.TransactionClient;
  */
 @Injectable()
 export class PrismaUserRepository implements IUserRepository {
-  private readonly logger = new Logger(PrismaUserRepository.name);
-
   /**
    * Constructor mit Dependency Injection.
    *
    * @param prisma - PrismaService (NestJS-managed Singleton)
+   * @param logger - ILogger für Logging
    */
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    @Inject(LOGGER) private readonly logger: ILogger,
+  ) {}
 
   /**
    * Speichert oder aktualisiert ein UserAggregate.

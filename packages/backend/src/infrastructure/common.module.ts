@@ -9,6 +9,8 @@ import { cacheConfig } from './config/cache.config';
 import { CacheRateLimiterService } from './services/cache-rate-limiter.service';
 import { CacheDuplicateDetectionService } from './services/cache-duplicate-detection.service';
 import { TransformInterceptor } from './http/interceptors/transform.interceptor';
+import { LOGGER } from './di-tokens';
+import { NestLoggerAdapter } from './common/adapters/nest-logger.adapter';
 
 /**
  * Infrastructure Common Module
@@ -30,10 +32,22 @@ import { TransformInterceptor } from './http/interceptors/transform.interceptor'
     CacheModule.registerAsync({
       imports: [ConfigModule.forFeature(cacheConfig)],
       useClass: CacheConfigService,
+      // extraProviders für DI-Abhängigkeiten von CacheConfigService
+      extraProviders: [
+        {
+          provide: LOGGER,
+          useFactory: () => new NestLoggerAdapter('Cache'),
+        },
+      ],
       // isGlobal wird über das @Global() Decorator am InfrastructureCommonModule gewährleistet
     }),
   ],
   providers: [
+    // Logger für Infrastructure Services (Cache, Rate Limiting, etc.)
+    {
+      provide: LOGGER,
+      useFactory: () => new NestLoggerAdapter('InfrastructureCommon'),
+    },
     AppConfigService,
     CacheConfigService,
     CacheRateLimiterService,

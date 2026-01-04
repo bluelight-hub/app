@@ -1,5 +1,7 @@
 import { HttpExceptionFilter } from '@/infrastructure/http/filters/http-exception.filter';
 import { DomainExceptionFilter } from '@/infrastructure/http/filters/domain-exception.filter';
+import { LOGGER } from '@/infrastructure/di-tokens';
+import { NestLoggerAdapter } from '@/infrastructure/common/adapters/nest-logger.adapter';
 import { Logger, Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { APP_FILTER, APP_GUARD } from '@nestjs/core';
@@ -95,6 +97,11 @@ import { IntegrationsModule } from './modules/integrations/integrations.module';
   controllers: [AppController],
   providers: [
     Logger,
+    // Logger für globale Filter (DomainExceptionFilter, HttpExceptionFilter)
+    {
+      provide: LOGGER,
+      useFactory: () => new NestLoggerAdapter('AppModule'),
+    },
     {
       provide: APP_GUARD,
       useClass: ThrottlerGuard,

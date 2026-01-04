@@ -1,11 +1,11 @@
 // biome-ignore lint/style/useImportType: IEinsatzRepository needed for DI at runtime
 import { IEinsatzRepository } from '@domain/repositories';
+import type { ILogger } from '@domain/ports/i-logger.port';
 import { EinsatzArchivalPolicy } from '@domain/services/einsatz-archival.policy';
 import { UserId } from '@domain/value-objects/user-id';
 import { EinsatzId } from '@domain/value-objects/einsatz-id';
 import { CommandHandler } from '@nestjs/cqrs';
-// biome-ignore lint/style/noRestrictedImports: Logger DI migration pending (Epic-X)
-import { Inject, Injectable, Logger } from '@nestjs/common';
+import { Inject, Injectable } from '@nestjs/common';
 import { ArchiveEinsatzCommand } from './archive-einsatz.command';
 import { TransactionalCommandHandler } from '@application/common/handlers/transactional-command.handler';
 // biome-ignore lint/style/useImportType: PrismaService needed for DI at runtime
@@ -15,7 +15,7 @@ import { IOutboxRepository } from '@domain/repositories/i-outbox.repository';
 import type { DomainEvent } from '@domain/common/domain-event';
 import type { TransactionContext } from '@domain/common';
 import { Result } from '@domain/common/result';
-import { EINSATZ_REPOSITORY, OUTBOX_REPOSITORY } from '@infrastructure/di-tokens';
+import { EINSATZ_REPOSITORY, OUTBOX_REPOSITORY, LOGGER } from '@infrastructure/di-tokens';
 
 /**
  * Handler für ArchiveEinsatzCommand mit Transactional Outbox Pattern.
@@ -52,7 +52,6 @@ import { EINSATZ_REPOSITORY, OUTBOX_REPOSITORY } from '@infrastructure/di-tokens
 @CommandHandler(ArchiveEinsatzCommand)
 @Injectable()
 export class ArchiveEinsatzHandler extends TransactionalCommandHandler<ArchiveEinsatzCommand, void> {
-  private readonly logger = new Logger(ArchiveEinsatzHandler.name);
   /** Stateless Domain Policy - direkte Instanziierung da keine Dependencies */
   private readonly archivalPolicy = new EinsatzArchivalPolicy();
 
@@ -61,6 +60,8 @@ export class ArchiveEinsatzHandler extends TransactionalCommandHandler<ArchiveEi
     @Inject(OUTBOX_REPOSITORY) outboxRepository: IOutboxRepository,
     @Inject(EINSATZ_REPOSITORY)
     private readonly einsatzRepository: IEinsatzRepository,
+    @Inject(LOGGER)
+    protected readonly logger: ILogger,
   ) {
     super(prisma, outboxRepository);
   }

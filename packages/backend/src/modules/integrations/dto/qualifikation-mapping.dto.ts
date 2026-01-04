@@ -7,7 +7,8 @@
  */
 
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { IsString, IsOptional, IsBoolean } from 'class-validator';
+import { IsString, IsOptional, IsBoolean, IsArray, ValidateNested, ArrayMinSize, ArrayMaxSize } from 'class-validator';
+import { Type } from 'class-transformer';
 import type { AutoMatchType } from '@domain/integrations';
 
 /**
@@ -118,4 +119,55 @@ export class AutoMatchRequestDto {
   @IsOptional()
   @IsBoolean()
   onlyUnmapped?: boolean;
+}
+
+/**
+ * Einzelnes Mapping-Item für Batch-Save.
+ */
+export class BatchSaveMappingItemDto {
+  @ApiProperty({ description: 'Externer Qualifikations-Name (z.B. aus HiOrg)' })
+  @IsString()
+  externalName!: string;
+
+  @ApiPropertyOptional({ description: 'Qualifikation-ID zum Mappen (null = ignorieren)' })
+  @IsOptional()
+  @IsString()
+  qualifikationId?: string | null;
+
+  @ApiPropertyOptional({ description: 'Explizit als ignoriert markieren?', default: false })
+  @IsOptional()
+  @IsBoolean()
+  isIgnored?: boolean;
+}
+
+/**
+ * Request DTO für Batch-Save von Mappings.
+ *
+ * Ermöglicht das Speichern mehrerer Mappings in einer Transaktion.
+ * Wird beim Inline-Mapping im Import-Dialog verwendet.
+ */
+export class BatchSaveQualifikationMappingsRequestDto {
+  @ApiProperty({
+    type: [BatchSaveMappingItemDto],
+    description: 'Liste der zu speichernden Mappings (1-100)',
+    minItems: 1,
+    maxItems: 100,
+  })
+  @IsArray()
+  @ValidateNested({ each: true })
+  @Type(() => BatchSaveMappingItemDto)
+  @ArrayMinSize(1)
+  @ArrayMaxSize(100)
+  mappings!: BatchSaveMappingItemDto[];
+}
+
+/**
+ * Response DTO für Batch-Save von Mappings.
+ */
+export class BatchSaveQualifikationMappingsResponseDto {
+  @ApiProperty({ description: 'Anzahl gespeicherter Mappings' })
+  saved!: number;
+
+  @ApiProperty({ description: 'Anzahl ignorierter Mappings (qualifikationId=null)' })
+  ignored!: number;
 }

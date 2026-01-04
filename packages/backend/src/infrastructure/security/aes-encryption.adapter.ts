@@ -120,6 +120,9 @@ export class AesEncryptionAdapter implements IEncryptionPort, OnModuleInit {
 
     // IV generieren (16 bytes, kryptografisch sicher)
     const iv = crypto.randomBytes(IV_LENGTH);
+    if (iv.length !== IV_LENGTH) {
+      throw new Error('[SECURITY] Failed to generate secure IV - PRNG entropy exhausted');
+    }
 
     // Cipher erstellen
     const cipher = crypto.createCipheriv(ALGORITHM, this.encryptionKey!, iv);

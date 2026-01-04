@@ -1,12 +1,13 @@
-import { Inject, Injectable, Logger } from '@nestjs/common';
+import { Inject, Injectable } from '@nestjs/common';
 import { Result } from '@domain/common/result';
+import type { ILogger } from '@domain/ports/i-logger.port';
 // biome-ignore lint/style/useImportType: IStammPersonRepository needed for DI at runtime
 import { IStammPersonRepository } from '@domain/kraefte/repositories/i-stamm-person.repository';
 // biome-ignore lint/style/useImportType: IQualifikationRepository needed for DI at runtime
 import { IQualifikationRepository } from '@domain/kraefte/repositories/i-qualifikation.repository';
 import { StammPersonId } from '@domain/kraefte/value-objects/stamm-person-id';
 import { QualifikationId } from '@domain/kraefte/value-objects/qualifikation-id';
-import { KRAEFTE_REPOSITORIES } from '@infrastructure/di-tokens';
+import { KRAEFTE_REPOSITORIES, LOGGER } from '@infrastructure/di-tokens';
 import type { StammPersonDto } from '../../dto/stamm-person.dto';
 import { StammPersonQueryMapper } from '../stamm-person-query.mapper';
 import type { GetStammPersonByIdQuery } from './get-stamm-person-by-id.query';
@@ -35,13 +36,12 @@ import type { GetStammPersonByIdQuery } from './get-stamm-person-by-id.query';
  */
 @Injectable()
 export class GetStammPersonByIdHandler {
-  protected readonly logger = new Logger(GetStammPersonByIdHandler.name);
-
   constructor(
     @Inject(KRAEFTE_REPOSITORIES.STAMM_PERSON)
     private readonly stammPersonRepository: IStammPersonRepository,
     @Inject(KRAEFTE_REPOSITORIES.QUALIFIKATION)
     private readonly qualifikationRepository: IQualifikationRepository,
+    @Inject(LOGGER) protected readonly logger: ILogger,
   ) {}
 
   /**

@@ -1,4 +1,5 @@
-import { Inject, Injectable, Logger } from '@nestjs/common';
+import { Inject, Injectable } from '@nestjs/common';
+import type { ILogger } from '@domain/ports/i-logger.port';
 import { TransactionalCommandHandler } from '@application/common/handlers/transactional-command.handler';
 import type { DomainEvent } from '@domain/common/domain-event';
 import { Result } from '@domain/common/result';
@@ -12,7 +13,7 @@ import { IFahrzeugtypRepository } from '@domain/kraefte/repositories/i-fahrzeugt
 import { IOutboxRepository } from '@domain/repositories/i-outbox.repository';
 import { FahrzeugtypId } from '@domain/kraefte/value-objects/fahrzeugtyp-id';
 import { EINSATZ_FAHRZEUG_ERROR_CODES, EinsatzFahrzeugError } from '@domain/kraefte/common/einsatz-fahrzeug-error-codes';
-import { KRAEFTE_REPOSITORIES, OUTBOX_REPOSITORY } from '@infrastructure/di-tokens';
+import { KRAEFTE_REPOSITORIES, OUTBOX_REPOSITORY, LOGGER } from '@infrastructure/di-tokens';
 // biome-ignore lint/style/useImportType: PrismaService needed for DI at runtime
 import { PrismaService } from '@/infrastructure/database/prisma.service';
 import type { EinsatzFahrzeugDto } from '../../dto';
@@ -44,8 +45,6 @@ import type { ErfasseTemporalesFahrzeugCommand } from './erfasse-temporales-fahr
  */
 @Injectable()
 export class ErfasseTemporalesFahrzeugHandler extends TransactionalCommandHandler<ErfasseTemporalesFahrzeugCommand, EinsatzFahrzeugDto> {
-  protected readonly logger = new Logger(ErfasseTemporalesFahrzeugHandler.name);
-
   constructor(
     prisma: PrismaService,
     @Inject(OUTBOX_REPOSITORY) outboxRepository: IOutboxRepository,
@@ -53,6 +52,8 @@ export class ErfasseTemporalesFahrzeugHandler extends TransactionalCommandHandle
     private readonly einsatzFahrzeugRepository: IEinsatzFahrzeugRepository,
     @Inject(KRAEFTE_REPOSITORIES.FAHRZEUGTYP)
     private readonly fahrzeugtypRepository: IFahrzeugtypRepository,
+    @Inject(LOGGER)
+    protected readonly logger: ILogger,
   ) {
     super(prisma, outboxRepository);
   }

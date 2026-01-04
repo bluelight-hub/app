@@ -64,6 +64,8 @@ import { PreviewHiOrgPersonsHandler } from '@application/integrations/queries/pr
 import { GetQualifikationMappingsHandler } from '@application/integrations/queries/get-qualifikation-mappings/get-qualifikation-mappings.handler';
 import { SaveQualifikationMappingHandler } from '@application/integrations/commands/save-qualifikation-mapping/save-qualifikation-mapping.handler';
 import { AutoMatchQualifikationenHandler } from '@application/integrations/commands/auto-match-qualifikationen/auto-match-qualifikationen.handler';
+import { ImportSelectedPersonsHandler } from '@application/integrations/commands/import-selected-persons/import-selected-persons.handler';
+import { BatchSaveQualifikationMappingsHandler } from '@application/integrations/commands/batch-save-qualifikation-mappings/batch-save-qualifikation-mappings.handler';
 
 // Commands & Queries
 import { TestHiOrgConnectionCommand } from '@application/integrations/commands/test-hiorg-connection/test-hiorg-connection.command';
@@ -73,6 +75,8 @@ import { PreviewHiOrgPersonsQuery } from '@application/integrations/queries/prev
 import { GetQualifikationMappingsQuery } from '@application/integrations/queries/get-qualifikation-mappings/get-qualifikation-mappings.query';
 import { SaveQualifikationMappingCommand } from '@application/integrations/commands/save-qualifikation-mapping/save-qualifikation-mapping.command';
 import { AutoMatchQualifikationenCommand } from '@application/integrations/commands/auto-match-qualifikationen/auto-match-qualifikationen.command';
+import { ImportSelectedPersonsCommand } from '@application/integrations/commands/import-selected-persons/import-selected-persons.command';
+import { BatchSaveQualifikationMappingsCommand } from '@application/integrations/commands/batch-save-qualifikation-mappings/batch-save-qualifikation-mappings.command';
 import { INTEGRATION_TYPES } from '@domain/integrations';
 
 // DTOs
@@ -85,6 +89,10 @@ import {
   SaveQualifikationMappingRequestDto,
   AutoMatchResultResponseDto,
   AutoMatchRequestDto,
+  ImportPersonsRequestDto,
+  ImportPersonsResponseDto,
+  BatchSaveQualifikationMappingsRequestDto,
+  BatchSaveQualifikationMappingsResponseDto,
 } from '../dto';
 
 // Error Codes
@@ -126,6 +134,9 @@ export class AdminHiOrgIntegrationController {
     private readonly getMappingsHandler: GetQualifikationMappingsHandler,
     private readonly saveMappingHandler: SaveQualifikationMappingHandler,
     private readonly autoMatchHandler: AutoMatchQualifikationenHandler,
+    // Story 7.2: Import Handler
+    private readonly importPersonsHandler: ImportSelectedPersonsHandler,
+    private readonly batchSaveMappingsHandler: BatchSaveQualifikationMappingsHandler,
   ) {}
 
   /**
@@ -359,7 +370,10 @@ export class AdminHiOrgIntegrationController {
         vorname: p.vorname,
         nachname: p.nachname,
         qualifikationenCount: p.qualifikationenCount,
+        qualifikationen: p.qualifikationen,
         ausbildungenCount: p.ausbildungenCount,
+        isDuplicate: p.isDuplicate,
+        existingStammPersonId: p.existingStammPersonId,
       })),
     };
   }
@@ -518,6 +532,128 @@ export class AdminHiOrgIntegrationController {
       totalMatched: data.totalMatched,
       totalUnmatched: data.totalUnmatched,
       averageConfidence: data.averageConfidence,
+    };
+  }
+
+  // ============ Story 7.2: Import Endpoint ============
+
+  /**
+   * Ausgewählte Personen aus HiOrg-Server importieren.
+   *
+   * Importiert die ausgewählten Personen als StammPersonen.
+   * Qualifikationen werden automatisch via Mapping zugeordnet.
+   *
+   * @param dto - Import-Request mit Usernames und Optionen
+   * @param user - Aktueller Admin-Benutzer
+   * @returns Import-Ergebnisse mit Details pro Person
+   */
+  @Post('import')
+  @Throttle({ default: ADMIN_MUTATION_RATE_LIMIT })
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Ausgewählte Personen importieren' })
+  @ApiWrappedResponse(ImportPersonsResponseDto, { description: 'Import-Ergebnis' })
+  @ApiBadRequestResponse({ description: 'Ungültige Import-Daten' })
+  @ApiNotFoundResponse({ description: 'Keine Credentials konfiguriert' })
+  @ApiServiceUnavailableResponse({ description: 'HiOrg-Server nicht erreichbar' })
+  async importPersons(@Body() dto: ImportPersonsRequestDto, @CurrentUser() user: ValidatedUser): Promise<ImportPersonsResponseDto> {
+    const commandResult = ImportSelectedPersonsCommand.create({
+      usernames: dto.usernames,
+      importedBy: user.userId,
+      duplicateStrategy: dto.duplicateStrategy,
+    });
+
+    if (commandResult.isFailure) {
+      throw new BadRequestException(commandResult.error);
+    }
+
+    // biome-ignore lint/style/noNonNullAssertion: Nach isFailure-Check ist value garantiert vorhanden
+    const result = await this.importPersonsHandler.execute(commandResult.value!);
+
+    if (result.isFailure) {
+      // biome-ignore lint/style/noNonNullAssertion: Nach isFailure-Check ist error garantiert vorhanden
+      const error = result.error!;
+
+      // Check error codes
+      if (IntegrationError.hasCode(error, INTEGRATION_ERROR_CODES.CREDENTIALS_NOT_FOUND)) {
+        throw new NotFoundException(IntegrationError.extractMessage(error));
+      }
+      if (IntegrationError.hasCode(error, INTEGRATION_ERROR_CODES.IMPORT_FAILED)) {
+        throw new BadRequestException(IntegrationError.extractMessage(error));
+      }
+      if (IntegrationError.hasCode(error, INTEGRATION_ERROR_CODES.CONNECTION_FAILED)) {
+        throw new ServiceUnavailableException(IntegrationError.extractMessage(error));
+      }
+
+      throw new InternalServerErrorException('Import fehlgeschlagen');
+    }
+
+    // biome-ignore lint/style/noNonNullAssertion: Nach isFailure-Check ist value garantiert vorhanden
+    const data = result.value!;
+    this.logger.log(`Import abgeschlossen: ${data.created} erstellt, ${data.updated} aktualisiert, ${data.skipped} übersprungen, ${data.failed} fehlgeschlagen`);
+
+    return {
+      totalProcessed: data.totalProcessed,
+      created: data.created,
+      updated: data.updated,
+      skipped: data.skipped,
+      failed: data.failed,
+      results: data.results.map((r) => ({
+        username: r.username,
+        vorname: r.vorname,
+        nachname: r.nachname,
+        status: r.status,
+        error: r.error,
+        stammPersonId: r.stammPersonId,
+        qualifikationenMapped: r.qualifikationenMapped,
+        qualifikationenUnmapped: r.qualifikationenUnmapped,
+      })),
+    };
+  }
+
+  /**
+   * Batch-Save von Qualifikations-Mappings.
+   *
+   * Speichert mehrere Mappings in einer Operation.
+   * Wird beim Inline-Mapping im Import-Dialog verwendet.
+   *
+   * **Upsert-Semantik:** Existierende Mappings werden aktualisiert.
+   */
+  @Post('qualifikation-mappings/batch')
+  @HttpCode(HttpStatus.OK)
+  @Throttle({ default: ADMIN_MUTATION_RATE_LIMIT })
+  @ApiOperation({
+    summary: 'Batch-Save von Qualifikations-Mappings',
+    description: 'Speichert mehrere Qualifikations-Mappings für Inline-Mapping beim Import',
+  })
+  @ApiWrappedResponse(BatchSaveQualifikationMappingsResponseDto, { description: 'Mappings gespeichert' })
+  @ApiBadRequestResponse({ description: 'Ungültige Mapping-Daten' })
+  async batchSaveQualifikationMappingsVAlpha(@Body() dto: BatchSaveQualifikationMappingsRequestDto, @CurrentUser() user: ValidatedUser): Promise<BatchSaveQualifikationMappingsResponseDto> {
+    const commandResult = BatchSaveQualifikationMappingsCommand.create({
+      mappings: dto.mappings.map((m) => ({
+        externalName: m.externalName,
+        qualifikationId: m.isIgnored ? null : (m.qualifikationId ?? null),
+      })),
+      savedBy: user.userId,
+    });
+
+    if (commandResult.isFailure) {
+      throw new BadRequestException(commandResult.error);
+    }
+
+    // biome-ignore lint/style/noNonNullAssertion: Nach isFailure-Check ist value garantiert vorhanden
+    const result = await this.batchSaveMappingsHandler.execute(commandResult.value!);
+
+    if (result.isFailure) {
+      throw new InternalServerErrorException(result.error ?? 'Mappings konnten nicht gespeichert werden');
+    }
+
+    // biome-ignore lint/style/noNonNullAssertion: Nach isFailure-Check ist value garantiert vorhanden
+    const data = result.value!;
+    this.logger.log(`Batch-Save Mappings: ${data.saved} gespeichert, ${data.ignored} ignoriert`);
+
+    return {
+      saved: data.saved,
+      ignored: data.ignored,
     };
   }
 }

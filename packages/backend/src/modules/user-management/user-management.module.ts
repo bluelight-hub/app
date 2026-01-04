@@ -1,4 +1,6 @@
 import { Module } from '@nestjs/common';
+import { LOGGER } from '@/infrastructure/di-tokens';
+import { NestLoggerAdapter } from '@/infrastructure/common/adapters/nest-logger.adapter';
 import { UserManagementApplicationModule } from '@application/user-management';
 import { AuthModule } from '@/modules/auth/auth.module';
 import { UserController } from './controllers/user.controller';
@@ -61,6 +63,13 @@ import { UserManagementController } from './controllers/user-management.controll
     UserController,
     // Admin User Management Endpoints (/admin/users)
     UserManagementController,
+  ],
+  providers: [
+    // Logger für UserManagementModule Guards/Services
+    {
+      provide: LOGGER,
+      useFactory: () => new NestLoggerAdapter('UserManagementModule'),
+    },
   ],
 })
 export class UserManagementModule {}

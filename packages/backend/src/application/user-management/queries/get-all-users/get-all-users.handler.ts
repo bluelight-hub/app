@@ -1,10 +1,11 @@
 import { QueryHandler, type IQueryHandler } from '@nestjs/cqrs';
-import { Injectable, Inject, Logger } from '@nestjs/common';
+import { Injectable, Inject } from '@nestjs/common';
+import type { ILogger } from '@domain/ports/i-logger.port';
 import { Result } from '@domain/common/result';
 import type { IUserRepository } from '@domain/repositories/i-user.repository';
 import type { UserDto } from '@/application/user-management/dto/user.dto';
 import { GetAllUsersQuery } from './get-all-users.query';
-import { USER_REPOSITORY } from '@infrastructure/di-tokens';
+import { USER_REPOSITORY, LOGGER } from '@infrastructure/di-tokens';
 
 /**
  * Handler für GetAllUsersQuery.
@@ -55,18 +56,18 @@ import { USER_REPOSITORY } from '@infrastructure/di-tokens';
 @QueryHandler(GetAllUsersQuery)
 @Injectable()
 export class GetAllUsersQueryHandler implements IQueryHandler<GetAllUsersQuery, Result<UserDto[]>> {
-  private readonly logger = new Logger(GetAllUsersQueryHandler.name);
-
   /**
    * Constructor mit Dependency Injection.
    *
    * Nutzt @Inject Token für Interface-basierte Injection (Hexagonal Architecture).
    *
    * @param repository - IUserRepository mit findAll() Support
+   * @param logger - ILogger via DI Token
    */
   constructor(
     @Inject(USER_REPOSITORY)
     private readonly repository: IUserRepository,
+    @Inject(LOGGER) private readonly logger: ILogger,
   ) {}
 
   /**

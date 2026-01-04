@@ -13,6 +13,14 @@
  */
 
 import { mapValues } from '../runtime';
+import type { HiOrgQualifikationPreviewItemDto } from './HiOrgQualifikationPreviewItemDto';
+import {
+  HiOrgQualifikationPreviewItemDtoFromJSON,
+  HiOrgQualifikationPreviewItemDtoFromJSONTyped,
+  HiOrgQualifikationPreviewItemDtoToJSON,
+  HiOrgQualifikationPreviewItemDtoToJSONTyped,
+} from './HiOrgQualifikationPreviewItemDto';
+
 /**
  *
  * @export
@@ -50,11 +58,29 @@ export interface HiOrgPersonPreviewItemDto {
    */
   qualifikationenCount: number;
   /**
+   * Qualifikationen mit Mapping-Status
+   * @type {Array<HiOrgQualifikationPreviewItemDto>}
+   * @memberof HiOrgPersonPreviewItemDto
+   */
+  qualifikationen: Array<HiOrgQualifikationPreviewItemDto>;
+  /**
    * Anzahl der Ausbildungen
    * @type {number}
    * @memberof HiOrgPersonPreviewItemDto
    */
   ausbildungenCount: number;
+  /**
+   * Bereits als StammPerson importiert?
+   * @type {boolean}
+   * @memberof HiOrgPersonPreviewItemDto
+   */
+  isDuplicate: boolean;
+  /**
+   * ID der existierenden StammPerson (nur bei isDuplicate=true)
+   * @type {string}
+   * @memberof HiOrgPersonPreviewItemDto
+   */
+  existingStammPersonId?: string;
 }
 
 /**
@@ -65,7 +91,9 @@ export function instanceOfHiOrgPersonPreviewItemDto(value: object): value is HiO
   if (!('vorname' in value) || value['vorname'] === undefined) return false;
   if (!('nachname' in value) || value['nachname'] === undefined) return false;
   if (!('qualifikationenCount' in value) || value['qualifikationenCount'] === undefined) return false;
+  if (!('qualifikationen' in value) || value['qualifikationen'] === undefined) return false;
   if (!('ausbildungenCount' in value) || value['ausbildungenCount'] === undefined) return false;
+  if (!('isDuplicate' in value) || value['isDuplicate'] === undefined) return false;
   return true;
 }
 
@@ -83,7 +111,10 @@ export function HiOrgPersonPreviewItemDtoFromJSONTyped(json: any, ignoreDiscrimi
     vorname: json['vorname'],
     nachname: json['nachname'],
     qualifikationenCount: json['qualifikationenCount'],
+    qualifikationen: (json['qualifikationen'] as Array<any>).map(HiOrgQualifikationPreviewItemDtoFromJSON),
     ausbildungenCount: json['ausbildungenCount'],
+    isDuplicate: json['isDuplicate'],
+    existingStammPersonId: json['existingStammPersonId'] == null ? undefined : json['existingStammPersonId'],
   };
 }
 
@@ -102,6 +133,9 @@ export function HiOrgPersonPreviewItemDtoToJSONTyped(value?: HiOrgPersonPreviewI
     vorname: value['vorname'],
     nachname: value['nachname'],
     qualifikationenCount: value['qualifikationenCount'],
+    qualifikationen: (value['qualifikationen'] as Array<any>).map(HiOrgQualifikationPreviewItemDtoToJSON),
     ausbildungenCount: value['ausbildungenCount'],
+    isDuplicate: value['isDuplicate'],
+    existingStammPersonId: value['existingStammPersonId'],
   };
 }

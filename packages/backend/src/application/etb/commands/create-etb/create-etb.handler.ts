@@ -1,4 +1,5 @@
-import { Inject, Injectable, Logger } from '@nestjs/common';
+import { Inject, Injectable } from '@nestjs/common';
+import type { ILogger } from '@domain/ports/i-logger.port';
 import { Result } from '@domain/common/result';
 import { EinsatztagebuchAggregate } from '@domain/aggregates/einsatztagebuch.aggregate';
 import { EinsatzId } from '@domain/value-objects/einsatz-id';
@@ -6,7 +7,7 @@ import type { EtbId } from '@domain/value-objects/etb-id';
 import type { IEinsatzRepository } from '@domain/repositories';
 import type { IEtbRepository } from '@domain/repositories';
 import type { CreateEtbCommand } from './create-etb.command';
-import { EINSATZ_REPOSITORY, ETB_REPOSITORY } from '@infrastructure/di-tokens';
+import { EINSATZ_REPOSITORY, ETB_REPOSITORY, LOGGER } from '@infrastructure/di-tokens';
 
 /**
  * Handler für CreateEtbCommand.
@@ -24,13 +25,13 @@ import { EINSATZ_REPOSITORY, ETB_REPOSITORY } from '@infrastructure/di-tokens';
  */
 @Injectable()
 export class CreateEtbHandler {
-  private readonly logger = new Logger(CreateEtbHandler.name);
-
   constructor(
     @Inject(EINSATZ_REPOSITORY)
     private readonly einsatzRepository: IEinsatzRepository,
     @Inject(ETB_REPOSITORY)
     private readonly etbRepository: IEtbRepository,
+    @Inject(LOGGER)
+    private readonly logger: ILogger,
   ) {}
 
   async execute(command: CreateEtbCommand): Promise<Result<EtbId>> {

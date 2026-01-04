@@ -1,4 +1,6 @@
-import { type ArgumentsHost, Catch, type ExceptionFilter, HttpStatus, Logger } from '@nestjs/common';
+import { type ArgumentsHost, Catch, type ExceptionFilter, HttpStatus, Inject } from '@nestjs/common';
+import type { ILogger } from '@domain/ports/i-logger.port';
+import { LOGGER } from '@infrastructure/di-tokens';
 import type { Request, Response } from 'express';
 import { createId } from '@paralleldrive/cuid2';
 import { DomainException, EinsatzNotFoundException, EinsatzValidationException, EinsatzBusinessRuleException, EinsatzPersistenceException } from '@/domain/common/exceptions';
@@ -21,7 +23,7 @@ import { DuplicateEntityException, EntityNotFoundException, DatabaseTimeoutExcep
  */
 @Catch(DomainException)
 export class DomainExceptionFilter implements ExceptionFilter {
-  private readonly logger = new Logger(DomainExceptionFilter.name);
+  constructor(@Inject(LOGGER) private readonly logger: ILogger) {}
 
   catch(exception: DomainException, host: ArgumentsHost): void {
     const ctx = host.switchToHttp();

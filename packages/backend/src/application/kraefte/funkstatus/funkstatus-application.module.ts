@@ -1,6 +1,8 @@
 import { Module } from '@nestjs/common';
 import { KraefteInfrastructureModule } from '@infrastructure/kraefte/kraefte-infrastructure.module';
 import { OutboxModule } from '@infrastructure/outbox/outbox.module';
+import { LOGGER } from '@infrastructure/di-tokens';
+import { NestLoggerAdapter } from '@infrastructure/common/adapters/nest-logger.adapter';
 
 // Command Handlers
 import { UpdateFunkStatusConfigHandler } from './commands/update-funk-status-config/update-funk-status-config.handler';
@@ -27,6 +29,11 @@ import { GetFunkStatusConfigByCodeHandler } from './queries/get-funk-status-conf
     OutboxModule,
   ],
   providers: [
+    // Logger für FunkStatus Handlers
+    {
+      provide: LOGGER,
+      useFactory: () => new NestLoggerAdapter('FunkStatus'),
+    },
     // Command Handlers
     UpdateFunkStatusConfigHandler,
     // Query Handlers

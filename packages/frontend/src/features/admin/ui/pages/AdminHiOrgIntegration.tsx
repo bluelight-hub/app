@@ -1,15 +1,21 @@
-import { useState, useEffect } from 'react';
-import { Navigate, useSearch } from '@tanstack/react-router';
-import { PiPlugsConnected, PiCheckCircle, PiWarningCircle, PiSpinner, PiUsers } from 'react-icons/pi';
+import { useState, useEffect, useMemo, useCallback } from 'react';
+import { Navigate, useSearch, useNavigate } from '@tanstack/react-router';
+import { PiPlugsConnected, PiCheckCircle, PiWarningCircle, PiSpinner, PiUsers, PiDownload, PiCopy, PiGear } from 'react-icons/pi';
 import { toast } from 'sonner';
 import { useAdminAuth } from '@/features/auth/api';
-import { useAdminHiOrgIntegration } from '@/features/admin/api';
+import { useAdminHiOrgIntegration, useAdminQualifikationenManagement, type BatchMappingItem } from '@/features/admin/api';
+import type { HiOrgQualifikationPreviewItemDto } from '@bluelight-hub/shared/client';
 import { Button } from '@/shared/ui/atoms/button.atom';
 import { Card } from '@/shared/ui/atoms/card.atom';
 import { Container } from '@/shared/ui/atoms/container.atom';
 import { Heading } from '@/shared/ui/atoms/heading.atom';
 import { Text } from '@/shared/ui/atoms/text.atom';
 import { Skeleton } from '@/shared/ui/atoms/skeleton';
+import { Checkbox } from '@/shared/ui/atoms/checkbox.atom';
+import { Badge } from '@/shared/ui/atoms/badge.atom';
+import { Dialog } from '@/shared/ui/molecules/dialog.molecule';
+import { QualifikationMappingDialog } from '../organisms/QualifikationMappingDialog';
+import { ImportMappingStep } from '../organisms/ImportMappingStep';
 
 /**
  * Admin HiOrg Integration Settings Page.
@@ -26,14 +32,179 @@ import { Skeleton } from '@/shared/ui/atoms/skeleton';
 export function AdminHiOrgIntegration() {
   const { isAdmin, isLoading: isAuthLoading } = useAdminAuth();
   const [showPreview, setShowPreview] = useState(false);
+  const [selectedUsernames, setSelectedUsernames] = useState<Set<string>>(new Set());
+  const [showImportDialog, setShowImportDialog] = useState(false);
+  const [duplicateStrategy, setDuplicateStrategy] = useState<'skip' | 'update'>('skip');
+  // Mapping Step State (dialogStep wird fuer mehrstufigen Import-Wizard verwendet)
+  const [dialogStep, setDialogStep] = useState<'confirm' | 'mapping'>('confirm');
+  const [mappingValues, setMappingValues] = useState<Record<string, string | null>>({});
+  // Standalone Mapping Dialog State
+  const [showMappingDialog, setShowMappingDialog] = useState(false);
   // Search Params für OAuth Callback (oauth=success/error, message=...)
   const search = useSearch({ from: '/admin/integrations/hiorg' });
+  const navigate = useNavigate();
 
-  const { credentials, isLoadingCredentials, preview, isLoadingPreview, testConnection, isTestingConnection, connectionInfo, initiateOAuth, isInitiatingOAuth, refetchCredentials } =
-    useAdminHiOrgIntegration({
-      activeOnly: true,
-      enablePreview: showPreview, // Nur laden wenn User auf "Vorschau laden" klickt
+  // Lokale Qualifikationen fuer Inline-Mapping im Import-Dialog
+  const { qualifikationen: localQualifikationen, isLoading: isLoadingQualifikationen } = useAdminQualifikationenManagement({ istAktiv: true });
+
+  const {
+    credentials,
+    isLoadingCredentials,
+    preview,
+    isLoadingPreview,
+    testConnection,
+    isTestingConnection,
+    connectionInfo,
+    initiateOAuth,
+    isInitiatingOAuth,
+    refetchCredentials,
+    importPersons,
+    isImporting,
+    importResult,
+    clearImportResult,
+    batchSaveMappingsAsync,
+    isSavingBatchMappings,
+    // Qualifikation-Mappings (fuer standalone Dialog)
+    mappings,
+    isLoadingMappings,
+    saveQualifikationMapping,
+    isSavingMapping,
+    autoMatchQualifikationen,
+    isAutoMatching,
+  } = useAdminHiOrgIntegration({
+    activeOnly: true,
+    enablePreview: showPreview, // Nur laden wenn User auf "Vorschau laden" klickt
+    enableMappings: showMappingDialog, // Nur laden wenn Dialog offen ist
+  });
+
+  // Berechne Anzahl Duplikate in Auswahl
+  const duplicatesInSelection = useMemo(() => {
+    if (!preview?.persons) return 0;
+    return preview.persons.filter((p) => selectedUsernames.has(p.username) && p.isDuplicate).length;
+  }, [preview?.persons, selectedUsernames]);
+
+  // Berechne Anzahl Personen ohne Personalnummer in Auswahl
+  const missingPersonalnummerInSelection = useMemo(() => {
+    if (!preview?.persons) return 0;
+    return preview.persons.filter((p) => selectedUsernames.has(p.username) && !p.mitgliednr?.trim()).length;
+  }, [preview?.persons, selectedUsernames]);
+
+  // Toggle einzelne Person
+  const togglePerson = useCallback((username: string) => {
+    setSelectedUsernames((prev) => {
+      const next = new Set(prev);
+      if (next.has(username)) {
+        next.delete(username);
+      } else {
+        next.add(username);
+      }
+      return next;
     });
+  }, []);
+
+  // Toggle alle Personen
+  const toggleAll = useCallback(() => {
+    if (!preview?.persons) return;
+    const allUsernames = preview.persons.map((p) => p.username);
+    const allSelected = allUsernames.every((u) => selectedUsernames.has(u));
+    if (allSelected) {
+      setSelectedUsernames(new Set());
+    } else {
+      setSelectedUsernames(new Set(allUsernames));
+    }
+  }, [preview?.persons, selectedUsernames]);
+
+  // Schließe Dialog und resette State
+  const closeImportDialog = useCallback(() => {
+    setShowImportDialog(false);
+    setDialogStep('confirm');
+    setMappingValues({});
+  }, []);
+
+  // Import ausführen
+  const handleImport = useCallback(() => {
+    const usernames = Array.from(selectedUsernames);
+    importPersons(
+      { usernames, duplicateStrategy },
+      {
+        onSuccess: () => {
+          closeImportDialog();
+          setSelectedUsernames(new Set());
+        },
+      },
+    );
+  }, [selectedUsernames, duplicateStrategy, importPersons, closeImportDialog]);
+
+  // Alle / Keine Duplikate ausgewählt?
+  const allSelected = useMemo(() => {
+    if (!preview?.persons || preview.persons.length === 0) return false;
+    return preview.persons.every((p) => selectedUsernames.has(p.username));
+  }, [preview?.persons, selectedUsernames]);
+
+  // Sammle alle einzigartigen unmapped Qualifikationen aus ausgewählten Personen
+  const unmappedQualifikationen = useMemo(() => {
+    if (!preview?.persons) return [];
+
+    const qualifikationMap = new Map<string, HiOrgQualifikationPreviewItemDto>();
+
+    preview.persons
+      .filter((p) => selectedUsernames.has(p.username))
+      .flatMap((p) => p.qualifikationen ?? [])
+      .filter((q) => !q.isMapped) // Nur unmapped
+      .forEach((q) => {
+        // Deduplizieren nach externalName
+        if (!qualifikationMap.has(q.name)) {
+          qualifikationMap.set(q.name, q);
+        }
+      });
+
+    return Array.from(qualifikationMap.values());
+  }, [preview?.persons, selectedUsernames]);
+
+  // Initialisiere Mapping-Werte mit Auto-Match Vorschlägen
+  const initializeMappingValues = useCallback(() => {
+    const initial: Record<string, string | null> = {};
+    for (const q of unmappedQualifikationen) {
+      // Verwende Auto-Match Vorschlag wenn Confidence >= 70%
+      if (q.autoMatchSuggestionId && (q.autoMatchConfidence ?? 0) >= 70) {
+        initial[q.name] = q.autoMatchSuggestionId;
+      } else {
+        initial[q.name] = null;
+      }
+    }
+    setMappingValues(initial);
+  }, [unmappedQualifikationen]);
+
+  // Öffne Dialog und setze Step basierend auf unmapped Qualifikationen
+  const openImportDialog = useCallback(() => {
+    if (unmappedQualifikationen.length > 0) {
+      initializeMappingValues();
+      setDialogStep('mapping');
+    } else {
+      setDialogStep('confirm');
+    }
+    setShowImportDialog(true);
+  }, [unmappedQualifikationen.length, initializeMappingValues]);
+
+  // Mapping speichern und dann zum Confirm-Step
+  const handleSaveMappingsAndContinue = useCallback(async () => {
+    // Nur Mappings speichern die einen Wert haben (nicht undefined)
+    const mappingsToSave: BatchMappingItem[] = Object.entries(mappingValues).map(([externalName, qualifikationId]) => ({
+      externalName,
+      qualifikationId,
+    }));
+
+    if (mappingsToSave.length > 0) {
+      try {
+        await batchSaveMappingsAsync(mappingsToSave);
+      } catch {
+        // Error wird bereits im Hook getoastet
+        return;
+      }
+    }
+
+    setDialogStep('confirm');
+  }, [mappingValues, batchSaveMappingsAsync]);
 
   // OAuth Callback Handling - Toast anzeigen und URL Parameter entfernen
   useEffect(() => {
@@ -42,16 +213,16 @@ export function AdminHiOrgIntegration() {
         description: 'HiOrg-Server wurde erfolgreich verbunden.',
       });
       refetchCredentials();
-      // URL Parameter entfernen
-      window.history.replaceState({}, '', window.location.pathname);
+      // URL Parameter entfernen via TanStack Router
+      navigate({ to: '/admin/integrations/hiorg', replace: true });
     } else if (search.oauth === 'error') {
       toast.error('Verbindung fehlgeschlagen', {
         description: search.message || 'Ein unbekannter Fehler ist aufgetreten.',
       });
-      // URL Parameter entfernen
-      window.history.replaceState({}, '', window.location.pathname);
+      // URL Parameter entfernen via TanStack Router
+      navigate({ to: '/admin/integrations/hiorg', replace: true });
     }
-  }, [search.oauth, search.message, refetchCredentials]);
+  }, [search.oauth, search.message, refetchCredentials, navigate]);
 
   // Auth Guard
   if (!isAuthLoading && !isAdmin) {
@@ -167,11 +338,31 @@ export function AdminHiOrgIntegration() {
       {(credentials?.hasToken || credentials?.hasOAuthTokens) && (
         <Card className="p-6">
           <div className="mb-4 flex items-center justify-between">
-            <Heading level={3}>Personen-Vorschau</Heading>
-            <Button variant="outline" onClick={() => setShowPreview(!showPreview)}>
-              <PiUsers className="mr-2 h-4 w-4" />
-              {showPreview ? 'Ausblenden' : 'Vorschau laden'}
-            </Button>
+            <div>
+              <Heading level={3}>Personen-Vorschau & Import</Heading>
+              {selectedUsernames.size > 0 && (
+                <Text className="mt-1 text-gray-500 text-sm">
+                  {selectedUsernames.size} Person{selectedUsernames.size !== 1 ? 'en' : ''} ausgewählt
+                  {duplicatesInSelection > 0 && ` (${duplicatesInSelection} bereits importiert)`}
+                </Text>
+              )}
+            </div>
+            <div className="flex gap-2">
+              {selectedUsernames.size > 0 && (
+                <Button intent="primary" onClick={openImportDialog}>
+                  <PiDownload className="mr-2 h-4 w-4" />
+                  {selectedUsernames.size} importieren
+                </Button>
+              )}
+              <Button variant="outline" onClick={() => setShowMappingDialog(true)}>
+                <PiGear className="mr-2 h-4 w-4" />
+                Mapping konfigurieren
+              </Button>
+              <Button variant="outline" onClick={() => setShowPreview(!showPreview)}>
+                <PiUsers className="mr-2 h-4 w-4" />
+                {showPreview ? 'Ausblenden' : 'Vorschau laden'}
+              </Button>
+            </div>
           </div>
 
           {showPreview &&
@@ -188,21 +379,65 @@ export function AdminHiOrgIntegration() {
                   <table className="w-full">
                     <thead className="sticky top-0 bg-gray-50 dark:bg-gray-800">
                       <tr>
+                        <th className="w-12 px-4 py-2">
+                          <Checkbox checked={allSelected} onChange={toggleAll} />
+                        </th>
                         <th className="px-4 py-2 text-left font-medium text-sm">Name</th>
                         <th className="px-4 py-2 text-left font-medium text-sm">Benutzername</th>
                         <th className="px-4 py-2 text-left font-medium text-sm">Mitgliedsnr.</th>
                         <th className="px-4 py-2 text-left font-medium text-sm">Qualifikationen</th>
+                        <th className="px-4 py-2 text-left font-medium text-sm">Status</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y">
                       {preview.persons.map((person) => (
-                        <tr key={person.username} className="hover:bg-gray-50 dark:hover:bg-gray-800">
+                        <tr
+                          key={person.username}
+                          tabIndex={0}
+                          className={`cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800 ${selectedUsernames.has(person.username) ? 'bg-blue-50 dark:bg-blue-900/20' : ''}`}
+                          onClick={() => togglePerson(person.username)}
+                          onKeyDown={(e) => {
+                            if (e.key === 'Enter' || e.key === ' ') {
+                              e.preventDefault();
+                              togglePerson(person.username);
+                            }
+                          }}
+                        >
+                          <td className="px-4 py-2" onClick={(e) => e.stopPropagation()} onKeyDown={(e) => e.stopPropagation()}>
+                            <Checkbox checked={selectedUsernames.has(person.username)} onChange={() => togglePerson(person.username)} />
+                          </td>
                           <td className="px-4 py-2">
                             {person.vorname} {person.nachname}
                           </td>
                           <td className="px-4 py-2 text-gray-500 text-sm">{person.username}</td>
-                          <td className="px-4 py-2 text-gray-500 text-sm">{person.mitgliednr ?? '-'}</td>
+                          <td className="px-4 py-2 text-sm">
+                            {person.mitgliednr?.trim() ? (
+                              <span className="text-gray-500">{person.mitgliednr}</span>
+                            ) : (
+                              <span className="flex items-center gap-1 text-amber-600 dark:text-amber-400">
+                                <PiWarningCircle className="h-4 w-4" />
+                                Fehlt
+                              </span>
+                            )}
+                          </td>
                           <td className="px-4 py-2 text-gray-500 text-sm">{person.qualifikationenCount}</td>
+                          <td className="px-4 py-2">
+                            {!person.mitgliednr?.trim() ? (
+                              <Badge variant="danger" size="sm">
+                                <PiWarningCircle className="mr-1 h-3 w-3" />
+                                Import nicht möglich
+                              </Badge>
+                            ) : person.isDuplicate ? (
+                              <Badge variant="warning" size="sm">
+                                <PiCopy className="mr-1 h-3 w-3" />
+                                Bereits importiert
+                              </Badge>
+                            ) : (
+                              <Badge variant="success" size="sm">
+                                Neu
+                              </Badge>
+                            )}
+                          </td>
                         </tr>
                       ))}
                     </tbody>
@@ -214,6 +449,158 @@ export function AdminHiOrgIntegration() {
             ))}
         </Card>
       )}
+
+      {/* Import Dialog - Two-Step Wizard (Mapping → Confirm) */}
+      <Dialog isOpen={showImportDialog} onClose={closeImportDialog} size={dialogStep === 'mapping' ? 'lg' : 'md'}>
+        <Dialog.Title>{dialogStep === 'mapping' ? 'Qualifikationen zuordnen' : 'Personen importieren'}</Dialog.Title>
+        <Dialog.Body>
+          {dialogStep === 'mapping' ? (
+            <ImportMappingStep
+              unmappedQualifikationen={unmappedQualifikationen}
+              localQualifikationen={localQualifikationen}
+              mappingValues={mappingValues}
+              onMappingChange={(externalName, qualifikationId) => setMappingValues((prev) => ({ ...prev, [externalName]: qualifikationId }))}
+              isLoading={isLoadingQualifikationen}
+            />
+          ) : (
+            <div className="space-y-4">
+              <Text>
+                Du möchtest <strong>{selectedUsernames.size}</strong> Person{selectedUsernames.size !== 1 ? 'en' : ''} aus HiOrg-Server importieren.
+              </Text>
+
+              {missingPersonalnummerInSelection > 0 && (
+                <div className="rounded-lg border border-red-200 bg-red-50 p-4 dark:border-red-800 dark:bg-red-900/20">
+                  <div className="flex items-center gap-2">
+                    <PiWarningCircle className="h-5 w-5 text-red-600 dark:text-red-400" />
+                    <Text className="font-medium text-red-800 dark:text-red-200">
+                      {missingPersonalnummerInSelection} Person{missingPersonalnummerInSelection !== 1 ? 'en' : ''} ohne Personalnummer
+                    </Text>
+                  </div>
+                  <Text className="mt-2 text-red-700 text-sm dark:text-red-300">Diese Personen können nicht importiert werden. Bitte hinterlege zuerst die Mitgliedsnummer in HiOrg-Server.</Text>
+                </div>
+              )}
+
+              {duplicatesInSelection > 0 && (
+                <div className="rounded-lg border border-amber-200 bg-amber-50 p-4 dark:border-amber-800 dark:bg-amber-900/20">
+                  <Text className="font-medium text-amber-800 dark:text-amber-200">
+                    {duplicatesInSelection} bereits importierte Person{duplicatesInSelection !== 1 ? 'en' : ''} in Auswahl
+                  </Text>
+                  <div className="mt-3 space-y-2">
+                    <Text className="text-amber-700 text-sm dark:text-amber-300">Wie soll mit Duplikaten umgegangen werden?</Text>
+                    <div className="space-y-2">
+                      <label className="flex cursor-pointer items-center gap-3">
+                        <input
+                          type="radio"
+                          name="duplicateStrategy"
+                          value="skip"
+                          checked={duplicateStrategy === 'skip'}
+                          onChange={() => setDuplicateStrategy('skip')}
+                          className="h-4 w-4 border-gray-300 text-blue-600 focus:ring-blue-500"
+                        />
+                        <span className="text-sm">
+                          <strong>Überspringen</strong> - Nur neue Personen importieren
+                        </span>
+                      </label>
+                      <label className="flex cursor-pointer items-center gap-3">
+                        <input
+                          type="radio"
+                          name="duplicateStrategy"
+                          value="update"
+                          checked={duplicateStrategy === 'update'}
+                          onChange={() => setDuplicateStrategy('update')}
+                          className="h-4 w-4 border-gray-300 text-blue-600 focus:ring-blue-500"
+                        />
+                        <span className="text-sm">
+                          <strong>Aktualisieren</strong> - Daten überschreiben
+                        </span>
+                      </label>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {duplicatesInSelection === 0 && missingPersonalnummerInSelection === 0 && (
+                <div className="rounded-lg border border-green-200 bg-green-50 p-4 dark:border-green-800 dark:bg-green-900/20">
+                  <Text className="text-green-800 text-sm dark:text-green-200">Alle ausgewählten Personen sind neu und werden erstellt.</Text>
+                </div>
+              )}
+            </div>
+          )}
+        </Dialog.Body>
+        <Dialog.Footer loading={isImporting || isSavingBatchMappings}>
+          {dialogStep === 'mapping' ? (
+            <>
+              <Button intent="secondary" appearance="ghost" onClick={closeImportDialog} disabled={isSavingBatchMappings}>
+                Abbrechen
+              </Button>
+              <Button intent="primary" onClick={handleSaveMappingsAndContinue} loading={isSavingBatchMappings}>
+                Weiter
+              </Button>
+            </>
+          ) : (
+            <>
+              <Button intent="secondary" appearance="ghost" onClick={closeImportDialog} disabled={isImporting}>
+                Abbrechen
+              </Button>
+              <Button intent="primary" onClick={handleImport} loading={isImporting}>
+                <PiDownload className="mr-2 h-4 w-4" />
+                Importieren
+              </Button>
+            </>
+          )}
+        </Dialog.Footer>
+      </Dialog>
+
+      {/* Import Result Dialog */}
+      {importResult && (
+        <Dialog.Alert
+          isOpen={!!importResult}
+          onClose={clearImportResult}
+          title="Import abgeschlossen"
+          variant={importResult.failed > 0 ? 'warning' : 'success'}
+          message={
+            <div className="space-y-3">
+              <div className="grid grid-cols-2 gap-2 text-sm">
+                <span>Erstellt:</span>
+                <span className="font-medium text-green-600">{importResult.created}</span>
+                <span>Aktualisiert:</span>
+                <span className="font-medium text-blue-600">{importResult.updated}</span>
+                <span>Übersprungen:</span>
+                <span className="font-medium text-gray-600">{importResult.skipped}</span>
+                <span>Fehlgeschlagen:</span>
+                <span className="font-medium text-red-600">{importResult.failed}</span>
+              </div>
+              {/* Fehlerdetails anzeigen */}
+              {importResult.results?.filter((r) => r.status === 'failed').length > 0 && (
+                <div className="mt-2 rounded-lg border border-red-200 bg-red-50 p-3 dark:border-red-800 dark:bg-red-900/20">
+                  <Text className="mb-2 font-medium text-red-800 text-sm dark:text-red-200">Fehlerdetails:</Text>
+                  <ul className="list-inside list-disc space-y-1 text-red-700 text-xs dark:text-red-300">
+                    {importResult.results
+                      .filter((r) => r.status === 'failed')
+                      .map((r) => (
+                        <li key={r.username}>
+                          {r.vorname} {r.nachname}: {r.error ?? 'Unbekannter Fehler'}
+                        </li>
+                      ))}
+                  </ul>
+                </div>
+              )}
+            </div>
+          }
+        />
+      )}
+
+      {/* Qualifikation-Mapping Dialog */}
+      <QualifikationMappingDialog
+        isOpen={showMappingDialog}
+        onClose={() => setShowMappingDialog(false)}
+        mappings={mappings?.mappings}
+        isLoading={isLoadingMappings}
+        onSaveMapping={(mappingId, qualifikationId) => saveQualifikationMapping({ mappingId, qualifikationId })}
+        isSaving={isSavingMapping}
+        onAutoMatch={() => autoMatchQualifikationen({ onlyUnmapped: true })}
+        isAutoMatching={isAutoMatching}
+      />
     </Container>
   );
 }

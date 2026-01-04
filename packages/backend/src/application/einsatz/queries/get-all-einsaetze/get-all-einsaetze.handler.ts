@@ -1,6 +1,7 @@
 import { QueryHandler, type IQueryHandler } from '@nestjs/cqrs';
-import { Injectable, Inject, Logger } from '@nestjs/common';
+import { Injectable, Inject } from '@nestjs/common';
 import { Result } from '@domain/common/result';
+import type { ILogger } from '@domain/ports/i-logger.port';
 import type { PaginatedData } from '@/infrastructure/http/interceptors/transform.interceptor';
 import type { EinsatzResponseDto } from '@/application/einsatz/dto/einsatz-response.dto';
 // biome-ignore lint/style/useImportType: IEinsatzRepository needed for DI at runtime
@@ -8,7 +9,7 @@ import { IEinsatzRepository } from '@domain/repositories';
 import { EinsatzNameGenerator } from '@/modules/einsatz/utils/name-generator.util';
 import { EinsatzCompletenessCalculator } from '@/modules/einsatz/utils/completeness.util';
 import { GetAllEinsaetzeQuery } from './get-all-einsaetze.query';
-import { EINSATZ_REPOSITORY } from '@infrastructure/di-tokens';
+import { EINSATZ_REPOSITORY, LOGGER } from '@infrastructure/di-tokens';
 // TODO (Epic 6): Migrate utilities to use Domain Aggregate instead of Prisma Entity
 // biome-ignore lint/style/noRestrictedImports: Legacy dependency - EinsatzNameGenerator/CompletenessCalculator require Prisma types
 import type { Einsatz as PrismaEinsatz } from '@prisma/client';
@@ -74,8 +75,6 @@ import type { Einsatz as PrismaEinsatz } from '@prisma/client';
 @QueryHandler(GetAllEinsaetzeQuery)
 @Injectable()
 export class GetAllEinsaetzeQueryHandler implements IQueryHandler<GetAllEinsaetzeQuery, Result<PaginatedData<EinsatzResponseDto>>> {
-  private readonly logger = new Logger(GetAllEinsaetzeQueryHandler.name);
-
   /**
    * Constructor mit Dependency Injection.
    *
@@ -83,10 +82,13 @@ export class GetAllEinsaetzeQueryHandler implements IQueryHandler<GetAllEinsaetz
    * Nutzt @Inject Token für Interface-basierte Injection (Hexagonal Architecture).
    *
    * @param repository - IEinsatzRepository mit findAllPaginated() Support
+   * @param logger - ILogger für Framework-agnostisches Logging
    */
   constructor(
     @Inject(EINSATZ_REPOSITORY)
     private readonly repository: IEinsatzRepository,
+    @Inject(LOGGER)
+    private readonly logger: ILogger,
   ) {}
 
   /**

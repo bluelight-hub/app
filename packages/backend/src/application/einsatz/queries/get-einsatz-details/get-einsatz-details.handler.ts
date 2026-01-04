@@ -1,5 +1,6 @@
 import { type IQueryHandler, QueryHandler } from '@nestjs/cqrs';
-import { Inject, Logger } from '@nestjs/common';
+import { Inject } from '@nestjs/common';
+import type { ILogger } from '@domain/ports/i-logger.port';
 import { Result } from '@domain/common/result';
 // biome-ignore lint/style/useImportType: IEinsatzRepository needed for DI at runtime
 import { IEinsatzRepository } from '@domain/repositories';
@@ -13,7 +14,7 @@ import { EtbQueryMapper } from '@application/etb/mappers/etb-query.mapper';
 import { LagekarteMapper } from '@application/lagekarte/mappers/lagekarte.mapper';
 import type { EinsatzDetailsDto } from '@application/einsatz/dto/einsatz-details.dto';
 import { GetEinsatzDetailsQuery } from './get-einsatz-details.query';
-import { EINSATZ_REPOSITORY, ETB_REPOSITORY, LAGEKARTE_REPOSITORY } from '@infrastructure/di-tokens';
+import { EINSATZ_REPOSITORY, ETB_REPOSITORY, LAGEKARTE_REPOSITORY, LOGGER } from '@infrastructure/di-tokens';
 
 /**
  * Query Handler für GetEinsatzDetailsQuery.
@@ -73,8 +74,6 @@ import { EINSATZ_REPOSITORY, ETB_REPOSITORY, LAGEKARTE_REPOSITORY } from '@infra
  */
 @QueryHandler(GetEinsatzDetailsQuery)
 export class GetEinsatzDetailsQueryHandler implements IQueryHandler<GetEinsatzDetailsQuery, Result<EinsatzDetailsDto | null>> {
-  private readonly logger = new Logger(GetEinsatzDetailsQueryHandler.name);
-
   constructor(
     @Inject(EINSATZ_REPOSITORY)
     private readonly einsatzRepository: IEinsatzRepository,
@@ -82,6 +81,8 @@ export class GetEinsatzDetailsQueryHandler implements IQueryHandler<GetEinsatzDe
     private readonly etbRepository: IEtbRepository,
     @Inject(LAGEKARTE_REPOSITORY)
     private readonly lagekarteRepository: ILagekarteRepository,
+    @Inject(LOGGER)
+    private readonly logger: ILogger,
   ) {}
 
   /**

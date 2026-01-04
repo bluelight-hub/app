@@ -1,7 +1,8 @@
 import { Module } from '@nestjs/common';
 import { JwtModule } from '@nestjs/jwt';
-import { JWT_AUTH_SERVICE } from '../di-tokens';
+import { JWT_AUTH_SERVICE, LOGGER } from '../di-tokens';
 import { JwtTokenServiceAdapter } from './adapters/jwt-token-service.adapter';
+import { NestLoggerAdapter } from '../common/adapters/nest-logger.adapter';
 
 /**
  * NestJS Module für Auth Infrastructure Layer.
@@ -56,6 +57,11 @@ import { JwtTokenServiceAdapter } from './adapters/jwt-token-service.adapter';
     }),
   ],
   providers: [
+    // Logger für Auth Infrastructure
+    {
+      provide: LOGGER,
+      useFactory: () => new NestLoggerAdapter('AuthInfrastructure'),
+    },
     JwtTokenServiceAdapter,
     {
       provide: JWT_AUTH_SERVICE,

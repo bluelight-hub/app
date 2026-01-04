@@ -1,6 +1,8 @@
 import { JwtAuthGuard } from '@/modules/auth/guards/jwt-auth.guard';
 import { ApiWrappedResponse } from '@/modules/common/decorators/api-wrapped-response.decorator';
-import { Body, Controller, Logger, Param, Post, UseGuards, ValidationPipe } from '@nestjs/common';
+import { Body, Controller, Inject, Param, Post, UseGuards, ValidationPipe } from '@nestjs/common';
+import type { ILogger } from '@domain/ports/i-logger.port';
+import { LOGGER } from '@/infrastructure/di-tokens';
 import { ApiBadRequestResponse, ApiBearerAuth, ApiForbiddenResponse, ApiOperation, ApiProperty, ApiTags, ApiTooManyRequestsResponse, ApiUnauthorizedResponse } from '@nestjs/swagger';
 import { Throttle } from '@nestjs/throttler';
 import { IsString } from 'class-validator';
@@ -41,9 +43,10 @@ class GeocodeAddressDto {
   version: 'alpha',
 })
 export class GeocodingController {
-  private readonly logger = new Logger(GeocodingController.name);
-
-  constructor(private readonly geocodingService: GeocodingService) {}
+  constructor(
+    private readonly geocodingService: GeocodingService,
+    @Inject(LOGGER) private readonly logger: ILogger,
+  ) {}
 
   /**
    * Geocode eine Adresse zu Koordinaten

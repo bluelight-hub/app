@@ -1,4 +1,6 @@
-import { type CanActivate, type ExecutionContext, Injectable, ForbiddenException, Logger, Inject } from '@nestjs/common';
+import { type CanActivate, type ExecutionContext, Injectable, ForbiddenException, Inject } from '@nestjs/common';
+import type { ILogger } from '@domain/ports/i-logger.port';
+import { LOGGER } from '@/infrastructure/di-tokens';
 import { Reflector } from '@nestjs/core';
 import type { UserRole } from '@prisma/client';
 import { ROLES_KEY } from '../decorators/roles.decorator';
@@ -30,9 +32,10 @@ import type { ValidatedUser } from '../strategies/jwt.strategy';
  */
 @Injectable()
 export class RolesGuard implements CanActivate {
-  private readonly logger = new Logger(RolesGuard.name);
-
-  constructor(@Inject(Reflector) private reflector: Reflector) {}
+  constructor(
+    @Inject(Reflector) private reflector: Reflector,
+    @Inject(LOGGER) private readonly logger: ILogger,
+  ) {}
 
   canActivate(context: ExecutionContext): boolean {
     // Hole erforderliche Rollen aus @Roles() Decorator (Methode oder Klasse)

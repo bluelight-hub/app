@@ -1,11 +1,12 @@
 import { type IQueryHandler, QueryHandler } from '@nestjs/cqrs';
-import { Inject, Logger } from '@nestjs/common';
+import { Inject } from '@nestjs/common';
+import type { ILogger } from '@domain/ports/i-logger.port';
 // biome-ignore lint/style/useImportType: IEinsatzRepository needed for DI at runtime
 import { IEinsatzRepository } from '@domain/repositories';
 import { Result } from '@domain/common/result';
 import type { StatusCountsResponseDto } from '@application/einsatz/dto/status-counts.dto';
 import { GetStatusCountsQuery } from './get-status-counts.query';
-import { EINSATZ_REPOSITORY } from '@infrastructure/di-tokens';
+import { EINSATZ_REPOSITORY, LOGGER } from '@infrastructure/di-tokens';
 
 /**
  * Handler fuer GetStatusCountsQuery.
@@ -70,11 +71,11 @@ import { EINSATZ_REPOSITORY } from '@infrastructure/di-tokens';
  */
 @QueryHandler(GetStatusCountsQuery)
 export class GetStatusCountsQueryHandler implements IQueryHandler<GetStatusCountsQuery, Result<StatusCountsResponseDto>> {
-  private readonly logger = new Logger(GetStatusCountsQueryHandler.name);
-
   constructor(
     @Inject(EINSATZ_REPOSITORY)
     private readonly repository: IEinsatzRepository,
+    @Inject(LOGGER)
+    private readonly logger: ILogger,
   ) {}
 
   /**

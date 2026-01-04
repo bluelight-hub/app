@@ -12,8 +12,10 @@ import {
   InternalServerErrorException,
   HttpCode,
   HttpStatus,
-  Logger,
+  Inject,
 } from '@nestjs/common';
+import type { ILogger } from '@domain/ports/i-logger.port';
+import { LOGGER } from '@/infrastructure/di-tokens';
 import { ParseCuidPipe } from '@/infrastructure/http/pipes/parse-cuid.pipe';
 import { ApiWrappedResponse, ApiWrappedCreatedResponse } from '@/modules/common/decorators/api-wrapped-response.decorator';
 import {
@@ -83,13 +85,12 @@ import { EINSATZ_FAHRZEUG_ERROR_CODES, EinsatzFahrzeugError } from '@domain/krae
 @UseGuards(JwtAuthGuard, RolesGuard)
 @Throttle({ default: ADMIN_RATE_LIMIT })
 export class EinsatzFahrzeugeController {
-  private readonly logger = new Logger(EinsatzFahrzeugeController.name);
-
   constructor(
     private readonly erfasseHandler: ErfasseFahrzeugAusStammdatenHandler,
     private readonly erfasseTemporalesHandler: ErfasseTemporalesFahrzeugHandler,
     private readonly getEinsatzFahrzeugeHandler: GetEinsatzFahrzeugeHandler,
     private readonly updateFmsStatusHandler: UpdateFmsStatusHandler,
+    @Inject(LOGGER) private readonly logger: ILogger,
   ) {}
 
   /**

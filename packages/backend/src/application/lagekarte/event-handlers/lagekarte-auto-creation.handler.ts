@@ -14,12 +14,14 @@
  * @see CreateLagekarteCommandHandler - Delegierter Command Handler
  * @see LagekarteEventAdapter - Infrastructure Adapter mit @OnEvent Decorator
  */
-import { Injectable, Logger } from '@nestjs/common';
+import { Inject, Injectable } from '@nestjs/common';
 import type { IEventHandler } from '@domain/ports/i-event-handler.port';
+import type { ILogger } from '@domain/ports/i-logger.port';
 import type { EinsatzCreatedEvent } from '@domain/events/einsatz-created.event';
 // biome-ignore lint/style/useImportType: CreateLagekarteCommandHandler needed for DI at runtime
 import { CreateLagekarteCommandHandler } from '../commands/create-lagekarte.handler';
 import { CreateLagekarteCommand } from '../commands/create-lagekarte.command';
+import { LOGGER } from '@infrastructure/di-tokens';
 
 /**
  * Event Handler für automatische Lagekarte-Erstellung.
@@ -51,9 +53,10 @@ import { CreateLagekarteCommand } from '../commands/create-lagekarte.command';
  */
 @Injectable()
 export class LagekarteAutoCreationHandler implements IEventHandler<EinsatzCreatedEvent> {
-  private readonly logger = new Logger(LagekarteAutoCreationHandler.name);
-
-  constructor(private readonly createLagekarteHandler: CreateLagekarteCommandHandler) {}
+  constructor(
+    @Inject(LOGGER) private readonly logger: ILogger,
+    private readonly createLagekarteHandler: CreateLagekarteCommandHandler,
+  ) {}
 
   /**
    * Verarbeitet EinsatzCreatedEvent und erstellt automatisch eine Lagekarte.

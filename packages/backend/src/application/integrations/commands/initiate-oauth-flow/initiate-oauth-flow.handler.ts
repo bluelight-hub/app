@@ -15,11 +15,10 @@
  */
 
 import { Inject, Injectable } from '@nestjs/common';
-// biome-ignore lint/style/useImportType: ConfigService needed for DI at runtime
-import { ConfigService } from '@nestjs/config';
 import { Result } from '@domain/common/result';
 import { OAuth2State, type IOAuth2StateRepository, INTEGRATION_TYPES, INTEGRATION_ERROR_CODES, IntegrationError } from '@domain/integrations';
 import type { IOAuth2Port } from '@domain/ports/i-oauth2.port';
+import type { IHiOrgOAuthConfigPort } from '@domain/ports/i-hiorg-oauth-config.port';
 import { INTEGRATIONS } from '@/infrastructure/di-tokens';
 import { HIORG_OAUTH_CONFIG } from '@/infrastructure/config/hiorg-oauth.config';
 import type { InitiateOAuthFlowCommand } from './initiate-oauth-flow.command';
@@ -47,7 +46,8 @@ export class InitiateOAuthFlowHandler {
     private readonly oauth2: IOAuth2Port,
     @Inject(INTEGRATIONS.OAUTH2_STATE_REPOSITORY)
     private readonly stateRepository: IOAuth2StateRepository,
-    private readonly config: ConfigService,
+    @Inject(INTEGRATIONS.HIORG_OAUTH_CONFIG_PORT)
+    private readonly oauthConfig: IHiOrgOAuthConfigPort,
   ) {}
 
   /**
@@ -62,15 +62,14 @@ export class InitiateOAuthFlowHandler {
       return Result.fail(IntegrationError.format(INTEGRATION_ERROR_CODES.INVALID_INTEGRATION_TYPE, `Unbekannter Integration Type: ${command.integrationType}`));
     }
 
-    // 2. Get OAuth config from environment
-    const clientId = this.config.get<string>('HIORG_OAUTH_CLIENT_ID');
+    // 2. Get OAuth config via Port (Clean Architecture)
+    const clientId = this.oauthConfig.getClientId();
     if (!clientId) {
       return Result.fail(IntegrationError.format(INTEGRATION_ERROR_CODES.OAUTH_NOT_CONFIGURED, 'HIORG_OAUTH_CLIENT_ID ist nicht konfiguriert'));
     }
 
-    // 3. Build redirect URI from APP_URL
-    const appUrl = this.config.get<string>('APP_URL', 'http://localhost:3091');
-    const redirectUri = `${appUrl}/api/oauth/hiorg/callback`;
+    // 3. Get redirect URI from config port
+    const redirectUri = this.oauthConfig.getRedirectUri();
 
     // 4. Generate Authorization URL with PKCE
     const { authorizationUrl, state, codeVerifier } = this.oauth2.generateAuthorizationUrl({

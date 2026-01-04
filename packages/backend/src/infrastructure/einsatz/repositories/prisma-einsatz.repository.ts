@@ -3,10 +3,12 @@ import type { Einsatz } from '@domain/aggregates/einsatz.aggregate';
 import type { IEinsatzRepository } from '@domain/repositories/ieinsatz.repository';
 import type { TransactionContext } from '@domain/common/transaction';
 import type { EinsatzId } from '@domain/value-objects/einsatz-id';
+import type { ILogger } from '@domain/ports/i-logger.port';
 import { Result } from '@domain/common/result';
-import { Injectable, Logger } from '@nestjs/common';
+import { Inject, Injectable } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
 import { PrismaEinsatzMapper } from '../mappers/prisma-einsatz.mapper';
+import { LOGGER } from '@infrastructure/di-tokens';
 
 /**
  * Transaction Client Type Alias für bessere Lesbarkeit.
@@ -54,14 +56,16 @@ type PrismaTransactionClient = Prisma.TransactionClient;
  */
 @Injectable()
 export class PrismaEinsatzRepository implements IEinsatzRepository {
-  private readonly logger = new Logger(PrismaEinsatzRepository.name);
-
   /**
    * Constructor mit Dependency Injection.
    *
    * @param prisma - PrismaService (NestJS-managed Singleton)
+   * @param logger - ILogger für Framework-agnostisches Logging
    */
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    @Inject(LOGGER) private readonly logger: ILogger,
+  ) {}
 
   /**
    * Speichert das Einsatz-Aggregat (Upsert: Create oder Update).

@@ -1,11 +1,12 @@
-import { Injectable, Logger, Inject } from '@nestjs/common';
+import { Injectable, Inject } from '@nestjs/common';
+import type { ILogger } from '@domain/ports/i-logger.port';
 import { Result } from '@domain/common/result';
 // biome-ignore lint/style/useImportType: IEinsatzRepository needed for DI at runtime
 import { IEinsatzRepository } from '@domain/repositories';
 // biome-ignore lint/style/useImportType: IOutboxRepository needed for DI at runtime
 import { IOutboxRepository } from '@domain/repositories/i-outbox.repository';
 import { UserId } from '@domain/value-objects/user-id';
-import { EINSATZ_REPOSITORY, OUTBOX_REPOSITORY } from '@infrastructure/di-tokens';
+import { EINSATZ_REPOSITORY, OUTBOX_REPOSITORY, LOGGER } from '@infrastructure/di-tokens';
 import type { ArchiveOldEinsaetzeCommand } from './archive-old-einsaetze.command';
 import type { BulkArchiveResult } from './bulk-archive-result';
 import type { Einsatz } from '@domain/aggregates/einsatz.aggregate';
@@ -24,7 +25,6 @@ import type { Einsatz } from '@domain/aggregates/einsatz.aggregate';
  */
 @Injectable()
 export class ArchiveOldEinsaetzeHandler {
-  private readonly logger = new Logger(ArchiveOldEinsaetzeHandler.name);
   private readonly BATCH_SIZE = 100;
 
   constructor(
@@ -32,6 +32,8 @@ export class ArchiveOldEinsaetzeHandler {
     private readonly einsatzRepository: IEinsatzRepository,
     @Inject(OUTBOX_REPOSITORY)
     private readonly outboxRepository: IOutboxRepository,
+    @Inject(LOGGER)
+    private readonly logger: ILogger,
   ) {}
 
   /**

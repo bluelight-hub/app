@@ -1,4 +1,6 @@
-import { Controller, Get, UseGuards, Logger } from '@nestjs/common';
+import { Controller, Get, UseGuards, Inject } from '@nestjs/common';
+import type { ILogger } from '@domain/ports/i-logger.port';
+import { LOGGER } from '@/infrastructure/di-tokens';
 import { ApiTags, ApiBearerAuth, ApiOperation, ApiUnauthorizedResponse, ApiTooManyRequestsResponse, ApiInternalServerErrorResponse } from '@nestjs/swagger';
 import { ApiWrappedResponse } from '@/modules/common/decorators/api-wrapped-response.decorator';
 import { JwtAuthGuard } from '@/modules/auth/guards/jwt-auth.guard';
@@ -26,9 +28,10 @@ import { FahrzeugtypDto } from '@application/kraefte/fahrzeugtypen/dto/fahrzeugt
 @Controller({ path: 'kraefte/fahrzeugtypen', version: 'alpha' })
 @UseGuards(JwtAuthGuard)
 export class FahrzeugtypenController {
-  private readonly logger = new Logger(FahrzeugtypenController.name);
-
-  constructor(private readonly getAllHandler: GetAllFahrzeugtypenHandler) {}
+  constructor(
+    private readonly getAllHandler: GetAllFahrzeugtypenHandler,
+    @Inject(LOGGER) private readonly logger: ILogger,
+  ) {}
 
   /**
    * Alle aktiven Fahrzeugtypen auflisten.

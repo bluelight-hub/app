@@ -1,4 +1,6 @@
 import { LagekarteApplicationModule } from '@/application/lagekarte/lagekarte-application.module';
+import { LOGGER } from '@/infrastructure/di-tokens';
+import { NestLoggerAdapter } from '@/infrastructure/common/adapters/nest-logger.adapter';
 import { PrismaModule } from '@/infrastructure/database/prisma.module';
 import { HttpModule } from '@nestjs/axios';
 import { Module } from '@nestjs/common';
@@ -51,6 +53,11 @@ import { MgrsConverterService } from './services/mgrs-converter.service';
   ],
   controllers: [LagekarteController, LagekarteCqrsController, PoiController, GeocodingController],
   providers: [
+    // Logger für Lagekarte Services
+    {
+      provide: LOGGER,
+      useFactory: () => new NestLoggerAdapter('LagekarteModule'),
+    },
     // Infrastructure Services (shared with legacy endpoints)
     GeocodingService,
     MgrsConverterService,

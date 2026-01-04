@@ -10,7 +10,6 @@ import {
   ForbiddenException,
   Get,
   HttpCode,
-  Logger,
   Param,
   Post,
   Put,
@@ -21,6 +20,7 @@ import {
   ValidationPipe,
   NotFoundException,
 } from '@nestjs/common';
+import type { ILogger } from '@domain/ports/i-logger.port';
 import { ConfigService } from '@nestjs/config';
 import { FileInterceptor } from '@nestjs/platform-express';
 import {
@@ -52,7 +52,7 @@ import { PoiMapper } from '@/application/lagekarte/mappers/poi.mapper';
 import type { ILagekarteRepository } from '@domain/repositories/i-lagekarte.repository';
 import { LagekarteId } from '@domain/value-objects/lagekarte-id';
 import { Inject } from '@nestjs/common';
-import { LAGEKARTE_REPOSITORY } from '@/infrastructure/di-tokens';
+import { LAGEKARTE_REPOSITORY, LOGGER } from '@/infrastructure/di-tokens';
 import { LagekarteRepository as LegacyLagekarteRepository } from '../repositories/lagekarte.repository';
 /**
  * Controller für Lagekarten-Management (Hybrid: CQRS + Legacy)
@@ -91,7 +91,6 @@ import { LagekarteRepository as LegacyLagekarteRepository } from '../repositorie
   version: 'alpha',
 })
 export class LagekarteController {
-  private readonly logger = new Logger(LagekarteController.name);
   private readonly uploadsPath: string;
   private readonly uploadDir: string;
 
@@ -100,6 +99,7 @@ export class LagekarteController {
     private readonly configService: ConfigService,
     @Inject(LAGEKARTE_REPOSITORY) readonly _lagekarteRepository: ILagekarteRepository,
     private readonly legacyLagekarteRepository: LegacyLagekarteRepository,
+    @Inject(LOGGER) private readonly logger: ILogger,
   ) {
     // Get uploads path from ENV or use default (relative to project root)
     const uploadsBase = this.configService.get<string>('UPLOADS_PATH') || 'uploads';
@@ -440,13 +440,12 @@ export class LagekarteController {
   version: 'alpha',
 })
 export class LagekarteCqrsController {
-  private readonly logger = new Logger(LagekarteCqrsController.name);
-
   constructor(
     private readonly commandBus: CommandBus,
     private readonly queryBus: QueryBus,
     @Inject(LAGEKARTE_REPOSITORY)
     private readonly lagekarteRepository: ILagekarteRepository,
+    @Inject(LOGGER) private readonly logger: ILogger,
   ) {}
 
   /**

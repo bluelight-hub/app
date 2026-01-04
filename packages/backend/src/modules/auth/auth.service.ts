@@ -1,7 +1,9 @@
 import { adminRoles, isAdmin } from './utils/auth.utils';
 import { PrismaService } from '@/infrastructure/database/prisma.service';
 import { formatNatoDateTime } from '@/shared/utils/date.util';
-import { ConflictException, ForbiddenException, Injectable, Logger, NotFoundException, UnauthorizedException } from '@nestjs/common';
+import { ConflictException, ForbiddenException, Inject, Injectable, NotFoundException, UnauthorizedException } from '@nestjs/common';
+import type { ILogger } from '@domain/ports/i-logger.port';
+import { LOGGER } from '@/infrastructure/di-tokens';
 import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
 import { isCuid } from '@paralleldrive/cuid2';
@@ -21,12 +23,11 @@ import type { ValidatedUser } from './strategies/jwt.strategy';
  */
 @Injectable()
 export class AuthService {
-  private readonly logger = new Logger('AuthService');
-
   constructor(
     private readonly prisma: PrismaService,
     private readonly jwtService: JwtService,
     private readonly configService: ConfigService,
+    @Inject(LOGGER) private readonly logger: ILogger,
   ) {}
 
   /**

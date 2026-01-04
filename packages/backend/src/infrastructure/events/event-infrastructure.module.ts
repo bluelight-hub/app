@@ -1,6 +1,7 @@
 import { Module } from '@nestjs/common';
 import { EventEmitterPublisher } from './event-emitter-publisher';
-import { EVENT_PUBLISHER } from '@infrastructure/di-tokens';
+import { EVENT_PUBLISHER, LOGGER } from '@infrastructure/di-tokens';
+import { NestLoggerAdapter } from '../common/adapters/nest-logger.adapter';
 
 /**
  * NestJS Module für Event Publishing Infrastructure.
@@ -34,6 +35,11 @@ import { EVENT_PUBLISHER } from '@infrastructure/di-tokens';
  */
 @Module({
   providers: [
+    // Logger für Event Publisher
+    {
+      provide: LOGGER,
+      useFactory: () => new NestLoggerAdapter('EventInfrastructure'),
+    },
     {
       provide: EVENT_PUBLISHER,
       useClass: EventEmitterPublisher,

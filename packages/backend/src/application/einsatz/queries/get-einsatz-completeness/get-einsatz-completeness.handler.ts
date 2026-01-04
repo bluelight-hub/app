@@ -1,5 +1,6 @@
 import { type IQueryHandler, QueryHandler } from '@nestjs/cqrs';
-import { Inject, Logger } from '@nestjs/common';
+import { Inject } from '@nestjs/common';
+import type { ILogger } from '@domain/ports/i-logger.port';
 import { Result } from '@domain/common/result';
 // biome-ignore lint/style/useImportType: IEinsatzRepository needed for DI at runtime
 import { IEinsatzRepository } from '@domain/repositories';
@@ -7,7 +8,7 @@ import { EinsatzId } from '@domain/value-objects/einsatz-id';
 import type { CompletenessResponseDto } from '@/application/einsatz/dto/completeness-response.dto';
 import { EinsatzCompletenessCalculator } from '@/modules/einsatz/utils/completeness.util';
 import { GetEinsatzCompletenessQuery } from './get-einsatz-completeness.query';
-import { EINSATZ_REPOSITORY } from '@infrastructure/di-tokens';
+import { EINSATZ_REPOSITORY, LOGGER } from '@infrastructure/di-tokens';
 
 /**
  * Query Handler fuer GetEinsatzCompletenessQuery.
@@ -57,11 +58,11 @@ import { EINSATZ_REPOSITORY } from '@infrastructure/di-tokens';
  */
 @QueryHandler(GetEinsatzCompletenessQuery)
 export class GetEinsatzCompletenessQueryHandler implements IQueryHandler<GetEinsatzCompletenessQuery, Result<CompletenessResponseDto | null>> {
-  private readonly logger = new Logger(GetEinsatzCompletenessQueryHandler.name);
-
   constructor(
     @Inject(EINSATZ_REPOSITORY)
     private readonly repository: IEinsatzRepository,
+    @Inject(LOGGER)
+    private readonly logger: ILogger,
   ) {}
 
   /**

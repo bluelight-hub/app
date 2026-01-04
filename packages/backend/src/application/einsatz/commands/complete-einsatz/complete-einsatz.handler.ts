@@ -1,11 +1,11 @@
 // biome-ignore lint/style/useImportType: IEinsatzRepository needed for DI at runtime
 import { IEinsatzRepository } from '@domain/repositories';
+import type { ILogger } from '@domain/ports/i-logger.port';
 import { EinsatzCompletenessService } from '@domain/services/einsatz-completeness.service';
 import { UserId } from '@domain/value-objects/user-id';
 import { EinsatzId } from '@domain/value-objects/einsatz-id';
 import { CommandHandler } from '@nestjs/cqrs';
-// biome-ignore lint/style/noRestrictedImports: Logger DI migration pending (Epic-X)
-import { Inject, Injectable, Logger } from '@nestjs/common';
+import { Inject, Injectable } from '@nestjs/common';
 import { CompleteEinsatzCommand } from './complete-einsatz.command';
 import { TransactionalCommandHandler } from '@application/common/handlers/transactional-command.handler';
 // biome-ignore lint/style/useImportType: PrismaService needed for DI at runtime
@@ -15,7 +15,7 @@ import { IOutboxRepository } from '@domain/repositories/i-outbox.repository';
 import type { DomainEvent } from '@domain/common/domain-event';
 import type { TransactionContext } from '@domain/common';
 import { Result } from '@domain/common/result';
-import { EINSATZ_REPOSITORY, OUTBOX_REPOSITORY } from '@infrastructure/di-tokens';
+import { EINSATZ_REPOSITORY, OUTBOX_REPOSITORY, LOGGER } from '@infrastructure/di-tokens';
 
 /**
  * Handler für CompleteEinsatzCommand mit Transactional Outbox Pattern.
@@ -53,8 +53,6 @@ import { EINSATZ_REPOSITORY, OUTBOX_REPOSITORY } from '@infrastructure/di-tokens
 @CommandHandler(CompleteEinsatzCommand)
 @Injectable()
 export class CompleteEinsatzHandler extends TransactionalCommandHandler<CompleteEinsatzCommand, void> {
-  private readonly logger = new Logger(CompleteEinsatzHandler.name);
-
   constructor(
     prisma: PrismaService,
     @Inject(OUTBOX_REPOSITORY) outboxRepository: IOutboxRepository,
@@ -62,6 +60,8 @@ export class CompleteEinsatzHandler extends TransactionalCommandHandler<Complete
     private readonly einsatzRepository: IEinsatzRepository,
     @Inject(EinsatzCompletenessService)
     private readonly completenessService: EinsatzCompletenessService,
+    @Inject(LOGGER)
+    protected readonly logger: ILogger,
   ) {
     super(prisma, outboxRepository);
   }

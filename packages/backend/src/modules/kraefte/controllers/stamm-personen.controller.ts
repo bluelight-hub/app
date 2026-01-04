@@ -1,4 +1,6 @@
-import { Controller, Get, UseGuards, Logger, Query, BadRequestException } from '@nestjs/common';
+import { Controller, Get, UseGuards, Inject, Query, BadRequestException } from '@nestjs/common';
+import type { ILogger } from '@domain/ports/i-logger.port';
+import { LOGGER } from '@/infrastructure/di-tokens';
 import { ApiTags, ApiBearerAuth, ApiOperation, ApiUnauthorizedResponse, ApiTooManyRequestsResponse, ApiInternalServerErrorResponse, ApiQuery, ApiBadRequestResponse } from '@nestjs/swagger';
 import { ApiWrappedResponse } from '@/modules/common/decorators/api-wrapped-response.decorator';
 import { JwtAuthGuard } from '@/modules/auth/guards/jwt-auth.guard';
@@ -30,9 +32,10 @@ import { StammPersonDto } from '@application/kraefte/stamm-personen/dto/stamm-pe
 @Controller({ path: 'kraefte/stamm-personen', version: 'alpha' })
 @UseGuards(JwtAuthGuard)
 export class StammPersonenController {
-  private readonly logger = new Logger(StammPersonenController.name);
-
-  constructor(private readonly getAllHandler: GetAllStammPersonenHandler) {}
+  constructor(
+    private readonly getAllHandler: GetAllStammPersonenHandler,
+    @Inject(LOGGER) private readonly logger: ILogger,
+  ) {}
 
   /**
    * Alle nicht-archivierten StammPersonen auflisten.

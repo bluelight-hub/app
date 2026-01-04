@@ -1,5 +1,7 @@
-import { BadRequestException, Injectable, Logger } from '@nestjs/common';
+import { BadRequestException, Inject, Injectable } from '@nestjs/common';
 import * as mgrs from 'mgrs';
+import type { ILogger } from '@domain/ports/i-logger.port';
+import { LOGGER } from '@infrastructure/di-tokens';
 
 /**
  * MGRS Converter Service
@@ -24,7 +26,7 @@ import * as mgrs from 'mgrs';
  */
 @Injectable()
 export class MgrsConverterService {
-  private readonly logger = new Logger(MgrsConverterService.name);
+  constructor(@Inject(LOGGER) private readonly logger: ILogger) {}
 
   /**
    * Konvertiert geografische Koordinaten (Lat/Lng) zu MGRS Format

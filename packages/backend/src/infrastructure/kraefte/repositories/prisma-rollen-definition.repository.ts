@@ -1,4 +1,6 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Inject, Injectable } from '@nestjs/common';
+import type { ILogger } from '@domain/ports/i-logger.port';
+import { LOGGER } from '@infrastructure/di-tokens';
 import type { Prisma } from '@prisma/client';
 import { PrismaService } from '@infrastructure/database/prisma.service';
 import { Result } from '@domain/common/result';
@@ -38,9 +40,10 @@ type PrismaTransactionClient = Prisma.TransactionClient;
  */
 @Injectable()
 export class PrismaRollenDefinitionRepository implements IRollenDefinitionRepository {
-  private readonly logger = new Logger(PrismaRollenDefinitionRepository.name);
-
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    @Inject(LOGGER) private readonly logger: ILogger,
+  ) {}
 
   /**
    * Extrahiert Feldname aus Prisma Error Meta für Logging.

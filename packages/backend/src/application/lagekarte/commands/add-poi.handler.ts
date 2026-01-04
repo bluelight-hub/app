@@ -2,14 +2,15 @@ import { CoordinateConverter } from '@application/common/coordinate-converter';
 import { Result } from '@domain/common/result';
 import type { ILagekarteRepository } from '@domain/repositories';
 import type { IEventPublisher } from '@domain/services/ports/i-event-publisher.port';
+import type { ILogger } from '@domain/ports/i-logger.port';
 import { LagekarteId } from '@domain/value-objects/lagekarte-id';
 import { PoiCategory } from '@domain/value-objects/poi-category';
 import type { PoiId } from '@domain/value-objects/poi-id';
 import { UserId } from '@domain/value-objects/user-id';
-import { Inject, Injectable, Logger } from '@nestjs/common';
+import { Inject, Injectable } from '@nestjs/common';
 import { CommandHandler, type ICommandHandler } from '@nestjs/cqrs';
 import { AddPoiCommand } from './add-poi.command';
-import { LAGEKARTE_REPOSITORY, EVENT_PUBLISHER } from '@infrastructure/di-tokens';
+import { LAGEKARTE_REPOSITORY, EVENT_PUBLISHER, LOGGER } from '@infrastructure/di-tokens';
 
 /**
  * Handler für AddPoiCommand.
@@ -28,9 +29,9 @@ import { LAGEKARTE_REPOSITORY, EVENT_PUBLISHER } from '@infrastructure/di-tokens
 @Injectable()
 @CommandHandler(AddPoiCommand)
 export class AddPoiCommandHandler implements ICommandHandler<AddPoiCommand, Result<PoiId>> {
-  private readonly logger = new Logger(AddPoiCommandHandler.name);
-
   constructor(
+    @Inject(LOGGER)
+    private readonly logger: ILogger,
     @Inject(LAGEKARTE_REPOSITORY)
     private readonly lagekarteRepository: ILagekarteRepository,
     @Inject(EVENT_PUBLISHER)

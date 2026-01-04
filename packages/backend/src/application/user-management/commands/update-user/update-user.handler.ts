@@ -98,7 +98,7 @@ export class UpdateUserHandler extends TransactionalCommandHandler<UpdateUserCom
    * @param tx - Transaction Context für atomare Operationen
    * @returns Result mit void (success) oder Error-Message
    */
-  protected async executeInTransaction(command: UpdateUserCommand, tx: TransactionContext): Promise<Result<void> | { result: void; events: DomainEvent[] }> {
+  protected async executeInTransaction(command: UpdateUserCommand, tx: TransactionContext): Promise<Result<void> | { result: undefined; events: DomainEvent[] }> {
     // 1. Validiere updatedBy UserId
     const updatedByIdResult = UserId.create(command.updatedBy);
     if (updatedByIdResult.isFailure || !updatedByIdResult.value) {

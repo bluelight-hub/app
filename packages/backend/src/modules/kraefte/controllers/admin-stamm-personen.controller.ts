@@ -13,8 +13,10 @@ import {
   InternalServerErrorException,
   HttpCode,
   HttpStatus,
-  Logger,
+  Inject,
 } from '@nestjs/common';
+import type { ILogger } from '@domain/ports/i-logger.port';
+import { LOGGER } from '@/infrastructure/di-tokens';
 import {
   ApiTags,
   ApiBearerAuth,
@@ -108,8 +110,6 @@ import { STAMM_PERSON_ERROR_CODES, StammPersonError } from '@domain/kraefte/comm
 @UseGuards(AdminJwtAuthGuard)
 @Throttle({ default: ADMIN_RATE_LIMIT })
 export class AdminStammPersonenController {
-  private readonly logger = new Logger(AdminStammPersonenController.name);
-
   constructor(
     private readonly createHandler: CreateStammPersonHandler,
     private readonly updateHandler: UpdateStammPersonHandler,
@@ -117,6 +117,7 @@ export class AdminStammPersonenController {
     private readonly restoreHandler: RestoreStammPersonHandler,
     private readonly getAllHandler: GetAllStammPersonenHandler,
     private readonly getByIdHandler: GetStammPersonByIdHandler,
+    @Inject(LOGGER) private readonly logger: ILogger,
   ) {}
 
   /**

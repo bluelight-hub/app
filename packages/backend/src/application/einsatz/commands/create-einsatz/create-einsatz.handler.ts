@@ -3,7 +3,8 @@ import { IEinsatzRepository } from '@domain/repositories';
 import { UserId } from '@domain/value-objects/user-id';
 import { Einsatz } from '@domain/aggregates/einsatz.aggregate';
 import { CommandHandler } from '@nestjs/cqrs';
-import { Inject, Injectable, Logger } from '@nestjs/common';
+import { Inject, Injectable } from '@nestjs/common';
+import type { ILogger } from '@domain/ports/i-logger.port';
 import { CreateEinsatzCommand } from './create-einsatz.command';
 import { TransactionalCommandHandler } from '@application/common/handlers/transactional-command.handler';
 // biome-ignore lint/style/useImportType: PrismaService needed for DI at runtime
@@ -13,7 +14,7 @@ import { IOutboxRepository } from '@domain/repositories/i-outbox.repository';
 import type { DomainEvent } from '@domain/common/domain-event';
 import type { TransactionContext } from '@domain/common';
 import { Result } from '@domain/common/result';
-import { EINSATZ_REPOSITORY, OUTBOX_REPOSITORY } from '@infrastructure/di-tokens';
+import { EINSATZ_REPOSITORY, OUTBOX_REPOSITORY, LOGGER } from '@infrastructure/di-tokens';
 
 /**
  * Handler für CreateEinsatzCommand mit Transactional Outbox Pattern.
@@ -49,13 +50,13 @@ import { EINSATZ_REPOSITORY, OUTBOX_REPOSITORY } from '@infrastructure/di-tokens
 @CommandHandler(CreateEinsatzCommand)
 @Injectable()
 export class CreateEinsatzHandler extends TransactionalCommandHandler<CreateEinsatzCommand, string> {
-  private readonly logger = new Logger(CreateEinsatzHandler.name);
-
   constructor(
     prisma: PrismaService,
     @Inject(OUTBOX_REPOSITORY) outboxRepository: IOutboxRepository,
     @Inject(EINSATZ_REPOSITORY)
     private readonly einsatzRepository: IEinsatzRepository,
+    @Inject(LOGGER)
+    private readonly logger: ILogger,
   ) {
     super(prisma, outboxRepository);
   }

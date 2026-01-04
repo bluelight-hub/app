@@ -1,10 +1,12 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Inject, Injectable } from '@nestjs/common';
 import { OnEvent } from '@nestjs/event-emitter';
 import type { LagekarteCreatedEvent } from '@domain/events/lagekarte-created.event';
 import type { PoiAddedEvent } from '@domain/events/poi-added.event';
 import type { PoiRemovedEvent } from '@domain/events/poi-removed.event';
 import type { PoiPositionUpdatedEvent } from '@domain/events/poi-position-updated.event';
+import type { ILogger } from '@domain/ports/i-logger.port';
 import { EVENT_NAMES } from '@domain/events/event-names';
+import { LOGGER } from '@infrastructure/di-tokens';
 
 /**
  * Event Handler für Lagekarte Domain Events.
@@ -23,7 +25,7 @@ import { EVENT_NAMES } from '@domain/events/event-names';
  */
 @Injectable()
 export class LagekarteEventLoggerHandler {
-  private readonly logger = new Logger(LagekarteEventLoggerHandler.name);
+  constructor(@Inject(LOGGER) private readonly logger: ILogger) {}
 
   /**
    * Handler für LagekarteCreatedEvent.

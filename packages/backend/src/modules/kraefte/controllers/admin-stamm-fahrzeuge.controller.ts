@@ -13,8 +13,10 @@ import {
   InternalServerErrorException,
   HttpCode,
   HttpStatus,
-  Logger,
+  Inject,
 } from '@nestjs/common';
+import type { ILogger } from '@domain/ports/i-logger.port';
+import { LOGGER } from '@/infrastructure/di-tokens';
 import {
   ApiTags,
   ApiBearerAuth,
@@ -99,14 +101,13 @@ import { STAMM_FAHRZEUG_ERROR_CODES, StammFahrzeugError } from '@domain/kraefte/
 @UseGuards(AdminJwtAuthGuard)
 @Throttle({ default: ADMIN_RATE_LIMIT })
 export class AdminStammFahrzeugeController {
-  private readonly logger = new Logger(AdminStammFahrzeugeController.name);
-
   constructor(
     private readonly createHandler: CreateStammFahrzeugHandler,
     private readonly updateHandler: UpdateStammFahrzeugHandler,
     private readonly archiveHandler: ArchiveStammFahrzeugHandler,
     private readonly getAllHandler: GetAllStammFahrzeugeHandler,
     private readonly getByIdHandler: GetStammFahrzeugByIdHandler,
+    @Inject(LOGGER) private readonly logger: ILogger,
   ) {}
 
   /**

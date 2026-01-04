@@ -20,11 +20,12 @@
  * @see EtbAutoCreationHandler - Application Layer Implementation
  * @see EVENT_HANDLER.ETB_AUTO_CREATION - DI Token
  */
-import { Injectable, Inject, Logger } from '@nestjs/common';
+import { Injectable, Inject } from '@nestjs/common';
 import { OnEvent } from '@nestjs/event-emitter';
 import type { IEventHandler } from '@domain/ports/i-event-handler.port';
+import type { ILogger } from '@domain/ports/i-logger.port';
 import { EinsatzCreatedEvent } from '@domain/events/einsatz-created.event';
-import { EVENT_HANDLER } from '@infrastructure/di-tokens';
+import { EVENT_HANDLER, LOGGER } from '@infrastructure/di-tokens';
 
 /**
  * NestJS Event Adapter für ETB Auto-Creation.
@@ -53,11 +54,10 @@ import { EVENT_HANDLER } from '@infrastructure/di-tokens';
  */
 @Injectable()
 export class EtbEventAdapter {
-  private readonly logger = new Logger(EtbEventAdapter.name);
-
   constructor(
     @Inject(EVENT_HANDLER.ETB_AUTO_CREATION)
     private readonly handler: IEventHandler<EinsatzCreatedEvent>,
+    @Inject(LOGGER) private readonly logger: ILogger,
   ) {}
 
   /**

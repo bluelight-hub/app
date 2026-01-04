@@ -1,6 +1,8 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Injectable, Inject } from '@nestjs/common';
 import { QueryHandler, type IQueryHandler } from '@nestjs/cqrs';
 import { Result } from '@domain/common/result';
+import type { ILogger } from '@domain/ports/i-logger.port';
+import { LOGGER } from '@infrastructure/di-tokens';
 // biome-ignore lint/style/useImportType: PrismaService needed for DI at runtime
 import { PrismaService } from '@/infrastructure/database/prisma.service';
 import type { EinsatzListItemDto } from '../../dto/einsatz-list-item.dto';
@@ -56,9 +58,10 @@ import { GetActiveEinsaetzeWithCountsQuery } from './get-active-einsaetze-with-c
 @QueryHandler(GetActiveEinsaetzeWithCountsQuery)
 @Injectable()
 export class GetActiveEinsaetzeWithCountsQueryHandler implements IQueryHandler<GetActiveEinsaetzeWithCountsQuery, Result<EinsatzListItemDto[]>> {
-  private readonly logger = new Logger(GetActiveEinsaetzeWithCountsQueryHandler.name);
-
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    @Inject(LOGGER) private readonly logger: ILogger,
+  ) {}
 
   /**
    * F�hrt die Query aus und gibt aktive Eins�tze mit Counts zur�ck.

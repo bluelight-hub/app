@@ -1,7 +1,8 @@
 import { Result } from '@domain/common/result';
 import type { IJwtAuthServicePort } from '@domain/ports/i-jwt-auth-service.port';
-import { Inject, Injectable, Logger } from '@nestjs/common';
-import { JWT_AUTH_SERVICE } from '@infrastructure/di-tokens';
+import { Inject, Injectable } from '@nestjs/common';
+import type { ILogger } from '@domain/ports/i-logger.port';
+import { JWT_AUTH_SERVICE, LOGGER } from '@infrastructure/di-tokens';
 import type { LogoutCommand } from './logout.command';
 
 /**
@@ -43,11 +44,11 @@ import type { LogoutCommand } from './logout.command';
  */
 @Injectable()
 export class LogoutHandler {
-  private readonly logger = new Logger(LogoutHandler.name);
-
   constructor(
     @Inject(JWT_AUTH_SERVICE)
     private readonly jwtService: IJwtAuthServicePort,
+    @Inject(LOGGER)
+    private readonly logger: ILogger,
   ) {}
 
   /**

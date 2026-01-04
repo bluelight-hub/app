@@ -1,4 +1,5 @@
-import { Inject, Injectable, Logger } from '@nestjs/common';
+import { Inject, Injectable } from '@nestjs/common';
+import type { ILogger } from '@domain/ports/i-logger.port';
 import { TransactionalCommandHandler } from '@application/common/handlers/transactional-command.handler';
 import type { DomainEvent } from '@domain/common/domain-event';
 import { Result } from '@domain/common/result';
@@ -11,7 +12,7 @@ import { StammPersonId } from '@domain/kraefte/value-objects/stamm-person-id';
 import { QualifikationId } from '@domain/kraefte/value-objects/qualifikation-id';
 // biome-ignore lint/style/useImportType: IOutboxRepository needed for DI at runtime
 import { IOutboxRepository } from '@domain/repositories/i-outbox.repository';
-import { KRAEFTE_REPOSITORIES, OUTBOX_REPOSITORY } from '@infrastructure/di-tokens';
+import { KRAEFTE_REPOSITORIES, LOGGER, OUTBOX_REPOSITORY } from '@infrastructure/di-tokens';
 // biome-ignore lint/style/useImportType: PrismaService needed for DI at runtime
 import { PrismaService } from '@/infrastructure/database/prisma.service';
 import type { StammPersonDto } from '../../dto';
@@ -41,11 +42,10 @@ import type { RestoreStammPersonCommand } from './restore-stamm-person.command';
  */
 @Injectable()
 export class RestoreStammPersonHandler extends TransactionalCommandHandler<RestoreStammPersonCommand, StammPersonDto> {
-  protected readonly logger = new Logger(RestoreStammPersonHandler.name);
-
   constructor(
     prisma: PrismaService,
     @Inject(OUTBOX_REPOSITORY) outboxRepository: IOutboxRepository,
+    @Inject(LOGGER) protected readonly logger: ILogger,
     @Inject(KRAEFTE_REPOSITORIES.STAMM_PERSON)
     private readonly stammPersonRepository: IStammPersonRepository,
     @Inject(KRAEFTE_REPOSITORIES.QUALIFIKATION)
@@ -125,6 +125,7 @@ export class RestoreStammPersonHandler extends TransactionalCommandHandler<Resto
     const currentQualifikationIds = stammPerson.qualifikationIds
       .map((id) => QualifikationId.create(id))
       .filter((r) => r.isSuccess && r.value)
+      // biome-ignore lint/style/noNonNullAssertion: Filtered for isSuccess above, value guaranteed non-null
       .map((r) => r.value!);
 
     for (const id of currentQualifikationIds) {

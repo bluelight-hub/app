@@ -1,4 +1,6 @@
 import { PrismaModule } from '@/infrastructure/database/prisma.module';
+import { LOGGER } from '@/infrastructure/di-tokens';
+import { NestLoggerAdapter } from '@/infrastructure/common/adapters/nest-logger.adapter';
 import { Module } from '@nestjs/common';
 import { CqrsModule } from '@nestjs/cqrs';
 import { EinsatzApplicationModule } from '@/application/einsatz/einsatz-application.module';
@@ -34,7 +36,13 @@ import { EinsatzController } from './controllers/einsatz.controller';
 @Module({
   imports: [CqrsModule, PrismaModule, EinsatzApplicationModule, EinsatzInfrastructureModule],
   controllers: [EinsatzController],
-  providers: [],
+  providers: [
+    // Logger für EinsatzModule Guards/Services
+    {
+      provide: LOGGER,
+      useFactory: () => new NestLoggerAdapter('EinsatzModule'),
+    },
+  ],
   exports: [],
 })
 export class EinsatzModule {}

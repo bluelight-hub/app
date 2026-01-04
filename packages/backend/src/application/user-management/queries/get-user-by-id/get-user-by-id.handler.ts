@@ -1,9 +1,10 @@
 import { type IQueryHandler, QueryHandler } from '@nestjs/cqrs';
-import { Inject, Logger } from '@nestjs/common';
+import { Inject, Injectable } from '@nestjs/common';
+import type { ILogger } from '@domain/ports/i-logger.port';
 import { Result } from '@domain/common/result';
 import type { IUserRepository } from '@domain/repositories/i-user.repository';
 import { UserId } from '@domain/value-objects/user-id';
-import { USER_REPOSITORY } from '@infrastructure/di-tokens';
+import { USER_REPOSITORY, LOGGER } from '@infrastructure/di-tokens';
 import type { UserDto } from '@application/user-management/dto/user.dto';
 import { UserQueryMapper } from '@application/user-management/mappers/user-query.mapper';
 import { GetUserByIdQuery } from './get-user-by-id.query';
@@ -48,12 +49,12 @@ import { GetUserByIdQuery } from './get-user-by-id.query';
  * ```
  */
 @QueryHandler(GetUserByIdQuery)
+@Injectable()
 export class GetUserByIdQueryHandler implements IQueryHandler<GetUserByIdQuery, Result<UserDto | null>> {
-  private readonly logger = new Logger(GetUserByIdQueryHandler.name);
-
   constructor(
     @Inject(USER_REPOSITORY)
     private readonly repository: IUserRepository,
+    @Inject(LOGGER) private readonly logger: ILogger,
   ) {}
 
   /**

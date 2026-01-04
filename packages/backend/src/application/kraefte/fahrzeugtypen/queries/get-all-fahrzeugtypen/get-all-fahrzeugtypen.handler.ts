@@ -1,8 +1,9 @@
-import { Inject, Injectable, Logger } from '@nestjs/common';
+import { Inject, Injectable } from '@nestjs/common';
+import type { ILogger } from '@domain/ports/i-logger.port';
 import { Result } from '@domain/common/result';
 // biome-ignore lint/style/useImportType: IFahrzeugtypRepository needed for DI at runtime
 import { IFahrzeugtypRepository } from '@domain/kraefte/repositories/i-fahrzeugtyp.repository';
-import { KRAEFTE_REPOSITORIES } from '@infrastructure/di-tokens';
+import { KRAEFTE_REPOSITORIES, LOGGER } from '@infrastructure/di-tokens';
 import type { FahrzeugtypDto } from '../../dto/fahrzeugtyp.dto';
 import { FahrzeugtypQueryMapper } from '../fahrzeugtyp-query.mapper';
 import type { GetAllFahrzeugtypenQuery } from './get-all-fahrzeugtypen.query';
@@ -17,11 +18,11 @@ import type { GetAllFahrzeugtypenQuery } from './get-all-fahrzeugtypen.query';
  */
 @Injectable()
 export class GetAllFahrzeugtypenHandler {
-  protected readonly logger = new Logger(GetAllFahrzeugtypenHandler.name);
-
   constructor(
     @Inject(KRAEFTE_REPOSITORIES.FAHRZEUGTYP)
     private readonly repository: IFahrzeugtypRepository,
+    @Inject(LOGGER)
+    protected readonly logger: ILogger,
   ) {}
 
   /**

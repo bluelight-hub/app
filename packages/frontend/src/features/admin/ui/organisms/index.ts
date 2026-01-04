@@ -34,3 +34,6 @@ export { RollenDefinitionenTable } from './RollenDefinitionenTable';
 export { CreateRollenDefinitionDialog } from './CreateRollenDefinitionDialog';
 export { EditRollenDefinitionDialog } from './EditRollenDefinitionDialog';
 export { DeactivateRollenDefinitionDialog } from './DeactivateRollenDefinitionDialog';
+
+// HiOrg Integration
+export { QualifikationMappingDialog } from './QualifikationMappingDialog';

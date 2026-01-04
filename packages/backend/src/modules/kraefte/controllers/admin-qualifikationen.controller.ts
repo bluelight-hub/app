@@ -13,8 +13,10 @@ import {
   InternalServerErrorException,
   HttpCode,
   HttpStatus,
-  Logger,
+  Inject,
 } from '@nestjs/common';
+import type { ILogger } from '@domain/ports/i-logger.port';
+import { LOGGER } from '@/infrastructure/di-tokens';
 import {
   ApiTags,
   ApiBearerAuth,
@@ -87,14 +89,13 @@ import { QUALIFIKATION_ERROR_CODES, QualifikationError } from '@domain/kraefte/c
 @UseGuards(AdminJwtAuthGuard)
 @Throttle({ default: ADMIN_RATE_LIMIT })
 export class AdminQualifikationenController {
-  private readonly logger = new Logger(AdminQualifikationenController.name);
-
   constructor(
     private readonly createHandler: CreateQualifikationHandler,
     private readonly updateHandler: UpdateQualifikationHandler,
     private readonly deactivateHandler: DeactivateQualifikationHandler,
     private readonly getAllHandler: GetAllQualifikationenHandler,
     private readonly getByIdHandler: GetQualifikationByIdHandler,
+    @Inject(LOGGER) private readonly logger: ILogger,
   ) {}
 
   /**

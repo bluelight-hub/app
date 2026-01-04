@@ -17,13 +17,15 @@
  * @see FahrzeugErfasstEvent - Trigger Event (Domain Event via Outbox)
  * @see AddEintragHandler - Delegierter Command Handler
  */
-import { Injectable, Logger } from '@nestjs/common';
+import { Inject, Injectable } from '@nestjs/common';
+import type { ILogger } from '@domain/ports/i-logger.port';
 import type { IEventHandler } from '@domain/ports/i-event-handler.port';
 import type { FahrzeugErfasstEvent } from '@domain/kraefte/events/fahrzeug-erfasst.event';
 import { AddEintragCommand } from '../commands/add-eintrag/add-eintrag.command';
 // biome-ignore lint/style/useImportType: AddEintragHandler needed for DI at runtime
 import { AddEintragHandler } from '../commands/add-eintrag/add-eintrag.handler';
 import { FMS_STATUS_LABELS } from '@domain/kraefte/constants/einsatz-fahrzeug-validation.constants';
+import { LOGGER } from '@infrastructure/di-tokens';
 
 /**
  * Event Handler für automatischen ETB-Eintrag bei Fahrzeug-Erfassung.
@@ -45,9 +47,10 @@ import { FMS_STATUS_LABELS } from '@domain/kraefte/constants/einsatz-fahrzeug-va
  */
 @Injectable()
 export class FahrzeugErfasstEventHandler implements IEventHandler<FahrzeugErfasstEvent> {
-  private readonly logger = new Logger(FahrzeugErfasstEventHandler.name);
-
-  constructor(private readonly addEintragHandler: AddEintragHandler) {}
+  constructor(
+    private readonly addEintragHandler: AddEintragHandler,
+    @Inject(LOGGER) private readonly logger: ILogger,
+  ) {}
 
   /**
    * Verarbeitet FahrzeugErfasstEvent und erstellt automatisch einen ETB-Eintrag.

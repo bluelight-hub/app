@@ -18,14 +18,14 @@
  * @module application/integrations/services
  */
 
-// biome-ignore lint/style/noRestrictedImports: Logger direkt nutzen für Infrastructure-nahen Service
-import { Inject, Injectable, Logger } from '@nestjs/common';
+import { Inject, Injectable } from '@nestjs/common';
 import { Result } from '@domain/common/result';
 import { IntegrationCredential, INTEGRATION_TYPES, INTEGRATION_ERROR_CODES, IntegrationError, type IIntegrationCredentialRepository } from '@domain/integrations';
 import type { IEncryptionPort } from '@domain/ports/i-encryption.port';
 import type { IOAuth2Port } from '@domain/ports/i-oauth2.port';
 import type { IHiOrgOAuthConfigPort } from '@domain/ports/i-hiorg-oauth-config.port';
-import { INTEGRATIONS } from '@/infrastructure/di-tokens';
+import type { ILogger } from '@domain/ports/i-logger.port';
+import { INTEGRATIONS, LOGGER } from '@/infrastructure/di-tokens';
 import { HIORG_OAUTH_CONFIG } from '@/infrastructure/config/hiorg-oauth.config';
 
 /**
@@ -58,9 +58,9 @@ export interface ValidTokenResult {
  */
 @Injectable()
 export class HiOrgTokenRefreshService {
-  private readonly logger = new Logger(HiOrgTokenRefreshService.name);
-
   constructor(
+    @Inject(LOGGER)
+    private readonly logger: ILogger,
     @Inject(INTEGRATIONS.ENCRYPTION_PORT)
     private readonly encryption: IEncryptionPort,
     @Inject(INTEGRATIONS.CREDENTIAL_REPOSITORY)

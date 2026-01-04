@@ -2,6 +2,8 @@ import { Module } from '@nestjs/common';
 import { CqrsModule } from '@nestjs/cqrs';
 import { UserInfrastructureModule } from '@infrastructure/user/user-infrastructure.module';
 import { AuthInfrastructureModule } from '@infrastructure/auth/auth-infrastructure.module';
+import { LOGGER } from '@infrastructure/di-tokens';
+import { NestLoggerAdapter } from '@infrastructure/common/adapters/nest-logger.adapter';
 import { LoginHandler, LogoutHandler } from './commands';
 
 /**
@@ -58,6 +60,11 @@ import { LoginHandler, LogoutHandler } from './commands';
     AuthInfrastructureModule,
   ],
   providers: [
+    // Logger für Auth Handlers
+    {
+      provide: LOGGER,
+      useFactory: () => new NestLoggerAdapter('Auth'),
+    },
     // Command Handlers
     LoginHandler,
     LogoutHandler,

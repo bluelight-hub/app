@@ -2,6 +2,8 @@ import { Module } from '@nestjs/common';
 import { PrismaModule } from '@/infrastructure/database/prisma.module';
 import { OutboxModule } from '@infrastructure/outbox/outbox.module';
 import { UserInfrastructureModule } from '@infrastructure/user/user-infrastructure.module';
+import { LOGGER } from '@infrastructure/di-tokens';
+import { NestLoggerAdapter } from '@infrastructure/common/adapters/nest-logger.adapter';
 
 // Command Handlers
 import { CreateUserHandler, UpdateUserHandler, DeleteUserHandler, LockUserHandler, UnlockUserHandler } from './commands';
@@ -60,6 +62,11 @@ import { GetAllUsersQueryHandler, GetUserByIdQueryHandler } from './queries';
     UserInfrastructureModule,
   ],
   providers: [
+    // Logger für User Management Handlers
+    {
+      provide: LOGGER,
+      useFactory: () => new NestLoggerAdapter('UserManagement'),
+    },
     // Command Handlers
     CreateUserHandler,
     UpdateUserHandler,

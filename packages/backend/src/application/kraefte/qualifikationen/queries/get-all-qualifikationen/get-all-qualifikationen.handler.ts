@@ -1,8 +1,9 @@
-import { Inject, Injectable, Logger } from '@nestjs/common';
+import { Inject, Injectable } from '@nestjs/common';
 import { Result } from '@domain/common/result';
 // biome-ignore lint/style/useImportType: IQualifikationRepository needed for DI at runtime
 import { IQualifikationRepository } from '@domain/kraefte/repositories/i-qualifikation.repository';
-import { KRAEFTE_REPOSITORIES } from '@infrastructure/di-tokens';
+import type { ILogger } from '@domain/ports/i-logger.port';
+import { KRAEFTE_REPOSITORIES, LOGGER } from '@infrastructure/di-tokens';
 import type { QualifikationDto } from '../../dto/qualifikation.dto';
 import { QualifikationQueryMapper } from '../qualifikation-query.mapper';
 import type { GetAllQualifikationenQuery } from './get-all-qualifikationen.query';
@@ -14,11 +15,10 @@ import type { GetAllQualifikationenQuery } from './get-all-qualifikationen.query
  */
 @Injectable()
 export class GetAllQualifikationenHandler {
-  protected readonly logger = new Logger(GetAllQualifikationenHandler.name);
-
   constructor(
     @Inject(KRAEFTE_REPOSITORIES.QUALIFIKATION)
     private readonly repository: IQualifikationRepository,
+    @Inject(LOGGER) private readonly logger: ILogger,
   ) {}
 
   /**

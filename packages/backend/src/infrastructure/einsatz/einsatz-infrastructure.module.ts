@@ -3,7 +3,8 @@ import { PrismaModule } from '@/infrastructure/database/prisma.module';
 import { PrismaEinsatzRepository } from './repositories/prisma-einsatz.repository';
 import { PrismaOutboxRepository } from '@/infrastructure/outbox/prisma-outbox.repository';
 import { EventSerializer } from '@/infrastructure/outbox/event-serializer';
-import { EINSATZ_REPOSITORY, OUTBOX_REPOSITORY } from '@infrastructure/di-tokens';
+import { EINSATZ_REPOSITORY, LOGGER, OUTBOX_REPOSITORY } from '@infrastructure/di-tokens';
+import { NestLoggerAdapter } from '../common/adapters/nest-logger.adapter';
 
 /**
  * NestJS Module für Einsatz Infrastructure Layer.
@@ -47,6 +48,12 @@ import { EINSATZ_REPOSITORY, OUTBOX_REPOSITORY } from '@infrastructure/di-tokens
 @Module({
   imports: [PrismaModule],
   providers: [
+    // Logger für Einsatz Infrastructure
+    {
+      provide: LOGGER,
+      useFactory: () => new NestLoggerAdapter('EinsatzInfrastructure'),
+    },
+
     // Outbox Infrastructure (Transactional Outbox Pattern)
     EventSerializer,
     PrismaOutboxRepository,

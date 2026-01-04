@@ -337,13 +337,23 @@ export async function createEinsatzE2eModule(): Promise<EinsatzE2eTestContext> {
     ON CONFLICT (username) DO NOTHING
   `;
 
-  // 4. Repository und EventPublisher
-  const repository = new PrismaEinsatzRepository(prisma);
+  // 4. Mock Logger für Repository-Instanziierung
+  const mockLogger = {
+    log: () => {},
+    error: () => {},
+    warn: () => {},
+    debug: () => {},
+    verbose: () => {},
+    setContext: () => {},
+  };
+
+  // 5. Repository und EventPublisher
+  const repository = new PrismaEinsatzRepository(prisma, mockLogger);
   const eventPublisher = new SpyEventPublisher();
 
   // Outbox Repository für direkten Zugriff in Tests
   const eventSerializer = new EventSerializer();
-  const outboxRepository = new PrismaOutboxRepository(prisma, eventSerializer);
+  const outboxRepository = new PrismaOutboxRepository(prisma, eventSerializer, mockLogger);
 
   return {
     prisma,

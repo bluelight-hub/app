@@ -1,5 +1,7 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Inject, Injectable } from '@nestjs/common';
 import type { IAlertService, OutboxFailureAlertPayload } from '@domain/services/ports/i-alert.service';
+import type { ILogger } from '@domain/ports/i-logger.port';
+import { LOGGER } from '@infrastructure/di-tokens';
 
 /**
  * Logging-basierte Alert Service Implementation.
@@ -28,7 +30,7 @@ import type { IAlertService, OutboxFailureAlertPayload } from '@domain/services/
  */
 @Injectable()
 export class LoggingAlertService implements IAlertService {
-  private readonly logger = new Logger(LoggingAlertService.name);
+  constructor(@Inject(LOGGER) private readonly logger: ILogger) {}
 
   /**
    * Loggt einen Alert für ein fehlgeschlagenes Outbox Event.

@@ -45,7 +45,7 @@ export class GebeRolleFreiHandler extends TransactionalCommandHandler<GebeRolleF
     super(prisma, outboxRepository);
   }
 
-  protected async executeInTransaction(command: GebeRolleFreiCommand, tx: TransactionContext): Promise<Result<void> | { result: void; events: DomainEvent[] }> {
+  protected async executeInTransaction(command: GebeRolleFreiCommand, tx: TransactionContext): Promise<Result<void> | { result: undefined; events: DomainEvent[] }> {
     // 1. Lade RollenBesetzung
     const besetzungResult = await this.rollenBesetzungRepository.findById(command.rollenBesetzungId, tx);
 

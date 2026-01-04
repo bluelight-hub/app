@@ -1,4 +1,6 @@
-import { Controller, Get, UseGuards, Logger, Query, BadRequestException } from '@nestjs/common';
+import { Controller, Get, UseGuards, Inject, Query, BadRequestException } from '@nestjs/common';
+import type { ILogger } from '@domain/ports/i-logger.port';
+import { LOGGER } from '@/infrastructure/di-tokens';
 import { ApiTags, ApiBearerAuth, ApiOperation, ApiUnauthorizedResponse, ApiTooManyRequestsResponse, ApiInternalServerErrorResponse, ApiQuery, ApiBadRequestResponse } from '@nestjs/swagger';
 import { ApiWrappedResponse } from '@/modules/common/decorators/api-wrapped-response.decorator';
 import { JwtAuthGuard } from '@/modules/auth/guards/jwt-auth.guard';
@@ -26,9 +28,10 @@ import { StammFahrzeugDto } from '@application/kraefte/stamm-fahrzeuge/dto/stamm
 @Controller({ path: 'kraefte/stamm-fahrzeuge', version: 'alpha' })
 @UseGuards(JwtAuthGuard)
 export class StammFahrzeugeController {
-  private readonly logger = new Logger(StammFahrzeugeController.name);
-
-  constructor(private readonly getAllHandler: GetAllStammFahrzeugeHandler) {}
+  constructor(
+    private readonly getAllHandler: GetAllStammFahrzeugeHandler,
+    @Inject(LOGGER) private readonly logger: ILogger,
+  ) {}
 
   /**
    * Alle nicht-archivierten StammFahrzeuge auflisten.

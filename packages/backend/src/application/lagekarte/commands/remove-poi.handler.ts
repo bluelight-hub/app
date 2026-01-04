@@ -1,4 +1,4 @@
-import { Injectable, Logger, Inject } from '@nestjs/common';
+import { Injectable, Inject } from '@nestjs/common';
 import { CommandHandler, type ICommandHandler } from '@nestjs/cqrs';
 import { Result } from '@domain/common/result';
 import { LagekarteId } from '@domain/value-objects/lagekarte-id';
@@ -6,8 +6,9 @@ import { PoiId } from '@domain/value-objects/poi-id';
 import { UserId } from '@domain/value-objects/user-id';
 import type { ILagekarteRepository } from '@domain/repositories';
 import type { IEventPublisher } from '@domain/services/ports/i-event-publisher.port';
+import type { ILogger } from '@domain/ports/i-logger.port';
 import { RemovePoiCommand } from './remove-poi.command';
-import { LAGEKARTE_REPOSITORY, EVENT_PUBLISHER } from '@infrastructure/di-tokens';
+import { LAGEKARTE_REPOSITORY, EVENT_PUBLISHER, LOGGER } from '@infrastructure/di-tokens';
 
 /**
  * Handler für RemovePoiCommand.
@@ -29,9 +30,9 @@ import { LAGEKARTE_REPOSITORY, EVENT_PUBLISHER } from '@infrastructure/di-tokens
 @Injectable()
 @CommandHandler(RemovePoiCommand)
 export class RemovePoiCommandHandler implements ICommandHandler<RemovePoiCommand, Result<void>> {
-  private readonly logger = new Logger(RemovePoiCommandHandler.name);
-
   constructor(
+    @Inject(LOGGER)
+    private readonly logger: ILogger,
     @Inject(LAGEKARTE_REPOSITORY)
     private readonly lagekarteRepository: ILagekarteRepository,
     @Inject(EVENT_PUBLISHER)

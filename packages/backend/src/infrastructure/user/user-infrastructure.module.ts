@@ -1,7 +1,8 @@
 import { Module } from '@nestjs/common';
 import { PrismaModule } from '@/infrastructure/database/prisma.module';
-import { USER_REPOSITORY } from '../di-tokens';
+import { LOGGER, USER_REPOSITORY } from '../di-tokens';
 import { PrismaUserRepository } from './repositories/prisma-user.repository';
+import { NestLoggerAdapter } from '../common/adapters/nest-logger.adapter';
 
 /**
  * NestJS Module für User Infrastructure Layer.
@@ -39,6 +40,11 @@ import { PrismaUserRepository } from './repositories/prisma-user.repository';
 @Module({
   imports: [PrismaModule],
   providers: [
+    // Logger für User Infrastructure (Repository Logging)
+    {
+      provide: LOGGER,
+      useFactory: () => new NestLoggerAdapter('UserInfrastructure'),
+    },
     // Repository Implementation bound to Symbol Token
     {
       provide: USER_REPOSITORY,

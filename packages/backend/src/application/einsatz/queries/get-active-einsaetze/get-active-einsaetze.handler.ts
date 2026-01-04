@@ -1,12 +1,13 @@
 import { type IQueryHandler, QueryHandler } from '@nestjs/cqrs';
-import { Inject, Logger } from '@nestjs/common';
+import { Inject } from '@nestjs/common';
+import type { ILogger } from '@domain/ports/i-logger.port';
 // biome-ignore lint/style/useImportType: IEinsatzRepository needed for DI at runtime
 import { IEinsatzRepository } from '@domain/repositories';
 import { Result } from '@domain/common/result';
 import type { EinsatzDto } from '@application/einsatz/dto/einsatz.dto';
 import { EinsatzQueryMapper } from '@application/einsatz/mappers/einsatz-query.mapper';
 import { GetActiveEinsaetzeQuery } from './get-active-einsaetze.query';
-import { EINSATZ_REPOSITORY } from '@infrastructure/di-tokens';
+import { EINSATZ_REPOSITORY, LOGGER } from '@infrastructure/di-tokens';
 
 /**
  * Handler fuer GetActiveEinsaetzeQuery.
@@ -49,11 +50,11 @@ import { EINSATZ_REPOSITORY } from '@infrastructure/di-tokens';
  */
 @QueryHandler(GetActiveEinsaetzeQuery)
 export class GetActiveEinsaetzeQueryHandler implements IQueryHandler<GetActiveEinsaetzeQuery, Result<EinsatzDto[]>> {
-  private readonly logger = new Logger(GetActiveEinsaetzeQueryHandler.name);
-
   constructor(
     @Inject(EINSATZ_REPOSITORY)
     private readonly repository: IEinsatzRepository,
+    @Inject(LOGGER)
+    private readonly logger: ILogger,
   ) {}
 
   /**

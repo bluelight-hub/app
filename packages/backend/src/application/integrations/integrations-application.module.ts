@@ -7,6 +7,8 @@
 import { Module } from '@nestjs/common';
 import { IntegrationsInfrastructureModule } from '@infrastructure/integrations/integrations-infrastructure.module';
 import { KraefteInfrastructureModule } from '@infrastructure/kraefte/kraefte-infrastructure.module';
+import { LOGGER } from '@infrastructure/di-tokens';
+import { NestLoggerAdapter } from '@infrastructure/common/adapters/nest-logger.adapter';
 
 // Services
 import { HiOrgTokenRefreshService } from './services/hiorg-token-refresh.service';
@@ -17,6 +19,8 @@ import { InitiateOAuthFlowHandler } from './commands/initiate-oauth-flow/initiat
 import { ProcessOAuthCallbackHandler } from './commands/process-oauth-callback/process-oauth-callback.handler';
 import { SaveQualifikationMappingHandler } from './commands/save-qualifikation-mapping/save-qualifikation-mapping.handler';
 import { AutoMatchQualifikationenHandler } from './commands/auto-match-qualifikationen/auto-match-qualifikationen.handler';
+import { ImportSelectedPersonsHandler } from './commands/import-selected-persons/import-selected-persons.handler';
+import { BatchSaveQualifikationMappingsHandler } from './commands/batch-save-qualifikation-mappings/batch-save-qualifikation-mappings.handler';
 
 // Query Handlers
 import { GetHiOrgCredentialsHandler } from './queries/get-hiorg-credentials/get-hiorg-credentials.handler';
@@ -33,6 +37,11 @@ import { GetQualifikationMappingsHandler } from './queries/get-qualifikation-map
 @Module({
   imports: [IntegrationsInfrastructureModule, KraefteInfrastructureModule],
   providers: [
+    // Logger für Integrations Handlers
+    {
+      provide: LOGGER,
+      useFactory: () => new NestLoggerAdapter('Integrations'),
+    },
     // Services
     HiOrgTokenRefreshService,
     // Command Handlers
@@ -41,6 +50,8 @@ import { GetQualifikationMappingsHandler } from './queries/get-qualifikation-map
     ProcessOAuthCallbackHandler,
     SaveQualifikationMappingHandler,
     AutoMatchQualifikationenHandler,
+    ImportSelectedPersonsHandler,
+    BatchSaveQualifikationMappingsHandler,
     // Query Handlers
     GetHiOrgCredentialsHandler,
     PreviewHiOrgPersonsHandler,
@@ -54,6 +65,8 @@ import { GetQualifikationMappingsHandler } from './queries/get-qualifikation-map
     ProcessOAuthCallbackHandler,
     SaveQualifikationMappingHandler,
     AutoMatchQualifikationenHandler,
+    ImportSelectedPersonsHandler,
+    BatchSaveQualifikationMappingsHandler,
     GetHiOrgCredentialsHandler,
     PreviewHiOrgPersonsHandler,
     GetQualifikationMappingsHandler,

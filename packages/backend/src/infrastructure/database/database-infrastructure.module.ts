@@ -1,7 +1,8 @@
 import { Module } from '@nestjs/common';
 import { PrismaModule } from './prisma.module';
 import { PrismaTransactionManager } from './prisma-transaction-manager';
-import { TRANSACTION_MANAGER } from '../di-tokens';
+import { LOGGER, TRANSACTION_MANAGER } from '../di-tokens';
+import { NestLoggerAdapter } from '../common/adapters/nest-logger.adapter';
 
 /**
  * Database Infrastructure Module.
@@ -38,6 +39,11 @@ import { TRANSACTION_MANAGER } from '../di-tokens';
 @Module({
   imports: [PrismaModule],
   providers: [
+    // Logger für Database Infrastructure
+    {
+      provide: LOGGER,
+      useFactory: () => new NestLoggerAdapter('DatabaseInfrastructure'),
+    },
     {
       provide: TRANSACTION_MANAGER,
       useClass: PrismaTransactionManager,

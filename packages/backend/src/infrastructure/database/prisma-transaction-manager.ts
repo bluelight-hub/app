@@ -1,7 +1,9 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Inject, Injectable } from '@nestjs/common';
 // biome-ignore lint/style/useImportType: PrismaService needed for DI at runtime
 import { PrismaService } from './prisma.service';
 import type { ITransactionManager, TransactionContext } from '@domain/common/transaction';
+import type { ILogger } from '@domain/ports/i-logger.port';
+import { LOGGER } from '@infrastructure/di-tokens';
 
 /**
  * Prisma Implementation des ITransactionManager Interfaces.
@@ -63,14 +65,16 @@ import type { ITransactionManager, TransactionContext } from '@domain/common/tra
  */
 @Injectable()
 export class PrismaTransactionManager implements ITransactionManager {
-  private readonly logger = new Logger(PrismaTransactionManager.name);
-
   /**
    * Constructor mit PrismaService Dependency Injection.
    *
    * @param prisma - PrismaService für $transaction() API Access
+   * @param logger - ILogger für Framework-agnostisches Logging
    */
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    @Inject(LOGGER) private readonly logger: ILogger,
+  ) {}
 
   /**
    * Führt eine Operation innerhalb einer Prisma Transaction aus.

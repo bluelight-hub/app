@@ -8,7 +8,6 @@ import type { IEinsatzPersonRepository } from '@domain/kraefte/repositories/i-ei
 import type { EinsatzFahrzeug } from '@domain/kraefte/aggregates/einsatz-fahrzeug.aggregate';
 import type { Fahrzeugtyp } from '@domain/kraefte/aggregates/fahrzeugtyp.aggregate';
 import type { EinsatzPerson } from '@domain/kraefte/aggregates/einsatz-person.aggregate';
-import type { FahrzeugtypId } from '@domain/kraefte/value-objects/fahrzeugtyp-id';
 
 // Gültige CUID2 IDs für Tests (Generator: @paralleldrive/cuid2)
 const VALID_EINSATZ_ID = 'z3h5idy36i9aqgkh7st81q57';

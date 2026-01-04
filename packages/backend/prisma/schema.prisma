@@ -1077,7 +1077,7 @@ model IntegrationCredential {
   // Indexes
   @@index([type])
   @@index([isActive])
-  @@index([accessTokenExpiresAt]) // Für Token-Refresh-Scheduler
+  @@index([isActive, accessTokenExpiresAt]) // Für Token-Refresh-Scheduler mit Active-Filter
   @@map("integration_credentials")
 }
 
@@ -1128,5 +1128,6 @@ model QualifikationMapping {
   @@unique([externalName, externalSource]) // Jeder externe Name pro Quelle einmalig
   @@index([externalSource])
   @@index([qualifikationId])
+  @@index([externalSource, qualifikationId]) // Optimiert findUnmapped() Query
   @@map("qualifikation_mappings")
 }

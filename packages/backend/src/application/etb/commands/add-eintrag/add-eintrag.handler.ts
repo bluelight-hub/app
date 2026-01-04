@@ -6,10 +6,10 @@ import { EinsatzId } from '@domain/value-objects/einsatz-id';
 import { EtbId } from '@domain/value-objects/etb-id';
 import { EtbKategorie } from '@domain/value-objects/etb-kategorie';
 import { UserId } from '@domain/value-objects/user-id';
-import { Inject, Injectable, Logger, Optional, forwardRef } from '@nestjs/common';
+import { Inject, Injectable, Optional, forwardRef } from '@nestjs/common';
+import type { ILogger } from '@domain/ports/i-logger.port';
 import type { AddEintragCommand } from './add-eintrag.command';
-import { ETB_REPOSITORY } from '@infrastructure/di-tokens';
-// biome-ignore lint/style/useImportType: CreateEtbHandler needed for DI at runtime with forwardRef
+import { ETB_REPOSITORY, LOGGER } from '@infrastructure/di-tokens';
 import { CreateEtbHandler } from '../create-etb/create-etb.handler';
 
 /**
@@ -31,11 +31,11 @@ import { CreateEtbHandler } from '../create-etb/create-etb.handler';
  */
 @Injectable()
 export class AddEintragHandler {
-  private readonly logger = new Logger(AddEintragHandler.name);
-
   constructor(
     @Inject(ETB_REPOSITORY)
     private readonly etbRepository: IEtbRepository,
+    @Inject(LOGGER)
+    private readonly logger: ILogger,
     @Optional()
     @Inject(forwardRef(() => CreateEtbHandler))
     private readonly createEtbHandler?: CreateEtbHandler,
@@ -109,13 +109,15 @@ export class AddEintragHandler {
     // Strategie: Wenn einsatzId vorhanden, nutze findByEinsatzId (ETB hat eigene ID, nicht = einsatzId)
     // Fallback auf findById für direkte ETB-ID Lookups
     const einsatzIdStr = command.einsatzId?.trim();
-    let aggregate = einsatzIdStr ? await this.etbRepository.findByEinsatzId(EinsatzId.create(einsatzIdStr).value!) : await this.etbRepository.findById(etbId);
-
-    if (aggregate === null) {
-      // Fallback: Versuche findById falls findByEinsatzId fehlschlug
-      if (einsatzIdStr) {
-        aggregate = await this.etbRepository.findById(etbId);
+    let aggregate = null;
+    if (einsatzIdStr) {
+      const einsatzIdResult = EinsatzId.create(einsatzIdStr);
+      if (einsatzIdResult.isSuccess && einsatzIdResult.value) {
+        aggregate = await this.etbRepository.findByEinsatzId(einsatzIdResult.value);
       }
+    }
+    if (!aggregate) {
+      aggregate = await this.etbRepository.findById(etbId);
     }
 
     if (aggregate === null) {

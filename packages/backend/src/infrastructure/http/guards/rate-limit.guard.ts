@@ -1,4 +1,6 @@
-import { type CanActivate, type ExecutionContext, Injectable, Logger } from '@nestjs/common';
+import { type CanActivate, type ExecutionContext, Inject, Injectable } from '@nestjs/common';
+import type { ILogger } from '@domain/ports/i-logger.port';
+import { LOGGER } from '@infrastructure/di-tokens';
 // biome-ignore lint/style/useImportType: Reflector needed for DI at runtime
 import { Reflector } from '@nestjs/core';
 import * as crypto from 'node:crypto';
@@ -42,11 +44,10 @@ export interface RateLimitOptions {
  */
 @Injectable()
 export class RateLimitGuard implements CanActivate {
-  private readonly logger = new Logger(RateLimitGuard.name);
-
   constructor(
     private readonly reflector: Reflector,
     private readonly cacheRateLimiterService: CacheRateLimiterService,
+    @Inject(LOGGER) private readonly logger: ILogger,
   ) {}
 
   async canActivate(context: ExecutionContext): Promise<boolean> {

@@ -2,6 +2,8 @@ import { Module } from '@nestjs/common';
 import { PrismaModule } from '@infrastructure/database/prisma.module';
 import { OutboxModule } from '@infrastructure/outbox/outbox.module';
 import { KraefteInfrastructureModule } from '@infrastructure/kraefte/kraefte-infrastructure.module';
+import { LOGGER } from '@infrastructure/di-tokens';
+import { NestLoggerAdapter } from '@infrastructure/common/adapters/nest-logger.adapter';
 
 // Command Handlers
 import { CreateQualifikationHandler } from './commands/create-qualifikation/create-qualifikation.handler';
@@ -21,6 +23,11 @@ import { GetQualifikationByIdHandler } from './queries/get-qualifikation-by-id/g
 @Module({
   imports: [PrismaModule, OutboxModule, KraefteInfrastructureModule],
   providers: [
+    // Logger für Qualifikationen Handlers
+    {
+      provide: LOGGER,
+      useFactory: () => new NestLoggerAdapter('Qualifikationen'),
+    },
     // Command Handlers
     CreateQualifikationHandler,
     UpdateQualifikationHandler,

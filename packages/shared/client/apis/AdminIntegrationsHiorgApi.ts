@@ -15,21 +15,29 @@
 import * as runtime from '../runtime';
 import type {
   AdminHiOrgIntegrationControllerAutoMatchQualifikationenVAlpha200Response,
+  AdminHiOrgIntegrationControllerBatchSaveQualifikationMappingsVAlphaVAlpha200Response,
   AdminHiOrgIntegrationControllerGetCredentialsVAlpha200Response,
   AdminHiOrgIntegrationControllerGetQualifikationMappingsVAlpha200Response,
+  AdminHiOrgIntegrationControllerImportPersonsVAlpha200Response,
   AdminHiOrgIntegrationControllerInitiateOAuthFlowVAlpha200Response,
   AdminHiOrgIntegrationControllerPreviewPersonsVAlpha200Response,
   AdminHiOrgIntegrationControllerTestConnectionVAlpha200Response,
   AutoMatchRequestDto,
+  BatchSaveQualifikationMappingsRequestDto,
+  ImportPersonsRequestDto,
   SaveQualifikationMappingRequestDto,
 } from '../models/index';
 import {
   AdminHiOrgIntegrationControllerAutoMatchQualifikationenVAlpha200ResponseFromJSON,
   AdminHiOrgIntegrationControllerAutoMatchQualifikationenVAlpha200ResponseToJSON,
+  AdminHiOrgIntegrationControllerBatchSaveQualifikationMappingsVAlphaVAlpha200ResponseFromJSON,
+  AdminHiOrgIntegrationControllerBatchSaveQualifikationMappingsVAlphaVAlpha200ResponseToJSON,
   AdminHiOrgIntegrationControllerGetCredentialsVAlpha200ResponseFromJSON,
   AdminHiOrgIntegrationControllerGetCredentialsVAlpha200ResponseToJSON,
   AdminHiOrgIntegrationControllerGetQualifikationMappingsVAlpha200ResponseFromJSON,
   AdminHiOrgIntegrationControllerGetQualifikationMappingsVAlpha200ResponseToJSON,
+  AdminHiOrgIntegrationControllerImportPersonsVAlpha200ResponseFromJSON,
+  AdminHiOrgIntegrationControllerImportPersonsVAlpha200ResponseToJSON,
   AdminHiOrgIntegrationControllerInitiateOAuthFlowVAlpha200ResponseFromJSON,
   AdminHiOrgIntegrationControllerInitiateOAuthFlowVAlpha200ResponseToJSON,
   AdminHiOrgIntegrationControllerPreviewPersonsVAlpha200ResponseFromJSON,
@@ -38,12 +46,24 @@ import {
   AdminHiOrgIntegrationControllerTestConnectionVAlpha200ResponseToJSON,
   AutoMatchRequestDtoFromJSON,
   AutoMatchRequestDtoToJSON,
+  BatchSaveQualifikationMappingsRequestDtoFromJSON,
+  BatchSaveQualifikationMappingsRequestDtoToJSON,
+  ImportPersonsRequestDtoFromJSON,
+  ImportPersonsRequestDtoToJSON,
   SaveQualifikationMappingRequestDtoFromJSON,
   SaveQualifikationMappingRequestDtoToJSON,
 } from '../models/index';
 
 export interface AdminHiOrgIntegrationControllerAutoMatchQualifikationenVAlphaRequest {
   autoMatchRequestDto: AutoMatchRequestDto;
+}
+
+export interface AdminHiOrgIntegrationControllerBatchSaveQualifikationMappingsVAlphaVAlphaRequest {
+  batchSaveQualifikationMappingsRequestDto: BatchSaveQualifikationMappingsRequestDto;
+}
+
+export interface AdminHiOrgIntegrationControllerImportPersonsVAlphaRequest {
+  importPersonsRequestDto: ImportPersonsRequestDto;
 }
 
 export interface AdminHiOrgIntegrationControllerPreviewPersonsVAlphaRequest {
@@ -108,6 +128,61 @@ export class AdminIntegrationsHiorgApi extends runtime.BaseAPI {
     initOverrides?: RequestInit | runtime.InitOverrideFunction,
   ): Promise<AdminHiOrgIntegrationControllerAutoMatchQualifikationenVAlpha200Response> {
     const response = await this.adminHiOrgIntegrationControllerAutoMatchQualifikationenVAlphaRaw(requestParameters, initOverrides);
+    return await response.value();
+  }
+
+  /**
+   * Speichert mehrere Qualifikations-Mappings für Inline-Mapping beim Import
+   * Batch-Save von Qualifikations-Mappings
+   */
+  async adminHiOrgIntegrationControllerBatchSaveQualifikationMappingsVAlphaVAlphaRaw(
+    requestParameters: AdminHiOrgIntegrationControllerBatchSaveQualifikationMappingsVAlphaVAlphaRequest,
+    initOverrides?: RequestInit | runtime.InitOverrideFunction,
+  ): Promise<runtime.ApiResponse<AdminHiOrgIntegrationControllerBatchSaveQualifikationMappingsVAlphaVAlpha200Response>> {
+    if (requestParameters['batchSaveQualifikationMappingsRequestDto'] == null) {
+      throw new runtime.RequiredError(
+        'batchSaveQualifikationMappingsRequestDto',
+        'Required parameter "batchSaveQualifikationMappingsRequestDto" was null or undefined when calling adminHiOrgIntegrationControllerBatchSaveQualifikationMappingsVAlphaVAlpha().',
+      );
+    }
+
+    const queryParameters: any = {};
+
+    const headerParameters: runtime.HTTPHeaders = {};
+
+    headerParameters['Content-Type'] = 'application/json';
+
+    if (this.configuration && this.configuration.accessToken) {
+      const token = this.configuration.accessToken;
+      const tokenString = await token('admin-jwt', []);
+
+      if (tokenString) {
+        headerParameters['Authorization'] = `Bearer ${tokenString}`;
+      }
+    }
+    const response = await this.request(
+      {
+        path: `/api/v-alpha/admin/integrations/hiorg/qualifikation-mappings/batch`,
+        method: 'POST',
+        headers: headerParameters,
+        query: queryParameters,
+        body: BatchSaveQualifikationMappingsRequestDtoToJSON(requestParameters['batchSaveQualifikationMappingsRequestDto']),
+      },
+      initOverrides,
+    );
+
+    return new runtime.JSONApiResponse(response, (jsonValue) => AdminHiOrgIntegrationControllerBatchSaveQualifikationMappingsVAlphaVAlpha200ResponseFromJSON(jsonValue));
+  }
+
+  /**
+   * Speichert mehrere Qualifikations-Mappings für Inline-Mapping beim Import
+   * Batch-Save von Qualifikations-Mappings
+   */
+  async adminHiOrgIntegrationControllerBatchSaveQualifikationMappingsVAlphaVAlpha(
+    requestParameters: AdminHiOrgIntegrationControllerBatchSaveQualifikationMappingsVAlphaVAlphaRequest,
+    initOverrides?: RequestInit | runtime.InitOverrideFunction,
+  ): Promise<AdminHiOrgIntegrationControllerBatchSaveQualifikationMappingsVAlphaVAlpha200Response> {
+    const response = await this.adminHiOrgIntegrationControllerBatchSaveQualifikationMappingsVAlphaVAlphaRaw(requestParameters, initOverrides);
     return await response.value();
   }
 
@@ -188,6 +263,59 @@ export class AdminIntegrationsHiorgApi extends runtime.BaseAPI {
     initOverrides?: RequestInit | runtime.InitOverrideFunction,
   ): Promise<AdminHiOrgIntegrationControllerGetQualifikationMappingsVAlpha200Response> {
     const response = await this.adminHiOrgIntegrationControllerGetQualifikationMappingsVAlphaRaw(initOverrides);
+    return await response.value();
+  }
+
+  /**
+   * Ausgewählte Personen importieren
+   */
+  async adminHiOrgIntegrationControllerImportPersonsVAlphaRaw(
+    requestParameters: AdminHiOrgIntegrationControllerImportPersonsVAlphaRequest,
+    initOverrides?: RequestInit | runtime.InitOverrideFunction,
+  ): Promise<runtime.ApiResponse<AdminHiOrgIntegrationControllerImportPersonsVAlpha200Response>> {
+    if (requestParameters['importPersonsRequestDto'] == null) {
+      throw new runtime.RequiredError(
+        'importPersonsRequestDto',
+        'Required parameter "importPersonsRequestDto" was null or undefined when calling adminHiOrgIntegrationControllerImportPersonsVAlpha().',
+      );
+    }
+
+    const queryParameters: any = {};
+
+    const headerParameters: runtime.HTTPHeaders = {};
+
+    headerParameters['Content-Type'] = 'application/json';
+
+    if (this.configuration && this.configuration.accessToken) {
+      const token = this.configuration.accessToken;
+      const tokenString = await token('admin-jwt', []);
+
+      if (tokenString) {
+        headerParameters['Authorization'] = `Bearer ${tokenString}`;
+      }
+    }
+    const response = await this.request(
+      {
+        path: `/api/v-alpha/admin/integrations/hiorg/import`,
+        method: 'POST',
+        headers: headerParameters,
+        query: queryParameters,
+        body: ImportPersonsRequestDtoToJSON(requestParameters['importPersonsRequestDto']),
+      },
+      initOverrides,
+    );
+
+    return new runtime.JSONApiResponse(response, (jsonValue) => AdminHiOrgIntegrationControllerImportPersonsVAlpha200ResponseFromJSON(jsonValue));
+  }
+
+  /**
+   * Ausgewählte Personen importieren
+   */
+  async adminHiOrgIntegrationControllerImportPersonsVAlpha(
+    requestParameters: AdminHiOrgIntegrationControllerImportPersonsVAlphaRequest,
+    initOverrides?: RequestInit | runtime.InitOverrideFunction,
+  ): Promise<AdminHiOrgIntegrationControllerImportPersonsVAlpha200Response> {
+    const response = await this.adminHiOrgIntegrationControllerImportPersonsVAlphaRaw(requestParameters, initOverrides);
     return await response.value();
   }
 

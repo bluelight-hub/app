@@ -116,8 +116,8 @@ development_status:
 
   # ===== Epic 7: HiOrg-Server Integration =====
   epic-7: in-progress
-  7-1-hiorg-server-verbindung-synchronisation: review
-  7-2-import-auswahl-qualifikations-mapping: backlog
+  7-1-hiorg-server-verbindung-synchronisation: done
+  7-2-import-auswahl-qualifikations-mapping: done
   epic-7-retrospective: optional
 
   # ===== Epic 8: Lagekarte-Integration =====

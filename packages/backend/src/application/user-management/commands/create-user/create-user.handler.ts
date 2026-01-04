@@ -4,8 +4,9 @@ import { Username } from '@domain/value-objects/username';
 import { UserRole } from '@domain/value-objects/user-role';
 import { UserAggregate } from '@domain/aggregates/user.aggregate';
 import { CommandHandler } from '@nestjs/cqrs';
-import { Inject, Injectable, Logger } from '@nestjs/common';
+import { Inject, Injectable } from '@nestjs/common';
 import { CreateUserCommand } from './create-user.command';
+import type { ILogger } from '@domain/ports/i-logger.port';
 import { TransactionalCommandHandler } from '@application/common/handlers/transactional-command.handler';
 // biome-ignore lint/style/useImportType: PrismaService needed for DI at runtime
 import { PrismaService } from '@/infrastructure/database/prisma.service';
@@ -13,7 +14,7 @@ import type { IOutboxRepository } from '@domain/repositories/i-outbox.repository
 import type { DomainEvent } from '@domain/common/domain-event';
 import type { TransactionContext } from '@domain/common';
 import { Result } from '@domain/common/result';
-import { USER_REPOSITORY, OUTBOX_REPOSITORY } from '@infrastructure/di-tokens';
+import { USER_REPOSITORY, OUTBOX_REPOSITORY, LOGGER } from '@infrastructure/di-tokens';
 
 /**
  * Handler für CreateUserCommand mit Transactional Outbox Pattern.
@@ -49,13 +50,12 @@ import { USER_REPOSITORY, OUTBOX_REPOSITORY } from '@infrastructure/di-tokens';
 @CommandHandler(CreateUserCommand)
 @Injectable()
 export class CreateUserHandler extends TransactionalCommandHandler<CreateUserCommand, string> {
-  private readonly logger = new Logger(CreateUserHandler.name);
-
   constructor(
     prisma: PrismaService,
     @Inject(OUTBOX_REPOSITORY) outboxRepository: IOutboxRepository,
     @Inject(USER_REPOSITORY)
     private readonly userRepository: IUserRepository,
+    @Inject(LOGGER) protected readonly logger: ILogger,
   ) {
     super(prisma, outboxRepository);
   }

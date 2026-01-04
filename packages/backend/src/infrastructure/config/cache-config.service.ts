@@ -1,8 +1,10 @@
 import { CacheModuleOptions, CacheOptionsFactory } from '@nestjs/cache-manager';
-import { Inject, Injectable, Logger } from '@nestjs/common';
+import { Inject, Injectable } from '@nestjs/common';
 import { ConfigType } from '@nestjs/config';
 import { milliseconds } from 'date-fns';
 import { cacheConfig } from './cache.config';
+import type { ILogger } from '@domain/ports/i-logger.port';
+import { LOGGER } from '@infrastructure/di-tokens';
 
 /**
  * Service zur Bereitstellung der Cache-Konfiguration
@@ -13,11 +15,10 @@ import { cacheConfig } from './cache.config';
  */
 @Injectable()
 export class CacheConfigService implements CacheOptionsFactory {
-  private logger = new Logger(CacheConfigService.name);
-
   constructor(
     @Inject(cacheConfig.KEY)
     private readonly config: ConfigType<typeof cacheConfig>,
+    @Inject(LOGGER) private readonly logger: ILogger,
   ) {}
 
   /**

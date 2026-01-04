@@ -45,4 +45,22 @@ export interface IHiOrgOAuthConfigPort {
    * @returns Credentials oder undefined wenn nicht konfiguriert
    */
   getClientCredentials(): HiOrgOAuthClientCredentials | undefined;
+
+  /**
+   * Gibt die Client ID zurück.
+   *
+   * Convenience-Methode um nur die Client ID ohne Secret zu erhalten.
+   *
+   * @returns Client ID oder undefined wenn nicht konfiguriert
+   */
+  getClientId(): string | undefined;
+
+  /**
+   * Gibt die OAuth2 Redirect URI für den Callback zurück.
+   *
+   * Basiert auf APP_URL und dem HiOrg OAuth Callback-Pfad.
+   *
+   * @returns Vollständige Redirect URI (z.B. "http://localhost:3091/api/oauth/hiorg/callback")
+   */
+  getRedirectUri(): string;
 }

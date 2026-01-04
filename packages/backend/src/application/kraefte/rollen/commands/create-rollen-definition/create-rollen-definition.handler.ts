@@ -1,4 +1,5 @@
-import { Inject, Injectable, Logger } from '@nestjs/common';
+import { Inject, Injectable } from '@nestjs/common';
+import type { ILogger } from '@domain/ports/i-logger.port';
 import { TransactionalCommandHandler } from '@application/common/handlers/transactional-command.handler';
 import type { DomainEvent } from '@domain/common/domain-event';
 import { Result } from '@domain/common/result';
@@ -8,7 +9,7 @@ import { RollenDefinition } from '@domain/kraefte/aggregates/rollen-definition.a
 import { IRollenDefinitionRepository } from '@domain/kraefte/repositories/i-rollen-definition.repository';
 // biome-ignore lint/style/useImportType: IOutboxRepository needed for DI at runtime
 import { IOutboxRepository } from '@domain/repositories/i-outbox.repository';
-import { KRAEFTE_REPOSITORIES, OUTBOX_REPOSITORY } from '@infrastructure/di-tokens';
+import { KRAEFTE_REPOSITORIES, LOGGER, OUTBOX_REPOSITORY } from '@infrastructure/di-tokens';
 // biome-ignore lint/style/useImportType: PrismaService needed for DI at runtime
 import { PrismaService } from '@/infrastructure/database/prisma.service';
 import type { RollenDefinitionDto } from '../../dto/rollen-definition.dto';
@@ -22,14 +23,6 @@ import type { CreateRollenDefinitionCommand } from './create-rollen-definition.c
  * Erstellt eine neue RollenDefinition mit Uniqueness-Check für Name.
  * Nutzt TransactionalCommandHandler für atomare Persistierung mit Outbox.
  *
- * **AC3 Compliance Note (NestJS Logger):**
- * Logger Import aus @nestjs/common ist im Application Layer akzeptiert, weil:
- * - Logger ist ein Infrastruktur-Utility ohne Business-Logik-Kopplung
- * - TransactionalCommandHandler Base Class verwendet bereits NestJS Logger
- * - Logger beeinflusst nicht die Testbarkeit (kann gemockt werden)
- * - Etabliertes Pattern im gesamten Codebase (konsistent mit Qualifikation-Modul)
- * - Alternative (Domain Logger Interface) wäre Over-Engineering für diesen Use Case
- *
  * **Qualifikations-Validierung:**
  * - Handler prüft NICHT die Existenz der Qualifikationen (würde N+1 Query Problem verursachen)
  * - Repository saveQualifikationen() wirft bei Foreign Key Violation (nicht existierende Qualifikation)
@@ -37,11 +30,10 @@ import type { CreateRollenDefinitionCommand } from './create-rollen-definition.c
  */
 @Injectable()
 export class CreateRollenDefinitionHandler extends TransactionalCommandHandler<CreateRollenDefinitionCommand, RollenDefinitionDto> {
-  protected readonly logger = new Logger(CreateRollenDefinitionHandler.name);
-
   constructor(
     prisma: PrismaService,
     @Inject(OUTBOX_REPOSITORY) outboxRepository: IOutboxRepository,
+    @Inject(LOGGER) protected readonly logger: ILogger,
     @Inject(KRAEFTE_REPOSITORIES.ROLLEN_DEFINITION)
     private readonly repository: IRollenDefinitionRepository,
   ) {

@@ -13,9 +13,9 @@ import { PrismaService } from '@/infrastructure/database/prisma.service';
 import { Result } from '@domain/common/result';
 import { QualifikationMapping, INTEGRATION_ERROR_CODES, IntegrationError, type IntegrationType, type IQualifikationMappingRepository } from '@domain/integrations';
 import type { TransactionContext } from '@domain/common/transaction';
-import type { QualifikationMapping as PrismaQualifikationMapping } from '@prisma/client';
 import { LOGGER } from '@/infrastructure/di-tokens';
 import type { ILogger } from '@domain/ports/i-logger.port';
+import { PrismaQualifikationMappingMapper } from '../mappers';
 
 /**
  * Prisma Transaction Client Type für atomare Operationen.
@@ -54,7 +54,7 @@ export class PrismaQualifikationMappingRepository implements IQualifikationMappi
         orderBy: [{ qualifikationId: 'asc' }, { externalName: 'asc' }], // Ungemappte zuerst
       });
 
-      const mappings = records.map((r) => this.toDomain(r));
+      const mappings = records.map((r) => PrismaQualifikationMappingMapper.toDomain(r));
       return Result.ok(mappings);
     } catch (error) {
       this.logger.error(`Failed to find mappings for source ${source}`, String(error));
@@ -81,7 +81,7 @@ export class PrismaQualifikationMappingRepository implements IQualifikationMappi
         return Result.ok(null);
       }
 
-      return Result.ok(this.toDomain(record));
+      return Result.ok(PrismaQualifikationMappingMapper.toDomain(record));
     } catch (error) {
       this.logger.error(`Failed to find mapping for name ${name}`, String(error));
       return Result.fail(IntegrationError.format(INTEGRATION_ERROR_CODES.MAPPING_NOT_FOUND, 'Fehler beim Laden des Mappings'));
@@ -102,7 +102,7 @@ export class PrismaQualifikationMappingRepository implements IQualifikationMappi
         return Result.ok(null);
       }
 
-      return Result.ok(this.toDomain(record));
+      return Result.ok(PrismaQualifikationMappingMapper.toDomain(record));
     } catch (error) {
       this.logger.error(`Failed to find mapping by ID ${id}`, String(error));
       return Result.fail(IntegrationError.format(INTEGRATION_ERROR_CODES.MAPPING_NOT_FOUND, 'Fehler beim Laden des Mappings'));
@@ -120,7 +120,7 @@ export class PrismaQualifikationMappingRepository implements IQualifikationMappi
         orderBy: { externalName: 'asc' },
       });
 
-      const mappings = records.map((r) => this.toDomain(r));
+      const mappings = records.map((r) => PrismaQualifikationMappingMapper.toDomain(r));
       return Result.ok(mappings);
     } catch (error) {
       this.logger.error(`Failed to find mappings for qualifikation ${qualifikationId}`, String(error));
@@ -142,7 +142,7 @@ export class PrismaQualifikationMappingRepository implements IQualifikationMappi
         orderBy: { externalName: 'asc' },
       });
 
-      const mappings = records.map((r) => this.toDomain(r));
+      const mappings = records.map((r) => PrismaQualifikationMappingMapper.toDomain(r));
       return Result.ok(mappings);
     } catch (error) {
       this.logger.error(`Failed to find unmapped for source ${source}`, String(error));
@@ -308,30 +308,5 @@ export class PrismaQualifikationMappingRepository implements IQualifikationMappi
       this.logger.error(`Failed to count mappings for source ${source}`, String(error));
       return Result.fail(IntegrationError.format(INTEGRATION_ERROR_CODES.MAPPING_NOT_FOUND, 'Fehler beim Zählen der Mappings'));
     }
-  }
-
-  /**
-   * Mappt Prisma Record zu Domain Entity.
-   */
-  private toDomain(record: PrismaQualifikationMapping): QualifikationMapping {
-    const result = QualifikationMapping.reconstitute({
-      id: record.id,
-      externalName: record.externalName,
-      externalSource: record.externalSource as IntegrationType,
-      qualifikationId: record.qualifikationId,
-      isAutoMatched: record.isAutoMatched,
-      confidence: record.confidence,
-      createdAt: record.createdAt,
-      updatedAt: record.updatedAt,
-      createdBy: record.createdBy,
-      updatedBy: record.updatedBy,
-    });
-
-    // Reconstitute sollte nie fehlschlagen bei gültigen DB-Daten
-    if (result.isFailure) {
-      throw new Error(`Failed to reconstitute QualifikationMapping: ${result.error}`);
-    }
-
-    return result.value!;
   }
 }

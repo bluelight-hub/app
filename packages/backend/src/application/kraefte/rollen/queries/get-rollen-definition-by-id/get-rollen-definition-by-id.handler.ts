@@ -1,9 +1,10 @@
-import { Inject, Injectable, Logger } from '@nestjs/common';
+import { Inject, Injectable } from '@nestjs/common';
+import type { ILogger } from '@domain/ports/i-logger.port';
 import { Result } from '@domain/common/result';
 // biome-ignore lint/style/useImportType: IRollenDefinitionRepository needed for DI at runtime
 import { IRollenDefinitionRepository } from '@domain/kraefte/repositories/i-rollen-definition.repository';
 import { RolleId } from '@domain/kraefte/value-objects/rolle-id';
-import { KRAEFTE_REPOSITORIES } from '@infrastructure/di-tokens';
+import { KRAEFTE_REPOSITORIES, LOGGER } from '@infrastructure/di-tokens';
 import type { RollenDefinitionDto } from '../../dto/rollen-definition.dto';
 import { RollenDefinitionQueryMapper } from '../rollen-definition-query.mapper';
 import type { GetRollenDefinitionByIdQuery } from './get-rollen-definition-by-id.query';
@@ -23,9 +24,8 @@ import type { GetRollenDefinitionByIdQuery } from './get-rollen-definition-by-id
  */
 @Injectable()
 export class GetRollenDefinitionByIdQueryHandler {
-  protected readonly logger = new Logger(GetRollenDefinitionByIdQueryHandler.name);
-
   constructor(
+    @Inject(LOGGER) private readonly logger: ILogger,
     @Inject(KRAEFTE_REPOSITORIES.ROLLEN_DEFINITION)
     private readonly repository: IRollenDefinitionRepository,
   ) {}

@@ -261,13 +261,23 @@ export async function createEtbE2eModule(): Promise<EtbE2eTestContext> {
     ON CONFLICT (id) DO NOTHING
   `;
 
-  // 5. Repository und EventPublisher
+  // 5. Mock Logger für Outbox Repository
+  const mockLogger = {
+    log: () => {},
+    error: () => {},
+    warn: () => {},
+    debug: () => {},
+    verbose: () => {},
+    setContext: () => {},
+  };
+
+  // 6. Repository und EventPublisher
   const repository = new PrismaEtbRepository(prisma);
   const eventPublisher = new SpyEventPublisher();
 
   // Outbox Repository für direkten Zugriff in Tests (Story 4-4)
   const eventSerializer = new EventSerializer();
-  const _outboxRepository = new PrismaOutboxRepository(prisma, eventSerializer);
+  const _outboxRepository = new PrismaOutboxRepository(prisma, eventSerializer, mockLogger);
 
   return {
     prisma,
