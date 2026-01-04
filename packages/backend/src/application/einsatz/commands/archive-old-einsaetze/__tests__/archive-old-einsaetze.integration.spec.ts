@@ -25,6 +25,19 @@ const createMockLogger = (): jest.Mocked<ILogger> => ({
 const databaseAvailable = !!process.env.DATABASE_URL;
 
 /**
+ * Test-Identifier für Isolation.
+ * Alle erstellten Einsätze haben dieses Prefix im alarmstichwort,
+ * so dass sie gezielt gelöscht werden können.
+ */
+const TEST_PREFIX = 'ARCHIVE_TEST_';
+
+/**
+ * Stabiler Username für Test-User.
+ * Wird über mehrere Testläufe hinweg wiederverwendet (upsert).
+ */
+const TEST_USER_NAME = 'admin-archive-integration-test';
+
+/**
  * Integration Tests für ArchiveOldEinsaetzeHandler (Story 5-6 AC7).
  *
  * Diese Tests validieren das Ende-zu-Ende-Verhalten der Bulk-Archivierung
@@ -43,6 +56,8 @@ const databaseAvailable = !!process.env.DATABASE_URL;
   let module: TestingModule;
   let testUserId: string;
   let mockLogger: jest.Mocked<ILogger>;
+  /** IDs der in diesem Test erstellten Einsätze für gezielte Cleanup */
+  let createdEinsatzIds: string[] = [];
 
   beforeAll(async () => {
     mockLogger = createMockLogger();
@@ -69,26 +84,13 @@ const databaseAvailable = !!process.env.DATABASE_URL;
 
     handler = module.get<ArchiveOldEinsaetzeHandler>(ArchiveOldEinsaetzeHandler);
     prisma = module.get<PrismaService>(PrismaService);
-  });
 
-  beforeEach(async () => {
-    // Reset mock logger calls between tests
-    jest.clearAllMocks();
-
-    // Clean up test data (disable triggers temporarily for NO-DELETE Policy)
-    await prisma.$executeRawUnsafe('SET session_replication_role = replica;');
-    try {
-      await prisma.outboxEvent.deleteMany({});
-      await prisma.einsatz.deleteMany({});
-      await prisma.user.deleteMany({});
-    } finally {
-      await prisma.$executeRawUnsafe('SET session_replication_role = DEFAULT;');
-    }
-
-    // Create test user for foreign key constraints
-    const testUser = await prisma.user.create({
-      data: {
-        username: `admin-test-${Date.now()}`,
+    // Create or reuse test user for foreign key constraints (stable across test runs)
+    const testUser = await prisma.user.upsert({
+      where: { username: TEST_USER_NAME },
+      update: {}, // No updates needed, just reuse
+      create: {
+        username: TEST_USER_NAME,
         role: 'ADMIN',
         isActive: true,
       },
@@ -96,13 +98,51 @@ const databaseAvailable = !!process.env.DATABASE_URL;
     testUserId = testUser.id;
   });
 
+  beforeEach(async () => {
+    // Reset mock logger calls between tests
+    jest.clearAllMocks();
+    // Reset tracked IDs
+    createdEinsatzIds = [];
+  });
+
+  afterEach(async () => {
+    // Cleanup nur die in diesem Test erstellten Einsätze und deren Outbox Events
+    if (createdEinsatzIds.length > 0) {
+      await prisma.$executeRawUnsafe('SET session_replication_role = replica;');
+      try {
+        await prisma.outboxEvent.deleteMany({
+          where: { aggregateId: { in: createdEinsatzIds } },
+        });
+        await prisma.einsatz.deleteMany({
+          where: { id: { in: createdEinsatzIds } },
+        });
+      } finally {
+        await prisma.$executeRawUnsafe('SET session_replication_role = DEFAULT;');
+      }
+    }
+  });
+
   afterAll(async () => {
-    // Clean up (disable triggers temporarily for NO-DELETE Policy)
+    // Final cleanup: Lösche alle Test-Einsätze (aber behalte Test-User für zukünftige Runs)
     await prisma.$executeRawUnsafe('SET session_replication_role = replica;');
     try {
-      await prisma.outboxEvent.deleteMany({});
-      await prisma.einsatz.deleteMany({});
-      await prisma.user.deleteMany({});
+      // Lösche alle Einsätze mit dem TEST_PREFIX (Fallback für nicht aufgeräumte Tests)
+      const testEinsatzIds = (
+        await prisma.einsatz.findMany({
+          where: { alarmstichwort: { startsWith: TEST_PREFIX } },
+          select: { id: true },
+        })
+      ).map((e) => e.id);
+
+      if (testEinsatzIds.length > 0) {
+        await prisma.outboxEvent.deleteMany({
+          where: { aggregateId: { in: testEinsatzIds } },
+        });
+        await prisma.einsatz.deleteMany({
+          where: { id: { in: testEinsatzIds } },
+        });
+      }
+      // NOTE: Test-User wird NICHT gelöscht um Konsistenz zwischen Testläufen zu gewährleisten
     } finally {
       await prisma.$executeRawUnsafe('SET session_replication_role = DEFAULT;');
     }
@@ -112,8 +152,17 @@ const databaseAvailable = !!process.env.DATABASE_URL;
 
   describe('AC 1c: Dry-Run Mode', () => {
     it('should count eligible einsätze without making database changes', async () => {
-      // Given - Einsätze die 11 Jahre alt sind (ABGESCHLOSSEN)
-      await createOldEinsaetze(prisma, testUserId, 5, 11);
+      // Given - Count eligible BEFORE creating new ones
+      const eligibleBeforeCreate = await prisma.einsatz.count({
+        where: {
+          status: EinsatzStatus.ABGESCHLOSSEN,
+          createdAt: { lte: new Date(Date.now() - 10 * 365 * 24 * 60 * 60 * 1000) },
+        },
+      });
+
+      // Create 5 Einsätze die 11 Jahre alt sind (ABGESCHLOSSEN)
+      const ids = await createOldEinsaetze(prisma, testUserId, 5, 11);
+      createdEinsatzIds.push(...ids);
 
       const command = ArchiveOldEinsaetzeCommand.create({
         archivedBy: testUserId,
@@ -125,26 +174,36 @@ const databaseAvailable = !!process.env.DATABASE_URL;
 
       // Then
       expect(result.isSuccess).toBe(true);
-      expect(result.value!.eligible).toBe(5);
+      // eligible count should increase by 5 (our new ones)
+      expect(result.value!.eligible).toBe(eligibleBeforeCreate + 5);
       expect(result.value!.archived).toBe(0);
       expect(result.value!.dryRun).toBe(true);
 
-      // Verify no database changes
-      const dbEinsaetze = await prisma.einsatz.findMany({
-        where: { status: EinsatzStatus.ARCHIVIERT },
+      // Verify no database changes - our created Einsätze should NOT be archived
+      const ourArchivedEinsaetze = await prisma.einsatz.findMany({
+        where: { id: { in: ids }, status: EinsatzStatus.ARCHIVIERT },
       });
-      expect(dbEinsaetze).toHaveLength(0);
+      expect(ourArchivedEinsaetze).toHaveLength(0);
 
-      // Verify all are still ABGESCHLOSSEN
-      const abgeschlossenCount = await prisma.einsatz.count({
-        where: { status: EinsatzStatus.ABGESCHLOSSEN },
+      // Verify all our created Einsätze are still ABGESCHLOSSEN
+      const ourAbgeschlossenCount = await prisma.einsatz.count({
+        where: { id: { in: ids }, status: EinsatzStatus.ABGESCHLOSSEN },
       });
-      expect(abgeschlossenCount).toBe(5);
+      expect(ourAbgeschlossenCount).toBe(5);
     });
 
     it('should return 0 eligible if no old einsätze exist', async () => {
-      // Given - Neue Einsätze (1 Jahr alt)
-      await createOldEinsaetze(prisma, testUserId, 3, 1);
+      // Given - Count existing eligible BEFORE creating new ones
+      const existingEligibleBefore = await prisma.einsatz.count({
+        where: {
+          status: EinsatzStatus.ABGESCHLOSSEN,
+          createdAt: { lte: new Date(Date.now() - 10 * 365 * 24 * 60 * 60 * 1000) },
+        },
+      });
+
+      // Create new Einsätze (1 Jahr alt) - not eligible for archival
+      const ids = await createOldEinsaetze(prisma, testUserId, 3, 1);
+      createdEinsatzIds.push(...ids);
 
       const command = ArchiveOldEinsaetzeCommand.create({
         archivedBy: testUserId,
@@ -154,17 +213,26 @@ const databaseAvailable = !!process.env.DATABASE_URL;
       // When
       const result = await handler.execute(command);
 
-      // Then
+      // Then - eligible count should NOT change (our new ones are too young)
       expect(result.isSuccess).toBe(true);
-      expect(result.value!.eligible).toBe(0);
+      expect(result.value!.eligible).toBe(existingEligibleBefore);
       expect(result.value!.archived).toBe(0);
     });
   });
 
   describe('AC 4: Normal Mode with Atomic Persistence', () => {
     it('should archive einsätze and persist changes atomically', async () => {
-      // Given - 3 alte ABGESCHLOSSEN Einsätze
-      await createOldEinsaetze(prisma, testUserId, 3, 11);
+      // Given - Count eligible BEFORE creating new ones
+      const eligibleBeforeCreate = await prisma.einsatz.count({
+        where: {
+          status: EinsatzStatus.ABGESCHLOSSEN,
+          createdAt: { lte: new Date(Date.now() - 10 * 365 * 24 * 60 * 60 * 1000) },
+        },
+      });
+
+      // Create 3 alte ABGESCHLOSSEN Einsätze
+      const ids = await createOldEinsaetze(prisma, testUserId, 3, 11);
+      createdEinsatzIds.push(...ids);
 
       const command = ArchiveOldEinsaetzeCommand.create({
         archivedBy: testUserId,
@@ -174,34 +242,34 @@ const databaseAvailable = !!process.env.DATABASE_URL;
       // When
       const result = await handler.execute(command);
 
-      // Then
+      // Then - should archive all eligible (previous + our 3 new ones)
       expect(result.isSuccess).toBe(true);
-      expect(result.value!.eligible).toBe(3);
-      expect(result.value!.archived).toBe(3);
+      expect(result.value!.eligible).toBe(eligibleBeforeCreate + 3);
+      expect(result.value!.archived).toBe(eligibleBeforeCreate + 3);
       expect(result.value!.failed).toHaveLength(0);
 
-      // Verify status changed in database
-      const archivedEinsaetze = await prisma.einsatz.findMany({
-        where: { status: EinsatzStatus.ARCHIVIERT },
+      // Verify our created Einsätze are archived
+      const ourArchivedEinsaetze = await prisma.einsatz.findMany({
+        where: { id: { in: ids }, status: EinsatzStatus.ARCHIVIERT },
       });
-      expect(archivedEinsaetze).toHaveLength(3);
+      expect(ourArchivedEinsaetze).toHaveLength(3);
 
       // Verify archivedAt is set
       // NOTE: archivedBy wird vom Mapper aus updatedBy/Event extrahiert
       // und ist ein Infrastructure-Detail. Die Domain-Logik ist über Events korrekt.
-      for (const einsatz of archivedEinsaetze) {
+      for (const einsatz of ourArchivedEinsaetze) {
         expect(einsatz.archivedAt).toBeDefined();
         expect(einsatz.archivedAt).toBeInstanceOf(Date);
       }
 
-      // Verify outbox events created (one per archived Einsatz)
-      const outboxEvents = await prisma.outboxEvent.findMany({
-        where: { eventName: 'einsatz.archived' },
+      // Verify outbox events created for our Einsätze
+      const ourOutboxEvents = await prisma.outboxEvent.findMany({
+        where: { aggregateId: { in: ids }, eventName: 'einsatz.archived' },
       });
-      expect(outboxEvents).toHaveLength(3);
+      expect(ourOutboxEvents).toHaveLength(3);
 
       // Verify outbox event payload structure (Event-serialized format)
-      for (const event of outboxEvents) {
+      for (const event of ourOutboxEvents) {
         expect(event.payload).toBeDefined();
         expect(event.aggregateId).toBeDefined();
         // Payload ist serialisiertes Event-Object mit allen Event-Properties
@@ -211,8 +279,17 @@ const databaseAvailable = !!process.env.DATABASE_URL;
 
   describe('AC 2: Batch Processing (100+ Einsätze)', () => {
     it('should process 150 einsätze in batches of 100', async () => {
-      // Given - 150 old ABGESCHLOSSEN Einsätze (should be 2 batches: 100 + 50)
-      await createOldEinsaetze(prisma, testUserId, 150, 11);
+      // Given - Count eligible BEFORE creating new ones
+      const eligibleBeforeCreate = await prisma.einsatz.count({
+        where: {
+          status: EinsatzStatus.ABGESCHLOSSEN,
+          createdAt: { lte: new Date(Date.now() - 10 * 365 * 24 * 60 * 60 * 1000) },
+        },
+      });
+
+      // Create 150 old ABGESCHLOSSEN Einsätze (should be 2 batches: 100 + 50)
+      const ids = await createOldEinsaetze(prisma, testUserId, 150, 11);
+      createdEinsatzIds.push(...ids);
 
       const command = ArchiveOldEinsaetzeCommand.create({
         archivedBy: testUserId,
@@ -222,44 +299,54 @@ const databaseAvailable = !!process.env.DATABASE_URL;
       // When
       const result = await handler.execute(command);
 
-      // Then
+      // Then - should archive all eligible (previous + our 150 new ones)
       expect(result.isSuccess).toBe(true);
-      expect(result.value!.eligible).toBe(150);
-      expect(result.value!.archived).toBe(150);
+      expect(result.value!.eligible).toBe(eligibleBeforeCreate + 150);
+      expect(result.value!.archived).toBe(eligibleBeforeCreate + 150);
       expect(result.value!.failed).toHaveLength(0);
 
-      // Verify all are archived
-      const archivedCount = await prisma.einsatz.count({
-        where: { status: EinsatzStatus.ARCHIVIERT },
+      // Verify all our created Einsätze are archived
+      const ourArchivedCount = await prisma.einsatz.count({
+        where: { id: { in: ids }, status: EinsatzStatus.ARCHIVIERT },
       });
-      expect(archivedCount).toBe(150);
+      expect(ourArchivedCount).toBe(150);
 
-      // Verify outbox events for all
-      const outboxCount = await prisma.outboxEvent.count({
-        where: { eventName: 'einsatz.archived' },
+      // Verify outbox events for our Einsätze
+      const ourOutboxCount = await prisma.outboxEvent.count({
+        where: { aggregateId: { in: ids }, eventName: 'einsatz.archived' },
       });
-      expect(outboxCount).toBe(150);
+      expect(ourOutboxCount).toBe(150);
     });
   });
 
   describe('AC 3: Failure Handling (Error Isolation)', () => {
     it('should continue processing after individual failures', async () => {
-      // Given - Create valid einsätze
-      await createOldEinsaetze(prisma, testUserId, 5, 11);
+      // Given - Count eligible BEFORE creating new ones
+      const eligibleBeforeCreate = await prisma.einsatz.count({
+        where: {
+          status: EinsatzStatus.ABGESCHLOSSEN,
+          createdAt: { lte: new Date(Date.now() - 10 * 365 * 24 * 60 * 60 * 1000) },
+        },
+      });
+
+      // Create valid einsätze
+      const validIds = await createOldEinsaetze(prisma, testUserId, 5, 11);
+      createdEinsatzIds.push(...validIds);
 
       // Create one Einsatz with invalid state (IN_BEARBEITUNG instead of ABGESCHLOSSEN)
-      // This will be found by findEligibleForArchival but should fail on archive()
+      // This will NOT be found by findEligibleForArchival (only ABGESCHLOSSEN are eligible)
       const oldDate = new Date();
       oldDate.setFullYear(oldDate.getFullYear() - 11);
-      await prisma.einsatz.create({
+      const invalidEinsatz = await prisma.einsatz.create({
         data: {
-          alarmstichwort: 'Should fail - IN_BEARBEITUNG',
+          alarmstichwort: `${TEST_PREFIX}Should fail - IN_BEARBEITUNG`,
           status: EinsatzStatus.IN_BEARBEITUNG, // Invalid for archival
           createdAt: oldDate,
           updatedAt: oldDate,
           createdBy: testUserId,
         },
       });
+      createdEinsatzIds.push(invalidEinsatz.id);
 
       const command = ArchiveOldEinsaetzeCommand.create({
         archivedBy: testUserId,
@@ -269,33 +356,28 @@ const databaseAvailable = !!process.env.DATABASE_URL;
       // When
       const result = await handler.execute(command);
 
-      // Then - Should complete successfully despite failure
+      // Then - Should complete successfully despite IN_BEARBEITUNG not being eligible
       expect(result.isSuccess).toBe(true);
 
-      // The 5 ABGESCHLOSSEN einsätze should be archived
-      expect(result.value!.archived).toBe(5);
-
-      // The IN_BEARBEITUNG one is not eligible, so it won't appear in eligible count
-      expect(result.value!.eligible).toBe(5);
+      // All eligible ABGESCHLOSSEN einsätze should be archived (previous + our 5 new ones)
+      expect(result.value!.eligible).toBe(eligibleBeforeCreate + 5);
+      expect(result.value!.archived).toBe(eligibleBeforeCreate + 5);
       expect(result.value!.failed).toHaveLength(0);
 
-      // Verify correct einsätze were archived
-      const archivedCount = await prisma.einsatz.count({
-        where: { status: EinsatzStatus.ARCHIVIERT },
+      // Verify our 5 ABGESCHLOSSEN einsätze were archived
+      const ourArchivedCount = await prisma.einsatz.count({
+        where: { id: { in: validIds }, status: EinsatzStatus.ARCHIVIERT },
       });
-      expect(archivedCount).toBe(5);
+      expect(ourArchivedCount).toBe(5);
 
       // Verify the IN_BEARBEITUNG one was NOT archived
-      const inBearbeitungCount = await prisma.einsatz.count({
-        where: { status: EinsatzStatus.IN_BEARBEITUNG },
+      const inBearbeitungEinsatz = await prisma.einsatz.findUnique({
+        where: { id: invalidEinsatz.id },
       });
-      expect(inBearbeitungCount).toBe(1);
+      expect(inBearbeitungEinsatz?.status).toBe(EinsatzStatus.IN_BEARBEITUNG);
     });
 
     it('should handle invalid userId gracefully', async () => {
-      // Given - Create valid einsätze
-      await createOldEinsaetze(prisma, testUserId, 3, 11);
-
       // Use invalid user ID format to cause validation error
       const command = ArchiveOldEinsaetzeCommand.create({
         archivedBy: '', // Empty string will fail validation
@@ -310,9 +392,18 @@ const databaseAvailable = !!process.env.DATABASE_URL;
 
   describe('Already Archived Skip', () => {
     it('should not include already archived einsätze in eligible count', async () => {
-      // Given - Mix of ABGESCHLOSSEN (3) and ARCHIVIERT (2) with same age
-      await createOldEinsaetze(prisma, testUserId, 3, 11, EinsatzStatus.ABGESCHLOSSEN);
-      await createOldEinsaetze(prisma, testUserId, 2, 11, EinsatzStatus.ARCHIVIERT);
+      // Given - Count eligible BEFORE creating new ones
+      const eligibleBeforeCreate = await prisma.einsatz.count({
+        where: {
+          status: EinsatzStatus.ABGESCHLOSSEN,
+          createdAt: { lte: new Date(Date.now() - 10 * 365 * 24 * 60 * 60 * 1000) },
+        },
+      });
+
+      // Create Mix of ABGESCHLOSSEN (3) and ARCHIVIERT (2) with same age
+      const abgeschlossenIds = await createOldEinsaetze(prisma, testUserId, 3, 11, EinsatzStatus.ABGESCHLOSSEN);
+      const archiviertIds = await createOldEinsaetze(prisma, testUserId, 2, 11, EinsatzStatus.ARCHIVIERT);
+      createdEinsatzIds.push(...abgeschlossenIds, ...archiviertIds);
 
       const command = ArchiveOldEinsaetzeCommand.create({
         archivedBy: testUserId,
@@ -322,16 +413,26 @@ const databaseAvailable = !!process.env.DATABASE_URL;
       // When
       const result = await handler.execute(command);
 
-      // Then - Should only count the 3 ABGESCHLOSSEN ones
+      // Then - Should only count the ABGESCHLOSSEN ones (not ARCHIVIERT)
       expect(result.isSuccess).toBe(true);
-      expect(result.value!.eligible).toBe(3);
+      // eligible = previous + our 3 ABGESCHLOSSEN (the 2 ARCHIVIERT are not counted)
+      expect(result.value!.eligible).toBe(eligibleBeforeCreate + 3);
     });
 
     it('should skip ANGELEGT and IN_BEARBEITUNG einsätze', async () => {
-      // Given - Mix of different statuses, all old
-      await createOldEinsaetze(prisma, testUserId, 2, 11, EinsatzStatus.ANGELEGT);
-      await createOldEinsaetze(prisma, testUserId, 2, 11, EinsatzStatus.IN_BEARBEITUNG);
-      await createOldEinsaetze(prisma, testUserId, 3, 11, EinsatzStatus.ABGESCHLOSSEN);
+      // Given - Count eligible BEFORE creating new ones
+      const eligibleBeforeCreate = await prisma.einsatz.count({
+        where: {
+          status: EinsatzStatus.ABGESCHLOSSEN,
+          createdAt: { lte: new Date(Date.now() - 10 * 365 * 24 * 60 * 60 * 1000) },
+        },
+      });
+
+      // Create Mix of different statuses, all old
+      const angelegtIds = await createOldEinsaetze(prisma, testUserId, 2, 11, EinsatzStatus.ANGELEGT);
+      const inBearbeitungIds = await createOldEinsaetze(prisma, testUserId, 2, 11, EinsatzStatus.IN_BEARBEITUNG);
+      const abgeschlossenIds = await createOldEinsaetze(prisma, testUserId, 3, 11, EinsatzStatus.ABGESCHLOSSEN);
+      createdEinsatzIds.push(...angelegtIds, ...inBearbeitungIds, ...abgeschlossenIds);
 
       const command = ArchiveOldEinsaetzeCommand.create({
         archivedBy: testUserId,
@@ -343,13 +444,21 @@ const databaseAvailable = !!process.env.DATABASE_URL;
 
       // Then - Should only count ABGESCHLOSSEN ones
       expect(result.isSuccess).toBe(true);
-      expect(result.value!.eligible).toBe(3);
+      // eligible = previous + our 3 ABGESCHLOSSEN (ANGELEGT/IN_BEARBEITUNG are not counted)
+      expect(result.value!.eligible).toBe(eligibleBeforeCreate + 3);
     });
   });
 
   describe('Edge Cases', () => {
-    it('should handle empty database gracefully', async () => {
-      // Given - No einsätze exist
+    it('should handle when no new eligible einsätze are created', async () => {
+      // Given - Count existing eligible before any action
+      const existingEligibleCount = await prisma.einsatz.count({
+        where: {
+          status: EinsatzStatus.ABGESCHLOSSEN,
+          createdAt: { lte: new Date(Date.now() - 10 * 365 * 24 * 60 * 60 * 1000) },
+        },
+      });
+
       const command = ArchiveOldEinsaetzeCommand.create({
         archivedBy: testUserId,
         dryRun: false,
@@ -358,16 +467,25 @@ const databaseAvailable = !!process.env.DATABASE_URL;
       // When
       const result = await handler.execute(command);
 
-      // Then
+      // Then - archives whatever was already eligible
       expect(result.isSuccess).toBe(true);
-      expect(result.value!.eligible).toBe(0);
-      expect(result.value!.archived).toBe(0);
+      expect(result.value!.eligible).toBe(existingEligibleCount);
+      expect(result.value!.archived).toBe(existingEligibleCount);
       expect(result.value!.failed).toHaveLength(0);
     });
 
     it('should respect custom olderThanYears threshold', async () => {
-      // Given - Einsätze 6 Jahre alt
-      await createOldEinsaetze(prisma, testUserId, 3, 6);
+      // Given - Count eligible with 5-year threshold BEFORE creating new ones
+      const eligibleBeforeCreate = await prisma.einsatz.count({
+        where: {
+          status: EinsatzStatus.ABGESCHLOSSEN,
+          createdAt: { lte: new Date(Date.now() - 5 * 365 * 24 * 60 * 60 * 1000) },
+        },
+      });
+
+      // Create Einsätze 6 Jahre alt
+      const ids = await createOldEinsaetze(prisma, testUserId, 3, 6);
+      createdEinsatzIds.push(...ids);
 
       // When - Use 5 years threshold
       const command = ArchiveOldEinsaetzeCommand.create({
@@ -378,14 +496,23 @@ const databaseAvailable = !!process.env.DATABASE_URL;
 
       const result = await handler.execute(command);
 
-      // Then - Should find the 6-year-old einsätze
+      // Then - Should find previous + our 3 new 6-year-old einsätze
       expect(result.isSuccess).toBe(true);
-      expect(result.value!.eligible).toBe(3);
+      expect(result.value!.eligible).toBe(eligibleBeforeCreate + 3);
     });
 
     it('should not archive einsätze when threshold not met', async () => {
-      // Given - Einsätze 6 Jahre alt
-      await createOldEinsaetze(prisma, testUserId, 3, 6);
+      // Given - Count eligible with 10-year threshold BEFORE creating new ones
+      const eligibleBeforeCreate = await prisma.einsatz.count({
+        where: {
+          status: EinsatzStatus.ABGESCHLOSSEN,
+          createdAt: { lte: new Date(Date.now() - 10 * 365 * 24 * 60 * 60 * 1000) },
+        },
+      });
+
+      // Create Einsätze 6 Jahre alt (not old enough for 10-year threshold)
+      const ids = await createOldEinsaetze(prisma, testUserId, 3, 6);
+      createdEinsatzIds.push(...ids);
 
       // When - Use 10 years threshold (default)
       const command = ArchiveOldEinsaetzeCommand.create({
@@ -396,15 +523,18 @@ const databaseAvailable = !!process.env.DATABASE_URL;
 
       const result = await handler.execute(command);
 
-      // Then - Should NOT find any eligible einsätze
+      // Then - Should NOT find our 6-year-old einsätze (only existing 10+ year old ones)
       expect(result.isSuccess).toBe(true);
-      expect(result.value!.eligible).toBe(0);
+      // eligible count should not change (our 6-year-old ones are not old enough)
+      expect(result.value!.eligible).toBe(eligibleBeforeCreate);
     });
   });
 });
 
 /**
  * Helper function: Erstellt Test-Einsätze mit konfigurierbarem Alter und Status.
+ *
+ * Alle erstellten Einsätze haben das TEST_PREFIX im alarmstichwort für einfaches Cleanup.
  *
  * @param prisma - Prisma Service Instance
  * @param createdBy - User ID für createdBy FK
@@ -421,7 +551,7 @@ async function createOldEinsaetze(prisma: PrismaService, createdBy: string, coun
   for (let i = 0; i < count; i++) {
     const einsatz = await prisma.einsatz.create({
       data: {
-        alarmstichwort: `Test-Einsatz-${status}-${yearsOld}Y-${i}`,
+        alarmstichwort: `${TEST_PREFIX}${status}-${yearsOld}Y-${i}-${Date.now()}`,
         einsatzort: 'Test Ort',
         status: status,
         createdAt: oldDate,

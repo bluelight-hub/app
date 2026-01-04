@@ -228,7 +228,8 @@ export async function createEtbE2eModule(): Promise<EtbE2eTestContext> {
   }
 
   // 3. Test User erstellen (CUID2 Format!)
-  const testRunId = Date.now().toString();
+  // WICHTIG: testRunId enthält Timestamp UND Random-Suffix um parallele Test-Runs zu isolieren
+  const testRunId = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
   const testUserId = generateTestId();
   await prisma.$executeRaw`
     INSERT INTO "User" (id, username, "passwordHash", role, "isActive", "createdAt", "updatedAt")
@@ -241,7 +242,7 @@ export async function createEtbE2eModule(): Promise<EtbE2eTestContext> {
       NOW(),
       NOW()
     )
-    ON CONFLICT (username) DO NOTHING
+    ON CONFLICT (username) DO UPDATE SET id = EXCLUDED.id
   `;
 
   // 3b. SYSTEM User erstellen (für ETBs ohne Einträge - Fallback im Repository)
@@ -263,6 +264,8 @@ export async function createEtbE2eModule(): Promise<EtbE2eTestContext> {
   `;
 
   // 4. Test Einsatz erstellen (CUID2 Format!)
+  // HINWEIS: ON CONFLICT auf id ist selten (CUID2 Kollision unwahrscheinlich),
+  // aber wir aktualisieren trotzdem um sicherzustellen, dass die FK-Referenz korrekt ist
   const testEinsatzId = generateTestId();
   await prisma.$executeRaw`
     INSERT INTO einsaetze (id, alarmstichwort, einsatzort, status, "createdBy", "updatedBy", "createdAt", "updatedAt")
@@ -276,7 +279,7 @@ export async function createEtbE2eModule(): Promise<EtbE2eTestContext> {
       NOW(),
       NOW()
     )
-    ON CONFLICT (id) DO NOTHING
+    ON CONFLICT (id) DO UPDATE SET "createdBy" = EXCLUDED."createdBy", "updatedBy" = EXCLUDED."updatedBy"
   `;
 
   // 5. Mock Logger für Outbox Repository
@@ -378,7 +381,7 @@ export async function cleanupTestData(ctx: EtbE2eTestContext): Promise<void> {
  */
 export async function createTestEinsatz(ctx: EtbE2eTestContext): Promise<string> {
   const einsatzId = generateTestId();
-  await ctx.prisma.$executeRaw`
+  const rowsAffected = await ctx.prisma.$executeRaw`
     INSERT INTO einsaetze (id, alarmstichwort, einsatzort, status, "createdBy", "updatedBy", "createdAt", "updatedAt")
     VALUES (
       ${einsatzId},
@@ -390,7 +393,11 @@ export async function createTestEinsatz(ctx: EtbE2eTestContext): Promise<string>
       NOW(),
       NOW()
     )
+    ON CONFLICT (id) DO UPDATE SET "createdBy" = EXCLUDED."createdBy"
   `;
+  if (rowsAffected === 0) {
+    throw new Error(`Failed to create test Einsatz with id ${einsatzId}`);
+  }
   return einsatzId;
 }
 
