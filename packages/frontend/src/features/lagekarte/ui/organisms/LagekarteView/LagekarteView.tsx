@@ -21,6 +21,7 @@ import { PoiPlacementControl } from '../controls/PoiPlacementControl';
 import { FullscreenCloseButton } from '../FullscreenCloseButton/FullscreenCloseButton';
 import { ClusteredPoiLayer } from '../layers/ClusteredPoiLayer';
 import { DrawingLayer } from '../layers/DrawingLayer';
+import { FahrzeugPoiLayer } from '../layers/FahrzeugPoiLayer';
 import { LayerErrorBoundary } from '../layers/LayerErrorBoundary';
 import { OfflineTileLayer } from '../layers/OfflineTileLayer';
 import { OfflineRegionModal } from '../modals/OfflineRegionModal';
@@ -188,6 +189,7 @@ export const LagekarteView: React.FC<LagekarteViewProps> = ({ einsatzId, mode = 
   const [layers, setLayers] = useState<Layer[]>([
     { name: 'poi', label: 'POI-Marker', visible: true },
     { name: 'drawing', label: 'Zeichnungen', visible: true },
+    { name: 'fahrzeuge', label: 'Fahrzeuge', visible: true },
   ]);
 
   // Tools-Visibility State (für MapToolbarToggle)
@@ -730,6 +732,13 @@ export const LagekarteView: React.FC<LagekarteViewProps> = ({ einsatzId, mode = 
               onShapeSelected={handleShapeSelected}
               isPlacementModeActive={isPlacementActive}
             />
+          )}
+
+          {/* Fahrzeug-POI-Layer (Story 8.1: Fahrzeuge als POIs auf Lagekarte) */}
+          {layers.find((l) => l.name === 'fahrzeuge')?.visible && (
+            <LayerErrorBoundary layerName="Fahrzeug-Layer">
+              <FahrzeugPoiLayer einsatzId={einsatzId} />
+            </LayerErrorBoundary>
           )}
 
           <MapBoundsController lagekarteId={lagekarte?.id} />
