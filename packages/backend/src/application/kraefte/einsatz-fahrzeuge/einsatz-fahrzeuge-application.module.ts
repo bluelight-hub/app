@@ -8,6 +8,7 @@ import { ErfasseFahrzeugAusStammdatenHandler } from './commands/erfasse-fahrzeug
 import { ErfasseTemporalesFahrzeugHandler } from './commands/erfasse-temporales-fahrzeug/erfasse-temporales-fahrzeug.handler';
 import { UpdateFmsStatusHandler } from './commands/update-fms-status/update-fms-status.handler';
 import { GetEinsatzFahrzeugeHandler } from './queries/get-einsatz-fahrzeuge/get-einsatz-fahrzeuge.handler';
+import { GetKraeftePoisHandler } from './queries/get-kraefte-pois/get-kraefte-pois.handler';
 
 /**
  * Application Module für EinsatzFahrzeuge.
@@ -32,7 +33,8 @@ import { GetEinsatzFahrzeugeHandler } from './queries/get-einsatz-fahrzeuge/get-
     UpdateFmsStatusHandler,
     // Query Handlers
     GetEinsatzFahrzeugeHandler,
+    GetKraeftePoisHandler,
   ],
-  exports: [ErfasseFahrzeugAusStammdatenHandler, ErfasseTemporalesFahrzeugHandler, UpdateFmsStatusHandler, GetEinsatzFahrzeugeHandler],
+  exports: [ErfasseFahrzeugAusStammdatenHandler, ErfasseTemporalesFahrzeugHandler, UpdateFmsStatusHandler, GetEinsatzFahrzeugeHandler, GetKraeftePoisHandler],
 })
 export class EinsatzFahrzeugeApplicationModule {}

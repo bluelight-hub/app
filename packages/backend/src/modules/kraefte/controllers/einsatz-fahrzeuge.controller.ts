@@ -43,12 +43,15 @@ import { ErfasseFahrzeugAusStammdatenHandler } from '@application/kraefte/einsat
 import { ErfasseTemporalesFahrzeugHandler } from '@application/kraefte/einsatz-fahrzeuge/commands/erfasse-temporales-fahrzeug/erfasse-temporales-fahrzeug.handler';
 import { UpdateFmsStatusHandler } from '@application/kraefte/einsatz-fahrzeuge/commands/update-fms-status/update-fms-status.handler';
 import { GetEinsatzFahrzeugeHandler } from '@application/kraefte/einsatz-fahrzeuge/queries/get-einsatz-fahrzeuge/get-einsatz-fahrzeuge.handler';
+import { GetKraeftePoisHandler } from '@application/kraefte/einsatz-fahrzeuge/queries/get-kraefte-pois/get-kraefte-pois.handler';
 
 // Commands & Queries
 import { ErfasseFahrzeugAusStammdatenCommand } from '@application/kraefte/einsatz-fahrzeuge/commands/erfasse-fahrzeug-aus-stammdaten/erfasse-fahrzeug-aus-stammdaten.command';
 import { ErfasseTemporalesFahrzeugCommand } from '@application/kraefte/einsatz-fahrzeuge/commands/erfasse-temporales-fahrzeug/erfasse-temporales-fahrzeug.command';
 import { UpdateFmsStatusCommand } from '@application/kraefte/einsatz-fahrzeuge/commands/update-fms-status/update-fms-status.command';
 import { GetEinsatzFahrzeugeQuery } from '@application/kraefte/einsatz-fahrzeuge/queries/get-einsatz-fahrzeuge/get-einsatz-fahrzeuge.query';
+import { GetKraeftePoisQuery } from '@application/kraefte/einsatz-fahrzeuge/queries/get-kraefte-pois/get-kraefte-pois.query';
+import { KraeftePoisFeatureCollectionDto } from '@application/kraefte/einsatz-fahrzeuge/queries/get-kraefte-pois/kraefte-pois.dto';
 
 // DTOs
 import { EinsatzFahrzeugDto, ErfasseFahrzeugAusStammdatenDto, ErfasseTemporalesFahrzeugDto, UpdateFmsStatusDto } from '@application/kraefte/einsatz-fahrzeuge/dto';
@@ -90,6 +93,7 @@ export class EinsatzFahrzeugeController {
     private readonly erfasseTemporalesHandler: ErfasseTemporalesFahrzeugHandler,
     private readonly getEinsatzFahrzeugeHandler: GetEinsatzFahrzeugeHandler,
     private readonly updateFmsStatusHandler: UpdateFmsStatusHandler,
+    private readonly getKraeftePoisHandler: GetKraeftePoisHandler,
     @Inject(LOGGER) private readonly logger: ILogger,
   ) {}
 
@@ -127,6 +131,48 @@ export class EinsatzFahrzeugeController {
     }
 
     return result.value ?? [];
+  }
+
+  /**
+   * Fahrzeuge als GeoJSON POIs fuer die Lagekarte abrufen.
+   *
+   * **RFC 7946 Compliance:**
+   * - Koordinaten: [longitude, latitude] (NICHT [lat, lng]!)
+   * - Feature ID auf Feature-Ebene (nicht in properties)
+   * - type: "FeatureCollection" bzw. "Feature"
+   *
+   * **Filterung:**
+   * - Nur Fahrzeuge MIT gueltiger Position werden zurueckgegeben
+   * - Fahrzeuge ohne Position werden herausgefiltert
+   *
+   * @param einsatzId - UUID des Einsatzes
+   * @returns GeoJSON FeatureCollection mit allen Fahrzeug-POIs
+   */
+  @Get('pois')
+  @Throttle({ default: { limit: 60, ttl: 60000 } })
+  @ApiOperation({ summary: 'Fahrzeuge als POIs fuer Lagekarte abrufen' })
+  @ApiParam({ name: 'einsatzId', type: String, format: 'cuid', description: 'Einsatz-ID (CUID)' })
+  @ApiWrappedResponse(KraeftePoisFeatureCollectionDto, { description: 'GeoJSON FeatureCollection mit Fahrzeug-POIs' })
+  @ApiBadRequestResponse({ description: 'Ungueltige Einsatz-ID' })
+  async getKraeftePois(@Param('einsatzId', ParseCuidPipe) einsatzId: string): Promise<KraeftePoisFeatureCollectionDto> {
+    const queryResult = GetKraeftePoisQuery.create(einsatzId);
+    if (queryResult.isFailure) {
+      throw new BadRequestException(queryResult.error);
+    }
+
+    const query = queryResult.value;
+    if (!query) {
+      throw new BadRequestException('Fehler beim Erstellen der Query');
+    }
+
+    const result = await this.getKraeftePoisHandler.execute(query);
+
+    if (result.isFailure) {
+      this.logger.error(`Unexpected error in getKraeftePois for Einsatz ${einsatzId}: ${result.error}`);
+      throw new InternalServerErrorException('Fehler beim Abrufen der Kraefte-POIs');
+    }
+
+    return result.value ?? new KraeftePoisFeatureCollectionDto([]);
   }
 
   /**
