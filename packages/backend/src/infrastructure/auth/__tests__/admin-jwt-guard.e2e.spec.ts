@@ -36,6 +36,10 @@ describe('AdminJwtAuthGuard HTTP Integration Tests (AC5.3)', () => {
   let prisma: PrismaClient;
   let testRunId: number;
 
+  // Test-Secrets für CI-Umgebung (werden in beforeAll gesetzt wenn nicht vorhanden)
+  const TEST_JWT_SECRET = 'test-jwt-secret-for-e2e-tests';
+  const TEST_ADMIN_JWT_SECRET = 'test-admin-jwt-secret-for-e2e-tests';
+
   // Test-User Daten (werden in beforeAll gesetzt, wiederverwendbar für alle Tests)
   let testUserRegular: { id: string; username: string; role: 'USER' | 'ADMIN' | 'SUPER_ADMIN' };
   let testUserAdmin: { id: string; username: string; role: 'USER' | 'ADMIN' | 'SUPER_ADMIN' };
@@ -53,6 +57,7 @@ describe('AdminJwtAuthGuard HTTP Integration Tests (AC5.3)', () => {
    * Generiert ein gültiges Access-Token (regulärer JWT)
    *
    * Verwendet die JWT_SECRET aus der Umgebung oder Test-Fallback.
+   * WICHTIG: Muss das gleiche Secret wie die Strategy verwenden.
    */
   const generateAccessToken = (userId: string, username: string, role: 'USER' | 'ADMIN' | 'SUPER_ADMIN'): string => {
     return jwt.sign(
@@ -61,7 +66,7 @@ describe('AdminJwtAuthGuard HTTP Integration Tests (AC5.3)', () => {
         username,
         role,
       },
-      process.env.JWT_SECRET || 'test-secret',
+      process.env.JWT_SECRET || TEST_JWT_SECRET,
       { expiresIn: '15m' },
     );
   };
@@ -70,6 +75,7 @@ describe('AdminJwtAuthGuard HTTP Integration Tests (AC5.3)', () => {
    * Generiert ein gültiges Admin-Token
    *
    * Verwendet die ADMIN_JWT_SECRET aus der Umgebung oder Test-Fallback.
+   * WICHTIG: Muss das gleiche Secret wie die AdminJwtStrategy verwenden.
    * Setzt isAdmin=true für neue Token-Format-Validierung.
    */
   const generateAdminToken = (userId: string, username: string, role: 'ADMIN' | 'SUPER_ADMIN' | 'USER'): string => {
@@ -80,7 +86,7 @@ describe('AdminJwtAuthGuard HTTP Integration Tests (AC5.3)', () => {
         role,
         isAdmin: role !== 'USER', // isAdmin Feld für neue Token-Format-Validierung
       },
-      process.env.ADMIN_JWT_SECRET || 'test-admin-secret',
+      process.env.ADMIN_JWT_SECRET || TEST_ADMIN_JWT_SECRET,
       { expiresIn: '15m' },
     );
   };
@@ -97,6 +103,15 @@ describe('AdminJwtAuthGuard HTTP Integration Tests (AC5.3)', () => {
     databaseAvailable = await skipIfNoDatabase();
     if (!databaseAvailable) {
       return; // Skip all tests if DB not available
+    }
+
+    // Setze Test-Secrets für CI-Umgebung wenn nicht vorhanden
+    // Notwendig damit AdminJwtStrategy und JwtStrategy initialisiert werden können
+    if (!process.env.JWT_SECRET) {
+      process.env.JWT_SECRET = TEST_JWT_SECRET;
+    }
+    if (!process.env.ADMIN_JWT_SECRET) {
+      process.env.ADMIN_JWT_SECRET = TEST_ADMIN_JWT_SECRET;
     }
 
     // Prisma Client für User Setup
@@ -359,7 +374,7 @@ describe('AdminJwtAuthGuard HTTP Integration Tests (AC5.3)', () => {
           role: testUserAdmin.role,
           isAdmin: true,
         },
-        process.env.ADMIN_JWT_SECRET || 'test-admin-secret',
+        process.env.ADMIN_JWT_SECRET || TEST_ADMIN_JWT_SECRET,
         { expiresIn: '-1h' }, // Abgelaufen vor 1 Stunde
       );
 
