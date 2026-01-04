@@ -1,9 +1,9 @@
 <component name="ProjectRunConfigurationManager">
-  <configuration default="false" name="Backend Tests (Coverage)" type="JavaScriptTestRunnerJest">
+  <configuration default="false" name="Backend Tests (Integration)" type="JavaScriptTestRunnerJest">
     <node-interpreter value="project" />
     <jest-package value="$PROJECT_DIR$/packages/backend/node_modules/jest" />
     <working-dir value="$PROJECT_DIR$/packages/backend" />
-    <jest-options value="--coverage" />
+    <jest-options value="--testPathPatterns=\.integration\.spec\.ts$" />
     <envs />
     <scope-kind value="ALL" />
     <method v="2" />
