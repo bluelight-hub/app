@@ -130,36 +130,39 @@ export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
       <HeadlessButton
         aria-busy={loading}
         aria-live={loading ? 'polite' : undefined}
-        className={cn(baseStyles, borderStyles[appearance], intentColors[intent][appearance], sizes[size], animationStyles, fullWidth && 'w-full', className)}
+        className={cn(baseStyles, borderStyles[appearance], intentColors[intent][appearance], sizes[size], animationStyles, fullWidth && 'w-full', 'relative', className)}
         disabled={disabled || loading}
         type={type}
         ref={ref}
         {...props}
       >
-        {loading ? (
-          <InlineSpinner />
-        ) : (
-          <>
-            {children}
-            {kbd && (
-              <kbd className={cn('ml-2 inline-flex items-center gap-0.5 rounded px-1.5 py-0.5 font-medium text-xs', getKbdStyles())}>
-                {kbd.split('+').map((key) => {
-                  const normalizedKey = key.trim().toLowerCase();
-                  const keyMap: Record<string, string> = {
-                    cmd: '⌘',
-                    ctrl: 'Ctrl',
-                    shift: '⇧',
-                    alt: '⌥',
-                    option: '⌥',
-                    enter: '↩︎',
-                  };
-                  const displayKey = keyMap[normalizedKey] || key.charAt(0).toUpperCase() + key.slice(1).toLowerCase();
-                  return <span key={key}>{displayKey}</span>;
-                })}
-              </kbd>
-            )}
-          </>
+        {/* Loading Spinner - absolut positioniert über dem Content */}
+        {loading && (
+          <span className="absolute inset-0 flex items-center justify-center">
+            <InlineSpinner size="sm" />
+          </span>
         )}
+        {/* Content - unsichtbar wenn loading, damit Button-Größe erhalten bleibt */}
+        <span className={cn('inline-flex items-center', loading && 'invisible')}>
+          {children}
+          {kbd && (
+            <kbd className={cn('ml-2 inline-flex items-center gap-0.5 rounded px-1.5 py-0.5 font-medium text-xs', getKbdStyles())}>
+              {kbd.split('+').map((key) => {
+                const normalizedKey = key.trim().toLowerCase();
+                const keyMap: Record<string, string> = {
+                  cmd: '⌘',
+                  ctrl: 'Ctrl',
+                  shift: '⇧',
+                  alt: '⌥',
+                  option: '⌥',
+                  enter: '↩︎',
+                };
+                const displayKey = keyMap[normalizedKey] || key.charAt(0).toUpperCase() + key.slice(1).toLowerCase();
+                return <span key={key}>{displayKey}</span>;
+              })}
+            </kbd>
+          )}
+        </span>
       </HeadlessButton>
     );
   },

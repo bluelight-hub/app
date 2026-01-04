@@ -1,5 +1,5 @@
-import { Fragment, useMemo } from 'react';
-import { Listbox, Transition } from '@headlessui/react';
+import { useMemo } from 'react';
+import { Listbox } from '@headlessui/react';
 import { PiMagicWand, PiCheck, PiCaretUpDown } from 'react-icons/pi';
 import type { QualifikationMappingItemDto } from '@bluelight-hub/shared/client';
 import { useAdminQualifikationenManagement } from '@/features/admin/api';
@@ -185,67 +185,66 @@ function QualifikationListbox({ value, qualifikationen, onChange, disabled = fal
 
   return (
     <Listbox value={value} onChange={onChange} disabled={disabled}>
-      <div className="relative">
-        <Listbox.Button
-          className={cn(
-            'relative w-full cursor-pointer rounded-lg py-2 pr-10 pl-3 text-left shadow-sm ring-1 ring-inset focus:outline-none focus:ring-2 focus:ring-primary-500 sm:text-sm',
-            selectedQualifikation
-              ? 'bg-blue-50 text-blue-800 ring-blue-200 dark:bg-blue-900/20 dark:text-blue-200 dark:ring-blue-800'
-              : 'bg-gray-50 text-gray-500 ring-gray-200 dark:bg-gray-800 dark:text-gray-400 dark:ring-gray-700',
-            disabled && 'cursor-not-allowed opacity-50',
-          )}
+      <Listbox.Button
+        className={cn(
+          'relative w-full cursor-pointer rounded-lg py-2 pr-10 pl-3 text-left shadow-sm ring-1 ring-inset focus:outline-none focus:ring-2 focus:ring-primary-500 sm:text-sm',
+          selectedQualifikation
+            ? 'bg-blue-50 text-blue-800 ring-blue-200 dark:bg-blue-900/20 dark:text-blue-200 dark:ring-blue-800'
+            : 'bg-gray-50 text-gray-500 ring-gray-200 dark:bg-gray-800 dark:text-gray-400 dark:ring-gray-700',
+          disabled && 'cursor-not-allowed opacity-50',
+        )}
+      >
+        <span className="block truncate">{buttonLabel}</span>
+        <span className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-2">
+          <PiCaretUpDown className="h-5 w-5 text-gray-400" aria-hidden="true" />
+        </span>
+      </Listbox.Button>
+
+      <Listbox.Options
+        anchor="bottom start"
+        className="z-[100] mt-1 max-h-60 w-[var(--button-width)] overflow-auto rounded-md bg-white py-1 text-base shadow-lg ring-1 ring-black/5 focus:outline-none sm:text-sm dark:bg-gray-800 dark:ring-gray-700 [--anchor-gap:4px]"
+      >
+        {/* Option: Nicht zugeordnet */}
+        <Listbox.Option
+          value={null}
+          className={({ active }) => cn('relative cursor-pointer select-none py-2 pr-4 pl-10', active ? 'bg-gray-100 dark:bg-gray-700' : '', 'text-gray-500 dark:text-gray-400')}
         >
-          <span className="block truncate">{buttonLabel}</span>
-          <span className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-2">
-            <PiCaretUpDown className="h-5 w-5 text-gray-400" aria-hidden="true" />
-          </span>
-        </Listbox.Button>
-
-        <Transition as={Fragment} leave="transition ease-in duration-100" leaveFrom="opacity-100" leaveTo="opacity-0">
-          <Listbox.Options className="absolute z-10 mt-1 max-h-60 w-full overflow-auto rounded-md bg-white py-1 text-base shadow-lg ring-1 ring-black/5 focus:outline-none sm:text-sm dark:bg-gray-800 dark:ring-gray-700">
-            {/* Option: Nicht zugeordnet */}
-            <Listbox.Option
-              value={null}
-              className={({ active }) => cn('relative cursor-pointer select-none py-2 pr-4 pl-10', active ? 'bg-gray-100 dark:bg-gray-700' : '', 'text-gray-500 dark:text-gray-400')}
-            >
-              {({ selected }) => (
-                <>
-                  <span className={cn('block truncate', selected ? 'font-medium' : 'font-normal')}>Nicht zugeordnet</span>
-                  {selected && (
-                    <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-primary-600 dark:text-primary-400">
-                      <PiCheck className="h-5 w-5" aria-hidden="true" />
-                    </span>
-                  )}
-                </>
+          {({ selected }) => (
+            <>
+              <span className={cn('block truncate', selected ? 'font-medium' : 'font-normal')}>Nicht zugeordnet</span>
+              {selected && (
+                <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-primary-600 dark:text-primary-400">
+                  <PiCheck className="h-5 w-5" aria-hidden="true" />
+                </span>
               )}
-            </Listbox.Option>
+            </>
+          )}
+        </Listbox.Option>
 
-            {/* Qualifikation-Optionen */}
-            {qualifikationen.map((qualifikation) => (
-              <Listbox.Option
-                key={qualifikation.id}
-                value={qualifikation.id}
-                className={({ active }) => cn('relative cursor-pointer select-none py-2 pr-4 pl-10', active ? 'bg-blue-50 dark:bg-blue-900/20' : '')}
-              >
-                {({ selected }) => (
-                  <>
-                    <span className={cn('block truncate text-gray-900 dark:text-gray-100', selected ? 'font-medium' : 'font-normal')}>
-                      <span className="font-medium text-blue-600 dark:text-blue-400">{qualifikation.abkuerzung}</span>
-                      {' - '}
-                      {qualifikation.name}
-                    </span>
-                    {selected && (
-                      <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-blue-600 dark:text-blue-400">
-                        <PiCheck className="h-5 w-5" aria-hidden="true" />
-                      </span>
-                    )}
-                  </>
+        {/* Qualifikation-Optionen */}
+        {qualifikationen.map((qualifikation) => (
+          <Listbox.Option
+            key={qualifikation.id}
+            value={qualifikation.id}
+            className={({ active }) => cn('relative cursor-pointer select-none py-2 pr-4 pl-10', active ? 'bg-blue-50 dark:bg-blue-900/20' : '')}
+          >
+            {({ selected }) => (
+              <>
+                <span className={cn('block truncate text-gray-900 dark:text-gray-100', selected ? 'font-medium' : 'font-normal')}>
+                  <span className="font-medium text-blue-600 dark:text-blue-400">{qualifikation.abkuerzung}</span>
+                  {' - '}
+                  {qualifikation.name}
+                </span>
+                {selected && (
+                  <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-blue-600 dark:text-blue-400">
+                    <PiCheck className="h-5 w-5" aria-hidden="true" />
+                  </span>
                 )}
-              </Listbox.Option>
-            ))}
-          </Listbox.Options>
-        </Transition>
-      </div>
+              </>
+            )}
+          </Listbox.Option>
+        ))}
+      </Listbox.Options>
     </Listbox>
   );
 }

@@ -1,5 +1,5 @@
 import { useRef, useCallback, useEffect } from 'react';
-import { debounce } from '@tanstack/pacer';
+import { Debouncer } from '@tanstack/pacer';
 import { useSaveLagekarteState } from '@/features/lagekarte/api';
 import type * as GeoJSON from 'geojson';
 
@@ -9,7 +9,7 @@ import type * as GeoJSON from 'geojson';
  * **Debouncing Strategy:**
  * - Wartet 2 Sekunden Inaktivität vor dem Speichern
  * - Verhindert excessive API-Calls während aktiver Bearbeitung
- * - Nutzt TanStack Pacer für performantes Debouncing
+ * - Nutzt TanStack Pacer Debouncer für performantes Debouncing
  *
  * **Workflow:**
  * 1. User macht Änderung (POI-Platzierung, Zeichnung)
@@ -33,34 +33,37 @@ export const useLagekarteAutoSave = (einsatzId: string) => {
   const saveMutation = useSaveLagekarteState(einsatzId);
 
   /**
-   * Debounced Save Callback
+   * Debouncer Instance Ref
    * Wartet 2 Sekunden bevor Mutation getriggert wird
    */
-  const debouncedSaveRef = useRef(
-    debounce(
+  const debouncerRef = useRef<Debouncer<[GeoJSON.FeatureCollection], void> | null>(null);
+
+  // Lazy initialization um saveMutation.mutate korrekt zu capturen
+  if (!debouncerRef.current) {
+    debouncerRef.current = new Debouncer(
       (state: GeoJSON.FeatureCollection) => {
         saveMutation.mutate(state);
       },
       { wait: 2000 }, // 2 seconds debounce (as per AC3)
-    ),
-  );
+    );
+  }
 
   /**
    * Cleanup: Cancel pending debounced save on unmount (Memory Leak Fix)
    * Verhindert dass nach Unmount noch gespeichert wird
    */
   useEffect(() => {
-    const currentDebounced = debouncedSaveRef.current;
+    const debouncer = debouncerRef.current;
     return () => {
-      currentDebounced.cancel();
+      debouncer?.cancel();
     };
   }, []);
 
   /**
-   * Stable callback that uses the debounced function
+   * Stable callback that uses the debouncer's maybeExecute method
    */
   const triggerAutoSave = useCallback((state: GeoJSON.FeatureCollection) => {
-    debouncedSaveRef.current(state);
+    debouncerRef.current?.maybeExecute(state);
   }, []);
 
   return {

@@ -115,12 +115,12 @@ development_status:
   td2-transactional-handler: backlog # TransactionalCommandHandler Migration
 
   # ===== Epic 7: HiOrg-Server Integration =====
-  epic-7: in-progress
+  epic-7: done
   7-1-hiorg-server-verbindung-synchronisation: done
   7-2-import-auswahl-qualifikations-mapping: done
-  epic-7-retrospective: optional
+  epic-7-retrospective: completed
 
   # ===== Epic 8: Lagekarte-Integration =====
-  epic-8: backlog
-  8-1-fahrzeuge-als-pois-auf-lagekarte: backlog
+  epic-8: in-progress
+  8-1-fahrzeuge-als-pois-auf-lagekarte: review
   epic-8-retrospective: optional
