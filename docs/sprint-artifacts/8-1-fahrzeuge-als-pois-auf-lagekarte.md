@@ -437,7 +437,7 @@ pnpm --filter @bluelight-hub/frontend build        # Success
 - API Generation: ✅ Success
 - Frontend Lint: 1 Error in QualifikationPicker.tsx (vorexistierend, NICHT Teil dieser Story)
 
-**Hinweis:** FahrzeugPoiLayer muss noch in LagekarteView eingebunden werden (separater Task für Integration).
+**Integration:** FahrzeugPoiLayer in LagekarteView eingebunden mit Layer-Toggle.
 
 ---
 
@@ -487,6 +487,7 @@ pnpm --filter @bluelight-hub/frontend build        # Success
 - `packages/frontend/src/features/kraefte/api/index.ts` - useKraeftePois exportiert
 - `packages/frontend/src/features/lagekarte/utils/index.ts` - fahrzeug-icons exportiert
 - `packages/shared/client/` - API Client regeneriert
+- `packages/frontend/src/features/lagekarte/ui/organisms/LagekarteView/LagekarteView.tsx` - FahrzeugPoiLayer integriert
 
 ---
 
@@ -496,3 +497,4 @@ pnpm --filter @bluelight-hub/frontend build        # Success
 |-------|----------|
 | 2026-01-04 | Story implementiert: Backend Query Handler + Controller, Frontend Hook + Layer, 20 Tests |
 | 2026-01-04 | Code Review + Fixes: Logger, AC5 Fallback-Farbe, Test-Improvements (23 Tests), Status → Done |
+| 2026-01-04 | FahrzeugPoiLayer in LagekarteView integriert mit Layer-Toggle |
