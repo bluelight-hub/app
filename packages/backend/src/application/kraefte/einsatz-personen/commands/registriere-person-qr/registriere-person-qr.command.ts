@@ -16,8 +16,11 @@ import { isCuid } from '@paralleldrive/cuid2';
  * - CRLF Injection: %0d, %0a
  * - Unicode Homoglyphs: ＜ (U+FF1C), ＞ (U+FF1E), ﹤ (U+FE64), ﹥ (U+FE65)
  * - SQL Injection: '; DROP, DELETE, UPDATE, INSERT, UNION, SELECT, --, /*
+ *
+ * SECURITY FIX: Verwendet [;\s]* statt \s*;?\s* um ReDoS zu verhindern.
+ * Das alte Pattern hatte polynomial Backtracking bei Input wie "' " (Apostroph + Leerzeichen).
  */
-const DANGEROUS_PATTERN = /[<>]|&lt;|&gt;|javascript:|data:|vbscript:|on\w+=|%00|%0[ad]|[\uFF1C\uFF1E\uFE64\uFE65]|'\s*;?\s*(?:DROP|DELETE|UPDATE|INSERT|UNION|SELECT|--|\/\*)/i;
+const DANGEROUS_PATTERN = /[<>]|&lt;|&gt;|javascript:|data:|vbscript:|on\w+=|%00|%0[ad]|[\uFF1C\uFF1E\uFE64\uFE65]|'[;\s]*(?:DROP|DELETE|UPDATE|INSERT|UNION|SELECT|--|\/\*)/i;
 
 /**
  * Prüft ob ein String gefährliche Zeichen/Patterns enthält.

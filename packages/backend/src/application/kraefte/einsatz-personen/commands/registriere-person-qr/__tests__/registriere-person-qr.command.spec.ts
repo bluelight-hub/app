@@ -1078,5 +1078,38 @@ describe('RegistrierePersonViaQrCodeCommand', () => {
         expect(result.value?.funkkennung).toBe('4711A');
       });
     });
+
+    describe('ReDoS prevention', () => {
+      it('should complete validation quickly even with many spaces after apostrophe', () => {
+        // Given - This input would cause polynomial backtracking with vulnerable regex
+        // Pattern: ' followed by many spaces was vulnerable to ReDoS
+        const manySpaces = ' '.repeat(50);
+        const props = createValidProps({ vorname: `O'Brien${manySpaces}test` });
+
+        // When - Should complete in < 100ms (vulnerable regex would take seconds/minutes)
+        const startTime = performance.now();
+        const result = RegistrierePersonViaQrCodeCommand.create(props);
+        const endTime = performance.now();
+
+        // Then
+        expect(endTime - startTime).toBeLessThan(100);
+        expect(result.isSuccess).toBe(true);
+      });
+
+      it('should handle apostrophe followed by whitespace without hanging', () => {
+        // Given - Edge case that triggered the ReDoS
+        const props = createValidProps({ nachname: `'${' '.repeat(100)}` });
+
+        // When
+        const startTime = performance.now();
+        const result = RegistrierePersonViaQrCodeCommand.create(props);
+        const endTime = performance.now();
+
+        // Then - Must complete quickly (< 50ms)
+        expect(endTime - startTime).toBeLessThan(50);
+        // Input is just whitespace after apostrophe, should be valid (no dangerous keywords)
+        expect(result.isSuccess).toBe(true);
+      });
+    });
   });
 });
