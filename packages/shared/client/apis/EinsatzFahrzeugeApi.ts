@@ -16,6 +16,7 @@ import * as runtime from '../runtime';
 import type {
   EinsatzFahrzeugeControllerErfasseAusStammdatenVAlpha201Response,
   EinsatzFahrzeugeControllerFindAllVAlpha200Response,
+  EinsatzFahrzeugeControllerGetKraeftePoisVAlpha200Response,
   ErfasseFahrzeugAusStammdatenDto,
   ErfasseTemporalesFahrzeugDto,
   UpdateFmsStatusDto,
@@ -25,6 +26,8 @@ import {
   EinsatzFahrzeugeControllerErfasseAusStammdatenVAlpha201ResponseToJSON,
   EinsatzFahrzeugeControllerFindAllVAlpha200ResponseFromJSON,
   EinsatzFahrzeugeControllerFindAllVAlpha200ResponseToJSON,
+  EinsatzFahrzeugeControllerGetKraeftePoisVAlpha200ResponseFromJSON,
+  EinsatzFahrzeugeControllerGetKraeftePoisVAlpha200ResponseToJSON,
   ErfasseFahrzeugAusStammdatenDtoFromJSON,
   ErfasseFahrzeugAusStammdatenDtoToJSON,
   ErfasseTemporalesFahrzeugDtoFromJSON,
@@ -44,6 +47,10 @@ export interface EinsatzFahrzeugeControllerErfasseTemporalesVAlphaRequest {
 }
 
 export interface EinsatzFahrzeugeControllerFindAllVAlphaRequest {
+  einsatzId: string;
+}
+
+export interface EinsatzFahrzeugeControllerGetKraeftePoisVAlphaRequest {
   einsatzId: string;
 }
 
@@ -191,6 +198,45 @@ export class EinsatzFahrzeugeApi extends runtime.BaseAPI {
     initOverrides?: RequestInit | runtime.InitOverrideFunction,
   ): Promise<EinsatzFahrzeugeControllerFindAllVAlpha200Response> {
     const response = await this.einsatzFahrzeugeControllerFindAllVAlphaRaw(requestParameters, initOverrides);
+    return await response.value();
+  }
+
+  /**
+   * Fahrzeuge als POIs fuer Lagekarte abrufen
+   */
+  async einsatzFahrzeugeControllerGetKraeftePoisVAlphaRaw(
+    requestParameters: EinsatzFahrzeugeControllerGetKraeftePoisVAlphaRequest,
+    initOverrides?: RequestInit | runtime.InitOverrideFunction,
+  ): Promise<runtime.ApiResponse<EinsatzFahrzeugeControllerGetKraeftePoisVAlpha200Response>> {
+    if (requestParameters['einsatzId'] == null) {
+      throw new runtime.RequiredError('einsatzId', 'Required parameter "einsatzId" was null or undefined when calling einsatzFahrzeugeControllerGetKraeftePoisVAlpha().');
+    }
+
+    const queryParameters: any = {};
+
+    const headerParameters: runtime.HTTPHeaders = {};
+
+    const response = await this.request(
+      {
+        path: `/api/v-alpha/einsaetze/{einsatzId}/fahrzeuge/pois`.replace(`{${'einsatzId'}}`, encodeURIComponent(String(requestParameters['einsatzId']))),
+        method: 'GET',
+        headers: headerParameters,
+        query: queryParameters,
+      },
+      initOverrides,
+    );
+
+    return new runtime.JSONApiResponse(response, (jsonValue) => EinsatzFahrzeugeControllerGetKraeftePoisVAlpha200ResponseFromJSON(jsonValue));
+  }
+
+  /**
+   * Fahrzeuge als POIs fuer Lagekarte abrufen
+   */
+  async einsatzFahrzeugeControllerGetKraeftePoisVAlpha(
+    requestParameters: EinsatzFahrzeugeControllerGetKraeftePoisVAlphaRequest,
+    initOverrides?: RequestInit | runtime.InitOverrideFunction,
+  ): Promise<EinsatzFahrzeugeControllerGetKraeftePoisVAlpha200Response> {
+    const response = await this.einsatzFahrzeugeControllerGetKraeftePoisVAlphaRaw(requestParameters, initOverrides);
     return await response.value();
   }
 

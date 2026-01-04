@@ -34,6 +34,9 @@ export const KRAEFTE_QUERY_KEYS = {
 
   /** RollenDefinitionen (Admin) */
   rollenDefinitionen: () => [...KRAEFTE_QUERY_KEYS.all, 'rollen-definitionen'] as const,
+
+  /** Kraefte POIs fuer Lagekarte (Story 8.1) */
+  pois: (einsatzId: string) => [...KRAEFTE_QUERY_KEYS.byEinsatz(einsatzId), 'pois'] as const,
 } as const;
 
 /**

@@ -6,6 +6,7 @@ export * from './coordinate-limits';
 export * from './cluster-icons';
 export * from './drawing-styles';
 export * from './poi-icons';
+export * from './fahrzeug-icons';
 export * from './formatPoiTypeLabel';
 export * from './offline-tiles';
 export * from './captureMapScreenshot';

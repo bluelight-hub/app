@@ -8,6 +8,7 @@ export { KRAEFTE_QUERY_KEYS, calculateRetryDelay } from './queries';
 // Query Hooks
 export { useTaktischeStaerke, type TaktischeStaerke } from './use-taktische-staerke';
 export { useEinsatzFahrzeuge } from './use-einsatz-fahrzeuge';
+export { useKraeftePois } from './use-kraefte-pois';
 export { useRollenBesetzungen } from './use-rollen-besetzungen';
 export { useRollenDefinitionen } from './use-rollen-definitionen';
 

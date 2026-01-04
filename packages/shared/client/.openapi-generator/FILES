@@ -101,6 +101,7 @@ models/EinsatzDto.ts
 models/EinsatzFahrzeugDto.ts
 models/EinsatzFahrzeugeControllerErfasseAusStammdatenVAlpha201Response.ts
 models/EinsatzFahrzeugeControllerFindAllVAlpha200Response.ts
+models/EinsatzFahrzeugeControllerGetKraeftePoisVAlpha200Response.ts
 models/EinsatzListItemDto.ts
 models/EinsatzListItemDtoEinsatzort.ts
 models/EinsatzPersonResponseDto.ts
@@ -118,6 +119,7 @@ models/EtbVersionDto.ts
 models/FahrzeugtypDto.ts
 models/FahrzeugtypSollbesatzungDto.ts
 models/FunkStatusConfigDto.ts
+models/GeoJsonPointDto.ts
 models/GeoPositionDto.ts
 models/GeocodeAddressDto.ts
 models/HealthControllerCheck200Response.ts
@@ -134,6 +136,9 @@ models/ImportPersonsResponseDto.ts
 models/InitialPoiDto.ts
 models/InitiateOAuthResponseDto.ts
 models/KraefteDashboardControllerGetTaktischeStaerkeVAlpha200Response.ts
+models/KraeftePoisFeatureCollectionDto.ts
+models/KraeftePoisFeatureDto.ts
+models/KraeftePoisPropertiesDto.ts
 models/LagekarteControllerSaveLagekarteStateVAlpha200Response.ts
 models/LagekarteDto.ts
 models/LockUserDto.ts

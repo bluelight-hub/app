@@ -17,12 +17,12 @@ import { GeoJsonPointDto, KraeftePoisFeatureCollectionDto, KraeftePoisFeatureDto
 /**
  * Default-Farbe fuer FMS-Status falls keine Konfiguration vorhanden ist.
  *
- * **WARUM Orange?**
- * - Gut sichtbar auf Karte (nicht zu aggressiv wie Rot)
+ * **WARUM Grau?**
+ * - Neutrale Farbe die keinen Status impliziert
  * - Signalisiert "Status unbekannt/unkonfiguriert"
- * - Konsistent mit UI-Konventionen fuer Warnzustaende
+ * - Konsistent mit AC5 Story 8.1: Fallback bei fehlender Konfiguration
  */
-const DEFAULT_STATUS_FARBE = '#FF8C00'; // Dark Orange
+const DEFAULT_STATUS_FARBE = '#808080'; // Grau - AC5 Fallback
 
 /**
  * Default-Label fuer FMS-Status falls keine Konfiguration vorhanden ist.

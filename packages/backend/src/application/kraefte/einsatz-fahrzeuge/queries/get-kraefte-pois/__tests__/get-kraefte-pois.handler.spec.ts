@@ -179,7 +179,7 @@ describe('GetKraeftePoisHandler', () => {
     });
 
     it('should have Feature ID on Feature level (not in properties)', async () => {
-      // Given
+      // Given (Arrange)
       const mockFahrzeug = createMockEinsatzFahrzeug({
         id: VALID_FAHRZEUG_ID_1,
         position: { lat: 51.0, lng: 7.0 },
@@ -193,10 +193,10 @@ describe('GetKraeftePoisHandler', () => {
 
       const queryResult = GetKraeftePoisQuery.create(VALID_EINSATZ_ID);
 
-      // When
+      // When (Act)
       const result = await handler.execute(queryResult.value!);
 
-      // Then
+      // Then (Assert)
       expect(result.isSuccess).toBe(true);
       const feature = result.value!.features[0];
       // ID auf Feature-Ebene (RFC 7946 Best Practice)
@@ -206,7 +206,7 @@ describe('GetKraeftePoisHandler', () => {
     });
 
     it('should return correct GeoJSON structure with type "FeatureCollection"', async () => {
-      // Given
+      // Given (Arrange)
       const mockFahrzeug = createMockEinsatzFahrzeug({ position: { lat: 51.0, lng: 7.0 } });
       const mockFahrzeugtyp = createMockFahrzeugtyp();
 
@@ -216,14 +216,42 @@ describe('GetKraeftePoisHandler', () => {
 
       const queryResult = GetKraeftePoisQuery.create(VALID_EINSATZ_ID);
 
-      // When
+      // When (Act)
       const result = await handler.execute(queryResult.value!);
 
-      // Then
+      // Then (Assert)
       expect(result.isSuccess).toBe(true);
       expect(result.value!.type).toBe('FeatureCollection');
       expect(result.value!.features[0].type).toBe('Feature');
       expect(result.value!.features[0].geometry.type).toBe('Point');
+    });
+
+    it('should handle coordinates at boundary values (RFC 7946)', async () => {
+      // Given (Arrange)
+      // RFC 7946: Lat -90 bis 90, Lng -180 bis 180
+      const lat = -90;
+      const lng = 180;
+      const mockFahrzeug = createMockEinsatzFahrzeug({ position: { lat, lng } });
+      const mockFahrzeugtyp = createMockFahrzeugtyp();
+
+      mockEinsatzFahrzeugRepository.findByEinsatzId.mockResolvedValue(Result.ok([mockFahrzeug]));
+      mockFunkStatusRepository.findAll.mockResolvedValue(Result.ok([]));
+      mockFahrzeugtypRepository.findById.mockResolvedValue(Result.ok(mockFahrzeugtyp));
+
+      const queryResult = GetKraeftePoisQuery.create(VALID_EINSATZ_ID);
+
+      // When (Act)
+      const result = await handler.execute(queryResult.value!);
+
+      // Then (Assert)
+      expect(result.isSuccess).toBe(true);
+      expect(result.value!.features).toHaveLength(1);
+
+      const feature = result.value!.features[0];
+      // RFC 7946: Koordinaten sind [longitude, latitude]
+      expect(feature.geometry.coordinates).toEqual([lng, lat]);
+      expect(feature.geometry.coordinates[0]).toBe(180); // longitude
+      expect(feature.geometry.coordinates[1]).toBe(-90); // latitude
     });
   });
 
@@ -231,7 +259,7 @@ describe('GetKraeftePoisHandler', () => {
 
   describe('execute - Position Filtering (AC2)', () => {
     it('should filter out Fahrzeuge without position', async () => {
-      // Given: 2 Fahrzeuge - eines mit Position, eines ohne
+      // Given (Arrange): 2 Fahrzeuge - eines mit Position, eines ohne
       const fahrzeugMitPosition = createMockEinsatzFahrzeug({
         id: VALID_FAHRZEUG_ID_1,
         funkrufname: 'Florian 1',
@@ -250,42 +278,42 @@ describe('GetKraeftePoisHandler', () => {
 
       const queryResult = GetKraeftePoisQuery.create(VALID_EINSATZ_ID);
 
-      // When
+      // When (Act)
       const result = await handler.execute(queryResult.value!);
 
-      // Then: Nur das Fahrzeug MIT Position wird zurueckgegeben
+      // Then (Assert): Nur das Fahrzeug MIT Position wird zurueckgegeben
       expect(result.isSuccess).toBe(true);
       expect(result.value!.features).toHaveLength(1);
       expect(result.value!.features[0].properties.name).toBe('Florian 1');
     });
 
     it('should return empty FeatureCollection when no Fahrzeuge have position', async () => {
-      // Given: Alle Fahrzeuge ohne Position
+      // Given (Arrange): Alle Fahrzeuge ohne Position
       const fahrzeuge = [createMockEinsatzFahrzeug({ id: VALID_FAHRZEUG_ID_1, position: undefined }), createMockEinsatzFahrzeug({ id: VALID_FAHRZEUG_ID_2, position: undefined })];
 
       mockEinsatzFahrzeugRepository.findByEinsatzId.mockResolvedValue(Result.ok(fahrzeuge));
 
       const queryResult = GetKraeftePoisQuery.create(VALID_EINSATZ_ID);
 
-      // When
+      // When (Act)
       const result = await handler.execute(queryResult.value!);
 
-      // Then
+      // Then (Assert)
       expect(result.isSuccess).toBe(true);
       expect(result.value!.type).toBe('FeatureCollection');
       expect(result.value!.features).toHaveLength(0);
     });
 
     it('should return empty FeatureCollection when no Fahrzeuge exist', async () => {
-      // Given
+      // Given (Arrange)
       mockEinsatzFahrzeugRepository.findByEinsatzId.mockResolvedValue(Result.ok([]));
 
       const queryResult = GetKraeftePoisQuery.create(VALID_EINSATZ_ID);
 
-      // When
+      // When (Act)
       const result = await handler.execute(queryResult.value!);
 
-      // Then
+      // Then (Assert)
       expect(result.isSuccess).toBe(true);
       expect(result.value!.type).toBe('FeatureCollection');
       expect(result.value!.features).toEqual([]);
@@ -296,7 +324,7 @@ describe('GetKraeftePoisHandler', () => {
 
   describe('execute - Status Config Fallback (AC3)', () => {
     it('should use configured statusFarbe and statusLabel when FunkStatusConfig exists', async () => {
-      // Given
+      // Given (Arrange)
       const mockFahrzeug = createMockEinsatzFahrzeug({
         fmsStatus: 3,
         position: { lat: 51.0, lng: 7.0 },
@@ -314,10 +342,10 @@ describe('GetKraeftePoisHandler', () => {
 
       const queryResult = GetKraeftePoisQuery.create(VALID_EINSATZ_ID);
 
-      // When
+      // When (Act)
       const result = await handler.execute(queryResult.value!);
 
-      // Then
+      // Then (Assert)
       expect(result.isSuccess).toBe(true);
       const properties = result.value!.features[0].properties;
       expect(properties.statusFarbe).toBe('#00FF00');
@@ -325,7 +353,7 @@ describe('GetKraeftePoisHandler', () => {
     });
 
     it('should use fallback statusFarbe and statusLabel when FunkStatusConfig is missing', async () => {
-      // Given: Fahrzeug mit Status 9, aber keine Config fuer Status 9
+      // Given (Arrange): Fahrzeug mit Status 9, aber keine Config fuer Status 9
       const mockFahrzeug = createMockEinsatzFahrzeug({
         fmsStatus: 9, // Kein Config vorhanden!
         position: { lat: 51.0, lng: 7.0 },
@@ -338,18 +366,43 @@ describe('GetKraeftePoisHandler', () => {
 
       const queryResult = GetKraeftePoisQuery.create(VALID_EINSATZ_ID);
 
-      // When
+      // When (Act)
       const result = await handler.execute(queryResult.value!);
 
-      // Then: Fallback-Werte werden verwendet
+      // Then (Assert): Fallback-Werte werden verwendet
       expect(result.isSuccess).toBe(true);
       const properties = result.value!.features[0].properties;
-      expect(properties.statusFarbe).toBe('#FF8C00'); // Default Dark Orange
+      expect(properties.statusFarbe).toBe('#808080'); // Default Grau (AC5 Fallback)
       expect(properties.statusLabel).toBe('Status unbekannt'); // Default Label
     });
 
+    it('should use fallback values when FunkStatusRepository fails', async () => {
+      // Given (Arrange)
+      const mockFahrzeug = createMockEinsatzFahrzeug({
+        fmsStatus: 3,
+        position: { lat: 51.0, lng: 7.0 },
+      });
+      const mockFahrzeugtyp = createMockFahrzeugtyp();
+
+      mockEinsatzFahrzeugRepository.findByEinsatzId.mockResolvedValue(Result.ok([mockFahrzeug]));
+      mockFunkStatusRepository.findAll.mockResolvedValue(Result.fail('Database error')); // Repository Fehler!
+      mockFahrzeugtypRepository.findById.mockResolvedValue(Result.ok(mockFahrzeugtyp));
+
+      const queryResult = GetKraeftePoisQuery.create(VALID_EINSATZ_ID);
+
+      // When (Act)
+      const result = await handler.execute(queryResult.value!);
+
+      // Then (Assert): Fallback-Werte werden verwendet
+      expect(result.isSuccess).toBe(true);
+      expect(result.value!.features).toHaveLength(1);
+      const properties = result.value!.features[0].properties;
+      expect(properties.statusFarbe).toBe('#808080'); // Fallback Grau
+      expect(properties.statusLabel).toBe('Status unbekannt'); // Fallback Label
+    });
+
     it('should use customLabel over standardLabel when available', async () => {
-      // Given
+      // Given (Arrange)
       const mockFahrzeug = createMockEinsatzFahrzeug({
         fmsStatus: 7,
         position: { lat: 51.0, lng: 7.0 },
@@ -367,10 +420,10 @@ describe('GetKraeftePoisHandler', () => {
 
       const queryResult = GetKraeftePoisQuery.create(VALID_EINSATZ_ID);
 
-      // When
+      // When (Act)
       const result = await handler.execute(queryResult.value!);
 
-      // Then: customLabel wird verwendet (displayLabel)
+      // Then (Assert): customLabel wird verwendet (displayLabel)
       expect(result.isSuccess).toBe(true);
       const properties = result.value!.features[0].properties;
       expect(properties.statusLabel).toBe('Mein Custom Label');
@@ -381,7 +434,7 @@ describe('GetKraeftePoisHandler', () => {
 
   describe('execute - Staerke Formatting (AC4)', () => {
     it('should format Sollbesatzung as Staerke string (Fuehrung/Tech/Mannschaft)', async () => {
-      // Given
+      // Given (Arrange)
       const mockFahrzeug = createMockEinsatzFahrzeug({ position: { lat: 51.0, lng: 7.0 } });
       const mockFahrzeugtyp = createMockFahrzeugtyp({
         sollbesatzung: {
@@ -399,17 +452,17 @@ describe('GetKraeftePoisHandler', () => {
 
       const queryResult = GetKraeftePoisQuery.create(VALID_EINSATZ_ID);
 
-      // When
+      // When (Act)
       const result = await handler.execute(queryResult.value!);
 
-      // Then: Staerke = "1/2/5" (Fuehrung/Tech/Mannschaft)
+      // Then (Assert): Staerke = "1/2/5" (Fuehrung/Tech/Mannschaft)
       expect(result.isSuccess).toBe(true);
       const properties = result.value!.features[0].properties;
       expect(properties.staerke).toBe('1/2/5');
     });
 
     it('should return null for staerke when no Sollbesatzung is defined', async () => {
-      // Given
+      // Given (Arrange)
       const mockFahrzeug = createMockEinsatzFahrzeug({ position: { lat: 51.0, lng: 7.0 } });
       const mockFahrzeugtyp = createMockFahrzeugtyp({
         sollbesatzung: undefined, // Keine Sollbesatzung!
@@ -421,16 +474,16 @@ describe('GetKraeftePoisHandler', () => {
 
       const queryResult = GetKraeftePoisQuery.create(VALID_EINSATZ_ID);
 
-      // When
+      // When (Act)
       const result = await handler.execute(queryResult.value!);
 
-      // Then
+      // Then (Assert)
       expect(result.isSuccess).toBe(true);
       expect(result.value!.features[0].properties.staerke).toBeNull();
     });
 
     it('should return null for staerke when all Sollbesatzung values are 0', async () => {
-      // Given
+      // Given (Arrange)
       const mockFahrzeug = createMockEinsatzFahrzeug({ position: { lat: 51.0, lng: 7.0 } });
       const mockFahrzeugtyp = createMockFahrzeugtyp({
         sollbesatzung: {
@@ -448,10 +501,10 @@ describe('GetKraeftePoisHandler', () => {
 
       const queryResult = GetKraeftePoisQuery.create(VALID_EINSATZ_ID);
 
-      // When
+      // When (Act)
       const result = await handler.execute(queryResult.value!);
 
-      // Then
+      // Then (Assert)
       expect(result.isSuccess).toBe(true);
       expect(result.value!.features[0].properties.staerke).toBeNull();
     });
@@ -461,35 +514,35 @@ describe('GetKraeftePoisHandler', () => {
 
   describe('execute - Error Cases (AC5)', () => {
     it('should return Result.fail when EinsatzFahrzeugRepository fails', async () => {
-      // Given
+      // Given (Arrange)
       mockEinsatzFahrzeugRepository.findByEinsatzId.mockResolvedValue(Result.fail('Database connection failed'));
 
       const queryResult = GetKraeftePoisQuery.create(VALID_EINSATZ_ID);
 
-      // When
+      // When (Act)
       const result = await handler.execute(queryResult.value!);
 
-      // Then
+      // Then (Assert)
       expect(result.isFailure).toBe(true);
       expect(result.error).toBe('Database connection failed');
     });
 
     it('should return fallback error message when repository fails with null error', async () => {
-      // Given
+      // Given (Arrange)
       mockEinsatzFahrzeugRepository.findByEinsatzId.mockResolvedValue(Result.fail(null as unknown as string));
 
       const queryResult = GetKraeftePoisQuery.create(VALID_EINSATZ_ID);
 
-      // When
+      // When (Act)
       const result = await handler.execute(queryResult.value!);
 
-      // Then
+      // Then (Assert)
       expect(result.isFailure).toBe(true);
       expect(result.error).toBe('Fehler beim Laden der Fahrzeuge');
     });
 
     it('should use UNKNOWN fahrzeugtypCode when Fahrzeugtyp not found', async () => {
-      // Given
+      // Given (Arrange)
       const mockFahrzeug = createMockEinsatzFahrzeug({
         fahrzeugtypId: 'invalid-not-found',
         position: { lat: 51.0, lng: 7.0 },
@@ -501,10 +554,31 @@ describe('GetKraeftePoisHandler', () => {
 
       const queryResult = GetKraeftePoisQuery.create(VALID_EINSATZ_ID);
 
-      // When
+      // When (Act)
       const result = await handler.execute(queryResult.value!);
 
-      // Then: Feature wird erstellt mit UNKNOWN Code
+      // Then (Assert): Feature wird erstellt mit UNKNOWN Code
+      expect(result.isSuccess).toBe(true);
+      expect(result.value!.features).toHaveLength(1);
+      expect(result.value!.features[0].properties.fahrzeugtypCode).toBe('UNKNOWN');
+    });
+
+    it('should use UNKNOWN fahrzeugtypCode when FahrzeugtypRepository fails', async () => {
+      // Given (Arrange)
+      const mockFahrzeug = createMockEinsatzFahrzeug({
+        position: { lat: 51.0, lng: 7.0 },
+      });
+
+      mockEinsatzFahrzeugRepository.findByEinsatzId.mockResolvedValue(Result.ok([mockFahrzeug]));
+      mockFunkStatusRepository.findAll.mockResolvedValue(Result.ok([]));
+      mockFahrzeugtypRepository.findById.mockResolvedValue(Result.fail('Database error')); // Repository Fehler!
+
+      const queryResult = GetKraeftePoisQuery.create(VALID_EINSATZ_ID);
+
+      // When (Act)
+      const result = await handler.execute(queryResult.value!);
+
+      // Then (Assert): Feature wird erstellt mit UNKNOWN Code
       expect(result.isSuccess).toBe(true);
       expect(result.value!.features).toHaveLength(1);
       expect(result.value!.features[0].properties.fahrzeugtypCode).toBe('UNKNOWN');
@@ -515,31 +589,35 @@ describe('GetKraeftePoisHandler', () => {
 
   describe('GetKraeftePoisQuery.create', () => {
     it('should create valid query with trimmed einsatzId', () => {
-      // Given
+      // Given (Arrange)
       const einsatzIdWithSpaces = '  test-einsatz-123  ';
 
-      // When
+      // When (Act)
       const result = GetKraeftePoisQuery.create(einsatzIdWithSpaces);
 
-      // Then
+      // Then (Assert)
       expect(result.isSuccess).toBe(true);
       expect(result.value!.einsatzId).toBe('test-einsatz-123');
     });
 
     it('should fail for empty einsatzId', () => {
-      // When
+      // Given (Arrange) - keine Vorbereitung noetig
+
+      // When (Act)
       const result = GetKraeftePoisQuery.create('');
 
-      // Then
+      // Then (Assert)
       expect(result.isFailure).toBe(true);
       expect(result.error).toContain('einsatzId ist erforderlich');
     });
 
     it('should fail for whitespace-only einsatzId', () => {
-      // When
+      // Given (Arrange) - keine Vorbereitung noetig
+
+      // When (Act)
       const result = GetKraeftePoisQuery.create('   ');
 
-      // Then
+      // Then (Assert)
       expect(result.isFailure).toBe(true);
       expect(result.error).toContain('einsatzId ist erforderlich');
     });
@@ -549,7 +627,7 @@ describe('GetKraeftePoisHandler', () => {
 
   describe('execute - Properties Mapping (AC6)', () => {
     it('should map all required properties correctly', async () => {
-      // Given
+      // Given (Arrange)
       const updatedAt = new Date('2026-01-04T10:30:00.000Z');
       const mockFahrzeug = createMockEinsatzFahrzeug({
         id: VALID_FAHRZEUG_ID_1,
@@ -574,10 +652,10 @@ describe('GetKraeftePoisHandler', () => {
 
       const queryResult = GetKraeftePoisQuery.create(VALID_EINSATZ_ID);
 
-      // When
+      // When (Act)
       const result = await handler.execute(queryResult.value!);
 
-      // Then
+      // Then (Assert)
       expect(result.isSuccess).toBe(true);
       const feature = result.value!.features[0];
 
@@ -593,7 +671,7 @@ describe('GetKraeftePoisHandler', () => {
     });
 
     it('should handle multiple Fahrzeuge with different status codes', async () => {
-      // Given
+      // Given (Arrange)
       const fahrzeuge = [
         createMockEinsatzFahrzeug({
           id: VALID_FAHRZEUG_ID_1,
@@ -618,10 +696,10 @@ describe('GetKraeftePoisHandler', () => {
 
       const queryResult = GetKraeftePoisQuery.create(VALID_EINSATZ_ID);
 
-      // When
+      // When (Act)
       const result = await handler.execute(queryResult.value!);
 
-      // Then
+      // Then (Assert)
       expect(result.isSuccess).toBe(true);
       expect(result.value!.features).toHaveLength(2);
 
