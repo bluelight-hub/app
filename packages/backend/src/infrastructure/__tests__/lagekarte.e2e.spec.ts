@@ -45,6 +45,7 @@ import { PrismaClient } from '@prisma/client';
 import { LagekarteId } from '@domain/value-objects/lagekarte-id';
 import type { IEinsatzRepository } from '@domain/repositories/ieinsatz.repository';
 import type { IEventPublisher } from '@domain/services/ports/i-event-publisher.port';
+import type { ILogger } from '@domain/ports/i-logger.port';
 import type { DomainEvent } from '@domain/common/domain-event';
 import { Result } from '@domain/common/result';
 
@@ -108,6 +109,7 @@ class SpyEventPublisher implements IEventPublisher {
 (databaseAvailable ? describe : describe.skip)('Lagekarte CQRS API - E2E Tests', () => {
   let lagekarteRepository: PrismaLagekarteRepository;
   let mockEinsatzRepository: jest.Mocked<IEinsatzRepository>;
+  let mockLogger: jest.Mocked<ILogger>;
   let eventPublisher: SpyEventPublisher;
 
   // Handlers
@@ -170,6 +172,15 @@ class SpyEventPublisher implements IEventPublisher {
     const prismaService = prisma as unknown as PrismaService;
     lagekarteRepository = new PrismaLagekarteRepository(prismaService);
 
+    // Mock Logger
+    mockLogger = {
+      log: jest.fn(),
+      error: jest.fn(),
+      warn: jest.fn(),
+      debug: jest.fn(),
+      // biome-ignore lint/suspicious/noExplicitAny: Mock object für Tests benötigt any-Cast wegen partieller Implementierung
+    } as any;
+
     // Mock EinsatzRepository
     mockEinsatzRepository = {
       exists: jest.fn(),
@@ -187,10 +198,10 @@ class SpyEventPublisher implements IEventPublisher {
     eventPublisher = new SpyEventPublisher();
 
     // Initialize Handlers
-    createHandler = new CreateLagekarteCommandHandler(mockEinsatzRepository, lagekarteRepository, eventPublisher);
-    addPoiHandler = new AddPoiCommandHandler(lagekarteRepository, eventPublisher);
-    removePoiHandler = new RemovePoiCommandHandler(lagekarteRepository, eventPublisher);
-    updatePoiPositionHandler = new UpdatePoiPositionCommandHandler(lagekarteRepository, eventPublisher);
+    createHandler = new CreateLagekarteCommandHandler(mockLogger, mockEinsatzRepository, lagekarteRepository, eventPublisher);
+    addPoiHandler = new AddPoiCommandHandler(mockLogger, lagekarteRepository, eventPublisher);
+    removePoiHandler = new RemovePoiCommandHandler(mockLogger, lagekarteRepository, eventPublisher);
+    updatePoiPositionHandler = new UpdatePoiPositionCommandHandler(mockLogger, lagekarteRepository, eventPublisher);
     getLagekarteHandler = new GetLagekarteQueryHandler(lagekarteRepository);
     getPoisHandler = new GetPoisQueryHandler(lagekarteRepository);
   });

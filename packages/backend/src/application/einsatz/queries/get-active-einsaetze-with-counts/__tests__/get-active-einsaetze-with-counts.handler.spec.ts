@@ -2,6 +2,7 @@ import { GetActiveEinsaetzeWithCountsQueryHandler } from '../get-active-einsaetz
 import { GetActiveEinsaetzeWithCountsQuery } from '../get-active-einsaetze-with-counts.query';
 import type { PrismaService } from '@/infrastructure/database/prisma.service';
 import type { EinsatzListItemDto } from '../../../dto/einsatz-list-item.dto';
+import type { ILogger } from '@domain/ports/i-logger.port';
 
 /**
  * Helper: Erstellt Mock-Einsatz-Daten mit Prisma _count Relations.
@@ -78,6 +79,7 @@ function createMockPrismaEinsatz(overrides?: {
 describe('GetActiveEinsaetzeWithCountsQueryHandler', () => {
   let handler: GetActiveEinsaetzeWithCountsQueryHandler;
   let mockPrismaService: jest.Mocked<PrismaService>;
+  let mockLogger: jest.Mocked<ILogger>;
 
   beforeEach(() => {
     // Mock PrismaService mit Einsatz-Repository
@@ -87,7 +89,14 @@ describe('GetActiveEinsaetzeWithCountsQueryHandler', () => {
       },
     } as unknown as jest.Mocked<PrismaService>;
 
-    handler = new GetActiveEinsaetzeWithCountsQueryHandler(mockPrismaService);
+    mockLogger = {
+      log: jest.fn(),
+      error: jest.fn(),
+      warn: jest.fn(),
+      debug: jest.fn(),
+    } as unknown as jest.Mocked<ILogger>;
+
+    handler = new GetActiveEinsaetzeWithCountsQueryHandler(mockPrismaService, mockLogger);
   });
 
   afterEach(() => {

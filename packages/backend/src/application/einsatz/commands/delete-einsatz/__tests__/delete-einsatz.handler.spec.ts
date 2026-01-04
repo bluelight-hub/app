@@ -5,7 +5,8 @@ import { Result } from '@domain/common/result';
 import { Einsatz } from '@domain/aggregates/einsatz.aggregate';
 import { UserId } from '@domain/value-objects/user-id';
 import { EinsatzId } from '@domain/value-objects/einsatz-id';
-import { EINSATZ_REPOSITORY } from '@/infrastructure/di-tokens';
+import { EINSATZ_REPOSITORY, LOGGER } from '@/infrastructure/di-tokens';
+import type { ILogger } from '@domain/ports/i-logger.port';
 
 describe('DeleteEinsatzHandler', () => {
   let handler: DeleteEinsatzHandler;
@@ -13,6 +14,7 @@ describe('DeleteEinsatzHandler', () => {
     findById: jest.Mock;
     delete: jest.Mock;
   };
+  let mockLogger: jest.Mocked<ILogger>;
 
   // Helper to create a valid Einsatz for tests
   const createTestEinsatz = () => {
@@ -29,8 +31,15 @@ describe('DeleteEinsatzHandler', () => {
       delete: jest.fn(), // Should NEVER be called
     };
 
+    mockLogger = {
+      log: jest.fn(),
+      error: jest.fn(),
+      warn: jest.fn(),
+      debug: jest.fn(),
+    } as unknown as jest.Mocked<ILogger>;
+
     const module: TestingModule = await Test.createTestingModule({
-      providers: [DeleteEinsatzHandler, { provide: EINSATZ_REPOSITORY, useValue: mockRepository }],
+      providers: [DeleteEinsatzHandler, { provide: EINSATZ_REPOSITORY, useValue: mockRepository }, { provide: LOGGER, useValue: mockLogger }],
     }).compile();
 
     handler = module.get<DeleteEinsatzHandler>(DeleteEinsatzHandler);

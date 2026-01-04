@@ -45,8 +45,6 @@ jest.mock('@paralleldrive/cuid2', () => ({
 
 import { PrismaClient } from '@prisma/client';
 import { PrismaEtbRepository } from '../prisma-etb.repository';
-import { PrismaOutboxRepository } from '@/infrastructure/outbox/prisma-outbox.repository';
-import { EventSerializer } from '@/infrastructure/outbox/event-serializer';
 import { EinsatztagebuchAggregate } from '@domain/aggregates/einsatztagebuch.aggregate';
 import { EinsatzId } from '@domain/value-objects/einsatz-id';
 import { EtbId } from '@domain/value-objects/etb-id';
@@ -224,9 +222,7 @@ describe('PrismaEtbRepository - Integration Tests', () => {
 
     // Initialize Repository (mock PrismaService mit echtem PrismaClient)
     const prismaService = prisma as unknown as PrismaService;
-    const eventSerializer = new EventSerializer();
-    const outboxRepository = new PrismaOutboxRepository(prismaService, eventSerializer);
-    repository = new PrismaEtbRepository(prismaService, outboxRepository);
+    repository = new PrismaEtbRepository(prismaService);
   });
 
   /**

@@ -165,7 +165,7 @@ export class PrismaEinsatzRepository implements IEinsatzRepository {
       return Result.ok(undefined);
     } catch (error) {
       const message = error instanceof Error ? error.message : String(error);
-      this.logger.error(`Failed to save Einsatz: ${message}`, { einsatzId: aggregate.id.value });
+      this.logger?.error(`Failed to save Einsatz: ${message}`, { einsatzId: aggregate.id.value });
       return Result.fail(`Database error: ${message}`);
     }
   }
@@ -197,7 +197,7 @@ export class PrismaEinsatzRepository implements IEinsatzRepository {
       return Result.ok(aggregate);
     } catch (error) {
       const message = error instanceof Error ? error.message : String(error);
-      this.logger.error(`Failed to find Einsatz by ID: ${message}`, { einsatzId: id.value });
+      this.logger?.error(`Failed to find Einsatz by ID: ${message}`, { einsatzId: id.value });
       return Result.fail(`Database error: ${message}`);
     }
   }
@@ -230,7 +230,7 @@ export class PrismaEinsatzRepository implements IEinsatzRepository {
       return Result.ok(aggregates);
     } catch (error) {
       const message = error instanceof Error ? error.message : String(error);
-      this.logger.error(`Failed to find active Einsätze: ${message}`);
+      this.logger?.error(`Failed to find active Einsätze: ${message}`);
       return Result.fail(`Database error: ${message}`);
     }
   }
@@ -289,7 +289,7 @@ export class PrismaEinsatzRepository implements IEinsatzRepository {
       return Result.ok(aggregate);
     } catch (error) {
       const message = error instanceof Error ? error.message : String(error);
-      this.logger.error(`Failed to find Einsatz by nummer: ${message}`, { nummer });
+      this.logger?.error(`Failed to find Einsatz by nummer: ${message}`, { nummer });
       return Result.fail(`Database error: ${message}`);
     }
   }
@@ -312,7 +312,7 @@ export class PrismaEinsatzRepository implements IEinsatzRepository {
       return Result.ok(count > 0);
     } catch (error) {
       const message = error instanceof Error ? error.message : String(error);
-      this.logger.error(`Failed to check Einsatz existence: ${message}`, { einsatzId: id.value });
+      this.logger?.error(`Failed to check Einsatz existence: ${message}`, { einsatzId: id.value });
       return Result.fail(`Database error: ${message}`);
     }
   }
@@ -367,7 +367,7 @@ export class PrismaEinsatzRepository implements IEinsatzRepository {
       });
     } catch (error) {
       const message = error instanceof Error ? error.message : String(error);
-      this.logger.error(`Failed to count Einsaetze by status: ${message}`);
+      this.logger?.error(`Failed to count Einsaetze by status: ${message}`);
       return Result.fail(`Database error: ${message}`);
     }
   }
@@ -475,7 +475,7 @@ export class PrismaEinsatzRepository implements IEinsatzRepository {
       // Berechne totalPages (mindestens 1 wenn total > 0)
       const totalPages = total > 0 ? Math.ceil(total / Math.max(1, limit)) : 0;
 
-      this.logger.log(`Found ${total} Einsätze (showing ${aggregates.length}) - Filters: status=${status}, search='${searchTerm}', includeArchived=${includeArchived}, page=${page}, limit=${limit}`);
+      this.logger?.log(`Found ${total} Einsätze (showing ${aggregates.length}) - Filters: status=${status}, search='${searchTerm}', includeArchived=${includeArchived}, page=${page}, limit=${limit}`);
 
       return Result.ok({
         items: aggregates,
@@ -486,7 +486,7 @@ export class PrismaEinsatzRepository implements IEinsatzRepository {
       });
     } catch (error) {
       const message = error instanceof Error ? error.message : String(error);
-      this.logger.error(`Failed to find paginated Einsätze: ${message}`);
+      this.logger?.error(`Failed to find paginated Einsätze: ${message}`);
       return Result.fail(`Database error: ${message}`);
     }
   }
@@ -555,12 +555,12 @@ export class PrismaEinsatzRepository implements IEinsatzRepository {
       // Prisma → Domain Mapping für alle Ergebnisse
       const aggregates = einsaetze.map((e) => PrismaEinsatzMapper.toAggregate(e));
 
-      this.logger.log(`Found ${aggregates.length} Einsaetze eligible for archival (older than ${olderThan.toISOString()})`);
+      this.logger?.log(`Found ${aggregates.length} Einsaetze eligible for archival (older than ${olderThan.toISOString()})`);
 
       return Result.ok(aggregates);
     } catch (error) {
       const message = error instanceof Error ? error.message : String(error);
-      this.logger.error(`Failed to find eligible Einsaetze for archival: ${message}`);
+      this.logger?.error(`Failed to find eligible Einsaetze for archival: ${message}`);
       return Result.fail(`Database error: ${message}`);
     }
   }

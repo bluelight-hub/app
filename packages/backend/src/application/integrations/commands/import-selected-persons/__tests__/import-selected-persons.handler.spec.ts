@@ -360,8 +360,8 @@ describe('ImportSelectedPersonsHandler', () => {
       expect(result.value!.created).toBe(1); // Erika
     });
 
-    it('should use username as personalnummer fallback when mitgliednr is missing', async () => {
-      // Given: Person ohne Mitgliedsnummer
+    it('should fail when person has no mitgliednr (personalnummer required)', async () => {
+      // Given: Person ohne Mitgliedsnummer (Personalnummer ist Pflichtfeld)
       const command = ImportSelectedPersonsCommand.create({
         usernames: ['max.mustermann'],
         importedBy: testUserId,
@@ -373,21 +373,18 @@ describe('ImportSelectedPersonsHandler', () => {
       mockHiorg.fetchPersons.mockResolvedValue(Result.ok([hiorgPerson]));
       mockMappingRepo.findByExternalSource.mockResolvedValue(Result.ok([]));
       mockStammPersonRepo.findByExternalId.mockResolvedValue(Result.ok(undefined));
-      mockStammPersonRepo.findByPersonalnummer.mockResolvedValue(Result.ok(undefined));
-      mockStammPersonRepo.save.mockResolvedValue(Result.ok(undefined));
 
       // When
       const result = await handler.execute(command);
 
-      // Then
+      // Then: Import erfolgreich, aber Person als "failed" markiert
       expect(result.isSuccess).toBe(true);
-      expect(result.value!.created).toBe(1);
-      // Verify save was called with username as personalnummer
-      expect(mockStammPersonRepo.save).toHaveBeenCalledWith(
-        expect.objectContaining({
-          personalnummer: 'max.mustermann',
-        }),
-      );
+      expect(result.value!.failed).toBe(1);
+      expect(result.value!.created).toBe(0);
+      expect(result.value!.results[0].status).toBe('failed');
+      expect(result.value!.results[0].error).toContain('Personalnummer');
+      // Save sollte nicht aufgerufen worden sein
+      expect(mockStammPersonRepo.save).not.toHaveBeenCalled();
     });
   });
 });

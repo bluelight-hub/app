@@ -5,6 +5,7 @@ import { Result } from '@/domain/common/result';
 import { LagekarteId } from '@/domain/value-objects/lagekarte-id';
 import { PoiId } from '@/domain/value-objects/poi-id';
 import type { ILagekarteRepository } from '@/domain/repositories/i-lagekarte.repository';
+import type { ILogger } from '@/domain/ports/i-logger.port';
 import type { CreateLagekarteDto, AddPoiDto, UpdatePoiPositionDto } from '@/application/lagekarte/dto';
 import type { LagekarteDto, PoiDto } from '@/application/lagekarte/dtos';
 
@@ -62,6 +63,7 @@ describe('LagekarteCqrsController', () => {
   let mockCommandBus: jest.Mocked<CommandBus>;
   let mockQueryBus: jest.Mocked<QueryBus>;
   let mockRepository: jest.Mocked<ILagekarteRepository>;
+  let mockLogger: jest.Mocked<ILogger>;
 
   beforeEach(() => {
     // Create mock buses
@@ -84,8 +86,17 @@ describe('LagekarteCqrsController', () => {
       // biome-ignore lint/suspicious/noExplicitAny: Test mock typing
     } as any;
 
+    // Create mock logger
+    mockLogger = {
+      log: jest.fn(),
+      error: jest.fn(),
+      warn: jest.fn(),
+      debug: jest.fn(),
+      // biome-ignore lint/suspicious/noExplicitAny: Test mock typing
+    } as any;
+
     // Instantiate controller with mocks (Direct Instantiation Pattern)
-    controller = new LagekarteCqrsController(mockCommandBus, mockQueryBus, mockRepository);
+    controller = new LagekarteCqrsController(mockCommandBus, mockQueryBus, mockRepository, mockLogger);
   });
 
   afterEach(() => {

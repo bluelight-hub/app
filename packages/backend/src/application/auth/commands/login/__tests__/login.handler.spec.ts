@@ -2,6 +2,7 @@ import { LoginHandler } from '../login.handler';
 import { LoginCommand } from '../login.command';
 import type { IUserRepository } from '@domain/repositories/i-user.repository';
 import type { IJwtAuthServicePort } from '@domain/ports/i-jwt-auth-service.port';
+import type { ILogger } from '@domain/ports/i-logger.port';
 import { UserId } from '@domain/value-objects/user-id';
 import { Username } from '@domain/value-objects/username';
 import { UserRole } from '@domain/value-objects/user-role';
@@ -34,6 +35,7 @@ describe('LoginHandler', () => {
   let handler: LoginHandler;
   let mockUserRepository: jest.Mocked<IUserRepository>;
   let mockJwtService: jest.Mocked<IJwtAuthServicePort>;
+  let mockLogger: jest.Mocked<ILogger>;
 
   beforeEach(() => {
     // Mock Repository
@@ -54,7 +56,15 @@ describe('LoginHandler', () => {
       revokeToken: jest.fn(),
     } as unknown as jest.Mocked<IJwtAuthServicePort>;
 
-    handler = new LoginHandler(mockUserRepository, mockJwtService);
+    // Mock Logger
+    mockLogger = {
+      log: jest.fn(),
+      error: jest.fn(),
+      warn: jest.fn(),
+      debug: jest.fn(),
+    };
+
+    handler = new LoginHandler(mockUserRepository, mockJwtService, mockLogger);
   });
 
   afterEach(() => {

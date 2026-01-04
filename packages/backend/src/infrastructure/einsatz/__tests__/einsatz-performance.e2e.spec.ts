@@ -190,7 +190,7 @@ async function measureQuery<T>(fn: () => Promise<T>, iterations = 5): Promise<Pe
       const einsatzId = await createTestEinsatz(ctx);
 
       // When: Measure GetEinsatzDetails query
-      const handler = new GetEinsatzDetailsQueryHandler(ctx.repository, ctx.prisma as never, ctx.prisma as never);
+      const handler = new GetEinsatzDetailsQueryHandler(ctx.repository, ctx.prisma as never, ctx.prisma as never, ctx.mockLogger);
       const { avgMs, minMs, maxMs } = await measureQuery(async () => handler.execute(new GetEinsatzDetailsQuery(einsatzId)));
 
       // Then: Within tolerance (80ms + 10% = 88ms)
@@ -232,7 +232,7 @@ async function measureQuery<T>(fn: () => Promise<T>, iterations = 5): Promise<Pe
       });
 
       // Measure 2: Combined Query (Einsatz + ETB + Lagekarte)
-      const combinedHandler = new GetEinsatzDetailsQueryHandler(ctx.repository, ctx.prisma as never, ctx.prisma as never);
+      const combinedHandler = new GetEinsatzDetailsQueryHandler(ctx.repository, ctx.prisma as never, ctx.prisma as never, ctx.mockLogger);
       const { avgMs: combinedAvg } = await measureQuery(async () => combinedHandler.execute(new GetEinsatzDetailsQuery(einsatzId)));
 
       // Then: Overhead < 50ms (combinedAvg - singleAvg)
@@ -296,7 +296,7 @@ async function measureQuery<T>(fn: () => Promise<T>, iterations = 5): Promise<Pe
       // Total time = Polling Interval (~5s) + Processing (<1s) + Buffer
       // So we expect <7s total (5s poll + 1s process + 1s buffer)
       expect(latency).toBeLessThan(7000);
-    });
+    }, 10000); // Extended timeout: Test wartet bis zu 7s auf Outbox-Polling
 
     it('should process outbox events within 1s after polling triggers', async () => {
       // Given: Manually create pending outbox event (bypass polling wait)
@@ -360,7 +360,7 @@ async function measureQuery<T>(fn: () => Promise<T>, iterations = 5): Promise<Pe
       // +33% tolerance for CI/CD = 20000ms
       console.log(`[Performance] 100 Einsaetze created in ${duration}ms (${(duration / 100).toFixed(2)}ms avg per Einsatz)`);
       expect(duration).toBeLessThan(20000);
-    });
+    }, 30000); // Extended timeout: Test erwartet bis zu 20s fuer 100 Einsaetze
 
     // Skip on CI: Shared runners have unpredictable performance characteristics
     // that cause false positives (GC pauses, noisy neighbors, cold starts)
@@ -388,7 +388,11 @@ async function measureQuery<T>(fn: () => Promise<T>, iterations = 5): Promise<Pe
       console.log(`[Performance] Consistency: avg=${avgMs.toFixed(2)}ms, min=${minMs.toFixed(2)}ms, max=${maxMs.toFixed(2)}ms`);
 
       // Max should not be more than 3x average (no performance degradation)
-      expect(maxMs).toBeLessThan(avgMs * 3);
+      // Bei sehr schnellen Operationen (<1ms) ist die natuerliche Varianz durch
+      // GC-Pauses, Scheduler-Jitter etc. proportional hoch. Daher eine absolute
+      // Mindest-Toleranz von 1ms zusaetzlich zur relativen 3x Toleranz.
+      const tolerance = Math.max(avgMs * 3, avgMs + 1);
+      expect(maxMs).toBeLessThan(tolerance);
     });
   });
 });

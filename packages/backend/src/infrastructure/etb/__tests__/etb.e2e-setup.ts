@@ -244,6 +244,24 @@ export async function createEtbE2eModule(): Promise<EtbE2eTestContext> {
     ON CONFLICT (username) DO NOTHING
   `;
 
+  // 3b. SYSTEM User erstellen (für ETBs ohne Einträge - Fallback im Repository)
+  // WICHTIG: Der PrismaEtbRepository verwendet 'SYSTEM' als Fallback-ID wenn kein Eintrag vorhanden ist.
+  // Wir verwenden ON CONFLICT DO UPDATE um sicherzustellen, dass die ID 'SYSTEM' ist,
+  // auch wenn bereits ein 'system' User mit anderer ID existiert.
+  await prisma.$executeRaw`
+    INSERT INTO "User" (id, username, "passwordHash", role, "isActive", "createdAt", "updatedAt")
+    VALUES (
+      'SYSTEM',
+      'system',
+      'no-login',
+      'USER'::"UserRole",
+      false,
+      NOW(),
+      NOW()
+    )
+    ON CONFLICT (username) DO UPDATE SET id = 'SYSTEM'
+  `;
+
   // 4. Test Einsatz erstellen (CUID2 Format!)
   const testEinsatzId = generateTestId();
   await prisma.$executeRaw`

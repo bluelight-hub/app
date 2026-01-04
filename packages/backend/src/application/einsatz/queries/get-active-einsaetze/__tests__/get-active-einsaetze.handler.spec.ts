@@ -6,6 +6,7 @@ import { Address } from '@domain/value-objects/address';
 import { EinsatzStatus } from '@domain/value-objects/einsatz-status';
 import { Result } from '@domain/common/result';
 import type { IEinsatzRepository } from '@domain/repositories';
+import type { ILogger } from '@domain/ports/i-logger.port';
 
 /**
  * Helper: Erstellt einen Mock-Einsatz fuer Tests.
@@ -53,6 +54,7 @@ function createMockEinsatz(overrides?: { alarmstichwort?: string; status?: Einsa
 describe('GetActiveEinsaetzeQueryHandler', () => {
   let handler: GetActiveEinsaetzeQueryHandler;
   let mockRepository: jest.Mocked<IEinsatzRepository>;
+  let mockLogger: jest.Mocked<ILogger>;
 
   beforeEach(() => {
     // Mock Repository mit allen benoetigten Methods
@@ -64,7 +66,14 @@ describe('GetActiveEinsaetzeQueryHandler', () => {
       exists: jest.fn(),
     } as jest.Mocked<IEinsatzRepository>;
 
-    handler = new GetActiveEinsaetzeQueryHandler(mockRepository);
+    mockLogger = {
+      log: jest.fn(),
+      error: jest.fn(),
+      warn: jest.fn(),
+      debug: jest.fn(),
+    } as unknown as jest.Mocked<ILogger>;
+
+    handler = new GetActiveEinsaetzeQueryHandler(mockRepository, mockLogger);
   });
 
   afterEach(() => {

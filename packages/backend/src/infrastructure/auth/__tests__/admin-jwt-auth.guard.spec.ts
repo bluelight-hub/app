@@ -5,6 +5,8 @@ import type { Request } from 'express';
 import { AdminJwtStrategy, type AdminJwtPayload, type ValidatedAdminUser } from '@/modules/auth/strategies/admin-jwt.strategy';
 import { AuthService } from '@/modules/auth/auth.service';
 import { ConfigService } from '@nestjs/config';
+import type { ILogger } from '@domain/ports/i-logger.port';
+import { LOGGER } from '@infrastructure/di-tokens';
 
 /**
  * Unit Tests für AdminJwtStrategy (via AdminJwtAuthGuard).
@@ -45,6 +47,7 @@ describe('AdminJwtStrategy (via AdminJwtAuthGuard)', () => {
   let strategy: AdminJwtStrategy;
   let mockAuthService: jest.Mocked<AuthService>;
   let mockConfigService: jest.Mocked<ConfigService>;
+  let mockLogger: jest.Mocked<ILogger>;
 
   const TEST_ADMIN_SECRET = 'test-admin-jwt-secret';
 
@@ -73,8 +76,16 @@ describe('AdminJwtStrategy (via AdminJwtAuthGuard)', () => {
       set: jest.fn(),
     } as jest.Mocked<ConfigService>;
 
+    // Setup Logger Mock
+    mockLogger = {
+      log: jest.fn(),
+      error: jest.fn(),
+      warn: jest.fn(),
+      debug: jest.fn(),
+    } as unknown as jest.Mocked<ILogger>;
+
     const module: TestingModule = await Test.createTestingModule({
-      providers: [AdminJwtStrategy, { provide: AuthService, useValue: mockAuthService }, { provide: ConfigService, useValue: mockConfigService }],
+      providers: [AdminJwtStrategy, { provide: AuthService, useValue: mockAuthService }, { provide: ConfigService, useValue: mockConfigService }, { provide: LOGGER, useValue: mockLogger }],
     }).compile();
 
     strategy = module.get<AdminJwtStrategy>(AdminJwtStrategy);

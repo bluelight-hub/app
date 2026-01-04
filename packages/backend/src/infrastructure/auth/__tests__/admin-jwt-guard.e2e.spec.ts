@@ -130,10 +130,31 @@ describe('AdminJwtAuthGuard HTTP Integration Tests (AC5.3)', () => {
 
     await app.init();
 
-    // Cleanup alte Test-Users vor Test-Suite (Triggers deaktivieren für DELETE)
+    // Cleanup alte Test-Users und User mit ungültigen Daten vor Test-Suite
+    // (Triggers deaktivieren für DELETE)
     await prisma.$executeRawUnsafe('SET session_replication_role = replica;');
     try {
+      // Cleanup alte Test-Users
       await prisma.$executeRawUnsafe(`DELETE FROM "User" WHERE username LIKE 'test_admin_guard_%'`);
+
+      // Cleanup User mit ungültigen Benutzernamen die das Username Value Object nicht akzeptiert
+      // Username Value Object erlaubt nur: [a-zA-Z0-9_]{3,50}
+      // Lösche User mit ungültigen Zeichen (Punkte, Bindestriche, etc.) oder falscher Länge
+      await prisma.$executeRawUnsafe(`
+        DELETE FROM "User"
+        WHERE username ~ '[^a-zA-Z0-9_]'
+           OR length(username) < 3
+           OR length(username) > 50
+      `);
+
+      // Cleanup User mit ungültigen IDs die kein CUID-Format haben
+      // CUID Format: 25 Zeichen, beginnt mit 'c', nur Kleinbuchstaben und Zahlen
+      // z.B. User mit ID="SYSTEM" brechen das UserId Value Object
+      await prisma.$executeRawUnsafe(`
+        DELETE FROM "User"
+        WHERE length(id) != 25
+           OR id !~ '^[a-z0-9]+$'
+      `);
     } finally {
       await prisma.$executeRawUnsafe('SET session_replication_role = DEFAULT;');
     }
@@ -217,15 +238,26 @@ describe('AdminJwtAuthGuard HTTP Integration Tests (AC5.3)', () => {
     if (!databaseAvailable) return; // Skip cleanup if DB not available
 
     // Cleanup Test-Users nach Test-Suite (Triggers deaktivieren für DELETE)
-    await prisma.$executeRawUnsafe('SET session_replication_role = replica;');
     try {
+      await prisma.$executeRawUnsafe('SET session_replication_role = replica;');
       await prisma.$executeRawUnsafe(`DELETE FROM "User" WHERE username LIKE 'test_admin_guard_%'`);
-    } finally {
       await prisma.$executeRawUnsafe('SET session_replication_role = DEFAULT;');
+    } catch {
+      // Ignore cleanup errors
     }
 
-    await prisma.$disconnect();
-    await app.close();
+    // Close connections in correct order (App first, dann Prisma)
+    try {
+      await app?.close();
+    } catch {
+      // Ignore app close errors
+    }
+
+    try {
+      await prisma?.$disconnect();
+    } catch {
+      // Ignore prisma disconnect errors
+    }
   });
 
   describe('POST /api/v-alpha/admin/users - 401 Unauthorized Tests', () => {

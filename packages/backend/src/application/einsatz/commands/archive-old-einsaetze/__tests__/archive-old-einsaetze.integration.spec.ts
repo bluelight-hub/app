@@ -5,8 +5,22 @@ import { ArchiveOldEinsaetzeCommand } from '../archive-old-einsaetze.command';
 import { PrismaEinsatzRepository } from '@infrastructure/einsatz/repositories/prisma-einsatz.repository';
 import { PrismaOutboxRepository } from '@infrastructure/outbox/prisma-outbox.repository';
 import { EventSerializer } from '@infrastructure/outbox/event-serializer';
-import { EINSATZ_REPOSITORY, OUTBOX_REPOSITORY } from '@infrastructure/di-tokens';
+import { EINSATZ_REPOSITORY, OUTBOX_REPOSITORY, LOGGER } from '@infrastructure/di-tokens';
 import { EinsatzStatus } from '@prisma/client';
+import type { ILogger } from '@domain/ports/i-logger.port';
+
+/**
+ * Mock Logger für Integration Tests.
+ *
+ * Verwendet jest.fn() für alle Methoden um Aufrufe zu tracken
+ * ohne echte Log-Ausgaben in Test-Output zu erzeugen.
+ */
+const createMockLogger = (): jest.Mocked<ILogger> => ({
+  log: jest.fn(),
+  error: jest.fn(),
+  warn: jest.fn(),
+  debug: jest.fn(),
+});
 
 const databaseAvailable = !!process.env.DATABASE_URL;
 
@@ -28,14 +42,20 @@ const databaseAvailable = !!process.env.DATABASE_URL;
   let prisma: PrismaService;
   let module: TestingModule;
   let testUserId: string;
+  let mockLogger: jest.Mocked<ILogger>;
 
   beforeAll(async () => {
+    mockLogger = createMockLogger();
+
     module = await Test.createTestingModule({
       providers: [
         PrismaService,
         EventSerializer,
-        PrismaOutboxRepository,
         ArchiveOldEinsaetzeHandler,
+        {
+          provide: LOGGER,
+          useValue: mockLogger,
+        },
         {
           provide: EINSATZ_REPOSITORY,
           useClass: PrismaEinsatzRepository,
@@ -52,6 +72,9 @@ const databaseAvailable = !!process.env.DATABASE_URL;
   });
 
   beforeEach(async () => {
+    // Reset mock logger calls between tests
+    jest.clearAllMocks();
+
     // Clean up test data (disable triggers temporarily for NO-DELETE Policy)
     await prisma.$executeRawUnsafe('SET session_replication_role = replica;');
     try {

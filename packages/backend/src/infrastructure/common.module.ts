@@ -4,13 +4,12 @@ import { ConfigModule } from '@nestjs/config';
 import { CacheModule } from '@nestjs/cache-manager';
 import { APP_INTERCEPTOR, Reflector } from '@nestjs/core';
 import { AppConfigService } from './services/app-config.service';
-import { CacheConfigService } from './config/cache-config.service';
+import { CacheConfigService, NestLoggerAdapter } from './common/adapters';
 import { cacheConfig } from './config/cache.config';
 import { CacheRateLimiterService } from './services/cache-rate-limiter.service';
 import { CacheDuplicateDetectionService } from './services/cache-duplicate-detection.service';
 import { TransformInterceptor } from './http/interceptors/transform.interceptor';
 import { LOGGER } from './di-tokens';
-import { NestLoggerAdapter } from './common/adapters/nest-logger.adapter';
 
 /**
  * Infrastructure Common Module

@@ -11,13 +11,15 @@ import type { IEtbRepository } from '@domain/repositories';
 import type { ILagekarteRepository } from '@domain/repositories';
 import { GetEinsatzDetailsQueryHandler } from '../get-einsatz-details.handler';
 import { GetEinsatzDetailsQuery } from '../get-einsatz-details.query';
-import { EINSATZ_REPOSITORY, ETB_REPOSITORY, LAGEKARTE_REPOSITORY } from '@/infrastructure/di-tokens';
+import { EINSATZ_REPOSITORY, ETB_REPOSITORY, LAGEKARTE_REPOSITORY, LOGGER } from '@/infrastructure/di-tokens';
+import type { ILogger } from '@domain/ports/i-logger.port';
 
 describe('GetEinsatzDetailsQueryHandler', () => {
   let handler: GetEinsatzDetailsQueryHandler;
   let mockEinsatzRepository: jest.Mocked<IEinsatzRepository>;
   let mockEtbRepository: jest.Mocked<IEtbRepository>;
   let mockLagekarteRepository: jest.Mocked<ILagekarteRepository>;
+  let mockLogger: jest.Mocked<ILogger>;
 
   beforeEach(async () => {
     // Initialize mocked repositories
@@ -43,12 +45,20 @@ describe('GetEinsatzDetailsQueryHandler', () => {
       exists: jest.fn(),
     };
 
+    mockLogger = {
+      log: jest.fn(),
+      error: jest.fn(),
+      warn: jest.fn(),
+      debug: jest.fn(),
+    } as unknown as jest.Mocked<ILogger>;
+
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         GetEinsatzDetailsQueryHandler,
         { provide: EINSATZ_REPOSITORY, useValue: mockEinsatzRepository },
         { provide: ETB_REPOSITORY, useValue: mockEtbRepository },
         { provide: LAGEKARTE_REPOSITORY, useValue: mockLagekarteRepository },
+        { provide: LOGGER, useValue: mockLogger },
       ],
     }).compile();
 

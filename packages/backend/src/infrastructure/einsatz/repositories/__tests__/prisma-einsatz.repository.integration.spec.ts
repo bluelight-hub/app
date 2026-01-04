@@ -50,7 +50,21 @@ import { EinsatzId } from '@domain/value-objects/einsatz-id';
 import { UserId } from '@domain/value-objects/user-id';
 import type { PrismaService } from '@/infrastructure/database/prisma.service';
 import type { IEinsatzRepository } from '@domain/repositories/ieinsatz.repository';
+import type { ILogger } from '@domain/ports/i-logger.port';
 import { skipIfNoDatabase } from '@/infrastructure/__tests__/helpers/database-test.helper';
+
+/**
+ * Mock Logger für Integration Tests.
+ *
+ * Implementiert ILogger Interface ohne externe Dependencies.
+ * Verhindert "Cannot read properties of undefined (reading 'error')" Fehler.
+ */
+const createMockLogger = (): ILogger => ({
+  log: jest.fn(),
+  error: jest.fn(),
+  warn: jest.fn(),
+  debug: jest.fn(),
+});
 
 // Generate CUID2-compliant test IDs (20-30 chars, lowercase a-z0-9, starts with letter)
 const generateTestId = (): string => {
@@ -127,9 +141,10 @@ describe('PrismaEinsatzRepository - Integration Tests', () => {
     `;
     testUserId = userResult[0].id;
 
-    // Initialize Repository (mock PrismaService mit echtem PrismaClient)
+    // Initialize Repository (mock PrismaService mit echtem PrismaClient + Mock Logger)
     const prismaService = prisma as unknown as PrismaService;
-    repository = new PrismaEinsatzRepository(prismaService);
+    const mockLogger = createMockLogger();
+    repository = new PrismaEinsatzRepository(prismaService, mockLogger);
   });
 
   /**

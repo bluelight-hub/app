@@ -30,6 +30,7 @@ import { createEinsatzE2eModule, teardownE2eModule, cleanupTestData, generateTes
 import { OutboxEventPublisher, DEFAULT_OUTBOX_PUBLISHER_CONFIG } from '../outbox-event-publisher.service';
 import { EventDeserializer } from '../event-deserializer';
 import type { PrismaService } from '@/infrastructure/database/prisma.service';
+import type { ILogger } from '@domain/ports/i-logger.port';
 
 const databaseAvailable = !!process.env.DATABASE_URL;
 
@@ -119,6 +120,17 @@ const databaseAvailable = !!process.env.DATABASE_URL;
   }
 
   /**
+   * Mock Logger für EventDeserializer und OutboxEventPublisher.
+   * E2E-Tests brauchen keine echten Logs.
+   */
+  const mockLogger: ILogger = {
+    log: () => {},
+    error: () => {},
+    warn: () => {},
+    debug: () => {},
+  };
+
+  /**
    * Helper: Erstellt einen OutboxEventPublisher mit Real Dependencies.
    *
    * Der Publisher nutzt die echten Repositories und EventDeserializer
@@ -128,12 +140,13 @@ const databaseAvailable = !!process.env.DATABASE_URL;
    * @returns OutboxEventPublisher Instanz
    */
   function createPublisher(): OutboxEventPublisher {
-    const eventDeserializer = new EventDeserializer();
+    const eventDeserializer = new EventDeserializer(mockLogger);
     return new OutboxEventPublisher(
       ctx.prisma as PrismaService,
       ctx.outboxRepository,
       eventDeserializer,
       ctx.eventPublisher,
+      mockLogger,
       undefined, // Kein AlertService in Tests
       DEFAULT_OUTBOX_PUBLISHER_CONFIG,
     );

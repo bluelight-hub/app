@@ -1,4 +1,3 @@
-import { Logger } from '@nestjs/common';
 import { GetEinsatzFahrzeugeHandler } from '../get-einsatz-fahrzeuge.handler';
 import { GetEinsatzFahrzeugeQuery } from '../get-einsatz-fahrzeuge.query';
 import { Result } from '@domain/common/result';
@@ -8,6 +7,7 @@ import type { IEinsatzPersonRepository } from '@domain/kraefte/repositories/i-ei
 import type { EinsatzFahrzeug } from '@domain/kraefte/aggregates/einsatz-fahrzeug.aggregate';
 import type { Fahrzeugtyp } from '@domain/kraefte/aggregates/fahrzeugtyp.aggregate';
 import type { EinsatzPerson } from '@domain/kraefte/aggregates/einsatz-person.aggregate';
+import type { ILogger } from '@domain/ports/i-logger.port';
 
 // Gültige CUID2 IDs für Tests (Generator: @paralleldrive/cuid2)
 const VALID_EINSATZ_ID = 'z3h5idy36i9aqgkh7st81q57';
@@ -25,7 +25,7 @@ describe('GetEinsatzFahrzeugeHandler', () => {
   let mockEinsatzFahrzeugRepository: jest.Mocked<IEinsatzFahrzeugRepository>;
   let mockFahrzeugtypRepository: jest.Mocked<IFahrzeugtypRepository>;
   let mockEinsatzPersonRepository: jest.Mocked<IEinsatzPersonRepository>;
-  let loggerWarnSpy: jest.SpyInstance;
+  let mockLogger: jest.Mocked<ILogger>;
 
   // ============ Mock Factories (AC5) ============
 
@@ -174,18 +174,17 @@ describe('GetEinsatzFahrzeugeHandler', () => {
   beforeEach(() => {
     jest.clearAllMocks();
 
-    // Logger-Spy für AC2/AC3 Tests (warn-Verifizierung)
-    loggerWarnSpy = jest.spyOn(Logger.prototype, 'warn').mockImplementation();
-
     mockEinsatzFahrzeugRepository = createMockEinsatzFahrzeugRepository();
     mockFahrzeugtypRepository = createMockFahrzeugtypRepository();
     mockEinsatzPersonRepository = createMockEinsatzPersonRepository();
+    mockLogger = {
+      log: jest.fn(),
+      error: jest.fn(),
+      warn: jest.fn(),
+      debug: jest.fn(),
+    } as jest.Mocked<ILogger>;
 
-    handler = new GetEinsatzFahrzeugeHandler(mockEinsatzFahrzeugRepository, mockFahrzeugtypRepository, mockEinsatzPersonRepository);
-  });
-
-  afterEach(() => {
-    loggerWarnSpy.mockRestore();
+    handler = new GetEinsatzFahrzeugeHandler(mockEinsatzFahrzeugRepository, mockFahrzeugtypRepository, mockEinsatzPersonRepository, mockLogger);
   });
 
   // ============ AC1: Success Cases (4 Tests) ============
@@ -331,7 +330,7 @@ describe('GetEinsatzFahrzeugeHandler', () => {
       // Then
       expect(result.isSuccess).toBe(true);
       expect(result.value).toEqual([]); // Fahrzeug wurde übersprungen
-      expect(loggerWarnSpy).toHaveBeenCalledWith(expect.stringContaining('Fahrzeugtyp not found'));
+      expect(mockLogger.warn).toHaveBeenCalledWith(expect.stringContaining('Fahrzeugtyp not found'));
     });
 
     it('should use empty besatzung when einsatzPersonRepository fails', async () => {
@@ -370,7 +369,7 @@ describe('GetEinsatzFahrzeugeHandler', () => {
       // Then: Fahrzeug wird übersprungen (kein Fahrzeugtyp im Cache)
       expect(result.isSuccess).toBe(true);
       expect(result.value).toEqual([]);
-      expect(loggerWarnSpy).toHaveBeenCalledWith(expect.stringContaining('Fahrzeugtyp not found'));
+      expect(mockLogger.warn).toHaveBeenCalledWith(expect.stringContaining('Fahrzeugtyp not found'));
     });
   });
 
@@ -444,7 +443,7 @@ describe('GetEinsatzFahrzeugeHandler', () => {
       // Then
       expect(result.isSuccess).toBe(true);
       expect(result.value).toEqual([]); // Fahrzeug wurde übersprungen
-      expect(loggerWarnSpy).toHaveBeenCalledWith(expect.stringContaining('Invalid fahrzeugtypId'));
+      expect(mockLogger.warn).toHaveBeenCalledWith(expect.stringContaining('Invalid fahrzeugtypId'));
       expect(mockFahrzeugtypRepository.findById).not.toHaveBeenCalled(); // Kein Repository-Call
     });
   });

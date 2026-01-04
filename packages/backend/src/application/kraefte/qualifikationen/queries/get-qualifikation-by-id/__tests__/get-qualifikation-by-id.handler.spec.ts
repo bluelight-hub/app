@@ -4,13 +4,19 @@ import { Result } from '@domain/common/result';
 import { Qualifikation } from '@domain/kraefte/aggregates/qualifikation.aggregate';
 import type { IQualifikationRepository } from '@domain/kraefte/repositories/i-qualifikation.repository';
 import { QualifikationId } from '@domain/kraefte/value-objects/qualifikation-id';
-import { KRAEFTE_REPOSITORIES } from '@infrastructure/di-tokens';
+import { KRAEFTE_REPOSITORIES, LOGGER } from '@infrastructure/di-tokens';
 import { GetQualifikationByIdHandler } from '../get-qualifikation-by-id.handler';
 import { GetQualifikationByIdQuery } from '../get-qualifikation-by-id.query';
 
 describe('GetQualifikationByIdHandler', () => {
   let handler: GetQualifikationByIdHandler;
   let mockRepository: jest.Mocked<IQualifikationRepository>;
+  let mockLogger: {
+    log: jest.Mock;
+    error: jest.Mock;
+    warn: jest.Mock;
+    debug: jest.Mock;
+  };
 
   beforeEach(async () => {
     jest.clearAllMocks();
@@ -24,8 +30,15 @@ describe('GetQualifikationByIdHandler', () => {
       exists: jest.fn(),
     } as jest.Mocked<IQualifikationRepository>;
 
+    mockLogger = {
+      log: jest.fn(),
+      error: jest.fn(),
+      warn: jest.fn(),
+      debug: jest.fn(),
+    };
+
     const module: TestingModule = await Test.createTestingModule({
-      providers: [GetQualifikationByIdHandler, { provide: KRAEFTE_REPOSITORIES.QUALIFIKATION, useValue: mockRepository }],
+      providers: [GetQualifikationByIdHandler, { provide: KRAEFTE_REPOSITORIES.QUALIFIKATION, useValue: mockRepository }, { provide: LOGGER, useValue: mockLogger }],
     }).compile();
 
     handler = module.get<GetQualifikationByIdHandler>(GetQualifikationByIdHandler);

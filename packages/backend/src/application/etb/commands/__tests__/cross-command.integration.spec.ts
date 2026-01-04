@@ -8,6 +8,7 @@ import { DeleteEintragHandler } from '../delete-eintrag/delete-eintrag.handler';
 import { LockEtbCommand } from '../lock-etb/lock-etb.command';
 import { LockEtbHandler } from '../lock-etb/lock-etb.handler';
 import { createTestEtb } from '@domain/aggregates/__tests__/fixtures/etb.fixtures';
+import type { ILogger } from '@domain/ports/i-logger.port';
 
 const databaseAvailable = !!process.env.DATABASE_URL;
 
@@ -53,6 +54,7 @@ function generateTestCuid(): string {
   let updateEintragHandler: UpdateEintragHandler;
   let deleteEintragHandler: DeleteEintragHandler;
   let lockEtbHandler: LockEtbHandler;
+  let mockLogger: jest.Mocked<ILogger>;
   let testUserId: string;
   let testEinsatzId: string;
 
@@ -62,11 +64,19 @@ function generateTestCuid(): string {
     testUserId = generateTestCuid();
     testEinsatzId = generateTestCuid();
 
+    // Mock Logger (ILogger interface)
+    mockLogger = {
+      log: jest.fn(),
+      error: jest.fn(),
+      warn: jest.fn(),
+      debug: jest.fn(),
+    } as jest.Mocked<ILogger>;
+
     // Create all handlers with shared repository
-    addEintragHandler = new AddEintragHandler(etbRepository);
-    updateEintragHandler = new UpdateEintragHandler(etbRepository);
-    deleteEintragHandler = new DeleteEintragHandler(etbRepository);
-    lockEtbHandler = new LockEtbHandler(etbRepository);
+    addEintragHandler = new AddEintragHandler(etbRepository, mockLogger);
+    updateEintragHandler = new UpdateEintragHandler(etbRepository, mockLogger);
+    deleteEintragHandler = new DeleteEintragHandler(etbRepository, mockLogger);
+    lockEtbHandler = new LockEtbHandler(etbRepository, mockLogger);
   });
 
   afterEach(() => {

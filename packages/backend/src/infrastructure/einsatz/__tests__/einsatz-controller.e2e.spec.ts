@@ -25,7 +25,7 @@ const databaseAvailable = !!process.env.DATABASE_URL;
 (databaseAvailable ? describe : describe.skip)('EinsatzController HTTP Integration Tests (AC5.1, AC5.3, AC5.4)', () => {
   let app: INestApplication;
   let ctx: EinsatzE2eTestContext;
-  let accessToken: string;
+  let cachedAccessToken: string;
 
   beforeAll(async () => {
     ctx = await createEinsatzE2eModule();
@@ -47,10 +47,8 @@ const databaseAvailable = !!process.env.DATABASE_URL;
     app.use(cookieParser());
 
     await app.init();
-  }, 60000);
 
-  beforeEach(async () => {
-    // Admin-User mit echtem bcrypt-Hash erstellen (vor jedem Test)
+    // Admin-User mit echtem bcrypt-Hash erstellen (einmalig in beforeAll)
     const bcrypt = await import('bcrypt');
     const passwordHash = await bcrypt.hash('password', 10);
     const { generateTestId } = await import('./einsatz.e2e-setup');
@@ -70,7 +68,7 @@ const databaseAvailable = !!process.env.DATABASE_URL;
       },
     });
 
-    // Login durchführen und Token für authentifizierte Requests erhalten
+    // Login einmalig durchführen und Token cachen (vermeidet Rate Limiting)
     const loginResponse = await request(app.getHttpServer())
       .post('/api/auth/login')
       .send({
@@ -79,10 +77,14 @@ const databaseAvailable = !!process.env.DATABASE_URL;
       })
       .expect(200);
 
-    // Token aus Cookie extrahieren
+    // Token aus Cookie extrahieren und cachen
     const cookies = loginResponse.headers['set-cookie'] as string[];
     const accessTokenCookie = cookies.find((cookie) => cookie.startsWith('accessToken='));
-    accessToken = accessTokenCookie?.split(';')[0].split('=')[1] || '';
+    cachedAccessToken = accessTokenCookie?.split(';')[0].split('=')[1] || '';
+  }, 60000);
+
+  beforeEach(async () => {
+    // Keine Login-Logik mehr hier - Token wird aus beforeAll gecacht
   });
 
   afterEach(async () => {
@@ -105,7 +107,7 @@ const databaseAvailable = !!process.env.DATABASE_URL;
     it('should return 201 Created with valid request', async () => {
       const response = await request(app.getHttpServer())
         .post('/api/v-alpha/einsatz')
-        .set('Cookie', [`accessToken=${accessToken}`])
+        .set('Cookie', [`accessToken=${cachedAccessToken}`])
         .send({
           alarmstichwort: 'B3 - Wohnungsbrand',
           beschreibung: 'Küchenbrand in Mehrfamilienhaus',
@@ -128,7 +130,7 @@ const databaseAvailable = !!process.env.DATABASE_URL;
     it('should create Einsatz without alarmstichwort (all fields optional)', async () => {
       const response = await request(app.getHttpServer())
         .post('/api/v-alpha/einsatz')
-        .set('Cookie', [`accessToken=${accessToken}`])
+        .set('Cookie', [`accessToken=${cachedAccessToken}`])
         .send({
           beschreibung: 'Test ohne Alarmstichwort',
         })
@@ -165,7 +167,7 @@ const databaseAvailable = !!process.env.DATABASE_URL;
     it('should return 400 with invalid field types', async () => {
       const response = await request(app.getHttpServer())
         .post('/api/v-alpha/einsatz')
-        .set('Cookie', [`accessToken=${accessToken}`])
+        .set('Cookie', [`accessToken=${cachedAccessToken}`])
         .send({
           alarmstichwort: 12345, // Should be string
           alarmierungszeit: 'not-a-date', // Should be ISO date string
@@ -192,7 +194,7 @@ const databaseAvailable = !!process.env.DATABASE_URL;
 
       const response = await request(app.getHttpServer())
         .get('/api/v-alpha/einsatz/active-with-counts')
-        .set('Cookie', [`accessToken=${accessToken}`])
+        .set('Cookie', [`accessToken=${cachedAccessToken}`])
         .expect(200);
 
       expect(Array.isArray(response.body.data)).toBe(true);
@@ -213,7 +215,7 @@ const databaseAvailable = !!process.env.DATABASE_URL;
 
       const response = await request(app.getHttpServer())
         .get('/api/v-alpha/einsatz/active-with-counts')
-        .set('Cookie', [`accessToken=${accessToken}`])
+        .set('Cookie', [`accessToken=${cachedAccessToken}`])
         .expect(200);
 
       // biome-ignore lint/suspicious/noExplicitAny: E2E test response body typing not strictly typed
@@ -239,7 +241,7 @@ const databaseAvailable = !!process.env.DATABASE_URL;
     it('should return empty array when no active Einsätze exist', async () => {
       const response = await request(app.getHttpServer())
         .get('/api/v-alpha/einsatz/active-with-counts')
-        .set('Cookie', [`accessToken=${accessToken}`])
+        .set('Cookie', [`accessToken=${cachedAccessToken}`])
         .expect(200);
 
       expect(response.body.data).toEqual([]);
@@ -260,7 +262,7 @@ const databaseAvailable = !!process.env.DATABASE_URL;
 
       const response = await request(app.getHttpServer())
         .get(`/api/v-alpha/einsatz/${einsatzId}/details`)
-        .set('Cookie', [`accessToken=${accessToken}`])
+        .set('Cookie', [`accessToken=${cachedAccessToken}`])
         .expect(200);
 
       // EinsatzDetailsDto has nested structure
@@ -284,7 +286,7 @@ const databaseAvailable = !!process.env.DATABASE_URL;
 
       const response = await request(app.getHttpServer())
         .get(`/api/v-alpha/einsatz/${nonExistentId}/details`)
-        .set('Cookie', [`accessToken=${accessToken}`])
+        .set('Cookie', [`accessToken=${cachedAccessToken}`])
         .expect(404);
 
       expect(response.body).toHaveProperty('statusCode', 404);
@@ -297,7 +299,7 @@ const databaseAvailable = !!process.env.DATABASE_URL;
     it('should return 400 with invalid CUID format', async () => {
       await request(app.getHttpServer())
         .get('/api/v-alpha/einsatz/invalid-uuid/details')
-        .set('Cookie', [`accessToken=${accessToken}`])
+        .set('Cookie', [`accessToken=${cachedAccessToken}`])
         .expect(400);
     });
 
@@ -309,7 +311,7 @@ const databaseAvailable = !!process.env.DATABASE_URL;
 
       const response = await request(app.getHttpServer())
         .get(`/api/v-alpha/einsatz/${einsatzId}/details`)
-        .set('Cookie', [`accessToken=${accessToken}`])
+        .set('Cookie', [`accessToken=${cachedAccessToken}`])
         .expect(200);
 
       // Initially, ETB and Lagekarte are null (not yet auto-created by event handler)
@@ -329,7 +331,7 @@ const databaseAvailable = !!process.env.DATABASE_URL;
 
       const response = await request(app.getHttpServer())
         .post(`/api/v-alpha/einsatz/${einsatzId}/complete`)
-        .set('Cookie', [`accessToken=${accessToken}`])
+        .set('Cookie', [`accessToken=${cachedAccessToken}`])
         .expect(201); // POST returns 201 Created
 
       expect(response.body.data).toHaveProperty('status', 'ABGESCHLOSSEN');
@@ -350,7 +352,7 @@ const databaseAvailable = !!process.env.DATABASE_URL;
 
       const response = await request(app.getHttpServer())
         .post(`/api/v-alpha/einsatz/${einsatzId}/complete`)
-        .set('Cookie', [`accessToken=${accessToken}`])
+        .set('Cookie', [`accessToken=${cachedAccessToken}`])
         .expect(400);
 
       expect(response.body).toHaveProperty('statusCode', 400);
@@ -367,7 +369,7 @@ const databaseAvailable = !!process.env.DATABASE_URL;
 
       await request(app.getHttpServer())
         .post(`/api/v-alpha/einsatz/${nonExistentId}/complete`)
-        .set('Cookie', [`accessToken=${accessToken}`])
+        .set('Cookie', [`accessToken=${cachedAccessToken}`])
         .expect(404);
     });
 
@@ -386,7 +388,7 @@ const databaseAvailable = !!process.env.DATABASE_URL;
       // Einsatz abschließen
       const response = await request(app.getHttpServer())
         .post(`/api/v-alpha/einsatz/${einsatzId}/complete`)
-        .set('Cookie', [`accessToken=${accessToken}`])
+        .set('Cookie', [`accessToken=${cachedAccessToken}`])
         .expect(201); // POST returns 201 Created
 
       expect(response.body.data.status).toBe('ABGESCHLOSSEN');
@@ -406,7 +408,7 @@ const databaseAvailable = !!process.env.DATABASE_URL;
 
       const response = await request(app.getHttpServer())
         .delete(`/api/v-alpha/einsatz/${einsatzId}`)
-        .set('Cookie', [`accessToken=${accessToken}`])
+        .set('Cookie', [`accessToken=${cachedAccessToken}`])
         .expect(400);
 
       expect(response.body).toHaveProperty('statusCode', 400);
@@ -424,7 +426,7 @@ const databaseAvailable = !!process.env.DATABASE_URL;
 
       const response = await request(app.getHttpServer())
         .delete(`/api/v-alpha/einsatz/${einsatzId}`)
-        .set('Cookie', [`accessToken=${accessToken}`])
+        .set('Cookie', [`accessToken=${cachedAccessToken}`])
         .expect(400);
 
       expect(response.body.message).toContain('Archive');
@@ -444,13 +446,13 @@ const databaseAvailable = !!process.env.DATABASE_URL;
       // DELETE-Versuch
       await request(app.getHttpServer())
         .delete(`/api/v-alpha/einsatz/${einsatzId}`)
-        .set('Cookie', [`accessToken=${accessToken}`])
+        .set('Cookie', [`accessToken=${cachedAccessToken}`])
         .expect(400);
 
       // Einsatz muss noch existieren - EinsatzDetailsDto has nested structure
       const response = await request(app.getHttpServer())
         .get(`/api/v-alpha/einsatz/${einsatzId}/details`)
-        .set('Cookie', [`accessToken=${accessToken}`])
+        .set('Cookie', [`accessToken=${cachedAccessToken}`])
         .expect(200);
 
       expect(response.body.data.einsatz).toHaveProperty('id', einsatzId);
@@ -471,7 +473,7 @@ const databaseAvailable = !!process.env.DATABASE_URL;
       // Not Found Error (404) - use valid CUID format that doesn't exist
       const notFoundError = await request(app.getHttpServer())
         .get('/api/v-alpha/einsatz/cnonexistent123456789abcd/details')
-        .set('Cookie', [`accessToken=${accessToken}`])
+        .set('Cookie', [`accessToken=${cachedAccessToken}`])
         .expect(404);
 
       expect(notFoundError.body).toHaveProperty('statusCode', 404);
@@ -488,7 +490,7 @@ const databaseAvailable = !!process.env.DATABASE_URL;
     it('should return 400 with validation error for invalid types', async () => {
       const response = await request(app.getHttpServer())
         .post('/api/v-alpha/einsatz')
-        .set('Cookie', [`accessToken=${accessToken}`])
+        .set('Cookie', [`accessToken=${cachedAccessToken}`])
         .send({
           alarmstichwort: 12345, // Zahl statt String - Typ-Fehler
         })
@@ -527,7 +529,7 @@ const databaseAvailable = !!process.env.DATABASE_URL;
 
       const response = await request(app.getHttpServer())
         .patch(`/api/v-alpha/einsatz/${einsatzId}`)
-        .set('Cookie', [`accessToken=${accessToken}`])
+        .set('Cookie', [`accessToken=${cachedAccessToken}`])
         .send({
           einsatzort: 'Neue Straße 456',
           beschreibung: 'Aktualisierte Beschreibung',
@@ -549,7 +551,7 @@ const databaseAvailable = !!process.env.DATABASE_URL;
 
       await request(app.getHttpServer())
         .patch(`/api/v-alpha/einsatz/${einsatzId}`)
-        .set('Cookie', [`accessToken=${accessToken}`])
+        .set('Cookie', [`accessToken=${cachedAccessToken}`])
         .send({
           status: 'INVALID_STATUS', // Ungültiger Enum-Wert
         })
@@ -568,7 +570,7 @@ const databaseAvailable = !!process.env.DATABASE_URL;
 
       const response = await request(app.getHttpServer())
         .post(`/api/v-alpha/einsatz/${einsatzId}/archive`)
-        .set('Cookie', [`accessToken=${accessToken}`]);
+        .set('Cookie', [`accessToken=${cachedAccessToken}`]);
 
       // Accept either 200 or 201 as valid success status
       expect([200, 201]).toContain(response.status);
@@ -585,7 +587,7 @@ const databaseAvailable = !!process.env.DATABASE_URL;
 
       const response = await request(app.getHttpServer())
         .post(`/api/v-alpha/einsatz/${einsatzId}/archive`)
-        .set('Cookie', [`accessToken=${accessToken}`])
+        .set('Cookie', [`accessToken=${cachedAccessToken}`])
         .expect(400);
 
       expect(response.body.message.toLowerCase()).toContain('abgeschlossen');
@@ -604,7 +606,7 @@ const databaseAvailable = !!process.env.DATABASE_URL;
 
       const response = await request(app.getHttpServer())
         .get('/api/v-alpha/einsatz?limit=2&offset=0')
-        .set('Cookie', [`accessToken=${accessToken}`])
+        .set('Cookie', [`accessToken=${cachedAccessToken}`])
         .expect(200);
 
       expect(response.body.data).toHaveLength(2);
@@ -621,7 +623,7 @@ const databaseAvailable = !!process.env.DATABASE_URL;
 
       const response = await request(app.getHttpServer())
         .get('/api/v-alpha/einsatz?status=IN_BEARBEITUNG')
-        .set('Cookie', [`accessToken=${accessToken}`])
+        .set('Cookie', [`accessToken=${cachedAccessToken}`])
         .expect(200);
 
       expect(response.body.data).toHaveLength(2);

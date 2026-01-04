@@ -10,6 +10,8 @@ import { Result } from '@domain/common/result';
 import { IntegrationCredential, INTEGRATION_TYPES, INTEGRATION_ERROR_CODES } from '@domain/integrations';
 import type { IHiOrgServerPort, HiOrgPersonDto } from '@domain/ports/i-hiorg-server.port';
 import type { IStammPersonRepository } from '@domain/kraefte/repositories/i-stamm-person.repository';
+import type { IQualifikationRepository } from '@domain/kraefte/repositories/i-qualifikation.repository';
+import type { IQualifikationMappingRepository } from '@domain/integrations/repositories/i-qualifikation-mapping.repository';
 import { PreviewHiOrgPersonsHandler } from '../preview-hiorg-persons.handler';
 import { PreviewHiOrgPersonsQuery } from '../preview-hiorg-persons.query';
 import type { HiOrgTokenRefreshService, ValidTokenResult } from '../../../services/hiorg-token-refresh.service';
@@ -18,6 +20,8 @@ describe('PreviewHiOrgPersonsHandler', () => {
   let handler: PreviewHiOrgPersonsHandler;
   let mockHiOrgPort: jest.Mocked<IHiOrgServerPort>;
   let mockStammPersonRepo: jest.Mocked<IStammPersonRepository>;
+  let mockQualifikationRepo: jest.Mocked<IQualifikationRepository>;
+  let mockMappingRepo: jest.Mocked<IQualifikationMappingRepository>;
   let mockTokenRefresh: jest.Mocked<HiOrgTokenRefreshService>;
 
   /**
@@ -92,6 +96,21 @@ describe('PreviewHiOrgPersonsHandler', () => {
       delete: jest.fn(),
     };
 
+    mockQualifikationRepo = {
+      findById: jest.fn(),
+      findAll: jest.fn(),
+      findByIds: jest.fn(),
+      save: jest.fn(),
+      delete: jest.fn(),
+    };
+
+    mockMappingRepo = {
+      findByExternalSource: jest.fn(),
+      findByExternalName: jest.fn(),
+      save: jest.fn(),
+      deleteMapping: jest.fn(),
+    };
+
     mockTokenRefresh = {
       getValidAccessToken: jest.fn(),
     } as unknown as jest.Mocked<HiOrgTokenRefreshService>;
@@ -99,7 +118,11 @@ describe('PreviewHiOrgPersonsHandler', () => {
     // Default: Keine Duplikate vorhanden
     mockStammPersonRepo.findByExternalId.mockResolvedValue(Result.ok(undefined));
 
-    handler = new PreviewHiOrgPersonsHandler(mockHiOrgPort, mockStammPersonRepo, mockTokenRefresh);
+    // Default: Leere Mappings und Qualifikationen
+    mockMappingRepo.findByExternalSource.mockResolvedValue(Result.ok([]));
+    mockQualifikationRepo.findAll.mockResolvedValue(Result.ok([]));
+
+    handler = new PreviewHiOrgPersonsHandler(mockHiOrgPort, mockStammPersonRepo, mockQualifikationRepo, mockMappingRepo, mockTokenRefresh);
   });
 
   describe('execute', () => {
@@ -184,7 +207,7 @@ describe('PreviewHiOrgPersonsHandler', () => {
       expect(result.value!.persons).toHaveLength(2);
 
       // Erste Person pruefen (mit Qualifikationen und Ausbildungen)
-      expect(result.value!.persons[0]).toEqual({
+      expect(result.value!.persons[0]).toMatchObject({
         username: 'jdoe',
         mitgliednr: '12345',
         vorname: 'John',
@@ -194,9 +217,11 @@ describe('PreviewHiOrgPersonsHandler', () => {
         isDuplicate: false,
         existingStammPersonId: undefined,
       });
+      // Qualifikationen-Array prüfen
+      expect(result.value!.persons[0].qualifikationen).toHaveLength(2);
 
       // Zweite Person pruefen (ohne Qualifikationen und Ausbildungen)
-      expect(result.value!.persons[1]).toEqual({
+      expect(result.value!.persons[1]).toMatchObject({
         username: 'mmueller',
         mitgliednr: undefined,
         vorname: 'Maria',
@@ -206,6 +231,7 @@ describe('PreviewHiOrgPersonsHandler', () => {
         isDuplicate: false,
         existingStammPersonId: undefined,
       });
+      expect(result.value!.persons[1].qualifikationen).toHaveLength(0);
     });
 
     it('should return empty array when no persons found', async () => {

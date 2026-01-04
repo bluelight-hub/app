@@ -20,9 +20,10 @@ import type { IEventPublisher } from '@domain/services/ports/i-event-publisher.p
 import type { SerializedEvent } from '../event-serializer';
 import type { DomainEvent } from '@domain/common/domain-event';
 import type { IAlertService } from '@domain/services/ports/i-alert.service';
+import type { ILogger } from '@domain/ports/i-logger.port';
 import { Result } from '@domain/common/result';
 import { PrismaService } from '@/infrastructure/database/prisma.service';
-import { ALERT_SERVICE, EVENT_PUBLISHER } from '@/infrastructure/di-tokens';
+import { ALERT_SERVICE, EVENT_PUBLISHER, LOGGER } from '@/infrastructure/di-tokens';
 
 // Mock Domain Event
 class MockDomainEvent implements DomainEvent {
@@ -44,6 +45,7 @@ describe('OutboxEventPublisher', () => {
   let eventDeserializer: jest.Mocked<EventDeserializer>;
   let eventPublisher: jest.Mocked<IEventPublisher>;
   let alertService: jest.Mocked<IAlertService>;
+  let mockLogger: jest.Mocked<ILogger>;
 
   // Mock Outbox Event
   const mockSerializedEvent: SerializedEvent = {
@@ -70,6 +72,9 @@ describe('OutboxEventPublisher', () => {
   };
 
   beforeEach(async () => {
+    // Reset mocks
+    jest.clearAllMocks();
+
     const mockOutboxRepository = {
       findPendingEvents: jest.fn().mockResolvedValue([]),
       findAndLockPending: jest.fn().mockResolvedValue([]),
@@ -90,6 +95,14 @@ describe('OutboxEventPublisher', () => {
       notifyOutboxFailure: jest.fn().mockResolvedValue(undefined),
     };
 
+    // Create mock logger
+    mockLogger = {
+      log: jest.fn(),
+      error: jest.fn(),
+      warn: jest.fn(),
+      debug: jest.fn(),
+    } as unknown as jest.Mocked<ILogger>;
+
     const mockPrismaService = {
       $transaction: jest.fn().mockImplementation(async (callback: (tx: unknown) => Promise<void>) => {
         // Mock transaction context
@@ -105,6 +118,7 @@ describe('OutboxEventPublisher', () => {
         { provide: PrismaOutboxRepository, useValue: mockOutboxRepository },
         { provide: EventDeserializer, useValue: mockEventDeserializer },
         { provide: EVENT_PUBLISHER, useValue: mockEventPublisher },
+        { provide: LOGGER, useValue: mockLogger },
         { provide: ALERT_SERVICE, useValue: mockAlertService },
       ],
     }).compile();
@@ -365,6 +379,7 @@ describe('OutboxEventPublisher', () => {
         outboxRepository as unknown as PrismaOutboxRepository,
         eventDeserializer as unknown as EventDeserializer,
         eventPublisher as unknown as IEventPublisher,
+        mockLogger as unknown as ILogger,
         alertService as unknown as IAlertService,
         customConfig,
       );
@@ -393,6 +408,7 @@ describe('OutboxEventPublisher', () => {
         outboxRepository as unknown as PrismaOutboxRepository,
         eventDeserializer as unknown as EventDeserializer,
         eventPublisher as unknown as IEventPublisher,
+        mockLogger as unknown as ILogger,
         alertService as unknown as IAlertService,
         customConfig,
       );
@@ -467,6 +483,7 @@ describe('OutboxEventPublisher', () => {
         outboxRepository as unknown as PrismaOutboxRepository,
         eventDeserializer as unknown as EventDeserializer,
         eventPublisher as unknown as IEventPublisher,
+        mockLogger as unknown as ILogger,
         undefined, // No AlertService
         DEFAULT_OUTBOX_PUBLISHER_CONFIG,
       );

@@ -2,6 +2,7 @@ import { Result } from '@domain/common/result';
 import { EinsatzId } from '@domain/value-objects/einsatz-id';
 import type { EtbId } from '@domain/value-objects/etb-id';
 import type { IEinsatzRepository } from '@domain/repositories';
+import type { ILogger } from '@domain/ports/i-logger.port';
 import { InMemoryEtbRepository } from '../../__tests__/in-memory-etb.repository';
 import { CreateEtbCommand } from '../create-etb/create-etb.command';
 import { CreateEtbHandler } from '../create-etb/create-etb.handler';
@@ -44,6 +45,7 @@ describe('CreateEtbHandler', () => {
   let handler: CreateEtbHandler;
   let etbRepository: InMemoryEtbRepository;
   let mockEinsatzRepository: jest.Mocked<IEinsatzRepository>;
+  let mockLogger: jest.Mocked<ILogger>;
   let testEinsatzId: EinsatzId;
   let testEinsatzIdString: string;
 
@@ -63,8 +65,16 @@ describe('CreateEtbHandler', () => {
       save: jest.fn(),
     };
 
+    // Mock Logger (ILogger interface)
+    mockLogger = {
+      log: jest.fn(),
+      error: jest.fn(),
+      warn: jest.fn(),
+      debug: jest.fn(),
+    } as jest.Mocked<ILogger>;
+
     // Create handler with dependencies (no eventPublisher needed anymore)
-    handler = new CreateEtbHandler(mockEinsatzRepository, etbRepository);
+    handler = new CreateEtbHandler(mockEinsatzRepository, etbRepository, mockLogger);
   });
 
   afterEach(() => {

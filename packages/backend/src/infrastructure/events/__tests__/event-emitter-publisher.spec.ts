@@ -10,16 +10,15 @@
  * Epic 2 Story 2.7 | Task 3
  */
 
-import { Logger } from '@nestjs/common';
 import type { EventEmitter2 } from '@nestjs/event-emitter';
 import type { DomainEvent } from '@domain/common/domain-event';
+import type { ILogger } from '@domain/ports/i-logger.port';
 import { EventEmitterPublisher } from '../event-emitter-publisher';
 
 describe('EventEmitterPublisher', () => {
   let publisher: EventEmitterPublisher;
   let mockEventEmitter: jest.Mocked<EventEmitter2>;
-  let loggerDebugSpy: jest.SpyInstance;
-  let loggerWarnSpy: jest.SpyInstance;
+  let mockLogger: jest.Mocked<ILogger>;
 
   // Mock DomainEvent factory
   const createMockEvent = (eventName: string, eventId: string, aggregateId?: string): DomainEvent => {
@@ -39,16 +38,20 @@ describe('EventEmitterPublisher', () => {
       emitAsync: jest.fn().mockResolvedValue([]),
     } as unknown as jest.Mocked<EventEmitter2>;
 
-    // Create publisher instance
-    publisher = new EventEmitterPublisher(mockEventEmitter);
+    // Setup Logger Mock
+    mockLogger = {
+      log: jest.fn(),
+      error: jest.fn(),
+      warn: jest.fn(),
+      debug: jest.fn(),
+    } as unknown as jest.Mocked<ILogger>;
 
-    // Spy on Logger methods
-    loggerDebugSpy = jest.spyOn(Logger.prototype, 'debug').mockImplementation();
-    loggerWarnSpy = jest.spyOn(Logger.prototype, 'warn').mockImplementation();
+    // Create publisher instance with mocked dependencies
+    publisher = new EventEmitterPublisher(mockEventEmitter, mockLogger);
   });
 
   afterEach(() => {
-    jest.restoreAllMocks();
+    jest.clearAllMocks();
   });
 
   describe('publish()', () => {
@@ -72,8 +75,8 @@ describe('EventEmitterPublisher', () => {
       await publisher.publish(mockEvent);
 
       // Then: Debug log is written with event details
-      expect(loggerDebugSpy).toHaveBeenCalledTimes(1);
-      expect(loggerDebugSpy).toHaveBeenCalledWith(
+      expect(mockLogger.debug).toHaveBeenCalledTimes(1);
+      expect(mockLogger.debug).toHaveBeenCalledWith(
         expect.stringContaining("Event 'lagekarte.created' published"),
         expect.objectContaining({
           eventId: 'evt-abc',
@@ -94,8 +97,8 @@ describe('EventEmitterPublisher', () => {
       await expect(publisher.publish(mockEvent)).resolves.not.toThrow();
 
       // And: Warning is logged
-      expect(loggerWarnSpy).toHaveBeenCalledTimes(1);
-      expect(loggerWarnSpy).toHaveBeenCalledWith(
+      expect(mockLogger.warn).toHaveBeenCalledTimes(1);
+      expect(mockLogger.warn).toHaveBeenCalledWith(
         expect.stringContaining("Event handler error for 'test.failing'"),
         expect.objectContaining({
           eventId: 'fail-event-id',
@@ -114,7 +117,7 @@ describe('EventEmitterPublisher', () => {
       await publisher.publish(mockEvent);
 
       // Then: Warning is logged with string error
-      expect(loggerWarnSpy).toHaveBeenCalledWith(
+      expect(mockLogger.warn).toHaveBeenCalledWith(
         expect.stringContaining("Event handler error for 'test.string-error'"),
         expect.objectContaining({
           error: 'String error',
@@ -133,7 +136,7 @@ describe('EventEmitterPublisher', () => {
       expect(mockEventEmitter.emitAsync).toHaveBeenCalledWith('test.no-aggregate', mockEvent);
 
       // And: Debug log handles undefined aggregateId
-      expect(loggerDebugSpy).toHaveBeenCalledWith(
+      expect(mockLogger.debug).toHaveBeenCalledWith(
         expect.stringContaining("Event 'test.no-aggregate' published"),
         expect.objectContaining({
           eventId: 'evt-no-agg',
@@ -183,8 +186,8 @@ describe('EventEmitterPublisher', () => {
       expect(mockEventEmitter.emitAsync).toHaveBeenCalledTimes(3);
 
       // And: Warn logged for failed handler
-      expect(loggerWarnSpy).toHaveBeenCalledTimes(1);
-      expect(loggerWarnSpy).toHaveBeenCalledWith(expect.stringContaining("Event handler error for 'event.two'"), expect.anything());
+      expect(mockLogger.warn).toHaveBeenCalledTimes(1);
+      expect(mockLogger.warn).toHaveBeenCalledWith(expect.stringContaining("Event handler error for 'event.two'"), expect.anything());
     });
 
     it('should handle empty events array', async () => {
@@ -204,7 +207,7 @@ describe('EventEmitterPublisher', () => {
       await publisher.publishAll([event1, event2]);
 
       // Then: Debug logged for each event
-      expect(loggerDebugSpy).toHaveBeenCalledTimes(2);
+      expect(mockLogger.debug).toHaveBeenCalledTimes(2);
     });
   });
 });

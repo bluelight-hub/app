@@ -9,7 +9,7 @@
 import { Inject, Injectable } from '@nestjs/common';
 import { Result } from '@domain/common/result';
 import { INTEGRATION_TYPES, type IIntegrationCredentialRepository } from '@domain/integrations';
-import { INTEGRATIONS } from '@/infrastructure/di-tokens';
+import { INTEGRATIONS } from '@infrastructure/di-tokens';
 import type { GetHiOrgCredentialsQuery } from './get-hiorg-credentials.query';
 
 /**

@@ -30,6 +30,7 @@ import { Result } from '@/domain/common/result';
 import type { ValidatedUser } from '@/modules/auth/strategies/jwt.strategy';
 import type { AddEintragDto, UpdateEintragDto, EtbDto, EintragDto, EtbSnapshotDto } from '@/application/etb/dto';
 import { EtbKategorie } from '@/domain/value-objects/etb-kategorie';
+import type { ILogger } from '@domain/ports/i-logger.port';
 
 const databaseAvailable = !!process.env.DATABASE_URL;
 
@@ -133,6 +134,7 @@ function createTestSnapshotDto(options: Partial<EtbSnapshotDto> = {}): EtbSnapsh
   let mockGetTextbausteineHandler: jest.Mocked<any>;
   // biome-ignore lint/suspicious/noExplicitAny: Test requires type bypass for mock/invalid data
   let mockEtbRepository: jest.Mocked<any>;
+  let mockLogger: jest.Mocked<ILogger>;
 
   const adminUser: ValidatedUser = {
     userId: createTestCuid('admin'),
@@ -182,6 +184,15 @@ function createTestSnapshotDto(options: Partial<EtbSnapshotDto> = {}): EtbSnapsh
       save: jest.fn(),
     };
 
+    // Create mock logger
+    mockLogger = {
+      log: jest.fn(),
+      error: jest.fn(),
+      warn: jest.fn(),
+      debug: jest.fn(),
+      verbose: jest.fn(),
+    } as jest.Mocked<ILogger>;
+
     // Instantiate controller with mocks (Direct Instantiation Pattern)
     controller = new EtbCqrsController(
       mockAddEintragHandler,
@@ -192,6 +203,7 @@ function createTestSnapshotDto(options: Partial<EtbSnapshotDto> = {}): EtbSnapsh
       mockGetEtbHistoryQueryHandler,
       mockGetTextbausteineHandler,
       mockEtbRepository,
+      mockLogger,
     );
   });
 

@@ -2,7 +2,7 @@ import { Test, type TestingModule } from '@nestjs/testing';
 import { createId } from '@paralleldrive/cuid2';
 import { Result } from '@domain/common/result';
 import { FunkStatusConfig } from '@domain/kraefte/aggregates/funk-status-config.aggregate';
-import { KRAEFTE_REPOSITORIES, OUTBOX_REPOSITORY } from '@infrastructure/di-tokens';
+import { KRAEFTE_REPOSITORIES, OUTBOX_REPOSITORY, LOGGER } from '@infrastructure/di-tokens';
 import { PrismaService } from '@infrastructure/database/prisma.service';
 import { UpdateFunkStatusConfigHandler } from '../update-funk-status-config.handler';
 import { UpdateFunkStatusConfigCommand } from '../update-funk-status-config.command';
@@ -27,6 +27,12 @@ describe('UpdateFunkStatusConfigHandler', () => {
   };
   let mockPrismaService: {
     $transaction: jest.Mock;
+  };
+  let mockLogger: {
+    log: jest.Mock;
+    error: jest.Mock;
+    warn: jest.Mock;
+    debug: jest.Mock;
   };
 
   const createMockFunkStatusConfig = (
@@ -95,12 +101,20 @@ describe('UpdateFunkStatusConfigHandler', () => {
       }),
     };
 
+    mockLogger = {
+      log: jest.fn(),
+      error: jest.fn(),
+      warn: jest.fn(),
+      debug: jest.fn(),
+    };
+
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         UpdateFunkStatusConfigHandler,
         { provide: PrismaService, useValue: mockPrismaService },
         { provide: OUTBOX_REPOSITORY, useValue: mockOutboxRepository },
         { provide: KRAEFTE_REPOSITORIES.FUNK_STATUS_CONFIG, useValue: mockRepository },
+        { provide: LOGGER, useValue: mockLogger },
       ],
     }).compile();
 

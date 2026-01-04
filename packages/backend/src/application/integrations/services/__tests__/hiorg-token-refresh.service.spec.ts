@@ -12,10 +12,12 @@ import type { IIntegrationCredentialRepository } from '@domain/integrations/repo
 import type { IEncryptionPort } from '@domain/ports/i-encryption.port';
 import type { IOAuth2Port, OAuth2TokenResponse } from '@domain/ports/i-oauth2.port';
 import type { IHiOrgOAuthConfigPort, HiOrgOAuthClientCredentials } from '@domain/ports/i-hiorg-oauth-config.port';
+import type { ILogger } from '@domain/ports/i-logger.port';
 import { HiOrgTokenRefreshService } from '../hiorg-token-refresh.service';
 
 describe('HiOrgTokenRefreshService', () => {
   let service: HiOrgTokenRefreshService;
+  let mockLogger: jest.Mocked<ILogger>;
   let mockEncryption: jest.Mocked<IEncryptionPort>;
   let mockRepository: jest.Mocked<IIntegrationCredentialRepository>;
   let mockOAuth2: jest.Mocked<IOAuth2Port>;
@@ -53,6 +55,14 @@ describe('HiOrgTokenRefreshService', () => {
   beforeEach(() => {
     jest.clearAllMocks();
 
+    mockLogger = {
+      log: jest.fn(),
+      warn: jest.fn(),
+      error: jest.fn(),
+      debug: jest.fn(),
+      verbose: jest.fn(),
+    };
+
     mockEncryption = {
       encrypt: jest.fn((value) => `encrypted:${value}`),
       decrypt: jest.fn((value) => value.replace('encrypted:', '')),
@@ -75,7 +85,7 @@ describe('HiOrgTokenRefreshService', () => {
       getClientCredentials: jest.fn().mockReturnValue(clientCredentials),
     };
 
-    service = new HiOrgTokenRefreshService(mockEncryption, mockRepository, mockOAuth2, mockOAuthConfig);
+    service = new HiOrgTokenRefreshService(mockLogger, mockEncryption, mockRepository, mockOAuth2, mockOAuthConfig);
   });
 
   describe('getValidAccessToken', () => {

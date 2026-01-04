@@ -20,7 +20,7 @@ import { HiOrgServerAdapter } from './hiorg-server.adapter';
 import { OAuth2Adapter } from './oauth2.adapter';
 import { PrismaIntegrationCredentialRepository } from './repositories/prisma-integration-credential.repository';
 import { PrismaOAuth2StateRepository } from './repositories/prisma-oauth2-state.repository';
-import { HiOrgOAuthConfigAdapter } from '@infrastructure/config/hiorg-oauth-config.adapter';
+import { HiOrgOAuthConfigAdapter } from '@infrastructure/common/adapters';
 import { OAuth2StateCleanupTask } from './tasks/oauth2-state-cleanup.task';
 import { PrismaQualifikationMappingRepository } from './repositories/prisma-qualifikation-mapping.repository';
 

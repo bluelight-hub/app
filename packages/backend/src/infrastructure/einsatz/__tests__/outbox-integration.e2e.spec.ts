@@ -75,6 +75,7 @@ import { Einsatz } from '@domain/aggregates/einsatz.aggregate';
       ctx.outboxRepository,
       eventDeserializer,
       ctx.eventPublisher,
+      ctx.mockLogger,
       undefined, // No AlertService for tests
       { maxRetries: 3, batchSize: 100 }, // Explicit config
     );
@@ -306,7 +307,10 @@ import { Einsatz } from '@domain/aggregates/einsatz.aggregate';
         }
       }
 
-      const failingPublisher = new OutboxEventPublisher(ctx.prisma, ctx.outboxRepository, eventDeserializer, new FailingEventPublisher() as never, undefined, { maxRetries: 3, batchSize: 100 });
+      const failingPublisher = new OutboxEventPublisher(ctx.prisma, ctx.outboxRepository, eventDeserializer, new FailingEventPublisher() as never, ctx.mockLogger, undefined, {
+        maxRetries: 3,
+        batchSize: 100,
+      });
 
       await failingPublisher.triggerManually();
 

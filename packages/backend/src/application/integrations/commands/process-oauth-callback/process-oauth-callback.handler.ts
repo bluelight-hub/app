@@ -18,7 +18,7 @@
 import { Inject, Injectable } from '@nestjs/common';
 import type { ILogger } from '@domain/ports/i-logger.port';
 import type { IHiOrgOAuthConfigPort } from '@domain/ports/i-hiorg-oauth-config.port';
-import { LOGGER, INTEGRATIONS } from '@/infrastructure/di-tokens';
+import { LOGGER, INTEGRATIONS } from '@infrastructure/di-tokens';
 import { Result } from '@domain/common/result';
 import { type IOAuth2StateRepository, type IIntegrationCredentialRepository, INTEGRATION_ERROR_CODES, IntegrationError, INTEGRATION_TYPES, IntegrationCredential } from '@domain/integrations';
 import type { IOAuth2Port } from '@domain/ports/i-oauth2.port';

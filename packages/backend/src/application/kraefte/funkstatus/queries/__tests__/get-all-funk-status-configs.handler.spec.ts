@@ -2,7 +2,7 @@ import { Test, type TestingModule } from '@nestjs/testing';
 import { createId } from '@paralleldrive/cuid2';
 import { Result } from '@domain/common/result';
 import { FunkStatusConfig } from '@domain/kraefte/aggregates/funk-status-config.aggregate';
-import { KRAEFTE_REPOSITORIES } from '@infrastructure/di-tokens';
+import { KRAEFTE_REPOSITORIES, LOGGER } from '@infrastructure/di-tokens';
 import { GetAllFunkStatusConfigsHandler } from '../get-all-funk-status-configs.handler';
 
 describe('GetAllFunkStatusConfigsHandler', () => {
@@ -12,6 +12,12 @@ describe('GetAllFunkStatusConfigsHandler', () => {
     findByCode: jest.Mock;
     findById: jest.Mock;
     update: jest.Mock;
+  };
+  let mockLogger: {
+    log: jest.Mock;
+    error: jest.Mock;
+    warn: jest.Mock;
+    debug: jest.Mock;
   };
 
   /**
@@ -65,6 +71,13 @@ describe('GetAllFunkStatusConfigsHandler', () => {
       update: jest.fn(),
     };
 
+    mockLogger = {
+      log: jest.fn(),
+      error: jest.fn(),
+      warn: jest.fn(),
+      debug: jest.fn(),
+    };
+
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         GetAllFunkStatusConfigsHandler,
@@ -72,6 +85,7 @@ describe('GetAllFunkStatusConfigsHandler', () => {
           provide: KRAEFTE_REPOSITORIES.FUNK_STATUS_CONFIG,
           useValue: mockRepository,
         },
+        { provide: LOGGER, useValue: mockLogger },
       ],
     }).compile();
 

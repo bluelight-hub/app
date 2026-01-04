@@ -3,6 +3,8 @@ import { JwtService } from '@nestjs/jwt';
 import { JwtTokenServiceAdapter } from '../jwt-token-service.adapter';
 import { UserId } from '@domain/value-objects/user-id';
 import { UserRole } from '@domain/value-objects/user-role';
+import type { ILogger } from '@domain/ports/i-logger.port';
+import { LOGGER } from '@infrastructure/di-tokens';
 
 /**
  * Unit Tests für JwtTokenServiceAdapter.
@@ -17,6 +19,7 @@ import { UserRole } from '@domain/value-objects/user-role';
  *
  * **Mocking Strategy:**
  * - JwtService: Vollständig gemockt (signAsync, verifyAsync)
+ * - ILogger: Vollständig gemockt (log, error, warn, debug)
  * - JWT_SECRET: Wird von process.env.JWT_SECRET gelesen
  *
  * **Test Patterns:**
@@ -27,6 +30,7 @@ import { UserRole } from '@domain/value-objects/user-role';
 describe('JwtTokenServiceAdapter', () => {
   let adapter: JwtTokenServiceAdapter;
   let mockJwtService: jest.Mocked<JwtService>;
+  let mockLogger: jest.Mocked<ILogger>;
 
   const TEST_SECRET = 'test-jwt-secret-for-unit-tests';
 
@@ -39,8 +43,16 @@ describe('JwtTokenServiceAdapter', () => {
       verifyAsync: jest.fn(),
     } as unknown as jest.Mocked<JwtService>;
 
+    // Setup Logger Mock
+    mockLogger = {
+      log: jest.fn(),
+      error: jest.fn(),
+      warn: jest.fn(),
+      debug: jest.fn(),
+    } as unknown as jest.Mocked<ILogger>;
+
     const module: TestingModule = await Test.createTestingModule({
-      providers: [JwtTokenServiceAdapter, { provide: JwtService, useValue: mockJwtService }],
+      providers: [JwtTokenServiceAdapter, { provide: JwtService, useValue: mockJwtService }, { provide: LOGGER, useValue: mockLogger }],
     }).compile();
 
     adapter = module.get<JwtTokenServiceAdapter>(JwtTokenServiceAdapter);

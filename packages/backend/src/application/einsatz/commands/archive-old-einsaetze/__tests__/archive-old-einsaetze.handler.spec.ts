@@ -6,6 +6,7 @@ import { Result } from '@domain/common/result';
 import { Einsatz } from '@domain/aggregates/einsatz.aggregate';
 import { UserId } from '@domain/value-objects/user-id';
 import { EinsatzStatus } from '@domain/value-objects/einsatz-status';
+import type { ILogger } from '@domain/ports/i-logger.port';
 
 /**
  * Helper: Erstellt Mock-Einsatz mit spezifischem Status und abgeschlossenAt Date.
@@ -58,6 +59,7 @@ describe('ArchiveOldEinsaetzeHandler', () => {
   let handler: ArchiveOldEinsaetzeHandler;
   let mockEinsatzRepository: jest.Mocked<IEinsatzRepository>;
   let mockOutboxRepository: jest.Mocked<IOutboxRepository>;
+  let mockLogger: jest.Mocked<ILogger>;
 
   beforeEach(() => {
     jest.clearAllMocks();
@@ -79,7 +81,14 @@ describe('ArchiveOldEinsaetzeHandler', () => {
       // biome-ignore lint/suspicious/noExplicitAny: Mock repository needs flexible typing
     } as any;
 
-    handler = new ArchiveOldEinsaetzeHandler(mockEinsatzRepository, mockOutboxRepository);
+    mockLogger = {
+      log: jest.fn(),
+      error: jest.fn(),
+      warn: jest.fn(),
+      debug: jest.fn(),
+    } as unknown as jest.Mocked<ILogger>;
+
+    handler = new ArchiveOldEinsaetzeHandler(mockEinsatzRepository, mockOutboxRepository, mockLogger);
   });
 
   describe('dry-run mode', () => {

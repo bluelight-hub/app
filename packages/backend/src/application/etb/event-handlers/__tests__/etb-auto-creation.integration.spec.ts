@@ -58,9 +58,10 @@ import { PrismaOutboxRepository } from '@/infrastructure/outbox/prisma-outbox.re
 import { EventSerializer } from '@/infrastructure/outbox/event-serializer';
 import type { IEinsatzRepository } from '@domain/repositories';
 import { EVENT_NAMES } from '@domain/events/event-names';
-import { EINSATZ_REPOSITORY, ETB_REPOSITORY, EVENT_HANDLER } from '@/infrastructure/di-tokens';
+import { EINSATZ_REPOSITORY, ETB_REPOSITORY, EVENT_HANDLER, LOGGER } from '@/infrastructure/di-tokens';
 import { skipIfNoDatabase } from '@infrastructure/__tests__/helpers/database-test.helper';
 import { EtbEventAdapter } from '@infrastructure/events/adapters/etb-event.adapter';
+import type { ILogger } from '@domain/ports/i-logger.port';
 
 /**
  * Generiert eine Test-CUID mit korrektem Format.
@@ -248,6 +249,16 @@ describe('EtbAutoCreationHandler - Integration Tests (AC6)', () => {
         {
           provide: EINSATZ_REPOSITORY,
           useValue: mockEinsatzRepository,
+        },
+        // Mock Logger (ILogger interface)
+        {
+          provide: LOGGER,
+          useValue: {
+            log: jest.fn(),
+            error: jest.fn(),
+            warn: jest.fn(),
+            debug: jest.fn(),
+          } as ILogger,
         },
         // Handlers
         CreateEtbHandler,

@@ -6,7 +6,8 @@ import { UserId } from '@domain/value-objects/user-id';
 import { PrismaService } from '@/infrastructure/database/prisma.service';
 import { EINSATZ_FIELD_LIMITS } from '@application/common/validators/string-validator';
 import { EinsatzCreatedEvent } from '@domain/events/einsatz-created.event';
-import { EINSATZ_REPOSITORY, OUTBOX_REPOSITORY } from '@/infrastructure/di-tokens';
+import { EINSATZ_REPOSITORY, OUTBOX_REPOSITORY, LOGGER } from '@/infrastructure/di-tokens';
+import type { ILogger } from '@domain/ports/i-logger.port';
 
 describe('CreateEinsatzHandler', () => {
   let handler: CreateEinsatzHandler;
@@ -27,6 +28,7 @@ describe('CreateEinsatzHandler', () => {
     markAsFailed: jest.Mock;
     getRetryCount: jest.Mock;
   };
+  let mockLogger: jest.Mocked<ILogger>;
 
   beforeEach(async () => {
     mockRepository = {
@@ -45,6 +47,13 @@ describe('CreateEinsatzHandler', () => {
       getRetryCount: jest.fn(),
     };
 
+    mockLogger = {
+      log: jest.fn(),
+      error: jest.fn(),
+      warn: jest.fn(),
+      debug: jest.fn(),
+    } as unknown as jest.Mocked<ILogger>;
+
     // WICHTIG: $transaction muss die Callback-Funktion ausführen und den Mock Transaction Client übergeben
     mockPrismaService = {
       $transaction: jest.fn().mockImplementation(async (callback) => {
@@ -60,6 +69,7 @@ describe('CreateEinsatzHandler', () => {
         { provide: PrismaService, useValue: mockPrismaService },
         { provide: OUTBOX_REPOSITORY, useValue: mockOutboxRepository },
         { provide: EINSATZ_REPOSITORY, useValue: mockRepository },
+        { provide: LOGGER, useValue: mockLogger },
       ],
     }).compile();
 

@@ -32,6 +32,19 @@ import { Username } from '@domain/value-objects/username';
 import { UserRole } from '@domain/value-objects/user-role';
 import type { PrismaService } from '@/infrastructure/database/prisma.service';
 import { skipIfNoDatabase } from '@infrastructure/__tests__/helpers/database-test.helper';
+import type { ILogger } from '@domain/ports/i-logger.port';
+
+/**
+ * Mock Logger für Integration Tests.
+ * Erfüllt ILogger Interface ohne echte Logging-Infrastruktur.
+ */
+const createMockLogger = (): ILogger => ({
+  log: jest.fn(),
+  error: jest.fn(),
+  warn: jest.fn(),
+  debug: jest.fn(),
+  verbose: jest.fn(),
+});
 
 // Generate Nanoid-compliant test IDs for User (21 chars, alphanumeric with mixed case + - _)
 const _generateNanoidTestId = (): string => {
@@ -71,7 +84,8 @@ describe('PrismaUserRepository - Integration Tests', () => {
 
     // Initialize Repository (mock PrismaService mit echtem PrismaClient)
     const prismaService = prisma as unknown as PrismaService;
-    repository = new PrismaUserRepository(prismaService);
+    const mockLogger = createMockLogger();
+    repository = new PrismaUserRepository(prismaService, mockLogger);
   });
 
   /**

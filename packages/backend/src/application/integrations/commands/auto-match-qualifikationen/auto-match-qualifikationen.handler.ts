@@ -14,7 +14,7 @@ import { Result } from '@domain/common/result';
 import { AUTO_MATCH_CONFIG, type IQualifikationMappingRepository, type AutoMatchType } from '@domain/integrations';
 import type { IQualifikationRepository } from '@domain/kraefte/repositories/i-qualifikation.repository';
 import type { Qualifikation } from '@domain/kraefte/aggregates/qualifikation.aggregate';
-import { INTEGRATIONS, DI_TOKENS, LOGGER } from '@/infrastructure/di-tokens';
+import { INTEGRATIONS, DI_TOKENS, LOGGER } from '@infrastructure/di-tokens';
 import type { ILogger } from '@domain/ports/i-logger.port';
 import type { AutoMatchQualifikationenCommand } from './auto-match-qualifikationen.command';
 

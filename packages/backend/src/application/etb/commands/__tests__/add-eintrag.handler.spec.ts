@@ -2,6 +2,7 @@ import { InMemoryEtbRepository } from '../../__tests__/in-memory-etb.repository'
 import { AddEintragCommand } from '../add-eintrag/add-eintrag.command';
 import { AddEintragHandler } from '../add-eintrag/add-eintrag.handler';
 import { createTestEtb } from '@domain/aggregates/__tests__/fixtures/etb.fixtures';
+import type { ILogger } from '@domain/ports/i-logger.port';
 
 // Mock CUID2 für deterministische Tests
 jest.mock('@paralleldrive/cuid2', () => ({
@@ -39,6 +40,7 @@ function generateTestCuid(): string {
 describe('AddEintragHandler', () => {
   let handler: AddEintragHandler;
   let etbRepository: InMemoryEtbRepository;
+  let mockLogger: jest.Mocked<ILogger>;
   let testUserId: string;
   let testEinsatzId: string;
 
@@ -48,8 +50,16 @@ describe('AddEintragHandler', () => {
     testUserId = generateTestCuid();
     testEinsatzId = generateTestCuid();
 
+    // Mock Logger (ILogger interface)
+    mockLogger = {
+      log: jest.fn(),
+      error: jest.fn(),
+      warn: jest.fn(),
+      debug: jest.fn(),
+    } as jest.Mocked<ILogger>;
+
     // Create handler with dependencies
-    handler = new AddEintragHandler(etbRepository);
+    handler = new AddEintragHandler(etbRepository, mockLogger);
   });
 
   afterEach(() => {

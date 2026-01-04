@@ -11,7 +11,7 @@ import { Inject, Injectable } from '@nestjs/common';
 import { Result } from '@domain/common/result';
 import type { IIntegrationCredentialRepository } from '@domain/integrations';
 import type { IHiOrgServerPort, HiOrgConnectionInfo } from '@domain/ports/i-hiorg-server.port';
-import { INTEGRATIONS } from '@/infrastructure/di-tokens';
+import { INTEGRATIONS } from '@infrastructure/di-tokens';
 // biome-ignore lint/style/useImportType: Service wird für DI zur Laufzeit benötigt
 import { HiOrgTokenRefreshService } from '../../services/hiorg-token-refresh.service';
 import type { TestHiOrgConnectionCommand } from './test-hiorg-connection.command';

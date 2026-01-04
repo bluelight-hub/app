@@ -12,9 +12,12 @@
 import { Test, type TestingModule } from '@nestjs/testing';
 import { LoggingAlertService } from '../logging-alert.service';
 import type { OutboxFailureAlertPayload } from '@domain/services/ports/i-alert.service';
+import type { ILogger } from '@domain/ports/i-logger.port';
+import { LOGGER } from '@infrastructure/di-tokens';
 
 describe('LoggingAlertService', () => {
   let service: LoggingAlertService;
+  let mockLogger: jest.Mocked<ILogger>;
 
   // Mock payload
   const mockPayload: OutboxFailureAlertPayload = {
@@ -28,8 +31,16 @@ describe('LoggingAlertService', () => {
   };
 
   beforeEach(async () => {
+    // Setup Logger Mock
+    mockLogger = {
+      log: jest.fn(),
+      error: jest.fn(),
+      warn: jest.fn(),
+      debug: jest.fn(),
+    } as unknown as jest.Mocked<ILogger>;
+
     const module: TestingModule = await Test.createTestingModule({
-      providers: [LoggingAlertService],
+      providers: [LoggingAlertService, { provide: LOGGER, useValue: mockLogger }],
     }).compile();
 
     service = module.get<LoggingAlertService>(LoggingAlertService);

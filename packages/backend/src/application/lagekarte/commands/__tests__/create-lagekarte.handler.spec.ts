@@ -3,6 +3,7 @@ import { CreateLagekarteCommand } from '../create-lagekarte.command';
 import type { IEinsatzRepository } from '@domain/repositories';
 import type { ILagekarteRepository } from '@domain/repositories';
 import type { IEventPublisher } from '@domain/services/ports/i-event-publisher.port';
+import type { ILogger } from '@domain/ports/i-logger.port';
 import { Result } from '@domain/common/result';
 import { EinsatzId } from '@domain/value-objects/einsatz-id';
 
@@ -51,11 +52,21 @@ function createValidTestId(suffix = ''): string {
  */
 describe('CreateLagekarteCommandHandler', () => {
   let handler: CreateLagekarteCommandHandler;
+  let mockLogger: jest.Mocked<ILogger>;
   let mockEinsatzRepo: jest.Mocked<IEinsatzRepository>;
   let mockLagekarteRepo: jest.Mocked<ILagekarteRepository>;
   let mockEventPublisher: jest.Mocked<IEventPublisher>;
 
   beforeEach(() => {
+    // Create mock logger with all required methods
+    mockLogger = {
+      log: jest.fn(),
+      error: jest.fn(),
+      warn: jest.fn(),
+      debug: jest.fn(),
+      // biome-ignore lint/suspicious/noExplicitAny: Test mock typing
+    } as any;
+
     // Create mock repositories with all required methods
     mockEinsatzRepo = {
       exists: jest.fn(),
@@ -81,7 +92,7 @@ describe('CreateLagekarteCommandHandler', () => {
     } as any;
 
     // Instantiate handler with mocks (Direct Instantiation Pattern)
-    handler = new CreateLagekarteCommandHandler(mockEinsatzRepo, mockLagekarteRepo, mockEventPublisher);
+    handler = new CreateLagekarteCommandHandler(mockLogger, mockEinsatzRepo, mockLagekarteRepo, mockEventPublisher);
   });
 
   afterEach(() => {

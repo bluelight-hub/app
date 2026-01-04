@@ -70,27 +70,25 @@ describe('Prisma Schema - EinsatzRollenbesetzung Integration Tests', () => {
 
     prisma = new PrismaClient();
 
-    // Disable triggers for cleanup
-    await prisma.$executeRaw`SET session_replication_role = replica`;
-
     // Create Test User (für createdBy/updatedBy)
+    // NOTE: User Model hat kein 'email' Feld mehr (Prisma Schema aktualisiert)
     testUserId = generateTestId();
     await prisma.user.create({
       data: {
         id: testUserId,
-        email: `test-rollen-besetzung-${Date.now()}@example.com`,
-        username: `test-user-${Date.now()}`,
+        username: `test-rollen-besetzung-${Date.now()}`,
         passwordHash: 'hashed-password-dummy',
         role: 'USER',
       },
     });
 
     // Create Test Einsatz
+    // NOTE: Einsatz Model hat kein 'nummer' Feld (Domain-only, wird zur Runtime generiert)
     testEinsatzId = generateTestId();
     await prisma.einsatz.create({
       data: {
         id: testEinsatzId,
-        nummer: `E-TEST-${Date.now()}`,
+        alarmstichwort: `TEST-${Date.now()}`,
         createdBy: testUserId,
         updatedBy: testUserId,
       },
@@ -109,6 +107,7 @@ describe('Prisma Schema - EinsatzRollenbesetzung Integration Tests', () => {
     });
 
     // Create Test EinsatzPerson
+    // NOTE: EinsatzPerson Model hat 'funktion' statt 'dienstgrad' (Schema aktualisiert)
     testPersonId = generateTestId();
     await prisma.einsatzPerson.create({
       data: {
@@ -116,7 +115,7 @@ describe('Prisma Schema - EinsatzRollenbesetzung Integration Tests', () => {
         einsatzId: testEinsatzId,
         vorname: 'Max',
         nachname: 'Mustermann',
-        dienstgrad: 'FM',
+        funktion: 'Gruppenführer',
         createdBy: testUserId,
         updatedBy: testUserId,
       },
@@ -128,21 +127,26 @@ describe('Prisma Schema - EinsatzRollenbesetzung Integration Tests', () => {
       return;
     }
 
-    // Cleanup in reverse FK order
-    await prisma.einsatzRollenbesetzung.deleteMany({
-      where: { einsatzId: testEinsatzId },
-    });
-    await prisma.einsatzPerson.deleteMany({
-      where: { einsatzId: testEinsatzId },
-    });
-    await prisma.rollenDefinition.deleteMany({
-      where: { id: testRollenDefId },
-    });
-    await prisma.einsatz.deleteMany({ where: { id: testEinsatzId } });
-    await prisma.user.deleteMany({ where: { id: testUserId } });
+    // Disable triggers/constraints nur für Cleanup (um orphaned Records zu löschen)
+    await prisma.$executeRaw`SET session_replication_role = replica`;
 
-    // Re-enable triggers
-    await prisma.$executeRaw`SET session_replication_role = DEFAULT`;
+    try {
+      // Cleanup in reverse FK order
+      await prisma.einsatzRollenbesetzung.deleteMany({
+        where: { einsatzId: testEinsatzId },
+      });
+      await prisma.einsatzPerson.deleteMany({
+        where: { einsatzId: testEinsatzId },
+      });
+      await prisma.rollenDefinition.deleteMany({
+        where: { id: testRollenDefId },
+      });
+      await prisma.einsatz.deleteMany({ where: { id: testEinsatzId } });
+      await prisma.user.deleteMany({ where: { id: testUserId } });
+    } finally {
+      // Re-enable triggers/constraints
+      await prisma.$executeRaw`SET session_replication_role = DEFAULT`;
+    }
 
     await prisma.$disconnect();
   });
@@ -169,12 +173,16 @@ describe('Prisma Schema - EinsatzRollenbesetzung Integration Tests', () => {
       }
 
       // Given: First Besetzung exists
+      // NOTE: EinsatzRollenbesetzung hat jetzt Snapshot-Felder (rollenName, personVorname, personNachname)
       const firstBesetzung = await prisma.einsatzRollenbesetzung.create({
         data: {
           id: generateTestId(),
           einsatzId: testEinsatzId,
           rollenDefinitionId: testRollenDefId,
           personId: testPersonId,
+          rollenName: 'Gruppenführer Test',
+          personVorname: 'Max',
+          personNachname: 'Mustermann',
           createdBy: testUserId,
           updatedBy: testUserId,
         },
@@ -187,6 +195,9 @@ describe('Prisma Schema - EinsatzRollenbesetzung Integration Tests', () => {
           einsatzId: firstBesetzung.einsatzId, // ← Same Einsatz
           rollenDefinitionId: firstBesetzung.rollenDefinitionId, // ← Same Rolle
           personId: generateTestId(), // ← Different Person (new ID)
+          rollenName: 'Gruppenführer Test',
+          personVorname: 'Hans',
+          personNachname: 'Müller',
           createdBy: testUserId,
           updatedBy: testUserId,
         },
@@ -220,6 +231,9 @@ describe('Prisma Schema - EinsatzRollenbesetzung Integration Tests', () => {
           einsatzId: testEinsatzId,
           rollenDefinitionId: testRollenDefId, // ← Role 1
           personId: testPersonId, // ← Same Person
+          rollenName: 'Gruppenführer Test',
+          personVorname: 'Max',
+          personNachname: 'Mustermann',
           createdBy: testUserId,
           updatedBy: testUserId,
         },
@@ -231,6 +245,9 @@ describe('Prisma Schema - EinsatzRollenbesetzung Integration Tests', () => {
           einsatzId: testEinsatzId,
           rollenDefinitionId: secondRolleId, // ← Role 2
           personId: testPersonId, // ← Same Person
+          rollenName: 'Maschinist Test',
+          personVorname: 'Max',
+          personNachname: 'Mustermann',
           createdBy: testUserId,
           updatedBy: testUserId,
         },
@@ -257,48 +274,38 @@ describe('Prisma Schema - EinsatzRollenbesetzung Integration Tests', () => {
   // ========================================
 
   describe('AC1: Cascade Delete Behavior', () => {
-    it('should cascade delete RollenBesetzungen when Einsatz is deleted', async () => {
+    it('should have CASCADE DELETE configured on einsatz FK', async () => {
       if (!databaseAvailable) {
         return;
       }
 
-      // Given: Create temporary Einsatz with Besetzung
-      const tempEinsatzId = generateTestId();
-      await prisma.einsatz.create({
-        data: {
-          id: tempEinsatzId,
-          nummer: `E-CASCADE-TEST-${Date.now()}`,
-          createdBy: testUserId,
-          updatedBy: testUserId,
-        },
-      });
+      // NOTE: Wir können CASCADE nicht direkt testen, da der DRK-Compliance-Trigger
+      // das Löschen von Einsätzen verhindert. Stattdessen validieren wir die FK-Definition.
+      //
+      // Wenn session_replication_role=replica gesetzt wird, werden ALLE Trigger und
+      // FK-Constraints deaktiviert (inkl. CASCADE), daher ist ein End-to-End Test
+      // nicht möglich ohne den Trigger permanent zu entfernen.
+      //
+      // Diese Test-Strategie validiert die SCHEMA-Konfiguration statt das Laufzeitverhalten.
 
-      const besetzungId = generateTestId();
-      await prisma.einsatzRollenbesetzung.create({
-        data: {
-          id: besetzungId,
-          einsatzId: tempEinsatzId,
-          rollenDefinitionId: testRollenDefId,
-          personId: testPersonId,
-          createdBy: testUserId,
-          updatedBy: testUserId,
-        },
-      });
+      // Given/When: Query FK constraint definition
+      const fkConstraints = await prisma.$queryRaw<Array<{ constraint_name: string; delete_rule: string }>>`
+        SELECT
+          tc.constraint_name,
+          rc.delete_rule
+        FROM information_schema.table_constraints tc
+        JOIN information_schema.referential_constraints rc
+          ON tc.constraint_name = rc.constraint_name
+        WHERE tc.table_name = 'einsatz_rollen_besetzung'
+          AND tc.constraint_type = 'FOREIGN KEY'
+          AND tc.constraint_name LIKE '%einsatz_id%'
+      `;
 
-      // Verify Besetzung exists
-      const besetzungBefore = await prisma.einsatzRollenbesetzung.findUnique({
-        where: { id: besetzungId },
-      });
-      expect(besetzungBefore).not.toBeNull();
-
-      // When: Delete Einsatz
-      await prisma.einsatz.delete({ where: { id: tempEinsatzId } });
-
-      // Then: Besetzung should be CASCADE deleted
-      const besetzungAfter = await prisma.einsatzRollenbesetzung.findUnique({
-        where: { id: besetzungId },
-      });
-      expect(besetzungAfter).toBeNull();
+      // Then: FK to einsatz should be CASCADE on DELETE
+      expect(fkConstraints.length).toBeGreaterThan(0);
+      const einsatzFk = fkConstraints.find((fk) => fk.constraint_name.includes('einsatz_id'));
+      expect(einsatzFk).toBeDefined();
+      expect(einsatzFk?.delete_rule).toBe('CASCADE');
     });
   });
 
@@ -331,6 +338,9 @@ describe('Prisma Schema - EinsatzRollenbesetzung Integration Tests', () => {
           einsatzId: testEinsatzId,
           rollenDefinitionId: tempRolleId, // ← FK Reference
           personId: testPersonId,
+          rollenName: 'Temp Role',
+          personVorname: 'Max',
+          personNachname: 'Mustermann',
           createdBy: testUserId,
           updatedBy: testUserId,
         },
@@ -361,7 +371,7 @@ describe('Prisma Schema - EinsatzRollenbesetzung Integration Tests', () => {
           einsatzId: testEinsatzId,
           vorname: 'Temp',
           nachname: 'Person',
-          dienstgrad: 'FM',
+          funktion: 'Helfer',
           createdBy: testUserId,
           updatedBy: testUserId,
         },
@@ -374,6 +384,9 @@ describe('Prisma Schema - EinsatzRollenbesetzung Integration Tests', () => {
           einsatzId: testEinsatzId,
           rollenDefinitionId: testRollenDefId,
           personId: tempPersonId, // ← FK Reference
+          rollenName: 'Gruppenführer Test',
+          personVorname: 'Temp',
+          personNachname: 'Person',
           createdBy: testUserId,
           updatedBy: testUserId,
         },
@@ -438,18 +451,18 @@ describe('Prisma Schema - EinsatzRollenbesetzung Integration Tests', () => {
         return;
       }
 
-      // Given/When: Query table constraints
-      const constraints = await prisma.$queryRaw<Array<{ constraint_name: string; constraint_type: string }>>`
-        SELECT constraint_name, constraint_type
-        FROM information_schema.table_constraints
-        WHERE table_name = 'einsatz_rollen_besetzung'
-          AND constraint_type = 'UNIQUE'
+      // Given/When: Query pg_indexes (Prisma implements @@unique as UNIQUE INDEX)
+      // NOTE: Prisma's @@unique directive creates a UNIQUE INDEX, not a CONSTRAINT
+      const indexes = await prisma.$queryRaw<Array<{ indexname: string; indexdef: string }>>`
+        SELECT indexname, indexdef FROM pg_indexes
+        WHERE tablename = 'einsatz_rollen_besetzung'
+          AND indexdef ILIKE '%UNIQUE%'
       `;
 
-      // Then: Should have UNIQUE constraint
-      expect(constraints.length).toBeGreaterThan(0);
-      const hasUniqueConstraint = constraints.some((c) => c.constraint_name.includes('einsatz'));
-      expect(hasUniqueConstraint).toBe(true);
+      // Then: Should have UNIQUE index containing both einsatz_id and rollen_definition_id
+      expect(indexes.length).toBeGreaterThan(0);
+      const hasCompositeUniqueIndex = indexes.some((idx) => idx.indexdef.includes('einsatz_id') && idx.indexdef.includes('rollen_definition_id'));
+      expect(hasCompositeUniqueIndex).toBe(true);
     });
   });
 });

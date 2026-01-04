@@ -2,7 +2,7 @@ import { Test, type TestingModule } from '@nestjs/testing';
 import { createId } from '@paralleldrive/cuid2';
 import { Result } from '@domain/common/result';
 import { Fahrzeugtyp } from '@domain/kraefte/aggregates/fahrzeugtyp.aggregate';
-import { KRAEFTE_REPOSITORIES, OUTBOX_REPOSITORY } from '@infrastructure/di-tokens';
+import { KRAEFTE_REPOSITORIES, OUTBOX_REPOSITORY, LOGGER } from '@infrastructure/di-tokens';
 import { PrismaService } from '@infrastructure/database/prisma.service';
 import { DeactivateFahrzeugtypHandler } from '../deactivate-fahrzeugtyp.handler';
 import { DeactivateFahrzeugtypCommand } from '../deactivate-fahrzeugtyp.command';
@@ -25,6 +25,12 @@ describe('DeactivateFahrzeugtypHandler', () => {
   };
   let mockPrismaService: {
     $transaction: jest.Mock;
+  };
+  let mockLogger: {
+    log: jest.Mock;
+    error: jest.Mock;
+    warn: jest.Mock;
+    debug: jest.Mock;
   };
 
   // Factory functions für frische Instanzen (Aggregate werden durch Handler mutiert)
@@ -83,12 +89,20 @@ describe('DeactivateFahrzeugtypHandler', () => {
       }),
     };
 
+    mockLogger = {
+      log: jest.fn(),
+      error: jest.fn(),
+      warn: jest.fn(),
+      debug: jest.fn(),
+    };
+
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         DeactivateFahrzeugtypHandler,
         { provide: PrismaService, useValue: mockPrismaService },
         { provide: OUTBOX_REPOSITORY, useValue: mockOutboxRepository },
         { provide: KRAEFTE_REPOSITORIES.FAHRZEUGTYP, useValue: mockRepository },
+        { provide: LOGGER, useValue: mockLogger },
       ],
     }).compile();
 

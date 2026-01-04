@@ -21,6 +21,8 @@ import { PrismaOutboxRepository, type PrismaTransaction } from '../prisma-outbox
 import { EventSerializer, type SerializedEvent } from '../event-serializer';
 import { PrismaService } from '@/infrastructure/database/prisma.service';
 import type { DomainEvent } from '@domain/common/domain-event';
+import type { ILogger } from '@domain/ports/i-logger.port';
+import { LOGGER } from '@infrastructure/di-tokens';
 import type { OutboxEventStatus } from '@prisma/client';
 
 // Mock EinsatzCreatedEvent for testing
@@ -55,6 +57,7 @@ describe('PrismaOutboxRepository', () => {
   let repository: PrismaOutboxRepository;
   let prismaService: jest.Mocked<PrismaService>;
   let eventSerializer: jest.Mocked<EventSerializer>;
+  let mockLogger: jest.Mocked<ILogger>;
 
   // Mock data
   const mockSerializedEvent: SerializedEvent = {
@@ -81,6 +84,9 @@ describe('PrismaOutboxRepository', () => {
   };
 
   beforeEach(async () => {
+    // Reset mocks
+    jest.clearAllMocks();
+
     // Create mocks
     const mockPrismaService = {
       outboxEvent: {
@@ -95,8 +101,21 @@ describe('PrismaOutboxRepository', () => {
       serialize: jest.fn().mockReturnValue(mockSerializedEvent),
     };
 
+    // Create mock logger
+    mockLogger = {
+      log: jest.fn(),
+      error: jest.fn(),
+      warn: jest.fn(),
+      debug: jest.fn(),
+    } as unknown as jest.Mocked<ILogger>;
+
     const module: TestingModule = await Test.createTestingModule({
-      providers: [PrismaOutboxRepository, { provide: PrismaService, useValue: mockPrismaService }, { provide: EventSerializer, useValue: mockEventSerializer }],
+      providers: [
+        PrismaOutboxRepository,
+        { provide: PrismaService, useValue: mockPrismaService },
+        { provide: EventSerializer, useValue: mockEventSerializer },
+        { provide: LOGGER, useValue: mockLogger },
+      ],
     }).compile();
 
     repository = module.get<PrismaOutboxRepository>(PrismaOutboxRepository);

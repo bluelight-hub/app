@@ -8,6 +8,7 @@ import { EinsatzStatus } from '@domain/value-objects/einsatz-status';
 import type { Address } from '@domain/value-objects/address';
 import type { Einsatz as PrismaEinsatz, EinsatzStatus as PrismaEinsatzStatus } from '@prisma/client';
 import { Result } from '@domain/common/result';
+import type { ILogger } from '@domain/ports/i-logger.port';
 
 /**
  * Unit Tests für PrismaEinsatzRepository.
@@ -46,6 +47,7 @@ describe('PrismaEinsatzRepository', () => {
   // Mock Instances
   let repository: PrismaEinsatzRepository;
   let mockPrismaService: jest.Mocked<PrismaService>;
+  let mockLogger: jest.Mocked<ILogger>;
 
   // Mock Data Helpers
   const mockUserId = 'user_abc123';
@@ -134,8 +136,16 @@ describe('PrismaEinsatzRepository', () => {
       $transaction: jest.fn((callback) => callback(mockPrismaService)),
     } as unknown as jest.Mocked<PrismaService>;
 
+    // Create Logger Mock
+    mockLogger = {
+      log: jest.fn(),
+      error: jest.fn(),
+      warn: jest.fn(),
+      debug: jest.fn(),
+    } as jest.Mocked<ILogger>;
+
     // Instantiate Repository
-    repository = new PrismaEinsatzRepository(mockPrismaService);
+    repository = new PrismaEinsatzRepository(mockPrismaService, mockLogger);
   });
 
   describe('save()', () => {

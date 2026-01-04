@@ -2,6 +2,7 @@ import { InMemoryEtbRepository } from '../../__tests__/in-memory-etb.repository'
 import { DeleteEintragCommand } from '../delete-eintrag/delete-eintrag.command';
 import { DeleteEintragHandler } from '../delete-eintrag/delete-eintrag.handler';
 import { createTestEtb } from '@domain/aggregates/__tests__/fixtures/etb.fixtures';
+import type { ILogger } from '@domain/ports/i-logger.port';
 
 // Mock CUID2 für deterministische Tests
 jest.mock('@paralleldrive/cuid2', () => ({
@@ -36,6 +37,7 @@ function generateTestCuid(): string {
 describe('DeleteEintragHandler', () => {
   let handler: DeleteEintragHandler;
   let etbRepository: InMemoryEtbRepository;
+  let mockLogger: jest.Mocked<ILogger>;
   let testUserId: string;
   let testEinsatzId: string;
 
@@ -45,8 +47,16 @@ describe('DeleteEintragHandler', () => {
     testUserId = generateTestCuid();
     testEinsatzId = generateTestCuid();
 
+    // Mock Logger (ILogger interface)
+    mockLogger = {
+      log: jest.fn(),
+      error: jest.fn(),
+      warn: jest.fn(),
+      debug: jest.fn(),
+    } as jest.Mocked<ILogger>;
+
     // Create handler with dependencies
-    handler = new DeleteEintragHandler(etbRepository);
+    handler = new DeleteEintragHandler(etbRepository, mockLogger);
   });
 
   afterEach(() => {

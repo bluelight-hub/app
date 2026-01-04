@@ -5,6 +5,7 @@ import { Einsatz } from '@domain/aggregates/einsatz.aggregate';
 import { UserId } from '@domain/value-objects/user-id';
 import { Result } from '@domain/common/result';
 import { Address } from '@domain/value-objects/address';
+import type { ILogger } from '@domain/ports/i-logger.port';
 
 // Mock cuid2 for deterministic test IDs
 jest.mock('@paralleldrive/cuid2', () => ({
@@ -53,6 +54,7 @@ function createValidTestAddress(): Address {
 describe('GetEinsatzByNummerQueryHandler', () => {
   let handler: GetEinsatzByNummerQueryHandler;
   let mockRepo: jest.Mocked<IEinsatzRepository>;
+  let mockLogger: jest.Mocked<ILogger>;
 
   beforeEach(() => {
     // Create mock repository with all required methods
@@ -65,8 +67,15 @@ describe('GetEinsatzByNummerQueryHandler', () => {
       // biome-ignore lint/suspicious/noExplicitAny: Test mock typing
     } as any;
 
+    mockLogger = {
+      log: jest.fn(),
+      error: jest.fn(),
+      warn: jest.fn(),
+      debug: jest.fn(),
+    } as unknown as jest.Mocked<ILogger>;
+
     // Instantiate handler with mock (Direct Instantiation Pattern)
-    handler = new GetEinsatzByNummerQueryHandler(mockRepo);
+    handler = new GetEinsatzByNummerQueryHandler(mockRepo, mockLogger);
   });
 
   afterEach(() => {

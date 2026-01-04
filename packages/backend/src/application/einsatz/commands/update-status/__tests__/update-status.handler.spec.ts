@@ -8,7 +8,8 @@ import { UserId } from '@domain/value-objects/user-id';
 import { EinsatzId } from '@domain/value-objects/einsatz-id';
 import { PrismaService } from '@/infrastructure/database/prisma.service';
 import { Test, type TestingModule } from '@nestjs/testing';
-import { EINSATZ_REPOSITORY, OUTBOX_REPOSITORY } from '@/infrastructure/di-tokens';
+import { EINSATZ_REPOSITORY, OUTBOX_REPOSITORY, LOGGER } from '@/infrastructure/di-tokens';
+import type { ILogger } from '@domain/ports/i-logger.port';
 
 /**
  * Helper: Erstellt Mock-Einsatz mit spezifischem Status.
@@ -46,6 +47,7 @@ describe('UpdateEinsatzStatusHandler', () => {
   let mockOutboxRepository: {
     save: jest.Mock;
   };
+  let mockLogger: jest.Mocked<ILogger>;
 
   beforeEach(async () => {
     mockRepository = {
@@ -67,12 +69,20 @@ describe('UpdateEinsatzStatusHandler', () => {
       save: jest.fn().mockResolvedValue(undefined),
     };
 
+    mockLogger = {
+      log: jest.fn(),
+      error: jest.fn(),
+      warn: jest.fn(),
+      debug: jest.fn(),
+    } as unknown as jest.Mocked<ILogger>;
+
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         UpdateEinsatzStatusHandler,
         { provide: PrismaService, useValue: mockPrismaService },
         { provide: OUTBOX_REPOSITORY, useValue: mockOutboxRepository },
         { provide: EINSATZ_REPOSITORY, useValue: mockRepository },
+        { provide: LOGGER, useValue: mockLogger },
       ],
     }).compile();
 

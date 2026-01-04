@@ -12,6 +12,7 @@ import type { GetEtbQueryHandler } from '@/application/etb/queries/get-etb/get-e
 import type { GetEtbHistoryQueryHandler } from '@/application/etb/queries/get-etb-history/get-etb-history-query.handler';
 import type { GetTextbausteineHandler } from '@/application/etb/queries/get-textbausteine/get-textbausteine-query.handler';
 import type { IEtbRepository } from '@domain/repositories/i-etb.repository';
+import type { ILogger } from '@domain/ports/i-logger.port';
 
 // Mock EtbQueryMapper
 jest.mock('@/application/etb/mappers', () => ({
@@ -106,6 +107,7 @@ describe('EtbCqrsController', () => {
   let mockGetEtbHistoryQueryHandler: jest.Mocked<GetEtbHistoryQueryHandler>;
   let mockGetTextbausteineHandler: jest.Mocked<GetTextbausteineHandler>;
   let mockEtbRepository: jest.Mocked<IEtbRepository>;
+  let mockLogger: jest.Mocked<ILogger>;
 
   // Standard mock user for authenticated requests
   const mockUser: ValidatedUser = {
@@ -172,6 +174,16 @@ describe('EtbCqrsController', () => {
       // biome-ignore lint/suspicious/noExplicitAny: Test mock typing
     } as any;
 
+    // Create mock logger
+    mockLogger = {
+      log: jest.fn(),
+      error: jest.fn(),
+      warn: jest.fn(),
+      debug: jest.fn(),
+      verbose: jest.fn(),
+      // biome-ignore lint/suspicious/noExplicitAny: Test mock typing
+    } as any;
+
     // Instantiate controller with mocks
     controller = new EtbCqrsController(
       mockAddEintragHandler,
@@ -182,6 +194,7 @@ describe('EtbCqrsController', () => {
       mockGetEtbHistoryQueryHandler,
       mockGetTextbausteineHandler,
       mockEtbRepository,
+      mockLogger,
     );
   });
 

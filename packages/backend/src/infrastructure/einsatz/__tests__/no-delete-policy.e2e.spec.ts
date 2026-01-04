@@ -37,9 +37,9 @@ const databaseAvailable = !!process.env.DATABASE_URL;
 
   beforeAll(async () => {
     ctx = await createEinsatzE2eModule();
-    // Initialize handlers mit repository und eventPublisher
-    deleteHandler = new DeleteEinsatzHandler(ctx.repository);
-    _archiveHandler = new ArchiveEinsatzHandler(ctx.repository, ctx.eventPublisher);
+    // Initialize handlers mit repository, outboxRepository, eventPublisher und mockLogger
+    deleteHandler = new DeleteEinsatzHandler(ctx.repository, ctx.mockLogger);
+    _archiveHandler = new ArchiveEinsatzHandler(ctx.prisma, ctx.outboxRepository, ctx.repository, ctx.mockLogger);
   }, 30000);
 
   afterEach(async () => {

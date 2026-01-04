@@ -19,7 +19,7 @@ import { Result } from '@domain/common/result';
 import { OAuth2State, type IOAuth2StateRepository, INTEGRATION_TYPES, INTEGRATION_ERROR_CODES, IntegrationError } from '@domain/integrations';
 import type { IOAuth2Port } from '@domain/ports/i-oauth2.port';
 import type { IHiOrgOAuthConfigPort } from '@domain/ports/i-hiorg-oauth-config.port';
-import { INTEGRATIONS } from '@/infrastructure/di-tokens';
+import { INTEGRATIONS } from '@infrastructure/di-tokens';
 import { HIORG_OAUTH_CONFIG } from '@/infrastructure/config/hiorg-oauth.config';
 import type { InitiateOAuthFlowCommand } from './initiate-oauth-flow.command';
 

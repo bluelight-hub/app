@@ -2,7 +2,7 @@ import { CacheModuleOptions, CacheOptionsFactory } from '@nestjs/cache-manager';
 import { Inject, Injectable } from '@nestjs/common';
 import { ConfigType } from '@nestjs/config';
 import { milliseconds } from 'date-fns';
-import { cacheConfig } from './cache.config';
+import { cacheConfig } from '@infrastructure/config/cache.config';
 import type { ILogger } from '@domain/ports/i-logger.port';
 import { LOGGER } from '@infrastructure/di-tokens';
 

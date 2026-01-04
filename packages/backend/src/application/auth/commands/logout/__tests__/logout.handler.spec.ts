@@ -1,6 +1,7 @@
 import { LogoutHandler } from '../logout.handler';
 import { LogoutCommand } from '../logout.command';
 import type { IJwtAuthServicePort } from '@domain/ports/i-jwt-auth-service.port';
+import type { ILogger } from '@domain/ports/i-logger.port';
 
 /**
  * Unit Tests für LogoutHandler.
@@ -29,6 +30,7 @@ import type { IJwtAuthServicePort } from '@domain/ports/i-jwt-auth-service.port'
 describe('LogoutHandler', () => {
   let handler: LogoutHandler;
   let mockJwtService: jest.Mocked<IJwtAuthServicePort>;
+  let mockLogger: jest.Mocked<ILogger>;
 
   beforeEach(() => {
     // Mock JWT Service
@@ -38,7 +40,15 @@ describe('LogoutHandler', () => {
       revokeToken: jest.fn(),
     } as unknown as jest.Mocked<IJwtAuthServicePort>;
 
-    handler = new LogoutHandler(mockJwtService);
+    // Mock Logger
+    mockLogger = {
+      log: jest.fn(),
+      error: jest.fn(),
+      warn: jest.fn(),
+      debug: jest.fn(),
+    };
+
+    handler = new LogoutHandler(mockJwtService, mockLogger);
   });
 
   afterEach(() => {

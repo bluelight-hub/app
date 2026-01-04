@@ -8,7 +8,7 @@
  * - HIORG_OAUTH_CLIENT_ID - OAuth2 Client ID
  * - HIORG_OAUTH_CLIENT_SECRET - OAuth2 Client Secret
  *
- * @module infrastructure/config
+ * @module infrastructure/common/adapters
  */
 
 import { Injectable } from '@nestjs/common';

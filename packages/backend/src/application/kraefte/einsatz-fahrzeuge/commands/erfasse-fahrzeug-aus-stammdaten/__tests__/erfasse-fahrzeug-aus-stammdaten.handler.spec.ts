@@ -3,7 +3,7 @@ import { createId } from '@paralleldrive/cuid2';
 import { Result } from '@domain/common/result';
 import { StammFahrzeug } from '@domain/kraefte/aggregates/stamm-fahrzeug.aggregate';
 import { Fahrzeugtyp } from '@domain/kraefte/aggregates/fahrzeugtyp.aggregate';
-import { KRAEFTE_REPOSITORIES, OUTBOX_REPOSITORY } from '@infrastructure/di-tokens';
+import { KRAEFTE_REPOSITORIES, OUTBOX_REPOSITORY, LOGGER } from '@infrastructure/di-tokens';
 import { PrismaService } from '@infrastructure/database/prisma.service';
 import { EINSATZ_FAHRZEUG_ERROR_CODES } from '@domain/kraefte/common/einsatz-fahrzeug-error-codes';
 import { ErfasseFahrzeugAusStammdatenHandler } from '../erfasse-fahrzeug-aus-stammdaten.handler';
@@ -38,6 +38,12 @@ describe('ErfasseFahrzeugAusStammdatenHandler', () => {
   };
   let mockPrismaService: {
     $transaction: jest.Mock;
+  };
+  let mockLogger: {
+    log: jest.Mock;
+    error: jest.Mock;
+    warn: jest.Mock;
+    debug: jest.Mock;
   };
 
   // Test Data
@@ -123,6 +129,13 @@ describe('ErfasseFahrzeugAusStammdatenHandler', () => {
       }),
     };
 
+    mockLogger = {
+      log: jest.fn(),
+      error: jest.fn(),
+      warn: jest.fn(),
+      debug: jest.fn(),
+    };
+
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         ErfasseFahrzeugAusStammdatenHandler,
@@ -131,6 +144,7 @@ describe('ErfasseFahrzeugAusStammdatenHandler', () => {
         { provide: KRAEFTE_REPOSITORIES.EINSATZ_FAHRZEUG, useValue: mockEinsatzFahrzeugRepository },
         { provide: KRAEFTE_REPOSITORIES.STAMM_FAHRZEUG, useValue: mockStammFahrzeugRepository },
         { provide: KRAEFTE_REPOSITORIES.FAHRZEUGTYP, useValue: mockFahrzeugtypRepository },
+        { provide: LOGGER, useValue: mockLogger },
       ],
     }).compile();
 

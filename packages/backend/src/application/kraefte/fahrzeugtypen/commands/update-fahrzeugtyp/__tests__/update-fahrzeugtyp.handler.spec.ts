@@ -2,7 +2,7 @@ import { Test, type TestingModule } from '@nestjs/testing';
 import { createId } from '@paralleldrive/cuid2';
 import { Result } from '@domain/common/result';
 import { Fahrzeugtyp } from '@domain/kraefte/aggregates/fahrzeugtyp.aggregate';
-import { KRAEFTE_REPOSITORIES, OUTBOX_REPOSITORY } from '@infrastructure/di-tokens';
+import { KRAEFTE_REPOSITORIES, OUTBOX_REPOSITORY, LOGGER } from '@infrastructure/di-tokens';
 import { PrismaService } from '@infrastructure/database/prisma.service';
 import { UpdateFahrzeugtypHandler } from '../update-fahrzeugtyp.handler';
 import { UpdateFahrzeugtypCommand } from '../update-fahrzeugtyp.command';
@@ -25,6 +25,12 @@ describe('UpdateFahrzeugtypHandler', () => {
   };
   let mockPrismaService: {
     $transaction: jest.Mock;
+  };
+  let mockLogger: {
+    log: jest.Mock;
+    error: jest.Mock;
+    warn: jest.Mock;
+    debug: jest.Mock;
   };
 
   // Factory function für frische Instanzen (Aggregate werden durch Handler mutiert)
@@ -69,12 +75,20 @@ describe('UpdateFahrzeugtypHandler', () => {
       }),
     };
 
+    mockLogger = {
+      log: jest.fn(),
+      error: jest.fn(),
+      warn: jest.fn(),
+      debug: jest.fn(),
+    };
+
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         UpdateFahrzeugtypHandler,
         { provide: PrismaService, useValue: mockPrismaService },
         { provide: OUTBOX_REPOSITORY, useValue: mockOutboxRepository },
         { provide: KRAEFTE_REPOSITORIES.FAHRZEUGTYP, useValue: mockRepository },
+        { provide: LOGGER, useValue: mockLogger },
       ],
     }).compile();
 

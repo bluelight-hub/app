@@ -37,6 +37,7 @@ import { PoiCategory } from '@domain/value-objects/poi-category';
 import { Result } from '@domain/common/result';
 import type { IEinsatzRepository } from '@domain/repositories';
 import type { IEventPublisher } from '@domain/services/ports/i-event-publisher.port';
+import type { ILogger } from '@domain/ports/i-logger.port';
 import type { DomainEvent } from '@domain/common/domain-event';
 
 const databaseAvailable = !!process.env.DATABASE_URL;
@@ -143,6 +144,7 @@ class SpyEventPublisher implements IEventPublisher {
 (databaseAvailable ? describe : describe.skip)('Lagekarte Event Publishing - Integration', () => {
   let lagekarteRepository: InMemoryLagekarteRepository;
   let mockEinsatzRepository: jest.Mocked<IEinsatzRepository>;
+  let mockLogger: jest.Mocked<ILogger>;
   let eventPublisher: SpyEventPublisher;
   let createHandler: CreateLagekarteCommandHandler;
   let addPoiHandler: AddPoiCommandHandler;
@@ -155,6 +157,14 @@ class SpyEventPublisher implements IEventPublisher {
 
     // Create In-Memory Repository
     lagekarteRepository = new InMemoryLagekarteRepository();
+
+    // Create Mock Logger
+    mockLogger = {
+      log: jest.fn(),
+      error: jest.fn(),
+      warn: jest.fn(),
+      debug: jest.fn(),
+    } as any;
 
     // Create Mock EinsatzRepository
     mockEinsatzRepository = {
@@ -169,10 +179,10 @@ class SpyEventPublisher implements IEventPublisher {
     eventPublisher = new SpyEventPublisher();
 
     // Instantiate Handlers with real repositories and spy publisher
-    createHandler = new CreateLagekarteCommandHandler(mockEinsatzRepository, lagekarteRepository, eventPublisher);
-    addPoiHandler = new AddPoiCommandHandler(lagekarteRepository, eventPublisher);
-    removePoiHandler = new RemovePoiCommandHandler(lagekarteRepository, eventPublisher);
-    updatePoiPositionHandler = new UpdatePoiPositionCommandHandler(lagekarteRepository, eventPublisher);
+    createHandler = new CreateLagekarteCommandHandler(mockLogger, mockEinsatzRepository, lagekarteRepository, eventPublisher);
+    addPoiHandler = new AddPoiCommandHandler(mockLogger, lagekarteRepository, eventPublisher);
+    removePoiHandler = new RemovePoiCommandHandler(mockLogger, lagekarteRepository, eventPublisher);
+    updatePoiPositionHandler = new UpdatePoiPositionCommandHandler(mockLogger, lagekarteRepository, eventPublisher);
   });
 
   afterEach(() => {

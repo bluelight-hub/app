@@ -9,8 +9,11 @@
  * Epic 4 Story 4.4 | AC 3.4-3.6
  */
 
+import { Test, type TestingModule } from '@nestjs/testing';
 import { EventDeserializer } from '../event-deserializer';
 import type { SerializedEvent } from '../event-serializer';
+import type { ILogger } from '@domain/ports/i-logger.port';
+import { LOGGER } from '@infrastructure/di-tokens';
 
 // Einsatz Events
 import { EinsatzCreatedEvent } from '@domain/events/einsatz-created.event';
@@ -55,6 +58,7 @@ import { UserId } from '@domain/value-objects/user-id';
 
 describe('EventDeserializer', () => {
   let deserializer: EventDeserializer;
+  let mockLogger: jest.Mocked<ILogger>;
 
   // Test IDs (Nanoid format)
   let einsatzIdValue: string;
@@ -76,8 +80,24 @@ describe('EventDeserializer', () => {
     poiIdValue = PoiId.create().value!.value;
   });
 
-  beforeEach(() => {
-    deserializer = new EventDeserializer();
+  beforeEach(async () => {
+    // Reset mocks
+    jest.clearAllMocks();
+
+    // Create mock logger
+    mockLogger = {
+      log: jest.fn(),
+      error: jest.fn(),
+      warn: jest.fn(),
+      debug: jest.fn(),
+    } as unknown as jest.Mocked<ILogger>;
+
+    // Create test module with DI
+    const module: TestingModule = await Test.createTestingModule({
+      providers: [EventDeserializer, { provide: LOGGER, useValue: mockLogger }],
+    }).compile();
+
+    deserializer = module.get<EventDeserializer>(EventDeserializer);
   });
 
   // ===== HELPER FUNCTIONS =====

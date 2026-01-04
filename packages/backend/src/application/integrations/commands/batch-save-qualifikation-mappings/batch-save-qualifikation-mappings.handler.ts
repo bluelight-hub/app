@@ -12,7 +12,7 @@ import { Result } from '@domain/common/result';
 import type { IQualifikationMappingRepository } from '@domain/integrations/repositories/i-qualifikation-mapping.repository';
 import { QualifikationMapping } from '@domain/integrations/entities/qualifikation-mapping.entity';
 import { INTEGRATION_TYPES } from '@domain/integrations';
-import { INTEGRATIONS } from '@/infrastructure/di-tokens';
+import { INTEGRATIONS } from '@infrastructure/di-tokens';
 import type { BatchSaveQualifikationMappingsCommand } from './batch-save-qualifikation-mappings.command';
 
 /**

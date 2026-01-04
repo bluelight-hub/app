@@ -2,7 +2,7 @@ import { Test, type TestingModule } from '@nestjs/testing';
 import { createId } from '@paralleldrive/cuid2';
 import { Result } from '@domain/common/result';
 import { Fahrzeugtyp } from '@domain/kraefte/aggregates/fahrzeugtyp.aggregate';
-import { KRAEFTE_REPOSITORIES, OUTBOX_REPOSITORY } from '@infrastructure/di-tokens';
+import { KRAEFTE_REPOSITORIES, OUTBOX_REPOSITORY, LOGGER } from '@infrastructure/di-tokens';
 import { PrismaService } from '@infrastructure/database/prisma.service';
 import { EINSATZ_FAHRZEUG_ERROR_CODES } from '@domain/kraefte/common/einsatz-fahrzeug-error-codes';
 import { ErfasseTemporalesFahrzeugHandler } from '../erfasse-temporales-fahrzeug.handler';
@@ -32,6 +32,12 @@ describe('ErfasseTemporalesFahrzeugHandler', () => {
   };
   let mockPrismaService: {
     $transaction: jest.Mock;
+  };
+  let mockLogger: {
+    log: jest.Mock;
+    error: jest.Mock;
+    warn: jest.Mock;
+    debug: jest.Mock;
   };
 
   // Test Data
@@ -89,6 +95,13 @@ describe('ErfasseTemporalesFahrzeugHandler', () => {
       }),
     };
 
+    mockLogger = {
+      log: jest.fn(),
+      error: jest.fn(),
+      warn: jest.fn(),
+      debug: jest.fn(),
+    };
+
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         ErfasseTemporalesFahrzeugHandler,
@@ -96,6 +109,7 @@ describe('ErfasseTemporalesFahrzeugHandler', () => {
         { provide: OUTBOX_REPOSITORY, useValue: mockOutboxRepository },
         { provide: KRAEFTE_REPOSITORIES.EINSATZ_FAHRZEUG, useValue: mockEinsatzFahrzeugRepository },
         { provide: KRAEFTE_REPOSITORIES.FAHRZEUGTYP, useValue: mockFahrzeugtypRepository },
+        { provide: LOGGER, useValue: mockLogger },
       ],
     }).compile();
 

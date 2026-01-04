@@ -2,7 +2,7 @@ import { Test, type TestingModule } from '@nestjs/testing';
 import { createId } from '@paralleldrive/cuid2';
 import { Result } from '@domain/common/result';
 import { Fahrzeugtyp } from '@domain/kraefte/aggregates/fahrzeugtyp.aggregate';
-import { KRAEFTE_REPOSITORIES } from '@infrastructure/di-tokens';
+import { KRAEFTE_REPOSITORIES, LOGGER } from '@infrastructure/di-tokens';
 import { GetFahrzeugtypByIdHandler } from '../get-fahrzeugtyp-by-id.handler';
 import { GetFahrzeugtypByIdQuery } from '../get-fahrzeugtyp-by-id.query';
 
@@ -14,6 +14,12 @@ describe('GetFahrzeugtypByIdHandler', () => {
     findByCode: jest.Mock;
     findAll: jest.Mock;
     exists: jest.Mock;
+  };
+  let mockLogger: {
+    log: jest.Mock;
+    error: jest.Mock;
+    warn: jest.Mock;
+    debug: jest.Mock;
   };
 
   // Factory function für frische Instanzen
@@ -43,8 +49,15 @@ describe('GetFahrzeugtypByIdHandler', () => {
       exists: jest.fn(),
     };
 
+    mockLogger = {
+      log: jest.fn(),
+      error: jest.fn(),
+      warn: jest.fn(),
+      debug: jest.fn(),
+    };
+
     const module: TestingModule = await Test.createTestingModule({
-      providers: [GetFahrzeugtypByIdHandler, { provide: KRAEFTE_REPOSITORIES.FAHRZEUGTYP, useValue: mockRepository }],
+      providers: [GetFahrzeugtypByIdHandler, { provide: KRAEFTE_REPOSITORIES.FAHRZEUGTYP, useValue: mockRepository }, { provide: LOGGER, useValue: mockLogger }],
     }).compile();
 
     handler = module.get<GetFahrzeugtypByIdHandler>(GetFahrzeugtypByIdHandler);

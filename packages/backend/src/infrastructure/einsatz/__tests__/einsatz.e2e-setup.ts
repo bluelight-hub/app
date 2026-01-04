@@ -83,6 +83,35 @@ export class SpyEventPublisher implements IEventPublisher {
 }
 
 // ============================================
+// MOCK LOGGER FACTORY
+// ============================================
+
+/**
+ * Erstellt einen Mock Logger für E2E Tests.
+ *
+ * Implementiert das ILogger Interface mit No-Op Funktionen.
+ * Nuetzlich für Handler und Services die einen Logger benötigen.
+ *
+ * @returns Mock Logger Instanz
+ *
+ * @example
+ * ```typescript
+ * const mockLogger = createMockLogger();
+ * const handler = new SomeHandler(repository, mockLogger);
+ * ```
+ */
+export function createMockLogger() {
+  return {
+    log: () => {},
+    error: () => {},
+    warn: () => {},
+    debug: () => {},
+    verbose: () => {},
+    setContext: () => {},
+  };
+}
+
+// ============================================
 // ID GENERATION UTILITIES
 // ============================================
 
@@ -192,6 +221,9 @@ export interface EinsatzE2eTestContext {
 
   /** Event Publisher (Spy fuer Event Verification) */
   eventPublisher: SpyEventPublisher;
+
+  /** Mock Logger fuer Handler und Services */
+  mockLogger: ReturnType<typeof createMockLogger>;
 
   /** Test User IDs (3 Rollen fuer RBAC Testing) */
   testUserIds: {
@@ -338,14 +370,7 @@ export async function createEinsatzE2eModule(): Promise<EinsatzE2eTestContext> {
   `;
 
   // 4. Mock Logger für Repository-Instanziierung
-  const mockLogger = {
-    log: () => {},
-    error: () => {},
-    warn: () => {},
-    debug: () => {},
-    verbose: () => {},
-    setContext: () => {},
-  };
+  const mockLogger = createMockLogger();
 
   // 5. Repository und EventPublisher
   const repository = new PrismaEinsatzRepository(prisma, mockLogger);
@@ -360,6 +385,7 @@ export async function createEinsatzE2eModule(): Promise<EinsatzE2eTestContext> {
     repository,
     outboxRepository,
     eventPublisher,
+    mockLogger,
     testUserIds: {
       user: userId,
       admin: adminId,

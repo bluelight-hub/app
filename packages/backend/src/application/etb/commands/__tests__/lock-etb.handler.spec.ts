@@ -4,6 +4,7 @@ import { LockEtbHandler } from '../lock-etb/lock-etb.handler';
 import { AddEintragCommand } from '../add-eintrag/add-eintrag.command';
 import { AddEintragHandler } from '../add-eintrag/add-eintrag.handler';
 import { createTestEtb } from '@domain/aggregates/__tests__/fixtures/etb.fixtures';
+import type { ILogger } from '@domain/ports/i-logger.port';
 
 // Mock CUID2 fuer deterministische Tests
 jest.mock('@paralleldrive/cuid2', () => ({
@@ -42,6 +43,7 @@ describe('LockEtbHandler', () => {
   let lockHandler: LockEtbHandler;
   let addEintragHandler: AddEintragHandler;
   let etbRepository: InMemoryEtbRepository;
+  let mockLogger: jest.Mocked<ILogger>;
   let testUserId: string;
   let testEinsatzId: string;
 
@@ -51,9 +53,17 @@ describe('LockEtbHandler', () => {
     testUserId = generateTestCuid();
     testEinsatzId = generateTestCuid();
 
+    // Mock Logger (ILogger interface)
+    mockLogger = {
+      log: jest.fn(),
+      error: jest.fn(),
+      warn: jest.fn(),
+      debug: jest.fn(),
+    } as jest.Mocked<ILogger>;
+
     // Create handlers with dependencies
-    lockHandler = new LockEtbHandler(etbRepository);
-    addEintragHandler = new AddEintragHandler(etbRepository);
+    lockHandler = new LockEtbHandler(etbRepository, mockLogger);
+    addEintragHandler = new AddEintragHandler(etbRepository, mockLogger);
   });
 
   afterEach(() => {

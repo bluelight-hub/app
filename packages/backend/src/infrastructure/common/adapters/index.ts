@@ -8,3 +8,5 @@
  */
 
 export * from './nest-logger.adapter';
+export * from './cache-config.service';
+export * from './hiorg-oauth-config.adapter';

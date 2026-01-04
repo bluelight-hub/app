@@ -6,7 +6,8 @@ import { Einsatz } from '@domain/aggregates/einsatz.aggregate';
 import { UserId } from '@domain/value-objects/user-id';
 import { EinsatzId } from '@domain/value-objects/einsatz-id';
 import { PrismaService } from '@/infrastructure/database/prisma.service';
-import { EINSATZ_REPOSITORY, OUTBOX_REPOSITORY } from '@/infrastructure/di-tokens';
+import { EINSATZ_REPOSITORY, OUTBOX_REPOSITORY, LOGGER } from '@/infrastructure/di-tokens';
+import type { ILogger } from '@domain/ports/i-logger.port';
 
 describe('UpdateEinsatzHandler', () => {
   let handler: UpdateEinsatzHandler;
@@ -20,6 +21,7 @@ describe('UpdateEinsatzHandler', () => {
   let mockOutboxRepository: {
     save: jest.Mock;
   };
+  let mockLogger: jest.Mocked<ILogger>;
 
   // Helper to create a valid Einsatz for tests
   const createTestEinsatz = () => {
@@ -47,12 +49,20 @@ describe('UpdateEinsatzHandler', () => {
       save: jest.fn().mockResolvedValue(undefined),
     };
 
+    mockLogger = {
+      log: jest.fn(),
+      error: jest.fn(),
+      warn: jest.fn(),
+      debug: jest.fn(),
+    } as unknown as jest.Mocked<ILogger>;
+
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         UpdateEinsatzHandler,
         { provide: PrismaService, useValue: mockPrismaService },
         { provide: OUTBOX_REPOSITORY, useValue: mockOutboxRepository },
         { provide: EINSATZ_REPOSITORY, useValue: mockRepository },
+        { provide: LOGGER, useValue: mockLogger },
       ],
     }).compile();
 

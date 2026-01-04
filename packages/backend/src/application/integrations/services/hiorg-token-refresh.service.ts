@@ -25,7 +25,7 @@ import type { IEncryptionPort } from '@domain/ports/i-encryption.port';
 import type { IOAuth2Port } from '@domain/ports/i-oauth2.port';
 import type { IHiOrgOAuthConfigPort } from '@domain/ports/i-hiorg-oauth-config.port';
 import type { ILogger } from '@domain/ports/i-logger.port';
-import { INTEGRATIONS, LOGGER } from '@/infrastructure/di-tokens';
+import { INTEGRATIONS, LOGGER } from '@infrastructure/di-tokens';
 import { HIORG_OAUTH_CONFIG } from '@/infrastructure/config/hiorg-oauth.config';
 
 /**

@@ -6,7 +6,8 @@ import { Einsatz } from '@domain/aggregates/einsatz.aggregate';
 import { Address } from '@domain/value-objects/address';
 import { GetEinsatzByIdQueryHandler } from '../get-einsatz-by-id.handler';
 import { GetEinsatzByIdQuery } from '../get-einsatz-by-id.query';
-import { EINSATZ_REPOSITORY } from '@/infrastructure/di-tokens';
+import { EINSATZ_REPOSITORY, LOGGER } from '@/infrastructure/di-tokens';
+import type { ILogger } from '@domain/ports/i-logger.port';
 
 describe('GetEinsatzByIdQueryHandler', () => {
   let handler: GetEinsatzByIdQueryHandler;
@@ -17,6 +18,7 @@ describe('GetEinsatzByIdQueryHandler', () => {
     findActive: jest.Mock;
     findByNummer: jest.Mock;
   };
+  let mockLogger: jest.Mocked<ILogger>;
 
   beforeEach(async () => {
     mockRepository = {
@@ -27,8 +29,15 @@ describe('GetEinsatzByIdQueryHandler', () => {
       findByNummer: jest.fn(),
     };
 
+    mockLogger = {
+      log: jest.fn(),
+      error: jest.fn(),
+      warn: jest.fn(),
+      debug: jest.fn(),
+    } as unknown as jest.Mocked<ILogger>;
+
     const module: TestingModule = await Test.createTestingModule({
-      providers: [GetEinsatzByIdQueryHandler, { provide: EINSATZ_REPOSITORY, useValue: mockRepository }],
+      providers: [GetEinsatzByIdQueryHandler, { provide: EINSATZ_REPOSITORY, useValue: mockRepository }, { provide: LOGGER, useValue: mockLogger }],
     }).compile();
 
     handler = module.get<GetEinsatzByIdQueryHandler>(GetEinsatzByIdQueryHandler);
