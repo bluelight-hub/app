@@ -210,11 +210,21 @@ jobs:
           projectPath: packages/frontend
           args: ${{ matrix.args }}
 
+      - name: Find bundle path
+        id: bundle
+        shell: bash
+        run: |
+          # Find the actual bundle directory (handles both native and cross-compilation)
+          BUNDLE_PATH=$(find packages/frontend/src-tauri/target -type d -name "bundle" -path "*/release/*" | grep -v "/doc/" | head -1)
+          echo "path=$BUNDLE_PATH" >> $GITHUB_OUTPUT
+          echo "Bundle path: $BUNDLE_PATH"
+          ls -la "$BUNDLE_PATH"
+
       - name: Upload Frontend Artifact
         uses: actions/upload-artifact@v4
         with:
           name: frontend-artifact-${{ matrix.artifact_suffix }}
-          path: packages/frontend/src-tauri/target/release/bundle
+          path: ${{ steps.bundle.outputs.path }}
 
   release:
     name: Create Release
