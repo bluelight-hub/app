@@ -1,3 +1,176 @@
+## Version [v1.0.0-alpha.37](https://github.com/rubenvitt/bluelight-hub/compare/v1.0.0-alpha.36...v1.0.0-alpha.37) – Veröffentlicht am 2026-01-05
+
+## ✨ Neue Funktionen
+Die folgenden neuen Features wurden hinzugefügt:
+- [`429d79e3`](https://github.com/rubenvitt/bluelight-hub/commit/429d79e3) (geo-coordinate): Add GeoJSON serialization methods (Story 0-3) 
+
+- [`70fa8fb6`](https://github.com/rubenvitt/bluelight-hub/commit/70fa8fb6) (kraefte): Implement RollenDefinition + Fahrzeugtyp CRUD 
+
+- [`0aad5452`](https://github.com/rubenvitt/bluelight-hub/commit/0aad5452) (kraefte): Complete Fahrzeugtypen CRUD + Story docs (1.2, 1.3) 
+
+- [`a39cff90`](https://github.com/rubenvitt/bluelight-hub/commit/a39cff90) (kraefte): Implement FunkStatusConfig Domain Layer (Story 1-4) 
+
+- [`8585e31e`](https://github.com/rubenvitt/bluelight-hub/commit/8585e31e) (kraefte): Add StammFahrzeug Query Handlers + Fix bugs (Story 2-1) 
+
+- [`77f8d9d8`](https://github.com/rubenvitt/bluelight-hub/commit/77f8d9d8) (kraefte): Add StammPerson Domain Layer (Story 2.2) 
+
+- [`8314db44`](https://github.com/rubenvitt/bluelight-hub/commit/8314db44) (kraefte): Implement Stamm-Personen CRUD (Story 2.2) 
+
+- [`dbeba43c`](https://github.com/rubenvitt/bluelight-hub/commit/dbeba43c) (frontend): Add temporäres Fahrzeug UI (Story 3-2 Task 5) 
+
+- [`1b820a9a`](https://github.com/rubenvitt/bluelight-hub/commit/1b820a9a) (kraefte): Add POST /temporary endpoint for Story 3-2 
+
+- [`088b9082`](https://github.com/rubenvitt/bluelight-hub/commit/088b9082) (kraefte): Add FMS-Status UI components (Story 3.3 Task 7) 
+
+- [`17b34f60`](https://github.com/rubenvitt/bluelight-hub/commit/17b34f60) (kraefte): Add Infrastructure Layer for EinsatzPerson 
+
+- [`e260274b`](https://github.com/rubenvitt/bluelight-hub/commit/e260274b) (kraefte): Add ETB auto-creation for person registration (Story 4-1) 
+
+- [`8b3ae8a7`](https://github.com/rubenvitt/bluelight-hub/commit/8b3ae8a7) (kraefte): Add PersonHinzufuegenDialog component (Story 4-1) 
+
+- [`06ae06f4`](https://github.com/rubenvitt/bluelight-hub/commit/06ae06f4) (kraefte): Add StammPersonen autocomplete to PersonHinzufuegenDialog 
+
+- [`49e3f254`](https://github.com/rubenvitt/bluelight-hub/commit/49e3f254) (kraefte): Implement QR code person registration (Story 4-2) 
+
+- [`72d1719c`](https://github.com/rubenvitt/bluelight-hub/commit/72d1719c) (kraefte): Add Tauri barcode-scanner support and improve QR detection 
+
+- [`aa71befc`](https://github.com/rubenvitt/bluelight-hub/commit/aa71befc) (kraefte): Add person-to-vehicle assignment frontend 
+
+- [`896c36e0`](https://github.com/rubenvitt/bluelight-hub/commit/896c36e0) (kraefte): Story 5.1 - Rollenbesetzung mit Qualifikation 
+
+- [`fee8af4f`](https://github.com/rubenvitt/bluelight-hub/commit/fee8af4f) (kraefte): Story 5.2 - Rolle freigeben mit Soft-Delete 
+(Zugehörige Issues: [`#1`](https://github.com/rubenvitt/bluelight-hub/issues/), [`#2`](https://github.com/rubenvitt/bluelight-hub/issues/))
+
+- [`79953978`](https://github.com/rubenvitt/bluelight-hub/commit/79953978) (kraefte): Epic 6 - Taktische Übersicht Dashboard 
+
+- [`82317c2f`](https://github.com/rubenvitt/bluelight-hub/commit/82317c2f) (kraefte): Story 6.2 - Fullscreen &amp; Compact Modus 
+
+- [`eaa09074`](https://github.com/rubenvitt/bluelight-hub/commit/eaa09074) (kraefte): TD2-Person-Picker + RollenDefinitionenPicker 
+
+- [`83f20e56`](https://github.com/rubenvitt/bluelight-hub/commit/83f20e56) (integrations): Add HiOrg-Server OAuth2 integration 
+
+- [`cf2d053a`](https://github.com/rubenvitt/bluelight-hub/commit/cf2d053a) (integrations): Add inline Qualifikation-Mapping during HiOrg import 
+
+- [`1d0cb204`](https://github.com/rubenvitt/bluelight-hub/commit/1d0cb204) (lagekarte): Add GeoJSON POIs endpoint for Kraefte on map 
+
+- [`0cea3b31`](https://github.com/rubenvitt/bluelight-hub/commit/0cea3b31) (lagekarte): Add Fahrzeuge als POIs auf Lagekarte (Story 8.1) 
+(Zugehörige Issues: [`#808080`](https://github.com/rubenvitt/bluelight-hub/issues/))
+
+- [`2624cab9`](https://github.com/rubenvitt/bluelight-hub/commit/2624cab9) (lagekarte): Integrate FahrzeugPoiLayer in LagekarteView 
+
+## 🐛 Fehlerbehebungen
+Diese Probleme wurden behoben:
+- [`1e4f4981`](https://github.com/rubenvitt/bluelight-hub/commit/1e4f4981) (tests): Remove useless catch clauses in qualifikation handler tests 
+
+- [`77cc0013`](https://github.com/rubenvitt/bluelight-hub/commit/77cc0013) (frontend): Fix useEffect dependency in EditQualifikationDialog 
+
+- [`bcedfe2d`](https://github.com/rubenvitt/bluelight-hub/commit/bcedfe2d) (kraefte): Fix CRITICAL and HIGH review issues (Story 1.1 R11) 
+
+- [`a3abad70`](https://github.com/rubenvitt/bluelight-hub/commit/a3abad70) (kraefte): Fix Story 1.3 code review issues (4 fixes) 
+
+- [`169ed914`](https://github.com/rubenvitt/bluelight-hub/commit/169ed914) (frontend): Fix Qualifikationen API response + validation 
+
+- [`831b936d`](https://github.com/rubenvitt/bluelight-hub/commit/831b936d) (kraefte): Fix Code Review issues for Story 3.2 (Temporäres Fahrzeug) 
+
+- [`a4b5d4dc`](https://github.com/rubenvitt/bluelight-hub/commit/a4b5d4dc) (kraefte): Fix empty position object validation in UpdateFmsStatusDto 
+
+- [`8ab6b694`](https://github.com/rubenvitt/bluelight-hub/commit/8ab6b694) (kraefte): Fix idempotency in EinsatzFahrzeug.updateFmsStatus 
+
+- [`bb86cd7c`](https://github.com/rubenvitt/bluelight-hub/commit/bb86cd7c) (kraefte): Fix Story 3.3 Code Review Round 3 Issues 
+
+- [`a78338b7`](https://github.com/rubenvitt/bluelight-hub/commit/a78338b7) (kraefte): Fix Logger DI in UpdateFmsStatusHandler (AC3) 
+
+- [`2f885436`](https://github.com/rubenvitt/bluelight-hub/commit/2f885436) (kraefte): Fix Story 4.1 Code Review Issues (Round 1) 
+
+- [`6ca7f135`](https://github.com/rubenvitt/bluelight-hub/commit/6ca7f135) (kraefte): Fix Story 4.1 Code Review Issues (Round 2 + 3) 
+
+- [`50aba091`](https://github.com/rubenvitt/bluelight-hub/commit/50aba091) (kraefte): Fix video play() interrupted error in QrScannerTab 
+
+- [`57362bd1`](https://github.com/rubenvitt/bluelight-hub/commit/57362bd1) (kraefte): Fix QrScannerTab infinite loop and Tauri compatibility 
+
+- [`bcff96fe`](https://github.com/rubenvitt/bluelight-hub/commit/bcff96fe) (kraefte): Fix barcode-scanner for desktop Tauri 
+
+- [`73732508`](https://github.com/rubenvitt/bluelight-hub/commit/73732508) (kraefte): Fix critical memory leaks and race condition in QR scanner 
+
+- [`ecdb7668`](https://github.com/rubenvitt/bluelight-hub/commit/ecdb7668) (kraefte): Fix API response extraction in useEinsatzPersonen 
+
+- [`69db01b7`](https://github.com/rubenvitt/bluelight-hub/commit/69db01b7) (repo): sync einsatz detail cache responses 
+
+- [`d6284fb4`](https://github.com/rubenvitt/bluelight-hub/commit/d6284fb4) (kraefte): Fix domain validation and event timestamps (D1-D3) 
+
+- [`932f6632`](https://github.com/rubenvitt/bluelight-hub/commit/932f6632) (kraefte): Fix Backend BLOCKER Issues (C2+C3) - Story 4.3 
+
+- [`860d5e87`](https://github.com/rubenvitt/bluelight-hub/commit/860d5e87) (kraefte): Fix handler pattern violation (A1) 
+
+- [`7db87eb3`](https://github.com/rubenvitt/bluelight-hub/commit/7db87eb3) (kraefte): Fix input validation order in removeFromFahrzeug (D1) 
+
+- [`fef1561a`](https://github.com/rubenvitt/bluelight-hub/commit/fef1561a) (validation): Fix @IsCuid decorator for CUID2 format 
+
+- [`4af470dd`](https://github.com/rubenvitt/bluelight-hub/commit/4af470dd) (kraefte): Fix domain validation and event timestamps (D1-D3) 
+
+- [`2bf299e4`](https://github.com/rubenvitt/bluelight-hub/commit/2bf299e4) (kraefte): Fix Story 5.1 Review Issues - ETB Handler Registration 
+
+- [`852bd0f8`](https://github.com/rubenvitt/bluelight-hub/commit/852bd0f8) (integrations): Fix ConfigService DI in AesEncryptionAdapter 
+
+- [`b17b5955`](https://github.com/rubenvitt/bluelight-hub/commit/b17b5955) (integrations): Fix HiOrgTokenRefreshService DI imports 
+
+- [`2139ea5b`](https://github.com/rubenvitt/bluelight-hub/commit/2139ea5b) (integrations): Fix import type for ILogger breaking DI at runtime 
+(Zugehörige Issues: [`#3`](https://github.com/rubenvitt/bluelight-hub/issues/))
+
+- [`4dba6e7f`](https://github.com/rubenvitt/bluelight-hub/commit/4dba6e7f) (tests): Fix ADMIN_JWT_SECRET missing in CI for E2E tests 
+
+- [`06eb881b`](https://github.com/rubenvitt/bluelight-hub/commit/06eb881b) (tests): Add global test secrets to jest.setup.ts 
+
+- [`a6678812`](https://github.com/rubenvitt/bluelight-hub/commit/a6678812) (tests): Add INTEGRATION_ENCRYPTION_KEY to test secrets 
+
+## 🔒 Sicherheitsverbesserungen
+Sicherheitsrelevante Änderungen:
+- [`60f086e5`](https://github.com/rubenvitt/bluelight-hub/commit/60f086e5) (kraefte): Fix security + AC3 compliance (Story 1.1 R12) 
+
+- [`2cd2947a`](https://github.com/rubenvitt/bluelight-hub/commit/2cd2947a) (kraefte): Add stricter rate limits for mutation endpoints 
+
+- [`10f78ba5`](https://github.com/rubenvitt/bluelight-hub/commit/10f78ba5) (kraefte): Add ParseCuidPipe validation to route params (C1) 
+
+- [`c959246b`](https://github.com/rubenvitt/bluelight-hub/commit/c959246b) (kraefte): Fix ReDoS vulnerability in QR validation regex 
+
+## ♻ Refactoring
+Struktur- oder Code-Verbesserungen:
+- [`8d7c031e`](https://github.com/rubenvitt/bluelight-hub/commit/8d7c031e) (kraefte): Refactor Prisma error meta handling pattern 
+
+- [`2a1d675b`](https://github.com/rubenvitt/bluelight-hub/commit/2a1d675b) (kraefte): Remove dead code in CreateRollenDefinitionHandler 
+
+- [`00053ace`](https://github.com/rubenvitt/bluelight-hub/commit/00053ace) (kraefte): Add einsatzId CUID2 validation in commands (A2) 
+
+- [`e7d0920a`](https://github.com/rubenvitt/bluelight-hub/commit/e7d0920a) (outbox): Update event count and format (I1 partial) 
+
+- [`7ad05c56`](https://github.com/rubenvitt/bluelight-hub/commit/7ad05c56) (api-client): Regenerate WeisePersonZuFahrzeugZuDto 
+
+- [`24884e1a`](https://github.com/rubenvitt/bluelight-hub/commit/24884e1a) (kraefte): TD2.1 - Migrate Admin Controllers to @ApiWrappedResponse 
+
+- [`e432bd65`](https://github.com/rubenvitt/bluelight-hub/commit/e432bd65) (frontend): Update Headless UI v2 + TanStack Pacer APIs 
+
+- [`fe6d0784`](https://github.com/rubenvitt/bluelight-hub/commit/fe6d0784) (backend): Move config adapters and add logger to handlers 
+
+## 🔧 Tool Verbesserungen
+Verbesserungen an den Werkzeugen:
+- [`7fcff634`](https://github.com/rubenvitt/bluelight-hub/commit/7fcff634) (shared): Generate API clients for Rollen + Fahrzeugtypen 
+
+- [`dc2b93b2`](https://github.com/rubenvitt/bluelight-hub/commit/dc2b93b2) (husky): Remove deprecated shebang and source lines from pre-commit 
+
+- [`6a777450`](https://github.com/rubenvitt/bluelight-hub/commit/6a777450) (config): Swap backend/frontend ports for consistency 
+
+- [`4961fd4c`](https://github.com/rubenvitt/bluelight-hub/commit/4961fd4c) (ide): Update IntelliJ run configurations for Jest 30 
+
+- [`04f3dcec`](https://github.com/rubenvitt/bluelight-hub/commit/04f3dcec) (docs): Radikales Aufräumen vor BMad v22 Upgrade 
+
+- [`8e73dd13`](https://github.com/rubenvitt/bluelight-hub/commit/8e73dd13) (bmad): Upgrade to BMad v22 with new workflow structure 
+
+- [`c15e3146`](https://github.com/rubenvitt/bluelight-hub/commit/c15e3146) (config): Add alternative AI tool configurations 
+
+
+
+# [1.0.0-alpha.37](https://github.com/rubenvitt/bluelight-hub/compare/v1.0.0-alpha.36...v1.0.0-alpha.37) (2026-01-05)
+
 ## Version [v1.0.0-alpha.36](https://github.com/rubenvitt/bluelight-hub/compare/v1.0.0-alpha.35...v1.0.0-alpha.36) – Veröffentlicht am 2025-12-09
 
 ## 🔧 Tool Verbesserungen
