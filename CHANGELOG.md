@@ -1,3 +1,13 @@
+## Version [v1.0.0-alpha.39](https://github.com/rubenvitt/bluelight-hub/compare/v1.0.0-alpha.38...v1.0.0-alpha.39) – Veröffentlicht am 2026-01-05
+
+## 🐛 Fehlerbehebungen
+Diese Probleme wurden behoben:
+- [`4045ab91`](https://github.com/rubenvitt/bluelight-hub/commit/4045ab91) (ci): Fix macOS artifact upload path for cross-compilation 
+
+
+
+# [1.0.0-alpha.39](https://github.com/rubenvitt/bluelight-hub/compare/v1.0.0-alpha.38...v1.0.0-alpha.39) (2026-01-05)
+
 ## Version [v1.0.0-alpha.38](https://github.com/rubenvitt/bluelight-hub/compare/v1.0.0-alpha.37...v1.0.0-alpha.38) – Veröffentlicht am 2026-01-05
 
 ## ✨ Neue Funktionen
