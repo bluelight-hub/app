@@ -9,6 +9,7 @@
  * - Einsatz: `import { EINSATZ_QUERY_KEYS } from '@/features/einsatz'`
  * - ETB: `import { ETB_QUERY_KEYS } from '@/features/etb'`
  * - Lagekarte: `import { LAGEKARTE_QUERY_KEYS } from '@/features/lagekarte'`
+ * - System: `import { SYSTEM_QUERY_KEYS } from '@/features/system'`
  */
 
 // Re-exports für Backward Compatibility
@@ -17,6 +18,7 @@ export { ADMIN_QUERY_KEYS } from '@/features/admin';
 export { EINSATZ_QUERY_KEYS } from '@/features/einsatz';
 export { ETB_QUERY_KEYS } from '@/features/etb';
 export { LAGEKARTE_QUERY_KEYS } from '@/features/lagekarte';
+export { SYSTEM_QUERY_KEYS } from '@/features/system';
 
 /**
  * @deprecated Verwende direkte Imports aus Features stattdessen
@@ -39,4 +41,5 @@ export const QUERY_KEYS = {
   einsatz: EINSATZ_QUERY_KEYS,
   etb: ETB_QUERY_KEYS,
   lagekarte: LAGEKARTE_QUERY_KEYS,
+  system: SYSTEM_QUERY_KEYS,
 } as const;

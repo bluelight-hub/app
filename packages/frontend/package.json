@@ -10,7 +10,8 @@
     "lint": "biome check --write",
     "lint:check": "biome check",
     "preview": "vite preview",
-    "tauri": "tauri"
+    "tauri": "tauri",
+    "version": "node scripts/sync-tauri-version.js"
   },
   "dependencies": {
     "@bluelight-hub/shared": "workspace:*",

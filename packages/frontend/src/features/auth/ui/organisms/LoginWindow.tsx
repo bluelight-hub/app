@@ -1,11 +1,12 @@
+import { useCurrentUser, useUnifiedAuth } from '@/features/auth';
+import { getIndicatorStatus, STATUS_DOT_COLORS, STATUS_LABELS, useSystemHealth, useSystemVersion } from '@/features/system';
+import { getApiErrorMessage } from '@/shared/lib/errors/apiErrorHandler';
 import { Heading } from '@/shared/ui/atoms/heading.atom';
 import { Text } from '@/shared/ui/atoms/text.atom';
 import { AuthCard } from '@/shared/ui/molecules/auth-card.molecule';
 import { AuthFooter } from '@/shared/ui/molecules/auth-footer.molecule';
 import { LogoWithIndicator } from '@/shared/ui/molecules/logo-with-indicator.molecule';
 import { AuthLayout } from '@/shared/ui/templates/AuthLayout';
-import { useCurrentUser, useUnifiedAuth } from '@/features/auth';
-import { getApiErrorMessage } from '@/shared/lib/errors/apiErrorHandler';
 import type { AuthRequestDto } from '@bluelight-hub/shared/client';
 import { useNavigate } from '@tanstack/react-router';
 import { useCallback, useEffect } from 'react';
@@ -25,6 +26,11 @@ export function LoginWindow(_props: Props) {
   const navigate = useNavigate();
   const { user, isLoading } = useCurrentUser();
   const unifiedAuth = useUnifiedAuth();
+
+  const { connectionMode, isLoading: healthLoading, isError: healthError } = useSystemHealth();
+  const { frontendVersion, mismatchSeverity } = useSystemVersion();
+
+  const indicatorStatus = getIndicatorStatus(healthLoading, healthError, connectionMode);
 
   const handleAuth = useCallback(
     (authData: AuthRequestDto) => {
@@ -62,7 +68,7 @@ export function LoginWindow(_props: Props) {
         <div className="space-y-8">
           {/* Logo Section */}
           <div className="space-y-6 text-center">
-            <LogoWithIndicator size="lg" />
+            <LogoWithIndicator size="lg" status={indicatorStatus} />
             <Heading size="2xl" className="text-gray-900 dark:text-white">
               Bluelight Hub
             </Heading>
@@ -77,7 +83,17 @@ export function LoginWindow(_props: Props) {
           </div>
 
           {/* Footer */}
-          <AuthFooter badges={[{ label: 'System online', variant: 'default', dotColor: 'green' }]} version="v1.0.0" />
+          <AuthFooter
+            badges={[
+              {
+                label: STATUS_LABELS[indicatorStatus],
+                variant: 'default',
+                dotColor: STATUS_DOT_COLORS[indicatorStatus],
+              },
+              ...(mismatchSeverity === 'critical' ? [{ label: 'Update erforderlich', variant: 'danger' as const, dotColor: 'red' as const }] : []),
+            ]}
+            version={`v${frontendVersion}`}
+          />
         </div>
       </AuthCard>
     </AuthLayout>

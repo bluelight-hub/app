@@ -2,14 +2,19 @@ import tailwindcss from '@tailwindcss/vite';
 import { devtools } from '@tanstack/devtools-vite';
 import tanstackRouter from '@tanstack/router-plugin/vite';
 import react from '@vitejs/plugin-react-swc';
+import { readFileSync } from 'node:fs';
 import path from 'node:path';
 import * as process from 'node:process';
 import { defineConfig } from 'vite';
 import tsconfigPaths from 'vite-tsconfig-paths';
 
+const pkg = JSON.parse(readFileSync('./package.json', 'utf8'));
 const host = process.env.TAURI_DEV_HOST;
 
 export default defineConfig({
+  define: {
+    __APP_VERSION__: JSON.stringify(pkg.version),
+  },
   plugins: [
     devtools({
       editor: { name: 'zed' },
