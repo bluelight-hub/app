@@ -1,3 +1,20 @@
+## Version [v1.0.0-alpha.38](https://github.com/rubenvitt/bluelight-hub/compare/v1.0.0-alpha.37...v1.0.0-alpha.38) – Veröffentlicht am 2026-01-05
+
+## ✨ Neue Funktionen
+Die folgenden neuen Features wurden hinzugefügt:
+- [`4ce80d84`](https://github.com/rubenvitt/bluelight-hub/commit/4ce80d84) (frontend): Add dynamic system status badges 
+(Zugehörige Issues: [`#301`](https://github.com/rubenvitt/bluelight-hub/issues/))
+
+## 🐛 Fehlerbehebungen
+Diese Probleme wurden behoben:
+- [`733c5f14`](https://github.com/rubenvitt/bluelight-hub/commit/733c5f14) (frontend): Fix MSI version format for Tauri builds 
+
+- [`e2650c6f`](https://github.com/rubenvitt/bluelight-hub/commit/e2650c6f) (frontend): Fix MSI version format for Tauri builds 
+
+
+
+# [1.0.0-alpha.38](https://github.com/rubenvitt/bluelight-hub/compare/v1.0.0-alpha.37...v1.0.0-alpha.38) (2026-01-05)
+
 ## Version [v1.0.0-alpha.37](https://github.com/rubenvitt/bluelight-hub/compare/v1.0.0-alpha.36...v1.0.0-alpha.37) – Veröffentlicht am 2026-01-05
 
 ## ✨ Neue Funktionen
