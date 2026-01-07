@@ -51,7 +51,7 @@ development_status:
   1-4-differenzierter-health-endpoint: done # Code Review + Fixes (2026-01-07) - 17 Tests, 6 Issues gefixt
   1-5-insecure-mode-fuer-entwicklung: done # Code Review + All Issues Fixed (2026-01-07) - 54 Tests, Production-Crash
   1-6-invite-code-erstellen: done # Code Review Complete (2026-01-07) - 227 Tests, 7 Issues fixed
-  1-7-invite-code-verwalten: ready-for-dev # Story created (2026-01-07)
+  1-7-invite-code-verwalten: in-progress # Dev started (2026-01-07)
   epic-1-retrospective: optional
 
   # ═══════════════════════════════════════════════════════════════════════════

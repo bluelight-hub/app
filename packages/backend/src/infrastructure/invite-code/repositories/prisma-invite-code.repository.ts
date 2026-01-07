@@ -4,7 +4,7 @@ import type { Prisma } from '@prisma/client';
 import { Result } from '@domain/common/result';
 import type { TransactionContext } from '@domain/common/transaction';
 import type { InviteCode } from '@domain/aggregates/invite-code.aggregate';
-import type { IInviteCodeRepository } from '@domain/repositories/i-invite-code.repository';
+import type { IInviteCodeRepository, InviteCodeFilters, InviteCodePaginatedResult, InviteCodePaginationOptions, InviteCodeSortOptions } from '@domain/repositories/i-invite-code.repository';
 import { InviteCodeId } from '@domain/value-objects/invite-code-id';
 import { InviteCodeValue } from '@domain/value-objects/invite-code-value';
 import type { ILogger } from '@domain/ports/i-logger.port';
@@ -230,6 +230,104 @@ export class PrismaInviteCodeRepository implements IInviteCodeRepository {
     } catch (error) {
       const message = error instanceof Error ? error.message : String(error);
       this.logger.error('Failed to count active InviteCodes', { error: message });
+      return Result.fail(`Database error: ${message}`);
+    }
+  }
+
+  /**
+   * {@inheritDoc IInviteCodeRepository.findAll}
+   *
+   * Implementiert paginierte Abfrage mit Filterung und Sortierung.
+   *
+   * **Status-Filterung:**
+   * Da der Status ein computed field ist (berechnet aus isRevoked, expiresAt, usedCount),
+   * wird die Filterung in zwei Phasen durchgefuehrt:
+   * 1. Datenbankabfrage mit createdById-Filter (falls gesetzt)
+   * 2. Memory-Filter fuer Status (da computed field)
+   *
+   * **Performance-Hinweis:**
+   * Bei Status-Filterung wird zuerst ALLE passenden Records geladen und dann gefiltert.
+   * Bei grossen Datenmengen sollte Status-Filterung durch DB-Queries optimiert werden.
+   */
+  async findAll(filters?: InviteCodeFilters, sort?: InviteCodeSortOptions, pagination?: InviteCodePaginationOptions, tx?: TransactionContext): Promise<Result<InviteCodePaginatedResult<InviteCode>>> {
+    const client = (tx as PrismaTransactionClient | undefined) ?? this.prisma;
+    const page = pagination?.page ?? 1;
+    const pageSize = Math.min(pagination?.pageSize ?? 20, 100); // Max 100 Eintraege pro Seite
+    const skip = (page - 1) * pageSize;
+
+    try {
+      // Where-Clause bauen (nur DB-filterbare Felder)
+      const where: Prisma.InviteCodeWhereInput = {};
+
+      if (filters?.createdById) {
+        where.createdById = filters.createdById;
+      }
+
+      // Sortierung
+      const orderBy: Prisma.InviteCodeOrderByWithRelationInput = {};
+      if (sort) {
+        orderBy[sort.field] = sort.direction;
+      } else {
+        orderBy.createdAt = 'desc'; // Default: neueste zuerst
+      }
+
+      // Bei Status-Filter: Alle laden und im Memory filtern (da computed field)
+      if (filters?.status) {
+        // Alle Records laden (ohne Pagination)
+        const allRecords = await client.inviteCode.findMany({
+          where,
+          orderBy,
+        });
+
+        // Zu Domain Aggregates mappen
+        let allItems = allRecords.map((record) => PrismaInviteCodeMapper.toAggregate(record));
+
+        // Status-Filter im Memory anwenden
+        allItems = allItems.filter((item) => item.computeStatus() === filters.status);
+
+        // Manuell paginieren
+        const filteredTotal = allItems.length;
+        const filteredTotalPages = Math.ceil(filteredTotal / pageSize);
+        const filteredItems = allItems.slice(skip, skip + pageSize);
+
+        return Result.ok({
+          items: filteredItems,
+          total: filteredTotal,
+          page,
+          pageSize,
+          totalPages: filteredTotalPages,
+        });
+      }
+
+      // Standard-Fall: Direkte DB-Pagination
+      const [records, total] = await Promise.all([
+        client.inviteCode.findMany({
+          where,
+          orderBy,
+          skip,
+          take: pageSize,
+        }),
+        client.inviteCode.count({ where }),
+      ]);
+
+      // Zu Domain Aggregates mappen
+      const items = records.map((record) => PrismaInviteCodeMapper.toAggregate(record));
+
+      return Result.ok({
+        items,
+        total,
+        page,
+        pageSize,
+        totalPages: Math.ceil(total / pageSize),
+      });
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error);
+      this.logger.error('Failed to find all InviteCodes', {
+        filters: filters ? JSON.stringify(filters) : 'none',
+        page,
+        pageSize,
+        error: message,
+      });
       return Result.fail(`Database error: ${message}`);
     }
   }

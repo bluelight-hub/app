@@ -2,7 +2,103 @@ import type { Result } from '@domain/common/result';
 import type { TransactionContext } from '@domain/common/transaction';
 import type { InviteCode } from '../aggregates/invite-code.aggregate';
 import type { InviteCodeId } from '../value-objects/invite-code-id';
+import type { InviteCodeStatus } from '../value-objects/invite-code-status';
 import type { InviteCodeValue } from '../value-objects/invite-code-value';
+
+// ============================================================================
+// Pagination & Filter Types für InviteCode Repository
+// ============================================================================
+
+/**
+ * Filter-Optionen für die InviteCode-Abfrage.
+ *
+ * Ermöglicht serverseitige Filterung der InviteCodes nach Status und Ersteller.
+ *
+ * @example
+ * ```typescript
+ * const filters: InviteCodeFilters = {
+ *   status: InviteCodeStatus.ACTIVE,
+ *   createdById: 'admin-user-123',
+ * };
+ * ```
+ */
+export interface InviteCodeFilters {
+  /** Filtert nach berechnetem Status (ACTIVE, USED, EXPIRED, REVOKED) */
+  status?: InviteCodeStatus;
+  /** Filtert nach dem Ersteller des Codes (User-ID) */
+  createdById?: string;
+}
+
+/**
+ * Sortier-Optionen für die InviteCode-Abfrage.
+ *
+ * Definiert das Sortierfeld und die Richtung für die Ergebnisliste.
+ *
+ * @example
+ * ```typescript
+ * const sort: InviteCodeSortOptions = {
+ *   field: 'createdAt',
+ *   direction: 'desc',
+ * };
+ * ```
+ */
+export interface InviteCodeSortOptions {
+  /** Feld nach dem sortiert werden soll */
+  field: 'createdAt' | 'expiresAt' | 'useCount';
+  /** Sortierrichtung: aufsteigend oder absteigend */
+  direction: 'asc' | 'desc';
+}
+
+/**
+ * Pagination-Optionen für die InviteCode-Abfrage.
+ *
+ * Ermöglicht seitenbasierte Abfragen mit konfigurierbarer Seitengröße.
+ *
+ * @example
+ * ```typescript
+ * const pagination: InviteCodePaginationOptions = {
+ *   page: 1,
+ *   pageSize: 20,
+ * };
+ * ```
+ */
+export interface InviteCodePaginationOptions {
+  /** Seitennummer (1-basiert) */
+  page: number;
+  /** Anzahl der Einträge pro Seite */
+  pageSize: number;
+}
+
+/**
+ * Paginiertes Ergebnis für InviteCode-Abfragen.
+ *
+ * Enthält die Ergebnisliste sowie Metadaten für Pagination-Navigation.
+ *
+ * @typeParam T - Typ der Listeneinträge (typischerweise InviteCode)
+ *
+ * @example
+ * ```typescript
+ * const result: InviteCodePaginatedResult<InviteCode> = {
+ *   items: [inviteCode1, inviteCode2],
+ *   total: 50,
+ *   page: 1,
+ *   pageSize: 20,
+ *   totalPages: 3,
+ * };
+ * ```
+ */
+export interface InviteCodePaginatedResult<T> {
+  /** Liste der Einträge für die aktuelle Seite */
+  items: T[];
+  /** Gesamtanzahl aller Einträge (über alle Seiten) */
+  total: number;
+  /** Aktuelle Seitennummer (1-basiert) */
+  page: number;
+  /** Anzahl der Einträge pro Seite */
+  pageSize: number;
+  /** Gesamtanzahl der Seiten (berechnet: Math.ceil(total / pageSize)) */
+  totalPages: number;
+}
 
 /**
  * Repository Port Interface für InviteCode Aggregates (Hexagonal Architecture).
@@ -124,4 +220,49 @@ export interface IInviteCodeRepository {
    * @returns Result<number> - Anzahl aktiver Codes
    */
   countActive(tx?: TransactionContext): Promise<Result<number>>;
+
+  /**
+   * Findet alle InviteCodes mit Pagination, Filterung und Sortierung.
+   *
+   * **Warum paginiert statt findAll():**
+   * - Performance: Verhindert Memory Overflow bei vielen Codes
+   * - UX: Frontend kann Infinite Scroll oder Table Pagination implementieren
+   * - Flexibilität: Serverseitige Filterung reduziert Datentransfer
+   *
+   * **Status-Filterung:**
+   * Der Status wird zur Laufzeit berechnet (InviteCode.computeStatus()).
+   * Bei Datenbankfilterung muss die Repository-Implementierung die Status-Logik
+   * nachbilden:
+   * - REVOKED: isRevoked = true
+   * - EXPIRED: expiresAt <= now AND NOT revoked
+   * - USED: usedCount >= maxUses AND NOT expired AND NOT revoked
+   * - ACTIVE: Alle anderen
+   *
+   * **Defaults (wenn nicht angegeben):**
+   * - filters: keine Filterung (alle Codes)
+   * - sort: { field: 'createdAt', direction: 'desc' }
+   * - pagination: { page: 1, pageSize: 20 }
+   *
+   * @param filters - Optional: Filter nach Status und/oder Ersteller
+   * @param sort - Optional: Sortierung nach Feld und Richtung
+   * @param pagination - Optional: Seitennummer und Seitengröße
+   * @param tx - Optional Transaction Context
+   * @returns Result mit paginiertem Ergebnis oder Failure bei DB-Fehler
+   *
+   * @example
+   * ```typescript
+   * // Alle aktiven Codes, neueste zuerst
+   * const result = await repository.findAll(
+   *   { status: InviteCodeStatus.ACTIVE },
+   *   { field: 'createdAt', direction: 'desc' },
+   *   { page: 1, pageSize: 20 },
+   * );
+   *
+   * if (result.isSuccess) {
+   *   const { items, total, totalPages } = result.value!;
+   *   console.log(`Seite 1 von ${totalPages} (${total} Codes gesamt)`);
+   * }
+   * ```
+   */
+  findAll(filters?: InviteCodeFilters, sort?: InviteCodeSortOptions, pagination?: InviteCodePaginationOptions, tx?: TransactionContext): Promise<Result<InviteCodePaginatedResult<InviteCode>>>;
 }

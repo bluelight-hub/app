@@ -55,4 +55,10 @@ export { IUserRepository } from './i-user.repository';
 export { IServerAccessTokenRepository } from './i-server-access-token.repository';
 
 // InviteCode Repository Interface
-export { IInviteCodeRepository } from './i-invite-code.repository';
+export {
+  IInviteCodeRepository,
+  type InviteCodeFilters,
+  type InviteCodeSortOptions,
+  type InviteCodePaginationOptions,
+  type InviteCodePaginatedResult,
+} from './i-invite-code.repository';

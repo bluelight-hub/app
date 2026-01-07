@@ -1,8 +1,10 @@
 import { AggregateRoot } from '@domain/common/aggregate-root';
 import { Result } from '@domain/common/result';
 import { InviteCodeCreatedEvent } from '@domain/events/invite-code-created.event';
+import { InviteCodeRevokedEvent } from '@domain/events/invite-code-revoked.event';
 import { InviteCodeUsedEvent } from '@domain/events/invite-code-used.event';
 import { InviteCodeId } from '@domain/value-objects/invite-code-id';
+import { InviteCodeStatus } from '@domain/value-objects/invite-code-status';
 import { InviteCodeValue } from '@domain/value-objects/invite-code-value';
 
 /**
@@ -328,13 +330,21 @@ export class InviteCode extends AggregateRoot<InviteCodeId> {
    * Business Method: Widerruft den Code.
    *
    * **Business Rules:**
-   * - Idempotent: Mehrfacher Aufruf ist erlaubt
+   * - Idempotent: Mehrfacher Aufruf ist erlaubt (kein Event)
    * - Nach Widerruf: Code ist permanent ungültig
+   * - Wenn Code bereits aufgebraucht (USED): Idempotent, Status bleibt USED (kein Event)
    *
+   * @param revokedById - ID des Users der den Code widerruft
    * @returns Result<void> - Immer Success (idempotent)
    */
-  public revoke(): Result<void> {
+  public revoke(revokedById: string): Result<void> {
+    // Idempotent: Bereits widerrufen
     if (this._isRevoked) {
+      return Result.ok<void>(undefined);
+    }
+
+    // Idempotent: Code bereits vollständig aufgebraucht, Status bleibt USED
+    if (this._usedCount >= this._maxUses) {
       return Result.ok<void>(undefined);
     }
 
@@ -342,7 +352,41 @@ export class InviteCode extends AggregateRoot<InviteCodeId> {
     this._revokedAt = new Date();
     this.updateTimestamp();
 
+    // Emit Domain Event
+    this.addDomainEvent(new InviteCodeRevokedEvent(this.id.value, this._code.toMasked(), this._revokedAt, revokedById));
+
     return Result.ok<void>(undefined);
+  }
+
+  /**
+   * Berechnet den aktuellen Status des InviteCodes.
+   *
+   * **Prioritätsreihenfolge:**
+   * 1. REVOKED - Manuell widerrufen (höchste Priorität)
+   * 2. EXPIRED - Ablaufdatum überschritten
+   * 3. USED - Maximale Nutzungen erreicht
+   * 4. ACTIVE - Code ist noch verwendbar
+   *
+   * @returns InviteCodeStatus - Der berechnete Status
+   */
+  public computeStatus(): InviteCodeStatus {
+    // Priorität 1: Widerrufen
+    if (this._isRevoked) {
+      return InviteCodeStatus.REVOKED;
+    }
+
+    // Priorität 2: Abgelaufen
+    if (this._expiresAt <= new Date()) {
+      return InviteCodeStatus.EXPIRED;
+    }
+
+    // Priorität 3: Aufgebraucht
+    if (this._usedCount >= this._maxUses) {
+      return InviteCodeStatus.USED;
+    }
+
+    // Default: Aktiv
+    return InviteCodeStatus.ACTIVE;
   }
 
   /**

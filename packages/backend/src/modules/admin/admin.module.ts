@@ -1,6 +1,7 @@
 import { Module } from '@nestjs/common';
 
-import { CompleteSetupHandler, CreateInviteHandler } from '@/application/admin/commands';
+import { CompleteSetupHandler, CreateInviteHandler, RevokeInviteHandler } from '@/application/admin/commands';
+import { ListInvitesHandler } from '@/application/admin/queries';
 import { PrismaModule } from '@/infrastructure/database/prisma.module';
 import { ServerAccessTokenInfrastructureModule } from '@/infrastructure/server-access-token/server-access-token-infrastructure.module';
 import { UserInfrastructureModule } from '@/infrastructure/user/user-infrastructure.module';
@@ -17,7 +18,10 @@ import { AdminInviteController } from './controllers/admin-invite.controller';
  *
  * Stellt folgende Endpoints bereit:
  * - `/admin/setup`: Initialer Server-Setup (Story 1.1)
- * - `/admin/invites`: Invite-Code Verwaltung (Story 1.6)
+ * - `/admin/invites`: Invite-Code Verwaltung (Story 1.6, 1.7)
+ *   - POST: Invite-Code erstellen
+ *   - GET: Invite-Codes auflisten (mit Filterung, Sortierung, Pagination)
+ *   - DELETE /:id: Invite-Code widerrufen
  *
  * **Imports:**
  * - `PrismaModule`: Datenbankzugriff
@@ -26,9 +30,15 @@ import { AdminInviteController } from './controllers/admin-invite.controller';
  * - `InviteCodeInfrastructureModule`: InviteCode-Repository (Story 1.6)
  * - `OutboxModule`: Transactional Outbox Pattern (exportiert OUTBOX_REPOSITORY)
  *
- * **Providers:**
+ * **Command Handlers:**
  * - `CompleteSetupHandler`: TransactionalCommandHandler fuer Setup
- * - `CreateInviteHandler`: TransactionalCommandHandler fuer Invite-Codes
+ * - `CreateInviteHandler`: TransactionalCommandHandler fuer Invite-Code Erstellung
+ * - `RevokeInviteHandler`: TransactionalCommandHandler fuer Invite-Code Widerruf
+ *
+ * **Query Handlers:**
+ * - `ListInvitesHandler`: Handler fuer Invite-Code Auflistung
+ *
+ * **Providers:**
  * - `LOGGER`: NestJS Logger Adapter
  */
 @Module({
@@ -40,9 +50,12 @@ import { AdminInviteController } from './controllers/admin-invite.controller';
       provide: LOGGER,
       useFactory: () => new NestLoggerAdapter('AdminModule'),
     },
-    // Command Handler
+    // Command Handlers
     CompleteSetupHandler,
     CreateInviteHandler,
+    RevokeInviteHandler,
+    // Query Handlers
+    ListInvitesHandler,
   ],
 })
 export class AdminModule {}

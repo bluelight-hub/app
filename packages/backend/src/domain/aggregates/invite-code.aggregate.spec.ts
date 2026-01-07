@@ -1,7 +1,9 @@
 import { InviteCode, type CreateInviteCodeProps, type ReconstructInviteCodeProps } from '@domain/aggregates/invite-code.aggregate';
 import { InviteCodeCreatedEvent } from '@domain/events/invite-code-created.event';
+import { InviteCodeRevokedEvent } from '@domain/events/invite-code-revoked.event';
 import { InviteCodeUsedEvent } from '@domain/events/invite-code-used.event';
 import { InviteCodeId } from '@domain/value-objects/invite-code-id';
+import { InviteCodeStatus } from '@domain/value-objects/invite-code-status';
 import { InviteCodeValue } from '@domain/value-objects/invite-code-value';
 
 // Mock CUID2 for Jest compatibility (ESM module issue)
@@ -581,6 +583,8 @@ describe('InviteCode Aggregate', () => {
   });
 
   describe('revoke() - Code widerrufen', () => {
+    const adminId = 'admin_test1234567890123456';
+
     it('should set isRevoked to true', () => {
       // Given (Arrange)
       const props = createValidProps();
@@ -588,7 +592,7 @@ describe('InviteCode Aggregate', () => {
       invite.clearDomainEvents(); // Reset events
 
       // When (Act)
-      const result = invite.revoke();
+      const result = invite.revoke(adminId);
 
       // Then (Assert)
       expect(result.isSuccess).toBe(true);
@@ -603,9 +607,9 @@ describe('InviteCode Aggregate', () => {
       const invite = InviteCode.create(props).value!;
 
       // When (Act)
-      const result1 = invite.revoke();
-      const result2 = invite.revoke();
-      const result3 = invite.revoke();
+      const result1 = invite.revoke(adminId);
+      const result2 = invite.revoke(adminId);
+      const result3 = invite.revoke(adminId);
 
       // Then (Assert)
       expect(result1.isSuccess).toBe(true);
@@ -620,15 +624,99 @@ describe('InviteCode Aggregate', () => {
       const invite = InviteCode.create(props).value!;
 
       // When (Act)
-      invite.revoke();
+      invite.revoke(adminId);
       const firstRevokedAt = invite.revokedAt;
 
       // Warte kurz, dann nochmal widerrufen
-      invite.revoke();
+      invite.revoke(adminId);
       const secondRevokedAt = invite.revokedAt;
 
       // Then (Assert)
       expect(firstRevokedAt).toBe(secondRevokedAt);
+    });
+
+    it('should emit InviteCodeRevokedEvent on first revoke', () => {
+      // Given (Arrange)
+      const props = createValidProps();
+      const invite = InviteCode.create(props).value!;
+      invite.clearDomainEvents(); // Reset events
+
+      // When (Act)
+      invite.revoke(adminId);
+
+      // Then (Assert)
+      const events = invite.getDomainEvents();
+      expect(events).toHaveLength(1);
+      expect(events[0]).toBeInstanceOf(InviteCodeRevokedEvent);
+    });
+
+    it('should include correct data in InviteCodeRevokedEvent', () => {
+      // Given (Arrange)
+      const props = createValidProps();
+      const invite = InviteCode.create(props).value!;
+      invite.clearDomainEvents(); // Reset events
+
+      // When (Act)
+      invite.revoke(adminId);
+      const events = invite.getDomainEvents();
+      const event = events[0] as InviteCodeRevokedEvent;
+
+      // Then (Assert)
+      expect(event.inviteCodeId).toBe(invite.id.value);
+      expect(event.codeMasked).toBe(invite.code.toMasked());
+      expect(event.revokedAt).toBeInstanceOf(Date);
+      expect(event.revokedById).toBe(adminId);
+    });
+
+    it('should NOT emit event on subsequent revoke calls (idempotent)', () => {
+      // Given (Arrange)
+      const props = createValidProps();
+      const invite = InviteCode.create(props).value!;
+      invite.clearDomainEvents(); // Reset events
+
+      // When (Act)
+      invite.revoke(adminId);
+      invite.clearDomainEvents(); // Clear first event
+      invite.revoke(adminId); // Second revoke
+
+      // Then (Assert)
+      const events = invite.getDomainEvents();
+      expect(events).toHaveLength(0);
+    });
+
+    it('should NOT emit event when code is already used (usedCount >= maxUses)', () => {
+      // Given (Arrange)
+      const reconstructProps = createReconstructProps({
+        maxUses: 5,
+        usedCount: 5, // Vollständig aufgebraucht
+      });
+      const invite = InviteCode.reconstruct(reconstructProps);
+
+      // When (Act)
+      const result = invite.revoke(adminId);
+
+      // Then (Assert)
+      expect(result.isSuccess).toBe(true);
+      expect(invite.isRevoked).toBe(false); // Status bleibt USED, nicht REVOKED
+      const events = invite.getDomainEvents();
+      expect(events).toHaveLength(0);
+    });
+
+    it('should succeed but not change state when code is already used', () => {
+      // Given (Arrange)
+      const reconstructProps = createReconstructProps({
+        maxUses: 5,
+        usedCount: 5,
+      });
+      const invite = InviteCode.reconstruct(reconstructProps);
+
+      // When (Act)
+      const result = invite.revoke(adminId);
+
+      // Then (Assert)
+      expect(result.isSuccess).toBe(true);
+      expect(invite.isRevoked).toBe(false);
+      expect(invite.revokedAt).toBeNull();
     });
   });
 
@@ -870,6 +958,213 @@ describe('InviteCode Aggregate', () => {
       expect(invite.isRevoked).toBe(true);
       expect(invite.revokedAt).toBe(revokedAt);
       expect(invite.isValid()).toBe(false);
+    });
+  });
+
+  describe('computeStatus() - Status Berechnung', () => {
+    describe('Einzelne Status', () => {
+      it('should return ACTIVE for valid, non-expired, non-revoked code with remaining uses', () => {
+        // Given (Arrange)
+        const props = createValidProps();
+        const invite = InviteCode.create(props).value!;
+
+        // When (Act)
+        const status = invite.computeStatus();
+
+        // Then (Assert)
+        expect(status).toBe(InviteCodeStatus.ACTIVE);
+      });
+
+      it('should return REVOKED when code is revoked', () => {
+        // Given (Arrange)
+        const reconstructProps = createReconstructProps({
+          isRevoked: true,
+          revokedAt: new Date(),
+        });
+        const invite = InviteCode.reconstruct(reconstructProps);
+
+        // When (Act)
+        const status = invite.computeStatus();
+
+        // Then (Assert)
+        expect(status).toBe(InviteCodeStatus.REVOKED);
+      });
+
+      it('should return EXPIRED when expiresAt is in the past', () => {
+        // Given (Arrange)
+        const pastDate = new Date();
+        pastDate.setHours(pastDate.getHours() - 1);
+
+        const reconstructProps = createReconstructProps({
+          expiresAt: pastDate,
+        });
+        const invite = InviteCode.reconstruct(reconstructProps);
+
+        // When (Act)
+        const status = invite.computeStatus();
+
+        // Then (Assert)
+        expect(status).toBe(InviteCodeStatus.EXPIRED);
+      });
+
+      it('should return EXPIRED when expiresAt is exactly now', () => {
+        // Given (Arrange)
+        const now = new Date();
+
+        const reconstructProps = createReconstructProps({
+          expiresAt: now,
+        });
+        const invite = InviteCode.reconstruct(reconstructProps);
+
+        // When (Act)
+        const status = invite.computeStatus();
+
+        // Then (Assert)
+        expect(status).toBe(InviteCodeStatus.EXPIRED);
+      });
+
+      it('should return USED when usedCount equals maxUses', () => {
+        // Given (Arrange)
+        const reconstructProps = createReconstructProps({
+          maxUses: 10,
+          usedCount: 10,
+        });
+        const invite = InviteCode.reconstruct(reconstructProps);
+
+        // When (Act)
+        const status = invite.computeStatus();
+
+        // Then (Assert)
+        expect(status).toBe(InviteCodeStatus.USED);
+      });
+
+      it('should return USED when usedCount exceeds maxUses', () => {
+        // Given (Arrange)
+        const reconstructProps = createReconstructProps({
+          maxUses: 5,
+          usedCount: 7, // Sollte nicht vorkommen, aber prüfen
+        });
+        const invite = InviteCode.reconstruct(reconstructProps);
+
+        // When (Act)
+        const status = invite.computeStatus();
+
+        // Then (Assert)
+        expect(status).toBe(InviteCodeStatus.USED);
+      });
+    });
+
+    describe('Priorität - REVOKED hat höchste Priorität', () => {
+      it('should return REVOKED even when code is also expired', () => {
+        // Given (Arrange)
+        const pastDate = new Date();
+        pastDate.setHours(pastDate.getHours() - 1);
+
+        const reconstructProps = createReconstructProps({
+          isRevoked: true,
+          revokedAt: new Date(),
+          expiresAt: pastDate, // Auch abgelaufen
+        });
+        const invite = InviteCode.reconstruct(reconstructProps);
+
+        // When (Act)
+        const status = invite.computeStatus();
+
+        // Then (Assert)
+        expect(status).toBe(InviteCodeStatus.REVOKED);
+      });
+
+      it('should return REVOKED even when code is also fully used', () => {
+        // Given (Arrange)
+        const reconstructProps = createReconstructProps({
+          isRevoked: true,
+          revokedAt: new Date(),
+          maxUses: 5,
+          usedCount: 5, // Auch aufgebraucht
+        });
+        const invite = InviteCode.reconstruct(reconstructProps);
+
+        // When (Act)
+        const status = invite.computeStatus();
+
+        // Then (Assert)
+        expect(status).toBe(InviteCodeStatus.REVOKED);
+      });
+
+      it('should return REVOKED when revoked, expired and fully used', () => {
+        // Given (Arrange)
+        const pastDate = new Date();
+        pastDate.setHours(pastDate.getHours() - 1);
+
+        const reconstructProps = createReconstructProps({
+          isRevoked: true,
+          revokedAt: new Date(),
+          expiresAt: pastDate,
+          maxUses: 5,
+          usedCount: 5,
+        });
+        const invite = InviteCode.reconstruct(reconstructProps);
+
+        // When (Act)
+        const status = invite.computeStatus();
+
+        // Then (Assert)
+        expect(status).toBe(InviteCodeStatus.REVOKED);
+      });
+    });
+
+    describe('Priorität - EXPIRED vor USED', () => {
+      it('should return EXPIRED when code is both expired and fully used', () => {
+        // Given (Arrange)
+        const pastDate = new Date();
+        pastDate.setHours(pastDate.getHours() - 1);
+
+        const reconstructProps = createReconstructProps({
+          expiresAt: pastDate, // Abgelaufen
+          maxUses: 5,
+          usedCount: 5, // Auch aufgebraucht
+          isRevoked: false, // NICHT widerrufen
+        });
+        const invite = InviteCode.reconstruct(reconstructProps);
+
+        // When (Act)
+        const status = invite.computeStatus();
+
+        // Then (Assert)
+        expect(status).toBe(InviteCodeStatus.EXPIRED);
+      });
+    });
+
+    describe('Grenzfälle', () => {
+      it('should return ACTIVE when usedCount is one less than maxUses', () => {
+        // Given (Arrange)
+        const reconstructProps = createReconstructProps({
+          maxUses: 10,
+          usedCount: 9, // Noch eine Nutzung übrig
+        });
+        const invite = InviteCode.reconstruct(reconstructProps);
+
+        // When (Act)
+        const status = invite.computeStatus();
+
+        // Then (Assert)
+        expect(status).toBe(InviteCodeStatus.ACTIVE);
+      });
+
+      it('should return ACTIVE when never used', () => {
+        // Given (Arrange)
+        const reconstructProps = createReconstructProps({
+          maxUses: 50,
+          usedCount: 0,
+        });
+        const invite = InviteCode.reconstruct(reconstructProps);
+
+        // When (Act)
+        const status = invite.computeStatus();
+
+        // Then (Assert)
+        expect(status).toBe(InviteCodeStatus.ACTIVE);
+      });
     });
   });
 });

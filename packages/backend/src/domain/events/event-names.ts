@@ -120,6 +120,8 @@ export const EVENT_NAMES = {
     CREATED: 'invite_code.created',
     /** Event: Invite-Code wurde eingelöst */
     USED: 'invite_code.used',
+    /** Event: Invite-Code wurde widerrufen */
+    REVOKED: 'invite_code.revoked',
   },
 } as const;
 
