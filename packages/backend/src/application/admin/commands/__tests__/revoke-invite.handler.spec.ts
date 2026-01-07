@@ -151,7 +151,7 @@ describe('RevokeInviteHandler', () => {
       // Given (Arrange)
       const command = createValidCommand();
       const activeInviteCode = createActiveInviteCode();
-      mockInviteCodeRepository.findById.mockResolvedValue(activeInviteCode);
+      mockInviteCodeRepository.findById.mockResolvedValue(Result.ok(activeInviteCode));
 
       // When (Act)
       const result = await handler.execute(command);
@@ -169,7 +169,7 @@ describe('RevokeInviteHandler', () => {
       // Given (Arrange)
       const command = createValidCommand();
       const activeInviteCode = createActiveInviteCode({ code: 'TEST1234' });
-      mockInviteCodeRepository.findById.mockResolvedValue(activeInviteCode);
+      mockInviteCodeRepository.findById.mockResolvedValue(Result.ok(activeInviteCode));
 
       // When (Act)
       const result = await handler.execute(command);
@@ -184,7 +184,7 @@ describe('RevokeInviteHandler', () => {
       // Given (Arrange)
       const command = createValidCommand();
       const activeInviteCode = createActiveInviteCode();
-      mockInviteCodeRepository.findById.mockResolvedValue(activeInviteCode);
+      mockInviteCodeRepository.findById.mockResolvedValue(Result.ok(activeInviteCode));
 
       // When (Act)
       const result = await handler.execute(command);
@@ -200,7 +200,7 @@ describe('RevokeInviteHandler', () => {
       // Given (Arrange)
       const command = createValidCommand();
       const activeInviteCode = createActiveInviteCode();
-      mockInviteCodeRepository.findById.mockResolvedValue(activeInviteCode);
+      mockInviteCodeRepository.findById.mockResolvedValue(Result.ok(activeInviteCode));
 
       // When (Act)
       const result = await handler.execute(command);
@@ -218,7 +218,7 @@ describe('RevokeInviteHandler', () => {
       // Given (Arrange)
       const command = createValidCommand({ revokedById: 'user_testadmin12345678901' });
       const activeInviteCode = createActiveInviteCode();
-      mockInviteCodeRepository.findById.mockResolvedValue(activeInviteCode);
+      mockInviteCodeRepository.findById.mockResolvedValue(Result.ok(activeInviteCode));
 
       // When (Act)
       const result = await handler.execute(command);
@@ -243,7 +243,7 @@ describe('RevokeInviteHandler', () => {
         isRevoked: true,
         revokedAt: revokedAt,
       });
-      mockInviteCodeRepository.findById.mockResolvedValue(alreadyRevokedCode);
+      mockInviteCodeRepository.findById.mockResolvedValue(Result.ok(alreadyRevokedCode));
 
       // When (Act)
       const result = await handler.execute(command);
@@ -260,7 +260,7 @@ describe('RevokeInviteHandler', () => {
         isRevoked: true,
         revokedAt: new Date(),
       });
-      mockInviteCodeRepository.findById.mockResolvedValue(alreadyRevokedCode);
+      mockInviteCodeRepository.findById.mockResolvedValue(Result.ok(alreadyRevokedCode));
 
       // When (Act)
       const result = await handler.execute(command);
@@ -279,7 +279,7 @@ describe('RevokeInviteHandler', () => {
         isRevoked: true,
         revokedAt: originalRevokedAt,
       });
-      mockInviteCodeRepository.findById.mockResolvedValue(alreadyRevokedCode);
+      mockInviteCodeRepository.findById.mockResolvedValue(Result.ok(alreadyRevokedCode));
 
       // When (Act)
       const result = await handler.execute(command);
@@ -298,7 +298,7 @@ describe('RevokeInviteHandler', () => {
         usedCount: 10,
         maxUses: 10,
       });
-      mockInviteCodeRepository.findById.mockResolvedValue(usedCode);
+      mockInviteCodeRepository.findById.mockResolvedValue(Result.ok(usedCode));
 
       // When (Act)
       const result = await handler.execute(command);
@@ -316,7 +316,7 @@ describe('RevokeInviteHandler', () => {
         usedCount: 10,
         maxUses: 10,
       });
-      mockInviteCodeRepository.findById.mockResolvedValue(usedCode);
+      mockInviteCodeRepository.findById.mockResolvedValue(Result.ok(usedCode));
 
       // When (Act)
       const result = await handler.execute(command);
@@ -336,7 +336,7 @@ describe('RevokeInviteHandler', () => {
         isRevoked: false,
         revokedAt: null,
       });
-      mockInviteCodeRepository.findById.mockResolvedValue(usedCode);
+      mockInviteCodeRepository.findById.mockResolvedValue(Result.ok(usedCode));
 
       // When (Act)
       const result = await handler.execute(command);
@@ -351,7 +351,7 @@ describe('RevokeInviteHandler', () => {
     it('should throw NotFoundException when invite code does not exist', async () => {
       // Given (Arrange)
       const command = createValidCommand();
-      mockInviteCodeRepository.findById.mockResolvedValue(null);
+      mockInviteCodeRepository.findById.mockResolvedValue(Result.ok(null));
 
       // When (Act)
       const result = await handler.execute(command);
@@ -365,7 +365,7 @@ describe('RevokeInviteHandler', () => {
     it('should not save anything when invite code not found', async () => {
       // Given (Arrange)
       const command = createValidCommand();
-      mockInviteCodeRepository.findById.mockResolvedValue(null);
+      mockInviteCodeRepository.findById.mockResolvedValue(Result.ok(null));
 
       // When (Act)
       await handler.execute(command);
@@ -413,7 +413,7 @@ describe('RevokeInviteHandler', () => {
       // Given (Arrange)
       const command = createValidCommand();
       const activeInviteCode = createActiveInviteCode();
-      mockInviteCodeRepository.findById.mockResolvedValue(activeInviteCode);
+      mockInviteCodeRepository.findById.mockResolvedValue(Result.ok(activeInviteCode));
       mockInviteCodeRepository.save.mockResolvedValue(Result.fail('Database connection error'));
 
       // When (Act)
@@ -428,7 +428,7 @@ describe('RevokeInviteHandler', () => {
       // Given (Arrange)
       const command = createValidCommand();
       const activeInviteCode = createActiveInviteCode();
-      mockInviteCodeRepository.findById.mockResolvedValue(activeInviteCode);
+      mockInviteCodeRepository.findById.mockResolvedValue(Result.ok(activeInviteCode));
       mockInviteCodeRepository.save.mockResolvedValue(Result.fail('DB Error'));
 
       // When (Act)
@@ -444,7 +444,7 @@ describe('RevokeInviteHandler', () => {
       // Given (Arrange)
       const command = createValidCommand();
       const activeInviteCode = createActiveInviteCode();
-      mockInviteCodeRepository.findById.mockResolvedValue(activeInviteCode);
+      mockInviteCodeRepository.findById.mockResolvedValue(Result.ok(activeInviteCode));
 
       // When (Act)
       const result = await handler.execute(command);
@@ -460,7 +460,7 @@ describe('RevokeInviteHandler', () => {
       const activeInviteCode = createActiveInviteCode();
       const txMarker = { isTx: true };
       mockPrismaService.$transaction.mockImplementation(async (callback) => callback(txMarker));
-      mockInviteCodeRepository.findById.mockResolvedValue(activeInviteCode);
+      mockInviteCodeRepository.findById.mockResolvedValue(Result.ok(activeInviteCode));
 
       // When (Act)
       const result = await handler.execute(command);
@@ -477,7 +477,7 @@ describe('RevokeInviteHandler', () => {
       // Given (Arrange)
       const command = createValidCommand();
       const activeInviteCode = createActiveInviteCode();
-      mockInviteCodeRepository.findById.mockResolvedValue(activeInviteCode);
+      mockInviteCodeRepository.findById.mockResolvedValue(Result.ok(activeInviteCode));
       mockOutboxRepository.save.mockRejectedValue(new Error('Outbox Error'));
 
       // When (Act)
@@ -500,7 +500,7 @@ describe('RevokeInviteHandler', () => {
         id: 'inv_abc123def456ghi789jkl012',
         code: 'REVK1234',
       });
-      mockInviteCodeRepository.findById.mockResolvedValue(activeInviteCode);
+      mockInviteCodeRepository.findById.mockResolvedValue(Result.ok(activeInviteCode));
 
       // When (Act)
       const result = await handler.execute(command);
@@ -522,7 +522,7 @@ describe('RevokeInviteHandler', () => {
       // Given (Arrange)
       const command = createValidCommand();
       const activeInviteCode = createActiveInviteCode();
-      mockInviteCodeRepository.findById.mockResolvedValue(activeInviteCode);
+      mockInviteCodeRepository.findById.mockResolvedValue(Result.ok(activeInviteCode));
 
       // When (Act)
       const result = await handler.execute(command);
@@ -542,7 +542,7 @@ describe('RevokeInviteHandler', () => {
       // Given (Arrange)
       const command = createValidCommand();
       const activeInviteCode = createActiveInviteCode();
-      mockInviteCodeRepository.findById.mockResolvedValue(activeInviteCode);
+      mockInviteCodeRepository.findById.mockResolvedValue(Result.ok(activeInviteCode));
 
       // When (Act)
       const result = await handler.execute(command);
