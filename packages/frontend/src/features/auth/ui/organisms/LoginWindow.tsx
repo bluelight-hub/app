@@ -27,7 +27,7 @@ export function LoginWindow(_props: Props) {
   const { user, isLoading } = useCurrentUser();
   const unifiedAuth = useUnifiedAuth();
 
-  const { connectionMode, isLoading: healthLoading, isError: healthError } = useSystemHealth();
+  const { connectionMode, isLoading: healthLoading, isError: healthError, insecureMode } = useSystemHealth();
   const { frontendVersion, mismatchSeverity } = useSystemVersion();
 
   const indicatorStatus = getIndicatorStatus(healthLoading, healthError, connectionMode);
@@ -90,6 +90,7 @@ export function LoginWindow(_props: Props) {
                 variant: 'default',
                 dotColor: STATUS_DOT_COLORS[indicatorStatus],
               },
+              ...(insecureMode ? [{ label: 'Unsicherer Modus', variant: 'warning' as const, dotColor: 'yellow' as const }] : []),
               ...(mismatchSeverity === 'critical' ? [{ label: 'Update erforderlich', variant: 'danger' as const, dotColor: 'red' as const }] : []),
             ]}
             version={`v${frontendVersion}`}

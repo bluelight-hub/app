@@ -141,6 +141,11 @@ model User {
   einsatzRollenbesetzungenCreated EinsatzRollenbesetzung[] @relation("EinsatzRollenbesetzungCreator")
   einsatzRollenbesetzungenUpdated EinsatzRollenbesetzung[] @relation("EinsatzRollenbesetzungUpdater")
 
+  // ========================================
+  // Invite-Code Relations (Story 1.6)
+  // ========================================
+  createdInviteCodes InviteCode[]
+
   // Indexes
   @@index([username], map: "idx_user_username")
   @@index([role, isActive], map: "idx_user_role_active")
@@ -1141,7 +1146,6 @@ model QualifikationMapping {
 /// - tokenHash: bcrypt Hash des Tokens (Format: $2[aby]$[cost]$[53 chars], exakt 60 Zeichen)
 /// - Token Format: blh_{cuid2} (28 Zeichen total)
 /// - Sicherheit: Cost Factor >= 10 (NFR-S1), Timing-Safe Comparison via bcrypt.compare()
-/// - HINWEIS: inviteCodeId Relation kommt in Story 1.6
 model ServerAccessToken {
   id         String    @id @default(cuid())
   tokenHash  String    @unique @db.VarChar(60) // bcrypt Hash, exakt 60 Zeichen
@@ -1150,6 +1154,10 @@ model ServerAccessToken {
   expiresAt  DateTime? // Ablaufzeitpunkt (NULL = never expires)
   isRevoked  Boolean   @default(false)
   revokedAt  DateTime? // Zeitpunkt der Revokation
+
+  // InviteCode Relation (Story 1.6)
+  inviteCodeId    String?     @unique
+  createdByInvite InviteCode? @relation(fields: [inviteCodeId], references: [id])
 
   // Timestamps
   createdAt DateTime @default(now())
@@ -1160,4 +1168,39 @@ model ServerAccessToken {
   @@index([tokenHash, isRevoked], map: "idx_server_access_token_validate") // validateToken Query
   @@index([isRevoked, expiresAt], map: "idx_server_access_token_active") // findActiveTokens Query
   @@map("server_access_tokens")
+}
+
+// ========================================
+// Security: Invite-Code System
+// Epic 1 - Story 1.6
+// ========================================
+
+/// InviteCode: Einmal- oder Mehrfach-Codes für Server-Zugang
+/// - code: 8-stelliger alphanumerischer Code (Base32 ohne I/O/L zur Vermeidung von Verwechslungen)
+/// - maxUses: Maximale Einlösungen (default 1 für Einmal-Code)
+/// - useCount: Aktuelle Einlösungen
+/// - Relation zu ServerAccessToken: 1:1 (ein Token pro erfolgreichem Einlösen)
+model InviteCode {
+  id          String    @id @default(cuid())
+  code        String    @unique @db.VarChar(8)
+  expiresAt   DateTime
+  maxUses     Int       @default(1)
+  useCount    Int       @default(0)
+  isRevoked   Boolean   @default(false)
+  revokedAt   DateTime?
+  label       String?   @db.VarChar(100)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  createdById String    @db.VarChar(100)
+
+  // Relations
+  createdBy     User               @relation(fields: [createdById], references: [id], onDelete: Restrict)
+  redeemedToken ServerAccessToken?
+
+  // Indexes
+  @@index([code], map: "idx_invite_code")
+  @@index([expiresAt], map: "idx_invite_expires")
+  @@index([createdById], map: "idx_invite_created_by")
+  @@index([isRevoked, expiresAt], map: "idx_invite_active_codes")
+  @@map("invite_codes")
 }

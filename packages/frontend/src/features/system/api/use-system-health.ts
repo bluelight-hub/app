@@ -24,6 +24,28 @@ interface ConnectionStatusDetails {
 }
 
 /**
+ * Rückgabetyp des useSystemHealth Hooks
+ */
+export interface SystemHealthResult {
+  /** Aktueller Verbindungsstatus */
+  connectionMode: ConnectionMode;
+  /** Ob der Server im INSECURE_MODE läuft (Development only) */
+  insecureMode: boolean;
+  /** Ob Setup abgeschlossen ist */
+  setupComplete: boolean;
+  /** Backend-Version */
+  version: string | null;
+  /** Ob der initiale Request noch läuft */
+  isLoading: boolean;
+  /** Ob ein Fehler aufgetreten ist */
+  isError: boolean;
+  /** Fehlerdetails */
+  error: Error | null;
+  /** Zugriff auf die vollständige Query */
+  query: ReturnType<typeof useQuery>;
+}
+
+/**
  * Hook zum Abrufen des System-Health-Status
  *
  * Ruft alle 30 Sekunden den Health-Endpoint ab und extrahiert
@@ -65,8 +87,17 @@ export const useSystemHealth = () => {
   // 4. Fallback → 'online' (API erfolgreich, aber kein mode - Backend ist erreichbar)
   const connectionMode: ConnectionMode = query.isError ? 'error' : query.isLoading ? 'checking' : (details?.connection_status?.details?.mode ?? 'online');
 
+  // Extrahiere insecureMode, setupComplete und version aus der Health Response
+  // Der generierte API-Client typisiert die Response jetzt korrekt als BasicHealthDto | DetailedHealthDto
+  const insecureMode = query.data?.insecureMode ?? false;
+  const setupComplete = query.data?.setupComplete ?? false;
+  const version = query.data?.version ?? null;
+
   return {
     connectionMode,
+    insecureMode,
+    setupComplete,
+    version,
     isLoading: query.isLoading,
     isError: query.isError,
     error: query.error,

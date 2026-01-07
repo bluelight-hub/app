@@ -71,6 +71,7 @@ models/AuthUserResponseDto.ts
 models/AutoMatchRequestDto.ts
 models/AutoMatchResultItemDto.ts
 models/AutoMatchResultResponseDto.ts
+models/BasicHealthDto.ts
 models/BatchSaveMappingItemDto.ts
 models/BatchSaveQualifikationMappingsRequestDto.ts
 models/BatchSaveQualifikationMappingsResponseDto.ts
@@ -91,6 +92,7 @@ models/CreateUserDto.ts
 models/DeleteManagedUserResponse.ts
 models/DeleteManagedUserResponseData.ts
 models/DeleteUserDto.ts
+models/DetailedHealthDto.ts
 models/EinsatzControllerCreateVAlpha201Response.ts
 models/EinsatzControllerFindAllVAlpha200Response.ts
 models/EinsatzControllerFindAllVAlpha200ResponsePagination.ts
@@ -127,8 +129,9 @@ models/GeoJsonPointDto.ts
 models/GeoPositionDto.ts
 models/GeocodeAddressDto.ts
 models/HealthControllerCheck200Response.ts
-models/HealthControllerCheck200ResponseInfoValue.ts
-models/HealthControllerCheck503Response.ts
+models/HealthControllerCheckLiveness200Response.ts
+models/HealthControllerCheckLiveness200ResponseInfoValue.ts
+models/HealthControllerCheckLiveness503Response.ts
 models/HiOrgConnectionInfoDto.ts
 models/HiOrgCredentialsResponseDto.ts
 models/HiOrgPersonPreviewItemDto.ts

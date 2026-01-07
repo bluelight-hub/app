@@ -1,4 +1,5 @@
 import { type ExecutionContext, UnauthorizedException } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { Reflector } from '@nestjs/core';
 import { Test, type TestingModule } from '@nestjs/testing';
 import * as bcrypt from 'bcrypt';
@@ -20,6 +21,7 @@ describe('ServerAccessGuard', () => {
   let mockTokenRepo: jest.Mocked<IServerAccessTokenRepository>;
   let mockLogger: jest.Mocked<ILogger>;
   let mockReflector: jest.Mocked<Reflector>;
+  let mockConfigService: jest.Mocked<ConfigService>;
 
   // Helper to create mock execution context
   const createMockExecutionContext = (headers: Record<string, string | undefined> = {}): ExecutionContext => {
@@ -76,6 +78,10 @@ describe('ServerAccessGuard', () => {
       getAllAndOverride: jest.fn(),
     } as unknown as jest.Mocked<Reflector>;
 
+    mockConfigService = {
+      get: jest.fn().mockReturnValue(undefined), // Default: INSECURE_MODE nicht gesetzt
+    } as unknown as jest.Mocked<ConfigService>;
+
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         ServerAccessGuard,
@@ -90,6 +96,10 @@ describe('ServerAccessGuard', () => {
         {
           provide: Reflector,
           useValue: mockReflector,
+        },
+        {
+          provide: ConfigService,
+          useValue: mockConfigService,
         },
       ],
     }).compile();
@@ -254,6 +264,71 @@ describe('ServerAccessGuard', () => {
         // When/Then: throws UnauthorizedException
         await expect(guard.canActivate(context)).rejects.toThrow(UnauthorizedException);
         expect(mockLogger.error).toHaveBeenCalled();
+      });
+    });
+
+    describe('INSECURE_MODE', () => {
+      it('should bypass token validation when INSECURE_MODE=true', async () => {
+        // Given: INSECURE_MODE enabled, no token in request
+        mockReflector.getAllAndOverride.mockReturnValue(false);
+        mockConfigService.get.mockReturnValue('true');
+        const context = createMockExecutionContext({}); // No token
+
+        // When: canActivate is called
+        const result = await guard.canActivate(context);
+
+        // Then: returns true without checking token repository
+        expect(result).toBe(true);
+        expect(mockTokenRepo.findAllActive).not.toHaveBeenCalled();
+      });
+
+      it('should log warning when INSECURE_MODE=true', async () => {
+        // Given: INSECURE_MODE enabled
+        mockReflector.getAllAndOverride.mockReturnValue(false);
+        mockConfigService.get.mockReturnValue('true');
+        const context = createMockExecutionContext({});
+
+        // When: canActivate is called
+        await guard.canActivate(context);
+
+        // Then: warning is logged
+        expect(mockLogger.warn).toHaveBeenCalledWith(expect.stringContaining('INSECURE_MODE enabled - bypassing token validation'));
+      });
+
+      it('should require token when INSECURE_MODE=false', async () => {
+        // Given: INSECURE_MODE explicitly disabled, no token
+        mockReflector.getAllAndOverride.mockReturnValue(false);
+        mockConfigService.get.mockReturnValue('false');
+        const context = createMockExecutionContext({}); // No token
+
+        // When/Then: throws UnauthorizedException
+        await expect(guard.canActivate(context)).rejects.toThrow(UnauthorizedException);
+        await expect(guard.canActivate(context)).rejects.toThrow('Server access token required');
+      });
+
+      it('should require token when INSECURE_MODE not set', async () => {
+        // Given: INSECURE_MODE not set (undefined), no token
+        mockReflector.getAllAndOverride.mockReturnValue(false);
+        mockConfigService.get.mockReturnValue(undefined);
+        const context = createMockExecutionContext({}); // No token
+
+        // When/Then: throws UnauthorizedException
+        await expect(guard.canActivate(context)).rejects.toThrow(UnauthorizedException);
+        await expect(guard.canActivate(context)).rejects.toThrow('Server access token required');
+      });
+
+      it('should still check @SkipServerAccess before INSECURE_MODE', async () => {
+        // Given: @SkipServerAccess present, INSECURE_MODE=false
+        mockReflector.getAllAndOverride.mockReturnValue(true);
+        mockConfigService.get.mockReturnValue('false');
+        const context = createMockExecutionContext({});
+
+        // When: canActivate is called
+        const result = await guard.canActivate(context);
+
+        // Then: returns true via decorator skip (not INSECURE_MODE)
+        expect(result).toBe(true);
+        expect(mockConfigService.get).not.toHaveBeenCalled(); // Decorator check before config check
       });
     });
   });

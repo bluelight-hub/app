@@ -1,4 +1,5 @@
 import { useCurrentUser, useAdminLogin } from '@/features/auth';
+import { useSystemHealth } from '@/features/system/api/use-system-health';
 import { getApiErrorMessage } from '@/shared/lib/errors/apiErrorHandler';
 import { Alert } from '@/shared/ui/atoms/alert.atom';
 import { Button } from '@/shared/ui/atoms/button.atom';
@@ -25,6 +26,7 @@ export function AdminLogin() {
   const navigate = useNavigate();
   const { user, isLoading, isAdminAuthenticated, adminStatus } = useCurrentUser();
   const loginAdmin = useAdminLogin();
+  const { connectionMode, insecureMode, version } = useSystemHealth();
   const [hasCheckedAuth, setHasCheckedAuth] = useState(false);
   const [shouldShake, setShouldShake] = useState(false);
   const [apiError, setApiError] = useState<string | null>(null);
@@ -119,6 +121,28 @@ export function AdminLogin() {
     return null;
   }
 
+  // Dynamische Status-Badges basierend auf Health Response
+  const statusBadges: Array<{
+    label: string;
+    variant: 'default' | 'info' | 'success' | 'warning' | 'error';
+    dotColor: 'green' | 'blue' | 'red' | 'yellow';
+  }> = [
+    {
+      label: connectionMode === 'online' ? 'System online' : connectionMode === 'checking' ? 'Verbindung...' : connectionMode === 'error' ? 'Verbindungsfehler' : 'System offline',
+      variant: connectionMode === 'online' ? 'default' : connectionMode === 'error' ? 'error' : 'warning',
+      dotColor: connectionMode === 'online' ? 'green' : connectionMode === 'error' ? 'red' : 'yellow',
+    },
+  ];
+
+  // Warnung wenn Server im INSECURE_MODE läuft
+  if (insecureMode) {
+    statusBadges.push({
+      label: 'Unsicherer Modus',
+      variant: 'warning',
+      dotColor: 'yellow',
+    });
+  }
+
   return (
     <AuthLayout>
       <AuthCard className="mx-5 w-full max-w-[440px]">
@@ -180,14 +204,7 @@ export function AdminLogin() {
           </div>
 
           {/* Footer */}
-          <AuthFooter
-            badges={[
-              { label: 'System online', variant: 'default', dotColor: 'green' },
-              { label: 'SSL gesichert', variant: 'info', dotColor: 'blue' },
-            ]}
-            version="2.0.1"
-            copyright="© 2025 DRK"
-          />
+          <AuthFooter badges={statusBadges} version={version ?? undefined} copyright="© 2025 DRK" />
         </div>
       </AuthCard>
     </AuthLayout>

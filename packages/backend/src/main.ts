@@ -8,6 +8,7 @@ import helmet from 'helmet';
 import * as process from 'node:process';
 import * as packageJson from '../package.json';
 import { AppModule } from './app.module';
+import { validateInsecureMode } from './infrastructure/config/bootstrap-validation';
 import { PerformanceInterceptor } from './infrastructure/http/interceptors/performance.interceptor';
 import { TransformInterceptor } from './infrastructure/http/interceptors/transform.interceptor';
 import { corsConfig, helmetConfig } from './infrastructure/config/security.config';
@@ -113,6 +114,10 @@ async function bootstrap() {
   const url = await app.getUrl();
   Logger.log(`Application is running in ${isProduction ? 'production' : 'development'} mode`, 'Bootstrap');
   Logger.log(`Application is running on: ${url}`);
+
+  // INSECURE_MODE Validierung - Security Check VOR App-Start abschliessen
+  // Wirft Exception wenn INSECURE_MODE in Production aktiviert ist
+  validateInsecureMode(configService.get<string>('INSECURE_MODE'), isProduction);
 }
 
 bootstrap();

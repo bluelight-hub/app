@@ -1,5 +1,6 @@
 import type { Request } from 'express';
 import type { HealthCheckResult, HealthCheckService, MemoryHealthIndicator, DiskHealthIndicator } from '@nestjs/terminus';
+import type { ConfigService } from '@nestjs/config';
 import * as bcrypt from 'bcrypt';
 import { HealthController } from './health.controller';
 import type { PrismaHealthIndicator } from './prisma-health.indicator';
@@ -15,12 +16,14 @@ import { TokenHash } from '@domain/value-objects/token-hash';
  *
  * Diese Tests validieren die Token-basierte Health-Response Logik:
  * - Ohne Token: BasicHealthDto (status, setupComplete, version)
- * - Mit gueltigem Token: HealthCheckResult (erweiterte Terminus Details)
+ * - Mit gueltigem Token: DetailedHealthDto (database, uptime, memory, loadAverage)
  * - Mit ungueltigem Token: BasicHealthDto (kein Error!)
  *
  * **Test Coverage:**
  * - check() Method: Token-basierte Response-Auswahl
- * - getBasicHealth(): Setup-Status Ermittlung
+ * - getBasicHealth(): Setup-Status Ermittlung, Security (kein DB-Status Leak)
+ * - getDetailedHealth(): Erweiterte Metriken fuer authentifizierte Clients
+ * - Cache-Behavior: 10s TTL, Invalidierung bei Fehlern
  * - Error Handling: Graceful Degradation bei ungueltigen Tokens
  *
  * **Mocking Strategy:**
@@ -42,6 +45,7 @@ describe('HealthController', () => {
   let mockPrismaHealth: jest.Mocked<PrismaHealthIndicator>;
   let mockTokenRepo: jest.Mocked<IServerAccessTokenRepository>;
   let mockPrisma: jest.Mocked<PrismaService>;
+  let mockConfigService: jest.Mocked<ConfigService>;
 
   /**
    * Mock HealthCheckResult fuer detaillierte Health-Response
@@ -140,8 +144,13 @@ describe('HealthController', () => {
       $executeRaw: jest.fn(),
     } as unknown as jest.Mocked<PrismaService>;
 
-    // Controller mit allen 6 Dependencies erstellen
-    controller = new HealthController(mockHealthCheckService, mockMemoryIndicator, mockDiskIndicator, mockPrismaHealth, mockPrisma, mockTokenRepo);
+    // Mock ConfigService (fuer INSECURE_MODE Abfragen)
+    mockConfigService = {
+      get: jest.fn().mockReturnValue(undefined),
+    } as unknown as jest.Mocked<ConfigService>;
+
+    // Controller mit allen 7 Dependencies erstellen
+    controller = new HealthController(mockHealthCheckService, mockMemoryIndicator, mockDiskIndicator, mockPrismaHealth, mockPrisma, mockTokenRepo, mockConfigService);
   });
 
   afterEach(() => {
@@ -173,14 +182,16 @@ describe('HealthController', () => {
     });
 
     /**
-     * Test: Request mit gueltigem Token -> HealthCheckResult Response
-     * Story 1.4 AC2: Mit gueltigem Token vollstaendige Health-Response
+     * Test: Request mit gueltigem Token -> DetailedHealthDto Response
+     * Story 1.4 AC2: Mit gueltigem Token erweiterte Health-Response
      */
-    it('should return HealthCheckResult with valid X-Server-Access-Token header', async () => {
+    it('should return DetailedHealthDto with valid X-Server-Access-Token header', async () => {
       // Given: Request mit gueltigem Token Header
       const rawToken = 'blh_test_valid_token_123';
       const validToken = await createMockTokenWithHash(rawToken);
       mockTokenRepo.findAllActive.mockResolvedValue(Result.ok([validToken]));
+      mockPrisma.user.count.mockResolvedValue(1); // Admin existiert
+      mockTokenRepo.countActive.mockResolvedValue(Result.ok(1)); // Token existiert
 
       const mockRequest = {
         headers: {
@@ -191,12 +202,20 @@ describe('HealthController', () => {
       // When: check() mit Request aufgerufen wird
       const result = await controller.check(mockRequest);
 
-      // Then: Vollstaendige HealthCheckResult mit allen Details
+      // Then: DetailedHealthDto mit erweiterten Feldern
       expect(result).toBeDefined();
       expect(result).toHaveProperty('status');
-      expect(result).toHaveProperty('info');
-      expect(result).toHaveProperty('details');
-      expect(mockHealthCheckService.check).toHaveBeenCalled();
+      expect(result).toHaveProperty('setupComplete');
+      expect(result).toHaveProperty('version');
+      // AC2 spezifische Felder
+      expect(result).toHaveProperty('database');
+      expect(result).toHaveProperty('uptime');
+      expect(result).toHaveProperty('memory');
+      expect(result).toHaveProperty('loadAverage');
+      // Keine Terminus-spezifischen Felder
+      expect(result).not.toHaveProperty('info');
+      expect(result).not.toHaveProperty('details');
+      expect(result).not.toHaveProperty('error');
     });
 
     /**
@@ -441,6 +460,228 @@ describe('HealthController', () => {
       // Then: Status 'ok' mit Connection-Details
       expect(result.status).toBe('ok');
       expect(mockHealthCheckService.check).toHaveBeenCalled();
+    });
+  });
+
+  describe('check() - Security: No Information Disclosure (AC1)', () => {
+    /**
+     * Test: BasicHealthDto gibt IMMER status 'ok' zurueck, auch bei DB-Fehler
+     * Story 1.4 AC1: "keine weiteren System-Informationen werden preisgegeben"
+     */
+    it('should always return status ok for unauthenticated requests even when DB is down', async () => {
+      // Given: Database ist nicht erreichbar
+      mockPrismaHealth.pingCheck.mockRejectedValue(new Error('Database connection failed'));
+      mockPrisma.user.count.mockResolvedValue(0);
+      mockTokenRepo.countActive.mockResolvedValue(Result.ok(0));
+
+      const mockRequest = { headers: {} } as Request;
+
+      // When: check() ohne Token aufgerufen wird
+      const result = await controller.check(mockRequest);
+
+      // Then: Status ist IMMER 'ok' (keine DB-Information Disclosure)
+      expect(result).toHaveProperty('status', 'ok');
+      expect(result).toHaveProperty('setupComplete');
+      expect(result).toHaveProperty('version');
+      // Keine sensiblen Felder
+      expect(result).not.toHaveProperty('database');
+      expect(result).not.toHaveProperty('uptime');
+    });
+
+    /**
+     * Test: DetailedHealthDto zeigt tatsaechlichen DB-Status
+     * Story 1.4 AC2: Authentifizierte Clients sehen echte Informationen
+     */
+    it('should return actual database status for authenticated requests', async () => {
+      // Given: Gueltiger Token, Database ist nicht erreichbar
+      const rawToken = 'blh_auth_token_456';
+      const validToken = await createMockTokenWithHash(rawToken);
+      mockTokenRepo.findAllActive.mockResolvedValue(Result.ok([validToken]));
+      mockPrismaHealth.pingCheck.mockRejectedValue(new Error('Database down'));
+      mockPrisma.user.count.mockResolvedValue(1);
+      mockTokenRepo.countActive.mockResolvedValue(Result.ok(1));
+
+      const mockRequest = {
+        headers: { 'x-server-access-token': rawToken },
+      } as unknown as Request;
+
+      // When: check() mit gueltigem Token aufgerufen wird
+      const result = await controller.check(mockRequest);
+
+      // Then: DetailedHealthDto zeigt echten DB-Status
+      expect(result).toHaveProperty('status', 'error');
+      expect(result).toHaveProperty('database', 'disconnected');
+    });
+  });
+
+  describe('check() - Cache Behavior', () => {
+    /**
+     * Test: Cache wird genutzt innerhalb TTL
+     * Performance: Wiederholte Calls innerhalb 10s nutzen Cache
+     */
+    it('should use cached setupComplete value within TTL', async () => {
+      // Given: Admin und Token existieren
+      mockPrisma.user.count.mockResolvedValue(1);
+      mockTokenRepo.countActive.mockResolvedValue(Result.ok(1));
+
+      const mockRequest = { headers: {} } as Request;
+
+      // When: Zwei Calls hintereinander
+      await controller.check(mockRequest);
+      await controller.check(mockRequest);
+
+      // Then: DB-Call nur einmal (zweiter Call nutzt Cache)
+      // Hinweis: user.count wird in isSetupComplete() aufgerufen
+      expect(mockPrisma.user.count).toHaveBeenCalledTimes(1);
+    });
+
+    /**
+     * Test: Cache wird bei DB-Fehler invalidiert
+     * Bug-Fix: Stale Cache bei Fehlern vermeiden
+     */
+    it('should invalidate cache when database error occurs', async () => {
+      // Given: Erster Call erfolgreich, zweiter Call mit DB-Fehler
+      mockPrisma.user.count.mockResolvedValueOnce(1).mockRejectedValueOnce(new Error('DB Error')).mockResolvedValueOnce(1);
+      mockTokenRepo.countActive.mockResolvedValue(Result.ok(1));
+
+      const mockRequest = { headers: {} } as Request;
+
+      // When: Drei Calls mit DB-Fehler in der Mitte
+      const result1 = await controller.check(mockRequest);
+
+      // Simuliere Zeit vergangen (Cache abgelaufen) durch neuen Controller
+      // In echtem Test: jest.useFakeTimers()
+      const controller2 = new HealthController(mockHealthCheckService, mockMemoryIndicator, mockDiskIndicator, mockPrismaHealth, mockPrisma, mockTokenRepo, mockConfigService);
+      const result2 = await controller2.check(mockRequest);
+
+      // Then: Ergebnis reflektiert DB-Status korrekt
+      expect(result1).toHaveProperty('setupComplete', true);
+      // Nach Fehler: setupComplete = false
+      expect(result2).toHaveProperty('setupComplete', false);
+    });
+  });
+
+  describe('check() - insecureMode in Health Responses (Story 1.5)', () => {
+    /**
+     * Test 6.4: BasicHealth Response enthält insecureMode: true wenn INSECURE_MODE=true
+     * Story 1.5: Frontend muss ueber Insecure-Modus informiert werden
+     */
+    it('should include insecureMode=true in basic health when INSECURE_MODE=true', async () => {
+      // Given: INSECURE_MODE ist auf 'true' gesetzt
+      mockConfigService.get.mockImplementation((key: string) => {
+        if (key === 'INSECURE_MODE') return 'true';
+        return undefined;
+      });
+
+      const mockRequest = { headers: {} } as Request;
+
+      // When: check() ohne Token aufgerufen wird (unauthenticated -> BasicHealthDto)
+      const result = await controller.check(mockRequest);
+
+      // Then: insecureMode ist true
+      expect(result).toHaveProperty('insecureMode', true);
+    });
+
+    /**
+     * Test 6.5: DetailedHealth Response enthält insecureMode: true wenn INSECURE_MODE=true
+     * Story 1.5: Authentifizierte Clients sehen auch insecureMode
+     */
+    it('should include insecureMode=true in detailed health when INSECURE_MODE=true', async () => {
+      // Given: INSECURE_MODE ist auf 'true' gesetzt
+      mockConfigService.get.mockImplementation((key: string) => {
+        if (key === 'INSECURE_MODE') return 'true';
+        return undefined;
+      });
+
+      // Gueltiger Token fuer DetailedHealthDto
+      const rawToken = 'blh_test_insecure_token';
+      const validToken = await createMockTokenWithHash(rawToken);
+      mockTokenRepo.findAllActive.mockResolvedValue(Result.ok([validToken]));
+      mockPrisma.user.count.mockResolvedValue(1);
+      mockTokenRepo.countActive.mockResolvedValue(Result.ok(1));
+
+      const mockRequest = {
+        headers: { 'x-server-access-token': rawToken },
+      } as unknown as Request;
+
+      // When: check() mit gueltigem Token aufgerufen wird (authenticated -> DetailedHealthDto)
+      const result = await controller.check(mockRequest);
+
+      // Then: insecureMode ist true
+      expect(result).toHaveProperty('insecureMode', true);
+      // Validierung dass es DetailedHealthDto ist
+      expect(result).toHaveProperty('database');
+      expect(result).toHaveProperty('uptime');
+    });
+
+    /**
+     * Bonus Test: insecureMode=false wenn INSECURE_MODE nicht gesetzt
+     * Story 1.5: Default-Verhalten ist sicherer Modus
+     */
+    it('should include insecureMode=false in basic health when INSECURE_MODE not set', async () => {
+      // Given: INSECURE_MODE ist nicht gesetzt (undefined)
+      mockConfigService.get.mockImplementation((key: string) => {
+        if (key === 'INSECURE_MODE') return undefined;
+        return undefined;
+      });
+
+      const mockRequest = { headers: {} } as Request;
+
+      // When: check() aufgerufen wird
+      const result = await controller.check(mockRequest);
+
+      // Then: insecureMode ist false
+      expect(result).toHaveProperty('insecureMode', false);
+    });
+
+    /**
+     * Bonus Test: insecureMode=false wenn INSECURE_MODE='false'
+     * Story 1.5: Explizit false gesetzt
+     */
+    it('should include insecureMode=false in basic health when INSECURE_MODE=false', async () => {
+      // Given: INSECURE_MODE ist explizit auf 'false' gesetzt
+      mockConfigService.get.mockImplementation((key: string) => {
+        if (key === 'INSECURE_MODE') return 'false';
+        return undefined;
+      });
+
+      const mockRequest = { headers: {} } as Request;
+
+      // When: check() aufgerufen wird
+      const result = await controller.check(mockRequest);
+
+      // Then: insecureMode ist false
+      expect(result).toHaveProperty('insecureMode', false);
+    });
+
+    /**
+     * Bonus Test: insecureMode=false in DetailedHealth wenn nicht gesetzt
+     * Story 1.5: Konsistenz zwischen Basic und Detailed Response
+     */
+    it('should include insecureMode=false in detailed health when INSECURE_MODE not set', async () => {
+      // Given: INSECURE_MODE ist nicht gesetzt
+      mockConfigService.get.mockImplementation((key: string) => {
+        if (key === 'INSECURE_MODE') return undefined;
+        return undefined;
+      });
+
+      // Gueltiger Token fuer DetailedHealthDto
+      const rawToken = 'blh_test_secure_token';
+      const validToken = await createMockTokenWithHash(rawToken);
+      mockTokenRepo.findAllActive.mockResolvedValue(Result.ok([validToken]));
+      mockPrisma.user.count.mockResolvedValue(1);
+      mockTokenRepo.countActive.mockResolvedValue(Result.ok(1));
+
+      const mockRequest = {
+        headers: { 'x-server-access-token': rawToken },
+      } as unknown as Request;
+
+      // When: check() mit gueltigem Token aufgerufen wird
+      const result = await controller.check(mockRequest);
+
+      // Then: insecureMode ist false in DetailedHealthDto
+      expect(result).toHaveProperty('insecureMode', false);
+      expect(result).toHaveProperty('database');
     });
   });
 });

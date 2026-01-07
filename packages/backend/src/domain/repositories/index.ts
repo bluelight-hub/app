@@ -53,3 +53,6 @@ export { IUserRepository } from './i-user.repository';
 
 // ServerAccessToken Repository Interface
 export { IServerAccessTokenRepository } from './i-server-access-token.repository';
+
+// InviteCode Repository Interface
+export { IInviteCodeRepository } from './i-invite-code.repository';

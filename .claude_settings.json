@@ -1,0 +1,34 @@
+{
+  "sandbox": {
+    "enabled": true,
+    "autoAllowBashIfSandboxed": true
+  },
+  "permissions": {
+    "defaultMode": "acceptEdits",
+    "allow": [
+      "Read(./**)",
+      "Write(./**)",
+      "Edit(./**)",
+      "Glob(./**)",
+      "Grep(./**)",
+      "Read(/Users/rubeen/dev/personal/bluelight-hub/**)",
+      "Write(/Users/rubeen/dev/personal/bluelight-hub/**)",
+      "Edit(/Users/rubeen/dev/personal/bluelight-hub/**)",
+      "Glob(/Users/rubeen/dev/personal/bluelight-hub/**)",
+      "Grep(/Users/rubeen/dev/personal/bluelight-hub/**)",
+      "Read(/Users/rubeen/dev/personal/bluelight-hub/.auto-claude/specs/001-gh-issue-286/**)",
+      "Write(/Users/rubeen/dev/personal/bluelight-hub/.auto-claude/specs/001-gh-issue-286/**)",
+      "Edit(/Users/rubeen/dev/personal/bluelight-hub/.auto-claude/specs/001-gh-issue-286/**)",
+      "Bash(*)",
+      "WebFetch(*)",
+      "WebSearch(*)",
+      "mcp__context7__resolve-library-id(*)",
+      "mcp__context7__get-library-docs(*)",
+      "mcp__graphiti-memory__search_nodes(*)",
+      "mcp__graphiti-memory__search_facts(*)",
+      "mcp__graphiti-memory__add_episode(*)",
+      "mcp__graphiti-memory__get_episodes(*)",
+      "mcp__graphiti-memory__get_entity_edge(*)"
+    ]
+  }
+}

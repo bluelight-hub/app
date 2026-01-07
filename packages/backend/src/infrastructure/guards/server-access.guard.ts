@@ -1,6 +1,8 @@
 import { type CanActivate, type ExecutionContext, Inject, Injectable, UnauthorizedException } from '@nestjs/common';
 // biome-ignore lint/style/useImportType: Reflector ist Injectable Class - wird zur Laufzeit fuer NestJS DI benoetigt
 import { Reflector } from '@nestjs/core';
+// biome-ignore lint/style/useImportType: ConfigService ist Injectable Class - wird zur Laufzeit fuer NestJS DI benoetigt
+import { ConfigService } from '@nestjs/config';
 import * as bcrypt from 'bcrypt';
 import type { ILogger } from '@domain/ports/i-logger.port';
 import type { IServerAccessTokenRepository } from '@domain/repositories/i-server-access-token.repository';
@@ -14,8 +16,15 @@ import { SKIP_SERVER_ACCESS_KEY } from '../decorators/skip-server-access.decorat
  * Prueft den `X-Server-Access-Token` Header gegen die Datenbank.
  * Aktualisiert `lastUsedAt` asynchron bei gueltigem Token.
  *
- * **Guard-Reihenfolge:**
+ * **Guard-Reihenfolge (zwischen Guards):**
  * ThrottlerGuard → ServerAccessGuard → JwtAuthGuard (per Endpoint)
+ *
+ * **Check-Reihenfolge (innerhalb canActivate):**
+ * 1. `@SkipServerAccess` Decorator Check (hoechste Prioritaet, sofort return)
+ * 2. `INSECURE_MODE` Check (Development-Bypass, Warning Log)
+ * 3. Token-Extraktion aus `X-Server-Access-Token` Header
+ * 4. Token-Validierung gegen alle aktiven Hashes (bcrypt.compare)
+ * 5. lastUsedAt Update (asynchron, non-blocking)
  *
  * **Rationale:**
  * - ThrottlerGuard zuerst: Verhindert DoS bevor teure bcrypt-Operationen
@@ -23,12 +32,15 @@ import { SKIP_SERVER_ACCESS_KEY } from '../decorators/skip-server-access.decorat
  * - JwtAuthGuard per Endpoint: Optionale User-Authentifizierung
  *
  * **Bypass:**
- * Endpoints mit `@SkipServerAccess()` Decorator ueberspringen die Pruefung.
+ * - Endpoints mit `@SkipServerAccess()` Decorator ueberspringen die Pruefung.
+ * - `INSECURE_MODE=true` Environment Variable deaktiviert Token-Validierung komplett (nur fuer lokale Entwicklung!)
  *
  * **Security:**
  * - Token-Hashes werden mit bcrypt.compare() timing-safe validiert
  * - Tokens werden NIEMALS vollstaendig geloggt (nur erste 8 Zeichen bei Fehlern)
  * - lastUsedAt Update erfolgt asynchron (non-blocking)
+ * - INSECURE_MODE ist standardmaessig false (Secure-by-Default)
+ * - INSECURE_MODE in Production fuehrt zu sofortigem App-Crash (siehe main.ts)
  */
 @Injectable()
 export class ServerAccessGuard implements CanActivate {
@@ -37,6 +49,7 @@ export class ServerAccessGuard implements CanActivate {
     private readonly tokenRepo: IServerAccessTokenRepository,
     private readonly reflector: Reflector,
     @Inject(LOGGER) private readonly logger: ILogger,
+    private readonly configService: ConfigService,
   ) {}
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
@@ -46,7 +59,14 @@ export class ServerAccessGuard implements CanActivate {
       return true;
     }
 
-    // 2. Extract token from header
+    // 2. Check INSECURE_MODE (fuer lokale Entwicklung ohne Token-Setup)
+    const insecureMode = this.configService.get<string>('INSECURE_MODE') === 'true';
+    if (insecureMode) {
+      this.logger.warn('ServerAccessGuard: INSECURE_MODE enabled - bypassing token validation');
+      return true;
+    }
+
+    // 3. Extract token from header
     const request = context.switchToHttp().getRequest();
     const rawToken = request.headers['x-server-access-token'] as string | undefined;
 
@@ -54,7 +74,7 @@ export class ServerAccessGuard implements CanActivate {
       throw new UnauthorizedException('Server access token required');
     }
 
-    // 3. Validate token against all active tokens
+    // 4. Validate token against all active tokens
     const validToken = await this.validateToken(rawToken);
     if (!validToken) {
       const maskedPrefix = rawToken.length >= 8 ? rawToken.substring(0, 8) : rawToken.substring(0, Math.floor(rawToken.length / 2));
@@ -62,7 +82,7 @@ export class ServerAccessGuard implements CanActivate {
       throw new UnauthorizedException('Invalid or revoked server access token');
     }
 
-    // 4. Update lastUsedAt asynchronously (non-blocking)
+    // 5. Update lastUsedAt asynchronously (non-blocking)
     this.updateLastUsedAsync(validToken);
 
     this.logger.debug(`ServerAccessGuard: Token ${validToken.id.value} validated`);

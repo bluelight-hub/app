@@ -43,6 +43,9 @@ export const LAGEKARTE_REPOSITORY = Symbol('ILagekarteRepository');
 /** Repository Token für IServerAccessTokenRepository */
 export const SERVER_ACCESS_TOKEN_REPOSITORY = Symbol('IServerAccessTokenRepository');
 
+/** Repository Token für IInviteCodeRepository (Story 1-6) */
+export const INVITE_CODE_REPOSITORY = Symbol('IInviteCodeRepository');
+
 /**
  * Kräftemanagement Repository Tokens (Epic 1+).
  *

@@ -1,0 +1,976 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Bluelight Hub - Design Directions Showcase</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Nunito', 'sans-serif'],
+          },
+          colors: {
+            primary: {
+              50: '#f0f9ff',
+              100: '#e0f2fe',
+              200: '#bae6fd',
+              300: '#7dd3fc',
+              400: '#38bdf8',
+              500: '#0ea5e9',
+              600: '#0284c7',
+              700: '#0369a1',
+              800: '#075985',
+              900: '#0c4a6e',
+            }
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    .direction-card {
+      transition: all 0.3s ease;
+    }
+    .direction-card:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+    }
+    .mockup-container {
+      aspect-ratio: 16/10;
+      overflow: hidden;
+    }
+    .tab-active {
+      border-bottom: 3px solid #0ea5e9;
+      color: #0ea5e9;
+    }
+    .fullscreen-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.9);
+      z-index: 100;
+      display: none;
+    }
+    .fullscreen-overlay.active {
+      display: flex;
+    }
+  </style>
+</head>
+<body class="bg-gray-50 font-sans">
+
+  <!-- Header -->
+  <header class="bg-white border-b border-gray-200 sticky top-0 z-50">
+    <div class="max-w-7xl mx-auto px-6 py-4">
+      <div class="flex items-center justify-between">
+        <div>
+          <h1 class="text-2xl font-bold text-gray-900">Bluelight Hub</h1>
+          <p class="text-sm text-gray-500">Design Directions - Multi-Server Feature</p>
+        </div>
+        <div class="flex gap-4">
+          <button onclick="showComparison()" class="px-4 py-2 bg-primary-100 text-primary-700 rounded-lg font-medium hover:bg-primary-200 transition">
+            Vergleichen
+          </button>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- Navigation Tabs -->
+  <nav class="bg-white border-b border-gray-100">
+    <div class="max-w-7xl mx-auto px-6">
+      <div class="flex gap-8 overflow-x-auto">
+        <button onclick="showDirection(1)" class="direction-tab tab-active py-4 px-2 font-medium text-sm whitespace-nowrap" data-tab="1">
+          1. Minimal Clean
+        </button>
+        <button onclick="showDirection(2)" class="direction-tab py-4 px-2 font-medium text-sm text-gray-500 hover:text-gray-900 whitespace-nowrap" data-tab="2">
+          2. Professional Dense
+        </button>
+        <button onclick="showDirection(3)" class="direction-tab py-4 px-2 font-medium text-sm text-gray-500 hover:text-gray-900 whitespace-nowrap" data-tab="3">
+          3. Friendly Rounded
+        </button>
+        <button onclick="showDirection(4)" class="direction-tab py-4 px-2 font-medium text-sm text-gray-500 hover:text-gray-900 whitespace-nowrap" data-tab="4">
+          4. Dark-First Bold
+        </button>
+        <button onclick="showDirection(5)" class="direction-tab py-4 px-2 font-medium text-sm text-gray-500 hover:text-gray-900 whitespace-nowrap" data-tab="5">
+          5. Card-Heavy Modular
+        </button>
+        <button onclick="showDirection(6)" class="direction-tab py-4 px-2 font-medium text-sm text-gray-500 hover:text-gray-900 whitespace-nowrap" data-tab="6">
+          6. List-Focused
+        </button>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Main Content -->
+  <main class="max-w-7xl mx-auto px-6 py-8">
+
+    <!-- Direction 1: Minimal Clean -->
+    <section id="direction-1" class="direction-content">
+      <div class="mb-6">
+        <h2 class="text-xl font-bold text-gray-900">1. Minimal Clean</h2>
+        <p class="text-gray-600 mt-1">Maximaler Whitespace, fokussierte Interaktionen, ultra-reduzierte UI</p>
+      </div>
+
+      <div class="grid lg:grid-cols-2 gap-6">
+        <!-- Login Screen -->
+        <div class="direction-card bg-white rounded-xl shadow-lg overflow-hidden">
+          <div class="bg-gray-100 px-4 py-2 text-xs font-medium text-gray-500">Login Screen</div>
+          <div class="mockup-container bg-white p-12 flex items-center justify-center">
+            <div class="w-full max-w-sm">
+              <div class="text-center mb-12">
+                <div class="w-16 h-16 bg-primary-500 rounded-2xl mx-auto mb-4"></div>
+                <h3 class="text-2xl font-bold text-gray-900">Bluelight Hub</h3>
+              </div>
+
+              <div class="space-y-6">
+                <div>
+                  <label class="text-xs font-medium text-gray-500 uppercase tracking-wide">Server</label>
+                  <div class="mt-2 relative">
+                    <select class="w-full px-4 py-3 bg-gray-50 border-0 rounded-lg text-gray-900 font-medium appearance-none cursor-pointer">
+                      <option>DRK Musterstadt</option>
+                    </select>
+                    <div class="absolute right-3 top-1/2 -translate-y-1/2">
+                      <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                    </div>
+                  </div>
+                </div>
+
+                <div>
+                  <input type="email" placeholder="Email" class="w-full px-4 py-3 bg-gray-50 border-0 rounded-lg text-gray-900 placeholder-gray-400">
+                </div>
+
+                <div>
+                  <input type="password" placeholder="Passwort" class="w-full px-4 py-3 bg-gray-50 border-0 rounded-lg text-gray-900 placeholder-gray-400">
+                </div>
+
+                <button class="w-full py-3 bg-primary-500 text-white font-semibold rounded-lg hover:bg-primary-600 transition">
+                  Anmelden
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Server List -->
+        <div class="direction-card bg-white rounded-xl shadow-lg overflow-hidden">
+          <div class="bg-gray-100 px-4 py-2 text-xs font-medium text-gray-500">Server-Verwaltung</div>
+          <div class="mockup-container bg-white p-8">
+            <div class="flex items-center justify-between mb-8">
+              <h3 class="text-lg font-bold text-gray-900">Server</h3>
+              <button class="text-primary-500 font-medium text-sm">+ Hinzufuegen</button>
+            </div>
+
+            <div class="space-y-3">
+              <div class="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
+                <div class="flex items-center gap-3">
+                  <div class="w-2 h-2 bg-green-500 rounded-full"></div>
+                  <span class="font-medium text-gray-900">DRK Musterstadt</span>
+                </div>
+                <span class="text-xs text-gray-400">Aktiv</span>
+              </div>
+
+              <div class="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
+                <div class="flex items-center gap-3">
+                  <div class="w-2 h-2 bg-green-500 rounded-full"></div>
+                  <span class="font-medium text-gray-900">THW OV Beispiel</span>
+                </div>
+                <span class="text-xs text-gray-400"></span>
+              </div>
+
+              <div class="flex items-center justify-between p-4 bg-gray-50 rounded-lg opacity-60">
+                <div class="flex items-center gap-3">
+                  <div class="w-2 h-2 bg-gray-300 rounded-full"></div>
+                  <span class="font-medium text-gray-500">FF Altdorf</span>
+                </div>
+                <span class="text-xs text-gray-400">Offline</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Toast Notification -->
+        <div class="direction-card bg-white rounded-xl shadow-lg overflow-hidden">
+          <div class="bg-gray-100 px-4 py-2 text-xs font-medium text-gray-500">Success Toast</div>
+          <div class="mockup-container bg-gray-100 p-8 flex items-end justify-center">
+            <div class="bg-gray-900 text-white px-6 py-3 rounded-lg shadow-lg flex items-center gap-3">
+              <svg class="w-5 h-5 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+              <span class="font-medium">Server hinzugefuegt</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Invite Creation -->
+        <div class="direction-card bg-white rounded-xl shadow-lg overflow-hidden">
+          <div class="bg-gray-100 px-4 py-2 text-xs font-medium text-gray-500">Einladung erstellen</div>
+          <div class="mockup-container bg-white p-8">
+            <h3 class="text-lg font-bold text-gray-900 mb-6">Einladung erstellen</h3>
+
+            <div class="space-y-4">
+              <div>
+                <label class="text-xs font-medium text-gray-500 uppercase tracking-wide">Gueltig bis</label>
+                <input type="date" value="2026-01-06" class="mt-2 w-full px-4 py-3 bg-gray-50 border-0 rounded-lg text-gray-900">
+              </div>
+
+              <button class="w-full py-3 bg-primary-500 text-white font-semibold rounded-lg">
+                Link erstellen
+              </button>
+
+              <div class="p-4 bg-gray-50 rounded-lg">
+                <div class="flex items-center justify-between">
+                  <code class="text-sm text-gray-600 truncate">bluelight://connect?url=...</code>
+                  <button class="ml-4 px-3 py-1 bg-primary-500 text-white text-sm rounded font-medium">
+                    Kopieren
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="mt-6 p-4 bg-primary-50 rounded-lg">
+        <h4 class="font-semibold text-primary-900">Design-Merkmale</h4>
+        <ul class="mt-2 text-sm text-primary-800 space-y-1">
+          <li>- Grosszuegiger Whitespace, entspannte Optik</li>
+          <li>- Keine sichtbaren Borders, nur Hintergrundfarben</li>
+          <li>- Einzelne Akzentfarbe (Primary Blue)</li>
+          <li>- Subtile, unaufdringliche Interaktionen</li>
+        </ul>
+      </div>
+    </section>
+
+    <!-- Direction 2: Professional Dense -->
+    <section id="direction-2" class="direction-content hidden">
+      <div class="mb-6">
+        <h2 class="text-xl font-bold text-gray-900">2. Professional Dense</h2>
+        <p class="text-gray-600 mt-1">Informationsdicht, kompakt, tool-like fuer Power-User</p>
+      </div>
+
+      <div class="grid lg:grid-cols-2 gap-6">
+        <!-- Login Screen -->
+        <div class="direction-card bg-white rounded-lg shadow-lg overflow-hidden border border-gray-200">
+          <div class="bg-gray-50 px-4 py-2 text-xs font-medium text-gray-600 border-b border-gray-200">Login</div>
+          <div class="mockup-container bg-white p-6">
+            <div class="max-w-xs mx-auto">
+              <div class="flex items-center gap-2 mb-6">
+                <div class="w-8 h-8 bg-primary-600 rounded"></div>
+                <span class="font-bold text-gray-900">Bluelight Hub</span>
+              </div>
+
+              <div class="space-y-3">
+                <div>
+                  <label class="text-xs font-medium text-gray-700">Server</label>
+                  <select class="mt-1 w-full px-3 py-2 border border-gray-300 rounded text-sm bg-white">
+                    <option>DRK Musterstadt</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label class="text-xs font-medium text-gray-700">Email</label>
+                  <input type="email" class="mt-1 w-full px-3 py-2 border border-gray-300 rounded text-sm">
+                </div>
+
+                <div>
+                  <label class="text-xs font-medium text-gray-700">Passwort</label>
+                  <input type="password" class="mt-1 w-full px-3 py-2 border border-gray-300 rounded text-sm">
+                </div>
+
+                <button class="w-full py-2 bg-primary-600 text-white text-sm font-medium rounded hover:bg-primary-700">
+                  Anmelden
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Server List Dense -->
+        <div class="direction-card bg-white rounded-lg shadow-lg overflow-hidden border border-gray-200">
+          <div class="bg-gray-50 px-4 py-2 text-xs font-medium text-gray-600 border-b border-gray-200 flex items-center justify-between">
+            <span>Server (3)</span>
+            <button class="text-primary-600 hover:text-primary-700">+ Neu</button>
+          </div>
+          <div class="mockup-container bg-white">
+            <table class="w-full text-sm">
+              <thead class="bg-gray-50 border-b border-gray-200">
+                <tr>
+                  <th class="px-4 py-2 text-left font-medium text-gray-600">Name</th>
+                  <th class="px-4 py-2 text-left font-medium text-gray-600">Status</th>
+                  <th class="px-4 py-2 text-left font-medium text-gray-600">Zuletzt</th>
+                  <th class="px-4 py-2"></th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-gray-100">
+                <tr class="hover:bg-gray-50">
+                  <td class="px-4 py-3 font-medium text-gray-900">DRK Musterstadt</td>
+                  <td class="px-4 py-3"><span class="inline-flex items-center gap-1 text-green-600"><span class="w-1.5 h-1.5 bg-green-500 rounded-full"></span>Online</span></td>
+                  <td class="px-4 py-3 text-gray-500">Vor 2 Min</td>
+                  <td class="px-4 py-3 text-right"><button class="text-gray-400 hover:text-gray-600">...</button></td>
+                </tr>
+                <tr class="hover:bg-gray-50">
+                  <td class="px-4 py-3 font-medium text-gray-900">THW OV Beispiel</td>
+                  <td class="px-4 py-3"><span class="inline-flex items-center gap-1 text-green-600"><span class="w-1.5 h-1.5 bg-green-500 rounded-full"></span>Online</span></td>
+                  <td class="px-4 py-3 text-gray-500">Gestern</td>
+                  <td class="px-4 py-3 text-right"><button class="text-gray-400 hover:text-gray-600">...</button></td>
+                </tr>
+                <tr class="hover:bg-gray-50 opacity-60">
+                  <td class="px-4 py-3 font-medium text-gray-500">FF Altdorf</td>
+                  <td class="px-4 py-3"><span class="inline-flex items-center gap-1 text-gray-400"><span class="w-1.5 h-1.5 bg-gray-300 rounded-full"></span>Offline</span></td>
+                  <td class="px-4 py-3 text-gray-400">3 Tage</td>
+                  <td class="px-4 py-3 text-right"><button class="text-gray-400 hover:text-gray-600">...</button></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Compact Toast -->
+        <div class="direction-card bg-white rounded-lg shadow-lg overflow-hidden border border-gray-200">
+          <div class="bg-gray-50 px-4 py-2 text-xs font-medium text-gray-600 border-b border-gray-200">Toast</div>
+          <div class="mockup-container bg-gray-100 p-6 flex items-start justify-end">
+            <div class="bg-white border border-gray-200 rounded shadow-lg px-4 py-2 flex items-center gap-2">
+              <span class="w-4 h-4 bg-green-500 rounded-full flex items-center justify-center text-white text-xs">&#10003;</span>
+              <span class="text-sm text-gray-900">Server hinzugefuegt</span>
+              <button class="text-gray-400 hover:text-gray-600 ml-2">&times;</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Invite Dense -->
+        <div class="direction-card bg-white rounded-lg shadow-lg overflow-hidden border border-gray-200">
+          <div class="bg-gray-50 px-4 py-2 text-xs font-medium text-gray-600 border-b border-gray-200">Einladung</div>
+          <div class="mockup-container bg-white p-6">
+            <div class="grid grid-cols-2 gap-4 mb-4">
+              <div>
+                <label class="text-xs font-medium text-gray-700">Gueltig bis</label>
+                <input type="date" value="2026-01-06" class="mt-1 w-full px-3 py-2 border border-gray-300 rounded text-sm">
+              </div>
+              <div>
+                <label class="text-xs font-medium text-gray-700">Notiz (optional)</label>
+                <input type="text" placeholder="z.B. Einsatz 123" class="mt-1 w-full px-3 py-2 border border-gray-300 rounded text-sm">
+              </div>
+            </div>
+
+            <div class="flex gap-2">
+              <div class="flex-1 px-3 py-2 bg-gray-100 rounded text-sm font-mono text-gray-600 truncate">
+                bluelight://connect?url=srv.drk...
+              </div>
+              <button class="px-4 py-2 bg-primary-600 text-white text-sm font-medium rounded">
+                Erstellen
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="mt-6 p-4 bg-primary-50 rounded-lg">
+        <h4 class="font-semibold text-primary-900">Design-Merkmale</h4>
+        <ul class="mt-2 text-sm text-primary-800 space-y-1">
+          <li>- Kompakte Informationsdichte</li>
+          <li>- Tabellenartige Server-Listen</li>
+          <li>- Sichtbare Borders fuer klare Abgrenzung</li>
+          <li>- Kleinere Schriftgroessen, mehr auf einen Blick</li>
+        </ul>
+      </div>
+    </section>
+
+    <!-- Direction 3: Friendly Rounded -->
+    <section id="direction-3" class="direction-content hidden">
+      <div class="mb-6">
+        <h2 class="text-xl font-bold text-gray-900">3. Friendly Rounded</h2>
+        <p class="text-gray-600 mt-1">Einladend, weiche Formen, niedrige Hemmschwelle</p>
+      </div>
+
+      <div class="grid lg:grid-cols-2 gap-6">
+        <!-- Login Friendly -->
+        <div class="direction-card bg-white rounded-3xl shadow-xl overflow-hidden">
+          <div class="bg-primary-50 px-6 py-3 text-sm font-medium text-primary-700">Willkommen</div>
+          <div class="mockup-container bg-gradient-to-b from-primary-50 to-white p-10 flex items-center justify-center">
+            <div class="w-full max-w-sm">
+              <div class="text-center mb-10">
+                <div class="w-20 h-20 bg-gradient-to-br from-primary-400 to-primary-600 rounded-3xl mx-auto mb-4 shadow-lg"></div>
+                <h3 class="text-2xl font-bold text-gray-900">Willkommen!</h3>
+                <p class="text-gray-500 mt-1">Melde dich an um loszulegen</p>
+              </div>
+
+              <div class="space-y-5">
+                <div>
+                  <label class="text-sm font-medium text-gray-700">Dein Server</label>
+                  <select class="mt-2 w-full px-5 py-4 bg-white border-2 border-gray-200 rounded-2xl text-gray-900 font-medium focus:border-primary-400 focus:ring-0">
+                    <option>DRK Musterstadt</option>
+                  </select>
+                </div>
+
+                <div>
+                  <input type="email" placeholder="Deine Email" class="w-full px-5 py-4 bg-white border-2 border-gray-200 rounded-2xl text-gray-900 placeholder-gray-400 focus:border-primary-400 focus:ring-0">
+                </div>
+
+                <div>
+                  <input type="password" placeholder="Dein Passwort" class="w-full px-5 py-4 bg-white border-2 border-gray-200 rounded-2xl text-gray-900 placeholder-gray-400 focus:border-primary-400 focus:ring-0">
+                </div>
+
+                <button class="w-full py-4 bg-gradient-to-r from-primary-500 to-primary-600 text-white font-bold rounded-2xl shadow-lg hover:shadow-xl transition">
+                  Los geht's!
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Server Cards Friendly -->
+        <div class="direction-card bg-white rounded-3xl shadow-xl overflow-hidden">
+          <div class="bg-primary-50 px-6 py-3 text-sm font-medium text-primary-700">Deine Server</div>
+          <div class="mockup-container bg-gray-50 p-6">
+            <div class="space-y-4">
+              <div class="bg-white p-5 rounded-2xl shadow-md hover:shadow-lg transition cursor-pointer border-2 border-primary-200">
+                <div class="flex items-center gap-4">
+                  <div class="w-12 h-12 bg-gradient-to-br from-red-400 to-red-600 rounded-xl flex items-center justify-center text-white font-bold">
+                    DRK
+                  </div>
+                  <div class="flex-1">
+                    <h4 class="font-bold text-gray-900">DRK Musterstadt</h4>
+                    <p class="text-sm text-gray-500">Gerade aktiv</p>
+                  </div>
+                  <div class="w-3 h-3 bg-green-400 rounded-full animate-pulse"></div>
+                </div>
+              </div>
+
+              <div class="bg-white p-5 rounded-2xl shadow hover:shadow-lg transition cursor-pointer">
+                <div class="flex items-center gap-4">
+                  <div class="w-12 h-12 bg-gradient-to-br from-blue-400 to-blue-600 rounded-xl flex items-center justify-center text-white font-bold">
+                    THW
+                  </div>
+                  <div class="flex-1">
+                    <h4 class="font-bold text-gray-900">THW OV Beispiel</h4>
+                    <p class="text-sm text-gray-500">Zuletzt: Gestern</p>
+                  </div>
+                  <div class="w-3 h-3 bg-green-400 rounded-full"></div>
+                </div>
+              </div>
+
+              <button class="w-full p-5 rounded-2xl border-2 border-dashed border-gray-300 text-gray-500 hover:border-primary-400 hover:text-primary-600 transition flex items-center justify-center gap-2">
+                <span class="text-2xl">+</span>
+                <span class="font-medium">Server hinzufuegen</span>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Friendly Toast -->
+        <div class="direction-card bg-white rounded-3xl shadow-xl overflow-hidden">
+          <div class="bg-primary-50 px-6 py-3 text-sm font-medium text-primary-700">Erfolg!</div>
+          <div class="mockup-container bg-gray-100 p-8 flex items-end justify-center">
+            <div class="bg-green-500 text-white px-8 py-4 rounded-2xl shadow-xl flex items-center gap-4">
+              <div class="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path></svg>
+              </div>
+              <div>
+                <p class="font-bold">Super!</p>
+                <p class="text-sm text-green-100">Server wurde hinzugefuegt</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Friendly Invite -->
+        <div class="direction-card bg-white rounded-3xl shadow-xl overflow-hidden">
+          <div class="bg-primary-50 px-6 py-3 text-sm font-medium text-primary-700">Team einladen</div>
+          <div class="mockup-container bg-white p-8">
+            <div class="text-center mb-6">
+              <div class="w-16 h-16 bg-primary-100 rounded-full flex items-center justify-center mx-auto mb-3">
+                <svg class="w-8 h-8 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"></path></svg>
+              </div>
+              <h3 class="text-xl font-bold text-gray-900">Lade dein Team ein</h3>
+              <p class="text-gray-500 mt-1">Teile diesen Link mit deinen Helfern</p>
+            </div>
+
+            <div class="bg-gray-100 p-4 rounded-2xl mb-4">
+              <code class="text-sm text-gray-600 break-all">bluelight://connect?url=...</code>
+            </div>
+
+            <div class="grid grid-cols-2 gap-3">
+              <button class="py-3 bg-primary-500 text-white font-bold rounded-xl">
+                Link kopieren
+              </button>
+              <button class="py-3 bg-gray-200 text-gray-700 font-bold rounded-xl">
+                QR anzeigen
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="mt-6 p-4 bg-primary-50 rounded-lg">
+        <h4 class="font-semibold text-primary-900">Design-Merkmale</h4>
+        <ul class="mt-2 text-sm text-primary-800 space-y-1">
+          <li>- Grosse Border-Radii (rounded-2xl, rounded-3xl)</li>
+          <li>- Freundliche, einladende Sprache</li>
+          <li>- Farbige Gradienten und Schatten</li>
+          <li>- Grosszuegige Touch-Targets fuer Mobile</li>
+        </ul>
+      </div>
+    </section>
+
+    <!-- Direction 4: Dark-First Bold -->
+    <section id="direction-4" class="direction-content hidden">
+      <div class="mb-6">
+        <h2 class="text-xl font-bold text-gray-900">4. Dark-First Bold</h2>
+        <p class="text-gray-600 mt-1">Dark Mode primaer, kraeftige Kontraste, professioneller Look</p>
+      </div>
+
+      <div class="grid lg:grid-cols-2 gap-6">
+        <!-- Dark Login -->
+        <div class="direction-card rounded-xl shadow-lg overflow-hidden">
+          <div class="bg-gray-800 px-4 py-2 text-xs font-medium text-gray-400">Login</div>
+          <div class="mockup-container bg-gray-900 p-10 flex items-center justify-center">
+            <div class="w-full max-w-sm">
+              <div class="text-center mb-10">
+                <div class="w-16 h-16 bg-primary-500 rounded-xl mx-auto mb-4"></div>
+                <h3 class="text-2xl font-bold text-white">Bluelight Hub</h3>
+              </div>
+
+              <div class="space-y-5">
+                <div>
+                  <label class="text-xs font-medium text-gray-400 uppercase tracking-wide">Server</label>
+                  <select class="mt-2 w-full px-4 py-3 bg-gray-800 border border-gray-700 rounded-lg text-white font-medium">
+                    <option>DRK Musterstadt</option>
+                  </select>
+                </div>
+
+                <div>
+                  <input type="email" placeholder="Email" class="w-full px-4 py-3 bg-gray-800 border border-gray-700 rounded-lg text-white placeholder-gray-500">
+                </div>
+
+                <div>
+                  <input type="password" placeholder="Passwort" class="w-full px-4 py-3 bg-gray-800 border border-gray-700 rounded-lg text-white placeholder-gray-500">
+                </div>
+
+                <button class="w-full py-3 bg-primary-500 text-white font-bold rounded-lg hover:bg-primary-400 transition">
+                  Anmelden
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Dark Server List -->
+        <div class="direction-card rounded-xl shadow-lg overflow-hidden">
+          <div class="bg-gray-800 px-4 py-2 text-xs font-medium text-gray-400 flex items-center justify-between">
+            <span>Server</span>
+            <button class="text-primary-400 hover:text-primary-300">+ Hinzufuegen</button>
+          </div>
+          <div class="mockup-container bg-gray-900 p-6">
+            <div class="space-y-2">
+              <div class="flex items-center justify-between p-4 bg-gray-800 rounded-lg border border-primary-500/30">
+                <div class="flex items-center gap-3">
+                  <div class="w-10 h-10 bg-red-600 rounded-lg flex items-center justify-center text-white font-bold text-sm">DRK</div>
+                  <div>
+                    <p class="font-semibold text-white">DRK Musterstadt</p>
+                    <p class="text-xs text-gray-500">Aktiv</p>
+                  </div>
+                </div>
+                <div class="w-2 h-2 bg-green-400 rounded-full"></div>
+              </div>
+
+              <div class="flex items-center justify-between p-4 bg-gray-800 rounded-lg hover:bg-gray-700 transition cursor-pointer">
+                <div class="flex items-center gap-3">
+                  <div class="w-10 h-10 bg-blue-600 rounded-lg flex items-center justify-center text-white font-bold text-sm">THW</div>
+                  <div>
+                    <p class="font-semibold text-white">THW OV Beispiel</p>
+                    <p class="text-xs text-gray-500">Zuletzt: Gestern</p>
+                  </div>
+                </div>
+                <div class="w-2 h-2 bg-green-400 rounded-full"></div>
+              </div>
+
+              <div class="flex items-center justify-between p-4 bg-gray-800/50 rounded-lg opacity-60">
+                <div class="flex items-center gap-3">
+                  <div class="w-10 h-10 bg-gray-600 rounded-lg flex items-center justify-center text-white font-bold text-sm">FF</div>
+                  <div>
+                    <p class="font-semibold text-gray-400">FF Altdorf</p>
+                    <p class="text-xs text-gray-600">Offline</p>
+                  </div>
+                </div>
+                <div class="w-2 h-2 bg-gray-600 rounded-full"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Dark Toast -->
+        <div class="direction-card rounded-xl shadow-lg overflow-hidden">
+          <div class="bg-gray-800 px-4 py-2 text-xs font-medium text-gray-400">Toast</div>
+          <div class="mockup-container bg-gray-900 p-8 flex items-end justify-end">
+            <div class="bg-gray-800 border border-gray-700 px-5 py-3 rounded-lg flex items-center gap-3">
+              <div class="w-5 h-5 bg-green-500 rounded-full flex items-center justify-center">
+                <svg class="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path></svg>
+              </div>
+              <span class="text-white font-medium">Server hinzugefuegt</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Dark Invite -->
+        <div class="direction-card rounded-xl shadow-lg overflow-hidden">
+          <div class="bg-gray-800 px-4 py-2 text-xs font-medium text-gray-400">Einladung</div>
+          <div class="mockup-container bg-gray-900 p-6">
+            <h3 class="text-lg font-bold text-white mb-6">Einladung erstellen</h3>
+
+            <div class="space-y-4">
+              <div>
+                <label class="text-xs font-medium text-gray-400 uppercase tracking-wide">Gueltig bis</label>
+                <input type="date" value="2026-01-06" class="mt-2 w-full px-4 py-3 bg-gray-800 border border-gray-700 rounded-lg text-white">
+              </div>
+
+              <button class="w-full py-3 bg-primary-500 text-white font-bold rounded-lg">
+                Link erstellen
+              </button>
+
+              <div class="flex items-center gap-3 p-4 bg-gray-800 rounded-lg">
+                <code class="flex-1 text-sm text-gray-400 truncate">bluelight://connect?url=...</code>
+                <button class="px-4 py-2 bg-primary-500 text-white text-sm font-medium rounded">
+                  Kopieren
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="mt-6 p-4 bg-gray-800 rounded-lg">
+        <h4 class="font-semibold text-white">Design-Merkmale</h4>
+        <ul class="mt-2 text-sm text-gray-300 space-y-1">
+          <li>- Dark Mode als Primaer-Theme</li>
+          <li>- Kraeftige Farbakzente auf dunklem Hintergrund</li>
+          <li>- Subtile Borders fuer Struktur</li>
+          <li>- Professioneller, fokussierter Look</li>
+        </ul>
+      </div>
+    </section>
+
+    <!-- Direction 5: Card-Heavy Modular -->
+    <section id="direction-5" class="direction-content hidden">
+      <div class="mb-6">
+        <h2 class="text-xl font-bold text-gray-900">5. Card-Heavy Modular</h2>
+        <p class="text-gray-600 mt-1">Alles in Karten, modulare Struktur, klare visuelle Hierarchie</p>
+      </div>
+
+      <div class="grid lg:grid-cols-2 gap-6">
+        <!-- Card Login -->
+        <div class="direction-card bg-gray-100 rounded-xl shadow-lg overflow-hidden">
+          <div class="bg-white px-4 py-2 text-xs font-medium text-gray-500">Login</div>
+          <div class="mockup-container bg-gray-100 p-8 flex items-center justify-center">
+            <div class="bg-white rounded-xl shadow-lg p-8 w-full max-w-sm">
+              <div class="flex items-center gap-3 mb-8">
+                <div class="w-12 h-12 bg-primary-500 rounded-xl"></div>
+                <div>
+                  <h3 class="font-bold text-gray-900">Bluelight Hub</h3>
+                  <p class="text-sm text-gray-500">Anmelden</p>
+                </div>
+              </div>
+
+              <!-- Server Card -->
+              <div class="bg-gray-50 rounded-lg p-4 mb-4">
+                <label class="text-xs font-medium text-gray-500">Server</label>
+                <div class="mt-2 flex items-center justify-between">
+                  <div class="flex items-center gap-2">
+                    <div class="w-8 h-8 bg-red-500 rounded-lg"></div>
+                    <span class="font-medium text-gray-900">DRK Musterstadt</span>
+                  </div>
+                  <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                </div>
+              </div>
+
+              <div class="space-y-3">
+                <input type="email" placeholder="Email" class="w-full px-4 py-3 border border-gray-200 rounded-lg">
+                <input type="password" placeholder="Passwort" class="w-full px-4 py-3 border border-gray-200 rounded-lg">
+                <button class="w-full py-3 bg-primary-500 text-white font-semibold rounded-lg">
+                  Anmelden
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Card Server Grid -->
+        <div class="direction-card bg-gray-100 rounded-xl shadow-lg overflow-hidden">
+          <div class="bg-white px-4 py-2 text-xs font-medium text-gray-500">Server</div>
+          <div class="mockup-container bg-gray-100 p-6">
+            <div class="grid grid-cols-2 gap-4">
+              <div class="bg-white rounded-xl shadow p-4 border-2 border-primary-500">
+                <div class="w-12 h-12 bg-red-500 rounded-xl mb-3"></div>
+                <h4 class="font-bold text-gray-900">DRK Musterstadt</h4>
+                <div class="flex items-center gap-1 mt-1">
+                  <div class="w-2 h-2 bg-green-500 rounded-full"></div>
+                  <span class="text-xs text-gray-500">Online</span>
+                </div>
+              </div>
+
+              <div class="bg-white rounded-xl shadow p-4 hover:shadow-lg transition cursor-pointer">
+                <div class="w-12 h-12 bg-blue-500 rounded-xl mb-3"></div>
+                <h4 class="font-bold text-gray-900">THW OV</h4>
+                <div class="flex items-center gap-1 mt-1">
+                  <div class="w-2 h-2 bg-green-500 rounded-full"></div>
+                  <span class="text-xs text-gray-500">Online</span>
+                </div>
+              </div>
+
+              <div class="bg-white rounded-xl shadow p-4 opacity-60">
+                <div class="w-12 h-12 bg-gray-400 rounded-xl mb-3"></div>
+                <h4 class="font-bold text-gray-500">FF Altdorf</h4>
+                <div class="flex items-center gap-1 mt-1">
+                  <div class="w-2 h-2 bg-gray-400 rounded-full"></div>
+                  <span class="text-xs text-gray-400">Offline</span>
+                </div>
+              </div>
+
+              <div class="bg-white rounded-xl shadow p-4 border-2 border-dashed border-gray-300 flex flex-col items-center justify-center text-gray-400 hover:border-primary-400 hover:text-primary-500 transition cursor-pointer">
+                <span class="text-3xl mb-1">+</span>
+                <span class="text-sm font-medium">Hinzufuegen</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Card Toast -->
+        <div class="direction-card bg-gray-100 rounded-xl shadow-lg overflow-hidden">
+          <div class="bg-white px-4 py-2 text-xs font-medium text-gray-500">Toast</div>
+          <div class="mockup-container bg-gray-100 p-8 flex items-end justify-center">
+            <div class="bg-white rounded-xl shadow-lg p-4 flex items-center gap-4">
+              <div class="w-10 h-10 bg-green-100 rounded-xl flex items-center justify-center">
+                <svg class="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+              </div>
+              <div>
+                <p class="font-semibold text-gray-900">Erfolg!</p>
+                <p class="text-sm text-gray-500">Server hinzugefuegt</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Card Invite -->
+        <div class="direction-card bg-gray-100 rounded-xl shadow-lg overflow-hidden">
+          <div class="bg-white px-4 py-2 text-xs font-medium text-gray-500">Einladung</div>
+          <div class="mockup-container bg-gray-100 p-6 flex items-center justify-center">
+            <div class="bg-white rounded-xl shadow-lg p-6 w-full max-w-sm">
+              <h3 class="font-bold text-gray-900 mb-4">Einladung erstellen</h3>
+
+              <div class="bg-gray-50 rounded-lg p-4 mb-4">
+                <label class="text-xs font-medium text-gray-500">Gueltig bis</label>
+                <input type="date" value="2026-01-06" class="mt-2 w-full px-3 py-2 bg-white border border-gray-200 rounded-lg">
+              </div>
+
+              <button class="w-full py-3 bg-primary-500 text-white font-semibold rounded-lg mb-4">
+                Link erstellen
+              </button>
+
+              <div class="bg-gray-50 rounded-lg p-4">
+                <div class="flex items-center justify-between">
+                  <code class="text-sm text-gray-600 truncate">bluelight://connect...</code>
+                  <button class="px-3 py-1 bg-primary-500 text-white text-sm rounded font-medium">
+                    Kopieren
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="mt-6 p-4 bg-primary-50 rounded-lg">
+        <h4 class="font-semibold text-primary-900">Design-Merkmale</h4>
+        <ul class="mt-2 text-sm text-primary-800 space-y-1">
+          <li>- Alles ist eine Karte mit eigenem Schatten</li>
+          <li>- Grid-basiertes Layout fuer Server</li>
+          <li>- Klare visuelle Hierarchie durch Elevation</li>
+          <li>- Grauer Hintergrund hebt Karten hervor</li>
+        </ul>
+      </div>
+    </section>
+
+    <!-- Direction 6: List-Focused Efficient -->
+    <section id="direction-6" class="direction-content hidden">
+      <div class="mb-6">
+        <h2 class="text-xl font-bold text-gray-900">6. List-Focused Efficient</h2>
+        <p class="text-gray-600 mt-1">Schneller Ueberblick, tabellenartig, fuer schnelle Navigation</p>
+      </div>
+
+      <div class="grid lg:grid-cols-2 gap-6">
+        <!-- List Login -->
+        <div class="direction-card bg-white rounded-lg shadow-lg overflow-hidden border border-gray-200">
+          <div class="bg-gray-50 px-4 py-2 text-xs font-medium text-gray-500 border-b">Login</div>
+          <div class="mockup-container bg-white p-8">
+            <div class="max-w-sm mx-auto">
+              <div class="flex items-center gap-2 pb-4 border-b border-gray-200 mb-6">
+                <div class="w-8 h-8 bg-primary-500 rounded"></div>
+                <span class="font-bold text-gray-900">Bluelight Hub</span>
+              </div>
+
+              <div class="space-y-4">
+                <div class="flex items-center border-b border-gray-100 pb-3">
+                  <label class="w-24 text-sm text-gray-500">Server</label>
+                  <select class="flex-1 px-2 py-1 bg-transparent font-medium text-gray-900 focus:outline-none">
+                    <option>DRK Musterstadt</option>
+                  </select>
+                </div>
+
+                <div class="flex items-center border-b border-gray-100 pb-3">
+                  <label class="w-24 text-sm text-gray-500">Email</label>
+                  <input type="email" class="flex-1 px-2 py-1 bg-transparent focus:outline-none" placeholder="email@beispiel.de">
+                </div>
+
+                <div class="flex items-center border-b border-gray-100 pb-3">
+                  <label class="w-24 text-sm text-gray-500">Passwort</label>
+                  <input type="password" class="flex-1 px-2 py-1 bg-transparent focus:outline-none" placeholder="********">
+                </div>
+
+                <button class="w-full py-2 bg-primary-500 text-white font-medium rounded mt-4">
+                  Anmelden
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Pure List -->
+        <div class="direction-card bg-white rounded-lg shadow-lg overflow-hidden border border-gray-200">
+          <div class="bg-gray-50 px-4 py-2 text-xs font-medium text-gray-500 border-b flex items-center justify-between">
+            <span>Server</span>
+            <button class="text-primary-500">+ Neu</button>
+          </div>
+          <div class="mockup-container bg-white divide-y divide-gray-100">
+            <div class="flex items-center px-4 py-3 hover:bg-gray-50 cursor-pointer bg-primary-50">
+              <div class="w-2 h-2 bg-green-500 rounded-full mr-3"></div>
+              <div class="flex-1">
+                <span class="font-medium text-gray-900">DRK Musterstadt</span>
+              </div>
+              <span class="text-xs text-gray-400">Aktiv</span>
+              <svg class="w-4 h-4 text-gray-300 ml-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
+            </div>
+
+            <div class="flex items-center px-4 py-3 hover:bg-gray-50 cursor-pointer">
+              <div class="w-2 h-2 bg-green-500 rounded-full mr-3"></div>
+              <div class="flex-1">
+                <span class="font-medium text-gray-900">THW OV Beispiel</span>
+              </div>
+              <span class="text-xs text-gray-400">Gestern</span>
+              <svg class="w-4 h-4 text-gray-300 ml-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
+            </div>
+
+            <div class="flex items-center px-4 py-3 hover:bg-gray-50 cursor-pointer opacity-50">
+              <div class="w-2 h-2 bg-gray-400 rounded-full mr-3"></div>
+              <div class="flex-1">
+                <span class="font-medium text-gray-500">FF Altdorf</span>
+              </div>
+              <span class="text-xs text-gray-400">Offline</span>
+              <svg class="w-4 h-4 text-gray-300 ml-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
+            </div>
+          </div>
+        </div>
+
+        <!-- Inline Toast -->
+        <div class="direction-card bg-white rounded-lg shadow-lg overflow-hidden border border-gray-200">
+          <div class="bg-gray-50 px-4 py-2 text-xs font-medium text-gray-500 border-b">Toast</div>
+          <div class="mockup-container bg-gray-50 p-8 flex items-start justify-center">
+            <div class="w-full max-w-md">
+              <div class="bg-green-50 border-l-4 border-green-500 px-4 py-3 flex items-center">
+                <svg class="w-5 h-5 text-green-600 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+                <span class="text-green-800 font-medium">Server hinzugefuegt</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Inline Invite -->
+        <div class="direction-card bg-white rounded-lg shadow-lg overflow-hidden border border-gray-200">
+          <div class="bg-gray-50 px-4 py-2 text-xs font-medium text-gray-500 border-b">Einladung</div>
+          <div class="mockup-container bg-white p-6">
+            <div class="space-y-3">
+              <div class="flex items-center border-b border-gray-100 pb-3">
+                <label class="w-32 text-sm text-gray-500">Gueltig bis</label>
+                <input type="date" value="2026-01-06" class="flex-1 px-2 py-1 bg-transparent">
+              </div>
+
+              <div class="flex items-center border-b border-gray-100 pb-3">
+                <label class="w-32 text-sm text-gray-500">Link</label>
+                <code class="flex-1 text-sm text-gray-600 truncate">bluelight://connect?url=...</code>
+                <button class="px-3 py-1 bg-primary-500 text-white text-sm rounded ml-2">
+                  Kopieren
+                </button>
+              </div>
+
+              <button class="w-full py-2 border border-primary-500 text-primary-500 font-medium rounded hover:bg-primary-50">
+                Neuen Link erstellen
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="mt-6 p-4 bg-primary-50 rounded-lg">
+        <h4 class="font-semibold text-primary-900">Design-Merkmale</h4>
+        <ul class="mt-2 text-sm text-primary-800 space-y-1">
+          <li>- Vertikale Listen statt Karten</li>
+          <li>- Inline-Labels neben Inputs</li>
+          <li>- Minimale visuelle Elemente</li>
+          <li>- Schneller Scan und Navigation</li>
+        </ul>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- Evaluation Guide -->
+  <aside class="fixed bottom-6 right-6 bg-white rounded-xl shadow-2xl p-6 max-w-sm border border-gray-200">
+    <h3 class="font-bold text-gray-900 mb-3">Bewertungskriterien</h3>
+    <ul class="text-sm text-gray-600 space-y-2">
+      <li class="flex items-start gap-2">
+        <span class="text-primary-500">&#10003;</span>
+        <span><strong>Layout:</strong> Passt die Hierarchie zu den Prioritaeten?</span>
+      </li>
+      <li class="flex items-start gap-2">
+        <span class="text-primary-500">&#10003;</span>
+        <span><strong>Interaktion:</strong> Unterstuetzt der Stil die Core Experience?</span>
+      </li>
+      <li class="flex items-start gap-2">
+        <span class="text-primary-500">&#10003;</span>
+        <span><strong>Dichte:</strong> Richtige Balance fuer Stress-Kontext?</span>
+      </li>
+      <li class="flex items-start gap-2">
+        <span class="text-primary-500">&#10003;</span>
+        <span><strong>Brand:</strong> Passt es zu "Bluelight Hub stoert nie"?</span>
+      </li>
+    </ul>
+    <button onclick="this.parentElement.remove()" class="mt-4 text-xs text-gray-400 hover:text-gray-600">Schliessen</button>
+  </aside>
+
+  <script>
+    function showDirection(num) {
+      // Hide all directions
+      document.querySelectorAll('.direction-content').forEach(el => {
+        el.classList.add('hidden');
+      });
+
+      // Show selected direction
+      document.getElementById('direction-' + num).classList.remove('hidden');
+
+      // Update tabs
+      document.querySelectorAll('.direction-tab').forEach(tab => {
+        tab.classList.remove('tab-active');
+        tab.classList.add('text-gray-500');
+      });
+      document.querySelector('[data-tab="' + num + '"]').classList.add('tab-active');
+      document.querySelector('[data-tab="' + num + '"]').classList.remove('text-gray-500');
+    }
+
+    function showComparison() {
+      alert('Side-by-Side Vergleich: In der vollstaendigen Implementierung koenntest du hier zwei Richtungen nebeneinander anzeigen.');
+    }
+  </script>
+
+</body>
+</html>

@@ -12,53 +12,17 @@
  * Do not edit the class manually.
  */
 
-import { mapValues } from '../runtime';
-import type { HealthControllerCheck200ResponseInfoValue } from './HealthControllerCheck200ResponseInfoValue';
-import {
-  HealthControllerCheck200ResponseInfoValueFromJSON,
-  HealthControllerCheck200ResponseInfoValueFromJSONTyped,
-  HealthControllerCheck200ResponseInfoValueToJSON,
-  HealthControllerCheck200ResponseInfoValueToJSONTyped,
-} from './HealthControllerCheck200ResponseInfoValue';
+import type { BasicHealthDto } from './BasicHealthDto';
+import { instanceOfBasicHealthDto, BasicHealthDtoFromJSON, BasicHealthDtoFromJSONTyped, BasicHealthDtoToJSON } from './BasicHealthDto';
+import type { DetailedHealthDto } from './DetailedHealthDto';
+import { instanceOfDetailedHealthDto, DetailedHealthDtoFromJSON, DetailedHealthDtoFromJSONTyped, DetailedHealthDtoToJSON } from './DetailedHealthDto';
 
 /**
+ * @type HealthControllerCheck200Response
  *
  * @export
- * @interface HealthControllerCheck200Response
  */
-export interface HealthControllerCheck200Response {
-  /**
-   *
-   * @type {string}
-   * @memberof HealthControllerCheck200Response
-   */
-  status?: string;
-  /**
-   *
-   * @type {{ [key: string]: HealthControllerCheck200ResponseInfoValue; }}
-   * @memberof HealthControllerCheck200Response
-   */
-  info?: { [key: string]: HealthControllerCheck200ResponseInfoValue } | null;
-  /**
-   *
-   * @type {{ [key: string]: HealthControllerCheck200ResponseInfoValue; }}
-   * @memberof HealthControllerCheck200Response
-   */
-  error?: { [key: string]: HealthControllerCheck200ResponseInfoValue } | null;
-  /**
-   *
-   * @type {{ [key: string]: HealthControllerCheck200ResponseInfoValue; }}
-   * @memberof HealthControllerCheck200Response
-   */
-  details?: { [key: string]: HealthControllerCheck200ResponseInfoValue };
-}
-
-/**
- * Check if a given object implements the HealthControllerCheck200Response interface.
- */
-export function instanceOfHealthControllerCheck200Response(value: object): value is HealthControllerCheck200Response {
-  return true;
-}
+export type HealthControllerCheck200Response = BasicHealthDto | DetailedHealthDto;
 
 export function HealthControllerCheck200ResponseFromJSON(json: any): HealthControllerCheck200Response {
   return HealthControllerCheck200ResponseFromJSONTyped(json, false);
@@ -68,15 +32,17 @@ export function HealthControllerCheck200ResponseFromJSONTyped(json: any, ignoreD
   if (json == null) {
     return json;
   }
-  return {
-    status: json['status'] == null ? undefined : json['status'],
-    info: json['info'] == null ? undefined : mapValues(json['info'], HealthControllerCheck200ResponseInfoValueFromJSON),
-    error: json['error'] == null ? undefined : mapValues(json['error'], HealthControllerCheck200ResponseInfoValueFromJSON),
-    details: json['details'] == null ? undefined : mapValues(json['details'], HealthControllerCheck200ResponseInfoValueFromJSON),
-  };
+  if (instanceOfBasicHealthDto(json)) {
+    return BasicHealthDtoFromJSONTyped(json, true);
+  }
+  if (instanceOfDetailedHealthDto(json)) {
+    return DetailedHealthDtoFromJSONTyped(json, true);
+  }
+
+  return {} as any;
 }
 
-export function HealthControllerCheck200ResponseToJSON(json: any): HealthControllerCheck200Response {
+export function HealthControllerCheck200ResponseToJSON(json: any): any {
   return HealthControllerCheck200ResponseToJSONTyped(json, false);
 }
 
@@ -85,10 +51,12 @@ export function HealthControllerCheck200ResponseToJSONTyped(value?: HealthContro
     return value;
   }
 
-  return {
-    status: value['status'],
-    info: value['info'] == null ? undefined : mapValues(value['info'], HealthControllerCheck200ResponseInfoValueToJSON),
-    error: value['error'] == null ? undefined : mapValues(value['error'], HealthControllerCheck200ResponseInfoValueToJSON),
-    details: value['details'] == null ? undefined : mapValues(value['details'], HealthControllerCheck200ResponseInfoValueToJSON),
-  };
+  if (instanceOfBasicHealthDto(value)) {
+    return BasicHealthDtoToJSON(value as BasicHealthDto);
+  }
+  if (instanceOfDetailedHealthDto(value)) {
+    return DetailedHealthDtoToJSON(value as DetailedHealthDto);
+  }
+
+  return {};
 }

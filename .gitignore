@@ -209,3 +209,6 @@ auth-page-debug.png
 
 # Artillery Performance Tests (nur Ergebnisse ignorieren)
 packages/backend/artillery/results/
+
+# Auto Claude data directory
+.auto-claude/

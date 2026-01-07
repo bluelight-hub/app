@@ -111,6 +111,16 @@ export const EVENT_NAMES = {
     /** Event: Server Access Token wurde widerrufen */
     REVOKED: 'server_access_token.revoked',
   },
+
+  /**
+   * Invite Code Bounded Context Events
+   */
+  INVITE_CODE: {
+    /** Event: Neuer Invite-Code wurde erstellt */
+    CREATED: 'invite_code.created',
+    /** Event: Invite-Code wurde eingelöst */
+    USED: 'invite_code.used',
+  },
 } as const;
 
 /**
@@ -131,4 +141,5 @@ export type EventName =
   | (typeof EVENT_NAMES.ETB)[keyof typeof EVENT_NAMES.ETB]
   | (typeof EVENT_NAMES.LAGEKARTE)[keyof typeof EVENT_NAMES.LAGEKARTE]
   | (typeof EVENT_NAMES.USER)[keyof typeof EVENT_NAMES.USER]
-  | (typeof EVENT_NAMES.SERVER_ACCESS_TOKEN)[keyof typeof EVENT_NAMES.SERVER_ACCESS_TOKEN];
+  | (typeof EVENT_NAMES.SERVER_ACCESS_TOKEN)[keyof typeof EVENT_NAMES.SERVER_ACCESS_TOKEN]
+  | (typeof EVENT_NAMES.INVITE_CODE)[keyof typeof EVENT_NAMES.INVITE_CODE];

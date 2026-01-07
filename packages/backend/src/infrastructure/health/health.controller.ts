@@ -1,8 +1,8 @@
-import * as net from 'node:net';
 import * as os from 'node:os';
 import { Controller, Get, Inject, Req, VERSION_NEUTRAL } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { ApiExtraModels, ApiOkResponse, ApiOperation, getSchemaPath } from '@nestjs/swagger';
-import { DiskHealthIndicator, HealthCheck, type HealthCheckResult, HealthCheckService, type HealthIndicatorResult, MemoryHealthIndicator } from '@nestjs/terminus';
+import { DiskHealthIndicator, HealthCheck, type HealthCheckResult, HealthCheckService, MemoryHealthIndicator } from '@nestjs/terminus';
 import type { Request } from 'express';
 import * as bcrypt from 'bcrypt';
 import { SkipTransform } from '@/modules/common/decorators/skip-transform.decorator';
@@ -26,15 +26,7 @@ const HEALTH_CHECK_CONFIG = {
     THRESHOLD_PERCENT: 0.9, // 90%
     PATH: '/',
   },
-  CONNECTIVITY: {
-    TIMEOUT_MS: 2000, // 2 Sekunden
-  },
 };
-
-/**
- * Typ-Definition für Verbindungsmodi
- */
-type ConnectionMode = 'checking' | 'online' | 'offline' | 'error';
 
 /**
  * Controller für Gesundheitscheck-Endpunkte, die den Gesundheitsstatus der Anwendung überwachen.
@@ -47,16 +39,6 @@ type ConnectionMode = 'checking' | 'online' | 'offline' | 'error';
 @SkipSetupCheck() // Health-Endpoints muessen waehrend Setup erreichbar sein (Story 1.2)
 @Controller({ path: 'health', version: VERSION_NEUTRAL })
 export class HealthController {
-  /**
-   * Liste von öffentlichen DNS-Servern für Internet-Erreichbarkeits-Tests
-   * Verwendet neutrale, öffentliche Server anstatt kommerzieller Dienste
-   */
-  private readonly CONNECTIVITY_CHECKS = [
-    { host: '1.1.1.1', port: 53 }, // Cloudflare DNS
-    { host: '8.8.8.8', port: 53 }, // Google DNS (Fallback)
-    { host: '9.9.9.9', port: 53 }, // Quad9 DNS (Fallback)
-  ];
-
   /**
    * Cache fuer Setup-Complete Status.
    * Vermeidet wiederholte Datenbank-Abfragen bei hochfrequenten Health-Checks.
@@ -75,6 +57,7 @@ export class HealthController {
    * @param {PrismaHealthIndicator} prismaDb - Indikator für Prisma-Datenbank-Gesundheitschecks
    * @param {PrismaService} prisma - Prisma Service für Setup-Status Abfragen
    * @param {IServerAccessTokenRepository} tokenRepo - Repository für Token-Validierung
+   * @param {ConfigService} configService - Service für Konfigurationswerte (u.a. INSECURE_MODE)
    */
   constructor(
     private health: HealthCheckService,
@@ -83,6 +66,7 @@ export class HealthController {
     private prismaDb: PrismaHealthIndicator,
     private readonly prisma: PrismaService,
     @Inject(SERVER_ACCESS_TOKEN_REPOSITORY) private readonly tokenRepo: IServerAccessTokenRepository,
+    private readonly configService: ConfigService,
   ) {}
 
   /**
@@ -90,57 +74,34 @@ export class HealthController {
    *
    * **Ohne Token / Ungueltiger Token:**
    * Gibt BasicHealthDto zurück (nur: status, setupComplete, version).
+   * Security: Keine Database-Details, Memory, CPU oder Uptime-Information.
    *
    * **Mit gueltigem X-Server-Access-Token:**
-   * Gibt vollstaendiges Terminus HealthCheckResult mit allen Details zurueck
-   * (Datenbankverbindung, Speichernutzung, Festplattenplatz, CPU-Status).
+   * Gibt DetailedHealthDto zurück mit erweiterten Informationen:
+   * - Datenbankverbindungsstatus (connected/disconnected)
+   * - Server-Uptime in Sekunden
+   * - Optional: Memory-Metriken, CPU Load Average
    *
    * @param request - Express Request für Token-Extraktion
-   * @returns BasicHealthDto oder HealthCheckResult je nach Authentifizierung
+   * @returns BasicHealthDto oder DetailedHealthDto je nach Authentifizierung
    */
   @Get()
-  @HealthCheck()
   @ApiOperation({ summary: 'Health-Check mit Token-Differenzierung' })
   @ApiExtraModels(BasicHealthDto, DetailedHealthDto)
   @ApiOkResponse({
-    description: 'Ohne Token: BasicHealthDto, Mit Token: DetailedHealthDto + Terminus-Details',
+    description: 'Ohne Token: BasicHealthDto, Mit Token: DetailedHealthDto',
     schema: {
       oneOf: [{ $ref: getSchemaPath(BasicHealthDto) }, { $ref: getSchemaPath(DetailedHealthDto) }],
     },
   })
-  async check(@Req() request: Request): Promise<BasicHealthDto | HealthCheckResult> {
+  async check(@Req() request: Request): Promise<BasicHealthDto | DetailedHealthDto> {
     // Token aus Header extrahieren
     const rawToken = request.headers['x-server-access-token'];
     const tokenString = Array.isArray(rawToken) ? rawToken[0] : rawToken;
 
     // Wenn Token vorhanden und gueltig: detaillierten Health-Check zurueckgeben
     if (tokenString && (await this.validateToken(tokenString))) {
-      return this.health.check([
-        async () => this.prismaDb.pingCheck('database'),
-
-        // Memory-Checks
-        () => this.memory.checkHeap('memory_heap', HEALTH_CHECK_CONFIG.MEMORY.HEAP_THRESHOLD),
-        () => this.memory.checkRSS('memory_rss', HEALTH_CHECK_CONFIG.MEMORY.RSS_THRESHOLD),
-
-        // Disk-Checks
-        () =>
-          this.disk.checkStorage('storage', {
-            thresholdPercent: HEALTH_CHECK_CONFIG.DISK.THRESHOLD_PERCENT,
-            path: HEALTH_CHECK_CONFIG.DISK.PATH,
-          }),
-
-        // CPU-Check
-        async () => this.checkCpuStatus(),
-
-        // Internet-Verbindung prüfen über TCP-Verbindung zu öffentlichen DNS-Servern
-        async () => this.checkInternetStatus(),
-
-        // FüKW-Verbindung prüfen
-        async () => this.checkFuekwStatus(),
-
-        // Gibt den Verbindungsstatus basierend auf den einzelnen Prüfungen zurück
-        async () => this.determineConnectionStatus(),
-      ]);
+      return this.getDetailedHealth();
     }
 
     // Ohne Token oder ungueltiger Token: BasicHealthDto zurueckgeben
@@ -191,211 +152,6 @@ export class HealthController {
   }
 
   /**
-   * Erstellt einen CPU-Status-Check.
-   *
-   * @returns {Promise<HealthIndicatorResult>} CPU-Status
-   */
-  private async checkCpuStatus(): Promise<HealthIndicatorResult> {
-    return {
-      cpu: {
-        status: 'up',
-        loadAverage: os.loadavg(),
-        usedCores: os.cpus().length,
-      },
-    };
-  }
-
-  /**
-   * Erstellt einen Internet-Status-Check.
-   *
-   * @returns {Promise<HealthIndicatorResult>} Internet-Status
-   */
-  private async checkInternetStatus(): Promise<HealthIndicatorResult> {
-    const isConnected = await this.checkInternetConnectivity();
-
-    return {
-      internet: {
-        status: isConnected ? 'up' : 'down',
-        message: isConnected ? 'Internet-Verbindung aktiv' : 'Keine Internet-Verbindung verfügbar',
-      },
-    };
-  }
-
-  /**
-   * Erstellt einen FüKW-Status-Check.
-   *
-   * @returns {Promise<HealthIndicatorResult>} FüKW-Status
-   */
-  private async checkFuekwStatus(): Promise<HealthIndicatorResult> {
-    try {
-      // Prüfe, ob die Datenbank als lokaler Dienst erreichbar ist
-      let isConnected: boolean;
-
-      // Mit Prisma prüfen
-      try {
-        await this.prismaDb.pingCheck('prisma_connection');
-        isConnected = true;
-      } catch (_error) {
-        isConnected = false;
-      }
-
-      const isPingable = await this.isFuekwPingable();
-
-      return {
-        fuekw: {
-          status: isConnected && isPingable ? 'up' : 'down',
-          message: isConnected && isPingable ? 'FüKW-Verbindung aktiv' : 'FüKW-Verbindung nicht verfügbar',
-          details: {
-            dbInitialized: isConnected,
-            networkReachable: isPingable,
-          },
-        },
-      };
-    } catch (error: unknown) {
-      return {
-        fuekw: {
-          status: 'down',
-          message: 'Fehler bei FüKW-Verbindungsprüfung',
-          error: error instanceof Error ? error.message : String(error),
-        },
-      };
-    }
-  }
-
-  /**
-   * Ermittelt den Verbindungsstatus basierend auf Internet- und FüKW-Verbindungen.
-   *
-   * @returns {Promise<HealthIndicatorResult>} Verbindungsstatus
-   */
-  private async determineConnectionStatus(): Promise<HealthIndicatorResult> {
-    const internetResult = await this.checkInternetConnectivity();
-
-    let fuekwResult: boolean;
-    try {
-      await this.prismaDb.pingCheck('prisma_ping');
-      fuekwResult = await this.isFuekwPingable();
-    } catch (_error) {
-      fuekwResult = false;
-    }
-
-    let connectionMode: ConnectionMode = 'error';
-    if (internetResult && fuekwResult) {
-      connectionMode = 'online';
-    } else if (!internetResult && fuekwResult) {
-      connectionMode = 'offline';
-    }
-
-    return {
-      connection_status: {
-        status: 'up',
-        details: {
-          // Diese Werte werden in der Frontend-Komponente ausgewertet
-          // - 'checking': Verbindungsprüfung läuft
-          // - 'online': Vollständige Verbindung (Internet + FüKW)
-          // - 'offline': Lokale Verbindung (nur FüKW)
-          // - 'error': Keine Verbindung
-          mode: connectionMode,
-        },
-      },
-    };
-  }
-
-  /**
-   * Prüft die Internet-Konnektivität durch TCP-Verbindungsversuche zu mehreren
-   * öffentlichen DNS-Servern. Sobald ein Server antworten kann, gilt die
-   * Internet-Verbindung als hergestellt.
-   *
-   * @returns {Promise<boolean>} True wenn Internet verfügbar ist, sonst false
-   */
-  private async checkInternetConnectivity(): Promise<boolean> {
-    for (const server of this.CONNECTIVITY_CHECKS) {
-      try {
-        await this.testTcpConnectionWithTimeout(server.host, server.port, HEALTH_CHECK_CONFIG.CONNECTIVITY.TIMEOUT_MS);
-        return true; // Erfolgreich verbunden
-      } catch (_error) {
-        // Versuche den nächsten Server
-      }
-    }
-
-    // Alle Verbindungsversuche gescheitert
-    return false;
-  }
-
-  /**
-   * Testet eine TCP-Verbindung zu einem bestimmten Host und Port mit Timeout
-   *
-   * @param {string} host Host-Adresse
-   * @param {number} port Port-Nummer
-   * @param {number} timeout Timeout in Millisekunden
-   * @returns {Promise<void>} Promise, der bei erfolgreicher Verbindung erfüllt wird
-   */
-  private testTcpConnectionWithTimeout(host: string, port: number, timeout: number): Promise<void> {
-    return new Promise((resolve, reject) => {
-      const socket = new net.Socket();
-
-      /**
-       * Cleanup-Funktion um Memory Leaks zu verhindern.
-       * Entfernt alle Event Listener bevor der Socket destroyed wird.
-       * Dies ist wichtig, da socket.on() Referenzen auf den Socket hält,
-       * die ohne explizites Entfernen zu Memory Leaks führen können.
-       */
-      const cleanup = () => {
-        socket.removeAllListeners();
-      };
-
-      // Timeout-Handler
-      socket.setTimeout(timeout);
-      socket.once('timeout', () => {
-        cleanup();
-        socket.destroy();
-        reject(new Error('Connection timeout'));
-      });
-
-      // Fehler-Handler
-      socket.once('error', (err) => {
-        cleanup();
-        socket.destroy();
-        reject(err);
-      });
-
-      // Verbindungs-Handler
-      socket.once('connect', () => {
-        cleanup();
-        socket.end();
-        resolve();
-      });
-
-      // Verbindung aufbauen
-      socket.connect(port, host);
-    });
-  }
-
-  /**
-   * Überprüft, ob das FüKW-System über das Netzwerk erreichbar ist.
-   * Testet die Erreichbarkeit durch Aufruf einer einfachen, nicht-schreibenden
-   * Operation des EtbService, der eine Kernfunktionalität des FüKW-Systems darstellt.
-   *
-   * @returns {Promise<boolean>} True wenn FüKW erreichbar, sonst false
-   */
-  private async isFuekwPingable(): Promise<boolean> {
-    try {
-      // Tatsächliche FüKW-spezifische Erreichbarkeitsprüfung:
-      // Eine einfache Abfrage des EtbService durchführen
-      // await this.etbService.findAll({ limit: 1, page: 1 });
-
-      // Je nach Konfiguration die Datenbankverbindung prüfen
-      try {
-        await this.prismaDb.pingCheck('prisma_ping');
-        return true;
-      } catch (_error) {
-        return false;
-      }
-    } catch (_error) {
-      return false;
-    }
-  }
-
-  /**
    * Prueft ob das Server-Setup abgeschlossen ist.
    *
    * Setup gilt als abgeschlossen wenn:
@@ -438,7 +194,11 @@ export class HealthController {
 
       return this.cachedSetupComplete;
     } catch (_error) {
-      // Bei Fehler: Konservativ annehmen Setup ist nicht abgeschlossen
+      // Bei Fehler: Cache invalidieren um stale Daten zu vermeiden
+      // Naechster Call wird frischen DB-Lookup durchfuehren
+      this.cachedSetupComplete = null;
+      this.cacheTimestamp = 0;
+      // Konservativ annehmen Setup ist nicht abgeschlossen
       return false;
     }
   }
@@ -484,29 +244,79 @@ export class HealthController {
   /**
    * Erstellt eine minimale Health-Response fuer unauthentifizierte Requests.
    *
+   * **Security:** Gibt IMMER 'ok' als Status zurueck um keine Database-Informationen
+   * an unauthentifizierte Clients zu leaken. Der tatsaechliche DB-Status ist nur
+   * in der authentifizierten DetailedHealthDto Response sichtbar.
+   *
    * Enthaelt nur oeffentliche Informationen:
-   * - status: Datenbank erreichbar?
+   * - status: IMMER 'ok' (keine Information Disclosure!)
    * - setupComplete: Admin + Token vorhanden?
-   * - version: Server-Version
+   * - version: Server-Version aus package.json
+   * - insecureMode: Ob der Insecure-Modus aktiv ist (fuer Frontend-Warnung)
    *
    * @returns {Promise<BasicHealthDto>} Minimale Health-Information
    */
   private async getBasicHealth(): Promise<BasicHealthDto> {
     const setupComplete = await this.isSetupComplete();
-
-    // Database-Ping mit Try-Catch
-    let dbOk = false;
-    try {
-      await this.prismaDb.pingCheck('database');
-      dbOk = true;
-    } catch (_error) {
-      dbOk = false;
-    }
+    const insecureMode = this.configService.get<string>('INSECURE_MODE') === 'true';
 
     return {
-      status: dbOk ? 'ok' : 'error',
+      // Security: Immer 'ok' zurueckgeben, keine DB-Status Information leaken
+      // AC1 fordert: "keine weiteren System-Informationen werden preisgegeben"
+      status: 'ok',
       setupComplete,
-      version: '1.0.0-alpha.37',
+      // Version dynamisch aus package.json (via npm_package_version)
+      version: process.env.npm_package_version ?? '0.0.0-unknown',
+      insecureMode,
+    };
+  }
+
+  /**
+   * Erstellt eine erweiterte Health-Response fuer authentifizierte Requests.
+   *
+   * Diese Methode wird nur aufgerufen wenn ein gueltiger X-Server-Access-Token
+   * im Request Header vorhanden ist. Enthaelt sensible Systeminformationen:
+   *
+   * - status: Tatsaechlicher DB-Verbindungsstatus
+   * - setupComplete: Admin + Token vorhanden?
+   * - version: Server-Version
+   * - insecureMode: Ob der Insecure-Modus aktiv ist
+   * - database: 'connected' | 'disconnected'
+   * - uptime: Server-Uptime in Sekunden (process.uptime())
+   * - memory: Heap und RSS Metriken (optional)
+   * - loadAverage: CPU Load Average [1m, 5m, 15m] (optional)
+   *
+   * @returns {Promise<DetailedHealthDto>} Erweiterte Health-Information
+   */
+  private async getDetailedHealth(): Promise<DetailedHealthDto> {
+    const setupComplete = await this.isSetupComplete();
+    const insecureMode = this.configService.get<string>('INSECURE_MODE') === 'true';
+
+    // Database-Status pruefen
+    let dbConnected = false;
+    try {
+      await this.prismaDb.pingCheck('database');
+      dbConnected = true;
+    } catch (_error) {
+      dbConnected = false;
+    }
+
+    // Memory-Metriken sammeln
+    const memUsage = process.memoryUsage();
+
+    return {
+      status: dbConnected ? 'ok' : 'error',
+      setupComplete,
+      version: process.env.npm_package_version ?? '0.0.0-unknown',
+      insecureMode,
+      database: dbConnected ? 'connected' : 'disconnected',
+      uptime: Math.floor(process.uptime()),
+      memory: {
+        heapUsed: memUsage.heapUsed,
+        heapTotal: memUsage.heapTotal,
+        rss: memUsage.rss,
+      },
+      loadAverage: os.loadavg(),
     };
   }
 }
