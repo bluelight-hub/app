@@ -1,11 +1,18 @@
 import * as net from 'node:net';
 import * as os from 'node:os';
-import { Controller, Get, VERSION_NEUTRAL } from '@nestjs/common';
+import { Controller, Get, Inject, Req, VERSION_NEUTRAL } from '@nestjs/common';
+import { ApiExtraModels, ApiOkResponse, ApiOperation, getSchemaPath } from '@nestjs/swagger';
 import { DiskHealthIndicator, HealthCheck, type HealthCheckResult, HealthCheckService, type HealthIndicatorResult, MemoryHealthIndicator } from '@nestjs/terminus';
+import type { Request } from 'express';
+import * as bcrypt from 'bcrypt';
 import { SkipTransform } from '@/modules/common/decorators/skip-transform.decorator';
 import { SkipServerAccess } from '@/infrastructure/decorators/skip-server-access.decorator';
 import { SkipSetupCheck } from '@/infrastructure/decorators/skip-setup-check.decorator';
+import { PrismaService } from '@/infrastructure/database/prisma.service';
+import type { IServerAccessTokenRepository } from '@domain/repositories/i-server-access-token.repository';
+import { SERVER_ACCESS_TOKEN_REPOSITORY } from '@/infrastructure/di-tokens';
 import { PrismaHealthIndicator } from './prisma-health.indicator';
+import { BasicHealthDto, DetailedHealthDto } from './dto';
 
 /**
  * Konstanten für Health-Checks
@@ -51,6 +58,14 @@ export class HealthController {
   ];
 
   /**
+   * Cache fuer Setup-Complete Status.
+   * Vermeidet wiederholte Datenbank-Abfragen bei hochfrequenten Health-Checks.
+   */
+  private cachedSetupComplete: boolean | null = null;
+  private cacheTimestamp = 0;
+  private readonly CACHE_TTL_MS = 10_000; // 10 Sekunden
+
+  /**
    * Erstellt eine Instanz des HealthControllers.
    *
    * @constructor
@@ -58,50 +73,78 @@ export class HealthController {
    * @param {MemoryHealthIndicator} memory - Indikator für Speicher-Gesundheitschecks
    * @param {DiskHealthIndicator} disk - Indikator für Festplatten-Gesundheitschecks
    * @param {PrismaHealthIndicator} prismaDb - Indikator für Prisma-Datenbank-Gesundheitschecks
+   * @param {PrismaService} prisma - Prisma Service für Setup-Status Abfragen
+   * @param {IServerAccessTokenRepository} tokenRepo - Repository für Token-Validierung
    */
   constructor(
     private health: HealthCheckService,
     private memory: MemoryHealthIndicator,
     private disk: DiskHealthIndicator,
     private prismaDb: PrismaHealthIndicator,
+    private readonly prisma: PrismaService,
+    @Inject(SERVER_ACCESS_TOKEN_REPOSITORY) private readonly tokenRepo: IServerAccessTokenRepository,
   ) {}
 
   /**
-   * Führt einen umfassenden Gesundheitscheck der Anwendung durch.
-   * Überprüft Datenbankverbindung, Speichernutzung, Festplattenplatz und CPU-Status.
-   * Prüft zusätzlich den Internet- und FüKW-Verbindungsstatus für optimale Nutzerführung.
+   * Führt einen differenzierten Gesundheitscheck durch basierend auf Token-Authentifizierung.
    *
-   * @returns {Promise<HealthCheckResult>} Gesundheitscheck-Ergebnisobjekt
+   * **Ohne Token / Ungueltiger Token:**
+   * Gibt BasicHealthDto zurück (nur: status, setupComplete, version).
+   *
+   * **Mit gueltigem X-Server-Access-Token:**
+   * Gibt vollstaendiges Terminus HealthCheckResult mit allen Details zurueck
+   * (Datenbankverbindung, Speichernutzung, Festplattenplatz, CPU-Status).
+   *
+   * @param request - Express Request für Token-Extraktion
+   * @returns BasicHealthDto oder HealthCheckResult je nach Authentifizierung
    */
   @Get()
   @HealthCheck()
-  async check(): Promise<HealthCheckResult> {
-    return this.health.check([
-      async () => this.prismaDb.pingCheck('database'),
+  @ApiOperation({ summary: 'Health-Check mit Token-Differenzierung' })
+  @ApiExtraModels(BasicHealthDto, DetailedHealthDto)
+  @ApiOkResponse({
+    description: 'Ohne Token: BasicHealthDto, Mit Token: DetailedHealthDto + Terminus-Details',
+    schema: {
+      oneOf: [{ $ref: getSchemaPath(BasicHealthDto) }, { $ref: getSchemaPath(DetailedHealthDto) }],
+    },
+  })
+  async check(@Req() request: Request): Promise<BasicHealthDto | HealthCheckResult> {
+    // Token aus Header extrahieren
+    const rawToken = request.headers['x-server-access-token'];
+    const tokenString = Array.isArray(rawToken) ? rawToken[0] : rawToken;
 
-      // Memory-Checks
-      () => this.memory.checkHeap('memory_heap', HEALTH_CHECK_CONFIG.MEMORY.HEAP_THRESHOLD),
-      () => this.memory.checkRSS('memory_rss', HEALTH_CHECK_CONFIG.MEMORY.RSS_THRESHOLD),
+    // Wenn Token vorhanden und gueltig: detaillierten Health-Check zurueckgeben
+    if (tokenString && (await this.validateToken(tokenString))) {
+      return this.health.check([
+        async () => this.prismaDb.pingCheck('database'),
 
-      // Disk-Checks
-      () =>
-        this.disk.checkStorage('storage', {
-          thresholdPercent: HEALTH_CHECK_CONFIG.DISK.THRESHOLD_PERCENT,
-          path: HEALTH_CHECK_CONFIG.DISK.PATH,
-        }),
+        // Memory-Checks
+        () => this.memory.checkHeap('memory_heap', HEALTH_CHECK_CONFIG.MEMORY.HEAP_THRESHOLD),
+        () => this.memory.checkRSS('memory_rss', HEALTH_CHECK_CONFIG.MEMORY.RSS_THRESHOLD),
 
-      // CPU-Check
-      async () => this.checkCpuStatus(),
+        // Disk-Checks
+        () =>
+          this.disk.checkStorage('storage', {
+            thresholdPercent: HEALTH_CHECK_CONFIG.DISK.THRESHOLD_PERCENT,
+            path: HEALTH_CHECK_CONFIG.DISK.PATH,
+          }),
 
-      // Internet-Verbindung prüfen über TCP-Verbindung zu öffentlichen DNS-Servern
-      async () => this.checkInternetStatus(),
+        // CPU-Check
+        async () => this.checkCpuStatus(),
 
-      // FüKW-Verbindung prüfen
-      async () => this.checkFuekwStatus(),
+        // Internet-Verbindung prüfen über TCP-Verbindung zu öffentlichen DNS-Servern
+        async () => this.checkInternetStatus(),
 
-      // Gibt den Verbindungsstatus basierend auf den einzelnen Prüfungen zurück
-      async () => this.determineConnectionStatus(),
-    ]);
+        // FüKW-Verbindung prüfen
+        async () => this.checkFuekwStatus(),
+
+        // Gibt den Verbindungsstatus basierend auf den einzelnen Prüfungen zurück
+        async () => this.determineConnectionStatus(),
+      ]);
+    }
+
+    // Ohne Token oder ungueltiger Token: BasicHealthDto zurueckgeben
+    return this.getBasicHealth();
   }
 
   /**
@@ -350,5 +393,120 @@ export class HealthController {
     } catch (_error) {
       return false;
     }
+  }
+
+  /**
+   * Prueft ob das Server-Setup abgeschlossen ist.
+   *
+   * Setup gilt als abgeschlossen wenn:
+   * 1. Mindestens ein aktiver Admin (ADMIN oder SUPER_ADMIN) existiert
+   * 2. Mindestens ein aktiver Server-Access-Token existiert
+   *
+   * Nutzt einen Cache (10 Sekunden TTL) um die Datenbank-Last zu reduzieren,
+   * da der Health-Endpoint hochfrequent aufgerufen werden kann.
+   *
+   * @returns {Promise<boolean>} True wenn Setup abgeschlossen
+   */
+  private async isSetupComplete(): Promise<boolean> {
+    const now = Date.now();
+
+    // Cache noch gueltig?
+    if (this.cachedSetupComplete !== null && now - this.cacheTimestamp < this.CACHE_TTL_MS) {
+      return this.cachedSetupComplete;
+    }
+
+    try {
+      // Admin-Check: Aktive User mit ADMIN oder SUPER_ADMIN Rolle
+      const adminCount = await this.prisma.user.count({
+        where: {
+          role: { in: ['ADMIN', 'SUPER_ADMIN'] },
+          isActive: true,
+          isDeleted: false,
+        },
+      });
+
+      // Token-Check: Aktive Tokens via Repository
+      const activeTokenResult = await this.tokenRepo.countActive();
+      const activeTokenCount = activeTokenResult.isSuccess ? (activeTokenResult.value ?? 0) : 0;
+
+      const hasAdmin = adminCount > 0;
+      const hasActiveToken = activeTokenCount > 0;
+
+      // Cache aktualisieren
+      this.cachedSetupComplete = hasAdmin && hasActiveToken;
+      this.cacheTimestamp = now;
+
+      return this.cachedSetupComplete;
+    } catch (_error) {
+      // Bei Fehler: Konservativ annehmen Setup ist nicht abgeschlossen
+      return false;
+    }
+  }
+
+  /**
+   * Validiert einen Klartext-Token gegen gespeicherte Token-Hashes.
+   *
+   * **Security:**
+   * - Nutzt bcrypt.compare() für timing-safe Vergleich
+   * - Keine Exceptions - gibt false bei jedem Fehler zurück
+   * - Token-Hashes werden nicht geloggt
+   *
+   * @param rawToken - Klartext-Token aus dem X-Server-Access-Token Header
+   * @returns {Promise<boolean>} True wenn Token gueltig und aktiv
+   */
+  private async validateToken(rawToken: string): Promise<boolean> {
+    try {
+      // Alle aktiven Tokens laden
+      const tokensResult = await this.tokenRepo.findAllActive();
+      if (tokensResult.isFailure || !tokensResult.value) {
+        return false;
+      }
+
+      // Gegen jeden gespeicherten Hash pruefen (bcrypt.compare ist timing-safe)
+      for (const token of tokensResult.value) {
+        try {
+          const isMatch = await bcrypt.compare(rawToken, token.tokenHash.value);
+          if (isMatch && token.isValid()) {
+            return true;
+          }
+        } catch (_error) {
+          // Bei Fehler diesen Token ueberspringen, weiter pruefen
+        }
+      }
+
+      return false;
+    } catch (_error) {
+      // Bei jedem Fehler: Token ungueltig
+      return false;
+    }
+  }
+
+  /**
+   * Erstellt eine minimale Health-Response fuer unauthentifizierte Requests.
+   *
+   * Enthaelt nur oeffentliche Informationen:
+   * - status: Datenbank erreichbar?
+   * - setupComplete: Admin + Token vorhanden?
+   * - version: Server-Version
+   *
+   * @returns {Promise<BasicHealthDto>} Minimale Health-Information
+   */
+  private async getBasicHealth(): Promise<BasicHealthDto> {
+    const setupComplete = await this.isSetupComplete();
+
+    // Database-Ping mit Try-Catch
+    let dbOk = false;
+    try {
+      await this.prismaDb.pingCheck('database');
+      dbOk = true;
+    } catch (_error) {
+      dbOk = false;
+    }
+
+    return {
+      status: dbOk ? 'ok' : 'error',
+      setupComplete,
+      version: '1.0.0-alpha.37',
+    };
   }
 }

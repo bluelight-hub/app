@@ -1,0 +1,94 @@
+# Sprint Status - bluelight-hub
+# generated: 2026-01-06
+# project: bluelight-hub
+# tracking_system: file-system
+# story_location: _bmad-output/implementation-artifacts
+
+# STATUS DEFINITIONS:
+# ==================
+# Epic Status:
+#   - backlog: Epic not yet started
+#   - in-progress: Epic actively being worked on
+#   - done: All stories in epic completed
+#
+# Epic Status Transitions:
+#   - backlog → in-progress: Automatically when first story is created (via create-story)
+#   - in-progress → done: Manually when all stories reach 'done' status
+#
+# Story Status:
+#   - backlog: Story only exists in epic file
+#   - ready-for-dev: Story file created in stories folder
+#   - in-progress: Developer actively working on implementation
+#   - review: Ready for code review (via Dev's code-review workflow)
+#   - done: Story completed
+#
+# Retrospective Status:
+#   - optional: Can be completed but not required
+#   - done: Retrospective has been completed
+#
+# WORKFLOW NOTES:
+# ===============
+# - Epic transitions to 'in-progress' automatically when first story is created
+# - Stories can be worked in parallel if team capacity allows
+# - SM typically creates next story after previous one is 'done' to incorporate learnings
+# - Dev moves story to 'review', then runs code-review (fresh context, different LLM recommended)
+
+generated: 2026-01-06
+project: bluelight-hub
+tracking_system: file-system
+story_location: _bmad-output/implementation-artifacts
+
+development_status:
+  # ═══════════════════════════════════════════════════════════════════════════
+  # EPIC 1: Secure Server Foundation & Invite-System
+  # ═══════════════════════════════════════════════════════════════════════════
+  epic-1: in-progress
+  1-1-server-access-token-entity-repository: done # Code Review approved (2026-01-06)
+  1-1a-serveraccessguard-decorator: done # Ready for code review (2026-01-06)
+  1-2-setup-pending-mode: done # Implementation complete (2026-01-06) - 23 Tests
+  1-3-admin-setup-mit-token-erstellung: done # All 7 HIGH Issues fixed, 48 Tests pass (2026-01-06)
+  1-3a-frontend-admin-setup-page: done # Done (2026-01-06)
+  1-4-differenzierter-health-endpoint: review # Implementation complete (2026-01-07) - 13 Tests, alle ACs validiert
+  1-5-insecure-mode-fuer-entwicklung: backlog
+  1-6-invite-code-erstellen: backlog
+  1-7-invite-code-verwalten: backlog
+  epic-1-retrospective: optional
+
+  # ═══════════════════════════════════════════════════════════════════════════
+  # EPIC 2: Client-Onboarding & Server-Verbindung
+  # ═══════════════════════════════════════════════════════════════════════════
+  epic-2: backlog
+  2-1-platform-storage-adapter: backlog
+  2-2-server-store-persistence: backlog
+  2-3-invite-code-exchange-endpoint: backlog
+  2-4-deep-link-integration-desktop: backlog
+  2-5-web-url-parameter-support: backlog
+  2-6-manuelles-server-setup-formular: backlog
+  2-7-onboarding-error-handling-browser-warnung: backlog
+  epic-2-retrospective: optional
+
+  # ═══════════════════════════════════════════════════════════════════════════
+  # EPIC 3: Server-Auswahl & -Management
+  # ═══════════════════════════════════════════════════════════════════════════
+  epic-3: backlog
+  3-1-server-liste-anzeigen: backlog
+  3-2-server-dropdown-auf-login-screen: backlog
+  3-3-server-bearbeiten: backlog
+  3-4-server-entfernen: backlog
+  3-5-default-server-last-used-logik: backlog
+  3-6-server-icon-farbe-fuer-visuelle-unterscheidung: backlog
+  epic-3-retrospective: optional
+
+  # ═══════════════════════════════════════════════════════════════════════════
+  # EPIC 4: Admin Token-Verwaltung
+  # ═══════════════════════════════════════════════════════════════════════════
+  epic-4: backlog
+  4-1-access-token-mit-namen-erstellen: backlog
+  4-2-access-token-deaktivieren: backlog
+  4-3-token-usage-statistiken-einsehen: backlog
+  4-4-token-rotieren: backlog
+  4-5-basis-token-liste-mehrfach-token-support: backlog
+  4-5a-token-liste-paginierung-filter: backlog
+  4-5b-letzten-aktiven-token-schuetzen: backlog
+  4-6-insecure-zu-secure-migration: backlog
+  epic-4-retrospective: optional

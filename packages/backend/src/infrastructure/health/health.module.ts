@@ -2,6 +2,7 @@ import { Module } from '@nestjs/common';
 import { TerminusModule } from '@nestjs/terminus';
 import { HealthController } from './health.controller';
 import { PrismaHealthIndicator } from './prisma-health.indicator';
+import { ServerAccessTokenInfrastructureModule } from '@/infrastructure/server-access-token/server-access-token-infrastructure.module';
 
 /**
  * Health-Check-Modul für die Anwendungsüberwachung
@@ -16,11 +17,15 @@ import { PrismaHealthIndicator } from './prisma-health.indicator';
  * - HTTP-basierte Health-Check-Endpunkte
  * - Integration mit Monitoring-Systemen
  *
+ * **Story 1.4 Änderungen:**
+ * - ServerAccessTokenInfrastructureModule Import für Token-Validierung
+ *   (ermöglicht Zugang zu IServerAccessTokenRepository via DI)
+ *
  * @module HealthModule
  * @class HealthModule
  */
 @Module({
-  imports: [TerminusModule],
+  imports: [TerminusModule, ServerAccessTokenInfrastructureModule],
   controllers: [HealthController],
   providers: [PrismaHealthIndicator],
   exports: [PrismaHealthIndicator],
