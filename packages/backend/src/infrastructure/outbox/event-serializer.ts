@@ -34,6 +34,7 @@ import type { RolleBesetzt } from '@domain/kraefte/events/rolle-besetzt.event';
 import type { RolleFreigegeben } from '@domain/kraefte/events/rolle-freigegeben.event';
 import type { RollenDefinitionCreatedEvent } from '@domain/kraefte/events/rollen-definition-created.event';
 import type { RollenDefinitionUpdatedEvent } from '@domain/kraefte/events/rollen-definition-updated.event';
+import type { InviteCodeRevokedEvent } from '@domain/events/invite-code-revoked.event';
 
 /**
  * Serialisiertes Event-Payload für Outbox-Persistierung.
@@ -225,6 +226,10 @@ export class EventSerializer {
         return this.serializeRollenDefinitionCreated(event as unknown as RollenDefinitionCreatedEvent);
       case 'RollenDefinitionUpdated':
         return this.serializeRollenDefinitionUpdated(event as unknown as RollenDefinitionUpdatedEvent);
+
+      // ===== INVITE CODE EVENTS =====
+      case 'invite_code.revoked':
+        return this.serializeInviteCodeRevoked(event as unknown as InviteCodeRevokedEvent);
 
       default:
         throw new Error(`Unknown event type: ${eventName}. EventSerializer needs to be updated.`);
@@ -566,6 +571,17 @@ export class EventSerializer {
       rollenDefinitionId: event.rollenDefinitionId, // Already primitive string
       changes: event.changes, // Already primitives
       updatedBy: event.updatedBy,
+    };
+  }
+
+  // ===== INVITE CODE SERIALIZERS =====
+
+  private serializeInviteCodeRevoked(event: InviteCodeRevokedEvent): Record<string, unknown> {
+    return {
+      inviteCodeId: event.inviteCodeId, // Already primitive string
+      codeMasked: event.codeMasked,
+      revokedAt: event.revokedAt.toISOString(),
+      revokedById: event.revokedById,
     };
   }
 }
