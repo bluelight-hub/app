@@ -1,4 +1,5 @@
 import { logger } from '@/shared/lib/logger';
+import { clearServerAccessToken, getServerAccessToken, isSetupRedirectInProgress, isTokenErrorMessage, requestServerAccessToken, setSetupRedirectInProgress } from '@/shared/lib/server-access-token';
 import { AuthApi, Configuration } from '@bluelight-hub/shared/client';
 import { getBaseUrl } from './api';
 
@@ -72,7 +73,107 @@ async function refreshAccessToken(): Promise<boolean> {
 }
 
 /**
+ * Fuegt den Server Access Token Header hinzu falls vorhanden
+ *
+ * @param init - Bestehende RequestInit-Optionen
+ * @returns Erweiterte RequestInit mit Server Access Token Header
+ */
+function addServerAccessTokenHeader(init: RequestInit): RequestInit {
+  const token = getServerAccessToken();
+  if (!token) {
+    return init;
+  }
+
+  const existingHeaders = init.headers instanceof Headers ? Object.fromEntries(init.headers.entries()) : (init.headers as Record<string, string>) || {};
+
+  return {
+    ...init,
+    headers: {
+      ...existingHeaders,
+      'X-Server-Access-Token': token,
+    },
+  };
+}
+
+/**
+ * Prueft ob der Response ein Server-Access-Token-Problem ist
+ *
+ * Erkennt zwei Faelle:
+ * 1. Token fehlt: "Server access token required"
+ * 2. Token ungueltig: "Invalid or revoked server access token"
+ *
+ * In beiden Faellen soll das TokenRequiredModal erscheinen,
+ * damit der User einen gueltigen Token eingeben kann.
+ */
+async function isServerAccessTokenRequired(response: Response): Promise<boolean> {
+  if (response.status !== 401) {
+    return false;
+  }
+
+  try {
+    // Clone um Body mehrfach lesen zu koennen
+    const cloned = response.clone();
+    const body = await cloned.json();
+    const message = body?.message || body?.error || '';
+
+    return isTokenErrorMessage(message);
+  } catch {
+    return false;
+  }
+}
+
+/**
+ * Prueft ob der Response ein SERVER_NOT_SETUP (503) Fehler ist
+ *
+ * Der Server wirft diesen Fehler wenn noch kein Admin-Setup durchgeführt wurde.
+ * In diesem Fall soll zur Setup-Seite weitergeleitet werden.
+ */
+async function isServerNotSetupError(response: Response): Promise<boolean> {
+  if (response.status !== 503) {
+    return false;
+  }
+
+  try {
+    // Clone um Body mehrfach lesen zu koennen
+    const cloned = response.clone();
+    const body = await cloned.json();
+    return body?.error === 'SERVER_NOT_SETUP' || body?.message === 'SERVER_NOT_SETUP';
+  } catch {
+    return false;
+  }
+}
+
+/**
+ * Behandelt SERVER_NOT_SETUP (503) Fehler
+ *
+ * Cleart den alten Token (falls vorhanden) und redirectet zur Setup-Seite.
+ * Nutzt zentrales Flag um mehrfache Redirects bei parallelen Requests zu verhindern.
+ */
+function handleServerNotSetup(): void {
+  // Vermeide mehrfache Redirects bei parallelen Requests
+  if (isSetupRedirectInProgress()) {
+    return;
+  }
+  // Flag SOFORT setzen um Race Conditions zu verhindern
+  setSetupRedirectInProgress(true);
+
+  // Nicht redirecten wenn wir bereits auf der Setup-Seite sind
+  if (window.location.pathname.startsWith('/setup')) {
+    setSetupRedirectInProgress(false);
+    return;
+  }
+
+  // Clear old token - backend was reset, old token is invalid
+  clearServerAccessToken();
+  logger.info('Server requires setup, clearing old token and redirecting to /setup');
+  window.location.href = '/setup';
+}
+
+/**
  * Enhanced fetch function with automatic token refresh on 401
+ *
+ * Fuegt automatisch den Server Access Token Header hinzu und
+ * behandelt Token-Refresh bei 401 Errors.
  *
  * @param input - The resource URL or Request object
  * @param init - Optional request initialization options
@@ -80,16 +181,39 @@ async function refreshAccessToken(): Promise<boolean> {
  */
 export async function fetchWithRefresh(input: RequestInfo | URL, init?: RequestInit): Promise<Response> {
   // Always include credentials for cookie-based auth
-  const enhancedInit: RequestInit = {
+  const baseInit: RequestInit = {
     ...init,
     credentials: 'include',
   };
 
+  // Add Server Access Token header if available
+  const enhancedInit = addServerAccessTokenHeader(baseInit);
+
   // Make the initial request
   let response = await fetch(input, enhancedInit);
 
-  // If we get a 401, try to refresh the token
+  // Check for SERVER_NOT_SETUP (503) - redirect to setup page
+  if (response.status === 503) {
+    const isSetupRequired = await isServerNotSetupError(response);
+    if (isSetupRequired) {
+      handleServerNotSetup();
+      // Response zurueckgeben damit Caller wissen dass Request fehlschlug
+      return response;
+    }
+  }
+
+  // Check if server access token is required
   if (response.status === 401) {
+    const tokenRequired = await isServerAccessTokenRequired(response);
+    if (tokenRequired) {
+      logger.warn('Server access token required but not provided or invalid');
+      // Signalisiere dass Token benoetigt wird (fuer UI)
+      requestServerAccessToken();
+      // Response zurueckgeben damit Error-Handler es verarbeiten kann
+      return response;
+    }
+
+    // Standard 401 - try token refresh
     logger.debug('Received 401, attempting token refresh');
 
     // Queue-basierter Refresh: alle parallelen 401s warten auf EINEN Refresh

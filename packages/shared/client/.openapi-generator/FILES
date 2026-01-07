@@ -1,4 +1,5 @@
 .openapi-generator-ignore
+apis/AdminApi.ts
 apis/AdminIntegrationsHiorgApi.ts
 apis/AdminKraefteFahrzeugtypenApi.ts
 apis/AdminKraefteFunkstatusApi.ts
@@ -48,6 +49,8 @@ models/AdminQualifikationenControllerCreateVAlpha201Response.ts
 models/AdminQualifikationenControllerFindAllVAlpha200Response.ts
 models/AdminRollenControllerCreateVAlpha201Response.ts
 models/AdminRollenControllerFindAllVAlpha200Response.ts
+models/AdminSetupControllerCompleteSetupVAlpha201Response.ts
+models/AdminSetupControllerCompleteSetupVAlpha400Response.ts
 models/AdminSetupDto.ts
 models/AdminSetupResponseDto.ts
 models/AdminSetupUserDto.ts
@@ -73,6 +76,7 @@ models/BatchSaveQualifikationMappingsRequestDto.ts
 models/BatchSaveQualifikationMappingsResponseDto.ts
 models/BesatzungMemberDto.ts
 models/BesetzeRolleDto.ts
+models/CompleteSetupDto.ts
 models/CompletenessResponseDto.ts
 models/CoordinateDto.ts
 models/CreateEinsatzDto.ts
@@ -172,6 +176,9 @@ models/RollenBesetzungListItemDto.ts
 models/RollenDefinitionDto.ts
 models/SaveLagekarteStateDto.ts
 models/SaveQualifikationMappingRequestDto.ts
+models/SetupResponseDto.ts
+models/SetupTokenDto.ts
+models/SetupUserDto.ts
 models/StammFahrzeugDto.ts
 models/StammPersonDto.ts
 models/StammPersonQualifikationDto.ts

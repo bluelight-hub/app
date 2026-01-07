@@ -9,6 +9,7 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as SetupRouteImport } from './routes/setup'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AppRouteImport } from './routes/app'
 import { Route as AdminLoginRouteImport } from './routes/admin-login'
@@ -60,6 +61,11 @@ import { Route as AppEinsatzEinsatzIdBetreuungUnterkunftRouteImport } from './ro
 import { Route as AppEinsatzEinsatzIdBetreuungBetroffeneRouteImport } from './routes/app/einsatz/$einsatzId/betreuung/betroffene'
 import { Route as AppEinsatzEinsatzIdFChar252hrungEtbIndexRouteImport } from './routes/app/einsatz/$einsatzId/führung/etb/index'
 
+const SetupRoute = SetupRouteImport.update({
+  id: '/setup',
+  path: '/setup',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AuthRoute = AuthRouteImport.update({
   id: '/auth',
   path: '/auth',
@@ -351,6 +357,7 @@ export interface FileRoutesByFullPath {
   '/admin-login': typeof AdminLoginRoute
   '/app': typeof AppRouteWithChildren
   '/auth': typeof AuthRoute
+  '/setup': typeof SetupRoute
   '/admin/dashboard': typeof AdminDashboardRoute
   '/admin/setup': typeof AdminSetupRoute
   '/admin/users': typeof AdminUsersRoute
@@ -402,6 +409,7 @@ export interface FileRoutesByTo {
   '/admin-login': typeof AdminLoginRoute
   '/app': typeof AppRouteWithChildren
   '/auth': typeof AuthRoute
+  '/setup': typeof SetupRoute
   '/admin/dashboard': typeof AdminDashboardRoute
   '/admin/setup': typeof AdminSetupRoute
   '/admin/users': typeof AdminUsersRoute
@@ -452,6 +460,7 @@ export interface FileRoutesById {
   '/admin-login': typeof AdminLoginRoute
   '/app': typeof AppRouteWithChildren
   '/auth': typeof AuthRoute
+  '/setup': typeof SetupRoute
   '/admin/dashboard': typeof AdminDashboardRoute
   '/admin/setup': typeof AdminSetupRoute
   '/admin/users': typeof AdminUsersRoute
@@ -506,6 +515,7 @@ export interface FileRouteTypes {
     | '/admin-login'
     | '/app'
     | '/auth'
+    | '/setup'
     | '/admin/dashboard'
     | '/admin/setup'
     | '/admin/users'
@@ -557,6 +567,7 @@ export interface FileRouteTypes {
     | '/admin-login'
     | '/app'
     | '/auth'
+    | '/setup'
     | '/admin/dashboard'
     | '/admin/setup'
     | '/admin/users'
@@ -606,6 +617,7 @@ export interface FileRouteTypes {
     | '/admin-login'
     | '/app'
     | '/auth'
+    | '/setup'
     | '/admin/dashboard'
     | '/admin/setup'
     | '/admin/users'
@@ -659,10 +671,18 @@ export interface RootRouteChildren {
   AdminLoginRoute: typeof AdminLoginRoute
   AppRoute: typeof AppRouteWithChildren
   AuthRoute: typeof AuthRoute
+  SetupRoute: typeof SetupRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/setup': {
+      id: '/setup'
+      path: '/setup'
+      fullPath: '/setup'
+      preLoaderRoute: typeof SetupRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/auth': {
       id: '/auth'
       path: '/auth'
@@ -1199,6 +1219,7 @@ const rootRouteChildren: RootRouteChildren = {
   AdminLoginRoute: AdminLoginRoute,
   AppRoute: AppRouteWithChildren,
   AuthRoute: AuthRoute,
+  SetupRoute: SetupRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

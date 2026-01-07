@@ -1,4 +1,5 @@
 import { logger } from '@/shared/lib/logger';
+import { isServerAccessTokenPromptActive, isSetupRedirectInProgress } from '@/shared/lib/server-access-token';
 import type { FetchError, ResponseError } from '@bluelight-hub/shared/client';
 import { toast } from 'sonner';
 
@@ -234,8 +235,18 @@ function getErrorContext(error: unknown): { status?: number; url?: string; reque
 
 /**
  * Global error handler for React Query
+ *
+ * **503 SERVER_NOT_SETUP wird NICHT hier behandelt!**
+ * Das Handling passiert in fetchWithRefresh.ts, welches VOR diesem Handler
+ * aufgerufen wird und den Redirect zu /setup macht. Dieser Handler prueft
+ * nur das Flag um Toasts waehrend des Redirects zu verhindern.
  */
 export async function handleQueryError(error: unknown, _query?: unknown): Promise<void> {
+  // Skip if setup redirect is pending - prevents multiple toasts during redirect
+  if (isSetupRedirectInProgress()) {
+    return;
+  }
+
   // Skip if error was already shown
   if (error instanceof Error && shownErrors.has(error)) {
     return;
@@ -245,7 +256,17 @@ export async function handleQueryError(error: unknown, _query?: unknown): Promis
   if (error && typeof error === 'object' && 'response' in error) {
     const responseError = error as ResponseError;
     const status = responseError.response.status;
+
+    // 503 SERVER_NOT_SETUP: Wird von fetchWithRefresh.ts behandelt (Redirect zu /setup)
+    // Hier nur sicherstellen dass kein Toast gezeigt wird (Flag-Check oben erledigt das)
+
     if (status === 401) {
+      // Wenn Token-Prompt aktiv ist, nichts tun - das Modal kuemmert sich darum
+      if (isServerAccessTokenPromptActive()) {
+        logger.debug('Server access token prompt active, skipping 401 handling');
+        return;
+      }
+
       // Check if we're already on the auth page to prevent redirect loops
       const isOnAuthPage = window.location.pathname.startsWith('/auth');
 

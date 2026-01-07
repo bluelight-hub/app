@@ -1,5 +1,6 @@
 import { logger } from '@/shared/lib/logger';
 import {
+  AdminApi,
   AdminIntegrationsHiorgApi,
   AdminKraefteQualifikationenApi,
   AdminKraefteRollenApi,
@@ -62,6 +63,7 @@ export const getBaseUrl = (): string => {
  */
 class BackendApi {
   private readonly configuration: Configuration;
+  private readonly adminApi: AdminApi;
   private readonly healthApi: HealthApi;
   private readonly authApi: AuthApi;
   private readonly userManagementApi: UserManagementApi;
@@ -101,6 +103,7 @@ class BackendApi {
     });
 
     // API-Instanzen werden einmalig erstellt und gecacht
+    this.adminApi = new AdminApi(this.configuration);
     this.healthApi = new HealthApi(this.configuration);
     this.authApi = new AuthApi(this.configuration);
     this.userManagementApi = new UserManagementApi(this.configuration);
@@ -123,6 +126,15 @@ class BackendApi {
     this.kraefteStammPersonenApi = new KraefteStammPersonenApi(this.configuration);
     this.rollenBesetzungApi = new RollenBesetzungApi(this.configuration);
     this.adminIntegrationsHiorgApi = new AdminIntegrationsHiorgApi(this.configuration);
+  }
+
+  /**
+   * Gibt die gecachte Admin-API-Instanz zurück
+   *
+   * @returns Die Admin-API-Instanz für Server-Setup und Admin-Operationen
+   */
+  admin(): AdminApi {
+    return this.adminApi;
   }
 
   /**

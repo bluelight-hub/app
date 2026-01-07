@@ -1,4 +1,5 @@
 import { getBaseUrl } from '@/shared/api/api';
+import { fetchWithRefresh } from '@/shared/api/fetchWithRefresh';
 import { useQuery } from '@tanstack/react-query';
 import { getMismatchSeverity, type MismatchSeverity } from '../utils/version';
 import { SYSTEM_QUERY_KEYS } from './queries';
@@ -19,12 +20,10 @@ interface RootResponse {
  *
  * Der generierte API-Client typisiert die Root-Response als void,
  * daher nutzen wir hier einen direkten fetch mit korrekter Typisierung.
- * Credentials werden für Konsistenz mit dem Rest der App mitgesendet.
+ * fetchWithRefresh wird verwendet um den Server Access Token Header mitzuschicken.
  */
 async function fetchBackendVersion(): Promise<string | undefined> {
-  const response = await fetch(getBaseUrl(), {
-    credentials: 'include',
-  });
+  const response = await fetchWithRefresh(getBaseUrl());
 
   if (!response.ok) {
     throw new Error(`Failed to fetch backend version: ${response.status}`);

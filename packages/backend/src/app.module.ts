@@ -26,6 +26,10 @@ import { OutboxModule } from './infrastructure/outbox/outbox.module';
 import { EventAdaptersModule } from './infrastructure/events/event-adapters.module';
 import { KraefteModule } from './modules/kraefte/kraefte.module';
 import { IntegrationsModule } from './modules/integrations/integrations.module';
+import { ServerAccessTokenInfrastructureModule } from './infrastructure/server-access-token';
+import { ServerAccessGuard } from './infrastructure/guards/server-access.guard';
+import { SetupPendingGuard } from './infrastructure/guards/setup-pending.guard';
+import { AdminModule } from './modules/admin/admin.module';
 
 /**
  * Haupt-Anwendungsmodul der Bluelight Hub Backend-Anwendung
@@ -93,6 +97,8 @@ import { IntegrationsModule } from './modules/integrations/integrations.module';
     EventAdaptersModule, // Event Adapters (delegiert @OnEvent an Application Layer Handler)
     KraefteModule, // Kräftemanagement: Qualifikationen, Rollen, Fahrzeugtypen (Story 1-1)
     IntegrationsModule, // HiOrg-Server Integration (Story 7-1)
+    ServerAccessTokenInfrastructureModule, // Server-Access-Token Guard & Repository (Story 1-1a)
+    AdminModule, // Admin Setup & Management (Story 1.3)
   ],
   controllers: [AppController],
   providers: [
@@ -104,7 +110,15 @@ import { IntegrationsModule } from './modules/integrations/integrations.module';
     },
     {
       provide: APP_GUARD,
-      useClass: ThrottlerGuard,
+      useClass: ThrottlerGuard, // 1. Rate Limiting (DoS Protection)
+    },
+    {
+      provide: APP_GUARD,
+      useClass: SetupPendingGuard, // 2. Setup Check (Story 1.2) - muss vor ServerAccessGuard kommen!
+    },
+    {
+      provide: APP_GUARD,
+      useClass: ServerAccessGuard, // 3. Server-Access-Token Check (Story 1-1a)
     },
     {
       provide: APP_FILTER,

@@ -1,8 +1,15 @@
-import { createFileRoute } from '@tanstack/react-router';
-import { lazy } from 'react';
+import { createFileRoute, redirect } from '@tanstack/react-router';
 
-const AdminSetup = lazy(() => import('@/features/admin/ui').then((module) => ({ default: module.AdminSetup })));
-
+/**
+ * Legacy-Route für Admin-Setup
+ *
+ * Redirected zur neuen Top-Level Setup-Route `/setup`.
+ * Behalten für Backward-Compatibility.
+ */
 export const Route = createFileRoute('/admin/setup')({
-  component: AdminSetup,
+  beforeLoad: () => {
+    throw redirect({
+      to: '/setup',
+    });
+  },
 });

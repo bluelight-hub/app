@@ -299,6 +299,67 @@ export class PrismaUserRepository implements IUserRepository {
   }
 
   /**
+   * Zählt User mit bestimmten Rollen.
+   *
+   * Flexible Methode für verschiedene Role-Counts ohne isLocked/isDeleted Filter.
+   * Nutzt IN-Operator für effiziente Multi-Role Query.
+   *
+   * @param roles - Array von Role-Strings (z.B. ['ADMIN', 'SUPER_ADMIN'])
+   * @param tx - Optional Transaction Context für Atomizität
+   * @returns Result<number> - Success mit Anzahl der User mit diesen Rollen
+   */
+  async countByRoles(roles: string[], tx?: TransactionContext): Promise<Result<number>> {
+    const client = (tx as PrismaTransactionClient | undefined) ?? this.prisma;
+
+    try {
+      // Cast notwendig da Interface string[] akzeptiert aber Prisma
+      // den generierten Enum-Type erwartet. Die Werte sind identisch.
+      // biome-ignore lint/suspicious/noExplicitAny: Prisma generiert Enum aus Schema, wir akzeptieren flexible Strings
+      const count = await client.user.count({
+        where: {
+          role: { in: roles as any },
+        },
+      });
+
+      return Result.ok(count);
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error);
+      this.logger.error('Failed to count users by roles', { roles, error: message });
+      return Result.fail(`Database error: ${message}`);
+    }
+  }
+
+  /**
+   * Setzt den Password Hash für einen User.
+   *
+   * **Security Separation:**
+   * - Password Hash ist NICHT Teil des User Aggregates (Security by Design)
+   * - Separate Methode für explizites Password-Management
+   * - Ermöglicht atomare Transaktion mit save()
+   *
+   * @param id - UserId des Users
+   * @param passwordHash - bcrypt Hash des Passworts
+   * @param tx - Optional Transaction Context für Atomizität
+   * @returns Result<void> - Success oder Failure bei DB-Fehler
+   */
+  async setPasswordHash(id: UserId, passwordHash: string, tx?: TransactionContext): Promise<Result<void>> {
+    const client = (tx as PrismaTransactionClient | undefined) ?? this.prisma;
+
+    try {
+      await client.user.update({
+        where: { id: id.value },
+        data: { passwordHash },
+      });
+
+      return Result.ok(undefined);
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error);
+      this.logger.error('Failed to set password hash', { userId: id.value, error: message });
+      return Result.fail(`Database error: ${message}`);
+    }
+  }
+
+  /**
    * Lädt den bcrypt Password Hash für einen User.
    *
    * **Security Separation:**

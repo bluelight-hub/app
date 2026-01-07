@@ -40,6 +40,9 @@ export const OUTBOX_REPOSITORY = Symbol('IOutboxRepository');
 /** Repository Token für ILagekarteRepository */
 export const LAGEKARTE_REPOSITORY = Symbol('ILagekarteRepository');
 
+/** Repository Token für IServerAccessTokenRepository */
+export const SERVER_ACCESS_TOKEN_REPOSITORY = Symbol('IServerAccessTokenRepository');
+
 /**
  * Kräftemanagement Repository Tokens (Epic 1+).
  *

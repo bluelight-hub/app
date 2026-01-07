@@ -190,6 +190,47 @@ export interface IUserRepository {
   existsByUsername(username: Username, tx?: TransactionContext): Promise<Result<boolean>>;
 
   /**
+   * Zählt User mit bestimmten Rollen.
+   *
+   * **Use Case:**
+   * - Setup-Check: Existiert bereits ein ADMIN oder SUPER_ADMIN?
+   * - Verhindert Repository-Abstraction-Bypass durch direkten Prisma-Zugriff
+   *
+   * **Warum nicht countSuperAdmins() verwenden:**
+   * - countSuperAdmins() filtert auch auf isLocked/isDeleted
+   * - Hier wollen wir ALLE User mit bestimmten Rollen zählen (unabhängig vom Status)
+   * - Flexible Lösung für verschiedene Use Cases
+   *
+   * @param roles - Array von Role-Strings (z.B. ['ADMIN', 'SUPER_ADMIN'])
+   * @param tx - Optional Transaction Context für Atomizität
+   * @returns Result<number> - Success mit Anzahl der User mit diesen Rollen
+   */
+  countByRoles(roles: string[], tx?: TransactionContext): Promise<Result<number>>;
+
+  /**
+   * Setzt den Password Hash für einen User.
+   *
+   * **Security Separation:**
+   * - Password Hash ist NICHT Teil des User Aggregates (Security by Design)
+   * - UserAggregate kennt KEIN passwordHash
+   * - Separate Methode für explizites Password-Management
+   *
+   * **Atomarität:**
+   * - MUSS in gleicher Transaktion wie save() laufen
+   * - Verhindert Inkonsistenz bei Rollback
+   *
+   * **Use Case:**
+   * - Admin-Setup: Neuer Admin mit Passwort
+   * - Password Change: Neues Passwort setzen
+   *
+   * @param id - UserId des Users
+   * @param passwordHash - bcrypt Hash des Passworts
+   * @param tx - Optional Transaction Context (WICHTIG für Atomizität)
+   * @returns Result<void> - Success oder Failure bei DB-Fehler
+   */
+  setPasswordHash(id: UserId, passwordHash: string, tx?: TransactionContext): Promise<Result<void>>;
+
+  /**
    * Lädt den bcrypt Password Hash für einen User.
    *
    * **Security Separation:**

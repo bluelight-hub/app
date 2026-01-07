@@ -29,13 +29,29 @@ export class HttpExceptionFilter implements ExceptionFilter {
     let errorDetails: unknown = null;
 
     if (status >= 500) {
-      // For 5xx errors, don't expose sensitive information
-      message = 'Ein interner Fehler ist aufgetreten. Bitte versuchen Sie es später erneut.';
-
       // Log the actual error internally for debugging
       const actualError = exception instanceof HttpException ? exception.getResponse() : exception;
-
       this.logger.error(`[${requestId}] Internal Server Error: ${util.inspect(actualError)}`, exception instanceof Error ? exception.stack : undefined);
+
+      // Check for known 5xx errors that should expose error code to frontend
+      // SERVER_NOT_SETUP: Frontend needs this to redirect to /setup page
+      if (exception instanceof HttpException) {
+        const errorResponse = exception.getResponse();
+        if (typeof errorResponse === 'object' && errorResponse !== null) {
+          const responseObj = errorResponse as Record<string, unknown>;
+          if (responseObj.error === 'SERVER_NOT_SETUP') {
+            message = (responseObj.message as string) || 'Server setup required';
+            errorDetails = 'SERVER_NOT_SETUP';
+          } else {
+            // Default: don't expose sensitive information
+            message = 'Ein interner Fehler ist aufgetreten. Bitte versuchen Sie es später erneut.';
+          }
+        } else {
+          message = 'Ein interner Fehler ist aufgetreten. Bitte versuchen Sie es später erneut.';
+        }
+      } else {
+        message = 'Ein interner Fehler ist aufgetreten. Bitte versuchen Sie es später erneut.';
+      }
     } else {
       // For client errors (4xx), provide the actual error message
       if (exception instanceof HttpException) {
@@ -69,8 +85,8 @@ export class HttpExceptionFilter implements ExceptionFilter {
       requestId, // Always include request ID for correlation
     };
 
-    // Only include error details for non-5xx errors
-    if (status < 500 && errorDetails) {
+    // Include error details for non-5xx errors, or for whitelisted 5xx errors (SERVER_NOT_SETUP)
+    if (errorDetails && (status < 500 || errorDetails === 'SERVER_NOT_SETUP')) {
       responseBody.error = errorDetails;
     }
 

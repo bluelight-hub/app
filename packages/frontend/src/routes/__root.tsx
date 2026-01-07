@@ -2,6 +2,21 @@ import { Provider } from '@/shared/ui/headless/provider';
 import { ConfirmProvider } from '@/shared/hooks/useConfirm';
 import { useWindowOrientation } from '@/shared/hooks/useWindowOrientation';
 import { handleQueryError } from '@/shared/lib/errors/error-handler';
+import { isServerAccessTokenPromptActive, setSetupRedirectInProgress } from '@/shared/lib/server-access-token';
+import { TokenRequiredModal } from '@/shared/ui/organisms/TokenRequiredModal';
+
+// Reset Setup-Redirect-Flag beim App-Start - ABER NICHT wenn wir auf /setup sind!
+// Grund: Nach einem Full-Page-Redirect zu /setup (via window.location.href) wird die App
+// komplett neu geladen. Wenn wir das Flag hier bedingungslos zuruecksetzen, ist es false
+// BEVOR der /setup Route beforeLoad laufen kann. Background-Requests (React Query) koennten
+// dann erneut 503 bekommen und handleServerNotSetup() triggern - was einen neuen Redirect
+// startet obwohl wir gerade auf dem Weg zu /setup sind → Endlos-Loop.
+//
+// Loesung: Nur zuruecksetzen wenn wir NICHT auf /setup sind. Die /setup Route selbst
+// setzt das Flag nach ihrem beforeLoad Check zurueck.
+if (!window.location.pathname.startsWith('/setup')) {
+  setSetupRedirectInProgress(false);
+}
 import { TanStackDevtools } from '@tanstack/react-devtools';
 import { MutationCache, QueryCache, QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { ReactQueryDevtoolsPanel } from '@tanstack/react-query-devtools';
@@ -24,8 +39,9 @@ const queryClient = new QueryClient({
       await handleQueryError(error, query);
 
       // If it was a 401 error and token refresh was successful, retry the query
+      // ABER: Nicht retrien wenn Token-Prompt aktiv ist (verhindert Endlos-Loop)
       const status = (error as { response?: { status?: number } })?.response?.status;
-      if (status === 401) {
+      if (status === 401 && !isServerAccessTokenPromptActive()) {
         // Small delay to ensure cookies are updated
         setTimeout(() => {
           queryClient.invalidateQueries({ queryKey: query.queryKey });
@@ -55,14 +71,23 @@ const queryClient = new QueryClient({
         }
 
         // Allow one retry for 401 errors (after token refresh) for non-auth queries
+        // ABER: Nicht retrien wenn Token-Prompt aktiv ist
         if (status === 401) {
+          if (isServerAccessTokenPromptActive()) {
+            return false;
+          }
           return failureCount < 1;
         }
         // Don't retry on other 4xx client errors
         if (status && status >= 400 && status < 500) {
           return false;
         }
-        // Retry up to 2 times for other errors
+        // Don't retry on 503 - this is SERVER_NOT_SETUP, retrying won't help
+        // fetchWithRefresh handles the redirect to /setup
+        if (status === 503) {
+          return false;
+        }
+        // Retry up to 2 times for other errors (502, 504, network errors)
         return failureCount < 2;
       },
       // Don't throw errors globally (we handle them in onError)
@@ -100,6 +125,7 @@ function RootComponent() {
             />
           </div>
           <Toaster duration={4000} position="bottom-right" closeButton theme="system" richColors />
+          <TokenRequiredModal />
         </ConfirmProvider>
       </QueryClientProvider>
     </Provider>

@@ -1131,3 +1131,33 @@ model QualifikationMapping {
   @@index([externalSource, qualifikationId]) // Optimiert findUnmapped() Query
   @@map("qualifikation_mappings")
 }
+
+// ========================================
+// Security: Server-Access-Token System
+// Epic 1 - Story 1.1
+// ========================================
+
+/// ServerAccessToken: Token für Server-Zugriff via Access-Token-basierter Authentifizierung
+/// - tokenHash: bcrypt Hash des Tokens (Format: $2[aby]$[cost]$[53 chars], exakt 60 Zeichen)
+/// - Token Format: blh_{cuid2} (28 Zeichen total)
+/// - Sicherheit: Cost Factor >= 10 (NFR-S1), Timing-Safe Comparison via bcrypt.compare()
+/// - HINWEIS: inviteCodeId Relation kommt in Story 1.6
+model ServerAccessToken {
+  id         String    @id @default(cuid())
+  tokenHash  String    @unique @db.VarChar(60) // bcrypt Hash, exakt 60 Zeichen
+  name       String?   @db.VarChar(100) // Optionale Beschreibung/Label für den Token
+  lastUsedAt DateTime? // Letzter Verwendungszeitpunkt
+  expiresAt  DateTime? // Ablaufzeitpunkt (NULL = never expires)
+  isRevoked  Boolean   @default(false)
+  revokedAt  DateTime? // Zeitpunkt der Revokation
+
+  // Timestamps
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Indexes für performante Queries
+  @@index([tokenHash], map: "idx_server_access_token_hash") // Schnelle Token-Lookups
+  @@index([tokenHash, isRevoked], map: "idx_server_access_token_validate") // validateToken Query
+  @@index([isRevoked, expiresAt], map: "idx_server_access_token_active") // findActiveTokens Query
+  @@map("server_access_tokens")
+}

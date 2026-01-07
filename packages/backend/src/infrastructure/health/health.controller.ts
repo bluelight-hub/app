@@ -3,6 +3,8 @@ import * as os from 'node:os';
 import { Controller, Get, VERSION_NEUTRAL } from '@nestjs/common';
 import { DiskHealthIndicator, HealthCheck, type HealthCheckResult, HealthCheckService, type HealthIndicatorResult, MemoryHealthIndicator } from '@nestjs/terminus';
 import { SkipTransform } from '@/modules/common/decorators/skip-transform.decorator';
+import { SkipServerAccess } from '@/infrastructure/decorators/skip-server-access.decorator';
+import { SkipSetupCheck } from '@/infrastructure/decorators/skip-setup-check.decorator';
 import { PrismaHealthIndicator } from './prisma-health.indicator';
 
 /**
@@ -34,6 +36,8 @@ type ConnectionMode = 'checking' | 'online' | 'offline' | 'error';
  * @class HealthController
  */
 @SkipTransform()
+@SkipServerAccess() // Health-Endpoints muessen ohne Server-Access-Token erreichbar sein
+@SkipSetupCheck() // Health-Endpoints muessen waehrend Setup erreichbar sein (Story 1.2)
 @Controller({ path: 'health', version: VERSION_NEUTRAL })
 export class HealthController {
   /**

@@ -24,7 +24,15 @@ export const useCurrentUser = () => {
   const authCheckQuery = useQuery({
     queryKey: AUTH_KEYS.auth.queries.authCheck,
     queryFn: () => api.auth().authControllerCheckAuth(),
-    retry: 2,
+    retry: (failureCount, error) => {
+      // Bei 503 SERVER_NOT_SETUP nicht retrien - Setup-Status aendert sich nicht automatisch
+      const status = (error as { response?: { status?: number } })?.response?.status;
+      if (status === 503) {
+        return false;
+      }
+      // Fuer andere Fehler maximal 2 Retries
+      return failureCount < 2;
+    },
   });
 
   // Admin-Status nur für eingeloggte Admins abfragen

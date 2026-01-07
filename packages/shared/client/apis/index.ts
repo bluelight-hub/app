@@ -1,5 +1,6 @@
 /* tslint:disable */
 /* eslint-disable */
+export * from './AdminApi';
 export * from './AdminIntegrationsHiorgApi';
 export * from './AdminKraefteFahrzeugtypenApi';
 export * from './AdminKraefteFunkstatusApi';

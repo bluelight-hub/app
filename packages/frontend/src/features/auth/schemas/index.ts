@@ -5,3 +5,4 @@
  */
 
 export * from './auth.schema';
+export * from './setup-form.schema';

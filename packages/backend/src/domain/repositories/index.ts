@@ -50,3 +50,6 @@ export {
 
 // User Repository Interface
 export { IUserRepository } from './i-user.repository';
+
+// ServerAccessToken Repository Interface
+export { IServerAccessTokenRepository } from './i-server-access-token.repository';
