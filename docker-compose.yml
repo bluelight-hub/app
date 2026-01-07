@@ -1,18 +1,18 @@
 services:
   postgres:
-    image: sha256:48c2ba21a288201d8cfa3f52b1f09a8b0a28f9c1926d37bc12cf269f7c76d400
+    image: postgres:18
     container_name: bluelight-hub-postgres
     volumes:
-      - postgres_data:/var/lib/postgresql/data
+      - postgres_data:/var/lib/postgresql
     environment:
       - POSTGRES_USER=${DATABASE_USER:-bluelight}
       - POSTGRES_PASSWORD=${DATABASE_PASSWORD:-bluelight}
       - POSTGRES_DB=${DATABASE_NAME:-bluelight-hub}
     restart: unless-stopped
     ports:
-      - '${DATABASE_PORT:-3092}:5432'
+      - "${DATABASE_PORT:-3092}:5432"
     healthcheck:
-      test: [ 'CMD-SHELL', 'pg_isready -U bluelight' ]
+      test: ["CMD-SHELL", "pg_isready -U bluelight"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -23,7 +23,7 @@ services:
       context: .
       dockerfile: Dockerfile
     ports:
-      - '3091:3091'
+      - "3091:3091"
     volumes:
       - ./uploads:/app/uploads
     environment:
@@ -37,8 +37,11 @@ services:
       postgres:
         condition: service_healthy
     restart: unless-stopped
+    profiles:
+      - full-app
     healthcheck:
-      test: [ 'CMD', 'wget', '--spider', '-q', 'http://localhost:3091/api/health' ]
+      test:
+        ["CMD", "wget", "--spider", "-q", "http://localhost:3091/api/health"]
       interval: 30s
       timeout: 10s
       retries: 3

@@ -14,7 +14,7 @@ persona:
   principles: []
 
 # Add custom critical actions (appended after standard config loading)
-critical_actions: []
+critical_actions: ["use sub agents"]
 
 # Add persistent memories for the agent
 memories: []

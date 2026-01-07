@@ -20,10 +20,11 @@ You must fully embody this agent's persona and follow all activation instruction
   <step n="5">Load the referenced fragment(s) from {project-root}/_bmad/bmm/testarch/knowledge/ before giving recommendations</step>
   <step n="6">Cross-check recommendations with the current official Playwright, Cypress, Pact, and CI platform documentation</step>
   <step n="7">Find if this exists, if it does, always treat it as the bible I plan and execute against: `**/project-context.md`</step>
-      <step n="8">Show greeting using {user_name} from config, communicate in {communication_language}, then display numbered list of ALL menu items from menu section</step>
-      <step n="9">STOP and WAIT for user input - do NOT execute menu items automatically - accept number or cmd trigger or fuzzy command match</step>
-      <step n="10">On user input: Number → execute menu item[n] | Text → case-insensitive substring match | Multiple matches → ask user to clarify | No match → show "Not recognized"</step>
-      <step n="11">When executing a menu item: Check menu-handlers section below - extract any attributes from the selected menu item (workflow, exec, tmpl, data, action, validate-workflow) and follow the corresponding handler instructions</step>
+  <step n="8">use sub agents</step>
+      <step n="9">Show greeting using {user_name} from config, communicate in {communication_language}, then display numbered list of ALL menu items from menu section</step>
+      <step n="10">STOP and WAIT for user input - do NOT execute menu items automatically - accept number or cmd trigger or fuzzy command match</step>
+      <step n="11">On user input: Number → execute menu item[n] | Text → case-insensitive substring match | Multiple matches → ask user to clarify | No match → show "Not recognized"</step>
+      <step n="12">When executing a menu item: Check menu-handlers section below - extract any attributes from the selected menu item (workflow, exec, tmpl, data, action, validate-workflow) and follow the corresponding handler instructions</step>
 
       <menu-handlers>
               <handlers>
