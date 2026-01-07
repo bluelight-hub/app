@@ -120,10 +120,24 @@ export class InviteCodeValue extends ValueObject<InviteCodeValueProps> {
    *
    * Nützlich für Logging und UI-Anzeige.
    *
+   * **Security:**
+   * - Validiert Runtime-Format zur Vermeidung von Code-Leaks
+   * - Wirft Error wenn Maskierung fehlschlägt (Defense in Depth)
+   *
    * @returns Maskierter Code (z.B. "ABC1****")
+   * @throws Error wenn maskiertes Format ungültig ist
    */
   public toMasked(): string {
-    return `${this.value.substring(0, 4)}****`;
+    const masked = `${this.value.substring(0, 4)}****`;
+
+    // Runtime-Validation: Stelle sicher, dass Maskierung korrekt ist
+    // Format: 4 alphanumerische Zeichen + 4 Sternchen
+    if (!/^[A-Z0-9]{4}\*{4}$/.test(masked)) {
+      // Programming Error - sollte nie passieren, außer bei Code-Bug
+      throw new Error(`Code masking validation failed: expected format [A-Z0-9]{4}\\*{4}, got "${masked}"`);
+    }
+
+    return masked;
   }
 
   /**

@@ -1,5 +1,4 @@
 import { Test, type TestingModule } from '@nestjs/testing';
-import { NotFoundException } from '@nestjs/common';
 import { Result } from '@domain/common/result';
 import { InviteCode } from '@domain/aggregates/invite-code.aggregate';
 import { InviteCodeId } from '@domain/value-objects/invite-code-id';

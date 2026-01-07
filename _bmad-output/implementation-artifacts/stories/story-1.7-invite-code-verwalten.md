@@ -6,7 +6,7 @@
 - **Epic**: Epic 1 - Secure Server Foundation & Invite-System
 - **Story Key**: 1-7-invite-code-verwalten
 - **Title**: Invite-Code verwalten
-- **Status**: ready-for-dev
+- **Status**: review
 - **Story Points**: 5
 - **Depends On**: Story 1.6 (done)
 

@@ -296,6 +296,48 @@ describe('InviteCodeValue', () => {
       // Then: Uppercase in maskierter Ausgabe
       expect(masked).toBe('ABCD****');
     });
+
+    it('should validate masked output matches expected format', () => {
+      // Given: Verschiedene gültige Codes
+      const codes = ['ABC12345', 'XYZ98765', 'TEST0000', '12345678', 'ABCDEFGH'];
+
+      for (const codeStr of codes) {
+        // When: Maskierung
+        const code = InviteCodeValue.fromString(codeStr).value!;
+        const masked = code.toMasked();
+
+        // Then: Maskierter Code muss Format [A-Z0-9]{4}\*{4} entsprechen
+        expect(masked).toMatch(/^[A-Z0-9]{4}\*{4}$/);
+      }
+    });
+
+    it('should throw error if masking produces invalid format (defensive programming)', () => {
+      // Given: Code mit korrupten internen State simulieren
+      const code = InviteCodeValue.fromString('ABC12345').value!;
+
+      // Mock substring() um fehlerhaften Masking-Output zu simulieren
+      jest.spyOn(String.prototype, 'substring').mockReturnValueOnce('AB'); // Nur 2 Zeichen
+
+      // When/Then: toMasked() sollte Error werfen bei ungültigem Format
+      expect(() => code.toMasked()).toThrow('Code masking validation failed');
+
+      // Cleanup
+      jest.restoreAllMocks();
+    });
+
+    it('should throw error with descriptive message on invalid masked format', () => {
+      // Given: Code mit simuliertem fehlerhaften Maskierungs-Output
+      const code = InviteCodeValue.fromString('ABC12345').value!;
+
+      // Mock substring() um ungültigen Output zu erzeugen
+      jest.spyOn(String.prototype, 'substring').mockReturnValueOnce('ABC'); // 3 Zeichen
+
+      // When/Then: Error enthält erwartetes Format
+      expect(() => code.toMasked()).toThrow(/expected format \[A-Z0-9\]\{4\}\\\*\{4\}/);
+
+      // Cleanup
+      jest.restoreAllMocks();
+    });
   });
 
   describe('toString() - String-Repräsentation', () => {

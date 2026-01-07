@@ -284,7 +284,7 @@ describe('ServerAccessToken', () => {
     it('should update updatedAt timestamp', () => {
       // Given: Token with known updatedAt
       const token = ServerAccessToken.create({ tokenHash: validTokenHash }).value!;
-      const originalUpdatedAt = token.updatedAt;
+      const _originalUpdatedAt = token.updatedAt;
 
       // Wait a tiny bit to ensure timestamp difference
       const beforeUsage = new Date();

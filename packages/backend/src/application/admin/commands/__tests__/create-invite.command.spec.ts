@@ -489,7 +489,7 @@ describe('CreateInviteCommand', () => {
 
     it('should handle very long createdById', () => {
       // Given (Arrange)
-      const longCreatedById = 'user_' + 'a'.repeat(100);
+      const longCreatedById = `user_${'a'.repeat(100)}`;
       const props = createValidProps({ createdById: longCreatedById });
 
       // When (Act)

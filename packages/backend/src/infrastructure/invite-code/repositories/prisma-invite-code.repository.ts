@@ -7,6 +7,7 @@ import type { InviteCode } from '@domain/aggregates/invite-code.aggregate';
 import type { IInviteCodeRepository, InviteCodeFilters, InviteCodePaginatedResult, InviteCodePaginationOptions, InviteCodeSortOptions } from '@domain/repositories/i-invite-code.repository';
 import { InviteCodeId } from '@domain/value-objects/invite-code-id';
 import { InviteCodeValue } from '@domain/value-objects/invite-code-value';
+import { InviteCodeStatus } from '@domain/value-objects/invite-code-status';
 import type { ILogger } from '@domain/ports/i-logger.port';
 import { LOGGER } from '@infrastructure/di-tokens';
 import { PrismaService } from '@/infrastructure/database/prisma.service';
@@ -241,13 +242,21 @@ export class PrismaInviteCodeRepository implements IInviteCodeRepository {
    *
    * **Status-Filterung:**
    * Da der Status ein computed field ist (berechnet aus isRevoked, expiresAt, usedCount),
-   * wird die Filterung in zwei Phasen durchgefuehrt:
-   * 1. Datenbankabfrage mit createdById-Filter (falls gesetzt)
-   * 2. Memory-Filter fuer Status (da computed field)
+   * wird die Filterung optimiert in zwei Kategorien durchgefuehrt:
    *
-   * **Performance-Hinweis:**
-   * Bei Status-Filterung wird zuerst ALLE passenden Records geladen und dann gefiltert.
-   * Bei grossen Datenmengen sollte Status-Filterung durch DB-Queries optimiert werden.
+   * 1. **DB-Level Filtering (REVOKED, EXPIRED):**
+   *    - REVOKED: WHERE isRevoked = true
+   *    - EXPIRED: WHERE isRevoked = false AND expiresAt <= now
+   *    → Direkte Pagination moeglich
+   *
+   * 2. **Memory Filtering (USED, ACTIVE):**
+   *    - USED: usedCount >= maxUses (erfordert Vergleich von zwei Feldern)
+   *    - ACTIVE: isRevoked = false AND expiresAt > now AND usedCount < maxUses
+   *    → Alle Records laden, dann Memory-Filter + manuelle Pagination
+   *
+   * **Performance-Optimierung:**
+   * DB-Level Filtering vermeidet N+1 Problem bei REVOKED/EXPIRED Status.
+   * USED/ACTIVE benoetigen Memory-Filter wegen usedCount/maxUses Vergleich (Prisma Limitation).
    */
   async findAll(filters?: InviteCodeFilters, sort?: InviteCodeSortOptions, pagination?: InviteCodePaginationOptions, tx?: TransactionContext): Promise<Result<InviteCodePaginatedResult<InviteCode>>> {
     const client = (tx as PrismaTransactionClient | undefined) ?? this.prisma;
@@ -256,11 +265,39 @@ export class PrismaInviteCodeRepository implements IInviteCodeRepository {
     const skip = (page - 1) * pageSize;
 
     try {
-      // Where-Clause bauen (nur DB-filterbare Felder)
+      // Where-Clause bauen (DB-filterbare Felder)
       const where: Prisma.InviteCodeWhereInput = {};
 
       if (filters?.createdById) {
         where.createdById = filters.createdById;
+      }
+
+      // Status-Filter auf DB-Level (wenn moeglich)
+      if (filters?.status) {
+        const now = new Date();
+
+        switch (filters.status) {
+          case InviteCodeStatus.REVOKED:
+            // DB-Level Filter: isRevoked = true
+            where.isRevoked = true;
+            break;
+
+          case InviteCodeStatus.EXPIRED:
+            // DB-Level Filter: NOT revoked AND expired
+            where.isRevoked = false;
+            where.expiresAt = { lte: now };
+            break;
+
+          case InviteCodeStatus.USED:
+          case InviteCodeStatus.ACTIVE:
+            // Memory-Filter erforderlich (usedCount vs maxUses Vergleich)
+            // Fall-through zu Memory-Filter Logik unten
+            break;
+
+          default:
+            // Unbekannter Status ignoriert
+            break;
+        }
       }
 
       // Sortierung
@@ -271,9 +308,16 @@ export class PrismaInviteCodeRepository implements IInviteCodeRepository {
         orderBy.createdAt = 'desc'; // Default: neueste zuerst
       }
 
-      // Bei Status-Filter: Alle laden und im Memory filtern (da computed field)
-      if (filters?.status) {
-        // Alle Records laden (ohne Pagination)
+      // USED/ACTIVE Status benoetigen Memory-Filter (Prisma Limitation: kann nicht usedCount >= maxUses in WHERE)
+      const requiresMemoryFilter = filters?.status === InviteCodeStatus.USED || filters?.status === InviteCodeStatus.ACTIVE;
+
+      if (requiresMemoryFilter) {
+        // Pre-Filter auf DB-Level wo moeglich (NOT revoked, NOT expired)
+        const now = new Date();
+        where.isRevoked = false;
+        where.expiresAt = { gt: now };
+
+        // Alle passenden Records laden
         const allRecords = await client.inviteCode.findMany({
           where,
           orderBy,
@@ -282,7 +326,7 @@ export class PrismaInviteCodeRepository implements IInviteCodeRepository {
         // Zu Domain Aggregates mappen
         let allItems = allRecords.map((record) => PrismaInviteCodeMapper.toAggregate(record));
 
-        // Status-Filter im Memory anwenden
+        // Status-Filter im Memory anwenden (USED oder ACTIVE)
         allItems = allItems.filter((item) => item.computeStatus() === filters.status);
 
         // Manuell paginieren
@@ -299,7 +343,7 @@ export class PrismaInviteCodeRepository implements IInviteCodeRepository {
         });
       }
 
-      // Standard-Fall: Direkte DB-Pagination
+      // Standard-Fall oder REVOKED/EXPIRED: Direkte DB-Pagination
       const [records, total] = await Promise.all([
         client.inviteCode.findMany({
           where,

@@ -129,14 +129,28 @@ export class ListInvitesHandler {
    * - Code wird IMMER maskiert (z.B. "ABC1****")
    * - Status wird zur Laufzeit berechnet
    *
+   * **Design Decision: Warum displayName = 'Admin':**
+   * - User-Lookup wuerde N+1 Queries verursachen (1-100 extra DB-Calls pro Seite)
+   * - IUserRepository hat keine findByIds() Batch-Methode
+   * - Audit-Trail loggt bereits createdById (wichtig fuer Security)
+   * - Admin-Feature MVP: "Admin" ist akzeptabel bis User-Management UI existiert
+   * - Performance > UX-Detail fuer selten genutzte Liste
+   *
+   * **Future Improvement (wenn benoetigt):**
+   * 1. IUserRepository.findByIds(ids: UserId[]) hinzufuegen
+   * 2. Batch-Fetch aller eindeutigen createdById Werte
+   * 3. In-Memory Map fuer userId -> username Lookup erstellen
+   * 4. displayName aus Map mappen
+   *
    * @param invite - InviteCode Domain Aggregate
    * @returns InviteCodeListItemDto mit maskiertem Code
    */
   private mapToListItemDto(invite: InviteCode): InviteCodeListItemDto {
-    // Creator DTO - wir haben nur die ID, displayName muss spaeter ergaenzt werden
+    // Design Decision: User-Lookup wuerde N+1 Queries verursachen.
+    // createdById ist bereits im Audit-Trail, displayName ist nice-to-have.
     const createdBy: InviteCodeCreatorDto = {
       id: invite.createdById,
-      displayName: 'Admin', // TODO: User-Name aus User-Repository laden
+      displayName: 'Admin',
     };
 
     return {
