@@ -43,6 +43,9 @@ models/AdminHiOrgIntegrationControllerImportPersonsVAlpha200Response.ts
 models/AdminHiOrgIntegrationControllerInitiateOAuthFlowVAlpha200Response.ts
 models/AdminHiOrgIntegrationControllerPreviewPersonsVAlpha200Response.ts
 models/AdminHiOrgIntegrationControllerTestConnectionVAlpha200Response.ts
+models/AdminInviteControllerCreateInviteVAlpha201Response.ts
+models/AdminInviteControllerListInvitesVAlpha200Response.ts
+models/AdminInviteControllerRevokeInviteVAlpha200Response.ts
 models/AdminLoginResponseDto.ts
 models/AdminPasswordDto.ts
 models/AdminQualifikationenControllerCreateVAlpha201Response.ts
@@ -82,6 +85,8 @@ models/CompletenessResponseDto.ts
 models/CoordinateDto.ts
 models/CreateEinsatzDto.ts
 models/CreateFahrzeugtypDto.ts
+models/CreateInviteDto.ts
+models/CreateInviteResponseDto.ts
 models/CreateLagekarteDto.ts
 models/CreatePoiDto.ts
 models/CreateQualifikationDto.ts
@@ -142,6 +147,8 @@ models/ImportPersonsRequestDto.ts
 models/ImportPersonsResponseDto.ts
 models/InitialPoiDto.ts
 models/InitiateOAuthResponseDto.ts
+models/InviteCodeCreatorDto.ts
+models/InviteCodeListItemDto.ts
 models/KraefteDashboardControllerGetTaktischeStaerkeVAlpha200Response.ts
 models/KraeftePoisFeatureCollectionDto.ts
 models/KraeftePoisFeatureDto.ts
@@ -170,6 +177,7 @@ models/QualifikationMappingsResponseDto.ts
 models/RefreshResponseDto.ts
 models/RegistrierePersonDto.ts
 models/RegistrierePersonViaQrCodeDto.ts
+models/RevokeInviteResponseDto.ts
 models/RolleFreigegebenResponseDto.ts
 models/RollenBesetzungControllerBesetzeRolleVAlpha201Response.ts
 models/RollenBesetzungControllerFindAllVAlpha200Response.ts
