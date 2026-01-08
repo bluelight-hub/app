@@ -34,6 +34,7 @@ import type { RolleBesetzt } from '@domain/kraefte/events/rolle-besetzt.event';
 import type { RolleFreigegeben } from '@domain/kraefte/events/rolle-freigegeben.event';
 import type { RollenDefinitionCreatedEvent } from '@domain/kraefte/events/rollen-definition-created.event';
 import type { RollenDefinitionUpdatedEvent } from '@domain/kraefte/events/rollen-definition-updated.event';
+import type { InviteCodeCreatedEvent } from '@domain/events/invite-code-created.event';
 import type { InviteCodeRevokedEvent } from '@domain/events/invite-code-revoked.event';
 
 /**
@@ -228,6 +229,8 @@ export class EventSerializer {
         return this.serializeRollenDefinitionUpdated(event as unknown as RollenDefinitionUpdatedEvent);
 
       // ===== INVITE CODE EVENTS =====
+      case 'invite_code.created':
+        return this.serializeInviteCodeCreated(event as unknown as InviteCodeCreatedEvent);
       case 'invite_code.revoked':
         return this.serializeInviteCodeRevoked(event as unknown as InviteCodeRevokedEvent);
 
@@ -575,6 +578,17 @@ export class EventSerializer {
   }
 
   // ===== INVITE CODE SERIALIZERS =====
+
+  private serializeInviteCodeCreated(event: InviteCodeCreatedEvent): Record<string, unknown> {
+    return {
+      inviteCodeId: event.inviteCodeId.toString(), // InviteCodeId → string
+      codeMasked: event.codeMasked, // Already primitive string
+      expiresAt: event.expiresAt.toISOString(), // Date → ISO string
+      maxUses: event.maxUses, // Already primitive number
+      createdById: event.createdById, // Already primitive string
+      label: event.label, // string | null
+    };
+  }
 
   private serializeInviteCodeRevoked(event: InviteCodeRevokedEvent): Record<string, unknown> {
     return {
