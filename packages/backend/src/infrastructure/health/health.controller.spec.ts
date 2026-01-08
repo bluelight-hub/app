@@ -10,6 +10,7 @@ import { Result } from '@domain/common/result';
 import type { ServerAccessToken } from '@domain/aggregates/server-access-token.aggregate';
 import { AccessTokenId } from '@domain/value-objects/access-token-id';
 import { TokenHash } from '@domain/value-objects/token-hash';
+import { BCRYPT_COST_FACTOR_TOKEN } from '@infrastructure/config/security.constants';
 
 /**
  * Unit Tests fuer HealthController (Story 1.4).
@@ -80,7 +81,7 @@ describe('HealthController', () => {
    */
   const createMockTokenWithHash = async (rawToken: string, overrides: { isRevoked?: boolean; expiresAt?: Date | null } = {}): Promise<ServerAccessToken> => {
     const idResult = AccessTokenId.create();
-    const hashedToken = await bcrypt.hash(rawToken, 10);
+    const hashedToken = await bcrypt.hash(rawToken, BCRYPT_COST_FACTOR_TOKEN);
     const tokenHashResult = TokenHash.create(hashedToken);
 
     return {

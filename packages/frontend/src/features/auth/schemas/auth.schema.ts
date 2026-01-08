@@ -1,21 +1,11 @@
 import { z } from 'zod';
-
-/**
- * Zod-Schema für die Validierung von Benutzernamen
- *
- * Regeln:
- * - Mindestens 3 Zeichen
- * - Maximal 30 Zeichen
- * - Nur Buchstaben, Zahlen, Unterstriche und Bindestriche
- */
-export const usernameSchema = z
-  .string()
-  .min(3, 'Benutzername muss mindestens 3 Zeichen lang sein')
-  .max(30, 'Benutzername darf maximal 30 Zeichen lang sein')
-  .regex(/^[a-zA-Z0-9_-]+$/, 'Benutzername darf nur Buchstaben, Zahlen, Unterstriche und Bindestriche enthalten');
+import { usernameSchema } from '@bluelight-hub/shared/schemas';
 
 /**
  * Schema für das Registrierungsformular
+ *
+ * Nutzt das Shared usernameSchema aus @bluelight-hub/shared/schemas
+ * für konsistente Validierung mit dem Backend.
  */
 export const registerFormSchema = z.object({
   username: usernameSchema,

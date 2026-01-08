@@ -9,6 +9,7 @@ import { UserRole } from '@domain/value-objects/user-role';
 import type { UserAggregate } from '@domain/aggregates/user.aggregate';
 import { Result } from '@domain/common/result';
 import * as bcrypt from 'bcrypt';
+import { BCRYPT_COST_FACTOR_PASSWORD } from '@infrastructure/config/security.constants';
 
 /**
  * Unit Tests für LoginHandler.
@@ -118,7 +119,7 @@ describe('LoginHandler', () => {
       const mockUser = createMockUser({ username: 'adminuser', role: UserRole.ADMIN() });
       const expectedToken = 'admin.jwt.token';
       // Hash das gleiche Passwort wie im Command für echte bcrypt Validierung
-      const passwordHash = await bcrypt.hash(password, 10);
+      const passwordHash = await bcrypt.hash(password, BCRYPT_COST_FACTOR_PASSWORD);
 
       mockUserRepository.findByUsername.mockResolvedValue(Result.ok(mockUser));
       mockUserRepository.getPasswordHash.mockResolvedValue(Result.ok(passwordHash));
@@ -185,7 +186,7 @@ describe('LoginHandler', () => {
       // Given
       const command = LoginCommand.create('adminuser', 'wrong_password').value!;
       const mockUser = createMockUser({ username: 'adminuser', role: UserRole.ADMIN() });
-      const passwordHash = await bcrypt.hash('correct_password', 10);
+      const passwordHash = await bcrypt.hash('correct_password', BCRYPT_COST_FACTOR_PASSWORD);
 
       mockUserRepository.findByUsername.mockResolvedValue(Result.ok(mockUser));
       mockUserRepository.getPasswordHash.mockResolvedValue(Result.ok(passwordHash));
@@ -290,7 +291,7 @@ describe('LoginHandler', () => {
       const mockUser = createMockUser({ username: 'superadmin', role: UserRole.SUPER_ADMIN() });
       const expectedToken = 'super.jwt.token';
       // Hash das gleiche Passwort wie im Command für echte bcrypt Validierung
-      const passwordHash = await bcrypt.hash(password, 10);
+      const passwordHash = await bcrypt.hash(password, BCRYPT_COST_FACTOR_PASSWORD);
 
       mockUserRepository.findByUsername.mockResolvedValue(Result.ok(mockUser));
       mockUserRepository.getPasswordHash.mockResolvedValue(Result.ok(passwordHash));

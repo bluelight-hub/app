@@ -4,6 +4,7 @@ import request from 'supertest';
 import cookieParser from 'cookie-parser';
 import { type EinsatzE2eTestContext, cleanupTestData, createEinsatzE2eModule, createTestEinsatz, teardownE2eModule, generateTestId } from './einsatz.e2e-setup';
 import { AppModule } from '../../../app.module';
+import { BCRYPT_COST_FACTOR_PASSWORD } from '@infrastructure/config/security.constants';
 
 /**
  * EinsatzController HTTP Integration Tests.
@@ -54,7 +55,7 @@ const databaseAvailable = !!process.env.DATABASE_URL;
 
     // Admin-User mit echtem bcrypt-Hash erstellen (einmalig in beforeAll)
     const bcrypt = await import('bcrypt');
-    const passwordHash = await bcrypt.hash('password', 10);
+    const passwordHash = await bcrypt.hash('password', BCRYPT_COST_FACTOR_PASSWORD);
 
     await ctx.prisma.user.upsert({
       where: { username: 'admin' },

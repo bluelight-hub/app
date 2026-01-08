@@ -6,6 +6,7 @@ import { LOGGER, OUTBOX_REPOSITORY, SERVER_ACCESS_TOKEN_REPOSITORY, USER_REPOSIT
 import { PrismaService } from '@infrastructure/database/prisma.service';
 import { CompleteSetupHandler } from '../complete-setup.handler';
 import { CompleteSetupCommand } from '../complete-setup.command';
+import { BCRYPT_COST_FACTOR_PASSWORD, BCRYPT_COST_FACTOR_TOKEN } from '@infrastructure/config/security.constants';
 
 // Mock bcrypt mit korrektem 60-Zeichen Hash Format
 // Ein echter bcrypt Hash ist exakt 60 Zeichen lang: $2b$10$ (7) + 22 salt + 31 hash = 60
@@ -187,7 +188,7 @@ describe('CompleteSetupHandler', () => {
       await handler.execute(command);
 
       // Then (Assert)
-      expect(bcrypt.hash).toHaveBeenCalledWith('SecurePassword123!', 10);
+      expect(bcrypt.hash).toHaveBeenCalledWith('SecurePassword123!', BCRYPT_COST_FACTOR_PASSWORD);
     });
 
     it('sollte Token mit bcrypt hashen (cost 10)', async () => {
@@ -205,7 +206,7 @@ describe('CompleteSetupHandler', () => {
       expect(bcrypt.hash).toHaveBeenCalledTimes(2);
       // Zweiter Aufruf ist Token-Hashing (mit blh_ Prefix)
       expect((bcrypt.hash as jest.Mock).mock.calls[1][0]).toMatch(/^blh_/);
-      expect((bcrypt.hash as jest.Mock).mock.calls[1][1]).toBe(10);
+      expect((bcrypt.hash as jest.Mock).mock.calls[1][1]).toBe(BCRYPT_COST_FACTOR_TOKEN);
     });
 
     it('sollte Token im Format blh_xxx generieren (AC3)', async () => {

@@ -8,6 +8,7 @@ import { AppModule } from '../../../app.module';
 import { PrismaClient } from '@prisma/client';
 import { createId } from '@paralleldrive/cuid2';
 import { skipIfNoDatabase } from '@infrastructure/__tests__/helpers/database-test.helper';
+import { BCRYPT_COST_FACTOR_PASSWORD } from '@infrastructure/config/security.constants';
 
 /**
  * AdminJwtAuthGuard HTTP Integration Tests.
@@ -176,7 +177,7 @@ describe('AdminJwtAuthGuard HTTP Integration Tests (AC5.3)', () => {
 
     // Erstelle Test-Users EINMAL für alle Tests
     const bcrypt = await import('bcrypt');
-    const passwordHash = await bcrypt.hash('password', 10);
+    const passwordHash = await bcrypt.hash('password', BCRYPT_COST_FACTOR_PASSWORD);
 
     testRunId = Date.now();
 
@@ -520,7 +521,7 @@ describe('AdminJwtAuthGuard HTTP Integration Tests (AC5.3)', () => {
     it('should return 401 when user in adminToken no longer exists', async () => {
       // Erstelle temporären User
       const bcrypt = await import('bcrypt');
-      const passwordHash = await bcrypt.hash('password', 10);
+      const passwordHash = await bcrypt.hash('password', BCRYPT_COST_FACTOR_PASSWORD);
       const tempUserId = generateTestId();
       const tempUsername = `temp_admin_${Date.now()}`;
 

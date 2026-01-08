@@ -32,6 +32,7 @@ import { AppModule } from '../../../../app.module';
 import { skipIfNoDatabase } from '@infrastructure/__tests__/helpers/database-test.helper';
 import { InviteCodeStatus } from '@domain/value-objects/invite-code-status';
 import { InviteCodeValue } from '@domain/value-objects/invite-code-value';
+import { BCRYPT_COST_FACTOR_PASSWORD } from '@infrastructure/config/security.constants';
 
 describe('AdminInviteController (e2e)', () => {
   let databaseAvailable = false;
@@ -180,7 +181,7 @@ describe('AdminInviteController (e2e)', () => {
 
     // Erstelle Test-Users
     const bcrypt = await import('bcrypt');
-    const passwordHash = await bcrypt.hash('password', 10);
+    const passwordHash = await bcrypt.hash('password', BCRYPT_COST_FACTOR_PASSWORD);
     testRunId = Date.now();
 
     // Admin User

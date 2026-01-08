@@ -31,6 +31,7 @@ import type { PrismaService } from '@/infrastructure/database/prisma.service';
 import type { IServerAccessTokenRepository } from '@domain/repositories/i-server-access-token.repository';
 import type { ILogger } from '@domain/ports/i-logger.port';
 import { skipIfNoDatabase } from '@/infrastructure/__tests__/helpers/database-test.helper';
+import { BCRYPT_COST_FACTOR_TOKEN } from '@infrastructure/config/security.constants';
 
 /**
  * Mock Logger für Integration Tests.
@@ -48,7 +49,7 @@ const createMockLogger = (): ILogger => ({
  * Cost Factor = 10 (Minimum gemäß NFR-S1).
  */
 async function generateTestHash(value = 'test-token'): Promise<string> {
-  return bcrypt.hash(value, 10);
+  return bcrypt.hash(value, BCRYPT_COST_FACTOR_TOKEN);
 }
 
 describe('PrismaServerAccessTokenRepository - Integration Tests', () => {
