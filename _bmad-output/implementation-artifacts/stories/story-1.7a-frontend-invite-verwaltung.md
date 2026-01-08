@@ -306,17 +306,17 @@ const InviteCodeListItemDtoStatusEnum = {
 - `packages/frontend/src/features/admin/ui/molecules/index.ts` (ERWEITERN)
 
 **Subtasks:**
-- [ ] 3.1 InviteCodeTableRow mit allen Spalten
-- [ ] 3.2 InviteFilters Dropdown (Headless UI Listbox)
-- [ ] 3.3 RevokeInviteButton mit Confirmation Dialog
-- [ ] 3.4 Export in barrel file
+- [x] 3.1 InviteCodeTableRow mit allen Spalten
+- [x] 3.2 InviteFilters Dropdown (Headless UI Listbox)
+- [x] 3.3 RevokeInviteButton mit Confirmation Dialog
+- [x] 3.4 Export in barrel file
 
 **Akzeptanzkriterien:**
-- [ ] TableRow zeigt alle relevanten Felder
-- [ ] Filter-Dropdown funktioniert
-- [ ] Revoke-Button disabled fuer used/revoked
-- [ ] Confirmation Dialog vor Revoke
-- [ ] Headless UI korrekt verwendet
+- [x] TableRow zeigt alle relevanten Felder
+- [x] Filter-Dropdown funktioniert
+- [x] Revoke-Button disabled fuer used/revoked
+- [x] Confirmation Dialog vor Revoke
+- [x] Headless UI korrekt verwendet
 
 ---
 
@@ -533,6 +533,38 @@ Implementiert von: Claude Code Agent
 
 **Nächster Schritt:** Task 3 - UI Molecules (Table Row, Filters, Revoke Button)
 
+**Task 3: UI Molecules - Table Row, Filters, Revoke Button - COMPLETED (2026-01-08)**
+
+Implementiert von: Claude Code Agent
+
+**Was wurde umgesetzt:**
+1. InviteCodeTableRow mit allen Spalten (Code maskiert, Status, Label, Ablaufdatum, Nutzung, Ersteller, Aktionen)
+2. InviteFilters Dropdown mit Headless UI Listbox (Alle, Aktiv, Verwendet, Abgelaufen, Widerrufen)
+3. RevokeInviteButton mit Confirmation Dialog (Dialog.Confirm)
+4. Barrel file exports in molecules/index.ts erweitert
+
+**Technische Details:**
+- InviteCodeTableRow: Formatierung mit Intl.DateTimeFormat, Status-Badge Integration, disabled für used/revoked
+- InviteFilters: Headless UI Listbox, 5 Filter-Optionen, deutsche Labels, onChange Callback
+- RevokeInviteButton: Dialog.Confirm Pattern, Loading State, useRevokeInvite Hook Integration
+- Pattern konsistent mit UsersTable und ConfirmDeleteDialog
+
+**Qualitätschecks:**
+- ✅ Biome Lint Check: No errors (Sortierung-Fixes angewendet)
+- ✅ TableRow zeigt alle relevanten Felder
+- ✅ Filter-Dropdown funktioniert mit Headless UI
+- ✅ Revoke-Button disabled für used/revoked Status
+- ✅ Confirmation Dialog vor Revoke-Aktion
+- ✅ Headless UI korrekt verwendet (Listbox, Dialog.Confirm)
+
+**Dateien:**
+- ✅ `packages/frontend/src/features/admin/ui/molecules/InviteCodeTableRow.tsx` (neu)
+- ✅ `packages/frontend/src/features/admin/ui/molecules/InviteFilters.tsx` (neu)
+- ✅ `packages/frontend/src/features/admin/ui/molecules/RevokeInviteButton.tsx` (neu)
+- ✅ `packages/frontend/src/features/admin/ui/molecules/index.ts` (erweitert)
+
+**Nächster Schritt:** Task 4 - UI Organisms (Invite Code Table)
+
 ---
 
 ## File List
@@ -541,21 +573,21 @@ Implementiert von: Claude Code Agent
 - `packages/frontend/src/features/admin/api/use-admin-invite-management.ts` ✅ Task 1
 - `packages/frontend/src/features/admin/ui/atoms/InviteStatusBadge.tsx` ✅ Task 2
 - `packages/frontend/src/features/admin/ui/atoms/index.ts` ✅ Task 2
-- `packages/frontend/src/features/admin/ui/molecules/InviteCodeTableRow.tsx`
-- `packages/frontend/src/features/admin/ui/molecules/InviteFilters.tsx`
-- `packages/frontend/src/features/admin/ui/molecules/RevokeInviteButton.tsx`
-- `packages/frontend/src/features/admin/ui/organisms/InviteCodeTable.tsx`
-- `packages/frontend/src/features/admin/ui/pages/AdminInvites.tsx`
-- `packages/frontend/src/features/admin/schemas/invite-filters.schema.ts`
+- `packages/frontend/src/features/admin/ui/molecules/InviteCodeTableRow.tsx` ✅ Task 3
+- `packages/frontend/src/features/admin/ui/molecules/InviteFilters.tsx` ✅ Task 3
+- `packages/frontend/src/features/admin/ui/molecules/RevokeInviteButton.tsx` ✅ Task 3
+- `packages/frontend/src/features/admin/ui/organisms/InviteCodeTable.tsx` (Task 4)
+- `packages/frontend/src/features/admin/ui/pages/AdminInvites.tsx` (Task 5)
+- `packages/frontend/src/features/admin/schemas/invite-filters.schema.ts` (optional)
 - `packages/frontend/src/routes/admin/invites.tsx`
 
 ### Erweitert:
 - `packages/frontend/src/features/admin/api/queries.ts` ✅ Task 1 (invites Query Keys)
 - `packages/frontend/src/features/admin/api/index.ts` ✅ Task 1 (Exports)
-- `packages/frontend/src/features/admin/ui/molecules/index.ts` (Exports)
-- `packages/frontend/src/features/admin/ui/organisms/index.ts` (Exports)
-- `packages/frontend/src/features/admin/ui/pages/index.ts` (Exports)
-- `packages/frontend/src/features/admin/ui/pages/AdminDashboard.tsx` (Navigation Link)
+- `packages/frontend/src/features/admin/ui/molecules/index.ts` ✅ Task 3 (Exports)
+- `packages/frontend/src/features/admin/ui/organisms/index.ts` (Exports - Task 4)
+- `packages/frontend/src/features/admin/ui/pages/index.ts` (Exports - Task 5)
+- `packages/frontend/src/features/admin/ui/pages/AdminDashboard.tsx` (Navigation Link - Task 7)
 
 ---
 
