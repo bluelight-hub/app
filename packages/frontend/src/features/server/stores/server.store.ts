@@ -1,6 +1,6 @@
 import { Store } from '@tanstack/react-store';
 import type { ServerConfig, ServerState } from '../types/server-config';
-import { saveServers } from './server-persistence';
+import { loadServers, saveServers } from './server-persistence';
 
 /**
  * Initial State des Server-Stores.
@@ -196,4 +196,46 @@ export async function removeServer(serverId: string): Promise<void> {
 
   // Storage Sync
   await saveServers(serverStore.state.servers);
+}
+
+/**
+ * Hydratiert den Server-Store aus dem persistenten Storage.
+ *
+ * Lädt alle gespeicherten Server aus dem Storage Adapter und aktualisiert
+ * den Store-State. Setzt automatisch den Default-Server als aktiv.
+ * Race Condition Protection: Überspringt Hydration wenn bereits erfolgt.
+ *
+ * @returns Promise<void>
+ *
+ * @example
+ * ```typescript
+ * // Bei App-Start aufrufen
+ * await hydrateServerStore();
+ * ```
+ */
+export async function hydrateServerStore(): Promise<void> {
+  // Race Condition Protection: Check if already hydrated
+  if (serverStore.state.isHydrated) {
+    console.warn('[ServerStore] Already hydrated, skipping...');
+    return;
+  }
+
+  try {
+    // Load servers from storage
+    const servers = await loadServers();
+
+    // Find default server
+    const defaultServer = servers.find((s) => s.isDefault);
+
+    // Update store state
+    serverStore.setState((state) => ({
+      ...state,
+      servers,
+      activeServerId: defaultServer?.id ?? null,
+      isHydrated: true,
+    }));
+  } catch (error) {
+    // Graceful degradation: Log warning, but keep store empty
+    console.warn('[ServerStore] Hydration failed:', error);
+  }
 }
