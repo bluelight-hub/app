@@ -35,6 +35,10 @@ import type { ServerConfig } from '../types/server-config';
 export function useServerList(): ServerConfig[] {
   return useStore(serverStore, (state) => {
     // Sortierung nach lastUsedAt (neueste zuerst)
-    return [...state.servers].sort((a, b) => new Date(b.lastUsedAt).getTime() - new Date(a.lastUsedAt).getTime());
+    return [...state.servers].sort((a, b) => {
+      const aTime = a.lastUsedAt ? new Date(a.lastUsedAt).getTime() : 0;
+      const bTime = b.lastUsedAt ? new Date(b.lastUsedAt).getTime() : 0;
+      return bTime - aTime;
+    });
   });
 }
