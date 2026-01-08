@@ -42,7 +42,7 @@ development_status:
   # ═══════════════════════════════════════════════════════════════════════════
   # EPIC 1: Secure Server Foundation & Invite-System
   # ═══════════════════════════════════════════════════════════════════════════
-  epic-1: in-progress
+  epic-1: done # All stories completed, Retrospective done (2026-01-08)
   1-1-server-access-token-entity-repository: done # Code Review approved (2026-01-06)
   1-1a-serveraccessguard-decorator: done # Ready for code review (2026-01-06)
   1-2-setup-pending-mode: done # Implementation complete (2026-01-06) - 23 Tests
@@ -52,14 +52,14 @@ development_status:
   1-5-insecure-mode-fuer-entwicklung: done # Code Review + All Issues Fixed (2026-01-07) - 54 Tests, Production-Crash
   1-6-invite-code-erstellen: done # Code Review Complete (2026-01-07) - 227 Tests, 7 Issues fixed
   1-7-invite-code-verwalten: done # Code Review Complete - 3 HIGH Fixes (2026-01-07)
-  1-7a-frontend-invite-verwaltung: review # Code Review Complete - Fixes Applied (2026-01-08)
-  epic-1-retrospective: optional
+  1-7a-frontend-invite-verwaltung: done # Code Review Complete - Fixes Applied (2026-01-08)
+  epic-1-retrospective: done # Retrospektive completed (2026-01-08)
 
   # ═══════════════════════════════════════════════════════════════════════════
   # EPIC 2: Client-Onboarding & Server-Verbindung
   # ═══════════════════════════════════════════════════════════════════════════
-  epic-2: backlog
-  2-1-platform-storage-adapter: backlog
+  epic-2: in-progress
+  2-1-platform-storage-adapter: in-progress
   2-2-server-store-persistence: backlog
   2-3-invite-code-exchange-endpoint: backlog
   2-4-deep-link-integration-desktop: backlog

@@ -25,17 +25,12 @@ import { TransactionalCommandHandler } from '@/application/common/handlers/trans
 // biome-ignore lint/style/useImportType: PrismaService wird zur Laufzeit fuer NestJS DI benoetigt
 import { PrismaService } from '@/infrastructure/database/prisma.service';
 import { LOGGER, OUTBOX_REPOSITORY, SERVER_ACCESS_TOKEN_REPOSITORY, USER_REPOSITORY } from '@infrastructure/di-tokens';
+import { BCRYPT_COST_FACTOR_PASSWORD, BCRYPT_COST_FACTOR_TOKEN } from '@/infrastructure/config/security.constants';
 
 // biome-ignore lint/style/useImportType: CompleteSetupCommand wird fuer Runtime-Typisierung benoetigt
 import { CompleteSetupCommand } from './complete-setup.command';
 // biome-ignore lint/style/useImportType: SetupResponseDto wird fuer Runtime-Typisierung benoetigt
 import { SetupResponseDto } from '../dto/setup-response.dto';
-
-/**
- * bcrypt Cost Factor fuer Token-Hashing.
- * Mindestens 10 gemaess NFR-S1 Security Requirement.
- */
-const BCRYPT_COST_FACTOR = 10;
 
 /**
  * Token-Prefix fuer Server Access Tokens.
@@ -140,8 +135,8 @@ export class CompleteSetupHandler extends TransactionalCommandHandler<CompleteSe
     }
     const user = userResult.value;
 
-    // Password hashen
-    const passwordHash = await bcrypt.hash(command.password, BCRYPT_COST_FACTOR);
+    // Password hashen mit type-safe Cost Factor (NFR-S1 compliant)
+    const passwordHash = await bcrypt.hash(command.password, BCRYPT_COST_FACTOR_PASSWORD);
 
     // User in Transaction speichern
     const saveUserResult = await this.userRepository.save(user, tx);
@@ -163,8 +158,8 @@ export class CompleteSetupHandler extends TransactionalCommandHandler<CompleteSe
     // Raw Token generieren: blh_ + cuid2
     const rawToken = `${TOKEN_PREFIX}${createId()}`;
 
-    // Token hashen (bcrypt cost 10)
-    const tokenHashValue = await bcrypt.hash(rawToken, BCRYPT_COST_FACTOR);
+    // Token hashen mit type-safe Cost Factor (NFR-S1 compliant)
+    const tokenHashValue = await bcrypt.hash(rawToken, BCRYPT_COST_FACTOR_TOKEN);
 
     // TokenHash Value Object erstellen
     const tokenHashResult = TokenHash.create(tokenHashValue);

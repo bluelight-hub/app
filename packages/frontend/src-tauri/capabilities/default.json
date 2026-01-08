@@ -33,6 +33,11 @@
     "core:webview:allow-create-webview-window",
     "store:default",
     "store:allow-get",
+    "store:allow-set",
+    "store:allow-has",
+    "store:allow-delete",
+    "store:allow-clear",
+    "store:allow-keys",
     "barcode-scanner:default"
   ]
 }

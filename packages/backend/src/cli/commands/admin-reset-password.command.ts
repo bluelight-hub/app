@@ -5,6 +5,7 @@ import * as bcrypt from 'bcrypt';
 import { isAdmin } from '@/modules/auth/utils/auth.utils';
 // biome-ignore lint/style/useImportType: PrismaService needed for DI at runtime
 import { PrismaService } from '@/infrastructure/database/prisma.service';
+import { validateBcryptCostFactor, BCRYPT_COST_FACTOR_PASSWORD } from '@/infrastructure/config/security.constants';
 
 @Injectable()
 export class AdminResetPasswordCommand {
@@ -52,18 +53,15 @@ export class AdminResetPasswordCommand {
       throw new Error(`Benutzer "${username}" ist kein Administrator (Rolle: ${user.role}).`);
     }
 
-    // Get salt rounds from ConfigService with validation
+    // Get salt rounds from ConfigService with type-safe validation (NFR-S1 compliant)
     const configuredSaltRounds = this.configService.get<string>('BCRYPT_SALT_ROUNDS', '10');
-    const saltRounds = parseInt(configuredSaltRounds, 10);
+    const validation = validateBcryptCostFactor(configuredSaltRounds);
 
-    // Validate salt rounds and provide fallback (capped at 14 for security)
-    const validSaltRounds = !Number.isNaN(saltRounds) && saltRounds > 0 && saltRounds <= 14 ? saltRounds : 10;
-
-    if (saltRounds !== validSaltRounds) {
-      this.logger.warn(`Invalid BCRYPT_SALT_ROUNDS value: ${configuredSaltRounds}. Must be between 1-14 (recommended: 10-12). Using: ${validSaltRounds}`);
+    if (!validation.isValid) {
+      this.logger.warn(`Invalid BCRYPT_SALT_ROUNDS value: ${configuredSaltRounds}. ${validation.error}. Using fallback: ${validation.value}`);
     }
 
-    const hash = await bcrypt.hash(newPassword, validSaltRounds);
+    const hash = await bcrypt.hash(newPassword, validation.value);
 
     await this.prisma.user.update({
       where: { id: user.id },

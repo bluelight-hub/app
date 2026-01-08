@@ -2,6 +2,17 @@
 # Ensures type safety before commit to catch errors early
 pnpm --filter @bluelight-hub/backend exec tsc --noEmit || exit 1
 
+# DI Import Pattern Check (AC1)
+# Story 5-7 (AC1): Ensures Injectable Classes use "import" not "import type"
+# "import type" is removed at compile-time, breaking NestJS Dependency Injection
+echo "🔍 Checking DI Import Patterns (AC1 Rule)..."
+pnpm --filter @bluelight-hub/backend check:di:imports || {
+  echo ""
+  echo "❌ COMMIT BLOCKED: DI Import Pattern Violations found!"
+  echo ""
+  exit 1
+}
+
 # Architecture: Circular dependency check (Domain + Application layers)
 # Story 5-7 (AC4): Prevents architectural violations from entering the codebase
 # Checks only core business layers (Domain/Application) - Infrastructure/Presentation excluded due to legacy issues

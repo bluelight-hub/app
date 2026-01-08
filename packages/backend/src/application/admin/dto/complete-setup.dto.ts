@@ -1,5 +1,25 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsNotEmpty, IsString, Matches, MaxLength, MinLength } from 'class-validator';
+import { IsNotEmpty, IsString } from 'class-validator';
+// TODO: Revert to shared schemas when backend is migrated to ESM
+// import { passwordSchema, usernameSchema } from '@bluelight-hub/shared/schemas';
+import { z } from 'zod';
+import { ValidateWithZod } from '@/application/common/validation';
+
+// TEMPORARY: Inline schemas until backend ESM migration (Issue: Backend ESM Migration)
+// Source: @bluelight-hub/shared/schemas (keep in sync!)
+const usernameSchema = z
+  .string()
+  .min(3, 'Nutzername muss mindestens 3 Zeichen lang sein')
+  .max(20, 'Nutzername darf höchstens 20 Zeichen lang sein')
+  .regex(/^[a-zA-Z0-9_-]+$/, 'Nutzername darf nur Buchstaben, Zahlen, Bindestriche und Unterstriche enthalten');
+
+const passwordSchema = z
+  .string()
+  .min(8, 'Passwort muss mindestens 8 Zeichen lang sein')
+  .regex(/[a-z]/, 'Passwort muss mindestens einen Kleinbuchstaben enthalten')
+  .regex(/[A-Z]/, 'Passwort muss mindestens einen Großbuchstaben enthalten')
+  .regex(/[0-9]/, 'Passwort muss mindestens eine Ziffer enthalten')
+  .regex(/[^a-zA-Z0-9]/, 'Passwort muss mindestens ein Sonderzeichen enthalten');
 
 /**
  * Request DTO fuer den initialen Server-Setup.
@@ -11,9 +31,10 @@ import { IsNotEmpty, IsString, Matches, MaxLength, MinLength } from 'class-valid
  * **Wichtig:** Admins haben Nutzername + Passwort.
  * Normale Nutzer haben NUR Nutzername (kein Passwort).
  *
- * **Sicherheitsaspekte:**
- * - Username: 3-50 Zeichen, alphanumerisch + Underscore
- * - Passwort-Mindestlaenge: 8 Zeichen (via class-validator)
+ * **Validierung:** Nutzt Shared Zod-Schemas aus @bluelight-hub/shared/schemas
+ * für konsistente Frontend/Backend-Validierung:
+ * - usernameSchema: 3-20 Zeichen, alphanumerisch + Bindestriche/Unterstriche
+ * - passwordSchema: Min. 8 Zeichen, Komplexitätsregeln (Gross/Klein/Zahlen/Sonderzeichen)
  *
  * @example
  * ```typescript
@@ -25,32 +46,30 @@ import { IsNotEmpty, IsString, Matches, MaxLength, MinLength } from 'class-valid
 export class CompleteSetupDto {
   /**
    * Nutzername des Admin-Users.
-   * 3-50 Zeichen, nur alphanumerisch und Underscores.
+   * Validierung via Shared Zod-Schema (usernameSchema).
    */
   @ApiProperty({
-    description: 'Nutzername des Admin-Users (3-50 Zeichen, alphanumerisch + underscore)',
+    description: 'Nutzername des Admin-Users (3-20 Zeichen, alphanumerisch + Bindestriche/Unterstriche)',
     example: 'admin',
     minLength: 3,
-    maxLength: 50,
+    maxLength: 20,
   })
   @IsString()
   @IsNotEmpty({ message: 'Nutzername darf nicht leer sein' })
-  @MinLength(3, { message: 'Nutzername muss mindestens 3 Zeichen lang sein' })
-  @MaxLength(50, { message: 'Nutzername darf maximal 50 Zeichen lang sein' })
-  @Matches(/^[a-zA-Z0-9_]+$/, { message: 'Nutzername darf nur alphanumerische Zeichen und Underscores enthalten' })
+  @ValidateWithZod(usernameSchema)
   username!: string;
 
   /**
    * Passwort fuer den Admin-Account.
-   * Mindestens 8 Zeichen erforderlich.
+   * Validierung via Shared Zod-Schema (passwordSchema).
    */
   @ApiProperty({
-    description: 'Passwort fuer den Admin-Account (min. 8 Zeichen)',
+    description: 'Passwort fuer den Admin-Account (min. 8 Zeichen, Komplexitätsregeln)',
     example: 'SecurePassword123!',
     minLength: 8,
   })
   @IsString()
   @IsNotEmpty({ message: 'Passwort darf nicht leer sein' })
-  @MinLength(8, { message: 'Passwort muss mindestens 8 Zeichen lang sein' })
+  @ValidateWithZod(passwordSchema)
   password!: string;
 }

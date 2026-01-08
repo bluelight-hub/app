@@ -13,6 +13,10 @@
     "./client": {
       "types": "./client/index.ts",
       "import": "./client/index.ts"
+    },
+    "./schemas": {
+      "types": "./dist/schemas/index.d.ts",
+      "import": "./dist/schemas/index.js"
     }
   },
   "scripts": {
@@ -24,6 +28,9 @@
     "build:with-api": "pnpm generate-api && pnpm build:tsc",
     "build:ci": "pnpm build",
     "test": "echo 'No tests available for shared package'"
+  },
+  "dependencies": {
+    "zod": "^3.24.1"
   },
   "devDependencies": {
     "@openapitools/openapi-generator-cli": "^2.25.0",

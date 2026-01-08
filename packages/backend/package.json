@@ -29,6 +29,7 @@
     "check:jsdoc": "ts-node -r tsconfig-paths/register scripts/find-missing-jsdoc.ts",
     "check:jsdoc:public": "ts-node -r tsconfig-paths/register scripts/find-missing-jsdoc.ts --public-only",
     "check:jsdoc:json": "ts-node -r tsconfig-paths/register scripts/find-missing-jsdoc.ts --json-report",
+    "check:di:imports": "ts-node -r tsconfig-paths/register scripts/check-di-imports-zero-deps.ts",
     "check:deps": "madge --circular src/domain/",
     "lint:deps": "madge --circular --extensions ts src/",
     "lint:deps:core": "madge --circular --extensions ts src/domain/ src/application/",
@@ -76,7 +77,8 @@
     "passport": "^0.7.0",
     "passport-jwt": "^4.0.1",
     "pg": "^8.16.3",
-    "rxjs": "^7.8.2"
+    "rxjs": "^7.8.2",
+    "zod": "^4.3.5"
   },
   "devDependencies": {
     "@compodoc/compodoc": "^1.1.32",

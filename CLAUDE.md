@@ -47,10 +47,15 @@ const fetchAlerts = async () => {
 ### Code Quality
 
 - **Linter/Formatter:** NUR Biome (kein ESLint/Prettier!)
+  - `useImportType: "off"` in Services/Controller (DI Import Pattern wird via Custom Script AC1 validiert)
 - **Pre-commit Hooks:** Husky + lint-staged (NIEMALS `--no-verify` verwenden)
+  - Automatische Checks: DI Imports (AC1) → Circular Dependencies → Biome Lint
 - **JSDoc:** Deutsche Kommentare für public APIs (Backend)
   - Check: `pnpm --filter @bluelight-hub/backend check:jsdoc:public`
   - Erkläre "warum", nicht "was"
+- **DI Import Validation:** Custom Script `check-di-imports-zero-deps.ts` (Zero Dependencies)
+  - Prüft ob `import type` für Injectable Classes verwendet wird
+  - Blockiert Commits mit Violations (AC1 Rule)
 
 ### Code Review Checklist (Backend Architecture)
 
@@ -67,9 +72,58 @@ import { IRepository } from '../domain/repositories/i-repository';
 
 // ❌ FALSCH: import type bricht NestJS DI zur Laufzeit!
 import type { MyService } from './my.service';
+import type { TokenHash } from '@/domain/value-objects/token-hash';
 ```
 
 **Warum:** TypeScript's `import type` wird zur Compile-Zeit entfernt. NestJS DI benötigt das Runtime-Symbol für Dependency Injection.
+
+**Regel:**
+- `import type` nur für: Pure Type Definitions, Interfaces, Type Aliases, Enums
+- `import` immer für: Classes mit `@Injectable()`, Services, Repositories, Value Objects
+
+**Automatisierte Überprüfung:**
+
+Das Projekt nutzt ein **Custom Validation Script** (keine Biome-Rule!) zur Laufzeit-Überprüfung:
+
+```bash
+# Manuell prüfen (vor commit)
+pnpm --filter @bluelight-hub/backend check:di:imports
+
+# Automatisch integriert in Pre-commit Hook
+# Wird VOR CircularDependency-Check ausgeführt (.husky/pre-commit)
+```
+
+**Technische Details:**
+- **Script:** `packages/backend/scripts/check-di-imports-zero-deps.ts`
+- **Funktionsweise:** Findet alle `import type` Statements und prüft, ob die importierte Klasse `@Injectable()` hat
+- **Zero Dependencies:** Nutzt nur Node.js Built-ins (fs, path) für maximale Zuverlässigkeit
+- **Biome Config:** `useImportType: "off"` in Services/Controller (AC1-Validierung erfolgt via Custom Script)
+
+**Fehler-Beispiel:**
+```
+❌ COMMIT BLOCKED: 1 DI Import Pattern Violation(s) found!
+
+AC1 Violation: Injectable Classes must use "import", not "import type"
+
+  📄 src/application/einsatz/commands/create-einsatz.handler.ts:1
+     import type { IEinsatzRepository } from '@domain/repositories/i-einsatz.repository';
+  ❌ Class "IEinsatzRepository" has @Injectable()
+  💡 Change "import type { IEinsatzRepository }" to "import { IEinsatzRepository }"
+
+Why? TypeScript removes "import type" declarations at compile time.
+NestJS Dependency Injection requires the runtime symbol to inject.
+
+Reference: CLAUDE.md → Code Review Checklist → AC1 (DI Import Check)
+```
+
+**FAQ:**
+
+**F: Kann ich `useImportType: "on"` in Biome aktivieren?**
+A: Nein. Das würde gezwungen `import type` für alle Typen zu nutzen, was Injectable Classes zerstört. Stattdessen nutzen wir das Custom Script für selektive Überprüfung nur von Injectable Classes.
+
+**F: Was ist der Unterschied zwischen Biome's `useImportType` und dem Custom Script?**
+- **Biome `useImportType: "on"`:** Würde ALLE Typen mit `import type` erzwingen (zu streng, würde DI brechen)
+- **Custom Script AC1:** Prüft nur Injectable Classes, lässt `import type` für echte Types zu (perfekt)
 
 #### 2. DI Token Constants Check (AC2)
 
@@ -223,21 +277,62 @@ IMMER `@ApiWrappedResponse` / `@ApiWrappedCreatedResponse` statt Standard-Swagge
 import { ApiWrappedResponse, ApiWrappedCreatedResponse } from '@/modules/common/decorators/api-wrapped-response.decorator';
 
 @Get()
-@ApiWrappedResponse(EinsatzDto, { isArray: true, description: 'Liste aller Einsätze' })
-async findAll(): Promise<PaginatedData<EinsatzDto>> { ... }
+@ApiWrappedResponse(EinsatzDto, {
+  isArray: true,
+  description: 'Liste aller Einsätze'
+})
+async findAll(): Promise<EinsatzDto[]> { ... }
+
+@Get(':id')
+@ApiWrappedResponse(EinsatzDto, {
+  description: 'Einsatz erfolgreich abgerufen'
+})
+async findOne(@Param('id') id: string): Promise<EinsatzDto> { ... }
 
 @Post()
-@ApiWrappedCreatedResponse(EinsatzDto, { description: 'Einsatz erstellt' })
+@ApiWrappedCreatedResponse(EinsatzDto, {
+  description: 'Einsatz erfolgreich erstellt'
+})
 async create(@Body() dto: CreateEinsatzDto): Promise<EinsatzDto> { ... }
 
 // ❌ FALSCH: Standard Swagger Decorators (generiert falsches Schema)
 @ApiOkResponse({ type: EinsatzDto })  // Fehlt data/meta wrapper!
-@ApiCreatedResponse({ type: EinsatzDto })
+@ApiCreatedResponse({ type: EinsatzDto })  // Falsches Schema!
 ```
 
-**Warum:** Der generierte API-Client erwartet `WrappedResponse<T>` mit `{ data, meta }` Struktur. Standard-Decorators generieren falsches OpenAPI-Schema.
+**API Response Struktur:**
+```json
+{
+  "data": { /* EinsatzDto oder Array */ },
+  "meta": {
+    "timestamp": "2025-08-29T14:00:00.000Z",
+    "version": "alpha",
+    "requestId": "abc123xyz"
+  },
+  "pagination": {
+    "page": 1,
+    "limit": 20,
+    "total": 100,
+    "totalPages": 5
+  }
+}
+```
 
-**Verweis:** `@/modules/common/decorators/api-wrapped-response.decorator.ts`
+**Pattern Übersicht:**
+
+| Decorator | HTTP Status | Verwendung | isArray |
+|-----------|------------|-----------|---------|
+| `@ApiWrappedResponse()` | 200 OK | GET (single) | false |
+| `@ApiWrappedResponse()` | 200 OK | GET (list) | true |
+| `@ApiWrappedCreatedResponse()` | 201 Created | POST/PUT (create) | false |
+
+**Implementierung Details:**
+- Beide Decorators sind in `@/modules/common/decorators/api-wrapped-response.decorator.ts` definiert
+- Sie nutzen `applyDecorators()` um mehrere Swagger-Decorators zu kombinieren
+- Das `model` Parameter MUSS das DTO-Klasse sein (z.B. `EinsatzDto`, nicht der String `'EinsatzDto'`)
+- Mit `isArray: true` wird das Schema für Arrays generiert mit Optional `pagination` Property
+
+**Warum:** Der generierte API-Client erwartet `WrappedResponse<T>` mit `{ data, meta, pagination }` Struktur. Standard-Decorators generieren falsches OpenAPI-Schema, das API-Client Generation bricht.
 
 ### Commit Rules
 
@@ -379,6 +474,7 @@ pnpm lint:check                               # Biome check ohne fix
 
 # Architecture Checks
 pnpm --filter @bluelight-hub/backend check:arch     # Circular Dependencies prüfen
+pnpm --filter @bluelight-hub/backend check:di:imports  # DI Import Pattern (AC1) prüfen
 pnpm --filter @bluelight-hub/backend lint:arch      # Architecture Lint
 
 # Backend Documentation
@@ -767,10 +863,65 @@ Die Projektdokumentation ist modular aufgebaut:
 | **Repository** | Backend | `domain/repositories/` (Interface) + `infrastructure/repositories/` (Impl) |
 | **Database Migration** | Backend | `pnpm --filter @bluelight-hub/backend prisma:migrate` |
 | **Code Linting** | Überall | `pnpm lint` (Biome) |
+| **DI Imports Check** | Backend | `pnpm --filter @bluelight-hub/backend check:di:imports` (AC1 Rule) |
 | **Architecture Check** | Backend | `pnpm --filter @bluelight-hub/backend check:arch` |
 | **API Docs** | Backend | Swagger UI: `http://localhost:3091/api` |
 | **Code Docs** | Backend | `pnpm --filter @bluelight-hub/backend docs:generate` (Compodoc) |
 | **Manual Testing** | Frontend | Chrome DevTools MCP + `http://localhost:3090` |
+
+---
+
+## 🧪 LINT-RULES & CUSTOM VALIDATORS
+
+### DI Import Pattern (AC1) - Custom Script
+
+Das Projekt nutzt ein **Custom Validation Script** statt einer Biome-Rule, da Biome's `useImportType` Rule nicht selektiv genug ist:
+
+**Problem mit Biome `useImportType: "on"`:**
+- Würde ALLE Typen zwingen mit `import type` zu importieren
+- Das zerstört NestJS Dependency Injection für Injectable Classes
+- Keine Differenzierung zwischen "echten Typen" und "Injectable Classes"
+
+**Lösung: Custom Script `check-di-imports-zero-deps.ts`:**
+```typescript
+// Findet alle "import type" Statements
+const importTypePattern = /^\s*import\s+type\s+(?:\{([^}]+)\}|(\w+))\s+from/;
+
+// Prüft ob die Klasse @Injectable() hat
+if (resolvedPath && hasInjectableDecorator(resolvedPath)) {
+  // Violation! Blockiert den Commit
+}
+```
+
+**Integration:**
+- **Runtime-Check:** `pnpm --filter @bluelight-hub/backend check:di:imports`
+- **Commit-Hook:** Automatisch in `.husky/pre-commit` integriert
+- **Biome Config:** `useImportType: "off"` (um Konflikte zu vermeiden)
+- **Zero Dependencies:** Nur Node.js Built-ins (fs, path)
+
+**Beispiel - gültige und ungültige Imports:**
+```typescript
+// ✅ RICHTIG: Pure Type Import mit "import type"
+import type { EinsatzStatus } from './types';
+
+// ✅ RICHTIG: Injectable Class mit "import"
+import { EinsatzRepository } from '@infrastructure/einsatz/repositories/einsatz.repository';
+
+// ❌ FALSCH: Injectable Class mit "import type"
+import type { EinsatzRepository } from '@infrastructure/einsatz/repositories/einsatz.repository';
+
+// ✅ RICHTIG: Value Object mit "import" (hat @Injectable())
+import { TokenHash } from '@domain/value-objects/token-hash';
+
+// ❌ FALSCH: Value Object mit "import type"
+import type { TokenHash } from '@domain/value-objects/token-hash';
+```
+
+**Warum nicht auf Biome-Rule warten?**
+1. Biome-Rules sind global konfigurierbar, nicht ausnahmenbasiert
+2. Custom Script bietet perfekte Kontrolle ohne False Positives
+3. Zero Dependencies = schneller & zuverlässiger
+4. Kann zukünftig leicht erweitert werden
 
 ---
 

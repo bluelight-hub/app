@@ -21,7 +21,8 @@ import {
 import type { ILogger } from '@domain/ports/i-logger.port';
 import { LOGGER } from '@/infrastructure/di-tokens';
 import { ConfigService } from '@nestjs/config';
-import { ApiBody, ApiCookieAuth, ApiForbiddenResponse, ApiNoContentResponse, ApiOkResponse, ApiOperation, ApiResponse, ApiTags, ApiUnauthorizedResponse } from '@nestjs/swagger';
+import { ApiBody, ApiCookieAuth, ApiForbiddenResponse, ApiNoContentResponse, ApiOperation, ApiResponse, ApiTags, ApiUnauthorizedResponse } from '@nestjs/swagger';
+import { ApiWrappedResponse } from '@/modules/common/decorators/api-wrapped-response.decorator';
 import { SkipThrottle, Throttle } from '@nestjs/throttler';
 import type { Request, Response } from 'express';
 import { AuthService } from '../auth.service';
@@ -101,9 +102,8 @@ export class AuthController {
     type: AuthRequestDto,
     description: 'Auth Request mit Username und optionalem Passwort',
   })
-  @ApiOkResponse({
+  @ApiWrappedResponse(AuthResponseDto, {
     description: 'Erfolgreiche Authentifizierung (Login oder Auto-Registrierung), Tokens werden via Set-Cookie (HTTP-Only) gesetzt: accessToken, refreshToken',
-    type: AuthResponseDto,
   })
   @ApiUnauthorizedResponse({
     description: 'Ungültige Credentials',
@@ -180,9 +180,8 @@ export class AuthController {
     type: LoginDto,
     description: 'Login-Daten mit Username und optionalem Passwort',
   })
-  @ApiOkResponse({
+  @ApiWrappedResponse(LoginResponseDto, {
     description: 'Login erfolgreich - JWT Token wird via Set-Cookie (HTTP-Only) gesetzt: accessToken',
-    type: LoginResponseDto,
   })
   @ApiUnauthorizedResponse({
     description: 'Ungültige Anmeldedaten (falscher Username oder Passwort)',
@@ -261,17 +260,13 @@ export class AuthController {
     type: AdminPasswordDto,
     description: 'Admin-Passwort zur Aktivierung der Admin-Rechte',
   })
-  @ApiResponse({
-    status: HttpStatus.OK,
+  @ApiWrappedResponse(AdminLoginResponseDto, {
     description: 'Admin-Rechte erfolgreich aktiviert',
-    type: AdminLoginResponseDto,
   })
-  @ApiResponse({
-    status: HttpStatus.UNAUTHORIZED,
+  @ApiUnauthorizedResponse({
     description: 'Ungültiges Passwort',
   })
-  @ApiResponse({
-    status: HttpStatus.FORBIDDEN,
+  @ApiForbiddenResponse({
     description: 'Benutzer hat keine Admin-Rechte',
   })
   async adminLogin(@Body() dto: AdminPasswordDto, @CurrentUser() currentUser: ValidatedUser, @Res({ passthrough: true }) res: Response): Promise<AdminLoginResponseDto> {
@@ -304,13 +299,10 @@ export class AuthController {
     summary: 'Access-Token erneuern',
     description: 'Erneuert das Access-Token mit einem gültigen Refresh-Token aus dem Cookie',
   })
-  @ApiResponse({
-    status: HttpStatus.OK,
+  @ApiWrappedResponse(RefreshResponseDto, {
     description: 'Token erfolgreich erneuert',
-    type: RefreshResponseDto,
   })
-  @ApiResponse({
-    status: HttpStatus.UNAUTHORIZED,
+  @ApiUnauthorizedResponse({
     description: 'Ungültiges oder abgelaufenes Refresh-Token',
   })
   async refresh(@Req() req: Request & { user: ValidatedUser }, @Res({ passthrough: true }) res: Response): Promise<RefreshResponseDto> {
@@ -398,10 +390,8 @@ export class AuthController {
     summary: 'Admin abmelden',
     description: 'Entfernt nur das Admin-Token, behält die normale Benutzer-Session',
   })
-  @ApiResponse({
-    status: HttpStatus.OK,
+  @ApiWrappedResponse(LogoutResponseDto, {
     description: 'Admin erfolgreich abgemeldet',
-    type: LogoutResponseDto,
   })
   async adminLogout(@Res({ passthrough: true }) res: Response): Promise<LogoutResponseDto> {
     // Nur Admin-Cookies löschen, normale Auth-Cookies behalten
@@ -429,17 +419,10 @@ export class AuthController {
     type: AdminSetupDto,
     description: 'Admin-Setup-Daten mit dem zu setzenden Passwort',
   })
-  @ApiResponse({
-    status: HttpStatus.CREATED,
+  @ApiWrappedResponse(AdminSetupResponseDto, {
     description: 'Admin-Passwort erfolgreich eingerichtet',
-    type: AdminSetupResponseDto,
   })
-  @ApiResponse({
-    status: HttpStatus.CONFLICT,
-    description: 'Admin-Setup bereits durchgeführt oder ein Benutzer ist kein Admin',
-  })
-  @ApiResponse({
-    status: HttpStatus.UNAUTHORIZED,
+  @ApiUnauthorizedResponse({
     description: 'Keine Authentifizierung',
   })
   async adminSetup(@Body() dto: AdminSetupDto, @CurrentUser() user: ValidatedUser, @Res({ passthrough: true }) res: Response): Promise<AdminSetupResponseDto> {
@@ -466,9 +449,8 @@ export class AuthController {
     summary: 'Authentifizierungsstatus prüfen',
     description: 'Prüft, ob ein Benutzer authentifiziert ist, und gibt dessen Informationen zurück',
   })
-  @ApiOkResponse({
+  @ApiWrappedResponse(AuthCheckResponseDto, {
     description: 'Authentifizierungsstatus abgerufen',
-    type: AuthCheckResponseDto,
   })
   async checkAuth(@Req() req: Request, @Res({ passthrough: true }) res: Response): Promise<AuthCheckResponseDto> {
     try {
@@ -577,10 +559,8 @@ export class AuthController {
     summary: 'Öffentliche Benutzerliste abrufen',
     description: 'Gibt eine Liste aller verfügbaren Benutzenden für den Login-Screen zurück',
   })
-  @ApiResponse({
-    status: HttpStatus.OK,
+  @ApiWrappedResponse(PublicUsersResponseDto, {
     description: 'Liste der verfügbaren Benutzenden',
-    type: PublicUsersResponseDto,
   })
   async getPublicUsers(): Promise<PublicUsersResponseDto> {
     const users = await this.authService.getPublicUsers();
@@ -601,13 +581,10 @@ export class AuthController {
     summary: 'Admin-Setup-Status abrufen',
     description: 'Prüft, ob ein Admin-Setup verfügbar ist und ob der aktuelle Benutzer berechtigt ist',
   })
-  @ApiResponse({
-    status: HttpStatus.OK,
+  @ApiWrappedResponse(AdminStatusDto, {
     description: 'Admin-Status erfolgreich abgerufen',
-    type: AdminStatusDto,
   })
-  @ApiResponse({
-    status: HttpStatus.UNAUTHORIZED,
+  @ApiUnauthorizedResponse({
     description: 'Keine gültige Authentifizierung',
   })
   async getAdminStatus(@CurrentUser() user: ValidatedUser): Promise<AdminStatusDto> {
@@ -639,13 +616,10 @@ export class AuthController {
     summary: 'Admin-Token verifizieren',
     description: 'Prüft, ob das Admin-Token im Cookie noch gültig ist.',
   })
-  @ApiResponse({
-    status: HttpStatus.OK,
+  @ApiWrappedResponse(AdminTokenVerificationDto, {
     description: 'Admin-Token ist gültig',
-    type: AdminTokenVerificationDto,
   })
-  @ApiResponse({
-    status: HttpStatus.UNAUTHORIZED,
+  @ApiUnauthorizedResponse({
     description: 'Admin-Token fehlt oder ist ungültig',
   })
   async verifyAdminToken(): Promise<AdminTokenVerificationDto> {

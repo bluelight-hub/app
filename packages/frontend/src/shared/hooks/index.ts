@@ -20,3 +20,6 @@ export * from './useIsTauri';
 
 // Window Management
 export * from './useWindowOrientation';
+
+// Storage & Persistence
+export * from './use-store';

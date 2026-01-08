@@ -16,7 +16,8 @@ import {
   UseGuards,
   ValidationPipe,
 } from '@nestjs/common';
-import { ApiBearerAuth, ApiBody, ApiCreatedResponse, ApiOkResponse, ApiOperation, ApiResponse, ApiTags, ApiUnauthorizedResponse } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiBody, ApiOperation, ApiResponse, ApiTags, ApiUnauthorizedResponse } from '@nestjs/swagger';
+import { ApiWrappedResponse, ApiWrappedCreatedResponse } from '@/modules/common/decorators/api-wrapped-response.decorator';
 import { AdminJwtAuthGuard } from '@/modules/auth/guards/admin-jwt-auth.guard';
 import { CurrentUser } from '@/modules/auth/decorators/current-user.decorator';
 import type { ValidatedUser } from '@/modules/auth/strategies/jwt.strategy';
@@ -133,8 +134,8 @@ export class UserManagementController {
    */
   @Get()
   @ApiOperation({ summary: 'Alle Benutzer auflisten' })
-  @ApiOkResponse({
-    type: ManagedUsersListResponse,
+  @ApiWrappedResponse(ManagedUserResponseDto, {
+    isArray: true,
     description: 'Liste aller Benutzer',
   })
   async findAll(): Promise<ManagedUserResponseDto[]> {
@@ -180,8 +181,7 @@ export class UserManagementController {
     type: CreateUserDto,
     description: 'Daten für den neuen Benutzer',
   })
-  @ApiCreatedResponse({
-    type: ManagedUserResponse,
+  @ApiWrappedCreatedResponse(ManagedUserResponseDto, {
     description: 'Benutzer erfolgreich erstellt',
   })
   @ApiResponse({ status: 400, description: 'Ungültige Eingabedaten' })
@@ -271,8 +271,7 @@ export class UserManagementController {
     type: UpdateUserDto,
     description: 'Zu aktualisierende Benutzerdaten',
   })
-  @ApiOkResponse({
-    type: ManagedUserResponse,
+  @ApiWrappedResponse(ManagedUserResponseDto, {
     description: 'Benutzer erfolgreich aktualisiert',
   })
   @ApiResponse({ status: 400, description: 'Ungültige Eingabedaten' })
@@ -357,8 +356,7 @@ export class UserManagementController {
     description: 'Lösch-Optionen (optional)',
     required: false,
   })
-  @ApiOkResponse({
-    type: DeleteManagedUserResponse,
+  @ApiWrappedResponse(DeleteManagedUserResponse, {
     description: 'Benutzer erfolgreich gelöscht oder herabgestuft',
   })
   @ApiResponse({ status: 404, description: 'Benutzer nicht gefunden' })
@@ -444,8 +442,7 @@ export class UserManagementController {
     description: 'Sperrgrund (optional)',
     required: false,
   })
-  @ApiOkResponse({
-    type: ManagedUserResponse,
+  @ApiWrappedResponse(ManagedUserResponseDto, {
     description: 'Benutzer erfolgreich gesperrt',
   })
   @ApiResponse({ status: 404, description: 'Benutzer nicht gefunden' })
@@ -528,8 +525,7 @@ export class UserManagementController {
   @Put(':id/unlock')
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Benutzer entsperren' })
-  @ApiOkResponse({
-    type: ManagedUserResponse,
+  @ApiWrappedResponse(ManagedUserResponseDto, {
     description: 'Benutzer erfolgreich entsperrt',
   })
   @ApiResponse({ status: 404, description: 'Benutzer nicht gefunden' })

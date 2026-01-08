@@ -1,5 +1,5 @@
 import { BadRequestException, Controller, Get, InternalServerErrorException, NotFoundException, Param, UseGuards } from '@nestjs/common';
-import { ApiBearerAuth, ApiOkResponse, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { JwtAuthGuard } from '@/modules/auth/guards/jwt-auth.guard';
 import { ApiWrappedResponse } from '@/modules/common/decorators/api-wrapped-response.decorator';
 import { ParseCuidPipe } from '@/infrastructure/http/pipes/parse-cuid.pipe';
@@ -80,8 +80,8 @@ export class UserController {
    */
   @Get()
   @ApiOperation({ summary: 'Basis-Benutzerinformationen aller Benutzer' })
-  @ApiOkResponse({
-    type: UserBasicListResponse,
+  @ApiWrappedResponse(UserBasicDto, {
+    isArray: true,
     description: 'Liste von Benutzer-IDs und Namen für UI-Anzeige',
   })
   async findAllBasic(): Promise<UserBasicDto[]> {

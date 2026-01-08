@@ -17,19 +17,8 @@ import { EtbId } from '@domain/value-objects/etb-id';
 import { ETB_REPOSITORY, LOGGER } from '@/infrastructure/di-tokens';
 import type { ILogger } from '@domain/ports/i-logger.port';
 import { BadRequestException, Body, Controller, Delete, ForbiddenException, Get, HttpCode, Inject, NotFoundException, Param, Post, Put, Query, UseGuards, ValidationPipe } from '@nestjs/common';
-import {
-  ApiBadRequestResponse,
-  ApiBearerAuth,
-  ApiCreatedResponse,
-  ApiForbiddenResponse,
-  ApiNotFoundResponse,
-  ApiOkResponse,
-  ApiOperation,
-  ApiQuery,
-  ApiResponse,
-  ApiTags,
-  ApiUnauthorizedResponse,
-} from '@nestjs/swagger';
+import { ApiBadRequestResponse, ApiBearerAuth, ApiForbiddenResponse, ApiNotFoundResponse, ApiOperation, ApiQuery, ApiResponse, ApiTags, ApiUnauthorizedResponse } from '@nestjs/swagger';
+import { ApiWrappedResponse, ApiWrappedCreatedResponse } from '@/modules/common/decorators/api-wrapped-response.decorator';
 
 /**
  * CQRS Controller für ETB (Einsatztagebuch) Management.
@@ -102,7 +91,10 @@ export class EtbCqrsController {
     summary: 'Alle Textbausteine abrufen',
     description: 'Gibt alle verfuegbaren Textbausteine zur schnellen ETB-Erstellung zurueck. Optional nach Kategorie filterbar.',
   })
-  @ApiOkResponse({ type: TextbausteinListResponse, description: 'Textbausteine erfolgreich abgerufen' })
+  @ApiWrappedResponse(TextbausteinListResponse, {
+    isArray: true,
+    description: 'Textbausteine erfolgreich abgerufen',
+  })
   @ApiBadRequestResponse({ description: 'Fehler beim Laden der Textbausteine' })
   @ApiQuery({ name: 'kategorie', required: false, description: 'Filter nach Kategorie (z.B. ALARMIERUNG, LAGE)' })
   @ApiQuery({ name: 'onlyActive', required: false, type: Boolean, description: 'Nur aktive Textbausteine (Standard: true)' })
@@ -145,7 +137,9 @@ export class EtbCqrsController {
     summary: 'ETB für Einsatz abrufen',
     description: 'Gibt das Einsatztagebuch für einen Einsatz zurück. Optional können soft-gelöschte Einträge mit includeDeleted=true angezeigt werden.',
   })
-  @ApiOkResponse({ type: EtbDto, description: 'ETB erfolgreich abgerufen' })
+  @ApiWrappedResponse(EtbDto, {
+    description: 'ETB erfolgreich abgerufen',
+  })
   @ApiNotFoundResponse({ description: 'ETB für diesen Einsatz nicht gefunden' })
   @ApiBadRequestResponse({ description: 'Ungültige Einsatz-ID' })
   @ApiQuery({
@@ -203,7 +197,10 @@ export class EtbCqrsController {
     summary: 'ETB Versionshistorie abrufen',
     description: 'Gibt alle Versionen/Snapshots eines ETB zurück. Sortiert nach Version absteigend (neueste zuerst).',
   })
-  @ApiOkResponse({ type: [EtbSnapshotDto], description: 'Versionshistorie erfolgreich abgerufen' })
+  @ApiWrappedResponse(EtbSnapshotDto, {
+    isArray: true,
+    description: 'Versionshistorie erfolgreich abgerufen',
+  })
   @ApiNotFoundResponse({ description: 'ETB nicht gefunden' })
   @ApiBadRequestResponse({ description: 'Ungültige ETB-ID' })
   async getEtbHistory(@Param('etbId') etbId: string): Promise<EtbSnapshotDtoFromMapper[]> {
@@ -255,7 +252,9 @@ export class EtbCqrsController {
     summary: 'Eintrag zum ETB hinzufügen',
     description: 'Erstellt einen neuen Eintrag im Einsatztagebuch. Ein Snapshot wird vor der Änderung erstellt.',
   })
-  @ApiCreatedResponse({ type: EintragDto, description: 'Eintrag erfolgreich erstellt' })
+  @ApiWrappedCreatedResponse(EintragDto, {
+    description: 'Eintrag erfolgreich erstellt',
+  })
   @ApiNotFoundResponse({ description: 'ETB nicht gefunden' })
   @ApiBadRequestResponse({ description: 'Validierungsfehler oder ETB ist gesperrt' })
   async addEintrag(
@@ -313,7 +312,9 @@ export class EtbCqrsController {
     summary: 'ETB-Eintrag aktualisieren',
     description: 'Aktualisiert den Text eines Eintrags. Ein Snapshot wird vor der Änderung erstellt.',
   })
-  @ApiOkResponse({ type: EintragDto, description: 'Eintrag erfolgreich aktualisiert' })
+  @ApiWrappedResponse(EintragDto, {
+    description: 'Eintrag erfolgreich aktualisiert',
+  })
   @ApiNotFoundResponse({ description: 'ETB oder Eintrag nicht gefunden' })
   @ApiBadRequestResponse({ description: 'Validierungsfehler oder ETB ist gesperrt' })
   async updateEintrag(

@@ -9,6 +9,7 @@ import { JwtService } from '@nestjs/jwt';
 import { isCuid } from '@paralleldrive/cuid2';
 import type { User } from '@prisma/client';
 import * as bcrypt from 'bcrypt';
+import { BCRYPT_COST_FACTOR_PASSWORD } from '@/infrastructure/config/security.constants';
 import type { AdminSetupDto } from './dto/admin-setup.dto';
 import type { AuthRequestDto } from './dto/auth-request.dto';
 import type { AuthResponseDto } from './dto/auth-response.dto';
@@ -318,8 +319,8 @@ export class AuthService {
       throw new ConflictException('Passwort bereits gesetzt');
     }
 
-    // Hash das Passwort
-    const passwordHash = await bcrypt.hash(dto.password, 10);
+    // Hash das Passwort mit type-safe Cost Factor (NFR-S1 compliant)
+    const passwordHash = await bcrypt.hash(dto.password, BCRYPT_COST_FACTOR_PASSWORD);
 
     // Update den User mit dem Passwort
     const updatedUser = await this.prisma.user.update({

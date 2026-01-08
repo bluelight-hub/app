@@ -32,6 +32,7 @@ pnpm -r dev
 | 3 | [Frontend-Architektur](./03-frontend-architektur.md) | React + TanStack Ecosystem, Atomic Design, Tauri |
 | 4 | [API-Referenz](./04-api-referenz.md) | REST Endpoints, DTOs, WebSocket Events |
 | 5 | [Entwicklungshandbuch](./05-entwicklungshandbuch.md) | Setup, Commands, Konventionen, Troubleshooting |
+| ADR | [ADR-001: Platform Storage Strategy](./ADR-001-platform-storage-strategy.md) | Browser vs. Desktop Encryption, localStorage vs. IndexedDB, Tauri Stronghold |
 
 ---
 
@@ -122,6 +123,25 @@ Detaillierte exhaustive Analysen spezifischer Bereiche:
 *Zuletzt aktualisiert am 2026-01-05 durch Deep-Dive Mode*
 
 ---
+
+## Architecture Decision Records (ADRs)
+
+| Dokument | Status | Kontext | Beschreibung |
+|----------|--------|---------|--------------|
+| [ADR-001: Platform Storage Strategy](./ADR-001-platform-storage-strategy.md) | Decided | Story 2.1 | Browser (localStorage+Web Crypto) vs Desktop (Tauri Stronghold) Encryption |
+
+## Story-Spezifische Guides
+
+| Dokument | Story | Beschreibung |
+|----------|-------|--------------|
+| [PLATFORM-STORAGE-SUMMARY.md](./PLATFORM-STORAGE-SUMMARY.md) | 2.1 | Executive Summary: Quick Decision & Key Findings |
+| [IMPLEMENTATION-GUIDE.md](./IMPLEMENTATION-GUIDE.md) | 2.1 | Code Templates, Setup Checklist, Testing Guide |
+
+## Frontend Research & Guides
+
+| Dokument | Pfad | Beschreibung |
+|----------|------|--------------|
+| [Platform Storage Research](../frontend/platform-storage-research.md) | `/docs/frontend/` | Browser Storage Research: localStorage vs IndexedDB, Web Crypto API, AES-GCM Encryption |
 
 ## Weiterführende Dokumentation
 

@@ -28,16 +28,15 @@ import {
   ApiBearerAuth,
   ApiBody,
   ApiConsumes,
-  ApiCreatedResponse,
   ApiForbiddenResponse,
   ApiNotFoundResponse,
-  ApiOkResponse,
   ApiOperation,
   ApiQuery,
   ApiResponse,
   ApiTags,
   ApiUnauthorizedResponse,
 } from '@nestjs/swagger';
+import { ApiWrappedCreatedResponse } from '@/modules/common/decorators/api-wrapped-response.decorator';
 import { diskStorage } from 'multer';
 import { join } from 'node:path';
 import { existsSync, mkdirSync, unlinkSync } from 'node:fs';
@@ -133,7 +132,7 @@ export class LagekarteController {
     summary: 'Lagekarte abrufen',
     description: 'Gibt die Lagekarte für einen Einsatz zurück. Nutzt CQRS QueryBus für Read-Operations.',
   })
-  @ApiOkResponse({ type: LagekarteDto, description: 'Lagekarte erfolgreich abgerufen' })
+  @ApiWrappedResponse(LagekarteDto, { description: 'Lagekarte erfolgreich abgerufen' })
   @ApiNotFoundResponse({ description: 'Lagekarte nicht gefunden' })
   @ApiBadRequestResponse({ description: 'Ungültige Einsatz-ID' })
   async getLagekarte(@Param('einsatzId') einsatzId: string): Promise<LagekarteDto | null> {
@@ -489,7 +488,7 @@ export class LagekarteCqrsController {
     summary: 'Lagekarte erstellen',
     description: 'Erstellt eine neue Lagekarte für einen Einsatz. Optional kann ein initialer POI (z.B. Einsatzort) mitgegeben werden.',
   })
-  @ApiCreatedResponse({ type: LagekarteDto, description: 'Lagekarte erfolgreich erstellt' })
+  @ApiWrappedCreatedResponse(LagekarteDto, { description: 'Lagekarte erfolgreich erstellt' })
   @ApiBadRequestResponse({ description: 'Validierungsfehler in den Eingabedaten' })
   async createLagekarte(
     @Body(new ValidationPipe({ transform: true, whitelist: true }))
@@ -535,7 +534,7 @@ export class LagekarteCqrsController {
     summary: 'POI hinzufügen',
     description: 'Fügt einen neuen POI zur Lagekarte hinzu. Koordinaten können als Lat/Lng oder MGRS angegeben werden.',
   })
-  @ApiCreatedResponse({ type: PoiDto, description: 'POI erfolgreich hinzugefügt' })
+  @ApiWrappedCreatedResponse(PoiDto, { description: 'POI erfolgreich hinzugefügt' })
   @ApiNotFoundResponse({ description: 'Lagekarte nicht gefunden' })
   @ApiBadRequestResponse({ description: 'Validierungsfehler in den Eingabedaten' })
   async addPoi(
@@ -590,7 +589,7 @@ export class LagekarteCqrsController {
     summary: 'POI-Position aktualisieren',
     description: 'Aktualisiert die Position eines POIs. Koordinaten können als Lat/Lng oder MGRS angegeben werden.',
   })
-  @ApiOkResponse({ type: PoiDto, description: 'POI-Position erfolgreich aktualisiert' })
+  @ApiWrappedResponse(PoiDto, { description: 'POI-Position erfolgreich aktualisiert' })
   @ApiNotFoundResponse({ description: 'Lagekarte oder POI nicht gefunden' })
   @ApiBadRequestResponse({ description: 'Validierungsfehler in den Eingabedaten' })
   async updatePoiPosition(
@@ -683,7 +682,7 @@ export class LagekarteCqrsController {
     summary: 'Lagekarte für Einsatz abrufen',
     description: 'Gibt die Lagekarte für einen Einsatz zurück. Nutzt CQRS QueryBus für Read-Operations.',
   })
-  @ApiOkResponse({ type: LagekarteDto, description: 'Lagekarte erfolgreich abgerufen' })
+  @ApiWrappedResponse(LagekarteDto, { description: 'Lagekarte erfolgreich abgerufen' })
   @ApiNotFoundResponse({ description: 'Lagekarte nicht gefunden' })
   @ApiBadRequestResponse({ description: 'Ungültige Einsatz-ID' })
   async getLagekarteByEinsatzId(@Param('einsatzId') einsatzId: string): Promise<LagekarteDto | null> {
@@ -715,7 +714,7 @@ export class LagekarteCqrsController {
     summary: 'POIs einer Lagekarte abrufen',
     description: 'Gibt alle POIs einer Lagekarte zurück. Optionale Filterung nach Kategorie. Nutzt CQRS QueryBus für Read-Operations.',
   })
-  @ApiOkResponse({ type: [PoiDto], description: 'POIs erfolgreich abgerufen' })
+  @ApiWrappedResponse(PoiDto, { isArray: true, description: 'POIs erfolgreich abgerufen' })
   @ApiNotFoundResponse({ description: 'Lagekarte nicht gefunden' })
   @ApiBadRequestResponse({ description: 'Ungültige Lagekarte-ID oder Kategorie' })
   @ApiQuery({

@@ -18,3 +18,6 @@ export * from './errors';
 
 // Storage Utilities
 export * from './storage';
+
+// Tauri Store Service
+export * from './store.service';
