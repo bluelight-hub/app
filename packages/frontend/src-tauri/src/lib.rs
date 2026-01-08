@@ -1,3 +1,5 @@
+mod storage;
+
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
   let builder = tauri::Builder::default()
@@ -11,6 +13,13 @@ pub fn run() {
       }
       Ok(())
     })
+    .manage(storage::StorageState::default())
+    .invoke_handler(tauri::generate_handler![
+      storage::storage_get,
+      storage::storage_set,
+      storage::storage_remove,
+      storage::storage_clear,
+    ])
     .plugin(tauri_plugin_http::init())
     .plugin(tauri_plugin_store::Builder::default().build());
 
