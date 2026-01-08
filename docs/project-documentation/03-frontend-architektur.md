@@ -156,9 +156,261 @@ const activeId = useStore(activeEinsatzStore, (s) => s.activeEinsatzId);
 
 ---
 
-## 5. Routing (TanStack Router)
+## 5. Platform Storage Abstraction (Port-Adapter Pattern)
 
-### 5.1 File-based Routes
+### 5.1 Übersicht
+
+Bluelight Hub läuft auf **zwei Platforms** (Desktop/Tauri + Web/Browser) und benötigt plattformübergreifenden Storage für Server-Konfigurationen, UI-Präferenzen und Session-Daten.
+
+**Pattern:** Port-Adapter (Hexagonal Architecture) mit Factory Singleton
+
+**Vorteile:**
+- ✅ **Platform-Agnostisch:** Features kennen keine Platform-Details
+- ✅ **Testbar:** Mock `IStoragePort` in Unit Tests
+- ✅ **Erweiterbar:** Neue Platforms ohne Breaking Changes
+- ✅ **Type Safe:** TypeScript Generics für Storage-Operationen
+
+**Architektur-Entscheidung:** Siehe [ADR-010: Platform Storage Adapter Pattern](./ADR-010-platform-storage-adapter-pattern.md)
+
+### 5.2 Komponenten
+
+#### Port Interface (`IStoragePort`)
+
+```typescript
+// packages/frontend/src/shared/services/storage/IStoragePort.ts
+export interface IStoragePort {
+  /**
+   * Retrieves a value from storage
+   * @returns The stored value or null if not found
+   */
+  get<T>(key: string): Promise<T | null>;
+
+  /**
+   * Stores a value in storage
+   */
+  set<T>(key: string, value: T): Promise<void>;
+
+  /**
+   * Removes a value from storage
+   */
+  remove(key: string): Promise<void>;
+
+  /**
+   * Clears all storage (use with caution!)
+   */
+  clear(): Promise<void>;
+}
+```
+
+#### Adapters (Platform-Specific)
+
+**Tauri Storage Adapter** (Desktop):
+
+```typescript
+// packages/frontend/src/shared/services/storage/adapters/TauriStorageAdapter.ts
+import { invoke } from '@tauri-apps/api/core';
+import type { IStoragePort } from '../IStoragePort';
+
+export class TauriStorageAdapter implements IStoragePort {
+  async get<T>(key: string): Promise<T | null> {
+    const value = await invoke<string | null>('plugin:store|get', { key });
+    return value ? JSON.parse(value) : null;
+  }
+
+  async set<T>(key: string, value: T): Promise<void> {
+    await invoke('plugin:store|set', { key, value: JSON.stringify(value) });
+  }
+
+  async remove(key: string): Promise<void> {
+    await invoke('plugin:store|delete', { key });
+  }
+
+  async clear(): Promise<void> {
+    await invoke('plugin:store|clear');
+  }
+}
+```
+
+**Web Storage Adapter** (Browser):
+
+```typescript
+// packages/frontend/src/shared/services/storage/adapters/WebStorageAdapter.ts
+import type { IStoragePort } from '../IStoragePort';
+
+export class WebStorageAdapter implements IStoragePort {
+  async get<T>(key: string): Promise<T | null> {
+    const value = localStorage.getItem(key);
+    return value ? JSON.parse(value) : null;
+  }
+
+  async set<T>(key: string, value: T): Promise<void> {
+    localStorage.setItem(key, JSON.stringify(value));
+  }
+
+  async remove(key: string): Promise<void> {
+    localStorage.removeItem(key);
+  }
+
+  async clear(): Promise<void> {
+    localStorage.clear();
+  }
+}
+```
+
+#### Factory Singleton
+
+```typescript
+// packages/frontend/src/shared/services/storage/storage-factory.ts
+import type { IStoragePort } from './IStoragePort';
+import { TauriStorageAdapter } from './adapters/TauriStorageAdapter';
+import { WebStorageAdapter } from './adapters/WebStorageAdapter';
+
+let storageInstance: IStoragePort | null = null;
+
+/**
+ * Platform Detection (Tauri-spezifisch)
+ */
+function isTauriEnvironment(): boolean {
+  return '__TAURI_INTERNALS__' in window;
+}
+
+/**
+ * Factory Singleton: Erstellt Platform-spezifischen Storage Adapter
+ * @returns IStoragePort-Implementierung basierend auf Runtime-Platform
+ */
+export function getStorageAdapter(): IStoragePort {
+  if (storageInstance === null) {
+    storageInstance = isTauriEnvironment()
+      ? new TauriStorageAdapter()
+      : new WebStorageAdapter();
+  }
+
+  return storageInstance;
+}
+
+/**
+ * ONLY FOR TESTING: Reset Singleton
+ * ⚠️ NEVER use in production code!
+ */
+export function resetStorageAdapter(): void {
+  if (import.meta.env.MODE !== 'test') {
+    throw new Error('resetStorageAdapter() is only allowed in test mode');
+  }
+  storageInstance = null;
+}
+```
+
+### 5.3 Feature Usage
+
+**TanStack Query Mutation:**
+
+```typescript
+// features/admin/api/mutations.ts
+import { getStorageAdapter } from '@/shared/services/storage/storage-factory';
+import { useMutation } from '@tanstack/react-query';
+
+export const useSaveServerConfig = () => {
+  const storage = getStorageAdapter();
+
+  return useMutation({
+    mutationFn: async (servers: ServerConfig[]) => {
+      await storage.set('bluelight:servers', servers);
+    },
+  });
+};
+```
+
+**Direct Usage (Service):**
+
+```typescript
+// services/session-manager.service.ts
+import { getStorageAdapter } from '@/shared/services/storage/storage-factory';
+
+export class SessionManager {
+  private storage = getStorageAdapter();
+
+  async saveUserPreferences(prefs: UserPreferences): Promise<void> {
+    await this.storage.set('bluelight:user-prefs', prefs);
+  }
+
+  async loadUserPreferences(): Promise<UserPreferences | null> {
+    return await this.storage.get<UserPreferences>('bluelight:user-prefs');
+  }
+}
+```
+
+### 5.4 Storage Keys Convention
+
+**Namespace-Prefix:** Alle Keys mit `bluelight:` prefixen
+
+```typescript
+// constants/storage-keys.ts
+export const STORAGE_KEYS = {
+  SERVERS: 'bluelight:servers',
+  ACTIVE_SERVER_ID: 'bluelight:active-server-id',
+  USER_PREFS: 'bluelight:user-prefs',
+  SESSION_TOKEN: 'bluelight:session-token',
+} as const;
+```
+
+**Usage:**
+
+```typescript
+import { STORAGE_KEYS } from '@/constants/storage-keys';
+
+const servers = await storage.get<ServerConfig[]>(STORAGE_KEYS.SERVERS);
+```
+
+### 5.5 Testing
+
+**Mock Storage in Tests:**
+
+```typescript
+// __tests__/my-feature.test.ts
+import { vi } from 'vitest';
+import type { IStoragePort } from '@/shared/services/storage/IStoragePort';
+
+const mockStorage: IStoragePort = {
+  get: vi.fn(),
+  set: vi.fn(),
+  remove: vi.fn(),
+  clear: vi.fn(),
+};
+
+vi.mock('@/shared/services/storage/storage-factory', () => ({
+  getStorageAdapter: () => mockStorage,
+}));
+
+test('should save server config', async () => {
+  mockStorage.set = vi.fn().mockResolvedValue(undefined);
+
+  await saveServerConfig({ url: 'https://api.example.com' });
+
+  expect(mockStorage.set).toHaveBeenCalledWith(
+    'bluelight:servers',
+    expect.any(Array)
+  );
+});
+```
+
+### 5.6 Platform Differences
+
+| Feature | Tauri (Desktop) | Web (Browser) |
+|---------|-----------------|---------------|
+| **Storage Backend** | `tauri-plugin-store` (File-based JSON) | `localStorage` (Browser API) |
+| **Encryption** | Stronghold Plugin (geplant) | Web Crypto API (geplant) |
+| **Persistenz** | Unbegrenzt (File System) | ~5-10 MB, evictable |
+| **Performance** | ~5-20ms (Disk I/O) | <5ms (Memory) |
+| **Offline** | ✅ Vollständig | ✅ Vollständig |
+| **Cross-Origin** | N/A | Same-Origin Policy |
+
+**Hinweis:** Verschlüsselung für Tokens/Secrets siehe [ADR-001: Platform Storage Strategy](./ADR-001-platform-storage-strategy.md)
+
+---
+
+## 6. Routing (TanStack Router)
+
+### 6.1 File-based Routes
 
 ```
 routes/
@@ -176,7 +428,7 @@ routes/
     └── users.tsx
 ```
 
-### 5.2 Route Definition
+### 6.2 Route Definition
 
 ```typescript
 // routes/app/einsatz/$id.tsx
@@ -192,9 +444,9 @@ export const Route = createFileRoute('/app/einsatz/$id')({
 
 ---
 
-## 6. Forms (TanStack Form + Zod)
+## 7. Forms (TanStack Form + Zod)
 
-### 6.1 Form Setup
+### 7.1 Form Setup
 
 ```typescript
 import { useForm } from '@tanstack/react-form';
@@ -230,7 +482,7 @@ export const EinsatzForm = () => {
 };
 ```
 
-### 6.2 Zod Schema
+### 7.2 Zod Schema
 
 ```typescript
 // schemas/einsatz.schema.ts
@@ -248,9 +500,9 @@ export const createEinsatzSchema = z.object({
 
 ---
 
-## 7. API Integration
+## 8. API Integration
 
-### 7.1 Generierter API Client
+### 8.1 Generierter API Client
 
 ```typescript
 // Importiert von @bluelight-hub/shared/client
@@ -261,7 +513,7 @@ const einsaetze = await api.einsatz.findAll();
 const einsatz = await api.einsatz.findById({ id: 'abc123' });
 ```
 
-### 7.2 Workflow
+### 8.2 Workflow
 
 1. Backend: Endpoint mit NestJS + Swagger erstellen
 2. `pnpm run generate-api` ausführen
@@ -269,9 +521,9 @@ const einsatz = await api.einsatz.findById({ id: 'abc123' });
 
 ---
 
-## 8. Atomic Design
+## 9. Atomic Design
 
-### 8.1 Hierarchie
+### 9.1 Hierarchie
 
 | Level | Beschreibung | Beispiele |
 |-------|--------------|-----------|
@@ -281,7 +533,7 @@ const einsatz = await api.einsatz.findById({ id: 'abc123' });
 | **Templates** | Page Layouts | DashboardLayout |
 | **Pages** | Route-Komponenten | EinsatzDetailPage |
 
-### 8.2 Komponenten-Struktur
+### 9.2 Komponenten-Struktur
 
 ```typescript
 // shared/ui/atoms/Button.tsx
@@ -317,9 +569,9 @@ export const Button = ({ className, variant, size, ...props }) => (
 
 ---
 
-## 9. Tauri Integration
+## 10. Tauri Integration
 
-### 9.1 Native Features
+### 10.1 Native Features
 
 | Plugin | Zweck |
 |--------|-------|
@@ -330,7 +582,7 @@ export const Button = ({ className, variant, size, ...props }) => (
 | `tauri-plugin-dialog` | Native Dialoge |
 | `tauri-plugin-clipboard-manager` | Zwischenablage |
 
-### 9.2 Tauri API Nutzung
+### 10.2 Tauri API Nutzung
 
 ```typescript
 import { invoke } from '@tauri-apps/api/core';
@@ -345,9 +597,9 @@ const currentPlatform = await platform(); // 'macos' | 'windows' | 'linux'
 
 ---
 
-## 10. Testing
+## 11. Testing
 
-### 10.1 Vitest Setup
+### 11.1 Vitest Setup
 
 ```typescript
 // vite.config.ts
@@ -362,7 +614,7 @@ export default defineConfig({
 });
 ```
 
-### 10.2 Component Testing
+### 11.2 Component Testing
 
 ```typescript
 import { render, screen } from '@testing-library/react';
@@ -386,7 +638,7 @@ test('should render einsatz list', async () => {
 
 ---
 
-## 11. Wichtige Regeln
+## 12. Wichtige Regeln
 
 ### NIEMALS:
 - Andere CSS Frameworks (nur Tailwind!)
