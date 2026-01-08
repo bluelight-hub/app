@@ -8,7 +8,7 @@ import { useNavigate } from '@tanstack/react-router';
 import { isTauri } from '@tauri-apps/api/core';
 import { AdminDashboardLayout } from '@/shared/ui/templates/AdminDashboardLayout';
 import { useCallback } from 'react';
-import { PiCertificate, PiIdentificationBadge, PiSignOut, PiUsers, PiTruck, PiUserList, PiPlugsConnected } from 'react-icons/pi';
+import { PiCertificate, PiIdentificationBadge, PiSignOut, PiUsers, PiTruck, PiUserList, PiPlugsConnected, PiTicket } from 'react-icons/pi';
 
 /**
  * Admin-Dashboard Seite
@@ -66,6 +66,10 @@ export function AdminDashboard() {
     await navigate({ to: '/admin/integrations/hiorg' });
   }, [navigate]);
 
+  const handleNavigateToInvites = useCallback(async () => {
+    await navigate({ to: '/admin/invites' });
+  }, [navigate]);
+
   return (
     <AdminDashboardLayout maxWidth="lg">
       {/* Dashboard Header */}
@@ -98,6 +102,13 @@ export function AdminDashboard() {
             <Button intent="primary" size="md" onClick={handleNavigateToRollenDefinitionen} fullWidth>
               <PiIdentificationBadge className="mr-2" />
               Rollen-Definitionen
+            </Button>
+          </div>
+
+          <div className="flex w-full max-w-xl flex-col gap-3 sm:flex-row">
+            <Button intent="primary" size="md" onClick={handleNavigateToInvites} fullWidth>
+              <PiTicket className="mr-2" />
+              Invite-Codes
             </Button>
           </div>
         </div>

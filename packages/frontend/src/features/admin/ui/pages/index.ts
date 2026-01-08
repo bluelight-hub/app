@@ -5,11 +5,12 @@
  */
 
 export { AdminDashboard } from './AdminDashboard';
+export { AdminHiOrgIntegration } from './AdminHiOrgIntegration';
+export { AdminInvites } from './AdminInvites';
 export { AdminLogin } from './AdminLogin';
-export { AdminSetup } from './AdminSetup';
-export { AdminUsers } from './AdminUsers';
 export { AdminQualifikationen } from './AdminQualifikationen';
+export { AdminRollenDefinitionen } from './AdminRollenDefinitionen';
+export { AdminSetup } from './AdminSetup';
 export { AdminStammFahrzeuge } from './AdminStammFahrzeuge';
 export { AdminStammPersonen } from './AdminStammPersonen';
-export { AdminRollenDefinitionen } from './AdminRollenDefinitionen';
-export { AdminHiOrgIntegration } from './AdminHiOrgIntegration';
+export { AdminUsers } from './AdminUsers';
