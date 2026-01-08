@@ -1,5 +1,5 @@
 import { Store } from '@tanstack/react-store';
-import type { ServerConfig, ServerState } from '../types/server-config';
+import type { ConnectionStatus, ServerConfig, ServerState } from '../types/server-config';
 import { loadServers, saveServers } from './server-persistence';
 
 /**
@@ -238,4 +238,37 @@ export async function hydrateServerStore(): Promise<void> {
     // Graceful degradation: Log warning, but keep store empty
     console.warn('[ServerStore] Hydration failed:', error);
   }
+}
+
+/**
+ * Aktualisiert den Verbindungsstatus eines Servers.
+ *
+ * Nutzt Map.set() für O(1) Lookup Performance.
+ * Keine Validierung nötig - Map akzeptiert beliebige Keys.
+ * Kein Persistierung - nur In-Memory State für UI-Updates.
+ *
+ * @param serverId - ID des Servers dessen Status aktualisiert wird
+ * @param status - Neuer Verbindungsstatus
+ *
+ * @example
+ * ```typescript
+ * // Status auf "checking" setzen
+ * updateConnectionStatus('abc-123-def-456', 'checking');
+ *
+ * // Status auf "connected" setzen
+ * updateConnectionStatus('abc-123-def-456', 'connected');
+ * ```
+ */
+export function updateConnectionStatus(serverId: string, status: ConnectionStatus): void {
+  const currentMap = serverStore.state.connectionStatus;
+
+  // Neue Map für Immutability
+  const newMap = new Map(currentMap);
+  newMap.set(serverId, status);
+
+  // Store Update
+  serverStore.setState((state) => ({
+    ...state,
+    connectionStatus: newMap,
+  }));
 }
