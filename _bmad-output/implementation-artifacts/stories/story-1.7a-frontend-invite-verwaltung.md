@@ -287,13 +287,13 @@ const InviteCodeListItemDtoStatusEnum = {
 - `packages/frontend/src/features/admin/ui/atoms/index.ts` (NEU/ERWEITERN)
 
 **Subtasks:**
-- [ ] 2.1 InviteStatusBadge Komponente mit Farb-Codierung
-- [ ] 2.2 Export in barrel file
+- [x] 2.1 InviteStatusBadge Komponente mit Farb-Codierung
+- [x] 2.2 Export in barrel file
 
 **Akzeptanzkriterien:**
-- [ ] 4 Status-Varianten mit unterschiedlichen Farben
-- [ ] Deutsche Labels (Aktiv, Verwendet, Abgelaufen, Widerrufen)
-- [ ] Tailwind CSS Styling konsistent mit Projekt
+- [x] 4 Status-Varianten mit unterschiedlichen Farben
+- [x] Deutsche Labels (Aktiv, Verwendet, Abgelaufen, Widerrufen)
+- [x] Tailwind CSS Styling konsistent mit Projekt
 
 ---
 
@@ -505,14 +505,42 @@ Implementiert von: Claude Code Agent
 
 **Nächster Schritt:** Task 2 - UI Atoms (InviteStatusBadge)
 
+**Task 2: UI Atoms - Status Badge - COMPLETED (2026-01-08)**
+
+Implementiert von: Claude Code Agent
+
+**Was wurde umgesetzt:**
+1. InviteStatusBadge Komponente mit 4 Status-Varianten erstellt
+2. Farb-Codierung implementiert (active=grün, used=grau, expired=amber, revoked=rot)
+3. Deutsche Labels implementiert (Aktiv, Verwendet, Abgelaufen, Widerrufen)
+4. Barrel file für atoms erstellt und Export hinzugefügt
+
+**Technische Details:**
+- Verwendet `cn()` Helper für bedingte Klassen
+- Dark Mode Unterstützung mit Tailwind dark: Varianten
+- Pattern konsistent mit `FmsStatusBadge.atom.tsx` und `badge.atom.tsx`
+- TypeScript Types für alle 4 Status-Varianten (active, used, expired, revoked)
+
+**Qualitätschecks:**
+- ✅ 4 Status-Varianten mit unterschiedlichen Farben
+- ✅ Deutsche Labels wie spezifiziert
+- ✅ Tailwind CSS Styling konsistent mit Projekt
+- ✅ Atomic Design Pattern eingehalten
+
+**Dateien:**
+- ✅ `packages/frontend/src/features/admin/ui/atoms/InviteStatusBadge.tsx` (neu)
+- ✅ `packages/frontend/src/features/admin/ui/atoms/index.ts` (neu)
+
+**Nächster Schritt:** Task 3 - UI Molecules (Table Row, Filters, Revoke Button)
+
 ---
 
 ## File List
 
 ### Neu erstellt:
 - `packages/frontend/src/features/admin/api/use-admin-invite-management.ts` ✅ Task 1
-- `packages/frontend/src/features/admin/ui/atoms/InviteStatusBadge.tsx`
-- `packages/frontend/src/features/admin/ui/atoms/index.ts` (falls nicht vorhanden)
+- `packages/frontend/src/features/admin/ui/atoms/InviteStatusBadge.tsx` ✅ Task 2
+- `packages/frontend/src/features/admin/ui/atoms/index.ts` ✅ Task 2
 - `packages/frontend/src/features/admin/ui/molecules/InviteCodeTableRow.tsx`
 - `packages/frontend/src/features/admin/ui/molecules/InviteFilters.tsx`
 - `packages/frontend/src/features/admin/ui/molecules/RevokeInviteButton.tsx`
