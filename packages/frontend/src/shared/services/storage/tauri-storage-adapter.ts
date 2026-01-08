@@ -33,7 +33,7 @@ export class TauriStorageAdapter implements IStoragePort {
       return result ?? null;
     } catch (error) {
       console.error('[TauriStorageAdapter] getItem failed:', error);
-      return null;
+      throw error;
     }
   }
 

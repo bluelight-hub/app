@@ -1,4 +1,4 @@
-import type { IStoragePort } from './storage.interface';
+import type { IStoragePort } from '@/shared/types/storage';
 
 /**
  * Wrapper-Struktur für localStorage-Einträge.
@@ -86,13 +86,14 @@ export class WebStorageAdapter implements IStoragePort {
    * Wirft keine Exception bei nicht-existierenden Keys.
    *
    * @param key - Storage Key
+   * @throws Error bei SecurityError (z.B. Private Browsing Mode)
    */
   async removeItem(key: string): Promise<void> {
     try {
       window.localStorage.removeItem(key);
     } catch (error) {
       console.error('[WebStorageAdapter] removeItem failed:', error);
-      // Silent fail - removeItem sollte idempotent sein
+      throw error;
     }
   }
 
@@ -100,12 +101,14 @@ export class WebStorageAdapter implements IStoragePort {
    * Löscht alle Einträge aus localStorage.
    *
    * **Warnung:** Löscht auch Daten anderer Apps auf gleicher Domain!
+   * @throws Error bei SecurityError (z.B. Private Browsing Mode)
    */
   async clear(): Promise<void> {
     try {
       window.localStorage.clear();
     } catch (error) {
       console.error('[WebStorageAdapter] clear failed:', error);
+      throw error;
     }
   }
 }

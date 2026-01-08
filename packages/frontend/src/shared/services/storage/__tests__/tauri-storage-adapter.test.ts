@@ -160,4 +160,45 @@ describe('TauriStorageAdapter', () => {
       expect(typeof adapter.clear).toBe('function');
     });
   });
+
+  describe('Error Handling - Critical Edge Cases', () => {
+    it('should throw error when Tauri invoke fails with permission denied', async () => {
+      // Given: Mock invoke rejection mit Permission Error
+      const error = new Error('Permission denied');
+      vi.mocked(invoke).mockRejectedValue(error);
+      const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+
+      // When/Then: getItem sollte Error werfen
+      await expect(adapter.getItem('test-key')).rejects.toThrow('Permission denied');
+      expect(consoleErrorSpy).toHaveBeenCalledWith('[TauriStorageAdapter] getItem failed:', error);
+
+      consoleErrorSpy.mockRestore();
+    });
+
+    it('should throw error when Tauri invoke times out', async () => {
+      // Given: Mock timeout scenario
+      const timeoutError = new Error('Timeout');
+      vi.mocked(invoke).mockImplementation(() => new Promise((_, reject) => setTimeout(() => reject(timeoutError), 100)));
+      const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+
+      // When/Then: setItem sollte Timeout Error werfen
+      await expect(adapter.setItem('key', 'value')).rejects.toThrow('Timeout');
+      expect(consoleErrorSpy).toHaveBeenCalledWith('[TauriStorageAdapter] setItem failed:', timeoutError);
+
+      consoleErrorSpy.mockRestore();
+    });
+
+    it('should throw error when storage command not registered', async () => {
+      // Given: Mock Tauri command not found error
+      const commandError = new Error('Command storage_get not found');
+      vi.mocked(invoke).mockRejectedValue(commandError);
+      const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+
+      // When/Then: getItem sollte Error werfen
+      await expect(adapter.getItem('key')).rejects.toThrow('Command storage_get not found');
+      expect(consoleErrorSpy).toHaveBeenCalledWith('[TauriStorageAdapter] getItem failed:', commandError);
+
+      consoleErrorSpy.mockRestore();
+    });
+  });
 });

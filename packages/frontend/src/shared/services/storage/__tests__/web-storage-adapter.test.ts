@@ -1,35 +1,57 @@
-import { describe, it, expect, beforeEach } from 'vitest';
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { WebStorageAdapter } from '../web-storage-adapter';
 
-// Mock localStorage
-const localStorageMock = (() => {
-  let store: Record<string, string> = {};
-  return {
-    getItem: (key: string) => store[key] ?? null,
-    setItem: (key: string, value: string) => {
-      store[key] = value;
-    },
-    removeItem: (key: string) => {
-      delete store[key];
-    },
-    clear: () => {
-      store = {};
-    },
-  };
-})();
+// Mock Storage Implementation
+interface MockStorage {
+  data: Map<string, string>;
+  getItem: ReturnType<typeof vi.fn>;
+  setItem: ReturnType<typeof vi.fn>;
+  removeItem: ReturnType<typeof vi.fn>;
+  clear: ReturnType<typeof vi.fn>;
+  get length(): number;
+  key: ReturnType<typeof vi.fn>;
+}
 
-Object.defineProperty(window, 'localStorage', {
-  value: localStorageMock,
-  writable: true,
-});
+function createMockStorage(): MockStorage {
+  const data = new Map<string, string>();
+
+  return {
+    data,
+    getItem: vi.fn((key: string) => data.get(key) ?? null),
+    setItem: vi.fn((key: string, value: string) => {
+      data.set(key, value);
+    }),
+    removeItem: vi.fn((key: string) => {
+      data.delete(key);
+    }),
+    clear: vi.fn(() => {
+      data.clear();
+    }),
+    get length() {
+      return data.size;
+    },
+    key: vi.fn((index: number) => {
+      const keys = Array.from(data.keys());
+      return keys[index] ?? null;
+    }),
+  };
+}
 
 describe('WebStorageAdapter', () => {
   let adapter: WebStorageAdapter;
+  let mockLocalStorage: MockStorage;
 
   beforeEach(() => {
     // Given: Leerer localStorage vor jedem Test
-    localStorageMock.clear();
+    mockLocalStorage = createMockStorage();
+    vi.stubGlobal('localStorage', mockLocalStorage);
+    vi.clearAllMocks();
     adapter = new WebStorageAdapter();
+  });
+
+  afterEach(() => {
+    // Restore original globals
+    vi.unstubAllGlobals();
   });
 
   describe('getItem() / setItem() Roundtrip', () => {
@@ -122,7 +144,7 @@ describe('WebStorageAdapter', () => {
       await adapter.setItem(key, value);
 
       // Then: Security Flag wird mitgespeichert
-      const rawData = localStorageMock.getItem(key);
+      const rawData = mockLocalStorage.data.get(key);
       expect(rawData).toBeTruthy();
 
       const parsed = JSON.parse(rawData!);
@@ -134,7 +156,7 @@ describe('WebStorageAdapter', () => {
       // Given: Direkt gespeicherte Daten mit Security Flag
       const key = 'test-key';
       const value = 'test-value';
-      localStorageMock.setItem(key, JSON.stringify({ data: value, storageType: 'insecure' }));
+      mockLocalStorage.data.set(key, JSON.stringify({ data: value, storageType: 'insecure' }));
 
       // When: Wert abrufen
       const result = await adapter.getItem(key);
@@ -148,7 +170,7 @@ describe('WebStorageAdapter', () => {
     it('should handle JSON parse errors gracefully', async () => {
       // Given: Ungültige JSON-Daten im localStorage
       const key = 'invalid-json-key';
-      localStorageMock.setItem(key, 'invalid-json');
+      mockLocalStorage.data.set(key, 'invalid-json');
 
       // When: Wert abrufen
       const result = await adapter.getItem(key);
@@ -159,19 +181,19 @@ describe('WebStorageAdapter', () => {
 
     it('should handle storage quota exceeded error', async () => {
       // Given: localStorage Mock der QuotaExceededError wirft
-      const originalSetItem = localStorageMock.setItem;
-      localStorageMock.setItem = () => {
+      const originalSetItem = mockLocalStorage.setItem;
+      mockLocalStorage.setItem.mockImplementation(() => {
         const error = new Error('QuotaExceededError');
         error.name = 'QuotaExceededError';
         throw error;
-      };
+      });
 
       // When: Wert speichern
       // Then: Exception wird geworfen
       await expect(adapter.setItem('key', 'value')).rejects.toThrow();
 
       // Cleanup
-      localStorageMock.setItem = originalSetItem;
+      mockLocalStorage.setItem = originalSetItem;
     });
 
     it('should return null when localStorage returns null', async () => {
@@ -188,13 +210,51 @@ describe('WebStorageAdapter', () => {
     it('should handle missing data field gracefully', async () => {
       // Given: Gespeicherte Daten ohne data-Feld
       const key = 'no-data-field-key';
-      localStorageMock.setItem(key, JSON.stringify({ storageType: 'insecure' }));
+      mockLocalStorage.data.set(key, JSON.stringify({ storageType: 'insecure' }));
 
       // When: Wert abrufen
       const result = await adapter.getItem(key);
 
       // Then: Null wird zurückgegeben
       expect(result).toBeNull();
+    });
+  });
+
+  describe('Browser Edge Cases - Critical Scenarios', () => {
+    it('should throw error when storage quota is exceeded', async () => {
+      // Given: Mock QuotaExceededError (z.B. durch zu große Daten)
+      mockLocalStorage.setItem.mockImplementation(() => {
+        const quotaError = new Error('QuotaExceededError');
+        quotaError.name = 'QuotaExceededError';
+        throw quotaError;
+      });
+
+      const hugeData = 'x'.repeat(10_000_000); // 10MB
+
+      // When/Then: setItem sollte QuotaExceededError werfen
+      await expect(adapter.setItem('key', hugeData)).rejects.toThrow('QuotaExceededError');
+    });
+
+    it('should throw error in private browsing mode (SecurityError)', async () => {
+      // Given: Mock SecurityError (Private Browsing / Incognito Mode)
+      mockLocalStorage.setItem.mockImplementation(() => {
+        const securityError = new Error('SecurityError');
+        securityError.name = 'SecurityError';
+        throw securityError;
+      });
+
+      // When/Then: setItem sollte SecurityError werfen
+      await expect(adapter.setItem('key', 'value')).rejects.toThrow('SecurityError');
+    });
+
+    it('should throw error when localStorage is disabled', async () => {
+      // Given: Mock disabled localStorage (z.B. durch Browser-Einstellungen)
+      mockLocalStorage.removeItem.mockImplementation(() => {
+        throw new Error('localStorage is not available');
+      });
+
+      // When/Then: removeItem sollte Error werfen
+      await expect(adapter.removeItem('key')).rejects.toThrow('not available');
     });
   });
 });
