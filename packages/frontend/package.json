@@ -11,7 +11,10 @@
     "lint:check": "biome check",
     "preview": "vite preview",
     "tauri": "tauri",
-    "version": "node scripts/sync-tauri-version.js"
+    "version": "node scripts/sync-tauri-version.js",
+    "test": "vitest",
+    "test:ui": "vitest --ui",
+    "test:coverage": "vitest --coverage"
   },
   "dependencies": {
     "@bluelight-hub/shared": "workspace:*",

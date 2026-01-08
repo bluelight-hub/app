@@ -40,3 +40,4 @@ export { QualifikationMappingDialog } from './QualifikationMappingDialog';
 
 // Invite-Code Management
 export { InviteCodeTable } from './InviteCodeTable';
+export { CreateInviteDialog } from './CreateInviteDialog';

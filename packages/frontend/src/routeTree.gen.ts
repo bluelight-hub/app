@@ -20,6 +20,7 @@ import { Route as AppEinsatzRouteImport } from './routes/app/einsatz'
 import { Route as AppEinsaetzeRouteImport } from './routes/app/einsaetze'
 import { Route as AdminUsersRouteImport } from './routes/admin/users'
 import { Route as AdminSetupRouteImport } from './routes/admin/setup'
+import { Route as AdminInvitesRouteImport } from './routes/admin/invites'
 import { Route as AdminDashboardRouteImport } from './routes/admin/dashboard'
 import { Route as AppEinsaetzeIndexRouteImport } from './routes/app/einsaetze/index'
 import { Route as AppEinsatzEinsatzIdRouteImport } from './routes/app/einsatz/$einsatzId'
@@ -114,6 +115,11 @@ const AdminUsersRoute = AdminUsersRouteImport.update({
 const AdminSetupRoute = AdminSetupRouteImport.update({
   id: '/setup',
   path: '/setup',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminInvitesRoute = AdminInvitesRouteImport.update({
+  id: '/invites',
+  path: '/invites',
   getParentRoute: () => AdminRoute,
 } as any)
 const AdminDashboardRoute = AdminDashboardRouteImport.update({
@@ -359,6 +365,7 @@ export interface FileRoutesByFullPath {
   '/auth': typeof AuthRoute
   '/setup': typeof SetupRoute
   '/admin/dashboard': typeof AdminDashboardRoute
+  '/admin/invites': typeof AdminInvitesRoute
   '/admin/setup': typeof AdminSetupRoute
   '/admin/users': typeof AdminUsersRoute
   '/app/einsaetze': typeof AppEinsaetzeRouteWithChildren
@@ -411,6 +418,7 @@ export interface FileRoutesByTo {
   '/auth': typeof AuthRoute
   '/setup': typeof SetupRoute
   '/admin/dashboard': typeof AdminDashboardRoute
+  '/admin/invites': typeof AdminInvitesRoute
   '/admin/setup': typeof AdminSetupRoute
   '/admin/users': typeof AdminUsersRoute
   '/app/einsatz': typeof AppEinsatzRouteWithChildren
@@ -462,6 +470,7 @@ export interface FileRoutesById {
   '/auth': typeof AuthRoute
   '/setup': typeof SetupRoute
   '/admin/dashboard': typeof AdminDashboardRoute
+  '/admin/invites': typeof AdminInvitesRoute
   '/admin/setup': typeof AdminSetupRoute
   '/admin/users': typeof AdminUsersRoute
   '/app/einsaetze': typeof AppEinsaetzeRouteWithChildren
@@ -517,6 +526,7 @@ export interface FileRouteTypes {
     | '/auth'
     | '/setup'
     | '/admin/dashboard'
+    | '/admin/invites'
     | '/admin/setup'
     | '/admin/users'
     | '/app/einsaetze'
@@ -569,6 +579,7 @@ export interface FileRouteTypes {
     | '/auth'
     | '/setup'
     | '/admin/dashboard'
+    | '/admin/invites'
     | '/admin/setup'
     | '/admin/users'
     | '/app/einsatz'
@@ -619,6 +630,7 @@ export interface FileRouteTypes {
     | '/auth'
     | '/setup'
     | '/admin/dashboard'
+    | '/admin/invites'
     | '/admin/setup'
     | '/admin/users'
     | '/app/einsaetze'
@@ -751,6 +763,13 @@ declare module '@tanstack/react-router' {
       path: '/setup'
       fullPath: '/admin/setup'
       preLoaderRoute: typeof AdminSetupRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/invites': {
+      id: '/admin/invites'
+      path: '/invites'
+      fullPath: '/admin/invites'
+      preLoaderRoute: typeof AdminInvitesRouteImport
       parentRoute: typeof AdminRoute
     }
     '/admin/dashboard': {
@@ -1038,6 +1057,7 @@ declare module '@tanstack/react-router' {
 
 interface AdminRouteChildren {
   AdminDashboardRoute: typeof AdminDashboardRoute
+  AdminInvitesRoute: typeof AdminInvitesRoute
   AdminSetupRoute: typeof AdminSetupRoute
   AdminUsersRoute: typeof AdminUsersRoute
   AdminIndexRoute: typeof AdminIndexRoute
@@ -1050,6 +1070,7 @@ interface AdminRouteChildren {
 
 const AdminRouteChildren: AdminRouteChildren = {
   AdminDashboardRoute: AdminDashboardRoute,
+  AdminInvitesRoute: AdminInvitesRoute,
   AdminSetupRoute: AdminSetupRoute,
   AdminUsersRoute: AdminUsersRoute,
   AdminIndexRoute: AdminIndexRoute,

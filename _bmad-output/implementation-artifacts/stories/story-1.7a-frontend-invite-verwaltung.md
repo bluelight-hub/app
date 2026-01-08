@@ -6,7 +6,7 @@
 - **Epic**: Epic 1 - Secure Server Foundation & Invite-System
 - **Story Key**: 1-7a-frontend-invite-verwaltung
 - **Title**: Frontend - Invite-Code Verwaltung
-- **Status**: ready-for-dev
+- **Status**: review
 - **Story Points**: 3
 - **Depends On**: Story 1.7 (Backend - review)
 
@@ -140,6 +140,21 @@ export const useListInvites = (filters: InviteFilters = {}) => {
       pageSize: filters.pageSize,
       sort: filters.sort,
     }),
+  });
+};
+
+export const useCreateInvite = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (data: CreateInviteDto) =>
+      api.admin.adminInviteControllerCreateInviteVAlpha({ createInviteDto: data }),
+    onSuccess: () => {
+      // Invalidate alle Invite-Queries
+      queryClient.invalidateQueries({
+        queryKey: ADMIN_QUERY_KEYS.invites.all(),
+      });
+    },
   });
 };
 
@@ -702,9 +717,18 @@ Implementiert von: Claude Code Agent
 - `packages/frontend/src/features/admin/ui/molecules/InviteFilters.tsx` ✅ Task 3
 - `packages/frontend/src/features/admin/ui/molecules/RevokeInviteButton.tsx` ✅ Task 3
 - `packages/frontend/src/features/admin/ui/organisms/InviteCodeTable.tsx` ✅ Task 4
+- `packages/frontend/src/features/admin/ui/organisms/CreateInviteDialog.tsx` ✅ NEW (Code Review Fix)
 - `packages/frontend/src/features/admin/ui/pages/AdminInvites.tsx` ✅ Task 5
-- `packages/frontend/src/features/admin/schemas/invite-filters.schema.ts` (optional)
+- `packages/frontend/src/features/admin/schemas/invite.schema.ts` ✅ NEW (Code Review Fix)
+- `packages/frontend/src/features/admin/schemas/index.ts` ✅ NEW (Code Review Fix)
 - `packages/frontend/src/routes/admin/invites.tsx` ✅ Task 6
+- `packages/frontend/vitest.config.ts` ✅ NEW (Test Infrastructure)
+- `packages/frontend/src/test/setup.ts` ✅ NEW (Test Infrastructure)
+- `packages/frontend/src/test/utils.tsx` ✅ NEW (Test Infrastructure)
+- `packages/frontend/src/test/setup.test.ts` ✅ NEW (Test Infrastructure)
+- `packages/frontend/src/test/utils.test.tsx` ✅ NEW (Test Infrastructure)
+- `packages/frontend/src/test/README.md` ✅ NEW (Test Infrastructure)
+- `packages/frontend/INSTALL_TEST_DEPS.md` ✅ NEW (Installation Docs)
 
 ### Erweitert:
 - `packages/frontend/src/features/admin/api/queries.ts` ✅ Task 1 (invites Query Keys)
@@ -713,6 +737,7 @@ Implementiert von: Claude Code Agent
 - `packages/frontend/src/features/admin/ui/organisms/index.ts` ✅ Task 4 (Exports)
 - `packages/frontend/src/features/admin/ui/pages/index.ts` ✅ Task 5 (Exports)
 - `packages/frontend/src/features/admin/ui/pages/AdminDashboard.tsx` ✅ Task 7 (Navigation Link)
+- `packages/frontend/package.json` ✅ NEW (test scripts: test, test:ui, test:coverage)
 
 ---
 
@@ -722,6 +747,14 @@ Implementiert von: Claude Code Agent
   - Basierend auf Story 1.7 Backend API
   - Pattern-Referenz aus Story 1.3a und bestehenden Admin-Pages
   - API-Client bereits generiert und verfuegbar
+
+- **2026-01-08**: Code Review + Fixes (Code Review Agent + Subagents)
+  - CreateInviteDialog zu @tanstack/react-form refactored
+  - Zod Schemas nach features/admin/schemas/ extrahiert
+  - Test-Infrastruktur aufgesetzt (Vitest + Testing Library)
+  - Story Status auf "review" geaendert
+  - useCreateInvite Hook in Story dokumentiert
+  - 12 Issues gefunden (7 HIGH, 3 MEDIUM, 2 LOW) - 9 automatisch gefixt
 
 ---
 

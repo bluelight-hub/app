@@ -5,6 +5,8 @@ import type {
   AdminInviteControllerListInvitesVAlpha200Response,
   AdminInviteControllerListInvitesVAlphaStatusEnum,
   AdminInviteControllerRevokeInviteVAlpha200Response,
+  AdminInviteControllerCreateInviteVAlpha201Response,
+  CreateInviteDto,
   ResponseError,
 } from '@bluelight-hub/shared/client';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
@@ -41,6 +43,44 @@ export const useListInvites = (filters: InviteFilters = {}) => {
         page: filters.page,
         pageSize: filters.pageSize,
         sort: filters.sort,
+      });
+    },
+  });
+};
+
+/**
+ * Hook für das Erstellen eines neuen Invite-Codes
+ *
+ * Erstellt einen neuen Invite-Code mit optionalen Parametern.
+ * Zeigt den vollständigen Code im Success-Toast für einfaches Kopieren.
+ * Invalidiert automatisch die Invite-Liste nach Erfolg.
+ *
+ * @returns Mutation-Result für Create-Operation
+ */
+export const useCreateInvite = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation<AdminInviteControllerCreateInviteVAlpha201Response, ResponseError, CreateInviteDto>({
+    mutationFn: async (data: CreateInviteDto) => {
+      return await api.admin().adminInviteControllerCreateInviteVAlpha({ createInviteDto: data });
+    },
+    onSuccess: async (response) => {
+      const inviteCode = response.data?.code;
+      toast.success('Invite-Code erstellt', {
+        description: `Code: ${inviteCode}`,
+        duration: 10000, // Längere Anzeigedauer für Kopieren
+      });
+      // Invalidate alle Invite-Queries
+      await queryClient.invalidateQueries({
+        queryKey: ADMIN_QUERY_KEYS.invites.all(),
+      });
+    },
+    onError: async (error: ResponseError) => {
+      const message = await getApiErrorMessage(error, 'Der Invite-Code konnte nicht erstellt werden.', 'createInvite');
+
+      logger.error('Failed to create invite code', error);
+      toast.error('Fehler', {
+        description: message,
       });
     },
   });
