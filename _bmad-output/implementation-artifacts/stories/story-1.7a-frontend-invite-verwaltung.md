@@ -267,16 +267,16 @@ const InviteCodeListItemDtoStatusEnum = {
 - `packages/frontend/src/features/admin/api/index.ts` (ERWEITERN)
 
 **Subtasks:**
-- [ ] 1.1 Query Keys fuer `invites` in `ADMIN_QUERY_KEYS` ergaenzen
-- [ ] 1.2 `useListInvites` Hook mit Filter-Support
-- [ ] 1.3 `useRevokeInvite` Mutation Hook mit Query Invalidation
-- [ ] 1.4 Export in barrel file
+- [x] 1.1 Query Keys fuer `invites` in `ADMIN_QUERY_KEYS` ergaenzen
+- [x] 1.2 `useListInvites` Hook mit Filter-Support
+- [x] 1.3 `useRevokeInvite` Mutation Hook mit Query Invalidation
+- [x] 1.4 Export in barrel file
 
 **Akzeptanzkriterien:**
-- [ ] Query Keys hierarchisch strukturiert (all, list, detail)
-- [ ] useListInvites akzeptiert Filter-Objekt
-- [ ] useRevokeInvite invalidiert Liste nach Erfolg
-- [ ] TypeScript Types korrekt (nutze generierte DTOs)
+- [x] Query Keys hierarchisch strukturiert (all, list, detail)
+- [x] useListInvites akzeptiert Filter-Objekt
+- [x] useRevokeInvite invalidiert Liste nach Erfolg
+- [x] TypeScript Types korrekt (nutze generierte DTOs)
 
 ---
 
@@ -475,14 +475,42 @@ const InviteCodeListItemDtoStatusEnum = {
 
 ### Completion Notes
 
-*Wird vom Dev Agent ausgefuellt*
+**Task 1: Query Keys & API Hook - COMPLETED (2026-01-07)**
+
+Implementiert von: Claude Code Agent
+
+**Was wurde umgesetzt:**
+1. Query Keys für `invites` in `ADMIN_QUERY_KEYS` ergänzt (hierarchisch: all, list, detail)
+2. `useListInvites` Hook erstellt mit vollständiger Filter-Unterstützung
+3. `useRevokeInvite` Mutation Hook mit automatischer Query Invalidation
+4. Alle Exports in barrel file (`index.ts`) ergänzt inkl. DTO Re-Exports
+
+**Technische Details:**
+- Verwendet generierten API-Client (`api.admin().adminInviteControllerListInvitesVAlpha()`)
+- Query Keys folgen bestehendem Pattern mit filter-basiertem Caching
+- Mutation invalidiert `ADMIN_QUERY_KEYS.invites.all()` nach Erfolg
+- Toast-Notifications für Success/Error mit `getApiErrorMessage` Helper
+- TypeScript Types aus generierten DTOs (`InviteCodeListItemDto`, `AdminInviteControllerListInvitesVAlphaStatusEnum`)
+
+**Qualitätschecks:**
+- ✅ Biome Lint Check: No errors
+- ✅ TypeScript Compilation: Success
+- ✅ Pattern konsistent mit `use-admin-user-management.ts`
+- ✅ Alle Acceptance Criteria erfüllt
+
+**Dateien:**
+- ✅ `packages/frontend/src/features/admin/api/queries.ts` (erweitert)
+- ✅ `packages/frontend/src/features/admin/api/use-admin-invite-management.ts` (neu)
+- ✅ `packages/frontend/src/features/admin/api/index.ts` (erweitert)
+
+**Nächster Schritt:** Task 2 - UI Atoms (InviteStatusBadge)
 
 ---
 
 ## File List
 
 ### Neu erstellt:
-- `packages/frontend/src/features/admin/api/use-admin-invite-management.ts`
+- `packages/frontend/src/features/admin/api/use-admin-invite-management.ts` ✅ Task 1
 - `packages/frontend/src/features/admin/ui/atoms/InviteStatusBadge.tsx`
 - `packages/frontend/src/features/admin/ui/atoms/index.ts` (falls nicht vorhanden)
 - `packages/frontend/src/features/admin/ui/molecules/InviteCodeTableRow.tsx`
@@ -494,8 +522,8 @@ const InviteCodeListItemDtoStatusEnum = {
 - `packages/frontend/src/routes/admin/invites.tsx`
 
 ### Erweitert:
-- `packages/frontend/src/features/admin/api/queries.ts` (invites Query Keys)
-- `packages/frontend/src/features/admin/api/index.ts` (Exports)
+- `packages/frontend/src/features/admin/api/queries.ts` ✅ Task 1 (invites Query Keys)
+- `packages/frontend/src/features/admin/api/index.ts` ✅ Task 1 (Exports)
 - `packages/frontend/src/features/admin/ui/molecules/index.ts` (Exports)
 - `packages/frontend/src/features/admin/ui/organisms/index.ts` (Exports)
 - `packages/frontend/src/features/admin/ui/pages/index.ts` (Exports)

@@ -53,4 +53,10 @@ export const ADMIN_QUERY_KEYS = {
       qualifikationMappings: () => [...ADMIN_QUERY_KEYS.integrations.hiorg.all(), 'qualifikationMappings'] as const,
     },
   },
+  invites: {
+    all: () => [...ADMIN_QUERY_KEYS.all, 'invites'] as const,
+    list: (filters?: { status?: string; createdBy?: string; page?: number; pageSize?: number; sort?: string }) =>
+      [...ADMIN_QUERY_KEYS.invites.all(), 'list', filters].filter((v) => v !== undefined) as const,
+    detail: (id: string) => [...ADMIN_QUERY_KEYS.invites.all(), 'detail', id] as const,
+  },
 } as const;

@@ -15,9 +15,11 @@ export { useAdminRollenDefinitionenManagement } from './use-admin-rollen-definit
 export { useAdminStammFahrzeugeManagement } from './use-admin-stamm-fahrzeuge-management';
 export { useAdminStammPersonenManagement } from './use-admin-stamm-personen-management';
 export { useAdminHiOrgIntegration } from './use-admin-hiorg-integration';
+export { useListInvites, useRevokeInvite, type InviteFilters } from './use-admin-invite-management';
 
 // Re-export generierte DTOs für Convenience
 export type { CreateQualifikationDto, QualifikationDto, UpdateQualifikationDto } from '@bluelight-hub/shared/client';
 export type { CreateRollenDefinitionDto, RollenDefinitionDto, UpdateRollenDefinitionDto } from '@bluelight-hub/shared/client';
 export type { CreateStammFahrzeugDto, StammFahrzeugDto, UpdateStammFahrzeugDto } from '@bluelight-hub/shared/client';
 export type { CreateStammPersonDto, StammPersonDto, UpdateStammPersonDto, StammPersonQualifikationDto } from '@bluelight-hub/shared/client';
+export type { InviteCodeListItemDto, AdminInviteControllerListInvitesVAlphaStatusEnum } from '@bluelight-hub/shared/client';
