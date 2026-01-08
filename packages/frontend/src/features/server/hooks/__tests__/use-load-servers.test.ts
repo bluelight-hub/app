@@ -3,7 +3,6 @@ import { renderHook, waitFor } from '@testing-library/react';
 import { useLoadServers } from '../use-load-servers';
 import { serverStore } from '../../stores/server.store';
 import * as serverStoreModule from '../../stores/server.store';
-import type { ServerConfig } from '../../types/server-config';
 
 // Mock hydrateServerStore
 vi.mock('../../stores/server.store', async (importOriginal) => {
@@ -30,17 +29,6 @@ describe('useLoadServers', () => {
 
   it('should trigger hydration on mount', async () => {
     // Given
-    const servers: ServerConfig[] = [
-      {
-        id: '1',
-        name: 'Server 1',
-        url: 'https://server1.com',
-        isDefault: true,
-        createdAt: '2025-01-01T00:00:00.000Z',
-        lastUsedAt: '2025-01-01T00:00:00.000Z',
-      },
-    ];
-
     vi.mocked(serverStoreModule.hydrateServerStore).mockResolvedValue(undefined);
 
     // When

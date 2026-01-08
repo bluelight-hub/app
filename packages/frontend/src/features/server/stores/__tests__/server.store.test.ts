@@ -34,7 +34,7 @@ describe('serverStore', () => {
   describe('addServer()', () => {
     it('should add server and sync to storage', async () => {
       // Given
-      const config = { name: 'Test Server', url: 'https://test.com', isDefault: false };
+      const config = { name: 'Test Server', url: 'https://test.com', isDefault: false, lastUsedAt: null };
 
       // When
       await addServer(config);
@@ -51,7 +51,7 @@ describe('serverStore', () => {
 
     it('should throw error for invalid URL', async () => {
       // Given - HTTP statt HTTPS
-      const config = { name: 'Test', url: 'http://test.com', isDefault: false };
+      const config = { name: 'Test', url: 'http://test.com', isDefault: false, lastUsedAt: null };
 
       // When/Then
       await expect(addServer(config)).rejects.toThrow('Invalid server URL');
@@ -59,7 +59,7 @@ describe('serverStore', () => {
 
     it('should throw error for empty name', async () => {
       // Given
-      const config = { name: '', url: 'https://test.com', isDefault: false };
+      const config = { name: '', url: 'https://test.com', isDefault: false, lastUsedAt: null };
 
       // When/Then
       await expect(addServer(config)).rejects.toThrow('Server name must be at least 1 character long');
@@ -67,7 +67,7 @@ describe('serverStore', () => {
 
     it('should allow localhost for development', async () => {
       // Given
-      const config = { name: 'Local Dev', url: 'http://localhost:3091', isDefault: false };
+      const config = { name: 'Local Dev', url: 'http://localhost:3091', isDefault: false, lastUsedAt: null };
 
       // When
       await addServer(config);
