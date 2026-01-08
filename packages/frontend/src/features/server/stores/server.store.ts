@@ -1,5 +1,6 @@
 import { Store } from '@tanstack/react-store';
-import type { ServerState } from '../types/server-config';
+import type { ServerConfig, ServerState } from '../types/server-config';
+import { saveServers } from './server-persistence';
 
 /**
  * Initial State des Server-Stores.
@@ -31,3 +32,168 @@ const initialState: ServerState = {
  * ```
  */
 export const serverStore = new Store<ServerState>(initialState);
+
+/**
+ * Validiert eine Server-URL.
+ *
+ * Erlaubt nur HTTPS-URLs oder localhost für Entwicklung.
+ *
+ * @param url - Die zu validierende URL
+ * @returns true wenn gültig, false andernfalls
+ */
+function validateUrl(url: string): boolean {
+  try {
+    const parsed = new URL(url);
+    return parsed.protocol === 'https:' || parsed.hostname === 'localhost';
+  } catch {
+    return false;
+  }
+}
+
+/**
+ * Fügt einen neuen Server zur Konfiguration hinzu.
+ *
+ * Auto-generiert ID, createdAt und lastUsedAt Timestamps.
+ * Validiert URL-Format (HTTPS oder localhost) und Name (min 1 char).
+ * Synchronisiert State automatisch mit dem Storage Adapter.
+ *
+ * @param config - Server-Konfiguration ohne ID und Timestamps
+ * @throws Error wenn Validierung fehlschlägt
+ *
+ * @example
+ * ```typescript
+ * await addServer({
+ *   name: 'Produktiv-Server',
+ *   url: 'https://api.example.com',
+ *   isDefault: true
+ * });
+ * ```
+ */
+export async function addServer(config: Omit<ServerConfig, 'id' | 'createdAt'>): Promise<void> {
+  // Validierung
+  if (!config.name || config.name.trim().length < 1) {
+    throw new Error('Server name must be at least 1 character long');
+  }
+
+  if (!validateUrl(config.url)) {
+    throw new Error('Invalid server URL: must be HTTPS or localhost for development');
+  }
+
+  // Auto-generierte Felder
+  const now = new Date().toISOString();
+  const newServer: ServerConfig = {
+    ...config,
+    id: crypto.randomUUID(),
+    createdAt: now,
+    lastUsedAt: now,
+  };
+
+  // Immutable Store Update
+  serverStore.setState((state) => ({
+    ...state,
+    servers: [...state.servers, newServer],
+  }));
+
+  // Storage Sync
+  await saveServers(serverStore.state.servers);
+}
+
+/**
+ * Setzt einen Server als aktiven Server.
+ *
+ * Aktualisiert isDefault Flag (nur aktiver Server hat true).
+ * Aktualisiert lastUsedAt Timestamp des aktiven Servers.
+ * Synchronisiert State automatisch mit dem Storage Adapter.
+ *
+ * @param serverId - ID des Servers der aktiv gesetzt werden soll
+ * @throws Error wenn Server-ID nicht existiert
+ *
+ * @example
+ * ```typescript
+ * await setActiveServer('abc-123-def-456');
+ * ```
+ */
+export async function setActiveServer(serverId: string): Promise<void> {
+  const state = serverStore.state;
+
+  // Validierung: Server existiert
+  const serverExists = state.servers.some((s) => s.id === serverId);
+  if (!serverExists) {
+    throw new Error(`Server with id "${serverId}" does not exist`);
+  }
+
+  const now = new Date().toISOString();
+
+  // Immutable Update: isDefault und lastUsedAt für alle Server
+  const updatedServers = state.servers.map((server) => {
+    if (server.id === serverId) {
+      return {
+        ...server,
+        isDefault: true,
+        lastUsedAt: now,
+      };
+    }
+    return {
+      ...server,
+      isDefault: false,
+    };
+  });
+
+  // Store Update
+  serverStore.setState((state) => ({
+    ...state,
+    servers: updatedServers,
+    activeServerId: serverId,
+  }));
+
+  // Storage Sync
+  await saveServers(serverStore.state.servers);
+}
+
+/**
+ * Entfernt einen Server aus der Konfiguration.
+ *
+ * Auto-Fallback: Wenn aktiver Server gelöscht wird, wird der erste
+ * verfügbare Server aktiv gesetzt (oder null bei 0 Servern).
+ * Synchronisiert State automatisch mit dem Storage Adapter.
+ *
+ * @param serverId - ID des zu löschenden Servers
+ *
+ * @example
+ * ```typescript
+ * await removeServer('abc-123-def-456');
+ * ```
+ */
+export async function removeServer(serverId: string): Promise<void> {
+  const state = serverStore.state;
+
+  // Filter Server
+  const filteredServers = state.servers.filter((s) => s.id !== serverId);
+
+  // Auto-Fallback: Wenn aktiver Server gelöscht
+  let newActiveServerId = state.activeServerId;
+  if (state.activeServerId === serverId) {
+    if (filteredServers.length > 0) {
+      // Ersten Server aktiv setzen
+      newActiveServerId = filteredServers[0].id;
+      filteredServers[0] = {
+        ...filteredServers[0],
+        isDefault: true,
+        lastUsedAt: new Date().toISOString(),
+      };
+    } else {
+      // Keine Server übrig
+      newActiveServerId = null;
+    }
+  }
+
+  // Store Update
+  serverStore.setState((state) => ({
+    ...state,
+    servers: filteredServers,
+    activeServerId: newActiveServerId,
+  }));
+
+  // Storage Sync
+  await saveServers(serverStore.state.servers);
+}
