@@ -15,13 +15,23 @@ export const STORAGE_KEY_SERVERS = 'bluelight:servers';
  * die Anwendung zum Absturz bringen.
  */
 const ServerConfigSchema = z.object({
-  id: z.string().uuid(),
+  id: z.string().regex(/^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i, 'Invalid UUID v4'),
   name: z.string().min(1),
-  url: z.string().url(),
+  url: z.string().refine((val) => {
+    try {
+      new URL(val);
+      return true;
+    } catch {
+      return false;
+    }
+  }, 'Invalid URL'),
   accessToken: z.string().optional(),
   isDefault: z.boolean(),
-  createdAt: z.string().datetime(),
-  lastUsedAt: z.string().datetime().nullable(),
+  createdAt: z.string().refine((val) => !Number.isNaN(Date.parse(val)), 'Invalid ISO datetime'),
+  lastUsedAt: z
+    .string()
+    .refine((val) => !Number.isNaN(Date.parse(val)), 'Invalid ISO datetime')
+    .nullable(),
 });
 
 /**
