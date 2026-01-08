@@ -37,3 +37,6 @@ export { DeactivateRollenDefinitionDialog } from './DeactivateRollenDefinitionDi
 
 // HiOrg Integration
 export { QualifikationMappingDialog } from './QualifikationMappingDialog';
+
+// Invite-Code Management
+export { InviteCodeTable } from './InviteCodeTable';

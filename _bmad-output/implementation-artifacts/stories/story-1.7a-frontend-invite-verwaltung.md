@@ -327,17 +327,17 @@ const InviteCodeListItemDtoStatusEnum = {
 - `packages/frontend/src/features/admin/ui/organisms/index.ts` (ERWEITERN)
 
 **Subtasks:**
-- [ ] 4.1 InviteCodeTable mit Spalten-Definition
-- [ ] 4.2 Pagination Controls
-- [ ] 4.3 Loading State (Skeleton)
-- [ ] 4.4 Empty State
-- [ ] 4.5 Export in barrel file
+- [x] 4.1 InviteCodeTable mit Spalten-Definition
+- [x] 4.2 Pagination Controls
+- [x] 4.3 Loading State (Skeleton)
+- [x] 4.4 Empty State
+- [x] 4.5 Export in barrel file
 
 **Akzeptanzkriterien:**
-- [ ] Responsive Table (Tailwind)
-- [ ] Pagination funktioniert
-- [ ] Loading/Empty States vorhanden
-- [ ] Pattern konsistent mit UsersTable
+- [x] Responsive Table (Tailwind)
+- [x] Pagination funktioniert
+- [x] Loading/Empty States vorhanden
+- [x] Pattern konsistent mit UsersTable
 
 ---
 
@@ -565,6 +565,39 @@ Implementiert von: Claude Code Agent
 
 **Nächster Schritt:** Task 4 - UI Organisms (Invite Code Table)
 
+**Task 4: UI Organisms - Invite Code Table - COMPLETED (2026-01-08)**
+
+Implementiert von: Claude Code Agent
+
+**Was wurde umgesetzt:**
+1. InviteCodeTable Komponente mit allen 7 Spalten (Code, Status, Label, Ablaufdatum, Nutzung, Ersteller, Aktionen)
+2. Pagination Controls mit Previous/Next Buttons und Seitenanzeige
+3. Loading State mit Table.Skeleton (5 Zeilen, 7 Spalten)
+4. Empty State mit Icon und Hinweistext
+5. Export in organisms barrel file hinzugefügt
+
+**Technische Details:**
+- Pattern konsistent mit UsersTable und QualifikationenTable
+- Verwendet InviteCodeTableRow Molecule für Tabellenzeilen
+- Pagination mit Desktop (Previous/Next + Seitenanzeige) und Mobile Layout (Zurück/Weiter)
+- Loading State: Table.Skeleton mit animate-pulse
+- Empty State: Icon + zweizeilige Nachricht mit dashed border
+- Responsive Design: Border-wrapper für Table mit overflow-x-auto
+- Pagination nur sichtbar bei totalPages > 1
+
+**Qualitätschecks:**
+- ✅ Responsive Table mit Tailwind overflow-x-auto
+- ✅ Pagination Controls funktionieren (disabled states für erste/letzte Seite)
+- ✅ Loading State zeigt Skeleton mit korrekter Spaltenanzahl
+- ✅ Empty State mit Icon und Beschreibung
+- ✅ Pattern konsistent mit anderen Admin-Tables
+
+**Dateien:**
+- ✅ `packages/frontend/src/features/admin/ui/organisms/InviteCodeTable.tsx` (neu)
+- ✅ `packages/frontend/src/features/admin/ui/organisms/index.ts` (erweitert)
+
+**Nächster Schritt:** Task 5 - UI Page (AdminInvites)
+
 ---
 
 ## File List
@@ -576,7 +609,7 @@ Implementiert von: Claude Code Agent
 - `packages/frontend/src/features/admin/ui/molecules/InviteCodeTableRow.tsx` ✅ Task 3
 - `packages/frontend/src/features/admin/ui/molecules/InviteFilters.tsx` ✅ Task 3
 - `packages/frontend/src/features/admin/ui/molecules/RevokeInviteButton.tsx` ✅ Task 3
-- `packages/frontend/src/features/admin/ui/organisms/InviteCodeTable.tsx` (Task 4)
+- `packages/frontend/src/features/admin/ui/organisms/InviteCodeTable.tsx` ✅ Task 4
 - `packages/frontend/src/features/admin/ui/pages/AdminInvites.tsx` (Task 5)
 - `packages/frontend/src/features/admin/schemas/invite-filters.schema.ts` (optional)
 - `packages/frontend/src/routes/admin/invites.tsx`
@@ -585,7 +618,7 @@ Implementiert von: Claude Code Agent
 - `packages/frontend/src/features/admin/api/queries.ts` ✅ Task 1 (invites Query Keys)
 - `packages/frontend/src/features/admin/api/index.ts` ✅ Task 1 (Exports)
 - `packages/frontend/src/features/admin/ui/molecules/index.ts` ✅ Task 3 (Exports)
-- `packages/frontend/src/features/admin/ui/organisms/index.ts` (Exports - Task 4)
+- `packages/frontend/src/features/admin/ui/organisms/index.ts` ✅ Task 4 (Exports)
 - `packages/frontend/src/features/admin/ui/pages/index.ts` (Exports - Task 5)
 - `packages/frontend/src/features/admin/ui/pages/AdminDashboard.tsx` (Navigation Link - Task 7)
 
