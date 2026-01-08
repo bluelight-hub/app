@@ -35,24 +35,36 @@ interface InviteCodeTableProps {
  * ```
  */
 export function InviteCodeTable({ invites, isLoading, onPageChange, currentPage, totalPages }: InviteCodeTableProps) {
-  // Loading State: Skeleton mit 5 Zeilen und 7 Spalten
+  // Loading State: Skeleton mit 5 Zeilen und 7 Spalten (inline tbody für gültiges HTML)
   if (isLoading) {
     return (
       <div className="space-y-4">
-        <Table.Root>
-          <Table.Header>
-            <Table.Row>
-              <Table.Head>Code</Table.Head>
-              <Table.Head>Status</Table.Head>
-              <Table.Head>Label</Table.Head>
-              <Table.Head>Ablaufdatum</Table.Head>
-              <Table.Head>Nutzung</Table.Head>
-              <Table.Head>Ersteller</Table.Head>
-              <Table.Head>Aktionen</Table.Head>
-            </Table.Row>
-          </Table.Header>
-          <Table.Skeleton rows={5} columns={7} />
-        </Table.Root>
+        <div className="overflow-x-auto rounded-lg border border-gray-200 dark:border-gray-800">
+          <Table.Root>
+            <Table.Header>
+              <Table.Row>
+                <Table.Head>Code</Table.Head>
+                <Table.Head>Status</Table.Head>
+                <Table.Head>Label</Table.Head>
+                <Table.Head>Ablaufdatum</Table.Head>
+                <Table.Head>Nutzung</Table.Head>
+                <Table.Head>Ersteller</Table.Head>
+                <Table.Head>Aktionen</Table.Head>
+              </Table.Row>
+            </Table.Header>
+            <Table.Body>
+              {Array.from({ length: 5 }).map((_, rowIndex) => (
+                <Table.Row key={`skeleton-row-${rowIndex}`}>
+                  {Array.from({ length: 7 }).map((__, colIndex) => (
+                    <Table.Cell key={`skeleton-cell-${rowIndex}-${colIndex}`}>
+                      <div className="h-4 w-full animate-pulse rounded bg-gray-200 dark:bg-gray-700" />
+                    </Table.Cell>
+                  ))}
+                </Table.Row>
+              ))}
+            </Table.Body>
+          </Table.Root>
+        </div>
       </div>
     );
   }
