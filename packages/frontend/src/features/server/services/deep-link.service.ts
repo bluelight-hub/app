@@ -77,7 +77,7 @@ export class DeepLinkService {
    * - Warm Start: Deep Link während App läuft
    */
   private async registerListeners(): Promise<void> {
-    await register((urls) => {
+    await register((urls: string[]) => {
       if (!urls || urls.length === 0) {
         this.emitError(DeepLinkError.PARSE_ERROR, 'No URLs received from deep link');
         return;
