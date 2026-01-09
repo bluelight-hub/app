@@ -45,7 +45,54 @@
 - Unit: Vitest (`pnpm --filter @bluelight-hub/frontend test`)
 - Aktuell ist FE-Coverage deaktiviert (siehe Scripts)
 
+## Deep Link Integration (Desktop)
+
+Die Bluelight Hub Desktop-App unterstützt Deep Links für automatisches Server-Onboarding.
+
+### URL Schema
+
+```
+bluelight://connect?url=<server-url>&invite=<invite-code>&expires=<iso-timestamp>
+```
+
+**Parameter:**
+- `url` (required): Server Base URL (z.B. `https://api.example.de`)
+- `invite` (required): 8-Zeichen Invite Code (z.B. `INV_abc12345`)
+- `expires` (optional): ISO 8601 Timestamp für Client-Side Expiry Check
+
+### Entwickler-Setup
+
+**1. Dev-Mode Limitation (macOS):**
+- Deep Links funktionieren **NICHT** in `pnpm dev` (Tauri dev mode)
+- Grund: macOS erfordert vollständig gebündeltes .app für URL-Schema-Registrierung
+
+**2. Testing auf macOS:**
+```bash
+# Build Release Bundle
+pnpm --filter @bluelight-hub/frontend tauri build
+
+# App öffnen
+open target/release/bundle/macos/Bluelight\ Hub.app
+
+# Deep Link testen
+open "bluelight://connect?url=https://api.example.de&invite=INV_12345678"
+```
+
+**3. Testing auf Windows/Linux:**
+- Deep Links funktionieren mit Dev-Mode UND Release-Build
+- Single-Instance Plugin verhindert Multiple App-Instanzen
+
+### Architecture
+
+- **DeepLinkService**: Event-basierter Service (Singleton Pattern)
+- **useDeepLinkEffect**: React Hook für App Lifecycle Integration
+- **useExchangeInvite**: TanStack Query Mutation für API-Call
+- **ServerStore**: Automatische Persistierung (Story 2.2)
+
+Weitere Details: `src/features/server/DEEP_LINK_INTEGRATION.md`
+
 ## Troubleshooting
 
-- „Client nicht aktuell“: API neu generieren (siehe oben)
+- „Client nicht aktuell": API neu generieren (siehe oben)
 - 401-Schleifen: Cookies prüfen, ggf. Backend/Frontend-Base-URL (`getBaseUrl`) anpassen
+- Deep Links funktionieren nicht: macOS benötigt Release-Build (siehe Deep Link Integration)
