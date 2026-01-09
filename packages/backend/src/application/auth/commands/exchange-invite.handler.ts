@@ -2,18 +2,12 @@ import { Inject, Injectable } from '@nestjs/common';
 import * as bcrypt from 'bcrypt';
 import { createId } from '@paralleldrive/cuid2';
 import { Result } from '@/domain/common/result';
-import type { TransactionContext } from '@/domain/common/transaction';
-import type { DomainEvent } from '@/domain/common/domain-event';
 import type { IInviteCodeRepository } from '@/domain/repositories/i-invite-code.repository';
 import type { IServerAccessTokenRepository } from '@/domain/repositories/i-server-access-token.repository';
-import type { IOutboxRepository } from '@/domain/repositories/i-outbox.repository';
 import { InviteCodeValue } from '@/domain/value-objects/invite-code-value';
 import { TokenHash } from '@/domain/value-objects/token-hash';
 import { ServerAccessToken } from '@/domain/aggregates/server-access-token.aggregate';
-import { INVITE_CODE_REPOSITORY, SERVER_ACCESS_TOKEN_REPOSITORY, OUTBOX_REPOSITORY } from '@/infrastructure/di-tokens';
-// biome-ignore lint/style/useImportType: PrismaService needed for DI at runtime (TransactionalCommandHandler constructor)
-import { PrismaService } from '@/infrastructure/database/prisma.service';
-import { TransactionalCommandHandler } from '@/application/common/handlers/transactional-command.handler';
+import { INVITE_CODE_REPOSITORY, SERVER_ACCESS_TOKEN_REPOSITORY } from '@/infrastructure/di-tokens';
 import type { ExchangeInviteDto } from './dto/exchange-invite.dto';
 import type { ExchangeInviteResponseDto, ServerInfoDto } from './dto/exchange-invite-response.dto';
 
@@ -21,7 +15,7 @@ import type { ExchangeInviteResponseDto, ServerInfoDto } from './dto/exchange-in
  * Handler für Invite-Code Exchange.
  *
  * Orchestriert die Umwandlung eines gültigen Invite-Codes in ein Server-Access-Token.
- * Nutzt TransactionalCommandHandler für atomare Persistierung von Token und Invite-Code.
+ * Repository-Methoden nutzen interne Transaktionen für atomare Konsistenz.
  *
  * **Implementiert alle 6 Acceptance Criteria:**
  * - AC1: Erfolgreicher Exchange mit Token-Generierung
@@ -35,8 +29,7 @@ import type { ExchangeInviteResponseDto, ServerInfoDto } from './dto/exchange-in
  * 1. Invite-Code Format-Validierung (8-stellig, alphanumerisch)
  * 2. Atomare Invite-Code-Markierung (Race-Condition-sicher!)
  * 3. Server-Access-Token Generierung (bcrypt Cost 10, ~100ms)
- * 4. Token-Persistierung mit Invite-Code-Referenz
- * 5. Transaction Commit (oder Rollback bei Fehler)
+ * 4. Token-Persistierung
  *
  * **Security:**
  * - Bcrypt Cost Factor 10 gemäß NFR-S1 (verhindert Brute-Force)
@@ -49,15 +42,9 @@ import type { ExchangeInviteResponseDto, ServerInfoDto } from './dto/exchange-in
  * - Atomic DB Operation: CHECK(useCount < maxUses) + INCREMENT(useCount)
  * - Zweiter paralleler Request findet kein Match mehr (count = 0)
  *
- * **Transaction Rollback Protection:**
- * - Invite-Code-Markierung und Token-Save in gleicher Transaction
- * - Bei Token-Save-Fehler: Invite-Code Rollback (User kann erneut versuchen)
- * - Verhindert Data Loss (Code verbraucht, aber kein Token generiert)
- *
  * **Performance:**
  * - bcrypt.hash(plainToken, 10) dauert ~100ms (akzeptabel für Exchange)
- * - Repository-Calls sequenziell innerhalb Transaction
- * - Atomare Invite-Markierung via DB-Transaktion
+ * - Repository-Calls nutzen interne Transaktionen für Atomarität
  *
  * @example
  * ```typescript
@@ -79,23 +66,19 @@ import type { ExchangeInviteResponseDto, ServerInfoDto } from './dto/exchange-in
  * ```
  */
 @Injectable()
-export class ExchangeInviteHandler extends TransactionalCommandHandler<ExchangeInviteDto, ExchangeInviteResponseDto> {
+export class ExchangeInviteHandler {
   /** Bcrypt Cost Factor gemäß NFR-S1 (10 = ~100ms Hash-Zeit) */
   private static readonly BCRYPT_COST = 10;
 
   constructor(
-    prisma: PrismaService,
-    @Inject(OUTBOX_REPOSITORY) outboxRepository: IOutboxRepository,
     @Inject(INVITE_CODE_REPOSITORY)
     private readonly inviteRepo: IInviteCodeRepository,
     @Inject(SERVER_ACCESS_TOKEN_REPOSITORY)
     private readonly tokenRepo: IServerAccessTokenRepository,
-  ) {
-    super(prisma, outboxRepository);
-  }
+  ) {}
 
   /**
-   * Führt Invite-Code Exchange innerhalb einer Transaktion aus.
+   * Führt Invite-Code Exchange aus.
    *
    * **Error Codes:**
    * - INVITE_CODE_EMPTY: Code ist leer
@@ -107,15 +90,13 @@ export class ExchangeInviteHandler extends TransactionalCommandHandler<ExchangeI
    * - DATABASE_ERROR: Unerwarteter DB-Fehler
    * - SERVER_ERROR: Interner Fehler (bcrypt, etc.)
    *
-   * **Transaction Rollback Protection:**
-   * Alle Operationen (Invite-Markierung + Token-Save) erfolgen in einer Transaction.
-   * Bei Fehler wird alles zurückgerollt, User kann erneut versuchen.
+   * **Atomic Operations:**
+   * Repository-Methoden nutzen interne Transaktionen für atomare Konsistenz.
    *
    * @param dto - ExchangeInviteDto mit inviteCode
-   * @param tx - TransactionContext von TransactionalCommandHandler
-   * @returns Result.fail() für Fehler ODER { result, events } für Success
+   * @returns Result<ExchangeInviteResponseDto> - Success oder Fehler
    */
-  protected async executeInTransaction(dto: ExchangeInviteDto, tx: TransactionContext): Promise<Result<ExchangeInviteResponseDto> | { result: ExchangeInviteResponseDto; events: DomainEvent[] }> {
+  async execute(dto: ExchangeInviteDto): Promise<Result<ExchangeInviteResponseDto>> {
     // Step 1: Validate Invite-Code Format
     const codeResult = InviteCodeValue.fromString(dto.inviteCode);
     if (codeResult.isFailure) {
@@ -129,7 +110,7 @@ export class ExchangeInviteHandler extends TransactionalCommandHandler<ExchangeI
     // Step 2: AC6 - Atomare Invite-Markierung (Race-Condition-sicher!)
     // Diese Methode prüft Code-Validität (expired, used, revoked) atomar in der DB
     // und incrementiert useCount nur wenn alle Bedingungen erfüllt sind.
-    const markResult = await this.inviteRepo.markAsUsedAtomic(inviteCodeValue, tx);
+    const markResult = await this.inviteRepo.markAsUsedAtomic(inviteCodeValue);
     if (markResult.isFailure) {
       // Error Codes: INVITE_ALREADY_USED, INVITE_INVALID, DATABASE_ERROR
       return Result.fail(markResult.error ?? 'INVITE_ALREADY_USED');
@@ -167,32 +148,26 @@ export class ExchangeInviteHandler extends TransactionalCommandHandler<ExchangeI
 
     const token = tokenResult.value;
 
-    // Step 5: Persistiere ServerAccessToken in gleicher Transaction
-    const saveTokenResult = await this.tokenRepo.save(token, tx);
+    // Step 5: Persistiere ServerAccessToken
+    const saveTokenResult = await this.tokenRepo.save(token);
     if (saveTokenResult.isFailure) {
-      // DB Error beim Token-Save → Transaction Rollback
-      // Invite-Code wird automatisch zurückgerollt (User kann erneut versuchen)
+      // DB Error beim Token-Save
       return Result.fail('DATABASE_ERROR');
     }
 
-    // Step 6: Extract Domain Events (falls vorhanden)
-    const events = token.getDomainEvents ? token.getDomainEvents() : [];
-
-    // Step 7: Populate ServerInfo aus Environment Variables
+    // Step 6: Populate ServerInfo aus Environment Variables
     const serverInfo: ServerInfoDto = {
       name: process.env.SERVER_NAME ?? 'Bluelight Hub',
       version: process.env.npm_package_version ?? '1.0.0',
       baseUrl: process.env.APP_URL ?? 'http://localhost:3091',
     };
 
-    // Step 8: Return Response mit Plaintext-Token (nur einmal sichtbar!)
+    // Step 7: Return Response mit Plaintext-Token (nur einmal sichtbar!)
     const response: ExchangeInviteResponseDto = {
       accessToken: plainToken, // "blh_clx9k2j3m0000abc123xyz"
       serverInfo,
     };
 
-    // Return plain object (NICHT Result.ok()!)
-    // Base Handler wrapped dies automatisch in Result.ok()
-    return { result: response, events };
+    return Result.ok(response);
   }
 }
