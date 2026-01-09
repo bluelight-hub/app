@@ -7,7 +7,7 @@
 
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { renderHook, waitFor } from '@testing-library/react';
-import type { ReactNode } from 'react';
+import type { ReactElement, ReactNode } from 'react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import * as serverStore from '../stores/server.store';
 import { SERVER_QUERY_KEYS } from './query-keys';
@@ -45,7 +45,7 @@ vi.mock('../stores/server.store', () => ({
 
 describe('useExchangeInvite', () => {
   let queryClient: QueryClient;
-  let wrapper: ({ children }: { children: ReactNode }) => JSX.Element;
+  let wrapper: ({ children }: { children: ReactNode }) => ReactElement;
 
   beforeEach(() => {
     // Reset all mocks before each test
