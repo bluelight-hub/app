@@ -645,6 +645,7 @@ export class AuthController {
    * @throws TooManyRequestsException - INVITE_RATE_LIMITED (429)
    */
   @Post('exchange-invite')
+  @HttpCode(HttpStatus.OK) // AC1: 200 OK bei Erfolg
   @SkipServerAccess()
   @SkipSetupCheck()
   @Throttle({ default: { limit: 5, ttl: 60000 } }) // AC5: 5 req/min/IP
