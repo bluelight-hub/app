@@ -13,12 +13,12 @@
  */
 
 import * as runtime from '../runtime';
-import type { LagekarteControllerSaveLagekarteStateVAlpha200Response, LagekarteDto, SaveLagekarteStateDto } from '../models/index';
+import type { LagekarteControllerGetLagekarteVAlpha200Response, LagekarteControllerSaveLagekarteStateVAlpha200Response, SaveLagekarteStateDto } from '../models/index';
 import {
+  LagekarteControllerGetLagekarteVAlpha200ResponseFromJSON,
+  LagekarteControllerGetLagekarteVAlpha200ResponseToJSON,
   LagekarteControllerSaveLagekarteStateVAlpha200ResponseFromJSON,
   LagekarteControllerSaveLagekarteStateVAlpha200ResponseToJSON,
-  LagekarteDtoFromJSON,
-  LagekarteDtoToJSON,
   SaveLagekarteStateDtoFromJSON,
   SaveLagekarteStateDtoToJSON,
 } from '../models/index';
@@ -143,7 +143,7 @@ export class LagekarteApi extends runtime.BaseAPI {
   async lagekarteControllerGetLagekarteVAlphaRaw(
     requestParameters: LagekarteControllerGetLagekarteVAlphaRequest,
     initOverrides?: RequestInit | runtime.InitOverrideFunction,
-  ): Promise<runtime.ApiResponse<LagekarteDto>> {
+  ): Promise<runtime.ApiResponse<LagekarteControllerGetLagekarteVAlpha200Response>> {
     if (requestParameters['einsatzId'] == null) {
       throw new runtime.RequiredError('einsatzId', 'Required parameter "einsatzId" was null or undefined when calling lagekarteControllerGetLagekarteVAlpha().');
     }
@@ -162,14 +162,17 @@ export class LagekarteApi extends runtime.BaseAPI {
       initOverrides,
     );
 
-    return new runtime.JSONApiResponse(response, (jsonValue) => LagekarteDtoFromJSON(jsonValue));
+    return new runtime.JSONApiResponse(response, (jsonValue) => LagekarteControllerGetLagekarteVAlpha200ResponseFromJSON(jsonValue));
   }
 
   /**
    * Gibt die Lagekarte für einen Einsatz zurück. Nutzt CQRS QueryBus für Read-Operations.
    * Lagekarte abrufen
    */
-  async lagekarteControllerGetLagekarteVAlpha(requestParameters: LagekarteControllerGetLagekarteVAlphaRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<LagekarteDto> {
+  async lagekarteControllerGetLagekarteVAlpha(
+    requestParameters: LagekarteControllerGetLagekarteVAlphaRequest,
+    initOverrides?: RequestInit | runtime.InitOverrideFunction,
+  ): Promise<LagekarteControllerGetLagekarteVAlpha200Response> {
     const response = await this.lagekarteControllerGetLagekarteVAlphaRaw(requestParameters, initOverrides);
     return await response.value();
   }

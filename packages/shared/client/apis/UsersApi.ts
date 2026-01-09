@@ -13,8 +13,13 @@
  */
 
 import * as runtime from '../runtime';
-import type { UserBasicListResponse, UserControllerFindOneVAlpha200Response } from '../models/index';
-import { UserBasicListResponseFromJSON, UserBasicListResponseToJSON, UserControllerFindOneVAlpha200ResponseFromJSON, UserControllerFindOneVAlpha200ResponseToJSON } from '../models/index';
+import type { UserControllerFindAllBasicVAlpha200Response, UserControllerFindOneVAlpha200Response } from '../models/index';
+import {
+  UserControllerFindAllBasicVAlpha200ResponseFromJSON,
+  UserControllerFindAllBasicVAlpha200ResponseToJSON,
+  UserControllerFindOneVAlpha200ResponseFromJSON,
+  UserControllerFindOneVAlpha200ResponseToJSON,
+} from '../models/index';
 
 export interface UserControllerFindOneVAlphaRequest {
   id: string;
@@ -27,7 +32,7 @@ export class UsersApi extends runtime.BaseAPI {
   /**
    * Basis-Benutzerinformationen aller Benutzer
    */
-  async userControllerFindAllBasicVAlphaRaw(initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<UserBasicListResponse>> {
+  async userControllerFindAllBasicVAlphaRaw(initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<UserControllerFindAllBasicVAlpha200Response>> {
     const queryParameters: any = {};
 
     const headerParameters: runtime.HTTPHeaders = {};
@@ -42,13 +47,13 @@ export class UsersApi extends runtime.BaseAPI {
       initOverrides,
     );
 
-    return new runtime.JSONApiResponse(response, (jsonValue) => UserBasicListResponseFromJSON(jsonValue));
+    return new runtime.JSONApiResponse(response, (jsonValue) => UserControllerFindAllBasicVAlpha200ResponseFromJSON(jsonValue));
   }
 
   /**
    * Basis-Benutzerinformationen aller Benutzer
    */
-  async userControllerFindAllBasicVAlpha(initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<UserBasicListResponse> {
+  async userControllerFindAllBasicVAlpha(initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<UserControllerFindAllBasicVAlpha200Response> {
     const response = await this.userControllerFindAllBasicVAlphaRaw(initOverrides);
     return await response.value();
   }

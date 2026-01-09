@@ -15,13 +15,13 @@
 import { mapValues } from '../runtime';
 import type { FahrzeugtypDto } from './FahrzeugtypDto';
 import { FahrzeugtypDtoFromJSON, FahrzeugtypDtoFromJSONTyped, FahrzeugtypDtoToJSON, FahrzeugtypDtoToJSONTyped } from './FahrzeugtypDto';
-import type { UserControllerFindOneVAlpha200ResponseMeta } from './UserControllerFindOneVAlpha200ResponseMeta';
+import type { AuthControllerUnifiedAuth200ResponseMeta } from './AuthControllerUnifiedAuth200ResponseMeta';
 import {
-  UserControllerFindOneVAlpha200ResponseMetaFromJSON,
-  UserControllerFindOneVAlpha200ResponseMetaFromJSONTyped,
-  UserControllerFindOneVAlpha200ResponseMetaToJSON,
-  UserControllerFindOneVAlpha200ResponseMetaToJSONTyped,
-} from './UserControllerFindOneVAlpha200ResponseMeta';
+  AuthControllerUnifiedAuth200ResponseMetaFromJSON,
+  AuthControllerUnifiedAuth200ResponseMetaFromJSONTyped,
+  AuthControllerUnifiedAuth200ResponseMetaToJSON,
+  AuthControllerUnifiedAuth200ResponseMetaToJSONTyped,
+} from './AuthControllerUnifiedAuth200ResponseMeta';
 
 /**
  *
@@ -37,10 +37,10 @@ export interface AdminFahrzeugtypenControllerCreateVAlpha201Response {
   data: FahrzeugtypDto;
   /**
    *
-   * @type {UserControllerFindOneVAlpha200ResponseMeta}
+   * @type {AuthControllerUnifiedAuth200ResponseMeta}
    * @memberof AdminFahrzeugtypenControllerCreateVAlpha201Response
    */
-  meta: UserControllerFindOneVAlpha200ResponseMeta;
+  meta: AuthControllerUnifiedAuth200ResponseMeta;
 }
 
 /**
@@ -62,7 +62,7 @@ export function AdminFahrzeugtypenControllerCreateVAlpha201ResponseFromJSONTyped
   }
   return {
     data: FahrzeugtypDtoFromJSON(json['data']),
-    meta: UserControllerFindOneVAlpha200ResponseMetaFromJSON(json['meta']),
+    meta: AuthControllerUnifiedAuth200ResponseMetaFromJSON(json['meta']),
   };
 }
 
@@ -77,6 +77,6 @@ export function AdminFahrzeugtypenControllerCreateVAlpha201ResponseToJSONTyped(v
 
   return {
     data: FahrzeugtypDtoToJSON(value['data']),
-    meta: UserControllerFindOneVAlpha200ResponseMetaToJSON(value['meta']),
+    meta: AuthControllerUnifiedAuth200ResponseMetaToJSON(value['meta']),
   };
 }

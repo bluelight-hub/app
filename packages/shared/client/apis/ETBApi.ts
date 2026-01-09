@@ -13,18 +13,25 @@
  */
 
 import * as runtime from '../runtime';
-import type { AddEintragDto, EintragDto, EtbDto, EtbSnapshotDto, TextbausteinListResponse, UpdateEintragDto } from '../models/index';
+import type {
+  AddEintragDto,
+  EtbCqrsControllerAddEintragVAlpha201Response,
+  EtbCqrsControllerGetEtbByEinsatzIdVAlpha200Response,
+  EtbCqrsControllerGetEtbHistoryVAlpha200Response,
+  EtbCqrsControllerGetTextbausteineVAlpha200Response,
+  UpdateEintragDto,
+} from '../models/index';
 import {
   AddEintragDtoFromJSON,
   AddEintragDtoToJSON,
-  EintragDtoFromJSON,
-  EintragDtoToJSON,
-  EtbDtoFromJSON,
-  EtbDtoToJSON,
-  EtbSnapshotDtoFromJSON,
-  EtbSnapshotDtoToJSON,
-  TextbausteinListResponseFromJSON,
-  TextbausteinListResponseToJSON,
+  EtbCqrsControllerAddEintragVAlpha201ResponseFromJSON,
+  EtbCqrsControllerAddEintragVAlpha201ResponseToJSON,
+  EtbCqrsControllerGetEtbByEinsatzIdVAlpha200ResponseFromJSON,
+  EtbCqrsControllerGetEtbByEinsatzIdVAlpha200ResponseToJSON,
+  EtbCqrsControllerGetEtbHistoryVAlpha200ResponseFromJSON,
+  EtbCqrsControllerGetEtbHistoryVAlpha200ResponseToJSON,
+  EtbCqrsControllerGetTextbausteineVAlpha200ResponseFromJSON,
+  EtbCqrsControllerGetTextbausteineVAlpha200ResponseToJSON,
   UpdateEintragDtoFromJSON,
   UpdateEintragDtoToJSON,
 } from '../models/index';
@@ -74,7 +81,7 @@ export class ETBApi extends runtime.BaseAPI {
   async etbCqrsControllerAddEintragVAlphaRaw(
     requestParameters: EtbCqrsControllerAddEintragVAlphaRequest,
     initOverrides?: RequestInit | runtime.InitOverrideFunction,
-  ): Promise<runtime.ApiResponse<EintragDto>> {
+  ): Promise<runtime.ApiResponse<EtbCqrsControllerAddEintragVAlpha201Response>> {
     if (requestParameters['etbId'] == null) {
       throw new runtime.RequiredError('etbId', 'Required parameter "etbId" was null or undefined when calling etbCqrsControllerAddEintragVAlpha().');
     }
@@ -100,14 +107,17 @@ export class ETBApi extends runtime.BaseAPI {
       initOverrides,
     );
 
-    return new runtime.JSONApiResponse(response, (jsonValue) => EintragDtoFromJSON(jsonValue));
+    return new runtime.JSONApiResponse(response, (jsonValue) => EtbCqrsControllerAddEintragVAlpha201ResponseFromJSON(jsonValue));
   }
 
   /**
    * Erstellt einen neuen Eintrag im Einsatztagebuch. Ein Snapshot wird vor der Änderung erstellt.
    * Eintrag zum ETB hinzufügen
    */
-  async etbCqrsControllerAddEintragVAlpha(requestParameters: EtbCqrsControllerAddEintragVAlphaRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<EintragDto> {
+  async etbCqrsControllerAddEintragVAlpha(
+    requestParameters: EtbCqrsControllerAddEintragVAlphaRequest,
+    initOverrides?: RequestInit | runtime.InitOverrideFunction,
+  ): Promise<EtbCqrsControllerAddEintragVAlpha201Response> {
     const response = await this.etbCqrsControllerAddEintragVAlphaRaw(requestParameters, initOverrides);
     return await response.value();
   }
@@ -162,7 +172,7 @@ export class ETBApi extends runtime.BaseAPI {
   async etbCqrsControllerGetEtbByEinsatzIdVAlphaRaw(
     requestParameters: EtbCqrsControllerGetEtbByEinsatzIdVAlphaRequest,
     initOverrides?: RequestInit | runtime.InitOverrideFunction,
-  ): Promise<runtime.ApiResponse<EtbDto>> {
+  ): Promise<runtime.ApiResponse<EtbCqrsControllerGetEtbByEinsatzIdVAlpha200Response>> {
     if (requestParameters['einsatzId'] == null) {
       throw new runtime.RequiredError('einsatzId', 'Required parameter "einsatzId" was null or undefined when calling etbCqrsControllerGetEtbByEinsatzIdVAlpha().');
     }
@@ -185,14 +195,17 @@ export class ETBApi extends runtime.BaseAPI {
       initOverrides,
     );
 
-    return new runtime.JSONApiResponse(response, (jsonValue) => EtbDtoFromJSON(jsonValue));
+    return new runtime.JSONApiResponse(response, (jsonValue) => EtbCqrsControllerGetEtbByEinsatzIdVAlpha200ResponseFromJSON(jsonValue));
   }
 
   /**
    * Gibt das Einsatztagebuch für einen Einsatz zurück. Optional können soft-gelöschte Einträge mit includeDeleted=true angezeigt werden.
    * ETB für Einsatz abrufen
    */
-  async etbCqrsControllerGetEtbByEinsatzIdVAlpha(requestParameters: EtbCqrsControllerGetEtbByEinsatzIdVAlphaRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<EtbDto> {
+  async etbCqrsControllerGetEtbByEinsatzIdVAlpha(
+    requestParameters: EtbCqrsControllerGetEtbByEinsatzIdVAlphaRequest,
+    initOverrides?: RequestInit | runtime.InitOverrideFunction,
+  ): Promise<EtbCqrsControllerGetEtbByEinsatzIdVAlpha200Response> {
     const response = await this.etbCqrsControllerGetEtbByEinsatzIdVAlphaRaw(requestParameters, initOverrides);
     return await response.value();
   }
@@ -204,7 +217,7 @@ export class ETBApi extends runtime.BaseAPI {
   async etbCqrsControllerGetEtbHistoryVAlphaRaw(
     requestParameters: EtbCqrsControllerGetEtbHistoryVAlphaRequest,
     initOverrides?: RequestInit | runtime.InitOverrideFunction,
-  ): Promise<runtime.ApiResponse<Array<EtbSnapshotDto>>> {
+  ): Promise<runtime.ApiResponse<EtbCqrsControllerGetEtbHistoryVAlpha200Response>> {
     if (requestParameters['etbId'] == null) {
       throw new runtime.RequiredError('etbId', 'Required parameter "etbId" was null or undefined when calling etbCqrsControllerGetEtbHistoryVAlpha().');
     }
@@ -223,7 +236,7 @@ export class ETBApi extends runtime.BaseAPI {
       initOverrides,
     );
 
-    return new runtime.JSONApiResponse(response, (jsonValue) => jsonValue.map(EtbSnapshotDtoFromJSON));
+    return new runtime.JSONApiResponse(response, (jsonValue) => EtbCqrsControllerGetEtbHistoryVAlpha200ResponseFromJSON(jsonValue));
   }
 
   /**
@@ -233,7 +246,7 @@ export class ETBApi extends runtime.BaseAPI {
   async etbCqrsControllerGetEtbHistoryVAlpha(
     requestParameters: EtbCqrsControllerGetEtbHistoryVAlphaRequest,
     initOverrides?: RequestInit | runtime.InitOverrideFunction,
-  ): Promise<Array<EtbSnapshotDto>> {
+  ): Promise<EtbCqrsControllerGetEtbHistoryVAlpha200Response> {
     const response = await this.etbCqrsControllerGetEtbHistoryVAlphaRaw(requestParameters, initOverrides);
     return await response.value();
   }
@@ -245,7 +258,7 @@ export class ETBApi extends runtime.BaseAPI {
   async etbCqrsControllerGetTextbausteineVAlphaRaw(
     requestParameters: EtbCqrsControllerGetTextbausteineVAlphaRequest,
     initOverrides?: RequestInit | runtime.InitOverrideFunction,
-  ): Promise<runtime.ApiResponse<TextbausteinListResponse>> {
+  ): Promise<runtime.ApiResponse<EtbCqrsControllerGetTextbausteineVAlpha200Response>> {
     const queryParameters: any = {};
 
     if (requestParameters['kategorie'] != null) {
@@ -268,7 +281,7 @@ export class ETBApi extends runtime.BaseAPI {
       initOverrides,
     );
 
-    return new runtime.JSONApiResponse(response, (jsonValue) => TextbausteinListResponseFromJSON(jsonValue));
+    return new runtime.JSONApiResponse(response, (jsonValue) => EtbCqrsControllerGetTextbausteineVAlpha200ResponseFromJSON(jsonValue));
   }
 
   /**
@@ -278,7 +291,7 @@ export class ETBApi extends runtime.BaseAPI {
   async etbCqrsControllerGetTextbausteineVAlpha(
     requestParameters: EtbCqrsControllerGetTextbausteineVAlphaRequest = {},
     initOverrides?: RequestInit | runtime.InitOverrideFunction,
-  ): Promise<TextbausteinListResponse> {
+  ): Promise<EtbCqrsControllerGetTextbausteineVAlpha200Response> {
     const response = await this.etbCqrsControllerGetTextbausteineVAlphaRaw(requestParameters, initOverrides);
     return await response.value();
   }
@@ -324,7 +337,7 @@ export class ETBApi extends runtime.BaseAPI {
   async etbCqrsControllerUpdateEintragVAlphaRaw(
     requestParameters: EtbCqrsControllerUpdateEintragVAlphaRequest,
     initOverrides?: RequestInit | runtime.InitOverrideFunction,
-  ): Promise<runtime.ApiResponse<EintragDto>> {
+  ): Promise<runtime.ApiResponse<EtbCqrsControllerAddEintragVAlpha201Response>> {
     if (requestParameters['etbId'] == null) {
       throw new runtime.RequiredError('etbId', 'Required parameter "etbId" was null or undefined when calling etbCqrsControllerUpdateEintragVAlpha().');
     }
@@ -356,14 +369,17 @@ export class ETBApi extends runtime.BaseAPI {
       initOverrides,
     );
 
-    return new runtime.JSONApiResponse(response, (jsonValue) => EintragDtoFromJSON(jsonValue));
+    return new runtime.JSONApiResponse(response, (jsonValue) => EtbCqrsControllerAddEintragVAlpha201ResponseFromJSON(jsonValue));
   }
 
   /**
    * Aktualisiert den Text eines Eintrags. Ein Snapshot wird vor der Änderung erstellt.
    * ETB-Eintrag aktualisieren
    */
-  async etbCqrsControllerUpdateEintragVAlpha(requestParameters: EtbCqrsControllerUpdateEintragVAlphaRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<EintragDto> {
+  async etbCqrsControllerUpdateEintragVAlpha(
+    requestParameters: EtbCqrsControllerUpdateEintragVAlphaRequest,
+    initOverrides?: RequestInit | runtime.InitOverrideFunction,
+  ): Promise<EtbCqrsControllerAddEintragVAlpha201Response> {
     const response = await this.etbCqrsControllerUpdateEintragVAlphaRaw(requestParameters, initOverrides);
     return await response.value();
   }

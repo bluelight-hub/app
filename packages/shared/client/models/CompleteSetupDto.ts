@@ -20,13 +20,13 @@ import { mapValues } from '../runtime';
  */
 export interface CompleteSetupDto {
   /**
-   * Nutzername des Admin-Users (3-50 Zeichen, alphanumerisch + underscore)
+   * Nutzername des Admin-Users (3-20 Zeichen, alphanumerisch + Bindestriche/Unterstriche)
    * @type {string}
    * @memberof CompleteSetupDto
    */
   username: string;
   /**
-   * Passwort fuer den Admin-Account (min. 8 Zeichen)
+   * Passwort fuer den Admin-Account (min. 8 Zeichen, Komplexitätsregeln)
    * @type {string}
    * @memberof CompleteSetupDto
    */

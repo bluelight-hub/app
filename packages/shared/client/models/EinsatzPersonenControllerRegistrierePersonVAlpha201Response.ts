@@ -20,13 +20,13 @@ import {
   PersonRegisteredResponseDtoToJSON,
   PersonRegisteredResponseDtoToJSONTyped,
 } from './PersonRegisteredResponseDto';
-import type { UserControllerFindOneVAlpha200ResponseMeta } from './UserControllerFindOneVAlpha200ResponseMeta';
+import type { AuthControllerUnifiedAuth200ResponseMeta } from './AuthControllerUnifiedAuth200ResponseMeta';
 import {
-  UserControllerFindOneVAlpha200ResponseMetaFromJSON,
-  UserControllerFindOneVAlpha200ResponseMetaFromJSONTyped,
-  UserControllerFindOneVAlpha200ResponseMetaToJSON,
-  UserControllerFindOneVAlpha200ResponseMetaToJSONTyped,
-} from './UserControllerFindOneVAlpha200ResponseMeta';
+  AuthControllerUnifiedAuth200ResponseMetaFromJSON,
+  AuthControllerUnifiedAuth200ResponseMetaFromJSONTyped,
+  AuthControllerUnifiedAuth200ResponseMetaToJSON,
+  AuthControllerUnifiedAuth200ResponseMetaToJSONTyped,
+} from './AuthControllerUnifiedAuth200ResponseMeta';
 
 /**
  *
@@ -42,10 +42,10 @@ export interface EinsatzPersonenControllerRegistrierePersonVAlpha201Response {
   data: PersonRegisteredResponseDto;
   /**
    *
-   * @type {UserControllerFindOneVAlpha200ResponseMeta}
+   * @type {AuthControllerUnifiedAuth200ResponseMeta}
    * @memberof EinsatzPersonenControllerRegistrierePersonVAlpha201Response
    */
-  meta: UserControllerFindOneVAlpha200ResponseMeta;
+  meta: AuthControllerUnifiedAuth200ResponseMeta;
 }
 
 /**
@@ -67,7 +67,7 @@ export function EinsatzPersonenControllerRegistrierePersonVAlpha201ResponseFromJ
   }
   return {
     data: PersonRegisteredResponseDtoFromJSON(json['data']),
-    meta: UserControllerFindOneVAlpha200ResponseMetaFromJSON(json['meta']),
+    meta: AuthControllerUnifiedAuth200ResponseMetaFromJSON(json['meta']),
   };
 }
 
@@ -85,6 +85,6 @@ export function EinsatzPersonenControllerRegistrierePersonVAlpha201ResponseToJSO
 
   return {
     data: PersonRegisteredResponseDtoToJSON(value['data']),
-    meta: UserControllerFindOneVAlpha200ResponseMetaToJSON(value['meta']),
+    meta: AuthControllerUnifiedAuth200ResponseMetaToJSON(value['meta']),
   };
 }

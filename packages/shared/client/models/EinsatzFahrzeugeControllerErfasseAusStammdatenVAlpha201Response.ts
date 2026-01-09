@@ -15,13 +15,13 @@
 import { mapValues } from '../runtime';
 import type { EinsatzFahrzeugDto } from './EinsatzFahrzeugDto';
 import { EinsatzFahrzeugDtoFromJSON, EinsatzFahrzeugDtoFromJSONTyped, EinsatzFahrzeugDtoToJSON, EinsatzFahrzeugDtoToJSONTyped } from './EinsatzFahrzeugDto';
-import type { UserControllerFindOneVAlpha200ResponseMeta } from './UserControllerFindOneVAlpha200ResponseMeta';
+import type { AuthControllerUnifiedAuth200ResponseMeta } from './AuthControllerUnifiedAuth200ResponseMeta';
 import {
-  UserControllerFindOneVAlpha200ResponseMetaFromJSON,
-  UserControllerFindOneVAlpha200ResponseMetaFromJSONTyped,
-  UserControllerFindOneVAlpha200ResponseMetaToJSON,
-  UserControllerFindOneVAlpha200ResponseMetaToJSONTyped,
-} from './UserControllerFindOneVAlpha200ResponseMeta';
+  AuthControllerUnifiedAuth200ResponseMetaFromJSON,
+  AuthControllerUnifiedAuth200ResponseMetaFromJSONTyped,
+  AuthControllerUnifiedAuth200ResponseMetaToJSON,
+  AuthControllerUnifiedAuth200ResponseMetaToJSONTyped,
+} from './AuthControllerUnifiedAuth200ResponseMeta';
 
 /**
  *
@@ -37,10 +37,10 @@ export interface EinsatzFahrzeugeControllerErfasseAusStammdatenVAlpha201Response
   data: EinsatzFahrzeugDto;
   /**
    *
-   * @type {UserControllerFindOneVAlpha200ResponseMeta}
+   * @type {AuthControllerUnifiedAuth200ResponseMeta}
    * @memberof EinsatzFahrzeugeControllerErfasseAusStammdatenVAlpha201Response
    */
-  meta: UserControllerFindOneVAlpha200ResponseMeta;
+  meta: AuthControllerUnifiedAuth200ResponseMeta;
 }
 
 /**
@@ -62,7 +62,7 @@ export function EinsatzFahrzeugeControllerErfasseAusStammdatenVAlpha201ResponseF
   }
   return {
     data: EinsatzFahrzeugDtoFromJSON(json['data']),
-    meta: UserControllerFindOneVAlpha200ResponseMetaFromJSON(json['meta']),
+    meta: AuthControllerUnifiedAuth200ResponseMetaFromJSON(json['meta']),
   };
 }
 
@@ -80,6 +80,6 @@ export function EinsatzFahrzeugeControllerErfasseAusStammdatenVAlpha201ResponseT
 
   return {
     data: EinsatzFahrzeugDtoToJSON(value['data']),
-    meta: UserControllerFindOneVAlpha200ResponseMetaToJSON(value['meta']),
+    meta: AuthControllerUnifiedAuth200ResponseMetaToJSON(value['meta']),
   };
 }

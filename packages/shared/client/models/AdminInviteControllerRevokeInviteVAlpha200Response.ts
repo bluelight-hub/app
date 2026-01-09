@@ -15,13 +15,13 @@
 import { mapValues } from '../runtime';
 import type { RevokeInviteResponseDto } from './RevokeInviteResponseDto';
 import { RevokeInviteResponseDtoFromJSON, RevokeInviteResponseDtoFromJSONTyped, RevokeInviteResponseDtoToJSON, RevokeInviteResponseDtoToJSONTyped } from './RevokeInviteResponseDto';
-import type { UserControllerFindOneVAlpha200ResponseMeta } from './UserControllerFindOneVAlpha200ResponseMeta';
+import type { AuthControllerUnifiedAuth200ResponseMeta } from './AuthControllerUnifiedAuth200ResponseMeta';
 import {
-  UserControllerFindOneVAlpha200ResponseMetaFromJSON,
-  UserControllerFindOneVAlpha200ResponseMetaFromJSONTyped,
-  UserControllerFindOneVAlpha200ResponseMetaToJSON,
-  UserControllerFindOneVAlpha200ResponseMetaToJSONTyped,
-} from './UserControllerFindOneVAlpha200ResponseMeta';
+  AuthControllerUnifiedAuth200ResponseMetaFromJSON,
+  AuthControllerUnifiedAuth200ResponseMetaFromJSONTyped,
+  AuthControllerUnifiedAuth200ResponseMetaToJSON,
+  AuthControllerUnifiedAuth200ResponseMetaToJSONTyped,
+} from './AuthControllerUnifiedAuth200ResponseMeta';
 
 /**
  *
@@ -37,10 +37,10 @@ export interface AdminInviteControllerRevokeInviteVAlpha200Response {
   data: RevokeInviteResponseDto;
   /**
    *
-   * @type {UserControllerFindOneVAlpha200ResponseMeta}
+   * @type {AuthControllerUnifiedAuth200ResponseMeta}
    * @memberof AdminInviteControllerRevokeInviteVAlpha200Response
    */
-  meta: UserControllerFindOneVAlpha200ResponseMeta;
+  meta: AuthControllerUnifiedAuth200ResponseMeta;
 }
 
 /**
@@ -62,7 +62,7 @@ export function AdminInviteControllerRevokeInviteVAlpha200ResponseFromJSONTyped(
   }
   return {
     data: RevokeInviteResponseDtoFromJSON(json['data']),
-    meta: UserControllerFindOneVAlpha200ResponseMetaFromJSON(json['meta']),
+    meta: AuthControllerUnifiedAuth200ResponseMetaFromJSON(json['meta']),
   };
 }
 
@@ -77,6 +77,6 @@ export function AdminInviteControllerRevokeInviteVAlpha200ResponseToJSONTyped(va
 
   return {
     data: RevokeInviteResponseDtoToJSON(value['data']),
-    meta: UserControllerFindOneVAlpha200ResponseMetaToJSON(value['meta']),
+    meta: AuthControllerUnifiedAuth200ResponseMetaToJSON(value['meta']),
   };
 }

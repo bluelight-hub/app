@@ -13,15 +13,15 @@
  */
 
 import { mapValues } from '../runtime';
+import type { AuthControllerUnifiedAuth200ResponseMeta } from './AuthControllerUnifiedAuth200ResponseMeta';
+import {
+  AuthControllerUnifiedAuth200ResponseMetaFromJSON,
+  AuthControllerUnifiedAuth200ResponseMetaFromJSONTyped,
+  AuthControllerUnifiedAuth200ResponseMetaToJSON,
+  AuthControllerUnifiedAuth200ResponseMetaToJSONTyped,
+} from './AuthControllerUnifiedAuth200ResponseMeta';
 import type { StatusCountsResponseDto } from './StatusCountsResponseDto';
 import { StatusCountsResponseDtoFromJSON, StatusCountsResponseDtoFromJSONTyped, StatusCountsResponseDtoToJSON, StatusCountsResponseDtoToJSONTyped } from './StatusCountsResponseDto';
-import type { UserControllerFindOneVAlpha200ResponseMeta } from './UserControllerFindOneVAlpha200ResponseMeta';
-import {
-  UserControllerFindOneVAlpha200ResponseMetaFromJSON,
-  UserControllerFindOneVAlpha200ResponseMetaFromJSONTyped,
-  UserControllerFindOneVAlpha200ResponseMetaToJSON,
-  UserControllerFindOneVAlpha200ResponseMetaToJSONTyped,
-} from './UserControllerFindOneVAlpha200ResponseMeta';
 
 /**
  *
@@ -37,10 +37,10 @@ export interface EinsatzControllerGetStatusCountsVAlpha200Response {
   data: StatusCountsResponseDto;
   /**
    *
-   * @type {UserControllerFindOneVAlpha200ResponseMeta}
+   * @type {AuthControllerUnifiedAuth200ResponseMeta}
    * @memberof EinsatzControllerGetStatusCountsVAlpha200Response
    */
-  meta: UserControllerFindOneVAlpha200ResponseMeta;
+  meta: AuthControllerUnifiedAuth200ResponseMeta;
 }
 
 /**
@@ -62,7 +62,7 @@ export function EinsatzControllerGetStatusCountsVAlpha200ResponseFromJSONTyped(j
   }
   return {
     data: StatusCountsResponseDtoFromJSON(json['data']),
-    meta: UserControllerFindOneVAlpha200ResponseMetaFromJSON(json['meta']),
+    meta: AuthControllerUnifiedAuth200ResponseMetaFromJSON(json['meta']),
   };
 }
 
@@ -77,6 +77,6 @@ export function EinsatzControllerGetStatusCountsVAlpha200ResponseToJSONTyped(val
 
   return {
     data: StatusCountsResponseDtoToJSON(value['data']),
-    meta: UserControllerFindOneVAlpha200ResponseMetaToJSON(value['meta']),
+    meta: AuthControllerUnifiedAuth200ResponseMetaToJSON(value['meta']),
   };
 }

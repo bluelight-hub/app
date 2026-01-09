@@ -13,16 +13,25 @@
  */
 
 import * as runtime from '../runtime';
-import type { AddPoiDto, CreateLagekarteDto, LagekarteDto, PoiDto, UpdatePoiPositionDto } from '../models/index';
+import type {
+  AddPoiDto,
+  CreateLagekarteDto,
+  LagekarteControllerGetLagekarteVAlpha200Response,
+  LagekarteCqrsControllerAddPoiVAlpha201Response,
+  LagekarteCqrsControllerGetPoisVAlpha200Response,
+  UpdatePoiPositionDto,
+} from '../models/index';
 import {
   AddPoiDtoFromJSON,
   AddPoiDtoToJSON,
   CreateLagekarteDtoFromJSON,
   CreateLagekarteDtoToJSON,
-  LagekarteDtoFromJSON,
-  LagekarteDtoToJSON,
-  PoiDtoFromJSON,
-  PoiDtoToJSON,
+  LagekarteControllerGetLagekarteVAlpha200ResponseFromJSON,
+  LagekarteControllerGetLagekarteVAlpha200ResponseToJSON,
+  LagekarteCqrsControllerAddPoiVAlpha201ResponseFromJSON,
+  LagekarteCqrsControllerAddPoiVAlpha201ResponseToJSON,
+  LagekarteCqrsControllerGetPoisVAlpha200ResponseFromJSON,
+  LagekarteCqrsControllerGetPoisVAlpha200ResponseToJSON,
   UpdatePoiPositionDtoFromJSON,
   UpdatePoiPositionDtoToJSON,
 } from '../models/index';
@@ -67,7 +76,7 @@ export class LagekarteCQRSApi extends runtime.BaseAPI {
   async lagekarteCqrsControllerAddPoiVAlphaRaw(
     requestParameters: LagekarteCqrsControllerAddPoiVAlphaRequest,
     initOverrides?: RequestInit | runtime.InitOverrideFunction,
-  ): Promise<runtime.ApiResponse<PoiDto>> {
+  ): Promise<runtime.ApiResponse<LagekarteCqrsControllerAddPoiVAlpha201Response>> {
     if (requestParameters['lagekarteId'] == null) {
       throw new runtime.RequiredError('lagekarteId', 'Required parameter "lagekarteId" was null or undefined when calling lagekarteCqrsControllerAddPoiVAlpha().');
     }
@@ -93,14 +102,17 @@ export class LagekarteCQRSApi extends runtime.BaseAPI {
       initOverrides,
     );
 
-    return new runtime.JSONApiResponse(response, (jsonValue) => PoiDtoFromJSON(jsonValue));
+    return new runtime.JSONApiResponse(response, (jsonValue) => LagekarteCqrsControllerAddPoiVAlpha201ResponseFromJSON(jsonValue));
   }
 
   /**
    * Fügt einen neuen POI zur Lagekarte hinzu. Koordinaten können als Lat/Lng oder MGRS angegeben werden.
    * POI hinzufügen
    */
-  async lagekarteCqrsControllerAddPoiVAlpha(requestParameters: LagekarteCqrsControllerAddPoiVAlphaRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<PoiDto> {
+  async lagekarteCqrsControllerAddPoiVAlpha(
+    requestParameters: LagekarteCqrsControllerAddPoiVAlphaRequest,
+    initOverrides?: RequestInit | runtime.InitOverrideFunction,
+  ): Promise<LagekarteCqrsControllerAddPoiVAlpha201Response> {
     const response = await this.lagekarteCqrsControllerAddPoiVAlphaRaw(requestParameters, initOverrides);
     return await response.value();
   }
@@ -112,7 +124,7 @@ export class LagekarteCQRSApi extends runtime.BaseAPI {
   async lagekarteCqrsControllerCreateLagekarteVAlphaRaw(
     requestParameters: LagekarteCqrsControllerCreateLagekarteVAlphaRequest,
     initOverrides?: RequestInit | runtime.InitOverrideFunction,
-  ): Promise<runtime.ApiResponse<LagekarteDto>> {
+  ): Promise<runtime.ApiResponse<LagekarteControllerGetLagekarteVAlpha200Response>> {
     if (requestParameters['createLagekarteDto'] == null) {
       throw new runtime.RequiredError('createLagekarteDto', 'Required parameter "createLagekarteDto" was null or undefined when calling lagekarteCqrsControllerCreateLagekarteVAlpha().');
     }
@@ -134,7 +146,7 @@ export class LagekarteCQRSApi extends runtime.BaseAPI {
       initOverrides,
     );
 
-    return new runtime.JSONApiResponse(response, (jsonValue) => LagekarteDtoFromJSON(jsonValue));
+    return new runtime.JSONApiResponse(response, (jsonValue) => LagekarteControllerGetLagekarteVAlpha200ResponseFromJSON(jsonValue));
   }
 
   /**
@@ -144,7 +156,7 @@ export class LagekarteCQRSApi extends runtime.BaseAPI {
   async lagekarteCqrsControllerCreateLagekarteVAlpha(
     requestParameters: LagekarteCqrsControllerCreateLagekarteVAlphaRequest,
     initOverrides?: RequestInit | runtime.InitOverrideFunction,
-  ): Promise<LagekarteDto> {
+  ): Promise<LagekarteControllerGetLagekarteVAlpha200Response> {
     const response = await this.lagekarteCqrsControllerCreateLagekarteVAlphaRaw(requestParameters, initOverrides);
     return await response.value();
   }
@@ -156,7 +168,7 @@ export class LagekarteCQRSApi extends runtime.BaseAPI {
   async lagekarteCqrsControllerGetLagekarteByEinsatzIdVAlphaRaw(
     requestParameters: LagekarteCqrsControllerGetLagekarteByEinsatzIdVAlphaRequest,
     initOverrides?: RequestInit | runtime.InitOverrideFunction,
-  ): Promise<runtime.ApiResponse<LagekarteDto>> {
+  ): Promise<runtime.ApiResponse<LagekarteControllerGetLagekarteVAlpha200Response>> {
     if (requestParameters['einsatzId'] == null) {
       throw new runtime.RequiredError('einsatzId', 'Required parameter "einsatzId" was null or undefined when calling lagekarteCqrsControllerGetLagekarteByEinsatzIdVAlpha().');
     }
@@ -175,7 +187,7 @@ export class LagekarteCQRSApi extends runtime.BaseAPI {
       initOverrides,
     );
 
-    return new runtime.JSONApiResponse(response, (jsonValue) => LagekarteDtoFromJSON(jsonValue));
+    return new runtime.JSONApiResponse(response, (jsonValue) => LagekarteControllerGetLagekarteVAlpha200ResponseFromJSON(jsonValue));
   }
 
   /**
@@ -185,7 +197,7 @@ export class LagekarteCQRSApi extends runtime.BaseAPI {
   async lagekarteCqrsControllerGetLagekarteByEinsatzIdVAlpha(
     requestParameters: LagekarteCqrsControllerGetLagekarteByEinsatzIdVAlphaRequest,
     initOverrides?: RequestInit | runtime.InitOverrideFunction,
-  ): Promise<LagekarteDto> {
+  ): Promise<LagekarteControllerGetLagekarteVAlpha200Response> {
     const response = await this.lagekarteCqrsControllerGetLagekarteByEinsatzIdVAlphaRaw(requestParameters, initOverrides);
     return await response.value();
   }
@@ -197,7 +209,7 @@ export class LagekarteCQRSApi extends runtime.BaseAPI {
   async lagekarteCqrsControllerGetPoisVAlphaRaw(
     requestParameters: LagekarteCqrsControllerGetPoisVAlphaRequest,
     initOverrides?: RequestInit | runtime.InitOverrideFunction,
-  ): Promise<runtime.ApiResponse<Array<PoiDto>>> {
+  ): Promise<runtime.ApiResponse<LagekarteCqrsControllerGetPoisVAlpha200Response>> {
     if (requestParameters['lagekarteId'] == null) {
       throw new runtime.RequiredError('lagekarteId', 'Required parameter "lagekarteId" was null or undefined when calling lagekarteCqrsControllerGetPoisVAlpha().');
     }
@@ -220,14 +232,17 @@ export class LagekarteCQRSApi extends runtime.BaseAPI {
       initOverrides,
     );
 
-    return new runtime.JSONApiResponse(response, (jsonValue) => jsonValue.map(PoiDtoFromJSON));
+    return new runtime.JSONApiResponse(response, (jsonValue) => LagekarteCqrsControllerGetPoisVAlpha200ResponseFromJSON(jsonValue));
   }
 
   /**
    * Gibt alle POIs einer Lagekarte zurück. Optionale Filterung nach Kategorie. Nutzt CQRS QueryBus für Read-Operations.
    * POIs einer Lagekarte abrufen
    */
-  async lagekarteCqrsControllerGetPoisVAlpha(requestParameters: LagekarteCqrsControllerGetPoisVAlphaRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<Array<PoiDto>> {
+  async lagekarteCqrsControllerGetPoisVAlpha(
+    requestParameters: LagekarteCqrsControllerGetPoisVAlphaRequest,
+    initOverrides?: RequestInit | runtime.InitOverrideFunction,
+  ): Promise<LagekarteCqrsControllerGetPoisVAlpha200Response> {
     const response = await this.lagekarteCqrsControllerGetPoisVAlphaRaw(requestParameters, initOverrides);
     return await response.value();
   }
@@ -282,7 +297,7 @@ export class LagekarteCQRSApi extends runtime.BaseAPI {
   async lagekarteCqrsControllerUpdatePoiPositionVAlphaRaw(
     requestParameters: LagekarteCqrsControllerUpdatePoiPositionVAlphaRequest,
     initOverrides?: RequestInit | runtime.InitOverrideFunction,
-  ): Promise<runtime.ApiResponse<PoiDto>> {
+  ): Promise<runtime.ApiResponse<LagekarteCqrsControllerAddPoiVAlpha201Response>> {
     if (requestParameters['lagekarteId'] == null) {
       throw new runtime.RequiredError('lagekarteId', 'Required parameter "lagekarteId" was null or undefined when calling lagekarteCqrsControllerUpdatePoiPositionVAlpha().');
     }
@@ -314,7 +329,7 @@ export class LagekarteCQRSApi extends runtime.BaseAPI {
       initOverrides,
     );
 
-    return new runtime.JSONApiResponse(response, (jsonValue) => PoiDtoFromJSON(jsonValue));
+    return new runtime.JSONApiResponse(response, (jsonValue) => LagekarteCqrsControllerAddPoiVAlpha201ResponseFromJSON(jsonValue));
   }
 
   /**
@@ -324,7 +339,7 @@ export class LagekarteCQRSApi extends runtime.BaseAPI {
   async lagekarteCqrsControllerUpdatePoiPositionVAlpha(
     requestParameters: LagekarteCqrsControllerUpdatePoiPositionVAlphaRequest,
     initOverrides?: RequestInit | runtime.InitOverrideFunction,
-  ): Promise<PoiDto> {
+  ): Promise<LagekarteCqrsControllerAddPoiVAlpha201Response> {
     const response = await this.lagekarteCqrsControllerUpdatePoiPositionVAlphaRaw(requestParameters, initOverrides);
     return await response.value();
   }
