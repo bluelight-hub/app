@@ -12,7 +12,7 @@
  */
 
 import { useQuery } from '@tanstack/react-query';
-import { api } from '@/shared/api/client';
+import { api } from '@bluelight-hub/shared/client';
 import type { KraeftePoisFeatureCollectionDto } from '@bluelight-hub/shared/client';
 import { calculateRetryDelay, KRAEFTE_QUERY_KEYS } from './queries';
 

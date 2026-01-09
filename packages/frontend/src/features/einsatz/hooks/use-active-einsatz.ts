@@ -1,4 +1,4 @@
-import { api } from '@/shared/api/client';
+import { api } from '@bluelight-hub/shared/client';
 import { EINSATZ_QUERY_KEYS } from '../api';
 import { einsatzStore, useEinsatzStore } from '../stores/active-einsatz.store';
 import { clearActiveEinsatz as clearPersistedEinsatz, loadActiveEinsatzId, rehydrateActiveEinsatz } from '../stores/persistence/einsatz-persistence';

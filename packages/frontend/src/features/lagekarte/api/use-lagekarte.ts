@@ -1,7 +1,7 @@
 import { useQuery } from '@tanstack/react-query';
 import type * as GeoJSON from 'geojson';
 import type { LagekarteDto } from '@bluelight-hub/shared/client';
-import { api } from '@/shared/api/client';
+import { api } from '@bluelight-hub/shared/client';
 import { LAGEKARTE_QUERY_KEYS, calculateRetryDelay } from './queries';
 
 type LagekarteWithState = LagekarteDto & {

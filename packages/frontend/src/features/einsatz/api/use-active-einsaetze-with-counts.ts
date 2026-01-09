@@ -5,7 +5,7 @@
  * Nutzt Backend-Endpoint der direkt EinsatzListItemDto[] mit Counts liefert.
  */
 
-import { api } from '@/shared/api/client';
+import { api } from '@bluelight-hub/shared/client';
 import { logger } from '@/shared/lib/logger';
 import type { EinsatzListItemDto, ResponseError } from '@bluelight-hub/shared/client';
 import { useQuery } from '@tanstack/react-query';

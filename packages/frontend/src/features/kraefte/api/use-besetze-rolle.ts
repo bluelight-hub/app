@@ -6,7 +6,7 @@
  */
 
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { api } from '@/shared/api/client';
+import { api } from '@bluelight-hub/shared/client';
 import { logger } from '@/shared/lib/logger';
 import { KRAEFTE_QUERY_KEYS } from './queries';
 import type { BesetzeRolleDto } from '@bluelight-hub/shared/client';

@@ -1,4 +1,4 @@
-import { api } from '@/shared/api/client';
+import { api } from '@bluelight-hub/shared/client';
 import { AUTH_KEYS } from './queries';
 import type { UserBasicDto, UserControllerFindOneVAlpha200Response } from '@bluelight-hub/shared/client';
 import { useQuery } from '@tanstack/react-query';

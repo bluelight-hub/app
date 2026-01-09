@@ -1,4 +1,4 @@
-import { api } from '@/shared/api/client';
+import { api } from '@bluelight-hub/shared/client';
 import { AUTH_KEYS } from './queries';
 import type { AdminLoginResponseDto, AdminPasswordDto, AuthRequestDto, AuthResponseDto } from '@bluelight-hub/shared/client';
 import { useMutation, useQueryClient } from '@tanstack/react-query';

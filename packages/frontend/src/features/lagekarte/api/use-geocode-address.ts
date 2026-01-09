@@ -1,5 +1,5 @@
 import { useMutation, type UseMutationResult } from '@tanstack/react-query';
-import { api } from '@/shared/api/client';
+import { api } from '@bluelight-hub/shared/client';
 
 /**
  * TanStack Mutation Hook zum Geocoding einer Adresse

@@ -1,4 +1,4 @@
-import { api } from '@/shared/api/client';
+import { api } from '@bluelight-hub/shared/client';
 import { AUTH_KEYS } from './queries';
 import { useQuery } from '@tanstack/react-query';
 import { milliseconds } from 'date-fns';

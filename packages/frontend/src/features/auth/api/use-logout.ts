@@ -1,4 +1,4 @@
-import { api } from '@/shared/api/client';
+import { api } from '@bluelight-hub/shared/client';
 import { resetTokenRefreshHandler } from '@/shared/lib/errors/error-handler';
 import { AUTH_KEYS } from './queries';
 import type { LogoutResponseDto } from '@bluelight-hub/shared/client';

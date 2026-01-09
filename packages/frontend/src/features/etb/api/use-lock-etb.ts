@@ -4,7 +4,7 @@
  * Hook für ETB-Sperrung (Admin-Only, CQRS API).
  */
 
-import { api } from '@/shared/api/client';
+import { api } from '@bluelight-hub/shared/client';
 import { getApiErrorMessage } from '@/shared/lib/errors/apiErrorHandler';
 import { logger } from '@/shared/lib/logger';
 import type { ResponseError } from '@bluelight-hub/shared/client';

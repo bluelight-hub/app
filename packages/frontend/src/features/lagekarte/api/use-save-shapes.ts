@@ -1,5 +1,5 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { api } from '@/shared/api/client';
+import { api } from '@bluelight-hub/shared/client';
 import { toast } from 'sonner';
 import type * as GeoJSON from 'geojson';
 import { LAGEKARTE_QUERY_KEYS } from './queries';

@@ -5,7 +5,7 @@
  * Invalidiert automatisch alle betroffenen Queries nach erfolgreicher Erstellung.
  */
 
-import { api } from '@/shared/api/client';
+import { api } from '@bluelight-hub/shared/client';
 import { logger } from '@/shared/lib/logger';
 import type { CreateEinsatzDto, EinsatzControllerFindAllVAlpha200Response, EinsatzDto, EinsatzListItemDto, ResponseError } from '@bluelight-hub/shared/client';
 import { EinsatzDtoStatusEnum } from '@bluelight-hub/shared/client';

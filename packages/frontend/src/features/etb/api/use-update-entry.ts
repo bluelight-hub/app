@@ -4,7 +4,7 @@
  * Hook für ETB-Eintrag-Aktualisierung (CQRS API).
  */
 
-import { api } from '@/shared/api/client';
+import { api } from '@bluelight-hub/shared/client';
 import { getApiErrorMessage } from '@/shared/lib/errors/apiErrorHandler';
 import { logger } from '@/shared/lib/logger';
 import type { EintragDto, ResponseError, UpdateEintragDto } from '@bluelight-hub/shared/client';

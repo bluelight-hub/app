@@ -5,7 +5,7 @@
  * Unterstützt sowohl Detail-Updates als auch List-Updates.
  */
 
-import { api } from '@/shared/api/client';
+import { api } from '@bluelight-hub/shared/client';
 import { getApiErrorMessage } from '@/shared/lib/errors/apiErrorHandler';
 import { logger } from '@/shared/lib/logger';
 import type {

@@ -5,9 +5,8 @@
  * Integriert mit Server Store und Query Cache.
  */
 
-import { api } from '@/shared/api/client';
+import { api, type AuthControllerExchangeInvite200Response, type ResponseError } from '@bluelight-hub/shared/client';
 import { logger } from '@/shared/lib/logger';
-import type { AuthControllerExchangeInvite200Response, ResponseError } from '@bluelight-hub/shared/client';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { addServer, setActiveServer } from '../stores/server.store';
 import { SERVER_QUERY_KEYS } from './query-keys';

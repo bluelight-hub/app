@@ -22,7 +22,7 @@ const mockAuthApi = {
 };
 
 // Mock API Client
-vi.mock('@/shared/api/client', () => ({
+vi.mock('@bluelight-hub/shared/client', () => ({
   api: {
     auth: () => mockAuthApi,
   },

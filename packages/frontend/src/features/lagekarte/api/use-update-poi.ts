@@ -1,5 +1,5 @@
 import { useMutation, useQueryClient, type UseMutationResult } from '@tanstack/react-query';
-import { api } from '@/shared/api/client';
+import { api } from '@bluelight-hub/shared/client';
 import type { PoiDto, UpdatePoiPositionDto } from '@bluelight-hub/shared/client';
 import { LAGEKARTE_QUERY_KEYS } from './queries';
 

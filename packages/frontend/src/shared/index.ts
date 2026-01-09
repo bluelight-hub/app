@@ -23,7 +23,7 @@
  * import { getCurrentBackgroundImage } from '@/shared/ui';
  *
  * // API
- * import { api } from '@/shared/api/client';
+ * import { api } from '@bluelight-hub/shared/client';
  * ```
  */
 

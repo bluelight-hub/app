@@ -11,7 +11,7 @@
 import { useQuery } from '@tanstack/react-query';
 import type { ResponseError, RollenDefinitionDto } from '@bluelight-hub/shared/client';
 
-import { api } from '@/shared/api/client';
+import { api } from '@bluelight-hub/shared/client';
 import { logger } from '@/shared/lib/logger';
 
 import { KRAEFTE_QUERY_KEYS, calculateRetryDelay } from './queries';
