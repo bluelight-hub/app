@@ -21,7 +21,21 @@ pub fn run() {
       storage::storage_clear,
     ])
     .plugin(tauri_plugin_http::init())
-    .plugin(tauri_plugin_store::Builder::default().build());
+    .plugin(tauri_plugin_store::Builder::default().build())
+    .plugin(tauri_plugin_deep_link::init())
+    .plugin(tauri_plugin_single_instance::init(|_app, args, cwd| {
+      log::info!("Single instance triggered with args: {:?} from cwd: {:?}", args, cwd);
+
+      // Extract deep link URLs from args
+      if !args.is_empty() {
+        for arg in args.iter() {
+          if arg.starts_with("bluelight://") {
+            log::info!("Received deep link: {}", arg);
+            // Deep link event will be handled by the deep-link plugin
+          }
+        }
+      }
+    }));
 
   // Barcode scanner is only available on mobile (iOS/Android)
   #[cfg(mobile)]

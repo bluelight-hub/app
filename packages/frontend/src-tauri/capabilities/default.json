@@ -38,6 +38,7 @@
     "store:allow-delete",
     "store:allow-clear",
     "store:allow-keys",
-    "barcode-scanner:default"
+    "barcode-scanner:default",
+    "deep-link:default"
   ]
 }
