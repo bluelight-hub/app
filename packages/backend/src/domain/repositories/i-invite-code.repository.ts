@@ -265,4 +265,51 @@ export interface IInviteCodeRepository {
    * ```
    */
   findAll(filters?: InviteCodeFilters, sort?: InviteCodeSortOptions, pagination?: InviteCodePaginationOptions, tx?: TransactionContext): Promise<Result<InviteCodePaginatedResult<InviteCode>>>;
+
+  /**
+   * Markiert einen InviteCode atomar als verwendet (Race-Condition-sicher).
+   *
+   * **Race-Condition-Safety:**
+   * Diese Methode verwendet Prisma's `updateMany` mit bedingtem WHERE-Clause
+   * um Double-Spend-Angriffe zu verhindern. Die DB führt Check-and-Update
+   * atomar aus, wodurch parallele Requests korrekt abgelehnt werden.
+   *
+   * **Warum nicht inviteCode.use() + save()?**
+   * - Check-then-act Pattern hat Race Window zwischen read und write
+   * - Zwei parallele Requests können beide den Check passieren
+   * - updateMany mit WHERE garantiert atomare Prüfung + Increment
+   *
+   * **Atomic Operation:**
+   * ```sql
+   * UPDATE invite_code
+   * SET use_count = use_count + 1
+   * WHERE code = ? AND use_count < max_uses AND expires_at > NOW() AND is_revoked = false
+   * ```
+   *
+   * **Rückgabewerte:**
+   * - Result.ok(): Code erfolgreich markiert (useCount++)
+   * - Result.fail('INVITE_ALREADY_USED'): Code bereits aufgebraucht oder abgelaufen
+   * - Result.fail('INVITE_INVALID'): Code existiert nicht
+   * - Result.fail('DATABASE_ERROR'): Unerwarteter DB-Fehler
+   *
+   * @param code - InviteCodeValue des zu markierenden Codes
+   * @param tx - Optional Transaction Context für Atomizität mit Token-Save
+   * @returns Result<void> - Success oder Failure mit Error-Code
+   *
+   * @example
+   * ```typescript
+   * // Im Handler: Atomare Markierung innerhalb Transaction
+   * await this.prisma.$transaction(async (tx) => {
+   *   const markResult = await this.inviteRepo.markAsUsedAtomic(inviteCodeValue, tx);
+   *   if (markResult.isFailure) {
+   *     return Result.fail(markResult.error);
+   *   }
+   *
+   *   const token = ServerAccessToken.create({ ... });
+   *   await this.tokenRepo.save(token, tx);
+   *   return Result.ok(token.id.value);
+   * });
+   * ```
+   */
+  markAsUsedAtomic(code: InviteCodeValue, tx?: TransactionContext): Promise<Result<void>>;
 }

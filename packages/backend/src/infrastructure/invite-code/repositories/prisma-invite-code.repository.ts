@@ -236,6 +236,69 @@ export class PrismaInviteCodeRepository implements IInviteCodeRepository {
   }
 
   /**
+   * {@inheritDoc IInviteCodeRepository.markAsUsedAtomic}
+   *
+   * Implementiert atomare Invite-Code-Markierung mit Prisma's updateMany.
+   *
+   * **Race-Condition-Safety durch WHERE-Clause:**
+   * - useCount < maxUses: Prüft ob Code noch verwendet werden kann
+   * - expiresAt > NOW(): Prüft ob Code noch gültig ist
+   * - isRevoked = false: Prüft ob Code nicht widerrufen wurde
+   * - code = ?: Findet den spezifischen Code
+   *
+   * **Atomic Operation Guarantee:**
+   * PostgreSQL führt UPDATE atomar aus. Zwischen WHERE-Check und SET
+   * können keine parallelen Writes stattfinden. Zweiter Request findet
+   * kein Match mehr (useCount bereits incrementiert).
+   *
+   * **Error Mapping:**
+   * - count = 0: Code invalid, aufgebraucht, abgelaufen oder widerrufen
+   * - count = 1: Success (Code wurde atomar markiert)
+   * - Exception: Unerwarteter DB-Fehler
+   */
+  async markAsUsedAtomic(code: InviteCodeValue, tx?: TransactionContext): Promise<Result<void>> {
+    const client = (tx as PrismaTransactionClient | undefined) ?? this.prisma;
+    const now = new Date();
+
+    try {
+      // Atomare UPDATE mit bedingtem WHERE (Race-Condition-sicher!)
+      const result = await client.inviteCode.updateMany({
+        where: {
+          code: code.value,
+          useCount: { lt: client.inviteCode.fields.maxUses }, // useCount < maxUses
+          expiresAt: { gt: now }, // NOT expired
+          isRevoked: false, // NOT revoked
+        },
+        data: {
+          useCount: { increment: 1 },
+        },
+      });
+
+      // result.count = 0 → Code invalid, aufgebraucht, oder abgelaufen
+      if (result.count === 0) {
+        this.logger.error('Failed to mark InviteCode as used atomically', {
+          codeMasked: code.toMasked(),
+          reason: 'Code invalid, already used, expired, or revoked',
+        });
+        return Result.fail('INVITE_ALREADY_USED');
+      }
+
+      // Success: Code atomar markiert
+      this.logger.log('InviteCode marked as used atomically', {
+        codeMasked: code.toMasked(),
+      });
+      return Result.ok(undefined);
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error);
+      this.logger.error('Failed to mark InviteCode as used atomically', {
+        codeMasked: code.toMasked(),
+        error: message,
+      });
+      return Result.fail('DATABASE_ERROR');
+    }
+  }
+
+  /**
    * {@inheritDoc IInviteCodeRepository.findAll}
    *
    * Implementiert paginierte Abfrage mit Filterung und Sortierung.
