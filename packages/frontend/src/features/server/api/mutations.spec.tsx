@@ -22,7 +22,7 @@ const mockAuthApi = {
 };
 
 // Mock API Client
-vi.mock('@bluelight-hub/shared/client', () => ({
+vi.mock('@/shared/api/api', () => ({
   api: {
     auth: () => mockAuthApi,
   },
@@ -45,6 +45,7 @@ vi.mock('../stores/server.store', () => ({
 
 describe('useExchangeInvite', () => {
   let queryClient: QueryClient;
+  let wrapper: ({ children }: { children: ReactNode }) => JSX.Element;
 
   beforeEach(() => {
     // Reset all mocks before each test
@@ -58,14 +59,14 @@ describe('useExchangeInvite', () => {
         queries: { retry: false },
       },
     });
-  });
 
-  /**
-   * Test Wrapper Component
-   *
-   * Provides QueryClientProvider context for hooks
-   */
-  const wrapper = ({ children }: { children: ReactNode }) => <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>;
+    /**
+     * Test Wrapper Component
+     *
+     * Provides QueryClientProvider context for hooks
+     */
+    wrapper = ({ children }: { children: ReactNode }) => <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>;
+  });
 
   describe('Successful Exchange', () => {
     it('should exchange invite code successfully and add server', async () => {
