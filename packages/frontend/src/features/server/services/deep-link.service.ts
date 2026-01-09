@@ -36,9 +36,11 @@ export class DeepLinkService {
   }
 
   /**
-   * Singleton Instance Getter
+   * Singleton-Instanz des DeepLinkService.
    *
-   * Lazy Initialization: Registriert Listener beim ersten Aufruf.
+   * Verwendet Singleton Pattern um sicherzustellen, dass nur eine
+   * Service-Instanz existiert, die Event-Listener zentral verwaltet.
+   * Dies verhindert Memory Leaks durch doppelte Listener-Registrierungen.
    */
   public static getInstance(): DeepLinkService {
     if (!DeepLinkService.instance) {
@@ -196,7 +198,11 @@ export class DeepLinkService {
   }
 
   /**
-   * Event Listener registrieren
+   * Registriert Event Listener für Deep Link Events.
+   *
+   * Verwendet Pub/Sub Pattern für lose Kopplung zwischen Service
+   * und UI-Komponenten. Dies ermöglicht mehrere unabhängige Subscriber
+   * (z.B. Notifications, Analytics, UI-Updates).
    *
    * @param event - Event Name
    * @param callback - Callback Function
@@ -211,7 +217,11 @@ export class DeepLinkService {
   }
 
   /**
-   * Event Listener entfernen
+   * Entfernt Event Listener zur Vermeidung von Memory Leaks.
+   *
+   * Ohne callback-Parameter werden alle Listener für das Event entfernt.
+   * Mit callback-Parameter wird nur der spezifische Listener entfernt.
+   * WICHTIG: Komponenten müssen Listener in cleanup (useEffect return) entfernen!
    *
    * @param event - Event Name
    * @param callback - Callback Function (optional, entfernt alle wenn nicht angegeben)
@@ -264,9 +274,11 @@ export class DeepLinkService {
   }
 
   /**
-   * Service zurücksetzen (nur für Tests!)
+   * Setzt Service-Instanz zurück (nur für Tests!).
    *
-   * WARNUNG: Nur in Test-Umgebung verwenden!
+   * Erlaubt Test-Isolation durch Zurücksetzen des Singleton-State.
+   * WARNUNG: Nur in Test-Umgebung verwenden! Produktions-Code sollte
+   * niemals den Service zurücksetzen, da dies aktive Listener zerstört.
    */
   public static reset(): void {
     if (DeepLinkService.instance) {
@@ -277,10 +289,12 @@ export class DeepLinkService {
   }
 
   /**
-   * Emit Event (nur für Tests!)
+   * Emittiert Events manuell für Test-Zwecke.
    *
-   * WARNUNG: Nur in Test-Umgebung verwenden!
-   * Erlaubt Tests, Deep Link Events manuell zu triggern.
+   * Bypass für Tauri Plugin Mocking. Erlaubt Tests, Deep Link Events
+   * ohne tatsächliches OS-Deep-Link-Triggering zu simulieren.
+   * WARNUNG: Nur in Test-Umgebung verwenden! Produktions-Code sollte
+   * niemals Events manuell emittieren.
    */
   public emitForTesting(event: 'deep-link-received', params: DeepLinkParams): void;
   public emitForTesting(event: 'deep-link-error', error: DeepLinkError, message: string): void;
