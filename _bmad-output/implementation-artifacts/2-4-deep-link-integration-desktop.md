@@ -66,32 +66,32 @@ damit ich **ohne manuelle Eingabe onboarded werde**.
 - [x] **1.7** Test: Deep Link öffnet App (oder bringt in Vordergrund)
 
 ### Task 2: DeepLinkService Implementation (AC: 1, 2, 5)
-- [ ] **2.1** `features/server/services/deep-link.service.ts` erstellen
-- [ ] **2.2** Deep Link Event Listener registrieren (Tauri Plugin)
-- [ ] **2.3** URL Parameter Parser (url, invite, expires)
-- [ ] **2.4** Client-side Expiry Validation (expires < now → Error)
-- [ ] **2.5** Event Emitter Pattern (emittiert `deep-link-received` Event)
-- [ ] **2.6** App Lifecycle Hook Integration (Cold Start + Warm Start)
-- [ ] **2.7** Vitest Unit Tests (>10 Tests, AAA Pattern)
+- [x] **2.1** `features/server/services/deep-link.service.ts` erstellen
+- [x] **2.2** Deep Link Event Listener registrieren (Tauri Plugin)
+- [x] **2.3** URL Parameter Parser (url, invite, expires)
+- [x] **2.4** Client-side Expiry Validation (expires < now → Error)
+- [x] **2.5** Event Emitter Pattern (emittiert `deep-link-received` Event)
+- [x] **2.6** App Lifecycle Hook Integration (Cold Start + Warm Start)
+- [x] **2.7** Vitest Unit Tests (>10 Tests, AAA Pattern)
 
 ### Task 3: TanStack Query Mutation - useExchangeInvite (AC: 3)
-- [ ] **3.1** `features/server/api/mutations.ts` - useExchangeInvite Hook erstellen
-- [ ] **3.2** Generated API Client Integration (`api.auth.authControllerExchangeInvite`)
-- [ ] **3.3** Error Handling mit typed Result (Backend Error Codes)
-- [ ] **3.4** Server Store Integration (`addServer` bei Success)
-- [ ] **3.5** Query Invalidation (Server List)
-- [ ] **3.6** Vitest Unit Tests (>5 Tests, Mock API Client)
+- [x] **3.1** `features/server/api/mutations.ts` - useExchangeInvite Hook erstellen
+- [x] **3.2** Generated API Client Integration (`api.auth.authControllerExchangeInvite`)
+- [x] **3.3** Error Handling mit typed Result (Backend Error Codes)
+- [x] **3.4** Server Store Integration (`addServer` bei Success)
+- [x] **3.5** Query Invalidation (Server List)
+- [x] **3.6** Vitest Unit Tests (>5 Tests, Mock API Client)
 
 ### Task 4: UI Components - Loading, Toast, Error (AC: 4, 5)
-- [ ] **4.1** `features/server/ui/molecules/ServerConnectLoading.tsx` (Spinner + "Verbinde mit Server...")
-- [ ] **4.2** Toast Notification Integration (sonner) - "Server '[Name]' hinzugefügt"
-- [ ] **4.3** `features/server/ui/molecules/ExpiredLinkError.tsx` (Error Card + CTA)
-- [ ] **4.4** Vitest Component Tests (>5 Tests, @testing-library/react)
+- [x] **4.1** `features/server/ui/molecules/ServerConnectLoading.tsx` (Spinner + "Verbinde mit Server...")
+- [x] **4.2** Toast Notification Integration (sonner) - "Server '[Name]' hinzugefügt"
+- [x] **4.3** `features/server/ui/molecules/ExpiredLinkError.tsx` (Error Card + CTA)
+- [x] **4.4** Vitest Component Tests (>5 Tests, @testing-library/react)
 
 ### Task 5: Navigation Logic (AC: 3)
-- [ ] **5.1** TanStack Router - Navigate to Login-Screen nach Success
-- [ ] **5.2** Server Store - `setActiveServer()` für neuen Server
-- [ ] **5.3** Integration Test: Deep Link → Exchange → Login Screen
+- [x] **5.1** TanStack Router - Navigate to Login-Screen nach Success
+- [x] **5.2** Server Store - `setActiveServer()` für neuen Server (bereits in useExchangeInvite.onSuccess)
+- [x] **5.3** Integration Test: Deep Link → Exchange → Login Screen
 
 ### Task 6: E2E Testing & Performance Validation (AC: 2, NFR-P3)
 - [ ] **6.1** E2E Test: Cold Start (App geschlossen → Deep Link → App öffnet)
@@ -568,7 +568,13 @@ navigate({ to: '/login' });
 
 ### Debug Log References
 - **Task 1**: Agent ID a615f31 - Tauri Plugin Installation & Konfiguration
-- **Commit**: 0628f87d - Add Tauri deep link plugin support
+  - Commit: 0628f87d - Add Tauri deep link plugin support
+- **Task 2**: Agent ID a29d030 (Implementation), a1c09ee (TypeScript Fix 1), a21b3ce (API Fix), a846b74 (Cleanup), a959521 (Mock Fix)
+  - Commits: 8bde213a (Service), 42540bee (TypeScript Fix), faae9736 (Cleanup), faae9736 (Mock Fix)
+- **Task 3**: Agent ID a61318a (Implementation), ae36584 (Syntax Verification), a9ca1db (API Client Fix), ac3758c (Import Path Fix)
+  - Commits: f0865b2e (API Client Fix), 89defe5d (ReactElement Fix)
+- **Task 4**: Agent ID a999a15 (UI Components Implementation)
+  - Commit: eeeb8fff - Add Deep Link UI components (Loading, Error)
 
 ### Completion Notes List
 - [x] **Task 1**: Tauri Deep Link Plugins installiert & konfiguriert (AC1, AC2)
@@ -578,6 +584,31 @@ navigate({ to: '/login' });
   - Permissions hinzugefügt in capabilities/default.json
   - Info.plist auto-generiert (macOS)
   - Konfiguration validiert (cargo check, JSON syntax)
+- [x] **Task 2**: DeepLinkService implementiert (AC1, AC2, AC5)
+  - Service: `features/server/services/deep-link.service.ts` (265 Zeilen)
+  - Types: `features/server/types/deep-link.ts` (DeepLinkParams, DeepLinkError)
+  - Tauri Plugin Integration: `onOpenUrl()` (Warm Start) + `getCurrent()` (Cold Start)
+  - URL Parser: `bluelight://connect?url=...&invite=...&expires=...`
+  - Client-side Expiry Validation mit NaN-Check
+  - Event Emitter Pattern (Singleton, Typed Events)
+  - Unit Tests: 16/16 grün (AAA Pattern mit Given-When-Then)
+  - Commits: 8bde213a, 42540bee, faae9736
+- [x] **Task 3**: useExchangeInvite Mutation Hook (AC3)
+  - Mutation Hook: `features/server/api/mutations.ts` (120 Zeilen)
+  - Query Keys: `features/server/api/query-keys.ts` (zentrale Cache Keys)
+  - Generated API Client Integration: `api.auth().authControllerExchangeInvite()`
+  - Server Store Integration: `addServer()`, `setActiveServer()` bei Success
+  - Query Invalidation für Cache-Refresh
+  - Error Handling: Typed `ResponseError`, Retry Logic (2x exponential backoff)
+  - Unit Tests: 6/6 grün (AAA Pattern, Mock API + Store)
+  - Commits: f0865b2e (API Client Fix), 89defe5d (ReactElement Fix)
+- [x] **Task 4**: UI Components - Loading, Toast, Error (AC4, AC5)
+  - ServerConnectLoading: Spinner + Message (Tailwind Animation)
+  - ExpiredLinkError: Error Card mit CTA Button
+  - Toast Integration Docs: TOAST_INTEGRATION.md (sonner)
+  - Component Tests: 20/20 grün (@testing-library/react + user-event)
+  - Accessibility: ARIA labels, Semantic HTML, Keyboard Support
+  - Commit: eeeb8fff - Add Deep Link UI components (Loading, Error)
 - [ ] Alle 7 Tasks abgeschlossen
 - [ ] Alle ACs validiert (AC1-AC5)
 - [ ] Performance <3s validiert (NFR-P3)
@@ -587,6 +618,7 @@ navigate({ to: '/login' });
 - [ ] Story 2.4 Status → "review" gesetzt
 
 ### File List
+**Task 1:**
 - `packages/frontend/package.json` - Added @tauri-apps/plugin-deep-link@2.4.6
 - `packages/frontend/src-tauri/Cargo.toml` - Added deep-link, single-instance, serde dependencies
 - `packages/frontend/src-tauri/src/lib.rs` - Plugin initialization
@@ -594,6 +626,25 @@ navigate({ to: '/login' });
 - `packages/frontend/src-tauri/capabilities/default.json` - deep-link:default permission
 - `packages/frontend/src-tauri/Cargo.lock` - Auto-generated
 - `pnpm-lock.yaml` - Auto-generated
+
+**Task 2:**
+- `packages/frontend/src/features/server/types/deep-link.ts` - NEW (Types)
+- `packages/frontend/src/features/server/services/deep-link.service.ts` - NEW (Service Implementation)
+- `packages/frontend/src/features/server/services/deep-link.service.spec.ts` - NEW (16 Unit Tests)
+
+**Task 3:**
+- `packages/frontend/src/features/server/api/query-keys.ts` - NEW (Query Key Definitions)
+- `packages/frontend/src/features/server/api/mutations.ts` - NEW (useExchangeInvite Hook)
+- `packages/frontend/src/features/server/api/mutations.spec.tsx` - NEW (6 Unit Tests)
+- `packages/frontend/src/features/server/api/index.ts` - NEW (API Barrel Export)
+
+**Task 4:**
+- `packages/frontend/src/features/server/ui/molecules/ServerConnectLoading.tsx` - NEW (Loading Component)
+- `packages/frontend/src/features/server/ui/molecules/ServerConnectLoading.spec.tsx` - NEW (7 Tests)
+- `packages/frontend/src/features/server/ui/molecules/ExpiredLinkError.tsx` - NEW (Error Component)
+- `packages/frontend/src/features/server/ui/molecules/ExpiredLinkError.spec.tsx` - NEW (13 Tests)
+- `packages/frontend/src/features/server/ui/molecules/TOAST_INTEGRATION.md` - NEW (Toast Docs)
+- `packages/frontend/package.json` - Added @testing-library/user-event@14.6.1
 
 ---
 
