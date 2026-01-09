@@ -216,7 +216,9 @@ export class DeepLinkService {
    * @param event - Event Name
    * @param callback - Callback Function (optional, entfernt alle wenn nicht angegeben)
    */
-  public off(event: DeepLinkEvent, callback?: DeepLinkCallback): void {
+  public off(event: 'deep-link-received', callback?: DeepLinkCallback): void;
+  public off(event: 'deep-link-error', callback?: DeepLinkErrorCallback): void;
+  public off(event: DeepLinkEvent, callback?: DeepLinkCallback | DeepLinkErrorCallback): void {
     if (!callback) {
       this.listeners.delete(event);
       return;
