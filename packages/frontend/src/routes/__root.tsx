@@ -4,6 +4,7 @@ import { useWindowOrientation } from '@/shared/hooks/useWindowOrientation';
 import { handleQueryError } from '@/shared/lib/errors/error-handler';
 import { isServerAccessTokenPromptActive, setSetupRedirectInProgress } from '@/shared/lib/server-access-token';
 import { TokenRequiredModal } from '@/shared/ui/organisms/TokenRequiredModal';
+import { useDeepLinkEffect } from '@/features/server/hooks/useDeepLinkEffect';
 
 // Reset Setup-Redirect-Flag beim App-Start - ABER NICHT wenn wir auf /setup sind!
 // Grund: Nach einem Full-Page-Redirect zu /setup (via window.location.href) wird die App
@@ -104,6 +105,9 @@ const queryClient = new QueryClient({
 function RootComponent() {
   // Automatisches Fenster-Resizing basierend auf Route (nur in Tauri)
   useWindowOrientation();
+
+  // Deep Link Integration für Desktop App
+  useDeepLinkEffect();
 
   return (
     <Provider>
