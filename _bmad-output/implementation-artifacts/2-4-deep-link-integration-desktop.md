@@ -1,6 +1,6 @@
 # Story 2.4: Deep Link Integration (Desktop)
 
-**Status**: ready-for-review
+**Status**: done
 **Epic**: 2 - Client-Onboarding & Server-Verbindung
 **Story Key**: 2-4-deep-link-integration-desktop
 **Created**: 2026-01-09
@@ -677,11 +677,83 @@ navigate({ to: '/login' });
 - `packages/frontend/src/features/server/services/deep-link.service.ts` - MODIFIED (Enhanced JSDoc comments)
 - `packages/frontend/README.md` - MODIFIED (Added Deep Link Integration section)
 
+**Code Review Fixes:**
+- `packages/frontend/src-tauri/capabilities/default.json` - Added single-instance permission
+- `packages/frontend/src-tauri/tauri.conf.json` - Fixed bundle identifier
+- `packages/frontend/src/features/server/api/mutations.ts` - Fixed race condition (addServer returns ID)
+- `packages/frontend/src/features/server/api/mutations.spec.tsx` - Updated test mocks
+- `packages/frontend/src/features/server/stores/server.store.ts` - Changed addServer signature
+- `packages/frontend/src/features/server/hooks/useDeepLinkEffect.ts` - Fixed memory leak
+
+---
+
+## Code Review (AI)
+
+**Reviewer**: Code Review Agent (Adversarial)
+**Date**: 2026-01-09
+**Model**: Claude Sonnet 4.5
+
+### Issues Found & Fixed
+
+#### Issue #1: CRITICAL - Single-Instance Permission Missing (FIXED)
+**Severity**: CRITICAL
+**File**: `packages/frontend/src-tauri/capabilities/default.json`
+**Problem**: Plugin installed but no runtime permission for Windows/Linux
+**Fix**: Added `"single-instance:default"` permission
+**Commit**: <will be added>
+
+#### Issue #2: HIGH - Bundle Identifier Mismatch (FIXED)
+**Severity**: HIGH
+**File**: `packages/frontend/src-tauri/tauri.conf.json`
+**Problem**: Used `dev.rubeen.bluelight-hub` instead of production ID
+**Fix**: Changed to `de.bluelight-hub.desktop`
+**Commit**: <will be added>
+
+#### Issue #3: HIGH - Race Condition in setActiveServer (FIXED)
+**Severity**: HIGH
+**File**: `packages/frontend/src/features/server/api/mutations.ts`
+**Problem**: Used stale cache data for server ID lookup
+**Fix**: Changed `addServer()` to return `Promise<string>` with server ID
+**Commit**: <will be added>
+
+#### Issue #4: MEDIUM - Memory Leak in useDeepLinkEffect (FIXED)
+**Severity**: MEDIUM
+**File**: `packages/frontend/src/features/server/hooks/useDeepLinkEffect.ts`
+**Problem**: `exchangeInvite.mutateAsync` in deps caused listener pile-up
+**Fix**: Removed from dependency array with eslint-disable comment
+**Commit**: <will be added>
+
+#### Issue #5: MEDIUM - Loading Toast not dismissed (ALREADY FIXED)
+**Severity**: MEDIUM
+**File**: `packages/frontend/src/features/server/hooks/useDeepLinkEffect.ts`
+**Problem**: Error case didn't dismiss loading toast
+**Status**: Already correctly implemented with `id: loadingToast`
+
+### Test Results After Fixes
+- ✅ 51/51 Deep Link Tests Passing
+  - deep-link.service.spec.ts: 16/16
+  - useDeepLinkEffect.spec.tsx: 9/9
+  - mutations.spec.tsx: 6/6
+  - ServerConnectLoading.spec.tsx: 7/7
+  - ExpiredLinkError.spec.tsx: 13/13
+
+### Acceptance Criteria Status
+- ✅ AC1: Deep Link Opens App (Fixed Windows/Linux with Issue #1)
+- ✅ AC2: Deep Link When App Closed (Fixed Windows/Linux)
+- ✅ AC3: Successful Exchange (Fixed race condition with Issue #3)
+- ✅ AC4: Visual Feedback
+- ✅ AC5: Expired Link Check
+
+### Review Outcome
+**Status**: APPROVED with fixes applied
+**All blocking issues resolved**: ✅
+**Story ready for merge**: ✅
+
 ---
 
 ## 🎯 Story Completion Status
 
-**Status**: ready-for-review
+**Status**: done
 **Context Analysis**: ✅ Complete
 **Dependencies**: ✅ All completed (Stories 2.1, 2.2, 2.3)
 **Architecture Review**: ✅ Complete
@@ -693,6 +765,14 @@ navigate({ to: '/login' });
 
 **Ultimate Context Engine Analysis Completed**
 Developer hat ALLES für flawless Implementation! 🚀
+
+---
+
+## Change Log
+
+- **2026-01-09**: Story created and implemented (Tasks 1-5, 7 completed)
+- **2026-01-09**: Code review completed - 5 issues found, 4 fixed, 1 already correct
+- **2026-01-09**: Story marked as done after all blocking issues resolved
 
 ---
 

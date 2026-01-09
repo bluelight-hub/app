@@ -75,17 +75,18 @@ function validateUrl(url: string): boolean {
  *
  * @param config - Server-Konfiguration ohne ID und Timestamps
  * @throws Error wenn Validierung fehlschlägt
+ * @returns Die generierte Server-ID
  *
  * @example
  * ```typescript
- * await addServer({
+ * const serverId = await addServer({
  *   name: 'Produktiv-Server',
  *   url: 'https://api.example.com',
  *   isDefault: true
  * });
  * ```
  */
-export async function addServer(config: Omit<ServerConfig, 'id' | 'createdAt'>): Promise<void> {
+export async function addServer(config: Omit<ServerConfig, 'id' | 'createdAt'>): Promise<string> {
   // Validierung
   if (!config.name || config.name.trim().length < 1) {
     throw new Error('Server name must be at least 1 character long');
@@ -97,9 +98,10 @@ export async function addServer(config: Omit<ServerConfig, 'id' | 'createdAt'>):
 
   // Auto-generierte Felder
   const now = new Date().toISOString();
+  const serverId = generateServerId();
   const newServer: ServerConfig = {
     ...config,
-    id: generateServerId(),
+    id: serverId,
     createdAt: now,
     lastUsedAt: now,
   };
@@ -112,6 +114,8 @@ export async function addServer(config: Omit<ServerConfig, 'id' | 'createdAt'>):
 
   // Storage Sync
   await saveServers(serverStore.state.servers);
+
+  return serverId;
 }
 
 /**

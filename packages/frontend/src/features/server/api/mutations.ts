@@ -79,14 +79,11 @@ export const useExchangeInvite = () => {
         };
 
         // Add to store (automatically persists to storage)
-        await addServer(newServer);
+        // Returns the generated server ID to avoid race condition
+        const newServerId = await addServer(newServer);
 
-        // Set as active server (updates lastUsedAt and isDefault)
-        const servers = queryClient.getQueryData<Array<{ id: string }>>(SERVER_QUERY_KEYS.list());
-        if (servers && servers.length > 0) {
-          const addedServer = servers[servers.length - 1];
-          await setActiveServer(addedServer.id);
-        }
+        // Set as active server using the returned ID (updates lastUsedAt and isDefault)
+        await setActiveServer(newServerId);
 
         // Invalidate server list query to refresh cache
         await queryClient.invalidateQueries({ queryKey: SERVER_QUERY_KEYS.list() });

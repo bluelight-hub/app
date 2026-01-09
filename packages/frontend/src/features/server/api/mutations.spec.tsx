@@ -9,7 +9,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { renderHook, waitFor } from '@testing-library/react';
 import type { ReactElement, ReactNode } from 'react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import * as serverStore from '../stores/server.store';
+import { addServer, setActiveServer } from '../stores/server.store';
 import { SERVER_QUERY_KEYS } from './query-keys';
 import { useExchangeInvite } from './mutations';
 
@@ -37,7 +37,7 @@ vi.mock('@/shared/lib/logger', () => ({
   },
 }));
 
-// Mock Server Store
+// Mock Server Store with factory
 vi.mock('../stores/server.store', () => ({
   addServer: vi.fn(),
   setActiveServer: vi.fn(),
@@ -50,6 +50,9 @@ describe('useExchangeInvite', () => {
   beforeEach(() => {
     // Reset all mocks before each test
     vi.clearAllMocks();
+
+    // Configure addServer mock to return server ID (Fix #3: Race condition fix)
+    vi.mocked(addServer).mockResolvedValue('server-1');
 
     // Create fresh QueryClient for each test
     // Note: We don't disable mutations.retry globally because useExchangeInvite
@@ -89,8 +92,6 @@ describe('useExchangeInvite', () => {
       };
 
       mockAuthControllerExchangeInvite.mockResolvedValue(mockResponse);
-      vi.mocked(serverStore.addServer).mockResolvedValue(undefined);
-      vi.mocked(serverStore.setActiveServer).mockResolvedValue(undefined);
 
       // Mock query data to simulate server being added
       queryClient.setQueryData(SERVER_QUERY_KEYS.list(), [{ id: 'server-1' }]);
@@ -109,7 +110,7 @@ describe('useExchangeInvite', () => {
       });
 
       // Verify server added to store
-      expect(serverStore.addServer).toHaveBeenCalledWith(
+      expect(addServer).toHaveBeenCalledWith(
         expect.objectContaining({
           name: 'Test Server',
           url: 'https://api.test.de',
@@ -119,7 +120,7 @@ describe('useExchangeInvite', () => {
       );
 
       // Verify server set as active
-      expect(serverStore.setActiveServer).toHaveBeenCalledWith('server-1');
+      expect(setActiveServer).toHaveBeenCalledWith('server-1');
     });
 
     it('should handle server info with trailing slash in URL', async () => {
@@ -141,7 +142,6 @@ describe('useExchangeInvite', () => {
       };
 
       mockAuthControllerExchangeInvite.mockResolvedValue(mockResponse);
-      vi.mocked(serverStore.addServer).mockResolvedValue(undefined);
 
       // When (Act)
       const { result } = renderHook(() => useExchangeInvite(), { wrapper });
@@ -152,7 +152,7 @@ describe('useExchangeInvite', () => {
       await waitFor(() => expect(result.current.isSuccess).toBe(true));
 
       // Verify URL stored as-is (validation happens in addServer)
-      expect(serverStore.addServer).toHaveBeenCalledWith(
+      expect(addServer).toHaveBeenCalledWith(
         expect.objectContaining({
           url: 'https://api.example.com/',
         }),
@@ -178,7 +178,6 @@ describe('useExchangeInvite', () => {
       };
 
       mockAuthControllerExchangeInvite.mockResolvedValue(mockResponse);
-      vi.mocked(serverStore.addServer).mockResolvedValue(undefined);
 
       // Set initial query data
       queryClient.setQueryData(SERVER_QUERY_KEYS.list(), []);
@@ -221,7 +220,7 @@ describe('useExchangeInvite', () => {
 
       // Simulate store error
       const storeError = new Error('Failed to save to storage');
-      vi.mocked(serverStore.addServer).mockRejectedValue(storeError);
+      vi.mocked(addServer).mockRejectedValue(storeError);
 
       // When (Act)
       const { result } = renderHook(() => useExchangeInvite(), { wrapper });
@@ -236,7 +235,7 @@ describe('useExchangeInvite', () => {
       expect(mockAuthControllerExchangeInvite).toHaveBeenCalled();
 
       // Verify store was attempted
-      expect(serverStore.addServer).toHaveBeenCalled();
+      expect(addServer).toHaveBeenCalled();
 
       // No error state (error is only logged, not propagated)
       expect(result.current.error).toBeNull();
@@ -269,8 +268,6 @@ describe('useExchangeInvite', () => {
             setTimeout(() => resolve(mockResponse), 100);
           }),
       );
-
-      vi.mocked(serverStore.addServer).mockResolvedValue(undefined);
 
       // When (Act)
       const { result } = renderHook(() => useExchangeInvite(), { wrapper });
@@ -309,8 +306,6 @@ describe('useExchangeInvite', () => {
       };
 
       mockAuthControllerExchangeInvite.mockResolvedValue(mockResponse);
-      vi.mocked(serverStore.addServer).mockResolvedValue(undefined);
-      vi.mocked(serverStore.setActiveServer).mockResolvedValue(undefined);
 
       queryClient.setQueryData(SERVER_QUERY_KEYS.list(), [{ id: 'server-async' }]);
 
@@ -327,7 +322,7 @@ describe('useExchangeInvite', () => {
       // Wait for mutation to complete
       await waitFor(() => expect(result.current.isSuccess).toBe(true));
 
-      expect(serverStore.addServer).toHaveBeenCalled();
+      expect(addServer).toHaveBeenCalled();
     });
   });
 });
