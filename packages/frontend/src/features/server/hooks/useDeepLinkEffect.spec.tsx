@@ -107,7 +107,7 @@ describe('useDeepLinkEffect Integration', () => {
       // When: Render hook and emit deep link event
       renderHook(() => useDeepLinkEffect());
 
-      deepLinkService.emit('deep-link-received' as never, {
+      deepLinkService.emitForTesting('deep-link-received', {
         serverUrl: 'https://api.test.de',
         inviteCode: 'INV_12345678',
         expiresAt: null,
@@ -167,7 +167,7 @@ describe('useDeepLinkEffect Integration', () => {
       // When
       renderHook(() => useDeepLinkEffect());
 
-      deepLinkService.emit('deep-link-received' as never, {
+      deepLinkService.emitForTesting('deep-link-received', {
         serverUrl: 'https://api.test.de',
         inviteCode: 'INV_12345678',
         expiresAt: futureDate.toISOString(),
@@ -192,7 +192,7 @@ describe('useDeepLinkEffect Integration', () => {
       // When
       renderHook(() => useDeepLinkEffect());
 
-      deepLinkService.emit('deep-link-received' as never, {
+      deepLinkService.emitForTesting('deep-link-received', {
         serverUrl: 'https://api.test.de',
         inviteCode: 'INVALID_CODE',
         expiresAt: null,
@@ -220,7 +220,7 @@ describe('useDeepLinkEffect Integration', () => {
       // When
       renderHook(() => useDeepLinkEffect());
 
-      deepLinkService.emit('deep-link-received' as never, {
+      deepLinkService.emitForTesting('deep-link-received', {
         serverUrl: 'https://api.test.de',
         inviteCode: 'INV_12345678',
         expiresAt: pastDate.toISOString(),
@@ -245,7 +245,7 @@ describe('useDeepLinkEffect Integration', () => {
       // When
       renderHook(() => useDeepLinkEffect());
 
-      deepLinkService['emitError'](DeepLinkError.INVALID_PROTOCOL, 'Invalid protocol: http://');
+      deepLinkService.emitForTesting('deep-link-error', DeepLinkError.INVALID_PROTOCOL, 'Invalid protocol: http://');
 
       // Then
       await waitFor(() => {
@@ -260,7 +260,7 @@ describe('useDeepLinkEffect Integration', () => {
       // When
       renderHook(() => useDeepLinkEffect());
 
-      deepLinkService['emitError'](DeepLinkError.MISSING_PARAMETERS, 'Missing invite parameter');
+      deepLinkService.emitForTesting('deep-link-error', DeepLinkError.MISSING_PARAMETERS, 'Missing invite parameter');
 
       // Then
       await waitFor(() => {
@@ -275,7 +275,7 @@ describe('useDeepLinkEffect Integration', () => {
       // When
       renderHook(() => useDeepLinkEffect());
 
-      deepLinkService['emitError'](DeepLinkError.EXPIRED_LINK, 'Link expired');
+      deepLinkService.emitForTesting('deep-link-error', DeepLinkError.EXPIRED_LINK, 'Link expired');
 
       // Then
       await waitFor(() => {
@@ -290,7 +290,7 @@ describe('useDeepLinkEffect Integration', () => {
       // When
       renderHook(() => useDeepLinkEffect());
 
-      deepLinkService['emitError'](DeepLinkError.PARSE_ERROR, 'Failed to parse URL');
+      deepLinkService.emitForTesting('deep-link-error', DeepLinkError.PARSE_ERROR, 'Failed to parse URL');
 
       // Then
       await waitFor(() => {

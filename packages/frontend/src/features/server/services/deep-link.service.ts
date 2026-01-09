@@ -273,6 +273,22 @@ export class DeepLinkService {
       DeepLinkService.instance = null;
     }
   }
+
+  /**
+   * Emit Event (nur für Tests!)
+   *
+   * WARNUNG: Nur in Test-Umgebung verwenden!
+   * Erlaubt Tests, Deep Link Events manuell zu triggern.
+   */
+  public emitForTesting(event: 'deep-link-received', params: DeepLinkParams): void;
+  public emitForTesting(event: 'deep-link-error', error: DeepLinkError, message: string): void;
+  public emitForTesting(event: DeepLinkEvent, ...args: [DeepLinkParams] | [DeepLinkError, string]): void {
+    if (event === 'deep-link-received') {
+      this.emit(event, args[0] as DeepLinkParams);
+    } else if (event === 'deep-link-error') {
+      this.emitError(args[0] as DeepLinkError, args[1] as string);
+    }
+  }
 }
 
 /**

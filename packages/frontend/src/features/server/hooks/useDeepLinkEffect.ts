@@ -69,6 +69,17 @@ export function useDeepLinkEffect() {
       });
 
       try {
+        // Validate inviteCode (should always be present after DeepLinkService validation)
+        if (!params.inviteCode) {
+          toast.error('Ungültiger Einladungscode', {
+            id: loadingToast,
+            description: 'Der Link enthält keinen gültigen Einladungscode.',
+            duration: 5000,
+          });
+          logger.error('Deep link missing inviteCode after validation', params);
+          return;
+        }
+
         // Exchange Invite Code (API Call)
         const result = await exchangeInvite.mutateAsync(params.inviteCode);
 
@@ -164,5 +175,5 @@ export function useDeepLinkEffect() {
       deepLinkService.off('deep-link-received', handleDeepLinkReceived);
       deepLinkService.off('deep-link-error', handleDeepLinkError);
     };
-  }, [navigate, exchangeInvite]);
+  }, [navigate, exchangeInvite.mutateAsync]);
 }
