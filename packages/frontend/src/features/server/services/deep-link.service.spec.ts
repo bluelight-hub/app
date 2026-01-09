@@ -9,13 +9,15 @@ import { describe, it, expect, beforeEach, vi, afterEach } from 'vitest';
 import { DeepLinkService } from './deep-link.service';
 import { DeepLinkError } from '../types/deep-link';
 import type { DeepLinkParams } from '../types/deep-link';
-import { onOpenUrl, getCurrent } from '@tauri-apps/plugin-deep-link';
 
 // Mock Tauri Deep Link Plugin
 vi.mock('@tauri-apps/plugin-deep-link', () => ({
   onOpenUrl: vi.fn(),
   getCurrent: vi.fn(),
 }));
+
+// Import mocked functions after mock definition
+import { onOpenUrl, getCurrent } from '@tauri-apps/plugin-deep-link';
 
 describe('DeepLinkService', () => {
   let service: DeepLinkService;
