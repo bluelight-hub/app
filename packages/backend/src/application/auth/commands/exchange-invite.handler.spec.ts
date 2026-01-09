@@ -45,6 +45,7 @@ describe('ExchangeInviteHandler', () => {
       existsByCode: jest.fn(),
       countActive: jest.fn(),
       findAll: jest.fn(),
+      markAsUsedAtomic: jest.fn(),
     } as unknown as jest.Mocked<IInviteCodeRepository>;
 
     mockTokenRepo = {
@@ -103,11 +104,9 @@ describe('ExchangeInviteHandler', () => {
     it('should exchange valid invite code successfully', async () => {
       // Given (Arrange)
       const dto = createValidDto('ABC12345');
-      const mockInviteCode = createValidInviteCode();
 
-      // Mock repository to accept any InviteCodeValue
-      mockInviteRepo.findByCode.mockImplementation(async () => Result.ok(mockInviteCode));
-      mockInviteRepo.save.mockResolvedValue(Result.ok(undefined));
+      // Mock atomic marking success
+      mockInviteRepo.markAsUsedAtomic.mockResolvedValue(Result.ok(undefined));
       mockTokenRepo.save.mockResolvedValue(Result.ok(undefined));
 
       // When (Act)
@@ -118,17 +117,15 @@ describe('ExchangeInviteHandler', () => {
       expect(result.value).toBeDefined();
       expect(result.value?.accessToken).toBeDefined();
       expect(result.value?.serverInfo).toBeDefined();
-      expect(mockInviteRepo.save).toHaveBeenCalledTimes(1);
+      expect(mockInviteRepo.markAsUsedAtomic).toHaveBeenCalledTimes(1);
       expect(mockTokenRepo.save).toHaveBeenCalledTimes(1);
     });
 
     it('should return access token with blh_ prefix', async () => {
       // Given (Arrange)
       const dto = createValidDto('ABC12345');
-      const mockInviteCode = createValidInviteCode();
 
-      mockInviteRepo.findByCode.mockImplementation(async () => Result.ok(mockInviteCode));
-      mockInviteRepo.save.mockResolvedValue(Result.ok(undefined));
+      mockInviteRepo.markAsUsedAtomic.mockResolvedValue(Result.ok(undefined));
       mockTokenRepo.save.mockResolvedValue(Result.ok(undefined));
 
       // When (Act)
@@ -142,10 +139,8 @@ describe('ExchangeInviteHandler', () => {
     it('should include serverInfo in response', async () => {
       // Given (Arrange)
       const dto = createValidDto('ABC12345');
-      const mockInviteCode = createValidInviteCode();
 
-      mockInviteRepo.findByCode.mockImplementation(async () => Result.ok(mockInviteCode));
-      mockInviteRepo.save.mockResolvedValue(Result.ok(undefined));
+      mockInviteRepo.markAsUsedAtomic.mockResolvedValue(Result.ok(undefined));
       mockTokenRepo.save.mockResolvedValue(Result.ok(undefined));
 
       // When (Act)
@@ -160,13 +155,11 @@ describe('ExchangeInviteHandler', () => {
       });
     });
 
-    it('should increment invite code useCount', async () => {
+    it('should call markAsUsedAtomic with correct InviteCodeValue', async () => {
       // Given (Arrange)
       const dto = createValidDto('ABC12345');
-      const mockInviteCode = createValidInviteCode({ usedCount: 0, maxUses: 5 });
 
-      mockInviteRepo.findByCode.mockImplementation(async () => Result.ok(mockInviteCode));
-      mockInviteRepo.save.mockResolvedValue(Result.ok(undefined));
+      mockInviteRepo.markAsUsedAtomic.mockResolvedValue(Result.ok(undefined));
       mockTokenRepo.save.mockResolvedValue(Result.ok(undefined));
 
       // When (Act)
@@ -174,9 +167,11 @@ describe('ExchangeInviteHandler', () => {
 
       // Then (Assert)
       expect(result.isSuccess).toBe(true);
-      expect(mockInviteRepo.save).toHaveBeenCalledWith(
+      expect(mockInviteRepo.markAsUsedAtomic).toHaveBeenCalledWith(
         expect.objectContaining({
-          usedCount: 1, // Increment von 0 → 1
+          props: expect.objectContaining({
+            value: 'ABC12345',
+          }),
         }),
       );
     });
@@ -186,11 +181,9 @@ describe('ExchangeInviteHandler', () => {
     it('should fail when invite code is expired (AC2)', async () => {
       // Given (Arrange)
       const dto = createValidDto('ABC12345');
-      const pastDate = new Date();
-      pastDate.setHours(pastDate.getHours() - 24); // 1 Tag in Vergangenheit
-      const expiredInvite = createValidInviteCode({ expiresAt: pastDate });
 
-      mockInviteRepo.findByCode.mockImplementation(async () => Result.ok(expiredInvite));
+      // Atomic marking detects expired code
+      mockInviteRepo.markAsUsedAtomic.mockResolvedValue(Result.fail('INVITE_EXPIRED'));
 
       // When (Act)
       const result = await handler.execute(dto);
@@ -199,15 +192,14 @@ describe('ExchangeInviteHandler', () => {
       expect(result.isFailure).toBe(true);
       expect(result.error).toBe('INVITE_EXPIRED');
       expect(mockTokenRepo.save).not.toHaveBeenCalled();
-      expect(mockInviteRepo.save).not.toHaveBeenCalled();
     });
 
     it('should fail when invite code is already used (AC3)', async () => {
       // Given (Arrange)
       const dto = createValidDto('ABC12345');
-      const usedInvite = createValidInviteCode({ usedCount: 1, maxUses: 1 });
 
-      mockInviteRepo.findByCode.mockImplementation(async () => Result.ok(usedInvite));
+      // Atomic marking detects already used code (Race-Condition-safe!)
+      mockInviteRepo.markAsUsedAtomic.mockResolvedValue(Result.fail('INVITE_ALREADY_USED'));
 
       // When (Act)
       const result = await handler.execute(dto);
@@ -222,7 +214,8 @@ describe('ExchangeInviteHandler', () => {
       // Given (Arrange)
       const dto = createValidDto('INVALID1');
 
-      mockInviteRepo.findByCode.mockImplementation(async () => Result.ok(null));
+      // Atomic marking detects non-existent code
+      mockInviteRepo.markAsUsedAtomic.mockResolvedValue(Result.fail('INVITE_INVALID'));
 
       // When (Act)
       const result = await handler.execute(dto);
@@ -243,7 +236,7 @@ describe('ExchangeInviteHandler', () => {
       // Then (Assert)
       expect(result.isFailure).toBe(true);
       expect(result.error).toBe('INVITE_CODE_INVALID_LENGTH');
-      expect(mockInviteRepo.findByCode).not.toHaveBeenCalled();
+      expect(mockInviteRepo.markAsUsedAtomic).not.toHaveBeenCalled();
     });
   });
 
@@ -252,26 +245,22 @@ describe('ExchangeInviteHandler', () => {
       // Given (Arrange)
       const dto = createValidDto('ABC12345');
 
-      mockInviteRepo.findByCode.mockImplementation(async () => Result.fail('Database connection failed'));
+      mockInviteRepo.markAsUsedAtomic.mockResolvedValue(Result.fail('DATABASE_ERROR'));
 
       // When (Act)
       const result = await handler.execute(dto);
 
       // Then (Assert)
       expect(result.isFailure).toBe(true);
-      expect(result.error).toBe('SERVER_ERROR');
+      expect(result.error).toBe('DATABASE_ERROR');
     });
 
     it('should generate unique tokens for each exchange', async () => {
       // Given (Arrange)
       const dto1 = createValidDto('ABC12345');
       const dto2 = createValidDto('ABC12345');
-      const mockInviteCode1 = createValidInviteCode({ maxUses: 10 });
-      const mockInviteCode2 = createValidInviteCode({ maxUses: 10 });
 
-      mockInviteRepo.findByCode.mockImplementationOnce(async () => Result.ok(mockInviteCode1)).mockImplementationOnce(async () => Result.ok(mockInviteCode2));
-
-      mockInviteRepo.save.mockResolvedValue(Result.ok(undefined));
+      mockInviteRepo.markAsUsedAtomic.mockResolvedValue(Result.ok(undefined));
       mockTokenRepo.save.mockResolvedValue(Result.ok(undefined));
 
       // When (Act)
@@ -287,10 +276,8 @@ describe('ExchangeInviteHandler', () => {
     it('should hash token with bcrypt before storing', async () => {
       // Given (Arrange)
       const dto = createValidDto('ABC12345');
-      const mockInviteCode = createValidInviteCode();
 
-      mockInviteRepo.findByCode.mockImplementation(async () => Result.ok(mockInviteCode));
-      mockInviteRepo.save.mockResolvedValue(Result.ok(undefined));
+      mockInviteRepo.markAsUsedAtomic.mockResolvedValue(Result.ok(undefined));
       mockTokenRepo.save.mockResolvedValue(Result.ok(undefined));
 
       // bcrypt.hash() sollte aufgerufen werden (exakte 60 Zeichen)
@@ -314,27 +301,9 @@ describe('ExchangeInviteHandler', () => {
     it('should handle bcrypt errors gracefully', async () => {
       // Given (Arrange)
       const dto = createValidDto('ABC12345');
-      const mockInviteCode = createValidInviteCode();
 
-      mockInviteRepo.findByCode.mockImplementation(async () => Result.ok(mockInviteCode));
+      mockInviteRepo.markAsUsedAtomic.mockResolvedValue(Result.ok(undefined));
       mockedBcrypt.hash.mockRejectedValue(new Error('Bcrypt failed'));
-
-      // When (Act)
-      const result = await handler.execute(dto);
-
-      // Then (Assert)
-      expect(result.isFailure).toBe(true);
-      expect(result.error).toBe('SERVER_ERROR');
-      expect(mockInviteRepo.save).not.toHaveBeenCalled();
-    });
-
-    it('should fail when invite repository save fails', async () => {
-      // Given (Arrange)
-      const dto = createValidDto('ABC12345');
-      const mockInviteCode = createValidInviteCode();
-
-      mockInviteRepo.findByCode.mockImplementation(async () => Result.ok(mockInviteCode));
-      mockInviteRepo.save.mockResolvedValue(Result.fail('DB Error'));
 
       // When (Act)
       const result = await handler.execute(dto);
@@ -348,10 +317,8 @@ describe('ExchangeInviteHandler', () => {
     it('should fail when token repository save fails', async () => {
       // Given (Arrange)
       const dto = createValidDto('ABC12345');
-      const mockInviteCode = createValidInviteCode();
 
-      mockInviteRepo.findByCode.mockImplementation(async () => Result.ok(mockInviteCode));
-      mockInviteRepo.save.mockResolvedValue(Result.ok(undefined));
+      mockInviteRepo.markAsUsedAtomic.mockResolvedValue(Result.ok(undefined));
       mockTokenRepo.save.mockResolvedValue(Result.fail('Token save failed'));
 
       // When (Act)
@@ -359,7 +326,7 @@ describe('ExchangeInviteHandler', () => {
 
       // Then (Assert)
       expect(result.isFailure).toBe(true);
-      expect(result.error).toBe('SERVER_ERROR');
+      expect(result.error).toBe('DATABASE_ERROR');
     });
 
     it('should handle empty invite code', async () => {
@@ -372,7 +339,7 @@ describe('ExchangeInviteHandler', () => {
       // Then (Assert)
       expect(result.isFailure).toBe(true);
       expect(result.error).toBe('INVITE_CODE_EMPTY');
-      expect(mockInviteRepo.findByCode).not.toHaveBeenCalled();
+      expect(mockInviteRepo.markAsUsedAtomic).not.toHaveBeenCalled();
     });
   });
 
@@ -380,10 +347,8 @@ describe('ExchangeInviteHandler', () => {
     it('should create ServerAccessToken with correct name', async () => {
       // Given (Arrange)
       const dto = createValidDto('ABC12345');
-      const mockInviteCode = createValidInviteCode();
 
-      mockInviteRepo.findByCode.mockImplementation(async () => Result.ok(mockInviteCode));
-      mockInviteRepo.save.mockResolvedValue(Result.ok(undefined));
+      mockInviteRepo.markAsUsedAtomic.mockResolvedValue(Result.ok(undefined));
       mockTokenRepo.save.mockResolvedValue(Result.ok(undefined));
 
       // When (Act)
@@ -401,10 +366,8 @@ describe('ExchangeInviteHandler', () => {
     it('should create ServerAccessToken without expiration', async () => {
       // Given (Arrange)
       const dto = createValidDto('ABC12345');
-      const mockInviteCode = createValidInviteCode();
 
-      mockInviteRepo.findByCode.mockImplementation(async () => Result.ok(mockInviteCode));
-      mockInviteRepo.save.mockResolvedValue(Result.ok(undefined));
+      mockInviteRepo.markAsUsedAtomic.mockResolvedValue(Result.ok(undefined));
       mockTokenRepo.save.mockResolvedValue(Result.ok(undefined));
 
       // When (Act)
@@ -424,9 +387,8 @@ describe('ExchangeInviteHandler', () => {
     it('should fail when TokenHash validation fails', async () => {
       // Given (Arrange)
       const dto = createValidDto('ABC12345');
-      const mockInviteCode = createValidInviteCode();
 
-      mockInviteRepo.findByCode.mockImplementation(async () => Result.ok(mockInviteCode));
+      mockInviteRepo.markAsUsedAtomic.mockResolvedValue(Result.ok(undefined));
 
       // Mock bcrypt to return invalid hash format
       mockedBcrypt.hash.mockResolvedValue('invalid-bcrypt-format' as never);
@@ -445,45 +407,19 @@ describe('ExchangeInviteHandler', () => {
       // Given (Arrange)
       const dto = createValidDto('ABC12345');
 
-      // Erstelle einen Code der beim ersten Check valid ist
-      const futureDate = new Date();
-      futureDate.setHours(futureDate.getHours() + 24);
-
-      const inviteCodeId = InviteCodeId.create().value!;
-      const inviteCodeValue = InviteCodeValue.generate().value!;
-
-      // Erstelle Invite-Code mit maxUses=1 und usedCount=0
-      const mockInviteCode = InviteCode.reconstruct({
-        id: inviteCodeId,
-        code: inviteCodeValue,
-        expiresAt: futureDate,
-        maxUses: 1,
-        usedCount: 0, // Noch nicht verwendet
-        createdById: 'admin-user-id-123',
-        label: 'Test Invite',
-        isRevoked: false,
-        revokedAt: null,
-        createdAt: new Date(),
-        updatedAt: new Date(),
-      });
-
-      mockInviteRepo.findByCode.mockImplementation(async () => Result.ok(mockInviteCode));
-
-      // Simuliere dass der Code bereits verwendet wurde (use() wurde bereits aufgerufen)
-      // Dies passiert wenn zwischen findByCode und use() ein paralleler Request den Code verwendet
-      mockInviteCode.use(); // Erhöht usedCount auf 1
-
-      mockInviteRepo.save.mockResolvedValue(Result.ok(undefined));
-      mockTokenRepo.save.mockResolvedValue(Result.ok(undefined));
+      // Simuliere dass markAsUsedAtomic() fehlschlägt weil Code parallel verwendet wurde
+      // Die atomare Operation in der DB erkennt dass kein Update möglich ist (count = 0)
+      // weil ein paralleler Request den Code bereits als verwendet markiert hat
+      mockInviteRepo.markAsUsedAtomic.mockResolvedValue(Result.fail('INVITE_ALREADY_USED'));
 
       // When (Act)
       const result = await handler.execute(dto);
 
       // Then (Assert)
-      // Der Handler sollte trotzdem erfolgreich sein, da use() idempotent ist
-      // und der Handler prüft ob usedCount < maxUses BEVOR use() aufgerufen wird
+      // Der Handler gibt INVITE_ALREADY_USED zurück - Race-Condition korrekt verhindert!
       expect(result.isFailure).toBe(true);
       expect(result.error).toBe('INVITE_ALREADY_USED');
+      expect(mockTokenRepo.save).not.toHaveBeenCalled();
     });
   });
 
@@ -501,10 +437,8 @@ describe('ExchangeInviteHandler', () => {
       process.env.APP_URL = 'https://test.example.com';
 
       const dto = createValidDto('ABC12345');
-      const mockInviteCode = createValidInviteCode();
 
-      mockInviteRepo.findByCode.mockImplementation(async () => Result.ok(mockInviteCode));
-      mockInviteRepo.save.mockResolvedValue(Result.ok(undefined));
+      mockInviteRepo.markAsUsedAtomic.mockResolvedValue(Result.ok(undefined));
       mockTokenRepo.save.mockResolvedValue(Result.ok(undefined));
 
       // When (Act)
@@ -526,10 +460,8 @@ describe('ExchangeInviteHandler', () => {
       delete process.env.APP_URL;
 
       const dto = createValidDto('ABC12345');
-      const mockInviteCode = createValidInviteCode();
 
-      mockInviteRepo.findByCode.mockImplementation(async () => Result.ok(mockInviteCode));
-      mockInviteRepo.save.mockResolvedValue(Result.ok(undefined));
+      mockInviteRepo.markAsUsedAtomic.mockResolvedValue(Result.ok(undefined));
       mockTokenRepo.save.mockResolvedValue(Result.ok(undefined));
 
       // When (Act)
