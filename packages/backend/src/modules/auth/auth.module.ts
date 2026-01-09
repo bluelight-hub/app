@@ -12,6 +12,9 @@ import { AdminJwtStrategy } from './strategies/admin-jwt.strategy';
 import { JwtStrategy } from './strategies/jwt.strategy';
 import { JwtRefreshStrategy } from './strategies/jwt-refresh.strategy';
 import { AuthApplicationModule } from '@/application/auth/auth-application.module';
+import { ExchangeInviteHandler } from '@/application/auth/commands/exchange-invite.handler';
+import { InviteCodeInfrastructureModule } from '@/infrastructure/invite-code/invite-code-infrastructure.module';
+import { ServerAccessTokenInfrastructureModule } from '@/infrastructure/server-access-token/server-access-token-infrastructure.module';
 
 /**
  * Authentifizierungsmodul für BlueLight Hub
@@ -41,6 +44,9 @@ import { AuthApplicationModule } from '@/application/auth/auth-application.modul
     }),
     // CQRS Application Layer für Auth Commands (Login, Logout)
     AuthApplicationModule,
+    // Infrastructure Module für ExchangeInviteHandler Dependencies
+    InviteCodeInfrastructureModule,
+    ServerAccessTokenInfrastructureModule,
   ],
   controllers: [AuthController],
   providers: [
@@ -54,6 +60,7 @@ import { AuthApplicationModule } from '@/application/auth/auth-application.modul
     JwtRefreshStrategy,
     AdminJwtStrategy,
     AdminJwtAuthGuard,
+    ExchangeInviteHandler,
   ],
   exports: [AuthService, JwtModule, AdminJwtAuthGuard],
 })

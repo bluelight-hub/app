@@ -21,7 +21,7 @@ import {
 import type { ILogger } from '@domain/ports/i-logger.port';
 import { LOGGER } from '@/infrastructure/di-tokens';
 import { ConfigService } from '@nestjs/config';
-import { ApiBody, ApiCookieAuth, ApiForbiddenResponse, ApiNoContentResponse, ApiOperation, ApiResponse, ApiTags, ApiUnauthorizedResponse } from '@nestjs/swagger';
+import { ApiBody, ApiCookieAuth, ApiForbiddenResponse, ApiNoContentResponse, ApiOperation, ApiResponse, ApiTags, ApiUnauthorizedResponse, ApiBadRequestResponse } from '@nestjs/swagger';
 import { ApiWrappedResponse } from '@/modules/common/decorators/api-wrapped-response.decorator';
 import { SkipThrottle, Throttle } from '@nestjs/throttler';
 import type { Request, Response } from 'express';
@@ -51,6 +51,11 @@ import { LoginHandler } from '@/application/auth/commands/login/login.handler';
 import { LogoutHandler } from '@/application/auth/commands/logout/logout.handler';
 import { LoginCommand } from '@/application/auth/commands/login/login.command';
 import { LogoutCommand } from '@/application/auth/commands/logout/logout.command';
+import { ExchangeInviteHandler } from '@/application/auth/commands/exchange-invite.handler';
+import { ExchangeInviteDto } from '@/application/auth/commands/dto/exchange-invite.dto';
+import { ExchangeInviteResponseDto } from '@/application/auth/commands/dto/exchange-invite-response.dto';
+import { SkipServerAccess } from '@/infrastructure/decorators/skip-server-access.decorator';
+import { SkipSetupCheck } from '@/infrastructure/decorators/skip-setup-check.decorator';
 
 /**
  * Controller für Authentifizierung-Endpunkte
@@ -73,6 +78,7 @@ export class AuthController {
     private readonly appConfig: AppConfigService,
     private readonly loginHandler: LoginHandler,
     private readonly logoutHandler: LogoutHandler,
+    private readonly exchangeInviteHandler: ExchangeInviteHandler,
     @Inject(LOGGER) private readonly logger: ILogger,
   ) {}
 
@@ -624,6 +630,73 @@ export class AuthController {
   })
   async verifyAdminToken(): Promise<AdminTokenVerificationDto> {
     return toAdminTokenVerificationDto();
+  }
+
+  /**
+   * Tauscht einen Invite-Code gegen ein dauerhaftes Access-Token ein.
+   *
+   * Dieser Endpoint ist öffentlich zugänglich (SkipServerAccess, SkipSetupCheck),
+   * da er der erste Zugriffspunkt für neue Nutzer ist. Rate-Limiting verhindert
+   * Brute-Force-Angriffe (5 Versuche pro Minute pro IP).
+   *
+   * @param dto - Der 8-stellige Invite-Code
+   * @returns Access-Token und Server-Informationen
+   * @throws BadRequestException - INVITE_EXPIRED, INVITE_ALREADY_USED, INVITE_INVALID
+   * @throws TooManyRequestsException - INVITE_RATE_LIMITED (429)
+   */
+  @Post('exchange-invite')
+  @SkipServerAccess()
+  @SkipSetupCheck()
+  @Throttle({ default: { limit: 5, ttl: 60000 } }) // AC5: 5 req/min/IP
+  @ApiOperation({
+    summary: 'Invite-Code einlösen',
+    description: 'Tauscht einen zeitlich begrenzten Invite-Code gegen ein dauerhaftes Server-Access-Token ein. Der Invite-Code wird nach erfolgreicher Einlösung als verwendet markiert.',
+  })
+  @ApiBody({
+    type: ExchangeInviteDto,
+    description: 'Der 8-stellige Invite-Code',
+  })
+  @ApiWrappedResponse(ExchangeInviteResponseDto, {
+    description: 'Invite-Code erfolgreich eingelöst. Das Access-Token ist nur einmal sichtbar und muss vom Client persistiert werden.',
+  })
+  @ApiBadRequestResponse({
+    description: 'Invite-Code ungültig, abgelaufen oder bereits verwendet',
+    schema: {
+      type: 'object',
+      properties: {
+        statusCode: { type: 'number', example: 400 },
+        message: { type: 'string', example: 'Dieser Einladungscode ist abgelaufen.' },
+        error: { type: 'string', example: 'Bad Request' },
+        code: {
+          type: 'string',
+          enum: ['INVITE_EXPIRED', 'INVITE_ALREADY_USED', 'INVITE_INVALID'],
+          example: 'INVITE_EXPIRED',
+        },
+      },
+    },
+  })
+  @ApiResponse({
+    status: HttpStatus.TOO_MANY_REQUESTS,
+    description: 'Zu viele Anfragen - bitte später erneut versuchen',
+  })
+  async exchangeInvite(@Body() dto: ExchangeInviteDto): Promise<ExchangeInviteResponseDto> {
+    const result = await this.exchangeInviteHandler.execute(dto);
+
+    if (result.isFailure) {
+      // Map Result errors to HTTP exceptions with German error messages
+      const errorMessages: Record<string, string> = {
+        INVITE_INVALID: 'Ungültiger Einladungscode.',
+        INVITE_EXPIRED: 'Dieser Einladungscode ist abgelaufen.',
+        INVITE_ALREADY_USED: 'Dieser Einladungscode wurde bereits verwendet.',
+      };
+
+      throw new BadRequestException({
+        message: errorMessages[result.error ?? ''] ?? 'Unbekannter Fehler',
+        code: result.error,
+      });
+    }
+
+    return result.value!;
   }
 
   /**
