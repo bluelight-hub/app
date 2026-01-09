@@ -7,7 +7,7 @@
  * Unterstützt Cold Start (App geschlossen) und Warm Start (App läuft).
  */
 
-import { register } from '@tauri-apps/plugin-deep-link';
+import { onOpenUrl, getCurrent } from '@tauri-apps/plugin-deep-link';
 import type { DeepLinkParams, DeepLinkEvent } from '../types/deep-link';
 import { DeepLinkError } from '../types/deep-link';
 
@@ -73,44 +73,60 @@ export class DeepLinkService {
    * Registriert Tauri Deep Link Event Listener
    *
    * Callback wird ausgelöst bei:
-   * - Cold Start: App wird mit Deep Link gestartet
-   * - Warm Start: Deep Link während App läuft
+   * - Cold Start: App wird mit Deep Link gestartet (via getCurrent())
+   * - Warm Start: Deep Link während App läuft (via onOpenUrl())
    */
   private async registerListeners(): Promise<void> {
-    await register((urls: string[]) => {
-      if (!urls || urls.length === 0) {
-        this.emitError(DeepLinkError.PARSE_ERROR, 'No URLs received from deep link');
-        return;
-      }
+    // 1. Check for Cold Start Deep Links
+    const currentUrls = await getCurrent();
+    if (currentUrls && currentUrls.length > 0) {
+      this.handleDeepLinkUrls(currentUrls);
+    }
 
-      const url = urls[0];
-      console.info('[DeepLinkService] Received deep link:', url);
-
-      const params = this.parseUrl(url);
-
-      if (!params) {
-        this.emitError(DeepLinkError.INVALID_PROTOCOL, `Invalid deep link protocol: ${url}`);
-        return;
-      }
-
-      // Parameter Validation (IMMER zuerst!)
-      if (!params.serverUrl || !params.inviteCode) {
-        this.emitError(DeepLinkError.MISSING_PARAMETERS, 'Missing required parameters (url or invite)');
-        return;
-      }
-
-      // Client-side Expiry Validation
-      if (params.expiresAt) {
-        const expiryResult = this.validateExpiry(params.expiresAt);
-        if (!expiryResult.valid) {
-          this.emitError(DeepLinkError.EXPIRED_LINK, expiryResult.error || 'Deep link has expired');
-          return;
-        }
-      }
-
-      // Emit Event
-      this.emit('deep-link-received', params);
+    // 2. Register Warm Start Listener
+    await onOpenUrl((urls: string[]) => {
+      this.handleDeepLinkUrls(urls);
     });
+  }
+
+  /**
+   * Verarbeitet Deep Link URLs (Cold + Warm Start)
+   *
+   * @param urls - Array von Deep Link URLs
+   */
+  private handleDeepLinkUrls(urls: string[]): void {
+    if (!urls || urls.length === 0) {
+      this.emitError(DeepLinkError.PARSE_ERROR, 'No URLs received from deep link');
+      return;
+    }
+
+    const url = urls[0];
+    console.info('[DeepLinkService] Received deep link:', url);
+
+    const params = this.parseUrl(url);
+
+    if (!params) {
+      this.emitError(DeepLinkError.INVALID_PROTOCOL, `Invalid deep link protocol: ${url}`);
+      return;
+    }
+
+    // Parameter Validation (IMMER zuerst!)
+    if (!params.serverUrl || !params.inviteCode) {
+      this.emitError(DeepLinkError.MISSING_PARAMETERS, 'Missing required parameters (url or invite)');
+      return;
+    }
+
+    // Client-side Expiry Validation
+    if (params.expiresAt) {
+      const expiryResult = this.validateExpiry(params.expiresAt);
+      if (!expiryResult.valid) {
+        this.emitError(DeepLinkError.EXPIRED_LINK, expiryResult.error || 'Deep link has expired');
+        return;
+      }
+    }
+
+    // Emit Event
+    this.emit('deep-link-received', params);
   }
 
   /**

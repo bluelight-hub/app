@@ -12,10 +12,11 @@ import type { DeepLinkParams } from '../types/deep-link';
 
 // Mock Tauri Deep Link Plugin
 vi.mock('@tauri-apps/plugin-deep-link', () => ({
-  register: vi.fn(),
+  onOpenUrl: vi.fn(),
+  getCurrent: vi.fn(),
 }));
 
-import { register } from '@tauri-apps/plugin-deep-link';
+import { onOpenUrl, getCurrent } from '@tauri-apps/plugin-deep-link';
 
 describe('DeepLinkService', () => {
   let service: DeepLinkService;
@@ -51,19 +52,24 @@ describe('DeepLinkService', () => {
   describe('initialize()', () => {
     it('should register Tauri deep link listener on first call', async () => {
       // Given (Arrange)
-      const registerMock = vi.mocked(register);
+      const onOpenUrlMock = vi.mocked(onOpenUrl);
+      const getCurrentMock = vi.mocked(getCurrent);
+      getCurrentMock.mockResolvedValue(null);
 
       // When (Act)
       await service.initialize();
 
       // Then (Assert)
-      expect(registerMock).toHaveBeenCalledOnce();
-      expect(registerMock).toHaveBeenCalledWith(expect.any(Function));
+      expect(getCurrentMock).toHaveBeenCalledOnce();
+      expect(onOpenUrlMock).toHaveBeenCalledOnce();
+      expect(onOpenUrlMock).toHaveBeenCalledWith(expect.any(Function));
     });
 
     it('should skip registration on second initialize() call', async () => {
       // Given (Arrange)
-      const registerMock = vi.mocked(register);
+      const onOpenUrlMock = vi.mocked(onOpenUrl);
+      const getCurrentMock = vi.mocked(getCurrent);
+      getCurrentMock.mockResolvedValue(null);
       await service.initialize();
       vi.clearAllMocks();
 
@@ -71,7 +77,8 @@ describe('DeepLinkService', () => {
       await service.initialize();
 
       // Then (Assert)
-      expect(registerMock).not.toHaveBeenCalled();
+      expect(getCurrentMock).not.toHaveBeenCalled();
+      expect(onOpenUrlMock).not.toHaveBeenCalled();
     });
   });
 
@@ -88,9 +95,11 @@ describe('DeepLinkService', () => {
         receivedParams.push(params);
       });
 
-      const registerMock = vi.mocked(register);
+      const onOpenUrlMock = vi.mocked(onOpenUrl);
+      const getCurrentMock = vi.mocked(getCurrent);
+      getCurrentMock.mockResolvedValue(null);
       await service.initialize();
-      const callback = registerMock.mock.calls[0][0];
+      const callback = onOpenUrlMock.mock.calls[0][0];
 
       // When (Act)
       callback([url]);
@@ -113,9 +122,11 @@ describe('DeepLinkService', () => {
         receivedParams.push(params);
       });
 
-      const registerMock = vi.mocked(register);
+      const onOpenUrlMock = vi.mocked(onOpenUrl);
+      const getCurrentMock = vi.mocked(getCurrent);
+      getCurrentMock.mockResolvedValue(null);
       await service.initialize();
-      const callback = registerMock.mock.calls[0][0];
+      const callback = onOpenUrlMock.mock.calls[0][0];
 
       // When (Act)
       callback([url]);
@@ -138,9 +149,11 @@ describe('DeepLinkService', () => {
         errors.push({ error, message });
       });
 
-      const registerMock = vi.mocked(register);
+      const onOpenUrlMock = vi.mocked(onOpenUrl);
+      const getCurrentMock = vi.mocked(getCurrent);
+      getCurrentMock.mockResolvedValue(null);
       await service.initialize();
-      const callback = registerMock.mock.calls[0][0];
+      const callback = onOpenUrlMock.mock.calls[0][0];
 
       // When (Act)
       callback([url]);
@@ -159,9 +172,11 @@ describe('DeepLinkService', () => {
         errors.push({ error, message });
       });
 
-      const registerMock = vi.mocked(register);
+      const onOpenUrlMock = vi.mocked(onOpenUrl);
+      const getCurrentMock = vi.mocked(getCurrent);
+      getCurrentMock.mockResolvedValue(null);
       await service.initialize();
-      const callback = registerMock.mock.calls[0][0];
+      const callback = onOpenUrlMock.mock.calls[0][0];
 
       // When (Act)
       callback([url]);
@@ -180,9 +195,11 @@ describe('DeepLinkService', () => {
         errors.push({ error, message });
       });
 
-      const registerMock = vi.mocked(register);
+      const onOpenUrlMock = vi.mocked(onOpenUrl);
+      const getCurrentMock = vi.mocked(getCurrent);
+      getCurrentMock.mockResolvedValue(null);
       await service.initialize();
-      const callback = registerMock.mock.calls[0][0];
+      const callback = onOpenUrlMock.mock.calls[0][0];
 
       // When (Act)
       callback([url]);
@@ -200,9 +217,11 @@ describe('DeepLinkService', () => {
         errors.push({ error, message });
       });
 
-      const registerMock = vi.mocked(register);
+      const onOpenUrlMock = vi.mocked(onOpenUrl);
+      const getCurrentMock = vi.mocked(getCurrent);
+      getCurrentMock.mockResolvedValue(null);
       await service.initialize();
-      const callback = registerMock.mock.calls[0][0];
+      const callback = onOpenUrlMock.mock.calls[0][0];
 
       // When (Act)
       callback([]);
@@ -225,9 +244,11 @@ describe('DeepLinkService', () => {
         receivedParams.push(params);
       });
 
-      const registerMock = vi.mocked(register);
+      const onOpenUrlMock = vi.mocked(onOpenUrl);
+      const getCurrentMock = vi.mocked(getCurrent);
+      getCurrentMock.mockResolvedValue(null);
       await service.initialize();
-      const callback = registerMock.mock.calls[0][0];
+      const callback = onOpenUrlMock.mock.calls[0][0];
 
       // When (Act)
       callback([url]);
@@ -247,9 +268,11 @@ describe('DeepLinkService', () => {
         errors.push({ error, message });
       });
 
-      const registerMock = vi.mocked(register);
+      const onOpenUrlMock = vi.mocked(onOpenUrl);
+      const getCurrentMock = vi.mocked(getCurrent);
+      getCurrentMock.mockResolvedValue(null);
       await service.initialize();
-      const callback = registerMock.mock.calls[0][0];
+      const callback = onOpenUrlMock.mock.calls[0][0];
 
       // When (Act)
       callback([url]);
@@ -268,9 +291,11 @@ describe('DeepLinkService', () => {
         errors.push({ error, message });
       });
 
-      const registerMock = vi.mocked(register);
+      const onOpenUrlMock = vi.mocked(onOpenUrl);
+      const getCurrentMock = vi.mocked(getCurrent);
+      getCurrentMock.mockResolvedValue(null);
       await service.initialize();
-      const callback = registerMock.mock.calls[0][0];
+      const callback = onOpenUrlMock.mock.calls[0][0];
 
       // When (Act)
       callback([url]);
@@ -291,9 +316,11 @@ describe('DeepLinkService', () => {
         receivedParams.push(params);
       });
 
-      const registerMock = vi.mocked(register);
+      const onOpenUrlMock = vi.mocked(onOpenUrl);
+      const getCurrentMock = vi.mocked(getCurrent);
+      getCurrentMock.mockResolvedValue(null);
       await service.initialize();
-      const callback = registerMock.mock.calls[0][0];
+      const callback = onOpenUrlMock.mock.calls[0][0];
 
       // When (Act)
       callback([url]);
@@ -317,9 +344,11 @@ describe('DeepLinkService', () => {
         listener2Called = true;
       });
 
-      const registerMock = vi.mocked(register);
+      const onOpenUrlMock = vi.mocked(onOpenUrl);
+      const getCurrentMock = vi.mocked(getCurrent);
+      getCurrentMock.mockResolvedValue(null);
       await service.initialize();
-      const callback = registerMock.mock.calls[0][0];
+      const callback = onOpenUrlMock.mock.calls[0][0];
 
       // When (Act)
       callback([url]);
@@ -341,9 +370,11 @@ describe('DeepLinkService', () => {
       service.on('deep-link-received', listener);
       service.off('deep-link-received', listener);
 
-      const registerMock = vi.mocked(register);
+      const onOpenUrlMock = vi.mocked(onOpenUrl);
+      const getCurrentMock = vi.mocked(getCurrent);
+      getCurrentMock.mockResolvedValue(null);
       await service.initialize();
-      const callback = registerMock.mock.calls[0][0];
+      const callback = onOpenUrlMock.mock.calls[0][0];
 
       // When (Act)
       callback([url]);
@@ -367,9 +398,11 @@ describe('DeepLinkService', () => {
 
       service.off('deep-link-received'); // Alle entfernen
 
-      const registerMock = vi.mocked(register);
+      const onOpenUrlMock = vi.mocked(onOpenUrl);
+      const getCurrentMock = vi.mocked(getCurrent);
+      getCurrentMock.mockResolvedValue(null);
       await service.initialize();
-      const callback = registerMock.mock.calls[0][0];
+      const callback = onOpenUrlMock.mock.calls[0][0];
 
       // When (Act)
       callback([url]);
