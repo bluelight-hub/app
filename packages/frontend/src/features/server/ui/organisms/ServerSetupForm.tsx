@@ -18,7 +18,6 @@
  */
 
 import { useForm } from '@tanstack/react-form';
-import { zodValidator } from '@tanstack/zod-form-adapter';
 import { Button } from '@/shared/ui/atoms/button.atom';
 import { Input } from '@/shared/ui/atoms/input.atom';
 import { cn } from '@/shared/ui/cn';
@@ -30,14 +29,23 @@ import { toast } from 'sonner';
 import { PiDatabase, PiKey } from 'react-icons/pi';
 
 /**
- * Form Schema für Server Setup
+ * Individual field schemas for validation
  */
-const serverSetupFormSchema = z.object({
-  serverUrl: serverUrlSchema,
-  inviteCode: z.string().min(8, 'Invite-Code muss mindestens 8 Zeichen lang sein'),
-});
+const inviteCodeSchema = z.string().min(8, 'Invite-Code muss mindestens 8 Zeichen lang sein');
 
-type ServerSetupFormValues = z.infer<typeof serverSetupFormSchema>;
+type ServerSetupFormValues = {
+  serverUrl: string;
+  inviteCode: string;
+};
+
+/**
+ * Helper function to extract Zod validation error message
+ */
+function getZodError(result: { success: boolean; error?: { issues?: Array<{ message?: string }> } }, fallback: string): string | undefined {
+  if (result.success) return undefined;
+  const firstIssue = result.error?.issues?.[0];
+  return firstIssue?.message || fallback;
+}
 
 interface ServerSetupFormProps {
   /**
@@ -80,10 +88,6 @@ export function ServerSetupForm({ prefillServerUrl, onSuccess, className }: Serv
       serverUrl: prefillServerUrl || '',
       inviteCode: '',
     } as ServerSetupFormValues,
-    validatorAdapter: zodValidator(),
-    validators: {
-      onChange: serverSetupFormSchema,
-    },
     onSubmit: async ({ value }) => {
       try {
         // Exchange invite code (mutation handles server persistence)
@@ -128,7 +132,13 @@ export function ServerSetupForm({ prefillServerUrl, onSuccess, className }: Serv
           <label htmlFor="serverUrl" className="block font-medium text-gray-700 text-sm dark:text-gray-300">
             Server-URL
           </label>
-          <form.Field name="serverUrl">
+          <form.Field
+            name="serverUrl"
+            validators={{
+              onChange: ({ value }) => getZodError(serverUrlSchema.safeParse(value), 'Ungültige Server-URL'),
+              onBlur: ({ value }) => getZodError(serverUrlSchema.safeParse(value), 'Ungültige Server-URL'),
+            }}
+          >
             {(field) => {
               const fieldError = field.state.meta.errors[0];
               const errorMessage = typeof fieldError === 'string' ? fieldError : fieldError?.message;
@@ -159,7 +169,13 @@ export function ServerSetupForm({ prefillServerUrl, onSuccess, className }: Serv
           <label htmlFor="inviteCode" className="block font-medium text-gray-700 text-sm dark:text-gray-300">
             Einladungscode
           </label>
-          <form.Field name="inviteCode">
+          <form.Field
+            name="inviteCode"
+            validators={{
+              onChange: ({ value }) => getZodError(inviteCodeSchema.safeParse(value), 'Ungültiger Invite-Code'),
+              onBlur: ({ value }) => getZodError(inviteCodeSchema.safeParse(value), 'Ungültiger Invite-Code'),
+            }}
+          >
             {(field) => {
               const fieldError = field.state.meta.errors[0];
               const errorMessage = typeof fieldError === 'string' ? fieldError : fieldError?.message;
