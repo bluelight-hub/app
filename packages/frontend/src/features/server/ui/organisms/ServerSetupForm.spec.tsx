@@ -300,7 +300,7 @@ describe('ServerSetupForm', () => {
       // Given (Arrange)
       const user = userEvent.setup();
 
-      render(<ServerSetupForm onSuccess={mockOnSuccess} />);
+      render(<ServerSetupForm onSuccess={mockOnSuccess as any} />);
 
       const serverUrlInput = screen.getByLabelText(/Server-URL/i);
       const inviteCodeInput = screen.getByLabelText(/Einladungscode/i);
@@ -387,7 +387,7 @@ describe('ServerSetupForm', () => {
       mockMutateAsync.mockRejectedValueOnce(new Error('Network error'));
       const user = userEvent.setup();
 
-      render(<ServerSetupForm onSuccess={mockOnSuccess} />);
+      render(<ServerSetupForm onSuccess={mockOnSuccess as any} />);
 
       const serverUrlInput = screen.getByLabelText(/Server-URL/i);
       const inviteCodeInput = screen.getByLabelText(/Einladungscode/i);

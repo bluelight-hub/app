@@ -27,7 +27,7 @@ import { z } from 'zod';
 import { useExchangeInvite } from '../../api/mutations';
 import { ExpiredLinkError } from '../molecules/ExpiredLinkError';
 import { toast } from 'sonner';
-import { PiServer, PiKey } from 'react-icons/pi';
+import { PiDatabase, PiKey } from 'react-icons/pi';
 
 /**
  * Form Schema für Server Setup
@@ -109,7 +109,6 @@ export function ServerSetupForm({ prefillServerUrl, onSuccess, className }: Serv
 
   // Show error card if invite exchange failed with specific error codes
   const showErrorCard = exchangeInvite.isError;
-  const errorMessage = exchangeInvite.error?.message || 'Unbekannter Fehler';
 
   return (
     <div className={cn('space-y-6', className)}>
@@ -140,11 +139,11 @@ export function ServerSetupForm({ prefillServerUrl, onSuccess, className }: Serv
                     id="serverUrl"
                     type="url"
                     placeholder="https://api.example.de"
-                    value={field.state.value}
+                    value={field.state.value as string}
                     onChange={(e) => field.handleChange(e.target.value)}
                     onBlur={field.handleBlur}
                     variant={fieldError ? 'error' : 'default'}
-                    leftIcon={<PiServer className="h-5 w-5" />}
+                    leftIcon={<PiDatabase className="h-5 w-5" />}
                     autoComplete="url"
                     autoFocus={!prefillServerUrl} // Focus nur wenn nicht prefilled
                   />
@@ -171,7 +170,7 @@ export function ServerSetupForm({ prefillServerUrl, onSuccess, className }: Serv
                     id="inviteCode"
                     type="text"
                     placeholder="INV_12345678"
-                    value={field.state.value}
+                    value={field.state.value as string}
                     onChange={(e) => field.handleChange(e.target.value)}
                     onBlur={field.handleBlur}
                     variant={fieldError ? 'error' : 'default'}

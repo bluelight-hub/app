@@ -66,7 +66,7 @@ export function ServerOnboardingPage() {
           {/* Content Section */}
           <div className="w-full">
             {/* Loading State: Exchange läuft (beide URL-Parameter vorhanden) */}
-            {isExchanging && <ServerConnectLoading serverUrl={prefillServerUrl || 'Server'} message="Tausche Einladungscode ein..." />}
+            {isExchanging && <ServerConnectLoading message="Tausche Einladungscode ein..." />}
 
             {/* Error State: Exchange fehlgeschlagen */}
             {!isExchanging && error && (
