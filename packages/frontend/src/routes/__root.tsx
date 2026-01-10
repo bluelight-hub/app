@@ -5,6 +5,7 @@ import { handleQueryError } from '@/shared/lib/errors/error-handler';
 import { isServerAccessTokenPromptActive, setSetupRedirectInProgress } from '@/shared/lib/server-access-token';
 import { TokenRequiredModal } from '@/shared/ui/organisms/TokenRequiredModal';
 import { useDeepLinkEffect } from '@/features/server/hooks/useDeepLinkEffect';
+import { urlParamsSchema } from '@/features/server/schemas/url-params.schema';
 
 // Reset Setup-Redirect-Flag beim App-Start - ABER NICHT wenn wir auf /setup sind!
 // Grund: Nach einem Full-Page-Redirect zu /setup (via window.location.href) wird die App
@@ -30,6 +31,7 @@ interface RootContext {
 }
 
 export const Route = createRootRouteWithContext<RootContext>()({
+  validateSearch: urlParamsSchema,
   component: RootComponent,
 });
 
