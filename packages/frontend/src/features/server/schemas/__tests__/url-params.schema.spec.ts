@@ -126,7 +126,8 @@ describe('urlParamsSchema', () => {
       // Then (Assert)
       expect(result.success).toBe(false);
       if (!result.success) {
-        expect(result.error.issues[0].message).toContain('gültige HTTP/HTTPS URL');
+        // Shared serverUrlSchema gibt "Ungültige Server-URL" für ungültiges URL-Format
+        expect(result.error.issues[0].message).toContain('Ungültige Server-URL');
       }
     });
 
@@ -143,7 +144,8 @@ describe('urlParamsSchema', () => {
       // Then (Assert)
       expect(result.success).toBe(false);
       if (!result.success) {
-        expect(result.error.issues[0].message).toContain('gültige HTTP/HTTPS URL');
+        // Shared serverUrlSchema gibt "Ungültige Server-URL" für URLs ohne Protokoll
+        expect(result.error.issues[0].message).toContain('Ungültige Server-URL');
       }
     });
 
@@ -160,7 +162,8 @@ describe('urlParamsSchema', () => {
       // Then (Assert)
       expect(result.success).toBe(false);
       if (!result.success) {
-        expect(result.error.issues[0].message).toContain('gültige HTTP/HTTPS URL');
+        // Shared serverUrlSchema gibt Protokoll-Fehlermeldung für nicht-HTTP(S) URLs
+        expect(result.error.issues[0].message).toContain('http://');
       }
     });
 
@@ -177,7 +180,8 @@ describe('urlParamsSchema', () => {
       // Then (Assert)
       expect(result.success).toBe(false);
       if (!result.success) {
-        expect(result.error.issues[0].message).toContain('gültige HTTP/HTTPS URL');
+        // Shared serverUrlSchema gibt Protokoll-Fehlermeldung für nicht-HTTP(S) URLs
+        expect(result.error.issues[0].message).toContain('http://');
       }
     });
   });
@@ -196,15 +200,16 @@ describe('urlParamsSchema', () => {
       // Then (Assert)
       expect(result.success).toBe(false);
       if (!result.success) {
-        expect(result.error.issues[0].message).toContain('mindestens 8 Zeichen');
+        // Shared inviteCodeSchema erfordert exakt 8 Zeichen
+        expect(result.error.issues[0].message).toContain('exakt 8 Zeichen');
       }
     });
 
-    it('should accept invite code exactly 8 characters', () => {
+    it('should accept invite code exactly 8 characters (A-Z0-9 format)', () => {
       // Given (Arrange)
       const input = {
         server: 'https://api.example.de',
-        invite: 'ABCD1234', // Exakt 8 Zeichen
+        invite: 'ABCD1234', // Exakt 8 Zeichen, A-Z0-9 Format
       };
 
       // When (Act)
@@ -214,19 +219,57 @@ describe('urlParamsSchema', () => {
       expect(result.success).toBe(true);
     });
 
-    it('should accept invite code longer than 8 characters (backend validates exact length)', () => {
+    it('should reject invite code longer than 8 characters', () => {
       // Given (Arrange)
       const input = {
         server: 'https://api.example.de',
-        invite: 'ABCD1234567890', // > 8 Zeichen (Backend wird exakte Länge prüfen)
+        invite: 'ABCD1234567890', // > 8 Zeichen
       };
 
       // When (Act)
       const result = urlParamsSchema.safeParse(input);
 
       // Then (Assert)
-      // Frontend akzeptiert längere Codes, Backend validiert exakte Länge
-      expect(result.success).toBe(true);
+      // Shared inviteCodeSchema erfordert exakt 8 Zeichen
+      expect(result.success).toBe(false);
+      if (!result.success) {
+        expect(result.error.issues[0].message).toContain('exakt 8 Zeichen');
+      }
+    });
+
+    it('should reject invite code with lowercase letters', () => {
+      // Given (Arrange)
+      const input = {
+        server: 'https://api.example.de',
+        invite: 'abcd1234', // Kleinbuchstaben nicht erlaubt
+      };
+
+      // When (Act)
+      const result = urlParamsSchema.safeParse(input);
+
+      // Then (Assert)
+      expect(result.success).toBe(false);
+      if (!result.success) {
+        // Shared inviteCodeSchema erlaubt nur A-Z0-9
+        expect(result.error.issues[0].message).toContain('Großbuchstaben');
+      }
+    });
+
+    it('should reject invite code with special characters', () => {
+      // Given (Arrange)
+      const input = {
+        server: 'https://api.example.de',
+        invite: 'ABC_1234', // Underscore nicht erlaubt
+      };
+
+      // When (Act)
+      const result = urlParamsSchema.safeParse(input);
+
+      // Then (Assert)
+      expect(result.success).toBe(false);
+      if (!result.success) {
+        expect(result.error.issues[0].message).toContain('Großbuchstaben');
+      }
     });
   });
 });

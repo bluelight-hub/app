@@ -122,8 +122,11 @@ describe('useDeepLinkEffect Integration', () => {
       });
 
       await waitFor(() => {
-        // Verify mutation called with correct invite code
-        expect(mockMutateAsync).toHaveBeenCalledWith('INV_12345678');
+        // Verify mutation called with correct invite code and server URL
+        expect(mockMutateAsync).toHaveBeenCalledWith({
+          inviteCode: 'INV_12345678',
+          serverUrl: 'https://api.test.de',
+        });
       });
 
       await waitFor(() => {
@@ -175,7 +178,10 @@ describe('useDeepLinkEffect Integration', () => {
 
       // Then: Should proceed normally
       await waitFor(() => {
-        expect(mockMutateAsync).toHaveBeenCalledWith('INV_12345678');
+        expect(mockMutateAsync).toHaveBeenCalledWith({
+          inviteCode: 'INV_12345678',
+          serverUrl: 'https://api.test.de',
+        });
       });
 
       await waitFor(() => {

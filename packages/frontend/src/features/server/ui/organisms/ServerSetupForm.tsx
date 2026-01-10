@@ -21,17 +21,11 @@ import { useForm } from '@tanstack/react-form';
 import { Button } from '@/shared/ui/atoms/button.atom';
 import { Input } from '@/shared/ui/atoms/input.atom';
 import { cn } from '@/shared/ui/cn';
-import { serverUrlSchema } from '@bluelight-hub/shared/schemas';
-import { z } from 'zod';
+import { serverUrlSchema, inviteCodeSchema } from '../../schemas/url-params.schema';
 import { useExchangeInvite } from '../../api/mutations';
 import { ExpiredLinkError } from '../molecules/ExpiredLinkError';
 import { toast } from 'sonner';
 import { PiDatabase, PiKey } from 'react-icons/pi';
-
-/**
- * Individual field schemas for validation
- */
-const inviteCodeSchema = z.string().min(8, 'Invite-Code muss mindestens 8 Zeichen lang sein');
 
 type ServerSetupFormValues = {
   serverUrl: string;
@@ -91,7 +85,11 @@ export function ServerSetupForm({ prefillServerUrl, onSuccess, className }: Serv
     onSubmit: async ({ value }) => {
       try {
         // Exchange invite code (mutation handles server persistence)
-        await exchangeInvite.mutateAsync(value.inviteCode);
+        // Issue #2 Fix: Übergebe auch die serverUrl für korrekten Ziel-Server
+        await exchangeInvite.mutateAsync({
+          inviteCode: value.inviteCode,
+          serverUrl: value.serverUrl || undefined,
+        });
 
         // Success notification
         toast.success('Server erfolgreich hinzugefügt', {
@@ -140,8 +138,8 @@ export function ServerSetupForm({ prefillServerUrl, onSuccess, className }: Serv
             }}
           >
             {(field) => {
-              const fieldError = field.state.meta.errors[0];
-              const errorMessage = typeof fieldError === 'string' ? fieldError : fieldError?.message;
+              // Validators return string | undefined, so errors array contains strings
+              const fieldError = field.state.meta.errors[0] as string | undefined;
 
               return (
                 <div className="space-y-1">
@@ -157,7 +155,7 @@ export function ServerSetupForm({ prefillServerUrl, onSuccess, className }: Serv
                     autoComplete="url"
                     autoFocus={!prefillServerUrl} // Focus nur wenn nicht prefilled
                   />
-                  {fieldError && <p className="text-red-600 text-sm dark:text-red-400">{errorMessage}</p>}
+                  {fieldError && <p className="text-red-600 text-sm dark:text-red-400">{fieldError}</p>}
                 </div>
               );
             }}
@@ -177,15 +175,15 @@ export function ServerSetupForm({ prefillServerUrl, onSuccess, className }: Serv
             }}
           >
             {(field) => {
-              const fieldError = field.state.meta.errors[0];
-              const errorMessage = typeof fieldError === 'string' ? fieldError : fieldError?.message;
+              // Validators return string | undefined, so errors array contains strings
+              const fieldError = field.state.meta.errors[0] as string | undefined;
 
               return (
                 <div className="space-y-1">
                   <Input
                     id="inviteCode"
                     type="text"
-                    placeholder="INV_12345678"
+                    placeholder="ABC12345"
                     value={field.state.value as string}
                     onChange={(e) => field.handleChange(e.target.value)}
                     onBlur={field.handleBlur}
@@ -194,7 +192,7 @@ export function ServerSetupForm({ prefillServerUrl, onSuccess, className }: Serv
                     autoComplete="off"
                     autoFocus={!!prefillServerUrl} // Focus wenn prefilled (User muss nur Code eingeben)
                   />
-                  {fieldError && <p className="text-red-600 text-sm dark:text-red-400">{errorMessage}</p>}
+                  {fieldError && <p className="text-red-600 text-sm dark:text-red-400">{fieldError}</p>}
                 </div>
               );
             }}

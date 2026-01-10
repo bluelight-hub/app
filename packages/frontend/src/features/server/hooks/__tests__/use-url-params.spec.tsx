@@ -30,9 +30,10 @@ vi.mock('@/routes/__root', () => ({
 
 vi.mock('sonner', () => ({
   toast: {
-    loading: vi.fn(),
+    loading: vi.fn().mockReturnValue('toast-id-123'),
     success: vi.fn(),
     error: vi.fn(),
+    dismiss: vi.fn(),
   },
 }));
 
@@ -69,11 +70,11 @@ describe('useUrlParams', () => {
 
     // Setup navigate mock
     mockNavigate = vi.fn().mockResolvedValue(undefined);
-    vi.mocked(useNavigate).mockReturnValue(mockNavigate);
+    vi.mocked(useNavigate).mockReturnValue(mockNavigate as any);
 
     // Setup useSearch mock
     mockUseSearch = vi.fn().mockReturnValue({});
-    vi.mocked(Route.useSearch).mockImplementation(mockUseSearch);
+    vi.mocked(Route.useSearch).mockImplementation(mockUseSearch as any);
 
     // Setup mutation mock (default: success)
     mockMutateAsync = vi.fn();
@@ -132,9 +133,12 @@ describe('useUrlParams', () => {
         });
       });
 
-      // Then: Exchange mutation called
+      // Then: Exchange mutation called with serverUrl (Issue #2 Fix)
       await waitFor(() => {
-        expect(mockMutateAsync).toHaveBeenCalledWith('INV_12345');
+        expect(mockMutateAsync).toHaveBeenCalledWith({
+          inviteCode: 'INV_12345',
+          serverUrl: 'https://api.test.de',
+        });
       });
     });
 
@@ -444,9 +448,12 @@ describe('useUrlParams', () => {
       // When
       renderHook(() => useUrlParams());
 
-      // Then: Exchange mutation called (which internally calls addServer)
+      // Then: Exchange mutation called with serverUrl (which internally calls addServer)
       await waitFor(() => {
-        expect(mockMutateAsync).toHaveBeenCalledWith('INV_12345');
+        expect(mockMutateAsync).toHaveBeenCalledWith({
+          inviteCode: 'INV_12345',
+          serverUrl: 'https://api.test.de',
+        });
       });
 
       // NOTE: addServer() is called in mutation's onSuccess callback (AC5)
@@ -501,8 +508,8 @@ describe('useUrlParams', () => {
       expect(mockMutateAsync).not.toHaveBeenCalled();
     });
 
-    it('should handle empty string parameters', () => {
-      // Given: Empty string values
+    it('should handle empty string parameters (Issue #1)', () => {
+      // Given: Empty string values - should be treated as missing
       mockUseSearch.mockReturnValue({
         server: '',
         invite: '',
@@ -511,9 +518,92 @@ describe('useUrlParams', () => {
       // When
       const { result } = renderHook(() => useUrlParams());
 
-      // Then: Treated as no parameters
+      // Then: Treated as no parameters (Issue #1 Fix)
       expect(result.current.prefillServerUrl).toBeNull();
       expect(mockMutateAsync).not.toHaveBeenCalled();
+    });
+
+    it('should handle whitespace-only parameters (Issue #1)', () => {
+      // Given: Whitespace-only values - should be treated as missing
+      mockUseSearch.mockReturnValue({
+        server: '   ',
+        invite: '  ',
+      });
+
+      // When
+      const { result } = renderHook(() => useUrlParams());
+
+      // Then: Treated as no parameters (Issue #1 Fix: trim check)
+      expect(result.current.prefillServerUrl).toBeNull();
+      expect(mockMutateAsync).not.toHaveBeenCalled();
+    });
+
+    it('should show error toast on exchange failure (Issue #3)', async () => {
+      // Given
+      mockUseSearch.mockReturnValue({
+        server: 'https://api.test.de',
+        invite: 'INV_12345',
+      });
+
+      mockMutateAsync.mockRejectedValue(new Error('Server nicht erreichbar'));
+
+      // When
+      renderHook(() => useUrlParams());
+
+      // Then: Error toast shown (Issue #3 Fix)
+      await waitFor(() => {
+        expect(toast.error).toHaveBeenCalledWith('Verbindung fehlgeschlagen', {
+          description: 'Server nicht erreichbar',
+        });
+      });
+    });
+
+    it('should dismiss loading toast on failure (Issue #3)', async () => {
+      // Given
+      mockUseSearch.mockReturnValue({
+        server: 'https://api.test.de',
+        invite: 'INV_12345',
+      });
+
+      mockMutateAsync.mockRejectedValue(new Error('Exchange failed'));
+
+      // When
+      renderHook(() => useUrlParams());
+
+      // Then: Loading toast dismissed
+      await waitFor(() => {
+        expect(toast.dismiss).toHaveBeenCalledWith('toast-id-123');
+      });
+    });
+
+    it('should show success toast on successful exchange', async () => {
+      // Given
+      mockUseSearch.mockReturnValue({
+        server: 'https://api.test.de',
+        invite: 'INV_12345',
+      });
+
+      mockMutateAsync.mockResolvedValue({
+        data: {
+          accessToken: 'token',
+          serverInfo: { name: 'Test', baseUrl: 'https://api.test.de' },
+        },
+        meta: {
+          timestamp: new Date().toISOString(),
+          version: 'alpha',
+          requestId: 'req-1',
+        },
+      });
+
+      // When
+      renderHook(() => useUrlParams());
+
+      // Then: Success toast shown
+      await waitFor(() => {
+        expect(toast.success).toHaveBeenCalledWith('Verbindung erfolgreich', {
+          description: 'Server wurde hinzugefügt',
+        });
+      });
     });
   });
 

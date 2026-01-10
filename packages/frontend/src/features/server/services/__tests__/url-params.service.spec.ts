@@ -143,7 +143,7 @@ describe('validateParams()', () => {
     expect(result.success).toBe(false);
     if (!result.success) {
       expect(result.error.issues.length).toBeGreaterThan(0);
-      const serverError = result.error.issues.find((err) => err.path.includes('server'));
+      const serverError = result.error.issues.find((err: any) => err.path.includes('server'));
       expect(serverError).toBeDefined();
     }
   });
@@ -161,9 +161,10 @@ describe('validateParams()', () => {
     // Then (Assert)
     expect(result.success).toBe(false);
     if (!result.success) {
-      const serverError = result.error.issues.find((err) => err.path.includes('server'));
+      const serverError = result.error.issues.find((err: any) => err.path.includes('server'));
       expect(serverError).toBeDefined();
-      expect(serverError?.message).toContain('HTTP/HTTPS');
+      // Konsistent mit serverUrlSchema Fehlermeldung
+      expect(serverError?.message).toContain('http://');
     }
   });
 
@@ -180,9 +181,10 @@ describe('validateParams()', () => {
     // Then (Assert)
     expect(result.success).toBe(false);
     if (!result.success) {
-      const inviteError = result.error.issues.find((err) => err.path.includes('invite'));
+      const inviteError = result.error.issues.find((err: any) => err.path.includes('invite'));
       expect(inviteError).toBeDefined();
-      expect(inviteError?.message).toContain('mindestens 8 Zeichen');
+      // Konsistent mit inviteCodeSchema Fehlermeldung (exakt 8 Zeichen)
+      expect(inviteError?.message).toContain('exakt 8 Zeichen');
     }
   });
 

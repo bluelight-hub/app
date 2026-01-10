@@ -5,12 +5,32 @@
  * Integriert mit Server Store und Query Cache.
  */
 
-import type { AuthControllerExchangeInvite200Response, ResponseError } from '@bluelight-hub/shared/client';
+import type { AuthControllerExchangeInvite200Response } from '@/shared';
+import type { ResponseError } from '@bluelight-hub/shared/client';
+import { AuthApi, Configuration } from '@bluelight-hub/shared/client';
 import { api } from '@/shared/api/api';
 import { logger } from '@/shared/lib/logger';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { addServer, setActiveServer } from '../stores/server.store';
 import { SERVER_QUERY_KEYS } from './query-keys';
+
+/**
+ * Input-Parameter für die Exchange Invite Mutation.
+ *
+ * Erlaubt optional eine Server-URL anzugeben, falls der Exchange
+ * gegen einen anderen Server als den aktuell aktiven gehen soll
+ * (z.B. bei Deep Links mit ?server=...&invite=... Parametern).
+ */
+export interface ExchangeInviteInput {
+  /** Der Invite-Code zum Eintauschen */
+  inviteCode: string;
+  /**
+   * Optionale Server-URL für den Exchange.
+   * Falls angegeben, wird eine temporäre API-Instanz für diesen Server erstellt.
+   * Falls nicht angegeben, wird der aktuell aktive Server verwendet.
+   */
+  serverUrl?: string;
+}
 
 /**
  * Hook für Invite-Code Exchange
@@ -47,12 +67,30 @@ import { SERVER_QUERY_KEYS } from './query-keys';
 export const useExchangeInvite = () => {
   const queryClient = useQueryClient();
 
-  return useMutation<AuthControllerExchangeInvite200Response, ResponseError, string>({
-    mutationFn: async (inviteCode: string) => {
-      logger.debug('Exchanging invite code', { inviteCode });
+  return useMutation<AuthControllerExchangeInvite200Response, ResponseError, ExchangeInviteInput>({
+    mutationFn: async ({ inviteCode, serverUrl }: ExchangeInviteInput) => {
+      logger.debug('Exchanging invite code', { inviteCode, serverUrl: serverUrl ?? '(active server)' });
+
+      // Falls serverUrl angegeben, temporäre API-Instanz erstellen
+      // Wichtig für Deep Links: ?server=https://...&invite=INV_xxx
+      // Der Exchange muss gegen den Ziel-Server gehen, nicht den aktiven
+      let authApi: AuthApi;
+
+      if (serverUrl) {
+        // Temporäre Configuration für den Ziel-Server
+        const tempConfig = new Configuration({
+          basePath: serverUrl.endsWith('/') ? serverUrl.slice(0, -1) : serverUrl,
+          credentials: 'include',
+        });
+        authApi = new AuthApi(tempConfig);
+        logger.debug('Using temporary AuthApi for target server', { serverUrl });
+      } else {
+        // Fallback auf den aktuell aktiven Server
+        authApi = api.auth();
+      }
 
       // API gibt wrapped response zurück: { data: { accessToken, serverInfo }, meta }
-      const response = await api.auth().authControllerExchangeInvite({
+      const response = await authApi.authControllerExchangeInvite({
         exchangeInviteDto: { inviteCode },
       });
 

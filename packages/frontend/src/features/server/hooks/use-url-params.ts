@@ -28,8 +28,17 @@ import { useExchangeInvite } from '@/features/server/api/mutations';
 import { Route } from '@/routes/__root';
 import { logger } from '@/shared/lib/logger';
 import { useNavigate } from '@tanstack/react-router';
-import { useEffect, useRef } from 'react';
+import { useCallback, useEffect, useRef } from 'react';
 import { toast } from 'sonner';
+
+/**
+ * Hilfsfunktion um leere/whitespace-only Strings als falsy zu behandeln.
+ * @param value - Der zu prüfende String
+ * @returns true wenn der String nicht-leer ist (nach trim)
+ */
+function hasValue(value: string | undefined): value is string {
+  return Boolean(value?.trim());
+}
 
 /**
  * Return Value für useUrlParams Hook.
@@ -95,16 +104,39 @@ export interface UseUrlParamsResult {
  * ```
  */
 export function useUrlParams(): UseUrlParamsResult {
-  const search = Route.useSearch(); // Type-safe validated params from __root.tsx
-  const navigate = useNavigate();
+  // Type assertion needed because TanStack Router's complex generics
+  // don't always infer correctly from validateSearch schema
+  const search = Route.useSearch() as { server?: string; invite?: string };
+  const navigate = useNavigate({ from: Route.fullPath });
   const exchangeInvite = useExchangeInvite();
 
   // Track processing state to prevent multiple exchanges
+  // Issue #4 Fix: Separates Tracking für "versucht" vs "erfolgreich"
   const hasProcessedRef = useRef(false);
 
-  // State for return value
-  const prefillServerUrl = search.server && !search.invite ? search.server : null;
+  // Trimmed values für konsistente Empty-String Behandlung (Issue #1)
+  const serverUrl = search?.server?.trim() || undefined;
+  const inviteCode = search?.invite?.trim() || undefined;
+
+  // State for return value - nur prefill wenn NICHT leer nach trim
+  const prefillServerUrl = hasValue(serverUrl) && !hasValue(inviteCode) ? serverUrl : null;
   const error = exchangeInvite.isError ? (exchangeInvite.error as Error) : null;
+
+  // Issue #5: Cleanup-Funktion um URL-Params bei Unmount zu entfernen
+  const cleanupUrlParams = useCallback(async () => {
+    // Nur cleanup wenn wir URL-Params hatten
+    if (hasValue(serverUrl) || hasValue(inviteCode)) {
+      try {
+        await navigate({
+          to: '.',
+          search: { server: undefined, invite: undefined }, // Entferne alle URL-Parameter
+          replace: true, // Replace statt push um History clean zu halten
+        });
+      } catch {
+        // Navigation bei Unmount kann fehlschlagen - ignorieren
+      }
+    }
+  }, [navigate, serverUrl, inviteCode]);
 
   useEffect(() => {
     // Fire-and-forget pattern: async IIFE without await in cleanup
@@ -114,60 +146,86 @@ export function useUrlParams(): UseUrlParamsResult {
         return;
       }
 
-      // Skip if no parameters present
-      if (!search.server && !search.invite) {
+      // Issue #1 Fix: Skip if no NON-EMPTY parameters present
+      if (!hasValue(serverUrl) && !hasValue(inviteCode)) {
         return;
       }
 
       // AC2: Fallback - Only server parameter (no invite)
-      if (search.server && !search.invite) {
+      if (hasValue(serverUrl) && !hasValue(inviteCode)) {
         logger.debug('URL params: server-only mode (prefill)', {
-          server: search.server,
+          server: serverUrl,
         });
         return; // No exchange, just prefill
       }
 
       // AC1: Both parameters present → Auto-Exchange
-      if (search.server && search.invite) {
+      if (hasValue(serverUrl) && hasValue(inviteCode)) {
         logger.debug('URL params: auto-exchange mode', {
-          server: search.server,
-          invite: search.invite,
+          server: serverUrl,
+          invite: inviteCode,
         });
 
-        // Mark as processed BEFORE async operation
+        // Issue #4 Fix: Markiere als "in Bearbeitung" aber NICHT als final processed
+        // Das Flag wird erst nach ERFOLG gesetzt
         hasProcessedRef.current = true;
 
+        // Loading Toast mit ID für späteres Dismiss
+        const toastId = toast.loading('Verbinde mit Server...', {
+          description: 'Tausche Einladungscode ein',
+        });
+
         try {
-          // Show loading toast
-          toast.loading('Verbinde mit Server...', {
-            description: 'Tausche Einladungscode ein',
+          // Issue #2 Fix: Übergebe serverUrl an die Mutation
+          // Der Exchange geht jetzt an den richtigen Ziel-Server aus den URL-Params
+          await exchangeInvite.mutateAsync({
+            inviteCode: inviteCode,
+            serverUrl: serverUrl,
           });
 
-          // Call exchange mutation (Story 2.4)
-          // NOTE: addServer() is called in mutation's onSuccess callback (AC5)
-          await exchangeInvite.mutateAsync(search.invite);
+          // Dismiss loading toast
+          toast.dismiss(toastId);
 
           // AC3: Navigate to login screen and clean URL
           await navigate({
             to: '/auth',
-            search: {}, // Remove parameters from URL
+            search: { server: undefined, invite: undefined }, // Remove parameters from URL
           });
 
           logger.info('URL params: exchange successful, navigating to /auth');
-        } catch (error) {
+
+          // Erfolgsmeldung
+          toast.success('Verbindung erfolgreich', {
+            description: 'Server wurde hinzugefügt',
+          });
+        } catch (err) {
+          // Dismiss loading toast
+          toast.dismiss(toastId);
+
+          // Issue #4 Fix: Bei Fehler Flag zurücksetzen damit Retry möglich ist
+          hasProcessedRef.current = false;
+
           // AC4: Error handling
-          const errorMessage = error instanceof Error ? error.message : 'Unbekannter Fehler';
+          const errorMessage = err instanceof Error ? err.message : 'Unbekannter Fehler';
 
           logger.error('URL params: exchange failed', {
             error: errorMessage,
           });
 
-          // Toast notification (mutation already shows error toast in onError)
-          // Don't duplicate - just log for debugging
+          // Issue #3 Fix: Error Toast anzeigen
+          toast.error('Verbindung fehlgeschlagen', {
+            description: errorMessage,
+          });
         }
       }
     })();
-  }, [search, navigate, exchangeInvite]);
+
+    // Issue #5 Fix: Cleanup bei Unmount (z.B. Back-Button)
+    return () => {
+      // Fire-and-forget cleanup - keine await nötig
+      cleanupUrlParams();
+    };
+  }, [serverUrl, inviteCode, navigate, exchangeInvite, cleanupUrlParams]);
 
   return {
     prefillServerUrl,

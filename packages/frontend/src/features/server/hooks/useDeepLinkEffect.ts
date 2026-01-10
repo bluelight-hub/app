@@ -82,7 +82,11 @@ export function useDeepLinkEffect() {
         }
 
         // Exchange Invite Code (API Call)
-        const result = await exchangeInvite.mutateAsync(params.inviteCode);
+        // Issue #2 Fix: Übergebe serverUrl damit Exchange gegen richtigen Server geht
+        const result = await exchangeInvite.mutateAsync({
+          inviteCode: params.inviteCode,
+          serverUrl: params.serverUrl ?? undefined, // Convert null to undefined
+        });
 
         // Extract server name from response
         const serverName = result.data.serverInfo.name;

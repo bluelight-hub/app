@@ -176,7 +176,7 @@ describe('ServerSetupForm', () => {
 
       // Then (Assert)
       await waitFor(() => {
-        expect(screen.getByText(/Ungültige URL/i)).toBeInTheDocument();
+        expect(screen.getByText(/Ungültige Server-URL/i)).toBeInTheDocument();
       });
     });
   });
@@ -196,7 +196,7 @@ describe('ServerSetupForm', () => {
 
       // Then (Assert)
       await waitFor(() => {
-        expect(screen.getByText(/Ungültige URL/i)).toBeInTheDocument();
+        expect(screen.getByText(/Ungültige Server-URL/i)).toBeInTheDocument();
       });
     });
 
@@ -209,12 +209,12 @@ describe('ServerSetupForm', () => {
       const inviteCodeInput = screen.getByLabelText(/Einladungscode/i);
 
       // When (Act)
-      await user.type(inviteCodeInput, 'INV_123');
+      await user.type(inviteCodeInput, 'ABC123');
       await user.tab(); // Trigger blur
 
       // Then (Assert)
       await waitFor(() => {
-        expect(screen.getByText(/mindestens 8 Zeichen/i)).toBeInTheDocument();
+        expect(screen.getByText(/exakt 8 Zeichen/i)).toBeInTheDocument();
       });
     });
 
@@ -232,7 +232,7 @@ describe('ServerSetupForm', () => {
 
       // Then (Assert)
       await waitFor(() => {
-        expect(screen.queryByText(/Ungültige URL/i)).not.toBeInTheDocument();
+        expect(screen.queryByText(/Ungültige Server-URL/i)).not.toBeInTheDocument();
       });
     });
 
@@ -245,12 +245,12 @@ describe('ServerSetupForm', () => {
       const inviteCodeInput = screen.getByLabelText(/Einladungscode/i);
 
       // When (Act)
-      await user.type(inviteCodeInput, 'INV_12345678');
+      await user.type(inviteCodeInput, 'ABC12345');
       await user.tab(); // Trigger blur
 
       // Then (Assert)
       await waitFor(() => {
-        expect(screen.queryByText(/mindestens 8 Zeichen/i)).not.toBeInTheDocument();
+        expect(screen.queryByText(/exakt 8 Zeichen/i)).not.toBeInTheDocument();
       });
     });
   });
@@ -268,12 +268,15 @@ describe('ServerSetupForm', () => {
 
       // When (Act)
       await user.type(serverUrlInput, 'https://api.example.de');
-      await user.type(inviteCodeInput, 'INV_12345678');
+      await user.type(inviteCodeInput, 'ABC12345');
       await user.click(submitButton);
 
       // Then (Assert)
       await waitFor(() => {
-        expect(mockMutateAsync).toHaveBeenCalledWith('INV_12345678');
+        expect(mockMutateAsync).toHaveBeenCalledWith({
+          inviteCode: 'ABC12345',
+          serverUrl: 'https://api.example.de',
+        });
       });
     });
 
@@ -289,7 +292,7 @@ describe('ServerSetupForm', () => {
 
       // When (Act)
       await user.type(serverUrlInput, 'invalid-url');
-      await user.type(inviteCodeInput, 'INV_12345678');
+      await user.type(inviteCodeInput, 'ABC12345');
       await user.click(submitButton);
 
       // Then (Assert)
@@ -308,7 +311,7 @@ describe('ServerSetupForm', () => {
 
       // When (Act)
       await user.type(serverUrlInput, 'https://api.example.de');
-      await user.type(inviteCodeInput, 'INV_12345678');
+      await user.type(inviteCodeInput, 'ABC12345');
       await user.click(submitButton);
 
       // Then (Assert)
@@ -329,7 +332,7 @@ describe('ServerSetupForm', () => {
 
       // When (Act)
       await user.type(serverUrlInput, 'https://api.example.de');
-      await user.type(inviteCodeInput, 'INV_12345678');
+      await user.type(inviteCodeInput, 'ABC12345');
       await user.click(submitButton);
 
       // Then (Assert)
@@ -371,7 +374,7 @@ describe('ServerSetupForm', () => {
 
       // When (Act)
       await user.type(serverUrlInput, 'https://api.example.de');
-      await user.type(inviteCodeInput, 'INV_12345678');
+      await user.type(inviteCodeInput, 'ABC12345');
       await user.click(submitButton);
 
       // Then (Assert)
@@ -395,7 +398,7 @@ describe('ServerSetupForm', () => {
 
       // When (Act)
       await user.type(serverUrlInput, 'https://api.example.de');
-      await user.type(inviteCodeInput, 'INV_12345678');
+      await user.type(inviteCodeInput, 'ABC12345');
       await user.click(submitButton);
 
       // Then (Assert)
@@ -468,7 +471,7 @@ describe('ServerSetupForm', () => {
 
       // Then (Assert)
       await waitFor(() => {
-        const errorMessage = screen.getByText(/Ungültige URL/i);
+        const errorMessage = screen.getByText(/Ungültige Server-URL/i);
         expect(errorMessage).toHaveClass('text-red-600');
       });
     });
