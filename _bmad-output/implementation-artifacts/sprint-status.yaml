@@ -58,15 +58,15 @@ development_status:
   # ═══════════════════════════════════════════════════════════════════════════
   # EPIC 2: Client-Onboarding & Server-Verbindung
   # ═══════════════════════════════════════════════════════════════════════════
-  epic-2: in-progress
+  epic-2: done # All stories completed, Retrospective done (2026-01-11)
   2-1-platform-storage-adapter: done # Code Review approved - 48 Tests passing (2026-01-08)
   2-2-server-store-persistence: done # Code Review complete - All 8 issues fixed (2026-01-08)
-  2-3-invite-code-exchange-endpoint: review # Implementation complete - 41 tests, all ACs validated (2026-01-08)
-  2-4-deep-link-integration-desktop: review # Implementation complete (2026-01-09) - 25 tests passing, Tasks 1-5,7 done
-  2-5-web-url-parameter-support: backlog
-  2-6-manuelles-server-setup-formular: backlog
-  2-7-onboarding-error-handling-browser-warnung: backlog
-  epic-2-retrospective: optional
+  2-3-invite-code-exchange-endpoint: done # Implementation complete - 41 tests, all ACs validated (2026-01-08)
+  2-4-deep-link-integration-desktop: done # Implementation complete (2026-01-09) - 51 tests passing
+  2-5-web-url-parameter-support: done # Code Review complete (2026-01-10) - 60+ tests, 7 issues fixed
+  2-6-manuelles-server-setup-formular: done # Code Review complete (2026-01-11) - 17 Issues fixed (3C, 7H, 7M)
+  2-7-onboarding-error-handling-browser-warnung: done # Code Review complete (2026-01-11) - 166 tests, 7 issues fixed
+  epic-2-retrospective: done # Retrospektive completed (2026-01-11)
 
   # ═══════════════════════════════════════════════════════════════════════════
   # EPIC 3: Server-Auswahl & -Management
